@@ -1,0 +1,28 @@
+# Dependencies and tool caches
+node_modules/
+.pnpm-store/
+.cache/
+.vite/
+
+# Regenerable build and verification output
+/build/
+/dist/
+coverage/
+playwright-report/
+test-results/
+
+# Local temporary files and logs
+/tmp/
+*.log
+*.tmp
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Local environment and secrets; keep secret-free examples
+.env
+.env.*
+!.env.example
+!.env.*.example
+/secrets/

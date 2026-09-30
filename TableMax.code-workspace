@@ -1,0 +1,57 @@
+{
+  "folders": [
+    {
+      "name": "TableMax",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.git": true,
+      "**/node_modules": true,
+      "**/.pnpm-store": true,
+      "**/.cache": true,
+      "**/.vite": true,
+      "build": true,
+      "dist": true,
+      "tmp": true,
+      "**/coverage": true,
+      "**/playwright-report": true,
+      "**/test-results": true,
+      "**/*.log": true,
+      "**/*.tmp": true,
+      "**/*.swp": true,
+      "**/*~": true,
+      "**/.DS_Store": true,
+      "**/Thumbs.db": true
+    },
+    "search.exclude": {
+      "**/.git": true,
+      "**/node_modules": true,
+      "**/.pnpm-store": true,
+      "**/.cache": true,
+      "**/.vite": true,
+      "build": true,
+      "dist": true,
+      "tmp": true,
+      "**/coverage": true,
+      "**/playwright-report": true,
+      "**/test-results": true,
+      "**/*.log": true
+    },
+    "files.watcherExclude": {
+      "**/.git/**": true,
+      "**/node_modules/**": true,
+      "**/.pnpm-store/**": true,
+      "**/.cache/**": true,
+      "**/.vite/**": true,
+      "build/**": true,
+      "dist/**": true,
+      "tmp/**": true,
+      "**/coverage/**": true,
+      "**/playwright-report/**": true,
+      "**/test-results/**": true,
+      "**/*.log": true
+    }
+  }
+}
