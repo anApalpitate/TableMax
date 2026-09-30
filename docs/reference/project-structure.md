@@ -10,7 +10,7 @@
 | `.gitignore` | 依赖、缓存、日志、临时文件、可再生文件及本地秘密的忽略规则 |
 | `package.json`、`pnpm-workspace.yaml`、`pnpm-lock.yaml`、`.npmrc` | 固定工具链、工作区依赖、安装策略和真实工程命令 |
 | `.node-version`、`tsconfig.json`、`eslint.config.mjs`、Prettier／EditorConfig 配置 | 开发运行时版本、严格类型、静态检查、统一排版与保存格式化 |
-| `electron-builder.yml`、`scripts/` | 网页／服务／桌面构建、运行时准备、开发与启动、便携打包、跨层验证 |
+| `electron-builder.yml`、`scripts/` | 网页／服务／桌面构建、运行时准备、开发与启动、便携打包、跨层验证；`verify-prototype.mjs` 负责独立原型走查 |
 | `apps/desktop/` | Electron 主进程、窗口与独立服务生命周期 |
 | `apps/server/` | HTTP、Socket.IO、构建后网页、本地二维码与 SQLite 工程验证适配器 |
 | `apps/web/` | 单一 React 网页工程，公共屏／手机／管理工程验证页面；独立 `prototype.html` 与 `src/prototype/` 为第二阶段合成交互原型，不进入正式构建 |
@@ -19,7 +19,7 @@
 | `games/README.md` | 每款游戏独立目录的约定；未建立宝可梦或空游戏工程 |
 | `docs/README.md` | 按任务意图组织文档入口 |
 | `docs/requirements/` | 产品需求基线；原有需求文档已移入，正文保持不变 |
-| `docs/reference/` | 当前目录职责、通用规则及后续操作说明 |
+| `docs/reference/` | 当前目录与工程边界、开发操作及验证记录、维护规则、第二阶段通用交互与交接规格 |
 | `docs/decisions/` | 已确定的重要选择、理由与后果；已有工程基础技术方向决策，产品决策引用需求与用户最新指示 |
 | `docs/tasks/` | 粗粒度开发阶段与实施任务；已有阶段总览及第一、二阶段任务文档，第二阶段另有来源核验记录，执行状态分别记录 |
 | `docs/archive/` | 有历史价值的过程材料；目前仅有索引，无归档材料 |
@@ -28,7 +28,7 @@
 
 第一阶段已确认采用需求第 6.3 节的组织方向：`apps/` 划分桌面壳、服务端和单一网页工程，`packages/` 承载共享契约与平台模块，`games/` 承载独立游戏模块。每款游戏集中在 `games/<游戏标识>/`，内部区分规则、公共屏 UI、手机 UI、资源和验证，规则与客户端入口分开。桌面壳启动独立服务进程；公共屏、手机端和房主管理在同一网页工程中分开入口与布局。采用依据见 [工程基础技术决策](../decisions/001-engineering-foundation.md)。
 
-上表列出的工程已创建并完成第一阶段验证，具体依赖方向与机制归属见 [代码结构与工程边界](architecture.md)。`packages/platform-core/` 与 `packages/ui/` 尚未创建，平台业务机制与独立通用 UI 包按实际需要在后续阶段建立。工程基础验证不表示大厅、身份、游戏或恢复能力已经实现，完成证据见 [阶段任务](../tasks/phase-01-engineering-foundation.md)。
+上表列出的结构均已创建。第一阶段工程基础已验证，第二阶段另已交付独立合成原型及通用规格，其完整游戏交付仍受规则关口约束。具体依赖方向与机制归属见 [代码结构与工程边界](architecture.md)。`packages/platform-core/` 与 `packages/ui/` 尚未创建，平台业务机制与独立通用 UI 包按实际需要在后续阶段建立。工程基础和原型验证不表示大厅、身份、游戏或恢复能力已经实现；证据分别见 [第一阶段任务](../tasks/phase-01-engineering-foundation.md)、[第二阶段任务](../tasks/phase-02-rules-and-interaction.md)。
 
 游戏规则研究、扩展指南和资源整理时，按实际工作建立对应主题目录并更新索引。[第二阶段任务](../tasks/phase-02-rules-and-interaction.md) 已列出游戏主题计划去向；规则关口尚未通过，`docs/games/`、`docs/game-development/` 等仍未创建。当前检索记录放在任务分类，已明确的通用规格合并到 [第二阶段平台规格](phase-02-platform-spec.md)。游戏标识在版本确认后确定，并与后续源码模块一致；已有需求原件统一存放在 `docs/requirements/`，不在根目录保留副本。
 
@@ -39,6 +39,7 @@
 - 长期需求、规则规格、来源清单和必要游戏资源属于项目资料；放入对应主题，不混入临时目录。
 - 本地实验、临时导出或下载中间文件可放入根目录 `tmp/`（需要时创建）；不作为长期资料入口。
 - 根目录 `build/` 已用于可再生构建中间物，`dist/` 为保留的构建排除项。工程验证便携包、截图与 JSON 证据保存在 `artifacts/phase-01/`；第二阶段原型构建、检索原始响应和走查证据在 `artifacts/phase-02/`。这些文件 Git 忽略但文件树保持可见；正式产品交付策略在第六阶段确认。
+- `artifacts/phase-02/prototype/` 是可再生原型构建，`verification/` 是对应走查证据，`research/` 是已保存的检索响应与哈希清单。资料是否可再生分别判断，不能因同在 artifacts 下就覆盖或删除原始响应。路径与命令见开发说明，资料适用性见 [规则核验记录](../tasks/phase-02-rule-research.md)。
 - 原始规则资料、数据、正式资源和最终交付物不按扩展名笼统忽略；是否提交按实际用途、来源与需要决定。
 - 运行数据默认放在系统当前用户 `LOCALAPPDATA` 下的 `TableMax/`，具体位置和验证覆盖方式见 [开发说明](development.md)。当前仅有工程验证数据库，不在仓库内生成玩家存档或秘密状态。
 - 忽略规则不是删除授权；已有资料不自动迁移、重命名或取消跟踪。

@@ -1,5 +1,7 @@
 # 文档索引
 
+当前第一阶段已完成，第二阶段进行中、规则关口未通过。通用规格与独立原型已有交付，游戏专属规则、数据、权限与流程仍待目标版原文；具体证据和待办以阶段任务为准。
+
 | 想做什么 | 阅读入口 |
 | --- | --- |
 | 确认产品范围、首版目标或验收标准 | [需求基线 v1.0](requirements/TableMax_需求文档_v1.0.md) |
@@ -9,11 +11,11 @@
 | 查当前参考知识与操作说明 | [参考索引](reference/README.md) |
 | 查已确定的重要选择与依据 | [决策索引](decisions/README.md)；当前产品决策见需求第 2 节 |
 | 查粗粒度开发阶段与主要任务 | [任务索引](tasks/README.md) |
-| 开展技术栈确认、环境配置与代码结构设计 | [第一阶段任务](tasks/phase-01-engineering-foundation.md) |
+| 查已完成的技术栈、环境配置与工程基础证据 | [第一阶段任务](tasks/phase-01-engineering-foundation.md) |
 | 核验首版规则、卡牌、信息权限与回退，设计交互和资源方案 | [第二阶段任务](tasks/phase-02-rules-and-interaction.md) |
 | 查看第二阶段来源检索结果和关键规则缺口 | [规则核验记录](tasks/phase-02-rule-research.md) |
-| 运行第二阶段原型、查通用权限／恢复交互及后续交接 | [通用交互与交接规格](reference/phase-02-platform-spec.md) |
-| 配置开发环境、运行和构建工程 | [开发环境与验证](reference/development.md) |
+| 查第二阶段通用权限／恢复交互、资源方案、场景及后续交接 | [通用交互与交接规格](reference/phase-02-platform-spec.md) |
+| 配置开发环境，运行、构建与验证工程或独立原型 | [开发环境与验证](reference/development.md) |
 | 查源码依赖方向、进程与游戏契约边界 | [代码结构与工程边界](reference/architecture.md) |
 | 追溯历史过程 | [归档索引](archive/README.md) |
 

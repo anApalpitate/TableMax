@@ -17,7 +17,22 @@
 | S09 | [英文玩法介绍](https://www.jestatharogue.com/game-reviews/how-to-play-paper-safari-pikachu-friends/)、[普通 Paper Safari 条目](https://boardgamegeek.com/boardgame/39534/paper-safari)，英文／不同版本 | 前者描述三轮总分，后者描述先赢三轮；尚无目标原文裁定                                                                                                | 二手介绍／社区条目；整局胜利方式存在待处理冲突                                         |
 | S10 | [简体版销售索引](https://www.jd.com/jiage/6233efcf3350764175bb.html?brand=ASMODEE&electedExtAttrSet=&extAttrValue=expand_name%2C&sort_type=sort_default)，中文                                         | 索引含“ASMODEE宝可梦奇遇 简体中文版”商品名称                                                                                                        | 零售索引；辅助定位语言和商品，不能核验规则                                             |
 
-获取日期均为 2026-10-01。HTML 原始响应及 SHA-256 清单位于本地 `artifacts/phase-02/research/`，详见该目录的 `manifest.json`；HTTP 失败页面仅保留为访问结果，不冒充规则原文。检索词覆盖中文说明书／规则书／勘误、韩文说明书／规则与英文宝可梦版规则文件。未发送邮件或向外部账号发布消息。
+以上来源的检索日期均为 2026-10-01，部分仅取得入口或搜索索引。检索词覆盖中文说明书／规则书／勘误、韩文说明书／规则与英文宝可梦版规则文件。未发送邮件或向外部账号发布消息。
+
+## 实际保存的响应与复查
+
+本地 `artifacts/phase-02/research/manifest.json` 记录六份响应的来源 ID、实际请求 URL、HTTP 状态、字节数和 SHA-256。十类检索来源不等于十份原文；已保存的文件如下：
+
+| 来源 ID | 文件（均在 `artifacts/phase-02/research/`） | HTTP 状态 | 证据范围 |
+| --- | --- | --- | --- |
+| S01 | `asmodee-shop.html` | 200 | 实际请求 `/shop` 的目录响应，不含目标规则全文 |
+| S01 | `asmodee-search.html` | 200 | 实际请求 `/shop?search=宝可梦` 的搜索响应；与上表中文目录入口区分 |
+| S07 | `asmodee-launch.html` | 200 | 搜狐商品概览；文件名不表示已核实发行方身份 |
+| S06 | `retailer.html` | 200 | 零售页面与机器翻译讨论入口，不是规则原文 |
+| S03 | `bgg-original.html` | 403 | 访问失败响应，不含已取得的普通版规则书 |
+| S06 | `bgg-translated.html` | 403 | 访问失败响应，不含已取得的翻译正文或原图 |
+
+复查时按清单 URL 与状态区分来源、访问结果和可用于核验的正文，并核对文件字节数及哈希；HTTP 200 也不代表完整规则已取得。其他来源仅在上表记录检索结果，没有对应本地原文文件。现有响应保留并在文件树可见，不能以重新请求覆盖原证据。取得真正规则书后补独立文件记录，不将失败页改标为原文。
 
 ## 尚未解决的关口
 

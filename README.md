@@ -8,7 +8,7 @@
 
 第一阶段工程基础已完成：React／TypeScript 网页、Electron 桌面壳、独立本地服务、SQLite 工程验证适配器和固定工具链均已建立，Windows x64 便携 ZIP 已在本机通过解压运行验证。
 
-当前提供公共屏、手机端和管理端的工程验证页面，尚未实现大厅、身份、回退恢复或首版游戏。[第二阶段：规则与交互准备](docs/tasks/phase-02-rules-and-interaction.md) 正在进行：已建立[通用交互规格与独立可点击原型](docs/reference/phase-02-platform-spec.md)，但目标版完整规则与卡牌原文仍有[核验缺口](docs/tasks/phase-02-rule-research.md)，第二阶段尚未完成。第一阶段完成证据见 [阶段任务](docs/tasks/phase-01-engineering-foundation.md)。
+当前正式入口提供公共屏、手机端和管理端的工程验证页面，尚未实现大厅、身份、回退恢复或首版游戏。[第二阶段：规则与交互准备](docs/tasks/phase-02-rules-and-interaction.md) 正在进行：已建立[通用交互规格与独立可点击原型](docs/reference/phase-02-platform-spec.md)，并完成合成 UI 的 9 组自动走查；目标简体中文版的完整规则与卡牌原文仍有[核验缺口](docs/tasks/phase-02-rule-research.md)。规则关口未通过，完整游戏规格尚未冻结，第二阶段尚未完成。第一阶段完成证据见 [阶段任务](docs/tasks/phase-01-engineering-foundation.md)。
 
 ## 开发与验证
 
@@ -40,7 +40,9 @@ pnpm verify:portable
 - [目录职责](docs/reference/project-structure.md)：现有目录与未来内容的边界。
 - [开发阶段与任务](docs/tasks/README.md)：粗粒度阶段、主要任务与交付物。
 - [第一阶段任务](docs/tasks/phase-01-engineering-foundation.md)：技术栈确认、环境配置、代码结构设计及完成标准。
-- [第二阶段任务](docs/tasks/phase-02-rules-and-interaction.md)：规则与卡牌核验、信息权限和决策点、交互草图、资源清单、验证场景及交接标准。
+- [第二阶段任务](docs/tasks/phase-02-rules-and-interaction.md)：已交付范围、规则关口、完成标准及取得原文后的接续工作。
+- [规则来源与核验缺口](docs/tasks/phase-02-rule-research.md)：已检索来源、实际保存的响应、未解决问题及资料需求。
+- [通用交互与交接规格](docs/reference/phase-02-platform-spec.md)：已选大厅交互、权限与恢复语义、资源方案、AC 场景及第三至五阶段输入。
 - [工程基础决策](docs/decisions/001-engineering-foundation.md)：已采用技术、固定版本及重要取舍。
 - [工程结构](docs/reference/architecture.md)：依赖方向、游戏契约、授权视图与后续恢复机制边界。
 - [开发环境与验证](docs/reference/development.md)：安装、命令、数据位置和本机验证证据。
@@ -59,12 +61,15 @@ TableMax/
   apps/
     desktop/                 窗口与独立服务生命周期
     server/                  本地服务、资源与数据库适配
-    web/                     三类入口的单一网页工程
+    web/                     三类正式入口的单一网页工程
+      prototype.html         独立原型入口
+      vite.prototype.config.ts
+      src/prototype/         合成交互原型，不进入正式构建
   packages/
     protocol/                类型与运行时消息校验
     game-sdk/                纯类型初始游戏契约
   games/README.md            游戏目录约定，尚无游戏实现
-  scripts/                  构建、启动、打包与验证
+  scripts/                  构建、启动、打包与桌面／原型验证
   docs/
     README.md
     requirements/TableMax_需求文档_v1.0.md
@@ -74,6 +79,7 @@ TableMax/
       project-structure.md
       architecture.md
       development.md
+      phase-02-platform-spec.md
     decisions/
       README.md
       001-engineering-foundation.md
@@ -81,7 +87,11 @@ TableMax/
       README.md
       phase-01-engineering-foundation.md
       phase-02-rules-and-interaction.md
+      phase-02-rule-research.md
     archive/README.md
+  artifacts/                本地产物，Git 忽略但文件树可见
+    phase-01/               工程便携包与跨层验证
+    phase-02/               原型构建、来源响应与走查证据
 ```
 
 文档随实现同步维护。较大任务完成并通过相关验证后自动提交，默认不 push。
@@ -90,4 +100,4 @@ TableMax/
 
 执行 `pnpm prototype:dev` 后打开 `http://127.0.0.1:5174/prototype.html`。原型包含通用大厅、角色视图、提交反馈、暂停、回退、换手机绑定和恢复提示；均为合成 UI 状态，具体游戏区域等待规则核验，不连接真实服务或存档。
 
-`pnpm prototype:build` 构建到 `artifacts/phase-02/prototype/`；`pnpm prototype:preview` 在本地 4174 端口预览；`pnpm prototype:verify` 用现有 Playwright／隐藏 Electron 窗口走查并生成截图和 JSON 证据。原型独立于正常桌面构建，说明见 [通用规格](docs/reference/phase-02-platform-spec.md)。
+先执行 `pnpm prototype:build`，再执行 `pnpm prototype:preview` 或 `pnpm prototype:verify`。构建输出到 `artifacts/phase-02/prototype/`，预览入口为 `http://127.0.0.1:4174/prototype.html`；走查使用现有 Playwright／隐藏 Electron 窗口，在 `artifacts/phase-02/verification/` 生成六张截图与 JSON 记录。命令前提、端口和验证限制见 [开发说明](docs/reference/development.md)，设计行为见 [通用规格](docs/reference/phase-02-platform-spec.md)。
