@@ -13,6 +13,7 @@
 3. 查目录归属读 [目录职责](docs/reference/project-structure.md)；更新文档读 [维护规则](docs/reference/maintenance.md)。
 4. 查重要选择读 [决策索引](docs/decisions/README.md)，查开发阶段与待办读 [任务索引](docs/tasks/README.md)；下一阶段的范围和完成标准见 [第二阶段：规则与交互准备](docs/tasks/phase-02-rules-and-interaction.md)。仅追溯历史时读 [归档索引](docs/archive/README.md)。
 5. 运行与验证读 [开发环境](docs/reference/development.md)，修改源码边界读 [工程结构](docs/reference/architecture.md)；已确认技术方向见 [工程基础决策](docs/decisions/001-engineering-foundation.md)。
+6. 第二阶段通用原型与交接查 [通用规格](docs/reference/phase-02-platform-spec.md)，规则原文缺口查 [核验记录](docs/tasks/phase-02-rule-research.md)；原型不是正式游戏或授权实现。
 
 ## 工作约定
 

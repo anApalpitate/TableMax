@@ -8,7 +8,7 @@
 
 第一阶段工程基础已完成：React／TypeScript 网页、Electron 桌面壳、独立本地服务、SQLite 工程验证适配器和固定工具链均已建立，Windows x64 便携 ZIP 已在本机通过解压运行验证。
 
-当前提供公共屏、手机端和管理端的工程验证页面，尚未实现大厅、身份、回退恢复或首版游戏。[第二阶段：规则与交互准备](docs/tasks/phase-02-rules-and-interaction.md) 已制定范围与完成标准，待执行对应版本的规则、卡牌、权限、回退和交互核验。第一阶段完成证据见 [阶段任务](docs/tasks/phase-01-engineering-foundation.md)。
+当前提供公共屏、手机端和管理端的工程验证页面，尚未实现大厅、身份、回退恢复或首版游戏。[第二阶段：规则与交互准备](docs/tasks/phase-02-rules-and-interaction.md) 正在进行：已建立[通用交互规格与独立可点击原型](docs/reference/phase-02-platform-spec.md)，但目标版完整规则与卡牌原文仍有[核验缺口](docs/tasks/phase-02-rule-research.md)，第二阶段尚未完成。第一阶段完成证据见 [阶段任务](docs/tasks/phase-01-engineering-foundation.md)。
 
 ## 开发与验证
 
@@ -85,3 +85,9 @@ TableMax/
 ```
 
 文档随实现同步维护。较大任务完成并通过相关验证后自动提交，默认不 push。
+
+## 第二阶段交互原型
+
+执行 `pnpm prototype:dev` 后打开 `http://127.0.0.1:5174/prototype.html`。原型包含通用大厅、角色视图、提交反馈、暂停、回退、换手机绑定和恢复提示；均为合成 UI 状态，具体游戏区域等待规则核验，不连接真实服务或存档。
+
+`pnpm prototype:build` 构建到 `artifacts/phase-02/prototype/`；`pnpm prototype:preview` 在本地 4174 端口预览；`pnpm prototype:verify` 用现有 Playwright／隐藏 Electron 窗口走查并生成截图和 JSON 证据。原型独立于正常桌面构建，说明见 [通用规格](docs/reference/phase-02-platform-spec.md)。

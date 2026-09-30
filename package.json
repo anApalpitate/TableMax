@@ -21,7 +21,11 @@
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "verify:desktop": "node scripts/verify-desktop.mjs",
     "package:win": "node scripts/package.mjs",
-    "verify:portable": "node scripts/verify-desktop.mjs --portable"
+    "verify:portable": "node scripts/verify-desktop.mjs --portable",
+    "prototype:dev": "vite --config apps/web/vite.prototype.config.ts",
+    "prototype:build": "vite build --config apps/web/vite.prototype.config.ts",
+    "prototype:preview": "vite preview --config apps/web/vite.prototype.config.ts",
+    "prototype:verify": "node scripts/verify-prototype.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

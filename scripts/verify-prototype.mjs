@@ -1,0 +1,403 @@
+import assert from 'node:assert/strict';
+import { _electron } from 'playwright';
+import { preview } from 'vite';
+import { createRequire } from 'node:module';
+import { mkdir, mkdtemp, writeFile, readFile, readdir } from 'node:fs/promises';
+import { resolve, join } from 'node:path';
+
+const require = createRequire(import.meta.url);
+const output = resolve('artifacts/phase-02/verification');
+await mkdir(output, { recursive: true });
+await mkdir('tmp', { recursive: true });
+const work = await mkdtemp(resolve('tmp/prototype-verify-'));
+const entry = join(work, 'main.cjs');
+await writeFile(
+  entry,
+  `const { app, BrowserWindow } = require('electron');
+app.whenReady().then(async () => {
+  const window = new BrowserWindow({ show: false, width: 1280, height: 900,
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true } });
+  await window.loadURL(process.env.TABLEMAX_PROTOTYPE_URL);
+});
+app.on('window-all-closed', () => app.quit());\n`,
+);
+
+const server = await preview({
+  configFile: resolve('apps/web/vite.prototype.config.ts'),
+  preview: { host: '127.0.0.1', port: 0, strictPort: false, open: false },
+});
+const address = server.httpServer.address();
+assert.ok(address && typeof address !== 'string');
+const origin = `http://127.0.0.1:${address.port}`;
+const env = {
+  ...process.env,
+  TABLEMAX_PROTOTYPE_URL: `${origin}/prototype.html`,
+};
+delete env.ELECTRON_RUN_AS_NODE;
+delete env.NODE_PATH;
+let desktop;
+const evidence = {
+  date: new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date()),
+  verifiedAt: new Date().toISOString(),
+  scope: 'Synthetic UI prototype only; no product AC or game rules verified',
+  checks: [],
+  screenshots: [],
+  externalRequests: [],
+  consoleErrors: [],
+};
+try {
+  const files = await readdir(resolve('artifacts/phase-02/prototype'));
+  assert.ok(files.includes('prototype.html'));
+  assert.ok(
+    !files.includes('index.html'),
+    'Prototype output must not include the production entry',
+  );
+  assert.equal((await fetch(`${origin}/api/foundation/health`)).status, 404);
+  evidence.checks.push('Independent build and preview, no production API');
+  desktop = await _electron.launch({
+    executablePath: require('electron'),
+    args: [entry],
+    env,
+    timeout: 30_000,
+  });
+  const page = await desktop.firstWindow();
+  // Reload after installing observation to include all document/assets requests.
+  page.on('request', (request) => {
+    if (new URL(request.url()).origin !== origin)
+      evidence.externalRequests.push(request.url());
+  });
+  page.on('pageerror', (error) => evidence.consoleErrors.push(error.message));
+  await page.reload();
+  await page
+    .getByRole('heading', { name: '先让大家连接同一张桌子。' })
+    .waitFor();
+  const role = page.getByLabel('角色', { exact: true });
+  const screen = page.getByLabel('页面', { exact: true });
+  const window = await desktop.browserWindow(page);
+  async function resize(width, height) {
+    await window.evaluate(
+      (window, size) => window.setContentSize(size.width, size.height),
+      { width, height },
+    );
+    await page.waitForFunction(
+      (size) => innerWidth === size.width && innerHeight === size.height,
+      { width, height },
+    );
+    await page.evaluate(
+      () =>
+        new Promise((fulfill) =>
+          requestAnimationFrame(() => requestAnimationFrame(fulfill)),
+        ),
+    );
+  }
+  async function capture(name, width, height) {
+    await resize(width, height);
+    await page.evaluate(() => {
+      document.activeElement?.blur();
+      scrollTo(0, 0);
+    });
+    await page.evaluate(
+      () =>
+        new Promise((fulfill) =>
+          requestAnimationFrame(() => requestAnimationFrame(fulfill)),
+        ),
+    );
+    const png = await window.evaluate(async (window) =>
+      (
+        await window.webContents.capturePage(undefined, {
+          stayHidden: true,
+          stayAwake: true,
+        })
+      )
+        .toPNG()
+        .toString('base64'),
+    );
+    assert.ok(png.length > 1000);
+    await writeFile(join(output, `${name}.png`), Buffer.from(png, 'base64'));
+    evidence.screenshots.push({
+      file: `${name}.png`,
+      width,
+      height,
+      deviceScaleFactor: await page.evaluate(() => devicePixelRatio),
+    });
+  }
+  await capture('host-setup', 1280, 900);
+  await screen.selectOption('lobby');
+  await page
+    .getByRole('button', { name: '关闭新玩家加入', exact: true })
+    .click();
+  await role.selectOption('player');
+  await page.getByLabel('昵称', { exact: true }).fill('小林');
+  assert.equal(
+    await page
+      .getByRole('button', { name: '取得座位（模拟）', exact: true })
+      .isEnabled(),
+    false,
+  );
+  await role.selectOption('host');
+  await page.getByRole('button', { name: '重新开放加入' }).click();
+  await page.getByRole('button', { name: '上移座位 S2' }).click();
+  assert.ok(
+    (await page.locator('.seat-list li').first().textContent()).includes('S2'),
+  );
+  await role.selectOption('player');
+  await page
+    .getByRole('button', { name: '取得座位（模拟）', exact: true })
+    .click();
+  await page
+    .getByRole('status')
+    .filter({ hasText: '已有同名玩家，请用座位 S3 区分' })
+    .waitFor();
+  await page.getByRole('button', { name: '我已准备', exact: true }).click();
+  assert.ok(
+    (await page.locator('.seat-list li').last().textContent()).includes(
+      '已准备',
+    ),
+  );
+  await capture('player-lobby-360', 360, 800);
+  evidence.checks.push(
+    'Lobby duplicate name, joining closed/open, stable seat ID after reorder, player ready',
+  );
+
+  await screen.selectOption('session');
+  const choose = page.getByRole('button', { name: '选项 A', exact: true });
+  const submit = page.getByRole('button', {
+    name: '提交示例选择',
+    exact: true,
+  });
+  await choose.click();
+  await submit.click();
+  assert.equal(await submit.isEnabled(), false);
+  await capture('player-submitting-390', 390, 844);
+  await page.getByRole('button', { name: '模拟拒绝', exact: true }).click();
+  assert.match(await page.getByTestId('submission').textContent(), /被拒绝/);
+  await choose.click();
+  await submit.click();
+  await page.getByRole('button', { name: '模拟确认丢失', exact: true }).click();
+  assert.equal(await choose.isEnabled(), false);
+  assert.match(await page.getByTestId('submission').textContent(), /结果未知/);
+  await page.getByRole('button', { name: '模拟完整同步', exact: true }).click();
+  assert.equal(await submit.isEnabled(), false);
+  assert.equal(await choose.getAttribute('aria-pressed'), 'false');
+  await choose.click();
+  await submit.click();
+  await page.getByRole('button', { name: '模拟保存确认', exact: true }).click();
+  assert.match(
+    await page.getByTestId('submission').textContent(),
+    /已保存并确认/,
+  );
+  evidence.checks.push(
+    'Submission lock, reject/reselect, uncertain result blocks new action, sync clears selection, save confirmation',
+  );
+
+  await choose.click();
+  await page.getByRole('button', { name: '模拟掉线', exact: true }).click();
+  assert.equal(await submit.isEnabled(), false);
+  await page
+    .getByRole('button', { name: '模拟重连并同步', exact: true })
+    .click();
+  assert.equal(await choose.getAttribute('aria-pressed'), 'false');
+  await role.selectOption('host');
+  await page.getByRole('button', { name: '暂停对局', exact: true }).click();
+  await role.selectOption('player');
+  assert.equal(await choose.isEnabled(), false);
+  assert.equal(
+    await page.getByRole('button', { name: '暂停对局', exact: true }).count(),
+    0,
+  );
+  await role.selectOption('host');
+  await page.getByRole('button', { name: '恢复对局', exact: true }).click();
+  await page
+    .getByRole('button', { name: '选择决策点回退', exact: true })
+    .click();
+  await page.keyboard.press('Escape');
+  assert.equal(await page.getByRole('dialog').count(), 0);
+  await page
+    .getByRole('button', { name: '选择决策点回退', exact: true })
+    .click();
+  await page
+    .getByRole('dialog')
+    .getByText(/已有信息可能被看见/)
+    .waitFor();
+  await capture('host-rollback', 1280, 900);
+  await page
+    .getByRole('button', { name: '确认回退（模拟）', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: '选择决策点回退', exact: true })
+    .click();
+  await page.getByLabel('目标决策点').selectOption('决策示例 A 之前');
+  await page
+    .getByRole('button', { name: '确认回退（模拟）', exact: true })
+    .click();
+  assert.match(await page.getByTestId('revision').textContent(), /分支 3/);
+  const revision = await page.getByTestId('revision').textContent();
+  await page
+    .getByRole('button', { name: '模拟旧分支迟到动作', exact: true })
+    .click();
+  assert.equal(await page.getByTestId('revision').textContent(), revision);
+  await page
+    .getByRole('button', { name: '确认换手机绑定', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: '确认重新绑定（模拟）', exact: true })
+    .click();
+  await page.getByRole('status').filter({ hasText: '原凭证失效' }).waitFor();
+  evidence.checks.push(
+    'Disconnect/sync, pause/resume views, rollback warning and monotonic synthetic branch, stale-action feedback, rebind confirmation',
+  );
+
+  await role.selectOption('public');
+  assert.equal(
+    await page
+      .getByRole('button', { name: '提交示例选择', exact: true })
+      .count(),
+    0,
+  );
+  assert.equal(
+    await page
+      .getByRole('button', { name: '选择决策点回退', exact: true })
+      .count(),
+    0,
+  );
+  assert.equal(
+    await page
+      .getByRole('button', { name: '试听示例音', exact: true })
+      .isEnabled(),
+    false,
+  );
+  await page.getByRole('button', { name: '启用提示音', exact: true }).click();
+  await page.getByRole('button', { name: '试听示例音', exact: true }).waitFor();
+  await page.getByRole('button', { name: '静音', exact: true }).click();
+  assert.equal(
+    await page
+      .getByRole('button', { name: '试听示例音', exact: true })
+      .isEnabled(),
+    false,
+  );
+  await capture('public-session-1920', 1920, 1080);
+  await role.selectOption('player');
+  assert.equal(
+    await page.getByRole('button', { name: '启用提示音', exact: true }).count(),
+    0,
+  );
+  evidence.checks.push(
+    'Product-view role controls separated, public-only sound enable/mute; real authorization not tested',
+  );
+
+  await role.selectOption('host');
+  await screen.selectOption('recovery');
+  await page
+    .getByRole('button', { name: '查看版本不兼容提示', exact: true })
+    .click();
+  await page
+    .getByRole('heading', { name: '存档版本不兼容', exact: true })
+    .waitFor();
+  await page.getByLabel('异常类型').selectOption('corrupt');
+  await page.getByText('原存档保留，未修改或覆盖。', { exact: true }).waitFor();
+  await capture('host-save-error', 1280, 900);
+  await screen.selectOption('recovery');
+  await page.getByRole('button', { name: '模拟恢复存档', exact: true }).click();
+  await page
+    .getByRole('button', { name: '模拟重连并同步', exact: true })
+    .click();
+  await page.getByRole('button', { name: '结束当前对局', exact: true }).click();
+  await page
+    .getByRole('button', { name: '确认结束（模拟）', exact: true })
+    .click();
+  await page
+    .getByRole('heading', { name: '这场相聚，告一段落。', exact: true })
+    .waitFor();
+  evidence.checks.push(
+    'Recovery, incompatible/corrupt copy, host termination flow; no actual persistence tested',
+  );
+
+  await screen.selectOption('setup');
+  await page.getByLabel('网卡地址').selectOption('172.20.0.1');
+  await page
+    .getByText('http://172.20.0.1:38473/player', { exact: true })
+    .waitFor();
+  await page.getByRole('button', { name: '查看连接帮助', exact: true }).click();
+  await page
+    .getByRole('heading', { name: '手机暂时无法连接', exact: true })
+    .waitFor();
+  await page.getByLabel('异常类型').selectOption('port');
+  await page
+    .getByRole('heading', { name: '本地服务未能启动', exact: true })
+    .waitFor();
+  evidence.checks.push(
+    'Example adapter selection, network help, explicit port conflict feedback',
+  );
+
+  for (const width of [360, 390]) {
+    await resize(width, 844);
+    for (const viewer of ['host', 'public', 'player']) {
+      await role.selectOption(viewer);
+      for (const view of [
+        'setup',
+        'lobby',
+        'session',
+        'result',
+        'recovery',
+        'error',
+      ]) {
+        await screen.selectOption(view);
+        const overflow = await page.evaluate(
+          () => document.documentElement.scrollWidth > innerWidth,
+        );
+        assert.equal(overflow, false, `${viewer}/${view} must fit ${width}px`);
+        const smallTargets = await page
+          .locator('main button, main input, main select')
+          .evaluateAll((elements) =>
+            elements
+              .filter((element) => element.getBoundingClientRect().height < 44)
+              .map((element) => element.textContent),
+          );
+        assert.deepEqual(
+          smallTargets,
+          [],
+          `${viewer}/${view} touch targets must be at least 44px tall`,
+        );
+      }
+    }
+  }
+  evidence.checks.push(
+    'All 6 pages × 3 roles at 360/390px, no horizontal overflow, 44px touch target height',
+  );
+  assert.deepEqual(
+    evidence.externalRequests,
+    [],
+    'Prototype runtime requests must stay local',
+  );
+  assert.deepEqual(evidence.consoleErrors, []);
+  const html = await readFile(
+    resolve('artifacts/phase-02/prototype/prototype.html'),
+    'utf8',
+  );
+  assert.ok(!html.includes('socket.io'));
+  evidence.checks.push(
+    'All observed runtime requests local, no browser page errors',
+  );
+  evidence.passed = true;
+  console.log(
+    `Prototype verified: ${evidence.checks.length} groups. Evidence: artifacts/phase-02/verification/prototype.json`,
+  );
+} catch (error) {
+  evidence.passed = false;
+  evidence.failure = String(error);
+  throw error;
+} finally {
+  await writeFile(
+    join(output, 'prototype.json'),
+    JSON.stringify(evidence, null, 2) + '\n',
+  );
+  if (desktop) await desktop.close();
+  await new Promise((fulfill, reject) =>
+    server.httpServer.close((error) => (error ? reject(error) : fulfill())),
+  );
+}
