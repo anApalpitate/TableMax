@@ -1,0 +1,13 @@
+{
+  "name": "@tablemax/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@tablemax/protocol": "workspace:*",
+    "@fastify/static": "10.1.5",
+    "fastify": "5.12.5",
+    "qrcode": "1.5.4",
+    "socket.io": "4.8.4"
+  }
+}

@@ -1,0 +1,12 @@
+node_modules
+.pnpm-store
+.cache
+build
+dist
+artifacts
+tmp
+coverage
+test-results
+playwright-report
+pnpm-lock.yaml
+docs

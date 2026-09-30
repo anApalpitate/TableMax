@@ -12,6 +12,7 @@
 2. 按任务阅读需求的相关章节、所需主题页和对应源文件，不默认遍历全部资料或生成物。
 3. 查目录归属读 [目录职责](docs/reference/project-structure.md)；更新文档读 [维护规则](docs/reference/maintenance.md)。
 4. 查重要选择读 [决策索引](docs/decisions/README.md)，查开发阶段与待办读 [任务索引](docs/tasks/README.md)；当前第一阶段的范围和完成标准见 [工程基础阶段](docs/tasks/phase-01-engineering-foundation.md)。仅追溯历史时读 [归档索引](docs/archive/README.md)。
+5. 运行与验证读 [开发环境](docs/reference/development.md)，修改源码边界读 [工程结构](docs/reference/architecture.md)；已确认技术方向见 [工程基础决策](docs/decisions/001-engineering-foundation.md)。
 
 ## 工作约定
 
@@ -20,6 +21,8 @@
 - 区分必须满足的产品要求、技术建议和已实现行为；技术建议不自动成为已确定方案。
 - 游戏开发前核验对应版本的规则原文、卡牌数据、信息权限和决策点；未核实内容不能写成确定规则。
 - 保持服务端权威、按身份投影秘密信息、决策点回退及持久化恢复的边界；正式运行所需资源本地打包。
+- 前端采用 React／TypeScript；桌面通过独立服务进程访问平台，三类界面共用网页工程但分开入口与授权视图。游戏规则独立于 UI、通信、数据库和 Electron，每款游戏集中在 `games/<id>/`。
+- 项目工具版本与依赖锁定在仓库内，保存时使用项目 Prettier 配置格式化；源码修改按影响执行真实工程检查，不修改其他项目的全局环境。
 - 验证与影响范围相匹配；仅文档和配置调整时检查链接、配置与 diff，不机械运行无关测试或构建。
 - 原始资料与最终产物即使被 Git 忽略，也保持文件树可见；Git 忽略、文件树隐藏、搜索排除和监听排除分别维护。忽略不代表允许删除。
 

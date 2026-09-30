@@ -10,6 +10,7 @@ node_modules/
 coverage/
 playwright-report/
 test-results/
+/artifacts/
 
 # Local temporary files and logs
 /tmp/

@@ -1,0 +1,18 @@
+appId: local.tablemax.desktop
+productName: TableMax
+electronVersion: 44.5.1
+asar: true
+npmRebuild: false
+directories:
+  output: ../../artifacts/phase-01
+files:
+  - main.cjs
+  - server.cjs
+  - web/**/*
+  - package.json
+win:
+  target:
+    - target: zip
+      arch: x64
+  signAndEditExecutable: false
+artifactName: TableMax-${version}-win-x64.zip

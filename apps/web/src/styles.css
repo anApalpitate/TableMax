@@ -1,0 +1,266 @@
+:root {
+  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  color: #173b32;
+  background: #f4f3ed;
+  font-synthesis: none;
+  line-height: 1.6;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+a {
+  color: inherit;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button,
+.button {
+  min-height: 46px;
+  padding: 10px 20px;
+  background: #1d4d40;
+  color: #fff;
+  border: 0;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid #bd7b30;
+  outline-offset: 4px;
+}
+.shell {
+  max-width: 1160px;
+  margin: auto;
+  padding: 32px 48px;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 23px;
+  font-weight: 750;
+  text-decoration: none;
+}
+.brand-mark {
+  display: grid;
+  place-items: center;
+  background: #1d4d40;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 24px;
+}
+.connection {
+  font-size: 13px;
+  padding: 6px 12px;
+  border: 1px solid #d8ddd5;
+  border-radius: 20px;
+  background: #fff;
+}
+.online::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: #358254;
+}
+.intro {
+  padding: 64px 0 36px;
+}
+.eyebrow {
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  color: #61796b;
+  margin: 0 0 10px;
+}
+h1 {
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1.25;
+  letter-spacing: -0.04em;
+  margin: 0 0 18px;
+}
+h2 {
+  font-size: 23px;
+  line-height: 1.35;
+  margin: 0 0 14px;
+}
+.description,
+.muted {
+  color: #65766c;
+  font-size: 14px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+}
+.card {
+  border: 1px solid #e0e4da;
+  border-radius: 18px;
+  padding: 28px;
+  background: #fff;
+}
+.status-card {
+  background: #e9eee4;
+}
+.checks {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+}
+.checks li {
+  display: flex;
+  justify-content: space-between;
+  padding: 13px 0;
+  border-top: 1px solid #d5dfd0;
+  font-size: 14px;
+}
+.checks strong {
+  color: #2a7047;
+}
+.runtime {
+  font-size: 11px;
+  color: #61796b;
+  margin-top: 22px;
+  overflow-wrap: anywhere;
+}
+label {
+  display: block;
+  font-size: 13px;
+  margin: 15px 0 7px;
+}
+input,
+select {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #c9d4c8;
+  border-radius: 8px;
+  color: #173b32;
+  background: white;
+  min-width: 0;
+}
+.qr {
+  display: block;
+  width: 146px;
+  height: 146px;
+  margin: 20px auto;
+}
+.secondary {
+  background: #edf1e9;
+  color: #1d4d40;
+  display: block;
+}
+.echo-card {
+  grid-column: 1 / -1;
+}
+.echo-row {
+  display: flex;
+  gap: 12px;
+}
+.echo-row button {
+  flex-shrink: 0;
+}
+.echo-result {
+  font-size: 13px;
+  color: #61796b;
+  min-height: 22px;
+  overflow-wrap: anywhere;
+}
+footer {
+  display: flex;
+  justify-content: space-between;
+  color: #78877c;
+  font-size: 11px;
+  margin-top: 30px;
+}
+.error {
+  color: #9b302f;
+  background: #fff0eb;
+  padding: 12px;
+  border-radius: 8px;
+}
+.public .grid {
+  grid-template-columns: 1fr;
+}
+.public .intro {
+  padding-top: 100px;
+}
+.public h1 {
+  font-size: clamp(40px, 5vw, 70px);
+}
+.public .checks {
+  display: flex;
+  gap: 32px;
+}
+.public .checks li {
+  flex: 1;
+}
+.player {
+  max-width: 620px;
+}
+.player .grid {
+  grid-template-columns: 1fr;
+}
+@media (max-width: 680px) {
+  .shell {
+    padding: max(24px, env(safe-area-inset-top)) 20px
+      max(24px, env(safe-area-inset-bottom));
+  }
+  header {
+    flex-wrap: wrap;
+  }
+  .brand {
+    font-size: 21px;
+  }
+  .connection {
+    font-size: 11px;
+  }
+  .intro,
+  .public .intro {
+    padding-top: 44px;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .card {
+    padding: 22px;
+  }
+  .echo-row {
+    flex-direction: column;
+  }
+  .public .checks {
+    display: block;
+  }
+  footer {
+    display: block;
+  }
+  footer span {
+    display: block;
+    margin-top: 5px;
+  }
+}

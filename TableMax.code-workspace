@@ -2,10 +2,16 @@
   "folders": [
     {
       "name": "TableMax",
-      "path": "."
-    }
+      "path": ".",
+    },
   ],
+  "extensions": {
+    "recommendations": ["esbenp.prettier-vscode", "dbaeumer.vscode-eslint"],
+  },
   "settings": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "explorer.excludeGitIgnore": false,
     "files.exclude": {
       "**/.git": true,
       "**/node_modules": true,
@@ -23,9 +29,10 @@
       "**/*.swp": true,
       "**/*~": true,
       "**/.DS_Store": true,
-      "**/Thumbs.db": true
+      "**/Thumbs.db": true,
     },
     "search.exclude": {
+      "artifacts": true,
       "**/.git": true,
       "**/node_modules": true,
       "**/.pnpm-store": true,
@@ -37,9 +44,10 @@
       "**/coverage": true,
       "**/playwright-report": true,
       "**/test-results": true,
-      "**/*.log": true
+      "**/*.log": true,
     },
     "files.watcherExclude": {
+      "artifacts/**": true,
       "**/.git/**": true,
       "**/node_modules/**": true,
       "**/.pnpm-store/**": true,
@@ -51,7 +59,7 @@
       "**/coverage/**": true,
       "**/playwright-report/**": true,
       "**/test-results/**": true,
-      "**/*.log": true
-    }
-  }
+      "**/*.log": true,
+    },
+  },
 }
