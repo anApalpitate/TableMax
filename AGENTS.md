@@ -4,14 +4,14 @@
 
 为自己和朋友开发 Windows 局域网全数字桌游平台：电脑运行服务和公共屏，玩家通过手机网页操作，首版完整支持《宝可梦奇遇：皮卡丘和朋友们》。
 
-需求与范围以 [需求基线](TableMax_需求文档_v1.0.md) 和用户最新明确指示为准。当前实现状态见 [项目说明](README.md)。
+需求与范围以 [需求基线](docs/requirements/TableMax_需求文档_v1.0.md) 和用户最新明确指示为准。当前实现状态见 [项目说明](README.md)。
 
 ## 阅读入口
 
 1. 先读本文件和 [文档索引](docs/README.md)，检查 Git 状态及相关 diff。
 2. 按任务阅读需求的相关章节、所需主题页和对应源文件，不默认遍历全部资料或生成物。
 3. 查目录归属读 [目录职责](docs/reference/project-structure.md)；更新文档读 [维护规则](docs/reference/maintenance.md)。
-4. 查重要选择读 [决策索引](docs/decisions/README.md)，查待办读 [任务索引](docs/tasks/README.md)；仅追溯历史时读 [归档索引](docs/archive/README.md)。
+4. 查重要选择读 [决策索引](docs/decisions/README.md)，查开发阶段与待办读 [任务索引](docs/tasks/README.md)；当前第一阶段的范围和完成标准见 [工程基础阶段](docs/tasks/phase-01-engineering-foundation.md)。仅追溯历史时读 [归档索引](docs/archive/README.md)。
 
 ## 工作约定
 
