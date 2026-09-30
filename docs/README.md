@@ -10,6 +10,7 @@
 | 查已确定的重要选择与依据 | [决策索引](decisions/README.md)；当前产品决策见需求第 2 节 |
 | 查粗粒度开发阶段与主要任务 | [任务索引](tasks/README.md) |
 | 开展技术栈确认、环境配置与代码结构设计 | [第一阶段任务](tasks/phase-01-engineering-foundation.md) |
+| 核验首版规则、卡牌、信息权限与回退，设计交互和资源方案 | [第二阶段任务](tasks/phase-02-rules-and-interaction.md) |
 | 配置开发环境、运行和构建工程 | [开发环境与验证](reference/development.md) |
 | 查源码依赖方向、进程与游戏契约边界 | [代码结构与工程边界](reference/architecture.md) |
 | 追溯历史过程 | [归档索引](archive/README.md) |

@@ -8,7 +8,7 @@
 
 第一阶段工程基础已完成：React／TypeScript 网页、Electron 桌面壳、独立本地服务、SQLite 工程验证适配器和固定工具链均已建立，Windows x64 便携 ZIP 已在本机通过解压运行验证。
 
-当前提供公共屏、手机端和管理端的工程验证页面，尚未实现大厅、身份、回退恢复或首版游戏。下一阶段核验对应版本的游戏规则、卡牌与交互，见 [开发阶段](docs/tasks/README.md)。第一阶段完成证据见 [阶段任务](docs/tasks/phase-01-engineering-foundation.md)。
+当前提供公共屏、手机端和管理端的工程验证页面，尚未实现大厅、身份、回退恢复或首版游戏。[第二阶段：规则与交互准备](docs/tasks/phase-02-rules-and-interaction.md) 已制定范围与完成标准，待执行对应版本的规则、卡牌、权限、回退和交互核验。第一阶段完成证据见 [阶段任务](docs/tasks/phase-01-engineering-foundation.md)。
 
 ## 开发与验证
 
@@ -40,6 +40,7 @@ pnpm verify:portable
 - [目录职责](docs/reference/project-structure.md)：现有目录与未来内容的边界。
 - [开发阶段与任务](docs/tasks/README.md)：粗粒度阶段、主要任务与交付物。
 - [第一阶段任务](docs/tasks/phase-01-engineering-foundation.md)：技术栈确认、环境配置、代码结构设计及完成标准。
+- [第二阶段任务](docs/tasks/phase-02-rules-and-interaction.md)：规则与卡牌核验、信息权限和决策点、交互草图、资源清单、验证场景及交接标准。
 - [工程基础决策](docs/decisions/001-engineering-foundation.md)：已采用技术、固定版本及重要取舍。
 - [工程结构](docs/reference/architecture.md)：依赖方向、游戏契约、授权视图与后续恢复机制边界。
 - [开发环境与验证](docs/reference/development.md)：安装、命令、数据位置和本机验证证据。
@@ -79,6 +80,7 @@ TableMax/
     tasks/
       README.md
       phase-01-engineering-foundation.md
+      phase-02-rules-and-interaction.md
     archive/README.md
 ```
 
