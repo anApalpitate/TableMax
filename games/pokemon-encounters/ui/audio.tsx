@@ -15,9 +15,11 @@ const sources = {
 export function SoundControl({
   feedback,
   errorId,
+  compact = false,
 }: {
   feedback: RoomFeedback | null;
   errorId: string;
+  compact?: boolean;
 }) {
   const [enabled, setEnabled] = useState(false);
   const last = useRef('');
@@ -55,6 +57,7 @@ export function SoundControl({
     <button
       className="secondary sound-control"
       aria-pressed={enabled}
+      aria-label={enabled ? '提示音已开启 · 静音' : '开启本屏提示音'}
       onClick={() => {
         if (enabled) {
           player.current?.pause();
@@ -71,7 +74,13 @@ export function SoundControl({
         }
       }}
     >
-      {enabled ? '提示音已开启 · 静音' : '开启本屏提示音'}
+      {compact
+        ? enabled
+          ? '声音：开'
+          : '声音：关'
+        : enabled
+          ? '提示音已开启 · 静音'
+          : '开启本屏提示音'}
     </button>
   );
 }

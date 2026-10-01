@@ -40,6 +40,9 @@ button.card-slot:disabled {
   background: linear-gradient(145deg, #edf6df, #f8e7c3);
   border: 1px solid #d8d6bd;
   color: #173b32;
+  box-shadow:
+    0 3px 0 #95896640,
+    0 5px 9px #253b2b1c;
 }
 .pokemon-card > img {
   position: absolute;
@@ -77,6 +80,9 @@ button.card-slot:disabled {
   line-height: 1.3;
   font-weight: 700;
   text-align: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 .ability-mark {
   position: absolute;
@@ -203,7 +209,7 @@ button.card-slot:disabled {
   padding-top: 8px;
   border-top: 1px solid #dfe5d6;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
 }
 .submit-choice p {
@@ -212,7 +218,62 @@ button.card-slot:disabled {
   min-height: 24px;
 }
 .submit-choice button {
-  padding: 10px 4px;
+  padding: 10px 14px;
+}
+.decision-hint {
+  font-size: 12px;
+  color: #527050;
+  margin: 8px 0;
+}
+.pokemon-player > h3 {
+  display: none;
+}
+.win-track {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+.win-pips {
+  display: inline-flex;
+  gap: 3px;
+}
+.win-pips i {
+  font-style: normal;
+  color: #abb69b;
+}
+.win-pips i.earned {
+  color: #a97114;
+  text-shadow: 0 1px 0 #ffe9a2;
+}
+.draw-pile {
+  display: block;
+  width: 100%;
+  padding: 0;
+  color: #173b32;
+  background: none;
+  border-radius: 10px;
+  position: relative;
+}
+.draw-pile:not(:disabled) {
+  outline: 2px solid #ae7b26;
+  outline-offset: 3px;
+}
+.draw-pile:not(:disabled):hover {
+  transform: translateY(-3px);
+}
+.draw-pile:disabled {
+  opacity: 1;
+}
+.pile-action {
+  display: block;
+  font-size: 10px;
+  color: #6e581d;
+  line-height: 1.5;
+  margin-top: 5px;
+}
+.waiting-turn {
+  font-size: 12px;
+  color: #527050;
 }
 .target-board {
   background: #eaf0e0;
@@ -242,6 +303,10 @@ button.card-slot:disabled {
 .score-detail p {
   margin: 5px 0;
 }
+.score-detail details {
+  margin-top: 2px;
+  text-align: left;
+}
 .public-log ol {
   margin: 0;
   padding-left: 24px;
@@ -259,6 +324,30 @@ button.card-slot:disabled {
 }
 .saved-result .score-detail {
   animation: saved-result 240ms ease-out;
+}
+.saved-coin {
+  animation: saved-coin 480ms ease-out;
+}
+.saved-result .winner-emblem {
+  animation: earned-star 380ms ease-out;
+}
+@keyframes saved-coin {
+  from {
+    transform: translateY(-12px) rotateY(360deg) scale(0.75);
+  }
+  to {
+    transform: translateY(0) rotateY(0) scale(1);
+  }
+}
+@keyframes earned-star {
+  from {
+    transform: scale(0.6) rotate(-24deg);
+    opacity: 0.3;
+  }
+  to {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
 }
 @keyframes saved-card {
   from {
@@ -278,252 +367,17 @@ button.card-slot:disabled {
     transform: scale(1);
   }
 }
-.active-game.shell {
-  max-width: 1780px;
-  padding: 20px 28px;
-}
-.active-game .hero {
-  padding: 12px 20px;
-  gap: 22px;
-  margin-top: 16px;
-}
-.active-game .hero > img {
-  width: 90px;
-  max-height: 64px;
-  object-fit: cover;
-}
-.active-game .hero h1 {
-  font-size: 26px;
-  margin: 0;
-}
-.active-game .hero .eyebrow {
-  display: none;
-}
-.active-game .hero p {
-  margin: 2px 0;
-  font-size: 13px;
-}
-.active-game .hero .tag {
-  display: none;
-}
-.active-game .seats {
-  grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
-  gap: 14px;
-}
-.active-game .stage {
-  padding: 20px;
-}
-.active-game .seat {
-  padding: 12px;
-  border-radius: 16px;
-}
-.active-game .avatar {
-  width: 34px;
-  height: 34px;
-  float: left;
-}
-.active-game .seat h3 {
-  font-size: 16px;
-  margin: 0;
-}
-.active-game .seat > p {
-  margin: 2px 0 8px;
-}
-.player.active-game.shell {
-  max-width: 900px;
-}
-.player.active-game .seats {
-  grid-template-columns: 1fr;
-}
-.player.active-game .seat {
-  display: block;
-  text-align: center;
-  max-width: 480px;
-  margin: auto;
-  width: 100%;
-}
-.player.active-game .card-value {
-  font-size: 30px;
-}
-.player.active-game .avatar {
-  float: none;
-  width: 40px;
-  height: 40px;
-}
-@media (min-width: 1500px) {
-  .active-game .seats {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-  .active-game .grid {
-    grid-template-columns: minmax(0, 1fr) 270px;
-  }
-  .active-game .controls {
-    padding: 18px;
-  }
-}
-@media (max-width: 700px) {
-  .player.active-game header {
-    margin-bottom: 8px;
-  }
-  .player.active-game .feedback {
-    margin: 8px 0;
-    font-size: 12px;
-  }
-  .player.active-game .stage > h2 {
-    display: none;
-  }
-  .player.active-game .seat > p {
-    font-size: 12px;
-    margin: 2px 0 4px;
-  }
-  .player.active-game .pokemon-player > .tag {
-    font-size: 12px;
-    padding: 4px 10px;
-  }
-  .player.active-game .pokemon-status {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 8px;
-  }
-  .player.active-game .pokemon-status h2 {
-    font-size: 16px;
-  }
-  .player.active-game .pokemon-status .eyebrow {
-    font-size: 11px;
-  }
-  .player.active-game .pokemon-status p {
-    font-size: 12px;
-  }
-  .player.active-game .pokemon-status .card-piles {
-    align-items: center;
-    gap: 6px;
-  }
-  .player.active-game .pokemon-status .card-piles > div {
-    width: 36px;
-  }
-  .player.active-game .pokemon-player {
-    padding-bottom: 130px;
-  }
-  .player.active-game .seat > .avatar {
-    display: none;
-  }
-  .player.active-game .pokemon-status .empty-pile {
-    height: 64px;
-  }
-  .player.active-game .pokemon-status .card-name {
-    font-size: 9px;
-  }
-  .player.active-game .pokemon-status .card-value {
-    font-size: 20px;
-    min-width: 24px;
-    min-height: 24px;
-  }
-  .player.active-game .seat > h3 {
-    font-size: 16px;
-  }
-  .player.active-game .pokemon-board {
-    margin: 12px 0;
-  }
-  .player.active-game .hero {
-    display: none;
-  }
-  .player.active-game .submit-choice {
-    position: fixed;
-    left: 12px;
-    right: 12px;
-    bottom: max(8px, env(safe-area-inset-bottom));
-    max-width: 456px;
-    margin: auto;
-    background: #fffaf0;
-    padding: 10px;
-    z-index: 3;
-    border-radius: 12px;
-    box-shadow: 0 -4px 12px #173b3212;
-  }
-  .player.active-game .card-slot {
-    scroll-margin-bottom: 150px;
-  }
-  .player.active-game .avatar {
-    width: 32px;
-    height: 32px;
-    grid-row: auto;
-  }
-  .active-game.shell {
-    padding: 14px 12px calc(18px + env(safe-area-inset-bottom));
-  }
-  .active-game .hero {
-    margin: 12px 0;
-    padding: 12px;
-    gap: 12px;
-  }
-  .active-game .hero > img {
-    width: 54px;
-    height: 54px;
-  }
-  .active-game .hero h1 {
-    font-size: 20px;
-  }
-  .active-game .hero p {
-    font-size: 12px;
-  }
-  .active-game .stage {
-    padding: 12px;
-  }
-  .pokemon-status {
-    grid-template-columns: 1fr;
-    padding: 12px;
-    margin-bottom: 14px;
-  }
-  .pokemon-status h2 {
-    font-size: 18px;
-  }
-  .card-piles {
-    justify-content: center;
-    gap: 18px;
-  }
-  .card-piles > div {
-    width: 62px;
-  }
-  .card-piles .card-value {
-    font-size: 22px;
-    min-width: 25px;
-    min-height: 25px;
-  }
-  .card-piles .card-name {
-    font-size: 11px;
-  }
-  .empty-pile {
-    height: 87px;
-  }
-  .pokemon-board {
-    gap: 7px;
-  }
-  .card-name {
-    font-size: 12px;
-  }
-  .active-game .seats {
-    grid-template-columns: 1fr;
-  }
-  .active-game .seat {
-    padding: 10px;
-  }
-  .pokemon-player h3 {
-    margin: 16px 0 10px;
-    font-size: 16px;
-  }
-  .pokemon-player .card-value {
-    font-size: 28px;
-  }
-  .ability-mark {
-    right: 3px;
-    font-size: 13px;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
   .saved-motion,
+  .saved-coin,
+  .saved-result .winner-emblem,
   .saved-result .score-detail {
     animation: none;
   }
   button.card-slot {
     transition: none;
+  }
+  .draw-pile:not(:disabled):hover {
+    transform: none;
   }
 }

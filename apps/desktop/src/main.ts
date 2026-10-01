@@ -178,7 +178,10 @@ async function run() {
 
   const hostWindow = openWindow(`${webOrigin}/host#host=${ready.hostToken}`);
   hostWindow.webContents.on('will-navigate', (event, target) => {
-    if (target === `${webOrigin}/public`) {
+    if (
+      target === `${webOrigin}/public` ||
+      target === `${webOrigin}/public/game`
+    ) {
       event.preventDefault();
       openWindow(target, true);
     }

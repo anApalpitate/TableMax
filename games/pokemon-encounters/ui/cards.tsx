@@ -13,7 +13,14 @@ export function CardFace({ card }: { card: Face | null }) {
     ? images[`../assets/face/${card.categoryId}-v1.webp`]
     : back;
   return (
-    <span className={`pokemon-card ${card ? 'face' : 'back'}`}>
+    <span
+      className={`pokemon-card ${card ? 'face' : 'back'}`}
+      title={
+        card
+          ? `${card.name} · ${card.value ?? '?'}${card.ability ? ` · ${card.ability}` : ''}`
+          : '暗牌'
+      }
+    >
       {image && <img src={image} alt="" draggable={false} />}
       {card ? (
         <>
@@ -66,8 +73,10 @@ export function Board({
               const rect = event.currentTarget.getBoundingClientRect();
               if (
                 bar &&
-                getComputedStyle(document.querySelector('.submit-choice')!)
-                  .position === 'fixed' &&
+                ['fixed', 'sticky'].includes(
+                  getComputedStyle(document.querySelector('.submit-choice')!)
+                    .position,
+                ) &&
                 rect.bottom > bar.top - 8
               )
                 window.scrollBy({

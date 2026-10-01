@@ -142,9 +142,8 @@
   ],
   "formalUsage": {
     "since": "2026-10-01",
-    "consumer": "apps/web/src/App.tsx",
+    "consumer": "apps/web/src/screens/BoxScreen.tsx, apps/web/src/screens/GameScreen.tsx",
     "ids": [
-      "game-cover",
       "dice",
       "avatar-1",
       "avatar-2",
@@ -154,6 +153,13 @@
       "avatar-6"
     ],
     "verification": "artifacts/phase-03-04/verification",
-    "note": "Reuse verified existing art without modifying original files; gameplay components remain separately namespaced."
+    "note": "Reuse verified dice and avatars without modifying their bytes; box and game use the game-specific cover. Prototype-only art remains available to the independent prototype."
+  },
+  "relocation": {
+    "date": "2026-10-01",
+    "from": "apps/web/src/prototype/assets",
+    "to": "apps/web/src/assets/tabletop",
+    "reason": "Shared platform artwork is owned by the production web app; historical source art and evidence remain in place.",
+    "verification": "All sixteen WebP files retain their original Git bytes; import references and prototype CSS are updated."
   }
 }

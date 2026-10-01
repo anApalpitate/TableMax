@@ -6,16 +6,16 @@
 
 复制模板的职责布局到 `games/<id>/`，规则依赖 `@tablemax/game-sdk`，UI 依赖 React 和投影类型。规则、计分、投影、策略和界面独立维护：
 
-| 入口                       | 责任                                                               |
-| -------------------------- | ------------------------------------------------------------------ |
-| `index.ts`                 | 导出规则和策略，由应用注册入口组合                                 |
-| `rules/index.ts`           | manifest、初始化、合法动作、决策列表、原子执行、生命周期与结束判断 |
-| `rules/state.ts`           | 普通 JSON 状态与存档不变量校验，核对平台传入的稳定座位及顺序       |
-| `rules/scoring.ts`         | 独立纯计分与共同赢家解析                                           |
-| `rules/project.ts`         | public／本人投影，不能默认给本人全部暗牌；房主也使用 public        |
-| `assets/` | 游戏独立本地资源与来源清单；模板的 die.svg 是原创装饰，不编码秘密骰子结果 |
-| `bot/index.ts`             | 独立版本的简单策略，只用本人授权输入选择合法意图                   |
-| `ui/public/`、`ui/player/` | 根据投影渲染两端；禁止导入完整规则状态或网络／数据库实现           |
+| 入口                       | 责任                                                                      |
+| -------------------------- | ------------------------------------------------------------------------- |
+| `index.ts`                 | 导出规则和策略，由应用注册入口组合                                        |
+| `rules/index.ts`           | manifest、初始化、合法动作、决策列表、原子执行、生命周期与结束判断        |
+| `rules/state.ts`           | 普通 JSON 状态与存档不变量校验，核对平台传入的稳定座位及顺序              |
+| `rules/scoring.ts`         | 独立纯计分与共同赢家解析                                                  |
+| `rules/project.ts`         | public／本人投影，不能默认给本人全部暗牌；房主也使用 public               |
+| `assets/`                  | 游戏独立本地资源与来源清单；模板的 die.svg 是原创装饰，不编码秘密骰子结果 |
+| `bot/index.ts`             | 独立版本的简单策略，只用本人授权输入选择合法意图                          |
+| `ui/public/`、`ui/player/` | 根据投影渲染两端；禁止导入完整规则状态或网络／数据库实现                  |
 
 SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)` 返回 `{id,seatId}[]`，支持多个初始选择和被动接牌者；平台不把正常回合者当作唯一行动者。`legalActions(state,seatId)` 列举完整合法动作及参数，`validateAction` 验证并规范化意图。`apply` 必须原子完成本选择引发的确定性自动步骤，返回新状态和安全的 **before** 边界标签／揭示提醒。规则自动结算不等待 UI 动效。apply／applyLifecycle 可返回安全 PublicEvent；平台保存成功后另发 room:feedback，UI 按实例／分支／修订去重，完整同步不播放。
 
@@ -29,7 +29,7 @@ SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)
 
 1. 给游戏建立 pnpm 工作区包和 `workspace:*` SDK 依赖，保持版本与锁文件在项目内。
 2. 在 [服务组装](../../apps/server/src/service.ts) 替换规则与策略导入；在 [Worker 注册](../../apps/server/src/bot-worker.ts) 注册同一策略；两个入口必须一致。
-3. 在 [网页入口](../../apps/web/src/App.tsx) 注册该游戏的投影类型、主机／本人组件和帮助。界面不能从规则模块取得秘密状态。模板界面已位于游戏目录，平台仍负责大厅和管理控件。
+3. 在 [牌桌组装入口](../../apps/web/src/screens/GameScreen.tsx) 接入该游戏的授权投影、场景、本人组件和帮助；[App](../../apps/web/src/App.tsx) 仅负责会话与页面组装。界面不能从规则模块取得秘密状态。模板界面已位于游戏目录，平台仍负责大厅和管理控件。
 4. 在游戏内维护逐选择覆盖测试、固定随机输入、权限与规则不变量。修改源码后按 [开发环境](../reference/development.md) 检查和重建；独立 Worker 随桌面构建／便携包本地打包。
 
 `BotStrategy` 声明 `id,version,gameId,rulesVersion`，`validateMemory` 校验普通数据；模板和首版基础策略无记忆，使用 `null`。有记忆的策略需定义可恢复版本及初始 `null` 的转换。`decide` 只接收该座位的投影、合法动作、决策、本人记忆、策略随机源及取消信号，返回 `{action,memory}`。不能读取牌库或别人秘密，不能提交管理动作。选择器输出必须经过平台再次校验；调试权限不扩大策略输入。

@@ -1,19 +1,19 @@
-import landscape from './assets/table-landscape.webp';
-import portrait from './assets/table-portrait.webp';
-import cover from './assets/game-cover.webp';
-import avatar1 from './assets/avatar-1.webp';
-import avatar2 from './assets/avatar-2.webp';
-import avatar3 from './assets/avatar-3.webp';
-import avatar4 from './assets/avatar-4.webp';
-import avatar5 from './assets/avatar-5.webp';
-import avatar6 from './assets/avatar-6.webp';
-import dice from './assets/dice.webp';
-import meeple from './assets/meeple.webp';
-import cards from './assets/cards.webp';
-import chips from './assets/chips.webp';
-import waiting from './assets/status-waiting.webp';
-import offline from './assets/status-offline.webp';
-import recovery from './assets/status-recovery.webp';
+import landscape from '../assets/tabletop/table-landscape.webp';
+import portrait from '../assets/tabletop/table-portrait.webp';
+import cover from '../assets/tabletop/game-cover.webp';
+import avatar1 from '../assets/tabletop/avatar-1.webp';
+import avatar2 from '../assets/tabletop/avatar-2.webp';
+import avatar3 from '../assets/tabletop/avatar-3.webp';
+import avatar4 from '../assets/tabletop/avatar-4.webp';
+import avatar5 from '../assets/tabletop/avatar-5.webp';
+import avatar6 from '../assets/tabletop/avatar-6.webp';
+import dice from '../assets/tabletop/dice.webp';
+import meeple from '../assets/tabletop/meeple.webp';
+import cards from '../assets/tabletop/cards.webp';
+import chips from '../assets/tabletop/chips.webp';
+import waiting from '../assets/tabletop/status-waiting.webp';
+import offline from '../assets/tabletop/status-offline.webp';
+import recovery from '../assets/tabletop/status-recovery.webp';
 
 export const art = {
   landscape,

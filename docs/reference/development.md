@@ -48,7 +48,7 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 | `pnpm test`                         | Vitest 执行核心、真实 Socket.IO、SQLite、强制终止恢复及 Worker 验证                                                          |
 | `pnpm check`                        | 顺序执行类型、静态、格式检查与当前测试                                                                                       |
 | `pnpm build`                        | 构建网页、打包独立服务与桌面主进程到 `build/desktop`                                                                         |
-| `pnpm verify:desktop`               | 隐藏窗口验证开发构建，包括真实大厅、手机／人机模板、回退、两次启动恢复、独立进程与退出协调                                   |
+| `pnpm verify:desktop`               | 隐藏窗口验证开发构建，包括真实大厅、宝可梦五人混合整局、回退、两次启动恢复、独立进程与退出协调                               |
 | `pnpm package:win`                  | 构建并生成 Windows x64 解压运行 ZIP 与 `win-unpacked`                                                                        |
 | `pnpm verify:portable`              | 将最终 ZIP 解压到新的项目临时目录，对其中的 `TableMax.exe` 运行同一跨层验证，子进程 PATH 不含 Node／开发工具目录             |
 | `pnpm prototype:dev`                | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                                  |
@@ -96,29 +96,35 @@ pnpm prototype:verify:game
 
 新报告只声明本次执行的范围。历史证据保留对应构建、日期与限制，不因更新说明或局部补查而改成完整产品验收。
 
+## 当前维护验证
+
+1.0.1 的 `pnpm verify:game-ui` 使用十组真实存档场景，覆盖七组能力／基本选择、跳过两类可选能力，以及弃牌与弃顶取牌。新增独立路由、盒子来回与刷新、菜单 Escape、游戏占屏、单击意图和具体卡位确认检查；证据在 `artifacts/maintenance/game-experience/ui/`。`pnpm verify:desktop` 与 `pnpm verify:portable` 的当前证据分别进入该维护目录的 `development/` 与 `portable/`，保留 phase-06 原交付证据。
+
+`pnpm package:win` 当前生成 `artifacts/releases/TableMax-<package.json 版本>-win-x64.zip`，`pnpm verify:portable` 解压该路径并验证真实程序。版本更新不改变现有存档 schema 或游戏／策略版本；维护范围与结果以 [验收记录](acceptance.md#首版维护独立牌桌与操作简化) 为准。
+
 ## 配置、目录与网络
 
 正式程序默认监听 `0.0.0.0:38473`。管理窗口使用 `127.0.0.1`，手机二维码使用用户在地址列表选择的本机 IPv4。多个地址可能包含虚拟网卡，用户需选择手机可访问的地址。当前端口占用会导致启动失败并提示，不静默改用其他端口。第三阶段完善网络引导与启动反馈；自动选择可用端口尚未作为已采用方案，需求允许明确提示或选取可用端口并更新二维码。
 
 开发 Vite 使用 `127.0.0.1:5173`，把 `/api`、`/socket.io` 转发到默认服务端口。正式运行仅由 Fastify 提供构建后的网页，不使用 Vite。开发模式的服务端口保持默认值；修改服务端口时需同步 Vite 代理。
 
-| 内容                 | 位置／策略                                                                                                                 |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| 默认本地数据         | 系统 `LOCALAPPDATA` 下的 `TableMax/`，不写入程序包或仓库                                                                   |
-| 工程验证数据库       | 数据目录 `foundation.sqlite` 与 SQLite WAL／SHM；仅保留工程启动计数，正式平台另用 room.sqlite                              |
-| 正式平台存档         | 数据目录 `room.sqlite` 与 WAL／SHM；最新记录与修订 journal，包含秘密状态，禁止公开                                         |
-| 服务日志             | 数据目录 `logs/service.log`，只记录服务启动／停止事件，不记录验证消息或秘密状态                                            |
-| Electron 浏览器数据  | 数据目录 `desktop/`，包含网页会话与缓存                                                                                    |
-| pnpm、下载与工具缓存 | 仓库 `.pnpm-store/`、`.cache/`；Git 忽略，工作区隐藏与排除监听                                                             |
-| 可再生构建           | 仓库 `build/`，Git 忽略，工作区隐藏                                                                                        |
-| 便携包与验证图／JSON | 当前仓库 artifacts/phase-06；历史 phase-01 保留，Git 忽略，文件树可见；搜索与监听单独排除                                  |
-| 原型构建             | 仓库 `artifacts/phase-02/prototype/`，独立于 `build/desktop/web/`                                                          |
-| 原型截图与走查 JSON  | 仓库 `artifacts/phase-02/verification/`，Git 忽略但文件树可见；每次走查更新对应证据                                        |
-| 美术原图与前后对比   | 仓库 `artifacts/phase-02/art-reset/`；保留 imagegen 原始 PNG、透明通道／尺寸／哈希检查、联系表及同尺寸前后截图和文字测量   |
-| 第二阶段检索原始响应 | 仓库 `artifacts/phase-02/research/`，清单记录 URL、HTTP 状态、字节数与 SHA-256；不是已核验规则书                           |
-| 原型走查临时入口     | 仓库 `tmp/prototype-verify-*`，与正式服务、数据库和用户默认存档分离                                                        |
-| 跨层验证临时数据     | 仓库 `tmp/desktop-verify-*`、`tmp/portable-extracted-*` 及命令入口验证目录，使用显式测试数据目录覆盖；不会读写用户默认存档 |
-| 单元测试数据库样本   | 系统临时目录 `tablemax-*`，与正式数据分离                                                                                  |
+| 内容                 | 位置／策略                                                                                                                                   |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 默认本地数据         | 系统 `LOCALAPPDATA` 下的 `TableMax/`，不写入程序包或仓库                                                                                     |
+| 工程验证数据库       | 数据目录 `foundation.sqlite` 与 SQLite WAL／SHM；仅保留工程启动计数，正式平台另用 room.sqlite                                                |
+| 正式平台存档         | 数据目录 `room.sqlite` 与 WAL／SHM；最新记录与修订 journal，包含秘密状态，禁止公开                                                           |
+| 服务日志             | 数据目录 `logs/service.log`，只记录服务启动／停止事件，不记录验证消息或秘密状态                                                              |
+| Electron 浏览器数据  | 数据目录 `desktop/`，包含网页会话与缓存                                                                                                      |
+| pnpm、下载与工具缓存 | 仓库 `.pnpm-store/`、`.cache/`；Git 忽略，工作区隐藏与排除监听                                                                               |
+| 可再生构建           | 仓库 `build/`，Git 忽略，工作区隐藏                                                                                                          |
+| 便携包与验证图／JSON | 当前 ZIP 在 artifacts/releases，维护验证在 artifacts/maintenance/game-experience；历史阶段产物保留，Git 忽略，文件树可见；搜索与监听单独排除 |
+| 原型构建             | 仓库 `artifacts/phase-02/prototype/`，独立于 `build/desktop/web/`                                                                            |
+| 原型截图与走查 JSON  | 仓库 `artifacts/phase-02/verification/`，Git 忽略但文件树可见；每次走查更新对应证据                                                          |
+| 美术原图与前后对比   | 仓库 `artifacts/phase-02/art-reset/`；保留 imagegen 原始 PNG、透明通道／尺寸／哈希检查、联系表及同尺寸前后截图和文字测量                     |
+| 第二阶段检索原始响应 | 仓库 `artifacts/phase-02/research/`，清单记录 URL、HTTP 状态、字节数与 SHA-256；不是已核验规则书                                             |
+| 原型走查临时入口     | 仓库 `tmp/prototype-verify-*`，与正式服务、数据库和用户默认存档分离                                                                          |
+| 跨层验证临时数据     | 仓库 `tmp/desktop-verify-*`、`tmp/portable-extracted-*` 及命令入口验证目录，使用显式测试数据目录覆盖；不会读写用户默认存档                   |
+| 单元测试数据库样本   | 系统临时目录 `tablemax-*`，与正式数据分离                                                                                                    |
 
 仅支持开发／验证覆盖的环境变量：`TABLEMAX_DATA_DIR` 指定数据位置，`TABLEMAX_HOST` 指定监听地址，`TABLEMAX_PORT` 指定端口（0 仅用于验证临时端口）。`TABLEMAX_WEB_DEV_URL` 由开发脚本设置，普通便携启动不要设置。`ELECTRON_RUN_AS_NODE` 会改变 Electron 模式，项目启动和验证脚本主动移除该变量。不要将含秘密的本地配置纳入 Git。
 

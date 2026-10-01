@@ -19,7 +19,14 @@ it('serves role routes, rejects unknown APIs, and keeps data paths private', asy
     const health = await service.app.inject('/api/foundation/health');
     expect(health.statusCode).toBe(200);
     expect(health.body).not.toContain(dataDir);
-    for (const path of ['/host', '/public', '/player']) {
+    for (const path of [
+      '/host',
+      '/public',
+      '/player',
+      '/host/game',
+      '/public/game',
+      '/player/game',
+    ]) {
       expect((await service.app.inject(path)).body).toContain('local fixture');
     }
     expect((await service.app.inject('/api/missing')).statusCode).toBe(404);

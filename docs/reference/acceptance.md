@@ -48,8 +48,18 @@
 | AC-22 人机回退恢复   | 通过：暂停／结束取消、回退／重启重调度、memory／RNG 恢复、旧结果与重复提交拒绝，实际 Worker 超时／异常回归。                                                    |
 | AC-23 独立决策文件   | 通过：首版与模板各自 bot/index.ts，声明版本和 null 记忆；合法替换／不兼容拒绝及异常流程测试，接入指南可定位入口。                                               |
 
+## 首版维护：独立牌桌与操作简化
+
+2026-10-01 提出、2026-10-02 收尾的 1.0.1 持续完善：盒子与游戏分为独立路由，电脑和手机游戏使用全宽场景；取牌、弃牌、跳过能力与关闭查看一键提交，位置选择使用具体动作确认。菜单承载管理／帮助／公开记录，结果集中展示赢家、胜局和总分，百变怪解析按需展开。会话、页面、通用控件与游戏场景职责拆开，平台资源迁到共享目录。采用理由见 [决策 002](../decisions/002-host-public-screen-and-debug.md#盒子与游戏分开2026-10-01-增补)。
+
+维护记录独立于上述 1.0.0 的历史验收。48 项工程测试、正式与独立原型构建、十组真实 UI 场景已通过；原型仅检查资源迁移后的构建，不冒充重新执行全部原型走查。UI 检查包括 360／390 与 1920 尺寸、44px 触控、秘密查看隔离、一次点击意图、位置选择不提前提交、菜单 Escape、盒子来回不改变修订、刷新游戏路由、游戏宽度超过视口 90%、减少动态与本地声音。证据见 [维护 UI](../../artifacts/maintenance/game-experience/ui/results.json)。
+
+开发构建的真实五人混合整局、暂停／回退、后台冻结、断网导航、同地址两次启动与身份恢复通过，见 [维护开发记录](../../artifacts/maintenance/game-experience/development/results.json)。最终 1.0.1 ZIP 已解压到新目录，以仅 Windows 系统目录的 PATH 运行并通过相同整局／恢复验证；五人结算在 1080×800、1366×768、1920×1080 首屏无纵向滚动。新包及哈希见 [维护便携记录](../../artifacts/maintenance/game-experience/portable/results.json)。文档本地链接／锚点和十六张共享 WebP 迁移字节一致性分别见 [链接核验](../../artifacts/maintenance/game-experience/document-links.json) 与 [资源核验](../../artifacts/maintenance/game-experience/shared-assets.json)。规则、状态、协议和策略版本保持；原始素材、1.0.0 ZIP 和 phase-06 证据保留。
+
+本轮仍按既有用户授权使用当前 Windows 上的 Chromium 触控／尺寸模拟，未增加真实手机、Safari 或电视硬件验收。
+
 ## 使用与维护
 
-便携包为 `artifacts/phase-06/TableMax-1.0.0-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
+当前便携包为 `artifacts/releases/TableMax-1.0.1-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
 
 后续新增游戏、跨游戏调试或第三方插件按独立需求安排；新规则／策略版本需要明确存档迁移方案，不能直接覆盖原文件。设备模拟中的限制保留供后续实际使用时复查，本轮不将取得其他设备作为剩余开发关口。

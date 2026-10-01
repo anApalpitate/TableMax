@@ -10,7 +10,7 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 );
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/game-ui-')),
-  output = resolve('artifacts/phase-06/verification/ui');
+  output = resolve('artifacts/maintenance/game-experience/ui');
 await mkdir(output, { recursive: true });
 const audioFiles = (await readdir('build/desktop/web/assets')).filter((file) =>
   file.endsWith('.wav'),
@@ -85,6 +85,36 @@ const scenes = [
       [0, { type: 'close-peek' }],
     ],
   },
+  {
+    id: 'V07-skip',
+    fixture: 'V07',
+    actions: [
+      [0, { type: 'draw', source: 'deck' }],
+      [0, { type: 'replace', slot: 1 }],
+      [0, { type: 'decline-ability' }],
+    ],
+  },
+  {
+    id: 'V08-skip',
+    fixture: 'V08',
+    actions: [
+      [0, { type: 'draw', source: 'deck' }],
+      [0, { type: 'replace', slot: 1 }],
+      [0, { type: 'decline-ability' }],
+    ],
+  },
+  {
+    id: 'V00-discard',
+    fixture: 'V00',
+    actions: [
+      [0, { type: 'initial-flip', slot: 0 }],
+      [1, { type: 'initial-flip', slot: 0 }],
+      [0, { type: 'draw', source: 'deck' }],
+      [0, { type: 'discard-held' }],
+      [1, { type: 'draw', source: 'discard' }],
+      [1, { type: 'replace', slot: 1 }],
+    ],
+  },
 ];
 const evidence = {
   verifiedAt: new Date().toISOString(),
@@ -97,7 +127,7 @@ const evidence = {
 for (const scene of scenes) {
   const dataDir = join(work, scene.id);
   await mkdir(dataDir);
-  const players = await prepare(scene.id, dataDir, scene.seed);
+  const players = await prepare(scene.fixture ?? scene.id, dataDir, scene.seed);
   const env = {
     ...process.env,
     TABLEMAX_DATA_DIR: dataDir,
@@ -188,7 +218,7 @@ for (const scene of scenes) {
           height: route === 'public' ? 1080 : 844,
           partition:
             route === 'public' ? 'public-scene' : `phone-scene-${index}`,
-          url: `${origin}/${route}`,
+          url: `${origin}/${route}/game`,
         },
       );
       const page = await next;
@@ -209,6 +239,7 @@ for (const scene of scenes) {
       return page;
     };
     await observe(host);
+    await host.goto(`${origin}/host/game`);
     await host.reload();
     await host.getByText('本地连接已就绪', { exact: true }).waitFor();
     const publicPage = await open('public'),
@@ -310,12 +341,19 @@ for (const scene of scenes) {
       const page = phones[index];
       const before = await fetchView(players[index].token);
       item.phases.push(before.gameView.phase);
-      await page
-        .getByRole('button', { name: '确认提交', exact: true })
-        .waitFor();
+      await page.locator('.pokemon-player').waitFor();
+      const immediate = [
+        'draw',
+        'close-peek',
+        'decline-ability',
+        'discard-held',
+      ].includes(action.type);
       if (action.type === 'draw')
         await page
-          .getByRole('button', { name: '从牌库取牌', exact: true })
+          .getByRole('button', {
+            name: action.source === 'deck' ? '从牌库取牌' : '从弃牌顶取牌',
+            exact: true,
+          })
           .click();
       else if (action.type === 'swap') {
         await page
@@ -337,34 +375,46 @@ for (const scene of scenes) {
         await page
           .getByRole('button', { name: '已看完，关闭查看', exact: true })
           .click();
+      else if (
+        action.type === 'decline-ability' ||
+        action.type === 'discard-held'
+      )
+        await page
+          .getByRole('button', {
+            name: action.type === 'decline-ability' ? '跳过能力' : '弃掉这张牌',
+            exact: true,
+          })
+          .click();
       else
         await page
           .locator('.pokemon-player > .pokemon-board button')
           .nth(action.slot)
           .click();
-      assert.equal(
-        (await fetchView(players[index].token)).revision,
-        before.revision,
-        'Selection creates no authoritative action',
-      );
-      await page.evaluate(() => new Promise((r) => requestAnimationFrame(r)));
-      assert.equal(
-        await page.evaluate(() => {
-          const bar = document
-            .querySelector('.submit-choice')
-            .getBoundingClientRect();
-          return [...document.querySelectorAll('.card-slot.selected')].some(
-            (card) => {
-              const rect = card.getBoundingClientRect();
-              const center = rect.top + rect.height / 2;
-              return center >= bar.top && center <= bar.bottom;
-            },
-          );
-        }),
-        false,
-        'Selected card centers stay clear of confirmation bar',
-      );
-      await page.getByRole('button', { name: '确认提交', exact: true }).click();
+      if (!immediate) {
+        assert.equal(
+          (await fetchView(players[index].token)).revision,
+          before.revision,
+          'Selection creates no authoritative action',
+        );
+        await page.evaluate(() => new Promise((r) => requestAnimationFrame(r)));
+        assert.equal(
+          await page.evaluate(() => {
+            const bar = document
+              .querySelector('.submit-choice')
+              .getBoundingClientRect();
+            return [...document.querySelectorAll('.card-slot.selected')].some(
+              (card) => {
+                const rect = card.getBoundingClientRect();
+                const center = rect.top + rect.height / 2;
+                return center >= bar.top && center <= bar.bottom;
+              },
+            );
+          }),
+          false,
+          'Selected card centers stay clear of confirmation bar',
+        );
+        await page.locator('.confirm-action').click();
+      }
       await page.waitForFunction(
         () =>
           document.querySelector('.feedback')?.textContent.trim() === '已保存',
@@ -395,6 +445,41 @@ for (const scene of scenes) {
     }
     await capture(publicPage, `${scene.id}-public.png`);
     await capture(phones[0], `${scene.id}-360.png`);
+    await capture(phones[1], `${scene.id}-390.png`);
+    for (const page of [publicPage, ...phones]) {
+      assert.ok(new URL(page.url()).pathname.endsWith('/game'));
+      assert.equal(
+        await page.locator('.hero, .invite-friends, footer').count(),
+        0,
+      );
+      assert.ok(
+        await page
+          .locator('.game-table')
+          .evaluate(
+            (element) =>
+              element.getBoundingClientRect().width / innerWidth > 0.9,
+          ),
+        'Table uses almost all screen width',
+      );
+    }
+    const phone = phones[0];
+    const navigationView = await fetchView(players[0].token);
+    await phone.getByRole('link', { name: '‹ 盒子', exact: true }).click();
+    assert.equal(new URL(phone.url()).pathname, '/player');
+    assert.equal(await phone.locator('.game-table').count(), 0);
+    await phone.getByRole('link', { name: '进入牌桌', exact: true }).click();
+    assert.equal(
+      (await fetchView(players[0].token)).revision,
+      navigationView.revision,
+      'Navigation never changes game state',
+    );
+    await phone.reload();
+    await phone.getByText('本地连接已就绪', { exact: true }).waitFor();
+    assert.equal(new URL(phone.url()).pathname, '/player/game');
+    await phone.getByRole('button', { name: '菜单', exact: true }).click();
+    await phone.getByRole('dialog', { name: '牌桌菜单' }).waitFor();
+    await phone.keyboard.press('Escape');
+    assert.equal(await phone.locator('dialog').count(), 0);
     assert.equal(item.narrowOverflow, false);
     const beforeSync = await publicPage.evaluate(
       () => window.tablemaxAudit.sounds.length,
@@ -445,6 +530,13 @@ for (const scene of scenes) {
         return getComputedStyle(element).animationName;
       });
     assert.equal(animation, 'none');
+    const coinAnimation = await publicPage
+      .locator('.game-table')
+      .evaluate((element) => {
+        element.classList.add('saved-coin');
+        return getComputedStyle(element).animationName;
+      });
+    assert.equal(coinAnimation, 'none');
     evidence.cases.push(item);
     console.log(`Verified ${scene.id} UI and local saved-event feedback.`);
   } finally {

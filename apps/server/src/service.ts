@@ -243,7 +243,14 @@ export async function createService(
       root: config.webDir,
       index: ['index.html'],
     });
-    for (const route of ['/host', '/public', '/player']) {
+    for (const route of [
+      '/host',
+      '/public',
+      '/player',
+      '/host/game',
+      '/public/game',
+      '/player/game',
+    ]) {
       app.get(route, (_request, reply) => reply.sendFile('index.html'));
     }
     await app.ready();

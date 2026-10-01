@@ -38,12 +38,15 @@ export function PlayerControls({
           ) ?? null,
         );
       }
-    } else
-      setSelection(
+    } else {
+      const next =
         actions.find(
           (a) => 'slot' in a && a.type !== 'mew-target' && a.slot === slot,
-        ) ?? null,
+        ) ?? null;
+      setSelection(
+        JSON.stringify(next) === JSON.stringify(selection) ? null : next,
       );
+    }
   };
   const ownSlots =
     view.phase === 'snorlax-choice'
@@ -63,9 +66,9 @@ export function PlayerControls({
     a.type === 'draw'
       ? `从${a.source === 'deck' ? '牌库' : '弃牌顶'}取牌`
       : a.type === 'discard-held'
-        ? '直接弃掉暂持牌'
+        ? '弃掉这张牌'
         : a.type === 'decline-ability'
-          ? '不发动能力'
+          ? '跳过能力'
           : a.type === 'close-peek'
             ? '已看完，关闭查看'
             : a.type === 'swap'
@@ -73,19 +76,41 @@ export function PlayerControls({
               : a.type === 'mew-target'
                 ? `选择 ${names[a.seat]} 的位置 ${a.slot + 1}`
                 : 'slot' in a
-                  ? `选择位置 ${a.slot + 1}`
+                  ? `${a.type === 'initial-flip' ? '翻开' : a.type === 'peek' ? '查看' : '换入'}位置 ${a.slot + 1}`
                   : '下一局';
   return (
     <div className="pokemon-player">
-      <span className="tag">{view.winsBySeat[seatId]} / 3 胜</span>
-      <Board
-        view={view}
-        seatId={seatId}
-        slots={ownSlots}
-        selected={selectedSlots}
-        locked={locked}
-        select={chooseOwn}
-      />
+      <span className="tag win-track">
+        <span className="win-pips" aria-hidden="true">
+          {[0, 1, 2].map((i) => (
+            <i key={i} className={i < view.winsBySeat[seatId]! ? 'earned' : ''}>
+              ✦
+            </i>
+          ))}
+        </span>
+        {view.winsBySeat[seatId]} / 3 胜
+      </span>
+      <p className="decision-hint">
+        {view.phase === 'draw'
+          ? '点上方牌堆，取一张新牌。'
+          : view.phase === 'snorlax-choice'
+            ? '点两张牌交换位置，或跳过能力。'
+            : view.phase === 'mew-other'
+              ? '先选一位朋友的牌，再换入自己的场地。'
+              : view.phase === 'charizard-view'
+                ? '记住这张牌，看完后关闭。'
+                : '点选卡位，选好后确认。'}
+      </p>
+      {view.phase !== 'charizard-view' && (
+        <Board
+          view={view}
+          seatId={seatId}
+          slots={ownSlots}
+          selected={selectedSlots}
+          locked={locked}
+          select={chooseOwn}
+        />
+      )}
       <h3>{phaseLabels[view.phase]}</h3>
       {view.peek && (
         <div className="private-peek" role="status">
@@ -102,7 +127,9 @@ export function PlayerControls({
               <Board
                 view={view}
                 seatId={seat}
-                slots={[0, 1, 2, 3, 4, 5]}
+                slots={actions.flatMap((a) =>
+                  a.type === 'mew-target' && a.seat === seat ? [a.slot] : [],
+                )}
                 selected={
                   selection?.type === 'mew-target' && selection.seat === seat
                     ? [selection.slot]
@@ -124,49 +151,64 @@ export function PlayerControls({
           ))}
       <div className="intent-actions">
         {actions
-          .filter((a) => !('slot' in a) && a.type !== 'swap')
+          .filter(
+            (a) => !('slot' in a) && a.type !== 'swap' && a.type !== 'draw',
+          )
           .map((a) => (
             <button
               className="secondary"
               key={a.type + (a.type === 'draw' ? a.source : '')}
               disabled={locked}
-              aria-pressed={JSON.stringify(a) === JSON.stringify(selection)}
               onClick={() => {
-                setSelection(a);
-                setFirst(null);
+                choose(a);
               }}
             >
               {short(a)}
             </button>
           ))}
       </div>
-      <div className="submit-choice">
-        <p aria-live="polite">
-          {selection
-            ? short(selection)
-            : first !== null
-              ? '再选一个不同位置'
-              : '先选择，再确认提交'}
-        </p>
-        <button
-          disabled={locked || !selection}
-          onClick={() => {
-            if (selection) choose(selection);
-          }}
-        >
-          确认提交
-        </button>
-        <button
-          className="secondary"
-          disabled={locked || (!selection && first === null)}
-          onClick={() => {
-            setSelection(null);
-            setFirst(null);
-          }}
-        >
-          取消选择
-        </button>
-      </div>
+      {ownSlots.length > 0 || view.phase === 'mew-other' ? (
+        <div className="submit-choice">
+          <p aria-live="polite">
+            {selection
+              ? short(selection)
+              : first !== null
+                ? '再选一个不同位置'
+                : '选一张牌'}
+          </p>
+          <button
+            className="confirm-action"
+            disabled={locked || !selection}
+            onClick={() => {
+              if (selection) choose(selection);
+            }}
+          >
+            {selection
+              ? short(selection)
+              : view.phase === 'initial-flip'
+                ? '翻开这张'
+                : view.phase === 'snorlax-choice'
+                  ? '交换这两张'
+                  : view.phase === 'charizard-choice'
+                    ? '查看这张'
+                    : view.phase === 'mew-other'
+                      ? '选这张牌'
+                      : '换入这里'}
+          </button>
+          {(selection || first !== null) && (
+            <button
+              className="secondary"
+              disabled={locked || (!selection && first === null)}
+              onClick={() => {
+                setSelection(null);
+                setFirst(null);
+              }}
+            >
+              取消选择
+            </button>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -6,6 +6,8 @@ import pikachuCoin from '../../assets/coin-pikachu-v1.webp';
 import meowthCoin from '../../assets/coin-meowth-v1.webp';
 import { useContext } from 'react';
 import { SavedMotion } from '../motion';
+import type { JsonValue } from '@tablemax/game-sdk';
+import type { Action } from '../../rules';
 export function SeatResult({
   view,
   seatId,
@@ -17,7 +19,14 @@ export function SeatResult({
   const score = view.roundResult?.scores[seatId];
   return (
     <>
-      <span className="tag">
+      <span className="tag win-track">
+        <span className="win-pips" aria-hidden="true">
+          {[0, 1, 2].map((i) => (
+            <i key={i} className={i < view.winsBySeat[seatId]! ? 'earned' : ''}>
+              ✦
+            </i>
+          ))}
+        </span>
         {view.winsBySeat[seatId]} / 3 胜
         {view.matchWinners.includes(seatId)
           ? ' · 大局赢家'
@@ -30,12 +39,17 @@ export function SeatResult({
         <div className="score-detail">
           <strong>总分 {score.total}</strong>
           <p>三列贡献：{score.columns.join(' / ')}</p>
-          {score.copies.map((copy) => (
-            <p key={copy.slot}>
-              百变怪 {copy.slot + 1} → {copy.value}（路径{' '}
-              {copy.path.map((slot) => slot + 1).join(' → ')}）
-            </p>
-          ))}
+          {score.copies.length > 0 && (
+            <details>
+              <summary>百变怪解析</summary>
+              {score.copies.map((copy) => (
+                <p key={copy.slot}>
+                  百变怪 {copy.slot + 1} → {copy.value}（路径{' '}
+                  {copy.path.map((slot) => slot + 1).join(' → ')}）
+                </p>
+              ))}
+            </details>
+          )}
         </div>
       )}
     </>
@@ -44,11 +58,39 @@ export function SeatResult({
 export function TableStatus({
   view,
   names,
+  drawActions = [],
+  onDraw,
 }: {
   view: PokemonView;
   names: Record<string, string>;
+  drawActions?: readonly JsonValue[];
+  onDraw?: ((action: JsonValue) => void) | undefined;
 }) {
   const motion = useContext(SavedMotion);
+  const draws = (drawActions as readonly Action[]).filter(
+    (action) => action.type === 'draw',
+  );
+  const pile = (source: 'deck' | 'discard') => {
+    const action = draws.find(
+      (action) => action.type === 'draw' && action.source === source,
+    );
+    const face = <CardFace card={source === 'deck' ? null : view.discardTop} />;
+    return onDraw && view.phase === 'draw' ? (
+      <button
+        className="draw-pile"
+        disabled={!action}
+        aria-label={source === 'deck' ? '从牌库取牌' : '从弃牌顶取牌'}
+        onClick={() => {
+          if (action) onDraw(action);
+        }}
+      >
+        {face}
+        <span className="pile-action">{action ? '点此取牌' : '等待'}</span>
+      </button>
+    ) : (
+      face
+    );
+  };
   return (
     <div className="pokemon-status">
       <div className={motion.includes('@phase') ? 'saved-motion' : ''}>
@@ -66,6 +108,7 @@ export function TableStatus({
         {view.coin && (
           <span className="coin-result">
             <img
+              className={motion.includes('@coin') ? 'saved-coin' : ''}
               src={view.coin === 'meowth' ? meowthCoin : pikachuCoin}
               alt=""
             />
@@ -76,12 +119,12 @@ export function TableStatus({
       <div className="card-piles">
         <div>
           <span className="pile-label">牌库 {view.deckCount}</span>
-          <CardFace card={null} />
+          {pile('deck')}
         </div>
         <div>
           <span className="pile-label">弃牌 {view.discardCount}</span>
           {view.discardTop ? (
-            <CardFace card={view.discardTop} />
+            pile('discard')
           ) : (
             <span className="empty-pile">暂时为空</span>
           )}

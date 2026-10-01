@@ -14,7 +14,7 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 );
 const portable = process.argv.includes('--portable');
 const output = resolve(
-  'artifacts/phase-06/verification',
+  'artifacts/maintenance/game-experience',
   portable ? 'portable' : 'development',
 );
 await mkdir(output, { recursive: true });
@@ -35,7 +35,7 @@ let executablePath = require('electron'),
 if (portable) {
   const project = JSON.parse(await readFile('package.json', 'utf8'));
   archive = resolve(
-    `artifacts/phase-06/TableMax-${project.version}-win-x64.zip`,
+    `artifacts/releases/TableMax-${project.version}-win-x64.zip`,
   );
   const extracted = await mkdtemp(resolve('tmp/portable-game-'));
   await promisify(execFile)(
@@ -332,6 +332,7 @@ for (let run = 0; run < 2; run++) {
         })
       ).json();
       assert.equal(full.ok, false);
+      await page.locator('.management > summary').click();
       const next = desktop.waitForEvent('window');
       await page
         .getByRole('link', { name: '打开公共屏' })
@@ -349,9 +350,7 @@ for (let run = 0; run < 2; run++) {
       }
       for (let index = 0; index < phones.length; index++) {
         const mobile = phones[index];
-        await mobile
-          .getByRole('button', { name: '确认提交', exact: true })
-          .waitFor();
+        await mobile.locator('.confirm-action').waitFor();
         const before = (await view(origin, tokens[index])).gameView;
         await mobile
           .locator('.pokemon-player > .pokemon-board button')
@@ -369,9 +368,7 @@ for (let run = 0; run < 2; run++) {
           .locator('.pokemon-player > .pokemon-board button')
           .nth(0)
           .click();
-        await mobile
-          .getByRole('button', { name: '确认提交', exact: true })
-          .click();
+        await mobile.locator('.confirm-action').click();
         await wait(100);
       }
       for (let retry = 0; retry < 60; retry++) {
@@ -399,9 +396,6 @@ for (let run = 0; run < 2; run++) {
       }
       await phones[0]
         .getByRole('button', { name: '从牌库取牌', exact: true })
-        .click();
-      await phones[0]
-        .getByRole('button', { name: '确认提交', exact: true })
         .click();
       await wait(100);
       own = await view(origin, tokens[0]);
@@ -441,9 +435,7 @@ for (let run = 0; run < 2; run++) {
       await command(origin, host, hostToken, { type: 'pause' });
       previous = (await view(origin, tokens[0])).gameView;
       await mobileCdp.send('Page.setWebLifecycleState', { state: 'active' });
-      await phones[0]
-        .getByText('房主已暂停，选择暂时停止。', { exact: true })
-        .waitFor();
+      await phones[0].getByText('游戏已暂停', { exact: true }).waitFor();
       await mobileCdp.send('Network.enable');
       await mobileCdp.send('Network.emulateNetworkConditions', {
         offline: true,
@@ -458,7 +450,7 @@ for (let run = 0; run < 2; run++) {
         downloadThroughput: -1,
         uploadThroughput: -1,
       });
-      await phones[0].goto(`${origin}/player`);
+      await phones[0].goto(`${origin}/player/game`);
       await phones[0].getByText('本地连接已就绪', { exact: true }).waitFor();
       assert.equal(
         await phones[0].evaluate(() => localStorage.getItem('tablemax-player')),
@@ -466,9 +458,7 @@ for (let run = 0; run < 2; run++) {
       );
       assert.deepEqual((await view(origin, tokens[0])).gameView, previous);
       assert.ok(
-        await phones[0]
-          .getByText('房主已暂停，选择暂时停止。', { exact: true })
-          .isVisible(),
+        await phones[0].getByText('游戏已暂停', { exact: true }).isVisible(),
       );
       evidence.checks.push(
         'Five-seat mixed lobby, over-capacity rejection, explicit host player, independent phones, select/cancel/submit, public secrecy, 1920/360/390 layouts, freeze/background simulation, offline navigation and identity recovery, reload and rollback',
@@ -479,6 +469,10 @@ for (let run = 0; run < 2; run++) {
         200,
       );
     } else {
+      for (const screen of [page, ...phones])
+        await screen
+          .getByRole('link', { name: '进入牌桌', exact: true })
+          .click();
       assert.deepEqual((await view(origin, tokens[0])).gameView, previous);
       assert.equal((await view(origin)).paused, true);
       for (let index = 0; index < phones.length; index++)
@@ -531,9 +525,20 @@ for (let run = 0; run < 2; run++) {
       assert.ok(
         Object.values(final.gameView.winsBySeat).some((wins) => wins === 3),
       );
-      await page
-        .getByRole('heading', { name: '这一局，留下好回忆。' })
-        .waitFor();
+      await page.locator('.round-banner').waitFor();
+      for (const [width, height] of [
+        [1080, 800],
+        [1366, 768],
+        [1920, 1080],
+      ]) {
+        await capture(desktop, page, `match-result-${width}`, width, height);
+        assert.ok(
+          await page.evaluate(
+            () => document.documentElement.scrollHeight <= innerHeight + 1,
+          ),
+          'Desktop match result fits the viewport',
+        );
+      }
       await capture(desktop, page, 'match-result');
       await capture(desktop, phones[0], 'phone-result', 360, 800);
       evidence.checks.push(
