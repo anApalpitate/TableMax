@@ -11,7 +11,7 @@
 1. 先读本文件和 [文档索引](docs/README.md)，检查 Git 状态及相关 diff。
 2. 按任务阅读需求的相关章节、所需主题页和对应源文件，不默认遍历全部资料或生成物。
 3. 查目录归属读 [目录职责](docs/reference/project-structure.md)；更新文档读 [维护规则](docs/reference/maintenance.md)。
-4. 查重要选择读 [决策索引](docs/decisions/README.md)，查开发阶段与待办读 [任务索引](docs/tasks/README.md#后续开发接续入口)；第一至四阶段已完成，下一阶段为完整游戏。游戏接入读 [扩展指南](docs/game-development/README.md)。仅追溯历史范围、采用关口和证据时读 [归档索引](docs/archive/README.md)。
+4. 查重要选择读 [决策索引](docs/decisions/README.md)，查开发阶段与待办读 [任务索引](docs/tasks/README.md#后续开发接续入口)；第一至六阶段已完成，当前为首版维护与后续独立需求；交付和模拟验收见 [验收记录](docs/reference/acceptance.md)。游戏接入读 [扩展指南](docs/game-development/README.md)。仅追溯历史范围、采用关口和证据时读 [归档索引](docs/archive/README.md)。
 5. 运行与验证读 [开发环境](docs/reference/development.md)，修改源码边界读 [工程结构](docs/reference/architecture.md)；已确认技术方向见 [工程基础决策](docs/decisions/001-engineering-foundation.md)。
 6. 首版规则、数据、权限、决策与验证查 [游戏规格](docs/games/pokemon-encounters/README.md)，跨游戏交互与恢复查 [通用规格](docs/reference/phase-02-platform-spec.md)，原文缺口查 [规则来源](docs/games/pokemon-encounters/sources.md#规则来源与核验缺口)；原型运行与检查查开发环境，原型走查不代表产品验收。
 7. 子 agent 的职责与派工边界见 [职责索引](docs/subagent/README.md)；图像生成与编辑交给 [imagegen 子 agent](docs/subagent/imagegen.md)，具体任务范围与可写路径由主 agent 明确。

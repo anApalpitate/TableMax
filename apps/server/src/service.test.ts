@@ -1,8 +1,9 @@
 import { it, expect } from 'vitest';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createService } from './service';
+import { createConnection } from 'node:net';
 
 it('serves role routes, rejects unknown APIs, and keeps data paths private', async () => {
   const webDir = mkdtempSync(join(tmpdir(), 'tablemax-web-'));
@@ -27,6 +28,47 @@ it('serves role routes, rejects unknown APIs, and keeps data paths private', asy
         .statusCode,
     ).toBe(400);
   } finally {
+    await service.close();
+  }
+});
+
+it('closes the service with an unfinished offline phone request and records clean shutdown', async () => {
+  const webDir = mkdtempSync(join(tmpdir(), 'tablemax-web-'));
+  const dataDir = mkdtempSync(join(tmpdir(), 'tablemax-service-'));
+  writeFileSync(join(webDir, 'index.html'), '<html>local fixture</html>');
+  const service = await createService({
+    host: '127.0.0.1',
+    port: 0,
+    webDir,
+    dataDir,
+  });
+  const port = await service.listen();
+  const socket = createConnection({ host: '127.0.0.1', port });
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await new Promise<void>((resolve, reject) => {
+      socket.once('connect', resolve);
+      socket.once('error', reject);
+    });
+    socket.write(
+      'POST /api/session/join HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\nContent-Length: 200\r\n\r\n{',
+    );
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    await Promise.race([
+      service.close(),
+      new Promise((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error('Shutdown held by incomplete HTTP request')),
+          1500,
+        );
+      }),
+    ]);
+    expect(readFileSync(join(dataDir, 'logs/service.log'), 'utf8')).toContain(
+      'service-stopped',
+    );
+  } finally {
+    if (timer) clearTimeout(timer);
+    socket.destroy();
     await service.close();
   }
 });

@@ -5,7 +5,10 @@ import { tmpdir } from 'node:os';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { build } from 'esbuild';
 import { io } from 'socket.io-client';
-import { createService } from './service';
+import { createService as createServiceBase } from './service';
+import { rules, bot } from '@tablemax/game-template';
+const createService = (input: Parameters<typeof createServiceBase>[0]) =>
+  createServiceBase(input, { rules, bot });
 import type { CommandReply } from '@tablemax/protocol';
 
 it('recovers a transaction ACK after forcibly killing the actual server process', async () => {

@@ -16,6 +16,7 @@ export type Viewer = { role: 'public' } | { role: 'player'; seatId: string };
 // Authorization is platform-owned; a host gets no extra game information.
 export interface RuleContext {
   seats: readonly string[];
+  hostSeat?: string; // Participating host seat, verified by the platform.
   random: { next(): number }; // Platform owns the serializable generator state.
 }
 
@@ -27,6 +28,10 @@ export interface DecisionBoundary {
 export interface PendingDecision {
   id: string;
   seatId: string;
+}
+export interface PublicEvent {
+  kind: 'draw' | 'replace' | 'effect-complete' | 'round-result';
+  text: string;
 }
 
 export interface GameRules<
@@ -46,7 +51,7 @@ export interface GameRules<
     state: State,
     action: Action,
     context: RuleContext,
-  ): { state: State; decision: DecisionBoundary };
+  ): { state: State; decision: DecisionBoundary; events?: PublicEvent[] };
   apply(
     state: State,
     action: Action,
@@ -55,6 +60,7 @@ export interface GameRules<
   ): {
     state: State;
     decision: DecisionBoundary;
+    events?: PublicEvent[];
   };
   project(state: State, viewer: Viewer): View;
 }

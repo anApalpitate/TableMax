@@ -48,6 +48,13 @@ export function validateSave(
       'damaged-save',
     );
   requireThat(
+    d.hostSeat == null ||
+      d.seats.some(
+        (seat) => seat.id === d.hostSeat && seat.controller === 'human',
+      ),
+    'damaged-save',
+  );
+  requireThat(
     Array.isArray(d.history) &&
       new Set(d.history.map((h) => h.id)).size === d.history.length &&
       d.receipts &&

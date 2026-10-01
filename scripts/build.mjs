@@ -43,7 +43,7 @@ await writeFile(
       version: project.version,
       private: true,
       main: 'main.cjs',
-      description: 'TableMax engineering foundation',
+      description: 'TableMax local board-game platform',
       author: 'TableMax',
       license: 'UNLICENSED',
     },

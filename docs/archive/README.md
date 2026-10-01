@@ -6,6 +6,8 @@
 | [第二阶段：规则与交互](phase-02-rules-and-interaction.md) | 2026-10-01／2026-10-01 | 采用规格、独立原型及适用验证完成；长期正文合并游戏主题和通用规格，真实产品后续实现                                                                                                                                                       |
 | [第三、四阶段：平台与恢复基础](phase-03-04-platform.md)   | 2026-10-01／2026-10-01 | 真实大厅／身份／策略契约、可靠动作／存档／回退与模板完成；当前正文见[工程结构](../reference/architecture.md)、[开发环境](../reference/development.md#第三四阶段平台验证)及[游戏接入](../game-development/README.md)                      |
 
+[第五、六阶段：完整游戏与交付](phase-05-06-complete-game.md) 于 2026-10-01 完成并归档，保留范围、完成清单及本机模拟验收证据；当前说明见 [验收记录](../reference/acceptance.md)、[开发环境](../reference/development.md) 与 [首版游戏规格](../games/pokemon-encounters/README.md)。
+
 第二阶段长期正文见[首版游戏规格](../games/pokemon-encounters/README.md)和[通用规格](../reference/phase-02-platform-spec.md)。采用基线已闭合，官方原文认证缺口仍保留，不冒充认证规则。
 
 仅保留有历史价值的过程记录；新增归档时说明归档原因，并链接当前替代页面（如有）。归档不作为当前实现的事实依据。返回 [文档总索引](../README.md)。

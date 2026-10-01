@@ -40,6 +40,7 @@ export interface Save {
   paused: boolean;
   joinOpen: boolean;
   seats: Seat[];
+  hostSeat?: string | null;
   snapshot: Snapshot | null;
   history: Checkpoint[];
   receipts: Record<string, { fingerprint: string; reply: CommandReply }>;

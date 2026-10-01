@@ -1,0 +1,12 @@
+{
+  "namespace": "template",
+  "assets": [
+    {
+      "id": "template/die",
+      "file": "die.svg",
+      "source": "TableMax original code-drawn SVG",
+      "purpose": "Decorative die shared by public and player UI; no secret result encoded",
+      "version": 1
+    }
+  ]
+}

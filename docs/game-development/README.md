@@ -1,6 +1,6 @@
 # 游戏接入与验证
 
-当前可运行模板是 [幸运骰子](../../games/template/index.ts)，用于验证平台基础，不是首版宝可梦实现。正式工程已支持编译时注册一个游戏；外部插件、多房间和调试修改仍不在本阶段范围。
+正式游戏是 [宝可梦奇遇](../../games/pokemon-encounters/index.ts)；[幸运骰子](../../games/template/index.ts) 保留为开发验证模板，含独立资源、规则、两端 UI 与策略。正式工程已支持编译时注册一个游戏；外部插件、多房间和调试修改仍不在本阶段范围。
 
 ## 模块与契约
 
@@ -13,16 +13,17 @@
 | `rules/state.ts`           | 普通 JSON 状态与存档不变量校验，核对平台传入的稳定座位及顺序       |
 | `rules/scoring.ts`         | 独立纯计分与共同赢家解析                                           |
 | `rules/project.ts`         | public／本人投影，不能默认给本人全部暗牌；房主也使用 public        |
+| `assets/` | 游戏独立本地资源与来源清单；模板的 die.svg 是原创装饰，不编码秘密骰子结果 |
 | `bot/index.ts`             | 独立版本的简单策略，只用本人授权输入选择合法意图                   |
 | `ui/public/`、`ui/player/` | 根据投影渲染两端；禁止导入完整规则状态或网络／数据库实现           |
 
-SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)` 返回 `{id,seatId}[]`，支持多个初始选择和被动接牌者；平台不把正常回合者当作唯一行动者。`legalActions(state,seatId)` 列举完整合法动作及参数，`validateAction` 验证并规范化意图。`apply` 必须原子完成本选择引发的确定性自动步骤，返回新状态和安全的 **before** 边界标签／揭示提醒。规则自动结算不等待 UI 动效。
+SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)` 返回 `{id,seatId}[]`，支持多个初始选择和被动接牌者；平台不把正常回合者当作唯一行动者。`legalActions(state,seatId)` 列举完整合法动作及参数，`validateAction` 验证并规范化意图。`apply` 必须原子完成本选择引发的确定性自动步骤，返回新状态和安全的 **before** 边界标签／揭示提醒。规则自动结算不等待 UI 动效。apply／applyLifecycle 可返回安全 PublicEvent；平台保存成功后另发 room:feedback，UI 按实例／分支／修订去重，完整同步不播放。
 
 `lifecycleActions` 与 `applyLifecycle` 提供房主驱动的下一小局等选择，同样经过校验、事务、随机源和 before checkpoint；没有此流程的游戏返回空集合并拒绝执行。模板结算后可开始下一局或创建新房间，后者分配新实例并保留数据库历史。
 
 每个动作信封携带 `actionId,instanceId,revision,branch`；游戏意图另携带 `decisionId`。服务根据真实凭证绑定座位，不接受客户端指定行动身份。版本／分支／修订失效时同步后重新选择；确认丢失时重发原信封，不生成新编号。动作记录和 checkpoint 不发送给客户端，房主只得到安全标签与历史 ID。
 
-`validateState(input,seats)` 校验读档、初始化与动作后的状态。保存分别校验平台格式、游戏／规则／状态版本和策略版本。随机通过 `RuleContext.random.next()` 提供；不要调用 `Math.random()` 或时钟。平台保存规则与策略两个独立 xorshift32 状态，回退后相同边界和相同意图重演相同随机结果。
+`validateState(input,seats)` 校验读档、初始化与动作后的状态。保存分别校验平台格式、游戏／规则／状态版本和策略版本。随机通过 `RuleContext.random.next()` 提供；不要调用 `Math.random()` 或时钟。RuleContext.hostSeat 仅由平台验证主机加入后提供，不能从昵称或客户端 seatId 推断。平台保存规则与策略两个独立 xorshift32 状态，回退后相同边界和相同意图重演相同随机结果。
 
 ## 注册与策略替换
 
@@ -31,7 +32,7 @@ SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)
 3. 在 [网页入口](../../apps/web/src/App.tsx) 注册该游戏的投影类型、主机／本人组件和帮助。界面不能从规则模块取得秘密状态。模板界面已位于游戏目录，平台仍负责大厅和管理控件。
 4. 在游戏内维护逐选择覆盖测试、固定随机输入、权限与规则不变量。修改源码后按 [开发环境](../reference/development.md) 检查和重建；独立 Worker 随桌面构建／便携包本地打包。
 
-`BotStrategy` 声明 `id,version,gameId,rulesVersion`，`validateMemory` 校验普通数据；模板无记忆，使用 `null`。有记忆的策略需定义可恢复版本及初始 `null` 的转换。`decide` 只接收该座位的投影、合法动作、决策、本人记忆、策略随机源及取消信号，返回 `{action,memory}`。不能读取牌库或别人秘密，不能提交管理动作。选择器输出必须经过平台再次校验；调试权限不扩大策略输入。
+`BotStrategy` 声明 `id,version,gameId,rulesVersion`，`validateMemory` 校验普通数据；模板和首版基础策略无记忆，使用 `null`。有记忆的策略需定义可恢复版本及初始 `null` 的转换。`decide` 只接收该座位的投影、合法动作、决策、本人记忆、策略随机源及取消信号，返回 `{action,memory}`。不能读取牌库或别人秘密，不能提交管理动作。选择器输出必须经过平台再次校验；调试权限不扩大策略输入。
 
 正式服务每步 bot 延迟 350ms、计算预算 2s，在 JavaScript 老生代内存预算 32MiB 的独立 Worker 中执行，暂停／回退／结束／状态变化会取消旧任务。异常／非法意图／超时暂停并显示安全原因；房主检查策略后显式恢复，不自动重试。Worker 是受信任编译模块的执行边界，不是第三方代码安全沙箱。修改策略版本后旧存档默认拒绝恢复，不静默换策略；需要迁移时另行实现、验证并保留原存档。
 
@@ -41,4 +42,4 @@ SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)
 
 框架例子见 [核心测试](../../packages/platform-core/src/room.test.ts)、[真实通信与 SQLite 测试](../../apps/server/src/platform.test.ts)、[强制终止恢复](../../apps/server/src/crash.test.ts)、[Worker 取消](../../apps/server/src/bot-executor.test.ts)。`pnpm check` 跑全部工程检查，`pnpm build` 构建，`pnpm verify:desktop` 验证真实窗口／手机模拟／人机整局／回退／重启。具体证据与实机限制统一在开发环境维护。
 
-第五阶段按 [宝可梦决策边界](../games/pokemon-encounters/information-and-decisions.md) 实现 D01–D13，按 [验证场景](../games/pokemon-encounters/validation-scenarios.md) 运行 V12–V15、V19 等具体能力恢复。平台模板通过只证明恢复机制，不证明宝可梦规则、全部能力或产品 AC 已验收。
+首版的 [规则测试](../../games/pokemon-encounters/rules/rules.test.ts) 和 [恢复测试](../../games/pokemon-encounters/rules/recovery.test.ts) 是完整能力与 D01–D13 的接入例子；[强制退出测试](../../apps/server/src/pokemon-crash.test.ts) 用真实服务／SQLite 检查查看、传递和币面恢复。pnpm verify:game-ui 另运行合法存档 fixture 对应的真实能力 UI。当前交付与模拟边界见 [验收记录](../reference/acceptance.md)。

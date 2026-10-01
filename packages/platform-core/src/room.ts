@@ -1,10 +1,16 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import type { GameRules, BotStrategy, JsonValue } from '@tablemax/game-sdk';
+import type {
+  GameRules,
+  BotStrategy,
+  JsonValue,
+  PublicEvent,
+} from '@tablemax/game-sdk';
 import {
   CommandSchema,
   type Command,
   type CommandReply,
   type RoomView,
+  type RoomFeedback,
 } from '@tablemax/protocol';
 import type { Save, SaveRepository } from './model';
 import { validateSave } from './save-validation';
@@ -20,7 +26,7 @@ export type Identity =
 export class RoomCoordinator {
   private data: Save;
   private queue: Promise<unknown> = Promise.resolve();
-  private listeners = new Set<() => void>();
+  private listeners = new Set<(feedback?: RoomFeedback) => void>();
   private bindings = new Map<string, { seatId: string; expires: number }>();
   private transientBotError: string | null = null;
   readonly hostToken: string;
@@ -61,6 +67,7 @@ export class RoomCoordinator {
       paused: false,
       joinOpen: true,
       seats: [],
+      hostSeat: null,
       snapshot: null,
       history: [],
       receipts: {},
@@ -77,16 +84,16 @@ export class RoomCoordinator {
     requireThat(seat, 'invalid-identity');
     return { role: 'player', seatId: seat.id };
   }
-  subscribe(listener: () => void) {
+  subscribe(listener: (feedback?: RoomFeedback) => void) {
     this.listeners.add(listener);
     return () => {
       this.listeners.delete(listener);
     };
   }
-  notify() {
+  notify(feedback?: RoomFeedback) {
     for (const listener of this.listeners) {
       try {
-        listener();
+        listener(feedback);
       } catch {
         /* Observer failure cannot undo a committed action or its ACK. */
       }
@@ -97,14 +104,32 @@ export class RoomCoordinator {
     this.queue = pending.catch(() => undefined);
     return pending;
   }
-  private commit(next: Save, clearBotError = false) {
+  private commit(
+    next: Save,
+    clearBotError = false,
+    events: PublicEvent[] = [],
+  ) {
     this.repository.save(next);
     this.data = next;
     if (clearBotError) this.transientBotError = null;
-    this.notify();
+    this.notify(
+      events.length
+        ? {
+            instanceId: next.instanceId,
+            branch: next.branch,
+            revision: next.revision,
+            events,
+          }
+        : undefined,
+    );
   }
-  async join(name: string) {
+  async join(name: string, hostCredential?: string) {
     return this.enqueue(() => {
+      if (hostCredential)
+        requireThat(
+          this.identity(hostCredential).role === 'host' && !this.data.hostSeat,
+          'unauthorized',
+        );
       requireThat(
         this.data.status === 'lobby' && this.data.joinOpen,
         'joining-closed',
@@ -123,6 +148,7 @@ export class RoomCoordinator {
         ready: false,
         tokenHash: hash(credential),
       });
+      if (hostCredential) next.hostSeat = next.seats.at(-1)!.id;
       next.revision++;
       this.commit(next);
       return { token: credential, duplicateName };
@@ -250,6 +276,7 @@ export class RoomCoordinator {
     const lobby = () => requireThat(next.status === 'lobby', 'not-in-lobby');
     let code: string | undefined;
     let bindingSeat: string | undefined;
+    let events: PublicEvent[] = [];
     switch (c.type) {
       case 'join-open':
         host();
@@ -285,6 +312,7 @@ export class RoomCoordinator {
           'invalid-seat',
         );
         next.seats = next.seats.filter((s) => s.id !== c.seatId);
+        if (next.hostSeat === c.seatId) next.hostSeat = null;
         break;
       case 'order':
         host();
@@ -307,7 +335,11 @@ export class RoomCoordinator {
         );
         const random = new RandomSource(randomBytes(4).readUInt32LE() || 1);
         const state = this.rules.validateState(
-          this.rules.initialize({ seats: next.seats.map((s) => s.id), random }),
+          this.rules.initialize({
+            seats: next.seats.map((s) => s.id),
+            random,
+            ...(next.hostSeat ? { hostSeat: next.hostSeat } : {}),
+          }),
           next.seats.map((s) => s.id),
         );
         next.snapshot = {
@@ -454,6 +486,7 @@ export class RoomCoordinator {
           result.state,
           next.seats.map((s) => s.id),
         );
+        events = result.events ?? [];
         next.snapshot!.random = random.state;
         if (botUpdate) {
           requireThat(
@@ -485,7 +518,7 @@ export class RoomCoordinator {
       ...(code ? { bindingCode: code } : {}),
     };
     next.receipts[key] = { fingerprint, reply };
-    this.commit(next, c.type === 'resume' || c.type === 'rollback');
+    this.commit(next, c.type === 'resume' || c.type === 'rollback', events);
     if (code && bindingSeat) {
       for (const [key, b] of this.bindings)
         if (b.seatId === bindingSeat) this.bindings.delete(key);

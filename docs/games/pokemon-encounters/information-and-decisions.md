@@ -1,16 +1,16 @@
 # 状态、授权信息与决策恢复
 
-依据 [采用规则](rules.md) S12 至 S19／P01 至 P08。下列为规格字段及动作名称，这些名称是首版游戏规格；第三、四阶段已演进正式 SDK 与平台协议，宝可梦具体状态和动作仍待第五阶段。平台动作信封由服务端验证身份；传入 `seatId` 不是授权凭证。所有游戏选择及 bot 意图走同一串行动作入口。
+依据 [采用规则](rules.md) S12 至 S19／P01 至 P08。下列为规格字段及动作名称，这些名称是首版游戏规格；当前正式状态、动作和投影均已实现；原设计名称与实际代码映射在本页说明。平台动作信封由服务端验证身份；传入 `seatId` 不是授权凭证。所有游戏选择及 bot 意图走同一串行动作入口。
 
 ## 权威状态及不变量
 
-游戏保存 JSON 普通数据：`gameId/rulesVersion/stateVersion`；`roundNumber`；有序 `seatOrder`；`winsBySeat`；`boards[seat][0..5] = {instanceId,faceUp}`；`deck`／`discard`（均底到顶，取末项）及 `held` 实例；`phase`；正常回合 `turnSeat`；`pending`；硬币已生成结果；`roundResult`（各列解析、分值、赢家）；`matchWinners`；已选下一小局首位。牌实例的类别映射来自 cards.json，固定数值和能力定义不是对局秘密。
+游戏保存普通 JSON，实际定义见 [state.ts](../../../games/pokemon-encounters/rules/state.ts)：版本、roundNumber、seatOrder、winsBySeat、每座位六格 boards（instanceId／faceUp）、底到顶 deck／discard、held、phase、正常回合 turnSeat、initialDone、step、drawSource、coin、recipientQueue／recipientIndex、peekSlot、roundResult、matchWinners 和最多 30 条安全 events。
 
-`pending` 是带类型的选择对象。普通／能力节点为 `decisionId,actorSeat,kind,legalOptions,step`；初始化用 `kind=initial-flip, choicesBySeat[seat]={decisionId,legalOptions}` 表示所有尚未翻牌者，完成一人即移除该项，全员为空才推进。各座位自己的 decisionId 可独立查询，实际提交仍由平台串行校验和保存；不能只保留一个 actorSeat 而丢失其他初始选择。能力处理中另存 `effect={kind,originSeat,drawSource,incomingInstance,targetSlot,recipientQueue,nextRecipient,refillQueue,nextRefill,coinResult}`，使用实际需要的字段，不保存函数。梦幻第一换后与闪电鸟传递中 `held` 指当前暂持实例；火箭队全部同位弃底后允许处理中空位，补位进度保存。普通取牌后 held 保留公开新牌，待替换／弃牌选择。
+待处理选择由保存字段确定性导出，不重复存储 pending／legalOptions。decisions 返回每个尚未翻牌者，或当前能力接牌者；decisionId 包含小局／step／阶段／座位，平台另校验修订与分支。梦幻第二步和闪电鸟传递保存公开 held；临时查看由 charizard-view、turnSeat、peekSlot 共同限定。火箭队同位弃底与全员补位在一次规则执行／SQLite 事务内完成，持久化边界没有空位或半补位状态。
 
 恢复外层由平台保存：游戏 checkpoint、规则随机状态及已生成结果、bot 恢复数据、动作去重结果、有效历史链。平台当前修订／分支／连接／凭证另存；回退只恢复游戏及策略数据，再分配更大的修订和分支，不回退身份或网络连接。
 
-- 16 类／56 个唯一实例全程守恒，每实例只在场地、牌库、弃牌或暂持区之一；未占卡位为 null 只允许火箭队处理中。
+- 16 类／56 个唯一实例全程守恒，每实例只在场地、牌库、弃牌或暂持区之一；保存时每座位始终六格，自动步骤中临时移出也不向客户端发布。
 - 普通稳定回合与结算场地各六张；结算无 held、空位、待处理选择、未完成效果。结束检查只在普通操作／完整能力完成后做。
 - 每位小局初始一明五暗；暗牌没有默认本人查看权，临时 peek 不改变 faceUp；主动能力不因初始化、传递、补牌或结算揭示再次触发。
 - 大局不改变 seatOrder、座位身份或人数；真人／电脑控制类型仅大厅设置，换手机保留座位。
@@ -20,22 +20,22 @@
 
 卡位按上排 0／1／2、下排 3／4／5；同列为 `(0,3)、(1,4)、(2,5)`，同一行紧邻左右。下表列出全部游戏选择，不把自动步骤或管理操作算成玩家选择。
 
-| 阶段／行动者                   | 动作与合法参数                                                           | 确定性结果、自动推进与下一选择                                                                                                        | 依据                                                                                                                                       |
-| ------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| 初始选择／每个尚未完成的座位   | `initial-flip(slot:0..5)`                                                | 公开所选牌、不触发能力；独立保存各选择，全员完成才进入首位 draw。多个座位选择允许串行接收                                             | S12、S13、S16                                                                                                                              |
-| 正常 draw／turnSeat            | `draw(source:deck                                                        | discard)`，弃牌需非空                                                                                                                 | 空牌库先重洗全弃牌，抽一张公开到 held；普通／可选牌进入 drawn；梦幻进入 mew-other，火箭队原子生成币面后进入对应选择，闪电鸟进入 zapdos-own | S13、S14、S16、S17 |
-| drawn／turnSeat                | `replace(slot)` 或 `discard-drawn`；仅牌库来源可直接弃，弃牌来源必须替换 | 旧牌公开置顶、新牌朝上；普通牌／百变怪直接完成本回合，可选牌进入 ability-choice；直接弃没有附带翻牌                                   | S13 至 S17                                                                                                                                 |
-| mew-other／originSeat          | `mew-target(otherSeat,slot)`，其他座位任意已有牌                         | 梦幻朝上换他人牌，取出牌公开到 held，进入 mew-own；此刻其他人全明也不能结算                                                           | S14、S19                                                                                                                                   |
-| mew-own／originSeat            | `mew-replace(slot)`                                                      | held 朝上换己方、旧牌公开置顶；转移来的能力牌不触发；完整效果后查结束                                                                 | S14、S17、S19                                                                                                                              |
-| rocket-meowth／originSeat      | `rocket-replace(slot)`                                                   | 火箭队朝上换己方，旧牌公开置顶；效果完成后查结束                                                                                      | S14、S19                                                                                                                                   |
-| rocket-pikachu／originSeat     | `rocket-column-slot(slot)`（实际是全员同一格，不是整列）                 | 同位置牌和火箭队按 P03 逐张公开置底，从本人起顺时针全部补齐；不足则重洗；补牌不发动。补位是自动推进，不需要他人选牌；全部完成后查结束 | S14、S17、S19／P03                                                                                                                         |
-| zapdos-own／originSeat         | `zapdos-replace(slot)`                                                   | 闪电鸟换己方，换出牌公开至 held；待第一名顺时针其他玩家选位                                                                           | S14、S16                                                                                                                                   |
-| zapdos-receive／队列当前接牌者 | `receive-replace(slot)`                                                  | held 朝上换本人，旧牌公开传下位；各其他玩家恰接一次，最后旧牌置底，能力完成后查结束；不改变正常 turnSeat                              | S14、S16、S17、S19                                                                                                                         |
-| snorlax-choice／originSeat     | `decline-ability` 或 `swap(a,b)`，两格不同                               | 一次 swap 同时交换实例及其朝向，可选新入卡比兽；交换／放弃后查结束                                                                    | S15／S19                                                                                                                                   |
-| charizard-choice／originSeat   | `decline-ability` 或 `peek(slot)`，仅己方 faceUp=false                   | 无暗牌自动跳过；有目标进入 charizard-view，临时查看值仅给本人；不公开、不变朝向                                                       | S15／P05                                                                                                                                   |
-| charizard-view／originSeat     | `close-peek`                                                             | 清除临时显示并完成能力，再查结束；不是单纯关本地帮助，确认改变授权阶段                                                                | S14、S19／P08                                                                                                                              |
-| round-result／房主             | `next-round` 或已达三胜时不提供                                          | 新首位在共同赢家中原子抽取并保存、全 56 张重洗重发、再次选翻；胜局保留。它是平台驱动的游戏生命周期边界，可回退其前的结果              | S17／P04                                                                                                                                   |
-| match-result／无行动者         | 无游戏动作                                                               | 所有共同达三胜者显示大局赢家，停止策略调度；新大局由平台创建新实例，不复用旧动作标识                                                  | S17／P07                                                                                                                                   |
+| 阶段／行动者                   | 动作与合法参数                                                           | 确定性结果、自动推进与下一选择                                                                                                             | 依据               |
+| ------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| 初始选择／每个尚未完成的座位   | `initial-flip(slot:0..5)`                                                | 公开所选牌、不触发能力；独立保存各选择，全员完成才进入首位 draw。多个座位选择允许串行接收                                                  | S12、S13、S16      |
+| 正常 draw／turnSeat            | `draw(source:deck / discard)`，弃牌需非空                                | 空牌库先重洗全弃牌，抽一张公开到 held；普通／可选牌进入 drawn；梦幻进入 mew-other，火箭队原子生成币面后进入对应选择，闪电鸟进入 zapdos-own | S13、S14、S16、S17 |
+| drawn／turnSeat                | `replace(slot)` 或 `discard-drawn`；仅牌库来源可直接弃，弃牌来源必须替换 | 旧牌公开置顶、新牌朝上；普通牌／百变怪直接完成本回合，可选牌进入 ability-choice；直接弃没有附带翻牌                                        | S13 至 S17         |
+| mew-other／originSeat          | `mew-target(otherSeat,slot)`，其他座位任意已有牌                         | 梦幻朝上换他人牌，取出牌公开到 held，进入 mew-own；此刻其他人全明也不能结算                                                                | S14、S19           |
+| mew-own／originSeat            | `mew-replace(slot)`                                                      | held 朝上换己方、旧牌公开置顶；转移来的能力牌不触发；完整效果后查结束                                                                      | S14、S17、S19      |
+| rocket-meowth／originSeat      | `rocket-replace(slot)`                                                   | 火箭队朝上换己方，旧牌公开置顶；效果完成后查结束                                                                                           | S14、S19           |
+| rocket-pikachu／originSeat     | `rocket-column-slot(slot)`（实际是全员同一格，不是整列）                 | 同位置牌和火箭队按 P03 逐张公开置底，从本人起顺时针全部补齐；不足则重洗；补牌不发动。补位是自动推进，不需要他人选牌；全部完成后查结束      | S14、S17、S19／P03 |
+| zapdos-own／originSeat         | `zapdos-replace(slot)`                                                   | 闪电鸟换己方，换出牌公开至 held；待第一名顺时针其他玩家选位                                                                                | S14、S16           |
+| zapdos-receive／队列当前接牌者 | `receive-replace(slot)`                                                  | held 朝上换本人，旧牌公开传下位；各其他玩家恰接一次，最后旧牌置底，能力完成后查结束；不改变正常 turnSeat                                   | S14、S16、S17、S19 |
+| snorlax-choice／originSeat     | `decline-ability` 或 `swap(a,b)`，两格不同                               | 一次 swap 同时交换实例及其朝向，可选新入卡比兽；交换／放弃后查结束                                                                         | S15／S19           |
+| charizard-choice／originSeat   | `decline-ability` 或 `peek(slot)`，仅己方 faceUp=false                   | 无暗牌自动跳过；有目标进入 charizard-view，临时查看值仅给本人；不公开、不变朝向                                                            | S15／P05           |
+| charizard-view／originSeat     | `close-peek`                                                             | 清除临时显示并完成能力，再查结束；不是单纯关本地帮助，确认改变授权阶段                                                                     | S14、S19／P08      |
+| round-result／房主             | `next-round` 或已达三胜时不提供                                          | 新首位在共同赢家中原子抽取并保存、全 56 张重洗重发、再次选翻；胜局保留。它是平台驱动的游戏生命周期边界，可回退其前的结果                   | S17／P04           |
+| match-result／无行动者         | 无游戏动作                                                               | 所有共同达三胜者显示大局赢家，停止策略调度；新大局由平台创建新实例，不复用旧动作标识                                                       | S17／P07           |
 
 普通操作／完整能力完成后：检测任意六张全明 → 全员揭示 → 联合百变怪最优解析 → 逐列计分 → 最低分者加胜 → 到三胜则 match-result，否则 round-result。结算原子计算并保存，不等待动画或再发动场地能力。未满足结束则 turnSeat 顺时针进入下一 draw。
 
@@ -81,14 +81,18 @@
 
 结算包含于导致结束的最后选择／自动推进事务；回退其 before 时小局分数和胜局一起还原，不以结算已经公开为由禁止。正常回合末不能吞并此前抽牌 checkpoint。暂停／结束／恢复及换绑是平台管理动作，业务恢复规则见通用规格；帮助、放大、角色审阅切换不建游戏 checkpoint。
 
-崩溃恢复只加载事务已确认边界；火箭队自动补位如分批内部写入，要使用可恢复 transaction／effect progress，不能确认整个玩家动作成功却丢失后续效果。恢复中间能力即使某人全明也继续能力；所有动作携带当前 decisionId／branch／revision，旧动作、bot 结果和动画拒绝／清除。声音只来自新保存公共事件，重连／回退完整同步不重播。
+崩溃恢复只加载事务已确认边界。火箭队自动补位采用整步原子提交，未确认动作不会留下部分效果；已确认动作恢复全部补位后的状态。恢复中间能力即使某人全明也继续能力；所有动作携带当前 decisionId／branch／revision，旧动作、bot 结果和动画拒绝／清除。声音只来自新保存公共事件，重连／回退完整同步不重播。
 
 ## 正式初始契约缺口与交接
 
-第三、四阶段 `GameRules.apply` 仍返回安全 `DecisionBoundary{label,revealedInformation}`，平台形成完整 before checkpoint；已补 `decisions` 多行动者列表、状态不变量校验、独立策略与 `lifecycleActions/applyLifecycle` 契约。`legalActions` 为合法意图集合，`project` 保持 public／player。实际模板与接入方法见[开发指南](../../game-development/README.md)。无需新增“房主看全部秘密”投影；但需提供公开主机全弃牌与玩家顶牌的不同字段。
+第三、四阶段 `GameRules.apply` 仍返回安全 `DecisionBoundary{label,revealedInformation}`，平台形成完整 before checkpoint；已补 `decisions` 多行动者列表、状态不变量校验、独立策略与 `lifecycleActions/applyLifecycle` 契约。`legalActions` 为合法意图集合，`project` 保持 public／player。实际模板与接入方法见[开发指南](../../game-development/README.md)。当前 project 已提供公开主机全弃牌与玩家弃牌顶的不同字段，无需新增“房主看全部秘密”投影。
 
 - 第三阶段：在纯授权 Viewer 下补 decisionId、逐座位合法动作／参数模式、可能多个初始行动者、电脑控制者与策略契约；以规则数据声明 2–5 人，不硬编码平台人数。
 - 第四阶段：apply 返回前边界及原子自动推进结果、下一待选、规则随机恢复、已生成币／洗牌结果；多步传递 actorSeat 不等于 turnSeat；checkpoint 包含策略版本及恢复数据，动作去重／分支校验在平台。
 - 第五阶段：独立 scoring.ts、rules/project.ts 与 bot/index.ts，渲染仅依赖投影；finalization 是自动确定性规则推进。资源清单与类别 ID 本地绑定，秘密 instanceId 不入 UI。SDK 演进据本表场景实施，第二阶段当时未更改 API，第三、四阶段已按实际平台场景演进。
 
 具有生命周期的 RoomCoordinator／BotScheduler／SaveRepository 适度对象封装，显式依赖注入；规则、计分、投影和基础策略纯函数。服务适配通信／SQLite，游戏不导入 Electron／数据库／网络，避免一个巨型控制器。异常、去重和恢复是统一入口职责，不复制到各能力组件。
+
+实际动作采用共享 replace(slot) 处理普通、梦幻己方、火箭队及闪电鸟各节点；原设计的 mew-replace／rocket-replace／rocket-column-slot／zapdos-replace／receive-replace 由 phase 区分，不是五套 API。drawn 对应 place，mew-own 对应 mew-self，zapdos-own 对应 zapdos-self，discard-drawn 对应 discard-held。mew-target 使用 seat 字段。D01–D13 的 before 标签及恢复语义不变，专项测试全部逐项通过。
+
+SDK 的 PublicEvent 与平台 room:feedback 只包含安全 kind／text 及实例／分支／修订。反馈仅在保存后发送；重复确认、拒绝、同步与回退不发送事件。UI 仅比较授权投影中的公共 slotId／牌面，未知实例 ID 不进入 DOM、URL、动画键或声音。

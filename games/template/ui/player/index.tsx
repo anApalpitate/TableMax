@@ -1,5 +1,6 @@
 import type { JsonValue } from '@tablemax/game-sdk';
 import type { TemplateView } from '../view';
+import die from '../../assets/die.svg';
 export function PlayerControls({
   view,
   actions,
@@ -13,6 +14,7 @@ export function PlayerControls({
 }) {
   return (
     <>
+      <img src={die} width="40" height="40" alt="" />
       {view.ownSecret !== null && (
         <p className="secret">
           你的秘密骰子：<strong>{view.ownSecret}</strong>

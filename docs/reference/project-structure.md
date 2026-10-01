@@ -20,26 +20,26 @@
 | `packages/platform-core/`                                                          | 真实房间／授权、串行去重、随机／checkpoint／分支恢复、bot 调度与独立存档校验                                                                         |
 | `games/template/`                                                                  | 可运行最小游戏，独立规则、计分、投影、策略和两端 UI                                                                                                  |
 | `docs/game-development/`                                                           | 当前模板、注册／替换步骤、恢复接口与验证方法                                                                                                         |
-| `games/README.md`                                                                  | 每款游戏独立目录的约定；未建立宝可梦或空游戏工程                                                                                                     |
+| `games/pokemon-encounters/`                                                        | 首版规则、计分、授权投影、独立 bot、主机／手机 UI、20 张 WebP、5 类音频及专项测试                                                                    |
+| `games/README.md`                                                                  | 每款游戏独立目录的约定；当前首版与验证模板均已建立，不预铺空游戏工程                                                                                 |
 | `docs/README.md`                                                                   | 按任务意图组织文档入口                                                                                                                               |
 | `docs/requirements/`                                                               | 产品需求基线；已按用户要求注明日期增补跨游戏调试与纠错目标，区分后续规划与已实现行为                                                                 |
 | `docs/games/pokemon-encounters/`                                                   | 首版来源、规则、cards.json、状态／权限／决策、交互、资源、scenarios.json及人机规格；完整测试fixture不导入原型                                        |
 | `docs/reference/`                                                                  | 当前目录与工程边界、开发操作及验证记录、维护规则、第二阶段通用交互与交接规格、人机规格及适度封装原则                                                 |
 | `docs/decisions/`                                                                  | 已确定的重要选择、理由与后果；已有工程基础技术方向决策，含新增人机与可维护性范围决策；产品决策引用需求与用户最新指示                                 |
-| `docs/tasks/`                                                                      | 粗粒度阶段总览与进行中任务；已完成阶段保留归档链接；第五、六阶段为待执行范围                                                                         |
+| `docs/tasks/`                                                                      | 粗粒度阶段总览与进行中任务；已完成阶段保留归档链接；第一至六阶段完成，后续独立需求在任务索引维护                                                     |
 | `docs/subagent/`                                                                   | 子 agent 职责索引与单独角色文档；已有 imagegen 职责，保存输入、文件边界、交付和维护约定，不保存图片或会话实例配置                                    |
-| `docs/archive/`                                                                    | 已完成任务及有历史价值的过程材料；第一至四阶段任务已归档，索引说明归档原因和当前参考入口                                                             |
+| `docs/archive/`                                                                    | 已完成任务及有历史价值的过程材料；第一至六阶段任务已归档，索引说明归档原因和当前参考入口                                                             |
 
 ## 已采用与计划结构
 
-上表是现有目录；真实平台与验证模板已实现，宝可梦完整游戏仍待第五阶段。工程依赖方向、进程及封装边界统一见 [工程结构](architecture.md)，采用理由见 [工程基础决策](../decisions/001-engineering-foundation.md)。当前正式网页保留主机／公共／手机路由，主机已兼房主管理，手机保留本人视图，见 [界面决策](../decisions/002-host-public-screen-and-debug.md)。
+上表是现有目录；真实平台、验证模板与宝可梦完整游戏均已实现。工程依赖方向、进程及封装边界统一见 [工程结构](architecture.md)，采用理由见 [工程基础决策](../decisions/001-engineering-foundation.md)。当前正式网页保留主机／公共／手机路由，主机已兼房主管理，手机保留本人视图，见 [界面决策](../decisions/002-host-public-screen-and-debug.md)。
 
-| 计划位置（尚未创建）        | 建立时机与内容                                                                                                                                        |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `packages/ui/`              | 按后续实际组件复用需要建立，不预铺空包。                                                                                                              |
-| `games/pokemon-encounters/` | 第五阶段实现独立游戏；规则／计分、投影、主机／手机 UI、资源及验证按 [游戏目录约定](../../games/README.md) 组织，基础电脑策略采用独立 `bot/index.ts`。 |
+| 计划位置（尚未创建） | 建立时机与内容                           |
+| -------------------- | ---------------------------------------- |
+| `packages/ui/`       | 按后续实际组件复用需要建立，不预铺空包。 |
 
-当前首版规格与数据已在 [游戏主题](../games/pokemon-encounters/README.md)，游戏标识与未来源码模块一致。长期来源、规则、权限、交互、资源和场景各有主题；跨游戏行为维护在 [通用平台规格](phase-02-platform-spec.md)，运行及检查维护在 [开发说明](development.md)。
+当前首版规格与数据已在 [游戏主题](../games/pokemon-encounters/README.md)，游戏标识与当前源码及资源命名空间一致。长期来源、规则、权限、交互、资源和场景各有主题；跨游戏行为维护在 [通用平台规格](phase-02-platform-spec.md)，运行及检查维护在 [开发说明](development.md)。
 
 新增目录应有当前明确职责，不预铺未来插件、多房间或后续游戏的空层级。确需跟踪空目录时使用 `.gitkeep` 或有实际用途的说明文件。
 
@@ -47,7 +47,7 @@
 
 - 长期需求、规则规格、来源清单和必要游戏资源属于项目资料；放入对应主题，不混入临时目录。
 - 本地实验、临时导出或下载中间文件可放入根目录 `tmp/`（需要时创建）；不作为长期资料入口。
-- 根目录 `build/` 已用于可再生构建中间物，`dist/` 为保留的构建排除项。工程验证便携包、截图与 JSON 证据保存在 `artifacts/phase-01/`；第二阶段原型构建、检索原始响应和走查证据在 `artifacts/phase-02/`。第三、四阶段真实平台截图与 JSON 在 `artifacts/phase-03-04/verification/`。这些文件 Git 忽略但文件树保持可见；正式产品交付策略在第六阶段确认。
+- 根目录 `build/` 已用于可再生构建中间物，`dist/` 为保留的构建排除项。工程验证便携包、截图与 JSON 证据保存在 `artifacts/phase-01/`；第二阶段原型构建、检索原始响应和走查证据在 `artifacts/phase-02/`。第三、四阶段真实平台截图与 JSON 在 `artifacts/phase-03-04/verification/`。第五阶段原图／素材检查在 artifacts/phase-05/imagegen；第六阶段正式 ZIP 和 desktop／portable／ui 验证在 artifacts/phase-06。上述本地产物 Git 忽略但文件树保持可见。
 - `artifacts/phase-02/prototype/` 是可再生原型构建，`verification/` 是对应走查证据，`research/` 是已保存的检索响应与哈希清单。资料是否可再生分别判断，不能因同在 artifacts 下就覆盖或删除原始响应。路径与命令见开发说明，资料适用性见 [规则来源与核验缺口](../games/pokemon-encounters/sources.md#规则来源与核验缺口)。
 - `artifacts/phase-02/research/chinese-reference/s14/` 保存用户三张原始中文截图、尺寸／哈希和牌面转录；叠图数量已由 S17 核对为 56，原始观察及原图保留；完整采用表在 docs/games/pokemon-encounters/cards.json，原图不直接导入运行时。
 - `artifacts/phase-02/art-reset/` 保存 imagegen 原始 PNG、素材检查、三端同尺寸前后对比与文字密度测量；`verification/before-art-reset/` 保留重置前截图。原始图像与历史证据不被原型构建覆盖。

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "pokemon-encounters/audio/draw",
+    "path": "draw-v1.wav",
+    "source": "TableMax original procedural chime",
+    "script": "scripts/generate-game-sounds.mjs",
+    "encoding": "PCM signed 16-bit mono",
+    "sampleRate": 22050,
+    "seconds": 0.24,
+    "sha256": "1ff0b0b095b7342240013f49d811b3bcc5019c076932ae0ac15bb8a573c3a59f"
+  },
+  {
+    "id": "pokemon-encounters/audio/replace",
+    "path": "replace-v1.wav",
+    "source": "TableMax original procedural chime",
+    "script": "scripts/generate-game-sounds.mjs",
+    "encoding": "PCM signed 16-bit mono",
+    "sampleRate": 22050,
+    "seconds": 0.24,
+    "sha256": "ee02438c73791b69a5df686156a730603e36b118051cd73ddb63be1dea6e5083"
+  },
+  {
+    "id": "pokemon-encounters/audio/effect-complete",
+    "path": "effect-complete-v1.wav",
+    "source": "TableMax original procedural chime",
+    "script": "scripts/generate-game-sounds.mjs",
+    "encoding": "PCM signed 16-bit mono",
+    "sampleRate": 22050,
+    "seconds": 0.32997732426303855,
+    "sha256": "20892d9e490786f6bfdd015d0031ea2b5c8f2e56771dae3f89a55ae14fa418b0"
+  },
+  {
+    "id": "pokemon-encounters/audio/round-result",
+    "path": "round-result-v1.wav",
+    "source": "TableMax original procedural chime",
+    "script": "scripts/generate-game-sounds.mjs",
+    "encoding": "PCM signed 16-bit mono",
+    "sampleRate": 22050,
+    "seconds": 0.42,
+    "sha256": "62adedcc39f539004dea1e349822515d2b22dd09b3b59feed082c5e3f7db704d"
+  },
+  {
+    "id": "pokemon-encounters/audio/error",
+    "path": "error-v1.wav",
+    "source": "TableMax original procedural chime",
+    "script": "scripts/generate-game-sounds.mjs",
+    "encoding": "PCM signed 16-bit mono",
+    "sampleRate": 22050,
+    "seconds": 0.24,
+    "sha256": "2219557a9970338c5b07387f7aee42c74405fa6c0ae7f125bca58b6f77a8e863"
+  }
+]

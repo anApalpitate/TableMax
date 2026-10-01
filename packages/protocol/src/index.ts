@@ -84,11 +84,37 @@ export const CommandSchema = z
   .strict();
 export type Command = z.infer<typeof CommandSchema>;
 export const JoinSchema = z
-  .object({ name: z.string().trim().min(1).max(24) })
+  .object({
+    name: z.string().trim().min(1).max(24),
+    hostToken: CredentialSchema.optional(),
+  })
   .strict();
 export const SessionSchema = z
   .object({ token: CredentialSchema.optional() })
   .strict();
+export const RoomFeedbackSchema = z
+  .object({
+    instanceId: z.string().uuid(),
+    branch: z.number().int().nonnegative(),
+    revision: z.number().int().positive(),
+    events: z
+      .array(
+        z
+          .object({
+            kind: z.enum([
+              'draw',
+              'replace',
+              'effect-complete',
+              'round-result',
+            ]),
+            text: z.string().max(100),
+          })
+          .strict(),
+      )
+      .max(8),
+  })
+  .strict();
+export type RoomFeedback = z.infer<typeof RoomFeedbackSchema>;
 
 export interface RoomView {
   instanceId: string;

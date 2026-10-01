@@ -1,0 +1,162 @@
+import type { PokemonView } from '../../rules/project';
+import { categories } from '../../rules/cards';
+import { Board, CardFace } from '../cards';
+import { phaseLabels } from '../phases';
+import pikachuCoin from '../../assets/coin-pikachu-v1.webp';
+import meowthCoin from '../../assets/coin-meowth-v1.webp';
+import { useContext } from 'react';
+import { SavedMotion } from '../motion';
+export function SeatResult({
+  view,
+  seatId,
+}: {
+  view: PokemonView | null;
+  seatId: string;
+}) {
+  if (!view) return null;
+  const score = view.roundResult?.scores[seatId];
+  return (
+    <>
+      <span className="tag">
+        {view.winsBySeat[seatId]} / 3 胜
+        {view.matchWinners.includes(seatId)
+          ? ' · 大局赢家'
+          : view.roundResult?.winners.includes(seatId)
+            ? ' · 小局赢家'
+            : ''}
+      </span>
+      <Board view={view} seatId={seatId} />
+      {score && (
+        <div className="score-detail">
+          <strong>总分 {score.total}</strong>
+          <p>三列贡献：{score.columns.join(' / ')}</p>
+          {score.copies.map((copy) => (
+            <p key={copy.slot}>
+              百变怪 {copy.slot + 1} → {copy.value}（路径{' '}
+              {copy.path.map((slot) => slot + 1).join(' → ')}）
+            </p>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+export function TableStatus({
+  view,
+  names,
+}: {
+  view: PokemonView;
+  names: Record<string, string>;
+}) {
+  const motion = useContext(SavedMotion);
+  return (
+    <div className="pokemon-status">
+      <div className={motion.includes('@phase') ? 'saved-motion' : ''}>
+        <span className="eyebrow">第 {view.roundNumber} 小局 · 三胜大局</span>
+        <h2>{phaseLabels[view.phase]}</h2>
+        <p>
+          {view.actorSeat
+            ? `${names[view.actorSeat]} 选择中`
+            : view.phase === 'initial-flip'
+              ? `已完成 ${view.initialDone.length} / ${view.seatOrder.length}`
+              : '最低分获胜；同分共同记胜。'}
+          {view.passProgress &&
+            ` · 传牌 ${view.passProgress.completed + 1} / ${view.passProgress.total}`}
+        </p>
+        {view.coin && (
+          <span className="coin-result">
+            <img
+              src={view.coin === 'meowth' ? meowthCoin : pikachuCoin}
+              alt=""
+            />
+            硬币 · {view.coin === 'meowth' ? '喵喵面' : '皮卡丘面'}
+          </span>
+        )}
+      </div>
+      <div className="card-piles">
+        <div>
+          <span className="pile-label">牌库 {view.deckCount}</span>
+          <CardFace card={null} />
+        </div>
+        <div>
+          <span className="pile-label">弃牌 {view.discardCount}</span>
+          {view.discardTop ? (
+            <CardFace card={view.discardTop} />
+          ) : (
+            <span className="empty-pile">暂时为空</span>
+          )}
+        </div>
+        {view.held && (
+          <div
+            className={`held-pile ${motion.includes('@held') ? 'saved-motion' : ''}`}
+          >
+            <span className="pile-label">公开暂持牌</span>
+            <CardFace card={view.held} />
+          </div>
+        )}
+      </div>
+      {view.discard && view.discard.length > 0 && (
+        <details>
+          <summary>展开全部弃牌（底 → 顶）</summary>
+          <div className="discard-gallery">
+            {view.discard.map((card, i) => (
+              <CardFace key={i} card={card} />
+            ))}
+          </div>
+        </details>
+      )}
+    </div>
+  );
+}
+export function PublicLog({ view }: { view: PokemonView }) {
+  return (
+    <details className="public-log">
+      <summary>公开操作记录</summary>
+      <ol>
+        {view.events
+          .slice()
+          .reverse()
+          .map((event) => (
+            <li key={event.id}>{event.text}</li>
+          ))}
+      </ol>
+    </details>
+  );
+}
+export function GameHelp() {
+  return (
+    <div className="game-help">
+      <p>
+        采用规则 tablemax-cn-s19-v1。2–5
+        人，每人两行三列六张牌。各自选翻一张后开始，暗牌不能默认偷看。顺时针取牌库顶或非空弃牌顶；新摸牌公开。
+      </p>
+      <p>
+        牌库牌可替换己方任意一格或直接弃顶；弃牌顶必须替换。三种强制能力不能绕过。换入朝上、换出公开弃顶。牌库耗尽时整个弃牌堆重洗，不保留顶牌。
+      </p>
+      <p>
+        当前操作或整段能力完成后，任意一人六张全明便立即揭示全员并结算，不增加其他人的最后回合。同列有效数值相等都计零，否则相加；最低分所有人各记一胜，任意人第三胜结束大局，同时达标共同获胜。下一小局从共同赢家随机一人开始，重新洗发、各翻一张。
+      </p>
+      {categories
+        .filter((card) => card.abilityDefinition)
+        .map((card) => (
+          <p key={card.categoryId}>
+            <strong>
+              {card.displayName} ·{' '}
+              {card.value.kind === 'fixed' ? card.value.number : '?'}
+            </strong>
+            <br />
+            {card.abilityDefinition!.adoptedText}
+          </p>
+        ))}
+      <p>
+        能力只检查正常回合新摸并换入：初始翻牌、传递、移动、火箭队补牌和结算揭示不连锁。可选能力必须完成发动或放弃后才检查结束；喷火龙无暗牌自动跳过。
+      </p>
+      <p>
+        火箭队皮卡丘面先弃行动者选牌、火箭队，再顺时针弃其余同格，每张逐次插到弃牌底；全部移出后从行动者起顺时针朝上补位。闪电鸟由每位接牌者本人选位，最后换出牌弃底。
+      </p>
+      <p>
+        百变怪复制本行紧邻左右数字，可沿另一百变怪到真实数字锚点，不能纯循环。联合取含配对的最低总分；同分按解析值序列升序、左优先确定展示。房主普通模式不能看暗牌；回退不能撤销人已记住的信息。
+      </p>
+    </div>
+  );
+}

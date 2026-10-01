@@ -12,14 +12,18 @@ import {
   type ServiceConfig,
   JoinSchema,
   SessionSchema,
+  type RoomFeedback,
 } from '@tablemax/protocol';
 import { RoomCoordinator, BotScheduler } from '@tablemax/platform-core';
-import { rules, bot } from '@tablemax/game-template';
+import { rules, bot } from '../../../games/pokemon-encounters';
 import { SqliteSaveRepository } from './save-repository';
 import { WorkerBotExecutor } from './bot-executor';
 import { openFoundationDatabase } from './database';
 
-export async function createService(input: ServiceConfig) {
+export async function createService(
+  input: ServiceConfig,
+  game = { rules, bot },
+) {
   const config = ServiceConfigSchema.parse(input);
   mkdirSync(join(config.dataDir, 'logs'), { recursive: true });
   const log = (event: string) =>
@@ -33,7 +37,7 @@ export async function createService(input: ServiceConfig) {
   try {
     repository = new SqliteSaveRepository(config.dataDir);
     try {
-      room = new RoomCoordinator(rules, bot, repository);
+      room = new RoomCoordinator(game.rules, game.bot, repository);
     } catch (error) {
       repository.close();
       throw error;
@@ -50,7 +54,12 @@ export async function createService(input: ServiceConfig) {
       ? new WorkerBotExecutor(config.botWorkerPath)
       : undefined,
   );
-  const app = Fastify({ logger: false, bodyLimit: 16 * 1024 });
+  const app = Fastify({
+    logger: false,
+    bodyLimit: 16 * 1024,
+    // A phone going offline mid-request must not hold desktop shutdown open.
+    forceCloseConnections: true,
+  });
   const sockets = new Server(app.server, { maxHttpBufferSize: 16 * 1024 });
   const health = HealthSchema.parse({
     status: 'ready',
@@ -99,7 +108,7 @@ export async function createService(input: ServiceConfig) {
     }
     return seats;
   };
-  const broadcast = () => {
+  const broadcast = (feedback?: RoomFeedback) => {
     const connected = online();
     for (const socket of sockets.sockets.sockets.values()) {
       try {
@@ -107,6 +116,7 @@ export async function createService(input: ServiceConfig) {
           'room:view',
           room.view(socket.data.credential as string | undefined, connected),
         );
+        if (feedback) socket.emit('room:feedback', feedback);
       } catch {
         socket.emit('room:revoked');
         socket.disconnect(true);
@@ -119,7 +129,10 @@ export async function createService(input: ServiceConfig) {
     if (!parsed.success)
       return reply.code(400).send({ ok: false, reason: 'invalid-name' });
     try {
-      return { ok: true, ...(await room.join(parsed.data.name)) };
+      return {
+        ok: true,
+        ...(await room.join(parsed.data.name, parsed.data.hostToken)),
+      };
     } catch {
       return reply
         .code(409)
@@ -179,7 +192,7 @@ export async function createService(input: ServiceConfig) {
   });
   sockets.on('connection', (socket) => {
     broadcast();
-    socket.on('disconnect', broadcast);
+    socket.on('disconnect', () => broadcast());
     socket.on('room:sync', () => {
       try {
         socket.emit(

@@ -1,6 +1,6 @@
 # 开发环境与验证
 
-范围：用户本机 Windows 11 x64；涵盖第一至四阶段的工程、原型、真实平台及恢复验证。正式入口已接真实大厅和可玩验证模板；独立原型仍是合成状态。宝可梦完整游戏及产品实机验收尚未完成。
+范围：用户本机 Windows 11 x64；第一至六阶段已完成，正式入口默认运行宝可梦完整游戏，独立原型保留合成状态。当前交付验收按用户授权使用电视／手机模拟，证据及 AC 对应见 [验收记录](acceptance.md)；历史阶段记录保持原验证范围。
 
 第二阶段设计行为和 AC 场景见 [通用交互规格](phase-02-platform-spec.md)，规则关口与接续工作见 [阶段任务](../archive/phase-02-rules-and-interaction.md)。原型不读取默认数据目录，不改变正式桌面入口。
 
@@ -91,8 +91,8 @@ pnpm prototype:verify:game
 | 文档、索引或目录说明 | 相对链接与锚点、正文归属、命令／配置一致性、改动文件的 Prettier 格式及 `git diff --check`。`docs/` 默认被格式命令忽略，需要格式化改动页时对明确路径使用 `pnpm exec prettier --check --ignore-path .gitignore <文件路径>`，将 `--check` 改为 `--write` 可格式化。 |
 | 独立原型源码         | 类型、静态、格式与独立构建，再执行受影响的通用／游戏走查；`pnpm prototype:verify:game --layout-only` 仅补查布局，不能替代流程走查。                                                                                                                              |
 | 正式平台与共享契约   | `pnpm check` 与 `pnpm build`，按行为补真实服务、授权及恢复测试；影响桌面生命周期时执行 `pnpm verify:desktop`。                                                                                                                                                   |
-| 正式游戏、计分或策略 | 接入后执行游戏规则、投影、人机和恢复测试，覆盖 [游戏场景](../games/pokemon-encounters/validation-scenarios.md) 的适用项；当前尚无正式游戏测试命令。                                                                                                              |
-| 正式便携交付         | 打包及便携自动验证，加第六阶段规定的 Windows／公共屏／手机实机与断互联网整局验收。                                                                                                                                                                               |
+| 正式游戏、计分或策略 | 接入后执行游戏规则、投影、人机和恢复测试，覆盖 [游戏场景](../games/pokemon-encounters/validation-scenarios.md) 的适用项；pnpm check 包含首版规则／策略／D01–D13／真实崩溃测试；pnpm verify:game-ui 运行能力 UI fixture。                                         |
+| 正式便携交付         | pnpm package:win 和 pnpm verify:portable；当前用户授权设备模拟范围和证据见验收记录。                                                                                                                                                                             |
 
 新报告只声明本次执行的范围。历史证据保留对应构建、日期与限制，不因更新说明或局部补查而改成完整产品验收。
 
@@ -111,7 +111,7 @@ pnpm prototype:verify:game
 | Electron 浏览器数据  | 数据目录 `desktop/`，包含网页会话与缓存                                                                                    |
 | pnpm、下载与工具缓存 | 仓库 `.pnpm-store/`、`.cache/`；Git 忽略，工作区隐藏与排除监听                                                             |
 | 可再生构建           | 仓库 `build/`，Git 忽略，工作区隐藏                                                                                        |
-| 便携包与验证图／JSON | 仓库 `artifacts/phase-01/`，Git 忽略，文件树保持可见；搜索与监听单独排除                                                   |
+| 便携包与验证图／JSON | 当前仓库 artifacts/phase-06；历史 phase-01 保留，Git 忽略，文件树可见；搜索与监听单独排除                                  |
 | 原型构建             | 仓库 `artifacts/phase-02/prototype/`，独立于 `build/desktop/web/`                                                          |
 | 原型截图与走查 JSON  | 仓库 `artifacts/phase-02/verification/`，Git 忽略但文件树可见；每次走查更新对应证据                                        |
 | 美术原图与前后对比   | 仓库 `artifacts/phase-02/art-reset/`；保留 imagegen 原始 PNG、透明通道／尺寸／哈希检查、联系表及同尺寸前后截图和文字测量   |
@@ -122,7 +122,19 @@ pnpm prototype:verify:game
 
 仅支持开发／验证覆盖的环境变量：`TABLEMAX_DATA_DIR` 指定数据位置，`TABLEMAX_HOST` 指定监听地址，`TABLEMAX_PORT` 指定端口（0 仅用于验证临时端口）。`TABLEMAX_WEB_DEV_URL` 由开发脚本设置，普通便携启动不要设置。`ELECTRON_RUN_AS_NODE` 会改变 Electron 模式，项目启动和验证脚本主动移除该变量。不要将含秘密的本地配置纳入 Git。
 
-没有自动修改防火墙、路由器或系统服务。手机连接还受私人网络防火墙、访客网络隔离和选错网卡影响。局域网实机验证与正式离线整局仍属于后续阶段；工程验证不能替代手机系统浏览器验收。
+没有自动修改防火墙、路由器或系统服务。手机连接还受私人网络防火墙、访客网络隔离和选错网卡影响。当前完成实际本地服务和禁止外部请求的完整混合局；手机／电视按用户授权模拟，不声称实际系统浏览器或外接硬件已测。
+
+## 第五、六阶段完整游戏与交付
+
+当前版本 1.0.0，默认游戏 pokemon-encounters，规则 tablemax-cn-s19-v1，状态版本 1，策略 pokemon-encounters/basic／1。已有旧验证模板存档的用户需要保留／备份原数据，在独立数据目录启动新版本；不自动覆盖不兼容存档。可在 PowerShell 设置 $env:TABLEMAX_DATA_DIR 为明确的新目录后运行程序，普通使用仍取默认 LOCALAPPDATA/TableMax。
+
+在根目录执行 pnpm check、pnpm build；游戏 UI 改动另执行 pnpm verify:game-ui，桌面／服务集成执行 pnpm verify:desktop。pnpm package:win 会先构建，输出 artifacts/phase-06/TableMax-1.0.0-win-x64.zip；pnpm verify:portable 解压该 ZIP 后实际运行，PATH 仅系统目录。它在当前电脑执行，不自动清理或修改默认玩家数据。
+
+2026-10-01 全套类型／静态／格式检查和 48 项测试通过。新增首版规则／计分、20 固定种子 2–5 座位完整大局、D01–D13 精确回退／重演和 3 处实际服务 SIGKILL 恢复。真实能力 UI 7 组通过，包含 5 音频解码、保存反馈、动画 CSS／animationstart 观察、减少动态、360／390 布局、44px 和确认栏遮挡检查。完整桌面与最终便携走查为 2 真人模拟加 3 个实际 Worker bot，涵盖三胜结束、回退、正常关闭／同地址重启、后台冻结和断网导航后原身份恢复；观察到的网页资源全部本地，无页面错误。
+
+UI 合法存档 fixture 的构造入口在 scripts/fixtures/prepare-pokemon.ts，仅为开发工具，不进入便携包或提供生产调试 API。生成的临时数据在 tmp/game-ui-_、tmp/pokemon-_ 与 tmp/portable-game-*；证据在 artifacts/phase-06/verification 的 development、portable、ui 子目录。ZIP 哈希及实际内置运行时随 portable/results.json 保存。
+
+本轮按用户明确要求只使用当前 Windows 电脑，电视、Android／iPhone 浏览器及后台／断网采用模拟；不声称 Safari、电视硬件或另一台无开发环境电脑已测。AC 具体结果、声音观察限制和后续复查边界统一见 [验收记录](acceptance.md)，使用流程见 [项目说明](../../README.md#使用便携版)。以下保留阶段历史证据，过去的“待第五／六阶段”描述表示当时状态。
 
 ## 第三、四阶段平台验证
 

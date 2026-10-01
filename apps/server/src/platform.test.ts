@@ -5,7 +5,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import type { Command, CommandReply, RoomView } from '@tablemax/protocol';
-import { createService } from './service';
+import { createService as createServiceBase } from './service';
+import { rules, bot } from '@tablemax/game-template';
+const createService = (input: Parameters<typeof createServiceBase>[0]) =>
+  createServiceBase(input, { rules, bot });
 
 const dirs = () => {
   const dataDir = mkdtempSync(join(tmpdir(), 'tablemax-platform-'));
