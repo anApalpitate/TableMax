@@ -99,6 +99,7 @@ pnpm prototype:verify
 | 便携包与验证图／JSON | 仓库 `artifacts/phase-01/`，Git 忽略，文件树保持可见；搜索与监听单独排除 |
 | 原型构建 | 仓库 `artifacts/phase-02/prototype/`，独立于 `build/desktop/web/` |
 | 原型截图与走查 JSON | 仓库 `artifacts/phase-02/verification/`，Git 忽略但文件树可见；每次走查更新对应证据 |
+| 美术原图与前后对比 | 仓库 `artifacts/phase-02/art-reset/`；保留 imagegen 原始 PNG、透明通道／尺寸／哈希检查、联系表及同尺寸前后截图和文字测量 |
 | 第二阶段检索原始响应 | 仓库 `artifacts/phase-02/research/`，清单记录 URL、HTTP 状态、字节数与 SHA-256；不是已核验规则书 |
 | 原型走查临时入口 | 仓库 `tmp/prototype-verify-*`，与正式服务、数据库和用户默认存档分离 |
 | 跨层验证临时数据 | 仓库 `tmp/desktop-verify-*`、`tmp/portable-extracted-*` 及命令入口验证目录，使用显式测试数据目录覆盖；不会读写用户默认存档 |
@@ -127,13 +128,13 @@ pnpm prototype:verify
 
 ## 第二阶段原型验证记录
 
-执行日期：2026-10-01（Asia/Shanghai）。以下为已有原型实现的验证记录，不表示文档更新时重跑了这些检查。
+执行日期：2026-10-01（Asia/Shanghai）。本次美术重置重新执行适用的工程与原型检查；以下只记录独立原型的合成 UI 验证。
 
 已通过 `pnpm typecheck`、`pnpm lint`、`pnpm format:check`、`pnpm prototype:build`、`pnpm prototype:verify` 和正常 `pnpm build`。正常网页构建只有正式入口，不含原型入口和原型文字；协议、SDK 及依赖锁文件未因原型改变。
 
-`scripts/verify-prototype.mjs` 的 9 组检查已通过：独立构建与正式 API 不可用；大厅重名／关闭加入／座位身份与准备；提交锁定／拒绝／结果未知／同步／保存反馈；掉线／暂停／回退／过期动作／换绑及弹窗取消；角色控件与公共屏声音；恢复错误与房主结束；示例网卡与网络／端口反馈；6 页 × 3 角色在 360／390 CSS 像素宽度无横向溢出、受检触控控件高度至少 44px；观察到的运行请求全部本地且无页面错误。结果在 `artifacts/phase-02/verification/prototype.json`，记录 `passed: true`、空外部请求列表及空页面错误列表。
+`scripts/verify-prototype.mjs` 的 10 组检查已通过：独立构建与正式 API 不可用；大厅重名／关闭加入／座位身份与准备；提交锁定／拒绝／结果未知／同步／保存反馈；掉线／暂停／回退／过期动作／换绑及弹窗取消；角色控件与公共屏声音；恢复错误与房主结束；示例网卡与网络／端口反馈；6 页 × 3 角色在 360／390 CSS 像素宽度无横向溢出、受检触控控件高度至少 44px；新增美术组检查默认关闭的审阅抽屉、座位重排后头像稳定、桌面首屏无纵向滚动、所有图像加载、手机主要操作首屏可见且不遮住选择、减少动态效果和弹窗键盘焦点；观察到的运行请求全部本地且无页面错误。结果在 `artifacts/phase-02/verification/prototype.json`，记录 `passed: true`、空外部请求列表及空页面错误列表。
 
-截图与已记录的 CSS 尺寸：
+走查共生成 25 张截图，其中六张交互场景与 CSS 尺寸如下：
 
 | 文件（均在 `artifacts/phase-02/verification/`） | 内容 | CSS 尺寸 |
 | --- | --- | --- |
@@ -144,6 +145,10 @@ pnpm prototype:verify
 | `public-session-1920.png` | 公共屏会话占位与声音 | 1920×1080 |
 | `host-save-error.png` | 房主存档错误提示 | 1280×900 |
 
-六张截图已人工查看。PNG 像素随系统缩放变化，本次记录的 `deviceScaleFactor` 为 1.5。安全区域使用 CSS `env(safe-area-inset-*)` 留白；桌面 Chromium 走查不能证明 iPhone 安全区、Android／iPhone 系统浏览器、真实触控或锁屏重连通过。运行请求本地的观察也不能替代断开互联网后的正式游戏整局验收。
+美术尺寸组另保存启动／大厅／会话／结束／恢复五页的房主 1080×800、1280×900 和公共屏 1920×1080 截图，以及手机大厅／会话的 360×800、390×844 截图。文件名为 `<角色>-<页面>-<宽度>-art.png`，全部尺寸均已检查；大厅、会话、恢复和回退弹窗等代表截图已人工查看。
+
+同状态／同尺寸前后比较保存在 `artifacts/phase-02/art-reset/comparison/`：七组房主启动／大厅／会话、公共大厅／会话和手机大厅／会话，包含 14 张对比截图、`comparison.json` 及可从根目录运行的 `measure.mjs`。比较基线为记录中的 Git commit；指标为首屏可见说明段落字符数，排除游戏名、网址、短标签及临时提交／通知，关闭的说明与首屏之外的段落不计入。减少幅度为 83.82%–100%，均达到至少 50%；回退、换绑、结束确认和错误原因另按流程保留，不以该指标删减警告。
+
+`artifacts/phase-02/art-reset/asset-checks.json` 记录 16 张 WebP 的尺寸、字节数、哈希及 13 张切图的透明通道；原始 PNG、修订前版本和联系表保留。最终素材总量 877,318 字节；实际运行请求全部本地。`delivery-checks.json` 记录相对文档链接、正常构建隔离及九组主要文字配色对比度，均至少 4.98:1。半透明插画面板结合截图检查；这不是完整无障碍或实机验收。正常 `build/desktop/web/` 只有正式入口，无原型入口、原型文字或 WebP 美术资源。PNG 像素随系统缩放变化，本次记录的 `deviceScaleFactor` 为 1.5。安全区域使用 CSS `env(safe-area-inset-*)` 留白；桌面 Chromium 走查不能证明 iPhone 安全区、Android／iPhone 系统浏览器、真实触控或锁屏重连通过。运行请求本地的观察也不能替代断开互联网后的正式游戏整局验收。
 
 合成 UI 的分支、绑定代数、确认、恢复与音效控件只证明界面反馈，未验证服务端权限、真实凭证失效、随机结果一致、可靠动作、实际文件保留或持久化。第三至五阶段实现对应能力，第六阶段负责实机与正式离线验收。检索响应及文件哈希另见 [规则来源与核验缺口](../tasks/phase-02-rules-and-interaction.md#规则来源与核验缺口)；完整游戏相关验证仍受规则关口约束。

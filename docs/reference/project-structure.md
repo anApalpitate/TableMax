@@ -14,6 +14,7 @@
 | `apps/desktop/` | Electron 主进程、窗口与独立服务生命周期 |
 | `apps/server/` | HTTP、Socket.IO、构建后网页、本地二维码与 SQLite 工程验证适配器 |
 | `apps/web/` | 单一 React 网页工程，公共屏／手机／管理工程验证页面；独立 `prototype.html` 与 `src/prototype/` 为第二阶段合成交互原型，不进入正式构建 |
+| `apps/web/src/prototype/assets/` | 原型独用的本地 WebP 插画与 imagegen 提示词／来源清单；SVG 控件和头像组件仍在原型内复用 |
 | `packages/protocol/` | 当前工程通信与桌面／服务消息的类型和运行时校验 |
 | `packages/game-sdk/` | 纯类型初始游戏契约；尚非完整游戏模板或恢复实现 |
 | `games/README.md` | 每款游戏独立目录的约定；未建立宝可梦或空游戏工程 |
@@ -40,6 +41,7 @@
 - 本地实验、临时导出或下载中间文件可放入根目录 `tmp/`（需要时创建）；不作为长期资料入口。
 - 根目录 `build/` 已用于可再生构建中间物，`dist/` 为保留的构建排除项。工程验证便携包、截图与 JSON 证据保存在 `artifacts/phase-01/`；第二阶段原型构建、检索原始响应和走查证据在 `artifacts/phase-02/`。这些文件 Git 忽略但文件树保持可见；正式产品交付策略在第六阶段确认。
 - `artifacts/phase-02/prototype/` 是可再生原型构建，`verification/` 是对应走查证据，`research/` 是已保存的检索响应与哈希清单。资料是否可再生分别判断，不能因同在 artifacts 下就覆盖或删除原始响应。路径与命令见开发说明，资料适用性见 [规则来源与核验缺口](../tasks/phase-02-rules-and-interaction.md#规则来源与核验缺口)。
+- `artifacts/phase-02/art-reset/` 保存 imagegen 原始 PNG、素材检查、三端同尺寸前后对比与文字密度测量；`verification/before-art-reset/` 保留重置前截图。原始图像与历史证据不被原型构建覆盖。
 - 原始规则资料、数据、正式资源和最终交付物不按扩展名笼统忽略；是否提交按实际用途、来源与需要决定。
 - 运行数据默认放在系统当前用户 `LOCALAPPDATA` 下的 `TableMax/`，具体位置和验证覆盖方式见 [开发说明](development.md)。当前仅有工程验证数据库，不在仓库内生成玩家存档或秘密状态。
 - 忽略规则不是删除授权；已有资料不自动迁移、重命名或取消跟踪。

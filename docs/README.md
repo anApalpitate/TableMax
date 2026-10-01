@@ -14,7 +14,7 @@
 | 追溯第一阶段任务范围、完成清单和历史证据 | [第一阶段归档记录](archive/phase-01-engineering-foundation.md) |
 | 核验首版规则、卡牌、信息权限与回退，设计交互和资源方案 | [第二阶段任务](tasks/phase-02-rules-and-interaction.md) |
 | 查看第二阶段来源检索结果和关键规则缺口 | [第二阶段任务中的核验记录](tasks/phase-02-rules-and-interaction.md#规则来源与核验缺口) |
-| 查第二阶段通用权限／恢复交互、资源方案、场景及后续交接 | [通用交互与交接规格](reference/phase-02-platform-spec.md) |
+| 查第二阶段通用权限／恢复交互、美术方向、资源方案、场景及后续交接 | [通用交互与交接规格](reference/phase-02-platform-spec.md) |
 | 配置开发环境，运行、构建与验证工程或独立原型 | [开发环境与验证](reference/development.md) |
 | 查源码依赖方向、进程与游戏契约边界 | [代码结构与工程边界](reference/architecture.md) |
 | 追溯历史过程 | [归档索引](archive/README.md) |

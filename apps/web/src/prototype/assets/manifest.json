@@ -1,0 +1,143 @@
+{
+  "createdAt": "2026-10-01",
+  "purpose": "Synthetic UI prototype only; no game components, rules or licensed character assets",
+  "generator": "built-in imagegen",
+  "reference": "table-landscape master artwork",
+  "postprocessing": "Preserve originals under artifacts/phase-02/art-reset/source; proportional resampling and WebP quality 86, alpha preserved",
+  "assets": [
+    {
+      "id": "table-landscape",
+      "prompt": "Use case: stylized-concept. Asset type: TableMax board-game console landscape background and master art reference. Create an original bright playful tabletop illustration, wide 16:9. Warm cream #F6F2E8 background with a very subtle paper grain, teal #247C75, golden yellow #F4BE45 and coral #E77A60 sculpted wooden dice, rounded meeples, blank playing cards and chips clustered at the outer corners. Center 65 percent is quiet cream negative space for UI, objects large at lower edges, restrained soft shadows, charming gouache toy illustration with clean rounded silhouettes and gentle dimensionality. No letters, no text, no numbers, no logos, no watermarks, no borders, no UI controls. Board-game objects are decorative, not an actual game board.",
+      "source": "built-in imagegen",
+      "file": "table-landscape.webp",
+      "transparent": false,
+      "version": 1
+    },
+    {
+      "id": "table-portrait",
+      "transparent": false,
+      "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. Portrait 9:16 cream paper background, decorative wooden dice, cards and chips clustered only at the bottom corners and top edge; middle 70% empty quiet cream negative space.",
+      "file": "table-portrait.webp",
+      "source": "built-in imagegen",
+      "version": 1
+    },
+    {
+      "id": "game-cover",
+      "transparent": false,
+      "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. Square cover illustration. A lively collection of chunky teal, golden and coral wooden meeples, dice, blank cards and chips arranged as a playful sculptural still life on a cream tabletop. Large close-up objects fill the lower two thirds; top third clean space for a title added later. No actual game board or existing franchise characters.",
+      "file": "game-cover.webp",
+      "source": "built-in imagegen",
+      "version": 1
+    },
+    {
+      "id": "avatar-1",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. One original friendly teal bear wooden toy character head and shoulders, front-facing, compact centered square avatar, recognizably distinct silhouette, charming simple face, no clothing accessories, generous transparent margin around entire silhouette. Genuinely transparent background.",
+      "file": "avatar-1.webp",
+      "source": "built-in imagegen",
+      "version": 1
+    },
+    {
+      "id": "avatar-2",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. One original friendly coral fox wooden toy character head and shoulders, front-facing, compact centered square avatar, recognizably distinct silhouette, charming simple face, no clothing accessories, generous transparent margin around entire silhouette. Genuinely transparent background.",
+      "file": "avatar-2.webp",
+      "source": "built-in imagegen",
+      "version": 1
+    },
+    {
+      "id": "avatar-3",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. One original friendly golden rabbit wooden toy character head and shoulders, front-facing, compact centered square avatar, recognizably distinct silhouette, charming simple face, no clothing accessories, generous transparent margin around entire silhouette. Genuinely transparent background.",
+      "file": "avatar-3.webp",
+      "source": "built-in imagegen",
+      "version": 1
+    },
+    {
+      "id": "avatar-4",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. One original friendly sage owl wooden toy character head and shoulders, front-facing, compact centered square avatar, recognizably distinct silhouette, charming simple face, no clothing accessories, generous transparent margin around entire silhouette. Genuinely transparent background.",
+      "file": "avatar-4.webp",
+      "source": "built-in imagegen",
+      "version": 1
+    },
+    {
+      "id": "avatar-5",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. One original friendly blue penguin wooden toy character head and shoulders, front-facing, compact centered square avatar, recognizably distinct silhouette, charming simple face, no clothing accessories, generous transparent margin around entire silhouette. Genuinely transparent background.",
+      "file": "avatar-5.webp",
+      "source": "built-in imagegen",
+      "version": 1
+    },
+    {
+      "id": "avatar-6",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. One original friendly orange cat wooden toy character head and shoulders, front-facing, compact centered square avatar, recognizably distinct silhouette, charming simple face, no clothing accessories, generous transparent margin around entire silhouette. Genuinely transparent background.",
+      "file": "avatar-6.webp",
+      "source": "built-in imagegen",
+      "version": 1
+    },
+    {
+      "id": "dice",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. One chunky coral wooden die in three-quarter view with cream recessed pips, fully visible centered. Isolated decorative object, genuine transparent background, generous clear margin.",
+      "file": "dice.webp",
+      "source": "built-in imagegen",
+      "version": 1
+    },
+    {
+      "id": "meeple",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. One golden yellow wooden meeple with rounded head and shoulders, in three-quarter view, fully visible centered. Isolated decorative object, genuine transparent background, generous clear margin.",
+      "file": "meeple.webp",
+      "source": "built-in imagegen",
+      "version": 1
+    },
+    {
+      "id": "cards",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. Three blank playing cards fanned together with cream borders and teal, coral and gold backs, entirely visible centered. Isolated decorative object, genuine transparent background, generous clear margin.",
+      "file": "cards.webp",
+      "source": "built-in imagegen",
+      "version": 2,
+      "edits": [
+        "Use case: background-extraction. Edit this image: preserve the exact objects, pose, wood texture, colors, lighting and composition. Remove ALL diffuse colored haze, glow, background, backdrop and broad drop shadows. Keep only the solid objects with clean anti-aliased edges on a genuinely transparent background. No text. Preserve tiny contact shadows on the objects themselves, but no glow around them."
+      ]
+    },
+    {
+      "id": "chips",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. A small stack of teal and gold wooden chips with one coral chip leaning against it, entire stack centered. Isolated decorative object, genuine transparent background, generous clear margin.",
+      "file": "chips.webp",
+      "source": "built-in imagegen",
+      "version": 1
+    },
+    {
+      "id": "status-waiting",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. Friendly teal bear wooden toy sitting beside a golden meeple and a small coral die, relaxed waiting pose, centered compact landscape composition. Genuine transparent background.",
+      "file": "status-waiting.webp",
+      "source": "built-in imagegen",
+      "version": 2,
+      "edits": [
+        "Use case: background-extraction. Edit this image: preserve the exact objects, pose, wood texture, colors, lighting and composition. Remove ALL diffuse colored haze, glow, background, backdrop and broad drop shadows. Keep only the solid objects with clean anti-aliased edges on a genuinely transparent background. No text. Preserve tiny contact shadows on the objects themselves, but no glow around them."
+      ]
+    },
+    {
+      "id": "status-offline",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. Original coral fox wooden toy carefully reconnecting two ends of a teal toy cable beside a little golden wireless symbol, optimistic repair mood, centered compact composition. Genuine transparent background.",
+      "file": "status-offline.webp",
+      "source": "built-in imagegen",
+      "version": 1
+    },
+    {
+      "id": "status-recovery",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. Original golden rabbit wooden toy retrieving blank teal playing cards from a little coral storage box, hopeful return mood, centered compact composition. Genuine transparent background.",
+      "file": "status-recovery.webp",
+      "source": "built-in imagegen",
+      "version": 1
+    }
+  ]
+}

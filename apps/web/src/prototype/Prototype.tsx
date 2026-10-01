@@ -6,6 +6,8 @@ import {
   type Screen,
   type Issue,
 } from './model';
+import { art, avatarFor } from './art';
+import { Icon, IconButton, SeatTile } from './ui';
 import './styles.css';
 
 const roles: Record<Role, string> = {
@@ -61,12 +63,40 @@ export function Prototype() {
   const [sound, setSound] = useState(false);
   const [soundNotice, setSoundNotice] = useState('提示音尚未启用');
   const audio = useRef<AudioContext | null>(null);
+  const review = useRef<HTMLDetailsElement | null>(null);
   useEffect(() => {
-    if (!dialog) return;
-    const trigger =
+    function dismiss(event: PointerEvent | KeyboardEvent) {
+      const drawer = review.current;
+      if (!drawer?.open || event.defaultPrevented) return;
+      if (event instanceof KeyboardEvent && event.key === 'Escape') {
+        drawer.open = false;
+        drawer.querySelector<HTMLElement>('summary')?.focus();
+      } else if (
+        event instanceof PointerEvent &&
+        event.target instanceof Node &&
+        !drawer.contains(event.target)
+      ) {
+        drawer.open = false;
+      }
+    }
+    document.addEventListener('pointerdown', dismiss);
+    document.addEventListener('keydown', dismiss);
+    return () => {
+      document.removeEventListener('pointerdown', dismiss);
+      document.removeEventListener('keydown', dismiss);
+    };
+  }, []);
+  const dialogTrigger = useRef<HTMLElement | null>(null);
+  function openDialog(value: 'rollback' | 'rebind' | 'end') {
+    dialogTrigger.current =
       document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
+    setDialog(value);
+  }
+  useEffect(() => {
+    if (!dialog) return;
+    const trigger = dialogTrigger.current;
     document
       .querySelector<HTMLElement>('.modal select, .modal button')
       ?.focus();
@@ -121,86 +151,231 @@ export function Prototype() {
     }
   }
 
+  const seatList = (
+    <ul className="seat-list">
+      {state.seats.map((seat, index) => (
+        <SeatTile
+          key={seat.id}
+          seat={seat}
+          own={state.role === 'player' && state.joinedSeat === seat.id}
+          first={index === 0}
+          {...(state.role === 'host'
+            ? { move: () => dispatch({ type: 'move-seat', id: seat.id }) }
+            : {})}
+        />
+      ))}
+    </ul>
+  );
+  const stageImage = state.connection !== 'online' ? art.offline : art.waiting;
   return (
-    <div className={`prototype ${state.role}`}>
-      <aside className="review-bar" aria-label="原型走查工具">
-        <div>
-          <strong>TableMax / 交互研究</strong>
-          <span className="review-note">低保真 · 仅模拟 · 规则关口未通过</span>
+    <div className={`prototype ${state.role} screen-${state.screen}`}>
+      <header className="app-header">
+        <div className="brand">
+          <span className="brand-mark">
+            <Icon name="box" />
+          </span>
+          <span>
+            TableMax<small>{roles[state.role]}</small>
+          </span>
         </div>
-        <div className="review-controls">
-          <label>
-            角色
-            <select
-              aria-label="角色"
-              value={state.role}
-              onChange={(event) => switchRole(event.target.value as Role)}
-            >
-              {Object.entries(roles).map(([key, label]) => (
-                <option key={key} value={key}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            页面
-            <select
-              aria-label="页面"
-              value={state.screen}
-              onChange={(event) => switchScreen(event.target.value as Screen)}
-            >
-              {Object.entries(screens).map(([key, label]) => (
-                <option key={key} value={key}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            onClick={() => {
-              setDialog(null);
-              dispatch({ type: 'reset' });
-            }}
-          >
-            重置示例
-          </button>
-        </div>
-      </aside>
-      <main>
-        <header className="app-header">
-          <div className="brand">
-            <b>T</b>
-            <span>
-              TableMax<small>{roles[state.role]}</small>
-            </span>
-          </div>
+        <div className="header-tools">
           <span
             className={`badge ${state.connection === 'online' ? 'connected' : 'warning'}`}
+            role="status"
           >
+            <Icon name="wifi" />
             {state.connection === 'online'
-              ? '模拟连接就绪'
+              ? '连接演示'
               : state.connection === 'offline'
                 ? '已断开 · 座位保留'
                 : '同步中'}
           </span>
-        </header>
+          <span className="demo-label">演示</span>
+          <details className="review-drawer" ref={review}>
+            <summary aria-label="审阅工具">
+              <Icon name="settings" />
+              <span>审阅工具</span>
+            </summary>
+            <aside aria-label="原型走查工具" className="review-content">
+              <h2>原型审阅</h2>
+              <p className="muted">仅本页模拟 · 刷新会重置 · 规则未核验</p>
+              <div className="review-controls">
+                <label>
+                  角色
+                  <select
+                    aria-label="角色"
+                    value={state.role}
+                    onChange={(event) => switchRole(event.target.value as Role)}
+                  >
+                    {Object.entries(roles).map(([key, label]) => (
+                      <option key={key} value={key}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  页面
+                  <select
+                    aria-label="页面"
+                    value={state.screen}
+                    onChange={(event) =>
+                      switchScreen(event.target.value as Screen)
+                    }
+                  >
+                    {Object.entries(screens).map(([key, label]) => (
+                      <option key={key} value={key}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <IconButton
+                icon="back"
+                onClick={() => {
+                  setDialog(null);
+                  dispatch({ type: 'reset' });
+                }}
+              >
+                重置示例
+              </IconButton>
+              {state.screen === 'session' && (
+                <div className="simulation">
+                  <h3>模拟反馈与异常</h3>
+                  <div className="simulation-buttons">
+                    <button
+                      disabled={state.submission !== 'pending'}
+                      onClick={() =>
+                        dispatch({ type: 'reply', outcome: 'saved' })
+                      }
+                    >
+                      模拟保存确认
+                    </button>
+                    <button
+                      disabled={state.submission !== 'pending'}
+                      onClick={() =>
+                        dispatch({ type: 'reply', outcome: 'rejected' })
+                      }
+                    >
+                      模拟拒绝
+                    </button>
+                    <button
+                      disabled={state.submission !== 'pending'}
+                      onClick={() =>
+                        dispatch({ type: 'reply', outcome: 'uncertain' })
+                      }
+                    >
+                      模拟确认丢失
+                    </button>
+                    <button
+                      onClick={() =>
+                        dispatch({ type: 'connection', connection: 'offline' })
+                      }
+                    >
+                      模拟掉线
+                    </button>
+                    <button onClick={() => dispatch({ type: 'synchronize' })}>
+                      模拟完整同步
+                    </button>
+                    <button onClick={() => dispatch({ type: 'late-reply' })}>
+                      模拟旧分支迟到动作
+                    </button>
+                  </div>
+                  <small data-testid="revision">
+                    示例修订 {state.revision} · 分支 {state.branch} · 绑定代数{' '}
+                    {state.bindingGeneration}
+                  </small>
+                </div>
+              )}
+              {state.screen === 'error' && (
+                <label>
+                  异常类型
+                  <select
+                    aria-label="异常类型"
+                    value={state.issue}
+                    onChange={(event) =>
+                      dispatch({
+                        type: 'issue',
+                        issue: event.target.value as Issue,
+                      })
+                    }
+                  >
+                    {Object.entries(issues).map(([key, issue]) => (
+                      <option key={key} value={key}>
+                        {issue.title}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <details className="review-notes">
+                <summary>边界与工程说明</summary>
+                <p>
+                  示例地址、人数、座位、分支与 A／B
+                  选项是合成数据，不代表游戏配置。没有真实服务、身份凭证或存档。
+                </p>
+                <p>
+                  房主参与时使用独立手机座位。管理权限不包含其他玩家秘密；完整恢复状态保留在服务端。
+                </p>
+                <p>
+                  没有默认倒计时，掉线不代操作。人数、卡位、牌面、计分及合法动作等待目标版规则核验。
+                </p>
+                <p>
+                  关闭公共屏保留服务；退出整个程序停止服务。地址变化后需重新生成真实加入二维码。
+                </p>
+              </details>
+            </aside>
+          </details>
+        </div>
+      </header>
+      <main>
         {state.notice && (
           <p className="notice" role="status">
             {state.notice}
           </p>
         )}
         {state.screen === 'setup' && (
-          <>
-            <section className="hero">
-              <p className="eyebrow">欢迎来到桌边</p>
-              <h1>先让大家连接同一张桌子。</h1>
-              <p>电脑运行服务与公共屏，手机负责自己的操作。</p>
+          <div className="columns setup-layout">
+            <section className="cover-stage">
+              <div className="stage-caption">
+                <p className="eyebrow">朋友 · 手机 · 一张桌子</p>
+                <h1>今晚，玩一局。</h1>
+              </div>
+              <div className="game-box">
+                <img
+                  src={art.cover}
+                  alt="木质棋子、骰子与卡片组成的原创桌游封面"
+                />
+                <div className="box-title">
+                  <small>TABLEMAX / 原型示意</small>
+                  <strong>桌边奇遇</strong>
+                </div>
+              </div>
+              <span className="cover-note">原创平台美术 · 游戏规则待核验</span>
             </section>
-            <div className="columns">
-              <section className="panel">
-                <h2>选择局域网地址</h2>
-                <p>以下是示例地址，不会读取或更改本机网络。</p>
+            <section className="control-sheet">
+              <p className="eyebrow">准备好相聚了吗？</p>
+              <h2>你的桌游盒子</h2>
+              <div className="game-meta">
+                <Icon name="box" />
+                <span>
+                  宝可梦奇遇<small>皮卡丘和朋友们 · 规则待核验</small>
+                </span>
+              </div>
+              <IconButton
+                icon="arrow"
+                className="primary"
+                onClick={() => switchScreen('lobby')}
+              >
+                查看大厅原型
+              </IconButton>
+              <details className="network-settings">
+                <summary>
+                  <Icon name="settings" />
+                  网络设置
+                </summary>
+                <p className="muted">示例地址 · 不读取或更改本机网络</p>
                 <label>
                   网卡地址
                   <select
@@ -215,113 +390,60 @@ export function Prototype() {
                     </option>
                   </select>
                 </label>
-                <div className="address">{url}</div>
-                <button
-                  className="primary"
-                  onClick={() => switchScreen('lobby')}
-                >
-                  查看大厅原型
-                </button>
-              </section>
-              <section className="panel">
-                <h2>连接前的小提醒</h2>
-                <ol>
-                  <li>手机连接电脑所在的 Wi-Fi。</li>
-                  <li>选择手机可访问的电脑地址。</li>
-                  <li>通过手机自带扫码工具打开系统浏览器。</li>
-                </ol>
-                <button
-                  onClick={() => dispatch({ type: 'issue', issue: 'network' })}
-                >
-                  查看连接帮助
-                </button>
-                <p className="muted">
-                  关闭公共屏：服务继续运行。退出整个程序：服务停止，手机失去连接。
-                </p>
-              </section>
-            </div>
-          </>
+                <p className="address">{url}</p>
+              </details>
+              <IconButton
+                icon="help"
+                className="quiet"
+                onClick={() => dispatch({ type: 'issue', issue: 'network' })}
+              >
+                查看连接帮助
+              </IconButton>
+              <div className="sheet-decoration" aria-hidden="true">
+                <img src={art.cards} alt="" />
+                <img src={art.chips} alt="" />
+              </div>
+            </section>
+          </div>
         )}
         {state.screen === 'lobby' && (
-          <>
-            <section className="hero">
-              <p className="eyebrow">一起准备</p>
-              <h1>
-                {state.role === 'player'
-                  ? '找到你的座位。'
-                  : '朋友到齐，就可以开始。'}
-              </h1>
-              <p>《宝可梦奇遇：皮卡丘和朋友们》 · 对应版本规则待核验</p>
-            </section>
-            <div className="columns">
-              <section className="panel">
-                <div className="panel-heading">
-                  <h2>桌边的朋友</h2>
-                  <span>{state.seats.length} 位示例玩家</span>
+          <div className="columns lobby-layout">
+            <section className="lobby-stage">
+              <div className="game-heading">
+                <img src={art.cover} alt="原创桌游封面示意" />
+                <div>
+                  <p className="eyebrow">示例大厅</p>
+                  <h1>
+                    {state.role === 'player'
+                      ? '找到你的座位。'
+                      : '等朋友，开一桌。'}
+                  </h1>
+                  <p className="game-name">宝可梦奇遇：皮卡丘和朋友们</p>
+                  <span className="rule-label">规则待核验</span>
                 </div>
-                <ul className="seat-list">
-                  {state.seats.map((seat, index) => (
-                    <li key={seat.id}>
-                      <span className="seat-number">{index + 1}</span>
+              </div>
+              {state.role === 'player' ? (
+                <>
+                  <div className="personal-seat">
+                    <img
+                      src={joined ? avatarFor(joined.id) : art.meeple}
+                      alt=""
+                    />
+                    <div>
+                      <small>
+                        {joined ? `你的座位 ${joined.id}` : '在桌边留个名字'}
+                      </small>
+                      <h2>{joined ? joined.nickname : '欢迎入座'}</h2>
                       <span>
-                        <strong>{seat.nickname}</strong>
-                        <small>
-                          座位身份 {seat.id}
-                          {state.joinedSeat === seat.id ? ' · 本人' : ''}
-                        </small>
+                        {joined
+                          ? joined.ready
+                            ? '已准备，等朋友到齐'
+                            : '准备好了就告诉大家'
+                          : '手机与电脑连接同一 Wi-Fi'}
                       </span>
-                      <span className="seat-status">
-                        {seat.ready ? '已准备' : '未准备'}
-                      </span>
-                      {state.role === 'host' && (
-                        <button
-                          aria-label={`上移座位 ${seat.id}`}
-                          disabled={index === 0}
-                          onClick={() =>
-                            dispatch({ type: 'move-seat', id: seat.id })
-                          }
-                        >
-                          上移
-                        </button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-                <p className="muted">
-                  人数上下限与开局条件待核验；示例人数不代表游戏配置。
-                </p>
-                {state.role === 'host' && (
-                  <div className="stack">
-                    <button
-                      onClick={() => dispatch({ type: 'toggle-joining' })}
-                    >
-                      {state.joiningOpen ? '关闭新玩家加入' : '重新开放加入'}
-                    </button>
-                    <button className="primary" disabled>
-                      开局 · 规则待核验
-                    </button>
-                    <button onClick={() => switchScreen('session')}>
-                      进入通用状态演示
-                    </button>
-                  </div>
-                )}
-                {state.role === 'player' &&
-                  (joined ? (
-                    <div className="stack">
-                      <p>
-                        你好，{joined.nickname}。你的座位是 {joined.id}。
-                      </p>
-                      <button
-                        className="primary"
-                        onClick={() => dispatch({ type: 'ready' })}
-                      >
-                        {joined.ready ? '取消准备' : '我已准备'}
-                      </button>
-                      <button onClick={() => switchScreen('session')}>
-                        查看游玩状态原型
-                      </button>
                     </div>
-                  ) : (
+                  </div>
+                  {!joined && (
                     <form
                       onSubmit={(event) => {
                         event.preventDefault();
@@ -341,84 +463,164 @@ export function Prototype() {
                         (seat) => seat.nickname === nickname.trim(),
                       ) && (
                         <p className="muted">
-                          已有同名玩家，加入后请用座位身份区分。
+                          已有同名玩家，加入后用座位区分。
                         </p>
                       )}
-                      <button
-                        className="primary"
-                        disabled={!nickname.trim() || !state.joiningOpen}
-                      >
-                        取得座位（模拟）
-                      </button>
+                      <div className="player-action-bar">
+                        <IconButton
+                          icon="people"
+                          className="primary"
+                          disabled={!nickname.trim() || !state.joiningOpen}
+                        >
+                          取得座位（模拟）
+                        </IconButton>
+                      </div>
                     </form>
-                  ))}
-              </section>
-              <section className="panel join-panel">
+                  )}
+                  {joined && (
+                    <div className="player-action-bar">
+                      <IconButton
+                        icon="check"
+                        className="primary"
+                        onClick={() => dispatch({ type: 'ready' })}
+                      >
+                        {joined.ready ? '取消准备' : '我已准备'}
+                      </IconButton>
+                      <IconButton
+                        icon="play"
+                        onClick={() => switchScreen('session')}
+                      >
+                        查看游玩状态原型
+                      </IconButton>
+                    </div>
+                  )}
+                  <details className="friends-fold">
+                    <summary>
+                      <Icon name="people" />
+                      桌边的朋友 · {state.seats.length}
+                    </summary>
+                    {seatList}
+                  </details>
+                  <IconButton
+                    icon="help"
+                    className="quiet"
+                    onClick={() =>
+                      dispatch({ type: 'issue', issue: 'network' })
+                    }
+                  >
+                    无法连接？查看帮助
+                  </IconButton>
+                </>
+              ) : (
+                <>
+                  <div className="panel-heading">
+                    <h2>桌边的朋友</h2>
+                    <span>{state.seats.length} 位示例玩家</span>
+                  </div>
+                  {seatList}
+                  <div className="table-decor" aria-hidden="true">
+                    <img src={art.dice} alt="" />
+                    <span>在桌边，一起玩。</span>
+                    <img src={art.meeple} alt="" />
+                  </div>
+                </>
+              )}
+            </section>
+            {state.role !== 'player' && (
+              <section className="control-sheet join-panel">
+                <p className="eyebrow">手机就是你的控制器</p>
                 <h2>加入这张桌子</h2>
                 <div
                   className="qr-placeholder"
                   aria-label="二维码占位，不能扫码"
                 >
-                  扫码区域<small>占位图 · 无真实加入凭证</small>
+                  <Icon name="qr" />
+                  <strong>加入入口示意</strong>
+                  <small>无可扫描二维码</small>
                 </div>
                 <p className="address">{url}</p>
-                <p>
+                <p className="join-status">
+                  <Icon name={state.joiningOpen ? 'wifi' : 'lock'} />
                   {state.joiningOpen
-                    ? '新玩家加入已开放（模拟）'
+                    ? '加入已开放 · 演示'
                     : '新玩家加入已关闭；已有身份仍可恢复。'}
                 </p>
-                <p className="muted">
-                  二维码仅授予加入资格；正式公共屏不会展示房主凭证。
-                </p>
-                <button
+                {state.role === 'host' && (
+                  <div className="stack host-lobby-actions">
+                    <IconButton
+                      icon={state.joiningOpen ? 'lock' : 'people'}
+                      onClick={() => dispatch({ type: 'toggle-joining' })}
+                    >
+                      {state.joiningOpen ? '关闭新玩家加入' : '重新开放加入'}
+                    </IconButton>
+                    <IconButton icon="play" className="primary" disabled>
+                      开局 · 规则待核验
+                    </IconButton>
+                    <IconButton
+                      icon="arrow"
+                      className="quiet"
+                      onClick={() => switchScreen('session')}
+                    >
+                      进入通用状态演示
+                    </IconButton>
+                  </div>
+                )}
+                <IconButton
+                  icon="help"
+                  className="quiet"
                   onClick={() => dispatch({ type: 'issue', issue: 'network' })}
                 >
                   无法连接？查看帮助
-                </button>
-                {state.role === 'host' && (
-                  <p className="muted">
-                    房主参与游戏时，在手机玩家入口使用自己的独立座位身份。
-                  </p>
-                )}
+                </IconButton>
               </section>
-            </div>
-          </>
+            )}
+          </div>
         )}
         {state.screen === 'session' && (
           <>
-            <section className="hero">
-              <p className="eyebrow">通用状态与反馈演示</p>
-              <h1>
-                {state.paused
-                  ? '对局已暂停。'
-                  : state.connection !== 'online'
-                    ? '等待连接恢复。'
-                    : '等待玩家作出选择。'}
-              </h1>
-              <p>
-                {state.paused
-                  ? '暂停期间不能提交推进游戏的操作。'
-                  : '没有默认倒计时；掉线不会自动代操作。'}
-              </p>
-            </section>
-            <div className="columns">
-              <section className="panel gameplay">
+            <div className="session-heading">
+              <div>
+                <p className="eyebrow">通用交互演示</p>
+                <h1>
+                  {state.paused
+                    ? '对局已暂停。'
+                    : state.connection !== 'online'
+                      ? '等待连接恢复。'
+                      : '等待玩家作出选择。'}
+                </h1>
+              </div>
+              <span className="rule-label">游戏布局待规则核验</span>
+            </div>
+            <div className="columns session-layout">
+              <section className="gameplay">
                 <h2>
                   {state.role === 'player' ? '我的操作区' : '公共游戏展示区'}
                 </h2>
-                <div className="layout-placeholder">
-                  <span>游戏布局待规则核验</span>
-                  <p>取得完整规则后补充卡位、牌面、阶段与合法动作。</p>
+                <div className="scene-stage">
+                  <span className="scene-label">主题示意 · 非游戏棋盘</span>
+                  <img
+                    className="state-art"
+                    src={stageImage}
+                    alt={
+                      state.connection !== 'online'
+                        ? '狐狸连接玩具线缆的异常状态插画'
+                        : '小熊与棋子等待的主题插画'
+                    }
+                  />
+                  <p>
+                    {state.paused
+                      ? '等待房主恢复'
+                      : state.connection !== 'online'
+                        ? '座位保留，等待同步'
+                        : '轮到你时，在手机上操作'}
+                  </p>
                 </div>
                 {state.role === 'player' && (
                   <>
-                    <p className="muted">
-                      此处只接收本人授权视图。具体可见字段与查看时机待核验。
-                    </p>
                     <fieldset disabled={!canChoose}>
                       <legend>交互样例 · 不代表游戏动作</legend>
                       <div className="choices">
-                        {['选项 A', '选项 B'].map((value) => (
+                        {['选项 A', '选项 B'].map((value, index) => (
                           <button
                             key={value}
                             className={
@@ -427,232 +629,216 @@ export function Prototype() {
                             aria-pressed={state.selected === value}
                             onClick={() => dispatch({ type: 'select', value })}
                           >
+                            <img
+                              src={index === 0 ? art.dice : art.cards}
+                              alt=""
+                            />
                             {value}
                           </button>
                         ))}
                       </div>
                     </fieldset>
-                    <button
-                      className="primary"
-                      disabled={!state.selected || !canChoose}
-                      onClick={() => dispatch({ type: 'submit' })}
-                    >
-                      提交示例选择
-                    </button>
-                    <p className="submission" data-testid="submission">
-                      {
+                    <div className="player-action-bar">
+                      <p
+                        className="submission"
+                        role="status"
+                        data-testid="submission"
+                      >
                         {
-                          idle: '选择后提交',
-                          pending: '提交中 · 请勿重复操作',
-                          saved: '已保存并确认',
-                          rejected: '被拒绝 · 请重新选择',
-                          uncertain: '结果未知 · 需要同步',
-                        }[state.submission]
-                      }
-                    </p>
+                          {
+                            idle: '选择后提交',
+                            pending: '提交中 · 请勿重复操作',
+                            saved: '已保存并确认',
+                            rejected: '被拒绝 · 请重新选择',
+                            uncertain: '结果未知 · 需要同步',
+                          }[state.submission]
+                        }
+                      </p>
+                      <IconButton
+                        icon="check"
+                        className="primary"
+                        disabled={!state.selected || !canChoose}
+                        onClick={() => dispatch({ type: 'submit' })}
+                      >
+                        提交示例选择
+                      </IconButton>
+                      {state.connection !== 'online' && (
+                        <IconButton
+                          icon="wifi"
+                          onClick={() => dispatch({ type: 'synchronize' })}
+                        >
+                          模拟重连并同步
+                        </IconButton>
+                      )}
+                    </div>
                   </>
                 )}
-                {state.connection !== 'online' && (
-                  <button
+                {state.role !== 'player' && state.connection !== 'online' && (
+                  <IconButton
+                    icon="wifi"
                     className="primary"
                     onClick={() => dispatch({ type: 'synchronize' })}
                   >
                     模拟重连并同步
-                  </button>
+                  </IconButton>
                 )}
               </section>
-              <section className="panel">
-                <h2>{state.role === 'host' ? '房主管理' : '桌面状态'}</h2>
-                <p>当前状态：{state.paused ? '暂停' : '等待玩家'}</p>
-                <p className="muted">
-                  公开记录只含安全标签；完整恢复状态保留在服务端。
-                </p>
-                {state.role === 'host' ? (
-                  <div className="stack">
-                    <button onClick={() => dispatch({ type: 'pause' })}>
-                      {state.paused ? '恢复对局' : '暂停对局'}
-                    </button>
-                    <button onClick={() => setDialog('rollback')}>
-                      选择决策点回退
-                    </button>
-                    <button onClick={() => setDialog('rebind')}>
-                      确认换手机绑定
-                    </button>
-                    <button className="danger" onClick={() => setDialog('end')}>
-                      结束当前对局
-                    </button>
-                    <p className="muted">
-                      管理权限不包含其他玩家秘密信息；没有任意改牌、改分入口。
-                    </p>
+              {state.role !== 'player' && (
+                <section className="control-sheet session-controls">
+                  <h2>{state.role === 'host' ? '房主管理' : '桌面状态'}</h2>
+                  <div className="session-status">
+                    <Icon name={state.paused ? 'pause' : 'people'} />
+                    {state.paused ? '暂停' : '等待玩家'}
                   </div>
-                ) : (
-                  <p>座位与对局保留，等待行动者继续。</p>
-                )}
-                {state.role === 'public' && (
-                  <div className="sound-controls">
-                    <h3>公共屏提示音</h3>
-                    <button
-                      onClick={() => {
-                        if (sound) {
-                          setSound(false);
-                          setSoundNotice('提示音已静音');
-                        } else {
-                          void enableSound();
-                        }
-                      }}
-                    >
-                      {sound ? '静音' : '启用提示音'}
-                    </button>
-                    <button disabled={!sound} onClick={previewSound}>
-                      试听示例音
-                    </button>
-                    <p className="muted">
-                      {soundNotice}。刷新、重连和回退不重播历史声音。
-                    </p>
-                  </div>
-                )}
-              </section>
+                  {state.role === 'host' ? (
+                    <div className="stack">
+                      <IconButton
+                        icon={state.paused ? 'play' : 'pause'}
+                        onClick={() => dispatch({ type: 'pause' })}
+                      >
+                        {state.paused ? '恢复对局' : '暂停对局'}
+                      </IconButton>
+                      <IconButton
+                        icon="back"
+                        onClick={() => openDialog('rollback')}
+                      >
+                        选择决策点回退
+                      </IconButton>
+                      <IconButton
+                        icon="phone"
+                        onClick={() => openDialog('rebind')}
+                      >
+                        确认换手机绑定
+                      </IconButton>
+                      <IconButton
+                        icon="close"
+                        className="danger"
+                        onClick={() => openDialog('end')}
+                      >
+                        结束当前对局
+                      </IconButton>
+                    </div>
+                  ) : (
+                    <div className="sound-controls">
+                      <IconButton
+                        icon={sound ? 'mute' : 'sound'}
+                        onClick={() => {
+                          if (sound) {
+                            setSound(false);
+                            setSoundNotice('提示音已静音');
+                          } else {
+                            void enableSound();
+                          }
+                        }}
+                      >
+                        {sound ? '静音' : '启用提示音'}
+                      </IconButton>
+                      <IconButton
+                        icon="sound"
+                        disabled={!sound}
+                        onClick={previewSound}
+                      >
+                        试听示例音
+                      </IconButton>
+                      <p className="muted" role="status">
+                        {soundNotice}
+                      </p>
+                      <small>同步与回退不重播历史声音</small>
+                    </div>
+                  )}
+                  <img className="control-decoration" src={art.chips} alt="" />
+                </section>
+              )}
             </div>
-            <details className="simulation" open>
-              <summary>走查工具 · 模拟反馈与异常</summary>
-              <div className="simulation-buttons">
-                <button
-                  disabled={state.submission !== 'pending'}
-                  onClick={() => dispatch({ type: 'reply', outcome: 'saved' })}
-                >
-                  模拟保存确认
-                </button>
-                <button
-                  disabled={state.submission !== 'pending'}
-                  onClick={() =>
-                    dispatch({ type: 'reply', outcome: 'rejected' })
-                  }
-                >
-                  模拟拒绝
-                </button>
-                <button
-                  disabled={state.submission !== 'pending'}
-                  onClick={() =>
-                    dispatch({ type: 'reply', outcome: 'uncertain' })
-                  }
-                >
-                  模拟确认丢失
-                </button>
-                <button
-                  onClick={() =>
-                    dispatch({ type: 'connection', connection: 'offline' })
-                  }
-                >
-                  模拟掉线
-                </button>
-                <button onClick={() => dispatch({ type: 'synchronize' })}>
-                  模拟完整同步
-                </button>
-                <button onClick={() => dispatch({ type: 'late-reply' })}>
-                  模拟旧分支迟到动作
-                </button>
-              </div>
-              <small data-testid="revision">
-                示例修订 {state.revision} · 分支 {state.branch} · 绑定代数{' '}
-                {state.bindingGeneration}
-              </small>
-            </details>
           </>
         )}
         {state.screen === 'result' && (
-          <section className="panel result">
-            <p className="eyebrow">结束展示</p>
-            <h1>这场相聚，告一段落。</h1>
-            <p>此处是结束页面占位，不展示未经核验的分数或胜负。</p>
-            <p className="muted">
-              正常结算、房主主动结束与游戏终止需使用不同原因提示。真实计分、平局与整局条件取得原文后补齐。
-            </p>
-            <button className="primary" onClick={() => switchScreen('lobby')}>
-              返回大厅原型
-            </button>
+          <section className="state-page result">
+            <img src={art.waiting} alt="小熊坐在桌边的结束示意插画" />
+            <div>
+              <p className="eyebrow">结束展示</p>
+              <h1>这场相聚，告一段落。</h1>
+              <p>结束示意 · 胜负与计分待规则核验</p>
+              <IconButton
+                icon="back"
+                className="primary"
+                onClick={() => switchScreen('lobby')}
+              >
+                返回大厅原型
+              </IconButton>
+            </div>
           </section>
         )}
         {state.screen === 'recovery' && (
-          <section className="panel recovery">
-            <p className="eyebrow">重新回到桌边</p>
-            <h1>发现未结束的对局。</h1>
-            <p>对局示例 · 座位与待处理选择可恢复</p>
-            <p className="muted">
-              原浏览器身份仍有效时恢复原座位；地址变化时重新生成加入二维码。具体游戏状态与存档版本待后续实现。
-            </p>
-            {state.role === 'host' ? (
-              <div className="stack">
-                <button
-                  className="primary"
-                  onClick={() => dispatch({ type: 'restore' })}
-                >
-                  模拟恢复存档
-                </button>
-                <button
-                  onClick={() =>
-                    dispatch({ type: 'issue', issue: 'incompatible' })
-                  }
-                >
-                  查看版本不兼容提示
-                </button>
-                <button
-                  onClick={() => dispatch({ type: 'issue', issue: 'corrupt' })}
-                >
-                  查看损坏存档提示
-                </button>
-              </div>
-            ) : (
-              <p>等待房主恢复。玩家身份与房主授权分开保存。</p>
-            )}
-            <p className="muted">
-              存档位置：正式管理界面显示系统解析后的本地数据目录。
-            </p>
+          <section className="state-page recovery">
+            <img src={art.recovery} alt="兔子从盒中取回卡片的恢复插画" />
+            <div>
+              <p className="eyebrow">重新回到桌边</p>
+              <h1>发现未结束的对局。</h1>
+              <p>座位与选择恢复示意</p>
+              {state.role === 'host' ? (
+                <div className="stack">
+                  <IconButton
+                    icon="back"
+                    className="primary"
+                    onClick={() => dispatch({ type: 'restore' })}
+                  >
+                    模拟恢复存档
+                  </IconButton>
+                  <button
+                    onClick={() =>
+                      dispatch({ type: 'issue', issue: 'incompatible' })
+                    }
+                  >
+                    查看版本不兼容提示
+                  </button>
+                  <button
+                    onClick={() =>
+                      dispatch({ type: 'issue', issue: 'corrupt' })
+                    }
+                  >
+                    查看损坏存档提示
+                  </button>
+                </div>
+              ) : (
+                <p>等待房主恢复。</p>
+              )}
+              <details className="help-details">
+                <summary>恢复说明</summary>
+                <p>
+                  原浏览器身份有效时恢复原座位；地址变化后重新生成二维码。正式管理端显示存档位置，游戏状态与版本校验待实现。
+                </p>
+              </details>
+            </div>
           </section>
         )}
         {state.screen === 'error' && (
-          <section className="panel error-panel">
-            <p className="eyebrow">帮助与反馈</p>
-            <h1>{issues[state.issue].title}</h1>
-            <p>{issues[state.issue].detail}</p>
-            <p>{issues[state.issue].steps}</p>
-            <button
-              className="primary"
-              onClick={() =>
-                switchScreen(
-                  state.issue === 'corrupt' || state.issue === 'incompatible'
-                    ? 'recovery'
-                    : 'setup',
-                )
-              }
-            >
-              返回原型
-            </button>
-            <details className="simulation" open>
-              <summary>走查工具 · 异常类型</summary>
-              <label>
-                异常类型
-                <select
-                  value={state.issue}
-                  onChange={(event) =>
-                    dispatch({
-                      type: 'issue',
-                      issue: event.target.value as Issue,
-                    })
-                  }
-                >
-                  {Object.entries(issues).map(([key, issue]) => (
-                    <option key={key} value={key}>
-                      {issue.title}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </details>
+          <section className="state-page error-panel">
+            <img src={art.offline} alt="狐狸修复连接的异常插画" />
+            <div>
+              <p className="eyebrow">帮助与反馈</p>
+              <h1>{issues[state.issue].title}</h1>
+              <p>{issues[state.issue].detail}</p>
+              <details className="help-details">
+                <summary>排查步骤</summary>
+                <p>{issues[state.issue].steps}</p>
+              </details>
+              <IconButton
+                icon="back"
+                className="primary"
+                onClick={() =>
+                  switchScreen(
+                    state.issue === 'corrupt' || state.issue === 'incompatible'
+                      ? 'recovery'
+                      : 'setup',
+                  )
+                }
+              >
+                返回原型
+              </IconButton>
+            </div>
           </section>
         )}
-        <footer>
-          第二阶段设计验证 · 所有操作仅更改本页模拟状态 · 刷新会重置
-        </footer>
       </main>
       {dialog && (
         <div
