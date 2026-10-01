@@ -10,6 +10,8 @@
 
 当前正式入口提供公共屏、手机端和管理端的工程验证页面，尚未实现大厅、身份、回退恢复或首版游戏。[第二阶段：规则与交互准备](docs/tasks/phase-02-rules-and-interaction.md) 正在进行：已建立[通用交互规格与三端美术原型](docs/reference/phase-02-platform-spec.md)，并完成合成 UI 的 10 组自动走查；目标简体中文版的完整规则与卡牌原文仍有[核验缺口](docs/tasks/phase-02-rules-and-interaction.md#规则来源与核验缺口)。规则关口未通过，完整游戏规格尚未冻结，第二阶段尚未完成。第一阶段任务已归档，完成证据见 [归档记录](docs/archive/phase-01-engineering-foundation.md)。
 
+用户指定中文资料已整理为[参考规则草案](docs/tasks/phase-02-rules-and-interaction.md#中文参考规则草案)，覆盖布局、初始化、替换、配对计分及部分能力概述；新增检索只使用中文来源。另已预备[原创自然主题背景](apps/web/src/prototype/assets/theme-preparation/manifest.json)，作为未导入 UI 的本地资源候选。
+
 ## 开发与验证
 
 开发目标为本机 Windows 11 x64，使用 Node.js 22.14.0、pnpm 10.12.1。在项目根目录执行：

@@ -14,7 +14,7 @@
 | `apps/desktop/` | Electron 主进程、窗口与独立服务生命周期 |
 | `apps/server/` | HTTP、Socket.IO、构建后网页、本地二维码与 SQLite 工程验证适配器 |
 | `apps/web/` | 单一 React 网页工程，公共屏／手机／管理工程验证页面；独立 `prototype.html` 与 `src/prototype/` 为第二阶段合成交互原型，不进入正式构建 |
-| `apps/web/src/prototype/assets/` | 原型独用的本地 WebP 插画与 imagegen 提示词／来源清单；SVG 控件和头像组件仍在原型内复用 |
+| `apps/web/src/prototype/assets/` | 原型独用的本地 WebP 插画与 imagegen 提示词／来源清单；`theme-preparation/` 保存未导入 UI 的 PNG 背景候选；SVG 控件和头像组件仍在原型内复用 |
 | `packages/protocol/` | 当前工程通信与桌面／服务消息的类型和运行时校验 |
 | `packages/game-sdk/` | 纯类型初始游戏契约；尚非完整游戏模板或恢复实现 |
 | `games/README.md` | 每款游戏独立目录的约定；未建立宝可梦或空游戏工程 |
