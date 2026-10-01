@@ -38,23 +38,23 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 ## 真实命令
 
-| 命令 | 行为 |
-| --- | --- |
-| `pnpm dev` | 先构建，启动 Vite 与 Electron／独立服务；前端热更新，服务与桌面源码修改后重启该命令 |
-| `pnpm start` | 运行已有 `build/desktop`；先执行 `pnpm build` |
-| `pnpm typecheck` | 严格 TypeScript 检查，不生成文件 |
-| `pnpm lint` | ESLint 与 React Hooks 规则检查 |
-| `pnpm format:check` / `pnpm format` | 检查格式／按项目配置格式化 |
-| `pnpm test` | Vitest 执行当前数据库与 HTTP 服务验证 |
-| `pnpm check` | 顺序执行类型、静态、格式检查与当前测试 |
-| `pnpm build` | 构建网页、打包独立服务与桌面主进程到 `build/desktop` |
-| `pnpm verify:desktop` | 隐藏窗口验证开发构建，包括两次启动、网页连接、独立进程与退出协调 |
-| `pnpm package:win` | 构建并生成 Windows x64 解压运行 ZIP 与 `win-unpacked` |
-| `pnpm verify:portable` | 将最终 ZIP 解压到新的项目临时目录，对其中的 `TableMax.exe` 运行同一跨层验证，子进程 PATH 不含 Node／开发工具目录 |
-| `pnpm prototype:dev` | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务 |
-| `pnpm prototype:build` | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/` |
-| `pnpm prototype:preview` | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建 |
-| `pnpm prototype:verify` | 对已有原型构建运行 Playwright／隐藏 Electron 窗口走查，生成 JSON 和截图；先执行原型构建并准备 Electron |
+| 命令                                | 行为                                                                                                             |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                          | 先构建，启动 Vite 与 Electron／独立服务；前端热更新，服务与桌面源码修改后重启该命令                              |
+| `pnpm start`                        | 运行已有 `build/desktop`；先执行 `pnpm build`                                                                    |
+| `pnpm typecheck`                    | 严格 TypeScript 检查，不生成文件                                                                                 |
+| `pnpm lint`                         | ESLint 与 React Hooks 规则检查                                                                                   |
+| `pnpm format:check` / `pnpm format` | 检查格式／按项目配置格式化                                                                                       |
+| `pnpm test`                         | Vitest 执行当前数据库与 HTTP 服务验证                                                                            |
+| `pnpm check`                        | 顺序执行类型、静态、格式检查与当前测试                                                                           |
+| `pnpm build`                        | 构建网页、打包独立服务与桌面主进程到 `build/desktop`                                                             |
+| `pnpm verify:desktop`               | 隐藏窗口验证开发构建，包括两次启动、网页连接、独立进程与退出协调                                                 |
+| `pnpm package:win`                  | 构建并生成 Windows x64 解压运行 ZIP 与 `win-unpacked`                                                            |
+| `pnpm verify:portable`              | 将最终 ZIP 解压到新的项目临时目录，对其中的 `TableMax.exe` 运行同一跨层验证，子进程 PATH 不含 Node／开发工具目录 |
+| `pnpm prototype:dev`                | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                      |
+| `pnpm prototype:build`              | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/`                                                     |
+| `pnpm prototype:preview`            | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建                                    |
+| `pnpm prototype:verify`             | 对已有原型构建运行 Playwright／隐藏 Electron 窗口走查，生成 JSON 和截图；先执行原型构建并准备 Electron           |
 
 验证通过后，解压 `artifacts/phase-01/TableMax-0.1.0-win-x64.zip`，双击 `TableMax.exe`。这是第一阶段工程验证包，不包含大厅、身份或首版游戏。
 
@@ -88,26 +88,37 @@ pnpm prototype:verify
 
 开发 Vite 使用 `127.0.0.1:5173`，把 `/api`、`/socket.io` 转发到默认服务端口。正式运行仅由 Fastify 提供构建后的网页，不使用 Vite。开发模式的服务端口保持默认值；修改服务端口时需同步 Vite 代理。
 
-| 内容 | 位置／策略 |
-| --- | --- |
-| 默认本地数据 | 系统 `LOCALAPPDATA` 下的 `TableMax/`，不写入程序包或仓库 |
-| 工程验证数据库 | 数据目录 `foundation.sqlite` 与 SQLite WAL／SHM；不是未来正式游戏存档 |
-| 服务日志 | 数据目录 `logs/service.log`，只记录服务启动／停止事件，不记录验证消息或秘密状态 |
-| Electron 浏览器数据 | 数据目录 `desktop/`，包含网页会话与缓存 |
-| pnpm、下载与工具缓存 | 仓库 `.pnpm-store/`、`.cache/`；Git 忽略，工作区隐藏与排除监听 |
-| 可再生构建 | 仓库 `build/`，Git 忽略，工作区隐藏 |
-| 便携包与验证图／JSON | 仓库 `artifacts/phase-01/`，Git 忽略，文件树保持可见；搜索与监听单独排除 |
-| 原型构建 | 仓库 `artifacts/phase-02/prototype/`，独立于 `build/desktop/web/` |
-| 原型截图与走查 JSON | 仓库 `artifacts/phase-02/verification/`，Git 忽略但文件树可见；每次走查更新对应证据 |
-| 美术原图与前后对比 | 仓库 `artifacts/phase-02/art-reset/`；保留 imagegen 原始 PNG、透明通道／尺寸／哈希检查、联系表及同尺寸前后截图和文字测量 |
-| 第二阶段检索原始响应 | 仓库 `artifacts/phase-02/research/`，清单记录 URL、HTTP 状态、字节数与 SHA-256；不是已核验规则书 |
-| 原型走查临时入口 | 仓库 `tmp/prototype-verify-*`，与正式服务、数据库和用户默认存档分离 |
-| 跨层验证临时数据 | 仓库 `tmp/desktop-verify-*`、`tmp/portable-extracted-*` 及命令入口验证目录，使用显式测试数据目录覆盖；不会读写用户默认存档 |
-| 单元测试数据库样本 | 系统临时目录 `tablemax-*`，与正式数据分离 |
+| 内容                 | 位置／策略                                                                                                                 |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 默认本地数据         | 系统 `LOCALAPPDATA` 下的 `TableMax/`，不写入程序包或仓库                                                                   |
+| 工程验证数据库       | 数据目录 `foundation.sqlite` 与 SQLite WAL／SHM；不是未来正式游戏存档                                                      |
+| 服务日志             | 数据目录 `logs/service.log`，只记录服务启动／停止事件，不记录验证消息或秘密状态                                            |
+| Electron 浏览器数据  | 数据目录 `desktop/`，包含网页会话与缓存                                                                                    |
+| pnpm、下载与工具缓存 | 仓库 `.pnpm-store/`、`.cache/`；Git 忽略，工作区隐藏与排除监听                                                             |
+| 可再生构建           | 仓库 `build/`，Git 忽略，工作区隐藏                                                                                        |
+| 便携包与验证图／JSON | 仓库 `artifacts/phase-01/`，Git 忽略，文件树保持可见；搜索与监听单独排除                                                   |
+| 原型构建             | 仓库 `artifacts/phase-02/prototype/`，独立于 `build/desktop/web/`                                                          |
+| 原型截图与走查 JSON  | 仓库 `artifacts/phase-02/verification/`，Git 忽略但文件树可见；每次走查更新对应证据                                        |
+| 美术原图与前后对比   | 仓库 `artifacts/phase-02/art-reset/`；保留 imagegen 原始 PNG、透明通道／尺寸／哈希检查、联系表及同尺寸前后截图和文字测量   |
+| 第二阶段检索原始响应 | 仓库 `artifacts/phase-02/research/`，清单记录 URL、HTTP 状态、字节数与 SHA-256；不是已核验规则书                           |
+| 原型走查临时入口     | 仓库 `tmp/prototype-verify-*`，与正式服务、数据库和用户默认存档分离                                                        |
+| 跨层验证临时数据     | 仓库 `tmp/desktop-verify-*`、`tmp/portable-extracted-*` 及命令入口验证目录，使用显式测试数据目录覆盖；不会读写用户默认存档 |
+| 单元测试数据库样本   | 系统临时目录 `tablemax-*`，与正式数据分离                                                                                  |
 
 仅支持开发／验证覆盖的环境变量：`TABLEMAX_DATA_DIR` 指定数据位置，`TABLEMAX_HOST` 指定监听地址，`TABLEMAX_PORT` 指定端口（0 仅用于验证临时端口）。`TABLEMAX_WEB_DEV_URL` 由开发脚本设置，普通便携启动不要设置。`ELECTRON_RUN_AS_NODE` 会改变 Electron 模式，项目启动和验证脚本主动移除该变量。不要将含秘密的本地配置纳入 Git。
 
 没有自动修改防火墙、路由器或系统服务。手机连接还受私人网络防火墙、访客网络隔离和选错网卡影响。局域网实机验证与正式离线整局仍属于后续阶段；工程验证不能替代手机系统浏览器验收。
+
+## 人机与封装的后续验证
+
+新增人机和面向对象要求目前只进入文档，尚无 bot 专用命令、策略文件、座位管理实现或通过记录。后续沿用真实工程检查入口，并在对应游戏／平台建立以下验证后再补具体命令与结果：
+
+- 逐节点覆盖初始化、常规／被动／复合选择及合法参数，验证策略只读取对应座位授权信息；用固定种子完成真人与电脑混合的整局场景。
+- 验证 bot 的重复意图、并发选择、暂停、回退、旧分支迟到结果、重启恢复、策略异常与版本不兼容；覆盖需求 AC-19 至 AC-23，并复用 AC-06、07、09、11 至 16 的适用要求。
+- 替换策略或重构封装时按影响执行规则与平台行为回归，检查模块依赖、单一状态修改入口和普通数据序列化；纯规则与计分验证独立于前端及数据库。
+- 第六阶段验证正式包断开互联网后的混合人机整局；当前开发工程、原型或固定工具链验证不等于这些新增验收通过。
+
+详细预期与责任见 [人机规格](bot-players.md) 和 [阶段总览](../tasks/README.md)。新增测试只覆盖实际行为与风险，不以无业务行为的类封装或接口桩代替验证。
 
 ## 第一阶段验证记录
 
@@ -136,14 +147,14 @@ pnpm prototype:verify
 
 走查共生成 25 张截图，其中六张交互场景与 CSS 尺寸如下：
 
-| 文件（均在 `artifacts/phase-02/verification/`） | 内容 | CSS 尺寸 |
-| --- | --- | --- |
-| `host-setup.png` | 房主启动与网络选择 | 1280×900 |
-| `player-lobby-360.png` | 手机大厅 | 360×800 |
-| `player-submitting-390.png` | 手机提交反馈 | 390×844 |
-| `host-rollback.png` | 房主回退确认 | 1280×900 |
-| `public-session-1920.png` | 公共屏会话占位与声音 | 1920×1080 |
-| `host-save-error.png` | 房主存档错误提示 | 1280×900 |
+| 文件（均在 `artifacts/phase-02/verification/`） | 内容                 | CSS 尺寸  |
+| ----------------------------------------------- | -------------------- | --------- |
+| `host-setup.png`                                | 房主启动与网络选择   | 1280×900  |
+| `player-lobby-360.png`                          | 手机大厅             | 360×800   |
+| `player-submitting-390.png`                     | 手机提交反馈         | 390×844   |
+| `host-rollback.png`                             | 房主回退确认         | 1280×900  |
+| `public-session-1920.png`                       | 公共屏会话占位与声音 | 1920×1080 |
+| `host-save-error.png`                           | 房主存档错误提示     | 1280×900  |
 
 美术尺寸组另保存启动／大厅／会话／结束／恢复五页的房主 1080×800、1280×900 和公共屏 1920×1080 截图，以及手机大厅／会话的 360×800、390×844 截图。文件名为 `<角色>-<页面>-<宽度>-art.png`，全部尺寸均已检查；大厅、会话、恢复和回退弹窗等代表截图已人工查看。
 

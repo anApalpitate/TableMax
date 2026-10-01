@@ -2,7 +2,7 @@
 
 供自己和朋友线下聚会使用的 Windows 局域网全数字桌游平台。电脑负责本地服务与公共屏，玩家通过手机浏览器加入并操作；正式游玩不依赖互联网或实体组件。
 
-首版目标是《宝可梦奇遇：皮卡丘和朋友们》完整可玩，并具备身份与秘密信息隔离、房主决策点回退、手机重连和程序重启恢复能力。后续目标包含经典版《电力公司》德国地图，具体边界以需求为准。
+首版目标是《宝可梦奇遇：皮卡丘和朋友们》完整可玩，并具备身份与秘密信息隔离、房主决策点回退、手机重连和程序重启恢复能力，并支持可完成全部游戏选择的简单 bot。后续目标包含经典版《电力公司》德国地图，具体边界以需求为准。
 
 ## 当前状态
 
@@ -13,6 +13,8 @@
 用户指定中文资料已整理为[参考规则草案](docs/tasks/phase-02-rules-and-interaction.md#中文参考规则草案)，覆盖布局、初始化、替换、配对计分及部分能力概述；新增检索只使用中文来源。另已预备[原创自然主题背景](apps/web/src/prototype/assets/theme-preparation/manifest.json)，作为未导入 UI 的本地资源候选。
 
 用户规则答复和三张中文截图已整理 16 类、56 张牌及六类特殊能力；六牌全明立即最终结算、默认三胜、共同赢家、公开摸牌和整个弃牌堆重洗已确认。主动能力只检查本人正常回合摸到并替换的牌，补牌与转移不触发；百变怪仅两张，联合求含配对的最低总分。最新确认不再执行剩余特殊效果或最后回合，中断补牌的空位计分仍待确认，版本原文核验继续接续。后续公共大屏兼房主管理，见[界面决策 002](docs/decisions/002-host-public-screen-and-debug.md)；跨游戏调试与纠错目标已写入[需求第 6.5 节](docs/requirements/TableMax_需求文档_v1.0.md#65-跨游戏调试与纠错后续独立规划)，后续独立规划。当前工程／原型仍为原有三个角色入口，计分模块、合并界面及调试能力尚未实现。
+
+2026-10-01 新增 [人机要求](docs/reference/bot-players.md) 与 [适度封装约定](docs/reference/architecture.md#面向对象与适度封装)：可添加电脑玩家，各游戏独立维护决策文件，覆盖全部合法选择。当前只更新规格，尚无 bot 代码、电脑座位或相关验收结果；第一阶段既有完成状态保持，新增实现交给第二至六阶段。
 
 ## 开发与验证
 
@@ -48,7 +50,8 @@ pnpm verify:portable
 - [第二阶段任务与核验记录](docs/tasks/phase-02-rules-and-interaction.md)：已交付范围、来源与规则缺口、完成标准及取得原文后的接续工作。
 - [通用交互与交接规格](docs/reference/phase-02-platform-spec.md)：已选大厅交互、权限与恢复语义、资源方案、AC 场景及第三至五阶段输入。
 - [工程基础决策](docs/decisions/001-engineering-foundation.md)：已采用技术、固定版本及重要取舍。
-- [工程结构](docs/reference/architecture.md)：依赖方向、游戏契约、授权视图与后续恢复机制边界。
+- [工程结构](docs/reference/architecture.md)：依赖方向、游戏契约、授权视图与后续恢复机制边界及面向对象的适度封装。
+- [人机规格](docs/reference/bot-players.md)：电脑座位、独立决策文件、信息权限、调度恢复和全选择覆盖。
 - [开发环境与验证](docs/reference/development.md)：安装、命令、数据位置和本机验证证据。
 - [编辑器工作区](TableMax.code-workspace)：以相对路径打开本项目，包含项目级显示、搜索与监听设置。
 
@@ -84,10 +87,12 @@ TableMax/
       architecture.md
       development.md
       phase-02-platform-spec.md
+      bot-players.md
     decisions/
       README.md
       001-engineering-foundation.md
       002-host-public-screen-and-debug.md
+      003-bot-and-maintainability.md
     tasks/
       README.md
       phase-02-rules-and-interaction.md
