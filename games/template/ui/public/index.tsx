@@ -1,5 +1,5 @@
 import type { TemplateView } from '../view';
-import die from '../../assets/die.svg';
+import die from '../../../../assets/games/template/die.svg';
 export function SeatResult({
   view,
   seatId,

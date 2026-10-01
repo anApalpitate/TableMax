@@ -17,6 +17,7 @@
     "types": ["node"]
   },
   "include": [
+    "assets/**/*.ts",
     "apps/**/*.ts",
     "apps/**/*.tsx",
     "packages/**/*.ts",

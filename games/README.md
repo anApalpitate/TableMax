@@ -1,6 +1,6 @@
 # 游戏模块
 
-每款游戏独立使用 games/<id>/，规则／计分／投影、bot/index.ts、ui/public、ui/player、assets 与测试分别维护。规则只依赖 SDK 和纯数据，不依赖 React、通信、数据库或 Electron；存档保持普通 JSON。平台负责身份、动作、事务、随机及恢复，策略只返回合法意图，不能直接写状态或代真人。
+每款游戏独立使用 games/<id>/，规则／计分／投影、bot/index.ts、ui/public、ui/player 与测试分别维护；全部资源在根目录 assets/games/<id> 及来源清单管理。规则只依赖 SDK 和纯数据，不依赖 React、通信、数据库或 Electron；存档保持普通 JSON。平台负责身份、动作、事务、随机及恢复，策略只返回合法意图，不能直接写状态或代真人。
 
 当前正式游戏为 [宝可梦奇遇](pokemon-encounters/index.ts)，已实现全部采用规则、三胜大局、独立基础 bot、本地资源与授权两端 UI；采用 tablemax-cn-s19-v1，官方原文认证和项目约定分开记录。规格入口见 [游戏主题](../docs/games/pokemon-encounters/README.md)，当前交付证据与模拟边界见 [验收记录](../docs/reference/acceptance.md)。
 

@@ -44,33 +44,43 @@ button.card-slot:not(:disabled):hover {
   aspect-ratio: 529 / 740;
   overflow: hidden;
   border-radius: 9px;
-  background: #fff9e9;
-  border: 1px solid #cfbd8d;
-  color: #173b32;
+  background: radial-gradient(ellipse at 50% 45%, #70513e, #34281f 85%);
+  border: 3px solid var(--card-frame, #799bcc);
+  color: #fff9e9;
   box-shadow:
-    0 3px 0 #95896640,
-    0 5px 9px #253b2b1c;
+    0 3px 0 #30261e55,
+    0 5px 10px #18212a30,
+    inset 0 0 0 1px #f7dfaa;
   isolation: isolate;
 }
 .card-heading {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 2px;
-  padding: 2px 5px;
-  min-height: 28px;
+  justify-content: flex-end;
+  min-height: 25px;
+  padding: 0 1px;
   flex-shrink: 0;
-  background: linear-gradient(100deg, #fffdf2, #f4e5bb);
+  position: relative;
 }
 .card-value {
   font-size: clamp(22px, 2vw, 32px);
-  font-weight: 800;
+  font-weight: 850;
   line-height: 1;
+  min-width: 25px;
+  padding: 1px 3px 3px;
+  text-align: center;
+  border-radius: 0 0 0 10px;
+  background: #fff2c9;
+  color: #2c241f;
+  box-shadow: 0 2px 3px #17140d60;
   font-variant-numeric: tabular-nums;
 }
 .ability-mark {
-  color: #9a5e16;
-  font-size: 16px;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  color: #ffdf73;
+  font-size: 15px;
   line-height: 1;
 }
 .pokemon-card > img {
@@ -78,38 +88,54 @@ button.card-slot:not(:disabled):hover {
   min-height: 0;
   height: 0;
   flex: 1;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 2px 6%;
   object-position: center;
 }
 .card-name {
   display: block;
-  background: #fffdf2;
-  padding: 3px 1px;
+  background: #fff2c9;
+  color: #2c241f;
+  padding: 2px 0;
   font-size: 12px;
   line-height: 1.4;
-  font-weight: 700;
+  font-weight: 750;
   text-align: center;
   white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
   flex-shrink: 0;
 }
-.pokemon-card.back > img {
-  position: absolute;
-  inset: 0;
-  height: 100%;
+.pokemon-card.back {
+  display: grid;
+  place-items: center;
+  border-color: #8cadd2;
+  background: repeating-linear-gradient(45deg, #274871 0 8px, #244269 8px 16px);
+  box-shadow:
+    inset 0 0 0 2px #e8ddbc,
+    0 4px 8px #15223c40;
 }
-.back-label {
+.pokeball-mark {
+  width: 65%;
+  aspect-ratio: 1;
+  position: relative;
+  border: 3px solid #222c38;
+  border-radius: 50%;
+  background: linear-gradient(#ee5b52 0 45%, #222c38 45% 55%, #fff8e8 55%);
+  box-shadow:
+    0 5px 10px #11203970,
+    inset -5px -5px 0 #00000016;
+  transform: rotate(-15deg);
+}
+.pokeball-mark::after {
+  content: '';
   position: absolute;
-  bottom: 10%;
-  left: 15%;
-  right: 15%;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: #496340;
-  background: #fffaf0df;
-  border-radius: 10px;
+  width: 31%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 3px solid #222c38;
+  background: #fff8e8;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 .slot-index {
   position: absolute;
@@ -400,7 +426,7 @@ button.card-slot:not(:disabled):hover {
   animation: saved-result 240ms ease-out;
 }
 .saved-coin {
-  animation: saved-coin 480ms ease-out;
+  animation: saved-coin 950ms cubic-bezier(0.2, 0.7, 0.3, 1);
 }
 .saved-result .winner-emblem {
   animation: earned-star 380ms ease-out;
@@ -411,6 +437,175 @@ button.card-slot:not(:disabled):hover {
   }
   to {
     transform: translateY(0) rotateY(0) scale(1);
+  }
+}
+
+.coin-face,
+.tossed-coin {
+  display: inline-grid;
+  place-items: center;
+  border: 3px solid #c69a32;
+  border-radius: 50%;
+  background: radial-gradient(#fff6d3, #f7d35c);
+  box-shadow:
+    inset 0 0 0 2px #fff0ac,
+    0 4px 0 #85631d;
+  overflow: hidden;
+}
+.coin-face {
+  width: 44px;
+  height: 44px;
+}
+.coin-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.game-table {
+  position: relative;
+}
+.saved-effects {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  perspective: 900px;
+  animation: effect-fade 1500ms both;
+}
+.effect-ring {
+  position: absolute;
+  width: min(65vw, 350px);
+  aspect-ratio: 1;
+  border: 5px solid #ffe18a;
+  border-radius: 50%;
+  box-shadow:
+    0 0 45px #ffe58a90,
+    inset 0 0 40px #ffe58a90;
+  animation: ring-burst 900ms ease-out both;
+}
+.effect-spark {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  color: var(--spark-color);
+  font-size: 28px;
+  font-style: normal;
+  text-shadow: 0 2px 3px #3a2d2470;
+  animation: sparkle-flight 1300ms var(--delay) cubic-bezier(0.15, 0.65, 0.3, 1)
+    both;
+}
+.effect-title {
+  font-size: clamp(24px, 6vw, 46px);
+  font-weight: 850;
+  letter-spacing: 2px;
+  color: #fff8d1;
+  text-shadow:
+    0 3px 0 #614319,
+    0 0 8px #614319;
+  padding: 18px 28px;
+  border-radius: 24px;
+  background: #3e3327e8;
+  border: 2px solid #ffe299;
+  animation: effect-title-pop 1000ms both;
+}
+.tossed-coin {
+  width: clamp(100px, 28vw, 160px);
+  aspect-ratio: 1;
+  border-width: 7px;
+  animation: coin-toss 1200ms cubic-bezier(0.22, 0.65, 0.3, 1) both;
+}
+.tossed-coin img {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+}
+.result-effects .effect-ring {
+  border-color: #ffc952;
+}
+.result-effects .effect-spark {
+  width: 16px;
+  height: 24px;
+  border-radius: 3px;
+  background: var(--spark-color);
+  font-size: 0;
+}
+@keyframes effect-fade {
+  0%,
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes ring-burst {
+  0% {
+    transform: scale(0.15);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+@keyframes sparkle-flight {
+  0% {
+    transform: rotate(var(--angle)) translateY(-20px) scale(0.2);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--angle)) translateY(min(-42vw, -250px))
+      rotate(180deg) scale(0.7);
+    opacity: 0;
+  }
+}
+@keyframes effect-title-pop {
+  0% {
+    transform: translateY(20px) scale(0.7);
+    opacity: 0;
+  }
+  25% {
+    transform: translateY(0) scale(1.05);
+    opacity: 1;
+  }
+  45%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes coin-toss {
+  0% {
+    transform: translateY(80px) rotateY(0deg) scale(0.6);
+  }
+  40% {
+    transform: translateY(-90px) rotateY(1260deg) scale(1.1);
+  }
+  75% {
+    transform: translateY(0) rotateY(2160deg) scale(1);
+  }
+  88% {
+    transform: translateY(-12px) rotateY(2160deg);
+  }
+  100% {
+    transform: translateY(0) rotateY(2160deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .saved-effects {
+    display: none;
+  }
+  .coin-face.saved-coin {
+    animation: none;
   }
 }
 @keyframes earned-star {

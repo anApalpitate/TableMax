@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import type { RoomFeedback } from '../../../packages/protocol/src';
-import draw from '../assets/audio/draw-v1.wav';
-import replace from '../assets/audio/replace-v1.wav';
-import effect from '../assets/audio/effect-complete-v1.wav';
-import result from '../assets/audio/round-result-v1.wav';
-import error from '../assets/audio/error-v1.wav';
+import draw from '../../../assets/games/pokemon-encounters/audio/draw-v1.wav';
+import replace from '../../../assets/games/pokemon-encounters/audio/replace-v1.wav';
+import effect from '../../../assets/games/pokemon-encounters/audio/effect-complete-v1.wav';
+import result from '../../../assets/games/pokemon-encounters/audio/round-result-v1.wav';
+import error from '../../../assets/games/pokemon-encounters/audio/error-v1.wav';
 const sources = {
   draw,
   replace,

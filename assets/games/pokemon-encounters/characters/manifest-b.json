@@ -1,0 +1,109 @@
+{
+  "createdAt": "2026-10-02",
+  "purpose": "Individually generated accurate classic Pokémon character illustrations, batch B; visual style reference physical board game card display, not publisher source art.",
+  "generator": "built-in image_gen",
+  "model": null,
+  "references": [
+    {
+      "file": "artifacts/phase-02/research/chinese-reference/s14/card-display.png",
+      "role": "Classic 2D cel-shaded tabletop character style reference only; no copied card border or numbers"
+    }
+  ],
+  "assets": [
+    {
+      "categoryId": "ordinary-6",
+      "displayName": "呆呆兽",
+      "plannedFile": "ordinary-6-v1.webp",
+      "prompt": "Use case: illustration-story. Asset type: one independent transparent character asset for a private Pokémon tabletop game, ordinary-6 Slowpoke (呆呆兽). Reference image role: photographed physical tabletop cards are a style reference only, not an edit target. Draw one accurate classic Slowpoke, its original pink rounded quadruped body, small ears, cream muzzle, vacantly friendly eyes, two little visible fangs, short sturdy limbs and long thick curved pink tail with pale tip. Full body lying in a relaxed playful three-quarter pose. Clean classic Pokémon 2D cel-shaded board-game illustration, crisp uniform dark outline, flat accurate pink and cream color fields, simple soft two-tone shading, cheerful expressive original anatomy. Center on a portrait 4:5 canvas, character occupying about 70–75% with all tail and feet visible and 8% safe margins; make a large easily recognizable silhouette at card thumbnail size. Genuinely transparent alpha background. No other characters, no props, ground, shadow, environment, frame, border, text, numerals, watermark, icons or UI; no 3D, realism, painterly texture or substitute still life.",
+      "status": "generation-rejected",
+      "generated": false,
+      "verified": false,
+      "importedIntoUI": false,
+      "error": {
+        "http": 400,
+        "code": "moderation_blocked",
+        "stage": "output",
+        "categories": ["other"],
+        "requestId": "3dae92f1-d874-44de-8823-cfb2c79241b2",
+        "toolMessage": "image generation failed: http 400 Bad Request: Some(\"{\\n  \\\"error\\\": {\\n    \\\"message\\\": \\\"Your request was rejected by the safety system. If you believe this is an error, contact us at help.openai.com and include the request ID 3dae92f1-d874-44de-8823-cfb2c79241b2.\\\",\\n    \\\"type\\\": \\\"image_generation_user_error\\\",\\n    \\\"param\\\": null,\\n    \\\"code\\\": \\\"moderation_blocked\\\",\\n    \\\"moderation_details\\\": {\\n      \\\"moderation_stage\\\": \\\"output\\\",\\n      \\\"categories\\\": [\\n        \\\"other\\\"\\n      ]\\n    }\\n  }\\n}\")"
+      },
+      "notes": "No retry to weaken or circumvent rejection; no substitute asset or fallback CLI."
+    },
+    {
+      "categoryId": "ordinary-7",
+      "displayName": "耿鬼",
+      "plannedFile": "ordinary-7-v1.webp",
+      "prompt": "Use case: illustration-story. Asset type: individual transparent character illustration for a private Pokémon tabletop game, ordinary-7 Gengar (耿鬼). Input image role: photographed board-game cards are visual style reference only, not an edit target; use their clean classic Pokémon cel-shaded flat illustration and recognizable original character identity, omit their card borders, numbers and text. Primary request: draw one accurate classic Gengar, a compact purple ghost Pokémon with spiky back and pointed ears, short broad arms, three small claw fingers, short feet, red eyes and its iconic broad toothy mischievous white grin. Full body in a dynamic friendly three-quarter pose, no objects, no other character. Keep original Gengar anatomy and purple palette, clean dark outline of uniform weight, limited soft two-tone cel shading, crisp polished 2D anime board-game art. Composition: portrait 4:5, centered character occupying about 70–75% of canvas, all extremities fully visible with at least 8% margin; large clear silhouette readable on a small card. Background genuinely transparent alpha; no ground plane, no cast shadow, no fog, no scene. Absolutely no text, numbers, icons, card frame, border, watermark, UI, realistic material, 3D, painterly texture or substitute still life.",
+      "status": "generation-rejected",
+      "generated": false,
+      "verified": false,
+      "importedIntoUI": false,
+      "error": {
+        "http": 400,
+        "code": "moderation_blocked",
+        "stage": "output",
+        "categories": ["other"],
+        "requestId": "6c51f2e6-00a4-484e-9ee1-5b83190f0c62"
+      },
+      "notes": "No retry to weaken or circumvent rejection; no substitute asset or fallback CLI."
+    },
+    {
+      "categoryId": "ordinary-8",
+      "displayName": "魔墙人偶",
+      "plannedFile": "ordinary-8-v1.webp",
+      "prompt": "Use case: illustration-story. Asset type: individual transparent original-character illustration for a private Pokémon board game, ordinary-8 Mr. Mime (魔墙人偶). Reference image role: photograph of original physical tabletop cards is only a guide to clean flat cel-shaded character art; no card border/text/numbers copied. Draw one recognizable accurate classic Mr. Mime in a lively full-body playful mime pose with one broad five-fingered glove held forward and the other to its side: pale pink face/body, round red shoulder and knee joints, red belly, navy hornlike hair, blue curled feet, large white hands with round fingertips and cheerful eyes. Preserve official classic character shape and colors; crisp dark consistent outlines, polished 2D anime board-game style, solid flat color fields and limited soft cel shading, no material texture. One character centered on vertical 4:5 composition, whole body 70–75% of canvas, unclipped with at least 8% margins, large silhouette readable at tiny card size. Genuinely transparent alpha background, no wall or props or environment or ground shadow. No additional character, text, numbers, UI, border, frame, watermark, 3D, realism, still-life substitute.",
+      "status": "generation-rejected",
+      "generated": false,
+      "verified": false,
+      "importedIntoUI": false,
+      "error": {
+        "http": 400,
+        "code": "moderation_blocked",
+        "stage": "output",
+        "categories": ["other"],
+        "requestId": "541661a5-4cd1-49d2-b858-89e95db485bb",
+        "toolMessage": "image generation failed: http 400 Bad Request: Some(\"{\\n  \\\"error\\\": {\\n    \\\"message\\\": \\\"Your request was rejected by the safety system. If you believe this is an error, contact us at help.openai.com and include the request ID 541661a5-4cd1-49d2-b858-89e95db485bb.\\\",\\n    \\\"type\\\": \\\"image_generation_user_error\\\",\\n    \\\"param\\\": null,\\n    \\\"code\\\": \\\"moderation_blocked\\\",\\n    \\\"moderation_details\\\": {\\n      \\\"moderation_stage\\\": \\\"output\\\",\\n      \\\"categories\\\": [\\n        \\\"other\\\"\\n      ]\\n    }\\n  }\\n}\")"
+      },
+      "notes": "No retry to weaken or circumvent rejection; no substitute asset or fallback CLI."
+    },
+    {
+      "categoryId": "ordinary-9",
+      "displayName": "大岩蛇",
+      "plannedFile": "ordinary-9-v1.webp",
+      "prompt": "Use case: illustration-story. Asset type: one individually produced transparent Pokémon character illustration for a private digital tabletop game, ordinary-9 Onix (大岩蛇). The input photograph is a style reference for the physical game's clean flat classic character illustration only; no card border, number or typography. Draw exactly one accurate original classic Onix: a long chain of grey faceted boulder segments, angular large stone head, a single upward spike/horn, narrow determined eyes and broad jaw. Coil the long rock snake in a compact dynamic S shape so the whole body from head to tapered tail fits the portrait. Classic Pokémon cel-shaded 2D board-game art, crisp uniform dark contour, accurate light and medium grey colors with simple limited planar shading, no realistic stone texture, no 3D. Center full body in a vertical 4:5 transparent canvas; 70–75% occupancy, at least 8% margin, all head horn and tail visible, recognizable when small. Genuine transparent alpha behind the isolated character. No extra rocks, ground, debris, smoke, shadow, scenery, other character, props, text, numbers, frame, border, UI, watermark, still life substitute.",
+      "status": "generation-rejected",
+      "generated": false,
+      "verified": false,
+      "importedIntoUI": false,
+      "error": {
+        "http": 400,
+        "code": "moderation_blocked",
+        "stage": "output",
+        "categories": ["other"],
+        "requestId": "c3a4282a-d5c7-43e5-a32b-a4b6c872b7d3",
+        "toolMessage": "image generation failed: http 400 Bad Request: Some(\"{\\n  \\\"error\\\": {\\n    \\\"message\\\": \\\"Your request was rejected by the safety system. If you believe this is an error, contact us at help.openai.com and include the request ID c3a4282a-d5c7-43e5-a32b-a4b6c872b7d3.\\\",\\n    \\\"type\\\": \\\"image_generation_user_error\\\",\\n    \\\"param\\\": null,\\n    \\\"code\\\": \\\"moderation_blocked\\\",\\n    \\\"moderation_details\\\": {\\n      \\\"moderation_stage\\\": \\\"output\\\",\\n      \\\"categories\\\": [\\n        \\\"other\\\"\\n      ]\\n    }\\n  }\\n}\")"
+      },
+      "notes": "No retry to weaken or circumvent rejection; no substitute asset or fallback CLI."
+    },
+    {
+      "categoryId": "special-mew",
+      "displayName": "梦幻",
+      "plannedFile": "special-mew-v1.webp",
+      "prompt": "Use case: illustration-story. Asset type: individual transparent character illustration for a private Pokémon tabletop game, special-mew Mew (梦幻). Input reference role: the photograph of the physical game's cards guides the classic clean flat cel-shaded board-game illustration style only; do not replicate borders, numbers or text. Draw exactly one accurate classic Mew, the original small pale pink feline Pokémon with rounded head, large luminous blue eyes, small triangular ears, short arms, large oval hind feet and its distinctive very long thin pink tail with rounded tip. Full body floating in a lively elegant diagonal pose, tail curved around the body, cheerful curious expression. Accurate original Mew anatomy, no substitute design. Crisp dark uniform contour, pastel pink solid color fields and delicate limited two-tone cel shading, polished classic 2D Pokémon anime/tabletop art. Portrait 4:5, full character and entire tail enclosed with 8% margin, about 70–75% canvas occupancy, easily readable small silhouette. Genuine transparent alpha background. No aura, sparkles, props, ground, environment, cast shadow, other characters, numbers, text, frame, border, watermark, UI, 3D realism or texture.",
+      "status": "generation-rejected",
+      "generated": false,
+      "verified": false,
+      "importedIntoUI": false,
+      "error": {
+        "http": 400,
+        "code": "moderation_blocked",
+        "stage": "output",
+        "categories": ["other"],
+        "requestId": "1b73ce12-ca3e-40c9-9ca7-e7e2c8da3253",
+        "toolMessage": "image generation failed: http 400 Bad Request: Some(\"{\\n  \\\"error\\\": {\\n    \\\"message\\\": \\\"Your request was rejected by the safety system. If you believe this is an error, contact us at help.openai.com and include the request ID 1b73ce12-ca3e-40c9-9ca7-e7e2c8da3253.\\\",\\n    \\\"type\\\": \\\"image_generation_user_error\\\",\\n    \\\"param\\\": null,\\n    \\\"code\\\": \\\"moderation_blocked\\\",\\n    \\\"moderation_details\\\": {\\n      \\\"moderation_stage\\\": \\\"output\\\",\\n      \\\"categories\\\": [\\n        \\\"other\\\"\\n      ]\\n    }\\n  }\\n}\")"
+      },
+      "notes": "No retry to weaken or circumvent rejection; no substitute asset or fallback CLI."
+    }
+  ],
+  "status": "All 5 individual requests rejected by built-in image_gen output safety system; no images produced, no geometry/alpha/hash assertions or UI imports."
+}

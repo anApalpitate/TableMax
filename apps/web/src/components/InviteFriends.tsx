@@ -4,17 +4,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
   return (
     <section className="invite-friends">
       {' '}
-      <h2>邀请朋友</h2>
-      <label htmlFor="address">电脑地址</label>
-      <select
-        id="address"
-        value={address}
-        onChange={(e) => setAddress(e.target.value)}
-      >
-        {addresses.map((a) => (
-          <option key={a}>{a}</option>
-        ))}
-      </select>
+      <h2>手机扫码入座</h2>
       {address ? (
         <>
           <img
@@ -31,6 +21,16 @@ export function InviteFriends({ session }: { session: RoomSession }) {
       )}
       <details>
         <summary>连接帮助</summary>
+        <label htmlFor="address">电脑地址</label>
+        <select
+          id="address"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+        >
+          {addresses.map((a) => (
+            <option key={a}>{a}</option>
+          ))}
+        </select>
         <p>
           手机和电脑连接同一局域网；选择手机能访问的网卡地址，在系统浏览器打开。请检查私人网络防火墙、访客网络和设备隔离；地址改变后重新扫码。
         </p>

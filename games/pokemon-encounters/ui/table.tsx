@@ -4,6 +4,7 @@ import type { PokemonView } from '../rules/project';
 import { SeatResult, TableStatus } from './public';
 import { PlayerControls } from './player';
 import { SavedMotion } from './motion';
+import { SavedEffects } from './effects';
 
 export type TableSeat = {
   id: string;
@@ -53,6 +54,7 @@ export function GameTable({
       data-seats={seats.length}
       aria-label="游戏牌桌"
     >
+      <SavedEffects key={selectionKey} game={game} />
       {!game.roundResult && (
         <TableStatus
           view={game}

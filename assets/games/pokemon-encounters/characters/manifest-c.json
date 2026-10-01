@@ -1,0 +1,189 @@
+{
+  "createdAt": "2026-10-02",
+  "purpose": "Individually generated classic 2D Pokémon character illustrations; common frames, values and rules remain code",
+  "generator": "built-in image_gen",
+  "mode": "generate",
+  "model": null,
+  "source": "Generated fan character artwork; not publisher card scans or publisher-certified artwork",
+  "postprocessing": "Proportional Lanczos resize to 1000px maximum edge, WebP quality 90 method 6; preserve actual alpha; originals retained; no content edits",
+  "assets": [
+    {
+      "categoryId": "special-charizard",
+      "displayName": "喷火龙",
+      "prompt": "Use case: illustration-story. Asset type: a single transparent character illustration for one Pokémon tabletop card, not a complete card. Primary request: classic Charizard (喷火龙) in faithful original Pokémon 2D anime cel-shaded style. Character identity: one orange bipedal dragon with cream belly, long neck, two short backward horns, blue-green wing membranes, two arms each with three claws, two legs, long tail ending in a bright red-yellow flame. Full body visible, wings opened in a balanced energetic proud pose, tail and flame entirely inside frame. Clean dark brown ink outlines, flat vivid colors, one restrained cel-shaded shadow, friendly lively expression; no painterly texture, 3D, realism or redesign. Portrait 4:5 composition, character centered occupying around 70% with at least 8% empty safety margin on every side. Genuine transparent alpha background, isolated clean cutout. Reference context: the reviewed tabletop photos show compact, simple, original-looking Pokémon cel artwork on dark card centers; this image supplies only the character, code supplies unified frame and score corner. Do not include background, card border, score, text, letters, logo, watermark, UI, additional characters or unrelated effects. Maintain recognizable accurate original Charizard silhouette.",
+      "generated": false,
+      "verified": false,
+      "importedIntoUI": false,
+      "status": "generation-rejected",
+      "requestId": "4279cd5a-74c9-4485-8f0e-7b6b29ec7dcf",
+      "generator": "built-in image_gen",
+      "mode": "generate",
+      "transparentRequested": true,
+      "model": null,
+      "references": [
+        {
+          "file": "artifacts/phase-02/research/chinese-reference/s14/card-display.png",
+          "role": "visually reviewed style and classic character reference only; not submitted as image input"
+        },
+        {
+          "file": "artifacts/phase-02/research/chinese-reference/s14/special-cards-a.png",
+          "role": "visually reviewed style and classic character reference only; not submitted as image input"
+        }
+      ],
+      "error": {
+        "code": "moderation_blocked",
+        "moderationStage": "output",
+        "categories": ["other"],
+        "message": "Your request was rejected by the safety system."
+      }
+    },
+    {
+      "categoryId": "special-zapdos",
+      "displayName": "闪电鸟",
+      "prompt": "Use case: illustration-story. Asset type: single transparent character illustration for one Pokémon tabletop card. Primary request: Zapdos (闪电鸟), faithful classic Pokémon 2D anime cel-shaded appearance: a single angular yellow electric bird with black spiky inner feathers under its sharp yellow wings, long straight pointed orange beak, narrow eyes, two orange clawed feet. Full body centered, wings spread as a dramatic clean symmetric silhouette with head clearly visible, wings and feet wholly inside the canvas. Dark brown ink outlines, flat vivid yellow and black colors with restrained simple cel shadow. Energetic iconic original character design, no 3D, realism, painterly textures or redesign. Portrait 4:5 layout, character about 70% of canvas with at least 8% safety margin. True transparent alpha background, no scenery, no card frame, no score or numbers, no letters or text, no logo, watermark, UI, other characters. Reference context: the tabletop reference photos show original-looking flat Pokémon artwork on a dark brown card center; code adds the common card border and score, this artwork supplies only the isolated character. A few small angular yellow lightning accents close to the wings may be part of the character silhouette without touching any edge.",
+      "generated": false,
+      "verified": false,
+      "importedIntoUI": false,
+      "status": "generation-rejected",
+      "requestId": "7d9249e9-584f-4313-9a55-2bb0d3e7258a",
+      "generator": "built-in image_gen",
+      "mode": "generate",
+      "transparentRequested": true,
+      "model": null,
+      "references": [
+        {
+          "file": "artifacts/phase-02/research/chinese-reference/s14/card-display.png",
+          "role": "visually reviewed style and classic character reference only; not submitted as image input"
+        },
+        {
+          "file": "artifacts/phase-02/research/chinese-reference/s14/special-cards-a.png",
+          "role": "visually reviewed style and classic character reference only; not submitted as image input"
+        }
+      ],
+      "error": {
+        "code": "moderation_blocked",
+        "moderationStage": "output",
+        "categories": ["other"],
+        "message": "Your request was rejected by the safety system."
+      }
+    },
+    {
+      "categoryId": "special-snorlax",
+      "displayName": "卡比兽",
+      "prompt": "Use case: illustration-story. Asset type: single transparent Pokémon character illustration for one tabletop game card. Primary request: classic Snorlax (卡比兽) with the accurate original Pokémon 2D anime appearance. One large round sleeping teal-blue bear-like creature, cream-colored face and belly, small pointed ears, peacefully closed eyes, two tiny white lower fangs, short round arms resting on its huge belly, feet facing forward with three white claws and round brown paw pads. Full body reclining gently, centered, all ears, paws and body fully inside canvas, occupying about 70% with at least 8% empty safety margin. Clean dark brown ink outlines, flat solid teal and cream colors, minimal restrained cel-shading, cozy playful tabletop illustration, no 3D, realism, painterly textures or redesign. True transparent alpha background. Supply only the character; shared frame and score corner are handled separately in code. No card border, numbers, score, text, logo, watermark, UI, scenery, additional characters or objects. Reference context: reviewed physical tabletop cards use simple clean classic Pokémon character art on a dark brown center.",
+      "generated": false,
+      "verified": false,
+      "importedIntoUI": false,
+      "status": "generation-rejected",
+      "requestId": "049785b9-4e8d-4434-96cb-c4741bcd6bb7",
+      "generator": "built-in image_gen",
+      "mode": "generate",
+      "transparentRequested": true,
+      "model": null,
+      "references": [
+        {
+          "file": "artifacts/phase-02/research/chinese-reference/s14/card-display.png",
+          "role": "visually reviewed style and classic character reference only; not submitted as image input"
+        },
+        {
+          "file": "artifacts/phase-02/research/chinese-reference/s14/special-cards-a.png",
+          "role": "visually reviewed style and classic character reference only; not submitted as image input"
+        }
+      ],
+      "error": {
+        "code": "moderation_blocked",
+        "moderationStage": "output",
+        "categories": ["other"],
+        "message": "Your request was rejected by the safety system."
+      }
+    },
+    {
+      "categoryId": "special-ditto",
+      "displayName": "百变怪",
+      "prompt": "Use case: illustration-story. Asset type: a single transparent character illustration for one Pokémon tabletop card. Primary request: Ditto (百变怪), faithful classic Pokémon 2D anime cel illustration. One cute lavender purple shapeless blob with its familiar squat wavy mound silhouette, two tiny black dot eyes and simple curved smile, soft stubby protrusions suggesting arms raised slightly. Full body centered, character around 70% of canvas, at least 8% transparent safety margin on every side. Clean dark brown ink outline, flat soft lavender fill with one simple slightly darker cel shadow, playful original character proportions. No 3D, realism, glass, slime surface rendering, painterly texture or redesign. True transparent alpha background. This is character artwork only for placement over a dark brown tabletop card center; code supplies the shared card frame and score. No frame, numbers, score, text, logos, watermark, UI, other characters, objects or scenery. Reference context: physical Pokémon tabletop card art uses simple flat cel-shaded iconic original characters.",
+      "generated": true,
+      "verified": true,
+      "importedIntoUI": true,
+      "status": "generated-visual-verified-imported",
+      "generator": "built-in image_gen",
+      "mode": "generate",
+      "transparentRequested": true,
+      "model": null,
+      "references": [
+        {
+          "file": "artifacts/phase-02/research/chinese-reference/s14/card-display.png",
+          "role": "visually reviewed style and classic character reference only; not submitted as image input"
+        },
+        {
+          "file": "artifacts/phase-02/research/chinese-reference/s14/special-cards-a.png",
+          "role": "visually reviewed style and classic character reference only; not submitted as image input"
+        }
+      ],
+      "file": "special-ditto-v1.webp",
+      "version": 1,
+      "originalFile": "artifacts/maintenance/pokemon-refresh/imagegen/c/special-ditto-v1.png",
+      "width": 951,
+      "height": 1000,
+      "originalWidth": 1223,
+      "originalHeight": 1286,
+      "transparent": true,
+      "bytes": 43912,
+      "sha256": "b53468ffa556daae7680de2092c2de811f9f9a95b11148dc3f1fd1479612f494",
+      "originalSha256": "7e60858c4542dc21a3a5e84cbdb96706f5a73ecd7306ffcc3030b889b571d9a8",
+      "alphaCheck": {
+        "width": 951,
+        "height": 1000,
+        "mode": "RGBA",
+        "alphaExtrema": [0, 255],
+        "transparentPixels": 543566,
+        "partialAlphaPixels": 405886,
+        "opaquePixels": 1548,
+        "alphaBBox": [0, 115, 901, 944],
+        "visibleAlphaBBox": [68, 170, 894, 837]
+      },
+      "visualCheck": {
+        "subject": "passed recognizable lavender Ditto blob with dot eyes, smiling mouth, full body",
+        "style": "passed clean classic 2D cel-shaded character art; slight smooth color modulation rather than strict entirely flat fill",
+        "composition": "full body uncut; delivered canvas 1223x1286 rather than requested portrait; visible-alpha bounding box yields about 7.1 percent left and 6.0 percent right margin after resize; UI contain placement can add required component padding",
+        "alpha": "true RGBA alpha 0 through 255; transparent exterior; character mostly alpha 254; inspected on cream and dark brown backgrounds without objectionable halo",
+        "forbiddenContent": "no card frame, score, text, UI, logos or watermark",
+        "checks": [
+          "generated original visually inspected",
+          "final WebP and cream/dark-brown preview visually inspected",
+          "dimensions, proportional scale, alpha, SHA256 measured"
+        ],
+        "importedIntoUI": true
+      }
+    },
+    {
+      "categoryId": "special-team-rocket",
+      "displayName": "火箭队",
+      "prompt": "Use case: illustration-story. Asset type: one transparent character group illustration for a Pokémon tabletop game card. Primary request: Team Rocket (火箭队), the three classic original Pokémon anime characters Jessie, James, and Meowth together, faithfully recognizable clean 2D anime cel-shaded designs. Jessie (武藏): tall magenta-red swept-back hair, white cropped uniform, black undershirt, white short skirt and long black boots. James (小次郎): short lavender bob hair, white uniform with white long trousers, black gloves and boots. Meowth (喵喵): small cream cat with large eyes, gold oval coin on forehead, three whiskers per cheek, curled brown tail, two small fangs. Jessie and James stand side-by-side in confident playful teamwork poses, Meowth centered at their feet. All three full bodies and tails entirely inside canvas. Portrait 4:5 composition, compact centered group around 70% canvas with at least 8% clear safety margin around all silhouettes. Dark ink outlines, vivid solid colors, restrained simple cel shading, original classic character proportions. True transparent alpha background. Only this character group; shared tabletop card border and score corner are added by code. No other characters, scenery, card frame, numbers, score, UI, large text, headline, logo or watermark. Uniform chest panels may be plain white; do not add typographic labels. No 3D, realism, painterly textures or redesign.",
+      "generated": false,
+      "verified": false,
+      "importedIntoUI": false,
+      "status": "generation-rejected",
+      "requestId": "06bce20f-62cc-45a2-ae44-2d732bbe1078",
+      "generator": "built-in image_gen",
+      "mode": "generate",
+      "transparentRequested": true,
+      "model": null,
+      "references": [
+        {
+          "file": "artifacts/phase-02/research/chinese-reference/s14/card-display.png",
+          "role": "visually reviewed style and classic character reference only; not submitted as image input"
+        },
+        {
+          "file": "artifacts/phase-02/research/chinese-reference/s14/special-cards-a.png",
+          "role": "visually reviewed style and classic character reference only; not submitted as image input"
+        }
+      ],
+      "error": {
+        "code": "moderation_blocked",
+        "moderationStage": "output",
+        "categories": ["other"],
+        "message": "Your request was rejected by the safety system."
+      }
+    }
+  ]
+}

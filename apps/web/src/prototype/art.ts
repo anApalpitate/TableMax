@@ -1,19 +1,19 @@
-import landscape from '../assets/tabletop/table-landscape.webp';
-import portrait from '../assets/tabletop/table-portrait.webp';
-import cover from '../assets/tabletop/game-cover.webp';
-import avatar1 from '../assets/tabletop/avatar-1.webp';
-import avatar2 from '../assets/tabletop/avatar-2.webp';
-import avatar3 from '../assets/tabletop/avatar-3.webp';
-import avatar4 from '../assets/tabletop/avatar-4.webp';
-import avatar5 from '../assets/tabletop/avatar-5.webp';
-import avatar6 from '../assets/tabletop/avatar-6.webp';
-import dice from '../assets/tabletop/dice.webp';
-import meeple from '../assets/tabletop/meeple.webp';
-import cards from '../assets/tabletop/cards.webp';
-import chips from '../assets/tabletop/chips.webp';
-import waiting from '../assets/tabletop/status-waiting.webp';
-import offline from '../assets/tabletop/status-offline.webp';
-import recovery from '../assets/tabletop/status-recovery.webp';
+import landscape from '../../../../assets/platform/table-landscape.webp';
+import portrait from '../../../../assets/platform/table-portrait.webp';
+import cover from '../../../../assets/platform/game-cover.webp';
+import avatar1 from '../../../../assets/platform/avatar-1.webp';
+import avatar2 from '../../../../assets/platform/avatar-2.webp';
+import avatar3 from '../../../../assets/platform/avatar-3.webp';
+import avatar4 from '../../../../assets/platform/avatar-4.webp';
+import avatar5 from '../../../../assets/platform/avatar-5.webp';
+import avatar6 from '../../../../assets/platform/avatar-6.webp';
+import dice from '../../../../assets/platform/dice.webp';
+import meeple from '../../../../assets/platform/meeple.webp';
+import cards from '../../../../assets/platform/cards.webp';
+import chips from '../../../../assets/platform/chips.webp';
+import waiting from '../../../../assets/platform/status-waiting.webp';
+import offline from '../../../../assets/platform/status-offline.webp';
+import recovery from '../../../../assets/platform/status-recovery.webp';
 
 export const art = {
   landscape,

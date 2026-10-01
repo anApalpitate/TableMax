@@ -21,7 +21,7 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/game-ui-')),
   output = resolve(
-    'artifacts/maintenance/visual-polish/ui',
+    'artifacts/maintenance/pokemon-refresh/ui',
     ...(only
       ? [evidenceName ?? (verifyDeal ? 'round-deal' : 'additional')]
       : []),
@@ -232,6 +232,7 @@ for (const scene of selectedScenes) {
       await desktop.evaluate(
         ({ BrowserWindow }, config) => {
           const window = new BrowserWindow({
+            frame: false,
             show: false,
             width: config.width,
             height: config.height,
@@ -241,6 +242,7 @@ for (const scene of selectedScenes) {
               contextIsolation: true,
               partition: config.partition,
               backgroundThrottling: false,
+              offscreen: true,
             },
           });
           window.setContentSize(config.width, config.height);
@@ -279,7 +281,7 @@ for (const scene of selectedScenes) {
       phones = [];
     await publicPage.emulateMedia({ reducedMotion: 'no-preference' });
     const publicWindow = await desktop.browserWindow(publicPage);
-    await publicWindow.evaluate((window) => window.showInactive());
+
     for (let i = 0; i < players.length; i++)
       phones.push(await open('player', i));
     socket = io(origin, { auth: { token }, transports: ['websocket'] });
@@ -357,6 +359,11 @@ for (const scene of selectedScenes) {
           ),
       );
       const window = await desktop.browserWindow(page);
+      assert.equal(
+        await window.evaluate((window) => window.isVisible()),
+        false,
+        'Verification windows remain hidden',
+      );
       const data = await window.evaluate(async (w) =>
         (
           await w.webContents.capturePage(undefined, {
@@ -476,6 +483,18 @@ for (const scene of selectedScenes) {
       );
       const after = await fetchView(players[index].token);
       assert.equal(after.revision, before.revision + 1);
+      if (!before.gameView.roundResult && after.gameView.roundResult) {
+        await publicPage
+          .locator('.result-effects')
+          .waitFor({ state: 'attached' });
+        await capture(publicPage, `${scene.id}-saved-result-effect.png`);
+      } else if (
+        before.gameView.coin !== after.gameView.coin &&
+        after.gameView.coin
+      ) {
+        await publicPage.locator('.tossed-coin').waitFor({ state: 'attached' });
+        await capture(publicPage, `${scene.id}-saved-coin-effect.png`);
+      }
       if (landscapeChoice)
         await actionWindow.evaluate((window) =>
           window.setContentSize(360, 844),
@@ -492,6 +511,8 @@ for (const scene of selectedScenes) {
       item.narrowOverflow ||= await page.evaluate(
         () => document.documentElement.scrollWidth > innerWidth,
       );
+      // Measure resting touch targets, separately from the audited card flip transform.
+      await page.waitForTimeout(400);
       const sizes = await page
         .locator('.pokemon-player button:visible')
         .evaluateAll((buttons) =>
@@ -539,7 +560,10 @@ for (const scene of selectedScenes) {
           name: name.textContent,
           font: parseFloat(getComputedStyle(name).fontSize),
           imageHeight: image.height,
-          collision: !!ability && value.right > ability.left,
+          collision:
+            !!ability &&
+            value.left < ability.right &&
+            value.right > ability.left,
           separated:
             image.top >= heading.bottom - 1 &&
             image.bottom <= name.getBoundingClientRect().top + 1,
@@ -686,6 +710,18 @@ for (const scene of selectedScenes) {
     item.animations = await publicPage.evaluate(
       () => window.tablemaxAudit.animations.length,
     );
+    item.effects = await publicPage.evaluate(() => [
+      ...new Set(
+        window.tablemaxAudit.animations.filter((name) =>
+          [
+            'coin-toss',
+            'effect-title-pop',
+            'sparkle-flight',
+            'saved-reveal',
+          ].includes(name),
+        ),
+      ),
+    ]);
     item.motionStyles = await publicPage.evaluate(
       () => window.tablemaxAudit.motionStyles,
     );

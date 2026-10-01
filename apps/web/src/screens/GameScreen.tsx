@@ -185,11 +185,7 @@ export function GameScreen({ session }: { session: RoomSession }) {
                   </details>
                 </>
               )}
-              {role === 'player' && sessionStorage.getItem('tablemax-host') && (
-                <ScreenLink className="button secondary" href="/host/game">
-                  返回房主管理
-                </ScreenLink>
-              )}
+
               {game && <PublicLog view={game} />}
               <details>
                 <summary>游戏帮助</summary>

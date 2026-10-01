@@ -49,11 +49,11 @@ Electron 主进程（窗口、主机身份与生命周期）
 
 窗口禁用 Node 集成，开启上下文隔离和沙箱，没有向网页开放 Electron IPC preload；限制其他源导航和任意新窗口。主机随机凭证只由服务交给桌面，再通过 fragment 初始化 sessionStorage 并清理可见 URL；重启后重新生成。网页路由不授予管理权限，普通浏览器直接打开 `/host` 仍只有公共授权。二维码只包含普通手机入口。
 
-玩家身份用服务生成的随机凭证，服务器仅保存摘要。本人的凭证由手机 localStorage 保存，开局前排序不改变座位 ID；换绑撤销旧摘要与连接，短期一次性码取得原座位的新凭证。房主通过“房主用独立玩家身份参与”取得独立玩家身份，加入时验证主机凭证后保存 hostSeat，作为首局首位依据；主机管理权不扩展游戏秘密。线上状态来自当前有效连接，不入 checkpoint。电脑地址／端口变化形成新浏览器源时可由房主换绑原座位。
+玩家身份用服务生成的随机凭证，服务器仅保存摘要。本人的凭证由手机 localStorage 保存，开局前排序不改变座位 ID；换绑撤销旧摘要与连接，短期一次性码取得原座位的新凭证。电脑房主仅为管理员，不提供参赛入口或加入参数；首局首位由服务随机选取，旧 hostSeat 字段只兼容读取。主机管理权不扩展游戏秘密。线上状态来自当前有效连接，不入 checkpoint。电脑地址／端口变化形成新浏览器源时可由房主换绑原座位。
 
 HTTP 提供加入、换绑兑换、授权同步和网络地址；Socket.IO 握手绑定凭证，逐连接生成 `room:view`，`room:command` 校验信封并确认，`room:revoked` 撤销旧连接。命令被拒绝后同步最新投影；未确认的原意图保留，重试沿用编号。运行时 schema 校验投影与 ACK，不能靠 UI 隐藏完整状态。
 
-正式网页 `App.tsx` 只组装按角色隔离的会话与页面。会话逻辑在 `session/useRoomSession.ts`，盒子和游戏外壳在 `screens/`，弹窗、邀请、管理及全屏等在 `components/`，共享 WebP 与原始清单在 `assets/tabletop/`。游戏的场地、结算和选择维护在对应游戏 UI，不导入平台凭证或 Socket。页面切换不产生游戏命令；角色变化重建会话，防止沿用另一身份。
+正式网页 `App.tsx` 只组装按角色隔离的会话与页面。会话逻辑在 `session/useRoomSession.ts`，盒子和游戏外壳在 `screens/`，弹窗、邀请、管理及全屏等在 `components/`，共享素材与清单在根目录 `assets/platform/`；游戏资源及浏览器资源表在 `assets/games/<id>/`。游戏的场地、结算和选择维护在对应游戏 UI，不导入平台凭证或 Socket。页面切换不产生游戏命令；角色变化重建会话，防止沿用另一身份。
 
 ## 动作、随机与恢复
 
@@ -74,6 +74,12 @@ HTTP 提供加入、换绑兑换、授权同步和网络地址；Socket.IO 握�
 
 ## 独立原型与验证分层
 
-`apps/web/prototype.html`、`vite.prototype.config.ts` 与 `src/prototype/` 继续独立构建合成状态到 `artifacts/phase-02/prototype/`，不连接服务或获取身份。正式平台复用既有封面、骰子和六个头像的 WebP 原图及来源清单，没有导入原型控制逻辑。首版主题资源位于 games/pokemon-encounters/assets，来源与生成记录独立维护。
+`apps/web/prototype.html`、`vite.prototype.config.ts` 与 `src/prototype/` 继续独立构建合成状态到 `artifacts/phase-02/prototype/`，不连接服务或获取身份。正式平台复用既有封面、骰子和六个头像的 WebP 原图及来源清单，没有导入原型控制逻辑。首版主题资源位于 assets/games/pokemon-encounters，来源与生成记录独立维护。
 
 核心验证包括授权、并发重复、故障、随机、回退、身份不倒退与策略替换；服务层使用真实 Socket.IO／SQLite、强制终止服务和 Worker 同步循环取消；桌面脚本检查正式首版混合人机完整游戏、回退、两次启动与服务退出。规则模块与完整人机测试在具体游戏内完成，宝可梦 D01–D13 逐边界恢复及实际能力崩溃另有专项测试；产品 AC 的证据和模拟范围见 [验收记录](acceptance.md)。适用命令、证据及实机限制统一见 [开发环境](development.md)。
+
+## 资源与保存结果表现
+
+根目录 assets 是全部运行／原型美术与声音的唯一归属，按 platform、games 和 candidates 分组，替换入口见 [资源说明](../../assets/README.md)。游戏 catalog 只供浏览器加载，规则、策略及存档不依赖素材文件名。
+
+游戏 UI 的 savedChanges 从授权投影计算卡位与公开结果变化，SavedEffects 表现硬币、能力及结算；平台会话只在匹配实例／分支／修订的保存反馈到达后激活动画。任何新修订先清除旧动画，断开、同步、暂停和回退清理表现，不回放历史。表现层不生成随机结果，不阻塞合法动作。

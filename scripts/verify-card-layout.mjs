@@ -8,7 +8,7 @@ import react from '@vitejs/plugin-react';
 const require = createRequire(import.meta.url);
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/card-layout-'));
-const output = resolve('artifacts/maintenance/visual-polish/cards');
+const output = resolve('artifacts/maintenance/pokemon-refresh/cards');
 await mkdir(output, { recursive: true });
 const relativeRoot = '../..';
 await writeFile(
@@ -53,7 +53,7 @@ await build({
 });
 await writeFile(
   join(work, 'main.cjs'),
-  `const {app,BrowserWindow}=require('electron');app.whenReady().then(()=>{const w=new BrowserWindow({show:false,width:1400,height:700,webPreferences:{sandbox:true,contextIsolation:true,nodeIntegration:false}});w.loadFile(${JSON.stringify(join(work, 'dist/index.html'))});});`,
+  `const {app,BrowserWindow}=require('electron');app.whenReady().then(()=>{const w=new BrowserWindow({show:false,width:1400,height:700,webPreferences:{sandbox:true,contextIsolation:true,nodeIntegration:false,offscreen:true,backgroundThrottling:false}});w.loadFile(${JSON.stringify(join(work, 'dist/index.html'))});});`,
 );
 const env = { ...process.env };
 delete env.ELECTRON_RUN_AS_NODE;
@@ -97,7 +97,10 @@ try {
           name: name.textContent,
           font: parseFloat(getComputedStyle(name).fontSize),
           clipped: name.scrollWidth > name.clientWidth,
-          overlap: !!ability && value.right > ability.left,
+          overlap:
+            !!ability &&
+            value.left < ability.right &&
+            value.right > ability.left,
           artHeight: art.height,
           inside:
             value.left >= rect.left &&

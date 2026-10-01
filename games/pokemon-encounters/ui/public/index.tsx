@@ -2,8 +2,7 @@ import type { PokemonView } from '../../rules/project';
 import { categories } from '../../rules/cards';
 import { Board, CardFace } from '../cards';
 import { phaseLabels } from '../phases';
-import pikachuCoin from '../../assets/coin-pikachu-v1.webp';
-import meowthCoin from '../../assets/coin-meowth-v1.webp';
+import { coinArt } from '../../../../assets/games/pokemon-encounters/catalog';
 import { useContext, useId, useRef } from 'react';
 import { SavedMotion } from '../motion';
 import type { JsonValue } from '@tablemax/game-sdk';
@@ -109,11 +108,11 @@ export function TableStatus({
         </p>
         {view.coin && (
           <span className="coin-result">
-            <img
-              className={motion.includes('@coin') ? 'saved-coin' : ''}
-              src={view.coin === 'meowth' ? meowthCoin : pikachuCoin}
-              alt=""
-            />
+            <span
+              className={`coin-face ${motion.includes('@coin') ? 'saved-coin' : ''}`}
+            >
+              <img src={coinArt[view.coin]} alt="" />
+            </span>
             硬币 · {view.coin === 'meowth' ? '喵喵面' : '皮卡丘面'}
           </span>
         )}

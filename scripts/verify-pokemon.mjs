@@ -14,7 +14,7 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 );
 const portable = process.argv.includes('--portable');
 const output = resolve(
-  'artifacts/maintenance/visual-polish',
+  'artifacts/maintenance/pokemon-refresh',
   portable ? 'portable' : 'development',
 );
 await mkdir(output, { recursive: true });
@@ -96,7 +96,8 @@ const evidence = {
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const phases = new Set();
 let previous,
-  tokens = [];
+  tokens = [],
+  activePhoneIndex = 0;
 async function view(origin, token) {
   const result = await (
     await fetch(`${origin}/api/session/view`, {
@@ -149,14 +150,28 @@ function observe(page, origin) {
 }
 async function capture(desktop, page, name, width, height) {
   const window = await desktop.browserWindow(page);
-  // Hidden Electron windows can retain an older compositor frame despite an updated DOM.
-  await window.evaluate((window) => window.showInactive());
+  assert.equal(
+    await window.evaluate((window) => window.isVisible()),
+    false,
+    'Verification windows remain hidden',
+  );
   if (width) {
     await window.evaluate(
       (window, size) => window.setContentSize(size.width, size.height),
       { width, height },
     );
-    await page.waitForFunction((size) => innerWidth === size, width);
+    // Windows DPI rounds native bounds; emulate the exact CSS viewport independently.
+    const metrics = await page.context().newCDPSession(page);
+    await metrics.send('Emulation.setDeviceMetricsOverride', {
+      width,
+      height,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await page.waitForFunction(
+      (size) => innerWidth === size.width && innerHeight === size.height,
+      { width, height },
+    );
   }
   await page.evaluate(() => {
     document.activeElement?.blur();
@@ -168,7 +183,7 @@ async function capture(desktop, page, name, width, height) {
         requestAnimationFrame(() => requestAnimationFrame(resolve)),
       ),
   );
-  await page.waitForTimeout(150); // Allow Windows to paint the newly visible window.
+  await page.waitForTimeout(150); // Allow the hidden compositor to finish the frame.
   const png = await window.evaluate(async (window) =>
     (
       await window.webContents.capturePage(undefined, {
@@ -188,6 +203,7 @@ async function phone(desktop, origin, index) {
   await desktop.evaluate(
     ({ BrowserWindow }, config) => {
       const window = new BrowserWindow({
+        frame: false,
         show: false,
         width: config.width,
         height: config.height,
@@ -196,6 +212,7 @@ async function phone(desktop, origin, index) {
           nodeIntegration: false,
           contextIsolation: true,
           backgroundThrottling: false,
+          offscreen: true,
           partition: `persist:phone-${config.index}`,
         },
       });
@@ -294,17 +311,18 @@ for (let run = 0; run < 2; run++) {
       await phone(desktop, origin, 0),
       await phone(desktop, origin, 1),
     ];
+    if (run > 0)
+      [phones[0], phones[activePhoneIndex]] = [
+        phones[activePhoneIndex],
+        phones[0],
+      ];
     if (run === 0) {
       await capture(desktop, page, 'host-lobby');
-      await phones[0].evaluate(
-        (token) => sessionStorage.setItem('tablemax-host', token),
-        hostToken,
-      );
       for (let index = 0; index < phones.length; index++) {
         const mobile = phones[index];
         await mobile
           .getByLabel('你的昵称')
-          .fill(index ? 'iPhone模拟玩家' : 'Android模拟房主');
+          .fill(index ? 'iPhone模拟玩家' : 'Android模拟玩家');
         await mobile.getByRole('button', { name: '加入', exact: true }).click();
         await mobile
           .getByRole('button', { name: '我准备好了', exact: true })
@@ -375,9 +393,28 @@ for (let run = 0; run < 2; run++) {
         if ((await view(origin, tokens[0])).gameView.phase === 'draw') break;
         await wait(100);
       }
+      // Random starting seat: wait for a human draw without attributing a seat to the administrator.
+      let activeIndex = -1;
+      for (let retry = 0; retry < 120 && activeIndex < 0; retry++) {
+        for (let index = 0; index < tokens.length; index++) {
+          const candidate = await view(origin, tokens[index]);
+          if (candidate.actions.some((a) => a.type === 'draw'))
+            activeIndex = index;
+        }
+        if (activeIndex < 0) await wait(100);
+      }
+      assert.ok(
+        activeIndex >= 0,
+        'A human receives a legal draw after any bot turns',
+      );
+      activePhoneIndex = activeIndex;
+      [phones[0], phones[activeIndex]] = [phones[activeIndex], phones[0]];
+      [tokens[0], tokens[activeIndex]] = [tokens[activeIndex], tokens[0]];
       let own = await view(origin, tokens[0]);
       assert.equal(own.gameView.phase, 'draw');
-      assert.equal(own.gameView.turnSeat, own.self.seatId);
+      const admin = await view(origin, hostToken);
+      assert.deepEqual(admin.self, { role: 'host', seatId: null });
+      assert.deepEqual(admin.actions, []);
       assert.equal(JSON.stringify(await view(origin)).includes('#'), false);
       assert.equal((await view(origin)).history.length, 0);
       assert.equal(await publicPage.locator('.management').count(), 0);
@@ -461,7 +498,7 @@ for (let run = 0; run < 2; run++) {
         await phones[0].getByText('游戏已暂停', { exact: true }).isVisible(),
       );
       evidence.checks.push(
-        'Five-seat mixed lobby, over-capacity rejection, explicit host player, independent phones, select/cancel/submit, public secrecy, 1920/360/390 layouts, freeze/background simulation, offline navigation and identity recovery, reload and rollback',
+        'Five-seat mixed lobby, over-capacity rejection, administrator without a player seat, independent phones, select/cancel/submit, public secrecy, 1920/360/390 layouts, freeze/background simulation, offline navigation and identity recovery, reload and rollback',
       );
       await publicPage.close();
       assert.equal(

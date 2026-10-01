@@ -31,7 +31,10 @@ function openWindow(url: string, publicScreen = false) {
   const window = new BrowserWindow({
     width: publicScreen ? 1280 : 1080,
     height: 800,
-    ...(publicScreen && screen.getAllDisplays().length > 1
+    ...(publicScreen &&
+    !checking &&
+    !testing &&
+    screen.getAllDisplays().length > 1
       ? {
           x: screen
             .getAllDisplays()
@@ -45,6 +48,7 @@ function openWindow(url: string, publicScreen = false) {
         }
       : {}),
     show: !checking && !testing,
+    frame: !testing,
     title: publicScreen ? 'TableMax · 公共屏' : 'TableMax',
     autoHideMenuBar: true,
     webPreferences: {
@@ -52,6 +56,7 @@ function openWindow(url: string, publicScreen = false) {
       contextIsolation: true,
       sandbox: true,
       backgroundThrottling: !checking && !testing,
+      offscreen: testing,
     },
   });
   windows.add(window);
@@ -188,10 +193,11 @@ async function run() {
   });
   child.on('exit', (code) => {
     if (!quitting) {
-      dialog.showErrorBox(
-        'TableMax 服务已停止',
-        `本地服务异常退出（${code}）。请重新启动程序。`,
-      );
+      if (!testing)
+        dialog.showErrorBox(
+          'TableMax 服务已停止',
+          `本地服务异常退出（${code}）。请重新启动程序。`,
+        );
       app.quit();
     }
   });
@@ -219,7 +225,7 @@ app.on('before-quit', (event) => {
 
 void run().catch((error: unknown) => {
   console.error(error);
-  if (!checking)
+  if (!checking && !testing)
     dialog.showErrorBox(
       'TableMax 启动失败',
       error instanceof Error ? error.message : 'Unknown startup error',

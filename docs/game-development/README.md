@@ -13,13 +13,13 @@
 | `rules/state.ts`           | 普通 JSON 状态与存档不变量校验，核对平台传入的稳定座位及顺序              |
 | `rules/scoring.ts`         | 独立纯计分与共同赢家解析                                                  |
 | `rules/project.ts`         | public／本人投影，不能默认给本人全部暗牌；房主也使用 public               |
-| `assets/`                  | 游戏独立本地资源与来源清单；模板的 die.svg 是原创装饰，不编码秘密骰子结果 |
+| `../../assets/games/<id>/` | 游戏独立本地资源与来源清单；模板的 die.svg 是原创装饰，不编码秘密骰子结果 |
 | `bot/index.ts`             | 独立版本的简单策略，只用本人授权输入选择合法意图                          |
 | `ui/public/`、`ui/player/` | 根据投影渲染两端；禁止导入完整规则状态或网络／数据库实现                  |
 
 SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)` 返回 `{id,seatId}[]`，支持多个初始选择和被动接牌者；平台不把正常回合者当作唯一行动者。`legalActions(state,seatId)` 列举完整合法动作及参数，`validateAction` 验证并规范化意图。`apply` 必须原子完成本选择引发的确定性自动步骤，返回新状态和安全的 **before** 边界标签／揭示提醒。规则自动结算不等待 UI 动效。apply／applyLifecycle 可返回安全 PublicEvent；平台保存成功后另发 room:feedback，UI 按实例／分支／修订去重，完整同步不播放。
 
-`lifecycleActions` 与 `applyLifecycle` 提供房主驱动的下一小局等选择，同样经过校验、事务、随机源和 before checkpoint；没有此流程的游戏返回空集合并拒绝执行。模板结算后可开始下一局或创建新房间，后者分配新实例并保留数据库历史。
+`lifecycleActions` 与 `applyLifecycle` 提供房主驱动的下一小局等选择，同样经过校验、事务、随机源和 before checkpoint；没有此流程的游戏返回空集合并拒绝执行。模板结算后可开始下一局或重新准备牌桌，后者分配新实例并保留数据库历史。
 
 每个动作信封携带 `actionId,instanceId,revision,branch`；游戏意图另携带 `decisionId`。服务根据真实凭证绑定座位，不接受客户端指定行动身份。版本／分支／修订失效时同步后重新选择；确认丢失时重发原信封，不生成新编号。动作记录和 checkpoint 不发送给客户端，房主只得到安全标签与历史 ID。
 

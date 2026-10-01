@@ -170,8 +170,8 @@ details[open] > summary::after {
 }
 .prototype {
   min-height: 100svh;
-  background: url('../assets/tabletop/table-landscape.webp') center / cover
-    fixed;
+  background: url('../../../../assets/platform/table-landscape.webp') center /
+    cover fixed;
 }
 .app-header {
   height: 88px;
@@ -955,7 +955,7 @@ legend {
 }
 @media (max-width: 700px) {
   .prototype {
-    background-image: url('../assets/tabletop/table-portrait.webp');
+    background-image: url('../../../../assets/platform/table-portrait.webp');
     background-attachment: scroll;
   }
   .app-header {

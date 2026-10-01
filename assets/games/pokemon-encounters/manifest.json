@@ -8,7 +8,7 @@
   "modelNote": "No model identifier returned by tool; no inferred model value.",
   "source": "AI-generated original art using project palette; no original physical card images used.",
   "postprocessing": "Proportional Lanczos downscaling and WebP quality 86, method 6. Original PNG retained in artifacts/phase-05/imagegen/source; no content edits.",
-  "status": "20 of 20 original decorative assets generated, visually verified and imported into production UI",
+  "status": "Historical garden assets retained; faces, back and coins superseded by characters/catalog in 1.1.0; cover and environment active.",
   "limitations": "Original character requests previously rejected and preserved in generation-failures.json; new independent garden still-life scheme contains no characters or similar silhouettes, and does not claim publisher artwork.",
   "failuresEvidence": "../../../artifacts/phase-05/imagegen/generation-failures.json",
   "assets": [
@@ -60,7 +60,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/face/ordinary-0",
@@ -110,7 +111,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/face/ordinary-1",
@@ -153,7 +155,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/face/ordinary-3",
@@ -196,7 +199,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/face/ordinary-4",
@@ -239,7 +243,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/face/ordinary-5",
@@ -282,7 +287,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/face/ordinary-6",
@@ -325,7 +331,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/face/ordinary-7",
@@ -368,7 +375,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/face/ordinary-8",
@@ -411,7 +419,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/face/ordinary-9",
@@ -454,7 +463,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/face/special-mew",
@@ -497,7 +507,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/face/special-team-rocket",
@@ -540,7 +551,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/face/special-zapdos",
@@ -583,7 +595,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/face/special-charizard",
@@ -626,7 +639,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/face/special-snorlax",
@@ -669,7 +683,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/face/special-ditto",
@@ -712,7 +727,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/back",
@@ -750,7 +766,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "Portrait 5:7 back. Edge leaves intentionally full bleed; center ornament remains visible under card clipping. Category-independent."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/cover",
@@ -788,7 +805,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "Landscape 3:2 cover. Text should be added as HTML outside image; no game rules depicted."
-      }
+      },
+      "currentUsage": "active"
     },
     {
       "id": "pokemon-encounters/coin/pikachu",
@@ -828,7 +846,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     },
     {
       "id": "pokemon-encounters/coin/meowth",
@@ -868,7 +887,8 @@
           "Dimensions, proportional scaling and SHA256 verified"
         ],
         "notes": "No publisher artwork or character art. Mapping to game category is code-only. Final compressed WebP inspected in contact sheet; motif distinguishable at thumbnail size."
-      }
+      },
+      "currentUsage": "retained-history"
     }
   ],
   "adoptedVisualScheme": "Original garden plants/minerals/weather still life; labels and abilities mapped in code only.",

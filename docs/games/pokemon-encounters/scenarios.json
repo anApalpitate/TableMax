@@ -2152,11 +2152,11 @@
         "AC-09",
         "AC-10"
       ],
-      "initialConditions": "真人当前draw或闪电鸟接牌，房主同时参赛",
+      "initialConditions": "真人当前draw或闪电鸟接牌，电脑房主仅管理",
       "steps": [
         "断线、暂停、刷新同步；房主确认同seat换绑，旧手机再提交"
       ],
-      "expected": "保留真人座位不代操作，房主本人手机选牌；绑定代数增旧凭证失效，恢复地址/连接不倒退",
+      "expected": "保留真人座位不代操作，本人手机选牌；绑定代数增旧凭证失效，恢复地址/连接不倒退",
       "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
       "source": [
         "rules.md",

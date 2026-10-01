@@ -1,6 +1,6 @@
 import { GameHelp } from '../../../../games/pokemon-encounters/ui/public';
-import cover from '../../../../games/pokemon-encounters/assets/cover-v1.webp';
-import dice from '../assets/tabletop/dice.webp';
+import cover from '../../../../assets/games/pokemon-encounters/cover-v1.webp';
+import dice from '../../../../assets/platform/dice.webp';
 import { avatarFor } from '../assets/avatars';
 import { ScreenLink } from '../components/ScreenLink';
 import { RoomManagement } from '../components/RoomManagement';
@@ -43,23 +43,14 @@ export function BoxScreen({ session }: { session: RoomSession }) {
         <img src={cover} alt="明亮花园中的桌游聚会" />
         <div>
           <p className="eyebrow">你的桌游盒子</p>
-          <h1>
-            {lobby
-              ? '今晚，一起玩。'
-              : view?.gameView
-                ? '朋友们的牌桌。'
-                : '欢迎来到桌边。'}
-          </h1>
-          <p>{view?.game.name ?? '宝可梦奇遇：皮卡丘和朋友们'}</p>
-          <span className="tag">
-            {lobby
-              ? '2–5 人 · 真人与电脑'
-              : view?.paused
-                ? '对局已暂停'
-                : view?.status === 'ended'
-                  ? '对局已结束'
-                  : '本地桌游'}
-          </span>
+          <h1>{view?.game.name ?? '宝可梦奇遇：皮卡丘和朋友们'}</h1>
+          <p>
+            {isHost
+              ? '电脑管理牌桌，朋友用手机游玩。'
+              : role === 'public'
+                ? '公共屏 · 只读观战'
+                : '入座、准备，一起开始。'}
+          </p>
         </div>
       </section>
       <SessionFeedback session={session} />
@@ -79,7 +70,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
       <div className="grid">
         <section className="card stage">
           <h2>
-            朋友们的座位{' '}
+            玩家{' '}
             <span className="muted">
               {view?.seats.length ?? 0} / {view?.game.max ?? 5}
             </span>
@@ -93,7 +84,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
                   {seat.id === self?.id ? ' · 你' : ''}
                 </h3>
                 <p>
-                  座位 {i + 1} ·{' '}
+                  {' '}
                   {seat.controller === 'bot'
                     ? '电脑'
                     : seat.online
@@ -248,11 +239,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
           {role === 'host' && !isHost && (
             <p>本页面没有房主管理身份，请从桌面程序打开主机。</p>
           )}
-          {role === 'player' && sessionStorage.getItem('tablemax-host') && (
-            <ScreenLink className="button secondary" href="/host">
-              返回房主管理
-            </ScreenLink>
-          )}
+
           <details>
             <summary>游戏帮助</summary>
             <GameHelp />
@@ -260,7 +247,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
         </aside>
       </div>
       <footer>
-        TableMax · 本地牌桌<span>游戏资源随程序本地加载</span>
+        TableMax · 本地牌桌<span></span>
       </footer>
     </main>
   );

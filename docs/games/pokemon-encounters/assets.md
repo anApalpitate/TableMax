@@ -1,41 +1,37 @@
 # 本地资源、卡牌映射与声音
 
-正式资源已随 1.0.0 打包。规则名称、数值和能力使用 HTML／可访问文本排版，与位图分离；同类牌实例复用同一图，不将秘密实例映射放进清单、URL、alt 或动画键。来源原图 S14 仍仅作规则证据，没有裁剪为正式卡面。
+全部运行和原型美术／声音统一在根目录 [assets](../../../assets/README.md)，按 platform、games 和 candidates 管理。正式构建只打包引用资源，运行不请求外站。名称、分值和能力由代码排版，类别图不包含本局顺序、秘密实例或暗格映射。
 
-## 已导入资源
+## 当前卡面与替换
 
-| 资源 ID／数量                               | 实际位置与用途                                                                                | 来源／状态                                                                          |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| pokemon-encounters/face/<categoryId>／16    | games/pokemon-encounters/assets/face/<categoryId>-v1.webp；对应 cards.json 16 类，56 实例复用 | 内置 imagegen 原创植物、矿物和天气静物；427×640，已生成／视觉核验／UI 导入          |
-| pokemon-encounters/back／1                  | card-back-v1.webp；所有未知牌使用相同背面                                                     | 原创自然纸纹，529×740，已导入                                                       |
-| pokemon-encounters/cover／1                 | cover-v1.webp；大厅和主机主题图                                                               | 原创花园桌游聚会，1200×800，已导入                                                  |
-| pokemon-encounters/coin/<meowth/pikachu>／2 | coin-meowth-v1.webp／coin-pikachu-v1.webp；只展示已保存公开币面                               | 原创自然徽章，427×640；名称由代码标注，无角色形象                                   |
-| 能力标记／文字                              | ✦ 及能力／阶段短句；六类能力对应规则 ID                                                       | 代码文本，不依赖识图猜能力，完整帮助本地加载                                        |
-| 平台 avatar／6 与骰子／1                    | 复用 apps/web/src/assets/tabletop 的核验 WebP                                                 | 既有原创平台资源，按稳定座位选择头像，不代表游戏牌或人数上限                        |
-| 字体                                        | Segoe UI／微软雅黑／sans-serif                                                                | 系统默认，无在线字体                                                                |
-| 帮助／1                                     | ui/public 的 GameHelp                                                                         | 当前采用版本的本地规则／来源说明，不依赖外链                                        |
-| 提示音／5                                   | assets/audio 的 draw、replace、effect-complete、round-result、error-v1.wav                    | TableMax 原创程序合成短音，PCM 16-bit mono、22050Hz、0.24–0.42 秒；已导入和解码验证 |
+16 类牌各自有独立角色图及彩色牌框，56 张实体牌按类别复用。牌框参考用户 S14 实物图：深棕卡心、角色颜色边框、统一右上分值和左上能力标；名称在下方，位置编号在牌外。
 
-既有 20 张主题 WebP 共 667,616 字节。[主题清单](../../../games/pokemon-encounters/assets/manifest.json) 记录完整提示词、类别／规则映射、版本、尺寸、alpha、字节数／SHA-256、来源及生成／核验／导入状态；[音频清单](../../../games/pokemon-encounters/assets/audio/manifest.json) 记录编码、时长、哈希和生成脚本。[平台清单](../../../apps/web/src/assets/tabletop/manifest.json) 保留既有头像等来源。
+| 资源             | 来源与状态                                                                                                                                                                    |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 14 类宝可梦角色  | characters/*-official.png；[中文官方图鉴](https://pokedex.pokemon.cn/play/pokedex) 原图，630×630 真透明，未编辑，逐张核验并导入                                               |
+| 火箭队           | special-team-rocket-official.png；[香港官方角色页](https://hk.portal-pokemon.com/tv-film/1/) 未编辑全身群像，1154×649，含武藏／小次郎／喵喵及果然翁，保留青绿背景，已核验导入 |
+| 百变怪           | special-ditto-v1.webp；本轮内置 imagegen 生成，951×1000 真透明，已核验导入                                                                                                    |
+| 硬币角色         | 复用皮卡丘图，新增 coin-meowth-official.png，中文官方图鉴未编辑原图；代码金属币框只显示保存结果                                                                               |
+| 牌框、牌背、角标 | CardFace／CSS 代码视觉；统一精灵球牌背不区分暗牌类别                                                                                                                          |
+| 封面／背景       | cover-v1.webp 与 tabletop/garden-table-v1.webp；既有 imagegen 原创环境图                                                                                                      |
+| 头像／骰子       | assets/platform；既有原创共享素材，不代表牌类或人数限制                                                                                                                       |
+| 5 类音效         | audio；原创程序合成 PCM 16-bit mono、22050Hz，draw／replace／effect-complete／round-result／error                                                                             |
+| 帮助／字体       | 本地 GameHelp；Segoe UI／微软雅黑／sans-serif，不请求在线字体                                                                                                                 |
 
-## 美术方案与保留材料
+全部游戏资源位于 assets/games/pokemon-encounters。[catalog.ts](../../../assets/games/pokemon-encounters/catalog.ts) 是浏览器资源表；新增版本文件并更新映射／来源清单即可替换，规则、策略、协议和存档不依赖素材文件名。角色图 contain 加内距保留全身；官方图自带白色柔边，在深底有轻微光晕。火箭队横图保留完整群像，后续可用同 ID 的竖图替换。
 
-最初角色生成请求被工具拒绝，原失败记录保留。随后采用不含人物、动物、角色或相似轮廓的原创自然静物，与独立排版的游戏名称和数字搭配；未冒充出版方卡图或声称用户明确选过该替代风格。此选择与理由见 [决策 006](../../decisions/006-complete-game-and-simulated-delivery.md)。
+[官方导入清单](../../../assets/games/pokemon-encounters/characters/manifest-official.json) 保存参考页、图片 URL、哈希、alpha 和逐张核验。[批次 A](../../../assets/games/pokemon-encounters/characters/manifest-a.json)、[批次 B](../../../assets/games/pokemon-encounters/characters/manifest-b.json)、[批次 C](../../../assets/games/pokemon-encounters/characters/manifest-c.json) 记录 16 次独立 imagegen 尝试，只有百变怪成功，其余 15 次明确 moderation_blocked／other，无图片产物。官方原图导入不标为生成原创，不宣称取得出版方桌游原卡。S14 实物仅作风格参考，没有裁剪成运行素材。
 
-原始 imagegen PNG、失败记录、尺寸／哈希检查与联系表保留在 artifacts/phase-05/imagegen，Git 忽略但文件树可见；最终 WebP 提交在游戏资源目录，不能只引用工具默认输出位置。既有 [自然背景候选](../../../apps/web/src/prototype/assets/theme-preparation/manifest.json) 保留未导入状态；1.0.1 将已核验主题封面复用为低对比花园背景，中央浅色牌垫保证卡牌／数字对比；新增牌堆触控、实体卡片阴影、胜局徽章与结果横幅均为代码视觉，未新增位图或冒充新的 imagegen 产物。
+原图、失败响应、奶油／深棕联系表及源码卡面截图在 artifacts/maintenance/pokemon-refresh。旧自然静物牌／硬币保留但退出正式 UI，[旧主题清单](../../../assets/games/pokemon-encounters/manifest.json) 标注当前用途。[声音清单](../../../assets/games/pokemon-encounters/audio/manifest.json)、[背景清单](../../../assets/games/pokemon-encounters/tabletop/manifest.json) 和 [平台清单](../../../assets/platform/manifest.json) 保留来源。1.0.0–1.0.2 原图、ZIP 和证据继续保留。
 
-## 权限、动效和声音
+## 权限、动画和声音
 
-UI 仅为已授权公开牌／本人临时查看加载对应类别图，未知格只加载统一背面。全部类别图作为通用牌类资产本地打包，资源本身不包含本局顺序或暗格对应关系。牌堆和图像不执行随机，也不触发能力。
+只有公开牌／本人获准临时查看加载类别图，所有未知格统一牌背。savedChanges 比较本人授权投影；匹配实例／分支／修订的保存反馈才触发一次，1.6 秒内清理。新修订、暂停、回退、断开／同步立即清理，不补播历史，不由表现层生成随机结果。
 
-公共屏或主机经本屏手势开启后，只对未来新保存事件发声，可静音；手机不渲染声音控件。实例／分支／修订同事件最多一次，快速操作用新短音替换前音。同步、回退、恢复、打开帮助不补播；回退／断开停止当前声音。播放失败保留静音状态，规则继续；保存成功仍以服务确认判断。
+翻牌 320ms、发牌 360ms、换入 220ms；能力触发有光环、星点和短标题；硬币有 1200ms 上抛旋转与落定，HUD 翻转 950ms；最终结算有彩色纸片、赢家横幅和完整分数。装饰 pointer-events:none，不遮触控、不阻塞下一次合法操作；减少动态关闭移动及屏幕特效，保留完整状态。
 
-保存后的翻牌 320ms、发牌 360ms，换入卡位／暂持牌／阶段提示为 220ms 一次性动效，结算 240ms，公开币面 480ms、胜局徽章 380ms；减少动态关闭移动和过渡。设备范围、资源哈希与实际解码／播放调用证据见 [验收记录](../../reference/acceptance.md)；当前检查没有声称现场听音或真实手机／电视验收。
+主机／公共屏经本屏手势开启声音，只播未来保存事件；手机不显示音效控件。同事件最多一次，快速操作替换前音，同步／回退／恢复不补播。播放失败不影响规则，保存仍以服务确认判断。验证边界见 [验收记录](../../reference/acceptance.md)；Windows 模拟不等于实机手机、电视或现场听音。
 
 ## 牌桌背景与卡面分区（1.0.2）
 
-新增 `assets/tabletop/garden-table-v1.webp`，1672×940 RGB，101,962 字节，使用内置 imagegen 新生成并核验。中央为连续浅木纹，边缘为花园装饰，不含画好的牌、硬币、角色或文字；用于真实 `/game` 场景，盒子继续使用聚会封面。21 张主题 WebP 合计 769,578 字节。
-
-[背景清单](../../../games/pokemon-encounters/assets/tabletop/manifest.json) 作为主题清单的子集合，记录实际提示词、原图／最终哈希、仅查看封面作为美术方向参考、生成模式与导入状态；没有推测工具未返回的模型参数。原 PNG、电脑／手机中心裁切和核验记录保留在 `artifacts/maintenance/visual-polish/imagegen`。正式图保持源图实际尺寸，没有人为放大。背景已导入并经真实多人数／多尺寸场景复核。
-
-卡牌位图只占独立插画区域，数值、能力标记和名称由代码排版；位置编号在牌外。新增保存翻牌 320ms、发牌 360ms，换入 220ms；具体清理和隐私边界见 [交互规格](interaction.md#视觉排布维护102)。全部资源继续本地打包，已有静物卡面和历史原图保留。
+历史 1.0.2 新增的花园牌桌为 1672×940 RGB WebP、101,962 字节；原图、提示词、裁切与核验保留在 artifacts/maintenance/visual-polish/imagegen。该背景仍使用，迁移后字节不变。旧版卡面分区和 320ms 翻牌／360ms 发牌证据继续保留；1.1.0 更新为上面的角色卡面与关键结果表现，旧静物图留作历史资源。

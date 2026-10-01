@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
-const directory = 'games/pokemon-encounters/assets/audio';
+const directory = 'assets/games/pokemon-encounters/audio';
 await mkdir(directory, { recursive: true });
 const presets = {
   draw: [660, 880],

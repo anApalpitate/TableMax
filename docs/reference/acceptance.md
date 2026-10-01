@@ -60,7 +60,7 @@
 
 ## 使用与维护
 
-当前便携包为 `artifacts/releases/TableMax-1.0.2-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
+当前便携包为 `artifacts/releases/TableMax-1.1.0-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
 
 后续新增游戏、跨游戏调试或第三方插件按独立需求安排；新规则／策略版本需要明确存档迁移方案，不能直接覆盖原文件。设备模拟中的限制保留供后续实际使用时复查，本轮不将取得其他设备作为剩余开发关口。
 
@@ -71,3 +71,19 @@
 本轮工程检查含 9 文件／48 项测试及正式构建。[十四组真实 UI](../../artifacts/maintenance/visual-polish/ui/results.json) 包含既有十组能力／基础操作与 2–5 人、长昵称，截图覆盖 1080×800、1366×768、1920×1080、800×900、360／390×844、360×640 和 844×390；每种关键操作阶段保留截图，检查横向溢出、44px、选位不提前提交、确认栏遮挡、秘密查看隔离、同步／回退不补播与声音。组件矩阵另验 [全部 16 类卡面](../../artifacts/maintenance/visual-polish/cards/results.json) 在五种宽度下的字号、名称裁切、数值／能力碰撞和插画边界；组件画廊只使用公开类别定义，不冒充完整对局。弃牌浮层的 Escape／修订保持和新动效减少动态另有 [补查记录](../../artifacts/maintenance/visual-polish/ui/additional/results.json)，200% 缩放截图保留在同一补查目录。[重新发牌](../../artifacts/maintenance/visual-polish/ui/round-deal/results.json) 由真实房主生命周期动作触发并观察 360ms 动效；[横屏选牌](../../artifacts/maintenance/visual-polish/ui/landscape/results.json) 实际完成 2–5 人初始选牌、确认与二维遮挡检查。
 
 [开发整局](../../artifacts/maintenance/visual-polish/development/results.json) 已通过五座位完整混合游戏、十四阶段、暂停／回退、断网导航／冻结与两次启动恢复。[新便携记录](../../artifacts/maintenance/visual-polish/portable/results.json) 对应 1.0.2 ZIP 新目录解压运行、系统 PATH 隔离、相同整局与恢复检查；五人结算在默认窗口和两种桌面尺寸保持首屏。背景原图／提示词与裁切在 [imagegen 核验](../../artifacts/maintenance/visual-polish/imagegen/file-verification.json)。[资源字节核验](../../artifacts/maintenance/visual-polish/assets.json) 覆盖 21 张主题图及 5 类音频；[文档链接](../../artifacts/maintenance/visual-polish/document-links.json) 核验当前相对路径和锚点。旧版本 ZIP、20 张既有图、历史原图和验收证据全部保留；规则／协议／存档／策略版本保持。范围仍为当前 Windows 与 Chromium 设备模拟，没有新增真实手机／电视或现场听音结论。
+
+## 首版维护：角色卡面与管理员体验
+
+1.1.0 根据 2026-10-02 用户指示完成：电脑房主仅管理、不占座位，程序启动即有唯一牌桌；盒子突出玩家／扫码／开始，说明与管理按需展开；游戏保留独立全宽页面。16 类角色卡面和统一右上分值／左上能力标已导入，翻牌、能力、硬币和结算只表现保存后的授权结果；来源及生成工具限制见 [资源规格](../games/pokemon-encounters/assets.md)。旧 AC-10 房主参赛由最新需求替代，历史验收不倒改。
+
+| 验证       | 结果／证据                                                                                                                                                                                                        |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 工程       | typecheck、lint、format:check、9 文件／48 项测试与正式构建通过；主机凭证加入参数拒绝，管理员无玩家座位／动作，初局随机与种子重放保持                                                                              |
+| 全类别卡面 | [16 类×5 宽度](../../artifacts/maintenance/pokemon-refresh/cards/results.json) 通过 60／68／90／110／140px 名称字号、裁切、数值／能力几何交集和插画边界                                                           |
+| 真实 UI    | [十四组](../../artifacts/maintenance/pokemon-refresh/ui/results.json) 覆盖 2–5 人、全部能力、触控和多个电脑／手机尺寸、私密查看隔离、保存反馈及 reduce／刷新／回退不补播                                          |
+| 关键节点   | [结算和双币面补查](../../artifacts/maintenance/pokemon-refresh/ui/effects/results.json) 观察实际 animationstart 和结果／硬币覆盖层，保存真实隐藏渲染帧                                                            |
+| 开发整局   | [开发记录](../../artifacts/maintenance/pokemon-refresh/development/results.json) 五人真人／bot 混合完整三胜、十四阶段、随机真人首位、暂停／回退、冻结／离线、两次启动身份恢复                                     |
+| 最终便携   | [1.1.0 ZIP 记录](../../artifacts/maintenance/pokemon-refresh/portable/results.json) 新目录解压、仅系统 PATH、相同完整整局与恢复；五人结算在 1080×800／1366×768／1920×1080 首屏可见                                |
+| 文档与资源 | [链接核验](../../artifacts/maintenance/pokemon-refresh/document-links.json) 无缺失路径／锚点；[44 个旧资源迁移](../../artifacts/maintenance/pokemon-refresh/asset-migration.json) 字节全部不变，原图及旧 ZIP 保留 |
+
+测试使用隐藏 offscreen 窗口，不 showInactive 或 focus，并断言窗口不可见；截图为真实 capturePage，整局使用 CDP 精确视口避开 Windows DPI 原生 1px 舍入。当前验证仍是 Windows Chromium 触控／尺寸模拟，未宣称手机、Safari、电视实机或现场听音。生成尝试中百变怪成功，其余 15 类拒绝；实际卡面为官方原图导入及统一代码排版，火箭队横向群像含果然翁且保留背景，可由资源表替换为后续竖图。

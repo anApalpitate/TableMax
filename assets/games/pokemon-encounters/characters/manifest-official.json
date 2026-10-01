@@ -1,0 +1,582 @@
+{
+  "retrieved": "2026-10-02",
+  "assets": [
+    {
+      "categoryId": "ordinary--2",
+      "file": "ordinary--2-official.png",
+      "sourcePage": "https://pokedex.pokemon.cn/play/pokedex/0025",
+      "sourceImage": "https://image.pokemon.com.cn/Pokedex/image/0025.png",
+      "sha256": "645fbd68ba6eef4264109d16c66e4024d5851446bd40b12ead97e480911e0c5e",
+      "sourceKind": "official-pokedex-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 630,
+      "height": 630,
+      "transparent": true,
+      "alpha": {
+        "sourceMode": "P",
+        "extrema": [0, 255],
+        "boundingBox": [39, 56, 590, 574],
+        "transparentPixels": 232351,
+        "partiallyTransparentPixels": 49080
+      },
+      "qa": {
+        "checkedAt": "2026-10-02",
+        "characterIdentity": "passed: 皮卡丘",
+        "wholeBody": "passed: head, limbs, wings/tail where applicable are visible; no character content cropping observed",
+        "style": "passed: recognizable original Pokémon official 2D illustration; imported, not generated",
+        "alpha": "passed: actual transparent pixels and partial alpha verified from palette transparency",
+        "sourceHash": "passed: local SHA256 exactly matches import record",
+        "backgroundChecks": ["cream #f6f2e8", "dark #25343a"],
+        "contactSheets": [
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-cream.png",
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-dark.png"
+        ],
+        "measurements": "artifacts/maintenance/pokemon-refresh/imagegen/official/measurements.json",
+        "notes": "Official PNG includes a soft white edge/halo, visible as a mild glow on dark backgrounds. This halo is part of the unmodified source; actual outside-background transparency is verified. Main UI may retain it on the chosen card ground with object-fit: contain and inset."
+      }
+    },
+    {
+      "categoryId": "ordinary-0",
+      "file": "ordinary-0-official.png",
+      "sourcePage": "https://pokedex.pokemon.cn/play/pokedex/0039",
+      "sourceImage": "https://image.pokemon.com.cn/Pokedex/image/0039.png",
+      "sha256": "d073c38daeec176e8dd7e410665649a2e0f75ba7e640296223444bb030a5933b",
+      "sourceKind": "official-pokedex-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 630,
+      "height": 630,
+      "transparent": true,
+      "alpha": {
+        "sourceMode": "P",
+        "extrema": [0, 255],
+        "boundingBox": [57, 70, 572, 559],
+        "transparentPixels": 235897,
+        "partiallyTransparentPixels": 31378
+      },
+      "qa": {
+        "checkedAt": "2026-10-02",
+        "characterIdentity": "passed: 胖丁",
+        "wholeBody": "passed: head, limbs, wings/tail where applicable are visible; no character content cropping observed",
+        "style": "passed: recognizable original Pokémon official 2D illustration; imported, not generated",
+        "alpha": "passed: actual transparent pixels and partial alpha verified from palette transparency",
+        "sourceHash": "passed: local SHA256 exactly matches import record",
+        "backgroundChecks": ["cream #f6f2e8", "dark #25343a"],
+        "contactSheets": [
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-cream.png",
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-dark.png"
+        ],
+        "measurements": "artifacts/maintenance/pokemon-refresh/imagegen/official/measurements.json",
+        "notes": "Official PNG includes a soft white edge/halo, visible as a mild glow on dark backgrounds. This halo is part of the unmodified source; actual outside-background transparency is verified. Main UI may retain it on the chosen card ground with object-fit: contain and inset."
+      }
+    },
+    {
+      "categoryId": "ordinary-1",
+      "file": "ordinary-1-official.png",
+      "sourcePage": "https://pokedex.pokemon.cn/play/pokedex/0133",
+      "sourceImage": "https://image.pokemon.com.cn/Pokedex/image/0133.png",
+      "sha256": "2f91bcb06818e3036413db3d8efbd30fb279341ca3f14ba736f705a362e68884",
+      "sourceKind": "official-pokedex-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 630,
+      "height": 630,
+      "transparent": true,
+      "alpha": {
+        "sourceMode": "P",
+        "extrema": [0, 255],
+        "boundingBox": [92, 45, 537, 585],
+        "transparentPixels": 245385,
+        "partiallyTransparentPixels": 40447
+      },
+      "qa": {
+        "checkedAt": "2026-10-02",
+        "characterIdentity": "passed: 伊布",
+        "wholeBody": "passed: head, limbs, wings/tail where applicable are visible; no character content cropping observed",
+        "style": "passed: recognizable original Pokémon official 2D illustration; imported, not generated",
+        "alpha": "passed: actual transparent pixels and partial alpha verified from palette transparency",
+        "sourceHash": "passed: local SHA256 exactly matches import record",
+        "backgroundChecks": ["cream #f6f2e8", "dark #25343a"],
+        "contactSheets": [
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-cream.png",
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-dark.png"
+        ],
+        "measurements": "artifacts/maintenance/pokemon-refresh/imagegen/official/measurements.json",
+        "notes": "Official PNG includes a soft white edge/halo, visible as a mild glow on dark backgrounds. This halo is part of the unmodified source; actual outside-background transparency is verified. Main UI may retain it on the chosen card ground with object-fit: contain and inset."
+      }
+    },
+    {
+      "categoryId": "ordinary-3",
+      "file": "ordinary-3-official.png",
+      "sourcePage": "https://pokedex.pokemon.cn/play/pokedex/0001",
+      "sourceImage": "https://image.pokemon.com.cn/Pokedex/image/0001.png",
+      "sha256": "5a2c3701e8e0cc74a2b7220f036bcb0bea3e8ee1432d6a537fdbf388bb8f4316",
+      "sourceKind": "official-pokedex-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 630,
+      "height": 630,
+      "transparent": true,
+      "alpha": {
+        "sourceMode": "P",
+        "extrema": [0, 255],
+        "boundingBox": [78, 94, 551, 536],
+        "transparentPixels": 236696,
+        "partiallyTransparentPixels": 30208
+      },
+      "qa": {
+        "checkedAt": "2026-10-02",
+        "characterIdentity": "passed: 妙蛙种子",
+        "wholeBody": "passed: head, limbs, wings/tail where applicable are visible; no character content cropping observed",
+        "style": "passed: recognizable original Pokémon official 2D illustration; imported, not generated",
+        "alpha": "passed: actual transparent pixels and partial alpha verified from palette transparency",
+        "sourceHash": "passed: local SHA256 exactly matches import record",
+        "backgroundChecks": ["cream #f6f2e8", "dark #25343a"],
+        "contactSheets": [
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-cream.png",
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-dark.png"
+        ],
+        "measurements": "artifacts/maintenance/pokemon-refresh/imagegen/official/measurements.json",
+        "notes": "Official PNG includes a soft white edge/halo, visible as a mild glow on dark backgrounds. This halo is part of the unmodified source; actual outside-background transparency is verified. Main UI may retain it on the chosen card ground with object-fit: contain and inset."
+      }
+    },
+    {
+      "categoryId": "ordinary-4",
+      "file": "ordinary-4-official.png",
+      "sourcePage": "https://pokedex.pokemon.cn/play/pokedex/0007",
+      "sourceImage": "https://image.pokemon.com.cn/Pokedex/image/0007.png",
+      "sha256": "26f31a6a3c1a50c30df81d151a163c34554b53c763553fa061924b0cf00b0f48",
+      "sourceKind": "official-pokedex-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 630,
+      "height": 630,
+      "transparent": true,
+      "alpha": {
+        "sourceMode": "P",
+        "extrema": [0, 255],
+        "boundingBox": [51, 42, 578, 588],
+        "transparentPixels": 224688,
+        "partiallyTransparentPixels": 37359
+      },
+      "qa": {
+        "checkedAt": "2026-10-02",
+        "characterIdentity": "passed: 杰尼龟",
+        "wholeBody": "passed: head, limbs, wings/tail where applicable are visible; no character content cropping observed",
+        "style": "passed: recognizable original Pokémon official 2D illustration; imported, not generated",
+        "alpha": "passed: actual transparent pixels and partial alpha verified from palette transparency",
+        "sourceHash": "passed: local SHA256 exactly matches import record",
+        "backgroundChecks": ["cream #f6f2e8", "dark #25343a"],
+        "contactSheets": [
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-cream.png",
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-dark.png"
+        ],
+        "measurements": "artifacts/maintenance/pokemon-refresh/imagegen/official/measurements.json",
+        "notes": "Official PNG includes a soft white edge/halo, visible as a mild glow on dark backgrounds. This halo is part of the unmodified source; actual outside-background transparency is verified. Main UI may retain it on the chosen card ground with object-fit: contain and inset."
+      }
+    },
+    {
+      "categoryId": "ordinary-5",
+      "file": "ordinary-5-official.png",
+      "sourcePage": "https://pokedex.pokemon.cn/play/pokedex/0037",
+      "sourceImage": "https://image.pokemon.com.cn/Pokedex/image/0037.png",
+      "sha256": "823c543e76c76020f0a335f9ee3477b0d0864986fd52663a68a10e93138aba8a",
+      "sourceKind": "official-pokedex-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 630,
+      "height": 630,
+      "transparent": true,
+      "alpha": {
+        "sourceMode": "P",
+        "extrema": [0, 255],
+        "boundingBox": [43, 72, 587, 558],
+        "transparentPixels": 216431,
+        "partiallyTransparentPixels": 39700
+      },
+      "qa": {
+        "checkedAt": "2026-10-02",
+        "characterIdentity": "passed: 六尾",
+        "wholeBody": "passed: head, limbs, wings/tail where applicable are visible; no character content cropping observed",
+        "style": "passed: recognizable original Pokémon official 2D illustration; imported, not generated",
+        "alpha": "passed: actual transparent pixels and partial alpha verified from palette transparency",
+        "sourceHash": "passed: local SHA256 exactly matches import record",
+        "backgroundChecks": ["cream #f6f2e8", "dark #25343a"],
+        "contactSheets": [
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-cream.png",
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-dark.png"
+        ],
+        "measurements": "artifacts/maintenance/pokemon-refresh/imagegen/official/measurements.json",
+        "notes": "Official PNG includes a soft white edge/halo, visible as a mild glow on dark backgrounds. This halo is part of the unmodified source; actual outside-background transparency is verified. Main UI may retain it on the chosen card ground with object-fit: contain and inset."
+      }
+    },
+    {
+      "categoryId": "ordinary-6",
+      "file": "ordinary-6-official.png",
+      "sourcePage": "https://pokedex.pokemon.cn/play/pokedex/0079",
+      "sourceImage": "https://image.pokemon.com.cn/Pokedex/image/0079.png",
+      "sha256": "897837bbbb6cd30c1428460018353c53264ebf289b4b8e8845ce497851b0521d",
+      "sourceKind": "official-pokedex-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 630,
+      "height": 630,
+      "transparent": true,
+      "alpha": {
+        "sourceMode": "P",
+        "extrema": [0, 255],
+        "boundingBox": [42, 92, 587, 537],
+        "transparentPixels": 230981,
+        "partiallyTransparentPixels": 38954
+      },
+      "qa": {
+        "checkedAt": "2026-10-02",
+        "characterIdentity": "passed: 呆呆兽",
+        "wholeBody": "passed: head, limbs, wings/tail where applicable are visible; no character content cropping observed",
+        "style": "passed: recognizable original Pokémon official 2D illustration; imported, not generated",
+        "alpha": "passed: actual transparent pixels and partial alpha verified from palette transparency",
+        "sourceHash": "passed: local SHA256 exactly matches import record",
+        "backgroundChecks": ["cream #f6f2e8", "dark #25343a"],
+        "contactSheets": [
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-cream.png",
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-dark.png"
+        ],
+        "measurements": "artifacts/maintenance/pokemon-refresh/imagegen/official/measurements.json",
+        "notes": "Official PNG includes a soft white edge/halo, visible as a mild glow on dark backgrounds. This halo is part of the unmodified source; actual outside-background transparency is verified. Main UI may retain it on the chosen card ground with object-fit: contain and inset."
+      }
+    },
+    {
+      "categoryId": "ordinary-7",
+      "file": "ordinary-7-official.png",
+      "sourcePage": "https://pokedex.pokemon.cn/play/pokedex/0094",
+      "sourceImage": "https://image.pokemon.com.cn/Pokedex/image/0094.png",
+      "sha256": "1b56ff94c5095a99d35097390e1767469c92bb6bbf538d09e010fe9e80697368",
+      "sourceKind": "official-pokedex-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 630,
+      "height": 630,
+      "transparent": true,
+      "alpha": {
+        "sourceMode": "P",
+        "extrema": [0, 255],
+        "boundingBox": [58, 52, 572, 577],
+        "transparentPixels": 229536,
+        "partiallyTransparentPixels": 37746
+      },
+      "qa": {
+        "checkedAt": "2026-10-02",
+        "characterIdentity": "passed: 耿鬼",
+        "wholeBody": "passed: head, limbs, wings/tail where applicable are visible; no character content cropping observed",
+        "style": "passed: recognizable original Pokémon official 2D illustration; imported, not generated",
+        "alpha": "passed: actual transparent pixels and partial alpha verified from palette transparency",
+        "sourceHash": "passed: local SHA256 exactly matches import record",
+        "backgroundChecks": ["cream #f6f2e8", "dark #25343a"],
+        "contactSheets": [
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-cream.png",
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-dark.png"
+        ],
+        "measurements": "artifacts/maintenance/pokemon-refresh/imagegen/official/measurements.json",
+        "notes": "Official PNG includes a soft white edge/halo, visible as a mild glow on dark backgrounds. This halo is part of the unmodified source; actual outside-background transparency is verified. Main UI may retain it on the chosen card ground with object-fit: contain and inset."
+      }
+    },
+    {
+      "categoryId": "ordinary-8",
+      "file": "ordinary-8-official.png",
+      "sourcePage": "https://pokedex.pokemon.cn/play/pokedex/0122",
+      "sourceImage": "https://image.pokemon.com.cn/Pokedex/image/0122.png",
+      "sha256": "8e1dee56015e6467eb85d93eb082109904240c2a79c241d867da0890f385667d",
+      "sourceKind": "official-pokedex-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 630,
+      "height": 630,
+      "transparent": true,
+      "alpha": {
+        "sourceMode": "P",
+        "extrema": [0, 255],
+        "boundingBox": [65, 76, 565, 554],
+        "transparentPixels": 243735,
+        "partiallyTransparentPixels": 55911
+      },
+      "qa": {
+        "checkedAt": "2026-10-02",
+        "characterIdentity": "passed: 魔墙人偶",
+        "wholeBody": "passed: head, limbs, wings/tail where applicable are visible; no character content cropping observed",
+        "style": "passed: recognizable original Pokémon official 2D illustration; imported, not generated",
+        "alpha": "passed: actual transparent pixels and partial alpha verified from palette transparency",
+        "sourceHash": "passed: local SHA256 exactly matches import record",
+        "backgroundChecks": ["cream #f6f2e8", "dark #25343a"],
+        "contactSheets": [
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-cream.png",
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-dark.png"
+        ],
+        "measurements": "artifacts/maintenance/pokemon-refresh/imagegen/official/measurements.json",
+        "notes": "Official PNG includes a soft white edge/halo, visible as a mild glow on dark backgrounds. This halo is part of the unmodified source; actual outside-background transparency is verified. Main UI may retain it on the chosen card ground with object-fit: contain and inset."
+      }
+    },
+    {
+      "categoryId": "ordinary-9",
+      "file": "ordinary-9-official.png",
+      "sourcePage": "https://pokedex.pokemon.cn/play/pokedex/0095",
+      "sourceImage": "https://image.pokemon.com.cn/Pokedex/image/0095.png",
+      "sha256": "abff19f37e444ffa9141e95f80f2f54ac9320d2e75d556dc18c41d3a0572af67",
+      "sourceKind": "official-pokedex-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 630,
+      "height": 630,
+      "transparent": true,
+      "alpha": {
+        "sourceMode": "P",
+        "extrema": [0, 255],
+        "boundingBox": [66, 54, 563, 576],
+        "transparentPixels": 240938,
+        "partiallyTransparentPixels": 45518
+      },
+      "qa": {
+        "checkedAt": "2026-10-02",
+        "characterIdentity": "passed: 大岩蛇",
+        "wholeBody": "passed: head, limbs, wings/tail where applicable are visible; no character content cropping observed",
+        "style": "passed: recognizable original Pokémon official 2D illustration; imported, not generated",
+        "alpha": "passed: actual transparent pixels and partial alpha verified from palette transparency",
+        "sourceHash": "passed: local SHA256 exactly matches import record",
+        "backgroundChecks": ["cream #f6f2e8", "dark #25343a"],
+        "contactSheets": [
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-cream.png",
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-dark.png"
+        ],
+        "measurements": "artifacts/maintenance/pokemon-refresh/imagegen/official/measurements.json",
+        "notes": "Official PNG includes a soft white edge/halo, visible as a mild glow on dark backgrounds. This halo is part of the unmodified source; actual outside-background transparency is verified. Main UI may retain it on the chosen card ground with object-fit: contain and inset."
+      }
+    },
+    {
+      "categoryId": "special-mew",
+      "file": "special-mew-official.png",
+      "sourcePage": "https://pokedex.pokemon.cn/play/pokedex/0151",
+      "sourceImage": "https://image.pokemon.com.cn/Pokedex/image/0151.png",
+      "sha256": "46730d36201e8c8cac88de62c9f2adec58210ab1c18a3edc9168e014dd816a01",
+      "sourceKind": "official-pokedex-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 630,
+      "height": 630,
+      "transparent": true,
+      "alpha": {
+        "sourceMode": "P",
+        "extrema": [0, 255],
+        "boundingBox": [41, 36, 589, 593],
+        "transparentPixels": 259211,
+        "partiallyTransparentPixels": 57710
+      },
+      "qa": {
+        "checkedAt": "2026-10-02",
+        "characterIdentity": "passed: 梦幻",
+        "wholeBody": "passed: head, limbs, wings/tail where applicable are visible; no character content cropping observed",
+        "style": "passed: recognizable original Pokémon official 2D illustration; imported, not generated",
+        "alpha": "passed: actual transparent pixels and partial alpha verified from palette transparency",
+        "sourceHash": "passed: local SHA256 exactly matches import record",
+        "backgroundChecks": ["cream #f6f2e8", "dark #25343a"],
+        "contactSheets": [
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-cream.png",
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-dark.png"
+        ],
+        "measurements": "artifacts/maintenance/pokemon-refresh/imagegen/official/measurements.json",
+        "notes": "Official PNG includes a soft white edge/halo, visible as a mild glow on dark backgrounds. This halo is part of the unmodified source; actual outside-background transparency is verified. Main UI may retain it on the chosen card ground with object-fit: contain and inset."
+      }
+    },
+    {
+      "categoryId": "special-zapdos",
+      "file": "special-zapdos-official.png",
+      "sourcePage": "https://pokedex.pokemon.cn/play/pokedex/0145",
+      "sourceImage": "https://image.pokemon.com.cn/Pokedex/image/0145.png",
+      "sha256": "5c27938e974481df8d4cc63c351f00696028fe7beacc797db2f79827db04d9d8",
+      "sourceKind": "official-pokedex-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 630,
+      "height": 630,
+      "transparent": true,
+      "alpha": {
+        "sourceMode": "P",
+        "extrema": [0, 255],
+        "boundingBox": [21, 107, 609, 523],
+        "transparentPixels": 263380,
+        "partiallyTransparentPixels": 53743
+      },
+      "qa": {
+        "checkedAt": "2026-10-02",
+        "characterIdentity": "passed: 闪电鸟",
+        "wholeBody": "passed: head, limbs, wings/tail where applicable are visible; no character content cropping observed",
+        "style": "passed: recognizable original Pokémon official 2D illustration; imported, not generated",
+        "alpha": "passed: actual transparent pixels and partial alpha verified from palette transparency",
+        "sourceHash": "passed: local SHA256 exactly matches import record",
+        "backgroundChecks": ["cream #f6f2e8", "dark #25343a"],
+        "contactSheets": [
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-cream.png",
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-dark.png"
+        ],
+        "measurements": "artifacts/maintenance/pokemon-refresh/imagegen/official/measurements.json",
+        "notes": "Official PNG includes a soft white edge/halo, visible as a mild glow on dark backgrounds. This halo is part of the unmodified source; actual outside-background transparency is verified. Main UI may retain it on the chosen card ground with object-fit: contain and inset."
+      }
+    },
+    {
+      "categoryId": "special-charizard",
+      "file": "special-charizard-official.png",
+      "sourcePage": "https://pokedex.pokemon.cn/play/pokedex/0006",
+      "sourceImage": "https://image.pokemon.com.cn/Pokedex/image/0006.png",
+      "sha256": "caf344d808d8ddc23eb135bfe5b7b5478afd65e37723e351d0f5715b4eae6b48",
+      "sourceKind": "official-pokedex-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 630,
+      "height": 630,
+      "transparent": true,
+      "alpha": {
+        "sourceMode": "P",
+        "extrema": [0, 255],
+        "boundingBox": [1, 65, 629, 564],
+        "transparentPixels": 191622,
+        "partiallyTransparentPixels": 69230
+      },
+      "qa": {
+        "checkedAt": "2026-10-02",
+        "characterIdentity": "passed: 喷火龙",
+        "wholeBody": "passed: head, limbs, wings/tail where applicable are visible; no character content cropping observed",
+        "style": "passed: recognizable original Pokémon official 2D illustration; imported, not generated",
+        "alpha": "passed: actual transparent pixels and partial alpha verified from palette transparency",
+        "sourceHash": "passed: local SHA256 exactly matches import record",
+        "backgroundChecks": ["cream #f6f2e8", "dark #25343a"],
+        "contactSheets": [
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-cream.png",
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-dark.png"
+        ],
+        "measurements": "artifacts/maintenance/pokemon-refresh/imagegen/official/measurements.json",
+        "notes": "Official PNG includes a soft white edge/halo, visible as a mild glow on dark backgrounds. This halo is part of the unmodified source; actual outside-background transparency is verified. Main UI may retain it on the chosen card ground with object-fit: contain and inset. Original alpha bounds nearly reach left/right image edges (1 pixel); add card-art inset rather than crop the source."
+      }
+    },
+    {
+      "categoryId": "special-snorlax",
+      "file": "special-snorlax-official.png",
+      "sourcePage": "https://pokedex.pokemon.cn/play/pokedex/0143",
+      "sourceImage": "https://image.pokemon.com.cn/Pokedex/image/0143.png",
+      "sha256": "c4fee29fc9c6212ce2befe9fdeb2d94672889ae64d0f13b1763c73a1563a3ca9",
+      "sourceKind": "official-pokedex-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 630,
+      "height": 630,
+      "transparent": true,
+      "alpha": {
+        "sourceMode": "P",
+        "extrema": [0, 255],
+        "boundingBox": [32, 85, 598, 544],
+        "transparentPixels": 207983,
+        "partiallyTransparentPixels": 34830
+      },
+      "qa": {
+        "checkedAt": "2026-10-02",
+        "characterIdentity": "passed: 卡比兽",
+        "wholeBody": "passed: head, limbs, wings/tail where applicable are visible; no character content cropping observed",
+        "style": "passed: recognizable original Pokémon official 2D illustration; imported, not generated",
+        "alpha": "passed: actual transparent pixels and partial alpha verified from palette transparency",
+        "sourceHash": "passed: local SHA256 exactly matches import record",
+        "backgroundChecks": ["cream #f6f2e8", "dark #25343a"],
+        "contactSheets": [
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-cream.png",
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-dark.png"
+        ],
+        "measurements": "artifacts/maintenance/pokemon-refresh/imagegen/official/measurements.json",
+        "notes": "Official PNG includes a soft white edge/halo, visible as a mild glow on dark backgrounds. This halo is part of the unmodified source; actual outside-background transparency is verified. Main UI may retain it on the chosen card ground with object-fit: contain and inset."
+      }
+    },
+    {
+      "categoryId": "coin-meowth",
+      "file": "coin-meowth-official.png",
+      "sourcePage": "https://pokedex.pokemon.cn/play/pokedex/0052",
+      "sourceImage": "https://image.pokemon.com.cn/Pokedex/image/0052.png",
+      "sha256": "d779bbb6f81d9187122eae51c9f7d0d7a92a0a7e65ee29bfa9694664663b9584",
+      "sourceKind": "official-pokedex-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 630,
+      "height": 630,
+      "transparent": true,
+      "alpha": {
+        "sourceMode": "P",
+        "extrema": [0, 255],
+        "boundingBox": [82, 13, 548, 617],
+        "transparentPixels": 231402,
+        "partiallyTransparentPixels": 64087
+      },
+      "qa": {
+        "checkedAt": "2026-10-02",
+        "characterIdentity": "passed: 喵喵",
+        "wholeBody": "passed: head, limbs, wings/tail where applicable are visible; no character content cropping observed",
+        "style": "passed: recognizable original Pokémon official 2D illustration; imported, not generated",
+        "alpha": "passed: actual transparent pixels and partial alpha verified from palette transparency",
+        "sourceHash": "passed: local SHA256 exactly matches import record",
+        "backgroundChecks": ["cream #f6f2e8", "dark #25343a"],
+        "contactSheets": [
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-cream.png",
+          "artifacts/maintenance/pokemon-refresh/imagegen/official/contact-dark.png"
+        ],
+        "measurements": "artifacts/maintenance/pokemon-refresh/imagegen/official/measurements.json",
+        "notes": "Official PNG includes a soft white edge/halo, visible as a mild glow on dark backgrounds. This halo is part of the unmodified source; actual outside-background transparency is verified. Main UI may retain it on the chosen card ground with object-fit: contain and inset."
+      }
+    },
+    {
+      "categoryId": "special-team-rocket",
+      "file": "special-team-rocket-official.png",
+      "sourcePage": "https://hk.portal-pokemon.com/tv-film/1/",
+      "sourceImage": "https://hk.portal-pokemon.com/images/f2907d523816a8ea7b9c5ccfcccdf8c4.png",
+      "sha256": "eb95e7247801958d7c24e3a74206f6d0c84e20cfec6b7aea1be3c20349cf20f6",
+      "sourceKind": "official-anime-import",
+      "modified": false,
+      "generated": false,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 1154,
+      "height": 649,
+      "alpha": false,
+      "qa": "Full-body Jessie, James and Meowth; additionally Wobbuffet. Wide green background retained unmodified; contain preserves group. Reviewed in official/team-rocket-source-preview.png."
+    }
+  ],
+  "qa": {
+    "checkedAt": "2026-10-02",
+    "verifiedAssets": 15,
+    "method": "Read original PNG metadata/alpha/SHA256, visually inspect all 15 on cream and dark contact sheets, inspect original Charizard PNG at source resolution. No source image edits.",
+    "uiStatus": "UI import and final card layout remain main agent responsibility; verified flag describes asset QA only."
+  }
+}

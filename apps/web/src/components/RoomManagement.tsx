@@ -5,7 +5,7 @@ export function RoomManagement({ session }: { session: RoomSession }) {
   if (!isHost || !view) return null;
   return (
     <details className="management" open={Boolean(bindingCode)}>
-      <summary>更多房间设置</summary>
+      <summary>牌桌管理</summary>
       {view?.lifecycleActions.map((action, i) => (
         <button
           key={i}
@@ -64,7 +64,7 @@ export function RoomManagement({ session }: { session: RoomSession }) {
               disabled={locked}
               onClick={() => command({ type: 'new-room' })}
             >
-              创建新房间
+              重新准备
             </button>
           )}
           <details>
@@ -109,9 +109,6 @@ export function RoomManagement({ session }: { session: RoomSession }) {
         href={view.gameView ? '/public/game' : '/public'}
       >
         打开公共屏
-      </a>
-      <a className="button secondary" href="/player">
-        房主用独立玩家身份参与
       </a>
     </details>
   );

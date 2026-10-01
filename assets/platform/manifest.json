@@ -158,7 +158,7 @@
   "relocation": {
     "date": "2026-10-01",
     "from": "apps/web/src/prototype/assets",
-    "to": "apps/web/src/assets/tabletop",
+    "to": "assets/platform",
     "reason": "Shared platform artwork is owned by the production web app; historical source art and evidence remain in place.",
     "verification": "All sixteen WebP files retain their original Git bytes; import references and prototype CSS are updated."
   }

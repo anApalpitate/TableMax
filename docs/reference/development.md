@@ -226,3 +226,7 @@ UI 合法存档 fixture 的构造入口在 scripts/fixtures/prepare-pokemon.ts�
 `pnpm verify:cards` 使用正式 CardFace／CSS 和公开类别定义，单独构建只用于验证的卡面画廊，覆盖全部 16 类在 60／68／90／110／140px 下的名称裁切、字号、数值／能力碰撞和插画边界；它不是完整对局验收。证据进入 `artifacts/maintenance/visual-polish/cards`。
 
 `pnpm verify:game-ui` 扩展为十四组真实服务场景：十组既有能力／基本操作加 2–5 人和长昵称排布。保留每种关键阶段截图，并检查默认窗口、桌面、平板、短手机与横屏。新增弃牌浮层／Escape／修订保持及减少动态补查。`--verify-deal` 核验真实下一小局的发牌动效；`--only` 用逗号选择场景，PowerShell 中用引号包住完整参数，例如 `pnpm verify:game-ui '--only=L2,L3,L4,L5' --evidence=landscape`，把补查保存到独立子目录。参数不选择任何已知场景时直接失败，避免空跑显示通过。证据在 `artifacts/maintenance/visual-polish/ui`；开发整局和便携验证分别在同级 `development`、`portable`。历史 `game-experience`、phase-06 证据保留。
+
+### 1.1.0 后台维护验证
+
+verify:cards、verify:game-ui、verify:desktop、verify:portable 当前证据进入 artifacts/maintenance/pokemon-refresh，旧 visual-polish 不覆盖。测试窗口 show:false、offscreen:true、backgroundThrottling:false，capturePage(stayHidden/stayAwake) 在 DOM 更新／两帧后捕获真实帧，不 showInactive 或 focus。翻牌后独立测量静止触控尺寸；整局截图用 CDP 精确 CSS 视口，避开 Windows DPI 边框的原生 1px 舍入。随机首位测试等待合法真人动作，不注入 hostToken 取得先手。animationstart／computedStyle 记录关键效果与 reduce，刷新／回退检查不误播；仍为 Windows Chromium 模拟，非手机／Safari／电视实机。

@@ -8,7 +8,7 @@
     max(16px, env(safe-area-inset-left));
   background:
     linear-gradient(#fffbe426, #f2edd426),
-    url('../../../../games/pokemon-encounters/assets/tabletop/garden-table-v1.webp')
+    url('../../../../assets/games/pokemon-encounters/tabletop/garden-table-v1.webp')
       center / cover;
 }
 .game-toolbar {

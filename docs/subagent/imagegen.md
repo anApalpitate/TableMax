@@ -13,7 +13,7 @@
 1. [AGENTS.md](../../AGENTS.md)、[文档索引](../README.md)，并检查当前 Git 状态与派工路径的 diff。
 2. [维护规则](../reference/maintenance.md)及通用规格的[美术与交接](../reference/phase-02-platform-spec.md#imagegen-制作记录与资源交接)、[本地资源](../reference/phase-02-platform-spec.md#本地资源与声音方案)章节。
 3. 当次环境提供的 `imagegen` skill 及当前工具参数说明；首次使用 skill 时告知用户。
-4. 派工涉及的参考图、目标文件和清单；当前共享平台清单为 [manifest.json](../../apps/web/src/assets/tabletop/manifest.json)。仅在制作具体游戏素材时按任务阅读已核验游戏规格与来源。
+4. 派工涉及的参考图、目标文件和清单；当前共享平台清单为 [manifest.json](../../assets/platform/manifest.json)。仅在制作具体游戏素材时按任务阅读已核验游戏规格与来源。
 
 ## 派工输入
 
@@ -32,7 +32,7 @@
 
 ## 资源路径与文件协作
 
-共享平台素材及来源清单在 `apps/web/src/assets/tabletop/`，原型与正式页面按清单各自引用；候选背景仍在 `src/prototype/assets/theme-preparation/`。具体导入状态以清单和构建为准。既有原图及核验证据在 `artifacts/phase-02/art-reset/`，保持原位置。后续优先采用派工指定路径；未指定原图目录时可按需建立 `artifacts/<阶段>/imagegen/<任务>/`，这是计划路径，不迁移旧证据。具体游戏资源仅在对应游戏模块确立后进入 `games/<id>/`。
+共享平台素材及来源清单在 `assets/platform/`，原型与正式页面按清单各自引用；候选背景仍在 `assets/candidates/theme-preparation/`。具体导入状态以清单和构建为准。既有原图及核验证据在 `artifacts/phase-02/art-reset/`，保持原位置。后续优先采用派工指定路径；未指定原图目录时可按需建立 `artifacts/<阶段>/imagegen/<任务>/`，这是计划路径，不迁移旧证据。具体游戏资源仅在对应游戏模块确立后进入 `assets/games/<id>/`。
 
 只编辑主 agent 分配的图片、清单和证据文件；清单由一名 agent 写入，避免同时覆盖。UI 引用和导入、文档索引及总体规则由主 agent 或其明确指定者维护。出现文件冲突先报告，不覆盖他人改动，不擅自删除素材，不创建 Git 提交。Git 忽略的素材和证据也保持文件树可见。
 

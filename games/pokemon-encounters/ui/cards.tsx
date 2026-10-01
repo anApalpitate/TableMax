@@ -1,20 +1,15 @@
 import type { Face, PokemonView } from '../rules/project';
-import back from '../assets/card-back-v1.webp';
-import { useContext } from 'react';
+import { cardArt } from '../../../assets/games/pokemon-encounters/catalog';
+import { useContext, type CSSProperties } from 'react';
 import { SavedMotion } from './motion';
 
-const images = import.meta.glob<string>('../assets/face/*.webp', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-});
 export function CardFace({ card }: { card: Face | null }) {
-  const image = card
-    ? images[`../assets/face/${card.categoryId}-v1.webp`]
-    : back;
+  const art = card ? cardArt(card.categoryId) : null;
   return (
     <span
       className={`pokemon-card ${card ? 'face' : 'back'}`}
+      style={art ? ({ '--card-frame': art.frame } as CSSProperties) : undefined}
+      data-category={card?.categoryId}
       title={
         card
           ? `${card.name} · ${card.value ?? '?'}${card.ability ? ` · ${card.ability}` : ''}`
@@ -31,29 +26,20 @@ export function CardFace({ card }: { card: Face | null }) {
               </span>
             )}
           </span>
-          {image && (
+          {art?.image && (
             <img
-              src={image}
+              src={art.image}
               alt=""
               draggable={false}
-              width={529}
-              height={740}
+              width={475}
+              height={475}
             />
           )}
           <span className="card-name">{card.name.replace('外观', '')}</span>
         </>
       ) : (
         <>
-          {image && (
-            <img
-              src={image}
-              alt=""
-              draggable={false}
-              width={529}
-              height={740}
-            />
-          )}
-          <span className="back-label">暗牌</span>
+          <span className="pokeball-mark" aria-hidden="true" />
         </>
       )}
     </span>

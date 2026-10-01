@@ -9,6 +9,10 @@ import {
   type RoomView,
 } from '@tablemax/protocol';
 import type { PokemonView } from '../../../../games/pokemon-encounters/rules/project';
+import {
+  savedChanges,
+  SAVED_MOTION_MS,
+} from '../../../../games/pokemon-encounters/ui/motion';
 import { navigate, type ScreenRole } from '../navigation';
 const messages: Record<string, string> = {
   unauthorized: '此操作需要房主身份。',
@@ -17,7 +21,7 @@ const messages: Record<string, string> = {
   'stale-revision': '状态已变化，请重新选择。',
   'stale-decision': '该选择已结束，请按最新状态操作。',
   'not-ready': '请等待至少两位玩家全部准备。',
-  'joining-closed-or-full': '当前不能加入：房间已关闭、开始或满员。',
+  'joining-closed-or-full': '当前不能加入：牌桌已关闭入座、开始或满员。',
   'binding-expired': '绑定码已过期或已经使用。',
   'save-or-action-failed': '操作未确认保存，请检查本地存储后重试。',
   'illegal-action': '选择无效，请重新同步。',
@@ -78,6 +82,7 @@ export function useRoomSession(role: ScreenRole) {
       if (parsed.success) {
         const next = parsed.data,
           previous = synced.current;
+        if (previous?.revision !== next.revision) setMotion([]);
         changedSlots.current = [];
         if (
           previous?.gameView &&
@@ -87,22 +92,7 @@ export function useRoomSession(role: ScreenRole) {
         ) {
           const before = previous.gameView as PokemonView,
             after = next.gameView as PokemonView;
-          if (before.phase !== after.phase) changedSlots.current.push('@phase');
-          if (before.coin !== after.coin && after.coin)
-            changedSlots.current.push('@coin');
-          if (JSON.stringify(before.held) !== JSON.stringify(after.held))
-            changedSlots.current.push('@held');
-          const dealt = before.roundNumber !== after.roundNumber;
-          for (const seat of after.seatOrder)
-            after.boards[seat]!.forEach((slot, i) => {
-              const old = before.boards[seat]?.[i];
-              if (JSON.stringify(slot) !== JSON.stringify(old)) {
-                changedSlots.current.push(slot.slotId);
-                if (dealt) changedSlots.current.push(`deal:${slot.slotId}`);
-                else if (old && !old.faceUp && slot.faceUp)
-                  changedSlots.current.push(`reveal:${slot.slotId}`);
-              }
-            });
+          changedSlots.current = savedChanges(before, after);
         }
         if (
           !previous ||
@@ -142,7 +132,7 @@ export function useRoomSession(role: ScreenRole) {
       setFeedback(item);
       setMotion(changedSlots.current);
       if (motionTimer.current) clearTimeout(motionTimer.current);
-      motionTimer.current = setTimeout(() => setMotion([]), 520);
+      motionTimer.current = setTimeout(() => setMotion([]), SAVED_MOTION_MS);
     });
     const revoked = () => {
       setConnected(false);
@@ -246,14 +236,7 @@ export function useRoomSession(role: ScreenRole) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(
-            rebind
-              ? { code: code.trim() }
-              : {
-                  name: name.trim(),
-                  ...(sessionStorage.getItem('tablemax-host')
-                    ? { hostToken: sessionStorage.getItem('tablemax-host')! }
-                    : {}),
-                },
+            rebind ? { code: code.trim() } : { name: name.trim() },
           ),
         },
       );

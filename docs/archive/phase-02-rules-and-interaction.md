@@ -6,18 +6,18 @@
 
 ## 当前交付与证据
 
-| 完成标准 | 实际交付 | 验证／后续限制 |
-| --- | --- | --- |
-| 可复查采用规则及差异 | [来源 S01–S20 与历史裁定](../games/pokemon-encounters/sources.md)、[规则及 P01–P08](../games/pokemon-encounters/rules.md) | 原图／响应／用户答复及哈希在 artifacts；未标官方认证 |
-| 全牌及数字化组件 | [cards.json](../games/pokemon-encounters/cards.json)，16 类／56 张、两面币及胜局计数 | 类别／实例／资源分开，图示数量、能力与来源可回查；实体其他组件未知不虚构 |
-| 状态、全部动作与授权 | [信息与决策](../games/pokemon-encounters/information-and-decisions.md) | 完整阶段／参数／自动推进／pending／逐字段角色矩阵，普通房主无秘密特权 |
-| 全决策恢复 | 同页 D01–D13、RNG／held／队列／币面及完整能力边界 | 含初始、多步、peek确认、下一局，身份不倒退，分支递增；真实事务由第四阶段实现 |
-| 游戏交互和动效 | [interaction.md](../games/pokemon-encounters/interaction.md)、独立 GamePrototype | 1920大屏、360/390手机、多步能力／保存反馈／取消动画；浏览器走查通过，范围见开发说明 |
-| 本地资源与声音 | [assets.md](../games/pokemon-encounters/assets.md) 及既有本地素材清单 | 16牌面映射、独立背面／币面／帮助／声音，制作缺口第五阶段明确；原型无外部请求 |
-| 完整对局／特殊／恢复场景 | [V00–V22](../games/pokemon-encounters/validation-scenarios.md)、[scenarios.json](../games/pokemon-encounters/scenarios.json) | 三小局完整大局、完整56实例fixtures、AC-02–17／19–23；产品执行标记均false |
-| 全选择人机及 B01 | [bot.md](../games/pokemon-encounters/bot.md)、[决策004](../decisions/004-phase02-game-spec-and-bot-file.md) | 独立TS默认文件，D01–D12逐选择策略，管理D13不由bot；受限输入／版本／取消／失败／恢复明确，策略未实现 |
-| 工程封装及交接 | [状态与交接](../games/pokemon-encounters/information-and-decisions.md#正式初始契约缺口与交接)、[验证责任](../games/pokemon-encounters/validation-scenarios.md#第三至六阶段交接) | 指出当前SDK实际缺口，本阶段保持协议／SDK和正式页面路由不变 |
-| 索引、证据、归档与提交 | 当前主题页及项目入口同步 | 链接／数据／工程／原型审计通过，主题索引与归档同步 |
+| 完成标准                 | 实际交付                                                                                                                                                                        | 验证／后续限制                                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| 可复查采用规则及差异     | [来源 S01–S20 与历史裁定](../games/pokemon-encounters/sources.md)、[规则及 P01–P08](../games/pokemon-encounters/rules.md)                                                       | 原图／响应／用户答复及哈希在 artifacts；未标官方认证                                                |
+| 全牌及数字化组件         | [cards.json](../games/pokemon-encounters/cards.json)，16 类／56 张、两面币及胜局计数                                                                                            | 类别／实例／资源分开，图示数量、能力与来源可回查；实体其他组件未知不虚构                            |
+| 状态、全部动作与授权     | [信息与决策](../games/pokemon-encounters/information-and-decisions.md)                                                                                                          | 完整阶段／参数／自动推进／pending／逐字段角色矩阵，普通房主无秘密特权                               |
+| 全决策恢复               | 同页 D01–D13、RNG／held／队列／币面及完整能力边界                                                                                                                               | 含初始、多步、peek确认、下一局，身份不倒退，分支递增；真实事务由第四阶段实现                        |
+| 游戏交互和动效           | [interaction.md](../games/pokemon-encounters/interaction.md)、独立 GamePrototype                                                                                                | 1920大屏、360/390手机、多步能力／保存反馈／取消动画；浏览器走查通过，范围见开发说明                 |
+| 本地资源与声音           | [assets.md](../games/pokemon-encounters/assets.md) 及既有本地素材清单                                                                                                           | 16牌面映射、独立背面／币面／帮助／声音，制作缺口第五阶段明确；原型无外部请求                        |
+| 完整对局／特殊／恢复场景 | [V00–V22](../games/pokemon-encounters/validation-scenarios.md)、[scenarios.json](../games/pokemon-encounters/scenarios.json)                                                    | 三小局完整大局、完整56实例fixtures、AC-02–17／19–23；产品执行标记均false                            |
+| 全选择人机及 B01         | [bot.md](../games/pokemon-encounters/bot.md)、[决策004](../decisions/004-phase02-game-spec-and-bot-file.md)                                                                     | 独立TS默认文件，D01–D12逐选择策略，管理D13不由bot；受限输入／版本／取消／失败／恢复明确，策略未实现 |
+| 工程封装及交接           | [状态与交接](../games/pokemon-encounters/information-and-decisions.md#正式初始契约缺口与交接)、[验证责任](../games/pokemon-encounters/validation-scenarios.md#第三至六阶段交接) | 指出当前SDK实际缺口，本阶段保持协议／SDK和正式页面路由不变                                          |
+| 索引、证据、归档与提交   | 当前主题页及项目入口同步                                                                                                                                                        | 链接／数据／工程／原型审计通过，主题索引与归档同步                                                  |
 
 ## 完成清单
 
