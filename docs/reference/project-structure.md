@@ -30,6 +30,8 @@
 
 第一阶段已确认采用需求第 6.3 节的组织方向：`apps/` 划分桌面壳、服务端和单一网页工程，`packages/` 承载共享契约与平台模块，`games/` 承载独立游戏模块。每款游戏集中在 `games/<游戏标识>/`，内部区分规则、公共屏 UI、手机 UI、资源和验证，规则与客户端入口分开。桌面壳启动独立服务进程；公共屏、手机端和房主管理在同一网页工程中分开入口与布局。采用依据见 [工程基础技术决策](../decisions/001-engineering-foundation.md)。
 
+当前三入口保留工程验证职责；后续产品按用户新增[界面决策 002](../decisions/002-host-public-screen-and-debug.md)采用公共大屏兼房主管理及独立手机界面，并预留待确认能力的调试模式。首版计分独立放在游戏规则层文件／模块中，当前尚未创建游戏计分源码。
+
 上表列出的结构均已创建。第一阶段工程基础已验证，第二阶段另已交付独立合成原型及通用规格，其完整游戏交付仍受规则关口约束。具体依赖方向与机制归属见 [代码结构与工程边界](architecture.md)。`packages/platform-core/` 与 `packages/ui/` 尚未创建，平台业务机制与独立通用 UI 包按实际需要在后续阶段建立。工程基础和原型验证不表示大厅、身份、游戏或恢复能力已经实现；证据分别见 [第一阶段任务](../archive/phase-01-engineering-foundation.md)、[第二阶段任务](../tasks/phase-02-rules-and-interaction.md)。
 
 游戏规则研究、扩展指南和资源整理时，按实际工作建立对应主题目录并更新索引。[第二阶段任务](../tasks/phase-02-rules-and-interaction.md) 已列出游戏主题计划去向；规则关口尚未通过，`docs/games/`、`docs/game-development/` 等仍未创建。来源、缺口和接续步骤统一维护在该任务页，长期通用规格维护在 [第二阶段平台规格](phase-02-platform-spec.md)。游戏标识在版本确认后确定，并与后续源码模块一致；已有需求原件统一存放在 `docs/requirements/`，不在根目录保留副本。
@@ -42,6 +44,7 @@
 - 本地实验、临时导出或下载中间文件可放入根目录 `tmp/`（需要时创建）；不作为长期资料入口。
 - 根目录 `build/` 已用于可再生构建中间物，`dist/` 为保留的构建排除项。工程验证便携包、截图与 JSON 证据保存在 `artifacts/phase-01/`；第二阶段原型构建、检索原始响应和走查证据在 `artifacts/phase-02/`。这些文件 Git 忽略但文件树保持可见；正式产品交付策略在第六阶段确认。
 - `artifacts/phase-02/prototype/` 是可再生原型构建，`verification/` 是对应走查证据，`research/` 是已保存的检索响应与哈希清单。资料是否可再生分别判断，不能因同在 artifacts 下就覆盖或删除原始响应。路径与命令见开发说明，资料适用性见 [规则来源与核验缺口](../tasks/phase-02-rules-and-interaction.md#规则来源与核验缺口)。
+- `artifacts/phase-02/research/chinese-reference/s14/` 保存用户三张原始中文截图、尺寸／哈希和牌面转录；叠图数量未知，研究观察 JSON 不作为完整运行时牌表或美术资源导入。
 - `artifacts/phase-02/art-reset/` 保存 imagegen 原始 PNG、素材检查、三端同尺寸前后对比与文字密度测量；`verification/before-art-reset/` 保留重置前截图。原始图像与历史证据不被原型构建覆盖。
 - 原始规则资料、数据、正式资源和最终交付物不按扩展名笼统忽略；是否提交按实际用途、来源与需要决定。
 - 运行数据默认放在系统当前用户 `LOCALAPPDATA` 下的 `TableMax/`，具体位置和验证覆盖方式见 [开发说明](development.md)。当前仅有工程验证数据库，不在仓库内生成玩家存档或秘密状态。

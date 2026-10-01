@@ -12,6 +12,8 @@
 
 用户指定中文资料已整理为[参考规则草案](docs/tasks/phase-02-rules-and-interaction.md#中文参考规则草案)，覆盖布局、初始化、替换、配对计分及部分能力概述；新增检索只使用中文来源。另已预备[原创自然主题背景](apps/web/src/prototype/assets/theme-preparation/manifest.json)，作为未导入 UI 的本地资源候选。
 
+三轮规则答复和三张中文截图已补充普通换牌朝向、六类特殊分值及能力介绍；图文触发差异、百变怪边界和完整数量仍待确认。后续公共大屏兼房主管理并增加调试模式，设计及待答范围见[界面决策 002](docs/decisions/002-host-public-screen-and-debug.md)；当前工程／原型仍为原有三个角色入口，计分模块、合并界面及调试能力尚未实现。
+
 ## 开发与验证
 
 开发目标为本机 Windows 11 x64，使用 Node.js 22.14.0、pnpm 10.12.1。在项目根目录执行：
