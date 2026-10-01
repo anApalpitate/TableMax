@@ -34,7 +34,7 @@
 
 上表列出的结构均已创建。第一阶段工程基础已验证，第二阶段另已交付独立合成原型及通用规格，其完整游戏交付仍受规则关口约束。具体依赖方向与机制归属见 [代码结构与工程边界](architecture.md)。`packages/platform-core/` 与 `packages/ui/` 尚未创建，平台业务机制与独立通用 UI 包按实际需要在后续阶段建立。工程基础和原型验证不表示大厅、身份、游戏或恢复能力已经实现；证据分别见 [第一阶段任务](../archive/phase-01-engineering-foundation.md)、[第二阶段任务](../tasks/phase-02-rules-and-interaction.md)。
 
-游戏规则研究、扩展指南和资源整理时，按实际工作建立对应主题目录并更新索引。[第二阶段任务](../tasks/phase-02-rules-and-interaction.md) 已列出游戏主题计划去向；规则关口尚未通过，`docs/games/`、`docs/game-development/` 等仍未创建。来源、缺口和接续步骤统一维护在该任务页，长期通用规格维护在 [第二阶段平台规格](phase-02-platform-spec.md)。游戏标识在版本确认后确定，并与后续源码模块一致；已有需求原件统一存放在 `docs/requirements/`，不在根目录保留副本。
+游戏规则研究、扩展指南和资源整理时，按实际工作建立对应主题目录并更新索引。[第二阶段任务](../tasks/phase-02-rules-and-interaction.md) 已列出游戏主题计划去向；规则关口尚未通过，`docs/games/`、`docs/game-development/` 等仍未创建。来源、缺口和接续步骤统一维护在该任务页，长期通用规格维护在 [第二阶段平台规格](phase-02-platform-spec.md)。游戏标识在采用基线的专属规格构建时确定，并与后续源码模块一致；首版允许按用户授权补齐项目方案，采用版本与实体原文认证分别记录；已有需求原件统一存放在 `docs/requirements/`，不在根目录保留副本。
 
 新增目录应有当前明确职责，不预铺未来插件、多房间或后续游戏的空层级。确需跟踪空目录时使用 `.gitkeep` 或有实际用途的说明文件。
 

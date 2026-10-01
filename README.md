@@ -8,11 +8,11 @@
 
 第一阶段工程基础已完成：React／TypeScript 网页、Electron 桌面壳、独立本地服务、SQLite 工程验证适配器和固定工具链均已建立，Windows x64 便携 ZIP 已在本机通过解压运行验证。
 
-当前正式入口提供公共屏、手机端和管理端的工程验证页面，尚未实现大厅、身份、回退恢复或首版游戏。[第二阶段：规则与交互准备](docs/tasks/phase-02-rules-and-interaction.md) 正在进行：已建立[通用交互规格与三端美术原型](docs/reference/phase-02-platform-spec.md)，并完成合成 UI 的 10 组自动走查；目标简体中文版的完整规则与卡牌原文仍有[核验缺口](docs/tasks/phase-02-rules-and-interaction.md#规则来源与核验缺口)。规则关口未通过，完整游戏规格尚未冻结，第二阶段尚未完成。第一阶段任务已归档，完成证据见 [归档记录](docs/archive/phase-01-engineering-foundation.md)。
+当前正式入口提供公共屏、手机端和管理端的工程验证页面，尚未实现大厅、身份、回退恢复或首版游戏。[第二阶段：规则与交互准备](docs/tasks/phase-02-rules-and-interaction.md) 正在进行：已建立[通用交互规格与三端美术原型](docs/reference/phase-02-platform-spec.md)，并完成合成 UI 的 10 组自动走查；目标简体中文版的完整规则与卡牌原文仍有[核验缺口](docs/tasks/phase-02-rules-and-interaction.md#规则来源与核验缺口)。当前采用玩法已闭合；官方原文认证和游戏专属规格交付仍未完成，第二阶段尚未完成。第一阶段任务已归档，完成证据见 [归档记录](docs/archive/phase-01-engineering-foundation.md)。
 
 用户指定中文资料已整理为[参考规则草案](docs/tasks/phase-02-rules-and-interaction.md#中文参考规则草案)，覆盖布局、初始化、替换、配对计分及部分能力概述；新增检索只使用中文来源。另已预备[原创自然主题背景](apps/web/src/prototype/assets/theme-preparation/manifest.json)，作为未导入 UI 的本地资源候选。
 
-用户规则答复和三张中文截图已整理 16 类、56 张牌及六类特殊能力；六牌全明立即最终结算、默认三胜、共同赢家、公开摸牌和整个弃牌堆重洗已确认。主动能力只检查本人正常回合摸到并替换的牌，补牌与转移不触发；百变怪仅两张，联合求含配对的最低总分。最新确认不再执行剩余特殊效果或最后回合，中断补牌的空位计分仍待确认，版本原文核验继续接续。后续公共大屏兼房主管理，见[界面决策 002](docs/decisions/002-host-public-screen-and-debug.md)；跨游戏调试与纠错目标已写入[需求第 6.5 节](docs/requirements/TableMax_需求文档_v1.0.md#65-跨游戏调试与纠错后续独立规划)，后续独立规划。当前工程／原型仍为原有三个角色入口，计分模块、合并界面及调试能力尚未实现。
+用户规则答复和三张中文截图已整理 16 类、56 张牌及六类特殊能力。最新采用“当前特殊能力完全结算后，再检查六牌全明并最终结算”，无其他玩家最后回合；火箭队完整补位、闪电鸟完整传牌，不再产生中断空位计分问题。默认三胜、共同赢家、公开摸牌、整堆重洗及百变怪联合最低分保留。中文检索无完整边界依据的部分已按用户授权确定[项目方案](docs/tasks/phase-02-rules-and-interaction.md#未明示细节的项目方案)，不再追问；官方原文认证和游戏专属规格继续接续。后续公共大屏兼房主管理，见[界面决策 002](docs/decisions/002-host-public-screen-and-debug.md)；跨游戏调试与纠错目标见[需求第 6.5 节](docs/requirements/TableMax_需求文档_v1.0.md#65-跨游戏调试与纠错后续独立规划)，后续独立规划。当前计分模块、合并界面、完整能力及调试能力尚未实现。
 
 2026-10-01 新增 [人机要求](docs/reference/bot-players.md) 与 [适度封装约定](docs/reference/architecture.md#面向对象与适度封装)：可添加电脑玩家，各游戏独立维护决策文件，覆盖全部合法选择。当前只更新规格，尚无 bot 代码、电脑座位或相关验收结果；第一阶段既有完成状态保持，新增实现交给第二至六阶段。
 
@@ -47,7 +47,7 @@ pnpm verify:portable
 - [目录职责](docs/reference/project-structure.md)：现有目录与未来内容的边界。
 - [开发阶段与任务](docs/tasks/README.md)：粗粒度阶段、主要任务与交付物。
 - [第一阶段完成记录（归档）](docs/archive/phase-01-engineering-foundation.md)：已完成任务范围、清单与历史证据。
-- [第二阶段任务与核验记录](docs/tasks/phase-02-rules-and-interaction.md)：已交付范围、来源与规则缺口、完成标准及取得原文后的接续工作。
+- [第二阶段任务与核验记录](docs/tasks/phase-02-rules-and-interaction.md)：已交付范围、来源与规则缺口、完成标准、当前采用基线与接续工作。
 - [通用交互与交接规格](docs/reference/phase-02-platform-spec.md)：已选大厅交互、权限与恢复语义、资源方案、AC 场景及第三至五阶段输入。
 - [工程基础决策](docs/decisions/001-engineering-foundation.md)：已采用技术、固定版本及重要取舍。
 - [工程结构](docs/reference/architecture.md)：依赖方向、游戏契约、授权视图与后续恢复机制边界及面向对象的适度封装。
