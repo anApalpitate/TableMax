@@ -1,0 +1,64 @@
+{
+  "createdAt": "2026-10-01",
+  "purpose": "Pokemon Encounters quiet original garden tabletop background; playable cards and components remain separate UI elements.",
+  "generator": "built-in image_gen",
+  "mode": "generate",
+  "references": [
+    {
+      "file": "../cover-v1.webp",
+      "role": "Art direction only; inspected with view_image, not passed as an imagegen reference argument. Its cards, tokens and props are excluded from the generated background.",
+      "sha256": "12244d7c63afede2a0e8bdcd7981e6f85fdfa11ba98ab872fa124a51deaf00f8"
+    }
+  ],
+  "model": null,
+  "modelNote": "Tool returned no model identifier or generation parameters; no model value inferred.",
+  "source": "AI-generated original environment illustration, produced by the built-in tool from a prompt using the project's inspected garden cover art direction.",
+  "postprocessing": "Original PNG copied unchanged into project evidence. RGB WebP quality 90, method 6; no resizing of final asset (source longest edge is 1672). Desktop preview downscaled with Lanczos; mobile preview is an exact centered 390:844 crop resized with Lanczos. No content edits.",
+  "status": "1 of 1 background generated, visually verified and imported into production UI",
+  "assets": [
+    {
+      "id": "pokemon-encounters/tabletop/garden-table",
+      "assetId": "pokemon-encounters/tabletop/garden-table",
+      "purpose": "Full-window empty table environment beneath actual game UI; usable with CSS cover/center on desktop and mobile",
+      "quantity": 1,
+      "file": "garden-table-v1.webp",
+      "version": 1,
+      "prompt": "Use case: stylized-concept\nAsset type: original full-window game tabletop environment background, wide landscape approximately 16:9, opaque.\nPrimary request: Paint a polished, bright, warm, welcoming garden tabletop scene with an exceptionally calm empty cream-colored light wood surface occupying roughly 80 percent of the whole image, suitable as a real playable background under interface cards.\nStyle reference: The project's viewed cover-v1.webp is a warm sunny hand-painted garden scene with teal details, coral flowers, soft green foliage, pale golden wood and gently dimensional toy-like materials. Use only that art direction and palette, never its depicted cards, tokens, props or composition.\nScene/backdrop: An empty pale wooden garden tabletop seen almost straight from above. The tabletop covers nearly the entire image including the center and all bottom area. Only the outermost narrow edges and corners have restrained soft garden greenery and a few coral/cream flowers, with a hint of sunny garden depth at the very top edge.\nStyle/medium: High quality original hand-painted illustration, rounded natural forms, subtle cream paper texture, gentle warm shadows, refined family board-game atmosphere.\nComposition/framing: Wide approximately 16:9. The central 80 percent must be continuous quiet pale cream / very light honey wood with barely visible broad horizontal wood grain. No focal subject in the center. No high contrast plank borders, hard lines, busy dappled shadows or objects on the tabletop. The empty table surface must fill a centered tall narrow phone crop as well. Decorative garden border small and restrained.\nLighting/mood: Soft diffuse morning sunlight, warm but very pale, low contrast lighting across the table, shadows only at extreme corners. Cheerful serene premium game environment.\nColor palette: Pale cream #F6F2E8 table, restrained muted leafy greens and teal #247C75 at far edges, tiny warm gold #F4BE45 and coral #E77A60 accents.\nConstraints: This is ONLY a blank environmental background. All real game cards and components will be rendered later by code. Absolutely no cards, card backs, card piles, coins, medallions, dice, tokens, counters, pawns, meeples, trays, boards, tiles, game pieces or any depicted game components. No cups, jars, fabrics or tableware. No people, animals, creatures, characters or faces. No text, letters, numbers, logos, watermarks, symbols or UI. Keep the center empty and clean.",
+      "source": "built-in image_gen; newly generated original garden tabletop environment",
+      "status": "generated-original-visual-verified-imported",
+      "generated": true,
+      "verified": true,
+      "importedIntoUI": true,
+      "width": 1672,
+      "height": 940,
+      "originalWidth": 1672,
+      "originalHeight": 940,
+      "transparent": false,
+      "bytes": 101962,
+      "sha256": "a332d20c81115e49c12593ec42530682e8574efdf05b2b3260706749820b1951",
+      "originalSha256": "6f5768f50e74203122263ac2241a256a604c7a8535d4a19f24352559e3ad1d3c",
+      "originalFile": "artifacts/maintenance/visual-polish/imagegen/garden-table-v1-source.png",
+      "visualCheck": {
+        "subject": "passed empty garden tabletop, no game components",
+        "composition": "passed quiet continuous pale wood across center; leaves and flowers confined to outer corners and a narrow top edge",
+        "style": "passed warm refined painted garden palette matching the inspected cover art direction",
+        "noTextOrNumbers": "passed",
+        "noLogosOrWatermarks": "passed",
+        "noPeopleCreaturesOrCharacters": "passed",
+        "alpha": "opaque RGB as requested",
+        "desktopPreview": "passed 1280x720; entire tabletop remains usable with restrained edge decoration",
+        "mobileCenterCrop": "passed 390x844 center crop; quiet pale wooden surface and a narrow garden strip at top; no depicted game objects",
+        "checks": [
+          "Original generated PNG inspected",
+          "Final WebP visually inspected",
+          "390x844 mobile center crop visually inspected",
+          "Dimensions, file bytes and SHA256 measured"
+        ],
+        "limitations": "Background-only verification. UI integration, text contrast and runtime game scene validation are the main agent's responsibility. Generated source is 1672x940, retained without upscaling rather than artificially enlarged to 1920."
+      }
+    }
+  ],
+  "verificationEvidence": "../../../../artifacts/maintenance/visual-polish/imagegen/file-verification.json",
+  "desktopPreviewEvidence": "../../../../artifacts/maintenance/visual-polish/imagegen/garden-table-v1-desktop-preview.webp",
+  "mobilePreviewEvidence": "../../../../artifacts/maintenance/visual-polish/imagegen/garden-table-v1-mobile-preview.webp"
+}

@@ -220,3 +220,9 @@ UI 合法存档 fixture 的构造入口在 scripts/fixtures/prepare-pokemon.ts�
 2026-10-01 游戏原型最终走查通过9组／16张PNG，记录为 `artifacts/phase-02/verification/game/game-prototype.json`，外部请求和页面错误均为空。覆盖全部能力及完整后结束、本人临时查看、提交／暂停／回退／换绑／同步、电脑合成响应与大厅开局；公共1920×1080、手机360／390、24px底部安全区模拟、220ms保存后动效及减少动态通过。安全区模拟不等于iPhone实机。`specification-data.json`记录16类56张、11份完整牌组、三小局固定对局算术与正式构建隔离；文档／来源审计在research/chinese-reference/verification.json。类型、静态、格式、独立原型及正式构建均通过，真实规则／bot／存档和产品AC未验收。
 
 手机固定提交栏调整后，另以 `pnpm prototype:verify:game --layout-only` 通过5组／17张截图；证据在 `artifacts/phase-02/verification/game/layout/`，检查下排选格后按钮仍可见、卡位中心无覆盖及安全区。完整流程与针对性布局证据分别保留。
+
+### 1.0.2 视觉维护验证
+
+`pnpm verify:cards` 使用正式 CardFace／CSS 和公开类别定义，单独构建只用于验证的卡面画廊，覆盖全部 16 类在 60／68／90／110／140px 下的名称裁切、字号、数值／能力碰撞和插画边界；它不是完整对局验收。证据进入 `artifacts/maintenance/visual-polish/cards`。
+
+`pnpm verify:game-ui` 扩展为十四组真实服务场景：十组既有能力／基本操作加 2–5 人和长昵称排布。保留每种关键阶段截图，并检查默认窗口、桌面、平板、短手机与横屏。新增弃牌浮层／Escape／修订保持及减少动态补查。`--verify-deal` 核验真实下一小局的发牌动效；`--only` 用逗号选择场景，PowerShell 中用引号包住完整参数，例如 `pnpm verify:game-ui '--only=L2,L3,L4,L5' --evidence=landscape`，把补查保存到独立子目录。参数不选择任何已知场景时直接失败，避免空跑显示通过。证据在 `artifacts/maintenance/visual-polish/ui`；开发整局和便携验证分别在同级 `development`、`portable`。历史 `game-experience`、phase-06 证据保留。

@@ -7,9 +7,9 @@
     max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom))
     max(16px, env(safe-area-inset-left));
   background:
-    linear-gradient(#fffbe4c9, #f2edd4db),
-    url('../../../../games/pokemon-encounters/assets/cover-v1.webp') center /
-      cover;
+    linear-gradient(#fffbe426, #f2edd426),
+    url('../../../../games/pokemon-encounters/assets/tabletop/garden-table-v1.webp')
+      center / cover;
 }
 .game-toolbar {
   gap: 8px;
@@ -49,19 +49,19 @@
   flex-direction: column;
   align-items: stretch;
   gap: 12px;
-  padding: 18px 20px 10px;
+  padding: 14px 16px 10px;
   border: 2px solid #fcf4d3;
   border-radius: 36px;
-  background: radial-gradient(ellipse at 50% 40%, #fffbeaeb, #eef0d9ed);
+  background: radial-gradient(ellipse at 50% 40%, #fffbea40, #eef0d926);
   box-shadow:
     inset 0 0 0 6px #d5caa350,
     0 12px 28px #42391618;
 }
 .game-table .pokemon-status {
   align-self: center;
-  width: min(100%, 820px);
+  width: min(100%, 940px);
   margin: 0;
-  background: #fffdf2b3;
+  background: #fffdf2ed;
   border-color: #c9ccaa;
   border-radius: 24px;
 }
@@ -72,13 +72,15 @@
   gap: clamp(12px, 2vw, 28px);
   align-items: center;
   justify-items: center;
+  align-self: center;
+  width: min(100%, calc(var(--seat-count) * 400px));
 }
 .game-screen .game-seat {
   width: 100%;
-  max-width: min(460px, max(210px, calc((100dvh - 380px) * 1.02)));
-  background: #fffaf0b3;
+  max-width: min(460px, max(190px, calc((100dvh - 380px) * 1.02)));
+  background: #fffaf0e6;
   border: 2px solid #d6d5b7;
-  padding: 14px;
+  padding: 10px;
   box-shadow:
     0 6px 0 #c3bc9226,
     0 12px 22px #353e2910;
@@ -114,14 +116,18 @@
   font-size: 16px;
   margin: 0;
   line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.seat-heading > div {
+  min-width: 0;
 }
 .game-screen .seat-heading p {
   margin: 2px 0 0;
-  font-size: 11px;
+  font-size: 12px;
   color: #5b7056;
 }
 .game-screen .card-name {
-  font-size: clamp(9px, 0.9vw, 14px);
+  font-size: 12px;
 }
 .game-screen .pokemon-board {
   margin: 12px 0;
@@ -182,6 +188,7 @@
   color: #173b32;
   background: #fffdf3;
   box-shadow: 0 22px 80px #172d3250;
+  overscroll-behavior: contain;
 }
 .overlay-panel::backdrop {
   background: #152f2bb3;
@@ -269,6 +276,11 @@
 }
 @media (max-width: 1000px) and (min-width: 701px) {
   .game-seats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    align-items: start;
+  }
+  .game-table[data-seats='3'] .game-seats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .game-toolbar h1 {
@@ -297,7 +309,7 @@
   .game-toolbar .connection {
     margin-right: auto;
     padding: 4px;
-    font-size: 10px;
+    font-size: 12px;
     border: 0;
     background: transparent;
   }
@@ -305,7 +317,7 @@
     margin-left: 6px;
   }
   .game-table {
-    padding: 12px 10px;
+    padding: 8px;
     border-radius: 24px;
   }
   .game-seats {
@@ -339,41 +351,52 @@
     padding: 10px;
     gap: 6px;
     border-radius: 16px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    text-align: left;
   }
   .game-screen .pokemon-status h2 {
     font-size: 15px;
   }
   .game-screen .pokemon-status .eyebrow {
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 0;
   }
   .game-screen .pokemon-status p {
-    font-size: 11px;
+    font-size: 12px;
   }
   .game-screen .card-piles {
-    gap: 7px;
+    gap: 14px;
+    justify-content: center;
   }
   .game-screen .card-piles > div {
-    width: 48px;
+    width: 68px;
   }
   .game-screen .card-piles .card-value {
     font-size: 20px;
-    min-width: 24px;
-    min-height: 24px;
   }
   .game-screen .card-piles .card-name {
-    font-size: 8px;
+    font-size: 12px;
   }
   .game-screen .pile-label {
-    font-size: 10px;
+    font-size: 12px;
   }
   .game-screen .empty-pile {
-    height: 68px;
-    font-size: 10px;
+    font-size: 12px;
   }
-  .game-screen.player .pokemon-player > .pokemon-board {
-    max-width: min(100%, max(240px, calc((100dvh - 340px) * 1.06)));
-    margin: 12px auto;
+  .game-screen.player .pokemon-player > .pokemon-board,
+  .game-screen.player .game-seat > .pokemon-board,
+  .game-screen.player .target-board .pokemon-board {
+    max-width: min(100%, max(230px, calc((100dvh - 390px) * 0.95)));
+    margin: 8px auto;
+  }
+  .game-screen.player .game-seats {
+    flex: 0;
+  }
+  .game-screen.player .card-piles {
+    gap: 10px;
+  }
+  .game-screen.player .card-piles > div {
+    width: 62px;
   }
   .game-screen.player .card-name {
     font-size: 12px;
@@ -406,7 +429,7 @@
     font-size: 36px;
   }
   .game-screen .table-caption {
-    font-size: 11px;
+    font-size: 12px;
   }
   .table-notice {
     font-size: 12px;
@@ -416,5 +439,111 @@
 @media (prefers-reduced-motion: reduce) {
   .game-screen .game-seat {
     transition: none;
+  }
+}
+@media (orientation: landscape) and (max-height: 550px) and (min-width: 560px) {
+  .game-screen.player .game-table {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-content: start;
+    align-items: start;
+    gap: 10px;
+  }
+  .game-screen.player .pokemon-status {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .game-screen.player .game-seats {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+  .game-screen.player .friends-control,
+  .game-screen.player .table-caption {
+    grid-column: 1;
+    justify-self: center;
+  }
+  .game-screen.player .game-seat {
+    padding: 6px;
+  }
+  .game-screen.player .pokemon-board {
+    max-width: 230px;
+    margin: 8px auto;
+  }
+  .game-screen.player .seat-heading {
+    margin-bottom: 4px;
+  }
+  .game-screen.player .avatar {
+    width: 32px;
+    height: 32px;
+  }
+  .game-screen.player .seat-heading h3 {
+    font-size: 14px;
+  }
+  .game-screen.player .submit-choice {
+    position: fixed;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    left: max(20px, env(safe-area-inset-left));
+    width: calc(50% - 40px);
+    z-index: 2;
+    background: #fff9e7;
+    border: 1px solid #d7cdac;
+    border-radius: 16px;
+    padding: 10px;
+  }
+  .game-screen.player .seat-heading,
+  .game-screen.player .game-seat > .win-track,
+  .game-screen.player .pokemon-player > .win-track,
+  .game-screen.player .decision-hint,
+  .game-screen.player .target-board h4 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .game-screen.player:has(.submit-choice) .friends-control,
+  .game-screen.player:has(.submit-choice) .table-caption {
+    display: none;
+  }
+  .game-screen.player .card-piles > div {
+    width: 62px;
+  }
+  .game-screen.player .game-seat {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .game-screen.player .round-banner {
+    grid-column: 1 / -1;
+  }
+  .game-screen.player .result-table .game-seats {
+    grid-row: 2 / span 3;
+  }
+}
+@media (min-width: 1001px) and (max-width: 1300px) {
+  .game-table[data-seats='5'] {
+    padding: 12px 8px 10px;
+  }
+  .game-table[data-seats='5'] .game-seats {
+    gap: 10px;
+  }
+  .game-table[data-seats='5'] .game-seat {
+    padding: 6px;
+  }
+  .game-table[data-seats='5'] .pokemon-board {
+    gap: 4px;
+  }
+  .game-table[data-seats='5'] .pokemon-card {
+    aspect-ratio: 2 / 3;
+  }
+  .game-table[data-seats='5'] .avatar {
+    width: 32px;
+    height: 32px;
+  }
+  .game-table[data-seats='5'] .seat-heading {
+    gap: 4px;
+  }
+  .game-table[data-seats='5'] .seat-heading h3 {
+    font-size: 14px;
   }
 }

@@ -4,7 +4,7 @@
 
 ## 开始开发
 
-当前源码为 1.0.1，盒子与独立牌桌的持续维护见 [通用交互](reference/phase-02-platform-spec.md#盒子与独立牌桌) 和 [维护验收](reference/acceptance.md#首版维护独立牌桌与操作简化)。第一至六阶段的 1.0.0 历史交付与证据继续保留；新便携版和维护证据分别进入 `artifacts/releases` 与 `artifacts/maintenance`。
+当前源码为 1.0.2，视觉纠错、场景排布和动效补充见 [本轮维护验收](reference/acceptance.md#首版维护视觉纠错与场景打磨)。盒子与独立牌桌的持续维护见 [通用交互](reference/phase-02-platform-spec.md#盒子与独立牌桌) 和 [维护验收](reference/acceptance.md#首版维护独立牌桌与操作简化)。第一至六阶段的 1.0.0 历史交付与证据继续保留；新便携版和维护证据分别进入 `artifacts/releases` 与 `artifacts/maintenance`。
 
 先读 [项目说明](../README.md) 了解现状，再从 [阶段接续入口](tasks/README.md#后续开发接续入口) 确认本阶段范围，按实现职责阅读规格和源码。运行与检查统一查 [开发环境](reference/development.md)，Agent 工作约定见 [AGENTS.md](../AGENTS.md)。
 

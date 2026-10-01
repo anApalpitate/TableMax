@@ -880,5 +880,11 @@
     "audio": 5,
     "allBuiltBytesMatchSource": true,
     "evidence": "../../../artifacts/phase-06/verification/assets.json"
-  }
+  },
+  "collections": [
+    {
+      "manifest": "tabletop/manifest.json",
+      "purpose": "Empty garden tabletop background for production game routes; source, prompt, hashes and verification maintained in that manifest"
+    }
+  ]
 }

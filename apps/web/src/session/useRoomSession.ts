@@ -92,13 +92,16 @@ export function useRoomSession(role: ScreenRole) {
             changedSlots.current.push('@coin');
           if (JSON.stringify(before.held) !== JSON.stringify(after.held))
             changedSlots.current.push('@held');
+          const dealt = before.roundNumber !== after.roundNumber;
           for (const seat of after.seatOrder)
             after.boards[seat]!.forEach((slot, i) => {
-              if (
-                JSON.stringify(slot) !==
-                JSON.stringify(before.boards[seat]?.[i])
-              )
+              const old = before.boards[seat]?.[i];
+              if (JSON.stringify(slot) !== JSON.stringify(old)) {
                 changedSlots.current.push(slot.slotId);
+                if (dealt) changedSlots.current.push(`deal:${slot.slotId}`);
+                else if (old && !old.faceUp && slot.faceUp)
+                  changedSlots.current.push(`reveal:${slot.slotId}`);
+              }
             });
         }
         if (

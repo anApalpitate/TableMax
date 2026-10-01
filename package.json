@@ -1,6 +1,6 @@
 {
   "name": "tablemax",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.12.1",
@@ -21,6 +21,7 @@
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "verify:desktop": "node scripts/verify-pokemon.mjs",
     "verify:game-ui": "node scripts/verify-game-ui.mjs",
+    "verify:cards": "node scripts/verify-card-layout.mjs",
     "package:win": "node scripts/package.mjs",
     "verify:portable": "node scripts/verify-pokemon.mjs --portable",
     "prototype:dev": "vite --config apps/web/vite.prototype.config.ts",

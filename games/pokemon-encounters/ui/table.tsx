@@ -50,6 +50,7 @@ export function GameTable({
   return (
     <section
       className={`game-table ${game.roundResult ? 'result-table' : ''}`}
+      data-seats={seats.length}
       aria-label="游戏牌桌"
     >
       {!game.roundResult && (
@@ -103,7 +104,13 @@ export function GameTable({
             className={`seat game-seat ${playing && !paused && (game.phase === 'initial-flip' ? !game.initialDone.includes(seat.id) : seat.id === (game.actorSeat ?? game.turnSeat)) ? 'active' : ''} ${winners.includes(seat.id) ? 'winner' : ''}`}
           >
             <div className="seat-heading">
-              <img className="avatar" src={seat.portrait} alt="" />
+              <img
+                className="avatar"
+                src={seat.portrait}
+                alt=""
+                width={44}
+                height={44}
+              />
               <div>
                 <h3>
                   {seat.name}

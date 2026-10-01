@@ -4,7 +4,7 @@ import { Board, CardFace } from '../cards';
 import { phaseLabels } from '../phases';
 import pikachuCoin from '../../assets/coin-pikachu-v1.webp';
 import meowthCoin from '../../assets/coin-meowth-v1.webp';
-import { useContext } from 'react';
+import { useContext, useId, useRef } from 'react';
 import { SavedMotion } from '../motion';
 import type { JsonValue } from '@tablemax/game-sdk';
 import type { Action } from '../../rules';
@@ -66,6 +66,8 @@ export function TableStatus({
   drawActions?: readonly JsonValue[];
   onDraw?: ((action: JsonValue) => void) | undefined;
 }) {
+  const gallery = useRef<HTMLDialogElement>(null);
+  const galleryTitle = useId();
   const motion = useContext(SavedMotion);
   const draws = (drawActions as readonly Action[]).filter(
     (action) => action.type === 'draw',
@@ -139,14 +141,34 @@ export function TableStatus({
         )}
       </div>
       {view.discard && view.discard.length > 0 && (
-        <details>
-          <summary>展开全部弃牌（底 → 顶）</summary>
-          <div className="discard-gallery">
-            {view.discard.map((card, i) => (
-              <CardFace key={i} card={card} />
-            ))}
-          </div>
-        </details>
+        <div className="discard-control">
+          <button
+            className="secondary"
+            onClick={() => gallery.current?.showModal()}
+          >
+            查看弃牌（{view.discard.length}）
+          </button>
+          <dialog
+            ref={gallery}
+            className="card-gallery-panel"
+            aria-labelledby={galleryTitle}
+          >
+            <header className="gallery-heading">
+              <h2 id={galleryTitle}>弃牌 · 底 → 顶</h2>
+              <button
+                className="secondary"
+                onClick={() => gallery.current?.close()}
+              >
+                关闭
+              </button>
+            </header>
+            <div className="discard-gallery">
+              {view.discard.map((card, i) => (
+                <CardFace key={i} card={card} />
+              ))}
+            </div>
+          </dialog>
+        </div>
       )}
     </div>
   );

@@ -3,7 +3,6 @@ import type { JsonValue } from '@tablemax/game-sdk';
 import type { Action } from '../../rules';
 import type { PokemonView } from '../../rules/project';
 import { Board, CardFace } from '../cards';
-import { phaseLabels } from '../phases';
 
 export function PlayerControls({
   view,
@@ -23,6 +22,12 @@ export function PlayerControls({
   const actions = input as readonly Action[];
   const [selection, setSelection] = useState<Action | null>(null);
   const [first, setFirst] = useState<number | null>(null);
+  const targets = view.seatOrder.filter((seat) =>
+    actions.some(
+      (action) => action.type === 'mew-target' && action.seat === seat,
+    ),
+  );
+  const [target, setTarget] = useState(targets[0] ?? '');
   const chooseOwn = (slot: number) => {
     if (view.phase === 'snorlax-choice') {
       if (first === null || first === slot) {
@@ -101,7 +106,7 @@ export function PlayerControls({
                 ? '记住这张牌，看完后关闭。'
                 : '点选卡位，选好后确认。'}
       </p>
-      {view.phase !== 'charizard-view' && (
+      {view.phase !== 'charizard-view' && view.phase !== 'mew-other' && (
         <Board
           view={view}
           seatId={seatId}
@@ -111,44 +116,62 @@ export function PlayerControls({
           select={chooseOwn}
         />
       )}
-      <h3>{phaseLabels[view.phase]}</h3>
       {view.peek && (
         <div className="private-peek" role="status">
           <p>仅你可见 · 位置 {view.peek.slot + 1} · 牌仍朝下</p>
           <CardFace card={view.peek.card} />
         </div>
       )}
-      {view.phase === 'mew-other' &&
-        view.seatOrder
-          .filter((seat) => seat !== seatId)
-          .map((seat) => (
-            <section key={seat} className="target-board">
-              <h4>{names[seat]}</h4>
-              <Board
-                view={view}
-                seatId={seat}
-                slots={actions.flatMap((a) =>
-                  a.type === 'mew-target' && a.seat === seat ? [a.slot] : [],
-                )}
-                selected={
-                  selection?.type === 'mew-target' && selection.seat === seat
-                    ? [selection.slot]
-                    : []
-                }
-                locked={locked}
-                select={(slot) =>
-                  setSelection(
-                    actions.find(
-                      (a) =>
-                        a.type === 'mew-target' &&
-                        a.seat === seat &&
-                        a.slot === slot,
-                    ) ?? null,
-                  )
-                }
-              />
-            </section>
-          ))}
+      {view.phase === 'mew-other' && (
+        <>
+          <div className="target-tabs" aria-label="选择朋友的场地">
+            {targets.map((seat) => (
+              <button
+                key={seat}
+                className="secondary"
+                aria-pressed={target === seat}
+                onClick={() => {
+                  setTarget(seat);
+                  setSelection(null);
+                }}
+                disabled={locked}
+              >
+                {names[seat]}
+              </button>
+            ))}
+          </div>
+          {targets
+            .filter((seat) => seat === target)
+            .map((seat) => (
+              <section key={seat} className="target-board">
+                <h4>{names[seat]}</h4>
+                <Board
+                  view={view}
+                  seatId={seat}
+                  slots={actions.flatMap((a) =>
+                    a.type === 'mew-target' && a.seat === seat ? [a.slot] : [],
+                  )}
+                  selected={
+                    selection?.type === 'mew-target' && selection.seat === seat
+                      ? [selection.slot]
+                      : []
+                  }
+                  locked={locked}
+                  select={(slot) =>
+                    setSelection(
+                      actions.find(
+                        (a) =>
+                          a.type === 'mew-target' &&
+                          a.seat === seat &&
+                          a.slot === slot,
+                      ) ?? null,
+                    )
+                  }
+                />
+              </section>
+            ))}
+        </>
+      )}
       <div className="intent-actions">
         {actions
           .filter(
@@ -171,7 +194,11 @@ export function PlayerControls({
         <div className="submit-choice">
           <p aria-live="polite">
             {selection
-              ? short(selection)
+              ? selection.type === 'mew-target'
+                ? `${names[selection.seat]} · 位置 ${selection.slot + 1}`
+                : 'slot' in selection
+                  ? `位置 ${selection.slot + 1} 已选中`
+                  : '两张牌已选中'
               : first !== null
                 ? '再选一个不同位置'
                 : '选一张牌'}

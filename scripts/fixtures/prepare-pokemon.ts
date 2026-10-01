@@ -6,9 +6,17 @@ import fixtures from '../../docs/games/pokemon-encounters/scenarios.json';
 
 // Verification-only saved scenarios, consumed by the unmodified production rules.
 // No scene selector or full-state endpoint is included in the shipped service.
-export async function prepare(id: string, dataDir: string, seed?: number) {
-  const f = fixtures.scenarios.find((entry) => entry.id === id)!.fixture!;
-  const original = Object.keys(f.boards);
+export async function prepare(
+  id: string,
+  dataDir: string,
+  seed?: number,
+  count = 2,
+) {
+  const f = fixtures.scenarios.find((entry) => entry.id === id)?.fixture;
+  if (!f && id !== 'layout') throw new Error(`Unknown fixture: ${id}`);
+  const original = f
+    ? Object.keys(f.boards)
+    : Array.from({ length: count }, (_, i) => String(i));
   const game = {
     ...rules,
     initialize({ seats }: { seats: readonly string[] }) {
@@ -17,6 +25,7 @@ export async function prepare(id: string, dataDir: string, seed?: number) {
         seats,
         random: { next: () => 0.5 },
       }) as State;
+      if (!f) return base;
       return {
         ...base,
         boards: Object.fromEntries(
@@ -52,7 +61,11 @@ export async function prepare(id: string, dataDir: string, seed?: number) {
     });
   };
   for (let i = 0; i < original.length; i++) {
-    const player = await room.join(`场景玩家 ${i + 1}`);
+    const player = await room.join(
+      id === 'layout' && i === 0
+        ? '很长的朋友昵称测试十二字'
+        : `场景玩家 ${i + 1}`,
+    );
     players.push(player);
     const result = await command(player.token, { type: 'ready', ready: true });
     if (!result.ok) throw new Error(result.reason);

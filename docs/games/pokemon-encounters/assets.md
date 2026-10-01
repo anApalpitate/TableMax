@@ -16,7 +16,7 @@
 | 帮助／1                                     | ui/public 的 GameHelp                                                                         | 当前采用版本的本地规则／来源说明，不依赖外链                                        |
 | 提示音／5                                   | assets/audio 的 draw、replace、effect-complete、round-result、error-v1.wav                    | TableMax 原创程序合成短音，PCM 16-bit mono、22050Hz、0.24–0.42 秒；已导入和解码验证 |
 
-20 张主题 WebP 共 667,616 字节。[主题清单](../../../games/pokemon-encounters/assets/manifest.json) 记录完整提示词、类别／规则映射、版本、尺寸、alpha、字节数／SHA-256、来源及生成／核验／导入状态；[音频清单](../../../games/pokemon-encounters/assets/audio/manifest.json) 记录编码、时长、哈希和生成脚本。[平台清单](../../../apps/web/src/assets/tabletop/manifest.json) 保留既有头像等来源。
+既有 20 张主题 WebP 共 667,616 字节。[主题清单](../../../games/pokemon-encounters/assets/manifest.json) 记录完整提示词、类别／规则映射、版本、尺寸、alpha、字节数／SHA-256、来源及生成／核验／导入状态；[音频清单](../../../games/pokemon-encounters/assets/audio/manifest.json) 记录编码、时长、哈希和生成脚本。[平台清单](../../../apps/web/src/assets/tabletop/manifest.json) 保留既有头像等来源。
 
 ## 美术方案与保留材料
 
@@ -30,4 +30,12 @@ UI 仅为已授权公开牌／本人临时查看加载对应类别图，未知�
 
 公共屏或主机经本屏手势开启后，只对未来新保存事件发声，可静音；手机不渲染声音控件。实例／分支／修订同事件最多一次，快速操作用新短音替换前音。同步、回退、恢复、打开帮助不补播；回退／断开停止当前声音。播放失败保留静音状态，规则继续；保存成功仍以服务确认判断。
 
-保存后的卡位／暂持牌／阶段提示为 220ms 一次性动效，结算 240ms，公开币面 480ms、胜局徽章 380ms；减少动态关闭移动和过渡。设备范围、资源哈希与实际解码／播放调用证据见 [验收记录](../../reference/acceptance.md)；当前检查没有声称现场听音或真实手机／电视验收。
+保存后的翻牌 320ms、发牌 360ms，换入卡位／暂持牌／阶段提示为 220ms 一次性动效，结算 240ms，公开币面 480ms、胜局徽章 380ms；减少动态关闭移动和过渡。设备范围、资源哈希与实际解码／播放调用证据见 [验收记录](../../reference/acceptance.md)；当前检查没有声称现场听音或真实手机／电视验收。
+
+## 牌桌背景与卡面分区（1.0.2）
+
+新增 `assets/tabletop/garden-table-v1.webp`，1672×940 RGB，101,962 字节，使用内置 imagegen 新生成并核验。中央为连续浅木纹，边缘为花园装饰，不含画好的牌、硬币、角色或文字；用于真实 `/game` 场景，盒子继续使用聚会封面。21 张主题 WebP 合计 769,578 字节。
+
+[背景清单](../../../games/pokemon-encounters/assets/tabletop/manifest.json) 作为主题清单的子集合，记录实际提示词、原图／最终哈希、仅查看封面作为美术方向参考、生成模式与导入状态；没有推测工具未返回的模型参数。原 PNG、电脑／手机中心裁切和核验记录保留在 `artifacts/maintenance/visual-polish/imagegen`。正式图保持源图实际尺寸，没有人为放大。背景已导入并经真实多人数／多尺寸场景复核。
+
+卡牌位图只占独立插画区域，数值、能力标记和名称由代码排版；位置编号在牌外。新增保存翻牌 320ms、发牌 360ms，换入 220ms；具体清理和隐私边界见 [交互规格](interaction.md#视觉排布维护102)。全部资源继续本地打包，已有静物卡面和历史原图保留。

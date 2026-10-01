@@ -5,12 +5,27 @@ import { mkdir, mkdtemp, writeFile, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
+const verifyDeal = process.argv.includes('--verify-deal');
+const evidenceName = process.argv
+  .find((arg) => arg.startsWith('--evidence='))
+  ?.slice(11);
+assert.ok(!evidenceName || /^[a-z0-9-]{1,40}$/.test(evidenceName));
+const only =
+  process.argv
+    .find((arg) => arg.startsWith('--only='))
+    ?.slice(7)
+    .split(',') ?? (verifyDeal ? ['V03'] : undefined);
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/game-ui-')),
-  output = resolve('artifacts/maintenance/game-experience/ui');
+  output = resolve(
+    'artifacts/maintenance/visual-polish/ui',
+    ...(only
+      ? [evidenceName ?? (verifyDeal ? 'round-deal' : 'additional')]
+      : []),
+  );
 await mkdir(output, { recursive: true });
 const audioFiles = (await readdir('build/desktop/web/assets')).filter((file) =>
   file.endsWith('.wav'),
@@ -26,6 +41,15 @@ await build({
 });
 const { prepare } = require(join(work, 'prepare.cjs'));
 const scenes = [
+  ...[2, 3, 4, 5].map((count) => ({
+    id: `L${count}`,
+    fixture: 'layout',
+    count,
+    actions: Array.from({ length: count }, (_, index) => [
+      index,
+      { type: 'initial-flip', slot: 0 },
+    ]),
+  })),
   {
     id: 'V00',
     actions: [
@@ -124,10 +148,19 @@ const evidence = {
   external: [],
   errors: [],
 };
-for (const scene of scenes) {
+const selectedScenes = scenes.filter(
+  (scene) => !only || only.includes(scene.id),
+);
+assert.ok(selectedScenes.length, 'At least one known scene must be selected');
+for (const scene of selectedScenes) {
   const dataDir = join(work, scene.id);
   await mkdir(dataDir);
-  const players = await prepare(scene.fixture ?? scene.id, dataDir, scene.seed);
+  const players = await prepare(
+    scene.fixture ?? scene.id,
+    dataDir,
+    scene.seed,
+    scene.count,
+  );
   const env = {
     ...process.env,
     TABLEMAX_DATA_DIR: dataDir,
@@ -337,11 +370,21 @@ for (const scene of scenes) {
       await writeFile(join(output, name), Buffer.from(data, 'base64'));
       item.screenshots.push(name);
     };
+    await capture(publicPage, `${scene.id}-before-public.png`);
+    await capture(phones[0], `${scene.id}-before-360.png`);
     for (const [index, action] of scene.actions) {
       const page = phones[index];
       const before = await fetchView(players[index].token);
       item.phases.push(before.gameView.phase);
       await page.locator('.pokemon-player').waitFor();
+      const landscapeChoice = !!scene.count && index === 0;
+      const actionWindow = await desktop.browserWindow(page);
+      if (landscapeChoice)
+        await actionWindow.evaluate((window) =>
+          window.setContentSize(844, 390),
+        );
+      if (!item.phases.slice(0, -1).includes(before.gameView.phase))
+        await capture(page, `${scene.id}-${before.gameView.phase}-360.png`);
       const immediate = [
         'draw',
         'close-peek',
@@ -364,14 +407,18 @@ for (const scene of scenes) {
           .locator('.pokemon-player > .pokemon-board button')
           .nth(action.b)
           .click();
-      } else if (action.type === 'mew-target')
+      } else if (action.type === 'mew-target') {
+        await page
+          .locator('.target-tabs button')
+          .nth(action.target - 1)
+          .click();
         await page
           .locator('.target-board')
-          .nth(action.target - 1)
+          .first()
           .locator('.pokemon-board button')
           .nth(action.slot)
           .click();
-      else if (action.type === 'close-peek')
+      } else if (action.type === 'close-peek')
         await page
           .getByRole('button', { name: '已看完，关闭查看', exact: true })
           .click();
@@ -406,13 +453,21 @@ for (const scene of scenes) {
               (card) => {
                 const rect = card.getBoundingClientRect();
                 const center = rect.top + rect.height / 2;
-                return center >= bar.top && center <= bar.bottom;
+                const centerX = rect.left + rect.width / 2;
+                return (
+                  center >= bar.top &&
+                  center <= bar.bottom &&
+                  centerX >= bar.left &&
+                  centerX <= bar.right
+                );
               },
             );
           }),
           false,
           'Selected card centers stay clear of confirmation bar',
         );
+        if (landscapeChoice)
+          await capture(page, `${scene.id}-selected-landscape.png`);
         await page.locator('.confirm-action').click();
       }
       await page.waitForFunction(
@@ -421,6 +476,10 @@ for (const scene of scenes) {
       );
       const after = await fetchView(players[index].token);
       assert.equal(after.revision, before.revision + 1);
+      if (landscapeChoice)
+        await actionWindow.evaluate((window) =>
+          window.setContentSize(360, 844),
+        );
       item.actions++;
       if (after.gameView.phase === 'charizard-view') {
         assert.ok(after.gameView.peek);
@@ -446,6 +505,131 @@ for (const scene of scenes) {
     await capture(publicPage, `${scene.id}-public.png`);
     await capture(phones[0], `${scene.id}-360.png`);
     await capture(phones[1], `${scene.id}-390.png`);
+    const publicView = await fetchView();
+    if (
+      !publicView.gameView.roundResult &&
+      publicView.gameView.discard?.length
+    ) {
+      await publicPage.getByRole('button', { name: /^查看弃牌/ }).click();
+      const gallery = publicPage.getByRole('dialog', {
+        name: '弃牌 · 底 → 顶',
+      });
+      await gallery.waitFor();
+      assert.equal(
+        await gallery.locator('.pokemon-card').count(),
+        publicView.gameView.discard.length,
+      );
+      await capture(publicPage, `${scene.id}-discard-gallery.png`);
+      await publicPage.keyboard.press('Escape');
+      assert.equal(await publicPage.locator('dialog[open]').count(), 0);
+      assert.equal((await fetchView()).revision, publicView.revision);
+    }
+    item.cardLayout = await phones[0].evaluate(() =>
+      [...document.querySelectorAll('.pokemon-card.face')].map((card) => {
+        const heading = card
+          .querySelector('.card-heading')
+          .getBoundingClientRect();
+        const value = card.querySelector('.card-value').getBoundingClientRect();
+        const name = card.querySelector('.card-name');
+        const image = card.querySelector('img').getBoundingClientRect();
+        const ability = card
+          .querySelector('.ability-mark')
+          ?.getBoundingClientRect();
+        return {
+          name: name.textContent,
+          font: parseFloat(getComputedStyle(name).fontSize),
+          imageHeight: image.height,
+          collision: !!ability && value.right > ability.left,
+          separated:
+            image.top >= heading.bottom - 1 &&
+            image.bottom <= name.getBoundingClientRect().top + 1,
+        };
+      }),
+    );
+    assert.ok(
+      item.cardLayout.every(
+        (card) =>
+          card.font >= 12 &&
+          card.imageHeight >= 25 &&
+          !card.collision &&
+          card.separated,
+      ),
+      'Card art and metadata stay in separate readable regions',
+    );
+    if (scene.count) {
+      item.layouts = [];
+      for (const [width, height] of [
+        [1080, 800],
+        [1366, 768],
+        [800, 900],
+        [1920, 1080],
+      ]) {
+        await publicWindow.evaluate(
+          (window, size) => window.setContentSize(...size),
+          [width, height],
+        );
+        await publicPage.evaluate(
+          () =>
+            new Promise((r) =>
+              requestAnimationFrame(() => requestAnimationFrame(r)),
+            ),
+        );
+        const metrics = await publicPage.evaluate(() => ({
+          width: innerWidth,
+          height: innerHeight,
+          overflow: document.documentElement.scrollWidth > innerWidth,
+          boardCount: document.querySelectorAll('.game-seats .pokemon-board')
+            .length,
+          cards: [
+            ...document.querySelectorAll('.game-seats .pokemon-card'),
+          ].map((card) => ({
+            width: card.getBoundingClientRect().width,
+            height: card.getBoundingClientRect().height,
+          })),
+        }));
+        assert.equal(metrics.overflow, false);
+        assert.equal(metrics.boardCount, scene.count);
+        assert.ok(
+          metrics.cards.every((card) => card.width >= 52 && card.height >= 70),
+          `${scene.count} seats at ${width}x${height}: ${JSON.stringify(metrics.cards)}`,
+        );
+        await capture(publicPage, `${scene.id}-${width}x${height}.png`);
+        item.layouts.push(metrics);
+      }
+      const phoneWindow = await desktop.browserWindow(phones[0]);
+      for (const [width, height] of [
+        [360, 640],
+        [844, 390],
+      ]) {
+        await phoneWindow.evaluate(
+          (window, size) => window.setContentSize(...size),
+          [width, height],
+        );
+        await capture(phones[0], `${scene.id}-phone-${width}x${height}.png`);
+        assert.equal(
+          await phones[0].evaluate(
+            () => document.documentElement.scrollWidth > innerWidth,
+          ),
+          false,
+        );
+      }
+      await phoneWindow.evaluate((window) => window.setContentSize(360, 844));
+      if (scene.count === 2) {
+        await publicWindow.evaluate((window) =>
+          window.webContents.setZoomFactor(2),
+        );
+        await capture(publicPage, 'L2-zoom200.png');
+        assert.equal(
+          await publicPage.evaluate(
+            () => document.documentElement.scrollWidth > innerWidth,
+          ),
+          false,
+        );
+        await publicWindow.evaluate((window) =>
+          window.webContents.setZoomFactor(1),
+        );
+      }
+    }
     for (const page of [publicPage, ...phones]) {
       assert.ok(new URL(page.url()).pathname.endsWith('/game'));
       assert.equal(
@@ -479,8 +663,23 @@ for (const scene of scenes) {
     await phone.getByRole('button', { name: '菜单', exact: true }).click();
     await phone.getByRole('dialog', { name: '牌桌菜单' }).waitFor();
     await phone.keyboard.press('Escape');
-    assert.equal(await phone.locator('dialog').count(), 0);
+    assert.equal(await phone.locator('dialog[open]').count(), 0);
     assert.equal(item.narrowOverflow, false);
+    if (scene.id === 'V03') {
+      const endedRound = await fetchView(token);
+      assert.ok(endedRound.lifecycleActions.length);
+      await send({ type: 'lifecycle', action: endedRound.lifecycleActions[0] });
+      await publicPage
+        .getByRole('heading', { name: '翻开第一张牌', exact: true })
+        .waitFor();
+      await publicPage.waitForFunction(() =>
+        window.tablemaxAudit.motionStyles.some(
+          (style) => style.name === 'saved-deal' && style.duration === '0.36s',
+        ),
+      );
+      await capture(publicPage, 'V03-next-round-public.png');
+      item.nextRoundDealObserved = true;
+    }
     const beforeSync = await publicPage.evaluate(
       () => window.tablemaxAudit.sounds.length,
     );
@@ -530,6 +729,18 @@ for (const scene of scenes) {
         return getComputedStyle(element).animationName;
       });
     assert.equal(animation, 'none');
+    for (const kind of ['saved-reveal', 'saved-deal']) {
+      assert.equal(
+        await publicPage
+          .locator('.card-slot')
+          .first()
+          .evaluate((element, kind) => {
+            element.classList.add(kind);
+            return getComputedStyle(element).animationName;
+          }, kind),
+        'none',
+      );
+    }
     const coinAnimation = await publicPage
       .locator('.game-table')
       .evaluate((element) => {

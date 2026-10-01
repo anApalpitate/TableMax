@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-第一至六阶段已完成。当前版本 1.0.1 默认运行《宝可梦奇遇：皮卡丘和朋友们》，支持 2–5 位真人／电脑混合、16 类 56 张牌、全部能力、独立计分、三胜完整大局、原创本地资源和声音。平台包含单房间大厅、独立身份及换绑、按身份投影秘密信息、保存后确认、决策点回退与重连／重启恢复。
+第一至六阶段已完成。当前版本 1.0.2 默认运行《宝可梦奇遇：皮卡丘和朋友们》，支持 2–5 位真人／电脑混合、16 类 56 张牌、全部能力、独立计分、三胜完整大局、原创本地资源和声音。平台包含单房间大厅、独立身份及换绑、按身份投影秘密信息、保存后确认、决策点回退与重连／重启恢复。
 
 48 项工程测试、全部 D01–D13 恢复、三处能力真实进程强制终止、7 组真实能力 UI、实际 Worker 混合整局与最终 Windows 便携验证通过。按用户 2026-10-01 授权，电视和手机采用当前电脑上的尺寸／触控／UA／后台及断网模拟；不声明实际手机 Safari、电视硬件或另一台无开发环境电脑已验收。证据与 AC-01–AC-23 见 [验收记录](docs/reference/acceptance.md)。
 
@@ -12,7 +12,7 @@
 
 ## 使用便携版
 
-1. 解压 [TableMax-1.0.1-win-x64.zip](artifacts/releases/TableMax-1.0.1-win-x64.zip)，双击 `TableMax.exe`。无需预装 Node.js；默认端口 38473，数据保存在当前用户本地应用数据的 TableMax 目录。
+1. 解压 [TableMax-1.0.2-win-x64.zip](artifacts/releases/TableMax-1.0.2-win-x64.zip)，双击 `TableMax.exe`。无需预装 Node.js；默认端口 38473，数据保存在当前用户本地应用数据的 TableMax 目录。
 2. 电脑和手机连接同一局域网，在主机地址列表选择手机可达的 IPv4；手机扫码或打开显示的地址，输入昵称、加入并准备。访客网络隔离或防火墙可能影响连接，折叠“连接帮助”可排查。
 3. 房主可添加电脑、调整开局顺序；真人加电脑共 2–5 人，全部准备后开始。“房主用独立玩家身份参与”在当前窗口取得独立玩家身份；可返回管理，将该座位换绑到手机。房主作为玩家仍只看到本人授权信息。
 4. 盒子负责加入、准备和邀请；开局自动进入独立牌桌，可返回盒子再进入。手机直接点牌库／弃牌顶取牌，卡位选好后用“翻开位置”“换入位置”“交换位置”确认；弃牌和跳过能力一键执行。“已保存”表示服务确认。本人的暗牌默认不可看。喷火龙的临时查看仅本人可见，看完须确认关闭。
@@ -37,6 +37,7 @@ pnpm check
 pnpm build
 pnpm verify:desktop
 pnpm verify:game-ui
+pnpm verify:cards
 pnpm package:win
 pnpm verify:portable
 ```
@@ -51,6 +52,6 @@ pnpm verify:portable
 - `packages/protocol`、`game-sdk`、`platform-core` 维护契约和通用权威／恢复机制。
 - `games/pokemon-encounters` 维护完整规则、计分、投影、策略、两端 UI、本地资源与测试；`games/template` 保留独立验证模板。
 - `apps/web/src/assets/tabletop` 保存共享平台资源，`games/pokemon-encounters/ui/table.tsx` 维护首版牌桌场景。
-- `docs` 维护当前主题和阶段归档；`artifacts/phase-05` 保留原图，`artifacts/phase-06` 保留 ZIP 和验证 JSON／截图，Git 忽略但文件树可见；新版 ZIP 在 `artifacts/releases`，持续维护验证在 `artifacts/maintenance/game-experience`。
+- `docs` 维护当前主题和阶段归档；`artifacts/phase-05` 保留原图，`artifacts/phase-06` 保留 ZIP 和验证 JSON／截图，Git 忽略但文件树可见；新版 ZIP 在 `artifacts/releases`，持续维护验证在 `artifacts/maintenance/visual-polish`。
 
 第二阶段独立原型在 `apps/web/src/prototype`，用 `pnpm prototype:dev` 打开 `http://127.0.0.1:5174/prototype.html`，游戏参数为 `?game=pokemon-encounters`。原型为合成状态，不连接正式存档，不替代当前游戏验收；历史入口和证据见开发环境。

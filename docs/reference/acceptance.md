@@ -60,6 +60,14 @@
 
 ## 使用与维护
 
-当前便携包为 `artifacts/releases/TableMax-1.0.1-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
+当前便携包为 `artifacts/releases/TableMax-1.0.2-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
 
 后续新增游戏、跨游戏调试或第三方插件按独立需求安排；新规则／策略版本需要明确存档迁移方案，不能直接覆盖原文件。设备模拟中的限制保留供后续实际使用时复查，本轮不将取得其他设备作为剩余开发关口。
+
+## 首版维护：视觉纠错与场景打磨
+
+1.0.2 完成卡面分区纠错：数值和能力标记不再重叠，名称至少 12px，插画和位置编号各有独立区域。新增无游戏物件的浅木纹花园背景；桌面按人数集中排布，五人默认窗口收紧间距，手机状态和牌堆并列，横屏分左右操作区。梦幻一次显示一个目标场地，切换不提交；公共弃牌在原生浮层查看。翻牌／重新发牌增加区别动效，仍只展示新保存的授权结果，支持减少动态与恢复清理。具体行为与资源见 [游戏交互](../games/pokemon-encounters/interaction.md#视觉排布维护102) 和 [资源记录](../games/pokemon-encounters/assets.md#牌桌背景与卡面分区102)。
+
+本轮工程检查含 9 文件／48 项测试及正式构建。[十四组真实 UI](../../artifacts/maintenance/visual-polish/ui/results.json) 包含既有十组能力／基础操作与 2–5 人、长昵称，截图覆盖 1080×800、1366×768、1920×1080、800×900、360／390×844、360×640 和 844×390；每种关键操作阶段保留截图，检查横向溢出、44px、选位不提前提交、确认栏遮挡、秘密查看隔离、同步／回退不补播与声音。组件矩阵另验 [全部 16 类卡面](../../artifacts/maintenance/visual-polish/cards/results.json) 在五种宽度下的字号、名称裁切、数值／能力碰撞和插画边界；组件画廊只使用公开类别定义，不冒充完整对局。弃牌浮层的 Escape／修订保持和新动效减少动态另有 [补查记录](../../artifacts/maintenance/visual-polish/ui/additional/results.json)，200% 缩放截图保留在同一补查目录。[重新发牌](../../artifacts/maintenance/visual-polish/ui/round-deal/results.json) 由真实房主生命周期动作触发并观察 360ms 动效；[横屏选牌](../../artifacts/maintenance/visual-polish/ui/landscape/results.json) 实际完成 2–5 人初始选牌、确认与二维遮挡检查。
+
+[开发整局](../../artifacts/maintenance/visual-polish/development/results.json) 已通过五座位完整混合游戏、十四阶段、暂停／回退、断网导航／冻结与两次启动恢复。[新便携记录](../../artifacts/maintenance/visual-polish/portable/results.json) 对应 1.0.2 ZIP 新目录解压运行、系统 PATH 隔离、相同整局与恢复检查；五人结算在默认窗口和两种桌面尺寸保持首屏。背景原图／提示词与裁切在 [imagegen 核验](../../artifacts/maintenance/visual-polish/imagegen/file-verification.json)。[资源字节核验](../../artifacts/maintenance/visual-polish/assets.json) 覆盖 21 张主题图及 5 类音频；[文档链接](../../artifacts/maintenance/visual-polish/document-links.json) 核验当前相对路径和锚点。旧版本 ZIP、20 张既有图、历史原图和验收证据全部保留；规则／协议／存档／策略版本保持。范围仍为当前 Windows 与 Chromium 设备模拟，没有新增真实手机／电视或现场听音结论。
