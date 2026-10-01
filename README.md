@@ -10,7 +10,7 @@
 
 当前正式入口仍为工程验证页面。第二阶段已完成并归档：交付[首版游戏主题规格](docs/games/pokemon-encounters/README.md)、16类56张结构化牌表、状态与全决策恢复、人机覆盖、资源方案和23个场景，以及覆盖初始化、普通操作、全部特殊能力与结算的独立可点击原型。通用／游戏浏览器走查、工程与文档检查均通过，见[完成记录](docs/archive/phase-02-rules-and-interaction.md)。第三至五阶段实现真实身份、通信、规则／计分、bot及存档，第六阶段验收产品。
 
-最新采用版本 `tablemax-cn-s19-v1`：当前特殊能力完整结算后检查六牌全明并最终结算，没有其他玩家最后回合。三胜、共同赢家、公开摸牌、整堆重洗及百变怪联合最低分保留。中文资料未明确的边界已按用户授权确定[项目方案](docs/games/pokemon-encounters/rules.md#未明示细节的项目方案)，不再追问；官方规则书、版次和勘误仍未认证，详见[来源](docs/games/pokemon-encounters/sources.md)。
+首版按 `tablemax-cn-s19-v1` 项目采用规则开发，规则正文与数据统一见 [游戏规格](docs/games/pokemon-encounters/README.md)。用户裁定和自主项目方案已有明确记录；官方规则书、版次和勘误仍未认证，详见 [来源](docs/games/pokemon-encounters/sources.md)。
 
 公共大屏兼房主管理已在游戏原型演示；正式界面、计分模块及基础bot尚未实现。跨游戏调试与纠错仍按[需求第6.5节](docs/requirements/TableMax_需求文档_v1.0.md#65-跨游戏调试与纠错后续独立规划)另行规划。[人机规格](docs/reference/bot-players.md)与[适度封装](docs/reference/architecture.md#面向对象与适度封装)明确后续职责，B01采用独立TS策略入口默认方案。
 
@@ -38,20 +38,12 @@ pnpm verify:portable
 
 ## 项目入口
 
-- [需求文档 v1.0](docs/requirements/TableMax_需求文档_v1.0.md)：产品范围、技术建议、规则研究项与首版验收标准；2026-10-01 按用户要求增补跨游戏调试与纠错目标，并注明后续独立规划。
-- [Agent 入口](AGENTS.md)：最小阅读顺序、工作与提交约定。
-- [文档索引](docs/README.md)：按任务意图查找文档。
-- [子 agent 职责](docs/subagent/README.md)：专职 imagegen 角色、派工输入及交接边界。
-- [目录职责](docs/reference/project-structure.md)：现有目录与未来内容的边界。
-- [开发阶段与任务](docs/tasks/README.md)：粗粒度阶段、主要任务与交付物。
-- [第一阶段完成记录（归档）](docs/archive/phase-01-engineering-foundation.md)：已完成任务范围、清单与历史证据。
-- [第二阶段完成记录（归档）](docs/archive/phase-02-rules-and-interaction.md)：历史范围、完成清单、采用基线与验证证据。
-- [通用交互与交接规格](docs/reference/phase-02-platform-spec.md)：已选大厅交互、权限与恢复语义、资源方案、AC 场景及第三至五阶段输入。
-- [工程基础决策](docs/decisions/001-engineering-foundation.md)：已采用技术、固定版本及重要取舍。
-- [工程结构](docs/reference/architecture.md)：依赖方向、游戏契约、授权视图与后续恢复机制边界及面向对象的适度封装。
-- [人机规格](docs/reference/bot-players.md)：电脑座位、独立决策文件、信息权限、调度恢复和全选择覆盖。
-- [开发环境与验证](docs/reference/development.md)：安装、命令、数据位置和本机验证证据。
-- [编辑器工作区](TableMax.code-workspace)：以相对路径打开本项目，包含项目级显示、搜索与监听设置。
+- [文档索引](docs/README.md)：按开发职责进入当前规格，维护与历史入口单列。
+- [开发阶段与接续入口](docs/tasks/README.md#后续开发接续入口)：第三至六阶段的范围、阅读顺序、实现落点与验证责任。
+- [需求基线](docs/requirements/TableMax_需求文档_v1.0.md)：产品范围与验收标准。
+- [首版游戏规格](docs/games/pokemon-encounters/README.md)：规则、数据、权限、决策、界面、资源、人机与验证场景。
+- [开发环境与验证](docs/reference/development.md)：安装、命令、数据位置及验证证据。
+- [Agent 入口](AGENTS.md) 与 [编辑器工作区](TableMax.code-workspace)：工作约定和项目级编辑器设置。
 
 ## 目录概览
 

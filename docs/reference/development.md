@@ -38,24 +38,24 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 ## 真实命令
 
-| 命令                                | 行为                                                                                                             |
-| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                          | 先构建，启动 Vite 与 Electron／独立服务；前端热更新，服务与桌面源码修改后重启该命令                              |
-| `pnpm start`                        | 运行已有 `build/desktop`；先执行 `pnpm build`                                                                    |
-| `pnpm typecheck`                    | 严格 TypeScript 检查，不生成文件                                                                                 |
-| `pnpm lint`                         | ESLint 与 React Hooks 规则检查                                                                                   |
-| `pnpm format:check` / `pnpm format` | 检查格式／按项目配置格式化                                                                                       |
-| `pnpm test`                         | Vitest 执行当前数据库与 HTTP 服务验证                                                                            |
-| `pnpm check`                        | 顺序执行类型、静态、格式检查与当前测试                                                                           |
-| `pnpm build`                        | 构建网页、打包独立服务与桌面主进程到 `build/desktop`                                                             |
-| `pnpm verify:desktop`               | 隐藏窗口验证开发构建，包括两次启动、网页连接、独立进程与退出协调                                                 |
-| `pnpm package:win`                  | 构建并生成 Windows x64 解压运行 ZIP 与 `win-unpacked`                                                            |
-| `pnpm verify:portable`              | 将最终 ZIP 解压到新的项目临时目录，对其中的 `TableMax.exe` 运行同一跨层验证，子进程 PATH 不含 Node／开发工具目录 |
-| `pnpm prototype:dev`                | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                      |
-| `pnpm prototype:build`              | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/`                                                     |
-| `pnpm prototype:preview`            | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建                                    |
-| `pnpm prototype:verify:game` | 对游戏原型执行Playwright／隐藏Electron全能力、角色、恢复反馈、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/` |
-| `pnpm prototype:verify`             | 对已有原型构建运行 Playwright／隐藏 Electron 窗口走查，生成 JSON 和截图；先执行原型构建并准备 Electron           |
+| 命令                                | 行为                                                                                                                         |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                          | 先构建，启动 Vite 与 Electron／独立服务；前端热更新，服务与桌面源码修改后重启该命令                                          |
+| `pnpm start`                        | 运行已有 `build/desktop`；先执行 `pnpm build`                                                                                |
+| `pnpm typecheck`                    | 严格 TypeScript 检查，不生成文件                                                                                             |
+| `pnpm lint`                         | ESLint 与 React Hooks 规则检查                                                                                               |
+| `pnpm format:check` / `pnpm format` | 检查格式／按项目配置格式化                                                                                                   |
+| `pnpm test`                         | Vitest 执行当前数据库与 HTTP 服务验证                                                                                        |
+| `pnpm check`                        | 顺序执行类型、静态、格式检查与当前测试                                                                                       |
+| `pnpm build`                        | 构建网页、打包独立服务与桌面主进程到 `build/desktop`                                                                         |
+| `pnpm verify:desktop`               | 隐藏窗口验证开发构建，包括两次启动、网页连接、独立进程与退出协调                                                             |
+| `pnpm package:win`                  | 构建并生成 Windows x64 解压运行 ZIP 与 `win-unpacked`                                                                        |
+| `pnpm verify:portable`              | 将最终 ZIP 解压到新的项目临时目录，对其中的 `TableMax.exe` 运行同一跨层验证，子进程 PATH 不含 Node／开发工具目录             |
+| `pnpm prototype:dev`                | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                                  |
+| `pnpm prototype:build`              | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/`                                                                 |
+| `pnpm prototype:preview`            | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建                                                |
+| `pnpm prototype:verify:game`        | 对游戏原型执行Playwright／隐藏Electron全能力、角色、恢复反馈、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/` |
+| `pnpm prototype:verify`             | 对已有原型构建运行 Playwright／隐藏 Electron 窗口走查，生成 JSON 和截图；先执行原型构建并准备 Electron                       |
 
 验证通过后，解压 `artifacts/phase-01/TableMax-0.1.0-win-x64.zip`，双击 `TableMax.exe`。这是第一阶段工程验证包，不包含大厅、身份或首版游戏。
 
@@ -83,6 +83,18 @@ pnpm prototype:verify:game
 原型唯一入口由 `apps/web/vite.prototype.config.ts` 指定，正式构建由 `apps/web/vite.config.ts` 指定。原型不代理 `/api` 或 `/socket.io`，不使用真实身份、网络连接、存档或游戏状态。审阅工具可切换角色／页面、模拟提交与异常，刷新重置示例；页面中的网卡、连接和恢复反馈不是实际系统检测。
 
 原型源码变更按上列命令检查；若影响正式构建边界，再验证 `pnpm build` 的隔离。仅文档变更检查来源引用、相对链接、索引、命令与配置一致性及 diff，不重复无关构建或便携打包。
+
+## 按改动范围选择验证
+
+| 改动范围             | 适用检查与证据                                                                                                                                                                                                                                                   |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 文档、索引或目录说明 | 相对链接与锚点、正文归属、命令／配置一致性、改动文件的 Prettier 格式及 `git diff --check`。`docs/` 默认被格式命令忽略，需要格式化改动页时对明确路径使用 `pnpm exec prettier --check --ignore-path .gitignore <文件路径>`，将 `--check` 改为 `--write` 可格式化。 |
+| 独立原型源码         | 类型、静态、格式与独立构建，再执行受影响的通用／游戏走查；`pnpm prototype:verify:game --layout-only` 仅补查布局，不能替代流程走查。                                                                                                                              |
+| 正式平台与共享契约   | `pnpm check` 与 `pnpm build`，按行为补真实服务、授权及恢复测试；影响桌面生命周期时执行 `pnpm verify:desktop`。                                                                                                                                                   |
+| 正式游戏、计分或策略 | 接入后执行游戏规则、投影、人机和恢复测试，覆盖 [游戏场景](../games/pokemon-encounters/validation-scenarios.md) 的适用项；当前尚无正式游戏测试命令。                                                                                                              |
+| 正式便携交付         | 打包及便携自动验证，加第六阶段规定的 Windows／公共屏／手机实机与断互联网整局验收。                                                                                                                                                                               |
+
+新报告只声明本次执行的范围。历史证据保留对应构建、日期与限制，不因更新说明或局部补查而改成完整产品验收。
 
 ## 配置、目录与网络
 
