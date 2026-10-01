@@ -30,6 +30,17 @@ it('serves role routes, rejects unknown APIs, and keeps data paths private', asy
       expect((await service.app.inject(path)).body).toContain('local fixture');
     }
     expect((await service.app.inject('/api/missing')).statusCode).toBe(404);
+    const hostJoin = await service.app.inject({
+      method: 'POST',
+      url: '/api/session/join',
+      payload: { name: '管理员', hostToken: service.hostToken },
+    });
+    expect(hostJoin.statusCode).toBe(400);
+    expect(service.room.view(service.hostToken).self).toEqual({
+      role: 'host',
+      seatId: null,
+    });
+    expect(service.room.view().seats).toEqual([]);
     expect(
       (await service.app.inject('/api/foundation/qr?address=example.com'))
         .statusCode,

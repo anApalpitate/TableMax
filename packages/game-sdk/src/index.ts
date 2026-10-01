@@ -16,7 +16,6 @@ export type Viewer = { role: 'public' } | { role: 'player'; seatId: string };
 // Authorization is platform-owned; a host gets no extra game information.
 export interface RuleContext {
   seats: readonly string[];
-  hostSeat?: string; // Participating host seat, verified by the platform.
   random: { next(): number }; // Platform owns the serializable generator state.
 }
 

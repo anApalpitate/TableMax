@@ -131,7 +131,7 @@ export async function createService(
     try {
       return {
         ok: true,
-        ...(await room.join(parsed.data.name, parsed.data.hostToken)),
+        ...(await room.join(parsed.data.name)),
       };
     } catch {
       return reply

@@ -123,13 +123,8 @@ export class RoomCoordinator {
         : undefined,
     );
   }
-  async join(name: string, hostCredential?: string) {
+  async join(name: string) {
     return this.enqueue(() => {
-      if (hostCredential)
-        requireThat(
-          this.identity(hostCredential).role === 'host' && !this.data.hostSeat,
-          'unauthorized',
-        );
       requireThat(
         this.data.status === 'lobby' && this.data.joinOpen,
         'joining-closed',
@@ -148,7 +143,6 @@ export class RoomCoordinator {
         ready: false,
         tokenHash: hash(credential),
       });
-      if (hostCredential) next.hostSeat = next.seats.at(-1)!.id;
       next.revision++;
       this.commit(next);
       return { token: credential, duplicateName };
@@ -338,7 +332,6 @@ export class RoomCoordinator {
           this.rules.initialize({
             seats: next.seats.map((s) => s.id),
             random,
-            ...(next.hostSeat ? { hostSeat: next.hostSeat } : {}),
           }),
           next.seats.map((s) => s.id),
         );

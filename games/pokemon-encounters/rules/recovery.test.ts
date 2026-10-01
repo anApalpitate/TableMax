@@ -214,7 +214,7 @@ it('V13/V18 publishes public feedback only after commit and never on duplicate, 
   room.subscribe((event) => {
     if (event) feedback.push(event);
   });
-  const a = await room.join('房主玩家', room.hostToken),
+  const a = await room.join('朋友 A'),
     b = await room.join('朋友');
   await room.command(
     a.token,
@@ -225,9 +225,11 @@ it('V13/V18 publishes public feedback only after commit and never on duplicate, 
     envelope(room, b.token, { type: 'ready', ready: true }),
   );
   await host(room, { type: 'start' });
-  expect((repo.value!.snapshot!.state as State).turnSeat).toBe(
-    room.view(a.token).self.seatId,
-  );
+  expect(room.view(room.hostToken).self).toEqual({
+    role: 'host',
+    seatId: null,
+  });
+  expect(room.view(room.hostToken).actions).toEqual([]);
   const intent = envelope(room, a.token, {
     type: 'game',
     decisionId: room.view(a.token).decisionId!,
@@ -261,7 +263,7 @@ it('V13/V18 publishes public feedback only after commit and never on duplicate, 
 it('V14/V19/V22 mixed human/bot full match uses only projected actions and never advances a waiting human', async () => {
   const repo = new Repository(),
     room = new RoomCoordinator(rules, bot, repo);
-  const human = await room.join('真人', room.hostToken);
+  const human = await room.join('真人');
   await room.command(
     human.token,
     envelope(room, human.token, { type: 'ready', ready: true }),

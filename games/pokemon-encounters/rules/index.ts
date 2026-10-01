@@ -162,11 +162,7 @@ export const rules: GameRules = {
     if (context.seats.length < 2 || context.seats.length > 5)
       throw new Error('Invalid seats');
     const starter =
-      context.hostSeat && context.seats.includes(context.hostSeat)
-        ? context.hostSeat
-        : context.seats[
-            Math.floor(context.random.next() * context.seats.length)
-          ]!;
+      context.seats[Math.floor(context.random.next() * context.seats.length)]!;
     return round(
       context,
       starter,

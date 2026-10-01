@@ -98,25 +98,25 @@ describe('Pokemon adopted rules V00–V11', () => {
       const seats = Array.from({ length: count }, (_, i) => `S${i + 1}`);
       let s = rules.initialize({
         seats,
-        hostSeat: seats[1]!,
         random: new RandomSource(13),
       }) as State;
-      expect(s.turnSeat).toBe(seats[1]);
+      expect(seats).toContain(s.turnSeat);
       expect(s.deck).toHaveLength(56 - 6 * count);
+      const firstSeat = s.turnSeat;
       const firstCard = s.boards[seats[1]!]![0]!.instanceId;
       const replay = rules.initialize({
         seats,
-        hostSeat: seats[1]!,
         random: new RandomSource(13),
       }) as State;
       expect(replay.boards[seats[1]!]![0]!.instanceId).toBe(firstCard);
+      expect(replay.turnSeat).toBe(firstSeat);
       for (const seat of seats) {
         s = apply(s, { type: 'initial-flip', slot: 0 }, seat);
         expect(s.boards[seat]!.filter((c) => c.faceUp)).toHaveLength(1);
       }
       expect(s.phase).toBe('draw');
       expect(s.discard).toEqual([]);
-      expect(s.turnSeat).toBe(seats[1]);
+      expect(s.turnSeat).toBe(firstSeat);
     }
   });
   it('V02 enforces source-specific placement, direct discard, and unchanged rejected state', () => {

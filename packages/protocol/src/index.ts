@@ -86,7 +86,6 @@ export type Command = z.infer<typeof CommandSchema>;
 export const JoinSchema = z
   .object({
     name: z.string().trim().min(1).max(24),
-    hostToken: CredentialSchema.optional(),
   })
   .strict();
 export const SessionSchema = z
