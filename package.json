@@ -25,7 +25,8 @@
     "prototype:dev": "vite --config apps/web/vite.prototype.config.ts",
     "prototype:build": "vite build --config apps/web/vite.prototype.config.ts",
     "prototype:preview": "vite preview --config apps/web/vite.prototype.config.ts",
-    "prototype:verify": "node scripts/verify-prototype.mjs"
+    "prototype:verify": "node scripts/verify-prototype.mjs",
+    "prototype:verify:game": "node scripts/verify-game-prototype.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

@@ -70,7 +70,10 @@ export function SeatTile({
           <Icon name={seat.ready ? 'check' : 'people'} />
         </span>
       </div>
-      <strong>{seat.nickname}</strong>
+      <strong>
+        {seat.nickname}
+        {seat.control === 'bot' ? ' · 电脑' : ''}
+      </strong>
       <small>
         {seat.id}
         {own ? ' · 你' : ''}

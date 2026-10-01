@@ -1,0 +1,47 @@
+# 第二阶段：规则与交互准备
+
+状态：已完成并归档（2026-10-01）。采用规格、独立可点击原型及适用验证已交付。阶段产品边界：交付设计及独立原型，不实现第三至五阶段的真实身份、通信、规则引擎、bot、存档，也不替代第六阶段实机验收。
+
+依据 [需求基线](../requirements/TableMax_需求文档_v1.0.md)、S19 用户自主规则采用授权及 [采用版本决策 004](../decisions/004-phase02-game-spec-and-bot-file.md)。目标为简体中文版《宝可梦奇遇：皮卡丘和朋友们》，出版印次／完整规则书／勘误仍未认证，所有缺失事实标未知。用户确认与项目方案构成 `tablemax-cn-s19-v1`，完整能力后查结束；原文缺口不再阻塞采用规格或触发追问。
+
+## 当前交付与证据
+
+| 完成标准 | 实际交付 | 验证／后续限制 |
+| --- | --- | --- |
+| 可复查采用规则及差异 | [来源 S01–S20 与历史裁定](../games/pokemon-encounters/sources.md)、[规则及 P01–P08](../games/pokemon-encounters/rules.md) | 原图／响应／用户答复及哈希在 artifacts；未标官方认证 |
+| 全牌及数字化组件 | [cards.json](../games/pokemon-encounters/cards.json)，16 类／56 张、两面币及胜局计数 | 类别／实例／资源分开，图示数量、能力与来源可回查；实体其他组件未知不虚构 |
+| 状态、全部动作与授权 | [信息与决策](../games/pokemon-encounters/information-and-decisions.md) | 完整阶段／参数／自动推进／pending／逐字段角色矩阵，普通房主无秘密特权 |
+| 全决策恢复 | 同页 D01–D13、RNG／held／队列／币面及完整能力边界 | 含初始、多步、peek确认、下一局，身份不倒退，分支递增；真实事务由第四阶段实现 |
+| 游戏交互和动效 | [interaction.md](../games/pokemon-encounters/interaction.md)、独立 GamePrototype | 1920大屏、360/390手机、多步能力／保存反馈／取消动画；浏览器走查通过，范围见开发说明 |
+| 本地资源与声音 | [assets.md](../games/pokemon-encounters/assets.md) 及既有本地素材清单 | 16牌面映射、独立背面／币面／帮助／声音，制作缺口第五阶段明确；原型无外部请求 |
+| 完整对局／特殊／恢复场景 | [V00–V22](../games/pokemon-encounters/validation-scenarios.md)、[scenarios.json](../games/pokemon-encounters/scenarios.json) | 三小局完整大局、完整56实例fixtures、AC-02–17／19–23；产品执行标记均false |
+| 全选择人机及 B01 | [bot.md](../games/pokemon-encounters/bot.md)、[决策004](../decisions/004-phase02-game-spec-and-bot-file.md) | 独立TS默认文件，D01–D12逐选择策略，管理D13不由bot；受限输入／版本／取消／失败／恢复明确，策略未实现 |
+| 工程封装及交接 | [状态与交接](../games/pokemon-encounters/information-and-decisions.md#正式初始契约缺口与交接)、[验证责任](../games/pokemon-encounters/validation-scenarios.md#第三至六阶段交接) | 指出当前SDK实际缺口，本阶段保持协议／SDK和正式页面路由不变 |
+| 索引、证据、归档与提交 | 当前主题页及项目入口同步 | 链接／数据／工程／原型审计通过，主题索引与归档同步 |
+
+## 完成清单
+
+- [x] 当前采用规则可复查、逐项关联原图／用户裁定／授权项目方案，来源差异及未知官方版次明确。
+- [x] 卡牌及数字化组件完整、数量一致、稳定类别／实例／资源对应，全部动作、能力、结束、计分与平局有结论。
+- [x] 各阶段逐字段信息权限、合法参数、公共／本人／他人／房主／bot及安全历史／错误边界完整。
+- [x] 每个改变权威状态的合法选择有恢复边界／标签，复合、揭示、随机、身份及分支规则明确。
+- [x] 公共主机、本人手机、全部操作及通用流程、尺寸、安全区域和动效动态走查通过，角色展示与失效反馈已核对。
+- [x] 资源数量／来源／规则映射、本地加载／声音方案及第五阶段制作缺口明确。
+- [x] 完整大局、每类能力与决策恢复／权限场景有初始条件、步骤、预期、依据和 AC／阶段责任。
+- [x] B01 已采用独立TS默认；全节点人机覆盖、授权、版本、策略恢复和异常、UI与AC-19–23预期齐全。
+- [x] 规则、计分、策略、平台协调／调度与存档适配职责和依赖明确，第三至五阶段实际契约缺口已交接。
+- [x] 类型、静态、格式、独立／正常构建隔离、原型浏览器走查和文档／数据引用通过；证据审计与归档完成；本次改动按项目约定本地提交。
+
+## 执行与保留范围
+
+沿用锁定 React／TypeScript／Vite／Playwright 与既有平台美术，游戏原型在 `apps/web/src/prototype/`，唯一独立入口使用参数 `?game=pokemon-encounters`。通用启动／网络／大厅／提交／恢复／异常页保留，增加电脑座位和准备约束；不接真实服务、不含完整秘密fixture／牌序／凭证或真实存档。已生成素材在本地资源目录，规则原图及生成原件保留 artifacts，忽略不删除。
+
+普通公共大屏兼房主管理，房主参赛仍用本人手机授权；换手机由房主确认、原凭证失效。调试模式／纠错修改留后续独立专项，不纳入本阶段新实现。正式主题美术、完整策略／规则／网络／事务及实机 AC 未实现或验收，不因原型完成而勾选产品。
+
+正式运行／检查见 [开发说明](../reference/development.md)，通用行为见 [平台规格](../reference/phase-02-platform-spec.md)。历史研究与规则问答已合并入游戏 sources/rules，不复制多份当前正文；本阶段已归档，任务索引只保留状态和历史入口。
+
+## 最终核验范围
+
+归档原因：第二阶段采用规格及适用验证完成，长期正文已合并到游戏主题页与通用参考页。通用原型10组／25张截图；游戏原型9组／16张截图。类型、静态、格式、独立原型与正式构建通过；11份完整56实例fixture、三小局每局9回合算术、D01–D13与AC规格覆盖已核对。证据在 `artifacts/phase-02/verification/` 的 `prototype.json`、`game/game-prototype.json`、`specification-data.json`；文档引用与18份来源哈希见 `research/chinese-reference/verification.json`。安全区为24px模拟，保存后动效为220ms；实机、正式规则／bot／存档及产品AC未验收，官方原文仍未认证。
+
+手机固定提交栏调整后，另以 `pnpm prototype:verify:game --layout-only` 通过5组／17张截图；证据在 `artifacts/phase-02/verification/game/layout/`，检查下排选格后按钮仍可见、卡位中心无覆盖及安全区。完整流程与针对性布局证据分别保留。

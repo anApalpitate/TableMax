@@ -240,6 +240,11 @@ export function Prototype() {
               >
                 重置示例
               </IconButton>
+              {state.screen === 'lobby' && (
+                <button onClick={() => dispatch({ type: 'all-ready' })}>
+                  模拟全员准备
+                </button>
+              )}
               {state.screen === 'session' && (
                 <div className="simulation">
                   <h3>模拟反馈与异常</h3>
@@ -319,7 +324,8 @@ export function Prototype() {
                   房主参与时使用独立手机座位。管理权限不包含其他玩家秘密；完整恢复状态保留在服务端。
                 </p>
                 <p>
-                  没有默认倒计时，掉线不代操作。人数、卡位、牌面、计分及合法动作等待目标版规则核验。
+                  没有默认倒计时，掉线不代操作。首版采用规则支持 2–5 位及 2×3
+                  卡位；具体操作见游戏原型，正式规则引擎尚未实现。
                 </p>
                 <p>
                   关闭公共屏保留服务；退出整个程序停止服务。地址变化后需重新生成真实加入二维码。
@@ -352,7 +358,7 @@ export function Prototype() {
                   <strong>桌边奇遇</strong>
                 </div>
               </div>
-              <span className="cover-note">原创平台美术 · 游戏规则待核验</span>
+              <span className="cover-note">原创平台美术 · 采用规则已整理</span>
             </section>
             <section className="control-sheet">
               <p className="eyebrow">准备好相聚了吗？</p>
@@ -360,7 +366,7 @@ export function Prototype() {
               <div className="game-meta">
                 <Icon name="box" />
                 <span>
-                  宝可梦奇遇<small>皮卡丘和朋友们 · 规则待核验</small>
+                  宝可梦奇遇<small>皮卡丘和朋友们 · 采用规则</small>
                 </span>
               </div>
               <IconButton
@@ -419,7 +425,7 @@ export function Prototype() {
                       : '等朋友，开一桌。'}
                   </h1>
                   <p className="game-name">宝可梦奇遇：皮卡丘和朋友们</p>
-                  <span className="rule-label">规则待核验</span>
+                  <span className="rule-label">采用规则</span>
                 </div>
               </div>
               {state.role === 'player' ? (
@@ -553,8 +559,35 @@ export function Prototype() {
                     >
                       {state.joiningOpen ? '关闭新玩家加入' : '重新开放加入'}
                     </IconButton>
-                    <IconButton icon="play" className="primary" disabled>
-                      开局 · 规则待核验
+                    <div className="bot-lobby-actions">
+                      <button
+                        onClick={() => dispatch({ type: 'add-bot' })}
+                        disabled={state.seats.length >= 5}
+                      >
+                        添加电脑
+                      </button>
+                      <button
+                        onClick={() => dispatch({ type: 'remove-bot' })}
+                        disabled={
+                          !state.seats.some((seat) => seat.control === 'bot')
+                        }
+                      >
+                        移除电脑
+                      </button>
+                    </div>
+                    <IconButton
+                      icon="play"
+                      className="primary"
+                      disabled={
+                        !state.seats.every((seat) => seat.ready) ||
+                        state.seats.length < 2
+                      }
+                      onClick={() => {
+                        location.href =
+                          './prototype.html?game=pokemon-encounters';
+                      }}
+                    >
+                      开始游戏原型
                     </IconButton>
                     <IconButton
                       icon="arrow"

@@ -10,6 +10,7 @@ export interface Seat {
   id: string;
   nickname: string;
   ready: boolean;
+  control?: 'human' | 'bot';
 }
 export interface PrototypeState {
   role: Role;
@@ -57,6 +58,9 @@ export type Event =
   | { type: 'join'; nickname: string }
   | { type: 'ready' }
   | { type: 'toggle-joining' }
+  | { type: 'all-ready' }
+  | { type: 'add-bot' }
+  | { type: 'remove-bot' }
   | { type: 'move-seat'; id: string }
   | { type: 'pause' }
   | { type: 'select'; value: string }
@@ -88,8 +92,10 @@ export function reduce(state: PrototypeState, event: Event): PrototypeState {
     case 'join': {
       const nickname = event.nickname.trim();
       if (!nickname || !state.joiningOpen || state.joinedSeat) return state;
+      if (state.seats.length >= 5)
+        return { ...state, notice: '房间已满；真人加电脑最多五位（模拟）。' };
       const duplicate = state.seats.some((seat) => seat.nickname === nickname);
-      const id = `S${state.seats.length + 1}`;
+      const id = `S${Math.max(...state.seats.map((seat) => Number(seat.id.slice(1)))) + 1}`;
       return {
         ...state,
         joinedSeat: id,
@@ -108,6 +114,35 @@ export function reduce(state: PrototypeState, event: Event): PrototypeState {
       };
     case 'toggle-joining':
       return { ...state, joiningOpen: !state.joiningOpen };
+    case 'add-bot': {
+      if (state.screen !== 'lobby' || state.seats.length >= 5)
+        return {
+          ...state,
+          notice: '电脑仅可在开局前添加，真人加电脑最多五位。',
+        };
+      const id = `S${Math.max(...state.seats.map((seat) => Number(seat.id.slice(1)))) + 1}`;
+      return {
+        ...state,
+        seats: [
+          ...state.seats,
+          { id, nickname: `电脑 ${id}`, ready: true, control: 'bot' },
+        ],
+        notice: '电脑已准备；初始翻牌仍由策略合法完成（模拟）。',
+      };
+    }
+    case 'remove-bot': {
+      if (state.screen !== 'lobby') return state;
+      const last = [...state.seats]
+        .reverse()
+        .find((seat) => seat.control === 'bot');
+      return last
+        ? {
+            ...state,
+            seats: state.seats.filter((seat) => seat.id !== last.id),
+            notice: '电脑座位已移除（模拟）。',
+          }
+        : state;
+    }
     case 'move-seat': {
       const index = state.seats.findIndex((seat) => seat.id === event.id);
       if (state.screen !== 'lobby' || index <= 0) return state;
@@ -119,6 +154,14 @@ export function reduce(state: PrototypeState, event: Event): PrototypeState {
         notice: '开局前顺序已调整；座位身份保持不变（模拟）。',
       };
     }
+    case 'all-ready':
+      return state.screen === 'lobby'
+        ? {
+            ...state,
+            seats: state.seats.map((seat) => ({ ...seat, ready: true })),
+            notice: '模拟其他玩家已在各自手机完成准备。',
+          }
+        : state;
     case 'pause':
       return {
         ...state,

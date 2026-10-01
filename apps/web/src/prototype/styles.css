@@ -1266,3 +1266,10 @@ legend {
     height: auto;
   }
 }
+.bot-lobby-actions {
+  display: flex;
+  gap: 8px;
+}
+.bot-lobby-actions button {
+  flex: 1;
+}

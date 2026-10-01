@@ -1,0 +1,393 @@
+{
+  "schemaVersion": 1,
+  "gameId": "pokemon-encounters",
+  "rulesVersion": "tablemax-cn-s19-v1",
+  "stateVersion": 1,
+  "language": "zh-CN",
+  "publisherEdition": null,
+  "status": "用户批准的图片数量及项目采用基线；非出版组件页认证，非SDK运行时模块",
+  "sources": [
+    "S14 图3",
+    "S17 图示计数",
+    "S19 当前采用授权"
+  ],
+  "categoryCount": 16,
+  "cardCount": 56,
+  "cards": [
+    {
+      "categoryId": "ordinary--2",
+      "portraitLabel": "皮卡丘外观",
+      "value": {
+        "kind": "fixed",
+        "number": -2
+      },
+      "quantity": 4,
+      "ability": null,
+      "imageLocation": "第一排左",
+      "sources": [
+        "S14 图3",
+        "S17 按图数牌"
+      ],
+      "displayName": "皮卡丘外观",
+      "assetId": "pokemon-encounters/face/ordinary--2",
+      "instanceIdPattern": "ordinary--2#01..04",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": null
+    },
+    {
+      "categoryId": "ordinary-0",
+      "portraitLabel": "胖丁外观",
+      "value": {
+        "kind": "fixed",
+        "number": 0
+      },
+      "quantity": 4,
+      "ability": null,
+      "imageLocation": "第一排中",
+      "sources": [
+        "S14 图3",
+        "S17 按图数牌"
+      ],
+      "displayName": "胖丁外观",
+      "assetId": "pokemon-encounters/face/ordinary-0",
+      "instanceIdPattern": "ordinary-0#01..04",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": null
+    },
+    {
+      "categoryId": "ordinary-1",
+      "portraitLabel": "伊布外观",
+      "value": {
+        "kind": "fixed",
+        "number": 1
+      },
+      "quantity": 4,
+      "ability": null,
+      "imageLocation": "第一排右",
+      "sources": [
+        "S14 图3",
+        "S17 按图数牌"
+      ],
+      "displayName": "伊布外观",
+      "assetId": "pokemon-encounters/face/ordinary-1",
+      "instanceIdPattern": "ordinary-1#01..04",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": null
+    },
+    {
+      "categoryId": "ordinary-3",
+      "portraitLabel": "妙蛙种子外观",
+      "value": {
+        "kind": "fixed",
+        "number": 3
+      },
+      "quantity": 4,
+      "ability": null,
+      "imageLocation": "第二排中左",
+      "sources": [
+        "S14 图3",
+        "S17 按图数牌"
+      ],
+      "displayName": "妙蛙种子外观",
+      "assetId": "pokemon-encounters/face/ordinary-3",
+      "instanceIdPattern": "ordinary-3#01..04",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": null
+    },
+    {
+      "categoryId": "ordinary-4",
+      "portraitLabel": "杰尼龟外观",
+      "value": {
+        "kind": "fixed",
+        "number": 4
+      },
+      "quantity": 4,
+      "ability": null,
+      "imageLocation": "第二排中右",
+      "sources": [
+        "S14 图3",
+        "S17 按图数牌"
+      ],
+      "displayName": "杰尼龟外观",
+      "assetId": "pokemon-encounters/face/ordinary-4",
+      "instanceIdPattern": "ordinary-4#01..04",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": null
+    },
+    {
+      "categoryId": "ordinary-5",
+      "portraitLabel": "六尾外观",
+      "value": {
+        "kind": "fixed",
+        "number": 5
+      },
+      "quantity": 4,
+      "ability": null,
+      "imageLocation": "第三排左",
+      "sources": [
+        "S14 图3",
+        "S17 按图数牌"
+      ],
+      "displayName": "六尾外观",
+      "assetId": "pokemon-encounters/face/ordinary-5",
+      "instanceIdPattern": "ordinary-5#01..04",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": null
+    },
+    {
+      "categoryId": "ordinary-6",
+      "portraitLabel": "呆呆兽外观",
+      "value": {
+        "kind": "fixed",
+        "number": 6
+      },
+      "quantity": 4,
+      "ability": null,
+      "imageLocation": "第三排中左",
+      "sources": [
+        "S14 图3",
+        "S17 按图数牌"
+      ],
+      "displayName": "呆呆兽外观",
+      "assetId": "pokemon-encounters/face/ordinary-6",
+      "instanceIdPattern": "ordinary-6#01..04",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": null
+    },
+    {
+      "categoryId": "ordinary-7",
+      "portraitLabel": "耿鬼外观",
+      "value": {
+        "kind": "fixed",
+        "number": 7
+      },
+      "quantity": 4,
+      "ability": null,
+      "imageLocation": "第三排中右",
+      "sources": [
+        "S14 图3",
+        "S17 按图数牌"
+      ],
+      "displayName": "耿鬼外观",
+      "assetId": "pokemon-encounters/face/ordinary-7",
+      "instanceIdPattern": "ordinary-7#01..04",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": null
+    },
+    {
+      "categoryId": "ordinary-8",
+      "portraitLabel": "魔墙人偶外观",
+      "value": {
+        "kind": "fixed",
+        "number": 8
+      },
+      "quantity": 4,
+      "ability": null,
+      "imageLocation": "第四排左",
+      "sources": [
+        "S14 图3",
+        "S17 按图数牌"
+      ],
+      "displayName": "魔墙人偶外观",
+      "assetId": "pokemon-encounters/face/ordinary-8",
+      "instanceIdPattern": "ordinary-8#01..04",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": null
+    },
+    {
+      "categoryId": "ordinary-9",
+      "portraitLabel": "大岩蛇外观",
+      "value": {
+        "kind": "fixed",
+        "number": 9
+      },
+      "quantity": 4,
+      "ability": null,
+      "imageLocation": "第四排中左",
+      "sources": [
+        "S14 图3",
+        "S17 按图数牌"
+      ],
+      "displayName": "大岩蛇外观",
+      "assetId": "pokemon-encounters/face/ordinary-9",
+      "instanceIdPattern": "ordinary-9#01..04",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": null
+    },
+    {
+      "categoryId": "special-mew",
+      "name": "梦幻",
+      "value": {
+        "kind": "fixed",
+        "number": 2
+      },
+      "quantity": 2,
+      "ability": "exchange-other-then-self",
+      "imageLocation": "第二排左",
+      "sources": [
+        "S14 图3及能力近景",
+        "S17 数量确认／按图数牌"
+      ],
+      "displayName": "梦幻",
+      "assetId": "pokemon-encounters/face/special-mew",
+      "instanceIdPattern": "special-mew#01..02",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": {
+        "mode": "mandatory",
+        "trigger": "normal-turn-draw",
+        "adoptedText": "新摸到必须执行：梦幻换其他玩家一张明／暗牌，所得牌朝上换己方一张，己方换出公开置顶；转移牌不触发。",
+        "sourceLocation": "S14 图1；S16、S17、S19",
+        "publisherOriginalAuthenticated": false
+      }
+    },
+    {
+      "categoryId": "special-team-rocket",
+      "name": "火箭队",
+      "value": {
+        "kind": "fixed",
+        "number": 12
+      },
+      "quantity": 4,
+      "ability": "coin-replace-or-refill",
+      "imageLocation": "第三排右",
+      "sources": [
+        "S14 图3及能力近景",
+        "S17 数量确认／按图数牌"
+      ],
+      "displayName": "火箭队",
+      "assetId": "pokemon-encounters/face/special-team-rocket",
+      "instanceIdPattern": "special-team-rocket#01..04",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": {
+        "mode": "mandatory",
+        "trigger": "normal-turn-draw-before-target",
+        "adoptedText": "先保存币面：喵喵替换己方；皮卡丘选择一格，全员同格及新摸火箭队置底，从行动者顺时针全部补位。补牌不触发；效果完全完成才查结束。",
+        "sourceLocation": "S14 图1；S15、S17、S19／P03",
+        "publisherOriginalAuthenticated": false
+      }
+    },
+    {
+      "categoryId": "special-zapdos",
+      "name": "闪电鸟",
+      "value": {
+        "kind": "fixed",
+        "number": 10
+      },
+      "quantity": 4,
+      "ability": "clockwise-pass",
+      "imageLocation": "第四排中",
+      "sources": [
+        "S14 图3及能力近景",
+        "S17 数量确认／按图数牌"
+      ],
+      "displayName": "闪电鸟",
+      "assetId": "pokemon-encounters/face/special-zapdos",
+      "instanceIdPattern": "special-zapdos#01..04",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": {
+        "mode": "mandatory",
+        "trigger": "normal-turn-draw-and-replace",
+        "adoptedText": "换入己方后换出牌传顺时针下位，每个其他玩家各本人选位，最后换出置底；完整后查结束，传递不触发。",
+        "sourceLocation": "S14 图1；S16、S17、S19",
+        "publisherOriginalAuthenticated": false
+      }
+    },
+    {
+      "categoryId": "special-charizard",
+      "name": "喷火龙",
+      "value": {
+        "kind": "fixed",
+        "number": 10
+      },
+      "quantity": 2,
+      "ability": "optional-peek-own-hidden",
+      "imageLocation": "第四排中右",
+      "sources": [
+        "S14 图3及能力近景",
+        "S17 数量确认／按图数牌"
+      ],
+      "displayName": "喷火龙",
+      "assetId": "pokemon-encounters/face/special-charizard",
+      "instanceIdPattern": "special-charizard#01..02",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": {
+        "mode": "optional",
+        "trigger": "normal-turn-draw-and-replace",
+        "adoptedText": "可看己方一张暗牌，原位朝下、只本人临时显示；可放弃，无目标自动跳过，确认关闭后完成。",
+        "sourceLocation": "S14 图2；S15、S19／P05",
+        "publisherOriginalAuthenticated": false
+      }
+    },
+    {
+      "categoryId": "special-snorlax",
+      "name": "卡比兽",
+      "value": {
+        "kind": "fixed",
+        "number": 10
+      },
+      "quantity": 2,
+      "ability": "optional-swap-own",
+      "imageLocation": "第四排右",
+      "sources": [
+        "S14 图3及能力近景",
+        "S17 数量确认／按图数牌"
+      ],
+      "displayName": "卡比兽",
+      "assetId": "pokemon-encounters/face/special-snorlax",
+      "instanceIdPattern": "special-snorlax#01..02",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": {
+        "mode": "optional",
+        "trigger": "normal-turn-draw-and-replace",
+        "adoptedText": "可交换己方两个不同位置，保持原朝向，可选刚放入卡比兽；也可不发动，完成后查结束。",
+        "sourceLocation": "S14 图2；S15、S19",
+        "publisherOriginalAuthenticated": false
+      }
+    },
+    {
+      "categoryId": "special-ditto",
+      "name": "百变怪",
+      "value": {
+        "kind": "copy-adjacent"
+      },
+      "quantity": 2,
+      "ability": "settlement-copy-adjacent",
+      "imageLocation": "第二排右",
+      "sources": [
+        "S14 图3及能力近景",
+        "S17 数量确认／按图数牌"
+      ],
+      "displayName": "百变怪",
+      "assetId": "pokemon-encounters/face/special-ditto",
+      "instanceIdPattern": "special-ditto#01..02",
+      "formalPublisherNameVerified": false,
+      "abilityDefinition": {
+        "mode": "automatic",
+        "trigger": "settlement-only",
+        "adoptedText": "复制本行紧邻左右，可经另一百变怪解析到固定数字；最多两张，联合选择含配对的全场最低分，最优同分固定展示解，不许无锚点循环。",
+        "sourceLocation": "S14 图2；S16、S17／P06",
+        "publisherOriginalAuthenticated": false
+      }
+    }
+  ],
+  "digitalComponents": [
+    {
+      "id": "coin",
+      "faces": [
+        "meowth",
+        "pikachu"
+      ],
+      "probabilityEach": 0.5,
+      "count": 1,
+      "source": "S14 两面及 S19 公平随机项目约定"
+    },
+    {
+      "id": "wins",
+      "countPerSeat": 1,
+      "threshold": 3,
+      "source": "S17 三小局胜利默认"
+    }
+  ],
+  "instanceConservation": "boards+deck+discard+held=56; 每实例恰在一个区域",
+  "sourceRecords": "sources.md"
+}

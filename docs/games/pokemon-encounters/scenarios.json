@@ -1,0 +1,2335 @@
+{
+  "schemaVersion": 1,
+  "gameId": "pokemon-encounters",
+  "rulesVersion": "tablemax-cn-s19-v1",
+  "status": "Specification fixtures, never bundled into prototype; no product acceptance executed",
+  "scenarios": [
+    {
+      "id": "V00",
+      "name": "三小局完整大局固定追踪",
+      "ac": [
+        "AC-02",
+        "AC-05"
+      ],
+      "source": [
+        "S13",
+        "S17",
+        "S19"
+      ],
+      "fixture": {
+        "boards": {
+          "S1": [
+            {
+              "instanceId": "ordinary-9#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-9#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-9#03",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-9#04",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-8#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-8#02",
+              "faceUp": false
+            }
+          ],
+          "S2": [
+            {
+              "instanceId": "ordinary-7#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-7#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-7#03",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-6#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-6#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-6#03",
+              "faceUp": false
+            }
+          ]
+        },
+        "deckBottomToTop": [
+          "ordinary--2#02",
+          "ordinary--2#03",
+          "ordinary--2#04",
+          "ordinary-0#02",
+          "ordinary-0#03",
+          "ordinary-0#04",
+          "ordinary-1#02",
+          "ordinary-1#03",
+          "ordinary-1#04",
+          "ordinary-3#02",
+          "ordinary-3#03",
+          "ordinary-3#04",
+          "ordinary-4#02",
+          "ordinary-4#03",
+          "ordinary-4#04",
+          "ordinary-5#02",
+          "ordinary-5#03",
+          "ordinary-5#04",
+          "ordinary-8#04",
+          "special-mew#01",
+          "special-mew#02",
+          "special-team-rocket#01",
+          "special-team-rocket#02",
+          "special-team-rocket#03",
+          "special-team-rocket#04",
+          "special-zapdos#01",
+          "special-zapdos#02",
+          "special-zapdos#03",
+          "special-zapdos#04",
+          "special-charizard#01",
+          "special-charizard#02",
+          "special-snorlax#01",
+          "special-snorlax#02",
+          "special-ditto#01",
+          "special-ditto#02",
+          "ordinary-8#03",
+          "ordinary-7#04",
+          "ordinary-6#04",
+          "ordinary-5#01",
+          "ordinary-4#01",
+          "ordinary-3#01",
+          "ordinary-1#01",
+          "ordinary-0#01",
+          "ordinary--2#01"
+        ],
+        "discardBottomToTop": [],
+        "held": null,
+        "turnSeat": "S1",
+        "phase": "initial",
+        "winsBySeat": {
+          "S1": 0,
+          "S2": 0
+        },
+        "rngState": "fixture-fixed-saved-state",
+        "rulesVersion": "tablemax-cn-s19-v1"
+      },
+      "steps": [
+        {
+          "round": 1,
+          "seat": "S1",
+          "action": "initial-flip",
+          "parameters": {
+            "slot": 0
+          }
+        },
+        {
+          "round": 1,
+          "seat": "S2",
+          "action": "initial-flip",
+          "parameters": {
+            "slot": 0
+          }
+        },
+        {
+          "seat": "S1",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary--2",
+          "round": 1
+        },
+        {
+          "seat": "S1",
+          "action": "replace",
+          "parameters": {
+            "slot": 1
+          },
+          "round": 1
+        },
+        {
+          "seat": "S2",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-0",
+          "round": 1
+        },
+        {
+          "seat": "S2",
+          "action": "replace",
+          "parameters": {
+            "slot": 1
+          },
+          "round": 1
+        },
+        {
+          "seat": "S1",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-1",
+          "round": 1
+        },
+        {
+          "seat": "S1",
+          "action": "replace",
+          "parameters": {
+            "slot": 2
+          },
+          "round": 1
+        },
+        {
+          "seat": "S2",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-3",
+          "round": 1
+        },
+        {
+          "seat": "S2",
+          "action": "replace",
+          "parameters": {
+            "slot": 2
+          },
+          "round": 1
+        },
+        {
+          "seat": "S1",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-4",
+          "round": 1
+        },
+        {
+          "seat": "S1",
+          "action": "replace",
+          "parameters": {
+            "slot": 3
+          },
+          "round": 1
+        },
+        {
+          "seat": "S2",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-5",
+          "round": 1
+        },
+        {
+          "seat": "S2",
+          "action": "replace",
+          "parameters": {
+            "slot": 3
+          },
+          "round": 1
+        },
+        {
+          "seat": "S1",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-6",
+          "round": 1
+        },
+        {
+          "seat": "S1",
+          "action": "replace",
+          "parameters": {
+            "slot": 4
+          },
+          "round": 1
+        },
+        {
+          "seat": "S2",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-7",
+          "round": 1
+        },
+        {
+          "seat": "S2",
+          "action": "replace",
+          "parameters": {
+            "slot": 4
+          },
+          "round": 1
+        },
+        {
+          "seat": "S1",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-8",
+          "round": 1
+        },
+        {
+          "seat": "S1",
+          "action": "replace",
+          "parameters": {
+            "slot": 5
+          },
+          "round": 1
+        },
+        {
+          "round": 1,
+          "actorRole": "host",
+          "action": "next-round",
+          "expectedNextStarter": "S1",
+          "fixtureBoundary": "roundFixtures[1]"
+        },
+        {
+          "round": 2,
+          "seat": "S1",
+          "action": "initial-flip",
+          "parameters": {
+            "slot": 0
+          }
+        },
+        {
+          "round": 2,
+          "seat": "S2",
+          "action": "initial-flip",
+          "parameters": {
+            "slot": 0
+          }
+        },
+        {
+          "seat": "S1",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary--2",
+          "round": 2
+        },
+        {
+          "seat": "S1",
+          "action": "replace",
+          "parameters": {
+            "slot": 1
+          },
+          "round": 2
+        },
+        {
+          "seat": "S2",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-0",
+          "round": 2
+        },
+        {
+          "seat": "S2",
+          "action": "replace",
+          "parameters": {
+            "slot": 1
+          },
+          "round": 2
+        },
+        {
+          "seat": "S1",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-1",
+          "round": 2
+        },
+        {
+          "seat": "S1",
+          "action": "replace",
+          "parameters": {
+            "slot": 2
+          },
+          "round": 2
+        },
+        {
+          "seat": "S2",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-3",
+          "round": 2
+        },
+        {
+          "seat": "S2",
+          "action": "replace",
+          "parameters": {
+            "slot": 2
+          },
+          "round": 2
+        },
+        {
+          "seat": "S1",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-4",
+          "round": 2
+        },
+        {
+          "seat": "S1",
+          "action": "replace",
+          "parameters": {
+            "slot": 3
+          },
+          "round": 2
+        },
+        {
+          "seat": "S2",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-5",
+          "round": 2
+        },
+        {
+          "seat": "S2",
+          "action": "replace",
+          "parameters": {
+            "slot": 3
+          },
+          "round": 2
+        },
+        {
+          "seat": "S1",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-6",
+          "round": 2
+        },
+        {
+          "seat": "S1",
+          "action": "replace",
+          "parameters": {
+            "slot": 4
+          },
+          "round": 2
+        },
+        {
+          "seat": "S2",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-7",
+          "round": 2
+        },
+        {
+          "seat": "S2",
+          "action": "replace",
+          "parameters": {
+            "slot": 4
+          },
+          "round": 2
+        },
+        {
+          "seat": "S1",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-8",
+          "round": 2
+        },
+        {
+          "seat": "S1",
+          "action": "replace",
+          "parameters": {
+            "slot": 5
+          },
+          "round": 2
+        },
+        {
+          "round": 2,
+          "actorRole": "host",
+          "action": "next-round",
+          "expectedNextStarter": "S1",
+          "fixtureBoundary": "roundFixtures[2]"
+        },
+        {
+          "round": 3,
+          "seat": "S1",
+          "action": "initial-flip",
+          "parameters": {
+            "slot": 0
+          }
+        },
+        {
+          "round": 3,
+          "seat": "S2",
+          "action": "initial-flip",
+          "parameters": {
+            "slot": 0
+          }
+        },
+        {
+          "seat": "S1",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary--2",
+          "round": 3
+        },
+        {
+          "seat": "S1",
+          "action": "replace",
+          "parameters": {
+            "slot": 1
+          },
+          "round": 3
+        },
+        {
+          "seat": "S2",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-0",
+          "round": 3
+        },
+        {
+          "seat": "S2",
+          "action": "replace",
+          "parameters": {
+            "slot": 1
+          },
+          "round": 3
+        },
+        {
+          "seat": "S1",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-1",
+          "round": 3
+        },
+        {
+          "seat": "S1",
+          "action": "replace",
+          "parameters": {
+            "slot": 2
+          },
+          "round": 3
+        },
+        {
+          "seat": "S2",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-3",
+          "round": 3
+        },
+        {
+          "seat": "S2",
+          "action": "replace",
+          "parameters": {
+            "slot": 2
+          },
+          "round": 3
+        },
+        {
+          "seat": "S1",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-4",
+          "round": 3
+        },
+        {
+          "seat": "S1",
+          "action": "replace",
+          "parameters": {
+            "slot": 3
+          },
+          "round": 3
+        },
+        {
+          "seat": "S2",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-5",
+          "round": 3
+        },
+        {
+          "seat": "S2",
+          "action": "replace",
+          "parameters": {
+            "slot": 3
+          },
+          "round": 3
+        },
+        {
+          "seat": "S1",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-6",
+          "round": 3
+        },
+        {
+          "seat": "S1",
+          "action": "replace",
+          "parameters": {
+            "slot": 4
+          },
+          "round": 3
+        },
+        {
+          "seat": "S2",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-7",
+          "round": 3
+        },
+        {
+          "seat": "S2",
+          "action": "replace",
+          "parameters": {
+            "slot": 4
+          },
+          "round": 3
+        },
+        {
+          "seat": "S1",
+          "action": "draw",
+          "parameters": {
+            "source": "deck"
+          },
+          "expectedHeldCategory": "ordinary-8",
+          "round": 3
+        },
+        {
+          "seat": "S1",
+          "action": "replace",
+          "parameters": {
+            "slot": 5
+          },
+          "round": 3
+        }
+      ],
+      "expected": {
+        "finalBoards": {
+          "S1": [
+            9,
+            -2,
+            1,
+            4,
+            6,
+            8
+          ],
+          "S2": [
+            7,
+            0,
+            3,
+            5,
+            7,
+            6
+          ]
+        },
+        "scores": {
+          "S1": 26,
+          "S2": 28
+        },
+        "winsBySeat": {
+          "S1": 3,
+          "S2": 0
+        },
+        "matchWinners": [
+          "S1"
+        ],
+        "otherFinalTurns": false,
+        "roundWinners": [
+          [
+            "S1"
+          ],
+          [
+            "S1"
+          ],
+          [
+            "S1"
+          ]
+        ]
+      },
+      "roles": {
+        "public": "最终全部揭示及分数，途中只明牌／摸牌",
+        "player": "正常暗牌背面；本人合法动作",
+        "host": "同公共，管理不能获取暗牌"
+      },
+      "responsibility": "第二阶段规格追踪；第五阶段执行规则fixture；第六阶段断网实机",
+      "roundFixtures": [
+        {
+          "boards": {
+            "S1": [
+              {
+                "instanceId": "ordinary-9#01",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-9#02",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-9#03",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-9#04",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-8#01",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-8#02",
+                "faceUp": false
+              }
+            ],
+            "S2": [
+              {
+                "instanceId": "ordinary-7#01",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-7#02",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-7#03",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-6#01",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-6#02",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-6#03",
+                "faceUp": false
+              }
+            ]
+          },
+          "deckBottomToTop": [
+            "ordinary--2#02",
+            "ordinary--2#03",
+            "ordinary--2#04",
+            "ordinary-0#02",
+            "ordinary-0#03",
+            "ordinary-0#04",
+            "ordinary-1#02",
+            "ordinary-1#03",
+            "ordinary-1#04",
+            "ordinary-3#02",
+            "ordinary-3#03",
+            "ordinary-3#04",
+            "ordinary-4#02",
+            "ordinary-4#03",
+            "ordinary-4#04",
+            "ordinary-5#02",
+            "ordinary-5#03",
+            "ordinary-5#04",
+            "ordinary-8#04",
+            "special-mew#01",
+            "special-mew#02",
+            "special-team-rocket#01",
+            "special-team-rocket#02",
+            "special-team-rocket#03",
+            "special-team-rocket#04",
+            "special-zapdos#01",
+            "special-zapdos#02",
+            "special-zapdos#03",
+            "special-zapdos#04",
+            "special-charizard#01",
+            "special-charizard#02",
+            "special-snorlax#01",
+            "special-snorlax#02",
+            "special-ditto#01",
+            "special-ditto#02",
+            "ordinary-8#03",
+            "ordinary-7#04",
+            "ordinary-6#04",
+            "ordinary-5#01",
+            "ordinary-4#01",
+            "ordinary-3#01",
+            "ordinary-1#01",
+            "ordinary-0#01",
+            "ordinary--2#01"
+          ],
+          "discardBottomToTop": [],
+          "held": null,
+          "turnSeat": "S1",
+          "phase": "initial",
+          "winsBySeat": {
+            "S1": 0,
+            "S2": 0
+          },
+          "rngState": "fixture-round-1-saved-state",
+          "rulesVersion": "tablemax-cn-s19-v1",
+          "roundNumber": 1
+        },
+        {
+          "boards": {
+            "S1": [
+              {
+                "instanceId": "ordinary-9#01",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-9#02",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-9#03",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-9#04",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-8#01",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-8#02",
+                "faceUp": false
+              }
+            ],
+            "S2": [
+              {
+                "instanceId": "ordinary-7#01",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-7#02",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-7#03",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-6#01",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-6#02",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-6#03",
+                "faceUp": false
+              }
+            ]
+          },
+          "deckBottomToTop": [
+            "ordinary--2#02",
+            "ordinary--2#03",
+            "ordinary--2#04",
+            "ordinary-0#02",
+            "ordinary-0#03",
+            "ordinary-0#04",
+            "ordinary-1#02",
+            "ordinary-1#03",
+            "ordinary-1#04",
+            "ordinary-3#02",
+            "ordinary-3#03",
+            "ordinary-3#04",
+            "ordinary-4#02",
+            "ordinary-4#03",
+            "ordinary-4#04",
+            "ordinary-5#02",
+            "ordinary-5#03",
+            "ordinary-5#04",
+            "ordinary-8#04",
+            "special-mew#01",
+            "special-mew#02",
+            "special-team-rocket#01",
+            "special-team-rocket#02",
+            "special-team-rocket#03",
+            "special-team-rocket#04",
+            "special-zapdos#01",
+            "special-zapdos#02",
+            "special-zapdos#03",
+            "special-zapdos#04",
+            "special-charizard#01",
+            "special-charizard#02",
+            "special-snorlax#01",
+            "special-snorlax#02",
+            "special-ditto#01",
+            "special-ditto#02",
+            "ordinary-8#03",
+            "ordinary-7#04",
+            "ordinary-6#04",
+            "ordinary-5#01",
+            "ordinary-4#01",
+            "ordinary-3#01",
+            "ordinary-1#01",
+            "ordinary-0#01",
+            "ordinary--2#01"
+          ],
+          "discardBottomToTop": [],
+          "held": null,
+          "turnSeat": "S1",
+          "phase": "initial",
+          "winsBySeat": {
+            "S1": 1,
+            "S2": 0
+          },
+          "rngState": "fixture-round-2-saved-state",
+          "rulesVersion": "tablemax-cn-s19-v1",
+          "roundNumber": 2
+        },
+        {
+          "boards": {
+            "S1": [
+              {
+                "instanceId": "ordinary-9#01",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-9#02",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-9#03",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-9#04",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-8#01",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-8#02",
+                "faceUp": false
+              }
+            ],
+            "S2": [
+              {
+                "instanceId": "ordinary-7#01",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-7#02",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-7#03",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-6#01",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-6#02",
+                "faceUp": false
+              },
+              {
+                "instanceId": "ordinary-6#03",
+                "faceUp": false
+              }
+            ]
+          },
+          "deckBottomToTop": [
+            "ordinary--2#02",
+            "ordinary--2#03",
+            "ordinary--2#04",
+            "ordinary-0#02",
+            "ordinary-0#03",
+            "ordinary-0#04",
+            "ordinary-1#02",
+            "ordinary-1#03",
+            "ordinary-1#04",
+            "ordinary-3#02",
+            "ordinary-3#03",
+            "ordinary-3#04",
+            "ordinary-4#02",
+            "ordinary-4#03",
+            "ordinary-4#04",
+            "ordinary-5#02",
+            "ordinary-5#03",
+            "ordinary-5#04",
+            "ordinary-8#04",
+            "special-mew#01",
+            "special-mew#02",
+            "special-team-rocket#01",
+            "special-team-rocket#02",
+            "special-team-rocket#03",
+            "special-team-rocket#04",
+            "special-zapdos#01",
+            "special-zapdos#02",
+            "special-zapdos#03",
+            "special-zapdos#04",
+            "special-charizard#01",
+            "special-charizard#02",
+            "special-snorlax#01",
+            "special-snorlax#02",
+            "special-ditto#01",
+            "special-ditto#02",
+            "ordinary-8#03",
+            "ordinary-7#04",
+            "ordinary-6#04",
+            "ordinary-5#01",
+            "ordinary-4#01",
+            "ordinary-3#01",
+            "ordinary-1#01",
+            "ordinary-0#01",
+            "ordinary--2#01"
+          ],
+          "discardBottomToTop": [],
+          "held": null,
+          "turnSeat": "S1",
+          "phase": "initial",
+          "winsBySeat": {
+            "S1": 2,
+            "S2": 0
+          },
+          "rngState": "fixture-round-3-saved-state",
+          "rulesVersion": "tablemax-cn-s19-v1",
+          "roundNumber": 3
+        }
+      ],
+      "fixtureRandomSemantics": "测试注入的三个已保存洗牌结果及规则随机状态，不声称这些队列来自未实现的某个PRNG算法；每小局初始化边界用完整56实例fixture复查。"
+    },
+    {
+      "id": "V01",
+      "name": "初始选择和开局顺序",
+      "ac": [
+        "AC-03",
+        "AC-05"
+      ],
+      "initialConditions": "完整56张、2至5座位，逐人一张循环六次，初始全暗",
+      "steps": [
+        "每位选翻一个格，乱序提交全员选择"
+      ],
+      "expected": "最后选择保存前不进普通回合；全部一明五暗，首位按房主／已保存随机／赢家默认",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false
+    },
+    {
+      "id": "V02",
+      "name": "普通来源及合法分支",
+      "ac": [
+        "AC-05",
+        "AC-07"
+      ],
+      "initialConditions": "S1 draw，弃牌为空或顶普通牌，公开摸到普通牌",
+      "steps": [
+        "分别抽牌库／弃顶，替换明／暗或从牌库直接弃；对空弃堆、弃顶直接弃提交非法意图"
+      ],
+      "expected": "公开新牌，普通换出置顶；非法动作不改变状态，不翻己方额外暗牌",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false
+    },
+    {
+      "id": "V03",
+      "name": "梦幻两次选位与结束",
+      "ac": [
+        "AC-05",
+        "AC-06",
+        "AC-11"
+      ],
+      "initialConditions": "S2五明一暗，S1新摸梦幻，S1未全明",
+      "steps": [
+        "S1梦幻换S2最后暗牌，再将所取牌换己方"
+      ],
+      "expected": "S2全明后仍等第二步；完整后结束；取到能力不触发，无暂持终局",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false,
+      "fixture": {
+        "boards": {
+          "S1": [
+            {
+              "instanceId": "ordinary-9#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-9#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-9#03",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-9#04",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-8#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-8#02",
+              "faceUp": false
+            }
+          ],
+          "S2": [
+            {
+              "instanceId": "ordinary-7#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-7#02",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-7#03",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-6#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-6#02",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-6#03",
+              "faceUp": false
+            }
+          ]
+        },
+        "deckBottomToTop": [
+          "ordinary--2#01",
+          "ordinary--2#02",
+          "ordinary--2#03",
+          "ordinary--2#04",
+          "ordinary-0#01",
+          "ordinary-0#02",
+          "ordinary-0#03",
+          "ordinary-0#04",
+          "ordinary-1#01",
+          "ordinary-1#02",
+          "ordinary-1#03",
+          "ordinary-1#04",
+          "ordinary-3#01",
+          "ordinary-3#02",
+          "ordinary-3#03",
+          "ordinary-3#04",
+          "ordinary-4#01",
+          "ordinary-4#02",
+          "ordinary-4#03",
+          "ordinary-4#04",
+          "ordinary-5#01",
+          "ordinary-5#02",
+          "ordinary-5#03",
+          "ordinary-5#04",
+          "ordinary-6#04",
+          "ordinary-7#04",
+          "ordinary-8#03",
+          "ordinary-8#04",
+          "special-mew#02",
+          "special-team-rocket#01",
+          "special-team-rocket#02",
+          "special-team-rocket#03",
+          "special-team-rocket#04",
+          "special-zapdos#01",
+          "special-zapdos#02",
+          "special-zapdos#03",
+          "special-zapdos#04",
+          "special-charizard#01",
+          "special-charizard#02",
+          "special-snorlax#01",
+          "special-snorlax#02",
+          "special-ditto#01",
+          "special-ditto#02",
+          "special-mew#01"
+        ],
+        "discardBottomToTop": [],
+        "held": null,
+        "turnSeat": "S1",
+        "phase": "draw",
+        "winsBySeat": {
+          "S1": 0,
+          "S2": 0
+        },
+        "rngState": "fixture-fixed-saved-state",
+        "rulesVersion": "tablemax-cn-s19-v1"
+      }
+    },
+    {
+      "id": "V04",
+      "name": "火箭队喵喵与币面恢复",
+      "ac": [
+        "AC-05",
+        "AC-13"
+      ],
+      "initialConditions": "S1新摸火箭队，固定喵喵结果，五明一暗",
+      "steps": [
+        "选择最后暗格，回退选位，重复同选位"
+      ],
+      "expected": "朝上替换、旧牌顶弃；已生成币面不重投；单次效果完成后结算",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false,
+      "fixture": {
+        "boards": {
+          "S1": [
+            {
+              "instanceId": "ordinary-9#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-9#02",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-9#03",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-9#04",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-8#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-8#02",
+              "faceUp": false
+            }
+          ],
+          "S2": [
+            {
+              "instanceId": "ordinary-7#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-7#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-7#03",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-6#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-6#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-6#03",
+              "faceUp": false
+            }
+          ]
+        },
+        "deckBottomToTop": [
+          "ordinary--2#01",
+          "ordinary--2#02",
+          "ordinary--2#03",
+          "ordinary--2#04",
+          "ordinary-0#01",
+          "ordinary-0#02",
+          "ordinary-0#03",
+          "ordinary-0#04",
+          "ordinary-1#01",
+          "ordinary-1#02",
+          "ordinary-1#03",
+          "ordinary-1#04",
+          "ordinary-3#01",
+          "ordinary-3#02",
+          "ordinary-3#03",
+          "ordinary-3#04",
+          "ordinary-4#01",
+          "ordinary-4#02",
+          "ordinary-4#03",
+          "ordinary-4#04",
+          "ordinary-5#01",
+          "ordinary-5#02",
+          "ordinary-5#03",
+          "ordinary-5#04",
+          "ordinary-6#04",
+          "ordinary-7#04",
+          "ordinary-8#03",
+          "ordinary-8#04",
+          "special-mew#01",
+          "special-mew#02",
+          "special-team-rocket#02",
+          "special-team-rocket#03",
+          "special-team-rocket#04",
+          "special-zapdos#01",
+          "special-zapdos#02",
+          "special-zapdos#03",
+          "special-zapdos#04",
+          "special-charizard#01",
+          "special-charizard#02",
+          "special-snorlax#01",
+          "special-snorlax#02",
+          "special-ditto#01",
+          "special-ditto#02",
+          "special-team-rocket#01"
+        ],
+        "discardBottomToTop": [],
+        "held": null,
+        "turnSeat": "S1",
+        "phase": "draw",
+        "winsBySeat": {
+          "S1": 0,
+          "S2": 0
+        },
+        "rngState": "fixture-fixed-saved-state",
+        "rulesVersion": "tablemax-cn-s19-v1"
+      }
+    },
+    {
+      "id": "V05",
+      "name": "火箭队皮卡丘完整补位",
+      "ac": [
+        "AC-05",
+        "AC-12",
+        "AC-15"
+      ],
+      "initialConditions": "3人同位置暗牌，S1五明一暗，币面皮卡丘",
+      "steps": [
+        "选该格，全员同位弃底；S1补后全明，继续B／C补位，其中补能力牌"
+      ],
+      "expected": "按P03顺序，全部补齐后结束；补牌不触发；内部恢复进度继续补，不计空位",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false,
+      "fixture": {
+        "boards": {
+          "S1": [
+            {
+              "instanceId": "ordinary--2#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-0#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-1#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-3#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-4#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-5#01",
+              "faceUp": false
+            }
+          ],
+          "S2": [
+            {
+              "instanceId": "ordinary-6#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-7#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-8#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-9#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-0#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-1#02",
+              "faceUp": false
+            }
+          ],
+          "S3": [
+            {
+              "instanceId": "ordinary-3#02",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-4#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-5#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-6#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-7#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-8#02",
+              "faceUp": false
+            }
+          ]
+        },
+        "deckBottomToTop": [
+          "ordinary--2#02",
+          "ordinary--2#03",
+          "ordinary--2#04",
+          "ordinary-0#04",
+          "ordinary-1#03",
+          "ordinary-1#04",
+          "ordinary-3#03",
+          "ordinary-3#04",
+          "ordinary-4#03",
+          "ordinary-4#04",
+          "ordinary-5#03",
+          "ordinary-5#04",
+          "ordinary-6#03",
+          "ordinary-6#04",
+          "ordinary-7#03",
+          "ordinary-7#04",
+          "ordinary-8#03",
+          "ordinary-8#04",
+          "ordinary-9#03",
+          "ordinary-9#04",
+          "special-mew#01",
+          "special-mew#02",
+          "special-team-rocket#02",
+          "special-team-rocket#03",
+          "special-team-rocket#04",
+          "special-zapdos#01",
+          "special-zapdos#02",
+          "special-zapdos#03",
+          "special-zapdos#04",
+          "special-charizard#01",
+          "special-charizard#02",
+          "special-snorlax#02",
+          "special-ditto#01",
+          "special-ditto#02",
+          "ordinary-0#03",
+          "special-snorlax#01",
+          "ordinary-9#02",
+          "special-team-rocket#01"
+        ],
+        "discardBottomToTop": [],
+        "held": null,
+        "turnSeat": "S1",
+        "phase": "draw",
+        "winsBySeat": {
+          "S1": 0,
+          "S2": 0,
+          "S3": 0
+        },
+        "rngState": "fixture-fixed-saved-state",
+        "rulesVersion": "tablemax-cn-s19-v1"
+      }
+    },
+    {
+      "id": "V06",
+      "name": "闪电鸟多人被动选择",
+      "ac": [
+        "AC-05",
+        "AC-11",
+        "AC-14"
+      ],
+      "initialConditions": "3人顺时针，S1五明一暗，新摸闪电鸟",
+      "steps": [
+        "S1替最后暗格，S2和S3本人各选位，最后置底"
+      ],
+      "expected": "S1中途全明也继续传；所有其余玩家恰接一次；正常turnSeat不改变，转移能力不触发",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false,
+      "fixture": {
+        "boards": {
+          "S1": [
+            {
+              "instanceId": "ordinary--2#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-0#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-1#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-3#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-4#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-5#01",
+              "faceUp": false
+            }
+          ],
+          "S2": [
+            {
+              "instanceId": "ordinary-6#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-7#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-8#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-9#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-0#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-1#02",
+              "faceUp": false
+            }
+          ],
+          "S3": [
+            {
+              "instanceId": "ordinary-3#02",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-4#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-5#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-6#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-7#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-8#02",
+              "faceUp": false
+            }
+          ]
+        },
+        "deckBottomToTop": [
+          "ordinary--2#02",
+          "ordinary--2#03",
+          "ordinary--2#04",
+          "ordinary-0#03",
+          "ordinary-0#04",
+          "ordinary-1#03",
+          "ordinary-1#04",
+          "ordinary-3#03",
+          "ordinary-3#04",
+          "ordinary-4#03",
+          "ordinary-4#04",
+          "ordinary-5#03",
+          "ordinary-5#04",
+          "ordinary-6#03",
+          "ordinary-6#04",
+          "ordinary-7#03",
+          "ordinary-7#04",
+          "ordinary-8#03",
+          "ordinary-8#04",
+          "ordinary-9#02",
+          "ordinary-9#03",
+          "ordinary-9#04",
+          "special-mew#01",
+          "special-mew#02",
+          "special-team-rocket#01",
+          "special-team-rocket#02",
+          "special-team-rocket#03",
+          "special-team-rocket#04",
+          "special-zapdos#02",
+          "special-zapdos#03",
+          "special-zapdos#04",
+          "special-charizard#01",
+          "special-charizard#02",
+          "special-snorlax#01",
+          "special-snorlax#02",
+          "special-ditto#01",
+          "special-ditto#02",
+          "special-zapdos#01"
+        ],
+        "discardBottomToTop": [],
+        "held": null,
+        "turnSeat": "S1",
+        "phase": "draw",
+        "winsBySeat": {
+          "S1": 0,
+          "S2": 0,
+          "S3": 0
+        },
+        "rngState": "fixture-fixed-saved-state",
+        "rulesVersion": "tablemax-cn-s19-v1"
+      }
+    },
+    {
+      "id": "V07",
+      "name": "卡比兽所有分支",
+      "ac": [
+        "AC-05"
+      ],
+      "initialConditions": "新摸并换入卡比兽，选位后五明或全明",
+      "steps": [
+        "分别不发动、交换两个不同格（含刚换入）；提交同格交换"
+      ],
+      "expected": "合法先完整交换保留朝向再查结束；同格拒绝不写checkpoint",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false,
+      "fixture": {
+        "boards": {
+          "S1": [
+            {
+              "instanceId": "ordinary-9#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-9#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-9#03",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-9#04",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-8#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-8#02",
+              "faceUp": false
+            }
+          ],
+          "S2": [
+            {
+              "instanceId": "ordinary-7#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-7#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-7#03",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-6#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-6#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-6#03",
+              "faceUp": false
+            }
+          ]
+        },
+        "deckBottomToTop": [
+          "ordinary--2#01",
+          "ordinary--2#02",
+          "ordinary--2#03",
+          "ordinary--2#04",
+          "ordinary-0#01",
+          "ordinary-0#02",
+          "ordinary-0#03",
+          "ordinary-0#04",
+          "ordinary-1#01",
+          "ordinary-1#02",
+          "ordinary-1#03",
+          "ordinary-1#04",
+          "ordinary-3#01",
+          "ordinary-3#02",
+          "ordinary-3#03",
+          "ordinary-3#04",
+          "ordinary-4#01",
+          "ordinary-4#02",
+          "ordinary-4#03",
+          "ordinary-4#04",
+          "ordinary-5#01",
+          "ordinary-5#02",
+          "ordinary-5#03",
+          "ordinary-5#04",
+          "ordinary-6#04",
+          "ordinary-7#04",
+          "ordinary-8#03",
+          "ordinary-8#04",
+          "special-mew#01",
+          "special-mew#02",
+          "special-team-rocket#01",
+          "special-team-rocket#02",
+          "special-team-rocket#03",
+          "special-team-rocket#04",
+          "special-zapdos#01",
+          "special-zapdos#02",
+          "special-zapdos#03",
+          "special-zapdos#04",
+          "special-charizard#01",
+          "special-charizard#02",
+          "special-snorlax#02",
+          "special-ditto#01",
+          "special-ditto#02",
+          "special-snorlax#01"
+        ],
+        "discardBottomToTop": [],
+        "held": null,
+        "turnSeat": "S1",
+        "phase": "draw",
+        "winsBySeat": {
+          "S1": 0,
+          "S2": 0
+        },
+        "rngState": "fixture-fixed-saved-state",
+        "rulesVersion": "tablemax-cn-s19-v1"
+      }
+    },
+    {
+      "id": "V08",
+      "name": "喷火龙临时授权及无目标",
+      "ac": [
+        "AC-05",
+        "AC-06",
+        "AC-13"
+      ],
+      "initialConditions": "S1换入喷火龙，有己方暗格；另一fixture无暗格",
+      "steps": [
+        "分别放弃、peek暗格后close、非法peek明格／他人；回退peek或close"
+      ],
+      "expected": "值只S1临时字段，公共/其他/bot别座位无值，close清理；无目标自动跳过；临时查看不翻明",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false,
+      "fixture": {
+        "boards": {
+          "S1": [
+            {
+              "instanceId": "ordinary-9#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-9#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-9#03",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-9#04",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-8#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-8#02",
+              "faceUp": false
+            }
+          ],
+          "S2": [
+            {
+              "instanceId": "ordinary-7#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-7#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-7#03",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-6#01",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-6#02",
+              "faceUp": false
+            },
+            {
+              "instanceId": "ordinary-6#03",
+              "faceUp": false
+            }
+          ]
+        },
+        "deckBottomToTop": [
+          "ordinary--2#01",
+          "ordinary--2#02",
+          "ordinary--2#03",
+          "ordinary--2#04",
+          "ordinary-0#01",
+          "ordinary-0#02",
+          "ordinary-0#03",
+          "ordinary-0#04",
+          "ordinary-1#01",
+          "ordinary-1#02",
+          "ordinary-1#03",
+          "ordinary-1#04",
+          "ordinary-3#01",
+          "ordinary-3#02",
+          "ordinary-3#03",
+          "ordinary-3#04",
+          "ordinary-4#01",
+          "ordinary-4#02",
+          "ordinary-4#03",
+          "ordinary-4#04",
+          "ordinary-5#01",
+          "ordinary-5#02",
+          "ordinary-5#03",
+          "ordinary-5#04",
+          "ordinary-6#04",
+          "ordinary-7#04",
+          "ordinary-8#03",
+          "ordinary-8#04",
+          "special-mew#01",
+          "special-mew#02",
+          "special-team-rocket#01",
+          "special-team-rocket#02",
+          "special-team-rocket#03",
+          "special-team-rocket#04",
+          "special-zapdos#01",
+          "special-zapdos#02",
+          "special-zapdos#03",
+          "special-zapdos#04",
+          "special-charizard#02",
+          "special-snorlax#01",
+          "special-snorlax#02",
+          "special-ditto#01",
+          "special-ditto#02",
+          "special-charizard#01"
+        ],
+        "discardBottomToTop": [],
+        "held": null,
+        "turnSeat": "S1",
+        "phase": "draw",
+        "winsBySeat": {
+          "S1": 0,
+          "S2": 0
+        },
+        "rngState": "fixture-fixed-saved-state",
+        "rulesVersion": "tablemax-cn-s19-v1"
+      }
+    },
+    {
+      "id": "V09",
+      "name": "整堆重洗及特殊弃底",
+      "ac": [
+        "AC-05",
+        "AC-13"
+      ],
+      "initialConditions": "牌库空，弃牌底到顶明确，普通摸牌／火箭队补位",
+      "steps": [
+        "全弃堆重洗，正常和补位继续取牌，回退后相同意图"
+      ],
+      "expected": "无保留顶牌；保存新牌序和随机状态；普通摸到能力照常触发，补位不触发",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false
+    },
+    {
+      "id": "V10",
+      "name": "百变怪联合、连续和负值",
+      "ac": [
+        "AC-05"
+      ],
+      "initialConditions": "完整六格，最多两张百变怪",
+      "steps": [
+        "比较配对最优、联合同分、连续引用、负值相等和纯循环方案"
+      ],
+      "expected": "取全场地最低分；同分按固定展示顺序，真实数字锚定；负值配对计零，纯循环无效",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false,
+      "fixture": {
+        "boards": {
+          "S1": [
+            {
+              "instanceId": "ordinary-1#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "special-ditto#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-5#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-0#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-5#02",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-9#01",
+              "faceUp": true
+            }
+          ],
+          "S2": [
+            {
+              "instanceId": "ordinary-3#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-4#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-6#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-7#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-8#01",
+              "faceUp": true
+            },
+            {
+              "instanceId": "ordinary-9#02",
+              "faceUp": true
+            }
+          ]
+        },
+        "deckBottomToTop": [
+          "ordinary--2#01",
+          "ordinary--2#02",
+          "ordinary--2#03",
+          "ordinary--2#04",
+          "ordinary-0#02",
+          "ordinary-0#03",
+          "ordinary-0#04",
+          "ordinary-1#02",
+          "ordinary-1#03",
+          "ordinary-1#04",
+          "ordinary-3#02",
+          "ordinary-3#03",
+          "ordinary-3#04",
+          "ordinary-4#02",
+          "ordinary-4#03",
+          "ordinary-4#04",
+          "ordinary-5#03",
+          "ordinary-5#04",
+          "ordinary-6#02",
+          "ordinary-6#03",
+          "ordinary-6#04",
+          "ordinary-7#02",
+          "ordinary-7#03",
+          "ordinary-7#04",
+          "ordinary-8#02",
+          "ordinary-8#03",
+          "ordinary-8#04",
+          "ordinary-9#03",
+          "ordinary-9#04",
+          "special-mew#01",
+          "special-mew#02",
+          "special-team-rocket#01",
+          "special-team-rocket#02",
+          "special-team-rocket#03",
+          "special-team-rocket#04",
+          "special-zapdos#01",
+          "special-zapdos#02",
+          "special-zapdos#03",
+          "special-zapdos#04",
+          "special-charizard#01",
+          "special-charizard#02",
+          "special-snorlax#01",
+          "special-snorlax#02",
+          "special-ditto#02"
+        ],
+        "discardBottomToTop": [],
+        "held": null,
+        "turnSeat": "S1",
+        "phase": "draw",
+        "winsBySeat": {
+          "S1": 0,
+          "S2": 0
+        },
+        "rngState": "fixture-fixed-saved-state",
+        "rulesVersion": "tablemax-cn-s19-v1"
+      }
+    },
+    {
+      "id": "V11",
+      "name": "共同赢家与下一小局",
+      "ac": [
+        "AC-05"
+      ],
+      "initialConditions": "多个同分最低，原胜局计数有未达／同时达三胜两种",
+      "steps": [
+        "结算各加胜，未达由房主next-round，达三胜不提供next-round"
+      ],
+      "expected": "共同小局赢家各加一；随机共同赢家首位保存；重洗56重发空弃堆；同时达三胜共同整局赢",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false
+    },
+    {
+      "id": "V12",
+      "name": "逐决策连续回退",
+      "ac": [
+        "AC-11",
+        "AC-12",
+        "AC-13"
+      ],
+      "initialConditions": "D01至D13分别有合法before及after，随机／揭示结果已有保存",
+      "steps": [
+        "依次回退每个before、连续回退两次、再同动作继续"
+      ],
+      "expected": "恢复game/pending/held/queue/coin/rng/score/wins及策略数据；身份不变；提示已看信息；修订分支增",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false
+    },
+    {
+      "id": "V13",
+      "name": "旧分支与可靠动作",
+      "ac": [
+        "AC-07",
+        "AC-14"
+      ],
+      "initialConditions": "提交号已保存/确认丢失/过期，回退产生新分支",
+      "steps": [
+        "重复/并发/越权意图，注入旧branch/decision迟到结果与动画"
+      ],
+      "expected": "同号不重复执行；不将旧意图转新动作；安全拒绝、全同步清选择／动画，标签无秘密",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false
+    },
+    {
+      "id": "V14",
+      "name": "真人断线与手机换绑",
+      "ac": [
+        "AC-08",
+        "AC-09",
+        "AC-10"
+      ],
+      "initialConditions": "真人当前draw或闪电鸟接牌，房主同时参赛",
+      "steps": [
+        "断线、暂停、刷新同步；房主确认同seat换绑，旧手机再提交"
+      ],
+      "expected": "保留真人座位不代操作，房主本人手机选牌；绑定代数增旧凭证失效，恢复地址/连接不倒退",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false
+    },
+    {
+      "id": "V15",
+      "name": "中间步骤崩溃和兼容",
+      "ac": [
+        "AC-15",
+        "AC-16"
+      ],
+      "initialConditions": "各D已确认状态，包括peek、传递held、火箭队内部进度",
+      "steps": [
+        "正常重启/强制停止后加载；加载旧S18终局、损坏重复实例、错版本"
+      ],
+      "expected": "恢复最后确认边界，不提前结算，已生成结果一致；不兼容/损坏拒绝且原文件保留",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false
+    },
+    {
+      "id": "V16",
+      "name": "电脑座位与准备",
+      "ac": [
+        "AC-19"
+      ],
+      "initialConditions": "大厅真人+电脑2至5，电脑标识/策略已注册",
+      "steps": [
+        "添加/移除电脑、超额、调整顺序、关闭真人加入"
+      ],
+      "expected": "公开电脑身份，人数合计合法；电脑初始翻牌完成；开局后不改人数/控制者",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "bot.md"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false
+    },
+    {
+      "id": "V17",
+      "name": "全部节点人机与混合整局",
+      "ac": [
+        "AC-20"
+      ],
+      "initialConditions": "逐D01至D12合法授权上下文及固定种子，D13管理除外",
+      "steps": [
+        "每种参数/可选分支验证；真人+bot以及全bot完成三胜局"
+      ],
+      "expected": "合法每步由策略选择并统一保存，不需要人代bot；默认decline不替代swap分支规则检查",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "bot.md"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false
+    },
+    {
+      "id": "V18",
+      "name": "策略输入与日志隔离",
+      "ac": [
+        "AC-06",
+        "AC-21"
+      ],
+      "initialConditions": "服务端隐藏牌/牌序和正常授权view各一份",
+      "steps": [
+        "审查每策略输入及日志，测试他人peek，测试非法目标反馈"
+      ],
+      "expected": "输入没有deck/秘密instance/暗值/管理凭证，peek仅本人阶段；错误和安全标签不泄漏",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "bot.md"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false
+    },
+    {
+      "id": "V19",
+      "name": "策略取消、随机和失败",
+      "ac": [
+        "AC-22"
+      ],
+      "initialConditions": "等待中的任务键/策略memory/rng，支持延迟/重复/非法/异常策略",
+      "steps": [
+        "暂停/回退/结束/重启，投递旧任务；执行故障版本"
+      ],
+      "expected": "旧结果拒绝，当前真人不代；默认确定性策略无RNG/记忆，未来独立RNG同checkpoint恢复；错误停止不无限重试",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "bot.md"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false
+    },
+    {
+      "id": "V20",
+      "name": "独立策略替换和封装",
+      "ac": [
+        "AC-23"
+      ],
+      "initialConditions": "注册basic-v1，另有合法测试策略或不兼容版本",
+      "steps": [
+        "新大局构建替换策略；恢复旧版本；审查规则/计分/UI/策略/持久化导入边界"
+      ],
+      "expected": "可定位独立bot入口，规则/计分不改，版本不兼容拒绝且原档保留；模板/接入责任第四阶段",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "bot.md"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false
+    },
+    {
+      "id": "V21",
+      "name": "尺寸、触控、动效与声音",
+      "ac": [
+        "AC-04",
+        "AC-17"
+      ],
+      "initialConditions": "公共1920x1080，手机360/390及safe-area模拟，各能力流程",
+      "steps": [
+        "选位/提交/保存/拒绝/回退/同步，减少动态；主机声音激活/静音"
+      ],
+      "expected": "44px目标、无溢出/遮挡；保存后才揭示动效；旧动画清理；手机无声音、同步不补播；实机视觉第六阶段",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false
+    },
+    {
+      "id": "V22",
+      "name": "全本地资源与错误草图",
+      "ac": [
+        "AC-02",
+        "AC-16",
+        "AC-17"
+      ],
+      "initialConditions": "独立构建，观察从页面首次加载的所有请求",
+      "steps": [
+        "打开游戏帮助/资源及恢复/存档错/网络错/端口错页面"
+      ],
+      "expected": "请求全同源、错误无成功假象；原型仅草图，不证明真实文件保留或离线正式整局",
+      "roleAssertions": "按 information-and-decisions.md 逐字段矩阵；公共仅明牌及进度，暗牌背面，peek仅当前本人",
+      "source": [
+        "rules.md",
+        "information-and-decisions.md",
+        "S19/P01-P08"
+      ],
+      "responsibility": "第二阶段规格/原型走查；第三至五阶段真实实现测试；第六阶段实机",
+      "executedProductAcceptance": false
+    }
+  ]
+}

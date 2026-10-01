@@ -2,7 +2,7 @@
 
 范围：用户本机 Windows 11 x64；涵盖第一阶段工程基础与第二阶段独立原型的运行、产物和验证。正式入口仍是工程验证页面，原型只使用合成 UI 状态，均不代表完整桌游平台或产品验收。
 
-第二阶段设计行为和 AC 场景见 [通用交互规格](phase-02-platform-spec.md)，规则关口与接续工作见 [阶段任务](../tasks/phase-02-rules-and-interaction.md)。原型不读取默认数据目录，不改变正式桌面入口。
+第二阶段设计行为和 AC 场景见 [通用交互规格](phase-02-platform-spec.md)，规则关口与接续工作见 [阶段任务](../archive/phase-02-rules-and-interaction.md)。原型不读取默认数据目录，不改变正式桌面入口。
 
 ## 环境与依赖
 
@@ -54,6 +54,7 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 | `pnpm prototype:dev`                | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                      |
 | `pnpm prototype:build`              | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/`                                                     |
 | `pnpm prototype:preview`            | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建                                    |
+| `pnpm prototype:verify:game` | 对游戏原型执行Playwright／隐藏Electron全能力、角色、恢复反馈、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/` |
 | `pnpm prototype:verify`             | 对已有原型构建运行 Playwright／隐藏 Electron 窗口走查，生成 JSON 和截图；先执行原型构建并准备 Electron           |
 
 验证通过后，解压 `artifacts/phase-01/TableMax-0.1.0-win-x64.zip`，双击 `TableMax.exe`。这是第一阶段工程验证包，不包含大厅、身份或首版游戏。
@@ -74,6 +75,7 @@ pnpm lint
 pnpm format:check
 pnpm prototype:build
 pnpm prototype:verify
+pnpm prototype:verify:game
 ```
 
 `pnpm prototype:verify` 不自动构建，也不依赖正在运行的 4174 预览；脚本自行启动随机回环端口的 Vite 预览与隐藏 Electron 窗口，并在结束时关闭。人工审阅已有构建可执行 `pnpm prototype:preview`。5174／4174 均只监听 `127.0.0.1`，端口占用时停止，配置不会静默换端口；这两个地址不是局域网手机接入入口。
@@ -111,7 +113,7 @@ pnpm prototype:verify
 
 ## 人机与封装的后续验证
 
-新增人机和面向对象要求目前只进入文档，尚无 bot 专用命令、策略文件、座位管理实现或通过记录。后续沿用真实工程检查入口，并在对应游戏／平台建立以下验证后再补具体命令与结果：
+新增人机和适度封装要求已有逐节点规格及原型座位／单步合成演示，尚无正式 bot 调度／策略／座位管理实现或产品通过记录。后续沿用真实工程检查入口，并在对应游戏／平台建立以下验证后再补具体命令与结果：
 
 - 逐节点覆盖初始化、常规／被动／复合选择及合法参数，验证策略只读取对应座位授权信息；用固定种子完成真人与电脑混合的整局场景。
 - 验证 bot 的重复意图、并发选择、暂停、回退、旧分支迟到结果、重启恢复、策略异常与版本不兼容；覆盖需求 AC-19 至 AC-23，并复用 AC-06、07、09、11 至 16 的适用要求。
@@ -162,4 +164,12 @@ pnpm prototype:verify
 
 `artifacts/phase-02/art-reset/asset-checks.json` 记录 16 张 WebP 的尺寸、字节数、哈希及 13 张切图的透明通道；原始 PNG、修订前版本和联系表保留。最终素材总量 877,318 字节；实际运行请求全部本地。`delivery-checks.json` 记录相对文档链接、正常构建隔离及九组主要文字配色对比度，均至少 4.98:1。半透明插画面板结合截图检查；这不是完整无障碍或实机验收。正常 `build/desktop/web/` 只有正式入口，无原型入口、原型文字或 WebP 美术资源。PNG 像素随系统缩放变化，本次记录的 `deviceScaleFactor` 为 1.5。安全区域使用 CSS `env(safe-area-inset-*)` 留白；桌面 Chromium 走查不能证明 iPhone 安全区、Android／iPhone 系统浏览器、真实触控或锁屏重连通过。运行请求本地的观察也不能替代断开互联网后的正式游戏整局验收。
 
-合成 UI 的分支、绑定代数、确认、恢复与音效控件只证明界面反馈，未验证服务端权限、真实凭证失效、随机结果一致、可靠动作、实际文件保留或持久化。第三至五阶段实现对应能力，第六阶段负责实机与正式离线验收。检索响应及文件哈希另见 [规则来源与核验缺口](../tasks/phase-02-rules-and-interaction.md#规则来源与核验缺口)；完整游戏相关验证仍受规则关口约束。
+合成 UI 的分支、绑定代数、确认、恢复与音效控件只证明界面反馈，未验证服务端权限、真实凭证失效、随机结果一致、可靠动作、实际文件保留或持久化。第三至五阶段实现对应能力，第六阶段负责实机与正式离线验收。检索响应及文件哈希另见 [规则来源与核验缺口](../games/pokemon-encounters/sources.md#规则来源与核验缺口)；完整游戏的采用基线及场景已交付；正式规则与产品验证交由后续阶段。
+
+## 首版游戏主题原型与规格验证
+
+第二阶段游戏入口 `/prototype.html?game=pokemon-encounters`，源码为 `GamePrototype.tsx` 与 `game-scenes.ts`；只保存合成授权投影／演示历史，没有完整秘密fixture、真实凭证、规则引擎或存档。完整规则与三小局固定fixture留在 [游戏规格](../games/pokemon-encounters/README.md)，没有导入网页。`pnpm prototype:verify:game` 使用锁定Playwright及隐藏Electron，只访问随机本地预览，输出JSON／PNG；先构建原型。尺寸／动作／动画走查不能证明真实规则、人机、权限或崩溃恢复AC已验收。
+
+2026-10-01 游戏原型最终走查通过9组／16张PNG，记录为 `artifacts/phase-02/verification/game/game-prototype.json`，外部请求和页面错误均为空。覆盖全部能力及完整后结束、本人临时查看、提交／暂停／回退／换绑／同步、电脑合成响应与大厅开局；公共1920×1080、手机360／390、24px底部安全区模拟、220ms保存后动效及减少动态通过。安全区模拟不等于iPhone实机。`specification-data.json`记录16类56张、11份完整牌组、三小局固定对局算术与正式构建隔离；文档／来源审计在research/chinese-reference/verification.json。类型、静态、格式、独立原型及正式构建均通过，真实规则／bot／存档和产品AC未验收。
+
+手机固定提交栏调整后，另以 `pnpm prototype:verify:game --layout-only` 通过5组／17张截图；证据在 `artifacts/phase-02/verification/game/layout/`，检查下排选格后按钮仍可见、卡位中心无覆盖及安全区。完整流程与针对性布局证据分别保留。
