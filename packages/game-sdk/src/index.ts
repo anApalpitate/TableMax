@@ -24,16 +24,29 @@ export interface DecisionBoundary {
   revealedInformation: boolean;
 }
 
-// A starting contract only. Queueing, deduplication and persistence come later.
+export interface PendingDecision {
+  id: string;
+  seatId: string;
+}
+
 export interface GameRules<
-  State extends JsonValue,
-  Action extends JsonValue,
-  View extends JsonValue,
+  State extends JsonValue = JsonValue,
+  Action extends JsonValue = JsonValue,
+  View extends JsonValue = JsonValue,
 > {
   manifest: GameManifest;
   initialize(context: RuleContext): State;
+  validateState(input: unknown, seats: readonly string[]): State;
+  decisions(state: State): readonly PendingDecision[];
+  ended(state: State): boolean;
   validateAction(input: unknown): Action;
   legalActions(state: State, seatId: string): readonly Action[];
+  lifecycleActions(state: State): readonly Action[];
+  applyLifecycle(
+    state: State,
+    action: Action,
+    context: RuleContext,
+  ): { state: State; decision: DecisionBoundary };
   apply(
     state: State,
     action: Action,
@@ -44,4 +57,20 @@ export interface GameRules<
     decision: DecisionBoundary;
   };
   project(state: State, viewer: Viewer): View;
+}
+
+export interface BotStrategy {
+  id: string;
+  version: string;
+  gameId: string;
+  rulesVersion: string;
+  validateMemory(input: unknown): JsonValue;
+  decide(input: {
+    view: JsonValue;
+    actions: readonly JsonValue[];
+    decision: PendingDecision;
+    memory: JsonValue;
+    random: { next(): number };
+    signal: AbortSignal;
+  }): Promise<{ action: JsonValue; memory: JsonValue }>;
 }

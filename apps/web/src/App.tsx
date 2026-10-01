@@ -1,92 +1,218 @@
-import { useEffect, useState } from 'react';
-import { io } from 'socket.io-client';
-import { EchoReplySchema, HealthSchema, type Health } from '@tablemax/protocol';
+import { useEffect, useRef, useState } from 'react';
+import { io, type Socket } from 'socket.io-client';
+import {
+  RoomViewSchema,
+  CommandReplySchema,
+  type Command,
+  type RoomView,
+} from '@tablemax/protocol';
+import { SeatResult, GameHelp } from '../../../games/template/ui/public';
+import { PlayerControls } from '../../../games/template/ui/player';
+import type { TemplateView } from '../../../games/template/ui/view';
+import cover from './prototype/assets/game-cover.webp';
+import dice from './prototype/assets/dice.webp';
+import avatar1 from './prototype/assets/avatar-1.webp';
+import avatar2 from './prototype/assets/avatar-2.webp';
+import avatar3 from './prototype/assets/avatar-3.webp';
+import avatar4 from './prototype/assets/avatar-4.webp';
+import avatar5 from './prototype/assets/avatar-5.webp';
+import avatar6 from './prototype/assets/avatar-6.webp';
+
+const avatars = [avatar1, avatar2, avatar3, avatar4, avatar5, avatar6];
+const messages: Record<string, string> = {
+  unauthorized: '此操作需要房主身份。',
+  'invalid-identity': '身份已失效，请联系房主换绑。',
+  'stale-branch': '历史已回退，请按最新状态重新选择。',
+  'stale-revision': '状态已变化，请重新选择。',
+  'stale-decision': '该选择已结束，请按最新状态操作。',
+  'not-ready': '请等待至少两位玩家全部准备。',
+  'joining-closed-or-full': '当前不能加入：房间已关闭、开始或满员。',
+  'binding-expired': '绑定码已过期或已经使用。',
+  'save-or-action-failed': '操作未确认保存，请检查本地存储后重试。',
+  'illegal-action': '选择无效，请重新同步。',
+};
+function credentialFor(role: string) {
+  if (role === 'player') return localStorage.getItem('tablemax-player') ?? '';
+  if (role === 'public') return '';
+  const value = new URLSearchParams(location.hash.slice(1)).get('host');
+  if (value) {
+    sessionStorage.setItem('tablemax-host', value);
+    history.replaceState(null, '', location.pathname);
+  }
+  return sessionStorage.getItem('tablemax-host') ?? '';
+}
+function avatar(id: string) {
+  return avatars[
+    [...id].reduce((sum, c) => sum + c.charCodeAt(0), 0) % avatars.length
+  ]!;
+}
 
 export function App() {
   const role =
-    location.pathname === '/public'
-      ? 'public'
-      : location.pathname === '/player'
-        ? 'player'
+    location.pathname === '/player'
+      ? 'player'
+      : location.pathname === '/public'
+        ? 'public'
         : 'host';
-  const [health, setHealth] = useState<Health | null>(null);
+  const [credential, setCredential] = useState(() => credentialFor(role));
+  const [view, setView] = useState<RoomView | null>(null);
   const [connected, setConnected] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+  const [message, setMessage] = useState('');
+  const [name, setName] = useState('');
+  const [code, setCode] = useState('');
+  const [bindingCode, setBindingCode] = useState('');
   const [addresses, setAddresses] = useState<string[]>([]);
-  const [selectedAddress, setSelectedAddress] = useState('');
-  const [text, setText] = useState('你好，TableMax');
-  const [echoResult, setEchoResult] = useState('');
-  const [error, setError] = useState('');
-
+  const [address, setAddress] = useState('');
+  const [port, setPort] = useState(38473);
+  const socketRef = useRef<Socket | null>(null);
+  const pending = useRef<Command | null>(null);
   useEffect(() => {
-    const abort = new AbortController();
-    const socket = io({ transports: ['websocket', 'polling'] });
-    socket.on('connect', () => setConnected(true));
-    socket.on('disconnect', () => setConnected(false));
-    socket.on('foundation:ready', (value: unknown) => {
-      const result = HealthSchema.safeParse(value);
-      if (result.success) setHealth(result.data);
+    const socket = io({
+      auth: credential ? { token: credential } : {},
+      transports: ['websocket', 'polling'],
     });
-    void fetch('/api/foundation/health', { signal: abort.signal })
-      .then(async (response) => {
-        if (!response.ok) throw new Error('服务暂时不可用');
-        setHealth(HealthSchema.parse(await response.json()));
+    socketRef.current = socket;
+    socket.on('connect', () => {
+      setConnected(true);
+      socket.emit('room:sync');
+    });
+    socket.on('disconnect', () => {
+      setConnected(false);
+      setView(null);
+      setMessage('连接已断开，等待重新同步。');
+    });
+    socket.on('room:view', (input: unknown) => {
+      const parsed = RoomViewSchema.safeParse(input);
+      if (parsed.success) setView(parsed.data);
+      else {
+        setView(null);
+        setMessage('服务数据不兼容，请重新启动程序。');
+      }
+    });
+    const revoked = () => {
+      setConnected(false);
+      setView(null);
+      pending.current = null;
+      setBusy(false);
+      setAwaitingConfirmation(false);
+      setMessage(messages['invalid-identity']!);
+      if (role === 'player') {
+        localStorage.removeItem('tablemax-player');
+        setCredential('');
+      }
+    };
+    socket.on('room:revoked', revoked);
+    socket.on('connect_error', (error: Error) => {
+      if (error.message === 'invalid-identity') revoked();
+      else setMessage('连接失败，请检查电脑服务和局域网。');
+    });
+    const abort = new AbortController();
+    void fetch('/api/room/network', { signal: abort.signal })
+      .then(async (r) => {
+        const network = (await r.json()) as {
+          addresses: string[];
+          port: number;
+        };
+        setAddresses(network.addresses);
+        setAddress(network.addresses[0] ?? '');
+        setPort(network.port);
       })
-      .catch((cause: unknown) => {
-        if (!abort.signal.aborted)
-          setError(cause instanceof Error ? cause.message : '连接失败');
-      });
-    if (role === 'host') {
-      void fetch('/api/foundation/addresses', { signal: abort.signal })
-        .then(async (response) => {
-          const input: unknown = await response.json();
-          if (
-            typeof input !== 'object' ||
-            !input ||
-            !('addresses' in input) ||
-            !Array.isArray(input.addresses) ||
-            !input.addresses.every((item: unknown) => typeof item === 'string')
-          )
-            return;
-          const values: string[] = input.addresses;
-          setAddresses(values);
-          setSelectedAddress(values[0] ?? '');
-        })
-        .catch(() => {
-          /* Health request supplies the connection error. */
-        });
-    }
+      .catch(() => undefined);
     return () => {
       abort.abort();
       socket.disconnect();
+      socketRef.current = null;
     };
-  }, [role]);
-
-  function echo() {
-    setEchoResult('正在验证…');
-    const socket = io({ forceNew: true });
-    socket
-      .timeout(5_000)
-      .emit(
-        'foundation:echo',
-        { text },
-        (cause: Error | null, input: unknown) => {
-          socket.disconnect();
-          const result = EchoReplySchema.safeParse(input);
-          setEchoResult(
-            cause
-              ? '连接超时，请重试'
-              : result.success && result.data.ok
-                ? `已收到：${result.data.text}`
-                : '消息未通过校验',
+  }, [credential, role]);
+  const isHost = view?.self.role === 'host';
+  const self = view?.seats.find((s) => s.id === view.self.seatId);
+  const locked = busy || !connected || !view;
+  function send(envelope: Command) {
+    pending.current = envelope;
+    setBusy(true);
+    setAwaitingConfirmation(true);
+    setMessage('正在提交…');
+    socketRef.current
+      ?.timeout(5000)
+      .emit('room:command', envelope, (error: Error | null, input: unknown) => {
+        if (pending.current !== envelope) return;
+        if (error) {
+          setMessage('尚未收到保存确认，请重试确认。');
+          socketRef.current?.emit('room:sync');
+          return;
+        }
+        const parsed = CommandReplySchema.safeParse(input);
+        if (!parsed.success) {
+          setMessage('服务确认无效，请重新同步。');
+          socketRef.current?.emit('room:sync');
+          return;
+        }
+        pending.current = null;
+        setBusy(false);
+        setAwaitingConfirmation(false);
+        const reply = parsed.data;
+        if (reply.ok) {
+          setMessage('已保存');
+          if (reply.bindingCode) setBindingCode(reply.bindingCode);
+        } else {
+          setMessage(
+            messages[reply.reason] ?? '操作未完成，请按最新状态重试。',
           );
+          socketRef.current?.emit('room:sync');
+        }
+      });
+  }
+  function command(value: Command['command']) {
+    if (!view || locked || pending.current) return;
+    send({
+      actionId: Array.from(crypto.getRandomValues(new Uint32Array(4))).join(
+        '-',
+      ),
+      instanceId: view.instanceId,
+      revision: view.revision,
+      branch: view.branch,
+      command: value,
+    });
+  }
+  async function join(rebind = false) {
+    setBusy(true);
+    try {
+      const response = await fetch(
+        rebind ? '/api/session/redeem' : '/api/session/join',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            rebind ? { code: code.trim() } : { name: name.trim() },
+          ),
         },
       );
+      const result = (await response.json()) as {
+        ok: boolean;
+        token?: string;
+        duplicateName?: boolean;
+        reason?: string;
+      };
+      if (!result.ok || !result.token)
+        throw new Error(messages[result.reason ?? ''] ?? '加入失败');
+      localStorage.setItem('tablemax-player', result.token);
+      setCredential(result.token);
+      setMessage(
+        result.duplicateName ? '已有同名朋友，以座位编号区分。' : '已加入',
+      );
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : '连接失败');
+    } finally {
+      setBusy(false);
+    }
   }
-
+  const game = view?.gameView as TemplateView | null;
   return (
     <main className={`shell ${role}`}>
       <header>
-        <a className="brand" href="/host" aria-label="TableMax 工程入口">
+        <a className="brand" href={role === 'player' ? '/player' : '/public'}>
           <span className="brand-mark">T</span>TableMax
         </a>
         <span
@@ -96,125 +222,400 @@ export function App() {
           {connected ? '本地连接已就绪' : '正在连接本地服务'}
         </span>
       </header>
-      <section className="intro">
-        <p className="eyebrow">一起坐下来，开始一场游戏</p>
-        <h1>
-          {role === 'public'
-            ? '一张桌子，无限可能。'
-            : role === 'player'
+      <section className="hero">
+        <img src={cover} alt="骰子与棋子的桌游场景" />
+        <div>
+          <p className="eyebrow">和朋友一起坐到桌边</p>
+          <h1>
+            {role === 'player' && !self
               ? '欢迎来到桌边。'
-              : '你的桌游，从这里开始。'}
-        </h1>
-        <p className="description">
-          {role === 'public'
-            ? '公共屏入口已就绪，游戏内容将在后续阶段接入。'
-            : role === 'player'
-              ? '手机入口已就绪，玩家加入与游戏操作将在后续阶段接入。'
-              : '工程基础验证版 · 当前用于检查本地服务、网页连接与打包环境。'}
-        </p>
+              : view?.status === 'lobby'
+                ? '今晚，一起玩。'
+                : view?.status === 'ended'
+                  ? '这一局，留下好回忆。'
+                  : '轮到你的小幸运。'}
+          </h1>
+          <p>{view?.game.name ?? '正在准备牌桌'}</p>
+          <span className="tag">
+            {view?.status === 'lobby'
+              ? '大厅'
+              : view?.paused
+                ? '已暂停'
+                : view?.status === 'ended'
+                  ? view.endReason
+                  : '对局中'}
+          </span>
+        </div>
       </section>
-      {error && (
-        <p className="error" role="alert">
-          {error}
-        </p>
+      <p className="feedback" aria-live="polite">
+        {message ||
+          (self
+            ? `你是 ${self.name} · 座位 ${view!.seats.indexOf(self) + 1}`
+            : '手机与电脑连接同一局域网即可加入。')}
+      </p>
+      {awaitingConfirmation && (
+        <button
+          onClick={() => {
+            if (pending.current) send(pending.current);
+          }}
+          disabled={!connected}
+        >
+          重试确认
+        </button>
       )}
       <div className="grid">
-        <section className="card status-card">
-          <p className="eyebrow">
-            {role === 'public'
-              ? '公共空间'
-              : role === 'player'
-                ? '个人空间'
-                : '运行状态'}
-          </p>
-          <h2>{health ? '已经准备好了' : '正在准备'}</h2>
-          <p className="muted">
-            这一版本验证工程基础，尚未实现大厅、身份或游戏规则。
-          </p>
-          <ul className="checks">
-            <li>
-              <span>网页服务</span>
-              <strong>{health ? '可用' : '连接中'}</strong>
-            </li>
-            <li>
-              <span>实时连接</span>
-              <strong>{connected ? '可用' : '连接中'}</strong>
-            </li>
-            <li>
-              <span>本地数据库</span>
-              <strong>
-                {health?.database === 'ok' ? '已验证' : '等待验证'}
-              </strong>
-            </li>
-          </ul>
-          {role === 'host' && health && (
-            <p className="runtime">
-              启动记录 {health.starts} · Node {health.runtime.node} · SQLite{' '}
-              {health.runtime.sqlite}
+        <section className="card stage">
+          <h2>{view?.status === 'lobby' ? '朋友们的座位' : '牌桌'}</h2>
+          <div className="seats">
+            {view?.seats
+              .filter(
+                (seat) => role !== 'player' || !self || seat.id === self.id,
+              )
+              .map((seat, i) => (
+                <article
+                  className={`seat ${seat.id === game?.turnSeat ? 'active' : ''}`}
+                  key={seat.id}
+                >
+                  <img className="avatar" src={avatar(seat.id)} alt="" />
+                  <h3>{seat.name}</h3>
+                  <p>
+                    座位 {view.seats.findIndex((s) => s.id === seat.id) + 1} ·{' '}
+                    {seat.controller === 'bot'
+                      ? '电脑'
+                      : seat.online
+                        ? '在线'
+                        : '离线'}
+                  </p>
+                  {view.status === 'lobby' ? (
+                    <span className="tag">
+                      {seat.ready ? '已准备' : '未准备'}
+                    </span>
+                  ) : (
+                    <SeatResult view={game} seatId={seat.id} />
+                  )}
+                  {isHost && view.status === 'lobby' && (
+                    <div className="row">
+                      <button
+                        className="secondary"
+                        disabled={locked || i === 0}
+                        onClick={() => {
+                          const ids = view.seats.map((s) => s.id);
+                          [ids[i - 1], ids[i]] = [ids[i]!, ids[i - 1]!];
+                          command({ type: 'order', seats: ids });
+                        }}
+                      >
+                        前移
+                      </button>
+                      <button
+                        className="secondary"
+                        disabled={locked}
+                        onClick={() =>
+                          command({ type: 'remove-seat', seatId: seat.id })
+                        }
+                      >
+                        移除
+                      </button>
+                    </div>
+                  )}
+                  {isHost && seat.controller === 'human' && (
+                    <button
+                      className="secondary"
+                      disabled={locked}
+                      onClick={() => {
+                        if (
+                          confirm(
+                            '换绑会立即使原手机身份失效，保留座位和游戏数据。继续？',
+                          )
+                        )
+                          command({ type: 'rebind', seatId: seat.id });
+                      }}
+                    >
+                      换手机
+                    </button>
+                  )}
+                </article>
+              ))}
+          </div>
+          {view?.seats.length === 0 && (
+            <div className="empty">
+              <img src={dice} alt="" />
+              <p>邀请朋友扫码，或添加电脑一起玩。</p>
+            </div>
+          )}
+          {view?.paused && (
+            <p className="notice">
+              {view.restored
+                ? '已读取存档，等待房主恢复和玩家重连。'
+                : '房主已暂停，选择暂时停止。'}
             </p>
           )}
-        </section>
-        {role === 'host' && (
-          <section className="card join-card">
-            <p className="eyebrow">另一块屏幕</p>
-            <h2>检查手机连接</h2>
-            <p className="muted">
-              手机与电脑连接同一局域网，选择可访问的电脑地址后扫码。
-            </p>
-            {addresses.length > 0 ? (
-              <>
-                <label htmlFor="address">电脑地址</label>
-                <select
-                  id="address"
-                  value={selectedAddress}
-                  onChange={(event) => setSelectedAddress(event.target.value)}
-                >
-                  {addresses.map((address) => (
-                    <option key={address} value={address}>
-                      {address}
-                    </option>
-                  ))}
-                </select>
-                {selectedAddress && (
-                  <img
-                    className="qr"
-                    src={`/api/foundation/qr?address=${encodeURIComponent(selectedAddress)}`}
-                    alt="手机工程验证入口二维码"
-                  />
-                )}
-              </>
-            ) : (
-              <p className="muted">尚未发现局域网地址，请检查网络连接。</p>
+          {view?.botError && <p className="error">{view.botError}</p>}
+          {view?.status === 'playing' &&
+            !view.paused &&
+            !view.actions.length && (
+              <p className="muted">
+                等待{' '}
+                {view.seats.find((s) => s.id === game?.turnSeat)?.name ??
+                  '其他玩家'}{' '}
+                行动。真人离线时保留座位。
+              </p>
             )}
-            <a className="button secondary" href="/public">
-              打开公共屏
-            </a>
-          </section>
-        )}
-        {role !== 'public' && (
-          <section className="card echo-card">
-            <p className="eyebrow">连接验证</p>
-            <h2>发一声问候</h2>
-            <label htmlFor="echo">验证消息</label>
-            <div className="echo-row">
-              <input
-                id="echo"
-                value={text}
-                maxLength={80}
-                onChange={(event) => setText(event.target.value)}
-              />
-              <button onClick={echo} disabled={!connected || !text.trim()}>
-                发送验证消息
+          {self && view?.status === 'lobby' && (
+            <div className="player-actions">
+              <button
+                disabled={locked}
+                onClick={() => command({ type: 'ready', ready: !self.ready })}
+              >
+                {self.ready ? '取消准备' : '我准备好了'}
               </button>
             </div>
-            <p className="echo-result" role="status" aria-live="polite">
-              {echoResult || '发送后，本地服务会返回同一条消息。'}
-            </p>
-          </section>
-        )}
+          )}
+          {self && game && view && (
+            <PlayerControls
+              view={game}
+              actions={
+                view.actions as Parameters<typeof PlayerControls>[0]['actions']
+              }
+              locked={locked}
+              choose={(action) =>
+                command({ type: 'game', decisionId: view.decisionId!, action })
+              }
+            />
+          )}
+        </section>
+        <aside className="card controls">
+          {self && (
+            <details>
+              <summary>朋友列表</summary>
+              {view?.seats
+                .filter((s) => s.id !== self.id)
+                .map((s) => (
+                  <p key={s.id}>
+                    {s.name} ·{' '}
+                    {s.controller === 'bot'
+                      ? '电脑'
+                      : s.online
+                        ? '在线'
+                        : '离线'}
+                  </p>
+                ))}
+            </details>
+          )}
+          {role === 'player' && !credential && (
+            <>
+              <h2>加入牌桌</h2>
+              <label htmlFor="nickname">你的昵称</label>
+              <input
+                id="nickname"
+                value={name}
+                maxLength={24}
+                onChange={(e) => setName(e.target.value)}
+              />
+              <button
+                disabled={busy || !name.trim()}
+                onClick={() => void join()}
+              >
+                加入
+              </button>
+              <details>
+                <summary>换手机绑定</summary>
+                <label htmlFor="binding">房主提供的绑定码</label>
+                <input
+                  id="binding"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                />
+                <button
+                  disabled={busy || !code.trim()}
+                  onClick={() => void join(true)}
+                >
+                  绑定原座位
+                </button>
+              </details>
+            </>
+          )}
+          {isHost && (
+            <div className="management">
+              <h2>房主管理</h2>
+              {view?.lifecycleActions.map((action, i) => (
+                <button
+                  key={i}
+                  disabled={locked}
+                  onClick={() =>
+                    command({
+                      type: 'lifecycle',
+                      action: action as Extract<
+                        Command['command'],
+                        { type: 'lifecycle' }
+                      >['action'],
+                    })
+                  }
+                >
+                  开始下一局
+                </button>
+              ))}
+              {view?.status === 'lobby' ? (
+                <>
+                  <button
+                    disabled={locked || view.seats.length >= view.game.max}
+                    onClick={() =>
+                      command({
+                        type: 'add-bot',
+                        name: `电脑 ${view.seats.filter((s) => s.controller === 'bot').length + 1}`,
+                      })
+                    }
+                  >
+                    添加电脑
+                  </button>
+                  <button
+                    className="secondary"
+                    disabled={locked}
+                    onClick={() =>
+                      command({ type: 'join-open', open: !view.joinOpen })
+                    }
+                  >
+                    {view.joinOpen ? '关闭加入' : '开放加入'}
+                  </button>
+                  <button
+                    disabled={
+                      locked ||
+                      view.seats.length < view.game.min ||
+                      !view.seats.every((s) => s.ready)
+                    }
+                    onClick={() => command({ type: 'start' })}
+                  >
+                    开始游戏
+                  </button>
+                </>
+              ) : (
+                <>
+                  {view?.status === 'playing' && (
+                    <>
+                      <button
+                        disabled={locked}
+                        onClick={() =>
+                          command({
+                            type:
+                              view.paused || view.botError ? 'resume' : 'pause',
+                          })
+                        }
+                      >
+                        {view.paused || view.botError ? '恢复游戏' : '暂停游戏'}
+                      </button>
+                      <button
+                        className="secondary"
+                        disabled={locked}
+                        onClick={() => {
+                          if (confirm('结束当前对局？已保存状态和历史将保留。'))
+                            command({ type: 'end' });
+                        }}
+                      >
+                        结束对局
+                      </button>
+                    </>
+                  )}
+                  {view?.status === 'ended' && (
+                    <button
+                      disabled={locked}
+                      onClick={() => command({ type: 'new-room' })}
+                    >
+                      创建新房间
+                    </button>
+                  )}
+                  <details>
+                    <summary>决策点回退（{view?.history.length}）</summary>
+                    <p>
+                      恢复到该选择之前。已看见的信息无法撤销；回退后保持暂停。
+                    </p>
+                    {view?.history
+                      .slice()
+                      .reverse()
+                      .map((h) => (
+                        <button
+                          className="secondary"
+                          key={h.id}
+                          disabled={locked}
+                          onClick={() => {
+                            if (
+                              confirm(
+                                `恢复到“${h.label}”？后续选择将撤销，已揭示信息无法从记忆消除。`,
+                              )
+                            )
+                              command({ type: 'rollback', checkpointId: h.id });
+                          }}
+                        >
+                          {h.label}
+                          {h.revealedInformation ? ' · 含揭示' : ''}
+                        </button>
+                      ))}
+                  </details>
+                </>
+              )}
+              {bindingCode && (
+                <details open>
+                  <summary>一次性换绑码 · 两分钟有效</summary>
+                  <p>交给对应玩家，原身份已撤销。</p>
+                  <textarea
+                    readOnly
+                    aria-label="一次性绑定码"
+                    value={bindingCode}
+                  />
+                </details>
+              )}
+              <a className="button secondary" href="/public">
+                打开公共屏
+              </a>
+              <a className="button secondary" href="/player">
+                房主用独立玩家身份参与
+              </a>
+            </div>
+          )}
+          {role !== 'player' && (
+            <>
+              <h2>邀请朋友</h2>
+              <label htmlFor="address">电脑地址</label>
+              <select
+                id="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              >
+                {addresses.map((a) => (
+                  <option key={a}>{a}</option>
+                ))}
+              </select>
+              {address ? (
+                <>
+                  <img
+                    className="qr"
+                    src={`/api/foundation/qr?address=${encodeURIComponent(address)}`}
+                    alt="手机加入二维码"
+                  />
+                  <p className="url">
+                    http://{address}:{port}/player
+                  </p>
+                </>
+              ) : (
+                <p>未发现局域网地址，请检查网络。</p>
+              )}
+              <details>
+                <summary>连接帮助</summary>
+                <p>
+                  手机和电脑连接同一局域网；选择手机能访问的网卡地址，在系统浏览器打开。请检查私人网络防火墙、访客网络和设备隔离；地址改变后重新扫码。
+                </p>
+              </details>
+            </>
+          )}
+          {role === 'host' && !isHost && (
+            <p>本页面没有房主管理身份，请从桌面程序打开主机。</p>
+          )}
+          <details>
+            <summary>游戏帮助</summary>
+            <GameHelp />
+          </details>
+        </aside>
       </div>
       <footer>
-        TableMax · 工程基础阶段 <span>全部资源随程序本地打包</span>
+        TableMax · 本地牌桌<span>游戏资源随程序本地加载</span>
       </footer>
     </main>
   );

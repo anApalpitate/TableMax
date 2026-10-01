@@ -1,6 +1,7 @@
 import { createService } from './service';
 import { ServiceConfigSchema } from '@tablemax/protocol';
 import type { ServiceConfig } from '@tablemax/protocol';
+import { join } from 'node:path';
 
 interface ParentPort {
   on(event: 'message', callback: (event: { data: unknown }) => void): void;
@@ -10,11 +11,22 @@ const parentPort = (process as NodeJS.Process & { parentPort?: ParentPort })
   .parentPort;
 
 async function start(config: ServiceConfig) {
-  const service = await createService(config);
+  const service = await createService({
+    ...config,
+    botWorkerPath: config.botWorkerPath ?? join(__dirname, 'bot-worker.cjs'),
+  });
   const port = await service.listen();
-  const ready = { type: 'ready', port, health: service.health };
+  const ready = {
+    type: 'ready',
+    port,
+    health: service.health,
+    hostToken: service.hostToken,
+  };
   if (parentPort) parentPort.postMessage(ready);
-  else console.log(JSON.stringify(ready));
+  else
+    console.log(
+      JSON.stringify({ type: 'ready', port, health: service.health }),
+    );
 
   let stopping = false;
   async function stop() {

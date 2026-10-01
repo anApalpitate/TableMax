@@ -116,7 +116,7 @@ h2 {
 }
 .grid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: minmax(0, 2.5fr) minmax(260px, 1fr);
   gap: 20px;
 }
 .card {
@@ -124,6 +124,134 @@ h2 {
   border-radius: 18px;
   padding: 28px;
   background: #fff;
+}
+.hero {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin: 32px 0 12px;
+  background: #fff7e4;
+  border-radius: 24px;
+  padding: 24px;
+  overflow: hidden;
+}
+.hero > img {
+  width: 30%;
+  max-height: 140px;
+  object-fit: contain;
+  border-radius: 20px;
+}
+.hero h1 {
+  font-size: clamp(28px, 4vw, 46px);
+  margin-bottom: 8px;
+}
+.feedback {
+  min-height: 32px;
+  color: #476656;
+}
+.seats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+}
+.seat {
+  padding: 16px;
+  border-radius: 24px;
+  text-align: center;
+  border: 2px solid #e7e7d9;
+  background: #fffaf0;
+}
+.seat.active {
+  border-color: #cb8929;
+  background: #fff1c5;
+}
+.seat h3 {
+  margin: 4px 0;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+.seat p {
+  font-size: 13px;
+}
+.avatar {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+.tag {
+  display: inline-block;
+  background: #e7efe1;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 13px;
+}
+.row {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+.row button {
+  padding: 8px;
+  flex: 1;
+}
+.empty {
+  text-align: center;
+  padding: 32px;
+}
+.empty img {
+  width: 100px;
+}
+.controls button,
+.management .button {
+  width: 100%;
+  margin-top: 12px;
+}
+.management {
+  border-top: 1px solid #ddd;
+  margin-top: 24px;
+  padding-top: 24px;
+}
+.url {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  text-align: center;
+}
+.player-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+.player-actions button {
+  flex: 1;
+}
+.secret,
+.notice {
+  padding: 16px;
+  border-radius: 16px;
+  background: #fff1c5;
+}
+details {
+  margin-top: 20px;
+  font-size: 14px;
+}
+summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding-top: 8px;
+}
+textarea {
+  width: 100%;
+  min-height: 90px;
+  overflow-wrap: anywhere;
+  font: inherit;
+}
+button {
+  touch-action: manipulation;
+}
+.stage,
+.controls {
+  min-width: 0;
 }
 .status-card {
   background: #e9eee4;
@@ -205,7 +333,7 @@ footer {
   border-radius: 8px;
 }
 .public .grid {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 3fr) minmax(260px, 1fr);
 }
 .public .intro {
   padding-top: 100px;
@@ -244,8 +372,59 @@ footer {
   .public .intro {
     padding-top: 44px;
   }
-  .grid {
+  .grid,
+  .public .grid {
     grid-template-columns: 1fr;
+  }
+  .hero {
+    padding: 16px;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .hero > img {
+    width: 26%;
+  }
+  .seats {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  }
+  .player .seats {
+    grid-template-columns: 1fr;
+  }
+  .player .seat {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    gap: 0 12px;
+    text-align: left;
+    align-items: center;
+  }
+  .player .seat .avatar {
+    width: 64px;
+    height: 64px;
+    grid-row: span 3;
+  }
+  .player .seat h3 {
+    font-size: 18px;
+  }
+  .player .seat p {
+    margin: 4px 0;
+  }
+  .player .seat .tag {
+    width: fit-content;
+  }
+  .player .hero h1 {
+    font-size: 24px;
+  }
+  .player .hero {
+    margin: 16px 0 0;
+  }
+  .player .hero .eyebrow {
+    display: none;
+  }
+  .player-actions {
+    position: sticky;
+    bottom: 0;
+    padding: 12px 0 max(12px, env(safe-area-inset-bottom));
+    background: white;
   }
   .card {
     padding: 22px;

@@ -3,6 +3,8 @@ import {
   BrowserWindow,
   dialog,
   utilityProcess,
+  screen,
+  Menu,
   type UtilityProcess,
 } from 'electron';
 import { join, resolve } from 'node:path';
@@ -29,6 +31,19 @@ function openWindow(url: string, publicScreen = false) {
   const window = new BrowserWindow({
     width: publicScreen ? 1280 : 1080,
     height: 800,
+    ...(publicScreen && screen.getAllDisplays().length > 1
+      ? {
+          x: screen
+            .getAllDisplays()
+            .find((display) => display.id !== screen.getPrimaryDisplay().id)!
+            .bounds.x,
+          y: screen
+            .getAllDisplays()
+            .find((display) => display.id !== screen.getPrimaryDisplay().id)!
+            .bounds.y,
+          fullscreen: true,
+        }
+      : {}),
     show: !checking && !testing,
     title: publicScreen ? 'TableMax · 公共屏' : 'TableMax',
     autoHideMenuBar: true,
@@ -51,6 +66,39 @@ function openWindow(url: string, publicScreen = false) {
 
 async function run() {
   await app.whenReady();
+  Menu.setApplicationMenu(
+    Menu.buildFromTemplate([
+      {
+        label: '屏幕',
+        submenu: [
+          {
+            label: '切换全屏',
+            accelerator: 'F11',
+            click: () => {
+              const window = BrowserWindow.getFocusedWindow();
+              if (window) window.setFullScreen(!window.isFullScreen());
+            },
+          },
+          ...screen.getAllDisplays().map((display, index) => ({
+            label: `移到显示器 ${index + 1}（${display.bounds.width}×${display.bounds.height}）`,
+            click: () => {
+              const window = BrowserWindow.getFocusedWindow();
+              if (window) {
+                window.setFullScreen(false);
+                window.setBounds({
+                  x: display.bounds.x,
+                  y: display.bounds.y,
+                  width: Math.min(1280, display.workArea.width),
+                  height: Math.min(800, display.workArea.height),
+                });
+              }
+            },
+          })),
+        ],
+      },
+      { label: '程序', submenu: [{ role: 'quit' }] },
+    ]),
+  );
   const port = Number(process.env.TABLEMAX_PORT ?? 38473);
   if (!Number.isInteger(port) || port < 0 || port > 65535)
     throw new Error('Invalid TABLEMAX_PORT');
@@ -104,7 +152,7 @@ async function run() {
     const response = await fetch(`${origin}/api/foundation/health`);
     if (!response.ok) throw new Error('Service health request failed');
     const health = await response.json();
-    const window = openWindow(`${webOrigin}/host`);
+    const window = openWindow(`${webOrigin}/host#host=${ready.hostToken}`);
     await new Promise<void>((fulfill, reject) => {
       window.webContents.once('did-finish-load', () => fulfill());
       window.webContents.once('did-fail-load', (_event, code, description) =>
@@ -128,7 +176,7 @@ async function run() {
     return;
   }
 
-  const hostWindow = openWindow(`${webOrigin}/host`);
+  const hostWindow = openWindow(`${webOrigin}/host#host=${ready.hostToken}`);
   hostWindow.webContents.on('will-navigate', (event, target) => {
     if (target === `${webOrigin}/public`) {
       event.preventDefault();

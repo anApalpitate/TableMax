@@ -3,7 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "devDependencies": {
+    "socket.io-client": "4.8.4"
+  },
   "dependencies": {
+    "@tablemax/platform-core": "workspace:*",
+    "@tablemax/game-template": "workspace:*",
+    "@tablemax/game-sdk": "workspace:*",
     "@tablemax/protocol": "workspace:*",
     "@fastify/static": "10.1.5",
     "fastify": "5.12.5",

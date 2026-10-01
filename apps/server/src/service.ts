@@ -10,7 +10,13 @@ import {
   HealthSchema,
   ServiceConfigSchema,
   type ServiceConfig,
+  JoinSchema,
+  SessionSchema,
 } from '@tablemax/protocol';
+import { RoomCoordinator, BotScheduler } from '@tablemax/platform-core';
+import { rules, bot } from '@tablemax/game-template';
+import { SqliteSaveRepository } from './save-repository';
+import { WorkerBotExecutor } from './bot-executor';
 import { openFoundationDatabase } from './database';
 
 export async function createService(input: ServiceConfig) {
@@ -22,12 +28,34 @@ export async function createService(input: ServiceConfig) {
       `${JSON.stringify({ at: new Date().toISOString(), event })}\n`,
     );
   const storage = openFoundationDatabase(config.dataDir);
+  let repository: SqliteSaveRepository;
+  let room: RoomCoordinator;
+  try {
+    repository = new SqliteSaveRepository(config.dataDir);
+    try {
+      room = new RoomCoordinator(rules, bot, repository);
+    } catch (error) {
+      repository.close();
+      throw error;
+    }
+  } catch (error) {
+    storage.close();
+    throw error;
+  }
+  const scheduler = new BotScheduler(
+    room,
+    350,
+    2_000,
+    config.botWorkerPath
+      ? new WorkerBotExecutor(config.botWorkerPath)
+      : undefined,
+  );
   const app = Fastify({ logger: false, bodyLimit: 16 * 1024 });
   const sockets = new Server(app.server, { maxHttpBufferSize: 16 * 1024 });
   const health = HealthSchema.parse({
     status: 'ready',
-    phase: 'engineering-foundation',
-    protocolVersion: 1,
+    phase: 'platform-foundation',
+    protocolVersion: 2,
     database: 'ok',
     starts: storage.starts,
     runtime: {
@@ -57,6 +85,71 @@ export async function createService(input: ServiceConfig) {
       ),
     ),
   ];
+  const online = () => {
+    const seats = new Set<string>();
+    for (const socket of sockets.sockets.sockets.values()) {
+      try {
+        const identity = room.identity(
+          socket.data.credential as string | undefined,
+        );
+        if (identity.role === 'player') seats.add(identity.seatId);
+      } catch {
+        /* Revoked identities do not retain connection status. */
+      }
+    }
+    return seats;
+  };
+  const broadcast = () => {
+    const connected = online();
+    for (const socket of sockets.sockets.sockets.values()) {
+      try {
+        socket.emit(
+          'room:view',
+          room.view(socket.data.credential as string | undefined, connected),
+        );
+      } catch {
+        socket.emit('room:revoked');
+        socket.disconnect(true);
+      }
+    }
+  };
+  const unsubscribe = room.subscribe(broadcast);
+  app.post('/api/session/join', async (request, reply) => {
+    const parsed = JoinSchema.safeParse(request.body);
+    if (!parsed.success)
+      return reply.code(400).send({ ok: false, reason: 'invalid-name' });
+    try {
+      return { ok: true, ...(await room.join(parsed.data.name)) };
+    } catch {
+      return reply
+        .code(409)
+        .send({ ok: false, reason: 'joining-closed-or-full' });
+    }
+  });
+  app.post('/api/session/redeem', async (request, reply) => {
+    const body = request.body as { code?: unknown } | null;
+    if (!body || typeof body.code !== 'string' || body.code.length > 128)
+      return reply.code(400).send({ ok: false, reason: 'invalid-message' });
+    try {
+      return { ok: true, ...(await room.redeem(body.code)) };
+    } catch {
+      return reply.code(409).send({ ok: false, reason: 'binding-expired' });
+    }
+  });
+  app.post('/api/session/view', (request, reply) => {
+    const body = SessionSchema.safeParse(request.body);
+    if (!body.success)
+      return reply.code(400).send({ ok: false, reason: 'invalid-message' });
+    try {
+      return { ok: true, view: room.view(body.data.token, online()) };
+    } catch {
+      return reply.code(401).send({ ok: false, reason: 'invalid-identity' });
+    }
+  });
+  app.get('/api/room/network', () => ({
+    addresses,
+    port: (app.server.address() as { port: number }).port,
+  }));
   app.get('/api/foundation/addresses', () => ({ addresses }));
   app.get<{ Querystring: { address?: string } }>(
     '/api/foundation/qr',
@@ -73,7 +166,40 @@ export async function createService(input: ServiceConfig) {
     },
   );
 
+  sockets.use((socket, next) => {
+    const parsed = SessionSchema.safeParse(socket.handshake.auth);
+    if (!parsed.success) return next(new Error('invalid-identity'));
+    try {
+      room.identity(parsed.data.token);
+      socket.data.credential = parsed.data.token;
+      next();
+    } catch {
+      next(new Error('invalid-identity'));
+    }
+  });
   sockets.on('connection', (socket) => {
+    broadcast();
+    socket.on('disconnect', broadcast);
+    socket.on('room:sync', () => {
+      try {
+        socket.emit(
+          'room:view',
+          room.view(socket.data.credential as string | undefined, online()),
+        );
+      } catch {
+        socket.emit('room:revoked');
+        socket.disconnect(true);
+      }
+    });
+    socket.on('room:command', (input: unknown, acknowledge: unknown) => {
+      if (typeof acknowledge !== 'function') return;
+      void room
+        .command(socket.data.credential as string | undefined, input)
+        .then((result) => {
+          acknowledge(result);
+          if (!result.ok) broadcast();
+        });
+    });
     socket.emit('foundation:ready', health);
     socket.on('foundation:echo', (input: unknown, acknowledge: unknown) => {
       if (typeof acknowledge !== 'function') return;
@@ -87,11 +213,14 @@ export async function createService(input: ServiceConfig) {
   });
 
   app.addHook('preClose', async () => {
+    scheduler.stop();
+    unsubscribe();
     // Disconnect clients without calling io.close(), which also closes HTTP.
     sockets.disconnectSockets(true);
     sockets.engine.close();
   });
   app.addHook('onClose', async () => {
+    repository.close();
     storage.close();
     log('service-stopped');
   });
@@ -113,6 +242,8 @@ export async function createService(input: ServiceConfig) {
   return {
     app,
     health,
+    room,
+    hostToken: room.hostToken,
     async listen() {
       await app.listen({ host: config.host, port: config.port });
       log('service-ready');

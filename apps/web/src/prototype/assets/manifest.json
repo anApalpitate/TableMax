@@ -1,6 +1,6 @@
 {
   "createdAt": "2026-10-01",
-  "purpose": "Synthetic UI prototype only; no game components, rules or licensed character assets",
+  "purpose": "Original platform art for synthetic prototype and formal platform shell; no game components, rules or licensed character assets",
   "generator": "built-in imagegen",
   "reference": "table-landscape master artwork",
   "postprocessing": "Preserve originals under artifacts/phase-02/art-reset/source; proportional resampling and WebP quality 86, alpha preserved",
@@ -139,5 +139,21 @@
       "source": "built-in imagegen",
       "version": 1
     }
-  ]
+  ],
+  "formalUsage": {
+    "since": "2026-10-01",
+    "consumer": "apps/web/src/App.tsx",
+    "ids": [
+      "game-cover",
+      "dice",
+      "avatar-1",
+      "avatar-2",
+      "avatar-3",
+      "avatar-4",
+      "avatar-5",
+      "avatar-6"
+    ],
+    "verification": "artifacts/phase-03-04/verification",
+    "note": "Reuse verified existing art without modifying original files; gameplay components remain separately namespaced."
+  }
 }

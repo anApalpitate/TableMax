@@ -17,6 +17,15 @@ await build({
   logLevel: 'info',
 });
 await build({
+  entryPoints: ['apps/server/src/bot-worker.ts'],
+  outfile: `${output}/bot-worker.cjs`,
+  bundle: true,
+  platform: 'node',
+  format: 'cjs',
+  target: 'node22',
+  logLevel: 'info',
+});
+await build({
   entryPoints: ['apps/desktop/src/main.ts'],
   outfile: `${output}/main.cjs`,
   bundle: true,

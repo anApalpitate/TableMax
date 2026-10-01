@@ -1,0 +1,11 @@
+{
+  "name": "@tablemax/platform-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "dependencies": {
+    "@tablemax/game-sdk": "workspace:*",
+    "@tablemax/protocol": "workspace:*"
+  }
+}

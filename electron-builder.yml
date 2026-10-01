@@ -8,6 +8,7 @@ directories:
 files:
   - main.cjs
   - server.cjs
+  - bot-worker.cjs
   - web/**/*
   - package.json
 win:

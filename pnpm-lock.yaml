@@ -80,6 +80,15 @@ importers:
       '@fastify/static':
         specifier: 10.1.5
         version: 10.1.5
+      '@tablemax/game-sdk':
+        specifier: workspace:*
+        version: link:../../packages/game-sdk
+      '@tablemax/game-template':
+        specifier: workspace:*
+        version: link:../../games/template
+      '@tablemax/platform-core':
+        specifier: workspace:*
+        version: link:../../packages/platform-core
       '@tablemax/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
@@ -90,6 +99,10 @@ importers:
         specifier: 1.5.4
         version: 1.5.4
       socket.io:
+        specifier: 4.8.4
+        version: 4.8.4
+    devDependencies:
+      socket.io-client:
         specifier: 4.8.4
         version: 4.8.4
 
@@ -108,7 +121,25 @@ importers:
         specifier: 4.8.4
         version: 4.8.4
 
+  games/template:
+    dependencies:
+      '@tablemax/game-sdk':
+        specifier: workspace:*
+        version: link:../../packages/game-sdk
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+
   packages/game-sdk: {}
+
+  packages/platform-core:
+    dependencies:
+      '@tablemax/game-sdk':
+        specifier: workspace:*
+        version: link:../game-sdk
+      '@tablemax/protocol':
+        specifier: workspace:*
+        version: link:../protocol
 
   packages/protocol:
     dependencies:
