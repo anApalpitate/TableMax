@@ -8,7 +8,7 @@
 
 第一阶段工程基础已完成：React／TypeScript 网页、Electron 桌面壳、独立本地服务、SQLite 工程验证适配器和固定工具链均已建立，Windows x64 便携 ZIP 已在本机通过解压运行验证。
 
-当前正式入口提供公共屏、手机端和管理端的工程验证页面，尚未实现大厅、身份、回退恢复或首版游戏。[第二阶段：规则与交互准备](docs/tasks/phase-02-rules-and-interaction.md) 正在进行：已建立[通用交互规格与独立可点击原型](docs/reference/phase-02-platform-spec.md)，并完成合成 UI 的 9 组自动走查；目标简体中文版的完整规则与卡牌原文仍有[核验缺口](docs/tasks/phase-02-rule-research.md)。规则关口未通过，完整游戏规格尚未冻结，第二阶段尚未完成。第一阶段完成证据见 [阶段任务](docs/tasks/phase-01-engineering-foundation.md)。
+当前正式入口提供公共屏、手机端和管理端的工程验证页面，尚未实现大厅、身份、回退恢复或首版游戏。[第二阶段：规则与交互准备](docs/tasks/phase-02-rules-and-interaction.md) 正在进行：已建立[通用交互规格与独立可点击原型](docs/reference/phase-02-platform-spec.md)，并完成合成 UI 的 9 组自动走查；目标简体中文版的完整规则与卡牌原文仍有[核验缺口](docs/tasks/phase-02-rules-and-interaction.md#规则来源与核验缺口)。规则关口未通过，完整游戏规格尚未冻结，第二阶段尚未完成。第一阶段任务已归档，完成证据见 [归档记录](docs/archive/phase-01-engineering-foundation.md)。
 
 ## 开发与验证
 
@@ -39,9 +39,8 @@ pnpm verify:portable
 - [文档索引](docs/README.md)：按任务意图查找文档。
 - [目录职责](docs/reference/project-structure.md)：现有目录与未来内容的边界。
 - [开发阶段与任务](docs/tasks/README.md)：粗粒度阶段、主要任务与交付物。
-- [第一阶段任务](docs/tasks/phase-01-engineering-foundation.md)：技术栈确认、环境配置、代码结构设计及完成标准。
-- [第二阶段任务](docs/tasks/phase-02-rules-and-interaction.md)：已交付范围、规则关口、完成标准及取得原文后的接续工作。
-- [规则来源与核验缺口](docs/tasks/phase-02-rule-research.md)：已检索来源、实际保存的响应、未解决问题及资料需求。
+- [第一阶段完成记录（归档）](docs/archive/phase-01-engineering-foundation.md)：已完成任务范围、清单与历史证据。
+- [第二阶段任务与核验记录](docs/tasks/phase-02-rules-and-interaction.md)：已交付范围、来源与规则缺口、完成标准及取得原文后的接续工作。
 - [通用交互与交接规格](docs/reference/phase-02-platform-spec.md)：已选大厅交互、权限与恢复语义、资源方案、AC 场景及第三至五阶段输入。
 - [工程基础决策](docs/decisions/001-engineering-foundation.md)：已采用技术、固定版本及重要取舍。
 - [工程结构](docs/reference/architecture.md)：依赖方向、游戏契约、授权视图与后续恢复机制边界。
@@ -85,10 +84,10 @@ TableMax/
       001-engineering-foundation.md
     tasks/
       README.md
-      phase-01-engineering-foundation.md
       phase-02-rules-and-interaction.md
-      phase-02-rule-research.md
-    archive/README.md
+    archive/
+      README.md
+      phase-01-engineering-foundation.md
   artifacts/                本地产物，Git 忽略但文件树可见
     phase-01/               工程便携包与跨层验证
     phase-02/               原型构建、来源响应与走查证据

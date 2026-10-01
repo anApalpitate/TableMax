@@ -13,7 +13,7 @@
 3. 查目录归属读 [目录职责](docs/reference/project-structure.md)；更新文档读 [维护规则](docs/reference/maintenance.md)。
 4. 查重要选择读 [决策索引](docs/decisions/README.md)，查开发阶段与待办读 [任务索引](docs/tasks/README.md)；当前第二阶段的范围、规则关口和完成标准见 [阶段任务](docs/tasks/phase-02-rules-and-interaction.md)。仅追溯历史时读 [归档索引](docs/archive/README.md)。
 5. 运行与验证读 [开发环境](docs/reference/development.md)，修改源码边界读 [工程结构](docs/reference/architecture.md)；已确认技术方向见 [工程基础决策](docs/decisions/001-engineering-foundation.md)。
-6. 第二阶段通用交互与后续交接查 [通用规格](docs/reference/phase-02-platform-spec.md)，规则来源与原文缺口查 [核验记录](docs/tasks/phase-02-rule-research.md)；独立原型的运行与验证查开发环境，原型走查不代表产品验收。
+6. 第二阶段通用交互与后续交接查 [通用规格](docs/reference/phase-02-platform-spec.md)，规则来源与原文缺口查 [规则来源与核验缺口](docs/tasks/phase-02-rules-and-interaction.md#规则来源与核验缺口)；独立原型的运行与验证查开发环境，原型走查不代表产品验收。
 
 ## 工作约定
 
@@ -30,6 +30,6 @@
 ## 持续维护与收尾
 
 - 目录职责、阅读入口、通用约定或用户长期偏好变化时主动更新本文件；具体操作与经验写入对应主题页，这里只留规则与链接。
-- 任务完成后把长期知识合并到当前参考文档；重要决策保留理由，更新索引，将有历史价值的过程材料归档。
+- 任务完成后把长期知识合并到当前参考文档；重要决策保留理由，更新索引，将已完成阶段任务和有历史价值的过程材料归档。进行中任务的来源、缺口及接续步骤集中在对应任务页。
 - 优先修改已有主题页；没有持久信息变化时不为每次任务新增总结文档。
 - 较大任务完成且相关验证通过后自动创建 Git commit，只包含本次明确改动；默认不 push，不混入用户原有暂存或未提交内容。

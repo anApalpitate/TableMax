@@ -67,6 +67,6 @@ TableMax 需要在用户本机 Windows 11 上提供便携桌面程序、本地�
 - [Vite 工具链要求](https://vite.dev/guide/)
 - [实际结构与依赖边界](../reference/architecture.md)
 - [开发环境、真实命令与验证证据](../reference/development.md)
-- [第一阶段任务与当前确认进度](../tasks/phase-01-engineering-foundation.md)
+- [第一阶段任务与完成证据（归档）](../archive/phase-01-engineering-foundation.md)
 
 后续升级或重要边界变化在本页保留取舍依据，具体操作和验证记录维护在参考文档。
