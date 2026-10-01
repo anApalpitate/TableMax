@@ -14,6 +14,7 @@
 4. 查重要选择读 [决策索引](docs/decisions/README.md)，查开发阶段与待办读 [任务索引](docs/tasks/README.md)；当前第二阶段的范围、规则关口和完成标准见 [阶段任务](docs/tasks/phase-02-rules-and-interaction.md)。仅追溯历史时读 [归档索引](docs/archive/README.md)。
 5. 运行与验证读 [开发环境](docs/reference/development.md)，修改源码边界读 [工程结构](docs/reference/architecture.md)；已确认技术方向见 [工程基础决策](docs/decisions/001-engineering-foundation.md)。
 6. 第二阶段通用交互与后续交接查 [通用规格](docs/reference/phase-02-platform-spec.md)，规则来源与原文缺口查 [规则来源与核验缺口](docs/tasks/phase-02-rules-and-interaction.md#规则来源与核验缺口)；独立原型的运行与验证查开发环境，原型走查不代表产品验收。
+7. 子 agent 的职责与派工边界见 [职责索引](docs/subagent/README.md)；图像生成与编辑交给 [imagegen 子 agent](docs/subagent/imagegen.md)，具体任务范围与可写路径由主 agent 明确。
 
 ## 工作约定
 
@@ -25,6 +26,7 @@
 - 保持服务端权威、按身份投影秘密信息、决策点回退及持久化恢复的边界；正式运行所需资源本地打包。
 - 前端采用 React／TypeScript；桌面通过独立服务进程访问平台，三类界面共用网页工程但分开入口与授权视图。游戏规则独立于 UI、通信、数据库和 Electron，每款游戏集中在 `games/<id>/`。
 - 平台采用明亮的桌游主机美术，图像与主要操作优先；三端布局、imagegen 素材制作及说明折叠规则见 [通用规格](docs/reference/phase-02-platform-spec.md#已确认的美术方向与三端布局)，先在独立原型验证。
+- 已授权的 imagegen 素材任务由专职子 agent 按职责派工，主 agent 复核与整合；共享文件明确单一修改负责人，子 agent 默认不自行提交。具体素材记录保存在资源清单，职责变化同步维护 `docs/subagent/`。
 - 项目工具版本与依赖锁定在仓库内，保存时使用项目 Prettier 配置格式化；源码修改按影响执行真实工程检查，不修改其他项目的全局环境。
 - 验证与影响范围相匹配；仅文档和配置调整时检查链接、配置与 diff，不机械运行无关测试或构建。
 - 原始资料与最终产物即使被 Git 忽略，也保持文件树可见；Git 忽略、文件树隐藏、搜索排除和监听排除分别维护。忽略不代表允许删除。

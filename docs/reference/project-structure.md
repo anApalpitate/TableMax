@@ -2,28 +2,29 @@
 
 ## 已创建结构
 
-| 路径 | 职责与允许内容 |
-| --- | --- |
-| `AGENTS.md` | Agent 阅读入口、关键工作和维护约定；详细说明放入对应文档 |
-| `README.md` | 项目目标、真实进度、实际启动／检查命令和导航 |
-| `TableMax.code-workspace` | 本项目编辑器设置，根目录引用为相对路径 `.` |
-| `.gitignore` | 依赖、缓存、日志、临时文件、可再生文件及本地秘密的忽略规则 |
-| `package.json`、`pnpm-workspace.yaml`、`pnpm-lock.yaml`、`.npmrc` | 固定工具链、工作区依赖、安装策略和真实工程命令 |
-| `.node-version`、`tsconfig.json`、`eslint.config.mjs`、Prettier／EditorConfig 配置 | 开发运行时版本、严格类型、静态检查、统一排版与保存格式化 |
-| `electron-builder.yml`、`scripts/` | 网页／服务／桌面构建、运行时准备、开发与启动、便携打包、跨层验证；`verify-prototype.mjs` 负责独立原型走查 |
-| `apps/desktop/` | Electron 主进程、窗口与独立服务生命周期 |
-| `apps/server/` | HTTP、Socket.IO、构建后网页、本地二维码与 SQLite 工程验证适配器 |
-| `apps/web/` | 单一 React 网页工程，公共屏／手机／管理工程验证页面；独立 `prototype.html` 与 `src/prototype/` 为第二阶段合成交互原型，不进入正式构建 |
-| `apps/web/src/prototype/assets/` | 原型独用的本地 WebP 插画与 imagegen 提示词／来源清单；`theme-preparation/` 保存未导入 UI 的 PNG 背景候选；SVG 控件和头像组件仍在原型内复用 |
-| `packages/protocol/` | 当前工程通信与桌面／服务消息的类型和运行时校验 |
-| `packages/game-sdk/` | 纯类型初始游戏契约；尚非完整游戏模板或恢复实现 |
-| `games/README.md` | 每款游戏独立目录的约定；未建立宝可梦或空游戏工程 |
-| `docs/README.md` | 按任务意图组织文档入口 |
-| `docs/requirements/` | 产品需求基线；原有需求文档已移入，正文保持不变 |
-| `docs/reference/` | 当前目录与工程边界、开发操作及验证记录、维护规则、第二阶段通用交互与交接规格 |
-| `docs/decisions/` | 已确定的重要选择、理由与后果；已有工程基础技术方向决策，产品决策引用需求与用户最新指示 |
-| `docs/tasks/` | 粗粒度阶段总览与进行中任务；当前第二阶段任务合并来源记录、规则缺口、接续工作及完成标准 |
-| `docs/archive/` | 已完成任务及有历史价值的过程材料；第一阶段任务已归档，索引说明归档原因和当前参考入口 |
+| 路径                                                                               | 职责与允许内容                                                                                                                             |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `AGENTS.md`                                                                        | Agent 阅读入口、关键工作和维护约定；详细说明放入对应文档                                                                                   |
+| `README.md`                                                                        | 项目目标、真实进度、实际启动／检查命令和导航                                                                                               |
+| `TableMax.code-workspace`                                                          | 本项目编辑器设置，根目录引用为相对路径 `.`                                                                                                 |
+| `.gitignore`                                                                       | 依赖、缓存、日志、临时文件、可再生文件及本地秘密的忽略规则                                                                                 |
+| `package.json`、`pnpm-workspace.yaml`、`pnpm-lock.yaml`、`.npmrc`                  | 固定工具链、工作区依赖、安装策略和真实工程命令                                                                                             |
+| `.node-version`、`tsconfig.json`、`eslint.config.mjs`、Prettier／EditorConfig 配置 | 开发运行时版本、严格类型、静态检查、统一排版与保存格式化                                                                                   |
+| `electron-builder.yml`、`scripts/`                                                 | 网页／服务／桌面构建、运行时准备、开发与启动、便携打包、跨层验证；`verify-prototype.mjs` 负责独立原型走查                                  |
+| `apps/desktop/`                                                                    | Electron 主进程、窗口与独立服务生命周期                                                                                                    |
+| `apps/server/`                                                                     | HTTP、Socket.IO、构建后网页、本地二维码与 SQLite 工程验证适配器                                                                            |
+| `apps/web/`                                                                        | 单一 React 网页工程，公共屏／手机／管理工程验证页面；独立 `prototype.html` 与 `src/prototype/` 为第二阶段合成交互原型，不进入正式构建      |
+| `apps/web/src/prototype/assets/`                                                   | 原型独用的本地 WebP 插画与 imagegen 提示词／来源清单；`theme-preparation/` 保存未导入 UI 的 PNG 背景候选；SVG 控件和头像组件仍在原型内复用 |
+| `packages/protocol/`                                                               | 当前工程通信与桌面／服务消息的类型和运行时校验                                                                                             |
+| `packages/game-sdk/`                                                               | 纯类型初始游戏契约；尚非完整游戏模板或恢复实现                                                                                             |
+| `games/README.md`                                                                  | 每款游戏独立目录的约定；未建立宝可梦或空游戏工程                                                                                           |
+| `docs/README.md`                                                                   | 按任务意图组织文档入口                                                                                                                     |
+| `docs/requirements/`                                                               | 产品需求基线；原有需求文档已移入，正文保持不变                                                                                             |
+| `docs/reference/`                                                                  | 当前目录与工程边界、开发操作及验证记录、维护规则、第二阶段通用交互与交接规格                                                               |
+| `docs/decisions/`                                                                  | 已确定的重要选择、理由与后果；已有工程基础技术方向决策，产品决策引用需求与用户最新指示                                                     |
+| `docs/tasks/`                                                                      | 粗粒度阶段总览与进行中任务；当前第二阶段任务合并来源记录、规则缺口、接续工作及完成标准                                                     |
+| `docs/subagent/`                                                                   | 子 agent 职责索引与单独角色文档；已有 imagegen 职责，保存输入、文件边界、交付和维护约定，不保存图片或会话实例配置                          |
+| `docs/archive/`                                                                    | 已完成任务及有历史价值的过程材料；第一阶段任务已归档，索引说明归档原因和当前参考入口                                                       |
 
 ## 已采用与计划结构
 

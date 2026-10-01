@@ -39,6 +39,7 @@ pnpm verify:portable
 - [需求文档 v1.0](docs/requirements/TableMax_需求文档_v1.0.md)：产品范围、技术建议、规则研究项与首版验收标准；原件已移入 docs，正文保持不变。
 - [Agent 入口](AGENTS.md)：最小阅读顺序、工作与提交约定。
 - [文档索引](docs/README.md)：按任务意图查找文档。
+- [子 agent 职责](docs/subagent/README.md)：专职 imagegen 角色、派工输入及交接边界。
 - [目录职责](docs/reference/project-structure.md)：现有目录与未来内容的边界。
 - [开发阶段与任务](docs/tasks/README.md)：粗粒度阶段、主要任务与交付物。
 - [第一阶段完成记录（归档）](docs/archive/phase-01-engineering-foundation.md)：已完成任务范围、清单与历史证据。
@@ -87,6 +88,9 @@ TableMax/
     tasks/
       README.md
       phase-02-rules-and-interaction.md
+    subagent/
+      README.md
+      imagegen.md
     archive/
       README.md
       phase-01-engineering-foundation.md
