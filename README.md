@@ -12,7 +12,7 @@
 
 用户指定中文资料已整理为[参考规则草案](docs/tasks/phase-02-rules-and-interaction.md#中文参考规则草案)，覆盖布局、初始化、替换、配对计分及部分能力概述；新增检索只使用中文来源。另已预备[原创自然主题背景](apps/web/src/prototype/assets/theme-preparation/manifest.json)，作为未导入 UI 的本地资源候选。
 
-三轮规则答复和三张中文截图已补充普通换牌朝向、六类特殊分值及能力介绍；图文触发差异、百变怪边界和完整数量仍待确认。后续公共大屏兼房主管理并增加调试模式，设计及待答范围见[界面决策 002](docs/decisions/002-host-public-screen-and-debug.md)；当前工程／原型仍为原有三个角色入口，计分模块、合并界面及调试能力尚未实现。
+五轮规则答复和三张中文截图已补充普通换牌朝向、六类特殊分值及能力介绍；可选发动、终局复制、先投币及特殊弃牌底已裁定，初始空弃牌堆、强制三牌和百变怪含配对的联合最优已确认，结束、平局、百变怪依赖边界和完整数量等仍待补齐。后续公共大屏兼房主管理，见[界面决策 002](docs/decisions/002-host-public-screen-and-debug.md)；跨游戏调试与纠错目标已写入[需求第 6.5 节](docs/requirements/TableMax_需求文档_v1.0.md#65-跨游戏调试与纠错后续独立规划)，后续独立规划。当前工程／原型仍为原有三个角色入口，计分模块、合并界面及调试能力尚未实现。
 
 ## 开发与验证
 
@@ -38,7 +38,7 @@ pnpm verify:portable
 
 ## 项目入口
 
-- [需求文档 v1.0](docs/requirements/TableMax_需求文档_v1.0.md)：产品范围、技术建议、规则研究项与首版验收标准；原件已移入 docs，正文保持不变。
+- [需求文档 v1.0](docs/requirements/TableMax_需求文档_v1.0.md)：产品范围、技术建议、规则研究项与首版验收标准；2026-10-01 按用户要求增补跨游戏调试与纠错目标，并注明后续独立规划。
 - [Agent 入口](AGENTS.md)：最小阅读顺序、工作与提交约定。
 - [文档索引](docs/README.md)：按任务意图查找文档。
 - [子 agent 职责](docs/subagent/README.md)：专职 imagegen 角色、派工输入及交接边界。
@@ -87,6 +87,7 @@ TableMax/
     decisions/
       README.md
       001-engineering-foundation.md
+      002-host-public-screen-and-debug.md
     tasks/
       README.md
       phase-02-rules-and-interaction.md

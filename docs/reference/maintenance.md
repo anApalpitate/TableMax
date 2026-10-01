@@ -8,7 +8,7 @@
 - [tasks](../tasks/README.md)：粗粒度阶段总览、进行中的阶段任务与已确认待办；已完成阶段保留状态和归档入口。
 - [subagent](../subagent/README.md)：子 agent 的长期职责、派工输入、可写边界与交接标准；具体任务和素材记录保留在各自入口。
 - [archive](../archive/README.md)：有历史价值的过程记录，不作为当前实现依据。
-- [requirements 中的需求基线](../requirements/TableMax_需求文档_v1.0.md)：保存产品需求原件；产品要求通过入口链接引用，不机械复制。
+- [requirements 中的需求基线](../requirements/TableMax_需求文档_v1.0.md)：保存产品需求基线；用户确认的增补标注日期与状态，产品要求通过入口链接引用，不机械复制。
 
 ## 区分要求、现状和计划
 
