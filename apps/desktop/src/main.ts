@@ -8,6 +8,7 @@ import {
   powerSaveBlocker,
   powerMonitor,
   shell,
+  ipcMain,
   type UtilityProcess,
 } from 'electron';
 import { join, resolve } from 'node:path';
@@ -15,6 +16,8 @@ import { mkdirSync, writeFileSync, appendFileSync } from 'node:fs';
 import { ServiceReadySchema } from '@tablemax/protocol';
 import { RuntimeGuard } from './runtime-guard';
 import { startupError } from './startup-error';
+import { DisplayController, DisplaySettingsStore } from './display-controller';
+import { displayChannels } from './display-types';
 
 const localData = process.env.LOCALAPPDATA;
 if (!localData) throw new Error('Windows LOCALAPPDATA is unavailable');
@@ -45,6 +48,7 @@ const publicWindows = new Set<BrowserWindow>();
 const runtime = new RuntimeGuard(powerSaveBlocker);
 let hostWindow: BrowserWindow | null = null;
 let hostUrl = '';
+let displays: DisplayController | undefined;
 function showHost() {
   if (!hostUrl || quitting) return;
   if (!hostWindow || hostWindow.isDestroyed()) {
@@ -96,9 +100,11 @@ function openWindow(url: string, publicScreen = false) {
       sandbox: true,
       backgroundThrottling: !checking && !testing,
       offscreen: testing,
+      preload: join(__dirname, 'preload.cjs'),
     },
   });
   windows.add(window);
+  displays?.register(window, publicScreen ? 'public' : 'host');
   const updateDisplay = () =>
     runtime.publicScreenVisible(
       [...publicWindows].some(
@@ -229,6 +235,37 @@ async function run() {
   );
   const origin = `http://127.0.0.1:${ready.port}`;
   const webOrigin = process.env.TABLEMAX_WEB_DEV_URL ?? origin;
+  const displaySettings = new DisplaySettingsStore(dataDir);
+  await displaySettings.load();
+  const displayController = new DisplayController(
+    displaySettings,
+    new URL(webOrigin).origin,
+    (window) => {
+      const content = window.getContentBounds();
+      const display = screen.getDisplayMatching(window.getBounds());
+      return {
+        viewport: { width: content.width, height: content.height },
+        screen: {
+          width: display.bounds.width,
+          height: display.bounds.height,
+          scaleFactor: display.scaleFactor,
+        },
+      };
+    },
+  );
+  displays = displayController;
+  ipcMain.handle(displayChannels.read, (event, ...arguments_: unknown[]) =>
+    displayController.read(event, ...arguments_),
+  );
+  ipcMain.handle(
+    displayChannels.update,
+    (event, input: unknown, ...arguments_: unknown[]) =>
+      displayController.update(event, input, ...arguments_),
+  );
+  const refreshDisplays = () => displayController.refreshAll();
+  screen.on('display-metrics-changed', refreshDisplays);
+  screen.on('display-added', refreshDisplays);
+  screen.on('display-removed', refreshDisplays);
   runtime.start();
   powerMonitor.on('resume', () => {
     for (const window of windows)
@@ -326,7 +363,10 @@ if (setupError) reportStartupFailure(setupError);
 else {
   const singleInstance = app.requestSingleInstanceLock();
   app.on('second-instance', showHost);
-  app.on('will-quit', () => runtime.stop());
+  app.on('will-quit', () => {
+    runtime.stop();
+    displays?.stop();
+  });
   if (!singleInstance) app.exit(0);
   else void run().catch(reportStartupFailure);
 }

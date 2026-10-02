@@ -308,16 +308,19 @@
   }
 }
 @media (min-width: 861px) and (max-height: 850px) {
-  .room-table {
+  .room-table,
+  .public .room-table {
     --seat-width: 144px;
     min-height: 430px;
   }
-  .room-table__felt {
+  .room-table__felt,
+  .public .room-table__felt {
     top: 107px;
     height: 235px;
     border-width: 12px;
   }
-  .room-table__seat {
+  .room-table__seat,
+  .public .room-table__seat {
     height: 140px;
     padding: 6px 10px;
     border-radius: 17px;
@@ -332,18 +335,53 @@
   .room-table__seat--6 {
     bottom: 12px;
   }
-  .room-table__avatar {
+  .room-table__avatar,
+  .public .room-table__avatar {
     width: 32px;
     height: 32px;
   }
-  .room-table__name {
+  .room-table__name,
+  .public .room-table__name {
     font-size: 16px;
     line-height: 1.25;
     margin: 3px 0;
   }
   .room-table__identity,
-  .room-table__ready {
+  .room-table__ready,
+  .public .room-table__identity,
+  .public .room-table__ready {
     font-size: 12px;
+  }
+}
+@media (min-width: 861px) and (max-height: 760px) {
+  .box-screen:not(.player) .room-table {
+    min-height: 360px;
+  }
+  .box-screen:not(.player) .room-table__felt {
+    top: 89px;
+    height: 182px;
+    padding: 12px 8px 18px;
+  }
+  .box-screen:not(.player) .room-table__felt strong {
+    font-size: 18px;
+    line-height: 1.35;
+  }
+  .box-screen:not(.player) .room-table__seat {
+    height: 132px;
+    padding: 4px 8px;
+  }
+  .box-screen:not(.player) .room-table__avatar {
+    width: 28px;
+    height: 28px;
+  }
+  .box-screen:not(.player) .room-table__name {
+    margin: 2px 0;
+    line-height: 1.2;
+  }
+  .box-screen:not(.player) .room-table__seat--4,
+  .box-screen:not(.player) .room-table__seat--5,
+  .box-screen:not(.player) .room-table__seat--6 {
+    bottom: 8px;
   }
 }
 @media (max-width: 600px) {

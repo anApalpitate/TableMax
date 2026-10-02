@@ -52,6 +52,7 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 | `pnpm verify:party`                 | 隐藏窗口验证加入／换绑丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP    |
 | `pnpm verify:room-levels`           | 隐藏窗口验证手机各自入座、电脑仅管理／展示、六席围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证当前 ZIP |
 | `pnpm verify:presentation`          | 隐藏窗口验证六真人、游玩／测试时序、浮窗焦点／结束、公开行动及星标；可加 `--portable` 验证当前 ZIP                               |
+| `pnpm verify:display`               | 隐藏窗口验证电脑 720p／1080p／1440p／4K、独立缩放、显示浮窗、设置恢复与 DPI；可加 `--portable` 验证最终 ZIP                     |
 | `pnpm verify:game-ui`               | 正式能力／2–6 人保存 fixture 的十五组 UI、多尺寸触控／隐私、已保存动效和声音                                                     |
 | `pnpm verify:cards`                 | 正式六人保存状态的全部 16 类卡面及公共／手机十三种布局、图像／文字／分区几何                                                     |
 | `pnpm package:win`                  | 构建并生成 Windows x64 解压运行 ZIP 与 `win-unpacked`                                                                            |
@@ -138,7 +139,7 @@ pnpm prototype:verify:game
 | Electron 浏览器数据  | 数据目录 `desktop/`，包含网页会话与缓存                                                                                                      |
 | pnpm、下载与工具缓存 | 仓库 `.pnpm-store/`、`.cache/`；Git 忽略，工作区隐藏与排除监听                                                                               |
 | 可再生构建           | 仓库 `build/`，Git 忽略，工作区隐藏                                                                                                          |
-| 便携包与验证图／JSON | 当前 1.4.0 ZIP 在 artifacts/releases，维护验证在 artifacts/maintenance；历史证据保留，旧程序包已清除，Git 忽略，文件树可见；搜索与监听单独排除 |
+| 便携包与验证图／JSON | 当前 1.5.0 ZIP 在 artifacts/releases，维护验证在 artifacts/maintenance；历史证据保留，0.1.0–1.3.0 程序包已清除，Git 忽略，文件树可见；搜索与监听单独排除 |
 | 原型构建             | 仓库 `artifacts/phase-02/prototype/`，独立于 `build/desktop/web/`                                                                            |
 | 原型截图与走查 JSON  | 仓库 `artifacts/phase-02/verification/`，Git 忽略但文件树可见；每次走查更新对应证据                                                          |
 | 美术原图与前后对比   | 仓库 `artifacts/phase-02/art-reset/`；保留 imagegen 原始 PNG、透明通道／尺寸／哈希检查、联系表及同尺寸前后截图和文字测量                     |
@@ -155,7 +156,7 @@ pnpm prototype:verify:game
 
 清理已结束的验证时，可删除 `tmp/` 下的测试浏览器数据、隔离存档、便携包解压副本及一次性脚本；先把唯一研究资料、原图和需要保留的过程记录移入对应 artifacts 目录。当前打包工作目录为 `artifacts/releases/package-<版本>-<随机后缀>/`，旧构建曾使用 `artifacts/releases/win-unpacked/`；确认对应交付 ZIP 完整且目录中的程序退出后，可整理不再需要的打包工作目录。`build/` 供 `pnpm start` 使用，当前构建保留；`.pnpm-store/`、`node_modules/` 和工具缓存用于继续开发，不随测试临时文件清理。忽略目录不能一律视为废弃资料。
 
-2026-10-02 用户要求清除历史版本，已移除 0.1.0 至 1.3.0 的七个 ZIP，以及 phase-01／phase-06／releases 下三个旧 `win-unpacked`；保留当前 1.4.0 ZIP、解压程序和打包目录。历史原图、截图及 JSON 保留，以下历史包路径只用于追溯当时交付；详情见 [清理记录](../../artifacts/maintenance/release-cleanup-2026-10-02/cleanup.json)。打包不会自动清除其他版本。
+2026-10-02 用户要求清除历史版本，已移除 0.1.0 至 1.3.0 的七个 ZIP，以及 phase-01／phase-06／releases 下三个旧 `win-unpacked`；当次保留 1.4.0 ZIP、解压程序和打包目录。历史原图、截图及 JSON 保留，以下历史包路径只用于追溯当时交付；详情见 [清理记录](../../artifacts/maintenance/release-cleanup-2026-10-02/cleanup.json)。打包不会自动清除其他版本。
 
 ## 第五、六阶段完整游戏与交付
 
@@ -267,3 +268,11 @@ UI 合法存档 fixture 的构造入口在 scripts/fixtures/prepare-pokemon.ts�
 本轮证据根为 `artifacts/maintenance/six-player-presentation`，包括 `development`／`portable`、`party`／`party-portable`、`room`／`room-portable`、`presentation`／`presentation-portable`、`ui` 和 `cards`。全部窗口隐藏、数据隔离、截图来自更新后的真实渲染，历史记录保留；测试范围仍为当前 Windows 与 Chromium 尺寸／触控模拟。具体执行结果见 [1.4.0 验收](acceptance.md#首版维护游玩节奏与六人提示)。
 
 打包每次使用独立的 `artifacts/releases/package-<版本>-<随机后缀>` 目录生成 `win-unpacked` 和 ZIP，成功后才把 ZIP 复制到标准 release 路径。这样已有解压程序正在运行时无需关闭它，也不会覆盖被 Windows 锁定的旧 `win-unpacked`；输出保持可见，按实际需要人工整理。
+
+### 1.5.0 多分辨率显示验证
+
+`pnpm verify:display` 使用真实隐藏 Electron 与隔离服务／数据，通过各自手机页面加入六位真人，核验电脑房间和六人牌桌在 1280×720、1920×1080、2560×1440、3840×2160 原生内容尺寸的首屏、卡牌、文字和浮窗。原生页面 zoom 改变 CSS 视口，因此电脑场景直接设置窗口内容尺寸，不用 CDP 固定视口覆盖它；记录 DIP 窗口、CSS 视口、DPI、页面倍率与截图尺寸，避免把模拟口径混用。
+
+专项覆盖预设／100–150% 界面、窗口变化、浮窗焦点、刷新／重启恢复、同源房主与公共屏独立缩放、手机无设置且不受影响、系统显示器配置保持；通过实际菜单暂停和恢复，另查两端四档尺寸与 4K 三档界面大小的提示、恢复按钮及 36 张牌全部首屏。`--force-device-scale-factor=1.5` 模拟原生显示器 DPI；Electron 离屏绘制的渲染密度仍为 1，另用 CDP 的 1.5 密度和零宽高参数模拟像素密度而不覆盖窗口视口。记录两种密度及实际 PNG 尺寸，不将它们写成实体 4K 显示器或电视实测。开发与最终便携证据分别进入 `artifacts/maintenance/display-resolution/development` 和 `portable`；临时隔离数据／ZIP 解压进入 `tmp/display-*`。便携模式解压当前标准 ZIP，以仅系统目录 PATH 运行，记录最终哈希；历史 1.4.0 验收不覆盖。
+
+电脑显示配置保存在数据目录的 `display-settings.json`，与 `room.sqlite` 分开；设置损坏时采用自动适配，写入失败在浮窗提示且不改变已保存偏好。`preload.cjs` 随正式构建与 ZIP 打包，手机网页不需要 preload。使用入口和行为见 [电脑显示规格](phase-02-platform-spec.md#电脑多分辨率显示150)。

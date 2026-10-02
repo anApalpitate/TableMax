@@ -11,7 +11,7 @@
 | `package.json`、`pnpm-workspace.yaml`、`pnpm-lock.yaml`、`.npmrc`                  | 固定工具链、工作区依赖、安装策略和真实工程命令                                                                                                                           |
 | `.node-version`、`tsconfig.json`、`eslint.config.mjs`、Prettier／EditorConfig 配置 | 开发运行时版本、严格类型、静态检查、统一排版与保存格式化                                                                                                                 |
 | `electron-builder.yml`、`scripts/`                                                 | 网页／服务／桌面构建、运行时准备、开发与启动、便携打包到 `artifacts/releases/`、跨层验证；`verify-prototype.mjs`／`verify-game-prototype.mjs` 负责通用／游戏独立原型走查 |
-| `apps/desktop/`                                                                    | Electron 主进程、窗口与独立服务生命周期                                                                                                                                  |
+| `apps/desktop/`                                                                    | Electron 主进程、窗口、隔离 preload／显示设置与独立服务生命周期                                                                                                          |
 | `apps/server/`                                                                     | HTTP、Socket.IO、构建后网页、本地二维码、SQLite 平台存档仓储与独立 bot Worker                                                                                            |
 | `apps/web/`                                                                        | 单一 React 工程；三种身份的盒子与独立游戏页，会话／导航／通用控件分别维护；独立原型不进入正式构建                                                                        |
 | `assets/`                                                                          | 全部运行／原型美术和声音，来源／版本及替换说明                                                                                                                           |
@@ -51,7 +51,7 @@
 - 长期需求、规则规格、来源清单和必要游戏资源属于项目资料；放入对应主题，不混入临时目录。
 - 本地实验、临时导出或下载中间文件可放入根目录 `tmp/`（需要时创建）；不作为长期资料入口。
 - 未采用的等待背景原图和来源归档在 `artifacts/phase-02/theme-preparation/`；不再占用运行资源目录。清理临时研究目录时，有历史价值的资料先归入 `artifacts/phase-02/research/`，重复下载与一次性脚本不长期保留。
-- 根目录 `build/` 已用于可再生构建中间物，`dist/` 为保留的构建排除项。工程验证截图与 JSON 证据保存在 `artifacts/phase-01/`；第二阶段原型构建、检索原始响应和走查证据在 `artifacts/phase-02/`。第三、四阶段真实平台截图与 JSON 在 `artifacts/phase-03-04/verification/`。第五阶段原图／素材检查在 artifacts/phase-05/imagegen；第六阶段 desktop／portable／ui 验证在 artifacts/phase-06。当前 1.4.0 ZIP 与解压程序在 `artifacts/releases/`；旧版本 ZIP 和旧 `win-unpacked` 已按用户 2026-10-02 要求清除，历史证据与原始素材保留。上述本地产物 Git 忽略但文件树保持可见。
+- 根目录 `build/` 已用于可再生构建中间物，`dist/` 为保留的构建排除项。工程验证截图与 JSON 证据保存在 `artifacts/phase-01/`；第二阶段原型构建、检索原始响应和走查证据在 `artifacts/phase-02/`。第三、四阶段真实平台截图与 JSON 在 `artifacts/phase-03-04/verification/`。第五阶段原图／素材检查在 artifacts/phase-05/imagegen；第六阶段 desktop／portable／ui 验证在 artifacts/phase-06。当前 1.5.0 ZIP 在 `artifacts/releases/`，显示专项在 `artifacts/maintenance/display-resolution/`；0.1.0–1.3.0 ZIP 和三个旧 `win-unpacked` 已按用户 2026-10-02 要求清除，当次保留 1.4.0 程序。历史证据与原始素材保留，上述本地产物 Git 忽略但文件树保持可见。
 - `artifacts/phase-02/prototype/` 是可再生原型构建，`verification/` 是对应走查证据，`research/` 是已保存的检索响应与哈希清单。资料是否可再生分别判断，不能因同在 artifacts 下就覆盖或删除原始响应。路径与命令见开发说明，资料适用性见 [规则来源与核验缺口](../games/pokemon-encounters/sources.md#规则来源与核验缺口)。
 - `artifacts/phase-02/research/chinese-reference/s14/` 保存用户三张原始中文截图、尺寸／哈希和牌面转录；叠图数量已由 S17 核对为 56，原始观察及原图保留；完整采用表在 docs/games/pokemon-encounters/cards.json，原图不直接导入运行时。
 - `artifacts/phase-02/art-reset/` 保存 imagegen 原始 PNG、素材检查、三端同尺寸前后对比与文字密度测量；`verification/before-art-reset/` 保留重置前截图。原始图像与历史证据不被原型构建覆盖。

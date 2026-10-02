@@ -16,6 +16,7 @@ import { FullscreenControl } from '../components/FullscreenControl';
 import { RoomManagement } from '../components/RoomManagement';
 import { PlayModeControl } from '../components/PlayModeControl';
 import { PlayModeBadge } from '../components/PlayModeBadge';
+import { DisplaySettings } from '../components/DisplaySettings';
 import type { RoomSession } from '../session/useRoomSession';
 
 export function GameScreen({ session }: { session: RoomSession }) {
@@ -74,6 +75,7 @@ export function GameScreen({ session }: { session: RoomSession }) {
             {connected ? '本地连接已就绪' : '正在连接本地服务'}
           </span>
           <FullscreenControl />
+          {role !== 'player' && <DisplaySettings />}
           <PlayModeBadge mode={view?.playMode} />
           {role !== 'player' && (
             <SoundControl

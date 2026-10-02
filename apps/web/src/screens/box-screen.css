@@ -424,6 +424,67 @@
     line-height: 1.4;
   }
 }
+@media (min-width: 861px) and (max-height: 760px) {
+  .box-screen:not(.player) {
+    padding: 10px 18px;
+  }
+  .box-screen:not(.player) .hero {
+    margin: 8px 0;
+    padding: 6px 14px;
+  }
+  .box-screen:not(.player) .hero > img {
+    width: 36px;
+    height: 42px;
+  }
+  .box-screen:not(.player) .hero h1 {
+    font-size: 19px;
+    line-height: 1.2;
+    margin-bottom: 3px;
+  }
+  .box-screen:not(.player) .hero p {
+    line-height: 1.35;
+  }
+  .box-screen:not(.player) .stage {
+    padding: 10px;
+  }
+  .box-screen:not(.player) .room-heading {
+    margin-bottom: 6px;
+  }
+  .box-screen:not(.player) .host-lobby {
+    padding: 6px 10px;
+    margin-bottom: 8px;
+  }
+  .box-screen:not(.player) .lobby-status-text {
+    margin-top: 5px;
+  }
+  .box-screen:not(.player) .controls {
+    padding: 14px;
+  }
+  .box-screen:not(.player) .controls h2 {
+    font-size: 19px;
+    margin-bottom: 8px;
+  }
+  .box-screen:not(.player) .phone-entry-note {
+    margin-bottom: 8px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .box-screen:not(.player) .qr {
+    width: 196px;
+    height: 196px;
+    margin: 12px auto;
+  }
+  .box-screen:not(.player) .url {
+    margin: 8px 0;
+    font-size: 13px;
+  }
+  .box-screen:not(.player) .controls button {
+    margin-top: 8px;
+  }
+  .box-screen:not(.player) footer {
+    margin-top: 10px;
+  }
+}
 @media (max-width: 860px) {
   .box-screen .grid,
   .box-screen.public .grid {

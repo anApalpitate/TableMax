@@ -1,0 +1,56 @@
+.display-settings-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.display-settings-control svg {
+  flex-shrink: 0;
+}
+.display-settings-description {
+  margin: 0 0 20px;
+  color: #31554a;
+}
+.display-settings-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.display-settings-fields select {
+  width: 100%;
+  min-height: 48px;
+}
+.display-settings-fields label {
+  font-weight: 650;
+}
+.display-settings-current {
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid #d9e4d5;
+  border-radius: 16px;
+  background: #edf3e7;
+}
+.display-settings-current strong {
+  font-size: 24px;
+  line-height: 1.4;
+}
+.display-settings-current span,
+.display-settings-hint {
+  font-size: 14px;
+  color: #476656;
+}
+.display-settings-hint {
+  margin: 0 0 12px;
+}
+@media (max-width: 1300px) {
+  .game-toolbar .display-settings-control {
+    width: 46px;
+    padding: 8px;
+  }
+  .game-toolbar .display-settings-control span {
+    display: none;
+  }
+}

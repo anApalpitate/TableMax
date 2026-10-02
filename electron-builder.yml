@@ -7,6 +7,7 @@ directories:
   output: ../../artifacts/releases
 files:
   - main.cjs
+  - preload.cjs
   - server.cjs
   - bot-worker.cjs
   - web/**/*

@@ -4,7 +4,7 @@
 
 ## 开始开发
 
-当前源码为 1.4.0，所有真人手机操作、电脑只管理／展示，支持六席围桌和三档本地人机。游玩／隐蔽测试模式、浮窗、明确行动提示与六人布局见 [任务接续](tasks/README.md#140游玩节奏行动提示与六人布局)、[运行模式](reference/phase-02-platform-spec.md#实际游玩与测试模式140)、[游戏交互](games/pokemon-encounters/interaction.md#游玩节奏行动播报与六人布局140) 和 [1.4.0 验收](reference/acceptance.md#首版维护游玩节奏与六人提示)；算法见 [人机等级](reference/bot-players.md#三档智能与配置)。可靠入座、网卡刷新、原班续局与运行保障的 [1.2.0 验收](reference/acceptance.md#首版维护聚会可靠性与连续游玩) 及旧视觉记录保留。第一至六阶段历史证据继续保留；新便携版和维护证据分别进入 `artifacts/releases` 与 `artifacts/maintenance`。
+当前源码为 1.5.0，所有真人手机操作、电脑只管理／展示，支持六席围桌和三档本地人机。电脑 4K／多分辨率显示设置见 [任务接续](tasks/README.md#150电脑多分辨率显示)、[显示规格](reference/phase-02-platform-spec.md#电脑多分辨率显示150) 和 [1.5.0 验收](reference/acceptance.md#首版维护电脑多分辨率显示)。游玩／隐蔽测试模式、浮窗、明确行动提示与六人布局见 [运行模式](reference/phase-02-platform-spec.md#实际游玩与测试模式140)、[游戏交互](games/pokemon-encounters/interaction.md#游玩节奏行动播报与六人布局140) 和 [1.4.0 验收](reference/acceptance.md#首版维护游玩节奏与六人提示)；算法见 [人机等级](reference/bot-players.md#三档智能与配置)。可靠入座、网卡刷新、原班续局与运行保障的 [1.2.0 验收](reference/acceptance.md#首版维护聚会可靠性与连续游玩) 及旧视觉记录保留。第一至六阶段历史证据继续保留；新便携版和维护证据分别进入 `artifacts/releases` 与 `artifacts/maintenance`。
 
 先读 [项目说明](../README.md) 了解现状，再从 [阶段接续入口](tasks/README.md#后续开发接续入口) 确认本阶段范围，按实现职责阅读规格和源码。运行与检查统一查 [开发环境](reference/development.md)，Agent 工作约定见 [AGENTS.md](../AGENTS.md)。
 

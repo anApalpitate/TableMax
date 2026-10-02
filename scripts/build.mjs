@@ -26,6 +26,16 @@ await build({
   logLevel: 'info',
 });
 await build({
+  entryPoints: ['apps/desktop/src/preload.ts'],
+  outfile: `${output}/preload.cjs`,
+  bundle: true,
+  platform: 'node',
+  format: 'cjs',
+  target: 'node22',
+  external: ['electron'],
+  logLevel: 'info',
+});
+await build({
   entryPoints: ['apps/desktop/src/main.ts'],
   outfile: `${output}/main.cjs`,
   bundle: true,

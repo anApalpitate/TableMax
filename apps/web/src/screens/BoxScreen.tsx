@@ -11,6 +11,7 @@ import { SeatSettings } from '../components/SeatSettings';
 import { PlayerBindingControl } from '../components/PlayerBindingControl';
 import { PlayModeControl } from '../components/PlayModeControl';
 import { PlayModeBadge } from '../components/PlayModeBadge';
+import { DisplaySettings } from '../components/DisplaySettings';
 import type { RoomSession } from '../session/useRoomSession';
 
 const difficultyNames: Record<BotDifficulty, string> = {
@@ -73,6 +74,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
           <span className="brand-mark">T</span>TableMax
         </span>
         <div className="header-status">
+          {role !== 'player' && <DisplaySettings />}
           <PlayModeBadge mode={view?.playMode} />
           <span
             className={`connection ${connected ? 'online' : ''}`}

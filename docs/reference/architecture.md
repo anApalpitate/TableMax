@@ -93,3 +93,9 @@ HTTP 提供加入、换绑兑换、授权同步和网络地址；Socket.IO 握�
 1.4.0 协议 5 新增 `playMode` 与房主 `set-play-mode`。设置在房间层保存而不进入游戏 checkpoint；旧字段缺失默认 `play`，普通桌面启动显式 `play`，隐藏测试启动显式 `test`。BotScheduler 用当前实例／修订／分支／决策／策略／等级／模式识别同一任务，单纯在线状态通知保留等待和计算；正常替换取消与超时失败分开，不能因朋友重连误暂停，也不能因不断连接把等待无限延后。
 
 SDK `PublicEvent.action` 及首版历史可选记录真实行动者、动词、公开类别／能力与公开目标格；`public-actions.ts` 只从已执行合法动作提取白名单信息，保存校验拒绝额外字段、未知座位／格号与私看细节。旧事件缺字段仍可加载。前端 ActivityFeed 用元数据和当前昵称组装静态播报与近期浮窗；peek／close 只带喷火龙类别及空位置列表，不带查看格、值或实例。目标边框与保存动效分别维护，测试模式禁动效／声音，静态授权结果仍可读。OverlayPanel 用原生 modal dialog 和 portal 管理焦点、遮罩及唯一标题；管理确认独立弹窗，显著结束入口只由房主可见。
+
+## 电脑显示控制
+
+`DisplaySettings` 为盒子／游戏提供同一浮窗，`apps/desktop/src/display-controller.ts` 负责窗口缩放、配置读写和生命周期，`display-types.ts` 只定义显示契约。隔离 preload 仅公开固定的读取／更新／订阅接口；主进程核验受管理窗口、本源、对应 host／public 路径及主 frame，拒绝手机路径、子 frame 和无效配置。显示控制不经过游戏命令或数据库，`display-settings.json` 与玩家存档分开，写入失败不会声明配置已保存。
+
+使用 Electron 44 的 [isolated zoom](https://www.electronjs.org/docs/latest/api/web-contents#contentssetzoommodemode) 将缩放限定于单个 webContents；不通过共用 origin 的默认缩放传播到其他窗口。自动比例来自原生内容窗口的 DIP 宽高与 1920×1080 基准，不能读取已缩放的 `innerWidth` 再反馈计算。分辨率预设先按当前显示器 DPI 转为 DIP；界面大小叠加用户倍率，限制到窗口可用空间与三倍上限。resize／全屏／显示器变化重新计算，页面导航和刷新应用当前窗口偏好；房主管理与公共屏分别持久化最近选择，作为新开窗口／重启的默认值，不覆盖其他已打开窗口。注册时缓存 webContents，关闭／停止使用缓存清理，先判断存活再访问原生对象，避免销毁后的 getter 或迟到事件阻断退出。
