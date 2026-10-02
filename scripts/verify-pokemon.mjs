@@ -8,15 +8,14 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createHash } from 'node:crypto';
 import { platform, release, cpus } from 'node:os';
+import { verificationOutput } from './verification-output.mjs';
 const require = createRequire(import.meta.url);
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
 const portable = process.argv.includes('--portable');
-const output = resolve(
-  'artifacts/maintenance/v1.6.0',
-  portable ? 'portable' : 'development',
-);
+const project = JSON.parse(await readFile('package.json', 'utf8'));
+const output = verificationOutput(portable ? 'portable' : 'development');
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/pokemon-verify-'));
@@ -33,7 +32,6 @@ let executablePath = require('electron'),
   archive,
   archiveSha256;
 if (portable) {
-  const project = JSON.parse(await readFile('package.json', 'utf8'));
   archive = resolve(
     `artifacts/releases/TableMax-${project.version}-win-x64.zip`,
   );
@@ -303,6 +301,7 @@ for (let run = 0; run < 2; run++) {
     assert.ok(health.runtime.electron);
     const runtime = await desktop.evaluate(({ app, screen }) => ({
       packaged: app.isPackaged,
+      appVersion: app.getVersion(),
       metrics: app.getAppMetrics(),
       versions: process.versions,
       displays: screen
@@ -310,6 +309,7 @@ for (let run = 0; run < 2; run++) {
         .map((d) => ({ width: d.bounds.width, height: d.bounds.height })),
     }));
     assert.equal(runtime.packaged, portable);
+    assert.equal(runtime.appVersion, project.version);
     assert.ok(
       runtime.metrics.some(
         (entry) =>
@@ -652,6 +652,7 @@ for (let run = 0; run < 2; run++) {
     evidence.runs.push({
       health,
       packaged: runtime.packaged,
+      appVersion: runtime.appVersion,
       versions: runtime.versions,
       displays: runtime.displays,
     });

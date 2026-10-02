@@ -6,13 +6,13 @@ import { resolve, join } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { verificationOutput } from './verification-output.mjs';
 const require = createRequire(import.meta.url);
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
 const portable = process.argv.includes('--portable');
-const output = resolve(
-  'artifacts/maintenance/v1.6.0',
+const output = verificationOutput(
   portable ? 'experience-portable' : 'experience',
 );
 await mkdir(output, { recursive: true });

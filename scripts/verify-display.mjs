@@ -6,11 +6,12 @@ import { resolve, join } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createHash } from 'node:crypto';
+import { verificationOutput } from './verification-output.mjs';
 
 const require = createRequire(import.meta.url);
 const portable = process.argv.includes('--portable');
-const output = resolve(
-  'artifacts/maintenance/v1.6.0/display',
+const output = verificationOutput(
+  'display',
   portable ? 'portable' : 'development',
 );
 await mkdir(output, { recursive: true });

@@ -1,5 +1,7 @@
 # 首版交付与验收
 
+当前交付为 [v1.0.0 版本归一与开发效率优化](#v100版本归一与开发效率优化)，保留下列历次真实验收记录。
+
 2026-10-01，交付版本 1.0.0；游戏采用 `tablemax-cn-s19-v1`，状态版本 1，基础策略 `pokemon-encounters/basic`／`1`。以下记录真实工程执行结果，规则原文认证状态仍见 [来源页](../games/pokemon-encounters/sources.md)。
 
 用户本日明确：使用当前 Windows 电脑，外接屏目标为电视；开发中无需实际使用电脑之外的设备，以模拟完成校验。因此本轮设备范围是当前 Windows 11 x64（内核 10.0.26200）、真实 Electron／独立服务，以及 1920×1080 电视尺寸、360×800 Android 和 390×844 iPhone 尺寸／触控／UA 模拟。手机使用 Chromium，不是实际 Safari；后台冻结和断网导航模拟不等于手机锁屏或操作系统 App 切换。便携包在当前电脑的新解压目录、仅 Windows 系统目录 PATH 下运行，未另用无开发环境电脑。声音检查解码及播放调用，未声称现场听音。按该授权范围完成验收，不把模拟写成硬件实测。
@@ -60,7 +62,7 @@
 
 ## 使用与维护
 
-当前便携包为 `artifacts/releases/TableMax-1.6.0-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
+当前便携包为 `artifacts/releases/TableMax-1.0.0-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
 
 2026-10-02 按用户要求清除历史版本：移除 0.1.0、1.0.0、1.0.1、1.0.2、1.1.0、1.2.0、1.3.0 共七个 ZIP，以及 phase-01／phase-06／releases 下三个旧 `win-unpacked`，释放 2,161,988,613 字节（约 2.01 GiB）。当次保留 1.4.0 ZIP、解压程序及打包目录，ZIP 哈希与该版最终验证一致；原始素材、截图、JSON、默认玩家数据和 Git 历史保留。以下历次验收中的“旧包保留”描述当时状态，0.1.0–1.3.0 旧包现已清除；[清理记录](../../artifacts/maintenance/release-cleanup-2026-10-02/cleanup.json) 保存删除清单、空间和证据目录检查。
 
@@ -172,3 +174,16 @@
 维护的 [22 项清理测试](../../artifacts/maintenance/local-cleanup-tools/tool-tests.json) 和 [32 项统一维护测试](../../artifacts/maintenance/project-maintenance-tools/tool-tests.json) 全部通过，覆盖阈值、低水位、最旧优先、忙碌跳过、近期修改、链接、ZIP 哈希、证据及正式数据保护。全部验证与打包进程退出后执行 [实际维护检查](../../artifacts/maintenance/v1.6.0/maintenance.json)：自动解析同仓库主工作区 `E:\Proj\TableMax`，逻辑大小 3,049,074,100 字节（约 2.840 GiB），低于 5 GiB 阈值，删除 0 字节；跳过 1,330 个链接且不重复统计其他 checkout。未终止用户进程、放宽保护或扩大删除范围。
 
 本轮实现已提交为 `542ccfd`（`feat: release 1.6.0 game library, mobile owners and reliable play`），未推送。[交付时文档核验](../../artifacts/maintenance/v1.6.0/document-links.json) 检查 40 份 Markdown、541 个本地链接和 138 个锚点，当前问题为零；61 处旧 artifact 路径在本 worktree 缺失，作为历史证据缺口单独记录。四份最终便携记录均与 ZIP 的实际哈希一致。
+
+## v1.0.0：版本归一与开发效率优化
+
+2026-10-03，按用户要求将最新版的应用与包版本由 1.6.0 重新编号为 v1.0.0，包含前节全部产品实现。协议 6、存档格式 1、游戏采用规则和策略版本沿用既有实现；历史验收日期、版本和证据保留原值。
+
+开发效率规则补充工具结果摘要、批量独立检查、完成通知与有界等待、固定失败案例后再扩大验证，以及去重后的 token 统计口径。十个维护验证入口共用按应用版本生成证据目录的工具，避免新运行覆盖原 1.6.0 记录。手动清理支持显式退役版本，默认继续保护高于当前编号的未知版本；当前 ZIP、便携通过哈希、进程、路径、链接、近期修改和删除前复核保护继续执行。
+
+- `pnpm package:win` 一次构建并导出最终 ZIP；[最终便携验证](../../artifacts/maintenance/v1.0.0/portable/results.json) 两次运行实际解压程序，确认应用版本 `1.0.0`、协议 6、六席真人／Worker bot 完整三胜大局、全部 14 阶段、回退、重启恢复及原班续局。记录 11 张实际隐藏渲染截图，外部请求和页面错误均为 0；设备模拟边界沿用前节。
+- [清理工具隔离测试](../../artifacts/maintenance/v1.0.0/cleanup-tools/tool-tests.json) 29 项、[自动维护隔离测试](../../artifacts/maintenance/v1.0.0/maintenance-tools/tool-tests.json) 32 项通过；新增显式退役高编号标签、预览不删除、拒绝当前版本、拒绝自动退役及保留无关未来版本。脚本 ESLint、语法、证据目录、项目格式与当前交付链接检查通过；本轮未修改游戏源码，沿用前节游戏功能专项，不重复运行无关矩阵。
+- 当前 [Windows x64 便携 ZIP](../../artifacts/releases/TableMax-1.0.0-win-x64.zip) 为 156,161,426 字节，SHA-256 `8356117f71b657f4901ba0a5e081ea98d9bd575587f154e7392b765eb05e7363`。源码、锁文件、文档及开发规则随本轮提交导出为 [源码 ZIP](../../artifacts/releases/TableMax-1.0.0-source.zip)，不包含依赖、玩家存档、工具缓存或本地中间物。
+- 空闲后执行已预览的手动清理：[历史版本记录](../../artifacts/maintenance/local-cleanup-20261002-162404-780-releases/cleanup.json) 删除旧 1.6.0 ZIP 及打包目录 2 项／704,520,503 字节；[中间物记录](../../artifacts/maintenance/local-cleanup-20261002-162435-967-intermediates/cleanup.json) 删除 56 项／4,501,388,803 字节。合计释放 5,205,909,306 字节（约 4.85 GiB）；默认 30 分钟保护保留 4 项近期内容，另保留 5 项未知临时资料。当前 ZIP、存档、素材、依赖、缓存与历史证据继续保留。
+
+[收尾统一维护](../../artifacts/maintenance/v1.0.0/maintenance.json) 发现同仓库主工作区 `E:\Proj\TableMax`，逻辑大小 3,048,787,207 字节（约 2.839 GiB），低于 5 GiB，删除 0 字节；跳过 1,330 个链接，不重复统计 worktree。未终止用户进程或放宽清理保护。

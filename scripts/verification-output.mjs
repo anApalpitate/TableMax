@@ -1,0 +1,9 @@
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
+const { version } = JSON.parse(await readFile('package.json', 'utf8'));
+
+// Keep release evidence separate when the application version changes.
+export function verificationOutput(...parts) {
+  return resolve('artifacts/maintenance', `v${version}`, ...parts);
+}

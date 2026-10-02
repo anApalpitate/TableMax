@@ -4,9 +4,10 @@ import { _electron } from 'playwright';
 import { createRequire } from 'node:module';
 import { mkdir, mkdtemp, writeFile, readFile, readdir } from 'node:fs/promises';
 import { join, resolve, dirname } from 'node:path';
+import { verificationOutput } from './verification-output.mjs';
 
 const require = createRequire(import.meta.url);
-const output = resolve('artifacts/maintenance/v1.6.0/effects');
+const output = verificationOutput('effects');
 await mkdir(output, { recursive: true });
 const work = await mkdtemp(resolve('tmp/game-ui-'));
 await build({

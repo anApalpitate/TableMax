@@ -4,6 +4,7 @@ import { build } from 'esbuild';
 import { mkdir, mkdtemp, writeFile, readdir, readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { createRequire } from 'node:module';
+import { verificationOutput } from './verification-output.mjs';
 const require = createRequire(import.meta.url);
 const verifyDeal = process.argv.includes('--verify-deal');
 const evidenceName = process.argv
@@ -20,8 +21,8 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 );
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/game-ui-')),
-  output = resolve(
-    'artifacts/maintenance/v1.6.0/ui',
+  output = verificationOutput(
+    'ui',
     ...(only
       ? [evidenceName ?? (verifyDeal ? 'round-deal' : 'additional')]
       : []),

@@ -6,12 +6,16 @@ param(
   [string]$ProjectRoot,
   [ValidateRange(0, 10080)][int]$MinimumAgeMinutes = 30,
   [ValidateRange(0.001, 1024)][double]$HighWaterGiB = 5,
-  [ValidateRange(0, 1024)][double]$LowWaterGiB = 4
+  [ValidateRange(0, 1024)][double]$LowWaterGiB = 4,
+  [ValidatePattern('^\d+\.\d+\.\d+$')][string[]]$RetiredVersions = @()
 )
 
 $ErrorActionPreference = 'Stop'
 $sourceWorkspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\')
 $automatic = $Kind -eq 'Maintenance'
+if ($RetiredVersions.Count -and $Kind -ne 'Releases') {
+  throw 'Explicit retired versions are only supported by manual release cleanup.'
+}
 if ($automatic -and ($LowWaterGiB -ge $HighWaterGiB -or $IncludeBuild -or $MinimumAgeMinutes -lt 30)) {
   throw 'Maintenance requires a lower low-water mark, protects build, and keeps at least 30 minutes of recent changes.'
 }
@@ -55,6 +59,8 @@ if ($project.name -ne 'tablemax' -or $project.version -notmatch '^\d+\.\d+\.\d+$
   throw 'This tool only operates inside the TableMax source workspace.'
 }
 $currentVersion = [version]$project.version
+$retired = @($RetiredVersions | ForEach-Object { [version]$_ })
+if ($retired -contains $currentVersion) { throw 'The current verified release cannot be retired.' }
 $releases = Join-Path $workspace 'artifacts/releases'
 $temporary = Join-Path $workspace 'tmp'
 $archive = Join-Path $releases ('TableMax-' + $project.version + '-win-x64.zip')
@@ -235,10 +241,10 @@ catch {
 if ($Kind -eq 'Releases' -or $automatic) {
   foreach ($entry in Get-ChildItem -LiteralPath $releases -Force) {
     if ($entry.Name -match '^TableMax-(\d+\.\d+\.\d+)-win-x64(?:\.zip)?$') {
-      if ([version]$Matches[1] -lt $currentVersion) { Add-Candidate $entry.FullName 'Historical release archive or extraction' }
+      if ([version]$Matches[1] -lt $currentVersion -or $retired -contains [version]$Matches[1]) { Add-Candidate $entry.FullName 'Historical release archive or extraction' }
     }
     elseif ($entry.PSIsContainer -and $entry.Name -match '^package-(\d+\.\d+\.\d+)-[A-Za-z0-9]{6}$') {
-      if ([version]$Matches[1] -lt $currentVersion) { Add-Candidate $entry.FullName 'Historical packaging stage' }
+      if ([version]$Matches[1] -lt $currentVersion -or $retired -contains [version]$Matches[1]) { Add-Candidate $entry.FullName 'Historical packaging stage' }
     }
   }
 }
@@ -296,7 +302,7 @@ try {
   Assert-LocalPath $logRoot | Out-Null
   New-Item -ItemType Directory -Path $logRoot -Force | Out-Null
   $report = [PSCustomObject]@{
-    startedAt = [DateTime]::UtcNow.ToString('o'); kind = $Kind; currentVersion = $project.version
+    startedAt = [DateTime]::UtcNow.ToString('o'); kind = $Kind; currentVersion = $project.version; retiredVersions = $RetiredVersions
     currentArchive = $archive; archiveSha256 = $archiveHash; portableProof = $proof
     minimumAgeMinutes = $MinimumAgeMinutes; includeBuild = [bool]$IncludeBuild
     workspace = $workspace; highWaterBytes = $summary.highWaterBytes; lowWaterBytes = $summary.lowWaterBytes

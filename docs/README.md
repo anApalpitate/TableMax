@@ -4,15 +4,15 @@
 
 ## 开始开发
 
-当前源码与便携包为 1.6.0：所有真人手机操作、电脑只管理／展示，支持六席围桌和三档本地人机。当前交付与验证边界见 [1.6.0 验收](reference/acceptance.md#160盒子对局体验与可靠性)，后续独立需求见 [任务接续](tasks/README.md#后续开发接续入口)。
+当前源码与便携包为 v1.0.0（由最新 1.6.0 实现重新编号）：所有真人手机操作、电脑只管理／展示，支持六席围桌和三档本地人机。当前交付与验证边界见 [当前交付验收](reference/acceptance.md#v100版本归一与开发效率优化)，后续独立需求见 [任务接续](tasks/README.md#后续开发接续入口)。
 
-| 阅读目的 | 当前入口 |
-| --- | --- |
+| 阅读目的                                   | 当前入口                                                                            |
+| ------------------------------------------ | ----------------------------------------------------------------------------------- |
 | 游戏选择、管理员／手机房主、准备与首翻并发 | [1.6.0 平台规格](reference/phase-02-platform-spec.md#160游戏选择手机房主与独立提交) |
-| 行动进度、待处理牌、能力声画、零分列与赢家 | [1.6.0 游戏交互](games/pokemon-encounters/interaction.md#160行动面板与声画反馈) |
-| 720p—4K、Windows DPI 与独立窗口缩放 | [电脑显示规格](reference/phase-02-platform-spec.md#电脑多分辨率显示150) |
-| 正式节奏、隐蔽测试模式与浮窗 | [运行模式](reference/phase-02-platform-spec.md#实际游玩与测试模式140) |
-| 人机等级、授权信息与决策算法 | [人机规格](reference/bot-players.md#三档智能与配置) |
+| 行动进度、待处理牌、能力声画、零分列与赢家 | [1.6.0 游戏交互](games/pokemon-encounters/interaction.md#160行动面板与声画反馈)     |
+| 720p—4K、Windows DPI 与独立窗口缩放        | [电脑显示规格](reference/phase-02-platform-spec.md#电脑多分辨率显示150)             |
+| 正式节奏、隐蔽测试模式与浮窗               | [运行模式](reference/phase-02-platform-spec.md#实际游玩与测试模式140)               |
+| 人机等级、授权信息与决策算法               | [人机规格](reference/bot-players.md#三档智能与配置)                                 |
 
 第一至六阶段及历次维护的历史范围和证据统一从 [验收记录](reference/acceptance.md) 与 [归档索引](archive/README.md) 追溯；新便携版和维护证据分别进入 `artifacts/releases` 与 `artifacts/maintenance`。
 

@@ -4,11 +4,12 @@ import { build } from 'esbuild';
 import { createRequire } from 'node:module';
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { verificationOutput } from './verification-output.mjs';
 
 const require = createRequire(import.meta.url);
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/card-layout-'));
-const output = resolve('artifacts/maintenance/v1.6.0/cards');
+const output = verificationOutput('cards');
 await mkdir(output, { recursive: true });
 await build({
   stdin: {

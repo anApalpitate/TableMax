@@ -7,9 +7,10 @@ import { resolve, join } from 'node:path';
 import { promisify } from 'node:util';
 import { build, transform } from 'esbuild';
 import ts from 'typescript';
+import { verificationOutput } from './verification-output.mjs';
 
 const run = promisify(execFile);
-const output = resolve('artifacts/maintenance/v1.6.0/memory');
+const output = verificationOutput('memory');
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/runtime-memory-'));

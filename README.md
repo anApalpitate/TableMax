@@ -4,15 +4,17 @@
 
 ## 当前状态
 
-第一至六阶段已完成。当前版本 1.6.0 先在盒子选择游戏，游戏库提供《宝可梦奇遇：皮卡丘和朋友们》，支持 2–6 位手机真人／本地人机、全部能力和三胜完整大局。电脑管理员可指定一位真人手机房主，处理开局、下一小局、再玩一局及暂停／恢复；其他管理仍在电脑。所有真人各自用手机操作，电脑不占座。人机可选默认／豆包／绝悟。游戏模块和资源在选择后加载，声音默认开启，公共屏优先发声，手机静音。
+第一至六阶段已完成。当前版本 v1.0.0 先在盒子选择游戏，游戏库提供《宝可梦奇遇：皮卡丘和朋友们》，支持 2–6 位手机真人／本地人机、全部能力和三胜完整大局。电脑管理员可指定一位真人手机房主，处理开局、下一小局、再玩一局及暂停／恢复；其他管理仍在电脑。所有真人各自用手机操作，电脑不占座。人机可选默认／豆包／绝悟。游戏模块和资源在选择后加载，声音默认开启，公共屏优先发声，手机静音。
 
-本轮包含首翻并发、可靠准备、游戏切换、行动／进度面板、待处理牌、零分列、能力特效和共同赢家皇冠，以及存档复制与安全维护优化。验证结果、完整对局、最终 ZIP 哈希及本机模拟边界集中在 [1.6.0 验收](docs/reference/acceptance.md#160盒子对局体验与可靠性)。不声明真实 4K 电视、Wi-Fi、手机 Safari 或另一台无开发环境电脑已验收。
+本轮包含首翻并发、可靠准备、游戏切换、行动／进度面板、待处理牌、零分列、能力特效和共同赢家皇冠，以及存档复制与安全维护优化。验证结果、完整对局、最终 ZIP 哈希及本机模拟边界集中在 [当前交付验收](docs/reference/acceptance.md#v100版本归一与开发效率优化)。不声明真实 4K 电视、Wi-Fi、手机 Safari 或另一台无开发环境电脑已验收。
 
 游戏按 `tablemax-cn-s19-v1` 项目采用规则实现；六人是按用户要求采用的项目扩展（S21），不标为出版版本认证；官方原文／印次认证缺口保留在 [来源页](docs/games/pokemon-encounters/sources.md)。当前角色图及来源见 [资源记录](docs/games/pokemon-encounters/assets.md)，名称、数值和能力由代码独立显示，不冒充出版桌游卡图。后续《电力公司》德国地图和跨游戏调试按独立需求安排。
 
 ## 使用便携版
 
-1. 解压 [TableMax-1.6.0-win-x64.zip](artifacts/releases/TableMax-1.6.0-win-x64.zip)，双击 `TableMax.exe`。无需预装 Node.js；默认端口 38473，数据保存在当前用户本地应用数据的 TableMax 目录。重复启动回到已有实例。
+当前 v1.0.0 包含原 1.6.0 的全部维护功能。源码与开发规则另导出为 [TableMax-1.0.0-source.zip](artifacts/releases/TableMax-1.0.0-source.zip)，包含已提交源码、文档和锁文件；开发运行所需依赖按下节安装。
+
+1. 解压 [TableMax-1.0.0-win-x64.zip](artifacts/releases/TableMax-1.0.0-win-x64.zip)，双击 `TableMax.exe`。无需预装 Node.js；默认端口 38473，数据保存在当前用户本地应用数据的 TableMax 目录。重复启动回到已有实例。
 2. 电脑先选择游戏。电脑和手机连接同一局域网，在“连接帮助”选择 Wi-Fi／以太网地址；可手动刷新，选择会记住并跟踪网卡变化。手机扫码或打开地址，输入昵称、加入并准备。未收到入座确认时用“重试入座确认”，刷新也会恢复原请求。访客隔离、防火墙和错误地址的排查分步显示。
 3. 每位真人用自己的手机入座、准备和操作，电脑管理员只管理和展示、不占玩家座位；可在管理中指定或撤销一位真人手机房主。加入后自动上桌，电脑管理员可调整开局顺序，或选择人机等级并“添加人机”：默认简单决策、豆包分析已知局势、绝悟结合获准记忆与局势作有界推演、比较当前优解。人机等级可在大厅的座位设置修改，开局后锁定；不调用外部模型或读取未授权暗牌。手机真人加人机共 2–6，全部准备后开始。
 4. 盒子负责加入、准备和邀请；开局自动进入独立牌桌，可返回盒子再进入。手机直接点牌库／弃牌顶取牌，卡位选好后用“翻开位置”“换入位置”“交换位置”确认；弃牌和跳过能力一键执行。“已保存”表示服务确认。本人的暗牌默认不可看。喷火龙的临时查看仅本人可见，看完须确认关闭。
@@ -59,7 +61,7 @@ pnpm verify:portable
 
 `pnpm start` 运行已有构建。网页热更新由 dev 提供，服务／桌面源码修改后重启。命令、数据位置及历史验证见 [开发环境](docs/reference/development.md)；完整接入、策略替换和故障处理见 [扩展指南](docs/game-development/README.md)。默认不 push，较大改动验证通过后自动提交。
 
-构建、验证及打包进程结束后运行 [统一维护检查](Maintain-Project.ps1) 的 `-Apply`，主工作区超过 5 GiB 时安全清理至 4 GiB 或候选耗尽。保留依赖、缓存、存档、原素材、证据及当前已验证 ZIP；不足以降至阈值时只报告。根目录另提供 [清理历史版本](Clean-Releases.ps1) 和 [清理中间产物](Clean-Intermediates.ps1) 两个 PowerShell 工具，默认只预览；执行方式、保护范围和记录见 [清理说明](docs/reference/development.md#清理本地中间物)。当前 1.6.0 ZIP、玩家存档、素材及历史验收证据保留。
+构建、验证及打包进程结束后运行 [统一维护检查](Maintain-Project.ps1) 的 `-Apply`，主工作区超过 5 GiB 时安全清理至 4 GiB 或候选耗尽。保留依赖、缓存、存档、原素材、证据及当前已验证 ZIP；不足以降至阈值时只报告。根目录另提供 [清理历史版本](Clean-Releases.ps1) 和 [清理中间产物](Clean-Intermediates.ps1) 两个 PowerShell 工具，默认只预览；执行方式、保护范围和记录见 [清理说明](docs/reference/development.md#清理本地中间物)。当前 v1.0.0 ZIP、玩家存档、素材及历史验收证据保留。
 
 ## 项目入口与目录
 
@@ -69,6 +71,6 @@ pnpm verify:portable
 - `packages/protocol`、`game-sdk`、`platform-core` 维护契约和通用权威／恢复机制。
 - `games/pokemon-encounters` 维护完整规则、计分、投影、策略、两端 UI、本地资源与测试；`games/template` 保留独立验证模板。
 - `assets/platform` 保存共享平台资源；`apps/web/src/components/RoomTable.tsx` 维护盒子围桌房间，`games/pokemon-encounters/ui/table.tsx` 维护首版游戏场景。
-- `docs` 维护当前主题和阶段归档；`artifacts/phase-05` 保留原图，`artifacts/phase-06` 保留验证 JSON／截图，Git 忽略但文件树可见；当前 1.6.0 ZIP 在 `artifacts/releases`，本轮验证在 `artifacts/maintenance/v1.6.0`，旧维护证据保留；历史程序清理记录见验收页。
+- `docs` 维护当前主题和阶段归档；`artifacts/phase-05` 保留原图，`artifacts/phase-06` 保留验证 JSON／截图，Git 忽略但文件树可见；当前 v1.0.0 ZIP 在 `artifacts/releases`，本轮验证在 `artifacts/maintenance/v1.0.0`，原 1.6.0 功能验收保留在 `artifacts/maintenance/v1.6.0`，旧维护证据保留；历史程序清理记录见验收页。
 
 第二阶段独立原型在 `apps/web/src/prototype`，用 `pnpm prototype:dev` 打开 `http://127.0.0.1:5174/prototype.html`，游戏参数为 `?game=pokemon-encounters`。原型为合成状态，不连接正式存档，不替代当前游戏验收；历史入口和证据见开发环境。
