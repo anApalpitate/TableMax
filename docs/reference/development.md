@@ -62,7 +62,7 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 | `pnpm prototype:verify:game`        | 对游戏原型执行Playwright／隐藏Electron全能力、角色、恢复反馈、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/`     |
 | `pnpm prototype:verify`             | 对已有原型构建运行 Playwright／隐藏 Electron 窗口走查，生成 JSON 和截图；先执行原型构建并准备 Electron                           |
 
-当前便携包和使用流程见 [项目说明](../../README.md#使用便携版)。`artifacts/phase-01/TableMax-0.1.0-win-x64.zip` 仅为第一阶段工程验证包，不包含大厅、身份或首版游戏。
+当前便携包和使用流程见 [项目说明](../../README.md#使用便携版)。第一阶段 0.1.0 仅为工程验证包，不包含大厅、身份或首版游戏；该旧包已按用户要求清除，验证记录保留。
 
 ## 独立原型的运行与检查
 
@@ -138,7 +138,7 @@ pnpm prototype:verify:game
 | Electron 浏览器数据  | 数据目录 `desktop/`，包含网页会话与缓存                                                                                                      |
 | pnpm、下载与工具缓存 | 仓库 `.pnpm-store/`、`.cache/`；Git 忽略，工作区隐藏与排除监听                                                                               |
 | 可再生构建           | 仓库 `build/`，Git 忽略，工作区隐藏                                                                                                          |
-| 便携包与验证图／JSON | 当前 ZIP 在 artifacts/releases，维护验证在 artifacts/maintenance/game-experience；历史阶段产物保留，Git 忽略，文件树可见；搜索与监听单独排除 |
+| 便携包与验证图／JSON | 当前 1.4.0 ZIP 在 artifacts/releases，维护验证在 artifacts/maintenance；历史证据保留，旧程序包已清除，Git 忽略，文件树可见；搜索与监听单独排除 |
 | 原型构建             | 仓库 `artifacts/phase-02/prototype/`，独立于 `build/desktop/web/`                                                                            |
 | 原型截图与走查 JSON  | 仓库 `artifacts/phase-02/verification/`，Git 忽略但文件树可见；每次走查更新对应证据                                                          |
 | 美术原图与前后对比   | 仓库 `artifacts/phase-02/art-reset/`；保留 imagegen 原始 PNG、透明通道／尺寸／哈希检查、联系表及同尺寸前后截图和文字测量                     |
@@ -153,7 +153,9 @@ pnpm prototype:verify:game
 
 ## 清理本地中间物
 
-清理已结束的验证时，可删除 `tmp/` 下的测试浏览器数据、隔离存档、便携包解压副本及一次性脚本；先把唯一研究资料、原图和需要保留的过程记录移入对应 artifacts 目录。`artifacts/releases/win-unpacked/` 是打包工作目录，确认对应交付 ZIP 完整且程序退出后可删除，再次执行 `pnpm package:win` 会重建。`build/` 供 `pnpm start` 使用，当前构建保留；`.pnpm-store/`、`node_modules/` 和工具缓存用于继续开发，不随测试临时文件清理。忽略目录不能一律视为废弃资料。
+清理已结束的验证时，可删除 `tmp/` 下的测试浏览器数据、隔离存档、便携包解压副本及一次性脚本；先把唯一研究资料、原图和需要保留的过程记录移入对应 artifacts 目录。当前打包工作目录为 `artifacts/releases/package-<版本>-<随机后缀>/`，旧构建曾使用 `artifacts/releases/win-unpacked/`；确认对应交付 ZIP 完整且目录中的程序退出后，可整理不再需要的打包工作目录。`build/` 供 `pnpm start` 使用，当前构建保留；`.pnpm-store/`、`node_modules/` 和工具缓存用于继续开发，不随测试临时文件清理。忽略目录不能一律视为废弃资料。
+
+2026-10-02 用户要求清除历史版本，已移除 0.1.0 至 1.3.0 的七个 ZIP，以及 phase-01／phase-06／releases 下三个旧 `win-unpacked`；保留当前 1.4.0 ZIP、解压程序和打包目录。历史原图、截图及 JSON 保留，以下历史包路径只用于追溯当时交付；详情见 [清理记录](../../artifacts/maintenance/release-cleanup-2026-10-02/cleanup.json)。打包不会自动清除其他版本。
 
 ## 第五、六阶段完整游戏与交付
 
@@ -262,6 +264,6 @@ UI 合法存档 fixture 的构造入口在 scripts/fixtures/prepare-pokemon.ts�
 
 `pnpm verify:presentation` 通过独立手机分区验证六真人自然小局、浮窗关闭和焦点、结束确认、星标和公开行动、实际保存动画／音频调用，以及三档真实 Worker 在两种模式的时序与暂停／切换／结束取消；加 `--portable` 检查最终 ZIP。`pnpm verify:game-ui` 为十五组实际能力／2–6 人 fixture，保留多尺寸与秘密查看隔离；`pnpm verify:cards` 直接用正式六人保存状态渲染全部 16 类，检查图像加载、字号和三个卡面分区，不再只验证独立组件画廊。
 
-本轮证据根为 `artifacts/maintenance/six-player-presentation`，包括 `development`／`portable`、`party`／`party-portable`、`room`／`room-portable`、`presentation`／`presentation-portable`、`ui` 和 `cards`。全部窗口隐藏、数据隔离、截图来自更新后的真实渲染，保留旧包和旧记录；测试范围仍为当前 Windows 与 Chromium 尺寸／触控模拟。具体执行结果见 [1.4.0 验收](acceptance.md#首版维护游玩节奏与六人提示)。
+本轮证据根为 `artifacts/maintenance/six-player-presentation`，包括 `development`／`portable`、`party`／`party-portable`、`room`／`room-portable`、`presentation`／`presentation-portable`、`ui` 和 `cards`。全部窗口隐藏、数据隔离、截图来自更新后的真实渲染，历史记录保留；测试范围仍为当前 Windows 与 Chromium 尺寸／触控模拟。具体执行结果见 [1.4.0 验收](acceptance.md#首版维护游玩节奏与六人提示)。
 
-打包每次使用独立的 `artifacts/releases/package-<版本>-<随机后缀>` 目录生成 `win-unpacked` 和 ZIP，成功后才把 ZIP 复制到标准 release 路径。这样已有解压程序正在运行时无需关闭它，也不会覆盖被 Windows 锁定的旧 `win-unpacked`；旧输出和历史包保持可见，按实际需要人工整理。
+打包每次使用独立的 `artifacts/releases/package-<版本>-<随机后缀>` 目录生成 `win-unpacked` 和 ZIP，成功后才把 ZIP 复制到标准 release 路径。这样已有解压程序正在运行时无需关闭它，也不会覆盖被 Windows 锁定的旧 `win-unpacked`；输出保持可见，按实际需要人工整理。

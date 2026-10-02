@@ -61,6 +61,6 @@ pnpm verify:portable
 - `packages/protocol`、`game-sdk`、`platform-core` 维护契约和通用权威／恢复机制。
 - `games/pokemon-encounters` 维护完整规则、计分、投影、策略、两端 UI、本地资源与测试；`games/template` 保留独立验证模板。
 - `assets/platform` 保存共享平台资源；`apps/web/src/components/RoomTable.tsx` 维护盒子围桌房间，`games/pokemon-encounters/ui/table.tsx` 维护首版游戏场景。
-- `docs` 维护当前主题和阶段归档；`artifacts/phase-05` 保留原图，`artifacts/phase-06` 保留 ZIP 和验证 JSON／截图，Git 忽略但文件树可见；新版 ZIP 在 `artifacts/releases`，本轮维护验证在 `artifacts/maintenance/six-player-presentation`，旧维护目录保留。
+- `docs` 维护当前主题和阶段归档；`artifacts/phase-05` 保留原图，`artifacts/phase-06` 保留验证 JSON／截图，Git 忽略但文件树可见；当前 1.4.0 ZIP 和解压程序在 `artifacts/releases`，旧版本程序已按用户要求清除；本轮维护验证在 `artifacts/maintenance/six-player-presentation`，旧维护证据保留。
 
 第二阶段独立原型在 `apps/web/src/prototype`，用 `pnpm prototype:dev` 打开 `http://127.0.0.1:5174/prototype.html`，游戏参数为 `?game=pokemon-encounters`。原型为合成状态，不连接正式存档，不替代当前游戏验收；历史入口和证据见开发环境。
