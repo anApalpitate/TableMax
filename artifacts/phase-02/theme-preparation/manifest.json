@@ -2,7 +2,7 @@
   "createdAt": "2026-10-01",
   "generator": "built-in imagegen",
   "modelVersion": "not exposed by tool",
-  "status": "preproduction candidate; not loaded by current UI",
+  "status": "archived unused candidate; not loaded by current UI",
   "purpose": "Waiting/recovery decorative background, independent of unverified game rules",
   "assets": [
     {
@@ -24,5 +24,6 @@
     "An original environment-only garden background was generated instead, inspected and copied into the project."
   ],
   "preprocessing": "None; original PNG copied without editing",
-  "packaging": "Local file; candidate for later inclusion, never a runtime remote resource"
+  "packaging": "Historical original only; excluded from runtime resources",
+  "archivedAt": "2026-10-02"
 }

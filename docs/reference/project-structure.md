@@ -17,7 +17,6 @@
 | `assets/`                                                                          | 全部运行／原型美术和声音，来源／版本及替换说明                                                                                                                           |
 | `assets/games/<id>/`                                                               | 游戏角色、音频、环境和浏览器资源表；规则不依赖文件名                                                                                                                     |
 | `assets/platform/`                                                                 | 共享平台 WebP 与 imagegen 来源清单；正式页面和原型共同引用，迁移不改变图像字节                                                                                           |
-| `assets/candidates/theme-preparation/`                                             | 保留未导入 UI 的 PNG 背景候选与来源；历史原图仍在原产物目录                                                                                                              |
 | `apps/web/src/session/`、`screens/`、`components/`                                 | 会话权威同步与可靠提交、独立页面、通用平台控件；首版牌桌场景留在游戏 UI                                                                                                  |
 | `packages/protocol/`                                                               | 当前工程通信与桌面／服务消息的类型和运行时校验                                                                                                                           |
 | `packages/game-sdk/`                                                               | 纯类型游戏／策略／生命周期契约；实际模板与恢复见 games/template 与 platform-core                                                                                         |
@@ -51,6 +50,7 @@
 
 - 长期需求、规则规格、来源清单和必要游戏资源属于项目资料；放入对应主题，不混入临时目录。
 - 本地实验、临时导出或下载中间文件可放入根目录 `tmp/`（需要时创建）；不作为长期资料入口。
+- 未采用的等待背景原图和来源归档在 `artifacts/phase-02/theme-preparation/`；不再占用运行资源目录。清理临时研究目录时，有历史价值的资料先归入 `artifacts/phase-02/research/`，重复下载与一次性脚本不长期保留。
 - 根目录 `build/` 已用于可再生构建中间物，`dist/` 为保留的构建排除项。工程验证便携包、截图与 JSON 证据保存在 `artifacts/phase-01/`；第二阶段原型构建、检索原始响应和走查证据在 `artifacts/phase-02/`。第三、四阶段真实平台截图与 JSON 在 `artifacts/phase-03-04/verification/`。第五阶段原图／素材检查在 artifacts/phase-05/imagegen；第六阶段正式 ZIP 和 desktop／portable／ui 验证在 artifacts/phase-06。上述本地产物 Git 忽略但文件树保持可见。
 - `artifacts/phase-02/prototype/` 是可再生原型构建，`verification/` 是对应走查证据，`research/` 是已保存的检索响应与哈希清单。资料是否可再生分别判断，不能因同在 artifacts 下就覆盖或删除原始响应。路径与命令见开发说明，资料适用性见 [规则来源与核验缺口](../games/pokemon-encounters/sources.md#规则来源与核验缺口)。
 - `artifacts/phase-02/research/chinese-reference/s14/` 保存用户三张原始中文截图、尺寸／哈希和牌面转录；叠图数量已由 S17 核对为 56，原始观察及原图保留；完整采用表在 docs/games/pokemon-encounters/cards.json，原图不直接导入运行时。

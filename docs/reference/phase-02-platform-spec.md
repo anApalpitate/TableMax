@@ -152,7 +152,7 @@ imagegen 用于平台位图插画；SVG 功能图标、二维码、规则数字�
 
 ## 本地资源与声音方案
 
-本次另预备一张原创自然主题等待／恢复背景，位于 [theme-preparation 清单](../../assets/candidates/theme-preparation/manifest.json) 与 [PNG 原图](../../assets/candidates/theme-preparation/garden-waiting-v1.png)。这是 imagegen 生成的环境插画候选，未导入当前 UI，保留现有平台素材；不包含角色、牌面、规则文字、数值或秘密映射。提示词、版本、来源、尺寸和哈希随清单保存，游戏标识与正式布局核验后再决定最终用途和归属。
+第二阶段曾预备一张原创自然主题等待／恢复背景，未导入 UI；2026-10-02 资源清理时归档到 [theme-preparation 清单](../../artifacts/phase-02/theme-preparation/manifest.json) 与 [PNG 原图](../../artifacts/phase-02/theme-preparation/garden-waiting-v1.png)。这是 imagegen 生成的环境插画，不包含角色、牌面、规则文字、数值或秘密映射。提示词、版本、来源、尺寸和哈希继续保留；当前仍采用既有平台素材。
 
 用户指定中文参考支持的布局、配对及能力概述见[中文参考规则草案](../games/pokemon-encounters/rules.md#中文参考规则草案)。美术只提前准备装饰环境；卡面与组件资源仍须对应完整数据表，不能用生成图片反推能力或数量。
 

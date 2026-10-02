@@ -1,6 +1,6 @@
 # 本地资源、卡牌映射与声音
 
-全部运行和原型美术／声音统一在根目录 [assets](../../../assets/README.md)，按 platform、games 和 candidates 管理。正式构建只打包引用资源，运行不请求外站。名称、分值和能力由代码排版，类别图不包含本局顺序、秘密实例或暗格映射。
+全部运行和原型美术／声音统一在根目录 [assets](../../../assets/README.md)，按 platform 和 games 管理；未采用候选原图归档在 artifacts。正式构建只打包引用资源，运行不请求外站。名称、分值和能力由代码排版，类别图不包含本局顺序、秘密实例或暗格映射。
 
 ## 当前卡面与替换
 
@@ -22,7 +22,7 @@
 
 [官方导入清单](../../../assets/games/pokemon-encounters/characters/manifest-official.json) 保存参考页、图片 URL、哈希、alpha 和逐张核验。[批次 A](../../../assets/games/pokemon-encounters/characters/manifest-a.json)、[批次 B](../../../assets/games/pokemon-encounters/characters/manifest-b.json)、[批次 C](../../../assets/games/pokemon-encounters/characters/manifest-c.json) 记录 16 次独立 imagegen 尝试，只有百变怪成功，其余 15 次明确 moderation_blocked／other，无图片产物。官方原图导入不标为生成原创，不宣称取得出版方桌游原卡。S14 实物仅作风格参考，没有裁剪成运行素材。
 
-原图、失败响应、奶油／深棕联系表及源码卡面截图在 artifacts/maintenance/pokemon-refresh。旧自然静物牌／硬币保留但退出正式 UI，[旧主题清单](../../../assets/games/pokemon-encounters/manifest.json) 标注当前用途。[声音清单](../../../assets/games/pokemon-encounters/audio/manifest.json)、[背景清单](../../../assets/games/pokemon-encounters/tabletop/manifest.json) 和 [平台清单](../../../assets/platform/manifest.json) 保留来源。1.0.0–1.0.2 原图、ZIP 和证据继续保留。
+原图、失败响应、奶油／深棕联系表及源码卡面截图在 artifacts/maintenance/pokemon-refresh。2026-10-02 清理 19 张已退出引用的自然静物牌／牌背／硬币 WebP，原始 PNG 逐项核对哈希后继续保留在 artifacts/phase-05/imagegen/source；[旧主题清单](../../../assets/games/pokemon-encounters/manifest.json) 的 assets 只列仍使用的封面，retiredAssets 保留旧路径、来源、提示词、哈希及可恢复压缩副本的 Git 版本。[声音清单](../../../assets/games/pokemon-encounters/audio/manifest.json)、[背景清单](../../../assets/games/pokemon-encounters/tabletop/manifest.json) 和 [平台清单](../../../assets/platform/manifest.json) 保留来源。1.0.0–1.0.2 原图、ZIP 和证据继续保留。
 
 ## 权限、动画和声音
 
@@ -34,4 +34,4 @@
 
 ## 牌桌背景与卡面分区（1.0.2）
 
-历史 1.0.2 新增的花园牌桌为 1672×940 RGB WebP、101,962 字节；原图、提示词、裁切与核验保留在 artifacts/maintenance/visual-polish/imagegen。该背景仍使用，迁移后字节不变。旧版卡面分区和 320ms 翻牌／360ms 发牌证据继续保留；1.1.0 更新为上面的角色卡面与关键结果表现，旧静物图留作历史资源。
+历史 1.0.2 新增的花园牌桌为 1672×940 RGB WebP、101,962 字节；原图、提示词、裁切与核验保留在 artifacts/maintenance/visual-polish/imagegen。该背景仍使用，迁移后字节不变。旧版卡面分区和 320ms 翻牌／360ms 发牌证据继续保留；1.1.0 更新为上面的角色卡面与关键结果表现，旧静物原图和来源留作历史资料。

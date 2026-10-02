@@ -32,7 +32,7 @@
 
 ## 资源路径与文件协作
 
-共享平台素材及来源清单在 `assets/platform/`，原型与正式页面按清单各自引用；候选背景仍在 `assets/candidates/theme-preparation/`。具体导入状态以清单和构建为准。既有原图及核验证据在 `artifacts/phase-02/art-reset/`，保持原位置。后续优先采用派工指定路径；未指定原图目录时可按需建立 `artifacts/<阶段>/imagegen/<任务>/`，这是计划路径，不迁移旧证据。具体游戏资源仅在对应游戏模块确立后进入 `assets/games/<id>/`。
+共享平台素材及来源清单在 `assets/platform/`，原型与正式页面按清单各自引用；未采用的等待背景已归档到 `artifacts/phase-02/theme-preparation/`，后续候选原图也按派工进入 artifacts，采用后才导入 assets。具体导入状态以清单和构建为准。既有原图及核验证据在 `artifacts/phase-02/art-reset/`，保持原位置。后续优先采用派工指定路径；未指定原图目录时可按需建立 `artifacts/<阶段>/imagegen/<任务>/`，这是计划路径，不迁移旧证据。具体游戏资源仅在对应游戏模块确立后进入 `assets/games/<id>/`。
 
 只编辑主 agent 分配的图片、清单和证据文件；清单由一名 agent 写入，避免同时覆盖。UI 引用和导入、文档索引及总体规则由主 agent 或其明确指定者维护。出现文件冲突先报告，不覆盖他人改动，不擅自删除素材，不创建 Git 提交。Git 忽略的素材和证据也保持文件树可见。
 

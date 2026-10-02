@@ -130,6 +130,10 @@ pnpm prototype:verify:game
 
 没有自动修改防火墙、路由器或系统服务。手机连接还受私人网络防火墙、访客网络隔离和选错网卡影响。当前完成实际本地服务和禁止外部请求的完整混合局；手机／电视按用户授权模拟，不声称实际系统浏览器或外接硬件已测。
 
+## 清理本地中间物
+
+清理已结束的验证时，可删除 `tmp/` 下的测试浏览器数据、隔离存档、便携包解压副本及一次性脚本；先把唯一研究资料、原图和需要保留的过程记录移入对应 artifacts 目录。`artifacts/releases/win-unpacked/` 是打包工作目录，确认对应交付 ZIP 完整且程序退出后可删除，再次执行 `pnpm package:win` 会重建。`build/` 供 `pnpm start` 使用，当前构建保留；`.pnpm-store/`、`node_modules/` 和工具缓存用于继续开发，不随测试临时文件清理。忽略目录不能一律视为废弃资料。
+
 ## 第五、六阶段完整游戏与交付
 
 当前版本 1.0.0，默认游戏 pokemon-encounters，规则 tablemax-cn-s19-v1，状态版本 1，策略 pokemon-encounters/basic／1。已有旧验证模板存档的用户需要保留／备份原数据，在独立数据目录启动新版本；不自动覆盖不兼容存档。可在 PowerShell 设置 $env:TABLEMAX_DATA_DIR 为明确的新目录后运行程序，普通使用仍取默认 LOCALAPPDATA/TableMax。
