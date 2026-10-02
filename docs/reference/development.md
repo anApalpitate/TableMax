@@ -119,11 +119,11 @@ pnpm prototype:verify:game
 
 ### 聚会可靠性维护验证（1.2.0）
 
-`pnpm verify:party` 验证当前开发构建，使用隔离数据、隐藏 Electron 和实际本机网卡 IPv4（监听 0.0.0.0），覆盖网卡名称／刷新／选择保持、已保存但丢失的加入及换绑回复、刷新／真实程序重启后确认、250ms 延迟和带宽限制、断网／冻结恢复、回退上下文与筛选、原班第二大局、重复启动、公共屏保留时恢复房主管理以及真实端口占用的中文错误日志。不会修改防火墙、路由器或默认玩家存档；本机网卡地址可达并不证明真实手机或实际 Wi-Fi 已验收。启动前运行 `pnpm build`。正式包验证使用 `pnpm verify:party --portable`，新目录解压 ZIP、子进程 PATH 仅系统目录，证据独立进入 `party-portable`。
+`pnpm verify:party` 验证当前开发构建，使用隔离数据、隐藏 Electron 和实际本机网卡 IPv4（监听 0.0.0.0），覆盖网卡名称／刷新／选择保持、已保存但丢失的加入回复与同请求确认重试、刷新／真实程序重启后确认、250ms 延迟和带宽限制、断网／冻结恢复、回退上下文与筛选、原班第二大局、重复启动、公共屏保留时恢复管理员窗口以及真实端口占用的中文错误日志；1.6.0 另确认已删除的兑换接口拒绝请求。不会修改防火墙、路由器或默认玩家存档；本机网卡地址可达并不证明真实手机或实际 Wi-Fi 已验收。启动前运行 `pnpm build`。正式包验证使用 `pnpm verify:party --portable`，新目录解压 ZIP、子进程 PATH 仅系统目录，证据独立进入 `party-portable`。
 
 1.2.0 的 verify:desktop／verify:portable／verify:game-ui／verify:party 证据在 `artifacts/maintenance/party-reliability` 保留，历史 pokemon-refresh 不覆盖。整局驱动器在随机电脑先手时处理闪电鸟等真人被动选择，再观察真人正常回合；完整三胜结算后实际保留五座位、三 bot 和手机凭证，重新准备并启动新大局。该版包按 package.json 的 1.2.0 输出到 `artifacts/releases`；存档格式、游戏状态与策略版本保持，网络协议为 3。
 
-普通便携启动保持端口 38473：占用时停止并展示具体原因及排障建议，不静默换端口。网卡可手动刷新并自动跟踪变化，原手机在地址或端口变化后的新浏览器源上需房主换绑。服务运行期间防自动休眠，公共屏可见时保持亮屏，退出恢复系统正常电源行为。手动休眠或关机仍可能中断服务。
+普通便携启动保持端口 38473：占用时停止并展示具体原因及排障建议，不静默换端口。网卡可手动刷新并自动跟踪变化；手机身份仅在原浏览器源恢复，地址或端口变化后的新源不能自动沿用身份。1.6.0 已删除换绑，应优先恢复原地址；确需重新入座时由管理员处理旧座位，原座位不能通过绑定码迁移。服务运行期间防自动休眠，公共屏可见时保持亮屏，退出恢复系统正常电源行为。手动休眠或关机仍可能中断服务。
 
 正式桌面原生 Alt → 程序菜单提供“打开房主管理”“打开日志目录”；`LOCALAPPDATA/TableMax/logs/desktop.log` 保存启动失败的具体原因，`service.log` 保存服务生命周期。损坏／不兼容存档保持原文件，排障前备份 room.sqlite 和 WAL／SHM。验收见 [聚会维护记录](acceptance.md#首版维护聚会可靠性与连续游玩)。
 
@@ -152,7 +152,7 @@ pnpm prototype:verify:game
 | Electron 浏览器数据  | 数据目录 `desktop/`，包含网页会话与缓存                                                                                                      |
 | pnpm、下载与工具缓存 | 仓库 `.pnpm-store/`、`.cache/`；Git 忽略，工作区隐藏与排除监听                                                                               |
 | 可再生构建           | 仓库 `build/`，Git 忽略，工作区隐藏                                                                                                          |
-| 便携包与验证图／JSON | 当前 1.5.0 ZIP 在 artifacts/releases，维护验证在 artifacts/maintenance；历史证据保留，0.1.0–1.3.0 程序包已清除，Git 忽略，文件树可见；搜索与监听单独排除 |
+| 便携包与验证图／JSON | 当前 1.6.0 ZIP 在 artifacts/releases，本轮验证在 artifacts/maintenance/v1.6.0；历史证据保留，旧程序清理情况见验收记录；Git 忽略，文件树可见，搜索与监听单独排除 |
 | 原型构建             | 仓库 `artifacts/phase-02/prototype/`，独立于 `build/desktop/web/`                                                                            |
 | 原型截图与走查 JSON  | 仓库 `artifacts/phase-02/verification/`，Git 忽略但文件树可见；每次走查更新对应证据                                                          |
 | 美术原图与前后对比   | 仓库 `artifacts/phase-02/art-reset/`；保留 imagegen 原始 PNG、透明通道／尺寸／哈希检查、联系表及同尺寸前后截图和文字测量                     |

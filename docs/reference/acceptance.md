@@ -170,3 +170,5 @@
 - [便携显示专项](../../artifacts/maintenance/v1.6.0/display/portable/results.json)：同样通过 720p—4K、独立窗口缩放、暂停／恢复及 DPI 模拟，保留 44 张实际隐藏渲染截图。
 
 维护的 [22 项清理测试](../../artifacts/maintenance/local-cleanup-tools/tool-tests.json) 和 [32 项统一维护测试](../../artifacts/maintenance/project-maintenance-tools/tool-tests.json) 全部通过，覆盖阈值、低水位、最旧优先、忙碌跳过、近期修改、链接、ZIP 哈希、证据及正式数据保护。全部验证与打包进程退出后执行 [实际维护检查](../../artifacts/maintenance/v1.6.0/maintenance.json)：自动解析同仓库主工作区 `E:\Proj\TableMax`，逻辑大小 3,049,074,100 字节（约 2.840 GiB），低于 5 GiB 阈值，删除 0 字节；跳过 1,330 个链接且不重复统计其他 checkout。未终止用户进程、放宽保护或扩大删除范围。
+
+本轮实现已提交为 `542ccfd`（`feat: release 1.6.0 game library, mobile owners and reliable play`），未推送。[交付时文档核验](../../artifacts/maintenance/v1.6.0/document-links.json) 检查 40 份 Markdown、541 个本地链接和 138 个锚点，当前问题为零；61 处旧 artifact 路径在本 worktree 缺失，作为历史证据缺口单独记录。四份最终便携记录均与 ZIP 的实际哈希一致。
