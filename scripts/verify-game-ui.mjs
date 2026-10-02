@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 import { verificationOutput } from './verification-output.mjs';
 const require = createRequire(import.meta.url);
 const verifyDeal = process.argv.includes('--verify-deal');
+const reviewStages = process.argv.includes('--review-stages');
 const evidenceName = process.argv
   .find((arg) => arg.startsWith('--evidence='))
   ?.slice(11);
@@ -372,10 +373,11 @@ for (const scene of selectedScenes) {
       decodedAudio,
       narrowOverflow: false,
     };
-    const capture = async (page, name) => {
-      await page.evaluate(() => {
-        scrollTo(0, 0);
-      });
+    const capture = async (page, name, keepScroll = false) => {
+      if (!keepScroll)
+        await page.evaluate(() => {
+          scrollTo(0, 0);
+        });
       await page.evaluate(
         () =>
           new Promise((r) =>
@@ -415,6 +417,17 @@ for (const scene of selectedScenes) {
       const before = await fetchView(players[index].token);
       item.phases.push(before.gameView.phase);
       await page.locator('.pokemon-player').waitFor();
+      if (reviewStages) {
+        const stage = `${scene.id}-step-${item.actions + 1}-${before.gameView.phase}`;
+        await capture(publicPage, `${stage}-public.png`);
+        await capture(page, `${stage}-phone.png`);
+        const board = page.locator('.pokemon-player .pokemon-board').last();
+        if (await board.count()) {
+          await board.scrollIntoViewIfNeeded();
+          await capture(page, `${stage}-phone-targets.png`, true);
+          await page.evaluate(() => scrollTo(0, 0));
+        }
+      }
       const landscapeChoice = !!scene.count && index === 0;
       const actionWindow = await desktop.browserWindow(page);
       if (landscapeChoice)

@@ -86,9 +86,14 @@ export function Board({
           </span>
         )}
         {effects.rocketReturns.includes(slot.slotId) && (
-          <span className="rocket-return-mark" aria-hidden="true">
-            R
-          </span>
+          <>
+            <span className="rocket-return-mark" aria-hidden="true">
+              R
+            </span>
+            <span className="saved-placement-caption">
+              已换入 {index + 1} 号位
+            </span>
+          </>
         )}
       </span>
       <span className="slot-index">{index + 1}</span>

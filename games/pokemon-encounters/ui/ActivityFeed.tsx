@@ -39,7 +39,13 @@ export function ActivityFeed({
           最近已保存{action ? ` · ${action.actor}` : ''}
         </span>
         <strong className="action-title">
-          {action?.title ?? (latest?.text || '等待各位玩家翻开初始牌')}
+          {action?.title ??
+            (latest?.text ||
+              (game.roundResult
+                ? game.matchWinners.length
+                  ? '大局已结束'
+                  : '本小局已揭晓'
+                : '等待各位玩家翻开初始牌'))}
         </strong>
         {action?.detail && (
           <span className="action-detail">{action.detail}</span>

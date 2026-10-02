@@ -7,7 +7,14 @@ import { join, resolve, dirname } from 'node:path';
 import { verificationOutput } from './verification-output.mjs';
 
 const require = createRequire(import.meta.url);
-const output = verificationOutput('effects');
+const evidenceName = process.argv
+  .find((arg) => arg.startsWith('--evidence='))
+  ?.slice(11);
+assert.ok(!evidenceName || /^[a-z0-9-]{1,40}$/.test(evidenceName));
+const output = verificationOutput(
+  'effects',
+  ...(evidenceName ? [evidenceName] : []),
+);
 await mkdir(output, { recursive: true });
 const work = await mkdtemp(resolve('tmp/game-ui-'));
 await build({

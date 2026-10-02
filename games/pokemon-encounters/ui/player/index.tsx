@@ -89,14 +89,16 @@ export function PlayerControls({
       <WinTrack wins={view.winsBySeat[seatId]!} />
       <p className="decision-hint">
         {view.phase === 'draw'
-          ? '点上方牌堆，取一张新牌。'
+          ? '点上方牌库或弃牌堆，取一张牌。'
           : view.phase === 'snorlax-choice'
             ? '点两张牌交换位置，或跳过能力。'
             : view.phase === 'mew-other'
               ? '先选一位朋友的牌，再换入自己的场地。'
-              : view.phase === 'charizard-view'
-                ? '记住这张牌，看完后关闭。'
-                : '点选卡位，选好后确认。'}
+              : view.phase === 'charizard-choice'
+                ? '点选一张暗牌，选好后确认查看。'
+                : view.phase === 'charizard-view'
+                  ? '记住这张牌，看完后关闭。'
+                  : '点选卡位，选好后确认。'}
       </p>
       {view.phase !== 'charizard-view' && view.phase !== 'mew-other' && (
         <Board
@@ -111,6 +113,16 @@ export function PlayerControls({
       {view.peek && (
         <div className="private-peek charizard-peek" role="status">
           <p>仅你可见 · 位置 {view.peek.slot + 1} · 牌仍朝下</p>
+          <button
+            className="secondary"
+            disabled={locked}
+            onClick={() => {
+              const close = actions.find((a) => a.type === 'close-peek');
+              if (close) choose(close);
+            }}
+          >
+            已看完，关闭查看
+          </button>
           <span className="private-peek-card">
             <CardFace card={view.peek.card} />
             <span className="peek-flame" aria-hidden="true">
@@ -188,7 +200,11 @@ export function PlayerControls({
       <div className="intent-actions">
         {actions
           .filter(
-            (a) => !('slot' in a) && a.type !== 'swap' && a.type !== 'draw',
+            (a) =>
+              !('slot' in a) &&
+              a.type !== 'swap' &&
+              a.type !== 'draw' &&
+              a.type !== 'close-peek',
           )
           .map((a) => (
             <button
@@ -217,7 +233,15 @@ export function PlayerControls({
                   : '两张牌已选中'
               : first !== null
                 ? '再选一个不同位置'
-                : '选一张牌'}
+                : view.phase === 'snorlax-choice'
+                  ? '已选 0 / 2 张 · 选择交换位置'
+                  : view.phase === 'charizard-choice'
+                    ? '选择要查看的暗牌'
+                    : view.phase === 'mew-other'
+                      ? '选择朋友的一张牌'
+                      : view.phase === 'initial-flip'
+                        ? '选择要翻开的卡位'
+                        : '选择换入位置'}
           </p>
           <button
             className="confirm-action"

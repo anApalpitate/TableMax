@@ -200,6 +200,20 @@
 - 返修发现 720p 暂停时页面超高；根据实际截图和面板几何修正顶部／底部留白及 CSS 优先级，并提供 [固定失败场景验证](../../artifacts/maintenance/v1.0.0/display/paused-720p/results.json)。最终 [便携显示矩阵](../../artifacts/maintenance/v1.0.0/display/portable/results.json) 通过 44 张实际隐藏截图，包含 720p—4K、两端六人全部 36 牌、暂停／恢复、44px 控件、100／125／150% 窗口缩放、重启及 DPI 模拟；失败的开发记录保留为诊断，不作为最终通过证据。
 - [最终便携整局](../../artifacts/maintenance/v1.0.0/portable/results.json) 实际解压新包运行，完整六席三胜、全部 14 阶段、回退、两次启动恢复及原班续局通过。与显示矩阵对应同一最终 ZIP；设备范围仍为本机 Windows／隐藏 Electron／独立手机 Chromium 模拟。
 
-当前 [Windows x64 ZIP](../../artifacts/releases/TableMax-1.0.0-win-x64.zip) 为 156,161,961 字节，SHA-256 `caa042fc1af7ccab5dd8fdfdeb3bc91625854b5b1f30de2e98564277682d9729`。首次同编号的程序、源码及便携证据保留在 `artifacts/maintenance/v1.0.0/before-visual-polish/`，上节历史链接已指向原包。当前 [源码 ZIP](../../artifacts/releases/TableMax-1.0.0-source.zip) 随本次提交导出，不包含依赖、玩家数据或本地证据。
+当轮 [Windows x64 ZIP](../../artifacts/maintenance/v1.0.0/before-independent-review/TableMax-1.0.0-win-x64.zip) 为 156,161,961 字节，SHA-256 `caa042fc1af7ccab5dd8fdfdeb3bc91625854b5b1f30de2e98564277682d9729`。程序、源码及对应便携／显示证据现保留在 `artifacts/maintenance/v1.0.0/before-independent-review/`；当轮便携记录见该目录的 `portable/results.json`，显示记录见 `display/portable/results.json`，不将下一轮结果归到此哈希。首次同编号的程序、源码及便携证据仍保留在 `before-visual-polish/`。当轮 [源码 ZIP](../../artifacts/maintenance/v1.0.0/before-independent-review/TableMax-1.0.0-source.zip) 对应原提交，不包含依赖、玩家数据或本地证据。
 
 [同版本收尾维护](../../artifacts/maintenance/v1.0.0/visual-polish-maintenance.json) 检查主工作区 `E:\Proj\TableMax`，逻辑大小 3,049,079,281 字节（约 2.840 GiB），低于 5 GiB，删除 0 字节；跳过 1,330 个链接，未终止用户进程或扩大清理范围。新增文档链接／锚点和 diff 检查通过，版本及锁文件没有改动。
+
+## 1.0.0：独立视觉审查与返修（2026-10-03）
+
+按用户要求逐个关键中间状态截图，以 `fork_turns: none` 新建 32 个单图审查实例，不提供开发上下文、旧缺陷、源码或其他截图。审查覆盖初始翻牌、取牌／弃牌来源、普通换入、梦幻两步、火箭队两面、闪电鸟本人及各接牌者、卡比兽、喷火龙选牌及私密查看、能力反馈、零分列、结果及共同赢家，并对重点修正另建新实例复审。提示词、32 条结论及采用理由见 [逐图审查记录](../../artifacts/maintenance/v1.0.0/visual-review/reviews.md)，复用方法见 [游戏验证场景](../games/pokemon-encounters/validation-scenarios.md#当前界面的独立视觉审查)。
+
+修正手机竖屏确认栏遮挡第二排卡位、模糊选牌文案及喷火龙关闭入口；首翻进度明确座位，待行动与最近动作不再仅靠颜色区分；能力横幅、抛币及结果标题避开卡牌，胜利姓名避免重复叠加；短桌面2至5人收紧高度，火箭队实际落点补充号位标签。保持 1.0.0，规则、协议、存档、权限及保存流程未改变。
+
+- 工程检查：类型、ESLint、项目格式及 22 文件／127 项测试通过，测试阶段实际 30.62 秒；后续标签／CSS及证据目录参数改动重新核验类型、静态检查及格式，未重复无关规则测试。
+- [最终 UI 回归](../../artifacts/maintenance/v1.0.0/ui/independent-review-verified/results.json) 15 场通过，保留 335 张实际隐藏渲染截图，含每一步公共屏／当前手机、滚动后牌阵、能力结果及多尺寸；重复进度帧保留，不宣称335张均独立送审。[卡面矩阵](../../artifacts/maintenance/v1.0.0/cards/results.json) 13 种／16 类及 [最终效果专项](../../artifacts/maintenance/v1.0.0/effects/independent-review-verified/results.json) 7 项通过。专项仍为生产组件及授权投影 fixture，区别于真实服务对局。
+- [实际 ZIP 整局](../../artifacts/maintenance/v1.0.0/portable/results.json) 完整六席三胜、全部14阶段、回退、两次启动恢复及原班续局通过；[实际 ZIP 显示矩阵](../../artifacts/maintenance/v1.0.0/display/portable/results.json) 44 张截图通过，覆盖720p—4K、两端36牌、暂停恢复、100／125／150%缩放及原生DPI模拟。两份记录均对应下面的新哈希，不复用旧包通过结论。
+
+当前 [Windows x64 ZIP](../../artifacts/releases/TableMax-1.0.0-win-x64.zip) 为 156,162,408 字节，SHA-256 `d35c20eabf636a024dc0bec11d188690775c7b0d26a2e67853b67b167a3ef789`；[源码 ZIP](../../artifacts/releases/TableMax-1.0.0-source.zip) 按最终提交导出。上一轮程序、源码和对应证据保留在 `before-independent-review/`，此前首份同编号包仍在 `before-visual-polish/`。范围仍为本机 Windows／隐藏 Electron／手机 Chromium 与DPI模拟，单帧审查不证明动效、规则正确性或真实手机／电视体验，没有新增现场听音结论。
+
+收尾 [统一维护](../../artifacts/maintenance/v1.0.0/independent-review-maintenance.json) 在构建、验证及打包退出后检查主工作区，保持5 GiB触发、4 GiB低水位及原安全保护。版本文件与锁文件保持不变；相关文档与链接、diff检查后统一提交，默认不推送。

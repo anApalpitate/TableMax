@@ -45,6 +45,9 @@
   }
 }
 @media (min-width: 1001px) and (max-height: 900px) {
+  .game-screen:not(.player) .game-table:not([data-seats='6']) .game-seat {
+    max-width: min(340px, max(190px, calc((100dvh - 460px) * 0.95)));
+  }
   .game-screen:not(.player) .table-notice {
     gap: 12px;
     padding: 0 10px;
@@ -442,7 +445,7 @@
     font-size: 20px;
   }
   .game-screen.player .submit-choice {
-    position: sticky;
+    position: static;
     bottom: max(6px, env(safe-area-inset-bottom));
     z-index: 2;
     background: #fff9e7;

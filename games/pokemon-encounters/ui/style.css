@@ -208,6 +208,7 @@ button.card-slot:not(:disabled):hover {
   padding: 0 3px;
 }
 .coin-result {
+  anchor-name: --coin-feedback;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1489,6 +1490,21 @@ button.card-slot:not(:disabled):hover {
   animation: rocket-return 1150ms ease-out both;
   pointer-events: none;
 }
+.saved-placement-caption {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  translate: -50% 0;
+  white-space: nowrap;
+  z-index: 2;
+  padding: 2px 3px;
+  border-radius: 4px;
+  background: #fff4d9;
+  color: #35131b;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 800;
+}
 .private-peek-card {
   display: block;
   position: relative;
@@ -1563,24 +1579,24 @@ button.card-slot:not(:disabled):hover {
 }
 .ability-effects {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: center;
-  padding-top: clamp(68px, 10vh, 140px);
+  padding-bottom: 6px;
 }
 .ability-toast {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 18px;
+  padding: 4px 12px;
   background: #fff7e8f5;
   color: #493822;
   border: 2px solid #c7a264;
   border-radius: 18px;
   box-shadow: 0 8px 24px #35292133;
-  font-size: 20px;
+  font-size: 16px;
 }
 .ability-toast-mark {
-  font-size: 34px;
+  font-size: 22px;
   line-height: 1;
   font-weight: 900;
 }
@@ -1613,6 +1629,44 @@ button.card-slot:not(:disabled):hover {
   background: #fff1c9;
   font-size: 24px;
   font-weight: 850;
+}
+.coin-effects {
+  position-anchor: --coin-feedback;
+  inset: auto;
+  top: anchor(center, 25%);
+  left: anchor(center, 50%);
+  width: 80px;
+  height: 80px;
+  translate: -50% -50%;
+  overflow: visible;
+}
+.coin-effects .tossed-coin {
+  width: 64px;
+  border-width: 3px;
+}
+.coin-effects .effect-ring {
+  width: 78px;
+  border-width: 2px;
+}
+.coin-effects .coin-effect-label {
+  display: none;
+}
+.round-banner {
+  anchor-name: --round-feedback;
+}
+.result-effects .victory-title {
+  position: absolute;
+  position-anchor: --round-feedback;
+  top: anchor(center, 20%);
+  left: anchor(center, 50%);
+  translate: -50% -50%;
+  max-width: 90vw;
+  font-size: clamp(20px, 3vw, 32px);
+  padding: 8px 16px;
+}
+.game-table:has(.result-effects) .round-banner > div,
+.game-table:has(.result-effects) .round-banner > .winner-emblem {
+  visibility: hidden;
 }
 .match-fireworks {
   background: radial-gradient(ellipse, #19344922, #1425438c);

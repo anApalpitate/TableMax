@@ -177,9 +177,16 @@ export function GameTable({
                         : seat.online
                           ? '手机在线'
                           : '手机离线'}
-                      {seat.id === game.actorSeat && !paused
-                        ? ' · 正在选择'
-                        : ''}
+                      {!paused && playing && game.phase === 'initial-flip'
+                        ? game.initialDone.includes(seat.id)
+                          ? ' · 已翻初始牌'
+                          : ' · 待翻初始牌'
+                        : seat.id === game.actorSeat && !paused
+                          ? game.phase === 'draw'
+                            ? ' · 正在取牌'
+                            : ' · 正在选择'
+                          : ''}
+                      {latestAction?.actor === seat.id ? ' · 最近动作' : ''}
                     </p>
                     {playing &&
                       !paused &&

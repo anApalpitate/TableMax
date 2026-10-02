@@ -178,7 +178,7 @@ export function TableStatus({
               >
                 <span>
                   {view.phase === 'initial-flip'
-                    ? `${index + 1}`
+                    ? `座${index + 1}`
                     : `${done ? '✓ ' : index === progress.completed ? '当前 · ' : ''}${label}`}
                 </span>
               </span>
@@ -187,7 +187,7 @@ export function TableStatus({
         </div>
         <p className="progress-caption">
           {view.phase === 'initial-flip'
-            ? `已翻牌 ${progress.completed} / ${progress.total} · 可以同时选择`
+            ? `已翻牌 ${progress.completed} / ${progress.total} · 在手机上同时选择`
             : view.phase === 'draw'
               ? '从牌库或弃牌顶取一张牌'
               : progress.label}
@@ -213,7 +213,9 @@ export function TableStatus({
           {view.discardTop ? (
             pile('discard')
           ) : (
-            <span className="empty-pile">暂时为空</span>
+            <span className="empty-pile" aria-label="弃牌堆暂时为空">
+              空
+            </span>
           )}
         </div>
         {view.discard && view.discard.length > 0 && (
