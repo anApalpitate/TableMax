@@ -1,7 +1,7 @@
 import type { Face, PokemonView } from '../rules/project';
 import { cardArt } from '../../../assets/games/pokemon-encounters/catalog';
 import { useContext, type CSSProperties } from 'react';
-import { SavedMotion } from './motion';
+import { SavedMotion, ActionTargets } from './motion';
 
 export function CardFace({ card }: { card: Face | null }) {
   const art = card ? cardArt(card.categoryId) : null;
@@ -61,8 +61,9 @@ export function Board({
   select?(slot: number): void;
 }) {
   const motion = useContext(SavedMotion);
+  const targets = useContext(ActionTargets);
   const motionClass = (slotId: string) =>
-    `${motion.includes(slotId) ? 'saved-motion' : ''} ${motion.includes(`reveal:${slotId}`) ? 'saved-reveal' : ''} ${motion.includes(`deal:${slotId}`) ? 'saved-deal' : ''}`;
+    `${targets.includes(slotId) ? 'action-target' : ''} ${motion.includes(slotId) ? 'saved-motion' : ''} ${motion.includes(`reveal:${slotId}`) ? 'saved-reveal' : ''} ${motion.includes(`deal:${slotId}`) ? 'saved-deal' : ''}`;
   return (
     <div className="pokemon-board" aria-label="两行三列场地">
       {view.boards[seatId]!.map((slot, i) =>

@@ -6,7 +6,7 @@ export function validateSave(
   rules: GameRules,
   strategy: BotStrategy,
 ): Save {
-  const d = input as Save;
+  const d = structuredClone(input) as Save;
   const { id, gameVersion, rulesVersion, stateVersion } = rules.manifest;
   const expected = { id, gameVersion, rulesVersion, stateVersion };
   requireThat(
@@ -30,6 +30,11 @@ export function validateSave(
       typeof d.joinOpen === 'boolean',
     'damaged-save',
   );
+  requireThat(
+    d.playMode === undefined || d.playMode === 'play' || d.playMode === 'test',
+    'damaged-save',
+  );
+  d.playMode ??= 'play';
   requireThat(
     Array.isArray(d.seats) &&
       d.seats.length <= rules.manifest.players.max &&

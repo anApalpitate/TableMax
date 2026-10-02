@@ -11,6 +11,125 @@ import { rules, bot } from '@tablemax/game-template';
 const createService = (input: Parameters<typeof createServiceBase>[0]) =>
   createServiceBase(input, { rules, bot });
 
+it('persists host-only play mode through real sockets and SQLite restart, with explicit normal-start override', async () => {
+  const config = dirs();
+  let service = await createService(config);
+  const clients: Socket[] = [];
+  try {
+    const port = await service.listen();
+    const origin = `http://127.0.0.1:${port}`;
+    const hostClient = await connect(origin, service.hostToken);
+    const publicClient = await connect(origin);
+    const admission = await joinPlayer(service, '手机朋友');
+    const phone = await connect(origin, admission.token);
+    clients.push(hostClient, publicClient, phone);
+    expect((await sync(hostClient)).playMode).toBe('play');
+    for (const unauthorized of [publicClient, phone])
+      expect(
+        await command(unauthorized, { type: 'set-play-mode', mode: 'test' }),
+      ).toEqual({ ok: false, reason: 'unauthorized' });
+    const before = await sync(hostClient);
+    expect(
+      (await command(hostClient, { type: 'set-play-mode', mode: 'test' })).ok,
+    ).toBe(true);
+    const after = await sync(publicClient);
+    expect(after.playMode).toBe('test');
+    expect(after.revision).toBe(before.revision + 1);
+    expect(after.gameView).toEqual(before.gameView);
+    for (const client of clients) client.disconnect();
+    await service.close();
+    const database = new DatabaseSync(join(config.dataDir, 'room.sqlite'));
+    try {
+      const row = database.prepare('SELECT data FROM saves').get() as {
+        data: string;
+      };
+      expect(JSON.parse(row.data).playMode).toBe('test');
+    } finally {
+      database.close();
+    }
+    service = await createService(config);
+    expect(service.room.view().playMode).toBe('test');
+    expect(service.room.view(admission.token).self.role).toBe('player');
+    await service.close();
+    service = await createService({ ...config, playMode: 'play' });
+    expect(service.room.view().playMode).toBe('play');
+    expect(service.room.view().seats).toHaveLength(1);
+    expect(service.room.view(admission.token).self.role).toBe('player');
+  } finally {
+    for (const client of clients) client.disconnect();
+    await service.close();
+  }
+});
+
+it('admits and prepares six phone seats for the authorized variant and rejects a seventh without losing the room', async () => {
+  const service = await createServiceBase(dirs());
+  const tokens: string[] = [];
+  try {
+    for (let index = 0; index < 6; index++) {
+      const response = await service.app.inject({
+        method: 'POST',
+        url: '/api/session/join',
+        payload: { name: `手机玩家 ${index + 1}` },
+      });
+      expect(response.statusCode).toBe(200);
+      tokens.push(response.json().token);
+    }
+    expect(service.room.view(service.hostToken).game.max).toBe(6);
+    expect(service.room.view().seats).toHaveLength(6);
+    const overflow = await service.app.inject({
+      method: 'POST',
+      url: '/api/session/join',
+      payload: { name: '第七位' },
+    });
+    expect(overflow.statusCode).toBe(409);
+    expect(overflow.json().reason).toBe('room-full');
+    const run = (credential: string, c: Command['command']) => {
+      const view = service.room.view(credential);
+      return service.room.command(credential, {
+        actionId: crypto.randomUUID(),
+        instanceId: view.instanceId,
+        branch: view.branch,
+        revision: view.revision,
+        command: c,
+      });
+    };
+    for (const credential of tokens)
+      expect((await run(credential, { type: 'ready', ready: true })).ok).toBe(
+        true,
+      );
+    expect((await run(service.hostToken, { type: 'start' })).ok).toBe(true);
+    const publicGame = service.room.view().gameView as {
+      deckCount: number;
+      boards: Record<string, unknown[]>;
+      phase: string;
+    };
+    expect(publicGame.deckCount).toBe(20);
+    expect(Object.values(publicGame.boards)).toHaveLength(6);
+    for (const credential of tokens) {
+      const view = service.room.view(credential);
+      expect(
+        (
+          await run(credential, {
+            type: 'game',
+            decisionId: view.decisionId!,
+            action: { type: 'initial-flip', slot: 0 },
+          })
+        ).ok,
+      ).toBe(true);
+    }
+    expect((service.room.view().gameView as { phase: string }).phase).toBe(
+      'draw',
+    );
+    expect(service.room.view(service.hostToken).self).toEqual({
+      role: 'host',
+      seatId: null,
+    });
+    expect(service.room.view(service.hostToken).actions).toEqual([]);
+  } finally {
+    await service.close();
+  }
+});
+
 const dirs = () => {
   const dataDir = mkdtempSync(join(tmpdir(), 'tablemax-platform-'));
   const webDir = mkdtempSync(join(tmpdir(), 'tablemax-web-'));

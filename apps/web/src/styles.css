@@ -279,7 +279,7 @@ button {
 }
 label {
   display: block;
-  font-size: 13px;
+  font-size: 15px;
   margin: 15px 0 7px;
 }
 input,
@@ -442,4 +442,32 @@ footer {
     display: block;
     margin-top: 5px;
   }
+}
+.header-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+.test-mode-badge {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 3px 10px;
+  border: 1px solid #bb8630;
+  border-radius: 8px;
+  background: #fff0b7;
+  color: #624518;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+[data-play-mode='test'] *,
+[data-play-mode='test'] *::before,
+[data-play-mode='test'] *::after {
+  animation: none !important;
+  transition: none !important;
 }

@@ -14,7 +14,7 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 );
 const portable = process.argv.includes('--portable');
 const output = resolve(
-  'artifacts/maintenance/phone-table-levels',
+  'artifacts/maintenance/six-player-presentation',
   portable ? 'portable' : 'development',
 );
 await mkdir(output, { recursive: true });
@@ -54,6 +54,7 @@ if (portable) {
         TABLEMAX_VERIFY_ARCHIVE: archive,
         TABLEMAX_VERIFY_EXTRACT: extracted,
       },
+      windowsHide: true,
     },
   );
   archiveSha256 = createHash('sha256')
@@ -74,8 +75,8 @@ delete env.NODE_PATH;
 if (portable)
   env.PATH = `${process.env.SystemRoot}\\system32;${process.env.SystemRoot}`;
 const args = portable
-  ? ['--foundation-test']
-  : [resolve('build/desktop'), '--foundation-test'];
+  ? ['--foundation-test', '--tablemax-test-mode']
+  : [resolve('build/desktop'), '--foundation-test', '--tablemax-test-mode'];
 const evidence = {
   verifiedAt: new Date().toISOString(),
   scope:
@@ -337,7 +338,7 @@ for (let run = 0; run < 2; run++) {
           await mobile.evaluate(() => localStorage.getItem('tablemax-player')),
         );
       }
-      for (let i = 0; i < 3; i++)
+      for (let i = 0; i < 4; i++)
         await command(origin, host, hostToken, {
           type: 'add-bot',
           name: `电脑 ${i + 1}`,
@@ -350,7 +351,7 @@ for (let run = 0; run < 2; run++) {
         })
       ).json();
       assert.equal(full.ok, false);
-      await page.locator('.management > summary').click();
+      await page.getByRole('button', { name: '牌桌管理', exact: true }).click();
       const next = desktop.waitForEvent('window');
       await page
         .getByRole('link', { name: '打开公共屏' })
@@ -362,7 +363,7 @@ for (let run = 0; run < 2; run++) {
       await page.getByText('本地连接已就绪', { exact: true }).waitFor();
       await command(origin, host, hostToken, { type: 'start' });
       for (let retry = 0; retry < 60; retry++) {
-        if ((await view(origin, tokens[0])).gameView.initialDone.length === 3)
+        if ((await view(origin, tokens[0])).gameView.initialDone.length === 4)
           break;
         await wait(100);
       }
@@ -510,7 +511,7 @@ for (let run = 0; run < 2; run++) {
         await phones[0].getByText('游戏已暂停', { exact: true }).isVisible(),
       );
       evidence.checks.push(
-        'Five-seat mixed lobby, over-capacity rejection, administrator without a player seat, independent phones, select/cancel/submit, public secrecy, 1920/360/390 layouts, freeze/background simulation, offline navigation and identity recovery, reload and rollback',
+        'Six-seat mixed lobby, over-capacity rejection, administrator without a player seat, independent phones, select/cancel/submit, public secrecy, 1920/360/390 layouts, freeze/background simulation, offline navigation and identity recovery, reload and rollback',
       );
       await publicPage.close();
       assert.equal(
@@ -591,7 +592,7 @@ for (let run = 0; run < 2; run++) {
       await capture(desktop, page, 'match-result');
       await capture(desktop, phones[0], 'phone-result', 360, 800);
       evidence.checks.push(
-        `Actual socket/worker five-seat complete mixed match, ${actions} driver actions; same identity/state on restart`,
+        `Actual socket/worker six-seat complete mixed match, ${actions} driver actions; same identity/state on restart`,
       );
       await page.getByRole('button', { name: '再玩一局', exact: true }).click();
       await page.waitForURL('**/host');
@@ -609,7 +610,7 @@ for (let run = 0; run < 2; run++) {
       );
       assert.equal(
         replay.seats.filter((seat) => seat.controller === 'bot').length,
-        3,
+        4,
       );
       await page.getByRole('button', { name: '开始游戏', exact: true }).click();
       await page.waitForURL('**/host/game');
@@ -625,7 +626,7 @@ for (let run = 0; run < 2; run++) {
       assert.equal((await view(origin, hostToken)).gameView.roundNumber, 1);
       await capture(desktop, page, 'same-friends-replay');
       evidence.checks.push(
-        'Completed three-win match replays with the same five ordered seats, three bots and original phone credentials, then starts a fresh match',
+        'Completed three-win match replays with the same six ordered seats, four bots and original phone credentials, then starts a fresh match',
       );
     }
     for (const mobile of phones) {

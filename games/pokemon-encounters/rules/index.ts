@@ -9,6 +9,7 @@ import {
   type Phase,
 } from './state';
 import { project } from './project';
+import { announceAction } from './public-actions';
 
 export type Action =
   | { type: 'initial-flip' | 'replace' | 'peek'; slot: number }
@@ -155,11 +156,12 @@ export const rules: GameRules = {
     rulesVersion: 'tablemax-cn-s19-v1',
     sdkVersion: 1,
     stateVersion: 1,
-    players: { min: 2, max: 5 },
+    // Six seats are a user-authorized digital variant, not a publisher claim.
+    players: { min: 2, max: 6 },
     assetNamespace: 'pokemon-encounters',
   },
   initialize(context) {
-    if (context.seats.length < 2 || context.seats.length > 5)
+    if (context.seats.length < 2 || context.seats.length > 6)
       throw new Error('Invalid seats');
     const starter =
       context.seats[Math.floor(context.random.next() * context.seats.length)]!;
@@ -307,6 +309,13 @@ export const rules: GameRules = {
       'effect-complete',
       `第 ${next.roundNumber} 小局已发牌，等待每位玩家翻开一张。`,
     );
+    next.events.at(-1)!.action = {
+      actor: null,
+      verb: 'deal',
+      cardCategory: null,
+      ability: null,
+      targets: next.seatOrder.map((seat) => ({ seat, slots: [...slots] })),
+    };
     return {
       state: next,
       decision: {
@@ -316,7 +325,11 @@ export const rules: GameRules = {
       },
       events: next.events
         .filter((event) => event.id === next.step)
-        .map(({ kind, text }) => ({ kind, text })),
+        .map(({ kind, text, action }) => ({
+          kind,
+          text,
+          ...(action ? { action } : {}),
+        })),
     };
   },
   apply(input, raw, seat, context) {
@@ -431,6 +444,9 @@ export const rules: GameRules = {
       event(s, 'replace', '行动者正在临时查看本人暗牌。');
     } else if (a.type === 'decline-ability' || a.type === 'close-peek')
       finish(s, true);
+    const announcement = announceAction(input as State, s, a, seat);
+    for (const entry of s.events.filter((entry) => entry.id === s.step))
+      entry.action = announcement;
     return {
       state: s,
       decision: {
@@ -442,7 +458,11 @@ export const rules: GameRules = {
       },
       events: s.events
         .filter((event) => event.id === s.step)
-        .map(({ kind, text }) => ({ kind, text })),
+        .map(({ kind, text, action }) => ({
+          kind,
+          text,
+          ...(action ? { action } : {}),
+        })),
     };
   },
   project(input, viewer) {

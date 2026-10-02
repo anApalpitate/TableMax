@@ -93,8 +93,8 @@ describe('Pokemon adopted rules V00–V11', () => {
     expect(s.matchWinners).toEqual(['S1']);
     expect(rules.lifecycleActions(s)).toEqual([]);
   });
-  it('V01 deals round robin for 2–5 seats and waits for every initial choice without abilities', () => {
-    for (let count = 2; count <= 5; count++) {
+  it('V01 deals round robin for 2–6 seats and waits for every initial choice without abilities', () => {
+    for (let count = 2; count <= 6; count++) {
       const seats = Array.from({ length: count }, (_, i) => `S${i + 1}`);
       let s = rules.initialize({
         seats,
@@ -371,9 +371,9 @@ describe('Pokemon adopted rules V00–V11', () => {
   });
 });
 
-it('V17/18 deterministic bots finish 2–5 player three-win matches over fixed seeds without using RNG or hidden cards', async () => {
+it('V17/18 deterministic bots finish 2–6 player three-win matches over fixed seeds without using RNG or hidden cards', async () => {
   const phases = new Set<string>();
-  for (let count = 2; count <= 5; count++)
+  for (let count = 2; count <= 6; count++)
     for (const seed of [1, 13, 31, 101, 739]) {
       const seats = Array.from({ length: count }, (_, i) => `S${i + 1}`);
       const random = new RandomSource(seed);

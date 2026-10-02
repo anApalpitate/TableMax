@@ -60,7 +60,7 @@
 
 ## 使用与维护
 
-当前便携包为 `artifacts/releases/TableMax-1.3.0-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
+当前便携包为 `artifacts/releases/TableMax-1.4.0-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
 
 后续新增游戏、跨游戏调试或第三方插件按独立需求安排；新规则／策略版本需要明确存档迁移方案，不能直接覆盖原文件。设备模拟中的限制保留供后续实际使用时复查，本轮不将取得其他设备作为剩余开发关口。
 
@@ -115,3 +115,18 @@
 - [文档链接核验](../../artifacts/maintenance/phone-table-levels/document-links.json)：本轮维护文档的本地文件和锚点检查通过。
 
 协议版本为 4；平台格式／游戏／规则／状态／基础策略版本保持，旧人机缺省等级按默认读取，已有手机身份与进度保留。人机等级和获准记忆纳入保存／回退，不向手机或公共屏下发内部策略数据，不调用外部模型服务。所有测试使用隔离数据，历史 ZIP／证据保留。本轮仍为 Windows／Chromium 手机与电视尺寸模拟；未扩展为真实扫码摄像头、手机 Safari、Wi-Fi 互访或电视硬件验收。
+
+## 首版维护：游玩节奏与六人提示
+
+1.4.0，2026-10-02。正常游玩采用三档 1500／1800／2200ms 等待后计算，测试采用 40ms 并省略动效／声音；隐藏入口仅房主 `Ctrl+Shift+F12`。模式更改走权威校验和事务保存，普通重启回到游玩模式，不跳过规则、权限或恢复。连接帮助、游戏信息、座位设置、管理和游戏菜单改为原生模态浮窗，结束游戏是菜单中的直接按钮，确认默认聚焦取消。最新操作持续显示行动者、公开卡图／名称、能力、目标及卡位，最近记录可回看；喷火龙秘密查看不会公开格号、类别或值。胜局用放大的三颗星表示；六人桌面采用三列两排，结算的名字／星标／总分分列，计分明细浮窗展示列贡献和百变怪解析。玩法教学仍线下完成，实际游戏保持独立全屏路由。长期规格见 [模式与窗口](phase-02-platform-spec.md#实际游玩与测试模式140)、[游戏交互](../games/pokemon-encounters/interaction.md#游玩节奏行动播报与六人布局140)，六人是用户授权的 [S21 项目扩展](../games/pokemon-encounters/sources.md#s21六人项目扩展2026-10-02)，不冒充出版规则认证。
+
+- 工程：typecheck、lint、format 与 16 文件／88 项测试通过。新增 [模式与调度七项](../../packages/platform-core/src/play-mode.test.ts)、[公开行动四项](../../games/pokemon-encounters/rules/public-actions.test.ts) 及真实 SQLite／Socket 模式启动与六真人入座，覆盖手机／public 拒绝、保存失败、旧字段默认、模式与 checkpoint／RNG／回退隔离、取消和真正超时。在线状态更新不再重置已排队的人机，也不会把主动取消误报为策略失败。既有 D01–D13、三处真实强制退出和 Worker 异常继续通过。
+- 规则与人机：默认规则完成 25 个固定种子 2–6 人完整大局；三档各 2–6 人共 15 个固定种子整局，逐动作状态／合法性及每档全部 12 个玩家决策阶段通过。六人 30 个梦幻候选下，绝悟的两处实际 32 MiB／两秒 Worker 本机约 0.1 秒，完成后 heapUsed 约 8–9 MiB，不是峰值或所有电脑的保证。
+- [游玩呈现专项](../../artifacts/maintenance/six-player-presentation/presentation/results.json)：六个独立手机身份实际加入并完成自然小局；实际保存动画／音频调用、测试关闭声音／特效、主机专属快捷键、浮窗 Escape／背板／焦点恢复、换手机和结束游戏的嵌套取消及确认通过。计分明细逐席与公共结果相符，开关不修改修订。六席和 36 张牌在 1080×800／1366×768 的游玩／结算首屏完整可见；长昵称和 28–30px 星标检查通过。三档实际等待分别为 1558／1862／2252ms，同一恢复决策测试共 315ms；暂停／切换／结束后无迟到保存。
+- [全部卡面](../../artifacts/maintenance/six-player-presentation/cards/results.json)：正式六席存档渲染全部 16 类卡图；四种公共布局和九种手机布局，13 组图像加载、文字字号、分区不重叠、名称及角标边界、无横溢检查通过。截图人工查看，修复了插画被过大的标题／名称区挤成细条的问题；没有替换原图资源。
+- [十五组能力 UI](../../artifacts/maintenance/six-player-presentation/ui/results.json)：2–6 人、多尺寸／长昵称、全部能力、手机触控选择／确认、保存反馈、公开行动的卡名／目标、临时查看隔离、减少动态、刷新／回退不补播和本地声音继续回归。fixture 检查使用游玩模式，不以测试省略特效代替动效检查。
+- [开发完整三胜](../../artifacts/maintenance/six-player-presentation/development/results.json)、[六席围桌／三档](../../artifacts/maintenance/six-player-presentation/room/results.json) 与 [聚会回归](../../artifacts/maintenance/six-player-presentation/party/results.json)：六座位两手机／四实际 bot 完整三胜、十四阶段、三种桌面结算首屏、回退／冻结／断网／两次启动／原班续局通过；另有三手机／三等级实际 Worker 小局、七种房间尺寸和身份／等级重启保持；十组既有运行保障含本机网卡 IPv4、故意丢确认回复、弱网、换绑真实重启、公共屏保留及端口占用诊断通过。
+- 最终 release：[完整整局](../../artifacts/maintenance/six-player-presentation/portable/results.json)、[聚会专项](../../artifacts/maintenance/six-player-presentation/party-portable/results.json)、[游玩呈现](../../artifacts/maintenance/six-player-presentation/presentation-portable/results.json) 和 [六席／三档](../../artifacts/maintenance/six-player-presentation/room-portable/results.json) 四组独立解压、仅系统 PATH 运行全部通过。ZIP 为 `artifacts/releases/TableMax-1.4.0-win-x64.zip`，156,114,564 字节（约 148.9 MiB），SHA-256 为 `b9d44588b03efff80df88f28a2afc5b6dc820501692c8d05855f0bdeff8835f1`；四份记录与最终文件一致。便携模式三档实际等待为 1560／1893／2294ms，同一恢复决策测试共 429ms。原版解压程序在运行造成文件锁时，打包改用每次独立目录，成功后复制标准 ZIP，不关闭原程序或覆盖它的输出。
+- [文档链接核验](../../artifacts/maintenance/six-player-presentation/document-links.json)：本轮维护文件、来源及本地证据路径／锚点检查通过。
+
+协议为 5，平台格式及游戏／规则／状态／策略版本保持；新增模式与公开行动为可选存档字段，旧 2–5 人存档和原身份继续读取。隐藏测试与实际游玩均使用同一保存／恢复／校验链路，普通启动不会遗留测试模式。全部验证隔离数据、隐藏窗口，不修改默认存档、系统电源或防火墙；实际音频调用不冒充现场听音，本轮仍为本机 Windows／Chromium 手机和电视尺寸模拟。历史 ZIP、截图和原始素材保留。

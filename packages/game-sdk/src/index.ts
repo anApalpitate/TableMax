@@ -29,9 +29,31 @@ export interface PendingDecision {
   id: string;
   seatId: string;
 }
+export type PublicAction = {
+  actor: string | null;
+  verb:
+    | 'initial-flip'
+    | 'draw'
+    | 'replace'
+    | 'discard'
+    | 'mew-target'
+    | 'rocket-refill'
+    | 'zapdos-pass'
+    | 'swap'
+    | 'peek'
+    | 'close-peek'
+    | 'decline'
+    | 'deal'
+    | 'round-result';
+  cardCategory: string | null;
+  ability: string | null;
+  source?: 'deck' | 'discard';
+  targets: { seat: string; slots: number[] }[];
+};
 export interface PublicEvent {
   kind: 'draw' | 'replace' | 'effect-complete' | 'round-result';
   text: string;
+  action?: PublicAction;
 }
 
 export interface GameRules<

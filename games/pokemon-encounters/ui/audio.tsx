@@ -16,18 +16,22 @@ export function SoundControl({
   feedback,
   errorId,
   compact = false,
+  disabled = false,
 }: {
   feedback: RoomFeedback | null;
   errorId: string;
   compact?: boolean;
+  disabled?: boolean;
 }) {
   const [enabled, setEnabled] = useState(false);
   const last = useRef('');
   const lastError = useRef('');
   const player = useRef<HTMLAudioElement | null>(null);
   useEffect(() => {
-    if (!feedback) {
+    if (!feedback || disabled) {
       player.current?.pause();
+      if (feedback)
+        last.current = `${feedback.instanceId}:${feedback.branch}:${feedback.revision}`;
       return;
     }
     const id = `${feedback.instanceId}:${feedback.branch}:${feedback.revision}`;
@@ -41,23 +45,30 @@ export function SoundControl({
     audio.volume = 0.45;
     player.current = audio;
     void audio.play().catch(() => undefined);
-  }, [feedback, enabled]);
+  }, [feedback, enabled, disabled]);
   useEffect(() => {
     if (lastError.current === errorId) return;
     lastError.current = errorId;
-    if (!errorId || !enabled) return;
+    if (!errorId || !enabled || disabled) return;
     player.current?.pause();
     const audio = new Audio(error);
     audio.volume = 0.35;
     player.current = audio;
     void audio.play().catch(() => undefined);
-  }, [errorId, enabled]);
+  }, [errorId, enabled, disabled]);
   useEffect(() => () => player.current?.pause(), []);
   return (
     <button
       className="secondary sound-control"
+      disabled={disabled}
       aria-pressed={enabled}
-      aria-label={enabled ? '提示音已开启 · 静音' : '开启本屏提示音'}
+      aria-label={
+        disabled
+          ? '测试模式已关闭提示音'
+          : enabled
+            ? '提示音已开启 · 静音'
+            : '开启本屏提示音'
+      }
       onClick={() => {
         if (enabled) {
           player.current?.pause();
@@ -74,13 +85,15 @@ export function SoundControl({
         }
       }}
     >
-      {compact
-        ? enabled
-          ? '声音：开'
-          : '声音：关'
-        : enabled
-          ? '提示音已开启 · 静音'
-          : '开启本屏提示音'}
+      {disabled
+        ? '声音：关'
+        : compact
+          ? enabled
+            ? '声音：开'
+            : '声音：关'
+          : enabled
+            ? '提示音已开启 · 静音'
+            : '开启本屏提示音'}
     </button>
   );
 }

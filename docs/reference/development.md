@@ -38,28 +38,31 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 ## 真实命令
 
-| 命令                                | 行为                                                                                                                          |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                          | 先构建，启动 Vite 与 Electron／独立服务；前端热更新，服务与桌面源码修改后重启该命令                                           |
-| `pnpm start`                        | 运行已有 `build/desktop`；先执行 `pnpm build`                                                                                 |
-| `pnpm typecheck`                    | 严格 TypeScript 检查，不生成文件                                                                                              |
-| `pnpm lint`                         | ESLint 与 React Hooks 规则检查                                                                                                |
-| `pnpm format:check` / `pnpm format` | 检查格式／按项目配置格式化                                                                                                    |
-| `pnpm test`                         | Vitest 执行核心、真实 Socket.IO、SQLite、强制终止恢复及 Worker 验证                                                           |
-| `pnpm check`                        | 顺序执行类型、静态、格式检查与当前测试                                                                                        |
-| `pnpm build`                        | 构建网页、打包独立服务与桌面主进程到 `build/desktop`                                                                          |
-| `pnpm verify:desktop`               | 隐藏窗口验证开发构建，包括真实大厅、宝可梦五人混合整局、回退、两次启动恢复、独立进程与退出协调                                |
-| `pnpm verify:party`                 | 隐藏窗口验证加入／换绑丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP |
-| `pnpm verify:room-levels`           | 隐藏窗口验证手机各自入座、电脑仅管理／展示、围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证当前 ZIP  |
-| `pnpm package:win`                  | 构建并生成 Windows x64 解压运行 ZIP 与 `win-unpacked`                                                                         |
-| `pnpm verify:portable`              | 将最终 ZIP 解压到新的项目临时目录，对其中的 `TableMax.exe` 运行同一跨层验证，子进程 PATH 不含 Node／开发工具目录              |
-| `pnpm prototype:dev`                | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                                   |
-| `pnpm prototype:build`              | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/`                                                                  |
-| `pnpm prototype:preview`            | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建                                                 |
-| `pnpm prototype:verify:game`        | 对游戏原型执行Playwright／隐藏Electron全能力、角色、恢复反馈、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/`  |
-| `pnpm prototype:verify`             | 对已有原型构建运行 Playwright／隐藏 Electron 窗口走查，生成 JSON 和截图；先执行原型构建并准备 Electron                        |
+| 命令                                | 行为                                                                                                                             |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                          | 先构建，启动 Vite 与 Electron／独立服务；前端热更新，服务与桌面源码修改后重启该命令                                              |
+| `pnpm start`                        | 运行已有 `build/desktop`；先执行 `pnpm build`                                                                                    |
+| `pnpm typecheck`                    | 严格 TypeScript 检查，不生成文件                                                                                                 |
+| `pnpm lint`                         | ESLint 与 React Hooks 规则检查                                                                                                   |
+| `pnpm format:check` / `pnpm format` | 检查格式／按项目配置格式化                                                                                                       |
+| `pnpm test`                         | Vitest 执行核心、真实 Socket.IO、SQLite、强制终止恢复及 Worker 验证                                                              |
+| `pnpm check`                        | 顺序执行类型、静态、格式检查与当前测试                                                                                           |
+| `pnpm build`                        | 构建网页、打包独立服务与桌面主进程到 `build/desktop`                                                                             |
+| `pnpm verify:desktop`               | 隐藏窗口验证开发构建，包括真实大厅、宝可梦六人混合整局、回退、两次启动恢复、独立进程与退出协调                                   |
+| `pnpm verify:party`                 | 隐藏窗口验证加入／换绑丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP    |
+| `pnpm verify:room-levels`           | 隐藏窗口验证手机各自入座、电脑仅管理／展示、六席围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证当前 ZIP |
+| `pnpm verify:presentation`          | 隐藏窗口验证六真人、游玩／测试时序、浮窗焦点／结束、公开行动及星标；可加 `--portable` 验证当前 ZIP                               |
+| `pnpm verify:game-ui`               | 正式能力／2–6 人保存 fixture 的十五组 UI、多尺寸触控／隐私、已保存动效和声音                                                     |
+| `pnpm verify:cards`                 | 正式六人保存状态的全部 16 类卡面及公共／手机十三种布局、图像／文字／分区几何                                                     |
+| `pnpm package:win`                  | 构建并生成 Windows x64 解压运行 ZIP 与 `win-unpacked`                                                                            |
+| `pnpm verify:portable`              | 将最终 ZIP 解压到新的项目临时目录，对其中的 `TableMax.exe` 运行同一跨层验证，子进程 PATH 不含 Node／开发工具目录                 |
+| `pnpm prototype:dev`                | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                                      |
+| `pnpm prototype:build`              | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/`                                                                     |
+| `pnpm prototype:preview`            | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建                                                    |
+| `pnpm prototype:verify:game`        | 对游戏原型执行Playwright／隐藏Electron全能力、角色、恢复反馈、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/`     |
+| `pnpm prototype:verify`             | 对已有原型构建运行 Playwright／隐藏 Electron 窗口走查，生成 JSON 和截图；先执行原型构建并准备 Electron                           |
 
-验证通过后，解压 `artifacts/phase-01/TableMax-0.1.0-win-x64.zip`，双击 `TableMax.exe`。这是第一阶段工程验证包，不包含大厅、身份或首版游戏。
+当前便携包和使用流程见 [项目说明](../../README.md#使用便携版)。`artifacts/phase-01/TableMax-0.1.0-win-x64.zip` 仅为第一阶段工程验证包，不包含大厅、身份或首版游戏。
 
 ## 独立原型的运行与检查
 
@@ -251,4 +254,14 @@ UI 合法存档 fixture 的构造入口在 scripts/fixtures/prepare-pokemon.ts�
 
 ### 1.1.0 后台维护验证
 
-verify:cards、verify:game-ui、verify:desktop、verify:portable 当前证据进入 artifacts/maintenance/pokemon-refresh，旧 visual-polish 不覆盖。测试窗口 show:false、offscreen:true、backgroundThrottling:false，capturePage(stayHidden/stayAwake) 在 DOM 更新／两帧后捕获真实帧，不 showInactive 或 focus。翻牌后独立测量静止触控尺寸；整局截图用 CDP 精确 CSS 视口，避开 Windows DPI 边框的原生 1px 舍入。随机首位测试等待合法真人动作，不注入 hostToken 取得先手。animationstart／computedStyle 记录关键效果与 reduce，刷新／回退检查不误播；仍为 Windows Chromium 模拟，非手机／Safari／电视实机。
+1.1.0 的 verify:cards、verify:game-ui、verify:desktop、verify:portable 证据进入 artifacts/maintenance/pokemon-refresh，旧 visual-polish 不覆盖。测试窗口 show:false、offscreen:true、backgroundThrottling:false，capturePage(stayHidden/stayAwake) 在 DOM 更新／两帧后捕获真实帧，不 showInactive 或 focus。翻牌后独立测量静止触控尺寸；整局截图用 CDP 精确 CSS 视口，避开 Windows DPI 边框的原生 1px 舍入。随机首位测试等待合法真人动作，不注入 hostToken 取得先手。animationstart／computedStyle 记录关键效果与 reduce，刷新／回退检查不误播；仍为 Windows Chromium 模拟，非手机／Safari／电视实机。
+
+## 1.4.0 游玩呈现与六人验证
+
+正常启动采用游玩模式；房主在盒子或游戏页按 `Ctrl+Shift+F12` 打开隐藏运行模式窗口。测试模式与游玩使用相同的权威动作、持久化和恢复链路，只加速人机并省略动效／声音。桌面 `--tablemax-test-mode` 显式选择测试，`--tablemax-play-mode` 显式选择游玩；隐藏验证已有 `--foundation-test` 默认测试，生产节奏验证用它同时加 `--tablemax-play-mode`，不能把隐藏启动写成可见普通启动实测。
+
+`pnpm verify:presentation` 通过独立手机分区验证六真人自然小局、浮窗关闭和焦点、结束确认、星标和公开行动、实际保存动画／音频调用，以及三档真实 Worker 在两种模式的时序与暂停／切换／结束取消；加 `--portable` 检查最终 ZIP。`pnpm verify:game-ui` 为十五组实际能力／2–6 人 fixture，保留多尺寸与秘密查看隔离；`pnpm verify:cards` 直接用正式六人保存状态渲染全部 16 类，检查图像加载、字号和三个卡面分区，不再只验证独立组件画廊。
+
+本轮证据根为 `artifacts/maintenance/six-player-presentation`，包括 `development`／`portable`、`party`／`party-portable`、`room`／`room-portable`、`presentation`／`presentation-portable`、`ui` 和 `cards`。全部窗口隐藏、数据隔离、截图来自更新后的真实渲染，保留旧包和旧记录；测试范围仍为当前 Windows 与 Chromium 尺寸／触控模拟。具体执行结果见 [1.4.0 验收](acceptance.md#首版维护游玩节奏与六人提示)。
+
+打包每次使用独立的 `artifacts/releases/package-<版本>-<随机后缀>` 目录生成 `win-unpacked` 和 ZIP，成功后才把 ZIP 复制到标准 release 路径。这样已有解压程序正在运行时无需关闭它，也不会覆盖被 Windows 锁定的旧 `win-unpacked`；旧输出和历史包保持可见，按实际需要人工整理。

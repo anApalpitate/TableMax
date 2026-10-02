@@ -31,6 +31,11 @@ try {
 
 const checking = process.argv.includes('--foundation-check');
 const testing = process.argv.includes('--foundation-test');
+const playMode = process.argv.includes('--tablemax-play-mode')
+  ? 'play'
+  : testing || process.argv.includes('--tablemax-test-mode')
+    ? 'test'
+    : 'play';
 let exitCode = 0;
 let service: UtilityProcess | undefined;
 let quitting = false;
@@ -218,6 +223,7 @@ async function run() {
         port,
         dataDir,
         webDir: join(__dirname, 'web'),
+        playMode,
       });
     },
   );

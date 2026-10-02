@@ -1,5 +1,7 @@
 import { instances } from './cards';
 import { scoreBoard, type Score } from './scoring';
+import type { PublicAction } from '@tablemax/game-sdk';
+import { validPublicAction } from './public-actions';
 
 export const phases = [
   'initial-flip',
@@ -45,6 +47,7 @@ export type State = {
     id: number;
     kind: 'draw' | 'replace' | 'effect-complete' | 'round-result';
     text: string;
+    action?: PublicAction;
   }[];
 };
 
@@ -70,7 +73,7 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     !Array.isArray(s.seatOrder) ||
     JSON.stringify(s.seatOrder) !== JSON.stringify(seats) ||
     seats.length < 2 ||
-    seats.length > 5 ||
+    seats.length > 6 ||
     new Set(seats).size !== seats.length ||
     !phases.includes(s.phase) ||
     !seats.includes(s.turnSeat) ||
@@ -229,7 +232,8 @@ export function validateState(input: unknown, seats: readonly string[]): State {
           event.kind,
         ) ||
         typeof event.text !== 'string' ||
-        event.text.length > 100,
+        event.text.length > 100 ||
+        (event.action !== undefined && !validPublicAction(event.action, seats)),
     )
   )
     return fail();

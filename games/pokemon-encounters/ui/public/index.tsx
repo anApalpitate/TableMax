@@ -7,6 +7,8 @@ import { useContext, useId, useRef } from 'react';
 import { SavedMotion } from '../motion';
 import type { JsonValue } from '@tablemax/game-sdk';
 import type { Action } from '../../rules';
+import { WinTrack } from '../WinTrack';
+import { presentAction } from '../action-presentation';
 export function SeatResult({
   view,
   seatId,
@@ -14,41 +16,61 @@ export function SeatResult({
   view: PokemonView | null;
   seatId: string;
 }) {
+  const scorePanel = useRef<HTMLDialogElement>(null);
+  const scoreTitle = useId();
   if (!view) return null;
   const score = view.roundResult?.scores[seatId];
   return (
     <>
-      <span className="tag win-track">
-        <span className="win-pips" aria-hidden="true">
-          {[0, 1, 2].map((i) => (
-            <i key={i} className={i < view.winsBySeat[seatId]! ? 'earned' : ''}>
-              ✦
-            </i>
-          ))}
-        </span>
-        {view.winsBySeat[seatId]} / 3 胜
-        {view.matchWinners.includes(seatId)
-          ? ' · 大局赢家'
-          : view.roundResult?.winners.includes(seatId)
-            ? ' · 小局赢家'
-            : ''}
-      </span>
+      <WinTrack
+        wins={view.winsBySeat[seatId]!}
+        winner={
+          view.matchWinners.includes(seatId)
+            ? 'match'
+            : view.roundResult?.winners.includes(seatId)
+              ? 'round'
+              : undefined
+        }
+      />
       <Board view={view} seatId={seatId} />
       {score && (
         <div className="score-detail">
-          <strong>总分 {score.total}</strong>
-          <p>三列贡献：{score.columns.join(' / ')}</p>
-          {score.copies.length > 0 && (
-            <details>
-              <summary>百变怪解析</summary>
-              {score.copies.map((copy) => (
-                <p key={copy.slot}>
-                  百变怪 {copy.slot + 1} → {copy.value}（路径{' '}
-                  {copy.path.map((slot) => slot + 1).join(' → ')}）
-                </p>
-              ))}
-            </details>
-          )}
+          <button
+            className="secondary score-breakdown"
+            onClick={() => scorePanel.current?.showModal()}
+            aria-label="计分明细"
+          >
+            <strong>总分 {score.total}</strong>
+            <span aria-hidden="true">ⓘ</span>
+          </button>
+          <dialog
+            ref={scorePanel}
+            className="card-gallery-panel"
+            aria-labelledby={scoreTitle}
+            onCancel={(event) => event.stopPropagation()}
+          >
+            <header className="gallery-heading">
+              <h2 id={scoreTitle}>计分明细 · 总分 {score.total}</h2>
+              <button
+                className="secondary"
+                onClick={() => scorePanel.current?.close()}
+              >
+                关闭
+              </button>
+            </header>
+            <p>三列贡献：{score.columns.join(' / ')}</p>
+            {score.copies.length > 0 && (
+              <section>
+                <h3>百变怪解析</h3>
+                {score.copies.map((copy) => (
+                  <p key={copy.slot}>
+                    百变怪 {copy.slot + 1} → {copy.value}（路径{' '}
+                    {copy.path.map((slot) => slot + 1).join(' → ')}）
+                  </p>
+                ))}
+              </section>
+            )}
+          </dialog>
         </div>
       )}
     </>
@@ -172,7 +194,13 @@ export function TableStatus({
     </div>
   );
 }
-export function PublicLog({ view }: { view: PokemonView }) {
+export function PublicLog({
+  view,
+  names = {},
+}: {
+  view: PokemonView;
+  names?: Record<string, string>;
+}) {
   return (
     <details className="public-log">
       <summary>公开操作记录</summary>
@@ -180,9 +208,18 @@ export function PublicLog({ view }: { view: PokemonView }) {
         {view.events
           .slice()
           .reverse()
-          .map((event) => (
-            <li key={event.id}>{event.text}</li>
-          ))}
+          .map((event) => {
+            const item = event.action
+              ? presentAction(event.action, names)
+              : null;
+            return (
+              <li key={event.id}>
+                {item
+                  ? `${item.actor} · ${item.title}${item.detail ? ` · ${item.detail}` : ''}`
+                  : event.text}
+              </li>
+            );
+          })}
       </ol>
     </details>
   );
@@ -191,7 +228,7 @@ export function GameHelp() {
   return (
     <div className="game-help">
       <p>
-        采用规则 tablemax-cn-s19-v1。2–5
+        采用规则 tablemax-cn-s19-v1。2–6
         人，每人两行三列六张牌。各自选翻一张后开始，暗牌不能默认偷看。顺时针取牌库顶或非空弃牌顶；新摸牌公开。
       </p>
       <p>

@@ -83,6 +83,7 @@ if (parentPort) {
         port: Number(process.env.TABLEMAX_PORT ?? 38473),
         dataDir: process.env.TABLEMAX_DATA_DIR,
         webDir: process.env.TABLEMAX_WEB_DIR,
+        playMode: process.env.TABLEMAX_PLAY_MODE,
       }),
     ).catch(fail);
   } catch (error) {

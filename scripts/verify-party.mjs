@@ -13,7 +13,7 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 );
 const portable = process.argv.includes('--portable');
 const output = resolve(
-  'artifacts/maintenance/phone-table-levels',
+  'artifacts/maintenance/six-player-presentation',
   portable ? 'party-portable' : 'party',
 );
 await mkdir(output, { recursive: true });
@@ -61,8 +61,8 @@ if (portable) {
   env.PATH = `${process.env.SystemRoot}\\system32;${process.env.SystemRoot}`;
 }
 const args = portable
-  ? ['--foundation-test']
-  : [resolve('build/desktop'), '--foundation-test'];
+  ? ['--foundation-test', '--tablemax-test-mode']
+  : [resolve('build/desktop'), '--foundation-test', '--tablemax-test-mode'];
 const evidence = {
   verifiedAt: new Date().toISOString(),
   scope:
@@ -222,11 +222,11 @@ try {
   evidence.checks.push(
     'Service listens on 0.0.0.0 and responds through an actual local adapter IPv4; native power blocker active',
   );
-  await host.getByText('连接帮助', { exact: true }).click();
+  await host.getByRole('button', { name: '连接帮助', exact: true }).click();
   await host.getByLabel('电脑地址').selectOption(adapter.address);
   await host.getByRole('button', { name: '刷新连接地址', exact: true }).click();
   await host.reload();
-  await host.getByText('连接帮助', { exact: true }).click();
+  await host.getByRole('button', { name: '连接帮助', exact: true }).click();
   await host.waitForFunction(
     (address) => document.querySelector('#address')?.value === address,
     adapter.address,
@@ -235,6 +235,7 @@ try {
     (await host.locator('.url').textContent()).includes(adapter.address),
   );
   await capture(desktop, host, 'network-help');
+  await host.keyboard.press('Escape');
   evidence.checks.push(
     'Adapter labels, refresh, remembered selection and QR URL use the selected local IPv4',
   );
@@ -294,8 +295,7 @@ try {
   }
   await host.waitForURL('**/host/game');
   await host.getByRole('button', { name: '菜单', exact: true }).click();
-  await host.getByText('牌桌管理', { exact: true }).click();
-  await host.getByText(/决策点回退（/).click();
+  await host.getByRole('button', { name: /^决策点回退（/ }).click();
   await host.getByLabel('筛选回退玩家').selectOption(seatId);
   assert.ok(
     (await host.locator('.rollback-history').textContent()).includes(
@@ -303,10 +303,13 @@ try {
     ),
   );
   await capture(desktop, host, 'rollback-context');
-  host.on('dialog', (dialog) => dialog.accept());
   await host
     .locator('.rollback-history')
     .getByRole('button', { name: /第 1 小局 · 第 1 步/ })
+    .click();
+  await host
+    .getByRole('dialog', { name: '确认回退', exact: true })
+    .getByRole('button', { name: '确认回退', exact: true })
     .click();
   await host.getByRole('button', { name: '关闭面板' }).click();
   await host.getByText('游戏已暂停', { exact: true }).waitFor();
@@ -316,9 +319,13 @@ try {
     '250ms/limited-bandwidth admission; actual touch selection; rollback filters and numbered player/round context, confirmation, synchronized pause',
   );
   await host.getByRole('button', { name: '菜单', exact: true }).click();
-  await host.getByText('换手机', { exact: true }).click();
+  await host.getByRole('button', { name: '换手机', exact: true }).click();
   await host
     .getByRole('button', { name: '聚会甲 · 换手机', exact: true })
+    .click();
+  await host
+    .getByRole('dialog', { name: '确认换手机', exact: true })
+    .getByRole('button', { name: '确认换手机', exact: true })
     .click();
   const bindingCode = await host.getByLabel('一次性绑定码').inputValue();
   const rebound = await openPhone(desktop, lanOrigin, 2);
@@ -328,7 +335,10 @@ try {
   await rebound
     .getByRole('button', { name: '绑定原座位', exact: true })
     .click();
-  await rebound.getByText(/尚未收到入座确认/).waitFor();
+  await rebound
+    .getByRole('dialog', { name: '换手机绑定', exact: true })
+    .getByText(/尚未收到入座确认/)
+    .waitFor();
   assert.equal((await view(origin)).seats.length, 2);
   beforeRestart = await view(origin, secondToken);
   await capture(desktop, rebound, 'binding-lost-reply');
@@ -485,7 +495,6 @@ try {
     'Second actual desktop process exits cleanly and leaves the existing service/save intact',
   );
   await host.getByRole('button', { name: '菜单', exact: true }).click();
-  await host.getByText('牌桌管理', { exact: true }).click();
   const publicReady = desktop.waitForEvent('window');
   await host
     .getByRole('link', { name: '打开公共屏', exact: true })

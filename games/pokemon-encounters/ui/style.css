@@ -92,6 +92,14 @@ button.card-slot:not(:disabled):hover {
   padding: 2px 6%;
   object-position: center;
 }
+.pokemon-card.face {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.pokemon-card.face > img {
+  height: 100%;
+  flex: none;
+}
 .card-name {
   display: block;
   background: #fff2c9;
@@ -295,18 +303,22 @@ button.card-slot:not(:disabled):hover {
   display: inline-flex;
   gap: 8px;
   align-items: center;
-  font-size: 12px;
+  font-size: 28px;
+  line-height: 1;
+  padding: 3px 8px;
+  background: #fff5d9;
 }
 .win-pips {
   display: inline-flex;
-  gap: 3px;
+  gap: 8px;
 }
 .win-pips i {
   font-style: normal;
-  color: #abb69b;
+  color: #aeb7a5;
+  text-shadow: 0 1px 0 white;
 }
 .win-pips i.earned {
-  color: #a97114;
+  color: #b87913;
   text-shadow: 0 1px 0 #ffe9a2;
 }
 .draw-pile {
@@ -473,7 +485,7 @@ button.card-slot:not(:disabled):hover {
   place-items: center;
   overflow: hidden;
   perspective: 900px;
-  animation: effect-fade 1500ms both;
+  animation: effect-fade 1200ms both;
 }
 .effect-ring {
   position: absolute;
@@ -671,5 +683,436 @@ button.card-slot:not(:disabled):hover {
   .draw-pile:not(:disabled):hover,
   button.card-slot:not(:disabled):hover {
     transform: none;
+  }
+}
+
+/* Keep the last committed action readable after its decorative motion ends. */
+.action-announcement {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #c9c6a5;
+  border-left: 5px solid #367668;
+  border-radius: 18px;
+  padding: 9px 14px;
+  background: #fffdf4f2;
+  color: #183f36;
+  min-height: 78px;
+  min-width: 0;
+}
+.action-announcement.has-ability {
+  border-left-color: #b27418;
+  background: #fff1d5f2;
+}
+.action-card-art {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  flex-shrink: 0;
+  background: #fffef7;
+  border-radius: 12px;
+}
+.action-symbol {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  font-size: 34px;
+  color: #b47b19;
+  flex-shrink: 0;
+}
+.action-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.action-kicker,
+.action-detail {
+  font-size: 14px;
+  line-height: 1.4;
+}
+.action-title {
+  font-size: clamp(18px, 1.8vw, 24px);
+  line-height: 1.3;
+}
+.action-kicker {
+  color: #526753;
+}
+.recent-actions {
+  flex-shrink: 0;
+  min-height: 44px;
+  min-width: 48px;
+  padding: 8px;
+  font-size: 14px;
+}
+.recent-action-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+}
+.recent-action-list li {
+  display: grid;
+  gap: 4px;
+  padding: 14px 0;
+  border-bottom: 1px solid #d8d4b9;
+  font-size: 16px;
+}
+.recent-action-list small {
+  font-size: 14px;
+  color: #53654f;
+}
+.card-slot.action-target:not(.selected) {
+  border-color: #378474;
+  box-shadow: 0 0 0 2px #74c5a98c;
+}
+.game-seat.last-actor .seat-heading h3::before {
+  content: '● ';
+  color: #438a70;
+  font-size: 12px;
+}
+.bot-thinking {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #835717;
+}
+.bot-thinking > span {
+  letter-spacing: 2px;
+  animation: thinking-dots 1s ease-in-out infinite alternate;
+}
+@keyframes thinking-dots {
+  to {
+    opacity: 0.35;
+  }
+}
+.game-screen .seat-heading h3 {
+  font-size: 17px;
+}
+.game-screen .seat-heading p,
+.game-screen .feedback,
+.game-screen .pokemon-status p,
+.game-screen .pile-label,
+.game-screen .pile-action,
+.game-screen .decision-hint,
+.game-screen .waiting-turn,
+.game-screen .private-peek p,
+.game-screen .submit-choice p,
+.game-screen .score-detail {
+  font-size: 14px;
+  line-height: 1.4;
+}
+.game-screen .card-name {
+  font-size: 14px;
+}
+.game-screen .submit-choice button {
+  font-size: 16px;
+}
+.game-screen .feedback:empty {
+  display: none;
+}
+.game-screen:has(.action-announcement) .feedback.saved-acknowledgement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  min-height: 0;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.game-screen .win-track {
+  font-size: 30px;
+}
+.game-screen .effect-title {
+  font-size: clamp(22px, 4vw, 38px);
+  max-width: 88vw;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .game-seats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, auto);
+  align-items: start;
+  gap: 8px 20px;
+  width: 100%;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .game-seat {
+  max-width: 460px;
+  padding: 4px 10px;
+  text-align: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 6px;
+  align-items: center;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .pokemon-board {
+  width: clamp(210px, calc((100dvh - 330px) * 0.46), 330px);
+  max-width: 100%;
+  margin: 4px auto;
+  gap: 4px;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] {
+  gap: 8px;
+  padding: 8px 16px;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .card-slot {
+  padding-bottom: 10px;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .slot-index {
+  height: 15px;
+  line-height: 15px;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .card-value {
+  font-size: 22px;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .card-heading {
+  min-height: 25px;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .card-name {
+  line-height: 1.2;
+  padding: 1px 0;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .round-banner {
+  padding: 4px 16px;
+  min-height: 56px;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .round-banner h2 {
+  font-size: 22px;
+}
+.game-screen:not(.player)
+  .game-table[data-seats='6']
+  .round-banner
+  .winner-emblem {
+  font-size: 36px;
+  line-height: 1;
+}
+.game-screen:not(.player)
+  .game-table[data-seats='6']
+  .round-banner
+  p:last-child {
+  display: none;
+}
+.score-breakdown {
+  min-height: 44px;
+  font-size: 14px;
+  padding: 6px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.game-screen:not(.player) .result-table[data-seats='6'] .game-seat {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+.game-screen:not(.player)
+  .game-table.result-table[data-seats='6']
+  .game-seat
+  > .score-detail {
+  grid-column: 3;
+  grid-row: 1;
+  padding: 0;
+  background: transparent;
+}
+.game-screen:not(.player) .result-table[data-seats='6'] .score-breakdown {
+  padding: 6px;
+  gap: 4px;
+}
+.game-screen:not(.player)
+  .result-table[data-seats='6']
+  .score-breakdown
+  strong {
+  font-size: 16px;
+  white-space: nowrap;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .seat-heading {
+  margin: 0;
+  grid-column: 1;
+  grid-row: 1;
+  justify-content: flex-start;
+}
+.game-screen:not(.player)
+  .game-table[data-seats='6']
+  .game-seat
+  > .pokemon-board,
+.game-screen:not(.player)
+  .game-table[data-seats='6']
+  .game-seat
+  > .score-detail {
+  grid-column: 1 / -1;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .seat-heading h3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 16px;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .seat-heading p {
+  display: none;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .avatar {
+  width: 32px;
+  height: 32px;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .win-track {
+  font-size: 28px;
+  background: transparent;
+  padding: 1px 4px;
+  grid-column: 2;
+  grid-row: 1;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .win-pips {
+  gap: 3px;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .score-detail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 0 6px;
+  min-height: 32px;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .score-detail p,
+.game-screen:not(.player) .game-table[data-seats='6'] .score-detail details {
+  margin: 0;
+}
+.game-screen .card-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .pokemon-card {
+  aspect-ratio: 1 / 1.27;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .pokemon-status {
+  padding: 4px 12px;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .card-piles > div {
+  width: 40px;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .pile-label {
+  white-space: nowrap;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .empty-pile {
+  aspect-ratio: 1 / 1.27;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .pokemon-status p {
+  margin: 2px 0;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .card-piles .card-name {
+  font-size: 12px;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .pokemon-status h2 {
+  font-size: 20px;
+  line-height: 1.2;
+  margin: 2px 0;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .discard-control {
+  grid-column: auto;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .action-announcement {
+  min-height: 64px;
+  padding: 6px 12px;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .action-copy {
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 12px;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .action-kicker,
+.game-screen:not(.player) .game-table[data-seats='6'] .action-title {
+  grid-row: 1;
+  align-self: center;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .action-detail {
+  grid-column: 1 / -1;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .action-card-art {
+  width: 50px;
+  height: 50px;
+}
+@media (max-width: 1000px) {
+  .game-screen:not(.player) .game-table[data-seats='6'] .game-seats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .action-copy {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .action-title {
+    grid-row: 2;
+  }
+}
+@media (max-width: 700px) {
+  .action-announcement {
+    gap: 8px;
+    padding: 8px;
+    border-radius: 14px;
+    min-height: 78px;
+  }
+  .action-card-art,
+  .action-symbol {
+    width: 42px;
+    height: 48px;
+  }
+  .action-title {
+    font-size: 17px;
+  }
+  .action-kicker,
+  .action-detail {
+    font-size: 14px;
+  }
+  .game-screen .pokemon-status h2 {
+    font-size: 18px;
+  }
+  .game-screen .game-toolbar button,
+  .game-screen .game-toolbar .button {
+    font-size: 14px;
+  }
+  .game-screen.player .pokemon-player > .pokemon-board,
+  .game-screen.player .game-seat > .pokemon-board,
+  .game-screen.player .target-board .pokemon-board {
+    max-width: min(100%, max(230px, calc((100dvh - 430px) * 0.95)));
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .game-seats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .card-name {
+    font-size: 12px;
+  }
+}
+@media (orientation: landscape) and (max-height: 550px) and (min-width: 560px) {
+  .game-screen.player .action-announcement {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .game-screen.player .pokemon-status {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .game-screen.player .game-seats {
+    grid-row: 1 / span 4;
+  }
+  .game-screen.player .action-card-art {
+    width: 34px;
+    height: 40px;
+  }
+  .game-screen.player .pokemon-board {
+    max-width: 230px;
+  }
+}
+[data-play-mode='test'] *,
+[data-play-mode='test'] *::before,
+[data-play-mode='test'] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bot-thinking > span {
+    animation: none;
   }
 }

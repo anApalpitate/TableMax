@@ -21,7 +21,7 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/game-ui-')),
   output = resolve(
-    'artifacts/maintenance/phone-table-levels/ui',
+    'artifacts/maintenance/six-player-presentation/ui',
     ...(only
       ? [evidenceName ?? (verifyDeal ? 'round-deal' : 'additional')]
       : []),
@@ -41,7 +41,7 @@ await build({
 });
 const { prepare } = require(join(work, 'prepare.cjs'));
 const scenes = [
-  ...[2, 3, 4, 5].map((count) => ({
+  ...[2, 3, 4, 5, 6].map((count) => ({
     id: `L${count}`,
     fixture: 'layout',
     count,
@@ -172,7 +172,11 @@ for (const scene of selectedScenes) {
   delete env.TABLEMAX_WEB_DEV_URL;
   const desktop = await _electron.launch({
     executablePath: require('electron'),
-    args: [resolve('build/desktop'), '--foundation-test'],
+    args: [
+      resolve('build/desktop'),
+      '--foundation-test',
+      '--tablemax-test-mode',
+    ],
     env,
     timeout: 30000,
   });
@@ -303,6 +307,9 @@ for (const scene of selectedScenes) {
       );
       assert.equal(reply.ok, true);
     };
+    // Explicit production presentation exercises real animation/audio while
+    // the remaining harnesses use test mode for fast Worker games.
+    await send({ type: 'set-play-mode', mode: 'play' });
     await send({ type: 'resume' });
     await publicPage
       .getByRole('button', { name: '开启本屏提示音', exact: true })
@@ -344,12 +351,12 @@ for (const scene of selectedScenes) {
       screenshots: [],
       soundCalls: 0,
       animations: 0,
+      presentedActions: [],
       decodedAudio,
       narrowOverflow: false,
     };
     const capture = async (page, name) => {
       await page.evaluate(() => {
-        document.activeElement?.blur();
         scrollTo(0, 0);
       });
       await page.evaluate(
@@ -483,6 +490,69 @@ for (const scene of selectedScenes) {
       );
       const after = await fetchView(players[index].token);
       assert.equal(after.revision, before.revision + 1);
+      const latest = after.gameView.events.at(-1)?.action;
+      assert.ok(
+        latest,
+        `${scene.id}: every saved choice has public action metadata`,
+      );
+      const announcement = publicPage.locator('.action-announcement');
+      await publicPage.waitForFunction((action) => {
+        const announcement = document.querySelector('.action-announcement');
+        return (
+          announcement?.dataset.verb === action.verb &&
+          announcement.dataset.actor === (action.actor ?? '')
+        );
+      }, latest);
+      assert.equal(
+        await announcement.getAttribute('data-actor'),
+        latest.actor ?? '',
+      );
+      if (latest.actor) {
+        const name = after.seats.find((seat) => seat.id === latest.actor).name;
+        assert.ok(
+          (await announcement.locator('.action-kicker').textContent()).includes(
+            name,
+          ),
+        );
+      }
+      assert.ok(
+        (await announcement.locator('.action-title').textContent()).trim()
+          .length >= 3,
+      );
+      const detail = await announcement.locator('.action-detail').textContent();
+      for (const target of ['peek', 'close-peek'].includes(latest.verb)
+        ? []
+        : latest.targets) {
+        const name = after.seats.find((seat) => seat.id === target.seat).name;
+        assert.ok(
+          detail.includes(name),
+          `${scene.id}: saved target nickname is shown`,
+        );
+        for (const slot of target.slots)
+          assert.ok(
+            detail.includes(String(slot + 1)),
+            `${scene.id}: target position uses one-based numbering`,
+          );
+      }
+      if (['peek', 'close-peek'].includes(latest.verb)) {
+        assert.equal(latest.cardCategory, 'special-charizard');
+        assert.ok(latest.targets.every((target) => target.slots.length === 0));
+        assert.equal(
+          await publicPage.locator('.card-slot.action-target').count(),
+          0,
+        );
+        assert.equal(
+          detail.includes('号位'),
+          false,
+          'Public private-peek notice never identifies the hidden slot',
+        );
+      }
+      assert.equal(JSON.stringify(latest).includes('#'), false);
+      item.presentedActions.push({
+        ...latest,
+        title: await announcement.locator('.action-title').textContent(),
+        detail,
+      });
       if (!before.gameView.roundResult && after.gameView.roundResult) {
         await publicPage
           .locator('.result-effects')
@@ -526,6 +596,19 @@ for (const scene of selectedScenes) {
     await capture(publicPage, `${scene.id}-public.png`);
     await capture(phones[0], `${scene.id}-360.png`);
     await capture(phones[1], `${scene.id}-390.png`);
+    await publicPage.locator('.recent-actions').click();
+    const actionHistory = publicPage.locator(
+      'dialog.action-history-panel[open]',
+    );
+    await actionHistory.waitFor();
+    assert.ok(
+      (await actionHistory.locator('.recent-action-list li').count()) > 0,
+    );
+    assert.ok(
+      (await actionHistory.locator('.recent-action-list li').count()) <= 30,
+    );
+    await capture(publicPage, `${scene.id}-recent-actions.png`);
+    await publicPage.keyboard.press('Escape');
     const publicView = await fetchView();
     if (
       !publicView.gameView.roundResult &&
@@ -601,6 +684,7 @@ for (const scene of selectedScenes) {
         const metrics = await publicPage.evaluate(() => ({
           width: innerWidth,
           height: innerHeight,
+          documentHeight: document.documentElement.scrollHeight,
           overflow: document.documentElement.scrollWidth > innerWidth,
           boardCount: document.querySelectorAll('.game-seats .pokemon-board')
             .length,
@@ -609,6 +693,7 @@ for (const scene of selectedScenes) {
           ].map((card) => ({
             width: card.getBoundingClientRect().width,
             height: card.getBoundingClientRect().height,
+            bottom: card.getBoundingClientRect().bottom,
           })),
         }));
         assert.equal(metrics.overflow, false);
@@ -619,6 +704,13 @@ for (const scene of selectedScenes) {
         );
         await capture(publicPage, `${scene.id}-${width}x${height}.png`);
         item.layouts.push(metrics);
+        if (scene.count === 6 && [1080, 1366].includes(width)) {
+          assert.ok(
+            metrics.documentHeight <= height + 1 &&
+              metrics.cards.every((card) => card.bottom <= height + 1),
+            `Six-player play ${width}x${height}: all boards fit without page scrolling`,
+          );
+        }
       }
       const phoneWindow = await desktop.browserWindow(phones[0]);
       for (const [width, height] of [

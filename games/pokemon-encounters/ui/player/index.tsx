@@ -3,6 +3,7 @@ import type { JsonValue } from '@tablemax/game-sdk';
 import type { Action } from '../../rules';
 import type { PokemonView } from '../../rules/project';
 import { Board, CardFace } from '../cards';
+import { WinTrack } from '../WinTrack';
 
 export function PlayerControls({
   view,
@@ -85,16 +86,7 @@ export function PlayerControls({
                   : '下一局';
   return (
     <div className="pokemon-player">
-      <span className="tag win-track">
-        <span className="win-pips" aria-hidden="true">
-          {[0, 1, 2].map((i) => (
-            <i key={i} className={i < view.winsBySeat[seatId]! ? 'earned' : ''}>
-              ✦
-            </i>
-          ))}
-        </span>
-        {view.winsBySeat[seatId]} / 3 胜
-      </span>
+      <WinTrack wins={view.winsBySeat[seatId]!} />
       <p className="decision-hint">
         {view.phase === 'draw'
           ? '点上方牌堆，取一张新牌。'

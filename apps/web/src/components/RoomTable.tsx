@@ -28,7 +28,7 @@ export function RoomTable({
   return (
     <div
       className="room-table"
-      data-capacity={capacity}
+      data-capacity={Math.min(6, capacity)}
       role="group"
       aria-label="牌桌座位"
     >
@@ -53,7 +53,7 @@ export function RoomTable({
           <i />
         </div>
       </div>
-      {Array.from({ length: capacity }, (_, index) => {
+      {Array.from({ length: Math.min(6, capacity) }, (_, index) => {
         const seat = seats[index];
         const isSelf = Boolean(seat && seat.id === selfId);
         return (

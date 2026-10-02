@@ -42,7 +42,13 @@ export async function createService(
   try {
     repository = new SqliteSaveRepository(config.dataDir);
     try {
-      room = new RoomCoordinator(game.rules, game.bot, repository);
+      room = new RoomCoordinator(
+        game.rules,
+        game.bot,
+        repository,
+        undefined,
+        config.playMode,
+      );
     } catch (error) {
       repository.close();
       throw error;
@@ -53,7 +59,7 @@ export async function createService(
   }
   const scheduler = new BotScheduler(
     room,
-    350,
+    undefined,
     2_000,
     config.botWorkerPath
       ? new WorkerBotExecutor(config.botWorkerPath)
@@ -69,7 +75,7 @@ export async function createService(
   const health = HealthSchema.parse({
     status: 'ready',
     phase: 'platform-foundation',
-    protocolVersion: 4,
+    protocolVersion: 5,
     database: 'ok',
     starts: storage.starts,
     runtime: {

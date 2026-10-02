@@ -1,5 +1,5 @@
 import type { JsonValue, BotDifficulty } from '@tablemax/game-sdk';
-import type { CommandReply } from '@tablemax/protocol';
+import type { CommandReply, PlayMode } from '@tablemax/protocol';
 
 export interface Seat {
   id: string;
@@ -50,6 +50,7 @@ export interface Save {
   status: 'lobby' | 'playing' | 'ended';
   paused: boolean;
   joinOpen: boolean;
+  playMode?: PlayMode;
   seats: Seat[];
   hostSeat?: string | null;
   snapshot: Snapshot | null;

@@ -110,11 +110,13 @@ export function useRoomSession(role: ScreenRole) {
       if (parsed.success) {
         const next = parsed.data,
           previous = synced.current;
-        if (previous?.revision !== next.revision) setMotion([]);
+        if (previous?.revision !== next.revision || next.playMode === 'test')
+          setMotion([]);
         changedSlots.current = [];
         if (
           previous?.gameView &&
           next.gameView &&
+          next.playMode === 'play' &&
           previous.instanceId === next.instanceId &&
           previous.branch === next.branch
         ) {
@@ -158,9 +160,10 @@ export function useRoomSession(role: ScreenRole) {
         return;
       lastFeedback.current = key;
       setFeedback(item);
-      setMotion(changedSlots.current);
+      setMotion(current.playMode === 'test' ? [] : changedSlots.current);
       if (motionTimer.current) clearTimeout(motionTimer.current);
-      motionTimer.current = setTimeout(() => setMotion([]), SAVED_MOTION_MS);
+      if (current.playMode === 'play')
+        motionTimer.current = setTimeout(() => setMotion([]), SAVED_MOTION_MS);
     });
     const revoked = () => {
       setConnected(false);

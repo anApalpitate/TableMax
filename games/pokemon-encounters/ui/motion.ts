@@ -1,8 +1,9 @@
 import { createContext } from 'react';
 import type { PokemonView } from '../rules/project';
 export const SavedMotion = createContext<readonly string[]>([]);
+export const ActionTargets = createContext<readonly string[]>([]);
 
-export const SAVED_MOTION_MS = 1600;
+export const SAVED_MOTION_MS = 1200;
 
 /** Compare only the viewer's authorized projection. Sync/rollback never calls this for presentation. */
 export function savedChanges(

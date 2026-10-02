@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const HealthSchema = z.object({
   status: z.literal('ready'),
   phase: z.literal('platform-foundation'),
-  protocolVersion: z.literal(4),
+  protocolVersion: z.literal(5),
   database: z.literal('ok'),
   starts: z.number().int().positive(),
   runtime: z.object({
@@ -24,12 +24,15 @@ export const EchoReplySchema = z.discriminatedUnion('ok', [
 ]);
 export type EchoReply = z.infer<typeof EchoReplySchema>;
 
+export const PlayModeSchema = z.enum(['play', 'test']);
+export type PlayMode = z.infer<typeof PlayModeSchema>;
 export const ServiceConfigSchema = z.object({
   host: z.string().min(1),
   port: z.number().int().min(0).max(65535),
   dataDir: z.string().min(1),
   webDir: z.string().min(1),
   botWorkerPath: z.string().min(1).optional(),
+  playMode: PlayModeSchema.optional(),
 });
 export type ServiceConfig = z.infer<typeof ServiceConfigSchema>;
 export const ServiceReadySchema = z.object({
@@ -49,6 +52,9 @@ export const CommandSchema = z
     revision: z.number().int().nonnegative(),
     branch: z.number().int().nonnegative(),
     command: z.discriminatedUnion('type', [
+      z
+        .object({ type: z.literal('set-play-mode'), mode: PlayModeSchema })
+        .strict(),
       z.object({ type: z.literal('join-open'), open: z.boolean() }).strict(),
       z.object({ type: z.literal('ready'), ready: z.boolean() }).strict(),
       z
@@ -136,6 +142,40 @@ export const NetworkSchema = z.object({
 export const SessionSchema = z
   .object({ token: CredentialSchema.optional() })
   .strict();
+export const PublicActionSchema = z
+  .object({
+    actor: z.string().nullable(),
+    verb: z.enum([
+      'initial-flip',
+      'draw',
+      'replace',
+      'discard',
+      'mew-target',
+      'rocket-refill',
+      'zapdos-pass',
+      'swap',
+      'peek',
+      'close-peek',
+      'decline',
+      'deal',
+      'round-result',
+    ]),
+    cardCategory: z.string().nullable(),
+    ability: z.string().nullable(),
+    source: z.enum(['deck', 'discard']).optional(),
+    targets: z
+      .array(
+        z
+          .object({
+            seat: z.string(),
+            slots: z.array(z.number().int().min(0).max(5)).max(6),
+          })
+          .strict(),
+      )
+      .max(6),
+  })
+  .strict();
+export type PublicAction = z.infer<typeof PublicActionSchema>;
 export const RoomFeedbackSchema = z
   .object({
     instanceId: z.string().uuid(),
@@ -152,6 +192,7 @@ export const RoomFeedbackSchema = z
               'round-result',
             ]),
             text: z.string().max(100),
+            action: PublicActionSchema.optional(),
           })
           .strict(),
       )
@@ -168,6 +209,7 @@ export interface RoomView {
   paused: boolean;
   restored: boolean;
   joinOpen: boolean;
+  playMode: PlayMode;
   game: { id: string; name: string; min: number; max: number };
   seats: {
     id: string;
@@ -206,6 +248,7 @@ export const RoomViewSchema = z
     paused: z.boolean(),
     restored: z.boolean(),
     joinOpen: z.boolean(),
+    playMode: PlayModeSchema,
     game: z
       .object({
         id: z.string(),

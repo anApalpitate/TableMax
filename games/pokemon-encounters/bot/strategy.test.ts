@@ -498,12 +498,12 @@ describe('Authorized observations and serializable memory', () => {
   });
 });
 
-it('all three levels finish fixed-seed 2–5-player three-win matches with legal authorized choices', async () => {
+it('all three levels finish fixed-seed 2–6-player three-win matches with legal authorized choices', async () => {
   const covered = new Map<BotDifficulty, Set<string>>();
   for (const difficulty of ['default', 'doubao', 'juewu'] as const) {
     const phases = new Set<string>();
     covered.set(difficulty, phases);
-    for (let count = 2; count <= 5; count++) {
+    for (let count = 2; count <= 6; count++) {
       const seats = Array.from(
         { length: count },
         (_, index) => `S${index + 1}`,
@@ -573,7 +573,7 @@ it('all three levels finish fixed-seed 2–5-player three-win matches with legal
       expect(phases.has(phase), `${difficulty}/${phase}`).toBe(true);
 }, 120_000);
 
-it('finishes five-seat ability analysis inside an isolated 32 MiB Worker and the two-second budget', async () => {
+it('finishes six-seat ability analysis inside an isolated 32 MiB Worker and the two-second budget', async () => {
   const bundle = await build({
     entryPoints: ['games/pokemon-encounters/bot/index.ts'],
     bundle: true,
@@ -582,7 +582,7 @@ it('finishes five-seat ability analysis inside an isolated 32 MiB Worker and the
     format: 'cjs',
     target: 'node22',
   });
-  const seats = ['S1', 'S2', 'S3', 'S4', 'S5'];
+  const seats = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
   const random = new RandomSource(77);
   let state = rules.initialize({ seats, random }) as State;
   for (const seat of seats)
@@ -591,9 +591,14 @@ it('finishes five-seat ability analysis inside an isolated 32 MiB Worker and the
       random,
     }).state as State;
   state.turnSeat = 'S1';
-  const index = state.deck.findIndex(
-    (id) => id.split('#')[0] === 'special-mew',
-  );
+  let index = state.deck.findIndex((id) => id.split('#')[0] === 'special-mew');
+  if (index < 0) {
+    const board = Object.values(state.boards)
+      .flat()
+      .find((slot) => slot.instanceId.split('#')[0] === 'special-mew')!;
+    [state.deck[0], board.instanceId] = [board.instanceId, state.deck[0]!];
+    index = 0;
+  }
   expect(index).toBeGreaterThanOrEqual(0);
   state.discard = [state.deck.splice(index, 1)[0]!];
   const cases = [state];
@@ -602,6 +607,7 @@ it('finishes five-seat ability analysis inside an isolated 32 MiB Worker and the
     random,
   }).state as State;
   cases.push(drawn);
+  expect(rules.legalActions(drawn, 'S1')).toHaveLength(30);
   const metrics: { phase: string; milliseconds: number; heapMiB: number }[] =
     [];
   for (const current of cases) {
@@ -653,7 +659,7 @@ it('finishes five-seat ability analysis inside an isolated 32 MiB Worker and the
     });
   }
   console.info(
-    'Authorized five-seat Worker evaluation:',
+    'Authorized six-seat Worker evaluation:',
     JSON.stringify(metrics),
   );
 }, 10_000);

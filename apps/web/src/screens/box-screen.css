@@ -32,6 +32,30 @@
 .box-screen .hero .eyebrow {
   display: none;
 }
+.box-screen .hero > div {
+  min-width: 0;
+  flex: 1;
+}
+.box-screen .box-info-control {
+  width: 46px;
+  min-width: 46px;
+  height: 46px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid #d7decd;
+  flex-shrink: 0;
+}
+.box-screen .room-heading__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.box-screen .room-heading__actions button {
+  min-height: 44px;
+  font-size: 15px;
+  padding: 8px 12px;
+}
 .box-screen .grid,
 .box-screen.public .grid {
   grid-template-columns: minmax(0, 1fr) 286px;
@@ -144,12 +168,42 @@
   white-space: nowrap;
   background: #dee8d5;
 }
+.box-screen .bot-invite .bot-info-control {
+  padding: 0;
+  width: 44px;
+  min-width: 44px;
+  min-height: 46px;
+  font-size: 23px;
+  margin: 0;
+}
+.box-screen .bot-invite > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.box-screen .bot-invite label {
+  white-space: nowrap;
+  margin: 0;
+}
+.box-screen .bot-invite select {
+  width: auto;
+  min-width: 72px;
+  flex: 1;
+}
+.box-screen .bot-invite {
+  grid-template-columns: minmax(190px, 260px) max-content;
+  justify-content: start;
+}
 .box-screen .lobby-status-text {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 4px 12px;
   margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #3e5d51;
+  margin-bottom: 0;
 }
 .box-screen .lobby-status-text p {
   margin: 0;
@@ -335,7 +389,7 @@
     gap: 10px;
   }
   .box-screen .bot-invite {
-    grid-template-columns: minmax(140px, 220px) max-content;
+    grid-template-columns: minmax(190px, 260px) max-content;
     justify-content: start;
     gap: 10px;
   }
@@ -362,6 +416,8 @@
   .box-screen .lobby-status-text {
     margin-top: 6px;
     gap: 4px 10px;
+    font-size: 14px;
+    line-height: 1.4;
   }
   .box-screen .lobby-status-text p {
     font-size: 12px;
@@ -432,7 +488,7 @@
   }
   .box-screen .room-heading p,
   .box-screen .room-status {
-    font-size: 11px;
+    font-size: 13px;
   }
   .box-screen .room-heading {
     gap: 8px;
@@ -459,7 +515,18 @@
     gap: 10px;
   }
   .box-screen .bot-invite {
-    grid-template-columns: minmax(90px, 1fr) auto;
+    grid-template-columns: 1fr;
+  }
+  .box-screen .header-status {
+    max-width: 175px;
+    gap: 4px;
+  }
+  .box-screen .test-mode-badge {
+    min-height: 25px;
+    font-size: 12px;
+  }
+  .box-screen .hero {
+    gap: 10px;
   }
   .box-screen .continue-game {
     padding: 14px;

@@ -14,7 +14,7 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 );
 const portable = process.argv.includes('--portable');
 const output = resolve(
-  'artifacts/maintenance/phone-table-levels',
+  'artifacts/maintenance/six-player-presentation',
   portable ? 'room-portable' : 'room',
 );
 await mkdir(output, { recursive: true });
@@ -74,8 +74,8 @@ delete env.NODE_PATH;
 if (portable)
   env.PATH = `${process.env.SystemRoot}\\system32;${process.env.SystemRoot}`;
 const args = portable
-  ? ['--foundation-test']
-  : [resolve('build/desktop'), '--foundation-test'];
+  ? ['--foundation-test', '--tablemax-test-mode']
+  : [resolve('build/desktop'), '--foundation-test', '--tablemax-test-mode'];
 const evidence = {
   verifiedAt: new Date().toISOString(),
   scope:
@@ -325,10 +325,10 @@ async function tableGeometry(page, label) {
     geometry.felt?.width > 100 && geometry.felt?.height > 100,
     `${label}: a visible tabletop is surrounded by the seats`,
   );
-  assert.equal(geometry.seats.length, 5, `${label}: five physical places`);
+  assert.equal(geometry.seats.length, 6, `${label}: six physical places`);
   assert.deepEqual(
     geometry.seats.map((seat) => seat.position).sort(),
-    ['1', '2', '3', '4', '5'],
+    ['1', '2', '3', '4', '5', '6'],
     `${label}: every table position exists exactly once`,
   );
   assert.equal(
@@ -359,7 +359,7 @@ async function tableGeometry(page, label) {
     if (!label.startsWith('phone'))
       assert.ok(
         seat.rect.top >= 0 && seat.rect.bottom <= geometry.viewport.height,
-        `${label}: all five seats and their ready status fit the first screen`,
+        `${label}: all six seats and their ready status fit the first screen`,
       );
     for (const inner of [seat.nameRect, seat.readyRect])
       if (inner)
@@ -492,7 +492,7 @@ try {
     adapter,
     'Invite verification requires an actual LAN adapter address',
   );
-  await host.getByText('连接帮助', { exact: true }).click();
+  await host.getByRole('button', { name: '连接帮助', exact: true }).click();
   await host.getByLabel('电脑地址').selectOption(adapter.address);
   phoneUrl = (await host.locator('.url').textContent()).trim();
   assert.equal(new URL(phoneUrl).hostname, adapter.address);
@@ -501,15 +501,16 @@ try {
     (await fetch(`${new URL(phoneUrl).origin}/api/foundation/health`)).status,
     200,
   );
-  await host.getByText('连接帮助', { exact: true }).click();
+  await host.keyboard.press('Escape');
   observe(host);
   const health = await (await fetch(`${origin}/api/foundation/health`)).json();
-  assert.equal(health.protocolVersion, 4);
+  assert.equal(health.protocolVersion, 5);
   assert.equal(await desktop.evaluate(({ app }) => app.isPackaged), portable);
   const hostToken = await host.evaluate(() =>
     sessionStorage.getItem('tablemax-host'),
   );
   const hostSocket = await connect(hostToken);
+  assert.equal((await view(hostToken)).playMode, 'test');
   assert.deepEqual((await view(hostToken)).self, {
     role: 'host',
     seatId: null,
@@ -518,17 +519,23 @@ try {
   assert.equal((await view(hostToken)).seats.length, 0);
   assert.equal(await host.getByLabel('你的昵称').count(), 0);
   await capture(host, 'empty-host-table', 1080, 800);
-  assert.equal(await host.locator('.room-table__seat--empty').count(), 5);
+  assert.equal(await host.locator('.room-table__seat--empty').count(), 6);
   evidence.checks.push(
-    'Computer host is administrator only, occupies no seat, offers no join form, and displays five empty physical table places',
+    'Computer host is administrator only, occupies no seat, offers no join form, and displays six empty physical table places',
   );
 
-  const phones = [await openPhone(0), await openPhone(1)];
+  const phones = [await openPhone(0), await openPhone(1), await openPhone(2)];
   for (let i = 0; i < phones.length; i++) {
     const page = phones[i];
     await page
       .getByLabel('你的昵称')
-      .fill(i ? '手机乙昵称超过一行也要保留清晰座位与准备状态' : '手机甲');
+      .fill(
+        i === 1
+          ? '手机乙昵称超过一行也要保留清晰座位与准备状态'
+          : i === 2
+            ? '手机丙'
+            : '手机甲',
+      );
     if (i === 0) {
       await capture(page, 'phone-first-screen-join-360', 360, 640, true);
       await firstScreenControls(
@@ -573,9 +580,9 @@ try {
     );
   }
   assert.notEqual(tokens[0], tokens[1]);
-  assert.equal((await view(hostToken)).seats.length, 2);
+  assert.equal((await view(hostToken)).seats.length, 3);
   evidence.checks.push(
-    'Two independent phone browser partitions follow the selected invite URL, join separate human seats, and each sees its own seat highlighted with no administrator controls; nickname, join and ready controls fit the first 360x640 screen with uncovered 44px touch targets',
+    'Three independent phone browser partitions follow the selected invite URL, join separate human seats, and each sees its own seat highlighted with no administrator controls; nickname, join and ready controls fit the first 360x640 screen with uncovered 44px touch targets',
   );
 
   for (const difficulty of ['default', 'doubao', 'juewu']) {
@@ -596,7 +603,7 @@ try {
       .map((s) => s.botDifficulty),
     ['default', 'doubao', 'juewu'],
   );
-  assert.equal(full.seats.length, 5);
+  assert.equal(full.seats.length, 6);
   const bots = full.seats.filter((s) => s.controller === 'bot');
   await host.locator('.room-table__difficulty').nth(2).waitFor();
   assert.equal(await host.locator('.room-table__difficulty').count(), 3);
@@ -610,7 +617,7 @@ try {
   const managed = host.locator(
     `.seat-manager__row[data-seat-id="${bots[0].id}"]`,
   );
-  await host.getByText('座位设置', { exact: true }).click();
+  await host.getByRole('button', { name: '座位设置', exact: true }).click();
   await managed.locator('select').selectOption('juewu');
   await until(
     async () =>
@@ -625,7 +632,7 @@ try {
         .botDifficulty === 'default',
     'Difficulty can return to default',
   );
-  await host.getByText('座位设置', { exact: true }).click();
+  await host.keyboard.press('Escape');
   const humanSocket = await connect(tokens[0]);
   const publicSocket = await connect(undefined);
   await command(
@@ -683,7 +690,7 @@ try {
     await tableGeometry(phones[0], `phone ${width}x${height}`);
   }
   await capture(phones[0], 'phone-table-ready', 390, 844, true);
-  await host.locator('.management > summary').click();
+  await host.getByRole('button', { name: '牌桌管理', exact: true }).click();
   const publicReady = desktop.waitForEvent('window');
   await host
     .getByRole('link', { name: '打开公共屏', exact: true })
@@ -752,7 +759,7 @@ try {
     await mobile.locator('.confirm-action').click();
   }
   await until(
-    async () => (await view(hostToken)).gameView.initialDone.length === 5,
+    async () => (await view(hostToken)).gameView.initialDone.length === 6,
     'All real Workers complete their initial flip',
   );
   await capture(host, 'host-public-information', 1366, 768);
@@ -835,7 +842,7 @@ try {
       `${seat.botDifficulty} Worker saved a legal decision`,
     );
   assert.ok(final.gameView.roundResult.winners.length);
-  assert.equal(final.seats.length, 5);
+  assert.equal(final.seats.length, 6);
   evidence.rounds.push({
     roundNumber: final.gameView.roundNumber,
     driverActions,
@@ -848,11 +855,10 @@ try {
   await capture(host, 'mixed-level-round-result', 1366, 768);
   await capture(phones[0], 'phone-round-result', 360, 640, true);
   evidence.checks.push(
-    `Actual five-seat mixed-level Worker round completes naturally with ${driverActions} legal phone-driver choices, all three bot identities in saved history, public result and no bot error`,
+    `Actual six-seat mixed-level Worker round completes naturally with ${driverActions} legal phone-driver choices, all three bot identities in saved history, public result and no bot error`,
   );
   await command(hostSocket, hostToken, { type: 'end' });
   await host.getByRole('button', { name: '菜单', exact: true }).click();
-  await host.getByText('牌桌管理', { exact: true }).click();
   await host
     .getByRole('button', { name: '原班人马再开一局', exact: true })
     .click();
@@ -914,7 +920,7 @@ try {
     })),
   );
   assert.deepEqual(restored.self, { role: 'host', seatId: null });
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < 3; i++) {
     const phone = await openPhone(i);
     await phone
       .getByRole('button', { name: '我准备好了', exact: true })
@@ -942,7 +948,7 @@ try {
   assert.deepEqual(evidence.pageErrors, []);
   assert.deepEqual(evidence.externalRequests, []);
   evidence.checks.push(
-    'Seven actual table viewport layouts have five non-overlapping seats, no horizontal clipping or covered visible controls; all captured native windows remain hidden and all resources are local',
+    'Seven actual table viewport layouts have six non-overlapping seats, no horizontal clipping or covered visible controls; all captured native windows remain hidden and all resources are local',
   );
   evidence.result = 'passed';
 } catch (error) {

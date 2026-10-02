@@ -2,7 +2,7 @@
   --seat-width: 158px;
   position: relative;
   isolation: isolate;
-  min-height: 490px;
+  min-height: 500px;
   width: 100%;
   max-width: 980px;
   margin: auto;
@@ -31,8 +31,8 @@
   justify-content: center;
   left: 13%;
   right: 13%;
-  top: 124px;
-  height: 264px;
+  top: 110px;
+  height: 282px;
   border: 15px solid #d4ad73;
   border-radius: 48%;
   background: radial-gradient(
@@ -106,7 +106,7 @@
 .room-table__seat {
   position: absolute;
   width: var(--seat-width);
-  height: 150px;
+  height: 166px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -122,23 +122,27 @@
 }
 .room-table__seat--1 {
   top: 14px;
-  left: calc(50% - var(--seat-width) / 2);
+  left: calc(18% - var(--seat-width) / 2);
 }
 .room-table__seat--2 {
-  top: 166px;
-  left: 14px;
+  top: 14px;
+  left: calc(50% - var(--seat-width) / 2);
 }
 .room-table__seat--3 {
-  top: 166px;
-  right: 14px;
+  top: 14px;
+  right: calc(18% - var(--seat-width) / 2);
 }
 .room-table__seat--4 {
   bottom: 18px;
-  left: calc(30% - var(--seat-width) / 2);
+  left: calc(18% - var(--seat-width) / 2);
 }
 .room-table__seat--5 {
   bottom: 18px;
-  right: calc(30% - var(--seat-width) / 2);
+  left: calc(50% - var(--seat-width) / 2);
+}
+.room-table__seat--6 {
+  bottom: 18px;
+  right: calc(18% - var(--seat-width) / 2);
 }
 .room-table__seat--self {
   border-color: #dcac42;
@@ -168,7 +172,7 @@
   filter: drop-shadow(0 2px 1px #75806216);
 }
 .room-table__name {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.3;
   font-weight: 650;
   margin: 4px 0 3px;
@@ -185,7 +189,7 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: 13px;
   margin-top: auto;
   line-height: 1.5;
 }
@@ -215,7 +219,7 @@
   margin-top: 5px;
   padding: 1px 8px;
   line-height: 1.5;
-  font-size: 11px;
+  font-size: 13px;
   color: #546751;
   background: #edf0e7;
   border-radius: 10px;
@@ -282,10 +286,6 @@
     height: 176px;
     padding: 10px 14px;
   }
-  .public .room-table__seat--2,
-  .public .room-table__seat--3 {
-    top: 205px;
-  }
   .public .room-table__avatar {
     width: 52px;
     height: 52px;
@@ -318,42 +318,45 @@
     border-width: 12px;
   }
   .room-table__seat {
-    height: 134px;
+    height: 140px;
     padding: 6px 10px;
     border-radius: 17px;
   }
-  .room-table__seat--1 {
-    top: 10px;
-  }
+  .room-table__seat--1,
   .room-table__seat--2,
   .room-table__seat--3 {
-    top: 148px;
+    top: 8px;
   }
   .room-table__seat--4,
-  .room-table__seat--5 {
+  .room-table__seat--5,
+  .room-table__seat--6 {
     bottom: 12px;
   }
   .room-table__avatar {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
   }
   .room-table__name {
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.25;
     margin: 3px 0;
+  }
+  .room-table__identity,
+  .room-table__ready {
+    font-size: 12px;
   }
 }
 @media (max-width: 600px) {
   .room-table {
-    --seat-width: clamp(94px, 28vw, 136px);
-    min-height: 418px;
+    --seat-width: clamp(112px, 31vw, 136px);
+    min-height: 472px;
     border-radius: 16px;
   }
   .room-table__felt {
     left: 10%;
     right: 10%;
-    top: 119px;
-    height: 220px;
+    top: 129px;
+    height: 235px;
     border-width: 10px;
     padding: 18px 4px 32px;
     box-shadow:
@@ -364,8 +367,8 @@
       inset 0 6px 10px #164a3b44;
   }
   .room-table__felt strong {
-    font-size: 13px;
-    max-width: 110px;
+    font-size: 14px;
+    max-width: 72px;
   }
   .room-table__logo {
     width: 29px;
@@ -374,8 +377,8 @@
     border-radius: 9px;
   }
   .room-table__table-label {
-    max-width: 90px;
-    font-size: 9px;
+    max-width: 72px;
+    font-size: 10px;
     line-height: 1.4;
   }
   .room-table__cards {
@@ -387,43 +390,50 @@
     border-width: 2px;
   }
   .room-table__seat {
-    height: 124px;
+    height: 140px;
     padding: 6px 5px 7px;
     border-radius: 15px;
   }
   .room-table__seat--1 {
     top: 10px;
-  }
-  .room-table__seat--2,
-  .room-table__seat--3 {
-    top: 146px;
+    left: calc(27% - var(--seat-width) / 2);
   }
   .room-table__seat--2 {
-    left: 5px;
+    top: 10px;
+    left: auto;
+    right: calc(27% - var(--seat-width) / 2);
   }
   .room-table__seat--3 {
-    right: 5px;
+    top: 164px;
+    right: auto;
+    left: 5px;
   }
   .room-table__seat--4 {
-    left: calc(27% - var(--seat-width) / 2);
-    bottom: 15px;
+    top: 164px;
+    bottom: auto;
+    left: auto;
+    right: 5px;
   }
   .room-table__seat--5 {
+    left: calc(27% - var(--seat-width) / 2);
+    bottom: 14px;
+  }
+  .room-table__seat--6 {
     right: calc(27% - var(--seat-width) / 2);
-    bottom: 15px;
+    bottom: 14px;
   }
   .room-table__avatar {
     width: 32px;
     height: 32px;
   }
   .room-table__name {
-    font-size: 12px;
+    font-size: 14px;
     margin: 3px 0;
     min-height: 16px;
   }
   .room-table__identity,
   .room-table__ready {
-    font-size: 10px;
+    font-size: 12px;
   }
   .room-table__seat-number {
     width: 16px;
@@ -433,10 +443,10 @@
     left: 6px;
   }
   .room-table__seat--empty h3 {
-    font-size: 12px;
+    font-size: 14px;
   }
   .room-table__seat--empty p {
-    font-size: 9px;
+    font-size: 12px;
   }
   .room-table__empty-avatar {
     transform: scale(0.85);

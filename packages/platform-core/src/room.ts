@@ -11,6 +11,7 @@ import {
   type CommandReply,
   type RoomView,
   type RoomFeedback,
+  type PlayMode,
 } from '@tablemax/protocol';
 import type { Save, SaveRepository } from './model';
 import { validateSave } from './save-validation';
@@ -36,6 +37,7 @@ export class RoomCoordinator {
     readonly strategy: BotStrategy,
     private repository: SaveRepository,
     hostToken = token(),
+    initialPlayMode?: PlayMode,
   ) {
     this.hostToken = hostToken;
     requireThat(
@@ -46,14 +48,32 @@ export class RoomCoordinator {
     const saved = repository.load();
     this.data =
       saved === null ? this.fresh() : validateSave(saved, rules, strategy);
+    let persist = false;
+    if (initialPlayMode !== undefined) {
+      requireThat(
+        initialPlayMode === 'play' || initialPlayMode === 'test',
+        'invalid-play-mode',
+      );
+      if (this.data.playMode !== initialPlayMode) {
+        this.data.playMode = initialPlayMode;
+        if (saved !== null) {
+          this.data.revision++;
+          persist = true;
+        }
+      }
+    }
     if (saved !== null && this.data.status === 'playing') {
       this.restored = true;
       this.data.paused = true;
       this.data.revision++;
       // Invalidate intentions produced before the process stopped.
       this.data.branch++;
-      repository.save(this.data);
+      persist = true;
     }
+    if (persist) repository.save(this.data);
+  }
+  get playMode(): PlayMode {
+    return this.data.playMode ?? 'play';
   }
   private fresh(): Save {
     const { id, gameVersion, rulesVersion, stateVersion } = this.rules.manifest;
@@ -66,6 +86,7 @@ export class RoomCoordinator {
       status: 'lobby',
       paused: false,
       joinOpen: true,
+      playMode: 'play',
       seats: [],
       hostSeat: null,
       snapshot: null,
@@ -244,6 +265,7 @@ export class RoomCoordinator {
       paused: d.paused,
       restored: this.restored,
       joinOpen: d.joinOpen,
+      playMode: this.playMode,
       game: {
         id: this.rules.manifest.id,
         name: this.rules.manifest.name,
@@ -345,6 +367,10 @@ export class RoomCoordinator {
     let code: string | undefined;
     let events: PublicEvent[] = [];
     switch (c.type) {
+      case 'set-play-mode':
+        host();
+        next.playMode = c.mode;
+        break;
       case 'join-open':
         host();
         lobby();
@@ -476,6 +502,7 @@ export class RoomCoordinator {
           requireThat(next.status === 'ended', 'not-ended');
         {
           const fresh = this.fresh();
+          fresh.playMode = next.playMode ?? 'play';
           if (c.type === 'replay') {
             fresh.seats = next.seats.map((seat) => ({
               ...seat,
