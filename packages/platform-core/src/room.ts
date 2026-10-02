@@ -16,6 +16,7 @@ import type { Save, SaveRepository } from './model';
 import { validateSave } from './save-validation';
 import { Rejection, requireThat } from './errors';
 import { RandomSource } from './random';
+import { sealCredential, openCredential } from './session-receipts';
 
 export const token = () => randomBytes(32).toString('hex');
 export const hash = (value: string) =>
@@ -27,7 +28,6 @@ export class RoomCoordinator {
   private data: Save;
   private queue: Promise<unknown> = Promise.resolve();
   private listeners = new Set<(feedback?: RoomFeedback) => void>();
-  private bindings = new Map<string, { seatId: string; expires: number }>();
   private transientBotError: string | null = null;
   readonly hostToken: string;
   restored = false;
@@ -71,6 +71,8 @@ export class RoomCoordinator {
       snapshot: null,
       history: [],
       receipts: {},
+      sessionReceipts: {},
+      bindings: {},
       botError: null,
       endReason: null,
     };
@@ -123,8 +125,57 @@ export class RoomCoordinator {
         : undefined,
     );
   }
-  async join(name: string) {
+  private sessionResult(requestKey: string | undefined, fingerprint: string) {
+    if (!requestKey) return null;
+    requireThat(/^[0-9a-f]{64}$/.test(requestKey), 'invalid-message');
+    const receipt = this.data.sessionReceipts?.[hash(requestKey)];
+    if (!receipt) return null;
+    requireThat(
+      receipt.fingerprint === fingerprint,
+      'session-request-conflict',
+    );
+    requireThat(receipt.expires > Date.now(), 'session-request-expired');
+    const credential = openCredential(receipt.sealedCredential, requestKey);
+    requireThat(
+      this.data.seats.some(
+        (s) => s.id === receipt.seatId && s.tokenHash === hash(credential),
+      ),
+      'session-request-revoked',
+    );
+    return { token: credential, duplicateName: receipt.duplicateName };
+  }
+  private rememberSession(
+    next: Save,
+    requestKey: string | undefined,
+    fingerprint: string,
+    seatId: string,
+    credential: string,
+    duplicateName = false,
+  ) {
+    if (!requestKey) return;
+    next.sessionReceipts = Object.fromEntries(
+      Object.entries(next.sessionReceipts ?? {}).filter(
+        ([, r]) =>
+          r.expires > Date.now() && next.seats.some((s) => s.id === r.seatId),
+      ),
+    );
+    requireThat(
+      Object.keys(next.sessionReceipts).length < 128,
+      'session-request-limit',
+    );
+    next.sessionReceipts[hash(requestKey)] = {
+      fingerprint,
+      seatId,
+      sealedCredential: sealCredential(credential, requestKey),
+      duplicateName,
+      expires: Date.now() + 24 * 60 * 60 * 1000,
+    };
+  }
+  async join(name: string, requestKey?: string) {
     return this.enqueue(() => {
+      const fingerprint = hash(`join:${name}`);
+      const previous = this.sessionResult(requestKey, fingerprint);
+      if (previous) return previous;
       requireThat(
         this.data.status === 'lobby' && this.data.joinOpen,
         'joining-closed',
@@ -136,30 +187,43 @@ export class RoomCoordinator {
       const credential = token();
       const next = structuredClone(this.data);
       const duplicateName = next.seats.some((s) => s.name === name);
+      const seatId = randomUUID();
       next.seats.push({
-        id: randomUUID(),
+        id: seatId,
         name,
         controller: 'human',
         ready: false,
         tokenHash: hash(credential),
       });
+      this.rememberSession(
+        next,
+        requestKey,
+        fingerprint,
+        seatId,
+        credential,
+        duplicateName,
+      );
       next.revision++;
       this.commit(next);
       return { token: credential, duplicateName };
     });
   }
-  async redeem(code: string) {
+  async redeem(code: string, requestKey?: string) {
     return this.enqueue(() => {
-      const binding = this.bindings.get(hash(code));
+      const fingerprint = hash(`redeem:${code}`);
+      const previous = this.sessionResult(requestKey, fingerprint);
+      if (previous) return previous;
+      const binding = this.data.bindings?.[hash(code)];
       requireThat(binding && binding.expires > Date.now(), 'binding-expired');
       const next = structuredClone(this.data);
       const seat = next.seats.find((s) => s.id === binding.seatId);
       requireThat(seat && seat.controller === 'human', 'invalid-seat');
       const credential = token();
       seat.tokenHash = hash(credential);
+      delete next.bindings![hash(code)];
+      this.rememberSession(next, requestKey, fingerprint, seat.id, credential);
       next.revision++;
       this.commit(next);
-      this.bindings.delete(hash(code));
       return { token: credential };
     });
   }
@@ -206,11 +270,19 @@ export class RoomCoordinator {
           : [],
       history:
         identity.role === 'host'
-          ? d.history.map(({ id, label, revealedInformation }) => ({
-              id,
-              label,
-              revealedInformation,
-            }))
+          ? d.history.map(
+              (
+                { id, label, revealedInformation, seatId, roundNumber },
+                index,
+              ) => ({
+                id,
+                label,
+                revealedInformation,
+                step: index + 1,
+                seatId: seatId ?? null,
+                roundNumber: roundNumber ?? null,
+              }),
+            )
           : [],
       lifecycleActions:
         identity.role === 'host' && snap && !d.paused
@@ -253,7 +325,7 @@ export class RoomCoordinator {
     const receipt = this.data.receipts[key];
     if (
       envelope.instanceId !== this.data.instanceId &&
-      envelope.command.type === 'new-room' &&
+      ['new-room', 'replay'].includes(envelope.command.type) &&
       receipt?.fingerprint === fingerprint
     )
       return receipt.reply;
@@ -269,7 +341,6 @@ export class RoomCoordinator {
     const host = () => requireThat(identity.role === 'host', 'unauthorized');
     const lobby = () => requireThat(next.status === 'lobby', 'not-in-lobby');
     let code: string | undefined;
-    let bindingSeat: string | undefined;
     let events: PublicEvent[] = [];
     switch (c.type) {
       case 'join-open':
@@ -373,11 +444,22 @@ export class RoomCoordinator {
         next.status = 'ended';
         next.endReason = '房主结束';
         break;
+      case 'replay':
       case 'new-room':
         host();
         requireThat(next.status !== 'playing', 'end-first');
+        if (c.type === 'replay')
+          requireThat(next.status === 'ended', 'not-ended');
         {
           const fresh = this.fresh();
+          if (c.type === 'replay') {
+            fresh.seats = next.seats.map((seat) => ({
+              ...seat,
+              ready: seat.controller === 'bot',
+            }));
+            fresh.sessionReceipts = next.sessionReceipts ?? {};
+            fresh.bindings = next.bindings ?? {};
+          }
           const reply: CommandReply = {
             ok: true,
             revision: fresh.revision,
@@ -396,7 +478,15 @@ export class RoomCoordinator {
         requireThat(seat, 'invalid-seat');
         seat.tokenHash = null;
         code = token();
-        bindingSeat = seat.id;
+        next.bindings = Object.fromEntries(
+          Object.entries(next.bindings ?? {}).filter(
+            ([, b]) => b.seatId !== seat.id && b.expires > Date.now(),
+          ),
+        );
+        next.bindings[hash(code)] = {
+          seatId: seat.id,
+          expires: Date.now() + 120_000,
+        };
         break;
       }
       case 'rollback': {
@@ -492,7 +582,12 @@ export class RoomCoordinator {
           bot.memory = this.strategy.validateMemory(botUpdate.memory);
           bot.random = botUpdate.random;
         }
-        next.history.push({ id: randomUUID(), ...result.decision, before });
+        next.history.push({
+          id: randomUUID(),
+          ...result.decision,
+          before,
+          seatId: c.type === 'game' ? seatId : null,
+        });
         if (this.rules.ended(next.snapshot!.state)) {
           next.status = 'ended';
           next.endReason = '游戏完成';
@@ -512,14 +607,6 @@ export class RoomCoordinator {
     };
     next.receipts[key] = { fingerprint, reply };
     this.commit(next, c.type === 'resume' || c.type === 'rollback', events);
-    if (code && bindingSeat) {
-      for (const [key, b] of this.bindings)
-        if (b.seatId === bindingSeat) this.bindings.delete(key);
-      this.bindings.set(hash(code), {
-        seatId: bindingSeat,
-        expires: Date.now() + 120_000,
-      });
-    }
     if (c.type === 'resume') this.restored = false;
     return reply;
   }

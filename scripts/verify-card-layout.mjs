@@ -8,7 +8,7 @@ import react from '@vitejs/plugin-react';
 const require = createRequire(import.meta.url);
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/card-layout-'));
-const output = resolve('artifacts/maintenance/pokemon-refresh/cards');
+const output = resolve('artifacts/maintenance/party-reliability/cards');
 await mkdir(output, { recursive: true });
 const relativeRoot = '../..';
 await writeFile(

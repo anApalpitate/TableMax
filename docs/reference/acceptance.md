@@ -60,7 +60,7 @@
 
 ## 使用与维护
 
-当前便携包为 `artifacts/releases/TableMax-1.1.0-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
+当前便携包为 `artifacts/releases/TableMax-1.2.0-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
 
 后续新增游戏、跨游戏调试或第三方插件按独立需求安排；新规则／策略版本需要明确存档迁移方案，不能直接覆盖原文件。设备模拟中的限制保留供后续实际使用时复查，本轮不将取得其他设备作为剩余开发关口。
 
@@ -87,3 +87,16 @@
 | 文档与资源 | [链接核验](../../artifacts/maintenance/pokemon-refresh/document-links.json) 无缺失路径／锚点；[44 个旧资源迁移](../../artifacts/maintenance/pokemon-refresh/asset-migration.json) 字节全部不变，原图及旧 ZIP 保留 |
 
 测试使用隐藏 offscreen 窗口，不 showInactive 或 focus，并断言窗口不可见；截图为真实 capturePage，整局使用 CDP 精确视口避开 Windows DPI 原生 1px 舍入。当前验证仍是 Windows Chromium 触控／尺寸模拟，未宣称手机、Safari、电视实机或现场听音。生成尝试中百变怪成功，其余 15 类拒绝；实际卡面为官方原图导入及统一代码排版，火箭队横向群像含果然翁且保留背景，可由资源表替换为后续竖图。
+
+## 首版维护：聚会可靠性与连续游玩
+
+1.2.0，2026-10-02。范围为持久化加入／换绑确认、实时网卡与启动排障、原班续局及运行保障；不新增游戏内教程或规则帮助。长期行为及窗口／存档边界见 [聚会规格](phase-02-platform-spec.md#聚会连接连续游玩与运行保障)，采用理由见 [可靠确认决策](../decisions/005-platform-authority-and-recovery.md#加入确认与原班续局2026-10-02)。
+
+- `pnpm check`：typecheck、lint、format:check 与 12 文件／58 项测试通过。新增并发／丢回复确认、内容冲突、保存失败、加密存储及对外信息隔离、真实 SQLite 重启、绑定期限／撤销、原班续局及旧实例拒绝；防休眠生命周期、网卡变化及中文错误提示另验。旧有规则、D01–D13、Worker 和实际强制退出测试继续通过。
+- [聚会专项](../../artifacts/maintenance/party-reliability/party/results.json)：服务实际监听 0.0.0.0，经本机常规网卡 IPv4 访问；地址标注／刷新／选择保持、提交已保存后故意丢弃 HTTP 回复、刷新确认唯一座位、换绑回复丢失后真实程序重启确认同一座位、原凭证失效及读档暂停通过。250ms 延迟／限带宽、断网与后台冻结恢复通过。实际 UI 筛选回退、具体步骤确认并暂停、原班第二大局、第二桌面进程退出、保留公共屏后重开管理、真实端口占用的中文错误日志通过。原生防休眠 API 活跃，保护释放和显示保护的独立生命周期另由工程测试核验；未让电脑真实休眠。
+- [十四组 UI](../../artifacts/maintenance/party-reliability/ui/results.json)：全部既有能力／位置选择／手机布局、秘密查看隔离、保存反馈和同步／回退不补播通过；截图来自更新后的隐藏渲染。已人工查看新增网卡帮助和回退筛选截图。
+- [开发整局](../../artifacts/maintenance/party-reliability/development/results.json)：五座位（两位模拟真人、三位实际 Worker bot）完整三胜及十四阶段、回退／冻结／离线与两次启动恢复通过。完成大局后实际点击续局，保留五座位顺序、三电脑和手机凭证，真人重新准备并启动第 1 小局。
+- [最终便携整局](../../artifacts/maintenance/party-reliability/portable/results.json) 与 [便携聚会专项](../../artifacts/maintenance/party-reliability/party-portable/results.json)：最终 1.2.0 ZIP 分别解压到新目录、以仅 Windows 系统目录的 PATH 运行，通过同样的完整三胜／五座位原班续局及十组聚会专项，包括过期待确认请求不重发、不多占座。两份记录的 ZIP SHA-256 一致，均为 `54bcc1e7e4a74a647dd1aa74642db5075db7263982fbfddb88b4e440f165c4fa`；页面错误为空。旧包与证据保留。
+- [文档链接核验](../../artifacts/maintenance/party-reliability/document-links.json)：本次维护文档的本地文件和锚点通过检查。
+
+协议为 3，游戏采用规则／状态／策略版本与平台格式 1 保持；1.1.0 存档通过可选字段默认值继续读取。全部测试使用隔离数据，未读取默认玩家存档，也未自动更改防火墙或系统电源设置。本机网卡 IPv4 访问仅证明本机服务的局域网监听／地址路径；不声明实际手机扫码、Safari、实际 Wi-Fi 互访、电视或另机便携运行通过。声音未追加现场听音结论。旧 ZIP、原图和历史验证不覆盖。

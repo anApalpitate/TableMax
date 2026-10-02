@@ -1,5 +1,6 @@
 import type { Command } from '@tablemax/protocol';
 import type { RoomSession } from '../session/useRoomSession';
+import { RollbackHistory } from './RollbackHistory';
 export function RoomManagement({ session }: { session: RoomSession }) {
   const { view, locked, command, bindingCode, isHost } = session;
   if (!isHost || !view) return null;
@@ -32,6 +33,22 @@ export function RoomManagement({ session }: { session: RoomSession }) {
           >
             {view.joinOpen ? '关闭加入' : '开放加入'}
           </button>
+          {view.seats.length > 0 && (
+            <button
+              className="secondary"
+              disabled={locked}
+              onClick={() => {
+                if (
+                  confirm(
+                    '清空牌桌？所有手机身份和电脑座位将移除，朋友需要重新入座。',
+                  )
+                )
+                  command({ type: 'new-room' });
+              }}
+            >
+              清空牌桌
+            </button>
+          )}
         </>
       ) : (
         <>
@@ -62,39 +79,28 @@ export function RoomManagement({ session }: { session: RoomSession }) {
           {view?.status === 'ended' && (
             <button
               disabled={locked}
-              onClick={() => command({ type: 'new-room' })}
+              onClick={() => command({ type: 'replay' })}
             >
-              重新准备
+              原班人马再开一局
             </button>
           )}
-          <details>
-            <summary>决策点回退（{view?.history.length}）</summary>
-            <p>恢复到该选择之前。已看见的信息无法撤销；回退后保持暂停。</p>
-            {view?.history
-              .slice()
-              .reverse()
-              .map((h) => (
-                <button
-                  className="secondary"
-                  key={h.id}
-                  disabled={locked}
-                  onClick={() => {
-                    if (
-                      confirm(
-                        `恢复到“${h.label}”？后续选择将撤销，已揭示信息无法从记忆消除。`,
-                      )
-                    )
-                      command({
-                        type: 'rollback',
-                        checkpointId: h.id,
-                      });
-                  }}
-                >
-                  {h.label}
-                  {h.revealedInformation ? ' · 含揭示' : ''}
-                </button>
-              ))}
-          </details>
+          {view.status === 'ended' && (
+            <button
+              className="secondary"
+              disabled={locked}
+              onClick={() => {
+                if (
+                  confirm(
+                    '清空牌桌？所有手机身份和电脑座位将移除，朋友需要重新入座。',
+                  )
+                )
+                  command({ type: 'new-room' });
+              }}
+            >
+              清空牌桌
+            </button>
+          )}
+          <RollbackHistory key={view.instanceId} session={session} />
         </>
       )}
       {bindingCode && (

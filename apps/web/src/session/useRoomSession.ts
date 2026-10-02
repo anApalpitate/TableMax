@@ -4,6 +4,7 @@ import {
   RoomViewSchema,
   CommandReplySchema,
   RoomFeedbackSchema,
+  NetworkSchema,
   type RoomFeedback,
   type Command,
   type RoomView,
@@ -14,6 +15,7 @@ import {
   SAVED_MOTION_MS,
 } from '../../../../games/pokemon-encounters/ui/motion';
 import { navigate, type ScreenRole } from '../navigation';
+import { useAdmission } from './useAdmission';
 const messages: Record<string, string> = {
   unauthorized: '此操作需要房主身份。',
   'invalid-identity': '身份已失效，请联系房主换绑。',
@@ -22,6 +24,15 @@ const messages: Record<string, string> = {
   'stale-decision': '该选择已结束，请按最新状态操作。',
   'not-ready': '请等待至少两位玩家全部准备。',
   'joining-closed-or-full': '当前不能加入：牌桌已关闭入座、开始或满员。',
+  'joining-closed': '牌桌已关闭入座或已经开始，请联系房主。',
+  'room-full': '牌桌已满，请房主检查是否有离线的重复座位。',
+  'session-request-revoked': '原座位身份已撤销，请联系房主换绑。',
+  'session-request-conflict': '入座请求不一致，请联系房主恢复原座位。',
+  'session-request-expired': '入座确认已超过一天，请联系房主检查原座位后换绑。',
+  'session-request-limit': '入座请求过多，请联系房主检查座位。',
+  'invalid-name': '请输入 1–24 字的昵称。',
+  'invalid-message': '请求内容无效，请检查昵称或绑定码。',
+  'stale-instance': '新的大局已经准备好，请按当前牌桌重新操作。',
   'binding-expired': '绑定码已过期或已经使用。',
   'save-or-action-failed': '操作未确认保存，请检查本地存储后重试。',
   'illegal-action': '选择无效，请重新同步。',
@@ -47,7 +58,16 @@ export function useRoomSession(role: ScreenRole) {
   const [code, setCode] = useState('');
   const [bindingCode, setBindingCode] = useState('');
   const [addresses, setAddresses] = useState<string[]>([]);
+  const [adapters, setAdapters] = useState<
+    Array<{
+      address: string;
+      name: string;
+      kind: 'lan' | 'virtual' | 'link-local';
+    }>
+  >([]);
   const [address, setAddress] = useState('');
+  const [networkMessage, setNetworkMessage] = useState('');
+  const refreshNetworkRef = useRef<(() => Promise<void>) | null>(null);
   const [port, setPort] = useState(38473);
   const [feedback, setFeedback] = useState<RoomFeedback | null>(null);
   const [errorId, setErrorId] = useState('');
@@ -58,6 +78,12 @@ export function useRoomSession(role: ScreenRole) {
   const motionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const pending = useRef<Command | null>(null);
+  const admission = useAdmission(
+    role === 'player' && !credential,
+    setCredential,
+    setMessage,
+    messages,
+  );
   useEffect(() => {
     const socket = io({
       auth: credential ? { token: credential } : {},
@@ -67,6 +93,7 @@ export function useRoomSession(role: ScreenRole) {
     socket.on('connect', () => {
       setConnected(true);
       socket.emit('room:sync');
+      setMessage((current) => (current.startsWith('连接') ? '' : current));
     });
     socket.on('disconnect', () => {
       setConnected(false);
@@ -154,21 +181,71 @@ export function useRoomSession(role: ScreenRole) {
       if (error.message === 'invalid-identity') revoked();
       else setMessage('连接失败，请检查电脑服务和局域网。');
     });
-    const abort = new AbortController();
-    void fetch('/api/room/network', { signal: abort.signal })
-      .then(async (r) => {
-        const network = (await r.json()) as {
-          addresses: string[];
-          port: number;
-        };
+    let disposed = false;
+    let networkRequest: AbortController | null = null;
+    const refreshNetwork = async () => {
+      if (networkRequest || role === 'player') return;
+      const controller = new AbortController();
+      networkRequest = controller;
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      try {
+        const response = await fetch('/api/room/network', {
+          signal: controller.signal,
+        });
+        const network = NetworkSchema.parse(await response.json());
+        if (disposed) return;
         setAddresses(network.addresses);
-        setAddress(network.addresses[0] ?? '');
+        setAdapters(network.adapters);
+        setAddress((selected) => {
+          const preferred =
+            selected || localStorage.getItem('tablemax-address') || '';
+          return network.addresses.includes(preferred)
+            ? preferred
+            : (network.addresses[0] ?? '');
+        });
         setPort(network.port);
-      })
-      .catch(() => undefined);
+        setNetworkMessage(
+          network.addresses.length
+            ? ''
+            : '未发现可用地址，请连接局域网后刷新。',
+        );
+      } catch {
+        if (!disposed)
+          setNetworkMessage('地址刷新失败，请检查电脑服务后重试。');
+      } finally {
+        clearTimeout(timeout);
+        networkRequest = null;
+      }
+    };
+    refreshNetworkRef.current = refreshNetwork;
+    void refreshNetwork();
+    const interval = setInterval(() => {
+      if (document.visibilityState !== 'hidden') void refreshNetwork();
+    }, 10000);
+    const wake = () => {
+      if (document.visibilityState === 'hidden') return;
+      if (socket.connected) socket.emit('room:sync');
+      else socket.connect();
+      void refreshNetwork();
+    };
+    window.addEventListener('online', wake);
+    window.addEventListener('pageshow', wake);
+    document.addEventListener('visibilitychange', wake);
     return () => {
-      abort.abort();
+      disposed = true;
+      networkRequest?.abort();
+      refreshNetworkRef.current = null;
+      clearInterval(interval);
+      window.removeEventListener('online', wake);
+      window.removeEventListener('pageshow', wake);
+      document.removeEventListener('visibilitychange', wake);
+      // Changing identity closes the old socket deliberately. Its disconnect
+      // message must not overwrite a successful admission/rebinding result.
+      socket.removeAllListeners();
       socket.disconnect();
+      setConnected(false);
+      setView(null);
+      synced.current = null;
       socketRef.current = null;
       pending.current = null;
       if (motionTimer.current) clearTimeout(motionTimer.current);
@@ -176,7 +253,7 @@ export function useRoomSession(role: ScreenRole) {
   }, [credential, role]);
   const isHost = view?.self.role === 'host';
   const self = view?.seats.find((s) => s.id === view.self.seatId);
-  const locked = busy || !connected || !view;
+  const locked = busy || admission.busy || !connected || !view;
   function send(envelope: Command) {
     pending.current = envelope;
     setBusy(true);
@@ -227,43 +304,13 @@ export function useRoomSession(role: ScreenRole) {
       command: value,
     });
   }
-  async function join(rebind = false) {
-    setBusy(true);
-    try {
-      const response = await fetch(
-        rebind ? '/api/session/redeem' : '/api/session/join',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(
-            rebind ? { code: code.trim() } : { name: name.trim() },
-          ),
-        },
-      );
-      const result = (await response.json()) as {
-        ok: boolean;
-        token?: string;
-        duplicateName?: boolean;
-        reason?: string;
-      };
-      if (!result.ok || !result.token)
-        throw new Error(messages[result.reason ?? ''] ?? '加入失败');
-      localStorage.setItem('tablemax-player', result.token);
-      setCredential(result.token);
-      setMessage(
-        result.duplicateName ? '已有同名朋友，以座位编号区分。' : '已加入',
-      );
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : '连接失败');
-    } finally {
-      setBusy(false);
-    }
-  }
   return {
     role,
     view,
     connected,
-    busy,
+    busy: busy || admission.busy,
+    admissionPending: admission.pending,
+    retryAdmission: admission.retry,
     awaitingConfirmation,
     message,
     name,
@@ -272,8 +319,14 @@ export function useRoomSession(role: ScreenRole) {
     setCode,
     bindingCode,
     addresses,
+    adapters,
+    networkMessage,
+    refreshNetwork: () => refreshNetworkRef.current?.(),
     address,
-    setAddress,
+    setAddress: (selected: string) => {
+      localStorage.setItem('tablemax-address', selected);
+      setAddress(selected);
+    },
     port,
     feedback,
     errorId,
@@ -283,7 +336,8 @@ export function useRoomSession(role: ScreenRole) {
     self,
     locked,
     command,
-    join,
+    join: (rebind = false) =>
+      admission.join(rebind ? 'redeem' : 'join', rebind ? code : name),
     retry: () => {
       if (pending.current) send(pending.current);
     },

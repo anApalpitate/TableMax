@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const HealthSchema = z.object({
   status: z.literal('ready'),
   phase: z.literal('platform-foundation'),
-  protocolVersion: z.literal(2),
+  protocolVersion: z.literal(3),
   database: z.literal('ok'),
   starts: z.number().int().positive(),
   runtime: z.object({
@@ -68,6 +68,7 @@ export const CommandSchema = z
       z.object({ type: z.literal('resume') }).strict(),
       z.object({ type: z.literal('end') }).strict(),
       z.object({ type: z.literal('new-room') }).strict(),
+      z.object({ type: z.literal('replay') }).strict(),
       z.object({ type: z.literal('rebind'), seatId: z.string() }).strict(),
       z
         .object({ type: z.literal('rollback'), checkpointId: z.string() })
@@ -86,8 +87,42 @@ export type Command = z.infer<typeof CommandSchema>;
 export const JoinSchema = z
   .object({
     name: z.string().trim().min(1).max(24),
+    requestKey: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/)
+      .optional(),
   })
   .strict();
+export const RedeemSchema = z
+  .object({
+    code: CredentialSchema,
+    requestKey: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/)
+      .optional(),
+  })
+  .strict();
+export const SessionReplySchema = z.discriminatedUnion('ok', [
+  z
+    .object({
+      ok: z.literal(true),
+      token: CredentialSchema,
+      duplicateName: z.boolean().optional(),
+    })
+    .strict(),
+  z.object({ ok: z.literal(false), reason: z.string() }).strict(),
+]);
+export const NetworkSchema = z.object({
+  addresses: z.array(z.string()),
+  adapters: z.array(
+    z.object({
+      address: z.string(),
+      name: z.string(),
+      kind: z.enum(['lan', 'virtual', 'link-local']),
+    }),
+  ),
+  port: z.number().int().positive(),
+});
 export const SessionSchema = z
   .object({ token: CredentialSchema.optional() })
   .strict();
@@ -136,7 +171,14 @@ export interface RoomView {
   decisionId: string | null;
   actions: unknown[];
   lifecycleActions: unknown[];
-  history: { id: string; label: string; revealedInformation: boolean }[];
+  history: {
+    id: string;
+    label: string;
+    revealedInformation: boolean;
+    step: number;
+    seatId: string | null;
+    roundNumber: number | null;
+  }[];
   botError: string | null;
   endReason: string | null;
 }
@@ -188,6 +230,9 @@ export const RoomViewSchema = z
           id: z.string(),
           label: z.string(),
           revealedInformation: z.boolean(),
+          step: z.number().int().positive(),
+          seatId: z.string().nullable(),
+          roundNumber: z.number().int().positive().nullable(),
         })
         .strict(),
     ),

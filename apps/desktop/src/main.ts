@@ -5,19 +5,29 @@ import {
   utilityProcess,
   screen,
   Menu,
+  powerSaveBlocker,
+  powerMonitor,
+  shell,
   type UtilityProcess,
 } from 'electron';
 import { join, resolve } from 'node:path';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, appendFileSync } from 'node:fs';
 import { ServiceReadySchema } from '@tablemax/protocol';
+import { RuntimeGuard } from './runtime-guard';
+import { startupError } from './startup-error';
 
 const localData = process.env.LOCALAPPDATA;
 if (!localData) throw new Error('Windows LOCALAPPDATA is unavailable');
 const dataDir = resolve(
   process.env.TABLEMAX_DATA_DIR ?? join(localData, 'TableMax'),
 );
-mkdirSync(dataDir, { recursive: true });
-app.setPath('userData', join(dataDir, 'desktop'));
+let setupError: unknown;
+try {
+  mkdirSync(dataDir, { recursive: true });
+  app.setPath('userData', join(dataDir, 'desktop'));
+} catch (error) {
+  setupError = error;
+}
 
 const checking = process.argv.includes('--foundation-check');
 const testing = process.argv.includes('--foundation-test');
@@ -26,6 +36,30 @@ let service: UtilityProcess | undefined;
 let quitting = false;
 let stopped = false;
 const windows = new Set<BrowserWindow>();
+const publicWindows = new Set<BrowserWindow>();
+const runtime = new RuntimeGuard(powerSaveBlocker);
+let hostWindow: BrowserWindow | null = null;
+let hostUrl = '';
+function showHost() {
+  if (!hostUrl || quitting) return;
+  if (!hostWindow || hostWindow.isDestroyed()) {
+    hostWindow = openWindow(hostUrl);
+    hostWindow.webContents.on('will-navigate', (event, target) => {
+      const parsed = new URL(target);
+      if (
+        parsed.origin === new URL(hostUrl).origin &&
+        ['/public', '/public/game'].includes(parsed.pathname)
+      ) {
+        event.preventDefault();
+        openWindow(target, true);
+      }
+    });
+  } else if (!checking && !testing) {
+    if (hostWindow.isMinimized()) hostWindow.restore();
+    hostWindow.show();
+    hostWindow.focus();
+  }
+}
 
 function openWindow(url: string, publicScreen = false) {
   const window = new BrowserWindow({
@@ -60,7 +94,26 @@ function openWindow(url: string, publicScreen = false) {
     },
   });
   windows.add(window);
-  window.on('closed', () => windows.delete(window));
+  const updateDisplay = () =>
+    runtime.publicScreenVisible(
+      [...publicWindows].some(
+        (item) =>
+          !item.isDestroyed() && item.isVisible() && !item.isMinimized(),
+      ),
+    );
+  if (publicScreen) {
+    publicWindows.add(window);
+    window.on('show', updateDisplay);
+    window.on('hide', updateDisplay);
+    window.on('minimize', updateDisplay);
+    window.on('restore', updateDisplay);
+    updateDisplay();
+  }
+  window.on('closed', () => {
+    windows.delete(window);
+    publicWindows.delete(window);
+    updateDisplay();
+  });
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   window.webContents.on('will-navigate', (event, target) => {
     if (new URL(target).origin !== new URL(url).origin) event.preventDefault();
@@ -101,7 +154,19 @@ async function run() {
           })),
         ],
       },
-      { label: '程序', submenu: [{ role: 'quit' }] },
+      {
+        label: '程序',
+        submenu: [
+          { label: '打开房主管理', click: showHost },
+          {
+            label: '打开日志目录',
+            click: () => {
+              void shell.openPath(join(dataDir, 'logs'));
+            },
+          },
+          { role: 'quit' },
+        ],
+      },
     ]),
   );
   const port = Number(process.env.TABLEMAX_PORT ?? 38473);
@@ -137,8 +202,14 @@ async function run() {
           input.type === 'error'
         ) {
           clearTimeout(timeout);
+          const message =
+            'message' in input && typeof input.message === 'string'
+              ? input.message
+              : 'Local service startup failed';
           reject(
-            new Error('Local service startup failed; check the process output'),
+            Object.assign(new Error(message), {
+              code: 'code' in input ? input.code : null,
+            }),
           );
         }
       });
@@ -152,6 +223,14 @@ async function run() {
   );
   const origin = `http://127.0.0.1:${ready.port}`;
   const webOrigin = process.env.TABLEMAX_WEB_DEV_URL ?? origin;
+  runtime.start();
+  powerMonitor.on('resume', () => {
+    for (const window of windows)
+      if (!window.isDestroyed())
+        void window.webContents
+          .executeJavaScript("window.dispatchEvent(new Event('online'))")
+          .catch(() => undefined);
+  });
 
   if (checking) {
     const response = await fetch(`${origin}/api/foundation/health`);
@@ -181,16 +260,8 @@ async function run() {
     return;
   }
 
-  const hostWindow = openWindow(`${webOrigin}/host#host=${ready.hostToken}`);
-  hostWindow.webContents.on('will-navigate', (event, target) => {
-    if (
-      target === `${webOrigin}/public` ||
-      target === `${webOrigin}/public/game`
-    ) {
-      event.preventDefault();
-      openWindow(target, true);
-    }
-  });
+  hostUrl = `${webOrigin}/host#host=${ready.hostToken}`;
+  showHost();
   child.on('exit', (code) => {
     if (!quitting) {
       if (!testing)
@@ -209,6 +280,7 @@ app.on('before-quit', (event) => {
   event.preventDefault();
   if (quitting) return;
   quitting = true;
+  runtime.stop();
   const child = service;
   const timeout = setTimeout(() => {
     child.kill();
@@ -223,14 +295,32 @@ app.on('before-quit', (event) => {
   child.postMessage({ type: 'stop' });
 });
 
-void run().catch((error: unknown) => {
+function reportStartupFailure(error: unknown) {
   console.error(error);
-  if (!checking && !testing)
-    dialog.showErrorBox(
-      'TableMax 启动失败',
-      error instanceof Error ? error.message : 'Unknown startup error',
+  const detail = startupError(
+    error,
+    Number(process.env.TABLEMAX_PORT ?? 38473),
+    dataDir,
+  );
+  try {
+    mkdirSync(join(dataDir, 'logs'), { recursive: true });
+    appendFileSync(
+      join(dataDir, 'logs', 'desktop.log'),
+      `${new Date().toISOString()} ${detail}\n`,
     );
+  } catch {
+    /* Preserve the original error even if its directory is unwritable. */
+  }
+  if (!checking && !testing) dialog.showErrorBox('TableMax 启动失败', detail);
   exitCode = 1;
   if (service) app.quit();
   else app.exit(exitCode);
-});
+}
+if (setupError) reportStartupFailure(setupError);
+else {
+  const singleInstance = app.requestSingleInstanceLock();
+  app.on('second-instance', showHost);
+  app.on('will-quit', () => runtime.stop());
+  if (!singleInstance) app.exit(0);
+  else void run().catch(reportStartupFailure);
+}

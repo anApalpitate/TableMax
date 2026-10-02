@@ -104,7 +104,7 @@ export function GameScreen({ session }: { session: RoomSession }) {
               {isHost && view.status === 'ended' && (
                 <button
                   disabled={locked}
-                  onClick={() => command({ type: 'new-room' })}
+                  onClick={() => command({ type: 'replay' })}
                 >
                   再玩一局
                 </button>
@@ -125,7 +125,7 @@ export function GameScreen({ session }: { session: RoomSession }) {
             choose={choose}
             showFriends={() => setPanel('friends')}
             {...(isHost && view.status === 'ended'
-              ? { playAgain: () => command({ type: 'new-room' }) }
+              ? { playAgain: () => command({ type: 'replay' }) }
               : {})}
             {...(isHost && !view.paused && view.lifecycleActions.length
               ? {

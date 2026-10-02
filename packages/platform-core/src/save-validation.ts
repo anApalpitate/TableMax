@@ -112,6 +112,9 @@ export function validateSave(
   for (const h of d.history) {
     requireThat(
       typeof h.id === 'string' &&
+        (h.seatId == null || d.seats.some((s) => s.id === h.seatId)) &&
+        (h.roundNumber === undefined ||
+          (Number.isSafeInteger(h.roundNumber) && h.roundNumber > 0)) &&
         typeof h.label === 'string' &&
         typeof h.revealedInformation === 'boolean',
       'damaged-save',
@@ -128,5 +131,37 @@ export function validateSave(
         Number.isInteger(r.reply.branch),
       'damaged-save',
     );
+  for (const value of [d.sessionReceipts, d.bindings])
+    requireThat(
+      value === undefined ||
+        (value !== null &&
+          typeof value === 'object' &&
+          !Array.isArray(value) &&
+          Object.keys(value).length <= 128),
+      'damaged-save',
+    );
+  for (const [key, receipt] of Object.entries(d.sessionReceipts ?? {}))
+    requireThat(
+      /^[0-9a-f]{64}$/.test(key) &&
+        receipt &&
+        /^[0-9a-f]{64}$/.test(receipt.fingerprint) &&
+        /^[0-9a-f]{120}$/.test(receipt.sealedCredential) &&
+        typeof receipt.seatId === 'string' &&
+        typeof receipt.duplicateName === 'boolean' &&
+        Number.isSafeInteger(receipt.expires) &&
+        receipt.expires > 0,
+      'damaged-save',
+    );
+  for (const [key, binding] of Object.entries(d.bindings ?? {}))
+    requireThat(
+      /^[0-9a-f]{64}$/.test(key) &&
+        binding &&
+        typeof binding.seatId === 'string' &&
+        Number.isSafeInteger(binding.expires) &&
+        binding.expires > 0,
+      'damaged-save',
+    );
+  d.sessionReceipts ??= {};
+  d.bindings ??= {};
   return structuredClone(d);
 }

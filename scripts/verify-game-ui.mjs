@@ -21,7 +21,7 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/game-ui-')),
   output = resolve(
-    'artifacts/maintenance/pokemon-refresh/ui',
+    'artifacts/maintenance/party-reliability/ui',
     ...(only
       ? [evidenceName ?? (verifyDeal ? 'round-deal' : 'additional')]
       : []),

@@ -22,6 +22,7 @@ export interface RuleContext {
 export interface DecisionBoundary {
   label: string;
   revealedInformation: boolean;
+  roundNumber?: number;
 }
 
 export interface PendingDecision {

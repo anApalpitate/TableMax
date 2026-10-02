@@ -53,6 +53,10 @@ Electron 主进程（窗口、主机身份与生命周期）
 
 HTTP 提供加入、换绑兑换、授权同步和网络地址；Socket.IO 握手绑定凭证，逐连接生成 `room:view`，`room:command` 校验信封并确认，`room:revoked` 撤销旧连接。命令被拒绝后同步最新投影；未确认的原意图保留，重试沿用编号。运行时 schema 校验投影与 ACK，不能靠 UI 隐藏完整状态。
 
+1.2.0 加入／换绑的持久化请求回复由 RoomCoordinator 管理，`session-receipts.ts` 只负责凭证加密／解密；随机玩家凭证仍保存摘要，恢复密钥只由手机持有。可选 sessionReceipts／bindings 字段向前读取格式 1 旧存档，随同一次 SQLite 事务保存，网络协议版本为 3。手机 `useAdmission` 负责持久请求、超时和恢复确认；会话回到前台重新同步，主动换身份关闭旧 Socket 时不发送断网错误。详见 [采用理由](../decisions/005-platform-authority-and-recovery.md#加入确认与原班续局2026-10-02)。
+
+服务 `NetworkDirectory` 每次读取系统网卡并标注、排序，保留手动选择；前端按需及定时刷新。桌面 `RuntimeGuard` 负责服务与公共屏两种防休眠请求的独立生命周期，`startup-error.ts` 将具体服务错误转为中文排障提示。单实例保护在启动服务前取得；公共屏保留时可重新打开管理，正式窗口行为与隐藏验证分开。
+
 正式网页 `App.tsx` 只组装按角色隔离的会话与页面。会话逻辑在 `session/useRoomSession.ts`，盒子和游戏外壳在 `screens/`，弹窗、邀请、管理及全屏等在 `components/`，共享素材与清单在根目录 `assets/platform/`；游戏资源及浏览器资源表在 `assets/games/<id>/`。游戏的场地、结算和选择维护在对应游戏 UI，不导入平台凭证或 Socket。页面切换不产生游戏命令；角色变化重建会话，防止沿用另一身份。
 
 ## 动作、随机与恢复
@@ -80,6 +84,6 @@ HTTP 提供加入、换绑兑换、授权同步和网络地址；Socket.IO 握�
 
 ## 资源与保存结果表现
 
-根目录 assets 是全部运行／原型美术与声音的唯一归属，按 platform、games 和 candidates 分组，替换入口见 [资源说明](../../assets/README.md)。游戏 catalog 只供浏览器加载，规则、策略及存档不依赖素材文件名。
+根目录 assets 是全部运行／原型美术与声音的唯一归属，按 platform 和 games 分组，未采用候选归档在 artifacts；替换入口见 [资源说明](../../assets/README.md)。游戏 catalog 只供浏览器加载，规则、策略及存档不依赖素材文件名。
 
 游戏 UI 的 savedChanges 从授权投影计算卡位与公开结果变化，SavedEffects 表现硬币、能力及结算；平台会话只在匹配实例／分支／修订的保存反馈到达后激活动画。任何新修订先清除旧动画，断开、同步、暂停和回退清理表现，不回放历史。表现层不生成随机结果，不阻塞合法动作。

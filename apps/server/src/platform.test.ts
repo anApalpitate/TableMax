@@ -4,6 +4,7 @@ import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import { randomBytes } from 'node:crypto';
 import type { Command, CommandReply, RoomView } from '@tablemax/protocol';
 import { createService as createServiceBase } from './service';
 import { rules, bot } from '@tablemax/game-template';
@@ -245,5 +246,87 @@ it('preserves corrupted and incompatible save records rather than silently creat
     const before = readFileSync(file);
     await expect(createService(config)).rejects.toThrow();
     expect(readFileSync(file)).toEqual(before);
+  }
+});
+
+it('recovers actual HTTP admissions after lost replies and SQLite restart without publishing recovery secrets', async () => {
+  const config = dirs();
+  let service = await createService(config);
+  const requestKey = randomBytes(32).toString('hex');
+  const post = (url: string, payload: Record<string, string>) =>
+    service.app.inject({ method: 'POST', url, payload });
+  try {
+    const first = (
+      await post('/api/session/join', { name: '断网朋友', requestKey })
+    ).json();
+    expect(first.ok).toBe(true);
+    const before = service.room.view(first.token);
+    await service.close();
+    service = await createService(config);
+    expect(
+      (
+        await post('/api/session/join', { name: '断网朋友', requestKey })
+      ).json(),
+    ).toEqual(first);
+    expect(service.room.view().seats).toHaveLength(1);
+    expect(
+      (await post('/api/session/join', { name: '改写名字', requestKey })).json()
+        .reason,
+    ).toBe('session-request-conflict');
+    expect(
+      (
+        await post('/api/session/join', {
+          name: '无效',
+          requestKey: 'guessable',
+        })
+      ).statusCode,
+    ).toBe(400);
+    const host = service.room.view(service.hostToken);
+    const binding = await service.room.command(service.hostToken, {
+      actionId: 'rebind',
+      instanceId: host.instanceId,
+      revision: host.revision,
+      branch: host.branch,
+      command: { type: 'rebind', seatId: before.self.seatId! },
+    });
+    const code = binding.ok ? binding.bindingCode! : '';
+    await service.close();
+    service = await createService(config);
+    const redeemKey = randomBytes(32).toString('hex');
+    const rebound = (
+      await post('/api/session/redeem', { code, requestKey: redeemKey })
+    ).json();
+    expect(rebound.ok).toBe(true);
+    await service.close();
+    service = await createService(config);
+    const repeated = (
+      await post('/api/session/redeem', { code, requestKey: redeemKey })
+    ).json();
+    expect(repeated.token).toBe(rebound.token);
+    expect(service.room.view(repeated.token).self.seatId).toBe(
+      before.self.seatId,
+    );
+    expect(
+      (
+        await post('/api/session/redeem', {
+          code,
+          requestKey: randomBytes(32).toString('hex'),
+        })
+      ).json().reason,
+    ).toBe('binding-expired');
+    const wire = JSON.stringify(service.room.view());
+    for (const value of [
+      requestKey,
+      redeemKey,
+      first.token,
+      rebound.token,
+      code,
+      'sealedCredential',
+      'sessionReceipts',
+      'bindings',
+    ])
+      expect(wire).not.toContain(value);
+  } finally {
+    await service.close();
   }
 });

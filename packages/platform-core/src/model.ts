@@ -24,6 +24,15 @@ export interface Checkpoint {
   label: string;
   revealedInformation: boolean;
   before: Snapshot;
+  seatId?: string | null;
+  roundNumber?: number;
+}
+export interface SessionReceipt {
+  fingerprint: string;
+  seatId: string;
+  sealedCredential: string;
+  duplicateName: boolean;
+  expires: number;
 }
 export interface Save {
   formatVersion: 1;
@@ -44,6 +53,8 @@ export interface Save {
   snapshot: Snapshot | null;
   history: Checkpoint[];
   receipts: Record<string, { fingerprint: string; reply: CommandReply }>;
+  sessionReceipts?: Record<string, SessionReceipt>;
+  bindings?: Record<string, { seatId: string; expires: number }>;
   botError: string | null;
   endReason: string | null;
 }

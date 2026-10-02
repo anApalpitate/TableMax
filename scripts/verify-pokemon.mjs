@@ -14,7 +14,7 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 );
 const portable = process.argv.includes('--portable');
 const output = resolve(
-  'artifacts/maintenance/pokemon-refresh',
+  'artifacts/maintenance/party-reliability',
   portable ? 'portable' : 'development',
 );
 await mkdir(output, { recursive: true });
@@ -400,6 +400,18 @@ for (let run = 0; run < 2; run++) {
           const candidate = await view(origin, tokens[index]);
           if (candidate.actions.some((a) => a.type === 'draw'))
             activeIndex = index;
+          else if (candidate.actions.length) {
+            // A bot starting first can pass a Zapdos card to a human before
+            // that human's normal turn. Complete this legitimate decision.
+            const participant = await connect(origin, tokens[index]);
+            clients.push(participant);
+            const choice = await strategy(candidate);
+            await command(origin, participant, tokens[index], {
+              type: 'game',
+              decisionId: candidate.decisionId,
+              action: choice.action,
+            });
+          }
         }
         if (activeIndex < 0) await wait(100);
       }
@@ -580,6 +592,40 @@ for (let run = 0; run < 2; run++) {
       await capture(desktop, phones[0], 'phone-result', 360, 800);
       evidence.checks.push(
         `Actual socket/worker five-seat complete mixed match, ${actions} driver actions; same identity/state on restart`,
+      );
+      await page.getByRole('button', { name: '再玩一局', exact: true }).click();
+      await page.waitForURL('**/host');
+      for (const mobile of phones) {
+        await mobile.waitForURL('**/player');
+        await mobile
+          .getByRole('button', { name: '我准备好了', exact: true })
+          .click();
+      }
+      const replay = await view(origin, hostToken);
+      assert.notEqual(replay.instanceId, final.instanceId);
+      assert.deepEqual(
+        replay.seats.map((seat) => seat.id),
+        final.seats.map((seat) => seat.id),
+      );
+      assert.equal(
+        replay.seats.filter((seat) => seat.controller === 'bot').length,
+        3,
+      );
+      await page.getByRole('button', { name: '开始游戏', exact: true }).click();
+      await page.waitForURL('**/host/game');
+      for (let i = 0; i < phones.length; i++) {
+        await phones[i].waitForURL('**/player/game');
+        assert.equal(
+          await phones[i].evaluate(() =>
+            localStorage.getItem('tablemax-player'),
+          ),
+          tokens[i],
+        );
+      }
+      assert.equal((await view(origin, hostToken)).gameView.roundNumber, 1);
+      await capture(desktop, page, 'same-friends-replay');
+      evidence.checks.push(
+        'Completed three-win match replays with the same five ordered seats, three bots and original phone credentials, then starts a fresh match',
       );
     }
     for (const mobile of phones) {

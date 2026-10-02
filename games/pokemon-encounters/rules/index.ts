@@ -311,6 +311,7 @@ export const rules: GameRules = {
       state: next,
       decision: {
         label: `开始第 ${next.roundNumber} 小局之前`,
+        roundNumber: next.roundNumber,
         revealedInformation: true,
       },
       events: next.events
@@ -434,6 +435,7 @@ export const rules: GameRules = {
       state: s,
       decision: {
         label,
+        roundNumber: s.roundNumber,
         revealedInformation:
           !['snorlax-choice', 'charizard-view'].includes(before) ||
           a.type === 'peek',

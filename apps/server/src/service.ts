@@ -3,7 +3,6 @@ import staticFiles from '@fastify/static';
 import { Server } from 'socket.io';
 import QRCode from 'qrcode';
 import { appendFileSync, mkdirSync } from 'node:fs';
-import { networkInterfaces } from 'node:os';
 import { join } from 'node:path';
 import {
   EchoSchema,
@@ -11,14 +10,20 @@ import {
   ServiceConfigSchema,
   type ServiceConfig,
   JoinSchema,
+  RedeemSchema,
   SessionSchema,
   type RoomFeedback,
 } from '@tablemax/protocol';
-import { RoomCoordinator, BotScheduler } from '@tablemax/platform-core';
+import {
+  RoomCoordinator,
+  BotScheduler,
+  Rejection,
+} from '@tablemax/platform-core';
 import { rules, bot } from '../../../games/pokemon-encounters';
 import { SqliteSaveRepository } from './save-repository';
 import { WorkerBotExecutor } from './bot-executor';
 import { openFoundationDatabase } from './database';
+import { NetworkDirectory } from './network-directory';
 
 export async function createService(
   input: ServiceConfig,
@@ -64,7 +69,7 @@ export async function createService(
   const health = HealthSchema.parse({
     status: 'ready',
     phase: 'platform-foundation',
-    protocolVersion: 2,
+    protocolVersion: 3,
     database: 'ok',
     starts: storage.starts,
     runtime: {
@@ -84,16 +89,9 @@ export async function createService(
   });
   app.get('/api/foundation/health', () => health);
 
-  const addresses = [
-    ...new Set(
-      Object.values(networkInterfaces()).flatMap(
-        (entries) =>
-          entries
-            ?.filter((entry) => entry.family === 'IPv4' && !entry.internal)
-            .map((entry) => entry.address) ?? [],
-      ),
-    ),
-  ];
+  const network = new NetworkDirectory();
+  const sessionFailure = (error: unknown) =>
+    error instanceof Rejection ? error.message : 'save-or-action-failed';
   const online = () => {
     const seats = new Set<string>();
     for (const socket of sockets.sockets.sockets.values()) {
@@ -131,22 +129,23 @@ export async function createService(
     try {
       return {
         ok: true,
-        ...(await room.join(parsed.data.name)),
+        ...(await room.join(parsed.data.name, parsed.data.requestKey)),
       };
-    } catch {
-      return reply
-        .code(409)
-        .send({ ok: false, reason: 'joining-closed-or-full' });
+    } catch (error) {
+      return reply.code(409).send({ ok: false, reason: sessionFailure(error) });
     }
   });
   app.post('/api/session/redeem', async (request, reply) => {
-    const body = request.body as { code?: unknown } | null;
-    if (!body || typeof body.code !== 'string' || body.code.length > 128)
+    const body = RedeemSchema.safeParse(request.body);
+    if (!body.success)
       return reply.code(400).send({ ok: false, reason: 'invalid-message' });
     try {
-      return { ok: true, ...(await room.redeem(body.code)) };
-    } catch {
-      return reply.code(409).send({ ok: false, reason: 'binding-expired' });
+      return {
+        ok: true,
+        ...(await room.redeem(body.data.code, body.data.requestKey)),
+      };
+    } catch (error) {
+      return reply.code(409).send({ ok: false, reason: sessionFailure(error) });
     }
   });
   app.post('/api/session/view', (request, reply) => {
@@ -160,15 +159,15 @@ export async function createService(
     }
   });
   app.get('/api/room/network', () => ({
-    addresses,
+    ...network.read(),
     port: (app.server.address() as { port: number }).port,
   }));
-  app.get('/api/foundation/addresses', () => ({ addresses }));
+  app.get('/api/foundation/addresses', () => network.read());
   app.get<{ Querystring: { address?: string } }>(
     '/api/foundation/qr',
     async (request, reply) => {
       const address = request.query.address;
-      if (!address || !addresses.includes(address))
+      if (!address || !network.read().addresses.includes(address))
         return reply.code(400).send({ error: 'invalid-address' });
       const port = (app.server.address() as { port: number }).port;
       const svg = await QRCode.toString(`http://${address}:${port}/player`, {

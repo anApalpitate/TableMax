@@ -56,6 +56,10 @@ function fail(error: unknown) {
   parentPort?.postMessage({
     type: 'error',
     message: error instanceof Error ? error.message : 'Service startup failed',
+    code:
+      error && typeof error === 'object' && 'code' in error
+        ? String(error.code)
+        : null,
   });
   process.exit(1);
 }

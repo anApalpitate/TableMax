@@ -187,20 +187,26 @@ export function BoxScreen({ session }: { session: RoomSession }) {
                 autoComplete="nickname"
                 value={name}
                 maxLength={24}
+                disabled={busy || session.admissionPending}
                 onChange={(event) => setName(event.target.value)}
               />
-              <button disabled={busy || !name.trim()}>加入</button>
+              <button
+                disabled={busy || session.admissionPending || !name.trim()}
+              >
+                加入
+              </button>
               <details>
                 <summary>换手机绑定</summary>
                 <label htmlFor="binding">房主提供的绑定码</label>
                 <input
                   id="binding"
+                  disabled={busy || session.admissionPending}
                   value={code}
                   onChange={(event) => setCode(event.target.value)}
                 />
                 <button
                   type="button"
-                  disabled={busy || !code.trim()}
+                  disabled={busy || session.admissionPending || !code.trim()}
                   onClick={() => void join(true)}
                 >
                   绑定原座位
