@@ -1,6 +1,6 @@
 {
   "name": "tablemax",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.12.1",
@@ -25,6 +25,7 @@
     "package:win": "node scripts/package.mjs",
     "verify:portable": "node scripts/verify-pokemon.mjs --portable",
     "verify:party": "node scripts/verify-party.mjs",
+    "verify:room-levels": "node scripts/verify-room-levels.mjs",
     "prototype:dev": "vite --config apps/web/vite.prototype.config.ts",
     "prototype:build": "vite build --config apps/web/vite.prototype.config.ts",
     "prototype:preview": "vite preview --config apps/web/vite.prototype.config.ts",

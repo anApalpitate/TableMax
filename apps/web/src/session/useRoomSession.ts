@@ -33,6 +33,7 @@ const messages: Record<string, string> = {
   'invalid-name': '请输入 1–24 字的昵称。',
   'invalid-message': '请求内容无效，请检查昵称或绑定码。',
   'stale-instance': '新的大局已经准备好，请按当前牌桌重新操作。',
+  'unsupported-bot-difficulty': '当前游戏不支持这个人机等级。',
   'binding-expired': '绑定码已过期或已经使用。',
   'save-or-action-failed': '操作未确认保存，请检查本地存储后重试。',
   'illegal-action': '选择无效，请重新同步。',

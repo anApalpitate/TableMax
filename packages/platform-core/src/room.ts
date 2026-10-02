@@ -249,12 +249,14 @@ export class RoomCoordinator {
         name: this.rules.manifest.name,
         ...this.rules.manifest.players,
       },
-      seats: d.seats.map(({ id, name, controller, ready }) => ({
+      seats: d.seats.map(({ id, name, controller, ready, botDifficulty }) => ({
         id,
         name,
         controller,
         ready,
         online: controller === 'bot' || online.has(id),
+        botDifficulty:
+          controller === 'bot' ? (botDifficulty ?? 'default') : null,
       })),
       self: { role: identity.role, seatId },
       gameView: snap
@@ -358,6 +360,12 @@ export class RoomCoordinator {
         host();
         lobby();
         requireThat(
+          (this.strategy.difficulties ?? ['default']).includes(
+            c.difficulty ?? 'default',
+          ),
+          'unsupported-bot-difficulty',
+        );
+        requireThat(
           next.seats.length < this.rules.manifest.players.max,
           'room-full',
         );
@@ -367,8 +375,23 @@ export class RoomCoordinator {
           controller: 'bot',
           ready: true,
           tokenHash: null,
+          botDifficulty: c.difficulty ?? 'default',
         });
         break;
+      case 'set-bot-difficulty': {
+        host();
+        lobby();
+        const seat = next.seats.find(
+          (s) => s.id === c.seatId && s.controller === 'bot',
+        );
+        requireThat(seat, 'invalid-seat');
+        requireThat(
+          (this.strategy.difficulties ?? ['default']).includes(c.difficulty),
+          'unsupported-bot-difficulty',
+        );
+        seat.botDifficulty = c.difficulty;
+        break;
+      }
       case 'remove-seat':
         host();
         lobby();
@@ -419,6 +442,7 @@ export class RoomCoordinator {
                   version: this.strategy.version,
                   memory: this.strategy.validateMemory(null),
                   random: randomBytes(4).readUInt32LE() || 1,
+                  difficulty: s.botDifficulty ?? 'default',
                 },
               ]),
           ),
@@ -683,13 +707,13 @@ export class RoomCoordinator {
       )
         return;
       const next = structuredClone(this.data);
-      next.botError = '电脑行动失败，请检查策略后恢复';
+      next.botError = '人机行动失败，请检查策略后恢复';
       next.paused = true;
       next.revision++;
       try {
         this.commit(next);
       } catch {
-        this.transientBotError = '电脑行动未能保存，请检查存储后恢复';
+        this.transientBotError = '人机行动未能保存，请检查存储后恢复';
         this.notify();
       }
     });

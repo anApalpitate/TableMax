@@ -14,7 +14,7 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 );
 const portable = process.argv.includes('--portable');
 const output = resolve(
-  'artifacts/maintenance/party-reliability',
+  'artifacts/maintenance/phone-table-levels',
   portable ? 'portable' : 'development',
 );
 await mkdir(output, { recursive: true });

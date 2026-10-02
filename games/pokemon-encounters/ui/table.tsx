@@ -12,6 +12,7 @@ export type TableSeat = {
   controller: 'human' | 'bot';
   online: boolean;
   portrait: string;
+  botLabel?: string;
 };
 export function GameTable({
   game,
@@ -120,10 +121,10 @@ export function GameTable({
                 </h3>
                 <p>
                   {seat.controller === 'bot'
-                    ? '电脑'
+                    ? (seat.botLabel ?? '人机')
                     : seat.online
-                      ? '在线'
-                      : '离线'}
+                      ? '手机在线'
+                      : '手机离线'}
                   {seat.id === game.actorSeat && !paused ? ' · 正在选择' : ''}
                 </p>
               </div>

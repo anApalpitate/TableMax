@@ -65,17 +65,21 @@ export interface GameRules<
   project(state: State, viewer: Viewer): View;
 }
 
+export type BotDifficulty = 'default' | 'doubao' | 'juewu';
+
 export interface BotStrategy {
   id: string;
   version: string;
   gameId: string;
   rulesVersion: string;
+  difficulties?: readonly BotDifficulty[];
   validateMemory(input: unknown): JsonValue;
   decide(input: {
     view: JsonValue;
     actions: readonly JsonValue[];
     decision: PendingDecision;
     memory: JsonValue;
+    difficulty?: BotDifficulty;
     random: { next(): number };
     signal: AbortSignal;
   }): Promise<{ action: JsonValue; memory: JsonValue }>;

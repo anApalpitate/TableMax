@@ -10,12 +10,19 @@ async function run() {
   );
   if (!bot || task.data.version !== bot.version)
     throw new Error('incompatible-strategy');
+  if (
+    !(bot.difficulties ?? ['default']).includes(
+      task.data.difficulty ?? 'default',
+    )
+  )
+    throw new Error('incompatible-strategy');
   const random = new RandomSource(task.data.random);
   const result = await bot.decide({
     view: task.view,
     actions: task.actions,
     decision: task.decision,
     memory: bot.validateMemory(task.data.memory),
+    difficulty: task.data.difficulty ?? 'default',
     random,
     signal: new AbortController().signal,
   });

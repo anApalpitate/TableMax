@@ -60,7 +60,7 @@
 
 ## 使用与维护
 
-当前便携包为 `artifacts/releases/TableMax-1.2.0-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
+当前便携包为 `artifacts/releases/TableMax-1.3.0-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
 
 后续新增游戏、跨游戏调试或第三方插件按独立需求安排；新规则／策略版本需要明确存档迁移方案，不能直接覆盖原文件。设备模拟中的限制保留供后续实际使用时复查，本轮不将取得其他设备作为剩余开发关口。
 
@@ -100,3 +100,18 @@
 - [文档链接核验](../../artifacts/maintenance/party-reliability/document-links.json)：本次维护文档的本地文件和锚点通过检查。
 
 协议为 3，游戏采用规则／状态／策略版本与平台格式 1 保持；1.1.0 存档通过可选字段默认值继续读取。全部测试使用隔离数据，未读取默认玩家存档，也未自动更改防火墙或系统电源设置。本机网卡 IPv4 访问仅证明本机服务的局域网监听／地址路径；不声明实际手机扫码、Safari、实际 Wi-Fi 互访、电视或另机便携运行通过。声音未追加现场听音结论。旧 ZIP、原图和历史验证不覆盖。
+
+## 首版维护：手机围桌与三档人机
+
+1.3.0，2026-10-02。所有真人各自用手机操作，电脑只运行服务、管理员和公共展示；房间是有五个环绕席位的桌子，手机本人席位突出，空座、准备／在线状态和人机等级公开。玩法教学仍在线下，正式盒子与游戏菜单不设规则帮助。配置与权限见 [房间规格](phase-02-platform-spec.md#手机聚会与围桌房间2026-10-02)，算法、记忆及局限见 [首版人机](../games/pokemon-encounters/bot.md)。
+
+- `pnpm check`：typecheck、lint、format 与 14 文件／75 项测试全部通过。新增 [等级权限及恢复](../../packages/platform-core/src/bot-difficulty.test.ts) 五项，包括手机／匿名拒绝、仅大厅人机可改、保存失败不变、调度传级、回退／重启／续局、旧存档默认与不兼容拒绝；[三档策略](../../games/pokemon-encounters/bot/strategy.test.ts) 十二项包括高级局势差异、本人授权记忆、样本覆盖、取消、空库及实际 32 MiB／两秒 Worker。
+- 策略专项实际完成三档各 2–5 人完整三胜，共十二个固定种子大局；每档全部十二个玩家选择阶段出现，逐动作校验状态及合法动作。绝悟按授权信息生成三十二组有限假设，用真实计分器、能力后续与终局风险比较；未知牌和对手行为仍是近似，未宣称全局数学最优或固定胜率。五人 draw／mew-other 独立 Worker 在本机约 0.2 秒完成；完成后的 heapUsed 约 10 MiB，未测峰值。
+- [围桌与三档开发实测](../../artifacts/maintenance/phone-table-levels/room/results.json)：两部独立 Chromium 手机沿普通邀请 URL 实际加入，各自准备和操作，房主不占座，host/public 无游戏动作、暗牌或 peek 信息。实际选择／添加／调整三档人机、完整混合小局、原班续局和真实程序重启保持座位顺序、三等级及手机 token；七组房间尺寸、长昵称、五席几何和触控检查通过，所有窗口保持隐藏，pageErrors／externalRequests 均空。1080×800、1366×768 的全部五席及房主等级／添加／开始首屏完整可见；360×640 手机的昵称／加入／准备首屏可操作。代表截图已人工查看。
+- [开发完整三胜](../../artifacts/maintenance/phone-table-levels/development/results.json)：两部手机模拟真人与三位实际默认 Worker 的完整大局、十四阶段、冻结／断网／回退／两次启动和五席原班续局继续通过。
+- [聚会回归](../../artifacts/maintenance/phone-table-levels/party/results.json)：新房间和协议下，十组既有可靠性场景全部通过，包括实际本机网卡 IPv4、入座／换绑已保存后丢回复、弱网、真实重启、过期确认保护、重复启动、公共屏保留后重开管理和端口占用诊断。
+- [十四组能力 UI](../../artifacts/maintenance/phone-table-levels/ui/results.json)：更新后的正式渲染通过既有全部能力、位置选择、手机与桌面布局、秘密查看隔离、保存反馈及同步／回退不补播。
+- [最终便携完整三胜](../../artifacts/maintenance/phone-table-levels/portable/results.json)、[便携聚会专项](../../artifacts/maintenance/phone-table-levels/party-portable/results.json) 和 [便携围桌／三档](../../artifacts/maintenance/phone-table-levels/room-portable/results.json)：最终 1.3.0 ZIP 各自解压到新目录，以仅 Windows 系统目录的 PATH 运行，通过完整三胜／十四阶段／原班续局及恢复、十组聚会专项、七组房间／三档实际混合小局与重启。三份记录的 ZIP SHA-256 与最终文件一致，均为 `15e1db3131f62dbebf6354e9ec0b14a98c10085b2e2e74662d4632baa7d926d2`；页面错误及外部请求均空。
+- [文档链接核验](../../artifacts/maintenance/phone-table-levels/document-links.json)：本轮维护文档的本地文件和锚点检查通过。
+
+协议版本为 4；平台格式／游戏／规则／状态／基础策略版本保持，旧人机缺省等级按默认读取，已有手机身份与进度保留。人机等级和获准记忆纳入保存／回退，不向手机或公共屏下发内部策略数据，不调用外部模型服务。所有测试使用隔离数据，历史 ZIP／证据保留。本轮仍为 Windows／Chromium 手机与电视尺寸模拟；未扩展为真实扫码摄像头、手机 Safari、Wi-Fi 互访或电视硬件验收。

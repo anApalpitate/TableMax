@@ -23,7 +23,7 @@ SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)
 
 每个动作信封携带 `actionId,instanceId,revision,branch`；游戏意图另携带 `decisionId`。服务根据真实凭证绑定座位，不接受客户端指定行动身份。版本／分支／修订失效时同步后重新选择；确认丢失时重发原信封，不生成新编号。动作记录和 checkpoint 不发送给客户端，房主只得到安全标签与历史 ID。
 
-`validateState(input,seats)` 校验读档、初始化与动作后的状态。保存分别校验平台格式、游戏／规则／状态版本和策略版本。随机通过 `RuleContext.random.next()` 提供；不要调用 `Math.random()` 或时钟。RuleContext.hostSeat 仅由平台验证主机加入后提供，不能从昵称或客户端 seatId 推断。平台保存规则与策略两个独立 xorshift32 状态，回退后相同边界和相同意图重演相同随机结果。
+`validateState(input,seats)` 校验读档、初始化与动作后的状态。保存分别校验平台格式、游戏／规则／状态版本和策略版本。随机通过 `RuleContext.random.next()` 提供；不要调用 `Math.random()` 或时钟。房主只管理、不占玩家座位；规则上下文只有玩家座位与随机源，不从昵称或客户端参数推断管理权。平台保存规则与策略两个独立 xorshift32 状态，回退后相同边界和相同意图重演相同随机结果。
 
 ## 注册与策略替换
 
@@ -32,7 +32,7 @@ SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)
 3. 在 [牌桌组装入口](../../apps/web/src/screens/GameScreen.tsx) 接入该游戏的授权投影、场景、本人组件和帮助；[App](../../apps/web/src/App.tsx) 仅负责会话与页面组装。界面不能从规则模块取得秘密状态。模板界面已位于游戏目录，平台仍负责大厅和管理控件。
 4. 在游戏内维护逐选择覆盖测试、固定随机输入、权限与规则不变量。修改源码后按 [开发环境](../reference/development.md) 检查和重建；独立 Worker 随桌面构建／便携包本地打包。
 
-`BotStrategy` 声明 `id,version,gameId,rulesVersion`，`validateMemory` 校验普通数据；模板和首版基础策略无记忆，使用 `null`。有记忆的策略需定义可恢复版本及初始 `null` 的转换。`decide` 只接收该座位的投影、合法动作、决策、本人记忆、策略随机源及取消信号，返回 `{action,memory}`。不能读取牌库或别人秘密，不能提交管理动作。选择器输出必须经过平台再次校验；调试权限不扩大策略输入。
+`BotStrategy` 声明 `id,version,gameId,rulesVersion`，`validateMemory` 校验普通数据；模板和首版默认策略无记忆，使用 `null`。有记忆的策略需定义可恢复版本及初始 `null` 的转换。`decide` 只接收该座位的投影、合法动作、决策、本人记忆、策略随机源、取消信号及 `difficulty`，返回 `{action,memory}`。`difficulties` 可声明实际支持的 `default/doubao/juewu`；未声明时仅支持默认，旧输入／存档缺省等级也为默认。平台将座位等级复制到 bot 快照并传到隔离 Worker，各等级的行为及记忆兼容需有测试，不允许用不支持等级默默降级。不能读取牌库或别人秘密，不能提交管理动作。选择器输出必须经过平台再次校验；调试权限不扩大策略输入。
 
 正式服务每步 bot 延迟 350ms、计算预算 2s，在 JavaScript 老生代内存预算 32MiB 的独立 Worker 中执行，暂停／回退／结束／状态变化会取消旧任务。异常／非法意图／超时暂停并显示安全原因；房主检查策略后显式恢复，不自动重试。Worker 是受信任编译模块的执行边界，不是第三方代码安全沙箱。修改策略版本后旧存档默认拒绝恢复，不静默换策略；需要迁移时另行实现、验证并保留原存档。
 

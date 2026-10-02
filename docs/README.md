@@ -4,7 +4,7 @@
 
 ## 开始开发
 
-当前源码为 1.2.0，可靠入座确认、网卡刷新、原班续局、回退定位和运行保障见 [本轮维护验收](reference/acceptance.md#首版维护聚会可靠性与连续游玩) 与 [聚会规格](reference/phase-02-platform-spec.md#聚会连接连续游玩与运行保障)。原版角色卡面、简约盒子、管理员身份和动画的 1.1.0 记录保留。第一至六阶段的历史交付与证据继续保留；新便携版和维护证据分别进入 `artifacts/releases` 与 `artifacts/maintenance`。
+当前源码为 1.3.0，所有真人手机操作、电脑只管理／展示、围桌房间与三档本地人机见 [任务接续](tasks/README.md#130手机聚会围桌房间与三档人机)、[房间规格](reference/phase-02-platform-spec.md#手机聚会与围桌房间2026-10-02)、[人机等级](reference/bot-players.md#三档智能与配置) 和 [1.3.0 验收](reference/acceptance.md#首版维护手机围桌与三档人机)。可靠入座、网卡刷新、原班续局与运行保障的 [1.2.0 验收](reference/acceptance.md#首版维护聚会可靠性与连续游玩) 及旧视觉记录保留。第一至六阶段历史证据继续保留；新便携版和维护证据分别进入 `artifacts/releases` 与 `artifacts/maintenance`。
 
 先读 [项目说明](../README.md) 了解现状，再从 [阶段接续入口](tasks/README.md#后续开发接续入口) 确认本阶段范围，按实现职责阅读规格和源码。运行与检查统一查 [开发环境](reference/development.md)，Agent 工作约定见 [AGENTS.md](../AGENTS.md)。
 

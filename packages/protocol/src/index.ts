@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const HealthSchema = z.object({
   status: z.literal('ready'),
   phase: z.literal('platform-foundation'),
-  protocolVersion: z.literal(3),
+  protocolVersion: z.literal(4),
   database: z.literal('ok'),
   starts: z.number().int().positive(),
   runtime: z.object({
@@ -40,6 +40,8 @@ export const ServiceReadySchema = z.object({
 });
 
 export const CredentialSchema = z.string().min(32).max(128);
+export const BotDifficultySchema = z.enum(['default', 'doubao', 'juewu']);
+export type BotDifficulty = z.infer<typeof BotDifficultySchema>;
 export const CommandSchema = z
   .object({
     actionId: z.string().min(1).max(128),
@@ -53,6 +55,14 @@ export const CommandSchema = z
         .object({
           type: z.literal('add-bot'),
           name: z.string().trim().min(1).max(24),
+          difficulty: BotDifficultySchema.optional(),
+        })
+        .strict(),
+      z
+        .object({
+          type: z.literal('set-bot-difficulty'),
+          seatId: z.string(),
+          difficulty: BotDifficultySchema,
         })
         .strict(),
       z.object({ type: z.literal('remove-seat'), seatId: z.string() }).strict(),
@@ -165,6 +175,7 @@ export interface RoomView {
     controller: 'human' | 'bot';
     ready: boolean;
     online: boolean;
+    botDifficulty: BotDifficulty | null;
   }[];
   self: { role: 'public' | 'host' | 'player'; seatId: string | null };
   gameView: unknown;
@@ -211,6 +222,7 @@ export const RoomViewSchema = z
           controller: z.enum(['human', 'bot']),
           ready: z.boolean(),
           online: z.boolean(),
+          botDifficulty: BotDifficultySchema.nullable(),
         })
         .strict(),
     ),

@@ -47,6 +47,17 @@ export function validateSave(
         (s.tokenHash === null || /^[0-9a-f]{64}$/.test(s.tokenHash)),
       'damaged-save',
     );
+  for (const seat of d.seats) {
+    if (seat.controller === 'human') {
+      requireThat(seat.botDifficulty === undefined, 'damaged-save');
+      continue;
+    }
+    if (seat.botDifficulty === undefined) seat.botDifficulty = 'default';
+    requireThat(
+      (strategy.difficulties ?? ['default']).includes(seat.botDifficulty),
+      'incompatible-strategy',
+    );
+  }
   requireThat(
     d.hostSeat == null ||
       d.seats.some(
@@ -81,6 +92,12 @@ export function validateSave(
       const b = snap.bots[seat.id];
       requireThat(
         b && b.id === strategy.id && b.version === strategy.version,
+        'incompatible-strategy',
+      );
+      if (b.difficulty === undefined) b.difficulty = 'default';
+      requireThat(
+        (strategy.difficulties ?? ['default']).includes(b.difficulty) &&
+          b.difficulty === seat.botDifficulty,
         'incompatible-strategy',
       );
       requireThat(

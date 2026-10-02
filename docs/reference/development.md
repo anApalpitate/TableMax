@@ -50,6 +50,7 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 | `pnpm build`                        | 构建网页、打包独立服务与桌面主进程到 `build/desktop`                                                                          |
 | `pnpm verify:desktop`               | 隐藏窗口验证开发构建，包括真实大厅、宝可梦五人混合整局、回退、两次启动恢复、独立进程与退出协调                                |
 | `pnpm verify:party`                 | 隐藏窗口验证加入／换绑丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP |
+| `pnpm verify:room-levels`           | 隐藏窗口验证手机各自入座、电脑仅管理／展示、围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证当前 ZIP  |
 | `pnpm package:win`                  | 构建并生成 Windows x64 解压运行 ZIP 与 `win-unpacked`                                                                         |
 | `pnpm verify:portable`              | 将最终 ZIP 解压到新的项目临时目录，对其中的 `TableMax.exe` 运行同一跨层验证，子进程 PATH 不含 Node／开发工具目录              |
 | `pnpm prototype:dev`                | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                                   |
@@ -103,11 +104,17 @@ pnpm prototype:verify:game
 
 `pnpm verify:party` 验证当前开发构建，使用隔离数据、隐藏 Electron 和实际本机网卡 IPv4（监听 0.0.0.0），覆盖网卡名称／刷新／选择保持、已保存但丢失的加入及换绑回复、刷新／真实程序重启后确认、250ms 延迟和带宽限制、断网／冻结恢复、回退上下文与筛选、原班第二大局、重复启动、公共屏保留时恢复房主管理以及真实端口占用的中文错误日志。不会修改防火墙、路由器或默认玩家存档；本机网卡地址可达并不证明真实手机或实际 Wi-Fi 已验收。启动前运行 `pnpm build`。正式包验证使用 `pnpm verify:party --portable`，新目录解压 ZIP、子进程 PATH 仅系统目录，证据独立进入 `party-portable`。
 
-本轮 verify:desktop／verify:portable／verify:game-ui／verify:cards 的证据进入 `artifacts/maintenance/party-reliability`，历史 pokemon-refresh 不覆盖。整局驱动器在随机电脑先手时处理闪电鸟等真人被动选择，再观察真人正常回合；完整三胜结算后实际保留五座位、三 bot 和手机凭证，重新准备并启动新大局。新版包按 package.json 的 1.2.0 输出到 `artifacts/releases`；存档格式、游戏状态与策略版本保持，网络协议为 3。
+1.2.0 的 verify:desktop／verify:portable／verify:game-ui／verify:party 证据在 `artifacts/maintenance/party-reliability` 保留，历史 pokemon-refresh 不覆盖。整局驱动器在随机电脑先手时处理闪电鸟等真人被动选择，再观察真人正常回合；完整三胜结算后实际保留五座位、三 bot 和手机凭证，重新准备并启动新大局。该版包按 package.json 的 1.2.0 输出到 `artifacts/releases`；存档格式、游戏状态与策略版本保持，网络协议为 3。
 
 普通便携启动保持端口 38473：占用时停止并展示具体原因及排障建议，不静默换端口。网卡可手动刷新并自动跟踪变化，原手机在地址或端口变化后的新浏览器源上需房主换绑。服务运行期间防自动休眠，公共屏可见时保持亮屏，退出恢复系统正常电源行为。手动休眠或关机仍可能中断服务。
 
 正式桌面原生 Alt → 程序菜单提供“打开房主管理”“打开日志目录”；`LOCALAPPDATA/TableMax/logs/desktop.log` 保存启动失败的具体原因，`service.log` 保存服务生命周期。损坏／不兼容存档保持原文件，排障前备份 room.sqlite 和 WAL／SHM。验收见 [聚会维护记录](acceptance.md#首版维护聚会可靠性与连续游玩)。
+
+### 手机围桌与等级验证（1.3.0）
+
+`pnpm verify:room-levels` 使用真实桌面／独立服务和本地 Worker，手机采用独立 Chromium partition、触控视口和二维码普通加入 URL。实际 UI 添加三档人机、调整等级、由各手机准备和行动，检查 host/public 不占座且无游戏动作或私牌；尺寸矩阵检查围桌席位、名字、按钮与横向溢出，并保存实际隐藏渲染帧。真实混合小局后原班续局，再重启确认手机身份及等级保留。加 `--portable` 对当前 ZIP 新目录解压、仅系统 PATH 运行相同检查。
+
+本轮证据在 `artifacts/maintenance/phone-table-levels`：`room/room-portable` 为围桌／三档 UI 与实际混合小局，`development/portable` 为完整三胜及恢复，`party/party-portable` 为聚会可靠性，`ui` 为既有能力和尺寸场景。旧维护目录全部保留；卡面代码未改，verify:cards 沿用原独立卡面证据。当前包版本 1.3.0、协议 4，存档格式／游戏状态／规则／基础策略版本保持；等级缺省按默认恢复，高级记忆有独立数据版本及合法信息边界。模拟不证明 Safari 或真实手机／Wi-Fi／电视硬件通过，证据范围见 [验收](acceptance.md)。
 
 1.0.1 的 `pnpm verify:game-ui` 使用十组真实存档场景，覆盖七组能力／基本选择、跳过两类可选能力，以及弃牌与弃顶取牌。新增独立路由、盒子来回与刷新、菜单 Escape、游戏占屏、单击意图和具体卡位确认检查；证据在 `artifacts/maintenance/game-experience/ui/`。`pnpm verify:desktop` 与 `pnpm verify:portable` 的当前证据分别进入该维护目录的 `development/` 与 `portable/`，保留 phase-06 原交付证据。
 

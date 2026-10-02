@@ -53,11 +53,13 @@ Electron 主进程（窗口、主机身份与生命周期）
 
 HTTP 提供加入、换绑兑换、授权同步和网络地址；Socket.IO 握手绑定凭证，逐连接生成 `room:view`，`room:command` 校验信封并确认，`room:revoked` 撤销旧连接。命令被拒绝后同步最新投影；未确认的原意图保留，重试沿用编号。运行时 schema 校验投影与 ACK，不能靠 UI 隐藏完整状态。
 
-1.2.0 加入／换绑的持久化请求回复由 RoomCoordinator 管理，`session-receipts.ts` 只负责凭证加密／解密；随机玩家凭证仍保存摘要，恢复密钥只由手机持有。可选 sessionReceipts／bindings 字段向前读取格式 1 旧存档，随同一次 SQLite 事务保存，网络协议版本为 3。手机 `useAdmission` 负责持久请求、超时和恢复确认；会话回到前台重新同步，主动换身份关闭旧 Socket 时不发送断网错误。详见 [采用理由](../decisions/005-platform-authority-and-recovery.md#加入确认与原班续局2026-10-02)。
+1.2.0 加入／换绑的持久化请求回复由 RoomCoordinator 管理，`session-receipts.ts` 只负责凭证加密／解密；随机玩家凭证仍保存摘要，恢复密钥只由手机持有。可选 sessionReceipts／bindings 字段向前读取格式 1 旧存档，随同一次 SQLite 事务保存。1.3.0 网络协议版本为 4，增加人机等级设置与公开席位等级；手机 `useAdmission` 负责持久请求、超时和恢复确认；会话回到前台重新同步，主动换身份关闭旧 Socket 时不发送断网错误。详见 [采用理由](../decisions/005-platform-authority-and-recovery.md#加入确认与原班续局2026-10-02)。
 
 服务 `NetworkDirectory` 每次读取系统网卡并标注、排序，保留手动选择；前端按需及定时刷新。桌面 `RuntimeGuard` 负责服务与公共屏两种防休眠请求的独立生命周期，`startup-error.ts` 将具体服务错误转为中文排障提示。单实例保护在启动服务前取得；公共屏保留时可重新打开管理，正式窗口行为与隐藏验证分开。
 
 正式网页 `App.tsx` 只组装按角色隔离的会话与页面。会话逻辑在 `session/useRoomSession.ts`，盒子和游戏外壳在 `screens/`，弹窗、邀请、管理及全屏等在 `components/`，共享素材与清单在根目录 `assets/platform/`；游戏资源及浏览器资源表在 `assets/games/<id>/`。游戏的场地、结算和选择维护在对应游戏 UI，不导入平台凭证或 Socket。页面切换不产生游戏命令；角色变化重建会话，防止沿用另一身份。
+
+盒子 `RoomTable` 只呈现公开席位和围桌房间；开局／准备／等级设置仍由 BoxScreen 通过会话发送动作。所有真人控制入口属于手机 player，电脑 host/public 不参与游戏。SDK `BotDifficulty` 与策略可选 `difficulties` 声明支持范围，平台只保存等级、检验权限和兼容性，游戏入口按 `decide.difficulty` 分发不同算法；Worker 读取存档中的等级，不能依据 UI 昵称推断。座位与快照的等级必须一致，旧可选字段缺省为 default，checkpoint 同时恢复记忆与等级；详见 [人机边界](bot-players.md#三档智能与配置)。
 
 ## 动作、随机与恢复
 

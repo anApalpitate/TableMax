@@ -1,4 +1,4 @@
-import type { JsonValue } from '@tablemax/game-sdk';
+import type { JsonValue, BotDifficulty } from '@tablemax/game-sdk';
 import type { CommandReply } from '@tablemax/protocol';
 
 export interface Seat {
@@ -7,12 +7,14 @@ export interface Seat {
   controller: 'human' | 'bot';
   ready: boolean;
   tokenHash: string | null;
+  botDifficulty?: BotDifficulty;
 }
 export interface BotData {
   id: string;
   version: string;
   memory: JsonValue;
   random: number;
+  difficulty?: BotDifficulty;
 }
 export interface Snapshot {
   state: JsonValue;

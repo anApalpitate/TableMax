@@ -47,6 +47,7 @@ export class BotScheduler {
                 actions: task.actions,
                 decision: task.decision,
                 memory: task.data.memory,
+                difficulty: task.data.difficulty ?? 'default',
                 random,
                 signal: controller.signal,
               });

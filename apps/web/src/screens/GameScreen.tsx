@@ -4,7 +4,6 @@ import type { PokemonView } from '../../../../games/pokemon-encounters/rules/pro
 import {
   SeatResult,
   PublicLog,
-  GameHelp,
 } from '../../../../games/pokemon-encounters/ui/public';
 import { GameTable } from '../../../../games/pokemon-encounters/ui/table';
 import { SoundControl } from '../../../../games/pokemon-encounters/ui/audio';
@@ -42,7 +41,15 @@ export function GameScreen({ session }: { session: RoomSession }) {
   const seats = (
     view?.seats.filter((seat) => role !== 'player' || seat.id === self?.id) ??
     []
-  ).map((seat) => ({ ...seat, portrait: avatarFor(seat.id) }));
+  ).map((seat) => ({
+    ...seat,
+    portrait: avatarFor(seat.id),
+    ...(seat.botDifficulty
+      ? {
+          botLabel: `${{ default: '默认', doubao: '豆包', juewu: '绝悟' }[seat.botDifficulty]}人机`,
+        }
+      : {}),
+  }));
   return (
     <main
       className={`game-screen ${role} ${feedback?.events.at(-1)?.kind === 'round-result' && motion.length ? 'saved-result' : ''}`}
@@ -72,7 +79,9 @@ export function GameScreen({ session }: { session: RoomSession }) {
           <h2>{connected ? '牌桌还没有开始' : '等待重新连接'}</h2>
           <p>
             {connected
-              ? '回到盒子加入并准备，开局后会自动进入。'
+              ? role === 'player'
+                ? '回到盒子加入并准备，开局后会自动进入。'
+                : '朋友们用手机扫码入座并准备，由房主开始游戏。'
               : '重新连接后恢复本人授权的最新牌桌。'}
           </p>
           <ScreenLink className="button" href={`/${role}`}>
@@ -187,10 +196,6 @@ export function GameScreen({ session }: { session: RoomSession }) {
               )}
 
               {game && <PublicLog view={game} />}
-              <details>
-                <summary>游戏帮助</summary>
-                <GameHelp />
-              </details>
             </>
           )}
         </OverlayPanel>
