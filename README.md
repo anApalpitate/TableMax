@@ -56,6 +56,8 @@ pnpm verify:portable
 
 `pnpm start` 运行已有构建。网页热更新由 dev 提供，服务／桌面源码修改后重启。命令、数据位置及历史验证见 [开发环境](docs/reference/development.md)；完整接入、策略替换和故障处理见 [扩展指南](docs/game-development/README.md)。默认不 push，较大改动验证通过后自动提交。
 
+盒子项目根目录提供 [清理历史版本](Clean-Releases.ps1) 和 [清理中间产物](Clean-Intermediates.ps1) 两个 PowerShell 工具，默认只预览；执行方式、保护范围和记录见 [清理说明](docs/reference/development.md#清理本地中间物)。当前 1.5.0 ZIP、玩家存档、素材及历史验收证据保留。
+
 ## 项目入口与目录
 
 - [文档索引](docs/README.md)、[任务与接续](docs/tasks/README.md#后续开发接续入口)、[需求基线](docs/requirements/TableMax_需求文档_v1.0.md)。

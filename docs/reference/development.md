@@ -154,9 +154,29 @@ pnpm prototype:verify:game
 
 ## 清理本地中间物
 
-清理已结束的验证时，可删除 `tmp/` 下的测试浏览器数据、隔离存档、便携包解压副本及一次性脚本；先把唯一研究资料、原图和需要保留的过程记录移入对应 artifacts 目录。当前打包工作目录为 `artifacts/releases/package-<版本>-<随机后缀>/`，旧构建曾使用 `artifacts/releases/win-unpacked/`；确认对应交付 ZIP 完整且目录中的程序退出后，可整理不再需要的打包工作目录。`build/` 供 `pnpm start` 使用，当前构建保留；`.pnpm-store/`、`node_modules/` 和工具缓存用于继续开发，不随测试临时文件清理。忽略目录不能一律视为废弃资料。
+盒子项目根目录提供两个可从任意工作目录运行的 PowerShell 入口，共用 [清理实现](../../scripts/cleanup-local.ps1)，从脚本位置定位仓库，不依赖当前终端目录：
+
+- [Clean-Releases.ps1](../../Clean-Releases.ps1)：清理 `artifacts/releases` 中低于 `package.json` 当前版本的 ZIP、解压程序和独立打包目录；当前／未来版本及不认识的名称保留。
+- [Clean-Intermediates.ps1](../../Clean-Intermediates.ps1)：清理已知验证脚本生成的 `tmp/<用途>-<六位随机后缀>`、便携解压副本、已完成的打包工作目录及 builder 诊断文件；已识别的一次性脚本先归档。未知临时内容保留，不清空整个 `tmp/`。原始素材、资料与历史截图／JSON 证据不在范围内。
+
+默认只预览、保留最近 30 分钟修改过的候选，不删除也不写清理日志。先退出 TableMax，并完成开发／测试／打包；核对预览后加 `-Apply` 执行。脚本必须先找到与当前 ZIP 哈希相符的便携 `portable: true`／`result: passed` 验证记录；缺包、未验证或 ZIP 变化时停止。执行前及逐项删除前检查进程，解析绝对路径并核对仓库边界，拒绝 junction／符号链接；不能读进程、候选发生变化或检查失败时停止，不结束用户进程。部分失败会保留已执行清单供复查。
+
+```powershell
+# 在 TableMax 根目录预览
+.\Clean-Releases.ps1
+.\Clean-Intermediates.ps1
+# 核对后分别执行
+.\Clean-Releases.ps1 -Apply
+.\Clean-Intermediates.ps1 -Apply
+```
+
+`build/` 供 `pnpm start` 使用，默认保留；明确要删除可加 `-IncludeBuild`，之后先执行 `pnpm build` 再启动。已确认最近生成的候选也已停止使用时，可显式设置 `-MinimumAgeMinutes 0`；它只取消近期保护，不跳过其他安全检查。`.pnpm-store/`、`node_modules/` 和工具缓存继续保留，不随临时文件清理。脚本不更改 PowerShell 执行策略、默认 `LOCALAPPDATA/TableMax` 数据或其他项目环境。
+
+实际执行记录写入 `artifacts/maintenance/local-cleanup-<UTC时间>-<类别>/cleanup.json`，逐项记录路径、字节、删除状态、跳过原因及保留的当前 ZIP 哈希；一次性脚本在同目录 `temporary-scripts` 归档。记录保持文件树可见、Git 忽略。清理工具改动使用 [隔离测试](../../scripts/cleanup-local.test.ps1)：`powershell.exe -NoProfile -File scripts/cleanup-local.test.ps1`；它在仓库内创建模拟工作区，检查预览、当前／未来包保留、运行进程阻止、链接防护、白名单、近期保护、脚本归档及显式构建清理，不需要启动真实游戏或重建 release。
 
 2026-10-02 用户要求清除历史版本，已移除 0.1.0 至 1.3.0 的七个 ZIP，以及 phase-01／phase-06／releases 下三个旧 `win-unpacked`；当次保留 1.4.0 ZIP、解压程序和打包目录。历史原图、截图及 JSON 保留，以下历史包路径只用于追溯当时交付；详情见 [清理记录](../../artifacts/maintenance/release-cleanup-2026-10-02/cleanup.json)。打包不会自动清除其他版本。
+
+同日新一轮清理按用户要求移除 1.4.0 程序包及已结束的中间物，当前 1.5.0 ZIP 保持原哈希；结果及清理工具验证见 [本轮记录](../../artifacts/maintenance/local-cleanup-tools/cleanup-summary.json) 与 [20 项隔离检查](../../artifacts/maintenance/local-cleanup-tools/tool-tests.json)。
 
 ## 第五、六阶段完整游戏与交付
 
