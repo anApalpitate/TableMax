@@ -60,7 +60,7 @@
 
 ## 使用与维护
 
-当前便携包为 `artifacts/releases/TableMax-1.5.0-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
+当前便携包为 `artifacts/releases/TableMax-1.6.0-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
 
 2026-10-02 按用户要求清除历史版本：移除 0.1.0、1.0.0、1.0.1、1.0.2、1.1.0、1.2.0、1.3.0 共七个 ZIP，以及 phase-01／phase-06／releases 下三个旧 `win-unpacked`，释放 2,161,988,613 字节（约 2.01 GiB）。当次保留 1.4.0 ZIP、解压程序及打包目录，ZIP 哈希与该版最终验证一致；原始素材、截图、JSON、默认玩家数据和 Git 历史保留。以下历次验收中的“旧包保留”描述当时状态，0.1.0–1.3.0 旧包现已清除；[清理记录](../../artifacts/maintenance/release-cleanup-2026-10-02/cleanup.json) 保存删除清单、空间和证据目录检查。
 
@@ -146,3 +146,27 @@
 - [文档链接核验](../../artifacts/maintenance/display-resolution/document-links.json) 检查本轮主题、入口、源码与本地证据路径／锚点；发布 ZIP 的大小与 SHA-256 见 [发布核验](../../artifacts/maintenance/display-resolution/release-verification.json)，与便携运行记录相互核对。
 
 本轮仍按既有授权使用本机 Windows／Chromium、隐藏窗口和隔离数据。3840×2160 PNG 证明该窗口尺寸的实际渲染；DPI 原生参数使用 `--force-device-scale-factor=1.5`，离屏绘制密度与 CDP 像素密度模拟分别记录，未覆盖视口或把模拟截图声明为真实 4K 显示器／电视验收。没有改变系统分辨率、DPI、电源、防火墙或默认玩家存档；原 1.4.0 程序及历史证据保留。本轮不重复声明此前完整三胜／聚会专项为 1.5.0 新包实测，相关历史验收继续保留。
+
+## 1.6.0：盒子、对局体验与可靠性
+
+2026-10-02，按用户确认计划实施，协议 6，存档格式仍为 1、规则与策略版本不变。游戏库提供宝可梦，模板只用于内部切换验证。本轮采用当前 Windows／隐藏 Electron 与独立手机 Chromium 会话，不扩大为实体手机、电视、Wi-Fi 或 Safari 认证。
+
+- 工程：严格类型、ESLint、项目格式与 22 文件／127 项测试通过；覆盖 2／6 人同快照首翻、按座位准备、同人双击不同格、重复确认、保存失败、暂停／恢复／回退／换局失效窗口、手机房主授权／撤销／持久化／越权拒绝。读取一次存档、1.5.0 字段兼容、无游戏保存、切换人数／等级不兼容、加载或保存失败保持状态亦有回归。
+- [六手机体验](../../artifacts/maintenance/v1.6.0/experience/results.json)：未选择游戏没有游戏主体模块／角色／背景／音频请求，选择后加载；显示图标居中、帮助对齐、真人房主手机开局、别人首翻不清自己的选牌、管理员独有操作隔离、兑换接口 404。真实桌面公共窗口优先默认发声、关闭后管理员接管且已播事件不补播。
+- [完整开发对局](../../artifacts/maintenance/v1.6.0/development/results.json)：六席真人／实际 Worker bot 混合完成三胜大局，全部 14 阶段、回退、重启恢复、原班续局；1080×800／1366×768／1920×1080 结算首屏通过。[聚会保障](../../artifacts/maintenance/v1.6.0/party/results.json) 与 [房间／三等级](../../artifacts/maintenance/v1.6.0/room/results.json) 复验通过。
+- 声画来源为本地 14 音频，喵喵／皮卡丘来自 Showdown 游戏叫声目录；记录 URL、版本和 SHA-256，未标为中文动画原声。火箭队用原创飞走声和文字。验证区分来源／解码／实际播放调用与真人试听；没有冒称完成现场听音。
+
+内存证据见 [测量 JSON](../../artifacts/maintenance/v1.6.0/memory/results.json)。同一合法六席快照扩展到 1,200 checkpoint、1,200 receipt（5,222,948 字节）的规模 fixture，在各三个独立 Node 进程各 60 次复制中，深复制中位 52.22 ms／新增堆峰值 12,375,928 B，按字段复制 0.351 ms／259,872 B。采样总堆峰值中位 36.02 MB → 13.49 MB。这是复制算法的规模化比较，不是实际玩过 1,200 步，也不等于整局 RAM 降幅。隐藏 Electron 20 次六席开始／结束／回盒子及重选，后段与前段中位 post-GC heap 增加 75,524 B，DOM／监听器增长 0，页面错误 0；有界压力回归不证明长期完全无泄漏。未裁剪 checkpoint 或 SQLite journal。
+
+[显示专项](../../artifacts/maintenance/v1.6.0/display/development/results.json) 已通过 44 张真实隐藏截图：720p／1080p／1440p／4K、暂停／恢复下两端全部 36 张牌首屏、44px 恢复按钮、100–150% 界面、每窗独立配置、刷新／重启及 150% DPI 模拟。[游玩呈现](../../artifacts/maintenance/v1.6.0/presentation/results.json) 已通过六个真实手机身份的自然小局（44 次驱动动作）、浮窗焦点、明确结束确认和真实保存动效；三档 Worker 实测等待 1564／1858／2232ms，测试三次选择 240ms，暂停／模式切换／结束取消旧任务。验收中修复了重复卡位底部间距、短屏弃牌按钮额外占行，以及打开公共屏时取消导航误清管理员播放资格的问题，保留既有可读／触控／无滚动断言。
+
+[十五场游戏 UI](../../artifacts/maintenance/v1.6.0/ui/results.json) 与 [十三种卡面布局](../../artifacts/maintenance/v1.6.0/cards/results.json) 通过，覆盖全部能力、2–6 人、短手机／横屏及 16 类卡面，外部请求与页面错误均为零。[声画补查](../../artifacts/maintenance/v1.6.0/effects/results.json) 使用真实生产组件和按身份授权的投影构造六组视觉场景，验证公开零分列、暗牌交换、连续同一喵喵币面、只在本人画面出现的喷火龙火焰、特殊流程换入火箭队及共同赢家皇冠／全屏烟花；这些场景用于指定状态的视觉核验，不冒充自然对局。
+
+最终 [1.6.0 ZIP](../../artifacts/releases/TableMax-1.6.0-win-x64.zip) 为 156,161,422 字节，SHA-256：`2acfdda6c4ec1dc062cec9977a63b398e2eaf5ef0ad060450525d294ae9eb6bb`。动态规则和 bot 模块已纳入 ASAR 并实际运行；以下四份记录均对应同一最终 ZIP：
+
+- [完整便携对局](../../artifacts/maintenance/v1.6.0/portable/results.json)：新目录解压、仅系统 PATH、六席含四个实际 Worker bot 完成三胜大局，69 次驱动动作、两次启动恢复、原班续局及重新开始，三种桌面尺寸结算可用。随机完整局到达 13 个阶段，另一币面的指定状态由开发完整局和能力视图补充覆盖。
+- [便携聚会保障](../../artifacts/maintenance/v1.6.0/party-portable/results.json)：十组确认重试、弱网、回退暂停、刷新／重启、续局、重复启动、窗口生命周期及端口诊断检查。
+- [便携六手机体验](../../artifacts/maintenance/v1.6.0/experience-portable/results.json)：四组按需加载、多人并发、手机房主权限与电脑单声源交接，恢复不补播。
+- [便携显示专项](../../artifacts/maintenance/v1.6.0/display/portable/results.json)：同样通过 720p—4K、独立窗口缩放、暂停／恢复及 DPI 模拟，保留 44 张实际隐藏渲染截图。
+
+维护的 [22 项清理测试](../../artifacts/maintenance/local-cleanup-tools/tool-tests.json) 和 [32 项统一维护测试](../../artifacts/maintenance/project-maintenance-tools/tool-tests.json) 全部通过，覆盖阈值、低水位、最旧优先、忙碌跳过、近期修改、链接、ZIP 哈希、证据及正式数据保护。全部验证与打包进程退出后执行 [实际维护检查](../../artifacts/maintenance/v1.6.0/maintenance.json)：自动解析同仓库主工作区 `E:\Proj\TableMax`，逻辑大小 3,049,074,100 字节（约 2.840 GiB），低于 5 GiB 阈值，删除 0 字节；跳过 1,330 个链接且不重复统计其他 checkout。未终止用户进程、放宽保护或扩大删除范围。

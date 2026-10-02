@@ -1,6 +1,6 @@
 # 开发环境与验证
 
-范围：用户本机 Windows 11 x64；第一至六阶段已完成，正式入口默认运行宝可梦完整游戏，独立原型保留合成状态。当前交付验收按用户授权使用电视／手机模拟，证据及 AC 对应见 [验收记录](acceptance.md)；历史阶段记录保持原验证范围。
+范围：用户本机 Windows 11 x64；第一至六阶段已完成，1.6.0 正式入口先展示游戏库，选择宝可梦后运行完整游戏，独立原型保留合成状态。已有对局按存档恢复对应游戏。当前交付验收按用户授权使用电视／手机模拟，证据及 AC 对应见 [验收记录](acceptance.md)；历史阶段记录保持原验证范围。
 
 第二阶段设计行为和 AC 场景见 [通用交互规格](phase-02-platform-spec.md)，规则关口与接续工作见 [阶段任务](../archive/phase-02-rules-and-interaction.md)。原型不读取默认数据目录，不改变正式桌面入口。
 
@@ -49,10 +49,13 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 | `pnpm check`                        | 顺序执行类型、静态、格式检查与当前测试                                                                                           |
 | `pnpm build`                        | 构建网页、打包独立服务与桌面主进程到 `build/desktop`                                                                             |
 | `pnpm verify:desktop`               | 隐藏窗口验证开发构建，包括真实大厅、宝可梦六人混合整局、回退、两次启动恢复、独立进程与退出协调                                   |
-| `pnpm verify:party`                 | 隐藏窗口验证加入／换绑丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP    |
+| `pnpm verify:party`                 | 隐藏窗口验证加入丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP         |
 | `pnpm verify:room-levels`           | 隐藏窗口验证手机各自入座、电脑仅管理／展示、六席围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证当前 ZIP |
 | `pnpm verify:presentation`          | 隐藏窗口验证六真人、游玩／测试时序、浮窗焦点／结束、公开行动及星标；可加 `--portable` 验证当前 ZIP                               |
 | `pnpm verify:display`               | 隐藏窗口验证电脑 720p／1080p／1440p／4K、独立缩放、显示浮窗、设置恢复与 DPI；可加 `--portable` 验证最终 ZIP                     |
+| `pnpm verify:experience`            | 隐藏窗口验证游戏库按需加载、管理员指定手机房主、并发初始翻牌和准备、连接／显示控件及声音归属；可加 `--portable` 验证当前 ZIP |
+| `pnpm verify:effects` | 隐藏 Electron 用实际游戏组件和授权投影视觉 fixture 验证主题、同币面、暗牌交换、零分列、共同赢家和减少动态；不冒充自然对局 |
+| `pnpm verify:memory`                | 独立 Node 进程比较存档复制开销，再用隐藏 Electron 执行 20 轮进入／退出游戏的 heap／DOM 回归；可加 `--copy-only` 或 `--desktop-only` |
 | `pnpm verify:game-ui`               | 正式能力／2–6 人保存 fixture 的十五组 UI、多尺寸触控／隐私、已保存动效和声音                                                     |
 | `pnpm verify:cards`                 | 正式六人保存状态的全部 16 类卡面及公共／手机十三种布局、图像／文字／分区几何                                                     |
 | `pnpm package:win`                  | 构建并生成 Windows x64 解压运行 ZIP 与 `win-unpacked`                                                                            |
@@ -104,6 +107,16 @@ pnpm prototype:verify:game
 
 ## 当前维护验证
 
+### 游戏库、并发与内存验证（1.6.0）
+
+先执行 `pnpm check`、`pnpm build`，再按改动运行 `pnpm verify:experience`、`pnpm verify:game-ui`、`pnpm verify:desktop` 和显示／聚会专项。1.6.0 证据统一进入 `artifacts/maintenance/v1.6.0/`：完整对局为 `development`／`portable`，新版操作为 `experience`／`experience-portable`，能力／卡面为 `ui`／`cards`，专项投影视觉为 `effects`，显示为 `display/development`／`display/portable`，聚会、等级及呈现仍用 `party`、`room`、`presentation` 及各自 `-portable` 子目录。旧版 `display-resolution` 等历史证据不覆盖。命令入口存在不代表验证已通过；便携结果必须对应最终 ZIP 的实际执行与哈希，不能由开发构建推定。
+
+游戏元数据和加载器分别维护在服务注册表与 `apps/web/src/game-clients/registry.ts`。盒子只需要目录信息与缩略图；选中后加载游戏客户端、样式和资源。服务按选择或存档 manifest 加载对应规则，Worker 按任务加载对应策略；`build/desktop/games/*.cjs`、`bots/*.cjs` 与前端分块一起本地打包。已加载模块可在进程内复用，回盒子卸载游戏界面不等于清除 JavaScript 模块缓存。正式目录当前只展示宝可梦；内部 `template` 用于切换、容量及策略兼容验证，不作为第二款完整产品游戏。
+
+`pnpm verify:memory` 先从当前源码提取 `copySave`，与 1.5.0 基线的整份 `structuredClone` 在独立 `--expose-gc` Node 进程比较；可用 `--baseline-ref=<Git修订>` 指定另一个确实包含旧复制方式的基线。六席／1,200 checkpoint／1,200 receipt fixture 由合法六席快照扩展并经生产存档校验，不宣称已实际游玩 1,200 步。随后对实际隐藏 Electron 连续执行 20 轮开始、结束、回盒子及重新选择同游戏，记录 GC 后 renderer heap、DOM、监听器和本应用进程内存。结果在 `artifacts/maintenance/v1.6.0/memory/results.json`；临时入口、数据和 fixture 在 `tmp/runtime-memory-*`。`--copy-only` 不启动桌面，`--desktop-only` 保留已有复制测量并追加桌面结果；后者需先构建。
+
+内存结果只说明测量配置下的复制分配、耗时和导航回归；并行工程负载可能影响耗时与工作集，不使用整台电脑 RAM 评价本应用。当前按字段复制仍保留全部有效回退历史，完整存档序列化和历史体积仍随对局增长，不能写成长期有界内存。磁盘阈值维护使用下节清理工具，与运行时 RAM 分开。
+
 ### 聚会可靠性维护验证（1.2.0）
 
 `pnpm verify:party` 验证当前开发构建，使用隔离数据、隐藏 Electron 和实际本机网卡 IPv4（监听 0.0.0.0），覆盖网卡名称／刷新／选择保持、已保存但丢失的加入及换绑回复、刷新／真实程序重启后确认、250ms 延迟和带宽限制、断网／冻结恢复、回退上下文与筛选、原班第二大局、重复启动、公共屏保留时恢复房主管理以及真实端口占用的中文错误日志。不会修改防火墙、路由器或默认玩家存档；本机网卡地址可达并不证明真实手机或实际 Wi-Fi 已验收。启动前运行 `pnpm build`。正式包验证使用 `pnpm verify:party --portable`，新目录解压 ZIP、子进程 PATH 仅系统目录，证据独立进入 `party-portable`。
@@ -154,12 +167,15 @@ pnpm prototype:verify:game
 
 ## 清理本地中间物
 
-盒子项目根目录提供两个可从任意工作目录运行的 PowerShell 入口，共用 [清理实现](../../scripts/cleanup-local.ps1)，从脚本位置定位仓库，不依赖当前终端目录：
+项目根目录提供三个可从任意工作目录运行的 PowerShell 入口，共用 [清理实现](../../scripts/cleanup-local.ps1)：
 
 - [Clean-Releases.ps1](../../Clean-Releases.ps1)：清理 `artifacts/releases` 中低于 `package.json` 当前版本的 ZIP、解压程序和独立打包目录；当前／未来版本及不认识的名称保留。
 - [Clean-Intermediates.ps1](../../Clean-Intermediates.ps1)：清理已知验证脚本生成的 `tmp/<用途>-<六位随机后缀>`、便携解压副本、已完成的打包工作目录及 builder 诊断文件；已识别的一次性脚本先归档。未知临时内容保留，不清空整个 `tmp/`。原始素材、资料与历史截图／JSON 证据不在范围内。
+- [Maintain-Project.ps1](../../Maintain-Project.ps1)：工程操作前后空闲时检查主工作区磁盘占用；超过 5 GiB 才按最旧候选优先清理上述两类内容，达到 4 GiB 或合格候选耗尽即停止。容量是逻辑文件字节总量，不是运行内存；流式扫描跳过链接和嵌套仓库，不重复统计主工作区与 worktree，也不跨无关项目。
 
-默认只预览、保留最近 30 分钟修改过的候选，不删除也不写清理日志。先退出 TableMax，并完成开发／测试／打包；核对预览后加 `-Apply` 执行。脚本必须先找到与当前 ZIP 哈希相符的便携 `portable: true`／`result: passed` 验证记录；缺包、未验证或 ZIP 变化时停止。执行前及逐项删除前检查进程，解析绝对路径并核对仓库边界，拒绝 junction／符号链接；不能读进程、候选发生变化或检查失败时停止，不结束用户进程。部分失败会保留已执行清单供复查。
+三个入口默认只预览，保留最近 30 分钟修改过的候选，不删除也不写清理日志。两个手动清理入口默认处理脚本所在 checkout；维护入口默认从同一 Git 仓库发现主工作区，三个入口均支持 `-ProjectRoot <绝对路径>` 显式选择同仓库 checkout，拒绝无关项目。先退出 TableMax，并完成开发／测试／打包；手动核对后加 `-Apply`，日常维护按已授权规则在空闲边界自动调用维护入口的 `-Apply`，不创建常驻或定时任务，不在仍运行的 package／verify 父进程里绕过空闲检查。
+
+删除前必须找到与目标工作区当前 ZIP 哈希相符的便携 `portable: true`／`result: passed` 验证记录；缺包、未验证、ZIP 变化或容量超标但无候选时安全保留并报告。执行前及逐项删除前检查进程，解析绝对路径并核对仓库边界，拒绝 junction／符号链接和嵌套仓库；同目录清理互斥，候选的逐项路径／字节／修改时间指纹在删除前复核。不能读进程、候选变化或检查失败时停止，不结束用户进程。部分失败保留已执行清单供复查。
 
 ```powershell
 # 在 TableMax 根目录预览
@@ -168,11 +184,18 @@ pnpm prototype:verify:game
 # 核对后分别执行
 .\Clean-Releases.ps1 -Apply
 .\Clean-Intermediates.ps1 -Apply
+# 日常维护：默认发现本仓库主工作区，超过 5 GiB 才执行
+.\Maintain-Project.ps1
+.\Maintain-Project.ps1 -Apply
+# 或明确指定同仓库 checkout；路径替换为实际主工作区
+.\Maintain-Project.ps1 -Apply -ProjectRoot C:\Projects\TableMax
 ```
 
-`build/` 供 `pnpm start` 使用，默认保留；明确要删除可加 `-IncludeBuild`，之后先执行 `pnpm build` 再启动。已确认最近生成的候选也已停止使用时，可显式设置 `-MinimumAgeMinutes 0`；它只取消近期保护，不跳过其他安全检查。`.pnpm-store/`、`node_modules/` 和工具缓存继续保留，不随临时文件清理。脚本不更改 PowerShell 执行策略、默认 `LOCALAPPDATA/TableMax` 数据或其他项目环境。
+`build/` 供 `pnpm start` 使用，默认保留；手动 `Clean-Intermediates.ps1` 明确要删除时可加 `-IncludeBuild`，之后先执行 `pnpm build` 再启动。已确认最近候选停止使用时，手动入口可显式设置 `-MinimumAgeMinutes 0`，它不跳过其他安全检查。自动维护禁止这两种放宽；阈值可用 `-HighWaterGiB`、`-LowWaterGiB` 调整，低水位必须小于高水位。`.pnpm-store/`、`node_modules/`、工具缓存、正式存档、原始素材和历史证据继续保留；保护内容占用过大时只报告，不为达到阈值扩大删除范围。脚本不更改 PowerShell 执行策略、默认 `LOCALAPPDATA/TableMax` 数据或其他项目环境。
 
-实际执行记录写入 `artifacts/maintenance/local-cleanup-<UTC时间>-<类别>/cleanup.json`，逐项记录路径、字节、删除状态、跳过原因及保留的当前 ZIP 哈希；一次性脚本在同目录 `temporary-scripts` 归档。记录保持文件树可见、Git 忽略。清理工具改动使用 [隔离测试](../../scripts/cleanup-local.test.ps1)：`powershell.exe -NoProfile -File scripts/cleanup-local.test.ps1`；它在仓库内创建模拟工作区，检查预览、当前／未来包保留、运行进程阻止、链接防护、白名单、近期保护、脚本归档及显式构建清理，不需要启动真实游戏或重建 release。
+实际执行记录写入 `artifacts/maintenance/local-cleanup-<UTC时间>-<类别>/cleanup.json`，逐项记录路径、字节、删除状态、跳过原因及保留的当前 ZIP 哈希；维护模式另记目标工作区、水位和前后字节。一次性脚本在同目录 `temporary-scripts` 归档。记录保持文件树可见、Git 忽略。`tmp/experience-*` 仅用于新版操作验证的隔离数据和便携解压，`tmp/runtime-memory-*` 仅用于内存测量；均按已知前缀清理，正式证据仍保留在 `artifacts/maintenance/v1.6.0/`。
+
+修改工具后运行 `powershell.exe -NoProfile -File scripts/cleanup-local.test.ps1` 与 `powershell.exe -NoProfile -File scripts/project-maintenance.test.ps1`。前者检查手动预览、ZIP／进程／链接／白名单／近期保护、脚本归档及显式构建清理；后者用隔离 Git 主仓库和 worktree 检查目录发现、不重复计量、高低水位、最旧优先、互斥及候选耗尽。测试不清理真实 release，结果分别保存在 `artifacts/maintenance/local-cleanup-tools/tool-tests.json` 和 `artifacts/maintenance/project-maintenance-tools/tool-tests.json`。
 
 2026-10-02 用户要求清除历史版本，已移除 0.1.0 至 1.3.0 的七个 ZIP，以及 phase-01／phase-06／releases 下三个旧 `win-unpacked`；当次保留 1.4.0 ZIP、解压程序和打包目录。历史原图、截图及 JSON 保留，以下历史包路径只用于追溯当时交付；详情见 [清理记录](../../artifacts/maintenance/release-cleanup-2026-10-02/cleanup.json)。打包不会自动清除其他版本。
 

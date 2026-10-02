@@ -858,13 +858,6 @@ button.card-slot:not(:disabled):hover {
   gap: 8px;
   padding: 8px 16px;
 }
-.game-screen:not(.player) .game-table[data-seats='6'] .card-slot {
-  padding-bottom: 10px;
-}
-.game-screen:not(.player) .game-table[data-seats='6'] .slot-index {
-  height: 15px;
-  line-height: 15px;
-}
 .game-screen:not(.player) .game-table[data-seats='6'] .card-value {
   font-size: 22px;
 }
@@ -1170,5 +1163,823 @@ button.card-slot:not(:disabled):hover {
 @media (prefers-reduced-motion: reduce) {
   .bot-thinking > span {
     animation: none;
+  }
+}
+
+/* 1.6: one horizontal decision dashboard, with a distinct temporary card zone. */
+.game-screen .game-table[data-seats] .pokemon-status.decision-dashboard {
+  display: grid;
+  grid-template-columns: minmax(240px, 1.5fr) auto minmax(210px, 1fr);
+  align-items: center;
+  width: 100%;
+  padding: 12px 18px;
+  gap: 12px 24px;
+  background: #fffdf4f7;
+  color: #183a32;
+}
+.game-screen:not(.player) .game-table[data-seats='6'] .pokemon-board {
+  width: clamp(176px, calc((100dvh - 340px) * 0.4), 300px);
+}
+.game-screen:not(.player):has(> .table-notice)
+  .game-table[data-seats='6']
+  .pokemon-board {
+  width: clamp(176px, calc((100dvh - 410px) * 0.4), 280px);
+}
+.decision-status {
+  min-width: 0;
+}
+.game-screen .eyebrow {
+  color: #425345;
+  text-shadow: none;
+}
+.game-screen .game-toolbar h1 {
+  color: #183a32;
+  text-shadow: none;
+}
+.current-decision {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+.game-screen .game-table[data-seats] .decision-dashboard h2.current-actor {
+  color: #163d34;
+  font-size: clamp(22px, 2.6vw, 34px);
+  font-weight: 850;
+  line-height: 1.2;
+  margin: 5px 0 8px;
+  overflow-wrap: anywhere;
+}
+.current-operation {
+  color: #75511b;
+  font-size: 18px;
+  line-height: 1.3;
+}
+.decision-progress {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 2px solid #57776a;
+  border-radius: 9px;
+  background: #e7ece1;
+  width: 100%;
+  max-width: 560px;
+  min-height: 30px;
+}
+.progress-segment {
+  flex: 1;
+  min-width: 0;
+  border-radius: 4px;
+  background: #d2dbcf;
+  color: #3c5145;
+  font-size: 12px;
+  text-align: center;
+  line-height: 22px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.progress-segment.complete {
+  background: #307461;
+  color: #fff;
+}
+.progress-segment.current {
+  background: #ffd778;
+  color: #5d3c0f;
+  box-shadow: inset 0 0 0 1px #bf8a32;
+}
+.game-screen .progress-caption {
+  color: #455d4e;
+  font-size: 12px;
+  margin: 4px 0 0;
+}
+.decision-dashboard .coin-result {
+  margin-top: 4px;
+}
+.game-screen .game-table[data-seats] .decision-dashboard .card-piles {
+  gap: 16px;
+  padding: 0 6px;
+}
+.game-screen .game-table[data-seats] .decision-dashboard .card-piles > div {
+  width: 68px;
+}
+.decision-dashboard .pile-label {
+  color: #345447;
+  font-weight: 750;
+}
+.held-zone {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px;
+  gap: 14px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 2px dashed #c99c57;
+  background: repeating-linear-gradient(
+    -45deg,
+    #fff7e4,
+    #fff7e4 12px,
+    #ffefcf 12px,
+    #ffefcf 24px
+  );
+  border-radius: 16px;
+  min-height: 122px;
+}
+.held-zone.has-held {
+  border-color: #b67623;
+  box-shadow: inset 0 0 0 3px #fffaf0;
+}
+.held-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.held-tag {
+  justify-self: start;
+  border-radius: 5px;
+  padding: 1px 7px;
+  background: #865313;
+  color: #fffdf0;
+  font-size: 12px;
+  font-weight: 800;
+}
+.held-zone:not(.has-held) .held-tag {
+  background: #68755d;
+}
+.held-copy > strong {
+  font-size: 18px;
+  color: #5e3d16;
+}
+.game-screen .held-copy > p {
+  color: #654a28;
+  font-size: 12px;
+  margin: 0;
+}
+.held-pile {
+  padding: 0;
+  transform: rotate(5deg);
+}
+.held-placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 529 / 740;
+  border: 2px dashed #c4af80;
+  border-radius: 9px;
+  color: #a88b55;
+  font-size: 38px;
+  background: #fff9ec;
+}
+.game-screen .game-table[data-seats] .decision-dashboard .discard-control {
+  grid-column: 2 / -1;
+  text-align: right;
+  margin-top: -8px;
+}
+.game-screen .game-table[data-seats] .action-announcement {
+  min-height: 58px;
+  padding: 6px 12px;
+}
+.game-screen .game-table[data-seats] .action-card-art {
+  width: 42px;
+  height: 42px;
+}
+.game-screen .game-table[data-seats] .action-copy {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 12px;
+}
+.game-screen .game-table[data-seats] .action-title {
+  font-size: 18px;
+  grid-row: 1;
+}
+.game-screen .game-table[data-seats] .action-kicker {
+  grid-row: 1;
+  align-self: center;
+  color: #3c5749;
+}
+.game-screen .game-table[data-seats] .action-detail {
+  grid-column: 1 / -1;
+  font-size: 13px;
+}
+
+/* Selection and action frames surround the card face, never its location number. */
+.game-screen .game-table[data-seats] .card-slot {
+  display: grid;
+  grid-template-rows: auto 18px;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.card-surface {
+  position: relative;
+  display: block;
+  min-width: 0;
+  border-radius: 10px;
+}
+.game-screen .card-slot.selected {
+  background: transparent;
+  box-shadow: none;
+}
+.card-slot.selected .card-surface {
+  outline: 3px solid #af6e16;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px #ffe79a;
+}
+.card-slot.action-target:not(.selected) .card-surface {
+  outline: 2px solid #247664;
+  outline-offset: 2px;
+}
+.game-screen .game-table[data-seats] .slot-index {
+  position: static;
+  justify-self: center;
+  transform: none;
+  height: 18px;
+  line-height: 18px;
+  min-width: 24px;
+  border-radius: 8px;
+}
+.zero-column .card-surface {
+  box-shadow:
+    0 0 0 3px #74b69b,
+    0 0 14px #7adaae55;
+}
+.zero-column-badge {
+  position: absolute;
+  top: -6px;
+  left: -4px;
+  z-index: 2;
+  padding: 1px 5px;
+  border: 1px solid #fff7ca;
+  border-radius: 6px;
+  color: #fff;
+  background: #23604e;
+  font-size: 11px;
+  line-height: 18px;
+  font-weight: 800;
+  pointer-events: none;
+}
+.draw-pile:not(:disabled) > .pokemon-card {
+  animation: drawable-glow 2.2s ease-in-out infinite;
+}
+.game-screen .intent-actions .discard-held-action {
+  background: #a94725;
+  border: 2px solid #783016;
+  color: #fffdf2;
+  box-shadow: 0 3px 0 #6e2d1b;
+  font-size: 17px;
+  font-weight: 800;
+  padding: 12px 16px;
+  min-height: 48px;
+}
+.discard-held-action::before {
+  content: '↘ ';
+  font-size: 21px;
+}
+.discard-held-action:disabled {
+  opacity: 0.6;
+}
+.card-theme-mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: clamp(30px, 6vw, 78px);
+  font-weight: 900;
+  pointer-events: none;
+  color: #fff2bf;
+  text-shadow: 0 0 10px currentColor;
+  opacity: 0;
+  animation: themed-mark 1150ms ease-out both;
+}
+.theme-mew .card-surface {
+  animation: mew-transfer 1150ms ease-out;
+}
+.theme-mew .card-theme-mark {
+  color: #ffd1fc;
+}
+.theme-zapdos .card-surface {
+  animation: zapdos-strike 1050ms ease-out;
+}
+.theme-zapdos .card-theme-mark {
+  color: #ffe569;
+}
+.theme-snorlax .card-surface {
+  animation: snorlax-swap 1000ms ease-in-out;
+}
+.theme-snorlax .card-theme-mark {
+  color: #a9ece2;
+}
+.theme-rocket .card-surface {
+  animation: rocket-impact 1050ms ease-out;
+}
+.rocket-return-mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #ed354c;
+  -webkit-text-stroke: 1px white;
+  font-size: 66px;
+  font-weight: 950;
+  text-shadow: 0 3px 12px #3d162a;
+  animation: rocket-return 1150ms ease-out both;
+  pointer-events: none;
+}
+.private-peek-card {
+  display: block;
+  position: relative;
+  width: 140px;
+  margin: 10px auto;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 3px #f9c445,
+    0 0 22px #ff6a22;
+}
+.charizard-peek {
+  border-color: #d87c35;
+  background: #fff0d7;
+}
+.peek-flame {
+  position: absolute;
+  bottom: -12px;
+  left: -12px;
+  right: -12px;
+  height: 65px;
+  color: #ff5b26;
+  font-size: 72px;
+  line-height: 1;
+  text-align: center;
+  text-shadow: 0 0 8px #ffc251;
+  pointer-events: none;
+  animation: charizard-flame 1300ms ease-in-out infinite alternate;
+}
+.winner-crown {
+  color: #aa7111;
+  text-shadow: 0 2px 0 #ffe999;
+  font-size: 32px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.ability-effects {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: clamp(68px, 10vh, 140px);
+}
+.ability-toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background: #fff7e8f5;
+  color: #493822;
+  border: 2px solid #c7a264;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px #35292133;
+  font-size: 20px;
+}
+.ability-toast-mark {
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 900;
+}
+.ability-effects.theme-mew .ability-toast {
+  border-color: #b273b9;
+  color: #753680;
+}
+.ability-effects.theme-zapdos .ability-toast {
+  border-color: #d9a42c;
+  color: #7c5410;
+}
+.ability-effects.theme-snorlax .ability-toast {
+  border-color: #49897f;
+  color: #276a61;
+}
+.ability-effects.theme-charizard .ability-toast {
+  border-color: #dd7734;
+  color: #a44721;
+}
+.ability-effects.theme-rocket .ability-toast {
+  border-color: #cd4353;
+  color: #972535;
+}
+.coin-effect-label {
+  position: absolute;
+  top: calc(50% + 100px);
+  padding: 6px 20px;
+  border-radius: 18px;
+  color: #563a13;
+  background: #fff1c9;
+  font-size: 24px;
+  font-weight: 850;
+}
+.match-fireworks {
+  background: radial-gradient(ellipse, #19344922, #1425438c);
+}
+.firework-burst {
+  position: absolute;
+  left: var(--burst-x);
+  top: var(--burst-y);
+}
+.firework-spark {
+  position: absolute;
+  display: block;
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  background: var(--spark-color);
+  box-shadow: 0 0 8px 3px var(--spark-color);
+  animation: firework-flight 1050ms var(--burst-delay) ease-out both;
+}
+.victory-title {
+  z-index: 1;
+}
+.victory-title small {
+  display: block;
+  font-size: 0.6em;
+  margin-top: 6px;
+  letter-spacing: 0;
+}
+@keyframes drawable-glow {
+  50% {
+    box-shadow:
+      0 0 0 3px #ffc951aa,
+      0 0 16px #ffc95177;
+  }
+}
+@keyframes themed-mark {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  25% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+@keyframes mew-transfer {
+  25% {
+    transform: translateY(-12px);
+    box-shadow: 0 0 24px 8px #e6a4f4;
+  }
+  65% {
+    transform: translateY(0);
+    box-shadow: 0 0 12px #df92ef;
+  }
+}
+@keyframes zapdos-strike {
+  15%,
+  45% {
+    box-shadow:
+      0 0 0 4px #ffe571,
+      0 0 25px 8px #ffcd45;
+    transform: rotate(2deg);
+  }
+  30%,
+  60% {
+    transform: rotate(-2deg);
+  }
+}
+@keyframes snorlax-swap {
+  20% {
+    transform: translateX(-9px) rotate(-5deg);
+  }
+  50% {
+    transform: translateX(9px) rotate(5deg);
+    box-shadow: 0 0 16px #75c9bd;
+  }
+  80% {
+    transform: translateX(0);
+  }
+}
+@keyframes rocket-impact {
+  25% {
+    transform: scale(0.93);
+    box-shadow:
+      0 0 0 4px #e86574,
+      0 0 24px #e86574;
+  }
+  45% {
+    transform: scale(1.06);
+  }
+}
+@keyframes rocket-return {
+  0% {
+    opacity: 0;
+    transform: translateY(-55px) scale(0.3) rotate(-20deg);
+  }
+  35% {
+    opacity: 1;
+    transform: translateY(0) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-25px) scale(0.8);
+  }
+}
+@keyframes charizard-flame {
+  from {
+    transform: scaleX(0.85) scaleY(0.8);
+    opacity: 0.65;
+  }
+  to {
+    transform: scaleX(1.04) scaleY(1.08);
+    opacity: 1;
+  }
+}
+@keyframes firework-flight {
+  0% {
+    transform: rotate(var(--angle)) translateY(0) scale(0.2);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(var(--angle)) translateY(min(23vw, 230px)) scale(0.3);
+    opacity: 0;
+  }
+}
+@media (min-width: 1001px) and (max-height: 900px) {
+  .game-screen .game-table[data-seats] .pokemon-status.decision-dashboard {
+    padding: 6px 12px;
+    gap: 6px 18px;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] {
+    gap: 6px;
+    padding: 6px 12px;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .game-seats {
+    gap: 6px 14px;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .game-seat {
+    padding: 3px 8px;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .pokemon-board {
+    margin: 3px auto;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .action-announcement {
+    min-height: 50px;
+    padding: 4px 10px;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .action-card-art {
+    width: 34px;
+    height: 34px;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .action-title {
+    font-size: 16px;
+  }
+  .game-screen .game-table[data-seats] .decision-dashboard .card-piles > div {
+    width: 48px;
+  }
+  .held-zone {
+    grid-template-columns: minmax(0, 1fr) 48px;
+    min-height: 96px;
+    padding: 6px 10px;
+  }
+  .game-screen .game-table[data-seats] .decision-dashboard h2.current-actor {
+    font-size: 24px;
+    margin: 2px 0 5px;
+  }
+  .current-operation {
+    font-size: 16px;
+  }
+  .decision-progress {
+    min-height: 24px;
+    padding: 3px;
+  }
+  .progress-segment {
+    line-height: 18px;
+  }
+}
+@media (max-width: 1000px) {
+  .game-screen .game-table[data-seats] .pokemon-status.decision-dashboard {
+    grid-template-columns: minmax(0, 1fr) minmax(190px, 1fr);
+    gap: 10px 14px;
+    padding: 10px;
+  }
+  .decision-status {
+    grid-column: 1 / -1;
+  }
+  .game-screen .game-table[data-seats] .decision-dashboard .card-piles {
+    justify-content: center;
+  }
+  .game-screen .game-table[data-seats] .decision-dashboard .discard-control {
+    grid-column: 1 / -1;
+    margin: -4px 0 0;
+  }
+  .game-screen .game-table[data-seats] .action-copy {
+    grid-template-columns: 1fr;
+  }
+  .game-screen .game-table[data-seats] .action-title {
+    grid-row: 2;
+  }
+}
+@media (max-width: 700px) {
+  .game-screen .game-table[data-seats] .pokemon-status.decision-dashboard {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 8px;
+  }
+  .game-screen .game-table[data-seats] .decision-dashboard h2.current-actor {
+    font-size: 23px;
+    margin-bottom: 6px;
+  }
+  .current-operation {
+    font-size: 15px;
+  }
+  .game-screen .game-table[data-seats] .decision-dashboard .card-piles {
+    gap: 9px;
+    padding: 0;
+  }
+  .game-screen .game-table[data-seats] .decision-dashboard .card-piles > div {
+    width: 56px;
+  }
+  .held-zone {
+    grid-template-columns: minmax(0, 1fr) 56px;
+    gap: 7px;
+    padding: 7px;
+    min-height: 95px;
+  }
+  .held-copy > strong {
+    font-size: 14px;
+  }
+  .game-screen .held-copy > p {
+    font-size: 11px;
+  }
+  .held-tag {
+    font-size: 11px;
+    padding: 0 4px;
+  }
+  .game-screen .game-table[data-seats] .action-title {
+    font-size: 15px;
+  }
+  .game-screen .game-table[data-seats] .action-kicker,
+  .game-screen .game-table[data-seats] .action-detail {
+    font-size: 12px;
+  }
+  .game-screen .game-table[data-seats] .action-card-art {
+    width: 34px;
+    height: 34px;
+  }
+  .ability-toast {
+    font-size: 16px;
+    padding: 8px 12px;
+  }
+  .winner-crown {
+    font-size: 26px;
+  }
+  .game-screen.player .pokemon-player > .pokemon-board,
+  .game-screen.player .game-seat > .pokemon-board,
+  .game-screen.player .target-board .pokemon-board {
+    max-width: min(100%, max(220px, calc((100dvh - 500px) * 0.72)));
+  }
+  .held-zone:not(.has-held) .held-copy > p {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .draw-pile:not(:disabled) > .pokemon-card,
+  .card-theme-mark,
+  .theme-mew .card-surface,
+  .theme-zapdos .card-surface,
+  .theme-snorlax .card-surface,
+  .theme-rocket .card-surface,
+  .rocket-return-mark,
+  .peek-flame,
+  .firework-spark {
+    animation: none;
+  }
+  .card-theme-mark,
+  .rocket-return-mark,
+  .peek-flame {
+    display: none;
+  }
+}
+
+/* Keep all six boards readable on short desktop windows. */
+@media (min-width: 1001px) and (max-height: 900px) {
+  .game-screen .game-table[data-seats] .pokemon-status.decision-dashboard {
+    grid-template-columns: minmax(240px, 1.7fr) auto minmax(190px, 1fr) auto;
+    gap: 6px 14px;
+  }
+  .game-screen .game-table[data-seats] .decision-dashboard .discard-control {
+    grid-column: 4;
+    grid-row: 1;
+    margin: 0;
+  }
+  .discard-control > button {
+    min-height: 44px;
+    padding: 8px;
+    font-size: 13px;
+  }
+  .decision-status {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    grid-template-rows: 18px auto 24px;
+    column-gap: 6px;
+  }
+  .decision-status > .eyebrow {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 11px;
+    line-height: 18px;
+  }
+  .game-screen .game-table[data-seats] .decision-status > .progress-caption {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 11px;
+    line-height: 18px;
+    margin: 0;
+  }
+  .decision-status > .coin-result {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: center;
+    margin: 0;
+    padding: 0 4px;
+    font-size: 11px;
+    line-height: 18px;
+    white-space: nowrap;
+  }
+  .decision-status > .coin-result .coin-face {
+    width: 20px;
+    height: 20px;
+    border-width: 1px;
+  }
+  .current-decision {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    flex-wrap: nowrap;
+  }
+  .decision-progress {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    min-height: 24px;
+    padding: 1px 3px;
+  }
+  .game-screen .game-table[data-seats] .decision-dashboard h2.current-actor {
+    font-size: 22px;
+  }
+  .held-zone {
+    min-height: 76px;
+    padding: 4px 8px;
+    grid-template-columns: minmax(0, 1fr) 44px;
+  }
+  .held-copy {
+    gap: 2px;
+  }
+  .held-copy > strong {
+    font-size: 16px;
+    line-height: 22px;
+  }
+  .held-tag {
+    font-size: 11px;
+    line-height: 14px;
+  }
+  .game-screen .game-table[data-seats] .held-copy > p {
+    font-size: 11px;
+    line-height: 14px;
+  }
+  .game-screen .game-table[data-seats] .decision-dashboard .card-piles > div {
+    width: 44px;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .action-symbol {
+    width: 34px;
+    height: 34px;
+    font-size: 28px;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .action-announcement {
+    padding: 0 10px;
+    min-height: 46px;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .game-seat {
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .seat-heading h3 {
+    font-size: 14px;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .card-slot {
+    grid-template-rows: auto 14px;
+    gap: 3px;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .slot-index {
+    height: 14px;
+    line-height: 14px;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .card-name {
+    font-size: 12px;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .card-heading {
+    min-height: 22px;
+  }
+  .game-screen:not(.player) .game-table[data-seats='6'] .card-value {
+    font-size: 20px;
+    padding: 1px 3px;
   }
 }

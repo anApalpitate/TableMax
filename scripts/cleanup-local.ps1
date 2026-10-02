@@ -1,13 +1,55 @@
 [CmdletBinding()]
 param(
-  [Parameter(Mandatory)][ValidateSet('Releases', 'Intermediates')][string]$Kind,
+  [Parameter(Mandatory)][ValidateSet('Releases', 'Intermediates', 'Maintenance')][string]$Kind,
   [switch]$Apply,
   [switch]$IncludeBuild,
-  [ValidateRange(0, 10080)][int]$MinimumAgeMinutes = 30
+  [string]$ProjectRoot,
+  [ValidateRange(0, 10080)][int]$MinimumAgeMinutes = 30,
+  [ValidateRange(0.001, 1024)][double]$HighWaterGiB = 5,
+  [ValidateRange(0, 1024)][double]$LowWaterGiB = 4
 )
 
 $ErrorActionPreference = 'Stop'
-$workspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\')
+$sourceWorkspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\')
+$automatic = $Kind -eq 'Maintenance'
+if ($automatic -and ($LowWaterGiB -ge $HighWaterGiB -or $IncludeBuild -or $MinimumAgeMinutes -lt 30)) {
+  throw 'Maintenance requires a lower low-water mark, protects build, and keeps at least 30 minutes of recent changes.'
+}
+
+function Read-Repository([string]$Path) {
+  try {
+    $top = & git --no-optional-locks -C $Path rev-parse --show-toplevel 2>$null
+    if ($LASTEXITCODE -ne 0) { return $null }
+    $common = & git --no-optional-locks -C $Path rev-parse --path-format=absolute --git-common-dir 2>$null
+    if ($LASTEXITCODE -ne 0) { return $null }
+    return [PSCustomObject]@{ top = [IO.Path]::GetFullPath([string]$top).TrimEnd('\'); common = [IO.Path]::GetFullPath([string]$common).TrimEnd('\') }
+  }
+  catch { return $null }
+}
+
+$sourceRepository = Read-Repository $sourceWorkspace
+$workspace = $sourceWorkspace
+if ($ProjectRoot) {
+  $workspace = [IO.Path]::GetFullPath($ProjectRoot).TrimEnd('\')
+  if ($workspace -ne $sourceWorkspace) {
+    $selectedRepository = Read-Repository $workspace
+    if (-not $sourceRepository -or -not $selectedRepository -or $selectedRepository.top -ne $workspace -or $selectedRepository.common -ne $sourceRepository.common) {
+      throw 'ProjectRoot must be a checkout of this same Git repository; unrelated projects are never maintained.'
+    }
+  }
+}
+elseif ($automatic) {
+  if (-not $sourceRepository -or $sourceRepository.top -ne $sourceWorkspace) {
+    throw 'Cannot discover the main Git workspace. Specify this script workspace explicitly with -ProjectRoot.'
+  }
+  $worktrees = @(& git --no-optional-locks -C $sourceWorkspace worktree list --porcelain)
+  if ($LASTEXITCODE -ne 0 -or -not $worktrees.Count -or $worktrees[0] -notlike 'worktree *') { throw 'Cannot discover the main Git workspace.' }
+  $workspace = [IO.Path]::GetFullPath($worktrees[0].Substring(9)).TrimEnd('\')
+  $selectedRepository = Read-Repository $workspace
+  if (-not $selectedRepository -or $selectedRepository.top -ne $workspace -or $selectedRepository.common -ne $sourceRepository.common) {
+    throw 'Discovered main workspace does not belong to this repository.'
+  }
+}
 $project = Get-Content -LiteralPath (Join-Path $workspace 'package.json') -Raw -Encoding utf8 | ConvertFrom-Json
 if ($project.name -ne 'tablemax' -or $project.version -notmatch '^\d+\.\d+\.\d+$') {
   throw 'This tool only operates inside the TableMax source workspace.'
@@ -22,11 +64,11 @@ $skipped = New-Object 'System.Collections.Generic.List[object]'
 
 function Assert-LocalPath([string]$Path) {
   $absolute = [IO.Path]::GetFullPath($Path).TrimEnd('\')
-  if (-not $absolute.StartsWith($workspace + '\', [StringComparison]::OrdinalIgnoreCase)) {
+  if ($absolute -ne $workspace -and -not $absolute.StartsWith($workspace + '\', [StringComparison]::OrdinalIgnoreCase)) {
     throw 'Cleanup target is outside the workspace.'
   }
   $cursor = $absolute
-  while ($cursor -ne $workspace) {
+  while ($cursor) {
     if (Test-Path -LiteralPath $cursor) {
       $item = Get-Item -LiteralPath $cursor -Force
       if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
@@ -35,15 +77,11 @@ function Assert-LocalPath([string]$Path) {
     }
     $cursor = [IO.Path]::GetDirectoryName($cursor)
   }
-  if ((Get-Item -LiteralPath $workspace -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) {
-    throw 'Cleanup refuses a redirected workspace.'
-  }
   return $absolute
 }
 
 function Read-Tree([string]$Path) {
   $absolute = Assert-LocalPath $Path
-  $items = New-Object 'System.Collections.Generic.List[object]'
   $pending = New-Object 'System.Collections.Generic.Stack[string]'
   $pending.Push($absolute)
   while ($pending.Count -gt 0) {
@@ -51,32 +89,68 @@ function Read-Tree([string]$Path) {
     if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
       throw ('Cleanup refuses reparse points: ' + $item.FullName)
     }
-    $items.Add($item)
+    if ($item.PSIsContainer -and (Test-Path -LiteralPath (Join-Path $item.FullName '.git'))) {
+      throw ('Cleanup refuses nested repositories: ' + $item.FullName)
+    }
+    $item
     if ($item.PSIsContainer) {
-      foreach ($child in Get-ChildItem -LiteralPath $item.FullName -Force) {
+      foreach ($child in Get-ChildItem -LiteralPath $item.FullName -Force | Sort-Object Name) {
         if ($child.Attributes -band [IO.FileAttributes]::ReparsePoint) {
           throw ('Cleanup refuses reparse points: ' + $child.FullName)
         }
         if ($child.PSIsContainer) { $pending.Push($child.FullName) }
-        else { $items.Add($child) }
+        else { $child }
       }
     }
   }
-  return $items.ToArray()
 }
 
 function Read-Snapshot([string]$Path) {
-  $items = @(Read-Tree $Path)
-  $bytes = ($items | Where-Object { -not $_.PSIsContainer } | Measure-Object -Property Length -Sum).Sum
-  $newest = ($items | Sort-Object LastWriteTimeUtc -Descending | Select-Object -First 1).LastWriteTimeUtc
-  return [PSCustomObject]@{ bytes = [long]$bytes; entries = $items.Count; newest = $newest }
+  $bytes = [long]0
+  $entries = 0
+  $newest = [DateTime]::MinValue
+  $digest = [Security.Cryptography.SHA256]::Create()
+  try {
+    Read-Tree $Path | ForEach-Object {
+      $entries++
+      $length = 0
+      if (-not $_.PSIsContainer) { $length = $_.Length; $bytes += $length }
+      if ($_.LastWriteTimeUtc -gt $newest) { $newest = $_.LastWriteTimeUtc }
+      $metadata = [Text.Encoding]::UTF8.GetBytes(($_.FullName + '|' + $length + '|' + $_.LastWriteTimeUtc.Ticks + '|' + $_.Attributes + "`n"))
+      $null = $digest.TransformBlock($metadata, 0, $metadata.Length, $metadata, 0)
+    }
+    $null = $digest.TransformFinalBlock((New-Object byte[] 0), 0, 0)
+    $fingerprint = [BitConverter]::ToString($digest.Hash)
+  }
+  finally { $digest.Dispose() }
+  return [PSCustomObject]@{ bytes = $bytes; entries = $entries; newest = $newest; fingerprint = $fingerprint }
+}
+
+function Measure-Workspace {
+  Assert-LocalPath $workspace | Out-Null
+  $bytes = [long]0
+  $files = 0
+  $links = 0
+  $nestedRepositories = 0
+  $pending = New-Object 'System.Collections.Generic.Stack[string]'
+  $pending.Push($workspace)
+  while ($pending.Count -gt 0) {
+    $directory = Get-Item -LiteralPath $pending.Pop() -Force
+    if ($directory.Attributes -band [IO.FileAttributes]::ReparsePoint) { $links++; continue }
+    if ($directory.FullName -ne $workspace -and (Test-Path -LiteralPath (Join-Path $directory.FullName '.git'))) { $nestedRepositories++; continue }
+    Get-ChildItem -LiteralPath $directory.FullName -Force | ForEach-Object {
+      if ($_.Attributes -band [IO.FileAttributes]::ReparsePoint) { $links++ }
+      elseif ($_.PSIsContainer) { $pending.Push($_.FullName) }
+      else { $bytes += $_.Length; $files++ }
+    }
+  }
+  return [PSCustomObject]@{ bytes = $bytes; files = $files; skippedLinks = $links; skippedRepositories = $nestedRepositories }
 }
 
 function Add-Candidate([string]$Path, [string]$Reason) {
-  $absolute = Assert-LocalPath $Path
-  try { $snapshot = Read-Snapshot $absolute }
+  try { $absolute = Assert-LocalPath $Path; $snapshot = Read-Snapshot $absolute }
   catch {
-    $skipped.Add([PSCustomObject]@{ path = $absolute; reason = $_.Exception.Message })
+    $skipped.Add([PSCustomObject]@{ path = $Path; reason = $_.Exception.Message })
     return
   }
   if ($snapshot.newest -gt $cutoff) {
@@ -85,7 +159,7 @@ function Add-Candidate([string]$Path, [string]$Reason) {
   }
   $candidates.Add([PSCustomObject]@{
     path = $absolute; reason = $Reason; bytes = $snapshot.bytes
-    entries = $snapshot.entries; newest = $snapshot.newest; deleted = $false
+    entries = $snapshot.entries; newest = $snapshot.newest; fingerprint = $snapshot.fingerprint; deleted = $false
   })
 }
 
@@ -104,26 +178,61 @@ function Assert-Idle {
   }
 }
 
-# Preserve the current archive only after a real portable PASS proves its hash.
-Assert-LocalPath $archive | Out-Null
-if (-not (Test-Path -LiteralPath $archive -PathType Leaf)) { throw 'Current release ZIP is missing; cleanup stopped.' }
-$archiveBefore = Get-Item -LiteralPath $archive
-$archiveHash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
-$proof = $null
 $maintenance = Join-Path $workspace 'artifacts/maintenance'
-if (Test-Path -LiteralPath $maintenance -PathType Container) {
-  foreach ($file in @(Read-Tree $maintenance | Where-Object { -not $_.PSIsContainer -and $_.Name -eq 'results.json' })) {
-    try { $record = Get-Content -LiteralPath $file.FullName -Raw -Encoding utf8 | ConvertFrom-Json }
-    catch { continue }
-    if ($record.portable -eq $true -and $record.result -eq 'passed' -and $record.archiveSha256 -eq $archiveHash) {
-      $proof = $file.FullName
-      break
+$usage = $null
+$summary = [PSCustomObject]@{
+  workspace = $workspace; kind = $Kind; result = 'preview'; reason = $null
+  highWaterBytes = [long]($HighWaterGiB * 1GB); lowWaterBytes = [long]($LowWaterGiB * 1GB)
+  bytesBefore = $null; bytesAfter = $null; deletedBytes = [long]0
+  skippedLinks = 0; skippedRepositories = 0; candidateCount = 0; reportPath = $null
+}
+if ($automatic) {
+  if ($Apply) {
+    try { Assert-Idle }
+    catch {
+      $summary.result = 'blocked'; $summary.reason = $_.Exception.Message
+      Write-Host ('Maintenance preserved all files: ' + $summary.reason)
+      return $summary
     }
   }
+  $usage = Measure-Workspace
+  $summary.bytesBefore = $usage.bytes; $summary.bytesAfter = $usage.bytes
+  $summary.skippedLinks = $usage.skippedLinks; $summary.skippedRepositories = $usage.skippedRepositories
+  Write-Host ('Workspace: ' + $workspace + '; ' + [Math]::Round($usage.bytes / 1GB, 3) + ' GiB logical file bytes, links and nested checkouts excluded.')
+  if ($usage.bytes -le $summary.highWaterBytes) {
+    $summary.result = 'below-threshold'
+    Write-Host ('Below high-water mark (' + $HighWaterGiB + ' GiB); no cleanup needed.')
+    return $summary
+  }
 }
-if (-not $proof) { throw 'No passing portable evidence matches the current ZIP; cleanup stopped.' }
 
-if ($Kind -eq 'Releases') {
+# Preserve the current archive only after a real portable PASS proves its hash.
+try {
+  Assert-LocalPath $archive | Out-Null
+  if (-not (Test-Path -LiteralPath $archive -PathType Leaf)) { throw 'Current release ZIP is missing; cleanup stopped.' }
+  $archiveBefore = Get-Item -LiteralPath $archive
+  $archiveHash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+  $proof = $null
+  if (Test-Path -LiteralPath $maintenance -PathType Container) {
+    Read-Tree $maintenance | Where-Object { -not $_.PSIsContainer -and $_.Name -eq 'results.json' } | ForEach-Object {
+      if (-not $proof) {
+        $record = $null
+        try { $record = Get-Content -LiteralPath $_.FullName -Raw -Encoding utf8 | ConvertFrom-Json }
+        catch { }
+        if ($record -and $record.portable -eq $true -and $record.result -eq 'passed' -and $record.archiveSha256 -eq $archiveHash) { $proof = $_.FullName }
+      }
+    }
+  }
+  if (-not $proof) { throw 'No passing portable evidence matches the current ZIP; cleanup stopped.' }
+}
+catch {
+  if (-not $automatic) { throw }
+  $summary.result = 'blocked'; $summary.reason = $_.Exception.Message
+  Write-Host ('Maintenance preserved all files: ' + $summary.reason)
+  return $summary
+}
+
+if ($Kind -eq 'Releases' -or $automatic) {
   foreach ($entry in Get-ChildItem -LiteralPath $releases -Force) {
     if ($entry.Name -match '^TableMax-(\d+\.\d+\.\d+)-win-x64(?:\.zip)?$') {
       if ([version]$Matches[1] -lt $currentVersion) { Add-Candidate $entry.FullName 'Historical release archive or extraction' }
@@ -133,15 +242,17 @@ if ($Kind -eq 'Releases') {
     }
   }
 }
-else {
+if ($Kind -eq 'Intermediates' -or $automatic) {
   foreach ($entry in Get-ChildItem -LiteralPath $releases -Force) {
     if (($entry.PSIsContainer -and $entry.Name -match '^package-(\d+\.\d+\.\d+)-[A-Za-z0-9]{6}$' -and [version]$Matches[1] -le $currentVersion) -or $entry.Name -eq 'builder-debug.yml') {
-      Add-Candidate $entry.FullName 'Regenerable packaging stage or builder diagnostic'
+      if (-not ($candidates | Where-Object { $_.path -eq $entry.FullName })) {
+        Add-Candidate $entry.FullName 'Regenerable packaging stage or builder diagnostic'
+      }
     }
   }
   if (Test-Path -LiteralPath $temporary -PathType Container) {
     foreach ($entry in Get-ChildItem -LiteralPath $temporary -Force) {
-      if ($entry.PSIsContainer -and $entry.Name -match '^(card-layout|desktop-verify|display(-portable)?|game-prototype-verify|game-ui|party(-portable|-startup)?|play-presentation(-portable)?|pokemon-desktop|pokemon-verify|portable-extracted|portable-game|prototype-verify|room-levels(-portable)?|six-result-layout)-[A-Za-z0-9]{6}$') {
+      if ($entry.PSIsContainer -and $entry.Name -match '^(card-layout|desktop-verify|display(-portable)?|experience|game-prototype-verify|game-ui|party(-portable|-startup)?|play-presentation(-portable)?|pokemon-desktop|pokemon-verify|portable-extracted|portable-game|prototype-verify|room-levels(-portable)?|runtime-memory|six-result-layout)-[A-Za-z0-9]{6}$') {
         Add-Candidate $entry.FullName 'Known isolated verification data or portable extraction'
       }
       elseif (-not $entry.PSIsContainer -and $entry.Name -match '^(check-(display|party|phone-table|presentation|release-cleanup)-docs\.mjs|cleanup-display-staging\.ps1|display-(dialog|dpi)-probe\.mjs|finalize-presentation-evidence\.mjs|inspect-six-result\.mjs|update-presentation-docs\.mjs)$') {
@@ -156,46 +267,82 @@ else {
 }
 
 $total = [long](($candidates | Measure-Object -Property bytes -Sum).Sum)
+$ordered = @($candidates | Sort-Object newest, path)
+$summary.candidateCount = $ordered.Count
 Write-Host ('Preserving current verified ZIP: ' + $archive)
 Write-Host ($Kind + ': ' + $candidates.Count + ' candidates, ' + [Math]::Round($total / 1GB, 2) + ' GiB; ' + $skipped.Count + ' skipped.')
 $candidates | Select-Object path, reason, bytes | Format-Table -AutoSize | Out-Host
 if (-not $Apply) {
   Write-Host 'PREVIEW ONLY. Add -Apply to delete the listed candidates. Default minimum age is 30 minutes.'
+  if ($automatic) { return $summary }
+  return
+}
+if (-not $ordered.Count) {
+  Write-Host 'No eligible candidates. Protected files remain in place, even above the size threshold.'
+  if ($automatic) { $summary.result = 'no-candidates'; return $summary }
   return
 }
 Assert-Idle
-$logRoot = Join-Path $maintenance ('local-cleanup-' + [DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss-fff') + '-' + $Kind.ToLowerInvariant())
-Assert-LocalPath $logRoot | Out-Null
-New-Item -ItemType Directory -Path $logRoot -Force | Out-Null
-$report = [PSCustomObject]@{
-  startedAt = [DateTime]::UtcNow.ToString('o'); kind = $Kind; currentVersion = $project.version
-  currentArchive = $archive; archiveSha256 = $archiveHash; portableProof = $proof
-  minimumAgeMinutes = $MinimumAgeMinutes; includeBuild = [bool]$IncludeBuild
-  candidates = $candidates.ToArray(); skipped = $skipped.ToArray(); deletedBytes = 0; result = 'started'
-}
-$reportPath = Join-Path $logRoot 'cleanup.json'
-function Save-Report { $report | ConvertTo-Json -Depth 7 | Set-Content -LiteralPath $reportPath -Encoding utf8 }
-Save-Report
+$lockDigest = [Security.Cryptography.SHA256]::Create()
+try { $lockId = [BitConverter]::ToString($lockDigest.ComputeHash([Text.Encoding]::UTF8.GetBytes($workspace.ToLowerInvariant()))).Replace('-', '') }
+finally { $lockDigest.Dispose() }
+$cleanupMutex = New-Object Threading.Mutex($false, ('Local\TableMax-Cleanup-' + $lockId))
+$lockHeld = $false
 try {
-  foreach ($candidate in $candidates) {
-    Assert-Idle
-    $current = Get-Item -LiteralPath $archive
-    if ($current.Length -ne $archiveBefore.Length -or $current.LastWriteTimeUtc -ne $archiveBefore.LastWriteTimeUtc) { throw 'Current ZIP changed during cleanup; stopped.' }
-    $snapshot = Read-Snapshot $candidate.path
-    if ($snapshot.bytes -ne $candidate.bytes -or $snapshot.entries -ne $candidate.entries -or $snapshot.newest -ne $candidate.newest) { throw ('Candidate changed during cleanup; stopped: ' + $candidate.path) }
-    if ($candidate.reason -like 'Known one-off script*') {
-      $scriptArchive = Join-Path $logRoot 'temporary-scripts'
-      New-Item -ItemType Directory -Path $scriptArchive -Force | Out-Null
-      Copy-Item -LiteralPath $candidate.path -Destination $scriptArchive
-    }
-    Remove-Item -LiteralPath $candidate.path -Recurse -Force
-    $candidate.deleted = $true
-    $report.deletedBytes += $candidate.bytes
-    Save-Report
+  try { $lockHeld = $cleanupMutex.WaitOne(0) }
+  catch [Threading.AbandonedMutexException] { $lockHeld = $true }
+  if (-not $lockHeld) { throw 'Another cleanup is already using this workspace; all files preserved.' }
+  $logRoot = Join-Path $maintenance ('local-cleanup-' + [DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss-fff') + '-' + $Kind.ToLowerInvariant())
+  Assert-LocalPath $logRoot | Out-Null
+  New-Item -ItemType Directory -Path $logRoot -Force | Out-Null
+  $report = [PSCustomObject]@{
+    startedAt = [DateTime]::UtcNow.ToString('o'); kind = $Kind; currentVersion = $project.version
+    currentArchive = $archive; archiveSha256 = $archiveHash; portableProof = $proof
+    minimumAgeMinutes = $MinimumAgeMinutes; includeBuild = [bool]$IncludeBuild
+    workspace = $workspace; highWaterBytes = $summary.highWaterBytes; lowWaterBytes = $summary.lowWaterBytes
+    bytesBefore = $summary.bytesBefore; bytesAfter = $summary.bytesAfter
+    candidates = $ordered; skipped = $skipped.ToArray(); deletedBytes = [long]0; result = 'started'
   }
-  if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $archiveHash) { throw 'Current release hash changed.' }
-  $report.result = 'passed'
+  $reportPath = Join-Path $logRoot 'cleanup.json'
+  function Save-Report { $report | ConvertTo-Json -Depth 7 | Set-Content -LiteralPath $reportPath -Encoding utf8 }
+  Save-Report
+  try {
+    foreach ($candidate in $ordered) {
+      if ($automatic -and $report.bytesAfter -le $summary.lowWaterBytes) { break }
+      Assert-Idle
+      $current = Get-Item -LiteralPath $archive
+      if ($current.Length -ne $archiveBefore.Length -or $current.LastWriteTimeUtc -ne $archiveBefore.LastWriteTimeUtc) { throw 'Current ZIP changed during cleanup; stopped.' }
+      $snapshot = Read-Snapshot $candidate.path
+      if ($snapshot.fingerprint -ne $candidate.fingerprint) { throw ('Candidate changed during cleanup; stopped: ' + $candidate.path) }
+      if ($candidate.reason -like 'Known one-off script*') {
+        $scriptArchive = Join-Path $logRoot 'temporary-scripts'
+        New-Item -ItemType Directory -Path $scriptArchive -Force | Out-Null
+        Copy-Item -LiteralPath $candidate.path -Destination $scriptArchive
+      }
+      Remove-Item -LiteralPath $candidate.path -Recurse -Force
+      $candidate.deleted = $true
+      $report.deletedBytes += $candidate.bytes
+      # Re-measure after each removal: new unrelated files and archived scripts must
+      # not be mistaken for reclaimed capacity. No file list is retained in memory.
+      if ($automatic) { $report.bytesAfter = (Measure-Workspace).bytes }
+      Save-Report
+    }
+    if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $archiveHash) { throw 'Current release hash changed.' }
+    $report.result = 'passed'
+  }
+  catch { $report.result = 'failed'; $report | Add-Member -NotePropertyName error -NotePropertyValue $_.Exception.Message; throw }
+  finally { Save-Report; Write-Host ('Cleanup report: ' + $reportPath) }
+  Write-Host ('Deleted ' + [Math]::Round($report.deletedBytes / 1GB, 2) + ' GiB. Current verified ZIP and historical evidence retained.')
+  if ($automatic) {
+    $summary.bytesAfter = (Measure-Workspace).bytes
+    $summary.deletedBytes = $report.deletedBytes
+    $summary.reportPath = $reportPath
+    $summary.result = if ($summary.bytesAfter -le $summary.lowWaterBytes) { 'target-reached' } else { 'candidates-exhausted' }
+    if ($summary.result -eq 'candidates-exhausted') { Write-Host 'Eligible candidates exhausted; remaining protected files are preserved.' }
+    return $summary
+  }
 }
-catch { $report.result = 'failed'; $report | Add-Member -NotePropertyName error -NotePropertyValue $_.Exception.Message; throw }
-finally { Save-Report; Write-Host ('Cleanup report: ' + $reportPath) }
-Write-Host ('Deleted ' + [Math]::Round($report.deletedBytes / 1GB, 2) + ' GiB. Current verified ZIP and historical evidence retained.')
+finally {
+  if ($lockHeld) { $cleanupMutex.ReleaseMutex() }
+  $cleanupMutex.Dispose()
+}

@@ -9,32 +9,32 @@ import {
   type Command,
   type RoomView,
 } from '@tablemax/protocol';
-import type { PokemonView } from '../../../../games/pokemon-encounters/rules/project';
-import {
-  savedChanges,
-  SAVED_MOTION_MS,
-} from '../../../../games/pokemon-encounters/ui/motion';
+import { getGameClient } from '../game-clients/registry';
 import { navigate, type ScreenRole } from '../navigation';
 import { useAdmission } from './useAdmission';
 const messages: Record<string, string> = {
-  unauthorized: '此操作需要房主身份。',
-  'invalid-identity': '身份已失效，请联系房主换绑。',
+  unauthorized: '你没有此操作的管理权限。',
+  'game-not-selected': '请先由管理员选择游戏。',
+  'game-load-failed': '游戏加载失败，当前牌桌保持不变，请重试。',
+  'unknown-game': '这个游戏尚未安装。',
+  'too-many-seats': '当前人数超过目标游戏上限，请先调整座位。',
+  'invalid-identity': '身份已失效，请使用原浏览器恢复，或联系管理员检查座位。',
   'stale-branch': '历史已回退，请按最新状态重新选择。',
   'stale-revision': '状态已变化，请重新选择。',
   'stale-decision': '该选择已结束，请按最新状态操作。',
   'not-ready': '请等待至少两位玩家全部准备。',
   'joining-closed-or-full': '当前不能加入：牌桌已关闭入座、开始或满员。',
-  'joining-closed': '牌桌已关闭入座或已经开始，请联系房主。',
-  'room-full': '牌桌已满，请房主检查是否有离线的重复座位。',
-  'session-request-revoked': '原座位身份已撤销，请联系房主换绑。',
-  'session-request-conflict': '入座请求不一致，请联系房主恢复原座位。',
-  'session-request-expired': '入座确认已超过一天，请联系房主检查原座位后换绑。',
-  'session-request-limit': '入座请求过多，请联系房主检查座位。',
+  'joining-closed': '牌桌已关闭入座或已经开始，请联系电脑管理员。',
+  'room-full': '牌桌已满，请电脑管理员检查是否有离线的重复座位。',
+  'session-request-revoked':
+    '原座位身份已撤销，请使用原浏览器恢复，或联系管理员检查座位。',
+  'session-request-conflict': '入座请求不一致，请联系电脑管理员检查原座位。',
+  'session-request-expired': '入座确认已超过一天，请联系管理员检查原座位。',
+  'session-request-limit': '入座请求过多，请联系电脑管理员检查座位。',
   'invalid-name': '请输入 1–24 字的昵称。',
-  'invalid-message': '请求内容无效，请检查昵称或绑定码。',
+  'invalid-message': '请求内容无效，请检查昵称。',
   'stale-instance': '新的大局已经准备好，请按当前牌桌重新操作。',
   'unsupported-bot-difficulty': '当前游戏不支持这个人机等级。',
-  'binding-expired': '绑定码已过期或已经使用。',
   'save-or-action-failed': '操作未确认保存，请检查本地存储后重试。',
   'illegal-action': '选择无效，请重新同步。',
 };
@@ -56,8 +56,6 @@ export function useRoomSession(role: ScreenRole) {
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const [message, setMessage] = useState('');
   const [name, setName] = useState('');
-  const [code, setCode] = useState('');
-  const [bindingCode, setBindingCode] = useState('');
   const [addresses, setAddresses] = useState<string[]>([]);
   const [adapters, setAdapters] = useState<
     Array<{
@@ -114,19 +112,21 @@ export function useRoomSession(role: ScreenRole) {
           setMotion([]);
         changedSlots.current = [];
         if (
+          previous?.game?.id === next.game?.id &&
           previous?.gameView &&
           next.gameView &&
           next.playMode === 'play' &&
           previous.instanceId === next.instanceId &&
           previous.branch === next.branch
         ) {
-          const before = previous.gameView as PokemonView,
-            after = next.gameView as PokemonView;
-          changedSlots.current = savedChanges(before, after);
+          const client = next.game && getGameClient(next.game.id);
+          changedSlots.current =
+            client?.savedChanges(previous.gameView, next.gameView) ?? [];
         }
         if (
           !previous ||
           next.paused ||
+          previous.status !== next.status ||
           previous.branch !== next.branch ||
           previous.instanceId !== next.instanceId
         ) {
@@ -163,7 +163,11 @@ export function useRoomSession(role: ScreenRole) {
       setMotion(current.playMode === 'test' ? [] : changedSlots.current);
       if (motionTimer.current) clearTimeout(motionTimer.current);
       if (current.playMode === 'play')
-        motionTimer.current = setTimeout(() => setMotion([]), SAVED_MOTION_MS);
+        motionTimer.current = setTimeout(
+          () => setMotion([]),
+          (current.game && getGameClient(current.game.id)?.motionDuration) ||
+            1200,
+        );
     });
     const revoked = () => {
       setConnected(false);
@@ -244,7 +248,7 @@ export function useRoomSession(role: ScreenRole) {
       window.removeEventListener('pageshow', wake);
       document.removeEventListener('visibilitychange', wake);
       // Changing identity closes the old socket deliberately. Its disconnect
-      // message must not overwrite a successful admission/rebinding result.
+      // message must not overwrite a successful admission result.
       socket.removeAllListeners();
       socket.disconnect();
       setConnected(false);
@@ -286,7 +290,6 @@ export function useRoomSession(role: ScreenRole) {
         const reply = parsed.data;
         if (reply.ok) {
           setMessage('已保存');
-          if (reply.bindingCode) setBindingCode(reply.bindingCode);
         } else {
           setErrorId(envelope.actionId);
           setMessage(
@@ -319,9 +322,6 @@ export function useRoomSession(role: ScreenRole) {
     message,
     name,
     setName,
-    code,
-    setCode,
-    bindingCode,
     addresses,
     adapters,
     networkMessage,
@@ -337,11 +337,11 @@ export function useRoomSession(role: ScreenRole) {
     motion,
     credential,
     isHost,
+    canControl: view?.capabilities.control ?? false,
     self,
     locked,
     command,
-    join: (rebind = false) =>
-      admission.join(rebind ? 'redeem' : 'join', rebind ? code : name),
+    join: () => admission.join(name),
     retry: () => {
       if (pending.current) send(pending.current);
     },

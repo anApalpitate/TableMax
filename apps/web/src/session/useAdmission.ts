@@ -1,13 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  JoinSchema,
-  RedeemSchema,
-  SessionReplySchema,
-} from '@tablemax/protocol';
+import { JoinSchema, SessionReplySchema } from '@tablemax/protocol';
 
 const storageKey = 'tablemax-admission';
 type Admission = {
-  kind: 'join' | 'redeem';
+  kind: 'join';
   requestKey: string;
   value: string;
   createdAt: number;
@@ -19,20 +15,12 @@ function loadAdmission(): Admission | null {
     ) as Admission | null;
     if (
       !value ||
-      !['join', 'redeem'].includes(value.kind) ||
+      value.kind !== 'join' ||
       !Number.isSafeInteger(value.createdAt)
     )
       return null;
-    const body =
-      value.kind === 'join'
-        ? { name: value.value, requestKey: value.requestKey }
-        : { code: value.value, requestKey: value.requestKey };
-    if (
-      !(value.kind === 'join' ? JoinSchema : RedeemSchema).safeParse(body)
-        .success ||
-      !value.requestKey
-    )
-      return null;
+    const body = { name: value.value, requestKey: value.requestKey };
+    if (!JoinSchema.safeParse(body).success || !value.requestKey) return null;
     return value;
   } catch {
     return null;
@@ -70,19 +58,19 @@ export function useAdmission(
       const controller = new AbortController();
       active.current = controller;
       setBusy(true);
-      setMessage(request.kind === 'join' ? '正在入座…' : '正在恢复原座位…');
+      setMessage('正在入座…');
       const timeout = setTimeout(() => controller.abort(), 8000);
       try {
         // Persist before sending. Reload and uncertain replies reuse this key.
         localStorage.setItem(storageKey, JSON.stringify(request));
         current.current = request;
         setPending(request);
-        const response = await fetch(`/api/session/${request.kind}`, {
+        const response = await fetch('/api/session/join', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           signal: controller.signal,
           body: JSON.stringify({
-            [request.kind === 'join' ? 'name' : 'code']: request.value,
+            name: request.value,
             requestKey: request.requestKey,
           }),
         });
@@ -97,11 +85,7 @@ export function useAdmission(
             setPending(null);
             setCredential(reply.token);
             setMessage(
-              reply.duplicateName
-                ? '已有同名朋友，以座位编号区分。'
-                : request.kind === 'join'
-                  ? '已入座'
-                  : '已恢复原座位',
+              reply.duplicateName ? '已有同名朋友，以座位编号区分。' : '已入座',
             );
           }
         } else {
@@ -114,7 +98,8 @@ export function useAdmission(
           }
           if (mounted.current)
             setMessage(
-              messages[reply.reason] ?? '入座未完成，请联系房主检查牌桌。',
+              messages[reply.reason] ??
+                '入座未完成，请联系电脑管理员检查牌桌。',
             );
         }
       } catch {
@@ -135,6 +120,17 @@ export function useAdmission(
   useEffect(() => {
     mounted.current = true;
     if (!enabled) return;
+    try {
+      const previous = JSON.parse(
+        localStorage.getItem(storageKey) ?? 'null',
+      ) as { kind?: string } | null;
+      if (previous?.kind === 'redeem') {
+        localStorage.removeItem(storageKey);
+        setMessage('换手机功能已移除，请使用原浏览器检查原座位。');
+      }
+    } catch {
+      /* Invalid local data never becomes a new admission. */
+    }
     const recover = () => {
       if (document.visibilityState !== 'hidden' && current.current)
         void run(current.current);
@@ -153,17 +149,17 @@ export function useAdmission(
       window.removeEventListener('pageshow', recover);
       document.removeEventListener('visibilitychange', recover);
     };
-  }, [enabled, run]);
+  }, [enabled, run, setMessage]);
   return {
     busy,
     pending: Boolean(pending),
     retry: () => {
       if (current.current) void run(current.current);
     },
-    join: (kind: Admission['kind'], value: string) => {
+    join: (value: string) => {
       const request = current.current ??
         loadAdmission() ?? {
-          kind,
+          kind: 'join' as const,
           value: value.trim(),
           createdAt: Date.now(),
           requestKey: Array.from(

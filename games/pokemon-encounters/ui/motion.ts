@@ -1,7 +1,13 @@
 import { createContext } from 'react';
 import type { PokemonView } from '../rules/project';
+import type { EffectTheme } from './presentation-state';
 export const SavedMotion = createContext<readonly string[]>([]);
 export const ActionTargets = createContext<readonly string[]>([]);
+export const EffectTargets = createContext<{
+  theme?: EffectTheme | undefined;
+  slots: readonly string[];
+  rocketReturns: readonly string[];
+}>({ slots: [], rocketReturns: [] });
 
 export const SAVED_MOTION_MS = 1200;
 
@@ -11,8 +17,22 @@ export function savedChanges(
   after: PokemonView,
 ): string[] {
   const changes: string[] = [];
+  const latest = after.events.at(-1);
+  const saved = latest && latest.id !== before.events.at(-1)?.id;
+  if (saved) {
+    changes.push('@saved');
+    for (const target of latest.action?.targets ?? [])
+      for (const slot of target.slots) changes.push(`${target.seat}:${slot}`);
+  }
   if (before.phase !== after.phase) changes.push('@phase');
-  if (before.coin !== after.coin && after.coin) changes.push('@coin');
+  if (
+    after.coin &&
+    (before.coin !== after.coin ||
+      (saved &&
+        latest.action?.verb === 'draw' &&
+        latest.action.ability === 'special-team-rocket'))
+  )
+    changes.push('@coin');
   if (JSON.stringify(before.held) !== JSON.stringify(after.held))
     changes.push('@held');
   if (!before.roundResult && after.roundResult) changes.push('@result');
@@ -45,5 +65,5 @@ export function savedChanges(
       }
     });
   }
-  return changes;
+  return [...new Set(changes)];
 }

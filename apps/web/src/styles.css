@@ -303,6 +303,120 @@ select {
   color: #1d4d40;
   display: block;
 }
+.secondary.icon-label-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1.35;
+}
+.icon-label-control svg {
+  display: block;
+  flex: 0 0 auto;
+}
+.connection-help {
+  display: grid;
+  gap: 14px;
+}
+.connection-help > label {
+  font-weight: 700;
+}
+.connection-help__address {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+.connection-help__address select {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+}
+.connection-help p {
+  margin: 0;
+}
+.connection-help ol {
+  margin: 0;
+  padding-left: 24px;
+}
+.connection-help li {
+  padding: 8px 0;
+}
+.owner-control {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.owner-control label {
+  font-weight: 700;
+}
+.owner-control select {
+  width: 100%;
+  min-height: 48px;
+}
+.owner-control p {
+  margin: 0;
+  font-size: 14px;
+  color: #31554a;
+}
+.game-library {
+  padding: 20px;
+  background: #fffdf4;
+  border: 1px solid #d7decd;
+  border-radius: 20px;
+  margin-bottom: 18px;
+}
+.game-library h2,
+.game-library h3 {
+  margin: 0;
+}
+.game-library p {
+  margin: 6px 0 14px;
+}
+.game-library__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 16px;
+}
+.game-library__item {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #f2f4e9;
+}
+.game-library__item img {
+  width: 80px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 12px;
+  grid-row: span 2;
+}
+.game-library__item button {
+  justify-self: start;
+}
+.game-library__placeholder {
+  font-size: 64px;
+  text-align: center;
+  grid-row: span 2;
+}
+.owner-badge {
+  color: #72521e;
+  font-weight: 700;
+}
+.game-loading h1 {
+  margin-top: 24px;
+}
+@media (max-width: 560px) {
+  .connection-help__address {
+    grid-template-columns: 1fr;
+  }
+  .box-screen .hero {
+    flex-wrap: wrap;
+  }
+}
 .echo-card {
   grid-column: 1 / -1;
 }

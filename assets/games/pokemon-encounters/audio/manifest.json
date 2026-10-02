@@ -1,5 +1,47 @@
 [
   {
+    "id": "pokemon-encounters/audio/meowth",
+    "path": "meowth-game-v1.mp3",
+    "source": "Pokémon Showdown community game cry archive",
+    "sourceUrl": "https://play.pokemonshowdown.com/audio/cries/meowth.mp3",
+    "sourceIndex": "https://play.pokemonshowdown.com/audio/cries/",
+    "retrieved": "2026-10-02",
+    "version": "v1",
+    "encoding": "MP3",
+    "bytes": 5672,
+    "sha256": "6ca78942d80da8573713d549e1565ecfdc7217710b46b31dc92024fd856c94e2",
+    "verification": "Archive identity and SHA-256 verified. Bundled file decoded by Chromium with non-silent waveform; no human listening or anime-voice authenticity claim.",
+    "decoded": {
+      "seconds": 0.7009166666666666,
+      "channels": 1,
+      "sampleRate": 48000,
+      "peak": 0.9129440188407898,
+      "rms": 0.23277205861882813
+    },
+    "evidence": "artifacts/maintenance/v1.6.0/ui/final-discard/results.json"
+  },
+  {
+    "id": "pokemon-encounters/audio/pikachu",
+    "path": "pikachu-starter-game-v1.mp3",
+    "source": "Pokémon Showdown community game cry archive",
+    "sourceUrl": "https://play.pokemonshowdown.com/audio/cries/pikachu-starter.mp3",
+    "sourceIndex": "https://play.pokemonshowdown.com/audio/cries/",
+    "retrieved": "2026-10-02",
+    "version": "v1",
+    "encoding": "MP3",
+    "bytes": 10272,
+    "sha256": "43bfb0e4d89d6e1830d5278dc446feb576e438b9757eb83d003afc15865ec373",
+    "verification": "Archive identity and SHA-256 verified. Bundled file decoded by Chromium with non-silent waveform; no human listening or anime-voice authenticity claim.",
+    "decoded": {
+      "seconds": 1.2656666666666667,
+      "channels": 1,
+      "sampleRate": 48000,
+      "peak": 0.9140103459358215,
+      "rms": 0.15195767689673662
+    },
+    "evidence": "artifacts/maintenance/v1.6.0/ui/final-discard/results.json"
+  },
+  {
     "id": "pokemon-encounters/audio/draw",
     "path": "draw-v1.wav",
     "source": "TableMax original procedural chime",
@@ -48,5 +90,76 @@
     "sampleRate": 22050,
     "seconds": 0.24,
     "sha256": "2219557a9970338c5b07387f7aee42c74405fa6c0ae7f125bca58b6f77a8e863"
+  },
+  {
+    "id": "pokemon-encounters/audio/mew",
+    "path": "mew-v1.wav",
+    "source": "TableMax original procedural chime",
+    "script": "scripts/generate-game-sounds.mjs",
+    "encoding": "PCM signed 16-bit mono",
+    "sampleRate": 22050,
+    "seconds": 0.42,
+    "sha256": "5c80877d32cc526a07b64946bec1db2363d2d4ff4fdead6e2742bf14233f86ff"
+  },
+  {
+    "id": "pokemon-encounters/audio/zapdos",
+    "path": "zapdos-v1.wav",
+    "source": "TableMax original procedural chime",
+    "script": "scripts/generate-game-sounds.mjs",
+    "encoding": "PCM signed 16-bit mono",
+    "sampleRate": 22050,
+    "seconds": 0.42,
+    "sha256": "fdff3504ff04bef2e2c593e5aa38ec4b83ba2824a3c61c4519d3aed1da35d31c"
+  },
+  {
+    "id": "pokemon-encounters/audio/snorlax",
+    "path": "snorlax-v1.wav",
+    "source": "TableMax original procedural chime",
+    "script": "scripts/generate-game-sounds.mjs",
+    "encoding": "PCM signed 16-bit mono",
+    "sampleRate": 22050,
+    "seconds": 0.32997732426303855,
+    "sha256": "44fa2cccfb57e2b2dc7355aa8abbd1a334e6a9e7121592f7daa2133a28dd1989"
+  },
+  {
+    "id": "pokemon-encounters/audio/charizard",
+    "path": "charizard-v1.wav",
+    "source": "TableMax original procedural chime",
+    "script": "scripts/generate-game-sounds.mjs",
+    "encoding": "PCM signed 16-bit mono",
+    "sampleRate": 22050,
+    "seconds": 0.5099773242630385,
+    "sha256": "7622b000f2f2d8256cf7b1b05f70ef11b63dd3803b914340a9c82d1e1d56dfd1"
+  },
+  {
+    "id": "pokemon-encounters/audio/rocket",
+    "path": "rocket-v1.wav",
+    "source": "TableMax original procedural chime",
+    "script": "scripts/generate-game-sounds.mjs",
+    "encoding": "PCM signed 16-bit mono",
+    "sampleRate": 22050,
+    "seconds": 0.42,
+    "sha256": "cd88d2f98075d3a8db8d4e63034eb55f3149581efc20f89f922fa4765948c4f8"
+  },
+  {
+    "id": "pokemon-encounters/audio/rocket-return",
+    "path": "rocket-return-v1.wav",
+    "source": "TableMax original procedural chime",
+    "script": "scripts/generate-game-sounds.mjs",
+    "encoding": "PCM signed 16-bit mono",
+    "sampleRate": 22050,
+    "seconds": 0.5099773242630385,
+    "sha256": "6970dbec43feabcb952e43b9caaae5aa308f39ac12082612c1f34bfc263c02f6",
+    "note": "Original rocket whistle used with the on-screen Chinese return line. No verified Chinese Team Rocket dialogue recording was found or included."
+  },
+  {
+    "id": "pokemon-encounters/audio/match-result",
+    "path": "match-result-v1.wav",
+    "source": "TableMax original procedural chime",
+    "script": "scripts/generate-game-sounds.mjs",
+    "encoding": "PCM signed 16-bit mono",
+    "sampleRate": 22050,
+    "seconds": 0.6899773242630386,
+    "sha256": "14fd4b35aa7add0d33882cf0fae189040fa51b9967f848bc0a38fc3388cc3e59"
   }
 ]

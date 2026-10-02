@@ -178,7 +178,11 @@ export const rules: GameRules = {
     if (s.phase === 'initial-flip')
       return s.seatOrder
         .filter((seat) => !s.initialDone.includes(seat))
-        .map((seat) => ({ id: decisionId(s, seat), seatId: seat }));
+        .map((seat) => ({
+          id: decisionId(s, seat),
+          seatId: seat,
+          concurrencyGroup: `r${s.roundNumber}-initial`,
+        }));
     return ['round-result', 'match-result'].includes(s.phase)
       ? []
       : [{ id: decisionId(s, actor(s)), seatId: actor(s) }];

@@ -28,6 +28,8 @@ try {
   Fixture-File 'artifacts/releases/TableMax-2.0.0-win-x64.zip' 'future-fixture'
   Fixture-File 'artifacts/releases/builder-debug.yml' 'diagnostic'
   Fixture-File 'tmp/display-ABC123/data/room.sqlite' 'isolated-test-data'
+  Fixture-File 'tmp/experience-EXP123/data/room.sqlite' 'isolated-experience-data'
+  Fixture-File 'tmp/runtime-memory-MEM123/save.json' 'isolated-memory-fixture'
   Fixture-File 'tmp/game-ui-Young1/data/room.sqlite' 'young-isolated-test-data'
   Fixture-File 'tmp/check-display-docs.mjs' 'temporary-script-to-archive'
   Fixture-File 'tmp/preserve-me/notes.md' 'unknown-research'
@@ -78,6 +80,8 @@ try {
   Run-Cleanup Intermediates $true
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/package-1.5.0-ABC123'))) 'Current regenerable stage is removed, current ZIP retained'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/display-ABC123'))) 'Recognized stopped verification directory is removed'
+  Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/experience-EXP123'))) 'Recognized stopped experience verification data is removed'
+  Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/runtime-memory-MEM123'))) 'Recognized stopped memory verification data is removed'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/game-ui-Young1')) 'Recently modified verification data is protected by default'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/preserve-me/notes.md')) 'Unknown temporary research is preserved'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'build/desktop/main.cjs')) 'Current build is retained by default'

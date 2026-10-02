@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./random": "./src/random.ts"
+  },
   "dependencies": {
     "@tablemax/game-sdk": "workspace:*",
     "@tablemax/protocol": "workspace:*"

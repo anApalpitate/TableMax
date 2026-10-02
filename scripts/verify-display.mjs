@@ -10,7 +10,7 @@ import { createHash } from 'node:crypto';
 const require = createRequire(import.meta.url);
 const portable = process.argv.includes('--portable');
 const output = resolve(
-  'artifacts/maintenance/display-resolution',
+  'artifacts/maintenance/v1.6.0/display',
   portable ? 'portable' : 'development',
 );
 await mkdir(output, { recursive: true });
@@ -158,6 +158,13 @@ async function start(dpi) {
   });
   const host = await desktop.firstWindow();
   await host.waitForURL('**/host');
+  await host.getByText('本地连接已就绪', { exact: true }).waitFor();
+  if (
+    await host.getByRole('button', { name: '选择游戏', exact: true }).count()
+  ) {
+    await host.getByRole('button', { name: '选择游戏', exact: true }).click();
+    await host.getByRole('button', { name: '切换游戏', exact: true }).waitFor();
+  }
   origin = new URL(host.url()).origin;
   port = new URL(origin).port;
   phoneUrl = (await host.locator('.url').textContent()).trim();

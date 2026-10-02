@@ -1,4 +1,4 @@
-import { it, expect, vi } from 'vitest';
+import { it, expect } from 'vitest';
 import type { Command } from '@tablemax/protocol';
 import { RoomCoordinator, hash, token } from './room';
 import type { Save, SaveRepository } from './model';
@@ -65,51 +65,34 @@ it('does not occupy a seat when persisting admission fails and can retry the sam
   expect(await room.join('朋友', key)).toEqual(result);
   expect(room.view().seats).toHaveLength(1);
 });
-it('persists one-time bindings, recovers a lost redemption after code expiry and rejects revoked retries', async () => {
+it('ignores legacy bindings while preserving current phone identity and admission recovery', async () => {
   const repository = new Repository();
   let room = new RoomCoordinator(rules, bot, repository);
   const joinKey = token();
   const original = await room.join('朋友', joinKey);
   const seatId = room.view(original.token).self.seatId!;
-  const bind = await run(room, { type: 'rebind', seatId });
-  const code = bind.ok ? bind.bindingCode! : '';
+  repository.value!.bindings = {
+    [hash(token())]: { seatId, expires: Date.now() + 120000 },
+  };
   room = new RoomCoordinator(rules, bot, repository);
-  const requestKey = token();
-  const rebound = await room.redeem(code, requestKey);
-  expect(room.view(rebound.token).self.seatId).toBe(seatId);
-  expect(() => room.identity(original.token)).toThrow('invalid-identity');
+  expect(room.view(original.token).self.seatId).toBe(seatId);
+  expect(await room.join('朋友', joinKey)).toEqual(original);
+  const view = room.view(room.hostToken);
+  expect(
+    await room.command(room.hostToken, {
+      actionId: token(),
+      instanceId: view.instanceId,
+      revision: view.revision,
+      branch: view.branch,
+      command: { type: 'rebind', seatId },
+    }),
+  ).toEqual({ ok: false, reason: 'invalid-message' });
+  await run(room, { type: 'join-open', open: false });
+  expect(repository.value!.bindings).toBeUndefined();
+  await run(room, { type: 'remove-seat', seatId });
   await expect(room.join('朋友', joinKey)).rejects.toThrow(
     'session-request-revoked',
   );
-  room = new RoomCoordinator(rules, bot, repository);
-  vi.useFakeTimers();
-  try {
-    vi.setSystemTime(Date.now() + 180000);
-    expect((await room.redeem(code, requestKey)).token).toBe(rebound.token);
-    await expect(room.redeem(code, token())).rejects.toThrow('binding-expired');
-    await run(room, { type: 'rebind', seatId });
-    await expect(room.redeem(code, requestKey)).rejects.toThrow(
-      'session-request-revoked',
-    );
-  } finally {
-    vi.useRealTimers();
-  }
-});
-it('retains a binding when redemption cannot be saved', async () => {
-  const repository = new Repository();
-  const room = new RoomCoordinator(rules, bot, repository);
-  const original = await room.join('朋友');
-  const result = await run(room, {
-    type: 'rebind',
-    seatId: room.view(original.token).self.seatId!,
-  });
-  const code = result.ok ? result.bindingCode! : '';
-  const key = token();
-  repository.fail = true;
-  await expect(room.redeem(code, key)).rejects.toThrow('disk full');
-  repository.fail = false;
-  const response = await room.redeem(code, key);
-  expect((await room.redeem(code, key)).token).toBe(response.token);
 });
 it('replays with the same ordered seats and identities, fresh readiness and isolated old commands', async () => {
   const repository = new Repository();

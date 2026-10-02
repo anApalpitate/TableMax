@@ -10,6 +10,8 @@ files:
   - preload.cjs
   - server.cjs
   - bot-worker.cjs
+  - games/*.cjs
+  - bots/*.cjs
   - web/**/*
   - package.json
 win:

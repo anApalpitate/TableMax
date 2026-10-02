@@ -65,6 +65,19 @@ it('admits and prepares six phone seats for the authorized variant and rejects a
   const service = await createServiceBase(dirs());
   const tokens: string[] = [];
   try {
+    const initial = service.room.view(service.hostToken);
+    expect(initial.game).toBeNull();
+    expect(
+      (
+        await service.room.command(service.hostToken, {
+          actionId: 'select',
+          instanceId: initial.instanceId,
+          branch: initial.branch,
+          revision: initial.revision,
+          command: { type: 'select-game', gameId: 'pokemon-encounters' },
+        })
+      ).ok,
+    ).toBe(true);
     for (let index = 0; index < 6; index++) {
       const response = await service.app.inject({
         method: 'POST',
@@ -74,7 +87,7 @@ it('admits and prepares six phone seats for the authorized variant and rejects a
       expect(response.statusCode).toBe(200);
       tokens.push(response.json().token);
     }
-    expect(service.room.view(service.hostToken).game.max).toBe(6);
+    expect(service.room.view(service.hostToken).game!.max).toBe(6);
     expect(service.room.view().seats).toHaveLength(6);
     const overflow = await service.app.inject({
       method: 'POST',
@@ -248,13 +261,14 @@ it('validates actual socket identities, personalized wire messages, duplicate AC
     const first = await command(player, input.command, input);
     const duplicate = await command(player, input.command, input);
     expect(first).toEqual(duplicate);
+    other.disconnect();
+    await new Promise((r) => setTimeout(r, 20));
+    expect((await sync(host)).seats[1]!.online).toBe(false);
+    await command(host, { type: 'end' });
     const revoked = new Promise<void>((resolve) =>
       player.once('room:revoked', () => resolve()),
     );
-    const rebind = await command(host, {
-      type: 'rebind',
-      seatId: p.self.seatId!,
-    });
+    await command(host, { type: 'new-room' });
     await revoked;
     expect(
       (
@@ -265,28 +279,12 @@ it('validates actual socket identities, personalized wire messages, duplicate AC
         })
       ).statusCode,
     ).toBe(401);
-    const code = rebind.ok ? rebind.bindingCode! : '';
-    const redeemed = await service.app.inject({
+    const removed = await service.app.inject({
       method: 'POST',
       url: '/api/session/redeem',
-      payload: { code },
+      payload: { code: 'a'.repeat(64) },
     });
-    expect(redeemed.statusCode).toBe(200);
-    expect(
-      (
-        await service.app.inject({
-          method: 'POST',
-          url: '/api/session/redeem',
-          payload: { code },
-        })
-      ).statusCode,
-    ).toBe(409);
-    const rebound = await connect(origin, redeemed.json().token as string);
-    clients.push(rebound);
-    expect((await sync(rebound)).self.seatId).toBe(p.self.seatId);
-    other.disconnect();
-    await new Promise((r) => setTimeout(r, 20));
-    expect((await sync(host)).seats[1]!.online).toBe(false);
+    expect(removed.statusCode).toBe(404);
   } finally {
     clients.forEach((c) => c.disconnect());
     await service.close();
@@ -400,46 +398,14 @@ it('recovers actual HTTP admissions after lost replies and SQLite restart withou
         })
       ).statusCode,
     ).toBe(400);
-    const host = service.room.view(service.hostToken);
-    const binding = await service.room.command(service.hostToken, {
-      actionId: 'rebind',
-      instanceId: host.instanceId,
-      revision: host.revision,
-      branch: host.branch,
-      command: { type: 'rebind', seatId: before.self.seatId! },
-    });
-    const code = binding.ok ? binding.bindingCode! : '';
-    await service.close();
-    service = await createService(config);
-    const redeemKey = randomBytes(32).toString('hex');
-    const rebound = (
-      await post('/api/session/redeem', { code, requestKey: redeemKey })
-    ).json();
-    expect(rebound.ok).toBe(true);
-    await service.close();
-    service = await createService(config);
-    const repeated = (
-      await post('/api/session/redeem', { code, requestKey: redeemKey })
-    ).json();
-    expect(repeated.token).toBe(rebound.token);
-    expect(service.room.view(repeated.token).self.seatId).toBe(
-      before.self.seatId,
-    );
+    expect(service.room.view(first.token).self.seatId).toBe(before.self.seatId);
     expect(
-      (
-        await post('/api/session/redeem', {
-          code,
-          requestKey: randomBytes(32).toString('hex'),
-        })
-      ).json().reason,
-    ).toBe('binding-expired');
+      (await post('/api/session/redeem', { code: 'a'.repeat(64) })).statusCode,
+    ).toBe(404);
     const wire = JSON.stringify(service.room.view());
     for (const value of [
       requestKey,
-      redeemKey,
       first.token,
-      rebound.token,
-      code,
       'sealedCredential',
       'sessionReceipts',
       'bindings',

@@ -109,9 +109,21 @@ export function PlayerControls({
         />
       )}
       {view.peek && (
-        <div className="private-peek" role="status">
+        <div className="private-peek charizard-peek" role="status">
           <p>仅你可见 · 位置 {view.peek.slot + 1} · 牌仍朝下</p>
-          <CardFace card={view.peek.card} />
+          <span className="private-peek-card">
+            <CardFace card={view.peek.card} />
+            <svg className="peek-flame" viewBox="0 0 120 65" aria-hidden="true">
+              <path
+                fill="#ff732d"
+                d="M2 62C-4 44 15 41 10 20c20 11 9 29 20 29 4-15 23-19 20-46 30 20 11 41 26 47 6-16 23-21 25-37 25 23 7 34 17 49Z"
+              />
+              <path
+                fill="#ffd05a"
+                d="M15 63c-6-11 7-14 7-25 10 7 6 19 17 20 9-15 14-15 18-31 13 15 4 25 21 31 10-5 12-17 17-21 0 13 15 19 13 26Z"
+              />
+            </svg>
+          </span>
         </div>
       )}
       {view.phase === 'mew-other' && (
@@ -171,8 +183,11 @@ export function PlayerControls({
           )
           .map((a) => (
             <button
-              className="secondary"
+              className={
+                a.type === 'discard-held' ? 'discard-held-action' : 'secondary'
+              }
               key={a.type + (a.type === 'draw' ? a.source : '')}
+              aria-label={short(a)}
               disabled={locked}
               onClick={() => {
                 choose(a);
