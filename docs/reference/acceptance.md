@@ -181,9 +181,25 @@
 
 开发效率规则补充工具结果摘要、批量独立检查、完成通知与有界等待、固定失败案例后再扩大验证，以及去重后的 token 统计口径。十个维护验证入口共用按应用版本生成证据目录的工具，避免新运行覆盖原 1.6.0 记录。手动清理支持显式退役版本，默认继续保护高于当前编号的未知版本；当前 ZIP、便携通过哈希、进程、路径、链接、近期修改和删除前复核保护继续执行。
 
-- `pnpm package:win` 一次构建并导出最终 ZIP；[最终便携验证](../../artifacts/maintenance/v1.0.0/portable/results.json) 两次运行实际解压程序，确认应用版本 `1.0.0`、协议 6、六席真人／Worker bot 完整三胜大局、全部 14 阶段、回退、重启恢复及原班续局。记录 11 张实际隐藏渲染截图，外部请求和页面错误均为 0；设备模拟边界沿用前节。
+- `pnpm package:win` 一次构建并导出最终 ZIP；[首次便携验证](../../artifacts/maintenance/v1.0.0/before-visual-polish/portable/results.json) 两次运行实际解压程序，确认应用版本 `1.0.0`、协议 6、六席真人／Worker bot 完整三胜大局、全部 14 阶段、回退、重启恢复及原班续局。记录 11 张实际隐藏渲染截图，外部请求和页面错误均为 0；设备模拟边界沿用前节。
 - [清理工具隔离测试](../../artifacts/maintenance/v1.0.0/cleanup-tools/tool-tests.json) 29 项、[自动维护隔离测试](../../artifacts/maintenance/v1.0.0/maintenance-tools/tool-tests.json) 32 项通过；新增显式退役高编号标签、预览不删除、拒绝当前版本、拒绝自动退役及保留无关未来版本。脚本 ESLint、语法、证据目录、项目格式与当前交付链接检查通过；本轮未修改游戏源码，沿用前节游戏功能专项，不重复运行无关矩阵。
-- 当前 [Windows x64 便携 ZIP](../../artifacts/releases/TableMax-1.0.0-win-x64.zip) 为 156,161,426 字节，SHA-256 `8356117f71b657f4901ba0a5e081ea98d9bd575587f154e7392b765eb05e7363`。源码、锁文件、文档及开发规则随本轮提交导出为 [源码 ZIP](../../artifacts/releases/TableMax-1.0.0-source.zip)，不包含依赖、玩家存档、工具缓存或本地中间物。
+- 首次重标为 1.0.0 的 [Windows x64 便携 ZIP](../../artifacts/maintenance/v1.0.0/before-visual-polish/TableMax-1.0.0-win-x64.zip) 为 156,161,426 字节，SHA-256 `8356117f71b657f4901ba0a5e081ea98d9bd575587f154e7392b765eb05e7363`。源码、锁文件、文档及开发规则随本轮提交导出为 [当次源码 ZIP](../../artifacts/maintenance/v1.0.0/before-visual-polish/TableMax-1.0.0-source.zip)，不包含依赖、玩家存档、工具缓存或本地中间物。
 - 空闲后执行已预览的手动清理：[历史版本记录](../../artifacts/maintenance/local-cleanup-20261002-162404-780-releases/cleanup.json) 删除旧 1.6.0 ZIP 及打包目录 2 项／704,520,503 字节；[中间物记录](../../artifacts/maintenance/local-cleanup-20261002-162435-967-intermediates/cleanup.json) 删除 56 项／4,501,388,803 字节。合计释放 5,205,909,306 字节（约 4.85 GiB）；默认 30 分钟保护保留 4 项近期内容，另保留 5 项未知临时资料。当前 ZIP、存档、素材、依赖、缓存与历史证据继续保留。
 
 [收尾统一维护](../../artifacts/maintenance/v1.0.0/maintenance.json) 发现同仓库主工作区 `E:\Proj\TableMax`，逻辑大小 3,048,787,207 字节（约 2.839 GiB），低于 5 GiB，删除 0 字节；跳过 1,330 个链接，不重复统计 worktree。未终止用户进程或放宽清理保护。
+
+
+## 1.0.0：同版本视觉优化（2026-10-03）
+
+按用户要求继续优化，package 版本保持 1.0.0，协议／存档／规则版本保持。本次不推出新版本号；只有用户明确要求时才调整版本的约定写入 Agent 入口和维护规则。当前交互正文见 [游戏交互](../games/pokemon-encounters/interaction.md#160行动面板与声画反馈)。
+
+角色名称在投影、操作记录、卡面、待处理牌和可访问文本中去掉“外观”。工具栏标题使用不透明浅底与深色文字。电脑行动面板限制最大宽度，空待处理区去掉斜纹／占位卡框／加号，有牌时才突出暂持。进度改为完成／当前状态线，不再使用按钮式填色或重复步数。合法可取牌使用沿边框移动的虚线，公共牌堆标明展示，弃牌查看按钮紧贴弃牌堆右下侧。喷火龙四边环绕火焰向外燃烧，保留牌名和私密提示可读；减少动态使用静态替代，公共投影不泄露查看位置。
+
+- 工程检查：typecheck、ESLint、项目格式及 22 文件／127 项测试通过；测试阶段实际用时 21.66 秒。后续仅短屏 CSS 和验证脚本调整，ESLint／格式再次核验；未改变规则或保存流程。
+- [完整游戏 UI](../../artifacts/maintenance/v1.0.0/ui/results.json) 15 场、[卡面布局](../../artifacts/maintenance/v1.0.0/cards/results.json) 13 种／16 类、[声画与操作区专项](../../artifacts/maintenance/v1.0.0/effects/results.json) 7 项通过。专项使用生产组件和授权投影视觉 fixture，验证四边火焰、连续币面、静态替代及真正运动的虚线边框，区别于自然整局。
+- 返修发现 720p 暂停时页面超高；根据实际截图和面板几何修正顶部／底部留白及 CSS 优先级，并提供 [固定失败场景验证](../../artifacts/maintenance/v1.0.0/display/paused-720p/results.json)。最终 [便携显示矩阵](../../artifacts/maintenance/v1.0.0/display/portable/results.json) 通过 44 张实际隐藏截图，包含 720p—4K、两端六人全部 36 牌、暂停／恢复、44px 控件、100／125／150% 窗口缩放、重启及 DPI 模拟；失败的开发记录保留为诊断，不作为最终通过证据。
+- [最终便携整局](../../artifacts/maintenance/v1.0.0/portable/results.json) 实际解压新包运行，完整六席三胜、全部 14 阶段、回退、两次启动恢复及原班续局通过。与显示矩阵对应同一最终 ZIP；设备范围仍为本机 Windows／隐藏 Electron／独立手机 Chromium 模拟。
+
+当前 [Windows x64 ZIP](../../artifacts/releases/TableMax-1.0.0-win-x64.zip) 为 156,161,961 字节，SHA-256 `caa042fc1af7ccab5dd8fdfdeb3bc91625854b5b1f30de2e98564277682d9729`。首次同编号的程序、源码及便携证据保留在 `artifacts/maintenance/v1.0.0/before-visual-polish/`，上节历史链接已指向原包。当前 [源码 ZIP](../../artifacts/releases/TableMax-1.0.0-source.zip) 随本次提交导出，不包含依赖、玩家数据或本地证据。
+
+[同版本收尾维护](../../artifacts/maintenance/v1.0.0/visual-polish-maintenance.json) 检查主工作区 `E:\Proj\TableMax`，逻辑大小 3,049,079,281 字节（约 2.840 GiB），低于 5 GiB，删除 0 字节；跳过 1,330 个链接，未终止用户进程或扩大清理范围。新增文档链接／锚点和 diff 检查通过，版本及锁文件没有改动。

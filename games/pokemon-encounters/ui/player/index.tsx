@@ -113,16 +113,25 @@ export function PlayerControls({
           <p>仅你可见 · 位置 {view.peek.slot + 1} · 牌仍朝下</p>
           <span className="private-peek-card">
             <CardFace card={view.peek.card} />
-            <svg className="peek-flame" viewBox="0 0 120 65" aria-hidden="true">
-              <path
-                fill="#ff732d"
-                d="M2 62C-4 44 15 41 10 20c20 11 9 29 20 29 4-15 23-19 20-46 30 20 11 41 26 47 6-16 23-21 25-37 25 23 7 34 17 49Z"
-              />
-              <path
-                fill="#ffd05a"
-                d="M15 63c-6-11 7-14 7-25 10 7 6 19 17 20 9-15 14-15 18-31 13 15 4 25 21 31 10-5 12-17 17-21 0 13 15 19 13 26Z"
-              />
-            </svg>
+            <span className="peek-flame" aria-hidden="true">
+              {['top', 'right', 'bottom', 'left'].map((edge) => (
+                <svg
+                  key={edge}
+                  className={`flame-edge flame-${edge}`}
+                  viewBox="0 0 120 65"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    fill="#ff732d"
+                    d="M2 62C-4 44 15 41 10 20c20 11 9 29 20 29 4-15 23-19 20-46 30 20 11 41 26 47 6-16 23-21 25-37 25 23 7 34 17 49Z"
+                  />
+                  <path
+                    fill="#ffd05a"
+                    d="M15 63c-6-11 7-14 7-25 10 7 6 19 17 20 9-15 14-15 18-31 13 15 4 25 21 31 10-5 12-17 17-21 0 13 15 19 13 26Z"
+                  />
+                </svg>
+              ))}
+            </span>
           </span>
         </div>
       )}

@@ -7,7 +7,7 @@ export function face(instance: string) {
   const c = card(instance);
   return {
     categoryId: c.categoryId,
-    name: c.displayName,
+    name: c.displayName.replace('外观', ''),
     value: numeric(instance),
     ability: c.abilityDefinition?.adoptedText ?? null,
   };

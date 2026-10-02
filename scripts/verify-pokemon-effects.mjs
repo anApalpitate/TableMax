@@ -46,7 +46,8 @@ await build({
         const state=initial();
         state.initialDone=[...seats]; state.phase='draw';
         state.turnSeat='S1';
-        let player=false, motion=[], event;
+        let player=kind==='draw-controls', motion=[], event;
+        if(kind.startsWith('draw-controls')) state.discard.push(state.deck.pop());
         if(kind==='zero') {
           place(state,'S1',0,'ordinary-4#01'); place(state,'S1',3,'ordinary-4#02');
           place(state,'S1',1,'ordinary--2#01'); place(state,'S1',4,'special-mew#01');
@@ -81,7 +82,7 @@ await build({
         }
         const game=project(state,{role:player?'player':'public',seatId:'S1'});
         const names={S1:'视觉玩家一',S2:'视觉玩家二'};
-        flushSync(()=>root.render(<main className={'game-screen '+(player?'player':'public')}><SavedMotion.Provider value={motion}><GameTable game={game} seats={seats.map(id=>({id,name:names[id],portrait,controller:'human',online:true}))} names={names} selfId={player?'S1':null} player={player} actions={player?[{type:'close-peek'}]:[]} locked={false} paused={false} playing={true} selectionKey={kind} motionKey={kind+ordinal} choose={()=>{}} showFriends={()=>{}} /></SavedMotion.Provider></main>));
+        flushSync(()=>root.render(<main className={'game-screen '+(player?'player':'public')}><header className='game-toolbar'><h1>宝可梦奇遇：皮卡丘和朋友们</h1></header><SavedMotion.Provider value={motion}><GameTable game={game} seats={seats.map(id=>({id,name:names[id],portrait,controller:'human',online:true}))} names={names} selfId={player?'S1':null} player={player} actions={player?(kind==='draw-controls'?[{type:'draw',source:'deck'},{type:'draw',source:'discard'}]:[{type:'close-peek'}]):[]} locked={false} paused={false} playing={true} selectionKey={kind} motionKey={kind+ordinal} choose={()=>{}} showFriends={()=>{}} /></SavedMotion.Provider></main>));
         await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
         return {phase:game.phase,matchWinners:game.matchWinners,motion,publicPeek:game.peek};
       };
@@ -229,8 +230,57 @@ try {
   evidence.checks.push(
     'Two consecutive saved draws with identical Meowth outcome both start coin animation',
   );
+  await page.evaluate(() => window.showEffect('draw-controls'));
+  assert.equal(await page.locator('.held-placeholder').count(), 0);
+  const quiet = await page.locator('.held-zone').boundingBox();
+  assert.ok(quiet.width <= 240, 'Empty temporary storage must stay compact');
+  assert.equal(await page.locator('.take-border rect').count(), 2);
+  const border = page.locator('.take-border rect').first();
+  const offset = await border.evaluate(
+    (e) => getComputedStyle(e).strokeDashoffset,
+  );
+  await page.waitForTimeout(100);
+  assert.notEqual(
+    await border.evaluate((e) => getComputedStyle(e).strokeDashoffset),
+    offset,
+  );
+  assert.equal(
+    await page
+      .locator('.progress-segment.current')
+      .first()
+      .evaluate((e) => getComputedStyle(e).backgroundColor),
+    'rgba(0, 0, 0, 0)',
+  );
+  await capture('compact-action-targets');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  assert.equal(
+    await border.evaluate((e) => getComputedStyle(e).animationName),
+    'none',
+  );
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  evidence.checks.push(
+    'Compact quiet empty storage, discard-owned gallery control, status-only progress and moving dashed actionable borders with static reduced-motion fallback',
+  );
+  await page.evaluate(() => window.showEffect('draw-controls-public'));
+  assert.equal(await page.locator('.card-piles .discard-control').count(), 1);
+  await capture('desktop-action-targets');
   await page.evaluate(() => window.showEffect('peek-owner'));
   assert.equal(await page.locator('.peek-flame').count(), 1);
+  assert.equal(await page.locator('.peek-flame .flame-edge').count(), 4);
+  const coverage = await page.locator('.private-peek-card').evaluate((e) => {
+    const card = e.getBoundingClientRect();
+    return [...e.querySelectorAll('.flame-edge')].map((edge) => {
+      const r = edge.getBoundingClientRect();
+      return (
+        r.left < card.right &&
+        r.right > card.left &&
+        r.top < card.bottom &&
+        r.bottom > card.top
+      );
+    });
+  });
+  assert.ok(coverage.every(Boolean), 'All four flame edges surround the card');
+
   await capture('private-charizard-flame');
   await page.evaluate(() => window.showEffect('peek-public'));
   assert.equal(await page.locator('.peek-flame,.private-peek').count(), 0);

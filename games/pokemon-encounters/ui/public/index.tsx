@@ -110,10 +110,30 @@ export function TableStatus({
         }}
       >
         {face}
+        {action && (
+          <svg
+            className="take-border"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <rect
+              x="2"
+              y="2"
+              width="96"
+              height="96"
+              rx="7"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
+        )}
         <span className="pile-action">{action ? '点此取牌' : '等待'}</span>
       </button>
     ) : (
-      face
+      <div className="pile-display">
+        {face}
+        <span className="pile-action">展示中</span>
+      </div>
     );
   };
   return (
@@ -157,7 +177,9 @@ export function TableStatus({
                 }
               >
                 <span>
-                  {view.phase === 'initial-flip' ? `${index + 1}` : label}
+                  {view.phase === 'initial-flip'
+                    ? `${index + 1}`
+                    : `${done ? '✓ ' : index === progress.completed ? '当前 · ' : ''}${label}`}
                 </span>
               </span>
             );
@@ -166,7 +188,9 @@ export function TableStatus({
         <p className="progress-caption">
           {view.phase === 'initial-flip'
             ? `已翻牌 ${progress.completed} / ${progress.total} · 可以同时选择`
-            : `${progress.label} · 第 ${Math.min(progress.completed + 1, progress.total)} / ${progress.total} 步`}
+            : view.phase === 'draw'
+              ? '从牌库或弃牌顶取一张牌'
+              : progress.label}
         </p>
         {view.coin && (
           <span className="coin-result">
@@ -192,6 +216,36 @@ export function TableStatus({
             <span className="empty-pile">暂时为空</span>
           )}
         </div>
+        {view.discard && view.discard.length > 0 && (
+          <div className="discard-control">
+            <button
+              className="secondary"
+              onClick={() => gallery.current?.showModal()}
+            >
+              查看弃牌
+            </button>
+            <dialog
+              ref={gallery}
+              className="card-gallery-panel"
+              aria-labelledby={galleryTitle}
+            >
+              <header className="gallery-heading">
+                <h2 id={galleryTitle}>弃牌 · 底 → 顶</h2>
+                <button
+                  className="secondary"
+                  onClick={() => gallery.current?.close()}
+                >
+                  关闭
+                </button>
+              </header>
+              <div className="discard-gallery">
+                {view.discard.map((card, i) => (
+                  <CardFace key={i} card={card} />
+                ))}
+              </div>
+            </dialog>
+          </div>
+        )}
       </div>
       <section
         className={`held-zone ${view.held ? 'has-held' : ''}`}
@@ -199,53 +253,21 @@ export function TableStatus({
       >
         <div className="held-copy">
           <span className="held-tag">{view.held ? '暂持中' : '待处理区'}</span>
-          <strong>{view.held ? view.held.name : '等待取牌'}</strong>
+          <strong>
+            {view.held ? view.held.name.replace('外观', '') : '尚未取牌'}
+          </strong>
           <p>
             {view.held ? heldDescription(view, names) : '新取的牌会先放在这里'}
           </p>
         </div>
-        <div
-          className={`held-pile ${motion.includes('@held') ? 'saved-motion' : ''}`}
-        >
-          {view.held ? (
+        {view.held && (
+          <div
+            className={`held-pile ${motion.includes('@held') ? 'saved-motion' : ''}`}
+          >
             <CardFace card={view.held} />
-          ) : (
-            <span className="held-placeholder" aria-hidden="true">
-              ＋
-            </span>
-          )}
-        </div>
+          </div>
+        )}
       </section>
-      {view.discard && view.discard.length > 0 && (
-        <div className="discard-control">
-          <button
-            className="secondary"
-            onClick={() => gallery.current?.showModal()}
-          >
-            查看弃牌（{view.discard.length}）
-          </button>
-          <dialog
-            ref={gallery}
-            className="card-gallery-panel"
-            aria-labelledby={galleryTitle}
-          >
-            <header className="gallery-heading">
-              <h2 id={galleryTitle}>弃牌 · 底 → 顶</h2>
-              <button
-                className="secondary"
-                onClick={() => gallery.current?.close()}
-              >
-                关闭
-              </button>
-            </header>
-            <div className="discard-gallery">
-              {view.discard.map((card, i) => (
-                <CardFace key={i} card={card} />
-              ))}
-            </div>
-          </dialog>
-        </div>
-      )}
     </div>
   );
 }
@@ -297,7 +319,7 @@ export function GameHelp() {
         .map((card) => (
           <p key={card.categoryId}>
             <strong>
-              {card.displayName} ·{' '}
+              {card.displayName.replace('外观', '')} ·{' '}
               {card.value.kind === 'fixed' ? card.value.number : '?'}
             </strong>
             <br />
