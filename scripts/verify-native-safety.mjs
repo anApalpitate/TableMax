@@ -42,9 +42,10 @@ const evidence = {
   result: 'started',
 };
 if (portable) {
+  const { version } = JSON.parse(await readFile('package.json', 'utf8'));
   const manifest = JSON.parse(
     await readFile(
-      'artifacts/releases/TableMax-1.0.0-win-x64-manifest.json',
+      `artifacts/releases/TableMax-${version}-win-x64-manifest.json`,
       'utf8',
     ),
   );

@@ -1,6 +1,6 @@
 # 现代艺术
 
-TableMax 的第二款独立游戏，采用经典 3–5 人拍卖玩法；画家总量和核心流程核对出版规则，版本差异及自主采用项见 [规则来源](sources.md)。规则版本为 `tablemax-modern-art-classic-v1`，状态版本 1，独立本地策略 `modern-art-local`／1.0.0。应用与游戏版本沿用 1.0.0。
+TableMax 的第二款独立游戏，采用经典 3–5 人拍卖玩法；画家总量和核心流程核对出版规则，版本差异及自主采用项见 [规则来源](sources.md)。规则版本为 `tablemax-modern-art-classic-v1`，状态版本 1，独立本地策略 `modern-art-local`／1.0.0。应用版本为 1.0.1，游戏规则、状态和策略版本保持上述值。
 
 ## 模块边界
 

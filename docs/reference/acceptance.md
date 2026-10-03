@@ -1,6 +1,18 @@
 # 首版交付与验收
 
-当前交付为 [v1.0.0 现代艺术独立接入](#100现代艺术独立接入2026-10-03)，保留下列历次真实验收记录。
+当前交付为 [v1.0.1 GitHub Release](#101github-release2026-10-03)，保留下列历次真实验收记录。
+
+## 1.0.1：GitHub Release（2026-10-03）
+
+按用户最新指示，将含《现代艺术》的版本定位为 v1.0.1，并发布到 [GitHub Release](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.1)。应用、原生程序集、Windows manifest 和桌面版本响应同步为 1.0.1；规则、协议、存档和策略版本不变。原生安全验证改为读取当前应用版本对应的清单。用户原有 README 改写保留在工作区，发布提交仅纳入本次版本／下载链接调整和现代艺术说明。
+
+`pnpm package:win` 重新构建并逐文件核验实际解压：ZIP **36,966,646 字节**，解压 **72 文件／92,579,416 字节**，满足双 100 MB 门禁及 95 MB 解压预算。SHA-256 为 `8b3d4bc237d75e843a8b842d23ffeb7f651b4e531fbf2b2131b3a4433498dc6c`；[逐文件清单](../../artifacts/releases/TableMax-1.0.1-win-x64-manifest.json)与[便携包](../../artifacts/releases/TableMax-1.0.1-win-x64.zip)配套。
+
+- [现代艺术便携整局](../../artifacts/maintenance/v1.0.1/modern-art/portable/results.json)通过：五席四轮、全部拍卖与八类手机动作、秘密隔离、回退、重启和游戏切换；28 张实际截图，页面错误和外部请求为空。
+- [宝可梦便携整局](../../artifacts/maintenance/v1.0.1/portable/results.json)通过：实际应用版本 1.0.1、六席三胜、14 阶段、回退、重启及原班续局。
+- [原生安全专项](../../artifacts/maintenance/v1.0.1/webview2/safety-portable/results.json)10 项通过，包括清单和可执行文件哈希、共享运行时缺失、桥接授权、进程隔离与退出清理。修改脚本的 ESLint、Prettier 及 Git diff 空白检查通过。
+
+本次仅调整应用版本及发布资料，不改游戏实现；设备边界沿用前次验收，仍为 Windows 后台真实渲染和 Chromium 手机尺寸／触控模拟。首次构建被沙箱子进程权限拦截，授权范围内重跑成功；三组实际新包验证分别保留开始／结束时间，不相加为总耗时。发布源码由对应提交导出，排除用户未提交的 README 改写、依赖、存档、原始素材和中间物；历史 1.0.0 验收保持原记录。
 
 2026-10-01，交付版本 1.0.0；游戏采用 `tablemax-cn-s19-v1`，状态版本 1，基础策略 `pokemon-encounters/basic`／`1`。以下记录真实工程执行结果，规则原文认证状态仍见 [来源页](../games/pokemon-encounters/sources.md)。
 
@@ -62,7 +74,7 @@
 
 ## 使用与维护
 
-当前便携包为 `artifacts/releases/TableMax-1.0.0-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
+当前便携包为 `artifacts/releases/TableMax-1.0.1-win-x64.zip`，使用步骤见 [项目说明](../../README.md#使用便携版)。命令、数据位置和排障见 [开发环境](development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
 
 2026-10-02 按用户要求清除历史版本：移除 0.1.0、1.0.0、1.0.1、1.0.2、1.1.0、1.2.0、1.3.0 共七个 ZIP，以及 phase-01／phase-06／releases 下三个旧 `win-unpacked`，释放 2,161,988,613 字节（约 2.01 GiB）。当次保留 1.4.0 ZIP、解压程序及打包目录，ZIP 哈希与该版最终验证一致；原始素材、截图、JSON、默认玩家数据和 Git 历史保留。以下历次验收中的“旧包保留”描述当时状态，0.1.0–1.3.0 旧包现已清除；[清理记录](../../artifacts/maintenance/release-cleanup-2026-10-02/cleanup.json) 保存删除清单、空间和证据目录检查。
 
