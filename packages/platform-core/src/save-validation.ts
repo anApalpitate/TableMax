@@ -1,4 +1,5 @@
 import type { GameRules, BotStrategy } from '@tablemax/game-sdk';
+import { AVATAR_PRESETS, AvatarIdSchema } from '@tablemax/protocol';
 import type { Save, Snapshot } from './model';
 import { requireThat } from './errors';
 export function validateSave(
@@ -54,6 +55,33 @@ export function validateSave(
         (s.tokenHash === null || /^[0-9a-f]{64}$/.test(s.tokenHash)),
       'damaged-save',
     );
+  const occupied = new Set<string>();
+  for (const seat of d.seats) {
+    if (seat.avatarId === undefined) continue;
+    requireThat(
+      AvatarIdSchema.safeParse(seat.avatarId).success &&
+        !occupied.has(seat.avatarId),
+      'damaged-save',
+    );
+    occupied.add(seat.avatarId);
+  }
+  for (const seat of d.seats) {
+    if (seat.avatarId !== undefined) continue;
+    // Preserve the former six-avatar hash when free, then use the first free ID.
+    const legacy =
+      AVATAR_PRESETS[
+        [...seat.id].reduce(
+          (sum, character) => sum + character.charCodeAt(0),
+          0,
+        ) % 6
+      ]!;
+    const preset = !occupied.has(legacy.id)
+      ? legacy
+      : AVATAR_PRESETS.find((entry) => !occupied.has(entry.id));
+    requireThat(preset, 'damaged-save');
+    seat.avatarId = preset.id;
+    occupied.add(preset.id);
+  }
   for (const seat of d.seats) {
     if (seat.controller === 'human') {
       requireThat(seat.botDifficulty === undefined, 'damaged-save');

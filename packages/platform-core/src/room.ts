@@ -7,6 +7,9 @@ import type {
 } from '@tablemax/game-sdk';
 import {
   CommandSchema,
+  AVATAR_PRESETS,
+  AvatarIdSchema,
+  type AvatarId,
   type Command,
   type CommandReply,
   type RoomView,
@@ -89,7 +92,13 @@ export class RoomCoordinator {
     const saved = loadedSave === undefined ? repository.load() : loadedSave;
     this.data =
       saved === null ? this.fresh() : validateSave(saved, rules, strategy);
-    let persist = false;
+    let persist =
+      saved !== null &&
+      this.data.seats.some(
+        (_, index) => (saved as Save).seats[index]!.avatarId === undefined,
+      );
+    // SQLite journal revisions are unique; migrate an old lobby exactly once.
+    if (persist && this.data.status !== 'playing') this.data.revision++;
     if (initialPlayMode !== undefined) {
       requireThat(
         initialPlayMode === 'play' || initialPlayMode === 'test',
@@ -275,9 +284,32 @@ export class RoomCoordinator {
       expires: Date.now() + 24 * 60 * 60 * 1000,
     };
   }
-  async join(name: string, requestKey?: string) {
+  private availableAvatar(avatarId?: AvatarId, seatId?: string): AvatarId {
+    const occupied = new Set(
+      this.data.seats
+        .filter((seat) => seat.id !== seatId)
+        .map((seat) => seat.avatarId),
+    );
+    if (avatarId !== undefined) {
+      requireThat(AvatarIdSchema.safeParse(avatarId).success, 'invalid-avatar');
+      requireThat(!occupied.has(avatarId), 'avatar-unavailable');
+      return avatarId;
+    }
+    const preset = AVATAR_PRESETS.find((entry) => !occupied.has(entry.id));
+    requireThat(preset, 'avatar-unavailable');
+    return preset.id;
+  }
+  async join(name: string, requestKey?: string, avatarId?: AvatarId) {
     return this.enqueue(() => {
-      const fingerprint = hash(`join:${name}`);
+      requireThat(
+        avatarId === undefined || AvatarIdSchema.safeParse(avatarId).success,
+        'invalid-avatar',
+      );
+      const fingerprint = hash(
+        avatarId === undefined
+          ? `join:${name}`
+          : JSON.stringify(['join', name, avatarId]),
+      );
       const previous = this.sessionResult(requestKey, fingerprint);
       if (previous) return previous;
       requireThat(this.game, 'game-not-selected');
@@ -293,9 +325,11 @@ export class RoomCoordinator {
       const next = copySave(this.data);
       const duplicateName = next.seats.some((s) => s.name === name);
       const seatId = randomUUID();
+      const selectedAvatar = this.availableAvatar(avatarId);
       next.seats.push({
         id: seatId,
         name,
+        avatarId: selectedAvatar,
         controller: 'human',
         ready: false,
         tokenHash: hash(credential),
@@ -345,15 +379,18 @@ export class RoomCoordinator {
         manage: identity.role === 'host',
         control: this.controls(identity),
       },
-      seats: d.seats.map(({ id, name, controller, ready, botDifficulty }) => ({
-        id,
-        name,
-        controller,
-        ready,
-        online: controller === 'bot' || online.has(id),
-        botDifficulty:
-          controller === 'bot' ? (botDifficulty ?? 'default') : null,
-      })),
+      seats: d.seats.map(
+        ({ id, name, avatarId, controller, ready, botDifficulty }) => ({
+          id,
+          name,
+          avatarId: avatarId!,
+          controller,
+          ready,
+          online: controller === 'bot' || online.has(id),
+          botDifficulty:
+            controller === 'bot' ? (botDifficulty ?? 'default') : null,
+        }),
+      ),
       self: { role: identity.role, seatId },
       gameView: snap
         ? this.rules.project(
@@ -520,6 +557,13 @@ export class RoomCoordinator {
       requireThat(receipt.fingerprint === fingerprint, 'action-id-conflict');
       return receipt.reply;
     }
+    // Report a lost race even if another claimant advanced the revision.
+    // Other stale avatar changes still obey the normal revision boundary.
+    if (envelope.command.type === 'set-avatar') {
+      requireThat(identity.role === 'player', 'unauthorized');
+      requireThat(this.data.status !== 'playing', 'avatars-locked');
+      this.availableAvatar(envelope.command.avatarId, identity.seatId);
+    }
     requireThat(this.acceptsRevision(identity, envelope), 'stale-revision');
     if (botUpdate)
       requireThat(envelope.revision === this.data.revision, 'stale-revision');
@@ -603,6 +647,17 @@ export class RoomCoordinator {
         next.seats.find((s) => s.id === identity.seatId)!.ready = c.ready;
         break;
       }
+      case 'set-avatar': {
+        requireThat(identity.role === 'player', 'unauthorized');
+        requireThat(next.status !== 'playing', 'avatars-locked');
+        const seat = next.seats.find(
+          (entry) =>
+            entry.id === identity.seatId && entry.controller === 'human',
+        );
+        requireThat(seat, 'unauthorized');
+        seat.avatarId = this.availableAvatar(c.avatarId, seat.id);
+        break;
+      }
       case 'add-bot':
         host();
         lobby();
@@ -619,6 +674,7 @@ export class RoomCoordinator {
         next.seats.push({
           id: randomUUID(),
           name: c.name,
+          avatarId: this.availableAvatar(),
           controller: 'bot',
           ready: true,
           tokenHash: null,

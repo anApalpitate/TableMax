@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { AvatarIdSchema, type AvatarId } from './avatars';
+export { AVATAR_PRESETS, AvatarIdSchema, type AvatarId } from './avatars';
 
 // Only public engineering diagnostics. No game state, identities, or data paths.
 export const HealthSchema = z.object({
@@ -58,6 +60,9 @@ export const CommandSchema = z
       z.object({ type: z.literal('join-open'), open: z.boolean() }).strict(),
       z.object({ type: z.literal('ready'), ready: z.boolean() }).strict(),
       z
+        .object({ type: z.literal('set-avatar'), avatarId: AvatarIdSchema })
+        .strict(),
+      z
         .object({
           type: z.literal('add-bot'),
           name: z.string().trim().min(1).max(24),
@@ -108,6 +113,7 @@ export type Command = z.infer<typeof CommandSchema>;
 export const JoinSchema = z
   .object({
     name: z.string().trim().min(1).max(24),
+    avatarId: AvatarIdSchema.optional(),
     requestKey: z
       .string()
       .regex(/^[0-9a-f]{64}$/)
@@ -194,6 +200,7 @@ export interface RoomView {
   seats: {
     id: string;
     name: string;
+    avatarId: AvatarId;
     controller: 'human' | 'bot';
     ready: boolean;
     online: boolean;
@@ -258,6 +265,7 @@ export const RoomViewSchema = z
         .object({
           id: z.string(),
           name: z.string(),
+          avatarId: AvatarIdSchema,
           controller: z.enum(['human', 'bot']),
           ready: z.boolean(),
           online: z.boolean(),

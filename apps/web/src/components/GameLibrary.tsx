@@ -1,5 +1,6 @@
 import type { RoomSession } from '../session/useRoomSession';
 import { gameCover } from '../assets/game-covers';
+import { gameIntroduction } from '../game-clients/introductions';
 
 /** Catalog thumbnails are deliberately separate from the game client bundle. */
 export function GameLibrary({
@@ -30,9 +31,12 @@ export function GameLibrary({
             )}
             <div>
               <h3>{game.name}</h3>
-              <p>
-                {game.min}–{game.max} 位玩家 · 本地游玩
+              <p className="game-library__tagline">
+                {gameIntroduction(game.id)?.tagline}
               </p>
+              <span className="game-library__players">
+                {game.min}–{game.max} 位玩家
+              </span>
             </div>
             {isHost && (
               <button

@@ -15,6 +15,7 @@ import {
 } from '../../../../games/modern-art/ui/public';
 import { PlayerControls } from '../../../../games/modern-art/ui/player';
 import '../../../../games/modern-art/ui/style.css';
+import '../../../../games/modern-art/ui/public/avatars.css';
 import type { GameClient } from './registry';
 import type { RoomSession } from '../session/useRoomSession';
 import { ScreenLink } from '../components/ScreenLink';
@@ -25,6 +26,7 @@ import { FullscreenControl } from '../components/FullscreenControl';
 import { DisplaySettings } from '../components/DisplaySettings';
 import { PlayModeBadge } from '../components/PlayModeBadge';
 import { PlayModeControl } from '../components/PlayModeControl';
+import { avatarFor } from '../assets/avatars';
 
 function ModernArtScreen({ session }: { session: RoomSession }) {
   const { role, view, connected, command, locked, canControl, motion } =
@@ -33,6 +35,9 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
   const [panel, setPanel] = useState<'menu' | 'museums' | null>(null);
   const names = Object.fromEntries(
     view?.seats.map((seat) => [seat.id, seat.name]) ?? [],
+  );
+  const portraits = Object.fromEntries(
+    view?.seats.map((seat) => [seat.id, avatarFor(seat.avatarId)]) ?? [],
   );
   const nextRound = view?.lifecycleActions.find(
     (action) => (action as Action).type === 'next-round',
@@ -118,7 +123,7 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
             <MarketBoard view={game} />
             <div className="ma-center">
               {game.phase === 'round-result' || game.phase === 'ended' ? (
-                <RoundResult view={game} names={names} />
+                <RoundResult view={game} names={names} portraits={portraits} />
               ) : (
                 <AuctionStage view={game} names={names} />
               )}
@@ -163,7 +168,12 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
               />
             )}
             {role !== 'player' && (
-              <Museums view={game} names={names} selfId={null} />
+              <Museums
+                view={game}
+                names={names}
+                portraits={portraits}
+                selfId={null}
+              />
             )}
             {role === 'player' && (
               <button
@@ -186,6 +196,7 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
               <Museums
                 view={game}
                 names={names}
+                portraits={portraits}
                 selfId={game.self?.seatId ?? null}
               />
             </div>

@@ -27,6 +27,7 @@
 | 产品范围、首版验收标准                           | [需求基线](requirements/TableMax_需求文档_v1.0.md)                                        |
 | 依赖方向、进程、契约与适度封装                   | [工程结构](reference/architecture.md)                                                     |
 | 大厅、主机／手机、提交与恢复交互、平台美术       | [通用平台规格](reference/phase-02-platform-spec.md)                                       |
+| 艺术／UI 设计前必查的用户倾向与历史反馈          | [用户美术偏好](reference/art-preferences.md)                                              |
 | 首版规则、卡牌数据、权限、决策、交互、资源与场景 | [宝可梦游戏规格](games/pokemon-encounters/README.md)                                      |
 | 原文缺口、来源等级、历史裁定与项目方案依据       | [规则来源](games/pokemon-encounters/sources.md)                                           |
 | 电脑座位、策略输入、调度与恢复要求               | [通用人机规格](reference/bot-players.md)、[首版人机覆盖](games/pokemon-encounters/bot.md) |

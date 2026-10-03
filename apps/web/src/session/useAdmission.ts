@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { JoinSchema, SessionReplySchema } from '@tablemax/protocol';
+import {
+  JoinSchema,
+  SessionReplySchema,
+  type AvatarId,
+} from '@tablemax/protocol';
 
 const storageKey = 'tablemax-admission';
 type Admission = {
@@ -7,6 +11,7 @@ type Admission = {
   requestKey: string;
   value: string;
   createdAt: number;
+  avatarId?: AvatarId;
 };
 function loadAdmission(): Admission | null {
   try {
@@ -19,7 +24,11 @@ function loadAdmission(): Admission | null {
       !Number.isSafeInteger(value.createdAt)
     )
       return null;
-    const body = { name: value.value, requestKey: value.requestKey };
+    const body = {
+      name: value.value,
+      requestKey: value.requestKey,
+      avatarId: value.avatarId,
+    };
     if (!JoinSchema.safeParse(body).success || !value.requestKey) return null;
     return value;
   } catch {
@@ -72,6 +81,7 @@ export function useAdmission(
           body: JSON.stringify({
             name: request.value,
             requestKey: request.requestKey,
+            avatarId: request.avatarId,
           }),
         });
         const parsed = SessionReplySchema.safeParse(await response.json());
@@ -153,15 +163,17 @@ export function useAdmission(
   return {
     busy,
     pending: Boolean(pending),
+    avatarId: pending?.avatarId,
     retry: () => {
       if (current.current) void run(current.current);
     },
-    join: (value: string) => {
+    join: (value: string, avatarId?: AvatarId) => {
       const request = current.current ??
         loadAdmission() ?? {
           kind: 'join' as const,
           value: value.trim(),
           createdAt: Date.now(),
+          ...(avatarId ? { avatarId } : {}),
           requestKey: Array.from(
             crypto.getRandomValues(new Uint8Array(32)),
             (byte) => byte.toString(16).padStart(2, '0'),

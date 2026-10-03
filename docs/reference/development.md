@@ -49,37 +49,38 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 ## 真实命令
 
-| 命令                                    | 行为                                                                                                                             |
-| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                              | 先构建，启动 Vite、原生壳与包内 Node 独立服务；前端热更新，服务与桌面源码修改后重启该命令                                        |
-| `pnpm start`                            | 运行已有 `build/desktop`；先执行 `pnpm build`                                                                                    |
-| `pnpm typecheck`                        | 严格 TypeScript 检查，不生成文件                                                                                                 |
-| `pnpm lint`                             | ESLint 与 React Hooks 规则检查                                                                                                   |
-| `pnpm format:check` / `pnpm format`     | 检查格式／按项目配置格式化                                                                                                       |
-| `pnpm test`                             | Vitest 执行核心、真实 Socket.IO、SQLite、强制终止恢复及 Worker 验证                                                              |
-| `pnpm check`                            | 顺序执行类型、静态、格式检查与当前测试                                                                                           |
-| `pnpm build`                            | 构建网页、独立服务、游戏模块与 net48 原生壳，收集到 `build/desktop`                                                              |
-| `pnpm verify:desktop`                   | 隐藏窗口验证开发构建，包括真实大厅、宝可梦六人混合整局、回退、两次启动恢复、独立进程与退出协调                                   |
-| `pnpm verify:modern-art`                | 隐藏原生窗口执行现代艺术五席四轮、五类拍卖与真实手机控件，验证保密、回退／重启及两游戏切换；加 `--portable` 验证最终 ZIP         |
-| `pnpm verify:party`                     | 隐藏窗口验证加入丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP          |
-| `pnpm verify:room-levels`               | 隐藏窗口验证手机各自入座、电脑仅管理／展示、六席围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证当前 ZIP |
-| `pnpm verify:presentation`              | 隐藏窗口验证六真人、游玩／测试时序、浮窗焦点／结束、公开行动及星标；可加 `--portable` 验证当前 ZIP                               |
-| `pnpm verify:display`                   | 隐藏窗口验证电脑 720p／1080p／1440p／4K、独立缩放、显示浮窗、设置恢复与 DPI；可加 `--portable` 验证最终 ZIP                      |
-| `pnpm verify:experience`                | 隐藏窗口验证游戏库按需加载、管理员指定手机房主、并发初始翻牌和准备、连接／显示控件及声音归属；可加 `--portable` 验证当前 ZIP     |
-| `pnpm verify:effects`                   | 后台 WebView2 用实际游戏组件和授权投影 fixture 验证主题、同币面、暗牌交换、零分列、共同赢家和减少动态；不冒充自然对局            |
-| `pnpm verify:memory`                    | 独立 Node 比较存档复制开销，再用后台 WebView2 执行 20 轮游戏切换的 heap／DOM 回归；可加 `--copy-only` 或 `--desktop-only`        |
-| `node scripts/verify-native-safety.mjs` | 检查桥接拒绝、重复启动、缺运行时、生产 CDP 关闭及服务／父进程崩溃清理                                                            |
-| `pnpm verify:game-ui`                   | 正式能力／2–6 人保存 fixture 的十五组 UI、多尺寸触控／隐私、已保存动效和声音                                                     |
-| `pnpm verify:cards`                     | 正式六人保存状态的全部 16 类卡面及公共／手机十三种布局、图像／文字／分区几何                                                     |
-| `pnpm package:win`                      | 构建并生成 Windows x64 解压运行 ZIP 与 `win-unpacked`                                                                            |
-| `pnpm verify:portable`                  | 将最终 ZIP 解压到新的项目临时目录，对其中的 `TableMax.exe` 运行同一跨层验证，子进程 PATH 不含 Node／开发工具目录                 |
-| `pnpm prototype:dev`                    | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                                      |
-| `pnpm prototype:build`                  | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/`                                                                     |
-| `pnpm prototype:preview`                | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建                                                    |
-| `pnpm prototype:verify:game`            | 对游戏原型执行 Playwright／后台 WebView2 能力、角色、恢复、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/`        |
-| `pnpm prototype:verify`                 | 对已有原型构建运行 Playwright／后台 WebView2 走查，生成 JSON 和截图；先执行原型与桌面构建                                        |
+| 命令                                    | 行为                                                                                                                                                      |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                              | 先构建，启动 Vite、原生壳与包内 Node 独立服务；前端热更新，服务与桌面源码修改后重启该命令                                                                 |
+| `pnpm start`                            | 运行已有 `build/desktop`；先执行 `pnpm build`                                                                                                             |
+| `pnpm typecheck`                        | 严格 TypeScript 检查，不生成文件                                                                                                                          |
+| `pnpm lint`                             | ESLint 与 React Hooks 规则检查                                                                                                                            |
+| `pnpm format:check` / `pnpm format`     | 检查格式／按项目配置格式化                                                                                                                                |
+| `pnpm test`                             | Vitest 执行核心、真实 Socket.IO、SQLite、强制终止恢复及 Worker 验证                                                                                       |
+| `pnpm check`                            | 顺序执行类型、静态、格式检查与当前测试                                                                                                                    |
+| `pnpm build`                            | 构建网页、独立服务、游戏模块与 net48 原生壳，收集到 `build/desktop`                                                                                       |
+| `pnpm verify:desktop`                   | 隐藏窗口验证开发构建，包括真实大厅、宝可梦六人混合整局、回退、两次启动恢复、独立进程与退出协调                                                            |
+| `pnpm verify:modern-art`                | 隐藏原生窗口执行现代艺术五席四轮、五类拍卖与真实手机控件，验证保密、回退／重启及两游戏切换；加 `--portable` 验证最终 ZIP                                  |
+| `pnpm verify:party`                     | 隐藏窗口验证加入丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP                                   |
+| `pnpm verify:room-levels`               | 隐藏窗口验证手机各自入座、电脑仅管理／展示、六席围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证当前 ZIP                          |
+| `node scripts/verify-box-avatars.mjs`   | 隐藏窗口核验 26 个本地头像、占用／并发／身份恢复与游戏介绍尺寸；先用 `--compact-only` 检查 360×640 首屏，`--portable` 对应最终 ZIP，`--run=名称` 分开证据 |
+| `pnpm verify:presentation`              | 隐藏窗口验证六真人、游玩／测试时序、浮窗焦点／结束、公开行动及星标；可加 `--portable` 验证当前 ZIP                                                        |
+| `pnpm verify:display`                   | 隐藏窗口验证电脑 720p／1080p／1440p／4K、独立缩放、显示浮窗、设置恢复与 DPI；可加 `--portable` 验证最终 ZIP                                               |
+| `pnpm verify:experience`                | 隐藏窗口验证游戏库按需加载、管理员指定手机房主、并发初始翻牌和准备、连接／显示控件及声音归属；可加 `--portable` 验证当前 ZIP                              |
+| `pnpm verify:effects`                   | 后台 WebView2 用实际游戏组件和授权投影 fixture 验证主题、同币面、暗牌交换、零分列、共同赢家和减少动态；不冒充自然对局                                     |
+| `pnpm verify:memory`                    | 独立 Node 比较存档复制开销，再用后台 WebView2 执行 20 轮游戏切换的 heap／DOM 回归；可加 `--copy-only` 或 `--desktop-only`                                 |
+| `node scripts/verify-native-safety.mjs` | 检查桥接拒绝、重复启动、缺运行时、生产 CDP 关闭及服务／父进程崩溃清理                                                                                     |
+| `pnpm verify:game-ui`                   | 正式能力／2–6 人保存 fixture 的十五组 UI、多尺寸触控／隐私、已保存动效和声音                                                                              |
+| `pnpm verify:cards`                     | 正式六人保存状态的全部 16 类卡面及公共／手机十三种布局、图像／文字／分区几何                                                                              |
+| `pnpm package:win`                      | 构建并生成 Windows x64 解压运行 ZIP 与 `win-unpacked`                                                                                                     |
+| `pnpm verify:portable`                  | 将最终 ZIP 解压到新的项目临时目录，对其中的 `TableMax.exe` 运行同一跨层验证，子进程 PATH 不含 Node／开发工具目录                                          |
+| `pnpm prototype:dev`                    | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                                                               |
+| `pnpm prototype:build`                  | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/`                                                                                              |
+| `pnpm prototype:preview`                | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建                                                                             |
+| `pnpm prototype:verify:game`            | 对游戏原型执行 Playwright／后台 WebView2 能力、角色、恢复、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/`                                 |
+| `pnpm prototype:verify`                 | 对已有原型构建运行 Playwright／后台 WebView2 走查，生成 JSON 和截图；先执行原型与桌面构建                                                                 |
 
-当前便携包和使用流程见 [项目说明](../../README.md#使用便携版)。第一阶段 0.1.0 仅为工程验证包，不包含大厅、身份或首版游戏；该旧包已按用户要求清除，验证记录保留。
+当前便携包和使用流程见 [项目说明](../../README.md#开始对局)。第一阶段 0.1.0 仅为工程验证包，不包含大厅、身份或首版游戏；该旧包已按用户要求清除，验证记录保留。
 
 ## 独立原型的运行与检查
 
@@ -248,7 +249,7 @@ pnpm prototype:verify:game
 
 UI 合法存档 fixture 的构造入口在 scripts/fixtures/prepare-pokemon.ts，仅为开发工具，不进入便携包或提供生产调试 API。生成的临时数据在 tmp/game-ui-_、tmp/pokemon-_ 与 tmp/portable-game-*；证据在 artifacts/phase-06/verification 的 development、portable、ui 子目录。ZIP 哈希及实际内置运行时随 portable/results.json 保存。
 
-本轮按用户明确要求只使用当前 Windows 电脑，电视、Android／iPhone 浏览器及后台／断网采用模拟；不声称 Safari、电视硬件或另一台无开发环境电脑已测。AC 具体结果、声音观察限制和后续复查边界统一见 [验收记录](acceptance.md)，使用流程见 [项目说明](../../README.md#使用便携版)。以下保留阶段历史证据，过去的“待第五／六阶段”描述表示当时状态。
+本轮按用户明确要求只使用当前 Windows 电脑，电视、Android／iPhone 浏览器及后台／断网采用模拟；不声称 Safari、电视硬件或另一台无开发环境电脑已测。AC 具体结果、声音观察限制和后续复查边界统一见 [验收记录](acceptance.md)，使用流程见 [项目说明](../../README.md#开始对局)。以下保留阶段历史证据，过去的“待第五／六阶段”描述表示当时状态。
 
 ## 第三、四阶段平台验证
 

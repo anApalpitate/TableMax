@@ -14,9 +14,17 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
 const portable = process.argv.includes('--portable');
+const evidenceName = process.argv
+  .find((argument) => argument.startsWith('--evidence='))
+  ?.slice('--evidence='.length);
+assert.ok(
+  !evidenceName || /^[a-z0-9-]{1,40}$/.test(evidenceName),
+  'Safe independent evidence name',
+);
 const output = verificationOutput(
   'modern-art',
   portable ? 'portable' : 'development',
+  ...(evidenceName ? [evidenceName] : []),
 );
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
@@ -30,9 +38,11 @@ await build({
   logLevel: 'silent',
 });
 const { bot } = require(join(work, 'driver.cjs'));
+const verificationStarted = performance.now();
 let executablePath = desktopExecutable;
 const evidence = {
   startedAt: new Date().toISOString(),
+  workDir: work,
   portable,
   checks: [],
   screenshots: [],
@@ -40,11 +50,14 @@ const evidence = {
   externalRequests: [],
   phases: [],
   actions: [],
+  portraitChecks: [],
+  resultLayouts: [],
 };
 if (portable) {
   const { version } = JSON.parse(await readFile('package.json', 'utf8'));
   const archive = resolve(`artifacts/releases/TableMax-${version}-win-x64.zip`);
   const extracted = await mkdtemp(resolve('tmp/portable-game-'));
+  evidence.extractedDir = extracted;
   await promisify(execFile)(
     join(
       process.env.SystemRoot,
@@ -70,10 +83,12 @@ if (portable) {
   executablePath = join(extracted, 'TableMax.exe');
 }
 const dataDir = join(work, 'data');
+evidence.dataDir = dataDir;
 let desktop, origin, host, publicPage, hostToken;
 const sockets = [];
 const phones = [];
 const metricsSessions = new Map();
+const avatarImages = new Map();
 const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
 async function until(predicate, description, timeout = 20000) {
   const end = Date.now() + timeout;
@@ -226,6 +241,7 @@ async function capture(page, name, width, height, mobile = false) {
     });
   });
   const dimensions = evidence.layouts.at(-1);
+  dimensions.panels = panels;
   for (const panel of panels)
     assert.ok(
       panel.y >= -1 &&
@@ -242,7 +258,6 @@ async function capture(page, name, width, height, mobile = false) {
         name + ' panels do not overlap: ' + a.className + '/' + other.className,
       );
     }
-  dimensions.panels = panels;
   const clippedContent = await page.evaluate(() => {
     if (!document.querySelector('.ma-screen:not(.player)')) return [];
     return [...document.querySelectorAll('.ma-market > *, .ma-center > *')]
@@ -258,6 +273,197 @@ async function capture(page, name, width, height, mobile = false) {
     [],
     name + ' market and auction content fits',
   );
+}
+function imageKey(source) {
+  return source.startsWith('data:')
+    ? 'sha256:' + createHash('sha256').update(source).digest('hex')
+    : new URL(source).pathname;
+}
+async function verifyPortraits(page, name, seats, expectedKinds) {
+  await page.waitForFunction(
+    ({ seats, expectedKinds }) =>
+      expectedKinds.every((kind) =>
+        seats.every((seat) =>
+          document.querySelector(
+            `${kind === 'museum' ? '.ma-museum' : '.ma-results__income > div'}[data-seat-id="${seat.id}"] .${kind === 'museum' ? 'ma-museum' : 'ma-results'}__portrait`,
+          ),
+        ),
+      ),
+    { seats, expectedKinds },
+  );
+  const images = await page.evaluate(async () => {
+    const images = [
+      ...document.querySelectorAll(
+        '.ma-museum__portrait, .ma-results__portrait',
+      ),
+    ];
+    await Promise.all(images.map((image) => image.decode()));
+    return images.map((image) => ({
+      seatId: image.closest('[data-seat-id]').dataset.seatId,
+      kind: image.classList.contains('ma-museum__portrait')
+        ? 'museum'
+        : 'result',
+      source: image.currentSrc,
+      naturalWidth: image.naturalWidth,
+      naturalHeight: image.naturalHeight,
+    }));
+  });
+  const check = {
+    name,
+    images: images.map(({ source, ...image }) => ({
+      ...image,
+      imageKey: imageKey(source),
+    })),
+  };
+  evidence.portraitChecks.push(check);
+  for (const image of check.images) {
+    const seat = seats.find((seat) => seat.id === image.seatId);
+    assert.ok(seat, name + ': portrait belongs to a current seat');
+    assert.equal(
+      image.imageKey,
+      avatarImages.get(seat.avatarId),
+      `${name}: ${image.kind} shows saved ${seat.avatarId}`,
+    );
+    assert.ok(
+      image.naturalWidth > 0 && image.naturalHeight > 0,
+      name + ': actual portrait decoded',
+    );
+    image.avatarId = seat.avatarId;
+  }
+  for (const kind of expectedKinds)
+    assert.equal(
+      check.images.filter((image) => image.kind === kind).length,
+      seats.length,
+      name + ': one ' + kind + ' portrait per seat',
+    );
+}
+async function resultGeometry(page, name, includeMuseums) {
+  const geometry = await page.evaluate(
+    ({ includeMuseums }) => {
+      const rect = (element) => {
+        if (!element) return null;
+        const r = element.getBoundingClientRect();
+        return {
+          x: r.x,
+          y: r.y,
+          right: r.right,
+          bottom: r.bottom,
+          width: r.width,
+          height: r.height,
+        };
+      };
+      const sample = (element) => {
+        const bounds = rect(element);
+        if (!bounds) return null;
+        const top = document.elementFromPoint(
+          bounds.x + bounds.width / 2,
+          bounds.y + bounds.height / 2,
+        );
+        return {
+          ...bounds,
+          unobscured: Boolean(
+            top && (element === top || element.contains(top)),
+          ),
+        };
+      };
+      const income = [
+        ...document.querySelectorAll('.ma-results__income > div'),
+      ].map((row) => ({
+        seatId: row.dataset.seatId,
+        row: rect(row),
+        portrait: sample(row.querySelector('.ma-results__portrait')),
+        name: sample(row.querySelector('.ma-results__identity > span')),
+        amount: sample(row.querySelector('strong')),
+      }));
+      const museums = includeMuseums
+        ? [...document.querySelectorAll('.ma-museum')].map((museum) => ({
+            seatId: museum.dataset.seatId,
+            row: rect(museum),
+            portrait: sample(museum.querySelector('.ma-museum__portrait')),
+            name: sample(museum.querySelector('h3')),
+            amount: sample(museum.querySelector('.ma-museum__cash')),
+          }))
+        : [];
+      return {
+        width: innerWidth,
+        height: innerHeight,
+        scrollY,
+        horizontalOverflow:
+          document.documentElement.scrollWidth > innerWidth + 2,
+        income,
+        museums,
+      };
+    },
+    { includeMuseums },
+  );
+  evidence.resultLayouts.push({ name, ...geometry });
+  await writeFile(
+    join(output, 'results.json'),
+    JSON.stringify(evidence, null, 2) + '\n',
+  );
+  assert.equal(
+    geometry.horizontalOverflow,
+    false,
+    name + ': no horizontal overflow',
+  );
+  assert.equal(
+    geometry.income.length,
+    5,
+    name + ': five visible settlement identities',
+  );
+  if (includeMuseums)
+    assert.equal(geometry.museums.length, 5, name + ': five final museums');
+  const overlaps = (a, b) =>
+    Math.min(a.right, b.right) - Math.max(a.x, b.x) > 1 &&
+    Math.min(a.bottom, b.bottom) - Math.max(a.y, b.y) > 1;
+  for (const row of [...geometry.income, ...geometry.museums]) {
+    for (const [kind, element] of Object.entries(row).filter(([key]) =>
+      ['portrait', 'name', 'amount'].includes(key),
+    )) {
+      assert.ok(
+        element && element.width > 0 && element.height > 0,
+        `${name}: ${row.seatId} has ${kind}`,
+      );
+      assert.ok(
+        element.x >= -1 &&
+          element.y >= -1 &&
+          element.right <= geometry.width + 1 &&
+          element.bottom <= geometry.height + 1,
+        `${name}: ${row.seatId} ${kind} fits viewport`,
+      );
+      assert.ok(
+        element.x >= row.row.x - 1 &&
+          element.right <= row.row.right + 1 &&
+          element.y >= row.row.y - 1 &&
+          element.bottom <= row.row.bottom + 1,
+        `${name}: ${row.seatId} ${kind} fits its player card`,
+      );
+      assert.equal(
+        element.unobscured,
+        true,
+        `${name}: ${row.seatId} ${kind} is unobscured`,
+      );
+    }
+    assert.ok(
+      row.portrait.width >= 24 && row.portrait.height >= 24,
+      name + ': recognizable portrait size',
+    );
+    assert.equal(
+      overlaps(row.name, row.amount),
+      false,
+      name + ': name and money do not overlap',
+    );
+    assert.equal(
+      overlaps(row.portrait, row.name),
+      false,
+      name + ': portrait and name do not overlap',
+    );
+    assert.equal(
+      overlaps(row.portrait, row.amount),
+      false,
+      name + ': portrait and money do not overlap',
+    );
+  }
 }
 async function newPhone(index, restore = false) {
   const next = desktop.waitForEvent('window');
@@ -283,6 +489,32 @@ async function newPhone(index, restore = false) {
   await viewport(page, 390, 844, true);
   if (restore) await page.locator('.ma-wallet').waitFor();
   else {
+    await page.getByRole('button', { name: '选择头像', exact: true }).click();
+    const picker = page.getByRole('dialog');
+    await picker.waitFor();
+    const sources = await picker
+      .locator('[data-avatar-id]')
+      .evaluateAll((buttons) =>
+        buttons.map((button) => ({
+          id: button.dataset.avatarId,
+          source:
+            button.querySelector('img').currentSrc ||
+            button.querySelector('img').src,
+        })),
+      );
+    for (const image of sources) {
+      assert.ok(image.source, image.id + ': local preset source present');
+      const key = imageKey(image.source);
+      if (avatarImages.has(image.id))
+        assert.equal(
+          avatarImages.get(image.id),
+          key,
+          'Same preset source across phone profiles',
+        );
+      else avatarImages.set(image.id, key);
+    }
+    await picker.locator(`[data-avatar-id="avatar-${20 + index}"]`).click();
+    await picker.waitFor({ state: 'hidden' });
     await page.getByLabel('你的昵称').fill('美术馆 ' + (index + 1));
     await page.getByRole('button', { name: '加入', exact: true }).click();
     await page
@@ -302,6 +534,7 @@ try {
     TABLEMAX_HOST: '127.0.0.1',
   };
   delete env.TABLEMAX_WEB_DEV_URL;
+  delete env.NODE_PATH;
   if (portable)
     env.PATH = process.env.SystemRoot + '\\system32;' + process.env.SystemRoot;
   desktop = await launchDesktop({
@@ -343,6 +576,24 @@ try {
   ])
     await send(hostSocket, hostToken, { type: 'add-bot', name, difficulty });
   const initial = await view(hostToken);
+  const seatAvatars = initial.seats.map(({ id, name, avatarId }) => ({
+    id,
+    name,
+    avatarId,
+  }));
+  assert.equal(
+    new Set(seatAvatars.map((seat) => seat.avatarId)).size,
+    5,
+    'Five unique saved player avatars',
+  );
+  assert.deepEqual(
+    initial.seats
+      .filter((seat) => seat.controller === 'human')
+      .map((seat) => seat.avatarId),
+    ['avatar-20', 'avatar-21', 'avatar-22'],
+    'Phone-picked generated avatars saved',
+  );
+  evidence.seatAvatars = seatAvatars;
   await send(hostSocket, hostToken, {
     type: 'set-owner',
     seatId: initial.seats[0].id,
@@ -397,6 +648,12 @@ try {
   publicPage = await nextPublic;
   observe(publicPage);
   await publicPage.locator('.ma-screen').waitFor();
+  await verifyPortraits(host, 'host-initial-museums', initial.seats, [
+    'museum',
+  ]);
+  await verifyPortraits(publicPage, 'public-initial-museums', initial.seats, [
+    'museum',
+  ]);
   assert.equal((await view(hostToken)).actions.length, 0);
   assert.equal((await view()).gameView.self, null);
   assert.ok(
@@ -585,6 +842,11 @@ try {
     if (!acted) await sleep(80);
   }
   const result = await view(hostToken);
+  assert.deepEqual(
+    result.seats.map(({ id, name, avatarId }) => ({ id, name, avatarId })),
+    seatAvatars,
+    'Match keeps selected avatars',
+  );
   assert.equal(result.status, 'ended', 'Full four-round match completed');
   assert.equal(result.gameView.phase, 'ended');
   assert.equal(result.gameView.round, 4, 'All four rounds completed');
@@ -597,12 +859,33 @@ try {
     );
   assert.ok(result.gameView.winners.length);
   assert.equal(Object.keys(result.gameView.finalCash).length, 5);
-  await capture(host, 'final-result');
-  await capture(phones[0].page, 'phone-final-result');
   evidence.phases = [...seenPhases];
   evidence.actions = [...seenActions];
   evidence.steps = steps;
   evidence.finalRound = result.gameView.round;
+  await capture(host, 'final-result');
+  await capture(phones[0].page, 'phone-final-result');
+  await verifyPortraits(host, 'host-final-identities', result.seats, [
+    'museum',
+    'result',
+  ]);
+  await verifyPortraits(
+    phones[0].page,
+    'phone-final-identities',
+    result.seats,
+    ['result'],
+  );
+  await capture(host, 'final-result-1280x720', 1280, 720);
+  await resultGeometry(host, 'final-result-1280x720', true);
+  await capture(phones[0].page, 'phone-final-result-360x640', 360, 640, true);
+  await phones[0].page.locator('.ma-results__income').scrollIntoViewIfNeeded();
+  await capture(phones[0].page, 'phone-final-identities-360x640');
+  await resultGeometry(phones[0].page, 'phone-final-identities-360x640', false);
+  await viewport(host, 1280, 900);
+  await viewport(phones[0].page, 390, 844, true);
+  evidence.checks.push(
+    'Selected generated avatars decode and match saved avatarId in every public museum and settlement identity; 1280×720 final host and 360×640 scrolled final phone identities fit unobscured with distinct names and money and no horizontal overflow',
+  );
   evidence.checks.push(
     'Five-seat real Worker match, three private phone identities, phone owner control, public secrecy, responsive background rendering',
   );
@@ -637,6 +920,11 @@ try {
   assert.deepEqual(restored.gameView, saved.gameView);
   assert.equal(restored.ownerSeatId, started.ownerSeatId);
   assert.equal(restored.self.seatId, saved.self.seatId);
+  assert.deepEqual(
+    restored.seats.map(({ id, name, avatarId }) => ({ id, name, avatarId })),
+    seatAvatars,
+    'Rollback and SQLite restart retain selected avatars',
+  );
   phones[0] = await newPhone(0, true);
   assert.equal(
     phones[0].token,
@@ -645,6 +933,9 @@ try {
   );
   await capture(phones[0].page, 'phone-restart-restored');
   await capture(host, 'restart-restored');
+  await verifyPortraits(host, 'restart-restored-museums', restored.seats, [
+    'museum',
+  ]);
   await send(hostSocket, hostToken, { type: 'end' });
   await host.evaluate(() => {
     window.modernArtSwitchDocument = true;
@@ -693,6 +984,15 @@ try {
     (await view(hostToken)).seats.map((seat) => seat.id),
     identities,
   );
+  const switched = await view(hostToken);
+  assert.deepEqual(
+    switched.seats.map(({ id, name, avatarId }) => ({ id, name, avatarId })),
+    seatAvatars,
+    'Both game switches retain selected avatars',
+  );
+  await verifyPortraits(host, 'game-switch-restored-museums', switched.seats, [
+    'museum',
+  ]);
   assert.ok(
     !(
       await host
@@ -718,9 +1018,16 @@ try {
       output,
     }),
   );
+} catch (error) {
+  evidence.result = 'failed';
+  evidence.failure = { message: error.message, stack: error.stack };
+  evidence.finishedAt = new Date().toISOString();
+  throw error;
 } finally {
   for (const socket of sockets) socket.disconnect();
   if (desktop) await desktop.close();
+  evidence.elapsedSeconds =
+    Math.round((performance.now() - verificationStarted) / 10) / 100;
   await writeFile(
     join(output, 'results.json'),
     JSON.stringify(evidence, null, 2) + '\n',

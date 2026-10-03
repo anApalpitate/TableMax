@@ -8,6 +8,7 @@ import {
   type RoomFeedback,
   type Command,
   type RoomView,
+  type AvatarId,
 } from '@tablemax/protocol';
 import { getGameClient } from '../game-clients/registry';
 import { navigate, type ScreenRole } from '../navigation';
@@ -32,7 +33,10 @@ const messages: Record<string, string> = {
   'session-request-expired': '入座确认已超过一天，请联系管理员检查原座位。',
   'session-request-limit': '入座请求过多，请联系电脑管理员检查座位。',
   'invalid-name': '请输入 1–24 字的昵称。',
-  'invalid-message': '请求内容无效，请检查昵称。',
+  'invalid-message': '请求内容无效，请重新选择。',
+  'invalid-avatar': '请选择一个可用头像。',
+  'avatar-unavailable': '这个头像已被朋友选走，请选择另一个。',
+  'avatars-locked': '对局进行中，请在结束后更换头像。',
   'stale-instance': '新的大局已经准备好，请按当前牌桌重新操作。',
   'unsupported-bot-difficulty': '当前游戏不支持这个人机等级。',
   'save-or-action-failed': '操作未确认保存，请检查本地存储后重试。',
@@ -317,6 +321,7 @@ export function useRoomSession(role: ScreenRole) {
     connected,
     busy: busy || admission.busy,
     admissionPending: admission.pending,
+    admissionAvatarId: admission.avatarId,
     retryAdmission: admission.retry,
     awaitingConfirmation,
     message,
@@ -341,7 +346,7 @@ export function useRoomSession(role: ScreenRole) {
     self,
     locked,
     command,
-    join: () => admission.join(name),
+    join: (avatarId?: AvatarId) => admission.join(name, avatarId),
     retry: () => {
       if (pending.current) send(pending.current);
     },

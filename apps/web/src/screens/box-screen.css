@@ -646,3 +646,142 @@
     padding: 8px;
   }
 }
+
+.box-screen .hero h1 {
+  margin-bottom: 0;
+}
+.box-screen .box-info-control {
+  width: auto;
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 16px;
+}
+.box-screen .profile-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 84px;
+  gap: 0;
+  padding: 2px 4px 6px;
+  border: 1px solid #d1ddcc;
+  background: #e7efdf;
+  font-size: 16px;
+  line-height: 1.35;
+}
+.box-screen .profile-avatar img {
+  display: block;
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+}
+.box-screen .join-table__profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.box-screen .join-table__fields {
+  flex: 1;
+  min-width: 0;
+}
+.box-screen .join-table label {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+.box-screen .join-table__row input {
+  width: 100%;
+  min-width: 0;
+}
+.box-screen .join-table__row > button {
+  padding: 8px 14px;
+}
+.box-screen .avatar-unavailable {
+  font-size: 16px;
+  color: #8a5b31;
+  margin: 10px 0 0;
+}
+.box-screen .player-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+.box-screen .player-profile {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+.box-screen .player-profile strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 18px;
+}
+.box-screen .player-profile span {
+  font-size: 16px;
+}
+.box-screen .player-actions > button:last-child:not(.profile-avatar) {
+  min-width: 0;
+  flex-shrink: 0;
+  padding: 10px 12px;
+  font-size: 16px;
+}
+.game-library__item .game-library__tagline {
+  font-size: 17px;
+  margin: 8px 0;
+  line-height: 1.5;
+}
+.game-library__players {
+  display: inline-block;
+  font-size: 16px;
+  padding: 3px 10px;
+  border-radius: 8px;
+  background: #e9efdf;
+}
+@media (max-width: 720px) {
+  .box-screen .box-info-control {
+    flex-direction: column;
+    width: 46px;
+    height: 58px;
+    gap: 1px;
+    padding: 3px;
+    font-size: 14px;
+  }
+  .box-screen .hero {
+    gap: 8px;
+  }
+  .box-screen .join-table {
+    padding: 12px;
+  }
+  .box-screen .join-table__profile {
+    gap: 8px;
+  }
+  .box-screen .profile-avatar {
+    width: 80px;
+    font-size: 16px;
+  }
+  .box-screen .profile-avatar img {
+    width: 52px;
+    height: 52px;
+  }
+  .box-screen .player-actions {
+    padding: 8px;
+    gap: 8px;
+  }
+  .box-screen .player-profile strong {
+    font-size: 16px;
+  }
+  .box-screen .player-profile span {
+    font-size: 15px;
+  }
+  .box-screen .player-actions > button:last-child:not(.profile-avatar) {
+    padding: 10px 8px;
+    font-size: 15px;
+  }
+  .game-library__item .game-library__tagline {
+    font-size: 16px;
+  }
+}

@@ -1,0 +1,212 @@
+.overlay-panel:has(.avatar-picker),
+.overlay-panel:has(.game-overview) {
+  width: min(94vw, 920px);
+}
+.avatar-picker__intro,
+.avatar-picker__message {
+  font-size: 17px;
+  margin: 0 0 16px;
+}
+.avatar-picker__message {
+  color: #286960;
+}
+.avatar-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 12px;
+}
+.avatar-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 4px;
+  border: 2px solid #dce3cf;
+  border-radius: 18px;
+  background: #f2f3e7;
+  color: #194b45;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.avatar-choice img {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+}
+.avatar-choice[aria-pressed='true'] {
+  border-color: #286960;
+  background: #e2eee2;
+  box-shadow: inset 0 0 0 1px #286960;
+}
+.avatar-choice:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.avatar-choice[data-occupied='true'] {
+  border-style: dashed;
+  background: #ecebe4;
+}
+.avatar-choice[data-occupied='true'] img {
+  filter: saturate(0.35);
+  opacity: 0.65;
+}
+.avatar-choice__claimed,
+.avatar-choice__current,
+.avatar-choice__available {
+  font-size: 14px;
+  font-weight: 600;
+}
+.avatar-choice__claimed {
+  color: #856141;
+}
+.avatar-choice__current {
+  color: #1d6253;
+}
+.avatar-choice__available {
+  visibility: hidden;
+}
+.game-introduction.game-overview {
+  display: block;
+}
+.game-overview__heading {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.game-overview__heading img {
+  width: 92px;
+  height: 116px;
+  border-radius: 16px;
+  object-fit: cover;
+}
+.game-overview__heading h3 {
+  font-size: clamp(22px, 3vw, 30px);
+  line-height: 1.35;
+  margin: 0 0 10px;
+}
+.game-overview__players {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #e9efdf;
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: 600;
+}
+.game-overview__lead {
+  font-size: 20px;
+  line-height: 1.6;
+  margin: 20px 0;
+  font-weight: 600;
+}
+.game-overview__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.game-overview__steps article {
+  padding: 14px 16px;
+  background: #f2f3e6;
+  border: 1px solid #dfe6d2;
+  border-radius: 18px;
+}
+.game-overview__illustration {
+  display: block;
+  width: 160px;
+  max-width: 100%;
+  height: 100px;
+  margin: 0 auto 8px;
+}
+.game-overview__steps h4 {
+  margin: 0 0 8px;
+  font-size: 19px;
+  line-height: 1.45;
+}
+.game-overview__steps p {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.65;
+}
+.game-overview__goal {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 0;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: #f8e9b7;
+  font-size: 19px;
+}
+.game-overview__goal span {
+  color: #ae7929;
+  font-size: 30px;
+}
+@media (max-width: 600px) {
+  .avatar-picker__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .avatar-choice {
+    font-size: 16px;
+    border-radius: 14px;
+    padding: 8px 2px;
+  }
+  .avatar-choice img {
+    width: 76px;
+    height: 76px;
+  }
+  .avatar-choice__claimed,
+  .avatar-choice__current {
+    font-size: 14px;
+  }
+  .game-overview__heading {
+    gap: 12px;
+  }
+  .game-overview__heading img {
+    width: 64px;
+    height: 82px;
+  }
+  .game-overview__heading h3 {
+    font-size: 21px;
+    margin-bottom: 6px;
+  }
+  .game-overview__subtitle {
+    display: block;
+  }
+  .game-overview__players {
+    font-size: 16px;
+  }
+  .game-overview__lead {
+    font-size: 18px;
+    margin: 16px 0;
+  }
+  .game-overview__steps {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .game-overview__steps article {
+    display: grid;
+    grid-template-columns: 68px 1fr;
+    gap: 4px 12px;
+    padding: 12px;
+  }
+  .game-overview__illustration {
+    grid-row: span 2;
+    width: 68px;
+    height: 64px;
+    align-self: center;
+    margin: 0;
+  }
+  .game-overview__steps h4 {
+    font-size: 18px;
+    margin: 0;
+  }
+  .game-overview__steps p {
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  .game-overview__goal {
+    font-size: 17px;
+    gap: 8px;
+    padding: 12px;
+  }
+}

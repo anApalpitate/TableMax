@@ -203,10 +203,12 @@ export function AuctionStage({
 export function Museums({
   view,
   names,
+  portraits,
   selfId,
 }: {
   view: ModernArtView;
   names: Record<string, string>;
+  portraits: Record<string, string>;
   selfId: string | null;
 }) {
   return (
@@ -223,14 +225,25 @@ export function Museums({
         return (
           <article
             key={seat}
+            data-seat-id={seat}
             className={`ma-museum ${active ? 'ma-museum--active' : ''} ${view.winners.includes(seat) ? 'ma-museum--winner' : ''}`}
           >
             <div className="ma-museum__screen">
-              <span aria-hidden="true">▥</span>
+              {portraits[seat] && (
+                <img
+                  className="ma-museum__portrait"
+                  src={portraits[seat]}
+                  alt=""
+                />
+              )}
               <div>
-                <h3>
-                  {names[seat] ?? `玩家 ${index + 1}`}
-                  {seat === selfId ? ' · 你' : ''}
+                <h3 title={names[seat] ?? `玩家 ${index + 1}`}>
+                  <span className="ma-museum__name">
+                    {names[seat] ?? `玩家 ${index + 1}`}
+                  </span>
+                  {seat === selfId && (
+                    <span className="ma-museum__self">你</span>
+                  )}
                 </h3>
                 <p>
                   手牌 {player.handCount} 张 · 收藏 {player.collection.length}{' '}
@@ -247,20 +260,23 @@ export function Museums({
                 {view.winners.includes(seat) ? ' · 冠军' : ''}
               </strong>
             )}
-            <div className="ma-museum__collection">
-              {player.collection.length ? (
-                player.collection.map((card) => (
-                  <ArtCard
-                    key={card.id}
-                    card={card}
-                    compact
-                    artist={view.artists.find((a) => a.id === card.artistId)}
-                  />
-                ))
-              ) : (
-                <span className="ma-museum__empty">等待收藏</span>
-              )}
-            </div>
+            {(player.collection.length > 0 ||
+              (view.phase !== 'round-result' && view.phase !== 'ended')) && (
+              <div className="ma-museum__collection">
+                {player.collection.length ? (
+                  player.collection.map((card) => (
+                    <ArtCard
+                      key={card.id}
+                      card={card}
+                      compact
+                      artist={view.artists.find((a) => a.id === card.artistId)}
+                    />
+                  ))
+                ) : (
+                  <span className="ma-museum__empty">等待收藏</span>
+                )}
+              </div>
+            )}
           </article>
         );
       })}
@@ -271,9 +287,11 @@ export function Museums({
 export function RoundResult({
   view,
   names,
+  portraits,
 }: {
   view: ModernArtView;
   names: Record<string, string>;
+  portraits: Record<string, string>;
 }) {
   const result = view.roundResult;
   if (!result) return null;
@@ -310,8 +328,17 @@ export function RoundResult({
       </div>
       <div className="ma-results__income">
         {view.seatOrder.map((seat) => (
-          <div key={seat}>
-            <span>{names[seat] ?? '玩家'}</span>
+          <div key={seat} data-seat-id={seat}>
+            <div className="ma-results__identity">
+              {portraits[seat] && (
+                <img
+                  className="ma-results__portrait"
+                  src={portraits[seat]}
+                  alt=""
+                />
+              )}
+              <span title={names[seat] ?? '玩家'}>{names[seat] ?? '玩家'}</span>
+            </div>
             <strong>+{money(result.income[seat] ?? 0)}</strong>
           </div>
         ))}

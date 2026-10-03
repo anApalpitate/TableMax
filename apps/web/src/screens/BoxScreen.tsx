@@ -1,6 +1,11 @@
 import { useState } from 'react';
-import type { BotDifficulty } from '@tablemax/protocol';
+import {
+  AVATAR_PRESETS,
+  type AvatarId,
+  type BotDifficulty,
+} from '@tablemax/protocol';
 import { gameCover } from '../assets/game-covers';
+import { avatarFor } from '../assets/avatars';
 import appIcon from '../../../../assets/platform/app-icon.png';
 import { ScreenLink } from '../components/ScreenLink';
 import { RoomManagement } from '../components/RoomManagement';
@@ -13,6 +18,8 @@ import { GameLibrary } from '../components/GameLibrary';
 import { PlayModeControl } from '../components/PlayModeControl';
 import { PlayModeBadge } from '../components/PlayModeBadge';
 import { DisplaySettings } from '../components/DisplaySettings';
+import { AvatarPicker } from '../components/AvatarPicker';
+import { GameIntroduction } from '../components/GameIntroduction';
 import type { RoomSession } from '../session/useRoomSession';
 
 const difficultyNames: Record<BotDifficulty, string> = {
@@ -26,11 +33,12 @@ const botDescriptions: Record<BotDifficulty, string> = {
   juewu: '结合全部已知信息推演，比较当前选择。',
 };
 type BoxPanel =
-  'intro' | 'seats' | 'management' | 'library' | 'bot-info' | null;
+  'intro' | 'seats' | 'management' | 'library' | 'bot-info' | 'avatars' | null;
 
 export function BoxScreen({ session }: { session: RoomSession }) {
   const [difficulty, setDifficulty] = useState<BotDifficulty>('default');
   const [panel, setPanel] = useState<BoxPanel>(null);
+  const [draftAvatar, setDraftAvatar] = useState<AvatarId | null>(null);
   const {
     role,
     view,
@@ -50,6 +58,22 @@ export function BoxScreen({ session }: { session: RoomSession }) {
   const cover = gameCover(game?.id);
   const owner = view?.seats.find((seat) => seat.id === view.ownerSeatId);
   const lobby = view?.status === 'lobby';
+  const chosenAvatar =
+    self?.avatarId ??
+    session.admissionAvatarId ??
+    draftAvatar ??
+    AVATAR_PRESETS.find(
+      (avatar) => !view?.seats.some((seat) => seat.avatarId === avatar.id),
+    )?.id ??
+    null;
+  const avatarAvailable = Boolean(
+    chosenAvatar &&
+    !view?.seats.some(
+      (seat) => seat.avatarId === chosenAvatar && seat.id !== self?.id,
+    ),
+  );
+  const avatarLocked =
+    locked || session.admissionPending || view?.status === 'playing';
   const humans =
     view?.seats.filter((seat) => seat.controller === 'human').length ?? 0;
   const bots =
@@ -93,13 +117,6 @@ export function BoxScreen({ session }: { session: RoomSession }) {
         {cover && game && <img src={cover} alt={`${game.name}游戏封面`} />}
         <div>
           <h1>{game?.name ?? '选个游戏，朋友们上桌'}</h1>
-          <p>
-            {role === 'host'
-              ? '电脑 · 管理员与公共展示'
-              : role === 'public'
-                ? '现场公共屏 · 只读展示'
-                : '手机 · 你的玩家座位'}
-          </p>
         </div>
         {isHost && game && (
           <button
@@ -131,6 +148,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
               <path d="M12 11v6" stroke="currentColor" strokeWidth="1.8" />
               <circle cx="12" cy="7" r="1" fill="currentColor" />
             </svg>
+            <span>玩法</span>
           </button>
         )}
       </section>
@@ -159,9 +177,9 @@ export function BoxScreen({ session }: { session: RoomSession }) {
                   {view?.seats.length ?? 0} / {view?.game?.max ?? 6}
                 </span>
               </h2>
-              {owner && <p className="owner-badge">房主 · {owner.name}</p>}
+              {owner && <p className="owner-badge">房主：{owner.name}</p>}
               <p>
-                {humans} 位手机玩家{bots > 0 ? ` · ${bots} 位人机` : ''}
+                {humans} 位手机玩家{bots > 0 ? `，${bots} 位人机` : ''}
               </p>
             </div>
             <div className="room-heading__actions">
@@ -178,19 +196,33 @@ export function BoxScreen({ session }: { session: RoomSession }) {
               )}
             </div>
           </div>
-          {self && lobby && game && (
+          {self && game && (
             <div className="player-actions">
-              <p>
-                你已坐在{' '}
-                {view!.seats.findIndex((seat) => seat.id === self.id) + 1} 号位
-                · {self.name}
-              </p>
               <button
-                disabled={locked}
-                onClick={() => command({ type: 'ready', ready: !self.ready })}
+                type="button"
+                className="profile-avatar secondary"
+                aria-label="更换头像"
+                disabled={avatarLocked}
+                onClick={() => setPanel('avatars')}
               >
-                {self.ready ? '取消准备' : '我准备好了'}
+                <img src={avatarFor(self.avatarId)} alt="" />
+                <span>更换头像</span>
               </button>
+              <div className="player-profile">
+                <strong title={self.name}>{self.name}</strong>
+                <span>
+                  {view!.seats.findIndex((seat) => seat.id === self.id) + 1}{' '}
+                  号位
+                </span>
+              </div>
+              {lobby && (
+                <button
+                  disabled={locked}
+                  onClick={() => command({ type: 'ready', ready: !self.ready })}
+                >
+                  {self.ready ? '取消准备' : '我准备好了'}
+                </button>
+              )}
             </div>
           )}
           {role === 'player' && !credential && game && (
@@ -198,27 +230,52 @@ export function BoxScreen({ session }: { session: RoomSession }) {
               className="join-table"
               onSubmit={(event) => {
                 event.preventDefault();
-                if (!busy && name.trim()) void join();
+                if (!locked && name.trim() && chosenAvatar && avatarAvailable)
+                  void join(chosenAvatar);
               }}
             >
               <h2>加入牌桌</h2>
-              <label htmlFor="nickname">你的昵称</label>
-              <div className="join-table__row">
-                <input
-                  id="nickname"
-                  autoComplete="nickname"
-                  placeholder="朋友们怎么称呼你？"
-                  value={name}
-                  maxLength={24}
-                  disabled={busy || session.admissionPending}
-                  onChange={(event) => setName(event.target.value)}
-                />
+              <div className="join-table__profile">
                 <button
-                  disabled={busy || session.admissionPending || !name.trim()}
+                  type="button"
+                  className="profile-avatar secondary"
+                  aria-label="选择头像"
+                  disabled={avatarLocked}
+                  onClick={() => setPanel('avatars')}
                 >
-                  加入
+                  {chosenAvatar && <img src={avatarFor(chosenAvatar)} alt="" />}
+                  <span>选择头像</span>
                 </button>
+                <div className="join-table__fields">
+                  <label htmlFor="nickname">你的昵称</label>
+                  <div className="join-table__row">
+                    <input
+                      id="nickname"
+                      autoComplete="nickname"
+                      placeholder="朋友们怎么称呼你？"
+                      value={name}
+                      maxLength={24}
+                      disabled={busy || session.admissionPending}
+                      onChange={(event) => setName(event.target.value)}
+                    />
+                    <button
+                      disabled={
+                        locked ||
+                        session.admissionPending ||
+                        !name.trim() ||
+                        !avatarAvailable
+                      }
+                    >
+                      加入
+                    </button>
+                  </div>
+                </div>
               </div>
+              {!avatarAvailable && (
+                <p role="status" className="avatar-unavailable">
+                  头像已被选走，请选择另一个。
+                </p>
+              )}
             </form>
           )}
           {canControl && lobby && view && game && (
@@ -339,21 +396,38 @@ export function BoxScreen({ session }: { session: RoomSession }) {
         </OverlayPanel>
       )}
       <PlayModeControl session={session} />
-      {panel === 'intro' && (
+      {panel === 'intro' && game && (
         <OverlayPanel title="游戏介绍" close={() => setPanel(null)}>
-          <div className="game-introduction">
-            {cover && game && <img src={cover} alt={`${game.name}游戏封面`} />}
-            <div>
-              <h3>{game?.name ?? '请先选择游戏'}</h3>
-              <p>
-                {view?.game?.min ?? 2}–{view?.game?.max ?? 6} 位玩家 ·
-                本地聚会桌游
-              </p>
-            </div>
-          </div>
-          <p>
-            每位朋友使用自己的手机操作。电脑由管理员管理，并向现场展示公共信息；也可加入本地人机。
-          </p>
+          <GameIntroduction game={game} />
+        </OverlayPanel>
+      )}
+      {panel === 'avatars' && role === 'player' && (
+        <OverlayPanel title="选择头像" close={() => setPanel(null)}>
+          {session.awaitingConfirmation && (
+            <button
+              className="secondary"
+              disabled={!connected}
+              onClick={session.retry}
+            >
+              重试确认
+            </button>
+          )}
+          <AvatarPicker
+            seats={view?.seats ?? []}
+            selfId={self?.id ?? null}
+            selectedId={chosenAvatar}
+            disabled={avatarLocked}
+            message={self ? session.message : ''}
+            onSelect={(avatarId) => {
+              if (self) {
+                if (avatarId !== self.avatarId)
+                  command({ type: 'set-avatar', avatarId });
+              } else {
+                setDraftAvatar(avatarId);
+                setPanel(null);
+              }
+            }}
+          />
         </OverlayPanel>
       )}
       {panel === 'seats' && isHost && (
@@ -377,7 +451,6 @@ export function BoxScreen({ session }: { session: RoomSession }) {
           <p>三档均在本地运行，只使用本人获准的信息。</p>
         </OverlayPanel>
       )}
-      <footer>TableMax · 本地聚会牌桌 · 电脑管理，手机游玩</footer>
     </main>
   );
 }

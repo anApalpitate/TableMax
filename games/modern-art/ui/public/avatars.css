@@ -1,0 +1,64 @@
+.ma-screen .ma-museum__portrait,
+.ma-screen .ma-results__portrait {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.ma-screen .ma-museum__screen h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ma-screen .ma-museum__screen > div {
+  flex: 1;
+}
+.ma-screen .ma-museum__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ma-screen:not(.player) .ma-table:has(.ma-results) .ma-museum__cash {
+  margin: 4px 0;
+}
+
+.ma-screen .ma-museum__self {
+  flex: 0 0 auto;
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: #fff9ed;
+  background: #76532d;
+}
+
+.ma-screen .ma-results__income > div {
+  align-items: center;
+  gap: 8px;
+}
+
+.ma-screen .ma-results__identity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ma-screen .ma-results__identity > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ma-screen .ma-results__income > div > strong {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+@media (min-width: 701px) and (max-height: 800px) {
+  .ma-screen:not(.player) .ma-museum__portrait,
+  .ma-screen:not(.player) .ma-results__portrait {
+    width: 24px;
+    height: 24px;
+  }
+}

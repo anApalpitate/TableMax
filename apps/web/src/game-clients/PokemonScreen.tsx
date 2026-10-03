@@ -57,7 +57,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
     []
   ).map((seat) => ({
     ...seat,
-    portrait: avatarFor(seat.id),
+    portrait: avatarFor(seat.avatarId),
     ...(seat.botDifficulty
       ? {
           botLabel: `${{ default: '默认', doubao: '豆包', juewu: '绝悟' }[seat.botDifficulty]}人机`,

@@ -1,9 +1,11 @@
 import type { JsonValue, BotDifficulty } from '@tablemax/game-sdk';
-import type { CommandReply, PlayMode } from '@tablemax/protocol';
+import type { AvatarId, CommandReply, PlayMode } from '@tablemax/protocol';
 
 export interface Seat {
   id: string;
   name: string;
+  // Legacy format-1 saves omit this; validation fills and persists it once.
+  avatarId?: AvatarId;
   controller: 'human' | 'bot';
   ready: boolean;
   tokenHash: string | null;

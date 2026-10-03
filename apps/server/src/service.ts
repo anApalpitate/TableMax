@@ -140,11 +140,22 @@ export async function createService(
   app.post('/api/session/join', async (request, reply) => {
     const parsed = JoinSchema.safeParse(request.body);
     if (!parsed.success)
-      return reply.code(400).send({ ok: false, reason: 'invalid-name' });
+      return reply.code(400).send({
+        ok: false,
+        reason: parsed.error.issues.some(
+          (issue) => issue.path[0] === 'avatarId',
+        )
+          ? 'invalid-avatar'
+          : 'invalid-name',
+      });
     try {
       return {
         ok: true,
-        ...(await room.join(parsed.data.name, parsed.data.requestKey)),
+        ...(await room.join(
+          parsed.data.name,
+          parsed.data.requestKey,
+          parsed.data.avatarId,
+        )),
       };
     } catch (error) {
       return reply.code(409).send({ ok: false, reason: sessionFailure(error) });

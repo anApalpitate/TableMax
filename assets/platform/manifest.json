@@ -78,6 +78,606 @@
       "version": 1
     },
     {
+      "id": "avatar-7",
+      "displayName": "考拉",
+      "file": "avatar-7.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a matching wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: create one friendly soft blue-gray KOALA wooden toy character, recognizable large rounded fuzzy ear shapes modeled in smooth carved wood, cream inner ears, dark teal oval koala nose, warm cream muzzle and belly. A very subtle muted coral blush. No other animal.\nComposition: front-facing head and upper shoulders, compact centered square avatar; the full head, both ears, shoulder silhouette and upper chest are completely visible. Comfortable transparent safety margin on all sides, subject occupies about 78 percent of square width and height, simple clear silhouette legible at small size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, similar detail level and gentle dimensionality as both reference avatars. Cream #F6F2E8, teal #247C75, soft dusty blue-gray as main color, tiny coral #E77A60 accent. Soft upper-left light, shadows on the toy itself only.\nBackground: genuinely transparent alpha. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. One animal only. Produce the isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 46742,
+      "sha256": "01e9e689df43e6bcce4e80985ffb3d97a4f6bd2f3999684407756b7f4fd7f3ce",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-7-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-8",
+      "displayName": "熊猫",
+      "file": "avatar-8.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly cream-and-deep-teal PANDA with round ears, characteristic deep-teal rounded eye patches, small dark oval nose and cream belly. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 41250,
+      "sha256": "b5395265b4a418ebd9b0a0b8dab073a2dec5e4996156e6b864db2b4780acd31d",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-8-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-9",
+      "displayName": "浣熊",
+      "file": "avatar-9.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly soft gray-brown RACCOON with pointed rounded ears, characteristic dark teal face mask, cream muzzle and belly, no fox cheek spikes. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 40502,
+      "sha256": "ceafb1e7b92c2f121e8cb0c253e476cce05433d3729f721acc2cfc89c67538da",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-9-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-10",
+      "displayName": "小鹿",
+      "file": "avatar-10.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly warm caramel DEER with two small simple branching antlers, long rounded leaf-shaped ears, cream muzzle and tiny cream forehead spots. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 47438,
+      "sha256": "0b76e773eb4327855751b7fd82936971055d9cea36ed630467a71b65262c6ae2",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-10-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-11",
+      "displayName": "松鼠",
+      "file": "avatar-11.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly warm coral-and-caramel SQUIRREL with small triangular ears, large curved bushy tail peeking beside one shoulder and cream muzzle and belly. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 37644,
+      "sha256": "a459f21bdfa061bbdbf2e0e8d1a0bf69f39e553e1ef02f776ed7517f4c2c9439",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-11-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-12",
+      "displayName": "水獭",
+      "file": "avatar-12.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly teal-brown OTTER with tiny round side ears, broad rounded cream muzzle, short subtle whisker marks and soft cream chest. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 40700,
+      "sha256": "3a3bbf079f65f5250f47dbc41c4f8d7c8730c55ee6edee846c28bd7f853a3dee",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-12-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-13",
+      "displayName": "小狗",
+      "file": "avatar-13.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly golden DOG with two soft long floppy ears, cream muzzle and belly, a small dark nose and happy closed smile. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 37216,
+      "sha256": "5e335168495b23a92cd89edbb3dd555edd0adbe9ded7a7364b9588ec183dd3c1",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-13-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-14",
+      "displayName": "刺猬",
+      "file": "avatar-14.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly muted caramel HEDGEHOG with a halo of rounded wooden quill shapes behind the head, small cream face and dark tiny nose. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 42562,
+      "sha256": "327175e70bae349ea9c1ec65f3c7ac7e8f6cc4d2923f72416a1abc585a9c3a3a",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-14-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-15",
+      "displayName": "小象",
+      "file": "avatar-15.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly soft dusty blue ELEPHANT with two broad fan-shaped ears, a short centered curved trunk and cream inner ears, no tusks. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 46552,
+      "sha256": "e68c5ec84138998c3c90739badb8631dd139a679fea1f4d0e575477c4591fa8d",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-15-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-16",
+      "displayName": "河马",
+      "file": "avatar-16.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly teal-blue HIPPOPOTAMUS with tiny round top ears, large broad rounded muzzle with two nostril marks, cream lower cheeks and chest. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 41870,
+      "sha256": "0ea2332f9bbac0def90f8d346621e959501095a24c493ee0ed4ad57dffdbf47c",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-16-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-17",
+      "displayName": "狮子",
+      "file": "avatar-17.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly golden LION with a broad muted-coral scalloped carved wooden mane around a cream and golden face, round ears and small dark nose. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 36578,
+      "sha256": "eb2b0e7fe8bcd716e17ba60c679d56af434c6c0b47adbf329cc4957b1a804e02",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-17-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-18",
+      "displayName": "老虎",
+      "file": "avatar-18.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly warm golden TIGER with rounded ears, distinct deep-teal forehead and cheek stripes, cream muzzle and belly, soft coral cheeks. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 39508,
+      "sha256": "b78dceb935ba85c1db3589139e8c4c5aae43310b54041579f139792f901d4dc1",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-18-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-19",
+      "displayName": "小猪",
+      "file": "avatar-19.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly soft dusty coral PIG with floppy triangular ears, a broad oval wooden snout with two small nostrils, cream belly. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 34086,
+      "sha256": "e13b3a3e8760c1304eef25cb87c21574d8d3db7ea19612ca3cb244a539b35c73",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-19-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-20",
+      "displayName": "小羊",
+      "file": "avatar-20.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly warm ivory SHEEP with softly scalloped wooden wool silhouette, small drooping ears, a cream face and muted-teal hoof-like shoulders. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 37142,
+      "sha256": "661c87169f098d43fda3ee6db51578f30ef8fcce4d57b372c93839cee78cf9a6",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-20-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-21",
+      "displayName": "小牛",
+      "file": "avatar-21.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly warm cream COW with two little rounded golden horns, broad rounded ears, deep-teal patches, a soft coral broad muzzle. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 42778,
+      "sha256": "1507305b23529d250ccebda8aebf51e6476d0f4d3e9b95215ada6ee4802a972c",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-21-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-22",
+      "displayName": "小马",
+      "file": "avatar-22.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly warm caramel HORSE with tall rounded upright ears, golden short wooden mane, long rounded cream muzzle and tiny dark nostrils. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 32728,
+      "sha256": "345a161a0fb32d02f9c4a25cbb749cc6e604cbcb803b5b09d47a17e5b74bfb46",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-22-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-23",
+      "displayName": "乌龟",
+      "file": "avatar-23.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly muted sage-and-teal TURTLE with broad round head, cream jaw, tiny smile and a rounded gold-edged wooden shell visible behind shoulders. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 38118,
+      "sha256": "a1ed7bd2288d1f41c6df51e21c9dc0be9165b2341c905f4e025f31a343b94e10",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-23-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-24",
+      "displayName": "青蛙",
+      "file": "avatar-24.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly teal-green FROG with two prominent round top eye bumps, small dark oval eyes, broad soft smile and warm cream throat. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 43992,
+      "sha256": "d1cc95a191583c6c280cb352b82707f93d17625121004bf4aa1024de8904c8f7",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-24-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-25",
+      "displayName": "小鸭",
+      "file": "avatar-25.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly warm golden DUCK with a broad rounded coral-orange wooden beak, small dark oval eyes, cream chest and two tiny wing shoulders. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 30072,
+      "sha256": "97311f9b340948d50a50f138f2839f1be32d30d630df2945f09608811029f5d6",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-25-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
+      "id": "avatar-26",
+      "displayName": "海豹",
+      "file": "avatar-26.webp",
+      "source": "built-in imagegen",
+      "mode": "reference generation",
+      "version": 1,
+      "createdAt": "2026-10-04",
+      "prompt": "Use case: stylized-concept.\nAsset type: one TableMax original animal player-avatar, part of a consistent wooden-toy avatar family.\nInput images: avatar-1 teal bear and avatar-2 coral fox are STYLE references ONLY, not edit targets; match their tactile carved wooden forms, wood grain and gouache paint, friendly small dark oval eyes with a tiny cream highlight, rounded cheeks, warm cream facial patches and restrained three-dimensional shading.\nPrimary request: a friendly soft dusty-blue SEAL with a smooth rounded head, no external ears, a cream whisker muzzle with a few short fine dark whisker marks and small flipper shoulders. One original animal only, friendly head and shoulders facing directly forward.\nComposition: compact centered square avatar; the complete head, both ears or distinctive animal shapes, shoulders and upper chest are visible. Provide comfortable transparent safety margins on all four sides (at least 5 percent). Do not crop any part. Recognizably distinct silhouette, charming simple face readable at small icon size.\nStyle: polished cute original sculpted wooden toy, gentle paper-like painted wood grain, luminous friendly tabletop-console art, same detail level and gentle dimensionality as the reference avatars. Warm cream #F6F2E8, teal #247C75, golden yellow #F4BE45, muted coral #E77A60 and soft dusty blue or sage accents. Soft upper-left lighting, subtle shadows ON the toy itself only. No glossy plastic or furry photorealism.\nBackground: genuinely transparent alpha, clean silhouette edges. NO opaque backdrop, fake checkerboard, ground, glow, diffuse haze, vignette, exterior drop shadow or halo. No letters, text, symbols, numbers, watermark, logos, accessories, clothing, extra props, border, avatar circle, UI controls. Produce one isolated finished square image.",
+      "referenceImages": [
+        {
+          "path": "assets/platform/avatar-1.webp",
+          "role": "style reference only"
+        },
+        {
+          "path": "assets/platform/avatar-2.webp",
+          "role": "style reference only"
+        }
+      ],
+      "transparent": true,
+      "dimensions": [512, 512],
+      "bytes": 33510,
+      "sha256": "222f5674f30d88321f30b266fef1d62f7753f96300d3717f2f8a3068d870ec89",
+      "alphaExtrema": [0, 255],
+      "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-26-source-v1.png",
+      "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
+      "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+    },
+    {
       "id": "dice",
       "transparent": true,
       "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. One chunky coral wooden die in three-quarter view with cream recessed pips, fully visible centered. Isolated decorative object, genuine transparent background, generous clear margin.",
@@ -202,8 +802,58 @@
       "avatar-4",
       "avatar-5",
       "avatar-6",
-      "app-icon"
+      "app-icon",
+      "avatar-7",
+      "avatar-8",
+      "avatar-9",
+      "avatar-10",
+      "avatar-11",
+      "avatar-12",
+      "avatar-13",
+      "avatar-14",
+      "avatar-15",
+      "avatar-16",
+      "avatar-17",
+      "avatar-18",
+      "avatar-19",
+      "avatar-20",
+      "avatar-21",
+      "avatar-22",
+      "avatar-23",
+      "avatar-24",
+      "avatar-25",
+      "avatar-26"
     ],
+    "avatarExpansion": {
+      "createdAt": "2026-10-04",
+      "ids": [
+        "avatar-7",
+        "avatar-8",
+        "avatar-9",
+        "avatar-10",
+        "avatar-11",
+        "avatar-12",
+        "avatar-13",
+        "avatar-14",
+        "avatar-15",
+        "avatar-16",
+        "avatar-17",
+        "avatar-18",
+        "avatar-19",
+        "avatar-20",
+        "avatar-21",
+        "avatar-22",
+        "avatar-23",
+        "avatar-24",
+        "avatar-25",
+        "avatar-26"
+      ],
+      "status": "imported; 26 local presets decoded; actual device identities, occupancy, recovery and final ZIP checks passed",
+      "dimensions": [512, 512],
+      "totalBytes": 790988,
+      "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/verification/portable-final-fixed",
+      "note": "Twenty independent built-in imagegen calls; original six bitmaps unchanged. Seat avatarId persists across recovery/game switches; avatars rendered from local assets on box and both game clients. Old formalUsage verification remains the historical first integration."
+    },
     "verification": "artifacts/phase-03-04/verification",
     "note": "Reuse verified dice and avatars without modifying their bytes; box and game use the game-specific cover. Prototype-only art remains available to the independent prototype. The 2026-10-03 application icon has its own actual native/web/portable verification under its asset entry."
   },

@@ -74,7 +74,7 @@ export function RoomTable({
               <>
                 <img
                   className="room-table__avatar"
-                  src={avatarFor(seat.id)}
+                  src={avatarFor(seat.avatarId)}
                   alt=""
                 />
                 <h3 className="room-table__name" title={seat.name}>

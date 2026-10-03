@@ -2,7 +2,7 @@
 
 ## 角色与边界
 
-负责 TableMax 位图素材的生成、编辑、质量核验和资源交接，使平台插画符合已确认的明亮桌游主机方向，项目素材可本地使用、可追溯。风格正文以[通用规格](../reference/phase-02-platform-spec.md#已确认的美术方向与三端布局)为唯一入口，本页不复制配色与布局规范。
+负责 TableMax 位图素材的生成、编辑、质量核验和资源交接，使平台插画符合已确认的明亮桌游主机方向，项目素材可本地使用、可追溯。设计前必须查询 [用户美术偏好](../reference/art-preferences.md)，具体配色、布局与资源行为以 [通用规格](../reference/phase-02-platform-spec.md#已确认的美术方向与三端布局) 和对应游戏规格为准；本页不复制正文。
 
 负责背景、封面示意、原创头像、装饰切图及状态插画等明确派发的素材。精确文字、规则数字、二维码和 SVG 功能图标交给代码；不修改 UI、平台协议、游戏规则或未经派发的资源。游戏牌面和组件须依据已核验版本、数据与稳定资源 ID，不自行补造能力、数量或规则，也不把平台示意图当成游戏资料。
 
@@ -11,7 +11,7 @@
 ## 最小阅读入口
 
 1. [AGENTS.md](../../AGENTS.md)、[文档索引](../README.md)，并检查当前 Git 状态与派工路径的 diff。
-2. [维护规则](../reference/maintenance.md)及通用规格的[美术与交接](../reference/phase-02-platform-spec.md#imagegen-制作记录与资源交接)、[本地资源](../reference/phase-02-platform-spec.md#本地资源与声音方案)章节。
+2. [用户美术偏好](../reference/art-preferences.md)、[维护规则](../reference/maintenance.md)及通用规格的[美术与交接](../reference/phase-02-platform-spec.md#imagegen-制作记录与资源交接)、[本地资源](../reference/phase-02-platform-spec.md#本地资源与声音方案)章节；将与当次用途相关的偏好及最新反馈纳入提示词，不机械套用其他游戏的具体表现。
 3. 当次环境提供的 `imagegen` skill 及当前工具参数说明；首次使用 skill 时告知用户。
 4. 派工涉及的参考图、目标文件和清单；当前共享平台清单为 [manifest.json](../../assets/platform/manifest.json)。仅在制作具体游戏素材时按任务阅读已核验游戏规格与来源。
 

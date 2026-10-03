@@ -30,6 +30,8 @@ SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)
 1. 给游戏建立 pnpm 工作区包和 `workspace:*` SDK 依赖，保持版本与锁文件在项目内。
 2. 在 [服务目录](../../apps/server/src/game-registry.ts) 登记 manifest、规则／策略的异步加载器与公开状态，ID 与规则／策略声明必须一致；[平台注册表](../../packages/platform-core/src/game-registry.ts) 验证模块契约与加载错误。不要在 service 顶层静态导入游戏实现。正式目录不列内部模板，测试可用 createGameRegistry(true)。
 3. 在 [构建脚本](../../scripts/build.mjs) 登记独立 games／bots 入口，并由 [便携打包脚本](../../scripts/package.mjs) 收集 games／bots 和构建后网页；[Worker](../../apps/server/src/bot-worker.ts) 根据已选择的游戏 ID 加载对应策略，不打入所有策略。浏览器 [game-clients](../../apps/web/src/game-clients/registry.ts) 为每款游戏添加动态加载器和适配组件；导出 Screen、savedChanges 与 motionDuration，游戏 CSS／资源由该入口引入。通用 GameScreen 与会话保持游戏无关，界面不能导入完整规则状态。目录封面应为小资源，不在盒子提前导入全部 catalog。
+
+盒子的玩法介绍由每款游戏自己的 `ui/introduction.ts` 维护，包含简短玩法、主要步骤和胜利目标；在 [轻量介绍目录](../../apps/web/src/game-clients/introductions.ts) 装配，不能用通用设备分工替代玩法，也不能因此提前加载游戏主界面或规则。设计前必须查询 [用户美术偏好](../reference/art-preferences.md)。所选头像由平台公开席位的稳定 `avatarId` 映射为图片，在客户端适配层传给游戏 UI；规则和计分不依赖头像。
 4. 在游戏内维护逐选择覆盖测试、固定随机输入、权限与规则不变量。修改源码后按 [开发环境](../reference/development.md) 检查和重建；独立 Worker 随桌面构建／便携包本地打包。
 
 桌面外壳现由 C# WinForms／.NET Framework 4.8 与共享 WebView2 承载，服务和策略仍使用包内 Node 22.14.0；游戏规则、电脑策略与 UI 不直接依赖原生外壳或桌面桥接。新增游戏应保持当前独立模块、资源归属和版本兼容边界，并检查便携 ZIP／实际解压体积；新增游戏前的交付双门禁为各自严格小于 100,000,000 字节，95 MB 为工程预算。多游戏按需下载、本地安装及离线导入仍为 [未来计划](../tasks/README.md#多游戏按需安装未来计划未实现)，当前模块懒加载继续读取随包本地资源。
