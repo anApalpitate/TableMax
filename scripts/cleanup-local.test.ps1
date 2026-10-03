@@ -4,6 +4,7 @@ $fixture = Join-Path $workspaceForTest ('tmp/cleanup-test-' + [Guid]::NewGuid().
 $checks = New-Object 'System.Collections.Generic.List[string]'
 $busyProcess = $null
 $junction = Join-Path $fixture 'artifacts/releases/package-1.4.0-Linked/link'
+$temporaryJunction = Join-Path $fixture 'tmp/review-linked/link'
 
 function Check([bool]$Condition, [string]$Message) {
   if (-not $Condition) { throw ('FAILED: ' + $Message) }
@@ -14,8 +15,8 @@ function Fixture-File([string]$Relative, [string]$Content) {
   New-Item -ItemType Directory -Path (Split-Path $path -Parent) -Force | Out-Null
   [IO.File]::WriteAllText($path, $Content, (New-Object Text.UTF8Encoding($false)))
 }
-function Run-Cleanup([string]$Kind, [bool]$Apply, [int]$Age = 30, [bool]$Build = $false, [string[]]$Retired = @()) {
-  & (Join-Path $fixture 'scripts/cleanup-local.ps1') -Kind $Kind -Apply:$Apply -MinimumAgeMinutes $Age -IncludeBuild:$Build -RetiredVersions $Retired
+function Run-Cleanup([string]$Kind, [bool]$Apply, [int]$Age = 30, [bool]$Build = $false, [string[]]$Retired = @(), [string[]]$TemporaryNames = @()) {
+  & (Join-Path $fixture 'scripts/cleanup-local.ps1') -Kind $Kind -Apply:$Apply -MinimumAgeMinutes $Age -IncludeBuild:$Build -RetiredVersions $Retired -TemporaryNames $TemporaryNames
 }
 
 try {
@@ -42,13 +43,28 @@ try {
   Fixture-File 'tmp/runtime-memory-MEM123/save.json' 'isolated-memory-fixture'
   Fixture-File 'tmp/modern-art-verify-ART123/data/room.sqlite' 'isolated-modern-art-data'
   Fixture-File 'tmp/modern-art-verify-research/notes.md' 'unknown-modern-art-research'
+  Fixture-File 'tmp/app-icon-verify-ICO123/icons.png' 'isolated-icon-verification'
+  Fixture-File 'tmp/tablemax-sqlite-migration-SQL123/data/room.sqlite' 'isolated-migration-verification'
+  Fixture-File 'tmp/app-icon-verify-reference/notes.md' 'unrecognized-icon-research'
+  Fixture-File 'tmp/tablemax-sqlite-migration-reference/notes.md' 'unrecognized-migration-research'
   Fixture-File 'tmp/game-ui-Young1/data/room.sqlite' 'young-isolated-test-data'
   Fixture-File 'tmp/check-display-docs.mjs' 'temporary-script-to-archive'
   Fixture-File 'tmp/preserve-me/notes.md' 'unknown-research'
+  Fixture-File 'tmp/display-SEL123/data/room.sqlite' 'explicitly-selected-verification'
+  Fixture-File 'tmp/display-KEP123/data/room.sqlite' 'unselected-recognized-verification'
+  Fixture-File 'tmp/reviewed-content/notes.md' 'explicitly-reviewed-content'
+  Fixture-File 'tmp/reviewed-content/nested/中文.txt' 'nested-reviewed-content-with-unicode'
+  Fixture-File 'tmp/reviewed-notes.txt' 'explicitly-reviewed-single-file'
+  Fixture-File 'tmp/review-young/notes.md' 'recent-reviewed-content'
+  $screenshotNames = @('L6-1920x1080.png', 'V03-before-360.png', 'V03-step-2-mew-other-phone-targets.png', 'V03-public.png')
+  foreach ($name in $screenshotNames) { Fixture-File ('tmp/pokemon-screenshots-5a6f7893/' + $name) ('preserved-screenshot-' + $name) }
+  New-Item -ItemType Directory -Path (Join-Path $fixture 'tmp/reviewed-content/empty') -Force | Out-Null
   Fixture-File 'build/desktop/main.cjs' 'current-build'
   Fixture-File 'protected/marker.txt' 'protected-junction-target'
   New-Item -ItemType Directory -Path (Split-Path $junction -Parent) -Force | Out-Null
   New-Item -ItemType Junction -Path $junction -Value (Join-Path $fixture 'protected') | Out-Null
+  New-Item -ItemType Directory -Path (Split-Path $temporaryJunction -Parent) -Force | Out-Null
+  New-Item -ItemType Junction -Path $temporaryJunction -Value (Join-Path $fixture 'protected') | Out-Null
   New-Item -ItemType Directory -Path (Join-Path $fixture 'scripts') -Force | Out-Null
   Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'cleanup-local.ps1') -Destination (Join-Path $fixture 'scripts/cleanup-local.ps1')
   $currentZip = Join-Path $fixture 'artifacts/releases/TableMax-1.5.0-win-x64.zip'
@@ -67,6 +83,7 @@ try {
     }
   }
   (Get-Item -LiteralPath (Join-Path $fixture 'tmp/game-ui-Young1/data/room.sqlite')).LastWriteTimeUtc = [DateTime]::UtcNow
+  (Get-Item -LiteralPath (Join-Path $fixture 'tmp/review-young/notes.md')).LastWriteTimeUtc = [DateTime]::UtcNow
 
   Run-Cleanup Releases $false
   Check (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.4.0-win-x64.zip')) 'Preview never deletes old releases'
@@ -108,6 +125,56 @@ try {
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/package-1.6.0-OLD123'))) 'Explicit retirement removes its regenerable packaging stage'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-2.0.0-win-x64.zip')) 'Explicit retirement preserves unrelated future releases'
 
+  $selectedNames = @('display-SEL123', 'reviewed-content', 'reviewed-notes.txt')
+  $selectedArchiveHashes = @{}
+  foreach ($relative in @('reviewed-content/notes.md', 'reviewed-content/nested/中文.txt', 'reviewed-notes.txt')) {
+    $selectedArchiveHashes[$relative] = (Get-FileHash -LiteralPath (Join-Path $fixture ('tmp/' + $relative)) -Algorithm SHA256).Hash
+  }
+  $screenshotHashes = @{}
+  foreach ($name in $screenshotNames) {
+    $screenshotHashes[$name] = (Get-FileHash -LiteralPath (Join-Path $fixture ('tmp/pokemon-screenshots-5a6f7893/' + $name)) -Algorithm SHA256).Hash
+  }
+  $cleanupLogsBefore = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Directory).Count
+  Run-Cleanup -Kind Intermediates -Apply $false -TemporaryNames $selectedNames
+  Check ((Test-Path -LiteralPath (Join-Path $fixture 'tmp/display-SEL123')) -and (Test-Path -LiteralPath (Join-Path $fixture 'tmp/reviewed-content')) -and (Test-Path -LiteralPath (Join-Path $fixture 'tmp/reviewed-notes.txt'))) 'Explicit temporary selection preview preserves all selected entries'
+  Check (@(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Directory).Count -eq $cleanupLogsBefore) 'Explicit temporary selection preview writes no archive or cleanup evidence'
+  foreach ($names in @(@(''), @('   '), @('.'), @('..'), @('reviewed-content/notes.md'), @('reviewed-content\notes.md'), @('C:reviewed-content'), @('missing-entry'), @('reviewed-content', 'REVIEWED-CONTENT'), @('reviewed-content', 'missing-entry'))) {
+    $refused = $false
+    try { Run-Cleanup -Kind Intermediates -Apply $true -TemporaryNames $names } catch { $refused = $true }
+    Check $refused ('Explicit temporary selection rejects invalid or duplicate names: ' + ($names -join ', '))
+  }
+  foreach ($kind in @('Releases', 'Maintenance')) {
+    $refused = $false
+    try { Run-Cleanup -Kind $kind -Apply $true -TemporaryNames @('reviewed-content') } catch { $refused = $true }
+    Check $refused ($kind + ' refuses explicit temporary selection')
+  }
+  $refused = $false
+  try { Run-Cleanup -Kind Intermediates -Apply $true -Build $true -TemporaryNames @('reviewed-content') } catch { $refused = $true }
+  Check $refused 'Explicit temporary selection refuses IncludeBuild'
+  Check ((Test-Path -LiteralPath (Join-Path $fixture 'tmp/reviewed-content')) -and (Test-Path -LiteralPath (Join-Path $fixture 'tmp/display-SEL123')) -and (Test-Path -LiteralPath (Join-Path $fixture 'build/desktop/main.cjs')) -and (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/package-1.5.0-ABC123'))) 'Rejected temporary selections preserve candidates, build and release stages'
+  Run-Cleanup -Kind Intermediates -Apply $true -TemporaryNames $selectedNames
+  Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/display-SEL123'))) 'Explicit temporary selection removes a selected recognized directory'
+  Check ((-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/reviewed-content'))) -and (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/reviewed-notes.txt')))) 'Explicit temporary selection removes selected reviewed directory and single file'
+  Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/display-KEP123/data/room.sqlite')) 'Explicit temporary selection preserves unselected recognized verification data'
+  Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/preserve-me/notes.md')) 'Explicit temporary selection preserves unselected unknown research'
+  Check ((Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/package-1.5.0-ABC123'))) 'Explicit temporary selection never scans regenerable release stages'
+  Check (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/builder-debug.yml')) 'Explicit temporary selection preserves release diagnostics'
+  $reviewArchives = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Directory -Filter reviewed-temporary-content -Recurse)
+  Check ($reviewArchives.Count -eq 1) 'Selected unknown temporary content is archived in one reviewed-content evidence directory'
+  foreach ($relative in $selectedArchiveHashes.Keys) {
+    $archivedPath = Join-Path $reviewArchives[0].FullName $relative
+    Check ((Test-Path -LiteralPath $archivedPath -PathType Leaf) -and (Get-FileHash -LiteralPath $archivedPath -Algorithm SHA256).Hash -eq $selectedArchiveHashes[$relative]) ('Reviewed temporary archive preserves original path and SHA256: ' + $relative)
+  }
+  Check (Test-Path -LiteralPath (Join-Path $reviewArchives[0].FullName 'reviewed-content/empty') -PathType Container) 'Reviewed temporary archive preserves empty directories'
+  foreach ($name in $screenshotNames) {
+    $screenshotPath = Join-Path $fixture ('tmp/pokemon-screenshots-5a6f7893/' + $name)
+    Check ((Test-Path -LiteralPath $screenshotPath) -and (Get-FileHash -LiteralPath $screenshotPath -Algorithm SHA256).Hash -eq $screenshotHashes[$name]) ('Explicit temporary selection keeps requested screenshot byte-identical: ' + $name)
+  }
+  Run-Cleanup -Kind Intermediates -Apply $true -TemporaryNames @('review-young', 'review-linked')
+  Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/review-young/notes.md')) 'Explicit temporary selection still protects recently modified content'
+  Check (Test-Path -LiteralPath $temporaryJunction) 'Explicit temporary selection still refuses linked content'
+  Check ((Get-Content -LiteralPath (Join-Path $fixture 'protected/marker.txt') -Raw) -eq 'protected-junction-target') 'Selected temporary link target remains untouched'
+
   Run-Cleanup Intermediates $true
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/package-1.5.0-ABC123'))) 'Current regenerable stage is removed, current ZIP retained'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/display-ABC123'))) 'Recognized stopped verification directory is removed'
@@ -115,6 +182,9 @@ try {
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/runtime-memory-MEM123'))) 'Recognized stopped memory verification data is removed'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/modern-art-verify-ART123'))) 'Recognized stopped Modern Art verification data is removed'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/modern-art-verify-research/notes.md')) 'Similar Modern Art research directory is preserved'
+  Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/app-icon-verify-ICO123'))) 'Recognized stopped icon verification data is removed'
+  Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/tablemax-sqlite-migration-SQL123'))) 'Recognized stopped SQLite migration verification data is removed'
+  Check ((Test-Path -LiteralPath (Join-Path $fixture 'tmp/app-icon-verify-reference/notes.md')) -and (Test-Path -LiteralPath (Join-Path $fixture 'tmp/tablemax-sqlite-migration-reference/notes.md'))) 'Similar icon and migration research directories are preserved'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/game-ui-Young1')) 'Recently modified verification data is protected by default'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/preserve-me/notes.md')) 'Unknown temporary research is preserved'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'build/desktop/main.cjs')) 'Current build is retained by default'
@@ -135,9 +205,11 @@ try {
 }
 finally {
   if ($busyProcess -and -not $busyProcess.HasExited) { $busyProcess.Kill(); $busyProcess.WaitForExit() }
-  if (Test-Path -LiteralPath $junction) {
-    if (-not ((Get-Item -LiteralPath $junction -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Unexpected test junction replacement; fixture retained.' }
-    [IO.Directory]::Delete($junction)
+  foreach ($fixtureJunction in @($junction, $temporaryJunction)) {
+    if (Test-Path -LiteralPath $fixtureJunction) {
+      if (-not ((Get-Item -LiteralPath $fixtureJunction -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Unexpected test junction replacement; fixture retained.' }
+      [IO.Directory]::Delete($fixtureJunction)
+    }
   }
   if (Test-Path -LiteralPath $fixture) {
     $resolvedFixture = (Resolve-Path -LiteralPath $fixture).Path

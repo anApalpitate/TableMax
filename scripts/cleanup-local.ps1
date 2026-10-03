@@ -4,6 +4,7 @@ param(
   [switch]$Apply,
   [switch]$IncludeBuild,
   [string]$ProjectRoot,
+  [string[]]$TemporaryNames = @(),
   [ValidateRange(0, 10080)][int]$MinimumAgeMinutes = 30,
   [ValidateRange(0.001, 1024)][double]$HighWaterGiB = 5,
   [ValidateRange(0, 1024)][double]$LowWaterGiB = 4,
@@ -13,6 +14,18 @@ param(
 $ErrorActionPreference = 'Stop'
 $sourceWorkspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\')
 $automatic = $Kind -eq 'Maintenance'
+if ($TemporaryNames.Count) {
+  if ($Kind -ne 'Intermediates' -or $IncludeBuild) {
+    throw 'TemporaryNames is only supported by manual intermediate cleanup without IncludeBuild.'
+  }
+  $seenTemporaryNames = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+  foreach ($name in $TemporaryNames) {
+    if ([string]::IsNullOrWhiteSpace($name) -or $name -in @('.', '..') -or $name -match '[\\/:]' -or $name.IndexOfAny([IO.Path]::GetInvalidFileNameChars()) -ge 0) {
+      throw 'TemporaryNames must contain exact names of immediate tmp children.'
+    }
+    if (-not $seenTemporaryNames.Add($name)) { throw 'TemporaryNames contains duplicate names.' }
+  }
+}
 if ($RetiredVersions.Count -and $Kind -ne 'Releases') {
   throw 'Explicit retired versions are only supported by manual release cleanup.'
 }
@@ -63,6 +76,11 @@ $retired = @($RetiredVersions | ForEach-Object { [version]$_ })
 if ($retired -contains $currentVersion) { throw 'The current verified release cannot be retired.' }
 $releases = Join-Path $workspace 'artifacts/releases'
 $temporary = Join-Path $workspace 'tmp'
+foreach ($name in $TemporaryNames) {
+  if (-not (Test-Path -LiteralPath (Join-Path $temporary $name))) {
+    throw ('Selected temporary entry does not exist: ' + $name)
+  }
+}
 $archive = Join-Path $releases ('TableMax-' + $project.version + '-win-x64.zip')
 $cutoff = [DateTime]::UtcNow.AddMinutes(-$MinimumAgeMinutes)
 $candidates = New-Object 'System.Collections.Generic.List[object]'
@@ -285,7 +303,7 @@ if ($Kind -eq 'Releases' -or $automatic) {
   }
 }
 if ($Kind -eq 'Intermediates' -or $automatic) {
-  foreach ($entry in Get-ChildItem -LiteralPath $releases -Force) {
+  foreach ($entry in @(if (-not $TemporaryNames.Count) { Get-ChildItem -LiteralPath $releases -Force })) {
     if (($entry.PSIsContainer -and $entry.Name -match '^package-(\d+\.\d+\.\d+)-[A-Za-z0-9]{6}$' -and [version]$Matches[1] -le $currentVersion) -or $entry.Name -eq 'builder-debug.yml') {
       if (-not ($candidates | Where-Object { $_.path -eq $entry.FullName })) {
         Add-Candidate $entry.FullName 'Regenerable packaging stage or builder diagnostic'
@@ -294,11 +312,15 @@ if ($Kind -eq 'Intermediates' -or $automatic) {
   }
   if (Test-Path -LiteralPath $temporary -PathType Container) {
     foreach ($entry in Get-ChildItem -LiteralPath $temporary -Force) {
-      if ($entry.PSIsContainer -and $entry.Name -match '^(card-layout|desktop-verify|display(-portable)?|experience|game-prototype-verify|game-ui|modern-art-verify|party(-portable|-startup)?|play-presentation(-portable)?|pokemon-desktop|pokemon-verify|portable-extracted|portable-game|prototype-verify|room-levels(-portable)?|runtime-memory|six-result-layout)-[A-Za-z0-9]{6}$') {
+      if ($TemporaryNames.Count -and $entry.Name -notin $TemporaryNames) { continue }
+      if ($entry.PSIsContainer -and $entry.Name -match '^(app-icon-verify|card-layout|desktop-verify|display(-portable)?|experience|game-prototype-verify|game-ui|modern-art-verify|party(-portable|-startup)?|play-presentation(-portable)?|pokemon-desktop|pokemon-verify|portable-extracted|portable-game|prototype-verify|room-levels(-portable)?|runtime-memory|six-result-layout|tablemax-sqlite-migration)-[A-Za-z0-9]{6}$') {
         Add-Candidate $entry.FullName 'Known isolated verification data or portable extraction'
       }
       elseif (-not $entry.PSIsContainer -and $entry.Name -match '^(check-(display|party|phone-table|presentation|release-cleanup)-docs\.mjs|cleanup-display-staging\.ps1|display-(dialog|dpi)-probe\.mjs|finalize-presentation-evidence\.mjs|inspect-six-result\.mjs|update-presentation-docs\.mjs)$') {
         Add-Candidate $entry.FullName 'Known one-off script; archived in cleanup evidence before deletion'
+      }
+      elseif ($TemporaryNames.Count) {
+        Add-Candidate $entry.FullName 'Explicitly reviewed temporary content; archived before deletion'
       }
       else { $skipped.Add([PSCustomObject]@{ path = $entry.FullName; reason = 'Unrecognized temporary content; preserved for manual review.' }) }
     }
@@ -340,7 +362,7 @@ try {
   $report = [PSCustomObject]@{
     startedAt = [DateTime]::UtcNow.ToString('o'); kind = $Kind; currentVersion = $project.version; retiredVersions = $RetiredVersions
     currentArchive = $archive; archiveSha256 = $archiveHash; portableProof = $proof
-    minimumAgeMinutes = $MinimumAgeMinutes; includeBuild = [bool]$IncludeBuild
+    minimumAgeMinutes = $MinimumAgeMinutes; includeBuild = [bool]$IncludeBuild; temporaryNames = $TemporaryNames
     workspace = $workspace; highWaterBytes = $summary.highWaterBytes; lowWaterBytes = $summary.lowWaterBytes
     bytesBefore = $summary.bytesBefore; bytesAfter = $summary.bytesAfter
     candidates = $ordered; skipped = $skipped.ToArray(); deletedBytes = [long]0; result = 'started'
@@ -360,6 +382,29 @@ try {
         $scriptArchive = Join-Path $logRoot 'temporary-scripts'
         New-Item -ItemType Directory -Path $scriptArchive -Force | Out-Null
         Copy-Item -LiteralPath $candidate.path -Destination $scriptArchive
+      }
+      if ($candidate.reason -like 'Explicitly reviewed temporary content*') {
+        $temporaryArchive = Join-Path $logRoot 'reviewed-temporary-content'
+        New-Item -ItemType Directory -Path $temporaryArchive -Force | Out-Null
+        Copy-Item -LiteralPath $candidate.path -Destination $temporaryArchive -Recurse -Force
+        $archivedPath = Join-Path $temporaryArchive ([IO.Path]::GetFileName($candidate.path))
+        $archivedSnapshot = Read-Snapshot $archivedPath
+        if ($archivedSnapshot.bytes -ne $snapshot.bytes -or $archivedSnapshot.entries -ne $snapshot.entries) {
+          throw ('Temporary archive does not match the selected entry: ' + $candidate.path)
+        }
+        Read-Tree $candidate.path | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
+          $copyPath = if ($_.FullName -eq $candidate.path) { $archivedPath } else { Join-Path $archivedPath $_.FullName.Substring($candidate.path.Length + 1) }
+          if ((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $copyPath -Algorithm SHA256).Hash) {
+            throw ('Temporary archive hash mismatch: ' + $_.FullName)
+          }
+        }
+        if ((Read-Snapshot $candidate.path).fingerprint -ne $candidate.fingerprint) {
+          throw ('Candidate changed while archiving; stopped: ' + $candidate.path)
+        }
+      }
+      Assert-Idle
+      if ((Read-Snapshot $candidate.path).fingerprint -ne $candidate.fingerprint) {
+        throw ('Candidate changed before deletion; stopped: ' + $candidate.path)
       }
       Remove-Item -LiteralPath $candidate.path -Recurse -Force
       $candidate.deleted = $true

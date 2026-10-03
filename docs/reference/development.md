@@ -224,7 +224,11 @@ pnpm prototype:verify:game
 
 `build/` 供 `pnpm start` 使用，默认保留；手动 `Clean-Intermediates.ps1` 明确要删除时可加 `-IncludeBuild`，之后先执行 `pnpm build` 再启动。已确认最近候选停止使用时，手动入口可显式设置 `-MinimumAgeMinutes 0`，它不跳过其他安全检查。自动维护禁止这两种放宽；阈值可用 `-HighWaterGiB`、`-LowWaterGiB` 调整，低水位必须小于高水位。`.pnpm-store/`、`node_modules/`、工具缓存、正式存档、原始素材和历史证据继续保留；保护内容占用过大时只报告，不为达到阈值扩大删除范围。脚本不更改 PowerShell 执行策略、默认 `LOCALAPPDATA/TableMax` 数据或其他项目环境。
 
+只清理已核对的特定临时项时，使用 `Clean-Intermediates.ps1 -TemporaryNames @('game-ui-ABC123', 'review-tools')` 预览，核对后追加 `-Apply`。名称必须是 `tmp/` 直属项的精确名称，不允许路径、重复或不存在的项；此模式不扫描打包目录，不与 `-IncludeBuild` 或自动维护结合，未列出的内容保持原位。显式选择的未知临时内容先整体复制到清理记录的 `reviewed-temporary-content/`，核验文件数量、字节及逐文件 SHA-256 后才删除原目录；路径、进程、近期修改、链接、嵌套仓库和当前已验证 ZIP 保护仍生效。原始资料与历史证据应先核对其归档，不能因为放在 `tmp/` 就视为可丢弃。
+
 实际执行记录写入 `artifacts/maintenance/local-cleanup-<UTC时间>-<类别>/cleanup.json`，逐项记录路径、字节、删除状态、跳过原因及保留的当前 ZIP 哈希；维护模式另记目标工作区、水位和前后字节。一次性脚本在同目录 `temporary-scripts` 归档。记录保持文件树可见、Git 忽略。`tmp/modern-art-verify-*` 仅对应已核验的旧现代艺术整局隔离数据（六位随机后缀），不包含 UI 工具、研究或截图证据目录；`tmp/experience-*` 仅用于新版操作验证的隔离数据和便携解压，`tmp/runtime-memory-*` 仅用于内存测量；均按已知前缀清理，正式证据按版本保留在 `artifacts/maintenance/v<版本>/`，不参与临时文件清理。
+
+`tmp/app-icon-verify-*` 与 `tmp/tablemax-sqlite-migration-*` 的六位随机后缀目录分别是图标验证／便携解压及服务迁移验证的隔离副本，归入已知中间物；图标原素材和迁移原始存档仍保留在资源及历史证据目录。
 
 修改工具后运行 `powershell.exe -NoProfile -File scripts/cleanup-local.test.ps1` 与 `powershell.exe -NoProfile -File scripts/project-maintenance.test.ps1`。前者检查手动预览、ZIP／进程／链接／白名单／近期保护、脚本归档及显式构建清理；后者用隔离 Git 主仓库和 worktree 检查目录发现、不重复计量、高低水位、最旧优先、互斥及候选耗尽。测试不清理真实 release，结果分别保存在 `artifacts/maintenance/local-cleanup-tools/tool-tests.json` 和 `artifacts/maintenance/project-maintenance-tools/tool-tests.json`。
 
