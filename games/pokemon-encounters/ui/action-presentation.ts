@@ -3,8 +3,9 @@ import { categories } from '../rules/cards';
 
 export function cardName(category: string | null) {
   return (
-    categories.find((card) => card.categoryId === category)?.displayName ??
-    '卡牌'
+    categories
+      .find((card) => card.categoryId === category)
+      ?.displayName.replace('外观', '') ?? '卡牌'
   );
 }
 

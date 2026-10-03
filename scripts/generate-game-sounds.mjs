@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 const directory = 'assets/games/pokemon-encounters/audio';
 await mkdir(directory, { recursive: true });
@@ -8,8 +8,19 @@ const presets = {
   'effect-complete': [620, 780, 930],
   'round-result': [523, 659, 784, 1046],
   error: [330, 260],
+  mew: [440, 659, 880, 1319],
+  zapdos: [180, 960, 240, 1440],
+  snorlax: [110, 82, 146],
+  charizard: [160, 220, 350, 180, 100],
+  rocket: [300, 420, 600, 880],
+  'rocket-return': [1046, 740, 440, 220, 880],
+  'match-result': [523, 659, 784, 1046, 784, 1046, 1319],
 };
-const manifest = [];
+// Keep independently sourced cries when regenerating the original procedural cues.
+const previous = JSON.parse(
+  await readFile(`${directory}/manifest.json`, 'utf8').catch(() => '[]'),
+);
+const manifest = previous.filter((entry) => entry.sourceUrl);
 for (const [name, frequencies] of Object.entries(presets)) {
   const rate = 22050,
     duration = frequencies.length * 0.09 + 0.06,
@@ -39,7 +50,30 @@ for (const [name, frequencies] of Object.entries(presets)) {
           Math.min(age / 0.008, 1) *
           Math.pow(1 - age / 0.15, 2);
     });
-    data.writeInt16LE(Math.round(amplitude * 32767), 44 + i * 2);
+    if (name === 'zapdos')
+      amplitude +=
+        Math.sin(t * 17383) *
+        Math.sin(t * 7111) *
+        0.09 *
+        Math.max(0, 1 - t / duration);
+    if (name === 'charizard')
+      amplitude =
+        (amplitude * 0.3 + Math.sin(t * 23317) * Math.sin(t * 6143) * 0.22) *
+        Math.sin((Math.PI * t) / duration);
+    if (name === 'snorlax')
+      amplitude +=
+        Math.sin(2 * Math.PI * (140 * t - 65 * t * t)) *
+        0.16 *
+        Math.max(0, 1 - t / duration);
+    if (name === 'rocket' || name === 'rocket-return')
+      amplitude +=
+        Math.sin(2 * Math.PI * (250 * t + 1600 * t * t)) *
+        0.09 *
+        Math.sin((Math.PI * t) / duration);
+    data.writeInt16LE(
+      Math.round(Math.max(-0.95, Math.min(0.95, amplitude)) * 32767),
+      44 + i * 2,
+    );
   }
   await writeFile(`${directory}/${name}-v1.wav`, data);
   manifest.push({
@@ -51,6 +85,11 @@ for (const [name, frequencies] of Object.entries(presets)) {
     sampleRate: rate,
     seconds: count / rate,
     sha256: createHash('sha256').update(data).digest('hex'),
+    ...(name === 'rocket-return'
+      ? {
+          note: 'Original rocket whistle used with the on-screen Chinese return line. No verified Chinese Team Rocket dialogue recording was found or included.',
+        }
+      : {}),
   });
 }
 await writeFile(

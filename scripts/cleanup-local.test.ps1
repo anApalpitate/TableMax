@@ -14,8 +14,8 @@ function Fixture-File([string]$Relative, [string]$Content) {
   New-Item -ItemType Directory -Path (Split-Path $path -Parent) -Force | Out-Null
   [IO.File]::WriteAllText($path, $Content, (New-Object Text.UTF8Encoding($false)))
 }
-function Run-Cleanup([string]$Kind, [bool]$Apply, [int]$Age = 30, [bool]$Build = $false) {
-  & (Join-Path $fixture 'scripts/cleanup-local.ps1') -Kind $Kind -Apply:$Apply -MinimumAgeMinutes $Age -IncludeBuild:$Build
+function Run-Cleanup([string]$Kind, [bool]$Apply, [int]$Age = 30, [bool]$Build = $false, [string[]]$Retired = @()) {
+  & (Join-Path $fixture 'scripts/cleanup-local.ps1') -Kind $Kind -Apply:$Apply -MinimumAgeMinutes $Age -IncludeBuild:$Build -RetiredVersions $Retired
 }
 
 try {
@@ -26,8 +26,12 @@ try {
   Fixture-File 'artifacts/releases/package-1.4.0-ABC123/win-unpacked/TableMax.exe' 'old-stage'
   Fixture-File 'artifacts/releases/package-1.5.0-ABC123/win-unpacked/TableMax.exe' 'current-stage'
   Fixture-File 'artifacts/releases/TableMax-2.0.0-win-x64.zip' 'future-fixture'
+  Fixture-File 'artifacts/releases/TableMax-1.6.0-win-x64.zip' 'retired-label-fixture'
+  Fixture-File 'artifacts/releases/package-1.6.0-OLD123/win-unpacked/TableMax.exe' 'retired-label-stage'
   Fixture-File 'artifacts/releases/builder-debug.yml' 'diagnostic'
   Fixture-File 'tmp/display-ABC123/data/room.sqlite' 'isolated-test-data'
+  Fixture-File 'tmp/experience-EXP123/data/room.sqlite' 'isolated-experience-data'
+  Fixture-File 'tmp/runtime-memory-MEM123/save.json' 'isolated-memory-fixture'
   Fixture-File 'tmp/game-ui-Young1/data/room.sqlite' 'young-isolated-test-data'
   Fixture-File 'tmp/check-display-docs.mjs' 'temporary-script-to-archive'
   Fixture-File 'tmp/preserve-me/notes.md' 'unknown-research'
@@ -74,10 +78,25 @@ try {
   Check (Test-Path -LiteralPath $junction) 'Junction candidate is skipped'
   Check ((Get-Content -LiteralPath (Join-Path $fixture 'protected/marker.txt') -Raw) -eq 'protected-junction-target') 'Junction target is untouched'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-2.0.0-win-x64.zip')) 'Future version is preserved'
+  Check (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.6.0-win-x64.zip')) 'Higher retired label is preserved without explicit selection'
+  Run-Cleanup Releases $false 30 $false @('1.6.0')
+  Check (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.6.0-win-x64.zip')) 'Explicit retirement preview never deletes'
+  $refused = $false
+  try { Run-Cleanup Releases $true 30 $false @('1.5.0') } catch { $refused = $_.Exception.Message -like '*cannot be retired*' }
+  Check $refused 'Explicit retirement rejects the current verified version'
+  $refused = $false
+  try { Run-Cleanup Maintenance $true 30 $false @('1.6.0') } catch { $refused = $_.Exception.Message -like '*only supported by manual*' }
+  Check $refused 'Automatic maintenance refuses explicit retirement'
+  Run-Cleanup Releases $true 30 $false @('1.6.0')
+  Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.6.0-win-x64.zip'))) 'Explicit retirement removes an old higher version label'
+  Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/package-1.6.0-OLD123'))) 'Explicit retirement removes its regenerable packaging stage'
+  Check (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-2.0.0-win-x64.zip')) 'Explicit retirement preserves unrelated future releases'
 
   Run-Cleanup Intermediates $true
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/package-1.5.0-ABC123'))) 'Current regenerable stage is removed, current ZIP retained'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/display-ABC123'))) 'Recognized stopped verification directory is removed'
+  Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/experience-EXP123'))) 'Recognized stopped experience verification data is removed'
+  Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/runtime-memory-MEM123'))) 'Recognized stopped memory verification data is removed'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/game-ui-Young1')) 'Recently modified verification data is protected by default'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/preserve-me/notes.md')) 'Unknown temporary research is preserved'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'build/desktop/main.cjs')) 'Current build is retained by default'
@@ -89,7 +108,7 @@ try {
   Check ((Get-FileHash -LiteralPath $currentZip -Algorithm SHA256).Hash.ToLowerInvariant() -eq $hash) 'Current verified ZIP stays byte-identical through all cleanup modes'
   Fixture-File 'artifacts/releases/TableMax-1.5.0-win-x64.zip' 'changed-unverified-current'
   $refused = $false
-  try { Run-Cleanup Releases $true 0 } catch { $refused = $_.Exception.Message -like '*No passing portable evidence*' }
+  try { Run-Cleanup Releases $true 0 $false @('1.6.0') } catch { $refused = $_.Exception.Message -like '*No passing portable evidence*' }
   Check $refused 'Changed or unverified current archive blocks cleanup'
   $evidenceDir = Join-Path $workspaceForTest 'artifacts/maintenance/local-cleanup-tools'
   New-Item -ItemType Directory -Path $evidenceDir -Force | Out-Null

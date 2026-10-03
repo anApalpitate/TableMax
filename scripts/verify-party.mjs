@@ -7,15 +7,13 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createServer } from 'node:net';
 import { createHash } from 'node:crypto';
+import { verificationOutput } from './verification-output.mjs';
 const require = createRequire(import.meta.url);
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
 const portable = process.argv.includes('--portable');
-const output = resolve(
-  'artifacts/maintenance/six-player-presentation',
-  portable ? 'party-portable' : 'party',
-);
+const output = verificationOutput(portable ? 'party-portable' : 'party');
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const dataDir = await mkdtemp(resolve('tmp/party-'));
@@ -212,6 +210,16 @@ try {
     sessionStorage.getItem('tablemax-host'),
   );
   socket = await connect(origin, hostToken);
+  assert.equal((await view(origin, hostToken)).game, null);
+  assert.equal(
+    (await (await fetch(`${origin}/api/foundation/health`)).json())
+      .protocolVersion,
+    6,
+  );
+  await command(origin, socket, hostToken, {
+    type: 'select-game',
+    gameId: 'pokemon-encounters',
+  });
   assert.ok(
     await desktop.evaluate(({ powerSaveBlocker }) =>
       Array.from({ length: 8 }, (_, id) => id).some((id) =>
@@ -319,29 +327,35 @@ try {
     '250ms/limited-bandwidth admission; actual touch selection; rollback filters and numbered player/round context, confirmation, synchronized pause',
   );
   await host.getByRole('button', { name: '菜单', exact: true }).click();
-  await host.getByRole('button', { name: '换手机', exact: true }).click();
-  await host
-    .getByRole('button', { name: '聚会甲 · 换手机', exact: true })
-    .click();
-  await host
-    .getByRole('dialog', { name: '确认换手机', exact: true })
-    .getByRole('button', { name: '确认换手机', exact: true })
-    .click();
-  const bindingCode = await host.getByLabel('一次性绑定码').inputValue();
-  const rebound = await openPhone(desktop, lanOrigin, 2);
-  await loseReply(rebound, 'redeem');
-  await rebound.getByText('换手机绑定', { exact: true }).click();
-  await rebound.getByLabel('房主提供的绑定码').fill(bindingCode);
-  await rebound
-    .getByRole('button', { name: '绑定原座位', exact: true })
-    .click();
-  await rebound
-    .getByRole('dialog', { name: '换手机绑定', exact: true })
-    .getByText(/尚未收到入座确认/)
-    .waitFor();
+  assert.equal(
+    await host.getByRole('button', { name: '换手机', exact: true }).count(),
+    0,
+  );
+  await host.keyboard.press('Escape');
+  const newcomer = await openPhone(desktop, lanOrigin, 2);
+  assert.equal(
+    await newcomer.getByText('换手机绑定', { exact: true }).count(),
+    0,
+  );
+  assert.equal(
+    (
+      await fetch(`${origin}/api/session/redeem`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: 'a'.repeat(64) }),
+      })
+    ).status,
+    404,
+  );
+  await first.reload();
+  await first.getByText('本地连接已就绪', { exact: true }).waitFor();
+  assert.equal(
+    await first.evaluate(() => localStorage.getItem('tablemax-player')),
+    oldToken,
+  );
   assert.equal((await view(origin)).seats.length, 2);
   beforeRestart = await view(origin, secondToken);
-  await capture(desktop, rebound, 'binding-lost-reply');
+  await capture(desktop, first, 'same-phone-identity-refresh');
   socket.disconnect();
   socket = null;
   await desktop.close();
@@ -359,28 +373,12 @@ try {
     sessionStorage.getItem('tablemax-host'),
   );
   socket = await connect(origin, newHostToken);
-  const restored = await openPhone(desktop, lanOrigin, 2);
-  try {
-    await restored
-      .getByText('已恢复原座位', { exact: true })
-      .waitFor({ timeout: 12000 });
-  } catch (error) {
-    await capture(desktop, restored, 'recovery-failure');
-    console.log(
-      await restored.evaluate(() => ({
-        feedback: document.querySelector('.feedback')?.textContent,
-        pending: Boolean(localStorage.getItem('tablemax-admission')),
-        identity: Boolean(localStorage.getItem('tablemax-player')),
-        visibility: document.visibilityState,
-        path: location.pathname,
-      })),
-    );
-    throw error;
-  }
+  const restored = await openPhone(desktop, lanOrigin, 0);
   const recoveredToken = await restored.evaluate(() =>
     localStorage.getItem('tablemax-player'),
   );
   const recovered = await view(origin, recoveredToken);
+  assert.equal(recoveredToken, oldToken);
   assert.equal(recovered.self.seatId, seatId);
   assert.equal(recovered.paused, true);
   assert.deepEqual(recovered.gameView.boards, beforeRestart.gameView.boards);
@@ -394,10 +392,10 @@ try {
         })
       ).json()
     ).ok,
-    false,
+    true,
   );
   evidence.checks.push(
-    'Lost binding reply recovered from encrypted SQLite receipt after real application restart; old credential revoked and game restored paused',
+    'Phone replacement UI and redemption endpoint removed; the original phone credential survives refresh and actual application restart, preserving its seat and paused game',
   );
   await command(origin, socket, newHostToken, { type: 'resume' });
   const offline = await restored.context().newCDPSession(restored);
@@ -471,7 +469,7 @@ try {
   );
   await expired.reload();
   await expired
-    .getByText('入座确认已超过一天，请联系房主检查原座位后换绑。', {
+    .getByText('入座确认已超过一天，请联系管理员检查原座位。', {
       exact: true,
     })
     .waitFor();

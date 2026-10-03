@@ -57,6 +57,7 @@ export function actor(s: State): string {
     : s.turnSeat;
 }
 export function decisionId(s: State, seat: string) {
+  if (s.phase === 'initial-flip') return `r${s.roundNumber}-initial-${seat}`;
   return `r${s.roundNumber}-d${s.step}-${s.phase}-${seat}`;
 }
 

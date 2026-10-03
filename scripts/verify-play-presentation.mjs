@@ -7,14 +7,14 @@ import { resolve, join } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createHash, randomUUID } from 'node:crypto';
+import { verificationOutput } from './verification-output.mjs';
 
 const require = createRequire(import.meta.url);
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
 const portable = process.argv.includes('--portable');
-const output = resolve(
-  'artifacts/maintenance/six-player-presentation',
+const output = verificationOutput(
   portable ? 'presentation-portable' : 'presentation',
 );
 await mkdir(output, { recursive: true });
@@ -260,6 +260,13 @@ async function start(dataDir) {
   });
   const host = await desktop.firstWindow();
   await host.waitForURL('**/host');
+  await host.getByText('本地连接已就绪', { exact: true }).waitFor();
+  if (
+    await host.getByRole('button', { name: '选择游戏', exact: true }).count()
+  ) {
+    await host.getByRole('button', { name: '选择游戏', exact: true }).click();
+    await host.getByRole('button', { name: '切换游戏', exact: true }).waitFor();
+  }
   await ready(host);
   origin = new URL(host.url()).origin;
   phoneUrl = (await host.locator('.url').textContent()).trim();
@@ -540,44 +547,21 @@ try {
   await assertStars(phones[0], 'phone 390');
   await host.getByRole('button', { name: '菜单', exact: true }).click();
   const gameMenu = host.getByRole('dialog', { name: '牌桌菜单', exact: true });
-  const rebindTrigger = gameMenu.getByRole('button', {
-    name: '换手机',
-    exact: true,
-  });
-  await rebindTrigger.click();
-  const binding = host.getByRole('dialog', { name: '换手机', exact: true });
-  const seatRebind = binding.getByRole('button', {
-    name: '现场朋友 1 · 换手机',
-    exact: true,
-  });
-  await seatRebind.click();
-  const rebindConfirm = host.getByRole('dialog', {
-    name: '确认换手机',
-    exact: true,
-  });
-  await rebindConfirm.waitFor();
-  await assertFocus(
-    rebindConfirm.getByRole('button', { name: '取消', exact: true }),
-    'Rebind confirmation defaults to cancel',
+  assert.equal(
+    await gameMenu.getByRole('button', { name: '换手机', exact: true }).count(),
+    0,
   );
-  await host.keyboard.press('Escape');
-  await assertFocus(seatRebind, 'Escape restores parent binding trigger');
-  await seatRebind.click();
-  await rebindConfirm
-    .getByRole('button', { name: '取消', exact: true })
-    .click();
-  await assertFocus(seatRebind, 'Cancel restores parent binding trigger');
-  await host.keyboard.press('Escape');
-  await assertFocus(rebindTrigger, 'Escape restores menu rebind trigger');
+  await gameMenu.getByLabel('手机房主').selectOption(seated.seats[0].id);
+  await until(
+    async () => (await view(token)).ownerSeatId === seated.seats[0].id,
+    'Administrator assigns mobile owner',
+  );
   await host.keyboard.press('Escape');
   await shortcutMode(host, 'play');
   await until(
     async () => (await phones[0].locator('.test-mode-badge').count()) === 0,
     'All phones leave test mode',
   );
-  await host
-    .getByRole('button', { name: '开启本屏提示音', exact: true })
-    .click();
   await host
     .getByRole('button', { name: '提示音已开启 · 静音', exact: true })
     .waitFor();
@@ -855,32 +839,10 @@ try {
     name: '牌桌菜单',
     exact: true,
   });
-  await menu.getByRole('button', { name: '换手机', exact: true }).click();
-  const timingBinding = timing.host.getByRole('dialog', {
-    name: '换手机',
-    exact: true,
-  });
-  await timingBinding
-    .getByRole('button', { name: '仅手机玩家等候 · 换手机', exact: true })
-    .click();
-  const timingRebindConfirm = timing.host.getByRole('dialog', {
-    name: '确认换手机',
-    exact: true,
-  });
-  await timingRebindConfirm
-    .getByRole('button', { name: '确认换手机', exact: true })
-    .click();
-  await timing.host.waitForFunction(
-    () =>
-      document.querySelector('textarea[aria-label="一次性绑定码"]')?.value
-        .length > 0,
+  assert.equal(
+    await menu.getByRole('button', { name: '换手机', exact: true }).count(),
+    0,
   );
-  await timingRebindConfirm.waitFor({ state: 'detached' });
-  await assertDialogFocus(
-    timingBinding,
-    'Completed rebind confirmation returns to its parent dialog',
-  );
-  await timing.host.keyboard.press('Escape');
   await menu.getByRole('button', { name: '结束游戏', exact: true }).click();
   const confirmation = timing.host.getByRole('dialog', {
     name: '结束游戏',

@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const HealthSchema = z.object({
   status: z.literal('ready'),
   phase: z.literal('platform-foundation'),
-  protocolVersion: z.literal(5),
+  protocolVersion: z.literal(6),
   database: z.literal('ok'),
   starts: z.number().int().positive(),
   runtime: z.object({
@@ -85,7 +85,12 @@ export const CommandSchema = z
       z.object({ type: z.literal('end') }).strict(),
       z.object({ type: z.literal('new-room') }).strict(),
       z.object({ type: z.literal('replay') }).strict(),
-      z.object({ type: z.literal('rebind'), seatId: z.string() }).strict(),
+      z
+        .object({ type: z.literal('set-owner'), seatId: z.string().nullable() })
+        .strict(),
+      z
+        .object({ type: z.literal('select-game'), gameId: z.string().min(1) })
+        .strict(),
       z
         .object({ type: z.literal('rollback'), checkpointId: z.string() })
         .strict(),
@@ -103,15 +108,6 @@ export type Command = z.infer<typeof CommandSchema>;
 export const JoinSchema = z
   .object({
     name: z.string().trim().min(1).max(24),
-    requestKey: z
-      .string()
-      .regex(/^[0-9a-f]{64}$/)
-      .optional(),
-  })
-  .strict();
-export const RedeemSchema = z
-  .object({
-    code: CredentialSchema,
     requestKey: z
       .string()
       .regex(/^[0-9a-f]{64}$/)
@@ -210,7 +206,10 @@ export interface RoomView {
   restored: boolean;
   joinOpen: boolean;
   playMode: PlayMode;
-  game: { id: string; name: string; min: number; max: number };
+  game: { id: string; name: string; min: number; max: number } | null;
+  catalog: { id: string; name: string; min: number; max: number }[];
+  ownerSeatId: string | null;
+  capabilities: { manage: boolean; control: boolean };
   seats: {
     id: string;
     name: string;
@@ -222,6 +221,7 @@ export interface RoomView {
   self: { role: 'public' | 'host' | 'player'; seatId: string | null };
   gameView: unknown;
   decisionId: string | null;
+  selectionToken: string | null;
   actions: unknown[];
   lifecycleActions: unknown[];
   history: {
@@ -236,7 +236,7 @@ export interface RoomView {
   endReason: string | null;
 }
 export type CommandReply =
-  | { ok: true; revision: number; branch: number; bindingCode?: string }
+  | { ok: true; revision: number; branch: number }
   | { ok: false; reason: string };
 
 export const RoomViewSchema = z
@@ -256,6 +256,21 @@ export const RoomViewSchema = z
         min: z.number().int().positive(),
         max: z.number().int().positive(),
       })
+      .strict()
+      .nullable(),
+    catalog: z.array(
+      z
+        .object({
+          id: z.string(),
+          name: z.string(),
+          min: z.number().int().positive(),
+          max: z.number().int().positive(),
+        })
+        .strict(),
+    ),
+    ownerSeatId: z.string().nullable(),
+    capabilities: z
+      .object({ manage: z.boolean(), control: z.boolean() })
       .strict(),
     seats: z.array(
       z
@@ -277,6 +292,7 @@ export const RoomViewSchema = z
       .strict(),
     gameView: z.json(),
     decisionId: z.string().nullable(),
+    selectionToken: z.string().nullable(),
     actions: z.array(z.json()),
     lifecycleActions: z.array(z.json()),
     history: z.array(
@@ -301,7 +317,6 @@ export const CommandReplySchema = z.discriminatedUnion('ok', [
       ok: z.literal(true),
       revision: z.number().int().nonnegative(),
       branch: z.number().int().nonnegative(),
-      bindingCode: CredentialSchema.optional(),
     })
     .strict(),
   z.object({ ok: z.literal(false), reason: z.string() }).strict(),

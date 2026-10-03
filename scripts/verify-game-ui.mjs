@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
 import { _electron } from 'playwright';
 import { build } from 'esbuild';
-import { mkdir, mkdtemp, writeFile, readdir } from 'node:fs/promises';
+import { mkdir, mkdtemp, writeFile, readdir, readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { createRequire } from 'node:module';
+import { verificationOutput } from './verification-output.mjs';
 const require = createRequire(import.meta.url);
 const verifyDeal = process.argv.includes('--verify-deal');
+const reviewStages = process.argv.includes('--review-stages');
 const evidenceName = process.argv
   .find((arg) => arg.startsWith('--evidence='))
   ?.slice(11);
@@ -20,17 +22,20 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 );
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/game-ui-')),
-  output = resolve(
-    'artifacts/maintenance/six-player-presentation/ui',
+  output = verificationOutput(
+    'ui',
     ...(only
       ? [evidenceName ?? (verifyDeal ? 'round-deal' : 'additional')]
       : []),
   );
 await mkdir(output, { recursive: true });
 const audioFiles = (await readdir('build/desktop/web/assets')).filter((file) =>
-  file.endsWith('.wav'),
+  /\.(wav|mp3)$/.test(file),
 );
-assert.equal(audioFiles.length, 5);
+const audioManifest = JSON.parse(
+  await readFile('assets/games/pokemon-encounters/audio/manifest.json', 'utf8'),
+);
+assert.equal(audioFiles.length, audioManifest.length);
 await build({
   entryPoints: ['scripts/fixtures/prepare-pokemon.ts'],
   outfile: join(work, 'prepare.cjs'),
@@ -227,6 +232,7 @@ for (const scene of selectedScenes) {
         const play = HTMLMediaElement.prototype.play;
         HTMLMediaElement.prototype.play = function () {
           window.tablemaxAudit.sounds.push(this.src);
+          window.tablemaxAudit.lastAudio = this;
           return play.call(this);
         };
       });
@@ -312,9 +318,6 @@ for (const scene of selectedScenes) {
     await send({ type: 'set-play-mode', mode: 'play' });
     await send({ type: 'resume' });
     await publicPage
-      .getByRole('button', { name: '开启本屏提示音', exact: true })
-      .click();
-    await publicPage
       .getByRole('button', { name: '提示音已开启 · 静音', exact: true })
       .waitFor();
     const decodedAudio = await publicPage.evaluate(async (files) => {
@@ -327,10 +330,20 @@ for (const scene of selectedScenes) {
             const decoded = await context.decodeAudioData(
               await response.arrayBuffer(),
             );
+            const samples = decoded.getChannelData(0);
+            let peak = 0,
+              energy = 0;
+            for (const sample of samples) {
+              peak = Math.max(peak, Math.abs(sample));
+              energy += sample * sample;
+            }
             return {
               file,
               seconds: decoded.duration,
               channels: decoded.numberOfChannels,
+              decodedSampleRate: decoded.sampleRate,
+              peak,
+              rms: Math.sqrt(energy / samples.length),
             };
           }),
         );
@@ -341,7 +354,12 @@ for (const scene of selectedScenes) {
     assert.ok(
       decodedAudio.every(
         (audio) =>
-          audio.seconds > 0.2 && audio.seconds < 0.5 && audio.channels === 1,
+          audio.seconds > 0.1 &&
+          audio.seconds < 4 &&
+          audio.channels >= 1 &&
+          audio.channels <= 2 &&
+          audio.peak > 0.01 &&
+          audio.rms > 0.001,
       ),
     );
     const item = {
@@ -355,10 +373,11 @@ for (const scene of selectedScenes) {
       decodedAudio,
       narrowOverflow: false,
     };
-    const capture = async (page, name) => {
-      await page.evaluate(() => {
-        scrollTo(0, 0);
-      });
+    const capture = async (page, name, keepScroll = false) => {
+      if (!keepScroll)
+        await page.evaluate(() => {
+          scrollTo(0, 0);
+        });
       await page.evaluate(
         () =>
           new Promise((r) =>
@@ -386,11 +405,29 @@ for (const scene of selectedScenes) {
     };
     await capture(publicPage, `${scene.id}-before-public.png`);
     await capture(phones[0], `${scene.id}-before-360.png`);
+    assert.equal(
+      await publicPage.locator('.decision-dashboard .current-actor').count(),
+      1,
+    );
+    assert.equal(await publicPage.getByRole('progressbar').count(), 1);
+    assert.equal(await publicPage.locator('.held-zone').count(), 1);
     for (const [index, action] of scene.actions) {
+      let queuedAudio;
       const page = phones[index];
       const before = await fetchView(players[index].token);
       item.phases.push(before.gameView.phase);
       await page.locator('.pokemon-player').waitFor();
+      if (reviewStages) {
+        const stage = `${scene.id}-step-${item.actions + 1}-${before.gameView.phase}`;
+        await capture(publicPage, `${stage}-public.png`);
+        await capture(page, `${stage}-phone.png`);
+        const board = page.locator('.pokemon-player .pokemon-board').last();
+        if (await board.count()) {
+          await board.scrollIntoViewIfNeeded();
+          await capture(page, `${stage}-phone-targets.png`, true);
+          await page.evaluate(() => scrollTo(0, 0));
+        }
+      }
       const landscapeChoice = !!scene.count && index === 0;
       const actionWindow = await desktop.browserWindow(page);
       if (landscapeChoice)
@@ -490,6 +527,22 @@ for (const scene of selectedScenes) {
       );
       const after = await fetchView(players[index].token);
       assert.equal(after.revision, before.revision + 1);
+      if (scene.id === 'V04' && action.type === 'draw') {
+        await publicPage.waitForFunction(
+          () => window.tablemaxAudit.sounds.length > 0,
+        );
+        // Freeze the first cue before its ended event so the second cue stays queued.
+        const playing = await publicPage.evaluate(() => {
+          window.tablemaxAudit.lastAudio.pause();
+          return [...window.tablemaxAudit.sounds];
+        });
+        assert.equal(
+          playing.length,
+          1,
+          'Coin cry is still queued behind rocket cue',
+        );
+        queuedAudio = playing;
+      }
       const latest = after.gameView.events.at(-1)?.action;
       assert.ok(
         latest,
@@ -564,6 +617,20 @@ for (const scene of selectedScenes) {
       ) {
         await publicPage.locator('.tossed-coin').waitFor({ state: 'attached' });
         await capture(publicPage, `${scene.id}-saved-coin-effect.png`);
+      }
+      if (queuedAudio) {
+        await send({ type: 'pause' });
+        await publicPage.getByText('游戏已暂停', { exact: true }).waitFor();
+        await publicPage.evaluate(() => {
+          window.tablemaxAudit.lastAudio.dispatchEvent(new Event('ended'));
+        });
+        assert.deepEqual(
+          await publicPage.evaluate(() => window.tablemaxAudit.sounds),
+          queuedAudio,
+          'Clearing saved feedback on pause cancels queued coin cries',
+        );
+        item.pauseCancelsQueuedAudio = true;
+        await send({ type: 'resume' });
       }
       if (landscapeChoice)
         await actionWindow.evaluate((window) =>
@@ -786,7 +853,8 @@ for (const scene of selectedScenes) {
       assert.ok(endedRound.lifecycleActions.length);
       await send({ type: 'lifecycle', action: endedRound.lifecycleActions[0] });
       await publicPage
-        .getByRole('heading', { name: '翻开第一张牌', exact: true })
+        .locator('.current-operation')
+        .filter({ hasText: '翻开第一张牌' })
         .waitFor();
       await publicPage.waitForFunction(() =>
         window.tablemaxAudit.motionStyles.some(
@@ -808,7 +876,11 @@ for (const scene of selectedScenes) {
           [
             'coin-toss',
             'effect-title-pop',
-            'sparkle-flight',
+            'firework-flight',
+            'mew-transfer',
+            'zapdos-strike',
+            'snorlax-swap',
+            'rocket-impact',
             'saved-reveal',
           ].includes(name),
         ),
@@ -833,7 +905,10 @@ for (const scene of selectedScenes) {
       await publicPage.evaluate(() => window.tablemaxAudit.animations),
       [],
     );
-    assert.ok(beforeSync > 1, 'Saved public events invoked local audio');
+    assert.ok(
+      beforeSync >= 1,
+      'Saved public events invoked default-on local audio',
+    );
     assert.equal(await phones[0].locator('.sound-control').count(), 0);
     item.soundCalls = beforeSync;
     const hostView = await fetchView(token);
@@ -877,6 +952,10 @@ for (const scene of selectedScenes) {
       });
     assert.equal(coinAnimation, 'none');
     evidence.cases.push(item);
+    await writeFile(
+      join(output, 'results.json'),
+      JSON.stringify({ ...evidence, result: 'in-progress' }, null, 2) + '\n',
+    );
     console.log(`Verified ${scene.id} UI and local saved-event feedback.`);
   } finally {
     socket?.disconnect();
@@ -887,7 +966,7 @@ assert.deepEqual(evidence.external, []);
 assert.deepEqual(evidence.errors, []);
 await writeFile(
   join(output, 'results.json'),
-  JSON.stringify(evidence, null, 2) + '\n',
+  JSON.stringify({ ...evidence, result: 'passed' }, null, 2) + '\n',
 );
 console.log(
   JSON.stringify({ result: 'passed', cases: evidence.cases.length, output }),

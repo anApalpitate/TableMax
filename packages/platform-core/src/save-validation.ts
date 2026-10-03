@@ -3,19 +3,21 @@ import type { Save, Snapshot } from './model';
 import { requireThat } from './errors';
 export function validateSave(
   input: unknown,
-  rules: GameRules,
-  strategy: BotStrategy,
+  rules: GameRules | null,
+  strategy: BotStrategy | null,
 ): Save {
   const d = structuredClone(input) as Save;
-  const { id, gameVersion, rulesVersion, stateVersion } = rules.manifest;
-  const expected = { id, gameVersion, rulesVersion, stateVersion };
   requireThat(
     d &&
       d.formatVersion === 1 &&
-      d.manifest &&
-      Object.entries(expected).every(
-        ([k, v]) => d.manifest[k as keyof typeof expected] === v,
-      ),
+      (rules
+        ? d.manifest &&
+          ['id', 'gameVersion', 'rulesVersion', 'stateVersion'].every(
+            (key) =>
+              d.manifest![key as keyof NonNullable<Save['manifest']>] ===
+              rules.manifest[key as keyof NonNullable<Save['manifest']>],
+          )
+        : d.manifest === null),
     'incompatible-save',
   );
   requireThat(
@@ -37,7 +39,7 @@ export function validateSave(
   d.playMode ??= 'play';
   requireThat(
     Array.isArray(d.seats) &&
-      d.seats.length <= rules.manifest.players.max &&
+      d.seats.length <= (rules?.manifest.players.max ?? 0) &&
       new Set(d.seats.map((s) => s.id)).size === d.seats.length,
     'damaged-save',
   );
@@ -59,7 +61,8 @@ export function validateSave(
     }
     if (seat.botDifficulty === undefined) seat.botDifficulty = 'default';
     requireThat(
-      (strategy.difficulties ?? ['default']).includes(seat.botDifficulty),
+      strategy &&
+        (strategy.difficulties ?? ['default']).includes(seat.botDifficulty),
       'incompatible-strategy',
     );
   }
@@ -68,6 +71,32 @@ export function validateSave(
       d.seats.some(
         (seat) => seat.id === d.hostSeat && seat.controller === 'human',
       ),
+    'damaged-save',
+  );
+  d.ownerSeatId ??= null;
+  requireThat(
+    d.ownerSeatId === null ||
+      d.seats.some(
+        (seat) => seat.id === d.ownerSeatId && seat.controller === 'human',
+      ),
+    'damaged-save',
+  );
+  const revision = (value: number) =>
+    Number.isSafeInteger(value) && value >= 0 && value <= d.revision;
+  requireThat(
+    d.gameWindow == null ||
+      (typeof d.gameWindow.group === 'string' && revision(d.gameWindow.floor)),
+    'damaged-save',
+  );
+  requireThat(
+    d.readyWindow === undefined ||
+      (revision(d.readyWindow.floor) &&
+        d.readyWindow.seats &&
+        typeof d.readyWindow.seats === 'object' &&
+        Object.entries(d.readyWindow.seats).every(
+          ([seat, value]) =>
+            d.seats.some((entry) => entry.id === seat) && revision(value),
+        )),
     'damaged-save',
   );
   requireThat(
@@ -80,6 +109,7 @@ export function validateSave(
     'damaged-save',
   );
   const validateSnapshot = (snap: Snapshot) => {
+    requireThat(rules && strategy, 'damaged-save');
     requireThat(
       snap &&
         Number.isInteger(snap.random) &&
@@ -128,7 +158,9 @@ export function validateSave(
   requireThat(
     d.status === 'lobby'
       ? d.snapshot === null && d.history.length === 0
-      : d.snapshot !== null && d.seats.length >= rules.manifest.players.min,
+      : d.snapshot !== null &&
+          !!rules &&
+          d.seats.length >= rules.manifest.players.min,
     'damaged-save',
   );
   for (const h of d.history) {
@@ -153,7 +185,7 @@ export function validateSave(
         Number.isInteger(r.reply.branch),
       'damaged-save',
     );
-  for (const value of [d.sessionReceipts, d.bindings])
+  for (const value of [d.sessionReceipts])
     requireThat(
       value === undefined ||
         (value !== null &&
@@ -174,16 +206,9 @@ export function validateSave(
         receipt.expires > 0,
       'damaged-save',
     );
-  for (const [key, binding] of Object.entries(d.bindings ?? {}))
-    requireThat(
-      /^[0-9a-f]{64}$/.test(key) &&
-        binding &&
-        typeof binding.seatId === 'string' &&
-        Number.isSafeInteger(binding.expires) &&
-        binding.expires > 0,
-      'damaged-save',
-    );
   d.sessionReceipts ??= {};
-  d.bindings ??= {};
-  return structuredClone(d);
+  d.readyWindow ??= { floor: d.revision, seats: {} };
+  // Old binding requests are inert; existing phone credentials still restore.
+  delete d.bindings;
+  return d;
 }

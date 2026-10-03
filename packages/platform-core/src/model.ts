@@ -43,7 +43,7 @@ export interface Save {
     gameVersion: string;
     rulesVersion: string;
     stateVersion: number;
-  };
+  } | null;
   instanceId: string;
   revision: number;
   branch: number;
@@ -53,6 +53,9 @@ export interface Save {
   playMode?: PlayMode;
   seats: Seat[];
   hostSeat?: string | null;
+  ownerSeatId?: string | null;
+  gameWindow?: { group: string; floor: number } | null;
+  readyWindow?: { floor: number; seats: Record<string, number> };
   snapshot: Snapshot | null;
   history: Checkpoint[];
   receipts: Record<string, { fingerprint: string; reply: CommandReply }>;

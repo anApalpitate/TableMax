@@ -4,11 +4,12 @@ import { build } from 'esbuild';
 import { createRequire } from 'node:module';
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { verificationOutput } from './verification-output.mjs';
 
 const require = createRequire(import.meta.url);
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/card-layout-'));
-const output = resolve('artifacts/maintenance/six-player-presentation/cards');
+const output = verificationOutput('cards');
 await mkdir(output, { recursive: true });
 await build({
   stdin: {
@@ -206,6 +207,9 @@ try {
           name = card.querySelector('.card-name');
         const value = card.querySelector('.card-value'),
           ability = card.querySelector('.ability-mark');
+        const slot = card.closest('.card-slot');
+        const surface = slot.querySelector('.card-surface');
+        const slotIndex = slot.querySelector('.slot-index');
         const context = document.createElement('canvas').getContext('2d');
         const style = getComputedStyle(name);
         context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
@@ -221,6 +225,9 @@ try {
           nameFont: parseFloat(style.fontSize),
           textWidth: context.measureText(name.textContent).width,
           ability: ability ? bounds(ability) : null,
+          surface: bounds(surface),
+          slotIndex: bounds(slotIndex),
+          slotBorder: getComputedStyle(slot).borderTopWidth,
         };
       }),
     );
@@ -235,6 +242,14 @@ try {
       ),
     };
     evidence.layouts.push(layout);
+    assert.ok(
+      metrics.every(
+        (item) =>
+          item.slotIndex.y >= item.surface.bottom + 2 &&
+          item.slotBorder === '0px',
+      ),
+      `${name}: selection surface excludes the slot number`,
+    );
     const png = await window.evaluate(async (w) =>
       (
         await w.webContents.capturePage(undefined, {

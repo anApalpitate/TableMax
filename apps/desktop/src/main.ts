@@ -18,6 +18,8 @@ import { RuntimeGuard } from './runtime-guard';
 import { startupError } from './startup-error';
 import { DisplayController, DisplaySettingsStore } from './display-controller';
 import { displayChannels } from './display-types';
+import { AudioOutputController } from './audio-controller';
+import { audioChannels } from './audio-types';
 
 const localData = process.env.LOCALAPPDATA;
 if (!localData) throw new Error('Windows LOCALAPPDATA is unavailable');
@@ -49,6 +51,7 @@ const runtime = new RuntimeGuard(powerSaveBlocker);
 let hostWindow: BrowserWindow | null = null;
 let hostUrl = '';
 let displays: DisplayController | undefined;
+let audioOutputs: AudioOutputController | undefined;
 function showHost() {
   if (!hostUrl || quitting) return;
   if (!hostWindow || hostWindow.isDestroyed()) {
@@ -98,6 +101,7 @@ function openWindow(url: string, publicScreen = false) {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
+      autoplayPolicy: 'no-user-gesture-required',
       backgroundThrottling: !checking && !testing,
       offscreen: testing,
       preload: join(__dirname, 'preload.cjs'),
@@ -105,6 +109,14 @@ function openWindow(url: string, publicScreen = false) {
   });
   windows.add(window);
   displays?.register(window, publicScreen ? 'public' : 'host');
+  audioOutputs?.register(window, publicScreen ? 'public' : 'host');
+  // Opening a public screen cancels the host's navigation. Only a committed
+  // document navigation retires its audio subscription; SPA routes disconnect
+  // through the mounted game's hook.
+  window.webContents.on('did-navigate', () => audioOutputs?.reset(window));
+  window.webContents.on('render-process-gone', () =>
+    audioOutputs?.reset(window),
+  );
   const updateDisplay = () =>
     runtime.publicScreenVisible(
       [...publicWindows].some(
@@ -135,6 +147,17 @@ function openWindow(url: string, publicScreen = false) {
 
 async function run() {
   await app.whenReady();
+  ipcMain.handle(
+    audioChannels.connect,
+    (event) => audioOutputs?.connect(event) ?? false,
+  );
+  ipcMain.handle(audioChannels.disconnect, (event) =>
+    audioOutputs?.disconnect(event),
+  );
+  ipcMain.handle(
+    audioChannels.claim,
+    (event, key: unknown) => audioOutputs?.claim(event, key) ?? false,
+  );
   Menu.setApplicationMenu(
     Menu.buildFromTemplate([
       {
@@ -304,6 +327,7 @@ async function run() {
   }
 
   hostUrl = `${webOrigin}/host#host=${ready.hostToken}`;
+  audioOutputs = new AudioOutputController(webOrigin);
   showHost();
   child.on('exit', (code) => {
     if (!quitting) {

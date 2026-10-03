@@ -1,7 +1,8 @@
 import type { Face, PokemonView } from '../rules/project';
 import { cardArt } from '../../../assets/games/pokemon-encounters/catalog';
 import { useContext, type CSSProperties } from 'react';
-import { SavedMotion, ActionTargets } from './motion';
+import { SavedMotion, ActionTargets, EffectTargets } from './motion';
+import { publicZeroColumns } from './presentation-state';
 
 export function CardFace({ card }: { card: Face | null }) {
   const art = card ? cardArt(card.categoryId) : null;
@@ -62,8 +63,50 @@ export function Board({
 }) {
   const motion = useContext(SavedMotion);
   const targets = useContext(ActionTargets);
+  const effects = useContext(EffectTargets);
+  const zeroColumns = publicZeroColumns(view, seatId);
   const motionClass = (slotId: string) =>
-    `${targets.includes(slotId) ? 'action-target' : ''} ${motion.includes(slotId) ? 'saved-motion' : ''} ${motion.includes(`reveal:${slotId}`) ? 'saved-reveal' : ''} ${motion.includes(`deal:${slotId}`) ? 'saved-deal' : ''}`;
+    `${targets.includes(slotId) ? 'action-target' : ''} ${motion.includes(slotId) ? 'saved-motion' : ''} ${motion.includes(`reveal:${slotId}`) ? 'saved-reveal' : ''} ${motion.includes(`deal:${slotId}`) ? 'saved-deal' : ''} ${effects.slots.includes(slotId) && effects.theme ? `theme-${effects.theme}` : ''} ${effects.rocketReturns.includes(slotId) ? 'rocket-return' : ''}`;
+  const contents = (
+    slot: PokemonView['boards'][string][number],
+    index: number,
+  ) => (
+    <>
+      <span className="card-surface">
+        <CardFace card={slot.card} />
+        {effects.slots.includes(slot.slotId) && effects.theme && (
+          <span className="card-theme-mark" aria-hidden="true">
+            {effects.theme === 'zapdos'
+              ? 'ϟ'
+              : effects.theme === 'snorlax'
+                ? '⇄'
+                : effects.theme === 'mew'
+                  ? '✧'
+                  : '✦'}
+          </span>
+        )}
+        {effects.rocketReturns.includes(slot.slotId) && (
+          <>
+            <span className="rocket-return-mark" aria-hidden="true">
+              R
+            </span>
+            <span className="saved-placement-caption">
+              已换入 {index + 1} 号位
+            </span>
+          </>
+        )}
+      </span>
+      <span className="slot-index">{index + 1}</span>
+      {index < 3 && zeroColumns.includes(index) && (
+        <span
+          className="zero-column-badge"
+          aria-label={`第 ${index + 1} 列公开确定为零分`}
+        >
+          0 分列
+        </span>
+      )}
+    </>
+  );
   return (
     <div className="pokemon-board" aria-label="两行三列场地">
       {view.boards[seatId]!.map((slot, i) =>
@@ -71,7 +114,8 @@ export function Board({
           <button
             type="button"
             key={slot.slotId}
-            className={`card-slot ${selected.includes(i) ? 'selected' : ''} ${motionClass(slot.slotId)}`}
+            className={`card-slot ${selected.includes(i) ? 'selected' : ''} ${zeroColumns.includes(i % 3) ? 'zero-column' : ''} ${motionClass(slot.slotId)}`}
+            data-slot={slot.slotId}
             disabled={locked || !slots.includes(i)}
             aria-label={`位置 ${i + 1}：${slot.card ? `${slot.card.name}，${slot.card.value ?? '?'}` : '暗牌'}`}
             aria-pressed={selected.includes(i)}
@@ -97,16 +141,15 @@ export function Board({
                 });
             }}
           >
-            <CardFace card={slot.card} />
-            <span className="slot-index">{i + 1}</span>
+            {contents(slot, i)}
           </button>
         ) : (
           <div
             key={slot.slotId}
-            className={`card-slot ${motionClass(slot.slotId)}`}
+            className={`card-slot ${zeroColumns.includes(i % 3) ? 'zero-column' : ''} ${motionClass(slot.slotId)}`}
+            data-slot={slot.slotId}
           >
-            <CardFace card={slot.card} />
-            <span className="slot-index">{i + 1}</span>
+            {contents(slot, i)}
           </div>
         ),
       )}

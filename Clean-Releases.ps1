@@ -1,7 +1,9 @@
 [CmdletBinding()]
 param(
   [switch]$Apply,
-  [ValidateRange(0, 10080)][int]$MinimumAgeMinutes = 30
+  [string]$ProjectRoot,
+  [ValidateRange(0, 10080)][int]$MinimumAgeMinutes = 30,
+  [ValidatePattern('^\d+\.\d+\.\d+$')][string[]]$RetiredVersions = @()
 )
 
-& (Join-Path $PSScriptRoot 'scripts/cleanup-local.ps1') -Kind Releases -Apply:$Apply -MinimumAgeMinutes $MinimumAgeMinutes
+& (Join-Path $PSScriptRoot 'scripts/cleanup-local.ps1') -Kind Releases -Apply:$Apply -ProjectRoot $ProjectRoot -MinimumAgeMinutes $MinimumAgeMinutes -RetiredVersions $RetiredVersions

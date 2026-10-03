@@ -6,12 +6,14 @@ import { resolve, join } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createHash } from 'node:crypto';
+import { verificationOutput } from './verification-output.mjs';
 
 const require = createRequire(import.meta.url);
 const portable = process.argv.includes('--portable');
-const output = resolve(
-  'artifacts/maintenance/display-resolution',
-  portable ? 'portable' : 'development',
+const shortOnly = process.argv.includes('--paused-720p-only');
+const output = verificationOutput(
+  'display',
+  shortOnly ? 'paused-720p' : portable ? 'portable' : 'development',
 );
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
@@ -158,6 +160,13 @@ async function start(dpi) {
   });
   const host = await desktop.firstWindow();
   await host.waitForURL('**/host');
+  await host.getByText('本地连接已就绪', { exact: true }).waitFor();
+  if (
+    await host.getByRole('button', { name: '选择游戏', exact: true }).count()
+  ) {
+    await host.getByRole('button', { name: '选择游戏', exact: true }).click();
+    await host.getByRole('button', { name: '切换游戏', exact: true }).waitFor();
+  }
   origin = new URL(host.url()).origin;
   port = new URL(origin).port;
   phoneUrl = (await host.locator('.url').textContent()).trim();
@@ -432,6 +441,9 @@ async function layout(page, label, game = false, paused = false) {
       },
       seats: query(game ? '.game-seat' : '.room-table__seat'),
       cards: query('.game-seat .pokemon-card'),
+      panels: query(
+        '.game-toolbar,.pokemon-status,.action-announcement,.game-table,.game-seats',
+      ),
       notices: query('.table-notice'),
       noticeText:
         document.querySelector('.table-notice')?.textContent?.trim() ?? '',
@@ -573,386 +585,391 @@ async function layout(page, label, game = false, paused = false) {
 }
 
 try {
-  console.log(
-    'Display verification: launch hidden desktop and six phone identities',
-  );
-  const { host, token } = await start(1);
-  const originalDisplays = await desktop.evaluate(({ screen }) =>
-    screen.getAllDisplays().map(({ id, bounds, workArea, scaleFactor }) => ({
-      id,
-      bounds,
-      workArea,
-      scaleFactor,
-    })),
-  );
-  const phones = [];
-  for (let index = 0; index < 6; index++) {
-    const phone = await openPhone(index);
-    phones.push(phone);
-    assert.equal(
-      await phone
-        .getByRole('button', { name: '显示设置', exact: true })
-        .count(),
-      0,
+  await (async () => {
+    console.log(
+      'Display verification: launch hidden desktop and six phone identities',
     );
-    await phone
-      .getByLabel('你的昵称')
-      .fill(
-        index === 1
-          ? '长昵称朋友在四倍分辨率下依然清晰'
-          : `手机朋友 ${index + 1}`,
-      );
-    await phone.getByRole('button', { name: '加入', exact: true }).click();
-    await phone
-      .getByRole('button', { name: '我准备好了', exact: true })
-      .click();
-    await phone
-      .getByRole('button', { name: '取消准备', exact: true })
-      .waitFor();
-  }
-  const publicPage = await openPublic(host);
-  const plainPublic = await openPhone(7, `${origin}/public`);
-  assert.equal(
-    await plainPublic
-      .getByRole('button', { name: '显示设置', exact: true })
-      .count(),
-    0,
-    'A web browser public page without the native bridge has no computer display control',
-  );
-  const phoneBefore = await nativeState(phones[0]);
-  for (const [width, height] of sizes) {
-    await resize(host, width, height);
-    await configure(host, 'auto');
-    await layout(host, `host lobby auto ${width}x${height}`);
-    await capture(host, `host-lobby-auto-${width}x${height}`);
-    await resize(publicPage, width, height);
-    await configure(publicPage, `${width}x${height}`);
-    await layout(publicPage, `public lobby preset ${width}x${height}`);
-    await capture(publicPage, `public-lobby-preset-${width}x${height}`);
-  }
-  console.log(
-    'Display verification: four-resolution lobby geometry passed; test independent settings',
-  );
-  evidence.checks.push(
-    'Four native window resolutions, including an actual 3840x2160 hidden render, show all six lobby seats without overlap or scroll, and both computer lobby routes have the settings dialog.',
-  );
-  await configure(host, '1920x1080', 125);
-  const hostSaved = await readSettings(host);
-  const isolatedHostState = await nativeState(host);
-  await configure(publicPage, '3840x2160', 150, 'button');
-  assert.deepEqual(
-    await nativeState(host),
-    isolatedHostState,
-    'Changing public zoom leaves the same-origin host zoom unchanged before host applies any setting again',
-  );
-  const publicSaved = await readSettings(publicPage);
-  assert.notDeepEqual(publicSaved, hostSaved);
-  assert.deepEqual(
-    await readSettings(host),
-    hostSaved,
-    'Public settings never overwrite host settings',
-  );
-  const secondPublic = await openPublic(host);
-  assert.deepEqual(
-    await readSettings(secondPublic),
-    publicSaved,
-    'A new public window adopts the saved public preference',
-  );
-  await resize(secondPublic, 3840, 2160);
-  await configure(secondPublic, '1920x1080');
-  const secondSaved = await readSettings(secondPublic);
-  const secondNative = await nativeState(secondPublic);
-  await configure(publicPage, '3840x2160', 125);
-  assert.deepEqual(
-    await nativeState(secondPublic),
-    secondNative,
-    'Two simultaneous public windows retain independent native zoom',
-  );
-  await reload(secondPublic);
-  assert.deepEqual(
-    await readSettings(secondPublic),
-    secondSaved,
-    'A public window keeps its own preference on reload even after another public window saves',
-  );
-  await configure(publicPage, '3840x2160', 150);
-  const thirdPublic = await openPublic(host);
-  assert.deepEqual(
-    await readSettings(thirdPublic),
-    publicSaved,
-    'A later new public window adopts the latest saved public default',
-  );
-  await secondPublic.close();
-  await thirdPublic.close();
-  console.log(
-    'Display verification: two extra public windows closed; verify host reload',
-  );
-  await reload(host);
-  await reload(publicPage);
-  assert.deepEqual(await readSettings(host), hostSaved);
-  assert.deepEqual(await readSettings(publicPage), publicSaved);
-  const storedPreferences = JSON.parse(
-    await readFile(join(dataDir, 'display-settings.json'), 'utf8'),
-  );
-  assert.equal(storedPreferences.version, 1);
-  assert.deepEqual(storedPreferences.host, {
-    resolution: '1920x1080',
-    interfaceScale: 125,
-  });
-  assert.deepEqual(storedPreferences.public, {
-    resolution: '3840x2160',
-    interfaceScale: 150,
-  });
-  assert.deepEqual(
-    await nativeState(phones[0]),
-    phoneBefore,
-    'Computer display settings do not affect a player window',
-  );
-  const seated = await view(token);
-  await configure(host, 'auto');
-  await configure(publicPage, 'auto');
-  assert.equal(
-    (await view(token)).revision,
-    seated.revision,
-    'Display preferences do not save any room action',
-  );
-  console.log(
-    'Display verification: reload/persistence and native window isolation passed; begin six-phone game',
-  );
-  await host.getByRole('button', { name: '开始游戏', exact: true }).click();
-  await host.waitForURL('**/host/game');
-  await publicPage.waitForURL('**/public/game', { timeout: 15000 });
-  for (const phone of phones) {
-    await phone.waitForURL('**/player/game');
-    await phone
-      .locator('.pokemon-player > .pokemon-board button')
-      .nth(0)
-      .click();
-    await phone.locator('.confirm-action').click();
-    assert.equal(
-      await phone
-        .getByRole('button', { name: '显示设置', exact: true })
-        .count(),
-      0,
-    );
-  }
-  await until(
-    async () => (await view(token)).gameView.initialDone.length === 6,
-    'All six genuine player identities complete their initial saved card selection',
-  );
-  console.log(
-    'Display verification: save a host pause and check all six boards before resuming',
-  );
-  await host.getByRole('button', { name: '菜单', exact: true }).click();
-  await host
-    .getByRole('dialog', { name: '牌桌菜单', exact: true })
-    .getByRole('button', { name: '暂停游戏', exact: true })
-    .click();
-  await until(
-    async () => (await view(token)).paused,
-    'The actual authorized host pause is saved',
-  );
-  await host.keyboard.press('Escape');
-  await host.getByRole('button', { name: '恢复游戏', exact: true }).waitFor();
-  const pausedRevision = (await view(token)).revision;
-  for (const [width, height] of sizes) {
-    for (const [role, page] of [
-      ['host', host],
-      ['public', publicPage],
-    ]) {
-      await resize(page, width, height);
-      await configure(page, 'auto');
-      await layout(
-        page,
-        `${role} paused game auto ${width}x${height}`,
-        true,
-        true,
-      );
-      await capture(page, `${role}-paused-game-auto-${width}x${height}`);
-    }
-  }
-  for (const [role, page] of [
-    ['host', host],
-    ['public', publicPage],
-  ]) {
-    for (const scale of [100, 125, 150]) {
-      await configure(page, '3840x2160', scale);
-      await layout(page, `${role} paused game 2160p ${scale}%`, true, true);
-      await capture(page, `${role}-paused-game-3840x2160-${scale}percent`);
-    }
-  }
-  assert.equal(
-    (await view(token)).revision,
-    pausedRevision,
-    'Display adjustments do not alter the saved pause',
-  );
-  await host.getByRole('button', { name: '恢复游戏', exact: true }).click();
-  await until(
-    async () => !(await view(token)).paused,
-    'The real host resume command is saved',
-  );
-  await host.locator('.table-notice').waitFor({ state: 'hidden' });
-  for (const page of [host, publicPage]) await configure(page, 'auto');
-  evidence.checks.push(
-    'An actual host pause and resume preserve all 36 cards on both computer screens: all four native resolutions and 4K 100/125/150% pause layouts require no page scrolling, and only the host exposes an uncovered 44px resume control.',
-  );
-  const gameRevision = (await view(token)).revision;
-  for (const [width, height] of sizes) {
-    for (const [role, page] of [
-      ['host', host],
-      ['public', publicPage],
-    ]) {
-      await resize(page, width, height);
-      await configure(page, 'auto');
-      await layout(page, `${role} game auto ${width}x${height}`, true);
-      await capture(page, `${role}-game-auto-${width}x${height}`);
-    }
-  }
-  console.log(
-    'Display verification: game geometry passed at all four resolutions; test interface sizes',
-  );
-  const physicalFonts = [];
-  for (const size of [100, 125, 150]) {
-    await configure(publicPage, '3840x2160', size);
-    const metrics = await layout(
-      publicPage,
-      `public game 2160p ${size}%`,
-      true,
-    );
-    physicalFonts.push({
-      size,
-      zoom: metrics.native.zoom,
-      name: metrics.names[0] * metrics.native.zoom,
-    });
-    await capture(publicPage, `public-game-3840x2160-${size}percent`);
-  }
-  assert.ok(
-    physicalFonts[1].name > physicalFonts[0].name &&
-      physicalFonts[2].name > physicalFonts[1].name,
-    '125% and 150% increase displayed type size immediately',
-  );
-  evidence.fontScales = physicalFonts;
-  evidence.originalDisplays = originalDisplays;
-  assert.deepEqual(
-    await desktop.evaluate(({ screen }) =>
+    const { host, token } = await start(1);
+    const originalDisplays = await desktop.evaluate(({ screen }) =>
       screen.getAllDisplays().map(({ id, bounds, workArea, scaleFactor }) => ({
         id,
         bounds,
         workArea,
         scaleFactor,
       })),
-    ),
-    originalDisplays,
-    'Display preferences leave native OS display geometry and DPI unchanged',
-  );
-  assert.equal(
-    (await view(token)).revision,
-    gameRevision,
-    'Changing and resizing display settings never changes the game revision',
-  );
-  await capture(phones[0], 'phone-game-unaffected-390x844');
-  await configure(host, '1920x1080', 125);
-  const restartHostSettings = await readSettings(host);
-  const restartPublicSettings = await readSettings(publicPage);
-  console.log(
-    'Display verification: restart desktop at simulated Windows 150% DPI',
-  );
-  await stop();
-  const restarted = await start(1.5);
-  assert.deepEqual(
-    await readSettings(restarted.host),
-    restartHostSettings,
-    'Host preference survives the actual desktop/service restart',
-  );
-  const restartedPublic = await openPublic(restarted.host);
-  assert.equal(
-    (await view(restarted.token)).paused,
-    true,
-    'Actual service restart restores the saved game in a paused state',
-  );
-  assert.deepEqual(
-    await readSettings(restartedPublic),
-    restartPublicSettings,
-    'Public preference survives an independent window recreation and restart',
-  );
-  for (const page of [restarted.host, restartedPublic]) {
-    if (!new URL(page.url()).pathname.endsWith('/game'))
-      await page.getByRole('link', { name: '进入牌桌', exact: true }).click();
-    await settle(page);
-    await resize(page, 2560, 1440);
-    await configure(page, 'auto');
-    const offscreenDensity = await page.evaluate(() => ({
-      width: innerWidth,
-      height: innerHeight,
-      dpr: devicePixelRatio,
-    }));
-    // Offscreen painting in Electron uses density 1 even when screen reports
-    // Windows 150%. Simulate renderer density without overriding its native
-    // viewport: zero width/height explicitly disable CDP viewport replacement.
-    const cdp = await page.context().newCDPSession(page);
-    await cdp.send('Emulation.setDeviceMetricsOverride', {
-      width: 0,
-      height: 0,
-      deviceScaleFactor: 1.5,
-      mobile: false,
-    });
-    const simulatedDensity = await page.evaluate(() => ({
-      width: innerWidth,
-      height: innerHeight,
-      dpr: devicePixelRatio,
-    }));
+    );
+    const phones = [];
+    for (let index = 0; index < 6; index++) {
+      const phone = await openPhone(index);
+      phones.push(phone);
+      assert.equal(
+        await phone
+          .getByRole('button', { name: '显示设置', exact: true })
+          .count(),
+        0,
+      );
+      await phone
+        .getByLabel('你的昵称')
+        .fill(
+          index === 1
+            ? '长昵称朋友在四倍分辨率下依然清晰'
+            : `手机朋友 ${index + 1}`,
+        );
+      await phone.getByRole('button', { name: '加入', exact: true }).click();
+      await phone
+        .getByRole('button', { name: '我准备好了', exact: true })
+        .click();
+      await phone
+        .getByRole('button', { name: '取消准备', exact: true })
+        .waitFor();
+    }
+    const publicPage = await openPublic(host);
+    const plainPublic = await openPhone(7, `${origin}/public`);
+    assert.equal(
+      await plainPublic
+        .getByRole('button', { name: '显示设置', exact: true })
+        .count(),
+      0,
+      'A web browser public page without the native bridge has no computer display control',
+    );
+    const phoneBefore = await nativeState(phones[0]);
+    for (const [width, height] of sizes) {
+      await resize(host, width, height);
+      await configure(host, 'auto');
+      await layout(host, `host lobby auto ${width}x${height}`);
+      await capture(host, `host-lobby-auto-${width}x${height}`);
+      await resize(publicPage, width, height);
+      await configure(publicPage, `${width}x${height}`);
+      await layout(publicPage, `public lobby preset ${width}x${height}`);
+      await capture(publicPage, `public-lobby-preset-${width}x${height}`);
+    }
+    console.log(
+      'Display verification: four-resolution lobby geometry passed; test independent settings',
+    );
+    evidence.checks.push(
+      'Four native window resolutions, including an actual 3840x2160 hidden render, show all six lobby seats without overlap or scroll, and both computer lobby routes have the settings dialog.',
+    );
+    await configure(host, '1920x1080', 125);
+    const hostSaved = await readSettings(host);
+    const isolatedHostState = await nativeState(host);
+    await configure(publicPage, '3840x2160', 150, 'button');
     assert.deepEqual(
-      [simulatedDensity.width, simulatedDensity.height],
-      [offscreenDensity.width, offscreenDensity.height],
-      'DPI simulation does not override native viewport dimensions',
+      await nativeState(host),
+      isolatedHostState,
+      'Changing public zoom leaves the same-origin host zoom unchanged before host applies any setting again',
     );
-    evidence.dpi.push({
-      role: page === restarted.host ? 'host' : 'public',
-      offscreenDensity,
-      simulatedDensity,
-      method:
-        'Native --force-device-scale-factor=1.5 screen geometry plus CDP density 1.5 with width/height 0; actual Electron offscreen capture PNG retains native paint dimensions.',
+    const publicSaved = await readSettings(publicPage);
+    assert.notDeepEqual(publicSaved, hostSaved);
+    assert.deepEqual(
+      await readSettings(host),
+      hostSaved,
+      'Public settings never overwrite host settings',
+    );
+    const secondPublic = await openPublic(host);
+    assert.deepEqual(
+      await readSettings(secondPublic),
+      publicSaved,
+      'A new public window adopts the saved public preference',
+    );
+    await resize(secondPublic, 3840, 2160);
+    await configure(secondPublic, '1920x1080');
+    const secondSaved = await readSettings(secondPublic);
+    const secondNative = await nativeState(secondPublic);
+    await configure(publicPage, '3840x2160', 125);
+    assert.deepEqual(
+      await nativeState(secondPublic),
+      secondNative,
+      'Two simultaneous public windows retain independent native zoom',
+    );
+    await reload(secondPublic);
+    assert.deepEqual(
+      await readSettings(secondPublic),
+      secondSaved,
+      'A public window keeps its own preference on reload even after another public window saves',
+    );
+    await configure(publicPage, '3840x2160', 150);
+    const thirdPublic = await openPublic(host);
+    assert.deepEqual(
+      await readSettings(thirdPublic),
+      publicSaved,
+      'A later new public window adopts the latest saved public default',
+    );
+    await secondPublic.close();
+    await thirdPublic.close();
+    console.log(
+      'Display verification: two extra public windows closed; verify host reload',
+    );
+    await reload(host);
+    await reload(publicPage);
+    assert.deepEqual(await readSettings(host), hostSaved);
+    assert.deepEqual(await readSettings(publicPage), publicSaved);
+    const storedPreferences = JSON.parse(
+      await readFile(join(dataDir, 'display-settings.json'), 'utf8'),
+    );
+    assert.equal(storedPreferences.version, 1);
+    assert.deepEqual(storedPreferences.host, {
+      resolution: '1920x1080',
+      interfaceScale: 125,
     });
-    await layout(
-      page,
-      `${page === restarted.host ? 'host' : 'public'} game DPI 150%`,
+    assert.deepEqual(storedPreferences.public, {
+      resolution: '3840x2160',
+      interfaceScale: 150,
+    });
+    assert.deepEqual(
+      await nativeState(phones[0]),
+      phoneBefore,
+      'Computer display settings do not affect a player window',
+    );
+    const seated = await view(token);
+    await configure(host, 'auto');
+    await configure(publicPage, 'auto');
+    assert.equal(
+      (await view(token)).revision,
+      seated.revision,
+      'Display preferences do not save any room action',
+    );
+    console.log(
+      'Display verification: reload/persistence and native window isolation passed; begin six-phone game',
+    );
+    await host.getByRole('button', { name: '开始游戏', exact: true }).click();
+    await host.waitForURL('**/host/game');
+    await publicPage.waitForURL('**/public/game', { timeout: 15000 });
+    for (const phone of phones) {
+      await phone.waitForURL('**/player/game');
+      await phone
+        .locator('.pokemon-player > .pokemon-board button')
+        .nth(0)
+        .click();
+      await phone.locator('.confirm-action').click();
+      assert.equal(
+        await phone
+          .getByRole('button', { name: '显示设置', exact: true })
+          .count(),
+        0,
+      );
+    }
+    await until(
+      async () => (await view(token)).gameView.initialDone.length === 6,
+      'All six genuine player identities complete their initial saved card selection',
+    );
+    console.log(
+      'Display verification: save a host pause and check all six boards before resuming',
+    );
+    await host.getByRole('button', { name: '菜单', exact: true }).click();
+    await host
+      .getByRole('dialog', { name: '牌桌菜单', exact: true })
+      .getByRole('button', { name: '暂停游戏', exact: true })
+      .click();
+    await until(
+      async () => (await view(token)).paused,
+      'The actual authorized host pause is saved',
+    );
+    await host.keyboard.press('Escape');
+    await host.getByRole('button', { name: '恢复游戏', exact: true }).waitFor();
+    const pausedRevision = (await view(token)).revision;
+    for (const [width, height] of sizes) {
+      for (const [role, page] of [
+        ['host', host],
+        ['public', publicPage],
+      ]) {
+        await resize(page, width, height);
+        await configure(page, 'auto');
+        await layout(
+          page,
+          `${role} paused game auto ${width}x${height}`,
+          true,
+          true,
+        );
+        await capture(page, `${role}-paused-game-auto-${width}x${height}`);
+        if (shortOnly) return;
+      }
+    }
+    for (const [role, page] of [
+      ['host', host],
+      ['public', publicPage],
+    ]) {
+      for (const scale of [100, 125, 150]) {
+        await configure(page, '3840x2160', scale);
+        await layout(page, `${role} paused game 2160p ${scale}%`, true, true);
+        await capture(page, `${role}-paused-game-3840x2160-${scale}percent`);
+      }
+    }
+    assert.equal(
+      (await view(token)).revision,
+      pausedRevision,
+      'Display adjustments do not alter the saved pause',
+    );
+    await host.getByRole('button', { name: '恢复游戏', exact: true }).click();
+    await until(
+      async () => !(await view(token)).paused,
+      'The real host resume command is saved',
+    );
+    await host.locator('.table-notice').waitFor({ state: 'hidden' });
+    for (const page of [host, publicPage]) await configure(page, 'auto');
+    evidence.checks.push(
+      'An actual host pause and resume preserve all 36 cards on both computer screens: all four native resolutions and 4K 100/125/150% pause layouts require no page scrolling, and only the host exposes an uncovered 44px resume control.',
+    );
+    const gameRevision = (await view(token)).revision;
+    for (const [width, height] of sizes) {
+      for (const [role, page] of [
+        ['host', host],
+        ['public', publicPage],
+      ]) {
+        await resize(page, width, height);
+        await configure(page, 'auto');
+        await layout(page, `${role} game auto ${width}x${height}`, true);
+        await capture(page, `${role}-game-auto-${width}x${height}`);
+      }
+    }
+    console.log(
+      'Display verification: game geometry passed at all four resolutions; test interface sizes',
+    );
+    const physicalFonts = [];
+    for (const size of [100, 125, 150]) {
+      await configure(publicPage, '3840x2160', size);
+      const metrics = await layout(
+        publicPage,
+        `public game 2160p ${size}%`,
+        true,
+      );
+      physicalFonts.push({
+        size,
+        zoom: metrics.native.zoom,
+        name: metrics.names[0] * metrics.native.zoom,
+      });
+      await capture(publicPage, `public-game-3840x2160-${size}percent`);
+    }
+    assert.ok(
+      physicalFonts[1].name > physicalFonts[0].name &&
+        physicalFonts[2].name > physicalFonts[1].name,
+      '125% and 150% increase displayed type size immediately',
+    );
+    evidence.fontScales = physicalFonts;
+    evidence.originalDisplays = originalDisplays;
+    assert.deepEqual(
+      await desktop.evaluate(({ screen }) =>
+        screen
+          .getAllDisplays()
+          .map(({ id, bounds, workArea, scaleFactor }) => ({
+            id,
+            bounds,
+            workArea,
+            scaleFactor,
+          })),
+      ),
+      originalDisplays,
+      'Display preferences leave native OS display geometry and DPI unchanged',
+    );
+    assert.equal(
+      (await view(token)).revision,
+      gameRevision,
+      'Changing and resizing display settings never changes the game revision',
+    );
+    await capture(phones[0], 'phone-game-unaffected-390x844');
+    await configure(host, '1920x1080', 125);
+    const restartHostSettings = await readSettings(host);
+    const restartPublicSettings = await readSettings(publicPage);
+    console.log(
+      'Display verification: restart desktop at simulated Windows 150% DPI',
+    );
+    await stop();
+    const restarted = await start(1.5);
+    assert.deepEqual(
+      await readSettings(restarted.host),
+      restartHostSettings,
+      'Host preference survives the actual desktop/service restart',
+    );
+    const restartedPublic = await openPublic(restarted.host);
+    assert.equal(
+      (await view(restarted.token)).paused,
       true,
-      true,
+      'Actual service restart restores the saved game in a paused state',
     );
-    const metrics = await page.evaluate(() => ({
-      width: innerWidth,
-      height: innerHeight,
-      dpr: devicePixelRatio,
-    }));
-    const native = await nativeState(page);
-    assert.ok(
-      Math.abs(metrics.dpr / native.zoom - 1.5) < 0.03,
-      'Electron renderer uses the simulated Windows 150% pixel density',
+    assert.deepEqual(
+      await readSettings(restartedPublic),
+      restartPublicSettings,
+      'Public preference survives an independent window recreation and restart',
     );
-    await capture(
-      page,
-      `${page === restarted.host ? 'host' : 'public'}-game-dpi150`,
+    for (const page of [restarted.host, restartedPublic]) {
+      if (!new URL(page.url()).pathname.endsWith('/game'))
+        await page.getByRole('link', { name: '进入牌桌', exact: true }).click();
+      await settle(page);
+      await resize(page, 2560, 1440);
+      await configure(page, 'auto');
+      const offscreenDensity = await page.evaluate(() => ({
+        width: innerWidth,
+        height: innerHeight,
+        dpr: devicePixelRatio,
+      }));
+      // Offscreen painting in Electron uses density 1 even when screen reports
+      // Windows 150%. Simulate renderer density without overriding its native
+      // viewport: zero width/height explicitly disable CDP viewport replacement.
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Emulation.setDeviceMetricsOverride', {
+        width: 0,
+        height: 0,
+        deviceScaleFactor: 1.5,
+        mobile: false,
+      });
+      const simulatedDensity = await page.evaluate(() => ({
+        width: innerWidth,
+        height: innerHeight,
+        dpr: devicePixelRatio,
+      }));
+      assert.deepEqual(
+        [simulatedDensity.width, simulatedDensity.height],
+        [offscreenDensity.width, offscreenDensity.height],
+        'DPI simulation does not override native viewport dimensions',
+      );
+      evidence.dpi.push({
+        role: page === restarted.host ? 'host' : 'public',
+        offscreenDensity,
+        simulatedDensity,
+        method:
+          'Native --force-device-scale-factor=1.5 screen geometry plus CDP density 1.5 with width/height 0; actual Electron offscreen capture PNG retains native paint dimensions.',
+      });
+      await layout(
+        page,
+        `${page === restarted.host ? 'host' : 'public'} game DPI 150%`,
+        true,
+        true,
+      );
+      const metrics = await page.evaluate(() => ({
+        width: innerWidth,
+        height: innerHeight,
+        dpr: devicePixelRatio,
+      }));
+      const native = await nativeState(page);
+      assert.ok(
+        Math.abs(metrics.dpr / native.zoom - 1.5) < 0.03,
+        'Electron renderer uses the simulated Windows 150% pixel density',
+      );
+      await capture(
+        page,
+        `${page === restarted.host ? 'host' : 'public'}-game-dpi150`,
+      );
+      await configure(page, '3840x2160');
+      const snapshot = await page.evaluate(() => window.tablemaxDisplay.read());
+      assert.ok(
+        Math.abs(snapshot.screen.scaleFactor - 1.5) < 0.03,
+        'Display bridge uses the simulated Windows DPI for physical resolution presets',
+      );
+      assert.ok(
+        Math.abs(snapshot.zoomFactor - 4 / 3) < 0.03,
+        'A 3840x2160 preset at Windows 150% applies 133% UI zoom instead of double-counting DPI',
+      );
+    }
+    evidence.checks.push(
+      'Both computer game routes show all 36 cards at all four resolutions; 100/125/150% alter native zoom immediately, dialog close/Escape returns focus, settings survive reload and actual restart, host/public preferences are independent, and player routes have no setting button or zoom change.',
     );
-    await configure(page, '3840x2160');
-    const snapshot = await page.evaluate(() => window.tablemaxDisplay.read());
-    assert.ok(
-      Math.abs(snapshot.screen.scaleFactor - 1.5) < 0.03,
-      'Display bridge uses the simulated Windows DPI for physical resolution presets',
+    evidence.checks.push(
+      'Native 150% display density simulation retains first-screen six-player geometry and records actual devicePixelRatio/zoom and screenshot dimensions; this is renderer simulation, not a physical display test.',
     );
-    assert.ok(
-      Math.abs(snapshot.zoomFactor - 4 / 3) < 0.03,
-      'A 3840x2160 preset at Windows 150% applies 133% UI zoom instead of double-counting DPI',
-    );
-  }
-  evidence.checks.push(
-    'Both computer game routes show all 36 cards at all four resolutions; 100/125/150% alter native zoom immediately, dialog close/Escape returns focus, settings survive reload and actual restart, host/public preferences are independent, and player routes have no setting button or zoom change.',
-  );
-  evidence.checks.push(
-    'Native 150% display density simulation retains first-screen six-player geometry and records actual devicePixelRatio/zoom and screenshot dimensions; this is renderer simulation, not a physical display test.',
-  );
-  for (const page of desktop.windows())
-    assert.equal((await nativeState(page)).visible, false);
-  assert.deepEqual(evidence.errors, []);
-  assert.deepEqual(evidence.external, []);
+    for (const page of desktop.windows())
+      assert.equal((await nativeState(page)).visible, false);
+    assert.deepEqual(evidence.errors, []);
+    assert.deepEqual(evidence.external, []);
+  })();
   evidence.result = 'passed';
 } catch (error) {
   console.error('Display verification failed:', error.stack);

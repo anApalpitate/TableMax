@@ -3,27 +3,22 @@ import type { Command } from '@tablemax/protocol';
 import type { RoomSession } from '../session/useRoomSession';
 import { RollbackHistory } from './RollbackHistory';
 import { ConfirmationDialog } from './ConfirmationDialog';
-import { PlayerBindingControl } from './PlayerBindingControl';
 import { SessionFeedback } from './SessionFeedback';
+import { OwnerControl } from './OwnerControl';
 
-export function RoomManagement({
-  session,
-  includeBindings = false,
-}: {
-  session: RoomSession;
-  includeBindings?: boolean;
-}) {
-  const { view, locked, command, isHost } = session;
+export function RoomManagement({ session }: { session: RoomSession }) {
+  const { view, locked, command, isHost, canControl } = session;
   const [confirmation, setConfirmation] = useState<'end' | 'clear' | null>(
     null,
   );
-  if (!isHost || !view) return null;
+  if (!canControl || !view) return null;
   return (
     <section className="management">
       <SessionFeedback session={session} />
+      <h3>{isHost ? '管理员' : '房主'} · 对局控制</h3>
+      {isHost && <OwnerControl session={session} />}
       {view.status === 'playing' && (
         <>
-          <h3>房主管理</h3>
           <button
             disabled={locked}
             onClick={() =>
@@ -34,13 +29,15 @@ export function RoomManagement({
           >
             {view.paused || view.botError ? '恢复游戏' : '暂停游戏'}
           </button>
-          <button
-            className="danger end-game"
-            disabled={locked}
-            onClick={() => setConfirmation('end')}
-          >
-            结束游戏
-          </button>
+          {isHost && (
+            <button
+              className="danger end-game"
+              disabled={locked}
+              onClick={() => setConfirmation('end')}
+            >
+              结束游戏
+            </button>
+          )}
         </>
       )}
       {view.status === 'playing' &&
@@ -62,51 +59,41 @@ export function RoomManagement({
             开始下一局
           </button>
         ))}
-      {view.status === 'lobby' && (
-        <>
-          <button
-            className="secondary"
-            disabled={locked}
-            onClick={() => command({ type: 'join-open', open: !view.joinOpen })}
-          >
-            {view.joinOpen ? '关闭加入' : '开放加入'}
-          </button>
-          {view.seats.length > 0 && (
-            <button
-              className="secondary"
-              disabled={locked}
-              onClick={() => setConfirmation('clear')}
-            >
-              清空牌桌
-            </button>
-          )}
-        </>
+      {isHost && view.status === 'lobby' && (
+        <button
+          className="secondary"
+          disabled={locked || !view.game}
+          onClick={() => command({ type: 'join-open', open: !view.joinOpen })}
+        >
+          {view.joinOpen ? '关闭加入' : '开放加入'}
+        </button>
       )}
       {view.status === 'ended' && (
-        <>
-          <button disabled={locked} onClick={() => command({ type: 'replay' })}>
-            原班人马再开一局
-          </button>
-          <button
-            className="secondary"
-            disabled={locked}
-            onClick={() => setConfirmation('clear')}
-          >
-            清空牌桌
-          </button>
-        </>
+        <button disabled={locked} onClick={() => command({ type: 'replay' })}>
+          原班人马再开一局
+        </button>
       )}
-      {includeBindings && <PlayerBindingControl session={session} />}
-      {view.status !== 'lobby' && (
+      {isHost && view.status !== 'playing' && view.seats.length > 0 && (
+        <button
+          className="secondary"
+          disabled={locked}
+          onClick={() => setConfirmation('clear')}
+        >
+          清空牌桌
+        </button>
+      )}
+      {isHost && view.status !== 'lobby' && (
         <RollbackHistory key={view.instanceId} session={session} />
       )}
-      <a
-        className="button secondary"
-        href={view.gameView ? '/public/game' : '/public'}
-      >
-        打开公共屏
-      </a>
-      {confirmation && (
+      {isHost && (
+        <a
+          className="button secondary"
+          href={view.gameView ? '/public/game' : '/public'}
+        >
+          打开公共屏
+        </a>
+      )}
+      {confirmation && isHost && (
         <ConfirmationDialog
           title={confirmation === 'end' ? '结束游戏' : '清空牌桌'}
           confirmLabel={
@@ -127,7 +114,7 @@ export function RoomManagement({
             <>
               <p>当前游戏将立即结束，所有手机停止行动。</p>
               <p>
-                已保存的状态和历史保留。结束后可原班重新准备，或通过决策点回退后恢复。
+                已保存状态和历史保留。结束后可原班重新准备，选择其他游戏，或回退后恢复。
               </p>
             </>
           ) : (

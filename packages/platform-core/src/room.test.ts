@@ -230,35 +230,32 @@ describe('real room invariants', () => {
     expect((await room.command(a.token, input)).ok).toBe(true);
     expect(listener).toHaveBeenCalledTimes(1);
   });
-  it('invalidates old branches, truncates active history, restores RNG and keeps current binding after rollback', async () => {
+  it('invalidates old branches, truncates active history, restores RNG and keeps current owner after rollback', async () => {
     const { room, a, b } = await fixture();
     const input = choose(room, a.token);
     await room.command(a.token, input);
     await room.command(b.token, choose(room, b.token));
     const target = room.view(room.hostToken).history[0]!;
     const reply = await host(room, {
-      type: 'rebind',
+      type: 'set-owner',
       seatId: room.view(a.token).self.seatId!,
     });
-    expect(reply.ok && reply.bindingCode).toBeTruthy();
-    const rebound = await room.redeem(reply.ok ? reply.bindingCode! : '');
-    await expect(
-      room.redeem(reply.ok ? reply.bindingCode! : ''),
-    ).rejects.toThrow('binding-expired');
+    expect(reply.ok).toBe(true);
     await host(room, { type: 'rollback', checkpointId: target.id });
-    expect(() => room.view(a.token)).toThrow('invalid-identity');
-    expect(room.view(rebound.token).self.seatId).toBe(room.view().seats[0]!.id);
+    expect(room.view(a.token).self.seatId).toBe(room.view().seats[0]!.id);
+    expect(room.view(a.token).capabilities).toEqual({
+      manage: false,
+      control: true,
+    });
     expect(room.view().paused).toBe(true);
     expect(room.view().branch).toBe(1);
     expect(room.view(room.hostToken).history).toEqual([]);
-    expect(await room.command(rebound.token, input)).toEqual({
+    expect(await room.command(a.token, input)).toEqual({
       ok: false,
       reason: 'stale-branch',
     });
     await host(room, { type: 'resume' });
-    expect(
-      (await room.command(rebound.token, choose(room, rebound.token))).ok,
-    ).toBe(true);
+    expect((await room.command(a.token, choose(room, a.token))).ok).toBe(true);
     expect(
       await host(room, { type: 'rollback', checkpointId: target.id }),
     ).toEqual({ ok: false, reason: 'invalid-checkpoint' });
@@ -279,11 +276,11 @@ describe('real room invariants', () => {
   it('rejects incompatible state, rules and strategies without changing original save', async () => {
     const { repository } = await fixture();
     const original = structuredClone(repository.value!);
-    repository.value!.manifest.rulesVersion = 'other';
+    repository.value!.manifest!.rulesVersion = 'other';
     expect(() => new RoomCoordinator(rules, bot, repository)).toThrow(
       'incompatible-save',
     );
-    expect(repository.value!.manifest.rulesVersion).toBe('other');
+    expect(repository.value!.manifest!.rulesVersion).toBe('other');
     repository.value = original;
     (repository.value.snapshot!.state as { turn: number }).turn = -1;
     expect(() => new RoomCoordinator(rules, bot, repository)).toThrow(

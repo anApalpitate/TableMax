@@ -8,7 +8,7 @@ import { SessionFeedback } from '../components/SessionFeedback';
 import { RoomTable } from '../components/RoomTable';
 import { OverlayPanel } from '../components/OverlayPanel';
 import { SeatSettings } from '../components/SeatSettings';
-import { PlayerBindingControl } from '../components/PlayerBindingControl';
+import { GameLibrary } from '../components/GameLibrary';
 import { PlayModeControl } from '../components/PlayModeControl';
 import { PlayModeBadge } from '../components/PlayModeBadge';
 import { DisplaySettings } from '../components/DisplaySettings';
@@ -24,7 +24,8 @@ const botDescriptions: Record<BotDifficulty, string> = {
   doubao: '分析已知牌面和局势，权衡得分与风险。',
   juewu: '结合全部已知信息推演，比较当前选择。',
 };
-type BoxPanel = 'intro' | 'seats' | 'management' | 'redeem' | 'bot-info' | null;
+type BoxPanel =
+  'intro' | 'seats' | 'management' | 'library' | 'bot-info' | null;
 
 export function BoxScreen({ session }: { session: RoomSession }) {
   const [difficulty, setDifficulty] = useState<BotDifficulty>('default');
@@ -34,17 +35,18 @@ export function BoxScreen({ session }: { session: RoomSession }) {
     view,
     self,
     isHost,
+    canControl,
     locked,
     command,
     name,
     setName,
-    code,
-    setCode,
     credential,
     busy,
     join,
     connected,
   } = session;
+  const game = view?.game;
+  const owner = view?.seats.find((seat) => seat.id === view.ownerSeatId);
   const lobby = view?.status === 'lobby';
   const humans =
     view?.seats.filter((seat) => seat.controller === 'human').length ?? 0;
@@ -85,38 +87,53 @@ export function BoxScreen({ session }: { session: RoomSession }) {
         </div>
       </header>
       <section className="hero">
-        <img src={cover} alt="宝可梦奇遇游戏封面" />
+        {game?.id === 'pokemon-encounters' && (
+          <img src={cover} alt={`${game.name}游戏封面`} />
+        )}
         <div>
-          <h1>{view?.game.name ?? '宝可梦奇遇：皮卡丘和朋友们'}</h1>
+          <h1>{game?.name ?? '选个游戏，朋友们上桌'}</h1>
           <p>
             {role === 'host'
-              ? '电脑 · 房主管理与公共展示'
+              ? '电脑 · 管理员与公共展示'
               : role === 'public'
                 ? '现场公共屏 · 只读展示'
                 : '手机 · 你的玩家座位'}
           </p>
         </div>
-        <button
-          type="button"
-          className="secondary box-info-control"
-          aria-label="游戏介绍"
-          title="游戏介绍"
-          onClick={() => setPanel('intro')}
-        >
-          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-            <circle
-              cx="12"
-              cy="12"
-              r="9"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            />
-            <path d="M12 11v6" stroke="currentColor" strokeWidth="1.8" />
-            <circle cx="12" cy="7" r="1" fill="currentColor" />
-          </svg>
-        </button>
+        {isHost && game && (
+          <button
+            type="button"
+            className="secondary"
+            disabled={view?.status === 'playing' || locked}
+            onClick={() => setPanel('library')}
+          >
+            切换游戏
+          </button>
+        )}
+        {game && (
+          <button
+            type="button"
+            className="secondary box-info-control"
+            aria-label="游戏介绍"
+            title="游戏介绍"
+            onClick={() => setPanel('intro')}
+          >
+            <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+              <circle
+                cx="12"
+                cy="12"
+                r="9"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              />
+              <path d="M12 11v6" stroke="currentColor" strokeWidth="1.8" />
+              <circle cx="12" cy="7" r="1" fill="currentColor" />
+            </svg>
+          </button>
+        )}
       </section>
+      {!game && <GameLibrary session={session} />}
       <SessionFeedback session={session} />
       {Boolean(view?.gameView) && view && (
         <div className="continue-game">
@@ -138,9 +155,10 @@ export function BoxScreen({ session }: { session: RoomSession }) {
               <h2>
                 聚会牌桌{' '}
                 <span>
-                  {view?.seats.length ?? 0} / {view?.game.max ?? 6}
+                  {view?.seats.length ?? 0} / {view?.game?.max ?? 6}
                 </span>
               </h2>
+              {owner && <p className="owner-badge">房主 · {owner.name}</p>}
               <p>
                 {humans} 位手机玩家{bots > 0 ? ` · ${bots} 位人机` : ''}
               </p>
@@ -159,7 +177,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
               )}
             </div>
           </div>
-          {self && lobby && (
+          {self && lobby && game && (
             <div className="player-actions">
               <p>
                 你已坐在{' '}
@@ -174,7 +192,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
               </button>
             </div>
           )}
-          {role === 'player' && !credential && (
+          {role === 'player' && !credential && game && (
             <form
               className="join-table"
               onSubmit={(event) => {
@@ -200,72 +218,67 @@ export function BoxScreen({ session }: { session: RoomSession }) {
                   加入
                 </button>
               </div>
-              <button
-                type="button"
-                className="secondary redeem-control"
-                onClick={() => setPanel('redeem')}
-              >
-                换手机绑定
-              </button>
             </form>
           )}
-          {isHost && lobby && view && (
+          {canControl && lobby && view && game && (
             <div className="host-lobby">
               <div className="lobby-toolbar">
-                <div className="bot-invite">
-                  <div>
-                    <label htmlFor="bot-difficulty">人机等级</label>
-                    <select
-                      id="bot-difficulty"
-                      value={difficulty}
-                      disabled={locked}
-                      onChange={(event) =>
-                        setDifficulty(event.target.value as BotDifficulty)
-                      }
-                    >
-                      {Object.entries(difficultyNames).map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
+                {isHost && (
+                  <div className="bot-invite">
+                    <div>
+                      <label htmlFor="bot-difficulty">人机等级</label>
+                      <select
+                        id="bot-difficulty"
+                        value={difficulty}
+                        disabled={locked}
+                        onChange={(event) =>
+                          setDifficulty(event.target.value as BotDifficulty)
+                        }
+                      >
+                        {Object.entries(difficultyNames).map(
+                          ([value, label]) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                      <button
+                        type="button"
+                        className="secondary bot-info-control"
+                        aria-label="人机等级说明"
+                        title="人机等级说明"
+                        onClick={() => setPanel('bot-info')}
+                      >
+                        ⓘ
+                      </button>
+                    </div>
                     <button
-                      type="button"
-                      className="secondary bot-info-control"
-                      aria-label="人机等级说明"
-                      title="人机等级说明"
-                      onClick={() => setPanel('bot-info')}
+                      className="secondary"
+                      disabled={locked || view.seats.length >= game.max}
+                      onClick={() => {
+                        let number = 1;
+                        while (
+                          view.seats.some(
+                            (seat) => seat.name === `人机 ${number}`,
+                          )
+                        )
+                          number++;
+                        command({
+                          type: 'add-bot',
+                          name: `人机 ${number}`,
+                          difficulty,
+                        });
+                      }}
                     >
-                      ⓘ
+                      添加人机
                     </button>
                   </div>
-                  <button
-                    className="secondary"
-                    disabled={locked || view.seats.length >= view.game.max}
-                    onClick={() => {
-                      let number = 1;
-                      while (
-                        view.seats.some(
-                          (seat) => seat.name === `人机 ${number}`,
-                        )
-                      )
-                        number++;
-                      command({
-                        type: 'add-bot',
-                        name: `人机 ${number}`,
-                        difficulty,
-                      });
-                    }}
-                  >
-                    添加人机
-                  </button>
-                </div>
+                )}
                 <div className="lobby-start">
                   <button
                     disabled={
-                      locked ||
-                      view.seats.length < view.game.min ||
-                      !everyoneReady
+                      locked || view.seats.length < game.min || !everyoneReady
                     }
                     onClick={() => command({ type: 'start' })}
                   >
@@ -274,7 +287,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
                 </div>
               </div>
               <p className="lobby-status-text">
-                {view.seats.length < view.game.min
+                {view.seats.length < game.min
                   ? '至少两位玩家或人机入座即可开局。'
                   : everyoneReady
                     ? '大家已准备，开始吧。'
@@ -284,7 +297,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
           )}
           <RoomTable
             seats={view?.seats ?? []}
-            capacity={view?.game.max ?? 6}
+            capacity={view?.game?.max ?? 6}
             selfId={self?.id ?? null}
             lobby={lobby}
             status={roomStatus}
@@ -306,30 +319,41 @@ export function BoxScreen({ session }: { session: RoomSession }) {
                 >
                   牌桌管理
                 </button>
-                <PlayerBindingControl session={session} />
               </>
             )}
             {role === 'host' && !isHost && (
-              <p>本页面没有房主管理身份，请从桌面程序打开主机。</p>
+              <p>本页面没有管理员身份，请从桌面程序打开主机。</p>
             )}
           </aside>
         )}
       </div>
+      {role === 'player' && canControl && (
+        <button className="secondary" onClick={() => setPanel('management')}>
+          房主控制
+        </button>
+      )}
+      {panel === 'library' && isHost && (
+        <OverlayPanel title="游戏库" close={() => setPanel(null)}>
+          <GameLibrary session={session} close={() => setPanel(null)} />
+        </OverlayPanel>
+      )}
       <PlayModeControl session={session} />
       {panel === 'intro' && (
         <OverlayPanel title="游戏介绍" close={() => setPanel(null)}>
           <div className="game-introduction">
-            <img src={cover} alt="宝可梦奇遇游戏封面" />
+            {game?.id === 'pokemon-encounters' && (
+              <img src={cover} alt={`${game.name}游戏封面`} />
+            )}
             <div>
-              <h3>{view?.game.name ?? '宝可梦奇遇：皮卡丘和朋友们'}</h3>
+              <h3>{game?.name ?? '请先选择游戏'}</h3>
               <p>
-                {view?.game.min ?? 2}–{view?.game.max ?? 6} 位玩家 ·
+                {view?.game?.min ?? 2}–{view?.game?.max ?? 6} 位玩家 ·
                 本地聚会桌游
               </p>
             </div>
           </div>
           <p>
-            每位朋友使用自己的手机操作。电脑由房主管理，并向现场展示公共信息；也可加入本地人机。
+            每位朋友使用自己的手机操作。电脑由管理员管理，并向现场展示公共信息；也可加入本地人机。
           </p>
         </OverlayPanel>
       )}
@@ -338,7 +362,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
           <SeatSettings session={session} />
         </OverlayPanel>
       )}
-      {panel === 'management' && isHost && (
+      {panel === 'management' && canControl && (
         <OverlayPanel title="牌桌管理" close={() => setPanel(null)}>
           <RoomManagement session={session} />
         </OverlayPanel>
@@ -352,28 +376,6 @@ export function BoxScreen({ session }: { session: RoomSession }) {
             </section>
           ))}
           <p>三档均在本地运行，只使用本人获准的信息。</p>
-        </OverlayPanel>
-      )}
-      {panel === 'redeem' && role === 'player' && !credential && (
-        <OverlayPanel title="换手机绑定" close={() => setPanel(null)}>
-          <p>请房主先为你换手机，再输入房主提供的一次性绑定码。</p>
-          <SessionFeedback session={session} />
-          <label htmlFor="binding">房主提供的绑定码</label>
-          <input
-            id="binding"
-            disabled={busy || session.admissionPending}
-            value={code}
-            onChange={(event) => setCode(event.target.value)}
-          />
-          <div className="dialog-actions">
-            <button
-              type="button"
-              disabled={busy || session.admissionPending || !code.trim()}
-              onClick={() => void join(true)}
-            >
-              绑定原座位
-            </button>
-          </div>
         </OverlayPanel>
       )}
       <footer>TableMax · 本地聚会牌桌 · 电脑管理，手机游玩</footer>

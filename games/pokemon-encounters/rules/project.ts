@@ -1,12 +1,13 @@
 import type { Viewer } from '@tablemax/game-sdk';
 import { card, numeric } from './cards';
 import { actor, type State } from './state';
+import { scoreBoard } from './scoring';
 
 export function face(instance: string) {
   const c = card(instance);
   return {
     categoryId: c.categoryId,
-    name: c.displayName,
+    name: c.displayName.replace('外观', ''),
     value: numeric(instance),
     ability: c.abilityDefinition?.adoptedText ?? null,
   };
@@ -17,6 +18,15 @@ export function project(s: State, viewer: Viewer) {
     roundNumber: s.roundNumber,
     seatOrder: s.seatOrder,
     winsBySeat: s.winsBySeat,
+    // Resolve Ditto's scoring choice only when every input is already public.
+    publicColumns: Object.fromEntries(
+      s.seatOrder.map((seat) => [
+        seat,
+        s.boards[seat]!.every((slot) => slot.faceUp)
+          ? scoreBoard(s.boards[seat]!.map((slot) => slot.instanceId)).columns
+          : null,
+      ]),
+    ),
     boards: Object.fromEntries(
       s.seatOrder.map((seat) => [
         seat,

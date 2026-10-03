@@ -1,4 +1,4 @@
-import { SavedMotion } from '../../../games/pokemon-encounters/ui/motion';
+import { useGameClient } from './game-clients/registry';
 import { useScreenRoute } from './navigation';
 import { useRoomSession } from './session/useRoomSession';
 import { BoxScreen } from './screens/BoxScreen';
@@ -7,14 +7,15 @@ import type { ScreenRole } from './navigation';
 
 function RoomApp({ role, inGame }: { role: ScreenRole; inGame: boolean }) {
   const session = useRoomSession(role);
+  const gameClient = useGameClient(session.view?.game?.id);
   return (
-    <SavedMotion.Provider value={session.motion}>
+    <>
       {inGame ? (
-        <GameScreen session={session} />
+        <GameScreen session={session} {...gameClient} />
       ) : (
         <BoxScreen session={session} />
       )}
-    </SavedMotion.Provider>
+    </>
   );
 }
 

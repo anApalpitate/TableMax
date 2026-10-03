@@ -9,6 +9,7 @@ import type { JsonValue } from '@tablemax/game-sdk';
 import type { Action } from '../../rules';
 import { WinTrack } from '../WinTrack';
 import { presentAction } from '../action-presentation';
+import { decisionProgress, heldDescription } from '../presentation-state';
 export function SeatResult({
   view,
   seatId,
@@ -90,6 +91,7 @@ export function TableStatus({
   const gallery = useRef<HTMLDialogElement>(null);
   const galleryTitle = useId();
   const motion = useContext(SavedMotion);
+  const progress = decisionProgress(view);
   const draws = (drawActions as readonly Action[]).filter(
     (action) => action.type === 'draw',
   );
@@ -108,25 +110,87 @@ export function TableStatus({
         }}
       >
         {face}
+        {action && (
+          <svg
+            className="take-border"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <rect
+              x="2"
+              y="2"
+              width="96"
+              height="96"
+              rx="7"
+              vectorEffect="non-scaling-stroke"
+            />
+          </svg>
+        )}
         <span className="pile-action">{action ? '点此取牌' : '等待'}</span>
       </button>
     ) : (
-      face
+      <div className="pile-display">
+        {face}
+        <span className="pile-action">展示中</span>
+      </div>
     );
   };
   return (
-    <div className="pokemon-status">
-      <div className={motion.includes('@phase') ? 'saved-motion' : ''}>
+    <div className="pokemon-status decision-dashboard">
+      <div
+        className={`decision-status ${motion.includes('@phase') ? 'saved-motion' : ''}`}
+      >
         <span className="eyebrow">第 {view.roundNumber} 小局 · 三胜大局</span>
-        <h2>{phaseLabels[view.phase]}</h2>
-        <p>
-          {view.actorSeat
-            ? `${names[view.actorSeat]} 选择中`
-            : view.phase === 'initial-flip'
-              ? `已完成 ${view.initialDone.length} / ${view.seatOrder.length}`
-              : '最低分获胜；同分共同记胜。'}
-          {view.passProgress &&
-            ` · 传牌 ${view.passProgress.completed + 1} / ${view.passProgress.total}`}
+        <div className="current-decision" role="status" aria-live="polite">
+          <h2 className="current-actor">
+            {view.phase === 'initial-flip'
+              ? '各位玩家'
+              : (names[view.actorSeat ?? view.turnSeat] ?? '当前玩家')}
+          </h2>
+          <strong className="current-operation">
+            {phaseLabels[view.phase]}
+          </strong>
+        </div>
+        <div
+          className="decision-progress"
+          role="progressbar"
+          aria-label={progress.label}
+          aria-valuemin={0}
+          aria-valuemax={progress.total}
+          aria-valuenow={progress.completed}
+          aria-valuetext={`${progress.label}：${progress.completed} / ${progress.total} 已完成`}
+        >
+          {progress.labels.map((label, index) => {
+            const done =
+              view.phase === 'initial-flip'
+                ? view.initialDone.includes(view.seatOrder[index]!)
+                : index < progress.completed;
+            return (
+              <span
+                key={label}
+                className={`progress-segment ${done ? 'complete' : view.phase === 'initial-flip' || index === progress.completed ? 'current' : ''}`}
+                title={
+                  view.phase === 'initial-flip'
+                    ? names[view.seatOrder[index]!]
+                    : label
+                }
+              >
+                <span>
+                  {view.phase === 'initial-flip'
+                    ? `座${index + 1}`
+                    : `${done ? '✓ ' : index === progress.completed ? '当前 · ' : ''}${label}`}
+                </span>
+              </span>
+            );
+          })}
+        </div>
+        <p className="progress-caption">
+          {view.phase === 'initial-flip'
+            ? `已翻牌 ${progress.completed} / ${progress.total} · 在手机上同时选择`
+            : view.phase === 'draw'
+              ? '从牌库或弃牌顶取一张牌'
+              : progress.label}
         </p>
         {view.coin && (
           <span className="coin-result">
@@ -149,48 +213,63 @@ export function TableStatus({
           {view.discardTop ? (
             pile('discard')
           ) : (
-            <span className="empty-pile">暂时为空</span>
+            <span className="empty-pile" aria-label="弃牌堆暂时为空">
+              空
+            </span>
           )}
+        </div>
+        {view.discard && view.discard.length > 0 && (
+          <div className="discard-control">
+            <button
+              className="secondary"
+              onClick={() => gallery.current?.showModal()}
+            >
+              查看弃牌
+            </button>
+            <dialog
+              ref={gallery}
+              className="card-gallery-panel"
+              aria-labelledby={galleryTitle}
+            >
+              <header className="gallery-heading">
+                <h2 id={galleryTitle}>弃牌 · 底 → 顶</h2>
+                <button
+                  className="secondary"
+                  onClick={() => gallery.current?.close()}
+                >
+                  关闭
+                </button>
+              </header>
+              <div className="discard-gallery">
+                {view.discard.map((card, i) => (
+                  <CardFace key={i} card={card} />
+                ))}
+              </div>
+            </dialog>
+          </div>
+        )}
+      </div>
+      <section
+        className={`held-zone ${view.held ? 'has-held' : ''}`}
+        aria-label="公开暂持区"
+      >
+        <div className="held-copy">
+          <span className="held-tag">{view.held ? '暂持中' : '待处理区'}</span>
+          <strong>
+            {view.held ? view.held.name.replace('外观', '') : '尚未取牌'}
+          </strong>
+          <p>
+            {view.held ? heldDescription(view, names) : '新取的牌会先放在这里'}
+          </p>
         </div>
         {view.held && (
           <div
             className={`held-pile ${motion.includes('@held') ? 'saved-motion' : ''}`}
           >
-            <span className="pile-label">公开暂持牌</span>
             <CardFace card={view.held} />
           </div>
         )}
-      </div>
-      {view.discard && view.discard.length > 0 && (
-        <div className="discard-control">
-          <button
-            className="secondary"
-            onClick={() => gallery.current?.showModal()}
-          >
-            查看弃牌（{view.discard.length}）
-          </button>
-          <dialog
-            ref={gallery}
-            className="card-gallery-panel"
-            aria-labelledby={galleryTitle}
-          >
-            <header className="gallery-heading">
-              <h2 id={galleryTitle}>弃牌 · 底 → 顶</h2>
-              <button
-                className="secondary"
-                onClick={() => gallery.current?.close()}
-              >
-                关闭
-              </button>
-            </header>
-            <div className="discard-gallery">
-              {view.discard.map((card, i) => (
-                <CardFace key={i} card={card} />
-              ))}
-            </div>
-          </dialog>
-        </div>
-      )}
+      </section>
     </div>
   );
 }
@@ -242,7 +321,7 @@ export function GameHelp() {
         .map((card) => (
           <p key={card.categoryId}>
             <strong>
-              {card.displayName} ·{' '}
+              {card.displayName.replace('外观', '')} ·{' '}
               {card.value.kind === 'fixed' ? card.value.number : '?'}
             </strong>
             <br />

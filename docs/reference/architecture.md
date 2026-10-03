@@ -1,6 +1,6 @@
 # 代码结构与工程边界
 
-第一至六阶段已完成；正式运行宝可梦完整游戏，验证模板继续用于契约、策略替换和恢复回归。采用依据：[工程基础](../decisions/001-engineering-foundation.md)、[平台授权与恢复](../decisions/005-platform-authority-and-recovery.md)。
+第一至六阶段已完成；正式运行宝可梦完整游戏，验证模板继续用于契约、策略替换和恢复回归。采用依据：[工程基础](../decisions/001-engineering-foundation.md)、[平台授权与恢复](../decisions/005-platform-authority-and-recovery.md)、[游戏目录与房主分权](../decisions/007-library-owner-and-concurrency.md)。
 
 ## 已建立的工程
 
@@ -16,9 +16,9 @@
 | `games/pokemon-encounters` | 首版完整规则、独立计分、授权投影、基础策略、两端 UI 与本地资源         | 规则／策略仅 SDK 与纯数据，UI 仅 React 与投影类型                 |
 | `scripts`                  | 构建、开发、桌面／便携／原型验证及隔离强制退出 fixture                 | 开发工具；不进入游戏规则                                          |
 
-应用组装具体规则、策略和适配器，核心只依赖抽象契约。共享包使用 `workspace:*`，开发导出 TS 源码，Vite／esbuild 消费；严格类型检查统一覆盖 apps、packages 和 games。服务、桌面和 bot Worker 输出独立 CJS，网页输出本地静态资源。便携包收集 `main.cjs`、`server.cjs`、`bot-worker.cjs` 与网页，不依赖电脑预装 Node.js。
+应用组装具体规则、策略和适配器，核心只依赖抽象契约。共享包使用 `workspace:*`，开发导出 TS 源码，Vite／esbuild 消费；严格类型检查统一覆盖 apps、packages 和 games。服务、桌面和 bot Worker 输出独立 CJS，网页输出本地静态资源。便携包收集 `main.cjs`、`server.cjs`、`bot-worker.cjs`、`games/*.cjs`、`bots/*.cjs` 与网页，不依赖电脑预装 Node.js。
 
-当前没有实际复用需求支持独立 `packages/ui`，因此未创建空包。首版游戏集中在 `games/pokemon-encounters/`；源码编译时注册，不实现独立插件加载或多房间。模板注册及策略替换入口见 [扩展指南](../game-development/README.md)。
+当前没有实际复用需求支持独立 `packages/ui`，因此未创建空包。首版游戏集中在 `games/pokemon-encounters/`；模块编译打包、运行时按目录选择并懒加载，不实现外部插件安装或多房间。模板注册及策略替换入口见 [扩展指南](../game-development/README.md)。
 
 ## 面向对象与适度封装
 
@@ -47,19 +47,27 @@ Electron 主进程（窗口、主机身份与生命周期）
 
 服务就绪后打开主机窗口；20s 启动超时、端口占用、数据库损坏或版本不兼容时停止并提示。主机可打开另一只读公共屏，关闭它保留服务；关闭全部窗口或退出程序发送停止消息，5s 后才强制终止。服务异常退出会停止桌面，避免保留失效管理界面。F11 切换全屏，Alt 打开“屏幕”菜单，可把当前窗口移到任一显示器；公共屏默认优先外接屏。本轮按用户授权以电视尺寸模拟，未实际连接外接显示器。
 
-窗口禁用 Node 集成，开启上下文隔离和沙箱，没有向网页开放 Electron IPC preload；限制其他源导航和任意新窗口。主机随机凭证只由服务交给桌面，再通过 fragment 初始化 sessionStorage 并清理可见 URL；重启后重新生成。网页路由不授予管理权限，普通浏览器直接打开 `/host` 仍只有公共授权。二维码只包含普通手机入口。
+窗口禁用 Node 集成，开启上下文隔离和沙箱，preload 只开放显示控制与单声源调度的窄 IPC 接口；限制其他源导航和任意新窗口。主机随机凭证只由服务交给桌面，再通过 fragment 初始化 sessionStorage 并清理可见 URL；重启后重新生成。网页路由不授予管理权限，普通浏览器直接打开 `/host` 仍只有公共授权。二维码只包含普通手机入口。
 
-玩家身份用服务生成的随机凭证，服务器仅保存摘要。本人的凭证由手机 localStorage 保存，开局前排序不改变座位 ID；换绑撤销旧摘要与连接，短期一次性码取得原座位的新凭证。电脑房主仅为管理员，不提供参赛入口或加入参数；首局首位由服务随机选取，旧 hostSeat 字段只兼容读取。主机管理权不扩展游戏秘密。线上状态来自当前有效连接，不入 checkpoint。电脑地址／端口变化形成新浏览器源时可由房主换绑原座位。
+玩家身份用服务生成的随机凭证，服务器仅保存摘要。本人的凭证由手机 localStorage 保存，开局前排序不改变座位 ID；同设备同源刷新／断线沿用凭证，1.6.0 删除换手机及兑换接口。电脑房主仅为管理员，不提供参赛入口或加入参数；首局首位由服务随机选取，旧 hostSeat 字段只兼容读取。主机管理权不扩展游戏秘密。线上状态来自当前有效连接，不入 checkpoint。电脑地址／端口变化形成新浏览器源不会自动迁移身份。
 
-HTTP 提供加入、换绑兑换、授权同步和网络地址；Socket.IO 握手绑定凭证，逐连接生成 `room:view`，`room:command` 校验信封并确认，`room:revoked` 撤销旧连接。命令被拒绝后同步最新投影；未确认的原意图保留，重试沿用编号。运行时 schema 校验投影与 ACK，不能靠 UI 隐藏完整状态。
+HTTP 提供加入、授权同步和网络地址；Socket.IO 握手绑定凭证，逐连接生成 `room:view`，`room:command` 校验信封并确认，`room:revoked` 撤销旧连接。命令被拒绝后同步最新投影；未确认的原意图保留，重试沿用编号。运行时 schema 校验投影与 ACK，不能靠 UI 隐藏完整状态。
 
-1.2.0 加入／换绑的持久化请求回复由 RoomCoordinator 管理，`session-receipts.ts` 只负责凭证加密／解密；随机玩家凭证仍保存摘要，恢复密钥只由手机持有。可选 sessionReceipts／bindings 字段向前读取格式 1 旧存档，随同一次 SQLite 事务保存。1.3.0 网络协议版本为 4，增加人机等级设置与公开席位等级；手机 `useAdmission` 负责持久请求、超时和恢复确认；会话回到前台重新同步，主动换身份关闭旧 Socket 时不发送断网错误。详见 [采用理由](../decisions/005-platform-authority-and-recovery.md#加入确认与原班续局2026-10-02)。
+1.2.0 引入的持久化加入请求回复由 RoomCoordinator 管理，`session-receipts.ts` 只负责凭证加密／解密；随机玩家凭证仍保存摘要，恢复密钥只由手机持有。可选 sessionReceipts 字段向前读取格式 1 旧存档；历史 bindings 兼容校验后丢弃，不再兑换，随同一次 SQLite 事务保存。当前网络协议为 6，增加目录、可空当前游戏、ownerSeatId、capabilities 和 selectionToken；历史协议 4 引入的人机等级与公开席位等级继续保留；手机 `useAdmission` 负责持久请求、超时和恢复确认；会话回到前台重新同步，主动换身份关闭旧 Socket 时不发送断网错误。详见 [采用理由](../decisions/005-platform-authority-and-recovery.md#加入确认与原班续局2026-10-02)。
 
 服务 `NetworkDirectory` 每次读取系统网卡并标注、排序，保留手动选择；前端按需及定时刷新。桌面 `RuntimeGuard` 负责服务与公共屏两种防休眠请求的独立生命周期，`startup-error.ts` 将具体服务错误转为中文排障提示。单实例保护在启动服务前取得；公共屏保留时可重新打开管理，正式窗口行为与隐藏验证分开。
 
 正式网页 `App.tsx` 只组装按角色隔离的会话与页面。会话逻辑在 `session/useRoomSession.ts`，盒子和游戏外壳在 `screens/`，弹窗、邀请、管理及全屏等在 `components/`，共享素材与清单在根目录 `assets/platform/`；游戏资源及浏览器资源表在 `assets/games/<id>/`。游戏的场地、结算和选择维护在对应游戏 UI，不导入平台凭证或 Socket。页面切换不产生游戏命令；角色变化重建会话，防止沿用另一身份。
 
 盒子 `RoomTable` 只呈现公开席位和围桌房间；开局／准备／等级设置仍由 BoxScreen 通过会话发送动作。所有真人控制入口属于手机 player，电脑 host/public 不参与游戏。SDK `BotDifficulty` 与策略可选 `difficulties` 声明支持范围，平台只保存等级、检验权限和兼容性，游戏入口按 `decide.difficulty` 分发不同算法；Worker 读取存档中的等级，不能依据 UI 昵称推断。座位与快照的等级必须一致，旧可选字段缺省为 default，checkpoint 同时恢复记忆与等级；详见 [人机边界](bot-players.md#三档智能与配置)。
+
+## 游戏目录与授权（1.6.0）
+
+服务的 GameRegistry 保存目录元数据和异步规则／策略加载器；RoomCoordinator.open 先读取一次存档，依据可空 manifest 加载并验证。新房间不加载游戏规则，选中时等待加载与保存完成后才发布新状态。进行中的选择被拒绝；人数和 bot 等级不兼容、未知游戏、加载或保存失败都保留原状态。切换更新实例并取消旧 bot，保留座位凭证及当前房主。
+
+前端 game-clients 注册游戏适配器（Screen、savedChanges、motionDuration），通用会话不导入宝可梦类型、动作或 CSS。盒子只引用小封面；选中后动态 import 对应 UI／资源。服务和 Worker 按同一 ID 加载独立构建入口，Worker 的随机工具使用轻量 random 子入口，避免加载平台和协议整包。模块缓存复用；退出场景释放播放器、队列、计时器和监听器。
+
+RoomView 的 self.role 保持 host／player／public。capabilities.manage 仅管理员，control 另授予 ownerSeatId 对应的真人；手机房主仍仅有本人游戏投影。set-owner 的权限在服务校验并持久保存，owner 不进入 checkpoint，不随回退倒退。开局、暂停／恢复、replay、lifecycle 接受 control；其他管理仅 manage。
 
 ## 动作、随机与恢复
 
@@ -76,7 +84,11 @@ HTTP 提供加入、换绑兑换、授权同步和网络地址；Socket.IO 握�
 | 重启              | 只恢复已提交记录，已进行对局先暂停并增加分支，身份沿用，等待真人重连和房主继续                                                           |
 | bot               | 本人投影、合法动作和本人记忆输入，实际游玩 1500／1800／2200ms、测试 40ms，2s 计算预算；Worker 取消可终止同步循环，异常安全暂停，不代真人 |
 
-追加 journal 保留旧分支及旧实例，但客户端没有完整历史查询接口。回退安全标签也仅给房主；游戏安全记录保存于状态，room:feedback 只在事务成功后发送，携带 instanceId／branch／revision 和公开事件；同步、重复确认和回退不重放。调试修改按 [需求第6.5节](../requirements/TableMax_需求文档_v1.0.md#65-跨游戏调试与纠错后续独立规划) 独立规划，未开放特权投影。
+追加 journal 保留旧分支及旧实例，但客户端没有完整历史查询接口。回退安全标签也仅给电脑管理员；游戏安全记录保存于状态，room:feedback 只在事务成功后发送，携带 instanceId／branch／revision 和公开事件；同步、重复确认和回退不重放。调试修改按 [需求第6.5节](../requirements/TableMax_需求文档_v1.0.md#65-跨游戏调试与纠错后续独立规划) 独立规划，未开放特权投影。
+
+1.6.0 独立决策用 SDK concurrencyGroup 显式声明，初始翻牌 id 在同小局内按座位保持。gameWindow 保存组与最低修订，管理／暂停／恢复／换局等关闭窗口；readyWindow 还记录各座位最后准备修订，防止同人的旧准备覆盖新取消。只有对应窗口允许过时修订，其他冲突继续拒绝并同步。玩家本地选牌依赖 selectionToken，保存动画使用独立修订编号。
+
+copySave 复制将变化的席位、凭证、receipt、历史数组等容器，共享不可变 before checkpoint；规则纯函数负责游戏状态变换。事务成功才替换 this.save，回退单独复制被恢复游戏和策略数据。格式仍为 1，旧版缺失 owner／窗口字段有明确默认；无游戏存档与 1.5.0 宝可梦存档均有测试。历史仍完整保留，SQLite journal 不在本轮重构。
 
 ## 独立原型与验证分层
 
@@ -92,7 +104,9 @@ HTTP 提供加入、换绑兑换、授权同步和网络地址；Socket.IO 握�
 
 1.4.0 协议 5 新增 `playMode` 与房主 `set-play-mode`。设置在房间层保存而不进入游戏 checkpoint；旧字段缺失默认 `play`，普通桌面启动显式 `play`，隐藏测试启动显式 `test`。BotScheduler 用当前实例／修订／分支／决策／策略／等级／模式识别同一任务，单纯在线状态通知保留等待和计算；正常替换取消与超时失败分开，不能因朋友重连误暂停，也不能因不断连接把等待无限延后。
 
-SDK `PublicEvent.action` 及首版历史可选记录真实行动者、动词、公开类别／能力与公开目标格；`public-actions.ts` 只从已执行合法动作提取白名单信息，保存校验拒绝额外字段、未知座位／格号与私看细节。旧事件缺字段仍可加载。前端 ActivityFeed 用元数据和当前昵称组装静态播报与近期浮窗；peek／close 只带喷火龙类别及空位置列表，不带查看格、值或实例。目标边框与保存动效分别维护，测试模式禁动效／声音，静态授权结果仍可读。OverlayPanel 用原生 modal dialog 和 portal 管理焦点、遮罩及唯一标题；管理确认独立弹窗，显著结束入口只由房主可见。
+SDK `PublicEvent.action` 及首版历史可选记录真实行动者、动词、公开类别／能力与公开目标格；`public-actions.ts` 只从已执行合法动作提取白名单信息，保存校验拒绝额外字段、未知座位／格号与私看细节。旧事件缺字段仍可加载。前端 ActivityFeed 用元数据和当前昵称组装静态播报与近期浮窗；peek／close 只带喷火龙类别及空位置列表，不带查看格、值或实例。目标边框与保存动效分别维护，测试模式禁动效／声音，静态授权结果仍可读。OverlayPanel 用原生 modal dialog 和 portal 管理焦点、遮罩及唯一标题；管理确认独立弹窗，显著结束入口只由电脑管理员可见。
+
+桌面 AudioOutputController 管理游戏窗口的播放资格：公共屏优先，最后公共屏离开后交回管理员；固定 connect／disconnect／claimEvent／subscribe 接口校验窗口、主 frame、本源与路由。已保存事件键在桌面端统一去重，队列有界；文档已提交导航才清理资格，打开公共屏时被拦截的导航不能误清管理员。静音偏好保存在本地并跨同源窗口同步，手机不建立播放器。
 
 ## 电脑显示控制
 

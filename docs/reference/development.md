@@ -1,6 +1,12 @@
 # 开发环境与验证
 
-范围：用户本机 Windows 11 x64；第一至六阶段已完成，正式入口默认运行宝可梦完整游戏，独立原型保留合成状态。当前交付验收按用户授权使用电视／手机模拟，证据及 AC 对应见 [验收记录](acceptance.md)；历史阶段记录保持原验证范围。
+## 独立视觉审查截图
+
+`pnpm verify:game-ui '--only=L6,V00,V00-discard,V03,V04,V05,V06,V07,V08' --evidence=independent-review --review-stages` 为每次提交前的公共屏及当前玩家手机保存带步骤编号的截图；手机另记录滚动到操作牌阵的帧，不覆盖同阶段多次接牌。`capturePage` 继续使用隐藏窗口；仅截图滚动，不修改服务状态。每轮使用新的 `--evidence` 名称，保留修正前后证据。
+
+`pnpm verify:effects --evidence=independent-review-final` 将声画 fixture 截图及结果写入独立子目录，默认入口保持原样。自然对局与效果 fixture 的证明范围不可混用。审查者每图新建、`fork_turns: "none"`，只接收单张图片及中性提示；具体提示、审查边界和证据路由见 [游戏验证场景](../games/pokemon-encounters/validation-scenarios.md#当前界面的独立视觉审查)。
+
+范围：用户本机 Windows 11 x64；第一至六阶段已完成，1.6.0 正式入口先展示游戏库，选择宝可梦后运行完整游戏，独立原型保留合成状态。已有对局按存档恢复对应游戏。当前交付验收按用户授权使用电视／手机模拟，证据及 AC 对应见 [验收记录](acceptance.md)；历史阶段记录保持原验证范围。
 
 第二阶段设计行为和 AC 场景见 [通用交互规格](phase-02-platform-spec.md)，规则关口与接续工作见 [阶段任务](../archive/phase-02-rules-and-interaction.md)。原型不读取默认数据目录，不改变正式桌面入口。
 
@@ -38,30 +44,33 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 ## 真实命令
 
-| 命令                                | 行为                                                                                                                             |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                          | 先构建，启动 Vite 与 Electron／独立服务；前端热更新，服务与桌面源码修改后重启该命令                                              |
-| `pnpm start`                        | 运行已有 `build/desktop`；先执行 `pnpm build`                                                                                    |
-| `pnpm typecheck`                    | 严格 TypeScript 检查，不生成文件                                                                                                 |
-| `pnpm lint`                         | ESLint 与 React Hooks 规则检查                                                                                                   |
-| `pnpm format:check` / `pnpm format` | 检查格式／按项目配置格式化                                                                                                       |
-| `pnpm test`                         | Vitest 执行核心、真实 Socket.IO、SQLite、强制终止恢复及 Worker 验证                                                              |
-| `pnpm check`                        | 顺序执行类型、静态、格式检查与当前测试                                                                                           |
-| `pnpm build`                        | 构建网页、打包独立服务与桌面主进程到 `build/desktop`                                                                             |
-| `pnpm verify:desktop`               | 隐藏窗口验证开发构建，包括真实大厅、宝可梦六人混合整局、回退、两次启动恢复、独立进程与退出协调                                   |
-| `pnpm verify:party`                 | 隐藏窗口验证加入／换绑丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP    |
-| `pnpm verify:room-levels`           | 隐藏窗口验证手机各自入座、电脑仅管理／展示、六席围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证当前 ZIP |
-| `pnpm verify:presentation`          | 隐藏窗口验证六真人、游玩／测试时序、浮窗焦点／结束、公开行动及星标；可加 `--portable` 验证当前 ZIP                               |
-| `pnpm verify:display`               | 隐藏窗口验证电脑 720p／1080p／1440p／4K、独立缩放、显示浮窗、设置恢复与 DPI；可加 `--portable` 验证最终 ZIP                     |
-| `pnpm verify:game-ui`               | 正式能力／2–6 人保存 fixture 的十五组 UI、多尺寸触控／隐私、已保存动效和声音                                                     |
-| `pnpm verify:cards`                 | 正式六人保存状态的全部 16 类卡面及公共／手机十三种布局、图像／文字／分区几何                                                     |
-| `pnpm package:win`                  | 构建并生成 Windows x64 解压运行 ZIP 与 `win-unpacked`                                                                            |
-| `pnpm verify:portable`              | 将最终 ZIP 解压到新的项目临时目录，对其中的 `TableMax.exe` 运行同一跨层验证，子进程 PATH 不含 Node／开发工具目录                 |
-| `pnpm prototype:dev`                | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                                      |
-| `pnpm prototype:build`              | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/`                                                                     |
-| `pnpm prototype:preview`            | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建                                                    |
-| `pnpm prototype:verify:game`        | 对游戏原型执行Playwright／隐藏Electron全能力、角色、恢复反馈、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/`     |
-| `pnpm prototype:verify`             | 对已有原型构建运行 Playwright／隐藏 Electron 窗口走查，生成 JSON 和截图；先执行原型构建并准备 Electron                           |
+| 命令                                | 行为                                                                                                                                |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                          | 先构建，启动 Vite 与 Electron／独立服务；前端热更新，服务与桌面源码修改后重启该命令                                                 |
+| `pnpm start`                        | 运行已有 `build/desktop`；先执行 `pnpm build`                                                                                       |
+| `pnpm typecheck`                    | 严格 TypeScript 检查，不生成文件                                                                                                    |
+| `pnpm lint`                         | ESLint 与 React Hooks 规则检查                                                                                                      |
+| `pnpm format:check` / `pnpm format` | 检查格式／按项目配置格式化                                                                                                          |
+| `pnpm test`                         | Vitest 执行核心、真实 Socket.IO、SQLite、强制终止恢复及 Worker 验证                                                                 |
+| `pnpm check`                        | 顺序执行类型、静态、格式检查与当前测试                                                                                              |
+| `pnpm build`                        | 构建网页、打包独立服务与桌面主进程到 `build/desktop`                                                                                |
+| `pnpm verify:desktop`               | 隐藏窗口验证开发构建，包括真实大厅、宝可梦六人混合整局、回退、两次启动恢复、独立进程与退出协调                                      |
+| `pnpm verify:party`                 | 隐藏窗口验证加入丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP             |
+| `pnpm verify:room-levels`           | 隐藏窗口验证手机各自入座、电脑仅管理／展示、六席围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证当前 ZIP    |
+| `pnpm verify:presentation`          | 隐藏窗口验证六真人、游玩／测试时序、浮窗焦点／结束、公开行动及星标；可加 `--portable` 验证当前 ZIP                                  |
+| `pnpm verify:display`               | 隐藏窗口验证电脑 720p／1080p／1440p／4K、独立缩放、显示浮窗、设置恢复与 DPI；可加 `--portable` 验证最终 ZIP                         |
+| `pnpm verify:experience`            | 隐藏窗口验证游戏库按需加载、管理员指定手机房主、并发初始翻牌和准备、连接／显示控件及声音归属；可加 `--portable` 验证当前 ZIP        |
+| `pnpm verify:effects`               | 隐藏 Electron 用实际游戏组件和授权投影视觉 fixture 验证主题、同币面、暗牌交换、零分列、共同赢家和减少动态；不冒充自然对局           |
+| `pnpm verify:memory`                | 独立 Node 进程比较存档复制开销，再用隐藏 Electron 执行 20 轮进入／退出游戏的 heap／DOM 回归；可加 `--copy-only` 或 `--desktop-only` |
+| `pnpm verify:game-ui`               | 正式能力／2–6 人保存 fixture 的十五组 UI、多尺寸触控／隐私、已保存动效和声音                                                        |
+| `pnpm verify:cards`                 | 正式六人保存状态的全部 16 类卡面及公共／手机十三种布局、图像／文字／分区几何                                                        |
+| `pnpm package:win`                  | 构建并生成 Windows x64 解压运行 ZIP 与 `win-unpacked`                                                                               |
+| `pnpm verify:portable`              | 将最终 ZIP 解压到新的项目临时目录，对其中的 `TableMax.exe` 运行同一跨层验证，子进程 PATH 不含 Node／开发工具目录                    |
+| `pnpm prototype:dev`                | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                                         |
+| `pnpm prototype:build`              | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/`                                                                        |
+| `pnpm prototype:preview`            | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建                                                       |
+| `pnpm prototype:verify:game`        | 对游戏原型执行Playwright／隐藏Electron全能力、角色、恢复反馈、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/`        |
+| `pnpm prototype:verify`             | 对已有原型构建运行 Playwright／隐藏 Electron 窗口走查，生成 JSON 和截图；先执行原型构建并准备 Electron                              |
 
 当前便携包和使用流程见 [项目说明](../../README.md#使用便携版)。第一阶段 0.1.0 仅为工程验证包，不包含大厅、身份或首版游戏；该旧包已按用户要求清除，验证记录保留。
 
@@ -104,13 +113,27 @@ pnpm prototype:verify:game
 
 ## 当前维护验证
 
+短屏布局返修可先运行 `pnpm verify:display --paused-720p-only`，只在真实六手机开局并暂停后检查主机 1280×720 首屏，证据进入当前版本的 `display/paused-720p`。该入口用于固定失败场景，不能替代完整显示矩阵或最终 ZIP 验证。
+
+### 游戏库、并发与内存验证（1.6.0）
+
+本节完整矩阵适用于相关游戏、平台或界面实现变更。仅重新编号版本及修改开发文档时，检查格式、链接、脚本与配置，再执行 `pnpm package:win`（已包含构建）和 `pnpm verify:portable` 验证最终 ZIP；游戏源码未变的功能专项沿用既有通过证据。便携验证会检查运行程序的应用版本与根目录版本一致，避免只改文件名。
+
+先执行 `pnpm check`、`pnpm build`，再按改动运行 `pnpm verify:experience`、`pnpm verify:game-ui`、`pnpm verify:desktop` 和显示／聚会专项。验证入口按根目录 `package.json` 版本选择证据目录，当前为 `artifacts/maintenance/v1.0.0/`；原 1.6.0 证据保留在 `artifacts/maintenance/v1.6.0/`：完整对局为 `development`／`portable`，新版操作为 `experience`／`experience-portable`，能力／卡面为 `ui`／`cards`，专项投影视觉为 `effects`，显示为 `display/development`／`display/portable`，聚会、等级及呈现仍用 `party`、`room`、`presentation` 及各自 `-portable` 子目录。旧版 `display-resolution` 等历史证据不覆盖。命令入口存在不代表验证已通过；便携结果必须对应最终 ZIP 的实际执行与哈希，不能由开发构建推定。
+
+游戏元数据和加载器分别维护在服务注册表与 `apps/web/src/game-clients/registry.ts`。盒子只需要目录信息与缩略图；选中后加载游戏客户端、样式和资源。服务按选择或存档 manifest 加载对应规则，Worker 按任务加载对应策略；`build/desktop/games/*.cjs`、`bots/*.cjs` 与前端分块一起本地打包。已加载模块可在进程内复用，回盒子卸载游戏界面不等于清除 JavaScript 模块缓存。正式目录当前只展示宝可梦；内部 `template` 用于切换、容量及策略兼容验证，不作为第二款完整产品游戏。
+
+`pnpm verify:memory` 先从当前源码提取 `copySave`，与 1.5.0 基线的整份 `structuredClone` 在独立 `--expose-gc` Node 进程比较；可用 `--baseline-ref=<Git修订>` 指定另一个确实包含旧复制方式的基线。六席／1,200 checkpoint／1,200 receipt fixture 由合法六席快照扩展并经生产存档校验，不宣称已实际游玩 1,200 步。随后对实际隐藏 Electron 连续执行 20 轮开始、结束、回盒子及重新选择同游戏，记录 GC 后 renderer heap、DOM、监听器和本应用进程内存。结果在当前版本目录的 `memory/results.json`（当前 `artifacts/maintenance/v1.0.0/`，既有 1.6.0 测量保留）；临时入口、数据和 fixture 在 `tmp/runtime-memory-*`。`--copy-only` 不启动桌面，`--desktop-only` 保留已有复制测量并追加桌面结果；后者需先构建。
+
+内存结果只说明测量配置下的复制分配、耗时和导航回归；并行工程负载可能影响耗时与工作集，不使用整台电脑 RAM 评价本应用。当前按字段复制仍保留全部有效回退历史，完整存档序列化和历史体积仍随对局增长，不能写成长期有界内存。磁盘阈值维护使用下节清理工具，与运行时 RAM 分开。
+
 ### 聚会可靠性维护验证（1.2.0）
 
-`pnpm verify:party` 验证当前开发构建，使用隔离数据、隐藏 Electron 和实际本机网卡 IPv4（监听 0.0.0.0），覆盖网卡名称／刷新／选择保持、已保存但丢失的加入及换绑回复、刷新／真实程序重启后确认、250ms 延迟和带宽限制、断网／冻结恢复、回退上下文与筛选、原班第二大局、重复启动、公共屏保留时恢复房主管理以及真实端口占用的中文错误日志。不会修改防火墙、路由器或默认玩家存档；本机网卡地址可达并不证明真实手机或实际 Wi-Fi 已验收。启动前运行 `pnpm build`。正式包验证使用 `pnpm verify:party --portable`，新目录解压 ZIP、子进程 PATH 仅系统目录，证据独立进入 `party-portable`。
+`pnpm verify:party` 验证当前开发构建，使用隔离数据、隐藏 Electron 和实际本机网卡 IPv4（监听 0.0.0.0），覆盖网卡名称／刷新／选择保持、已保存但丢失的加入回复与同请求确认重试、刷新／真实程序重启后确认、250ms 延迟和带宽限制、断网／冻结恢复、回退上下文与筛选、原班第二大局、重复启动、公共屏保留时恢复管理员窗口以及真实端口占用的中文错误日志；1.6.0 另确认已删除的兑换接口拒绝请求。不会修改防火墙、路由器或默认玩家存档；本机网卡地址可达并不证明真实手机或实际 Wi-Fi 已验收。启动前运行 `pnpm build`。正式包验证使用 `pnpm verify:party --portable`，新目录解压 ZIP、子进程 PATH 仅系统目录，证据独立进入 `party-portable`。
 
 1.2.0 的 verify:desktop／verify:portable／verify:game-ui／verify:party 证据在 `artifacts/maintenance/party-reliability` 保留，历史 pokemon-refresh 不覆盖。整局驱动器在随机电脑先手时处理闪电鸟等真人被动选择，再观察真人正常回合；完整三胜结算后实际保留五座位、三 bot 和手机凭证，重新准备并启动新大局。该版包按 package.json 的 1.2.0 输出到 `artifacts/releases`；存档格式、游戏状态与策略版本保持，网络协议为 3。
 
-普通便携启动保持端口 38473：占用时停止并展示具体原因及排障建议，不静默换端口。网卡可手动刷新并自动跟踪变化，原手机在地址或端口变化后的新浏览器源上需房主换绑。服务运行期间防自动休眠，公共屏可见时保持亮屏，退出恢复系统正常电源行为。手动休眠或关机仍可能中断服务。
+普通便携启动保持端口 38473：占用时停止并展示具体原因及排障建议，不静默换端口。网卡可手动刷新并自动跟踪变化；手机身份仅在原浏览器源恢复，地址或端口变化后的新源不能自动沿用身份。1.6.0 已删除换绑，应优先恢复原地址；确需重新入座时由管理员处理旧座位，原座位不能通过绑定码迁移。服务运行期间防自动休眠，公共屏可见时保持亮屏，退出恢复系统正常电源行为。手动休眠或关机仍可能中断服务。
 
 正式桌面原生 Alt → 程序菜单提供“打开房主管理”“打开日志目录”；`LOCALAPPDATA/TableMax/logs/desktop.log` 保存启动失败的具体原因，`service.log` 保存服务生命周期。损坏／不兼容存档保持原文件，排障前备份 room.sqlite 和 WAL／SHM。验收见 [聚会维护记录](acceptance.md#首版维护聚会可靠性与连续游玩)。
 
@@ -130,23 +153,23 @@ pnpm prototype:verify:game
 
 开发 Vite 使用 `127.0.0.1:5173`，把 `/api`、`/socket.io` 转发到默认服务端口。正式运行仅由 Fastify 提供构建后的网页，不使用 Vite。开发模式的服务端口保持默认值；修改服务端口时需同步 Vite 代理。
 
-| 内容                 | 位置／策略                                                                                                                                   |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| 默认本地数据         | 系统 `LOCALAPPDATA` 下的 `TableMax/`，不写入程序包或仓库                                                                                     |
-| 工程验证数据库       | 数据目录 `foundation.sqlite` 与 SQLite WAL／SHM；仅保留工程启动计数，正式平台另用 room.sqlite                                                |
-| 正式平台存档         | 数据目录 `room.sqlite` 与 WAL／SHM；最新记录与修订 journal，包含秘密状态，禁止公开                                                           |
-| 服务日志             | 数据目录 `logs/service.log`，只记录服务启动／停止事件，不记录验证消息或秘密状态                                                              |
-| Electron 浏览器数据  | 数据目录 `desktop/`，包含网页会话与缓存                                                                                                      |
-| pnpm、下载与工具缓存 | 仓库 `.pnpm-store/`、`.cache/`；Git 忽略，工作区隐藏与排除监听                                                                               |
-| 可再生构建           | 仓库 `build/`，Git 忽略，工作区隐藏                                                                                                          |
-| 便携包与验证图／JSON | 当前 1.5.0 ZIP 在 artifacts/releases，维护验证在 artifacts/maintenance；历史证据保留，0.1.0–1.3.0 程序包已清除，Git 忽略，文件树可见；搜索与监听单独排除 |
-| 原型构建             | 仓库 `artifacts/phase-02/prototype/`，独立于 `build/desktop/web/`                                                                            |
-| 原型截图与走查 JSON  | 仓库 `artifacts/phase-02/verification/`，Git 忽略但文件树可见；每次走查更新对应证据                                                          |
-| 美术原图与前后对比   | 仓库 `artifacts/phase-02/art-reset/`；保留 imagegen 原始 PNG、透明通道／尺寸／哈希检查、联系表及同尺寸前后截图和文字测量                     |
-| 第二阶段检索原始响应 | 仓库 `artifacts/phase-02/research/`，清单记录 URL、HTTP 状态、字节数与 SHA-256；不是已核验规则书                                             |
-| 原型走查临时入口     | 仓库 `tmp/prototype-verify-*`，与正式服务、数据库和用户默认存档分离                                                                          |
-| 跨层验证临时数据     | 仓库 `tmp/desktop-verify-*`、`tmp/portable-extracted-*` 及命令入口验证目录，使用显式测试数据目录覆盖；不会读写用户默认存档                   |
-| 单元测试数据库样本   | 系统临时目录 `tablemax-*`，与正式数据分离                                                                                                    |
+| 内容                 | 位置／策略                                                                                                                                                                                                         |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 默认本地数据         | 系统 `LOCALAPPDATA` 下的 `TableMax/`，不写入程序包或仓库                                                                                                                                                           |
+| 工程验证数据库       | 数据目录 `foundation.sqlite` 与 SQLite WAL／SHM；仅保留工程启动计数，正式平台另用 room.sqlite                                                                                                                      |
+| 正式平台存档         | 数据目录 `room.sqlite` 与 WAL／SHM；最新记录与修订 journal，包含秘密状态，禁止公开                                                                                                                                 |
+| 服务日志             | 数据目录 `logs/service.log`，只记录服务启动／停止事件，不记录验证消息或秘密状态                                                                                                                                    |
+| Electron 浏览器数据  | 数据目录 `desktop/`，包含网页会话与缓存                                                                                                                                                                            |
+| pnpm、下载与工具缓存 | 仓库 `.pnpm-store/`、`.cache/`；Git 忽略，工作区隐藏与排除监听                                                                                                                                                     |
+| 可再生构建           | 仓库 `build/`，Git 忽略，工作区隐藏                                                                                                                                                                                |
+| 便携包与验证图／JSON | 当前 v1.0.0 ZIP 在 artifacts/releases，本轮验证在 artifacts/maintenance/v1.0.0；原 1.6.0 功能证据在 artifacts/maintenance/v1.6.0；历史证据保留，旧程序清理情况见验收记录；Git 忽略，文件树可见，搜索与监听单独排除 |
+| 原型构建             | 仓库 `artifacts/phase-02/prototype/`，独立于 `build/desktop/web/`                                                                                                                                                  |
+| 原型截图与走查 JSON  | 仓库 `artifacts/phase-02/verification/`，Git 忽略但文件树可见；每次走查更新对应证据                                                                                                                                |
+| 美术原图与前后对比   | 仓库 `artifacts/phase-02/art-reset/`；保留 imagegen 原始 PNG、透明通道／尺寸／哈希检查、联系表及同尺寸前后截图和文字测量                                                                                           |
+| 第二阶段检索原始响应 | 仓库 `artifacts/phase-02/research/`，清单记录 URL、HTTP 状态、字节数与 SHA-256；不是已核验规则书                                                                                                                   |
+| 原型走查临时入口     | 仓库 `tmp/prototype-verify-*`，与正式服务、数据库和用户默认存档分离                                                                                                                                                |
+| 跨层验证临时数据     | 仓库 `tmp/desktop-verify-*`、`tmp/portable-extracted-*` 及命令入口验证目录，使用显式测试数据目录覆盖；不会读写用户默认存档                                                                                         |
+| 单元测试数据库样本   | 系统临时目录 `tablemax-*`，与正式数据分离                                                                                                                                                                          |
 
 仅支持开发／验证覆盖的环境变量：`TABLEMAX_DATA_DIR` 指定数据位置，`TABLEMAX_HOST` 指定监听地址，`TABLEMAX_PORT` 指定端口（0 仅用于验证临时端口）。`TABLEMAX_WEB_DEV_URL` 由开发脚本设置，普通便携启动不要设置。`ELECTRON_RUN_AS_NODE` 会改变 Electron 模式，项目启动和验证脚本主动移除该变量。不要将含秘密的本地配置纳入 Git。
 
@@ -154,12 +177,15 @@ pnpm prototype:verify:game
 
 ## 清理本地中间物
 
-盒子项目根目录提供两个可从任意工作目录运行的 PowerShell 入口，共用 [清理实现](../../scripts/cleanup-local.ps1)，从脚本位置定位仓库，不依赖当前终端目录：
+项目根目录提供三个可从任意工作目录运行的 PowerShell 入口，共用 [清理实现](../../scripts/cleanup-local.ps1)：
 
-- [Clean-Releases.ps1](../../Clean-Releases.ps1)：清理 `artifacts/releases` 中低于 `package.json` 当前版本的 ZIP、解压程序和独立打包目录；当前／未来版本及不认识的名称保留。
+- [Clean-Releases.ps1](../../Clean-Releases.ps1)：清理 `artifacts/releases` 中低于 `package.json` 当前版本的 ZIP、解压程序和独立打包目录；当前／未来版本及不认识的名称默认保留。版本重新编号后，可用 `-RetiredVersions 1.6.0` 显式指定已退役标签，仍执行全部安全检查；禁止指定当前版本，自动维护不接受该选项。
 - [Clean-Intermediates.ps1](../../Clean-Intermediates.ps1)：清理已知验证脚本生成的 `tmp/<用途>-<六位随机后缀>`、便携解压副本、已完成的打包工作目录及 builder 诊断文件；已识别的一次性脚本先归档。未知临时内容保留，不清空整个 `tmp/`。原始素材、资料与历史截图／JSON 证据不在范围内。
+- [Maintain-Project.ps1](../../Maintain-Project.ps1)：工程操作前后空闲时检查主工作区磁盘占用；超过 5 GiB 才按最旧候选优先清理上述两类内容，达到 4 GiB 或合格候选耗尽即停止。容量是逻辑文件字节总量，不是运行内存；流式扫描跳过链接和嵌套仓库，不重复统计主工作区与 worktree，也不跨无关项目。
 
-默认只预览、保留最近 30 分钟修改过的候选，不删除也不写清理日志。先退出 TableMax，并完成开发／测试／打包；核对预览后加 `-Apply` 执行。脚本必须先找到与当前 ZIP 哈希相符的便携 `portable: true`／`result: passed` 验证记录；缺包、未验证或 ZIP 变化时停止。执行前及逐项删除前检查进程，解析绝对路径并核对仓库边界，拒绝 junction／符号链接；不能读进程、候选发生变化或检查失败时停止，不结束用户进程。部分失败会保留已执行清单供复查。
+三个入口默认只预览，保留最近 30 分钟修改过的候选，不删除也不写清理日志。两个手动清理入口默认处理脚本所在 checkout；维护入口默认从同一 Git 仓库发现主工作区，三个入口均支持 `-ProjectRoot <绝对路径>` 显式选择同仓库 checkout，拒绝无关项目。先退出 TableMax，并完成开发／测试／打包；手动核对后加 `-Apply`，日常维护按已授权规则在空闲边界自动调用维护入口的 `-Apply`，不创建常驻或定时任务，不在仍运行的 package／verify 父进程里绕过空闲检查。
+
+删除前必须找到与目标工作区当前 ZIP 哈希相符的便携 `portable: true`／`result: passed` 验证记录；缺包、未验证、ZIP 变化或容量超标但无候选时安全保留并报告。执行前及逐项删除前检查进程，解析绝对路径并核对仓库边界，拒绝 junction／符号链接和嵌套仓库；同目录清理互斥，候选的逐项路径／字节／修改时间指纹在删除前复核。不能读进程、候选变化或检查失败时停止，不结束用户进程。部分失败保留已执行清单供复查。
 
 ```powershell
 # 在 TableMax 根目录预览
@@ -168,11 +194,18 @@ pnpm prototype:verify:game
 # 核对后分别执行
 .\Clean-Releases.ps1 -Apply
 .\Clean-Intermediates.ps1 -Apply
+# 日常维护：默认发现本仓库主工作区，超过 5 GiB 才执行
+.\Maintain-Project.ps1
+.\Maintain-Project.ps1 -Apply
+# 或明确指定同仓库 checkout；路径替换为实际主工作区
+.\Maintain-Project.ps1 -Apply -ProjectRoot C:\Projects\TableMax
 ```
 
-`build/` 供 `pnpm start` 使用，默认保留；明确要删除可加 `-IncludeBuild`，之后先执行 `pnpm build` 再启动。已确认最近生成的候选也已停止使用时，可显式设置 `-MinimumAgeMinutes 0`；它只取消近期保护，不跳过其他安全检查。`.pnpm-store/`、`node_modules/` 和工具缓存继续保留，不随临时文件清理。脚本不更改 PowerShell 执行策略、默认 `LOCALAPPDATA/TableMax` 数据或其他项目环境。
+`build/` 供 `pnpm start` 使用，默认保留；手动 `Clean-Intermediates.ps1` 明确要删除时可加 `-IncludeBuild`，之后先执行 `pnpm build` 再启动。已确认最近候选停止使用时，手动入口可显式设置 `-MinimumAgeMinutes 0`，它不跳过其他安全检查。自动维护禁止这两种放宽；阈值可用 `-HighWaterGiB`、`-LowWaterGiB` 调整，低水位必须小于高水位。`.pnpm-store/`、`node_modules/`、工具缓存、正式存档、原始素材和历史证据继续保留；保护内容占用过大时只报告，不为达到阈值扩大删除范围。脚本不更改 PowerShell 执行策略、默认 `LOCALAPPDATA/TableMax` 数据或其他项目环境。
 
-实际执行记录写入 `artifacts/maintenance/local-cleanup-<UTC时间>-<类别>/cleanup.json`，逐项记录路径、字节、删除状态、跳过原因及保留的当前 ZIP 哈希；一次性脚本在同目录 `temporary-scripts` 归档。记录保持文件树可见、Git 忽略。清理工具改动使用 [隔离测试](../../scripts/cleanup-local.test.ps1)：`powershell.exe -NoProfile -File scripts/cleanup-local.test.ps1`；它在仓库内创建模拟工作区，检查预览、当前／未来包保留、运行进程阻止、链接防护、白名单、近期保护、脚本归档及显式构建清理，不需要启动真实游戏或重建 release。
+实际执行记录写入 `artifacts/maintenance/local-cleanup-<UTC时间>-<类别>/cleanup.json`，逐项记录路径、字节、删除状态、跳过原因及保留的当前 ZIP 哈希；维护模式另记目标工作区、水位和前后字节。一次性脚本在同目录 `temporary-scripts` 归档。记录保持文件树可见、Git 忽略。`tmp/experience-*` 仅用于新版操作验证的隔离数据和便携解压，`tmp/runtime-memory-*` 仅用于内存测量；均按已知前缀清理，正式证据按版本保留在 `artifacts/maintenance/v<版本>/`，不参与临时文件清理。
+
+修改工具后运行 `powershell.exe -NoProfile -File scripts/cleanup-local.test.ps1` 与 `powershell.exe -NoProfile -File scripts/project-maintenance.test.ps1`。前者检查手动预览、ZIP／进程／链接／白名单／近期保护、脚本归档及显式构建清理；后者用隔离 Git 主仓库和 worktree 检查目录发现、不重复计量、高低水位、最旧优先、互斥及候选耗尽。测试不清理真实 release，结果分别保存在 `artifacts/maintenance/local-cleanup-tools/tool-tests.json` 和 `artifacts/maintenance/project-maintenance-tools/tool-tests.json`。
 
 2026-10-02 用户要求清除历史版本，已移除 0.1.0 至 1.3.0 的七个 ZIP，以及 phase-01／phase-06／releases 下三个旧 `win-unpacked`；当次保留 1.4.0 ZIP、解压程序和打包目录。历史原图、截图及 JSON 保留，以下历史包路径只用于追溯当时交付；详情见 [清理记录](../../artifacts/maintenance/release-cleanup-2026-10-02/cleanup.json)。打包不会自动清除其他版本。
 

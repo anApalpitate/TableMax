@@ -15,7 +15,7 @@
 | 牌框、牌背、角标 | CardFace／CSS 代码视觉；统一精灵球牌背不区分暗牌类别                                                                                                                          |
 | 封面／背景       | cover-v1.webp 与 tabletop/garden-table-v1.webp；既有 imagegen 原创环境图                                                                                                      |
 | 头像／骰子       | assets/platform；既有原创共享素材，不代表牌类或人数限制                                                                                                                       |
-| 5 类音效         | audio；原创程序合成 PCM 16-bit mono、22050Hz，draw／replace／effect-complete／round-result／error                                                                             |
+| 14 类音效         | audio；12 类原创程序合成 PCM 16-bit mono、22050Hz，加本地 MP3 喵喵／皮卡丘游戏叫声；来源及哈希见声音清单                                                                             |
 | 帮助／字体       | 本地 GameHelp；Segoe UI／微软雅黑／sans-serif，不请求在线字体                                                                                                                 |
 
 全部游戏资源位于 assets/games/pokemon-encounters。[catalog.ts](../../../assets/games/pokemon-encounters/catalog.ts) 是浏览器资源表；新增版本文件并更新映射／来源清单即可替换，规则、策略、协议和存档不依赖素材文件名。角色图 contain 加内距保留全身；官方图自带白色柔边，在深底有轻微光晕。火箭队横图保留完整群像，后续可用同 ID 的竖图替换。
@@ -30,7 +30,9 @@
 
 翻牌 320ms、发牌 360ms、换入 220ms；能力触发有光环、星点和短标题；硬币有 1200ms 上抛旋转与落定，HUD 翻转 950ms；最终结算有彩色纸片、赢家横幅和完整分数。装饰 pointer-events:none，不遮触控、不阻塞下一次合法操作；减少动态关闭移动及屏幕特效，保留完整状态。
 
-主机／公共屏经本屏手势开启声音，只播未来保存事件；手机不显示音效控件。同事件最多一次，快速操作替换前音，同步／回退／恢复不补播。播放失败不影响规则，保存仍以服务确认判断。验证边界见 [验收记录](../../reference/acceptance.md)；Windows 模拟不等于实机手机、电视或现场听音。
+1.6.0 声音默认开启，公共游戏窗口优先，无公共窗口时由管理员播放；手机不创建播放器。手动静音存储并跨同源窗口同步，一个播放器顺序消费有界队列，桌面全局按保存事件去重；同步／回退／恢复不补播，连续相同币面依然按不同保存事件播放。浏览器阻止自动播放时显示明确启用提示，桌面本地窗口允许默认播放。验证边界见 [验收记录](../../reference/acceptance.md)。
+
+喵喵和皮卡丘采用 [Pokémon Showdown 游戏叫声目录](https://play.pokemonshowdown.com/audio/cries/) 中 meowth.mp3 与 pikachu-starter.mp3 的本地副本，版本、取得日期、SHA-256、字节数与解码检查见 audio/manifest.json。它们是游戏叫声，不声明为中文动画原声。未核实中文火箭队台词录音，采用原创火箭飞走声配文字；其他主题音由 generate-game-sounds.mjs 合成。当前核验包括来源、哈希、Chromium 解码及实际播放调用，不冒称已完成真人试听或现场听音。
 
 ## 牌桌背景与卡面分区（1.0.2）
 

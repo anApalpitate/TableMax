@@ -10,7 +10,6 @@ import {
   ServiceConfigSchema,
   type ServiceConfig,
   JoinSchema,
-  RedeemSchema,
   SessionSchema,
   type RoomFeedback,
 } from '@tablemax/protocol';
@@ -18,8 +17,10 @@ import {
   RoomCoordinator,
   BotScheduler,
   Rejection,
+  GameRegistry,
+  type LoadedGame,
 } from '@tablemax/platform-core';
-import { rules, bot } from '../../../games/pokemon-encounters';
+import { createGameRegistry } from './game-registry';
 import { SqliteSaveRepository } from './save-repository';
 import { WorkerBotExecutor } from './bot-executor';
 import { openFoundationDatabase } from './database';
@@ -27,7 +28,7 @@ import { NetworkDirectory } from './network-directory';
 
 export async function createService(
   input: ServiceConfig,
-  game = { rules, bot },
+  game?: LoadedGame | GameRegistry,
 ) {
   const config = ServiceConfigSchema.parse(input);
   mkdirSync(join(config.dataDir, 'logs'), { recursive: true });
@@ -42,13 +43,21 @@ export async function createService(
   try {
     repository = new SqliteSaveRepository(config.dataDir);
     try {
-      room = new RoomCoordinator(
-        game.rules,
-        game.bot,
-        repository,
-        undefined,
-        config.playMode,
-      );
+      room =
+        game && !(game instanceof GameRegistry)
+          ? new RoomCoordinator(
+              game.rules,
+              game.bot,
+              repository,
+              undefined,
+              config.playMode,
+            )
+          : await RoomCoordinator.open(
+              game ?? createGameRegistry(),
+              repository,
+              undefined,
+              config.playMode,
+            );
     } catch (error) {
       repository.close();
       throw error;
@@ -75,7 +84,7 @@ export async function createService(
   const health = HealthSchema.parse({
     status: 'ready',
     phase: 'platform-foundation',
-    protocolVersion: 5,
+    protocolVersion: 6,
     database: 'ok',
     starts: storage.starts,
     runtime: {
@@ -136,19 +145,6 @@ export async function createService(
       return {
         ok: true,
         ...(await room.join(parsed.data.name, parsed.data.requestKey)),
-      };
-    } catch (error) {
-      return reply.code(409).send({ ok: false, reason: sessionFailure(error) });
-    }
-  });
-  app.post('/api/session/redeem', async (request, reply) => {
-    const body = RedeemSchema.safeParse(request.body);
-    if (!body.success)
-      return reply.code(400).send({ ok: false, reason: 'invalid-message' });
-    try {
-      return {
-        ok: true,
-        ...(await room.redeem(body.data.code, body.data.requestKey)),
       };
     } catch (error) {
       return reply.code(409).send({ ok: false, reason: sessionFailure(error) });

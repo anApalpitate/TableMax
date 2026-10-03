@@ -28,6 +28,8 @@ export interface DecisionBoundary {
 export interface PendingDecision {
   id: string;
   seatId: string;
+  // Only decisions whose actions commute with the other members of this group.
+  concurrencyGroup?: string;
 }
 export type PublicAction = {
   actor: string | null;

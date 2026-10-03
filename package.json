@@ -1,6 +1,6 @@
 {
   "name": "tablemax",
-  "version": "1.5.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.12.1",
@@ -32,7 +32,10 @@
     "prototype:build": "vite build --config apps/web/vite.prototype.config.ts",
     "prototype:preview": "vite preview --config apps/web/vite.prototype.config.ts",
     "prototype:verify": "node scripts/verify-prototype.mjs",
-    "prototype:verify:game": "node scripts/verify-game-prototype.mjs"
+    "prototype:verify:game": "node scripts/verify-game-prototype.mjs",
+    "verify:experience": "node scripts/verify-experience.mjs",
+    "verify:memory": "node scripts/verify-runtime-memory.mjs",
+    "verify:effects": "node scripts/verify-pokemon-effects.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

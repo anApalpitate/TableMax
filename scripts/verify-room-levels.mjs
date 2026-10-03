@@ -7,16 +7,14 @@ import { join, resolve } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createHash, randomUUID } from 'node:crypto';
+import { verificationOutput } from './verification-output.mjs';
 
 const require = createRequire(import.meta.url);
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
 const portable = process.argv.includes('--portable');
-const output = resolve(
-  'artifacts/maintenance/six-player-presentation',
-  portable ? 'room-portable' : 'room',
-);
+const output = verificationOutput(portable ? 'room-portable' : 'room');
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/room-levels-'));
@@ -320,6 +318,7 @@ async function tableGeometry(page, label) {
         ),
     };
   });
+  evidence.layouts.push({ label, ...geometry });
   assert.ok(geometry.table, `${label}: actual table is rendered`);
   assert.ok(
     geometry.felt?.width > 100 && geometry.felt?.height > 100,
@@ -381,7 +380,6 @@ async function tableGeometry(page, label) {
         `${label}: seats ${i + 1}/${j + 1} do not overlap`,
       );
     }
-  evidence.layouts.push({ label, ...geometry });
 }
 async function firstScreenControls(page, selectors, label) {
   const controls = await page.evaluate(
@@ -504,12 +502,17 @@ try {
   await host.keyboard.press('Escape');
   observe(host);
   const health = await (await fetch(`${origin}/api/foundation/health`)).json();
-  assert.equal(health.protocolVersion, 5);
+  assert.equal(health.protocolVersion, 6);
   assert.equal(await desktop.evaluate(({ app }) => app.isPackaged), portable);
   const hostToken = await host.evaluate(() =>
     sessionStorage.getItem('tablemax-host'),
   );
   const hostSocket = await connect(hostToken);
+  assert.equal((await view(hostToken)).game, null);
+  await command(hostSocket, hostToken, {
+    type: 'select-game',
+    gameId: 'pokemon-encounters',
+  });
   assert.equal((await view(hostToken)).playMode, 'test');
   assert.deepEqual((await view(hostToken)).self, {
     role: 'host',

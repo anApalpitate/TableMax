@@ -8,15 +8,14 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createHash } from 'node:crypto';
 import { platform, release, cpus } from 'node:os';
+import { verificationOutput } from './verification-output.mjs';
 const require = createRequire(import.meta.url);
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
 const portable = process.argv.includes('--portable');
-const output = resolve(
-  'artifacts/maintenance/six-player-presentation',
-  portable ? 'portable' : 'development',
-);
+const project = JSON.parse(await readFile('package.json', 'utf8'));
+const output = verificationOutput(portable ? 'portable' : 'development');
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/pokemon-verify-'));
@@ -33,7 +32,6 @@ let executablePath = require('electron'),
   archive,
   archiveSha256;
 if (portable) {
-  const project = JSON.parse(await readFile('package.json', 'utf8'));
   archive = resolve(
     `artifacts/releases/TableMax-${project.version}-win-x64.zip`,
   );
@@ -93,6 +91,7 @@ const evidence = {
   externalRequests: [],
   pageErrors: [],
   screenshots: [],
+  layouts: [],
 };
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const phases = new Set();
@@ -291,9 +290,18 @@ for (let run = 0; run < 2; run++) {
       await fetch(`${origin}/api/foundation/health`)
     ).json();
     assert.equal(health.starts, run + 1);
+    assert.equal(health.protocolVersion, 6);
+    if (run === 0) {
+      assert.equal((await view(origin, hostToken)).game, null);
+      await command(origin, host, hostToken, {
+        type: 'select-game',
+        gameId: 'pokemon-encounters',
+      });
+    }
     assert.ok(health.runtime.electron);
     const runtime = await desktop.evaluate(({ app, screen }) => ({
       packaged: app.isPackaged,
+      appVersion: app.getVersion(),
       metrics: app.getAppMetrics(),
       versions: process.versions,
       displays: screen
@@ -301,6 +309,7 @@ for (let run = 0; run < 2; run++) {
         .map((d) => ({ width: d.bounds.width, height: d.bounds.height })),
     }));
     assert.equal(runtime.packaged, portable);
+    assert.equal(runtime.appVersion, project.version);
     assert.ok(
       runtime.metrics.some(
         (entry) =>
@@ -582,10 +591,14 @@ for (let run = 0; run < 2; run++) {
         [1920, 1080],
       ]) {
         await capture(desktop, page, `match-result-${width}`, width, height);
+        const geometry = await page.evaluate(() => ({
+          width: innerWidth,
+          height: innerHeight,
+          scrollHeight: document.documentElement.scrollHeight,
+        }));
+        evidence.layouts.push({ label: 'match-result', ...geometry });
         assert.ok(
-          await page.evaluate(
-            () => document.documentElement.scrollHeight <= innerHeight + 1,
-          ),
+          geometry.scrollHeight <= geometry.height + 1,
           'Desktop match result fits the viewport',
         );
       }
@@ -639,9 +652,19 @@ for (let run = 0; run < 2; run++) {
     evidence.runs.push({
       health,
       packaged: runtime.packaged,
+      appVersion: runtime.appVersion,
       versions: runtime.versions,
       displays: runtime.displays,
     });
+  } catch (error) {
+    evidence.result = 'failed';
+    evidence.error = error.stack;
+    evidence.phases = [...phases];
+    await writeFile(
+      join(output, 'results.json'),
+      JSON.stringify(evidence, null, 2) + '\n',
+    );
+    throw error;
   } finally {
     for (const client of clients) client.disconnect();
     await desktop.close();
@@ -666,6 +689,7 @@ assert.deepEqual(evidence.pageErrors, []);
 const log = await readFile(join(dataDir, 'logs/service.log'), 'utf8');
 assert.equal(log.match(/service-stopped/g)?.length, 2);
 evidence.phases = [...phases];
+evidence.result = 'passed';
 await writeFile(
   join(output, 'results.json'),
   JSON.stringify(evidence, null, 2) + '\n',

@@ -53,7 +53,7 @@ export function PlayModeControl({ session }: { session: RoomSession }) {
           </span>
         </button>
       </div>
-      <p>模式由房主统一设置，已保存的牌桌状态和玩家身份继续保留。</p>
+      <p>模式由电脑管理员统一设置，已保存的牌桌状态和玩家身份继续保留。</p>
     </OverlayPanel>
   );
 }

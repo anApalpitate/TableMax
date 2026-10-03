@@ -55,7 +55,7 @@ export function DisplaySettings() {
     <>
       <button
         type="button"
-        className="secondary display-settings-control"
+        className="secondary icon-label-control display-settings-control"
         aria-label="显示设置"
         title="显示设置"
         onClick={() => {
@@ -94,7 +94,7 @@ export function DisplaySettings() {
       {open && (
         <OverlayPanel title="显示设置" close={() => setOpen(false)}>
           <p className="display-settings-description">
-            为当前电脑画面选择合适的文字与卡牌大小，切换后立即生效。房主管理与公共屏分别保存。
+            为当前电脑画面选择合适的文字与卡牌大小，切换后立即生效。管理员窗口与公共屏分别保存。
           </p>
           {error && <p role="alert">{error}</p>}
           {snapshot ? (

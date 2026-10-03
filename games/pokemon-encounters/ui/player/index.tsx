@@ -89,14 +89,16 @@ export function PlayerControls({
       <WinTrack wins={view.winsBySeat[seatId]!} />
       <p className="decision-hint">
         {view.phase === 'draw'
-          ? '点上方牌堆，取一张新牌。'
+          ? '点上方牌库或弃牌堆，取一张牌。'
           : view.phase === 'snorlax-choice'
             ? '点两张牌交换位置，或跳过能力。'
             : view.phase === 'mew-other'
               ? '先选一位朋友的牌，再换入自己的场地。'
-              : view.phase === 'charizard-view'
-                ? '记住这张牌，看完后关闭。'
-                : '点选卡位，选好后确认。'}
+              : view.phase === 'charizard-choice'
+                ? '点选一张暗牌，选好后确认查看。'
+                : view.phase === 'charizard-view'
+                  ? '记住这张牌，看完后关闭。'
+                  : '点选卡位，选好后确认。'}
       </p>
       {view.phase !== 'charizard-view' && view.phase !== 'mew-other' && (
         <Board
@@ -109,9 +111,40 @@ export function PlayerControls({
         />
       )}
       {view.peek && (
-        <div className="private-peek" role="status">
+        <div className="private-peek charizard-peek" role="status">
           <p>仅你可见 · 位置 {view.peek.slot + 1} · 牌仍朝下</p>
-          <CardFace card={view.peek.card} />
+          <button
+            className="secondary"
+            disabled={locked}
+            onClick={() => {
+              const close = actions.find((a) => a.type === 'close-peek');
+              if (close) choose(close);
+            }}
+          >
+            已看完，关闭查看
+          </button>
+          <span className="private-peek-card">
+            <CardFace card={view.peek.card} />
+            <span className="peek-flame" aria-hidden="true">
+              {['top', 'right', 'bottom', 'left'].map((edge) => (
+                <svg
+                  key={edge}
+                  className={`flame-edge flame-${edge}`}
+                  viewBox="0 0 120 65"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    fill="#ff732d"
+                    d="M2 62C-4 44 15 41 10 20c20 11 9 29 20 29 4-15 23-19 20-46 30 20 11 41 26 47 6-16 23-21 25-37 25 23 7 34 17 49Z"
+                  />
+                  <path
+                    fill="#ffd05a"
+                    d="M15 63c-6-11 7-14 7-25 10 7 6 19 17 20 9-15 14-15 18-31 13 15 4 25 21 31 10-5 12-17 17-21 0 13 15 19 13 26Z"
+                  />
+                </svg>
+              ))}
+            </span>
+          </span>
         </div>
       )}
       {view.phase === 'mew-other' && (
@@ -167,12 +200,19 @@ export function PlayerControls({
       <div className="intent-actions">
         {actions
           .filter(
-            (a) => !('slot' in a) && a.type !== 'swap' && a.type !== 'draw',
+            (a) =>
+              !('slot' in a) &&
+              a.type !== 'swap' &&
+              a.type !== 'draw' &&
+              a.type !== 'close-peek',
           )
           .map((a) => (
             <button
-              className="secondary"
+              className={
+                a.type === 'discard-held' ? 'discard-held-action' : 'secondary'
+              }
               key={a.type + (a.type === 'draw' ? a.source : '')}
+              aria-label={short(a)}
               disabled={locked}
               onClick={() => {
                 choose(a);
@@ -193,7 +233,15 @@ export function PlayerControls({
                   : '两张牌已选中'
               : first !== null
                 ? '再选一个不同位置'
-                : '选一张牌'}
+                : view.phase === 'snorlax-choice'
+                  ? '已选 0 / 2 张 · 选择交换位置'
+                  : view.phase === 'charizard-choice'
+                    ? '选择要查看的暗牌'
+                    : view.phase === 'mew-other'
+                      ? '选择朋友的一张牌'
+                      : view.phase === 'initial-flip'
+                        ? '选择要翻开的卡位'
+                        : '选择换入位置'}
           </p>
           <button
             className="confirm-action"

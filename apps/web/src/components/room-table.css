@@ -311,7 +311,7 @@
   .room-table,
   .public .room-table {
     --seat-width: 144px;
-    min-height: 430px;
+    min-height: clamp(360px, calc(100dvh - 400px), 430px);
   }
   .room-table__felt,
   .public .room-table__felt {
