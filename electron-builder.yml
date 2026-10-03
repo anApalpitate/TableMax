@@ -1,6 +1,9 @@
 appId: local.tablemax.desktop
 productName: TableMax
 electronVersion: 44.5.1
+electronLanguages:
+  - zh-CN
+  - en-US
 asar: true
 npmRebuild: false
 directories:

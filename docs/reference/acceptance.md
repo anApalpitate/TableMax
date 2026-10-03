@@ -1,6 +1,6 @@
 # 首版交付与验收
 
-当前交付为 [v1.0.0 版本归一与开发效率优化](#v100版本归一与开发效率优化)，保留下列历次真实验收记录。
+当前交付为 [v1.0.0 便携包语言精简](#100便携包语言精简2026-10-03)，保留下列历次真实验收记录。
 
 2026-10-01，交付版本 1.0.0；游戏采用 `tablemax-cn-s19-v1`，状态版本 1，基础策略 `pokemon-encounters/basic`／`1`。以下记录真实工程执行结果，规则原文认证状态仍见 [来源页](../games/pokemon-encounters/sources.md)。
 
@@ -212,8 +212,18 @@
 
 - 工程检查：类型、ESLint、项目格式及 22 文件／127 项测试通过，测试阶段实际 30.62 秒；后续标签／CSS及证据目录参数改动重新核验类型、静态检查及格式，未重复无关规则测试。
 - [最终 UI 回归](../../artifacts/maintenance/v1.0.0/ui/independent-review-verified/results.json) 15 场通过，保留 335 张实际隐藏渲染截图，含每一步公共屏／当前手机、滚动后牌阵、能力结果及多尺寸；重复进度帧保留，不宣称335张均独立送审。[卡面矩阵](../../artifacts/maintenance/v1.0.0/cards/results.json) 13 种／16 类及 [最终效果专项](../../artifacts/maintenance/v1.0.0/effects/independent-review-verified/results.json) 7 项通过。专项仍为生产组件及授权投影 fixture，区别于真实服务对局。
-- [实际 ZIP 整局](../../artifacts/maintenance/v1.0.0/portable/results.json) 完整六席三胜、全部14阶段、回退、两次启动恢复及原班续局通过；[实际 ZIP 显示矩阵](../../artifacts/maintenance/v1.0.0/display/portable/results.json) 44 张截图通过，覆盖720p—4K、两端36牌、暂停恢复、100／125／150%缩放及原生DPI模拟。两份记录均对应下面的新哈希，不复用旧包通过结论。
+- [实际 ZIP 整局](../../artifacts/maintenance/v1.0.0/before-language-pruning/portable/results.json) 完整六席三胜、全部14阶段、回退、两次启动恢复及原班续局通过；[实际 ZIP 显示矩阵](../../artifacts/maintenance/v1.0.0/before-language-pruning/display/portable/results.json) 44 张截图通过，覆盖720p—4K、两端36牌、暂停恢复、100／125／150%缩放及原生DPI模拟。两份记录均对应下面的新哈希，不复用旧包通过结论。
 
-当前 [Windows x64 ZIP](../../artifacts/releases/TableMax-1.0.0-win-x64.zip) 为 156,162,408 字节，SHA-256 `d35c20eabf636a024dc0bec11d188690775c7b0d26a2e67853b67b167a3ef789`；[源码 ZIP](../../artifacts/releases/TableMax-1.0.0-source.zip) 按最终提交导出。上一轮程序、源码和对应证据保留在 `before-independent-review/`，此前首份同编号包仍在 `before-visual-polish/`。范围仍为本机 Windows／隐藏 Electron／手机 Chromium 与DPI模拟，单帧审查不证明动效、规则正确性或真实手机／电视体验，没有新增现场听音结论。
+当轮 [Windows x64 ZIP](../../artifacts/maintenance/v1.0.0/before-language-pruning/TableMax-1.0.0-win-x64.zip) 为 156,162,408 字节，SHA-256 `d35c20eabf636a024dc0bec11d188690775c7b0d26a2e67853b67b167a3ef789`；[源码 ZIP](../../artifacts/maintenance/v1.0.0/before-language-pruning/TableMax-1.0.0-source.zip) 按最终提交导出。上一轮程序、源码和对应证据保留在 `before-independent-review/`，此前首份同编号包仍在 `before-visual-polish/`。范围仍为本机 Windows／隐藏 Electron／手机 Chromium 与DPI模拟，单帧审查不证明动效、规则正确性或真实手机／电视体验，没有新增现场听音结论。
 
 收尾 [统一维护](../../artifacts/maintenance/v1.0.0/independent-review-maintenance.json) 在构建、验证及打包退出后检查主工作区，保持5 GiB触发、4 GiB低水位及原安全保护。版本文件与锁文件保持不变；相关文档与链接、diff检查后统一提交，默认不推送。
+
+## 1.0.0：便携包语言精简（2026-10-03）
+
+用户授权先精简语言包，沿用 1.0.0。`electron-builder.yml` 只保留 `zh-CN` 和 `en-US`；游戏代码、美术、声音和 Chromium 其他运行组件不变。多个游戏后的按需安装已列入 [未来计划](../tasks/README.md#多游戏按需安装未来计划未实现)，本轮没有实现下载或更换桌面运行时。
+
+- [ZIP 内容与体积核验](../../artifacts/maintenance/v1.0.0/language-pruning/results.json)：删除 53 个语言文件，保留的 21 个文件逐项解压 SHA-256 与旧包一致，包括程序、app.asar 和其他运行组件。ZIP 从 156,162,408 字节降至 144,416,191 字节（148.9 → 137.7 MiB），减少 11.2 MiB／7.52%。
+- [实际便携整局](../../artifacts/maintenance/v1.0.0/portable/results.json)：新 ZIP 独立解压、仅系统 PATH、隐藏 Electron 与独立服务，通过六席三胜、全部 14 阶段、回退、两次启动恢复及原班续局，页面错误和外部请求为空。设备范围仍为本机 Windows／手机 Chromium 模拟，不新增实机或听音结论。
+- 打包配置 Prettier 与 diff 检查通过；Node 22.14.0、pnpm 10.12.1、Electron 44.5.1 沿用锁定环境。首次沙箱构建因子进程 `spawn EPERM` 失败，获准后完成真实打包；本轮仅打包配置与文档变化，未重复规则测试或显示矩阵，游戏与前端文件字节一致的证据见上。
+
+当前 [Windows x64 ZIP](../../artifacts/releases/TableMax-1.0.0-win-x64.zip) SHA-256 为 `e070212ce21c94b5b1546ca09c954f85feab9afde83c3642b589e18f6cbface1`；源码包按本轮最终提交导出。上一轮 ZIP、源码、交付清单及对应整局／显示证据保留在 `artifacts/maintenance/v1.0.0/before-language-pruning/`，历史显示通过结论归属旧包，不标为新包重新执行。
