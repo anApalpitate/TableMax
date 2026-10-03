@@ -138,11 +138,62 @@
       "file": "status-recovery.webp",
       "source": "built-in imagegen",
       "version": 1
+    },
+    {
+      "id": "app-icon",
+      "file": "app-icon.png",
+      "version": 1,
+      "createdAt": "2026-10-03",
+      "source": "built-in imagegen",
+      "mode": "generate",
+      "prompt": "Use case: logo-brand.\nAsset type: production Windows desktop and browser application icon for TableMax, an original local tabletop-game console.\nPrimary request: create ONE premium, memorable app icon, a polished original sculptural emblem with a bold clean silhouette, legible at 16 and 32 pixels, and refined at large sizes.\nDesign: a centered deep teal rounded-square tile with generous continuous rounded corners, nearly front-on and perfectly square, subtle soft satin bevel and minimal dimensionality. Within it, one large warm-ivory sculptural tabletop emblem. The broad horizontal top is two tightly stacked blank rounded rectangular board-game cards or thin tabletop layers. A single broad short central support beneath forms a geometric T-like silhouette; it should be perceived as an inviting tabletop and card stack, not an actual written letter. Keep the construction extremely simple: a wide cream bar and one compact cream support, gently softened corners, sculptural ceramic finish, enough separation from the teal tile. A restrained narrow warm-gold accent along the lower tabletop layer conveys premium crafted material. The emblem occupies about 62 percent of the tile width with a strong light-on-teal silhouette and comfortable padding.\nStyle: high-end editorial 3D brand mark, sophisticated restrained craft, friendly and contemporary tabletop console, soft tactile ceramic surfaces, very subtle depth, studio lighting from upper left. Calm luminous teal palette based on #247C75 and warm cream #F6F2E8, a tiny muted warm-gold #D9AC58 accent. Crisp clean edges, intentional geometry, balanced optical centering.\nComposition: square canvas, one icon only, the rounded tile fills 90 percent of canvas; all four outside edges have equal transparent safety margins. The tile is straight, upright, and not presented in perspective as an object lying down. Background OUTSIDE the rounded tile must be genuinely transparent alpha, with no fake checkerboard, no white backdrop and no opaque matte. No exterior cast shadow.\nConstraints: no typography or words, no watermark, no gradients with banding, no tiny surface details, no extra surrounding objects. No dice pips, no chess pieces, no characters, no Pokemon or other franchise, no busy board-game collage, no metallic black-and-gold luxury styling, no ornate trim, no glossy glass, no mockup grid, no multiple variations. Export the single finished square icon on transparent background.",
+      "referenceImages": [],
+      "transparent": true,
+      "dimensions": [1024, 1024],
+      "bytes": 761257,
+      "sha256": "7b154393329834b3c341a596d4b68f02c48d2bd461ba2fbfca9bda767e07956f",
+      "postprocessing": "Proportional LANCZOS resize and PNG/ICO format conversion; alpha preserved",
+      "derivatives": [
+        {
+          "file": "app-icon.ico",
+          "bytes": 84744,
+          "sha256": "3d856fb7b50bcb58e102cabe35d11ca5a794f7907303b42fb97d657dfea25957",
+          "dimensions": [256, 256],
+          "alphaExtrema": [0, 255],
+          "sizes": [
+            [16, 16],
+            [24, 24],
+            [32, 32],
+            [48, 48],
+            [64, 64],
+            [128, 128],
+            [256, 256]
+          ]
+        },
+        {
+          "file": "app-icon-180.png",
+          "bytes": 28011,
+          "sha256": "837acdc328e2192874ad6a284593542c25512eedded4e8d53cf3bae676905c59",
+          "dimensions": [180, 180],
+          "alphaExtrema": [0, 255],
+          "sizes": null
+        }
+      ],
+      "original": "artifacts/maintenance/v1.0.1/app-icon/imagegen/app-icon-source-v1.png",
+      "verification": "artifacts/maintenance/v1.0.1/app-icon",
+      "status": "generated, alpha and scale verified, imported, actual native/web/portable verification passed",
+      "usage": [
+        "apps/desktop/native/TableMax.csproj (EXE icon)",
+        "apps/desktop/native/NativeWindow.cs (window/titlebar/taskbar)",
+        "apps/web/index.html (favicon and touch icon)",
+        "apps/web/src/screens/BoxScreen.tsx (brand)"
+      ],
+      "note": "Original platform tabletop/stacked-card emblem; independent of game artwork. Local assets, no online resource dependencies. Source generation and alpha/scale review are preserved separately from actual application/portable verification."
     }
   ],
   "formalUsage": {
     "since": "2026-10-01",
-    "consumer": "apps/web/src/screens/BoxScreen.tsx, apps/web/src/screens/GameScreen.tsx",
+    "consumer": "apps/web/src/screens/BoxScreen.tsx, apps/web/src/screens/GameScreen.tsx, apps/web/index.html, apps/desktop/native/TableMax.csproj, apps/desktop/native/NativeWindow.cs",
     "ids": [
       "dice",
       "avatar-1",
@@ -150,10 +201,11 @@
       "avatar-3",
       "avatar-4",
       "avatar-5",
-      "avatar-6"
+      "avatar-6",
+      "app-icon"
     ],
     "verification": "artifacts/phase-03-04/verification",
-    "note": "Reuse verified dice and avatars without modifying their bytes; box and game use the game-specific cover. Prototype-only art remains available to the independent prototype."
+    "note": "Reuse verified dice and avatars without modifying their bytes; box and game use the game-specific cover. Prototype-only art remains available to the independent prototype. The 2026-10-03 application icon has its own actual native/web/portable verification under its asset entry."
   },
   "relocation": {
     "date": "2026-10-01",

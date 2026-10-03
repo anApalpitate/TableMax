@@ -18,6 +18,7 @@ namespace TableMax.Desktop
     {
         private readonly DesktopContext context;
         private readonly WebView2 browser = new WebView2();
+        private readonly Icon applicationIcon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
         private readonly string profile;
         private readonly string approvedOrigin;
         private readonly bool lanPhone;
@@ -45,6 +46,7 @@ namespace TableMax.Desktop
             initialWidth = width; initialHeight = height;
             Preferences = context.Displays.Read(role);
             Text = role == "public" ? "TableMax · 公共屏" : "TableMax";
+            Icon = applicationIcon;
             AutoScaleMode = AutoScaleMode.None;
             StartPosition = FormStartPosition.Manual;
             Size = new Size(width, height);
@@ -65,6 +67,11 @@ namespace TableMax.Desktop
             DpiChanged += (_, __) => ApplyDisplay();
             VisibleChanged += (_, __) => context.UpdatePower();
             FormClosed += (_, __) => { AudioReady = false; browser.Dispose(); };
+        }
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (disposing) applicationIcon?.Dispose();
         }
         public async Task Initialize(string url)
         {

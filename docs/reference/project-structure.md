@@ -22,7 +22,7 @@
 | `apps/web/`                                                                                       | 单一 React 工程；三种身份的盒子与独立游戏页，会话／导航／通用控件分别维护；独立原型不进入正式构建                                                        |
 | `assets/`                                                                                         | 全部运行／原型美术和声音，来源／版本及替换说明                                                                                                           |
 | `assets/games/<id>/`                                                                              | 游戏角色、音频、环境和浏览器资源表；规则不依赖文件名                                                                                                     |
-| `assets/platform/`                                                                                | 共享平台 WebP 与 imagegen 来源清单；正式页面和原型共同引用，迁移不改变图像字节                                                                           |
+| `assets/platform/`                                                                                | 共享平台 WebP、应用 PNG／ICO 图标与 imagegen 来源清单；正式页面和原型按用途引用，应用图标同时用于原生 EXE                                                |
 | `apps/web/src/session/`、`screens/`、`components/`                                                | 会话权威同步与可靠提交、独立页面、通用平台控件；首版牌桌场景留在游戏 UI                                                                                  |
 | `apps/web/src/game-clients/`                                                                      | 按游戏 ID 动态加载的页面适配器、已加载客户端复用和加载失败重试；组合平台会话与对应游戏 UI，不把宝可梦投影耦合进通用会话                                  |
 | `build/desktop/games/`、`build/desktop/bots/`                                                     | `scripts/build.mjs` 生成的本地独立规则／策略模块，随便携包分发；与前端分块共同实现按选择／恢复／bot 任务加载，不手改生成物                               |

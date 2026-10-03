@@ -10,6 +10,7 @@
     <RootNamespace>TableMax.Desktop</RootNamespace>
     <Version>1.0.1</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>../../../assets/platform/app-icon.ico</ApplicationIcon>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <OutputPath>../../../build/native/</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

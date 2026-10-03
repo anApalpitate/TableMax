@@ -1,12 +1,24 @@
 # 首版交付与验收
 
-当前交付为 [v1.0.1 GitHub Release](#101github-release2026-10-03)，保留下列历次真实验收记录。
+当前本地便携包为 [v1.0.1 应用图标更新](#101应用图标更新2026-10-03)，线上已发布包见 [v1.0.1 GitHub Release](#101github-release2026-10-03)，保留下列历次真实验收记录。
+
+## 1.0.1：应用图标更新（2026-10-03）
+
+按用户要求用内置 imagegen 生成高级应用图标，并应用到 EXE、主机／公共窗口标题栏和任务栏、浏览器标签、手机主屏入口及三端盒子品牌。采用青绿陶瓷圆角磁贴与奶油桌台／叠牌 T 形，细暖金夹层；资源、提示词和哈希见[平台清单](../../assets/platform/manifest.json)，完整原图与浅深底 16–256px 审查证据在 `artifacts/maintenance/v1.0.1/app-icon/imagegen/`。当前应用版本继续为 1.0.1。
+
+新[本地便携包](../../artifacts/releases/TableMax-1.0.1-win-x64.zip)为 **37,924,627 字节**，实际解压 **75 文件／93,539,137 字节**，通过双 100 MB 门禁和 95 MB 工程预算。[逐文件清单](../../artifacts/releases/TableMax-1.0.1-win-x64-manifest.json)记录 ZIP SHA-256 `61445bb9205bb1068377cbaf65f648ac31909e885c3e962f4f1e382b0f02b448`。已发布旧包与清单备份到 `artifacts/maintenance/v1.0.1/app-icon/before/`，其原哈希与下节发布验收保持。
+
+类型、ESLint、Prettier 和 **26 文件／160 项测试**通过；最终 ZIP 的[宝可梦便携整局](../../artifacts/maintenance/v1.0.1/app-icon/portable/results.json)通过六席、14 阶段、回退、两次启动恢复及原班续局。本次复用既有便携验证脚本，仅将副本的相对导入与证据输出改到图标专属目录，原验证脚本和历史证据保持。初次测试被沙箱子进程权限拦截，后以授权范围重跑测试；首次打包遇到短暂 EXE 文件锁，重试后成功，未关闭已有应用。游戏规则、策略和协议未变，设备边界仍为本机 Windows 与隐藏 WebView2／Chromium 尺寸模拟。
+
+[图标实际集成](../../artifacts/maintenance/v1.0.1/app-icon/integration-results.json)通过主机 1280×720、公共屏 1920×1080 和手机 360×640：品牌图片、网页标签及主屏图标均同源且与源文件哈希一致，无横向溢出、页面错误或外部请求；三张 PNG 来自更新后的隐藏真实渲染。[原生审计](../../artifacts/maintenance/v1.0.1/app-icon/native/portable/result.json)核验 EXE 与源 ICO 的 16／32／48／256px 像素一致，实际主机／公共窗口大小图标与当前 DPI 150% 选出的 48px 资源及 PerMonitorV2 关联图标基线逐像素一致。初次审计的固定 32px 假设与 WindowsPS 模块依赖已纠正，不是产品图标故障；已通过的工程检查、最终打包和整局不重复执行。图像生成实测 34.93 秒、Vitest 23.33 秒，其余关键耗时与执行范围见[交付记录](../../artifacts/maintenance/v1.0.1/app-icon/delivery-record.json)。本次没有更新线上 Release。
+
+所有本次构建／验证进程结束后执行 `Maintain-Project.ps1 -Apply`；既有 TableMax 实例及其服务仍运行，维护按进程保护保留全部文件，删除 0 字节，未进行容量统计或扩大清理范围。结果见[维护日志](../../artifacts/maintenance/v1.0.1/app-icon/maintenance.log)，当前包、原图、存档与历史证据均保留。
 
 ## 1.0.1：GitHub Release（2026-10-03）
 
 按用户最新指示，将含《现代艺术》的版本定位为 v1.0.1，并发布到 [GitHub Release](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.1)。应用、原生程序集、Windows manifest 和桌面版本响应同步为 1.0.1；规则、协议、存档和策略版本不变。原生安全验证改为读取当前应用版本对应的清单。用户原有 README 改写保留在工作区，发布提交仅纳入本次版本／下载链接调整和现代艺术说明。
 
-`pnpm package:win` 重新构建并逐文件核验实际解压：ZIP **36,966,646 字节**，解压 **72 文件／92,579,416 字节**，满足双 100 MB 门禁及 95 MB 解压预算。SHA-256 为 `8b3d4bc237d75e843a8b842d23ffeb7f651b4e531fbf2b2131b3a4433498dc6c`；[逐文件清单](../../artifacts/releases/TableMax-1.0.1-win-x64-manifest.json)与[便携包](../../artifacts/releases/TableMax-1.0.1-win-x64.zip)配套。
+`pnpm package:win` 重新构建并逐文件核验实际解压：ZIP **36,966,646 字节**，解压 **72 文件／92,579,416 字节**，满足双 100 MB 门禁及 95 MB 解压预算。SHA-256 为 `8b3d4bc237d75e843a8b842d23ffeb7f651b4e531fbf2b2131b3a4433498dc6c`；[逐文件清单](../../artifacts/maintenance/v1.0.1/app-icon/before/TableMax-1.0.1-win-x64-manifest.json)与[便携包](../../artifacts/maintenance/v1.0.1/app-icon/before/TableMax-1.0.1-win-x64.zip)配套。
 
 - [现代艺术便携整局](../../artifacts/maintenance/v1.0.1/modern-art/portable/results.json)通过：五席四轮、全部拍卖与八类手机动作、秘密隔离、回退、重启和游戏切换；28 张实际截图，页面错误和外部请求为空。
 - [宝可梦便携整局](../../artifacts/maintenance/v1.0.1/portable/results.json)通过：实际应用版本 1.0.1、六席三胜、14 阶段、回退、重启及原班续局。

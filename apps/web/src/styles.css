@@ -63,14 +63,11 @@ header {
   text-decoration: none;
 }
 .brand-mark {
-  display: grid;
-  place-items: center;
-  background: #1d4d40;
-  color: white;
+  display: block;
   width: 36px;
   height: 36px;
-  border-radius: 10px;
-  font-size: 24px;
+  flex-shrink: 0;
+  object-fit: contain;
 }
 .connection {
   font-size: 13px;

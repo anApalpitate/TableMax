@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { BotDifficulty } from '@tablemax/protocol';
 import { gameCover } from '../assets/game-covers';
+import appIcon from '../../../../assets/platform/app-icon.png';
 import { ScreenLink } from '../components/ScreenLink';
 import { RoomManagement } from '../components/RoomManagement';
 import { InviteFriends } from '../components/InviteFriends';
@@ -74,7 +75,8 @@ export function BoxScreen({ session }: { session: RoomSession }) {
     >
       <header>
         <span className="brand">
-          <span className="brand-mark">T</span>TableMax
+          <img className="brand-mark" src={appIcon} alt="" />
+          TableMax
         </span>
         <div className="header-status">
           {role !== 'player' && <DisplaySettings />}
