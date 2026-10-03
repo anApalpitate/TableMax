@@ -8,6 +8,8 @@
 
 [第五、六阶段：完整游戏与交付](phase-05-06-complete-game.md) 于 2026-10-01 完成并归档，保留范围、完成清单及本机模拟验收证据；当前说明见 [验收记录](../reference/acceptance.md)、[开发环境](../reference/development.md) 与 [首版游戏规格](../games/pokemon-encounters/README.md)。
 
+[首版维护：2026-10-01 至 2026-10-03](maintenance-2026-10-01-to-03.md) 于 2026-10-03 归档，历次维护与独立视觉审查已完成，保留原版本标识、范围与证据；当前实现见 [通用规格](../reference/phase-02-platform-spec.md)、[游戏规格](../games/pokemon-encounters/README.md)及[验收记录](../reference/acceptance.md)，待办与未来计划见 [任务索引](../tasks/README.md)。
+
 第二阶段长期正文见[首版游戏规格](../games/pokemon-encounters/README.md)和[通用规格](../reference/phase-02-platform-spec.md)。采用基线已闭合，官方原文认证缺口仍保留，不冒充认证规则。
 
 仅保留有历史价值的过程记录；新增归档时说明归档原因，并链接当前替代页面（如有）。归档不作为当前实现的事实依据。返回 [文档总索引](../README.md)。

@@ -48,10 +48,10 @@
 | 游戏主题总览                   | [游戏索引](games/README.md)                                                             |
 | 已确定选择及其理由             | [决策索引](decisions/README.md)                                                         |
 | 分类、唯一正文、更新与归档约定 | [文档维护规则](reference/maintenance.md)                                                |
-| 子 agent 职责与派工边界        | [职责索引](subagent/README.md)                                                          |
+| 子 agent 职责与派工边界        | [职责索引与常用组合](subagent/README.md)                                                |
 | 已完成阶段的范围与历史证据     | [归档索引](archive/README.md)                                                           |
 | 后续跨游戏调试与纠错目标       | [需求第 6.5 节](requirements/TableMax_需求文档_v1.0.md#65-跨游戏调试与纠错后续独立规划) |
 
 新增或迁移主题页时，同步更新本索引及所属分类索引。
 
-全部资源与替换见 [assets 入口](../assets/README.md)；当前管理员、角色卡面与动画维护见 [任务索引](tasks/README.md)。
+全部资源与替换见 [assets 入口](../assets/README.md)；管理员、角色卡面与动画的当前行为见 [通用规格](reference/phase-02-platform-spec.md)和[游戏交互](games/pokemon-encounters/interaction.md)，已完成维护见 [归档](archive/maintenance-2026-10-01-to-03.md)。
