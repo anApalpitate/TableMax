@@ -236,7 +236,7 @@ pnpm prototype:verify:game
 
 当前版本 1.0.0，默认游戏 pokemon-encounters，规则 tablemax-cn-s19-v1，状态版本 1，策略 pokemon-encounters/basic／1。已有旧验证模板存档的用户需要保留／备份原数据，在独立数据目录启动新版本；不自动覆盖不兼容存档。可在 PowerShell 设置 $env:TABLEMAX_DATA_DIR 为明确的新目录后运行程序，普通使用仍取默认 LOCALAPPDATA/TableMax。
 
-当前在根目录执行 pnpm check、pnpm build；游戏 UI 改动另执行 pnpm verify:game-ui，桌面／服务集成执行 pnpm verify:desktop。pnpm package:win 会先构建，输出 artifacts/releases/TableMax-1.0.0-win-x64.zip；pnpm verify:portable 解压该 ZIP 后实际运行，PATH 仅系统目录。第五、六阶段历史包曾位于 artifacts/phase-06，以下 2026-10-01 结果仍属于当时工程与运行时，不覆盖为新原生壳验收。
+当前在根目录执行 pnpm check、pnpm build；游戏 UI 改动另执行 pnpm verify:game-ui，桌面／服务集成执行 pnpm verify:desktop。pnpm package:win 会先构建，输出 artifacts/releases/TableMax-1.0.1-win-x64.zip；pnpm verify:portable 解压该 ZIP 后实际运行，PATH 仅系统目录。第五、六阶段历史包曾位于 artifacts/phase-06，以下 2026-10-01 结果仍属于当时工程与运行时，不覆盖为新原生壳验收。
 
 2026-10-01 全套类型／静态／格式检查和 48 项测试通过。新增首版规则／计分、20 固定种子 2–5 座位完整大局、D01–D13 精确回退／重演和 3 处实际服务 SIGKILL 恢复。真实能力 UI 7 组通过，包含 5 音频解码、保存反馈、动画 CSS／animationstart 观察、减少动态、360／390 布局、44px 和确认栏遮挡检查。完整桌面与最终便携走查为 2 真人模拟加 3 个实际 Worker bot，涵盖三胜结束、回退、正常关闭／同地址重启、后台冻结和断网导航后原身份恢复；观察到的网页资源全部本地，无页面错误。
 

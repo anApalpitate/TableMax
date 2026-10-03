@@ -12,7 +12,7 @@
 - [宝可梦便携整局](../../artifacts/maintenance/v1.0.1/portable/results.json)通过：实际应用版本 1.0.1、六席三胜、14 阶段、回退、重启及原班续局。
 - [原生安全专项](../../artifacts/maintenance/v1.0.1/webview2/safety-portable/results.json)10 项通过，包括清单和可执行文件哈希、共享运行时缺失、桥接授权、进程隔离与退出清理。修改脚本的 ESLint、Prettier 及 Git diff 空白检查通过。
 
-本次仅调整应用版本及发布资料，不改游戏实现；设备边界沿用前次验收，仍为 Windows 后台真实渲染和 Chromium 手机尺寸／触控模拟。首次构建被沙箱子进程权限拦截，授权范围内重跑成功；三组实际新包验证分别保留开始／结束时间，不相加为总耗时。发布源码由对应提交导出，排除用户未提交的 README 改写、依赖、存档、原始素材和中间物；历史 1.0.0 验收保持原记录。
+本次仅调整应用版本及发布资料，不改游戏实现；设备边界沿用前次验收，仍为 Windows 后台真实渲染和 Chromium 手机尺寸／触控模拟。首次构建被沙箱子进程权限拦截，授权范围内重跑成功；三组实际新包验证分别保留开始／结束时间，不相加为总耗时。发布源码由对应提交导出，排除用户未提交的 README 改写、依赖、存档、原始素材和中间物；历史 1.0.0 验收保持原记录。发布后复核 GitHub 标签指向 `c63b36f9f0129b711ede79df67f419c7627410a2`，四个附件的大小及 SHA-256 与本地一致，Release 为正式最新版；[发布回读](../../artifacts/maintenance/v1.0.1/github-release.json)保存结果。旧 1.0.0 交付先按原哈希归档至 `before-v1.0.1/`，安全维护随后从 releases 移除旧 ZIP；其余近期修改和受保护项保留，工作区超过水位只报告。
 
 2026-10-01，交付版本 1.0.0；游戏采用 `tablemax-cn-s19-v1`，状态版本 1，基础策略 `pokemon-encounters/basic`／`1`。以下记录真实工程执行结果，规则原文认证状态仍见 [来源页](../games/pokemon-encounters/sources.md)。
 
@@ -281,7 +281,7 @@
 - [最终 ZIP 的共享交互回归](../../artifacts/maintenance/v1.0.0/experience-portable/results.json)：宝可梦盒子懒加载、手机房主、并发及公共屏声音归属通过。[完整宝可梦便携整局](../../artifacts/maintenance/v1.0.0/portable/results.json)六席三胜、全部 14 阶段、回退／重启／原班续局通过，页面错误与外部请求为 0；同构建的[能力 UI](../../artifacts/maintenance/v1.0.0/ui/results.json)15 组通过。旧包的显示／原生安全记录保持原执行范围。
 - [美术导入核验](../../artifacts/maintenance/v1.0.0/modern-art/imagegen/integration-verification.json)：70 卡映射、五套图集、封面及构建哈希均通过；六份 WebP 共 **1,497,918 字节**，原始 PNG、提示词、出版实物参考与原创演绎说明保留。纹理生成约 **259.65 秒**，不含检索、压缩及其他工作。卡面不冒充真实画家原作，拍卖子类型分布仍明确标为项目采用表。
 
-同版本 [Windows x64 ZIP](../../artifacts/releases/TableMax-1.0.0-win-x64.zip)为 **36,966,642 字节**，实际解压 **72 文件／92,579,416 字节**；两项严格低于 100,000,000 字节，解压也满足 95 MB 工程预算。SHA-256 为 `7edd0ec38b5710b27fec6590cb139690524f1a59c263631c25013fb7e2438f6b`；[逐文件清单](../../artifacts/releases/TableMax-1.0.0-win-x64-manifest.json)与真实解压逐项一致，便携运行仅系统 PATH。前一轮程序、源码、清单及被更新的验证目录保存在 `before-modern-art/`，历次记录保持其原哈希。源码及总交付清单按最终提交另行导出，用户已有 README 改动保持原字节且不混入提交。
+同版本 [Windows x64 ZIP](../../artifacts/maintenance/v1.0.0/before-v1.0.1/TableMax-1.0.0-win-x64.zip)为 **36,966,642 字节**，实际解压 **72 文件／92,579,416 字节**；两项严格低于 100,000,000 字节，解压也满足 95 MB 工程预算。SHA-256 为 `7edd0ec38b5710b27fec6590cb139690524f1a59c263631c25013fb7e2438f6b`；[逐文件清单](../../artifacts/maintenance/v1.0.0/before-v1.0.1/TableMax-1.0.0-win-x64-manifest.json)与真实解压逐项一致，便携运行仅系统 PATH。前一轮程序、源码、清单及被更新的验证目录保存在 `before-modern-art/`，历次记录保持其原哈希。源码及总交付清单按最终提交另行导出，用户已有 README 改动保持原字节且不混入提交。
 
 范围仍为当前 Windows 11／共享 WebView2／原生后台合成和 Chromium 手机触控／尺寸模拟，不声称实体电视、真实手机或 Safari 实测。Windows DPI 与原生自动缩放被纳入实际几何记录；图片为真实更新后的帧。独立单图审查覆盖冻结的[公共屏](../../artifacts/maintenance/v1.0.0/modern-art/review/final-public.png)和[手机](../../artifacts/maintenance/v1.0.0/modern-art/review/final-phone.png)：手机未发现必须修复项；公共收藏末卡的边缘提示经[裁定](../../artifacts/maintenance/v1.0.0/modern-art/review/adjudication.json)保留为有总幅数与显式滚动条的横向收藏布局。静态[解耦及文档审查](../../artifacts/maintenance/v1.0.0/modern-art/review/static-review.json)另记录模块与链接证据。
 
