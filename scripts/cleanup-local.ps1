@@ -276,7 +276,7 @@ catch {
 
 if ($Kind -eq 'Releases' -or $automatic) {
   foreach ($entry in Get-ChildItem -LiteralPath $releases -Force) {
-    if ($entry.Name -match '^TableMax-(\d+\.\d+\.\d+)-win-x64(?:\.zip)?$') {
+    if ($entry.Name -match '^TableMax-(\d+\.\d+\.\d+)-(?:win-x64(?:\.zip|-manifest\.json)?|source\.zip|manifest\.json)$') {
       if ([version]$Matches[1] -lt $currentVersion -or $retired -contains [version]$Matches[1]) { Add-Candidate $entry.FullName 'Historical release archive or extraction' }
     }
     elseif ($entry.PSIsContainer -and $entry.Name -match '^package-(\d+\.\d+\.\d+)-[A-Za-z0-9]{6}$') {
@@ -294,7 +294,7 @@ if ($Kind -eq 'Intermediates' -or $automatic) {
   }
   if (Test-Path -LiteralPath $temporary -PathType Container) {
     foreach ($entry in Get-ChildItem -LiteralPath $temporary -Force) {
-      if ($entry.PSIsContainer -and $entry.Name -match '^(card-layout|desktop-verify|display(-portable)?|experience|game-prototype-verify|game-ui|party(-portable|-startup)?|play-presentation(-portable)?|pokemon-desktop|pokemon-verify|portable-extracted|portable-game|prototype-verify|room-levels(-portable)?|runtime-memory|six-result-layout)-[A-Za-z0-9]{6}$') {
+      if ($entry.PSIsContainer -and $entry.Name -match '^(card-layout|desktop-verify|display(-portable)?|experience|game-prototype-verify|game-ui|modern-art-verify|party(-portable|-startup)?|play-presentation(-portable)?|pokemon-desktop|pokemon-verify|portable-extracted|portable-game|prototype-verify|room-levels(-portable)?|runtime-memory|six-result-layout)-[A-Za-z0-9]{6}$') {
         Add-Candidate $entry.FullName 'Known isolated verification data or portable extraction'
       }
       elseif (-not $entry.PSIsContainer -and $entry.Name -match '^(check-(display|party|phone-table|presentation|release-cleanup)-docs\.mjs|cleanup-display-staging\.ps1|display-(dialog|dpi)-probe\.mjs|finalize-presentation-evidence\.mjs|inspect-six-result\.mjs|update-presentation-docs\.mjs)$') {

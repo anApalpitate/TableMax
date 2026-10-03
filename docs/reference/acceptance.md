@@ -14,6 +14,8 @@
 
 本次仅调整应用版本及发布资料，不改游戏实现；设备边界沿用前次验收，仍为 Windows 后台真实渲染和 Chromium 手机尺寸／触控模拟。首次构建被沙箱子进程权限拦截，授权范围内重跑成功；三组实际新包验证分别保留开始／结束时间，不相加为总耗时。发布源码由对应提交导出，排除用户未提交的 README 改写、依赖、存档、原始素材和中间物；历史 1.0.0 验收保持原记录。发布后复核 GitHub 标签指向 `c63b36f9f0129b711ede79df67f419c7627410a2`，四个附件的大小及 SHA-256 与本地一致，Release 为正式最新版；[发布回读](../../artifacts/maintenance/v1.0.1/github-release.json)保存结果。旧 1.0.0 交付先按原哈希归档至 `before-v1.0.1/`，安全维护随后从 releases 移除旧 ZIP；其余近期修改和受保护项保留，工作区超过水位只报告。
 
+随后按用户要求清理历史版本及中间文件：手动入口在完整空闲检查后使用零分钟年龄边界，共删除 **14 项／3,435,627,475 字节（3.20 GiB）**，包括旧解压程序、旧源码与配套清单、打包目录及已结束的隔离验证数据。清理器补齐旧源码／两类清单及六位随机后缀 `modern-art-verify-*` 的识别，当前／未来交付及相似研究目录保持保护；[37 项手动清理检查](../../artifacts/maintenance/local-cleanup-tools/tool-tests.json)与[34 项维护检查](../../artifacts/maintenance/project-maintenance-tools/tool-tests.json)通过。逐项删除记录见 `artifacts/maintenance/local-cleanup-20261003-152207-455-releases/`、`local-cleanup-20261003-152219-114-intermediates/`、`local-cleanup-20261003-152431-213-releases/` 和 `local-cleanup-20261003-152444-298-intermediates/`；当前 ZIP 哈希不变。最终统一维护实测 **8,675,898,844 字节（8.08 GiB）**、0 合格候选；8 项未识别临时内容、历史证据、原始素材、依赖与工具缓存、当前构建和正式存档保留，未扩大清理范围。仅清理工具与文档变化，不重跑游戏构建或修改已发布的 v1.0.1 包。
+
 2026-10-01，交付版本 1.0.0；游戏采用 `tablemax-cn-s19-v1`，状态版本 1，基础策略 `pokemon-encounters/basic`／`1`。以下记录真实工程执行结果，规则原文认证状态仍见 [来源页](../games/pokemon-encounters/sources.md)。
 
 用户本日明确：使用当前 Windows 电脑，外接屏目标为电视；开发中无需实际使用电脑之外的设备，以模拟完成校验。因此本轮设备范围是当前 Windows 11 x64（内核 10.0.26200）、真实 Electron／独立服务，以及 1920×1080 电视尺寸、360×800 Android 和 390×844 iPhone 尺寸／触控／UA 模拟。手机使用 Chromium，不是实际 Safari；后台冻结和断网导航模拟不等于手机锁屏或操作系统 App 切换。便携包在当前电脑的新解压目录、仅 Windows 系统目录 PATH 下运行，未另用无开发环境电脑。声音检查解码及播放调用，未声称现场听音。按该授权范围完成验收，不把模拟写成硬件实测。
