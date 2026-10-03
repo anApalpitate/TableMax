@@ -683,7 +683,7 @@ try {
     });
     await trigger.click();
     const scorePanel = article.getByRole('dialog', {
-      name: `计分明细 · 总分 ${score.total}`,
+      name: `计分明细 总分 ${score.total}`,
       exact: true,
     });
     await scorePanel.waitFor();

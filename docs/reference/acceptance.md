@@ -1,12 +1,30 @@
 # 首版交付与验收
 
-当前本地便携包为 [v1.0.1 应用图标更新](#101应用图标更新2026-10-03)，线上已发布包见 [v1.0.1 GitHub Release](#101github-release2026-10-03)，保留下列历次真实验收记录。
+当前本地便携包为 [v1.0.1 宝可梦画面与动效返修](#101宝可梦画面与动效返修2026-10-04)，线上已发布包见 [v1.0.1 GitHub Release](#101github-release2026-10-03)，保留下列历次真实验收记录。
+
+## 1.0.1：宝可梦画面与动效返修（2026-10-04）
+
+按用户对四张主要画面的十三处批注，收紧行动条与六人间距，改用白色斜纹进度、区分两类牌堆及暂持区，压缩手机首屏、居中梦幻目标入口、分开排版行动信息，并放大二人结算。子 agent 分析后增加保存动作的连接轨迹、能力落点、赢家扫光和新星标闪亮；授权投影、明确位置确认和动效失效边界保持，完整行为见 [交互规格](../games/pokemon-encounters/interaction.md)。截图保存至 `tmp/pokemon-screenshots-5a6f7893/`，历史原图和预览在 `ui/screenshots-20261003/` 与本次 `before/` 保留。
+
+短手机累计覆盖 16 个场景：首轮 [前八场景](../../artifacts/maintenance/v1.0.1/ui/pokemon-polish-final/results.json)完成后在火箭队币面溢出中停止，返修后的 [八种能力流程](../../artifacts/maintenance/v1.0.1/ui/pokemon-polish-abilities-final/results.json)全通过；星标恢复 28px 后再验 [六人梦幻／普通手机／私看三场景](../../artifacts/maintenance/v1.0.1/ui/pokemon-polish-phone-final/results.json)通过。全部六格、号位和确认在 360×640 首屏，触控门槛及无遮挡检查保留。[默认六人流程](../../artifacts/maintenance/v1.0.1/ui/pokemon-polish-default-final/results.json)另通过原横屏与手机尺寸检查；[卡面](../../artifacts/maintenance/v1.0.1/cards/results.json)通过 13 布局／16 类牌，[动效](../../artifacts/maintenance/v1.0.1/effects/pokemon-polish-20261004/results.json)通过 8 项。三张独立逐图审查没有必须返修项，提示与裁定见 [审查记录](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/review-record.json)。
+
+[开发显示](../../artifacts/maintenance/v1.0.1/display/development/results.json)通过 35 组布局／44 张截图：四种原生窗口尺寸、两端六人 36 牌、暂停／恢复、4K 100%／125%／150% 缩放与模拟 DPI；[开发整局](../../artifacts/maintenance/v1.0.1/development/results.json)通过 14 阶段、回退及重启恢复；[自然声画](../../artifacts/maintenance/v1.0.1/presentation/results.json)通过六位实际手机身份、完整小局、浮窗焦点、星标与三档真实 Worker 节奏／取消。设备边界为本机 Windows 隐藏 WebView2／Chromium 的窗口、触控及 DPI 模拟，不代表实体手机、Safari、电视或现场听音。
+
+类型、ESLint、Prettier 通过。全库默认并发测试出现两项人机整局超时；停止界面验证并改用单 worker 后，宝可梦测试全部通过，全库 **25 文件通过／164 项通过／1 项失败**。剩余为未修改的《现代艺术》策略整局测试超过原 20 秒，仍未通过；不放宽时限或将它写成绿色工程检查。原始输出和 107.322 秒命令耗时见 [单进程测试记录](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/tests-serial.json)及同目录日志，默认 `pnpm check` 89.326 秒失败记录亦保留。仅 CSS／标题选择器返修后重验类型、lint、格式及相关真实流程，没有重复未变化的规则测试。
+
+最终同版本 [本地程序包](../../artifacts/releases/TableMax-1.0.1-win-x64.zip)为 **37,931,361 字节**，实际解压 **75 文件／93,576,952 字节**，双 100 MB 门禁及 95 MB 预算通过；[逐文件清单](../../artifacts/releases/TableMax-1.0.1-win-x64-manifest.json)记录 SHA-256 `d21389dc647679c4d834a8b193e410048600b2faf6986b4dc0abbce06de4a880`。旧图标包与已发布源码／总清单归档在 `pokemon-polish-20261004/before/`；首个返修包及失败证据归档在 `first-package/`。首包实际 ZIP 验收发现测试标记横向溢出、手机星标偏小，随后开发整局发现六人结算需另留计分高度；全部返修后再次冻结打包。旧计分浮窗标题选择器仅对齐去中点后的实际标题，内容、焦点和秘密信息检查保留。本次更新本地程序，线上发布内容与源 ZIP 沿用原发布记录。
+
+最终 ZIP 的 [便携整局](../../artifacts/maintenance/v1.0.1/portable/results.json)、[显示矩阵](../../artifacts/maintenance/v1.0.1/display/portable/results.json)和 [自然声画](../../artifacts/maintenance/v1.0.1/presentation-portable/results.json)首次验收全部通过，均关联上述 `d21389dc…` 哈希：六席三胜、14 阶段、129 次 driver 动作、回退、两次真实启动恢复及原班续局；显示 35 布局／47 浮窗检查／44 张截图；六位实际手机身份自然小局、28px 星标、计分焦点和三档生产节奏／取消。各组页面错误与外部请求为空。最终打包 15.994 秒，整局／显示／声画分别 73.414／114.501／45.796 秒；并行耗时不相加，实际交付与前次失败记录见 [交付记录](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/delivery-record.json)。本次所有验收子进程已退出。
+
+按用户要求清理临时文件夹：先逐项预览，再通过 `Clean-Intermediates.ps1 -TemporaryNames … -MinimumAgeMinutes 0 -Apply` 删除 **71 项／6,315,587,478 字节（5.88 GiB）**，临时日志先归档并核验哈希，路径、链接目录、进程与修改保护仍执行。`tmp/` 最终只保留四张更新 PNG 和预览页所在的 `pokemon-screenshots-5a6f7893/`；逐项结果见 [清理记录](../../artifacts/maintenance/local-cleanup-20261003-181404-326-intermediates/cleanup.json)，实际命令耗时 1582.645 秒，见 [耗时记录](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/temporary-cleanup-timing.json)。
+
+随后执行 `Maintain-Project.ps1 -Apply`，删除两项安全打包中间物共 **450,194,796 字节**。工作区剩余 **10,104,036,170 字节（9.41 GiB）**，合格候选耗尽；历史证据、原始素材、正式存档、依赖与工具缓存继续保护，未扩大删除范围。当前 ZIP 哈希仍为上述 `d21389dc…`，实际维护耗时 17.437 秒，见 [维护汇总](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/maintenance-summary.json)、[逐项记录](../../artifacts/maintenance/local-cleanup-20261003-183328-416-maintenance/cleanup.json)及同目录任务日志。
 
 ## 1.0.1：应用图标更新（2026-10-03）
 
 按用户要求用内置 imagegen 生成高级应用图标，并应用到 EXE、主机／公共窗口标题栏和任务栏、浏览器标签、手机主屏入口及三端盒子品牌。采用青绿陶瓷圆角磁贴与奶油桌台／叠牌 T 形，细暖金夹层；资源、提示词和哈希见[平台清单](../../assets/platform/manifest.json)，完整原图与浅深底 16–256px 审查证据在 `artifacts/maintenance/v1.0.1/app-icon/imagegen/`。当前应用版本继续为 1.0.1。
 
-新[本地便携包](../../artifacts/releases/TableMax-1.0.1-win-x64.zip)为 **37,924,627 字节**，实际解压 **75 文件／93,539,137 字节**，通过双 100 MB 门禁和 95 MB 工程预算。[逐文件清单](../../artifacts/releases/TableMax-1.0.1-win-x64-manifest.json)记录 ZIP SHA-256 `61445bb9205bb1068377cbaf65f648ac31909e885c3e962f4f1e382b0f02b448`。已发布旧包与清单备份到 `artifacts/maintenance/v1.0.1/app-icon/before/`，其原哈希与下节发布验收保持。
+该次[本地便携包](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/before/TableMax-1.0.1-win-x64.zip)为 **37,924,627 字节**，实际解压 **75 文件／93,539,137 字节**，通过双 100 MB 门禁和 95 MB 工程预算。[逐文件清单](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/before/TableMax-1.0.1-win-x64-manifest.json)记录 ZIP SHA-256 `61445bb9205bb1068377cbaf65f648ac31909e885c3e962f4f1e382b0f02b448`。已发布旧包与清单备份到 `artifacts/maintenance/v1.0.1/app-icon/before/`，其原哈希与下节发布验收保持。
 
 类型、ESLint、Prettier 和 **26 文件／160 项测试**通过；最终 ZIP 的[宝可梦便携整局](../../artifacts/maintenance/v1.0.1/app-icon/portable/results.json)通过六席、14 阶段、回退、两次启动恢复及原班续局。本次复用既有便携验证脚本，仅将副本的相对导入与证据输出改到图标专属目录，原验证脚本和历史证据保持。初次测试被沙箱子进程权限拦截，后以授权范围重跑测试；首次打包遇到短暂 EXE 文件锁，重试后成功，未关闭已有应用。游戏规则、策略和协议未变，设备边界仍为本机 Windows 与隐藏 WebView2／Chromium 尺寸模拟。
 
@@ -21,7 +39,7 @@
 `pnpm package:win` 重新构建并逐文件核验实际解压：ZIP **36,966,646 字节**，解压 **72 文件／92,579,416 字节**，满足双 100 MB 门禁及 95 MB 解压预算。SHA-256 为 `8b3d4bc237d75e843a8b842d23ffeb7f651b4e531fbf2b2131b3a4433498dc6c`；[逐文件清单](../../artifacts/maintenance/v1.0.1/app-icon/before/TableMax-1.0.1-win-x64-manifest.json)与[便携包](../../artifacts/maintenance/v1.0.1/app-icon/before/TableMax-1.0.1-win-x64.zip)配套。
 
 - [现代艺术便携整局](../../artifacts/maintenance/v1.0.1/modern-art/portable/results.json)通过：五席四轮、全部拍卖与八类手机动作、秘密隔离、回退、重启和游戏切换；28 张实际截图，页面错误和外部请求为空。
-- [宝可梦便携整局](../../artifacts/maintenance/v1.0.1/portable/results.json)通过：实际应用版本 1.0.1、六席三胜、14 阶段、回退、重启及原班续局。
+- [宝可梦便携整局](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/before/portable/results.json)通过：实际应用版本 1.0.1、六席三胜、14 阶段、回退、重启及原班续局。
 - [原生安全专项](../../artifacts/maintenance/v1.0.1/webview2/safety-portable/results.json)10 项通过，包括清单和可执行文件哈希、共享运行时缺失、桥接授权、进程隔离与退出清理。修改脚本的 ESLint、Prettier 及 Git diff 空白检查通过。
 
 本次仅调整应用版本及发布资料，不改游戏实现；设备边界沿用前次验收，仍为 Windows 后台真实渲染和 Chromium 手机尺寸／触控模拟。首次构建被沙箱子进程权限拦截，授权范围内重跑成功；三组实际新包验证分别保留开始／结束时间，不相加为总耗时。发布源码由对应提交导出，排除用户未提交的 README 改写、依赖、存档、原始素材和中间物；历史 1.0.0 验收保持原记录。发布后复核 GitHub 标签指向 `c63b36f9f0129b711ede79df67f419c7627410a2`，四个附件的大小及 SHA-256 与本地一致，Release 为正式最新版；[发布回读](../../artifacts/maintenance/v1.0.1/github-release.json)保存结果。旧 1.0.0 交付先按原哈希归档至 `before-v1.0.1/`，安全维护随后从 releases 移除旧 ZIP；其余近期修改和受保护项保留，工作区超过水位只报告。

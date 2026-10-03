@@ -1,3 +1,5 @@
+@import './layout.css';
+
 :where(.pokemon-screen) .pokemon-board {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

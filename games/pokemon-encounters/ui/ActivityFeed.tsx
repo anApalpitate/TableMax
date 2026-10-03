@@ -1,6 +1,6 @@
 import type { PokemonView } from '../rules/project';
 import { cardArt } from '../../../assets/games/pokemon-encounters/catalog';
-import { presentAction } from './action-presentation';
+import { presentAction, tableTargetSummary } from './action-presentation';
 import { useId, useRef } from 'react';
 
 export function ActivityFeed({
@@ -15,9 +15,11 @@ export function ActivityFeed({
   const latest = game.events.at(-1);
   const action = latest?.action ? presentAction(latest.action, names) : null;
   const art = action?.cardCategory ? cardArt(action.cardCategory) : null;
+  const targetDetails = action?.targetDetails ?? [];
+  const targetSummary = tableTargetSummary(targetDetails, game.seatOrder);
   return (
     <section
-      className={`action-announcement ${latest?.action?.ability ? 'has-ability' : ''}`}
+      className={`action-announcement compact-action ${latest?.action?.ability ? 'has-ability' : ''}`}
       aria-label="最新已保存操作"
       data-verb={latest?.action?.verb}
       data-actor={latest?.action?.actor ?? ''}
@@ -36,19 +38,117 @@ export function ActivityFeed({
         aria-atomic="true"
       >
         <span className="action-kicker">
-          最近已保存{action ? ` · ${action.actor}` : ''}
+          <span className="action-label">最近行动</span>
+          {action && (
+            <>
+              {' '}
+              <span className="action-actor">{action.actor}</span>
+            </>
+          )}
         </span>
         <strong className="action-title">
-          {action?.title ??
-            (latest?.text ||
-              (game.roundResult
-                ? game.matchWinners.length
-                  ? '大局已结束'
-                  : '本小局已揭晓'
-                : '等待各位玩家翻开初始牌'))}
+          {action ? (
+            <>
+              <span className="action-verb">{action.operation}</span>
+              {action.subject && (
+                <>
+                  {' '}
+                  <span className="action-subject">{action.subject}</span>
+                </>
+              )}
+            </>
+          ) : (
+            latest?.text.replaceAll(' · ', ' ') ||
+            (game.roundResult
+              ? game.matchWinners.length
+                ? '大局已结束'
+                : '本小局已揭晓'
+              : '暂无保存行动')
+          )}
         </strong>
-        {action?.detail && (
-          <span className="action-detail">{action.detail}</span>
+        {action && (
+          <span className="action-detail">
+            {action.sourceLabel && (
+              <>
+                <span className="action-source">
+                  从{action.sourceLabel}
+                </span>{' '}
+              </>
+            )}
+            {action.abilityLabel && (
+              <>
+                <span className="action-ability">
+                  {action.abilityLabel}能力
+                </span>{' '}
+              </>
+            )}
+            {action.targets.length > 0 && (
+              <>
+                <span className="action-targets action-targets-full">
+                  {targetDetails.map((target, index) => (
+                    <span
+                      className="action-target-label"
+                      key={index}
+                      role="group"
+                      aria-label={target.label}
+                      title={target.label}
+                    >
+                      <span className="action-target-name" title={target.name}>
+                        {target.name}
+                      </span>{' '}
+                      {target.slotsLabel && (
+                        <span className="action-target-slots">
+                          {target.slotsLabel}
+                        </span>
+                      )}
+                    </span>
+                  ))}
+                </span>
+                <span className="action-targets action-targets-mobile">
+                  {targetSummary ? (
+                    <span
+                      className="action-target-label action-target-summary"
+                      role="group"
+                      aria-label={targetSummary.label}
+                      title={targetSummary.label}
+                    >
+                      <span className="action-target-name">
+                        {targetSummary.name}
+                      </span>{' '}
+                      <span className="action-target-slots">
+                        {targetSummary.slotsLabel}
+                      </span>
+                    </span>
+                  ) : (
+                    targetDetails.map((target, index) => (
+                      <span
+                        className="action-target-label"
+                        key={index}
+                        role="group"
+                        aria-label={target.label}
+                        title={target.label}
+                      >
+                        <span
+                          className="action-target-name"
+                          title={target.name}
+                        >
+                          {target.seat === latest?.action?.actor
+                            ? '本人'
+                            : target.name}
+                        </span>{' '}
+                        {target.slotsLabel && (
+                          <span className="action-target-slots">
+                            {target.slotsLabel}
+                          </span>
+                        )}
+                      </span>
+                    ))
+                  )}
+                </span>
+              </>
+            )}
+            {action.note && <span className="action-note">{action.note}</span>}
+          </span>
         )}
       </div>
       <button
@@ -94,7 +194,9 @@ export function ActivityFeed({
               return (
                 <li key={event.id}>
                   <strong>{item?.actor ?? '牌桌'}</strong>
-                  <span>{item?.title ?? event.text}</span>
+                  <span>
+                    {item?.title ?? event.text.replaceAll(' · ', ' ')}
+                  </span>
                   {item?.detail && <small>{item.detail}</small>}
                 </li>
               );

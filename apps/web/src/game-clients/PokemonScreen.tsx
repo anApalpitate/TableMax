@@ -81,10 +81,20 @@ function PokemonScreen({ session }: { session: RoomSession }) {
           <span
             className={`connection ${connected ? 'online' : ''}`}
             role="status"
+            title={connected ? '本地连接已就绪' : '正在连接本地服务'}
           >
             {connected ? '本地连接已就绪' : '正在连接本地服务'}
           </span>
           <FullscreenControl />
+          {role === 'player' && (
+            <button
+              className="secondary toolbar-friends"
+              aria-label="看看朋友的牌桌"
+              onClick={() => setPanel('friends')}
+            >
+              朋友
+            </button>
+          )}
           {role !== 'player' && <DisplaySettings />}
           <PlayModeBadge mode={view?.playMode} />
           {role !== 'player' && (
@@ -164,6 +174,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
               motionKey={`${view.instanceId}:${view.branch}:${feedback?.revision ?? 'sync'}`}
               choose={choose}
               showFriends={() => setPanel('friends')}
+              friendsInToolbar={role === 'player'}
               {...(canControl && view.status === 'ended'
                 ? { playAgain: () => command({ type: 'replay' }) }
                 : {})}

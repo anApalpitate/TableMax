@@ -9,6 +9,7 @@ import {
   soundCues,
 } from './presentation-state';
 import { savedChanges } from './motion';
+import { presentAction, tableTargetSummary } from './action-presentation';
 import type { PublicAction } from '../../../packages/game-sdk/src';
 
 function view() {
@@ -35,6 +36,95 @@ function action(
 }
 
 describe('public presentation preserves information boundaries', () => {
+  it('keeps the incoming card, ability and public target distinct during Mew replacement', () => {
+    const replacement: PublicAction = {
+      actor: 'S1',
+      verb: 'replace',
+      cardCategory: 'ordinary-6',
+      ability: 'special-mew',
+      targets: [{ seat: 'S1', slots: [1] }],
+    };
+    const item = presentAction(replacement, { S1: '小林' });
+    expect(item).toMatchObject({
+      actor: '小林',
+      operation: '换入',
+      subject: '呆呆兽',
+      abilityLabel: '梦幻',
+      targets: ['小林 2 号位'],
+      targetDetails: [
+        {
+          seat: 'S1',
+          name: '小林',
+          slots: [1],
+          slotsLabel: '2号位',
+          label: '小林 2 号位',
+        },
+      ],
+    });
+    expect(item.title).toContain('呆呆兽');
+    expect(item.detail).toContain('梦幻能力');
+    expect(item.detail).toContain('小林 2 号位');
+    expect(`${item.title}${item.detail}`).not.toContain('·');
+  });
+  it('keeps peek targets and positions out of the concise announcement', () => {
+    const peek = action('peek', 'special-charizard', []);
+    const item = presentAction(peek, { S1: '小林' });
+    expect(item).toMatchObject({
+      actor: '小林',
+      subject: '喷火龙',
+      targets: [],
+      targetDetails: [],
+      note: '仅本人可见',
+    });
+    expect(item.detail).not.toContain('号位');
+    expect(item.detail).not.toContain('小林');
+  });
+  it('distinguishes the two committed draw sources without repeating a same-card ability', () => {
+    const draw = action('draw', 'special-mew', []);
+    const deck = presentAction({ ...draw, source: 'deck' }, {});
+    const discard = presentAction({ ...draw, source: 'discard' }, {});
+    expect(deck.sourceLabel).toBe('牌库');
+    expect(discard.sourceLabel).toBe('弃牌顶');
+    expect(deck.subject).toBe('梦幻');
+    expect(deck.abilityLabel).toBeNull();
+  });
+  it('retains full target names and both public swap positions as separate fields', () => {
+    const name = '一位名字比较长的朋友';
+    const item = presentAction(action('swap', 'special-snorlax', [0, 5]), {
+      S1: name,
+    });
+    expect(item.targetDetails).toEqual([
+      {
+        seat: 'S1',
+        name,
+        slots: [0, 5],
+        slotsLabel: '1、6号位',
+        label: `${name} 1、6 号位`,
+      },
+    ]);
+    expect(item.targets).toEqual([`${name} 1、6 号位`]);
+  });
+  it('summarizes all-player targets only when every public seat has the same committed positions', () => {
+    const game = view();
+    const names = { S1: '小林', S2: '小霞', S3: '小刚' };
+    const announcement = action('rocket-refill', 'special-team-rocket', [5]);
+    const summary = (targets: PublicAction['targets']) =>
+      tableTargetSummary(
+        presentAction({ ...announcement, targets }, names).targetDetails,
+        game.seatOrder,
+      );
+    const targets = game.seatOrder.map((seat) => ({ seat, slots: [5] }));
+    expect(summary(targets)).toEqual({
+      name: '全员',
+      slotsLabel: '6号位',
+      label: '小林 6 号位；小霞 6 号位；小刚 6 号位',
+    });
+    expect(summary(targets.slice(1))).toBeNull();
+    expect(summary([targets[0]!, targets[0]!, targets[2]!])).toBeNull();
+    expect(
+      summary([targets[0]!, targets[1]!, { seat: 'S3', slots: [4] }]),
+    ).toBeNull();
+  });
   it('marks equal values and -2/+2, but never a hidden card or uncertain Ditto', () => {
     const game = view();
     const board = game.boards.S1!;

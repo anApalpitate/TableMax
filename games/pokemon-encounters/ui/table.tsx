@@ -33,6 +33,7 @@ export function GameTable({
   nextRound,
   playAgain,
   showFriends,
+  friendsInToolbar = false,
   playMode = 'play',
   feedback = null,
 }: {
@@ -51,6 +52,7 @@ export function GameTable({
   nextRound?: () => void;
   playAgain?: () => void;
   showFriends(): void;
+  friendsInToolbar?: boolean;
   playMode?: 'play' | 'test';
   feedback?: RoomFeedback | null;
 }) {
@@ -87,6 +89,9 @@ export function GameTable({
         <section
           className={`game-table ${game.roundResult ? 'result-table' : ''}`}
           data-seats={seats.length}
+          data-layout="compact"
+          data-phase={game.phase}
+          style={{ '--seat-count': seats.length } as CSSProperties}
           aria-label="游戏牌桌"
         >
           {playMode === 'play' && (
@@ -117,8 +122,8 @@ export function GameTable({
               <div>
                 <p className="eyebrow">
                   {game.matchWinners.length
-                    ? '三胜达成 · 大局赢家'
-                    : `第 ${game.roundNumber} 小局 · 最低分获胜`}
+                    ? '三胜达成 大局赢家'
+                    : `第 ${game.roundNumber} 小局 最低分获胜`}
                 </p>
                 <h2>{winners.map((seat) => names[seat]).join('、')}</h2>
                 <p>
@@ -139,10 +144,7 @@ export function GameTable({
               )}
             </section>
           )}
-          <div
-            className="game-seats"
-            style={{ '--seat-count': seats.length } as CSSProperties}
-          >
+          <div className="game-seats">
             {seats.map((seat) => (
               <article
                 key={seat.id}
@@ -168,25 +170,32 @@ export function GameTable({
                   />
                   <div>
                     <h3>
-                      {seat.name}
-                      {seat.id === selfId ? ' · 你' : ''}
+                      <span className="seat-name" title={seat.name}>
+                        {seat.name}
+                      </span>
+                      {seat.id === selfId && (
+                        <span className="self-tag">你</span>
+                      )}
                     </h3>
                     <p>
-                      {seat.controller === 'bot'
-                        ? (seat.botLabel ?? '人机')
-                        : seat.online
-                          ? '手机在线'
-                          : '手机离线'}
-                      {!paused && playing && game.phase === 'initial-flip'
-                        ? game.initialDone.includes(seat.id)
-                          ? ' · 已翻初始牌'
-                          : ' · 待翻初始牌'
-                        : seat.id === game.actorSeat && !paused
-                          ? game.phase === 'draw'
-                            ? ' · 正在取牌'
-                            : ' · 正在选择'
-                          : ''}
-                      {latestAction?.actor === seat.id ? ' · 最近动作' : ''}
+                      <span className="seat-presence">
+                        {seat.controller === 'bot'
+                          ? (seat.botLabel ?? '人机')
+                          : seat.online
+                            ? '手机在线'
+                            : '手机离线'}
+                      </span>
+                      <span className="seat-state">
+                        {!paused && playing && game.phase === 'initial-flip'
+                          ? game.initialDone.includes(seat.id)
+                            ? '已翻初始牌'
+                            : '待翻初始牌'
+                          : seat.id === game.actorSeat && !paused
+                            ? game.phase === 'draw'
+                              ? '正在取牌'
+                              : '正在选择'
+                            : ''}
+                      </span>
                     </p>
                     {playing &&
                       !paused &&
@@ -226,7 +235,7 @@ export function GameTable({
               </article>
             ))}
           </div>
-          {player && (
+          {player && !friendsInToolbar && (
             <button className="secondary friends-control" onClick={showFriends}>
               看看朋友的牌桌
             </button>

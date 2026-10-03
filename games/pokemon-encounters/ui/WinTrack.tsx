@@ -1,3 +1,6 @@
+import { useContext } from 'react';
+import { SavedMotion } from './motion';
+
 export function WinTrack({
   wins,
   winner,
@@ -5,6 +8,8 @@ export function WinTrack({
   wins: number;
   winner?: 'match' | 'round' | undefined;
 }) {
+  const motion = useContext(SavedMotion);
+  const earnedNow = Boolean(winner) && motion.includes('@result');
   return (
     <span
       className="tag win-track"
@@ -14,7 +19,10 @@ export function WinTrack({
     >
       <span className="win-pips" aria-hidden="true">
         {[0, 1, 2].map((i) => (
-          <i key={i} className={i < wins ? 'earned' : ''}>
+          <i
+            key={i}
+            className={`${i < wins ? 'earned' : ''} ${earnedNow && i === wins - 1 ? 'newly-earned' : ''}`}
+          >
             ★
           </i>
         ))}

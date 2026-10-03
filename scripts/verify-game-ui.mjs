@@ -8,6 +8,7 @@ import { verificationOutput } from './verification-output.mjs';
 const require = createRequire(import.meta.url);
 const verifyDeal = process.argv.includes('--verify-deal');
 const reviewStages = process.argv.includes('--review-stages');
+const compactCheck = process.argv.includes('--compact-check');
 const evidenceName = process.argv
   .find((arg) => arg.startsWith('--evidence='))
   ?.slice(11);
@@ -56,12 +57,25 @@ const scenes = [
     ]),
   })),
   {
+    id: 'L6-mew',
+    count: 6,
+    actions: [
+      ...Array.from({ length: 6 }, (_, index) => [
+        index,
+        { type: 'initial-flip', slot: 0 },
+      ]),
+      [0, { type: 'draw', source: 'deck' }],
+      [0, { type: 'mew-target', target: 5, slot: 5 }],
+      [0, { type: 'replace', slot: 5 }],
+    ],
+  },
+  {
     id: 'V00',
     actions: [
       [0, { type: 'initial-flip', slot: 0 }],
       [1, { type: 'initial-flip', slot: 0 }],
       [0, { type: 'draw', source: 'deck' }],
-      [0, { type: 'replace', slot: 1 }],
+      [0, { type: 'replace', slot: compactCheck ? 5 : 1 }],
     ],
   },
   {
@@ -69,7 +83,7 @@ const scenes = [
     actions: [
       [0, { type: 'draw', source: 'deck' }],
       [0, { type: 'mew-target', target: 1, slot: 5 }],
-      [0, { type: 'replace', slot: 1 }],
+      [0, { type: 'replace', slot: compactCheck ? 5 : 1 }],
     ],
   },
   {
@@ -148,7 +162,14 @@ const scenes = [
 const evidence = {
   verifiedAt: new Date().toISOString(),
   scope:
-    'Actual production rules/UI/service loaded from specification saved fixtures, desktop 1920 and Chromium touch/360/390 simulation; audio decode and play-call observations, no physical phone/TV or listening claim',
+    'Actual production rules/UI/service loaded from specification saved fixtures, desktop 1920 and Chromium touch phone viewport simulation; audio decode and play-call observations, no physical phone/TV or listening claim',
+  compactCheck,
+  phoneViewports: compactCheck
+    ? [[360, 640]]
+    : [
+        [360, 844],
+        [390, 844],
+      ],
   cases: [],
   external: [],
   errors: [],
@@ -254,8 +275,9 @@ for (const scene of selectedScenes) {
           void window.loadURL(config.url);
         },
         {
-          width: route === 'public' ? 1920 : index ? 390 : 360,
-          height: route === 'public' ? 1080 : 844,
+          width:
+            route === 'public' ? 1920 : compactCheck ? 360 : index ? 390 : 360,
+          height: route === 'public' ? 1080 : compactCheck ? 640 : 844,
           partition:
             route === 'public' ? 'public-scene' : `phone-scene-${index}`,
           url: `${origin}/${route}/game`,
@@ -269,6 +291,13 @@ for (const scene of selectedScenes) {
           enabled: true,
           maxTouchPoints: 5,
         });
+        if (compactCheck)
+          await cdp.send('Emulation.setDeviceMetricsOverride', {
+            width: 360,
+            height: 640,
+            deviceScaleFactor: 1,
+            mobile: true,
+          });
         await page.evaluate(
           (token) => localStorage.setItem('tablemax-player', token),
           players[index].token,
@@ -367,6 +396,8 @@ for (const scene of selectedScenes) {
       presentedActions: [],
       decodedAudio,
       narrowOverflow: false,
+      compactLayouts: [],
+      resultLayouts: [],
     };
     const capture = async (page, name, keepScroll = false) => {
       if (!keepScroll)
@@ -398,6 +429,225 @@ for (const scene of selectedScenes) {
       await writeFile(join(output, name), Buffer.from(data, 'base64'));
       item.screenshots.push(name);
     };
+    const saveCaseProgress = async () => {
+      await writeFile(
+        join(output, 'results.json'),
+        JSON.stringify(
+          {
+            ...evidence,
+            cases: [...evidence.cases, item],
+            result: 'in-progress',
+          },
+          null,
+          2,
+        ) + '\n',
+      );
+    };
+    const settleFiniteMotion = async (page, selector) => {
+      // Measure resting geometry, while leaving infinite actionable cues running.
+      await page.evaluate(async (selector) => {
+        const root = document.querySelector(selector);
+        const animations = root
+          .getAnimations({ subtree: true })
+          .filter(
+            (animation) =>
+              animation.playState === 'running' &&
+              Number.isFinite(animation.effect.getTiming().iterations),
+          );
+        await Promise.all(
+          animations.map((animation) => animation.finished.catch(() => {})),
+        );
+        await new Promise((done) =>
+          requestAnimationFrame(() => requestAnimationFrame(done)),
+        );
+      }, selector);
+    };
+    const inspectPhone = async (page, phase, moment) => {
+      if (!compactCheck) return;
+      await settleFiniteMotion(page, '.pokemon-player');
+      const geometry = await page.evaluate(() => {
+        const bounds = (element) => {
+          if (!element) return null;
+          const rect = element.getBoundingClientRect();
+          return {
+            left: rect.left,
+            top: rect.top,
+            right: rect.right,
+            bottom: rect.bottom,
+            width: rect.width,
+            height: rect.height,
+          };
+        };
+        const visible = (element) => {
+          const rect = bounds(element);
+          return (
+            rect.width > 0 &&
+            rect.height > 0 &&
+            getComputedStyle(element).visibility !== 'hidden'
+          );
+        };
+        const hit = (element) => {
+          const rect = bounds(element);
+          const target = document.elementFromPoint(
+            rect.left + rect.width / 2,
+            rect.top + rect.height / 2,
+          );
+          return !!target && element.contains(target);
+        };
+        const boards = [
+          ...document.querySelectorAll('.pokemon-player .pokemon-board'),
+        ].filter(visible);
+        return {
+          viewport: { width: innerWidth, height: innerHeight },
+          document: {
+            width: document.documentElement.scrollWidth,
+            height: document.documentElement.scrollHeight,
+            scrollX,
+            scrollY,
+          },
+          openDialogs: document.querySelectorAll('dialog[open]').length,
+          scrollContainers: [
+            ...document.querySelectorAll(
+              '.pokemon-screen,.game-table,.pokemon-player,.target-board,.pokemon-board',
+            ),
+          ]
+            .filter(visible)
+            .map((element) => ({
+              name: element.className,
+              scrollTop: element.scrollTop,
+            })),
+          boards: boards.map((board) => ({
+            bounds: bounds(board),
+            scrollTop: board.scrollTop,
+            slots: [...board.querySelectorAll('.card-slot')].map((slot) => ({
+              label: slot.querySelector('.slot-index')?.textContent.trim(),
+              bounds: bounds(slot),
+              surface: bounds(slot.querySelector('.card-surface')),
+              card: bounds(slot.querySelector('.pokemon-card')),
+              number: bounds(slot.querySelector('.slot-index')),
+              enabled: !slot.disabled,
+              uncovered: hit(slot),
+            })),
+          })),
+          controls: [
+            ...document.querySelectorAll(
+              '.pokemon-status .draw-pile,.pokemon-player .intent-actions button,.pokemon-player .submit-choice button,.pokemon-player .target-tabs button,.pokemon-player .private-peek button',
+            ),
+          ]
+            .filter(visible)
+            .map((button) => ({
+              label:
+                button.getAttribute('aria-label') ?? button.textContent.trim(),
+              bounds: bounds(button),
+              enabled: !button.disabled,
+              uncovered: button.disabled || hit(button),
+            })),
+          targets: [
+            ...document.querySelectorAll('.pokemon-player .target-tabs button'),
+          ].map((button) => ({
+            label: button.textContent.trim(),
+            bounds: bounds(button),
+            visible: visible(button),
+            enabled: !button.disabled,
+            uncovered: hit(button),
+            textFits: button.scrollWidth <= button.clientWidth + 1,
+            selected: button.getAttribute('aria-pressed') === 'true',
+          })),
+          privateCard: bounds(document.querySelector('.private-peek-card')),
+        };
+      });
+      const label = `${scene.id} ${phase} ${moment}`;
+      item.compactLayouts.push({ label, ...geometry });
+      await saveCaseProgress();
+      const inside = (rect) =>
+        rect &&
+        rect.width > 0 &&
+        rect.height > 0 &&
+        rect.left >= -1 &&
+        rect.top >= -1 &&
+        rect.right <= geometry.viewport.width + 1 &&
+        rect.bottom <= geometry.viewport.height + 1;
+      assert.deepEqual(geometry.viewport, { width: 360, height: 640 }, label);
+      assert.equal(geometry.openDialogs, 0, `${label}: normal main table`);
+      assert.ok(
+        geometry.document.width <= geometry.viewport.width + 1 &&
+          geometry.document.height <= geometry.viewport.height + 1 &&
+          Math.abs(geometry.document.scrollX) <= 1 &&
+          Math.abs(geometry.document.scrollY) <= 1,
+        `${label}: actions require no page scrolling`,
+      );
+      assert.ok(
+        geometry.scrollContainers.every((element) => element.scrollTop === 0),
+        `${label}: operation panels require no scrolling`,
+      );
+      assert.equal(
+        geometry.boards.length,
+        phase === 'charizard-view' ? 0 : 1,
+        `${label}: one current decision board, except private peek`,
+      );
+      for (const board of geometry.boards) {
+        assert.equal(board.slots.length, 6, `${label}: all six card positions`);
+        assert.equal(
+          board.scrollTop,
+          0,
+          `${label}: board requires no scrolling`,
+        );
+        for (const [index, slot] of board.slots.entries()) {
+          assert.equal(slot.label, String(index + 1), `${label}: slot label`);
+          assert.ok(
+            [slot.bounds, slot.surface, slot.card, slot.number].every(inside),
+            `${label}: card ${index + 1} and its number fit the first screen`,
+          );
+          assert.ok(
+            slot.bounds.width >= 44 &&
+              slot.bounds.height >= 44 &&
+              slot.uncovered,
+            `${label}: card ${index + 1} is an uncovered touch target`,
+          );
+        }
+      }
+      assert.ok(geometry.controls.length > 0, `${label}: main action controls`);
+      for (const control of geometry.controls)
+        assert.ok(
+          inside(control.bounds) &&
+            control.bounds.width >= 44 &&
+            control.bounds.height >= 44 &&
+            control.uncovered,
+          `${label}: ${control.label} is visible, touchable and uncovered`,
+        );
+      if (phase === 'mew-other') {
+        assert.equal(
+          geometry.targets.length,
+          players.length - 1,
+          `${label}: every opponent has a target selector`,
+        );
+        assert.ok(
+          geometry.targets.every(
+            (target) =>
+              target.label.length > 0 &&
+              target.visible &&
+              target.textFits &&
+              inside(target.bounds) &&
+              target.bounds.width >= 44 &&
+              target.bounds.height >= 44 &&
+              target.enabled &&
+              target.uncovered,
+          ),
+          `${label}: all opponent labels are visible, readable and touchable`,
+        );
+        if (scene.id === 'L6-mew' && moment === 'before-confirmation')
+          assert.equal(
+            geometry.targets.at(-1).selected,
+            true,
+            `${label}: the last opponent is selected`,
+          );
+      }
+      if (phase === 'charizard-view')
+        assert.ok(
+          inside(geometry.privateCard),
+          `${label}: private card is visible`,
+        );
+    };
     await capture(publicPage, `${scene.id}-before-public.png`);
     await capture(phones[0], `${scene.id}-before-360.png`);
     assert.equal(
@@ -418,12 +668,13 @@ for (const scene of selectedScenes) {
         await capture(page, `${stage}-phone.png`);
         const board = page.locator('.pokemon-player .pokemon-board').last();
         if (await board.count()) {
-          await board.scrollIntoViewIfNeeded();
+          if (!compactCheck) await board.scrollIntoViewIfNeeded();
           await capture(page, `${stage}-phone-targets.png`, true);
           await page.evaluate(() => scrollTo(0, 0));
         }
       }
-      const landscapeChoice = !!scene.count && index === 0;
+      await inspectPhone(page, before.gameView.phase, 'before-selection');
+      const landscapeChoice = !compactCheck && !!scene.count && index === 0;
       const actionWindow = await desktop.browserWindow(page);
       if (landscapeChoice)
         await actionWindow.evaluate((window) =>
@@ -514,6 +765,17 @@ for (const scene of selectedScenes) {
         );
         if (landscapeChoice)
           await capture(page, `${scene.id}-selected-landscape.png`);
+        await inspectPhone(page, before.gameView.phase, 'before-confirmation');
+        if (
+          compactCheck &&
+          scene.id === 'L6-mew' &&
+          action.type === 'mew-target'
+        )
+          await capture(
+            page,
+            'L6-mew-selected-last-opponent-360x640.png',
+            true,
+          );
         await page.locator('.confirm-action').click();
       }
       await page.waitForFunction(
@@ -657,7 +919,107 @@ for (const scene of selectedScenes) {
     }
     await capture(publicPage, `${scene.id}-public.png`);
     await capture(phones[0], `${scene.id}-360.png`);
-    await capture(phones[1], `${scene.id}-390.png`);
+    await capture(
+      phones[1],
+      `${scene.id}-${compactCheck ? '360-player-2' : '390'}.png`,
+    );
+    if (compactCheck && scene.id === 'V03') {
+      await publicPage.locator('.result-table .round-banner').waitFor();
+      for (const [width, height] of [
+        [1280, 720],
+        [1920, 1080],
+      ]) {
+        await publicWindow.evaluate(
+          (window, size) => window.setContentSize(...size),
+          [width, height],
+        );
+        await publicPage.evaluate(
+          () =>
+            new Promise((done) =>
+              requestAnimationFrame(() => requestAnimationFrame(done)),
+            ),
+        );
+        const geometry = await publicPage.evaluate(() => {
+          const bounds = (element) => {
+            const rect = element.getBoundingClientRect();
+            return {
+              left: rect.left,
+              top: rect.top,
+              right: rect.right,
+              bottom: rect.bottom,
+              width: rect.width,
+              height: rect.height,
+            };
+          };
+          return {
+            viewport: { width: innerWidth, height: innerHeight },
+            document: {
+              width: document.documentElement.scrollWidth,
+              height: document.documentElement.scrollHeight,
+            },
+            panels: [
+              ...document.querySelectorAll(
+                '.game-seat,.round-banner,.score-detail,.game-toolbar',
+              ),
+            ].map(bounds),
+            boards: [
+              ...document.querySelectorAll('.game-seats .pokemon-board'),
+            ].map((board) => {
+              const rect = bounds(board);
+              const slots = [...board.querySelectorAll('.card-slot')].map(
+                (slot) => ({
+                  bounds: bounds(slot),
+                  card: bounds(slot.querySelector('.pokemon-card')),
+                  number: bounds(slot.querySelector('.slot-index')),
+                }),
+              );
+              return {
+                bounds: rect,
+                slots,
+                cardFill:
+                  slots.reduce(
+                    (area, slot) => area + slot.card.width * slot.card.height,
+                    0,
+                  ) /
+                  (rect.width * rect.height),
+              };
+            }),
+          };
+        });
+        item.resultLayouts.push({ requested: [width, height], ...geometry });
+        await capture(publicPage, `V03-result-${width}x${height}.png`);
+        await saveCaseProgress();
+        const inside = (rect) =>
+          rect.width > 0 &&
+          rect.height > 0 &&
+          rect.left >= -1 &&
+          rect.top >= -1 &&
+          rect.right <= geometry.viewport.width + 1 &&
+          rect.bottom <= geometry.viewport.height + 1;
+        assert.ok(
+          geometry.document.width <= geometry.viewport.width + 1 &&
+            geometry.document.height <= geometry.viewport.height + 1 &&
+            geometry.panels.every(inside),
+          `V03 result ${width}x${height}: cards, scores and winner fit the first screen`,
+        );
+        assert.equal(geometry.boards.length, 2, 'Two result boards are shown');
+        for (const board of geometry.boards) {
+          assert.equal(board.slots.length, 6, 'Six cards on each result board');
+          assert.ok(
+            board.slots.every(
+              (slot) =>
+                [slot.bounds, slot.card, slot.number].every(inside) &&
+                slot.card.width + 1 >= (130 * width) / 1920,
+            ),
+            `V03 result ${width}x${height}: all card faces and numbers remain large and visible`,
+          );
+          assert.ok(
+            board.cardFill >= 0.5,
+            `V03 result ${width}x${height}: card faces fill at least half of each board`,
+          );
+        }
+      }
+    }
     await publicPage.locator('.recent-actions').click();
     const actionHistory = publicPage.locator(
       'dialog.action-history-panel[open]',
@@ -678,7 +1040,7 @@ for (const scene of selectedScenes) {
     ) {
       await publicPage.getByRole('button', { name: /^查看弃牌/ }).click();
       const gallery = publicPage.getByRole('dialog', {
-        name: '弃牌 · 底 → 顶',
+        name: '弃牌 底 → 顶',
       });
       await gallery.waitFor();
       assert.equal(
@@ -715,6 +1077,7 @@ for (const scene of selectedScenes) {
         };
       }),
     );
+    await saveCaseProgress();
     assert.ok(
       item.cardLayout.every(
         (card) =>
@@ -728,6 +1091,7 @@ for (const scene of selectedScenes) {
     if (scene.count) {
       item.layouts = [];
       for (const [width, height] of [
+        [1280, 720],
         [1080, 800],
         [1366, 768],
         [800, 900],
@@ -737,44 +1101,74 @@ for (const scene of selectedScenes) {
           (window, size) => window.setContentSize(...size),
           [width, height],
         );
-        await publicPage.evaluate(
-          () =>
-            new Promise((r) =>
-              requestAnimationFrame(() => requestAnimationFrame(r)),
-            ),
-        );
-        const metrics = await publicPage.evaluate(() => ({
-          width: innerWidth,
-          height: innerHeight,
-          documentHeight: document.documentElement.scrollHeight,
-          overflow: document.documentElement.scrollWidth > innerWidth,
-          boardCount: document.querySelectorAll('.game-seats .pokemon-board')
-            .length,
-          cards: [
-            ...document.querySelectorAll('.game-seats .pokemon-card'),
-          ].map((card) => ({
-            width: card.getBoundingClientRect().width,
-            height: card.getBoundingClientRect().height,
-            bottom: card.getBoundingClientRect().bottom,
-          })),
-        }));
+        await settleFiniteMotion(publicPage, '.game-table');
+        const metrics = await publicPage.evaluate(() => {
+          const bounds = (element) => {
+            if (!element) return null;
+            const rect = element.getBoundingClientRect();
+            return {
+              width: rect.width,
+              height: rect.height,
+              left: rect.left,
+              top: rect.top,
+              right: rect.right,
+              bottom: rect.bottom,
+            };
+          };
+          const seats = document.querySelector('.game-seats');
+          const seatStyle = getComputedStyle(seats);
+          const tableStyle = getComputedStyle(
+            document.querySelector('.game-table'),
+          );
+          return {
+            width: innerWidth,
+            height: innerHeight,
+            documentHeight: document.documentElement.scrollHeight,
+            overflow: document.documentElement.scrollWidth > innerWidth,
+            boardCount: document.querySelectorAll('.game-seats .pokemon-board')
+              .length,
+            dashboard: bounds(document.querySelector('.decision-dashboard')),
+            currentActor: bounds(document.querySelector('.current-actor')),
+            gameSeats: bounds(seats),
+            computedGrid: {
+              columns: seatStyle.gridTemplateColumns,
+              rows: seatStyle.gridTemplateRows,
+              tableColumns: tableStyle.gridTemplateColumns,
+              tableRows: tableStyle.gridTemplateRows,
+            },
+            cards: [
+              ...document.querySelectorAll('.game-seats .pokemon-card'),
+            ].map(bounds),
+          };
+        });
+        item.layouts.push(metrics);
+        await capture(publicPage, `${scene.id}-${width}x${height}.png`);
+        await saveCaseProgress();
         assert.equal(metrics.overflow, false);
         assert.equal(metrics.boardCount, scene.count);
         assert.ok(
           metrics.cards.every((card) => card.width >= 52 && card.height >= 70),
           `${scene.count} seats at ${width}x${height}: ${JSON.stringify(metrics.cards)}`,
         );
-        await capture(publicPage, `${scene.id}-${width}x${height}.png`);
-        item.layouts.push(metrics);
-        if (scene.count === 6 && [1080, 1366].includes(width)) {
+        if (scene.count === 6 && [1080, 1280, 1366].includes(width)) {
           assert.ok(
-            metrics.documentHeight <= height + 1 &&
-              metrics.cards.every((card) => card.bottom <= height + 1),
+            metrics.documentHeight <= metrics.height + 1 &&
+              metrics.cards.length === 36 &&
+              metrics.cards.every(
+                (card) =>
+                  card.left >= -1 &&
+                  card.top >= -1 &&
+                  card.right <= metrics.width + 1 &&
+                  card.bottom <= metrics.height + 1,
+              ),
             `Six-player play ${width}x${height}: all boards fit without page scrolling`,
           );
         }
       }
       const phoneWindow = await desktop.browserWindow(phones[0]);
+      const phoneMetrics = compactCheck
+        ? await phones[0].context().newCDPSession(phones[0])
+        : null;
       for (const [width, height] of [
         [360, 640],
         [844, 390],
@@ -783,6 +1177,13 @@ for (const scene of selectedScenes) {
           (window, size) => window.setContentSize(...size),
           [width, height],
         );
+        if (phoneMetrics)
+          await phoneMetrics.send('Emulation.setDeviceMetricsOverride', {
+            width,
+            height,
+            deviceScaleFactor: 1,
+            mobile: true,
+          });
         await capture(phones[0], `${scene.id}-phone-${width}x${height}.png`);
         assert.equal(
           await phones[0].evaluate(
@@ -791,7 +1192,17 @@ for (const scene of selectedScenes) {
           false,
         );
       }
-      await phoneWindow.evaluate((window) => window.setContentSize(360, 844));
+      await phoneWindow.evaluate(
+        (window, height) => window.setContentSize(360, height),
+        compactCheck ? 640 : 844,
+      );
+      if (phoneMetrics)
+        await phoneMetrics.send('Emulation.setDeviceMetricsOverride', {
+          width: 360,
+          height: 640,
+          deviceScaleFactor: 1,
+          mobile: true,
+        });
       if (scene.count === 2) {
         await publicWindow.evaluate((window) =>
           window.webContents.setZoomFactor(2),

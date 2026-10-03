@@ -1,0 +1,243 @@
+/* Saved decoration is measured from visible UI; it never owns a rule action or a card face. */
+.pokemon-screen .saved-action-trails {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 34;
+  overflow: hidden;
+  pointer-events: none;
+  color: #e6b33b;
+  --trail-duration: 540ms;
+}
+.pokemon-screen .trail-theme-mew {
+  color: #d58cdf;
+  --trail-duration: 620ms;
+}
+.pokemon-screen .trail-theme-zapdos {
+  color: #ecc22c;
+  --trail-duration: 450ms;
+}
+.pokemon-screen .trail-theme-snorlax {
+  color: #62b9a9;
+  --trail-duration: 620ms;
+}
+.pokemon-screen .trail-theme-charizard {
+  color: #e78a42;
+}
+.pokemon-screen .trail-theme-rocket {
+  color: #e46980;
+}
+.pokemon-screen .saved-trail {
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  filter: drop-shadow(0 0 3px currentColor);
+  animation: committed-trail var(--trail-duration) ease-out both;
+}
+.pokemon-screen .electric-trail {
+  stroke-width: 4;
+  stroke-dasharray: 0.055 0.022;
+  animation-name: committed-electric-trail;
+}
+.pokemon-screen .trail-glint,
+.pokemon-screen .winner-corner-glint {
+  fill: none;
+  stroke: #fff7cf;
+  stroke-width: 2;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 3px currentColor);
+  animation: committed-glint 400ms ease-out both;
+}
+.pokemon-screen .target-impact {
+  stroke: currentColor;
+  stroke-width: 3;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: committed-impact 480ms ease-out both;
+}
+.pokemon-screen .target-mote {
+  fill: currentColor;
+  filter: drop-shadow(0 0 2px currentColor);
+  animation: committed-mote 520ms ease-out both;
+}
+.pokemon-screen .winner-trails {
+  color: #f0c44f;
+}
+.pokemon-screen .winner-board-sweep {
+  animation: committed-winner-sweep 800ms 100ms ease-in-out both;
+}
+.pokemon-screen .winner-board-halo {
+  stroke: currentColor;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 6px #f0c44f);
+  animation: committed-winner-halo 900ms ease-out both;
+}
+.pokemon-screen .winner-corner-glint {
+  animation-duration: 650ms;
+  animation-delay: 100ms;
+}
+.pokemon-screen
+  .game-table.result-table:has(.result-effects)
+  .round-banner
+  > div,
+.pokemon-screen
+  .game-table.result-table:has(.result-effects)
+  .round-banner
+  > .winner-emblem {
+  visibility: visible;
+}
+.pokemon-screen .game-table .card-theme-mark {
+  display: none;
+}
+.pokemon-screen .win-pips .newly-earned {
+  position: relative;
+  animation: committed-earned-star 380ms ease-out both;
+}
+.pokemon-screen .win-pips .newly-earned::after {
+  content: '✧';
+  position: absolute;
+  right: -5px;
+  top: -7px;
+  color: #fffbe4;
+  font-size: 0.7em;
+  text-shadow: 0 0 4px #ca8d17;
+  animation: committed-glint 600ms 100ms ease-out both;
+  pointer-events: none;
+}
+@keyframes committed-trail {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.9;
+  }
+  70% {
+    stroke-dashoffset: 0;
+    opacity: 0.8;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+@keyframes committed-electric-trail {
+  0%,
+  100% {
+    opacity: 0;
+    stroke-dashoffset: 0.24;
+  }
+  18%,
+  50%,
+  76% {
+    opacity: 1;
+  }
+  36%,
+  64% {
+    opacity: 0.25;
+  }
+  80% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes committed-glint {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+}
+@keyframes committed-impact {
+  0% {
+    scale: 0.97;
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.95;
+  }
+  100% {
+    scale: 1.07;
+    opacity: 0;
+  }
+}
+@keyframes committed-mote {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--mote-x), var(--mote-y));
+  }
+}
+@keyframes committed-winner-sweep {
+  0% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  15% {
+    opacity: 0.7;
+  }
+  85% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(var(--sweep-width));
+  }
+}
+@keyframes committed-winner-halo {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  25%,
+  55% {
+    opacity: 0.9;
+  }
+}
+@keyframes committed-earned-star {
+  0% {
+    scale: 0.65;
+    rotate: -18deg;
+  }
+  60% {
+    scale: 1.16;
+    rotate: 4deg;
+  }
+  100% {
+    scale: 1;
+    rotate: 0deg;
+  }
+}
+@media (max-width: 600px) {
+  .pokemon-screen .saved-trail {
+    stroke-width: 2;
+  }
+  .pokemon-screen .target-impact {
+    stroke-width: 2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pokemon-screen .saved-action-trails,
+  .pokemon-screen .win-pips .newly-earned::after {
+    display: none;
+  }
+  .pokemon-screen .win-pips .newly-earned {
+    animation: none;
+  }
+}
+.pokemon-screen[data-play-mode='test'] .saved-action-trails,
+.pokemon-screen[data-play-mode='test'] .win-pips .newly-earned::after {
+  display: none;
+}
+.pokemon-screen[data-play-mode='test'] .win-pips .newly-earned {
+  animation: none;
+}

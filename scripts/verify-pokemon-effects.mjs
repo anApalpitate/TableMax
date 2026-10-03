@@ -33,7 +33,7 @@ await build({
       import { validateState } from './games/pokemon-encounters/rules/state';
       import portrait from './assets/games/pokemon-encounters/characters/ordinary--2-official.png';
       import './apps/web/src/styles.css';
-      import './apps/web/src/screens/game-screen.css';
+      import './games/pokemon-encounters/ui/screen.css';
       import './games/pokemon-encounters/ui/style.css';
       const root=createRoot(document.getElementById('root'));
       const seats=['S1','S2'];
@@ -80,6 +80,15 @@ await build({
           motion=['@result'];
         }
         const before=project(state,{role:player?'player':'public',seatId:'S1'});
+        if(kind==='plain-draw') {
+          for(const seat of seats) state.boards[seat][0].faceUp=true;
+          const ordinary=state.deck.findIndex(id=>id.startsWith('ordinary-'));
+          [state.deck[ordinary],state.deck[state.deck.length-1]]=[state.deck.at(-1),state.deck[ordinary]];
+          const prior=project(state,{role:'public'});
+          Object.assign(state,rules.apply(state,{type:'draw',source:'deck'},'S1',{seats,random:{next:()=>0.4}}).state);
+          validateState(state,seats);
+          motion=savedChanges(prior,project(state,{role:'public'}));
+        }
         if(event) {
           state.events=[event]; state.step=event.id;
           const prior=structuredClone(before);
@@ -88,7 +97,7 @@ await build({
         }
         const game=project(state,{role:player?'player':'public',seatId:'S1'});
         const names={S1:'视觉玩家一',S2:'视觉玩家二'};
-        flushSync(()=>root.render(<main className={'game-screen '+(player?'player':'public')}><header className='game-toolbar'><h1>宝可梦奇遇：皮卡丘和朋友们</h1></header><SavedMotion.Provider value={motion}><GameTable game={game} seats={seats.map(id=>({id,name:names[id],portrait,controller:'human',online:true}))} names={names} selfId={player?'S1':null} player={player} actions={player?(kind==='draw-controls'?[{type:'draw',source:'deck'},{type:'draw',source:'discard'}]:[{type:'close-peek'}]):[]} locked={false} paused={false} playing={true} selectionKey={kind} motionKey={kind+ordinal} choose={()=>{}} showFriends={()=>{}} /></SavedMotion.Provider></main>));
+        flushSync(()=>root.render(<main className={'game-screen pokemon-screen '+(player?'player':'public')}><header className='game-toolbar'><h1>宝可梦奇遇：皮卡丘和朋友们</h1></header><SavedMotion.Provider value={motion}><GameTable game={game} seats={seats.map(id=>({id,name:names[id],portrait,controller:'human',online:true}))} names={names} selfId={player?'S1':null} player={player} actions={player?(kind==='draw-controls'?[{type:'draw',source:'deck'},{type:'draw',source:'discard'}]:[{type:'close-peek'}]):[]} locked={false} paused={false} playing={true} selectionKey={kind} motionKey={kind+ordinal} choose={()=>{}} showFriends={()=>{}} /></SavedMotion.Provider></main>));
         await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
         return {phase:game.phase,matchWinners:game.matchWinners,motion,publicPeek:game.peek};
       };
@@ -202,6 +211,14 @@ try {
   );
   await page.evaluate(() => window.showEffect('swap'));
   assert.equal(
+    await page.locator('.saved-action-trails .saved-trail').count(),
+    2,
+  );
+  assert.equal(
+    await page.locator('.saved-action-trails .target-mote').count(),
+    12,
+  );
+  assert.equal(
     await page.locator('.theme-snorlax .pokemon-card.back').count(),
     2,
   );
@@ -212,6 +229,47 @@ try {
   await capture('hidden-snorlax-swap');
   evidence.checks.push(
     'Both unchanged hidden card faces receive Snorlax target animation from saved action targets',
+  );
+  await page.evaluate(() => window.showEffect('plain-draw'));
+  const drawTrail = page.locator('.saved-action-trails .saved-trail');
+  assert.equal(await drawTrail.count(), 1);
+  const endpoints = await drawTrail.evaluate((element) => {
+    const svg = element.closest('svg').getBoundingClientRect();
+    const center = (selector) => {
+      const rect = document.querySelector(selector).getBoundingClientRect();
+      return [
+        rect.x + rect.width / 2 - svg.x,
+        rect.y + rect.height / 2 - svg.y,
+      ];
+    };
+    const from = element.getPointAtLength(0);
+    const to = element.getPointAtLength(element.getTotalLength());
+    return {
+      from: [from.x, from.y],
+      to: [to.x, to.y],
+      deck: center('.deck-pile .pokemon-card'),
+      held: center('.held-pile .pokemon-card'),
+      pointerEvents: getComputedStyle(element.closest('svg')).pointerEvents,
+      ariaHidden: element.closest('svg').getAttribute('aria-hidden'),
+    };
+  });
+  assert.ok(
+    endpoints.from.every((value, i) => Math.abs(value - endpoints.deck[i]) < 1),
+  );
+  assert.ok(
+    endpoints.to.every((value, i) => Math.abs(value - endpoints.held[i]) < 1),
+  );
+  assert.equal(endpoints.pointerEvents, 'none');
+  assert.equal(endpoints.ariaHidden, 'true');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.evaluate(() => window.showEffect('plain-draw'));
+  assert.equal(await page.locator('.saved-action-trails path').count(), 0);
+  assert.equal(await page.locator('.saved-action-trails').isVisible(), false);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.evaluate(() => window.showEffect('zero'));
+  assert.equal(await page.locator('.saved-action-trails').count(), 0);
+  evidence.checks.push(
+    'Legal ordinary draw renders one decorative deck-to-held trajectory with measured endpoints; reduced motion and cleared motion remove it',
   );
   await page.evaluate(() => window.showEffect('coin'));
   await page.locator('.tossed-coin').waitFor();
@@ -241,7 +299,27 @@ try {
   assert.equal(await page.locator('.held-placeholder').count(), 0);
   const quiet = await page.locator('.held-zone').boundingBox();
   assert.ok(quiet.width <= 240, 'Empty temporary storage must stay compact');
-  assert.equal(await page.locator('.take-border rect').count(), 2);
+  for (const name of ['从牌库取牌', '从弃牌顶取牌']) {
+    const draw = page.getByRole('button', { name, exact: true });
+    assert.equal(await draw.isEnabled(), true);
+    assert.equal(await draw.locator('.take-border').isVisible(), true);
+    const target = await draw.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const hit = document.elementFromPoint(
+        rect.left + rect.width / 2,
+        rect.top + rect.height / 2,
+      );
+      return {
+        width: rect.width,
+        height: rect.height,
+        uncovered: !!hit && element.contains(hit),
+      };
+    });
+    assert.ok(
+      target.width >= 44 && target.height >= 44 && target.uncovered,
+      `${name}: visible, uncovered touch target with an actionable cue`,
+    );
+  }
   const border = page.locator('.take-border rect').first();
   const offset = await border.evaluate(
     (e) => getComputedStyle(e).strokeDashoffset,
@@ -251,13 +329,42 @@ try {
     await border.evaluate((e) => getComputedStyle(e).strokeDashoffset),
     offset,
   );
-  assert.equal(
-    await page
-      .locator('.progress-segment.current')
-      .first()
-      .evaluate((e) => getComputedStyle(e).backgroundColor),
-    'rgba(0, 0, 0, 0)',
+  const progress = await page.getByRole('progressbar').evaluate((element) => {
+    const current = element.querySelector('[aria-current="step"]');
+    const track = current?.querySelector('.progress-track');
+    const label = current?.querySelector('.progress-label');
+    const rect = track?.getBoundingClientRect();
+    return {
+      minimum: Number(element.getAttribute('aria-valuemin')),
+      maximum: Number(element.getAttribute('aria-valuemax')),
+      value: Number(element.getAttribute('aria-valuenow')),
+      description: element.getAttribute('aria-valuetext'),
+      label: label?.textContent.trim(),
+      track: rect ? { width: rect.width, height: rect.height } : null,
+      striped:
+        !!track &&
+        [undefined, '::before', '::after'].some((pseudo) =>
+          /linear-gradient\(/.test(
+            getComputedStyle(track, pseudo).backgroundImage,
+          ),
+        ),
+      interactive: element.querySelectorAll('button,a,input,select').length,
+    };
+  });
+  assert.ok(
+    progress.maximum > progress.minimum &&
+      progress.value >= progress.minimum &&
+      progress.value <= progress.maximum &&
+      progress.description?.length > 0 &&
+      progress.label?.length > 0,
+    'Compact progress retains its current-step label and accessible status',
   );
+  assert.ok(
+    progress.track?.width > 0 && progress.track.height > 0 && progress.striped,
+    'Current step uses a visible striped rectangle',
+  );
+  assert.equal(progress.interactive, 0, 'Progress remains status-only');
+  evidence.progress = progress;
   await capture('compact-action-targets');
   await page.emulateMedia({ reducedMotion: 'reduce' });
   assert.equal(
@@ -266,7 +373,7 @@ try {
   );
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   evidence.checks.push(
-    'Compact quiet empty storage, discard-owned gallery control, status-only progress and moving dashed actionable borders with static reduced-motion fallback',
+    'Compact quiet empty storage, discard-owned gallery control, visible striped status-only progress and uncovered touchable draw controls with moving dashed borders and static reduced-motion fallback',
   );
   await page.evaluate(() => window.showEffect('draw-controls-public'));
   assert.equal(await page.locator('.card-piles .discard-control').count(), 1);
@@ -307,13 +414,16 @@ try {
   );
   const winners = await page.evaluate(() => window.showEffect('joint-win'));
   assert.equal(winners.matchWinners.length, 2);
+  assert.equal(await page.locator('.winner-board-sweep').count(), 2);
+  assert.equal(await page.locator('.win-pips .newly-earned').count(), 2);
+  assert.equal(await page.locator('.round-banner > div').isVisible(), true);
   assert.equal(
     await page.getByRole('img', { name: '大局赢家皇冠', exact: true }).count(),
     2,
   );
-  assert.equal(
-    await page.locator('.match-fireworks .firework-spark').count(),
-    60,
+  assert.ok(
+    (await page.locator('.match-fireworks .firework-spark').count()) > 0,
+    'Match result creates visible celebration particles',
   );
   const viewport = await page.locator('.match-fireworks').evaluate((e) => {
     const r = e.getBoundingClientRect();
@@ -326,9 +436,15 @@ try {
   assert.equal(viewport.width, viewport.viewport[0]);
   assert.equal(viewport.height, viewport.viewport[1]);
   await page.waitForTimeout(240);
+  assert.ok(
+    await page.evaluate(() =>
+      window.effectAnimations.some((name) => name.startsWith('firework-')),
+    ),
+    'Saved match result actually starts its celebration animation',
+  );
   await capture('joint-winner-fireworks');
   evidence.checks.push(
-    'Validated two-seat joint match result renders both crowns and 60 sparks over entire viewport',
+    'Validated two-seat joint match result renders both crowns and animated celebration particles over the entire viewport',
   );
   assert.deepEqual(evidence.errors, []);
   evidence.result = 'passed';

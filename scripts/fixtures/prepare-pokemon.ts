@@ -1,7 +1,10 @@
 import { RoomCoordinator } from '../../packages/platform-core/src/room';
 import { SqliteSaveRepository } from '../../apps/server/src/save-repository';
 import { rules, bot } from '../../games/pokemon-encounters';
-import type { State } from '../../games/pokemon-encounters/rules/state';
+import {
+  validateState,
+  type State,
+} from '../../games/pokemon-encounters/rules/state';
 import fixtures from '../../docs/games/pokemon-encounters/scenarios.json';
 
 // Verification-only saved scenarios, consumed by the unmodified production rules.
@@ -13,18 +16,40 @@ export async function prepare(
   count = 2,
 ) {
   const f = fixtures.scenarios.find((entry) => entry.id === id)?.fixture;
-  if (!f && id !== 'layout') throw new Error(`Unknown fixture: ${id}`);
+  const sixPlayerMew = id === 'L6-mew';
+  if (!f && id !== 'layout' && !sixPlayerMew)
+    throw new Error(`Unknown fixture: ${id}`);
   const original = f
     ? Object.keys(f.boards)
-    : Array.from({ length: count }, (_, i) => String(i));
+    : Array.from({ length: sixPlayerMew ? 6 : count }, (_, i) => String(i));
   const game = {
     ...rules,
     initialize({ seats }: { seats: readonly string[] }) {
       const map = (seat: string) => seats[original.indexOf(seat)]!;
       const base = rules.initialize({
         seats,
-        random: { next: () => 0.5 },
+        random: { next: () => (sixPlayerMew ? 0 : 0.5) },
       }) as State;
+      if (sixPlayerMew) {
+        // Exchange existing locations so the complete unique deck is preserved.
+        // Six legal initial flips and a legal draw will enter Mew's decision.
+        const mew = 'special-mew#01';
+        const top = base.deck.length - 1;
+        const outgoing = base.deck[top];
+        if (!outgoing) throw new Error('Six-player Mew fixture needs a deck');
+        const deckIndex = base.deck.indexOf(mew);
+        if (deckIndex >= 0) base.deck[deckIndex] = outgoing;
+        else {
+          const slot = Object.values(base.boards)
+            .flat()
+            .find((entry) => entry.instanceId === mew);
+          if (!slot)
+            throw new Error('Mew instance missing from initialized game');
+          slot.instanceId = outgoing;
+        }
+        base.deck[top] = mew;
+        return validateState(base, seats);
+      }
       if (!f) return base;
       return {
         ...base,
