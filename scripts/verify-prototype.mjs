@@ -1,27 +1,13 @@
 import assert from 'node:assert/strict';
-import { _electron } from 'playwright';
+import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import { preview } from 'vite';
-import { createRequire } from 'node:module';
 import { mkdir, mkdtemp, writeFile, readFile, readdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 
-const require = createRequire(import.meta.url);
 const output = resolve('artifacts/phase-02/verification');
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/prototype-verify-'));
-const entry = join(work, 'main.cjs');
-await writeFile(
-  entry,
-  `const { app, BrowserWindow } = require('electron');
-app.whenReady().then(async () => {
-  const window = new BrowserWindow({ show: false, width: 1280, height: 900,
-    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true } });
-  await window.loadURL(process.env.TABLEMAX_PROTOTYPE_URL);
-});
-app.on('window-all-closed', () => app.quit());\n`,
-);
-
 const server = await preview({
   configFile: resolve('apps/web/vite.prototype.config.ts'),
   preview: { host: '127.0.0.1', port: 0, strictPort: false, open: false },
@@ -31,9 +17,9 @@ assert.ok(address && typeof address !== 'string');
 const origin = `http://127.0.0.1:${address.port}`;
 const env = {
   ...process.env,
+  TABLEMAX_DATA_DIR: join(work, 'data'),
   TABLEMAX_PROTOTYPE_URL: `${origin}/prototype.html`,
 };
-delete env.ELECTRON_RUN_AS_NODE;
 delete env.NODE_PATH;
 let desktop;
 const evidence = {
@@ -59,9 +45,9 @@ try {
   );
   assert.equal((await fetch(`${origin}/api/foundation/health`)).status, 404);
   evidence.checks.push('Independent build and preview, no production API');
-  desktop = await _electron.launch({
-    executablePath: require('electron'),
-    args: [entry],
+  desktop = await launchDesktop({
+    executablePath: desktopExecutable,
+    args: ['--foundation-test'],
     env,
     timeout: 30_000,
   });

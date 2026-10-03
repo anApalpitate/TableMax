@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { _electron } from 'playwright';
+import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
@@ -28,7 +28,7 @@ await build({
   logLevel: 'silent',
 });
 const { bot } = require(join(work, 'driver.cjs'));
-let executablePath = require('electron');
+let executablePath = desktopExecutable;
 let archiveSha256;
 if (portable) {
   const project = JSON.parse(await readFile('package.json', 'utf8'));
@@ -66,18 +66,15 @@ const env = {
   TABLEMAX_HOST: '0.0.0.0',
   TABLEMAX_PORT: '0',
 };
-delete env.ELECTRON_RUN_AS_NODE;
 delete env.TABLEMAX_WEB_DEV_URL;
 delete env.NODE_PATH;
 if (portable)
   env.PATH = `${process.env.SystemRoot}\\system32;${process.env.SystemRoot}`;
-const args = portable
-  ? ['--foundation-test', '--tablemax-test-mode']
-  : [resolve('build/desktop'), '--foundation-test', '--tablemax-test-mode'];
+const args = ['--foundation-test', '--tablemax-test-mode'];
 const evidence = {
   verifiedAt: new Date().toISOString(),
   scope:
-    'Actual hidden Windows Electron and local service; independent Chromium phone partitions using the invite URL, touch/viewport simulation and real strategy Workers. No physical phone, Wi-Fi, Safari, or globally optimal strategy claim.',
+    'Actual hidden Windows WebView2 and local service; independent Chromium phone partitions using the invite URL, touch/viewport simulation and real strategy Workers. No physical phone, Wi-Fi, Safari, or globally optimal strategy claim.',
   portable,
   archiveSha256,
   dataDir,
@@ -473,7 +470,7 @@ async function shutdown() {
 }
 
 try {
-  desktop = await _electron.launch({
+  desktop = await launchDesktop({
     executablePath,
     args,
     env,
@@ -712,7 +709,7 @@ try {
     0,
   );
   assert.equal(await publicPage.getByLabel('你的昵称').count(), 0);
-  // Electron cancels this original-window navigation when opening public
+  // WebView2 cancels this original-window navigation when opening public
   // display. A fresh host navigation clears Playwright's pending load state.
   await host.goto(`${origin}/host`);
   await settle(host);
@@ -895,7 +892,7 @@ try {
   await capture(host, 'same-friends-level-replay', 1366, 768);
   await shutdown();
 
-  desktop = await _electron.launch({
+  desktop = await launchDesktop({
     executablePath,
     args,
     env,

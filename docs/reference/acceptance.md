@@ -222,8 +222,37 @@
 
 用户授权先精简语言包，沿用 1.0.0。`electron-builder.yml` 只保留 `zh-CN` 和 `en-US`；游戏代码、美术、声音和 Chromium 其他运行组件不变。多个游戏后的按需安装已列入 [未来计划](../tasks/README.md#多游戏按需安装未来计划未实现)，本轮没有实现下载或更换桌面运行时。
 
-- [ZIP 内容与体积核验](../../artifacts/maintenance/v1.0.0/language-pruning/results.json)：删除 53 个语言文件，保留的 21 个文件逐项解压 SHA-256 与旧包一致，包括程序、app.asar 和其他运行组件。ZIP 从 156,162,408 字节降至 144,416,191 字节（148.9 → 137.7 MiB），减少 11.2 MiB／7.52%。
-- [实际便携整局](../../artifacts/maintenance/v1.0.0/portable/results.json)：新 ZIP 独立解压、仅系统 PATH、隐藏 Electron 与独立服务，通过六席三胜、全部 14 阶段、回退、两次启动恢复及原班续局，页面错误和外部请求为空。设备范围仍为本机 Windows／手机 Chromium 模拟，不新增实机或听音结论。
+- [ZIP 内容与体积核验](../../artifacts/maintenance/v1.0.0/before-webview2/language-pruning/results.json)：删除 53 个语言文件，保留的 21 个文件逐项解压 SHA-256 与旧包一致，包括程序、app.asar 和其他运行组件。ZIP 从 156,162,408 字节降至 144,416,191 字节（148.9 → 137.7 MiB），减少 11.2 MiB／7.52%。
+- [实际便携整局](../../artifacts/maintenance/v1.0.0/before-webview2/portable/results.json)：当轮 ZIP 独立解压、仅系统 PATH、隐藏 Electron 与独立服务，通过六席三胜、全部 14 阶段、回退、两次启动恢复及原班续局，页面错误和外部请求为空。设备范围仍为本机 Windows／手机 Chromium 模拟，不新增实机或听音结论。
 - 打包配置 Prettier 与 diff 检查通过；Node 22.14.0、pnpm 10.12.1、Electron 44.5.1 沿用锁定环境。首次沙箱构建因子进程 `spawn EPERM` 失败，获准后完成真实打包；本轮仅打包配置与文档变化，未重复规则测试或显示矩阵，游戏与前端文件字节一致的证据见上。
 
-当前 [Windows x64 ZIP](../../artifacts/releases/TableMax-1.0.0-win-x64.zip) SHA-256 为 `e070212ce21c94b5b1546ca09c954f85feab9afde83c3642b589e18f6cbface1`；源码包按本轮最终提交导出。上一轮 ZIP、源码、交付清单及对应整局／显示证据保留在 `artifacts/maintenance/v1.0.0/before-language-pruning/`，历史显示通过结论归属旧包，不标为新包重新执行。
+当轮 [Windows x64 ZIP](../../artifacts/maintenance/v1.0.0/before-webview2/TableMax-1.0.0-win-x64.zip) SHA-256 为 `e070212ce21c94b5b1546ca09c954f85feab9afde83c3642b589e18f6cbface1`；源码包和对应证据已一并保留。上一轮 ZIP、源码、交付清单及对应整局／显示证据在 `artifacts/maintenance/v1.0.0/before-language-pruning/`，历史显示通过结论归属旧包，不标为新包重新执行。
+
+## 1.0.0：原生桌面与小体积交付（2026-10-03）
+
+按用户批准的计划，将桌面外壳替换为 net48／x64 WinForms＋共享 Evergreen WebView2＋包内官方 Node 22.14.0。版本保持 1.0.0，React、首版完整游戏、协议 6、存档格式与身份保持；不实施多游戏下载。采用理由见 [决策 008](../decisions/008-small-native-desktop.md)，运行时前提及体积计量见 [开发说明](development.md#便携包体积与共享运行时)。
+
+当前已通过的集成关口：
+
+- 工程 typecheck、ESLint、Prettier 和 23 文件／140 项测试通过；测试阶段实际 38.35 秒。原生最新构建 0 警告／0 错误，锁定 SDK 9.0.102、WebView2 SDK 1.0.4258.31。实际共享浏览器为 154.0.4258.48，服务为 Node 22.14.0／SQLite 3.47.2。
+- [真实旧 SQLite 兼容](../../artifacts/maintenance/v1.0.0/webview2/server-migration.json)：隔离复制 Electron Node 24.21.0／SQLite 3.53.4 写出的六席对局，读取相同实例、座位身份与快照，修订 7→8 恢复、9 继续提交、10 再次启动；原文件哈希未变。没有迁移存档格式或删除旧数据。
+- [原生安全与退出](../../artifacts/maintenance/v1.0.0/webview2/safety/results.json)：10 项真实关口通过，包含私有凭证、SPA 同文档授权／手机路径拒绝、子 frame／非法参数拒绝、重复启动、正常退出、服务崩溃、父进程崩溃及 Job Object 清理、生产 CDP 关闭和继承环境覆盖清除。缺运行时采用检测故障模拟，确认不启动服务且退出；本机已有运行时，未卸载系统依赖，安装／取消提示分支另经源码复核。
+- [开发完整整局](../../artifacts/maintenance/v1.0.0/development/results.json)：六席三胜、全部 14 阶段、回退、两次启动恢复及原班续局通过。[游戏 UI](../../artifacts/maintenance/v1.0.0/ui/results.json) 15 场、[卡面](../../artifacts/maintenance/v1.0.0/cards/results.json) 13 布局／16 类、[声画 fixture](../../artifacts/maintenance/v1.0.0/effects/results.json) 7 项通过。fixture 不替代自然对局证明。
+- [呈现与声音](../../artifacts/maintenance/v1.0.0/presentation/results.json)、[聚会保障](../../artifacts/maintenance/v1.0.0/party/results.json)、[并发与房主](../../artifacts/maintenance/v1.0.0/experience/results.json) 通过，包含自然六手机小局、三档实际 Worker 节奏、保存动作声音／动画、手机静音、公共屏优先与关闭归还、事件去重、静音偏好、端口冲突细因、独立窗口与防休眠请求。
+
+本轮验证仍在当前 Windows 11 x64 上完成。原生窗口位于屏幕外、不激活但实际合成渲染，测试 CDP 只监听临时回环端口；手机为隔离 Chromium profile 的触控／UA／网络模拟。外部网页请求被拒绝后的完整游戏证明离线资源链路，不声称实体电视、真实 Safari、另一台无开发环境电脑或现场听音实测。原包与对应证据保存在 `before-webview2/`，新包按实际哈希重新验收。
+
+最终交付已完成重新验收：[Windows x64 ZIP](../../artifacts/releases/TableMax-1.0.0-win-x64.zip) 为 **35,442,208 字节**，实际解压全部 **61 个文件／90,979,966 字节**；两项均严格低于 100,000,000 字节，解压也低于 95,000,000 字节预算，AC-24 通过。ZIP SHA-256 为 `3f7ed86a0b79d3f951b5992dbed614c3d4003f9db9bb756ac2a940cc346eacdf`。[逐文件交付清单](../../artifacts/releases/TableMax-1.0.0-win-x64-manifest.json) 包含实际字节数、每文件 SHA-256、官方 Node 下载校验及锁定 SDK；实际解压逐项一致，没有 Electron、PDB、其他架构 DLL、引用程序集、SDK 文档或开发 marker。Node.exe 为 83,344,536 字节，与官方 Windows x64 ZIP 原件完全一致。
+
+以下记录全部使用该最终 ZIP 的新解压目录、隔离数据及仅系统 PATH，记录哈希与交付文件一致：
+
+- [完整便携整局](../../artifacts/maintenance/v1.0.0/portable/results.json)：六席三胜、14 阶段、回退、两次启动恢复、冻结／断网导航身份恢复和原班续局通过，网页错误和外部请求为空。
+- [便携显示矩阵](../../artifacts/maintenance/v1.0.0/display/portable/results.json)：35 组布局、47 次浮窗检查、44 张真实截图，覆盖两端 36 牌、720p—4K、100／125／150%、暂停恢复、手机隔离、独立缩放、设置持久化与 DPI 模拟；实际原生尺寸等于请求尺寸，不以标签推定 4K。
+- [并发／房主／声音](../../artifacts/maintenance/v1.0.0/experience-portable/results.json)、[聚会保障](../../artifacts/maintenance/v1.0.0/party-portable/results.json)、[六席／三档](../../artifacts/maintenance/v1.0.0/room-portable/results.json) 和 [自然呈现／声音](../../artifacts/maintenance/v1.0.0/presentation-portable/results.json) 全部通过；对应实际命令耗时 21.7、26.7、39.088、49.327 秒，显示为 117.4 秒，并行耗时不相加。
+- [正式包原生安全](../../artifacts/maintenance/v1.0.0/webview2/safety-portable/results.json)：10 项通过。正式包忽略开发 URL、测试 CDP 环境和继承 Node／WebView2 覆盖，缺运行时检测、桥接权限及父子进程故障行为与开发验证一致。
+
+共享运行时、用户数据与浏览器缓存位于系统／用户数据目录，未算入上述交付体积；这些前提没有隐藏为包内组件。源码 ZIP 和总交付清单按本次最终提交导出，保留用户已有 README 工作区改动、不混入提交，默认不推送。
+
+[20 次真实游戏导航](../../artifacts/maintenance/v1.0.0/memory/results.json) 的桌面专项通过，DOM／监听器增长为 0；测量只证明此次导航回归，不比较不同运行时的绝对工作集，也不宣称长期无泄漏。收尾清理工具 29 项、统一维护 32 项隔离安全检查通过；实际 [安全维护](../../artifacts/maintenance/v1.0.0/webview2/maintenance.json) 被仍引用工作区的两个 Codex 工具 worker 触发进程保护，保留全部文件、删除 0 字节。没有终止这些进程、放宽清理范围或绕过保护，未取得此次完整工作区水位测量。
+
+返修与耗时：先通过小于 100 MB 的真实启动目录、旧存档与管道，再迁移完整专项。期间修复 WinExe 重定向标准流、构造期窗口上下文、初始化期间服务退出、退出前 stdout 排空、SPA 桥接文档来源和原生 4K 窗口尺寸钳制；CDP 关闭窗口改为处置真实 Form。失败证据在 `webview2/first-regression-failures/`，不作通过结论。首轮 game-ui 234.758 秒、cards 18.959 秒、effects 16.838 秒、presentation 失败 34.978 秒／修复重跑 38.313 秒；命令并行，不能相加为总耗时。证据日志见 `webview2/regression-*.log`。清理隔离测试曾被正在运行的验收进程保护挡住，收尾在全部进程结束后再执行。

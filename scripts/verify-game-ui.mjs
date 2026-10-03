@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { _electron } from 'playwright';
+import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import { build } from 'esbuild';
 import { mkdir, mkdtemp, writeFile, readdir, readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
@@ -172,16 +172,11 @@ for (const scene of selectedScenes) {
     TABLEMAX_HOST: '127.0.0.1',
     TABLEMAX_PORT: '0',
   };
-  delete env.ELECTRON_RUN_AS_NODE;
   delete env.NODE_PATH;
   delete env.TABLEMAX_WEB_DEV_URL;
-  const desktop = await _electron.launch({
-    executablePath: require('electron'),
-    args: [
-      resolve('build/desktop'),
-      '--foundation-test',
-      '--tablemax-test-mode',
-    ],
+  const desktop = await launchDesktop({
+    executablePath: desktopExecutable,
+    args: ['--foundation-test', '--tablemax-test-mode'],
     env,
     timeout: 30000,
   });

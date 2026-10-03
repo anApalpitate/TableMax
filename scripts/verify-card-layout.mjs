@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { _electron } from 'playwright';
+import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
@@ -73,14 +73,13 @@ const env = {
   TABLEMAX_HOST: '127.0.0.1',
   TABLEMAX_PORT: '0',
 };
-delete env.ELECTRON_RUN_AS_NODE;
 delete env.NODE_PATH;
 delete env.TABLEMAX_WEB_DEV_URL;
 delete env.TABLEMAX_PLAY_MODE;
 const evidence = {
   verifiedAt: new Date().toISOString(),
   scope:
-    'Actual hidden Electron and production CardFace rendering from an isolated saved geometry fixture containing all 16 categories; independent phone partitions. No physical phone, TV or card authenticity claim.',
+    'Actual hidden WebView2 and production CardFace rendering from an isolated saved geometry fixture containing all 16 categories; independent phone partitions. No physical phone, TV or card authenticity claim.',
   screenshots: [],
   layouts: [],
   errors: [],
@@ -88,13 +87,9 @@ const evidence = {
 };
 let desktop;
 try {
-  desktop = await _electron.launch({
-    executablePath: require('electron'),
-    args: [
-      resolve('build/desktop'),
-      '--foundation-test',
-      '--tablemax-test-mode',
-    ],
+  desktop = await launchDesktop({
+    executablePath: desktopExecutable,
+    args: ['--foundation-test', '--tablemax-test-mode'],
     env,
     timeout: 30000,
   });

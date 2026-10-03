@@ -1,12 +1,11 @@
 import assert from 'node:assert/strict';
 import { build } from 'esbuild';
-import { _electron } from 'playwright';
-import { createRequire } from 'node:module';
+import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import { mkdir, mkdtemp, writeFile, readFile, readdir } from 'node:fs/promises';
 import { join, resolve, dirname } from 'node:path';
+import { serveFixture } from './fixture-server.mjs';
 import { verificationOutput } from './verification-output.mjs';
 
-const require = createRequire(import.meta.url);
 const evidenceName = process.argv
   .find((arg) => arg.startsWith('--evidence='))
   ?.slice(11);
@@ -148,20 +147,21 @@ await writeFile(
   join(work, 'index.html'),
   '<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="fixture.css"><div id="root"></div><script src="fixture.js"></script>',
 );
-await writeFile(
-  join(work, 'main.cjs'),
-  `const {app,BrowserWindow}=require('electron');app.whenReady().then(()=>{const w=new BrowserWindow({show:false,frame:false,width:1280,height:720,webPreferences:{offscreen:true,backgroundThrottling:false}});w.loadFile(${JSON.stringify(join(work, 'index.html'))});});`,
-);
-const env = { ...process.env };
-delete env.ELECTRON_RUN_AS_NODE;
-const desktop = await _electron.launch({
-  executablePath: require('electron'),
-  args: [join(work, 'main.cjs')],
+const fixtureServer = await serveFixture(work);
+const env = {
+  ...process.env,
+  TABLEMAX_DATA_DIR: join(work, 'data'),
+  TABLEMAX_PROTOTYPE_URL: fixtureServer.url,
+};
+
+const desktop = await launchDesktop({
+  executablePath: desktopExecutable,
+  args: ['--foundation-test'],
   env,
 });
 const evidence = {
   scope:
-    'Hidden Electron rendering of production GameTable and authorized project() views. Constructed visual fixtures, not natural gameplay. Joint result passes production state validation.',
+    'Hidden WebView2 rendering of production GameTable and authorized project() views. Constructed visual fixtures, not natural gameplay. Joint result passes production state validation.',
   checks: [],
   errors: [],
 };
@@ -338,6 +338,7 @@ try {
   throw error;
 } finally {
   await desktop.close();
+  await fixtureServer.close();
   await writeFile(
     join(output, 'results.json'),
     JSON.stringify(evidence, null, 2) + '\n',

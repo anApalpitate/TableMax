@@ -1,13 +1,40 @@
 import { spawn } from 'node:child_process';
-import { resolve, dirname, join, posix } from 'node:path';
-import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
-import { access, mkdir, readFile, copyFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, access } from 'node:fs/promises';
+import { resolve, join } from 'node:path';
 
-const require = createRequire(import.meta.url);
-const electronDir = dirname(require.resolve('electron/package.json'));
-const { version } = require('electron/package.json');
-const cacheRoot = resolve('.cache/electron');
+export const nodeVersion = '22.14.0';
+export const nodeArchiveSha256 =
+  '55b639295920b219bb2acbcfa00f90393a2789095b7323f79475c9f34795f217';
+export const nodeRuntime = resolve('.cache/node/' + nodeVersion + '/runtime');
+const nativePackages = [
+  [
+    'microsoft.web.webview2',
+    '1.0.4258.31',
+    'HlGVwvyP/IWiXAU8K57Vmg59khY3DWMOxMnH4AHusFRy0/vDAjKItXUIVNXiXXaq4CLfSZyNUic1wOIlnPLsPQ==',
+  ],
+  [
+    'microsoft.netframework.referenceassemblies.net48',
+    '1.0.3',
+    'XWKgyeNadNcTQaIVvQB8BrdCNrEar6fo/de1OdQRZ9HFy0jcBSaM8IV5q64ZampsSnC8AlTsACaGZUuoFw41RA==',
+  ],
+];
+const archiveName = 'node-v' + nodeVersion + '-win-x64.zip';
+const cache = resolve('.cache/node/' + nodeVersion);
+const archive = join(cache, archiveName);
+export async function execute(command, args, options = {}) {
+  const child = spawn(command, args, {
+    stdio: 'inherit',
+    windowsHide: true,
+    ...options,
+  });
+  await new Promise((done, reject) => {
+    child.once('error', reject);
+    child.once('exit', (code) =>
+      code === 0 ? done() : reject(new Error(command + ' exited with ' + code)),
+    );
+  });
+}
 async function exists(file) {
   try {
     await access(file);
@@ -16,72 +43,119 @@ async function exists(file) {
     return false;
   }
 }
-async function execute(command, args, env = process.env) {
-  const child = spawn(command, args, { stdio: 'inherit', env });
-  await new Promise((fulfill, reject) => {
-    child.once('error', reject);
-    child.once('exit', (code) =>
-      code === 0
-        ? fulfill()
-        : reject(new Error(`${command} exited with ${code}`)),
+export async function prepareDesktop() {
+  if (process.platform !== 'win32' || process.arch !== 'x64')
+    throw new Error('This project targets Windows x64');
+  await mkdir(cache, { recursive: true });
+  if (!(await exists(archive))) {
+    const response = await fetch(
+      'https://nodejs.org/dist/v' + nodeVersion + '/' + archiveName,
+      {
+        signal: AbortSignal.timeout(600000),
+      },
     );
-  });
-}
-
-if (process.platform !== 'win32' || process.arch !== 'x64')
-  throw new Error('This project targets Windows x64');
-const installed =
-  (await exists(join(electronDir, 'dist/electron.exe'))) &&
-  (await readFile(join(electronDir, 'dist/version'), 'utf8'))
-    .trim()
-    .replace(/^v/, '') === version;
-if (installed) {
-  console.log(`Electron ${version} runtime is already installed.`);
-} else {
-  const name = `electron-v${version}-win32-x64.zip`;
-  const url = `https://github.com/electron/electron/releases/download/v${version}/${name}`;
-  const cacheUrl = new URL(url);
-  cacheUrl.pathname = posix.dirname(cacheUrl.pathname);
-  const cacheKey = createHash('sha256')
-    .update(cacheUrl.toString())
-    .digest('hex');
-  const cached = join(cacheRoot, cacheKey, name);
-  const download = join(cacheRoot, name);
-  await mkdir(cacheRoot, { recursive: true });
-  if (!(await exists(cached)) && !(await exists(download))) {
-    await execute('curl.exe', [
-      '--fail',
-      '--location',
-      '--retry',
-      '2',
-      '--connect-timeout',
-      '20',
-      '--max-time',
-      '600',
-      '--output',
-      download,
-      url,
-    ]);
+    if (!response.ok)
+      throw new Error('Official Node download failed: ' + response.status);
+    await writeFile(archive, Buffer.from(await response.arrayBuffer()));
   }
-  const candidate = (await exists(cached)) ? cached : download;
-  const expected = JSON.parse(
-    await readFile(join(electronDir, 'checksums.json'), 'utf8'),
-  )[name];
   const actual = createHash('sha256')
-    .update(await readFile(candidate))
+    .update(await readFile(archive))
     .digest('hex');
-  if (!expected || actual !== expected)
+  if (actual !== nodeArchiveSha256)
     throw new Error(
-      'Electron archive SHA-256 mismatch; cache preserved for inspection',
+      'Official Node archive SHA-256 mismatch; cache preserved for inspection',
     );
-  await mkdir(dirname(cached), { recursive: true });
-  if (candidate !== cached) await copyFile(candidate, cached);
-  console.log(
-    `Verified official Electron ${version} archive SHA-256: ${actual}`,
+  await mkdir(nodeRuntime, { recursive: true });
+  if (
+    !(await exists(join(nodeRuntime, 'node.exe'))) ||
+    !(await exists(join(nodeRuntime, 'LICENSE')))
+  ) {
+    await execute(
+      'powershell.exe',
+      [
+        '-NoProfile',
+        '-Command',
+        '$ErrorActionPreference = "Stop"; Add-Type -AssemblyName System.IO.Compression.FileSystem; $zip = [IO.Compression.ZipFile]::OpenRead($env:TABLEMAX_NODE_ARCHIVE); try { foreach ($name in @("node.exe", "LICENSE")) { $entry = $zip.GetEntry("node-v22.14.0-win-x64/" + $name); [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, (Join-Path $env:TABLEMAX_NODE_RUNTIME $name), $true) } } finally { $zip.Dispose() }',
+      ],
+      {
+        env: {
+          ...process.env,
+          TABLEMAX_NODE_ARCHIVE: archive,
+          TABLEMAX_NODE_RUNTIME: nodeRuntime,
+        },
+      },
+    );
+  }
+  // Validate the installed cache against entries in the verified official archive.
+  await execute(
+    'powershell.exe',
+    [
+      '-NoProfile',
+      '-Command',
+      '$ErrorActionPreference = "Stop"; Add-Type -AssemblyName System.IO.Compression.FileSystem; $zip = [IO.Compression.ZipFile]::OpenRead($env:TABLEMAX_NODE_ARCHIVE); try { foreach ($name in @("node.exe", "LICENSE")) { $entry = $zip.GetEntry("node-v22.14.0-win-x64/" + $name); $input = $entry.Open(); $sha = [Security.Cryptography.SHA256]::Create(); try { $expected = [BitConverter]::ToString($sha.ComputeHash($input)).Replace("-", "").ToLowerInvariant(); $cached = [IO.File]::OpenRead((Join-Path $env:TABLEMAX_NODE_RUNTIME $name)); try { $actual = [BitConverter]::ToString($sha.ComputeHash($cached)).Replace("-", "").ToLowerInvariant() } finally { $cached.Dispose() }; if ($expected -ne $actual) { throw "Cached runtime hash mismatch: $name" } } finally { $input.Dispose(); $sha.Dispose() } } } finally { $zip.Dispose() }',
+    ],
+    {
+      env: {
+        ...process.env,
+        TABLEMAX_NODE_ARCHIVE: archive,
+        TABLEMAX_NODE_RUNTIME: nodeRuntime,
+      },
+    },
   );
-  await execute(process.execPath, [join(electronDir, 'install.js')], {
-    ...process.env,
-    ELECTRON_CACHE: cacheRoot,
-    electron_config_cache: cacheRoot,
-  });
+  console.log(
+    'Verified official Windows x64 Node ' + nodeVersion + ': ' + actual,
+  );
+  const nativeSource = resolve('.cache/nuget-downloads');
+  await mkdir(nativeSource, { recursive: true });
+  for (const [id, version, expected] of nativePackages) {
+    const name = id + '.' + version + '.nupkg';
+    const file = join(nativeSource, name);
+    if (!(await exists(file))) {
+      const cached = resolve('.cache/nuget', id, version, name);
+      if (await exists(cached)) await writeFile(file, await readFile(cached));
+      else {
+        const response = await fetch(
+          'https://api.nuget.org/v3-flatcontainer/' +
+            id +
+            '/' +
+            version +
+            '/' +
+            name,
+          { signal: AbortSignal.timeout(600000) },
+        );
+        if (!response.ok)
+          throw new Error('Official NuGet package download failed: ' + id);
+        await writeFile(file, Buffer.from(await response.arrayBuffer()));
+      }
+    }
+    if (
+      createHash('sha512')
+        .update(await readFile(file))
+        .digest('base64') !== expected
+    )
+      throw new Error('Locked official NuGet package hash mismatch: ' + id);
+  }
+  await execute(
+    'dotnet',
+    [
+      'restore',
+      resolve('apps/desktop/native/TableMax.csproj'),
+      '--locked-mode',
+      '--source',
+      nativeSource,
+    ],
+    {
+      env: {
+        ...process.env,
+        DOTNET_CLI_HOME: resolve('.cache/dotnet-home'),
+        DOTNET_NOLOGO: '1',
+        DOTNET_CLI_TELEMETRY_OPTOUT: '1',
+      },
+    },
+  );
 }
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === resolve('scripts/setup-desktop.mjs')
+)
+  await prepareDesktop();

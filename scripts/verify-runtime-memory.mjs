@@ -26,7 +26,7 @@ const resultPath = join(output, 'results.json');
 let evidence = {
   verifiedAt: new Date().toISOString(),
   scope:
-    'Measured copy allocations/time in isolated Node processes and optional hidden Electron navigation stress. Heap peaks are sampled, not allocation-profiler maxima; GC-controlled navigation is a bounded regression check, not proof of no leaks or bounded history.',
+    'Measured copy allocations/time in isolated Node processes and optional hidden WebView2 navigation stress. Heap peaks are sampled, not allocation-profiler maxima; GC-controlled navigation is a bounded regression check, not proof of no leaks or bounded history.',
   runtime: { node: process.versions.node, platform: process.platform },
   result: 'running',
   copy: null,
@@ -135,8 +135,8 @@ async function measureCopy() {
 }
 
 async function measureDesktop() {
-  const { _electron } = await import('playwright');
-  const require = createRequire(import.meta.url);
+  const { launchDesktop, desktopExecutable } =
+    await import('./desktop-test.mjs');
   const requireWeb = createRequire(resolve('apps/web/package.json'));
   const { io } = requireWeb('socket.io-client');
   const dataDir = join(work, 'desktop-data');
@@ -146,7 +146,6 @@ async function measureDesktop() {
     TABLEMAX_HOST: '127.0.0.1',
     TABLEMAX_PORT: '0',
   };
-  delete env.ELECTRON_RUN_AS_NODE;
   delete env.TABLEMAX_WEB_DEV_URL;
   const samples = [];
   const errors = [];
@@ -159,9 +158,9 @@ async function measureDesktop() {
     scope:
       'One hidden production host window, local service and six authenticated simulated players. Each cycle starts/ends the same selected game and returns to the box; no second shipping game is implied.',
     environment:
-      'Other engineering checks may run concurrently. Only this launched Electron application and its host renderer are sampled; host-wide RAM is not used. Timing and process working sets remain environment-dependent.',
+      'Other engineering checks may run concurrently. Only this launched WebView2 application and its host renderer are sampled; host-wide RAM is not used. Timing and process working sets remain environment-dependent.',
     buildSha256: {
-      main: hash(await readFile('build/desktop/main.cjs')),
+      main: hash(await readFile('build/desktop/TableMax.exe')),
       server: hash(await readFile('build/desktop/server.cjs')),
     },
     dataDir,
@@ -169,13 +168,9 @@ async function measureDesktop() {
     errors,
   };
   try {
-    desktop = await _electron.launch({
-      executablePath: require('electron'),
-      args: [
-        resolve('build/desktop'),
-        '--foundation-test',
-        '--tablemax-play-mode',
-      ],
+    desktop = await launchDesktop({
+      executablePath: desktopExecutable,
+      args: ['--foundation-test', '--tablemax-play-mode'],
       env,
       timeout: 30000,
     });
@@ -261,14 +256,12 @@ async function measureDesktop() {
           (window) => !window.isVisible(),
         ),
         windows: BrowserWindow.getAllWindows().length,
-        metrics: app
-          .getAppMetrics()
-          .map(({ pid, type, serviceName, memory }) => ({
-            pid,
-            type,
-            serviceName,
-            memory,
-          })),
+        metrics: app.getAppMetrics().map(({ pid, type, name, memory }) => ({
+          pid,
+          type,
+          name,
+          memory,
+        })),
       }));
       assert.equal(
         processes.hidden,
@@ -334,7 +327,7 @@ async function measureDesktop() {
       listenerGrowth,
       allowedListenerGrowth: 24,
       processMemoryUnits:
-        'Electron app.getAppMetrics memory fields are retained as reported, in KiB.',
+        'Native .NET Process working-set/private-byte measurements for the launched desktop and service, in KiB. Renderer heap/DOM are measured separately through WebView2 CDP.',
     };
     assert.ok(
       growth <= allowance,

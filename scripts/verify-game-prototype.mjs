@@ -1,11 +1,9 @@
 import assert from 'node:assert/strict';
-import { _electron } from 'playwright';
+import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import { preview } from 'vite';
-import { createRequire } from 'node:module';
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 
-const require = createRequire(import.meta.url);
 const layoutOnly = process.argv.includes('--layout-only');
 const output = resolve(
   'artifacts/phase-02/verification/game',
@@ -14,11 +12,6 @@ const output = resolve(
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/game-prototype-verify-'));
-const entry = join(work, 'main.cjs');
-await writeFile(
-  entry,
-  `const {app,BrowserWindow}=require('electron');app.whenReady().then(async()=>{const w=new BrowserWindow({show:false,width:1280,height:900,webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true,backgroundThrottling:false}});await w.loadURL(process.env.TABLEMAX_PROTOTYPE_URL)});app.on('window-all-closed',()=>app.quit());`,
-);
 const server = await preview({
   configFile: resolve('apps/web/vite.prototype.config.ts'),
   preview: { host: '127.0.0.1', port: 0, strictPort: false, open: false },
@@ -28,9 +21,9 @@ assert.ok(address && typeof address !== 'string');
 const origin = `http://127.0.0.1:${address.port}`;
 const env = {
   ...process.env,
+  TABLEMAX_DATA_DIR: join(work, 'data'),
   TABLEMAX_PROTOTYPE_URL: `${origin}/prototype.html?game=pokemon-encounters`,
 };
-delete env.ELECTRON_RUN_AS_NODE;
 delete env.NODE_PATH;
 const evidence = {
   verifiedAt: new Date().toISOString(),
@@ -45,9 +38,9 @@ const evidence = {
 };
 let desktop;
 try {
-  desktop = await _electron.launch({
-    executablePath: require('electron'),
-    args: [entry],
+  desktop = await launchDesktop({
+    executablePath: desktopExecutable,
+    args: ['--foundation-test'],
     env,
     timeout: 30000,
   });

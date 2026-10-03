@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
-import { _electron } from 'playwright';
-import { createRequire } from 'node:module';
+import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { execFile } from 'node:child_process';
@@ -8,7 +7,6 @@ import { promisify } from 'node:util';
 import { createHash } from 'node:crypto';
 import { verificationOutput } from './verification-output.mjs';
 
-const require = createRequire(import.meta.url);
 const portable = process.argv.includes('--portable');
 const shortOnly = process.argv.includes('--paused-720p-only');
 const output = verificationOutput(
@@ -19,7 +17,7 @@ await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/display-'));
 const dataDir = join(work, 'data');
-let executablePath = require('electron');
+let executablePath = desktopExecutable;
 let archiveSha256;
 if (portable) {
   const project = JSON.parse(await readFile('package.json', 'utf8'));
@@ -54,7 +52,7 @@ if (portable) {
 const evidence = {
   verifiedAt: new Date().toISOString(),
   scope:
-    'Actual updated hidden Electron windows and independent local service, six real player identities with Chromium touch simulation; native window sizes and --force-device-scale-factor simulate 720p/1080p/1440p/2160p and Windows DPI. No physical 4K monitor, television, phone or OS resolution change claim.',
+    'Actual updated offscreen, nonactivated WebView2 windows and independent local service, six real player identities with Chromium touch simulation; native window sizes simulate 720p/1080p/1440p/2160p and explicit test geometry plus CDP density simulate Windows DPI. No physical 4K monitor, television, phone or OS resolution change claim.',
   dataDir,
   portable,
   archiveSha256,
@@ -130,26 +128,20 @@ async function view(token) {
   assert.equal(result.ok, true);
   return result.view;
 }
-async function start(dpi) {
+async function start() {
   const env = {
     ...process.env,
     TABLEMAX_DATA_DIR: dataDir,
     TABLEMAX_HOST: '0.0.0.0',
     TABLEMAX_PORT: port,
   };
-  delete env.ELECTRON_RUN_AS_NODE;
   delete env.TABLEMAX_WEB_DEV_URL;
   delete env.NODE_PATH;
   if (portable)
     env.PATH = `${process.env.SystemRoot}\\system32;${process.env.SystemRoot}`;
-  desktop = await _electron.launch({
+  desktop = await launchDesktop({
     executablePath,
-    args: [
-      ...(portable ? [] : [resolve('build/desktop')]),
-      '--foundation-test',
-      '--tablemax-play-mode',
-      `--force-device-scale-factor=${dpi}`,
-    ],
+    args: ['--foundation-test', '--tablemax-play-mode'],
     env,
     timeout: 30000,
   });
@@ -182,7 +174,7 @@ async function stop() {
   if (desktop) {
     await deadline(
       desktop.close(),
-      'Actual Electron desktop shutdown timed out',
+      'Actual WebView2 desktop shutdown timed out',
       15000,
     );
     desktop = undefined;
@@ -258,7 +250,7 @@ async function openPublic(host) {
   return page;
 }
 async function reload(page) {
-  // Native public-window navigation is cancelled by Electron and leaves a
+  // Native public-window navigation is cancelled by WebView2 and leaves a
   // pending Playwright load lifecycle. A native reload plus a new-document
   // marker verifies the real reload without awaiting that cancelled load.
   await page.evaluate(() => {
@@ -278,6 +270,11 @@ async function resize(page, width, height) {
   await window.evaluate(
     (w, size) => w.setContentSize(size.width, size.height),
     { width, height },
+  );
+  assert.deepEqual(
+    await window.evaluate((w) => w.getContentSize()),
+    [width, height],
+    'Actual unzoomed native render dimensions must equal the requested display matrix dimensions',
   );
   await settle(page);
 }
@@ -464,9 +461,8 @@ async function layout(page, label, game = false, paused = false) {
     };
   }, game);
   evidence.layouts.push({ label, native, snapshot, ...geometry });
-  assert.equal(
-    snapshot.zoomFactor,
-    native.zoom,
+  assert.ok(
+    Math.abs(snapshot.zoomFactor - native.zoom) < 1e-9,
     `${label}: the bridge describes the actual native zoom`,
   );
   assert.deepEqual(
@@ -901,9 +897,21 @@ try {
         height: innerHeight,
         dpr: devicePixelRatio,
       }));
-      // Offscreen painting in Electron uses density 1 even when screen reports
-      // Windows 150%. Simulate renderer density without overriding its native
-      // viewport: zero width/height explicitly disable CDP viewport replacement.
+      // Simulate DPI without changing OS settings. Native physical geometry and
+      // renderer pixel density are distinct inputs and must both be explicit.
+      const id = await page.evaluate(() => window.__tablemaxWindowId);
+      const nativeBefore = await nativeState(page);
+      await desktop.request('window', {
+        id,
+        operation: 'geometry',
+        geometry: {
+          viewport: {
+            width: nativeBefore.content[0],
+            height: nativeBefore.content[1],
+          },
+          screen: { width: 2560, height: 1440, scaleFactor: 1.5 },
+        },
+      });
       const cdp = await page.context().newCDPSession(page);
       await cdp.send('Emulation.setDeviceMetricsOverride', {
         width: 0,
@@ -926,7 +934,7 @@ try {
         offscreenDensity,
         simulatedDensity,
         method:
-          'Native --force-device-scale-factor=1.5 screen geometry plus CDP density 1.5 with width/height 0; actual Electron offscreen capture PNG retains native paint dimensions.',
+          'Explicit native test geometry with DPI 1.5 plus CDP density 1.5 with width/height 0; actual WebView2 offscreen capture PNG retains the current rendered frame.',
       });
       await layout(
         page,
@@ -942,7 +950,7 @@ try {
       const native = await nativeState(page);
       assert.ok(
         Math.abs(metrics.dpr / native.zoom - 1.5) < 0.03,
-        'Electron renderer uses the simulated Windows 150% pixel density',
+        'WebView2 renderer uses the simulated Windows 150% pixel density',
       );
       await capture(
         page,

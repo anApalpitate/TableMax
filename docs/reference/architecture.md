@@ -1,22 +1,27 @@
 # 代码结构与工程边界
 
-第一至六阶段已完成；正式运行宝可梦完整游戏，验证模板继续用于契约、策略替换和恢复回归。采用依据：[工程基础](../decisions/001-engineering-foundation.md)、[平台授权与恢复](../decisions/005-platform-authority-and-recovery.md)、[游戏目录与房主分权](../decisions/007-library-owner-and-concurrency.md)。
+第一至六阶段已完成；正式运行宝可梦完整游戏，验证模板继续用于契约、策略替换和恢复回归。采用依据：[工程基础](../decisions/001-engineering-foundation.md)、[平台授权与恢复](../decisions/005-platform-authority-and-recovery.md)、[游戏目录与房主分权](../decisions/007-library-owner-and-concurrency.md)、[小体积原生桌面](../decisions/008-small-native-desktop.md)。2026-10-03 桌面外壳改为共享 WebView2，最终交付验证状态仍以 [验收记录](acceptance.md) 为准。
 
 ## 已建立的工程
 
 | 路径                       | 当前职责                                                               | 依赖方向                                                          |
 | -------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `apps/desktop`             | Electron 窗口、独立服务生命周期、主机凭证交接、显示器移动与全屏        | protocol、Electron；不访问数据库或规则                            |
+| `apps/desktop/native`      | C# WinForms／net48／x64 窗口、私有服务管道、主机凭证、显示／声音与生命周期 | .NET Framework、WebView2；按桌面／服务协议通信，不访问数据库或规则 |
+| `apps/desktop/src`         | 网页使用的桌面显示／声音 TypeScript 契约与独立控制逻辑回归             | 不作为正式窗口入口；保留网页接口与已有控制逻辑测试                 |
 | `apps/server`              | HTTP／Socket.IO、身份绑定、资源／二维码、SQLite 仓储与 bot Worker 适配 | protocol、platform-core、注册游戏；组合具体适配器                 |
 | `apps/web`                 | 公共主机兼管理、只读公共屏、手机本人界面；独立合成原型                 | protocol、注册游戏 UI；不导入规则服务或完整状态                   |
 | `packages/protocol`        | 平台信封、角色投影及确认、桌面／服务消息的类型与 Zod 校验              | Zod；不依赖应用、游戏或数据库                                     |
-| `packages/game-sdk`        | JSON、规则／投影／多人决策、管理生命周期、受限策略纯类型契约           | 不依赖 UI、网络、数据库、Electron 或具体游戏                      |
+| `packages/game-sdk`        | JSON、规则／投影／多人决策、管理生命周期、受限策略纯类型契约           | 不依赖 UI、网络、数据库、桌面运行时或具体游戏                      |
 | `packages/platform-core`   | 单房间、凭证摘要授权、串行动作、checkpoint／分支、兼容校验和 bot 调度  | SDK、protocol、Node 随机凭证；不依赖具体游戏、Socket.IO 或 SQLite |
 | `games/template`           | 可玩验证游戏，独立规则、状态校验、计分、投影、策略和两端 UI            | 规则／策略仅 SDK，UI 仅 React 与投影类型                          |
 | `games/pokemon-encounters` | 首版完整规则、独立计分、授权投影、基础策略、两端 UI 与本地资源         | 规则／策略仅 SDK 与纯数据，UI 仅 React 与投影类型                 |
 | `scripts`                  | 构建、开发、桌面／便携／原型验证及隔离强制退出 fixture                 | 开发工具；不进入游戏规则                                          |
 
-应用组装具体规则、策略和适配器，核心只依赖抽象契约。共享包使用 `workspace:*`，开发导出 TS 源码，Vite／esbuild 消费；严格类型检查统一覆盖 apps、packages 和 games。服务、桌面和 bot Worker 输出独立 CJS，网页输出本地静态资源。便携包收集 `main.cjs`、`server.cjs`、`bot-worker.cjs`、`games/*.cjs`、`bots/*.cjs` 与网页，不依赖电脑预装 Node.js。
+应用组装具体规则、策略和适配器，核心只依赖抽象契约。共享包使用 `workspace:*`，开发导出 TS 源码，Vite／esbuild 消费；严格类型检查统一覆盖 apps、packages 和 games 的 TypeScript。服务、bot Worker 和游戏输出独立 CJS，网页输出本地静态资源；原生桌面单独编译为 `TableMax.exe`。`global.json` 固定 .NET SDK 9.0.102，原生锁文件固定 WebView2 SDK 1.0.4258.31 和编译用 net48 引用程序集。
+
+便携包收集原生壳、x64 WebView2 必需 DLL、官方 Node 22.14.0 的 `node.exe` 和许可证、`server.cjs`、`bot-worker.cjs`、`games/*.cjs`、`bots/*.cjs` 与本地网页。使用系统共享 WebView2 与 .NET Framework 4.8，不分发 Electron、WebView2 Fixed Version 或现代 .NET 自包含运行时；电脑无需预装 Node.js 或开发工具。缺少 WebView2 时提示用户安装官方 Evergreen Runtime，可取消，安装后正式对局仍不依赖互联网。
+
+新增游戏前，Windows x64 ZIP 和实际解压目录内全部交付文件各自必须严格小于 100,000,000 字节；95,000,000 字节为工程预算，达到预算时报告、达到硬上限时拒绝交付。系统共享运行时、用户存档和浏览器缓存不计入交付目录；打包清单记录实际大小、文件哈希与运行时版本，并核对 ZIP 实际解压结果。
 
 当前没有实际复用需求支持独立 `packages/ui`，因此未创建空包。首版游戏集中在 `games/pokemon-encounters/`；模块编译打包、运行时按目录选择并懒加载，不实现外部插件安装或多房间。模板注册及策略替换入口见 [扩展指南](../game-development/README.md)。
 
@@ -34,8 +39,8 @@
 ## 运行与入口
 
 ```text
-Electron 主进程（窗口、主机身份与生命周期）
-  └─ utilityProcess 独立服务
+C# WinForms / .NET Framework 4.8 / 共享 WebView2（窗口、主机身份与生命周期）
+  └─ 包内 node.exe server.cjs --desktop-pipe（私有重定向 stdin / stdout）
        ├─ HTTP / Socket.IO → RoomCoordinator
        ├─ 本地网页、资源、二维码
        ├─ SqliteSaveRepository → room.sqlite
@@ -47,9 +52,13 @@ Electron 主进程（窗口、主机身份与生命周期）
 /player/game                 独立玩家凭证 + 本人合法投影与意图
 ```
 
-服务就绪后打开主机窗口；20s 启动超时、端口占用、数据库损坏或版本不兼容时停止并提示。主机可打开另一只读公共屏，关闭它保留服务；关闭全部窗口或退出程序发送停止消息，5s 后才强制终止。服务异常退出会停止桌面，避免保留失效管理界面。F11 切换全屏，Alt 打开“屏幕”菜单，可把当前窗口移到任一显示器；公共屏默认优先外接屏。本轮按用户授权以电视尺寸模拟，未实际连接外接显示器。
+服务通过显式 `--desktop-pipe` 模式接收私有 JSON 行：第一条为 `{type:"start",config:ServiceConfig}`，就绪返回 `{type:"ready",port,health,hostToken}`；停止使用 `{type:"stop"}`，stdin EOF 也会正常关闭。配置、信封与每行 16 KiB 上限在服务端核验，错误安全输出，诊断走 stderr；普通独立启动的 stdout 只含无凭证就绪信息，不新增管理 HTTP 接口或改变网络协议。
 
-窗口禁用 Node 集成，开启上下文隔离和沙箱，preload 只开放显示控制与单声源调度的窄 IPC 接口；限制其他源导航和任意新窗口。主机随机凭证只由服务交给桌面，再通过 fragment 初始化 sessionStorage 并清理可见 URL；重启后重新生成。网页路由不授予管理权限，普通浏览器直接打开 `/host` 仍只有公共授权。二维码只包含普通手机入口。
+服务就绪后打开主机窗口；20s 启动超时、端口占用、数据库损坏或版本不兼容时停止并提示。主机可打开另一只读公共屏，关闭它保留服务；关闭全部窗口或退出程序发送停止消息，等待保存和服务关闭，5s 后才兜底终止。原生壳先以暂停状态创建 Node 进程，加入带 `KILL_ON_JOB_CLOSE` 的 Windows Job Object 后再恢复执行；桌面异常退出也清理服务及后代。服务异常退出会停止桌面，避免保留失效管理界面。F11 切换全屏，Alt 打开“屏幕”菜单，可把当前窗口移到任一显示器；公共屏默认优先外接屏。实际外接屏和 DPI 验证范围见验收记录。
+
+WebView2 不暴露 Node 或原生 host objects；`Bridge.js` 只保持 `window.tablemaxDisplay`／`window.tablemaxAudio` 的固定接口。原生端仅处理顶层 WebMessageReceived，核验受管理窗口、本源、当前文档 URL、host／public 对应路径和参数；拒绝手机路径、子 frame、其他源导航、任意新窗口和网页下载。主机随机凭证只由服务通过私有管道交给桌面，再通过 fragment 初始化 sessionStorage 并清理可见 URL；不进入命令行、公共输出或日志，重启后重新生成。网页路由不授予管理权限，普通浏览器直接打开 `/host` 仍只有公共授权。二维码只包含普通手机入口。
+
+继续使用原用户数据目录、手机身份和 SQLite／JSON 存档格式，迁移不改协议版本或数据版本。WebView2 缓存写入用户数据目录的 `desktop/webview2/`，独立显示设置仍为 `display-settings.json`。旧 Electron 写出的 SQLite 需在隔离副本上验证读取、继续保存和恢复；不以新建数据库代替兼容性验证。原生测试驱动及 CDP 仅由显式测试标志启用，正式启动不开放调试端口；验证使用后台不激活窗口与更新后的真实 WebView2 截图。
 
 玩家身份用服务生成的随机凭证，服务器仅保存摘要。本人的凭证由手机 localStorage 保存，开局前排序不改变座位 ID；同设备同源刷新／断线沿用凭证，1.6.0 删除换手机及兑换接口。电脑房主仅为管理员，不提供参赛入口或加入参数；首局首位由服务随机选取，旧 hostSeat 字段只兼容读取。主机管理权不扩展游戏秘密。线上状态来自当前有效连接，不入 checkpoint。电脑地址／端口变化形成新浏览器源不会自动迁移身份。
 
@@ -57,7 +66,7 @@ HTTP 提供加入、授权同步和网络地址；Socket.IO 握手绑定凭证�
 
 1.2.0 引入的持久化加入请求回复由 RoomCoordinator 管理，`session-receipts.ts` 只负责凭证加密／解密；随机玩家凭证仍保存摘要，恢复密钥只由手机持有。可选 sessionReceipts 字段向前读取格式 1 旧存档；历史 bindings 兼容校验后丢弃，不再兑换，随同一次 SQLite 事务保存。当前网络协议为 6，增加目录、可空当前游戏、ownerSeatId、capabilities 和 selectionToken；历史协议 4 引入的人机等级与公开席位等级继续保留；手机 `useAdmission` 负责持久请求、超时和恢复确认；会话回到前台重新同步，主动换身份关闭旧 Socket 时不发送断网错误。详见 [采用理由](../decisions/005-platform-authority-and-recovery.md#加入确认与原班续局2026-10-02)。
 
-服务 `NetworkDirectory` 每次读取系统网卡并标注、排序，保留手动选择；前端按需及定时刷新。桌面 `RuntimeGuard` 负责服务与公共屏两种防休眠请求的独立生命周期，`startup-error.ts` 将具体服务错误转为中文排障提示。单实例保护在启动服务前取得；公共屏保留时可重新打开管理，正式窗口行为与隐藏验证分开。
+服务 `NetworkDirectory` 每次读取系统网卡并标注、排序，保留手动选择；前端按需及定时刷新。原生 `DesktopContext` 管理服务与公共屏的防休眠生命周期，`Program.cs` 中的 `StartupError` 将安全服务错误转为中文排障提示。按数据目录取得单实例互斥锁后才启动服务；重复启动通过本地事件请求重开管理，公共屏保留时也可重新打开管理。正式窗口行为与后台验证分开。
 
 正式网页 `App.tsx` 只组装按角色隔离的会话与页面。会话逻辑在 `session/useRoomSession.ts`，盒子和游戏外壳在 `screens/`，弹窗、邀请、管理及全屏等在 `components/`，共享素材与清单在根目录 `assets/platform/`；游戏资源及浏览器资源表在 `assets/games/<id>/`。游戏的场地、结算和选择维护在对应游戏 UI，不导入平台凭证或 Socket。页面切换不产生游戏命令；角色变化重建会话，防止沿用另一身份。
 
@@ -108,10 +117,12 @@ copySave 复制将变化的席位、凭证、receipt、历史数组等容器，�
 
 SDK `PublicEvent.action` 及首版历史可选记录真实行动者、动词、公开类别／能力与公开目标格；`public-actions.ts` 只从已执行合法动作提取白名单信息，保存校验拒绝额外字段、未知座位／格号与私看细节。旧事件缺字段仍可加载。前端 ActivityFeed 用元数据和当前昵称组装静态播报与近期浮窗；peek／close 只带喷火龙类别及空位置列表，不带查看格、值或实例。目标边框与保存动效分别维护，测试模式禁动效／声音，静态授权结果仍可读。OverlayPanel 用原生 modal dialog 和 portal 管理焦点、遮罩及唯一标题；管理确认独立弹窗，显著结束入口只由电脑管理员可见。
 
-桌面 AudioOutputController 管理游戏窗口的播放资格：公共屏优先，最后公共屏离开后交回管理员；固定 connect／disconnect／claimEvent／subscribe 接口校验窗口、主 frame、本源与路由。已保存事件键在桌面端统一去重，队列有界；文档已提交导航才清理资格，打开公共屏时被拦截的导航不能误清管理员。静音偏好保存在本地并跨同源窗口同步，手机不建立播放器。
+原生 `DesktopContext` 管理游戏窗口的播放资格：公共屏优先，最后公共屏离开后交回管理员；保留固定 connect／disconnect／claimEvent／subscribe 接口，校验窗口、顶层、本源与路由。已保存事件键在桌面端统一去重，队列有界；文档已提交导航才清理资格，打开公共屏时被拦截的导航不能误清管理员。静音偏好保存在本地并跨同源窗口同步，手机不建立播放器；TypeScript 控制逻辑仍保留独立回归入口。
 
 ## 电脑显示控制
 
-`DisplaySettings` 为盒子／游戏提供同一浮窗，`apps/desktop/src/display-controller.ts` 负责窗口缩放、配置读写和生命周期，`display-types.ts` 只定义显示契约。隔离 preload 仅公开固定的读取／更新／订阅接口；主进程核验受管理窗口、本源、对应 host／public 路径及主 frame，拒绝手机路径、子 frame 和无效配置。显示控制不经过游戏命令或数据库，`display-settings.json` 与玩家存档分开，写入失败不会声明配置已保存。
+`DisplaySettings` 为盒子／游戏提供同一浮窗；`apps/desktop/native/NativeWindow.cs` 负责原生窗口与缩放，`DisplaySettings.cs` 负责几何与独立配置，TypeScript `display-types.ts` 保留网页契约。WebView2 桥接仅公开固定的读取／更新／订阅接口；原生端核验受管理窗口、本源、对应 host／public 路径及顶层，拒绝手机路径、子 frame 和无效配置。显示控制不经过游戏命令或数据库，`display-settings.json` 保留版本 1 及 host／public 偏好，与玩家存档分开；原子写入失败不会声明配置已保存。
 
-使用 Electron 44 的 [isolated zoom](https://www.electronjs.org/docs/latest/api/web-contents#contentssetzoommodemode) 将缩放限定于单个 webContents；不通过共用 origin 的默认缩放传播到其他窗口。自动比例来自原生内容窗口的 DIP 宽高与 1920×1080 基准，不能读取已缩放的 `innerWidth` 再反馈计算。分辨率预设先按当前显示器 DPI 转为 DIP；界面大小叠加用户倍率，限制到窗口可用空间与三倍上限。resize／全屏／显示器变化重新计算，页面导航和刷新应用当前窗口偏好；房主管理与公共屏分别持久化最近选择，作为新开窗口／重启的默认值，不覆盖其他已打开窗口。注册时缓存 webContents，关闭／停止使用缓存清理，先判断存活再访问原生对象，避免销毁后的 getter 或迟到事件阻断退出。
+当前使用独立 WebView2 控件的 `ZoomFactor` 与 PerMonitorV2 DPI，管理和公共窗口分别应用缩放。自动比例来自原生内容窗口的 DIP 宽高与 1920×1080 基准，不能读取已缩放的 `innerWidth` 再反馈计算。分辨率预设先按当前显示器 DPI 转为 DIP；界面大小叠加用户倍率，限制到窗口可用空间与三倍上限。resize／全屏／显示器变化重新计算，页面导航和刷新应用当前窗口偏好；房主管理与公共屏分别持久化最近选择，作为新开窗口／重启的默认值，不覆盖其他已打开窗口。关闭与迟到事件先判断窗口／浏览器存活，避免阻断退出。
+
+此前 Electron 44 的 isolated zoom、utilityProcess 与 preload 属于旧实现；原交付证据保留，不作为新原生壳通过依据。迁移采用理由与重新验收责任见 [决策 008](../decisions/008-small-native-desktop.md)。

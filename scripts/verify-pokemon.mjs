@@ -1,4 +1,4 @@
-import { _electron } from 'playwright';
+import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import { build } from 'esbuild';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
@@ -28,7 +28,7 @@ await build({
   logLevel: 'silent',
 });
 const { bot } = require(join(work, 'driver.cjs'));
-let executablePath = require('electron'),
+let executablePath = desktopExecutable,
   archive,
   archiveSha256;
 if (portable) {
@@ -67,14 +67,11 @@ const env = {
   TABLEMAX_PORT: '0',
   TABLEMAX_HOST: '127.0.0.1',
 };
-delete env.ELECTRON_RUN_AS_NODE;
 delete env.TABLEMAX_WEB_DEV_URL;
 delete env.NODE_PATH;
 if (portable)
   env.PATH = `${process.env.SystemRoot}\\system32;${process.env.SystemRoot}`;
-const args = portable
-  ? ['--foundation-test', '--tablemax-test-mode']
-  : [resolve('build/desktop'), '--foundation-test', '--tablemax-test-mode'];
+const args = ['--foundation-test', '--tablemax-test-mode'];
 const evidence = {
   verifiedAt: new Date().toISOString(),
   scope:
@@ -257,7 +254,7 @@ async function strategy(player) {
   });
 }
 for (let run = 0; run < 2; run++) {
-  const desktop = await _electron.launch({
+  const desktop = await launchDesktop({
       executablePath,
       args,
       env,
@@ -298,7 +295,7 @@ for (let run = 0; run < 2; run++) {
         gameId: 'pokemon-encounters',
       });
     }
-    assert.ok(health.runtime.electron);
+    assert.equal(health.runtime.node, '22.14.0');
     const runtime = await desktop.evaluate(({ app, screen }) => ({
       packaged: app.isPackaged,
       appVersion: app.getVersion(),

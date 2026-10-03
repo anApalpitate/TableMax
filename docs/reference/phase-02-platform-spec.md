@@ -17,7 +17,7 @@
 
 ## 原型入口与边界
 
-源码在 `apps/web/src/prototype/`，独立入口为 `apps/web/prototype.html`。执行 `pnpm prototype:dev` 进行审阅；构建后再预览或自动走查，完整命令、Electron 前提、端口和证据路径见 [开发环境与验证](development.md)。复用项目 React／TypeScript／Vite／Playwright，独立配置没有服务代理或真实通信，正式桌面构建使用独立正式网页入口。
+源码在 `apps/web/src/prototype/`，独立入口为 `apps/web/prototype.html`。执行 `pnpm prototype:dev` 进行审阅；构建后再预览或自动走查，完整命令、共享 WebView2／原生构建前提、端口和证据路径见 [开发环境与验证](development.md)。复用项目 React／TypeScript／Vite／Playwright，独立配置没有服务代理或真实通信，正式桌面构建使用独立正式网页入口。
 
 右上“审阅工具”默认关闭，角色／页面切换、模拟反馈、异常类型及工程说明集中在抽屉内，用于设计审阅，不是产品界面。原型保持“演示”标记；启动页的示例网卡选择位于默认关闭的“网络设置”。示例地址、人数、昵称、修订、分支、历史标签、绑定代数与 A／B 选项均是合成数据，不对应真实对局。游戏区没有完整秘密状态、隐藏牌映射、卡牌数据、身份凭证或真实 checkpoint；页面重载清空本地示例，不实现持久化恢复。切换角色不代表真实授权验证。
 

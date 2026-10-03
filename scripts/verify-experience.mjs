@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { _electron } from 'playwright';
+import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import { createRequire } from 'node:module';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
@@ -7,7 +7,6 @@ import { createHash, randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { verificationOutput } from './verification-output.mjs';
-const require = createRequire(import.meta.url);
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
@@ -18,7 +17,7 @@ const output = verificationOutput(
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/experience-'));
-let executablePath = require('electron'),
+let executablePath = desktopExecutable,
   archiveSha256;
 if (portable) {
   const { version } = JSON.parse(await readFile('package.json', 'utf8'));
@@ -50,7 +49,7 @@ const evidence = {
   portable,
   archiveSha256,
   scope:
-    'Real hidden Electron and service; six independent Chromium phone sessions, not physical phone/TV or listening verification.',
+    'Real hidden WebView2 and service; six independent Chromium phone sessions, not physical phone/TV or listening verification.',
   checks: [],
   screenshots: [],
   errors: [],
@@ -189,18 +188,13 @@ try {
     TABLEMAX_PORT: '0',
     TABLEMAX_HOST: '127.0.0.1',
   };
-  delete env.ELECTRON_RUN_AS_NODE;
   delete env.TABLEMAX_WEB_DEV_URL;
   delete env.NODE_PATH;
   if (portable)
     env.PATH = process.env.SystemRoot + '\\system32;' + process.env.SystemRoot;
-  desktop = await _electron.launch({
+  desktop = await launchDesktop({
     executablePath,
-    args: [
-      ...(portable ? [] : [resolve('build/desktop')]),
-      '--foundation-test',
-      '--tablemax-play-mode',
-    ],
+    args: ['--foundation-test', '--tablemax-play-mode'],
     env,
     timeout: 30000,
   });
@@ -382,7 +376,15 @@ try {
     .click({ noWaitAfter: true });
   const publicPage = await nextPublic;
   await observe(publicPage);
-  await publicPage.reload();
+  await publicPage.evaluate(() => {
+    window.experienceReloadMarker = true;
+  });
+  await (
+    await desktop.browserWindow(publicPage)
+  ).evaluate((window) => window.webContents.reload());
+  await publicPage.waitForFunction(
+    () => window.experienceReloadMarker === undefined,
+  );
   await publicPage
     .getByRole('button', { name: '提示音已开启 · 静音', exact: true })
     .waitFor();

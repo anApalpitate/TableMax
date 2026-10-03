@@ -172,11 +172,11 @@ function Add-Candidate([string]$Path, [string]$Reason) {
 function Assert-Idle {
   # Relative node commands do not expose cwd; treat matching tools as busy too.
   $busy = @(Get-CimInstance -ClassName Win32_Process | Where-Object {
-    $_.Name -match '^(node|electron|TableMax|7za|7z)\.exe$' -and (
+    $_.Name -match '^(node|electron|TableMax|dotnet|MSBuild|msedgewebview2|7za|7z)\.exe$' -and (
       -not $_.CommandLine -or $_.Name -eq 'TableMax.exe' -or
       ([string]$_.ExecutablePath).IndexOf($workspace, [StringComparison]::OrdinalIgnoreCase) -ge 0 -or
       ([string]$_.CommandLine).IndexOf($workspace, [StringComparison]::OrdinalIgnoreCase) -ge 0 -or
-      $_.CommandLine -match '(scripts[\\/](verify|dev|build|package|launch)|electron-builder|vitest|\b(pnpm|npm)\b.*\b(build|dev|test|check|package:win|verify:\w+)\b)'
+      $_.CommandLine -match '(scripts[\\/](verify|dev|build|package|launch)|apps[\\/]desktop[\\/]native|electron-builder|vitest|\b(pnpm|npm)\b.*\b(build|dev|test|check|package:win|verify:\w+)\b)'
     )
   })
   if ($busy.Count -gt 0) {

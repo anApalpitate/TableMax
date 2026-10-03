@@ -16,11 +16,13 @@
 
 Node.js 开发约束为 `>=22.14.0 <23`，`.node-version` 记录本次验证版本；pnpm 固定为 `10.12.1`。没有修改本机全局运行时或其他项目配置。依赖清单使用精确版本，`pnpm-lock.yaml` 锁定传递依赖；后续安装使用冻结锁文件。版本升级应作为单独改动验证。
 
-主要版本：React／React DOM `19.3.0`、Vite `8.3.1`、TypeScript `5.9.3`、Electron `44.5.1`、Fastify `5.12.5`、Socket.IO 服务／客户端 `4.8.4`、Zod `4.6.5`、qrcode `1.5.4`、Vitest `5.0.3`、Playwright `1.63.0`、electron-builder `26.15.3`。精确工具及类型版本见根目录与各工作区 `package.json`。
+当前桌面采用 C# WinForms／.NET Framework 4.8、共享 Evergreen WebView2 和包内 Node `22.14.0` x64；开发 .NET SDK `9.0.102` 固定在 `global.json`，WebView2 SDK `1.0.4258.31` 与编译引用程序集固定在原生项目及 `packages.lock.json`。Windows 11 内置兼容的 .NET Framework；开发和运行电脑需安装 WebView2 共享运行时，缺失时程序提供官方安装入口及取消。
+
+网页／服务主要版本：React／React DOM `19.3.0`、Vite `8.3.1`、TypeScript `5.9.3`、Fastify `5.12.5`、Socket.IO 服务／客户端 `4.8.4`、Zod `4.6.5`、qrcode `1.5.4`、Vitest `5.0.3`、Playwright `1.63.0`。精确工具及类型版本见根目录与各工作区 `package.json`。Electron／electron-builder 已退出活动工程，旧交付与验收按日期保留。
 
 第一阶段选择 TypeScript 5.9.3 的依据是锁定的 typescript-eslint 8.71.0 声明支持 `<6.1.0`；当时检索到的 TypeScript 最新主版本为 7，不将所有工具机械升级到 latest。Vite、Vitest 和 ESLint 的 Node 下限与本机开发运行时兼容，历史选型依据见 [工程基础决策](../decisions/001-engineering-foundation.md)。本页版本描述的是仓库锁定状态，不代表持续查询的最新版本。
 
-SQLite 使用 `node:sqlite` 的 `DatabaseSync`，只封装打开、准备语句和事务等基础 API。开发 Node 22.14.0 中该绑定标记为实验性，会打印 `ExperimentalWarning`；本工程不隐藏它。绑定收敛在 `apps/server/src/database.ts`，应用不依赖该细节，后续升级需复验。Electron 自带绑定避免额外原生 npm 绑定与 ABI 重编译；实际内置 Node／SQLite 版本以桌面验证结果为准。
+SQLite 使用 `node:sqlite` 的 `DatabaseSync`，只封装打开、准备语句和事务等基础 API。Node 22.14.0 中该绑定标记为实验性，会打印 `ExperimentalWarning`；本工程不隐藏它。绑定收敛在 `apps/server/src/database.ts`，应用不依赖该细节，后续升级需复验。发布的官方 Node 内含 SQLite 3.47.2，无额外 npm 原生绑定；旧 Electron SQLite 存档兼容证据见 [迁移验收](acceptance.md#100原生桌面与小体积交付2026-10-03)。
 
 ## 初次配置
 
@@ -29,6 +31,7 @@ SQLite 使用 `node:sqlite` 的 `DatabaseSync`，只封装打开、准备语句�
 ```powershell
 node --version
 pnpm --version
+dotnet --version
 pnpm install --frozen-lockfile
 pnpm setup:desktop
 pnpm check
@@ -36,7 +39,7 @@ pnpm build
 pnpm verify:desktop
 ```
 
-开发安装需要联网下载 npm 包与 Electron 运行时。当前 Electron 包在第一次使用时可能才下载二进制，因此提供 `setup:desktop` 显式准备入口。脚本使用 Windows 11 自带 `curl.exe` 从 Electron 官方 GitHub Release 下载，按 npm Electron 包内官方 SHA-256 清单校验后，调用其安装脚本解压；缓存在项目 `.cache/electron`。本次 Node 下载器出现传输停滞，采用系统下载器后完成。打包复用已安装的运行时，不重复下载。pnpm 只允许明确需要的 Electron／esbuild 安装脚本；被忽略的 electron-winstaller 安装脚本不用于当前 ZIP 目标，无需全量批准依赖脚本。
+开发安装需要联网下载 npm 包、官方 Node x64 ZIP 和锁定 NuGet 包。`setup:desktop` 按官方 SHA-256 验证 Node 下载及缓存，并对 NuGet 包校验 SHA-512 后锁定还原；缓存写入仓库 `.cache/node`、`.cache/nuget` 与 `.cache/dotnet-home`。编译引用程序集只用于开发，不进入发布包。pnpm 仅允许 esbuild 安装脚本。开发电脑使用已有 SDK 9.0.102，命令不修改全局工具或共享运行时；WebView2 缺失时按官方入口安装。
 
 VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；本机需已安装该扩展或手动安装。项目命令不依赖扩展，执行时使用项目固定的 Prettier。格式检查覆盖代码与配置，保留需求原件与现有文档排版，不对其批量重排。
 
@@ -46,22 +49,23 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 | 命令                                | 行为                                                                                                                                |
 | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                          | 先构建，启动 Vite 与 Electron／独立服务；前端热更新，服务与桌面源码修改后重启该命令                                                 |
+| `pnpm dev`                          | 先构建，启动 Vite、原生壳与包内 Node 独立服务；前端热更新，服务与桌面源码修改后重启该命令 |
 | `pnpm start`                        | 运行已有 `build/desktop`；先执行 `pnpm build`                                                                                       |
 | `pnpm typecheck`                    | 严格 TypeScript 检查，不生成文件                                                                                                    |
 | `pnpm lint`                         | ESLint 与 React Hooks 规则检查                                                                                                      |
 | `pnpm format:check` / `pnpm format` | 检查格式／按项目配置格式化                                                                                                          |
 | `pnpm test`                         | Vitest 执行核心、真实 Socket.IO、SQLite、强制终止恢复及 Worker 验证                                                                 |
 | `pnpm check`                        | 顺序执行类型、静态、格式检查与当前测试                                                                                              |
-| `pnpm build`                        | 构建网页、打包独立服务与桌面主进程到 `build/desktop`                                                                                |
+| `pnpm build`                        | 构建网页、独立服务、游戏模块与 net48 原生壳，收集到 `build/desktop` |
 | `pnpm verify:desktop`               | 隐藏窗口验证开发构建，包括真实大厅、宝可梦六人混合整局、回退、两次启动恢复、独立进程与退出协调                                      |
 | `pnpm verify:party`                 | 隐藏窗口验证加入丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP             |
 | `pnpm verify:room-levels`           | 隐藏窗口验证手机各自入座、电脑仅管理／展示、六席围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证当前 ZIP    |
 | `pnpm verify:presentation`          | 隐藏窗口验证六真人、游玩／测试时序、浮窗焦点／结束、公开行动及星标；可加 `--portable` 验证当前 ZIP                                  |
 | `pnpm verify:display`               | 隐藏窗口验证电脑 720p／1080p／1440p／4K、独立缩放、显示浮窗、设置恢复与 DPI；可加 `--portable` 验证最终 ZIP                         |
 | `pnpm verify:experience`            | 隐藏窗口验证游戏库按需加载、管理员指定手机房主、并发初始翻牌和准备、连接／显示控件及声音归属；可加 `--portable` 验证当前 ZIP        |
-| `pnpm verify:effects`               | 隐藏 Electron 用实际游戏组件和授权投影视觉 fixture 验证主题、同币面、暗牌交换、零分列、共同赢家和减少动态；不冒充自然对局           |
-| `pnpm verify:memory`                | 独立 Node 进程比较存档复制开销，再用隐藏 Electron 执行 20 轮进入／退出游戏的 heap／DOM 回归；可加 `--copy-only` 或 `--desktop-only` |
+| `pnpm verify:effects`               | 后台 WebView2 用实际游戏组件和授权投影 fixture 验证主题、同币面、暗牌交换、零分列、共同赢家和减少动态；不冒充自然对局 |
+| `pnpm verify:memory`                | 独立 Node 比较存档复制开销，再用后台 WebView2 执行 20 轮游戏切换的 heap／DOM 回归；可加 `--copy-only` 或 `--desktop-only` |
+| `node scripts/verify-native-safety.mjs` | 检查桥接拒绝、重复启动、缺运行时、生产 CDP 关闭及服务／父进程崩溃清理 |
 | `pnpm verify:game-ui`               | 正式能力／2–6 人保存 fixture 的十五组 UI、多尺寸触控／隐私、已保存动效和声音                                                        |
 | `pnpm verify:cards`                 | 正式六人保存状态的全部 16 类卡面及公共／手机十三种布局、图像／文字／分区几何                                                        |
 | `pnpm package:win`                  | 构建并生成 Windows x64 解压运行 ZIP 与 `win-unpacked`                                                                               |
@@ -69,14 +73,14 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 | `pnpm prototype:dev`                | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                                         |
 | `pnpm prototype:build`              | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/`                                                                        |
 | `pnpm prototype:preview`            | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建                                                       |
-| `pnpm prototype:verify:game`        | 对游戏原型执行Playwright／隐藏Electron全能力、角色、恢复反馈、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/`        |
-| `pnpm prototype:verify`             | 对已有原型构建运行 Playwright／隐藏 Electron 窗口走查，生成 JSON 和截图；先执行原型构建并准备 Electron                              |
+| `pnpm prototype:verify:game`        | 对游戏原型执行 Playwright／后台 WebView2 能力、角色、恢复、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/` |
+| `pnpm prototype:verify`             | 对已有原型构建运行 Playwright／后台 WebView2 走查，生成 JSON 和截图；先执行原型与桌面构建 |
 
 当前便携包和使用流程见 [项目说明](../../README.md#使用便携版)。第一阶段 0.1.0 仅为工程验证包，不包含大厅、身份或首版游戏；该旧包已按用户要求清除，验证记录保留。
 
 ## 独立原型的运行与检查
 
-初次安装沿用上节冻结依赖和 `pnpm setup:desktop`；仅浏览器开发／预览不需要启动 Electron，自动走查需要已安装的 Electron 运行时。在项目根目录执行：
+初次安装沿用上节冻结依赖和 `pnpm setup:desktop`；仅浏览器开发／预览不需要启动桌面壳，自动走查需要已构建原生壳及共享 WebView2。在项目根目录执行：
 
 ```powershell
 pnpm prototype:dev
@@ -93,7 +97,7 @@ pnpm prototype:verify
 pnpm prototype:verify:game
 ```
 
-`pnpm prototype:verify` 不自动构建，也不依赖正在运行的 4174 预览；脚本自行启动随机回环端口的 Vite 预览与隐藏 Electron 窗口，并在结束时关闭。人工审阅已有构建可执行 `pnpm prototype:preview`。5174／4174 均只监听 `127.0.0.1`，端口占用时停止，配置不会静默换端口；这两个地址不是局域网手机接入入口。
+`pnpm prototype:verify` 不自动构建，也不依赖正在运行的 4174 预览；脚本自行启动随机回环端口的 Vite 预览与后台 WebView2，并在结束时关闭。人工审阅已有构建可执行 `pnpm prototype:preview`。5174／4174 均只监听 `127.0.0.1`，端口占用时停止，配置不会静默换端口；这两个地址不是局域网手机接入入口。
 
 原型唯一入口由 `apps/web/vite.prototype.config.ts` 指定，正式构建由 `apps/web/vite.config.ts` 指定。原型不代理 `/api` 或 `/socket.io`，不使用真实身份、网络连接、存档或游戏状态。审阅工具可切换角色／页面、模拟提交与异常，刷新重置示例；页面中的网卡、连接和恢复反馈不是实际系统检测。
 
@@ -123,13 +127,13 @@ pnpm prototype:verify:game
 
 游戏元数据和加载器分别维护在服务注册表与 `apps/web/src/game-clients/registry.ts`。盒子只需要目录信息与缩略图；选中后加载游戏客户端、样式和资源。服务按选择或存档 manifest 加载对应规则，Worker 按任务加载对应策略；`build/desktop/games/*.cjs`、`bots/*.cjs` 与前端分块一起本地打包。已加载模块可在进程内复用，回盒子卸载游戏界面不等于清除 JavaScript 模块缓存。正式目录当前只展示宝可梦；内部 `template` 用于切换、容量及策略兼容验证，不作为第二款完整产品游戏。
 
-`pnpm verify:memory` 先从当前源码提取 `copySave`，与 1.5.0 基线的整份 `structuredClone` 在独立 `--expose-gc` Node 进程比较；可用 `--baseline-ref=<Git修订>` 指定另一个确实包含旧复制方式的基线。六席／1,200 checkpoint／1,200 receipt fixture 由合法六席快照扩展并经生产存档校验，不宣称已实际游玩 1,200 步。随后对实际隐藏 Electron 连续执行 20 轮开始、结束、回盒子及重新选择同游戏，记录 GC 后 renderer heap、DOM、监听器和本应用进程内存。结果在当前版本目录的 `memory/results.json`（当前 `artifacts/maintenance/v1.0.0/`，既有 1.6.0 测量保留）；临时入口、数据和 fixture 在 `tmp/runtime-memory-*`。`--copy-only` 不启动桌面，`--desktop-only` 保留已有复制测量并追加桌面结果；后者需先构建。
+`pnpm verify:memory` 先从当前源码提取 `copySave`，与 1.5.0 基线的整份 `structuredClone` 在独立 `--expose-gc` Node 进程比较；可用 `--baseline-ref=<Git修订>` 指定另一个确实包含旧复制方式的基线。六席／1,200 checkpoint／1,200 receipt fixture 由合法六席快照扩展并经生产存档校验，不宣称已实际游玩 1,200 步。随后对实际后台 WebView2 连续执行 20 轮开始、结束、回盒子及重新选择同游戏，记录 GC 后 renderer heap、DOM、监听器和本应用进程内存。结果在当前版本目录的 `memory/results.json`（当前 `artifacts/maintenance/v1.0.0/`，既有 1.6.0 Electron 测量保留）；临时入口、数据和 fixture 在 `tmp/runtime-memory-*`。`--copy-only` 不启动桌面，`--desktop-only` 保留已有复制测量并追加桌面结果；后者需先构建。不同运行时的绝对工作集不能直接比较为游戏优化收益。
 
 内存结果只说明测量配置下的复制分配、耗时和导航回归；并行工程负载可能影响耗时与工作集，不使用整台电脑 RAM 评价本应用。当前按字段复制仍保留全部有效回退历史，完整存档序列化和历史体积仍随对局增长，不能写成长期有界内存。磁盘阈值维护使用下节清理工具，与运行时 RAM 分开。
 
 ### 聚会可靠性维护验证（1.2.0）
 
-`pnpm verify:party` 验证当前开发构建，使用隔离数据、隐藏 Electron 和实际本机网卡 IPv4（监听 0.0.0.0），覆盖网卡名称／刷新／选择保持、已保存但丢失的加入回复与同请求确认重试、刷新／真实程序重启后确认、250ms 延迟和带宽限制、断网／冻结恢复、回退上下文与筛选、原班第二大局、重复启动、公共屏保留时恢复管理员窗口以及真实端口占用的中文错误日志；1.6.0 另确认已删除的兑换接口拒绝请求。不会修改防火墙、路由器或默认玩家存档；本机网卡地址可达并不证明真实手机或实际 Wi-Fi 已验收。启动前运行 `pnpm build`。正式包验证使用 `pnpm verify:party --portable`，新目录解压 ZIP、子进程 PATH 仅系统目录，证据独立进入 `party-portable`。
+`pnpm verify:party` 验证当前开发构建，使用隔离数据、后台 WebView2 和实际本机网卡 IPv4（监听 0.0.0.0），覆盖网卡名称／刷新／选择保持、已保存但丢失的加入回复与同请求确认重试、刷新／真实程序重启后确认、250ms 延迟和带宽限制、断网／冻结恢复、回退上下文与筛选、原班第二大局、重复启动、公共屏保留时恢复管理员窗口以及真实端口占用的中文错误日志；1.6.0 另确认已删除的兑换接口拒绝请求。不会修改防火墙、路由器或默认玩家存档；本机网卡地址可达并不证明真实手机或实际 Wi-Fi 已验收。启动前运行 `pnpm build`。正式包验证使用 `pnpm verify:party --portable`，新目录解压 ZIP、子进程 PATH 仅系统目录，证据独立进入 `party-portable`。
 
 1.2.0 的 verify:desktop／verify:portable／verify:game-ui／verify:party 证据在 `artifacts/maintenance/party-reliability` 保留，历史 pokemon-refresh 不覆盖。整局驱动器在随机电脑先手时处理闪电鸟等真人被动选择，再观察真人正常回合；完整三胜结算后实际保留五座位、三 bot 和手机凭证，重新准备并启动新大局。该版包按 package.json 的 1.2.0 输出到 `artifacts/releases`；存档格式、游戏状态与策略版本保持，网络协议为 3。
 
@@ -159,7 +163,7 @@ pnpm prototype:verify:game
 | 工程验证数据库       | 数据目录 `foundation.sqlite` 与 SQLite WAL／SHM；仅保留工程启动计数，正式平台另用 room.sqlite                                                                                                                      |
 | 正式平台存档         | 数据目录 `room.sqlite` 与 WAL／SHM；最新记录与修订 journal，包含秘密状态，禁止公开                                                                                                                                 |
 | 服务日志             | 数据目录 `logs/service.log`，只记录服务启动／停止事件，不记录验证消息或秘密状态                                                                                                                                    |
-| Electron 浏览器数据  | 数据目录 `desktop/`，包含网页会话与缓存                                                                                                                                                                            |
+| WebView2 浏览器数据  | 数据目录 `desktop/webview2/`，包含网页会话与缓存；旧 Electron 缓存保留，手机原浏览器身份及 room.sqlite 继续沿用 |
 | pnpm、下载与工具缓存 | 仓库 `.pnpm-store/`、`.cache/`；Git 忽略，工作区隐藏与排除监听                                                                                                                                                     |
 | 可再生构建           | 仓库 `build/`，Git 忽略，工作区隐藏                                                                                                                                                                                |
 | 便携包与验证图／JSON | 当前 v1.0.0 ZIP 在 artifacts/releases，本轮验证在 artifacts/maintenance/v1.0.0；原 1.6.0 功能证据在 artifacts/maintenance/v1.6.0；历史证据保留，旧程序清理情况见验收记录；Git 忽略，文件树可见，搜索与监听单独排除 |
@@ -171,13 +175,23 @@ pnpm prototype:verify:game
 | 跨层验证临时数据     | 仓库 `tmp/desktop-verify-*`、`tmp/portable-extracted-*` 及命令入口验证目录，使用显式测试数据目录覆盖；不会读写用户默认存档                                                                                         |
 | 单元测试数据库样本   | 系统临时目录 `tablemax-*`，与正式数据分离                                                                                                                                                                          |
 
-仅支持开发／验证覆盖的环境变量：`TABLEMAX_DATA_DIR` 指定数据位置，`TABLEMAX_HOST` 指定监听地址，`TABLEMAX_PORT` 指定端口（0 仅用于验证临时端口）。`TABLEMAX_WEB_DEV_URL` 由开发脚本设置，普通便携启动不要设置。`ELECTRON_RUN_AS_NODE` 会改变 Electron 模式，项目启动和验证脚本主动移除该变量。不要将含秘密的本地配置纳入 Git。
+仅支持开发／验证覆盖的环境变量：`TABLEMAX_DATA_DIR` 指定数据位置，`TABLEMAX_HOST` 指定监听地址，`TABLEMAX_PORT` 指定端口（0 仅用于验证临时端口）。`TABLEMAX_WEB_DEV_URL` 只用于仓库中的已标记开发构建，便携包忽略它。原生壳清除继承的 WebView2 调试／缓存覆盖以及 Node 加载覆盖，正式程序不开放 CDP。不要将含秘密的本地配置纳入 Git。
 
 没有自动修改防火墙、路由器或系统服务。手机连接还受私人网络防火墙、访客网络隔离和选错网卡影响。当前完成实际本地服务和禁止外部请求的完整混合局；手机／电视按用户授权模拟，不声称实际系统浏览器或外接硬件已测。
 
-## 便携包体积与语言
+## 便携包体积与共享运行时
 
-便携打包通过 `electron-builder.yml` 的 `electronLanguages` 只保留 `zh-CN` 和 `en-US`，分别供简体中文与英文回退使用；不删除 Chromium 图形、媒体或其他运行时组件。该配置仅影响桌面运行时语言文件，游戏文字及本地美术／声音仍完整打包。每次变更后核对实际 ZIP 的 `locales/` 清单、体积及便携运行结果；未来多游戏包下载安排见 [任务计划](../tasks/README.md#多游戏按需安装未来计划未实现)。
+新增游戏前，Windows x64 ZIP 与实际解压后的全部程序文件均严格小于 100,000,000 字节，工程预算为 95,000,000 字节。`scripts/package.mjs` 只收集原生壳、x64 WebView2 DLL、官方 Node、许可证、服务、游戏模块、网页与完整本地资源；不分发 Electron、现代 .NET 自包含运行时、WebView2 Fixed Version、其他架构库、引用程序集、PDB 或 SDK 文档。
+
+打包计算 ZIP 和目录字节数，实际解压后比对每个文件的字节数及 SHA-256；任一达到上限立即失败，不发布标准 ZIP。清单在 `artifacts/releases/TableMax-<版本>-win-x64-manifest.json`，记录文件列表、包哈希、运行时与双体积。系统共享运行时、用户存档和缓存不计入交付体积，缓存始终写入用户数据目录。缺少共享 WebView2 时提示安装或取消，安装完成后的完整游戏仅用本地资源与局域网服务。
+
+2026-10-03 的 Electron 语言精简属于迁移前历史，原包与验收已保存在 `artifacts/maintenance/v1.0.0/before-webview2/`。共享运行时方案见 [决策 008](../decisions/008-small-native-desktop.md)，多游戏下载继续作为 [未来计划](../tasks/README.md#多游戏按需安装未来计划未实现)。
+
+### 原生桌面后台验证
+
+`scripts/desktop-test.mjs` 通过测试专用 `--foundation-test` 与私有 IPC 控制实际原生窗口，连接临时回环 CDP。窗口位于屏幕外，不激活、不进入任务栏，但保持合成器渲染；状态分别记录 `visible: false` 和 `rendered: true`，截图来自实际更新后的 WebView2。该方式不等同于 Electron offscreen，也不代表普通前台启动或实体电视实测。正式启动忽略测试 CDP 设置。
+
+电脑显示使用每窗口 WebView2 `ZoomFactor` 与 PerMonitorV2 DPI，显示设置文件格式保持。验证通过原生窗口尺寸、显式测试几何与 CDP 密度组合覆盖 720p—4K／100、125、150%，不修改系统显示配置；记录实际 viewport、DPI、倍率与 PNG 尺寸。手机模拟使用隔离 profile，只有对应本机服务来源可进入，全部桌面桥接禁用。旧显示矩阵和旧截图继续属于原运行时验收。
 
 ## 清理本地中间物
 
@@ -219,7 +233,7 @@ pnpm prototype:verify:game
 
 当前版本 1.0.0，默认游戏 pokemon-encounters，规则 tablemax-cn-s19-v1，状态版本 1，策略 pokemon-encounters/basic／1。已有旧验证模板存档的用户需要保留／备份原数据，在独立数据目录启动新版本；不自动覆盖不兼容存档。可在 PowerShell 设置 $env:TABLEMAX_DATA_DIR 为明确的新目录后运行程序，普通使用仍取默认 LOCALAPPDATA/TableMax。
 
-在根目录执行 pnpm check、pnpm build；游戏 UI 改动另执行 pnpm verify:game-ui，桌面／服务集成执行 pnpm verify:desktop。pnpm package:win 会先构建，输出 artifacts/phase-06/TableMax-1.0.0-win-x64.zip；pnpm verify:portable 解压该 ZIP 后实际运行，PATH 仅系统目录。它在当前电脑执行，不自动清理或修改默认玩家数据。
+当前在根目录执行 pnpm check、pnpm build；游戏 UI 改动另执行 pnpm verify:game-ui，桌面／服务集成执行 pnpm verify:desktop。pnpm package:win 会先构建，输出 artifacts/releases/TableMax-1.0.0-win-x64.zip；pnpm verify:portable 解压该 ZIP 后实际运行，PATH 仅系统目录。第五、六阶段历史包曾位于 artifacts/phase-06，以下 2026-10-01 结果仍属于当时工程与运行时，不覆盖为新原生壳验收。
 
 2026-10-01 全套类型／静态／格式检查和 48 项测试通过。新增首版规则／计分、20 固定种子 2–5 座位完整大局、D01–D13 精确回退／重演和 3 处实际服务 SIGKILL 恢复。真实能力 UI 7 组通过，包含 5 音频解码、保存反馈、动画 CSS／animationstart 观察、减少动态、360／390 布局、44px 和确认栏遮挡检查。完整桌面与最终便携走查为 2 真人模拟加 3 个实际 Worker bot，涵盖三胜结束、回退、正常关闭／同地址重启、后台冻结和断网导航后原身份恢复；观察到的网页资源全部本地，无页面错误。
 
@@ -332,4 +346,4 @@ UI 合法存档 fixture 的构造入口在 scripts/fixtures/prepare-pokemon.ts�
 
 专项覆盖预设／100–150% 界面、窗口变化、浮窗焦点、刷新／重启恢复、同源房主与公共屏独立缩放、手机无设置且不受影响、系统显示器配置保持；通过实际菜单暂停和恢复，另查两端四档尺寸与 4K 三档界面大小的提示、恢复按钮及 36 张牌全部首屏。`--force-device-scale-factor=1.5` 模拟原生显示器 DPI；Electron 离屏绘制的渲染密度仍为 1，另用 CDP 的 1.5 密度和零宽高参数模拟像素密度而不覆盖窗口视口。记录两种密度及实际 PNG 尺寸，不将它们写成实体 4K 显示器或电视实测。开发与最终便携证据分别进入 `artifacts/maintenance/display-resolution/development` 和 `portable`；临时隔离数据／ZIP 解压进入 `tmp/display-*`。便携模式解压当前标准 ZIP，以仅系统目录 PATH 运行，记录最终哈希；历史 1.4.0 验收不覆盖。
 
-电脑显示配置保存在数据目录的 `display-settings.json`，与 `room.sqlite` 分开；设置损坏时采用自动适配，写入失败在浮窗提示且不改变已保存偏好。`preload.cjs` 随正式构建与 ZIP 打包，手机网页不需要 preload。使用入口和行为见 [电脑显示规格](phase-02-platform-spec.md#电脑多分辨率显示150)。
+电脑显示配置保存在数据目录的 `display-settings.json`，与 `room.sqlite` 分开；设置损坏时采用自动适配，写入失败在浮窗提示且不改变已保存偏好。1.5.0 当时的 Electron 包含 `preload.cjs`；当前原生桥接嵌入 TableMax.exe，继续保持网页接口和设置格式。以上 1.5.0 的离屏／DPI 方法与证据属于历史，当前后台验证方法见 [原生桌面后台验证](#原生桌面后台验证)。使用入口和行为见 [电脑显示规格](phase-02-platform-spec.md#电脑多分辨率显示150)。

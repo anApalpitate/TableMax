@@ -3,7 +3,4 @@ packages:
   - packages/*
   - games/*
 onlyBuiltDependencies:
-  - electron
   - esbuild
-ignoredBuiltDependencies:
-  - electron-winstaller

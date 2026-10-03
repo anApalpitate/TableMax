@@ -10,3 +10,5 @@ test-results
 playwright-report
 pnpm-lock.yaml
 docs
+apps/desktop/native/bin
+apps/desktop/native/obj

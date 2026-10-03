@@ -12,7 +12,7 @@
 2. 按任务阅读需求的相关章节、所需主题页和对应源文件；资料未变且上下文仍可用时，用定向检索与增量 diff 补充，不重复全文读取或遍历生成物。
 3. 查目录归属读 [目录职责](docs/reference/project-structure.md)；更新文档读 [维护规则](docs/reference/maintenance.md)。
 4. 查重要选择读 [决策索引](docs/decisions/README.md)，查开发阶段与待办读 [任务索引](docs/tasks/README.md#后续开发接续入口)；第一至六阶段已完成，当前为首版维护与后续独立需求；交付和模拟验收见 [验收记录](docs/reference/acceptance.md)。游戏接入读 [扩展指南](docs/game-development/README.md)。仅追溯历史范围、采用关口和证据时读 [归档索引](docs/archive/README.md)。
-5. 运行与验证读 [开发环境](docs/reference/development.md)，修改源码边界读 [工程结构](docs/reference/architecture.md)；已确认技术方向见 [工程基础决策](docs/decisions/001-engineering-foundation.md)。
+5. 运行与验证读 [开发环境](docs/reference/development.md)，修改源码边界读 [工程结构](docs/reference/architecture.md)；已确认技术方向见 [工程基础决策](docs/decisions/001-engineering-foundation.md) 与 [小体积桌面决策](docs/decisions/008-small-native-desktop.md)。
 6. 首版规则、数据、权限、决策与验证查 [游戏规格](docs/games/pokemon-encounters/README.md)，跨游戏交互与恢复查 [通用规格](docs/reference/phase-02-platform-spec.md)，原文缺口查 [规则来源](docs/games/pokemon-encounters/sources.md#规则来源与核验缺口)；原型运行与检查查开发环境，原型走查不代表产品验收。
 7. 子 agent 的职责与派工边界见 [职责索引](docs/subagent/README.md)；图像生成与编辑交给 [imagegen 子 agent](docs/subagent/imagegen.md)，具体任务范围与可写路径由主 agent 明确。
 8. 电脑玩家要求、独立决策文件与验证见 [人机规格](docs/reference/bot-players.md)；面向对象的适度封装见 [工程结构](docs/reference/architecture.md#面向对象与适度封装)。游戏 bot 与本项目开发子 agent 是两类不同角色。
@@ -31,7 +31,8 @@
 - 开发采用面向对象的适度封装，职责内聚、组合优先、接口清晰；规则／计分可保留纯函数，存档保留普通数据，避免深层继承、巨型控制器和无用途抽象。
 - 电脑管理员可指定一位真人手机房主；手机房主仅处理开局、下一小局、再玩一局、暂停／恢复。管理授权与游戏 checkpoint 分离，回退不能恢复旧授权。换手机／绑定码功能已删除，保留同设备身份恢复与入座确认重试。
 - 新房间先选择游戏，按注册目录加载对应规则、策略、UI 和资源；大厅或结束后允许兼容的游戏切换，保留身份与座位。盒子只加载目录及小封面，平台会话不得直接依赖某款游戏类型或动效。
-- 前端采用 React／TypeScript；桌面通过独立服务进程访问平台。盒子与游戏为独立页面，电脑和手机游戏主体尽量占满窗口；主机／公共／手机分别有盒子入口与 `/game` 子路由，默认唯一牌桌；电脑主机仅管理、不参赛，public 只读。调试范围见 [界面决策](docs/decisions/002-host-public-screen-and-debug.md)。游戏规则独立于 UI、通信、数据库和 Electron，每款游戏集中在 `games/<id>/`。
+- 前端采用 React／TypeScript；桌面通过独立服务进程访问平台。盒子与游戏为独立页面，电脑和手机游戏主体尽量占满窗口；主机／公共／手机分别有盒子入口与 `/game` 子路由，默认唯一牌桌；电脑主机仅管理、不参赛，public 只读。调试范围见 [界面决策](docs/decisions/002-host-public-screen-and-debug.md)。游戏规则独立于 UI、通信、数据库和桌面运行时，每款游戏集中在 `games/<id>/`。
+- Windows x64 桌面采用 `apps/desktop/native/` 的 C# WinForms／.NET Framework 4.8、共享 WebView2 与包内 Node 22.14.0；开发 SDK 由 `global.json` 固定。服务凭证仅走父子私有管道，桥接核验本源、顶层和角色，异常退出通过 Job Object 清理服务。便携 ZIP 与实际解压程序都须严格小于 100,000,000 字节，以 95 MB 为工程预算；运行时前提、计量边界和交付验证见 [小体积桌面决策](docs/decisions/008-small-native-desktop.md)。
 - 从玩家视角精简操作：取牌等单步意图直接操作对应组件；换牌、交换等位置选择使用具体动作确认。管理、帮助和记录按需展开，动效只表达已保存结果。会话、页面、通用控件和游戏场景分别维护，长期行为见 [通用规格](docs/reference/phase-02-platform-spec.md#盒子与独立牌桌)。
 - 玩法教学在线下完成，不主动新增游戏内教程或规则帮助；连接排障、身份恢复和房主管理提示按实际操作保留。
 - 普通启动使用实际游玩节奏；测试模式入口只给房主隐蔽快捷键，快跑与省动效不能绕过授权、规则或保存。辅助信息／管理使用浮窗，最新保存动作明确行动者、卡牌／能力和公开目标；首版当前最多六人，依据与兼容见游戏规格。

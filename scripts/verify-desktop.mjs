@@ -1,4 +1,4 @@
-import { _electron } from 'playwright';
+import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdir, mkdtemp, writeFile, readFile } from 'node:fs/promises';
@@ -7,12 +7,11 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createHash } from 'node:crypto';
 
-const require = createRequire(import.meta.url);
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
 const portable = process.argv.includes('--portable');
-let executablePath = portable ? '' : require('electron');
+let executablePath = portable ? '' : desktopExecutable;
 const output = resolve('artifacts/phase-03-04/verification');
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
@@ -55,14 +54,11 @@ const env = {
   TABLEMAX_PORT: '0',
   TABLEMAX_HOST: '127.0.0.1',
 };
-delete env.ELECTRON_RUN_AS_NODE;
 delete env.TABLEMAX_WEB_DEV_URL;
 delete env.NODE_PATH;
 if (portable)
   env.PATH = `${process.env.SystemRoot}\\system32;${process.env.SystemRoot}`;
-const args = portable
-  ? ['--foundation-test']
-  : [resolve('build/desktop'), '--foundation-test'];
+const args = ['--foundation-test'];
 const evidence = {
   portable,
   executablePath,
@@ -104,7 +100,7 @@ async function capture(desktop, page, file, size) {
 }
 
 for (let run = 0; run < 2; run++) {
-  const desktop = await _electron.launch({
+  const desktop = await launchDesktop({
     executablePath,
     args,
     env,
@@ -124,9 +120,10 @@ for (let run = 0; run < 2; run++) {
     ).json();
     assert.equal(health.starts, run + 1, 'SQLite must survive desktop restart');
     assert.equal(health.database, 'ok');
-    assert.ok(
-      health.runtime.electron,
-      'Service must use bundled Electron runtime',
+    assert.equal(
+      health.runtime.node,
+      '22.14.0',
+      'Service must use the bundled official Node runtime',
     );
     const runtime = await desktop.evaluate(({ app }) => ({
       packaged: app.isPackaged,
@@ -188,7 +185,7 @@ for (let run = 0; run < 2; run++) {
         { width: 1920, height: 1080 },
       );
       await publicPage.close();
-      // Electron's prevented navigation can leave Playwright waiting on that
+      // WebView2's prevented navigation can leave Playwright waiting on that
       // navigation; reload the host route before continuing real interactions.
       await page.goto(`${origin}/host`);
       await page.getByRole('heading', { name: '房主管理' }).waitFor();
@@ -320,7 +317,7 @@ for (let run = 0; run < 2; run++) {
       runtime: {
         packaged: runtime.packaged,
         node: runtime.versions.node,
-        electron: runtime.versions.electron,
+        webview2: runtime.versions.webview2,
       },
       servicePid: utility.pid,
     });

@@ -14,11 +14,23 @@ export default tseslint.config(
       '.cache/**',
       '.pnpm-store/**',
       'node_modules/**',
+      'apps/desktop/native/bin/**',
+      'apps/desktop/native/obj/**',
     ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   { languageOptions: { globals: { ...globals.node, ...globals.browser } } },
+  {
+    files: ['apps/desktop/native/Bridge.js'],
+    languageOptions: {
+      globals: {
+        __WINDOW_ID__: 'readonly',
+        __MANAGED__: 'readonly',
+        __TESTING__: 'readonly',
+      },
+    },
+  },
   {
     files: ['apps/web/src/**/*.{ts,tsx}', 'games/**/ui/**/*.{ts,tsx}'],
     plugins: { 'react-hooks': hooks, 'react-refresh': refresh },

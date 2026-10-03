@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { _electron } from 'playwright';
+import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
@@ -29,7 +29,7 @@ await build({
   logLevel: 'silent',
 });
 const { bot } = require(join(work, 'driver.cjs'));
-let executablePath = require('electron'),
+let executablePath = desktopExecutable,
   archiveSha256;
 if (portable) {
   const project = JSON.parse(await readFile('package.json', 'utf8'));
@@ -61,15 +61,11 @@ if (portable) {
     .update(await readFile(archive))
     .digest('hex');
 }
-const args = [
-  ...(portable ? [] : [resolve('build/desktop')]),
-  '--foundation-test',
-  '--tablemax-play-mode',
-];
+const args = ['--foundation-test', '--tablemax-play-mode'];
 const evidence = {
   verifiedAt: new Date().toISOString(),
   scope:
-    'Actual hidden Windows Electron/service with independent Chromium phone partitions; explicit production play path and real strategy Workers. No physical phone, Safari, Wi-Fi or listening claim.',
+    'Actual hidden Windows WebView2/service with independent Chromium phone partitions; explicit production play path and real strategy Workers. No physical phone, Safari, Wi-Fi or listening claim.',
   portable,
   archiveSha256,
   checks: [],
@@ -246,13 +242,12 @@ async function start(dataDir) {
     TABLEMAX_HOST: '0.0.0.0',
     TABLEMAX_PORT: '0',
   };
-  delete env.ELECTRON_RUN_AS_NODE;
   delete env.NODE_PATH;
   delete env.TABLEMAX_WEB_DEV_URL;
   delete env.TABLEMAX_PLAY_MODE;
   if (portable)
     env.PATH = `${process.env.SystemRoot}\\system32;${process.env.SystemRoot}`;
-  desktop = await _electron.launch({
+  desktop = await launchDesktop({
     executablePath,
     args,
     env,

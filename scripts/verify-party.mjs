@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
-import { _electron } from 'playwright';
 import { createRequire } from 'node:module';
+import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createServer } from 'node:net';
 import { createHash } from 'node:crypto';
 import { verificationOutput } from './verification-output.mjs';
-const require = createRequire(import.meta.url);
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
@@ -23,9 +23,8 @@ const env = {
   TABLEMAX_HOST: '0.0.0.0',
   TABLEMAX_PORT: '0',
 };
-delete env.ELECTRON_RUN_AS_NODE;
 delete env.TABLEMAX_WEB_DEV_URL;
-let executablePath = require('electron');
+let executablePath = desktopExecutable;
 let archiveSha256;
 if (portable) {
   const project = JSON.parse(await readFile('package.json', 'utf8'));
@@ -58,13 +57,11 @@ if (portable) {
     .digest('hex');
   env.PATH = `${process.env.SystemRoot}\\system32;${process.env.SystemRoot}`;
 }
-const args = portable
-  ? ['--foundation-test', '--tablemax-test-mode']
-  : [resolve('build/desktop'), '--foundation-test', '--tablemax-test-mode'];
+const args = ['--foundation-test', '--tablemax-test-mode'];
 const evidence = {
   verifiedAt: new Date().toISOString(),
   scope:
-    'Actual Windows Electron/service, local adapter IPv4 access, hidden Chromium touch viewports and network/lifecycle simulation; no physical Wi-Fi, Safari or phone claim',
+    'Actual Windows WebView2/service, local adapter IPv4 access, hidden Chromium touch viewports and network/lifecycle simulation; no physical Wi-Fi, Safari or phone claim',
   checks: [],
   screenshots: [],
   pageErrors: [],
@@ -72,6 +69,16 @@ const evidence = {
   portable,
   archiveSha256,
 };
+process.on('uncaughtExceptionMonitor', (error) => {
+  writeFileSync(
+    join(output, 'results.json'),
+    JSON.stringify(
+      { ...evidence, result: 'failed', error: error.stack },
+      null,
+      2,
+    ) + '\n',
+  );
+});
 const wait = (ms) => new Promise((done) => setTimeout(done, ms));
 async function view(origin, token) {
   const result = await (
@@ -187,7 +194,7 @@ async function loseReply(page, endpoint) {
 }
 let desktop, socket, origin, lanOrigin, oldToken, seatId, beforeRestart;
 try {
-  desktop = await _electron.launch({
+  desktop = await launchDesktop({
     executablePath,
     args,
     env,
@@ -360,7 +367,7 @@ try {
   socket = null;
   await desktop.close();
   desktop = null;
-  desktop = await _electron.launch({
+  desktop = await launchDesktop({
     executablePath,
     args,
     env,
