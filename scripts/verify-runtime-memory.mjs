@@ -178,7 +178,11 @@ async function measureDesktop() {
     host.setDefaultTimeout(15000);
     host.on('pageerror', (error) => errors.push(error.message));
     await host.waitForURL('**/host');
-    await host.getByRole('button', { name: '选择游戏', exact: true }).waitFor();
+    await host
+      .locator('.game-library__item')
+      .filter({ hasText: '宝可梦奇遇' })
+      .getByRole('button', { name: '选择游戏', exact: true })
+      .waitFor();
     const origin = new URL(host.url()).origin;
     const token = await host.evaluate(() =>
       sessionStorage.getItem('tablemax-host'),
@@ -232,7 +236,11 @@ async function measureDesktop() {
         });
       assert.equal(reply.ok, true, reply.reason);
     };
-    await host.getByRole('button', { name: '选择游戏', exact: true }).click();
+    await host
+      .locator('.game-library__item')
+      .filter({ hasText: '宝可梦奇遇' })
+      .getByRole('button', { name: '选择游戏', exact: true })
+      .click();
     await host.getByRole('button', { name: '开始游戏', exact: true }).waitFor();
     const players = [];
     for (let index = 0; index < 6; index++) {

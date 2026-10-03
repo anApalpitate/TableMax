@@ -257,9 +257,17 @@ async function start(dataDir) {
   await host.waitForURL('**/host');
   await host.getByText('本地连接已就绪', { exact: true }).waitFor();
   if (
-    await host.getByRole('button', { name: '选择游戏', exact: true }).count()
+    await host
+      .locator('.game-library__item')
+      .filter({ hasText: '宝可梦奇遇' })
+      .getByRole('button', { name: '选择游戏', exact: true })
+      .count()
   ) {
-    await host.getByRole('button', { name: '选择游戏', exact: true }).click();
+    await host
+      .locator('.game-library__item')
+      .filter({ hasText: '宝可梦奇遇' })
+      .getByRole('button', { name: '选择游戏', exact: true })
+      .click();
     await host.getByRole('button', { name: '切换游戏', exact: true }).waitFor();
   }
   await ready(host);

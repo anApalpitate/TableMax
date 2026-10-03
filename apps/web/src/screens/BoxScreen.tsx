@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { BotDifficulty } from '@tablemax/protocol';
-import cover from '../../../../assets/games/pokemon-encounters/cover-v1.webp';
+import { gameCover } from '../assets/game-covers';
 import { ScreenLink } from '../components/ScreenLink';
 import { RoomManagement } from '../components/RoomManagement';
 import { InviteFriends } from '../components/InviteFriends';
@@ -46,6 +46,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
     connected,
   } = session;
   const game = view?.game;
+  const cover = gameCover(game?.id);
   const owner = view?.seats.find((seat) => seat.id === view.ownerSeatId);
   const lobby = view?.status === 'lobby';
   const humans =
@@ -87,9 +88,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
         </div>
       </header>
       <section className="hero">
-        {game?.id === 'pokemon-encounters' && (
-          <img src={cover} alt={`${game.name}游戏封面`} />
-        )}
+        {cover && game && <img src={cover} alt={`${game.name}游戏封面`} />}
         <div>
           <h1>{game?.name ?? '选个游戏，朋友们上桌'}</h1>
           <p>
@@ -288,7 +287,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
               </div>
               <p className="lobby-status-text">
                 {view.seats.length < game.min
-                  ? '至少两位玩家或人机入座即可开局。'
+                  ? `至少 ${game?.min ?? 2} 位玩家或人机入座即可开局。`
                   : everyoneReady
                     ? '大家已准备，开始吧。'
                     : '等朋友们在各自手机上准备好。'}
@@ -341,9 +340,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
       {panel === 'intro' && (
         <OverlayPanel title="游戏介绍" close={() => setPanel(null)}>
           <div className="game-introduction">
-            {game?.id === 'pokemon-encounters' && (
-              <img src={cover} alt={`${game.name}游戏封面`} />
-            )}
+            {cover && game && <img src={cover} alt={`${game.name}游戏封面`} />}
             <div>
               <h3>{game?.name ?? '请先选择游戏'}</h3>
               <p>

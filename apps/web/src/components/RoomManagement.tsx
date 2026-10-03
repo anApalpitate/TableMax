@@ -6,7 +6,13 @@ import { ConfirmationDialog } from './ConfirmationDialog';
 import { SessionFeedback } from './SessionFeedback';
 import { OwnerControl } from './OwnerControl';
 
-export function RoomManagement({ session }: { session: RoomSession }) {
+export function RoomManagement({
+  session,
+  lifecycleLabel = '开始下一局',
+}: {
+  session: RoomSession;
+  lifecycleLabel?: string;
+}) {
   const { view, locked, command, isHost, canControl } = session;
   const [confirmation, setConfirmation] = useState<'end' | 'clear' | null>(
     null,
@@ -56,7 +62,7 @@ export function RoomManagement({ session }: { session: RoomSession }) {
               })
             }
           >
-            开始下一局
+            {lifecycleLabel}
           </button>
         ))}
       {isHost && view.status === 'lobby' && (

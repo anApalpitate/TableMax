@@ -12,14 +12,17 @@ import {
 import { createGameRegistry } from './game-registry';
 import { createService } from './service';
 
-it('exposes only the production game while allowing a second isolated test registration', async () => {
+it('exposes independent production games and keeps the template internal', async () => {
   expect(
     createGameRegistry()
       .catalog()
       .map((entry) => entry.id),
-  ).toEqual(['pokemon-encounters']);
+  ).toEqual(['pokemon-encounters', 'modern-art']);
   const internal = createGameRegistry(true);
-  expect(internal.catalog()).toHaveLength(2);
+  expect(internal.catalog()).toHaveLength(3);
+  expect((await internal.load('modern-art')).rules.manifest.id).toBe(
+    'modern-art',
+  );
   expect((await internal.load('template')).rules.manifest.id).toBe('template');
 });
 
@@ -70,7 +73,7 @@ it('persists lazy selection and accepts six real sockets submitting from the sam
     const host = await connect(service.hostToken);
     const empty = RoomViewSchema.parse(service.room.view(service.hostToken));
     expect(empty.game).toBeNull();
-    expect(empty.catalog).toHaveLength(1);
+    expect(empty.catalog).toHaveLength(2);
     expect(
       (
         await send(host, empty, {

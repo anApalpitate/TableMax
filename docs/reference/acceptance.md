@@ -1,6 +1,6 @@
 # 首版交付与验收
 
-当前交付为 [v1.0.0 便携包语言精简](#100便携包语言精简2026-10-03)，保留下列历次真实验收记录。
+当前交付为 [v1.0.0 现代艺术独立接入](#100现代艺术独立接入2026-10-03)，保留下列历次真实验收记录。
 
 2026-10-01，交付版本 1.0.0；游戏采用 `tablemax-cn-s19-v1`，状态版本 1，基础策略 `pokemon-encounters/basic`／`1`。以下记录真实工程执行结果，规则原文认证状态仍见 [来源页](../games/pokemon-encounters/sources.md)。
 
@@ -188,7 +188,6 @@
 
 [收尾统一维护](../../artifacts/maintenance/v1.0.0/maintenance.json) 发现同仓库主工作区 `E:\Proj\TableMax`，逻辑大小 3,048,787,207 字节（约 2.839 GiB），低于 5 GiB，删除 0 字节；跳过 1,330 个链接，不重复统计 worktree。未终止用户进程或放宽清理保护。
 
-
 ## 1.0.0：同版本视觉优化（2026-10-03）
 
 按用户要求继续优化，package 版本保持 1.0.0，协议／存档／规则版本保持。本次不推出新版本号；只有用户明确要求时才调整版本的约定写入 Agent 入口和维护规则。当前交互正文见 [游戏交互](../games/pokemon-encounters/interaction.md#160行动面板与声画反馈)。
@@ -237,18 +236,18 @@
 - 工程 typecheck、ESLint、Prettier 和 23 文件／140 项测试通过；测试阶段实际 38.35 秒。原生最新构建 0 警告／0 错误，锁定 SDK 9.0.102、WebView2 SDK 1.0.4258.31。实际共享浏览器为 154.0.4258.48，服务为 Node 22.14.0／SQLite 3.47.2。
 - [真实旧 SQLite 兼容](../../artifacts/maintenance/v1.0.0/webview2/server-migration.json)：隔离复制 Electron Node 24.21.0／SQLite 3.53.4 写出的六席对局，读取相同实例、座位身份与快照，修订 7→8 恢复、9 继续提交、10 再次启动；原文件哈希未变。没有迁移存档格式或删除旧数据。
 - [原生安全与退出](../../artifacts/maintenance/v1.0.0/webview2/safety/results.json)：10 项真实关口通过，包含私有凭证、SPA 同文档授权／手机路径拒绝、子 frame／非法参数拒绝、重复启动、正常退出、服务崩溃、父进程崩溃及 Job Object 清理、生产 CDP 关闭和继承环境覆盖清除。缺运行时采用检测故障模拟，确认不启动服务且退出；本机已有运行时，未卸载系统依赖，安装／取消提示分支另经源码复核。
-- [开发完整整局](../../artifacts/maintenance/v1.0.0/development/results.json)：六席三胜、全部 14 阶段、回退、两次启动恢复及原班续局通过。[游戏 UI](../../artifacts/maintenance/v1.0.0/ui/results.json) 15 场、[卡面](../../artifacts/maintenance/v1.0.0/cards/results.json) 13 布局／16 类、[声画 fixture](../../artifacts/maintenance/v1.0.0/effects/results.json) 7 项通过。fixture 不替代自然对局证明。
-- [呈现与声音](../../artifacts/maintenance/v1.0.0/presentation/results.json)、[聚会保障](../../artifacts/maintenance/v1.0.0/party/results.json)、[并发与房主](../../artifacts/maintenance/v1.0.0/experience/results.json) 通过，包含自然六手机小局、三档实际 Worker 节奏、保存动作声音／动画、手机静音、公共屏优先与关闭归还、事件去重、静音偏好、端口冲突细因、独立窗口与防休眠请求。
+- [开发完整整局](../../artifacts/maintenance/v1.0.0/before-modern-art/development/results.json)：六席三胜、全部 14 阶段、回退、两次启动恢复及原班续局通过。[游戏 UI](../../artifacts/maintenance/v1.0.0/before-modern-art/ui/results.json) 15 场、[卡面](../../artifacts/maintenance/v1.0.0/cards/results.json) 13 布局／16 类、[声画 fixture](../../artifacts/maintenance/v1.0.0/effects/results.json) 7 项通过。fixture 不替代自然对局证明。
+- [呈现与声音](../../artifacts/maintenance/v1.0.0/presentation/results.json)、[聚会保障](../../artifacts/maintenance/v1.0.0/party/results.json)、[并发与房主](../../artifacts/maintenance/v1.0.0/before-modern-art/experience/results.json) 通过，包含自然六手机小局、三档实际 Worker 节奏、保存动作声音／动画、手机静音、公共屏优先与关闭归还、事件去重、静音偏好、端口冲突细因、独立窗口与防休眠请求。
 
 本轮验证仍在当前 Windows 11 x64 上完成。原生窗口位于屏幕外、不激活但实际合成渲染，测试 CDP 只监听临时回环端口；手机为隔离 Chromium profile 的触控／UA／网络模拟。外部网页请求被拒绝后的完整游戏证明离线资源链路，不声称实体电视、真实 Safari、另一台无开发环境电脑或现场听音实测。原包与对应证据保存在 `before-webview2/`，新包按实际哈希重新验收。
 
-最终交付已完成重新验收：[Windows x64 ZIP](../../artifacts/releases/TableMax-1.0.0-win-x64.zip) 为 **35,442,208 字节**，实际解压全部 **61 个文件／90,979,966 字节**；两项均严格低于 100,000,000 字节，解压也低于 95,000,000 字节预算，AC-24 通过。ZIP SHA-256 为 `3f7ed86a0b79d3f951b5992dbed614c3d4003f9db9bb756ac2a940cc346eacdf`。[逐文件交付清单](../../artifacts/releases/TableMax-1.0.0-win-x64-manifest.json) 包含实际字节数、每文件 SHA-256、官方 Node 下载校验及锁定 SDK；实际解压逐项一致，没有 Electron、PDB、其他架构 DLL、引用程序集、SDK 文档或开发 marker。Node.exe 为 83,344,536 字节，与官方 Windows x64 ZIP 原件完全一致。
+当轮交付已完成重新验收，程序、源码及将被后续验收更新的证据保留在 `before-modern-art/`：[Windows x64 ZIP](../../artifacts/maintenance/v1.0.0/before-modern-art/TableMax-1.0.0-win-x64.zip) 为 **35,442,208 字节**，实际解压全部 **61 个文件／90,979,966 字节**；两项均严格低于 100,000,000 字节，解压也低于 95,000,000 字节预算，AC-24 通过。ZIP SHA-256 为 `3f7ed86a0b79d3f951b5992dbed614c3d4003f9db9bb756ac2a940cc346eacdf`。[逐文件交付清单](../../artifacts/maintenance/v1.0.0/before-modern-art/TableMax-1.0.0-win-x64-manifest.json) 包含实际字节数、每文件 SHA-256、官方 Node 下载校验及锁定 SDK；实际解压逐项一致，没有 Electron、PDB、其他架构 DLL、引用程序集、SDK 文档或开发 marker。Node.exe 为 83,344,536 字节，与官方 Windows x64 ZIP 原件完全一致。
 
 以下记录全部使用该最终 ZIP 的新解压目录、隔离数据及仅系统 PATH，记录哈希与交付文件一致：
 
-- [完整便携整局](../../artifacts/maintenance/v1.0.0/portable/results.json)：六席三胜、14 阶段、回退、两次启动恢复、冻结／断网导航身份恢复和原班续局通过，网页错误和外部请求为空。
+- [完整便携整局](../../artifacts/maintenance/v1.0.0/before-modern-art/portable/results.json)：六席三胜、14 阶段、回退、两次启动恢复、冻结／断网导航身份恢复和原班续局通过，网页错误和外部请求为空。
 - [便携显示矩阵](../../artifacts/maintenance/v1.0.0/display/portable/results.json)：35 组布局、47 次浮窗检查、44 张真实截图，覆盖两端 36 牌、720p—4K、100／125／150%、暂停恢复、手机隔离、独立缩放、设置持久化与 DPI 模拟；实际原生尺寸等于请求尺寸，不以标签推定 4K。
-- [并发／房主／声音](../../artifacts/maintenance/v1.0.0/experience-portable/results.json)、[聚会保障](../../artifacts/maintenance/v1.0.0/party-portable/results.json)、[六席／三档](../../artifacts/maintenance/v1.0.0/room-portable/results.json) 和 [自然呈现／声音](../../artifacts/maintenance/v1.0.0/presentation-portable/results.json) 全部通过；对应实际命令耗时 21.7、26.7、39.088、49.327 秒，显示为 117.4 秒，并行耗时不相加。
+- [并发／房主／声音](../../artifacts/maintenance/v1.0.0/before-modern-art/experience-portable/results.json)、[聚会保障](../../artifacts/maintenance/v1.0.0/party-portable/results.json)、[六席／三档](../../artifacts/maintenance/v1.0.0/room-portable/results.json) 和 [自然呈现／声音](../../artifacts/maintenance/v1.0.0/presentation-portable/results.json) 全部通过；对应实际命令耗时 21.7、26.7、39.088、49.327 秒，显示为 117.4 秒，并行耗时不相加。
 - [正式包原生安全](../../artifacts/maintenance/v1.0.0/webview2/safety-portable/results.json)：10 项通过。正式包忽略开发 URL、测试 CDP 环境和继承 Node／WebView2 覆盖，缺运行时检测、桥接权限及父子进程故障行为与开发验证一致。
 
 共享运行时、用户数据与浏览器缓存位于系统／用户数据目录，未算入上述交付体积；这些前提没有隐藏为包内组件。源码 ZIP 和总交付清单按本次最终提交导出，保留用户已有 README 工作区改动、不混入提交，默认不推送。
@@ -256,3 +255,26 @@
 [20 次真实游戏导航](../../artifacts/maintenance/v1.0.0/memory/results.json) 的桌面专项通过，DOM／监听器增长为 0；测量只证明此次导航回归，不比较不同运行时的绝对工作集，也不宣称长期无泄漏。收尾清理工具 29 项、统一维护 32 项隔离安全检查通过；实际 [安全维护](../../artifacts/maintenance/v1.0.0/webview2/maintenance.json) 被仍引用工作区的两个 Codex 工具 worker 触发进程保护，保留全部文件、删除 0 字节。没有终止这些进程、放宽清理范围或绕过保护，未取得此次完整工作区水位测量。
 
 返修与耗时：先通过小于 100 MB 的真实启动目录、旧存档与管道，再迁移完整专项。期间修复 WinExe 重定向标准流、构造期窗口上下文、初始化期间服务退出、退出前 stdout 排空、SPA 桥接文档来源和原生 4K 窗口尺寸钳制；CDP 关闭窗口改为处置真实 Form。失败证据在 `webview2/first-regression-failures/`，不作通过结论。首轮 game-ui 234.758 秒、cards 18.959 秒、effects 16.838 秒、presentation 失败 34.978 秒／修复重跑 38.313 秒；命令并行，不能相加为总耗时。证据日志见 `webview2/regression-*.log`。清理隔离测试曾被正在运行的验收进程保护挡住，收尾在全部进程结束后再执行。
+
+## 1.0.0：现代艺术独立接入（2026-10-03）
+
+按用户要求，等待“空间优化”及其追加整理完成于 `26db138` 后开工；版本继续保持 1.0.0。正式盒子现提供宝可梦和现代艺术，两款游戏分别维护规则、状态校验、公开投影、三档本地 bot、UI、样式与本地资源；平台继续负责身份、授权、统一动作／保存／回退及恢复。共享反馈契约不再枚举宝可梦能力，盒子只加载目录和小封面，进入 `/game` 才加载对应客户端。来源与自主采用项见 [现代艺术规格](../games/modern-art/README.md)及[来源](../games/modern-art/sources.md)。
+
+已通过：
+
+- `pnpm check`：类型、ESLint、项目格式及 **26 文件／160 项测试**，最终测试耗时 **23.08 秒**。现代艺术的 15 个规则风险用例、4 个策略用例包含 3／4／5 人 × 三档 × 三种固定种子的 **27 场完整对局**，逐动作核验合法选择、输入不变、秘密投影和 JSON 恢复。
+- [真实 Socket.IO／SQLite 测试](../../apps/server/src/modern-art.test.ts)：暗标单人提交后的秘密保护、同一快照独立提交、重复确认、暂停重启、回退和手机房主授权分离通过。非法恢复的拍卖进度、资金发行和第五张归属，以及绝悟整体排名估值问题均经独立复现、修复及回归。
+- [实际产品组件 fixture](../../artifacts/maintenance/v1.0.0/modern-art/ui-fixture/results.json)：21 个操作／布局场景、[12 个短屏场景](../../artifacts/maintenance/v1.0.0/modern-art/ui-fixture/short-results.json)、[56 个面板场景](../../artifacts/maintenance/v1.0.0/modern-art/ui-fixture/panel-results.json)通过。包含 854×480／854×600 CSS 短桌面、720p—4K、320×568 手机、五类拍卖、双拍与结算；宝可梦 Portal 浮窗的 8 张公开牌图片及 16 张暗牌权限另验。这些 fixture 与自然对局分开记录。
+- [最终 ZIP 的现代艺术整局](../../artifacts/maintenance/v1.0.0/modern-art/portable/results.json)：三个独立真人手机身份与两个实际 Worker bot 完成 **五席四轮、200 次手机动作尝试**；明确断言五种拍卖和八类真实手机控件的具体保存记录。五套本地图集解码、公共手牌／现金／暗标秘密保护、手机房主下一轮、回退、同端口 SQLite 重启、原手机 profile 凭证恢复及同一 SPA 文档中的宝可梦／现代艺术切换通过；两款 CSS 实际共存，身份五席保持。28 张真实截图，页面错误与外部请求为 0；该成功执行 **46.579 秒**。
+- [最终 ZIP 的共享交互回归](../../artifacts/maintenance/v1.0.0/experience-portable/results.json)：宝可梦盒子懒加载、手机房主、并发及公共屏声音归属通过。[完整宝可梦便携整局](../../artifacts/maintenance/v1.0.0/portable/results.json)六席三胜、全部 14 阶段、回退／重启／原班续局通过，页面错误与外部请求为 0；同构建的[能力 UI](../../artifacts/maintenance/v1.0.0/ui/results.json)15 组通过。旧包的显示／原生安全记录保持原执行范围。
+- [美术导入核验](../../artifacts/maintenance/v1.0.0/modern-art/imagegen/integration-verification.json)：70 卡映射、五套图集、封面及构建哈希均通过；六份 WebP 共 **1,497,918 字节**，原始 PNG、提示词、出版实物参考与原创演绎说明保留。纹理生成约 **259.65 秒**，不含检索、压缩及其他工作。卡面不冒充真实画家原作，拍卖子类型分布仍明确标为项目采用表。
+
+同版本 [Windows x64 ZIP](../../artifacts/releases/TableMax-1.0.0-win-x64.zip)为 **36,966,642 字节**，实际解压 **72 文件／92,579,416 字节**；两项严格低于 100,000,000 字节，解压也满足 95 MB 工程预算。SHA-256 为 `7edd0ec38b5710b27fec6590cb139690524f1a59c263631c25013fb7e2438f6b`；[逐文件清单](../../artifacts/releases/TableMax-1.0.0-win-x64-manifest.json)与真实解压逐项一致，便携运行仅系统 PATH。前一轮程序、源码、清单及被更新的验证目录保存在 `before-modern-art/`，历次记录保持其原哈希。源码及总交付清单按最终提交另行导出，用户已有 README 改动保持原字节且不混入提交。
+
+范围仍为当前 Windows 11／共享 WebView2／原生后台合成和 Chromium 手机触控／尺寸模拟，不声称实体电视、真实手机或 Safari 实测。Windows DPI 与原生自动缩放被纳入实际几何记录；图片为真实更新后的帧。独立单图审查覆盖冻结的[公共屏](../../artifacts/maintenance/v1.0.0/modern-art/review/final-public.png)和[手机](../../artifacts/maintenance/v1.0.0/modern-art/review/final-phone.png)：手机未发现必须修复项；公共收藏末卡的边缘提示经[裁定](../../artifacts/maintenance/v1.0.0/modern-art/review/adjudication.json)保留为有总幅数与显式滚动条的横向收藏布局。静态[解耦及文档审查](../../artifacts/maintenance/v1.0.0/modern-art/review/static-review.json)另记录模块与链接证据。
+
+返修集中在高风险恢复、绝悟估值、Windows 150% DPI 短窗口、游戏 CSS specificity／Portal 范围及盒子续局样式。验收脚本先修正公共窗口路由与自动缩放测量，再按实际“游戏切换返回大厅”行为启动下一游戏；等待动态客户端与公共屏首次渲染，避免导航时抢读上下文。最终源码稳定后仅生成一次最终包，脚本和记录修正沿用该同一 ZIP；没有因仅文档变化重复打包。
+
+收尾发现统一维护在大量依赖目录中反复调用 PowerShell provider 计量过慢；仅中断本任务自行启动的维护进程并保留[首次记录](../../artifacts/maintenance/v1.0.0/modern-art/maintenance-first-attempt.json)及[中断说明](../../artifacts/maintenance/v1.0.0/modern-art/maintenance-interruption.json)。统计函数改为 .NET 流式遍历，每次删除后仍完整重测；[独立复核](../../artifacts/maintenance/v1.0.0/modern-art/review/cleanup-measure-review.json)发现的目录属性缓存边界经出栈刷新修正，删除范围和既有保护代码保持原字节。[29 项手动清理检查](../../artifacts/maintenance/v1.0.0/modern-art/cleanup-tool-tests.json)及[34 项统一维护检查](../../artifacts/maintenance/v1.0.0/modern-art/maintenance-tool-tests.json)通过，新增隐藏／系统文件计量与保留用例。[真实仓库对比](../../artifacts/maintenance/v1.0.0/modern-art/cleanup-measure-comparison.json)的字节、文件、链接和嵌套仓库四字段完全相同：106,546 文件／19,968,400,712 字节／跳过 1,323 链接；Windows PowerShell 的统计耗时由 22.991 秒降至 3.885 秒（后者含首次编译）。这次仅工具和记录变化，未重复游戏构建或无关测试。
+
+[续跑维护](../../artifacts/maintenance/v1.0.0/modern-art/maintenance.json)按重新核验的 30 分钟边界处理全部 55 个合格候选，删除 10,372,585,307 字节（约 9.66 GiB）；合格候选耗尽，工作区仍约 8.94 GiB，超过 5 GiB 的剩余受保护内容仅报告。当前 ZIP 哈希未变，正式存档、原始美术、历史证据、依赖与工具缓存保持，未扩大范围或终止其他进程；[维护摘要](../../artifacts/maintenance/v1.0.0/modern-art/maintenance-summary.json)同时保留首次测量和中断接续说明。

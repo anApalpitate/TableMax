@@ -15,7 +15,7 @@ import {
 } from '../../../../games/pokemon-encounters/ui/motion';
 import type { GameClient } from './registry';
 import { useAudioOutput } from '../session/useAudioOutput';
-import '../screens/game-screen.css';
+import '../../../../games/pokemon-encounters/ui/screen.css';
 import '../../../../games/pokemon-encounters/ui/style.css';
 import { avatarFor } from '../assets/avatars';
 import { ScreenLink } from '../components/ScreenLink';
@@ -67,7 +67,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
   return (
     <SavedMotion.Provider value={view?.playMode === 'test' ? [] : motion}>
       <main
-        className={`game-screen ${role} ${view?.playMode !== 'test' && feedback?.events.at(-1)?.kind === 'round-result' && motion.length ? 'saved-result' : ''}`}
+        className={`pokemon-screen game-screen ${role} ${view?.playMode !== 'test' && feedback?.events.at(-1)?.kind === 'round-result' && motion.length ? 'saved-result' : ''}`}
         data-play-mode={view?.playMode ?? 'play'}
       >
         <header className="game-toolbar">
@@ -187,19 +187,25 @@ function PokemonScreen({ session }: { session: RoomSession }) {
             close={() => setPanel(null)}
           >
             {panel === 'friends' ? (
-              view?.seats
-                .filter((seat) => seat.id !== self?.id)
-                .map((seat) => (
-                  <section key={seat.id} className="friend-board">
-                    <h3>{seat.name}</h3>
-                    {game && <SeatResult view={game} seatId={seat.id} />}
-                  </section>
-                ))
+              <div className={`pokemon-screen pokemon-panel ${role}`}>
+                {view?.seats
+                  .filter((seat) => seat.id !== self?.id)
+                  .map((seat) => (
+                    <section key={seat.id} className="friend-board">
+                      <h3>{seat.name}</h3>
+                      {game && <SeatResult view={game} seatId={seat.id} />}
+                    </section>
+                  ))}
+              </div>
             ) : (
               <>
                 {canControl && <RoomManagement session={session} />}
 
-                {game && <PublicLog view={game} names={names} />}
+                {game && (
+                  <div className={`pokemon-screen pokemon-panel ${role}`}>
+                    <PublicLog view={game} names={names} />
+                  </div>
+                )}
               </>
             )}
           </OverlayPanel>

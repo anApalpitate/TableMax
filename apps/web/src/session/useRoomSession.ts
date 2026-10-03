@@ -22,7 +22,7 @@ const messages: Record<string, string> = {
   'stale-branch': '历史已回退，请按最新状态重新选择。',
   'stale-revision': '状态已变化，请重新选择。',
   'stale-decision': '该选择已结束，请按最新状态操作。',
-  'not-ready': '请等待至少两位玩家全部准备。',
+  'not-ready': '请达到所选游戏的最低人数，并等待全部玩家准备。',
   'joining-closed-or-full': '当前不能加入：牌桌已关闭入座、开始或满员。',
   'joining-closed': '牌桌已关闭入座或已经开始，请联系电脑管理员。',
   'room-full': '牌桌已满，请电脑管理员检查是否有离线的重复座位。',

@@ -69,6 +69,10 @@ export function presentAction(
     case 'round-result':
       title = '本小局已结算';
       break;
+    default:
+      title = '行动已保存';
+      detail = '';
+      break;
   }
   return {
     actor,

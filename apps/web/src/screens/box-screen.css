@@ -3,6 +3,21 @@
   padding: 20px 28px;
   color: #173b32;
 }
+.box-screen .continue-game {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 0;
+  padding: 22px;
+  border-radius: 18px;
+  background: #e9eee4;
+}
+.box-screen .continue-game h2,
+.box-screen .continue-game p {
+  margin: 0;
+}
 .box-screen .hero {
   margin: 18px 0;
   padding: 14px 20px;

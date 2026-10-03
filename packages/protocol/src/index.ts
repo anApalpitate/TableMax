@@ -141,21 +141,7 @@ export const SessionSchema = z
 export const PublicActionSchema = z
   .object({
     actor: z.string().nullable(),
-    verb: z.enum([
-      'initial-flip',
-      'draw',
-      'replace',
-      'discard',
-      'mew-target',
-      'rocket-refill',
-      'zapdos-pass',
-      'swap',
-      'peek',
-      'close-peek',
-      'decline',
-      'deal',
-      'round-result',
-    ]),
+    verb: z.string().min(1).max(64),
     cardCategory: z.string().nullable(),
     ability: z.string().nullable(),
     source: z.enum(['deck', 'discard']).optional(),
@@ -164,11 +150,11 @@ export const PublicActionSchema = z
         z
           .object({
             seat: z.string(),
-            slots: z.array(z.number().int().min(0).max(5)).max(6),
+            slots: z.array(z.number().int().min(0).max(1023)).max(128),
           })
           .strict(),
       )
-      .max(6),
+      .max(32),
   })
   .strict();
 export type PublicAction = z.infer<typeof PublicActionSchema>;
@@ -181,12 +167,7 @@ export const RoomFeedbackSchema = z
       .array(
         z
           .object({
-            kind: z.enum([
-              'draw',
-              'replace',
-              'effect-complete',
-              'round-result',
-            ]),
+            kind: z.string().min(1).max(64),
             text: z.string().max(100),
             action: PublicActionSchema.optional(),
           })

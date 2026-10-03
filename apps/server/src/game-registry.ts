@@ -13,6 +13,10 @@ export function createGameRegistry(includeTemplate = false) {
       },
       load: () => import('../../../games/pokemon-encounters'),
     },
+    {
+      catalog: { id: 'modern-art', name: '现代艺术', min: 3, max: 5 },
+      load: () => import('../../../games/modern-art'),
+    },
     ...(includeTemplate
       ? [
           {

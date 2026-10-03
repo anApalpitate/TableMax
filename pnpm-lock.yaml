@@ -115,6 +115,15 @@ importers:
         specifier: 4.8.4
         version: 4.8.4
 
+  games/modern-art:
+    dependencies:
+      '@tablemax/game-sdk':
+        specifier: workspace:*
+        version: link:../../packages/game-sdk
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+
   games/pokemon-encounters:
     dependencies:
       '@tablemax/game-sdk':

@@ -134,23 +134,59 @@ function Read-Snapshot([string]$Path) {
 
 function Measure-Workspace {
   Assert-LocalPath $workspace | Out-Null
-  $bytes = [long]0
-  $files = 0
-  $links = 0
-  $nestedRepositories = 0
-  $pending = New-Object 'System.Collections.Generic.Stack[string]'
-  $pending.Push($workspace)
-  while ($pending.Count -gt 0) {
-    $directory = Get-Item -LiteralPath $pending.Pop() -Force
-    if ($directory.Attributes -band [IO.FileAttributes]::ReparsePoint) { $links++; continue }
-    if ($directory.FullName -ne $workspace -and (Test-Path -LiteralPath (Join-Path $directory.FullName '.git'))) { $nestedRepositories++; continue }
-    Get-ChildItem -LiteralPath $directory.FullName -Force | ForEach-Object {
-      if ($_.Attributes -band [IO.FileAttributes]::ReparsePoint) { $links++ }
-      elseif ($_.PSIsContainer) { $pending.Push($_.FullName) }
-      else { $bytes += $_.Length; $files++ }
+  # Keep a full streaming measurement after every removal. Avoid a PowerShell
+  # provider/pipeline invocation for every directory in large dependency trees.
+  if (-not ('TableMax.WorkspaceCapacityV1' -as [type])) {
+    Add-Type -TypeDefinition @'
+using System;
+using System.Collections.Generic;
+using System.IO;
+namespace TableMax {
+  public sealed class WorkspaceCapacityResult {
+    public long Bytes;
+    public long Files;
+    public long SkippedLinks;
+    public long SkippedRepositories;
+  }
+  public static class WorkspaceCapacityV1 {
+    public static WorkspaceCapacityResult Measure(string root) {
+      var result = new WorkspaceCapacityResult();
+      var pending = new Stack<DirectoryInfo>();
+      pending.Push(new DirectoryInfo(root));
+      while (pending.Count > 0) {
+        var directory = pending.Pop();
+        // Enumeration caches metadata; refresh before deciding whether to enter
+        // a directory that could have become a junction since it was queued.
+        directory.Refresh();
+        if ((directory.Attributes & FileAttributes.ReparsePoint) != 0) {
+          result.SkippedLinks++;
+          continue;
+        }
+        var git = Path.Combine(directory.FullName, ".git");
+        if (!String.Equals(directory.FullName, root, StringComparison.OrdinalIgnoreCase)
+            && (Directory.Exists(git) || File.Exists(git))) {
+          result.SkippedRepositories++;
+          continue;
+        }
+        foreach (var entry in directory.EnumerateFileSystemInfos()) {
+          if ((entry.Attributes & FileAttributes.ReparsePoint) != 0) {
+            result.SkippedLinks++;
+          } else if ((entry.Attributes & FileAttributes.Directory) != 0) {
+            pending.Push((DirectoryInfo)entry);
+          } else {
+            result.Bytes = checked(result.Bytes + ((FileInfo)entry).Length);
+            result.Files++;
+          }
+        }
+      }
+      return result;
     }
   }
-  return [PSCustomObject]@{ bytes = $bytes; files = $files; skippedLinks = $links; skippedRepositories = $nestedRepositories }
+}
+'@
+  }
+  $capacity = [TableMax.WorkspaceCapacityV1]::Measure($workspace)
+  return [PSCustomObject]@{ bytes = $capacity.Bytes; files = $capacity.Files; skippedLinks = $capacity.SkippedLinks; skippedRepositories = $capacity.SkippedRepositories }
 }
 
 function Add-Candidate([string]$Path, [string]$Reason) {

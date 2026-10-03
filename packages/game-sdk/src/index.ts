@@ -33,27 +33,15 @@ export interface PendingDecision {
 }
 export type PublicAction = {
   actor: string | null;
-  verb:
-    | 'initial-flip'
-    | 'draw'
-    | 'replace'
-    | 'discard'
-    | 'mew-target'
-    | 'rocket-refill'
-    | 'zapdos-pass'
-    | 'swap'
-    | 'peek'
-    | 'close-peek'
-    | 'decline'
-    | 'deal'
-    | 'round-result';
+  // Each game interprets its own verbs; the platform only transports safe data.
+  verb: string;
   cardCategory: string | null;
   ability: string | null;
   source?: 'deck' | 'discard';
   targets: { seat: string; slots: number[] }[];
 };
 export interface PublicEvent {
-  kind: 'draw' | 'replace' | 'effect-complete' | 'round-result';
+  kind: string;
   text: string;
   action?: PublicAction;
 }

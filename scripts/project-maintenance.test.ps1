@@ -107,7 +107,11 @@ try {
   $unknown = Fixture-File 'tmp/research/source.bin' 128
   $young = Fixture-File 'artifacts/releases/TableMax-1.3.0-win-x64.zip' 128 0
   $future = Fixture-File 'artifacts/releases/TableMax-2.0.0-win-x64.zip' 128
+  $beforeHidden = Run-Maintenance
+  $hidden = Fixture-File 'assets/hidden-capacity.bin' 384
+  [IO.File]::SetAttributes($hidden, ([IO.FileAttributes]::Hidden -bor [IO.FileAttributes]::System))
   $baseline = Run-Maintenance
+  Check ($baseline.bytesBefore -eq ($beforeHidden.bytesBefore + 384)) 'Capacity includes hidden and system files without relying on provider defaults'
   New-Item -ItemType Junction -Path $link -Value (Join-Path $primary 'assets') | Out-Null
   $withLink = Run-Maintenance
   Check ($withLink.bytesBefore -eq $baseline.bytesBefore -and $withLink.skippedLinks -eq 1) 'Capacity scanning skips links without double-counting their targets'
@@ -119,7 +123,7 @@ try {
 
   $exhausted = Run-Maintenance $true
   Check ($exhausted.result -eq 'candidates-exhausted' -and -not (Test-Path -LiteralPath $newer)) 'Cleanup stops safely after all eligible candidates are exhausted'
-  foreach ($path in @($protected, $build, $cache, $dependencies, $store, $save, $evidence, $unknown, $young, $future, $nestedPayload)) {
+  foreach ($path in @($protected, $hidden, $build, $cache, $dependencies, $store, $save, $evidence, $unknown, $young, $future, $nestedPayload)) {
     Check (Test-Path -LiteralPath $path) ('Protected content is retained: ' + $path.Substring($primary.Length + 1))
   }
   $empty = Run-Maintenance $true

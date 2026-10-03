@@ -1,5 +1,5 @@
 import type { RoomSession } from '../session/useRoomSession';
-import cover from '../../../../assets/games/pokemon-encounters/cover-v1.webp';
+import { gameCover } from '../assets/game-covers';
 
 /** Catalog thumbnails are deliberately separate from the game client bundle. */
 export function GameLibrary({
@@ -21,8 +21,8 @@ export function GameLibrary({
       <div className="game-library__list">
         {view?.catalog.map((game) => (
           <article className="game-library__item" key={game.id}>
-            {game.id === 'pokemon-encounters' ? (
-              <img src={cover} alt="" width="96" height="120" />
+            {gameCover(game.id) ? (
+              <img src={gameCover(game.id)} alt="" width="96" height="120" />
             ) : (
               <span className="game-library__placeholder" aria-hidden="true">
                 ⚄

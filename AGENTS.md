@@ -16,6 +16,7 @@
 6. 首版规则、数据、权限、决策与验证查 [游戏规格](docs/games/pokemon-encounters/README.md)，跨游戏交互与恢复查 [通用规格](docs/reference/phase-02-platform-spec.md)，原文缺口查 [规则来源](docs/games/pokemon-encounters/sources.md#规则来源与核验缺口)；原型运行与检查查开发环境，原型走查不代表产品验收。
 7. 子 agent 的职责、派工边界与常用组合见 [职责索引](docs/subagent/README.md)，涵盖原生桌面、平台服务、构建验收与独立视觉审查；图像生成与编辑交给 [imagegen 子 agent](docs/subagent/imagegen.md)，具体任务范围与可写路径由主 agent 明确。
 8. 电脑玩家要求、独立决策文件与验证见 [人机规格](docs/reference/bot-players.md)；面向对象的适度封装见 [工程结构](docs/reference/architecture.md#面向对象与适度封装)。游戏 bot 与本项目开发子 agent 是两类不同角色。
+9. 第二款正式游戏《现代艺术》的规则、卡牌分布、拍卖／秘密权限及三档策略见 [游戏规格](docs/games/modern-art/README.md)；出版依据与项目约定见 [来源](docs/games/modern-art/sources.md)。各游戏的规则、策略、UI、样式与资源必须独立，共享层只按目录和通用契约组装。
 
 ## 工作约定
 

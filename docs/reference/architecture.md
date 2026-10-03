@@ -4,18 +4,18 @@
 
 ## 已建立的工程
 
-| 路径                       | 当前职责                                                               | 依赖方向                                                          |
-| -------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| 路径                       | 当前职责                                                                   | 依赖方向                                                           |
+| -------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | `apps/desktop/native`      | C# WinForms／net48／x64 窗口、私有服务管道、主机凭证、显示／声音与生命周期 | .NET Framework、WebView2；按桌面／服务协议通信，不访问数据库或规则 |
-| `apps/desktop/src`         | 网页使用的桌面显示／声音 TypeScript 契约与独立控制逻辑回归             | 不作为正式窗口入口；保留网页接口与已有控制逻辑测试                 |
-| `apps/server`              | HTTP／Socket.IO、身份绑定、资源／二维码、SQLite 仓储与 bot Worker 适配 | protocol、platform-core、注册游戏；组合具体适配器                 |
-| `apps/web`                 | 公共主机兼管理、只读公共屏、手机本人界面；独立合成原型                 | protocol、注册游戏 UI；不导入规则服务或完整状态                   |
-| `packages/protocol`        | 平台信封、角色投影及确认、桌面／服务消息的类型与 Zod 校验              | Zod；不依赖应用、游戏或数据库                                     |
-| `packages/game-sdk`        | JSON、规则／投影／多人决策、管理生命周期、受限策略纯类型契约           | 不依赖 UI、网络、数据库、桌面运行时或具体游戏                      |
-| `packages/platform-core`   | 单房间、凭证摘要授权、串行动作、checkpoint／分支、兼容校验和 bot 调度  | SDK、protocol、Node 随机凭证；不依赖具体游戏、Socket.IO 或 SQLite |
-| `games/template`           | 可玩验证游戏，独立规则、状态校验、计分、投影、策略和两端 UI            | 规则／策略仅 SDK，UI 仅 React 与投影类型                          |
-| `games/pokemon-encounters` | 首版完整规则、独立计分、授权投影、基础策略、两端 UI 与本地资源         | 规则／策略仅 SDK 与纯数据，UI 仅 React 与投影类型                 |
-| `scripts`                  | 构建、开发、桌面／便携／原型验证及隔离强制退出 fixture                 | 开发工具；不进入游戏规则                                          |
+| `apps/desktop/src`         | 网页使用的桌面显示／声音 TypeScript 契约与独立控制逻辑回归                 | 不作为正式窗口入口；保留网页接口与已有控制逻辑测试                 |
+| `apps/server`              | HTTP／Socket.IO、身份绑定、资源／二维码、SQLite 仓储与 bot Worker 适配     | protocol、platform-core、注册游戏；组合具体适配器                  |
+| `apps/web`                 | 公共主机兼管理、只读公共屏、手机本人界面；独立合成原型                     | protocol、注册游戏 UI；不导入规则服务或完整状态                    |
+| `packages/protocol`        | 平台信封、角色投影及确认、桌面／服务消息的类型与 Zod 校验                  | Zod；不依赖应用、游戏或数据库                                      |
+| `packages/game-sdk`        | JSON、规则／投影／多人决策、管理生命周期、受限策略纯类型契约               | 不依赖 UI、网络、数据库、桌面运行时或具体游戏                      |
+| `packages/platform-core`   | 单房间、凭证摘要授权、串行动作、checkpoint／分支、兼容校验和 bot 调度      | SDK、protocol、Node 随机凭证；不依赖具体游戏、Socket.IO 或 SQLite  |
+| `games/template`           | 可玩验证游戏，独立规则、状态校验、计分、投影、策略和两端 UI                | 规则／策略仅 SDK，UI 仅 React 与投影类型                           |
+| `games/pokemon-encounters` | 首版完整规则、独立计分、授权投影、基础策略、两端 UI 与本地资源             | 规则／策略仅 SDK 与纯数据，UI 仅 React 与投影类型                  |
+| `scripts`                  | 构建、开发、桌面／便携／原型验证及隔离强制退出 fixture                     | 开发工具；不进入游戏规则                                           |
 
 应用组装具体规则、策略和适配器，核心只依赖抽象契约。共享包使用 `workspace:*`，开发导出 TS 源码，Vite／esbuild 消费；严格类型检查统一覆盖 apps、packages 和 games 的 TypeScript。服务、bot Worker 和游戏输出独立 CJS，网页输出本地静态资源；原生桌面单独编译为 `TableMax.exe`。`global.json` 固定 .NET SDK 9.0.102，原生锁文件固定 WebView2 SDK 1.0.4258.31 和编译用 net48 引用程序集。
 
@@ -28,6 +28,8 @@
 游戏数量增加后的按需下载与本地安装已列为 [未来计划](../tasks/README.md#多游戏按需安装未来计划未实现)，尚未实现；当前懒加载仍读取随程序打包的模块和资源，不代表已经支持下载游戏包。
 
 ## 面向对象与适度封装
+
+第二款正式游戏 `games/modern-art/` 独立维护70卡拍卖、四轮估值、现金与暗标投影、三档策略及两端UI。规则与策略仅依赖SDK及自身纯数据；UI只读安全投影，不依赖宝可梦或桌面外壳。游戏CSS限定自身根节点，共享反馈只运输受限通用字符串。
 
 - 有生命周期、依赖或不变量的职责使用对象，组合优先、依赖显式传入，不引入深层继承或全局可变容器。
 - `RoomCoordinator` 管理房间状态及统一命令入口；`BotScheduler` 负责任务节奏、取消与超时；`WorkerBotExecutor` 隔离计算；`SqliteSaveRepository` 执行存储事务，存档不变量校验单独维护。
@@ -60,7 +62,7 @@ WebView2 不暴露 Node 或原生 host objects；`Bridge.js` 只保持 `window.t
 
 继续使用原用户数据目录、手机身份和 SQLite／JSON 存档格式，迁移不改协议版本或数据版本。WebView2 缓存写入用户数据目录的 `desktop/webview2/`，独立显示设置仍为 `display-settings.json`。旧 Electron 写出的 SQLite 需在隔离副本上验证读取、继续保存和恢复；不以新建数据库代替兼容性验证。原生测试驱动及 CDP 仅由显式测试标志启用，正式启动不开放调试端口；验证使用后台不激活窗口与更新后的真实 WebView2 截图。
 
-玩家身份用服务生成的随机凭证，服务器仅保存摘要。本人的凭证由手机 localStorage 保存，开局前排序不改变座位 ID；同设备同源刷新／断线沿用凭证，1.6.0 删除换手机及兑换接口。电脑房主仅为管理员，不提供参赛入口或加入参数；首局首位由服务随机选取，旧 hostSeat 字段只兼容读取。主机管理权不扩展游戏秘密。线上状态来自当前有效连接，不入 checkpoint。电脑地址／端口变化形成新浏览器源不会自动迁移身份。
+玩家身份用服务生成的随机凭证，服务器仅保存摘要。本人的凭证由手机 localStorage 保存，开局前排序不改变座位 ID；同设备同源刷新／断线沿用凭证，1.6.0 删除换手机及兑换接口。电脑房主仅为管理员，不提供参赛入口或加入参数；首局先手由对应游戏规则决定，宝可梦使用可恢复随机选取，现代艺术采用稳定座位首席，旧 hostSeat 字段只兼容读取。主机管理权不扩展游戏秘密。线上状态来自当前有效连接，不入 checkpoint。电脑地址／端口变化形成新浏览器源不会自动迁移身份。
 
 HTTP 提供加入、授权同步和网络地址；Socket.IO 握手绑定凭证，逐连接生成 `room:view`，`room:command` 校验信封并确认，`room:revoked` 撤销旧连接。命令被拒绝后同步最新投影；未确认的原意图保留，重试沿用编号。运行时 schema 校验投影与 ACK，不能靠 UI 隐藏完整状态。
 
@@ -76,7 +78,7 @@ HTTP 提供加入、授权同步和网络地址；Socket.IO 握手绑定凭证�
 
 服务的 GameRegistry 保存目录元数据和异步规则／策略加载器；RoomCoordinator.open 先读取一次存档，依据可空 manifest 加载并验证。新房间不加载游戏规则，选中时等待加载与保存完成后才发布新状态。进行中的选择被拒绝；人数和 bot 等级不兼容、未知游戏、加载或保存失败都保留原状态。切换更新实例并取消旧 bot，保留座位凭证及当前房主。
 
-前端 game-clients 注册游戏适配器（Screen、savedChanges、motionDuration），通用会话不导入宝可梦类型、动作或 CSS。盒子只引用小封面；选中后动态 import 对应 UI／资源。服务和 Worker 按同一 ID 加载独立构建入口，Worker 的随机工具使用轻量 random 子入口，避免加载平台和协议整包。模块缓存复用；退出场景释放播放器、队列、计时器和监听器。
+前端 game-clients 注册游戏适配器（Screen、savedChanges、motionDuration），通用会话不导入具体游戏类型、动作或 CSS。盒子只引用小封面；进入 `/game` 后动态 import 对应 UI／资源。服务和 Worker 按同一 ID 加载独立构建入口，Worker 的随机工具使用轻量 random 子入口，避免加载平台和协议整包。模块缓存复用；退出场景释放播放器、队列、计时器和监听器。游戏 CSS 根范围同时覆盖游戏自己的浮窗内容；Portal 到 body 的共享浮窗不会继承原页面祖先，须显式附上游戏范围。
 
 RoomView 的 self.role 保持 host／player／public。capabilities.manage 仅管理员，control 另授予 ownerSeatId 对应的真人；手机房主仍仅有本人游戏投影。set-owner 的权限在服务校验并持久保存，owner 不进入 checkpoint，不随回退倒退。开局、暂停／恢复、replay、lifecycle 接受 control；其他管理仅 manage。
 

@@ -9,6 +9,8 @@ const project = JSON.parse(await readFile('package.json', 'utf8'));
 await mkdir(output, { recursive: true });
 await buildWeb({ configFile: resolve('apps/web/vite.config.ts') });
 const gameModules = {
+  '../../../games/modern-art': './games/modern-art.cjs',
+  '../../../games/modern-art/bot': './bots/modern-art.cjs',
   '../../../games/pokemon-encounters': './games/pokemon-encounters.cjs',
   '../../../games/template': './games/template.cjs',
   '../../../games/pokemon-encounters/bot': './bots/pokemon-encounters.cjs',
@@ -18,7 +20,7 @@ const lazyGames = {
   name: 'local-game-modules',
   setup(builder) {
     builder.onResolve(
-      { filter: /games\/(pokemon-encounters|template)(\/bot)?$/ },
+      { filter: /games\/(pokemon-encounters|modern-art|template)(\/bot)?$/ },
       (args) =>
         gameModules[args.path]
           ? { path: gameModules[args.path], external: true }
@@ -28,6 +30,8 @@ const lazyGames = {
 };
 await build({
   entryPoints: {
+    'games/modern-art': 'games/modern-art/index.ts',
+    'bots/modern-art': 'games/modern-art/bot/index.ts',
     'games/pokemon-encounters': 'games/pokemon-encounters/index.ts',
     'games/template': 'games/template/index.ts',
     'bots/pokemon-encounters': 'games/pokemon-encounters/bot/index.ts',

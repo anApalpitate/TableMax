@@ -203,7 +203,11 @@ try {
   origin = new URL(host.url()).origin;
   await observe(host);
   await host.reload();
-  await host.getByRole('button', { name: '选择游戏', exact: true }).waitFor();
+  await host
+    .locator('.game-library__item')
+    .filter({ hasText: '宝可梦奇遇' })
+    .getByRole('button', { name: '选择游戏', exact: true })
+    .waitFor();
   const hostToken = await host.evaluate(() =>
     sessionStorage.getItem('tablemax-host'),
   );
@@ -243,19 +247,23 @@ try {
   await help.getByRole('button', { name: '刷新连接地址', exact: true }).click();
   await capture(host, 'connection-help');
   await host.keyboard.press('Escape');
-  await host.getByRole('button', { name: '选择游戏', exact: true }).click();
+  await host
+    .locator('.game-library__item')
+    .filter({ hasText: '宝可梦奇遇' })
+    .getByRole('button', { name: '选择游戏', exact: true })
+    .click();
   await host.getByRole('button', { name: '切换游戏', exact: true }).waitFor();
-  await until(
-    async () =>
-      await host.evaluate(() =>
-        performance
-          .getEntriesByType('resource')
-          .some((entry) => /PokemonScreen/.test(entry.name)),
-      ),
-    'Selected game client is fetched',
+  assert.equal(
+    await host.evaluate(() =>
+      performance
+        .getEntriesByType('resource')
+        .some((entry) => /PokemonScreen/.test(entry.name)),
+    ),
+    false,
+    'Box selection keeps full game client unloaded',
   );
   evidence.checks.push(
-    'Fresh game catalog, real lazy client loading, aligned display/help controls',
+    'Fresh game catalog, unloaded box client, aligned display/help controls',
   );
   const phones = [];
   for (let i = 0; i < 6; i++) phones.push(await phone(i));
@@ -289,6 +297,16 @@ try {
     phones.map(({ page }) => page.waitForURL('**/player/game')),
   );
   await host.waitForURL('**/host/game');
+  await host.locator('.pokemon-screen').waitFor();
+  assert.equal(
+    await host.evaluate(() =>
+      performance
+        .getEntriesByType('resource')
+        .some((entry) => /PokemonScreen/.test(entry.name)),
+    ),
+    true,
+    'Game route loads its independent client',
+  );
   await host
     .getByRole('button', { name: '提示音已开启 · 静音', exact: true })
     .waitFor();
@@ -376,6 +394,7 @@ try {
     .click({ noWaitAfter: true });
   const publicPage = await nextPublic;
   await observe(publicPage);
+  await publicPage.locator('.pokemon-screen').waitFor();
   await publicPage.evaluate(() => {
     window.experienceReloadMarker = true;
   });
