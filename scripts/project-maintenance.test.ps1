@@ -1,3 +1,5 @@
+param([string]$EvidenceDirectory)
+
 $ErrorActionPreference = 'Stop'
 $workspaceForTest = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\')
 $fixture = Join-Path $workspaceForTest ('tmp/maintenance-test-' + [Guid]::NewGuid().ToString('N'))
@@ -36,7 +38,7 @@ try {
   Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'cleanup-local.ps1') -Destination (Join-Path $primary 'scripts')
   Git-At $primary @('init', '--quiet')
   Git-At $primary @('add', '.')
-  Git-At $primary @('-c', 'user.name=TableMax test', '-c', 'user.email=test@localhost', 'commit', '--quiet', '-m', 'Fixture only')
+  Git-At $primary @('-c', 'user.name=TableMax test', '-c', 'user.email=test@localhost', '-c', 'commit.gpgsign=false', 'commit', '--quiet', '-m', 'Fixture only')
   Git-At $primary @('worktree', 'add', '--quiet', '--detach', $secondary)
 
   $initial = Run-Maintenance
@@ -131,7 +133,7 @@ try {
   $refused = $false
   try { Run-Maintenance $false 1 1 | Out-Null } catch { $refused = $_.Exception.Message -like '*lower low-water*' }
   Check $refused 'Invalid high/low water marks are rejected'
-  $evidenceRoot = Join-Path $workspaceForTest 'artifacts/maintenance/project-maintenance-tools'
+  $evidenceRoot = if ($EvidenceDirectory) { [IO.Path]::GetFullPath($EvidenceDirectory) } else { Join-Path $workspaceForTest 'artifacts/maintenance/project-maintenance-tools' }
   New-Item -ItemType Directory -Path $evidenceRoot -Force | Out-Null
   [PSCustomObject]@{ verifiedAt = [DateTime]::UtcNow.ToString('o'); result = 'passed'; checks = $checks.ToArray(); runtime = $PSVersionTable.PSVersion.ToString() } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $evidenceRoot 'tool-tests.json') -Encoding utf8
   Write-Host ('PASS: ' + $checks.Count + ' project-maintenance checks in isolated Git workspaces.')

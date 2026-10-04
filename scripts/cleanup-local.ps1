@@ -5,6 +5,7 @@ param(
   [switch]$IncludeBuild,
   [string]$ProjectRoot,
   [string[]]$TemporaryNames = @(),
+  [string[]]$VerificationCopies = @(),
   [ValidateRange(0, 10080)][int]$MinimumAgeMinutes = 30,
   [ValidateRange(0.001, 1024)][double]$HighWaterGiB = 5,
   [ValidateRange(0, 1024)][double]$LowWaterGiB = 4,
@@ -14,6 +15,23 @@ param(
 $ErrorActionPreference = 'Stop'
 $sourceWorkspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\')
 $automatic = $Kind -eq 'Maintenance'
+if ($PSBoundParameters.ContainsKey('VerificationCopies') -and -not $VerificationCopies.Count) {
+  throw 'VerificationCopies requires a nonempty list of exact directory paths.'
+}
+if ($VerificationCopies.Count) {
+  if ($Kind -ne 'Intermediates' -or $IncludeBuild -or $TemporaryNames.Count) {
+    throw 'VerificationCopies is only supported by manual intermediate cleanup without TemporaryNames or IncludeBuild.'
+  }
+  $seenVerificationCopies = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+  $VerificationCopies = @($VerificationCopies | ForEach-Object {
+    $relative = $_.Replace('\', '/')
+    if ($relative -notmatch '^artifacts/maintenance/v1\.0\.2/[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*/native-audio/[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*/work-[A-Za-z0-9]{6}/(?:extracted|checkpoint-(?:bid|plant|fuel|build|run|end)/desktop)$') {
+      throw 'VerificationCopies must contain exact native-audio extracted or checkpoint desktop directory paths under artifacts/maintenance/v1.0.2.'
+    }
+    if (-not $seenVerificationCopies.Add($relative)) { throw 'VerificationCopies contains duplicate paths.' }
+    $relative
+  })
+}
 if ($TemporaryNames.Count) {
   if ($Kind -ne 'Intermediates' -or $IncludeBuild) {
     throw 'TemporaryNames is only supported by manual intermediate cleanup without IncludeBuild.'
@@ -85,6 +103,7 @@ $archive = Join-Path $releases ('TableMax-' + $project.version + '-win-x64.zip')
 $cutoff = [DateTime]::UtcNow.AddMinutes(-$MinimumAgeMinutes)
 $candidates = New-Object 'System.Collections.Generic.List[object]'
 $skipped = New-Object 'System.Collections.Generic.List[object]'
+$verificationProofs = New-Object 'System.Collections.Generic.List[object]'
 
 function Assert-LocalPath([string]$Path) {
   $absolute = [IO.Path]::GetFullPath($Path).TrimEnd('\')
@@ -150,6 +169,42 @@ function Read-Snapshot([string]$Path) {
   return [PSCustomObject]@{ bytes = $bytes; entries = $entries; newest = $newest; fingerprint = $fingerprint }
 }
 
+function Read-VerificationProof([string]$Relative) {
+  $absolute = Assert-LocalPath (Join-Path $workspace $Relative)
+  if (-not (Test-Path -LiteralPath $absolute -PathType Container)) {
+    throw ('Selected verification copy directory does not exist: ' + $Relative)
+  }
+  # The run's results.json is a sibling of work-XXXXXX. Do not search any
+  # unrelated evidence or sibling work directories in this explicit mode.
+  $workRelative = $Relative -replace '/(?:extracted|checkpoint-(?:bid|plant|fuel|build|run|end)/desktop)$', ''
+  $work = Assert-LocalPath (Join-Path $workspace $workRelative)
+  $run = Split-Path $work -Parent
+  $cursor = $absolute
+  while ($cursor -and $cursor -ne $workspace) {
+    if (Test-Path -LiteralPath (Join-Path $cursor '.git')) {
+      throw ('Cleanup refuses nested repositories: ' + $cursor)
+    }
+    $cursor = [IO.Path]::GetDirectoryName($cursor)
+  }
+  $evidencePath = Assert-LocalPath (Join-Path $run 'results.json')
+  if (-not (Test-Path -LiteralPath $evidencePath -PathType Leaf)) {
+    throw ('Selected verification copy has no parent portable evidence: ' + $Relative)
+  }
+  $record = Get-Content -LiteralPath $evidencePath -Raw -Encoding utf8 | ConvertFrom-Json
+  if (-not ($record.portable -is [bool]) -or -not $record.portable -or $record.result -ne 'passed' -or $record.archiveSha256 -ne $archiveHash) {
+    throw ('Selected verification copy parent evidence is not a passing portable result for the current ZIP: ' + $Relative)
+  }
+  if (-not ($record.work -is [string]) -or -not [IO.Path]::IsPathRooted($record.work) -or [IO.Path]::GetFullPath($record.work).TrimEnd('\') -ne $work) {
+    throw ('Selected verification copy does not match the work directory recorded by its parent portable evidence: ' + $Relative)
+  }
+  return [PSCustomObject]@{
+    relativePath = $Relative; path = $absolute; work = $work; evidencePath = $evidencePath
+    portable = $true; result = 'passed'; archiveSha256 = $archiveHash
+    evidenceSha256 = (Get-FileHash -LiteralPath $evidencePath -Algorithm SHA256).Hash.ToLowerInvariant()
+    fingerprint = (Read-Snapshot $evidencePath).fingerprint
+  }
+}
+
 function Measure-Workspace {
   Assert-LocalPath $workspace | Out-Null
   # Keep a full streaming measurement after every removal. Avoid a PowerShell
@@ -207,7 +262,7 @@ namespace TableMax {
   return [PSCustomObject]@{ bytes = $capacity.Bytes; files = $capacity.Files; skippedLinks = $capacity.SkippedLinks; skippedRepositories = $capacity.SkippedRepositories }
 }
 
-function Add-Candidate([string]$Path, [string]$Reason) {
+function Add-Candidate([string]$Path, [string]$Reason, $VerificationProof = $null) {
   try { $absolute = Assert-LocalPath $Path; $snapshot = Read-Snapshot $absolute }
   catch {
     $skipped.Add([PSCustomObject]@{ path = $Path; reason = $_.Exception.Message })
@@ -220,6 +275,7 @@ function Add-Candidate([string]$Path, [string]$Reason) {
   $candidates.Add([PSCustomObject]@{
     path = $absolute; reason = $Reason; bytes = $snapshot.bytes
     entries = $snapshot.entries; newest = $snapshot.newest; fingerprint = $snapshot.fingerprint; deleted = $false
+    verificationProof = $VerificationProof
   })
 }
 
@@ -273,7 +329,13 @@ try {
   $archiveBefore = Get-Item -LiteralPath $archive
   $archiveHash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
   $proof = $null
-  if (Test-Path -LiteralPath $maintenance -PathType Container) {
+  if ($VerificationCopies.Count) {
+    foreach ($relative in $VerificationCopies) {
+      $verificationProofs.Add((Read-VerificationProof $relative))
+    }
+    $proof = $verificationProofs[0].evidencePath
+  }
+  elseif (Test-Path -LiteralPath $maintenance -PathType Container) {
     Read-Tree $maintenance | Where-Object { -not $_.PSIsContainer -and $_.Name -eq 'results.json' } | ForEach-Object {
       if (-not $proof) {
         $record = $null
@@ -302,7 +364,12 @@ if ($Kind -eq 'Releases' -or $automatic) {
     }
   }
 }
-if ($Kind -eq 'Intermediates' -or $automatic) {
+if ($VerificationCopies.Count) {
+  foreach ($verificationProof in $verificationProofs) {
+    Add-Candidate $verificationProof.path 'Explicitly selected regenerable native-audio extraction or WebView2 profile copy' $verificationProof
+  }
+}
+elseif ($Kind -eq 'Intermediates' -or $automatic) {
   foreach ($entry in @(if (-not $TemporaryNames.Count) { Get-ChildItem -LiteralPath $releases -Force })) {
     if (($entry.PSIsContainer -and $entry.Name -match '^package-(\d+\.\d+\.\d+)-[A-Za-z0-9]{6}$' -and [version]$Matches[1] -le $currentVersion) -or $entry.Name -eq 'builder-debug.yml') {
       if (-not ($candidates | Where-Object { $_.path -eq $entry.FullName })) {
@@ -363,6 +430,7 @@ try {
     startedAt = [DateTime]::UtcNow.ToString('o'); kind = $Kind; currentVersion = $project.version; retiredVersions = $RetiredVersions
     currentArchive = $archive; archiveSha256 = $archiveHash; portableProof = $proof
     minimumAgeMinutes = $MinimumAgeMinutes; includeBuild = [bool]$IncludeBuild; temporaryNames = $TemporaryNames
+    verificationCopies = $VerificationCopies; verificationProofs = $verificationProofs.ToArray()
     workspace = $workspace; highWaterBytes = $summary.highWaterBytes; lowWaterBytes = $summary.lowWaterBytes
     bytesBefore = $summary.bytesBefore; bytesAfter = $summary.bytesAfter
     candidates = $ordered; skipped = $skipped.ToArray(); deletedBytes = [long]0; result = 'started'
@@ -378,6 +446,12 @@ try {
       if ($current.Length -ne $archiveBefore.Length -or $current.LastWriteTimeUtc -ne $archiveBefore.LastWriteTimeUtc) { throw 'Current ZIP changed during cleanup; stopped.' }
       $snapshot = Read-Snapshot $candidate.path
       if ($snapshot.fingerprint -ne $candidate.fingerprint) { throw ('Candidate changed during cleanup; stopped: ' + $candidate.path) }
+      if ($candidate.verificationProof) {
+        $verified = Read-VerificationProof $candidate.verificationProof.relativePath
+        if ($verified.fingerprint -ne $candidate.verificationProof.fingerprint -or $verified.evidenceSha256 -ne $candidate.verificationProof.evidenceSha256) {
+          throw ('Parent portable evidence changed during cleanup; stopped: ' + $verified.evidencePath)
+        }
+      }
       if ($candidate.reason -like 'Known one-off script*') {
         $scriptArchive = Join-Path $logRoot 'temporary-scripts'
         New-Item -ItemType Directory -Path $scriptArchive -Force | Out-Null
