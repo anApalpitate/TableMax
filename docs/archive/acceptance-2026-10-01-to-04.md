@@ -4,6 +4,8 @@
 
 首批迁移前历史正文（统一 LF）的 SHA-256：`6e21fd15911ba6fd4a1505cd58d6306237124ea0d863a5e062d8dbc90caa0adf`。
 
+2026-10-04 用户授权清理不再需要的历史内容后，部分完全重复的验收 PNG 按精确清单去重。原结果与本页历史结论保持原文；已退役截图的路径、哈希和同字节保留位置，从 [当前清理记录](../reference/acceptance.md#历史截图去重2026-10-04)查询，不能把去重当成重新执行旧验收。
+
 现代艺术 debug 正文另于本轮维护后移入，统一 LF 原文 SHA-256：`dfdf6e33b9cacf627dfcc17f1d3456b0deed2121334c91d176324203aa3da215`；下节同名 ZIP 是当时产物，其原字节另存 [本轮保留副本](../../artifacts/maintenance/v1.0.2/shared-visual-20261004/delivery/before/TableMax-1.0.2-win-x64.zip)，不由当前同名包代替。
 
 电力公司 debug 的原文于本轮重新导出前移入；原 `7801b3c8…` 程序与清单保存在 [旧 ZIP](../../artifacts/maintenance/v1.0.2/reexport-20261004/before/TableMax-1.0.2-win-x64.zip)及 [旧逐文件清单](../../artifacts/maintenance/v1.0.2/reexport-20261004/before/TableMax-1.0.2-win-x64-manifest.json)，下文同名包指当时产物。

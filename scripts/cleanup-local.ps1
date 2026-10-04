@@ -7,6 +7,7 @@ param(
   [string]$ProjectRoot,
   [string[]]$TemporaryNames = @(),
   [string[]]$VerificationCopies = @(),
+  [string]$DuplicateScreenshotsManifest,
   [ValidateRange(0, 10080)][int]$MinimumAgeMinutes = 30,
   [ValidateRange(0.001, 1024)][double]$HighWaterGiB = 5,
   [ValidateRange(0, 1024)][double]$LowWaterGiB = 4,
@@ -16,6 +17,10 @@ param(
 $ErrorActionPreference = 'Stop'
 $sourceWorkspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\')
 $automatic = $Kind -eq 'Maintenance'
+if ($PSBoundParameters.ContainsKey('DuplicateScreenshotsManifest') -and
+    ([string]::IsNullOrWhiteSpace($DuplicateScreenshotsManifest) -or $Kind -ne 'Intermediates' -or $IncludeBuild -or $KeepLatestOnly -or $TemporaryNames.Count -or $VerificationCopies.Count -or $RetiredVersions.Count)) {
+  throw 'DuplicateScreenshotsManifest requires a nonempty manifest and manual intermediate cleanup without other modes.'
+}
 if ($KeepLatestOnly -and ($Kind -ne 'Releases' -or $IncludeBuild -or $RetiredVersions.Count -or $TemporaryNames.Count -or $VerificationCopies.Count)) {
   throw 'KeepLatestOnly is only supported by manual release cleanup without other cleanup modes.'
 }
@@ -424,7 +429,55 @@ elseif ($Kind -eq 'Releases' -or $automatic) {
     }
   }
 }
-if ($VerificationCopies.Count) {
+if ($DuplicateScreenshotsManifest) {
+  $duplicateManifestPath = Assert-LocalPath (Join-Path $workspace $DuplicateScreenshotsManifest)
+  if (-not $duplicateManifestPath.StartsWith($maintenance + '\', [StringComparison]::OrdinalIgnoreCase) -or -not (Test-Path -LiteralPath $duplicateManifestPath -PathType Leaf)) { throw 'Screenshot manifest must be a file inside artifacts/maintenance.' }
+  $duplicateManifestSha256 = (Get-FileHash -LiteralPath $duplicateManifestPath).Hash
+  $duplicatePlan = Get-Content -LiteralPath $duplicateManifestPath -Raw -Encoding utf8 | ConvertFrom-Json
+  if ($duplicatePlan.version -ne 1 -or -not $duplicatePlan.groups.Count) { throw 'Screenshot manifest has no groups or unsupported version.' }
+  $duplicateDeletePaths = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+  $duplicateGroupPaths = New-Object 'System.Collections.Generic.List[string]'
+  foreach ($group in $duplicatePlan.groups) {
+    if ($group.path -notmatch '^artifacts/maintenance/(v1\.0\.[01])/' -or -not $group.files.Count -or $group.path -match '(^|/)(\.\.?)(/|$)|\\|:') { throw 'Only explicit old-version screenshot groups are supported.' }
+    $oldScreenshotRoot = Join-Path $maintenance $Matches[1]
+    $groupPath = Assert-LocalPath (Join-Path $workspace $group.path)
+    if (-not $groupPath.StartsWith($oldScreenshotRoot + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Screenshot group is outside the declared old version.' }
+    $groupCursor = $groupPath
+    while ($groupCursor -and $groupCursor -ne $workspace) {
+      if (Test-Path -LiteralPath (Join-Path $groupCursor '.git')) { throw ('Screenshot cleanup refuses nested repositories: ' + $groupCursor) }
+      $groupCursor = [IO.Path]::GetDirectoryName($groupCursor)
+    }
+    foreach ($priorGroup in $duplicateGroupPaths) {
+      if ($groupPath -eq $priorGroup -or $groupPath.StartsWith($priorGroup + '\', [StringComparison]::OrdinalIgnoreCase) -or $priorGroup.StartsWith($groupPath + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Screenshot groups cannot duplicate or overlap.' }
+    }
+    $duplicateGroupPaths.Add($groupPath)
+    foreach ($file in $group.files) {
+      $filePath = Assert-LocalPath (Join-Path $workspace $file.path)
+      if ([IO.Path]::GetDirectoryName($filePath) -ne $groupPath -or [IO.Path]::GetExtension($filePath) -ne '.png' -or $file.sha256 -notmatch '^[a-f0-9]{64}$' -or -not $duplicateDeletePaths.Add($filePath)) { throw 'Screenshot manifest contains invalid or duplicate direct PNG paths.' }
+    }
+  }
+  foreach ($group in $duplicatePlan.groups) {
+    foreach ($file in $group.files) {
+      $retainedPath = Assert-LocalPath (Join-Path $workspace $file.retainedPath)
+      if (-not $retainedPath.StartsWith((Join-Path $workspace 'artifacts') + '\', [StringComparison]::OrdinalIgnoreCase) -or [IO.Path]::GetExtension($retainedPath) -ne '.png' -or $duplicateDeletePaths.Contains($retainedPath)) { throw 'Retained PNG must stay outside the deletion set inside artifacts.' }
+      foreach ($relative in @($file.path, $file.retainedPath)) {
+        $absolute = Assert-LocalPath (Join-Path $workspace $relative)
+        $item = Get-Item -LiteralPath $absolute -Force
+        if ($item.PSIsContainer -or $item.Length -ne $file.bytes -or (Get-FileHash -LiteralPath $absolute).Hash.ToLowerInvariant() -ne $file.sha256) { throw ('Duplicate screenshot content mismatch: ' + $relative) }
+      }
+    }
+    $countBefore = $candidates.Count
+    Add-Candidate (Join-Path $workspace $group.path) 'Explicit exact historical screenshot duplicates; retained PNG remains'
+    if ($candidates.Count -gt $countBefore) {
+      $candidate = $candidates[$candidates.Count - 1]
+      $candidate.bytes = [long](($group.files | Measure-Object bytes -Sum).Sum)
+      $candidate | Add-Member -NotePropertyName duplicateScreenshots -NotePropertyValue @($group.files)
+      $candidate | Add-Member -NotePropertyName deletionScope -NotePropertyValue 'Listed direct PNG files only; parent directory retained'
+    }
+  }
+  if ((Get-FileHash -LiteralPath $duplicateManifestPath).Hash -ne $duplicateManifestSha256) { throw 'Screenshot manifest changed during preview.' }
+}
+elseif ($VerificationCopies.Count) {
   foreach ($verificationProof in $verificationProofs) {
     Add-Candidate $verificationProof.path 'Explicitly selected regenerable native-audio extraction or WebView2 profile copy' $verificationProof
   }
@@ -493,6 +546,7 @@ try {
     minimumAgeMinutes = $MinimumAgeMinutes; includeBuild = [bool]$IncludeBuild; keepLatestOnly = [bool]$KeepLatestOnly; temporaryNames = $TemporaryNames
     preservedFiles = $preservedFiles
     verificationCopies = $VerificationCopies; verificationProofs = $verificationProofs.ToArray()
+    duplicateScreenshotsManifest = $DuplicateScreenshotsManifest
     workspace = $workspace; highWaterBytes = $summary.highWaterBytes; lowWaterBytes = $summary.lowWaterBytes
     bytesBefore = $summary.bytesBefore; bytesAfter = $summary.bytesAfter
     candidates = $ordered; skipped = $skipped.ToArray(); deletedBytes = [long]0; result = 'started'
@@ -543,7 +597,20 @@ try {
         throw ('Candidate changed before deletion; stopped: ' + $candidate.path)
       }
       if ($KeepLatestOnly) { Assert-PreservedRelease }
-      Remove-Item -LiteralPath $candidate.path -Recurse -Force
+      if ($candidate.PSObject.Properties['duplicateScreenshots']) {
+        if ((Get-FileHash -LiteralPath $duplicateManifestPath).Hash -ne $duplicateManifestSha256) { throw 'Screenshot manifest changed before deletion.' }
+        foreach ($file in $candidate.duplicateScreenshots) {
+          foreach ($relative in @($file.path, $file.retainedPath)) {
+            $absolute = Assert-LocalPath (Join-Path $workspace $relative)
+            $item = Get-Item -LiteralPath $absolute -Force
+            if ($item.PSIsContainer -or $item.Length -ne $file.bytes -or (Get-FileHash -LiteralPath $absolute).Hash.ToLowerInvariant() -ne $file.sha256) { throw ('Duplicate screenshot changed before deletion: ' + $relative) }
+          }
+        }
+        if ((Read-Snapshot $candidate.path).fingerprint -ne $candidate.fingerprint) { throw 'Screenshot directory changed during hash verification.' }
+        $selectedPngPaths = @($candidate.duplicateScreenshots | ForEach-Object { Join-Path $workspace $_.path })
+        Remove-Item -LiteralPath $selectedPngPaths -Force
+      }
+      else { Remove-Item -LiteralPath $candidate.path -Recurse -Force }
       $candidate.deleted = $true
       $report.deletedBytes += $candidate.bytes
       # Re-measure after each removal: new unrelated files and archived scripts must

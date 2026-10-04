@@ -5,6 +5,7 @@ param(
   [string]$ProjectRoot,
   [string[]]$TemporaryNames = @(),
   [string[]]$VerificationCopies = @(),
+  [string]$DuplicateScreenshotsManifest,
   [ValidateRange(0, 10080)][int]$MinimumAgeMinutes = 30
 )
 
@@ -13,4 +14,5 @@ $cleanupOptions = @{
   IncludeBuild = $IncludeBuild; TemporaryNames = $TemporaryNames; MinimumAgeMinutes = $MinimumAgeMinutes
 }
 if ($PSBoundParameters.ContainsKey('VerificationCopies')) { $cleanupOptions.VerificationCopies = $VerificationCopies }
+if ($PSBoundParameters.ContainsKey('DuplicateScreenshotsManifest')) { $cleanupOptions.DuplicateScreenshotsManifest = $DuplicateScreenshotsManifest }
 & (Join-Path $PSScriptRoot 'scripts/cleanup-local.ps1') @cleanupOptions

@@ -277,6 +277,14 @@ pnpm prototype:verify:game
 
 修改工具后运行 `powershell.exe -NoProfile -File scripts/cleanup-local.test.ps1` 与 `powershell.exe -NoProfile -File scripts/project-maintenance.test.ps1`。前者检查手动预览、ZIP／进程／链接／白名单／近期保护、脚本归档及显式构建清理；后者用隔离 Git 主仓库和 worktree 检查目录发现、不重复计量、高低水位、最旧优先、互斥及候选耗尽。测试不清理真实 release，结果分别保存在 `artifacts/maintenance/local-cleanup-tools/tool-tests.json` 和 `artifacts/maintenance/project-maintenance-tools/tool-tests.json`。
 
+### 手动历史截图去重
+
+用户明确要求清理历史证据时，可用 `Clean-Intermediates.ps1 -DuplicateScreenshotsManifest <清单路径>` 先预览，核对后加 `-Apply`。清单位于 `artifacts/maintenance/`，版本字段为 `1`，`groups` 列出不重叠的历史目录及其直接 PNG 文件；每项含 `path`、`bytes`、`sha256` 和 `retainedPath`。当前范围仅接受 `artifacts/maintenance/v1.0.0/`、`v1.0.1/` 下经人工审计的截图，不接受整个目录删除，不与其他手动选择或自动维护混用。
+
+预览与删除前都逐文件核验源与保留 PNG 的大小和 SHA-256，保留文件不得在删除集合中；仍执行当前便携证明、路径、链接、嵌套仓库、进程、30 分钟近期、目录指纹和互斥保护。删除只针对显式 PNG 文件，目录里的 JSON、日志、存档、独有图片和其他文件保持原位。执行报告保留每张退役截图的哈希与同字节保留位置；旧验收结果正文不改写，清理后的历史副本从该清单追溯。来源图及正文直接引用图片须在生成清单时排除，不能仅根据名称或 Git 忽略判断。
+
+相关隔离验证为 `powershell -NoProfile -File scripts/duplicate-screenshots-cleanup.test.ps1`；修改共用清理实现还需既有手动／自动保护回归。该模式不减少当前交付 ZIP 的内容，也不导出源码包。
+
 ## 工作目录透明压缩
 
 [Compress-Workspace.ps1](../../Compress-Workspace.ps1) 为 Windows NTFS 工作目录提供逐文件透明压缩。默认只审计，确认构建、应用和验证均退出后显式执行：
