@@ -1,6 +1,6 @@
 # 电力公司
 
-TableMax 第三款独立游戏，采用经典《Power Grid》德国修正版地图，支持 2–6 人。规则版本 `classic-germany-2009-project-1`、状态版本 1、独立本地策略 `power-grid-local`／1.0.1；应用继续沿用 1.0.1。完整混合局、恢复、三端界面和最终同 ZIP 便携验收已通过，范围与模拟边界见 [验收](../../reference/acceptance.md#101电力公司经典德国版2026-10-04)，过程见 [接入归档](../../archive/power-grid-2026-10-04.md)。
+TableMax 第三款独立游戏，采用经典《Power Grid》德国修正版地图，支持 2–6 人。规则版本 `classic-germany-2009-project-1`、状态版本 1、独立本地策略 `power-grid-local`／1.0.1；当前应用为 1.0.2，游戏版本保持。完整混合局、恢复、三端界面和 1.0.1 同 ZIP 便携验收已通过，范围与模拟边界见 [验收](../../reference/acceptance.md#101电力公司经典德国版2026-10-04)，过程见 [接入归档](../../archive/power-grid-2026-10-04.md)。
 
 | 主题 | 入口 |
 | ---- | ---- |

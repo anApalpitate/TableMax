@@ -4,9 +4,9 @@ Windows 局域网数字桌游平台。电脑运行本地服务、管理对局并
 
 适用于同一地点的多人聚会，可连接电视或第二块屏幕展示牌桌。游戏资源随程序提供，正式对局不依赖互联网。
 
-**当前版本：v1.0.1** · [下载 Windows 便携版](https://github.com/anApalpitate/TableMax/releases/download/v1.0.1/TableMax-1.0.1-win-x64.zip) · [Release 与校验清单](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.1)
+**当前本地版本：v1.0.2** · [下载 Windows 便携版](artifacts/releases/TableMax-1.0.2-win-x64.zip) · [逐文件校验清单](artifacts/releases/TableMax-1.0.2-win-x64-manifest.json)
 
-独立《电力公司》经典德国版、头像选择、游戏介绍及现代艺术优化已更新 [本地同版本便携包](artifacts/releases/TableMax-1.0.1-win-x64.zip)，线上 Release 保留原发布内容。当前本地包和验证范围见 [验收记录](docs/reference/acceptance.md)。
+v1.0.2 包含独立《电力公司》经典德国版、头像选择、游戏介绍及现代艺术优化；[线上 v1.0.1 Release](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.1) 保留原发布内容。当前本地包和验证范围见 [验收记录](docs/reference/acceptance.md)。
 
 ## 支持的游戏
 

@@ -8,7 +8,7 @@
 
 短手机返修加 `--compact-check`：真实手机视口固定为 360×640，在本地选择前及确认前等待有限卡牌动画结束后测量，断言六格牌面／号位、合法牌堆、确认／取消入口均在首屏且可点，不滚动到目标。`L6-mew` 补充六人梦幻：完整牌库排牌后执行原规则的六次首翻、取牌、最后对手第六格及己方第六格，核验五个对手入口；未把场景或全状态端点加入正式服务。公共尺寸和二人结果断言保留，截图与几何在断言前落盘。默认入口仍保留原横屏检查；短屏专项通过不能代替默认流程和最终 ZIP 显示矩阵。
 
-范围：用户本机 Windows 11 x64；第一至六阶段已完成，当前 v1.0.1 正式入口先展示游戏库，选择宝可梦或现代艺术后运行对应完整游戏，独立原型保留合成状态。已有对局按存档恢复对应游戏。当前交付验收按用户授权使用电视／手机模拟，证据及 AC 对应见 [验收记录](acceptance.md)；历史阶段记录保持原验证范围。
+范围：用户本机 Windows 11 x64；第一至六阶段已完成，当前 v1.0.2 正式入口先展示游戏库，选择宝可梦、现代艺术或电力公司后运行对应完整游戏，独立原型保留合成状态。已有对局按存档恢复对应游戏。当前交付验收按用户授权使用电视／手机模拟，证据及 AC 对应见 [验收记录](acceptance.md)；历史阶段记录保持原验证范围。
 
 第二阶段设计行为和 AC 场景见 [通用交互规格](phase-02-platform-spec.md)，规则关口与接续工作见 [阶段任务](../archive/phase-02-rules-and-interaction.md)。原型不读取默认数据目录，不改变正式桌面入口。
 
@@ -137,11 +137,11 @@ pnpm prototype:verify:game
 
 本节完整矩阵适用于相关游戏、平台或界面实现变更。仅重新编号版本及修改开发文档时，检查格式、链接、脚本与配置，再执行 `pnpm package:win`（已包含构建）和 `pnpm verify:portable` 验证最终 ZIP；游戏源码未变的功能专项沿用既有通过证据。便携验证会检查运行程序的应用版本与根目录版本一致，避免只改文件名。
 
-先执行 `pnpm check`、`pnpm build`，再按改动运行 `pnpm verify:experience`、`pnpm verify:game-ui`、`pnpm verify:desktop` 和显示／聚会专项。验证入口按根目录 `package.json` 版本选择证据目录，当前为 `artifacts/maintenance/v1.0.0/`；原 1.6.0 证据保留在 `artifacts/maintenance/v1.6.0/`：完整对局为 `development`／`portable`，新版操作为 `experience`／`experience-portable`，能力／卡面为 `ui`／`cards`，专项投影视觉为 `effects`，显示为 `display/development`／`display/portable`，聚会、等级及呈现仍用 `party`、`room`、`presentation` 及各自 `-portable` 子目录。旧版 `display-resolution` 等历史证据不覆盖。命令入口存在不代表验证已通过；便携结果必须对应最终 ZIP 的实际执行与哈希，不能由开发构建推定。
+先执行 `pnpm check`、`pnpm build`，再按改动运行 `pnpm verify:experience`、`pnpm verify:game-ui`、`pnpm verify:desktop` 和显示／聚会专项。验证入口按根目录 `package.json` 版本选择证据目录，当前为 `artifacts/maintenance/v1.0.2/`；原 1.6.0 证据保留在 `artifacts/maintenance/v1.6.0/`：完整对局为 `development`／`portable`，新版操作为 `experience`／`experience-portable`，能力／卡面为 `ui`／`cards`，专项投影视觉为 `effects`，显示为 `display/development`／`display/portable`，聚会、等级及呈现仍用 `party`、`room`、`presentation` 及各自 `-portable` 子目录。旧版 `display-resolution` 等历史证据不覆盖。命令入口存在不代表验证已通过；便携结果必须对应最终 ZIP 的实际执行与哈希，不能由开发构建推定。
 
-游戏元数据和加载器分别维护在服务注册表与 `apps/web/src/game-clients/registry.ts`。盒子只需要目录信息与缩略图；进入 `/game` 后加载对应客户端、样式和资源。服务按选择或存档 manifest 加载对应规则，Worker 按任务加载对应策略；`build/desktop/games/*.cjs`、`bots/*.cjs` 与前端分块一起本地打包。已加载模块可在进程内复用，回盒子卸载游戏界面不等于清除 JavaScript 模块缓存。正式目录展示宝可梦和现代艺术；内部 `template` 用于切换、容量及策略兼容验证，不作为完整产品游戏。现代艺术的独立规则／三档策略／本地美术说明见 [游戏规格](../games/modern-art/README.md)，专项证据位于 `artifacts/maintenance/v1.0.0/modern-art/development` 与 `portable`。
+游戏元数据和加载器分别维护在服务注册表与 `apps/web/src/game-clients/registry.ts`。盒子只需要目录信息与缩略图；进入 `/game` 后加载对应客户端、样式和资源。服务按选择或存档 manifest 加载对应规则，Worker 按任务加载对应策略；`build/desktop/games/*.cjs`、`bots/*.cjs` 与前端分块一起本地打包。已加载模块可在进程内复用，回盒子卸载游戏界面不等于清除 JavaScript 模块缓存。正式目录展示宝可梦、现代艺术和电力公司；内部 `template` 用于切换、容量及策略兼容验证，不作为完整产品游戏。现代艺术的独立规则／三档策略／本地美术说明见 [游戏规格](../games/modern-art/README.md)，原接入专项证据保留于 `artifacts/maintenance/v1.0.0/modern-art/development` 与 `portable`；电力公司证据见该游戏验证段落。
 
-`pnpm verify:memory` 先从当前源码提取 `copySave`，与 1.5.0 基线的整份 `structuredClone` 在独立 `--expose-gc` Node 进程比较；可用 `--baseline-ref=<Git修订>` 指定另一个确实包含旧复制方式的基线。六席／1,200 checkpoint／1,200 receipt fixture 由合法六席快照扩展并经生产存档校验，不宣称已实际游玩 1,200 步。随后对实际后台 WebView2 连续执行 20 轮开始、结束、回盒子及重新选择同游戏，记录 GC 后 renderer heap、DOM、监听器和本应用进程内存。结果在当前版本目录的 `memory/results.json`（当前 `artifacts/maintenance/v1.0.0/`，既有 1.6.0 Electron 测量保留）；临时入口、数据和 fixture 在 `tmp/runtime-memory-*`。`--copy-only` 不启动桌面，`--desktop-only` 保留已有复制测量并追加桌面结果；后者需先构建。不同运行时的绝对工作集不能直接比较为游戏优化收益。
+`pnpm verify:memory` 先从当前源码提取 `copySave`，与 1.5.0 基线的整份 `structuredClone` 在独立 `--expose-gc` Node 进程比较；可用 `--baseline-ref=<Git修订>` 指定另一个确实包含旧复制方式的基线。六席／1,200 checkpoint／1,200 receipt fixture 由合法六席快照扩展并经生产存档校验，不宣称已实际游玩 1,200 步。随后对实际后台 WebView2 连续执行 20 轮开始、结束、回盒子及重新选择同游戏，记录 GC 后 renderer heap、DOM、监听器和本应用进程内存。结果在对应版本目录的 `memory/results.json`（既有 `artifacts/maintenance/v1.0.0/` 与 1.6.0 Electron 测量保留，单纯编号导出不重测内存）；临时入口、数据和 fixture 在 `tmp/runtime-memory-*`。`--copy-only` 不启动桌面，`--desktop-only` 保留已有复制测量并追加桌面结果；后者需先构建。不同运行时的绝对工作集不能直接比较为游戏优化收益。
 
 内存结果只说明测量配置下的复制分配、耗时和导航回归；并行工程负载可能影响耗时与工作集，不使用整台电脑 RAM 评价本应用。当前按字段复制仍保留全部有效回退历史，完整存档序列化和历史体积仍随对局增长，不能写成长期有界内存。磁盘阈值维护使用下节清理工具，与运行时 RAM 分开。
 
@@ -180,7 +180,7 @@ pnpm prototype:verify:game
 | WebView2 浏览器数据  | 数据目录 `desktop/webview2/`，包含网页会话与缓存；旧 Electron 缓存保留，手机原浏览器身份及 room.sqlite 继续沿用                                                                                                    |
 | pnpm、下载与工具缓存 | 仓库 `.pnpm-store/`、`.cache/`；Git 忽略，工作区隐藏与排除监听                                                                                                                                                     |
 | 可再生构建           | 仓库 `build/`，Git 忽略，工作区隐藏                                                                                                                                                                                |
-| 便携包与验证图／JSON | 当前 v1.0.0 ZIP 在 artifacts/releases，本轮验证在 artifacts/maintenance/v1.0.0；原 1.6.0 功能证据在 artifacts/maintenance/v1.6.0；历史证据保留，旧程序清理情况见验收记录；Git 忽略，文件树可见，搜索与监听单独排除 |
+| 便携包与验证图／JSON | 当前 v1.0.2 ZIP 在 artifacts/releases，编号导出验证在 artifacts/maintenance/v1.0.2；原 1.0.0／1.0.1／1.6.0 功能证据按版本保留，旧程序清理情况见验收记录；Git 忽略，文件树可见，搜索与监听单独排除 |
 | 原型构建             | 仓库 `artifacts/phase-02/prototype/`，独立于 `build/desktop/web/`                                                                                                                                                  |
 | 原型截图与走查 JSON  | 仓库 `artifacts/phase-02/verification/`，Git 忽略但文件树可见；每次走查更新对应证据                                                                                                                                |
 | 美术原图与前后对比   | 仓库 `artifacts/phase-02/art-reset/`；保留 imagegen 原始 PNG、透明通道／尺寸／哈希检查、联系表及同尺寸前后截图和文字测量                                                                                           |
@@ -251,9 +251,9 @@ pnpm prototype:verify:game
 
 ## 第五、六阶段完整游戏与交付
 
-当前版本 1.0.0，默认游戏 pokemon-encounters，规则 tablemax-cn-s19-v1，状态版本 1，策略 pokemon-encounters/basic／1。已有旧验证模板存档的用户需要保留／备份原数据，在独立数据目录启动新版本；不自动覆盖不兼容存档。可在 PowerShell 设置 $env:TABLEMAX_DATA_DIR 为明确的新目录后运行程序，普通使用仍取默认 LOCALAPPDATA/TableMax。
+当前应用版本 1.0.2，首版游戏 pokemon-encounters 的规则 tablemax-cn-s19-v1、状态版本 1、基础策略 pokemon-encounters/basic／1 保持；正式入口可选择三款游戏。已有旧验证模板存档的用户需要保留／备份原数据，在独立数据目录启动新版本；不自动覆盖不兼容存档。可在 PowerShell 设置 $env:TABLEMAX_DATA_DIR 为明确的新目录后运行程序，普通使用仍取默认 LOCALAPPDATA/TableMax。
 
-当前在根目录执行 pnpm check、pnpm build；游戏 UI 改动另执行 pnpm verify:game-ui，桌面／服务集成执行 pnpm verify:desktop。pnpm package:win 会先构建，输出 artifacts/releases/TableMax-1.0.1-win-x64.zip；pnpm verify:portable 解压该 ZIP 后实际运行，PATH 仅系统目录。第五、六阶段历史包曾位于 artifacts/phase-06，以下 2026-10-01 结果仍属于当时工程与运行时，不覆盖为新原生壳验收。
+当前在根目录执行 pnpm check、pnpm build；游戏 UI 改动另执行 pnpm verify:game-ui，桌面／服务集成执行 pnpm verify:desktop。pnpm package:win 会先构建，输出 artifacts/releases/TableMax-1.0.2-win-x64.zip；pnpm verify:portable 解压该 ZIP 后实际运行，PATH 仅系统目录。第五、六阶段历史包曾位于 artifacts/phase-06，以下 2026-10-01 结果仍属于当时工程与运行时，不覆盖为新原生壳验收。
 
 2026-10-01 全套类型／静态／格式检查和 48 项测试通过。新增首版规则／计分、20 固定种子 2–5 座位完整大局、D01–D13 精确回退／重演和 3 处实际服务 SIGKILL 恢复。真实能力 UI 7 组通过，包含 5 音频解码、保存反馈、动画 CSS／animationstart 观察、减少动态、360／390 布局、44px 和确认栏遮挡检查。完整桌面与最终便携走查为 2 真人模拟加 3 个实际 Worker bot，涵盖三胜结束、回退、正常关闭／同地址重启、后台冻结和断网导航后原身份恢复；观察到的网页资源全部本地，无页面错误。
 
