@@ -40,6 +40,8 @@
 | `docs/games/pokemon-encounters/`                                                                  | 首版来源、规则、cards.json、状态／权限／决策、交互、资源、scenarios.json及人机规格；完整测试fixture不导入原型                                            |
 | `docs/reference/`                                                                                 | 当前目录与工程边界、开发操作及验证记录、维护规则、第二阶段通用交互与交接规格、人机规格及适度封装原则                                                     |
 | `docs/reference/art-preferences.md`                                                               | 艺术／UI 设计和审查前必查的用户偏好、历史反馈来源与适用边界；具体布局、资源、行为和数值维护在对应规格，不复制任务过程                                    |
+| `docs/reference/visual-design.md`                                                                 | 当前通用视觉、字号、状态与标记、集合浏览、保存后声画、图文规则说明和验证要求；各游戏专属表现／配图仍归游戏主题与资源清单                                 |
+| `docs/reference/acceptance.md`、`docs/archive/acceptance-2026-10-01-to-04.md`                     | 最近交付与验证边界／较早原验收正文；当前页保留旧标题转链，历史版本、AC、证据与哈希不倒改                                                                 |
 | `docs/decisions/`                                                                                 | 已确定的重要选择、理由与后果；已有工程基础技术方向决策，含新增人机与可维护性范围决策；产品决策引用需求与用户最新指示                                     |
 | `docs/tasks/`                                                                                     | 粗粒度阶段总览与进行中任务；已完成阶段保留归档链接；第一至六阶段完成，后续独立需求在任务索引维护                                                         |
 | `docs/subagent/`                                                                                  | 子 agent 职责索引与单独角色文档；覆盖原生桌面、平台服务、构建验收、独立视觉审查和 imagegen，保存输入、文件边界、交付和维护约定，不保存图片或会话实例配置 |
@@ -57,7 +59,7 @@
 | -------------------- | ---------------------------------------- |
 | `packages/ui/`       | 按后续实际组件复用需要建立，不预铺空包。 |
 
-当前首版规格与数据已在 [游戏主题](../games/pokemon-encounters/README.md)，游戏标识与当前源码及资源命名空间一致。长期来源、规则、权限、交互、资源和场景各有主题；跨游戏行为维护在 [通用平台规格](phase-02-platform-spec.md)，运行及检查维护在 [开发说明](development.md)。后续候选的人气线索与平台适配集中在 [docs/games/candidates.md](../games/candidates.md)，研究记录不等于已建立游戏规格或实现目录。
+当前首版规格与数据已在 [游戏主题](../games/pokemon-encounters/README.md)，游戏标识与当前源码及资源命名空间一致。长期来源、规则、权限、交互、资源和场景各有主题；跨游戏行为维护在 [通用平台规格](phase-02-platform-spec.md)，表现要求维护在 [通用视觉](visual-design.md)，运行及检查维护在 [开发说明](development.md)。后续候选的人气线索与平台适配集中在 [docs/games/candidates.md](../games/candidates.md)，研究记录不等于已建立游戏规格或实现目录。
 
 新增目录应有当前明确职责，不预铺未来插件、多房间或后续游戏的空层级。确需跟踪空目录时使用 `.gitkeep` 或有实际用途的说明文件。
 
@@ -66,7 +68,7 @@
 - 长期需求、规则规格、来源清单和必要游戏资源属于项目资料；放入对应主题，不混入临时目录。
 - 本地实验、临时导出或下载中间文件可放入根目录 `tmp/`（需要时创建）；不作为长期资料入口。
 - 未采用的等待背景原图和来源归档在 `artifacts/phase-02/theme-preparation/`；不再占用运行资源目录。清理临时研究目录时，有历史价值的资料先归入 `artifacts/phase-02/research/`，重复下载与一次性脚本不长期保留。
-- 根目录 `build/` 已用于可再生构建中间物，`dist/` 为保留的构建排除项。工程验证截图与 JSON 证据保存在 `artifacts/phase-01/`；第二阶段原型构建、检索原始响应和走查证据在 `artifacts/phase-02/`。第三、四阶段真实平台截图与 JSON 在 `artifacts/phase-03-04/verification/`。第五阶段原图／素材检查在 artifacts/phase-05/imagegen；第六阶段 desktop／portable／ui 验证在 artifacts/phase-06。版本 ZIP 输出到 `artifacts/releases/`；1.5.0 显示证据保留在 `artifacts/maintenance/display-resolution/`，原 1.6.0 各专项保留在 `artifacts/maintenance/v1.6.0/`，当前 v1.0.0 新验证进入 `artifacts/maintenance/v1.0.0/`。WebView2 迁移记录位于其 `webview2/` 子目录，迁移前 Electron 同版本证据保留在 `before-webview2/`；便携是否通过以最终 ZIP 对应实际记录为准。历史程序包及已结束中间物的清理见 [开发说明](development.md#清理本地中间物)，清理日志在 `artifacts/maintenance/local-cleanup-*`，一次性脚本先归档；历史证据与原始素材保留，上述本地产物 Git 忽略但文件树保持可见。
+- 根目录 `build/` 已用于可再生构建中间物，`dist/` 为保留的构建排除项。工程验证截图与 JSON 证据保存在 `artifacts/phase-01/`；第二阶段原型构建、检索原始响应和走查证据在 `artifacts/phase-02/`。第三、四阶段真实平台截图与 JSON 在 `artifacts/phase-03-04/verification/`。第五阶段原图／素材检查在 artifacts/phase-05/imagegen；第六阶段 desktop／portable／ui 验证在 artifacts/phase-06。版本 ZIP 输出到 `artifacts/releases/`；1.5.0 显示证据保留在 `artifacts/maintenance/display-resolution/`，原 1.6.0 各专项保留在 `artifacts/maintenance/v1.6.0/`，当前 v1.0.2 新验证进入 `artifacts/maintenance/v1.0.2/`，各历史版本证据目录保留原归属。WebView2 迁移记录位于其 `webview2/` 子目录，迁移前 Electron 同版本证据保留在 `before-webview2/`；便携是否通过以最终 ZIP 对应实际记录为准。历史程序包及已结束中间物的清理见 [开发说明](development.md#清理本地中间物)，清理日志在 `artifacts/maintenance/local-cleanup-*`，一次性脚本先归档；历史证据与原始素材保留，上述本地产物 Git 忽略但文件树保持可见。
 - `tmp/experience-*` 包含新版操作验证的隔离数据与便携解压，`tmp/runtime-memory-*` 包含临时复制模块、规模化存档 fixture 和桌面数据；已结束且满足安全条件时可清理，长期 JSON／截图在对应 `artifacts/maintenance/v1.6.0/` 子目录保留。容量维护流式统计且跳过链接和嵌套仓库，不能因总量超标删除依赖、工具缓存、正式数据或证据。
 - `artifacts/phase-02/prototype/` 是可再生原型构建，`verification/` 是对应走查证据，`research/` 是已保存的检索响应与哈希清单。资料是否可再生分别判断，不能因同在 artifacts 下就覆盖或删除原始响应。路径与命令见开发说明，资料适用性见 [规则来源与核验缺口](../games/pokemon-encounters/sources.md#规则来源与核验缺口)。
 - `artifacts/phase-02/research/chinese-reference/s14/` 保存用户三张原始中文截图、尺寸／哈希和牌面转录；叠图数量已由 S17 核对为 56，原始观察及原图保留；完整采用表在 docs/games/pokemon-encounters/cards.json，原图不直接导入运行时。

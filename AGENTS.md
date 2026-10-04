@@ -10,7 +10,7 @@
 
 1. 先读本文件和 [文档索引](docs/README.md)，检查 Git 状态及相关 diff。
 2. 按任务阅读需求的相关章节、所需主题页和对应源文件；资料未变且上下文仍可用时，用定向检索与增量 diff 补充，不重复全文读取或遍历生成物。
-3. 查目录归属读 [目录职责](docs/reference/project-structure.md)；更新文档读 [维护规则](docs/reference/maintenance.md)。
+3. 查目录归属读 [目录职责](docs/reference/project-structure.md)；更新文档读 [维护规则](docs/reference/maintenance.md)，按 [定向查询](docs/README.md#定向查询)限定当前主题与游戏，追溯时才读归档。
 4. 查重要选择读 [决策索引](docs/decisions/README.md)，查开发阶段与待办读 [任务索引](docs/tasks/README.md#后续开发接续入口)；第一至六阶段已完成，当前为首版维护与后续独立需求；交付和模拟验收见 [验收记录](docs/reference/acceptance.md)。游戏接入读 [扩展指南](docs/game-development/README.md)。仅追溯历史范围、采用关口和证据时读 [归档索引](docs/archive/README.md)。
 5. 运行与验证读 [开发环境](docs/reference/development.md)，修改源码边界读 [工程结构](docs/reference/architecture.md)；已确认技术方向见 [工程基础决策](docs/decisions/001-engineering-foundation.md) 与 [小体积桌面决策](docs/decisions/008-small-native-desktop.md)。
 6. 首版规则、数据、权限、决策与验证查 [游戏规格](docs/games/pokemon-encounters/README.md)，跨游戏交互与恢复查 [通用规格](docs/reference/phase-02-platform-spec.md)，原文缺口查 [规则来源](docs/games/pokemon-encounters/sources.md#规则来源与核验缺口)；原型运行与检查查开发环境，原型走查不代表产品验收。
@@ -18,7 +18,7 @@
 8. 电脑玩家要求、独立决策文件与验证见 [人机规格](docs/reference/bot-players.md)；面向对象的适度封装见 [工程结构](docs/reference/architecture.md#面向对象与适度封装)。游戏 bot 与本项目开发子 agent 是两类不同角色。
 9. 第二款正式游戏《现代艺术》的规则、卡牌分布、拍卖／秘密权限及三档策略见 [游戏规格](docs/games/modern-art/README.md)；出版依据与项目约定见 [来源](docs/games/modern-art/sources.md)。各游戏的规则、策略、UI、样式与资源必须独立，共享层只按目录和通用契约组装。
 10. 第三款游戏《电力公司》采用经典德国修正版地图，规则、经济、电厂、投影与三档策略见 [游戏规格](docs/games/power-grid/README.md)，42 城／六区／83 边与绘图边界见 [地图](docs/games/power-grid/map.md)。不能混入 Recharged 或其他地图规则；已完成独立接入，交付状态见 [验收](docs/reference/acceptance.md#101电力公司经典德国版2026-10-04)。
-11. 盒子／游戏 UI、布局、图标、头像、插画、动效及视觉审查，必须先查询 [用户美术偏好](docs/reference/art-preferences.md)，结合最新反馈与对应规格；派工传入该入口，不能把既有实现或 agent 建议写成用户偏好。
+11. 盒子／游戏 UI、布局、图标、头像、插画、动效及视觉审查，先查询 [用户美术偏好](docs/reference/art-preferences.md) 与 [通用视觉](docs/reference/visual-design.md)，再读对应游戏规格；派工传入这些入口，区分共性与游戏例外，不能把既有实现或 agent 建议写成用户偏好。
 
 ## 工作约定
 
@@ -37,14 +37,14 @@
 - 前端采用 React／TypeScript；桌面通过独立服务进程访问平台。盒子与游戏为独立页面，电脑和手机游戏主体尽量占满窗口；主机／公共／手机分别有盒子入口与 `/game` 子路由，默认唯一牌桌；电脑主机仅管理、不参赛，public 只读。调试范围见 [界面决策](docs/decisions/002-host-public-screen-and-debug.md)。游戏规则独立于 UI、通信、数据库和桌面运行时，每款游戏集中在 `games/<id>/`。
 - Windows x64 桌面采用 `apps/desktop/native/` 的 C# WinForms／.NET Framework 4.8、共享 WebView2 与包内 Node 22.14.0；开发 SDK 由 `global.json` 固定。服务凭证仅走父子私有管道，桥接核验本源、顶层和角色，异常退出通过 Job Object 清理服务。便携 ZIP 与实际解压程序都须严格小于 100,000,000 字节，以 95 MB 为工程预算；运行时前提、计量边界和交付验证见 [小体积桌面决策](docs/decisions/008-small-native-desktop.md)。
 - 从玩家视角精简操作：取牌等单步意图直接操作对应组件；换牌、交换等位置选择使用具体动作确认。管理、帮助和记录按需展开，动效只表达已保存结果。会话、页面、通用控件和游戏场景分别维护，长期行为见 [通用规格](docs/reference/phase-02-platform-spec.md#盒子与独立牌桌)。
-- 玩法教学默认在线下完成，不主动新增游戏内教程或规则帮助；用户 2026-10-04 明确要求现代艺术提供图文规则顶层卡片，按其游戏规格维护。连接排障、身份恢复和房主管理提示按实际操作保留。
+- 用户 2026-10-04 最新要求优化每款游戏规则说明，按 [图文规则浮层](docs/reference/visual-design.md#顶层图文规则说明)和各游戏已采用版本维护；不主动增加强制教程。连接排障、身份恢复和房主管理提示按实际操作保留。
 - 普通启动使用实际游玩节奏；测试模式入口只给房主隐蔽快捷键，快跑与省动效不能绕过授权、规则或保存。辅助信息／管理使用浮窗，最新保存动作明确行动者、卡牌／能力和公开目标；首版当前最多六人，依据与兼容见游戏规格。
 - 电脑显示设置覆盖房间、游戏和浮窗，适配至 3840×2160；结合 Windows DPI、窗口和全屏调整，房主管理与公共窗口独立缩放并保存，手机不提供电脑显示设置。具体预设与行为见通用规格，不能让显示调整改变对局或玩家身份。
 - 所有运行和原型美术／声音集中在 `assets/`，通过资源表替换并维护来源与版本；宝可梦卡面贴近原版角色及实物参考，统一角标用代码排版。
 - 多游戏按需下载并本地安装列为 [未来计划](docs/tasks/README.md#多游戏按需安装未来计划未实现)；当前首版仍随包提供完整资源，正式对局继续不依赖互联网，不把内置懒加载写成已支持游戏包安装。
-- 平台采用明亮的桌游主机美术，图像与主要操作优先；三端布局、imagegen 素材制作及说明折叠规则见 [通用规格](docs/reference/phase-02-platform-spec.md#已确认的美术方向与三端布局)，先在独立原型验证。
+- 平台采用明亮的桌游主机美术，图像与主要操作优先；主体、标记、集合浏览、保存后声画与素材追溯见 [通用视觉](docs/reference/visual-design.md)，各游戏保留独立主题，地图与卡位按规则判断，先验证风险场景。
 - 美术取舍与新反馈持续合并到 [用户美术偏好](docs/reference/art-preferences.md)，区分用户原话、明确采用方案和实现判断；最新明确反馈优先，偏好不覆盖可读性、触控、秘密权限和减少动态要求。
-- 新增或重做界面按 [信息文字下限](docs/reference/phase-02-platform-spec.md#信息文字下限2026-10-04) 执行：信息文字至少 16 CSS px、主要动作与关键状态至少 18px、电脑分区标题至少 20px；短屏先精简重复信息和重排，不能缩小文字规避。共用决定倒计时仅作提醒，设置与游戏 checkpoint 分离。
+- 新增或重做界面按 [信息文字下限](docs/reference/visual-design.md#信息文字下限2026-10-04) 执行：信息文字至少 16 CSS px、主要动作与关键状态至少 18px、电脑分区标题至少 20px；短屏先精简重复信息和重排，不能缩小文字规避。共用决定倒计时仅作提醒，设置与游戏 checkpoint 分离。
 - 项目工具版本与依赖锁定在仓库内，保存时使用项目 Prettier 配置格式化；源码修改按影响执行真实工程检查，不修改其他项目的全局环境。
 - 模拟验证优先隐藏窗口／后台渲染，不把测试应用带到前台；截图须来自实际更新后的渲染。
 - 验证与影响范围相匹配；仅文档和配置调整时检查链接、配置与 diff，不机械运行无关测试或构建。

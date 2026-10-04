@@ -33,7 +33,8 @@ import type { PaintingSort } from '../../../../games/modern-art/ui/sorting';
 import { DecisionCountdown } from '../components/DecisionCountdown';
 import { ModernArtSoundControl } from '../../../../games/modern-art/ui/audio';
 import { useAudioOutput } from '../session/useAudioOutput';
-import { ModernArtRules } from '../../../../games/modern-art/ui/RulesGuide';
+import { modernArtRulebook } from '../../../../games/modern-art/ui/RulesGuide';
+import { RulesGuide } from '../components/RulesGuide';
 import { AuctionEntrance } from '../../../../games/modern-art/ui/AuctionEntrance';
 
 function ModernArtScreen({ session }: { session: RoomSession }) {
@@ -173,7 +174,10 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
           canPlay={canPlay}
           localOnly={role === 'player'}
         />
-        <button className="secondary" onClick={() => setPanel('rules')}>
+        <button
+          className="secondary game-rulebook-entry"
+          onClick={() => setPanel('rules')}
+        >
           规则
         </button>
         <button className="secondary" onClick={() => setPanel('menu')}>
@@ -289,20 +293,23 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
       {panel && (
         <OverlayPanel
           title={
-            panel === 'museums'
-              ? '各家博物馆'
-              : panel === 'market'
-                ? '历轮估值'
-                : panel === 'rules'
-                  ? '现代艺术图文规则'
-                  : '拍卖行菜单'
+            panel === 'museums' ? (
+              '各家博物馆'
+            ) : panel === 'market' ? (
+              '历轮估值'
+            ) : panel === 'rules' ? (
+              <>
+                <span className="rules-guide__title-part">现代艺术</span>
+                <span className="rules-guide__title-part">图文规则</span>
+              </>
+            ) : (
+              '拍卖行菜单'
+            )
           }
           close={() => setPanel(null)}
         >
           {panel === 'rules' ? (
-            <div className="ma-screen ma-panel ma-rules-panel">
-              <ModernArtRules />
-            </div>
+            <RulesGuide {...modernArtRulebook} />
           ) : panel === 'museums' && game ? (
             <div className="ma-screen ma-panel">
               <div className="ma-hand-tools">

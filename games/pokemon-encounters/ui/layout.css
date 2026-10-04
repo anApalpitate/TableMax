@@ -621,7 +621,7 @@
 }
 @media (max-width: 700px) {
   .pokemon-screen.player > .game-toolbar {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 3px;
     min-height: 44px;
     padding: 2px;

@@ -19,12 +19,12 @@
 
 当前进入首版维护。先读 [项目现状](../../README.md)、[工程结构](../reference/architecture.md)、[开发环境](../reference/development.md) 与 [验收记录](../reference/acceptance.md)，再按修改职责选读：
 
-| 工作                   | 当前入口及落点                                                                                                                                                                                |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 首版规则／计分／能力   | [游戏规格](../games/pokemon-encounters/README.md)，games/pokemon-encounters/rules；匹配 V00–V11 和完整种子局                                                                                  |
-| 身份／动作／回退／恢复 | [通用规格](../reference/phase-02-platform-spec.md)、[D01–D13](../games/pokemon-encounters/information-and-decisions.md#每项决策与恢复边界)，platform-core 与 server；真实消息／事务／崩溃回归 |
-| 两端 UI／资源／动效    | [交互](../games/pokemon-encounters/interaction.md)、[资源](../games/pokemon-encounters/assets.md)，游戏 UI 与 App；能力场景、尺寸／遮挡／隐私及保存反馈                                       |
-| 电脑策略与新游戏接入   | [人机规格](../reference/bot-players.md)、[首版 bot](../games/pokemon-encounters/bot.md)、[扩展指南](../game-development/README.md)；独立入口／版本／授权与全部选择覆盖                        |
+| 工作                          | 当前入口及落点                                                                                                                                                                                |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 首版规则／计分／能力          | [游戏规格](../games/pokemon-encounters/README.md)，games/pokemon-encounters/rules；匹配 V00–V11 和完整种子局                                                                                  |
+| 身份／动作／回退／恢复        | [通用规格](../reference/phase-02-platform-spec.md)、[D01–D13](../games/pokemon-encounters/information-and-decisions.md#每项决策与恢复边界)，platform-core 与 server；真实消息／事务／崩溃回归 |
+| 三端 UI／资源／动效与规则说明 | [用户美术偏好](../reference/art-preferences.md) → [通用视觉](../reference/visual-design.md) → 对应游戏主题；实际渲染、字号／遮挡／秘密与保存反馈，规则配图独立维护                            |
+| 电脑策略与新游戏接入          | [人机规格](../reference/bot-players.md)、[首版 bot](../games/pokemon-encounters/bot.md)、[扩展指南](../game-development/README.md)；独立入口／版本／授权与全部选择覆盖                        |
 
 新增任务应有实际范围和完成标准；源码修改按影响执行工程检查，验证命令统一维护在开发环境，不复制进任务页成为第二套操作说明。
 
@@ -35,6 +35,8 @@
 《现代艺术》独立接入已完成，当前规则与采用缺口见 [游戏规格](../games/modern-art/README.md)，实际交付见 [验收](../reference/acceptance.md#100现代艺术独立接入2026-10-03)，过程与耗时见 [归档](../archive/modern-art-2026-10-03.md)。常用分工见 [子 agent 职责与组合方案](../subagent/README.md#常用组合方案)。
 
 2026-10-04 的现代艺术 debug 在当前 v1.0.2 上修复公开并发与金额草稿、选画计时、盒子重进声音，更新图文规则、画廊、角标、五类声画与有限记忆／跨轮策略；完成状态、验证和包体边界见 [当前验收](../reference/acceptance.md#102现代艺术-debug-修复2026-10-04)。长期行为合并到游戏及通用规格，不把此维护条目作为另一套规则。
+
+2026-10-04 本轮跨游戏视觉维护：将共性与游戏例外整理到 [通用视觉](../reference/visual-design.md)，总索引按任务与定向查询定位，较早验收移入历史归档。电力公司维护类型标记、深边框、供电／耗料／仓位、本人电厂纵向两列、按需混燃配方与地图费用可读性；三款游戏规则说明改为按需顶层图文卡片，真实区域 PNG 保留、无损 WebP 本地打包，教学不自动触发。实际验证、最终同包体积和安全清理只以 [当前验收](../reference/acceptance.md)为准；操作命令统一维护在开发环境，不将本条当成另一份完成报告。
 
 ## 后续独立范围
 

@@ -431,10 +431,19 @@ function BuildControls({
           <strong>{getCity(city).name}</strong>
           {option ? (
             <>
-              <span>
-                城市 {option.buildingCost} E ＋ 连接 {option.connectionCost} E
-              </span>
-              <strong className="pg-build-price">{option.cost} E</strong>
+              <dl className="pg-build-costs">
+                <div>
+                  <dt>城市位置</dt>
+                  <dd>{option.buildingCost} 电币</dd>
+                </div>
+                <div>
+                  <dt>连接费</dt>
+                  <dd>{option.connectionCost} 电币</dd>
+                </div>
+              </dl>
+              <strong className="pg-build-price">
+                总价 {option.cost} 电币
+              </strong>
               <button
                 className="pg-primary"
                 disabled={locked || !action}
@@ -474,6 +483,23 @@ function PowerControls({ view, actions, locked, choose, artFor }: Props) {
               action.type === 'run' && action.plantId === plant.id,
           );
           const spec = getPlant(plant.id);
+          const runButtons = runs.map((action) => (
+            <button
+              className="pg-primary"
+              key={action.coal}
+              disabled={locked}
+              onClick={() => choose(action)}
+            >
+              {spec.fuel === 'hybrid' ? (
+                <span>
+                  煤 {action.coal} ＋ 油 {spec.input - action.coal}
+                </span>
+              ) : (
+                <span>启动 {FUEL_LABELS[spec.fuel]}</span>
+              )}
+              <strong>⚡ {spec.output} 城</strong>
+            </button>
+          ));
           return (
             <div className="pg-run-plant" key={plant.id}>
               <PlantCard
@@ -485,23 +511,14 @@ function PowerControls({ view, actions, locked, choose, artFor }: Props) {
                 {own.ran.includes(plant.id) ? (
                   <strong className="pg-running">✓ 已发电</strong>
                 ) : runs.length ? (
-                  runs.map((action) => (
-                    <button
-                      className="pg-primary"
-                      key={action.coal}
-                      disabled={locked}
-                      onClick={() => choose(action)}
-                    >
-                      {spec.fuel === 'hybrid' ? (
-                        <span>
-                          煤 {action.coal} ＋ 油 {spec.input - action.coal}
-                        </span>
-                      ) : (
-                        <span>启动 {FUEL_LABELS[spec.fuel]}</span>
-                      )}
-                      <strong>⚡ {spec.output} 城</strong>
-                    </button>
-                  ))
+                  spec.fuel === 'hybrid' && runs.length > 1 ? (
+                    <details className="pg-run-options">
+                      <summary>选择燃料 ▾</summary>
+                      {runButtons}
+                    </details>
+                  ) : (
+                    runButtons
+                  )
                 ) : (
                   <span>燃料不足</span>
                 )}

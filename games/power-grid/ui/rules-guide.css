@@ -1,0 +1,71 @@
+.rules-guide.pg-rules {
+  --rules-ink: #27382f;
+  --rules-accent: #447236;
+  --rules-paper: #edf4df;
+  --rules-line: #b4c3a0;
+}
+.pg-rulebook__phases {
+  list-style: none;
+  padding: 0 !important;
+}
+.pg-rulebook__phases li {
+  display: flex;
+  align-items: start;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--rules-line);
+  border-radius: 10px;
+}
+.pg-rulebook__phases li > span {
+  display: grid;
+  place-items: center;
+  min-width: 40px;
+  height: 40px;
+  background: var(--rules-accent);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 22px;
+  font-weight: 800;
+}
+.pg-rulebook__example,
+.pg-rulebook__steps > div {
+  padding: 14px;
+  border: 1px solid var(--rules-line);
+  border-radius: 10px;
+  background: var(--rules-paper);
+}
+.pg-rulebook__steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+  gap: 10px;
+}
+.pg-rulebook__thresholds,
+.pg-rulebook__income {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.pg-rulebook__thresholds > div,
+.pg-rulebook__income > div {
+  padding: 10px;
+  border: 1px solid var(--rules-line);
+  border-radius: 8px;
+  text-align: center;
+}
+.pg-rulebook__thresholds dt,
+.pg-rulebook__income dt {
+  font-size: 16px;
+}
+.pg-rulebook__thresholds dd,
+.pg-rulebook__income dd {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+@media (max-width: 420px) {
+  .pg-rulebook__phases li {
+    gap: 10px;
+    padding: 10px;
+  }
+}

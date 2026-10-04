@@ -11,8 +11,15 @@ const name =
   process.argv.find((value) => value.startsWith('--evidence='))?.slice(11) ??
   'fixture';
 const amountOnly = process.argv.includes('--amount-only');
+const mapOnly = process.argv.includes('--map-only');
+const captureRulesOnly = process.argv.includes('--capture-rules-only');
+const captureRules =
+  captureRulesOnly || process.argv.includes('--capture-rules');
 assert.match(name, /^[a-z0-9-]{1,40}$/);
-const output = resolve('artifacts/maintenance/v1.0.1/power-grid/ui', name);
+const output = resolve(
+  'artifacts/maintenance/v1.0.2/shared-visual-20261004/power-grid',
+  name,
+);
 await mkdir(output, { recursive: true });
 const work = await mkdtemp(join(output, 'work-'));
 const started = performance.now();
@@ -42,6 +49,8 @@ export async function make(){
   if(!fixtures[view.phase]) fixtures[view.phase]={game:view,publicGame:rules.project(state,{role:'public'}),actions,decision};
   if(view.phase==='building' && Object.values(view.players).reduce((n,p)=>n+p.cities.length,0)>30) fixtures.crowded={game:view,publicGame:rules.project(state,{role:'public'}),actions,decision};
   if(view.phase==='replace' && view.replacement?.removedPlantId!==null) fixtures.salvage={game:view,publicGame:rules.project(state,{role:'public'}),actions,decision};
+  if(view.phase==='resources' && view.players[seat]?.plants.length>=3) fixtures['owned-resources']={game:view,publicGame:rules.project(state,{role:'public'}),actions,decision};
+  if(view.phase==='powering' && actions.filter(a=>a.type==='run'&&a.plantId===view.players[seat]?.plants.find(p=>p.id===a.plantId&&p.resources.coal>0&&p.resources.oil>0)?.id).length>1) fixtures['mixed-fuel']={game:view,publicGame:rules.project(state,{role:'public'}),actions,decision};
   if(rules.ended(state)) break;
   if(!decision || !actions.length) throw new Error('Rules fixture stopped without a legal decision');
   const result=await bot.decide({view,actions,decision,memory:null,difficulty:'juewu',random,signal:new AbortController().signal});
@@ -156,7 +165,133 @@ try {
   });
   await page.goto(origin);
   await page.waitForFunction(() => window.fixtureNames?.length > 0);
-  if (amountOnly) {
+  const captureRuleScreens = async () => {
+    const directory = resolve('assets/games/power-grid/rules');
+    await mkdir(directory, { recursive: true });
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.evaluate(() => window.setFixture('owned-resources', 'host'));
+    await page.waitForTimeout(70);
+    await page.getByRole('button', { name: '各家', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('dialog[open]'));
+    await page
+      .locator('dialog .pg-company')
+      .filter({ has: page.locator('.pg-plant-card') })
+      .first()
+      .screenshot({ path: join(directory, 'companies-v1.png') });
+    await page.keyboard.press('Escape');
+    await page.evaluate(() => window.setFixture('offer', 'host'));
+    await page.waitForTimeout(70);
+    assert.ok(
+      (await page
+        .locator('.pg-desktop-market .pg-market .pg-plant-card')
+        .count()) >= 4,
+      'Rule market screenshot contains actual current and future plants',
+    );
+    await page
+      .locator('.pg-desktop-market .pg-market')
+      .screenshot({ path: join(directory, 'market-v1.png') });
+    await page.setViewportSize({ width: 390, height: 844 });
+    const stage = fixtures.crowded ? 'crowded' : 'building';
+    const options = fixtures[stage].game.buildOptions;
+    const option =
+      ['fulda', 'kassel', 'wurzburg', 'hannover']
+        .map((id) =>
+          options.find(
+            (entry) => entry.cityId === id && entry.connectionCost > 0,
+          ),
+        )
+        .find(Boolean) ??
+      options.find((entry) => entry.connectionCost > 0) ??
+      options[0];
+    assert.ok(option, 'Rule network screenshot has a legal cost preview');
+    await page.evaluate((stage) => window.setFixture(stage, 'player'), stage);
+    await page.waitForTimeout(70);
+    await page.locator('.pg-phone-map select').selectOption(option.cityId);
+    await page
+      .getByRole('button', { name: '放大地图' })
+      .click({ clickCount: 2, delay: 70 });
+    assert.equal(
+      await page.locator('[data-city]').count(),
+      42,
+      'Rules network screenshot retains all classic cities',
+    );
+    const routeLabels = await page.locator('.pg-map-routes text').count();
+    assert.ok(
+      routeLabels > 0 && routeLabels < 12,
+      'Short map displays selected adjacent route costs without all-map label clutter',
+    );
+    await page
+      .locator('.pg-phone-table')
+      .screenshot({ path: join(directory, 'network-v1.png') });
+    report.ruleCaptures = [
+      'companies-v1.png',
+      'market-v1.png',
+      'network-v1.png',
+    ];
+  };
+  if (captureRulesOnly) {
+    await captureRuleScreens();
+    assert.deepEqual(report.errors, []);
+    assert.deepEqual(report.requests, []);
+    report.status = 'passed';
+  } else if (mapOnly) {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.evaluate(() => window.setFixture('building', 'player'));
+    await page.waitForTimeout(50);
+    const city = fixtures.building.game.buildOptions[0].cityId;
+    await page.locator('.pg-phone-map select').selectOption(city);
+    await page
+      .getByRole('button', { name: '放大地图' })
+      .click({ clickCount: 2, delay: 70 });
+    assert.equal(await page.locator('[data-city]').count(), 42);
+    assert.equal(await page.locator('.pg-map-routes > g').count(), 83);
+    const focused = await page.locator('.pg-map-routes text').count();
+    assert.ok(
+      focused > 0 && focused < 12,
+      'Narrow map prioritizes selected adjacent connection costs at 1.8x',
+    );
+    const textSizes = await page
+      .locator('.pg-map-routes text')
+      .evaluateAll((nodes) =>
+        nodes.map((node) => {
+          const matrix = node.getScreenCTM();
+          return (
+            parseFloat(getComputedStyle(node).fontSize) *
+            Math.hypot(matrix.a, matrix.b)
+          );
+        }),
+      );
+    assert.ok(
+      textSizes.every((size) => size >= 15.9),
+      'Selected route prices remain at least 16 screen pixels',
+    );
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(50);
+    await page
+      .getByRole('button', { name: '放大地图' })
+      .click({ clickCount: 6, delay: 60 });
+    assert.ok(
+      (await page.locator('.pg-map-routes text').count()) > focused,
+      'Sufficient real map scale reveals detailed route prices',
+    );
+    await page.getByRole('button', { name: '全图', exact: true }).click();
+    assert.ok(
+      (await page.locator('.pg-map').getAttribute('style')).includes(
+        'scale(1)',
+      ),
+    );
+    assert.deepEqual(
+      await page.evaluate(() => window.__commands),
+      [],
+      'Preview, zoom and reset remain local',
+    );
+    report.actions.push(
+      '42 cities and 83 unchanged routes; narrow zoom shows readable selected prices; full detail requires actual rendered scale; reset does not send commands',
+    );
+    assert.deepEqual(report.errors, []);
+    assert.deepEqual(report.requests, []);
+    report.status = 'passed';
+  } else if (amountOnly) {
     await page.setViewportSize({ width: 320, height: 568 });
     await page.evaluate(() => window.setFixture('offer', 'player'));
     await page.waitForTimeout(50);
@@ -259,6 +394,35 @@ try {
               text: element.textContent.slice(0, 30),
               font: getComputedStyle(element).fontSize,
             }));
+          const cardGroups = [
+            ...root.querySelectorAll(
+              '.pg-select-plants,.pg-own-plants,.pg-company-plants',
+            ),
+          ]
+            .filter((group) => group.getClientRects().length > 0)
+            .map((group) => ({
+              className: group.className,
+              columns:
+                getComputedStyle(group).gridTemplateColumns.split(' ').length,
+              overflowX: getComputedStyle(group).overflowX,
+              scrollWidth: group.scrollWidth,
+              width: group.clientWidth,
+            }));
+          const cards = [...root.querySelectorAll('.pg-plant-card')].filter(
+            (card) => card.getClientRects().length > 0,
+          );
+          const markers = cards.map((card) => {
+            const mark = card
+              .querySelector('.pg-fuel-mark')
+              .getBoundingClientRect();
+            const art = card
+              .querySelector('.pg-plant-art,.pg-plant-illustration')
+              .getBoundingClientRect();
+            return {
+              border: parseFloat(getComputedStyle(card).borderLeftWidth),
+              aboveArt: mark.bottom <= art.top + 1,
+            };
+          });
           return {
             width: document.documentElement.clientWidth,
             scrollWidth: document.documentElement.scrollWidth,
@@ -266,6 +430,8 @@ try {
             viewportHeight: innerHeight,
             small,
             cityNodes: root.querySelectorAll('[data-city]').length,
+            cardGroups,
+            markers,
           };
         });
         assert.ok(
@@ -279,6 +445,28 @@ try {
           'Information font floor: ' +
             JSON.stringify({ role, stage, small: geometry.small }),
         );
+        for (const group of geometry.cardGroups) {
+          assert.ok(
+            group.columns >= 2,
+            'Painting/plant collections have at least two columns: ' +
+              JSON.stringify({ role, stage, group }),
+          );
+          assert.ok(
+            group.scrollWidth <= group.width + 1,
+            'Collection has no horizontal overflow: ' +
+              JSON.stringify({ role, stage, group }),
+          );
+        }
+        for (const marker of geometry.markers) {
+          assert.ok(
+            marker.border >= 5,
+            'Fuel frame has explicit strong thickness',
+          );
+          assert.ok(
+            marker.aboveArt,
+            'Fuel type badge remains above the illustration',
+          );
+        }
         if (role !== 'player') {
           assert.ok(
             geometry.rootHeight <= height + 1,
@@ -298,6 +486,8 @@ try {
             'crowded',
             'replace',
             'salvage',
+            'owned-resources',
+            'mixed-fuel',
           ].includes(stage)
         ) {
           const file = `${role}-${width}-${height}-${stage}.png`;
@@ -324,6 +514,11 @@ try {
     report.actions.push(
       'City selection shows exact current cost and sends the authorized build intent',
     );
+    await page.screenshot({
+      path: join(output, 'player-320-568-build-costs.png'),
+      fullPage: true,
+    });
+    report.screenshots.push('player-320-568-build-costs.png');
     await page.getByRole('button', { name: '放大地图' }).click();
     assert.ok(
       (await page.locator('.pg-map').getAttribute('style')).includes(
@@ -392,6 +587,32 @@ try {
     report.actions.push(
       'Portal company panel carries independent pg scope and Escape closes it',
     );
+    if (fixtures['mixed-fuel']) {
+      await page.evaluate(() => window.setFixture('mixed-fuel', 'player'));
+      await page.waitForTimeout(50);
+      const options = page.locator('.pg-run-options').first();
+      await options.locator('summary').click();
+      assert.ok(
+        (await options.locator('button').count()) > 1,
+        'Each legal mixed-fuel recipe remains selectable',
+      );
+      await options.locator('button').first().click();
+      const chosen = (await page.evaluate(() => window.__commands)).at(
+        -1,
+      ).action;
+      assert.ok(
+        fixtures['mixed-fuel'].actions.some(
+          (action) => JSON.stringify(action) === JSON.stringify(chosen),
+        ),
+        'Expanded mixed-fuel button submits a legal action',
+      );
+      report.actions.push(
+        'Collapsed mixed-fuel recipe list opens and retains every legal authorized run',
+      );
+    }
+    if (captureRules) {
+      await captureRuleScreens();
+    }
     await page.evaluate(() => window.setFixture('auction', 'host'));
     await page.waitForTimeout(50);
     const initial = await page.evaluate(() => window.__plays.length);

@@ -965,5 +965,62 @@
       "recoverFromCommit": "8a8e9ff",
       "historicalStatus": "generated-original-visual-verified-imported"
     }
-  ]
+  ],
+  "rulesScreenshots": {
+    "version": 1,
+    "createdAt": "2026-10-04",
+    "appVersion": "1.0.2",
+    "purpose": "Local illustrated rules from current production components with legally generated isolated six-player examples; no formal player data",
+    "generator": "node scripts/verify-rules-guides.mjs --capture-rules --evidence=capture-regions",
+    "evidence": "artifacts/maintenance/v1.0.2/shared-visual-20261004/rules/capture-regions/results.json",
+    "source": "Actual hidden native WinForms/WebView2 with local service and SQLite",
+    "files": [
+      {
+        "id": "table",
+        "file": "rules/table.webp",
+        "sourceFile": "rules/table.png",
+        "width": 369,
+        "height": 372,
+        "bytes": 55502,
+        "sourceBytes": 69528,
+        "sha256": "981f7f2963952540940bbfa6a9a160eb1c24d056abb5955d6be6fd93df53aad9",
+        "sourceSha256": "4b0649bef3cd071693f0d71534c3d2acccdc59a2bb6d698d9e5c82508d3bb752",
+        "pixelsVerifiedIdentical": true,
+        "source": "Actual current UI region screenshot",
+        "selector": ".game-seat",
+        "status": "captured-verified-imported"
+      },
+      {
+        "id": "draw",
+        "file": "rules/draw.webp",
+        "sourceFile": "rules/draw.png",
+        "width": 543,
+        "height": 249,
+        "bytes": 50130,
+        "sourceBytes": 69735,
+        "sha256": "b1ce9465ac4cdd41e1770475443f52846fdf5098ee6879d3df9015841a6d026b",
+        "sourceSha256": "f97345ac39518ad809b30c8f743aa5a3c7d7d879b361fce4b57b66ee1e52b095",
+        "pixelsVerifiedIdentical": true,
+        "source": "Actual current UI region screenshot",
+        "selector": ".pokemon-status",
+        "status": "captured-verified-imported"
+      },
+      {
+        "id": "scoring",
+        "file": "rules/scoring.webp",
+        "sourceFile": "rules/scoring.png",
+        "width": 369,
+        "height": 405,
+        "bytes": 75776,
+        "sourceBytes": 99460,
+        "sha256": "52063a45f878ea5991440893af9ca225aa94c42fd80287d6e441f53754d8ab02",
+        "sourceSha256": "c28319c7416c62ea6a919e0cd0e8e389e1d19a7e6cc416db134636536b0d71ed",
+        "pixelsVerifiedIdentical": true,
+        "source": "Actual current UI region screenshot",
+        "selector": ".game-seat.winner",
+        "status": "captured-verified-imported"
+      }
+    ],
+    "postprocessing": "PNG to WebP lossless via scripts/compress-rule-captures.py, Pillow 11.1.0; original dimensions and RGB pixel bytes verified identical. Source PNGs retained."
+  }
 }

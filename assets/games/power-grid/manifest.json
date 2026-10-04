@@ -293,5 +293,59 @@
     "scope": "Production React authorized fixtures, 80 layouts, actual image decode, six WAV decode, saved-feedback consumer and muted phone; native DPI and portable verification are recorded separately",
     "checkedAt": "2026-10-04",
     "amountEvidence": "artifacts/maintenance/v1.0.1/power-grid/ui/amount-fixture/results.json"
+  },
+  "rulesScreenshots": {
+    "version": 1,
+    "createdAt": "2026-10-04",
+    "appVersion": "1.0.2",
+    "purpose": "Local illustrated rules from current production components with legally generated isolated six-player examples; no formal player data",
+    "generator": "node scripts/verify-power-grid-ui.mjs --capture-rules --evidence=source-controls-fit",
+    "evidence": "artifacts/maintenance/v1.0.2/shared-visual-20261004/power-grid/source-controls-fit/results.json",
+    "source": "Actual production React components rendered in background Chromium; legal authorized fixture, not native DPI or live service certification",
+    "files": [
+      {
+        "id": "market",
+        "file": "rules/market.webp",
+        "sourceFile": "rules/market-v1.png",
+        "width": 647,
+        "height": 500,
+        "bytes": 153336,
+        "sourceBytes": 213619,
+        "sha256": "8c7b940aae797635d1015d2b6c83971474416186a5a5def25b2939c20fa1c959",
+        "sourceSha256": "8e9dabeef285a30aeb4b53eda0f1505aac1383abe5f80f249876bb4da444019c",
+        "pixelsVerifiedIdentical": true,
+        "source": "Actual current UI region screenshot",
+        "status": "captured-verified-imported"
+      },
+      {
+        "id": "network",
+        "file": "rules/network.webp",
+        "sourceFile": "rules/network-v1.png",
+        "width": 378,
+        "height": 594,
+        "bytes": 109806,
+        "sourceBytes": 139637,
+        "sha256": "52585bb14ab3c20a7ff9b53dbe68b52c1dd2c7724795f31900d6a88bf8b8580b",
+        "sourceSha256": "ba48f6ef997c5826cc2cdb08568aeb80e2c9b6573fef37cbde389c94402598c7",
+        "pixelsVerifiedIdentical": true,
+        "source": "Actual current UI region screenshot",
+        "status": "captured-verified-imported"
+      },
+      {
+        "id": "company",
+        "file": "rules/company.webp",
+        "sourceFile": "rules/companies-v1.png",
+        "width": 272,
+        "height": 509,
+        "bytes": 47894,
+        "sourceBytes": 51450,
+        "sha256": "a6e603a0f1b6c1644194da144987ce5cbd29bc476bee497f65c58dd2473ca904",
+        "sourceSha256": "e7bb30b1981f57ac6e39772ed905a028d5bfaf2cee1b726bd67dd1f5d4c1ec51",
+        "pixelsVerifiedIdentical": true,
+        "source": "Actual current UI region screenshot",
+        "status": "captured-verified-imported"
+      }
+    ],
+    "postprocessing": "PNG to WebP lossless via scripts/compress-rule-captures.py, Pillow 11.1.0; original dimensions and RGB pixel bytes verified identical. Source PNGs retained."
   }
 }

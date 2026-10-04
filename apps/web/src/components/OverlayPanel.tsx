@@ -41,7 +41,7 @@ export function OverlayPanel({
   children,
   initialFocus,
 }: {
-  title: string;
+  title: ReactNode;
   close(): void;
   children: ReactNode;
   initialFocus?: RefObject<HTMLElement | null>;

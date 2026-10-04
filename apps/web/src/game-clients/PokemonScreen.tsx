@@ -27,6 +27,8 @@ import { PlayModeControl } from '../components/PlayModeControl';
 import { PlayModeBadge } from '../components/PlayModeBadge';
 import { DisplaySettings } from '../components/DisplaySettings';
 import { DecisionCountdown } from '../components/DecisionCountdown';
+import { RulesGuide } from '../components/RulesGuide';
+import { pokemonRulebook } from '../../../../games/pokemon-encounters/ui/RulesGuide';
 import type { RoomSession } from '../session/useRoomSession';
 
 function PokemonScreen({ session }: { session: RoomSession }) {
@@ -44,7 +46,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
   } = session;
   const game = view?.gameView as PokemonView | null;
   const canPlay = useAudioOutput();
-  const [panel, setPanel] = useState<'menu' | 'friends' | null>(null);
+  const [panel, setPanel] = useState<'menu' | 'friends' | 'rules' | null>(null);
   const names = Object.fromEntries(
     view?.seats.map((seat) => [seat.id, seat.name]) ?? [],
   );
@@ -109,6 +111,12 @@ function PokemonScreen({ session }: { session: RoomSession }) {
               canPlay={canPlay}
             />
           )}
+          <button
+            className="secondary game-rulebook-entry"
+            onClick={() => setPanel('rules')}
+          >
+            规则
+          </button>
           <button className="secondary" onClick={() => setPanel('menu')}>
             菜单
           </button>
@@ -196,10 +204,23 @@ function PokemonScreen({ session }: { session: RoomSession }) {
         )}
         {panel && (
           <OverlayPanel
-            title={panel === 'menu' ? '牌桌菜单' : '朋友的牌桌'}
+            title={
+              panel === 'rules' ? (
+                <>
+                  <span className="rules-guide__title-part">宝可梦奇遇</span>
+                  <span className="rules-guide__title-part">图文规则</span>
+                </>
+              ) : panel === 'menu' ? (
+                '牌桌菜单'
+              ) : (
+                '朋友的牌桌'
+              )
+            }
             close={() => setPanel(null)}
           >
-            {panel === 'friends' ? (
+            {panel === 'rules' ? (
+              <RulesGuide {...pokemonRulebook} />
+            ) : panel === 'friends' ? (
               <div className={`pokemon-screen pokemon-panel ${role}`}>
                 {view?.seats
                   .filter((seat) => seat.id !== self?.id)

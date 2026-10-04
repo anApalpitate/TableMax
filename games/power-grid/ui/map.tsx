@@ -78,6 +78,7 @@ export function GermanyMap({
     return () => observer.disconnect();
   }, []);
   const labelSize = 16 / Math.max(0.12, baseScale * scale);
+  const displayScale = baseScale * scale;
   const positions = Object.fromEntries(
     GERMANY_CITIES.map((city) => [city.id, city]),
   );
@@ -267,7 +268,7 @@ export function GermanyMap({
                     strokeWidth="2"
                     fill="none"
                   />
-                  {(scale >= 1.65 || selectedEdge) && active && (
+                  {(displayScale >= 0.55 || selectedEdge) && active && (
                     <g
                       transform={`translate(${(a.x + b.x) / 2},${(a.y + b.y) / 2})`}
                     >
@@ -363,7 +364,7 @@ export function GermanyMap({
                     strokeWidth="3"
                   />
                 )}
-                {(scale >= 1.8 || isSelected) && active && (
+                {(displayScale >= 0.9 || isSelected) && active && (
                   <g pointerEvents="none">
                     <rect
                       x={-city.name.length * labelSize * 0.51 - 5}

@@ -32,6 +32,8 @@ import { DisplaySettings } from '../components/DisplaySettings';
 import { PlayModeBadge } from '../components/PlayModeBadge';
 import { PlayModeControl } from '../components/PlayModeControl';
 import { DecisionCountdown } from '../components/DecisionCountdown';
+import { RulesGuide } from '../components/RulesGuide';
+import { powerGridRulebook } from '../../../../games/power-grid/ui/RulesGuide';
 import { avatarFor } from '../assets/avatars';
 import { useAudioOutput } from '../session/useAudioOutput';
 
@@ -50,7 +52,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
   const game = view?.gameView as PowerGridView | null;
   const canPlay = useAudioOutput();
   const [panel, setPanel] = useState<
-    'menu' | 'map' | 'companies' | 'market' | null
+    'menu' | 'map' | 'companies' | 'market' | 'rules' | null
   >(null);
   const [city, setCity] = useState<string | null>(null);
   const [plant, setPlant] = useState<number | null>(null);
@@ -152,7 +154,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
         <strong className="pg-brand">⚡ 电力公司</strong>
         {game && (
           <span className="pg-round">
-            第 {game.round} 轮 <b>STEP {game.step}</b>
+            第 {game.round} 轮 <b>第 {game.step} 步</b>
           </span>
         )}
         <FullscreenControl />
@@ -169,6 +171,12 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
         {role !== 'player' && (
           <button onClick={() => setPanel('companies')}>各家</button>
         )}
+        <button
+          className="game-rulebook-entry"
+          onClick={() => setPanel('rules')}
+        >
+          规则
+        </button>
         <button onClick={() => setPanel('menu')}>菜单</button>
       </header>
       {((session.message && session.message !== '已保存') ||
@@ -192,7 +200,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
               {notice && <span role="status">{notice}</span>}
             </div>
             {game.self && !ended && (
-              <strong className="pg-cash">{game.self.cash} E</strong>
+              <strong className="pg-cash">现金 {game.self.cash} E</strong>
             )}
             <DecisionCountdown view={view} connected={connected} compact />
             {canControl && view.paused && !ended && (
@@ -271,7 +279,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                 <ResourceMarket view={game} />
                 {game.latest && (
                   <div className="pg-latest" role="status">
-                    <span>已保存</span>
+                    <span>最新行动</span>
                     <strong>{game.latest.text}</strong>
                   </div>
                 )}
@@ -290,49 +298,60 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
       {panel && (
         <OverlayPanel
           title={
-            panel === 'map'
-              ? '德国电网'
-              : panel === 'companies'
-                ? '各家电力公司'
-                : panel === 'market'
-                  ? '电厂市场'
-                  : '电网菜单'
+            panel === 'rules' ? (
+              <>
+                <span className="rules-guide__title-part">电力公司</span>
+                <span className="rules-guide__title-part">图文规则</span>
+              </>
+            ) : panel === 'map' ? (
+              '德国电网'
+            ) : panel === 'companies' ? (
+              '各家电力公司'
+            ) : panel === 'market' ? (
+              '电厂市场'
+            ) : (
+              '电网菜单'
+            )
           }
           close={() => setPanel(null)}
         >
-          <div className="pg-screen pg-panel">
-            {panel === 'map' ? (
-              <div className="pg-panel-map">{map}</div>
-            ) : panel === 'companies' && game ? (
-              <PlayerCompanies
-                view={game}
-                names={names}
-                portraits={portraits}
-                active={Boolean(active)}
-                artFor={artFor}
-              />
-            ) : panel === 'market' && game ? (
-              <>
-                <PlantMarket view={game} artFor={artFor} />
-                <ResourceMarket view={game} />
-              </>
-            ) : (
-              <>
-                {canControl && <RoomManagement session={session} />}
-                <h2>已保存的电网记录</h2>
-                <ol className="pg-log">
-                  {[...(game?.history ?? [])].reverse().map((entry) => (
-                    <li key={entry.id}>
-                      <strong>
-                        {entry.actor ? names[entry.actor] : '电网'}
-                      </strong>
-                      <span>{entry.text}</span>
-                    </li>
-                  ))}
-                </ol>
-              </>
-            )}
-          </div>
+          {panel === 'rules' ? (
+            <RulesGuide {...powerGridRulebook} />
+          ) : (
+            <div className="pg-screen pg-panel">
+              {panel === 'map' ? (
+                <div className="pg-panel-map">{map}</div>
+              ) : panel === 'companies' && game ? (
+                <PlayerCompanies
+                  view={game}
+                  names={names}
+                  portraits={portraits}
+                  active={Boolean(active)}
+                  artFor={artFor}
+                />
+              ) : panel === 'market' && game ? (
+                <>
+                  <PlantMarket view={game} artFor={artFor} />
+                  <ResourceMarket view={game} />
+                </>
+              ) : (
+                <>
+                  {canControl && <RoomManagement session={session} />}
+                  <h2>已保存的电网记录</h2>
+                  <ol className="pg-log">
+                    {[...(game?.history ?? [])].reverse().map((entry) => (
+                      <li key={entry.id}>
+                        <strong>
+                          {entry.actor ? names[entry.actor] : '电网'}
+                        </strong>
+                        <span>{entry.text}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </>
+              )}
+            </div>
+          )}
         </OverlayPanel>
       )}
       <PlayModeControl session={session} />

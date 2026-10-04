@@ -1,0 +1,52 @@
+.rules-guide.ma-rules {
+  --rules-ink: #513723;
+  --rules-accent: #80502d;
+  --rules-paper: #f9ecd6;
+  --rules-line: #ccb28c;
+}
+.ma-rulebook__auctions {
+  display: grid;
+  gap: 12px;
+}
+.ma-rulebook__auctions > div {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--rules-line);
+  border-radius: 10px;
+}
+.ma-rulebook__auctions > div > span {
+  display: grid;
+  place-items: center;
+  align-self: start;
+  width: 48px;
+  height: 48px;
+  background: #e3ca9f;
+  border: 2px solid var(--rules-ink);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.ma-rulebook__auctions svg {
+  width: 34px;
+  height: 34px;
+}
+.ma-rulebook__example {
+  padding: 14px;
+  border: 1px solid var(--rules-line);
+  border-radius: 10px;
+  background: var(--rules-paper);
+}
+@media (max-width: 420px) {
+  .ma-rulebook__auctions > div {
+    padding: 10px;
+    gap: 10px;
+  }
+  .ma-rulebook__auctions > div > span {
+    width: 36px;
+    height: 36px;
+  }
+  .ma-rulebook__auctions svg {
+    width: 26px;
+    height: 26px;
+  }
+}

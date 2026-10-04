@@ -77,6 +77,57 @@ export function ResourceIcon({ resource }: { resource: Resource }) {
   );
 }
 
+function FuelMark({ fuel }: { fuel: Fuel }) {
+  return (
+    <span className="pg-fuel-mark" aria-hidden="true">
+      {fuel === 'hybrid' ? (
+        <>
+          <ResourceIcon resource="coal" />
+          <ResourceIcon resource="oil" />
+        </>
+      ) : RESOURCES.includes(fuel as Resource) ? (
+        <ResourceIcon resource={fuel as Resource} />
+      ) : fuel === 'green' ? (
+        <svg viewBox="0 0 32 32">
+          <path
+            d="M27 4C12 3 4 9 5 19c1 8 10 10 17 3 4-4 5-11 5-18Z"
+            fill="#337345"
+            stroke="#143d27"
+            strokeWidth="2"
+          />
+          <path
+            d="m5 28 16-17M13 20v-7m0 7h8"
+            fill="none"
+            stroke="#e8f4cf"
+            strokeWidth="2"
+          />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="3" fill="#183d62" />
+          <g fill="none" stroke="#183d62" strokeWidth="2">
+            <ellipse cx="16" cy="16" rx="14" ry="6" />
+            <ellipse
+              cx="16"
+              cy="16"
+              rx="14"
+              ry="6"
+              transform="rotate(60 16 16)"
+            />
+            <ellipse
+              cx="16"
+              cy="16"
+              rx="14"
+              ry="6"
+              transform="rotate(120 16 16)"
+            />
+          </g>
+        </svg>
+      )}
+    </span>
+  );
+}
+
 function PlantIllustration({ fuel }: { fuel: Fuel }) {
   const green = fuel === 'green' || fuel === 'fusion';
   const nuclear = fuel === 'uranium' || fuel === 'fusion';
@@ -209,8 +260,14 @@ export function PlantCard({
   const contents = (
     <>
       <div className="pg-plant-top">
-        <strong className="pg-plant-number">{id}</strong>
-        <span>{FUEL_LABELS[plant.fuel]}</span>
+        <strong
+          className="pg-plant-number"
+          title={`${id}号电厂，起拍底价${id}电币`}
+        >
+          {id}
+        </strong>
+        <FuelMark fuel={plant.fuel} />
+        <span className="pg-plant-fuel-name">{FUEL_LABELS[plant.fuel]}</span>
       </div>
       {art ? (
         <div className="pg-plant-art" style={art} />
@@ -219,18 +276,27 @@ export function PlantCard({
       )}
       <div className="pg-plant-engine">
         <div className="pg-plant-consumption">
-          {RESOURCES.includes(fuel as Resource) ? (
-            <>
-              <ResourceIcon resource={fuel as Resource} />
-              {plant.fuel === 'hybrid' && <ResourceIcon resource="oil" />}
-              <strong>{plant.input}</strong>
-            </>
-          ) : (
-            <strong>免费</strong>
-          )}
+          <span className="pg-plant-metric-label">耗料</span>
+          <div>
+            {RESOURCES.includes(fuel as Resource) ? (
+              <>
+                <ResourceIcon resource={fuel as Resource} />
+                {plant.fuel === 'hybrid' && <ResourceIcon resource="oil" />}
+                <strong>
+                  {plant.fuel === 'hybrid'
+                    ? `共${plant.input}份`
+                    : `×${plant.input}`}
+                </strong>
+              </>
+            ) : (
+              <strong>免燃料</strong>
+            )}
+          </div>
         </div>
-        <span aria-hidden="true">➜</span>
-        <strong className="pg-plant-output">⌂ {plant.output}</strong>
+        <div className="pg-plant-output">
+          <span className="pg-plant-metric-label">供电</span>
+          <strong>⌂ {plant.output}城</strong>
+        </div>
       </div>
       {owned && (
         <StockDisplay
@@ -242,7 +308,7 @@ export function PlantCard({
     </>
   );
   const className = `pg-plant-card pg-plant-card--${plant.fuel}${selected ? ' pg-plant-card--selected' : ''}${compact ? ' pg-plant-card--compact' : ''}`;
-  const label = `${id}号${FUEL_LABELS[plant.fuel]}电厂，消耗${plant.input}，供电${plant.output}城`;
+  const label = `${id}号${FUEL_LABELS[plant.fuel]}电厂，${plant.input ? `消耗${plant.input}份燃料` : '免燃料'}，供电${plant.output}城`;
   return onClick ? (
     <button
       type="button"
@@ -286,10 +352,10 @@ export function StockDisplay({
           <strong>{stock[resource]}</strong>
         </span>
       ))}
-      {!visible.length && <span>空仓</span>}
+      {!visible.length && <span>{capacity === 0 ? '无需储料' : '空仓'}</span>}
       {capacity != null && capacity > 0 && (
         <span className="pg-stock-capacity">
-          {count}/{capacity}
+          仓位 {count}/{capacity}
         </span>
       )}
     </div>
@@ -309,7 +375,7 @@ export function PlantMarket({
 }) {
   return (
     <section className="pg-market">
-      <h2>电厂市场</h2>
+      <h2>可竞拍电厂</h2>
       <div className="pg-market-row">
         {view.actualMarket.map((id) => (
           <PlantCard
@@ -323,7 +389,7 @@ export function PlantMarket({
       </div>
       {view.futureMarket.length > 0 && (
         <>
-          <h3>未来市场</h3>
+          <h3>未来电厂（暂不可拍）</h3>
           <div className="pg-market-row pg-market-row--future">
             {view.futureMarket.map((id) => (
               <PlantCard
@@ -342,7 +408,7 @@ export function PlantMarket({
 export function ResourceMarket({ view }: { view: PowerGridView }) {
   return (
     <section className="pg-resource-market">
-      <h2>燃料市场</h2>
+      <h2>燃料单价</h2>
       <div className="pg-resources">
         {RESOURCES.map((resource) => (
           <div
@@ -354,7 +420,7 @@ export function ResourceMarket({ view }: { view: PowerGridView }) {
             <strong>
               {view.resourcePrices[resource] == null
                 ? '售罄'
-                : `${view.resourcePrices[resource]} E`}
+                : `${view.resourcePrices[resource]} 电币`}
             </strong>
             <span>余 {view.resources[resource]}</span>
           </div>
@@ -398,10 +464,16 @@ export function PlayerCompanies({
               {view.winners.includes(seat) && <span aria-label="冠军">★</span>}
             </header>
             <div className="pg-company-stats">
-              <span>⌂ {player.cities.length}</span>
-              <span>⚡ {player.capacity}</span>
+              <span>
+                网络 <b>{player.cities.length}</b>城
+              </span>
+              <span>
+                产能 <b>{player.capacity}</b>城
+              </span>
               {player.cash != null && <span>{player.cash} E</span>}
-              {active && view.actor === seat && <span>行动中</span>}
+              {active && view.actor === seat && (
+                <span className="pg-company-turn">行动中</span>
+              )}
             </div>
             <div className="pg-company-plants">
               {player.plants.map((plant) => (
@@ -462,10 +534,10 @@ export function AuctionDisplay({
         {...(artFor ? { art: artFor(auction.plantId) } : {})}
       />
       <div>
-        <h2>当前竞拍</h2>
+        <h2>当前最高价</h2>
         <strong className="pg-bid-price">
           {auction.amount}
-          <span>E</span>
+          <span>电币</span>
         </strong>
         <span className="pg-high-bidder">{names[auction.highBidder]}</span>
       </div>

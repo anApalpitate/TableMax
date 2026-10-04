@@ -1,0 +1,54 @@
+.rules-guide.pokemon-rules {
+  --rules-ink: #264331;
+  --rules-accent: #467436;
+  --rules-paper: #f0f7df;
+  --rules-line: #b2c6a1;
+}
+.pokemon-rulebook__abilities {
+  display: grid;
+  gap: 12px;
+}
+.pokemon-rulebook__abilities > div {
+  display: flex;
+  align-items: start;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid var(--rules-line);
+  border-radius: 12px;
+}
+.pokemon-rulebook__abilities img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  background: #fff;
+  border: 2px solid var(--rules-line);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+.pokemon-rulebook__scoring {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+  gap: 12px;
+}
+.pokemon-rulebook__scoring > div {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--rules-line);
+  border-radius: 10px;
+  background: var(--rules-paper);
+}
+.pokemon-rulebook__scoring strong {
+  font-size: 22px;
+  color: var(--rules-accent);
+}
+@media (max-width: 420px) {
+  .pokemon-rulebook__abilities > div {
+    gap: 10px;
+    padding: 10px;
+  }
+  .pokemon-rulebook__abilities img {
+    width: 52px;
+    height: 52px;
+  }
+}
