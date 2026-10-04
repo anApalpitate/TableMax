@@ -288,6 +288,7 @@ export const rules: GameRules = {
     stateVersion: 1,
     players: { min: 2, max: 6 },
     assetNamespace: 'power-grid',
+    decisionTimer: true,
   },
   initialize: initialize as GameRules['initialize'],
   validateState: validateState as GameRules['validateState'],

@@ -9,9 +9,17 @@ import { verificationOutput } from './verification-output.mjs';
 
 const portable = process.argv.includes('--portable');
 const shortOnly = process.argv.includes('--paused-720p-only');
+const runName = process.argv
+  .find((value) => value.startsWith('--run='))
+  ?.slice(6);
+if (runName && !/^[a-z0-9-]+$/i.test(runName))
+  throw new Error('invalid run name');
 const output = verificationOutput(
-  'display',
-  shortOnly ? 'paused-720p' : portable ? 'portable' : 'development',
+  process.argv.includes('--box-debug')
+    ? 'box-debug-20261004/display'
+    : 'display',
+  runName ??
+    (shortOnly ? 'paused-720p' : portable ? 'portable' : 'development'),
 );
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
@@ -98,7 +106,7 @@ async function until(check, message, timeout = 15000) {
   throw new Error(message);
 }
 async function settle(page) {
-  await page.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await page.locator('.connection.online').waitFor();
   await page.evaluate(
     () =>
       new Promise((done) =>
@@ -132,7 +140,7 @@ async function start() {
   const env = {
     ...process.env,
     TABLEMAX_DATA_DIR: dataDir,
-    TABLEMAX_HOST: '0.0.0.0',
+    TABLEMAX_HOST: '127.0.0.1',
     TABLEMAX_PORT: port,
   };
   delete env.TABLEMAX_WEB_DEV_URL;
@@ -152,7 +160,7 @@ async function start() {
   });
   const host = await desktop.firstWindow();
   await host.waitForURL('**/host');
-  await host.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await host.locator('.connection.online').waitFor();
   if (
     await host
       .locator('.game-library__item')
@@ -169,7 +177,7 @@ async function start() {
   }
   origin = new URL(host.url()).origin;
   port = new URL(origin).port;
-  phoneUrl = (await host.locator('.url').textContent()).trim();
+  phoneUrl = `${origin}/player`;
   observe(host);
   await settle(host);
   const token = await host.evaluate(() =>
@@ -242,7 +250,7 @@ async function openPhone(index, url = phoneUrl) {
 }
 async function openPublic(host) {
   console.log('Display verification: opening another native public window');
-  await host.getByRole('button', { name: '牌桌管理', exact: true }).click();
+  await host.getByRole('button', { name: '管理设置', exact: true }).click();
   const next = desktop.waitForEvent('window', { timeout: 15000 });
   await host
     .getByRole('link', { name: '打开公共屏', exact: true })
@@ -357,9 +365,7 @@ async function configure(
 ) {
   const { dialog, trigger } = await settings(page);
   const before = await nativeState(page);
-  await dialog
-    .getByLabel('显示分辨率', { exact: true })
-    .selectOption(resolution);
+  await dialog.getByLabel('适配方式', { exact: true }).selectOption(resolution);
   await chooseScale(dialog, scale);
   await settle(page);
   const bounds = await dialog.boundingBox();
@@ -410,7 +416,7 @@ async function readSettings(page) {
   const { dialog } = await settings(page);
   const result = {
     resolution: await dialog
-      .getByLabel('显示分辨率', { exact: true })
+      .getByLabel('适配方式', { exact: true })
       .inputValue(),
     scale: await dialog.getByLabel('界面大小', { exact: true }).inputValue(),
   };

@@ -1,11 +1,23 @@
 import { z } from 'zod';
-import { AvatarIdSchema, type AvatarId } from './avatars';
+import {
+  AvatarIdSchema,
+  PresetAvatarIdSchema,
+  AvatarImageSchema,
+  type AvatarId,
+} from './avatars';
 import {
   CountdownSecondsSchema,
   DecisionClockSchema,
   type DecisionClock,
 } from './countdown';
-export { AVATAR_PRESETS, AvatarIdSchema, type AvatarId } from './avatars';
+export {
+  AVATAR_PRESETS,
+  AvatarIdSchema,
+  PresetAvatarIdSchema,
+  CustomAvatarIdSchema,
+  AvatarImageSchema,
+  type AvatarId,
+} from './avatars';
 export {
   COUNTDOWN_STEPS,
   DEFAULT_COUNTDOWN_SECONDS,
@@ -97,6 +109,13 @@ export const CommandSchema = z
       z.object({ type: z.literal('remove-seat'), seatId: z.string() }).strict(),
       z
         .object({
+          type: z.literal('set-bot-name'),
+          seatId: z.string(),
+          name: z.string().trim().min(1).max(24),
+        })
+        .strict(),
+      z
+        .object({
           type: z.literal('order'),
           seats: z.array(z.string()).max(16),
         })
@@ -112,7 +131,11 @@ export const CommandSchema = z
         .object({ type: z.literal('set-owner'), seatId: z.string().nullable() })
         .strict(),
       z
-        .object({ type: z.literal('select-game'), gameId: z.string().min(1) })
+        .object({
+          type: z.literal('select-game'),
+          gameId: z.string().min(1),
+          endCurrent: z.literal(true).optional(),
+        })
         .strict(),
       z
         .object({ type: z.literal('rollback'), checkpointId: z.string() })
@@ -131,7 +154,8 @@ export type Command = z.infer<typeof CommandSchema>;
 export const JoinSchema = z
   .object({
     name: z.string().trim().min(1).max(24),
-    avatarId: AvatarIdSchema.optional(),
+    avatarId: PresetAvatarIdSchema.optional(),
+    avatarImage: AvatarImageSchema.optional(),
     requestKey: z
       .string()
       .regex(/^[0-9a-f]{64}$/)
@@ -148,6 +172,13 @@ export const SessionReplySchema = z.discriminatedUnion('ok', [
     .strict(),
   z.object({ ok: z.literal(false), reason: z.string() }).strict(),
 ]);
+export const AvatarUploadSchema = z
+  .object({
+    token: CredentialSchema,
+    envelope: CommandSchema.omit({ command: true }),
+    avatarImage: AvatarImageSchema,
+  })
+  .strict();
 export const NetworkSchema = z.object({
   addresses: z.array(z.string()),
   adapters: z.array(
@@ -213,10 +244,26 @@ export interface RoomView {
   playMode: PlayMode;
   countdownSeconds: number;
   decisionClock: DecisionClock | null;
-  game: { id: string; name: string; min: number; max: number } | null;
-  catalog: { id: string; name: string; min: number; max: number }[];
+  game: {
+    id: string;
+    name: string;
+    min: number;
+    max: number;
+    decisionTimer?: boolean | undefined;
+  } | null;
+  catalog: {
+    id: string;
+    name: string;
+    min: number;
+    max: number;
+    decisionTimer?: boolean | undefined;
+  }[];
   ownerSeatId: string | null;
-  capabilities: { manage: boolean; control: boolean };
+  capabilities: {
+    manage: boolean;
+    control: boolean;
+    manageSeats?: boolean | undefined;
+  };
   seats: {
     id: string;
     name: string;
@@ -265,6 +312,7 @@ export const RoomViewSchema = z
         name: z.string(),
         min: z.number().int().positive(),
         max: z.number().int().positive(),
+        decisionTimer: z.boolean().optional(),
       })
       .strict()
       .nullable(),
@@ -275,12 +323,17 @@ export const RoomViewSchema = z
           name: z.string(),
           min: z.number().int().positive(),
           max: z.number().int().positive(),
+          decisionTimer: z.boolean().optional(),
         })
         .strict(),
     ),
     ownerSeatId: z.string().nullable(),
     capabilities: z
-      .object({ manage: z.boolean(), control: z.boolean() })
+      .object({
+        manage: z.boolean(),
+        control: z.boolean(),
+        manageSeats: z.boolean().optional(),
+      })
       .strict(),
     seats: z.array(
       z

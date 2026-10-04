@@ -146,7 +146,7 @@ try {
       });
       await page.reload();
     }
-    await page.getByText('本地连接已就绪', { exact: true }).waitFor();
+    await page.locator('.connection.online').waitFor();
     return page;
   };
   const publicPage = await open('public');

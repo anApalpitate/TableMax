@@ -304,13 +304,13 @@ for (const scene of selectedScenes) {
         );
       }
       await page.reload();
-      await page.getByText('本地连接已就绪', { exact: true }).waitFor();
+      await page.locator('.connection.online').waitFor();
       return page;
     };
     await observe(host);
     await host.goto(`${origin}/host/game`);
     await host.reload();
-    await host.getByText('本地连接已就绪', { exact: true }).waitFor();
+    await host.locator('.connection.online').waitFor();
     const publicPage = await open('public'),
       phones = [];
     await publicPage.emulateMedia({ reducedMotion: 'no-preference' });
@@ -1247,7 +1247,7 @@ for (const scene of selectedScenes) {
       'Navigation never changes game state',
     );
     await phone.reload();
-    await phone.getByText('本地连接已就绪', { exact: true }).waitFor();
+    await phone.locator('.connection.online').waitFor();
     assert.equal(new URL(phone.url()).pathname, '/player/game');
     await phone.getByRole('button', { name: '菜单', exact: true }).click();
     await phone.getByRole('dialog', { name: '牌桌菜单' }).waitFor();
@@ -1302,7 +1302,7 @@ for (const scene of selectedScenes) {
       `${scene.id} saved changes use 220ms motion`,
     );
     await publicPage.reload();
-    await publicPage.getByText('本地连接已就绪', { exact: true }).waitFor();
+    await publicPage.locator('.connection.online').waitFor();
     assert.deepEqual(
       await publicPage.evaluate(() => window.tablemaxAudit.sounds),
       [],

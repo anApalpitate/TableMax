@@ -10,6 +10,7 @@ export interface GameManifest {
   stateVersion: number;
   players: { min: number; max: number };
   assetNamespace: string;
+  decisionTimer?: boolean;
 }
 
 export type Viewer = { role: 'public' } | { role: 'player'; seatId: string };

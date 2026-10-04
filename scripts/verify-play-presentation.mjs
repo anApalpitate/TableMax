@@ -161,7 +161,7 @@ async function observe(page) {
   });
 }
 async function ready(page) {
-  await page.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await page.locator('.connection.online').waitFor();
 }
 async function openPhone(index) {
   const next = desktop.waitForEvent('window');
@@ -255,7 +255,7 @@ async function start(dataDir) {
   });
   const host = await desktop.firstWindow();
   await host.waitForURL('**/host');
-  await host.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await host.locator('.connection.online').waitFor();
   if (
     await host
       .locator('.game-library__item')
@@ -272,7 +272,7 @@ async function start(dataDir) {
   }
   await ready(host);
   origin = new URL(host.url()).origin;
-  phoneUrl = (await host.locator('.url').textContent()).trim();
+  phoneUrl = `http://${new URL(await host.locator('.qr').getAttribute('src'), origin).searchParams.get('address')}:${new URL(origin).port}/player`;
   await observe(host);
   await host.reload();
   await ready(host);

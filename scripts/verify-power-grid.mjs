@@ -620,7 +620,7 @@ async function nativeMatrix() {
         exact: true,
       });
       await dialog
-        .getByLabel('显示分辨率', { exact: true })
+        .getByLabel('适配方式', { exact: true })
         .selectOption(`${request.width}x${request.height}`);
       await dialog
         .getByLabel('界面大小', { exact: true })

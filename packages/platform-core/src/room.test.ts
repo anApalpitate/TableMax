@@ -253,6 +253,7 @@ describe('real room invariants', () => {
     expect(room.view(a.token).capabilities).toEqual({
       manage: false,
       control: true,
+      manageSeats: true,
     });
     expect(room.view().paused).toBe(true);
     expect(room.view().branch).toBe(1);

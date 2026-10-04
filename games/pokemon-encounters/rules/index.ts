@@ -159,6 +159,7 @@ export const rules: GameRules = {
     // Six seats are a user-authorized digital variant, not a publisher claim.
     players: { min: 2, max: 6 },
     assetNamespace: 'pokemon-encounters',
+    decisionTimer: false,
   },
   initialize(context) {
     if (context.seats.length < 2 || context.seats.length > 6)

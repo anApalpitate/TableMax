@@ -23,7 +23,7 @@ export function OwnerControl({ session }: { session: RoomSession }) {
             </option>
           ))}
       </select>
-      <p>房主可在手机上开局、开始下一局、再玩、暂停与恢复。</p>
+      <p>房主可开局、续局、暂停／恢复，移除其他座位和修改人机名称。</p>
     </section>
   );
 }

@@ -26,7 +26,6 @@ import { RoomManagement } from '../components/RoomManagement';
 import { PlayModeControl } from '../components/PlayModeControl';
 import { PlayModeBadge } from '../components/PlayModeBadge';
 import { DisplaySettings } from '../components/DisplaySettings';
-import { DecisionCountdown } from '../components/DecisionCountdown';
 import { RulesGuide } from '../components/RulesGuide';
 import { pokemonRulebook } from '../../../../games/pokemon-encounters/ui/RulesGuide';
 import type { RoomSession } from '../session/useRoomSession';
@@ -81,7 +80,6 @@ function PokemonScreen({ session }: { session: RoomSession }) {
             ‹ 盒子
           </ScreenLink>
           <h1>{view?.game?.name ?? '朋友们的牌桌'}</h1>
-          <DecisionCountdown view={view} connected={connected} compact />
           <span
             className={`connection ${connected ? 'online' : ''}`}
             role="status"

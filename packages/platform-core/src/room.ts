@@ -17,7 +17,7 @@ import {
   type RoomFeedback,
   type PlayMode,
 } from '@tablemax/protocol';
-import type { Save, SaveRepository } from './model';
+import type { Save, SaveExtras, SaveRepository } from './model';
 import { validateSave } from './save-validation';
 import { Rejection, requireThat } from './errors';
 import { RandomSource } from './random';
@@ -30,6 +30,7 @@ export const hash = (value: string) =>
   createHash('sha256').update(value).digest('hex');
 export type Identity =
   { role: 'public' } | { role: 'host' } | { role: 'player'; seatId: string };
+type AvatarImage = { id: AvatarId; png: Uint8Array };
 
 // Saved states/checkpoints are immutable after commit. Copy only the containers
 // that a command can change, instead of cloning every historical game state.
@@ -85,6 +86,7 @@ export class RoomCoordinator {
                   id: game.rules.manifest.id,
                   name: game.rules.manifest.name,
                   ...game.rules.manifest.players,
+                  decisionTimer: game.rules.manifest.decisionTimer !== false,
                 },
                 load: async () => game,
               },
@@ -94,6 +96,16 @@ export class RoomCoordinator {
     const saved = loadedSave === undefined ? repository.load() : loadedSave;
     this.data =
       saved === null ? this.fresh() : validateSave(saved, rules, strategy);
+    for (const seat of this.data.seats) {
+      if (!seat.avatarId?.startsWith('custom-')) continue;
+      const png = repository.getAvatar?.(seat.avatarId);
+      requireThat(
+        png &&
+          `custom-${createHash('sha256').update(png).digest('hex')}` ===
+            seat.avatarId,
+        'damaged-avatar-image',
+      );
+    }
     let persist =
       saved !== null &&
       (this.data.seats.some(
@@ -201,6 +213,19 @@ export class RoomCoordinator {
       endReason: null,
     };
   }
+  private lobbyWithSeats(game = this.game): Save {
+    const fresh = this.fresh(game);
+    fresh.playMode = this.data.playMode ?? 'play';
+    fresh.countdownSeconds =
+      this.data.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS;
+    fresh.seats = this.data.seats.map((seat) => ({
+      ...seat,
+      ready: seat.controller === 'bot',
+    }));
+    fresh.ownerSeatId = this.data.ownerSeatId ?? null;
+    fresh.sessionReceipts = this.data.sessionReceipts ?? {};
+    return fresh;
+  }
   identity(credential?: string): Identity {
     if (!credential) return { role: 'public' };
     if (hash(credential) === hash(this.hostToken)) return { role: 'host' };
@@ -235,9 +260,10 @@ export class RoomCoordinator {
     clearBotError = false,
     events: PublicEvent[] = [],
     game = this.game,
+    extras?: SaveExtras,
   ) {
     synchronizeDecisionClocks(next, this.data, game?.rules ?? null, Date.now());
-    this.repository.save(next);
+    this.repository.save(next, extras);
     this.data = next;
     this.game = game;
     if (clearBotError) this.transientBotError = null;
@@ -298,7 +324,11 @@ export class RoomCoordinator {
       expires: Date.now() + 24 * 60 * 60 * 1000,
     };
   }
-  private availableAvatar(avatarId?: AvatarId, seatId?: string): AvatarId {
+  private availableAvatar(
+    avatarId?: AvatarId,
+    seatId?: string,
+    image?: AvatarImage,
+  ): AvatarId {
     const occupied = new Set(
       this.data.seats
         .filter((seat) => seat.id !== seatId)
@@ -306,14 +336,30 @@ export class RoomCoordinator {
     );
     if (avatarId !== undefined) {
       requireThat(AvatarIdSchema.safeParse(avatarId).success, 'invalid-avatar');
+      if (avatarId.startsWith('custom-')) {
+        requireThat(
+          image?.id === avatarId ||
+            (this.data.seats.some(
+              (seat) => seat.id === seatId && seat.avatarId === avatarId,
+            ) &&
+              this.repository.getAvatar?.(avatarId)),
+          'invalid-avatar',
+        );
+        return avatarId;
+      }
       requireThat(!occupied.has(avatarId), 'avatar-unavailable');
-      return avatarId;
+      return avatarId as AvatarId;
     }
     const preset = AVATAR_PRESETS.find((entry) => !occupied.has(entry.id));
     requireThat(preset, 'avatar-unavailable');
     return preset.id;
   }
-  async join(name: string, requestKey?: string, avatarId?: AvatarId) {
+  async join(
+    name: string,
+    requestKey?: string,
+    avatarId?: AvatarId,
+    image?: AvatarImage,
+  ) {
     return this.enqueue(() => {
       requireThat(
         avatarId === undefined || AvatarIdSchema.safeParse(avatarId).success,
@@ -339,7 +385,7 @@ export class RoomCoordinator {
       const next = copySave(this.data);
       const duplicateName = next.seats.some((s) => s.name === name);
       const seatId = randomUUID();
-      const selectedAvatar = this.availableAvatar(avatarId);
+      const selectedAvatar = this.availableAvatar(avatarId, undefined, image);
       next.seats.push({
         id: seatId,
         name,
@@ -358,7 +404,13 @@ export class RoomCoordinator {
       );
       next.revision++;
       this.updateWindows(next);
-      this.commit(next);
+      this.commit(
+        next,
+        false,
+        [],
+        this.game,
+        image ? { avatars: [image] } : undefined,
+      );
       return { token: credential, duplicateName };
     });
   }
@@ -392,12 +444,14 @@ export class RoomCoordinator {
             id: this.rules.manifest.id,
             name: this.rules.manifest.name,
             ...this.rules.manifest.players,
+            decisionTimer: this.rules.manifest.decisionTimer !== false,
           }
         : null,
       catalog: this.registry.catalog(),
       ownerSeatId: d.ownerSeatId ?? null,
       capabilities: {
         manage: identity.role === 'host',
+        manageSeats: this.managesSeats(identity),
         control: this.controls(identity),
       },
       seats: d.seats.map(
@@ -457,6 +511,9 @@ export class RoomCoordinator {
       identity.role === 'host' ||
       (identity.role === 'player' && identity.seatId === this.data.ownerSeatId)
     );
+  }
+  private managesSeats(identity: Identity) {
+    return this.controls(identity);
   }
   private acceptsRevision(identity: Identity, envelope: Command) {
     if (envelope.revision === this.data.revision) return true;
@@ -556,10 +613,36 @@ export class RoomCoordinator {
       }
     });
   }
+  uploadAvatar(
+    credential: string,
+    metadata: Omit<Command, 'command'>,
+    image: AvatarImage,
+  ): Promise<CommandReply> {
+    return this.enqueue(async () => {
+      try {
+        const identity = this.identity(credential);
+        requireThat(identity.role === 'player', 'unauthorized');
+        const envelope = CommandSchema.parse({
+          ...metadata,
+          command: { type: 'set-avatar', avatarId: image.id },
+        });
+        return await this.execute(identity, envelope, undefined, image);
+      } catch (error) {
+        return {
+          ok: false,
+          reason:
+            error instanceof Rejection
+              ? error.message
+              : 'save-or-action-failed',
+        };
+      }
+    });
+  }
   private async execute(
     identity: Identity,
     envelope: Command,
     botUpdate?: { memory: JsonValue; random: number },
+    image?: AvatarImage,
   ): Promise<CommandReply> {
     requireThat(identity.role !== 'public', 'unauthorized');
     const principal = identity.role === 'host' ? 'host' : identity.seatId;
@@ -568,7 +651,9 @@ export class RoomCoordinator {
     const receipt = this.data.receipts[key];
     if (
       envelope.instanceId !== this.data.instanceId &&
-      ['new-room', 'replay', 'select-game'].includes(envelope.command.type) &&
+      ['new-room', 'replay', 'select-game', 'remove-seat'].includes(
+        envelope.command.type,
+      ) &&
       receipt?.fingerprint === fingerprint
     )
       return receipt.reply;
@@ -583,15 +668,17 @@ export class RoomCoordinator {
     if (envelope.command.type === 'set-avatar') {
       requireThat(identity.role === 'player', 'unauthorized');
       requireThat(this.data.status !== 'playing', 'avatars-locked');
-      this.availableAvatar(envelope.command.avatarId, identity.seatId);
+      this.availableAvatar(envelope.command.avatarId, identity.seatId, image);
     }
     requireThat(this.acceptsRevision(identity, envelope), 'stale-revision');
     if (botUpdate)
       requireThat(envelope.revision === this.data.revision, 'stale-revision');
-    const next = copySave(this.data);
+    let next = copySave(this.data);
     const c = envelope.command;
     const host = () => requireThat(identity.role === 'host', 'unauthorized');
     const control = () => requireThat(this.controls(identity), 'unauthorized');
+    const manageSeats = () =>
+      requireThat(this.managesSeats(identity), 'unauthorized');
     const lobby = () => requireThat(next.status === 'lobby', 'not-in-lobby');
     let events: PublicEvent[] = [];
     switch (c.type) {
@@ -608,7 +695,10 @@ export class RoomCoordinator {
         break;
       case 'select-game': {
         host();
-        requireThat(next.status !== 'playing', 'end-first');
+        requireThat(
+          next.status !== 'playing' || c.endCurrent === true,
+          'end-first',
+        );
         const catalog = this.registry
           .catalog()
           .find((entry) => entry.id === c.gameId);
@@ -635,23 +725,28 @@ export class RoomCoordinator {
           ),
           'unsupported-bot-difficulty',
         );
-        const fresh = this.fresh(game);
-        fresh.playMode = next.playMode ?? 'play';
-        fresh.countdownSeconds =
-          next.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS;
-        fresh.seats = next.seats.map((seat) => ({
-          ...seat,
-          ready: seat.controller === 'bot',
-        }));
-        fresh.ownerSeatId = next.ownerSeatId ?? null;
-        fresh.sessionReceipts = next.sessionReceipts ?? {};
+        let extras: SaveExtras | undefined;
+        if (next.status === 'playing') {
+          next.status = 'ended';
+          next.endReason = '管理员结束';
+          next.revision++;
+          this.updateWindows(next);
+          synchronizeDecisionClocks(
+            next,
+            this.data,
+            this.game?.rules ?? null,
+            Date.now(),
+          );
+          extras = { journal: [next] };
+        }
+        const fresh = this.lobbyWithSeats(game);
         const reply: CommandReply = {
           ok: true,
           revision: fresh.revision,
           branch: fresh.branch,
         };
         fresh.receipts[key] = { fingerprint, reply };
-        this.commit(fresh, true, [], game);
+        this.commit(fresh, true, [], game, extras);
         this.restored = false;
         return reply;
       }
@@ -661,6 +756,10 @@ export class RoomCoordinator {
         break;
       case 'set-countdown':
         host();
+        requireThat(
+          this.game?.rules.manifest.decisionTimer !== false,
+          'invalid-setting',
+        );
         next.countdownSeconds = c.seconds;
         break;
       case 'join-open':
@@ -682,7 +781,7 @@ export class RoomCoordinator {
             entry.id === identity.seatId && entry.controller === 'human',
         );
         requireThat(seat, 'unauthorized');
-        seat.avatarId = this.availableAvatar(c.avatarId, seat.id);
+        seat.avatarId = this.availableAvatar(c.avatarId, seat.id, image);
         break;
       }
       case 'add-bot':
@@ -722,13 +821,28 @@ export class RoomCoordinator {
         seat.botDifficulty = c.difficulty;
         break;
       }
+      case 'set-bot-name': {
+        manageSeats();
+        requireThat(next.status !== 'playing', 'end-first');
+        const seat = next.seats.find(
+          (s) => s.id === c.seatId && s.controller === 'bot',
+        );
+        requireThat(seat, 'invalid-seat');
+        seat.name = c.name;
+        break;
+      }
       case 'remove-seat':
-        host();
-        lobby();
+        manageSeats();
+        requireThat(next.status !== 'playing', 'end-first');
+        requireThat(
+          identity.role !== 'player' || identity.seatId !== c.seatId,
+          'cannot-remove-self',
+        );
         requireThat(
           next.seats.some((s) => s.id === c.seatId),
           'invalid-seat',
         );
+        if (next.status === 'ended') next = this.lobbyWithSeats();
         next.seats = next.seats.filter((s) => s.id !== c.seatId);
         if (next.hostSeat === c.seatId) next.hostSeat = null;
         if (next.ownerSeatId === c.seatId) next.ownerSeatId = null;
@@ -808,18 +922,11 @@ export class RoomCoordinator {
         if (c.type === 'replay')
           requireThat(next.status === 'ended', 'not-ended');
         {
-          const fresh = this.fresh();
+          const fresh =
+            c.type === 'replay' ? this.lobbyWithSeats() : this.fresh();
           fresh.playMode = next.playMode ?? 'play';
           fresh.countdownSeconds =
             next.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS;
-          if (c.type === 'replay') {
-            fresh.seats = next.seats.map((seat) => ({
-              ...seat,
-              ready: seat.controller === 'bot',
-            }));
-            fresh.sessionReceipts = next.sessionReceipts ?? {};
-            fresh.ownerSeatId = next.ownerSeatId ?? null;
-          }
           const reply: CommandReply = {
             ok: true,
             revision: fresh.revision,
@@ -953,8 +1060,15 @@ export class RoomCoordinator {
       branch: next.branch,
     };
     next.receipts[key] = { fingerprint, reply };
-    this.commit(next, c.type === 'resume' || c.type === 'rollback', events);
-    if (c.type === 'resume') this.restored = false;
+    const changedInstance = next.instanceId !== this.data.instanceId;
+    this.commit(
+      next,
+      changedInstance || c.type === 'resume' || c.type === 'rollback',
+      events,
+      this.game,
+      image ? { avatars: [image] } : undefined,
+    );
+    if (changedInstance || c.type === 'resume') this.restored = false;
     return reply;
   }
   botTask() {

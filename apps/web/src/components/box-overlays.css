@@ -140,6 +140,62 @@
   color: #ae7929;
   font-size: 30px;
 }
+.bot-information {
+  display: grid;
+  gap: 14px;
+}
+.bot-information__game {
+  margin: 0;
+  color: #476454;
+  font-size: 18px;
+}
+.bot-information__level {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #dce5d2;
+  border-radius: 18px;
+  background: #f1f5e9;
+}
+.bot-information__rank {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #d9eadd;
+  color: #1b6053;
+  font-size: 22px;
+  font-weight: 750;
+}
+.bot-information__level:nth-of-type(2) .bot-information__rank {
+  background: #ffe9a8;
+  color: #785015;
+}
+.bot-information__level:nth-of-type(3) .bot-information__rank {
+  background: #ffddcc;
+  color: #8b422c;
+}
+.bot-information__level h3 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+.bot-information__level p {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.5;
+}
+.bot-information__level .bot-information__detail {
+  margin-top: 8px;
+  font-size: 16px;
+  color: #496452;
+}
+.bot-information__note {
+  margin: 0;
+  font-size: 16px;
+  color: #536353;
+}
 @media (max-width: 600px) {
   .avatar-picker__grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));

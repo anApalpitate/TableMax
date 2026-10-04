@@ -99,7 +99,7 @@ export function validateSave(
     if (seat.avatarId === undefined) continue;
     requireThat(
       AvatarIdSchema.safeParse(seat.avatarId).success &&
-        !occupied.has(seat.avatarId),
+        (seat.avatarId.startsWith('custom-') || !occupied.has(seat.avatarId)),
       'damaged-save',
     );
     occupied.add(seat.avatarId);

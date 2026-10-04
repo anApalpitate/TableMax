@@ -1,7 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
-import type { Save, SaveRepository } from '@tablemax/platform-core';
+import type { Save, SaveExtras, SaveRepository } from '@tablemax/platform-core';
 
 export class SqliteSaveRepository implements SaveRepository {
   private database: DatabaseSync;
@@ -52,13 +52,44 @@ export class SqliteSaveRepository implements SaveRepository {
       throw new Error('damaged-save-json');
     }
   }
-  save(value: Save) {
+  getAvatar(id: string): Uint8Array | null {
+    if (
+      !this.database
+        .prepare(
+          "SELECT 1 FROM sqlite_master WHERE type='table' AND name='avatar_images'",
+        )
+        .get()
+    )
+      return null;
+    const row = this.database
+      .prepare('SELECT png FROM avatar_images WHERE id=?')
+      .get(id);
+    return row ? (row.png as Uint8Array) : null;
+  }
+  save(value: Save, extras?: SaveExtras) {
     const json = JSON.stringify(value);
     this.database.exec('BEGIN IMMEDIATE');
     try {
-      this.database
-        .prepare('INSERT INTO journal(instance,revision,data) VALUES(?,?,?)')
-        .run(value.instanceId, value.revision, json);
+      if (extras?.avatars?.length) {
+        this.database.exec(
+          'CREATE TABLE IF NOT EXISTS avatar_images (id TEXT PRIMARY KEY, png BLOB NOT NULL) STRICT;',
+        );
+        const insertAvatar = this.database.prepare(
+          'INSERT INTO avatar_images(id,png) VALUES(?,?) ON CONFLICT(id) DO NOTHING',
+        );
+        for (const avatar of extras.avatars)
+          insertAvatar.run(avatar.id, avatar.png);
+      }
+      const insertJournal = this.database.prepare(
+        'INSERT INTO journal(instance,revision,data) VALUES(?,?,?)',
+      );
+      for (const previous of extras?.journal ?? [])
+        insertJournal.run(
+          previous.instanceId,
+          previous.revision,
+          JSON.stringify(previous),
+        );
+      insertJournal.run(value.instanceId, value.revision, json);
       this.database
         .prepare(
           'INSERT INTO saves(id,data) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data',

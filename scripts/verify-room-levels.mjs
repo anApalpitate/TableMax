@@ -152,7 +152,7 @@ function observe(page) {
   });
 }
 async function settle(page) {
-  await page.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await page.locator('.connection.online').waitFor();
   await page.evaluate(
     () =>
       new Promise((done) =>
@@ -489,7 +489,7 @@ try {
   );
   await host.getByRole('button', { name: '连接帮助', exact: true }).click();
   await host.getByLabel('电脑地址').selectOption(adapter.address);
-  phoneUrl = (await host.locator('.url').textContent()).trim();
+  phoneUrl = `http://${new URL(await host.locator('.qr').getAttribute('src'), origin).searchParams.get('address')}:${new URL(origin).port}/player`;
   assert.equal(new URL(phoneUrl).hostname, adapter.address);
   assert.equal(new URL(phoneUrl).pathname, '/player');
   assert.equal(
@@ -690,7 +690,7 @@ try {
     await tableGeometry(phones[0], `phone ${width}x${height}`);
   }
   await capture(phones[0], 'phone-table-ready', 390, 844, true);
-  await host.getByRole('button', { name: '牌桌管理', exact: true }).click();
+  await host.getByRole('button', { name: '管理设置', exact: true }).click();
   const publicReady = desktop.waitForEvent('window');
   await host
     .getByRole('link', { name: '打开公共屏', exact: true })

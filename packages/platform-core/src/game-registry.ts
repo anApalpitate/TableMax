@@ -5,6 +5,7 @@ export interface GameCatalogEntry {
   name: string;
   min: number;
   max: number;
+  decisionTimer?: boolean;
 }
 export interface LoadedGame {
   rules: GameRules;

@@ -9,21 +9,28 @@ import { OwnerControl } from './OwnerControl';
 export function RoomManagement({
   session,
   lifecycleLabel = '开始下一局',
+  display = 'full',
 }: {
   session: RoomSession;
   lifecycleLabel?: string;
+  display?: 'full' | 'actions' | 'details';
 }) {
   const { view, locked, command, isHost, canControl } = session;
   const [confirmation, setConfirmation] = useState<'end' | 'clear' | null>(
     null,
   );
   if (!canControl || !view) return null;
+  const showActions = display !== 'details';
+  const showDetails = display !== 'actions';
   return (
-    <section className="management">
-      <SessionFeedback session={session} />
-      <h3>{isHost ? '管理员' : '房主'} · 对局控制</h3>
-      {isHost && <OwnerControl session={session} />}
-      {view.status === 'playing' && (
+    <section
+      className={`management${display === 'actions' ? ' room-actions' : ''}`}
+      aria-label={display === 'actions' ? '牌桌操作' : '牌桌管理'}
+    >
+      {display === 'full' && <SessionFeedback session={session} />}
+      {showDetails && <h3>{isHost ? '管理员设置' : '房主控制'}</h3>}
+      {showDetails && isHost && <OwnerControl session={session} />}
+      {showActions && view.status === 'playing' && (
         <>
           <button
             disabled={locked}
@@ -46,7 +53,8 @@ export function RoomManagement({
           )}
         </>
       )}
-      {view.status === 'playing' &&
+      {showActions &&
+        view.status === 'playing' &&
         !view.paused &&
         view.lifecycleActions.map((action, index) => (
           <button
@@ -65,7 +73,7 @@ export function RoomManagement({
             {lifecycleLabel}
           </button>
         ))}
-      {isHost && view.status === 'lobby' && (
+      {showActions && isHost && view.status === 'lobby' && (
         <button
           className="secondary"
           disabled={locked || !view.game}
@@ -74,24 +82,27 @@ export function RoomManagement({
           {view.joinOpen ? '关闭加入' : '开放加入'}
         </button>
       )}
-      {view.status === 'ended' && (
+      {showActions && view.status === 'ended' && (
         <button disabled={locked} onClick={() => command({ type: 'replay' })}>
-          原班人马再开一局
+          {display === 'full' ? '原班人马再开一局' : '再玩一局'}
         </button>
       )}
-      {isHost && view.status !== 'playing' && view.seats.length > 0 && (
-        <button
-          className="secondary"
-          disabled={locked}
-          onClick={() => setConfirmation('clear')}
-        >
-          清空牌桌
-        </button>
-      )}
-      {isHost && view.status !== 'lobby' && (
+      {showActions &&
+        isHost &&
+        view.status !== 'playing' &&
+        view.seats.length > 0 && (
+          <button
+            className="secondary room-actions-clear"
+            disabled={locked}
+            onClick={() => setConfirmation('clear')}
+          >
+            清空牌桌
+          </button>
+        )}
+      {showDetails && isHost && view.status !== 'lobby' && (
         <RollbackHistory key={view.instanceId} session={session} />
       )}
-      {isHost && (
+      {showDetails && isHost && (
         <a
           className="button secondary"
           href={view.gameView ? '/public/game' : '/public'}

@@ -441,7 +441,7 @@
 }
 @media (min-width: 861px) and (max-height: 760px) {
   .box-screen:not(.player) {
-    padding: 10px 18px;
+    padding: 6px 18px;
   }
   .box-screen:not(.player) .hero {
     margin: 8px 0;
@@ -452,7 +452,7 @@
     height: 42px;
   }
   .box-screen:not(.player) .hero h1 {
-    font-size: 19px;
+    font-size: 20px;
     line-height: 1.2;
     margin-bottom: 3px;
   }
@@ -476,7 +476,7 @@
     padding: 14px;
   }
   .box-screen:not(.player) .controls h2 {
-    font-size: 19px;
+    font-size: 20px;
     margin-bottom: 8px;
   }
   .box-screen:not(.player) .phone-entry-note {
@@ -735,11 +735,156 @@
   line-height: 1.5;
 }
 .game-library__players {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   font-size: 16px;
   padding: 3px 10px;
   border-radius: 8px;
   background: #e9efdf;
+}
+.game-library__players svg {
+  display: block;
+  flex: 0 0 auto;
+}
+.box-screen .box-table-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border: 1px solid #d8e2ce;
+  border-radius: 18px;
+  background: #eaf0e2;
+}
+.box-screen .room-actions.management {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.box-screen .box-table-actions button,
+.box-screen .room-actions.management button {
+  margin: 0;
+  width: auto;
+  min-height: 46px;
+  font-size: 18px;
+}
+.box-screen .room-actions .room-actions-clear {
+  color: #883c2b;
+  background: #ffe6d5;
+  border: 1px solid #e7c5af;
+}
+.box-screen .lobby-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+.box-screen .lobby-start {
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.lobby-readiness {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.lobby-readiness__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid #e2cea1;
+  border-radius: 12px;
+  background: #fff1d1;
+  color: #805a25;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.lobby-readiness__item.is-complete {
+  border-color: #b7d1b9;
+  background: #e1efde;
+  color: #225b42;
+}
+.lobby-readiness__item svg {
+  display: block;
+  flex: 0 0 auto;
+}
+.lobby-readiness__item strong {
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+.lobby-readiness__item strong > span {
+  font-size: 16px;
+  font-weight: 500;
+}
+.box-screen .room-heading p,
+.box-screen .room-heading h2 span,
+.box-screen .room-status,
+.box-screen .connection,
+.box-screen .feedback:not(:empty),
+.box-screen .bot-invite label {
+  font-size: 16px;
+}
+.box-screen .room-heading h2,
+.box-screen .controls h2 {
+  font-size: 20px;
+}
+.box-screen .host-lobby button,
+.box-screen .player-actions > button:last-child:not(.profile-avatar) {
+  font-size: 18px;
+}
+.box-screen .room-table__name,
+.box-screen .room-table__identity,
+.box-screen .room-table__ready,
+.box-screen .room-table__seat--empty h3,
+.box-screen .room-table__seat--empty p {
+  font-size: 16px;
+}
+.box-screen .room-table__seat-number {
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+}
+@media (min-width: 861px) and (max-height: 850px) {
+  .box-screen .box-table-actions {
+    gap: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+  }
+  .box-screen .box-table-actions button {
+    padding: 8px 14px;
+  }
+}
+@media (max-width: 600px) {
+  .box-screen .box-table-actions,
+  .box-screen .room-actions.management {
+    gap: 8px;
+  }
+  .box-screen .box-table-actions button {
+    flex: 1 1 auto;
+    padding: 9px 12px;
+  }
+  .box-screen .room-actions.management {
+    flex: 1 1 100%;
+  }
+  .box-screen .lobby-toolbar,
+  .box-screen .lobby-start {
+    justify-content: center;
+  }
+  .box-screen .lobby-start {
+    flex: 1 1 100%;
+  }
+  .box-screen .lobby-start > button {
+    flex: 1 1 100%;
+  }
 }
 @media (max-width: 720px) {
   .box-screen .box-info-control {
@@ -748,7 +893,7 @@
     height: 58px;
     gap: 1px;
     padding: 3px;
-    font-size: 14px;
+    font-size: 16px;
   }
   .box-screen .hero {
     gap: 8px;
@@ -775,11 +920,11 @@
     font-size: 16px;
   }
   .box-screen .player-profile span {
-    font-size: 15px;
+    font-size: 16px;
   }
   .box-screen .player-actions > button:last-child:not(.profile-avatar) {
     padding: 10px 8px;
-    font-size: 15px;
+    font-size: 18px;
   }
   .game-library__item .game-library__tagline {
     font-size: 16px;

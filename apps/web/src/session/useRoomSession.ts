@@ -3,6 +3,7 @@ import { io, type Socket } from 'socket.io-client';
 import {
   RoomViewSchema,
   CommandReplySchema,
+  CommandSchema,
   RoomFeedbackSchema,
   NetworkSchema,
   type RoomFeedback,
@@ -37,6 +38,10 @@ const messages: Record<string, string> = {
   'invalid-avatar': '请选择一个可用头像。',
   'avatar-unavailable': '这个头像已被朋友选走，请选择另一个。',
   'avatars-locked': '对局进行中，请在结束后更换头像。',
+  'invalid-avatar-image': '头像图片无法使用，请重新裁剪或换一张。',
+  'cannot-remove-self': '房主不能移除自己，请由电脑管理员处理。',
+  'end-first': '请先结束对局。',
+  'invalid-setting': '这个游戏没有此设置。',
   'stale-instance': '新的大局已经准备好，请按当前牌桌重新操作。',
   'unsupported-bot-difficulty': '当前游戏不支持这个人机等级。',
   'save-or-action-failed': '操作未确认保存，请检查本地存储后重试。',
@@ -81,6 +86,9 @@ export function useRoomSession(role: ScreenRole) {
   const motionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const pending = useRef<Command | null>(null);
+  const pendingImage = useRef<string | null>(null);
+  const recoveredImage = useRef(false);
+  const sendRef = useRef<(envelope: Command) => void>(() => {});
   const admission = useAdmission(
     role === 'player' && !credential,
     setCredential,
@@ -112,6 +120,26 @@ export function useRoomSession(role: ScreenRole) {
       if (parsed.success) {
         const next = parsed.data,
           previous = synced.current;
+        if (!recoveredImage.current && next.self.role === 'player') {
+          recoveredImage.current = true;
+          try {
+            const saved = JSON.parse(
+              localStorage.getItem('tablemax-avatar-upload') ?? 'null',
+            ) as { seatId: string; envelope: Command; image: string } | null;
+            if (
+              saved?.seatId === next.self.seatId &&
+              typeof saved.image === 'string'
+            ) {
+              const parsedEnvelope = CommandSchema.safeParse(saved.envelope);
+              if (parsedEnvelope.success) {
+                pendingImage.current = saved.image;
+                sendRef.current(parsedEnvelope.data);
+              }
+            }
+          } catch {
+            /* A corrupt local draft is never submitted. */
+          }
+        }
         if (previous?.revision !== next.revision || next.playMode === 'test')
           setMotion([]);
         changedSlots.current = [];
@@ -180,10 +208,13 @@ export function useRoomSession(role: ScreenRole) {
       setMotion([]);
       setFeedback(null);
       pending.current = null;
+      pendingImage.current = null;
+      recoveredImage.current = false;
       setBusy(false);
       setAwaitingConfirmation(false);
       setMessage(messages['invalid-identity']!);
       if (role === 'player') {
+        localStorage.removeItem('tablemax-avatar-upload');
         localStorage.removeItem('tablemax-player');
         setCredential('');
       }
@@ -271,37 +302,60 @@ export function useRoomSession(role: ScreenRole) {
     setBusy(true);
     setAwaitingConfirmation(false);
     setMessage('正在提交…');
-    socketRef.current
-      ?.timeout(5000)
-      .emit('room:command', envelope, (error: Error | null, input: unknown) => {
-        if (pending.current !== envelope) return;
-        if (error) {
-          setAwaitingConfirmation(true);
-          setMessage('尚未收到保存确认，请重试确认。');
-          socketRef.current?.emit('room:sync');
-          return;
-        }
-        const parsed = CommandReplySchema.safeParse(input);
-        if (!parsed.success) {
-          setAwaitingConfirmation(true);
-          setMessage('服务确认无效，请重新同步。');
-          socketRef.current?.emit('room:sync');
-          return;
-        }
-        pending.current = null;
-        setBusy(false);
-        setAwaitingConfirmation(false);
-        const reply = parsed.data;
-        if (reply.ok) {
-          setMessage('已保存');
-        } else {
-          setErrorId(envelope.actionId);
-          setMessage(
-            messages[reply.reason] ?? '操作未完成，请按最新状态重试。',
-          );
-          socketRef.current?.emit('room:sync');
-        }
-      });
+    const receive = (error: Error | null, input: unknown) => {
+      if (pending.current !== envelope) return;
+      if (error) {
+        setAwaitingConfirmation(true);
+        setMessage('尚未收到保存确认，请重试确认。');
+        socketRef.current?.emit('room:sync');
+        return;
+      }
+      const parsed = CommandReplySchema.safeParse(input);
+      if (!parsed.success) {
+        setAwaitingConfirmation(true);
+        setMessage('服务确认无效，请重新同步。');
+        socketRef.current?.emit('room:sync');
+        return;
+      }
+      pending.current = null;
+      if (pendingImage.current)
+        localStorage.removeItem('tablemax-avatar-upload');
+      pendingImage.current = null;
+      setBusy(false);
+      setAwaitingConfirmation(false);
+      const reply = parsed.data;
+      if (reply.ok) {
+        setMessage('已保存');
+      } else {
+        setErrorId(envelope.actionId);
+        setMessage(messages[reply.reason] ?? '操作未完成，请按最新状态重试。');
+        socketRef.current?.emit('room:sync');
+      }
+    };
+    if (pendingImage.current) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      const metadata = {
+        actionId: envelope.actionId,
+        instanceId: envelope.instanceId,
+        revision: envelope.revision,
+        branch: envelope.branch,
+      };
+      void fetch('/api/session/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          token: credential,
+          envelope: metadata,
+          avatarImage: pendingImage.current,
+        }),
+      })
+        .then(async (response) => receive(null, await response.json()))
+        .catch(() => receive(new Error('upload-unconfirmed'), null))
+        .finally(() => clearTimeout(timeout));
+    } else
+      socketRef.current?.timeout(5000).emit('room:command', envelope, receive);
   }
   function command(value: Command['command']) {
     if (!view || locked || pending.current) return;
@@ -315,6 +369,9 @@ export function useRoomSession(role: ScreenRole) {
       command: value,
     });
   }
+  useEffect(() => {
+    sendRef.current = send;
+  });
   return {
     role,
     view,
@@ -343,10 +400,34 @@ export function useRoomSession(role: ScreenRole) {
     credential,
     isHost,
     canControl: view?.capabilities.control ?? false,
+    canManageSeats: view?.capabilities.manageSeats ?? false,
     self,
     locked,
     command,
-    join: (avatarId?: AvatarId) => admission.join(name, avatarId),
+    join: (avatarId?: AvatarId, avatarImage?: string) =>
+      admission.join(name, avatarId, avatarImage),
+    admissionAvatarImage: admission.avatarImage,
+    uploadAvatar: (image: string) => {
+      if (!view || locked || pending.current || !self) return;
+      const envelope: Command = {
+        actionId: crypto.randomUUID(),
+        instanceId: view.instanceId,
+        revision: view.revision,
+        branch: view.branch,
+        command: { type: 'set-avatar', avatarId: self.avatarId },
+      };
+      try {
+        localStorage.setItem(
+          'tablemax-avatar-upload',
+          JSON.stringify({ seatId: self.id, envelope, image }),
+        );
+      } catch {
+        setMessage('浏览器无法保存上传确认，请释放空间后重试。');
+        return;
+      }
+      pendingImage.current = image;
+      send(envelope);
+    },
     retry: () => {
       if (pending.current) send(pending.current);
     },

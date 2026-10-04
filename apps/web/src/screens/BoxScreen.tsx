@@ -19,19 +19,17 @@ import { PlayModeControl } from '../components/PlayModeControl';
 import { PlayModeBadge } from '../components/PlayModeBadge';
 import { DisplaySettings } from '../components/DisplaySettings';
 import { AvatarPicker } from '../components/AvatarPicker';
+import { AvatarUpload } from '../components/AvatarUpload';
 import { GameIntroduction } from '../components/GameIntroduction';
 import { CountdownSettings } from '../components/CountdownSettings';
+import { LobbyReadiness } from '../components/LobbyReadiness';
+import { BotInformation } from '../components/BotInformation';
 import type { RoomSession } from '../session/useRoomSession';
 
 const difficultyNames: Record<BotDifficulty, string> = {
   default: '默认',
   doubao: '豆包',
   juewu: '绝悟',
-};
-const botDescriptions: Record<BotDifficulty, string> = {
-  default: '简单决策，轻松陪玩。',
-  doubao: '分析已知牌面和局势，权衡得分与风险。',
-  juewu: '结合全部已知信息推演，比较当前选择。',
 };
 type BoxPanel =
   'intro' | 'seats' | 'management' | 'library' | 'bot-info' | 'avatars' | null;
@@ -40,12 +38,14 @@ export function BoxScreen({ session }: { session: RoomSession }) {
   const [difficulty, setDifficulty] = useState<BotDifficulty>('default');
   const [panel, setPanel] = useState<BoxPanel>(null);
   const [draftAvatar, setDraftAvatar] = useState<AvatarId | null>(null);
+  const [draftImage, setDraftImage] = useState<string | null>(null);
   const {
     role,
     view,
     self,
     isHost,
     canControl,
+    canManageSeats,
     locked,
     command,
     name,
@@ -68,17 +68,16 @@ export function BoxScreen({ session }: { session: RoomSession }) {
     )?.id ??
     null;
   const avatarAvailable = Boolean(
-    chosenAvatar &&
-    !view?.seats.some(
-      (seat) => seat.avatarId === chosenAvatar && seat.id !== self?.id,
-    ),
+    draftImage ||
+    session.admissionAvatarImage ||
+    (chosenAvatar &&
+      (chosenAvatar.startsWith('custom-') ||
+        !view?.seats.some(
+          (seat) => seat.avatarId === chosenAvatar && seat.id !== self?.id,
+        ))),
   );
   const avatarLocked =
     locked || session.admissionPending || view?.status === 'playing';
-  const humans =
-    view?.seats.filter((seat) => seat.controller === 'human').length ?? 0;
-  const bots =
-    view?.seats.filter((seat) => seat.controller === 'bot').length ?? 0;
   const everyoneReady = Boolean(
     view?.seats.length && view.seats.every((seat) => seat.ready),
   );
@@ -111,7 +110,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
             className={`connection ${connected ? 'online' : ''}`}
             role="status"
           >
-            {connected ? '本地连接已就绪' : '正在连接本地服务'}
+            {connected ? '已连接' : '正在连接'}
           </span>
         </div>
       </header>
@@ -124,7 +123,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
           <button
             type="button"
             className="secondary"
-            disabled={view?.status === 'playing' || locked}
+            disabled={locked}
             onClick={() => setPanel('library')}
           >
             切换游戏
@@ -156,13 +155,36 @@ export function BoxScreen({ session }: { session: RoomSession }) {
       </section>
       {!game && <GameLibrary session={session} />}
       <SessionFeedback session={session} />
+      {game && canControl && (
+        <div className="box-table-actions">
+          <RoomManagement session={session} display="actions" />
+          {canManageSeats && (
+            <button
+              type="button"
+              className="secondary"
+              disabled={locked || !view?.seats.length}
+              onClick={() => setPanel('seats')}
+            >
+              座位设置
+            </button>
+          )}
+          {isHost && (
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => setPanel('management')}
+            >
+              管理设置
+            </button>
+          )}
+        </div>
+      )}
       {Boolean(view?.gameView) && view && (
         <div className="continue-game">
           <div>
             <h2>
               {view.status === 'ended' ? '查看对局结果' : '牌桌已经准备好'}
             </h2>
-            <p>朋友们仍在同一张牌桌，随时回到游戏。</p>
           </div>
           <ScreenLink className="button" href={`/${role}/game`}>
             进入牌桌
@@ -180,22 +202,9 @@ export function BoxScreen({ session }: { session: RoomSession }) {
                 </span>
               </h2>
               {owner && <p className="owner-badge">房主：{owner.name}</p>}
-              <p>
-                {humans} 位手机玩家{bots > 0 ? `，${bots} 位人机` : ''}
-              </p>
             </div>
             <div className="room-heading__actions">
               <span className="room-status">{roomStatus}</span>
-              {isHost && lobby && (
-                <button
-                  type="button"
-                  className="secondary"
-                  disabled={!view?.seats.length}
-                  onClick={() => setPanel('seats')}
-                >
-                  座位设置
-                </button>
-              )}
             </div>
           </div>
           {self && game && (
@@ -232,8 +241,11 @@ export function BoxScreen({ session }: { session: RoomSession }) {
               className="join-table"
               onSubmit={(event) => {
                 event.preventDefault();
-                if (!locked && name.trim() && chosenAvatar && avatarAvailable)
-                  void join(chosenAvatar);
+                if (!locked && name.trim() && avatarAvailable)
+                  void join(
+                    draftImage ? undefined : (chosenAvatar ?? undefined),
+                    draftImage ?? undefined,
+                  );
               }}
             >
               <h2>加入牌桌</h2>
@@ -245,7 +257,14 @@ export function BoxScreen({ session }: { session: RoomSession }) {
                   disabled={avatarLocked}
                   onClick={() => setPanel('avatars')}
                 >
-                  {chosenAvatar && <img src={avatarFor(chosenAvatar)} alt="" />}
+                  {draftImage || session.admissionAvatarImage ? (
+                    <img
+                      src={`data:image/png;base64,${session.admissionAvatarImage ?? draftImage}`}
+                      alt=""
+                    />
+                  ) : (
+                    chosenAvatar && <img src={avatarFor(chosenAvatar)} alt="" />
+                  )}
                   <span>选择头像</span>
                 </button>
                 <div className="join-table__fields">
@@ -336,6 +355,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
                   </div>
                 )}
                 <div className="lobby-start">
+                  <LobbyReadiness seats={view.seats} minimum={game.min} />
                   <button
                     disabled={
                       locked || view.seats.length < game.min || !everyoneReady
@@ -346,13 +366,6 @@ export function BoxScreen({ session }: { session: RoomSession }) {
                   </button>
                 </div>
               </div>
-              <p className="lobby-status-text">
-                {view.seats.length < game.min
-                  ? `至少 ${game?.min ?? 2} 位玩家或人机入座即可开局。`
-                  : everyoneReady
-                    ? '大家已准备，开始吧。'
-                    : '等朋友们在各自手机上准备好。'}
-              </p>
             </div>
           )}
           <RoomTable
@@ -366,35 +379,20 @@ export function BoxScreen({ session }: { session: RoomSession }) {
         </section>
         {role !== 'player' && (
           <aside className="card controls">
-            <p className="phone-entry-note">
-              每位朋友扫码，用自己的手机入座和操作。
-            </p>
             <InviteFriends session={session} />
-            {isHost && (
-              <>
-                <button
-                  type="button"
-                  className="secondary"
-                  onClick={() => setPanel('management')}
-                >
-                  牌桌管理
-                </button>
-              </>
-            )}
             {role === 'host' && !isHost && (
               <p>本页面没有管理员身份，请从桌面程序打开主机。</p>
             )}
           </aside>
         )}
       </div>
-      {role === 'player' && canControl && (
-        <button className="secondary" onClick={() => setPanel('management')}>
-          房主控制
-        </button>
-      )}
       {panel === 'library' && isHost && (
         <OverlayPanel title="游戏库" close={() => setPanel(null)}>
-          <GameLibrary session={session} close={() => setPanel(null)} />
+          <GameLibrary
+            session={session}
+            close={() => setPanel(null)}
+            openSeats={() => setPanel('seats')}
+          />
         </OverlayPanel>
       )}
       <PlayModeControl session={session} />
@@ -414,10 +412,20 @@ export function BoxScreen({ session }: { session: RoomSession }) {
               重试确认
             </button>
           )}
+          <AvatarUpload
+            disabled={avatarLocked}
+            onConfirm={(image) => {
+              if (self) session.uploadAvatar(image);
+              else {
+                setDraftImage(image);
+                setPanel(null);
+              }
+            }}
+          />
           <AvatarPicker
             seats={view?.seats ?? []}
             selfId={self?.id ?? null}
-            selectedId={chosenAvatar}
+            selectedId={!self && draftImage ? null : chosenAvatar}
             disabled={avatarLocked}
             message={self ? session.message : ''}
             onSelect={(avatarId) => {
@@ -425,6 +433,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
                 if (avatarId !== self.avatarId)
                   command({ type: 'set-avatar', avatarId });
               } else {
+                setDraftImage(null);
                 setDraftAvatar(avatarId);
                 setPanel(null);
               }
@@ -432,25 +441,19 @@ export function BoxScreen({ session }: { session: RoomSession }) {
           />
         </OverlayPanel>
       )}
-      {panel === 'seats' && isHost && (
+      {panel === 'seats' && canManageSeats && (
         <OverlayPanel title="座位设置" close={() => setPanel(null)}>
           <SeatSettings session={session} />
         </OverlayPanel>
       )}
-      {panel === 'management' && canControl && (
-        <OverlayPanel title="牌桌管理" close={() => setPanel(null)}>
-          <RoomManagement session={session} />
+      {panel === 'management' && isHost && (
+        <OverlayPanel title="管理设置" close={() => setPanel(null)}>
+          <RoomManagement session={session} display="details" />
         </OverlayPanel>
       )}
-      {panel === 'bot-info' && isHost && (
+      {panel === 'bot-info' && isHost && game && (
         <OverlayPanel title="人机等级说明" close={() => setPanel(null)}>
-          {Object.entries(difficultyNames).map(([value, title]) => (
-            <section className="bot-level-description" key={value}>
-              <h3>{title}</h3>
-              <p>{botDescriptions[value as BotDifficulty]}</p>
-            </section>
-          ))}
-          <p>三档均在本地运行，只使用本人获准的信息。</p>
+          <BotInformation game={game} />
         </OverlayPanel>
       )}
     </main>

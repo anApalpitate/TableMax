@@ -121,6 +121,7 @@ export const rules: GameRules = {
     stateVersion: 1,
     players: { min: 3, max: 5 },
     assetNamespace: 'modern-art',
+    decisionTimer: true,
   },
   initialize,
   validateState,

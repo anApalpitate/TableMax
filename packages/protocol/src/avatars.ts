@@ -29,5 +29,21 @@ export const AVATAR_PRESETS = [
   { id: 'avatar-25', name: '小鸭' },
   { id: 'avatar-26', name: '海豹' },
 ] as const;
-export type AvatarId = (typeof AVATAR_PRESETS)[number]['id'];
-export const AvatarIdSchema = z.enum(AVATAR_PRESETS.map((preset) => preset.id));
+export type PresetAvatarId = (typeof AVATAR_PRESETS)[number]['id'];
+export type AvatarId = PresetAvatarId | `custom-${string}`;
+export const PresetAvatarIdSchema = z.enum(
+  AVATAR_PRESETS.map((preset) => preset.id),
+);
+export const CustomAvatarIdSchema = z
+  .string()
+  .regex(/^custom-[0-9a-f]{64}$/)
+  .transform((id) => id as `custom-${string}`);
+export const AvatarIdSchema = z.union([
+  PresetAvatarIdSchema,
+  CustomAvatarIdSchema,
+]);
+export const AvatarImageSchema = z
+  .string()
+  .min(1)
+  .max(700_000)
+  .regex(/^[A-Za-z0-9+/]+={0,2}$/);

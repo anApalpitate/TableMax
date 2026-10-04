@@ -277,7 +277,7 @@ try {
     'All simultaneous ready requests persist',
   );
   const seated = await view(hostToken);
-  await host.getByRole('button', { name: '牌桌管理', exact: true }).click();
+  await host.getByRole('button', { name: '管理设置', exact: true }).click();
   await host.getByLabel('手机房主').selectOption(seated.seats[0].id);
   await until(
     async () => (await view(phones[0].token)).capabilities.control,

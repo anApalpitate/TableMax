@@ -53,11 +53,9 @@
   padding-inline: 8px;
 }
 .countdown-settings-control {
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
   min-height: 44px;
   font-size: 18px;
+  flex: 0 0 auto;
 }
 .countdown-settings {
   font-size: 18px;
@@ -72,7 +70,11 @@
   gap: 10px;
   align-items: baseline;
   justify-content: center;
-  margin: 12px 0;
+  margin: 24px 0 12px;
+  padding: 14px;
+  border-radius: 18px;
+  background: #edf4e9;
+  color: #1d6253;
 }
 .countdown-settings output strong {
   font-size: 52px;
@@ -109,7 +111,24 @@
   margin: 18px 0 0;
 }
 .countdown-settings__saved {
-  padding: 10px 14px;
-  border-radius: 12px;
+  padding: 6px 12px;
+  border-radius: 10px;
   background: #edf1e7;
+  font-size: 16px;
+  white-space: nowrap;
+}
+.countdown-settings__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.countdown-settings__heading label {
+  margin: 0;
+  font-weight: 700;
+}
+.countdown-settings__note {
+  color: #496253;
+  font-size: 16px;
 }

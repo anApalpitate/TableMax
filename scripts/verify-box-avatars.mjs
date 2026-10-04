@@ -183,7 +183,7 @@ function observe(page) {
 }
 async function settle(page) {
   currentPage = page;
-  await page.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await page.locator('.connection.online').waitFor();
   await page.evaluate(
     () =>
       new Promise((done) =>
@@ -708,7 +708,10 @@ try {
   await host.getByRole('button', { name: '切换游戏', exact: true }).waitFor();
   await host.getByRole('button', { name: '连接帮助', exact: true }).click();
   await host.getByLabel('电脑地址').selectOption(adapter.address);
-  assert.equal((await host.locator('.url').textContent()).trim(), phoneUrl);
+  assert.equal(
+    (await host.locator('.connection-help__url').textContent()).trim(),
+    phoneUrl,
+  );
   await host.keyboard.press('Escape');
   assert.equal(
     await host.getByRole('button', { name: /选择头像|更换头像/ }).count(),
@@ -965,7 +968,7 @@ try {
     );
 
     const publicReady = desktop.waitForEvent('window');
-    await host.getByRole('button', { name: '牌桌管理', exact: true }).click();
+    await host.getByRole('button', { name: '管理设置', exact: true }).click();
     await host
       .getByRole('link', { name: '打开公共屏', exact: true })
       .click({ noWaitAfter: true });

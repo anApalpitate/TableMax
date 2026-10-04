@@ -68,7 +68,13 @@ export function projectDecisionClock(
   seatId: string | null,
   now: number,
 ): DecisionClock | null {
-  if (data.status !== 'playing' || !data.snapshot || !rules) return null;
+  if (
+    data.status !== 'playing' ||
+    !data.snapshot ||
+    !rules ||
+    rules.manifest.decisionTimer === false
+  )
+    return null;
   const pending = rules.decisions(data.snapshot.state);
   const keys = new Set(
     pending

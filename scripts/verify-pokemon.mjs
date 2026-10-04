@@ -236,7 +236,7 @@ async function phone(desktop, origin, index) {
       : 'Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/135.0.0.0 Mobile Safari/537.36',
   });
   await page.reload();
-  await page.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await page.locator('.connection.online').waitFor();
   return page;
 }
 async function strategy(player) {
@@ -276,7 +276,7 @@ for (let run = 0; run < 2; run++) {
           : route.abort(),
       );
     await page.reload();
-    await page.getByText('本地连接已就绪', { exact: true }).waitFor();
+    await page.locator('.connection.online').waitFor();
     const hostToken = await page.evaluate(() =>
       sessionStorage.getItem('tablemax-host'),
     );
@@ -364,9 +364,9 @@ for (let run = 0; run < 2; run++) {
         .click({ noWaitAfter: true });
       const publicPage = await next;
       observe(publicPage, origin);
-      await publicPage.getByText('本地连接已就绪', { exact: true }).waitFor();
+      await publicPage.locator('.connection.online').waitFor();
       await page.goto(`${origin}/host`);
-      await page.getByText('本地连接已就绪', { exact: true }).waitFor();
+      await page.locator('.connection.online').waitFor();
       await command(origin, host, hostToken, { type: 'start' });
       for (let retry = 0; retry < 60; retry++) {
         if ((await view(origin, tokens[0])).gameView.initialDone.length === 4)
@@ -473,7 +473,7 @@ for (let run = 0; run < 2; run++) {
       assert.equal((await view(origin)).paused, true);
       await capture(desktop, page, 'rollback');
       await phones[0].reload();
-      await phones[0].getByText('本地连接已就绪', { exact: true }).waitFor();
+      await phones[0].locator('.connection.online').waitFor();
       assert.equal(
         await phones[0].evaluate(() => localStorage.getItem('tablemax-player')),
         tokens[0],
@@ -507,7 +507,7 @@ for (let run = 0; run < 2; run++) {
         uploadThroughput: -1,
       });
       await phones[0].goto(`${origin}/player/game`);
-      await phones[0].getByText('本地连接已就绪', { exact: true }).waitFor();
+      await phones[0].locator('.connection.online').waitFor();
       assert.equal(
         await phones[0].evaluate(() => localStorage.getItem('tablemax-player')),
         tokens[0],

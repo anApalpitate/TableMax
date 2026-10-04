@@ -14,11 +14,23 @@ export function createGameRegistry(includeTemplate = false) {
       load: () => import('../../../games/pokemon-encounters'),
     },
     {
-      catalog: { id: 'modern-art', name: '现代艺术', min: 3, max: 5 },
+      catalog: {
+        id: 'modern-art',
+        name: '现代艺术',
+        min: 3,
+        max: 5,
+        decisionTimer: true,
+      },
       load: () => import('../../../games/modern-art'),
     },
     {
-      catalog: { id: 'power-grid', name: '电力公司', min: 2, max: 6 },
+      catalog: {
+        id: 'power-grid',
+        name: '电力公司',
+        min: 2,
+        max: 6,
+        decisionTimer: true,
+      },
       load: () => import('../../../games/power-grid'),
     },
     ...(includeTemplate

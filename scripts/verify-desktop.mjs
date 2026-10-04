@@ -110,7 +110,7 @@ for (let run = 0; run < 2; run++) {
   try {
     const page = await desktop.firstWindow();
     await page.waitForURL('**/host');
-    await page.getByText('本地连接已就绪', { exact: true }).waitFor();
+    await page.locator('.connection.online').waitFor();
     origin = new URL(page.url()).origin;
     // Real desktop restarts reuse the configured port; browser identities are
     // scoped to the origin. Reuse the first allocated port for the second run.
@@ -211,7 +211,7 @@ for (let run = 0; run < 2; run++) {
       }, `${origin}/player`);
       const phone = await phoneWindow;
       await phone.getByRole('heading', { name: '欢迎来到桌边。' }).waitFor();
-      await phone.getByText('本地连接已就绪', { exact: true }).waitFor();
+      await phone.locator('.connection.online').waitFor();
       await phone.getByLabel('你的昵称').fill('桌面验证玩家');
       await phone.getByRole('button', { name: '加入', exact: true }).click();
       await phone.getByRole('button', { name: '我准备好了' }).waitFor();

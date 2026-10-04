@@ -902,8 +902,8 @@ async function sortingChecks(page, label, selector, controlLabel) {
 }
 async function settingsSeconds(seconds) {
   await host.goto(origin + '/host');
-  await host.getByRole('button', { name: '倒计时设置', exact: true }).click();
-  const dialog = host.getByRole('dialog', { name: '倒计时设置', exact: true });
+  await host.getByRole('button', { name: '游戏设置', exact: true }).click();
+  const dialog = host.getByRole('dialog', { name: '游戏设置', exact: true });
   const slider = dialog.getByRole('slider');
   const choices = [5, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75, 90, 105, 120];
   assert.equal(await slider.getAttribute('min'), '0');

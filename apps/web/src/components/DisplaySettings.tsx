@@ -93,71 +93,84 @@ export function DisplaySettings() {
       </button>
       {open && (
         <OverlayPanel title="显示设置" close={() => setOpen(false)}>
-          <p className="display-settings-description">
-            为当前电脑画面选择合适的文字与卡牌大小，切换后立即生效。管理员窗口与公共屏分别保存。
-          </p>
-          {error && <p role="alert">{error}</p>}
+          {error && (
+            <p className="display-settings-error" role="alert">
+              {error}
+            </p>
+          )}
           {snapshot ? (
             <div className="display-settings-fields">
               <div className="display-settings-current">
-                <span>当前显示器</span>
-                <strong>
-                  {Math.round(
-                    snapshot.screen.width * snapshot.screen.scaleFactor,
-                  )}
-                  {' × '}
-                  {Math.round(
-                    snapshot.screen.height * snapshot.screen.scaleFactor,
-                  )}
-                </strong>
-                <span>
-                  Windows 缩放 {Math.round(snapshot.screen.scaleFactor * 100)}%
-                  {' · '}界面缩放 {Math.round(snapshot.zoomFactor * 100)}%
-                </span>
+                <div className="display-settings-screen">
+                  <span>当前显示器</span>
+                  <strong>
+                    {Math.round(
+                      snapshot.screen.width * snapshot.screen.scaleFactor,
+                    )}
+                    {' × '}
+                    {Math.round(
+                      snapshot.screen.height * snapshot.screen.scaleFactor,
+                    )}
+                  </strong>
+                </div>
+                <dl className="display-settings-metrics">
+                  <div>
+                    <dt>Windows 缩放</dt>
+                    <dd>{Math.round(snapshot.screen.scaleFactor * 100)}%</dd>
+                  </div>
+                  <div>
+                    <dt>界面缩放</dt>
+                    <dd>{Math.round(snapshot.zoomFactor * 100)}%</dd>
+                  </div>
+                </dl>
               </div>
-              <label htmlFor="display-resolution">显示分辨率</label>
-              <select
-                id="display-resolution"
-                value={snapshot.preferences.resolution}
-                disabled={busy}
-                onChange={(event) =>
-                  void update({
-                    ...snapshot.preferences,
-                    resolution: event.target
-                      .value as DisplayPreferences['resolution'],
-                  })
-                }
-              >
-                {resolutions.map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              <p className="display-settings-hint">
-                自动适配会随窗口、全屏和显示器变化调整。预设按所选分辨率优化界面大小。
-              </p>
-              <label htmlFor="display-interface-scale">界面大小</label>
-              <select
-                id="display-interface-scale"
-                value={snapshot.preferences.interfaceScale}
-                disabled={busy}
-                onChange={(event) =>
-                  void update({
-                    ...snapshot.preferences,
-                    interfaceScale: Number(
-                      event.target.value,
-                    ) as DisplayPreferences['interfaceScale'],
-                  })
-                }
-              >
-                <option value="100">标准（100%）</option>
-                <option value="125">放大（125%）</option>
-                <option value="150">更大（150%）</option>
-              </select>
+              <div className="display-settings-choice">
+                <label htmlFor="display-resolution">适配方式</label>
+                <select
+                  id="display-resolution"
+                  value={snapshot.preferences.resolution}
+                  disabled={busy}
+                  onChange={(event) =>
+                    void update({
+                      ...snapshot.preferences,
+                      resolution: event.target
+                        .value as DisplayPreferences['resolution'],
+                    })
+                  }
+                >
+                  {resolutions.map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+                <p className="display-settings-hint">
+                  自动随窗口适配；预设仅调整界面大小。
+                </p>
+              </div>
+              <div className="display-settings-choice">
+                <label htmlFor="display-interface-scale">界面大小</label>
+                <select
+                  id="display-interface-scale"
+                  value={snapshot.preferences.interfaceScale}
+                  disabled={busy}
+                  onChange={(event) =>
+                    void update({
+                      ...snapshot.preferences,
+                      interfaceScale: Number(
+                        event.target.value,
+                      ) as DisplayPreferences['interfaceScale'],
+                    })
+                  }
+                >
+                  <option value="100">标准（100%）</option>
+                  <option value="125">放大（125%）</option>
+                  <option value="150">更大（150%）</option>
+                </select>
+              </div>
               {snapshot.limited && (
                 <p className="display-settings-hint" role="status">
-                  当前窗口空间有限，已限制放大比例。放大窗口后可显示更大的界面。
+                  窗口空间有限，已限制放大。放大窗口后可继续调整。
                 </p>
               )}
               <div className="dialog-actions">
@@ -173,7 +186,7 @@ export function DisplaySettings() {
                 </button>
               </div>
               <p className="display-settings-hint" role="status">
-                {busy ? '正在保存显示设置…' : '设置仅用于当前电脑画面。'}
+                {busy ? '正在保存…' : '当前窗口独立保存，即时生效。'}
               </p>
             </div>
           ) : (

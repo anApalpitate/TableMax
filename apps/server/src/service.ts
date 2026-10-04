@@ -11,6 +11,7 @@ import {
   type ServiceConfig,
   JoinSchema,
   SessionSchema,
+  AvatarUploadSchema,
   type RoomFeedback,
 } from '@tablemax/protocol';
 import {
@@ -25,6 +26,7 @@ import { SqliteSaveRepository } from './save-repository';
 import { WorkerBotExecutor } from './bot-executor';
 import { openFoundationDatabase } from './database';
 import { NetworkDirectory } from './network-directory';
+import { normalizeAvatar, AVATAR_HTTP_LIMIT } from './avatar-images';
 
 export async function createService(
   input: ServiceConfig,
@@ -97,7 +99,7 @@ export async function createService(
   app.addHook('onSend', async (_request, reply) => {
     reply.header(
       'Content-Security-Policy',
-      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' ws:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
     );
     reply.header('X-Content-Type-Options', 'nosniff');
     reply.header('Referrer-Policy', 'no-referrer');
@@ -137,29 +139,76 @@ export async function createService(
     }
   };
   const unsubscribe = room.subscribe(broadcast);
-  app.post('/api/session/join', async (request, reply) => {
-    const parsed = JoinSchema.safeParse(request.body);
-    if (!parsed.success)
-      return reply.code(400).send({
-        ok: false,
-        reason: parsed.error.issues.some(
-          (issue) => issue.path[0] === 'avatarId',
-        )
-          ? 'invalid-avatar'
-          : 'invalid-name',
-      });
-    try {
-      return {
-        ok: true,
-        ...(await room.join(
-          parsed.data.name,
-          parsed.data.requestKey,
-          parsed.data.avatarId,
-        )),
-      };
-    } catch (error) {
-      return reply.code(409).send({ ok: false, reason: sessionFailure(error) });
-    }
+  app.post(
+    '/api/session/join',
+    { bodyLimit: AVATAR_HTTP_LIMIT },
+    async (request, reply) => {
+      const parsed = JoinSchema.safeParse(request.body);
+      if (!parsed.success)
+        return reply.code(400).send({
+          ok: false,
+          reason: parsed.error.issues.some(
+            (issue) => issue.path[0] === 'avatarId',
+          )
+            ? 'invalid-avatar'
+            : 'invalid-name',
+        });
+      try {
+        if (parsed.data.avatarId && parsed.data.avatarImage)
+          throw new Rejection('invalid-avatar');
+        const image = parsed.data.avatarImage
+          ? normalizeAvatar(parsed.data.avatarImage)
+          : undefined;
+        return {
+          ok: true,
+          ...(await room.join(
+            parsed.data.name,
+            parsed.data.requestKey,
+            image?.id ?? parsed.data.avatarId,
+            image,
+          )),
+        };
+      } catch (error) {
+        return reply
+          .code(409)
+          .send({ ok: false, reason: sessionFailure(error) });
+      }
+    },
+  );
+  app.post(
+    '/api/session/avatar',
+    { bodyLimit: AVATAR_HTTP_LIMIT },
+    async (request, reply) => {
+      const parsed = AvatarUploadSchema.safeParse(request.body);
+      if (!parsed.success)
+        return reply
+          .code(400)
+          .send({ ok: false, reason: 'invalid-avatar-image' });
+      try {
+        const identity = room.identity(parsed.data.token);
+        if (identity.role !== 'player') throw new Rejection('unauthorized');
+        const image = normalizeAvatar(parsed.data.avatarImage);
+        return await room.uploadAvatar(
+          parsed.data.token,
+          parsed.data.envelope,
+          image,
+        );
+      } catch (error) {
+        return reply
+          .code(409)
+          .send({ ok: false, reason: sessionFailure(error) });
+      }
+    },
+  );
+  app.get<{ Params: { id: string } }>('/api/avatars/:id', (request, reply) => {
+    if (!/^custom-[0-9a-f]{64}$/.test(request.params.id))
+      return reply.code(404).send();
+    const png = repository.getAvatar(request.params.id);
+    if (!png) return reply.code(404).send();
+    return reply
+      .type('image/png')
+      .header('Cache-Control', 'public, max-age=31536000, immutable')
+      .send(Buffer.from(png));
   });
   app.post('/api/session/view', (request, reply) => {
     const body = SessionSchema.safeParse(request.body);

@@ -156,7 +156,7 @@ async function openPhone(desktop, origin, index) {
     enabled: true,
     maxTouchPoints: 5,
   });
-  await page.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await page.locator('.connection.online').waitFor();
   return page;
 }
 async function capture(desktop, page, name) {
@@ -202,7 +202,7 @@ try {
   });
   let host = await desktop.firstWindow();
   await host.waitForURL('**/host');
-  await host.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await host.locator('.connection.online').waitFor();
   origin = new URL(host.url()).origin;
   env.TABLEMAX_PORT = new URL(origin).port;
   const network = await (await fetch(`${origin}/api/room/network`)).json();
@@ -247,7 +247,9 @@ try {
     adapter.address,
   );
   assert.ok(
-    (await host.locator('.url').textContent()).includes(adapter.address),
+    (await host.locator('.connection-help__url').textContent()).includes(
+      adapter.address,
+    ),
   );
   await capture(desktop, host, 'network-help');
   await host.keyboard.press('Escape');
@@ -355,7 +357,7 @@ try {
     404,
   );
   await first.reload();
-  await first.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await first.locator('.connection.online').waitFor();
   assert.equal(
     await first.evaluate(() => localStorage.getItem('tablemax-player')),
     oldToken,
@@ -375,7 +377,7 @@ try {
   });
   host = await desktop.firstWindow();
   await host.waitForURL('**/host');
-  await host.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await host.locator('.connection.online').waitFor();
   const newHostToken = await host.evaluate(() =>
     sessionStorage.getItem('tablemax-host'),
   );
@@ -422,7 +424,7 @@ try {
     uploadThroughput: -1,
   });
   await restored.evaluate(() => window.dispatchEvent(new Event('online')));
-  await restored.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await restored.locator('.connection.online').waitFor();
   assert.equal((await view(origin, recoveredToken)).self.seatId, seatId);
   const oldInstance = (await view(origin, recoveredToken)).instanceId;
   await command(origin, socket, newHostToken, { type: 'end' });
@@ -505,7 +507,7 @@ try {
     .getByRole('link', { name: '打开公共屏', exact: true })
     .click({ noWaitAfter: true });
   const publicPage = await publicReady;
-  await publicPage.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await publicPage.locator('.connection.online').waitFor();
   const hostWindow = await desktop.browserWindow(host);
   await hostWindow.evaluate((w) => w.close());
   const newHostReady = desktop.waitForEvent('window');
@@ -516,7 +518,7 @@ try {
       .click(),
   );
   const reopened = await newHostReady;
-  await reopened.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await reopened.locator('.connection.online').waitFor();
   assert.equal((await view(origin, recoveredToken)).status, 'playing');
   for (const page of desktop.windows())
     assert.equal(

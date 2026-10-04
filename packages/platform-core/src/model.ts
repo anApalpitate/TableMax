@@ -77,5 +77,10 @@ export interface DecisionClockState {
 }
 export interface SaveRepository {
   load(): unknown | null;
-  save(value: Save): void;
+  save(value: Save, extras?: SaveExtras): void;
+  getAvatar?(id: string): Uint8Array | null;
+}
+export interface SaveExtras {
+  journal?: Save[];
+  avatars?: { id: string; png: Uint8Array }[];
 }

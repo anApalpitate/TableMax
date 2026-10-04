@@ -357,14 +357,17 @@ it('keeps configuration across game switch, replay and new-room while creating f
   expect(switching.view().countdownSeconds).toBe(75);
 });
 
-it('preserves one synchronized initial-flip group for six Pokémon players as concurrent members submit', async () => {
+it('hides Pokemon reminders without changing independent initial-flip decisions or legacy clock storage', async () => {
   const time = clock();
   const { room, repository, players } = await fixture(
     pokemonRules,
     pokemonBot,
     6,
   );
-  const baseline = room.view(players[5]).decisionClock!;
+  const baseline = repository.value!.decisionClocks![0]!;
+  expect(
+    players.every((credential) => room.view(credential).decisionClock === null),
+  ).toBe(true);
   expect(repository.value!.decisionClocks).toHaveLength(1);
   time.advance(8_000);
   const requests = players.slice(0, 2).map((credential) =>
@@ -383,14 +386,13 @@ it('preserves one synchronized initial-flip group for six Pokémon players as co
   );
   expect(results.every((result) => result.ok)).toBe(true);
   expect(room.view(players[0]).decisionClock).toBeNull();
-  expect(room.view(players[5]).decisionClock).toMatchObject({
+  expect(repository.value!.decisionClocks![0]).toMatchObject({
     id: baseline.id,
     remainingMs: 12_000,
   });
-  expect(room.view().decisionClock).toMatchObject({
-    id: baseline.id,
-    remainingMs: 12_000,
-  });
+  expect(room.view(players[5]).decisionClock).toBeNull();
+  expect(room.view().decisionClock).toBeNull();
+  expect(room.view(players[5]).decisionId).not.toBeNull();
 });
 
 it('does not reset remaining sealed-bid players or reveal bids through the clock, and starts a fresh timer for a public new price', async () => {

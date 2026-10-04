@@ -12,6 +12,7 @@ type Admission = {
   value: string;
   createdAt: number;
   avatarId?: AvatarId;
+  avatarImage?: string;
 };
 function loadAdmission(): Admission | null {
   try {
@@ -28,6 +29,7 @@ function loadAdmission(): Admission | null {
       name: value.value,
       requestKey: value.requestKey,
       avatarId: value.avatarId,
+      avatarImage: value.avatarImage,
     };
     if (!JoinSchema.safeParse(body).success || !value.requestKey) return null;
     return value;
@@ -82,6 +84,7 @@ export function useAdmission(
             name: request.value,
             requestKey: request.requestKey,
             avatarId: request.avatarId,
+            avatarImage: request.avatarImage,
           }),
         });
         const parsed = SessionReplySchema.safeParse(await response.json());
@@ -164,16 +167,17 @@ export function useAdmission(
     busy,
     pending: Boolean(pending),
     avatarId: pending?.avatarId,
+    avatarImage: pending?.avatarImage,
     retry: () => {
       if (current.current) void run(current.current);
     },
-    join: (value: string, avatarId?: AvatarId) => {
+    join: (value: string, avatarId?: AvatarId, avatarImage?: string) => {
       const request = current.current ??
         loadAdmission() ?? {
           kind: 'join' as const,
           value: value.trim(),
           createdAt: Date.now(),
-          ...(avatarId ? { avatarId } : {}),
+          ...(avatarImage ? { avatarImage } : avatarId ? { avatarId } : {}),
           requestKey: Array.from(
             crypto.getRandomValues(new Uint8Array(32)),
             (byte) => byte.toString(16).padStart(2, '0'),

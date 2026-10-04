@@ -3,7 +3,7 @@ import type { Command, RoomView } from '@tablemax/protocol';
 import type { JsonValue } from '@tablemax/game-sdk';
 import { RoomCoordinator, token } from './room';
 import { GameRegistry } from './game-registry';
-import type { Save, SaveRepository } from './model';
+import type { Save, SaveExtras, SaveRepository } from './model';
 import { rules, bot } from '../../../games/pokemon-encounters';
 import {
   rules as templateRules,
@@ -14,12 +14,14 @@ class Repository implements SaveRepository {
   value: Save | null = null;
   fail = false;
   saved: Save[] = [];
+  transactions: { value: Save; extras: SaveExtras | undefined }[] = [];
   load() {
     return structuredClone(this.value);
   }
-  save(value: Save) {
+  save(value: Save, extras?: SaveExtras) {
     if (this.fail) throw new Error('disk full');
-    this.saved.push(value);
+    this.transactions.push(structuredClone({ value, extras }));
+    this.saved.push(...(extras?.journal ?? []), value);
     this.value = structuredClone(value);
   }
 }
@@ -206,13 +208,19 @@ it('delegates only common match controls, persists ownership and never exposes a
   await send(room, { type: 'set-owner', seatId: seat });
   expect(room.view(a.token).capabilities).toEqual({
     manage: false,
+    manageSeats: true,
     control: true,
   });
   expect(room.view(b.token).capabilities).toEqual({
     manage: false,
+    manageSeats: false,
     control: false,
   });
-  expect(room.view().capabilities).toEqual({ manage: false, control: false });
+  expect(room.view().capabilities).toEqual({
+    manage: false,
+    manageSeats: false,
+    control: false,
+  });
   await send(room, { type: 'ready', ready: true }, a.token);
   await send(room, { type: 'ready', ready: true }, b.token);
   expect((await send(room, { type: 'start' }, a.token)).ok).toBe(true);
@@ -225,7 +233,6 @@ it('delegates only common match controls, persists ownership and never exposes a
     { type: 'set-owner', seatId: null },
     { type: 'select-game', gameId: 'template' },
     { type: 'add-bot', name: '越权' },
-    { type: 'remove-seat', seatId: seat },
     { type: 'rollback', checkpointId: 'bad' },
     { type: 'order', seats: [] },
     { type: 'join-open', open: true },
@@ -234,6 +241,12 @@ it('delegates only common match controls, persists ownership and never exposes a
       ok: false,
       reason: 'unauthorized',
     });
+  expect(
+    await send(room, { type: 'remove-seat', seatId: seat }, a.token),
+  ).toEqual({
+    ok: false,
+    reason: 'end-first',
+  });
   for (const player of [a, b]) {
     const view = room.view(player.token);
     expect(
@@ -494,4 +507,204 @@ it('keeps the current game and persisted state intact on load/storage failures a
   );
   expect(room.view().game!.id).toBe('pokemon-encounters');
   expect(room.view().seats).toHaveLength(6);
+});
+
+it('limits owner seat management, renames bots after ending, and removes into a recoverable new lobby atomically', async () => {
+  const repository = new Repository();
+  let room = new RoomCoordinator(templateRules, templateBot, repository);
+  const owner = await room.join('房主');
+  const friend = await room.join('朋友');
+  const ownerSeat = room.view(owner.token).self.seatId!;
+  const friendSeat = room.view(friend.token).self.seatId!;
+  await send(room, { type: 'add-bot', name: '电脑' });
+  const botSeat = room.view().seats.find((seat) => seat.controller === 'bot')!;
+  await send(room, { type: 'set-owner', seatId: ownerSeat });
+
+  expect(room.view(owner.token).capabilities.manageSeats).toBe(true);
+  for (const command of [
+    { type: 'remove-seat', seatId: botSeat.id },
+    { type: 'set-bot-name', seatId: botSeat.id, name: '越权' },
+  ] as Command['command'][])
+    expect(await send(room, command, friend.token)).toEqual({
+      ok: false,
+      reason: 'unauthorized',
+    });
+  expect(
+    await send(room, { type: 'remove-seat', seatId: ownerSeat }, owner.token),
+  ).toEqual({ ok: false, reason: 'cannot-remove-self' });
+  expect(
+    await send(
+      room,
+      { type: 'set-bot-name', seatId: friendSeat, name: '改真人' },
+      owner.token,
+    ),
+  ).toEqual({ ok: false, reason: 'invalid-seat' });
+  for (const name of ['', ' '.repeat(3), '长'.repeat(25)])
+    expect(
+      await send(
+        room,
+        { type: 'set-bot-name', seatId: botSeat.id, name },
+        owner.token,
+      ),
+    ).toEqual({ ok: false, reason: 'invalid-message' });
+  expect(
+    (
+      await send(
+        room,
+        { type: 'set-bot-name', seatId: botSeat.id, name: '  豆豆  ' },
+        owner.token,
+      )
+    ).ok,
+  ).toBe(true);
+  expect(room.view().seats.find((seat) => seat.id === botSeat.id)?.name).toBe(
+    '豆豆',
+  );
+
+  await start(room, [owner, friend]);
+  expect(
+    await send(room, { type: 'remove-seat', seatId: friendSeat }, owner.token),
+  ).toEqual({ ok: false, reason: 'end-first' });
+  expect(
+    await send(
+      room,
+      { type: 'set-bot-name', seatId: botSeat.id, name: '进行中' },
+      owner.token,
+    ),
+  ).toEqual({ ok: false, reason: 'end-first' });
+  expect(await send(room, { type: 'end' }, owner.token)).toEqual({
+    ok: false,
+    reason: 'unauthorized',
+  });
+  await send(room, { type: 'end' });
+  const ended = room.view(owner.token);
+  expect(
+    (
+      await send(
+        room,
+        { type: 'set-bot-name', seatId: botSeat.id, name: '朋友' },
+        owner.token,
+      )
+    ).ok,
+  ).toBe(true);
+  expect(room.view(owner.token).instanceId).toBe(ended.instanceId);
+  expect(room.view(owner.token).gameView).toEqual(ended.gameView);
+  const beforeRemoval = room.view(owner.token);
+  const removal = envelope(beforeRemoval, {
+    type: 'remove-seat',
+    seatId: friendSeat,
+  });
+  repository.fail = true;
+  expect(await room.command(owner.token, removal)).toEqual({
+    ok: false,
+    reason: 'save-or-action-failed',
+  });
+  expect(room.view(owner.token)).toEqual(beforeRemoval);
+  repository.fail = false;
+  const removed = await room.command(owner.token, removal);
+  expect(removed.ok).toBe(true);
+  expect(await room.command(owner.token, removal)).toEqual(removed);
+  const after = room.view(owner.token);
+  expect(after.instanceId).not.toBe(ended.instanceId);
+  expect(after.status).toBe('lobby');
+  expect(after.gameView).toBeNull();
+  expect(after.ownerSeatId).toBe(ownerSeat);
+  expect(after.seats.map((seat) => [seat.id, seat.name, seat.ready])).toEqual([
+    [ownerSeat, '房主', false],
+    [botSeat.id, '朋友', true],
+  ]);
+  expect(after.seats.map((seat) => seat.avatarId)).toEqual(
+    beforeRemoval.seats
+      .filter((seat) => seat.id !== friendSeat)
+      .map((seat) => seat.avatarId),
+  );
+  expect(() => room.view(friend.token)).toThrow('invalid-identity');
+  expect(repository.value!.history).toEqual([]);
+  expect(
+    repository.saved
+      .slice()
+      .reverse()
+      .find((save) => save.instanceId === ended.instanceId)!.status,
+  ).toBe('ended');
+  expect(
+    await room.command(owner.token, envelope(ended, { type: 'replay' })),
+  ).toEqual({ ok: false, reason: 'stale-instance' });
+  room = new RoomCoordinator(templateRules, templateBot, repository);
+  expect(room.view(owner.token).status).toBe('lobby');
+  expect(room.view(owner.token).capabilities.manageSeats).toBe(true);
+  await send(room, { type: 'remove-seat', seatId: ownerSeat });
+  expect(room.view().ownerSeatId).toBeNull();
+  expect(() => room.view(owner.token)).toThrow('invalid-identity');
+});
+
+it('ends and switches in one transaction, preserving the old game on failures and retrying the instance-changing receipt', async () => {
+  const repository = new Repository();
+  const loaders = registry();
+  const room = await RoomCoordinator.open(loaders.entries, repository);
+  await send(room, { type: 'select-game', gameId: 'pokemon-encounters' });
+  const owner = await room.join('房主');
+  const friend = await room.join('朋友');
+  await send(room, {
+    type: 'set-owner',
+    seatId: room.view(owner.token).self.seatId,
+  });
+  await start(room, [owner, friend]);
+  const before = room.view(room.hostToken);
+  const lateAction = flip(room.view(friend.token));
+  const input = envelope(before, {
+    type: 'select-game',
+    gameId: 'template',
+    endCurrent: true,
+  });
+  const listener = vi.fn();
+  room.subscribe(listener);
+  expect(await room.command(owner.token, input)).toEqual({
+    ok: false,
+    reason: 'unauthorized',
+  });
+  loaders.template.mockRejectedValueOnce(new Error('module unavailable'));
+  expect(await room.command(room.hostToken, input)).toEqual({
+    ok: false,
+    reason: 'game-load-failed',
+  });
+  expect(room.view(room.hostToken)).toEqual(before);
+  repository.fail = true;
+  const transactionCount = repository.transactions.length;
+  expect(await room.command(room.hostToken, input)).toEqual({
+    ok: false,
+    reason: 'save-or-action-failed',
+  });
+  expect(room.view(room.hostToken)).toEqual(before);
+  expect(repository.transactions).toHaveLength(transactionCount);
+  expect(listener).not.toHaveBeenCalled();
+  repository.fail = false;
+  const reply = await room.command(room.hostToken, input);
+  expect(reply.ok).toBe(true);
+  expect(await room.command(room.hostToken, input)).toEqual(reply);
+  expect(listener).toHaveBeenCalledTimes(1);
+  const transaction = repository.transactions.at(-1)!;
+  expect(transaction.extras?.journal).toHaveLength(1);
+  expect(transaction.extras!.journal![0]).toMatchObject({
+    instanceId: before.instanceId,
+    revision: before.revision + 1,
+    status: 'ended',
+    endReason: '管理员结束',
+    decisionClocks: [],
+  });
+  expect(transaction.value.status).toBe('lobby');
+  expect(transaction.value.manifest!.id).toBe('template');
+  const after = room.view(owner.token);
+  expect(after.self.seatId).toBe(before.ownerSeatId);
+  expect(after.ownerSeatId).toBe(before.ownerSeatId);
+  expect(after.seats.map((seat) => [seat.id, seat.avatarId])).toEqual(
+    before.seats.map((seat) => [seat.id, seat.avatarId]),
+  );
+  expect(after.seats.every((seat) => !seat.ready)).toBe(true);
+  expect(after.instanceId).not.toBe(before.instanceId);
+  expect(await room.command(friend.token, lateAction)).toEqual({
+    ok: false,
+    reason: 'stale-instance',
+  });
+  const restored = await RoomCoordinator.open(loaders.entries, repository);
+  expect(restored.view(owner.token).instanceId).toBe(after.instanceId);
+  expect(restored.view(owner.token).game!.id).toBe('template');
 });

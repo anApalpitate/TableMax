@@ -78,11 +78,13 @@ HTTP 提供加入、授权同步和网络地址；Socket.IO 握手绑定凭证�
 
 ## 游戏目录与授权（1.6.0）
 
-服务的 GameRegistry 保存目录元数据和异步规则／策略加载器；RoomCoordinator.open 先读取一次存档，依据可空 manifest 加载并验证。新房间不加载游戏规则，选中时等待加载与保存完成后才发布新状态。进行中的选择被拒绝；人数和 bot 等级不兼容、未知游戏、加载或保存失败都保留原状态。切换更新实例并取消旧 bot，保留座位凭证及当前房主。
+服务的 GameRegistry 保存目录元数据和异步规则／策略加载器；RoomCoordinator.open 先读取一次存档，依据可空 manifest 加载并验证。新房间不加载游戏规则，选中时等待加载与保存完成后才发布新状态。进行中必须带明确的 `endCurrent: true`，先核验人数和 bot 等级并完成目标加载，再把旧局结束 journal 与新大厅一次提交；未知游戏、加载或保存失败都保留原状态。切换更新实例并取消旧 bot，保留座位凭证、头像及当前房主，清除准备与策略记忆。
 
 前端 game-clients 注册游戏适配器（Screen、savedChanges、motionDuration），通用会话不导入具体游戏类型、动作或 CSS。盒子只引用小封面；进入 `/game` 后动态 import 对应 UI／资源。服务和 Worker 按同一 ID 加载独立构建入口，Worker 的随机工具使用轻量 random 子入口，避免加载平台和协议整包。模块缓存复用；退出场景释放播放器、队列、计时器和监听器。游戏 CSS 根范围同时覆盖游戏自己的浮窗内容；Portal 到 body 的共享浮窗不会继承原页面祖先，须显式附上游戏范围。
 
-RoomView 的 self.role 保持 host／player／public。capabilities.manage 仅管理员，control 另授予 ownerSeatId 对应的真人；手机房主仍仅有本人游戏投影。set-owner 的权限在服务校验并持久保存，owner 不进入 checkpoint，不随回退倒退。开局、暂停／恢复、replay、lifecycle 接受 control；其他管理仅 manage。
+RoomView 的 self.role 保持 host／player／public。capabilities.manage 仅管理员，control 和 manageSeats 另授予 ownerSeatId 对应的真人；手机房主仍仅有本人游戏投影。set-owner 在服务校验并持久保存，owner 不进入 checkpoint。开局、暂停／恢复、replay、lifecycle 接受 control；移除其他座位与人机改名接受 manageSeats，手机房主不能移除自己。结束、切换、清空、指定房主及其他管理仍仅 manage。
+
+上传头像由独立 HTTP 图片入口进入统一动作保存流程：锁定 pngjs 解码、检查 CRC 与尺寸／解压上限、重新编码并生成内容哈希 ID。SQLite `avatar_images` 保存 PNG BLOB，座位及 journal 只保存引用；图片插入、身份变更、确认回复与房间保存共用同一事务。只有图片请求提高限额，普通 Socket 命令不能借用别人的自定义头像。格式与数据库版本仍为 1，旧库首次上传时在事务中建表；PNG 引用缺失或哈希错误按损坏存档保护。
 
 ## 动作、随机与恢复
 

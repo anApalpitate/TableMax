@@ -7,14 +7,13 @@ export function InviteFriends({ session }: { session: RoomSession }) {
     addresses,
     adapters,
     address,
-    setAddress,
     port,
+    setAddress,
     networkMessage,
     refreshNetwork,
   } = session;
   return (
     <section className="invite-friends">
-      {' '}
       <h2>手机扫码入座</h2>
       {address ? (
         <>
@@ -23,9 +22,6 @@ export function InviteFriends({ session }: { session: RoomSession }) {
             src={`/api/foundation/qr?address=${encodeURIComponent(address)}`}
             alt="手机加入二维码"
           />
-          <p className="url">
-            http://{address}:{port}/player
-          </p>
         </>
       ) : (
         <p>未发现局域网地址，请检查网络。</p>
@@ -63,6 +59,11 @@ export function InviteFriends({ session }: { session: RoomSession }) {
                 刷新连接地址
               </button>
             </div>
+            {address && (
+              <p className="connection-help__url">
+                http://{address}:{port}/player
+              </p>
+            )}
             {networkMessage && <p role="status">{networkMessage}</p>}
             <p>
               手机和电脑连接同一局域网，在系统浏览器打开。优先选择 Wi-Fi

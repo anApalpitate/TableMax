@@ -1,0 +1,78 @@
+.dialog-surface .seat-manager__row.seat-settings-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px;
+  background: #f0f4e9;
+  border: 1px solid #dce5d2;
+  border-radius: 16px;
+}
+.seat-settings-row .seat-settings-identity {
+  flex: 1 1 130px;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.dialog-surface .seat-settings-identity strong {
+  font-size: 18px;
+}
+.seat-settings-identity > span {
+  color: #52665a;
+  font-size: 16px;
+}
+.seat-settings-row .seat-difficulty {
+  width: auto;
+  min-width: 82px;
+}
+.seat-settings-level {
+  padding: 5px 10px;
+  border-radius: 10px;
+  background: #fff1c7;
+  color: #75521e;
+  font-size: 16px;
+}
+.dialog-surface .seat-settings-move,
+.dialog-surface .seat-settings-rename {
+  color: #155d54;
+  background: #dbeee5;
+  border: 1px solid #bdd8ce;
+}
+.dialog-surface .seat-settings-menu {
+  display: grid;
+  place-items: center;
+  min-width: 46px;
+  padding: 8px;
+  background: #fffef8;
+  color: #32584b;
+  border: 1px solid #ccd9c5;
+}
+.seat-settings-menu svg {
+  display: block;
+}
+.dialog-surface .seat-settings-remove {
+  background: #ffe7dc;
+  color: #8d3529;
+  border: 1px solid #ecc3b2;
+}
+.seat-settings-operations {
+  display: grid;
+  gap: 12px;
+}
+.dialog-surface .seat-settings-operations button {
+  width: 100%;
+  font-size: 18px;
+  min-height: 50px;
+}
+.seat-settings-hint {
+  margin: 0;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fff0ce;
+  color: #72521e;
+  font-size: 16px;
+}
+.seat-settings-rename-form input {
+  font-size: 18px;
+  min-height: 48px;
+}

@@ -134,7 +134,7 @@ try {
   });
   const host = await desktop.firstWindow();
   await host.waitForURL('**/host');
-  await host.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await host.locator('.connection.online').waitFor();
   const origin = new URL(host.url()).origin;
   const nativeRuntime = await desktop.request('runtime');
   assert.equal(nativeRuntime.packaged, portable);
@@ -220,7 +220,7 @@ try {
   await host.goto(origin + '/player');
   await assert.rejects(host.evaluate(() => window.tablemaxDisplay.read()));
   await host.goto(origin + '/host');
-  await host.getByText('本地连接已就绪', { exact: true }).waitFor();
+  await host.locator('.connection.online').waitFor();
   evidence.checks.push('Managed desktop bridge rejects a phone route');
 
   const duplicate = await raw(['--foundation-test']);

@@ -11,14 +11,15 @@ export function CountdownSettings({ session }: { session: RoomSession }) {
   );
   const [attempted, setAttempted] = useState(false);
   const sliderId = useId();
-  if (!session.isHost) return null;
+  if (!session.isHost || !session.view?.game?.decisionTimer) return null;
   const seconds = COUNTDOWN_STEPS[step]!;
   return (
     <>
       <button
         type="button"
-        className="secondary countdown-settings-control"
-        aria-label="倒计时设置"
+        className="secondary icon-label-control countdown-settings-control"
+        aria-label="游戏设置"
+        title="游戏设置"
         onClick={() => {
           const current =
             session.view?.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS;
@@ -33,28 +34,33 @@ export function CountdownSettings({ session }: { session: RoomSession }) {
         }}
       >
         <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-          <circle
-            cx="12"
-            cy="13"
-            r="8"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          />
           <path
-            d="M9 2h6M12 5V2m0 11V8m0 5 3 2"
+            d="M4 6h16M4 12h16M4 18h16"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.8"
             strokeLinecap="round"
           />
+          <path
+            d="M8 3v6M16 9v6M10 15v6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+          />
         </svg>
-        <span>倒计时</span>
+        <span>游戏设置</span>
       </button>
       {open && (
-        <OverlayPanel title="倒计时设置" close={() => setOpen(false)}>
+        <OverlayPanel title="游戏设置" close={() => setOpen(false)}>
           <div className="countdown-settings">
-            <label htmlFor={sliderId}>每次思考时间</label>
+            <div className="countdown-settings__heading">
+              <label htmlFor={sliderId}>思考时间提醒</label>
+              <span className="countdown-settings__saved">
+                当前{' '}
+                {session.view?.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS} 秒
+              </span>
+            </div>
             <output htmlFor={sliderId}>
               <strong>{seconds}</strong>
               <span>秒</span>
@@ -84,10 +90,8 @@ export function CountdownSettings({ session }: { session: RoomSession }) {
               </span>
               <span>120 秒</span>
             </div>
-            <p>所有游戏共用。到时只提醒，仍可继续选择。</p>
-            <p className="countdown-settings__saved">
-              当前已保存：
-              {session.view?.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS} 秒
+            <p className="countdown-settings__note">
+              到时仅提醒，仍可继续选择。
             </p>
             {attempted && (
               <p role="status">
