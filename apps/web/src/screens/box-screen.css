@@ -439,7 +439,8 @@
     line-height: 1.4;
   }
 }
-@media (min-width: 861px) and (max-height: 760px) {
+@media (min-width: 861px) and (max-height: 760px),
+  (min-width: 861px) and (max-width: 1200px) and (max-height: 850px) {
   .box-screen:not(.player) {
     padding: 6px 18px;
   }

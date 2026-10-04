@@ -17,7 +17,7 @@
 | `games/pokemon-encounters` | 首版完整规则、独立计分、授权投影、基础策略、两端 UI 与本地资源             | 规则／策略仅 SDK 与纯数据，UI 仅 React 与投影类型                  |
 | `scripts`                  | 构建、开发、桌面／便携／原型验证及隔离强制退出 fixture                     | 开发工具；不进入游戏规则                                           |
 
-应用组装具体规则、策略和适配器，核心只依赖抽象契约。共享包使用 `workspace:*`，开发导出 TS 源码，Vite／esbuild 消费；严格类型检查统一覆盖 apps、packages 和 games 的 TypeScript。服务、bot Worker 和游戏输出独立 CJS，网页输出本地静态资源；原生桌面单独编译为 `TableMax.exe`。`global.json` 固定 .NET SDK 9.0.102，原生锁文件固定 WebView2 SDK 1.0.4258.31 和编译用 net48 引用程序集。
+应用组装具体规则、策略和适配器，核心只依赖抽象契约。共享包使用 `workspace:*`，开发导出 TS 源码，Vite／esbuild 消费；严格类型检查统一覆盖 apps、packages 和 games 的 TypeScript。服务、bot Worker 和游戏输出独立 CJS，生成服务 CJS 使用生产压缩，源码继续保持可读；网页输出本地静态资源；原生桌面单独编译为 `TableMax.exe`。`global.json` 固定 .NET SDK 9.0.102，原生锁文件固定 WebView2 SDK 1.0.4258.31 和编译用 net48 引用程序集。
 
 便携包收集原生壳、x64 WebView2 必需 DLL、官方 Node 22.14.0 的 `node.exe` 和许可证、`server.cjs`、`bot-worker.cjs`、`games/*.cjs`、`bots/*.cjs` 与本地网页。使用系统共享 WebView2 与 .NET Framework 4.8，不分发 Electron、WebView2 Fixed Version 或现代 .NET 自包含运行时；电脑无需预装 Node.js 或开发工具。缺少 WebView2 时提示用户安装官方 Evergreen Runtime，可取消，安装后正式对局仍不依赖互联网。
 

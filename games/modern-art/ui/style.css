@@ -2741,6 +2741,11 @@
   .ma-screen:not(.player) .ma-table:has(.ma-results--ended) > .ma-center {
     display: flex;
   }
+  .ma-screen:not(.player)
+    .ma-table:has(.ma-results--ended)
+    .ma-artist__breakdown {
+    display: none;
+  }
   .ma-screen:not(.player) .ma-results--ended .ma-results__income {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

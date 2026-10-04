@@ -4,11 +4,13 @@
 
 首批迁移前历史正文（统一 LF）的 SHA-256：`6e21fd15911ba6fd4a1505cd58d6306237124ea0d863a5e062d8dbc90caa0adf`。
 
+2026-10-05 完成合并应用验收后，用户明确授权退役历史版本。下文包链接已改指同位置的 `.zip.retired.json`，原包字节已删除；独有源码／素材、清单、结果、日志和独有截图继续保留。历史正文的“当前”“保留副本”等表述均指当轮验收时点，不代表旧 ZIP 仍可下载。原大小、哈希与通过／失败结论不变，实际清理及保留核验见 [瘦身记录](../reference/project-slimming.md#执行结果)。
+
 2026-10-04 用户授权清理不再需要的历史内容后，部分完全重复的验收 PNG 按精确清单去重。原结果与本页历史结论保持原文；已退役截图的路径、哈希和同字节保留位置，从 [当前清理记录](../reference/acceptance.md#历史截图去重2026-10-04)查询，不能把去重当成重新执行旧验收。
 
-现代艺术 debug 正文另于本轮维护后移入，统一 LF 原文 SHA-256：`dfdf6e33b9cacf627dfcc17f1d3456b0deed2121334c91d176324203aa3da215`；下节同名 ZIP 是当时产物，其原字节另存 [本轮保留副本](../../artifacts/maintenance/v1.0.2/shared-visual-20261004/delivery/before/TableMax-1.0.2-win-x64.zip)，不由当前同名包代替。
+现代艺术 debug 正文另于本轮维护后移入，统一 LF 原文 SHA-256：`dfdf6e33b9cacf627dfcc17f1d3456b0deed2121334c91d176324203aa3da215`；下节同名 ZIP 是当时产物，其原字节另存 [本轮保留副本（已退役）](../../artifacts/maintenance/v1.0.2/shared-visual-20261004/delivery/before/TableMax-1.0.2-win-x64.zip.retired.json)，不由当前同名包代替。
 
-电力公司 debug 的原文于本轮重新导出前移入；原 `7801b3c8…` 程序与清单保存在 [旧 ZIP](../../artifacts/maintenance/v1.0.2/reexport-20261004/before/TableMax-1.0.2-win-x64.zip)及 [旧逐文件清单](../../artifacts/maintenance/v1.0.2/reexport-20261004/before/TableMax-1.0.2-win-x64-manifest.json)，下文同名包指当时产物。
+电力公司 debug 的原文于本轮重新导出前移入；原 `7801b3c8…` 程序与清单保存在 [旧 ZIP（已退役）](../../artifacts/maintenance/v1.0.2/reexport-20261004/before/TableMax-1.0.2-win-x64.zip.retired.json)及 [旧逐文件清单](../../artifacts/maintenance/v1.0.2/reexport-20261004/before/TableMax-1.0.2-win-x64-manifest.json)，下文同名包指当时产物。
 
 ## 1.0.2：电力公司 debug，横向地图、价区与声画（2026-10-04）
 
@@ -32,7 +34,7 @@
 
 源码完整局的两次失败分别为验证器仍用旧采购文案空格和旧地图图例 accessible name；保存／规则及已完成整局不受影响，选择器按真实新控件修正，原失败报告保留。名称边界首检试选了未启用区域的城市，修正为实际可选列表，未扩大游戏选择权限。首个 `ba81fff1…` 中间包已在地图标签返修前归档，最终同名 ZIP 没有在验收后再次构建。
 
-当前 [Windows ZIP](../../artifacts/maintenance/v1.0.2/reexport-20261004/before/TableMax-1.0.2-win-x64.zip) **40,023,500 字节**，实际解压 **136 文件／94,899,866 字节**，95 MB 工程预算余 **100,134 字节**，双 100 MB 硬门禁通过；打包 **15.12 秒**。SHA-256：`7801b3c8dab873b5a344c441ed5d4a41e9799f98111d39e42a756bfc20fe4292`。三项原生完整局／规则／媒体结果均对应这个哈希。[逐文件审计](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/delivery/package-audit.json)证明 12 张规则 WebP、6 个电力公司 v2 WAV 各打包一次，无原 PNG／旧 v1 声音；19 个非网页运行文件与旧包严格相同，原生 EXE 仅有已记录的 Git 编译版本标记差异。[其他游戏网页审计](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/delivery/non-pg-web-stability.json)证明 3 CSS 严格同 SHA，4 JS 正文仅共享 chunk 引用名哈希变化，不把它们声称为原始字节全相同。
+当前 [Windows ZIP（已退役）](../../artifacts/maintenance/v1.0.2/reexport-20261004/before/TableMax-1.0.2-win-x64.zip.retired.json) **40,023,500 字节**，实际解压 **136 文件／94,899,866 字节**，95 MB 工程预算余 **100,134 字节**，双 100 MB 硬门禁通过；打包 **15.12 秒**。SHA-256：`7801b3c8dab873b5a344c441ed5d4a41e9799f98111d39e42a756bfc20fe4292`。三项原生完整局／规则／媒体结果均对应这个哈希。[逐文件审计](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/delivery/package-audit.json)证明 12 张规则 WebP、6 个电力公司 v2 WAV 各打包一次，无原 PNG／旧 v1 声音；19 个非网页运行文件与旧包严格相同，原生 EXE 仅有已记录的 Git 编译版本标记差异。[其他游戏网页审计](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/delivery/non-pg-web-stability.json)证明 3 CSS 严格同 SHA，4 JS 正文仅共享 chunk 引用名哈希变化，不把它们声称为原始字节全相同。
 
 验收采用隔离存档／手机身份、回环监听和隐藏真实 WebView2；所有启动均退出并确认服务不可达。完整局使用测试节奏并另取普通 Worker 样本，媒体准备例用合法两真人路径，不能冒称人类六席全程普通节奏。未认证实体手机、Safari、Wi-Fi、电视、人耳听感或扬声器输出；暂停检查证明不补播及效果清理，不证明物理输出停止时延。旧 `9f02b332…` 正式 ZIP／清单、原素材及失败／中间证据保留；本轮统一 Git commit 不包含用户原有两处 Node／防火墙文档新增，不 push。
 
@@ -52,7 +54,7 @@
 
 [整库检查](../../artifacts/maintenance/v1.0.2/shared-visual-20261004/delivery/checks/summary.json) **38 文件／272 测试通过，命令 62.33 秒**。返修冻结后类型、ESLint、全工程格式与 diff 检查通过；文档另按项目配置检查格式、相对文件与锚点。仅精简生成的独立 CJS 空白，保留标识符、表达式与 bot-worker 原选项，CJS 总计少 **1,191,553 字节**。规则、状态、策略、协议和存档版本不变。
 
-本次维护当时的最终 [Windows ZIP（已保留历史副本）](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/delivery/before/TableMax-1.0.2-win-x64.zip) **39,857,345 字节**，实际解压 **134 文件／94,702,385 字节**，双 100 MB 硬门禁与 95 MB 工程预算均通过，余 **297,615 字节**。打包 **15.33 秒**，比上一正式 `ff110050…` 包解压体积少 **675,144 字节**。SHA-256：`9f02b3329af41bedbb1fc30de60b9c3d77b996c73f058c8dc4a4ad18d9372c03`。[逐文件审计](../../artifacts/maintenance/v1.0.2/shared-visual-20261004/delivery/package-audit.json)证明 10 张 WebP 各本地打包一次，20 个非网页引擎／原生／Node／许可文件与首个中间包完全同 SHA；没有最终验收后再打包。
+本次维护当时的最终 [Windows ZIP（已保留历史副本）（已退役）](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/delivery/before/TableMax-1.0.2-win-x64.zip.retired.json) **39,857,345 字节**，实际解压 **134 文件／94,702,385 字节**，双 100 MB 硬门禁与 95 MB 工程预算均通过，余 **297,615 字节**。打包 **15.33 秒**，比上一正式 `ff110050…` 包解压体积少 **675,144 字节**。SHA-256：`9f02b3329af41bedbb1fc30de60b9c3d77b996c73f058c8dc4a4ad18d9372c03`。[逐文件审计](../../artifacts/maintenance/v1.0.2/shared-visual-20261004/delivery/package-audit.json)证明 10 张 WebP 各本地打包一次，20 个非网页引擎／原生／Node／许可文件与首个中间包完全同 SHA；没有最终验收后再打包。
 
 四项实际验收均对应同一最终 ZIP，[哈希交接](../../artifacts/maintenance/v1.0.2/shared-visual-20261004/delivery/portable-proof.json)如下：
 
@@ -169,7 +171,7 @@
 
 新增门禁的两次源预检如实保留失败：[source-ended-5](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/source-ended-5/results.json)完成四轮／199 步后，把字体 Range 的 24px em 框误当作 22.5px、允许溢出的行框裁切，175.72 秒停止；只修正垂直归属到实际视口和裁切祖先，水平、逐字命中和不盖其他席／金额检查仍严格。[source-ended-fixed-5](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/source-ended-fixed-5/results.json)四轮／278 步、243.16 秒，主机全文门禁通过，随后因误要求只读公共屏有再玩按钮停止。修正脚本明确区分权限，公共屏严格无管理控件；没有为误判修改产品、放宽规则或覆盖原记录。
 
-最终同版本 [本地便携包](../../artifacts/maintenance/v1.0.1/power-grid/before-power-grid/TableMax-1.0.1-win-x64.zip)为 **39,043,322 字节**，实际解压 **111 文件／94,777,948 字节**，严格双 100 MB 门禁及 95 MB 工程预算通过。[逐文件清单](../../artifacts/maintenance/v1.0.1/power-grid/before-power-grid/TableMax-1.0.1-win-x64-manifest.json)记录 SHA-256 `9f94765f03daa5867319270b2bc204a4c72f1cec640b6e4dfc7a1a238363ac28`；对应包、清单和通过入口另保存在 [end-fixed-package](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/end-fixed-package/provenance.json)。最终打包 **15.81 秒**，版本、线上 Release、发布源码 ZIP 与总清单保持原记录。
+最终同版本 [本地便携包（已退役）](../../artifacts/maintenance/v1.0.1/power-grid/before-power-grid/TableMax-1.0.1-win-x64.zip.retired.json)为 **39,043,322 字节**，实际解压 **111 文件／94,777,948 字节**，严格双 100 MB 门禁及 95 MB 工程预算通过。[逐文件清单](../../artifacts/maintenance/v1.0.1/power-grid/before-power-grid/TableMax-1.0.1-win-x64-manifest.json)记录 SHA-256 `9f94765f03daa5867319270b2bc204a4c72f1cec640b6e4dfc7a1a238363ac28`；对应包、清单和通过入口另保存在 [end-fixed-package](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/end-fixed-package/provenance.json)。最终打包 **15.81 秒**，版本、线上 Release、发布源码 ZIP 与总清单保持原记录。
 
 该最终 ZIP 的 [四人普通四轮](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/portable-ended-final-4/results.json)通过 **188 步／82 图，107.36 秒**，[五人普通四轮](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/portable-ended-final-5/results.json)通过 **222 步／82 图，219.45 秒**。两次同一冻结脚本 SHA-256 `945afb2dd15bf1bd26fbbdc2d2e9f0bce5e74835721b8d80bbf82b77056629d9`，初始与恢复均为普通 `play`；上述拍卖／金额／并发／账本／身份／恢复检查全部保持。每局另通过 **8 个真实终局布局**，姓名逐字、资金、冠军与权限对应：主机／公共屏各三种桌面大小、两种手机；公共屏没有再玩按钮，管理员／手机房主的按钮至少 44px、可命中、完整在首屏。五人 320×568 的按钮底 **488.13 CSS px**，四人底 **424.17px**，全部 scrollY 为 0。新鲜四人电脑与五人手机单图独立审查均无必要 P1／P2；可选构图／手机冠军文字建议及保留理由记录于上述视觉 JSON。
 
@@ -187,7 +189,7 @@
 
 **16 个原创短音效／355,904 字节**，采用木质敲击、玻璃泛音和短和声，分别表达各类拍卖、竞价、封存、成交和结算；手机静音，公共屏优先、管理员承接。源文件为 24kHz／16bit 单声道 PCM，峰值最大 0.399994、无削波，完整参数和版本在 [资源清单](../../assets/games/modern-art/manifest.json)，[试听页](../../artifacts/maintenance/v1.0.1/modern-art-audio-20261004/audition-v1.html)提供逐项播放。[最终包音频实测](../../artifacts/maintenance/v1.0.1/modern-art-polish-20261004/audio/portable-final-v4/results.json)通过 22 项、16 文件同源解码、14 次真实保存命令、7 次正音量授权播放；另一次零音量手势解锁，手机播放为零。静音、归属交接、刷新／回退／暂停不补播、测试模式及秘密信息边界均受检，页面、外部请求、音频 HTTP 与播放拒绝为零，耗时 **32.64 秒**；未进行人耳或实体扬声器试听。
 
-当轮 [本地便携包](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/before-package/TableMax-1.0.1-win-x64.zip)为 **39,042,029 字节**，实际解压 **111 文件／94,770,599 字节**，严格双 100 MB 门禁及 95 MB 工程预算通过；[逐文件清单](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/before-package/TableMax-1.0.1-win-x64-manifest.json)记录 SHA-256 `1dc750ee8e7d39f38931e96529d615f65b005836ba6e352ad895d2421f7457bd`，最终打包 **17.19 秒**。前一轮已验证包在本轮 `before/`，本轮三次中间包在 `first-package/`、`second-package/`、`third-package/`，关联失败与通过证据保持；线上 Release、发布源 ZIP 及总清单保留原发布内容。
+当轮 [本地便携包（已退役）](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/before-package/TableMax-1.0.1-win-x64.zip.retired.json)为 **39,042,029 字节**，实际解压 **111 文件／94,770,599 字节**，严格双 100 MB 门禁及 95 MB 工程预算通过；[逐文件清单](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/before-package/TableMax-1.0.1-win-x64-manifest.json)记录 SHA-256 `1dc750ee8e7d39f38931e96529d615f65b005836ba6e352ad895d2421f7457bd`，最终打包 **17.19 秒**。前一轮已验证包在本轮 `before/`，本轮三次中间包在 `first-package/`、`second-package/`、`third-package/`，关联失败与通过证据保持；线上 Release、发布源 ZIP 及总清单保留原发布内容。
 
 最终同一 ZIP 的 [代表场景矩阵](../../artifacts/maintenance/v1.0.1/modern-art-polish-20261004/verification/portable-final-v4-representative/results.json)通过 **52 布局／60 图**（131.75 秒）：四人／五人出画、公开竞拍、十幅以上收藏与合法三位估值，720p／1080p、320／360／390 手机、历史浮窗／焦点、三类排序及牌 ID 保持；真实 20／5／120 设置、多端同基线、刷新连续、暂停冻结与到零不自动行动。另含宝可梦取牌／结算四场景，六人短桌面 CSS 854×480 的 36 个号位、角色图和 44px 计分按钮完整，360×640 手机六格和计分保持首屏。
 
@@ -217,7 +219,7 @@
 
 先验证 360×640 首屏（9.75 秒），再完成开发跨层矩阵（18.06 秒）。首次离线脚本导航被本源守卫拒绝，改为关闭真实手机 Form、同 partition 重开，保留失败证据。首个便携包的现代艺术短屏结算被新增头像高度挤压；移除已经售罄的空收藏占位、收束现金边距，保留头像与字号，以自然结束存档做 [定向结果复核](../../artifacts/maintenance/v1.0.1/box-avatars-20261004/verification/ma-result-recheck/results.json)通过（11.66 秒），随后重新冻结。历史失败完整当前 Save 已 [只读导出](../../artifacts/maintenance/v1.0.1/box-avatars-20261004/verification/ma-result-recheck/failed-ended-current-save-export.json)，不依赖临时数据库长期留存。
 
-最终 [本地便携包](../../artifacts/maintenance/v1.0.1/modern-art-polish-20261004/before/TableMax-1.0.1-win-x64.zip)为 **38,730,831 字节**，实际解压 **95 文件／94,389,421 字节**，双 100 MB 门禁与 95 MB 预算通过；[逐文件清单](../../artifacts/maintenance/v1.0.1/modern-art-polish-20261004/before/TableMax-1.0.1-win-x64-manifest.json)记录 SHA-256 `2b770ab92112e4ccac7d4211034201541b9afc5de1ddd38c994a67cdabc573fd`。26 个源头像均与实际解压包中的位图哈希匹配，见 [资源审计](../../artifacts/maintenance/v1.0.1/box-avatars-20261004/avatar-package-audit.json)。旧返修包在本轮 `before/`，本轮首包与验证在 `first-package/` 及独立证据目录；线上发布包、源 ZIP、总发布清单沿用原发布记录。
+最终 [本地便携包（已退役）](../../artifacts/maintenance/v1.0.1/modern-art-polish-20261004/before/TableMax-1.0.1-win-x64.zip.retired.json)为 **38,730,831 字节**，实际解压 **95 文件／94,389,421 字节**，双 100 MB 门禁与 95 MB 预算通过；[逐文件清单](../../artifacts/maintenance/v1.0.1/modern-art-polish-20261004/before/TableMax-1.0.1-win-x64-manifest.json)记录 SHA-256 `2b770ab92112e4ccac7d4211034201541b9afc5de1ddd38c994a67cdabc573fd`。26 个源头像均与实际解压包中的位图哈希匹配，见 [资源审计](../../artifacts/maintenance/v1.0.1/box-avatars-20261004/avatar-package-audit.json)。旧返修包在本轮 `before/`，本轮首包与验证在 `first-package/` 及独立证据目录；线上发布包、源 ZIP、总发布清单沿用原发布记录。
 
 最终同一 ZIP 的 [头像与介绍](../../artifacts/maintenance/v1.0.1/box-avatars-20261004/verification/portable-final-fixed/results.json)通过 8 项跨层／24 布局／24 截图（21.73 秒）：26 本地图、并发一胜一拒、占用／释放、真实离线、丢回复原请求恢复、三端／游戏头像、权限及游戏切换。介绍覆盖 360／390 手机、720p／1080p／4K，以及实际 1.25／1.5 缩放；正文至少 16px、操作至少 44px，无横向溢出。720p 的 125% 请求会正常受空间保护限制，真实 1.25 另在 1080p 核验，原生尺寸及保护状态已记录。[宝可梦便携整局](../../artifacts/maintenance/v1.0.1/modern-art-polish-20261004/before/pokemon-portable/results.json)通过六席三胜、14 阶段、89 次 driver 动作、回退、重启及原班续局（57.291 秒）；[现代艺术便携整局](../../artifacts/maintenance/v1.0.1/modern-art/portable/box-avatars-final-20261004/results.json)通过五席四轮、277 步、五类拍卖／八种手机动作、头像身份、重启及双游戏切换（68.43 秒），720p 与 360×640 结算五行均无遮挡。各组页面错误及外部请求为空。最终打包 16.415 秒；并行阶段不相加冒充总耗时。
 
@@ -239,7 +241,7 @@
 
 类型、ESLint、Prettier 通过。全库默认并发测试出现两项人机整局超时；停止界面验证并改用单 worker 后，宝可梦测试全部通过，全库 **25 文件通过／164 项通过／1 项失败**。剩余为未修改的《现代艺术》策略整局测试超过原 20 秒，仍未通过；不放宽时限或将它写成绿色工程检查。原始输出和 107.322 秒命令耗时见 [单进程测试记录](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/tests-serial.json)及同目录日志，默认 `pnpm check` 89.326 秒失败记录亦保留。仅 CSS／标题选择器返修后重验类型、lint、格式及相关真实流程，没有重复未变化的规则测试。
 
-最终同版本 [本地程序包](../../artifacts/maintenance/v1.0.1/box-avatars-20261004/before/TableMax-1.0.1-win-x64.zip)为 **37,931,361 字节**，实际解压 **75 文件／93,576,952 字节**，双 100 MB 门禁及 95 MB 预算通过；[逐文件清单](../../artifacts/maintenance/v1.0.1/box-avatars-20261004/before/TableMax-1.0.1-win-x64-manifest.json)记录 SHA-256 `d21389dc647679c4d834a8b193e410048600b2faf6986b4dc0abbce06de4a880`。旧图标包与已发布源码／总清单归档在 `pokemon-polish-20261004/before/`；首个返修包及失败证据归档在 `first-package/`。首包实际 ZIP 验收发现测试标记横向溢出、手机星标偏小，随后开发整局发现六人结算需另留计分高度；全部返修后再次冻结打包。旧计分浮窗标题选择器仅对齐去中点后的实际标题，内容、焦点和秘密信息检查保留。本次更新本地程序，线上发布内容与源 ZIP 沿用原发布记录。
+最终同版本 [本地程序包（已退役）](../../artifacts/maintenance/v1.0.1/box-avatars-20261004/before/TableMax-1.0.1-win-x64.zip.retired.json)为 **37,931,361 字节**，实际解压 **75 文件／93,576,952 字节**，双 100 MB 门禁及 95 MB 预算通过；[逐文件清单](../../artifacts/maintenance/v1.0.1/box-avatars-20261004/before/TableMax-1.0.1-win-x64-manifest.json)记录 SHA-256 `d21389dc647679c4d834a8b193e410048600b2faf6986b4dc0abbce06de4a880`。旧图标包与已发布源码／总清单归档在 `pokemon-polish-20261004/before/`；首个返修包及失败证据归档在 `first-package/`。首包实际 ZIP 验收发现测试标记横向溢出、手机星标偏小，随后开发整局发现六人结算需另留计分高度；全部返修后再次冻结打包。旧计分浮窗标题选择器仅对齐去中点后的实际标题，内容、焦点和秘密信息检查保留。本次更新本地程序，线上发布内容与源 ZIP 沿用原发布记录。
 
 最终 ZIP 的 [便携整局](../../artifacts/maintenance/v1.0.1/box-avatars-20261004/before/portable/results.json)、[显示矩阵](../../artifacts/maintenance/v1.0.1/display/portable/results.json)和 [自然声画](../../artifacts/maintenance/v1.0.1/presentation-portable/results.json)首次验收全部通过，均关联上述 `d21389dc…` 哈希：六席三胜、14 阶段、129 次 driver 动作、回退、两次真实启动恢复及原班续局；显示 35 布局／47 浮窗检查／44 张截图；六位实际手机身份自然小局、28px 星标、计分焦点和三档生产节奏／取消。各组页面错误与外部请求为空。最终打包 15.994 秒，整局／显示／声画分别 73.414／114.501／45.796 秒；并行耗时不相加，实际交付与前次失败记录见 [交付记录](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/delivery-record.json)。本次所有验收子进程已退出。
 
@@ -251,7 +253,7 @@
 
 按用户要求用内置 imagegen 生成高级应用图标，并应用到 EXE、主机／公共窗口标题栏和任务栏、浏览器标签、手机主屏入口及三端盒子品牌。采用青绿陶瓷圆角磁贴与奶油桌台／叠牌 T 形，细暖金夹层；资源、提示词和哈希见[平台清单](../../assets/platform/manifest.json)，完整原图与浅深底 16–256px 审查证据在 `artifacts/maintenance/v1.0.1/app-icon/imagegen/`。当前应用版本继续为 1.0.1。
 
-该次[本地便携包](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/before/TableMax-1.0.1-win-x64.zip)为 **37,924,627 字节**，实际解压 **75 文件／93,539,137 字节**，通过双 100 MB 门禁和 95 MB 工程预算。[逐文件清单](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/before/TableMax-1.0.1-win-x64-manifest.json)记录 ZIP SHA-256 `61445bb9205bb1068377cbaf65f648ac31909e885c3e962f4f1e382b0f02b448`。已发布旧包与清单备份到 `artifacts/maintenance/v1.0.1/app-icon/before/`，其原哈希与下节发布验收保持。
+该次[本地便携包（已退役）](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/before/TableMax-1.0.1-win-x64.zip.retired.json)为 **37,924,627 字节**，实际解压 **75 文件／93,539,137 字节**，通过双 100 MB 门禁和 95 MB 工程预算。[逐文件清单](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/before/TableMax-1.0.1-win-x64-manifest.json)记录 ZIP SHA-256 `61445bb9205bb1068377cbaf65f648ac31909e885c3e962f4f1e382b0f02b448`。已发布旧包与清单备份到 `artifacts/maintenance/v1.0.1/app-icon/before/`，其原哈希与下节发布验收保持。
 
 类型、ESLint、Prettier 和 **26 文件／160 项测试**通过；最终 ZIP 的[宝可梦便携整局](../../artifacts/maintenance/v1.0.1/app-icon/portable/results.json)通过六席、14 阶段、回退、两次启动恢复及原班续局。本次复用既有便携验证脚本，仅将副本的相对导入与证据输出改到图标专属目录，原验证脚本和历史证据保持。初次测试被沙箱子进程权限拦截，后以授权范围重跑测试；首次打包遇到短暂 EXE 文件锁，重试后成功，未关闭已有应用。游戏规则、策略和协议未变，设备边界仍为本机 Windows 与隐藏 WebView2／Chromium 尺寸模拟。
 
@@ -263,7 +265,7 @@
 
 按用户最新指示，将含《现代艺术》的版本定位为 v1.0.1，并发布到 [GitHub Release](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.1)。应用、原生程序集、Windows manifest 和桌面版本响应同步为 1.0.1；规则、协议、存档和策略版本不变。原生安全验证改为读取当前应用版本对应的清单。用户原有 README 改写保留在工作区，发布提交仅纳入本次版本／下载链接调整和现代艺术说明。
 
-`pnpm package:win` 重新构建并逐文件核验实际解压：ZIP **36,966,646 字节**，解压 **72 文件／92,579,416 字节**，满足双 100 MB 门禁及 95 MB 解压预算。SHA-256 为 `8b3d4bc237d75e843a8b842d23ffeb7f651b4e531fbf2b2131b3a4433498dc6c`；[逐文件清单](../../artifacts/maintenance/v1.0.1/app-icon/before/TableMax-1.0.1-win-x64-manifest.json)与[便携包](../../artifacts/maintenance/v1.0.1/app-icon/before/TableMax-1.0.1-win-x64.zip)配套。
+`pnpm package:win` 重新构建并逐文件核验实际解压：ZIP **36,966,646 字节**，解压 **72 文件／92,579,416 字节**，满足双 100 MB 门禁及 95 MB 解压预算。SHA-256 为 `8b3d4bc237d75e843a8b842d23ffeb7f651b4e531fbf2b2131b3a4433498dc6c`；[逐文件清单](../../artifacts/maintenance/v1.0.1/app-icon/before/TableMax-1.0.1-win-x64-manifest.json)与[便携包（已退役）](../../artifacts/maintenance/v1.0.1/app-icon/before/TableMax-1.0.1-win-x64.zip.retired.json)配套。
 
 - [现代艺术便携整局](../../artifacts/maintenance/v1.0.1/modern-art/portable/results.json)通过：五席四轮、全部拍卖与八类手机动作、秘密隔离、回退、重启和游戏切换；28 张实际截图，页面错误和外部请求为空。
 - [宝可梦便携整局](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/before/portable/results.json)通过：实际应用版本 1.0.1、六席三胜、14 阶段、回退、重启及原班续局。
@@ -454,7 +456,7 @@
 
 - `pnpm package:win` 一次构建并导出最终 ZIP；[首次便携验证](../../artifacts/maintenance/v1.0.0/before-visual-polish/portable/results.json) 两次运行实际解压程序，确认应用版本 `1.0.0`、协议 6、六席真人／Worker bot 完整三胜大局、全部 14 阶段、回退、重启恢复及原班续局。记录 11 张实际隐藏渲染截图，外部请求和页面错误均为 0；设备模拟边界沿用前节。
 - [清理工具隔离测试](../../artifacts/maintenance/v1.0.0/cleanup-tools/tool-tests.json) 29 项、[自动维护隔离测试](../../artifacts/maintenance/v1.0.0/maintenance-tools/tool-tests.json) 32 项通过；新增显式退役高编号标签、预览不删除、拒绝当前版本、拒绝自动退役及保留无关未来版本。脚本 ESLint、语法、证据目录、项目格式与当前交付链接检查通过；本轮未修改游戏源码，沿用前节游戏功能专项，不重复运行无关矩阵。
-- 首次重标为 1.0.0 的 [Windows x64 便携 ZIP](../../artifacts/maintenance/v1.0.0/before-visual-polish/TableMax-1.0.0-win-x64.zip) 为 156,161,426 字节，SHA-256 `8356117f71b657f4901ba0a5e081ea98d9bd575587f154e7392b765eb05e7363`。源码、锁文件、文档及开发规则随本轮提交导出为 [当次源码 ZIP](../../artifacts/maintenance/v1.0.0/before-visual-polish/TableMax-1.0.0-source.zip)，不包含依赖、玩家存档、工具缓存或本地中间物。
+- 首次重标为 1.0.0 的 [Windows x64 便携 ZIP（已退役）](../../artifacts/maintenance/v1.0.0/before-visual-polish/TableMax-1.0.0-win-x64.zip.retired.json) 为 156,161,426 字节，SHA-256 `8356117f71b657f4901ba0a5e081ea98d9bd575587f154e7392b765eb05e7363`。源码、锁文件、文档及开发规则随本轮提交导出为 [当次源码 ZIP（已退役）](../../artifacts/maintenance/v1.0.0/before-visual-polish/TableMax-1.0.0-source.zip.retired.json)，不包含依赖、玩家存档、工具缓存或本地中间物。
 - 空闲后执行已预览的手动清理：当时历史版本记录 `local-cleanup-20261002-162404-780-releases/cleanup.json` 记载删除旧 1.6.0 ZIP 及打包目录 2 项／704,520,503 字节；中间物记录 `local-cleanup-20261002-162435-967-intermediates/cleanup.json` 记载删除 56 项／4,501,388,803 字节。合计释放 5,205,909,306 字节（约 4.85 GiB）；默认 30 分钟保护保留 4 项近期内容，另保留 5 项未知临时资料。两份原记录当前不可读取，以上保留当时文档所记结果，不以本轮记录替代。当前 ZIP、存档、素材、依赖、缓存与历史证据继续保留。
 
 [收尾统一维护](../../artifacts/maintenance/v1.0.0/maintenance.json) 发现同仓库主工作区 `E:\Proj\TableMax`，逻辑大小 3,048,787,207 字节（约 2.839 GiB），低于 5 GiB，删除 0 字节；跳过 1,330 个链接，不重复统计 worktree。未终止用户进程或放宽清理保护。
@@ -470,7 +472,7 @@
 - 返修发现 720p 暂停时页面超高；根据实际截图和面板几何修正顶部／底部留白及 CSS 优先级，并提供 [固定失败场景验证](../../artifacts/maintenance/v1.0.0/display/paused-720p/results.json)。最终 [便携显示矩阵](../../artifacts/maintenance/v1.0.0/display/portable/results.json) 通过 44 张实际隐藏截图，包含 720p—4K、两端六人全部 36 牌、暂停／恢复、44px 控件、100／125／150% 窗口缩放、重启及 DPI 模拟；失败的开发记录保留为诊断，不作为最终通过证据。
 - [最终便携整局](../../artifacts/maintenance/v1.0.0/portable/results.json) 实际解压新包运行，完整六席三胜、全部 14 阶段、回退、两次启动恢复及原班续局通过。与显示矩阵对应同一最终 ZIP；设备范围仍为本机 Windows／隐藏 Electron／独立手机 Chromium 模拟。
 
-当轮 [Windows x64 ZIP](../../artifacts/maintenance/v1.0.0/before-independent-review/TableMax-1.0.0-win-x64.zip) 为 156,161,961 字节，SHA-256 `caa042fc1af7ccab5dd8fdfdeb3bc91625854b5b1f30de2e98564277682d9729`。程序、源码及对应便携／显示证据现保留在 `artifacts/maintenance/v1.0.0/before-independent-review/`；当轮便携记录见该目录的 `portable/results.json`，显示记录见 `display/portable/results.json`，不将下一轮结果归到此哈希。首次同编号的程序、源码及便携证据仍保留在 `before-visual-polish/`。当轮 [源码 ZIP](../../artifacts/maintenance/v1.0.0/before-independent-review/TableMax-1.0.0-source.zip) 对应原提交，不包含依赖、玩家数据或本地证据。
+当轮 [Windows x64 ZIP（已退役）](../../artifacts/maintenance/v1.0.0/before-independent-review/TableMax-1.0.0-win-x64.zip.retired.json) 为 156,161,961 字节，SHA-256 `caa042fc1af7ccab5dd8fdfdeb3bc91625854b5b1f30de2e98564277682d9729`。程序、源码及对应便携／显示证据现保留在 `artifacts/maintenance/v1.0.0/before-independent-review/`；当轮便携记录见该目录的 `portable/results.json`，显示记录见 `display/portable/results.json`，不将下一轮结果归到此哈希。首次同编号的程序、源码及便携证据仍保留在 `before-visual-polish/`。当轮 [源码 ZIP（已退役）](../../artifacts/maintenance/v1.0.0/before-independent-review/TableMax-1.0.0-source.zip.retired.json) 对应原提交，不包含依赖、玩家数据或本地证据。
 
 [同版本收尾维护](../../artifacts/maintenance/v1.0.0/visual-polish-maintenance.json) 检查主工作区 `E:\Proj\TableMax`，逻辑大小 3,049,079,281 字节（约 2.840 GiB），低于 5 GiB，删除 0 字节；跳过 1,330 个链接，未终止用户进程或扩大清理范围。新增文档链接／锚点和 diff 检查通过，版本及锁文件没有改动。
 
@@ -484,7 +486,7 @@
 - [最终 UI 回归](../../artifacts/maintenance/v1.0.0/ui/independent-review-verified/results.json) 15 场通过，保留 335 张实际隐藏渲染截图，含每一步公共屏／当前手机、滚动后牌阵、能力结果及多尺寸；重复进度帧保留，不宣称335张均独立送审。[卡面矩阵](../../artifacts/maintenance/v1.0.0/cards/results.json) 13 种／16 类及 [最终效果专项](../../artifacts/maintenance/v1.0.0/effects/independent-review-verified/results.json) 7 项通过。专项仍为生产组件及授权投影 fixture，区别于真实服务对局。
 - [实际 ZIP 整局](../../artifacts/maintenance/v1.0.0/before-language-pruning/portable/results.json) 完整六席三胜、全部14阶段、回退、两次启动恢复及原班续局通过；[实际 ZIP 显示矩阵](../../artifacts/maintenance/v1.0.0/before-language-pruning/display/portable/results.json) 44 张截图通过，覆盖720p—4K、两端36牌、暂停恢复、100／125／150%缩放及原生DPI模拟。两份记录均对应下面的新哈希，不复用旧包通过结论。
 
-当轮 [Windows x64 ZIP](../../artifacts/maintenance/v1.0.0/before-language-pruning/TableMax-1.0.0-win-x64.zip) 为 156,162,408 字节，SHA-256 `d35c20eabf636a024dc0bec11d188690775c7b0d26a2e67853b67b167a3ef789`；[源码 ZIP](../../artifacts/maintenance/v1.0.0/before-language-pruning/TableMax-1.0.0-source.zip) 按最终提交导出。上一轮程序、源码和对应证据保留在 `before-independent-review/`，此前首份同编号包仍在 `before-visual-polish/`。范围仍为本机 Windows／隐藏 Electron／手机 Chromium 与DPI模拟，单帧审查不证明动效、规则正确性或真实手机／电视体验，没有新增现场听音结论。
+当轮 [Windows x64 ZIP（已退役）](../../artifacts/maintenance/v1.0.0/before-language-pruning/TableMax-1.0.0-win-x64.zip.retired.json) 为 156,162,408 字节，SHA-256 `d35c20eabf636a024dc0bec11d188690775c7b0d26a2e67853b67b167a3ef789`；[源码 ZIP（已退役）](../../artifacts/maintenance/v1.0.0/before-language-pruning/TableMax-1.0.0-source.zip.retired.json) 按最终提交导出。上一轮程序、源码和对应证据保留在 `before-independent-review/`，此前首份同编号包仍在 `before-visual-polish/`。范围仍为本机 Windows／隐藏 Electron／手机 Chromium 与DPI模拟，单帧审查不证明动效、规则正确性或真实手机／电视体验，没有新增现场听音结论。
 
 收尾 [统一维护](../../artifacts/maintenance/v1.0.0/independent-review-maintenance.json) 在构建、验证及打包退出后检查主工作区，保持5 GiB触发、4 GiB低水位及原安全保护。版本文件与锁文件保持不变；相关文档与链接、diff检查后统一提交，默认不推送。
 
@@ -496,7 +498,7 @@
 - [实际便携整局](../../artifacts/maintenance/v1.0.0/before-webview2/portable/results.json)：当轮 ZIP 独立解压、仅系统 PATH、隐藏 Electron 与独立服务，通过六席三胜、全部 14 阶段、回退、两次启动恢复及原班续局，页面错误和外部请求为空。设备范围仍为本机 Windows／手机 Chromium 模拟，不新增实机或听音结论。
 - 打包配置 Prettier 与 diff 检查通过；Node 22.14.0、pnpm 10.12.1、Electron 44.5.1 沿用锁定环境。首次沙箱构建因子进程 `spawn EPERM` 失败，获准后完成真实打包；本轮仅打包配置与文档变化，未重复规则测试或显示矩阵，游戏与前端文件字节一致的证据见上。
 
-当轮 [Windows x64 ZIP](../../artifacts/maintenance/v1.0.0/before-webview2/TableMax-1.0.0-win-x64.zip) SHA-256 为 `e070212ce21c94b5b1546ca09c954f85feab9afde83c3642b589e18f6cbface1`；源码包和对应证据已一并保留。上一轮 ZIP、源码、交付清单及对应整局／显示证据在 `artifacts/maintenance/v1.0.0/before-language-pruning/`，历史显示通过结论归属旧包，不标为新包重新执行。
+当轮 [Windows x64 ZIP（已退役）](../../artifacts/maintenance/v1.0.0/before-webview2/TableMax-1.0.0-win-x64.zip.retired.json) SHA-256 为 `e070212ce21c94b5b1546ca09c954f85feab9afde83c3642b589e18f6cbface1`；源码包和对应证据已一并保留。上一轮 ZIP、源码、交付清单及对应整局／显示证据在 `artifacts/maintenance/v1.0.0/before-language-pruning/`，历史显示通过结论归属旧包，不标为新包重新执行。
 
 ## 1.0.0：原生桌面与小体积交付（2026-10-03）
 
@@ -512,7 +514,7 @@
 
 本轮验证仍在当前 Windows 11 x64 上完成。原生窗口位于屏幕外、不激活但实际合成渲染，测试 CDP 只监听临时回环端口；手机为隔离 Chromium profile 的触控／UA／网络模拟。外部网页请求被拒绝后的完整游戏证明离线资源链路，不声称实体电视、真实 Safari、另一台无开发环境电脑或现场听音实测。原包与对应证据保存在 `before-webview2/`，新包按实际哈希重新验收。
 
-当轮交付已完成重新验收，程序、源码及将被后续验收更新的证据保留在 `before-modern-art/`：[Windows x64 ZIP](../../artifacts/maintenance/v1.0.0/before-modern-art/TableMax-1.0.0-win-x64.zip) 为 **35,442,208 字节**，实际解压全部 **61 个文件／90,979,966 字节**；两项均严格低于 100,000,000 字节，解压也低于 95,000,000 字节预算，AC-24 通过。ZIP SHA-256 为 `3f7ed86a0b79d3f951b5992dbed614c3d4003f9db9bb756ac2a940cc346eacdf`。[逐文件交付清单](../../artifacts/maintenance/v1.0.0/before-modern-art/TableMax-1.0.0-win-x64-manifest.json) 包含实际字节数、每文件 SHA-256、官方 Node 下载校验及锁定 SDK；实际解压逐项一致，没有 Electron、PDB、其他架构 DLL、引用程序集、SDK 文档或开发 marker。Node.exe 为 83,344,536 字节，与官方 Windows x64 ZIP 原件完全一致。
+当轮交付已完成重新验收，程序、源码及将被后续验收更新的证据保留在 `before-modern-art/`：[Windows x64 ZIP（已退役）](../../artifacts/maintenance/v1.0.0/before-modern-art/TableMax-1.0.0-win-x64.zip.retired.json) 为 **35,442,208 字节**，实际解压全部 **61 个文件／90,979,966 字节**；两项均严格低于 100,000,000 字节，解压也低于 95,000,000 字节预算，AC-24 通过。ZIP SHA-256 为 `3f7ed86a0b79d3f951b5992dbed614c3d4003f9db9bb756ac2a940cc346eacdf`。[逐文件交付清单](../../artifacts/maintenance/v1.0.0/before-modern-art/TableMax-1.0.0-win-x64-manifest.json) 包含实际字节数、每文件 SHA-256、官方 Node 下载校验及锁定 SDK；实际解压逐项一致，没有 Electron、PDB、其他架构 DLL、引用程序集、SDK 文档或开发 marker。Node.exe 为 83,344,536 字节，与官方 Windows x64 ZIP 原件完全一致。
 
 以下记录全部使用该最终 ZIP 的新解压目录、隔离数据及仅系统 PATH，记录哈希与交付文件一致：
 
@@ -540,7 +542,7 @@
 - [最终 ZIP 的共享交互回归](../../artifacts/maintenance/v1.0.0/experience-portable/results.json)：宝可梦盒子懒加载、手机房主、并发及公共屏声音归属通过。[完整宝可梦便携整局](../../artifacts/maintenance/v1.0.0/portable/results.json)六席三胜、全部 14 阶段、回退／重启／原班续局通过，页面错误与外部请求为 0；同构建的[能力 UI](../../artifacts/maintenance/v1.0.0/ui/results.json)15 组通过。旧包的显示／原生安全记录保持原执行范围。
 - [美术导入核验](../../artifacts/maintenance/v1.0.0/modern-art/imagegen/integration-verification.json)：70 卡映射、五套图集、封面及构建哈希均通过；六份 WebP 共 **1,497,918 字节**，原始 PNG、提示词、出版实物参考与原创演绎说明保留。纹理生成约 **259.65 秒**，不含检索、压缩及其他工作。卡面不冒充真实画家原作，拍卖子类型分布仍明确标为项目采用表。
 
-同版本 [Windows x64 ZIP](../../artifacts/maintenance/v1.0.0/before-v1.0.1/TableMax-1.0.0-win-x64.zip)为 **36,966,642 字节**，实际解压 **72 文件／92,579,416 字节**；两项严格低于 100,000,000 字节，解压也满足 95 MB 工程预算。SHA-256 为 `7edd0ec38b5710b27fec6590cb139690524f1a59c263631c25013fb7e2438f6b`；[逐文件清单](../../artifacts/maintenance/v1.0.0/before-v1.0.1/TableMax-1.0.0-win-x64-manifest.json)与真实解压逐项一致，便携运行仅系统 PATH。前一轮程序、源码、清单及被更新的验证目录保存在 `before-modern-art/`，历次记录保持其原哈希。源码及总交付清单按最终提交另行导出，用户已有 README 改动保持原字节且不混入提交。
+同版本 [Windows x64 ZIP（已退役）](../../artifacts/maintenance/v1.0.0/before-v1.0.1/TableMax-1.0.0-win-x64.zip.retired.json)为 **36,966,642 字节**，实际解压 **72 文件／92,579,416 字节**；两项严格低于 100,000,000 字节，解压也满足 95 MB 工程预算。SHA-256 为 `7edd0ec38b5710b27fec6590cb139690524f1a59c263631c25013fb7e2438f6b`；[逐文件清单](../../artifacts/maintenance/v1.0.0/before-v1.0.1/TableMax-1.0.0-win-x64-manifest.json)与真实解压逐项一致，便携运行仅系统 PATH。前一轮程序、源码、清单及被更新的验证目录保存在 `before-modern-art/`，历次记录保持其原哈希。源码及总交付清单按最终提交另行导出，用户已有 README 改动保持原字节且不混入提交。
 
 范围仍为当前 Windows 11／共享 WebView2／原生后台合成和 Chromium 手机触控／尺寸模拟，不声称实体电视、真实手机或 Safari 实测。Windows DPI 与原生自动缩放被纳入实际几何记录；图片为真实更新后的帧。独立单图审查覆盖冻结的[公共屏](../../artifacts/maintenance/v1.0.0/modern-art/review/final-public.png)和[手机](../../artifacts/maintenance/v1.0.0/modern-art/review/final-phone.png)：手机未发现必须修复项；公共收藏末卡的边缘提示经[裁定](../../artifacts/maintenance/v1.0.0/modern-art/review/adjudication.json)保留为有总幅数与显式滚动条的横向收藏布局。静态[解耦及文档审查](../../artifacts/maintenance/v1.0.0/modern-art/review/static-review.json)另记录模块与链接证据。
 

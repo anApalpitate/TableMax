@@ -8,6 +8,13 @@ import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import { verificationOutput } from './verification-output.mjs';
 
 const portable = process.argv.includes('--portable');
+const evidenceName = process.argv
+  .find((value) => value.startsWith('--evidence='))
+  ?.slice(11);
+assert.ok(
+  !evidenceName || /^[a-z0-9-]{1,48}$/.test(evidenceName),
+  'Safe evidence name',
+);
 const executableArgument = process.argv.find((value) =>
   value.startsWith('--executable='),
 );
@@ -18,7 +25,7 @@ if (portable && !executableArgument)
   throw new Error('Portable safety requires the actual extracted executable');
 const output = verificationOutput(
   'webview2',
-  portable ? 'safety-portable' : 'safety',
+  evidenceName ?? (portable ? 'safety-portable' : 'safety'),
 );
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });

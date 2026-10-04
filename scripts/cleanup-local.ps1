@@ -8,6 +8,7 @@ param(
   [string[]]$TemporaryNames = @(),
   [string[]]$VerificationCopies = @(),
   [string]$DuplicateScreenshotsManifest,
+  [string]$RetiredGeneratedManifest,
   [ValidateRange(0, 10080)][int]$MinimumAgeMinutes = 30,
   [ValidateRange(0.001, 1024)][double]$HighWaterGiB = 5,
   [ValidateRange(0, 1024)][double]$LowWaterGiB = 4,
@@ -17,6 +18,10 @@ param(
 $ErrorActionPreference = 'Stop'
 $sourceWorkspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\')
 $automatic = $Kind -eq 'Maintenance'
+if ($PSBoundParameters.ContainsKey('RetiredGeneratedManifest') -and
+    ([string]::IsNullOrWhiteSpace($RetiredGeneratedManifest) -or $Kind -ne 'Intermediates' -or $IncludeBuild -or $KeepLatestOnly -or $TemporaryNames.Count -or $VerificationCopies.Count -or $RetiredVersions.Count -or $DuplicateScreenshotsManifest)) {
+  throw 'RetiredGeneratedManifest requires an explicit manifest and exclusive manual intermediate cleanup.'
+}
 if ($PSBoundParameters.ContainsKey('DuplicateScreenshotsManifest') -and
     ([string]::IsNullOrWhiteSpace($DuplicateScreenshotsManifest) -or $Kind -ne 'Intermediates' -or $IncludeBuild -or $KeepLatestOnly -or $TemporaryNames.Count -or $VerificationCopies.Count -or $RetiredVersions.Count)) {
   throw 'DuplicateScreenshotsManifest requires a nonempty manifest and manual intermediate cleanup without other modes.'
@@ -429,7 +434,11 @@ elseif ($Kind -eq 'Releases' -or $automatic) {
     }
   }
 }
-if ($DuplicateScreenshotsManifest) {
+if ($RetiredGeneratedManifest) {
+  . (Join-Path $PSScriptRoot 'retired-generated.ps1')
+  Initialize-RetiredGenerated
+}
+elseif ($DuplicateScreenshotsManifest) {
   $duplicateManifestPath = Assert-LocalPath (Join-Path $workspace $DuplicateScreenshotsManifest)
   if (-not $duplicateManifestPath.StartsWith($maintenance + '\', [StringComparison]::OrdinalIgnoreCase) -or -not (Test-Path -LiteralPath $duplicateManifestPath -PathType Leaf)) { throw 'Screenshot manifest must be a file inside artifacts/maintenance.' }
   $duplicateManifestSha256 = (Get-FileHash -LiteralPath $duplicateManifestPath).Hash
@@ -493,7 +502,7 @@ elseif ($Kind -eq 'Intermediates' -or $automatic) {
   if (Test-Path -LiteralPath $temporary -PathType Container) {
     foreach ($entry in Get-ChildItem -LiteralPath $temporary -Force) {
       if ($TemporaryNames.Count -and $entry.Name -notin $TemporaryNames) { continue }
-      if ($entry.PSIsContainer -and $entry.Name -match '^(app-icon-verify|card-layout|countdown-crosslayer|desktop-verify|display(-portable)?|experience|game-prototype-verify|game-ui|modern-art-verify|modern-art-polish|modern-art-audio-verify|party(-portable|-startup)?|play-presentation(-portable)?|pokemon-desktop|pokemon-verify|portable-extracted|portable-game|prototype-verify|room-levels(-portable)?|runtime-memory|six-result-layout|tablemax-sqlite-migration)-[A-Za-z0-9]{6}$') {
+      if ($entry.PSIsContainer -and ($entry.Name -match '^(app-icon-verify|card-layout|countdown-crosslayer|desktop-verify|desktop-fullscreen|display(-portable)?|experience|game-prototype-verify|game-ui|modern-art-verify|modern-art-polish(-v2)?|modern-art-fullscreen|modern-art-audio-verify|party(-portable|-startup)?|play-presentation(-portable)?|pokemon-desktop|pokemon-verify|portable-extracted|portable-game|prototype-verify|room-levels(-portable)?|runtime-memory|six-result-layout|tablemax-sqlite-migration)-[A-Za-z0-9]{6}$' -or $entry.Name -match '^fullscreen-portable-[a-f0-9]{8}$')) {
         Add-Candidate $entry.FullName 'Known isolated verification data or portable extraction'
       }
       elseif (-not $entry.PSIsContainer -and $entry.Name -match '^(check-(display|party|phone-table|presentation|release-cleanup)-docs\.mjs|cleanup-display-staging\.ps1|display-(dialog|dpi)-probe\.mjs|finalize-presentation-evidence\.mjs|inspect-six-result\.mjs|update-presentation-docs\.mjs)$') {
@@ -547,6 +556,7 @@ try {
     preservedFiles = $preservedFiles
     verificationCopies = $VerificationCopies; verificationProofs = $verificationProofs.ToArray()
     duplicateScreenshotsManifest = $DuplicateScreenshotsManifest
+    retiredGeneratedManifest = $RetiredGeneratedManifest
     workspace = $workspace; highWaterBytes = $summary.highWaterBytes; lowWaterBytes = $summary.lowWaterBytes
     bytesBefore = $summary.bytesBefore; bytesAfter = $summary.bytesAfter
     candidates = $ordered; skipped = $skipped.ToArray(); deletedBytes = [long]0; result = 'started'
@@ -567,6 +577,9 @@ try {
         if ($verified.fingerprint -ne $candidate.verificationProof.fingerprint -or $verified.evidenceSha256 -ne $candidate.verificationProof.evidenceSha256) {
           throw ('Parent portable evidence changed during cleanup; stopped: ' + $verified.evidencePath)
         }
+      }
+      if ($candidate.PSObject.Properties['retiredGenerated']) {
+        Assert-RetiredGenerated $candidate.retiredGenerated
       }
       if ($candidate.reason -like 'Known one-off script*') {
         $scriptArchive = Join-Path $logRoot 'temporary-scripts'
@@ -597,6 +610,9 @@ try {
         throw ('Candidate changed before deletion; stopped: ' + $candidate.path)
       }
       if ($KeepLatestOnly) { Assert-PreservedRelease }
+      if ($candidate.PSObject.Properties['retiredGenerated']) {
+        Assert-RetiredGenerated $candidate.retiredGenerated
+      }
       if ($candidate.PSObject.Properties['duplicateScreenshots']) {
         if ((Get-FileHash -LiteralPath $duplicateManifestPath).Hash -ne $duplicateManifestSha256) { throw 'Screenshot manifest changed before deletion.' }
         foreach ($file in $candidate.duplicateScreenshots) {

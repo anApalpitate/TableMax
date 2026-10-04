@@ -353,7 +353,8 @@
     font-size: 12px;
   }
 }
-@media (min-width: 861px) and (max-height: 760px) {
+@media (min-width: 861px) and (max-height: 760px),
+  (min-width: 861px) and (max-width: 1200px) and (max-height: 850px) {
   .box-screen:not(.player) .room-table {
     min-height: 360px;
   }

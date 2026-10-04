@@ -471,10 +471,13 @@ try {
   await command({ type: 'start' });
   await command({ type: 'pause' });
   await host.goto(`${origin}/host/game`);
-  await host.locator(`img[src$="/api/avatars/${customId}"]`).first().waitFor();
+  await host
+    .locator(`img[src$="/api/avatars/${customId}"]:visible`)
+    .first()
+    .waitFor();
   assert.equal(
     await host
-      .locator(`img[src$="/api/avatars/${customId}"]`)
+      .locator(`img[src$="/api/avatars/${customId}"]:visible`)
       .first()
       .evaluate((image) => image.complete && image.naturalWidth === 256),
     true,
@@ -571,10 +574,13 @@ try {
   await command({ type: 'start' });
   await command({ type: 'pause' });
   await host.goto(`${origin}/host/game`);
-  await host.locator(`img[src$="/api/avatars/${customId}"]`).first().waitFor();
+  await host
+    .locator(`img[src$="/api/avatars/${customId}"]:visible`)
+    .first()
+    .waitFor();
   assert.equal(
     await host
-      .locator(`img[src$="/api/avatars/${customId}"]`)
+      .locator(`img[src$="/api/avatars/${customId}"]:visible`)
       .first()
       .evaluate((image) => image.complete && image.naturalWidth === 256),
     true,
@@ -626,10 +632,13 @@ try {
   await command({ type: 'start' });
   await command({ type: 'pause' });
   await host.goto(`${origin}/host/game`);
-  await host.locator(`img[src$="/api/avatars/${customId}"]`).first().waitFor();
+  await host
+    .locator(`img[src$="/api/avatars/${customId}"]:visible`)
+    .first()
+    .waitFor();
   assert.equal(
     await host
-      .locator(`img[src$="/api/avatars/${customId}"]`)
+      .locator(`img[src$="/api/avatars/${customId}"]:visible`)
       .first()
       .evaluate((image) => image.complete && image.naturalWidth === 256),
     true,

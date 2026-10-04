@@ -33,31 +33,33 @@ const VIEW_EVENT = 'tablemax-power-grid-map-view';
 const volatileViews = new Map<string, MapView>();
 
 function viewKey(role: MapRole) {
-  const device = window.matchMedia('(max-width: 649px)').matches
-    ? 'phone'
-    : 'desktop';
-  return `tablemax.power-grid.map-view.${role}.${device}`;
+  // Browser storage already separates devices; resizing must not change a preference.
+  return `tablemax.power-grid.map-view.${role}`;
 }
 function savedView(role: MapRole): MapView {
   if (typeof window === 'undefined') return 'board';
   const key = viewKey(role);
   try {
-    const value = window.localStorage.getItem(key);
-    if (value === 'board' || value === 'clear') return value;
+    const suffixes =
+      role === 'player' ? ['phone', 'desktop'] : ['desktop', 'phone'];
+    for (const candidate of [
+      key,
+      ...suffixes.map((suffix) => `${key}.${suffix}`),
+    ]) {
+      const value = window.localStorage.getItem(candidate);
+      if (value === 'board' || value === 'clear') return value;
+    }
   } catch {
     /* The view also works when browser storage is unavailable. */
   }
   return volatileViews.get(key) ?? 'board';
 }
 function subscribeView(update: () => void) {
-  const device = window.matchMedia('(max-width: 649px)');
   window.addEventListener('storage', update);
   window.addEventListener(VIEW_EVENT, update);
-  device.addEventListener('change', update);
   return () => {
     window.removeEventListener('storage', update);
     window.removeEventListener(VIEW_EVENT, update);
-    device.removeEventListener('change', update);
   };
 }
 type LabelBox = { x: number; y: number; width: number; height: number };

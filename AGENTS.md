@@ -5,11 +5,11 @@
 ## 按任务阅读
 
 1. 先读本文件、[文档索引](docs/README.md)，检查 Git 状态与相关 diff；按 [定向查询](docs/README.md#定向查询)读必要章节和源码，复用未变结论，不重复遍历生成物。
-2. 目录归属查 [目录职责](docs/reference/project-structure.md)，实现边界查 [工程结构](docs/reference/architecture.md)，运行、验证、清理与压缩查 [开发环境](docs/reference/development.md)。维护文档前读 [维护规则](docs/reference/maintenance.md)。
+2. 目录归属查 [目录职责](docs/reference/project-structure.md)，实现边界查 [工程结构](docs/reference/architecture.md)，运行、验证、清理与压缩查 [开发环境](docs/reference/development.md)。维护文档前读 [维护规则](docs/reference/maintenance.md)，项目瘦身查 [方案与执行记录](docs/reference/project-slimming.md)。
 3. 当前交付查 [验收](docs/reference/acceptance.md)，接续工作查 [任务索引](docs/tasks/README.md#后续开发接续入口)，重要选择查 [决策索引](docs/decisions/README.md)；第一至六阶段已完成，仅追溯历史时读 [归档](docs/archive/README.md)。
 4. 游戏规则、来源、权限、策略与验证各自维护：[宝可梦奇遇](docs/games/pokemon-encounters/README.md)、[现代艺术](docs/games/modern-art/README.md)、[电力公司](docs/games/power-grid/README.md)。电力公司只采用经典德国修正版，42 城／六区／83 边及横向绘图边界见 [地图](docs/games/power-grid/map.md)，不能混入 Recharged 或其他地图。
 5. 跨游戏交互、计时、恢复与显示查 [平台规格](docs/reference/phase-02-platform-spec.md)，接入新游戏查 [扩展指南](docs/game-development/README.md)，电脑玩家查 [人机规格](docs/reference/bot-players.md)。游戏 bot 与开发子 agent 是不同角色。
-6. UI、布局、图标、头像、插画、声画与视觉审查先读 [用户美术偏好](docs/reference/art-preferences.md)、[通用视觉](docs/reference/visual-design.md)及对应游戏规格；派工传入这些入口，不能把既有实现或 agent 建议写成用户偏好。
+6. UI、布局、图标、头像、插画、声画与视觉审查先读 [用户美术偏好](docs/reference/art-preferences.md)、[通用视觉](docs/reference/visual-design.md)及对应游戏规格；设计时按用途、端侧与人数适当参考偏好及细节，派工传入这些入口。偏好依据仅取用户历史请求，不能把 agent 回答、既有实现或实施选择写成用户偏好。
 7. 协作先读 [职责索引](docs/subagent/README.md)及对应角色文档；已授权的位图生成、编辑与核验交给 [imagegen 子 agent](docs/subagent/imagegen.md)。
 
 ## 开发边界
@@ -31,6 +31,7 @@
 - 美术与声音统一放在 `assets/`，按资源表替换并记录来源、版本和核验；宝可梦卡面贴近原版角色及实物参考，角标用代码排版。反馈合并到用户偏好，区分原话、明确采用与实现判断；最新反馈优先，但不覆盖规则、秘密权限、可读性、触控或减少动态要求。
 - 执行 [Agent 开发效率规则](docs/reference/maintenance.md#agent-开发效率规则)：按任务预检环境／素材，先打通跨层路径和高风险场景，再完成适用验收。仅相关变化、失败或未解决疑点才重跑已通过检查，较大任务保留实际关键耗时与未完成项。
 - 工具输出只留结论、失败详情和证据路径；独立检查批量执行，等待使用完成通知或有界等待，无新信息不反复读取或询问进度。模拟验证优先隐藏窗口／后台，截图来自实际更新后的渲染；原型走查不代表产品验收。
+- Node 启动与网络验证必须执行 [Node 运行与防火墙规则](docs/reference/development.md#node-运行与防火墙规则)：本机检查显式监听 `127.0.0.1`，仅有局域网验收目的时开放网卡；日常运行保持程序路径稳定，防火墙授权按实际程序、端口、专用网络与本地子网限定，不能用全局放行或关闭防火墙消除提示。
 - 工具版本与依赖锁定在仓库内，保存时用项目 Prettier；按影响执行真实检查，不修改其他项目的全局环境。纯文档／配置只查格式、链接、配置、索引覆盖和 diff，不机械运行无关测试或构建。
 
 ## 清理、协作与收尾

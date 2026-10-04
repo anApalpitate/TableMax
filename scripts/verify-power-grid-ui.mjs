@@ -233,6 +233,14 @@ try {
     const clearView = map.locator('.pg-map-view-switch button').last();
     await clearView.click();
     assert.equal(await map.getAttribute('data-map-view'), 'clear');
+    await page.setViewportSize({ width: 600, height: 854 });
+    await page.waitForTimeout(60);
+    assert.equal(
+      await map.getAttribute('data-map-view'),
+      'clear',
+      'Resizing across the phone breakpoint retains the device preference',
+    );
+    await page.setViewportSize({ width: 854, height: 480 });
     assert.equal(await map.locator('[data-map-edge]').count(), 83);
     assert.equal(await map.locator('[data-city]').count(), 42);
     await map.getByRole('button', { name: '放大地图' }).click();

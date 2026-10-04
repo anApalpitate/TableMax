@@ -1,3 +1,4 @@
+param([string]$EvidenceDirectory)
 $ErrorActionPreference = 'Stop'
 $project = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\')
 $fixture = Join-Path $project ('tmp/workspace-compression-' + [Guid]::NewGuid().ToString('N').Substring(0, 6))
@@ -6,7 +7,8 @@ $junction = Join-Path $fixture 'outside-link'
 $redirectedParent = Join-Path $fixture 'redirected-parent'
 $movedParent = Join-Path $outside 'moved-parent'
 $redirectedCreated = $false
-$evidenceRoot = Join-Path $project 'artifacts/maintenance/v1.0.1/modern-art-polish-20261004/physical-boundary-run'
+$evidenceRoot = if ($EvidenceDirectory) { [IO.Path]::GetFullPath($EvidenceDirectory) } else { Join-Path $project 'artifacts/maintenance/compression-tools' }
+if (-not $evidenceRoot.StartsWith($project + '\artifacts\maintenance\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Evidence directory must stay inside project maintenance.' }
 $stableReport = Join-Path $evidenceRoot 'compression-isolated-report.json'
 $stableAudit = Join-Path $evidenceRoot 'compression-isolated-items.jsonl'
 $checks = [Collections.Generic.List[string]]::new()
@@ -67,7 +69,8 @@ try {
   New-Item -ItemType HardLink -Path $externalAlias -Target $externalTarget | Out-Null
   New-Item -ItemType Junction -Path $junction -Target $outside | Out-Null
   $random = New-Object byte[] 131072
-  [Security.Cryptography.RandomNumberGenerator]::Fill($random)
+  $randomGenerator = [Security.Cryptography.RandomNumberGenerator]::Create()
+  try { $randomGenerator.GetBytes($random) } finally { $randomGenerator.Dispose() }
   [IO.File]::WriteAllBytes($randomFile, $random)
   $nested = Join-Path $fixture 'nested'
   New-Item -ItemType Directory -Path (Join-Path $nested '.git') -Force | Out-Null

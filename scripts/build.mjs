@@ -58,7 +58,8 @@ await build({
   entryPoints: ['apps/server/src/entry.ts'],
   outfile: `${output}/server.cjs`,
   bundle: true,
-  minifyWhitespace: true,
+  // Compact the generated service bundle; editable sources and assets stay intact.
+  minify: true,
   platform: 'node',
   format: 'cjs',
   target: 'node22',

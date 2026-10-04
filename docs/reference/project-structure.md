@@ -71,3 +71,5 @@
 工作区分别维护 `files.exclude`、`search.exclude` 与 `files.watcherExclude`：文件树隐藏依赖、缓存、日志及可再生临时／构建目录，`artifacts/` 仅排除搜索和监听。`explorer.excludeGitIgnore: false` 保持 Git 忽略与文件树显示独立，不隐藏全部原始资料、正式资源或最终交付物。
 
 Git 远程 `origin` 为 GitHub 的 `anApalpitate/TableMax`，尚未配置仓库 CI。提交与推送遵循 [维护约定](maintenance.md#更新与归档)，默认仅提交；入口变化同步项目说明、Agent 入口及所属文档索引。
+
+工作区与交付的瘦身依据、历史包退役及执行报告统一维护在 [项目瘦身](project-slimming.md)，不按文件目录名推断资料是否可删除。
