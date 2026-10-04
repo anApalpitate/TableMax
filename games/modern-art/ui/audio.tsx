@@ -8,22 +8,22 @@ import {
   type ModernArtSoundCue,
 } from './presentation-state';
 import { ModernArtSoundPlayer } from './sound-player';
-import offer from '../../../assets/games/modern-art/audio/offer-v1.wav';
-import open from '../../../assets/games/modern-art/audio/auction-open-v1.wav';
-import once from '../../../assets/games/modern-art/audio/auction-once-v1.wav';
-import sealed from '../../../assets/games/modern-art/audio/auction-sealed-v1.wav';
-import fixed from '../../../assets/games/modern-art/audio/auction-fixed-v1.wav';
-import doubleOpen from '../../../assets/games/modern-art/audio/double-open-v1.wav';
-import doubleAdd from '../../../assets/games/modern-art/audio/double-add-v1.wav';
-import bid from '../../../assets/games/modern-art/audio/bid-v1.wav';
-import sealedSubmit from '../../../assets/games/modern-art/audio/sealed-submit-v1.wav';
-import priceSet from '../../../assets/games/modern-art/audio/price-set-v1.wav';
-import pass from '../../../assets/games/modern-art/audio/pass-v1.wav';
-import sale from '../../../assets/games/modern-art/audio/sale-v1.wav';
-import roundStart from '../../../assets/games/modern-art/audio/round-start-v1.wav';
-import roundResult from '../../../assets/games/modern-art/audio/round-result-v1.wav';
-import matchResult from '../../../assets/games/modern-art/audio/match-result-v1.wav';
-import error from '../../../assets/games/modern-art/audio/error-v1.wav';
+import offer from '../../../assets/games/modern-art/audio/offer-v2.wav';
+import open from '../../../assets/games/modern-art/audio/auction-open-v2.wav';
+import once from '../../../assets/games/modern-art/audio/auction-once-v2.wav';
+import sealed from '../../../assets/games/modern-art/audio/auction-sealed-v2.wav';
+import fixed from '../../../assets/games/modern-art/audio/auction-fixed-v2.wav';
+import doubleOpen from '../../../assets/games/modern-art/audio/double-open-v2.wav';
+import doubleAdd from '../../../assets/games/modern-art/audio/double-add-v2.wav';
+import bid from '../../../assets/games/modern-art/audio/bid-v2.wav';
+import sealedSubmit from '../../../assets/games/modern-art/audio/sealed-submit-v2.wav';
+import priceSet from '../../../assets/games/modern-art/audio/price-set-v2.wav';
+import pass from '../../../assets/games/modern-art/audio/pass-v2.wav';
+import sale from '../../../assets/games/modern-art/audio/sale-v2.wav';
+import roundStart from '../../../assets/games/modern-art/audio/round-start-v2.wav';
+import roundResult from '../../../assets/games/modern-art/audio/round-result-v2.wav';
+import matchResult from '../../../assets/games/modern-art/audio/match-result-v2.wav';
+import error from '../../../assets/games/modern-art/audio/error-v2.wav';
 
 const sources: Record<ModernArtSoundCue, string> = {
   offer,
@@ -43,8 +43,12 @@ const sources: Record<ModernArtSoundCue, string> = {
   'match-result': matchResult,
   error,
 };
-const muteKey = 'tablemax-sound-muted';
-function preference() {
+const desktopMuteKey = 'tablemax-sound-muted';
+const phoneMuteKey = 'tablemax-modern-art-phone-sound-muted';
+let phoneAudio: HTMLAudioElement | null = null;
+let phoneUnlocked = false;
+let phoneUnlocking = false;
+function preference(muteKey: string) {
   try {
     return localStorage.getItem(muteKey) !== 'true';
   } catch {
@@ -58,27 +62,37 @@ export function ModernArtSoundControl({
   errorId,
   disabled = false,
   canPlay = true,
+  localOnly = false,
 }: {
   feedback: RoomFeedback | null;
   game: ModernArtView | null;
   errorId: string;
   disabled?: boolean;
   canPlay?: boolean;
+  /** Phone sounds have their own device preference and no desktop claim. */
+  localOnly?: boolean;
 }) {
-  const [enabled, setEnabled] = useState(preference);
-  const [blocked, setBlocked] = useState(false);
+  const muteKey = localOnly ? phoneMuteKey : desktopMuteKey;
+  const [enabled, setEnabled] = useState(() => preference(muteKey));
+  const [blocked, setBlocked] = useState(localOnly && !phoneUnlocked);
   const saved = useRef(new ModernArtSavedFeedback(feedback));
   const lastError = useRef(errorId);
   const player = useRef<ModernArtSoundPlayer | null>(null);
   const permission = useRef(0);
+  const unlockAttempt = useRef(0);
   useEffect(() => {
-    const audio = new Audio();
+    // Reuse the same phone decoder across the box route: some mobile browsers
+    // grant gesture playback to the element rather than the whole document.
+    const audio = localOnly ? (phoneAudio ??= new Audio()) : new Audio();
     audio.preload = 'none';
-    const playback = new ModernArtSoundPlayer(audio, () => setBlocked(true));
+    const playback = new ModernArtSoundPlayer(audio, () => {
+      if (localOnly) phoneUnlocked = false;
+      setBlocked(true);
+    });
     player.current = playback;
     const storage = (event: StorageEvent) => {
       if (event.key !== muteKey) return;
-      const next = preference();
+      const next = preference(muteKey);
       if (!next) {
         permission.current++;
         playback.stop();
@@ -87,31 +101,42 @@ export function ModernArtSoundControl({
     };
     window.addEventListener('storage', storage);
     return () => {
+      if (localOnly) phoneUnlocking = false;
       playback.dispose();
       player.current = null;
       window.removeEventListener('storage', storage);
     };
-  }, []);
+  }, [localOnly, muteKey]);
   useEffect(() => {
     if (!enabled || disabled || !canPlay) {
+      if (localOnly) phoneUnlocking = false;
       permission.current++;
       player.current?.stop();
     }
-  }, [enabled, disabled, canPlay]);
+  }, [enabled, disabled, canPlay, localOnly]);
   useEffect(() => {
     if (!feedback) {
       permission.current++;
       player.current?.stop();
       return;
     }
-    if (!saved.current.accept(feedback) || !enabled || disabled || !canPlay)
+    if (
+      !saved.current.accept(feedback) ||
+      !enabled ||
+      disabled ||
+      !canPlay ||
+      (localOnly && !phoneUnlocked && !phoneUnlocking)
+    )
       return;
     const cue = modernArtSoundCue(feedback, game);
     if (!cue) return;
     const permit = permission.current;
     const playback = player.current;
     void Promise.resolve(
-      window.tablemaxAudio?.claimEvent(modernArtFeedbackKey(feedback)) ?? true,
+      localOnly
+        ? true
+        : (window.tablemaxAudio?.claimEvent(modernArtFeedbackKey(feedback)) ??
+            true),
     )
       .then((accepted) => {
         if (
@@ -119,20 +144,32 @@ export function ModernArtSoundControl({
           permission.current === permit &&
           player.current === playback
         )
-          playback?.enqueue(sources[cue]);
+          playback?.enqueue(
+            sources[cue],
+            cue.startsWith('auction-') || cue === 'double-open',
+          );
       })
       .catch(() => undefined);
-  }, [feedback, game, enabled, disabled, canPlay]);
+  }, [feedback, game, enabled, disabled, canPlay, localOnly]);
   useEffect(() => {
     if (lastError.current === errorId) return;
     lastError.current = errorId;
-    if (!errorId || !enabled || disabled || !canPlay) return;
+    if (
+      !errorId ||
+      !enabled ||
+      disabled ||
+      !canPlay ||
+      (localOnly && !phoneUnlocked && !phoneUnlocking)
+    )
+      return;
     const permit = permission.current;
     const playback = player.current;
     void Promise.resolve(
-      window.tablemaxAudio?.claimEvent(
-        `${modernArtFeedbackKey(feedback)}:modern-art-error:${errorId}`,
-      ) ?? true,
+      localOnly
+        ? true
+        : (window.tablemaxAudio?.claimEvent(
+            `${modernArtFeedbackKey(feedback)}:modern-art-error:${errorId}`,
+          ) ?? true),
     )
       .then((accepted) => {
         if (
@@ -143,29 +180,48 @@ export function ModernArtSoundControl({
           playback?.enqueue(error);
       })
       .catch(() => undefined);
-  }, [errorId, feedback, enabled, disabled, canPlay]);
+  }, [errorId, feedback, enabled, disabled, canPlay, localOnly]);
   const label = disabled
     ? '当前暂不播放提示音'
     : blocked && canPlay && enabled
-      ? '允许播放提示音'
+      ? localOnly
+        ? '点击启用手机提示音'
+        : '允许播放提示音'
       : enabled
         ? '提示音已开启，点击静音'
         : '提示音已静音，点击开启';
   const unlock = () => {
     const permit = permission.current;
     const playback = player.current;
-    void playback?.unlock(offer).then(
+    if (!playback) return;
+    const attempt = ++unlockAttempt.current;
+    if (localOnly) phoneUnlocking = true;
+    void playback.unlock(offer).then(
       (unlocked) => {
         if (
-          unlocked &&
+          unlockAttempt.current === attempt &&
           permission.current === permit &&
           player.current === playback
-        )
-          setBlocked(false);
+        ) {
+          if (localOnly) {
+            phoneUnlocked = unlocked;
+            phoneUnlocking = false;
+          }
+          setBlocked(!unlocked);
+        }
       },
       () => {
-        if (permission.current === permit && player.current === playback)
+        if (
+          unlockAttempt.current === attempt &&
+          permission.current === permit &&
+          player.current === playback
+        ) {
+          if (localOnly) {
+            phoneUnlocked = false;
+            phoneUnlocking = false;
+          }
           setBlocked(true);
+        }
       },
     );
   };
@@ -173,6 +229,7 @@ export function ModernArtSoundControl({
     <button
       className="secondary ma-sound-control"
       data-modern-art-sound="true"
+      data-local-sound={localOnly ? 'true' : 'false'}
       disabled={disabled}
       aria-pressed={enabled && !disabled}
       aria-label={label}
@@ -221,6 +278,7 @@ export function ModernArtSoundControl({
           />
         )}
       </svg>
+      {localOnly && blocked && enabled && !disabled && <span>启用声音</span>}
     </button>
   );
 }

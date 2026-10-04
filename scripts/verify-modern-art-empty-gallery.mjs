@@ -504,24 +504,13 @@ async function geometry(page, label, requested, display, expectedCards, seats) {
   ])
     assert.ok(contained(region, viewport), label + ': main region fits');
   const regions = [layout.market, layout.center, layout.museums, layout.footer];
-  const pairedShort =
-    layout.paired && layout.width >= 701 && layout.height <= 600;
-  if (pairedShort) {
-    assert.equal(layout.center.backgroundColor, 'rgba(0, 0, 0, 0)');
-    assert.equal(layout.auction.backgroundColor, 'rgba(0, 0, 0, 0)');
-  }
   for (let i = 0; i < regions.length; i++)
     for (const other of regions.slice(i + 1))
-      if (!(
-        pairedShort &&
-        regions[i] === layout.market &&
-        other === layout.center
-      ))
-        assert.equal(
-          overlap(regions[i], other),
-          false,
-          label + ': main regions do not overlap',
-        );
+      assert.equal(
+        overlap(regions[i], other),
+        false,
+        label + ': main regions do not overlap',
+      );
   for (const child of [
     layout.auctionLabel,
     layout.paintings,
@@ -578,11 +567,6 @@ async function geometry(page, label, requested, display, expectedCards, seats) {
     if (card.head.visible) assert.equal(overlap(card.head, card.art), false);
     assert.equal(overlap(card.foot, card.art), false);
     assert.ok(card.art.width > 0 && card.art.height > 0);
-    if (pairedShort)
-      assert.ok(
-        card.art.width >= 150 && card.art.height >= 150,
-        label + ': short paired art uses available space',
-      );
     for (const [mark, glyph] of [
       [card.artistMark, card.artistGlyph],
       [card.auctionMark, card.auctionGlyph],
@@ -593,7 +577,12 @@ async function geometry(page, label, requested, display, expectedCards, seats) {
         true,
         label + ': visible card identity glyph',
       );
-      assert.ok(contained(mark, card.art));
+      assert.ok(contained(mark, card.head));
+      assert.equal(
+        overlap(mark, card.art),
+        false,
+        label + ': marks do not cover painting',
+      );
       assert.ok(contained(glyph, mark));
       assert.ok(glyph.width >= 15.99 && glyph.height >= 15.99);
     }
@@ -696,7 +685,7 @@ async function geometry(page, label, requested, display, expectedCards, seats) {
       label + ': control center is reachable',
     );
   }
-  if (pairedShort) {
+  if (layout.paired && layout.width >= 701 && layout.height <= 600) {
     await page.getByRole('button', { name: '历轮估值', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: '历轮估值', exact: true });
     await dialog.waitFor();

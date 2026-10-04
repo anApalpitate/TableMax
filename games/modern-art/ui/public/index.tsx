@@ -80,8 +80,11 @@ export function MarketBoard({
     <section className="ma-market" aria-label="艺术家估值板">
       <div className="ma-section-heading">
         <h2>艺术市场</h2>
-        <span>{settled ? '结算 千元/张' : '预估 千元/张'}</span>
+        <span>{settled ? '每幅结算收益（千元）' : '每幅预估收益（千元）'}</span>
       </div>
+      <p className="ma-market__explanation">
+        任一画家第 5 幅上拍，立即结束本轮。数量前 3 名画家的收藏可兑钱。
+      </p>
       <div className="ma-market__columns">
         {view.artists.map((artist) => (
           <div
@@ -102,6 +105,7 @@ export function MarketBoard({
               </h3>
             </div>
             <div className="ma-artist__count">
+              <span>已上拍 </span>
               <strong>{artist.playedCount}</strong>
               <span> / 5</span>
             </div>
@@ -119,6 +123,9 @@ export function MarketBoard({
             >
               {artist.currentValue}
             </strong>
+            <span className="ma-artist__meaning">
+              {settled ? '每幅收益' : '预估收益'}
+            </span>
           </div>
         ))}
       </div>

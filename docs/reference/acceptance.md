@@ -1,6 +1,39 @@
 # 首版交付与验收
 
-当前本地便携包见 [v1.0.2 版本导出与历史清理](#102版本导出与历史清理2026-10-04)，线上已发布包见 [v1.0.1 GitHub Release](#101github-release2026-10-03)，保留下列历次真实验收记录。
+当前本地便携包见 [v1.0.2 现代艺术 debug 修复](#102现代艺术-debug-修复2026-10-04)，线上已发布包见 [v1.0.1 GitHub Release](#101github-release2026-10-03)，保留下列历次真实验收记录。
+
+## 1.0.2：现代艺术 debug 修复（2026-10-04）
+
+按用户九项反馈维护当前 **1.0.2**：左上行情解释本轮已上拍数量与每幅收益，选画和双拍补画不展示计时；修复公开同价并发确认／出价和刷新金额草稿；放大画家边框与拍卖标记，手牌／收藏改为纵向、每行至少两幅；三端增加顶层图文规则卡片；恢复盒子返回游戏的声音连接，现代艺术手机提供独立声音开关；五类拍卖使用不同入场声和全屏特效；三档 bot 使用有界加价、有限公开记忆及不同跨轮规划。规则版本、状态版本和策略注册版本不变；既有存档可恢复。长期行为见 [游戏规格](../games/modern-art/README.md)、[独立策略](../games/modern-art/bot.md)与[通用规格](phase-02-platform-spec.md)。
+
+规则卡片依据既有采用规格与重新查阅的 GeGe 中文规则；手牌、行情、拍卖台、收藏四个区域来自新版隔离示例局的真实渲染，不使用正式玩家数据。原 PNG 保留，运行引用逐像素相同的无损 WebP（合计 **413,826 字节**）。五类入场与保存结果共 16 个 v2 本地原创 WAV（**528,704 字节**），v1 原资料保留，来源、参数与哈希见 [资源清单](../../assets/games/modern-art/manifest.json)。普通入场为 1.6 秒，减少动态使用短静态徽章；特效不阻断操作，不补播旧事件。
+
+[公开竞价风险链](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/bidding/results.json) **6 文件／43 项通过，2.48 秒**：真实 Socket.IO、SQLite、回环服务，覆盖同价多人确认、确认后同价出价、换价失效、重复 ACK、保存失败不广播、权限、暂停／恢复、回退、重启及旧逐席计时存档严格迁移。损坏或多余旧键仍拒绝。[整库测试](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/checks/test.json) **38 文件／270 项通过**，Vitest 67.48 秒、命令 69.43 秒，含 27 个三档策略种子整局；不提高已有超时。随后独立审查发现手机解锁期间新声音打断的竞争，保留[复现](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/checks/phone-unlock-race.json)，修复后声音单元测试 **31 项通过**（含两项新增异步竞争）。270 项整库结果不冒称包含这两项后增测试。最终类型、ESLint、Prettier 和 diff 检查通过。
+
+先检查最短窗口、手机报价焦点与盒子重进，再扩展最终显示矩阵。源 [五席界面与截图](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/capture-final/results.json) 10 项通过、29.27 秒，包含 320／360／390 手机、720p／1080p／4K、报价两次变化后输入／焦点不丢失及失效草稿拒绝；短桌面 12 个空收藏布局通过、27.89 秒。独立[静态视觉审查](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/review/visual-review.json)要求明确“数量前三名画家”并将角标移至独立标题栏，返修后的五席收藏图无必须修复项；该单图结论不替代其他场景。
+
+首个返修 ZIP `c0e449af…` 的声音、五类声画、五席四轮混合 Worker 及四／五席 UI 已通过；随后完整空收藏矩阵发现五人一口价在实际 CSS 1280×720／DPI 1.5 下，放大角标使拍品压住参与状态条。原失败、首包和已有通过证据保留在 `modern-art-debug-20261004/delivery/before-final-layout/` 与 [原矩阵](../../artifacts/maintenance/v1.0.2/modern-art-audit-20261004/runtime/debug-portable/results.json)。改为按拍品所在网格行的实际宽高限宽，包含顶部标记和卡脚空间；不缩小信息文字或放宽遮挡断言。共享操作验证的旧“暂持／未入场”断言增加当前已有“等待处理”用词，保留原失败，不修改宝可梦产品文案。
+
+返修后的 [源完整空收藏矩阵](../../artifacts/maintenance/v1.0.2/modern-art-audit-20261004/runtime/debug-source-fit/results.json) **108 组通过，98.36 秒**，包含三／四／五人、单／双画、host／public、720p／1080p／4K 与 100／125／150% 请求及实际限制结果；原一口价失败场景通过。独立审查实际单拍图与入场结束后的双拍图，框、角标、拍卖人及参与条无重叠和裁切；静态审查结论仍限定于所查看截图。
+
+最终 [Windows ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) **39,463,310 字节**，实际解压 **127 文件／95,377,529 字节**，双 100 MB 硬门禁通过；解压比 95 MB 工程预算多 **377,529 字节**，如实保留该软预算缺口。实际打包 **16.27 秒**，逐文件哈希与实际解压核对通过，SHA-256 为 `ff110050e1a7d7fe6b7e52a7c0e7188ce54fa17f412fd9a8e27990dddcc26c29`，没有最终验收后再打包。首包与最终包的 [范围审计](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/delivery/package-fit-final.json)证明变化为网页 CSS 及其构建引用，原生程序、Node、服务、规则与 bot 文件字节不变；原 1.0.2 导出包也完整保存在本轮 `delivery/before-debug/`，不倒改下节历史哈希。
+
+最终同一 ZIP 的 [音频与重进](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio/portable-layout-final/results.json) **31 项／16 WAV 通过，40.34 秒**，[五类实际声画](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio/portable-layout-entrances/results.json) **15 项通过，36.42 秒**。验证电脑／手机盒子重进后新事件播放、刷新手势解锁与不补播、独立静音、公共声源优先及关窗交接、暂停／测试／减少动态；五类效果实际截图和全屏边界保留。所有本次音频实例与包内 Node 已退出。
+
+其余最终同 ZIP 验收如下，范围审计与交接集中在 [交付记录](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/delivery/summary.json)：
+
+| 验证 | 结果与范围 |
+| ---- | ---------- |
+| [五席混合整局](../../artifacts/maintenance/v1.0.2/modern-art/portable/debug-fit-final/results.json) | 四轮／111 步／36 图，59.07 秒；三份独立手机身份与两位真实 Worker，五种拍卖、双拍补画、保密、回退、SQLite 重启及宝可梦切换通过。 |
+| [四人界面](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/delivery/portable-4-fit/results.json)／[五人界面](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/delivery/portable-5-fit/results.json) | 各 11 项，41.63／34.71 秒；选画无计时、行情／字号、纵向两列收藏、手机报价控件和草稿／焦点保持、过低草稿拒绝、四张规则图实际解码、Escape 关闭和按钮焦点恢复。 |
+| [完整空收藏显示](../../artifacts/maintenance/v1.0.2/modern-art-audit-20261004/runtime/debug-portable-fit/results.json) | 108 组，114.76 秒；三至五人、单／双幅、两电脑角色、720p／1080p／4K 与缩放请求；实际宽高和限制分别记录，原五人一口价遮挡通过，页面错误和外部请求为零。 |
+| [共享操作与声音](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/delivery/experience-final/results.json) | 4 项通过；六独立手机准备与并发、手机房主授权、公共屏优先声音／关闭交接、跨窗口去重。既有脚本未记录耗时，不推算时长。 |
+
+[退出证明](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/delivery/final-process-exit.json)逐个记录六个 UI 场景的实际包内 Node 路径、Node 22.14.0 及原生／服务 PID 退出；混合局、显示和音频各自的关窗、服务不可达记录通过。本轮使用隐藏 Windows WinForms／WebView2、独立手机页面和触控／DPI 模拟，所有本机服务显式监听 `127.0.0.1`；未认证实体手机、Safari、电视、现场 Wi-Fi 或真人听感，不改变防火墙与正式存档。
+
+最后按约定执行 `Maintain-Project.ps1 -Apply`，**0.82 秒**，返回 `blocked`、删除零字节。只读核对为正式 `artifacts/releases/TableMax-1.0.2-win-x64/` 中仍运行的 `TableMax.exe` 与 `node.exe`（PID 32620／5840），不属于上述隔离验收程序；没有结束用户进程、覆盖其运行目录或绕过保护。新 ZIP 哈希保持不变，[维护结果](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/maintenance-result.json)与[计时](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/maintenance-timing.json)保留。用户退出当前程序后可解压新包到既定运行位置。
+
+效率核对：完成工具与素材预检，公开并发／保存恢复、手机输入／音频重进和最短桌面优先；完整矩阵发现的真实高度问题单独修复并复验。仅因实际源码变化、失败修正或最终同 ZIP 必需验收重跑对应检查，规则／策略通过后不机械重复。实际关键命令耗时分别记录，并行阶段不相加为总时长；更早阅读与实现未完整计时，不补造总耗时。长期知识合并到既有规格／美术偏好／开发入口，文档只查格式、链接和 diff；统一提交仅包含本次改动，原有 Node／防火墙文档改动继续未暂存，不 push 或改线上 Release。
 
 ## 1.0.2：版本导出与历史清理（2026-10-04）
 

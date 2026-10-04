@@ -27,7 +27,13 @@ export function ArtCard({
       title={`${artist?.name ?? card.artistId} / ${card.title} / ${auctionNames[card.auctionKind]}`}
     >
       <span className="ma-card__head">
-        <span>{presentation.shortName}</span>
+        <span className="ma-card__artist-mark">
+          <ArtistMark artistId={card.artistId} />
+        </span>
+        <span className="ma-card__artist-name">{presentation.shortName}</span>
+        <span className="ma-card__auction-mark">
+          <AuctionMark kind={card.auctionKind} />
+        </span>
       </span>
       <span
         className={`ma-card__art ${image.url ? '' : 'ma-card__art--pending'}`}
@@ -37,14 +43,7 @@ export function ArtCard({
           ...(image.url ? { backgroundImage: `url("${image.url}")` } : {}),
           backgroundPosition: image.position,
         }}
-      >
-        <span className="ma-card__artist-mark">
-          <ArtistMark artistId={card.artistId} />
-        </span>
-        <span className="ma-card__auction-mark">
-          <AuctionMark kind={card.auctionKind} />
-        </span>
-      </span>
+      ></span>
       <span className="ma-card__foot">
         <strong>{card.title}</strong>
         <span>{auctionNames[card.auctionKind]}</span>

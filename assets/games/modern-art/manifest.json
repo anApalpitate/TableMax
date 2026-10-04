@@ -205,22 +205,25 @@
   "status": "All six assets generated, visually verified and imported into UI; five atlases decoded in the real phone UI with all 70 catalog mappings checked, and the cover verified in the final portable box rendering. This records artwork integration, not overall game or portable-package acceptance.",
   "integrationVerification": "artifacts/maintenance/v1.0.0/modern-art/imagegen/integration-verification.json",
   "audio": {
-    "version": 1,
+    "version": 2,
     "source": "TableMax original procedural gallery and auction cues",
-    "policy": "One short cue per newly saved action; fixed sealed-bid sound independent of amount; no continuous music; host/public authorization, persistent mute and no replay are handled by the game audio controller",
-    "totalBytes": 355904,
-    "measurementEvidence": "artifacts/maintenance/v1.0.1/modern-art-audio-20261004/measurements-v1.json",
-    "audition": "artifacts/maintenance/v1.0.1/modern-art-audio-20261004/audition-v1.html",
-    "integrationStatus": "Imported into Modern Art UI; packaged local decoding, native audio ownership and HTMLAudio playback verified on 2026-10-04",
-    "integrationEvidence": "artifacts/maintenance/v1.0.1/modern-art-polish-20261004/audio/portable-final/results.json",
+    "policy": "One cue per newly saved public action, with five distinct auction entrances; fixed sealed-bid sound independent of amount; no continuous music; desktop public-first single owner and event claims remain strict; Modern Art phone has independent persistent mute and a visible browser-gesture unlock; box return retains future playback while refresh never replays old events",
+    "totalBytes": 528704,
+    "measurementEvidence": "artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio-generation/measurements-v2.json",
+    "audition": "artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio-generation/audition-v2.html",
+    "integrationStatus": "Actual hidden WebView2 local codec and saved-action playback verified for all five auction entrances; desktop ownership, box return, phone gesture and persistent mute, refresh, pause and test-mode checked; portable verification recorded separately",
+    "integrationEvidence": [
+      "artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio/source-final/results.json",
+      "artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio/source-entrances/results.json"
+    ],
     "humanListeningVerified": false,
     "assets": [
       {
         "id": "modern-art/audio/offer",
         "cue": "offer",
-        "path": "offer-v1.wav",
+        "path": "offer-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
@@ -267,284 +270,361 @@
       {
         "id": "modern-art/audio/auction-open",
         "cue": "auction-open",
-        "path": "auction-open-v1.wav",
+        "path": "auction-open-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
-        "bytes": 17324,
-        "sha256": "9e30914bf16224b4d54a409705b67276099a8cada477ee75b7a84145e38aefd4",
+        "bytes": 55724,
+        "sha256": "4248ffd56dd91ea832298f2753720767dfa30a4bed5b70d0f30672126ded4798",
         "parameters": {
-          "seconds": 0.36,
-          "description": "Paper placement followed by two open glass harmonics",
+          "seconds": 1.16,
+          "description": "Open auction: rising glass fanfare, airy sweep and bright final gallery chord",
           "events": [
             {
-              "type": "paper",
+              "type": "sweep",
               "at": 0,
-              "gain": 0.28
+              "pitch": 160,
+              "endPitch": 940,
+              "length": 0.34,
+              "gain": 0.22
             },
             {
               "type": "glass",
-              "at": 0.055,
-              "pitch": 587.33,
+              "at": 0.07,
+              "pitch": 523.25,
+              "gain": 0.3
+            },
+            {
+              "type": "glass",
+              "at": 0.18,
+              "pitch": 659.25,
+              "gain": 0.34
+            },
+            {
+              "type": "glass",
+              "at": 0.29,
+              "pitch": 783.99,
               "gain": 0.38
             },
             {
-              "type": "glass",
-              "at": 0.13,
-              "pitch": 783.99,
-              "gain": 0.23
+              "type": "chord",
+              "at": 0.36,
+              "notes": [392, 523.25, 659.25],
+              "length": 0.74,
+              "gain": 0.46
             }
           ],
           "seed": 1310396609,
           "targetRms": 0.075,
           "peakCeiling": 0.4,
-          "normalizationGain": 0.5559327182490774,
+          "normalizationGain": 0.5706655245674722,
           "globalFadeInMs": 5,
           "globalFadeOutMs": 30
         },
         "measurements": {
-          "samples": 8640,
-          "seconds": 0.36,
-          "peak": 0.2613525390625,
-          "peakDbfs": -11.655465526746344,
-          "rms": 0.07499773259020626,
-          "rmsDbfs": -22.49903732908522,
-          "mean": 1.342208297164352e-7,
+          "samples": 27840,
+          "seconds": 1.16,
+          "peak": 0.332611083984375,
+          "peakDbfs": -9.561265647546817,
+          "rms": 0.07499767991883959,
+          "rmsDbfs": -22.499043429240825,
+          "mean": -3.836620813128592e-8,
           "clippedSamples": 0,
           "firstSample": 0,
           "lastSample": 0,
-          "maxSampleStep": 0.05181884765625,
-          "powerAbove4khz": 0.0011562367265509764
+          "maxSampleStep": 0.078155517578125,
+          "powerAbove4khz": 0.0004249454457311331
         }
       },
       {
         "id": "modern-art/audio/auction-once",
         "cue": "auction-once",
-        "path": "auction-once-v1.wav",
+        "path": "auction-once-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
-        "bytes": 16364,
-        "sha256": "fae86a80a11c403081bc7fdef7a12b28ece97112b6aedbd2ce0c551e8cfa0539",
+        "bytes": 46124,
+        "sha256": "c70218850ecc991cbe3fe1c0ec86dcb33ead7b5fdbb7b91091d93c5bbc566baa",
         "parameters": {
-          "seconds": 0.34,
-          "description": "One restrained wooden tap and a single clear harmonic",
+          "seconds": 0.96,
+          "description": "Once-round auction: a firm three-beat wooden procession ending in one low resonant strike",
           "events": [
             {
               "type": "wood",
               "at": 0,
-              "pitch": 260,
+              "pitch": 290,
+              "gain": 0.28
+            },
+            {
+              "type": "wood",
+              "at": 0.12,
+              "pitch": 350,
+              "gain": 0.37
+            },
+            {
+              "type": "wood",
+              "at": 0.24,
+              "pitch": 430,
               "gain": 0.45
             },
             {
-              "type": "glass",
-              "at": 0.035,
-              "pitch": 659.25,
-              "gain": 0.38
+              "type": "drum",
+              "at": 0.34,
+              "pitch": 90,
+              "gain": 0.44
+            },
+            {
+              "type": "chord",
+              "at": 0.34,
+              "notes": [220, 329.63, 440],
+              "length": 0.57,
+              "gain": 0.39
             }
           ],
           "seed": 3958197436,
           "targetRms": 0.075,
           "peakCeiling": 0.4,
-          "normalizationGain": 0.5236358026332791,
+          "normalizationGain": 0.5519307501382185,
           "globalFadeInMs": 5,
           "globalFadeOutMs": 30
         },
         "measurements": {
-          "samples": 8160,
-          "seconds": 0.34,
-          "peak": 0.29620361328125,
-          "peakDbfs": -10.568192959609025,
-          "rms": 0.07499757520267386,
-          "rmsDbfs": -22.499055556998574,
-          "mean": -9.349748200061274e-8,
+          "samples": 23040,
+          "seconds": 0.96,
+          "peak": 0.399993896484375,
+          "peakDbfs": -7.958932710609741,
+          "rms": 0.07240620634210898,
+          "rmsDbfs": -22.804484127822434,
+          "mean": 2.384185791015625e-8,
           "clippedSamples": 0,
           "firstSample": 0,
           "lastSample": 0,
-          "maxSampleStep": 0.057525634765625,
-          "powerAbove4khz": 0.00010718092644651906
+          "maxSampleStep": 0.0638427734375,
+          "powerAbove4khz": 0.00010917206332672223
         }
       },
       {
         "id": "modern-art/audio/auction-sealed",
         "cue": "auction-sealed",
-        "path": "auction-sealed-v1.wav",
+        "path": "auction-sealed-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
-        "bytes": 18284,
-        "sha256": "18df03be3b20f7c25a7afbce50c233ded260d96fcb677957bb47f71c0b92e682",
+        "bytes": 51884,
+        "sha256": "1b32143b67c91910c27ee53004def578f21f21679eebc0c6d9ea88e7ffc933c1",
         "parameters": {
-          "seconds": 0.38,
-          "description": "Envelope movement and a soft closed wooden double tap",
+          "seconds": 1.08,
+          "description": "Sealed auction: folded-paper swish, muted low suspense harmony and two locking knocks",
           "events": [
             {
               "type": "paper",
               "at": 0,
-              "gain": 0.46
+              "gain": 0.34
+            },
+            {
+              "type": "sweep",
+              "at": 0.05,
+              "pitch": 440,
+              "endPitch": 110,
+              "length": 0.42,
+              "gain": 0.18
+            },
+            {
+              "type": "chord",
+              "at": 0.08,
+              "notes": [146.83, 220, 293.66],
+              "length": 0.85,
+              "gain": 0.43
             },
             {
               "type": "wood",
-              "at": 0.11,
-              "pitch": 220,
-              "gain": 0.4
+              "at": 0.5,
+              "pitch": 175,
+              "gain": 0.43
             },
             {
               "type": "wood",
-              "at": 0.17,
-              "pitch": 185,
-              "gain": 0.32
+              "at": 0.66,
+              "pitch": 130,
+              "gain": 0.38
             }
           ],
           "seed": 4147698121,
           "targetRms": 0.075,
           "peakCeiling": 0.4,
-          "normalizationGain": 0.8767009846905965,
+          "normalizationGain": 0.6958150085780531,
           "globalFadeInMs": 5,
           "globalFadeOutMs": 30
         },
         "measurements": {
-          "samples": 9120,
-          "seconds": 0.38,
-          "peak": 0.368316650390625,
-          "peakDbfs": -8.675572953375884,
-          "rms": 0.07499764000834915,
-          "rmsDbfs": -22.499048051493244,
-          "mean": 5.3539610745614036e-8,
+          "samples": 25920,
+          "seconds": 1.08,
+          "peak": 0.3421630859375,
+          "peakDbfs": -9.315336917429388,
+          "rms": 0.07499768059216784,
+          "rmsDbfs": -22.49904335125901,
+          "mean": -7.770679615162038e-8,
           "clippedSamples": 0,
           "firstSample": 0,
           "lastSample": 0,
-          "maxSampleStep": 0.09027099609375,
-          "powerAbove4khz": 0.006791931173699162
+          "maxSampleStep": 0.052947998046875,
+          "powerAbove4khz": 0.001494824467771524
         }
       },
       {
         "id": "modern-art/audio/auction-fixed",
         "cue": "auction-fixed",
-        "path": "auction-fixed-v1.wav",
+        "path": "auction-fixed-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
-        "bytes": 16364,
-        "sha256": "8ede81da1e27c9d4f573baf462fa699645f3fdcd428e007fca3816e99ef24eca",
+        "bytes": 49004,
+        "sha256": "7e3f69d626f07faa838bd6ccecc7888afaf4dc599995b8260b648ae1967155a2",
         "parameters": {
-          "seconds": 0.34,
-          "description": "A displayed price tag, wooden placement and warm glass resonance",
+          "seconds": 1.02,
+          "description": "Fixed-price auction: a descending bright price-tag melody, bell and a stable warm chord",
           "events": [
             {
-              "type": "paper",
-              "at": 0,
-              "gain": 0.3
-            },
-            {
-              "type": "wood",
-              "at": 0.065,
-              "pitch": 330,
-              "gain": 0.27
+              "type": "glass",
+              "at": 0.01,
+              "pitch": 880,
+              "gain": 0.34
             },
             {
               "type": "glass",
-              "at": 0.09,
-              "pitch": 523.25,
-              "gain": 0.36
+              "at": 0.16,
+              "pitch": 659.25,
+              "gain": 0.35
+            },
+            {
+              "type": "glass",
+              "at": 0.31,
+              "pitch": 440,
+              "gain": 0.37
+            },
+            {
+              "type": "wood",
+              "at": 0.37,
+              "pitch": 330,
+              "gain": 0.25
+            },
+            {
+              "type": "chord",
+              "at": 0.39,
+              "notes": [261.63, 329.63, 440],
+              "length": 0.57,
+              "gain": 0.45
             }
           ],
           "seed": 3386946657,
           "targetRms": 0.075,
           "peakCeiling": 0.4,
-          "normalizationGain": 0.6129699899388155,
+          "normalizationGain": 0.5086288658280599,
           "globalFadeInMs": 5,
           "globalFadeOutMs": 30
         },
         "measurements": {
-          "samples": 8160,
-          "seconds": 0.34,
-          "peak": 0.3350830078125,
-          "peakDbfs": -9.496951896912897,
-          "rms": 0.07499773739559035,
-          "rmsDbfs": -22.49903677254793,
-          "mean": 1.4211617264093137e-7,
+          "samples": 24480,
+          "seconds": 1.02,
+          "peak": 0.277069091796875,
+          "peakDbfs": -11.14823837722762,
+          "rms": 0.0749977335606169,
+          "rmsDbfs": -22.499037216696763,
+          "mean": 1.3463637408088235e-7,
           "clippedSamples": 0,
           "firstSample": 0,
           "lastSample": 0,
-          "maxSampleStep": 0.046112060546875,
-          "powerAbove4khz": 0.0018030039421604066
+          "maxSampleStep": 0.06036376953125,
+          "powerAbove4khz": 0.000012732797511737025
         }
       },
       {
         "id": "modern-art/audio/double-open",
         "cue": "double-open",
-        "path": "double-open-v1.wav",
+        "path": "double-open-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
-        "bytes": 21164,
-        "sha256": "5f7a0b194b2ff78932cc9517b94589935d65c85fad7f24f7b23e5cc228f5a436",
+        "bytes": 59564,
+        "sha256": "79c60eee68271516fdc457fafa20d0c168726b954acc6b4436da9a8f471f5e6f",
         "parameters": {
-          "seconds": 0.44,
-          "description": "Two soft card placements announcing a combination auction",
+          "seconds": 1.24,
+          "description": "Double auction: two answered sweep-and-drum impacts followed by a broad paired harmony",
           "events": [
             {
-              "type": "paper",
+              "type": "sweep",
               "at": 0,
-              "gain": 0.3
+              "pitch": 170,
+              "endPitch": 620,
+              "length": 0.2,
+              "gain": 0.2
             },
             {
-              "type": "wood",
-              "at": 0.065,
-              "pitch": 260,
-              "gain": 0.36
+              "type": "drum",
+              "at": 0.15,
+              "pitch": 82,
+              "gain": 0.43
             },
             {
-              "type": "paper",
-              "at": 0.14,
-              "gain": 0.26
+              "type": "sweep",
+              "at": 0.26,
+              "pitch": 220,
+              "endPitch": 840,
+              "length": 0.22,
+              "gain": 0.23
             },
             {
-              "type": "wood",
-              "at": 0.19,
-              "pitch": 330,
-              "gain": 0.33
+              "type": "drum",
+              "at": 0.43,
+              "pitch": 110,
+              "gain": 0.44
+            },
+            {
+              "type": "chord",
+              "at": 0.46,
+              "notes": [220, 293.66, 440, 587.33],
+              "length": 0.72,
+              "gain": 0.43
             }
           ],
           "seed": 576596419,
           "targetRms": 0.075,
           "peakCeiling": 0.4,
-          "normalizationGain": 0.9607084490993628,
+          "normalizationGain": 0.618645392746857,
           "globalFadeInMs": 5,
           "globalFadeOutMs": 30
         },
         "measurements": {
-          "samples": 10560,
-          "seconds": 0.44,
-          "peak": 0.384918212890625,
-          "peakDbfs": -8.292630784563627,
-          "rms": 0.07499770002389021,
-          "rmsDbfs": -22.499041100765762,
-          "mean": 1.733953302556818e-8,
+          "samples": 29760,
+          "seconds": 1.24,
+          "peak": 0.34033203125,
+          "peakDbfs": -9.361943484115674,
+          "rms": 0.07499779898862684,
+          "rmsDbfs": -22.499029639131432,
+          "mean": -1.948366882980511e-8,
           "clippedSamples": 0,
           "firstSample": 0,
           "lastSample": 0,
-          "maxSampleStep": 0.075103759765625,
-          "powerAbove4khz": 0.005652364467205725
+          "maxSampleStep": 0.031524658203125,
+          "powerAbove4khz": 0.00046926892090120475
         }
       },
       {
         "id": "modern-art/audio/double-add",
         "cue": "double-add",
-        "path": "double-add-v1.wav",
+        "path": "double-add-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
@@ -597,9 +677,9 @@
       {
         "id": "modern-art/audio/bid",
         "cue": "bid",
-        "path": "bid-v1.wav",
+        "path": "bid-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
@@ -647,9 +727,9 @@
       {
         "id": "modern-art/audio/sealed-submit",
         "cue": "sealed-submit",
-        "path": "sealed-submit-v1.wav",
+        "path": "sealed-submit-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
@@ -696,9 +776,9 @@
       {
         "id": "modern-art/audio/price-set",
         "cue": "price-set",
-        "path": "price-set-v1.wav",
+        "path": "price-set-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
@@ -751,9 +831,9 @@
       {
         "id": "modern-art/audio/pass",
         "cue": "pass",
-        "path": "pass-v1.wav",
+        "path": "pass-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
@@ -800,9 +880,9 @@
       {
         "id": "modern-art/audio/sale",
         "cue": "sale",
-        "path": "sale-v1.wav",
+        "path": "sale-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
@@ -862,9 +942,9 @@
       {
         "id": "modern-art/audio/round-start",
         "cue": "round-start",
-        "path": "round-start-v1.wav",
+        "path": "round-start-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
@@ -912,9 +992,9 @@
       {
         "id": "modern-art/audio/round-result",
         "cue": "round-result",
-        "path": "round-result-v1.wav",
+        "path": "round-result-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
@@ -969,9 +1049,9 @@
       {
         "id": "modern-art/audio/match-result",
         "cue": "match-result",
-        "path": "match-result-v1.wav",
+        "path": "match-result-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
@@ -1033,9 +1113,9 @@
       {
         "id": "modern-art/audio/error",
         "cue": "error",
-        "path": "error-v1.wav",
+        "path": "error-v2.wav",
         "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
-        "version": 1,
+        "version": 2,
         "script": "scripts/generate-modern-art-audio.mjs",
         "encoding": "PCM signed 16-bit mono",
         "sampleRate": 24000,
@@ -1081,5 +1161,67 @@
         }
       }
     ]
+  },
+  "rulesScreenshots": {
+    "version": 1,
+    "createdAt": "2026-10-04",
+    "purpose": "Local illustrated rules using actual updated UI captures from an isolated legal five-player example game; no real player data",
+    "generator": "scripts/verify-modern-art-debug.mjs --capture-rules --run=capture-final",
+    "evidence": "artifacts/maintenance/v1.0.2/modern-art-debug-20261004/capture-final/results.json",
+    "files": [
+      {
+        "id": "hand",
+        "file": "rules/hand.webp",
+        "bytes": 268340,
+        "width": 539,
+        "height": 786,
+        "sha256": "ad4375ab07bc17f5c9f65daa8ae78259d77e650d915d5e8aa2e2d184bf3a2cec",
+        "source": "Actual hidden WebView2 screenshot of the named UI region",
+        "sourceFile": "rules/hand.png",
+        "sourceBytes": 385217,
+        "sourceSha256": "90d92e192e7ef59a0146dcbdaf07b2ec17cd22c6d99e1f1726dce37ed6ccb81f",
+        "pixelsVerifiedIdentical": true
+      },
+      {
+        "id": "market",
+        "file": "rules/market.webp",
+        "bytes": 31900,
+        "width": 1469,
+        "height": 539,
+        "sha256": "e25be644536f724264a75f6f03309ab3d9647d1d413f34468b549a81bdcc6f6a",
+        "source": "Actual hidden WebView2 screenshot of the named UI region",
+        "sourceFile": "rules/market.png",
+        "sourceBytes": 81158,
+        "sourceSha256": "806eed0a24cfafe626b0d53764b200969ca7099f4dd9305b22166915d153264f",
+        "pixelsVerifiedIdentical": true
+      },
+      {
+        "id": "auction",
+        "file": "rules/auction.webp",
+        "bytes": 56478,
+        "width": 896,
+        "height": 440,
+        "sha256": "b3effe9bb13af2bd8f08e1a75e9d209a8a570ae8b001ce40bccb93215b6828fb",
+        "source": "Actual hidden WebView2 screenshot of the named UI region",
+        "sourceFile": "rules/auction.png",
+        "sourceBytes": 74916,
+        "sourceSha256": "7b8e126fe63597ac20e4a3a4fb69083d34eaf01f5e3f21a274769948eeb0ea21",
+        "pixelsVerifiedIdentical": true
+      },
+      {
+        "id": "collection",
+        "file": "rules/collection.webp",
+        "bytes": 57108,
+        "width": 362,
+        "height": 359,
+        "sha256": "d59974eed6bad7322e807fbe57929512fcdc7ed5d896c6d44c3cafafeba897e0",
+        "source": "Actual hidden WebView2 screenshot of the named UI region",
+        "sourceFile": "rules/collection.png",
+        "sourceBytes": 82677,
+        "sourceSha256": "70d09d8cb0ec19484b06f6ea3518ae9c6248d3d86d941d3f67408137c7f3dbfd",
+        "pixelsVerifiedIdentical": true
+      }
+    ],
+    "postprocessing": "PNG to WebP lossless, Pillow 11.1.0, original size and RGB pixel bytes verified identical; source PNGs retained"
   }
 }

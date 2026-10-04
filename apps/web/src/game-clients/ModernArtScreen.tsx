@@ -33,15 +33,17 @@ import type { PaintingSort } from '../../../../games/modern-art/ui/sorting';
 import { DecisionCountdown } from '../components/DecisionCountdown';
 import { ModernArtSoundControl } from '../../../../games/modern-art/ui/audio';
 import { useAudioOutput } from '../session/useAudioOutput';
+import { ModernArtRules } from '../../../../games/modern-art/ui/RulesGuide';
+import { AuctionEntrance } from '../../../../games/modern-art/ui/AuctionEntrance';
 
 function ModernArtScreen({ session }: { session: RoomSession }) {
   const { role, view, connected, command, locked, canControl, motion } =
     session;
   const game = view?.gameView as ModernArtView | null;
   const canPlay = useAudioOutput();
-  const [panel, setPanel] = useState<'menu' | 'museums' | 'market' | null>(
-    null,
-  );
+  const [panel, setPanel] = useState<
+    'menu' | 'museums' | 'market' | 'rules' | null
+  >(null);
   const [collectionSort, setCollectionSort] = useState<PaintingSort>('artist');
   const names = Object.fromEntries(
     view?.seats.map((seat) => [seat.id, seat.name]) ?? [],
@@ -121,9 +123,6 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
                   ? '已暂停'
                   : '游戏已暂停')}
         </span>
-        {mergedPausedOffer && (
-          <DecisionCountdown view={view} connected={connected} compact />
-        )}
         {canControl && view.status === 'playing' && (
           <button disabled={locked} onClick={() => command({ type: 'resume' })}>
             恢复游戏
@@ -166,15 +165,17 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
           />
         )}
         <PlayModeBadge mode={view?.playMode} />
-        {role !== 'player' && (
-          <ModernArtSoundControl
-            feedback={session.feedback}
-            game={game}
-            errorId={session.errorId}
-            disabled={view?.playMode === 'test' || view?.paused || !connected}
-            canPlay={canPlay}
-          />
-        )}
+        <ModernArtSoundControl
+          feedback={session.feedback}
+          game={game}
+          errorId={session.errorId}
+          disabled={view?.playMode === 'test' || view?.paused || !connected}
+          canPlay={canPlay}
+          localOnly={role === 'player'}
+        />
+        <button className="secondary" onClick={() => setPanel('rules')}>
+          规则
+        </button>
         <button className="secondary" onClick={() => setPanel('menu')}>
           菜单
         </button>
@@ -206,11 +207,13 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
                   names={names}
                   activityMessage={activityMessage}
                   countdown={
-                    <DecisionCountdown
-                      view={view}
-                      connected={connected}
-                      compact
-                    />
+                    game.phase === 'auction' && (
+                      <DecisionCountdown
+                        view={view}
+                        connected={connected}
+                        compact
+                      />
+                    )
                   }
                 />
               )}
@@ -257,7 +260,7 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
                 view={game}
                 actions={(view.actions ?? []) as Action[]}
                 locked={locked || view.paused || view.status !== 'playing'}
-                selectionKey={`${view.instanceId}:${view.branch}:${view.selectionToken ?? 'none'}`}
+                selectionKey={`${view.instanceId}:${view.branch}:${game.auction?.id ?? view.selectionToken ?? 'none'}`}
                 names={names}
                 activityMessage={activityMessage}
                 choose={choose}
@@ -290,11 +293,17 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
               ? '各家博物馆'
               : panel === 'market'
                 ? '历轮估值'
-                : '拍卖行菜单'
+                : panel === 'rules'
+                  ? '现代艺术图文规则'
+                  : '拍卖行菜单'
           }
           close={() => setPanel(null)}
         >
-          {panel === 'museums' && game ? (
+          {panel === 'rules' ? (
+            <div className="ma-screen ma-panel ma-rules-panel">
+              <ModernArtRules />
+            </div>
+          ) : panel === 'museums' && game ? (
             <div className="ma-screen ma-panel">
               <div className="ma-hand-tools">
                 <span>公开收藏</span>
@@ -333,6 +342,11 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
           )}
         </OverlayPanel>
       )}
+      <AuctionEntrance
+        feedback={session.feedback}
+        game={game}
+        disabled={view?.playMode === 'test' || view?.paused || !connected}
+      />
       <PlayModeControl session={session} />
     </main>
   );

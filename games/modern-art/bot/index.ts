@@ -1,12 +1,15 @@
 import type { BotStrategy } from '../../../packages/game-sdk/src';
 import type { Action, ArtistId, CardFace, ModernArtView } from '../ui/view';
 import { ARTISTS, RULES_VERSION } from '../data/catalog';
+import { observeMemory, validateMemory } from './memory';
+import { RoundPlanner } from './planner';
 
 // The strategy only evaluates its supplied projection. It never receives State.
 class ArtEvaluator {
   constructor(
     private readonly view: ModernArtView,
     private readonly level: number,
+    private readonly planner: RoundPlanner,
   ) {}
   price(id: ArtistId, extra = 0, offeredArtist = id, settled = false): number {
     const ranked = this.view.artists
@@ -38,7 +41,16 @@ class ArtEvaluator {
             0.95,
             0.45 +
               (artist.playedCount + (id === offeredArtist ? extra : 0)) * 0.11 +
-              own * (this.level === 2 ? 0.1 : 0.04),
+              own * (this.level === 2 ? 0.1 : 0.04) +
+              (this.planner.unknown[id] /
+                Math.max(
+                  1,
+                  Object.values(this.planner.unknown).reduce(
+                    (a, b) => a + b,
+                    0,
+                  ),
+                )) *
+                [0.06, 0.1, 0.14][this.level]!,
           );
     return present * confidence;
   }
@@ -49,29 +61,28 @@ class ArtEvaluator {
       0,
     );
     const discount = [0.48, 0.69, 0.82][this.level]!;
-    const reserve = this.view.round < 4 ? [0.62, 0.72, 0.84][this.level]! : 1;
-    return Math.max(
-      0,
-      Math.floor(Math.min(total * discount, this.view.self!.cash * reserve)),
-    );
+    const available = this.view.self!.cash - this.planner.cashReserve();
+    return Math.max(0, Math.floor(Math.min(total * discount, available)));
   }
-  offered(card: CardFace): number {
+  offered(card: CardFace, type: 'offer' | 'add-double'): number {
     const count = this.view.artists.find(
       (x) => x.id === card.artistId,
     )!.playedCount;
-    const extra =
-      count === 4
-        ? 1
-        : card.auctionKind === 'double' &&
-            this.view.self!.hand.some(
-              (other) =>
-                other.artistId === card.artistId &&
-                other.auctionKind !== 'double',
-            )
-          ? 2
-          : 1;
-    const value = this.price(card.artistId, extra);
-    if (this.level < 2) return value + (card.auctionKind === 'double' ? 4 : 0);
+    const companion =
+      type === 'offer' && card.auctionKind === 'double' && count < 4
+        ? this.view.self!.hand.find(
+            (other) =>
+              other.artistId === card.artistId &&
+              other.auctionKind !== 'double',
+          )
+        : undefined;
+    const used = companion ? [card, companion] : [card];
+    const extra = used.length;
+    const value =
+      this.price(card.artistId, extra) * (type === 'add-double' ? 2 : extra);
+    const future = this.planner.offerAdjustment(used, extra);
+    if (this.level === 0)
+      return value + (card.auctionKind === 'double' ? 4 : 0);
     let control = 0;
     if (count + extra >= 5) {
       for (const artist of ARTISTS) {
@@ -90,14 +101,15 @@ class ArtEvaluator {
           (own - others / (this.view.seatOrder.length - 1)) *
           this.price(artist.id, extra, card.artistId, true);
       }
-      return control;
+      return control + future;
     }
     return (
       value +
+      future +
       this.view.players[this.view.self!.seatId]!.collection.filter(
         (c) => c.artistId === card.artistId,
       ).length *
-        3
+        (this.level === 2 ? 3 : 1.5)
     );
   }
 }
@@ -107,10 +119,7 @@ export const bot: BotStrategy = {
   gameId: 'modern-art',
   rulesVersion: RULES_VERSION,
   difficulties: ['default', 'doubao', 'juewu'],
-  validateMemory(input) {
-    if (input !== null) throw new Error('现代艺术策略记忆无效。');
-    return null;
-  },
+  validateMemory,
   async decide({
     view: inputView,
     actions: inputActions,
@@ -120,13 +129,14 @@ export const bot: BotStrategy = {
     memory,
   }) {
     if (signal.aborted) throw new Error('策略已取消。');
-    if (memory !== null) throw new Error('现代艺术策略记忆无效。');
     const view = inputView as ModernArtView;
     const actions = inputActions as readonly Action[];
     if (!view.self || !actions.length) throw new Error('缺少本人合法决策。');
     const level = ['default', 'doubao', 'juewu'].indexOf(difficulty);
     if (level < 0) throw new Error('不支持的人机等级。');
-    const evaluator = new ArtEvaluator(view, level);
+    const observed = observeMemory(memory, view, level);
+    const planner = new RoundPlanner(view, observed, level, signal);
+    const evaluator = new ArtEvaluator(view, level, planner);
     let selected: Action | undefined;
     if (
       actions[0]!.type === 'offer' ||
@@ -141,13 +151,17 @@ export const bot: BotStrategy = {
         score:
           evaluator.offered(
             view.self!.hand.find((card) => card.id === action.cardId)!,
+            action.type,
           ) + (level === 0 ? random.next() * 12 : 0),
       }));
       ratings.sort(
         (a, b) =>
           b.score - a.score || a.action.cardId.localeCompare(b.action.cardId),
       );
-      selected = ratings[0]?.action;
+      selected =
+        ratings[0] && (view.phase !== 'double' || ratings[0].score > 0)
+          ? ratings[0].action
+          : actions.find((action) => action.type === 'decline-double');
     } else if (actions.some((action) => action.type === 'set-price')) {
       const amount = Math.min(
         view.self.cash,
@@ -173,14 +187,30 @@ export const bot: BotStrategy = {
           action.type === 'bid',
       );
       const budget = evaluator.budget();
+      const current = view.auction!.currentBid;
+      const target =
+        observed.raises >= 2
+          ? budget
+          : Math.floor(
+              budget *
+                (observed.raises === 1
+                  ? 0.88
+                  : level === 0
+                    ? 0.5 + random.next() * 0.18
+                    : [0, 0.64, 0.72][level]!),
+            );
+      const jump = Math.max(2, Math.ceil(budget * [0.2, 0.26, 0.28][level]!));
       const amount =
         view.auction!.kind === 'once'
           ? budget
-          : Math.min(budget, view.auction!.currentBid + (level === 0 ? 1 : 2));
+          : Math.min(budget, Math.max(target, current + jump));
       selected =
         bids.find((action) => action.amount === amount) ??
         actions.find((action) => action.type === 'pass');
     }
-    return { action: selected ?? actions[0]!, memory: null };
+    selected ??= actions[0]!;
+    if (view.auction?.kind === 'open' && selected.type === 'bid')
+      observed.raises = Math.min(3, observed.raises + 1);
+    return { action: selected, memory: observed };
   },
 };

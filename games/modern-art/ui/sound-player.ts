@@ -6,6 +6,7 @@ export interface ModernArtAudioPort {
   play(): Promise<void>;
   pause(): void;
   load(): void;
+  removeAttribute?(name: string): void;
 }
 
 /** One decoder, with a small waiting queue so a quick auction never lags behind. */
@@ -29,8 +30,14 @@ export class ModernArtSoundPlayer {
     audio.onended = complete;
     audio.onerror = complete;
   }
-  enqueue(source: string) {
+  enqueue(source: string, interrupt = false) {
     if (this.disposed) return;
+    if (interrupt) {
+      // The gesture must finish on its original silent source. Replace stale
+      // waiting cues without invalidating an in-flight mobile unlock.
+      if (this.unlocking) this.queue = [];
+      else this.stop();
+    }
     this.queue = [...this.queue, source].slice(-3);
     this.next();
   }
@@ -81,7 +88,10 @@ export class ModernArtSoundPlayer {
     this.disposed = true;
     this.audio.onended = null;
     this.audio.onerror = null;
-    this.audio.src = '';
+    // Empty src resolves to the page URL and asks the decoder to read HTML.
+    // Remove the resource instead when releasing a real media element.
+    if (this.audio.removeAttribute) this.audio.removeAttribute('src');
+    else this.audio.src = '';
     this.audio.load();
   }
 }

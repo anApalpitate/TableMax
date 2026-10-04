@@ -50,6 +50,27 @@ describe('Modern Art saved public sound mapping', () => {
   ] as const)('distinguishes painting offer kind %s', (kind, cue) => {
     expect(modernArtSoundCue(feedback(), game('offer', kind))).toBe(cue);
   });
+  it.each(['open', 'once', 'sealed', 'fixed'] as const)(
+    'double painting completion announces its actual %s auction method',
+    (kind) => {
+      const auction = { kind } as NonNullable<ModernArtView['auction']>;
+      Object.defineProperties(auction, {
+        sealedBids: {
+          get: () => {
+            throw new Error('Never inspect sealed amounts');
+          },
+        },
+        currentBid: {
+          get: () => {
+            throw new Error('Amount does not select a sound');
+          },
+        },
+      });
+      expect(
+        modernArtSoundCue(feedback(), { ...game('double-add'), auction }),
+      ).toBe(`auction-${kind}`);
+    },
+  );
   it('makes a sealed submission identical for every secret amount', () => {
     const projection = game('sealed-submit', 'sealed');
     Object.defineProperties(projection.latest!, {

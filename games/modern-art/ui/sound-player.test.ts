@@ -43,6 +43,58 @@ describe('Modern Art authorized short sound player', () => {
     player.enqueue('newly-saved');
     expect(played.map((item) => item.source)).toEqual(['one', 'newly-saved']);
   });
+  it('starts a saved auction entrance immediately and drops stale queued bids', () => {
+    const { player, audio, played } = setup();
+    player.enqueue('bid');
+    player.enqueue('old-bid');
+    player.enqueue('auction-open', true);
+    audio.onended?.(new Event('ended'));
+    expect(played.map((item) => item.source)).toEqual(['bid', 'auction-open']);
+    expect(audio.pause).toHaveBeenCalledOnce();
+  });
+  it('keeps an asynchronous gesture unlock intact when a new entrance replaces waiting cues', async () => {
+    const { player, audio, played, blocked } = setup();
+    let resolve!: () => void;
+    vi.mocked(audio.play).mockImplementationOnce(() => {
+      played.push({ source: audio.src, volume: audio.volume });
+      return new Promise<void>((done) => {
+        resolve = done;
+      });
+    });
+    const unlocking = player.unlock('gesture');
+    player.enqueue('old-bid');
+    player.enqueue('auction-once', true);
+    player.enqueue('auction-open', true);
+    expect(audio.src).toBe('gesture');
+    expect(audio.volume).toBe(0);
+    expect(audio.pause).toHaveBeenCalledOnce();
+    resolve();
+    expect(await unlocking).toBe(true);
+    expect(played).toEqual([
+      { source: 'gesture', volume: 0 },
+      { source: 'auction-open', volume: 0.45 },
+    ]);
+    expect(blocked).not.toHaveBeenCalled();
+    audio.onended?.(new Event('ended'));
+    expect(played).toHaveLength(2);
+  });
+  it('drops a pending entrance if the original browser gesture is rejected', async () => {
+    const { player, audio, played } = setup();
+    let reject!: (error: Error) => void;
+    vi.mocked(audio.play).mockImplementationOnce(() => {
+      played.push({ source: audio.src, volume: audio.volume });
+      return new Promise<void>((_, fail) => {
+        reject = fail;
+      });
+    });
+    const unlocking = player.unlock('gesture');
+    player.enqueue('auction-open', true);
+    reject(new Error('Gesture denied'));
+    await expect(unlocking).rejects.toThrow('Gesture denied');
+    expect(audio.volume).toBe(0.45);
+    audio.onended?.(new Event('ended'));
+    expect(played).toEqual([{ source: 'gesture', volume: 0 }]);
+  });
   it('drops autoplay-blocked backlog and silently unlocks without replaying it', async () => {
     const { player, audio, played, blocked } = setup();
     vi.mocked(audio.play).mockRejectedValueOnce(new Error('Autoplay denied'));
@@ -105,6 +157,14 @@ describe('Modern Art authorized short sound player', () => {
     expect(audio.src).toBe('');
     expect(audio.onended).toBeNull();
     expect(audio.onerror).toBeNull();
+    expect(audio.load).toHaveBeenCalledOnce();
+  });
+  it('removes a real media source rather than asking the decoder to load the HTML page', () => {
+    const { player, audio } = setup();
+    audio.removeAttribute = vi.fn();
+    player.enqueue('cue');
+    player.dispose();
+    expect(audio.removeAttribute).toHaveBeenCalledWith('src');
     expect(audio.load).toHaveBeenCalledOnce();
   });
 });

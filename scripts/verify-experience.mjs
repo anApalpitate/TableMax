@@ -451,7 +451,7 @@ try {
   await publicPage.locator('.held-pile').waitFor();
   assert.match(
     await publicPage.locator('.held-zone').textContent(),
-    /暂持|未入场/,
+    /暂持|未入场|等待处理/,
   );
   await capture(publicPage, 'public-action-and-held');
   evidence.audio.push({

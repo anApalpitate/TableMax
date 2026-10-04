@@ -88,6 +88,10 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 `node scripts/verify-modern-art-empty-gallery.mjs --evidence=empty-gallery-run` 定向检查三／四／五位真人入座后的空收藏拍卖布局，使用真实开局、出画、追加同画家第二幅及决策点回退；不直接写游戏状态。单幅／双幅、主机／公共屏分别覆盖 720p／1080p／4K 和 100%／125%／150% 显示请求，记录空间保护后的实际 CSS 尺寸与缩放；加 `--portable` 验证当前 ZIP。先用 `--short-only` 检查最短桌面，`--scale-only` 仅补 4K 125%／150%，两者互斥，默认运行完整矩阵。它只证明这些真实准备场景的排版，不能替代自然四轮整局、资金账本或恢复验证。
 
+`node scripts/verify-modern-art-debug.mjs --seats=5 --run=debug-run` 使用合法隔离示例局检查现代艺术选画无倒计时、行情文字、纵向两列画廊、规则四图及关闭焦点恢复，模拟其他手机两次加价并核验原金额控件、草稿和焦点保留。`--seats=4` 检查四人，`--portable` 检查当前实际解压 ZIP；源运行加 `--capture-rules` 保存四个实际区域 PNG，随后用 `python scripts/compress-modern-art-rule-captures.py` 生成并逐像素核验无损 WebP，保留原 PNG。更新配图后同步游戏资源清单与图文卡片，再构建和验收。
+
+`node scripts/verify-modern-art-audio.mjs --evidence=audio-run` 检查真实桌面归属、盒子重进、手机手势解锁、刷新不补播、独立静音及 WAV 解码／媒体播放。`--entrances-only` 专查五种实际上拍的声音、全屏特效、刷新、测试及减少动态；`--reentry-only` 只验重进，`--portable` 改验当前 ZIP。每次选择新的安全证据名，源与便携结果在 `artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio/` 分开；播放观测不等于实体手机自动播放政策或真人试听认证。以上本机检查全部显式监听回环并隔离存档。
+
 电力公司验证在 `artifacts/maintenance/v1.0.1/power-grid/` 分别保存 `ui/` 的组件 fixture 与 `runtime/` 的自然混合局、恢复和最终便携证据。整局测试可采用平台测试节奏，但每个动作仍经过身份、合法动作、SQLite 与真实 Worker；普通游玩节奏另取真实保存动作样本，不能将提速局写成全程普通节奏。SQLite 审计在隔离数据上逐 checkpoint／随机源重放，核对电厂分区、燃料和资金，公开报告不导出隐藏现金或牌堆。所有本机启动显式使用 127.0.0.1 与随机端口。新工作区包加入后执行冻结锁文件离线安装以建立本地依赖链接，仅更新 lockfile 不足以保证 React 构建解析。
 
 Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 并发曾使既有 Socket 和宝可梦整局测试超过原来的 5 秒期限。保留原超时与断言，限制本项目测试并发；不提高测试超时掩盖故障，也不修改全局工具环境。

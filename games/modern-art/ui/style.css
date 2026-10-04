@@ -158,6 +158,22 @@
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: clamp(5px, 0.7vw, 12px);
 }
+.ma-screen .ma-market__explanation {
+  margin: 0 0 10px;
+  color: #5e4630;
+  font-size: 16px;
+}
+.ma-screen .ma-artist__meaning {
+  display: block;
+  font-size: 16px;
+  color: #65482e;
+}
+.ma-screen .ma-artist__count {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0 3px;
+}
 .ma-screen .ma-artist {
   min-width: 0;
   padding: 0 5px 9px;
@@ -352,7 +368,7 @@
   padding: 4px;
   border-radius: 6px;
   background: #fffaf1;
-  border: 3px solid var(--ma-artist);
+  border: 6px solid var(--ma-artist);
   box-shadow:
     inset 0 0 0 1px #fff7de,
     0 4px 8px #3a291c35;
@@ -362,6 +378,9 @@
 }
 .ma-screen .ma-card__head {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 3px;
   align-items: center;
   min-height: 25px;
   padding: 0 1px 3px;
@@ -382,14 +401,18 @@
 }
 .ma-screen .ma-card__artist-mark,
 .ma-screen .ma-card__auction-mark {
-  position: absolute;
+  position: static;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: clamp(28px, 28%, 76px);
+  aspect-ratio: 1;
   border: 2px solid #fff9ed;
   border-radius: 6px;
   box-shadow: 0 2px 4px #21171160;
+}
+.ma-screen .ma-card__artist-name {
+  order: 3;
+  flex-basis: 100%;
 }
 .ma-screen .ma-card__artist-mark {
   inset: 4px auto auto 4px;
@@ -404,8 +427,8 @@
 }
 .ma-screen .ma-card__artist-mark svg,
 .ma-screen .ma-card__auction-mark svg {
-  width: 20px;
-  height: 20px;
+  width: 75%;
+  height: 75%;
 }
 .ma-screen .ma-card__art--pending {
   background: linear-gradient(145deg, #ffffff30, #00000015), var(--ma-artist);
@@ -583,18 +606,24 @@
   font-size: 26px;
 }
 .ma-screen .ma-museum__collection {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  overflow-x: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 38dvh;
   min-width: 0;
   padding: 2px 1px 6px;
   align-items: flex-start;
 }
 .ma-screen .ma-museum__collection > .ma-card {
-  width: var(--ma-card-size);
+  width: 100%;
   flex-shrink: 0;
 }
 .ma-screen .ma-card--compact .ma-card__head {
+  display: flex;
+}
+.ma-screen .ma-card--compact .ma-card__artist-name {
   display: none;
 }
 .ma-screen .ma-card--compact .ma-card__foot > span {
@@ -958,7 +987,12 @@
 }
 .ma-screen .ma-hand {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(max(130px, 20%), 1fr));
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 62dvh;
+  overscroll-behavior-y: contain;
+  padding: 5px;
   gap: 10px;
 }
 .ma-screen .ma-hand__card {
@@ -1161,6 +1195,9 @@
     width: 80px;
   }
   .ma-screen .ma-auction__paintings .ma-card__head {
+    display: flex;
+  }
+  .ma-screen .ma-auction__paintings .ma-card__artist-name {
     display: none;
   }
   .ma-screen .ma-auction__mark {
@@ -1584,9 +1621,8 @@
     line-height: 1.2;
   }
   .ma-screen .ma-artist {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    column-gap: 4px;
+    display: flex;
+    flex-direction: column;
     padding: 0 2px 3px;
   }
   .ma-screen .ma-artist__identity {
@@ -1611,6 +1647,13 @@
   .ma-screen .ma-artist__count {
     line-height: 23px;
     margin: 0;
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: center;
+    gap: 0 3px;
+  }
+  .ma-screen .ma-artist__count > span:first-child {
+    grid-column: 1 / -1;
   }
   .ma-screen .ma-artist__count strong {
     font-size: 16px;
@@ -1757,7 +1800,6 @@
   }
   .ma-screen .ma-table--featured-auction > .ma-center {
     container-type: size;
-    --ma-featured-overhead: 260px;
   }
   .ma-screen .ma-table--featured-auction > .ma-museums {
     grid-row: 2;
@@ -1769,129 +1811,357 @@
     grid-template-rows: auto minmax(0, 1fr) auto;
   }
   .ma-screen .ma-table--featured-auction .ma-auction__paintings {
-    --ma-featured-width-limit: calc(60cqw - 44px);
+    container-type: size;
+    --ma-featured-width-limit: calc(100cqw - 12px);
     min-width: 0;
     min-height: 0;
     width: 100%;
+    height: 100%;
+    align-self: stretch;
   }
   .ma-screen
     .ma-table--featured-auction
     .ma-auction__paintings:has(> :nth-child(2)) {
-    --ma-featured-width-limit: calc(30cqw - 28px);
+    --ma-featured-width-limit: calc((100cqw - 12px) / 2);
   }
   .ma-screen .ma-table--featured-auction .ma-auction__paintings > .ma-card {
     width: clamp(
       80px,
-      min(
-        calc(100cqh - var(--ma-featured-overhead)),
-        var(--ma-featured-width-limit)
-      ),
+      min(calc((100cqh - 80px) / 1.28), var(--ma-featured-width-limit)),
       520px
     );
     flex-shrink: 0;
     transform: none;
   }
 }
-@media (min-width: 701px) and (max-height: 800px) {
-  .ma-screen .ma-table--featured-auction > .ma-center {
-    --ma-featured-overhead: 208px;
+
+/* Galleries scroll vertically and keep two paintings per row at narrow sizes. */
+.ma-screen .ma-museums {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  overflow-y: auto;
+  align-content: start;
+  overscroll-behavior-y: contain;
+  padding: 2px;
+}
+.ma-screen .ma-table--featured-auction > .ma-museums {
+  grid-template-columns: repeat(var(--ma-seats), minmax(0, 1fr));
+}
+.ma-screen .ma-museum__collection {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  scrollbar-gutter: stable;
+  overscroll-behavior-y: contain;
+}
+.ma-screen .ma-artist__meaning {
+  grid-column: 1 / -1;
+}
+.ma-screen .ma-card__head {
+  background: var(--ma-artist);
+  color: #fffaf1;
+  margin: -4px -4px 4px;
+  padding: 4px;
+}
+.ma-screen .ma-card__foot {
+  overflow-wrap: anywhere;
+}
+.ma-screen .ma-self-collection .ma-museum__collection {
+  grid-template-columns: repeat(auto-fill, minmax(max(120px, 20%), 1fr));
+}
+@media (max-width: 700px) {
+  .ma-screen .ma-hand,
+  .ma-screen .ma-self-collection .ma-museum__collection {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ma-screen .ma-market__explanation {
+    margin-bottom: 6px;
+  }
+  .ma-screen .ma-artist__count {
+    justify-content: flex-start;
+  }
+  .ma-screen .ma-card__artist-mark,
+  .ma-screen .ma-card__auction-mark {
+    min-width: 28px;
   }
 }
-@media (min-width: 701px) and (max-height: 600px) {
-  .ma-screen .ma-table--featured-auction > .ma-center {
-    --ma-featured-overhead: 176px;
+
+/* Rules remain in the dialog top layer, with local real-interface captures. */
+.overlay-panel:has(.ma-rules-panel) {
+  width: min(94vw, 940px);
+}
+.ma-screen .ma-rules {
+  display: grid;
+  gap: 24px;
+  font-size: 18px;
+}
+.ma-screen .ma-rules nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ma-screen .ma-rules nav a {
+  padding: 10px 16px;
+  border: 1px solid #ab865a;
+  border-radius: 8px;
+  color: #513723;
+  background: #f9ecd6;
+  min-height: 44px;
+}
+.ma-screen .ma-rules section {
+  scroll-margin-top: 80px;
+  display: grid;
+  gap: 12px;
+}
+.ma-screen .ma-rules h3 {
+  font-size: 22px;
+}
+.ma-screen .ma-rules h4 {
+  font-size: 20px;
+  margin: 0 0 6px;
+}
+.ma-screen .ma-rules p {
+  font-size: 18px;
+  line-height: 1.6;
+}
+.ma-screen .ma-rules figure {
+  margin: 0;
+  padding: 10px;
+  background: #f0dfc6;
+  border-radius: 12px;
+}
+.ma-screen .ma-rules figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.ma-screen .ma-rules figcaption {
+  margin-top: 8px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.ma-screen .ma-rules__auctions {
+  display: grid;
+  gap: 12px;
+}
+.ma-screen .ma-rules__auctions > div {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid #ab865a;
+  border-radius: 10px;
+}
+.ma-screen .ma-rules__auctions > div > span {
+  display: grid;
+  place-items: center;
+  align-self: start;
+  width: 48px;
+  height: 48px;
+  background: #e3ca9f;
+  border: 2px solid #513723;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.ma-screen .ma-rules__auctions svg {
+  width: 34px;
+  height: 34px;
+}
+.ma-screen .ma-rules .ma-rules__source {
+  font-size: 16px;
+  color: #67482f;
+}
+@media (max-width: 420px) {
+  .ma-screen .ma-rules__auctions > div {
+    padding: 8px;
+    gap: 8px;
   }
-  .ma-screen .ma-table--paired-auction > .ma-market {
-    grid-column: 1;
-    grid-row: 1;
+  .ma-screen .ma-rules__auctions > div > span {
+    width: 36px;
+    height: 36px;
   }
-  .ma-screen .ma-table--paired-auction > .ma-center {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    pointer-events: none;
+  .ma-screen .ma-rules__auctions svg {
+    width: 26px;
+    height: 26px;
   }
-  .ma-screen .ma-table--paired-auction .ma-auction {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    gap: 6px;
-    padding: 0;
-    background: none;
-    border: 0;
-    box-shadow: none;
-    isolation: isolate;
-    pointer-events: none;
+}
+
+/* Saved auction entrance: a full-screen brush banner with a distinct motif. */
+.ma-entrance {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
+  color: #fff8e3;
+  background: radial-gradient(ellipse, #21161fe8, #21161f75 65%, transparent);
+  animation: ma-entrance-fade 1.6s both;
+}
+.ma-entrance__rays {
+  position: absolute;
+  inset: -60%;
+  opacity: 0.3;
+  background: repeating-conic-gradient(
+    from 15deg,
+    transparent 0deg 12deg,
+    var(--ma-entrance-color) 13deg 15deg,
+    transparent 16deg 24deg
+  );
+  animation: ma-entrance-rays 1.6s ease-out both;
+}
+.ma-entrance__seal {
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: clamp(90px, 18vw, 190px);
+  aspect-ratio: 1;
+  border-radius: 24%;
+  color: #fff8e3;
+  background: var(--ma-entrance-color);
+  border: 4px solid #ffe9aa;
+  box-shadow: 0 0 70px var(--ma-entrance-color);
+  animation: ma-entrance-seal 1.6s both;
+}
+.ma-entrance__seal svg {
+  width: 70%;
+  height: 70%;
+}
+.ma-entrance__banner {
+  z-index: 1;
+  width: 110%;
+  margin-top: 20px;
+  padding: 18px 7%;
+  text-align: center;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    var(--ma-entrance-color) 25% 75%,
+    transparent
+  );
+  border-block: 2px solid #ffe6aa;
+  transform: rotate(-3deg);
+  animation: ma-entrance-banner 1.6s both;
+}
+.ma-entrance__banner > span {
+  font-size: 18px;
+  letter-spacing: 0.3em;
+}
+.ma-entrance__banner strong {
+  display: block;
+  font-size: clamp(36px, 6vw, 90px);
+  font-weight: 900;
+  text-shadow: 3px 4px #21161f88;
+}
+.ma-entrance__banner p {
+  font-size: clamp(18px, 2vw, 28px);
+  margin: 6px 0 0;
+}
+.ma-entrance__sweep {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 40%,
+    #fff8dc88 50%,
+    transparent 60%
+  );
+  animation: ma-entrance-sweep 0.7s both;
+}
+.ma-entrance--once .ma-entrance__seal {
+  border-radius: 50%;
+}
+.ma-entrance--sealed .ma-entrance__seal {
+  border-radius: 10px;
+  transform: rotate(-8deg);
+}
+.ma-entrance--fixed .ma-entrance__seal {
+  border-radius: 8px 45% 8px 8px;
+}
+.ma-entrance--double .ma-entrance__seal {
+  box-shadow:
+    12px 12px 0 #ffe9aa,
+    0 0 70px var(--ma-entrance-color);
+}
+@keyframes ma-entrance-fade {
+  0% {
+    opacity: 0;
   }
-  .ma-screen .ma-table--paired-auction .ma-auction__label,
-  .ma-screen .ma-table--paired-auction .ma-auction__paintings,
-  .ma-screen .ma-table--paired-auction .ma-auction__price,
-  .ma-screen .ma-table--paired-auction .ma-auction__participants {
-    pointer-events: auto;
+  12%,
+  72% {
+    opacity: 1;
   }
-  .ma-screen .ma-table--paired-auction .ma-auction::before,
-  .ma-screen .ma-table--paired-auction .ma-auction__price {
-    background: var(--ma-paper);
-    border: 1px solid #bba07c;
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes ma-entrance-rays {
+  from {
+    transform: rotate(-12deg) scale(0.85);
+  }
+  to {
+    transform: rotate(12deg) scale(1.08);
+  }
+}
+@keyframes ma-entrance-seal {
+  0% {
+    translate: 0 -60px;
+    scale: 1.5;
+  }
+  22%,
+  80% {
+    translate: 0 0;
+    scale: 1;
+  }
+  100% {
+    scale: 0.9;
+  }
+}
+@keyframes ma-entrance-banner {
+  0% {
+    translate: -100% 0;
+  }
+  22%,
+  80% {
+    translate: 0 0;
+  }
+  100% {
+    translate: 100% 0;
+  }
+}
+@keyframes ma-entrance-sweep {
+  from {
+    translate: -100% 0;
+  }
+  to {
+    translate: 100% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ma-entrance {
+    animation: none;
+    background: transparent;
+    justify-content: flex-start;
+    padding-top: 12px;
+  }
+  .ma-entrance__rays,
+  .ma-entrance__sweep,
+  .ma-entrance__seal {
+    display: none;
+  }
+  .ma-entrance__banner {
+    animation: none;
+    transform: none;
+    width: auto;
+    margin: 0;
     border-radius: 12px;
-    box-shadow:
-      0 4px 0 #70503922,
-      0 12px 20px #65412118;
+    background: var(--ma-entrance-color);
   }
-  .ma-screen .ma-table--paired-auction .ma-auction::before {
-    content: '';
-    grid-column: 2;
-    grid-row: 1 / -1;
-    align-self: stretch;
-    justify-self: stretch;
-    z-index: -1;
+  .ma-entrance__banner strong {
+    font-size: 24px;
   }
-  .ma-screen .ma-table--paired-auction .ma-auction__label {
-    grid-column: 2;
-    grid-row: 1;
-    margin: 6px 8px 0;
-  }
-  .ma-screen .ma-table--paired-auction .ma-auction__paintings {
-    grid-column: 2;
-    grid-row: 2;
-    align-self: stretch;
-    width: calc(100% - 16px);
-    margin: 0 8px;
-    container-type: size;
-  }
-  .ma-screen .ma-table--paired-auction .ma-auction__paintings > .ma-card {
-    width: clamp(80px, min(calc(100cqh - 32px), calc(50cqw - 8px)), 520px);
-  }
-  .ma-screen .ma-table--paired-auction .ma-auction__price {
-    grid-column: 1;
-    grid-row: 2 / 4;
-    align-self: end;
-    justify-self: stretch;
-    padding: 10px;
-  }
-  .ma-screen .ma-table--paired-auction .ma-auction__participants {
-    grid-column: 2;
-    grid-row: 3;
-    width: calc(100% - 16px);
-    margin: 0 8px 6px;
-  }
-  .ma-screen .ma-table--paired-auction .ma-table-footer .ma-latest__copy {
-    flex-wrap: nowrap;
-  }
-  .ma-screen .ma-table--paired-auction .ma-latest__copy p:first-child {
-    flex: 1;
-    min-width: 0;
-  }
-  .ma-screen .ma-table--paired-auction .ma-latest__copy p:first-child > strong {
-    flex-shrink: 1;
-    min-width: 0;
-    max-width: 180px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .ma-screen .ma-table--paired-auction .ma-latest__details {
-    min-width: 0;
-    max-width: 46%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .ma-entrance__banner > span,
+  .ma-entrance__banner p {
+    display: none;
   }
 }

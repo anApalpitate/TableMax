@@ -52,6 +52,14 @@ export function decisions(s: State): PendingDecision[] {
         seatId,
         concurrencyGroup: `${a.id}:sealed`,
       };
+    if (a?.kind === 'open')
+      return {
+        id: `${s.round}:${s.auctionSerial}:${s.phase}:${a.bidRevision}:${a.index}:${seatId}`,
+        seatId,
+        // Confirmations are independent only while the displayed price stays
+        // unchanged. A new bid closes this window before old passes can apply.
+        concurrencyGroup: `${a.id}:open:${a.bidRevision}`,
+      };
     return {
       id: `${s.round}:${s.auctionSerial}:${s.phase}:${a?.bidRevision ?? 0}:${a?.index ?? 0}:${seatId}`,
       seatId,

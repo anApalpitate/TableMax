@@ -223,11 +223,39 @@ export function validateSave(
   };
   if (d.snapshot) validateSnapshot(d.snapshot);
   if (!legacyClocks) {
-    const keys = new Set(
+    const pending =
       d.status === 'playing' && d.snapshot && rules
-        ? rules.decisions(d.snapshot.state).map(decisionClockKey)
-        : [],
-    );
+        ? rules.decisions(d.snapshot.state)
+        : [];
+    const keys = new Set(pending.map(decisionClockKey));
+    // Adding an independent-decision group must not invalidate saves written
+    // when the same decisions still had one clock per seat. Accept only the
+    // complete exact former key set, and retain its earliest saved reminder.
+    if (d.decisionClocks.some((clock) => !keys.has(clock.key))) {
+      const formerKeys = new Map(
+        pending.map((decision) => [
+          decisionClockKey({ id: decision.id, seatId: decision.seatId }),
+          decisionClockKey(decision),
+        ]),
+      );
+      if (
+        d.decisionClocks.length === formerKeys.size &&
+        d.decisionClocks.every((clock) => formerKeys.has(clock.key)) &&
+        new Set(d.decisionClocks.map((clock) => clock.startedAt)).size === 1
+      ) {
+        const grouped = new Map<
+          string,
+          NonNullable<Save['decisionClocks']>[number]
+        >();
+        for (const clock of d.decisionClocks) {
+          const key = formerKeys.get(clock.key)!;
+          const previous = grouped.get(key);
+          if (!previous || clock.remainingMs < previous.remainingMs)
+            grouped.set(key, { ...clock, key });
+        }
+        d.decisionClocks = [...grouped.values()];
+      }
+    }
     requireThat(
       d.decisionClocks.length === keys.size &&
         d.decisionClocks.every(

@@ -127,7 +127,9 @@ function AmountControls({
       </div>
       {!chosen && (
         <p className="ma-bid__invalid" role="status">
-          请输入当前允许范围内的整数金额。
+          {Number.isInteger(value) && value < minimum
+            ? `当前报价已提高，请改为至少 ${minimum} 千元。你的输入已保留。`
+            : '请输入当前允许范围内的整数金额。'}
         </p>
       )}
     </form>

@@ -4,10 +4,10 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const rate = 24000;
-const version = 1;
+const version = 2;
 const output = resolve('assets/games/modern-art/audio');
 const evidence = resolve(
-  'artifacts/maintenance/v1.0.1/modern-art-audio-20261004',
+  'artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio-generation',
 );
 const representativeOnly = process.argv.includes('--representatives');
 const targetRms = 0.075;
@@ -22,49 +22,121 @@ const profiles = {
     ],
   },
   'auction-open': {
-    seconds: 0.36,
-    description: 'Paper placement followed by two open glass harmonics',
+    seconds: 1.16,
+    description:
+      'Open auction: rising glass fanfare, airy sweep and bright final gallery chord',
     events: [
-      { type: 'paper', at: 0, gain: 0.28 },
-      { type: 'glass', at: 0.055, pitch: 587.33, gain: 0.38 },
-      { type: 'glass', at: 0.13, pitch: 783.99, gain: 0.23 },
+      {
+        type: 'sweep',
+        at: 0,
+        pitch: 160,
+        endPitch: 940,
+        length: 0.34,
+        gain: 0.22,
+      },
+      { type: 'glass', at: 0.07, pitch: 523.25, gain: 0.3 },
+      { type: 'glass', at: 0.18, pitch: 659.25, gain: 0.34 },
+      { type: 'glass', at: 0.29, pitch: 783.99, gain: 0.38 },
+      {
+        type: 'chord',
+        at: 0.36,
+        notes: [392, 523.25, 659.25],
+        length: 0.74,
+        gain: 0.46,
+      },
     ],
   },
   'auction-once': {
-    seconds: 0.34,
-    description: 'One restrained wooden tap and a single clear harmonic',
+    seconds: 0.96,
+    description:
+      'Once-round auction: a firm three-beat wooden procession ending in one low resonant strike',
     events: [
-      { type: 'wood', at: 0, pitch: 260, gain: 0.45 },
-      { type: 'glass', at: 0.035, pitch: 659.25, gain: 0.38 },
+      { type: 'wood', at: 0, pitch: 290, gain: 0.28 },
+      { type: 'wood', at: 0.12, pitch: 350, gain: 0.37 },
+      { type: 'wood', at: 0.24, pitch: 430, gain: 0.45 },
+      { type: 'drum', at: 0.34, pitch: 90, gain: 0.44 },
+      {
+        type: 'chord',
+        at: 0.34,
+        notes: [220, 329.63, 440],
+        length: 0.57,
+        gain: 0.39,
+      },
     ],
   },
   'auction-sealed': {
-    seconds: 0.38,
-    description: 'Envelope movement and a soft closed wooden double tap',
+    seconds: 1.08,
+    description:
+      'Sealed auction: folded-paper swish, muted low suspense harmony and two locking knocks',
     events: [
-      { type: 'paper', at: 0, gain: 0.46 },
-      { type: 'wood', at: 0.11, pitch: 220, gain: 0.4 },
-      { type: 'wood', at: 0.17, pitch: 185, gain: 0.32 },
+      { type: 'paper', at: 0, gain: 0.34 },
+      {
+        type: 'sweep',
+        at: 0.05,
+        pitch: 440,
+        endPitch: 110,
+        length: 0.42,
+        gain: 0.18,
+      },
+      {
+        type: 'chord',
+        at: 0.08,
+        notes: [146.83, 220, 293.66],
+        length: 0.85,
+        gain: 0.43,
+      },
+      { type: 'wood', at: 0.5, pitch: 175, gain: 0.43 },
+      { type: 'wood', at: 0.66, pitch: 130, gain: 0.38 },
     ],
   },
   'auction-fixed': {
-    seconds: 0.34,
+    seconds: 1.02,
     description:
-      'A displayed price tag, wooden placement and warm glass resonance',
+      'Fixed-price auction: a descending bright price-tag melody, bell and a stable warm chord',
     events: [
-      { type: 'paper', at: 0, gain: 0.3 },
-      { type: 'wood', at: 0.065, pitch: 330, gain: 0.27 },
-      { type: 'glass', at: 0.09, pitch: 523.25, gain: 0.36 },
+      { type: 'glass', at: 0.01, pitch: 880, gain: 0.34 },
+      { type: 'glass', at: 0.16, pitch: 659.25, gain: 0.35 },
+      { type: 'glass', at: 0.31, pitch: 440, gain: 0.37 },
+      { type: 'wood', at: 0.37, pitch: 330, gain: 0.25 },
+      {
+        type: 'chord',
+        at: 0.39,
+        notes: [261.63, 329.63, 440],
+        length: 0.57,
+        gain: 0.45,
+      },
     ],
   },
   'double-open': {
-    seconds: 0.44,
-    description: 'Two soft card placements announcing a combination auction',
+    seconds: 1.24,
+    description:
+      'Double auction: two answered sweep-and-drum impacts followed by a broad paired harmony',
     events: [
-      { type: 'paper', at: 0, gain: 0.3 },
-      { type: 'wood', at: 0.065, pitch: 260, gain: 0.36 },
-      { type: 'paper', at: 0.14, gain: 0.26 },
-      { type: 'wood', at: 0.19, pitch: 330, gain: 0.33 },
+      {
+        type: 'sweep',
+        at: 0,
+        pitch: 170,
+        endPitch: 620,
+        length: 0.2,
+        gain: 0.2,
+      },
+      { type: 'drum', at: 0.15, pitch: 82, gain: 0.43 },
+      {
+        type: 'sweep',
+        at: 0.26,
+        pitch: 220,
+        endPitch: 840,
+        length: 0.22,
+        gain: 0.23,
+      },
+      { type: 'drum', at: 0.43, pitch: 110, gain: 0.44 },
+      {
+        type: 'chord',
+        at: 0.46,
+        notes: [220, 293.66, 440, 587.33],
+        length: 0.72,
+        gain: 0.43,
+      },
     ],
   },
   'double-add': {
@@ -239,6 +311,25 @@ function render(name, profile) {
               Math.sin(2 * Math.PI * event.pitch * 3.76 * t) *
               Math.exp(-t / 0.04)) *
           smooth(t / 0.006);
+      } else if (event.type === 'sweep') {
+        if (t > event.length) break;
+        low += 0.06 * (random() - low);
+        const phase =
+          2 *
+          Math.PI *
+          (event.pitch * t +
+            ((event.endPitch - event.pitch) * t ** 2) / (2 * event.length));
+        sample =
+          (0.28 * Math.sin(phase) + low * 1.4) *
+          smooth(t / 0.045) *
+          smooth((event.length - t) / 0.08);
+      } else if (event.type === 'drum') {
+        const phase =
+          2 * Math.PI * event.pitch * (t + 0.014 * (1 - Math.exp(-t / 0.035)));
+        sample =
+          (Math.sin(phase) + 0.16 * Math.sin(phase * 1.91)) *
+          Math.exp(-t / 0.13) *
+          smooth(t / 0.008);
       } else {
         if (t > event.length) break;
         const envelope =
@@ -387,7 +478,7 @@ function measurements(pcm) {
 await mkdir(output, { recursive: true });
 await mkdir(evidence, { recursive: true });
 const ids = representativeOnly
-  ? ['sale', 'bid', 'round-result']
+  ? ['auction-open', 'auction-sealed', 'double-open']
   : Object.keys(profiles);
 const assets = [];
 for (const id of ids) {
@@ -432,7 +523,7 @@ for (const id of ids) {
 const totalBytes = assets.reduce((total, asset) => total + asset.bytes, 0);
 if (!representativeOnly)
   assert.ok(
-    totalBytes < 400000,
+    totalBytes < 650000,
     'Keep the complete game sound library within its portable budget',
   );
 const record = {
@@ -449,7 +540,7 @@ const record = {
 await writeFile(
   resolve(
     evidence,
-    representativeOnly ? 'representatives-v1.json' : 'measurements-v1.json',
+    representativeOnly ? 'representatives-v2.json' : 'measurements-v2.json',
   ),
   JSON.stringify(record, null, 2) + '\n',
 );
@@ -457,7 +548,7 @@ const preview = `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>
 await writeFile(
   resolve(
     evidence,
-    representativeOnly ? 'representatives-v1.html' : 'audition-v1.html',
+    representativeOnly ? 'representatives-v2.html' : 'audition-v2.html',
   ),
   preview,
 );
@@ -471,9 +562,9 @@ if (!representativeOnly) {
       'One short cue per newly saved action; fixed sealed-bid sound independent of amount; no continuous music; host/public authorization, persistent mute and no replay are handled by the game audio controller',
     totalBytes,
     measurementEvidence:
-      'artifacts/maintenance/v1.0.1/modern-art-audio-20261004/measurements-v1.json',
+      'artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio-generation/measurements-v2.json',
     audition:
-      'artifacts/maintenance/v1.0.1/modern-art-audio-20261004/audition-v1.html',
+      'artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio-generation/audition-v2.html',
     integrationStatus:
       'Generated and numerically verified; actual application playback pending',
     humanListeningVerified: false,

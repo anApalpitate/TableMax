@@ -14,12 +14,14 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
 const portable = process.argv.includes('--portable');
+const reentryOnly = process.argv.includes('--reentry-only');
+const entrancesOnly = process.argv.includes('--entrances-only');
 const run =
   process.argv.find((arg) => arg.startsWith('--evidence='))?.slice(11) ??
   (portable ? 'portable-final' : 'development');
 assert.match(run, /^[a-z0-9-]{1,48}$/, 'Safe independent evidence directory');
 const output = resolve(
-  'artifacts/maintenance/v1.0.1/modern-art-polish-20261004/audio',
+  'artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio',
   run,
 );
 await mkdir(output, { recursive: true });
@@ -32,7 +34,7 @@ const evidence = {
   work,
   output,
   scope:
-    'Actual hidden production WebView2, local service and SQLite; legal prepared open-auction save followed by authorized saved commands. Observations preserve native bridge and HTMLAudio results. Browser decoding and onplaying are not human listening or physical-speaker verification.',
+    'Actual hidden production WebView2, local service and SQLite; legal prepared open-auction save followed by authorized saved commands, real box links, reloads and phone gesture controls. Observations preserve native bridge and HTMLAudio results. Browser decoding and onplaying are not human listening, physical mobile autoplay policy or physical-speaker verification.',
   humanListeningVerified: false,
   physicalSpeakerVerified: false,
   playbackImplementation:
@@ -47,6 +49,7 @@ const evidence = {
   externalRequests: [],
 };
 let executablePath = desktopExecutable;
+let phoneSoundEnabled = false;
 let desktop, host, publicPage, phone, origin, hostToken, fixture, dataDir;
 const pages = new Map();
 const sockets = new Map();
@@ -350,10 +353,34 @@ async function openPhone(token) {
   );
   await phone.goto(origin + '/player/game');
   await phone.locator('.ma-wallet').waitFor();
-  assert.equal(await phone.locator('[data-modern-art-sound]').count(), 0);
+  assert.equal(await phone.locator('[data-local-sound="true"]').count(), 1);
   assert.equal(
     await phone.evaluate(() => Boolean(window.tablemaxAudio)),
     false,
+  );
+}
+async function reenter(page, role) {
+  const documentId = await page.evaluate(() => performance.timeOrigin);
+  await page.getByRole('link', { name: '‹ 盒子', exact: true }).click();
+  await page.waitForURL(`**/${role}`);
+  if (role !== 'player') {
+    await sleep(120);
+    const denied = await page.evaluate(async () => {
+      try {
+        await window.tablemaxAudio.connect();
+        return false;
+      } catch {
+        return true;
+      }
+    });
+    assert.equal(denied, true, 'Box route cannot register desktop audio');
+  }
+  await page.getByRole('link', { name: '进入牌桌', exact: true }).click();
+  await page.locator('[data-modern-art-sound]').waitFor();
+  assert.equal(
+    await page.evaluate(() => performance.timeOrigin),
+    documentId,
+    'Real box links retain the document',
   );
 }
 async function candidate(type) {
@@ -417,18 +444,20 @@ async function savedSound(view, cue, owner, marks, label) {
   assert.equal(accepted[0].role, owner);
   assert.equal(
     plays.length,
-    1,
-    'A saved action plays one cue on one authorized window',
+    phoneSoundEnabled ? 2 : 1,
+    'One desktop owner and, when enabled, one independent phone decoder',
   );
-  assert.equal(plays[0].role, owner);
-  assert.equal(plays[0].src, url);
-  assert.equal(plays[0].volume, 0.45, 'Actual default HTMLAudio volume');
-  assert.equal(plays[0].rejected, null);
-  assert.equal(
-    snapshot.phone.plays.length,
-    0,
-    'Player phone never creates audio playback',
-  );
+  const desktopPlay = plays.find((play) => play.role === owner);
+  assert.equal(desktopPlay.src, url);
+  assert.equal(desktopPlay.volume, 0.45, 'Actual default HTMLAudio volume');
+  assert.equal(desktopPlay.rejected, null);
+  const phonePlays = plays.filter((play) => play.role === 'phone');
+  assert.equal(phonePlays.length, phoneSoundEnabled ? 1 : 0);
+  if (phoneSoundEnabled) {
+    assert.equal(phonePlays[0].src, url);
+    assert.equal(phonePlays[0].rejected, null);
+    assert.equal(phonePlays[0].fulfilled, true);
+  }
   evidence.checks.push({
     check: label,
     revision: view.revision,
@@ -437,7 +466,8 @@ async function savedSound(view, cue, owner, marks, label) {
     owner,
     acceptedClaims: accepted.length,
     actualOnPlaying: true,
-    defaultVolume: plays[0].volume,
+    defaultVolume: desktopPlay.volume,
+    independentPhoneSound: phoneSoundEnabled,
   });
   return snapshot;
 }
@@ -527,6 +557,195 @@ async function assetsAndDecode() {
   await save();
 }
 
+async function nextLegalChoice(wanted = []) {
+  for (const player of fixture.players) {
+    const view = await current(player.token);
+    if (!view.decisionId || !view.actions.length) continue;
+    const offers = view.actions.filter((action) => action.type === 'offer');
+    const face = (action) =>
+      view.gameView.self.hand.find((card) => card.id === action.cardId);
+    const action =
+      offers.find((action) => wanted.includes(face(action).auctionKind)) ??
+      [...offers].sort((a, b) => {
+        const count = (action) =>
+          view.gameView.artists.find(
+            (artist) => artist.id === face(action).artistId,
+          ).playedCount;
+        return count(a) - count(b);
+      })[0] ??
+      view.actions.find(
+        (action) => action.type === 'pass' || action.type === 'decline-double',
+      ) ??
+      view.actions.find(
+        (action) => 'amount' in action && action.amount === 0,
+      ) ??
+      view.actions[0];
+    return {
+      player,
+      view,
+      action,
+      kind: action.type === 'offer' ? face(action).auctionKind : null,
+    };
+  }
+  return null;
+}
+async function advanceToOffer() {
+  for (let step = 0; step < 80; step++) {
+    const view = await current(hostToken);
+    if (view.gameView.phase === 'offer') return nextLegalChoice();
+    if (view.gameView.phase === 'round-result') {
+      await command(hostToken, {
+        type: 'lifecycle',
+        action: view.lifecycleActions[0],
+      });
+    } else {
+      const choice = await nextLegalChoice();
+      assert.ok(choice, 'A real next offer is reachable before game end');
+      await act(choice);
+    }
+  }
+  throw new Error('Could not reach the next real offer');
+}
+async function verifyEntrances() {
+  const wanted = new Set(['open', 'once', 'sealed', 'fixed', 'double']);
+  for (let step = 0; step < 350 && wanted.size; step++) {
+    const before = await current(hostToken);
+    if (before.gameView.phase === 'round-result') {
+      await command(hostToken, {
+        type: 'lifecycle',
+        action: before.lifecycleActions[0],
+      });
+      continue;
+    }
+    const choice = await nextLegalChoice([...wanted]);
+    assert.ok(choice, 'Natural legal path still offers an action');
+    if (choice.kind && wanted.has(choice.kind)) await sleep(1400);
+    const marks = await audits();
+    const after = await act(choice);
+    if (
+      !choice.kind ||
+      !wanted.has(choice.kind) ||
+      after.gameView.latest?.verb !== 'offer' ||
+      !['auction', 'double'].includes(after.gameView.phase)
+    )
+      continue;
+    const entrance = host.locator(`[data-auction-entrance="${choice.kind}"]`);
+    await entrance.waitFor({ state: 'attached', timeout: 1800 });
+    const shape = await entrance.evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      const css = getComputedStyle(element);
+      return {
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+        viewportWidth: innerWidth,
+        viewportHeight: innerHeight,
+        position: css.position,
+        pointerEvents: css.pointerEvents,
+        animation: css.animationName,
+        kind: element.dataset.auctionEntrance,
+      };
+    });
+    assert.equal(shape.position, 'fixed');
+    assert.equal(
+      shape.pointerEvents,
+      'none',
+      'Entrance never blocks a saved-state action',
+    );
+    assert.equal(shape.x, 0);
+    assert.equal(shape.y, 0);
+    assert.equal(shape.width, shape.viewportWidth);
+    assert.equal(shape.height, shape.viewportHeight);
+    await capture(host, `entrance-${choice.kind}`);
+    const cue =
+      choice.kind === 'double' ? 'double-open' : `auction-${choice.kind}`;
+    await savedSound(
+      after,
+      cue,
+      'public',
+      marks,
+      `Saved ${choice.kind} offer selects its own actual entrance WAV`,
+    );
+    await entrance.waitFor({ state: 'detached', timeout: 2500 });
+    evidence.checks.push({
+      check: 'Actual saved full-screen entrance',
+      revision: after.revision,
+      kind: choice.kind,
+      bounds: shape,
+      screenshot: `entrance-${choice.kind}.png`,
+    });
+    wanted.delete(choice.kind);
+  }
+  assert.equal(
+    wanted.size,
+    0,
+    'All five methods naturally offered and rendered',
+  );
+  await sleep(1400);
+  const marks = await audits();
+  await host.reload();
+  await host.locator('[data-modern-art-sound]').waitFor();
+  assert.equal(
+    await host.locator('[data-auction-entrance]').count(),
+    0,
+    'Refresh never replays a saved entrance',
+  );
+  await quiet(marks, 'Entrance refresh does not replay its saved sound');
+
+  await host.emulateMedia({ reducedMotion: 'reduce' });
+  const reducedChoice = await advanceToOffer();
+  await act(reducedChoice);
+  const reduced = host.locator('[data-auction-entrance]');
+  await reduced.waitFor({ state: 'attached' });
+  const reducedStyle = await reduced.evaluate((element) => ({
+    animation: getComputedStyle(element).animationName,
+    rays: getComputedStyle(element.querySelector('.ma-entrance__rays')).display,
+    seal: getComputedStyle(element.querySelector('.ma-entrance__seal')).display,
+  }));
+  assert.deepEqual(reducedStyle, {
+    animation: 'none',
+    rays: 'none',
+    seal: 'none',
+  });
+  await reduced.waitFor({ state: 'detached', timeout: 1800 });
+  evidence.checks.push({
+    check: 'Reduced motion displays a short static auction banner',
+    actualStyle: reducedStyle,
+  });
+  await host.emulateMedia({ reducedMotion: 'no-preference' });
+
+  const testChoice = await advanceToOffer();
+  await sleep(1400);
+  await command(hostToken, { type: 'set-play-mode', mode: 'test' });
+  const testMarks = await audits();
+  // Refresh the decision after the mode-setting saved revision.
+  const testView = await current(testChoice.player.token);
+  await act({ ...testChoice, view: testView });
+  await quiet(testMarks, 'Saved test-mode offer omits entrance sound');
+  assert.equal(await host.locator('[data-auction-entrance]').count(), 0);
+  await command(hostToken, { type: 'set-play-mode', mode: 'play' });
+  assert.equal(
+    await host.locator('[data-auction-entrance]').count(),
+    0,
+    'Returning to play never replays the test entrance',
+  );
+  assert.deepEqual(evidence.pageErrors, []);
+  assert.deepEqual(evidence.externalRequests, []);
+  assert.deepEqual(evidence.audioRequestFailures, []);
+  evidence.result = 'passed';
+  await save();
+  console.log(
+    JSON.stringify({
+      result: evidence.result,
+      output,
+      entrances: 5,
+      checks: evidence.checks.length,
+      seconds: evidence.elapsedSeconds,
+    }),
+  );
+}
+
 try {
   if (portable) {
     const { version } = JSON.parse(await readFile('package.json', 'utf8'));
@@ -567,7 +786,9 @@ try {
     logLevel: 'silent',
   });
   fixture = await require(join(work, 'prepare.cjs')).prepare(work, 5);
-  const entry = fixture.cases.find((entry) => entry.id === 'auction-open');
+  const entry = fixture.cases.find(
+    (entry) => entry.id === (entrancesOnly ? 'offer' : 'auction-open'),
+  );
   assert.ok(entry);
   dataDir = entry.dataDir;
   evidence.fixture = {
@@ -628,184 +849,333 @@ try {
   );
   evidence.runtime = await desktop.request('runtime');
   evidence.hiddenWindows = windows;
-  let marks = await checkpoint(
-    'Ready managed public + host + independent silent phone',
-  );
-  for (const role of ['host', 'public']) {
-    assert.equal(marks[role].nativeInstalled, true);
-    assert.deepEqual(marks[role].nativeErrors, []);
-  }
-  await quiet(
-    restoration,
-    'Resume and preferred public opening do not replay saved fixture',
-  );
-  marks = await audits();
-  await savedSound(
-    await act(await candidate('bid')),
-    'bid',
-    'public',
-    marks,
-    'Public alone plays a real saved open bid',
-  );
-  await capture(publicPage, 'public-saved-bid');
-  await capture(phone, 'phone-saved-bid-silent');
-
-  await publicPage.locator('[data-modern-art-sound]').click();
-  await until(
-    async () =>
-      (await host
-        .locator('[data-modern-art-sound]')
-        .getAttribute('aria-pressed')) === 'false',
-    'Mute preference propagates to host',
-  );
-  marks = await audits();
-  await act(await candidate('bid'));
-  await quiet(marks, 'A legal saved bid while muted is silent');
-  marks = await audits();
-  await publicPage.locator('[data-modern-art-sound]').click();
-  await sleep(200);
-  const unlock = await audits();
-  assert.ok(
-    unlock.public.plays.some((play) => play.volume === 0 && play.fulfilled),
-    'Actual gesture unlock preserves silence',
-  );
-  await quiet(marks, 'Unmute does not replay the muted saved bid');
-  marks = await audits();
-  await savedSound(
-    await act(await candidate('bid')),
-    'bid',
-    'public',
-    marks,
-    'Fresh saved bid after unmute plays once',
-  );
-  marks = await audits();
-  await command(hostToken, { type: 'pause' });
-  await quiet(marks, 'Pause clears playback without repeating previous bid');
-  marks = await audits();
-  await command(hostToken, { type: 'resume' });
-  await quiet(marks, 'Resume does not replay the pre-pause saved bid');
-  marks = await audits();
-  await publicPage.reload();
-  await publicPage.locator('[data-modern-art-sound]').waitFor();
-  await until(
-    async () => (await audits()).public.owner === true,
-    'Public reacquires native membership after reload',
-  );
-  await quiet(
-    marks,
-    'Public reload and transient fallback do not replay old feedback',
-  );
-  marks = await audits();
-  await host.reload();
-  await host.locator('[data-modern-art-sound]').waitFor();
-  await quiet(marks, 'Host reload while public owns output remains silent');
-  marks = await audits();
-  await checkpoint('Public document before close');
-  await publicPage.close();
-  pages.delete('public');
-  await until(
-    async () => (await audits()).host.owner === true,
-    'Closing preferred public restores host ownership',
-  );
-  await quiet(marks, 'Public close handoff does not replay old feedback');
-  marks = await audits();
-  await savedSound(
-    await act(await candidate('bid')),
-    'bid',
-    'host',
-    marks,
-    'Host fallback alone plays a newly saved bid',
-  );
-  marks = await audits();
-  await openPublic();
-  await quiet(
-    marks,
-    'Reopened preferred public does not duplicate previous host cue',
-  );
-  let sold = false;
-  for (let index = 0; index < 8; index++) {
+  if (entrancesOnly) {
+    await verifyEntrances();
+  } else {
+    let marks = await checkpoint(
+      'Ready managed public + host + phone awaiting its own gesture',
+    );
+    for (const role of ['host', 'public']) {
+      assert.equal(marks[role].nativeInstalled, true);
+      assert.deepEqual(marks[role].nativeErrors, []);
+    }
+    await quiet(
+      restoration,
+      'Resume and preferred public opening do not replay saved fixture',
+    );
     marks = await audits();
-    const view = await act(await candidate('pass'));
-    const cue = view.gameView.latest?.verb === 'sale' ? 'sale' : 'pass';
     await savedSound(
-      view,
-      cue,
+      await act(await candidate('bid')),
+      'bid',
       'public',
       marks,
-      cue === 'sale'
-        ? 'Saved sale gives one gavel cue on preferred public'
-        : 'Saved pass stays on preferred public',
+      'Public alone plays a real saved open bid',
     );
-    if (cue === 'sale') {
-      sold = true;
-      break;
-    }
-  }
-  assert.equal(sold, true, 'Legal fixture actions actually completed a sale');
-  await capture(publicPage, 'public-saved-sale');
-  marks = await audits();
-  await command(hostToken, { type: 'set-play-mode', mode: 'test' });
-  await quiet(marks, 'Entering test mode never repeats the sale');
-  const afterSale = await current(hostToken);
-  let testChoice;
-  for (const player of fixture.players) {
-    const view = await current(player.token);
-    const action = view.actions.find((action) => action.type === 'offer');
-    if (action) {
-      testChoice = { player, view, action };
-      break;
-    }
-  }
-  assert.ok(testChoice, 'A real legal test-mode action remains available');
-  marks = await audits();
-  await act(testChoice);
-  await quiet(
-    marks,
-    'Saved test-mode painting remains silent after audio was unlocked',
-  );
-  marks = await audits();
-  await command(hostToken, { type: 'set-play-mode', mode: 'play' });
-  await quiet(
-    marks,
-    'Returning to normal play does not replay the test action',
-  );
-  evidence.checks.push({
-    check: 'Production sale followed by legal saved test action',
-    saleRevision: afterSale.revision,
-  });
-  const final = await checkpoint('Final actual audio documents');
-  for (const [role, audit] of evidence.documents.flatMap((document) =>
-    Object.entries(document.snapshot),
-  )) {
-    assert.deepEqual(audit.errors, [], `${role}: no HTMLAudio decoder errors`);
+    await capture(publicPage, 'public-saved-bid');
+    await capture(phone, 'phone-saved-bid-silent');
+
     assert.equal(
-      audit.bufferStarts,
-      0,
-      'Decode probes did not synthesize playback',
+      await phone.locator('[data-modern-art-sound]').getAttribute('aria-label'),
+      '点击启用手机提示音',
+    );
+    await phone.locator('[data-modern-art-sound]').click();
+    await until(
+      async () =>
+        (await phone
+          .locator('[data-modern-art-sound]')
+          .getAttribute('aria-label')) === '提示音已开启，点击静音',
+      'Phone gesture silently unlocks local decoder',
+    );
+    phoneSoundEnabled = true;
+    marks = await audits();
+    await savedSound(
+      await act(await candidate('bid')),
+      'bid',
+      'public',
+      marks,
+      'Phone gesture permits one future cue alongside the single desktop owner',
+    );
+    marks = await audits();
+    await reenter(phone, 'player');
+    await quiet(marks, 'Phone box return does not replay history');
+    marks = await audits();
+    await savedSound(
+      await act(await candidate('bid')),
+      'bid',
+      'public',
+      marks,
+      'Phone reused decoder plays a future bid after box return',
+    );
+
+    marks = await audits();
+    await phone.reload();
+    await phone.locator('[data-modern-art-sound]').waitFor();
+    phoneSoundEnabled = false;
+    await quiet(
+      marks,
+      'Phone reload keeps preference without replaying history',
     );
     assert.equal(
-      audit.plays.filter((play) => play.rejected && play.volume > 0).length,
-      0,
-      'Actual cues are not autoplay rejected',
+      await phone.locator('[data-modern-art-sound]').getAttribute('aria-label'),
+      '点击启用手机提示音',
+      'Reload asks for the browser gesture again',
     );
+    marks = await audits();
+    await savedSound(
+      await act(await candidate('bid')),
+      'bid',
+      'public',
+      marks,
+      'Phone consumes saved events silently while gesture is pending',
+    );
+    await phone.locator('[data-modern-art-sound]').click();
+    phoneSoundEnabled = true;
+    marks = await audits();
+    await savedSound(
+      await act(await candidate('bid')),
+      'bid',
+      'public',
+      marks,
+      'Phone refresh unlock permits future events without old backlog',
+    );
+    await phone.locator('[data-modern-art-sound]').click();
+    phoneSoundEnabled = false;
+    await reenter(phone, 'player');
+    assert.equal(
+      await phone.locator('[data-modern-art-sound]').getAttribute('aria-label'),
+      '提示音已静音，点击开启',
+      'Phone mute survives box return',
+    );
+    assert.equal(
+      await publicPage
+        .locator('[data-modern-art-sound]')
+        .getAttribute('aria-pressed'),
+      'true',
+      'Phone mute does not alter desktop preference',
+    );
+    await phone.reload();
+    await phone.locator('[data-modern-art-sound]').waitFor();
+    assert.equal(
+      await phone
+        .locator('[data-modern-art-sound]')
+        .getAttribute('aria-pressed'),
+      'false',
+      'Phone mute persists through a new document',
+    );
+    evidence.checks.push({
+      check:
+        'Phone native-independent local output, first gesture, box return, refresh gesture and independent persistent mute',
+      actualDevice:
+        'Hidden WebView2 phone simulation; physical Android/iOS browsers remain outside this check',
+    });
+
+    marks = await audits();
+    await reenter(publicPage, 'public');
+    await until(
+      async () => (await audits()).public.owner === true,
+      'Public reacquires native ownership after box return',
+    );
+    await quiet(marks, 'Public box return does not replay old feedback');
+    marks = await audits();
+    await savedSound(
+      await act(await candidate('bid')),
+      'bid',
+      'public',
+      marks,
+      'New bid plays after public box return',
+    );
+    await reenter(host, 'host');
+    assert.equal(
+      (await audits()).host.owner,
+      false,
+      'Host box return preserves preferred public output',
+    );
+    if (reentryOnly) {
+      evidence.result = 'passed';
+      await save();
+      console.log(
+        JSON.stringify({
+          result: evidence.result,
+          output,
+          checks: evidence.checks.length,
+          seconds: evidence.elapsedSeconds,
+        }),
+      );
+      process.exitCode = 0;
+    } else {
+      await publicPage.locator('[data-modern-art-sound]').click();
+      await until(
+        async () =>
+          (await host
+            .locator('[data-modern-art-sound]')
+            .getAttribute('aria-pressed')) === 'false',
+        'Mute preference propagates to host',
+      );
+      marks = await audits();
+      await act(await candidate('bid'));
+      await quiet(marks, 'A legal saved bid while muted is silent');
+      marks = await audits();
+      await publicPage.locator('[data-modern-art-sound]').click();
+      await sleep(200);
+      const unlock = await audits();
+      assert.ok(
+        unlock.public.plays.some((play) => play.volume === 0 && play.fulfilled),
+        'Actual gesture unlock preserves silence',
+      );
+      await quiet(marks, 'Unmute does not replay the muted saved bid');
+      marks = await audits();
+      await savedSound(
+        await act(await candidate('bid')),
+        'bid',
+        'public',
+        marks,
+        'Fresh saved bid after unmute plays once',
+      );
+      marks = await audits();
+      await command(hostToken, { type: 'pause' });
+      await quiet(
+        marks,
+        'Pause clears playback without repeating previous bid',
+      );
+      marks = await audits();
+      await command(hostToken, { type: 'resume' });
+      await quiet(marks, 'Resume does not replay the pre-pause saved bid');
+      marks = await audits();
+      await publicPage.reload();
+      await publicPage.locator('[data-modern-art-sound]').waitFor();
+      await until(
+        async () => (await audits()).public.owner === true,
+        'Public reacquires native membership after reload',
+      );
+      await quiet(
+        marks,
+        'Public reload and transient fallback do not replay old feedback',
+      );
+      marks = await audits();
+      await host.reload();
+      await host.locator('[data-modern-art-sound]').waitFor();
+      await quiet(marks, 'Host reload while public owns output remains silent');
+      marks = await audits();
+      await checkpoint('Public document before close');
+      await publicPage.close();
+      pages.delete('public');
+      await until(
+        async () => (await audits()).host.owner === true,
+        'Closing preferred public restores host ownership',
+      );
+      await quiet(marks, 'Public close handoff does not replay old feedback');
+      marks = await audits();
+      await savedSound(
+        await act(await candidate('bid')),
+        'bid',
+        'host',
+        marks,
+        'Host fallback alone plays a newly saved bid',
+      );
+      marks = await audits();
+      await openPublic();
+      await quiet(
+        marks,
+        'Reopened preferred public does not duplicate previous host cue',
+      );
+      let sold = false;
+      for (let index = 0; index < 8; index++) {
+        marks = await audits();
+        const view = await act(await candidate('pass'));
+        const cue = view.gameView.latest?.verb === 'sale' ? 'sale' : 'pass';
+        await savedSound(
+          view,
+          cue,
+          'public',
+          marks,
+          cue === 'sale'
+            ? 'Saved sale gives one gavel cue on preferred public'
+            : 'Saved pass stays on preferred public',
+        );
+        if (cue === 'sale') {
+          sold = true;
+          break;
+        }
+      }
+      assert.equal(
+        sold,
+        true,
+        'Legal fixture actions actually completed a sale',
+      );
+      await capture(publicPage, 'public-saved-sale');
+      marks = await audits();
+      await command(hostToken, { type: 'set-play-mode', mode: 'test' });
+      await quiet(marks, 'Entering test mode never repeats the sale');
+      const afterSale = await current(hostToken);
+      let testChoice;
+      for (const player of fixture.players) {
+        const view = await current(player.token);
+        const action = view.actions.find((action) => action.type === 'offer');
+        if (action) {
+          testChoice = { player, view, action };
+          break;
+        }
+      }
+      assert.ok(testChoice, 'A real legal test-mode action remains available');
+      marks = await audits();
+      await act(testChoice);
+      await quiet(
+        marks,
+        'Saved test-mode painting remains silent after audio was unlocked',
+      );
+      marks = await audits();
+      await command(hostToken, { type: 'set-play-mode', mode: 'play' });
+      await quiet(
+        marks,
+        'Returning to normal play does not replay the test action',
+      );
+      evidence.checks.push({
+        check: 'Production sale followed by legal saved test action',
+        saleRevision: afterSale.revision,
+      });
+      const final = await checkpoint('Final actual audio documents');
+      for (const [role, audit] of evidence.documents.flatMap((document) =>
+        Object.entries(document.snapshot),
+      )) {
+        assert.deepEqual(
+          audit.errors,
+          [],
+          `${role}: no HTMLAudio decoder errors`,
+        );
+        assert.equal(
+          audit.bufferStarts,
+          0,
+          'Decode probes did not synthesize playback',
+        );
+        assert.equal(
+          audit.plays.filter((play) => play.rejected && play.volume > 0).length,
+          0,
+          'Actual cues are not autoplay rejected',
+        );
+      }
+      assert.equal(
+        final.phone.claims.length,
+        0,
+        'Phone never claims native desktop events',
+      );
+      assert.deepEqual(evidence.pageErrors, []);
+      assert.deepEqual(evidence.externalRequests, []);
+      assert.deepEqual(evidence.audioRequestFailures, []);
+      evidence.result = 'passed';
+      await save();
+      console.log(
+        JSON.stringify({
+          result: evidence.result,
+          output,
+          archiveSha256: evidence.archiveSha256,
+          wavs: evidence.assets.length,
+          checks: evidence.checks.length,
+          seconds: evidence.elapsedSeconds,
+          work,
+        }),
+      );
+    }
   }
-  assert.equal(final.phone.plays.length, 0);
-  assert.deepEqual(evidence.pageErrors, []);
-  assert.deepEqual(evidence.externalRequests, []);
-  assert.deepEqual(evidence.audioRequestFailures, []);
-  evidence.result = 'passed';
-  await save();
-  console.log(
-    JSON.stringify({
-      result: evidence.result,
-      output,
-      archiveSha256: evidence.archiveSha256,
-      wavs: evidence.assets.length,
-      checks: evidence.checks.length,
-      seconds: evidence.elapsedSeconds,
-      work,
-    }),
-  );
 } catch (error) {
   evidence.result = 'failed';
   evidence.error = String(error.stack ?? error);

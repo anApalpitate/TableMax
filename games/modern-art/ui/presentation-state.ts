@@ -22,7 +22,10 @@ export type ModernArtSoundCue =
 /** Reads only the publicly saved verb and painting kind, never a bid amount. */
 export function modernArtSoundCue(
   feedback: Pick<RoomFeedback, 'events'> | null,
-  game: Pick<ModernArtView, 'phase' | 'latest'> | null,
+  game:
+    | (Pick<ModernArtView, 'phase' | 'latest'> &
+        Partial<Pick<ModernArtView, 'auction'>>)
+    | null,
 ): ModernArtSoundCue | null {
   const event = feedback?.events.at(-1);
   if (!event || !game) return null;
@@ -45,8 +48,20 @@ export function modernArtSoundCue(
           return 'offer';
       }
     }
-    case 'double-add':
-      return 'double-add';
+    case 'double-add': {
+      switch (game.auction?.kind) {
+        case 'open':
+          return 'auction-open';
+        case 'once':
+          return 'auction-once';
+        case 'sealed':
+          return 'auction-sealed';
+        case 'fixed':
+          return 'auction-fixed';
+        default:
+          return 'double-add';
+      }
+    }
     case 'double-decline':
     case 'pass':
       return 'pass';
