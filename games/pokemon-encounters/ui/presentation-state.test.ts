@@ -7,6 +7,7 @@ import {
   decisionProgress,
   publicZeroColumns,
   soundCues,
+  soundRecipe,
 } from './presentation-state';
 import { savedChanges } from './motion';
 import { presentAction, tableTargetSummary } from './action-presentation';
@@ -245,12 +246,12 @@ describe('saved effects follow actions as well as visible changes', () => {
     expect(soundCues('draw', draw, after)).toEqual(['rocket', 'meowth']);
     expect(savedChanges(after, structuredClone(after))).toEqual([]);
   });
-  it('keeps a winner cue when the final action itself had a theme', () => {
+  it('prioritizes a winner cue over the final action theme', () => {
     const game = view();
     game.matchWinners = ['S1', 'S2'];
     expect(
       soundCues('round-result', action('swap', 'special-snorlax'), game),
-    ).toEqual(['snorlax', 'match-result']);
+    ).toEqual(['match-result']);
   });
   it('reports parallel initial progress and each independent Zapdos recipient', () => {
     const game = view();
@@ -259,5 +260,78 @@ describe('saved effects follow actions as well as visible changes', () => {
     game.phase = 'zapdos-receive';
     game.passProgress = { completed: 1, total: 2 };
     expect(decisionProgress(game)).toMatchObject({ completed: 2, total: 3 });
+  });
+});
+
+describe('user cry recipes', () => {
+  it.each([
+    ['ordinary--2', 'pikachu'],
+    ['ordinary-0', 'jigglypuff'],
+    ['ordinary-1', 'eevee'],
+    ['ordinary-3', 'bulbasaur'],
+    ['ordinary-4', 'squirtle'],
+    ['ordinary-7', 'gengar'],
+  ])('plays %s only when it is newly drawn', (category, cry) => {
+    const draw: PublicAction = {
+      actor: 'S1',
+      verb: 'draw',
+      cardCategory: category,
+      ability: null,
+      source: 'deck',
+      targets: [],
+    };
+    expect(soundRecipe('draw', draw, view())).toEqual([
+      { cue: cry, lane: 'cry', priority: 1, delayMs: 0, maxLateMs: 700 },
+    ]);
+    expect(soundCues('replace', { ...draw, verb: 'replace' }, view())).toEqual([
+      'replace',
+    ]);
+    expect(
+      soundCues('round-result', { ...draw, verb: 'replace' }, view()),
+    ).toEqual(['round-result']);
+  });
+  it('plays Rocket entrance and coin landing in independent lanes without replaying the BGM on replacement', () => {
+    const game = view();
+    game.coin = 'meowth';
+    const draw = action('draw', 'special-team-rocket', []);
+    expect(soundRecipe('draw', draw, game)).toEqual([
+      {
+        cue: 'rocket',
+        lane: 'effect',
+        priority: 2,
+        delayMs: 0,
+        maxLateMs: 700,
+      },
+      {
+        cue: 'meowth',
+        lane: 'cry',
+        priority: 2,
+        delayMs: 1200,
+        maxLateMs: 700,
+      },
+    ]);
+    expect(
+      soundRecipe('draw', draw, game, { reducedMotion: true })[1]?.delayMs,
+    ).toBe(0);
+    game.coin = 'pikachu';
+    expect(soundRecipe('draw', draw, game)[1]?.cue).toBe('pikachu');
+    expect(
+      soundCues('replace', action('replace', 'special-team-rocket'), game),
+    ).not.toContain('rocket');
+  });
+  it('never derives an ordinary cry from private peek data or final revealed boards', () => {
+    const game = view();
+    game.peek = { slot: 1, card: face('ordinary--2#01') };
+    expect(
+      soundCues('replace', action('peek', 'special-charizard', []), game),
+    ).toEqual(['charizard']);
+    game.boards.S1![0] = {
+      slotId: 'S1:0',
+      faceUp: true,
+      card: face('ordinary--2#01'),
+    };
+    expect(soundCues('round-result', undefined, game)).toEqual([
+      'round-result',
+    ]);
   });
 });

@@ -83,11 +83,18 @@ function PokemonScreen({ session }: { session: RoomSession }) {
           <span
             className={`connection ${connected ? 'online' : ''}`}
             role="status"
+            aria-label={connected ? '本地连接已就绪' : '正在连接本地服务'}
             title={connected ? '本地连接已就绪' : '正在连接本地服务'}
           >
-            {connected ? '本地连接已就绪' : '正在连接本地服务'}
+            {role === 'player' ? (
+              <span className="toolbar-connection-mark" aria-hidden="true" />
+            ) : connected ? (
+              '本地连接已就绪'
+            ) : (
+              '正在连接本地服务'
+            )}
           </span>
-          <FullscreenControl />
+          {role !== 'player' && <FullscreenControl />}
           {role === 'player' && (
             <button
               className="secondary toolbar-friends"
@@ -98,11 +105,12 @@ function PokemonScreen({ session }: { session: RoomSession }) {
             </button>
           )}
           {role !== 'player' && <DisplaySettings />}
-          <PlayModeBadge mode={view?.playMode} />
+          {role !== 'player' && <PlayModeBadge mode={view?.playMode} />}
           {role !== 'player' && (
             <SoundControl
               compact
               disabled={view?.playMode === 'test'}
+              paused={view?.paused ?? false}
               feedback={feedback}
               errorId={errorId}
               game={game}
@@ -115,7 +123,10 @@ function PokemonScreen({ session }: { session: RoomSession }) {
           >
             规则
           </button>
-          <button className="secondary" onClick={() => setPanel('menu')}>
+          <button
+            className="secondary toolbar-menu"
+            onClick={() => setPanel('menu')}
+          >
             菜单
           </button>
         </header>
@@ -231,6 +242,12 @@ function PokemonScreen({ session }: { session: RoomSession }) {
               </div>
             ) : (
               <>
+                {role === 'player' && (
+                  <div className="pokemon-mobile-menu-controls">
+                    <FullscreenControl />
+                    <PlayModeBadge mode={view?.playMode} />
+                  </div>
+                )}
                 {canControl && <RoomManagement session={session} />}
 
                 {game && (

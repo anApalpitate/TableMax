@@ -1,5 +1,6 @@
 import type { PublicAction } from '../../../packages/protocol/src';
 import type { PokemonView } from '../rules/project';
+import { COIN_LAND_MS, SOUND_MAX_LATE_MS } from './sound-timing';
 
 export type EffectTheme = 'mew' | 'zapdos' | 'snorlax' | 'charizard' | 'rocket';
 export type SoundCue =
@@ -16,7 +17,30 @@ export type SoundCue =
   | 'rocket-return'
   | 'meowth'
   | 'pikachu'
+  | 'jigglypuff'
+  | 'eevee'
+  | 'bulbasaur'
+  | 'squirtle'
+  | 'gengar'
   | 'error';
+
+export type SoundLane = 'effect' | 'cry';
+export interface SoundCueRecipe {
+  cue: SoundCue;
+  lane: SoundLane;
+  priority: 1 | 2 | 3;
+  delayMs: number;
+  maxLateMs: number;
+}
+
+const ordinaryCries: Record<string, SoundCue> = {
+  'ordinary--2': 'pikachu',
+  'ordinary-0': 'jigglypuff',
+  'ordinary-1': 'eevee',
+  'ordinary-3': 'bulbasaur',
+  'ordinary-4': 'squirtle',
+  'ordinary-7': 'gengar',
+};
 
 const themes: Record<string, EffectTheme> = {
   'special-mew': 'mew',
@@ -65,15 +89,58 @@ export function soundCues(
   action: PublicAction | undefined,
   view?: PokemonView | null,
 ): SoundCue[] {
+  return soundRecipe(kind, action, view).map(({ cue }) => cue);
+}
+
+/** One saved event, at most two fixed media lanes; never infer a hidden card. */
+export function soundRecipe(
+  kind: string,
+  action: PublicAction | undefined,
+  view?: PokemonView | null,
+  { reducedMotion = false }: { reducedMotion?: boolean } = {},
+): SoundCueRecipe[] {
   const effects = actionEffects(action, view);
-  const cues: SoundCue[] = [];
-  if (effects.coin) cues.push('rocket', effects.coin);
-  else if (effects.theme) cues.push(effects.theme);
-  else if (['draw', 'replace', 'effect-complete'].includes(kind))
-    cues.push(kind as SoundCue);
-  if (effects.rocketReturns.length) cues.push('rocket-return');
+  const cues: SoundCueRecipe[] = [];
+  const cue = (
+    sound: SoundCue,
+    lane: SoundLane,
+    priority: 1 | 2 | 3,
+    delayMs = 0,
+  ): SoundCueRecipe => ({
+    cue: sound,
+    lane,
+    priority,
+    delayMs,
+    maxLateMs: SOUND_MAX_LATE_MS,
+  });
+  // A final saved result has priority over its last mechanical/ability cue.
   if (kind === 'round-result')
-    cues.push(view?.matchWinners.length ? 'match-result' : 'round-result');
+    return [
+      cue(
+        view?.matchWinners.length ? 'match-result' : 'round-result',
+        'effect',
+        3,
+      ),
+    ];
+  if (effects.coin) {
+    cues.push(cue('rocket', 'effect', 2));
+    cues.push(cue(effects.coin, 'cry', 2, reducedMotion ? 0 : COIN_LAND_MS));
+  } else if (
+    effects.theme &&
+    (effects.theme !== 'rocket' || action?.verb === 'draw')
+  ) {
+    cues.push(cue(effects.theme, 'effect', 2));
+  } else {
+    const cry =
+      action?.verb === 'draw' && action.cardCategory
+        ? ordinaryCries[action.cardCategory]
+        : undefined;
+    if (cry) cues.push(cue(cry, 'cry', 1));
+    else if (['draw', 'replace', 'effect-complete'].includes(kind))
+      cues.push(cue(kind as SoundCue, 'effect', 1));
+  }
+  if (effects.rocketReturns.length)
+    cues.push(cue('rocket-return', 'effect', 2, cues.length ? 420 : 0));
   return cues;
 }
 

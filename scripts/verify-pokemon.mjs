@@ -15,7 +15,15 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 );
 const portable = process.argv.includes('--portable');
 const project = JSON.parse(await readFile('package.json', 'utf8'));
-const output = verificationOutput(portable ? 'portable' : 'development');
+const evidenceName = process.argv
+  .find((arg) => arg.startsWith('--evidence='))
+  ?.slice('--evidence='.length);
+if (evidenceName && !/^[a-zA-Z0-9_-]+$/.test(evidenceName))
+  throw new Error('Invalid evidence directory name');
+const output = verificationOutput(
+  portable ? 'portable' : 'development',
+  ...(evidenceName ? [evidenceName] : []),
+);
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/pokemon-verify-'));
@@ -357,7 +365,7 @@ for (let run = 0; run < 2; run++) {
         })
       ).json();
       assert.equal(full.ok, false);
-      await page.getByRole('button', { name: '牌桌管理', exact: true }).click();
+      await page.getByRole('button', { name: '管理设置', exact: true }).click();
       const next = desktop.waitForEvent('window');
       await page
         .getByRole('link', { name: '打开公共屏' })
@@ -387,7 +395,7 @@ for (let run = 0; run < 2; run++) {
           'Selection stays local',
         );
         await mobile
-          .getByRole('button', { name: '取消选择', exact: true })
+          .getByRole('button', { name: '取消卡片选择', exact: true })
           .click();
         await mobile
           .locator('.pokemon-player > .pokemon-board button')

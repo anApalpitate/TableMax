@@ -60,6 +60,12 @@ await build({
           place(state,'S1',2,'special-ditto#01');
         }
         if(kind==='swap') event={id:1,kind:'effect-complete',text:'已交换',action:{actor:'S1',verb:'swap',ability:'special-snorlax',cardCategory:'special-snorlax',targets:[{seat:'S1',slots:[0,1]}]}};
+        if(kind.startsWith('scene-')) {
+          const theme=kind.slice(6);
+          const mapping={mew:['draw','special-mew'],zapdos:['draw','special-zapdos'],charizard:['peek','special-charizard'],snorlax:['swap','special-snorlax'],'local-mew':['replace','special-mew'],decline:['decline','special-snorlax']};
+          const [verb,ability]=mapping[theme];
+          event={id:++ordinal,kind:verb==='draw'?'draw':'effect-complete',text:'已保存',action:{actor:'S1',verb,ability,cardCategory:ability,targets:[]}};
+        }
         if(kind==='coin') {
           state.coin='meowth';
           event={id:++ordinal,kind:'draw',text:'已保存',action:{actor:'S1',verb:'draw',ability:'special-team-rocket',cardCategory:'special-team-rocket',targets:[]}};
@@ -445,6 +451,45 @@ try {
   await capture('joint-winner-fireworks');
   evidence.checks.push(
     'Validated two-seat joint match result renders both crowns and animated celebration particles over the entire viewport',
+  );
+  for (const theme of ['mew', 'zapdos', 'snorlax', 'charizard']) {
+    await page.evaluate((theme) => {
+      window.effectAnimations = [];
+      return window.showEffect('scene-' + theme);
+    }, theme);
+    assert.equal(
+      await page.locator('.pokemon-scene').getAttribute('data-scene'),
+      theme,
+    );
+    await page.waitForFunction(() =>
+      window.effectAnimations.includes('pokemon-scene-fade'),
+    );
+    assert.equal(
+      await page
+        .locator('.pokemon-scene')
+        .evaluate((el) => getComputedStyle(el).pointerEvents),
+      'none',
+    );
+    await capture('scene-' + theme);
+  }
+  for (const followup of ['local-mew', 'decline']) {
+    await page.evaluate((kind) => window.showEffect('scene-' + kind), followup);
+    assert.equal(
+      await page.locator('.pokemon-scene').count(),
+      0,
+      'Follow-up decisions do not repeat full-screen entrances',
+    );
+  }
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.evaluate(() => window.showEffect('scene-charizard'));
+  assert.equal(
+    await page
+      .locator('.pokemon-scene')
+      .evaluate((el) => getComputedStyle(el).display),
+    'none',
+  );
+  evidence.checks.push(
+    'Decisive saved scenes actually animate; follow-ups do not repeat; reduced motion hides screen decorations.',
   );
   assert.deepEqual(evidence.errors, []);
   evidence.result = 'passed';

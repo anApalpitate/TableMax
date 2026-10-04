@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { RoomFeedback } from '../../../packages/protocol/src';
 import type { PokemonView } from '../rules/project';
-import { soundCues, type SoundCue } from './presentation-state';
+import { soundRecipe, type SoundCue } from './presentation-state';
 import { SavedSoundPlayer } from './sound-player';
+import { SOUND_MAX_LATE_MS } from './sound-timing';
 import draw from '../../../assets/games/pokemon-encounters/audio/draw-v1.wav';
 import replace from '../../../assets/games/pokemon-encounters/audio/replace-v1.wav';
 import effect from '../../../assets/games/pokemon-encounters/audio/effect-complete-v1.wav';
@@ -13,10 +14,15 @@ import mew from '../../../assets/games/pokemon-encounters/audio/mew-v1.wav';
 import zapdos from '../../../assets/games/pokemon-encounters/audio/zapdos-v1.wav';
 import snorlax from '../../../assets/games/pokemon-encounters/audio/snorlax-v1.wav';
 import charizard from '../../../assets/games/pokemon-encounters/audio/charizard-v1.wav';
-import rocket from '../../../assets/games/pokemon-encounters/audio/rocket-v1.wav';
+import rocket from '../../../assets/games/pokemon-encounters/audio/team-rocket-entrance-user-v2.wav';
 import rocketReturn from '../../../assets/games/pokemon-encounters/audio/rocket-return-v1.wav';
-import meowth from '../../../assets/games/pokemon-encounters/audio/meowth-game-v1.mp3';
-import pikachu from '../../../assets/games/pokemon-encounters/audio/pikachu-starter-game-v1.mp3';
+import meowth from '../../../assets/games/pokemon-encounters/audio/meowth-coin-user-v2.wav';
+import pikachu from '../../../assets/games/pokemon-encounters/audio/pikachu-user-v2.wav';
+import jigglypuff from '../../../assets/games/pokemon-encounters/audio/jigglypuff-user-v2.wav';
+import eevee from '../../../assets/games/pokemon-encounters/audio/eevee-user-v2.wav';
+import bulbasaur from '../../../assets/games/pokemon-encounters/audio/bulbasaur-user-v2.wav';
+import squirtle from '../../../assets/games/pokemon-encounters/audio/squirtle-user-v2.wav';
+import gengar from '../../../assets/games/pokemon-encounters/audio/gengar-user-v2.wav';
 
 const sources: Record<SoundCue, string> = {
   draw,
@@ -33,6 +39,11 @@ const sources: Record<SoundCue, string> = {
   'rocket-return': rocketReturn,
   meowth,
   pikachu,
+  jigglypuff,
+  eevee,
+  bulbasaur,
+  squirtle,
+  gengar,
 };
 const muteKey = 'tablemax-sound-muted';
 function preference() {
@@ -48,12 +59,17 @@ function feedbackKey(feedback: RoomFeedback | null) {
     : '';
 }
 
+function reducedMotionPreference() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 export function SoundControl({
   feedback,
   game = null,
   errorId,
   compact = false,
   disabled = false,
+  paused = false,
   canPlay = true,
 }: {
   feedback: RoomFeedback | null;
@@ -61,18 +77,27 @@ export function SoundControl({
   errorId: string;
   compact?: boolean;
   disabled?: boolean;
+  paused?: boolean;
   canPlay?: boolean;
 }) {
   const [enabled, setEnabled] = useState(preference);
   const [blocked, setBlocked] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(reducedMotionPreference);
   // Mounting a screen never replays feedback that arrived before its subscription.
   const last = useRef(feedbackKey(feedback));
   const lastError = useRef(errorId);
   const player = useRef<SavedSoundPlayer | null>(null);
   const permission = useRef(0);
   useEffect(() => {
-    const audio = new Audio();
-    audio.preload = 'none';
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const change = () => setReducedMotion(media.matches);
+    media.addEventListener('change', change);
+    return () => media.removeEventListener('change', change);
+  }, []);
+  useEffect(() => {
+    const audio = { effect: new Audio(), cry: new Audio() };
+    audio.effect.preload = 'none';
+    audio.cry.preload = 'none';
     const playback = new SavedSoundPlayer(audio, () => setBlocked(true));
     player.current = playback;
     const storage = (event: StorageEvent) => {
@@ -90,8 +115,8 @@ export function SoundControl({
   }, []);
   useEffect(() => {
     permission.current++;
-    if (!enabled || disabled || !canPlay) player.current?.stop();
-  }, [enabled, disabled, canPlay]);
+    if (!enabled || disabled || paused || !canPlay) player.current?.stop();
+  }, [enabled, disabled, paused, canPlay]);
   useEffect(() => {
     const id = feedbackKey(feedback);
     if (!feedback) {
@@ -102,46 +127,64 @@ export function SoundControl({
     }
     if (last.current === id) return;
     last.current = id;
-    if (!enabled || disabled || !canPlay) return;
+    if (!enabled || disabled || paused || !canPlay) return;
     const event = feedback.events.at(-1);
     if (!event) return;
     const permit = permission.current,
-      playback = player.current;
+      playback = player.current,
+      occurredAt = Date.now();
     void Promise.resolve(window.tablemaxAudio?.claimEvent(id) ?? true)
       .then((accepted) => {
         if (
           accepted &&
           permission.current === permit &&
+          last.current === id &&
           player.current === playback
         )
-          playback?.enqueue(
-            soundCues(event.kind, event.action, game).map(
-              (cue) => sources[cue],
+          playback?.enqueueEvent(
+            id,
+            soundRecipe(event.kind, event.action, game, { reducedMotion }).map(
+              ({ cue, ...recipe }) => ({ ...recipe, source: sources[cue] }),
             ),
+            occurredAt,
           );
       })
       .catch(() => undefined);
-  }, [feedback, game, enabled, disabled, canPlay]);
+  }, [feedback, game, enabled, disabled, paused, canPlay, reducedMotion]);
   useEffect(() => {
     if (lastError.current === errorId) return;
     lastError.current = errorId;
-    if (!errorId || !enabled || disabled || !canPlay) return;
+    if (!errorId || !enabled || disabled || paused || !canPlay) return;
     const permit = permission.current,
-      playback = player.current;
-    void Promise.resolve(
-      window.tablemaxAudio?.claimEvent(`${last.current}:error:${errorId}`) ??
-        true,
-    )
+      playback = player.current,
+      current = last.current,
+      key = `${current}:error:${errorId}`,
+      occurredAt = Date.now();
+    void Promise.resolve(window.tablemaxAudio?.claimEvent(key) ?? true)
       .then((accepted) => {
         if (
           accepted &&
           permission.current === permit &&
+          last.current === current &&
+          lastError.current === errorId &&
           player.current === playback
         )
-          playback?.enqueue([error]);
+          playback?.enqueueEvent(
+            key,
+            [
+              {
+                source: error,
+                lane: 'effect',
+                priority: 3,
+                delayMs: 0,
+                maxLateMs: SOUND_MAX_LATE_MS,
+              },
+            ],
+            occurredAt,
+          );
       })
       .catch(() => undefined);
-  }, [errorId, enabled, disabled, canPlay]);
+  }, [errorId, enabled, disabled, paused, canPlay]);
   return (
     <button
       className="secondary sound-control"

@@ -6,7 +6,11 @@ import {
   type CSSProperties,
 } from 'react';
 import type { PokemonView } from '../rules/project';
-import { coinArt } from '../../../assets/games/pokemon-encounters/catalog';
+import {
+  cardArt,
+  coinArt,
+} from '../../../assets/games/pokemon-encounters/catalog';
+import { drawMotifs, effectScene } from './effect-scene';
 import { SavedMotion } from './motion';
 import type {
   PublicAction,
@@ -256,6 +260,31 @@ function SavedActionTrails({
       case 'draw':
         if (action.source) trail(point(pile(action.source)), point(held));
         burst(held, true);
+        if (action.cardCategory && drawMotifs[action.cardCategory]) {
+          const center = point(held);
+          if (center)
+            for (let i = 0; i < 7; i++) {
+              const angle = (i / 7) * Math.PI * 2;
+              const mark = node('text', {
+                class: `draw-motif motif-${drawMotifs[action.cardCategory]}`,
+                x: center.x,
+                y: center.y,
+                'text-anchor': 'middle',
+                style: `--mote-x:${Math.cos(angle) * 44}px;--mote-y:${Math.sin(angle) * 44}px;animation-delay:${i * 18}ms`,
+              });
+              mark.textContent =
+                (
+                  {
+                    electric: 'ϟ',
+                    song: '♪',
+                    star: '✧',
+                    leaf: '❧',
+                    water: '●',
+                    mist: '✦',
+                  } as Record<string, string>
+                )[drawMotifs[action.cardCategory]!] ?? '';
+            }
+        }
         break;
       case 'mew-target':
         trail(point(targets[0]), point(held));
@@ -305,14 +334,46 @@ export function SavedEffects({
   const coin = motion.includes('@coin') ? effects.coin : null;
   const rocketReturn =
     motion.includes('@saved') && effects.rocketReturns.length > 0;
+  const scene = saved || result ? effectScene(action, game, result) : null;
   if (!result && !saved && !coin && !theme) return null;
   const match = result && game.matchWinners.length > 0;
   return (
     <>
+      {scene && (
+        <div
+          className={`pokemon-scene scene-${scene.theme}`}
+          data-scene={scene.theme}
+          style={{ '--scene-ms': `${scene.duration}ms` } as CSSProperties}
+          aria-hidden="true"
+        >
+          <div className="scene-wash" />
+          <div className="scene-ring" />
+          <div className="scene-ring scene-ring-second" />
+          {Array.from({ length: 12 }, (_, i) => (
+            <i
+              key={i}
+              className="scene-spark"
+              style={
+                {
+                  '--angle': `${i * 30}deg`,
+                  '--spark-delay': `${(i % 3) * 35}ms`,
+                } as CSSProperties
+              }
+            />
+          ))}
+          {scene.theme === 'rocket' && (
+            <img
+              className="scene-rocket-art"
+              src={cardArt('special-team-rocket').image}
+              alt=""
+            />
+          )}
+        </div>
+      )}
       {(saved || result) && (
         <SavedActionTrails game={game} action={action} result={result} />
       )}
-      {(result || coin || theme) && (
+      {(result || coin || scene || rocketReturn) && (
         <div
           className={`saved-effects ${result ? 'result-effects' : coin ? 'coin-effects' : `ability-effects theme-${theme}`} ${match ? 'match-fireworks' : ''}`}
           aria-hidden="true"

@@ -84,6 +84,32 @@ export function PlayerControls({
                 : 'slot' in a
                   ? `${a.type === 'initial-flip' ? '翻开' : a.type === 'peek' ? '查看' : '换入'}位置 ${a.slot + 1}`
                   : '下一局';
+  const intentActions = actions.filter(
+    (a) =>
+      !('slot' in a) &&
+      a.type !== 'swap' &&
+      a.type !== 'draw' &&
+      a.type !== 'close-peek',
+  );
+  const intentButtons = intentActions.map((a) => (
+    <button
+      className={
+        a.type === 'discard-held'
+          ? 'intent-action discard-held-action'
+          : 'intent-action secondary'
+      }
+      key={a.type}
+      aria-label={short(a)}
+      disabled={locked}
+      onClick={() => choose(a)}
+    >
+      {a.type === 'discard-held'
+        ? '弃掉'
+        : a.type === 'decline-ability'
+          ? '不发动'
+          : short(a)}
+    </button>
+  ));
   return (
     <div className="pokemon-player" data-phase={view.phase}>
       <WinTrack wins={view.winsBySeat[seatId]!} />
@@ -206,33 +232,6 @@ export function PlayerControls({
         </>
       )}
       <div className="player-action-bar">
-        <div className="intent-actions">
-          {actions
-            .filter(
-              (a) =>
-                !('slot' in a) &&
-                a.type !== 'swap' &&
-                a.type !== 'draw' &&
-                a.type !== 'close-peek',
-            )
-            .map((a) => (
-              <button
-                className={
-                  a.type === 'discard-held'
-                    ? 'discard-held-action'
-                    : 'secondary'
-                }
-                key={a.type + (a.type === 'draw' ? a.source : '')}
-                aria-label={short(a)}
-                disabled={locked}
-                onClick={() => {
-                  choose(a);
-                }}
-              >
-                {short(a)}
-              </button>
-            ))}
-        </div>
         {ownSlots.length > 0 || view.phase === 'mew-other' ? (
           <div className="submit-choice">
             <p aria-live="polite">
@@ -256,42 +255,45 @@ export function PlayerControls({
                           ? '选择要翻开的卡位'
                           : '选择换入位置'}
             </p>
-            <button
-              className="confirm-action"
-              aria-label={selection ? short(selection) : undefined}
-              disabled={locked || !selection}
-              onClick={() => {
-                if (selection) choose(selection);
-              }}
+            <div
+              className="choice-actions"
+              data-has-intent={intentActions.length > 0}
             >
-              {selection
-                ? selection.type === 'swap'
-                  ? '交换这两张'
-                  : short(selection)
-                : view.phase === 'initial-flip'
+              <button
+                className="confirm-action"
+                aria-label={selection ? short(selection) : undefined}
+                disabled={locked || !selection}
+                onClick={() => {
+                  if (selection) choose(selection);
+                }}
+              >
+                {view.phase === 'initial-flip'
                   ? '翻开这张'
                   : view.phase === 'snorlax-choice'
-                    ? '交换这两张'
+                    ? '交换两张'
                     : view.phase === 'charizard-choice'
                       ? '查看这张'
                       : view.phase === 'mew-other'
                         ? '选这张牌'
                         : '换入这里'}
-            </button>
-            {(selection || first !== null) && (
+              </button>
+              {intentButtons}
               <button
-                className="secondary"
+                className="secondary cancel-selection"
+                aria-label="取消卡片选择"
                 disabled={locked || (!selection && first === null)}
                 onClick={() => {
                   setSelection(null);
                   setFirst(null);
                 }}
               >
-                取消选择
+                取消
               </button>
-            )}
+            </div>
           </div>
-        ) : null}
+        ) : (
+          <div className="intent-actions">{intentButtons}</div>
+        )}
       </div>
     </div>
   );

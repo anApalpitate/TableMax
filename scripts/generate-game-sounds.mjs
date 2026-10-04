@@ -16,12 +16,17 @@ const presets = {
   'rocket-return': [1046, 740, 440, 220, 880],
   'match-result': [523, 659, 784, 1046, 784, 1046, 1319],
 };
-// Keep independently sourced cries when regenerating the original procedural cues.
+// Keep independently sourced and user-provided sounds when regenerating cues.
 const previous = JSON.parse(
   await readFile(`${directory}/manifest.json`, 'utf8').catch(() => '[]'),
 );
-const manifest = previous.filter((entry) => entry.sourceUrl);
+const manifest = previous.filter(
+  (entry) => entry.sourceUrl || entry.sourceFile,
+);
 for (const [name, frequencies] of Object.entries(presets)) {
+  // A user's replacement (notably Rocket entrance BGM) owns this stable ID.
+  if (manifest.some((entry) => entry.id === `pokemon-encounters/audio/${name}`))
+    continue;
   const rate = 22050,
     duration = frequencies.length * 0.09 + 0.06,
     count = Math.floor(rate * duration);

@@ -184,6 +184,42 @@
         "categories": ["other"],
         "message": "Your request was rejected by the safety system."
       }
+    },
+    {
+      "categoryId": "special-team-rocket",
+      "displayName": "火箭队",
+      "version": 2,
+      "attemptedAt": "2026-10-05",
+      "prompt": "Use case: illustration-story.\nAsset type: transparent character-group illustration for Pokémon Encounters tabletop cards and a brief ability cut-in.\n\nPrimary request: Create a new, polished illustration of the classic Team Rocket trio — Jessie (武藏), James (小次郎), and Meowth (喵喵). Match their recognizable original Pokémon anime character designs and clean 2D cel-shaded appearance.\n\nInput image: The existing official Team Rocket image is an identity and drawing-style reference only. Do not preserve its landscape layout, teal background, or Wobbuffet. This is a new illustration rather than a recoloring of the old image.\n\nSubject:\nJessie has long swept-back magenta-red hair, green earrings, a white cropped Team Rocket uniform, a black undershirt, white skirt, black gloves, and tall black boots.\nJames has a short lavender bob, a white Team Rocket uniform with long white trousers, black gloves, and black boots.\nMeowth is a small cream-colored cat with a gold forehead coin, large eyes, cheek whiskers, small fangs, and a curled brown tail.\nPreserve the familiar red R chest emblems as part of the costumes.\n\nComposition: Portrait 4:5 canvas. Jessie and James stand together in a confident, playful Team Rocket pose; Meowth occupies the foreground between them. Keep all three full bodies, hair, hands, boots, ears, whiskers, and tail visible. Arrange the figures as a compact group filling approximately 80% of the canvas, with at least 8% clear safety margin around the full silhouette. Faces remain distinct and readable when reduced to a small game card.\n\nStyle: Precise dark anime outlines, vivid original character colors, restrained cel shading, crisp silhouette and clean edges. No 3D, realism, painterly texture, redesign, or chibi proportions.\n\nBackground: Genuinely transparent alpha. No opaque backdrop, ground plane, card frame, decorative effects, smoke, flames, speed lines, or oversized glow.\n\nConstraints: Exactly these three characters. No other characters, speech bubbles, headline, score, numbers, UI, watermark, or additional text. Card borders, names, values, and animated effects will be supplied by code.",
+      "generated": false,
+      "verified": false,
+      "importedIntoUI": false,
+      "status": "generation-rejected",
+      "requestId": "189f5223-f3c1-4a87-9e0d-c45f661d81c0",
+      "generator": "built-in image_gen",
+      "mode": "generate",
+      "transparentRequested": true,
+      "model": null,
+      "plannedFile": "special-team-rocket-v2.webp",
+      "references": [
+        {
+          "file": "assets/games/pokemon-encounters/characters/special-team-rocket-official.png",
+          "role": "submitted identity and original 2D anime drawing-style reference; not an edit target; landscape composition, background and Wobbuffet excluded"
+        }
+      ],
+      "error": {
+        "code": "moderation_blocked",
+        "moderationStage": "output",
+        "categories": ["other"],
+        "message": "Your request was rejected by the safety system. If you believe this is an error, contact us at help.openai.com and include the request ID 189f5223-f3c1-4a87-9e0d-c45f661d81c0."
+      },
+      "evidence": {
+        "request": "artifacts/maintenance/v1.0.2/pokemon-polish-20261005/imagegen/rocket/generation-request.json",
+        "response": "artifacts/maintenance/v1.0.2/pokemon-polish-20261005/imagegen/rocket/generation-response.json",
+        "previous": "artifacts/maintenance/v1.0.2/pokemon-polish-20261005/imagegen/rocket/previous/archive.json"
+      },
+      "postprocessingPerformed": false,
+      "runtimeStatus": "Current official image retained; no v2 file produced or imported."
     }
   ]
 }

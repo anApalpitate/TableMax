@@ -1,3 +1,6 @@
+import type { SoundCueRecipe, SoundLane } from './presentation-state';
+import { SOUND_PLAYBACK_VOLUME } from './sound-timing';
+
 export interface AudioPort {
   src: string;
   volume: number;
@@ -8,63 +11,131 @@ export interface AudioPort {
   load(): void;
 }
 
-/** One decoder and a bounded queue per authorized screen, never one player per action. */
+export interface PlaybackCue extends Omit<SoundCueRecipe, 'cue'> {
+  source: string;
+}
+interface Slot {
+  audio: AudioPort;
+  version: number;
+  active: { priority: number } | null;
+}
+
+/** Two reusable media slots, one saved-event owner, and no historical FIFO. */
 export class SavedSoundPlayer {
-  private queue: string[] = [];
-  private playing = false;
+  private slots: Record<SoundLane, Slot>;
+  private scheduled = new Map<SoundLane, ReturnType<typeof setTimeout>>();
+  private seen = new Set<string>();
   private generation = 0;
+  private disposed = false;
   constructor(
-    private readonly audio: AudioPort,
+    audio: Record<SoundLane, AudioPort>,
     private readonly blocked: () => void,
+    private readonly now: () => number = Date.now,
   ) {
-    audio.volume = 0.45;
-    audio.onended = () => {
-      this.playing = false;
-      this.next();
+    this.slots = {
+      effect: { audio: audio.effect, version: 0, active: null },
+      cry: { audio: audio.cry, version: 0, active: null },
     };
-    audio.onerror = () => {
-      this.playing = false;
-      this.next();
+    for (const { audio: port } of Object.values(this.slots))
+      port.volume = SOUND_PLAYBACK_VOLUME;
+  }
+  enqueueEvent(
+    eventKey: string,
+    cues: readonly PlaybackCue[],
+    occurredAt = this.now(),
+  ) {
+    if (this.disposed || this.seen.has(eventKey)) return;
+    this.seen.add(eventKey);
+    if (this.seen.size > 256)
+      this.seen.delete(this.seen.values().next().value!);
+    this.cancelScheduled();
+    const generation = ++this.generation;
+    for (const cue of cues) {
+      const dueAt = occurredAt + cue.delayMs;
+      const start = () => {
+        this.scheduled.delete(cue.lane);
+        if (
+          this.disposed ||
+          generation !== this.generation ||
+          this.now() - dueAt > cue.maxLateMs
+        )
+          return;
+        this.play(cue);
+      };
+      const delay = dueAt - this.now();
+      if (delay <= 0) start();
+      else {
+        const previous = this.scheduled.get(cue.lane);
+        if (previous !== undefined) clearTimeout(previous);
+        this.scheduled.set(cue.lane, setTimeout(start, delay));
+      }
+    }
+  }
+  private play(cue: PlaybackCue) {
+    const slot = this.slots[cue.lane];
+    // Mechanical feedback must not interrupt a saved entrance or victory.
+    if (
+      cue.lane === 'effect' &&
+      slot.active &&
+      slot.active.priority > cue.priority
+    )
+      return;
+    const version = ++slot.version;
+    slot.audio.pause();
+    slot.active = { priority: cue.priority };
+    slot.audio.src = cue.source;
+    const finish = () => {
+      if (slot.version === version) slot.active = null;
     };
-  }
-  enqueue(sources: readonly string[]) {
-    this.queue = [...this.queue, ...sources].slice(-6);
-    this.next();
-  }
-  private next() {
-    if (this.playing || !this.queue.length) return;
-    this.playing = true;
-    this.audio.src = this.queue.shift()!;
-    const generation = this.generation;
-    void this.audio.play().catch(() => {
-      if (generation !== this.generation) return;
+    slot.audio.onended = finish;
+    slot.audio.onerror = finish;
+    void slot.audio.play().catch(() => {
+      if (this.disposed || slot.version !== version) return;
       this.stop();
       this.blocked();
     });
   }
+  private cancelScheduled() {
+    for (const timer of this.scheduled.values()) clearTimeout(timer);
+    this.scheduled.clear();
+  }
   stop() {
     this.generation++;
-    this.queue = [];
-    this.playing = false;
-    this.audio.pause();
+    this.cancelScheduled();
+    for (const slot of Object.values(this.slots)) {
+      slot.version++;
+      slot.active = null;
+      slot.audio.pause();
+    }
   }
   async unlock(source: string) {
     this.stop();
     const generation = this.generation;
-    this.audio.src = source;
-    this.audio.volume = 0;
     try {
-      await this.audio.play();
-      if (generation === this.generation) this.audio.pause();
+      await Promise.all(
+        Object.values(this.slots).map(async ({ audio }) => {
+          audio.src = source;
+          audio.volume = 0;
+          await audio.play();
+          if (generation === this.generation) audio.pause();
+        }),
+      );
+    } catch (error) {
+      if (generation === this.generation) this.stop();
+      throw error;
     } finally {
-      this.audio.volume = 0.45;
+      for (const { audio } of Object.values(this.slots))
+        audio.volume = SOUND_PLAYBACK_VOLUME;
     }
   }
   dispose() {
+    this.disposed = true;
     this.stop();
-    this.audio.onended = null;
-    this.audio.onerror = null;
-    this.audio.src = '';
-    this.audio.load();
+    for (const { audio } of Object.values(this.slots)) {
+      audio.onended = null;
+      audio.onerror = null;
+      audio.src = '';
+      audio.load();
+    }
   }
 }
