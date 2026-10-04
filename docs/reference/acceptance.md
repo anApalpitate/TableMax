@@ -1,36 +1,26 @@
 # 首版交付与验收
 
-当前本地便携包见 [v1.0.2 电力公司 debug](#102电力公司-debug横向地图价区与声画2026-10-04)，线上已发布包见 [v1.0.1 GitHub Release](../archive/acceptance-2026-10-01-to-04.md#101github-release2026-10-03)。本页保留当前交付与最近完整验收；较早过程、AC 对照、哈希和证据集中在 [历史验收](../archive/acceptance-2026-10-01-to-04.md)。
+当前本地便携包见 [v1.0.2 本地重新导出](#102本地重新导出与-releases-清理2026-10-04)，线上已发布包见 [v1.0.1 GitHub Release](../archive/acceptance-2026-10-01-to-04.md#101github-release2026-10-03)。本页保留当前交付验证与近期本地维护；较早完整对局、AC 对照、哈希和证据集中在 [历史验收](../archive/acceptance-2026-10-01-to-04.md)。
 
-## 1.0.2：电力公司 debug，横向地图、价区与声画（2026-10-04）
+## 1.0.2：本地重新导出与 releases 清理（2026-10-04）
 
-按用户追加要求继续沿用 **1.0.2**。展示层顺时针旋转 90°，1200×900 横向地图、城名和房屋正向；规则数据仍为原 900×1200 坐标、42 城／六区／83 边。窄屏地图利用可用宽度，按实际尺度展开名称与费用，所选城名夹在全图边界内；点击／键盘仍选择同一城市，预览、缩放和拖拽不发游戏动作。较高电脑屏六家公司等分列，窄厂牌单列纵滚；短屏将完整公司／顺序放入浮层。手机竞价的金额、确认和退出紧接最高价，320×568 首屏可用，完整顺序／名单按需展开。
+按用户要求沿用 **1.0.2** 重新导出当前本地 Windows 包，本次不改游戏实现。日常本地导出只提供程序 ZIP 和逐文件清单，源码 ZIP 仅在用户明确要求发布 GitHub 时导出；本轮未生成或向 releases 复制源码 ZIP。
 
-经典出版文本复核与 [并发审计](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/concurrency/rules-and-concurrency-audit.md)支持购厂按排名发起、单场按座位顺时针报价，首轮买完额外排序，采购与建城按排名逆序逐人完成。界面明确当前人、排名和资格，不提前许诺下一场发起者。燃料为 36 个价区／84 个位置，逐份价格、实心份额、空位和最低有货箭头都有独立含义；先显示四种燃料现价与存量，再查详细价区。价格规则原已正确，本轮澄清展示，没有改经济、规则、状态、策略、协议或存档版本；35 张非直接官方逐卡认证的既有边界仍保留。
+当前 [Windows ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip)为 **40,023,501 字节**，实际解压 **136 文件／94,899,866 字节**，95 MB 工程预算余 **100,134 字节**，双 100 MB 硬门禁通过。SHA-256：`e6656e8d08b9fc1afa2242400844175e793637081635fe45bd41ce368d6b6fe6`；[逐文件清单](../../artifacts/releases/TableMax-1.0.2-win-x64-manifest.json)与该包配套。最终 [打包记录](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/package-run.json)为 **16.488 秒／exit 0**。首次外层 PowerShell 日志包装器触发 `NativeCommandError`，未写完成记录，[失败日志](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/package-wrapper-failed.log)及 [记录](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/package-wrapper-failed.json)保留；修正外层记录后成功，不将其归为产品构建错误。
 
-未复现服务端竞拍并发故障。新增两项真实 Socket／RoomCoordinator／SQLite 回归覆盖同时 bid／pass、两连接同动作去重／冲突、失效身份／回合、转存与采购／竞价冲突、失败保存重试、重启和回退旧分支；与既有服务回归合计 3 项通过。源码工程类型与 ESLint 通过，[4 文件／44 项相关测试](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/delivery/source-checks.json)通过，64.81 秒；资源清单格式返修后全工程格式通过，最终地图修改后类型与目标 lint 再查通过，不机械重跑无关整库测试。
+[包对比](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/package-audit.json)核对上一 `7801…` 包：135 文件大小与 SHA-256 相同，无新增或删项；只有重新构建的 `TableMax.exe` 哈希不同，大小仍为 **183,808 字节**。该比较确定变化文件，尚未逐字节定位 EXE 内部差异，不能据此断言只变了 Git 编译标记。旧程序与清单保留在 `reexport-20261004/before/`，完整电力公司验收见 [历史记录](../archive/acceptance-2026-10-01-to-04.md#102电力公司-debug横向地图价区与声画2026-10-04)。
 
-规则扩为八章，以五张实际隔离区域图和代码绘制的流程／价格／仓储示意讲解顺序、竞拍、采购、路线、三个步、补给／收入与胜负。原 PNG、旧 v1 和返修前图均保留，最终五张无损 WebP **421,250 字节**，[尺寸与 RGB 像素逐字节核验](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/rules-compression.json)通过。六个原创工业 WAV v2 **180,634 字节**，六类主题视觉只响应新保存反馈；首次同步、回退和刷新不补播，普通重复同步不重启／截断反馈，静音只影响声音，减少动态使用短静态标记。终局新保存可触发声音和效果。
+新哈希的 [便携启动检查](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/portable-startup/results.json)通过，**12.217 秒**：全部 136 解压文件匹配清单，仅系统 PATH 下使用包内 Node，隐藏真实 WebView2 渲染与 `127.0.0.1` 回环服务返回 200；关闭后服务不可达，记录 `closed: true`。这是本次包内容与启动验证；旧完整对局、媒体和规则结果仍归属历史 `7801…` 包，没有机械重跑完整游戏矩阵，也不将旧通过结论改记为新包通过。
 
-[独立单图审查](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/root/visual-review.json)发现手机主操作在首屏外、电脑末席横向隐藏和边缘城名裁切，均返修并复核。最终手机竞拍／建城、实际便携采购屏、报价与结算 FX 帧没有必修项；详细铀价区仍需在市场内纵滚，不能写成所有 84 位置同时在小屏首屏显示。全图隐藏密集名称／费用的取舍由已通过的选城／放大检查补证，单图意见不扩大成未观察动态、整局或权限结论。
+`KeepLatestOnly` 工具 [最终检查](../../artifacts/maintenance/v1.0.2/reexport-20261004/tools/completion.json)通过 **194 项／45.21 秒**手动测试与 **34 项／15.34 秒**自动维护测试，独立只读审查通过。此模式仅处理 `artifacts/releases` 直属项，核对当前便携通过记录与配套清单后保留当前程序 ZIP／清单，沿用全部路径、链接、嵌套仓库、进程、近期、指纹和互斥保护；其他手动模式及自动维护不混用。
 
-| 验证                                                                                                                           | 结果与实际墙钟                                                                                                                                                                                                                              |
-| ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [最终组件矩阵](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/power-grid/expanded-ui-final/results.json)         | 96 布局／7 交互／5 音频报告通过，24.54 秒；包括短手机竞价首屏 44px 控件、草稿／同节点同步、所有可见公司标题和完整价区。                                                                                                                     |
-| [最终地图专项](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/power-grid/rotated-map-labels-passed/results.json) | 42 正向城市、83 边、坐标转换、键盘／指针、局部费用及实际可选城名边界通过，18.11 秒。                                                                                                                                                        |
-| [同 ZIP 六席与显示](../../artifacts/maintenance/v1.0.2/power-grid/runtime/portable/pg-debug-portable-final/results.json)       | 12 轮自然结束，三个步、八状态、三档真实 Worker、22 原生显示场景和 21 实时顺序／价区校验通过，381.99 秒；1,129 状态核验、1,094 动作逐 checkpoint 重放。回退、SQLite 重启、同手机身份、房主、再玩及三游戏切换通过，普通 Worker 样本 1,613ms。 |
-| [同 ZIP 三端图文规则](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/rules/portable-final/results.json)          | 9 组合通过，19.15 秒；5 图实际解码、字号／44px、页面与浮层宽度、章节焦点、Esc／滚动恢复、对局及身份不变。源码首检亦通过，13.56 秒。                                                                                                         |
-| [同 ZIP 原生媒体／声源](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/native-audio/portable-final/results.json) | 41 项通过，99.09 秒；六种合法准备 checkpoint 后的真实 Socket 保存、唯一原生 claim、原媒体 play 成功及 onplaying、6 WAV 解码；公共优先／主机回退、重进／刷新／同步／暂停恢复／测试不补播及静音保留 FX，12 张保存后的实际短帧。               |
+首次清理预览因实际启动证明的原文件名不是 `results.json` 而被门禁拒绝，未发生删除，[拒绝记录](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/cleanup-preview-first.json)保留。随后将该通过结果逐字节一致地保存为上述规范入口，在打包／验证进程全部退出后，以相同 `-KeepLatestOnly -MinimumAgeMinutes 0` 先预览、再 Apply，路径与内容检查仍全部执行。[实际清理](../../artifacts/maintenance/local-cleanup-20261004-141732-483-releases/cleanup.json)通过，**15.957 秒／554,455,887 字节**，耗时见 [执行记录](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/cleanup-run.json)：删除两个本次打包目录各 **229,846,976 字节**，及旧同版解压目录 **94,761,935 字节**。`releases` 恰保留新 ZIP **40,023,501 字节**与配套清单 **23,743 字节**，两文件在删除前后均核对路径、大小、时间与 SHA-256；其他历史证据、素材与正式存档保持原位。
 
-源码完整局的两次失败分别为验证器仍用旧采购文案空格和旧地图图例 accessible name；保存／规则及已完成整局不受影响，选择器按真实新控件修正，原失败报告保留。名称边界首检试选了未启用区域的城市，修正为实际可选列表，未扩大游戏选择权限。首个 `ba81fff1…` 中间包已在地图标签返修前归档，最终同名 ZIP 没有在验收后再次构建。
-
-当前 [Windows ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) **40,023,500 字节**，实际解压 **136 文件／94,899,866 字节**，95 MB 工程预算余 **100,134 字节**，双 100 MB 硬门禁通过；打包 **15.12 秒**。SHA-256：`7801b3c8dab873b5a344c441ed5d4a41e9799f98111d39e42a756bfc20fe4292`。三项原生完整局／规则／媒体结果均对应这个哈希。[逐文件审计](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/delivery/package-audit.json)证明 12 张规则 WebP、6 个电力公司 v2 WAV 各打包一次，无原 PNG／旧 v1 声音；19 个非网页运行文件与旧包严格相同，原生 EXE 仅有已记录的 Git 编译版本标记差异。[其他游戏网页审计](../../artifacts/maintenance/v1.0.2/power-grid-debug-20261004/delivery/non-pg-web-stability.json)证明 3 CSS 严格同 SHA，4 JS 正文仅共享 chunk 引用名哈希变化，不把它们声称为原始字节全相同。
-
-验收采用隔离存档／手机身份、回环监听和隐藏真实 WebView2；所有启动均退出并确认服务不可达。完整局使用测试节奏并另取普通 Worker 样本，媒体准备例用合法两真人路径，不能冒称人类六席全程普通节奏。未认证实体手机、Safari、Wi-Fi、电视、人耳听感或扬声器输出；暂停检查证明不补播及效果清理，不证明物理输出停止时延。旧 `9f02b332…` 正式 ZIP／清单、原素材及失败／中间证据保留；本轮统一 Git commit 不包含用户原有两处 Node／防火墙文档新增，不 push。
-
-构建与验收进程全部退出后执行 `Maintain-Project.ps1 -Apply`，[安全维护](../../artifacts/maintenance/local-cleanup-20261004-124243-809-maintenance/cleanup.json)删除 3 个已过保护期的隔离中间目录，**7,988,716,414 字节（7.44 GiB）**，45.58 秒。其余 5 个近期修改目录按 30 分钟保护保留，当前 ZIP 哈希不变；剩余工作区约 **22.784 GiB 逻辑字节**，结果为 `candidates-exhausted`，没有扩大删除素材、历史证据、正式存档、依赖／缓存或绕过近期保护。工程格式、12 个修改文档的 236 个文件／锚点链接及 diff 检查通过。耗时分开记录，不把并行步骤相加为总时长。
+本轮启动检查自建的隔离副本另按精确名单预览后 [回收](../../artifacts/maintenance/local-cleanup-20261004-141851-055-intermediates/cleanup.json) **107,657,726 字节**，未纳入既有 `tmp/` 内容。后置全项目 `Maintain-Project.ps1 -Apply` 因最新用户限定 releases 而被自动审批拒绝，未执行；改为 [只读收尾检查](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/maintenance-run.json)，结果为 **0 安全候选／零删除**，工作区 **15,109,256,634 字节（14.072 GiB 逻辑字节）**，未为达到 4 GiB 扩大范围。
 
 ## 本地项目整理与瘦身（2026-10-04）
+
+本节记录本次重新导出前的 `7801…` 包与项目整理结果，保持当时产物及已完成事实。
 
 按用户要求审计跟踪文件、历史程序包、中间物与文档入口。当前说明按主题维护，阶段／旧 Electron／旧版本开发记录移入开发历史，原验收正文、失败、哈希与证据保留；旧章节用短转链维持引用。文档格式、本地文件／锚点和索引覆盖检查通过，具体结果见 [文档检查](../../artifacts/maintenance/v1.0.2/project-tidy-20261004/root/doc-checks.json)。没有修改游戏实现、版本号或当前便携包，用户原有两处 Node／防火墙新增仍独立保留。
 
@@ -43,6 +33,10 @@
 ## 历史验收导航
 
 以下保留原标题锚点，旧引用仍可定位；详细结论移入唯一历史正文。
+
+## 1.0.2：电力公司 debug，横向地图、价区与声画（2026-10-04）
+
+见 [原始验收记录](../archive/acceptance-2026-10-01-to-04.md#102电力公司-debug横向地图价区与声画2026-10-04)。
 
 ## 1.0.2：通用视觉、规则说明与项目瘦身（2026-10-04）
 

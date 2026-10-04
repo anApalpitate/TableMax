@@ -3,6 +3,7 @@ param(
   [Parameter(Mandatory)][ValidateSet('Releases', 'Intermediates', 'Maintenance')][string]$Kind,
   [switch]$Apply,
   [switch]$IncludeBuild,
+  [switch]$KeepLatestOnly,
   [string]$ProjectRoot,
   [string[]]$TemporaryNames = @(),
   [string[]]$VerificationCopies = @(),
@@ -15,6 +16,9 @@ param(
 $ErrorActionPreference = 'Stop'
 $sourceWorkspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\')
 $automatic = $Kind -eq 'Maintenance'
+if ($KeepLatestOnly -and ($Kind -ne 'Releases' -or $IncludeBuild -or $RetiredVersions.Count -or $TemporaryNames.Count -or $VerificationCopies.Count)) {
+  throw 'KeepLatestOnly is only supported by manual release cleanup without other cleanup modes.'
+}
 if ($PSBoundParameters.ContainsKey('VerificationCopies') -and -not $VerificationCopies.Count) {
   throw 'VerificationCopies requires a nonempty list of exact directory paths.'
 }
@@ -100,6 +104,9 @@ foreach ($name in $TemporaryNames) {
   }
 }
 $archive = Join-Path $releases ('TableMax-' + $project.version + '-win-x64.zip')
+$releaseManifest = Join-Path $releases ('TableMax-' + $project.version + '-win-x64-manifest.json')
+$currentExtraction = Join-Path $releases ('TableMax-' + $project.version + '-win-x64')
+$preservedFiles = @()
 $cutoff = [DateTime]::UtcNow.AddMinutes(-$MinimumAgeMinutes)
 $candidates = New-Object 'System.Collections.Generic.List[object]'
 $skipped = New-Object 'System.Collections.Generic.List[object]'
@@ -263,7 +270,16 @@ namespace TableMax {
 }
 
 function Add-Candidate([string]$Path, [string]$Reason, $VerificationProof = $null) {
-  try { $absolute = Assert-LocalPath $Path; $snapshot = Read-Snapshot $absolute }
+  try {
+    $absolute = Assert-LocalPath $Path
+    if ($absolute -eq $archive -or ($KeepLatestOnly -and $absolute -eq $releaseManifest)) {
+      throw 'Current verified release file is protected.'
+    }
+    if (-not $KeepLatestOnly -and $absolute -eq $currentExtraction) {
+      throw 'Current release extraction is protected outside KeepLatestOnly.'
+    }
+    $snapshot = Read-Snapshot $absolute
+  }
   catch {
     $skipped.Add([PSCustomObject]@{ path = $Path; reason = $_.Exception.Message })
     return
@@ -291,6 +307,17 @@ function Assert-Idle {
   })
   if ($busy.Count -gt 0) {
     throw ('Close TableMax and finish development/verification before cleanup. Busy PIDs: ' + (($busy | ForEach-Object { $_.ProcessId }) -join ', '))
+  }
+}
+
+function Assert-PreservedRelease {
+  foreach ($preserved in $preservedFiles) {
+    Assert-LocalPath $preserved.path | Out-Null
+    $current = Get-Item -LiteralPath $preserved.path -Force
+    if ($current.PSIsContainer -or $current.Length -ne $preserved.bytes -or $current.LastWriteTimeUtc.Ticks -ne $preserved.lastWriteTimeUtcTicks -or
+        (Get-FileHash -LiteralPath $preserved.path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $preserved.sha256) {
+      throw ('Preserved current release file changed during cleanup; stopped: ' + $preserved.path)
+    }
   }
 }
 
@@ -341,11 +368,37 @@ try {
         $record = $null
         try { $record = Get-Content -LiteralPath $_.FullName -Raw -Encoding utf8 | ConvertFrom-Json }
         catch { }
-        if ($record -and $record.portable -eq $true -and $record.result -eq 'passed' -and $record.archiveSha256 -eq $archiveHash) { $proof = $_.FullName }
+        if ($record -and $record.portable -eq $true -and (-not $KeepLatestOnly -or $record.portable -is [bool]) -and $record.result -eq 'passed' -and $record.archiveSha256 -eq $archiveHash) { $proof = $_.FullName }
       }
     }
   }
   if (-not $proof) { throw 'No passing portable evidence matches the current ZIP; cleanup stopped.' }
+  $preservedFiles = @([PSCustomObject]@{
+    path = $archive; bytes = $archiveBefore.Length; lastWriteTimeUtcTicks = $archiveBefore.LastWriteTimeUtc.Ticks; sha256 = $archiveHash
+  })
+  if ($KeepLatestOnly) {
+    Assert-LocalPath $releases | Out-Null
+    $cursor = $releases
+    while ($cursor -and $cursor -ne $workspace) {
+      if (Test-Path -LiteralPath (Join-Path $cursor '.git')) { throw ('Cleanup refuses nested repositories: ' + $cursor) }
+      $cursor = [IO.Path]::GetDirectoryName($cursor)
+    }
+    Assert-LocalPath $releaseManifest | Out-Null
+    if (-not (Test-Path -LiteralPath $releaseManifest -PathType Leaf)) { throw 'Current release manifest is missing; KeepLatestOnly stopped.' }
+    $manifestBefore = Get-Item -LiteralPath $releaseManifest -Force
+    $manifestHash = (Get-FileHash -LiteralPath $releaseManifest -Algorithm SHA256).Hash.ToLowerInvariant()
+    $manifestRecord = Get-Content -LiteralPath $releaseManifest -Raw -Encoding utf8 | ConvertFrom-Json
+    if ($manifestRecord.version -ne $project.version -or $manifestRecord.archive.name -ne [IO.Path]::GetFileName($archive) -or
+        $manifestRecord.archive.bytes -ne $archiveBefore.Length -or -not ($manifestRecord.archive.sha256 -is [string]) -or
+        $manifestRecord.archive.sha256 -notmatch '^[a-fA-F0-9]{64}$' -or $manifestRecord.archive.sha256 -ne $archiveHash) {
+      throw 'Current release manifest does not match the current ZIP; KeepLatestOnly stopped.'
+    }
+    $preservedFiles += [PSCustomObject]@{
+      path = $releaseManifest; bytes = $manifestBefore.Length; lastWriteTimeUtcTicks = $manifestBefore.LastWriteTimeUtc.Ticks
+      sha256 = $manifestHash
+    }
+    Assert-PreservedRelease
+  }
 }
 catch {
   if (-not $automatic) { throw }
@@ -354,7 +407,14 @@ catch {
   return $summary
 }
 
-if ($Kind -eq 'Releases' -or $automatic) {
+if ($KeepLatestOnly) {
+  foreach ($entry in Get-ChildItem -LiteralPath $releases -Force) {
+    if ($entry.FullName -ne $archive -and $entry.FullName -ne $releaseManifest) {
+      Add-Candidate $entry.FullName 'Explicit KeepLatestOnly release directory cleanup'
+    }
+  }
+}
+elseif ($Kind -eq 'Releases' -or $automatic) {
   foreach ($entry in Get-ChildItem -LiteralPath $releases -Force) {
     if ($entry.Name -match '^TableMax-(\d+\.\d+\.\d+)-(?:win-x64(?:\.zip|-manifest\.json)?|source\.zip|manifest\.json)$') {
       if ([version]$Matches[1] -lt $currentVersion -or $retired -contains [version]$Matches[1]) { Add-Candidate $entry.FullName 'Historical release archive or extraction' }
@@ -401,6 +461,7 @@ $total = [long](($candidates | Measure-Object -Property bytes -Sum).Sum)
 $ordered = @($candidates | Sort-Object newest, path)
 $summary.candidateCount = $ordered.Count
 Write-Host ('Preserving current verified ZIP: ' + $archive)
+if ($KeepLatestOnly) { Write-Host ('Preserving matching release manifest: ' + $releaseManifest) }
 Write-Host ($Kind + ': ' + $candidates.Count + ' candidates, ' + [Math]::Round($total / 1GB, 2) + ' GiB; ' + $skipped.Count + ' skipped.')
 $candidates | Select-Object path, reason, bytes | Format-Table -AutoSize | Out-Host
 if (-not $Apply) {
@@ -429,7 +490,8 @@ try {
   $report = [PSCustomObject]@{
     startedAt = [DateTime]::UtcNow.ToString('o'); kind = $Kind; currentVersion = $project.version; retiredVersions = $RetiredVersions
     currentArchive = $archive; archiveSha256 = $archiveHash; portableProof = $proof
-    minimumAgeMinutes = $MinimumAgeMinutes; includeBuild = [bool]$IncludeBuild; temporaryNames = $TemporaryNames
+    minimumAgeMinutes = $MinimumAgeMinutes; includeBuild = [bool]$IncludeBuild; keepLatestOnly = [bool]$KeepLatestOnly; temporaryNames = $TemporaryNames
+    preservedFiles = $preservedFiles
     verificationCopies = $VerificationCopies; verificationProofs = $verificationProofs.ToArray()
     workspace = $workspace; highWaterBytes = $summary.highWaterBytes; lowWaterBytes = $summary.lowWaterBytes
     bytesBefore = $summary.bytesBefore; bytesAfter = $summary.bytesAfter
@@ -480,6 +542,7 @@ try {
       if ((Read-Snapshot $candidate.path).fingerprint -ne $candidate.fingerprint) {
         throw ('Candidate changed before deletion; stopped: ' + $candidate.path)
       }
+      if ($KeepLatestOnly) { Assert-PreservedRelease }
       Remove-Item -LiteralPath $candidate.path -Recurse -Force
       $candidate.deleted = $true
       $report.deletedBytes += $candidate.bytes
@@ -488,7 +551,8 @@ try {
       if ($automatic) { $report.bytesAfter = (Measure-Workspace).bytes }
       Save-Report
     }
-    if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $archiveHash) { throw 'Current release hash changed.' }
+    if ($KeepLatestOnly) { Assert-PreservedRelease }
+    elseif ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $archiveHash) { throw 'Current release hash changed.' }
     $report.result = 'passed'
   }
   catch { $report.result = 'failed'; $report | Add-Member -NotePropertyName error -NotePropertyValue $_.Exception.Message; throw }

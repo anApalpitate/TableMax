@@ -5,11 +5,13 @@ $workspaceForTest = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimE
 $fixture = Join-Path $workspaceForTest ('tmp/cleanup-test-' + [Guid]::NewGuid().ToString('N'))
 $checks = New-Object 'System.Collections.Generic.List[string]'
 $busyProcess = $null
+$lockProcess = $null
 $junction = Join-Path $fixture 'artifacts/releases/package-1.4.0-Linked/link'
 $temporaryJunction = Join-Path $fixture 'tmp/review-linked/link'
 $verificationRun = 'artifacts/maintenance/v1.0.2/audio-test-20261004/native-audio/portable-final'
 $verificationWork = $verificationRun + '/work-AUD123'
 $verificationJunction = Join-Path $fixture ($verificationWork + '/checkpoint-run/desktop/link')
+$latestJunction = Join-Path $fixture 'artifacts/releases/latest-linked-copy'
 
 function Check([bool]$Condition, [string]$Message) {
   if (-not $Condition) { throw ('FAILED: ' + $Message) }
@@ -20,8 +22,8 @@ function Fixture-File([string]$Relative, [string]$Content) {
   New-Item -ItemType Directory -Path (Split-Path $path -Parent) -Force | Out-Null
   [IO.File]::WriteAllText($path, $Content, (New-Object Text.UTF8Encoding($false)))
 }
-function Run-Cleanup([string]$Kind, [bool]$Apply, [int]$Age = 30, [bool]$Build = $false, [string[]]$Retired = @(), [string[]]$TemporaryNames = @(), [string[]]$VerificationCopies = @()) {
-  $cleanupOptions = @{ Kind = $Kind; Apply = $Apply; MinimumAgeMinutes = $Age; IncludeBuild = $Build; RetiredVersions = $Retired; TemporaryNames = $TemporaryNames }
+function Run-Cleanup([string]$Kind, [bool]$Apply, [int]$Age = 30, [bool]$Build = $false, [string[]]$Retired = @(), [string[]]$TemporaryNames = @(), [string[]]$VerificationCopies = @(), [bool]$KeepLatestOnly = $false) {
+  $cleanupOptions = @{ Kind = $Kind; Apply = $Apply; MinimumAgeMinutes = $Age; IncludeBuild = $Build; RetiredVersions = $Retired; TemporaryNames = $TemporaryNames; KeepLatestOnly = $KeepLatestOnly }
   if ($PSBoundParameters.ContainsKey('VerificationCopies')) { $cleanupOptions.VerificationCopies = $VerificationCopies }
   & (Join-Path $fixture 'scripts/cleanup-local.ps1') @cleanupOptions
 }
@@ -39,6 +41,7 @@ try {
   Fixture-File 'artifacts/releases/TableMax-2.0.0-source.zip' 'future-source'
   Fixture-File 'artifacts/releases/TableMax-1.4.0-notes.json' 'unknown-release-content'
   Fixture-File 'artifacts/releases/TableMax-1.4.0-win-x64/TableMax.exe' 'old-extraction'
+  Fixture-File 'artifacts/releases/TableMax-1.5.0-win-x64/TableMax.exe' 'same-version-old-extraction'
   Fixture-File 'artifacts/releases/package-1.4.0-ABC123/win-unpacked/TableMax.exe' 'old-stage'
   Fixture-File 'artifacts/releases/package-1.5.0-ABC123/win-unpacked/TableMax.exe' 'current-stage'
   Fixture-File 'artifacts/releases/TableMax-2.0.0-win-x64.zip' 'future-fixture'
@@ -79,6 +82,7 @@ try {
   New-Item -ItemType Directory -Path (Join-Path $fixture 'scripts') -Force | Out-Null
   Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'cleanup-local.ps1') -Destination (Join-Path $fixture 'scripts/cleanup-local.ps1')
   Copy-Item -LiteralPath (Join-Path $workspaceForTest 'Clean-Intermediates.ps1') -Destination $fixture
+  Copy-Item -LiteralPath (Join-Path $workspaceForTest 'Clean-Releases.ps1') -Destination $fixture
   $currentZip = Join-Path $fixture 'artifacts/releases/TableMax-1.5.0-win-x64.zip'
   $hash = (Get-FileHash -LiteralPath $currentZip -Algorithm SHA256).Hash.ToLowerInvariant()
   Fixture-File 'artifacts/maintenance/portable/results.json' ('{"portable":true,"result":"passed","archiveSha256":"' + $hash + '","note":"中文编码"}')
@@ -124,8 +128,9 @@ try {
   $busyProcess = Start-Process -FilePath (Get-Command node.exe).Source -ArgumentList @('-e', 'setInterval(()=>{},1000)', $fixture) -WindowStyle Hidden -PassThru
   Start-Sleep -Milliseconds 250
   $refused = $false
-  try { Run-Cleanup Releases $true } catch { $refused = $_.Exception.Message -like '*Busy PIDs*' }
-  Check $refused 'Active workspace runtime blocks Apply before deletion'
+  $refusalReason = $null
+  try { Run-Cleanup Releases $true } catch { $refusalReason = $_.Exception.Message; $refused = $refusalReason -like '*Busy PIDs*' }
+  Check $refused ('Active workspace runtime blocks Apply before deletion; refusal: ' + $refusalReason)
   Check (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.4.0-win-x64.zip')) 'Busy process refusal preserves candidates'
   $busyProcess.Kill()
   $busyProcess.WaitForExit()
@@ -140,6 +145,7 @@ try {
   Check (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-2.0.0-source.zip')) 'Future source ZIP is preserved'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.4.0-notes.json')) 'Unknown historical release file is preserved'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.4.0-win-x64'))) 'Old extraction is removed'
+  Check (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.5.0-win-x64/TableMax.exe')) 'Default release cleanup preserves the same-version formal extraction'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/package-1.4.0-ABC123'))) 'Old package stage is removed'
   Check (Test-Path -LiteralPath $junction) 'Junction candidate is skipped'
   Check ((Get-Content -LiteralPath (Join-Path $fixture 'protected/marker.txt') -Raw) -eq 'protected-junction-target') 'Junction target is untouched'
@@ -343,6 +349,133 @@ try {
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'build'))) 'Build is removed only with explicit IncludeBuild'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/game-ui-Young1'))) 'Explicit zero age removes stopped young verification data'
   Check ((Get-FileHash -LiteralPath $currentZip -Algorithm SHA256).Hash.ToLowerInvariant() -eq $hash) 'Current verified ZIP stays byte-identical through all cleanup modes'
+  Check (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.5.0-win-x64/TableMax.exe')) 'Default intermediate cleanup also preserves the same-version formal extraction'
+
+  $manifestPath = Join-Path $fixture 'artifacts/releases/TableMax-1.5.0-win-x64-manifest.json'
+  $validManifest = [PSCustomObject]@{ version = '1.5.0'; archive = [PSCustomObject]@{ name = 'TableMax-1.5.0-win-x64.zip'; bytes = (Get-Item -LiteralPath $currentZip).Length; sha256 = $hash } } | ConvertTo-Json -Depth 4
+  $latestPreviewBefore = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Recurse -Force | ForEach-Object { $_.FullName + '|' + $_.LastWriteTimeUtc.Ticks }) -join "`n"
+  foreach ($invalidManifest in @('not-json', '{"version":"1.5.0"}', $validManifest.Replace('TableMax-1.5.0-win-x64.zip', 'TableMax-1.4.0-win-x64.zip'), $validManifest.Replace($hash, ('0' * 64)))) {
+    [IO.File]::WriteAllText($manifestPath, $invalidManifest, (New-Object Text.UTF8Encoding($false)))
+    $refused = $false
+    try { Run-Cleanup -Kind Releases -Apply $true -KeepLatestOnly $true } catch { $refused = $true }
+    Check ($refused -and (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.5.0-source.zip'))) 'KeepLatestOnly rejects malformed or mismatched current manifest before any deletion'
+  }
+  foreach ($field in @('bytes', 'version')) {
+    $invalidManifest = $validManifest | ConvertFrom-Json
+    if ($field -eq 'bytes') { $invalidManifest.archive.bytes++ } else { $invalidManifest.version = '1.4.0' }
+    [IO.File]::WriteAllText($manifestPath, ($invalidManifest | ConvertTo-Json -Depth 4), (New-Object Text.UTF8Encoding($false)))
+    $refused = $false
+    try { Run-Cleanup -Kind Releases -Apply $true -KeepLatestOnly $true } catch { $refused = $_.Exception.Message -like '*manifest does not match*' }
+    Check $refused ('KeepLatestOnly rejects mismatched manifest ' + $field)
+  }
+  Remove-Item -LiteralPath $manifestPath -Force
+  $refused = $false
+  try { Run-Cleanup -Kind Releases -Apply $true -KeepLatestOnly $true } catch { $refused = $_.Exception.Message -like '*manifest is missing*' }
+  Check $refused 'KeepLatestOnly requires the current runtime manifest'
+  [IO.File]::WriteAllText($manifestPath, $validManifest, (New-Object Text.UTF8Encoding($false)))
+  (Get-Item -LiteralPath $manifestPath).LastWriteTimeUtc = $old
+  foreach ($kind in @('Intermediates', 'Maintenance')) {
+    $refused = $false
+    try { Run-Cleanup -Kind $kind -Apply $true -KeepLatestOnly $true } catch { $refused = $_.Exception.Message -like '*KeepLatestOnly is only supported*' }
+    Check $refused ($kind + ' refuses KeepLatestOnly')
+  }
+  foreach ($combination in @('build', 'retired', 'temporary', 'verification')) {
+    $options = @{ Kind = 'Releases'; Apply = $true; KeepLatestOnly = $true }
+    switch ($combination) {
+      'build' { $options.Build = $true }
+      'retired' { $options.Retired = @('1.6.0') }
+      'temporary' { $options.TemporaryNames = @('preserve-me') }
+      'verification' { $options.VerificationCopies = @($missingProofCopy) }
+    }
+    $refused = $false
+    try { Run-Cleanup @options } catch { $refused = $_.Exception.Message -like '*KeepLatestOnly is only supported*' }
+    Check $refused ('KeepLatestOnly refuses combined cleanup mode: ' + $combination)
+  }
+  $refused = $false
+  try { & (Join-Path $fixture 'Clean-Releases.ps1') -Apply -KeepLatestOnly -RetiredVersions @('1.6.0') } catch { $refused = $_.Exception.Message -like '*KeepLatestOnly is only supported*' }
+  Check $refused 'The root release wrapper forwards KeepLatestOnly and rejects retirement combinations'
+  $latestPreviewAfter = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Recurse -Force | ForEach-Object { $_.FullName + '|' + $_.LastWriteTimeUtc.Ticks }) -join "`n"
+  Check ($latestPreviewBefore -eq $latestPreviewAfter) 'Rejected KeepLatestOnly modes write no cleanup evidence'
+
+  Fixture-File 'artifacts/releases/package-1.0.0-PKG123/win-unpacked/TableMax.exe' 'historical-packaging-stage'
+  Fixture-File 'artifacts/releases/package-1.5.0-NEW123/win-unpacked/TableMax.exe' 'same-version-packaging-stage'
+  Fixture-File 'artifacts/releases/builder-debug.yml' 'old-builder-diagnostic'
+  Fixture-File 'artifacts/releases/release-diagnostics/output.log' 'unknown-release-diagnostic'
+  Fixture-File 'artifacts/releases/nested-release/.git' 'nested-repository-marker'
+  Fixture-File 'artifacts/releases/nested-release/keep.txt' 'nested-repository-content'
+  foreach ($relative in @('package-1.0.0-PKG123', 'package-1.5.0-NEW123', 'builder-debug.yml', 'release-diagnostics', 'nested-release')) {
+    $path = Join-Path $fixture ('artifacts/releases/' + $relative)
+    @(Get-ChildItem -LiteralPath $path -Recurse -Force -ErrorAction SilentlyContinue) + @(Get-Item -LiteralPath $path) | ForEach-Object { $_.LastWriteTimeUtc = $old }
+  }
+  Fixture-File 'artifacts/releases/recent-release.tmp' 'recent-release-content'
+  New-Item -ItemType Junction -Path $latestJunction -Value (Join-Path $fixture 'protected') | Out-Null
+  $latestPreviewBefore = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Recurse -Force | ForEach-Object { $_.FullName + '|' + $_.LastWriteTimeUtc.Ticks }) -join "`n"
+  $latestPreview = @(& (Join-Path $fixture 'Clean-Releases.ps1') -KeepLatestOnly 6>&1)
+  $latestPreviewAfter = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Recurse -Force | ForEach-Object { $_.FullName + '|' + $_.LastWriteTimeUtc.Ticks }) -join "`n"
+  Check ($latestPreviewBefore -eq $latestPreviewAfter) 'KeepLatestOnly preview writes no logs, directories or timestamps'
+  Check (($latestPreview -join "`n") -match 'Preserving matching release manifest' -and (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.5.0-source.zip')) -and (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.5.0-win-x64'))) 'KeepLatestOnly preview lists both preserved files and keeps selected source and same-version extraction'
+
+  $busyProcess = Start-Process -FilePath (Get-Command node.exe).Source -ArgumentList @('-e', 'setInterval(()=>{},1000)', $fixture) -WindowStyle Hidden -PassThru
+  Start-Sleep -Milliseconds 250
+  $refused = $false
+  try { Run-Cleanup -Kind Releases -Apply $true -KeepLatestOnly $true } catch { $refused = $_.Exception.Message -like '*Busy PIDs*' }
+  Check ($refused -and (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.5.0-win-x64'))) 'KeepLatestOnly protects all candidates while a workspace process is active'
+  $busyProcess.Kill(); $busyProcess.WaitForExit(); $busyProcess = $null
+
+  $lockDigest = [Security.Cryptography.SHA256]::Create()
+  try { $lockId = [BitConverter]::ToString($lockDigest.ComputeHash([Text.Encoding]::UTF8.GetBytes($fixture.ToLowerInvariant()))).Replace('-', '') }
+  finally { $lockDigest.Dispose() }
+  $lockMarker = Join-Path $fixture 'latest-lock-held'
+  $lockCommand = '$m = New-Object Threading.Mutex($false, ''Local\TableMax-Cleanup-' + $lockId + '''); $null = $m.WaitOne(); [IO.File]::WriteAllText(''' + $lockMarker.Replace("'", "''") + ''', ''held''); Start-Sleep -Seconds 60'
+  $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($lockCommand))
+  $lockProcess = Start-Process -FilePath (Get-Command powershell.exe).Source -ArgumentList @('-NoProfile', '-EncodedCommand', $encoded) -WindowStyle Hidden -PassThru
+  for ($attempt = 0; $attempt -lt 40 -and -not (Test-Path -LiteralPath $lockMarker); $attempt++) { Start-Sleep -Milliseconds 100 }
+  Check (Test-Path -LiteralPath $lockMarker) 'The KeepLatestOnly concurrency fixture holds the existing cleanup mutex'
+  $refused = $false
+  try { Run-Cleanup -Kind Releases -Apply $true -KeepLatestOnly $true } catch { $refused = $_.Exception.Message -like '*Another cleanup*' }
+  Check ($refused -and (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.5.0-source.zip'))) 'KeepLatestOnly refuses concurrent cleanup before deletion'
+  $lockProcess.Kill(); $lockProcess.WaitForExit(); $lockProcess = $null
+
+  $cleanupSource = [IO.File]::ReadAllText($cleanupPath)
+  $latestCandidate = Join-Path $fixture 'artifacts/releases/TableMax-1.5.0-source.zip'
+  # Make the changed candidate first in the real oldest-first ordering so these
+  # refusal tests retain all stages and diagnostics for the successful cleanup.
+  (Get-Item -LiteralPath $latestCandidate).LastWriteTimeUtc = $old.AddHours(-1)
+  foreach ($mutation in @('manifest-size', 'manifest-time', 'manifest-hash', 'manifest-plan-race', 'archive-hash', 'candidate')) {
+    $mutatedPath = if ($mutation -like 'manifest-*') { $manifestPath } elseif ($mutation -eq 'archive-hash') { $currentZip } else { $latestCandidate }
+    $originalContent = [IO.File]::ReadAllText($mutatedPath)
+    $originalTime = (Get-Item -LiteralPath $mutatedPath).LastWriteTimeUtc
+    $escapedPath = $mutatedPath.Replace("'", "''")
+    if ($mutation -eq 'manifest-time') {
+      $mutationCode = "[IO.File]::SetLastWriteTimeUtc('" + $escapedPath + "', [DateTime]::FromBinary(" + $originalTime.AddMinutes(-1).ToBinary() + "))"
+    }
+    elseif ($mutation -in @('manifest-hash', 'manifest-plan-race', 'archive-hash')) {
+      $changedContent = 'x' + $originalContent.Substring(1)
+      $mutationCode = "[IO.File]::WriteAllText('" + $escapedPath + "', '" + $changedContent.Replace("'", "''") + "', (New-Object Text.UTF8Encoding(`$false))); [IO.File]::SetLastWriteTimeUtc('" + $escapedPath + "', [DateTime]::FromBinary(" + $originalTime.ToBinary() + "))"
+    }
+    else { $mutationCode = "[IO.File]::AppendAllText('" + $escapedPath + "', ' ')" }
+    $hook = if ($mutation -eq 'manifest-plan-race') { '$manifestRecord = Get-Content -LiteralPath $releaseManifest -Raw -Encoding utf8 | ConvertFrom-Json' } else { $mutationHook }
+    $injected = if ($mutation -eq 'manifest-plan-race') { $hook + "`n" + $mutationCode } else { $mutationCode + "`n" + $hook }
+    [IO.File]::WriteAllText($cleanupPath, $cleanupSource.Replace($hook, $injected), (New-Object Text.UTF8Encoding($false)))
+    $refused = $false
+    try { Run-Cleanup -Kind Releases -Apply $true -KeepLatestOnly $true } catch { $refused = $_.Exception.Message -like '*changed during cleanup*' }
+    Check ($refused -and (Test-Path -LiteralPath $latestCandidate)) ('KeepLatestOnly rechecks planned release files before deletion: ' + $mutation)
+    [IO.File]::WriteAllText($mutatedPath, $originalContent, (New-Object Text.UTF8Encoding($false)))
+    [IO.File]::SetLastWriteTimeUtc($mutatedPath, $originalTime)
+    [IO.File]::WriteAllText($cleanupPath, $cleanupSource, (New-Object Text.UTF8Encoding($false)))
+  }
+  $latestProtected = @('TableMax-1.5.0-win-x64.zip', 'TableMax-1.5.0-win-x64-manifest.json', 'package-1.4.0-Linked', 'latest-linked-copy', 'nested-release', 'recent-release.tmp')
+  $latestCandidates = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/releases') -Force | Where-Object { $_.Name -notin $latestProtected } | ForEach-Object { $_.FullName })
+  & (Join-Path $fixture 'Clean-Releases.ps1') -Apply -KeepLatestOnly
+  foreach ($path in $latestCandidates) {
+    Check (-not (Test-Path -LiteralPath $path)) ('KeepLatestOnly removes safe release child: ' + [IO.Path]::GetFileName($path))
+  }
+  foreach ($name in $latestProtected) { Check (Test-Path -LiteralPath (Join-Path $fixture ('artifacts/releases/' + $name))) ('KeepLatestOnly preserves current or safety-protected child: ' + $name) }
+  Check ((Get-Content -LiteralPath (Join-Path $fixture 'protected/marker.txt') -Raw) -eq 'protected-junction-target') 'KeepLatestOnly leaves linked targets byte-identical'
+  Check ((Get-FileHash -LiteralPath $currentZip -Algorithm SHA256).Hash.ToLowerInvariant() -eq $hash -and (Get-Content -LiteralPath $manifestPath -Raw) -eq $validManifest) 'KeepLatestOnly keeps the current runtime ZIP and matching manifest byte-identical'
+  Check ((Test-Path -LiteralPath (Join-Path $fixture 'tmp/preserve-me/notes.md')) -and (Test-Path -LiteralPath (Join-Path $fixture ($verificationRun + '/results.json')))) 'KeepLatestOnly never cleans tmp or historical maintenance evidence'
+  $latestReports = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Filter cleanup.json -Recurse -File | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw -Encoding utf8 | ConvertFrom-Json } | Where-Object { $_.keepLatestOnly -and $_.result -eq 'passed' })
+  Check ($latestReports.Count -eq 1 -and $latestReports[0].preservedFiles.Count -eq 2 -and $latestReports[0].candidates.Count -eq $latestCandidates.Count -and @($latestReports[0].candidates | Where-Object { $_.deleted }).Count -eq $latestCandidates.Count -and $latestReports[0].skipped.Count -eq 4) 'KeepLatestOnly audit records the mode, both preserved files, every safe candidate and every skipped child'
   Fixture-File 'artifacts/releases/TableMax-1.5.0-win-x64.zip' 'changed-unverified-current'
   $refused = $false
   try { Run-Cleanup Releases $true 0 $false @('1.6.0') } catch { $refused = $_.Exception.Message -like '*No passing portable evidence*' }
@@ -354,7 +487,8 @@ try {
 }
 finally {
   if ($busyProcess -and -not $busyProcess.HasExited) { $busyProcess.Kill(); $busyProcess.WaitForExit() }
-  foreach ($fixtureJunction in @($junction, $temporaryJunction, $verificationJunction)) {
+  if ($lockProcess -and -not $lockProcess.HasExited) { $lockProcess.Kill(); $lockProcess.WaitForExit() }
+  foreach ($fixtureJunction in @($junction, $temporaryJunction, $verificationJunction, $latestJunction)) {
     if (Test-Path -LiteralPath $fixtureJunction) {
       if (-not ((Get-Item -LiteralPath $fixtureJunction -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'Unexpected test junction replacement; fixture retained.' }
       [IO.Directory]::Delete($fixtureJunction)
