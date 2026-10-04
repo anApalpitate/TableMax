@@ -17,9 +17,12 @@ it('exposes independent production games and keeps the template internal', async
     createGameRegistry()
       .catalog()
       .map((entry) => entry.id),
-  ).toEqual(['pokemon-encounters', 'modern-art']);
+  ).toEqual(['pokemon-encounters', 'modern-art', 'power-grid']);
   const internal = createGameRegistry(true);
-  expect(internal.catalog()).toHaveLength(3);
+  expect(internal.catalog()).toHaveLength(4);
+  expect((await internal.load('power-grid')).rules.manifest.id).toBe(
+    'power-grid',
+  );
   expect((await internal.load('modern-art')).rules.manifest.id).toBe(
     'modern-art',
   );
@@ -73,7 +76,7 @@ it('persists lazy selection and accepts six real sockets submitting from the sam
     const host = await connect(service.hostToken);
     const empty = RoomViewSchema.parse(service.room.view(service.hostToken));
     expect(empty.game).toBeNull();
-    expect(empty.catalog).toHaveLength(2);
+    expect(empty.catalog).toHaveLength(3);
     expect(
       (
         await send(host, empty, {

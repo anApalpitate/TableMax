@@ -1,6 +1,6 @@
 # 电脑玩家（bot）规格
 
-2026-10-03 更新。第三、四阶段已实现电脑座位、模板独立策略、Worker 调度和恢复；宝可梦与现代艺术各有独立的三档本地策略。现代艺术的估值、拍卖选择、授权投影与 27 场种子验证见 [游戏规格](../games/modern-art/README.md#状态与验证)，不引用宝可梦规则或策略。产品范围见 [需求基线](../requirements/TableMax_需求文档_v1.0.md#55-电脑玩家与基础决策)，重要变更见 [决策 003](../decisions/003-bot-and-maintainability.md)。游戏 bot 是对局中的电脑玩家，与 `docs/subagent/` 的开发协作 agent 无关。
+2026-10-04 更新。第三、四阶段已实现电脑座位、模板独立策略、Worker 调度和恢复；宝可梦、现代艺术与电力公司各有独立的三档本地策略。现代艺术的估值、拍卖选择、授权投影与 27 场种子验证见 [游戏规格](../games/modern-art/README.md#状态与验证)，电力公司的燃料预算、网络扩张、生产规划与授权输入见 [独立策略](../games/power-grid/bot.md)，互不导入其他游戏。产品范围见 [需求基线](../requirements/TableMax_需求文档_v1.0.md#55-电脑玩家与基础决策)，重要变更见 [决策 003](../decisions/003-bot-and-maintainability.md)。游戏 bot 是对局中的电脑玩家，与 `docs/subagent/` 的开发协作 agent 无关。
 
 ## 已确认范围
 

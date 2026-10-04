@@ -1,0 +1,11 @@
+# 经典德国地图
+
+采用带 **Torgelow** 的经典修正版德国地图，42 城、六区各 7 城、83 条无向连接。不是 Recharged 的 Stralsund 版本。规则数据与绘图坐标集中在 [germany.ts](../../../games/power-grid/data/germany.ts)，坐标不参与费用或区域计算。
+
+核对首先参考经典实物正面图和无遮挡高清照片，再使用 S.O.B. 德国辅助图逐边检查。另以 [rkdarst 的地图网络数据](https://github.com/rkdarst/board-game-networks/blob/master/data/power-grid/germany.yaml) 自动比对全部 42 城、166 条双向记录和 83 条无向边。该辅助数据的元信息带 Recharged 链接及版本 FIXME，因此只用作第二份图结构对照，不据此改变经典版本。原图、原始 YAML、核对脚本和逐边结果在 `artifacts/maintenance/v1.0.1/power-grid/research/map/`。
+
+三条零费连接为 Duisburg–Essen、Wiesbaden–Frankfurt (Main)、Halle–Leipzig。西南修正版为 Saarbrücken–Mannheim **11**、Mannheim–Stuttgart **6**、Saarbrücken–Stuttgart **17**；早期印刷差异的出版说明见 [来源](sources.md)。区域与经典实物一致，不以生成图片的色块推导规则归属。
+
+开局选择对应人数所需的相邻区域。首城无需管线连接费，仍支付房屋费用；以后从本人任一已有城市计算所选区域内最短路径，再加城市当前空位的 10／15／20。路径可经过尚未建造、满员或对手城市；自己的管线费用不会作为可复用资产存储。最短路使用多源 Dijkstra，拒绝穿越未选区域和不可达目标。
+
+画面按正面实物的城市布局标定在 900×1200 坐标内；独立地形位图、代码管线、价格、城名与房屋分层绘制。地图可缩放移动，手机提供城市列表与连接费用预览，复杂连接不靠低清图片识别。生成地形的边界和纹理仍是近似重绘；精确复刻的证明范围是可核对的城市、区域、图结构和费用，不宣称地形像素完全一致。

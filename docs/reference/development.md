@@ -61,6 +61,8 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 | `pnpm build`                            | 构建网页、独立服务、游戏模块与 net48 原生壳，收集到 `build/desktop`                                                                                       |
 | `pnpm verify:desktop`                   | 隐藏窗口验证开发构建，包括真实大厅、宝可梦六人混合整局、回退、两次启动恢复、独立进程与退出协调                                                            |
 | `pnpm verify:modern-art`                | 隐藏原生窗口执行现代艺术五席四轮、五类拍卖与真实手机控件，验证保密、回退／重启及两游戏切换；加 `--portable` 验证最终 ZIP                                  |
+| `pnpm verify:power-grid --seats=3 --evidence=source-3` | 隐藏原生桌面与各自手机、真实 Worker 的电力公司混合整局；`--seats=6` 覆盖六席，`--portable` 验最终同一 ZIP |
+| `pnpm verify:power-grid-ui --evidence=fixture` | 独立实际 React 授权 fixture 的短屏至 4K、320–390 手机、地图操作与保存声音；不替代原生 DPI 或真实整局 |
 | `pnpm verify:party`                     | 隐藏窗口验证加入丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP                                   |
 | `pnpm verify:room-levels`               | 隐藏窗口验证手机各自入座、电脑仅管理／展示、六席围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证当前 ZIP                          |
 | `node scripts/verify-box-avatars.mjs`   | 隐藏窗口核验 26 个本地头像、占用／并发／身份恢复与游戏介绍尺寸；先用 `--compact-only` 检查 360×640 首屏，`--portable` 对应最终 ZIP，`--run=名称` 分开证据 |
@@ -85,6 +87,10 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 现代艺术自然对局深查可加 `--audit --long-names --seats=5 --evidence=audit-run`，全程保留普通 `play` 节奏；`--seats=3`／`4` 覆盖其他人数，`--portable` 改验当前 ZIP。审计在原有五类拍卖、真实手机控件与恢复断言之外，增加窄屏长昵称、非法金额、暗标并发草稿、旧价确认、排序、倒计时和公开资金账本检查。真实结束页覆盖 720p／1080p／4K 主机与公共屏、320／360 手机，逐字核验完整姓名的布局、裁切与实际命中，不能只凭 DOM 或 title 完整判定可读；最终资产／冠军对应公开账本，有管理权限的主机／手机房主再玩按钮须在首屏完整可用，公共屏则核验没有该控制。每次启动保存实际脚本副本与 SHA-256，失败和返修分开证据目录；截图仍使用后台真实渲染，不将测试提速当作普通对局。
 
 `node scripts/verify-modern-art-empty-gallery.mjs --evidence=empty-gallery-run` 定向检查三／四／五位真人入座后的空收藏拍卖布局，使用真实开局、出画、追加同画家第二幅及决策点回退；不直接写游戏状态。单幅／双幅、主机／公共屏分别覆盖 720p／1080p／4K 和 100%／125%／150% 显示请求，记录空间保护后的实际 CSS 尺寸与缩放；加 `--portable` 验证当前 ZIP。先用 `--short-only` 检查最短桌面，`--scale-only` 仅补 4K 125%／150%，两者互斥，默认运行完整矩阵。它只证明这些真实准备场景的排版，不能替代自然四轮整局、资金账本或恢复验证。
+
+电力公司验证在 `artifacts/maintenance/v1.0.1/power-grid/` 分别保存 `ui/` 的组件 fixture 与 `runtime/` 的自然混合局、恢复和最终便携证据。整局测试可采用平台测试节奏，但每个动作仍经过身份、合法动作、SQLite 与真实 Worker；普通游玩节奏另取真实保存动作样本，不能将提速局写成全程普通节奏。SQLite 审计在隔离数据上逐 checkpoint／随机源重放，核对电厂分区、燃料和资金，公开报告不导出隐藏现金或牌堆。所有本机启动显式使用 127.0.0.1 与随机端口。新工作区包加入后执行冻结锁文件离线安装以建立本地依赖链接，仅更新 lockfile 不足以保证 React 构建解析。
+
+Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 并发曾使既有 Socket 和宝可梦整局测试超过原来的 5 秒期限。保留原超时与断言，限制本项目测试并发；不提高测试超时掩盖故障，也不修改全局工具环境。
 
 ## 独立原型的运行与检查
 

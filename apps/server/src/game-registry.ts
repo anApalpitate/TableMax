@@ -17,6 +17,10 @@ export function createGameRegistry(includeTemplate = false) {
       catalog: { id: 'modern-art', name: '现代艺术', min: 3, max: 5 },
       load: () => import('../../../games/modern-art'),
     },
+    {
+      catalog: { id: 'power-grid', name: '电力公司', min: 2, max: 6 },
+      load: () => import('../../../games/power-grid'),
+    },
     ...(includeTemplate
       ? [
           {

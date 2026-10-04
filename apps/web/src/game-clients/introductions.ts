@@ -1,5 +1,6 @@
 import { pokemonIntroduction } from '../../../../games/pokemon-encounters/ui/introduction';
 import { modernArtIntroduction } from '../../../../games/modern-art/ui/introduction';
+import { powerGridIntroduction } from '../../../../games/power-grid/ui/introduction';
 
 export type IntroductionIcon =
   'cards' | 'swap' | 'pair' | 'auction' | 'painting' | 'coins';
@@ -20,5 +21,6 @@ export function gameIntroduction(
 ): GameIntroductionContent | undefined {
   if (id === 'pokemon-encounters') return pokemonIntroduction;
   if (id === 'modern-art') return modernArtIntroduction;
+  if (id === 'power-grid') return powerGridIntroduction;
   return undefined;
 }

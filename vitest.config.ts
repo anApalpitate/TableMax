@@ -8,5 +8,8 @@ export default defineConfig({
       'games/**/*.test.ts',
     ],
     environment: 'node',
+    // Seeded full-game checks are CPU-heavy. Bound file concurrency so local
+    // Socket/SQLite tests retain their normal timeouts on Windows.
+    maxWorkers: 4,
   },
 });

@@ -6,7 +6,7 @@ import {
 } from '@tablemax/protocol';
 import { gameCover } from '../assets/game-covers';
 import { avatarFor } from '../assets/avatars';
-import appIcon from '../../../../assets/platform/app-icon.png';
+import appIcon from '../../../../assets/platform/app-icon-180.png';
 import { ScreenLink } from '../components/ScreenLink';
 import { RoomManagement } from '../components/RoomManagement';
 import { InviteFriends } from '../components/InviteFriends';

@@ -753,6 +753,7 @@
       "bytes": 761257,
       "sha256": "7b154393329834b3c341a596d4b68f02c48d2bd461ba2fbfca9bda767e07956f",
       "postprocessing": "Proportional LANCZOS resize and PNG/ICO format conversion; alpha preserved",
+      "browserUsage": "2026-10-04: the 36 CSS px box brand uses the existing verified 180px derivative. Full 1024px original and native ICO are preserved; no game artwork is removed. This avoids bundling the 761257-byte original for a small mark.",
       "derivatives": [
         {
           "file": "app-icon.ico",

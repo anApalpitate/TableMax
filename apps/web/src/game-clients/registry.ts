@@ -7,6 +7,7 @@ export interface GameClient {
   motionDuration: number;
 }
 const loaders: Record<string, () => Promise<{ client: GameClient }>> = {
+  'power-grid': () => import('./PowerGridScreen'),
   'modern-art': () => import('./ModernArtScreen'),
   'pokemon-encounters': () => import('./PokemonScreen'),
   template: () => import('./TemplateScreen'),

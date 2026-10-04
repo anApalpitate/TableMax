@@ -5,13 +5,15 @@ import type { RoomCoordinator } from '@tablemax/platform-core';
 const task = workerData as NonNullable<ReturnType<RoomCoordinator['botTask']>>;
 async function run() {
   const bot =
-    task.gameId === 'modern-art'
-      ? (await import('../../../games/modern-art/bot')).bot
-      : task.gameId === 'pokemon-encounters'
-        ? (await import('../../../games/pokemon-encounters/bot')).bot
-        : task.gameId === 'template'
-          ? (await import('../../../games/template/bot')).bot
-          : null;
+    task.gameId === 'power-grid'
+      ? (await import('../../../games/power-grid/bot')).bot
+      : task.gameId === 'modern-art'
+        ? (await import('../../../games/modern-art/bot')).bot
+        : task.gameId === 'pokemon-encounters'
+          ? (await import('../../../games/pokemon-encounters/bot')).bot
+          : task.gameId === 'template'
+            ? (await import('../../../games/template/bot')).bot
+            : null;
   if (!bot || task.data.version !== bot.version)
     throw new Error('incompatible-strategy');
   if (

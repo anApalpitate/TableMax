@@ -133,6 +133,15 @@ importers:
         specifier: 19.3.0
         version: 19.3.0
 
+  games/power-grid:
+    dependencies:
+      '@tablemax/game-sdk':
+        specifier: workspace:*
+        version: link:../../packages/game-sdk
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+
   games/template:
     dependencies:
       '@tablemax/game-sdk':

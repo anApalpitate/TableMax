@@ -1,0 +1,297 @@
+{
+  "createdAt": "2026-10-04",
+  "purpose": "Independent classic Power Grid Germany resources. Original reference-based industrial illustrations and decorative terrain; exact map paths, city names, prices and card data are rendered by code.",
+  "generator": "built-in imagegen",
+  "version": 1,
+  "artworkAttribution": "TableMax 参考经典实物的生成插画；不宣称出版原图、逐卡复刻或像素级地图复刻。",
+  "referenceSources": [
+    {
+      "url": "https://www.brettspiele-magazin.de/bilder/funkenschlag-spielplan-deutschland.jpg",
+      "localFile": "artifacts/maintenance/v1.0.1/power-grid/research/map/classic-germany-board-reference.jpg",
+      "role": "Classic frontal German board composition and six-region geography reference"
+    },
+    {
+      "url": "https://labsk.net/index.php?topic=252018.0",
+      "localFiles": [
+        "artifacts/maintenance/v1.0.1/power-grid/research/map/history-review-labsk-photo-165233.jpg",
+        "artifacts/maintenance/v1.0.1/power-grid/research/map/history-review-labsk-classic-board-full.jpg"
+      ],
+      "role": "High resolution classic physical board terrain and palette reference; photographed perspective is not used as final asset"
+    },
+    {
+      "url": "https://2f-spiele.de/wp-content/uploads/2019/09/funkenschlag-classic_01.png",
+      "localFile": "artifacts/maintenance/v1.0.1/power-grid/research/map/history-review-official-classic-components.png",
+      "role": "Publisher classic industrial cover and printed card-art style reference"
+    }
+  ],
+  "postprocessing": "Original PNGs copied unchanged into evidence. Proportional Lanczos downsampling and RGB WebP encoding only; all content edits used built-in imagegen. No programmed painting, map-region removal or compositing.",
+  "atlasLayout": {
+    "columns": 4,
+    "rows": 4,
+    "width": 1200,
+    "height": 1200,
+    "tileWidth": 300,
+    "tileHeight": 300,
+    "indexOrder": "row-major, zero-based",
+    "gutters": 0,
+    "tiles": [
+      {
+        "index": 0,
+        "subject": "small-coal"
+      },
+      {
+        "index": 1,
+        "subject": "brick-coal"
+      },
+      {
+        "index": 2,
+        "subject": "cooling-tower-coal"
+      },
+      {
+        "index": 3,
+        "subject": "coastal-coal"
+      },
+      {
+        "index": 4,
+        "subject": "compact-oil"
+      },
+      {
+        "index": 5,
+        "subject": "refinery-oil"
+      },
+      {
+        "index": 6,
+        "subject": "mixed-coal-oil"
+      },
+      {
+        "index": 7,
+        "subject": "large-oil"
+      },
+      {
+        "index": 8,
+        "subject": "waste-reception"
+      },
+      {
+        "index": 9,
+        "subject": "waste-silos"
+      },
+      {
+        "index": 10,
+        "subject": "two-tower-nuclear"
+      },
+      {
+        "index": 11,
+        "subject": "three-tower-nuclear"
+      },
+      {
+        "index": 12,
+        "subject": "single-wind"
+      },
+      {
+        "index": 13,
+        "subject": "three-wind"
+      },
+      {
+        "index": 14,
+        "subject": "wind-farm"
+      },
+      {
+        "index": 15,
+        "subject": "fusion"
+      }
+    ],
+    "cropInset": "catalog.ts crops 0.0025 atlas dimension at each cell edge (1% of cell width) to exclude hairline seams"
+  },
+  "assetByteBudget": 1500000,
+  "webpTotalBytes": 457912,
+  "executionEvidence": {
+    "mapInitialMs": 42674,
+    "mapCorrectionMs": 39064,
+    "coverAndAtlasSharedWallMs": 96515,
+    "atlasFusionCorrectionMs": 44166,
+    "timingNote": "Cover and initial atlas launched together; shared wall duration is not an individual generation duration. Timings are measured tool orchestration intervals, not user-facing completion claims."
+  },
+  "assets": [
+    {
+      "id": "board",
+      "file": "board-v1.webp",
+      "version": 1,
+      "source": "built-in imagegen",
+      "transparent": false,
+      "sourceFile": "artifacts/maintenance/v1.0.1/power-grid/imagegen/board-source-v2.png",
+      "promptFile": "artifacts/maintenance/v1.0.1/power-grid/imagegen/board-correction-prompt-v2.txt",
+      "prompt": "Use case: precise-object-edit.\nAsset type: Power Grid classic Germany board background texture for a 900×1200 SVG overlay.\nInput images: Image 1 is the generated map background edit target. Image 2 is the ORIGINAL CLASSIC BOARD composition reference, north-up, 370×500. All factual outlines and placements must follow Image 2. This is a flat print background asset, never a photograph.\nPrimary request: correct only the background's composition and region outlines to match Image 2's physical classic board layout. Preserve the generated background's quality, six-region palette and subtle hand-painted cardboard terrain style. The complete printed board canvas is 3:4 portrait. Do not enlarge, zoom into, crop, translate or modernize Germany's silhouette. Align all region borders, coasts and rivers to their normalized locations in Image 2. Keep the blank blue sea at the top, and replace the top order strip and bottom resource market in Image 2 with simple unobtrusive tan parchment bands in the same positions and extents, with absolutely no icons, numbers or lines.\nCritical geometry from Image 2: the top sequence area is in the uppermost 0–10% of canvas; the bottom resource market is the lowermost 92–99% of canvas. Colored land is inside these same classic board bounds. Germany's narrow northern stem lies near x40–50% across, reaching the top edge; northwest turquoise region near x25–55% and y15–42%; west pink region near x5–45% and y28–52%; southwest blue region near x5–48% and y51–74%; northeast rusty tan region near x52–89% and y12–42%; ochre central/east region near x43–96% and y42–73%; purple southern region near x20–84% and y73–91%. These are rough bounds only; Image 2's visible borders are authoritative. Do not substitute real-world administrative Germany geography. Copy the GAME BOARD geography.\nKeep every colored region in its published classical location, all six, and leave only clean terrain in place of any original city markers and pipes. No names, letters, numerals, city structures, discs, tokens, pipes, connection lines, grids, routes, tracks, game icons, logos, legends or labels. Very restrained terrain speckling, not exaggerated mountainous terrain. Map is planar and perfectly frontal with zero perspective. Opaque image.\n",
+      "width": 900,
+      "height": 1200,
+      "originalWidth": 1086,
+      "originalHeight": 1448,
+      "bytes": 199022,
+      "sha256": "12b6b14449ed18c741806d7d4e7b823dffef1063ca916cb6256df185b3b7b632",
+      "originalSha256": "6da76aa71274a9900e984755f4a697d71e7f688b817ae75cd0922c33c1c7b3a4",
+      "webpQuality": 72,
+      "status": {
+        "generated": true,
+        "visuallyVerified": true,
+        "importedInUi": true
+      },
+      "visualVerification": "Frontal opaque six-region classic-style terrain with seas, neighboring land and cardboard frame; no city markers, text, prices or pipes. Coastlines and terrain boundaries are generated approximations. Code-rendered verified cities, links, prices and city region membership take precedence; no pixel-perfect reproduction claimed.",
+      "formalUsage": "Decorative terrain layer beneath code-rendered classic-board cities, pipes and values. Region membership comes from exact city data; approximate region paths are not drawn over the generated terrain. Never supplies gameplay data or exact geographic boundaries.",
+      "toolElapsedMs": 39064
+    },
+    {
+      "id": "cover",
+      "file": "cover-v1.webp",
+      "version": 1,
+      "source": "built-in imagegen",
+      "transparent": false,
+      "sourceFile": "artifacts/maintenance/v1.0.1/power-grid/imagegen/cover-source-v1.png",
+      "promptFile": "artifacts/maintenance/v1.0.1/power-grid/imagegen/cover-prompt-v1.txt",
+      "prompt": "Use case: stylized-concept.\nAsset type: square game-library cover artwork for TableMax's classic Power Grid Germany game.\nInput image: the real classic Funkenschlag component/box image is a STYLE AND THEME REFERENCE ONLY. Use its mature olive-gray industrial boardgame illustration language and electrical-company theme. Create a new composed cover, not a product photograph.\nPrimary request: a highly polished traditional European tabletop game cover illustration: an electricity-company engineer in a white collared shirt and charcoal vest confidently operating a large olive-green vintage electrical switchboard, one hand on a red circular control switch, serious focused profile. Copper pipes, mechanical meters and a large turbine structure behind him; through a workshop window, a modest German industrial city with tall chimneys and power transmission structures in pale daylight. Use a clean readable composition fitting a 600×600 thumbnail, portrait on left third, olive machinery and red control prominent on the right, enough warm ivory light across upper sky and rim to read in TableMax's bright library.\nStyle/medium: hand-painted printed eurogame cover illustration, precise dark ink contours, restrained gouache washes, subtle matte paper fibers, mature authentic 1990s–2000s German boardgame industrial theme. Rich muted olive, charcoal, teal-gray, copper ochre and cream, with red accent. Clearly real illustrated industrial machinery and architecture, no cartoon toy rendering, no photorealism.\nComposition: square frontal illustrated artwork, full bleed. No border, no title area, no text needed. Strong main silhouettes and clear light-dark contrast even when tiny.\nAvoid: all words, numerals, card prices, resource icons, logos, watermarks, signatures, text labels, actual boxes/cards/tokens, game UI, fantasy neon, unrelated games, Pokemon, art-gallery symbols. No perspective photography of board components. Opaque background.\n",
+      "width": 600,
+      "height": 600,
+      "originalWidth": 1254,
+      "originalHeight": 1254,
+      "bytes": 69950,
+      "sha256": "e78aaeda7270c36492ba9316085c42705c44cc99e64f9887c55fb9e7ca48cd98",
+      "originalSha256": "9535826ba2bff3cde644eacf8a3413e340c14a488a48e3aad93ad6e7264ae258",
+      "webpQuality": 76,
+      "status": {
+        "generated": true,
+        "visuallyVerified": true,
+        "importedInUi": true
+      },
+      "visualVerification": "Classic-theme engineer, red switch, olive industrial machinery, German industrial skyline, mature paper illustration. Clear thumbnail silhouette. No legible words or numbers; analog gauge ticks are illustration, not gameplay statistics.",
+      "formalUsage": "Independent Power Grid game-library cover. Original reference-based industrial illustration, not a box photograph."
+    },
+    {
+      "id": "plants-atlas",
+      "file": "plants-atlas-v1.webp",
+      "version": 1,
+      "source": "built-in imagegen",
+      "transparent": false,
+      "sourceFile": "artifacts/maintenance/v1.0.1/power-grid/imagegen/plants-atlas-source-v2.png",
+      "promptFile": "artifacts/maintenance/v1.0.1/power-grid/imagegen/plants-atlas-correction-prompt-v2.txt",
+      "prompt": "Use case: precise-object-edit.\nAsset type: classic Power Grid industrial power-plant illustration atlas, exactly 4×4 equal square tiles.\nInput image: edit target is the supplied sixteen-tile industrial illustration atlas.\nPrimary request: change ONLY the bottom-right tile (row 4, column 4, zero-based index 15), which currently shows a hydroelectric dam. Replace that square with a futuristic but restrained FUSION POWER PLANT illustration appropriate to classic Power Grid's 50-number fusion card. The new scene must show a large sealed metallic toroidal fusion reactor housing with silver-blue round reactor architecture and surrounding white low turbine halls, compact orange pipework, no cooling-tower chimneys, no fuel, no waste, no smoke, no hazard. It is a game-card illustration, not a claim of a real existing commercial fusion facility. Keep the muted blue-gray sky, greenery, mature fine ink contours, printed gouache paper finish and horizon placement consistent with the other cards. Visually distinguish it from the nearby conventional uranium nuclear plants.\nInvariants: preserve absolutely ALL other 15 squares pixel-faithfully in their existing locations, including all coal, oil, mixed, waste, nuclear and three wind images. Preserve the exact 4×4 grid, dimensions, palette, each tile boundary and full bleed. Do not shift or resize anything. Do not draw seam lines; blend only the new tile to the existing cell edge. The bottom-right new plant image fills the square completely. Zero letters, words, numerals, icons, card chrome, labels, watermarks, signatures, frames or outer margins. Opaque.\n",
+      "width": 1200,
+      "height": 1200,
+      "originalWidth": 1254,
+      "originalHeight": 1254,
+      "bytes": 188940,
+      "sha256": "eb7c388e8d9e5622cd1a60524b7a4876545ca34b26c4890b32d38107cb4deb7e",
+      "originalSha256": "d2f37b36ade70fb1595063a0ffc4584f31e8ee2267cd592715995b6443c2bb97",
+      "webpQuality": 76,
+      "status": {
+        "generated": true,
+        "visuallyVerified": true,
+        "importedInUi": true
+      },
+      "visualVerification": "Sixteen distinct complete industrial facility illustrations, 4×4 row-major grid, no card numbers/fuel icons/words. Index 15 corrected from hydro to fusion; other 15 subjects and compositions visibly retained, measured RGB RMS in audit. Thin generated tile seams are excluded by the catalog crop inset.",
+      "formalUsage": "Illustration interiors for the 42 classic power plant cards; the 16 original compositions are reused by fuel family with different crops. Not a claim of 42 separately reproduced printed card artworks.",
+      "toolElapsedMs": 44166
+    }
+  ],
+  "limitations": [
+    "Map terrain was generated twice and retained as decorative texture. Its boundaries do not exactly match the classic board scan; city region membership, connectivity and prices come from independently verified data. The approximate region paths are not used as authoritative geography.",
+    "Sixteen facility illustrations cover seven fuel families; 42 cards do not have 42 separately reproduced original interiors."
+  ],
+  "audio": {
+    "version": 1,
+    "generator": "scripts/generate-power-grid-audio.mjs",
+    "attribution": "TableMax 原创确定性工业合成音效，无录音采样",
+    "evidence": "artifacts/maintenance/v1.0.1/power-grid/ui/audio/generation.json",
+    "sampleRate": 22050,
+    "channels": 1,
+    "bitDepth": 16,
+    "status": {
+      "generated": true,
+      "waveformVerified": true,
+      "importedInUi": true
+    },
+    "files": [
+      {
+        "cue": "bid",
+        "file": "bid-v1.wav",
+        "bytes": 9746,
+        "durationSeconds": 0.22,
+        "peak": 0.20715664346236867,
+        "rms": 0.06410042920478548,
+        "sha256": "ca20e014e94862a9858fb6f313c22c14e1ac3bf1d3ca9cee454d27fd11a3a4b0",
+        "seconds": 0.22,
+        "notes": [740, 990],
+        "strikes": [0, 0.11],
+        "metal": 0.15
+      },
+      {
+        "cue": "fuel",
+        "file": "fuel-v1.wav",
+        "bytes": 14156,
+        "durationSeconds": 0.32,
+        "peak": 0.23139912229525597,
+        "rms": 0.0667700274685187,
+        "sha256": "eb493c51ddc12b26ace06d7a9f11b0bf182e1290b03afa0819d8c40e6e723aed",
+        "seconds": 0.32,
+        "notes": [170, 230],
+        "strikes": [0, 0.095, 0.2],
+        "metal": 0.55
+      },
+      {
+        "cue": "build",
+        "file": "build-v1.wav",
+        "bytes": 17244,
+        "durationSeconds": 0.3900226757369615,
+        "peak": 0.2587206258370734,
+        "rms": 0.060872948214887604,
+        "sha256": "f6b56ef57b53788e55b297f91b033c0a691a7e74e0b31bd18950e11ef82bd834",
+        "seconds": 0.39,
+        "notes": [260, 520, 780],
+        "strikes": [0, 0.12, 0.25],
+        "metal": 0.65
+      },
+      {
+        "cue": "plant",
+        "file": "plant-v1.wav",
+        "bytes": 22094,
+        "durationSeconds": 0.5,
+        "peak": 0.2096974106714414,
+        "rms": 0.052334857865484724,
+        "sha256": "7ae8723199b98b2bf50a513ce75ae17faa204227790911156a50a63e173f99e6",
+        "seconds": 0.5,
+        "notes": [130, 196, 260],
+        "strikes": [0, 0.15, 0.3],
+        "metal": 0.28
+      },
+      {
+        "cue": "run",
+        "file": "run-v1.wav",
+        "bytes": 25182,
+        "durationSeconds": 0.5700226757369614,
+        "peak": 0.27909692887442933,
+        "rms": 0.06651340036289538,
+        "sha256": "8ba30925b7256e729b913cd1cdef20411525d6bf8d89a73378f533ea64f7dd20",
+        "seconds": 0.57,
+        "notes": [196, 246.94, 293.66],
+        "strikes": [0, 0.08, 0.16],
+        "metal": 0.06
+      },
+      {
+        "cue": "end",
+        "file": "end-v1.wav",
+        "bytes": 37970,
+        "durationSeconds": 0.86,
+        "peak": 0.28910190743958275,
+        "rms": 0.08014726176707848,
+        "sha256": "de3ca2be3c7978ea6fae8fb540d63cbe6933eeda4f056955ed4d78f419e2472e",
+        "seconds": 0.86,
+        "notes": [196, 246.94, 293.66, 392],
+        "strikes": [0, 0.13, 0.26, 0.4],
+        "metal": 0.04
+      }
+    ]
+  },
+  "uiVerification": {
+    "evidence": "artifacts/maintenance/v1.0.1/power-grid/ui/scoped-fixture/results.json",
+    "scope": "Production React authorized fixtures, 80 layouts, actual image decode, six WAV decode, saved-feedback consumer and muted phone; native DPI and portable verification are recorded separately",
+    "checkedAt": "2026-10-04",
+    "amountEvidence": "artifacts/maintenance/v1.0.1/power-grid/ui/amount-fixture/results.json"
+  }
+}

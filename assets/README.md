@@ -9,6 +9,7 @@
 | `games/pokemon-encounters/catalog.ts` | 当前卡面／硬币的浏览器资源表；颜色与文件映射，不参与规则与存档                                |
 | `games/template/`                     | 扩展验证游戏资源                                                                              |
 | `games/modern-art/`                   | 五族独立画作图集、小封面、浏览器资源映射、imagegen 来源及独立原创音效清单；70卡图像为原创演绎 |
+| `games/power-grid/`                   | 经典德国地图地形、工业厂景图集、小封面、独立音效和来源清单；城市、连线与费用由代码绘制        |
 
 ## 替换
 

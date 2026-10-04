@@ -49,6 +49,8 @@
 
 第二款正式游戏集中于 `games/modern-art/`（data、rules、bot、ui），独立图片与浏览器映射在 `assets/games/modern-art/`，出版规则及项目采用说明在 `docs/games/modern-art/`。`apps/web/src/assets/game-covers.ts` 仅提供目录缩略图；每个游戏的布局 CSS 归其 UI 目录并限定自身根节点。
 
+第三款《电力公司》集中于 `games/power-grid/`（data、rules、bot、ui、types），经典地图、电厂与经济表各自维护；资源在 `assets/games/power-grid/`，长期规格在 `docs/games/power-grid/`。它不导入其他游戏，服务／Worker／网页注册只组装独立入口。来源及验收过程在 `artifacts/maintenance/v1.0.1/power-grid/`，其中原图、规则 PDF 与研究数据不是运行资源。
+
 上表是现有目录；真实平台、验证模板与宝可梦完整游戏均已实现。工程依赖方向、进程及封装边界统一见 [工程结构](architecture.md)，采用理由见 [工程基础决策](../decisions/001-engineering-foundation.md)。1.6.0 盒子先展示游戏库，服务及客户端按选择／存档加载对应游戏；主机／公共／手机分别维护盒子和 `/game` 子路由。电脑管理员可指定一位手机房主管理游戏生命周期，玩家仍只接收本人获准视图，见 [通用平台规格](phase-02-platform-spec.md) 与 [界面决策](../decisions/002-host-public-screen-and-debug.md)。
 
 | 计划位置（尚未创建） | 建立时机与内容                           |

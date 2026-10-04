@@ -1,6 +1,6 @@
 # 游戏接入与验证
 
-正式游戏是 [宝可梦奇遇](../../games/pokemon-encounters/index.ts)和[现代艺术](../../games/modern-art/index.ts)；[幸运骰子](../../games/template/index.ts) 保留为开发验证模板，含独立资源、规则、两端 UI 与策略。通过注册目录按需加载游戏，新房间先选择游戏；外部插件、多房间和调试修改仍不在本阶段范围。
+游戏目录包括 [宝可梦奇遇](../../games/pokemon-encounters/index.ts)、[现代艺术](../../games/modern-art/index.ts)与[电力公司](../../games/power-grid/index.ts)；各游戏当前交付状态见 [规格索引](../games/README.md)。[幸运骰子](../../games/template/index.ts) 保留为开发验证模板，含独立资源、规则、两端 UI 与策略。通过注册目录按需加载游戏，新房间先选择游戏；外部插件、多房间和调试修改仍不在本阶段范围。
 
 ## 模块与契约
 
