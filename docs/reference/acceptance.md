@@ -2,6 +2,22 @@
 
 各任务已验收的便携包及验证范围见下文固定副本；线上已发布包见 [v1.0.1 GitHub Release](../archive/acceptance-2026-10-01-to-04.md#101github-release2026-10-03)。本页保留当前交付验证与近期本地维护；较早完整对局、AC 对照、哈希和证据集中在 [历史验收](../archive/acceptance-2026-10-01-to-04.md)。
 
+## 1.0.2：电力公司界面与原创规则图解（2026-10-05）
+
+沿用 **1.0.2**，完成四条完整燃料价阶、逐份采购与混燃共仓摘要、公司概览与详情、按阶段默认展开且保留手动展开、棋盘／清晰地图和独立收益浮卡。地图仍为经典德国修正版 42 城／六区／83 边，缩放、拖动、选城和建设确认沿用既有流程；房屋用六种颜色与稳定符号区分，不增加路线或选城辅助。收益复用完整收入表和纯生产计算，排除已启动厂的重复运行，结合剩余库存、已产生电力与城市上限；本人未提交选择只出现在本人手机。规格见 [交互](../games/power-grid/interaction.md) 与 [地图](../games/power-grid/map.md)。
+
+八章导航改用六组原创规则图解，准确数字／箭头／价阶／城位由 HTML／SVG 和现有数据绘制；新增燃料及木屋透明 WebP 共 **223,148 字节**，厂景复用既有图集。行政阶段抽到第三步牌时最后一次仍用第二步补给，项目解释单列；旧截图、原 PNG 及历史证据保留。完整提示词、哈希和导入核验见 [资源](../games/power-grid/assets.md) 与 [清单](../../assets/games/power-grid/manifest.json)。
+
+本次固定 [运行 ZIP](../../artifacts/maintenance/v1.0.2/power-grid-polish-20261005/delivery/TableMax-1.0.2-win-x64.zip)为 **40,500,050 字节**，实际解压 **145 文件／95,582,607 字节**，双 100 MB 硬门禁通过；95 MB 工程预算超 **582,607 字节**，如实保留为体积限制。SHA-256：`0741a3931b497b677e621e4ac29b5303823cd01d4d1b6ef45d2ff507d366cc26`；[固定逐文件清单](../../artifacts/maintenance/v1.0.2/power-grid-polish-20261005/delivery/TableMax-1.0.2-win-x64-manifest.json)与当前共享 ZIP 同哈希，固定副本保留本次验证版本。包从当前共享工作区构建，本节验证范围为电力公司；其他任务源码与历史验收保留。
+
+[最终人数矩阵](../../artifacts/maintenance/v1.0.2/power-grid-polish-20261005/ui-matrix.json)通过 **2–6 人／472 布局**，各人数 12 项交互、5 项声音检查；覆盖 854×480 至 4K、320／360／390 宽手机、密集网络、长城名、完整价阶库存、摘要及手动展开、双地图视图、hover／聚焦／固定／手机收益与查看不发送动作。最终六人矩阵耗时 **40.14 秒**，[地图专项](../../artifacts/maintenance/v1.0.2/power-grid-polish-20261005/power-grid/map-final/results.json)耗时 **32.13 秒**。[独立逐图审查](../../artifacts/maintenance/v1.0.2/power-grid-polish-20261005/visual-review.json)记录燃料、规则、收益和密集地图的实际截图、修正及主 agent 裁定，不扩大为实机交互证明。
+
+[源码真实服务](../../artifacts/maintenance/v1.0.2/power-grid/runtime/development/pg-polish-source-complete/results.json)通过整局、三步、现金投影、逐次动作保存、回退、SQLite／Worker 重启恢复、终局、手机房主再玩与跨游戏身份／样式隔离，耗时 **442.16 秒**，核验 **1111 次规则重放**。同一最终 ZIP 的 [完整对局恢复](../../artifacts/maintenance/v1.0.2/power-grid/runtime/portable/pg-polish-package-complete/results.json)通过，耗时 **419.69 秒**、**1101 次规则重放**；该自然局观察第一、第三步，第二步另由源码整局覆盖。最终 ZIP 的 [原生显示](../../artifacts/maintenance/v1.0.2/power-grid/runtime/portable/pg-polish-display-accepted/results.json)通过 **22 组窗口／DPI 与浮层检查（51.66 秒）**，记录 720p／1080p／4K、界面 100／125／150% 和模拟 Windows 125／150% 的实际几何，显示查看不改变状态。测试关闭各自原生窗口并确认服务不可达。
+
+最终 ZIP 的 [规则验收](../../artifacts/maintenance/v1.0.2/power-grid-polish-20261005/rules/rules-portable-final/results.json)通过 **9 项（52.67 秒）**：三端六组图解、背景图集本地解码、章节定位、关闭／Esc 焦点返回及保存不变。类型、Lint、Prettier、diff 检查与 **44 文件／310 项测试**通过，含 7 项收益纯计算边界测试（0 城、20+ 城、混燃、不重复运行、少供电及私密选择）。旧验证器依赖逐份圆点和固定截图数量的断言已替换为价阶余量及六组图解语义；早期布局失败、过时首屏断言和悬停预览阻挡自动化点击的失败证据均保留，整体失败不记作通过。浏览器／后台原生窗口及模拟密度不等于真实手机、电视、物理 DPI 或真人听音验收；本轮仅回环地址，未改防火墙。
+
+收尾 [release 清理](../../artifacts/maintenance/local-cleanup-20261004-183802-280-releases/cleanup.json)保留当前 ZIP／清单并删除四个已完成打包目录（约 **0.86 GiB**）；[全库维护](../../artifacts/maintenance/local-cleanup-20261004-184146-225-maintenance/cleanup.json)清掉 **53 个安全候选／19.684 GiB**，剩余 **49.887 GiB**。安全候选已耗尽，原始资料、原图、正式存档、历史截图、依赖与缓存继续保留，未扩大清理范围。固定交付副本与当前 ZIP 哈希复核一致。
+
 ## 1.0.2：现代艺术优化## 1.0.2：宝可梦声画与手机优化（2026-10-05）
 
 完成关键保存事件短全屏、普通动作局部轨迹与精灵主题点缀、手机四列顶栏及右侧固定取消列、八个用户 WAV 的映射和双槽声音调度。取消仅清除本地选牌；喷火龙公共演出不泄漏私看位置。手机静音，测试模式关闭装饰声画，减少动态、暂停／断线／回退／恢复及播放权交接沿用权限和清理边界。协议、规则、存档及版本号不变，行为和来源见 [交互](../games/pokemon-encounters/interaction.md)及 [资源](../games/pokemon-encounters/assets.md)。火箭队透明三人新图未完成：一次内置生成被 `moderation_blocked / other` 拒绝，官方替代检索未找到完整匹配；旧图保留，缺口见 [任务索引](../tasks/README.md#宝可梦火箭队配图缺口)。

@@ -14,4 +14,6 @@
 
 六个工业音效 v2 由 [generate-power-grid-audio.mjs](../../../scripts/generate-power-grid-audio.mjs) 可复现合成，总计 **180,634 字节**，对应竞价、燃料采购、建城、购厂、供电和终局；独立波形、节奏和声部与六类保存后视觉反馈配合。手机静音，电脑遵循平台声音归属、静音、暂停、断线与退出处理；首次同步、刷新、回退不补播，终局的新保存反馈可播放。参数、峰值、RMS、哈希和时长证据在 `artifacts/maintenance/v1.0.2/power-grid-debug-20261004/rules-audio/generation-v2.json`。旧 v1 WAV 与生成记录保留，UI 只引用 v2；实际运行检查另记录在交付验收。
 
-五张规则配图 v2 来自更新后实际 React 区域渲染：电厂市场 306×927、横向网络 378×723、公司牌 272×509、本轮顺序 378×326、燃料价区 269×1038。运行使用无损 WebP，合计 **421,250 字节**；原 PNG 与旧 v1 图保留。当前来源、SHA-256 和逐 RGB 像素核验结果由资源清单及 `artifacts/maintenance/v1.0.2/power-grid-debug-20261004/rules-compression.json` 维护。规则正文的流程图与价格示意使用本游戏代码排版，不能把它们写成实物截图。
+历史五张规则配图 v2 来自当时实际 React 区域渲染：电厂市场 306×927、横向网络 378×723、公司牌 272×509、本轮顺序 378×326、燃料价区 269×1038。运行使用无损 WebP，合计 **421,250 字节**；原 PNG 与旧 v1 图保留。当前来源、SHA-256 和逐 RGB 像素核验结果由资源清单及 `artifacts/maintenance/v1.0.2/power-grid-debug-20261004/rules-compression.json` 维护。规则正文的流程图与价格示意使用本游戏代码排版，不能把它们写成实物截图。
+
+2026-10-05 当前规则改用六组代码图解，复用厂景图集并导入两项原创透明插画：`rules/illustrations-v1/fuels-atlas-v1.webp`（1024×1024，192,460 字节）与 `house-v1.webp`（512×512，30,688 字节），新增合计 **223,148 字节**，小于 300 KiB。imagegen 原图、完整提示词、透明度／缩放与哈希核验保留在 `artifacts/maintenance/v1.0.2/power-grid-polish-20261005/imagegen/`；准确价阶、厂号、箭头、城位与收入由现有数据和代码排版。旧五张截图、原 PNG 及历史证据完整保留，属于历史配图。

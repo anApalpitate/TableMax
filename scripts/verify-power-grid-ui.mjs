@@ -15,6 +15,10 @@ const maintenance =
   'shared-visual-20261004';
 const amountOnly = process.argv.includes('--amount-only');
 const mapOnly = process.argv.includes('--map-only');
+const seatCount = Number(
+  process.argv.find((value) => value.startsWith('--seats='))?.slice(8) ?? 6,
+);
+assert.ok([2, 3, 4, 5, 6].includes(seatCount), 'Classic supported seat count');
 const captureRulesOnly = process.argv.includes('--capture-rules-only');
 const captureRules =
   captureRulesOnly || process.argv.includes('--capture-rules');
@@ -43,8 +47,9 @@ const report = {
 const generator = `
 import { rules, bot } from ${JSON.stringify(resolve('games/power-grid/index.ts'))};
 import { BOARD_WIDTH, BOARD_HEIGHT, GERMANY_CITIES, GERMANY_EDGES } from ${JSON.stringify(resolve('games/power-grid/data/germany.ts'))};
+import { INCOME } from ${JSON.stringify(resolve('games/power-grid/data/economy.ts'))};
 export async function make(){
- const seats=['p1','p2','p3','p4','p5','p6'];let seed=728;
+ const seats=Array.from({length:${seatCount}},(_,index)=>'p'+(index+1));let seed=728;
  const random={next(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296;}};
  const context={seats,random};let state=rules.initialize(context);const fixtures={};
  for(let index=0;index<12000;index++){
@@ -64,7 +69,7 @@ export async function make(){
   state=rules.apply(state,result.action,seat,context).state;
  }
  if(!fixtures.ended) throw new Error('Fixture match did not finish');
- return {fixtures,board:{width:BOARD_WIDTH,height:BOARD_HEIGHT,cities:GERMANY_CITIES,edges:GERMANY_EDGES}};
+ return {fixtures,income:INCOME,board:{width:BOARD_WIDTH,height:BOARD_HEIGHT,cities:GERMANY_CITIES,edges:GERMANY_EDGES}};
 }`;
 await bundle({
   stdin: {
@@ -79,7 +84,7 @@ await bundle({
   target: 'node22',
   logLevel: 'silent',
 });
-const { fixtures, board } = await (
+const { fixtures, board, income } = await (
   await import(
     new URL('file:///' + join(work, 'generator.mjs').replaceAll('\\', '/'))
   )
@@ -96,6 +101,7 @@ HTMLMediaElement.prototype.pause=function(){};
 const names=['一号电力公司测试长昵称abcdefghijklmnop','蓝色莱茵电力','第三家电力公司','第四家绿色电网','五号原子动力','六号能源投资'];
 function Fixture(){const [setting,setSetting]=useState({name:'regions',role:'host',paused:false,serial:0});const [feedback,setFeedback]=useState(null);
 window.setFixture=(name,role='host',paused=false)=>{setFeedback(null);window.__commands=[];setSetting(s=>({name,role,paused,serial:s.serial+1}));};
+window.changeFixture=(name)=>{window.__commands=[];setSetting(s=>({...s,name}));};
 window.syncFixture=()=>setSetting(s=>({...s,revision:(s.revision??1)+1}));
 const fixture=fixtures[setting.name];const game=setting.role==='player'?fixture.game:fixture.publicGame;
 window.advanceFeedback=(revision=2,verb=game.latest?.verb??'bid')=>setFeedback({instanceId:'00000000-0000-4000-8000-000000000001',branch:0,revision,events:[{kind:verb==='end'?'game-ended':'effect-complete',text:game.latest?.text??'保存',action:{actor:game.latest?.actor??null,verb,cardCategory:null,ability:null,targets:[]}}]});
@@ -173,6 +179,201 @@ try {
   });
   await page.goto(origin);
   await page.waitForFunction(() => window.fixtureNames?.length > 0);
+  const verifyStageSummaries = async () => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.evaluate(() =>
+      window.setFixture(
+        window.fixtureNames.includes('crowded') ? 'crowded' : 'building',
+        'host',
+      ),
+    );
+    await page.waitForTimeout(60);
+    const plantSection = page.locator('[data-stage-section="plants"]');
+    const resourceSection = page.locator('[data-stage-section="resources"]');
+    assert.equal(await plantSection.getAttribute('data-expanded'), 'false');
+    assert.equal(await resourceSection.getAttribute('data-expanded'), 'false');
+    assert.ok(
+      await plantSection.locator('.pg-plant-market-summary').isVisible(),
+    );
+    await plantSection.getByRole('button').click();
+    await page.evaluate(() => window.syncFixture());
+    await page.waitForTimeout(60);
+    assert.equal(
+      await plantSection.getAttribute('data-expanded'),
+      'true',
+      'Same phase synchronization preserves manual expansion',
+    );
+    await page.evaluate(() => window.changeFixture('resources'));
+    await page.waitForTimeout(60);
+    assert.equal(
+      await plantSection.getAttribute('data-expanded'),
+      'false',
+      'New phase restores market summary',
+    );
+    assert.equal(
+      await resourceSection.getAttribute('data-expanded'),
+      'true',
+      'Resource phase expands compact full price ladders',
+    );
+    assert.equal((await page.evaluate(() => window.__commands)).length, 0);
+    report.actions.push(
+      'Phase transition restores relevant panels; manual expansion survives same-phase sync; summaries remain readable without commands',
+    );
+  };
+  const verifyPolish = async () => {
+    await page.setViewportSize({ width: 854, height: 480 });
+    await page.evaluate(() =>
+      window.setFixture(
+        window.fixtureNames.includes('crowded') ? 'crowded' : 'building',
+        'host',
+      ),
+    );
+    await page.waitForTimeout(60);
+    const map = page.locator('.pg-map-panel');
+    const clearView = map.locator('.pg-map-view-switch button').last();
+    await clearView.click();
+    assert.equal(await map.getAttribute('data-map-view'), 'clear');
+    assert.equal(await map.locator('[data-map-edge]').count(), 83);
+    assert.equal(await map.locator('[data-city]').count(), 42);
+    await map.getByRole('button', { name: '放大地图' }).click();
+    const zoomBeforePhase = await map.locator('.pg-map').getAttribute('style');
+    await page.evaluate(() => window.changeFixture('resources'));
+    await page.waitForTimeout(60);
+    assert.equal(
+      await map.locator('.pg-map').getAttribute('style'),
+      zoomBeforePhase,
+      'Phase change does not move the map',
+    );
+    await page.evaluate(() =>
+      window.setFixture(
+        window.fixtureNames.includes('crowded') ? 'crowded' : 'building',
+        'host',
+      ),
+    );
+    await page.waitForTimeout(60);
+    assert.equal(
+      await map.getAttribute('data-map-view'),
+      'clear',
+      'Map presentation preference survives remount',
+    );
+    await page.screenshot({ path: join(output, 'host-clear-map.png') });
+    report.screenshots.push('host-clear-map.png');
+    await map.locator('.pg-map-view-switch button').first().click();
+    assert.equal((await page.evaluate(() => window.__commands)).length, 0);
+    report.actions.push(
+      'Map presentation toggle preserves 42 cities/83 edges, per-role local preference and zoom across phase changes without commands',
+    );
+    await page.evaluate(() => window.setFixture('powering', 'host'));
+    await page.waitForTimeout(60);
+    const trigger = page.locator('[data-income-trigger]');
+    await trigger.hover();
+    const card = page.locator('[data-income-card]');
+    await card.waitFor();
+    assert.deepEqual(
+      await card
+        .locator('[data-income-value]')
+        .evaluateAll((nodes) =>
+          nodes.map((node) => Number(node.dataset.incomeValue)),
+        ),
+      income,
+    );
+    assert.equal(
+      await card.locator('[data-income-selected]').count(),
+      0,
+      'Public income card has no private draft',
+    );
+    await card.hover();
+    await page.waitForTimeout(240);
+    assert.ok(await card.isVisible(), 'Hover card accepts pointer entry');
+    await trigger.click();
+    assert.equal(await card.getAttribute('data-income-mode'), 'pinned');
+    const bounds = await card.boundingBox();
+    assert.ok(
+      bounds.x >= 0 &&
+        bounds.y >= 0 &&
+        bounds.x + bounds.width <= 855 &&
+        bounds.y + bounds.height <= 481,
+    );
+    await page.screenshot({ path: join(output, 'host-income-card.png') });
+    report.screenshots.push('host-income-card.png');
+    await page.keyboard.press('Escape');
+    await card.waitFor({ state: 'hidden' });
+    assert.equal(
+      await trigger.evaluate((node) => node === document.activeElement),
+      true,
+    );
+    assert.equal((await page.evaluate(() => window.__commands)).length, 0);
+    report.actions.push(
+      'Desktop income hover, pointer entry, pinning and Escape preserve complete public table and return focus without commands',
+    );
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.evaluate(() => window.setFixture('powering', 'player'));
+    await page.waitForTimeout(60);
+    const phoneTrigger = page.locator('[data-income-trigger]');
+    const overflow = await page.evaluate(() => document.body.style.overflow);
+    await phoneTrigger.click();
+    await page.locator('.pg-income-dialog[open]').waitFor();
+    assert.equal(
+      await page
+        .locator('[data-income-selected]')
+        .getAttribute('data-income-selected'),
+      await page.getByLabel('选择供电城市数').inputValue(),
+    );
+    assert.equal(
+      await page.evaluate(() => document.body.style.overflow),
+      'hidden',
+    );
+    await page.screenshot({ path: join(output, 'player-income-card.png') });
+    report.screenshots.push('player-income-card.png');
+    await page.keyboard.press('Escape');
+    await page.locator('.pg-income-dialog').waitFor({ state: 'hidden' });
+    assert.equal(
+      await page.evaluate(() => document.body.style.overflow),
+      overflow,
+    );
+    assert.equal((await page.evaluate(() => window.__commands)).length, 0);
+    report.actions.push(
+      'Phone income modal marks own draft, locks and restores background scroll, and does not submit',
+    );
+    await page.getByRole('button', { name: '规则', exact: true }).click();
+    const rules = page.getByRole('dialog');
+    const themes = [
+      'flow',
+      'resources',
+      'storage',
+      'network',
+      'steps',
+      'income',
+    ];
+    assert.deepEqual(
+      await rules
+        .locator('[data-rule-diagram]')
+        .evaluateAll((nodes) =>
+          nodes.map((node) => node.dataset.ruleDiagram).sort(),
+        ),
+      [...themes].sort(),
+    );
+    assert.equal(
+      await rules.locator('figure img').count(),
+      0,
+      'Original diagrams do not use captured UI',
+    );
+    for (const theme of themes) {
+      await rules
+        .locator(`[data-rule-diagram="${theme}"]`)
+        .scrollIntoViewIfNeeded();
+      await page.screenshot({
+        path: join(output, `player-rules-${theme}.png`),
+      });
+      report.screenshots.push(`player-rules-${theme}.png`);
+    }
+    await page.keyboard.press('Escape');
+    await rules.waitFor({ state: 'hidden' });
+    assert.equal((await page.evaluate(() => window.__commands)).length, 0);
+    report.actions.push(
+      'Six original rule themes are available on short phone without captured screens or saved actions',
+    );
+  };
   const captureRuleScreens = async () => {
     const directory = resolve('assets/games/power-grid/rules');
     await mkdir(directory, { recursive: true });
@@ -257,6 +458,7 @@ try {
     assert.deepEqual(report.requests, []);
     report.status = 'passed';
   } else if (mapOnly) {
+    await verifyStageSummaries();
     await page.setViewportSize({ width: 320, height: 568 });
     await page.evaluate(() => window.setFixture('building', 'player'));
     await page.waitForTimeout(50);
@@ -271,7 +473,11 @@ try {
           matrix: { a: node.getScreenCTM().a, b: node.getScreenCTM().b },
         })),
       }));
-    assert.equal(rotatedMap.viewBox, `0 0 ${board.height} ${board.width}`);
+    assert.equal(
+      rotatedMap.viewBox,
+      '36 24 1152 864',
+      'Visual crop retains the horizontal classic board proportions',
+    );
     assert.equal(
       rotatedMap.terrainRotation,
       `translate(${board.height} 0) rotate(90)`,
@@ -583,8 +789,9 @@ try {
                   (area) => ({
                     price: Number(area.dataset.price),
                     count: Number(area.dataset.count),
-                    tokens: area.querySelectorAll('.pg-price-token--filled')
-                      .length,
+                    displayedCount: Number(
+                      area.querySelector('.pg-price-count')?.textContent,
+                    ),
                     next: area.classList.contains('pg-price-area--next'),
                   }),
                 ),
@@ -682,9 +889,9 @@ try {
               (area) =>
                 area.count >= 0 &&
                 area.count <= capacity &&
-                area.count === area.tokens,
+                area.count === area.displayedCount,
             ),
-            'Each displayed price area has the correct physical token capacity',
+            'Each displayed price area shows the exact available count within classic capacity',
           );
           const next = lane.areas.filter((area) => area.next);
           assert.equal(
@@ -738,6 +945,8 @@ try {
         }
       }
     }
+    await verifyStageSummaries();
+    await verifyPolish();
     await page.setViewportSize({ width: 320, height: 568 });
     await page.evaluate(() => window.setFixture('building', 'player'));
     await page.waitForTimeout(50);

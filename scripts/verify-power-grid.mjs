@@ -695,12 +695,22 @@ async function nativeMatrix() {
             ...document.querySelectorAll(
               '.pg-board-stage,.pg-desktop-market,.pg-companies',
             ),
-          ].map((element) => ({
-            className: element.className,
-            ...bounds(element),
-          })),
+          ]
+            .filter(
+              (element) =>
+                !element.closest('.pg-desktop-market') ||
+                element.matches('.pg-desktop-market'),
+            )
+            .map((element) => ({
+              className: element.className,
+              ...bounds(element),
+            })),
           mapCities: document.querySelectorAll('.pg-map-city').length,
-          companyRows: document.querySelectorAll('.pg-company').length,
+          companyRows: [...document.querySelectorAll('.pg-company')].filter(
+            (item) =>
+              item.getBoundingClientRect().width > 0 &&
+              item.getBoundingClientRect().height > 0,
+          ).length,
         };
       });
       evidence.displayLayouts.push({ role, request, native, bridge, layout });
@@ -765,6 +775,9 @@ async function nativeMatrix() {
       await menu.getByRole('button', { name: '关闭面板', exact: true }).click();
       await menu.waitFor({ state: 'hidden' });
       const transform = await page.locator('.pg-map').getAttribute('style');
+      await page.mouse.move(0, 0);
+      if (await page.locator('[data-income-card]').count())
+        await page.keyboard.press('Escape');
       await page.getByRole('button', { name: '放大地图', exact: true }).click();
       assert.notEqual(
         await page.locator('.pg-map').getAttribute('style'),
@@ -809,6 +822,12 @@ async function nativeMatrix() {
 const sampled = new Set();
 const capturedLivePhases = new Set();
 async function livePresentation(page, current, label, marketRequired) {
+  if (marketRequired) {
+    const collapsed = page.locator(
+      '[data-stage-section="resources"][data-expanded="false"] h2 > button',
+    );
+    if (await collapsed.count()) await collapsed.click();
+  }
   const game = current.gameView;
   const reversed = game.phase === 'resources' || game.phase === 'building';
   const order = reversed ? [...game.playerOrder].reverse() : game.playerOrder;
@@ -865,8 +884,7 @@ async function livePresentation(page, current, label, marketRequired) {
           return {
             price,
             count,
-            filledTokens: count,
-            capacity,
+            visibleCount: count,
             next: count > 0 && price === game.resourcePrices[resource],
           };
         })
@@ -910,9 +928,9 @@ async function livePresentation(page, current, label, marketRequired) {
           areas: [...lane.querySelectorAll('.pg-price-area')].map((area) => ({
             price: Number(area.dataset.price),
             count: Number(area.dataset.count),
-            filledTokens: area.querySelectorAll('.pg-price-token--filled')
-              .length,
-            capacity: area.querySelectorAll('.pg-price-tokens span').length,
+            visibleCount: Number(
+              area.querySelector('.pg-price-count')?.textContent,
+            ),
             next: area.classList.contains('pg-price-area--next'),
           })),
         })),

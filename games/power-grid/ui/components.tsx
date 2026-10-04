@@ -303,6 +303,7 @@ export function PlantCard({
           stock={owned.resources}
           capacity={plant.input * 2}
           compact={compact}
+          shared={plant.fuel === 'hybrid'}
         />
       )}
     </>
@@ -331,10 +332,12 @@ export function StockDisplay({
   stock,
   capacity,
   compact = false,
+  shared = false,
 }: {
   stock: Stock;
   capacity?: number;
   compact?: boolean;
+  shared?: boolean;
 }) {
   const visible = RESOURCES.filter((resource) => stock[resource] > 0);
   const count = RESOURCES.reduce(
@@ -352,10 +355,10 @@ export function StockDisplay({
           <strong>{stock[resource]}</strong>
         </span>
       ))}
-      {!visible.length && <span>{capacity === 0 ? '无需储料' : '空仓'}</span>}
+      {!visible.length && capacity == null && <span>空仓</span>}
       {capacity != null && capacity > 0 && (
         <span className="pg-stock-capacity">
-          仓位 {count}/{capacity}
+          {shared ? '共用仓位' : '仓位'} {count}/{capacity}
         </span>
       )}
     </div>
@@ -411,24 +414,49 @@ export function PlayerCompanies({
   portraits,
   active = true,
   artFor,
+  compact = false,
+  onlySeat,
+  onDetails,
 }: {
   view: PowerGridView;
   names: Record<string, string>;
   portraits: Record<string, string>;
   active?: boolean;
   artFor?(id: number): CSSProperties;
+  compact?: boolean;
+  onlySeat?: string;
+  onDetails?(seatId: string): void;
 }) {
   return (
     <section
-      className="pg-companies"
+      className={`pg-companies${compact ? ' pg-companies--summary' : ''}${onlySeat ? ' pg-companies--single' : ''}`}
       aria-label="各家电力公司"
       style={{ '--pg-player-count': view.seatOrder.length } as CSSProperties}
     >
       {view.seatOrder.map((seat, index) => {
+        if (onlySeat && onlySeat !== seat) return null;
         const player = view.players[seat]!;
         return (
           <article
             key={seat}
+            role={compact && onDetails ? 'button' : undefined}
+            tabIndex={compact && onDetails ? 0 : undefined}
+            aria-label={
+              compact && onDetails
+                ? `查看${names[seat] ?? `公司${index + 1}`}的电厂与库存`
+                : undefined
+            }
+            onClick={compact && onDetails ? () => onDetails(seat) : undefined}
+            onKeyDown={
+              compact && onDetails
+                ? (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      onDetails(seat);
+                    }
+                  }
+                : undefined
+            }
             className={`pg-company${active && view.actor === seat ? ' pg-company--acting' : ''}${view.winners.includes(seat) ? ' pg-company--winner' : ''}`}
             style={
               { '--pg-player-color': PLAYER_COLORS[index] } as CSSProperties
@@ -454,20 +482,22 @@ export function PlayerCompanies({
                 <span className="pg-company-turn">行动中</span>
               )}
             </div>
-            <div className="pg-company-plants">
-              {player.plants.map((plant) => (
-                <PlantCard
-                  key={plant.id}
-                  id={plant.id}
-                  owned={plant}
-                  compact
-                  {...(artFor ? { art: artFor(plant.id) } : {})}
-                />
-              ))}
-              {!player.plants.length && (
-                <span className="pg-no-plant">等待购厂</span>
-              )}
-            </div>
+            {!compact && (
+              <div className="pg-company-plants">
+                {player.plants.map((plant) => (
+                  <PlantCard
+                    key={plant.id}
+                    id={plant.id}
+                    owned={plant}
+                    compact
+                    {...(artFor ? { art: artFor(plant.id) } : {})}
+                  />
+                ))}
+                {!player.plants.length && (
+                  <span className="pg-no-plant">等待购厂</span>
+                )}
+              </div>
+            )}
             <div className="pg-company-summary">
               <span>
                 {player.plants.map((plant) => `#${plant.id}`).join(' ') ||

@@ -1,0 +1,162 @@
+.pg-screen .pg-income-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 44px;
+  padding: 7px 12px;
+  background: #f0e1b7;
+  border-color: #9a7538;
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pg-screen.pg-income-card {
+  min-height: 0;
+  width: min(560px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  padding: 14px;
+  border: 2px solid #9b8050;
+  border-radius: 14px;
+  background: #fff7e4eb;
+  color: #26382d;
+  box-shadow:
+    0 12px 40px #252b2440,
+    inset 0 1px 0 #fff9;
+  backdrop-filter: blur(14px);
+  overscroll-behavior: contain;
+}
+.pg-screen.pg-income-card--desktop {
+  position: fixed;
+  z-index: 1000;
+}
+.pg-screen.pg-income-card .pg-income-card-heading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding: 4px 0;
+  background: #fff7e4f5;
+}
+.pg-screen.pg-income-card .pg-income-card-heading h2 {
+  margin: 0;
+  font-size: 22px;
+}
+.pg-screen.pg-income-card .pg-income-card-heading button {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 28px;
+  line-height: 1;
+}
+.pg-screen.pg-income-card .pg-income-markers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.pg-screen.pg-income-card .pg-income-markers > div {
+  flex: 1 1 180px;
+  padding: 7px 9px;
+  border: 2px solid #4b7953;
+  border-radius: 8px;
+  background: #e0edcf;
+}
+.pg-screen.pg-income-card .pg-income-markers > .pg-income-selected {
+  border-color: #a76b25;
+  background: #f8e6b7;
+}
+.pg-screen.pg-income-card .pg-income-markers > div > span {
+  display: block;
+  font-size: 16px;
+}
+.pg-screen.pg-income-card .pg-income-markers strong {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 9px;
+  margin-top: 3px;
+  font-size: 18px;
+}
+.pg-screen.pg-income-card .pg-income-table {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  margin: 0;
+}
+.pg-screen.pg-income-card .pg-income-table > div {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px 5px;
+  padding: 7px;
+  border: 1px solid #b7a47b;
+  border-radius: 7px;
+  background: #fff9edc9;
+  font-size: 18px;
+}
+.pg-screen.pg-income-card .pg-income-table dt,
+.pg-screen.pg-income-card .pg-income-table dd {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  margin: 0;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pg-screen.pg-income-card .pg-income-table span {
+  font-size: 16px;
+  font-weight: 400;
+}
+.pg-screen.pg-income-card .pg-income-table > .pg-income-tier--capability {
+  border: 2px solid #4b7953;
+  padding: 6px;
+  background: #e0edcf;
+}
+.pg-screen.pg-income-card .pg-income-table > .pg-income-tier--selected {
+  box-shadow: inset 0 -4px 0 #bd7f2e;
+  background: #f8e6b7;
+}
+.pg-income-dialog {
+  width: fit-content;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  overflow: visible;
+}
+.pg-income-dialog::backdrop {
+  background: #293c3159;
+}
+@media (max-width: 420px) {
+  .pg-screen.pg-income-card {
+    padding: 10px;
+  }
+  .pg-screen.pg-income-card .pg-income-table > div {
+    flex-direction: column;
+    align-items: center;
+    padding: 5px 2px;
+  }
+  .pg-screen.pg-income-card .pg-income-table > .pg-income-tier--capability {
+    padding: 4px 1px;
+  }
+}
+
+.pg-screen.pg-income-card .pg-income-scroll-hint {
+  margin: 0 0 10px;
+  font-size: 16px;
+  color: #526044;
+}
+.pg-screen.pg-income-card {
+  scrollbar-gutter: stable;
+}

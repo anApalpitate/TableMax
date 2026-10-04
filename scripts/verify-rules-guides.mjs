@@ -125,7 +125,8 @@ const cases = [
     dataDir: grid?.dataDir,
     players: grid?.players,
     root: '.pg-screen',
-    images: 5,
+    images: 0,
+    diagrams: ['flow', 'resources', 'storage', 'network', 'steps', 'income'],
   },
 ].filter((entry) => includes(entry.id));
 let desktop, origin, host, hostToken;
@@ -367,6 +368,48 @@ async function verify(page, entry, role, size) {
             );
           }),
     );
+  }
+  if (entry.diagrams) {
+    assert.deepEqual(
+      await dialog
+        .locator('[data-rule-diagram]')
+        .evaluateAll((nodes) =>
+          nodes.map((node) => node.dataset.ruleDiagram).sort(),
+        ),
+      [...entry.diagrams].sort(),
+      'Six original rule diagrams replace UI captures',
+    );
+    const decoded = await dialog.evaluate(async (d) => {
+      const urls = new Set();
+      for (const element of d.querySelectorAll('*')) {
+        for (const match of getComputedStyle(element).backgroundImage.matchAll(
+          /url\(["']?([^"')]+)["']?\)/g,
+        ))
+          urls.add(match[1]);
+      }
+      const sources = [...urls];
+      await Promise.all(
+        sources.map(async (src) => {
+          const image = new Image();
+          image.src = src;
+          await image.decode();
+          if (!image.naturalWidth)
+            throw new Error('Rule background illustration failed to decode');
+          if (new URL(src, location.href).origin !== location.origin)
+            throw new Error('Rules require external illustration');
+        }),
+      );
+      return sources.length;
+    });
+    assert.ok(
+      decoded >= 3,
+      'Fuel, house and existing plant illustrations decode locally',
+    );
+    for (const theme of entry.diagrams) {
+      const figure = dialog.locator(`[data-rule-diagram="${theme}"]`);
+      await figure.scrollIntoViewIfNeeded();
+      await shot(page, `${entry.id}-${role}-${size.join('-')}-${theme}`);
+    }
   }
   const nav = dialog.locator('nav').getByRole('button');
   assert.ok((await nav.count()) >= 3);

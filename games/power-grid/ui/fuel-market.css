@@ -1,0 +1,129 @@
+.pg-screen .pg-resource-market.pg-fuel-market {
+  min-width: 0;
+  margin-top: 0;
+  container-type: inline-size;
+}
+.pg-screen .pg-fuel-market .pg-fuel-market-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin-bottom: 8px;
+}
+.pg-screen .pg-fuel-market .pg-fuel-market-heading h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.pg-screen .pg-fuel-market .pg-fuel-market-heading > span {
+  margin-left: auto;
+  font-size: 16px;
+  color: #51462d;
+}
+.pg-screen .pg-fuel-market .pg-price-lanes {
+  gap: 7px;
+}
+.pg-screen .pg-fuel-market .pg-price-lane {
+  min-width: 0;
+  padding: 7px;
+  border: 1px solid #a49471;
+  border-radius: 9px;
+  background: linear-gradient(120deg, #f9f3e4, #eee0bd);
+  box-shadow: inset 0 1px 0 #fff9;
+}
+.pg-screen .pg-fuel-market .pg-price-lane > header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 7px;
+  margin-bottom: 6px;
+}
+.pg-screen .pg-fuel-market .pg-price-lane > header h3 {
+  margin: 0;
+  font-size: 20px;
+}
+.pg-screen .pg-fuel-market .pg-price-lane > header > span {
+  margin-left: auto;
+  font-size: 16px;
+}
+.pg-screen .pg-fuel-market .pg-price-lane > header > strong {
+  margin-left: 0;
+  color: #65543e;
+  font-size: 18px;
+}
+.pg-screen .pg-fuel-market .pg-price-areas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+}
+.pg-screen .pg-fuel-market .pg-price-area {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1px 4px;
+  padding: 4px 1px;
+  border: 1px solid #aa9065;
+  border-radius: 5px;
+  background: #ead4a7;
+  color: #372f22;
+}
+.pg-screen .pg-fuel-market .pg-price-area > strong {
+  font-size: 18px;
+  white-space: nowrap;
+}
+.pg-screen .pg-fuel-market .pg-price-area .pg-price-count {
+  font-size: 16px;
+  white-space: nowrap;
+}
+.pg-screen .pg-fuel-market .pg-price-area--empty {
+  border-style: dashed;
+  border-color: #b6ae96;
+  background: #edeadd;
+  color: #69614d;
+}
+.pg-screen .pg-fuel-market .pg-price-area--next {
+  border: 2px solid #245a41;
+  padding: 3px 0;
+  background: #d9e8c5;
+  color: #20462e;
+  box-shadow: inset 0 0 0 1px #fff8;
+}
+.pg-screen .pg-fuel-market .pg-price-area--next > strong::before {
+  content: '▸';
+}
+.pg-screen .pg-fuel-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+.pg-screen .pg-fuel-summary > div {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 3px 5px;
+  padding: 7px 3px;
+  border: 1px solid #a49471;
+  border-radius: 7px;
+  background: #f3e9ce;
+  font-size: 16px;
+}
+.pg-screen .pg-fuel-summary .pg-resource-icon {
+  width: 24px;
+  height: 24px;
+}
+.pg-screen .pg-fuel-summary strong {
+  font-size: 18px;
+  white-space: nowrap;
+}
+@container (min-width: 260px) {
+  .pg-screen .pg-fuel-market .pg-price-areas {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+  .pg-screen .pg-fuel-market .pg-price-lane--uranium .pg-price-areas {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}

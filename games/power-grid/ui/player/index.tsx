@@ -5,6 +5,7 @@ import { GERMANY_REGIONS, getCity } from '../../data/germany';
 import type { Action, PowerGridView, Resource } from '../../types';
 import { PlantCard, ResourceIcon } from '../components';
 import { FUEL_LABELS } from '../labels';
+import { IncomeCard } from '../IncomeCard';
 
 type Props = {
   view: PowerGridView;
@@ -312,15 +313,16 @@ function ResourceControls({ view, actions, locked, choose, artFor }: Props) {
                     onClick={() => choose(action)}
                   >
                     <ResourceIcon resource={resource} />
-                    <span>
-                      给{plant.id}号 ＋1{RESOURCE_LABELS[resource]}
-                    </span>
+                    <span>＋1 {RESOURCE_LABELS[resource]}</span>
                     <strong>本次 {view.resourcePrices[resource]}电币</strong>
-                    <span className="pg-next-resource-price">
-                      {price(resource, view.resources[resource] - 1) == null
-                        ? '买后售罄'
-                        : `再买 ${price(resource, view.resources[resource] - 1)}电币/份`}
-                    </span>
+                    {price(resource, view.resources[resource] - 1) !==
+                      view.resourcePrices[resource] && (
+                      <span className="pg-next-resource-price">
+                        {price(resource, view.resources[resource] - 1) == null
+                          ? '买后售罄'
+                          : `再买 ${price(resource, view.resources[resource] - 1)}电币/份`}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -537,6 +539,12 @@ function PowerControls({ view, actions, locked, choose, artFor }: Props) {
         })}
       </div>
       <div className="pg-power-finish">
+        <IncomeCard
+          view={view}
+          seatId={view.self?.seatId}
+          selectedCities={supply}
+          mobile
+        />
         <label>
           供电城市
           <select

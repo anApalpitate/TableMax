@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- Lazy adapters expose one platform client object. */
+import '../../../../games/power-grid/ui/style.css';
 import { useState, type CSSProperties } from 'react';
 import type { JsonValue } from '../../../../packages/game-sdk/src';
 import type { Action, PowerGridView } from '../../../../games/power-grid/types';
@@ -8,6 +9,11 @@ import {
   PlayerCompanies,
 } from '../../../../games/power-grid/ui/components';
 import { ResourceMarket } from '../../../../games/power-grid/ui/ResourceMarket';
+import { IncomeCard } from '../../../../games/power-grid/ui/IncomeCard';
+import {
+  StageSection,
+  PlantMarketSummary,
+} from '../../../../games/power-grid/ui/StageSection';
 import { TurnOrder } from '../../../../games/power-grid/ui/TurnOrder';
 import {
   PHASE_LABELS,
@@ -24,7 +30,6 @@ import {
   plantImage,
 } from '../../../../assets/games/power-grid/catalog';
 import { getPlant } from '../../../../games/power-grid/data/catalog';
-import '../../../../games/power-grid/ui/style.css';
 import type { GameClient } from './registry';
 import type { RoomSession } from '../session/useRoomSession';
 import { ScreenLink } from '../components/ScreenLink';
@@ -60,6 +65,37 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
   >(null);
   const [city, setCity] = useState<string | null>(null);
   const [plant, setPlant] = useState<number | null>(null);
+  const [detailSeat, setDetailSeat] = useState<string | null>(null);
+  const [sections, setSections] = useState<{
+    phase: string;
+    plants?: boolean;
+    resources?: boolean;
+    company?: boolean;
+  }>({ phase: '' });
+  const layoutPhase =
+    game && (game.phase === 'offer' || game.phase === 'auction')
+      ? 'auction'
+      : (game?.phase ?? '');
+  const sectionOpen = (
+    name: 'plants' | 'resources' | 'company',
+    fallback: boolean,
+  ) =>
+    sections.phase === layoutPhase ? (sections[name] ?? fallback) : fallback;
+  const toggleSection = (
+    name: 'plants' | 'resources' | 'company',
+    fallback: boolean,
+  ) =>
+    setSections((previous) => ({
+      ...(previous.phase === layoutPhase ? previous : {}),
+      phase: layoutPhase,
+      [name]: !(previous.phase === layoutPhase
+        ? (previous[name] ?? fallback)
+        : fallback),
+    }));
+  const showCompany = (seat: string | null = null) => {
+    setDetailSeat(seat);
+    setPanel('companies');
+  };
   const names = Object.fromEntries(
     view?.seats.map((seat) => [seat.id, seat.name]) ?? [],
   );
@@ -87,6 +123,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
       cities: game.players[seatId]!.cities,
       color: PLAYER_COLORS[index]!,
       name: names[seatId] ?? '',
+      seatNumber: index + 1,
     })) ?? [];
   const map = game && (
     <GermanyMap
@@ -100,10 +137,38 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
       select={setCity}
       available={game.buildOptions.map((option) => option.cityId)}
       terrain={mapTerrain}
+      phase={game.phase}
+      step={game.step}
+      actor={game.actor}
+      role={role}
     />
   );
   const actor = active && game?.actor ? names[game.actor] : undefined;
   const ownTurn = actor && game?.actor === game?.self?.seatId;
+  const plantDefault = role !== 'player' && layoutPhase === 'auction';
+  const resourceDefault = game?.phase === 'resources';
+  const plantSection = game && (
+    <StageSection
+      name="plants"
+      title="电厂市场"
+      expanded={sectionOpen('plants', plantDefault)}
+      toggle={() => toggleSection('plants', plantDefault)}
+      summary={<PlantMarketSummary view={game} />}
+    >
+      <PlantMarket view={game} artFor={artFor} />
+    </StageSection>
+  );
+  const resourceSection = game && (
+    <StageSection
+      name="resources"
+      title="燃料市场"
+      expanded={sectionOpen('resources', resourceDefault)}
+      toggle={() => toggleSection('resources', resourceDefault)}
+      summary={<ResourceMarket view={game} summary />}
+    >
+      <ResourceMarket view={game} compact={role === 'player'} />
+    </StageSection>
+  );
   const notice = !connected
     ? '正在重新连接'
     : view?.botError
@@ -179,7 +244,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
           />
         )}
         {role !== 'player' && (
-          <button onClick={() => setPanel('companies')}>各家</button>
+          <button onClick={() => showCompany()}>各家</button>
         )}
         {role !== 'player' &&
           game &&
@@ -223,6 +288,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
             {game.self && !ended && (
               <strong className="pg-cash">现金 {game.self.cash} E</strong>
             )}
+            {role !== 'player' && <IncomeCard view={game} />}
             <DecisionCountdown view={view} connected={connected} compact />
             {canControl && view.paused && !ended && (
               <button
@@ -265,9 +331,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                     compact
                   />
                 )}
-              {game.phase === 'resources' && (
-                <ResourceMarket view={game} compact />
-              )}
+              {game.phase === 'resources' && resourceSection}
               {active && view.actions.length > 0 ? (
                 <PlayerControls
                   key={`${view.instanceId}:${view.branch}:${view.selectionToken}`}
@@ -289,13 +353,30 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                   <strong>
                     {notice || (actor ? `等待 ${actor}` : '等待下一步')}
                   </strong>
-                  {game.latest && <span>{game.latest.text}</span>}
+                  {game.latest && (
+                    <span>
+                      <b>
+                        {game.latest.actor ? names[game.latest.actor] : '电网'}
+                      </b>
+                      <br />
+                      {game.latest.text}
+                    </span>
+                  )}
                 </div>
               )}
+              <div className="pg-phone-market-summaries">
+                {plantSection}
+                {game.phase !== 'resources' && resourceSection}
+              </div>
               <div className="pg-phone-tools">
                 <button onClick={() => setPanel('map')}>德国地图</button>
-                <button onClick={() => setPanel('companies')}>各家公司</button>
+                <button onClick={() => showCompany()}>各家公司</button>
                 <button onClick={() => setPanel('market')}>电厂市场</button>
+                {!(
+                  game.phase === 'powering' &&
+                  active &&
+                  view.actions.length > 0
+                ) && <IncomeCard view={game} mobile />}
               </div>
             </div>
           ) : (
@@ -311,13 +392,59 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                 {game.auction && (
                   <AuctionDisplay view={game} names={names} artFor={artFor} />
                 )}
-                {game.phase === 'resources' && <ResourceMarket view={game} />}
-                <PlantMarket view={game} artFor={artFor} />
-                {game.phase !== 'resources' && <ResourceMarket view={game} />}
+                {(game.phase === 'replace' || game.phase === 'powering') &&
+                  game.actor && (
+                    <StageSection
+                      name="company"
+                      title={
+                        game.phase === 'replace'
+                          ? '当前公司换厂'
+                          : '当前公司发电'
+                      }
+                      expanded={sectionOpen('company', true)}
+                      toggle={() => toggleSection('company', true)}
+                      summary={
+                        <PlayerCompanies
+                          view={game}
+                          names={names}
+                          portraits={portraits}
+                          active={Boolean(active)}
+                          compact
+                          onlySeat={game.actor}
+                        />
+                      }
+                    >
+                      <PlayerCompanies
+                        view={game}
+                        names={names}
+                        portraits={portraits}
+                        active={Boolean(active)}
+                        artFor={artFor}
+                        onlySeat={game.actor}
+                      />
+                    </StageSection>
+                  )}
+                {game.phase === 'resources' && resourceSection}
+                {plantSection}
+                {game.phase !== 'resources' && resourceSection}
+                <div className="pg-short-companies">
+                  <h2>公司概览</h2>
+                  <PlayerCompanies
+                    view={game}
+                    names={names}
+                    portraits={portraits}
+                    active={Boolean(active)}
+                    compact
+                    onDetails={showCompany}
+                  />
+                </div>
                 {game.latest && (
                   <div className="pg-latest" role="status">
                     <span>最新行动</span>
-                    <strong>{game.latest.text}</strong>
+                    <strong>
+                      {game.latest.actor ? names[game.latest.actor] : '电网'}
+                    </strong>
+                    <span>{game.latest.text}</span>
                   </div>
                 )}
               </aside>
@@ -327,6 +454,8 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                 portraits={portraits}
                 active={Boolean(active)}
                 artFor={artFor}
+                compact
+                onDetails={showCompany}
               />
             </div>
           )}
@@ -374,6 +503,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                   portraits={portraits}
                   active={Boolean(active)}
                   artFor={artFor}
+                  {...(detailSeat ? { onlySeat: detailSeat } : {})}
                 />
               ) : panel === 'market' && game ? (
                 <>
