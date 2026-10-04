@@ -199,7 +199,6 @@ function mapLabels(
   ).map((city) => ({ x: city.x - 31, y: city.y - 15, width: 62, height: 30 }));
   reserved.push(...houseBounds);
   const cityThreshold = view === 'clear' ? 0.62 : building ? 0.78 : 0.9;
-  const routeThreshold = building ? 0.9 : 1.08;
   const addCity = (city: (typeof MAP_CITIES)[number], required: boolean) => {
     const width = city.name.length * fontSize * 1.02 + fontSize * 0.6;
     const height = fontSize * 1.35,
@@ -239,7 +238,7 @@ function mapLabels(
       y,
       width,
       height,
-      [0, 0.8, -0.8, 1.6, -1.6].map((distance) => ({
+      [0, 0.8, -0.8, 1.6, -1.6, 2.4, -2.4, 3.2, -3.2].map((distance) => ({
         x: x - width / 2 + normal.x * fontSize * distance,
         y: y - height / 2 + normal.y * fontSize * distance,
       })),
@@ -251,15 +250,17 @@ function mapLabels(
   GERMANY_EDGES.forEach((edge, index) => {
     if (selected === edge.from || selected === edge.to) addRoute(index, true);
   });
-  if (displayScale >= cityThreshold)
-    MAP_CITIES.filter(
-      (city) => regions.includes(city.region) && city.id !== selected,
-    ).forEach((city) => addCity(city, false));
-  if (displayScale >= routeThreshold)
+  // At a fitted short-screen size show a sparse, collision-free sample;
+  // selected neighbours remain available regardless of density.
+  if (building || displayScale >= 1.08)
     GERMANY_EDGES.forEach((edge, index) => {
       if (selected !== edge.from && selected !== edge.to)
         addRoute(index, false);
     });
+  if (building || view === 'clear' || displayScale >= cityThreshold)
+    MAP_CITIES.filter(
+      (city) => regions.includes(city.region) && city.id !== selected,
+    ).forEach((city) => addCity(city, false));
   return { cities, routes };
 }
 export interface MapNetwork {
@@ -303,19 +304,7 @@ export function House({
       transform={`translate(${x} ${y})`}
       className={current ? 'pg-map-house--current' : undefined}
     >
-      {current && (
-        <rect
-          x="-13"
-          y="-12"
-          width="26"
-          height="28"
-          rx="4"
-          fill="#fffef4"
-          stroke="#243d34"
-          strokeWidth="2"
-          strokeDasharray="3 2"
-        />
-      )}
+      {current && <path d="M-10 15H10" stroke="#243d34" strokeWidth="3" />}
       <path
         d="M-10 1 0-9 10 1V12H-10Z"
         fill={color}
@@ -348,6 +337,7 @@ export function GermanyMap({
   step = 1,
   actor = null,
   role = 'public',
+  previewRegions = false,
 }: {
   regions: readonly string[];
   networks: readonly MapNetwork[];
@@ -359,6 +349,7 @@ export function GermanyMap({
   step?: 1 | 2 | 3;
   actor?: string | null;
   role?: MapRole;
+  previewRegions?: boolean;
 }) {
   const definitionId = useId().replace(/:/g, '');
   const paperId = `${definitionId}-paper`,
@@ -591,6 +582,8 @@ export function GermanyMap({
             GERMANY_REGIONS.map((region) => (
               <path
                 key={region.id}
+                data-region={region.id}
+                data-region-selected={regions.includes(region.id)}
                 d={region.path}
                 fill={region.color}
                 fillOpacity={regions.includes(region.id) ? '.55' : '.14'}
@@ -615,21 +608,23 @@ export function GermanyMap({
               <path
                 key={region.id}
                 d={region.path}
-                fill="none"
-                stroke="#fffdf2"
-                strokeOpacity=".85"
-                strokeWidth="6"
+                data-region={region.id}
+                data-region-selected={regions.includes(region.id)}
+                fill={regions.includes(region.id) ? region.color : '#fffef5'}
+                fillOpacity={regions.includes(region.id) ? '.16' : '.78'}
+                stroke={regions.includes(region.id) ? '#234d3a' : '#fffdf2'}
+                strokeOpacity=".95"
+                strokeWidth={regions.includes(region.id) ? '8' : '3'}
                 transform={TERRAIN_ROTATION}
               />
             ))}
           <g className="pg-map-routes">
-            {GERMANY_EDGES.map((edge, index) => {
+            {GERMANY_EDGES.map((edge) => {
               const a = POSITIONS[edge.from]!,
                 b = POSITIONS[edge.to]!;
               const active =
                   regions.includes(a.region) && regions.includes(b.region),
                 selectedEdge = selected === a.id || selected === b.id;
-              const label = labels.routes.get(index);
               return (
                 <g
                   key={`${edge.from}-${edge.to}`}
@@ -654,42 +649,50 @@ export function GermanyMap({
                     strokeWidth={selectedEdge ? 3 : 2}
                     fill="none"
                   />
-                  {label && (
-                    <g
-                      className={`pg-map-route-label ${selectedEdge ? 'pg-map-route-label--selected' : ''}`}
-                    >
-                      <line
-                        x1={label.anchorX}
-                        y1={label.anchorY}
-                        x2={label.x + label.width / 2}
-                        y2={label.y + label.height / 2}
-                        stroke="#51482f"
-                        strokeWidth={1 / displayScale}
-                      />
-                      <rect
-                        x={label.x}
-                        y={label.y}
-                        width={label.width}
-                        height={label.height}
-                        rx={labelSize * 0.25}
-                        fill="#fffef7"
-                        stroke={selectedEdge ? '#165947' : '#736b51'}
-                        strokeWidth={1 / displayScale}
-                      />
-                      <text
-                        x={label.x + label.width / 2}
-                        y={label.y + label.height / 2}
-                        fontSize={labelSize}
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        fill="#282d22"
-                        fontWeight="700"
-                      >
-                        {edge.cost}
-                      </text>
-                    </g>
-                  )}
                 </g>
+              );
+            })}
+            {GERMANY_EDGES.map((edge, index) => {
+              const label = labels.routes.get(index);
+              const selectedEdge =
+                selected === edge.from || selected === edge.to;
+              return (
+                label && (
+                  <g
+                    key={`${edge.from}-${edge.to}`}
+                    className={`pg-map-route-label ${selectedEdge ? 'pg-map-route-label--selected' : ''}`}
+                  >
+                    <line
+                      x1={label.anchorX}
+                      y1={label.anchorY}
+                      x2={label.x + label.width / 2}
+                      y2={label.y + label.height / 2}
+                      stroke="#51482f"
+                      strokeWidth={1 / displayScale}
+                    />
+                    <rect
+                      x={label.x}
+                      y={label.y}
+                      width={label.width}
+                      height={label.height}
+                      rx={labelSize * 0.25}
+                      fill="#fffef7"
+                      stroke={selectedEdge ? '#165947' : '#736b51'}
+                      strokeWidth={1 / displayScale}
+                    />
+                    <text
+                      x={label.x + label.width / 2}
+                      y={label.y + label.height / 2}
+                      fontSize={labelSize}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      fill="#282d22"
+                      fontWeight="700"
+                    >
+                      {edge.cost}
+                    </text>
+                  </g>
+                )
               );
             })}
           </g>
@@ -752,6 +755,36 @@ export function GermanyMap({
                   strokeOpacity=".45"
                   strokeWidth="1.5"
                 />
+                {occupants.length > 1 &&
+                  (() => {
+                    const positions = houses.layouts.get(city.id)!;
+                    const left =
+                      Math.min(...positions.map((point) => point.x)) -
+                      12 * houses.houseScale;
+                    const top =
+                      Math.min(...positions.map((point) => point.y)) -
+                      11 * houses.houseScale;
+                    const right =
+                      Math.max(...positions.map((point) => point.x)) +
+                      12 * houses.houseScale;
+                    const bottom =
+                      Math.max(...positions.map((point) => point.y)) +
+                      14 * houses.houseScale;
+                    return (
+                      <rect
+                        className="pg-map-house-group"
+                        x={left}
+                        y={top}
+                        width={right - left}
+                        height={bottom - top}
+                        rx={3 / displayScale}
+                        fill="#fffbea"
+                        fillOpacity=".85"
+                        stroke="#7e7b60"
+                        strokeWidth={1 / displayScale}
+                      />
+                    );
+                  })()}
                 {occupants.map((network, index) => (
                   <g
                     key={network.seatId}
@@ -818,6 +851,46 @@ export function GermanyMap({
               </g>
             );
           })}
+          {phase === 'regions' &&
+            GERMANY_REGIONS.map((region) => {
+              const cities = MAP_CITIES.filter(
+                (city) => city.region === region.id,
+              );
+              const x =
+                cities.reduce((sum, city) => sum + city.x, 0) / cities.length;
+              const y =
+                cities.reduce((sum, city) => sum + city.y, 0) / cities.length;
+              const width = (region.name.length + 1) * labelSize;
+              return (
+                <g
+                  key={region.id}
+                  className="pg-map-region-label"
+                  pointerEvents="none"
+                >
+                  <rect
+                    x={x - width / 2}
+                    y={y - labelSize}
+                    width={width}
+                    height={labelSize * 1.8}
+                    rx={labelSize * 0.2}
+                    fill="#fffef5"
+                    stroke={regions.includes(region.id) ? '#234d3a' : '#999b88'}
+                    strokeWidth={1.5 / displayScale}
+                  />
+                  <text
+                    x={x}
+                    y={y}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fontSize={labelSize}
+                    fill="#243b2b"
+                    fontWeight="700"
+                  >
+                    {region.name}
+                  </text>
+                </g>
+              );
+            })}
         </svg>
         <div className="pg-map-view-switch" role="group" aria-label="地图视图">
           <button
@@ -862,6 +935,16 @@ export function GermanyMap({
           </button>
         </div>
       </div>
+      {previewRegions && (
+        <p className="pg-region-preview" data-region-preview>
+          <strong>候选区域 · 未确认</strong>
+          <span>
+            {GERMANY_REGIONS.filter((region) => regions.includes(region.id))
+              .map((region) => region.name)
+              .join('、') || '尚未选择'}
+          </span>
+        </p>
+      )}
       <div className="pg-city-picker">
         <select
           aria-label="选择城市"

@@ -153,6 +153,49 @@
 .pg-screen .pg-phone-tools {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+.pg-screen[data-phase='resources'] .pg-desktop-table {
+  grid-template-columns: minmax(0, 1fr) minmax(310px, 38%);
+}
+.pg-screen .pg-building-companies {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.pg-screen .pg-building-companies h2 {
+  margin: 0 0 3px;
+}
+.pg-screen .pg-building-companies > button {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 3px 5px;
+  text-align: left;
+  background: #fff9e7;
+}
+.pg-screen .pg-building-companies > button[aria-current='step'] {
+  border-color: #245a41;
+  background: #edf5e7;
+}
+.pg-screen .pg-building-companies strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+}
+.pg-screen .pg-network-seat {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  background: var(--pg-player-color);
+  border: 1px solid #263b2e;
+  border-radius: 4px;
+  color: #152519;
+  text-shadow: 0 0 3px #fff;
+  font-weight: 700;
+}
 @media (max-height: 610px) and (min-width: 650px) {
   .pg-screen.pg-screen--host .pg-desktop-table,
   .pg-screen.pg-screen--public .pg-desktop-table {
@@ -183,6 +226,31 @@
   }
 }
 @media (max-width: 649px) {
+  .pg-screen.pg-screen--player .pg-toolbar {
+    flex-wrap: nowrap;
+    gap: 3px;
+  }
+  .pg-screen.pg-screen--player .pg-toolbar .pg-brand {
+    font-size: 18px;
+  }
+  .pg-screen.pg-screen--player .pg-toolbar > button {
+    flex: 0 0 44px;
+    width: 44px;
+    padding: 3px;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    line-height: 1.15;
+  }
+  .pg-screen.pg-screen--player .pg-box-link {
+    padding: 5px;
+    white-space: nowrap;
+  }
+  .pg-screen .pg-brand-round {
+    display: block;
+    font-size: 16px;
+    color: #51472e;
+    font-weight: 500;
+  }
   .pg-screen .pg-stage-section {
     padding: 7px;
   }
@@ -191,5 +259,12 @@
   }
   .pg-screen .pg-phone-tools .pg-income-entry {
     width: 100%;
+  }
+}
+@media (max-width: 649px) and (max-height: 600px) {
+  .pg-screen[data-phase='resources']
+    .pg-fuel-plant
+    :is(.pg-plant-art, .pg-plant-illustration) {
+    display: none;
   }
 }

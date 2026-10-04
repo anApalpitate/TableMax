@@ -6,6 +6,7 @@ import { build as bundle } from 'esbuild';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
 import { chromium } from 'playwright';
+import { verificationOutput } from './verification-output.mjs';
 
 const name =
   process.argv.find((value) => value.startsWith('--evidence='))?.slice(11) ??
@@ -24,12 +25,7 @@ const captureRules =
   captureRulesOnly || process.argv.includes('--capture-rules');
 assert.match(name, /^[a-z0-9-]{1,40}$/);
 assert.match(maintenance, /^[a-z0-9-]{1,40}$/);
-const output = resolve(
-  'artifacts/maintenance/v1.0.2',
-  maintenance,
-  'power-grid',
-  name,
-);
+const output = verificationOutput(maintenance, 'power-grid', name);
 await mkdir(output, { recursive: true });
 const work = await mkdtemp(join(output, 'work-'));
 const started = performance.now();
@@ -265,6 +261,18 @@ try {
       'Map presentation preference survives remount',
     );
     await page.screenshot({ path: join(output, 'host-clear-map.png') });
+    assert.ok(
+      await map.evaluate((node) => {
+        const finalEdge = [...node.querySelectorAll('[data-map-edge]')].at(-1);
+        const label = node.querySelector('.pg-map-route-label');
+        return Boolean(
+          label &&
+          finalEdge.compareDocumentPosition(label) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+        );
+      }),
+      'All road strokes precede opaque cost labels',
+    );
     report.screenshots.push('host-clear-map.png');
     await map.locator('.pg-map-view-switch button').first().click();
     assert.equal((await page.evaluate(() => window.__commands)).length, 0);
@@ -382,6 +390,121 @@ try {
       'Six original rule themes are available on short phone without captured screens or saved actions',
     );
   };
+  const verifyPlayReview = async () => {
+    for (const size of [
+      { width: 390, height: 844 },
+      { width: 320, height: 568 },
+    ]) {
+      await page.setViewportSize(size);
+      await page.evaluate(() => window.setFixture('resources', 'player'));
+      await page.waitForTimeout(70);
+      const purchase = page.locator('.pg-fuel-purchases button').first();
+      if (await purchase.count()) {
+        const box = await purchase.boundingBox();
+        assert.ok(
+          box.y >= 0 && box.y + box.height <= size.height + 1,
+          'First available purchase is visible before scrolling: ' +
+            JSON.stringify({ size, box }),
+        );
+      }
+      assert.equal(
+        await page
+          .getByRole('button', { name: '电厂市场', exact: true })
+          .count(),
+        1,
+        'One market expansion path replaces duplicate phone overlays',
+      );
+      const toolbar = await page.locator('.pg-toolbar').boundingBox();
+      assert.ok(
+        toolbar.height <= 52,
+        'Phone toolbar fits one row with 44px targets',
+      );
+    }
+    await page.evaluate(() => window.scrollTo(0, 600));
+    const scroll = await page.evaluate(() => scrollY);
+    assert.ok(
+      scroll > 0,
+      'The preservation check begins below the first viewport',
+    );
+    await page.evaluate(() => window.syncFixture());
+    await page.waitForTimeout(70);
+    assert.equal(
+      await page.evaluate(() => scrollY),
+      scroll,
+      'Same-stage saves retain reading position',
+    );
+    await page.evaluate(() => window.changeFixture('powering'));
+    await page.waitForTimeout(70);
+    assert.equal(
+      await page.evaluate(() => scrollY),
+      0,
+      'New stage starts at context',
+    );
+    assert.equal((await page.evaluate(() => window.__commands)).length, 0);
+    report.actions.push(
+      'Phone purchase starts in view, one market path, compact header, same-stage scroll preservation and new-stage reset',
+    );
+    await page.evaluate(() => window.setFixture('regions', 'player'));
+    await page.waitForTimeout(70);
+    const selectedRegions = await page
+      .locator('.pg-region-choices button[aria-pressed="true"]')
+      .count();
+    await page
+      .locator('.pg-region-choices button[aria-pressed="true"]')
+      .first()
+      .click();
+    await page.getByRole('button', { name: '德国地图', exact: true }).click();
+    const map = page.locator('dialog .pg-map-panel');
+    assert.equal(
+      await map.locator('[data-region-selected="true"]').count(),
+      selectedRegions - 1,
+    );
+    assert.ok(await map.locator('[data-region-preview]').isVisible());
+    await map.locator('.pg-map-view-switch button').last().click();
+    assert.equal(
+      await map.locator('[data-region-selected="true"]').count(),
+      selectedRegions - 1,
+    );
+    await page.screenshot({ path: join(output, 'player-region-preview.png') });
+    report.screenshots.push('player-region-preview.png');
+    await page.keyboard.press('Escape');
+    assert.equal(
+      await page
+        .locator('.pg-region-choices button[aria-pressed="true"]')
+        .count(),
+      selectedRegions - 1,
+    );
+    assert.equal(
+      (await page.evaluate(() => window.__commands)).length,
+      0,
+      'Candidate viewing is local',
+    );
+    report.actions.push(
+      'Unconfirmed region draft maps to board and clear views, survives closing, and sends no command',
+    );
+    await page.setViewportSize({ width: 854, height: 480 });
+    await page.evaluate(() =>
+      window.setFixture(
+        window.fixtureNames.includes('crowded') ? 'crowded' : 'building',
+        'host',
+      ),
+    );
+    await page.waitForTimeout(70);
+    const buttons = page.locator('.pg-building-companies > button');
+    assert.equal(await buttons.count(), seatCount);
+    const last = await buttons.last().boundingBox();
+    assert.ok(
+      last.y + last.height <= 480,
+      'Every network summary is visible on the short building screen',
+    );
+    assert.equal(
+      await page.locator('.pg-building-companies').getByText(/现金/).count(),
+      0,
+    );
+    report.actions.push(
+      'Short-screen building shows all public networks before markets without cash',
+    );
+  };
   const captureRuleScreens = async () => {
     const directory = resolve('assets/games/power-grid/rules');
     await mkdir(directory, { recursive: true });
@@ -404,15 +527,15 @@ try {
       .locator('.pg-turn-order')
       .screenshot({ path: join(directory, 'order.png') });
     await page.getByRole('button', { name: '电厂市场', exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('dialog[open]'));
     assert.ok(
-      (await page.locator('dialog .pg-market .pg-plant-card').count()) >= 4,
+      (await page
+        .locator('[data-stage-section="plants"] .pg-plant-card')
+        .count()) >= 4,
       'Rule market screenshot contains actual current and future plants',
     );
     await page
-      .locator('dialog .pg-market')
+      .locator('[data-stage-section="plants"] .pg-market')
       .screenshot({ path: join(directory, 'market-v2.png') });
-    await page.keyboard.press('Escape');
     await page.setViewportSize({ width: 854, height: 1800 });
     await page.evaluate(() => window.setFixture('resources', 'host'));
     await page.waitForTimeout(70);
@@ -955,6 +1078,7 @@ try {
     }
     await verifyStageSummaries();
     await verifyPolish();
+    await verifyPlayReview();
     await page.setViewportSize({ width: 320, height: 568 });
     await page.evaluate(() => window.setFixture('building', 'player'));
     await page.waitForTimeout(50);

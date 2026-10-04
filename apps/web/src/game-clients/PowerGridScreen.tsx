@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- Lazy adapters expose one platform client object. */
 import '../../../../games/power-grid/ui/style.css';
-import { useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import type { JsonValue } from '../../../../packages/game-sdk/src';
 import type { Action, PowerGridView } from '../../../../games/power-grid/types';
 import {
@@ -61,11 +61,24 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
   const game = view?.gameView as PowerGridView | null;
   const canPlay = useAudioOutput();
   const [panel, setPanel] = useState<
-    'menu' | 'map' | 'companies' | 'market' | 'rules' | 'order' | null
+    'menu' | 'map' | 'companies' | 'rules' | 'order' | null
   >(null);
   const [city, setCity] = useState<string | null>(null);
   const [plant, setPlant] = useState<number | null>(null);
   const [detailSeat, setDetailSeat] = useState<string | null>(null);
+  const [regionDraft, setRegionDraft] = useState<{
+    token: string;
+    regions: string[];
+  } | null>(null);
+  const regionToken = `${view?.instanceId}:${view?.branch}:${view?.selectionToken}`;
+  const regionAction = (view?.actions as Action[] | undefined)?.find(
+    (action) => action.type === 'select-regions',
+  );
+  const candidateRegions = regionAction
+    ? regionDraft?.token === regionToken
+      ? regionDraft.regions
+      : regionAction.regions
+    : undefined;
   const [sections, setSections] = useState<{
     phase: string;
     plants?: boolean;
@@ -76,6 +89,11 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
     game && (game.phase === 'offer' || game.phase === 'auction')
       ? 'auction'
       : (game?.phase ?? '');
+  // Saved actions within a stage preserve reading position. A new stage or
+  // replay starts at its context, without moving the map's own viewport.
+  useEffect(() => {
+    if (role === 'player') window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [role, layoutPhase, view?.instanceId, view?.branch]);
   const sectionOpen = (
     name: 'plants' | 'resources' | 'company',
     fallback: boolean,
@@ -128,10 +146,12 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
   const map = game && (
     <GermanyMap
       regions={
-        game.regions.length
+        candidateRegions ??
+        (game.regions.length
           ? game.regions
-          : ['north', 'northeast', 'northwest', 'southwest', 'east', 'south']
+          : ['north', 'northeast', 'northwest', 'southwest', 'east', 'south'])
       }
+      previewRegions={candidateRegions !== undefined}
       networks={networks}
       selected={city}
       select={setCity}
@@ -199,7 +219,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
             <span>
               <b>⚡ {result.powered}</b> 城
             </span>
-            <span>{result.cash} E</span>
+            <span>现金 {result.cash} E</span>
           </article>
         ))}
       </div>
@@ -226,6 +246,11 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
         </ScreenLink>
         <strong className="pg-brand" aria-label="电力公司" title="电力公司">
           ⚡ <span className="pg-brand-name">电力公司</span>
+          {role === 'player' && game && (
+            <span className="pg-brand-round">
+              {game.round}轮 · STEP {game.step}
+            </span>
+          )}
         </strong>
         {game && (
           <span className="pg-round">
@@ -331,7 +356,6 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                     compact
                   />
                 )}
-              {game.phase === 'resources' && resourceSection}
               {active && view.actions.length > 0 ? (
                 <PlayerControls
                   key={`${view.instanceId}:${view.branch}:${view.selectionToken}`}
@@ -344,6 +368,12 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                   selectedPlant={plant}
                   selectPlant={setPlant}
                   artFor={artFor}
+                  {...(candidateRegions
+                    ? { regionSelection: candidateRegions }
+                    : {})}
+                  selectRegions={(regions) =>
+                    setRegionDraft({ token: regionToken, regions })
+                  }
                 />
               ) : (
                 <div className="pg-waiting">
@@ -366,12 +396,11 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
               )}
               <div className="pg-phone-market-summaries">
                 {plantSection}
-                {game.phase !== 'resources' && resourceSection}
+                {resourceSection}
               </div>
               <div className="pg-phone-tools">
                 <button onClick={() => setPanel('map')}>德国地图</button>
                 <button onClick={() => showCompany()}>各家公司</button>
-                <button onClick={() => setPanel('market')}>电厂市场</button>
                 {!(
                   game.phase === 'powering' &&
                   active &&
@@ -389,6 +418,31 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                 </div>
               </div>
               <aside className="pg-desktop-market">
+                {game.phase === 'building' && (
+                  <section className="pg-building-companies">
+                    <h2>公司电网</h2>
+                    {networks.map((network) => (
+                      <button
+                        key={network.seatId}
+                        onClick={() => showCompany(network.seatId)}
+                        style={
+                          {
+                            '--pg-player-color': network.color,
+                          } as CSSProperties
+                        }
+                        aria-current={
+                          network.seatId === game.actor ? 'step' : undefined
+                        }
+                      >
+                        <span className="pg-network-seat">
+                          {network.seatNumber}
+                        </span>
+                        <strong title={network.name}>{network.name}</strong>
+                        <span>{network.cities.length} 城</span>
+                      </button>
+                    ))}
+                  </section>
+                )}
                 {game.auction && (
                   <AuctionDisplay view={game} names={names} artFor={artFor} />
                 )}
@@ -480,8 +534,6 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
               '德国电网'
             ) : panel === 'companies' ? (
               '各家电力公司'
-            ) : panel === 'market' ? (
-              '电厂市场'
             ) : (
               '电网菜单'
             )
@@ -505,11 +557,6 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                   artFor={artFor}
                   {...(detailSeat ? { onlySeat: detailSeat } : {})}
                 />
-              ) : panel === 'market' && game ? (
-                <>
-                  <PlantMarket view={game} artFor={artFor} />
-                  <ResourceMarket view={game} />
-                </>
               ) : (
                 <>
                   {canControl && <RoomManagement session={session} />}

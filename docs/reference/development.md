@@ -83,7 +83,7 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 | `pnpm prototype:verify:game`                                | 对游戏原型执行 Playwright／后台 WebView2 能力、角色、恢复、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/`                                 |
 | `pnpm prototype:verify`                                     | 对已有原型构建运行 Playwright／后台 WebView2 走查，生成 JSON 和截图；先执行原型与桌面构建                                                                 |
 
-独立服务、规则和策略 CJS 构建使用 esbuild `minifyWhitespace`，只压缩生成代码的空白；保留标识符、表达式与规则／状态／策略版本，`bot-worker.cjs` 保持原构建选项。该构建配置不改变游戏规则，也不以源码或预估字节代替最终 ZIP／实际解压双体积核验；当前包与清理结果见验收记录。
+服务 CJS 构建使用 esbuild `minify` 进行生产压缩；规则和策略 CJS 使用 `minifyWhitespace`，源码及规则／状态／策略版本保留，`bot-worker.cjs` 保持原构建选项。该构建配置不改变游戏规则，也不以源码或预估字节代替最终 ZIP／实际解压双体积核验；当前包与清理结果见验收记录。
 
 当前便携包和使用流程见 [项目说明](../../README.md#开始对局)。旧工程验证包与阶段结果见开发归档。
 
@@ -167,7 +167,7 @@ pnpm prototype:verify:game
 
 ## 当前维护验证
 
-先执行适用的工程检查，再按改动选专项；命令存在不代表已通过。使用 `verificationOutput` 的入口按根目录 `package.json` 写入 `artifacts/maintenance/v<版本>/`，当前为 `v1.0.2`；部分游戏专项仍有自己的维护子目录，以脚本参数和实际报告为准。每次选择新的证据名，保留失败、返修和历史记录。最终便携通过必须对应实际执行的 ZIP 哈希，不能由开发构建推定；已通过且未受影响的功能不机械重跑。
+先执行适用的工程检查，再按改动选专项；命令存在不代表已通过。使用 `verificationOutput` 的入口按根目录 `package.json` 写入 `artifacts/maintenance/v<版本>/`，当前为 `v1.0.3`；电力公司 UI 与三端规则检查也使用此入口，旧证据位置保留。部分游戏专项仍有自己的维护子目录，以脚本参数和实际报告为准。每次选择新的证据名，保留失败、返修和历史记录。最终便携通过必须对应实际执行的 ZIP 哈希，不能由开发构建推定；已通过且未受影响的功能不机械重跑。
 
 短屏布局返修可先运行 `pnpm verify:display --paused-720p-only`，只在真实六手机开局并暂停后检查主机 1280×720 首屏，证据进入当前版本的 `display/paused-720p`。该入口用于固定失败场景，不能替代完整显示矩阵或最终 ZIP 验证。
 

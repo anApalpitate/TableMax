@@ -17,6 +17,8 @@ type Props = {
   selectedPlant: number | null;
   selectPlant(plant: number): void;
   artFor?(id: number): CSSProperties;
+  regionSelection?: string[];
+  selectRegions?(regions: string[]): void;
 };
 
 function AmountPicker({
@@ -193,9 +195,19 @@ function BidControls({ view, actions, locked, choose }: Props) {
   );
 }
 
-function RegionControls({ view, actions, locked, choose }: Props) {
+function RegionControls({
+  view,
+  actions,
+  locked,
+  choose,
+  regionSelection,
+  selectRegions,
+}: Props) {
   const choices = actions.filter((action) => action.type === 'select-regions');
-  const [selected, setSelected] = useState<string[]>(choices[0]?.regions ?? []);
+  const [localSelection, setSelected] = useState<string[]>(
+    choices[0]?.regions ?? [],
+  );
+  const selected = regionSelection ?? localSelection;
   const action = choices.find(
     (choice) =>
       choice.regions.length === selected.length &&
@@ -210,13 +222,14 @@ function RegionControls({ view, actions, locked, choose }: Props) {
             key={region.id}
             style={{ '--pg-region-color': region.color } as CSSProperties}
             aria-pressed={selected.includes(region.id)}
-            onClick={() =>
-              setSelected((previous) =>
-                previous.includes(region.id)
-                  ? previous.filter((id) => id !== region.id)
-                  : [...previous, region.id],
-              )
-            }
+            disabled={locked}
+            onClick={() => {
+              const next = selected.includes(region.id)
+                ? selected.filter((id) => id !== region.id)
+                : [...selected, region.id];
+              if (selectRegions) selectRegions(next);
+              else setSelected(next);
+            }}
           >
             {region.name}
             {selected.includes(region.id) ? ' ✓' : ''}

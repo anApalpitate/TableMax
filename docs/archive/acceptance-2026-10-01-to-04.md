@@ -89,7 +89,7 @@
 
 返修后的 [源完整空收藏矩阵](../../artifacts/maintenance/v1.0.2/modern-art-audit-20261004/runtime/debug-source-fit/results.json) **108 组通过，98.36 秒**，包含三／四／五人、单／双画、host／public、720p／1080p／4K 与 100／125／150% 请求及实际限制结果；原一口价失败场景通过。独立审查实际单拍图与入场结束后的双拍图，框、角标、拍卖人及参与条无重叠和裁切；静态审查结论仍限定于所查看截图。
 
-最终 [Windows ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) **39,463,310 字节**，实际解压 **127 文件／95,377,529 字节**，双 100 MB 硬门禁通过；解压比 95 MB 工程预算多 **377,529 字节**，如实保留该软预算缺口。实际打包 **16.27 秒**，逐文件哈希与实际解压核对通过，SHA-256 为 `ff110050e1a7d7fe6b7e52a7c0e7188ce54fa17f412fd9a8e27990dddcc26c29`，没有最终验收后再打包。首包与最终包的 [范围审计](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/delivery/package-fit-final.json)证明变化为网页 CSS 及其构建引用，原生程序、Node、服务、规则与 bot 文件字节不变；原 1.0.2 导出包也完整保存在本轮 `delivery/before-debug/`，不倒改下节历史哈希。
+最终 [Windows ZIP（已退役）](../../artifacts/maintenance/v1.0.2/shared-visual-20261004/delivery/before/TableMax-1.0.2-win-x64.zip.retired.json) **39,463,310 字节**，实际解压 **127 文件／95,377,529 字节**，双 100 MB 硬门禁通过；解压比 95 MB 工程预算多 **377,529 字节**，如实保留该软预算缺口。实际打包 **16.27 秒**，逐文件哈希与实际解压核对通过，SHA-256 为 `ff110050e1a7d7fe6b7e52a7c0e7188ce54fa17f412fd9a8e27990dddcc26c29`，没有最终验收后再打包。首包与最终包的 [范围审计](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/delivery/package-fit-final.json)证明变化为网页 CSS 及其构建引用，原生程序、Node、服务、规则与 bot 文件字节不变；原 1.0.2 导出包也完整保存在本轮 `delivery/before-debug/`，不倒改下节历史哈希。
 
 最终同一 ZIP 的 [音频与重进](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio/portable-layout-final/results.json) **31 项／16 WAV 通过，40.34 秒**，[五类实际声画](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio/portable-layout-entrances/results.json) **15 项通过，36.42 秒**。验证电脑／手机盒子重进后新事件播放、刷新手势解锁与不补播、独立静音、公共声源优先及关窗交接、暂停／测试／减少动态；五类效果实际截图和全屏边界保留。所有本次音频实例与包内 Node 已退出。
 
@@ -112,7 +112,7 @@
 
 用户要求“导出最新版为 v1.02，然后清理历史版本和中间文件”，按项目三段格式采用 **1.0.2**。从 `f3d3b75` 的电力公司完整交付基础更新根包版本、原生项目版本、Windows manifest 与运行时版本报告；游戏规则、状态、策略及平台存档／协议不变。逐文件清单对比只有 `TableMax.exe` 与包内 `package.json` 两项变化，其余 **121 文件哈希完全一致**，见 [版本范围审计](../../artifacts/maintenance/v1.0.2/export/version-only-manifest-diff.json)。电力公司／现代艺术专项沿用下列对应 1.0.1 的明确证据，不把它们标成 1.0.2 重跑。
 
-`pnpm package:win` 含真实原生／服务／网页构建，通过，**19.59 秒**、零编译警告／错误。最终 [Windows ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) **38,897,568 字节**，实际解压 **123 文件／94,761,935 字节**，双 100 MB 门禁及 95 MB 工程预算通过；[逐文件清单](../../artifacts/releases/TableMax-1.0.2-win-x64-manifest.json)记录 SHA-256 `18791333acaa6668a54ce8065331cefd7fa41ac999e2ab6a6082b15838d23184`。应用的 FileVersion 为 `1.0.2.0`，两次实际启动均报告 `appVersion=1.0.2`，没有仅改 ZIP 文件名。
+`pnpm package:win` 含真实原生／服务／网页构建，通过，**19.59 秒**、零编译警告／错误。最终 [Windows ZIP（已退役）](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/delivery/before-debug/TableMax-1.0.2-win-x64.zip.retired.json) **38,897,568 字节**，实际解压 **123 文件／94,761,935 字节**，双 100 MB 门禁及 95 MB 工程预算通过；[逐文件清单](../../artifacts/maintenance/v1.0.2/modern-art-debug-20261004/delivery/before-debug/TableMax-1.0.2-win-x64-manifest.json)记录 SHA-256 `18791333acaa6668a54ce8065331cefd7fa41ac999e2ab6a6082b15838d23184`。应用的 FileVersion 为 `1.0.2.0`，两次实际启动均报告 `appVersion=1.0.2`，没有仅改 ZIP 文件名。
 
 同一最终 ZIP 的 [便携验收](../../artifacts/maintenance/v1.0.2/portable/results.json)通过，**57.01 秒**：两真人手机模拟＋四 Worker、六席宝可梦完整三胜（89 driver 动作／14 决策阶段）、满座拒绝、管理员无座、秘密隔离、回退、断网身份恢复、同地址 SQLite 两次启动及原班再玩。页面错误／外网请求为零，11 图／3 布局；隐藏原生窗口和 Chromium 手机模拟，不代表实体设备、Wi-Fi 或电视验收。
 

@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
+import { verificationOutput } from './verification-output.mjs';
 
 const require = createRequire(import.meta.url);
 const { io } = createRequire(resolve('apps/web/package.json'))(
@@ -32,12 +33,7 @@ const run =
   process.argv.find((arg) => arg.startsWith('--evidence='))?.slice(11) ??
   (portable ? 'portable' : 'source');
 assert.match(run, /^[a-z0-9-]{1,48}$/);
-const output = resolve(
-  'artifacts/maintenance/v1.0.2',
-  maintenance,
-  'rules',
-  run,
-);
+const output = verificationOutput(maintenance, 'rules', run);
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/modern-art-polish-'));
