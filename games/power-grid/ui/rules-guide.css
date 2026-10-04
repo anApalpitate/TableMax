@@ -69,3 +69,123 @@
     padding: 10px;
   }
 }
+.pg-rulebook__order,
+.pg-rulebook__recipes,
+.pg-rulebook__winning {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.pg-rulebook__order > span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pg-rulebook__order b,
+.pg-rulebook__recipes span,
+.pg-rulebook__winning span {
+  padding: 10px 14px;
+  border: 2px solid var(--rules-accent);
+  border-radius: 8px;
+  background: var(--rules-paper);
+  font-size: 18px;
+}
+.pg-rulebook__order i {
+  font-style: normal;
+  font-size: 22px;
+}
+.pg-rulebook__seat-ring {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  max-width: 500px;
+  margin: 14px 0;
+}
+.pg-rulebook__seat-ring > span {
+  padding: 12px 8px;
+  border: 2px solid var(--rules-accent);
+  border-radius: 30px;
+  background: #fff8e8;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+}
+.pg-rulebook__seat-ring > b {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 32px;
+  line-height: 1;
+  color: var(--rules-accent);
+}
+.pg-rulebook__choices {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+.pg-rulebook__choices > div {
+  padding: 12px;
+  border-left: 5px solid var(--rules-accent);
+  border-radius: 6px;
+  background: var(--rules-paper);
+}
+.pg-rulebook__choices dt {
+  font-size: 20px;
+  font-weight: 800;
+}
+.pg-rulebook__choices dd {
+  margin: 6px 0 0;
+  font-size: 18px;
+}
+.pg-rulebook__price-zones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
+  gap: 6px;
+}
+.pg-rulebook__price-zones > div {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  padding: 10px 4px;
+  border: 2px solid #76634b;
+  background: #f5e3bc;
+  border-radius: 8px;
+}
+.pg-rulebook__price-zones b {
+  font-size: 18px;
+}
+.pg-rulebook__price-zones span {
+  font-size: 16px;
+  white-space: nowrap;
+  color: #5d402d;
+}
+.pg-rulebook__price-zones--uranium > div {
+  background: #ffe1cf;
+  border-color: #a2482a;
+}
+.rules-guide .pg-rulebook__diagram-note {
+  font-size: 16px;
+}
+.pg-rulebook__initial-prices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.pg-rulebook__initial-prices > div {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  background: var(--rules-paper);
+  border: 1px solid var(--rules-line);
+  border-radius: 8px;
+}
+.pg-rulebook__initial-prices dt,
+.pg-rulebook__initial-prices dd {
+  margin: 0;
+  font-size: 18px;
+}
+.pg-rulebook__initial-prices dd {
+  font-weight: 800;
+}

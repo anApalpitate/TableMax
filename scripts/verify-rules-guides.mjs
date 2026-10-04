@@ -14,6 +14,16 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 );
 const portable = process.argv.includes('--portable');
 const captureRules = process.argv.includes('--capture-rules');
+const game =
+  process.argv.find((arg) => arg.startsWith('--game='))?.slice(7) ?? 'all';
+assert.ok(
+  ['all', 'pokemon-encounters', 'modern-art', 'power-grid'].includes(game),
+);
+assert.ok(!captureRules || game === 'all' || game === 'pokemon-encounters');
+const maintenance =
+  process.argv.find((arg) => arg.startsWith('--maintenance='))?.slice(14) ??
+  'shared-visual-20261004';
+assert.match(maintenance, /^[a-z0-9-]{1,40}$/);
 assert.ok(
   !portable || !captureRules,
   'Capture assets from source before freezing the package',
@@ -23,7 +33,9 @@ const run =
   (portable ? 'portable' : 'source');
 assert.match(run, /^[a-z0-9-]{1,48}$/);
 const output = resolve(
-  'artifacts/maintenance/v1.0.2/shared-visual-20261004/rules',
+  'artifacts/maintenance/v1.0.2',
+  maintenance,
+  'rules',
   run,
 );
 await mkdir(output, { recursive: true });
@@ -85,14 +97,19 @@ await build({
 const { prepare, preparePokemonSixDraw, prepareGrid } = require(
   join(work, 'prepare.cjs'),
 );
-const pokemon = await preparePokemonSixDraw(work, captureRules);
-const modern = captureRules ? undefined : await prepare(work, 5);
-const grid = captureRules ? undefined : await prepareGrid(work);
+const includes = (id) => game === 'all' || game === id;
+const pokemon = includes('pokemon-encounters')
+  ? await preparePokemonSixDraw(work, captureRules)
+  : undefined;
+const modern =
+  !captureRules && includes('modern-art') ? await prepare(work, 5) : undefined;
+const grid =
+  !captureRules && includes('power-grid') ? await prepareGrid(work) : undefined;
 const cases = [
   {
     id: 'pokemon-encounters',
-    dataDir: pokemon.dataDir,
-    players: pokemon.players,
+    dataDir: pokemon?.dataDir,
+    players: pokemon?.players,
     root: '.pokemon-screen',
     images: 3,
   },
@@ -108,9 +125,9 @@ const cases = [
     dataDir: grid?.dataDir,
     players: grid?.players,
     root: '.pg-screen',
-    images: 3,
+    images: 5,
   },
-];
+].filter((entry) => includes(entry.id));
 let desktop, origin, host, hostToken;
 const sockets = [];
 async function current(token = '') {

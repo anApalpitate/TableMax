@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from 'react';
 import { getPlant, RESOURCES, RESOURCE_LABELS } from '../../data/catalog';
-import { income } from '../../data/economy';
+import { income, price } from '../../data/economy';
 import { GERMANY_REGIONS, getCity } from '../../data/germany';
 import type { Action, PowerGridView, Resource } from '../../types';
 import { PlantCard, ResourceIcon } from '../components';
@@ -162,8 +162,10 @@ function BidControls({ view, actions, locked, choose }: Props) {
   const action = bids.find((entry) => entry.amount === amount);
   const pass = actions.find((entry) => entry.type === 'pass');
   return (
-    <section className="pg-controls">
-      <h2>竞拍 {view.auction?.plantId} 号电厂</h2>
+    <section
+      className="pg-controls pg-bid-controls"
+      aria-label={`竞拍 ${view.auction?.plantId} 号电厂`}
+    >
       {bids.length > 0 && (
         <>
           <AmountPicker
@@ -310,8 +312,15 @@ function ResourceControls({ view, actions, locked, choose, artFor }: Props) {
                     onClick={() => choose(action)}
                   >
                     <ResourceIcon resource={resource} />
-                    <span>＋1 {RESOURCE_LABELS[resource]}</span>
-                    <strong>{view.resourcePrices[resource]} E</strong>
+                    <span>
+                      给{plant.id}号 ＋1{RESOURCE_LABELS[resource]}
+                    </span>
+                    <strong>本次 {view.resourcePrices[resource]}电币</strong>
+                    <span className="pg-next-resource-price">
+                      {price(resource, view.resources[resource] - 1) == null
+                        ? '买后售罄'
+                        : `再买 ${price(resource, view.resources[resource] - 1)}电币/份`}
+                    </span>
                   </button>
                 );
               })}

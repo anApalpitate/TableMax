@@ -10,14 +10,20 @@ import { chromium } from 'playwright';
 const name =
   process.argv.find((value) => value.startsWith('--evidence='))?.slice(11) ??
   'fixture';
+const maintenance =
+  process.argv.find((value) => value.startsWith('--maintenance='))?.slice(14) ??
+  'shared-visual-20261004';
 const amountOnly = process.argv.includes('--amount-only');
 const mapOnly = process.argv.includes('--map-only');
 const captureRulesOnly = process.argv.includes('--capture-rules-only');
 const captureRules =
   captureRulesOnly || process.argv.includes('--capture-rules');
 assert.match(name, /^[a-z0-9-]{1,40}$/);
+assert.match(maintenance, /^[a-z0-9-]{1,40}$/);
 const output = resolve(
-  'artifacts/maintenance/v1.0.2/shared-visual-20261004/power-grid',
+  'artifacts/maintenance/v1.0.2',
+  maintenance,
+  'power-grid',
   name,
 );
 await mkdir(output, { recursive: true });
@@ -36,6 +42,7 @@ const report = {
 };
 const generator = `
 import { rules, bot } from ${JSON.stringify(resolve('games/power-grid/index.ts'))};
+import { BOARD_WIDTH, BOARD_HEIGHT, GERMANY_CITIES, GERMANY_EDGES } from ${JSON.stringify(resolve('games/power-grid/data/germany.ts'))};
 export async function make(){
  const seats=['p1','p2','p3','p4','p5','p6'];let seed=728;
  const random={next(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296;}};
@@ -57,7 +64,7 @@ export async function make(){
   state=rules.apply(state,result.action,seat,context).state;
  }
  if(!fixtures.ended) throw new Error('Fixture match did not finish');
- return fixtures;
+ return {fixtures,board:{width:BOARD_WIDTH,height:BOARD_HEIGHT,cities:GERMANY_CITIES,edges:GERMANY_EDGES}};
 }`;
 await bundle({
   stdin: {
@@ -72,7 +79,7 @@ await bundle({
   target: 'node22',
   logLevel: 'silent',
 });
-const fixtures = await (
+const { fixtures, board } = await (
   await import(
     new URL('file:///' + join(work, 'generator.mjs').replaceAll('\\', '/'))
   )
@@ -89,10 +96,11 @@ HTMLMediaElement.prototype.pause=function(){};
 const names=['一号电力公司测试长昵称abcdefghijklmnop','蓝色莱茵电力','第三家电力公司','第四家绿色电网','五号原子动力','六号能源投资'];
 function Fixture(){const [setting,setSetting]=useState({name:'regions',role:'host',paused:false,serial:0});const [feedback,setFeedback]=useState(null);
 window.setFixture=(name,role='host',paused=false)=>{setFeedback(null);window.__commands=[];setSetting(s=>({name,role,paused,serial:s.serial+1}));};
+window.syncFixture=()=>setSetting(s=>({...s,revision:(s.revision??1)+1}));
 const fixture=fixtures[setting.name];const game=setting.role==='player'?fixture.game:fixture.publicGame;
-window.advanceFeedback=()=>setFeedback({instanceId:'00000000-0000-4000-8000-000000000001',branch:0,revision:2,events:[{kind:'effect-complete',text:game.latest?.text??'保存'}]});
+window.advanceFeedback=(revision=2,verb=game.latest?.verb??'bid')=>setFeedback({instanceId:'00000000-0000-4000-8000-000000000001',branch:0,revision,events:[{kind:verb==='end'?'game-ended':'effect-complete',text:game.latest?.text??'保存',action:{actor:game.latest?.actor??null,verb,cardCategory:null,ability:null,targets:[]}}]});
 const seats=game.seatOrder.map((id,index)=>({id,name:names[index],avatarId:'avatar-'+(index+1),controller:'human',ready:true,online:true,botDifficulty:null}));
-const view={instanceId:'00000000-0000-4000-8000-000000000001',revision:1,branch:0,status:game.phase==='ended'?'ended':'playing',paused:setting.paused,restored:false,joinOpen:false,playMode:'play',countdownSeconds:20,decisionClock:game.phase==='ended'?null:{id:'clock-'+setting.serial,serverTime:Date.now(),remainingMs:20000,running:!setting.paused},game:{id:'power-grid',name:'电力公司',min:2,max:6},catalog:[],ownerSeatId:'p1',capabilities:{manage:setting.role==='host',control:setting.role==='host'||(setting.role==='player'&&game.self?.seatId==='p1')},seats,self:{role:setting.role,seatId:game.self?.seatId??null},gameView:game,actions:setting.role==='player'&&!setting.paused?fixture.actions:[],decisionId:fixture.decision?.id??null,selectionToken:fixture.decision?.id??null,history:[],lifecycleActions:[],botError:null,endReason:game.phase==='ended'?'游戏完成':null};
+const view={instanceId:'00000000-0000-4000-8000-000000000001',revision:setting.revision??1,branch:0,status:game.phase==='ended'?'ended':'playing',paused:setting.paused,restored:false,joinOpen:false,playMode:'play',countdownSeconds:20,decisionClock:game.phase==='ended'?null:{id:'clock-'+setting.serial,serverTime:Date.now(),remainingMs:20000,running:!setting.paused},game:{id:'power-grid',name:'电力公司',min:2,max:6},catalog:[],ownerSeatId:'p1',capabilities:{manage:setting.role==='host',control:setting.role==='host'||(setting.role==='player'&&game.self?.seatId==='p1')},seats,self:{role:setting.role,seatId:game.self?.seatId??null},gameView:game,actions:setting.role==='player'&&!setting.paused?fixture.actions:[],decisionId:fixture.decision?.id??null,selectionToken:fixture.decision?.id??null,history:[],lifecycleActions:[],botError:null,endReason:game.phase==='ended'?'游戏完成':null};
 const session={role:setting.role,view,connected:true,locked:false,canControl:view.capabilities.control,isHost:setting.role==='host',message:'',motion:[],feedback,busy:false,admissionPending:false,awaitingConfirmation:false,errorId:'',command(value){window.__commands.push(value);},retry(){}};
 return <client.Screen key={setting.serial} session={session}/>;}
 createRoot(document.getElementById('root')).render(<Fixture/>);window.fixtureNames=Object.keys(fixtures);
@@ -154,10 +162,10 @@ const server = createServer(async (request, response) => {
 });
 await new Promise((done) => server.listen(0, '127.0.0.1', done));
 const origin = 'http://127.0.0.1:' + server.address().port;
-let browser;
+let browser, page;
 try {
   browser = await chromium.launch({ channel: 'msedge', headless: true });
-  const page = await browser.newPage({ viewport: { width: 854, height: 480 } });
+  page = await browser.newPage({ viewport: { width: 854, height: 480 } });
   page.on('pageerror', (error) => report.errors.push(String(error)));
   page.on('request', (request) => {
     if (!request.url().startsWith(origin) && !request.url().startsWith('data:'))
@@ -177,19 +185,31 @@ try {
       .locator('dialog .pg-company')
       .filter({ has: page.locator('.pg-plant-card') })
       .first()
-      .screenshot({ path: join(directory, 'companies-v1.png') });
+      .screenshot({ path: join(directory, 'companies-v2.png') });
     await page.keyboard.press('Escape');
-    await page.evaluate(() => window.setFixture('offer', 'host'));
+    await page.setViewportSize({ width: 390, height: 1800 });
+    await page.evaluate(() => window.setFixture('offer', 'player'));
     await page.waitForTimeout(70);
+    await page.locator('.pg-turn-order details > summary').click();
+    await page
+      .locator('.pg-turn-order')
+      .screenshot({ path: join(directory, 'order.png') });
+    await page.getByRole('button', { name: '电厂市场', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('dialog[open]'));
     assert.ok(
-      (await page
-        .locator('.pg-desktop-market .pg-market .pg-plant-card')
-        .count()) >= 4,
+      (await page.locator('dialog .pg-market .pg-plant-card').count()) >= 4,
       'Rule market screenshot contains actual current and future plants',
     );
     await page
-      .locator('.pg-desktop-market .pg-market')
-      .screenshot({ path: join(directory, 'market-v1.png') });
+      .locator('dialog .pg-market')
+      .screenshot({ path: join(directory, 'market-v2.png') });
+    await page.keyboard.press('Escape');
+    await page.setViewportSize({ width: 854, height: 1800 });
+    await page.evaluate(() => window.setFixture('resources', 'host'));
+    await page.waitForTimeout(70);
+    await page
+      .locator('.pg-desktop-market .pg-price-lanes')
+      .screenshot({ path: join(directory, 'resource-prices.png') });
     await page.setViewportSize({ width: 390, height: 844 });
     const stage = fixtures.crowded ? 'crowded' : 'building';
     const options = fixtures[stage].game.buildOptions;
@@ -222,11 +242,13 @@ try {
     );
     await page
       .locator('.pg-phone-table')
-      .screenshot({ path: join(directory, 'network-v1.png') });
+      .screenshot({ path: join(directory, 'network-v2.png') });
     report.ruleCaptures = [
-      'companies-v1.png',
-      'market-v1.png',
-      'network-v1.png',
+      'companies-v2.png',
+      'market-v2.png',
+      'network-v2.png',
+      'order.png',
+      'resource-prices.png',
     ];
   };
   if (captureRulesOnly) {
@@ -238,7 +260,55 @@ try {
     await page.setViewportSize({ width: 320, height: 568 });
     await page.evaluate(() => window.setFixture('building', 'player'));
     await page.waitForTimeout(50);
+    const rotatedMap = await page
+      .locator('.pg-phone-map .pg-map')
+      .evaluate((svg) => ({
+        viewBox: svg.getAttribute('viewBox'),
+        terrainRotation: svg.querySelector('image')?.getAttribute('transform'),
+        cities: [...svg.querySelectorAll('[data-city]')].map((node) => ({
+          id: node.getAttribute('data-city'),
+          transform: node.getAttribute('transform'),
+          matrix: { a: node.getScreenCTM().a, b: node.getScreenCTM().b },
+        })),
+      }));
+    assert.equal(rotatedMap.viewBox, `0 0 ${board.height} ${board.width}`);
+    assert.equal(
+      rotatedMap.terrainRotation,
+      `translate(${board.height} 0) rotate(90)`,
+    );
+    for (const original of board.cities) {
+      const actual = rotatedMap.cities.find(
+        (entry) => entry.id === original.id,
+      );
+      assert.equal(
+        actual.transform,
+        `translate(${board.height - original.y},${original.x})`,
+      );
+      assert.ok(
+        actual.matrix.a > 0 && Math.abs(actual.matrix.b) < 0.001,
+        'City houses and labels stay upright',
+      );
+    }
     const city = fixtures.building.game.buildOptions[0].cityId;
+    const target = page.locator(`.pg-phone-map [data-city="${city}"]`);
+    const targetPoint = await target.evaluate((node) => {
+      const matrix = node.getScreenCTM();
+      return { x: matrix.e, y: matrix.f };
+    });
+    await page.mouse.click(targetPoint.x, targetPoint.y);
+    assert.equal(
+      await page.locator('.pg-phone-map select').inputValue(),
+      city,
+      'Pointer hit selects the correct rotated city',
+    );
+    await page.locator('.pg-phone-map select').selectOption('');
+    await target.focus();
+    await page.keyboard.press('Enter');
+    assert.equal(
+      await page.locator('.pg-phone-map select').inputValue(),
+      city,
+      'Keyboard and pointer selection agree',
+    );
     await page.locator('.pg-phone-map select').selectOption(city);
     await page
       .getByRole('button', { name: '放大地图' })
@@ -285,9 +355,50 @@ try {
       [],
       'Preview, zoom and reset remain local',
     );
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.waitForTimeout(50);
+    const selectableCities = await page
+      .locator('.pg-phone-map select option')
+      .evaluateAll((nodes) => nodes.map((node) => node.value).filter(Boolean));
+    for (const entry of board.cities.filter((city) =>
+      selectableCities.includes(city.id),
+    )) {
+      await page.locator('.pg-phone-map select').selectOption(entry.id);
+      const bounds = await page
+        .locator(`.pg-phone-map [data-city="${entry.id}"] text`)
+        .evaluate((node) => {
+          const frame = node.closest('.pg-map-frame').getBoundingClientRect();
+          const label = node.getBoundingClientRect();
+          return {
+            fits:
+              label.left >= frame.left &&
+              label.right <= frame.right &&
+              label.top >= frame.top &&
+              label.bottom <= frame.bottom,
+            frame: { left: frame.left, right: frame.right },
+            label: { left: label.left, right: label.right },
+          };
+        });
+      assert.ok(
+        bounds.fits,
+        'Selected city name stays within the narrow full-map frame: ' +
+          JSON.stringify({ city: entry.id, bounds }),
+      );
+    }
+    await page.locator('.pg-phone-map select').selectOption(city);
+    await page.screenshot({
+      path: join(output, 'rotated-map-player-320.png'),
+      fullPage: true,
+    });
+    report.screenshots.push('rotated-map-player-320.png');
     report.actions.push(
-      '42 cities and 83 unchanged routes; narrow zoom shows readable selected prices; full detail requires actual rendered scale; reset does not send commands',
+      'Clockwise landscape map with 42 upright city markers and 83 unchanged routes; pointer/keyboard select the same city; narrow zoom shows readable selected prices; reset stays local',
     );
+    await page.screenshot({
+      path: join(output, 'rotated-map-player-390.png'),
+      fullPage: true,
+    });
+    report.screenshots.push('rotated-map-player-390.png');
     assert.deepEqual(report.errors, []);
     assert.deepEqual(report.requests, []);
     report.status = 'passed';
@@ -415,12 +526,16 @@ try {
             const mark = card
               .querySelector('.pg-fuel-mark')
               .getBoundingClientRect();
-            const art = card
-              .querySelector('.pg-plant-art,.pg-plant-illustration')
-              .getBoundingClientRect();
+            const artElement = card.querySelector(
+              '.pg-plant-art,.pg-plant-illustration',
+            );
+            const art = artElement.getBoundingClientRect();
+            const visibleArt = artElement.getClientRects().length > 0;
             return {
               border: parseFloat(getComputedStyle(card).borderLeftWidth),
-              aboveArt: mark.bottom <= art.top + 1,
+              aboveArt: !visibleArt || mark.bottom <= art.top + 1,
+              visibleArt,
+              markerVisible: mark.width > 0 && mark.height > 0,
             };
           });
           return {
@@ -432,6 +547,49 @@ try {
             cityNodes: root.querySelectorAll('[data-city]').length,
             cardGroups,
             markers,
+            turnOrder: [...root.querySelectorAll('.pg-turn-order li')].map(
+              (node) => node.dataset.seat,
+            ),
+            bidControls: [
+              ...root.querySelectorAll(
+                '.pg-bid-controls input,.pg-bid-controls button',
+              ),
+            ].map((node) => {
+              const box = node.getBoundingClientRect();
+              return {
+                text: node.getAttribute('aria-label') ?? node.textContent,
+                left: box.left,
+                right: box.right,
+                top: box.top,
+                bottom: box.bottom,
+                width: box.width,
+                height: box.height,
+              };
+            }),
+            companies: [
+              ...root.querySelectorAll(
+                '.pg-desktop-table > .pg-companies .pg-company > header',
+              ),
+            ]
+              .filter((node) => node.getClientRects().length > 0)
+              .map((node) => {
+                const box = node.getBoundingClientRect();
+                return { left: box.left, right: box.right };
+              }),
+            priceLanes: [...root.querySelectorAll('.pg-price-lane')].map(
+              (lane) => ({
+                resource: lane.dataset.resource,
+                areas: [...lane.querySelectorAll('.pg-price-area')].map(
+                  (area) => ({
+                    price: Number(area.dataset.price),
+                    count: Number(area.dataset.count),
+                    tokens: area.querySelectorAll('.pg-price-token--filled')
+                      .length,
+                    next: area.classList.contains('pg-price-area--next'),
+                  }),
+                ),
+              }),
+            ),
           };
         });
         assert.ok(
@@ -447,8 +605,9 @@ try {
         );
         for (const group of geometry.cardGroups) {
           assert.ok(
-            group.columns >= 2,
-            'Painting/plant collections have at least two columns: ' +
+            group.columns >=
+              (group.className.includes('pg-company-plants') ? 1 : 2),
+            'Owned/selection collections keep two columns; narrow public companies may use one: ' +
               JSON.stringify({ role, stage, group }),
           );
           assert.ok(
@@ -457,15 +616,95 @@ try {
               JSON.stringify({ role, stage, group }),
           );
         }
+        if (role === 'player' && stage === 'auction') {
+          assert.ok(geometry.bidControls.length > 0);
+          assert.ok(
+            geometry.bidControls.every(
+              (box) =>
+                box.top >= 0 &&
+                box.bottom <= height &&
+                box.left >= 0 &&
+                box.right <= width &&
+                box.width >= 44 &&
+                box.height >= 44,
+            ),
+            'Current bid input/confirm/exit are usable in the first phone viewport: ' +
+              JSON.stringify({ width, height, boxes: geometry.bidControls }),
+          );
+        }
+        assert.ok(
+          geometry.companies.every(
+            (box) => box.left >= 0 && box.right <= width,
+          ),
+          'Every visible desktop company header is within the viewport: ' +
+            JSON.stringify({ role, stage, width, boxes: geometry.companies }),
+        );
         for (const marker of geometry.markers) {
           assert.ok(
             marker.border >= 5,
             'Fuel frame has explicit strong thickness',
           );
           assert.ok(
-            marker.aboveArt,
+            marker.aboveArt && marker.markerVisible,
             'Fuel type badge remains above the illustration',
           );
+        }
+        const projected =
+          role === 'player' ? fixtures[stage].game : fixtures[stage].publicGame;
+        if (!['regions', 'ended'].includes(projected.phase)) {
+          const order = ['resources', 'building'].includes(projected.phase)
+            ? [...projected.playerOrder].reverse()
+            : projected.playerOrder;
+          assert.deepEqual(
+            geometry.turnOrder,
+            order,
+            'Displayed order follows the exact current classic phase',
+          );
+        }
+        for (const lane of geometry.priceLanes) {
+          const prices =
+            lane.resource === 'uranium'
+              ? [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16]
+              : [1, 2, 3, 4, 5, 6, 7, 8];
+          const capacity = lane.resource === 'uranium' ? 1 : 3;
+          assert.deepEqual(
+            lane.areas.map((area) => area.price),
+            prices,
+            'Printed classic resource price areas are complete',
+          );
+          assert.equal(
+            lane.areas.reduce((sum, area) => sum + area.count, 0),
+            projected.resources[lane.resource],
+            'Visible price areas account for every remaining resource',
+          );
+          assert.ok(
+            lane.areas.every(
+              (area) =>
+                area.count >= 0 &&
+                area.count <= capacity &&
+                area.count === area.tokens,
+            ),
+            'Each displayed price area has the correct physical token capacity',
+          );
+          const next = lane.areas.filter((area) => area.next);
+          assert.equal(
+            next.length,
+            projected.resources[lane.resource] > 0 ? 1 : 0,
+          );
+          if (next.length)
+            assert.equal(
+              next[0].price,
+              projected.resourcePrices[lane.resource],
+              'Next marked price agrees with the server-authoritative per-unit price',
+            );
+          const firstStocked = lane.areas.findIndex((area) => area.count > 0);
+          if (firstStocked >= 0)
+            assert.ok(
+              lane.areas
+                .slice(firstStocked + 1)
+                .every((area) => area.count === capacity),
+              'Higher price areas remain filled after cheapest-first buying',
+            );
         }
         if (role !== 'player') {
           assert.ok(
@@ -563,6 +802,30 @@ try {
       (action) => action.type === 'bid',
     )?.amount;
     if (minimum != null) {
+      const preserved = String(minimum + 1);
+      await page.getByRole('spinbutton', { name: '报价金额' }).fill(preserved);
+      await page
+        .getByRole('spinbutton', { name: '报价金额' })
+        .evaluate((input) => {
+          window.__bidInput = input;
+        });
+      await page.evaluate(() => window.syncFixture());
+      await page.waitForTimeout(60);
+      assert.equal(
+        await page.getByRole('spinbutton', { name: '报价金额' }).inputValue(),
+        preserved,
+        'Same decision synchronization preserves the typed quote',
+      );
+      assert.equal(
+        await page
+          .getByRole('spinbutton', { name: '报价金额' })
+          .evaluate((input) => input === window.__bidInput),
+        true,
+        'Same decision synchronization does not remount the quote control',
+      );
+      report.actions.push(
+        'Same-decision revision sync keeps quote input and DOM control stable',
+      );
       await page
         .getByRole('spinbutton', { name: '报价金额' })
         .fill(String(minimum + 0.5));
@@ -619,9 +882,22 @@ try {
     await page.evaluate(() => window.advanceFeedback());
     await page.waitForTimeout(50);
     assert.equal(await page.evaluate(() => window.__plays.length), initial + 1);
+    assert.equal(
+      await page
+        .locator('[data-power-grid-effect]')
+        .getAttribute('data-power-grid-effect'),
+      'bid',
+    );
     await page.evaluate(() => window.advanceFeedback());
     await page.waitForTimeout(50);
     assert.equal(await page.evaluate(() => window.__plays.length), initial + 1);
+    assert.equal(
+      await page
+        .locator('[data-power-grid-effect]')
+        .getAttribute('data-power-grid-effect'),
+      'bid',
+      'Duplicate saved event leaves the original effect running',
+    );
     report.audio.push(
       'Only a new saved feedback key invokes local playback; identical feedback is consumed once',
     );
@@ -632,6 +908,26 @@ try {
     await page.waitForTimeout(50);
     assert.equal(await page.evaluate(() => window.__plays.length), paused);
     report.audio.push('Paused feedback invokes no playback');
+    assert.equal(await page.locator('[data-power-grid-effect]').count(), 0);
+    await page.evaluate(() => window.setFixture('ended', 'host'));
+    await page.waitForTimeout(50);
+    const beforeEnd = await page.evaluate(() => window.__plays.length);
+    await page.evaluate(() => window.advanceFeedback(3, 'end'));
+    await page.waitForTimeout(50);
+    assert.equal(
+      await page.evaluate(() => window.__plays.length),
+      beforeEnd + 1,
+      'New saved terminal event can play its ending cue',
+    );
+    assert.equal(
+      await page
+        .locator('[data-power-grid-effect]')
+        .getAttribute('data-power-grid-effect'),
+      'end',
+    );
+    report.audio.push(
+      'New terminal saved event plays ending cue and effect; terminal phase is not disabled',
+    );
     await page.evaluate(() => window.setFixture('auction', 'player'));
     await page.waitForTimeout(50);
     assert.equal(await page.locator('[data-power-grid-sound]').count(), 0);
@@ -684,6 +980,10 @@ try {
 } catch (error) {
   report.status = 'failed';
   report.failure = String(error);
+  await page
+    ?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
+    .then(() => report.screenshots.push('failure.png'))
+    .catch(() => {});
   throw error;
 } finally {
   await browser?.close();

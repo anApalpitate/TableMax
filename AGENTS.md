@@ -17,7 +17,7 @@
 7. 子 agent 的职责、派工边界与常用组合见 [职责索引](docs/subagent/README.md)，涵盖原生桌面、平台服务、构建验收与独立视觉审查；图像生成与编辑交给 [imagegen 子 agent](docs/subagent/imagegen.md)，具体任务范围与可写路径由主 agent 明确。
 8. 电脑玩家要求、独立决策文件与验证见 [人机规格](docs/reference/bot-players.md)；面向对象的适度封装见 [工程结构](docs/reference/architecture.md#面向对象与适度封装)。游戏 bot 与本项目开发子 agent 是两类不同角色。
 9. 第二款正式游戏《现代艺术》的规则、卡牌分布、拍卖／秘密权限及三档策略见 [游戏规格](docs/games/modern-art/README.md)；出版依据与项目约定见 [来源](docs/games/modern-art/sources.md)。各游戏的规则、策略、UI、样式与资源必须独立，共享层只按目录和通用契约组装。
-10. 第三款游戏《电力公司》采用经典德国修正版地图，规则、经济、电厂、投影与三档策略见 [游戏规格](docs/games/power-grid/README.md)，42 城／六区／83 边与绘图边界见 [地图](docs/games/power-grid/map.md)。不能混入 Recharged 或其他地图规则；已完成独立接入，交付状态见 [验收](docs/reference/acceptance.md#101电力公司经典德国版2026-10-04)。
+10. 第三款游戏《电力公司》采用经典德国修正版地图，规则、经济、电厂、投影与三档策略见 [游戏规格](docs/games/power-grid/README.md)，42 城／六区／83 边、横向展示与绘图边界见 [地图](docs/games/power-grid/map.md)。不能混入 Recharged 或其他地图规则；已完成独立接入，当前顺序／价区／图文规则与声画维护见 [验收](docs/reference/acceptance.md#102电力公司-debug横向地图价区与声画2026-10-04)。
 11. 盒子／游戏 UI、布局、图标、头像、插画、动效及视觉审查，先查询 [用户美术偏好](docs/reference/art-preferences.md) 与 [通用视觉](docs/reference/visual-design.md)，再读对应游戏规格；派工传入这些入口，区分共性与游戏例外，不能把既有实现或 agent 建议写成用户偏好。
 
 ## 工作约定

@@ -6,15 +6,19 @@ import {
   AuctionDisplay,
   PlantMarket,
   PlayerCompanies,
-  ResourceMarket,
 } from '../../../../games/power-grid/ui/components';
+import { ResourceMarket } from '../../../../games/power-grid/ui/ResourceMarket';
+import { TurnOrder } from '../../../../games/power-grid/ui/TurnOrder';
 import {
   PHASE_LABELS,
   PLAYER_COLORS,
 } from '../../../../games/power-grid/ui/labels';
 import { PlayerControls } from '../../../../games/power-grid/ui/player';
 import { GermanyMap } from '../../../../games/power-grid/ui/map';
-import { PowerGridSoundControl } from '../../../../games/power-grid/ui/audio';
+import {
+  PowerGridSoundControl,
+  PowerGridSavedEffects,
+} from '../../../../games/power-grid/ui/audio';
 import {
   mapTerrain,
   plantImage,
@@ -52,7 +56,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
   const game = view?.gameView as PowerGridView | null;
   const canPlay = useAudioOutput();
   const [panel, setPanel] = useState<
-    'menu' | 'map' | 'companies' | 'market' | 'rules' | null
+    'menu' | 'map' | 'companies' | 'market' | 'rules' | 'order' | null
   >(null);
   const [city, setCity] = useState<string | null>(null);
   const [plant, setPlant] = useState<number | null>(null);
@@ -65,6 +69,10 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
   const active =
     connected && view?.status === 'playing' && !view.paused && !view.botError;
   const ended = view?.status === 'ended';
+  const feedbackDisabled =
+    !connected ||
+    Boolean(view?.paused || view?.botError) ||
+    view?.playMode === 'test';
   const choose = (action: Action) => {
     if (view?.decisionId)
       command({
@@ -151,7 +159,9 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
         <ScreenLink className="pg-box-link" href={`/${role}`}>
           ‹ 盒子
         </ScreenLink>
-        <strong className="pg-brand">⚡ 电力公司</strong>
+        <strong className="pg-brand" aria-label="电力公司" title="电力公司">
+          ⚡ <span className="pg-brand-name">电力公司</span>
+        </strong>
         {game && (
           <span className="pg-round">
             第 {game.round} 轮 <b>第 {game.step} 步</b>
@@ -164,13 +174,24 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
           <PowerGridSoundControl
             feedback={session.feedback}
             game={game}
-            disabled={!active || view?.playMode === 'test'}
+            disabled={feedbackDisabled}
             canPlay={canPlay}
           />
         )}
         {role !== 'player' && (
           <button onClick={() => setPanel('companies')}>各家</button>
         )}
+        {role !== 'player' &&
+          game &&
+          game.phase !== 'regions' &&
+          game.phase !== 'ended' && (
+            <button
+              className="pg-order-entry"
+              onClick={() => setPanel('order')}
+            >
+              顺序
+            </button>
+          )}
         <button
           className="game-rulebook-entry"
           onClick={() => setPanel('rules')}
@@ -220,6 +241,14 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
               </button>
             )}
           </div>
+          {panel !== 'order' && (
+            <TurnOrder
+              view={game}
+              names={names}
+              active={Boolean(active)}
+              compact={role === 'player'}
+            />
+          )}
           {game.phase === 'ended' ? (
             results
           ) : role === 'player' ? (
@@ -229,9 +258,16 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
               )}
               {(game.phase === 'auction' || game.phase === 'offer') &&
                 game.auction && (
-                  <AuctionDisplay view={game} names={names} artFor={artFor} />
+                  <AuctionDisplay
+                    view={game}
+                    names={names}
+                    artFor={artFor}
+                    compact
+                  />
                 )}
-              {game.phase === 'resources' && <ResourceMarket view={game} />}
+              {game.phase === 'resources' && (
+                <ResourceMarket view={game} compact />
+              )}
               {active && view.actions.length > 0 ? (
                 <PlayerControls
                   key={`${view.instanceId}:${view.branch}:${view.selectionToken}`}
@@ -275,8 +311,9 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                 {game.auction && (
                   <AuctionDisplay view={game} names={names} artFor={artFor} />
                 )}
+                {game.phase === 'resources' && <ResourceMarket view={game} />}
                 <PlantMarket view={game} artFor={artFor} />
-                <ResourceMarket view={game} />
+                {game.phase !== 'resources' && <ResourceMarket view={game} />}
                 {game.latest && (
                   <div className="pg-latest" role="status">
                     <span>最新行动</span>
@@ -295,6 +332,11 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
           )}
         </>
       )}
+      <PowerGridSavedEffects
+        feedback={session.feedback}
+        game={game}
+        disabled={feedbackDisabled}
+      />
       {panel && (
         <OverlayPanel
           title={
@@ -303,6 +345,8 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                 <span className="rules-guide__title-part">电力公司</span>
                 <span className="rules-guide__title-part">图文规则</span>
               </>
+            ) : panel === 'order' ? (
+              '本轮行动顺序'
             ) : panel === 'map' ? (
               '德国电网'
             ) : panel === 'companies' ? (
@@ -319,7 +363,9 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
             <RulesGuide {...powerGridRulebook} />
           ) : (
             <div className="pg-screen pg-panel">
-              {panel === 'map' ? (
+              {panel === 'order' && game ? (
+                <TurnOrder view={game} names={names} active={Boolean(active)} />
+              ) : panel === 'map' ? (
                 <div className="pg-panel-map">{map}</div>
               ) : panel === 'companies' && game ? (
                 <PlayerCompanies

@@ -81,6 +81,7 @@ const evidence = {
   checks: [],
   screenshots: [],
   controls: [],
+  livePresentation: [],
   commands: [],
   phases: [],
   steps: [],
@@ -778,7 +779,7 @@ async function nativeMatrix() {
           (options) => options.find((option) => option.value)?.value,
         );
       await picker.selectOption(selected);
-      await page.getByLabel('城市位置费用', { exact: true }).waitFor();
+      await page.getByLabel('城市位置费用图例', { exact: true }).waitFor();
       evidence.displayLayouts.at(-1).selectedCity = selected;
     }
     await cdp.send('Emulation.clearDeviceMetricsOverride');
@@ -806,6 +807,141 @@ async function nativeMatrix() {
   );
 }
 const sampled = new Set();
+const capturedLivePhases = new Set();
+async function livePresentation(page, current, label, marketRequired) {
+  const game = current.gameView;
+  const reversed = game.phase === 'resources' || game.phase === 'building';
+  const order = reversed ? [...game.playerOrder].reverse() : game.playerOrder;
+  const purchasing = ['offer', 'auction', 'replace'].includes(game.phase);
+  const currentIndex = order.indexOf(game.actor);
+  const active = !current.paused && current.status === 'playing';
+  const expectedOrder = order.map((seat, index) => {
+    const status = purchasing
+      ? game.phase === 'replace' && game.replacement?.buyer === seat
+        ? '正在换厂'
+        : game.bought.includes(seat)
+          ? '已购厂'
+          : game.passed.includes(seat)
+            ? '本轮不买'
+            : game.phase === 'auction'
+              ? seat === game.auction.actor
+                ? '轮到报价'
+                : seat === game.auction.highBidder
+                  ? '最高价'
+                  : game.auction.passes.includes(seat)
+                    ? '已退本场'
+                    : '可竞拍'
+              : seat === game.actor
+                ? '轮到发起'
+                : '待购厂'
+      : index < currentIndex
+        ? '已完成'
+        : seat === game.actor
+          ? '当前行动'
+          : '等待';
+    return {
+      seat,
+      position: index + 1,
+      rank: `排名${game.playerOrder.indexOf(seat) + 1}`,
+      status: !active && seat === game.actor ? '等待继续' : status,
+      current: active && seat === game.actor ? 'step' : null,
+    };
+  });
+  const expectedMarkets = ['coal', 'oil', 'garbage', 'uranium'].map(
+    (resource) => {
+      const capacity = resource === 'uranium' ? 1 : 3;
+      const prices =
+        resource === 'uranium'
+          ? [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16]
+          : [1, 2, 3, 4, 5, 6, 7, 8];
+      let remaining = game.resources[resource];
+      // Fill physical board slots from the high-price end, independently of
+      // the client's price-area formula and the rules' next-price formula.
+      const areas = [...prices]
+        .reverse()
+        .map((price) => {
+          const count = Math.min(capacity, remaining);
+          remaining -= count;
+          return {
+            price,
+            count,
+            filledTokens: count,
+            capacity,
+            next: count > 0 && price === game.resourcePrices[resource],
+          };
+        })
+        .reverse();
+      assert.equal(remaining, 0, 'Finite resource slots fit the board');
+      assert.equal(
+        areas.find((area) => area.count > 0)?.price ?? null,
+        game.resourcePrices[resource],
+        'Authoritative next price is the cheapest occupied physical area',
+      );
+      return { resource, areas };
+    },
+  );
+  const expected = {
+    phase: game.phase,
+    order: expectedOrder,
+    markets: marketRequired ? expectedMarkets : [],
+  };
+  let actual;
+  try {
+    await until(async () => {
+      actual = await page.evaluate(() => ({
+        phase: document.querySelector('.pg-screen')?.dataset.phase,
+        order: [
+          ...document.querySelectorAll('.pg-turn-order li[data-seat]'),
+        ].map((item) => ({
+          seat: item.dataset.seat,
+          position: Number(
+            item.querySelector('.pg-order-position')?.textContent,
+          ),
+          rank: item.querySelector('.pg-order-state span:first-child')
+            ?.textContent,
+          status: item.querySelector('.pg-order-state span:last-child')
+            ?.textContent,
+          current: item.getAttribute('aria-current'),
+        })),
+        markets: [
+          ...document.querySelectorAll('.pg-price-lane[data-resource]'),
+        ].map((lane) => ({
+          resource: lane.dataset.resource,
+          areas: [...lane.querySelectorAll('.pg-price-area')].map((area) => ({
+            price: Number(area.dataset.price),
+            count: Number(area.dataset.count),
+            filledTokens: area.querySelectorAll('.pg-price-token--filled')
+              .length,
+            capacity: area.querySelectorAll('.pg-price-tokens span').length,
+            next: area.classList.contains('pg-price-area--next'),
+          })),
+        })),
+      }));
+      return equal(actual, expected);
+    }, 'Real client order and price areas match the saved safe view: ' + label);
+  } catch (error) {
+    evidence.livePresentation.push({ label, expected, actual, passed: false });
+    throw error;
+  }
+  evidence.livePresentation.push({
+    label,
+    round: game.round,
+    step: game.step,
+    actor: game.actor,
+    ...actual,
+    passed: true,
+  });
+}
+async function stablePhaseCapture(page, label) {
+  await page.waitForFunction(
+    () =>
+      !document.querySelector('[data-power-grid-effect]') &&
+      document
+        .getAnimations()
+        .every((animation) => animation.playState !== 'running'),
+  );
+  await capture(page, label);
+}
 async function clickAction(entry, current, action) {
   await send(hostSocket, hostToken, { type: 'set-play-mode', mode: 'play' });
   const saved = await view(entry.token);
@@ -855,7 +991,7 @@ async function clickAction(entry, current, action) {
         }),
       })
       .getByRole('button', {
-        name: new RegExp('＋1 ' + RESOURCE_LABELS[action.resource]),
+        name: new RegExp('＋1\\s*' + RESOURCE_LABELS[action.resource]),
       })
       .first();
   } else if (action.type === 'build') {
@@ -894,6 +1030,79 @@ async function clickAction(entry, current, action) {
       exact: true,
     });
   } else throw new Error('Unimplemented UI probe: ' + action.type);
+  if (action.type === 'offer' || action.type === 'bid') {
+    const beforeSync = await view(entry.token);
+    const quotes = saved.actions.filter(
+      (choice) =>
+        choice.type === action.type &&
+        (action.type !== 'offer' || choice.plantId === action.plantId),
+    );
+    const probeQuote =
+      quotes.find((choice) => choice.amount !== quotes[0]?.amount)?.amount ??
+      action.amount;
+    await page.getByLabel('报价金额').fill(String(probeQuote));
+    // A second authorized connection triggers a real room:view broadcast to
+    // the phone's own UI connection without submitting or changing a decision.
+    const sync = await connect(entry.token);
+    sync.disconnect();
+    await page.evaluate(
+      () =>
+        new Promise((done) =>
+          requestAnimationFrame(() => requestAnimationFrame(done)),
+        ),
+    );
+    assert.equal(
+      await page.getByLabel('报价金额').inputValue(),
+      String(probeQuote),
+    );
+    await page.getByRole('button', { name: '规则', exact: true }).click();
+    await page.getByRole('dialog').waitFor();
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: '关闭面板', exact: true })
+      .click();
+    assert.equal(
+      await page.getByLabel('报价金额').inputValue(),
+      String(probeQuote),
+    );
+    await page.getByLabel('报价金额').fill(String(action.amount));
+    const afterSync = await view(entry.token);
+    assert.deepEqual(
+      [afterSync.revision, afterSync.branch, afterSync.decisionId],
+      [beforeSync.revision, beforeSync.branch, beforeSync.decisionId],
+      'Sync and rules reading preserve the real saved auction decision',
+    );
+    evidence.checks.push(
+      action.type + ': real sync and rulebook preserve entered quote',
+    );
+  }
+  if (
+    [
+      'offer',
+      'auction',
+      'resources',
+      'building',
+      'powering',
+      'replace',
+    ].includes(saved.gameView.phase)
+  ) {
+    await livePresentation(host, saved, 'host-' + action.type, true);
+    await livePresentation(publicPage, saved, 'public-' + action.type, true);
+    await livePresentation(
+      page,
+      saved,
+      'phone-' + action.type,
+      saved.gameView.phase === 'resources',
+    );
+    if (!capturedLivePhases.has(saved.gameView.phase)) {
+      await stablePhaseCapture(host, 'live-' + saved.gameView.phase + '-host');
+      await stablePhaseCapture(
+        publicPage,
+        'live-' + saved.gameView.phase + '-public',
+      );
+      capturedLivePhases.add(saved.gameView.phase);
+    }
+  }
   await geometry(button, action.type);
   await capture(page, 'control-' + action.type + '-before');
   const serial = Number(saved.gameView.latest?.id.slice(3) ?? 0),

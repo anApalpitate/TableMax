@@ -96,13 +96,15 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 电力公司原接入验证在 `artifacts/maintenance/v1.0.1/power-grid/` 分别保存 `ui/` 的组件 fixture 与 `runtime/` 的自然混合局、恢复和最终便携证据。整局测试可采用平台测试节奏，但每个动作仍经过身份、合法动作、SQLite 与真实 Worker；普通游玩节奏另取真实保存动作样本，不能将提速局写成全程普通节奏。SQLite 审计在隔离数据上逐 checkpoint／随机源重放，核对电厂分区、燃料和资金，公开报告不导出隐藏现金或牌堆。所有本机启动显式使用 127.0.0.1 与随机端口。新工作区包加入后执行冻结锁文件离线安装以建立本地依赖链接，仅更新 lockfile 不足以保证 React 构建解析。
 
+`node scripts/verify-power-grid-audio.mjs --portable --maintenance=power-grid-debug-20261004 --evidence=<独立名>` 在真实隐藏原生 WebView2 与包内运行时检查六种保存结果。准备器只从本游戏合法规则和两真人对局取得隔离 checkpoint，真实 Socket 动作写入 SQLite 后检查原生 `claimEvent` 单一归属、原 `HTMLMediaElement.play` 返回与 `onplaying`、WAV 解码及有限 FX 帧；不伪造反馈或直接调用音效冒充保存。还核验公共屏优先／主机回退、普通同步、刷新、盒子重进、暂停恢复、静音与测试模式不补播。省略 `--portable` 使用当前构建；`--prepare-only` 只预检合法素材和 checkpoint，不能写成原生播放通过。结果在 `artifacts/maintenance/v1.0.2/<维护名>/native-audio/<名称>/`，真实媒体观察不等于实体手机自动播放政策、人耳或扬声器试听认证。
+
 Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 并发曾使既有 Socket 和宝可梦整局测试超过原来的 5 秒期限。保留原超时与断言，限制本项目测试并发；不提高测试超时掩盖故障，也不修改全局工具环境。
 
 ## 图文规则维护与验证
 
 三款游戏均可按需打开规则顶层卡片，教学不自动触发；设计、截图权限与维护要求见 [通用视觉](visual-design.md#顶层图文规则说明)，具体规则依据和区域说明分别维护在游戏主题。本节列运行方法，命令存在不表示已通过，实际源／便携结论与包哈希从验收记录查询。
 
-`node scripts/verify-rules-guides.mjs --evidence=rules-source-run` 使用真实隐藏原生 WebView2、隔离合法规则示例和独立手机身份，检查三款游戏的 host／public／player 在三种对应尺寸下共 27 个规则浮层：图片实际解码、文字下限、44px 目标、章节导航、关闭／Escape 后焦点恢复，以及查看规则不改变 revision 或身份。加 `--portable` 解压当前最终 ZIP，用包内 Node 与原生程序运行同一检查；每次选择独立的安全证据名。证据在 `artifacts/maintenance/v1.0.2/shared-visual-20261004/rules/<名称>/`，本机服务显式监听 `127.0.0.1`。这是本机真实运行与手机尺寸／触控模拟，不是实体手机、Safari、电视或现场网络认证。
+`node scripts/verify-rules-guides.mjs --evidence=rules-source-run` 使用真实隐藏原生 WebView2、隔离合法规则示例和独立手机身份，检查三款游戏的 host／public／player 在三种对应尺寸下共 27 个规则浮层：图片实际解码、文字下限、44px 目标、章节导航、关闭／Escape 后焦点恢复，以及查看规则不改变 revision 或身份。`--game=power-grid` 等可限定单个游戏的 9 组合；默认 `--game=all`。加 `--portable` 解压当前最终 ZIP，用包内 Node 与原生程序运行同一检查；每次选择独立的安全证据名。`--maintenance=<安全名称>` 可分开本次证据，默认仍为 `shared-visual-20261004`；证据在 `artifacts/maintenance/v1.0.2/<维护名>/rules/<名称>/`。本机服务显式监听 `127.0.0.1`。这是本机真实运行与手机尺寸／触控模拟，不是实体手机、Safari、电视或现场网络认证。
 
 更新配图先源后包：
 
@@ -110,14 +112,14 @@ Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 
 # 宝可梦三个实际区域；capture-rules 不允许同时使用 --portable
 node scripts/verify-rules-guides.mjs --capture-rules --evidence=capture-regions
 
-# 电力公司三个实际区域的独立组件渲染
-node scripts/verify-power-grid-ui.mjs --capture-rules-only --evidence=rule-capture-final
+# 电力公司五个实际区域的独立组件渲染；每轮采用新证据名
+node scripts/verify-power-grid-ui.mjs --maintenance=power-grid-debug-20261004 --capture-rules-only --evidence=rule-capture-run
 
 # 三游戏 PNG→WebP，无损并逐像素核验；按需加 --game=power-grid 等限定
 python scripts/compress-rule-captures.py --report=artifacts/maintenance/v1.0.2/shared-visual-20261004/rules-compression.json
 ```
 
-现代艺术四个区域沿用上文 debug 源捕获入口。原 PNG 保留在各游戏 `assets/games/<id>/rules/`，运行 UI 引用无损 WebP；同步清单中的来源、界面版本、用途、尺寸、哈希及像素一致结果。配图必须来自实际更新后的隔离渲染，不使用正式玩家数据或把生成示意当作真实 UI。源截图／组件检查不替代最终同 ZIP 规则浮层检查。电力公司视觉专项仍用 `pnpm verify:power-grid-ui --evidence=<独立名>` 核验组件与地图交互，混合整局和恢复从其自然对局入口检查。
+现代艺术四个区域沿用上文 debug 源捕获入口。原 PNG 保留在各游戏 `assets/games/<id>/rules/`，运行 UI 引用无损 WebP；同步清单中的来源、界面版本、用途、尺寸、哈希及像素一致结果。配图必须来自实际更新后的隔离渲染，不使用正式玩家数据或把生成示意当作真实 UI。源截图／组件检查不替代最终同 ZIP 规则浮层检查。电力公司视觉专项仍用 `pnpm verify:power-grid-ui --maintenance=<安全名称> --evidence=<独立名>`，`--map-only` 定向核验横向地图的 42 个正向城市、83 边、坐标转换和键盘／指针；完整矩阵另核验阶段顺序、竞拍草稿、价区及容量。`node scripts/verify-power-grid.mjs --seats=6 --display --evidence=<独立名>` 走真实混合局／恢复／三游戏切换，保存五阶段 host／public 游玩图与手机操作前后帧，并在三端投影上核对实际顺序、价区和同步时的报价控件。加 `--portable` 验同一最终 ZIP，不能将组件 fixture 写成完整对局证据。
 
 ## 独立原型的运行与检查
 

@@ -405,31 +405,6 @@ export function PlantMarket({
   );
 }
 
-export function ResourceMarket({ view }: { view: PowerGridView }) {
-  return (
-    <section className="pg-resource-market">
-      <h2>燃料单价</h2>
-      <div className="pg-resources">
-        {RESOURCES.map((resource) => (
-          <div
-            key={resource}
-            className={`pg-resource-price pg-resource-price--${resource}`}
-          >
-            <ResourceIcon resource={resource} />
-            <span>{RESOURCE_LABELS[resource]}</span>
-            <strong>
-              {view.resourcePrices[resource] == null
-                ? '售罄'
-                : `${view.resourcePrices[resource]} 电币`}
-            </strong>
-            <span>余 {view.resources[resource]}</span>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 export function PlayerCompanies({
   view,
   names,
@@ -444,7 +419,11 @@ export function PlayerCompanies({
   artFor?(id: number): CSSProperties;
 }) {
   return (
-    <section className="pg-companies" aria-label="各家电力公司">
+    <section
+      className="pg-companies"
+      aria-label="各家电力公司"
+      style={{ '--pg-player-count': view.seatOrder.length } as CSSProperties}
+    >
       {view.seatOrder.map((seat, index) => {
         const player = view.players[seat]!;
         return (
@@ -520,27 +499,87 @@ export function AuctionDisplay({
   view,
   names,
   artFor,
+  compact = false,
 }: {
   view: PowerGridView;
   names: Record<string, string>;
   artFor?(id: number): CSSProperties;
+  compact?: boolean;
 }) {
   const auction = view.auction;
   if (!auction) return null;
+  const openerIndex = view.seatOrder.indexOf(auction.opener);
+  const clockwise = [
+    ...view.seatOrder.slice(openerIndex),
+    ...view.seatOrder.slice(0, openerIndex),
+  ].filter(
+    (seat) => !view.bought.includes(seat) && !view.passed.includes(seat),
+  );
+  const participants = (
+    <ol>
+      {clockwise.map((seat) => (
+        <li
+          key={seat}
+          data-seat={seat}
+          className={
+            seat === auction.actor ? 'pg-auction-sequence--acting' : ''
+          }
+          aria-current={seat === auction.actor ? 'step' : undefined}
+        >
+          <span
+            className="pg-seat-number"
+            style={
+              {
+                '--pg-player-color':
+                  PLAYER_COLORS[view.seatOrder.indexOf(seat)],
+              } as CSSProperties
+            }
+          >
+            {view.seatOrder.indexOf(seat) + 1}
+          </span>
+          <span>{names[seat] ?? seat}</span>
+          <strong>
+            {auction.passes.includes(seat)
+              ? '已退出'
+              : seat === auction.actor
+                ? '轮到报价'
+                : seat === auction.highBidder
+                  ? '最高价'
+                  : '待报价'}
+          </strong>
+        </li>
+      ))}
+    </ol>
+  );
   return (
-    <section className="pg-auction-display">
-      <PlantCard
-        id={auction.plantId}
-        {...(artFor ? { art: artFor(auction.plantId) } : {})}
-      />
-      <div>
-        <h2>当前最高价</h2>
-        <strong className="pg-bid-price">
-          {auction.amount}
-          <span>电币</span>
-        </strong>
-        <span className="pg-high-bidder">{names[auction.highBidder]}</span>
+    <section
+      className={`pg-auction-display${compact ? ' pg-auction-display--compact' : ''}`}
+    >
+      <div className="pg-auction-price">
+        <PlantCard
+          id={auction.plantId}
+          {...(artFor ? { art: artFor(auction.plantId) } : {})}
+        />
+        <div>
+          <h2>当前最高价</h2>
+          <strong className="pg-bid-price">
+            {auction.amount}
+            <span>电币</span>
+          </strong>
+          <span className="pg-high-bidder">{names[auction.highBidder]}</span>
+        </div>
       </div>
+      {compact ? (
+        <details className="pg-auction-sequence">
+          <summary>本场顺时针报价名单</summary>
+          {participants}
+        </details>
+      ) : (
+        <div className="pg-auction-sequence">
+          <strong>本场顺时针报价</strong>
+          {participants}
+        </div>
+      )}
     </section>
   );
 }

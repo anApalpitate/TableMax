@@ -20,14 +20,14 @@ root = Path(__file__).resolve().parent.parent
 names = {
     "pokemon-encounters": ("table", "draw", "scoring"),
     "modern-art": ("hand", "market", "auction", "collection"),
-    "power-grid": ("market", "network", "company"),
+    "power-grid": ("market", "network", "company", "order", "resource-prices"),
 }
 report = []
 source_names = {
     "power-grid": {
-        "market": "market-v1",
-        "network": "network-v1",
-        "company": "companies-v1",
+        "market": "market-v2",
+        "network": "network-v2",
+        "company": "companies-v2",
     }
 }
 for game, files in names.items():

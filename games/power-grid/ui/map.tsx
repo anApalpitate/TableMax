@@ -7,6 +7,16 @@ import {
   GERMANY_REGIONS,
 } from '../data/germany';
 
+// Rotate the presentation clockwise; rule coordinates and route costs stay intact.
+const MAP_WIDTH = BOARD_HEIGHT;
+const MAP_HEIGHT = BOARD_WIDTH;
+const MAP_CITIES = GERMANY_CITIES.map((city) => ({
+  ...city,
+  x: BOARD_HEIGHT - city.y,
+  y: city.x,
+}));
+const TERRAIN_ROTATION = `translate(${BOARD_HEIGHT} 0) rotate(90)`;
+
 export interface MapNetwork {
   seatId: string;
   cities: readonly string[];
@@ -70,9 +80,7 @@ export function GermanyMap({
     if (!element) return;
     const observer = new ResizeObserver(() => {
       const rect = element.getBoundingClientRect();
-      setBaseScale(
-        Math.min(rect.width / BOARD_WIDTH, rect.height / BOARD_HEIGHT),
-      );
+      setBaseScale(Math.min(rect.width / MAP_WIDTH, rect.height / MAP_HEIGHT));
     });
     observer.observe(element);
     return () => observer.disconnect();
@@ -80,7 +88,7 @@ export function GermanyMap({
   const labelSize = 16 / Math.max(0.12, baseScale * scale);
   const displayScale = baseScale * scale;
   const positions = Object.fromEntries(
-    GERMANY_CITIES.map((city) => [city.id, city]),
+    MAP_CITIES.map((city) => [city.id, city]),
   );
   const zoom = (value: number) => {
     setScale(Math.max(1, Math.min(4, value)));
@@ -151,7 +159,7 @@ export function GermanyMap({
         point.x = event.clientX;
         point.y = event.clientY;
         const position = point.matrixTransform(transform.inverse());
-        const candidates = GERMANY_CITIES.filter((city) =>
+        const candidates = MAP_CITIES.filter((city) =>
           regions.includes(city.region),
         )
           .map((city) => ({
@@ -176,7 +184,7 @@ export function GermanyMap({
           className="pg-map"
           role="img"
           aria-label="德国地图，42座城市和连接费用"
-          viewBox={`0 0 ${BOARD_WIDTH} ${BOARD_HEIGHT}`}
+          viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
           onPointerDown={pointerDown}
           onPointerMove={pointerMove}
           onPointerUp={pointerUp}
@@ -211,8 +219,8 @@ export function GermanyMap({
             </filter>
           </defs>
           <rect
-            width={BOARD_WIDTH}
-            height={BOARD_HEIGHT}
+            width={MAP_WIDTH}
+            height={MAP_HEIGHT}
             rx="28"
             fill="url(#pg-paper)"
           />
@@ -222,6 +230,7 @@ export function GermanyMap({
               width={BOARD_WIDTH}
               height={BOARD_HEIGHT}
               preserveAspectRatio="none"
+              transform={TERRAIN_ROTATION}
             />
           )}
           {!terrain &&
@@ -234,6 +243,7 @@ export function GermanyMap({
                 stroke="#8e7040"
                 strokeOpacity=".5"
                 strokeWidth="3"
+                transform={TERRAIN_ROTATION}
               />
             ))}
           {!terrain &&
@@ -245,6 +255,7 @@ export function GermanyMap({
                 d={region.path}
                 fill="#f4e9cb"
                 fillOpacity=".75"
+                transform={TERRAIN_ROTATION}
               />
             ))}
           <g className="pg-map-routes">
@@ -268,7 +279,7 @@ export function GermanyMap({
                     strokeWidth="2"
                     fill="none"
                   />
-                  {(displayScale >= 0.55 || selectedEdge) && active && (
+                  {(displayScale >= 0.9 || selectedEdge) && active && (
                     <g
                       transform={`translate(${(a.x + b.x) / 2},${(a.y + b.y) / 2})`}
                     >
@@ -297,13 +308,20 @@ export function GermanyMap({
               );
             })}
           </g>
-          {GERMANY_CITIES.map((city) => {
+          {MAP_CITIES.map((city) => {
             const occupants = networks.filter((network) =>
               network.cities.includes(city.id),
             );
             const active = regions.includes(city.region);
             const isSelected = selected === city.id;
             const enabled = available.includes(city.id);
+            const labelWidth = city.name.length * labelSize * 1.02 + 10;
+            const labelHeight = labelSize * 1.25;
+            const labelX = Math.max(
+              labelWidth / 2 + 8 - city.x,
+              Math.min(0, MAP_WIDTH - city.x - labelWidth / 2 - 8),
+            );
+            const labelY = Math.min(19, MAP_HEIGHT - city.y - labelHeight - 8);
             return (
               <g
                 key={city.id}
@@ -365,19 +383,22 @@ export function GermanyMap({
                   />
                 )}
                 {(displayScale >= 0.9 || isSelected) && active && (
-                  <g pointerEvents="none">
+                  <g
+                    pointerEvents="none"
+                    transform={`translate(${labelX},${labelY})`}
+                  >
                     <rect
-                      x={-city.name.length * labelSize * 0.51 - 5}
-                      y={19}
-                      width={city.name.length * labelSize * 1.02 + 10}
-                      height={labelSize * 1.25}
+                      x={-labelWidth / 2}
+                      y={0}
+                      width={labelWidth}
+                      height={labelHeight}
                       rx="5"
                       fill="#faf2d9"
                       fillOpacity=".95"
                     />
                     <text
                       x="0"
-                      y={19 + labelSize}
+                      y={labelSize}
                       textAnchor="middle"
                       fontSize={labelSize}
                       fill="#272b22"
@@ -434,22 +455,26 @@ export function GermanyMap({
           )}
         </select>
         {selectedCity && (
-          <span className="pg-city-slots" aria-label="城市位置费用">
-            {[10, 15, 20].map((price, index) => (
-              <span
-                key={price}
-                className={
+          <div className="pg-city-slots" aria-label="城市位置费用图例">
+            <strong>城位费（电币）</strong>
+            <div className="pg-city-slot-values">
+              {[10, 15, 20].map((price, index) => {
+                const occupied =
                   networks.filter((network) =>
                     network.cities.includes(selectedCity.id),
-                  ).length > index
-                    ? 'occupied'
-                    : ''
-                }
-              >
-                {price}
-              </span>
-            ))}
-          </span>
+                  ).length > index;
+                return (
+                  <span
+                    key={price}
+                    className={occupied ? 'occupied' : ''}
+                    title={`第${index + 1}个位置，${price}电币${occupied ? '，已占用' : ''}`}
+                  >
+                    {price}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
         )}
       </div>
     </section>
