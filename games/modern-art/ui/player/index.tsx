@@ -62,7 +62,13 @@ function AmountControls({
           className="ma-bid__step"
           aria-label="减少出价"
           disabled={locked || !Number.isFinite(value) || value <= minimum}
-          onClick={() => setAmount(String(Math.max(minimum, value - 1)))}
+          onClick={() =>
+            setAmount(
+              String(
+                Math.max(minimum, Math.min(maximum, Math.ceil(value) - 1)),
+              ),
+            )
+          }
         >
           −
         </button>
@@ -84,7 +90,13 @@ function AmountControls({
           className="ma-bid__step"
           aria-label="增加出价"
           disabled={locked || !Number.isFinite(value) || value >= maximum}
-          onClick={() => setAmount(String(Math.min(maximum, value + 1)))}
+          onClick={() =>
+            setAmount(
+              String(
+                Math.max(minimum, Math.min(maximum, Math.floor(value) + 1)),
+              ),
+            )
+          }
         >
           +
         </button>
@@ -128,6 +140,7 @@ export function PlayerControls({
   locked,
   selectionKey,
   names,
+  activityMessage,
   choose,
 }: {
   view: ModernArtView;
@@ -135,6 +148,7 @@ export function PlayerControls({
   locked: boolean;
   selectionKey: string;
   names: Record<string, string>;
+  activityMessage?: string | undefined;
   choose(action: Action): void;
 }) {
   const self = view.self;
@@ -157,9 +171,17 @@ export function PlayerControls({
         : '不买入';
   const decline = actions.find((action) => action.type === 'decline-double');
   const buy = actions.find((action) => action.type === 'buy');
-  const acting =
-    view.auction?.actingSeats.map((seat) => names[seat] ?? '玩家').join('、') ??
-    (view.turnSeat ? names[view.turnSeat] : '');
+  const actingSeats =
+    view.auction?.actingSeats ?? (view.turnSeat ? [view.turnSeat] : []);
+  const acting = actingSeats[0]
+    ? (names[actingSeats[0]] ?? '玩家')
+    : '其他玩家';
+  const waitingLabel =
+    self.sealedBid !== null
+      ? '等待其他玩家提交'
+      : actingSeats.length > 1
+        ? `等待 ${actingSeats.length} 位玩家行动`
+        : `${acting} 正在行动`;
   return (
     <section className="ma-player" aria-label="你的玩家区域">
       <div className="ma-wallet">
@@ -224,19 +246,19 @@ export function PlayerControls({
             <span>已提交</span>
           </p>
         )}
-        {!actions.length &&
+        {!activityMessage &&
+          !actions.length &&
+          view.phase !== 'offer' &&
           view.phase !== 'ended' &&
           view.phase !== 'round-result' && (
-            <p className="ma-waiting" role="status">
-              {self.sealedBid !== null
-                ? '等待其他玩家提交'
-                : `${acting || '其他玩家'} 正在行动`}
+            <p className="ma-waiting" role="status" title={waitingLabel}>
+              {waitingLabel}
             </p>
           )}
       </div>
       <div className="ma-section-heading ma-hand-heading">
         <h2>
-          {view.phase === 'double'
+          {!activityMessage && view.phase === 'double'
             ? '选择同艺术家的第二幅画'
             : view.phase === 'offer' && offered.size
               ? '选择一幅画作上拍'

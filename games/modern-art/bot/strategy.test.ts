@@ -1,3 +1,4 @@
+import { deepStrictEqual } from 'node:assert';
 import { describe, expect, it } from 'vitest';
 import { bot } from './index';
 import { rules, decisions } from '../rules';
@@ -51,11 +52,17 @@ describe('Modern Art independent local strategies', () => {
                 seats,
                 random,
               }).state as State;
-              expect(previous).toEqual(before);
+              deepStrictEqual(
+                previous,
+                before,
+                `${count} seats / ${difficulty} / seed ${seed} / step ${steps}: input state changed`,
+              );
             }
-            expect(
+            deepStrictEqual(
               rules.validateState(JSON.parse(JSON.stringify(s)), seats),
-            ).toEqual(s);
+              s,
+              `${count} seats / ${difficulty} / seed ${seed} / step ${steps}: serialization round-trip changed state`,
+            );
             const publicView = rules.project(s, {
               role: 'public',
             }) as ModernArtView;

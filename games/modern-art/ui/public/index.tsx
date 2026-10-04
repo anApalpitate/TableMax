@@ -15,6 +15,12 @@ function paintingsLabel(view: ModernArtView, entry: ModernArtLog) {
     .join(' + ');
 }
 
+function publicSeatNumber(view: ModernArtView, seat: string | null) {
+  if (view.self || !seat) return null;
+  const index = view.seatOrder.indexOf(seat);
+  return index < 0 ? null : index + 1;
+}
+
 export function SavedAction({
   view,
   names,
@@ -24,21 +30,34 @@ export function SavedAction({
 }) {
   const entry = view.latest;
   if (!entry) return null;
+  const cardLabel = paintingsLabel(view, entry);
+  const actorNumber = publicSeatNumber(view, entry.actor);
   return (
     <div className="ma-latest" aria-live="polite">
       <span>已保存</span>
       <div className="ma-latest__copy">
         <p
-          title={`${entry.actor ? (names[entry.actor] ?? '玩家') : '拍卖行'} ${entry.text}`}
+          title={`${actorNumber === null ? '' : `${actorNumber} `}${entry.actor ? (names[entry.actor] ?? '玩家') : '拍卖行'} ${entry.text}`}
         >
+          {actorNumber !== null && (
+            <b
+              className="ma-seat-number ma-latest__actor-number"
+              data-seat-id={entry.actor}
+            >
+              {actorNumber}
+            </b>
+          )}
           <strong>
             {entry.actor ? (names[entry.actor] ?? '玩家') : '拍卖行'}
           </strong>{' '}
           <span>{entry.verb === 'offer' ? '出画' : entry.text}</span>
         </p>
         {(entry.cards.length > 0 || entry.winner) && (
-          <p className="ma-latest__details">
-            {paintingsLabel(view, entry)}
+          <p
+            className="ma-latest__details"
+            title={`${cardLabel}${entry.winner ? ` → ${names[entry.winner] ?? '玩家'}` : ''}`}
+          >
+            {cardLabel}
             {entry.winner && (
               <strong> → {names[entry.winner] ?? '玩家'}</strong>
             )}
@@ -154,13 +173,18 @@ export function AuctionStage({
   view,
   names,
   countdown,
+  activityMessage,
 }: {
   view: ModernArtView;
   names: Record<string, string>;
   countdown?: ReactNode;
+  activityMessage?: string | undefined;
 }) {
   const auction = view.auction;
   const actor = view.turnSeat ? (names[view.turnSeat] ?? '玩家') : '';
+  const waitingLabel =
+    activityMessage ??
+    (view.phase === 'offer' ? `${actor} 正在选画` : '本轮拍卖已结束');
   if (!auction)
     return (
       <section className="ma-auction ma-auction--waiting" aria-label="拍卖台">
@@ -175,15 +199,32 @@ export function AuctionStage({
             <path d="M8 57h33v5H8z" fill="currentColor" />
           </svg>
         </span>
-        <h2>
-          {view.phase === 'offer' ? `${actor} 正在选画` : '本轮拍卖已结束'}
-        </h2>
+        <h2 title={waitingLabel}>{waitingLabel}</h2>
         {countdown}
       </section>
     );
   const title =
     view.phase === 'double' ? '征集第二幅画作' : auctionNames[auction.kind];
   const price = auction.fixedPrice ?? auction.currentBid;
+  const sellerNumber = publicSeatNumber(view, auction.seller);
+  const bidderNumber = publicSeatNumber(view, auction.highBidder);
+  const priceStatus =
+    auction.kind === 'sealed'
+      ? '提交金额将在揭标时公开'
+      : auction.highBidder
+        ? `${names[auction.highBidder] ?? '玩家'} 领拍`
+        : view.phase === 'double'
+          ? '等待同艺术家的另一幅画'
+          : auction.kind === 'fixed' && auction.fixedPrice === null
+            ? '等待拍卖人定价'
+            : '尚无出价';
+  const participantStatus = (seat: string) =>
+    auction.submitted.includes(seat)
+      ? '已提交'
+      : auction.passes.includes(seat)
+        ? '本次不参与'
+        : (activityMessage ??
+          (auction.actingSeats.includes(seat) ? '可行动' : '等待'));
   return (
     <section className="ma-auction" aria-label="拍卖台">
       <div className="ma-auction__label">
@@ -192,8 +233,21 @@ export function AuctionStage({
         </span>
         <div>
           <h2>{title}</h2>
-          <p title={`拍卖人 ${names[auction.seller] ?? '玩家'}`}>
-            拍卖人 {names[auction.seller] ?? '玩家'}
+          <p
+            title={`拍卖人 ${sellerNumber === null ? '' : `${sellerNumber} `}${names[auction.seller] ?? '玩家'}`}
+          >
+            拍卖人{' '}
+            {sellerNumber !== null && (
+              <>
+                <b
+                  className="ma-seat-number ma-auction__seller-number"
+                  data-seat-id={auction.seller}
+                >
+                  {sellerNumber}
+                </b>{' '}
+              </>
+            )}
+            {names[auction.seller] ?? '玩家'}
           </p>
         </div>
         {countdown}
@@ -220,16 +274,20 @@ export function AuctionStage({
             ? `${auction.submitted.length} / ${view.seatOrder.length}`
             : money(price)}
         </strong>
-        <small>
-          {auction.kind === 'sealed'
-            ? '提交金额将在揭标时公开'
-            : auction.highBidder
-              ? `${names[auction.highBidder] ?? '玩家'} 领拍`
-              : view.phase === 'double'
-                ? '等待同艺术家的另一幅画'
-                : auction.kind === 'fixed' && auction.fixedPrice === null
-                  ? '等待拍卖人定价'
-                  : '尚无出价'}
+        <small
+          title={`${bidderNumber === null ? '' : `${bidderNumber} `}${priceStatus}`}
+        >
+          {bidderNumber !== null && (
+            <>
+              <b
+                className="ma-seat-number ma-auction__bidder-number"
+                data-seat-id={auction.highBidder}
+              >
+                {bidderNumber}
+              </b>{' '}
+            </>
+          )}
+          {priceStatus}
         </small>
       </div>
       <div
@@ -237,25 +295,22 @@ export function AuctionStage({
         aria-label="拍卖参与状态"
         style={{ '--ma-seats': view.seatOrder.length } as CSSProperties}
       >
-        {view.seatOrder.map((seat) => (
+        {view.seatOrder.map((seat, index) => (
           <span
             key={seat}
-            className={auction.actingSeats.includes(seat) ? 'ma-active' : ''}
-            title={`${names[seat] ?? '玩家'} ${auction.submitted.includes(seat) ? '已提交' : auction.passes.includes(seat) ? '本次不参与' : auction.actingSeats.includes(seat) ? '可行动' : '等待'}`}
+            className={
+              !activityMessage && auction.actingSeats.includes(seat)
+                ? 'ma-active'
+                : ''
+            }
+            title={`第 ${index + 1} 位 ${names[seat] ?? '玩家'} ${participantStatus(seat)}`}
           >
+            <b className="ma-auction__seat-number">{index + 1}</b>
             <strong>{names[seat] ?? '玩家'}</strong>
             <span
               className="ma-auction__seat-status"
               role="img"
-              aria-label={
-                auction.submitted.includes(seat)
-                  ? '已提交'
-                  : auction.passes.includes(seat)
-                    ? '本次不参与'
-                    : auction.actingSeats.includes(seat)
-                      ? '可行动'
-                      : '等待'
-              }
+              aria-label={participantStatus(seat)}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 {auction.submitted.includes(seat) ? (
@@ -265,7 +320,7 @@ export function AuctionStage({
                     <circle cx="12" cy="12" r="9" />
                     <path d="M6 18 18 6" />
                   </>
-                ) : auction.actingSeats.includes(seat) ? (
+                ) : !activityMessage && auction.actingSeats.includes(seat) ? (
                   <path d="m9 4 10 8-10 8Z" />
                 ) : (
                   <>
@@ -306,6 +361,7 @@ export function Museums({
         if (!player) return null;
         const active =
           view.auction?.actingSeats.includes(seat) || view.turnSeat === seat;
+        const seatNumber = publicSeatNumber(view, seat);
         return (
           <article
             key={seat}
@@ -322,6 +378,14 @@ export function Museums({
               )}
               <div>
                 <h3 title={names[seat] ?? `玩家 ${index + 1}`}>
+                  {seatNumber !== null && (
+                    <b
+                      className="ma-seat-number ma-museum__seat-number"
+                      data-seat-id={seat}
+                    >
+                      {seatNumber}
+                    </b>
+                  )}
                   <span className="ma-museum__name">
                     {names[seat] ?? `玩家 ${index + 1}`}
                   </span>
@@ -334,9 +398,11 @@ export function Museums({
                   <span>收藏 {player.collection.length}</span>
                 </p>
               </div>
-              <b className="ma-museum__number">
-                {String(index + 1).padStart(2, '0')}
-              </b>
+              {view.self && (
+                <b className="ma-museum__number">
+                  {String(index + 1).padStart(2, '0')}
+                </b>
+              )}
             </div>
             {view.finalCash && (
               <strong className="ma-museum__cash">
@@ -420,7 +486,10 @@ export function RoundResult({
                     alt=""
                   />
                 )}
-                <span title={names[seat] ?? '玩家'}>
+                <span
+                  className="ma-results__name"
+                  title={names[seat] ?? '玩家'}
+                >
                   {names[seat] ?? '玩家'}
                 </span>
                 {winner && (
@@ -443,6 +512,9 @@ export function RoundResult({
                     : '待同步'
                   : `+${money(result.income[seat] ?? 0)}`}
               </strong>
+              {winner && !view.self && (
+                <span className="ma-results__champion-label">冠军</span>
+              )}
             </div>
           );
         })}

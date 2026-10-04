@@ -62,6 +62,15 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
   };
   const saved = view?.playMode !== 'test' && motion.length > 0;
   const ended = view?.status === 'ended' && game?.phase === 'ended';
+  const activityMessage = !connected
+    ? '正在重新连接'
+    : view?.status === 'ended'
+      ? '游戏已结束'
+      : view?.paused
+        ? '游戏已暂停'
+        : view?.botError
+          ? '等待恢复游戏'
+          : undefined;
   const showSessionFeedback = !(
     ended &&
     connected &&
@@ -72,21 +81,49 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
   const emptyFinalMuseums =
     ended &&
     game.seatOrder.every((seat) => game.players[seat]?.collection.length === 0);
+  const featuredAuction =
+    role !== 'player' &&
+    connected &&
+    view?.status === 'playing' &&
+    !view.paused &&
+    !view.botError &&
+    game &&
+    (game.phase === 'auction' || game.phase === 'double') &&
+    game.auction !== null &&
+    game.auction.cards.length > 0 &&
+    game.seatOrder.every((seat) => game.players[seat]?.collection.length === 0);
+  const mergedPausedOffer =
+    role === 'player' && view?.paused === true && game?.phase === 'offer';
   const notice =
     view &&
     game &&
     (view.paused ||
       view.botError ||
       (view.status === 'ended' && game.phase !== 'ended')) ? (
-      <div className="ma-notice" role="status">
-        <span>
+      <div
+        className={`ma-notice ${mergedPausedOffer ? 'ma-notice--with-clock' : ''}`}
+        role="status"
+      >
+        <span
+          title={activityMessage}
+          className={
+            mergedPausedOffer && (view.restored || view.botError)
+              ? 'ma-notice__explanation'
+              : undefined
+          }
+        >
           {view.botError ||
             (view.status === 'ended'
               ? view.endReason || '对局已结束'
               : view.restored
                 ? '存档已恢复，等待房主继续'
-                : '游戏已暂停')}
+                : mergedPausedOffer
+                  ? '已暂停'
+                  : '游戏已暂停')}
         </span>
+        {mergedPausedOffer && (
+          <DecisionCountdown view={view} connected={connected} compact />
+        )}
         {canControl && view.status === 'playing' && (
           <button disabled={locked} onClick={() => command({ type: 'resume' })}>
             恢复游戏
@@ -153,16 +190,21 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
         </div>
       ) : (
         <>
-          {role === 'player' && notice}
-          <div className="ma-table">
+          {role === 'player' && !mergedPausedOffer && notice}
+          <div
+            className={`ma-table ${featuredAuction ? 'ma-table--featured-auction' : ''} ${featuredAuction && game.auction && game.auction.cards.length > 1 ? 'ma-table--paired-auction' : ''}`}
+          >
             <MarketBoard view={game} showHistory={() => setPanel('market')} />
             <div className="ma-center">
-              {game.phase === 'round-result' || game.phase === 'ended' ? (
+              {mergedPausedOffer ? (
+                notice
+              ) : game.phase === 'round-result' || game.phase === 'ended' ? (
                 <RoundResult view={game} names={names} portraits={portraits} />
               ) : (
                 <AuctionStage
                   view={game}
                   names={names}
+                  activityMessage={activityMessage}
                   countdown={
                     <DecisionCountdown
                       view={view}
@@ -217,6 +259,7 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
                 locked={locked || view.paused || view.status !== 'playing'}
                 selectionKey={`${view.instanceId}:${view.branch}:${view.selectionToken ?? 'none'}`}
                 names={names}
+                activityMessage={activityMessage}
                 choose={choose}
               />
             )}

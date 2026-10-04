@@ -1,6 +1,40 @@
 # 首版交付与验收
 
-当前本地便携包为 [v1.0.1 现代艺术视听与共用倒计时](#101现代艺术视听与共用倒计时2026-10-04)，线上已发布包见 [v1.0.1 GitHub Release](#101github-release2026-10-03)，保留下列历次真实验收记录。
+当前本地便携包的维护见 [v1.0.1 现代艺术真实对局排查](#101现代艺术真实对局排查2026-10-04)，线上已发布包见 [v1.0.1 GitHub Release](#101github-release2026-10-03)，保留下列历次真实验收记录。
+
+## 1.0.1：现代艺术真实对局排查（2026-10-04）
+
+从干净的 `dbe39ad` 开始，沿用 1.0.1，以普通 `play` 节奏模拟真实手机操作、Worker 人机和四轮结算。确认并修复：24 字符无空格昵称在选画、最新记录和领拍处横向溢出；暂停或管理员提前结束后仍标示可行动；长昵称参与条缩略后难以区分；小数输入后金额加减不能恢复合法整数；暂停选画和普通等待重复占用空间；等待提示与木纹背景对比偏弱。完整姓名保留在文本、title 或可访问入口；增加稳定座位编号，金额步进按方向取相邻合法整数并限制上下界，非法提交保持拒绝。未修改游戏规则、合法动作、秘密投影或存档格式。
+
+独立实际截图审查发现空收藏拍卖中拍品偏小且下方闲置。电脑在所有公开收藏均为空的普通拍卖状态使用剩余高度放大单幅／双幅拍品，保留玩家身份、报价、参与状态与保存记录；获得收藏、选画、暂停、策略故障及终局保持各自布局。实现和审查均查询 [用户美术偏好](art-preferences.md)，文字仍至少 16 CSS px，主要操作至少 18px／44px，不以局部缩放换取空间。
+
+[全库单 worker 测试](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/full-tests.json) **211／211 通过**，实际命令 **112.61 秒**。原现代艺术 27 种子策略整局超过既有 20 秒，性能测量定位到重复全状态 Vitest 比较；仅将每步输入不变与 JSON 恢复两处改为 Node `deepStrictEqual` 并补充定位，27 局／6,279 步、全部断言及 20 秒时限保留。最终全库中的该用例 **19.50 秒**，仍对并行 CPU 负载敏感；不声称任意并发负载都能通过。原失败、成本测量、输出一致性和 19 项定向复核见 [规则／策略审计](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/rules-audit/rules-audit-report.md)。
+
+真实跨层审计覆盖五类拍卖与八类手机控件、320／360 长昵称、非法金额无保存及整数恢复、暗标并发独立草稿、旧价确认拒绝、排序不改牌 ID、提醒到零不行动、四轮公开成交／收入账本与最终现金／冠军、已保存动作动效期间下一位立即操作、真实媒体播放、回退、SQLite 重启、原班再玩和双游戏切换。真实断网清除旧动作并显示共享连接等待，同凭证恢复；未使用特权状态端点或修改正式规则准备整局。五人使用三位独立手机与两位真实 Worker，三人使用两位手机与一位 Worker；仅五人及四人适用“两位并发提交、第三位继续保留草稿”检查。
+
+修正前证据保留于本轮 `runtime/source-*`。其中 `source-first`、`source-second-probe`、`source-third-probe` 固定了真实昵称溢出；排序重复选择内层牌、非行动者没有私密倒计时、断网误查游戏内提示及空收藏矩阵误查隐藏牌头，属于验证脚本判断错误，分别更正后使用新证据目录，未改写原失败。`source-four` 已完成 184 步与四轮账本，但最后断网选择器失败，因此该次整体仍标记失败；不能以此前各项通过替代整次通过。
+
+空收藏返修前的 [首包五人整局](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/portable-final-5/results.json)通过 **172 步／四轮／77 图，182.98 秒**，[首包三人整局](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/portable-final-3/results.json)通过 **170 步／四轮／74 图，117.86 秒**；页面／非预期控制台／请求错误及外网请求为零。该 ZIP 的 SHA-256 为 `2faed94bcae83aa1f9f5afbdb9bcc7e7a435be70ea3cf5913db317f942914de8`，实际包和清单已保存于本轮 [first-package](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/first-package/provenance.json)，这些结果只证明当时的包，不代替后续空收藏布局的最终包验证。
+
+空收藏初版源矩阵 [84 布局](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/source-empty-second/results.json)通过（65.79 秒），小窗口 125%／150% 请求如实触发保护、实际 zoom 为 1；[4K 新增 24 布局](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/source-empty-scale/results.json)通过（45.74 秒），125% 的实际 zoom 为 1.6667、CSS 1536×864，150% 为 zoom 2、CSS 1280×720，均未受保护限制，比例对应既有 4K 100% 的 zoom 1.3333。两次启动脚本 SHA 分别保留，不合称同一脚本。几何容纳不等于视觉质量：独立短屏双幅审查仍认定画作 77.52 CSS px 过小，随后将价格放到行情下方、画作使用右侧整列、收紧重复记录，并保证透明外层不挡市场点击。
+
+该重排初验 [source-empty-short-fixed](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/source-empty-short-fixed/results.json)在 **4.78 秒**确认真实网格错误：市场自动排到末行，挤压画作并造成重叠。只修正市场显式网格位置后，[同脚本十二个短屏布局](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/source-empty-short-grid-fixed/results.json)全部通过（**28.28 秒**）：三／四／五人单幅／双幅主机与公共屏，双幅实际画作 **160.43 CSS px**；各手机使用真实合法 24 字符 ASCII 昵称，完成最低正出价后领拍姓名仍完整、没有价格裁切，六次实际历轮估值打开／关闭不改变 revision 或 branch。字号、44px 热区、实际中心命中、画作／标签／价格／身份／记录遮挡检查保持；全部窗口退出、服务不可达，错误为零。
+
+缩略名字进一步采用统一公共座位编号，[十二个短屏复验](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/source-empty-seat-fixed/results.json)通过（28.43 秒），逐个核验博物馆、拍卖人、领拍者、最新行动者与参与条的真实 seat ID 对应；双幅画作约 **159.52 CSS px**。随后中间包 `67544152be5067e45629cf76007e92468245bddea7f8c696ace0b82b1889e917` 的 [108 拍卖布局](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/portable-empty-final/results.json)、[四人四轮](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/portable-audit-final-4/results.json)及 [五人四轮](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/portable-audit-final-5/results.json)分别通过 **107.46／120.73／197.23 秒**，普通整局为 **183／218 步、各 77 图**。该包与清单保留在 [中间包记录](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/final-package/provenance.json)，不把这些结果改写为后续包通过。
+
+独立终局图片审查仍发现该中间包全部玩家姓名省略、桌面下方却有大量空白；手机也有同样截断。旧脚本仅检查名字盒子和完整 title，功能通过不足以证明实际文字完整可读。返修仅改变终局：电脑按单列对应身份与资产并增加冠军文字，手机将金额放在姓名下方，两端完整姓名至少 18px、可换行。脚本改为逐个字符核验实际几何、裁切祖先和命中，另检查金额、冠军与首屏 44px 再玩；覆盖 720p／1080p／4K 主机和公共屏及 320／360 手机。审查的必要问题、可选建议及裁定见 [独立视觉记录](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/visual-review.json)。
+
+新增门禁的两次源预检如实保留失败：[source-ended-5](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/source-ended-5/results.json)完成四轮／199 步后，把字体 Range 的 24px em 框误当作 22.5px、允许溢出的行框裁切，175.72 秒停止；只修正垂直归属到实际视口和裁切祖先，水平、逐字命中和不盖其他席／金额检查仍严格。[source-ended-fixed-5](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/source-ended-fixed-5/results.json)四轮／278 步、243.16 秒，主机全文门禁通过，随后因误要求只读公共屏有再玩按钮停止。修正脚本明确区分权限，公共屏严格无管理控件；没有为误判修改产品、放宽规则或覆盖原记录。
+
+最终同版本 [本地便携包](../../artifacts/releases/TableMax-1.0.1-win-x64.zip)为 **39,043,322 字节**，实际解压 **111 文件／94,777,948 字节**，严格双 100 MB 门禁及 95 MB 工程预算通过。[逐文件清单](../../artifacts/releases/TableMax-1.0.1-win-x64-manifest.json)记录 SHA-256 `9f94765f03daa5867319270b2bc204a4c72f1cec640b6e4dfc7a1a238363ac28`；对应包、清单和通过入口另保存在 [end-fixed-package](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/end-fixed-package/provenance.json)。最终打包 **15.81 秒**，版本、线上 Release、发布源码 ZIP 与总清单保持原记录。
+
+该最终 ZIP 的 [四人普通四轮](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/portable-ended-final-4/results.json)通过 **188 步／82 图，107.36 秒**，[五人普通四轮](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/runtime/portable-ended-final-5/results.json)通过 **222 步／82 图，219.45 秒**。两次同一冻结脚本 SHA-256 `945afb2dd15bf1bd26fbbdc2d2e9f0bce5e74835721b8d80bbf82b77056629d9`，初始与恢复均为普通 `play`；上述拍卖／金额／并发／账本／身份／恢复检查全部保持。每局另通过 **8 个真实终局布局**，姓名逐字、资金、冠军与权限对应：主机／公共屏各三种桌面大小、两种手机；公共屏没有再玩按钮，管理员／手机房主的按钮至少 44px、可命中、完整在首屏。五人 320×568 的按钮底 **488.13 CSS px**，四人底 **424.17px**，全部 scrollY 为 0。新鲜四人电脑与五人手机单图独立审查均无必要 P1／P2；可选构图／手机冠军文字建议及保留理由记录于上述视觉 JSON。
+
+最终两局页面、非预期控制台、请求与外网请求错误为零；公共屏实际播放分别 **103／200 次**，正音量授权播放 **102／198 次**，主机播放为零、媒体错误为零，未人工听音。各自原生窗口和服务退出、CIM 按本次目录核验残留为零。终局之外的拍卖代码和素材未再改变，保留中间包 108 布局的准确哈希边界，未机械重跑它或规则测试。最终集成类型／ESLint／格式检查通过，实际 **6.15／11.11／7.27 秒**；后续验证脚本的小范围几何／权限纠正分别完成语法、ESLint 与格式复核。设备仍限本机 Windows 隐藏 WebView2 与独立 Chromium 手机、窗口／DPI 模拟，不代表实体手机、Safari、电视或现场网络认证。
+
+所有应用、构建和验证进程结束后，预览核对 28 个本次验证目录、两个倒计时测试目录及三个可再生打包目录，再执行 `Clean-Intermediates.ps1 -MinimumAgeMinutes 0 -Apply`。共删除 **33 项／8,275,309,981 字节（7.71 GiB 逻辑文件字节）**；[逐项报告](../../artifacts/maintenance/local-cleanup-20261004-040833-413-intermediates/cleanup.json)通过。预览 **48.26 秒**、执行 **147.10 秒**，三个截图预览目录的 HTML 哈希和当前 ZIP 哈希均保持；正式存档、原素材、依赖／工具缓存、全部历史证据及当前解压程序未纳入清理。
+
+收尾按规则执行一次 `Maintain-Project.ps1 -Apply`（**12.59 秒**），结果为 `no-candidates`、再删零字节；主工作区余 **13,351,202,615 字节（12.43 GiB 逻辑字节）**。超过水位后安全候选已耗尽，继续保留受保护资料，未扩大范围；[维护结果](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/maintenance-final-result.json)与 [维护计时](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/maintenance-final-timing.json)可复查。本轮效率核对完成环境／素材预检、窄屏及跨层高风险先验、受影响返修和同 ZIP 终验；实际关键耗时分别留存，未把并行阶段相加成开发总耗时。后续仅同步文档、检查链接／格式与 diff，再统一提交；同期新增的 Node／防火墙规则保持原工作区改动，不混入本次审计提交。
 
 ## 1.0.1：现代艺术视听与共用倒计时（2026-10-04）
 
@@ -10,7 +44,7 @@
 
 **16 个原创短音效／355,904 字节**，采用木质敲击、玻璃泛音和短和声，分别表达各类拍卖、竞价、封存、成交和结算；手机静音，公共屏优先、管理员承接。源文件为 24kHz／16bit 单声道 PCM，峰值最大 0.399994、无削波，完整参数和版本在 [资源清单](../../assets/games/modern-art/manifest.json)，[试听页](../../artifacts/maintenance/v1.0.1/modern-art-audio-20261004/audition-v1.html)提供逐项播放。[最终包音频实测](../../artifacts/maintenance/v1.0.1/modern-art-polish-20261004/audio/portable-final-v4/results.json)通过 22 项、16 文件同源解码、14 次真实保存命令、7 次正音量授权播放；另一次零音量手势解锁，手机播放为零。静音、归属交接、刷新／回退／暂停不补播、测试模式及秘密信息边界均受检，页面、外部请求、音频 HTTP 与播放拒绝为零，耗时 **32.64 秒**；未进行人耳或实体扬声器试听。
 
-最终 [本地便携包](../../artifacts/releases/TableMax-1.0.1-win-x64.zip)为 **39,042,029 字节**，实际解压 **111 文件／94,770,599 字节**，严格双 100 MB 门禁及 95 MB 工程预算通过；[逐文件清单](../../artifacts/releases/TableMax-1.0.1-win-x64-manifest.json)记录 SHA-256 `1dc750ee8e7d39f38931e96529d615f65b005836ba6e352ad895d2421f7457bd`，最终打包 **17.19 秒**。前一轮已验证包在本轮 `before/`，本轮三次中间包在 `first-package/`、`second-package/`、`third-package/`，关联失败与通过证据保持；线上 Release、发布源 ZIP 及总清单保留原发布内容。
+当轮 [本地便携包](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/before-package/TableMax-1.0.1-win-x64.zip)为 **39,042,029 字节**，实际解压 **111 文件／94,770,599 字节**，严格双 100 MB 门禁及 95 MB 工程预算通过；[逐文件清单](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/before-package/TableMax-1.0.1-win-x64-manifest.json)记录 SHA-256 `1dc750ee8e7d39f38931e96529d615f65b005836ba6e352ad895d2421f7457bd`，最终打包 **17.19 秒**。前一轮已验证包在本轮 `before/`，本轮三次中间包在 `first-package/`、`second-package/`、`third-package/`，关联失败与通过证据保持；线上 Release、发布源 ZIP 及总清单保留原发布内容。
 
 最终同一 ZIP 的 [代表场景矩阵](../../artifacts/maintenance/v1.0.1/modern-art-polish-20261004/verification/portable-final-v4-representative/results.json)通过 **52 布局／60 图**（131.75 秒）：四人／五人出画、公开竞拍、十幅以上收藏与合法三位估值，720p／1080p、320／360／390 手机、历史浮窗／焦点、三类排序及牌 ID 保持；真实 20／5／120 设置、多端同基线、刷新连续、暂停冻结与到零不自动行动。另含宝可梦取牌／结算四场景，六人短桌面 CSS 854×480 的 36 个号位、角色图和 44px 计分按钮完整，360×640 手机六格和计分保持首屏。
 
