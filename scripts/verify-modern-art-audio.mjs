@@ -16,12 +16,16 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 const portable = process.argv.includes('--portable');
 const reentryOnly = process.argv.includes('--reentry-only');
 const entrancesOnly = process.argv.includes('--entrances-only');
+const timerOnly = process.argv.includes('--timer-only');
+assert.ok(!timerOnly || (!reentryOnly && !entrancesOnly));
 const run =
   process.argv.find((arg) => arg.startsWith('--evidence='))?.slice(11) ??
   (portable ? 'portable-final' : 'development');
 assert.match(run, /^[a-z0-9-]{1,48}$/, 'Safe independent evidence directory');
 const output = resolve(
-  'artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio',
+  timerOnly
+    ? 'artifacts/maintenance/v1.0.2/modern-art-polish-20261005/audio'
+    : 'artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio',
   run,
 );
 await mkdir(output, { recursive: true });
@@ -475,7 +479,7 @@ async function assetsAndDecode() {
   const manifest = JSON.parse(
     await readFile('assets/games/modern-art/manifest.json', 'utf8'),
   );
-  assert.equal(manifest.audio.assets.length, 16);
+  assert.equal(manifest.audio.assets.length, 17);
   const assetRoot = join(dirname(executablePath), 'web/assets');
   const files = await readdir(assetRoot);
   for (const asset of manifest.audio.assets) {
@@ -551,7 +555,7 @@ async function assetsAndDecode() {
   }
   evidence.checks.push({
     check:
-      'All sixteen final production WAVs decoded by actual WebView2 codec with same-origin HTTP and exact source hash',
+      'All seventeen final production WAVs decoded by actual WebView2 codec with same-origin HTTP and exact source hash',
     decoded,
   });
   await save();
@@ -746,6 +750,156 @@ async function verifyEntrances() {
   );
 }
 
+async function verifyTimerReminder() {
+  await phone.locator('[data-modern-art-sound]').click();
+  await until(
+    async () =>
+      (await phone
+        .locator('[data-modern-art-sound]')
+        .getAttribute('aria-label')) === '提示音已开启，点击静音',
+    'Phone gesture unlocks timer cue decoder',
+  );
+  phoneSoundEnabled = true;
+  await command(hostToken, { type: 'set-countdown', seconds: 5 });
+  await until(
+    async () =>
+      (await publicPage
+        .locator('.ma-decision-progress')
+        .getAttribute('data-clock-id')) ===
+      (await current(hostToken)).decisionClock.id,
+    'Public receives the saved new timer',
+  );
+  const before = await current(hostToken);
+  const key = `${before.instanceId}:${before.branch}:modern-art-time-elapsed:${before.decisionClock.id}`;
+  const marks = await audits();
+  await publicPage
+    .locator('.ma-decision-progress[data-elapsed="true"]')
+    .waitFor({ timeout: 10000 });
+  const timerAsset = evidence.assets.find(
+    (asset) => asset.cue === 'time-elapsed',
+  );
+  await until(
+    async () =>
+      audible(await audits(), marks).some(
+        (play) => play.role === 'public' && play.src === timerAsset.url,
+      ),
+    'Saved timer crossing actually plays its local cue',
+  );
+  await sleep(550);
+  const after = await current(hostToken);
+  assert.equal(
+    after.revision,
+    before.revision,
+    'Expiry is not a new saved action',
+  );
+  assert.equal(after.branch, before.branch);
+  assert.deepEqual(
+    after.gameView,
+    before.gameView,
+    'Expiry never forces auction progression or a penalty',
+  );
+  const snapshot = await checkpoint(
+    'Saved clock reaches zero without a game action',
+  );
+  const timerPlays = audible(snapshot, marks).filter(
+    (play) => play.src === timerAsset.url,
+  );
+  assert.equal(timerPlays.filter((play) => play.role === 'public').length, 1);
+  assert.equal(timerPlays.filter((play) => play.role === 'host').length, 0);
+  const phonePending =
+    (await current(fixture.players[0].token)).decisionClock !== null;
+  assert.equal(
+    timerPlays.filter((play) => play.role === 'phone').length,
+    phonePending ? 1 : 0,
+  );
+  assert.equal(
+    fresh(snapshot, marks, 'claims').filter(
+      (claim) => claim.key === key && claim.result === true,
+    ).length,
+    1,
+  );
+  assert.ok(
+    fresh(snapshot, marks, 'playing').some(
+      (play) => play.src === timerAsset.url && play.role === 'public',
+    ),
+  );
+  assert.equal(
+    await publicPage.locator('.ma-decision-progress').innerText(),
+    '',
+    'The timer has no visible remaining seconds',
+  );
+  evidence.checks.push({
+    check:
+      'Time expiry gives exactly one native-owned local cue and an independent pending phone cue, with no penalty or saved action',
+    key,
+    phonePending,
+  });
+  let quietMarks = await audits();
+  await quiet(quietMarks, 'Repeated zero samples cannot replay time cue', 800);
+  await publicPage.reload();
+  await publicPage.locator('[data-modern-art-sound]').waitFor();
+  await until(
+    async () => (await audits()).public?.owner === true,
+    'Public reacquires sound after zero-time refresh',
+  );
+  quietMarks = await audits();
+  await quiet(
+    quietMarks,
+    'Zero-time reload and ownership restore never replay reminder',
+  );
+  await command(hostToken, { type: 'set-countdown', seconds: 8 });
+  await sleep(450);
+  await command(hostToken, { type: 'pause' });
+  const frozen = await publicPage
+    .locator('.ma-decision-progress')
+    .getAttribute('data-remaining-seconds');
+  quietMarks = await audits();
+  await quiet(quietMarks, 'Paused positive clock has no expiry cue', 1150);
+  assert.equal(
+    await publicPage
+      .locator('.ma-decision-progress')
+      .getAttribute('data-remaining-seconds'),
+    frozen,
+    'Pause freezes the progress sample',
+  );
+  await command(hostToken, { type: 'resume' });
+  await publicPage.locator('[data-modern-art-sound]').click();
+  await phone.locator('[data-modern-art-sound]').click();
+  phoneSoundEnabled = false;
+  await command(hostToken, { type: 'set-countdown', seconds: 5 });
+  quietMarks = await audits();
+  await publicPage
+    .locator('.ma-decision-progress[data-elapsed="true"]')
+    .waitFor({ timeout: 10000 });
+  await quiet(quietMarks, 'Muted timer crosses zero silently and is consumed');
+  await publicPage.locator('[data-modern-art-sound]').click();
+  quietMarks = await audits();
+  await quiet(quietMarks, 'Unmute does not replay consumed expiry');
+  const savedMarks = await audits();
+  await savedSound(
+    await act(await candidate('bid')),
+    'bid',
+    'public',
+    savedMarks,
+    'Legal bidding remains available after time has elapsed',
+  );
+  assert.deepEqual(evidence.pageErrors, []);
+  assert.deepEqual(evidence.externalRequests, []);
+  assert.deepEqual(evidence.audioRequestFailures, []);
+  evidence.result = 'passed';
+  await capture(publicPage, 'timer-legal-after-expiry-public');
+  await save();
+  console.log(
+    JSON.stringify({
+      result: evidence.result,
+      checks: evidence.checks.length,
+      output,
+      archiveSha256: evidence.archiveSha256,
+      seconds: evidence.elapsedSeconds,
+    }),
+  );
+}
+
 try {
   if (portable) {
     const { version } = JSON.parse(await readFile('package.json', 'utf8'));
@@ -849,7 +1003,9 @@ try {
   );
   evidence.runtime = await desktop.request('runtime');
   evidence.hiddenWindows = windows;
-  if (entrancesOnly) {
+  if (timerOnly) {
+    await verifyTimerReminder();
+  } else if (entrancesOnly) {
     await verifyEntrances();
   } else {
     let marks = await checkpoint(

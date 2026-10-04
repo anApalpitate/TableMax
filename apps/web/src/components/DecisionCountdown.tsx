@@ -1,6 +1,7 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import type { CSSProperties } from 'react';
 import type { DecisionClock, RoomView } from '@tablemax/protocol';
 import './countdown.css';
+import { useDecisionClock } from './useDecisionClock';
 
 function ClockDisplay({
   clock,
@@ -11,24 +12,9 @@ function ClockDisplay({
   duration: number;
   compact: boolean;
 }) {
-  const [receivedAt] = useState(() => performance.now());
-  const [now, setNow] = useState(receivedAt);
-  useEffect(() => {
-    if (!clock.running || clock.remainingMs === 0) return;
-    const timer = window.setInterval(() => {
-      const sampled = performance.now();
-      setNow(sampled);
-      if (sampled - receivedAt >= clock.remainingMs)
-        window.clearInterval(timer);
-    }, 250);
-    return () => window.clearInterval(timer);
-  }, [clock.running, clock.remainingMs, receivedAt]);
   // The server supplies elapsed time. Monotonic local interpolation cannot be
   // thrown off by a phone changing its wall clock, and never starts a decision.
-  const remaining = Math.max(
-    0,
-    clock.remainingMs - (clock.running ? now - receivedAt : 0),
-  );
+  const remaining = useDecisionClock(clock);
   const seconds = Math.ceil(remaining / 1000);
   const expired = seconds === 0;
   const label = !clock.running ? '已暂停' : expired ? '时间到' : '思考时间';

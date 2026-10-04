@@ -208,7 +208,7 @@
     "version": 2,
     "source": "TableMax original procedural gallery and auction cues",
     "policy": "One cue per newly saved public action, with five distinct auction entrances; fixed sealed-bid sound independent of amount; no continuous music; desktop public-first single owner and event claims remain strict; Modern Art phone has independent persistent mute and a visible browser-gesture unlock; box return retains future playback while refresh never replays old events",
-    "totalBytes": 528704,
+    "totalBytes": 545068,
     "measurementEvidence": "artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio-generation/measurements-v2.json",
     "audition": "artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio-generation/audition-v2.html",
     "integrationStatus": "Actual hidden WebView2 local codec and saved-action playback verified for all five auction entrances; desktop ownership, box return, phone gesture and persistent mute, refresh, pause and test-mode checked; portable verification recorded separately",
@@ -1159,8 +1159,81 @@
           "maxSampleStep": 0.046478271484375,
           "powerAbove4khz": 0.0003647757914136725
         }
+      },
+      {
+        "id": "modern-art/audio/time-elapsed",
+        "cue": "time-elapsed",
+        "path": "time-elapsed-v2.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 2,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 16364,
+        "sha256": "7157926e9eae58ef00d635c278c24d5c66aa3becdc54028c54fa4448d0a34e80",
+        "parameters": {
+          "seconds": 0.34,
+          "description": "A single gentle gallery reminder: warm wooden strike and soft glass harmonic; no ticking or alarm loop",
+          "events": [
+            {
+              "type": "wood",
+              "at": 0,
+              "pitch": 330,
+              "gain": 0.3
+            },
+            {
+              "type": "glass",
+              "at": 0.035,
+              "pitch": 659.25,
+              "gain": 0.28
+            }
+          ],
+          "seed": 2898285209,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.7323950250305468,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 8160,
+          "seconds": 0.34,
+          "peak": 0.296661376953125,
+          "peakDbfs": -10.554779836588242,
+          "rms": 0.07499777552921649,
+          "rmsDbfs": -22.49903235608958,
+          "mean": 1.495959712009804e-8,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.061004638671875,
+          "powerAbove4khz": 0.00009549578478969819
+        }
       }
-    ]
+    ],
+    "timerReminder": {
+      "policy": "Once per saved decision clock crossing zero; no action, penalty, replay or automatic auction completion; shares mute, gesture unlock and desktop owner claim",
+      "measurementEvidence": "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/audio-generation/measurements-v2.json",
+      "integrationStatus": "Actual hidden native WebView2 playback verified: single crossing cue, desktop owner, phone gesture, pause, mute consumption, zero-time reload and legal action after expiry; physical listening unverified",
+      "humanListeningVerified": false,
+      "integrationEvidence": [
+        "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/audio/source-timer-01/results.json",
+        "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/audio/portable-timer-final/results.json",
+        "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/audio/portable-timer-final-02/results.json"
+      ],
+      "portableVerification": [
+        {
+          "archiveSha256": "04e28ddfc9f047b2e5e44dcc6a16d420ce5bc9bd7ab19744e504c93879a20d02",
+          "evidence": "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/audio/portable-timer-final/results.json",
+          "status": "passed historical package; not final package"
+        },
+        {
+          "archiveSha256": "29c09c1de2db60d6cd33d627b56122dd13c5092719a02c6c8e1fa762371886d2",
+          "evidence": "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/audio/portable-timer-final-02/results.json",
+          "status": "passed final package"
+        }
+      ]
+    }
   },
   "rulesScreenshots": {
     "version": 1,
@@ -1222,6 +1295,273 @@
         "pixelsVerifiedIdentical": true
       }
     ],
-    "postprocessing": "PNG to WebP lossless, Pillow 11.1.0, original size and RGB pixel bytes verified identical; source PNGs retained"
+    "postprocessing": "PNG to WebP lossless, Pillow 11.1.0, original size and RGB pixel bytes verified identical; source PNGs retained",
+    "currentUsage": "Retained original and historical screenshots; superseded by rulesIllustrations v2 in the active guide, excluded from current runtime imports"
+  },
+  "rulesIllustrations": {
+    "version": 2,
+    "createdAt": "2026-10-05",
+    "purpose": "Nine original rule logic scenes; exact rules, arrows, seats and money are rendered by code rather than baked into art",
+    "generator": "built-in image_gen",
+    "evidence": "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/imagegen/evidence.json",
+    "totalBytes": 288028,
+    "productionResourceBudgetBytes": 370000,
+    "postprocessing": "Retained original PNGs; Lanczos resize and WebP quality80/method6 production derivatives. No programmatic content edits. Production images are not pixel-identical to original PNGs.",
+    "files": [
+      {
+        "id": "hand-to-auction",
+        "file": "rules/illustrations-v2/hand-to-auction.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/imagegen/hand-to-auction.png",
+        "sourceSha256": "b9064bb3b1b1c08580d342eafc8a25e52bb49085c77329a708b23183e84ed7c9",
+        "prompt": "Use case: stylized-concept. Asset type: original explanatory scene for a mature Modern Art auction board game rules guide, not a screenshot. Wide 16:9 horizontal illustration. Cream ivory paper backdrop, softly rendered warm walnut wooden frames, sophisticated original geometric abstract paintings, matte brass chips, gallery props. Controlled low-noise texture, crisp readable silhouettes, soft shadows, mature editorial craftsmanship, bright uncluttered scene. Palette mustard ochre, deep petrol blue, plum purple #7b3f82, forest green and burnt orange. No readable text, letters, numerals, arrows, UI, watermarks or logos. Leave generous blank margins and separation so exact rule labels and arrows can be overlaid by code. All objects fully visible. Subject: THREE distinct separated clusters arranged left to right: a small fanned hand of three framed abstract art cards held by a tasteful anonymous hand; one painting standing on a low auction podium with a small wooden gavel and brass chips nearby; two paintings hanging neatly in a private collection with a small stack of chips. Visually communicate selection, auction, acquisition and money without drawing any arrows or inventing printed symbols. Compact objects occupy middle band, generous empty cream at top and bottom.",
+        "width": 960,
+        "height": 540,
+        "bytes": 27948,
+        "sha256": "ecde85fac46a03d3b0a9243434ce522de3b01b988a77acd1d14a8a3540290437",
+        "transparent": false,
+        "export": {
+          "format": "WebP",
+          "width": 960,
+          "quality": 80,
+          "method": 6,
+          "resample": "Lanczos",
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "round-trigger",
+        "file": "rules/illustrations-v2/round-trigger.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/imagegen/round-trigger.png",
+        "sourceSha256": "8d797d9ebe7dd38460e8a29cd1af39953d6bdff1ffdbfec380ae19775b670318",
+        "prompt": "Use case: stylized-concept. Asset type: original explanatory scene for a mature Modern Art auction board game rules guide, not a screenshot. Wide 16:9 horizontal illustration. Cream ivory paper backdrop, softly rendered warm walnut wooden frames, sophisticated original geometric abstract paintings, matte brass chips, gallery props. Controlled low-noise texture, crisp readable silhouettes, soft shadows, mature editorial craftsmanship, bright uncluttered scene. Palette mustard ochre, deep petrol blue, plum purple #7b3f82, forest green and burnt orange. No readable text, letters, numerals, arrows, UI, watermarks or logos. Leave generous blank margins and separation so exact rule labels and arrows can be overlaid by code. All objects fully visible. Subject: two distinct arrangements on two separated cream shelves. Upper shelf: four small plum-purple abstract framed painting cards in a neat row, and one fifth same-color card slightly offset on a bare wooden display stand, no chips under that card. Lower shelf: three small blue abstract framed cards together, then two matching blue framed cards side by side, separated by a clear gap from the three. The two-card pair is same artist color with distinct paintings. No arrows or icons. Counts must be exactly four plus one above and three plus two below. ",
+        "width": 960,
+        "height": 540,
+        "bytes": 41148,
+        "sha256": "a3c7273cb800bcdbe5dd058d1ab83f756929e2266702538b154569efe09c0901",
+        "transparent": false,
+        "export": {
+          "format": "WebP",
+          "width": 960,
+          "quality": 80,
+          "method": 6,
+          "resample": "Lanczos",
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "history-value",
+        "file": "rules/illustrations-v2/history-value.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/imagegen/history-value.png",
+        "sourceSha256": "e8cbe4b7411efa0a8458cb5006a6711cc3cf1dd5566298dedea6bfb31984683f",
+        "prompt": "Use case: stylized-concept. Asset type: original explanatory scene for a mature Modern Art auction board game rules guide, not a screenshot. Wide 16:9 horizontal illustration. Cream ivory paper backdrop, softly rendered warm walnut wooden frames, sophisticated original geometric abstract paintings, matte brass chips, gallery props. Controlled low-noise texture, crisp readable silhouettes, soft shadows, mature editorial craftsmanship, bright uncluttered scene. Palette mustard ochre, deep petrol blue, plum purple #7b3f82, forest green and burnt orange. No readable text, letters, numerals, arrows, UI, watermarks or logos. Leave generous blank margins and separation so exact rule labels and arrows can be overlaid by code. All objects fully visible. Subject: FOUR evenly spaced original abstract paintings in walnut frames across the middle, all featuring the same mustard ochre artist color and different geometric compositions. Below the first frame one small brass medal; below second frame two nested medals; third frame with medals resting behind it rather than below; fourth frame three nested medals. This is an art-gallery history timeline visual, not a chart. Medals are plain unmarked circular disks. Nothing says numbers or money. Each of the four groups has ample blank space above and below for code-rendered round labels and precise values. One horizontal cream shelf, no plants or sculptures.",
+        "width": 960,
+        "height": 540,
+        "bytes": 19848,
+        "sha256": "5d0b3b79f4bdcabf379030bfdcecfabfce3c634a6a3ecbb43863b5d907b918ae",
+        "transparent": false,
+        "export": {
+          "format": "WebP",
+          "width": 960,
+          "quality": 80,
+          "method": 6,
+          "resample": "Lanczos",
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "auction-open",
+        "file": "rules/illustrations-v2/auction-open.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/imagegen/auction-open.png",
+        "sourceSha256": "d4504e32cd2568c18dbcd0ededb8d25620fa45b95c18da49f5132d31c66f6bf1",
+        "prompt": "Use case: stylized-concept. Asset type: original explanatory scene for a mature Modern Art auction board game rules guide, not a screenshot. Wide 16:9 horizontal illustration. Cream ivory paper backdrop, softly rendered warm walnut wooden frames, sophisticated original geometric abstract paintings, matte brass chips, gallery props. Controlled low-noise texture, crisp readable silhouettes, soft shadows, mature editorial craftsmanship, bright uncluttered scene. Palette mustard ochre, deep petrol blue, plum purple #7b3f82, forest green and burnt orange. No readable text, letters, numerals, arrows, UI, watermarks or logos. Leave generous blank margins and separation so exact rule labels and arrows can be overlaid by code. All objects fully visible. Subject: a plum-purple geometric painting in walnut frame on an auction podium at left. On right a rising three-step walnut staircase with three unmarked cream auction bidding paddles of different heights, each having a plain round blank face; small brass chip stacks beside the steps. A small gavel at base. Elegant physical gallery metaphor for open rising bids. No people, no numeral on paddles, no printed lines, no literal prices. Objects compact and ample blank cream top and lower margin for accurate code labels.",
+        "width": 960,
+        "height": 540,
+        "bytes": 33608,
+        "sha256": "3664b6d7c6b160b2b212f4a28d8e6953150f6b3e53cf0ffdb855532cc636ff23",
+        "transparent": false,
+        "export": {
+          "format": "WebP",
+          "width": 960,
+          "quality": 80,
+          "method": 6,
+          "resample": "Lanczos",
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "auction-once",
+        "file": "rules/illustrations-v2/auction-once.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/imagegen/auction-once.png",
+        "sourceSha256": "59a52ade551907dd0506327bfb8b8d5691f8ba33db4e52016bbfd1b44b137b64",
+        "prompt": "Use case: stylized-concept. Asset type: original explanatory scene for a mature Modern Art auction board game rules guide, not a screenshot. Wide 16:9 horizontal illustration. Cream ivory paper backdrop, softly rendered warm walnut wooden frames, sophisticated original geometric abstract paintings, matte brass chips, gallery props. Controlled low-noise texture, crisp readable silhouettes, soft shadows, mature editorial craftsmanship, bright uncluttered scene. Palette mustard ochre, deep petrol blue, plum purple #7b3f82, forest green and burnt orange. No readable text, letters, numerals, arrows, UI, watermarks or logos. Leave generous blank margins and separation so exact rule labels and arrows can be overlaid by code. All objects fully visible. Subject: almost top-down still life. A round wooden auction table at center with one small petrol-blue abstract painting in frame lying in its middle and a small gavel nearby. Exactly FIVE plain round blank ivory bidding paddles placed around the outside in a circular ring, each facing a different seat position, one paddle accented with brass edging. Ring evokes clockwise seating without arrows or numbers; exact clockwise arrows and seats will be drawn by code. No people. Wide cream background with clear separation between all five paddles, uncluttered blank space around the circular arrangement.",
+        "width": 960,
+        "height": 540,
+        "bytes": 35298,
+        "sha256": "c98f40a55a95436279855798314ebe67d31b26082447c9363eee564fce8c2920",
+        "transparent": false,
+        "export": {
+          "format": "WebP",
+          "width": 960,
+          "quality": 80,
+          "method": 6,
+          "resample": "Lanczos",
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "auction-sealed",
+        "file": "rules/illustrations-v2/auction-sealed.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/imagegen/auction-sealed.png",
+        "sourceSha256": "13c0d369c836ede890d4438629430c50461a22472eeca0d361e4c7d7f1b00edd",
+        "prompt": "Use case: stylized-concept. Asset type: original explanatory scene for a mature Modern Art auction board game rules guide, not a screenshot. Wide 16:9 horizontal illustration. Cream ivory paper backdrop, softly rendered warm walnut wooden frames, sophisticated original geometric abstract paintings, matte brass chips, gallery props. Controlled low-noise texture, crisp readable silhouettes, soft shadows, mature editorial craftsmanship, bright uncluttered scene. Palette mustard ochre, deep petrol blue, plum purple #7b3f82, forest green and burnt orange. No readable text, letters, numerals, arrows, UI, watermarks or logos. Leave generous blank margins and separation so exact rule labels and arrows can be overlaid by code. All objects fully visible. Subject: left side a small plum abstract painting in walnut frame behind exactly FIVE sealed ivory envelopes arranged in a clean horizontal row on a walnut tray. Each envelope has a simple plain colored wax seal, unmarked and no money visible. Right side a separate opened envelope standing upright beside a blank cream bid card and plain brass chips, visually the reveal AFTER sealing. Wide horizontal still life with clear separation between sealed queue and single opened envelope. No stamps, handwriting, numerals or symbols. Plenty of blank cream margin for code labels.",
+        "width": 960,
+        "height": 540,
+        "bytes": 31918,
+        "sha256": "c5221e0cbb4c2c6bbb9df580ffce6f7f5f48ddbdedf037189e7f8481f9840325",
+        "transparent": false,
+        "export": {
+          "format": "WebP",
+          "width": 960,
+          "quality": 80,
+          "method": 6,
+          "resample": "Lanczos",
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "auction-fixed",
+        "file": "rules/illustrations-v2/auction-fixed.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/imagegen/auction-fixed.png",
+        "sourceSha256": "808dfd3ad9f1992f0df39989d3f6155fe5d1e4cb022194bc7fbb120372d7db13",
+        "prompt": "Use case: stylized-concept. Asset type: original explanatory scene for a mature Modern Art auction board game rules guide, not a screenshot. Wide 16:9 horizontal illustration. Cream ivory paper backdrop, softly rendered warm walnut wooden frames, sophisticated original geometric abstract paintings, matte brass chips, gallery props. Controlled low-noise texture, crisp readable silhouettes, soft shadows, mature editorial craftsmanship, bright uncluttered scene. Palette mustard ochre, deep petrol blue, plum purple #7b3f82, forest green and burnt orange. No readable text, letters, numerals, arrows, UI, watermarks or logos. Leave generous blank margins and separation so exact rule labels and arrows can be overlaid by code. All objects fully visible. Subject: at left a forest-green geometric painting in walnut frame on a small easel, an oversized blank ivory price tag with a small hole suspended from its upper corner by a thin brass string. Center exactly three plain ivory bidding paddles on individual small wooden stands, indicating sequential purchase choices. Right a small brass bank-like vault box with an open round door and brass chips beside it, separated clearly from the bidding paddles. A tiny gavel beside the painting. No printed bank word or symbol, no price or text on tag, no arrows. Elegant gallery still-life, ample cream whitespace for code purchase path and precise rules.",
+        "width": 960,
+        "height": 540,
+        "bytes": 33450,
+        "sha256": "426f20e5cd388f75dd9d9afbb1a7cd2540d39aad9b85566fc132ac73244f2521",
+        "transparent": false,
+        "export": {
+          "format": "WebP",
+          "width": 960,
+          "quality": 80,
+          "method": 6,
+          "resample": "Lanczos",
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "auction-double",
+        "file": "rules/illustrations-v2/auction-double.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/imagegen/auction-double.png",
+        "sourceSha256": "c76dc51db5bb372c9f4b23338d4fcfb1a382e1686dcac5b182def02a11245b6a",
+        "prompt": "Use case: stylized-concept. Asset type: original explanatory scene for a mature Modern Art auction board game rules guide, not a screenshot. Wide 16:9 horizontal illustration. Cream ivory paper backdrop, softly rendered warm walnut wooden frames, sophisticated original geometric abstract paintings, matte brass chips, gallery props. Controlled low-noise texture, crisp readable silhouettes, soft shadows, mature editorial craftsmanship, bright uncluttered scene. Palette mustard ochre, deep petrol blue, plum purple #7b3f82, forest green and burnt orange. No readable text, letters, numerals, arrows, UI, watermarks or logos. Leave generous blank margins and separation so exact rule labels and arrows can be overlaid by code. All objects fully visible. Subject: two matching burnt-orange artist paintings in equal walnut frames side by side on one wide auction podium, distinct geometric compositions, visibly same-color artist pairing. Each frame has a tiny blank ivory symbol plaque attached at its upper corner (NO symbols on plaques; code adds exact auction marks). At lower left an anonymous hand holding a small wooden gavel towards the podium; at lower right another hand receiving another gavel and brass chips, clearly separated. Mature gallery still life communicating pair and auctioneer handover, no full people, no arrows, no printed markings, generous blank margins.",
+        "width": 960,
+        "height": 540,
+        "bytes": 33708,
+        "sha256": "96de96b271c2e601b767247c58d80f16e6ee0e6cf82778fd01b991c660b44856",
+        "transparent": false,
+        "export": {
+          "format": "WebP",
+          "width": 960,
+          "quality": 80,
+          "method": 6,
+          "resample": "Lanczos",
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "settlement",
+        "file": "rules/illustrations-v2/settlement.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/imagegen/settlement.png",
+        "sourceSha256": "a8356447949c1b2b3825d7c1f031a7ea243dc83736cb6f85a96a57c9af38c9a2",
+        "prompt": "Use case: stylized-concept. Asset type: original explanatory scene for a mature Modern Art auction board game rules guide, not a screenshot. Wide 16:9 horizontal illustration. Cream ivory paper backdrop, softly rendered warm walnut wooden frames, sophisticated original geometric abstract paintings, matte brass chips, gallery props. Controlled low-noise texture, crisp readable silhouettes, soft shadows, mature editorial craftsmanship, bright uncluttered scene. Palette mustard ochre, deep petrol blue, plum purple #7b3f82, forest green and burnt orange. No readable text, letters, numerals, arrows, UI, watermarks or logos. Leave generous blank margins and separation so exact rule labels and arrows can be overlaid by code. All objects fully visible. Subject: three separate gallery still-life clusters left to right. LEFT a modest collection of two small framed abstract paintings resting beside a shallow archival storage box, with neat brass chip stacks in foreground (settled purchased art leaves collection). CENTER a small hand holding three fanned abstract art cards, retained cards clearly away from storage box. RIGHT a taller stack of plain brass chips beside a small elegant golden laurel wreath resting on a walnut pedestal, symbol of final cash winner. No drawn arrows or numeric chip values, no money symbol, no text. Clear gaps and generous cream top and bottom margins for exact rule labels. Sophisticated clean small-scale scene.",
+        "width": 960,
+        "height": 540,
+        "bytes": 31102,
+        "sha256": "6fd4dbb947d04061c66fbebc053665f0e8cb347121a66ae25e194e44f7d2e90e",
+        "transparent": false,
+        "export": {
+          "format": "WebP",
+          "width": 960,
+          "quality": 80,
+          "method": 6,
+          "resample": "Lanczos",
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      }
+    ],
+    "integrationStatus": "All nine local original images decoded in actual host/public/player rule modals across nine size/density combinations; navigation, focus restoration and unchanged saved game verified",
+    "integrationEvidence": [
+      "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/rules/source-01/results.json",
+      "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/rules/portable-final/results.json",
+      "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/rules/portable-final-02/results.json"
+    ],
+    "productionBytesWithReminder": 304392,
+    "productionBudgetBytes": 370000,
+    "portableVerification": [
+      {
+        "archiveSha256": "04e28ddfc9f047b2e5e44dcc6a16d420ce5bc9bd7ab19744e504c93879a20d02",
+        "evidence": "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/rules/portable-final/results.json",
+        "status": "passed historical package; not final package"
+      },
+      {
+        "archiveSha256": "29c09c1de2db60d6cd33d627b56122dd13c5092719a02c6c8e1fa762371886d2",
+        "evidence": "artifacts/maintenance/v1.0.2/modern-art-polish-20261005/rules/portable-final-02/results.json",
+        "status": "passed final package"
+      }
+    ]
   }
 }

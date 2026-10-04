@@ -30,7 +30,8 @@ import { PlayModeControl } from '../components/PlayModeControl';
 import { avatarFor } from '../assets/avatars';
 import { PaintingSortControl } from '../../../../games/modern-art/ui/painting-display';
 import type { PaintingSort } from '../../../../games/modern-art/ui/sorting';
-import { DecisionCountdown } from '../components/DecisionCountdown';
+import { useDecisionClock } from '../components/useDecisionClock';
+import { DecisionProgress } from '../../../../games/modern-art/ui/DecisionProgress';
 import { ModernArtSoundControl } from '../../../../games/modern-art/ui/audio';
 import { useAudioOutput } from '../session/useAudioOutput';
 import { modernArtRulebook } from '../../../../games/modern-art/ui/RulesGuide';
@@ -41,6 +42,11 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
   const { role, view, connected, command, locked, canControl, motion } =
     session;
   const game = view?.gameView as ModernArtView | null;
+  const clock =
+    connected && game?.phase === 'auction'
+      ? (view?.decisionClock ?? null)
+      : null;
+  const remainingMs = useDecisionClock(clock);
   const canPlay = useAudioOutput();
   const [panel, setPanel] = useState<
     'menu' | 'museums' | 'market' | 'rules' | null
@@ -173,6 +179,15 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
           disabled={view?.playMode === 'test' || view?.paused || !connected}
           canPlay={canPlay}
           localOnly={role === 'player'}
+          timer={
+            clock && view
+              ? {
+                  key: `${view.instanceId}:${view.branch}:modern-art-time-elapsed:${clock.id}`,
+                  remainingMs,
+                  running: clock.running,
+                }
+              : null
+          }
         />
         <button
           className="secondary game-rulebook-entry"
@@ -211,11 +226,12 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
                   names={names}
                   activityMessage={activityMessage}
                   countdown={
-                    game.phase === 'auction' && (
-                      <DecisionCountdown
-                        view={view}
-                        connected={connected}
-                        compact
+                    clock && (
+                      <DecisionProgress
+                        id={clock.id}
+                        remainingMs={remainingMs}
+                        durationSeconds={view.countdownSeconds}
+                        running={clock.running}
                       />
                     )
                   }
@@ -296,7 +312,7 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
             panel === 'museums' ? (
               '各家博物馆'
             ) : panel === 'market' ? (
-              '历轮估值'
+              '历轮行情'
             ) : panel === 'rules' ? (
               <>
                 <span className="rules-guide__title-part">现代艺术</span>

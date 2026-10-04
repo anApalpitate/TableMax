@@ -10,7 +10,11 @@ import type {
 import { validateSave } from '../../packages/platform-core/src/save-validation';
 import { SqliteSaveRepository } from '../../apps/server/src/save-repository';
 import { rules, bot } from '../../games/modern-art';
-import type { Action, ModernArtView } from '../../games/modern-art/ui/view';
+import type {
+  Action,
+  AuctionKind,
+  ModernArtView,
+} from '../../games/modern-art/ui/view';
 import type { Command } from '../../packages/protocol/src';
 import { prepare as preparePokemon } from './prepare-pokemon';
 import {
@@ -283,10 +287,11 @@ export async function prepareNaturalEnded(work: string, source: string) {
   };
 }
 
-export async function prepare(
+export async function prepare<Count extends 3 | 4 | 5>(
   work: string,
-  count: 4 | 5,
+  count: Count,
   includeEnded = false,
+  capturedAuctionKinds: readonly AuctionKind[] = ['open', 'sealed'],
 ) {
   const sourceDir = join(work, `source-${count}`);
   await mkdir(sourceDir, { recursive: true });
@@ -364,7 +369,7 @@ export async function prepare(
     });
     await command(room.hostToken, { type: 'start' });
     await remember('offer');
-    const wantedKinds = ['open', 'sealed'];
+    const wantedKinds = [...capturedAuctionKinds];
     while (steps < (includeEnded ? 1600 : 450)) {
       const host = room.view(room.hostToken);
       const game = host.gameView as ModernArtView;
@@ -385,7 +390,15 @@ export async function prepare(
         break;
       }
       if (
-        game.phase === 'auction' &&
+        (game.phase === 'auction' ||
+          (game.phase === 'double' &&
+            players.some((player) =>
+              room
+                .view(player.token)
+                .actions.some(
+                  (action) => (action as Action).type === 'add-double',
+                ),
+            ))) &&
         wantedKinds.includes(game.auction!.kind)
       ) {
         const kind = game.auction!.kind;
@@ -461,8 +474,7 @@ export async function prepare(
     }
     for (const id of [
       'offer',
-      'auction-open',
-      'auction-sealed',
+      ...capturedAuctionKinds.map((kind) => `auction-${kind}`),
       'collections',
       'paused',
       'result',

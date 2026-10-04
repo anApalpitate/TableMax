@@ -28,8 +28,19 @@ export const displayChannels = {
   changed: 'tablemax:display:changed',
 } as const;
 
+export interface WindowSnapshot {
+  fullscreen: boolean;
+}
+
+export interface TablemaxWindow {
+  read(): Promise<WindowSnapshot>;
+  setFullscreen(fullscreen: boolean): Promise<WindowSnapshot>;
+  subscribe(listener: (snapshot: WindowSnapshot) => void): () => void;
+}
+
 declare global {
   interface Window {
     tablemaxDisplay?: TablemaxDisplay;
+    tablemaxWindow?: TablemaxWindow;
   }
 }

@@ -154,6 +154,10 @@ try {
 
   await host.evaluate(() => history.pushState(null, '', '/host/game'));
   await host.evaluate(() => window.tablemaxDisplay.read());
+  assert.equal(
+    typeof (await host.evaluate(() => window.tablemaxWindow.read())).fullscreen,
+    'boolean',
+  );
   assert.equal(await host.evaluate(() => window.tablemaxAudio.connect()), true);
   assert.equal(
     await host.evaluate(() => window.tablemaxAudio.claimEvent('safety-spa')),
@@ -161,6 +165,10 @@ try {
   );
   await host.evaluate(() => history.pushState(null, '', '/player/game'));
   await assert.rejects(host.evaluate(() => window.tablemaxDisplay.read()));
+  await assert.rejects(host.evaluate(() => window.tablemaxWindow.read()));
+  await assert.rejects(
+    host.evaluate(() => window.tablemaxWindow.setFullscreen(true)),
+  );
   await assert.rejects(
     host.evaluate(() => window.tablemaxAudio.claimEvent('safety-player')),
   );
@@ -171,6 +179,14 @@ try {
   );
 
   await assert.rejects(desktop.request('unrecognized-method'));
+  await assert.rejects(host.evaluate(() => window.tablemaxWindow.read(true)));
+  await assert.rejects(
+    host.evaluate(() => window.tablemaxWindow.setFullscreen('true')),
+  );
+  await assert.rejects(
+    host.evaluate(() => window.tablemaxWindow.setFullscreen(true, false)),
+  );
+  const beforeWindow = await host.evaluate(() => window.tablemaxWindow.read());
   await assert.rejects(host.evaluate(() => window.tablemaxDisplay.read(true)));
   await assert.rejects(
     host.evaluate(() =>
@@ -200,7 +216,16 @@ try {
     () => Promise.resolve(host.frames().length > 1),
     'Test iframe missing',
   );
+  assert.equal(
+    await host.frames()[1].evaluate(() => typeof window.tablemaxWindow),
+    'undefined',
+  );
   await host.frames()[1].evaluate(() => {
+    window.chrome?.webview?.postMessage({
+      id: 99998,
+      method: 'window.setFullscreen',
+      params: [true],
+    });
     window.chrome?.webview?.postMessage({
       id: 99999,
       method: 'display.update',
@@ -211,6 +236,10 @@ try {
   assert.deepEqual(
     (await host.evaluate(() => window.tablemaxDisplay.read())).preferences,
     before.preferences,
+  );
+  assert.deepEqual(
+    await host.evaluate(() => window.tablemaxWindow.read()),
+    beforeWindow,
   );
   await host.evaluate(() => document.getElementById('security-frame').remove());
   evidence.checks.push(

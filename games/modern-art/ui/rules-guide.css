@@ -8,14 +8,12 @@
   display: grid;
   gap: 12px;
 }
-.ma-rulebook__auctions > div {
-  display: flex;
-  gap: 14px;
+.ma-rulebook__auctions > section {
   padding: 14px;
   border: 1px solid var(--rules-line);
   border-radius: 10px;
 }
-.ma-rulebook__auctions > div > span {
+.ma-rulebook__auction-mark {
   display: grid;
   place-items: center;
   align-self: start;
@@ -25,6 +23,82 @@
   border: 2px solid var(--rules-ink);
   border-radius: 8px;
   flex-shrink: 0;
+}
+.ma-rulebook__auctions h4 {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.ma-rulebook__diagram {
+  background: #fff8eb;
+  border: 1px solid #d8c09c;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.ma-rulebook__diagram img {
+  display: block;
+  width: 100%;
+}
+.ma-rulebook__diagram figcaption {
+  padding: 8px 12px;
+}
+.ma-rulebook__flow {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  gap: 8px;
+  padding: 12px;
+  margin: 0;
+}
+.ma-rulebook__flow li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex: 1 1 150px;
+  font-size: 18px;
+  color: #513723;
+}
+.ma-rulebook__flow li > b {
+  margin-left: auto;
+}
+.ma-rulebook__step-number {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #80502d;
+  color: white;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.ma-rulebook__payment,
+.ma-rulebook__boundaries {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 12px 12px;
+  font-size: 18px;
+}
+.ma-rulebook__boundaries p {
+  margin: 0;
+}
+.ma-rulebook__table {
+  border-collapse: collapse;
+  width: calc(100% - 24px);
+  margin: 12px;
+  font-size: 16px;
+}
+.ma-rulebook__table th,
+.ma-rulebook__table td {
+  padding: 9px 6px;
+  text-align: center;
+  border-bottom: 1px solid #d8c09c;
+}
+.ma-rulebook__table caption {
+  text-align: left;
+  padding-bottom: 8px;
+  font-size: 18px;
 }
 .ma-rulebook__auctions svg {
   width: 34px;
@@ -37,16 +111,33 @@
   background: var(--rules-paper);
 }
 @media (max-width: 420px) {
-  .ma-rulebook__auctions > div {
+  .ma-rulebook__auctions > section {
     padding: 10px;
     gap: 10px;
   }
-  .ma-rulebook__auctions > div > span {
+  .ma-rulebook__auction-mark {
     width: 36px;
     height: 36px;
   }
   .ma-rulebook__auctions svg {
     width: 26px;
     height: 26px;
+  }
+  .ma-rulebook__payment,
+  .ma-rulebook__boundaries {
+    grid-template-columns: 1fr;
+  }
+  .ma-rulebook__flow {
+    flex-direction: column;
+  }
+  .ma-rulebook__flow li {
+    flex-basis: auto;
+  }
+  .ma-rulebook__flow li > b {
+    transform: rotate(90deg);
+  }
+  .ma-rulebook__table th,
+  .ma-rulebook__table td {
+    padding: 8px 2px;
   }
 }

@@ -118,7 +118,7 @@ const cases = [
     dataDir: modern?.cases.find((c) => c.id === 'offer').dataDir,
     players: modern?.players,
     root: '.ma-screen',
-    images: 4,
+    images: 9,
   },
   {
     id: 'power-grid',

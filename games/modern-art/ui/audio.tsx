@@ -24,6 +24,8 @@ import roundStart from '../../../assets/games/modern-art/audio/round-start-v2.wa
 import roundResult from '../../../assets/games/modern-art/audio/round-result-v2.wav';
 import matchResult from '../../../assets/games/modern-art/audio/match-result-v2.wav';
 import error from '../../../assets/games/modern-art/audio/error-v2.wav';
+import timeElapsed from '../../../assets/games/modern-art/audio/time-elapsed-v2.wav';
+import { ModernArtTimerFeedback } from './timer-feedback';
 
 const sources: Record<ModernArtSoundCue, string> = {
   offer,
@@ -63,6 +65,7 @@ export function ModernArtSoundControl({
   disabled = false,
   canPlay = true,
   localOnly = false,
+  timer = null,
 }: {
   feedback: RoomFeedback | null;
   game: ModernArtView | null;
@@ -71,6 +74,7 @@ export function ModernArtSoundControl({
   canPlay?: boolean;
   /** Phone sounds have their own device preference and no desktop claim. */
   localOnly?: boolean;
+  timer?: { key: string; remainingMs: number; running: boolean } | null;
 }) {
   const muteKey = localOnly ? phoneMuteKey : desktopMuteKey;
   const [enabled, setEnabled] = useState(() => preference(muteKey));
@@ -80,6 +84,7 @@ export function ModernArtSoundControl({
   const player = useRef<ModernArtSoundPlayer | null>(null);
   const permission = useRef(0);
   const unlockAttempt = useRef(0);
+  const reminders = useRef(new ModernArtTimerFeedback());
   useEffect(() => {
     // Reuse the same phone decoder across the box route: some mobile browsers
     // grant gesture playback to the element rather than the whole document.
@@ -181,6 +186,45 @@ export function ModernArtSoundControl({
       })
       .catch(() => undefined);
   }, [errorId, feedback, enabled, disabled, canPlay, localOnly]);
+  const timerKey = timer?.key;
+  const timerRemaining = timer?.remainingMs;
+  const timerRunning = timer?.running;
+  useEffect(() => {
+    if (!timerKey || timerRemaining === undefined || timerRunning === undefined)
+      return;
+    // Consume the crossing even when muted, disconnected, or not the sound owner.
+    if (
+      !reminders.current.accept(timerKey, timerRemaining, timerRunning) ||
+      !enabled ||
+      disabled ||
+      !canPlay ||
+      document.hidden ||
+      (localOnly && !phoneUnlocked)
+    )
+      return;
+    const permit = permission.current;
+    const playback = player.current;
+    void Promise.resolve(
+      localOnly ? true : (window.tablemaxAudio?.claimEvent(timerKey) ?? true),
+    )
+      .then((accepted) => {
+        if (
+          accepted &&
+          permission.current === permit &&
+          player.current === playback
+        )
+          playback?.enqueue(timeElapsed);
+      })
+      .catch(() => undefined);
+  }, [
+    timerKey,
+    timerRemaining,
+    timerRunning,
+    enabled,
+    disabled,
+    canPlay,
+    localOnly,
+  ]);
   const label = disabled
     ? '当前暂不播放提示音'
     : blocked && canPlay && enabled

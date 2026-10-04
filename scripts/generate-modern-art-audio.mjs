@@ -5,14 +5,27 @@ import { resolve } from 'node:path';
 
 const rate = 24000;
 const version = 2;
+const timerOnly = process.argv.includes('--time-reminder');
 const output = resolve('assets/games/modern-art/audio');
 const evidence = resolve(
-  'artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio-generation',
+  timerOnly
+    ? 'artifacts/maintenance/v1.0.2/modern-art-polish-20261005/audio-generation'
+    : 'artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio-generation',
 );
 const representativeOnly = process.argv.includes('--representatives');
+assert.ok(!(timerOnly && representativeOnly));
 const targetRms = 0.075;
 const peakCeiling = 0.4;
 const profiles = {
+  'time-elapsed': {
+    seconds: 0.34,
+    description:
+      'A single gentle gallery reminder: warm wooden strike and soft glass harmonic; no ticking or alarm loop',
+    events: [
+      { type: 'wood', at: 0, pitch: 330, gain: 0.3 },
+      { type: 'glass', at: 0.035, pitch: 659.25, gain: 0.28 },
+    ],
+  },
   offer: {
     seconds: 0.3,
     description: 'Paper movement and a small wooden placement',
@@ -477,9 +490,11 @@ function measurements(pcm) {
 
 await mkdir(output, { recursive: true });
 await mkdir(evidence, { recursive: true });
-const ids = representativeOnly
-  ? ['auction-open', 'auction-sealed', 'double-open']
-  : Object.keys(profiles);
+const ids = timerOnly
+  ? ['time-elapsed']
+  : representativeOnly
+    ? ['auction-open', 'auction-sealed', 'double-open']
+    : Object.keys(profiles);
 const assets = [];
 for (const id of ids) {
   const rendered = render(id, profiles[id]);
@@ -552,7 +567,27 @@ await writeFile(
   ),
   preview,
 );
-if (!representativeOnly) {
+if (timerOnly) {
+  const manifestPath = resolve('assets/games/modern-art/manifest.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  manifest.audio.assets = [
+    ...manifest.audio.assets.filter((asset) => asset.cue !== 'time-elapsed'),
+    ...assets,
+  ];
+  manifest.audio.totalBytes = manifest.audio.assets.reduce(
+    (total, asset) => total + asset.bytes,
+    0,
+  );
+  manifest.audio.timerReminder = {
+    policy:
+      'Once per saved decision clock crossing zero; no action, penalty, replay or automatic auction completion; shares mute, gesture unlock and desktop owner claim',
+    measurementEvidence:
+      'artifacts/maintenance/v1.0.2/modern-art-polish-20261005/audio-generation/measurements-v2.json',
+    integrationStatus: 'Generated and measured; application playback pending',
+    humanListeningVerified: false,
+  };
+  await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
+} else if (!representativeOnly) {
   const manifestPath = resolve('assets/games/modern-art/manifest.json');
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
   manifest.audio = {

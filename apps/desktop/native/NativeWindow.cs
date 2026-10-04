@@ -24,6 +24,7 @@ namespace TableMax.Desktop
         private readonly bool lanPhone;
         private readonly MenuStrip menu = new MenuStrip();
         private Rectangle normalBounds;
+        private FormWindowState normalWindowState;
         private bool fullscreen, applyingDisplay;
         private DisplayGeometry simulated;
         private readonly int initialWidth, initialHeight;
@@ -35,10 +36,10 @@ namespace TableMax.Desktop
         public bool AudioReady { get; set; }
         public DisplayPreferences Preferences { get; set; }
         public string Url => !IsDisposed && browser.CoreWebView2 != null ? browser.CoreWebView2.Source : "";
-        protected override bool ShowWithoutActivation => context?.Background == true;
+        protected override bool ShowWithoutActivation => context?.Testing == true || context?.Background == true;
         protected override CreateParams CreateParams
         {
-            get { var value = base.CreateParams; if (context?.Background == true) value.ExStyle |= 0x08000080; return value; }
+            get { var value = base.CreateParams; if (context?.Testing == true || context?.Background == true) value.ExStyle |= 0x08000000; if (context?.Background == true) value.ExStyle |= 0x80; return value; }
         }
         public NativeWindow(DesktopContext context, int id, string role, int width, int height, bool managed, string profile, string approvedOrigin, bool lanPhone)
         {
@@ -206,6 +207,7 @@ namespace TableMax.Desktop
             var full = new ToolStripMenuItem("切换全屏") { ShortcutKeys = Keys.F11 }; full.Click += (_, __) => ToggleFullscreen(); screens.DropDownItems.Add(full);
             screens.DropDownOpening += (_, __) =>
             {
+                full.Checked = fullscreen;
                 while (screens.DropDownItems.Count > 1) screens.DropDownItems.RemoveAt(1);
                 foreach (var screen in Screen.AllScreens.Select((value, index) => new { value, index }))
                 {
@@ -269,21 +271,30 @@ namespace TableMax.Desktop
             if (menu.Visible) menu.Focus();
             ApplyDisplay();
         }
-        public void ToggleFullscreen()
+        public object WindowSnapshot() => new { fullscreen };
+        public void ToggleFullscreen() => SetFullscreen(!fullscreen);
+        public object SetFullscreen(bool value)
         {
-            if (!fullscreen)
+            if (fullscreen == value) return WindowSnapshot();
+            if (value)
             {
-                normalBounds = Bounds; fullscreen = true; WindowState = FormWindowState.Normal;
+                normalWindowState = WindowState;
+                normalBounds = WindowState == FormWindowState.Normal ? Bounds : RestoreBounds;
+                var target = Screen.FromHandle(Handle).Bounds;
+                fullscreen = true; WindowState = FormWindowState.Normal;
                 FormBorderStyle = FormBorderStyle.None;
-                if (context.Background) ClientSize = Screen.FromHandle(Handle).Bounds.Size;
-                else Bounds = Screen.FromHandle(Handle).Bounds;
+                if (context.Background) ClientSize = target.Size;
+                else Bounds = target;
             }
             else
             {
                 fullscreen = false; FormBorderStyle = context.Background ? FormBorderStyle.None : FormBorderStyle.Sizable;
                 Bounds = normalBounds;
+                WindowState = normalWindowState;
             }
             ApplyDisplay();
+            if (Managed && context.Allowed(Url, Role)) Changed("window", WindowSnapshot());
+            return WindowSnapshot();
         }
         private void MoveToScreen(Screen screen)
         {
@@ -295,7 +306,7 @@ namespace TableMax.Desktop
         {
             var ratio = NativeMethods.Scale(Handle);
             var bounds = Bounds;
-            return new { id = Id, role = Role, managed = Managed, url = Url, visible = Visible && !context.Background, rendered = Visible, content = new[] { (int)Math.Round(browser.ClientSize.Width / ratio), (int)Math.Round(browser.ClientSize.Height / ratio) }, fullscreen, zoom = browser.ZoomFactor, bounds = DesktopContext.RectangleValue(bounds), display = ApplyDisplay(), bridgeSourcePath = lastMessageSourcePath, bridgeCurrentPath = lastMessageCurrentPath };
+            return new { id = Id, role = Role, managed = Managed, url = Url, visible = Visible && !context.Background, rendered = Visible, content = new[] { (int)Math.Round(browser.ClientSize.Width / ratio), (int)Math.Round(browser.ClientSize.Height / ratio) }, fullscreen, borderStyle = FormBorderStyle.ToString(), showInTaskbar = ShowInTaskbar, foregroundTest = context.ForegroundTest, windowState = WindowState.ToString(), restoreBounds = DesktopContext.RectangleValue(RestoreBounds), zoom = browser.ZoomFactor, bounds = DesktopContext.RectangleValue(bounds), display = ApplyDisplay(), bridgeSourcePath = lastMessageSourcePath, bridgeCurrentPath = lastMessageCurrentPath };
         }
         public async Task<object> TestOperation(Dictionary<string, object> parameters)
         {
@@ -308,7 +319,10 @@ namespace TableMax.Desktop
                     var bounds = Json.Value(parameters, "bounds") as Dictionary<string, object> ?? parameters;
                     if (fullscreen) ToggleFullscreen();
                     Bounds = new Rectangle(context.Background ? -20000 : (int)Json.Number(bounds, "x"), context.Background ? -20000 : (int)Json.Number(bounds, "y"), (int)Json.Number(bounds, "width", 1280), (int)Json.Number(bounds, "height", 800)); break;
-                case "fullscreen": if (Json.Bool(parameters, "value", !fullscreen) != fullscreen) ToggleFullscreen(); break;
+                case "fullscreen": SetFullscreen(Json.Bool(parameters, "value", !fullscreen)); break;
+                case "menu-fullscreen": ((ToolStripMenuItem)((ToolStripMenuItem)menu.Items[0]).DropDownItems[0]).PerformClick(); break;
+                case "window-state":
+                    WindowState = Json.String(parameters, "value") == "Maximized" ? FormWindowState.Maximized : FormWindowState.Normal; break;
                 case "close": Close(); return true;
                 case "hide": if (!context.Background) Hide(); return true;
                 case "show": Show(); break;

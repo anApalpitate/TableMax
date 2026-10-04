@@ -1,12 +1,30 @@
 # 首版交付与验收
 
-当前本地便携包见下节盒子 debug；线上已发布包见 [v1.0.1 GitHub Release](../archive/acceptance-2026-10-01-to-04.md#101github-release2026-10-03)。本页保留当前交付验证与近期本地维护；较早完整对局、AC 对照、哈希和证据集中在 [历史验收](../archive/acceptance-2026-10-01-to-04.md)。
+当前本地便携包见下节现代艺术优化；线上已发布包见 [v1.0.1 GitHub Release](../archive/acceptance-2026-10-01-to-04.md#101github-release2026-10-03)。本页保留当前交付验证与近期本地维护；较早完整对局、AC 对照、哈希和证据集中在 [历史验收](../archive/acceptance-2026-10-01-to-04.md)。
+
+## 1.0.2：现代艺术优化（2026-10-05）
+
+沿用 **1.0.2** 更新行情历史／本轮价值拆分、五画家总量徽章、Daniel 梅紫识别、辅助提示轮播、紧凑收藏与手机摘要、图形座号、五类拍卖主题、合法双拍呼吸虚线，以及不显示秒数的提醒进度条。规则帮助使用九张原创逻辑场景和代码排版的准确规则；原图和旧截图保留。原生窗口全屏控制与网页状态同步属于本次共同修改，游戏协议、存档和采用规则版本保持不变。
+
+最终 [运行 ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip)为 **39,928,133 字节**，实际解压 **143 文件／94,852,920 字节**，95 MB 工程预算余 **147,080 字节**，双 100 MB 硬门禁通过；SHA-256：`29c09c1de2db60d6cd33d627b56122dd13c5092719a02c6c8e1fa762371886d2`。[包记录](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/package-final.json)及 [逐文件清单](../../artifacts/releases/TableMax-1.0.2-win-x64-manifest.json)对应同一包。其他聊天正在修改宝可梦／电力公司，当前交付使用 [隔离构建快照](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/build-snapshot.json)：HEAD 基线加本次现代艺术及原生全屏源码，保留其他聊天工作但不混入本包。[隔离构建](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/build-isolated.log)与 [打包日志](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/package-isolated.log)保留实际执行记录。
+
+同一 `29c09…` ZIP 的 [规则验收](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/rules/portable-final-02/results.json)通过 **9 项／9 张截图／33.66 秒**：九图本地解码、三端及九组尺寸／密度、章节定位、焦点恢复和保存状态不变。[到时声音验收](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/audio/portable-timer-final-02/results.json)通过 **9 项／41.06 秒**：17 个 WAV 原生解码、一次提醒、暂停、静音消耗、重复零采样／刷新不补播及到时后仍可合法竞价。实际 WebView2 播放事件不等于真人听感或实体手机扬声器验证。九图 **288,028 字节**加提醒音 **16,364 字节**共 **304,392 字节**，满足 370 KB 生产资源预算；提示词、原图与哈希见 [素材证据](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/imagegen/evidence.json)及游戏资源清单。
+
+同一 `29c09…` ZIP 的 [结算／终局 UI 矩阵](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/ui-v2/portable-lifecycle-final-02/results.json)通过 **96 布局／96 截图／2,102 断言／204.23 秒**，覆盖三／四／五人、720p 至 4K、125%／150% 密度和短手机，包含底部冠军及现金可达性；逐一核对全部 143 个解压文件。[全屏包完整性](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/fullscreen-portable-integrity-final-02/results.json)将同哈希 ZIP 与实际运行的解压目录绑定；该目录的 [隐藏原生全屏](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/fullscreen-portable-final-02/results.json)通过 **5 项**，以及 [普通窗口前台全屏](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/fullscreen-portable-foreground-final-02/results.json)通过 **4 项**，核对网页按钮、F11、菜单同步、Escape 浮窗优先、原窗口尺寸与最大化恢复、两窗口独立状态。尺寸与密度模拟不等于实体手机、硬件 DPI 或多显示器验收；本轮网络为回环地址，未修改防火墙。
+
+同一 `29c09…` ZIP 的 [五人完整对局及恢复验收](../../artifacts/maintenance/v1.0.2/modern-art-audit-20261004/runtime/modern-polish-final-04/results.json)通过 **143 个合法动作／四轮／81 张截图／230.97 秒**：冠军首屏及再玩、并发暗标保密、公开旧价拒绝、独立手机身份断网、回退／SQLite 重启、房主授权与两游戏切换后五身份保留、主题 CSS 隔离；测试桌面已关闭，服务不再可达。[最终原生桥接安全检查](../../artifacts/maintenance/v1.0.2/webview2/safety-portable-final-02/results.json)通过 **10 项**，绑定同一最终包哈希。
+
+[隔离类型检查](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/typecheck-isolated.log)、[Lint](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/lint-isolated.log)及 [6 项相关测试](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/tests-isolated-focused.log)通过；此前 [42 文件／285 项测试](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/tests-source.log)通过（87.07 秒），保留当时源码验证范围。[source-06 失败结果](../../artifacts/maintenance/v1.0.2/modern-art-audit-20261004/runtime/modern-polish-source-06/results.json)继续保留：四轮流程完成后两条本地 WAV 的导航／停止取消被测试器记为 `net::ERR_ABORTED`，不将其整体记为通过。随后仅修订测试器对同源已知 WAV 的明确停止／导航取消分类，生产播放实现未因此修改；上述 `final-04` 重新验收通过，该次未发生 WAV 取消。
+
+旧 `04e28ddfc9f047b2e5e44dcc6a16d420ce5bc9bd7ab19744e504c93879a20d02` 包的 [完整 UI 矩阵](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/ui-v2/portable-final/results.json)通过 **411 布局／423 截图／12,353 断言／583.08 秒**；该包的 [规则](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/rules/portable-final/results.json)与 [声音](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/audio/portable-timer-final/results.json)结果保持历史归属，不作为最终 `29c09…` 包全矩阵通过结论。
+
+本次测试进程全部退出后，[releases 清理预览](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/releases-preview-final.log)核对保留当前 ZIP／清单，发现两个旧打包目录候选共 **459,560,533 字节**。其他聊天的宝可梦隔离验证仍运行 `TableMax.exe`（PID 13200），触发工具全局进程保护，故延期 Apply，零删除，不结束其他聊天进程。收尾维护仅执行 [只读预览](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/maintenance-preview-final.log)，不将 releases 记为已经只剩两个文件，也不为达到容量目标扩大清理范围；功能与本次提交不因跨聊天清理延期而改记未验收。
 
 ## 1.0.2：盒子 debug（2026-10-04）
 
 按用户批准计划完成座位移除与人机改名、外层生命周期操作、原子结束并切换、上传裁剪头像、状态徽章、图标与两种设置界面、游戏特异人机说明。管理员及手机房主的权限边界、结束后移除生成准备大厅、头像同事务保存和宝可梦无计时分别更新在 [平台规格](phase-02-platform-spec.md)、[工程结构](architecture.md)及 [人机规格](bot-players.md)。版本沿用 **1.0.2**，不推送。
 
-最终 [运行 ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip)为 **40,030,975 字节**，实际解压 **137 文件／94,928,396 字节**，95 MB 工程预算余 **71,604 字节**，双 100 MB 硬门禁通过。SHA-256：`467e841f18717c11176aa23ae940b21ccf44f46a190c7fe1eec44d124b7ab35c`。只生成一次最终 ZIP，实际解压逐文件大小与哈希匹配 [清单](../../artifacts/releases/TableMax-1.0.2-win-x64-manifest.json)；上一 `e665…` 包和清单保留在 `artifacts/maintenance/v1.0.2/box-debug-20261004/previous-release/`，原有历史结论仍归属原包。
+最终 [运行 ZIP](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/previous-release/TableMax-1.0.2-win-x64.zip)为 **40,030,975 字节**，实际解压 **137 文件／94,928,396 字节**，95 MB 工程预算余 **71,604 字节**，双 100 MB 硬门禁通过。SHA-256：`467e841f18717c11176aa23ae940b21ccf44f46a190c7fe1eec44d124b7ab35c`。只生成一次最终 ZIP，实际解压逐文件大小与哈希匹配 [清单](../../artifacts/maintenance/v1.0.2/modern-art-polish-20261005/previous-release/TableMax-1.0.2-win-x64-manifest.json)；上一 `e665…` 包和清单保留在 `artifacts/maintenance/v1.0.2/box-debug-20261004/previous-release/`，原有历史结论仍归属原包。
 
 最终 [40 文件／279 项测试](../../artifacts/maintenance/v1.0.2/box-debug-20261004/tests-final.log)通过（90.95 秒），覆盖权限／撤权／迟到动作、结束移除恢复、加载与保存失败、跨实例丢确认重试、规范 PNG／CRC／尺寸与伪装输入、实际 SQLite 图片／身份／journal 回滚、重复图片、重启和入座重试。类型、Lint、格式及构建通过，日志位于同一证据目录。首轮旧宝可梦计时断言失败已按新要求修订；早期界面驱动错误和 720p 间距失败保留原结果，成功复测不覆盖失败记录。
 
@@ -22,7 +40,7 @@ releases 清理已预览唯一打包中间目录 **229,911,685 字节**。首次
 
 按用户要求沿用 **1.0.2** 重新导出当前本地 Windows 包，本次不改游戏实现。日常本地导出只提供程序 ZIP 和逐文件清单，源码 ZIP 仅在用户明确要求发布 GitHub 时导出；本轮未生成或向 releases 复制源码 ZIP。
 
-当时 [Windows ZIP](../../artifacts/maintenance/v1.0.2/box-debug-20261004/previous-release/TableMax-1.0.2-win-x64.zip)为 **40,023,501 字节**，实际解压 **136 文件／94,899,866 字节**，95 MB 工程预算余 **100,134 字节**，双 100 MB 硬门禁通过。SHA-256：`e6656e8d08b9fc1afa2242400844175e793637081635fe45bd41ce368d6b6fe6`；[逐文件清单](../../artifacts/releases/TableMax-1.0.2-win-x64-manifest.json)与该包配套。最终 [打包记录](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/package-run.json)为 **16.488 秒／exit 0**。首次外层 PowerShell 日志包装器触发 `NativeCommandError`，未写完成记录，[失败日志](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/package-wrapper-failed.log)及 [记录](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/package-wrapper-failed.json)保留；修正外层记录后成功，不将其归为产品构建错误。
+当时 [Windows ZIP](../../artifacts/maintenance/v1.0.2/box-debug-20261004/previous-release/TableMax-1.0.2-win-x64.zip)为 **40,023,501 字节**，实际解压 **136 文件／94,899,866 字节**，95 MB 工程预算余 **100,134 字节**，双 100 MB 硬门禁通过。SHA-256：`e6656e8d08b9fc1afa2242400844175e793637081635fe45bd41ce368d6b6fe6`；[逐文件清单](../../artifacts/maintenance/v1.0.2/box-debug-20261004/previous-release/TableMax-1.0.2-win-x64-manifest.json)与该包配套。最终 [打包记录](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/package-run.json)为 **16.488 秒／exit 0**。首次外层 PowerShell 日志包装器触发 `NativeCommandError`，未写完成记录，[失败日志](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/package-wrapper-failed.log)及 [记录](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/package-wrapper-failed.json)保留；修正外层记录后成功，不将其归为产品构建错误。
 
 [包对比](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/package-audit.json)核对上一 `7801…` 包：135 文件大小与 SHA-256 相同，无新增或删项；只有重新构建的 `TableMax.exe` 哈希不同，大小仍为 **183,808 字节**。该比较确定变化文件，尚未逐字节定位 EXE 内部差异，不能据此断言只变了 Git 编译标记。旧程序与清单保留在 `reexport-20261004/before/`，完整电力公司验收见 [历史记录](../archive/acceptance-2026-10-01-to-04.md#102电力公司-debug横向地图价区与声画2026-10-04)。
 

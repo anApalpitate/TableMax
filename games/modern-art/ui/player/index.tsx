@@ -2,7 +2,14 @@ import { useState } from 'react';
 import type { Action, ModernArtView } from '../view';
 import { ArtCard } from '../ArtCard';
 import { money } from '../public/labels';
-import { PaintingSortControl } from '../painting-display';
+import {
+  PaintingSortControl,
+  ArtistMark,
+  AuctionMark,
+} from '../painting-display';
+import { artistPresentation } from '../artist-presentation';
+import { auctionNames } from '../public/labels';
+import type { CSSProperties } from 'react';
 import { sortPaintings, type PaintingSort } from '../sorting';
 
 type MoneyAction = Extract<Action, { amount: number }>;
@@ -173,6 +180,20 @@ export function PlayerControls({
         : '不买入';
   const decline = actions.find((action) => action.type === 'decline-double');
   const buy = actions.find((action) => action.type === 'buy');
+  const collection = sortPaintings(
+    view.players[self.seatId]?.collection ?? [],
+    sort,
+  );
+  const collectionGroups = [
+    ...new Set(
+      collection.map((card) => `${card.artistId}:${card.auctionKind}`),
+    ),
+  ].map((key) => {
+    const cards = collection.filter(
+      (card) => `${card.artistId}:${card.auctionKind}` === key,
+    );
+    return { card: cards[0]!, count: cards.length };
+  });
   const actingSeats =
     view.auction?.actingSeats ?? (view.turnSeat ? [view.turnSeat] : []);
   const acting = actingSeats[0]
@@ -288,7 +309,7 @@ export function PlayerControls({
               type="button"
               data-card-id={card.id}
               data-ma-action={action?.type}
-              className={`ma-hand__card ${action ? 'ma-hand__card--available' : ''}`}
+              className={`ma-hand__card ${action ? 'ma-hand__card--available' : ''} ${action?.type === 'add-double' && !locked && !activityMessage ? 'ma-hand__card--double' : ''}`}
               aria-label={`${action?.type === 'add-double' ? '追加' : action ? '上拍' : '手牌'} ${artist?.name ?? card.artistId} ${card.title}`}
               disabled={locked || !action}
               onClick={() => {
@@ -306,18 +327,27 @@ export function PlayerControls({
           <h2>你的收藏</h2>
           <span>{view.players[self.seatId]?.collection.length ?? 0} 幅</span>
         </div>
-        <div className="ma-museum__collection">
-          {sortPaintings(view.players[self.seatId]?.collection ?? [], sort).map(
-            (card) => (
-              <ArtCard
-                key={card.id}
-                card={card}
-                artist={view.artists.find(
-                  (artist) => artist.id === card.artistId,
-                )}
-              />
-            ),
-          )}
+        <div className="ma-collection-summary">
+          {collectionGroups.map(({ card, count }) => (
+            <div
+              key={`${card.artistId}:${card.auctionKind}`}
+              style={
+                {
+                  '--ma-artist': artistPresentation[card.artistId].color,
+                } as CSSProperties
+              }
+            >
+              <span className="ma-collection-summary__artist">
+                <ArtistMark artistId={card.artistId} />
+                <strong>{artistPresentation[card.artistId].shortName}</strong>
+              </span>
+              <span className="ma-collection-summary__kind">
+                <AuctionMark kind={card.auctionKind} />
+                {auctionNames[card.auctionKind]}
+              </span>
+              <b>×{count}</b>
+            </div>
+          ))}
           {!view.players[self.seatId]?.collection.length && (
             <p className="ma-museum__empty">尚未收藏画作</p>
           )}

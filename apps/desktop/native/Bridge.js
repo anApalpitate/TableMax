@@ -7,7 +7,7 @@
     Object.defineProperty(window, '__tablemaxWindowId', { value: windowId });
   if (!managed || !window.chrome?.webview) return;
   const pending = new Map();
-  const listeners = { display: new Set(), audio: new Set() };
+  const listeners = { display: new Set(), audio: new Set(), window: new Set() };
   let sequence = 0;
   function request(method, params) {
     const id = ++sequence;
@@ -46,6 +46,13 @@
       subscribe: (listener) => subscribe('display', listener),
     }),
   });
+  Object.defineProperty(window, 'tablemaxWindow', {
+    value: Object.freeze({
+      read: (...args) => request('window.read', args),
+      setFullscreen: (...args) => request('window.setFullscreen', args),
+      subscribe: (listener) => subscribe('window', listener),
+    }),
+  });
   Object.defineProperty(window, 'tablemaxAudio', {
     value: Object.freeze({
       connect: (...args) => request('audio.connect', args),
@@ -55,13 +62,31 @@
     }),
   });
   // WebView2's native child HWND consumes accelerators before a WinForms form
-  // always receives them. Route only these two desktop keys through the same
+  // always receives them. Route desktop keys through the same
   // authorized top-frame message path.
+  let keyPending = false;
   window.addEventListener('keydown', (event) => {
     if (!event.isTrusted || event.repeat) return;
-    if (event.key === 'F11') {
-      event.preventDefault();
-      void request('window.fullscreen', []).catch(() => {});
+    if (
+      event.key === 'F11' ||
+      (event.key === 'Escape' && !document.querySelector('dialog[open]'))
+    ) {
+      if (keyPending) {
+        event.preventDefault();
+        return;
+      }
+      if (event.key === 'F11') event.preventDefault();
+      keyPending = true;
+      void request('window.read', [])
+        .then((state) =>
+          request('window.setFullscreen', [
+            event.key === 'F11' ? !state.fullscreen : false,
+          ]),
+        )
+        .catch(() => {})
+        .finally(() => {
+          keyPending = false;
+        });
     } else if (event.key === 'Alt') {
       event.preventDefault();
       void request('window.menu', []).catch(() => {});

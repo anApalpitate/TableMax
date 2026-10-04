@@ -37,7 +37,8 @@ namespace TableMax.Desktop
         public string DataDirectory { get; }
         public bool Testing { get; }
         public bool Checking { get; }
-        public bool Background => Testing || Checking;
+        public bool ForegroundTest => Testing && arguments.Contains("--tablemax-test-foreground");
+        public bool Background => (Testing && !ForegroundTest) || Checking;
         public string Origin { get; private set; }
         public int CdpPort { get; private set; }
         public CoreWebView2Environment Environment { get; private set; }
@@ -170,7 +171,7 @@ namespace TableMax.Desktop
         {
             if (quitting || string.IsNullOrEmpty(hostUrl)) return null;
             if (hostWindow == null || hostWindow.IsDisposed) hostWindow = await Open(hostUrl, "host", 1080, 800, true, "desktop");
-            else if (!Background) { if (hostWindow.WindowState == FormWindowState.Minimized) hostWindow.WindowState = FormWindowState.Normal; hostWindow.Show(); hostWindow.Activate(); NativeMethods.SetForegroundWindow(hostWindow.Handle); }
+            else if (!Background) { if (hostWindow.WindowState == FormWindowState.Minimized) hostWindow.WindowState = FormWindowState.Normal; hostWindow.Show(); if (!Testing) { hostWindow.Activate(); NativeMethods.SetForegroundWindow(hostWindow.Handle); } }
             return hostWindow;
         }
         public Task<NativeWindow> OpenPublic(string path = "/public") => Open(Origin + path, "public", 1280, 800, true, "desktop");
@@ -217,15 +218,18 @@ namespace TableMax.Desktop
             // WebView2's message Source can remain the committed document URL
             // after React changes its route with pushState. Both it and the
             // current route must retain this native window's origin and role.
-            if (!window.Managed || window.IsDisposed || !Allowed(source, window.Role) || !Allowed(window.Url, window.Role)) throw new UnauthorizedAccessException("仅 TableMax 桌面主窗口可以调用桌面功能。");
+            if (!window.Managed || window.IsDisposed || (window.Role != "host" && window.Role != "public") || !Allowed(source, window.Role) || !Allowed(window.Url, window.Role)) throw new UnauthorizedAccessException("仅 TableMax 桌面主窗口可以调用桌面功能。");
             var method = Json.String(message, "method");
             var parameters = Json.Value(message, "params") as object[];
             if (parameters == null) throw new ArgumentException("桌面请求参数无效。");
             switch (method)
             {
-                case "window.fullscreen":
+                case "window.read":
                     if (parameters.Length != 0) throw new ArgumentException("Invalid window request.");
-                    window.ToggleFullscreen(); return null;
+                    return window.WindowSnapshot();
+                case "window.setFullscreen":
+                    if (parameters.Length != 1 || !(parameters[0] is bool requestedFullscreen)) throw new ArgumentException("Invalid fullscreen state.");
+                    return window.SetFullscreen(requestedFullscreen);
                 case "window.menu":
                     if (parameters.Length != 0) throw new ArgumentException("Invalid window request.");
                     window.ToggleMenu(); return null;

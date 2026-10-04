@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
@@ -14,6 +14,13 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
 const portable = process.argv.includes('--portable');
+const executableArgument = process.argv.find((argument) =>
+  argument.startsWith('--executable='),
+);
+assert.ok(
+  !portable || !executableArgument,
+  'Explicit executable and portable archive selection are mutually exclusive',
+);
 const audit = process.argv.includes('--audit');
 const longNames = process.argv.includes('--long-names');
 const seatCount = Number(
@@ -60,12 +67,18 @@ await build({
   logLevel: 'silent',
 });
 const { bot } = require(join(work, 'driver.cjs'));
+const modernArtWavNames = (
+  await readdir('assets/games/modern-art/audio')
+).filter((name) => name.endsWith('.wav'));
 const verificationStarted = performance.now();
-let executablePath = desktopExecutable;
+let executablePath = executableArgument
+  ? resolve(executableArgument.slice('--executable='.length))
+  : desktopExecutable;
 const evidence = {
   startedAt: new Date().toISOString(),
   workDir: work,
   portable,
+  executablePath,
   audit,
   seatCount,
   longNames,
@@ -118,6 +131,7 @@ if (portable) {
     .update(await readFile(archive))
     .digest('hex');
   executablePath = join(extracted, 'TableMax.exe');
+  evidence.executablePath = executablePath;
 }
 const dataDir = join(work, 'data');
 evidence.dataDir = dataDir;
@@ -211,6 +225,17 @@ function observe(page) {
       evidence.requestFailures.push({
         url: request.url(),
         error: request.failure()?.errorText ?? null,
+        expectedMediaCancellation:
+          request.failure()?.errorText === 'net::ERR_ABORTED' &&
+          new URL(request.url()).origin === origin &&
+          modernArtWavNames.some((name) => {
+            const path = new URL(request.url()).pathname;
+            return (
+              path === '/assets/' + name ||
+              (path.startsWith('/assets/' + name.slice(0, -4) + '-') &&
+                path.endsWith('.wav'))
+            );
+          }),
         expectedNetworkOutage:
           expectedOfflinePages.has(page) &&
           request
@@ -431,7 +456,9 @@ async function capture(page, name, width, height, mobile = false) {
         );
         assert.ok(
           chip.number.right <= chip.status.x + 1 ||
-            chip.status.right <= chip.number.x + 1,
+            chip.status.right <= chip.number.x + 1 ||
+            chip.number.bottom <= chip.status.y + 1 ||
+            chip.status.bottom <= chip.number.y + 1,
           name + ': seat number and status do not overlap',
         );
         assert.ok(
@@ -466,7 +493,9 @@ async function capture(page, name, width, height, mobile = false) {
     if (!document.querySelector('.ma-screen:not(.player)')) return [];
     return [...document.querySelectorAll('.ma-market > *, .ma-center > *')]
       .filter((element) => {
+        if (element.getClientRects().length === 0) return false;
         const child = element.getBoundingClientRect();
+        if (child.width === 0 || child.height === 0) return false;
         const parent = element.parentElement.getBoundingClientRect();
         return child.top < parent.top - 2 || child.bottom > parent.bottom + 2;
       })
@@ -642,11 +671,16 @@ async function basicsAudit(hostSocket) {
     assert.equal(after.self.seatId, before.self.seatId);
   }
   await selector.selectOption('artist');
-  const timer = page.getByRole('timer');
-  const frozen = await timer.getAttribute('data-remaining-seconds');
-  await sleep(1100);
-  assert.equal(await timer.getAttribute('data-remaining-seconds'), frozen);
-  assert.equal(await timer.getAttribute('data-clock-running'), 'false');
+  assert.equal(
+    await page.getByRole('timer').count(),
+    0,
+    'Paused offer has no numeric timer',
+  );
+  assert.equal(
+    await page.getByRole('progressbar').count(),
+    0,
+    'Paused offer has no countdown progress',
+  );
   await send(hostSocket, hostToken, { type: 'set-countdown', seconds: 5 });
   await send(hostSocket, hostToken, { type: 'resume' });
   const running = await view(phones[0].token);
@@ -679,39 +713,45 @@ async function basicsAudit(hostSocket) {
       ),
       'Offer actor complete in accessible title',
     );
-    const collision = await phones[index].page.evaluate(() => {
-      const actor = document
-        .querySelector('.ma-auction h2')
-        .getBoundingClientRect();
-      const timer = document.querySelector('[role="timer"]');
-      if (!timer) return null;
-      const clock = timer.getBoundingClientRect();
-      return (
-        Math.min(actor.right, clock.right) - Math.max(actor.x, clock.x) > 1 &&
-        Math.min(actor.bottom, clock.bottom) - Math.max(actor.y, clock.y) > 1
-      );
-    });
-    const own = await view(phones[index].token);
     assert.equal(
-      collision,
-      own.self.seatId === before.gameView.turnSeat ? false : null,
-      'Acting phone has unobscured clock; waiting phone has no private decision clock',
+      await phones[index].page.getByRole('timer').count(),
+      0,
+      'Offer has no numeric timer',
+    );
+    assert.equal(
+      await phones[index].page.getByRole('progressbar').count(),
+      0,
+      'Offer has no countdown progress',
     );
   }
-  await until(
-    async () => (await timer.getAttribute('data-remaining-seconds')) === '0',
-    'Reminder expires in ordinary play',
-    9000,
-  );
-  const expired = await view(phones[0].token);
+  await sleep(1100);
+  const unchangedOffer = await view(phones[0].token);
   assert.equal(
-    expired.revision,
+    unchangedOffer.revision,
     running.revision,
-    'Expired reminder does not submit or advance',
+    'Offer display does not submit or advance',
   );
-  assert.equal(expired.decisionId, running.decisionId);
-  assert.deepEqual(expired.gameView, running.gameView);
-  await capture(page, 'normal-offer-clock-expired-360');
+  assert.equal(unchangedOffer.decisionId, running.decisionId);
+  assert.deepEqual(unchangedOffer.gameView, running.gameView);
+  const clockEvidencePath = resolve(
+    'artifacts/maintenance/v1.0.2/modern-art-polish-20261005/audio/portable-timer-final/results.json',
+  );
+  if (portable) {
+    try {
+      const clockEvidence = JSON.parse(
+        await readFile(clockEvidencePath, 'utf8'),
+      );
+      evidence.auctionClockIndependentEvidence = clockEvidencePath;
+      evidence.auctionClockIndependentResult =
+        clockEvidence.archiveSha256 === evidence.archiveSha256
+          ? clockEvidence.result
+          : 'unverified: evidence belongs to a different archive';
+    } catch (error) {
+      evidence.auctionClockIndependentResult =
+        'unverified: independent evidence unavailable';
+      evidence.auctionClockIndependentError = error.message;
+    }
+  }
   await send(hostSocket, hostToken, { type: 'pause' });
   assert.equal(
     await page.locator('.ma-waiting').count(),
@@ -729,22 +769,21 @@ async function basicsAudit(hostSocket) {
     'Paused offer does not repeat empty waiting stage',
   );
   assert.equal(
-    await timer.count(),
-    1,
-    'Paused offer retains exactly one clock',
+    await page.getByRole('progressbar').count(),
+    0,
+    'Paused offer retains no clock',
   );
   assert.equal(
     await page.locator('.ma-notice > span').getAttribute('title'),
     '游戏已暂停',
   );
-  assert.equal(await timer.getAttribute('data-clock-running'), 'false');
   await send(hostSocket, hostToken, {
     type: 'set-countdown',
     seconds: before.countdownSeconds,
   });
   await projectionAudit('initial-sorting-clock');
   evidence.checks.push(
-    'Original/artist/auction sorting keeps saved hand IDs, identity and decision; paused reminder freezes and normal reminder expiry never acts; resumed 24-character offer and other-phone waiting fit 320/360',
+    'Original/artist/auction sorting keeps saved hand IDs, identity and decision; offer has no timer/progress while paused or running and never advances itself; resumed 24-character offer and other-phone waiting fit 320/360; auction clock independent audit is recorded separately when available for this exact archive',
   );
 }
 async function installMediaProbe(page) {
@@ -2427,7 +2466,10 @@ try {
       'No unexpected browser console errors',
     );
     assert.deepEqual(
-      evidence.requestFailures.filter((error) => !error.expectedNetworkOutage),
+      evidence.requestFailures.filter(
+        (error) =>
+          !error.expectedNetworkOutage && !error.expectedMediaCancellation,
+      ),
       [],
       'No unexpected request failures',
     );
