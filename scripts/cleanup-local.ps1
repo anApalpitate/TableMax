@@ -313,7 +313,7 @@ if ($Kind -eq 'Intermediates' -or $automatic) {
   if (Test-Path -LiteralPath $temporary -PathType Container) {
     foreach ($entry in Get-ChildItem -LiteralPath $temporary -Force) {
       if ($TemporaryNames.Count -and $entry.Name -notin $TemporaryNames) { continue }
-      if ($entry.PSIsContainer -and $entry.Name -match '^(app-icon-verify|card-layout|desktop-verify|display(-portable)?|experience|game-prototype-verify|game-ui|modern-art-verify|party(-portable|-startup)?|play-presentation(-portable)?|pokemon-desktop|pokemon-verify|portable-extracted|portable-game|prototype-verify|room-levels(-portable)?|runtime-memory|six-result-layout|tablemax-sqlite-migration)-[A-Za-z0-9]{6}$') {
+      if ($entry.PSIsContainer -and $entry.Name -match '^(app-icon-verify|card-layout|countdown-crosslayer|desktop-verify|display(-portable)?|experience|game-prototype-verify|game-ui|modern-art-verify|modern-art-polish|modern-art-audio-verify|party(-portable|-startup)?|play-presentation(-portable)?|pokemon-desktop|pokemon-verify|portable-extracted|portable-game|prototype-verify|room-levels(-portable)?|runtime-memory|six-result-layout|tablemax-sqlite-migration)-[A-Za-z0-9]{6}$') {
         Add-Candidate $entry.FullName 'Known isolated verification data or portable extraction'
       }
       elseif (-not $entry.PSIsContainer -and $entry.Name -match '^(check-(display|party|phone-table|presentation|release-cleanup)-docs\.mjs|cleanup-display-staging\.ps1|display-(dialog|dpi)-probe\.mjs|finalize-presentation-evidence\.mjs|inspect-six-result\.mjs|update-presentation-docs\.mjs)$') {

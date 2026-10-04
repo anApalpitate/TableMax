@@ -1,11 +1,14 @@
 .ma-screen {
   --ma-ink: #302b26;
   --ma-paper: #fff9ed;
-  --ma-gold: #b27b32;
+  --ma-gold: #9a6425;
+  --ma-card-size: clamp(118px, 17vh, 230px);
   width: 100%;
   min-height: 100dvh;
-  padding: 12px 20px 16px;
+  padding: 10px 16px 14px;
   color: var(--ma-ink);
+  font-size: 16px;
+  line-height: 1.35;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -23,22 +26,28 @@
   overflow: hidden;
 }
 .ma-screen button,
-.ma-screen .button {
+.ma-screen .button,
+.ma-screen select {
   border-radius: 9px;
   background: #554133;
   color: #fffaf1;
   min-height: 44px;
+  font-size: 18px;
   line-height: 1.3;
 }
-.ma-screen .secondary {
+.ma-screen .secondary,
+.ma-screen .ma-sort {
   color: #493b2e;
   background: #fff8e8;
-  border: 1px solid #c6aa85;
+  border: 1px solid #ab865a;
 }
 .ma-screen button:focus-visible,
 .ma-screen input:focus-visible,
-.ma-screen a:focus-visible {
-  outline-color: #a34f30;
+.ma-screen select:focus-visible,
+.ma-screen a:focus-visible,
+.ma-screen summary:focus-visible {
+  outline: 3px solid #a34f30;
+  outline-offset: 2px;
 }
 .ma-screen h2,
 .ma-screen h3,
@@ -46,15 +55,23 @@
   margin: 0;
 }
 .ma-screen .ma-toolbar {
-  min-height: 48px;
-  gap: 10px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-wrap: nowrap;
   flex-shrink: 0;
 }
 .ma-screen .ma-toolbar button,
 .ma-screen .ma-toolbar .button {
-  padding: 9px 12px;
+  padding: 8px 10px;
   flex-shrink: 0;
+}
+.ma-screen .ma-toolbar .connection {
+  font-size: 16px;
+}
+.ma-screen .ma-toolbar .test-mode-badge {
+  font-size: 16px;
 }
 .ma-screen .ma-brand {
   display: flex;
@@ -65,27 +82,22 @@
 }
 .ma-screen .ma-brand strong {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(19px, 2vw, 31px);
-  font-weight: 700;
+  font-size: clamp(24px, 2vw, 34px);
   letter-spacing: -0.04em;
   white-space: nowrap;
 }
-.ma-screen .ma-brand span {
-  font-size: 13px;
-  white-space: nowrap;
+.ma-screen .ma-brand span,
+.ma-screen .ma-round,
+.ma-screen .session-feedback {
+  font-size: 16px;
 }
 .ma-screen .ma-round {
-  padding: 4px 10px;
+  padding: 5px 8px;
   background: #f9ecd6;
   border: 1px solid #bba07c;
   border-radius: 6px;
   font-weight: 700;
-  font-size: 13px;
   white-space: nowrap;
-}
-.ma-screen .session-feedback {
-  gap: 8px;
-  font-size: 13px;
 }
 .ma-screen .feedback:empty {
   display: none;
@@ -93,15 +105,21 @@
 .ma-screen .feedback {
   margin: 0;
 }
+.ma-screen .ma-sort {
+  max-width: 172px;
+  padding: 7px 24px 7px 9px;
+  flex-shrink: 0;
+}
 .ma-screen .ma-table {
   display: grid;
-  grid-template-columns: minmax(0, 1.32fr) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: start;
   flex: 1;
   min-height: 0;
-  gap: clamp(12px, 1.4vw, 24px);
+  gap: clamp(10px, 1.2vw, 20px);
   width: 100%;
-  max-width: 2600px;
+  max-width: 2800px;
   margin: 0 auto;
 }
 .ma-screen .ma-market,
@@ -110,75 +128,81 @@
   background: var(--ma-paper);
   border: 1px solid #bba07c;
   box-shadow:
-    0 5px 0 #70503922,
-    0 14px 24px #65412118;
+    0 4px 0 #70503922,
+    0 12px 20px #65412118;
   border-radius: 12px;
   min-width: 0;
 }
 .ma-screen .ma-market {
-  padding: clamp(12px, 1.5vw, 26px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  position: relative;
+  padding: clamp(10px, 1.2vw, 22px);
+  align-self: start;
 }
 .ma-screen .ma-section-heading {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 .ma-screen .ma-section-heading h2 {
-  font-size: clamp(17px, 1.5vw, 24px);
+  font-size: clamp(20px, 1.5vw, 28px);
 }
 .ma-screen .ma-section-heading > span {
-  color: #756552;
-  font-size: 12px;
+  color: #6f5840;
+  font-size: 16px;
   text-align: right;
 }
 .ma-screen .ma-market__columns {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: clamp(6px, 1vw, 15px);
+  gap: clamp(5px, 0.7vw, 12px);
 }
 .ma-screen .ma-artist {
   min-width: 0;
-  padding: 0 6px 12px;
+  padding: 0 5px 9px;
   text-align: center;
-  border: 1px solid #dbccb6;
+  border: 2px solid var(--ma-artist);
   border-radius: 8px;
   overflow: hidden;
   background: #f6eedf;
 }
 .ma-screen .ma-artist__swatch {
-  height: 32px;
-  margin: 0 -6px 9px;
+  display: grid;
+  place-items: center;
+  height: 34px;
+  margin: 0 -5px 6px;
   background: var(--ma-artist);
-  box-shadow: inset 0 -5px 0 #00000010;
+  color: #fff9ed;
+  box-shadow: inset 0 -4px 0 #00000014;
+}
+.ma-screen .ma-artist__swatch svg {
+  width: 24px;
+  height: 24px;
 }
 .ma-screen .ma-artist h3 {
-  font-size: clamp(12px, 1.1vw, 17px);
-  line-height: 1.3;
-  min-height: 2.6em;
-  overflow-wrap: anywhere;
+  font-size: clamp(16px, 1.05vw, 22px);
+  line-height: 1.25;
+  overflow-wrap: normal;
 }
 .ma-screen .ma-artist__count {
-  margin: 10px 0 6px;
-  font-size: 12px;
+  margin: 6px 0 4px;
+  font-size: 16px;
+  white-space: nowrap;
 }
 .ma-screen .ma-artist__count strong {
-  font-size: 20px;
+  font-size: 22px;
 }
 .ma-screen .ma-artist__pips {
   display: flex;
   justify-content: center;
   gap: 3px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 .ma-screen .ma-artist__pips i {
-  width: clamp(6px, 0.65vw, 10px);
-  height: 7px;
-  border-radius: 1px;
+  width: clamp(7px, 0.65vw, 12px);
+  height: 8px;
+  border-radius: 2px;
   background: #ddcfb9;
 }
 .ma-screen .ma-artist__pips .ma-filled {
@@ -186,115 +210,152 @@
 }
 .ma-screen .ma-artist__value {
   display: block;
-  font-size: clamp(27px, 3.3vw, 54px);
+  font-size: clamp(32px, 3vw, 58px);
   line-height: 1.1;
   font-family: Georgia, serif;
   font-variant-numeric: tabular-nums;
 }
 .ma-screen .ma-artist__unit {
-  font-size: 11px;
-  color: #766753;
-}
-.ma-screen .ma-artist__history {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
-  margin-top: 14px;
-}
-.ma-screen .ma-artist__history > span {
-  border: 1px solid #ddcbb1;
-  border-radius: 5px;
-  padding: 3px;
-  color: #8c7b63;
-  display: flex;
-  flex-direction: column;
-}
-.ma-screen .ma-artist__history small {
-  font-size: 10px;
-}
-.ma-screen .ma-artist__history b {
-  font-size: 17px;
-  line-height: 1.3;
-}
-.ma-screen .ma-artist__history .ma-complete {
-  background: #453c31;
-  color: #ffefc5;
-  border-color: #453c31;
+  display: block;
+  font-size: 16px;
+  color: #6f5840;
 }
 .ma-screen .ma-market__supply {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
-  margin-top: 16px;
-  font-size: 12px;
-  color: #80705c;
+  gap: 4px 8px;
+  margin-top: 8px;
+  font-size: 16px;
+  color: #6f5840;
+}
+.ma-screen .ma-market__history summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 6px 10px;
+  border: 1px solid #ab865a;
+  border-radius: 7px;
+  color: #493b2e;
+  background: #fff2d6;
+  font-size: 18px;
+  list-style: none;
+}
+.ma-screen .ma-market__history summary::after {
+  content: '⌄';
+  margin-left: 6px;
+}
+.ma-screen .ma-market__history[open] summary::after {
+  content: '⌃';
+}
+.ma-screen .ma-market__history-sheet {
+  position: absolute;
+  z-index: 5;
+  inset: 44px 8px auto;
+  padding: 12px;
+  background: #fff9ed;
+  color: #302b26;
+  border: 2px solid #a78151;
+  border-radius: 10px;
+  box-shadow: 0 12px 28px #39271950;
+}
+.ma-screen .ma-market__history-sheet table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 16px;
+}
+.ma-screen .ma-market__history-sheet td,
+.ma-screen .ma-market__history-sheet th {
+  padding: 7px 2px;
+  border-bottom: 1px solid #d6c2a2;
+}
+.ma-screen .ma-market__history-sheet th:first-child {
+  text-align: left;
+}
+.ma-screen .ma-market__history-sheet p {
+  margin-top: 7px;
+  text-align: right;
 }
 .ma-screen .ma-center {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 8px;
   min-height: 0;
   min-width: 0;
 }
 .ma-screen .ma-auction {
-  padding: clamp(12px, 1.5vw, 24px);
-  display: flex;
-  flex-direction: column;
+  padding: clamp(10px, 1.2vw, 20px);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 12px;
+  justify-items: center;
+  gap: 10px 16px;
 }
 .ma-screen .ma-auction__label {
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
-  align-self: stretch;
-  gap: 12px;
+  justify-self: stretch;
+  gap: 10px;
 }
 .ma-screen .ma-auction__label h2 {
-  font-size: 21px;
+  font-size: clamp(20px, 1.6vw, 28px);
 }
 .ma-screen .ma-auction__label p {
-  font-size: 12px;
-  color: #786550;
+  font-size: 16px;
+  color: #6f5840;
 }
-.ma-screen .ma-kicker {
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  color: #836d54;
+.ma-screen .ma-auction__label > :last-child:not(:nth-child(2)) {
+  margin-left: auto;
 }
 .ma-screen .ma-auction__mark {
   display: grid;
   place-items: center;
   width: 46px;
   height: 46px;
-  border: 1px solid #b39060;
+  border: 2px solid #a78151;
   border-radius: 50%;
-  color: #8e5f2b;
-  font-size: 27px;
-  font-family: Georgia, serif;
+  color: #7d4d18;
   background: #f0dfbf;
+  flex-shrink: 0;
+}
+.ma-screen .ma-auction__mark svg {
+  width: 28px;
+  height: 28px;
 }
 .ma-screen .ma-auction__paintings {
+  grid-column: 1;
+  grid-row: 2 / span 2;
   display: flex;
   justify-content: center;
-  gap: 18px;
-  width: 100%;
+  align-items: center;
+  gap: 12px;
+  width: auto;
 }
 .ma-screen .ma-auction__paintings > .ma-card {
-  width: clamp(110px, 9.8vw, 270px);
-  transform: rotate(-3deg);
+  width: clamp(112px, 9vw, 220px);
+  transform: rotate(-2deg);
 }
 .ma-screen .ma-auction__paintings > .ma-card:nth-child(2) {
-  transform: rotate(3deg);
+  transform: rotate(2deg);
 }
 .ma-screen .ma-card {
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: 5px;
-  border-radius: 4px;
+  padding: 4px;
+  border-radius: 6px;
   background: #fffaf1;
-  border: 2px solid var(--ma-artist);
-  box-shadow: 0 3px 7px #3a291c30;
+  border: 3px solid var(--ma-artist);
+  box-shadow:
+    inset 0 0 0 1px #fff7de,
+    0 4px 8px #3a291c35;
   text-align: left;
   overflow: hidden;
   color: #3a3127;
@@ -302,30 +363,49 @@
 .ma-screen .ma-card__head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  min-height: 26px;
-  font-size: 10px;
+  min-height: 25px;
+  padding: 0 1px 3px;
+  font-size: 16px;
   line-height: 1.2;
   font-weight: 700;
-}
-.ma-screen .ma-card__head > span:first-child {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-.ma-screen .ma-card__head > span:last-child {
-  font-size: 20px;
   color: var(--ma-artist);
-  flex-shrink: 0;
 }
 .ma-screen .ma-card__art {
+  position: relative;
   display: block;
   width: 100%;
   aspect-ratio: 1;
   background-size: 400% 400%;
   background-repeat: no-repeat;
   background-color: var(--ma-artist);
-  border: 1px solid #31282225;
+  border: 1px solid #31282245;
+}
+.ma-screen .ma-card__artist-mark,
+.ma-screen .ma-card__auction-mark {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid #fff9ed;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px #21171160;
+}
+.ma-screen .ma-card__artist-mark {
+  inset: 4px auto auto 4px;
+  background: var(--ma-artist);
+  color: #fff9ed;
+}
+.ma-screen .ma-card__auction-mark {
+  inset: 4px 4px auto auto;
+  background: #fff9ed;
+  color: #302b26;
+  border-color: #302b26;
+}
+.ma-screen .ma-card__artist-mark svg,
+.ma-screen .ma-card__auction-mark svg {
+  width: 20px;
+  height: 20px;
 }
 .ma-screen .ma-card__art--pending {
   background: linear-gradient(145deg, #ffffff30, #00000015), var(--ma-artist);
@@ -333,115 +413,125 @@
 .ma-screen .ma-card__foot {
   display: flex;
   flex-direction: column;
-  padding: 4px 2px 0;
-  font-size: 10px;
-  line-height: 1.5;
+  padding: 4px 1px 0;
+  font-size: 16px;
+  line-height: 1.3;
 }
 .ma-screen .ma-card__foot strong {
-  font-size: 12px;
+  font-size: 16px;
 }
 .ma-screen .ma-card__foot > span {
-  color: #897253;
+  color: #6b5034;
 }
 .ma-screen .ma-auction__price {
+  grid-column: 2;
+  grid-row: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   gap: 3px;
 }
-.ma-screen .ma-auction__price > span {
-  font-size: 12px;
-  color: #806d54;
+.ma-screen .ma-auction__price > span,
+.ma-screen .ma-auction__price small {
+  font-size: 16px;
+  color: #6f5840;
 }
 .ma-screen .ma-auction__price strong {
-  font-size: clamp(22px, 2.4vw, 38px);
-  line-height: 1.3;
-}
-.ma-screen .ma-auction__price small {
-  font-size: 12px;
+  font-size: clamp(24px, 2.4vw, 40px);
+  line-height: 1.25;
 }
 .ma-screen .ma-auction__participants {
+  grid-column: 2;
+  grid-row: 3;
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 5px;
   justify-content: center;
+  min-width: 0;
 }
 .ma-screen .ma-auction__participants > span {
-  font-size: 11px;
-  color: #80725e;
-  padding: 3px 7px;
-  border-radius: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 6px;
+  font-size: 16px;
+  color: #6a553d;
+  padding: 4px 7px;
+  border-radius: 5px;
   background: #efe5d6;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ma-screen .ma-auction__participants > span > span:empty {
+  display: none;
 }
 .ma-screen .ma-auction__participants > .ma-active {
-  color: #61431d;
+  color: #563811;
   background: #f5dfa9;
-  font-weight: 700;
 }
 .ma-screen .ma-auction--waiting {
-  min-height: 290px;
+  display: flex;
+  min-height: 170px;
+  flex-direction: column;
   justify-content: center;
   text-align: center;
   border-style: dashed;
 }
 .ma-screen .ma-gavel {
-  font-size: 64px;
-  color: #b48142;
+  line-height: 0;
+  color: #9e6930;
 }
 .ma-screen .ma-auction--waiting h2 {
-  font-size: 21px;
-}
-.ma-screen .ma-auction--waiting p {
-  font-size: 13px;
-  color: #88745a;
+  font-size: 22px;
 }
 .ma-screen .ma-latest {
   display: flex;
-  gap: 9px;
+  gap: 8px;
   align-items: center;
-  background: #fff7e2df;
+  background: #fff7e2ed;
   border: 1px solid #bea47e;
   border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 12px;
+  padding: 7px 10px;
+  font-size: 16px;
 }
 .ma-screen .ma-latest > span {
-  font-size: 10px;
-  color: #917853;
+  color: #795b35;
   flex-shrink: 0;
 }
 .ma-screen .ma-latest__copy {
   min-width: 0;
 }
-.ma-screen .ma-latest__details {
-  color: #765126;
+.ma-screen .ma-latest__copy p:first-child {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
+.ma-screen .ma-latest__details,
 .ma-screen .ma-log__cards {
   color: #765126;
-  font-size: 12px;
-  margin: 3px 0;
 }
 .ma-screen .ma-museums {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(var(--ma-seats), minmax(0, 1fr));
-  gap: 12px;
+  align-items: start;
+  gap: clamp(8px, 1vw, 16px);
   min-width: 0;
+  min-height: 0;
 }
 .ma-screen .ma-museum {
   min-width: 0;
   padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ab8c68;
-  background: #ead5b5;
+  border-radius: 10px;
+  border: 2px solid #ab8c68;
+  background: #eedcbe;
   box-shadow: 0 3px 0 #6f4c2b30;
 }
 .ma-screen .ma-museum--active {
-  border-color: #a8622a;
+  border-color: #9d591f;
   box-shadow:
-    0 0 0 2px #eeca8655,
-    0 3px 0 #6f4c2b30;
+    0 0 0 2px #fff2c9,
+    0 4px 0 #6f4c2b30;
 }
 .ma-screen .ma-museum--winner {
   background: #f8e1aa;
@@ -451,66 +541,67 @@
   display: flex;
   gap: 7px;
   align-items: center;
-  border-bottom: 1px solid #c1a884;
-  padding-bottom: 6px;
-  margin-bottom: 8px;
-}
-.ma-screen .ma-museum__screen > span {
-  font-size: 27px;
-  color: #8c6d46;
+  border-bottom: 1px solid #b89a70;
+  padding-bottom: 7px;
+  margin-bottom: 7px;
 }
 .ma-screen .ma-museum__screen > div {
   min-width: 0;
 }
 .ma-screen .ma-museum__screen h3 {
-  font-size: 13px;
-  line-height: 1.3;
-  overflow-wrap: anywhere;
+  font-size: 18px;
+  line-height: 1.25;
 }
 .ma-screen .ma-museum__screen p {
-  font-size: 10px;
-  color: #7b6445;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  font-size: 16px;
+  color: #624a2d;
 }
 .ma-screen .ma-museum__number {
   margin-left: auto;
-  color: #ad946e;
+  color: #896640;
   font-family: Georgia, serif;
-  font-size: 23px;
+  font-size: 26px;
 }
 .ma-screen .ma-museum__collection {
   display: flex;
-  gap: 5px;
+  gap: 8px;
   overflow-x: auto;
-  min-height: 86px;
-  padding: 2px 1px 5px;
+  min-width: 0;
+  padding: 2px 1px 6px;
+  align-items: flex-start;
 }
 .ma-screen .ma-museum__collection > .ma-card {
-  width: 62px;
+  width: var(--ma-card-size);
   flex-shrink: 0;
-  padding: 3px;
 }
 .ma-screen .ma-card--compact .ma-card__head {
-  min-height: 18px;
-  font-size: 7px;
-}
-.ma-screen .ma-card--compact .ma-card__head > span:last-child {
-  font-size: 13px;
-}
-.ma-screen .ma-card--compact .ma-card__foot strong {
-  font-size: 8px;
+  display: none;
 }
 .ma-screen .ma-card--compact .ma-card__foot > span {
   display: none;
 }
 .ma-screen .ma-museum__empty {
-  margin: auto;
-  font-size: 12px;
-  color: #9b805c;
+  min-height: calc(var(--ma-card-size) + 24px);
+  display: grid;
+  place-items: center;
+  flex: 1;
+  padding: 8px;
+  font-size: 16px;
+  color: #7b6040;
+  background: repeating-linear-gradient(
+    -45deg,
+    #ffffff15 0 10px,
+    transparent 10px 20px
+  );
+  border-radius: 6px;
 }
 .ma-screen .ma-museum__cash {
   display: block;
   text-align: center;
-  font-size: 18px;
+  font-size: 22px;
   margin: 6px 0;
 }
 .ma-screen .ma-notice {
@@ -519,92 +610,80 @@
   align-items: center;
   justify-content: center;
   padding: 7px 10px;
-  font-size: 13px;
+  font-size: 18px;
   background: #fff3ce;
   border: 1px solid #b9985c;
   border-radius: 8px;
   flex-shrink: 0;
 }
-.ma-screen:not(.player):has(> .ma-notice) .ma-market {
-  padding: 10px 12px;
-}
-.ma-screen:not(.player):has(> .ma-notice) .ma-market > .ma-section-heading {
-  margin-bottom: 8px;
-}
-.ma-screen:not(.player):has(> .ma-notice) .ma-artist__history {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 3px;
-}
-.ma-screen:not(.player):has(> .ma-notice) .ma-artist__history > span {
-  padding: 2px;
-}
-.ma-screen:not(.player):has(> .ma-notice) .ma-market__supply {
-  margin-top: 8px;
-}
-.ma-screen:not(.player):has(> .ma-notice) .ma-artist__count {
-  margin: 4px 0;
-}
-.ma-screen:not(.player):has(> .ma-notice) .ma-artist__pips {
-  margin-bottom: 5px;
-}
-.ma-screen:not(.player):has(> .ma-notice) .ma-artist__swatch {
-  height: 18px;
-}
-.ma-screen:not(.player):has(> .ma-notice) .ma-artist__history {
-  margin-top: 6px;
-}
-.ma-screen:not(.player):has(> .ma-notice) .ma-auction--waiting {
-  min-height: 220px;
-}
 .ma-screen .ma-results {
-  padding: 20px;
-  overflow-y: auto;
+  padding: 14px;
 }
 .ma-screen .ma-results__ranking {
   display: grid;
-  gap: 7px;
+  gap: 5px;
 }
 .ma-screen .ma-results__ranking > div {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 9px;
+  padding: 6px 8px;
   border-radius: 5px;
   background: #f0e5d3;
-  font-size: 13px;
+  font-size: 16px;
 }
 .ma-screen .ma-results__ranking b {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  width: 25px;
-  height: 25px;
+  width: 26px;
+  height: 26px;
   color: #fff3ce;
   background: #65503a;
+  flex-shrink: 0;
+}
+.ma-screen .ma-results__ranking > span {
+  min-width: 0;
 }
 .ma-screen .ma-results__ranking strong {
   margin-left: auto;
   white-space: nowrap;
 }
 .ma-screen .ma-results__income {
-  margin-top: 16px;
+  margin-top: 10px;
   display: grid;
   gap: 5px;
 }
 .ma-screen .ma-results__income > div {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 18px;
+}
+.ma-screen .ma-results__champion {
+  display: inline-flex;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  color: #946107;
+}
+.ma-screen .ma-results__champion svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+.ma-screen .ma-results--ended [data-champion='true'] {
+  color: #77500e;
 }
 .ma-screen .ma-winner {
-  color: #976721;
-  font-size: 23px;
+  color: #895810;
+  font-size: 24px;
   text-align: center;
-  margin: 7px 0 20px;
+  margin: 7px 0 10px;
   font-weight: 700;
 }
 .ma-screen .ma-next-round {
   align-self: center;
+  flex-shrink: 0;
 }
 .ma-screen .ma-unavailable {
   margin: auto;
@@ -615,9 +694,10 @@
   margin-top: 20px;
 }
 .ma-screen.player .ma-table {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto;
+  display: flex;
+  flex-direction: column;
   max-width: 800px;
+  gap: 10px;
 }
 .ma-screen .ma-player {
   min-width: 0;
@@ -627,9 +707,9 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  padding: 9px 12px;
+  padding: 7px 10px;
   border-radius: 8px;
-  border: 1px solid #c5a77b;
+  border: 1px solid #ad8554;
   background: #f2dfbf;
   box-shadow: inset 0 3px 0 #fff5de80;
 }
@@ -637,7 +717,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 13px;
+  font-size: 18px;
 }
 .ma-screen .ma-wallet__icon {
   font-size: 24px;
@@ -646,7 +726,8 @@
   display: flex;
   gap: 7px;
   align-items: center;
-  font-size: 19px;
+  font-size: 22px;
+  white-space: nowrap;
 }
 .ma-screen .ma-coin {
   display: grid;
@@ -663,18 +744,24 @@
 .ma-screen .ma-controls {
   display: grid;
   gap: 8px;
-  margin: 8px 0 12px;
+  margin: 8px 0 10px;
+}
+.ma-screen
+  .ma-controls:has(.ma-controls__simple:empty):not(
+    :has(.ma-bid, .ma-private-bid, .ma-waiting)
+  ) {
+  display: none;
 }
 .ma-screen .ma-bid {
-  padding: 12px;
-  border: 1px solid #b79769;
+  padding: 10px;
+  border: 1px solid #a97f49;
   border-radius: 9px;
   background: #fff8e8;
 }
 .ma-screen .ma-bid > label {
   display: block;
   margin: 0 0 6px;
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 700;
 }
 .ma-screen .ma-bid__field {
@@ -686,17 +773,17 @@
   width: 100%;
   min-width: 0;
   min-height: 46px;
-  border: 1px solid #b7a182;
+  border: 2px solid #b7a182;
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 6px;
   text-align: center;
   background: #fffef9;
   color: #3a3027;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
 }
 .ma-screen .ma-bid__field > span {
-  font-size: 12px;
+  font-size: 16px;
   white-space: nowrap;
 }
 .ma-screen .ma-bid__step {
@@ -705,40 +792,34 @@
   padding: 6px;
   background: #e9d6b7;
   color: #76532d;
-  font-size: 22px;
+  font-size: 24px;
   flex-shrink: 0;
 }
 .ma-screen .ma-bid__submit {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 6px;
   margin-top: 8px;
 }
 .ma-screen .ma-bid__submit small {
-  color: #8a7354;
-  font-size: 11px;
-}
-.ma-screen .ma-bid__submit button {
-  min-width: 160px;
+  color: #765531;
+  font-size: 16px;
 }
 .ma-screen .ma-bid__submit--pair {
-  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px 8px;
 }
 .ma-screen .ma-bid__submit--pair small {
   grid-column: 1 / -1;
 }
-.ma-screen .ma-bid__submit--pair button {
+.ma-screen .ma-bid__submit button {
   min-width: 0;
   padding: 8px 5px;
-  font-size: 13px;
 }
 .ma-screen .ma-bid__invalid {
-  font-size: 12px;
+  font-size: 16px;
   margin-top: 5px;
-  color: #974b31;
+  color: #974031;
 }
 .ma-screen .ma-controls__simple {
   display: flex;
@@ -753,19 +834,24 @@
 .ma-screen .ma-private-bid,
 .ma-screen .ma-waiting {
   text-align: center;
-  padding: 5px;
-  font-size: 13px;
+  padding: 6px;
+  font-size: 18px;
   color: #6d5437;
 }
 .ma-screen .ma-private-bid {
-  border: 1px dashed #b39265;
+  border: 1px solid #b39265;
   border-radius: 7px;
   background: #fff7e4;
 }
 .ma-screen .ma-hand-heading {
-  margin: 12px 0 8px;
+  margin: 10px 0 6px;
 }
-.ma-screen .ma-hand-heading h2 {
+.ma-screen .ma-hand-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
   font-size: 16px;
 }
 .ma-screen .ma-hand {
@@ -786,7 +872,7 @@
 .ma-screen .ma-hand__card--available .ma-card {
   box-shadow:
     0 0 0 2px #fff4d3,
-    0 0 0 3px #aa783e,
+    0 0 0 4px #9c611d,
     0 6px 10px #65452b30;
 }
 .ma-screen .ma-hand__card--available:not(:disabled):hover .ma-card {
@@ -794,13 +880,20 @@
 }
 .ma-screen .ma-empty-hand {
   grid-column: 1 / -1;
-  padding: 25px;
+  padding: 20px;
   text-align: center;
-  color: #806b4e;
-  font-size: 13px;
+  color: #6f5533;
+  font-size: 18px;
+}
+.ma-screen .ma-self-collection {
+  margin-top: 14px;
+  padding: 10px;
+  background: #eddaba;
+  border: 1px solid #ab865a;
+  border-radius: 10px;
 }
 .ma-screen .ma-museums-control {
-  justify-self: center;
+  align-self: center;
   margin: 5px 0 12px;
 }
 .ma-screen.ma-panel {
@@ -815,10 +908,11 @@
 .ma-screen .ma-log article {
   padding: 12px 0;
   border-bottom: 1px solid #e0d1b7;
-  font-size: 13px;
+  font-size: 16px;
 }
 .ma-screen .ma-log article > strong {
-  color: #a56d31;
+  color: #8b5623;
+  font-size: 18px;
 }
 .ma-screen .ma-log__bids {
   display: flex;
@@ -842,759 +936,378 @@
     box-shadow: 0 0 0 0 #f6d78200;
   }
 }
-@media (min-width: 701px) and (max-height: 780px) {
-  .ma-screen .ma-artist__swatch {
-    height: 22px;
-  }
-  .ma-screen .ma-artist__history {
-    margin-top: 8px;
-  }
-  .ma-screen .ma-auction {
-    gap: 8px;
-    padding: 12px;
-  }
-  .ma-screen .ma-auction__paintings > .ma-card {
-    width: 115px;
-  }
-  .ma-screen .ma-auction__price strong {
-    font-size: 25px;
-  }
-  .ma-screen .ma-museum__collection {
-    min-height: 70px;
-  }
-  .ma-screen .ma-museum__collection > .ma-card {
-    width: 52px;
-  }
-  .ma-screen .ma-auction__participants > span {
-    font-size: 10px;
-    padding: 2px 5px;
-  }
-  .ma-screen .ma-market {
-    padding: 14px;
-  }
-  .ma-screen .ma-table {
-    gap: 10px;
-  }
-  .ma-screen:not(.player) .ma-auction:not(.ma-auction--waiting) {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 8px 12px;
-    justify-items: center;
-  }
-  .ma-screen:not(.player) .ma-auction__label {
-    grid-column: 1 / -1;
-    justify-self: stretch;
-  }
-  .ma-screen:not(.player) .ma-auction__label .ma-kicker {
-    display: none;
-  }
-  .ma-screen:not(.player) .ma-auction__paintings {
-    grid-column: 1;
-    grid-row: 2 / span 2;
-    width: auto;
-    gap: 8px;
-  }
-  .ma-screen:not(.player) .ma-auction__paintings > .ma-card {
-    width: 98px;
-    transform: none;
-  }
-  .ma-screen:not(.player) .ma-auction__price {
-    grid-column: 2;
-    grid-row: 2;
-  }
-  .ma-screen:not(.player) .ma-auction__participants {
-    grid-column: 2;
-    grid-row: 3;
-  }
-  .ma-screen:not(.player) .ma-table:has(.ma-results) .ma-artist__value {
-    font-size: 34px;
-  }
-  .ma-screen:not(.player) .ma-table:has(.ma-results) .ma-artist__count strong {
-    font-size: 17px;
-  }
-  .ma-screen:not(.player) .ma-table:has(.ma-results) .ma-section-heading {
-    margin-bottom: 5px;
-  }
-  .ma-screen:not(.player) .ma-table:has(.ma-results) .ma-market__supply {
-    margin-top: 5px;
-  }
-}
-@media (max-width: 1100px) {
-  .ma-screen .ma-brand span {
-    display: none;
-  }
-  .ma-screen .ma-toolbar .connection {
-    display: none;
-  }
+@media (max-width: 1400px) {
+  .ma-screen .ma-brand span,
+  .ma-screen .ma-toolbar .connection,
   .ma-screen .ma-museum__number {
     display: none;
   }
-  .ma-screen .ma-museums {
+}
+@media (min-width: 701px) and (max-height: 800px) {
+  .ma-screen {
+    --ma-card-size: clamp(86px, 15vh, 116px);
+    padding: 8px 10px 10px;
+    gap: 6px;
+  }
+  .ma-screen .ma-table {
     gap: 8px;
   }
-}
-@media (max-width: 700px) {
-  .ma-screen {
-    padding: max(6px, env(safe-area-inset-top))
-      max(8px, env(safe-area-inset-right))
-      max(10px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
-    gap: 5px;
+  .ma-screen .ma-market {
+    padding: 8px;
   }
-  .ma-screen .ma-toolbar {
-    gap: 5px;
-    min-height: 44px;
+  .ma-screen .ma-section-heading {
+    margin-bottom: 6px;
   }
-  .ma-screen .ma-toolbar button,
-  .ma-screen .ma-toolbar .button {
-    padding: 7px 9px;
-    font-size: 12px;
+  .ma-screen .ma-artist {
+    padding-bottom: 5px;
   }
-  .ma-screen .ma-toolbar .display-settings-control span {
+  .ma-screen .ma-artist__swatch {
+    height: 24px;
+    margin-bottom: 4px;
+  }
+  .ma-screen .ma-artist__swatch svg {
+    width: 20px;
+    height: 20px;
+  }
+  .ma-screen .ma-artist__count {
+    margin: 3px 0;
+  }
+  .ma-screen .ma-artist__pips {
+    margin-bottom: 4px;
+  }
+  .ma-screen .ma-artist__value {
+    font-size: 32px;
+  }
+  .ma-screen .ma-market__supply {
+    margin-top: 4px;
+  }
+  .ma-screen .ma-auction {
+    padding: 8px;
+    gap: 6px 10px;
+  }
+  .ma-screen .ma-auction__paintings {
+    gap: 8px;
+  }
+  .ma-screen .ma-auction__paintings > .ma-card {
+    width: 100px;
+    transform: none;
+  }
+  .ma-screen .ma-auction__paintings .ma-card__foot > span {
     display: none;
+  }
+  .ma-screen .ma-auction__participants {
+    gap: 3px;
+  }
+  .ma-screen .ma-auction__participants > span {
+    padding: 3px 5px;
+  }
+  .ma-screen .ma-auction--waiting {
+    min-height: 150px;
+  }
+  .ma-screen .ma-latest {
+    padding: 5px 8px;
+  }
+  .ma-screen .ma-museum {
+    padding: 7px;
+  }
+  .ma-screen .ma-museum__screen {
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+    gap: 5px;
+  }
+  .ma-screen .ma-results {
+    padding: 8px;
+  }
+  .ma-screen .ma-results__ranking {
+    gap: 3px;
+  }
+  .ma-screen .ma-results__ranking > div {
+    padding: 4px;
+  }
+  .ma-screen .ma-results__income {
+    margin-top: 7px;
+    gap: 4px;
+  }
+  .ma-screen .ma-winner {
+    font-size: 22px;
+    margin: 4px 0 7px;
+  }
+}
+@media (min-width: 701px) and (max-height: 600px) {
+  .ma-screen {
+    --ma-card-size: 82px;
+    padding: 6px 8px 8px;
+    gap: 4px;
   }
   .ma-screen .ma-brand {
     display: none;
   }
   .ma-screen .ma-round {
     margin-right: auto;
-    font-size: 12px;
-    padding: 3px 7px;
+  }
+  .ma-screen .ma-table {
+    gap: 6px;
+  }
+  .ma-screen .ma-auction__paintings > .ma-card {
+    width: 80px;
+  }
+  .ma-screen .ma-auction__paintings .ma-card__head {
+    display: none;
+  }
+  .ma-screen .ma-auction__mark {
+    width: 36px;
+    height: 36px;
+  }
+  .ma-screen .ma-auction__mark svg {
+    width: 24px;
+    height: 24px;
+  }
+  .ma-screen .ma-auction__participants {
+    gap: 3px;
+  }
+  .ma-screen .ma-auction__participants > span {
+    padding: 2px 4px;
+  }
+  .ma-screen .ma-auction--waiting {
+    min-height: 134px;
+  }
+  .ma-screen .ma-gavel svg {
+    width: 44px;
+    height: 44px;
+  }
+  .ma-screen .ma-museum {
+    padding: 5px;
+  }
+  .ma-screen .ma-museum__screen {
+    gap: 4px;
+  }
+  .ma-screen .ma-museum__screen p {
+    gap: 0 5px;
+  }
+  .ma-screen .ma-results__ranking {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .ma-screen .ma-results__ranking > div {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2px 4px;
+  }
+  .ma-screen .ma-results__ranking > div > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ma-screen .ma-results__ranking strong {
+    grid-column: 1 / -1;
+    margin-left: 0;
+  }
+  .ma-screen .ma-results__income {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 8px;
+  }
+  .ma-screen .ma-results__income > div {
+    font-size: 18px;
+  }
+  .ma-screen .ma-center:has(.ma-results) .ma-latest {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  .ma-screen {
+    --ma-card-size: 128px;
+    padding: max(6px, env(safe-area-inset-top))
+      max(8px, env(safe-area-inset-right))
+      max(10px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    gap: 6px;
+  }
+  .ma-screen .ma-toolbar {
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .ma-screen .ma-toolbar button,
+  .ma-screen .ma-toolbar .button {
+    padding: 7px 8px;
+  }
+  .ma-screen .ma-brand,
+  .ma-screen .ma-toolbar .connection {
+    display: none;
+  }
+  .ma-screen .ma-round {
+    margin-right: auto;
+    padding: 4px 6px;
   }
   .ma-screen .ma-table,
   .ma-screen.player .ma-table {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto;
+    display: flex;
+    flex-direction: column;
     gap: 8px;
   }
   .ma-screen .ma-market {
     padding: 8px;
+    width: 100%;
   }
-  .ma-screen .ma-market > .ma-section-heading {
-    margin-bottom: 5px;
-  }
-  .ma-screen .ma-market > .ma-section-heading h2 {
-    font-size: 12px;
-  }
-  .ma-screen .ma-market > .ma-section-heading > span {
-    font-size: 10px;
+  .ma-screen.player .ma-market {
+    order: 3;
   }
   .ma-screen .ma-market__columns {
-    gap: 4px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
   }
   .ma-screen .ma-artist {
-    padding: 0 3px 4px;
-    border-radius: 5px;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    padding: 5px;
+    align-items: center;
+    gap: 3px 6px;
+    text-align: left;
   }
   .ma-screen .ma-artist__swatch {
-    height: 5px;
-    margin: 0 -3px 4px;
+    width: 28px;
+    height: 28px;
+    margin: 0;
+    border-radius: 5px;
   }
   .ma-screen .ma-artist h3 {
-    min-height: 2.6em;
-    font-size: 9px;
-  }
-  .ma-screen .ma-artist__count {
-    margin: 3px 0 0;
-    font-size: 9px;
-  }
-  .ma-screen .ma-artist__count strong {
-    font-size: 13px;
-  }
-  .ma-screen .ma-artist__value {
-    font-size: 21px;
-    margin-top: 2px;
-  }
-  .ma-screen .ma-artist__unit {
-    font-size: 8px;
-  }
-  .ma-screen .ma-artist__history,
-  .ma-screen .ma-artist__pips,
-  .ma-screen .ma-market__supply {
-    display: none;
-  }
-  .ma-screen .ma-center {
-    gap: 5px;
-  }
-  .ma-screen .ma-auction {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 6px 12px;
-    padding: 10px;
-    justify-items: center;
-  }
-  .ma-screen .ma-auction__label {
-    grid-column: 1 / -1;
-    justify-self: stretch;
-    gap: 8px;
-  }
-  .ma-screen .ma-auction__label .ma-kicker {
-    display: none;
-  }
-  .ma-screen .ma-auction__label h2 {
-    font-size: 16px;
-  }
-  .ma-screen .ma-auction__label p {
-    font-size: 10px;
-  }
-  .ma-screen .ma-auction__mark {
-    width: 31px;
-    height: 31px;
-    font-size: 22px;
-  }
-  .ma-screen .ma-auction__paintings {
-    grid-column: 1;
-    grid-row: 2 / span 2;
-    gap: 6px;
-    width: auto;
-  }
-  .ma-screen .ma-auction__paintings > .ma-card {
-    width: 82px;
-    transform: none;
-  }
-  .ma-screen .ma-auction__paintings > .ma-card:nth-child(2) {
-    transform: none;
-  }
-  .ma-screen .ma-auction__price {
-    grid-column: 2;
-    grid-row: 2;
-    gap: 2px;
-  }
-  .ma-screen .ma-auction__price > span {
-    font-size: 10px;
-  }
-  .ma-screen .ma-auction__price strong {
-    font-size: 19px;
-  }
-  .ma-screen .ma-auction__price small {
-    font-size: 10px;
-  }
-  .ma-screen .ma-auction__participants {
-    grid-column: 2;
-    grid-row: 3;
-    gap: 3px;
-  }
-  .ma-screen .ma-auction__participants > span {
-    font-size: 8px;
-    padding: 2px 3px;
-  }
-  .ma-screen .ma-card {
-    padding: 3px;
-  }
-  .ma-screen .ma-card__head {
-    min-height: 23px;
-    font-size: 8px;
-  }
-  .ma-screen .ma-card__head > span:last-child {
-    font-size: 17px;
-  }
-  .ma-screen .ma-card__foot {
-    font-size: 8px;
-    padding: 2px 1px 0;
-  }
-  .ma-screen .ma-card__foot strong {
-    font-size: 10px;
-  }
-  .ma-screen .ma-latest {
-    font-size: 10px;
-    padding: 5px 8px;
-  }
-  .ma-screen.player .ma-auction--waiting {
-    display: none;
-  }
-  .ma-screen .ma-wallet {
-    padding: 5px 9px;
-  }
-  .ma-screen .ma-wallet > div {
-    font-size: 11px;
-  }
-  .ma-screen .ma-wallet > strong {
-    font-size: 17px;
-  }
-  .ma-screen .ma-wallet__icon {
-    font-size: 22px;
-  }
-  .ma-screen .ma-bid {
-    padding: 9px;
-  }
-  .ma-screen .ma-bid__submit button {
-    min-width: 150px;
-    padding: 8px 11px;
-    font-size: 13px;
-  }
-  .ma-screen .ma-hand {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-  }
-  .ma-screen .ma-hand__card .ma-card__head {
-    font-size: 9px;
-    min-height: 25px;
-  }
-  .ma-screen .ma-hand__card .ma-card__foot {
-    font-size: 9px;
-  }
-  .ma-screen .ma-museums {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .ma-screen .ma-results {
-    padding: 12px;
-  }
-  .ma-screen .ma-results__ranking > div {
-    font-size: 11px;
-    gap: 6px;
-  }
-  .ma-screen .ma-results__ranking strong {
-    font-size: 11px;
-  }
-}
-@media (max-width: 380px) {
-  .ma-screen .ma-auction__paintings > .ma-card {
-    width: 72px;
-  }
-  .ma-screen .ma-auction {
-    gap: 5px 8px;
-  }
-  .ma-screen .ma-auction__participants > span {
-    font-size: 8px;
-  }
-  .ma-screen .ma-hand-heading h2 {
-    font-size: 13px;
-  }
-  .ma-screen .ma-hand-heading > span {
-    font-size: 10px;
-  }
-}
-@media (max-width: 700px) and (max-height: 650px) {
-  .ma-screen.player .ma-market {
-    padding: 4px 6px;
-  }
-  .ma-screen.player .ma-market > .ma-section-heading {
-    margin-bottom: 3px;
-  }
-  .ma-screen.player .ma-artist h3 {
-    font-size: 9px;
-    min-height: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .ma-screen.player .ma-artist__unit {
-    display: none;
-  }
-  .ma-screen.player .ma-artist__value {
-    font-size: 17px;
-    display: inline-block;
-    margin-left: 4px;
-  }
-  .ma-screen.player .ma-artist__count {
-    display: inline;
-    font-size: 8px;
-  }
-  .ma-screen.player .ma-artist__count strong {
-    font-size: 10px;
-  }
-  .ma-screen.player .ma-artist__count > span {
-    display: none;
-  }
-  .ma-screen.player .ma-artist__count::after {
-    content: '张';
-    font-size: 8px;
-  }
-  .ma-screen.player .ma-artist__value::after {
-    content: 'k';
-    font-size: 8px;
-  }
-  .ma-screen.player .ma-bid__submit--pair button {
-    min-width: 0;
-  }
-  .ma-screen.player .ma-auction {
-    padding: 7px;
-  }
-  .ma-screen.player .ma-auction__paintings > .ma-card {
-    width: 68px;
-  }
-  .ma-screen.player .ma-auction__paintings .ma-card__head {
-    min-height: 16px;
-    font-size: 7px;
-  }
-  .ma-screen.player .ma-auction__paintings .ma-card__foot > span {
-    display: none;
-  }
-  .ma-screen.player .ma-auction__paintings .ma-card__foot strong {
-    line-height: 1.2;
-  }
-  .ma-screen.player .ma-auction__participants {
-    display: none;
-  }
-  .ma-screen.player .ma-controls {
-    margin: 6px 0 8px;
-    gap: 6px;
-  }
-  .ma-screen.player .ma-latest {
-    padding: 4px 7px;
-  }
-  .ma-screen.player .ma-bid {
-    padding: 7px;
-    position: relative;
-  }
-  .ma-screen.player .ma-bid__submit--pair small {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-  }
-  .ma-screen.player .ma-latest {
-    font-size: 9px;
-    line-height: 1.3;
-  }
-  .ma-screen.player .ma-bid > label {
-    font-size: 12px;
-    margin-bottom: 4px;
-  }
-  .ma-screen.player .ma-bid__field input {
-    min-height: 44px;
-  }
-}
-@media (orientation: landscape) and (max-height: 550px) and (min-width: 560px) {
-  .ma-screen.player .ma-table {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: start;
-  }
-  .ma-screen.player .ma-market {
-    grid-column: 1;
-    grid-row: 1;
-  }
-  .ma-screen.player .ma-center {
-    grid-column: 1;
-    grid-row: 2;
-  }
-  .ma-screen.player .ma-player {
-    grid-column: 2;
-    grid-row: 1 / span 3;
-  }
-  .ma-screen.player .ma-museums-control {
-    grid-column: 1;
-  }
-  .ma-screen.player .ma-hand {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .ma-screen.player .ma-artist__history {
-    display: none;
-  }
-  .ma-screen.player .ma-auction--waiting {
-    display: none;
-  }
-}
-@media (min-width: 701px) and (max-height: 650px) {
-  .ma-screen:not(.player):not(.ma-panel) {
-    padding: 6px 12px 8px;
-    gap: 5px;
-  }
-  .ma-screen:not(.player) .ma-toolbar {
-    min-height: 44px;
-    gap: 6px;
-  }
-  .ma-screen:not(.player) .ma-toolbar button,
-  .ma-screen:not(.player) .ma-toolbar .button {
-    padding: 7px 9px;
-    font-size: 12px;
-  }
-  .ma-screen:not(.player) .ma-brand strong {
-    font-size: 19px;
-  }
-  .ma-screen:not(.player) .display-settings-control span {
-    display: none;
-  }
-  .ma-screen:not(.player) .test-mode-badge {
-    font-size: 10px;
-    padding: 3px 6px;
-  }
-  .ma-screen:not(.player) .ma-table {
-    gap: 6px;
-  }
-  .ma-screen:not(.player) .ma-market,
-  .ma-screen:not(.player):has(> .ma-notice) .ma-market {
-    padding: 6px 8px;
-  }
-  .ma-screen:not(.player) .ma-market > .ma-section-heading,
-  .ma-screen:not(.player):has(> .ma-notice) .ma-market > .ma-section-heading {
-    margin-bottom: 5px;
-  }
-  .ma-screen:not(.player) .ma-section-heading h2 {
-    font-size: 15px;
-  }
-  .ma-screen:not(.player) .ma-section-heading > span {
-    font-size: 10px;
-  }
-  .ma-screen:not(.player) .ma-market__columns {
-    gap: 5px;
-  }
-  .ma-screen:not(.player) .ma-artist {
-    padding: 0 4px 5px;
-  }
-  .ma-screen:not(.player) .ma-artist__swatch {
-    height: 9px;
-    margin: 0 -4px 4px;
-  }
-  .ma-screen:not(.player):has(> .ma-notice) .ma-artist__swatch {
-    height: 9px;
-  }
-  .ma-screen:not(.player) .ma-artist h3 {
-    font-size: 10px;
-    min-height: 2.6em;
-  }
-  .ma-screen:not(.player) .ma-artist__count {
-    margin: 3px 0;
-    font-size: 9px;
-  }
-  .ma-screen:not(.player):has(> .ma-notice) .ma-artist__count {
-    margin: 3px 0;
-  }
-  .ma-screen:not(.player) .ma-artist__count strong {
-    font-size: 14px;
-  }
-  .ma-screen:not(.player) .ma-artist__pips,
-  .ma-screen:not(.player) .ma-artist__unit {
-    display: none;
-  }
-  .ma-screen:not(.player) .ma-artist__value {
-    font-size: 27px;
-  }
-  .ma-screen:not(.player) .ma-artist__value::after {
-    content: 'k';
-    font-size: 10px;
-  }
-  .ma-screen:not(.player) .ma-artist__history {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin-top: 5px;
-    gap: 2px;
-  }
-  .ma-screen:not(.player):has(> .ma-notice) .ma-artist__history {
-    margin-top: 5px;
-  }
-  .ma-screen:not(.player) .ma-artist__history > span {
-    padding: 2px 0;
-  }
-  .ma-screen:not(.player) .ma-artist__history small {
-    font-size: 8px;
-  }
-  .ma-screen:not(.player) .ma-artist__history b {
-    font-size: 12px;
-  }
-  .ma-screen:not(.player) .ma-market__supply,
-  .ma-screen:not(.player):has(> .ma-notice) .ma-market__supply {
-    margin-top: 5px;
-    font-size: 10px;
-  }
-  .ma-screen:not(.player) .ma-center {
-    gap: 5px;
-  }
-  .ma-screen:not(.player) .ma-auction {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 4px 10px;
-    padding: 6px;
-    justify-items: center;
-  }
-  .ma-screen:not(.player) .ma-auction__label {
-    grid-column: 1 / -1;
-    gap: 8px;
-    justify-self: stretch;
-  }
-  .ma-screen:not(.player) .ma-auction__label .ma-kicker {
-    display: none;
-  }
-  .ma-screen:not(.player) .ma-auction__label h2 {
-    font-size: 16px;
-  }
-  .ma-screen:not(.player) .ma-auction__label p {
-    font-size: 10px;
-  }
-  .ma-screen:not(.player) .ma-auction__mark {
-    width: 30px;
-    height: 30px;
-    font-size: 21px;
-  }
-  .ma-screen:not(.player) .ma-auction__paintings {
-    grid-column: 1;
-    grid-row: 2 / span 2;
-    width: auto;
-    gap: 6px;
-  }
-  .ma-screen:not(.player) .ma-auction__paintings > .ma-card {
-    width: 66px;
-    transform: none;
-    padding: 3px;
-  }
-  .ma-screen:not(.player) .ma-auction__paintings .ma-card__head {
-    min-height: 19px;
-    font-size: 7px;
-  }
-  .ma-screen:not(.player)
-    .ma-auction__paintings
-    .ma-card__head
-    > span:last-child {
-    font-size: 17px;
-  }
-  .ma-screen:not(.player) .ma-auction__paintings .ma-card__foot {
-    font-size: 8px;
-  }
-  .ma-screen:not(.player) .ma-auction__paintings .ma-card__foot strong {
-    font-size: 9px;
-  }
-  .ma-screen:not(.player) .ma-auction__paintings .ma-card__foot > span {
-    display: none;
-  }
-  .ma-screen:not(.player) .ma-auction__price {
-    grid-column: 2;
-    grid-row: 2;
-  }
-  .ma-screen:not(.player) .ma-auction__price > span,
-  .ma-screen:not(.player) .ma-auction__price small {
-    font-size: 10px;
-  }
-  .ma-screen:not(.player) .ma-auction__price strong {
-    font-size: 20px;
-  }
-  .ma-screen:not(.player) .ma-auction__participants {
-    grid-column: 2;
-    grid-row: 3;
-    gap: 3px;
-  }
-  .ma-screen:not(.player) .ma-auction__participants > span {
-    font-size: 8px;
-    padding: 2px 4px;
-  }
-  .ma-screen:not(.player) .ma-auction--waiting,
-  .ma-screen:not(.player):has(> .ma-notice) .ma-auction--waiting {
-    display: flex;
-    min-height: 160px;
-    gap: 5px;
-  }
-  .ma-screen:not(.player) .ma-auction--waiting h2 {
-    font-size: 16px;
-  }
-  .ma-screen:not(.player) .ma-auction--waiting p {
-    font-size: 11px;
-  }
-  .ma-screen:not(.player) .ma-gavel svg {
-    width: 44px;
-    height: 44px;
-  }
-  .ma-screen:not(.player) .ma-gavel {
-    line-height: 0;
-  }
-  .ma-screen:not(.player) .ma-latest {
-    padding: 4px 7px;
-    font-size: 10px;
-    line-height: 1.3;
-  }
-  .ma-screen:not(.player) .ma-museums {
-    gap: 6px;
-  }
-  .ma-screen:not(.player) .ma-museum {
-    padding: 6px;
-  }
-  .ma-screen:not(.player) .ma-museum__screen {
-    padding-bottom: 4px;
-    margin-bottom: 4px;
-    gap: 4px;
-  }
-  .ma-screen:not(.player) .ma-museum__screen > span {
     font-size: 18px;
   }
-  .ma-screen:not(.player) .ma-museum__screen h3 {
-    font-size: 10px;
+  .ma-screen .ma-artist__count {
+    grid-column: 1 / -1;
+    margin: 0;
   }
-  .ma-screen:not(.player) .ma-museum__screen p {
-    font-size: 8px;
-  }
-  .ma-screen:not(.player) .ma-museum__collection {
-    min-height: 46px;
-    height: 46px;
-    padding-bottom: 2px;
-    overflow-y: hidden;
-  }
-  .ma-screen:not(.player) .ma-museum__collection > .ma-card {
-    width: 34px;
-    padding: 2px;
-  }
-  .ma-screen:not(.player) .ma-museum__collection .ma-card__head {
+  .ma-screen .ma-artist__pips {
     display: none;
   }
-  .ma-screen:not(.player) .ma-museum__collection .ma-card__foot {
-    padding: 1px 0 0;
+  .ma-screen .ma-artist__value {
+    font-size: 30px;
+    grid-column: 1 / -1;
   }
-  .ma-screen:not(.player) .ma-museum__collection .ma-card__foot strong {
-    font-size: 7px;
+  .ma-screen .ma-artist__unit {
+    grid-column: 1 / -1;
   }
-  .ma-screen:not(.player) .ma-museum__empty {
-    font-size: 10px;
+  .ma-screen .ma-artist:last-child {
+    grid-column: 1 / -1;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
   }
-  .ma-screen:not(.player) .ma-results {
-    padding: 6px;
+  .ma-screen .ma-artist:last-child .ma-artist__count {
+    grid-column: 3;
+    grid-row: 1;
   }
-  .ma-screen:not(.player) .ma-results > .ma-section-heading {
-    margin-bottom: 5px;
+  .ma-screen .ma-artist:last-child .ma-artist__value {
+    grid-column: 1 / 3;
   }
-  .ma-screen:not(.player) .ma-results__ranking {
-    gap: 2px;
+  .ma-screen .ma-artist:last-child .ma-artist__unit {
+    grid-column: 3;
+    grid-row: 2;
   }
-  .ma-screen:not(.player) .ma-results__ranking > div {
-    padding: 3px;
-    font-size: 10px;
+  .ma-screen .ma-market__history-sheet {
+    inset: auto 0 44px;
+    padding: 8px;
   }
-  .ma-screen:not(.player) .ma-results__ranking b {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
+  .ma-screen .ma-market__history-sheet th {
+    overflow-wrap: anywhere;
   }
-  .ma-screen:not(.player) .ma-results__income {
+  .ma-screen .ma-center {
+    gap: 6px;
+  }
+  .ma-screen .ma-auction {
+    gap: 6px 10px;
+    padding: 8px;
+  }
+  .ma-screen .ma-auction__label {
+    flex-wrap: wrap;
+    gap: 5px 8px;
+  }
+  .ma-screen .ma-auction__label h2 {
+    font-size: 20px;
+  }
+  .ma-screen .ma-auction__mark {
+    width: 36px;
+    height: 36px;
+  }
+  .ma-screen .ma-auction__mark svg {
+    width: 24px;
+    height: 24px;
+  }
+  .ma-screen .ma-auction__paintings {
+    gap: 5px;
+  }
+  .ma-screen .ma-auction__paintings > .ma-card {
+    width: 92px;
+    transform: none;
+  }
+  .ma-screen .ma-auction__paintings:has(> :nth-child(2)) > .ma-card {
+    width: 78px;
+  }
+  .ma-screen .ma-auction__paintings .ma-card__foot > span {
+    display: none;
+  }
+  .ma-screen .ma-auction__participants {
+    gap: 3px;
+  }
+  .ma-screen .ma-auction__participants > span {
+    padding: 2px 4px;
+  }
+  .ma-screen .ma-auction__price strong {
+    font-size: 24px;
+  }
+  .ma-screen.player .ma-auction--waiting {
+    min-height: 0;
+    padding: 6px 8px;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 5px;
+    border-style: solid;
+  }
+  .ma-screen.player .ma-auction--waiting .ma-gavel {
+    display: none;
+  }
+  .ma-screen.player .ma-auction--waiting h2 {
+    font-size: 18px;
+  }
+  .ma-screen .ma-wallet {
+    padding: 6px 8px;
+  }
+  .ma-screen .ma-wallet > div {
+    font-size: 18px;
+  }
+  .ma-screen .ma-wallet > strong {
+    font-size: 20px;
+  }
+  .ma-screen .ma-wallet__icon,
+  .ma-screen .ma-wallet .ma-coin {
+    display: none;
+  }
+  .ma-screen .ma-bid {
+    padding: 8px;
+  }
+  .ma-screen .ma-hand {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-top: 6px;
-    gap: 2px 8px;
+    gap: 10px;
   }
-  .ma-screen:not(.player) .ma-results__income > div {
-    font-size: 10px;
-    gap: 4px;
+  .ma-screen .ma-museums {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .ma-screen:not(.player) .ma-results__income span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .ma-screen .ma-results {
+    padding: 8px;
   }
-  .ma-screen:not(.player) .ma-results__income strong {
-    flex-shrink: 0;
+  .ma-screen .ma-results__income {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .ma-screen:not(.player) .ma-winner {
-    font-size: 14px;
-    margin: 4px 0;
+  .ma-screen .ma-results__income > div {
+    min-width: 0;
   }
-  .ma-screen:not(.player) .ma-table:has(.ma-results) .ma-artist {
-    padding-bottom: 3px;
+  .ma-screen .ma-results__ranking > div {
+    flex-wrap: wrap;
+    gap: 5px;
   }
-  .ma-screen:not(.player) .ma-table:has(.ma-results) .ma-artist__swatch {
-    height: 7px;
-    margin-bottom: 2px;
+  .ma-screen .ma-results__ranking strong {
+    margin-left: auto;
   }
-  .ma-screen:not(.player) .ma-table:has(.ma-results) .ma-artist h3 {
-    min-height: 2em;
+  .ma-screen .ma-latest > span {
+    display: none;
   }
-  .ma-screen:not(.player) .ma-table:has(.ma-results) .ma-artist__count {
-    margin: 1px 0;
-  }
-  .ma-screen:not(.player) .ma-table:has(.ma-results) .ma-artist__value {
-    font-size: 22px;
-  }
-  .ma-screen:not(.player)
-    .ma-table:has(.ma-results)
-    .ma-artist__history
-    > span {
-    padding: 1px 0;
-  }
-  .ma-screen:not(.player) .ma-table:has(.ma-results) .ma-artist__history small {
-    font-size: 7px;
-  }
-  .ma-screen:not(.player) .ma-table:has(.ma-results) .ma-artist__history b {
-    font-size: 10px;
+  .ma-screen .ma-latest {
+    padding: 5px 8px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1605,5 +1318,311 @@
   }
   .ma-screen .ma-hand__card--available:not(:disabled):hover .ma-card {
     transform: none;
+  }
+}
+.ma-screen .ma-auction__paintings {
+  grid-row: 2;
+}
+.ma-screen .ma-auction__participants {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: grid;
+  grid-template-columns: repeat(var(--ma-seats), minmax(0, 1fr));
+  width: 100%;
+}
+.ma-screen .ma-auction__participants > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+}
+.ma-screen .ma-auction__participants > span > strong {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (min-width: 701px) and (max-height: 600px) {
+  .ma-screen .ma-latest__copy p:first-child {
+    flex-wrap: nowrap;
+  }
+  .ma-screen .ma-latest__copy p:first-child > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ma-screen .ma-latest > span {
+    display: none;
+  }
+  .ma-screen .ma-latest__copy p:first-child > strong {
+    flex-shrink: 0;
+  }
+}
+/* The market shows one shared unit and a compact identity row at every size. */
+.ma-screen p {
+  font-size: 16px;
+}
+.ma-screen .ma-round {
+  font-size: 18px;
+}
+.ma-screen .ma-table {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.ma-screen .ma-artist__identity {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 5px 0;
+  min-width: 0;
+}
+.ma-screen .ma-artist__identity h3 {
+  min-width: 0;
+  font-weight: 600;
+}
+.ma-screen .ma-artist__swatch {
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+.ma-screen .ma-artist__swatch svg {
+  width: 18px;
+  height: 18px;
+}
+.ma-screen .ma-auction__participants > span {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 4px;
+  font-size: 18px;
+}
+.ma-screen .ma-auction__seat-status {
+  flex: 0 0 auto;
+  line-height: 0;
+}
+.ma-screen .ma-auction__seat-status svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ma-screen .ma-table > .ma-latest {
+  grid-column: 1 / -1;
+  grid-row: 3;
+}
+.ma-screen .ma-table-footer {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+}
+.ma-screen .ma-table-footer > .ma-latest {
+  flex: 1;
+  min-width: 0;
+}
+.ma-screen .ma-table-footer > .ma-notice {
+  max-width: 45%;
+}
+.ma-screen .ma-latest__copy {
+  display: flex;
+  gap: 5px 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.ma-screen .ma-latest__copy p {
+  font-size: 16px;
+}
+.ma-screen .ma-latest__copy strong {
+  font-size: 18px;
+}
+.ma-screen .ma-auction__label p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 240px;
+}
+@media (min-width: 701px) and (max-height: 600px) {
+  .ma-screen .ma-market {
+    padding: 6px 8px;
+  }
+  .ma-screen .ma-market .ma-section-heading {
+    margin-bottom: 4px;
+  }
+  .ma-screen .ma-market .ma-section-heading h2 {
+    line-height: 1.2;
+  }
+  .ma-screen .ma-artist {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 4px;
+    padding: 0 2px 3px;
+  }
+  .ma-screen .ma-artist__identity {
+    grid-column: 1 / -1;
+    gap: 2px;
+    margin: 4px 0;
+  }
+  .ma-screen .ma-artist__identity h3 {
+    font-size: 16px;
+    letter-spacing: -0.03em;
+    line-height: 20px;
+  }
+  .ma-screen .ma-artist__swatch {
+    width: 16px;
+    height: 18px;
+    border-radius: 3px;
+  }
+  .ma-screen .ma-artist__swatch svg {
+    width: 14px;
+    height: 14px;
+  }
+  .ma-screen .ma-artist__count {
+    line-height: 23px;
+    margin: 0;
+  }
+  .ma-screen .ma-artist__count strong {
+    font-size: 16px;
+  }
+  .ma-screen .ma-artist__pips {
+    display: none;
+  }
+  .ma-screen .ma-artist__value {
+    grid-column: 2;
+    grid-row: 2;
+    font-size: 24px;
+    line-height: 28px;
+  }
+  .ma-screen .ma-artist__value[data-three-digit='true'] {
+    font-size: 18px;
+  }
+  .ma-screen .ma-market__supply {
+    margin-top: 3px;
+  }
+  .ma-screen .ma-market__history summary {
+    font-size: 16px;
+  }
+  .ma-screen .ma-center:has(.ma-results) .ma-latest {
+    display: flex;
+  }
+  .ma-screen .ma-table-footer > .ma-notice {
+    padding: 3px 6px;
+    gap: 6px;
+  }
+  .ma-screen .ma-table-footer > .ma-latest {
+    padding: 3px 8px;
+  }
+  .ma-screen .ma-table > .ma-museums .ma-museum__screen h3 {
+    line-height: 1.1;
+  }
+  .ma-screen .ma-table > .ma-museums .ma-museum__screen p {
+    line-height: 1.2;
+  }
+  .ma-screen .ma-table > .ma-museums .ma-museum__collection {
+    padding-bottom: 2px;
+  }
+  .ma-screen .ma-table-footer:has(.ma-notice) .ma-latest__copy {
+    display: block;
+  }
+  .ma-screen .ma-table-footer:has(.ma-notice) .ma-latest__copy p {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ma-screen .ma-auction__label > div:not(.decision-countdown) {
+    min-width: 0;
+  }
+  .ma-screen .ma-auction__label p {
+    max-width: 170px;
+  }
+}
+@media (max-width: 700px) {
+  .ma-screen .ma-artist {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .ma-screen .ma-artist__identity {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    margin: 0;
+  }
+  .ma-screen .ma-artist__count {
+    grid-column: 1;
+  }
+  .ma-screen .ma-artist__value {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .ma-screen .ma-artist:last-child {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .ma-screen .ma-artist:last-child .ma-artist__count {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .ma-screen .ma-artist:last-child .ma-artist__value {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .ma-screen .ma-wallet > div {
+    font-size: 18px;
+  }
+  .ma-screen .ma-waiting,
+  .ma-screen .ma-private-bid {
+    font-size: 18px;
+  }
+  .ma-screen .ma-auction--waiting h2 {
+    max-width: 65%;
+  }
+  .ma-screen .ma-auction__label > div:not(.decision-countdown) {
+    min-width: 0;
+  }
+  .ma-screen .ma-auction__label p {
+    max-width: 160px;
+  }
+}
+.ma-screen .ma-market-history-control {
+  min-height: 44px;
+  padding: 7px 10px;
+}
+.dialog-surface:has(.ma-market-history) .panel-heading button {
+  font-size: 18px;
+}
+.ma-screen .ma-market-history table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  text-align: center;
+  font-size: 18px;
+}
+.ma-screen .ma-market-history td,
+.ma-screen .ma-market-history th {
+  padding: 10px 3px;
+  border-bottom: 1px solid #d6c2a2;
+}
+.ma-screen .ma-market-history th:first-child {
+  text-align: left;
+}
+.ma-screen .ma-market-history p {
+  font-size: 16px;
+  margin-top: 12px;
+  text-align: right;
+}
+@media (max-width: 700px) {
+  .ma-screen .ma-market-history table {
+    font-size: 16px;
+  }
+  .ma-screen .ma-market-history th {
+    overflow-wrap: anywhere;
+  }
+  .ma-screen .ma-market-history td,
+  .ma-screen .ma-market-history th {
+    padding: 8px 2px;
   }
 }

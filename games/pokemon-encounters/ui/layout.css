@@ -1206,3 +1206,158 @@
   min-height: 52px;
   padding: 3px 12px;
 }
+
+/* A 720p window at high Windows DPI has less than 600 CSS px of height.
+   One row avoids subtracting the two-row reserve from a short container. */
+@media (min-width: 701px) and (max-width: 1000px) and (max-height: 600px) {
+  .pokemon-screen:not(.player):not(.pokemon-panel) {
+    padding: 2px 8px;
+  }
+  .pokemon-screen:not(.player) .game-toolbar {
+    min-height: 44px;
+  }
+  .pokemon-screen:not(.player) .game-table[data-seats='6'][data-layout] {
+    gap: 6px;
+    padding: 4px 8px;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .pokemon-status.decision-dashboard {
+    padding: 4px 8px;
+    gap: 4px 8px;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .decision-status
+    > .eyebrow {
+    margin: 0;
+    line-height: 18px;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    h2.current-actor {
+    font-size: 18px;
+    line-height: 22px;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .progress-caption {
+    display: none;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .decision-dashboard
+    .card-piles
+    > .pile-zone {
+    width: 50px;
+    padding: 2px;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .held-zone {
+    min-height: 75px;
+    padding: 4px 8px;
+    gap: 6px;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .held-zone.held-empty {
+    min-height: 75px;
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .game-seats {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
+    align-items: start;
+    align-content: start;
+    gap: 6px;
+    width: 100%;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .game-seat {
+    max-width: none;
+    padding: 2px 5px;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .seat-heading {
+    min-height: 24px;
+    padding-right: 0;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .seat-heading
+    h3 {
+    font-size: 16px;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .avatar {
+    width: 22px;
+    height: 22px;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .game-seat
+    > .win-track {
+    position: static;
+    font-size: 20px;
+    line-height: 20px;
+    margin: 0;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .pokemon-board {
+    width: 100%;
+    margin: 2px auto;
+    gap: 3px;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .pokemon-board
+    .pokemon-card {
+    aspect-ratio: auto;
+    min-height: 64px;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .action-announcement {
+    width: 100%;
+    padding: 4px 8px;
+    gap: 6px;
+  }
+  .pokemon-screen:not(.player)
+    .game-table[data-seats='6'][data-layout]
+    .action-copy {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+  }
+  .pokemon-screen:not(.player) .game-toolbar .connection {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .pokemon-screen:not(.player)
+    .game-table.result-table[data-seats='6'][data-layout]
+    .game-seat {
+    padding-block: 1px;
+  }
+  .pokemon-screen:not(.player)
+    .game-table.result-table[data-seats='6'][data-layout]
+    .seat-heading {
+    min-height: 22px;
+  }
+  .pokemon-screen:not(.player)
+    .game-table.result-table[data-seats='6'][data-layout]
+    .pokemon-board {
+    margin-block: 0;
+    gap: 2px;
+  }
+}

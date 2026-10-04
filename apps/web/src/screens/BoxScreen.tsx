@@ -20,6 +20,7 @@ import { PlayModeBadge } from '../components/PlayModeBadge';
 import { DisplaySettings } from '../components/DisplaySettings';
 import { AvatarPicker } from '../components/AvatarPicker';
 import { GameIntroduction } from '../components/GameIntroduction';
+import { CountdownSettings } from '../components/CountdownSettings';
 import type { RoomSession } from '../session/useRoomSession';
 
 const difficultyNames: Record<BotDifficulty, string> = {
@@ -103,6 +104,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
           TableMax
         </span>
         <div className="header-status">
+          {isHost && <CountdownSettings session={session} />}
           {role !== 'player' && <DisplaySettings />}
           <PlayModeBadge mode={view?.playMode} />
           <span

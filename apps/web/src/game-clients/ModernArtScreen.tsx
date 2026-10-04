@@ -8,6 +8,7 @@ import type {
 import {
   AuctionStage,
   MarketBoard,
+  MarketHistory,
   Museums,
   PublicLog,
   RoundResult,
@@ -27,12 +28,21 @@ import { DisplaySettings } from '../components/DisplaySettings';
 import { PlayModeBadge } from '../components/PlayModeBadge';
 import { PlayModeControl } from '../components/PlayModeControl';
 import { avatarFor } from '../assets/avatars';
+import { PaintingSortControl } from '../../../../games/modern-art/ui/painting-display';
+import type { PaintingSort } from '../../../../games/modern-art/ui/sorting';
+import { DecisionCountdown } from '../components/DecisionCountdown';
+import { ModernArtSoundControl } from '../../../../games/modern-art/ui/audio';
+import { useAudioOutput } from '../session/useAudioOutput';
 
 function ModernArtScreen({ session }: { session: RoomSession }) {
   const { role, view, connected, command, locked, canControl, motion } =
     session;
   const game = view?.gameView as ModernArtView | null;
-  const [panel, setPanel] = useState<'menu' | 'museums' | null>(null);
+  const canPlay = useAudioOutput();
+  const [panel, setPanel] = useState<'menu' | 'museums' | 'market' | null>(
+    null,
+  );
+  const [collectionSort, setCollectionSort] = useState<PaintingSort>('artist');
   const names = Object.fromEntries(
     view?.seats.map((seat) => [seat.id, seat.name]) ?? [],
   );
@@ -51,6 +61,44 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
       });
   };
   const saved = view?.playMode !== 'test' && motion.length > 0;
+  const ended = view?.status === 'ended' && game?.phase === 'ended';
+  const showSessionFeedback = !(
+    ended &&
+    connected &&
+    session.message === '已保存' &&
+    !session.admissionPending &&
+    !session.awaitingConfirmation
+  );
+  const emptyFinalMuseums =
+    ended &&
+    game.seatOrder.every((seat) => game.players[seat]?.collection.length === 0);
+  const notice =
+    view &&
+    game &&
+    (view.paused ||
+      view.botError ||
+      (view.status === 'ended' && game.phase !== 'ended')) ? (
+      <div className="ma-notice" role="status">
+        <span>
+          {view.botError ||
+            (view.status === 'ended'
+              ? view.endReason || '对局已结束'
+              : view.restored
+                ? '存档已恢复，等待房主继续'
+                : '游戏已暂停')}
+        </span>
+        {canControl && view.status === 'playing' && (
+          <button disabled={locked} onClick={() => command({ type: 'resume' })}>
+            恢复游戏
+          </button>
+        )}
+        {canControl && view.status === 'ended' && (
+          <button disabled={locked} onClick={() => command({ type: 'replay' })}>
+            再玩一局
+          </button>
+        )}
+      </div>
+    ) : null;
   return (
     <main
       className={`ma-screen ${role} ${saved ? 'ma-saved' : ''}`}
@@ -73,12 +121,28 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
         </span>
         <FullscreenControl />
         {role !== 'player' && <DisplaySettings />}
+        {role !== 'player' && (
+          <PaintingSortControl
+            value={collectionSort}
+            change={setCollectionSort}
+            label="全局收藏排序"
+          />
+        )}
         <PlayModeBadge mode={view?.playMode} />
+        {role !== 'player' && (
+          <ModernArtSoundControl
+            feedback={session.feedback}
+            game={game}
+            errorId={session.errorId}
+            disabled={view?.playMode === 'test' || view?.paused || !connected}
+            canPlay={canPlay}
+          />
+        )}
         <button className="secondary" onClick={() => setPanel('menu')}>
           菜单
         </button>
       </header>
-      <SessionFeedback session={session} />
+      {showSessionFeedback && <SessionFeedback session={session} />}
       {!game || !view ? (
         <div className="ma-unavailable">
           <h1>等待拍卖开始</h1>
@@ -89,45 +153,25 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
         </div>
       ) : (
         <>
-          {(view.paused ||
-            view.botError ||
-            (view.status === 'ended' && game.phase !== 'ended')) && (
-            <div className="ma-notice" role="status">
-              <span>
-                {view.botError ||
-                  (view.status === 'ended'
-                    ? view.endReason || '对局已结束'
-                    : view.restored
-                      ? '存档已恢复，等待房主继续'
-                      : '游戏已暂停')}
-              </span>
-              {canControl && view.status === 'playing' && (
-                <button
-                  disabled={locked}
-                  onClick={() => command({ type: 'resume' })}
-                >
-                  恢复游戏
-                </button>
-              )}
-              {canControl && view.status === 'ended' && (
-                <button
-                  disabled={locked}
-                  onClick={() => command({ type: 'replay' })}
-                >
-                  再玩一局
-                </button>
-              )}
-            </div>
-          )}
+          {role === 'player' && notice}
           <div className="ma-table">
-            <MarketBoard view={game} />
+            <MarketBoard view={game} showHistory={() => setPanel('market')} />
             <div className="ma-center">
               {game.phase === 'round-result' || game.phase === 'ended' ? (
                 <RoundResult view={game} names={names} portraits={portraits} />
               ) : (
-                <AuctionStage view={game} names={names} />
+                <AuctionStage
+                  view={game}
+                  names={names}
+                  countdown={
+                    <DecisionCountdown
+                      view={view}
+                      connected={connected}
+                      compact
+                    />
+                  }
+                />
               )}
-              <SavedAction view={game} names={names} />
               {canControl &&
                 !view.paused &&
                 game.phase === 'round-result' &&
@@ -157,6 +201,15 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
                   </button>
                 )}
             </div>
+            {role === 'player' && !ended && (
+              <SavedAction view={game} names={names} />
+            )}
+            {role !== 'player' && (!ended || notice) && (
+              <div className="ma-table-footer">
+                {!ended && <SavedAction view={game} names={names} />}
+                {notice}
+              </div>
+            )}
             {role === 'player' && game.self && (
               <PlayerControls
                 view={game}
@@ -167,12 +220,13 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
                 choose={choose}
               />
             )}
-            {role !== 'player' && (
+            {role !== 'player' && !emptyFinalMuseums && (
               <Museums
                 view={game}
                 names={names}
                 portraits={portraits}
                 selfId={null}
+                sort={collectionSort}
               />
             )}
             {role === 'player' && (
@@ -188,17 +242,36 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
       )}
       {panel && (
         <OverlayPanel
-          title={panel === 'museums' ? '各家博物馆' : '拍卖行菜单'}
+          title={
+            panel === 'museums'
+              ? '各家博物馆'
+              : panel === 'market'
+                ? '历轮估值'
+                : '拍卖行菜单'
+          }
           close={() => setPanel(null)}
         >
           {panel === 'museums' && game ? (
             <div className="ma-screen ma-panel">
+              <div className="ma-hand-tools">
+                <span>公开收藏</span>
+                <PaintingSortControl
+                  value={collectionSort}
+                  change={setCollectionSort}
+                  label="各家公开收藏排序"
+                />
+              </div>
               <Museums
                 view={game}
                 names={names}
                 portraits={portraits}
                 selfId={game.self?.seatId ?? null}
+                sort={collectionSort}
               />
+            </div>
+          ) : panel === 'market' && game ? (
+            <div className="ma-screen ma-panel">
+              <MarketHistory view={game} />
             </div>
           ) : (
             <>

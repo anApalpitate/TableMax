@@ -1,7 +1,9 @@
 import type { CSSProperties } from 'react';
 import { paintingImage } from '../../../assets/games/modern-art/catalog';
 import type { CardFace } from './view';
-import { auctionNames, auctionMarks } from './public/labels';
+import { auctionNames } from './public/labels';
+import { ArtistMark, AuctionMark } from './painting-display';
+import { artistPresentation } from './artist-presentation';
 
 export function ArtCard({
   card,
@@ -13,17 +15,19 @@ export function ArtCard({
   compact?: boolean;
 }) {
   const image = paintingImage(card.artistId, card.artIndex);
+  const presentation = artistPresentation[card.artistId];
   return (
     <span
       className={`ma-card ${compact ? 'ma-card--compact' : ''}`}
-      style={{ '--ma-artist': artist?.color ?? '#a18162' } as CSSProperties}
+      style={{ '--ma-artist': presentation.color } as CSSProperties}
       data-card-id={card.id}
+      data-artist-id={card.artistId}
+      data-auction-kind={card.auctionKind}
+      aria-label={`${artist?.name ?? card.artistId}，${card.title}，${auctionNames[card.auctionKind]}`}
+      title={`${artist?.name ?? card.artistId} / ${card.title} / ${auctionNames[card.auctionKind]}`}
     >
       <span className="ma-card__head">
-        <span>{artist?.name ?? card.artistId}</span>
-        <span title={auctionNames[card.auctionKind]}>
-          {auctionMarks[card.auctionKind]}
-        </span>
+        <span>{presentation.shortName}</span>
       </span>
       <span
         className={`ma-card__art ${image.url ? '' : 'ma-card__art--pending'}`}
@@ -33,7 +37,14 @@ export function ArtCard({
           ...(image.url ? { backgroundImage: `url("${image.url}")` } : {}),
           backgroundPosition: image.position,
         }}
-      />
+      >
+        <span className="ma-card__artist-mark">
+          <ArtistMark artistId={card.artistId} />
+        </span>
+        <span className="ma-card__auction-mark">
+          <AuctionMark kind={card.auctionKind} />
+        </span>
+      </span>
       <span className="ma-card__foot">
         <strong>{card.title}</strong>
         <span>{auctionNames[card.auctionKind]}</span>

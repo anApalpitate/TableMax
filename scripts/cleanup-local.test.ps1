@@ -42,6 +42,10 @@ try {
   Fixture-File 'tmp/experience-EXP123/data/room.sqlite' 'isolated-experience-data'
   Fixture-File 'tmp/runtime-memory-MEM123/save.json' 'isolated-memory-fixture'
   Fixture-File 'tmp/modern-art-verify-ART123/data/room.sqlite' 'isolated-modern-art-data'
+  Fixture-File 'tmp/modern-art-polish-POL123/data/room.sqlite' 'isolated-modern-art-polish-data'
+  Fixture-File 'tmp/modern-art-audio-verify-AUD123/data/room.sqlite' 'isolated-modern-art-audio-data'
+  Fixture-File 'tmp/countdown-crosslayer-CLK123/data/room.sqlite' 'isolated-countdown-data'
+  Fixture-File 'tmp/modern-art-polish-reference/notes.md' 'unknown-polish-reference'
   Fixture-File 'tmp/modern-art-verify-research/notes.md' 'unknown-modern-art-research'
   Fixture-File 'tmp/app-icon-verify-ICO123/icons.png' 'isolated-icon-verification'
   Fixture-File 'tmp/tablemax-sqlite-migration-SQL123/data/room.sqlite' 'isolated-migration-verification'
@@ -181,6 +185,10 @@ try {
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/experience-EXP123'))) 'Recognized stopped experience verification data is removed'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/runtime-memory-MEM123'))) 'Recognized stopped memory verification data is removed'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/modern-art-verify-ART123'))) 'Recognized stopped Modern Art verification data is removed'
+  foreach ($name in @('modern-art-polish-POL123', 'modern-art-audio-verify-AUD123', 'countdown-crosslayer-CLK123')) {
+    Check (-not (Test-Path -LiteralPath (Join-Path $fixture ('tmp/' + $name)))) ('Recognized stopped presentation or countdown verification data is removed: ' + $name)
+  }
+  Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/modern-art-polish-reference/notes.md')) 'Similar presentation research directory is preserved'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/modern-art-verify-research/notes.md')) 'Similar Modern Art research directory is preserved'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/app-icon-verify-ICO123'))) 'Recognized stopped icon verification data is removed'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/tablemax-sqlite-migration-SQL123'))) 'Recognized stopped SQLite migration verification data is removed'

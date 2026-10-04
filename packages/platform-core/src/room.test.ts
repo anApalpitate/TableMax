@@ -214,21 +214,28 @@ describe('real room invariants', () => {
     ).toEqual({ ok: false, reason: 'action-id-conflict' });
   });
   it('publishes nothing and leaves state unchanged when transaction save fails, then allows exact retry', async () => {
-    const { room, repository, a } = await fixture();
-    const before = room.view(a.token);
-    const input = choose(room, a.token);
-    const listener = vi.fn();
-    room.subscribe(listener);
-    repository.fail = true;
-    expect(await room.command(a.token, input)).toEqual({
-      ok: false,
-      reason: 'save-or-action-failed',
-    });
-    expect(room.view(a.token)).toEqual(before);
-    expect(listener).not.toHaveBeenCalled();
-    repository.fail = false;
-    expect((await room.command(a.token, input)).ok).toBe(true);
-    expect(listener).toHaveBeenCalledTimes(1);
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(1_800_000_000_000);
+    try {
+      const { room, repository, a } = await fixture();
+      const before = room.view(a.token);
+      const input = choose(room, a.token);
+      const listener = vi.fn();
+      room.subscribe(listener);
+      repository.fail = true;
+      expect(await room.command(a.token, input)).toEqual({
+        ok: false,
+        reason: 'save-or-action-failed',
+      });
+      expect(room.view(a.token)).toEqual(before);
+      expect(room.view(a.token).decisionClock).toEqual(before.decisionClock);
+      expect(room.view(a.token).countdownSeconds).toBe(before.countdownSeconds);
+      expect(listener).not.toHaveBeenCalled();
+      repository.fail = false;
+      expect((await room.command(a.token, input)).ok).toBe(true);
+      expect(listener).toHaveBeenCalledTimes(1);
+    } finally {
+      clock.mockRestore();
+    }
   });
   it('invalidates old branches, truncates active history, restores RNG and keeps current owner after rollback', async () => {
     const { room, a, b } = await fixture();

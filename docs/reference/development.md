@@ -251,6 +251,24 @@ UI 合法存档 fixture 的构造入口在 scripts/fixtures/prepare-pokemon.ts�
 
 本轮按用户明确要求只使用当前 Windows 电脑，电视、Android／iPhone 浏览器及后台／断网采用模拟；不声称 Safari、电视硬件或另一台无开发环境电脑已测。AC 具体结果、声音观察限制和后续复查边界统一见 [验收记录](acceptance.md)，使用流程见 [项目说明](../../README.md#开始对局)。以下保留阶段历史证据，过去的“待第五／六阶段”描述表示当时状态。
 
+## 工作目录透明压缩
+
+[Compress-Workspace.ps1](../../Compress-Workspace.ps1) 为 Windows NTFS 工作目录提供逐文件透明压缩。默认只审计，确认构建、应用和验证均退出后显式执行：
+
+```powershell
+.\Compress-Workspace.ps1
+.\Compress-Workspace.ps1 -Apply
+.\Compress-Workspace.ps1 -Apply -MinimumBytes 4096
+```
+
+工具不删除或重编码素材、存档、源码、历史证据、依赖或程序包。它按文件身份去重计算实际分配，跳过链接目录、嵌套仓库、只读／加密／稀疏文件以及具有审计范围外硬链接的文件；默认候选至少 64 KiB，已经压缩的文件跳过。完全位于本工作区的硬链接仅压缩一次。写入前复查身份与别名，持有排除并发写入和删除的句柄，并通过 [GetFinalPathNameByHandleW](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfinalpathnamebyhandlew) 确认主文件及每个硬链接别名的实际路径仍位于工作区内，拒绝父目录移出后用 Junction 回指的情况。压缩前后 SHA-256 必须一致，无收益时撤销压缩。只读属性保持原样，不为压缩临时修改 Git 对象或原始资料的属性。
+
+需要覆盖较小文件时，可先用 `-MinimumBytes 4096` 预览，再按同一参数执行；此参数仅降低普通文件的大小门槛，不取消上述保护。
+
+操作与清理工具共用互斥保护；活动项目进程存在时拒绝执行，不关闭用户程序。`artifacts/maintenance/workspace-compression-*/` 保存开始报告、逐文件 JSONL 审计和最终汇总；异常或中止后的 started 条目不能视为已核验成功。逻辑字节、按路径累计字节和按文件身份去重的实际磁盘分配分别记录；便携 ZIP 及实际解压字节门禁仍按原始字节计算。后续新增文件不自动进入本次压缩，不建立后台轮询。
+
+底层采用 [FSCTL_SET_COMPRESSION](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fscc/77f650a3-e3a2-4a25-baac-4bf9b36bcc46)、[FILE_STANDARD_INFO](https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_standard_info) 与 [GetCompressedFileSizeW](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getcompressedfilesizew)；隔离回归在 `scripts/compress-workspace.test.ps1`，覆盖无损内容、普通读写、硬链接边界、嵌套仓库、链接目录、无收益撤销和活动进程拒绝。
+
 ## 第三、四阶段平台验证
 
 2026-10-01 完成真实平台与恢复基础。固定工具链保持不变，新增本地工作区 platform-core 和可运行 template 游戏；protocolVersion 为 2，游戏 SDK 仍为 1（源码契约扩展），平台存档格式为 1。模板游戏／规则／状态及独立策略版本分别在 manifest 与 bot 入口声明，版本不兼容保留原存档并停止启动。

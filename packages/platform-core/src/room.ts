@@ -9,6 +9,7 @@ import {
   CommandSchema,
   AVATAR_PRESETS,
   AvatarIdSchema,
+  DEFAULT_COUNTDOWN_SECONDS,
   type AvatarId,
   type Command,
   type CommandReply,
@@ -22,6 +23,7 @@ import { Rejection, requireThat } from './errors';
 import { RandomSource } from './random';
 import { sealCredential, openCredential } from './session-receipts';
 import { GameRegistry, type LoadedGame } from './game-registry';
+import { synchronizeDecisionClocks, projectDecisionClock } from './countdown';
 
 export const token = () => randomBytes(32).toString('hex');
 export const hash = (value: string) =>
@@ -94,9 +96,11 @@ export class RoomCoordinator {
       saved === null ? this.fresh() : validateSave(saved, rules, strategy);
     let persist =
       saved !== null &&
-      this.data.seats.some(
+      (this.data.seats.some(
         (_, index) => (saved as Save).seats[index]!.avatarId === undefined,
-      );
+      ) ||
+        (saved as Save).countdownSeconds === undefined ||
+        (saved as Save).decisionClocks === undefined);
     // SQLite journal revisions are unique; migrate an old lobby exactly once.
     if (persist && this.data.status !== 'playing') this.data.revision++;
     if (initialPlayMode !== undefined) {
@@ -121,6 +125,13 @@ export class RoomCoordinator {
       persist = true;
     }
     if (persist) {
+      synchronizeDecisionClocks(
+        this.data,
+        this.data,
+        this.game?.rules ?? null,
+        Date.now(),
+        true,
+      );
       this.updateWindows(this.data);
       repository.save(this.data);
     }
@@ -175,6 +186,8 @@ export class RoomCoordinator {
       paused: false,
       joinOpen: true,
       playMode: 'play',
+      countdownSeconds: DEFAULT_COUNTDOWN_SECONDS,
+      decisionClocks: [],
       seats: [],
       hostSeat: null,
       ownerSeatId: null,
@@ -223,6 +236,7 @@ export class RoomCoordinator {
     events: PublicEvent[] = [],
     game = this.game,
   ) {
+    synchronizeDecisionClocks(next, this.data, game?.rules ?? null, Date.now());
     this.repository.save(next);
     this.data = next;
     this.game = game;
@@ -366,6 +380,13 @@ export class RoomCoordinator {
       restored: this.restored,
       joinOpen: d.joinOpen,
       playMode: this.playMode,
+      countdownSeconds: d.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS,
+      decisionClock: projectDecisionClock(
+        d,
+        this.game?.rules ?? null,
+        seatId,
+        Date.now(),
+      ),
       game: this.game
         ? {
             id: this.rules.manifest.id,
@@ -616,6 +637,8 @@ export class RoomCoordinator {
         );
         const fresh = this.fresh(game);
         fresh.playMode = next.playMode ?? 'play';
+        fresh.countdownSeconds =
+          next.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS;
         fresh.seats = next.seats.map((seat) => ({
           ...seat,
           ready: seat.controller === 'bot',
@@ -635,6 +658,10 @@ export class RoomCoordinator {
       case 'set-play-mode':
         host();
         next.playMode = c.mode;
+        break;
+      case 'set-countdown':
+        host();
+        next.countdownSeconds = c.seconds;
         break;
       case 'join-open':
         host();
@@ -783,6 +810,8 @@ export class RoomCoordinator {
         {
           const fresh = this.fresh();
           fresh.playMode = next.playMode ?? 'play';
+          fresh.countdownSeconds =
+            next.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS;
           if (c.type === 'replay') {
             fresh.seats = next.seats.map((seat) => ({
               ...seat,

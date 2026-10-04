@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { Action, ModernArtView } from '../view';
 import { ArtCard } from '../ArtCard';
 import { money } from '../public/labels';
+import { PaintingSortControl } from '../painting-display';
+import { sortPaintings, type PaintingSort } from '../sorting';
 
 type MoneyAction = Extract<Action, { amount: number }>;
 
@@ -97,7 +99,7 @@ function AmountControls({
           disabled={locked || !chosen}
         >
           {label}
-          {chosen ? ` · ${money(chosen.amount)}` : ''}
+          {chosen ? ` ${money(chosen.amount)}` : ''}
         </button>
         {pass && (
           <button
@@ -136,6 +138,7 @@ export function PlayerControls({
   choose(action: Action): void;
 }) {
   const self = view.self;
+  const [sort, setSort] = useState<PaintingSort>('artist');
   if (!self) return null;
   const moneyActions = actions.filter(
     (action): action is MoneyAction => 'amount' in action,
@@ -191,7 +194,7 @@ export function PlayerControls({
               disabled={locked}
               onClick={() => choose(buy)}
             >
-              买入 · {money(view.auction?.fixedPrice ?? 0)}
+              买入 {money(view.auction?.fixedPrice ?? 0)}
             </button>
           )}
           {pass && !moneyActions.length && (
@@ -217,7 +220,8 @@ export function PlayerControls({
         </div>
         {self.sealedBid !== null && (
           <p className="ma-private-bid">
-            你的暗标 · <strong>{money(self.sealedBid)}</strong> · 已提交
+            <span>你的暗标</span> <strong>{money(self.sealedBid)}</strong>{' '}
+            <span>已提交</span>
           </p>
         )}
         {!actions.length &&
@@ -238,10 +242,18 @@ export function PlayerControls({
               ? '选择一幅画作上拍'
               : '你的手牌'}
         </h2>
-        <span>{self.hand.length} 张 · 仅你可见</span>
+        <span>{self.hand.length} 张</span>
+      </div>
+      <div className="ma-hand-tools">
+        <span>仅你可见</span>
+        <PaintingSortControl
+          value={sort}
+          change={setSort}
+          label="你的手牌和收藏排序"
+        />
       </div>
       <div className="ma-hand">
-        {self.hand.map((card) => {
+        {sortPaintings(self.hand, sort).map((card) => {
           const action = offered.get(card.id);
           const artist = view.artists.find(
             (entry) => entry.id === card.artistId,
@@ -253,7 +265,7 @@ export function PlayerControls({
               data-card-id={card.id}
               data-ma-action={action?.type}
               className={`ma-hand__card ${action ? 'ma-hand__card--available' : ''}`}
-              aria-label={`${action?.type === 'add-double' ? '追加' : action ? '上拍' : '手牌'} · ${artist?.name ?? card.artistId} · ${card.title}`}
+              aria-label={`${action?.type === 'add-double' ? '追加' : action ? '上拍' : '手牌'} ${artist?.name ?? card.artistId} ${card.title}`}
               disabled={locked || !action}
               onClick={() => {
                 if (action) choose(action);
@@ -265,6 +277,28 @@ export function PlayerControls({
         })}
         {!self.hand.length && <p className="ma-empty-hand">手牌已全部上拍</p>}
       </div>
+      <section className="ma-self-collection" aria-label="你的公开收藏">
+        <div className="ma-section-heading">
+          <h2>你的收藏</h2>
+          <span>{view.players[self.seatId]?.collection.length ?? 0} 幅</span>
+        </div>
+        <div className="ma-museum__collection">
+          {sortPaintings(view.players[self.seatId]?.collection ?? [], sort).map(
+            (card) => (
+              <ArtCard
+                key={card.id}
+                card={card}
+                artist={view.artists.find(
+                  (artist) => artist.id === card.artistId,
+                )}
+              />
+            ),
+          )}
+          {!view.players[self.seatId]?.collection.length && (
+            <p className="ma-museum__empty">尚未收藏画作</p>
+          )}
+        </div>
+      </section>
     </section>
   );
 }

@@ -176,10 +176,44 @@ async function viewport(page, width, height, mobile = false) {
       enabled: true,
       maxTouchPoints: 5,
     });
-    await page.waitForFunction(
-      (size) => innerWidth === size.width && innerHeight === size.height,
-      { width, height },
-    );
+    try {
+      await page.waitForFunction(
+        (size) => innerWidth === size.width && innerHeight === size.height,
+        { width, height },
+        { timeout: 3000 },
+      );
+    } finally {
+      const actual = await page.evaluate(
+        (requestedWidth) => ({
+          width: innerWidth,
+          height: innerHeight,
+          visualWidth: visualViewport.width,
+          visualHeight: visualViewport.height,
+          scale: visualViewport.scale,
+          scrollWidth: document.documentElement.scrollWidth,
+          overflow: [...document.querySelectorAll('body *')]
+            .map((element) => ({
+              tag: element.tagName,
+              className: String(element.className),
+              right: element.getBoundingClientRect().right,
+            }))
+            .filter((element) => element.right > requestedWidth + 2)
+            .slice(0, 15),
+          toolbar: [...document.querySelectorAll('.ma-toolbar > *')].map(
+            (element) => ({
+              text: element.textContent,
+              className: String(element.className),
+              width: element.getBoundingClientRect().width,
+              left: element.getBoundingClientRect().left,
+              right: element.getBoundingClientRect().right,
+            }),
+          ),
+        }),
+        width,
+      );
+      evidence.phoneViewports ??= [];
+      evidence.phoneViewports.push({ requested: { width, height }, actual });
+    }
   } else {
     const geometry = await window.evaluate((window) => ({
       content: window.getContentSize(),
@@ -374,6 +408,11 @@ async function resultGeometry(page, name, includeMuseums) {
         portrait: sample(row.querySelector('.ma-results__portrait')),
         name: sample(row.querySelector('.ma-results__identity > span')),
         amount: sample(row.querySelector('strong')),
+        title: row.querySelector('.ma-results__identity > span').title,
+        cash: Number(row.dataset.finalCash),
+        amountText: row.querySelector(':scope > strong').textContent.trim(),
+        champion: row.dataset.champion === 'true',
+        championMark: Boolean(row.querySelector('[aria-label="冠军"] svg')),
       }));
       const museums = includeMuseums
         ? [...document.querySelectorAll('.ma-museum')].map((museum) => ({
@@ -388,6 +427,8 @@ async function resultGeometry(page, name, includeMuseums) {
         width: innerWidth,
         height: innerHeight,
         scrollY,
+        replay: sample(document.querySelector('.ma-next-round')),
+        center: rect(document.querySelector('.ma-center')),
         horizontalOverflow:
           document.documentElement.scrollWidth > innerWidth + 2,
         income,
@@ -410,6 +451,41 @@ async function resultGeometry(page, name, includeMuseums) {
     geometry.income.length,
     5,
     name + ': five visible settlement identities',
+  );
+  const authority = await view(hostToken);
+  assert.equal(authority.gameView.phase, 'ended');
+  for (const row of geometry.income) {
+    const seat = authority.seats.find((seat) => seat.id === row.seatId);
+    assert.ok(seat, name + ': final identity belongs to a current player');
+    assert.equal(
+      row.title,
+      seat.name,
+      name + ': complete player name retained',
+    );
+    assert.equal(row.cash, authority.gameView.finalCash[row.seatId]);
+    assert.equal(row.amountText, `${row.cash.toLocaleString('zh-CN')} 千元`);
+    assert.equal(row.champion, authority.gameView.winners.includes(row.seatId));
+    assert.equal(row.championMark, row.champion);
+  }
+  assert.equal(
+    geometry.scrollY,
+    0,
+    name + ': complete final result in first screen',
+  );
+  assert.ok(
+    geometry.replay?.height >= 43.9,
+    name + ': replay target at least 44px',
+  );
+  assert.equal(
+    geometry.replay.unobscured,
+    true,
+    name + ': replay is unobscured',
+  );
+  assert.ok(
+    geometry.replay.y >= geometry.center.y - 1 &&
+      geometry.replay.bottom <= geometry.center.bottom + 1 &&
+      geometry.replay.bottom <= geometry.height + 1,
+    name + ': replay fits its result area and viewport',
   );
   if (includeMuseums)
     assert.equal(geometry.museums.length, 5, name + ': five final museums');
@@ -736,9 +812,13 @@ try {
       const own = player.gameView;
       let action;
       if (own.phase === 'offer') {
-        const missing = own.self.hand.find(
-          (card) => !seenPhases.has(card.auctionKind),
-        );
+        const needsDoubleControl =
+          !seenActions.has('add-double') || !seenActions.has('decline-double');
+        const missing =
+          own.self.hand.find((card) => !seenPhases.has(card.auctionKind)) ??
+          (needsDoubleControl
+            ? own.self.hand.find((card) => card.auctionKind === 'double')
+            : undefined);
         action = player.actions.find(
           (action) => action.type === 'offer' && action.cardId === missing?.id,
         );
@@ -850,6 +930,11 @@ try {
   assert.equal(result.status, 'ended', 'Full four-round match completed');
   assert.equal(result.gameView.phase, 'ended');
   assert.equal(result.gameView.round, 4, 'All four rounds completed');
+  // Retain the complete trace even when a random deal misses a required UI branch.
+  evidence.phases = [...seenPhases];
+  evidence.actions = [...seenActions];
+  evidence.steps = steps;
+  evidence.finalRound = result.gameView.round;
   for (const phase of ['open', 'once', 'sealed', 'fixed', 'double'])
     assert.ok(seenPhases.has(phase), 'Auction phase covered: ' + phase);
   for (const action of requiredActions)
@@ -859,16 +944,16 @@ try {
     );
   assert.ok(result.gameView.winners.length);
   assert.equal(Object.keys(result.gameView.finalCash).length, 5);
-  evidence.phases = [...seenPhases];
-  evidence.actions = [...seenActions];
-  evidence.steps = steps;
-  evidence.finalRound = result.gameView.round;
   await capture(host, 'final-result');
   await capture(phones[0].page, 'phone-final-result');
   await verifyPortraits(host, 'host-final-identities', result.seats, [
-    'museum',
     'result',
   ]);
+  assert.equal(
+    await host.locator('.ma-museum').count(),
+    0,
+    'Ended empty collections are not repeated beside the final identities',
+  );
   await verifyPortraits(
     phones[0].page,
     'phone-final-identities',
@@ -876,15 +961,16 @@ try {
     ['result'],
   );
   await capture(host, 'final-result-1280x720', 1280, 720);
-  await resultGeometry(host, 'final-result-1280x720', true);
+  await resultGeometry(host, 'final-result-1280x720', false);
+  await viewport(phones[0].page, 360, 640, true);
+  await phones[0].page.evaluate(() => window.scrollTo(0, 0));
   await capture(phones[0].page, 'phone-final-result-360x640', 360, 640, true);
-  await phones[0].page.locator('.ma-results__income').scrollIntoViewIfNeeded();
   await capture(phones[0].page, 'phone-final-identities-360x640');
   await resultGeometry(phones[0].page, 'phone-final-identities-360x640', false);
   await viewport(host, 1280, 900);
   await viewport(phones[0].page, 390, 844, true);
   evidence.checks.push(
-    'Selected generated avatars decode and match saved avatarId in every public museum and settlement identity; 1280×720 final host and 360×640 scrolled final phone identities fit unobscured with distinct names and money and no horizontal overflow',
+    'Selected generated avatars decode and match saved avatarId in every public museum and final identity; 1280×720 host and 360×640 phone final assets, champions, full names and 44px replay fit unobscured in the first screen, with no repeated empty collection or horizontal overflow',
   );
   evidence.checks.push(
     'Five-seat real Worker match, three private phone identities, phone owner control, public secrecy, responsive background rendering',

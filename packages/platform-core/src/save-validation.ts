@@ -1,7 +1,13 @@
 import type { GameRules, BotStrategy } from '@tablemax/game-sdk';
-import { AVATAR_PRESETS, AvatarIdSchema } from '@tablemax/protocol';
+import {
+  AVATAR_PRESETS,
+  AvatarIdSchema,
+  CountdownSecondsSchema,
+  DEFAULT_COUNTDOWN_SECONDS,
+} from '@tablemax/protocol';
 import type { Save, Snapshot } from './model';
 import { requireThat } from './errors';
+import { decisionClockKey } from './countdown';
 export function validateSave(
   input: unknown,
   rules: GameRules | null,
@@ -38,6 +44,39 @@ export function validateSave(
     'damaged-save',
   );
   d.playMode ??= 'play';
+  requireThat(
+    d.countdownSeconds === undefined ||
+      CountdownSecondsSchema.safeParse(d.countdownSeconds).success,
+    'damaged-save',
+  );
+  d.countdownSeconds ??= DEFAULT_COUNTDOWN_SECONDS;
+  requireThat(
+    d.decisionClocks === undefined ||
+      (Array.isArray(d.decisionClocks) &&
+        d.decisionClocks.length <= 32 &&
+        new Set(d.decisionClocks.map((clock) => clock?.key)).size ===
+          d.decisionClocks.length &&
+        d.decisionClocks.every(
+          (clock) =>
+            clock &&
+            Object.keys(clock).sort().join(',') ===
+              'id,key,remainingMs,startedAt' &&
+            typeof clock.key === 'string' &&
+            /^[0-9a-f]{64}$/.test(clock.key) &&
+            typeof clock.id === 'string' &&
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(
+              clock.id,
+            ) &&
+            Number.isSafeInteger(clock.remainingMs) &&
+            clock.remainingMs >= 0 &&
+            clock.remainingMs <= d.countdownSeconds! * 1000 &&
+            (clock.startedAt === null ||
+              (Number.isSafeInteger(clock.startedAt) && clock.startedAt >= 0)),
+        )),
+    'damaged-save',
+  );
+  const legacyClocks = d.decisionClocks === undefined;
+  d.decisionClocks ??= [];
   requireThat(
     Array.isArray(d.seats) &&
       d.seats.length <= (rules?.manifest.players.max ?? 0) &&
@@ -183,6 +222,22 @@ export function validateSave(
     );
   };
   if (d.snapshot) validateSnapshot(d.snapshot);
+  if (!legacyClocks) {
+    const keys = new Set(
+      d.status === 'playing' && d.snapshot && rules
+        ? rules.decisions(d.snapshot.state).map(decisionClockKey)
+        : [],
+    );
+    requireThat(
+      d.decisionClocks.length === keys.size &&
+        d.decisionClocks.every(
+          (clock) =>
+            keys.has(clock.key) &&
+            (d.paused ? clock.startedAt === null : clock.startedAt !== null),
+        ),
+      'damaged-save',
+    );
+  }
   requireThat(
     d.status === 'lobby'
       ? d.snapshot === null && d.history.length === 0

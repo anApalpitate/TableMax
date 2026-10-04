@@ -53,6 +53,9 @@ export interface Save {
   paused: boolean;
   joinOpen: boolean;
   playMode?: PlayMode;
+  // Platform metadata, deliberately outside game checkpoints.
+  countdownSeconds?: number;
+  decisionClocks?: DecisionClockState[];
   seats: Seat[];
   hostSeat?: string | null;
   ownerSeatId?: string | null;
@@ -65,6 +68,12 @@ export interface Save {
   bindings?: Record<string, { seatId: string; expires: number }>;
   botError: string | null;
   endReason: string | null;
+}
+export interface DecisionClockState {
+  key: string;
+  id: string;
+  remainingMs: number;
+  startedAt: number | null;
 }
 export interface SaveRepository {
   load(): unknown | null;

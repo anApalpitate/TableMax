@@ -1,13 +1,16 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { ModernArtLog, ModernArtView } from '../view';
 import { ArtCard } from '../ArtCard';
-import { auctionNames, auctionMarks, money } from './labels';
+import { auctionNames, money } from './labels';
+import { ArtistMark, AuctionMark } from '../painting-display';
+import { artistPresentation } from '../artist-presentation';
+import { sortPaintings, type PaintingSort } from '../sorting';
 
 function paintingsLabel(view: ModernArtView, entry: ModernArtLog) {
   return entry.cards
     .map(
       (card) =>
-        `${view.artists.find((a) => a.id === card.artistId)?.name.split(' ')[0] ?? card.artistId} · ${card.title}`,
+        `${view.artists.find((a) => a.id === card.artistId)?.name.split(' ')[0] ?? card.artistId} ${card.title}`,
     )
     .join(' + ');
 }
@@ -25,11 +28,13 @@ export function SavedAction({
     <div className="ma-latest" aria-live="polite">
       <span>已保存</span>
       <div className="ma-latest__copy">
-        <p>
+        <p
+          title={`${entry.actor ? (names[entry.actor] ?? '玩家') : '拍卖行'} ${entry.text}`}
+        >
           <strong>
             {entry.actor ? (names[entry.actor] ?? '玩家') : '拍卖行'}
           </strong>{' '}
-          · {entry.text}
+          <span>{entry.verb === 'offer' ? '出画' : entry.text}</span>
         </p>
         {(entry.cards.length > 0 || entry.winner) && (
           <p className="ma-latest__details">
@@ -44,26 +49,42 @@ export function SavedAction({
   );
 }
 
-export function MarketBoard({ view }: { view: ModernArtView }) {
+export function MarketBoard({
+  view,
+  showHistory,
+}: {
+  view: ModernArtView;
+  showHistory(): void;
+}) {
   const settled = view.phase === 'round-result' || view.phase === 'ended';
   return (
     <section className="ma-market" aria-label="艺术家估值板">
       <div className="ma-section-heading">
         <h2>艺术市场</h2>
-        <span>{settled ? '本轮结算价' : '当前估值 · 预估'}</span>
+        <span>{settled ? '结算 千元/张' : '预估 千元/张'}</span>
       </div>
       <div className="ma-market__columns">
         {view.artists.map((artist) => (
           <div
             key={artist.id}
             className="ma-artist"
-            style={{ '--ma-artist': artist.color } as CSSProperties}
+            style={
+              {
+                '--ma-artist': artistPresentation[artist.id].color,
+              } as CSSProperties
+            }
           >
-            <div className="ma-artist__swatch" aria-hidden="true" />
-            <h3>{artist.name}</h3>
+            <div className="ma-artist__identity">
+              <span className="ma-artist__swatch" aria-hidden="true">
+                <ArtistMark artistId={artist.id} />
+              </span>
+              <h3 title={artist.name}>
+                {artistPresentation[artist.id].shortName}
+              </h3>
+            </div>
             <div className="ma-artist__count">
               <strong>{artist.playedCount}</strong>
-              <span> / 5 张</span>
+              <span> / 5</span>
             </div>
             <div className="ma-artist__pips" aria-hidden="true">
               {Array.from({ length: 5 }, (_, n) => (
@@ -73,39 +94,70 @@ export function MarketBoard({ view }: { view: ModernArtView }) {
                 />
               ))}
             </div>
-            <strong className="ma-artist__value">{artist.currentValue}</strong>
-            <span className="ma-artist__unit">千元 / 张</span>
-            <div
-              className="ma-artist__history"
-              aria-label={`${artist.name}各轮价格标记`}
+            <strong
+              className="ma-artist__value"
+              data-three-digit={artist.currentValue >= 100 ? 'true' : undefined}
             >
-              {Array.from({ length: 4 }, (_, n) => (
-                <span
-                  key={n}
-                  className={n < artist.history.length ? 'ma-complete' : ''}
-                >
-                  <small>{n + 1}</small>
-                  <b>{artist.history[n] ?? '—'}</b>
-                </span>
-              ))}
-            </div>
+              {artist.currentValue}
+            </strong>
           </div>
         ))}
       </div>
       <div className="ma-market__supply">
         <span>牌库 {view.deckCount} 张</span>
         <span>弃牌 {view.discardCount} 张</span>
+        <button
+          type="button"
+          className="secondary ma-market-history-control"
+          onClick={showHistory}
+        >
+          历轮估值
+        </button>
       </div>
     </section>
+  );
+}
+
+export function MarketHistory({ view }: { view: ModernArtView }) {
+  return (
+    <div className="ma-market-history">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">画家</th>
+            {[1, 2, 3, 4].map((round) => (
+              <th key={round} scope="col">
+                第 {round} 轮
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {view.artists.map((artist) => (
+            <tr key={artist.id}>
+              <th scope="row" title={artist.name}>
+                {artistPresentation[artist.id].shortName}
+              </th>
+              {[0, 1, 2, 3].map((round) => (
+                <td key={round}>{artist.history[round] ?? '—'}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p>单位：千元 / 张</p>
+    </div>
   );
 }
 
 export function AuctionStage({
   view,
   names,
+  countdown,
 }: {
   view: ModernArtView;
   names: Record<string, string>;
+  countdown?: ReactNode;
 }) {
   const auction = view.auction;
   const actor = view.turnSeat ? (names[view.turnSeat] ?? '玩家') : '';
@@ -123,11 +175,10 @@ export function AuctionStage({
             <path d="M8 57h33v5H8z" fill="currentColor" />
           </svg>
         </span>
-        <span className="ma-kicker">MODERN ART · AUCTION HOUSE</span>
         <h2>
           {view.phase === 'offer' ? `${actor} 正在选画` : '本轮拍卖已结束'}
         </h2>
-        <p>{view.phase === 'offer' ? '等待新画作上拍' : '画作已完成结算'}</p>
+        {countdown}
       </section>
     );
   const title =
@@ -137,13 +188,15 @@ export function AuctionStage({
     <section className="ma-auction" aria-label="拍卖台">
       <div className="ma-auction__label">
         <span className="ma-auction__mark" aria-hidden="true">
-          {auctionMarks[auction.kind]}
+          <AuctionMark kind={auction.kind} />
         </span>
         <div>
-          <span className="ma-kicker">正在上拍</span>
           <h2>{title}</h2>
-          <p>拍卖人 · {names[auction.seller] ?? '玩家'}</p>
+          <p title={`拍卖人 ${names[auction.seller] ?? '玩家'}`}>
+            拍卖人 {names[auction.seller] ?? '玩家'}
+          </p>
         </div>
+        {countdown}
       </div>
       <div className="ma-auction__paintings">
         {auction.cards.map((card) => (
@@ -179,20 +232,49 @@ export function AuctionStage({
                   : '尚无出价'}
         </small>
       </div>
-      <div className="ma-auction__participants" aria-label="拍卖参与状态">
+      <div
+        className="ma-auction__participants"
+        aria-label="拍卖参与状态"
+        style={{ '--ma-seats': view.seatOrder.length } as CSSProperties}
+      >
         {view.seatOrder.map((seat) => (
           <span
             key={seat}
             className={auction.actingSeats.includes(seat) ? 'ma-active' : ''}
+            title={`${names[seat] ?? '玩家'} ${auction.submitted.includes(seat) ? '已提交' : auction.passes.includes(seat) ? '本次不参与' : auction.actingSeats.includes(seat) ? '可行动' : '等待'}`}
           >
-            {names[seat] ?? '玩家'}
-            {auction.submitted.includes(seat)
-              ? ' · 已提交'
-              : auction.passes.includes(seat)
-                ? ' · 已放弃'
-                : auction.actingSeats.includes(seat)
-                  ? ' · 可行动'
-                  : ''}
+            <strong>{names[seat] ?? '玩家'}</strong>
+            <span
+              className="ma-auction__seat-status"
+              role="img"
+              aria-label={
+                auction.submitted.includes(seat)
+                  ? '已提交'
+                  : auction.passes.includes(seat)
+                    ? '本次不参与'
+                    : auction.actingSeats.includes(seat)
+                      ? '可行动'
+                      : '等待'
+              }
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                {auction.submitted.includes(seat) ? (
+                  <path d="m4 12 5 5 11-11" />
+                ) : auction.passes.includes(seat) ? (
+                  <>
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M6 18 18 6" />
+                  </>
+                ) : auction.actingSeats.includes(seat) ? (
+                  <path d="m9 4 10 8-10 8Z" />
+                ) : (
+                  <>
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M12 6v6l4 3" />
+                  </>
+                )}
+              </svg>
+            </span>
           </span>
         ))}
       </div>
@@ -205,11 +287,13 @@ export function Museums({
   names,
   portraits,
   selfId,
+  sort = 'artist',
 }: {
   view: ModernArtView;
   names: Record<string, string>;
   portraits: Record<string, string>;
   selfId: string | null;
+  sort?: PaintingSort;
 }) {
   return (
     <section
@@ -246,8 +330,8 @@ export function Museums({
                   )}
                 </h3>
                 <p>
-                  手牌 {player.handCount} 张 · 收藏 {player.collection.length}{' '}
-                  幅
+                  <span>手牌 {player.handCount}</span>
+                  <span>收藏 {player.collection.length}</span>
                 </p>
               </div>
               <b className="ma-museum__number">
@@ -257,24 +341,19 @@ export function Museums({
             {view.finalCash && (
               <strong className="ma-museum__cash">
                 {money(view.finalCash[seat] ?? 0)}
-                {view.winners.includes(seat) ? ' · 冠军' : ''}
+                {view.winners.includes(seat) ? ' 冠军' : ''}
               </strong>
             )}
-            {(player.collection.length > 0 ||
-              (view.phase !== 'round-result' && view.phase !== 'ended')) && (
+            {player.collection.length > 0 && (
               <div className="ma-museum__collection">
-                {player.collection.length ? (
-                  player.collection.map((card) => (
-                    <ArtCard
-                      key={card.id}
-                      card={card}
-                      compact
-                      artist={view.artists.find((a) => a.id === card.artistId)}
-                    />
-                  ))
-                ) : (
-                  <span className="ma-museum__empty">等待收藏</span>
-                )}
+                {sortPaintings(player.collection, sort).map((card) => (
+                  <ArtCard
+                    key={card.id}
+                    card={card}
+                    compact
+                    artist={view.artists.find((a) => a.id === card.artistId)}
+                  />
+                ))}
               </div>
             )}
           </article>
@@ -295,53 +374,78 @@ export function RoundResult({
 }) {
   const result = view.roundResult;
   if (!result) return null;
+  const ended = view.phase === 'ended';
   return (
     <section
-      className="ma-results"
-      aria-label={view.phase === 'ended' ? '最终成绩' : '本轮结算'}
+      className={`ma-results ${ended ? 'ma-results--ended' : ''}`}
+      aria-label={ended ? '最终成绩' : '本轮结算'}
     >
       <div className="ma-section-heading">
-        <h2>
-          {view.phase === 'ended'
-            ? '四轮拍卖落槌'
-            : `第 ${result.round} 轮落槌`}
-        </h2>
+        <h2>{ended ? '总资产' : `第 ${result.round} 轮落槌`}</h2>
         <span>
-          {result.reason === 'fifth-card'
-            ? '第 5 张画作结束本轮'
-            : '本轮画作全部上拍'}
+          {ended
+            ? '四轮拍卖结束'
+            : result.reason === 'fifth-card'
+              ? '第 5 张画作结束本轮'
+              : '本轮画作全部上拍'}
         </span>
       </div>
-      {view.phase === 'ended' && (
-        <p className="ma-winner">
-          {view.winners.map((s) => names[s] ?? '玩家').join('、')} · 获胜
-        </p>
-      )}
-      <div className="ma-results__ranking">
-        {result.ranking.map((id, n) => (
-          <div key={id}>
-            <b>{n + 1}</b>
-            <span>{view.artists.find((a) => a.id === id)?.name ?? id}</span>
-            <strong>{money(result.values[id] ?? 0)} / 张</strong>
-          </div>
-        ))}
-      </div>
-      <div className="ma-results__income">
-        {view.seatOrder.map((seat) => (
-          <div key={seat} data-seat-id={seat}>
-            <div className="ma-results__identity">
-              {portraits[seat] && (
-                <img
-                  className="ma-results__portrait"
-                  src={portraits[seat]}
-                  alt=""
-                />
-              )}
-              <span title={names[seat] ?? '玩家'}>{names[seat] ?? '玩家'}</span>
+      {!ended && (
+        <div className="ma-results__ranking">
+          {result.ranking.map((id, n) => (
+            <div key={id}>
+              <b>{n + 1}</b>
+              <span>{view.artists.find((a) => a.id === id)?.name ?? id}</span>
+              <strong>{money(result.values[id] ?? 0)} / 张</strong>
             </div>
-            <strong>+{money(result.income[seat] ?? 0)}</strong>
-          </div>
-        ))}
+          ))}
+        </div>
+      )}
+      <div className="ma-results__income">
+        {view.seatOrder.map((seat) => {
+          const finalCash = view.finalCash?.[seat];
+          const winner = ended && view.winners.includes(seat);
+          return (
+            <div
+              key={seat}
+              data-seat-id={seat}
+              data-final-cash={ended ? finalCash : undefined}
+              data-champion={winner ? 'true' : undefined}
+            >
+              <div className="ma-results__identity">
+                {portraits[seat] && (
+                  <img
+                    className="ma-results__portrait"
+                    src={portraits[seat]}
+                    alt=""
+                  />
+                )}
+                <span title={names[seat] ?? '玩家'}>
+                  {names[seat] ?? '玩家'}
+                </span>
+                {winner && (
+                  <span
+                    className="ma-results__champion"
+                    role="img"
+                    aria-label="冠军"
+                    title="冠军"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="m12 2 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1Z" />
+                    </svg>
+                  </span>
+                )}
+              </div>
+              <strong>
+                {ended
+                  ? typeof finalCash === 'number' && Number.isFinite(finalCash)
+                    ? money(finalCash)
+                    : '待同步'
+                  : `+${money(result.income[seat] ?? 0)}`}
+              </strong>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
@@ -366,14 +470,12 @@ export function PublicLog({
             <p className="ma-log__cards">{paintingsLabel(view, entry)}</p>
           )}
           {entry.amount !== null && <span>{money(entry.amount)}</span>}
-          {entry.winner && (
-            <span> · 收藏人 {names[entry.winner] ?? '玩家'}</span>
-          )}
+          {entry.winner && <span> 收藏人 {names[entry.winner] ?? '玩家'}</span>}
           {entry.sealedBids && (
             <div className="ma-log__bids">
               {Object.entries(entry.sealedBids).map(([seat, amount]) => (
                 <span key={seat}>
-                  {names[seat] ?? '玩家'} · {money(amount ?? 0)}
+                  {names[seat] ?? '玩家'} {money(amount ?? 0)}
                 </span>
               ))}
             </div>

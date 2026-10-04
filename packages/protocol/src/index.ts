@@ -1,6 +1,18 @@
 import { z } from 'zod';
 import { AvatarIdSchema, type AvatarId } from './avatars';
+import {
+  CountdownSecondsSchema,
+  DecisionClockSchema,
+  type DecisionClock,
+} from './countdown';
 export { AVATAR_PRESETS, AvatarIdSchema, type AvatarId } from './avatars';
+export {
+  COUNTDOWN_STEPS,
+  DEFAULT_COUNTDOWN_SECONDS,
+  CountdownSecondsSchema,
+  DecisionClockSchema,
+  type DecisionClock,
+} from './countdown';
 
 // Only public engineering diagnostics. No game state, identities, or data paths.
 export const HealthSchema = z.object({
@@ -54,6 +66,12 @@ export const CommandSchema = z
     revision: z.number().int().nonnegative(),
     branch: z.number().int().nonnegative(),
     command: z.discriminatedUnion('type', [
+      z
+        .object({
+          type: z.literal('set-countdown'),
+          seconds: CountdownSecondsSchema,
+        })
+        .strict(),
       z
         .object({ type: z.literal('set-play-mode'), mode: PlayModeSchema })
         .strict(),
@@ -193,6 +211,8 @@ export interface RoomView {
   restored: boolean;
   joinOpen: boolean;
   playMode: PlayMode;
+  countdownSeconds: number;
+  decisionClock: DecisionClock | null;
   game: { id: string; name: string; min: number; max: number } | null;
   catalog: { id: string; name: string; min: number; max: number }[];
   ownerSeatId: string | null;
@@ -237,6 +257,8 @@ export const RoomViewSchema = z
     restored: z.boolean(),
     joinOpen: z.boolean(),
     playMode: PlayModeSchema,
+    countdownSeconds: CountdownSecondsSchema,
+    decisionClock: DecisionClockSchema.nullable(),
     game: z
       .object({
         id: z.string(),

@@ -1,0 +1,115 @@
+.decision-countdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: 7px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 6px 12px 8px;
+  overflow: hidden;
+  border: 1px solid #b99552;
+  border-radius: 12px;
+  color: #513510;
+  background: #fff6dc;
+  font-size: 18px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.decision-countdown::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  width: var(--countdown-progress);
+  background: #98712b;
+}
+.decision-countdown > strong {
+  font-size: 26px;
+  white-space: nowrap;
+}
+.decision-countdown > strong > span {
+  margin-left: 3px;
+  font-size: 18px;
+  font-weight: 500;
+}
+.decision-countdown--elapsed {
+  color: #963622;
+  background: #fff0e7;
+  border-color: #b95137;
+}
+.decision-countdown--elapsed::after {
+  background: #b95137;
+}
+.decision-countdown--paused {
+  color: #4c5c58;
+  background: #edf1ed;
+  border-color: #8b9c95;
+}
+.decision-countdown--compact {
+  gap: 5px;
+  padding-inline: 8px;
+}
+.countdown-settings-control {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  font-size: 18px;
+}
+.countdown-settings {
+  font-size: 18px;
+  line-height: 1.5;
+}
+.dialog-surface .countdown-settings label,
+.dialog-surface .countdown-settings button {
+  font-size: 18px;
+}
+.countdown-settings output {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  justify-content: center;
+  margin: 12px 0;
+}
+.countdown-settings output strong {
+  font-size: 52px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.countdown-settings input[type='range'] {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 0;
+  accent-color: #196653;
+  cursor: pointer;
+}
+.countdown-settings__scale {
+  position: relative;
+  height: 26px;
+  font-size: 16px;
+}
+.countdown-settings__scale > span {
+  position: absolute;
+}
+.countdown-settings__scale > span:first-child {
+  left: 0;
+}
+.countdown-settings__scale > span:nth-child(2) {
+  transform: translateX(-50%);
+}
+.countdown-settings__scale > span:last-child {
+  right: 0;
+}
+.countdown-settings p {
+  margin: 18px 0 0;
+}
+.countdown-settings__saved {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #edf1e7;
+}

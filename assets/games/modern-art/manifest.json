@@ -203,5 +203,883 @@
   "totalWebpBytes": 1497918,
   "verification": "artifacts/maintenance/v1.0.0/modern-art/imagegen/verification-v1.json",
   "status": "All six assets generated, visually verified and imported into UI; five atlases decoded in the real phone UI with all 70 catalog mappings checked, and the cover verified in the final portable box rendering. This records artwork integration, not overall game or portable-package acceptance.",
-  "integrationVerification": "artifacts/maintenance/v1.0.0/modern-art/imagegen/integration-verification.json"
+  "integrationVerification": "artifacts/maintenance/v1.0.0/modern-art/imagegen/integration-verification.json",
+  "audio": {
+    "version": 1,
+    "source": "TableMax original procedural gallery and auction cues",
+    "policy": "One short cue per newly saved action; fixed sealed-bid sound independent of amount; no continuous music; host/public authorization, persistent mute and no replay are handled by the game audio controller",
+    "totalBytes": 355904,
+    "measurementEvidence": "artifacts/maintenance/v1.0.1/modern-art-audio-20261004/measurements-v1.json",
+    "audition": "artifacts/maintenance/v1.0.1/modern-art-audio-20261004/audition-v1.html",
+    "integrationStatus": "Imported into Modern Art UI; packaged local decoding, native audio ownership and HTMLAudio playback verified on 2026-10-04",
+    "integrationEvidence": "artifacts/maintenance/v1.0.1/modern-art-polish-20261004/audio/portable-final/results.json",
+    "humanListeningVerified": false,
+    "assets": [
+      {
+        "id": "modern-art/audio/offer",
+        "cue": "offer",
+        "path": "offer-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 14444,
+        "sha256": "c14367c6f7bd15798c1c6c214ba939cce1333e40455f294fbd3d77b571bacee2",
+        "parameters": {
+          "seconds": 0.3,
+          "description": "Paper movement and a small wooden placement",
+          "events": [
+            {
+              "type": "paper",
+              "at": 0,
+              "gain": 0.34
+            },
+            {
+              "type": "wood",
+              "at": 0.07,
+              "pitch": 290,
+              "gain": 0.3
+            }
+          ],
+          "seed": 3252275677,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 1.1187855078875037,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 7200,
+          "seconds": 0.3,
+          "peak": 0.399993896484375,
+          "peakDbfs": -7.958932710609741,
+          "rms": 0.06533161958859529,
+          "rmsDbfs": -23.697531507971284,
+          "mean": -1.8225775824652779e-7,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.08123779296875,
+          "powerAbove4khz": 0.01054902702429788
+        }
+      },
+      {
+        "id": "modern-art/audio/auction-open",
+        "cue": "auction-open",
+        "path": "auction-open-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 17324,
+        "sha256": "9e30914bf16224b4d54a409705b67276099a8cada477ee75b7a84145e38aefd4",
+        "parameters": {
+          "seconds": 0.36,
+          "description": "Paper placement followed by two open glass harmonics",
+          "events": [
+            {
+              "type": "paper",
+              "at": 0,
+              "gain": 0.28
+            },
+            {
+              "type": "glass",
+              "at": 0.055,
+              "pitch": 587.33,
+              "gain": 0.38
+            },
+            {
+              "type": "glass",
+              "at": 0.13,
+              "pitch": 783.99,
+              "gain": 0.23
+            }
+          ],
+          "seed": 1310396609,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.5559327182490774,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 8640,
+          "seconds": 0.36,
+          "peak": 0.2613525390625,
+          "peakDbfs": -11.655465526746344,
+          "rms": 0.07499773259020626,
+          "rmsDbfs": -22.49903732908522,
+          "mean": 1.342208297164352e-7,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.05181884765625,
+          "powerAbove4khz": 0.0011562367265509764
+        }
+      },
+      {
+        "id": "modern-art/audio/auction-once",
+        "cue": "auction-once",
+        "path": "auction-once-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 16364,
+        "sha256": "fae86a80a11c403081bc7fdef7a12b28ece97112b6aedbd2ce0c551e8cfa0539",
+        "parameters": {
+          "seconds": 0.34,
+          "description": "One restrained wooden tap and a single clear harmonic",
+          "events": [
+            {
+              "type": "wood",
+              "at": 0,
+              "pitch": 260,
+              "gain": 0.45
+            },
+            {
+              "type": "glass",
+              "at": 0.035,
+              "pitch": 659.25,
+              "gain": 0.38
+            }
+          ],
+          "seed": 3958197436,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.5236358026332791,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 8160,
+          "seconds": 0.34,
+          "peak": 0.29620361328125,
+          "peakDbfs": -10.568192959609025,
+          "rms": 0.07499757520267386,
+          "rmsDbfs": -22.499055556998574,
+          "mean": -9.349748200061274e-8,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.057525634765625,
+          "powerAbove4khz": 0.00010718092644651906
+        }
+      },
+      {
+        "id": "modern-art/audio/auction-sealed",
+        "cue": "auction-sealed",
+        "path": "auction-sealed-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 18284,
+        "sha256": "18df03be3b20f7c25a7afbce50c233ded260d96fcb677957bb47f71c0b92e682",
+        "parameters": {
+          "seconds": 0.38,
+          "description": "Envelope movement and a soft closed wooden double tap",
+          "events": [
+            {
+              "type": "paper",
+              "at": 0,
+              "gain": 0.46
+            },
+            {
+              "type": "wood",
+              "at": 0.11,
+              "pitch": 220,
+              "gain": 0.4
+            },
+            {
+              "type": "wood",
+              "at": 0.17,
+              "pitch": 185,
+              "gain": 0.32
+            }
+          ],
+          "seed": 4147698121,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.8767009846905965,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 9120,
+          "seconds": 0.38,
+          "peak": 0.368316650390625,
+          "peakDbfs": -8.675572953375884,
+          "rms": 0.07499764000834915,
+          "rmsDbfs": -22.499048051493244,
+          "mean": 5.3539610745614036e-8,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.09027099609375,
+          "powerAbove4khz": 0.006791931173699162
+        }
+      },
+      {
+        "id": "modern-art/audio/auction-fixed",
+        "cue": "auction-fixed",
+        "path": "auction-fixed-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 16364,
+        "sha256": "8ede81da1e27c9d4f573baf462fa699645f3fdcd428e007fca3816e99ef24eca",
+        "parameters": {
+          "seconds": 0.34,
+          "description": "A displayed price tag, wooden placement and warm glass resonance",
+          "events": [
+            {
+              "type": "paper",
+              "at": 0,
+              "gain": 0.3
+            },
+            {
+              "type": "wood",
+              "at": 0.065,
+              "pitch": 330,
+              "gain": 0.27
+            },
+            {
+              "type": "glass",
+              "at": 0.09,
+              "pitch": 523.25,
+              "gain": 0.36
+            }
+          ],
+          "seed": 3386946657,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.6129699899388155,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 8160,
+          "seconds": 0.34,
+          "peak": 0.3350830078125,
+          "peakDbfs": -9.496951896912897,
+          "rms": 0.07499773739559035,
+          "rmsDbfs": -22.49903677254793,
+          "mean": 1.4211617264093137e-7,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.046112060546875,
+          "powerAbove4khz": 0.0018030039421604066
+        }
+      },
+      {
+        "id": "modern-art/audio/double-open",
+        "cue": "double-open",
+        "path": "double-open-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 21164,
+        "sha256": "5f7a0b194b2ff78932cc9517b94589935d65c85fad7f24f7b23e5cc228f5a436",
+        "parameters": {
+          "seconds": 0.44,
+          "description": "Two soft card placements announcing a combination auction",
+          "events": [
+            {
+              "type": "paper",
+              "at": 0,
+              "gain": 0.3
+            },
+            {
+              "type": "wood",
+              "at": 0.065,
+              "pitch": 260,
+              "gain": 0.36
+            },
+            {
+              "type": "paper",
+              "at": 0.14,
+              "gain": 0.26
+            },
+            {
+              "type": "wood",
+              "at": 0.19,
+              "pitch": 330,
+              "gain": 0.33
+            }
+          ],
+          "seed": 576596419,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.9607084490993628,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 10560,
+          "seconds": 0.44,
+          "peak": 0.384918212890625,
+          "peakDbfs": -8.292630784563627,
+          "rms": 0.07499770002389021,
+          "rmsDbfs": -22.499041100765762,
+          "mean": 1.733953302556818e-8,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.075103759765625,
+          "powerAbove4khz": 0.005652364467205725
+        }
+      },
+      {
+        "id": "modern-art/audio/double-add",
+        "cue": "double-add",
+        "path": "double-add-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 19244,
+        "sha256": "01a24fa5fca0f095bcddc3c930d6d5d5bf5f9ed34260476c1fc24196f311ad9e",
+        "parameters": {
+          "seconds": 0.4,
+          "description": "A second painting joins the pair, two complementary glass harmonics",
+          "events": [
+            {
+              "type": "paper",
+              "at": 0,
+              "gain": 0.28
+            },
+            {
+              "type": "glass",
+              "at": 0.04,
+              "pitch": 523.25,
+              "gain": 0.42
+            },
+            {
+              "type": "glass",
+              "at": 0.12,
+              "pitch": 659.25,
+              "gain": 0.34
+            }
+          ],
+          "seed": 3418230138,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.47829868771616707,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 9600,
+          "seconds": 0.4,
+          "peak": 0.28326416015625,
+          "peakDbfs": -10.956167417534136,
+          "rms": 0.07499762637820376,
+          "rmsDbfs": -22.499049630075575,
+          "mean": 7.62939453125e-8,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.0540771484375,
+          "powerAbove4khz": 0.000750463861481052
+        }
+      },
+      {
+        "id": "modern-art/audio/bid",
+        "cue": "bid",
+        "path": "bid-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 14444,
+        "sha256": "308594d367db9c3563fa53906fb2857aad5ed30cb17163db34f37790864bcb98",
+        "parameters": {
+          "seconds": 0.3,
+          "description": "A soft gallery-glass harmonic for a saved public bid, independent of amount",
+          "events": [
+            {
+              "type": "glass",
+              "at": 0,
+              "pitch": 783.99,
+              "gain": 0.55
+            },
+            {
+              "type": "wood",
+              "at": 0.005,
+              "pitch": 390,
+              "gain": 0.15
+            }
+          ],
+          "seed": 1355467008,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.40566982069121876,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 7200,
+          "seconds": 0.3,
+          "peak": 0.2799072265625,
+          "peakDbfs": -11.059717778036333,
+          "rms": 0.0749977969749721,
+          "rmsDbfs": -22.499029872343385,
+          "mean": -1.1444091796875e-7,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.068695068359375,
+          "powerAbove4khz": 0.000011211076980469106
+        }
+      },
+      {
+        "id": "modern-art/audio/sealed-submit",
+        "cue": "sealed-submit",
+        "path": "sealed-submit-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 15404,
+        "sha256": "2bc58b5f59023f273d28116f3ade31fa373608a11864e65f372b9d155d66ea5a",
+        "parameters": {
+          "seconds": 0.32,
+          "description": "A paper envelope seals with a low wooden stamp; identical for every hidden amount",
+          "events": [
+            {
+              "type": "paper",
+              "at": 0,
+              "gain": 0.48
+            },
+            {
+              "type": "wood",
+              "at": 0.095,
+              "pitch": 175,
+              "gain": 0.5
+            }
+          ],
+          "seed": 1913185012,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.7109337567595216,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 7680,
+          "seconds": 0.32,
+          "peak": 0.399993896484375,
+          "peakDbfs": -7.958932710609741,
+          "rms": 0.06676539273651524,
+          "rmsDbfs": -23.50897183975888,
+          "mean": -1.2715657552083333e-7,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.08123779296875,
+          "powerAbove4khz": 0.008119044657580754
+        }
+      },
+      {
+        "id": "modern-art/audio/price-set",
+        "cue": "price-set",
+        "path": "price-set-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 16364,
+        "sha256": "35d06e504dd95380f7371560891bef59661ae066dfde8a05707a832b3a4f4a95",
+        "parameters": {
+          "seconds": 0.34,
+          "description": "Price label placement and a descending pair of warm harmonics",
+          "events": [
+            {
+              "type": "paper",
+              "at": 0,
+              "gain": 0.3
+            },
+            {
+              "type": "glass",
+              "at": 0.04,
+              "pitch": 659.25,
+              "gain": 0.37
+            },
+            {
+              "type": "glass",
+              "at": 0.12,
+              "pitch": 523.25,
+              "gain": 0.32
+            }
+          ],
+          "seed": 122357059,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.49523940162921526,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 8160,
+          "seconds": 0.34,
+          "peak": 0.264312744140625,
+          "peakDbfs": -11.557637927186699,
+          "rms": 0.07499782737816413,
+          "rmsDbfs": -22.49902635119039,
+          "mean": 7.105808632046569e-8,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.05682373046875,
+          "powerAbove4khz": 0.001063136716184018
+        }
+      },
+      {
+        "id": "modern-art/audio/pass",
+        "cue": "pass",
+        "path": "pass-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 10604,
+        "sha256": "3c19ac8231062b052a76aa2f83b92252da2653f1d7eade9f9b1e23615eab9789",
+        "parameters": {
+          "seconds": 0.22,
+          "description": "A quiet wooden touch acknowledges a saved pass or declined combination",
+          "events": [
+            {
+              "type": "wood",
+              "at": 0,
+              "pitch": 240,
+              "gain": 0.4
+            },
+            {
+              "type": "paper",
+              "at": 0.025,
+              "gain": 0.22
+            }
+          ],
+          "seed": 2071622424,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.8460722863439347,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 5280,
+          "seconds": 0.22,
+          "peak": 0.397796630859375,
+          "peakDbfs": -8.006777989107404,
+          "rms": 0.07499792654648914,
+          "rmsDbfs": -22.499014865996926,
+          "mean": -5.779844341856061e-9,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.054840087890625,
+          "powerAbove4khz": 0.0029170368239034273
+        }
+      },
+      {
+        "id": "modern-art/audio/sale",
+        "cue": "sale",
+        "path": "sale-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 25964,
+        "sha256": "5418065ca88be7400aec4ada96ea0050b102f286b4590a856882bfdd3e803e54",
+        "parameters": {
+          "seconds": 0.54,
+          "description": "A rounded auction gavel with gentle frame-glass resonance; no amount-coded signal",
+          "events": [
+            {
+              "type": "wood",
+              "at": 0,
+              "pitch": 180,
+              "gain": 0.7
+            },
+            {
+              "type": "wood",
+              "at": 0.022,
+              "pitch": 290,
+              "gain": 0.24
+            },
+            {
+              "type": "glass",
+              "at": 0.055,
+              "pitch": 523.25,
+              "gain": 0.34
+            },
+            {
+              "type": "glass",
+              "at": 0.06,
+              "pitch": 783.99,
+              "gain": 0.18
+            }
+          ],
+          "seed": 2970508478,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.5217719913942203,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 12960,
+          "seconds": 0.54,
+          "peak": 0.399993896484375,
+          "peakDbfs": -7.958932710609741,
+          "rms": 0.07358972727822582,
+          "rmsDbfs": -22.66365613111923,
+          "mean": -6.122353636188272e-8,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.062255859375,
+          "powerAbove4khz": 0.0001832199453763308
+        }
+      },
+      {
+        "id": "modern-art/audio/round-start",
+        "cue": "round-start",
+        "path": "round-start-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 23084,
+        "sha256": "1c6d61fe0f0e1ed83b545e0d7c198cc411cc99eb11eb12abbfa229af96287a7a",
+        "parameters": {
+          "seconds": 0.48,
+          "description": "New paper and a brief warm gallery opening harmony",
+          "events": [
+            {
+              "type": "paper",
+              "at": 0,
+              "gain": 0.34
+            },
+            {
+              "type": "chord",
+              "at": 0.07,
+              "notes": [293.66, 440, 587.33],
+              "gain": 0.38,
+              "length": 0.36
+            }
+          ],
+          "seed": 596856506,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.8194718024928361,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 11520,
+          "seconds": 0.48,
+          "peak": 0.289581298828125,
+          "peakDbfs": -10.764589766486651,
+          "rms": 0.07499775901134986,
+          "rmsDbfs": -22.49903426911142,
+          "mean": 4.1060977511935766e-7,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.063568115234375,
+          "powerAbove4khz": 0.002784870133421921
+        }
+      },
+      {
+        "id": "modern-art/audio/round-result",
+        "cue": "round-result",
+        "path": "round-result-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 44204,
+        "sha256": "b70202ccddda1c23a104095b074832a5f4905d82ef522dbf2317573ab85d0a39",
+        "parameters": {
+          "seconds": 0.92,
+          "description": "Soft gallery harmony with a restrained final wooden settlement",
+          "events": [
+            {
+              "type": "wood",
+              "at": 0,
+              "pitch": 195,
+              "gain": 0.26
+            },
+            {
+              "type": "chord",
+              "at": 0.025,
+              "notes": [261.63, 329.63, 392, 523.25],
+              "gain": 0.48,
+              "length": 0.82
+            },
+            {
+              "type": "glass",
+              "at": 0.19,
+              "pitch": 783.99,
+              "gain": 0.13
+            }
+          ],
+          "seed": 294472219,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.7702115323625499,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 22080,
+          "seconds": 0.92,
+          "peak": 0.37139892578125,
+          "peakDbfs": -8.603187134593059,
+          "rms": 0.07499770641555298,
+          "rmsDbfs": -22.499040360512726,
+          "mean": -7.325324459352356e-8,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.049224853515625,
+          "powerAbove4khz": 0.000028563942218112452
+        }
+      },
+      {
+        "id": "modern-art/audio/match-result",
+        "cue": "match-result",
+        "path": "match-result-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 68204,
+        "sha256": "d1b94049956f9199a44f79f42d0d08df3b9782f3e2f58b94e42bfdc603722e5a",
+        "parameters": {
+          "seconds": 1.42,
+          "description": "A spacious final gallery harmony, ending rather than looping",
+          "events": [
+            {
+              "type": "wood",
+              "at": 0,
+              "pitch": 180,
+              "gain": 0.22
+            },
+            {
+              "type": "chord",
+              "at": 0.025,
+              "notes": [261.63, 329.63, 392],
+              "gain": 0.37,
+              "length": 0.82
+            },
+            {
+              "type": "chord",
+              "at": 0.25,
+              "notes": [392, 523.25, 659.25],
+              "gain": 0.35,
+              "length": 1.02
+            },
+            {
+              "type": "glass",
+              "at": 0.39,
+              "pitch": 1046.5,
+              "gain": 0.09
+            }
+          ],
+          "seed": 222260496,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.8347395935542604,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 34080,
+          "seconds": 1.42,
+          "peak": 0.35052490234375,
+          "peakDbfs": -9.105622460291405,
+          "rms": 0.07499770651080227,
+          "rmsDbfs": -22.49904034948139,
+          "mean": 1.0745626100352113e-8,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.051605224609375,
+          "powerAbove4khz": 0.000016792649209678185
+        }
+      },
+      {
+        "id": "modern-art/audio/error",
+        "cue": "error",
+        "path": "error-v1.wav",
+        "source": "TableMax original deterministic DSP; acoustic-inspired synthesis, not a live recording",
+        "version": 1,
+        "script": "scripts/generate-modern-art-audio.mjs",
+        "encoding": "PCM signed 16-bit mono",
+        "sampleRate": 24000,
+        "bytes": 14444,
+        "sha256": "c8b845965e055a82daa255f198bb366cae580860a06badcebb4127ee0c1649fd",
+        "parameters": {
+          "seconds": 0.3,
+          "description": "Two soft low wooden touches for a rejected action, no alarm",
+          "events": [
+            {
+              "type": "wood",
+              "at": 0,
+              "pitch": 220,
+              "gain": 0.34
+            },
+            {
+              "type": "wood",
+              "at": 0.09,
+              "pitch": 185,
+              "gain": 0.31
+            }
+          ],
+          "seed": 563185489,
+          "targetRms": 0.075,
+          "peakCeiling": 0.4,
+          "normalizationGain": 0.8556676562944584,
+          "globalFadeInMs": 5,
+          "globalFadeOutMs": 30
+        },
+        "measurements": {
+          "samples": 7200,
+          "seconds": 0.3,
+          "peak": 0.324981689453125,
+          "peakDbfs": -9.762822158483438,
+          "rms": 0.07499763345216719,
+          "rmsDbfs": -22.499048810800808,
+          "mean": -1.3987223307291667e-7,
+          "clippedSamples": 0,
+          "firstSample": 0,
+          "lastSample": 0,
+          "maxSampleStep": 0.046478271484375,
+          "powerAbove4khz": 0.0003647757914136725
+        }
+      }
+    ]
+  }
 }

@@ -170,26 +170,31 @@ it('keeps each seat readiness ordered while allowing other seats to prepare conc
 });
 
 it('does not consume an independent choice or publish feedback when saving fails', async () => {
-  const { room, repository, players } = await pokemon();
-  await start(room, players);
-  const first = players[0]!.token,
-    second = players[1]!.token;
-  const input = flip(room.view(first)),
-    other = flip(room.view(second));
-  const before = room.view(first);
-  const listener = vi.fn();
-  room.subscribe(listener);
-  repository.fail = true;
-  expect(await room.command(first, input)).toEqual({
-    ok: false,
-    reason: 'save-or-action-failed',
-  });
-  expect(room.view(first)).toEqual(before);
-  expect(listener).not.toHaveBeenCalled();
-  repository.fail = false;
-  expect((await room.command(second, other)).ok).toBe(true);
-  expect((await room.command(first, input)).ok).toBe(true);
-  expect(listener).toHaveBeenCalledTimes(2);
+  const clock = vi.spyOn(Date, 'now').mockReturnValue(1_800_000_000_000);
+  try {
+    const { room, repository, players } = await pokemon();
+    await start(room, players);
+    const first = players[0]!.token,
+      second = players[1]!.token;
+    const input = flip(room.view(first)),
+      other = flip(room.view(second));
+    const before = room.view(first);
+    const listener = vi.fn();
+    room.subscribe(listener);
+    repository.fail = true;
+    expect(await room.command(first, input)).toEqual({
+      ok: false,
+      reason: 'save-or-action-failed',
+    });
+    expect(room.view(first)).toEqual(before);
+    expect(listener).not.toHaveBeenCalled();
+    repository.fail = false;
+    expect((await room.command(second, other)).ok).toBe(true);
+    expect((await room.command(first, input)).ok).toBe(true);
+    expect(listener).toHaveBeenCalledTimes(2);
+  } finally {
+    clock.mockRestore();
+  }
 });
 
 it('delegates only common match controls, persists ownership and never exposes another player secrets', async () => {
