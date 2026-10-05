@@ -14,6 +14,7 @@ const board = [
   'ordinary-6#01',
 ];
 const up = Array<boolean>(9).fill(true);
+up[8] = false;
 const action: Action = { type: 'reposition', a: 0, b: 3 };
 const hypothesis = (incoming: string) => ({
   board: [...board],
@@ -23,6 +24,40 @@ const hypothesis = (incoming: string) => ({
 });
 
 describe('forecast expectation over authorized hypotheses', () => {
+  it('does not forecast another draw after the immediate ordinary replacement closes the field', () => {
+    const result = refineForecast(
+      [{ action: { type: 'draw', source: 'deck' }, value: 19 }],
+      [
+        {
+          board,
+          up: board.map((_, slot) => slot !== 1),
+          pool: ['ordinary--2#01', 'ordinary-piplup#03'],
+          discards: [],
+        },
+      ],
+      [],
+      2,
+      () => true,
+    );
+    expect(result[0]!.value).toBe(19);
+  });
+  it('stops the second horizon when its first ordinary replacement closes the field', () => {
+    const result = refineForecast(
+      [{ action: { type: 'reposition', a: 0, b: 2 }, value: 30 }],
+      [
+        {
+          board,
+          up: board.map((_, slot) => slot !== 1),
+          pool: ['ordinary--2#01', 'ordinary-piplup#03'],
+          discards: [],
+        },
+      ],
+      [],
+      2,
+      () => true,
+    );
+    expect(result[0]!.value).toBeCloseTo(30 - 0.12 * 11);
+  });
   it('uses both possible next draws: after the swap, 2 replaces 7 for -5 and 0 replaces 7 for -7', () => {
     const hypotheses = [
       hypothesis('ordinary-piplup#03'),

@@ -141,6 +141,8 @@ export function refineForecast(
     const initial = score(board, up);
     let future = initial;
     for (let turn = 0; turn < depth; turn++) {
+      // A completed field has no subsequent ordinary take-card turn.
+      if (up.every(Boolean)) break;
       const incoming = hypothesis.pool.at(
         -1 -
           turn -

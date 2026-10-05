@@ -6,6 +6,8 @@
 
 `node scripts/verify-pokemon-expansion.mjs --portable` 对当前ZIP实际解压并运行隐藏WebView2，新增27项本地叫声哈希／单声道／时长／非静音解码检查，保留八项原创主题和原有流程／显示。`node scripts/verify-pokemon-expansion-play.mjs --portable --evidence=normal-run` 通过正式普通模式控件和真实默认Worker完成小局，观察主机 `HTMLMediaElement.play` 及 `playing` 事件，要求至少一个新增叫声实际播放；解码／播放观测均不是真人试听认证。每次使用独立证据名，后台只监听127.0.0.1。叫声原件与派生编码依据见[资源页](../games/pokemon-encounters/assets.md#续建素材与反馈2026-10-06)，同包边界见[验收](acceptance.md)。
 
+扩展集成的四席三胜完整大局使用十分钟整场测试上限，仍限制3,000步、每次真实32MiB Worker两秒截止。原三分钟两次超时记录保留；其中一次在330条日志、第五局开局时存档约1.7GB，合法对局仍推进，不能把整场超时认定为单次Worker超限。四席最多九小局，历史／SQLite工作也计入整场耗时；放宽整场测试边界不等于证明存档长期增长有界，实际耗时另记结果。
+
 共享工作区有其他任务改动时从明确提交的隔离工作树构建；其他任务完成提交后可快进接续基线，不复制尚未完成内容。工作树本地依赖通过 `pnpm install --offline --frozen-lockfile --store-dir E:/Proj/TableMax/.pnpm-store --package-import-method copy` 复用仓库缓存并生成独立依赖副本；无需全局安装。归档工具返回成功不等于恢复已验证：本轮恢复旧 `pokemon-expansion-forecast` 工作树实际返回“snapshot is missing”，源码已在Git提交、包和冻结清单已另保留；新建 `pokemon-expansion-matches` 工作树接续，完整计划期间保留为活动工作树，不能宣称旧快照可恢复。
 
 ## 宝可梦引导与动漫切入验证（2026-10-05）

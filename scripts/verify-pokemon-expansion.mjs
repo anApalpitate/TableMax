@@ -594,6 +594,42 @@ try {
   evidence.checks.push(
     '18 production glob portrait URLs decoded locally while external requests are blocked; private cards do not appear in public projection',
   );
+  const rocket = assets.find((name) =>
+    /^special-team-rocket-official-lossless-v1-.*\.webp$/.test(name),
+  );
+  assert.ok(rocket, 'Lossless Rocket card included');
+  assert.ok(
+    !assets.some((name) => /^special-team-rocket-official-.*\.png$/.test(name)),
+    'Preserved source PNG is excluded from runtime payload',
+  );
+  const rocketBytes = await readFile(
+    join(
+      dirname(executablePath),
+      'web/games/pokemon-encounters/web/assets',
+      rocket,
+    ),
+  );
+  assert.equal(
+    createHash('sha256').update(rocketBytes).digest('hex'),
+    '2c9b12e7588492bdc5ec491b80c7ac2665e00e87574e29c7cbc4ae7abdc4d554',
+  );
+  const rocketDimensions = await phones[0].evaluate(async (url) => {
+    const image = new Image();
+    image.src = url;
+    await image.decode();
+    return [image.naturalWidth, image.naturalHeight];
+  }, `${origin}/games/pokemon-encounters/web/assets/${rocket}`);
+  assert.deepEqual(rocketDimensions, [1154, 649]);
+  evidence.rocketLossless = {
+    built: rocket,
+    bytes: rocketBytes.length,
+    dimensions: rocketDimensions,
+    rgbaAudit:
+      'artifacts/pokemon-expansion/existing-pose-audit-20261006/lossless-format-sample.json',
+  };
+  evidence.checks.push(
+    'Pixel-identical lossless Rocket card decodes offline; original PNG preserved outside runtime payload',
+  );
   const audioManifest = JSON.parse(
     await readFile(
       'assets/games/pokemon-encounters/expansion/audio/themes.json',

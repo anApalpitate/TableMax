@@ -144,3 +144,7 @@ EX-A11 通过站点正式访客流程取得，额度检查为 `allowed=1`、下�
 新增超梦、阿尔宙斯、固拉多、盖欧卡、烈空坐、甲贺忍蛙、路卡利欧与研究公布八项原创程序主题音，正式派生编码为Ogg／Opus单声道，共32,604字节。229,152字节原始WAV保留在 `artifacts/pokemon-expansion/continuation-audio/originals/`，原始／派生哈希、编码参数和用途见[主题音清单](../../../assets/games/pokemon-encounters/expansion/audio/themes.json)。这些声音不是角色官方叫声；八项已在最终实际WebView2同包离线解码通过，真人听感仍待验，不以解码成功替代人耳试听。原版媒体不改字节。
 
 扩展UI新增依据已保存结果的场地移位、盖回与翻明局部轨迹；私看不产生公开目标，减少动态隐藏轨迹，事件取消清理演出。主题代码和公开轨迹属于已实现反馈，真实多姿态序列仍未完成。上述续建已在[最新同包汇总](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-continuation-delivery/final-checks.json)完成技术验收：18张卡面、八项Ogg本地解码与54格显示通过，页面错误及外部请求为零。真实姿态、官方叫声、实体设备与真人听感继续待完成，当前状态见[验收记录](../../reference/acceptance.md)。
+
+中文现有姿态续检实际保留13张图片原件，共4,995,022字节，见[来源与动作核验](../../../artifacts/pokemon-expansion/existing-pose-audit-20261006/audit.json)。超梦单张高分辨率透明立绘可作为参考；奖杯图含底座或预烘焙效果，小智忍蛙商品图为同一手办的不同角度，均不构成所需完整动作序列，新增合格序列为零，62帧缺口不变。
+
+火箭队既有卡面采用无损WebP运行版本 `characters/special-team-rocket-official-lossless-v1.webp`，原 `special-team-rocket-official.png` 完整保留，构建glob排除该原件以避免双份打包。361,001字节转为242,110字节，节省118,891字节；1154×649尺寸、每个RGBA字节完全一致，源图本身不透明，未增加透明度或身体动作。原件／派生／解码像素哈希及编码参数见[格式核验](../../../artifacts/pokemon-expansion/existing-pose-audit-20261006/lossless-format-sample.json)。这次仅改变既有图像编码，原先“全部原媒体字节不变”的历史包结论不用于本次运行文件；实际离线解码与同包门禁须另行验证。

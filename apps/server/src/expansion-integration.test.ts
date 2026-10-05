@@ -918,6 +918,7 @@ it('compiled Worker rejects cross-version strategy identity and cancellation; ol
 
 it('real isolated 32MiB Workers finish a four-seat mixed three-level three-win match through SQLite and authorized actions', async () => {
   const repository = new Repository('worker-mixed');
+  const matchStarted = performance.now();
   try {
     const { room, credentials } = await table(repository, 4, 3),
       executor = new WorkerBotExecutor(join(temporary, 'bot-worker.cjs'));
@@ -981,10 +982,13 @@ it('real isolated 32MiB Workers finish a four-seat mixed three-level three-win m
         levels: [...levels],
         phases: [...phases],
         rounds: final.roundNumber,
+        elapsedMs: performance.now() - matchStarted,
         matchWinners: final.matchWinners,
       },
     });
   } finally {
     repository.close();
   }
-}, 180000);
+  // Four seats can each reach two wins before the ninth round decides the match.
+  // Whole-match SQLite/history work is distinct from each Worker's two-second cap.
+}, 600000);

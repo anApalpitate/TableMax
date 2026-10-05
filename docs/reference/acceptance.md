@@ -1,12 +1,22 @@
 # 首版交付与验收
 
+## 1.0.2：普通收局前瞻与无损卡面续验（2026-10-06）
+
+当前[运行ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) SHA-256 `d13522ddd11cf7220e5ff7d3576c7e7873fca6156522e2720afe47ea301b5b47`，ZIP41,114,571字节、实际解压94,535,185字节，95MB余464,815字节。隔离18单元／16缓存命中、冻结输入及源哈希复核通过；[固定清单](../../artifacts/maintenance/v1.0.2/pokemon-expansion-terminal-delivery/final-delivery-manifest.json)与[最终核对](../../artifacts/maintenance/v1.0.2/pokemon-expansion-terminal-delivery/final-checks.json)绑定同一包。相对上一包，仅扩展策略产物、宝可梦网页入口及火箭队图像编码变化，其他游戏文件字节不变，不重复升级其完整对局验收结论。
+
+普通换牌全明后停止后续虚构取牌，两项先失败的边界与既有策略共20测试通过，类型、相关lint通过。[17项真实服务集成](../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/integration/run-1791226208005-22393822/results.json)通过；混合四人三胜154次真实Worker，最长487ms、三局完整对局约80.03秒。保留两次180秒整场超时；覆盖四席最多九局的整场测试边界改为十分钟，每次Worker仍32MiB／两秒硬截止，3,000步上限保留。330日志时约1.7GB的失败存档也保留，未宣称存档长期增长有界。
+
+[实际原生同包](../../artifacts/maintenance/v1.0.2/pokemon-expansion-runtime/portable-d13522ddd11c/results.json)10流程／11显示、18扩展卡面／八主题／27叫声及火箭队WebP离线解码通过。无损转换242,110字节，较原PNG省118,891字节，完整RGBA一致；源PNG保留，未将同图编码变化计作新姿态。[普通模式](../../artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/terminal-final-normal-20261006/results.json)35次生产手机控件动作、15次默认Worker保存、七阶段通过，主机实际播放新增叫声，页面错误／外部请求为零，相关进程退出。47.263秒是自动化用时，不是真人节奏或听感证明。
+
+本轮现有中文来源13张候选图未取得完整合格动作序列，真实透明姿态仍缺62帧。三级强度顺序、实体手机／真人听感／原版2–3倍小局时长及音源世代／使用依据继续待验；旧72场三胜统计属于本轮收局前瞻修复前源码，不能作为当前精确强度统计。完整计划保持进行中，未标完成，当前接续见[扩展任务](../tasks/pokemon-encounters-expansion.md#普通收局前瞻与无损卡面续验2026-10-06)。
+
 ## 1.0.2：扩展版三胜策略与叫声同包续验（2026-10-06）
 
 本轮完成对手第三胜、共同大局胜利及忍蛙中对手全明的策略修复，63项相关策略／声画／资源测试、最新完整基线类型检查、相关Lint／格式及17项真实服务集成通过。规则、牌量、研究奖励和秘密权限未改。[72场完整三胜大局](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/match-aware-all-counts-20261006/report.json)覆盖2–6人、308小局／27,064动作，源码前后稳定，无封顶，三神任务自然触发1次，阿尔宙斯发动0次。[分人数种子块分析](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/match-aware-all-counts-20261006/match-strength-analysis.json)支持本组两档优于默认，仍未证明绝悟稳定优于豆包；每人数仅四个独立种子，不作普遍强度保证。
 
 27个中文百科来源游戏叫声已用于扩展版公开抽牌，原件270,112字节完整保留，播放派生版本24kbps／99,544字节，原用户音源不变。第一次原始码率试包使模块超4MiB约169KB，已保留[试包与冻结记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-delivery/module-budget-provisional/)，压缩后模块 **4,192,421字节**，低于4,194,304预算；未提高预算。来源世代、使用许可及人耳听感仍待核验，详见[资源](../games/pokemon-encounters/assets.md#续建素材与反馈2026-10-06)。
 
-[当前运行ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip)与[固定清单](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-delivery/final-delivery-manifest.json) SHA-256 **`49a3e58484e8bd9787b82dd8f19939e3290850b39f84d423fe59a32b24e648a8`**，ZIP **41,231,620字节**，216文件实际解压 **94,653,981字节**，95MB预算余 **346,019字节**。18单元17次缓存命中、无预算告警，打包实耗以固定清单为准。另一项电力公司工作在本轮中途完成提交 `123fbaf`，隔离工作树快进该提交后重新构建；与其已验清单相比，电力公司、现代艺术及全部旧媒体输出哈希一致，最终不交付旧基线试包。
+[上一轮运行ZIP](../../artifacts/maintenance/v1.0.2/pokemon-expansion-terminal-delivery/previous-delivery/TableMax-1.0.2-win-x64.zip)与[固定清单](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-delivery/final-delivery-manifest.json) SHA-256 **`49a3e58484e8bd9787b82dd8f19939e3290850b39f84d423fe59a32b24e648a8`**，ZIP **41,231,620字节**，216文件实际解压 **94,653,981字节**，95MB预算余 **346,019字节**。18单元17次缓存命中、无预算告警，打包实耗以固定清单为准。另一项电力公司工作在本轮中途完成提交 `123fbaf`，隔离工作树快进该提交后重新构建；与其已验清单相比，电力公司、现代艺术及全部旧媒体输出哈希一致，最终不交付旧基线试包。
 
 同一ZIP的[宝可梦实际便携结果](../../artifacts/maintenance/v1.0.2/pokemon-expansion-runtime/portable-49a3e58484e8/results.json)通过9项流程、11项显示、18张卡面、八主题音和27叫声离线解码；[普通模式真实UI](../../artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/match-cries-final-normal-20261006/results.json)63次手机操作、23次真实默认Worker保存结果及16阶段通过，喷火龙私看隔离，实际主机23次新增叫声 `playing` 事件、15种不同角色，页面错误／外部请求为零，进程退出。自动化85.580秒不是真人时长或听感认证。[电力公司同包显示](../../artifacts/maintenance/v1.0.2/power-grid/runtime/portable/pokemon-matches-combined-20261006/results.json)72.54秒通过，保留地图与抽屉；不是再跑完整三人对局，原完整对局对应原 `da2dd…` 包，证据继续保留。
 
