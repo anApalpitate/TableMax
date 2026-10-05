@@ -6,10 +6,10 @@ import { scoreBoard } from '../scoring';
 import { grid, lines } from '../research';
 import type { Memory } from './memory';
 import { previewRelay } from './relay';
+import { previewRocketPikachu } from './rocket';
+import { copyTableFields, type TableFields } from './table';
 type Random = { next(): number };
-type Model = {
-  boards: Record<string, string[]>;
-  up: Record<string, boolean[]>;
+type Model = TableFields & {
   pool: string[];
   held: string | null;
   discards: string[];
@@ -298,6 +298,8 @@ export function choose(
     }
     return best;
   };
+  const discardValue = (model: Model) =>
+    utility(model) + 0.25 + Math.min(20, Math.max(0, memory.turn - 30) * 0.5);
   const bestMewExchange = (model: Model, incoming: string) => {
     let best = Infinity;
     for (const target of view.seatOrder.filter((id) => id !== seat))
@@ -338,15 +340,21 @@ export function choose(
     Math.min(
       ...grid.slots.map((slot) => relayValue(model, order, incoming, slot)),
     );
+  const rocketValue = (model: Model, slot: number, consumed = 0) => {
+    const order = relayOrder('clockwise');
+    const result = previewRocketPikachu(
+      model,
+      order,
+      model.pool,
+      slot,
+      consumed,
+    );
+    return utility({ ...model, boards: result.boards, up: result.up });
+  };
   const evaluate = (a: Action, original: Model) => {
     const model: Model = {
       ...original,
-      boards: Object.fromEntries(
-        Object.entries(original.boards).map(([id, b]) => [id, [...b]]),
-      ),
-      up: Object.fromEntries(
-        Object.entries(original.up).map(([id, u]) => [id, [...u]]),
-      ),
+      ...copyTableFields(original),
     };
     const own = model.boards[seat]!,
       up = model.up[seat]!;
@@ -364,18 +372,7 @@ export function choose(
         a.slot,
       );
     if (a.type === 'replace' && view.phase === 'rocket-pikachu') {
-      const start = view.seatOrder.indexOf(view.turnSeat);
-      for (let offset = 0; offset < view.seatOrder.length; offset++) {
-        const target =
-          view.seatOrder[(start + offset) % view.seatOrder.length]!;
-        const incoming = model.pool.at(-1 - offset);
-        if (!incoming)
-          throw new Error('Insufficient authorized Rocket hypothesis');
-        model.boards[target]![a.slot] = incoming;
-        model.up[target]![a.slot] = true;
-      }
-      // Newly dealt cards do not activate abilities; closure waits for all seats.
-      return utility(model);
+      return rocketValue(model, a.slot);
     }
     if (a.type === 'draw') {
       const incoming =
@@ -395,6 +392,19 @@ export function choose(
             bestRelay(model, relayOrder('counterclockwise'), incoming),
           ) + 0.08
         );
+      if (
+        incoming &&
+        view.phase === 'draw' &&
+        card(incoming).ability === 'team-rocket'
+      ) {
+        const meowth = bestReplace(model, seat, incoming);
+        const pikachu = Math.min(
+          ...grid.slots.map((slot) =>
+            rocketValue(model, slot, a.source === 'deck' ? 1 : 0),
+          ),
+        );
+        return (meowth + pikachu) / 2 + 0.08;
+      }
       return incoming
         ? estimateDraw(
             a.source,
@@ -411,12 +421,7 @@ export function choose(
       [own[a.a], own[a.b]] = [own[a.b]!, own[a.a]!];
       [up[a.a], up[a.b]] = [up[a.b]!, up[a.a]!];
     }
-    if (a.type === 'discard-held')
-      return (
-        utility(model) +
-        0.25 +
-        Math.min(20, Math.max(0, memory.turn - 30) * 0.5)
-      );
+    if (a.type === 'discard-held') return discardValue(model);
     if (a.type === 'mew-target') {
       const outgoing = model.boards[a.seat]![a.slot]!;
       model.boards[a.seat]![a.slot] = model.held!;
@@ -435,7 +440,9 @@ export function choose(
       view.phase === 'mewtwo-choice' &&
       model.held
     )
-      return Math.min(utility(model), bestReplace(model, seat, model.held));
+      return view.drawSource === 'deck'
+        ? Math.min(discardValue(model), bestReplace(model, seat, model.held))
+        : bestReplace(model, seat, model.held);
     if (a.type === 'activate-arceus')
       for (const id of view.seatOrder) {
         model.up[id] = Array<boolean>(9).fill(false);

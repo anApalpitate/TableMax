@@ -84,6 +84,14 @@ SDK 可选纯 `observe({view,memory,seatId,difficulty})` 在成功游戏动作�
 
 两个方向与权威规则逐子步骤对照通过，包含非首位行动者、第一步全明后继续接力、末张弃牌、结算前明暗快照、复制与所得能力不连锁；公开剩余队列／中途恢复、暗牌隔离与输入不变通过。seed1反例暂时去掉方向评价以重现旧行为后先失败：旧策略固定顺时针，修正后选逆时针，动作列表倒序及真实暗牌库倒序不改变同授权信息的选择。[TDD记录](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-relay-model-20261006/red-green.json)与[15种子小局](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/bot/run-1791231070355-47899851/seeded-rounds.json)覆盖2–6人三档、1,358动作，最长单次策略794.606ms；30项相关测试及19项目标／136跳过通过，类型与lint通过，新模块纳入源码冻结。
 
-[17项真实服务集成](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/integration/run-1791231192461-5f4987b7/results.json)通过约156.66秒，四人混合档位真实Worker217次／291步／四小局三胜，最长852.452ms；两秒／32MiB限制不变。源码领先 `42205330…` 运行包，尚不作为该包的新增能力验收。火箭队双面取牌期望、超梦放弃来源约束、其他未来能力与三级强度仍待继续补齐。
+[17项真实服务集成](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/integration/run-1791231192461-5f4987b7/results.json)通过约156.66秒，四人混合档位真实Worker217次／291步／四小局三胜，最长852.452ms；两秒／32MiB限制不变。源码领先 `42205330…` 运行包，尚不作为该包的新增能力验收。当时火箭队双面取牌期望、超梦放弃来源约束、其他未来能力与三级强度待补；前两项续建如下。
 
 [接力修正三胜对照](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/relay-model-paired-20261006/report.json)与上轮采用相同初始种子和座位／档位安排，18场／73小局／4,544动作，耗时226.472秒，最长策略572.608ms，源码前后一致、无封顶，三神／阿尔宙斯自然发动均零。两人绝悟七场、豆包五场；三人绝悟两场、豆包三场、默认一场。[配对核对](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-relay-model-20261006/paired-comparison.json)保存前后精确源哈希，[种子块分析](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/relay-model-paired-20261006/match-strength-analysis.json)仍未支持三级顺序。每人数只有两个独立种子，仅为探索；后续策略会改变随机事件使用轨迹，不能将配对样本当作普遍胜率或自然频率认证。
+
+火箭队普通取牌新增双面等概率期望：喵喵面强制本人换入12分牌，皮卡丘面枚举九格全桌依次补牌，完整能力结束后评价收局。独立 `bot/rocket.ts` 与接力复用 `bot/table.ts` 的场地复制；从牌库取得先跳过已消耗的火箭队牌，从弃牌取得不跳过。路卡利欧额外取牌保持主动能力抑制。补牌来自授权未知牌假设，不读取真实牌库，也不宣称准确模拟牌库耗尽后刚弃场地牌的重洗分布。
+
+超梦放弃评价读取公开最初 `drawSource`：牌库可比较弃牌与换入，弃牌来源只评价强制换入。seed1445来源单变量反例中，旧模型错误放弃；修正后从弃牌取得选择交换slot1，权威规则本人最低分11，对应放弃后强制换入最低12；相同场地改为牌库来源选择放弃并合法弃牌。最初seed23仅比较本人分数，不能排除收局／对手风险，并非有效策略反例，已弃用，不列作TDD成功。
+
+火箭队seed1反例中旧普通12分模型选择调位，新模型选择取弃顶火箭队；权威规则两币面本人最低分43／29、调位41，平均36只用于夹具核对，不等同于全桌效用或普遍胜率。补牌身份不重复、非首位顺序、两端格位、所得能力不连锁、复制、取牌消耗及输入不变另有测试。[TDD记录](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-coin-source-model-20261006/red-green.json)保存八项新测试与38项相关通过；[15种子小局](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/bot/run-1791232593013-f09286e2/seeded-rounds.json)覆盖2–6人三档、1,394动作／20种阶段，最长策略824.415ms，源哈希稳定、合法记忆与守恒通过。没有重跑全150种子或用本轮正确性证明三级强度。
+
+[17项真实服务集成](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/integration/run-1791232755642-bed2cc11/results.json)通过108.06秒，混合四席真实Worker175次／235步／三小局完成三胜，最长842.446ms；SQLite能力中间态、重启回退、旧原版与旧Worker、并发投票、localhost HTTP／Socket.IO及失效任务通过。当前源码与报告逐文件一致，新两个模块加入冻结保护。类型与相关lint通过，仍未更新 `42205330…` ZIP。三级强度、其他即时／未来能力模型与完整素材继续推进，不用重复的小规模配对样本替代分级证明。

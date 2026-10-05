@@ -1,22 +1,13 @@
-/** Authorized hypothetical fields only; never accepts the real hidden state. */
-export type RelayFields = {
-  boards: Record<string, string[]>;
-  up: Record<string, boolean[]>;
-};
+import { copyTableFields, type TableFields } from './table';
 
 export function previewRelay(
-  fields: RelayFields,
+  fields: TableFields,
   order: readonly string[],
   incoming: string,
   firstSlot: number,
   score: (board: string[], up: boolean[]) => number,
 ) {
-  const boards = Object.fromEntries(
-    Object.entries(fields.boards).map(([id, board]) => [id, [...board]]),
-  );
-  const up = Object.fromEntries(
-    Object.entries(fields.up).map(([id, faces]) => [id, [...faces]]),
-  );
+  const { boards, up } = copyTableFields(fields);
   const moves: {
     seat: string;
     slot: number;

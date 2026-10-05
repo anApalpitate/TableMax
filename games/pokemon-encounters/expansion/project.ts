@@ -57,6 +57,7 @@ export function project(s: State, viewer: Viewer) {
     discardTop: s.discard.length ? face(s.discard.at(-1)!) : null,
     discardOptions: s.discard.slice(-2).reverse().map(face),
     held: s.held ? face(s.held) : null,
+    drawSource: s.drawSource,
     coin: s.coin,
     relaySeats:
       s.phase === 'zapdos-self' || s.phase === 'zapdos-receive'
