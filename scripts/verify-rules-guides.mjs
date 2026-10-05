@@ -107,7 +107,7 @@ const cases = [
     dataDir: pokemon?.dataDir,
     players: pokemon?.players,
     root: '.pokemon-screen',
-    images: 3,
+    images: 9,
   },
   {
     id: 'modern-art',
@@ -312,6 +312,11 @@ async function startCase(entry) {
 }
 async function verify(page, entry, role, size) {
   const mobile = role === 'player';
+  const reduced =
+    entry.id === 'pokemon-encounters' && mobile && size[0] === 320;
+  await page.emulateMedia({
+    reducedMotion: reduced ? 'reduce' : 'no-preference',
+  });
   await resize(page, size[0], size[1], mobile, size[2] ?? 1);
   const before = await current();
   const pageSize = await page.evaluate(() => ({
@@ -365,6 +370,54 @@ async function verify(page, entry, role, size) {
           }),
     );
   }
+  if (entry.id === 'pokemon-encounters') {
+    const themes = [
+      'setup',
+      'turn',
+      'mew',
+      'rocket',
+      'zapdos',
+      'snorlax',
+      'charizard',
+      'ditto',
+      'match',
+    ];
+    assert.deepEqual(
+      await dialog
+        .locator('[data-rule-illustration]')
+        .evaluateAll((nodes) =>
+          nodes.map((node) => node.dataset.ruleIllustration),
+        ),
+      themes,
+      'Nine original scenes replace the old three UI captures',
+    );
+    assert.equal(await dialog.locator('section').count(), 8);
+    assert.equal(await dialog.locator('[data-rule-slot]').count(), 12);
+    assert.equal(await dialog.locator('.pk-rule-card--paired').count(), 2);
+    assert.equal(await dialog.locator('.pk-rule-victory--winner').count(), 2);
+    const sizes = await dialog
+      .locator(
+        '.pk-rule-scene__logic span, .pk-rule-scene__logic strong, .pk-rule-scene__logic li',
+      )
+      .evaluateAll((nodes) =>
+        nodes.map((node) => parseFloat(getComputedStyle(node).fontSize)),
+      );
+    assert.ok(
+      sizes.every((size) => size >= 16),
+      'Diagram information >=16 CSS px',
+    );
+    if (
+      (role === 'player' && size[0] === 320) ||
+      (role === 'host' && size[0] === 1280 && size[2] === 1)
+    ) {
+      for (const theme of themes) {
+        await dialog
+          .locator(`[data-rule-illustration="${theme}"]`)
+          .scrollIntoViewIfNeeded();
+        await shot(page, `${entry.id}-${role}-${size.join('-')}-${theme}`);
+      }
+    }
+  }
   if (entry.diagrams) {
     assert.deepEqual(
       await dialog
@@ -409,6 +462,16 @@ async function verify(page, entry, role, size) {
   }
   const nav = dialog.locator('nav').getByRole('button');
   assert.ok((await nav.count()) >= 3);
+  if (entry.id === 'pokemon-encounters') {
+    for (const chapter of await nav.all()) {
+      await chapter.click();
+      assert.equal(
+        await page.evaluate(() => document.activeElement?.matches('h3')),
+        true,
+        'Every Pokemon chapter receives focus',
+      );
+    }
+  }
   await nav.first().click();
   const metrics = await dialog.evaluate((d) => ({
     width: innerWidth,
@@ -488,6 +551,7 @@ async function verify(page, entry, role, size) {
     game: entry.id,
     role,
     size,
+    reducedMotion: reduced,
     images: entry.images,
     metrics,
   });

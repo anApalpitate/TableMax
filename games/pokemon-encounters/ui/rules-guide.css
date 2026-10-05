@@ -4,51 +4,225 @@
   --rules-paper: #f0f7df;
   --rules-line: #b2c6a1;
 }
-.pokemon-rulebook__abilities {
-  display: grid;
-  gap: 12px;
+.pokemon-rules .pk-rule-scene {
+  --scene-accent: #467436;
+  padding: 0;
+  overflow: hidden;
+  background: #fffdf5;
+  border-color: color-mix(in srgb, var(--scene-accent) 40%, #eee5cf);
+  box-shadow: 0 4px 14px #3741250c;
 }
-.pokemon-rulebook__abilities > div {
-  display: flex;
-  align-items: start;
-  gap: 16px;
-  padding: 14px;
-  border: 1px solid var(--rules-line);
-  border-radius: 12px;
-}
-.pokemon-rulebook__abilities img {
-  width: 72px;
-  height: 72px;
+.pokemon-rules .pk-rule-scene > img {
+  max-height: 280px;
   object-fit: contain;
-  background: #fff;
-  border: 2px solid var(--rules-line);
-  border-radius: 12px;
-  flex-shrink: 0;
+  border-radius: 0;
+  background: #fff9ec;
 }
-.pokemon-rulebook__scoring {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
-  gap: 12px;
+.pokemon-rules .pk-rule-scene--mew,
+.pokemon-rules .pk-rule-scene--ditto {
+  --scene-accent: #85519b;
 }
-.pokemon-rulebook__scoring > div {
+.pokemon-rules .pk-rule-scene--rocket {
+  --scene-accent: #a44560;
+}
+.pokemon-rules .pk-rule-scene--zapdos,
+.pokemon-rules .pk-rule-scene--match {
+  --scene-accent: #896320;
+}
+.pokemon-rules .pk-rule-scene--snorlax {
+  --scene-accent: #267771;
+}
+.pokemon-rules .pk-rule-scene--charizard {
+  --scene-accent: #a85429;
+}
+.pk-rule-scene__logic {
   display: grid;
-  gap: 10px;
+  gap: 14px;
+  padding: 18px;
+  border-top: 1px solid #e8e0cf;
+}
+.pokemon-rules .pk-rule-scene figcaption {
+  margin: 0;
+  padding: 12px 18px;
+  background: color-mix(in srgb, var(--scene-accent) 8%, #fffdf5);
+  border-top: 1px solid #e8e0cf;
+}
+.pk-rule-callout {
+  display: grid;
+  gap: 6px;
+  border-left: 4px solid var(--rules-accent);
+  border-radius: 6px 12px 12px 6px;
+  background: var(--rules-paper);
+  padding: 14px 16px;
+}
+.pk-rule-callout > strong {
+  font-size: 20px;
+}
+.pk-rule-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.pk-rule-choices > div {
   padding: 14px;
   border: 1px solid var(--rules-line);
   border-radius: 10px;
-  background: var(--rules-paper);
+  background: #fffdf5;
+  min-width: 0;
 }
-.pokemon-rulebook__scoring strong {
+.pokemon-rules .pk-rule-flow {
+  padding: 0;
+  margin: 0;
+  gap: 22px;
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+  list-style: none;
+}
+.pokemon-rules .pk-rule-flow > li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--scene-accent, #467436) 30%, #fff);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--scene-accent, #467436) 6%, #fff);
+  min-width: 0;
+}
+.pk-rule-step {
+  display: grid;
+  place-items: center;
+  flex: 0 0 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--scene-accent, #467436);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+}
+.pk-rule-flow b {
+  position: absolute;
+  right: -21px;
+  color: var(--scene-accent, #467436);
   font-size: 22px;
-  color: var(--rules-accent);
+}
+.pk-rule-board,
+.pk-rule-column-scores {
+  width: min(100%, 380px);
+  justify-self: center;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.pk-rule-card {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 2px;
+  min-height: 96px;
+  border-radius: 12px;
+  border: 3px solid #a5b58c;
+  background: #fff8df;
+  box-shadow: 0 3px 0 #30452818;
+  color: #29432d;
+  text-align: center;
+}
+.pk-rule-card strong {
+  font-size: 32px;
+  line-height: 1.15;
+}
+.pk-rule-card span {
+  font-size: 16px;
+  line-height: 1.35;
+}
+.pk-rule-card--paired {
+  border-color: #59854a;
+  background: #e8f4d8;
+}
+.pk-rule-card--back {
+  background: repeating-linear-gradient(
+    45deg,
+    #3b7169 0 12px,
+    #35665e 12px 24px
+  );
+  color: #fff;
+  border-color: #7b9e82;
+}
+.pk-rule-card--back i {
+  display: block;
+  width: 30px;
+  height: 30px;
+  border: 3px solid #fffdf1;
+  border-radius: 50%;
+  background: linear-gradient(#db7064 0 45%, #fffdf1 45% 55%, #d9e8d0 55%);
+}
+.pk-rule-column-scores span {
+  padding: 8px 4px;
+  border-radius: 8px;
+  background: #f0f7df;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+}
+.pk-rule-total {
+  justify-self: center;
+  font-size: 24px;
+  color: var(--scene-accent);
+}
+.pk-rule-victories {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.pk-rule-victories > div {
+  display: grid;
+  gap: 5px;
+  align-content: start;
+  justify-items: center;
+  padding: 12px 6px;
+  border: 1px solid #d7dac6;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 18px;
+}
+.pk-rule-victories .pk-rule-victory--winner {
+  border-color: #b48a36;
+  background: #fff0c3;
+}
+.pk-rule-victories b {
+  font-size: 22px;
+  color: #9a6c11;
+}
+@media (max-width: 620px) {
+  .pk-rule-choices {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pokemon-rules .pk-rule-flow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .pk-rule-flow b {
+    right: auto;
+    left: 21px;
+    bottom: -22px;
+    transform: rotate(90deg);
+  }
 }
 @media (max-width: 420px) {
-  .pokemon-rulebook__abilities > div {
-    gap: 10px;
-    padding: 10px;
+  .pk-rule-scene__logic {
+    padding: 12px;
   }
-  .pokemon-rulebook__abilities img {
-    width: 52px;
-    height: 52px;
+  .pokemon-rules .pk-rule-scene figcaption {
+    padding: 10px 12px;
+  }
+  .pk-rule-board,
+  .pk-rule-column-scores,
+  .pk-rule-victories {
+    gap: 7px;
+  }
+  .pk-rule-card {
+    min-height: 84px;
+  }
+  .pk-rule-victories b {
+    font-size: 20px;
   }
 }

@@ -105,13 +105,15 @@ Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 
 
 ## 图文规则维护与验证
 
-现代艺术按 2026-10-05 已批准计划改用九张原创逻辑图解，准确规则文字、数字和箭头由代码排版；旧截图捕获命令仅用于历史 UI 证据，不再生产当前规则配图。新素材提示词、原图、导出参数与哈希见游戏资源清单。电力公司已采用六组代码规则图解与两项透明插画；宝可梦奇遇仍使用现有截图，原创规则图解重做见 [任务索引](../tasks/README.md#原创规则图解重做已确认待办)；三款游戏的原素材与规则参考资料继续保留；maintenance 中的历史运行截图按下述手动历史截图全量退役入口清理。
+三款游戏均已采用原创图解：现代艺术九张逻辑场景，电力公司六组代码图解与两项透明插画，宝可梦九张主题场景与八章代码图解。准确规则文字、数字和箭头由代码排版；旧截图捕获命令仅用于历史 UI 证据，不再生产当前规则配图。新素材提示词、原图、导出参数与哈希见各游戏资源清单，[任务索引](../tasks/README.md#原创规则图解重做已完成)保存完成入口；原素材与规则参考资料保留，maintenance 中历史运行截图按下述手动全量退役入口清理。
 
 `node scripts/verify-modern-art-polish-v2.mjs --evidence=<独立名>` 核验三／四／五人的市场拆分、五种拍卖、密集收藏、合法双拍描边、减少动态、三端字号／滚动／规则图和桌面密度；`--representative` 先查三人短屏及短手机，`--diagnostic` 仅取短屏密集收藏几何信息。加 `--portable` 检查实际当前 ZIP、逐文件清单和包内运行时。证据留在 `artifacts/maintenance/v1.0.2/modern-art-polish-20261005/ui-v2/`。
 
 `node scripts/verify-modern-art-audio.mjs --timer-only --evidence=<独立名>` 检查时间到只响一次、暂停冻结、静音消费、刷新不补播及到时后合法报价，沿用真实媒体观察和原生声音归属；加 `--portable` 验最终运行包。`node scripts/verify-fullscreen.mjs --run=<独立名>` 检查真实原生按钮、F11／菜单／Escape、窗口恢复及两窗口独立；`--foreground` 补充普通前台边框／任务栏，仍只在隔离测试模式运行。`--executable=<绝对路径>` 可指定实际解压程序。测试服务仅监听 `127.0.0.1`，媒体观察与密度模拟不等于实体手机、人耳试听或物理多显示器认证。
 
 三款游戏均可按需打开规则顶层卡片，教学不自动触发；设计、截图权限与维护要求见 [通用视觉](visual-design.md#顶层图文规则说明)，具体规则依据和区域说明分别维护在游戏主题。本节列运行方法，命令存在不表示已通过，实际源／便携结论与包哈希从验收记录查询。
+
+宝可梦专项用 `node scripts/verify-rules-guides.mjs --game=pokemon-encounters --maintenance=pokemon-rules-redesign-20261005 --evidence=<独立名>`，加 `--portable` 检查最终同哈希 ZIP。九图实际解码、八章逐项导航、准确六格／百变怪／共同赢家图例、三端 9 组合与 320px 减少动态均被核验，首次短手机及 720p 保存九种场景真实渲染。只改图文 UI 的任务不机械重跑未变的人机整局；规则图例单测使用真实计分模块，不能把原图预览当作运行验收。
 
 `node scripts/verify-rules-guides.mjs --evidence=rules-source-run` 使用真实隐藏原生 WebView2、隔离合法规则示例和独立手机身份，检查三款游戏的 host／public／player 在三种对应尺寸下共 27 个规则浮层：图片实际解码、文字下限、44px 目标、章节导航、关闭／Escape 后焦点恢复，以及查看规则不改变 revision 或身份。`--game=power-grid` 等可限定单个游戏的 9 组合；默认 `--game=all`。加 `--portable` 解压当前最终 ZIP，用包内 Node 与原生程序运行同一检查；每次选择独立的安全证据名。`--maintenance=<安全名称>` 可分开本次证据，默认仍为 `shared-visual-20261004`；证据在 `artifacts/maintenance/v1.0.2/<维护名>/rules/<名称>/`。本机服务显式监听 `127.0.0.1`。这是本机真实运行与手机尺寸／触控模拟，不是实体手机、Safari、电视或现场网络认证。
 
@@ -128,7 +130,7 @@ node scripts/verify-power-grid-ui.mjs --maintenance=power-grid-debug-20261004 --
 python scripts/compress-rule-captures.py --report=artifacts/maintenance/v1.0.2/shared-visual-20261004/rules-compression.json
 ```
 
-旧规则截图及原 PNG 保留在各游戏 `assets/games/<id>/rules/`，历史无损 WebP 继续保留对应像素核验记录；现代艺术当前入口仅加载 `rules/illustrations-v2/` 的九图。原创场景与真实 UI 验收截图分别记录，不能把生成图标为真实渲染。新图 WebP 为有损导出，记录实际质量和哈希，不标成与原 PNG 像素相同。源图／组件检查不替代最终同 ZIP 规则浮层检查。电力公司视觉专项仍用 `pnpm verify:power-grid-ui --maintenance=<安全名称> --evidence=<独立名>`，`--map-only` 定向核验横向地图的 42 个正向城市、83 边、坐标转换和键盘／指针；完整矩阵另核验阶段顺序、竞拍草稿、价区及容量。`node scripts/verify-power-grid.mjs --seats=6 --display --evidence=<独立名>` 走真实混合局／恢复／三游戏切换，保存五阶段 host／public 游玩图与手机操作前后帧，并在三端投影上核对实际顺序、价区和同步时的报价控件。加 `--portable` 验同一最终 ZIP，不能将组件 fixture 写成完整对局证据。
+旧规则截图及原 PNG 保留在各游戏 `assets/games/<id>/rules/`，历史无损 WebP 继续保留对应像素核验记录；现代艺术当前入口仅加载 `rules/illustrations-v2/` 的九图，宝可梦仅加载 `rules/illustrations-v1/` 九图。原创场景与真实 UI 验收截图分别记录，不能把生成图标为真实渲染。新图 WebP 为有损导出，记录实际质量和哈希，不标成与原 PNG 像素相同。源图／组件检查不替代最终同 ZIP 规则浮层检查。电力公司视觉专项仍用 `pnpm verify:power-grid-ui --maintenance=<安全名称> --evidence=<独立名>`，`--map-only` 定向核验横向地图的 42 个正向城市、83 边、坐标转换和键盘／指针；完整矩阵另核验阶段顺序、竞拍草稿、价区及容量。`node scripts/verify-power-grid.mjs --seats=6 --display --evidence=<独立名>` 走真实混合局／恢复／三游戏切换，保存五阶段 host／public 游玩图与手机操作前后帧，并在三端投影上核对实际顺序、价区和同步时的报价控件。加 `--portable` 验同一最终 ZIP，不能将组件 fixture 写成完整对局证据。
 
 ## 独立原型的运行与检查
 

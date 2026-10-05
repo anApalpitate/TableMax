@@ -1021,6 +1021,262 @@
         "status": "captured-verified-imported"
       }
     ],
-    "postprocessing": "PNG to WebP lossless via scripts/compress-rule-captures.py, Pillow 11.1.0; original dimensions and RGB pixel bytes verified identical. Source PNGs retained."
+    "postprocessing": "PNG to WebP lossless via scripts/compress-rule-captures.py, Pillow 11.1.0; original dimensions and RGB pixel bytes verified identical. Source PNGs retained.",
+    "currentUsage": "Retained original UI captures and historical evidence; superseded by rulesIllustrations v1 in the active guide; excluded from runtime imports."
+  },
+  "rulesIllustrations": {
+    "version": 1,
+    "createdAt": "2026-10-05",
+    "purpose": "Nine original teaching scenes; exact positions, sequences, values and wins rendered by code. Eight chapters follow the adopted original rules.",
+    "generator": "built-in image_gen",
+    "evidence": "artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/imagegen/generation.json",
+    "totalBytes": 347266,
+    "postprocessing": "Original PNGs retained; proportional Lanczos downscale to 960x480, WebP quality78 method6. No content edits; WebP is not pixel-identical to PNG.",
+    "limitations": "Three distinct character requests were refused by the image tool. New scenes are entirely original object-only illustrations without character likenesses. No UI screenshot or publisher-art claim.",
+    "files": [
+      {
+        "id": "setup-v1",
+        "file": "rules/illustrations-v1/setup-v1.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/imagegen/setup-v1.png",
+        "sourceSha256": "6dd35e6e56f169c9a9369c14364aa0041d980c92f1e52b00c02da2a17d89a5dd",
+        "prompt": "Use case: illustration-story. Original high-quality two-dimensional tabletop teaching illustration, wide 2:1 landscape composition, opaque pale cream background and fresh pastel green accents. Polished clean linework and soft cel shading, subtle crafted tabletop texture, bright sophisticated board-game aesthetic. Clear large central subjects readable in a 260px-wide thumbnail, restrained luminous detail, ample safe margins. This is an original object-only scene: no living beings, people, creatures, characters, recognizable silhouettes, portraits, franchise logos or character references. No text, letters, numbers, arrows, UI, watermark or ornate card frames. All playing cards have plain opaque backs with simple solid colors, never printed contents. A tidy inviting wooden tabletop with a short deck of plain green-backed cards, a small open storage box, and a neat arrangement of pale-backed cards ready for tabletop play. Preparation theme; do not imply any exact card count.",
+        "width": 960,
+        "height": 480,
+        "bytes": 38292,
+        "sha256": "12387940349299dc1a3507f20bd64de8032796b6bced9464b44af89f1e15010d",
+        "transparent": false,
+        "export": {
+          "library": "Pillow",
+          "version": "11.1.0",
+          "resample": "LANCZOS",
+          "width": 960,
+          "quality": 78,
+          "method": 6,
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "turn-v1",
+        "file": "rules/illustrations-v1/turn-v1.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/imagegen/turn-v1.png",
+        "sourceSha256": "56a55a4a54712661fc9ea0d081483735ebcdd48de0e7496d18f2a015ccbb6a72",
+        "prompt": "Use case: illustration-story. Original high-quality two-dimensional tabletop teaching illustration, wide 2:1 landscape composition, opaque pale cream background and fresh pastel green accents. Polished clean linework and soft cel shading, subtle crafted tabletop texture, bright sophisticated board-game aesthetic. Clear large central subjects readable in a 260px-wide thumbnail, restrained luminous detail, ample safe margins. This is an original object-only scene: no living beings, people, creatures, characters, recognizable silhouettes, portraits, franchise logos or character references. No text, letters, numbers, arrows, UI, watermark or ornate card frames. All playing cards have plain opaque backs with simple solid colors, never printed contents. One large newly drawn green-backed card hovering above a short deck, next to a simple pair of cream-backed cards on the table. One card tilted towards the others and a subtle curved light trail suggests choosing to exchange, while a separate little discard pile sits nearby. No hands or characters.",
+        "width": 960,
+        "height": 480,
+        "bytes": 33990,
+        "sha256": "7acba8de6757e96d95e5b26a82c2126264bb278a728ab09b7fde5e6522c4f049",
+        "transparent": false,
+        "export": {
+          "library": "Pillow",
+          "version": "11.1.0",
+          "resample": "LANCZOS",
+          "width": 960,
+          "quality": 78,
+          "method": 6,
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "mew-v1",
+        "file": "rules/illustrations-v1/mew-v1.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/imagegen/mew-v1.png",
+        "sourceSha256": "6fec47d30e969e8f6873e0544d64f6109c276b321a61b835c38eca5aa72ef814",
+        "prompt": "Use case: illustration-story. Original high-quality two-dimensional tabletop teaching illustration, wide 2:1 landscape composition, opaque pale cream background and fresh pastel green accents. Polished clean linework and soft cel shading, subtle crafted tabletop texture, bright sophisticated board-game aesthetic. Clear large central subjects readable in a 260px-wide thumbnail, restrained luminous detail, ample safe margins. This is an original object-only scene: no living beings, people, creatures, characters, recognizable silhouettes, portraits, franchise logos or character references. No text, letters, numbers, arrows, UI, watermark or ornate card frames. All playing cards have plain opaque backs with simple solid colors, never printed contents. Two plain lavender-backed cards float in a luminous purple-pink psychic ring, with elegant orbital ribbons and sparse sparkling starpoints. One card higher and one lower, clearly separated, representing a magical two-card exchange. Object-only, no creatures.",
+        "width": 960,
+        "height": 480,
+        "bytes": 46390,
+        "sha256": "6eaee48f27dc16dde4be9c2592b13d652d6f910f63076c5ff2ec4ad296764d36",
+        "transparent": false,
+        "export": {
+          "library": "Pillow",
+          "version": "11.1.0",
+          "resample": "LANCZOS",
+          "width": 960,
+          "quality": 78,
+          "method": 6,
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "rocket-v1",
+        "file": "rules/illustrations-v1/rocket-v1.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/imagegen/rocket-v1.png",
+        "sourceSha256": "6dcbdb0ac432cc265c31ad54144ccfc76235e8d8b99af33eb0aa284761745cb9",
+        "prompt": "Use case: illustration-story. Original high-quality two-dimensional tabletop teaching illustration, wide 2:1 landscape composition, opaque pale cream background and fresh pastel green accents. Polished clean linework and soft cel shading, subtle crafted tabletop texture, bright sophisticated board-game aesthetic. Clear large central subjects readable in a 260px-wide thumbnail, restrained luminous detail, ample safe margins. This is an original object-only scene: no living beings, people, creatures, characters, recognizable silhouettes, portraits, franchise logos or character references. No text, letters, numbers, arrows, UI, watermark or ornate card frames. All playing cards have plain opaque backs with simple solid colors, never printed contents. A shiny plain gold coin spinning above a pair of blank-backed tabletop cards, framed by an original red and violet comic-book impact burst and simple diagonal speed streaks. Coin completely blank both sides, no letters or character faces. Energetic comic coin-toss theme.",
+        "width": 960,
+        "height": 480,
+        "bytes": 37868,
+        "sha256": "a934d8232a11fbf8d6e3de104b256744cb0c5cc94bc97c8dc706839a497979cf",
+        "transparent": false,
+        "export": {
+          "library": "Pillow",
+          "version": "11.1.0",
+          "resample": "LANCZOS",
+          "width": 960,
+          "quality": 78,
+          "method": 6,
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "zapdos-v1",
+        "file": "rules/illustrations-v1/zapdos-v1.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/imagegen/zapdos-v1.png",
+        "sourceSha256": "1101c212895efc2fed27da0aae24bdc955d76dd9e831e2555ea1349a35f39996",
+        "prompt": "Use case: illustration-story. Original high-quality two-dimensional tabletop teaching illustration, wide 2:1 landscape composition, opaque pale cream background and fresh pastel green accents. Polished clean linework and soft cel shading, subtle crafted tabletop texture, bright sophisticated board-game aesthetic. Clear large central subjects readable in a 260px-wide thumbnail, restrained luminous detail, ample safe margins. This is an original object-only scene: no living beings, people, creatures, characters, recognizable silhouettes, portraits, franchise logos or character references. No text, letters, numbers, arrows, UI, watermark or ornate card frames. All playing cards have plain opaque backs with simple solid colors, never printed contents. A golden lightning arc flows between three distinct plain yellow-backed cards suspended over a soft tabletop. Broad clear relay arrangement, luminous electric edge highlights and restrained soft storm-cloud texture behind. No bird or animal forms.",
+        "width": 960,
+        "height": 480,
+        "bytes": 43380,
+        "sha256": "638e4f6eded95f4e49f97c27a039ad96c4c888d909d421cfd3af9481458176c8",
+        "transparent": false,
+        "export": {
+          "library": "Pillow",
+          "version": "11.1.0",
+          "resample": "LANCZOS",
+          "width": 960,
+          "quality": 78,
+          "method": 6,
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "snorlax-v1",
+        "file": "rules/illustrations-v1/snorlax-v1.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/imagegen/snorlax-v1.png",
+        "sourceSha256": "1816340badd31e627b2657d326ba8e1731ab26e055b223213fac9636ba695a51",
+        "prompt": "Use case: illustration-story. Original high-quality two-dimensional tabletop teaching illustration, wide 2:1 landscape composition, opaque pale cream background and fresh pastel green accents. Polished clean linework and soft cel shading, subtle crafted tabletop texture, bright sophisticated board-game aesthetic. Clear large central subjects readable in a 260px-wide thumbnail, restrained luminous detail, ample safe margins. This is an original object-only scene: no living beings, people, creatures, characters, recognizable silhouettes, portraits, franchise logos or character references. No text, letters, numbers, arrows, UI, watermark or ornate card frames. All playing cards have plain opaque backs with simple solid colors, never printed contents. Two large plain teal-backed cards exchanging places above a tabletop in a balanced aqua-green double ribbon of energy, with a springy soft glow and one central ripple. Gentle elastic exchange theme, no creatures.",
+        "width": 960,
+        "height": 480,
+        "bytes": 34140,
+        "sha256": "351f2697f081c3cad62d431781a20e91545fb2b2569936303a64a6b22d5eceb5",
+        "transparent": false,
+        "export": {
+          "library": "Pillow",
+          "version": "11.1.0",
+          "resample": "LANCZOS",
+          "width": 960,
+          "quality": 78,
+          "method": 6,
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "charizard-v1",
+        "file": "rules/illustrations-v1/charizard-v1.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/imagegen/charizard-v1.png",
+        "sourceSha256": "499ddd9143c68034deebc5e732aef3654bf7f415014c2ca8dd8e14ab55b54d6d",
+        "prompt": "Use case: illustration-story. Original high-quality two-dimensional tabletop teaching illustration, wide 2:1 landscape composition, opaque pale cream background and fresh pastel green accents. Polished clean linework and soft cel shading, subtle crafted tabletop texture, bright sophisticated board-game aesthetic. Clear large central subjects readable in a 260px-wide thumbnail, restrained luminous detail, ample safe margins. This is an original object-only scene: no living beings, people, creatures, characters, recognizable silhouettes, portraits, franchise logos or character references. No text, letters, numbers, arrows, UI, watermark or ornate card frames. All playing cards have plain opaque backs with simple solid colors, never printed contents. One large opaque plain orange-backed card centered within an elegant ring of orange flames and a few glowing embers, against the cream background. Private-card protection theme; the card remains fully face down with no hint of contents. No dragon, creature or character.",
+        "width": 960,
+        "height": 480,
+        "bytes": 45398,
+        "sha256": "845c036194671e6421dbe34330270cd3e742dea9f990f6d344d777c61a011817",
+        "transparent": false,
+        "export": {
+          "library": "Pillow",
+          "version": "11.1.0",
+          "resample": "LANCZOS",
+          "width": 960,
+          "quality": 78,
+          "method": 6,
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "ditto-v1",
+        "file": "rules/illustrations-v1/ditto-v1.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/imagegen/ditto-v1.png",
+        "sourceSha256": "6908364c2627fcf0a7d6517b27caee437cf30f7902148f9c60384f71b9a1149e",
+        "prompt": "Use case: illustration-story. Original high-quality two-dimensional tabletop teaching illustration, wide 2:1 landscape composition, opaque pale cream background and fresh pastel green accents. Polished clean linework and soft cel shading, subtle crafted tabletop texture, bright sophisticated board-game aesthetic. Clear large central subjects readable in a 260px-wide thumbnail, restrained luminous detail, ample safe margins. This is an original object-only scene: no living beings, people, creatures, characters, recognizable silhouettes, portraits, franchise logos or character references. No text, letters, numbers, arrows, UI, watermark or ornate card frames. All playing cards have plain opaque backs with simple solid colors, never printed contents. Two different plain-backed cards on the left and right, with a smooth translucent purple light ribbon stretching between them and mirroring their shapes. A gentle shapeshifting and adjacency theme made solely from abstract lavender glow and card objects. No creature, face or blob character.",
+        "width": 960,
+        "height": 480,
+        "bytes": 31514,
+        "sha256": "c22c84da60b8bb0c4f028b25f5693ea8ecb03439ff294ad86980857264745357",
+        "transparent": false,
+        "export": {
+          "library": "Pillow",
+          "version": "11.1.0",
+          "resample": "LANCZOS",
+          "width": 960,
+          "quality": 78,
+          "method": 6,
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      },
+      {
+        "id": "match-v1",
+        "file": "rules/illustrations-v1/match-v1.webp",
+        "source": "built-in image_gen",
+        "sourceFile": "artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/imagegen/match-v1.png",
+        "sourceSha256": "9c154ee1039daa7318c3061bb42b849ac604e13460b7918112bb119b2dc317b4",
+        "prompt": "Use case: illustration-story. Original high-quality two-dimensional tabletop teaching illustration, wide 2:1 landscape composition, opaque pale cream background and fresh pastel green accents. Polished clean linework and soft cel shading, subtle crafted tabletop texture, bright sophisticated board-game aesthetic. Clear large central subjects readable in a 260px-wide thumbnail, restrained luminous detail, ample safe margins. This is an original object-only scene: no living beings, people, creatures, characters, recognizable silhouettes, portraits, franchise logos or character references. No text, letters, numbers, arrows, UI, watermark or ornate card frames. All playing cards have plain opaque backs with simple solid colors, never printed contents. A cheerful cluster of three plain-backed tabletop cards beneath radiant golden crystal stars and restrained green-pink confetti. Celebratory end-of-match atmosphere, elegant sparkle, no trophies, characters, scores or numeric victory indicators.",
+        "width": 960,
+        "height": 480,
+        "bytes": 36294,
+        "sha256": "7971d58014c915faa740a52026958c9ce15bd3c688d56bbab47032bc33577e6d",
+        "transparent": false,
+        "export": {
+          "library": "Pillow",
+          "version": "11.1.0",
+          "resample": "LANCZOS",
+          "width": 960,
+          "quality": 78,
+          "method": 6,
+          "contentEditing": false
+        },
+        "status": {
+          "generated": true,
+          "visuallyVerified": true,
+          "importedInUi": true
+        }
+      }
+    ]
   }
 }

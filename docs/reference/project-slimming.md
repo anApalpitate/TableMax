@@ -123,3 +123,11 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 确认相关工程进程退出后，先预览再执行 `Clean-Releases.ps1 -KeepLatestOnly -Apply` 与 `Maintain-Project.ps1 -Apply`。[包清理记录](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/release-cleanup.log)为零候选、四个近期打包目录受保护；未降低默认 30 分钟保护。[维护预览](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/maintenance-preview.log)与[实际维护](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/maintenance-final.log)删除一处过期隔离验证目录 **17,253,310 字节**，[删除报告](../../artifacts/maintenance/local-cleanup-20261005-051210-835-maintenance/cleanup.json)保留路径和执行结果。
 
 维护后测量 **15,080,820,415 字节（约 14.045 GiB）**，跳过 1,338 个链接，25 项受保护；安全候选已耗尽，仍超过 5 GiB。近期便携解压／验证目录、依赖与工具缓存等继续按既有保护保留，不扩大范围强删。逻辑文件字节不计作便携包或 NTFS 物理压缩节省。
+
+## 宝可梦原创规则图解收尾（2026-10-05）
+
+同版本九张新图合计 **347,266 字节**，替代当前导入的三张规则截图；旧图及全部原 PNG 留存。最终 ZIP **40,620,970 字节**、实际解压 **95,150,329 字节**，超过 95 MB 工程预算 **150,329 字节**，双 100 MB 硬门禁通过；实际哈希和便携验证见 [本次验收](acceptance.md#103宝可梦原创图文规则页2026-10-05)。上一已验包与清单复制到本次证据目录，历史通过结论仍绑定旧哈希。
+
+工程进程退出后，[包清理预览](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/release-preview.log)及[执行](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/release-cleanup.log)均为零候选，一处近期打包目录继续保护。[维护预览](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/maintenance-preview.log)核验 18 处工作区 tmp 内过期隔离数据与便携解压目录，确认绝对路径及无目录链接后执行既有 `Maintain-Project.ps1 -Apply`。[实际报告](../../artifacts/maintenance/local-cleanup-20261005-060737-718-maintenance/cleanup.json)删除 **10,174,387,299 字节（约 9.48 GiB）**，正式存档、素材、当前及历史验收证据、已验运行包保留。
+
+[收尾结果](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/maintenance-final.log)测量 **4,463,440,934 字节（约 4.157 GiB）**，跳过 1,338 个链接，六项继续保护，安全候选耗尽；已低于 5 GiB 启动阈值，未为降到 4 GiB 扩大范围。默认 30 分钟保护未降低，逻辑删除字节不计为运行包或 NTFS 物理压缩节省。

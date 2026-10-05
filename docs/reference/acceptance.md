@@ -4,9 +4,21 @@
 
 2026-10-05 已按用户新授权清理 maintenance 中历史运行截图，保留当前 v1.0.3 验收、原素材、存档与文字结果。本页较早章节的截图保留描述仅表示当次状态，最新退役范围与哈希见 [全量退役记录](project-slimming.md#历史运行截图全量退役2026-10-05)。
 
+## 1.0.3：宝可梦原创图文规则页（2026-10-05）
+
+按用户要求参照现代艺术与电力公司的规则页，重写八章并 imagegen 制作九张新图，规则、计分、身份、人机与存档均未改变。原版两行三列、56 张、三胜以及六种能力的触发／完整结算边界逐项核对。数字、箭头、牌位与胜场由代码排版，百变怪复制右侧 9、同列归零后总分 14 的例子由真实计分单测通过，优于复制左侧 3 的 26。页面不读取实时暗牌。
+
+角色题材三次被内置图像工具输出阶段拒绝，停止角色生成后制作全新无角色主题场景；无旧图替代新图或出版方图稿声明。[九图与提示词清单](../../assets/games/pokemon-encounters/manifest.json)、[原图及生成记录](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/imagegen/generation.json)保留失败请求、实际工具返回、960×480 WebP／1774×887 PNG、转换与逐文件哈希。新图合计 **347,266 字节**；原三张规则截图及 PNG 保留，退出当前导入。
+
+[源构建规则验收](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/rules/source-v103/results.json)通过 9 组合，23.53 秒；[最终同哈希 ZIP 规则验收](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/rules/final-v103/results.json)通过 9 组合，27.10 秒、27 张真实渲染截图。覆盖 host／public／player、手机 320／360／390、电脑 720p／4K 与 150% 显示缩放、九图本地解码、八章逐项导航、16px 图解／18px 正文／44px 触控、320px 减少动态、关闭／Escape 焦点及查看不改变 revision／身份。无页面异常或外网请求；隔离服务退出后不可达。本机隐藏 WebView2 与手机尺寸模拟不等于实体设备认证。
+
+最终 [运行 ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip) **40,620,970 字节**，实际解压 **151 文件／95,150,329 字节**，两项严格低于 100,000,000；超过 95,000,000 工程预算 **150,329 字节**，保留已核验图像质量，如实记录。SHA-256：`29d6b15e2a1dbb7b8701dcdd3db67bd4271c6ae6ec9081d4ca2a5c1f75b3686d`；[冻结逐文件清单](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/final-delivery-manifest.json)与实际验收对应，没有验收后重打包。[交付差异核验](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/delivery-checks.json)确认服务、规则、策略 CJS 及 Node 与上次已验包字节相同；同版本原生程序重新构建，哈希变化独立记录并使用新程序实际验收，不将上次整局通过冒充本轮重跑。类型、Lint、格式、图例单测与文档检查通过；本次只导出运行包与清单，无源码包或推送。
+
+收尾维护先预览后执行，删除过期隔离验证数据约 9.48 GiB，工作区降至约 4.157 GiB；原图、当前验收及上一已验包保留，近期打包目录继续保护，详见 [收尾记录](project-slimming.md#宝可梦原创规则图解收尾2026-10-05)。首轮文档审计缺交付差异文件的失败记录保留，补齐 UTF-8 审计产物后重新核验。
+
 ## 1.0.3：宝可梦人机、能力演出与版本复用（2026-10-05）
 
-当前 [运行 ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip) **40,452,032 字节**，145 个文件实际解压 **94,975,611 字节**，两者严格小于 100,000,000；95,000,000 工程预算余量 **24,389 字节**。SHA-256：`83234cf77c1cfa7e920699b2ff604a21f7b4748928f7c1539a332e7120695fa3`。本轮冻结 [逐文件清单](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/final-package-manifest.json) 保留该实际包边界；没有源码包、没有升级版本或推送。
+当次 [运行 ZIP](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/previous-delivery.zip) **40,452,032 字节**，145 个文件实际解压 **94,975,611 字节**，两者严格小于 100,000,000；95,000,000 工程预算余量 **24,389 字节**。SHA-256：`83234cf77c1cfa7e920699b2ff604a21f7b4748928f7c1539a332e7120695fa3`。本轮冻结 [逐文件清单](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/final-package-manifest.json) 保留该实际包边界；没有源码包、没有升级版本或推送。
 
 三档改为局势比较与分级历史记忆；默认不再固定盲换，豆包／绝悟用 8／32 个未知牌假设、最多一／两个本人后续回合。观察记忆随规则动作同事务保存，回退和重启不保留撤销知识。外部策略标识、规则、六格、牌组、三胜和存档外层未改变。五种能力分别采用短全屏或授权局部表现；共用资源和原版元数据拆出，盒子提供只读“版本：原版”，扩展版筹备中，未实现九格玩法。规格见 [人机](../games/pokemon-encounters/bot.md)、[交互](../games/pokemon-encounters/interaction.md) 和 [资源](../games/pokemon-encounters/assets.md)。
 

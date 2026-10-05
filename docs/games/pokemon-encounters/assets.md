@@ -24,6 +24,14 @@
 
 原图、失败响应和奶油／深棕素材联系表在 artifacts/maintenance/pokemon-refresh；源码卡面等历史运行截图已按 2026-10-05 授权清理，路径与哈希见 [退役清单](../../../artifacts/maintenance/v1.0.3/historical-screenshot-retirement-20261005/manifest.json)。2026-10-02 清理 19 张已退出引用的自然静物牌／牌背／硬币 WebP，原始 PNG 逐项核对哈希后继续保留在 artifacts/phase-05/imagegen/source；[旧主题清单](../../../assets/games/pokemon-encounters/manifest.json) 的 assets 只列仍使用的封面，retiredAssets 保留旧路径、来源、提示词、哈希及可恢复压缩副本的 Git 版本。[声音清单](../../../assets/games/pokemon-encounters/audio/manifest.json)、[背景清单](../../../assets/games/pokemon-encounters/tabletop/manifest.json) 和 [平台清单](../../../assets/platform/manifest.json) 保留来源。1.0.0–1.0.2 原图和文字证据继续保留，历史运行截图已退役；旧版本 ZIP 已按用户 2026-10-02 要求清除。
 
+## 原创规则图解（v1.0.3）
+
+2026-10-05 按用户要求参考现代艺术和电力公司，重做八章规则页及九张 imagegen 场景：开局、取牌、梦幻、火箭队、闪电鸟、卡比兽、喷火龙、百变怪、共同三胜。新图位于 `rules/illustrations-v1/*-v1.webp`，均 960×480、不透明，合计 **347,266 字节**。当前规则只导入此窄路径，原 `rules/table.webp`、`draw.webp`、`scoring.webp` 及 PNG 保留，不再打包为规则配图。
+
+三种独立角色请求被内置 imagegen 在输出阶段拒绝，失败请求与提示词完整保留；停止角色生成，改为全新的无角色桌游场景。卡牌、硬币、念力、电流、交换光、火焰与星光承担主题，准确数字、座位、流程和胜场由 HTML/CSS 排版，不把生成画面中的物件数量当作规则。百变怪图例由真实计分模块验证：复制右侧 9，让中列归零，总分 14，优于复制左侧 3 的总分 26。
+
+[资源清单](../../../assets/games/pokemon-encounters/manifest.json) 的 `rulesIllustrations` 保存九图完整提示词、尺寸、SHA-256、用途与导入状态；[生成证据](../../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/imagegen/generation.json) 保存原始工具返回、三项失败、原 PNG 和缩小检查。原图为 1774×887 PNG；仅按比例 Lanczos 缩至 960×480，WebP quality 78／method 6，无内容编辑，有损导出不标为逐像素相同。新规则图为原创示意，无出版方图稿认证或真实界面截图声明。实际包字节及 95 MB 工程预算情况见 [验收](../../reference/acceptance.md)。
+
 ## 权限、动画和声音
 
 v1.0.3 本轮将类别映射集中至 `shared/presentation.ts`：精灵资源 ID 独立于原版玩法牌类，角色、叫声、视觉主题与局部图案统一对应。浏览器 `creatureArt` 通过兼容 `cardArt` 装配原路径资源；原图、音频内容、哈希及来源不变。梦幻／闪电鸟／火箭队入场复用现有角色，以 CSS／SVG 添加全屏轨道、雷弧及漫画速度线；未生成新位图，既有火箭群像缺口没有冒充完成。
