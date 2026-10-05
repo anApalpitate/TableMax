@@ -103,7 +103,7 @@ await lock('build-cache-maintenance', async () => {
     report.candidates.push({ ...item, result });
   }
   const output = resolve(
-    'artifacts/maintenance/v1.0.4/incremental-build-20261005/cache-cleanup',
+    `artifacts/maintenance/v${project.version}/build-cache-cleanup`,
   );
   await mkdir(output, { recursive: true });
   await writeFile(

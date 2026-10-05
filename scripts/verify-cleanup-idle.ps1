@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $taskParseTokens = $null
 $taskParseErrors = $null
-$taskAst = [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'cleanup-local.ps1'), [ref]$taskParseTokens, [ref]$taskParseErrors)
+$taskAst = [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'cleanup-guard.ps1'), [ref]$taskParseTokens, [ref]$taskParseErrors)
 if ($taskParseErrors.Count) { throw 'Cleanup source contains PowerShell parse errors.' }
 $taskFunction = $taskAst.Find({ param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq 'Assert-Idle' }, $true)
 Invoke-Expression $taskFunction.Extent.Text
@@ -15,6 +15,7 @@ $taskCases = @(
   @{ name = 'Actual project build remains protected'; busy = $true; executable = "$workspace\.tools\node\node.exe"; command = "node $workspace\scripts\build.mjs" },
   @{ name = 'Tool-spawned project verification remains protected'; busy = $true; executable = $taskKernelPath; command = "node $workspace\scripts\verify-pokemon.mjs" },
   @{ name = 'Unknown command remains protected'; busy = $true; executable = 'C:\Unknown\node.exe'; command = $null },
+  @{ name = 'Relative publishing process remains protected'; busy = $true; executable = 'C:\Tools\node.exe'; command = 'node scripts/publish-release.mjs --notes=notes.md' },
   @{ name = 'Lookalike interpreter outside Codex runtime remains protected'; busy = $true; executable = 'C:\Unknown\node.exe'; command = "node --experimental-vm-modules E:\Temp\trusted-worker.js $workspace" }
 )
 $taskResults = @()
@@ -25,6 +26,9 @@ foreach ($case in $taskCases) {
   if ($taskBusy -ne $case.busy) { throw ('Process guard mismatch: ' + $case.name) }
   $taskResults += $case.name
 }
-$taskOutput = Join-Path $workspace 'artifacts/maintenance/v1.0.4/incremental-build-20261005/cleanup-idle-checks.json'
+$taskVersion = (Get-Content (Join-Path $workspace 'package.json') -Raw | ConvertFrom-Json).version
+$taskOutputFolder = Join-Path $workspace ('artifacts/maintenance/v' + $taskVersion + '/cleanup-idle-checks')
+New-Item -ItemType Directory -Force $taskOutputFolder | Out-Null
+$taskOutput = Join-Path $taskOutputFolder ([DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss-fff') + '.json')
 @{ result = 'passed'; checks = $taskResults; scope = 'Actual cleanup Assert-Idle function with deterministic process inventory; no deletion.' } | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath $taskOutput -Encoding utf8
 Write-Output ($taskResults.Count.ToString() + ' cleanup process guard cases passed.')

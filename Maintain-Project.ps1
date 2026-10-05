@@ -2,8 +2,8 @@
 param(
   [switch]$Apply,
   [string]$ProjectRoot,
-  [ValidateRange(0.001, 1024)][double]$HighWaterGiB = 5,
-  [ValidateRange(0, 1024)][double]$LowWaterGiB = 4
+  [ValidateRange(0.001, 1024)][double]$HighWaterGiB = 10,
+  [ValidateRange(0, 1024)][double]$LowWaterGiB = 8
 )
 
 # Run at an idle engineering boundary, after build/verification processes exit.

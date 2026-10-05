@@ -1,6 +1,6 @@
 {
   "name": "tablemax",
-  "version": "1.0.4",
+  "version": "1.0.2",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.12.1",
@@ -23,6 +23,7 @@
     "verify:game-ui": "node scripts/verify-game-ui.mjs",
     "verify:cards": "node scripts/verify-card-layout.mjs",
     "package:win": "node scripts/package.mjs",
+    "package:release": "node scripts/package-release.mjs",
     "verify:portable": "node scripts/verify-pokemon.mjs --portable",
     "verify:party": "node scripts/verify-party.mjs",
     "verify:room-levels": "node scripts/verify-room-levels.mjs",
@@ -39,7 +40,8 @@
     "verify:modern-art": "node scripts/verify-modern-art.mjs",
     "verify:power-grid": "node scripts/verify-power-grid.mjs",
     "verify:power-grid-ui": "node scripts/verify-power-grid-ui.mjs",
-    "assemble:win": "node scripts/assemble.mjs"
+    "assemble:win": "node scripts/assemble.mjs",
+    "release:github": "node scripts/publish-release.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

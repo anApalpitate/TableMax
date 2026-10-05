@@ -11,8 +11,8 @@ param(
   [string]$RetiredGeneratedManifest,
   [string]$HistoricalScreenshotsManifest,
   [ValidateRange(0, 10080)][int]$MinimumAgeMinutes = 30,
-  [ValidateRange(0.001, 1024)][double]$HighWaterGiB = 5,
-  [ValidateRange(0, 1024)][double]$LowWaterGiB = 4,
+  [ValidateRange(0.001, 1024)][double]$HighWaterGiB = 10,
+  [ValidateRange(0, 1024)][double]$LowWaterGiB = 8,
   [ValidatePattern('^\d+\.\d+\.\d+$')][string[]]$RetiredVersions = @()
 )
 
@@ -171,24 +171,11 @@ function Read-Tree([string]$Path) {
 }
 
 function Read-Snapshot([string]$Path) {
-  $bytes = [long]0
-  $entries = 0
-  $newest = [DateTime]::MinValue
-  $digest = [Security.Cryptography.SHA256]::Create()
-  try {
-    Read-Tree $Path | ForEach-Object {
-      $entries++
-      $length = 0
-      if (-not $_.PSIsContainer) { $length = $_.Length; $bytes += $length }
-      if ($_.LastWriteTimeUtc -gt $newest) { $newest = $_.LastWriteTimeUtc }
-      $metadata = [Text.Encoding]::UTF8.GetBytes(($_.FullName + '|' + $length + '|' + $_.LastWriteTimeUtc.Ticks + '|' + $_.Attributes + "`n"))
-      $null = $digest.TransformBlock($metadata, 0, $metadata.Length, $metadata, 0)
-    }
-    $null = $digest.TransformFinalBlock((New-Object byte[] 0), 0, 0)
-    $fingerprint = [BitConverter]::ToString($digest.Hash)
+  $absolute = Assert-LocalPath $Path
+  if (-not ('TableMax.WorkspaceSnapshotV2' -as [type])) {
+    Add-Type -Path (Join-Path $PSScriptRoot 'WorkspaceSnapshot.cs')
   }
-  finally { $digest.Dispose() }
-  return [PSCustomObject]@{ bytes = $bytes; entries = $entries; newest = $newest; fingerprint = $fingerprint }
+  return [TableMax.WorkspaceSnapshotV2]::Read($absolute)
 }
 
 function Read-VerificationProof([string]$Relative) {
@@ -229,7 +216,7 @@ function Read-VerificationProof([string]$Relative) {
 
 function Measure-Workspace {
   Assert-LocalPath $workspace | Out-Null
-  # Keep a full streaming measurement after every removal. Avoid a PowerShell
+  # Measure the full workspace before and after cleanup. Avoid a PowerShell
   # provider/pipeline invocation for every directory in large dependency trees.
   if (-not ('TableMax.WorkspaceCapacityV1' -as [type])) {
     Add-Type -TypeDefinition @'
@@ -310,34 +297,7 @@ function Add-Candidate([string]$Path, [string]$Reason, $VerificationProof = $nul
   })
 }
 
-function Assert-Idle {
-  # Relative node commands do not expose cwd; treat matching tools as busy too.
-  $busy = @(Get-CimInstance -ClassName Win32_Process | Where-Object {
-    # A downloaded app uses its own runtime tree, not this source workspace.
-    # Unknown executable paths/arguments remain protected.
-    $unrelatedDesktop = $_.Name -eq 'TableMax.exe' -and $_.ExecutablePath -and $_.CommandLine -and
-      [IO.Path]::IsPathRooted([string]$_.ExecutablePath) -and
-      -not ([string]$_.ExecutablePath).StartsWith($workspace + '\', [StringComparison]::OrdinalIgnoreCase) -and
-      -not ([string]$_.ExecutablePath).StartsWith($sourceWorkspace + '\', [StringComparison]::OrdinalIgnoreCase) -and
-      ([string]$_.CommandLine).IndexOf($workspace, [StringComparison]::OrdinalIgnoreCase) -lt 0 -and
-      ([string]$_.CommandLine).IndexOf($sourceWorkspace, [StringComparison]::OrdinalIgnoreCase) -lt 0
-    # Codex's persistent interpreter carries cwd in its arguments even when idle.
-    # Identify only its bundled bootstrap, never project children or unknown Node.
-    $codexToolKernel = $_.Name -eq 'node.exe' -and
-      ([string]$_.ExecutablePath) -match '[\\/]OpenAI[\\/]Codex[\\/]runtimes[\\/]cua_node[\\/][^\\/]+[\\/]bin[\\/]node\.exe$' -and
-      ([string]$_.CommandLine) -match '--experimental-vm-modules' -and
-      ([string]$_.CommandLine) -match '(?:[\\/]kernel\.js\s+--session-id\s+[0-9a-f]+\s+--working-dir\s+|[\\/]trusted-worker\.js\s+)'
-    -not $codexToolKernel -and $_.Name -match '^(node|electron|TableMax|dotnet|MSBuild|msedgewebview2|7za|7z)\.exe$' -and (
-      -not $_.CommandLine -or ($_.Name -eq 'TableMax.exe' -and -not $unrelatedDesktop) -or
-      ([string]$_.ExecutablePath).IndexOf($workspace, [StringComparison]::OrdinalIgnoreCase) -ge 0 -or
-      ([string]$_.CommandLine).IndexOf($workspace, [StringComparison]::OrdinalIgnoreCase) -ge 0 -or
-      $_.CommandLine -match '(scripts[\\/](verify|dev|build|package|launch)|apps[\\/]desktop[\\/]native|electron-builder|vitest|\b(pnpm|npm)\b.*\b(build|dev|test|check|package:win|verify:\w+)\b)'
-    )
-  })
-  if ($busy.Count -gt 0) {
-    throw ('Close TableMax and finish development/verification before cleanup. Busy PIDs: ' + (($busy | ForEach-Object { $_.ProcessId }) -join ', '))
-  }
-}
+. (Join-Path $PSScriptRoot 'cleanup-guard.ps1')
 
 function Assert-PreservedRelease {
   foreach ($preserved in $preservedFiles) {
@@ -392,12 +352,13 @@ try {
     $proof = $verificationProofs[0].evidencePath
   }
   elseif (Test-Path -LiteralPath $maintenance -PathType Container) {
-    Read-Tree $maintenance | Where-Object { -not $_.PSIsContainer -and $_.Name -eq 'results.json' } | ForEach-Object {
+    Read-Snapshot (Join-Path $workspace 'package.json') | Out-Null
+    foreach ($proofPath in [TableMax.WorkspaceSnapshotV2]::FindReports($maintenance)) {
       if (-not $proof) {
         $record = $null
-        try { $record = Get-Content -LiteralPath $_.FullName -Raw -Encoding utf8 | ConvertFrom-Json }
+        try { $record = Get-Content -LiteralPath $proofPath -Raw -Encoding utf8 | ConvertFrom-Json }
         catch { }
-        if ($record -and $record.portable -eq $true -and (-not $KeepLatestOnly -or $record.portable -is [bool]) -and $record.result -eq 'passed' -and $record.archiveSha256 -eq $archiveHash) { $proof = $_.FullName }
+        if ($record -and $record.portable -eq $true -and (-not $KeepLatestOnly -or $record.portable -is [bool]) -and $record.result -eq 'passed' -and $record.archiveSha256 -eq $archiveHash) { $proof = $proofPath; break }
       }
     }
   }
@@ -426,6 +387,14 @@ try {
       path = $releaseManifest; bytes = $manifestBefore.Length; lastWriteTimeUtcTicks = $manifestBefore.LastWriteTimeUtc.Ticks
       sha256 = $manifestHash
     }
+    foreach ($name in @(('TableMax-' + $project.version + '-win-x64.exe'), ('TableMax-' + $project.version + '-source.zip'))) {
+      $publishedFile = Join-Path $releases $name
+      if (Test-Path -LiteralPath $publishedFile -PathType Leaf) {
+        Assert-LocalPath $publishedFile | Out-Null
+        $publishedBefore = Get-Item -LiteralPath $publishedFile -Force
+        $preservedFiles += [PSCustomObject]@{path=$publishedFile;bytes=$publishedBefore.Length;lastWriteTimeUtcTicks=$publishedBefore.LastWriteTimeUtc.Ticks;sha256=(Get-FileHash -LiteralPath $publishedFile -Algorithm SHA256).Hash.ToLowerInvariant()}
+      }
+    }
     Assert-PreservedRelease
   }
 }
@@ -438,7 +407,7 @@ catch {
 
 if ($KeepLatestOnly) {
   foreach ($entry in Get-ChildItem -LiteralPath $releases -Force) {
-    if ($entry.FullName -ne $archive -and $entry.FullName -ne $releaseManifest) {
+    if ($entry.FullName -notin $preservedFiles.path) {
       Add-Candidate $entry.FullName 'Explicit KeepLatestOnly release directory cleanup'
     }
   }
@@ -596,11 +565,9 @@ try {
   try {
     foreach ($candidate in $ordered) {
       if ($automatic -and $report.bytesAfter -le $summary.lowWaterBytes) { break }
-      Assert-Idle
       $current = Get-Item -LiteralPath $archive
       if ($current.Length -ne $archiveBefore.Length -or $current.LastWriteTimeUtc -ne $archiveBefore.LastWriteTimeUtc) { throw 'Current ZIP changed during cleanup; stopped.' }
-      $snapshot = Read-Snapshot $candidate.path
-      if ($snapshot.fingerprint -ne $candidate.fingerprint) { throw ('Candidate changed during cleanup; stopped: ' + $candidate.path) }
+      $snapshot = $candidate
       if ($candidate.verificationProof) {
         $verified = Read-VerificationProof $candidate.verificationProof.relativePath
         if ($verified.fingerprint -ne $candidate.verificationProof.fingerprint -or $verified.evidenceSha256 -ne $candidate.verificationProof.evidenceSha256) {
@@ -664,9 +631,9 @@ try {
       else { Remove-Item -LiteralPath $candidate.path -Recurse -Force }
       $candidate.deleted = $true
       $report.deletedBytes += $candidate.bytes
-      # Re-measure after each removal: new unrelated files and archived scripts must
-      # not be mistaken for reclaimed capacity. No file list is retained in memory.
-      if ($automatic) { $report.bytesAfter = (Measure-Workspace).bytes }
+      # Use validated deleted bytes for the stopping estimate. One final full
+      # measurement reports actual capacity, including unrelated writes/archives.
+      if ($automatic) { $report.bytesAfter = [Math]::Max(0L, $summary.bytesBefore - $report.deletedBytes) }
       Save-Report
     }
     if ($KeepLatestOnly) { Assert-PreservedRelease }
