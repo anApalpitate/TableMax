@@ -544,7 +544,7 @@
 
 同版本 [Windows x64 ZIP（已退役）](../../artifacts/maintenance/v1.0.0/before-v1.0.1/TableMax-1.0.0-win-x64.zip.retired.json)为 **36,966,642 字节**，实际解压 **72 文件／92,579,416 字节**；两项严格低于 100,000,000 字节，解压也满足 95 MB 工程预算。SHA-256 为 `7edd0ec38b5710b27fec6590cb139690524f1a59c263631c25013fb7e2438f6b`；[逐文件清单](../../artifacts/maintenance/v1.0.0/before-v1.0.1/TableMax-1.0.0-win-x64-manifest.json)与真实解压逐项一致，便携运行仅系统 PATH。前一轮程序、源码、清单及被更新的验证目录保存在 `before-modern-art/`，历次记录保持其原哈希。源码及总交付清单按最终提交另行导出，用户已有 README 改动保持原字节且不混入提交。
 
-范围仍为当前 Windows 11／共享 WebView2／原生后台合成和 Chromium 手机触控／尺寸模拟，不声称实体电视、真实手机或 Safari 实测。Windows DPI 与原生自动缩放被纳入实际几何记录；图片为真实更新后的帧。独立单图审查覆盖冻结的[公共屏](../../artifacts/maintenance/v1.0.0/modern-art/review/final-public.png)和[手机](../../artifacts/maintenance/v1.0.0/modern-art/review/final-phone.png)：手机未发现必须修复项；公共收藏末卡的边缘提示经[裁定](../../artifacts/maintenance/v1.0.0/modern-art/review/adjudication.json)保留为有总幅数与显式滚动条的横向收藏布局。静态[解耦及文档审查](../../artifacts/maintenance/v1.0.0/modern-art/review/static-review.json)另记录模块与链接证据。
+范围仍为当前 Windows 11／共享 WebView2／原生后台合成和 Chromium 手机触控／尺寸模拟，不声称实体电视、真实手机或 Safari 实测。Windows DPI 与原生自动缩放被纳入实际几何记录；图片为真实更新后的帧。独立单图审查覆盖冻结的[公共屏（历史截图已清理）](../../artifacts/maintenance/v1.0.3/historical-screenshot-retirement-20261005/manifest.json)和[手机（历史截图已清理）](../../artifacts/maintenance/v1.0.3/historical-screenshot-retirement-20261005/manifest.json)：手机未发现必须修复项；公共收藏末卡的边缘提示经[裁定](../../artifacts/maintenance/v1.0.0/modern-art/review/adjudication.json)保留为有总幅数与显式滚动条的横向收藏布局。静态[解耦及文档审查](../../artifacts/maintenance/v1.0.0/modern-art/review/static-review.json)另记录模块与链接证据。
 
 返修集中在高风险恢复、绝悟估值、Windows 150% DPI 短窗口、游戏 CSS specificity／Portal 范围及盒子续局样式。验收脚本先修正公共窗口路由与自动缩放测量，再按实际“游戏切换返回大厅”行为启动下一游戏；等待动态客户端与公共屏首次渲染，避免导航时抢读上下文。最终源码稳定后仅生成一次最终包，脚本和记录修正沿用该同一 ZIP；没有因仅文档变化重复打包。
 

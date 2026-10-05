@@ -9,6 +9,7 @@ param(
   [string[]]$VerificationCopies = @(),
   [string]$DuplicateScreenshotsManifest,
   [string]$RetiredGeneratedManifest,
+  [string]$HistoricalScreenshotsManifest,
   [ValidateRange(0, 10080)][int]$MinimumAgeMinutes = 30,
   [ValidateRange(0.001, 1024)][double]$HighWaterGiB = 5,
   [ValidateRange(0, 1024)][double]$LowWaterGiB = 4,
@@ -18,6 +19,10 @@ param(
 $ErrorActionPreference = 'Stop'
 $sourceWorkspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\')
 $automatic = $Kind -eq 'Maintenance'
+if ($PSBoundParameters.ContainsKey('HistoricalScreenshotsManifest') -and
+    ([string]::IsNullOrWhiteSpace($HistoricalScreenshotsManifest) -or $Kind -ne 'Intermediates' -or $IncludeBuild -or $KeepLatestOnly -or $TemporaryNames.Count -or $VerificationCopies.Count -or $RetiredVersions.Count -or $DuplicateScreenshotsManifest -or $RetiredGeneratedManifest)) {
+  throw 'HistoricalScreenshotsManifest requires an explicit manifest and exclusive manual intermediate cleanup.'
+}
 if ($PSBoundParameters.ContainsKey('RetiredGeneratedManifest') -and
     ([string]::IsNullOrWhiteSpace($RetiredGeneratedManifest) -or $Kind -ne 'Intermediates' -or $IncludeBuild -or $KeepLatestOnly -or $TemporaryNames.Count -or $VerificationCopies.Count -or $RetiredVersions.Count -or $DuplicateScreenshotsManifest)) {
   throw 'RetiredGeneratedManifest requires an explicit manifest and exclusive manual intermediate cleanup.'
@@ -434,7 +439,11 @@ elseif ($Kind -eq 'Releases' -or $automatic) {
     }
   }
 }
-if ($RetiredGeneratedManifest) {
+if ($HistoricalScreenshotsManifest) {
+  . (Join-Path $PSScriptRoot 'historical-screenshots.ps1')
+  Initialize-HistoricalScreenshots
+}
+elseif ($RetiredGeneratedManifest) {
   . (Join-Path $PSScriptRoot 'retired-generated.ps1')
   Initialize-RetiredGenerated
 }
@@ -558,6 +567,7 @@ try {
     verificationCopies = $VerificationCopies; verificationProofs = $verificationProofs.ToArray()
     duplicateScreenshotsManifest = $DuplicateScreenshotsManifest
     retiredGeneratedManifest = $RetiredGeneratedManifest
+    historicalScreenshotsManifest = $HistoricalScreenshotsManifest
     workspace = $workspace; highWaterBytes = $summary.highWaterBytes; lowWaterBytes = $summary.lowWaterBytes
     bytesBefore = $summary.bytesBefore; bytesAfter = $summary.bytesAfter
     candidates = $ordered; skipped = $skipped.ToArray(); deletedBytes = [long]0; result = 'started'
@@ -614,7 +624,13 @@ try {
       if ($candidate.PSObject.Properties['retiredGenerated']) {
         Assert-RetiredGenerated $candidate.retiredGenerated
       }
-      if ($candidate.PSObject.Properties['duplicateScreenshots']) {
+      if ($candidate.PSObject.Properties['historicalScreenshots']) {
+        Assert-HistoricalScreenshots $candidate.historicalScreenshots
+        if ((Read-Snapshot $candidate.path).fingerprint -ne $candidate.fingerprint) { throw 'Historical screenshot directory changed during verification.' }
+        $selectedScreenshotPaths = @($candidate.historicalScreenshots.files | ForEach-Object { Join-Path $workspace $_.path })
+        Remove-Item -LiteralPath $selectedScreenshotPaths -Force
+      }
+      elseif ($candidate.PSObject.Properties['duplicateScreenshots']) {
         if ((Get-FileHash -LiteralPath $duplicateManifestPath).Hash -ne $duplicateManifestSha256) { throw 'Screenshot manifest changed before deletion.' }
         foreach ($file in $candidate.duplicateScreenshots) {
           foreach ($relative in @($file.path, $file.retainedPath)) {

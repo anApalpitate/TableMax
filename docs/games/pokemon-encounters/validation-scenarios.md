@@ -12,7 +12,7 @@
 
 > 先查询 docs/subagent/visual-review.md 与 docs/reference/art-preferences.md，说明适用偏好。独立审查唯一截图【绝对路径】；勿读取源码、其他文档、其他截图或旧修复结论。用 view_image 检视层次、行动者与动作、操作目标、暂持与入场区别、对比度、布局裁切、遮挡和点击暗示。单帧不推测动效；存在滚动时，不能直接认定未展示的操作不可达。返回至多三项具体问题，包含严重程度、位置、图中证据及最小建议；无问题明确说明。不要修改文件。
 
-初批真实流程截图在 `artifacts/maintenance/v1.0.0/ui/independent-review/`，逐图结论、采用／不采用原因见 [独立审查记录](../../../artifacts/maintenance/v1.0.0/visual-review/reviews.md)。修正后的真实流程和完整牌阵截图进入 `ui/independent-review-verified/`，最终效果专项进入 `effects/independent-review-final/`。运行方法见 [开发说明](../../reference/development.md#独立视觉审查截图)。当前通过结论、实际便携包与模拟边界见 [验收记录](../../reference/acceptance.md#100独立视觉审查与返修2026-10-03)。
+初批、修正后流程／完整牌阵及最终效果的历史截图已按 2026-10-05 授权退役，原路径与哈希见 [清理清单](../../../artifacts/maintenance/v1.0.3/historical-screenshot-retirement-20261005/manifest.json)；逐图结论和采用／不采用原因仍见 [独立审查记录](../../../artifacts/maintenance/v1.0.0/visual-review/reviews.md)，不因删图改变原结论。运行方法见 [开发说明](../../reference/development.md#独立视觉审查截图)。当前通过结论、实际便携包与模拟边界见 [验收记录](../../reference/acceptance.md#100独立视觉审查与返修2026-10-03)。
 
 机器可读 [scenarios.json](scenarios.json) 含 V00 至 V22，V00 从零胜开始的三小局完整大局、各局完整56实例／牌序／逐动作／最终分数，V03 至 V08／V10 含合法完整实例 fixture。其余明确初始条件／步骤／预期，平台故障由实现阶段驱动。scenarios.json 保留第二阶段规格 fixture 及当时的 executedProductAcceptance=false，属于历史规格状态。当前正式规则、全部决策恢复、能力 UI、真实服务及便携完整混合对局已另行执行；实际证据、AC 对应及模拟限制见 [首版验收记录](../../reference/acceptance.md)，不倒改历史原型记录。
 
