@@ -52,7 +52,7 @@
 
 UI 合法存档 fixture 的构造入口在 scripts/fixtures/prepare-pokemon.ts，仅为开发工具，不进入便携包或提供生产调试 API。生成的临时数据在 tmp/game-ui-_、tmp/pokemon-_ 与 tmp/portable-game-*；证据在 artifacts/phase-06/verification 的 development、portable、ui 子目录。ZIP 哈希及实际内置运行时随 portable/results.json 保存。
 
-本轮按用户明确要求只使用当前 Windows 电脑，电视、Android／iPhone 浏览器及后台／断网采用模拟；不声称 Safari、电视硬件或另一台无开发环境电脑已测。AC 具体结果、声音观察限制和后续复查边界统一见 [验收记录](../reference/acceptance.md)，使用流程见 [项目说明](../../README.md#开始对局)。以下保留阶段历史证据，过去的“待第五／六阶段”描述表示当时状态。
+本轮按用户明确要求只使用当前 Windows 电脑，电视、Android／iPhone 浏览器及后台／断网采用模拟；不声称 Safari、电视硬件或另一台无开发环境电脑已测。AC 具体结果、声音观察限制和后续复查边界统一见 [验收记录](../reference/acceptance.md)，使用流程见 [项目说明](../../README.md#快速开始)。以下保留阶段历史证据，过去的“待第五／六阶段”描述表示当时状态。
 
 ## 第三、四阶段平台验证
 

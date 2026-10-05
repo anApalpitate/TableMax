@@ -222,5 +222,13 @@
       "runtimeRenderVerified": false,
       "missingFrameCount": 4
     }
-  ]
+  ],
+  "continuation": {
+    "sourceEvidence": "artifacts/pokemon-expansion/continuation-assets/continuation-preflight-index.json",
+    "attemptsCumulative": 16,
+    "successfulCandidateFrames": 1,
+    "outputBlockedCumulative": 15,
+    "newUsableFrames": 0,
+    "neededInput": "Existing real transparent key poses or alpha-channel animation; body motion and identity consistency required"
+  }
 }

@@ -578,6 +578,67 @@ try {
   evidence.checks.push(
     '18 production glob portrait URLs decoded locally while external requests are blocked; private cards do not appear in public projection',
   );
+  const audioManifest = JSON.parse(
+    await readFile(
+      'assets/games/pokemon-encounters/expansion/audio/themes.json',
+      'utf8',
+    ),
+  );
+  evidence.themeAudio = [];
+  for (const asset of audioManifest.assets) {
+    const built = assets.find(
+      (name) =>
+        name.startsWith(asset.id + '-theme-original-v1-') &&
+        name.endsWith('.ogg'),
+    );
+    assert.ok(built, 'Packaged original theme ' + asset.id);
+    const bytes = await readFile(
+      join(
+        dirname(executablePath),
+        'web/games/pokemon-encounters/web/assets',
+        built,
+      ),
+    );
+    assert.equal(
+      createHash('sha256').update(bytes).digest('hex'),
+      asset.sha256,
+    );
+    const decoded = await phones[0].evaluate(async (url) => {
+      const audio = new AudioContext();
+      try {
+        const buffer = await audio.decodeAudioData(
+          await (await fetch(url)).arrayBuffer(),
+        );
+        let peak = 0;
+        for (const sample of buffer.getChannelData(0))
+          peak = Math.max(peak, Math.abs(sample));
+        return {
+          duration: buffer.duration,
+          sampleRate: buffer.sampleRate,
+          channels: buffer.numberOfChannels,
+          peak,
+        };
+      } finally {
+        await audio.close();
+      }
+    }, `${origin}/games/pokemon-encounters/web/assets/${built}`);
+    assert.equal(decoded.channels, 1);
+    assert.ok(Math.abs(decoded.duration - asset.seconds) < 0.002);
+    assert.ok(decoded.peak > 0.1 && decoded.peak < 0.8);
+    evidence.themeAudio.push({
+      id: asset.id,
+      built,
+      sha256: asset.sha256,
+      bytes: bytes.length,
+      ...decoded,
+      officialCharacterCry: false,
+      humanListeningVerified: false,
+    });
+  }
+  assert.equal(evidence.themeAudio.length, 8);
+  evidence.checks.push(
+    'Eight original ability/research Ogg/Opus themes match packaged bytes and decode offline in actual WebView2; official voices/human listening not claimed',
+  );
   const result = await driveRound();
   assert.ok(result.gameView.roundResult);
   assert.ok(

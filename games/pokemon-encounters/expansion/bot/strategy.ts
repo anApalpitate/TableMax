@@ -52,6 +52,39 @@ function sample(view: View, memory: Memory, random: Random): Model {
     discards,
   };
 }
+export function previewBoard(
+  board: readonly string[],
+  up: readonly boolean[],
+  action:
+    | { type: 'reposition'; a: number; b: number }
+    | { type: 'replace'; slot: number; incoming: string },
+) {
+  const result = { board: [...board], up: [...up] };
+  if (action.type === 'replace') {
+    result.board[action.slot] = action.incoming;
+    result.up[action.slot] = true;
+  } else {
+    [result.board[action.a], result.board[action.b]] = [
+      result.board[action.b]!,
+      result.board[action.a]!,
+    ];
+    [result.up[action.a], result.up[action.b]] = [
+      result.up[action.b]!,
+      result.up[action.a]!,
+    ];
+  }
+  return result;
+}
+export function estimateDraw(
+  source: 'deck' | 'discard',
+  current: number,
+  replacement: number,
+) {
+  return (
+    (source === 'deck' ? Math.min(current + 0.35, replacement) : replacement) +
+    0.08
+  );
+}
 export function choose(
   view: View,
   actions: readonly Action[],
@@ -165,8 +198,11 @@ export function choose(
           ? model.pool.at(-1)
           : model.discards[a.discardIndex];
       return incoming
-        ? Math.min(utility(model) + 0.35, bestReplace(model, seat, incoming)) +
-            0.08
+        ? estimateDraw(
+            a.source,
+            utility(model),
+            bestReplace(model, seat, incoming),
+          )
         : 1000;
     }
     if (a.type === 'replace' && model.held) {
@@ -262,47 +298,60 @@ export function choose(
     for (const option of ordered.slice(0, 4)) {
       if (performance.now() > deadline || signal.aborted) break;
       let board = [...first.boards[seat]!];
+      let up = [...first.up[seat]!];
       const action = option.action;
       if (action.type === 'reposition')
-        [board[action.a], board[action.b]] = [
-          board[action.b]!,
-          board[action.a]!,
-        ];
+        ({ board, up } = previewBoard(board, up, {
+          type: 'reposition',
+          a: action.a,
+          b: action.b,
+        }));
       if (action.type === 'draw') {
         const incoming =
           action.source === 'deck'
             ? first.pool.at(-1)
             : first.discards[action.discardIndex];
-        let best = score(board, first.up[seat]!);
+        let bestPreview: ReturnType<typeof previewBoard> | null = null;
+        let best = action.source === 'deck' ? score(board, up) : Infinity;
         if (incoming)
           for (const i of grid.slots) {
-            const trial = [...first.boards[seat]!];
-            trial[i] = incoming;
-            const value = score(trial, first.up[seat]!);
+            const trial = previewBoard(board, up, {
+              type: 'replace',
+              slot: i,
+              incoming,
+            });
+            const value = score(trial.board, trial.up);
             if (value < best) {
               best = value;
-              board = trial;
+              bestPreview = trial;
             }
           }
+        if (bestPreview) ({ board, up } = bestPreview);
       }
-      const initial = score(board, first.up[seat]!);
+      const initial = score(board, up);
       let future = initial;
       for (let d = 0; d < depth; d++) {
         const incoming = first.pool.at(
           -1 - d - (action.type === 'draw' && action.source === 'deck' ? 1 : 0),
         );
         if (!incoming) break;
-        let next = board;
+        let next = board,
+          nextUp = up;
         for (const i of grid.slots) {
-          const trial = [...board];
-          trial[i] = incoming;
-          const value = score(trial, first.up[seat]!);
+          const trial = previewBoard(board, up, {
+            type: 'replace',
+            slot: i,
+            incoming,
+          });
+          const value = score(trial.board, trial.up);
           if (value < future) {
             future = value;
-            next = trial;
+            next = trial.board;
+            nextUp = trial.up;
           }
         }
         board = next;
+        up = nextUp;
       }
       option.value += 0.12 * (future - initial);
     }

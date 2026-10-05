@@ -5,6 +5,57 @@ type VisibleAction = Omit<PublicAction, 'source'> & {
   source?: 'deck' | 'discard' | undefined;
 };
 
+export type BoardEffects = {
+  moves: { from: string; to: string }[];
+  cover: string[];
+  reveal: string[];
+  pulse: string[];
+};
+
+/** Public saved facts only. Private choices never enter a board trajectory. */
+export function savedBoardEffects(
+  action: VisibleAction | undefined,
+  boards: Record<string, readonly { slotId: string; faceUp: boolean }[]> = {},
+): BoardEffects {
+  const result: BoardEffects = { moves: [], cover: [], reveal: [], pulse: [] };
+  if (!action) return result;
+  const target = action.targets[0];
+  const slots = action.targets.flatMap((t) =>
+    t.slots.map((slot) => `${t.seat}:${slot}`),
+  );
+  if (action.verb === 'row-target' && target && action.actor) {
+    result.moves = target.slots.map((slot) => ({
+      from: `${action.actor}:${slot}`,
+      to: `${target.seat}:${slot}`,
+    }));
+  } else if (
+    ['swap', 'reposition', 'ninja-swap'].includes(action.verb) &&
+    target?.slots.length === 2
+  ) {
+    result.moves = [
+      {
+        from: `${target.seat}:${target.slots[0]}`,
+        to: `${target.seat}:${target.slots[1]}`,
+      },
+    ];
+  }
+  if (['ninja-cover', 'ninja-swap', 'activate-arceus'].includes(action.verb))
+    result.cover = slots;
+  if (action.verb === 'activate-arceus')
+    result.reveal = Object.values(boards).flatMap((board) =>
+      board
+        .filter((slot) => slot.faceUp && slots.includes(slot.slotId))
+        .map((slot) => slot.slotId),
+    );
+  if (
+    ['replace', 'mew-target', 'mewtwo-exchange', 'initial-flip'].includes(
+      action.verb,
+    )
+  )
+    result.pulse = slots;
+  return result;
+}
+
 /** Enter only when a committed action actually starts the ability. */
 export function startedAbility(
   action: VisibleAction | undefined,
@@ -25,6 +76,29 @@ export function startedAbility(
   if (action.verb === 'draw' && action.cardCategory === 'special-team-rocket')
     return 'team-rocket';
   return starts[action.verb] ?? null;
+}
+
+/** Original theme sounds are feedback, never labeled as official creature cries. */
+export function expansionThemeFor(
+  kind: string,
+  action: VisibleAction | undefined,
+  cue: string,
+): string | null {
+  if (cue !== 'effect-complete') return null;
+  if (kind === 'research') return 'research';
+  const ability = startedAbility(action);
+  return ability &&
+    [
+      'mewtwo',
+      'arceus',
+      'groudon',
+      'kyogre',
+      'rayquaza',
+      'greninja',
+      'lucario',
+    ].includes(ability)
+    ? ability
+    : null;
 }
 
 /** Adapt public metadata, never pass a nine-cell view into original rules. */

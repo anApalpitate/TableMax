@@ -49,3 +49,7 @@ SDK 可选纯 `observe({view,memory,seatId,difficulty})` 在成功游戏动作�
 私看容量／遗忘为默认2张／3本人回合、豆包6张／8回合、绝悟本小局合法知识不主动忘；公开行动8／32／128条。公开交换、行交换、调位更新记忆位置，已知公开牌盖回仍可记住；新小局清空牌位知识，回退与保存失败不保留分支信息。投票前用假设评估研究路线，不以候选票读取其他玩家选择。
 
 独立150种子小局已覆盖2–6人、三档、21种决策阶段和14,274次合法动作，记忆逐位置与测试oracle一致，输入不变、规则RNG隔离，最长单次CPU723ms。真实混合三胜大局231次Worker调用、最长181ms；原版旧Worker仍可恢复。[汇总](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/verification-summary.json)给出实际源码哈希与边界。实体手机、普通节奏时长、三级胜率优势仍待测，不从快跑样本推断。
+
+2026-10-06续测修正两项策略评价错误：模拟公开调位未随牌移动朝向，影响R24的明暗快照评价；取弃牌仍误用可丢弃的牌库取牌退路，低估必须换入的成本。失败重现与修复后授权知识／强制弃牌评价见[修复验证](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-balance-continuation/strategy-after-fix-20261006/validation.json)。仅修改扩展策略，规则、动作权限与牌表不变。
+
+修复前[228小局续测](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-balance-continuation/natural-120-strength-108-20261005/overview.md)保留为旧策略描述统计，不能代表修复后强度。修复后[41小局／2,988动作](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-balance-continuation/after-strategy-fix-smoke5-strength36-20261006/overview.md)实耗49.24秒、无1200动作封顶；其中5局自然频率与36局三人座位轮换，三神齐聚及阿尔宙斯仍无自然样本。三档对照未证明绝悟优于豆包，不宣称强度顺序已达成；真人节奏和较大样本仍待测，最终真实服务／Worker同包恢复验收见[续建汇总](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-continuation-delivery/final-checks.json)，不因此认定三级强度顺序已达成。

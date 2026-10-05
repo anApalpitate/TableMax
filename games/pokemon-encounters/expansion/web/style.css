@@ -10,6 +10,75 @@
     linear-gradient(135deg, #eff4df, #f9f0d7 60%, #e0efe3);
   font-size: 16px;
 }
+
+.ex-board-effects {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 64;
+  pointer-events: none;
+  overflow: visible;
+  animation: ex-board-life 700ms var(--ex-delay, 0ms) both;
+  filter: drop-shadow(0 0 6px #fff4b0);
+}
+.ex-board-transfer circle {
+  fill: #fff7c066;
+  stroke: #dd9c24;
+  stroke-width: 3;
+}
+.ex-board-trail {
+  fill: none;
+  stroke: #fbbf24;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 12 14;
+  animation: ex-board-flow 650ms var(--ex-delay, 0ms) both;
+}
+.ex-board-trail-return {
+  stroke: #c6fff5;
+  stroke-dasharray: 7 19;
+  animation-direction: reverse;
+}
+.ex-board-cover {
+  fill: #20557433;
+  stroke: #7ee7f3;
+  stroke-width: 4;
+}
+.ex-board-reveal {
+  fill: #fff0b244;
+  stroke: #ffe895;
+  stroke-width: 5;
+  animation: ex-board-life 300ms calc(var(--ex-delay, 0ms) + 400ms) both;
+}
+.ex-board-pulse {
+  fill: #fff2a733;
+  stroke: #f0b638;
+  stroke-width: 4;
+}
+@keyframes ex-board-flow {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes ex-board-life {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  18%,
+  75% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ex-board-effects {
+    display: none;
+  }
+}
 .expansion-screen * {
   box-sizing: border-box;
 }

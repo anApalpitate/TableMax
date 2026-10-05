@@ -6,7 +6,9 @@
 
 纯拓扑提供行列、横纵邻接和方形对角线；原版规则、计分与人机仍读取原版六格描述。`ui/BoardGrid.tsx` 只收布局、已授权牌位、合法／已选状态及标记；原版 `ui/cards.tsx` 解释投影与同值归零。能力摘要和阶段归原版配置，提示容器与无规则状态的 `AbilityEntrance` 可组合复用。共享会话仅接受固定或按授权视图计算的动效时长，不依赖宝可梦类别。
 
-盒子仍仅一个游戏入口，扩展版禁用并说明3×3、更多精灵与新能力筹备中。版本面板不改房间状态；原版计分、能力、策略和三胜不泛化成插件框架，没有九格玩法、扩展牌表或版本存档字段。扩展草案与用户原有索引改动保留。
+盒子保持一个宝可梦入口，模块目录提供 `original`／`expansion` 权威版本；新房间默认原版，管理员仅大厅或结束后可切换。原版六格与扩展九格分别维护规则、状态、策略及客户端，复用身份、拓扑、BoardGrid和事件调度；房间、存档、Worker携带版本身份，原版指纹与旧存档兼容。当前实现与未完成项见[扩展任务](../tasks/pokemon-encounters-expansion.md)。
+
+扩展 `web/presentation.ts` 的 `savedBoardEffects` 只从已保存公开结果生成场地轨迹，`BoardEffects.tsx` 按实际牌位几何绘制移位、盖回与翻明反馈，不改变规则或牌位。私看不生成公开目标；减少动态隐藏轨迹，取消／切换清理演出，不在恢复时追补队列。主题音配方复用共享双槽与唯一播放窗口，正式原创资源及多姿态缺口由[游戏资源表](../games/pokemon-encounters/assets.md#续建素材与反馈2026-10-06)维护。
 
 第一至六阶段已完成；正式运行宝可梦完整游戏，验证模板继续用于契约、策略替换和恢复回归。采用依据：[工程基础](../decisions/001-engineering-foundation.md)、[平台授权与恢复](../decisions/005-platform-authority-and-recovery.md)、[游戏目录与房主分权](../decisions/007-library-owner-and-concurrency.md)、[小体积原生桌面](../decisions/008-small-native-desktop.md)。2026-10-03 桌面外壳改为共享 WebView2，最终交付验证状态仍以 [验收记录](acceptance.md) 为准。
 
@@ -27,7 +29,7 @@
 
 应用组装具体规则、策略和适配器，核心只依赖抽象契约。共享包使用 `workspace:*`，开发导出 TS 源码，Vite／esbuild 消费；严格类型检查统一覆盖 apps、packages 和 games 的 TypeScript。服务、bot Worker 和游戏输出独立 CJS，生成服务 CJS 使用生产压缩，源码继续保持可读；网页输出本地静态资源；原生桌面单独编译为 `TableMax.exe`。`global.json` 固定 .NET SDK 9.0.102，原生锁文件固定 WebView2 SDK 1.0.4258.31 和编译用 net48 引用程序集。
 
-便携包收集原生壳、x64 WebView2 必需 DLL、官方 Node 22.14.0 的 `node.exe` 和许可证、`server.cjs`、`bot-worker.cjs`、`games/*.cjs`、`bots/*.cjs` 与本地网页。使用系统共享 WebView2 与 .NET Framework 4.8，不分发 Electron、WebView2 Fixed Version 或现代 .NET 自包含运行时；电脑无需预装 Node.js 或开发工具。缺少 WebView2 时提示用户安装官方 Evergreen Runtime，可取消，安装后正式对局仍不依赖互联网。
+便携包收集原生壳、x64 WebView2 必需 DLL、官方 Node 22.14.0 的 `node.exe` 和许可证、`server.cjs`／`server.cjs.br`、`bot-worker.cjs`、`games/*.cjs`、`bots/*.cjs` 与本地网页。服务入口校验压缩载荷与还原源码的SHA-256及精确长度，在内存解压并由当前CommonJS模块编译；不另行落盘源码，保留入口、exports、require.main及文件路径语义。Worker、官方Node字节和原生Job生命周期不变；缓存与冻结同时登记两个服务文件，细节和验证见[开发环境](development.md#服务载荷无损压缩2026-10-06)。使用系统共享 WebView2 与 .NET Framework 4.8，不分发 Electron、WebView2 Fixed Version 或现代 .NET 自包含运行时；电脑无需预装 Node.js 或开发工具。缺少 WebView2 时提示用户安装官方 Evergreen Runtime，可取消，安装后正式对局仍不依赖互联网。
 
 新增游戏前，Windows x64 ZIP 和实际解压目录内全部交付文件各自必须严格小于 100,000,000 字节；95,000,000 字节为工程预算，达到预算时报告、达到硬上限时拒绝交付。系统共享运行时、用户存档和浏览器缓存不计入交付目录；打包清单记录实际大小、文件哈希与运行时版本，并核对 ZIP 实际解压结果。
 
@@ -37,17 +39,17 @@
 
 ## 独立构建与模块边界
 
-2026-10-05 独立模块实现沿用 v1.0.4，需求见 [需求增补](../requirements/TableMax_需求文档_v1.0.md#621-游戏解耦与增量交付增补)。平台仍统一管理身份、权限、通信、保存恢复与人机调度。
+2026-10-05 独立模块实现接续产品v1.0.2，需求见 [需求增补](../requirements/TableMax_需求文档_v1.0.md#621-游戏解耦与增量交付增补)。平台仍统一管理身份、权限、通信、保存恢复与人机调度。
 
 `games/<id>/game-module.json` 是游戏目录、入口、兼容版本和预算的唯一组装清单。服务、Worker 与盒子读取组装后的清单；增加游戏无需修改中心名单。规则与人机分别输出 CJS，游戏网页分别执行普通入口 Vite 构建，CSS 和素材保持独立文件。正式包排除内部 template，开发构建保留它。
 
 实际模块划分：
 
-| 构建单元 | 内容与依赖边界 |
-| --- | --- |
-| 平台块 | 原生桌面、Node、服务与 Worker 宿主、盒子及共享网页运行时；不包含某游戏的规则或完整 UI |
+| 构建单元 | 内容与依赖边界                                                                                             |
+| -------- | ---------------------------------------------------------------------------------------------------------- |
+| 平台块   | 原生桌面、Node、服务与 Worker 宿主、盒子及共享网页运行时；不包含某游戏的规则或完整 UI                      |
 | 各游戏块 | 模块清单、规则、策略、网页入口及本地资源；只依赖声明的 SDK、协议、网页宿主契约与共享运行时，不依赖其他游戏 |
-| 组装步骤 | 校验模块、汇总目录及轻量封面／介绍、收集文件并生成完整运行 ZIP；不在组装时隐式重建全部游戏 |
+| 组装步骤 | 校验模块、汇总目录及轻量封面／介绍、收集文件并生成完整运行 ZIP；不在组装时隐式重建全部游戏                 |
 
 `packages/web-host` 提供 GameHost／GameClient、授权数据与通用控件。平台的 HostedGame 绑定当前实例、分支和决策，拒绝迟到提交，再交给原有可靠命令信封。完整 RoomSession 仅存在于平台私有 Context；游戏拿不到凭证或 Socket。游戏网页入口归 `games/<id>/web/`；旧应用适配器仅为已有源码 fixture 提供兼容包装，正式加载器不导入它们。
 

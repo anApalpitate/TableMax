@@ -77,6 +77,7 @@ export function SoundControl({
   paused = false,
   canPlay = true,
   recipe,
+  resolveSource,
 }: {
   feedback: RoomFeedback | null;
   game?: PokemonView | null;
@@ -89,6 +90,10 @@ export function SoundControl({
     event: RoomFeedback['events'][number],
     reducedMotion: boolean,
   ) => SoundCueRecipe[];
+  resolveSource?: (
+    cue: SoundCue,
+    event: RoomFeedback['events'][number],
+  ) => string | undefined;
 }) {
   const [enabled, setEnabled] = useState(preference);
   const [blocked, setBlocked] = useState(false);
@@ -158,7 +163,7 @@ export function SoundControl({
               : soundRecipe(event.kind, event.action, game, { reducedMotion })
             ).map(({ cue, ...recipe }) => ({
               ...recipe,
-              source: sources[cue],
+              source: resolveSource?.(cue, event) ?? sources[cue],
             })),
             occurredAt,
           );
@@ -173,6 +178,7 @@ export function SoundControl({
     canPlay,
     reducedMotion,
     recipe,
+    resolveSource,
   ]);
   useEffect(() => {
     if (lastError.current === errorId) return;

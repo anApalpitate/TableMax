@@ -23,12 +23,22 @@ import { categories, abilityText } from '../cards';
 import { BoardGrid } from '../../ui/BoardGrid';
 import { cardArt } from '../../../../assets/games/pokemon-encounters/catalog';
 import { SoundControl } from '../../ui/audio';
-import { startedAbility, expansionSoundRecipe } from './presentation';
+import {
+  startedAbility,
+  expansionSoundRecipe,
+  savedBoardEffects,
+  expansionThemeFor,
+} from './presentation';
+import { BoardEffects } from './BoardEffects';
 import { GuideScene } from '../../ui/RuleDiagrams';
 import './style.css';
 
 const expansionPortraits = import.meta.glob<string>(
   '../../../../assets/games/pokemon-encounters/expansion/portraits/*.webp',
+  { eager: true, query: '?url', import: 'default' },
+);
+const expansionThemes = import.meta.glob<string>(
+  '../../../../assets/games/pokemon-encounters/expansion/audio/*.ogg',
   { eager: true, query: '?url', import: 'default' },
 );
 function portraitFor(categoryId: string) {
@@ -80,6 +90,8 @@ function eventText(
 ) {
   const action = event.action;
   if (!action || !action.actor) return event.text;
+  if (action.verb === 'activate-arceus')
+    return `${names[action.actor] ?? '玩家'}发动阿尔宙斯：全桌盖回，每人随机翻明一格。`;
   const verbs: Record<string, string> = {
     draw: '取出',
     replace: '换入',
@@ -90,6 +102,8 @@ function eventText(
     swap: '交换本人两格',
     reposition: '调整本人两格',
     'ninja-target': '用忍蛙处理两格',
+    'ninja-cover': '盖回两张牌',
+    'ninja-swap': '盖回并交换两张牌',
     'row-target': '交换整行',
     'pass-direction': '确定接力方向',
     'activate-arceus': '发动返璞归真',
@@ -99,7 +113,9 @@ function eventText(
     'initial-flip': '翻开初始牌',
     'discard-held': '弃掉暂持牌',
   };
-  const category = categories.find((c) => c.categoryId === action.cardCategory);
+  const category =
+    categories.find((c) => c.categoryId === action.cardCategory) ??
+    categories.find((c) => c.ability !== null && c.ability === action.ability);
   const targets = action.targets
     .map(
       (t) =>
@@ -530,6 +546,14 @@ function Effects({ game, session }: { game: View; session: GameHost }) {
     ),
     research = fresh.find((e) => e.kind === 'research'),
     action = [...fresh].reverse().find((e) => startedAbility(e.action));
+  const savedAction = [...fresh].reverse().find((e) => e.action);
+  const boardEffects = savedBoardEffects(savedAction?.action, game.boards);
+  const hasBoardEffects =
+    boardEffects.moves.length +
+      boardEffects.cover.length +
+      boardEffects.reveal.length +
+      boardEffects.pulse.length >
+    0;
   const ability = startedAbility(action?.action);
   const hero =
     ability && timings[ability]
@@ -537,6 +561,13 @@ function Effects({ game, session }: { game: View; session: GameHost }) {
       : null;
   return (
     <>
+      {hasBoardEffects && savedAction && (
+        <BoardEffects
+          key={`board-${savedAction.id}`}
+          effects={boardEffects}
+          delay={hero ? timings[ability!]! : 0}
+        />
+      )}
       {hero && (
         <div
           className={`ex-cinematic ex-theme-${ability}`}
@@ -594,7 +625,7 @@ function Effects({ game, session }: { game: View; session: GameHost }) {
           className="ex-research-reveal"
           style={
             {
-              '--ex-delay': hero ? `${timings[ability!]}ms` : '0ms',
+              '--ex-delay': `${(hero ? timings[ability!]! : 0) + (hasBoardEffects ? 700 : 0)}ms`,
             } as CSSProperties
           }
         >
@@ -844,6 +875,14 @@ function Screen({ session }: { session: GameHost }) {
                   reducedMotion,
                 )
               }
+              resolveSource={(cue, event) => {
+                const theme = expansionThemeFor(event.kind, event.action, cue);
+                return theme
+                  ? expansionThemes[
+                      `../../../../assets/games/pokemon-encounters/expansion/audio/${theme}-theme-original-v1.ogg`
+                    ]
+                  : undefined;
+              }}
             />
           </>
         )}
@@ -1046,5 +1085,5 @@ export const client: GameClient = {
       ),
     ];
   },
-  motionDuration: 4500,
+  motionDuration: 5000,
 };

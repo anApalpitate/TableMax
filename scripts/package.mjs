@@ -49,6 +49,7 @@ await lock('package-win', async () => {
     'WebView2-LICENSE.txt',
     'WebView2-NOTICE.txt',
     'server.cjs',
+    'server.cjs.br',
     'bot-worker.cjs',
     'package.json',
     'modules.json',

@@ -127,8 +127,16 @@ EX-A11 通过站点正式访客流程取得，额度检查为 `allowed=1`、下�
 
 2026-10-05 首轮取得18张官方中文来源角色卡面，384px透明WebP合计396,724字节，角色身份、透明边缘、解码及哈希通过，已由扩展UI真实引用；最终实际解压程序逐一验证本地资源与解码，`runtimeRenderVerified=true`，来源、原件和同包证据见[卡面清单](../../../assets/games/pokemon-encounters/expansion/portraits/portraits.json)。阿尔宙斯另有一张768px真实新姿态（78,340字节），尚未形成完整序列，也尚未作为全屏关键帧导入。
 
-内置imagegen共15次请求，1次成功、14次输出阶段拦截，完整提示词、请求ID与结果保留在[生成索引](../../../artifacts/pokemon-expansion/imagegen/generation-index.json)。[姿态消费清单](../../../assets/games/pokemon-encounters/expansion/frames.json)计划63帧、实际1帧、缺62帧，`complete=false`。已实际取得的中文百科超梦APNG／GIF仅100×88／92×71待机动作，经抽帧目视不满足五个全屏动作，未导入；不以静图位移替代用户要求。
+首轮内置imagegen15次请求、1次成功、14次输出阶段拦截保留在[生成索引](../../../artifacts/pokemon-expansion/imagegen/generation-index.json)。2026-10-06续建新增一次卡比兽透明姿态编辑，结果仍为 `moderation_blocked`，累计16次尝试、1次成功、15次拒绝。[姿态消费清单](../../../assets/games/pokemon-encounters/expansion/frames.json)计划63帧、实际1帧、缺62帧，`complete=false`。已实际取得的中文百科超梦APNG／GIF仅100×88／92×71待机动作，经抽帧目视不满足五个全屏动作，未导入；不以静图位移替代用户要求。
 
 补充中文公开视频预检取得任天堂简体中文角色页六张1280×720战斗截图，711,575字节；不同蓄力／发射／念力姿态仍有舞台、对手、特效、裁切，第六张为异色超梦，不满足五个一致透明关键姿态。仅保留参考，未导入产品；页面／截图／逐文件哈希与原件见[预检索引](../../../artifacts/pokemon-expansion/imagegen/video-candidates/2026-10-05-mewtwo-public-preflight/preflight-index.json)，17文件共2,052,269字节。23秒官方公开视频页未提供可取得的直接文件，电影网手机页403、Netflix预告地区限制均未规避；新增视频／音频／透明帧均为0，未核验视频时间段、叫声或独立改编再分发许可。临时检索下载位于`tmp/pokemon-expansion-materials/`，必要候选证据归档，未更改用户客户端缓存。
 
 现有主题CSS演出、事件时长、减少动态静态角色及两槽声音调度已实现和组件验证，不能代替完整多姿态素材验收。没有新增正式角色原声；真实叫声与真人听感继续保留缺口。生产资源离线加载已通过最终同包验收，详见[交付核对](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-delivery/final-checks.json)及[专项场景](validation-scenarios.md#扩展版专项场景2026-10-05)，实际进度见任务页。
+
+### 续建素材与反馈（2026-10-06）
+
+腾讯官方中文公开视频已取得卡比兽四个不同动作参考输入，来源时间点见[抽帧记录](../../../artifacts/pokemon-expansion/continuation-assets/public-unite-source/snorlax-source-frames.json)。[透明编辑请求](../../../artifacts/pokemon-expansion/continuation-assets/snorlax-transparent-edit/imagegen-edit-01-request.json)及[拒绝结果](../../../artifacts/pokemon-expansion/continuation-assets/snorlax-transparent-edit/imagegen-edit-01-result.json)保留原图与失败边界；实际视频参考不等于已取得可导入透明姿态或改编再分发许可。
+
+新增超梦、阿尔宙斯、固拉多、盖欧卡、烈空坐、甲贺忍蛙、路卡利欧与研究公布八项原创程序主题音，正式派生编码为Ogg／Opus单声道，共32,604字节。229,152字节原始WAV保留在 `artifacts/pokemon-expansion/continuation-audio/originals/`，原始／派生哈希、编码参数和用途见[主题音清单](../../../assets/games/pokemon-encounters/expansion/audio/themes.json)。这些声音不是角色官方叫声；八项已在最终实际WebView2同包离线解码通过，真人听感仍待验，不以解码成功替代人耳试听。原版媒体不改字节。
+
+扩展UI新增依据已保存结果的场地移位、盖回与翻明局部轨迹；私看不产生公开目标，减少动态隐藏轨迹，事件取消清理演出。主题代码和公开轨迹属于已实现反馈，真实多姿态序列仍未完成。上述续建已在[最新同包汇总](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-continuation-delivery/final-checks.json)完成技术验收：18张卡面、八项Ogg本地解码与54格显示通过，页面错误及外部请求为零。真实姿态、官方叫声、实体设备与真人听感继续待完成，当前状态见[验收记录](../../reference/acceptance.md)。

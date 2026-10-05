@@ -8,24 +8,24 @@
 
 艺术／UI 设计前须查询 [用户美术偏好](reference/art-preferences.md)，按游戏、端侧、人数和本次用途适当参考其倾向与细节。该页从用户历史请求提取依据，区分直接偏好、场景要求和设计判断；最新明确反馈优先，不将 agent 回答或既有实现当作用户偏好。
 
-| 当前问题                                               | 最小阅读入口                                                                                                   |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| 清理、历史退役与项目瘦身                               | [项目瘦身](reference/project-slimming.md) → [开发环境](reference/development.md#清理本地中间物)                |
-| 产品范围、验收要求                                     | [需求基线](requirements/TableMax_需求文档_v1.0.md)                                                             |
-| UI、布局、文字、角标、动效、规则浮层                   | [用户美术偏好](reference/art-preferences.md) → [通用视觉与规则说明](reference/visual-design.md) → 对应游戏主题 |
-| 身份、座位、手机房主、提交、回退、恢复、计时、显示设置 | [通用平台规格](reference/phase-02-platform-spec.md)                                                            |
-| 宝可梦规则／能力／交互／秘密／策略／资源               | [宝可梦奇遇](games/pokemon-encounters/README.md)                                                               |
-| 宝可梦九宫格扩展、牌组、能力与研究任务                 | [扩展版设计基线](games/pokemon-encounters/expansion-design.md)，规则已实现、素材与同包验收接续                 |
-| 现代艺术规则／拍卖／行情／秘密／策略／资源             | [现代艺术](games/modern-art/README.md)                                                                         |
-| 电力公司规则／经典地图／经济／秘密／策略／资源         | [电力公司](games/power-grid/README.md)；空间数据与展示查 [地图](games/power-grid/map.md)                       |
-| 电脑玩家配置、输入权限与调度                           | [通用人机规格](reference/bot-players.md) → 对应游戏独立人机页                                                  |
-| 宝可梦扩展版开发阶段与接续                             | [扩展版开发阶段](tasks/pokemon-encounters-expansion.md)，实施与验证状态及素材缺口                              |
-| 代码依赖、进程、契约与适度封装                         | [工程结构](reference/architecture.md)                                                                          |
-| 构建、测试、运行、便携、清理、压缩                     | [开发环境](reference/development.md)                                                                           |
-| 文件应放哪里、哪些是产物                               | [目录职责](reference/project-structure.md)                                                                     |
-| 新游戏注册、策略替换与模板                             | [游戏开发指南](game-development/README.md)                                                                     |
-| 当前交付包、模拟设备边界和最近证据                     | [验收记录](reference/acceptance.md)                                                                            |
-| 重要选择的理由                                         | [决策索引](decisions/README.md)                                                                                |
+| 当前问题                                               | 最小阅读入口                                                                                                         |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| 清理、历史退役与项目瘦身                               | [项目瘦身](reference/project-slimming.md) → [开发环境](reference/development.md#清理本地中间物)                      |
+| 产品范围、验收要求                                     | [需求基线](requirements/TableMax_需求文档_v1.0.md)                                                                   |
+| UI、布局、文字、角标、动效、规则浮层                   | [用户美术偏好](reference/art-preferences.md) → [通用视觉与规则说明](reference/visual-design.md) → 对应游戏主题       |
+| 身份、座位、手机房主、提交、回退、恢复、计时、显示设置 | [通用平台规格](reference/phase-02-platform-spec.md)                                                                  |
+| 宝可梦规则／能力／交互／秘密／策略／资源               | [宝可梦奇遇](games/pokemon-encounters/README.md)                                                                     |
+| 宝可梦九宫格扩展、牌组、能力与研究任务                 | [扩展版设计基线](games/pokemon-encounters/expansion-design.md)，规则已实现、同包技术验收通过、完整姿态与真人体验待补 |
+| 现代艺术规则／拍卖／行情／秘密／策略／资源             | [现代艺术](games/modern-art/README.md)                                                                               |
+| 电力公司规则／经典地图／经济／秘密／策略／资源         | [电力公司](games/power-grid/README.md)；空间数据与展示查 [地图](games/power-grid/map.md)                             |
+| 电脑玩家配置、输入权限与调度                           | [通用人机规格](reference/bot-players.md) → 对应游戏独立人机页                                                        |
+| 宝可梦扩展版开发阶段与接续                             | [扩展版开发阶段](tasks/pokemon-encounters-expansion.md)，实施与验证状态及素材缺口                                    |
+| 代码依赖、进程、契约与适度封装                         | [工程结构](reference/architecture.md)                                                                                |
+| 构建、测试、运行、便携、清理、压缩                     | [开发环境](reference/development.md)                                                                                 |
+| 文件应放哪里、哪些是产物                               | [目录职责](reference/project-structure.md)                                                                           |
+| 新游戏注册、策略替换与模板                             | [游戏开发指南](game-development/README.md)                                                                           |
+| 当前交付包、模拟设备边界和最近证据                     | [验收记录](reference/acceptance.md)                                                                                  |
+| 重要选择的理由                                         | [决策索引](decisions/README.md)                                                                                      |
 
 平台交互与通用视觉分别维护行为和表现；玩法、字段和决策只在游戏主题维护。当前 UI 的规则说明按用户最新授权分别优化；三款游戏均采用各自原创逻辑图解和本地场景素材；通用采用要求不代表旧页或全部设备已经验收。原文核验、项目约定与实现状态保持区分，查来源从对应游戏的 sources.md 进入。
 

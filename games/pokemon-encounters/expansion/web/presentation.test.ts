@@ -1,12 +1,102 @@
 import { describe, expect, it } from 'vitest';
 import type { PublicAction } from '@tablemax/game-sdk';
-import { startedAbility, expansionSoundRecipe } from './presentation';
+import {
+  startedAbility,
+  expansionSoundRecipe,
+  savedBoardEffects,
+  expansionThemeFor,
+} from './presentation';
 const action = (
   verb: string,
   ability: string | null = 'mewtwo',
   cardCategory: string | null = 'special-mewtwo',
 ): PublicAction => ({ actor: 'S1', verb, ability, cardCategory, targets: [] });
 describe('expansion committed presentation', () => {
+  it('uses original expansion themes only for saved activated abilities and research', () => {
+    expect(
+      expansionThemeFor('action', action('mewtwo-exchange'), 'effect-complete'),
+    ).toBe('mewtwo');
+    expect(
+      expansionThemeFor(
+        'action',
+        action('row-target', 'kyogre'),
+        'effect-complete',
+      ),
+    ).toBe('kyogre');
+    expect(expansionThemeFor('research', undefined, 'effect-complete')).toBe(
+      'research',
+    );
+    for (const verb of ['draw', 'peek', 'mewtwo-target', 'decline-ability'])
+      expect(
+        expansionThemeFor('action', action(verb), 'effect-complete'),
+      ).toBeNull();
+    expect(
+      expansionThemeFor('action', action('mewtwo-exchange'), 'draw'),
+    ).toBeNull();
+  });
+  it('draws three row exchanges without changing their column positions', () => {
+    const result = savedBoardEffects({
+      ...action('row-target', 'groudon'),
+      targets: [{ seat: 'S2', slots: [6, 7, 8] }],
+    });
+    expect(result.moves).toEqual(
+      [6, 7, 8].map((slot) => ({ from: `S1:${slot}`, to: `S2:${slot}` })),
+    );
+    expect(result.cover).toEqual([]);
+  });
+  it('keeps cover-only ninja targets in place and swaps only the saved swap branch', () => {
+    const targets = [{ seat: 'S2', slots: [2, 8] }];
+    expect(
+      savedBoardEffects({ ...action('ninja-cover', 'greninja'), targets }),
+    ).toEqual({ moves: [], cover: ['S2:2', 'S2:8'], reveal: [], pulse: [] });
+    expect(
+      savedBoardEffects({ ...action('ninja-swap', 'greninja'), targets }).moves,
+    ).toEqual([{ from: 'S2:2', to: 'S2:8' }]);
+  });
+  it('never manufactures private targets or movements from ability names', () => {
+    for (const verb of [
+      'peek',
+      'mewtwo-target',
+      'close-peek',
+      'decline-ability',
+      'pass-direction',
+    ])
+      expect(
+        savedBoardEffects({
+          ...action(verb),
+          targets: [{ seat: 'S2', slots: [1, 3] }],
+        }),
+      ).toEqual({ moves: [], cover: [], reveal: [], pulse: [] });
+    expect(
+      savedBoardEffects({
+        ...action('reposition', null),
+        targets: [{ seat: 'S1', slots: [0, 8] }],
+      }).moves,
+    ).toEqual([{ from: 'S1:0', to: 'S1:8' }]);
+  });
+  it('shows Arceus cover and only its authorized random face-up cells', () => {
+    const targets = ['S1', 'S2'].map((seat) => ({
+      seat,
+      slots: Array.from({ length: 9 }, (_, i) => i),
+    }));
+    const boards = {
+      S1: targets[0]!.slots.map((i) => ({
+        slotId: `S1:${i}`,
+        faceUp: i === 3,
+      })),
+      S2: targets[1]!.slots.map((i) => ({
+        slotId: `S2:${i}`,
+        faceUp: i === 6,
+      })),
+    };
+    const result = savedBoardEffects(
+      { ...action('activate-arceus', 'arceus'), targets },
+      boards,
+    );
+    expect(result.moves).toEqual([]);
+    expect(result.cover).toHaveLength(18);
+    expect(result.reveal).toEqual(['S1:3', 'S2:6']);
+  });
   it('maps expansion action events to ordinary swap and discard feedback', () => {
     const game = { coin: null, matchWinners: [] };
     for (const verb of ['replace', 'discard-held'])

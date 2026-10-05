@@ -18,6 +18,7 @@ import {
 } from 'node:fs/promises';
 import { resolve, join, relative, dirname } from 'node:path';
 import { prepareDesktop, execute, nodeRuntime } from './setup-desktop.mjs';
+import { packService } from './service-brotli.mjs';
 
 export const root = resolve('.');
 const cache = resolve('.cache/build-modules/v1');
@@ -489,8 +490,8 @@ async function webBuild(unit, out) {
 }
 async function compile(unit, out) {
   if (unit.kind === 'web') return webBuild(unit, out);
-  if (unit.kind === 'node')
-    return esbuild({
+  if (unit.kind === 'node') {
+    const result = await esbuild({
       entryPoints: [unit.entry],
       outfile: join(out, unit.output),
       bundle: true,
@@ -501,6 +502,10 @@ async function compile(unit, out) {
       metafile: true,
       logLevel: 'warning',
     });
+    if (unit.id === 'platform-server')
+      await packService(join(out, unit.output));
+    return result;
+  }
   if (unit.kind === 'metadata') {
     const item = unit.module;
     if (

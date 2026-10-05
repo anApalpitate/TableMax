@@ -165,3 +165,11 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 工程进程退出后，[包清理预览](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/release-preview.log)及[执行](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/release-cleanup.log)均为零候选，一处近期打包目录继续保护。[维护预览](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/maintenance-preview.log)核验 18 处工作区 tmp 内过期隔离数据与便携解压目录，确认绝对路径及无目录链接后执行既有 `Maintain-Project.ps1 -Apply`。[实际报告](../../artifacts/maintenance/local-cleanup-20261005-060737-718-maintenance/cleanup.json)删除 **10,174,387,299 字节（约 9.48 GiB）**，正式存档、素材、当前及历史验收证据、已验运行包保留。
 
 [收尾结果](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/maintenance-final.log)测量 **4,463,440,934 字节（约 4.157 GiB）**，跳过 1,338 个链接，六项继续保护，安全候选耗尽；已低于 5 GiB 启动阈值，未为降到 4 GiB 扩大范围。默认 30 分钟保护未降低，逻辑删除字节不计为运行包或 NTFS 物理压缩节省。
+
+## 宝可梦扩展版续建收尾（2026-10-06）
+
+本轮仍为本地v1.0.2，当前ZIP实际解压94,532,267字节，95MB工程预算剩467,733字节；服务Brotli内存恢复及Ogg主题音是实际运行文件减少，与工作区清理、NTFS物理节省分别计量。同包哈希和未完成素材边界见[验收](acceptance.md#102扩展版续建预算与同包复核2026-10-06)。
+
+全部构建／测试／原生验证退出后，执行既有 `Maintain-Project.ps1 -Apply`，沿用最新10GiB启动／8GiB目标、30分钟保护及当前同哈希便携通过证据。[实际清理](../../artifacts/maintenance/local-cleanup-20261005-162230-673-maintenance/cleanup.json)删除4个过期打包中间目录，共931,114,824字节。原素材、视频参考、PCM原件、存档、当前已验ZIP、现有发布EXE／源码包和全部验收证据保留，未扩大到未知临时目录或依赖缓存。
+
+开始实测18,920,901,565字节，清理报告统计17,989,786,741字节；报告写入后控制台实测17,989,805,273字节，均为逻辑文件字节。跳过1,346个链接，60项受保护，安全候选耗尽，剩余超过10GiB；后续文档／审计写入会略增加，不扩大删除范围或常驻轮询。
