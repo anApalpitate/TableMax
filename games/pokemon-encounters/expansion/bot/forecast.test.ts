@@ -24,6 +24,31 @@ const hypothesis = (incoming: string) => ({
 });
 
 describe('forecast expectation over authorized hypotheses', () => {
+  it('does not invent a self-only placement or later ordinary turn after drawing an active Mew', () => {
+    const result = refineForecast(
+      [{ action: { type: 'draw', source: 'deck' }, value: 19 }],
+      [
+        {
+          ...hypothesis('special-mew#01'),
+          pool: ['ordinary--2#01', 'special-mew#01'],
+        },
+      ],
+      [],
+      2,
+      () => true,
+    );
+    expect(result[0]!.value).toBe(19);
+  });
+  it('ends the ordinary horizon before a future active ability instead of forecasting it as a normal card', () => {
+    const result = refineForecast(
+      [{ action: { type: 'reposition', a: 0, b: 2 }, value: 30 }],
+      [hypothesis('special-mew#01')],
+      [],
+      2,
+      () => true,
+    );
+    expect(result[0]!.value).toBe(30);
+  });
   it('does not forecast another draw after the immediate ordinary replacement closes the field', () => {
     const result = refineForecast(
       [{ action: { type: 'draw', source: 'deck' }, value: 19 }],

@@ -121,6 +121,9 @@ export function refineForecast(
         action.source === 'deck'
           ? hypothesis.pool.at(-1)
           : hypothesis.discards[action.discardIndex];
+      // Immediate abilities are evaluated separately on the complete table.
+      // This own-field ordinary horizon cannot predict an active ability chain.
+      if (incoming && card(incoming).ability !== null) return 0;
       let bestPreview: ReturnType<typeof previewBoard> | null = null;
       let best = action.source === 'deck' ? score(board, up) : Infinity;
       if (incoming)
@@ -149,6 +152,7 @@ export function refineForecast(
           (action.type === 'draw' && action.source === 'deck' ? 1 : 0),
       );
       if (!incoming) break;
+      if (card(incoming).ability !== null) break;
       let next = board,
         nextUp = up;
       for (const slot of grid.slots) {
@@ -293,6 +297,22 @@ export function choose(
     }
     return best;
   };
+  const bestMewExchange = (model: Model, incoming: string) => {
+    let best = Infinity;
+    for (const target of view.seatOrder.filter((id) => id !== seat))
+      for (const slot of grid.slots) {
+        const outgoing = model.boards[target]![slot]!,
+          wasUp = model.up[target]![slot]!;
+        model.boards[target]![slot] = incoming;
+        model.up[target]![slot] = true;
+        // The acquired identity must enter the actor's field; it does not
+        // activate another ability. Only the complete two-part chain closes.
+        best = Math.min(best, bestReplace(model, seat, outgoing));
+        model.boards[target]![slot] = outgoing;
+        model.up[target]![slot] = wasUp;
+      }
+    return best;
+  };
   const evaluate = (a: Action, original: Model) => {
     const model: Model = {
       ...original,
@@ -324,6 +344,8 @@ export function choose(
         a.source === 'deck'
           ? model.pool.at(-1)
           : model.discards[a.discardIndex];
+      if (incoming && view.phase === 'draw' && card(incoming).ability === 'mew')
+        return bestMewExchange(model, incoming) + 0.08;
       return incoming
         ? estimateDraw(
             a.source,

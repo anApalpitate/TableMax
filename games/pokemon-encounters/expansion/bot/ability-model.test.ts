@@ -136,3 +136,82 @@ it('makes the same choice for different hidden real deck orders with identical a
     );
   expect(decide(changedView)).toEqual(decide(fixture.view));
 });
+
+it('values drawing Mew by its mandatory opponent-then-self exchange, not a self-only 2-point placement', () => {
+  const context = { seats: ['a', 'b'], random: new RandomSource(5) };
+  let state = rules.initialize(context);
+  for (const seat of context.seats)
+    state = rules.apply(
+      state,
+      { type: 'vote-research', taskId: state.researchCandidates[0]! },
+      seat,
+      context,
+    ).state;
+  const index = state.deck.findIndex((id) => card(id).ability === 'mew');
+  expect(index).toBeGreaterThanOrEqual(0);
+  const top = state.discard.length - 1;
+  [state.deck[index], state.discard[top]] = [
+    state.discard[top]!,
+    state.deck[index]!,
+  ];
+  state.phase = 'draw';
+  state.initialDone = [...context.seats];
+  state.turnSeat = 'a';
+  for (const seat of context.seats)
+    for (const cell of state.boards[seat]!) cell.faceUp = true;
+  const known = observeMemory(
+    null,
+    rules.project(state, { role: 'player', seatId: 'a' }),
+    'a',
+    'default',
+  );
+  for (const seat of context.seats) state.boards[seat]![8]!.faceUp = false;
+  rules.validateState(state, context.seats);
+  const view = rules.project(state, { role: 'player', seatId: 'a' });
+  const memory = observeMemory(known, view, 'a', 'default');
+  // Compare actual legal discard/reposition options; hypothetical deck draws are excluded from this controlled pair.
+  const actions = rules
+    .legalActions(state, 'a')
+    .filter(
+      (action) =>
+        action.type === 'reposition' ||
+        (action.type === 'draw' && action.source === 'discard'),
+    );
+  const before = structuredClone({ state, view, memory });
+  const chosen = choose(
+    view,
+    actions,
+    memory,
+    'default',
+    { next: () => 0 },
+    new AbortController().signal,
+  );
+  expect(chosen).toEqual({ type: 'draw', source: 'discard', discardIndex: 0 });
+  const draw = rules.apply(state, chosen, 'a', context).state;
+  expect(draw.phase).toBe('mew-other');
+  const outgoing = draw.boards.b![0]!.instanceId;
+  const first = rules.apply(
+    draw,
+    { type: 'mew-target', seat: 'b', slot: 0 },
+    'a',
+    context,
+  ).state;
+  expect(first.phase).toBe('mew-self');
+  expect(first.held).toBe(outgoing);
+  const after = rules.apply(
+    first,
+    { type: 'replace', slot: 3 },
+    'a',
+    context,
+  ).state;
+  rules.validateState(after, context.seats);
+  expect(after.boards.a![3]!.instanceId).toBe(outgoing);
+  expect(
+    scoreBoard(
+      after.boards.a!.map((cell) => cell.instanceId),
+      after.activeResearch,
+      after.boards.a!.map((cell) => cell.faceUp),
+    ).total,
+  ).toBe(20);
+  expect({ state, view, memory }).toEqual(before);
+});
