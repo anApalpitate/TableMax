@@ -68,7 +68,7 @@
 
 最终 ZIP 的 [规则验收](../../artifacts/maintenance/v1.0.2/power-grid-polish-20261005/rules/rules-portable-final/results.json)通过 **9 项（52.67 秒）**：三端六组图解、背景图集本地解码、章节定位、关闭／Esc 焦点返回及保存不变。类型、Lint、Prettier、diff 检查与 **44 文件／310 项测试**通过，含 7 项收益纯计算边界测试（0 城、20+ 城、混燃、不重复运行、少供电及私密选择）。旧验证器依赖逐份圆点和固定截图数量的断言已替换为价阶余量及六组图解语义；早期布局失败、过时首屏断言和悬停预览阻挡自动化点击的失败证据均保留，整体失败不记作通过。浏览器／后台原生窗口及模拟密度不等于真实手机、电视、物理 DPI 或真人听音验收；本轮仅回环地址，未改防火墙。
 
-收尾 [release 清理](../../artifacts/maintenance/local-cleanup-20261004-183802-280-releases/cleanup.json)保留当前 ZIP／清单并删除四个已完成打包目录（约 **0.86 GiB**）；[全库维护](../../artifacts/maintenance/local-cleanup-20261004-184146-225-maintenance/cleanup.json)清掉 **53 个安全候选／19.684 GiB**，剩余 **49.887 GiB**。安全候选已耗尽，原始资料、原图、正式存档、历史截图、依赖与缓存继续保留，未扩大清理范围。固定交付副本与当时共享 ZIP 哈希复核一致；本轮已保留记录并退役旧包。
+收尾 [release 清理](../../artifacts/maintenance/cleanup-history/records/20261004-183802-280-releases.json)保留当前 ZIP／清单并删除四个已完成打包目录（约 **0.86 GiB**）；[全库维护](../../artifacts/maintenance/cleanup-history/records/20261004-184146-225-maintenance.json)清掉 **53 个安全候选／19.684 GiB**，剩余 **49.887 GiB**。安全候选已耗尽，原始资料、原图、正式存档、历史截图、依赖与缓存继续保留，未扩大清理范围。固定交付副本与当时共享 ZIP 哈希复核一致；本轮已保留记录并退役旧包。
 
 ## 1.0.2：宝可梦声画与手机优化（2026-10-05）
 
@@ -134,15 +134,15 @@ releases 清理已预览唯一打包中间目录 **229,911,685 字节**。首次
 
 `KeepLatestOnly` 工具 [最终检查](../../artifacts/maintenance/v1.0.2/reexport-20261004/tools/completion.json)通过 **194 项／45.21 秒**手动测试与 **34 项／15.34 秒**自动维护测试，独立只读审查通过。此模式仅处理 `artifacts/releases` 直属项，核对当前便携通过记录与配套清单后保留当前程序 ZIP／清单，沿用全部路径、链接、嵌套仓库、进程、近期、指纹和互斥保护；其他手动模式及自动维护不混用。
 
-首次清理预览因实际启动证明的原文件名不是 `results.json` 而被门禁拒绝，未发生删除，[拒绝记录](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/cleanup-preview-first.json)保留。随后将该通过结果逐字节一致地保存为上述规范入口，在打包／验证进程全部退出后，以相同 `-KeepLatestOnly -MinimumAgeMinutes 0` 先预览、再 Apply，路径与内容检查仍全部执行。[实际清理](../../artifacts/maintenance/local-cleanup-20261004-141732-483-releases/cleanup.json)通过，**15.957 秒／554,455,887 字节**，耗时见 [执行记录](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/cleanup-run.json)：删除两个本次打包目录各 **229,846,976 字节**，及旧同版解压目录 **94,761,935 字节**。`releases` 恰保留新 ZIP **40,023,501 字节**与配套清单 **23,743 字节**，两文件在删除前后均核对路径、大小、时间与 SHA-256；其他历史证据、素材与正式存档保持原位。
+首次清理预览因实际启动证明的原文件名不是 `results.json` 而被门禁拒绝，未发生删除，[拒绝记录](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/cleanup-preview-first.json)保留。随后将该通过结果逐字节一致地保存为上述规范入口，在打包／验证进程全部退出后，以相同 `-KeepLatestOnly -MinimumAgeMinutes 0` 先预览、再 Apply，路径与内容检查仍全部执行。[实际清理](../../artifacts/maintenance/cleanup-history/records/20261004-141732-483-releases.json)通过，**15.957 秒／554,455,887 字节**，耗时见 [执行记录](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/cleanup-run.json)：删除两个本次打包目录各 **229,846,976 字节**，及旧同版解压目录 **94,761,935 字节**。`releases` 恰保留新 ZIP **40,023,501 字节**与配套清单 **23,743 字节**，两文件在删除前后均核对路径、大小、时间与 SHA-256；其他历史证据、素材与正式存档保持原位。
 
-本轮启动检查自建的隔离副本另按精确名单预览后 [回收](../../artifacts/maintenance/local-cleanup-20261004-141851-055-intermediates/cleanup.json) **107,657,726 字节**，未纳入既有 `tmp/` 内容。后置全项目 `Maintain-Project.ps1 -Apply` 因最新用户限定 releases 而被自动审批拒绝，未执行；改为 [只读收尾检查](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/maintenance-run.json)，结果为 **0 安全候选／零删除**，工作区 **15,109,256,634 字节（14.072 GiB 逻辑字节）**，未为达到 4 GiB 扩大范围。
+本轮启动检查自建的隔离副本另按精确名单预览后 [回收](../../artifacts/maintenance/cleanup-history/records/20261004-141851-055-intermediates.json) **107,657,726 字节**，未纳入既有 `tmp/` 内容。后置全项目 `Maintain-Project.ps1 -Apply` 因最新用户限定 releases 而被自动审批拒绝，未执行；改为 [只读收尾检查](../../artifacts/maintenance/v1.0.2/reexport-20261004/root/maintenance-run.json)，结果为 **0 安全候选／零删除**，工作区 **15,109,256,634 字节（14.072 GiB 逻辑字节）**，未为达到 4 GiB 扩大范围。
 
 ## 历史截图去重（2026-10-04）
 
 用户进一步授权适当清理 `artifacts/` 历史内容，包括不再需要的验收截图。本次只处理旧 v1.0.0／v1.0.1 中与保留 PNG 大小和 SHA-256 完全一致的副本；独有截图、正文直接引用图、素材来源、JSON／日志、原存档及历史程序包继续保留。旧结果中引用的退役 PNG 不再占第二份空间，其同字节保留位置可从 [逐文件清单](../../artifacts/maintenance/v1.0.2/history-tidy-20261004/duplicate-screenshots.json)查询；原验收结论不因本次清理改写。
 
-新增手动清单模式在实际操作前通过 18 项专用保护检查及既有 **194 项手动／34 项自动维护回归**，不扩大默认或自动清理范围；收尾补充父级嵌套仓库保护并复测，专用检查最终为 [19 项](../../artifacts/maintenance/v1.0.2/history-tidy-20261004/tests/results.json)。相同参数先预览、后 Apply，保持默认 30 分钟近期保护；[实际清理报告](../../artifacts/maintenance/local-cleanup-20261004-144015-137-intermediates/cleanup.json)为 **137 组／3,230 文件／2,480,203,343 字节（2.31 GiB）**，零跳过，执行 **199.07 秒**。操作仅删除显式 PNG，不递归删除父目录，记录每张副本的原路径、哈希与保留位置。
+新增手动清单模式在实际操作前通过 18 项专用保护检查及既有 **194 项手动／34 项自动维护回归**，不扩大默认或自动清理范围；收尾补充父级嵌套仓库保护并复测，专用检查最终为 [19 项](../../artifacts/maintenance/v1.0.2/history-tidy-20261004/tests/results.json)。相同参数先预览、后 Apply，保持默认 30 分钟近期保护；[实际清理报告](../../artifacts/maintenance/cleanup-history/records/20261004-144015-137-intermediates.json)为 **137 组／3,230 文件／2,480,203,343 字节（2.31 GiB）**，零跳过，执行 **199.07 秒**。操作仅删除显式 PNG，不递归删除父目录，记录每张副本的原路径、哈希与保留位置。
 
 [清理后完整性复核](../../artifacts/maintenance/v1.0.2/history-tidy-20261004/integrity-results.json)通过：全部 3,230 个选中副本已移除，**1,467 个对应保留 PNG**逐 SHA-256 与原副本相同；受影响目录的结果／日志及当前 ZIP／清单合 **172 文件**与清理前逐字节一致。当前运行包仍是上节 `e665…`，未修改游戏实现、版本号或重新导出源码。
 

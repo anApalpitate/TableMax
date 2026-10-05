@@ -165,7 +165,7 @@ UI 合法存档 fixture 的构造入口在 scripts/fixtures/prepare-pokemon.ts�
 
 2026-10-02 用户要求清除历史版本，已移除 0.1.0 至 1.3.0 的七个 ZIP，以及 phase-01／phase-06／releases 下三个旧 `win-unpacked`；当次保留 1.4.0 ZIP、解压程序和打包目录。历史原图、截图及 JSON 保留，以下历史包路径只用于追溯当时交付；详情见 [清理记录](../../artifacts/maintenance/release-cleanup-2026-10-02/cleanup.json)。打包不会自动清除其他版本。
 
-同日新一轮清理按用户要求移除 1.4.0 程序包及已结束的中间物，当前 1.5.0 ZIP 保持原哈希；结果及清理工具验证见 [本轮记录](../../artifacts/maintenance/local-cleanup-tools/cleanup-summary.json) 与 [20 项隔离检查](../../artifacts/maintenance/local-cleanup-tools/tool-tests.json)。
+同日新一轮清理按用户要求移除 1.4.0 程序包及已结束的中间物，当前 1.5.0 ZIP 保持原哈希；结果及清理工具验证见 [本轮记录](../../artifacts/maintenance/cleanup-history/tool-checks/legacy/cleanup-summary.json) 与 [20 项隔离检查](../../artifacts/maintenance/cleanup-history/tool-checks/legacy/tool-tests.json)。
 
 ## 历史材料与产物位置
 

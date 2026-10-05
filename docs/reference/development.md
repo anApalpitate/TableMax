@@ -298,7 +298,7 @@ Windows 程序规则按完整可执行文件路径匹配；专用网络和本地
 
 `tmp/app-icon-verify-*` 与 `tmp/tablemax-sqlite-migration-*` 的六位随机后缀目录分别是图标验证／便携解压及服务迁移验证的隔离副本，归入已知中间物；图标原素材和迁移原始存档仍保留在资源及历史证据目录。
 
-修改工具后运行 `powershell.exe -NoProfile -File scripts/cleanup-local.test.ps1` 与 `powershell.exe -NoProfile -File scripts/project-maintenance.test.ps1`。前者检查手动预览、ZIP／进程／链接／白名单／近期保护、脚本归档及显式构建清理；后者用隔离 Git 主仓库和 worktree 检查目录发现、不重复计量、高低水位、最旧优先、互斥及候选耗尽。测试不清理真实 release，结果分别保存在 `artifacts/maintenance/local-cleanup-tools/tool-tests.json` 和 `artifacts/maintenance/project-maintenance-tools/tool-tests.json`。
+修改工具后运行 `powershell.exe -NoProfile -File scripts/cleanup-local.test.ps1` 与 `powershell.exe -NoProfile -File scripts/project-maintenance.test.ps1`。前者检查手动预览、ZIP／进程／链接／白名单／近期保护、脚本归档及显式构建清理；后者用隔离 Git 主仓库和 worktree 检查目录发现、不重复计量、高低水位、最旧优先、互斥及候选耗尽。测试不清理真实 release，结果分别保存在 `artifacts/maintenance/cleanup-history/tool-checks/current/tool-tests.json` 和 `artifacts/maintenance/project-maintenance-tools/tool-tests.json`。
 
 ### 手动历史截图去重
 
@@ -322,11 +322,19 @@ Windows 程序规则按完整可执行文件路径匹配；专用网络和本地
 
 用户 2026-10-05 授权完整检查通过后清理无后续用途内容。方案及实际结果见 [项目瘦身](project-slimming.md)。`Clean-Intermediates.ps1 -RetiredGeneratedManifest <相对清单>` 默认预览，核对后追加 `-Apply`；不与其他清理模式组合，不进入自动维护。
 
-清单位于 `artifacts/maintenance/`，版本为 1，绑定当前 ZIP 的 SHA-256。`entries` 每项含精确 `path`、`kind`、`reason`、完整 `files`（path／bytes／sha256）及保留 `evidence`（path／sha256）。只接受维护版本目录中的具体解压程序、带 Chromium 标记且不含平台存档的浏览器 profile、单个历史 TableMax ZIP，以及已退出活动依赖的 `.cache/electron`／`.cache/electron-builder`。每项及删除前都核验逐文件内容，保留证据不能处于任何删除集合中；沿用当前便携证明、路径／链接／嵌套 Git、进程、近期修改、候选指纹与互斥保护。清理报告保存原清单、全部哈希及保留位置。
+清单位于 `artifacts/maintenance/`，版本为 1，绑定当前 ZIP 的 SHA-256。`entries` 每项含精确 `path`、`kind`、`reason`、完整 `files`（path／bytes／sha256）及保留 `evidence`（path／sha256）。接受维护版本目录中的具体解压程序、带 Chromium 标记且不含平台存档的浏览器 profile、单个历史 TableMax ZIP，以及已退出活动依赖的 `.cache/electron`／`.cache/electron-builder`；另支持下节已完整保留的旧清理目录集中归档。每项及删除前都核验逐文件内容，保留证据不能处于任何删除集合中；沿用当前便携证明、路径／链接／嵌套 Git、进程、近期修改、候选指纹与互斥保护。清理报告保存原清单、全部哈希及保留位置。
 
 新增的六位 `tmp/modern-art-polish-v2-*`、`tmp/desktop-fullscreen-*`、`tmp/modern-art-fullscreen-*` 及八位十六进制 `tmp/fullscreen-portable-*` 均已从实际验证脚本／结果确认用途，属于已知隔离中间物；其他相似名称和未知后缀仍保留。工具回归增加 `powershell.exe -NoProfile -File scripts/retired-generated.test.ps1`，并执行既有手动、自动和截图保护测试。
 
 `node scripts/verify-project.mjs --evidence=<独立名>` 检查整个 Markdown 库的本地文件／章节链接与当前运行包哈希、文件总量、必要模块、体积和排除规则。结果进入当前版本对应的独立维护目录；省略名称时使用时间戳，避免覆盖旧验收。历史退役后先修复指向包的文档链接，再执行此检查；运行时安全、规则、显示和对局验收仍用对应真实验证器。
+
+### 清理记录集中归档
+
+用户明确授权后，可将已结束的 `artifacts/maintenance/local-cleanup-<UTC时间>-<类别>/` 与旧 `local-cleanup-tools/` 集中到 `artifacts/maintenance/cleanup-history/`。清理 JSON 原字节保存在 `records/`，旧工具记录在 `tool-checks/legacy/`；含归档源码、迁移数据库等内容的目录整体保存到无损 ZIP，`index.json` 记录每个原路径、字节、SHA-256、归档成员及可直接阅读的位置。文档改链到新位置；原 JSON／日志中的历史路径保留，由索引追溯，不改写当时结论。
+
+沿用 `-RetiredGeneratedManifest` 手动入口，清单类型为 `consolidated-cleanup-history`，仅接受上述精确目录名。每项增加保留 ZIP 的 `archive`（`path`／`sha256`）；可读记录增加 `retainedPath`。工具核验整个 ZIP 哈希及每个解压成员的路径、字节、SHA-256，逐文件确认原内容全部可恢复，并检查原清理报告有独立可读副本，再允许删除目录。先预览、核对再 `-Apply`，不会自动扫描或清空 maintenance；操作记录进入 `cleanup-history/operations/`，避免此次整理再生成分散目录。相关隔离检查为 `scripts/cleanup-history.test.ps1`，共用入口变化同时回归既有清理保护。
+
+进程检查持续阻止使用目标工作区或工具来源工作区的应用及构建／验证进程。只有可确认可执行文件和命令行均与这两个工作区无关的外部 `TableMax.exe` 才不阻止清理；无法确认路径或命令行的进程仍按保护处理。工具不结束用户运行的应用。
 
 ## 工作目录透明压缩
 

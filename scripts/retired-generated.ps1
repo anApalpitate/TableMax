@@ -20,6 +20,7 @@ function Assert-RetiredGenerated($Entry) {
       throw 'Retirement evidence must be retained unchanged outside the deletion entry.'
     }
   }
+  if ($Entry.kind -eq 'consolidated-cleanup-history') { Assert-ConsolidatedCleanupHistory $Entry }
 }
 
 function Initialize-RetiredGenerated {
@@ -29,8 +30,9 @@ function Initialize-RetiredGenerated {
   $plan = Get-Content -LiteralPath $retiredManifestPath -Raw -Encoding utf8 | ConvertFrom-Json
   if ($plan.version -ne 1 -or -not $plan.entries.Count -or $plan.currentArchiveSha256 -ne $archiveHash) { throw 'Retirement plan must identify the current verified ZIP and a nonempty selection.' }
   $paths = New-Object 'System.Collections.Generic.List[string]'
+  $script:cleanupHistoryConsolidation = $false
   foreach ($entry in $plan.entries) {
-    if ($entry.path -notmatch '^(?:artifacts/maintenance/v\d+\.\d+\.\d+/[A-Za-z0-9][A-Za-z0-9_./-]+|\.cache/electron(?:-builder)?)$' -or
+    if ($entry.path -notmatch '^(?:artifacts/maintenance/v\d+\.\d+\.\d+/[A-Za-z0-9][A-Za-z0-9_./-]+|artifacts/maintenance/local-cleanup-(?:\d{8}-\d{6}-\d{3}-(?:releases|intermediates|maintenance)|tools)|\.cache/electron(?:-builder)?)$' -or
         $entry.path -match '(^|/)\.\.?(?:/|$)' -or -not $entry.files.Count -or -not $entry.evidence.Count -or
         [string]::IsNullOrWhiteSpace($entry.reason)) { throw 'Invalid retirement path, inventory, reason or retained evidence.' }
     foreach ($other in $paths) {
@@ -52,6 +54,13 @@ function Initialize-RetiredGenerated {
       $cursor = [IO.Path]::GetDirectoryName($cursor)
     }
     switch ($entry.kind) {
+      'consolidated-cleanup-history' {
+        if ($entry.path -notmatch '^artifacts/maintenance/local-cleanup-(?:\d{8}-\d{6}-\d{3}-(?:releases|intermediates|maintenance)|tools)$' -or
+            -not (Test-Path -LiteralPath (Join-Path $absolute $(if ($entry.path.EndsWith('-tools')) { 'tool-tests.json' } else { 'cleanup.json' })))) { throw 'Only completed local cleanup records and their fully preserved payload may be consolidated.' }
+        . (Join-Path $PSScriptRoot 'cleanup-history.ps1')
+        Assert-ConsolidatedCleanupHistory $entry
+        $script:cleanupHistoryConsolidation = $true
+      }
       'obsolete-tool-cache' {
         if ($entry.path -notmatch '^\.cache/electron(?:-builder)?$' -or
             (Get-Content -LiteralPath (Join-Path $workspace 'package.json') -Raw) -match '"(?:electron|electron-builder)"\s*:') { throw 'Only unused historical Electron tool caches may be retired.' }
@@ -70,7 +79,7 @@ function Initialize-RetiredGenerated {
         if ($entry.path -notmatch '/TableMax-\d+\.\d+\.\d+-(?:win-x64|source)\.zip$' -or $entry.files.Count -ne 1 -or
             (Get-Item -LiteralPath $absolute).PSIsContainer) { throw 'Retired packages must be individual historical archives.' }
       }
-      default { throw 'Only regenerable runtime copies, browser profiles, retired packages and obsolete Electron caches can be selected.' }
+      default { throw 'Only regenerable runtime copies, browser profiles, retired packages, obsolete Electron caches and verified consolidated cleanup history can be selected.' }
     }
     Assert-RetiredGenerated $entry
     $countBefore = $candidates.Count

@@ -488,7 +488,7 @@ try {
   $refused = $false
   try { Run-Cleanup Releases $true 0 $false @('1.6.0') } catch { $refused = $_.Exception.Message -like '*No passing portable evidence*' }
   Check $refused 'Changed or unverified current archive blocks cleanup'
-  $evidenceDir = if ($EvidenceDirectory) { [IO.Path]::GetFullPath($EvidenceDirectory) } else { Join-Path $workspaceForTest 'artifacts/maintenance/local-cleanup-tools' }
+  $evidenceDir = if ($EvidenceDirectory) { [IO.Path]::GetFullPath($EvidenceDirectory) } else { Join-Path $workspaceForTest 'artifacts/maintenance/cleanup-history/tool-checks/current' }
   New-Item -ItemType Directory -Path $evidenceDir -Force | Out-Null
   [PSCustomObject]@{ verifiedAt = [DateTime]::UtcNow.ToString('o'); result = 'passed'; checks = $checks.ToArray(); runtime = $PSVersionTable.PSVersion.ToString() } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $evidenceDir 'tool-tests.json') -Encoding utf8
   Write-Host ('PASS: ' + $checks.Count + ' cleanup checks in an isolated workspace fixture.')

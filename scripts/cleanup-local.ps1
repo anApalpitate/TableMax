@@ -313,8 +313,16 @@ function Add-Candidate([string]$Path, [string]$Reason, $VerificationProof = $nul
 function Assert-Idle {
   # Relative node commands do not expose cwd; treat matching tools as busy too.
   $busy = @(Get-CimInstance -ClassName Win32_Process | Where-Object {
+    # A downloaded app uses its own runtime tree, not this source workspace.
+    # Unknown executable paths/arguments remain protected.
+    $unrelatedDesktop = $_.Name -eq 'TableMax.exe' -and $_.ExecutablePath -and $_.CommandLine -and
+      [IO.Path]::IsPathRooted([string]$_.ExecutablePath) -and
+      -not ([string]$_.ExecutablePath).StartsWith($workspace + '\', [StringComparison]::OrdinalIgnoreCase) -and
+      -not ([string]$_.ExecutablePath).StartsWith($sourceWorkspace + '\', [StringComparison]::OrdinalIgnoreCase) -and
+      ([string]$_.CommandLine).IndexOf($workspace, [StringComparison]::OrdinalIgnoreCase) -lt 0 -and
+      ([string]$_.CommandLine).IndexOf($sourceWorkspace, [StringComparison]::OrdinalIgnoreCase) -lt 0
     $_.Name -match '^(node|electron|TableMax|dotnet|MSBuild|msedgewebview2|7za|7z)\.exe$' -and (
-      -not $_.CommandLine -or $_.Name -eq 'TableMax.exe' -or
+      -not $_.CommandLine -or ($_.Name -eq 'TableMax.exe' -and -not $unrelatedDesktop) -or
       ([string]$_.ExecutablePath).IndexOf($workspace, [StringComparison]::OrdinalIgnoreCase) -ge 0 -or
       ([string]$_.CommandLine).IndexOf($workspace, [StringComparison]::OrdinalIgnoreCase) -ge 0 -or
       $_.CommandLine -match '(scripts[\\/](verify|dev|build|package|launch)|apps[\\/]desktop[\\/]native|electron-builder|vitest|\b(pnpm|npm)\b.*\b(build|dev|test|check|package:win|verify:\w+)\b)'
@@ -556,7 +564,11 @@ try {
   try { $lockHeld = $cleanupMutex.WaitOne(0) }
   catch [Threading.AbandonedMutexException] { $lockHeld = $true }
   if (-not $lockHeld) { throw 'Another cleanup is already using this workspace; all files preserved.' }
-  $logRoot = Join-Path $maintenance ('local-cleanup-' + [DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss-fff') + '-' + $Kind.ToLowerInvariant())
+  $logRoot = if ($RetiredGeneratedManifest -and $cleanupHistoryConsolidation) {
+    Join-Path $maintenance ('cleanup-history/operations/' + [DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss-fff') + '-' + $Kind.ToLowerInvariant())
+  } else {
+    Join-Path $maintenance ('local-cleanup-' + [DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss-fff') + '-' + $Kind.ToLowerInvariant())
+  }
   Assert-LocalPath $logRoot | Out-Null
   New-Item -ItemType Directory -Path $logRoot -Force | Out-Null
   $report = [PSCustomObject]@{
