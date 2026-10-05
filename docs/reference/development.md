@@ -4,6 +4,8 @@
 
 `node scripts/measure-pokemon-expansion-matches.mjs --seeds=4 --evidence=match-run` 使用真实扩展规则与策略模拟2–6人完整三胜大局。两人对每个种子作六种配对／座位反转，3–6人作三次循环档位轮换；每座独立策略随机源，检查授权知识、守恒、规则RNG和输入不变，逐小局走下一局生命周期。结果包含精确源码前后哈希、每轮计分／胜场和档位暴露。`node scripts/analyze-pokemon-expansion-matches.mjs 路径/report.json` 重算三胜终点和每种子完整配对，按人数以整种子块作10,000次描述重采样。四种子是探索样本，不能保证普遍强度顺序。运行期间保持测量依赖源码不变；CPU／自动化时间不作真人节奏证据。
 
+`node scripts/measure-pokemon-expansion-flow.mjs <独立证据名>` 补充2–6人各一个固定种子的混合档位三胜大局，结果在 `artifacts/maintenance/v1.0.2/pokemon-expansion-flow-audit/<证据名>/report.json`。仅在独立测量进程串行安装观察钩子，原规则结果原样返回，成功或异常退出均恢复钩子；不修改既有完整对照测量器或生产规则／策略。统计按同一小局内的牌身份追踪盖回，行交换不误算盖回，阿尔宙斯同一步盖回再翻明计零动作间隔闭环，结算用 `preReveal` 排除强制揭牌；离场与结算未翻明分别记为中断／未闭环。公开统计不含暗牌身份或分值，延迟单位是已保存游戏动作数，不能视作回合数、秒数或全人数强度重复认证。纯观察器边界检查用 `node --test scripts/pokemon-expansion-flow-observer.test.mjs`；测量期间冻结其全部输入，检查源码前后哈希和逐牌盖回事件守恒。
+
 `node scripts/verify-pokemon-expansion.mjs --portable` 对当前ZIP实际解压并运行隐藏WebView2，新增27项本地叫声哈希／单声道／时长／非静音解码检查，保留八项原创主题和原有流程／显示。`node scripts/verify-pokemon-expansion-play.mjs --portable --evidence=normal-run` 通过正式普通模式控件和真实默认Worker完成小局，观察主机 `HTMLMediaElement.play` 及 `playing` 事件，要求至少一个新增叫声实际播放；解码／播放观测均不是真人试听认证。每次使用独立证据名，后台只监听127.0.0.1。叫声原件与派生编码依据见[资源页](../games/pokemon-encounters/assets.md#续建素材与反馈2026-10-06)，同包边界见[验收](acceptance.md)。
 
 扩展集成的四席三胜完整大局使用十分钟整场测试上限，仍限制3,000步、每次真实32MiB Worker两秒截止。原三分钟两次超时记录保留；其中一次在330条日志、第五局开局时存档约1.7GB，合法对局仍推进，不能把整场超时认定为单次Worker超限。四席最多九小局，历史／SQLite工作也计入整场耗时；放宽整场测试边界不等于证明存档长期增长有界，实际耗时另记结果。
