@@ -215,3 +215,5 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 四人八种子24场对照与分析退出、五人组尚未启动时执行维护：初次沙箱遍历拒绝访问且未改文件，正常权限重试后逻辑字节35,224,557,778，零候选、110项保护／近期内容跳过，删除零字节，安全候选耗尽。[记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/combined-source-holdout-4p-20261006/maintenance.json)保留本次权限边界及原素材、存档、当前包与全部对照证据，未扩大清理范围。
 
 五人24场对照、来源请求、分析及格式工具均退出、六人组尚未启动时维护：逻辑字节35,225,296,315，零候选、114项保护／近期内容跳过，删除零字节，安全候选耗尽。[记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/combined-source-holdout-5p-20261006/maintenance.json)保留现有包、原素材、存档及完整对照／来源失败证据，未扩大范围。
+
+六人测量、全人数合并／分析及格式工具全部退出后维护：逻辑字节35,228,844,777，零候选、115项保护／近期内容跳过，删除零字节，安全候选耗尽。[记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/combined-source-holdout-all-counts-20261006/maintenance.json)保留四份原报告、合并脚本与哈希、当前包、素材、存档及全部验收证据，未扩大范围。
