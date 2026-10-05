@@ -4,6 +4,8 @@
 
 用户指定最新发布编号为v1.0.2，保留此前本地v1.0.3／v1.0.4已完成的三游戏、引导和独立构建功能，历史验收不改号。[发布入口](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.2)仅提供完整EXE与发布提交导出的source ZIP；运行ZIP、逐文件清单和过程报告留作本地审计，旧版误传JSON按精确附件名退役。附件核验与来源提交见 [发布审计](../../artifacts/maintenance/v1.0.2/github-release-20261005/github-publication.json)。
 
+线上发布已完成并确认为Latest：标签与source对应提交 `26bb74788f2d48d4a67a34873a7a6c18c905ade0`，源码ZIP13,735,768字节；两份附件的远端大小／SHA-256与本地一致。v1.0.1的 `TableMax-1.0.1-manifest.json`、`TableMax-1.0.1-win-x64-manifest.json` 已移除并修正旧版说明；其有效运行ZIP和source ZIP哈希保持不变，见 [附件退役审计](../../artifacts/maintenance/v1.0.2/github-release-20261005/retired-github-assets.json)。本段为发布后文档记录，发布标签不移动、包不重建。
+
 最终运行ZIP为40,730,282字节，162文件实际解压95,278,750字节；完整EXE为40,865,792字节，实际提取目录含校验标记为163文件／95,313,076字节。均严格低于100,000,000字节；原运行资源超95MB工程预算278,750字节，含标记超313,076字节，如实记录，不以压缩或调整预算抵扣。内置ZIP SHA-256为 `90efd63a9df22eed61a773aa186851e98196f12b995b8e2198141d64bd3b184c`；EXE为 `7fadb97745fd7cdc59b5a23ca9aa8b8616da3506722a1210bdef548fe7590a9c`。
 
 [同包汇总](../../artifacts/maintenance/v1.0.2/github-release-20261005/final-checks.json)核验6份报告使用同一ZIP：宝可梦全部14阶段、两种币面及引导设置；现代艺术五席、三手机、四轮拍卖与回退／恢复；电力公司六席、552条动作重放及显示；盒子、房主与声音播放权4项；三端规则27项；从最终EXE实际提取的原生程序／包内Node／WebView2安全10项。343个构建输入逐一冻结，118媒体文件与上一已验交付哈希一致，交付文件仅package.json及原生版本字节变化。未变的玩法策略单测与专项结论复用，未重新宣称执行。
