@@ -1,3 +1,4 @@
+import { HostedGame } from '@tablemax/web-host';
 import type { GameClient } from '../game-clients/registry';
 import type { RoomSession } from '../session/useRoomSession';
 import { ScreenLink } from '../components/ScreenLink';
@@ -14,8 +15,7 @@ export function GameScreen({
   retry(): void;
 }) {
   if (client && session.view?.game) {
-    const Screen = client.Screen;
-    return <Screen session={session} />;
+    return <HostedGame session={session} client={client} />;
   }
   return (
     <main

@@ -1,155 +1,103 @@
-import { build } from 'esbuild';
-import { build as buildWeb } from 'vite';
-import { mkdir, writeFile, readFile, copyFile, access } from 'node:fs/promises';
-import { resolve, join } from 'node:path';
-import { prepareDesktop, nodeRuntime, execute } from './setup-desktop.mjs';
-
-const output = resolve('build/desktop');
-const project = JSON.parse(await readFile('package.json', 'utf8'));
-await mkdir(output, { recursive: true });
-await buildWeb({ configFile: resolve('apps/web/vite.config.ts') });
-const gameModules = {
-  '../../../games/power-grid': './games/power-grid.cjs',
-  '../../../games/power-grid/bot': './bots/power-grid.cjs',
-  '../../../games/modern-art': './games/modern-art.cjs',
-  '../../../games/modern-art/bot': './bots/modern-art.cjs',
-  '../../../games/pokemon-encounters': './games/pokemon-encounters.cjs',
-  '../../../games/template': './games/template.cjs',
-  '../../../games/pokemon-encounters/bot': './bots/pokemon-encounters.cjs',
-  '../../../games/template/bot': './bots/template.cjs',
-};
-const lazyGames = {
-  name: 'local-game-modules',
-  setup(builder) {
-    builder.onResolve(
-      {
-        filter:
-          /games\/(pokemon-encounters|modern-art|power-grid|template)(\/bot)?$/,
-      },
-      (args) =>
-        gameModules[args.path]
-          ? { path: gameModules[args.path], external: true }
-          : null,
+import {
+  discover,
+  unitsFor,
+  buildUnit,
+  json,
+  lock,
+  validateInputs,
+} from './module-build.mjs';
+import { assemble } from './assemble.mjs';
+import { writeFile, mkdir, readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { createHash } from 'node:crypto';
+export async function buildProject(args = process.argv.slice(2)) {
+  return lock('build-task-' + process.pid, async () => {
+    const started = performance.now();
+    const modules = (await discover()).filter(
+      (item) => !args.includes('--production') || !item.internal,
     );
-  },
-};
-await build({
-  entryPoints: {
-    'games/power-grid': 'games/power-grid/index.ts',
-    'bots/power-grid': 'games/power-grid/bot/index.ts',
-    'games/modern-art': 'games/modern-art/index.ts',
-    'bots/modern-art': 'games/modern-art/bot/index.ts',
-    'games/pokemon-encounters': 'games/pokemon-encounters/index.ts',
-    'games/template': 'games/template/index.ts',
-    'bots/pokemon-encounters': 'games/pokemon-encounters/bot/index.ts',
-    'bots/template': 'games/template/bot/index.ts',
-  },
-  outdir: output,
-  outExtension: { '.js': '.cjs' },
-  bundle: true,
-  // Production-only code compression; property keys, sources and media stay intact.
-  minify: true,
-  platform: 'node',
-  format: 'cjs',
-  target: 'node22',
-  logLevel: 'info',
-});
-await build({
-  entryPoints: ['apps/server/src/entry.ts'],
-  outfile: `${output}/server.cjs`,
-  bundle: true,
-  // Compact the generated service bundle; editable sources and assets stay intact.
-  minify: true,
-  platform: 'node',
-  format: 'cjs',
-  target: 'node22',
-  logLevel: 'info',
-  plugins: [lazyGames],
-});
-await build({
-  entryPoints: ['apps/server/src/bot-worker.ts'],
-  outfile: `${output}/bot-worker.cjs`,
-  bundle: true,
-  minify: true,
-  platform: 'node',
-  format: 'cjs',
-  target: 'node22',
-  logLevel: 'info',
-  plugins: [lazyGames],
-});
-await prepareDesktop();
-await execute(
-  'dotnet',
-  [
-    'build',
-    resolve('apps/desktop/native/TableMax.csproj'),
-    '--configuration',
-    'Release',
-    '--no-restore',
-  ],
-  {
-    env: {
-      ...process.env,
-      DOTNET_CLI_HOME: resolve('.cache/dotnet-home'),
-      DOTNET_NOLOGO: '1',
-      DOTNET_CLI_TELEMETRY_OPTOUT: '1',
-    },
-  },
-);
-for (const file of [
-  'TableMax.exe',
-  'TableMax.exe.config',
-  'Microsoft.Web.WebView2.Core.dll',
-  'Microsoft.Web.WebView2.WinForms.dll',
-])
-  await copyFile(join('build/native', file), join(output, file));
-let loader;
-for (const candidate of [
-  resolve('build/native/runtimes/win-x64/native/WebView2Loader.dll'),
-  resolve('build/native/WebView2Loader.dll'),
-]) {
-  try {
-    await access(candidate);
-    loader = candidate;
-    break;
-  } catch {
-    /* Inspect the next SDK output location. */
-  }
+    const units = await unitsFor(modules);
+    const only = args.find((v) => v.startsWith('--only='))?.slice(7);
+    const part = args.find((v) => v.startsWith('--part='))?.slice(7);
+    if (part && !only?.startsWith('game:'))
+      throw new Error('--part requires --only=game:<id>');
+    if (part && !['rules', 'bot', 'web', 'metadata'].includes(part))
+      throw new Error('Unknown build part');
+    const selected = units.filter(
+      (unit) =>
+        !only ||
+        (only === 'platform'
+          ? unit.id.startsWith('platform-')
+          : only.startsWith('game:') &&
+            unit.module?.id === only.slice(5) &&
+            (!part || unit.id.endsWith('-' + part))),
+    );
+    if (!selected.length) throw new Error('Unknown build unit');
+    const results = [];
+    for (const unit of selected) {
+      const result = await buildUnit(unit, args.includes('--full'));
+      results.push(result);
+      console.log(
+        result.id +
+          ': ' +
+          (result.cached ? 'cache hit' : result.durationMs + 'ms'),
+      );
+    }
+    if (only) {
+      for (const result of results) await validateInputs(result);
+      return { units: results };
+    }
+    for (const result of results) await validateInputs(result);
+    if (
+      JSON.stringify(
+        (await discover()).filter(
+          (item) => !args.includes('--production') || !item.internal,
+        ),
+      ) !== JSON.stringify(modules)
+    )
+      throw new Error('Module list changed before snapshot');
+    const version = (await json('package.json')).version;
+    const assemblerSha256 = createHash('sha256')
+      .update(await readFile('scripts/assemble.mjs'))
+      .digest('hex');
+    const id = createHash('sha256')
+      .update(
+        JSON.stringify({
+          version,
+          assemblerSha256,
+          units: results.map(({ id, fingerprint }) => ({ id, fingerprint })),
+        }),
+      )
+      .digest('hex');
+    const snapshot = {
+      schemaVersion: 1,
+      id,
+      version,
+      assemblerSha256,
+      modules,
+      units: results,
+    };
+    await mkdir('build/snapshots', { recursive: true });
+    const snapshotPath = resolve('build/snapshots', id + '.json');
+    await writeFile(snapshotPath, JSON.stringify(snapshot, null, 2) + '\n');
+    await writeFile(
+      'build/snapshots/latest.json',
+      JSON.stringify({ snapshotPath, id }) + '\n',
+    );
+    await assemble(snapshotPath);
+    console.log(
+      JSON.stringify({
+        snapshotPath,
+        durationMs: Math.round(performance.now() - started),
+        cacheHits: results.filter((r) => r.cached).length,
+        total: results.length,
+      }),
+    );
+    return { snapshotPath, id, units: results };
+  });
 }
-if (!loader) throw new Error('Native x64 WebView2Loader.dll is missing');
-await copyFile(loader, join(output, 'WebView2Loader.dll'));
-await copyFile(join(nodeRuntime, 'node.exe'), join(output, 'node.exe'));
-await copyFile(join(nodeRuntime, 'LICENSE'), join(output, 'Node-LICENSE.txt'));
-for (const file of ['LICENSE.txt', 'NOTICE.txt'])
-  await copyFile(
-    resolve('.cache/nuget/microsoft.web.webview2/1.0.4258.31', file),
-    join(output, 'WebView2-' + file),
-  );
-await writeFile(
-  `${output}/package.json`,
-  JSON.stringify(
-    {
-      name: 'tablemax-desktop',
-      version: project.version,
-      private: true,
-      description: 'TableMax local board-game platform',
-      author: 'TableMax',
-      license: 'UNLICENSED',
-      desktopRuntime: 'net48-webview2',
-      nodeVersion: '22.14.0',
-    },
-    null,
-    2,
-  ) + '\n',
-);
-await writeFile(
-  join(output, '.tablemax-development.json'),
-  JSON.stringify(
-    { version: 1, repositoryRoot: resolve('.'), outputDirectory: output },
-    null,
-    2,
-  ) + '\n',
-);
-console.log(
-  'Built native WebView2 shell, official Node service, and local web assets.',
-);
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === resolve('scripts/build.mjs')
+)
+  await buildProject();

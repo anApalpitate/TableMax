@@ -4,6 +4,7 @@ import { createInterface } from 'node:readline';
 import { EventEmitter } from 'node:events';
 import { createServer } from 'node:net';
 import { resolve } from 'node:path';
+import { traceBudgets } from './budget-trace.mjs';
 
 export const desktopExecutable = resolve('build/desktop/TableMax.exe');
 const wait = (ms) => new Promise((done) => setTimeout(done, ms));
@@ -244,6 +245,15 @@ export async function launchDesktop(options = {}) {
       await Promise.all(queued);
       return result;
     };
+    const finishBudgetTrace =
+      process.env.TABLEMAX_BUDGET_TRACE && process.env.TABLEMAX_BUDGET_GAME
+        ? traceBudgets({
+            pages,
+            runtime: () => request('runtime'),
+            directory: process.env.TABLEMAX_BUDGET_TRACE,
+            gameId: process.env.TABLEMAX_BUDGET_GAME,
+          })
+        : null;
     const desktop = {
       startup,
       request,
@@ -348,6 +358,7 @@ export async function launchDesktop(options = {}) {
         return result;
       },
       async close() {
+        await finishBudgetTrace?.();
         if (!exited) {
           const closing = request('quit').catch((error) => {
             if (!exited) throw error;

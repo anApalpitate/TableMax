@@ -231,8 +231,8 @@ function observe(page) {
           modernArtWavNames.some((name) => {
             const path = new URL(request.url()).pathname;
             return (
-              path === '/assets/' + name ||
-              (path.startsWith('/assets/' + name.slice(0, -4) + '-') &&
+              path.endsWith('/' + name) ||
+              (path.includes('/assets/' + name.slice(0, -4) + '-') &&
                 path.endsWith('.wav'))
             );
           }),
@@ -1701,12 +1701,14 @@ try {
     const moduleUrl = performance
       .getEntriesByType('resource')
       .map((entry) => entry.name)
-      .find((name) => /ModernArtScreen.*\.js/.test(name));
+      .find((name) => name.endsWith('/games/modern-art/web/entry.js'));
     if (!moduleUrl) throw new Error('Modern Art client chunk missing');
     const source = await (await fetch(moduleUrl)).text();
     const atlases = [
-      ...new Set(source.match(/\/[\w./-]+-atlas-v1-[\w-]+\.webp/g) ?? []),
+      ...new Set(source.match(/[\w-]+-atlas-v1-[\w-]+\.webp/g) ?? []),
     ];
+    for (let i = 0; i < atlases.length; i++)
+      atlases[i] = new URL('./assets/' + atlases[i], moduleUrl).href;
     if (atlases.length !== 5)
       throw new Error('Five local art atlases must be bundled');
     await Promise.all(
@@ -2334,8 +2336,13 @@ try {
     [...document.styleSheets].map((sheet) => sheet.href ?? ''),
   );
   assert.ok(
-    styles.some((url) => /PokemonScreen.*\.css/.test(url)) &&
-      styles.some((url) => /ModernArtScreen.*\.css/.test(url)),
+    styles.some(
+      (url) =>
+        url.includes('/games/pokemon-encounters/web/') && url.endsWith('.css'),
+    ) &&
+      styles.some(
+        (url) => url.includes('/games/modern-art/web/') && url.endsWith('.css'),
+      ),
     'Both game stylesheets coexist after switching',
   );
   evidence.coexistingStyles = styles;

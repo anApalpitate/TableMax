@@ -1,4 +1,5 @@
-import './build.mjs';
+import { buildProject } from './build.mjs';
+await buildProject();
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 

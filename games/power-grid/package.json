@@ -6,6 +6,7 @@
   "exports": "./index.ts",
   "dependencies": {
     "react": "19.3.0",
-    "@tablemax/game-sdk": "workspace:*"
+    "@tablemax/game-sdk": "workspace:*",
+    "@tablemax/web-host": "workspace:*"
   }
 }

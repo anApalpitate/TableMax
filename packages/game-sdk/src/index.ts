@@ -1,3 +1,4 @@
+export type { ModuleManifest } from './module-manifest';
 export type JsonValue =
   null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
 

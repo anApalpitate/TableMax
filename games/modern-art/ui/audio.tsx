@@ -1,3 +1,4 @@
+import { claimAudioEvent } from '@tablemax/web-host';
 import { useEffect, useRef, useState } from 'react';
 import type { RoomFeedback } from '../../../packages/protocol/src';
 import type { ModernArtView } from './view';
@@ -140,8 +141,7 @@ export function ModernArtSoundControl({
     void Promise.resolve(
       localOnly
         ? true
-        : (window.tablemaxAudio?.claimEvent(modernArtFeedbackKey(feedback)) ??
-            true),
+        : (claimAudioEvent(modernArtFeedbackKey(feedback)) ?? true),
     )
       .then((accepted) => {
         if (
@@ -172,7 +172,7 @@ export function ModernArtSoundControl({
     void Promise.resolve(
       localOnly
         ? true
-        : (window.tablemaxAudio?.claimEvent(
+        : (claimAudioEvent(
             `${modernArtFeedbackKey(feedback)}:modern-art-error:${errorId}`,
           ) ?? true),
     )
@@ -204,9 +204,7 @@ export function ModernArtSoundControl({
       return;
     const permit = permission.current;
     const playback = player.current;
-    void Promise.resolve(
-      localOnly ? true : (window.tablemaxAudio?.claimEvent(timerKey) ?? true),
-    )
+    void Promise.resolve(localOnly ? true : (claimAudioEvent(timerKey) ?? true))
       .then((accepted) => {
         if (
           accepted &&

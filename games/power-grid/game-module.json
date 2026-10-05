@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "id": "power-grid",
+  "order": 2,
+  "internal": false,
+  "catalog": {
+    "id": "power-grid",
+    "name": "电力公司",
+    "min": 2,
+    "max": 6,
+    "decisionTimer": true
+  },
+  "compatibility": {
+    "sdk": 1,
+    "protocol": 6,
+    "webHost": 1,
+    "rulesVersion": "classic-germany-2009-project-1",
+    "stateVersion": 1,
+    "gameVersion": "1.0.1",
+    "strategyVersion": "1.0.1"
+  },
+  "entries": {
+    "rules": "games/power-grid/rules/index.ts",
+    "bot": "games/power-grid/bot/index.ts",
+    "web": "games/power-grid/web/index.tsx"
+  },
+  "cover": "assets/games/power-grid/cover-v1.webp",
+  "introduction": {
+    "tagline": "德国电网，运筹竞逐",
+    "lead": "经营自己的电力公司，竞拍电厂、采购燃料，把供电网络连接到德国各地。",
+    "steps": [
+      {
+        "icon": "auction",
+        "title": "竞拍电厂",
+        "text": "选择合适的发电能力，把握竞价与资金储备。"
+      },
+      {
+        "icon": "coins",
+        "title": "燃料与建设",
+        "text": "采购市场燃料，支付连接费用，扩大城市网络。"
+      },
+      {
+        "icon": "cards",
+        "title": "发电收入",
+        "text": "决定启动哪些电厂，获得收入，迎接下一轮。"
+      }
+    ],
+    "goal": "终局实际供电城市最多者获胜；同分时比较剩余现金。"
+  },
+  "botIntroduction": {
+    "default": {
+      "lead": "按基础产能与费用购厂、买料和建城。",
+      "details": ["通常预备一次运行，选择便宜的起点与连接。"]
+    },
+    "doubao": {
+      "lead": "权衡升级效率、燃料成本与扩城预算。",
+      "details": ["按实际可发电产能扩城，避免明显不利的提前终局。"]
+    },
+    "juewu": {
+      "lead": "结合公开对手产能、城市拥挤与终局节奏规划。",
+      "details": ["前中期最多预备两次运行，比较后续连接成本与燃料需求。"]
+    }
+  },
+  "budgets": {
+    "payloadBytes": 2097152,
+    "serviceHeapBytes": 127926272,
+    "desktopHeapBytes": 42991616,
+    "phoneHeapBytes": 45088768,
+    "privateIncrementBytes": 1402994688,
+    "workerOldGenerationMiB": 32,
+    "basis": "2026-10-05 one-time baseline: independent payload ×1.10; maxima of three real scenario runs ×1.25, rounded up to MiB. Evidence: artifacts/maintenance/v1.0.4/incremental-build-20261005/budgets/results.json. Sampled WebView2 heaps and owned process-tree private-byte increase from first box sample; full-match service heap measured separately."
+  }
+}

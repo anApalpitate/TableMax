@@ -263,7 +263,9 @@ try {
     await host.evaluate(() =>
       performance
         .getEntriesByType('resource')
-        .some((entry) => /PokemonScreen/.test(entry.name)),
+        .some((entry) =>
+          /\/games\/pokemon-encounters\/web\/entry\.js/.test(entry.name),
+        ),
     ),
     false,
     'Box selection keeps full game client unloaded',
@@ -308,7 +310,9 @@ try {
     await host.evaluate(() =>
       performance
         .getEntriesByType('resource')
-        .some((entry) => /PokemonScreen/.test(entry.name)),
+        .some((entry) =>
+          /\/games\/pokemon-encounters\/web\/entry\.js/.test(entry.name),
+        ),
     ),
     true,
     'Game route loads its independent client',
@@ -400,7 +404,18 @@ try {
     .click({ noWaitAfter: true });
   const publicPage = await nextPublic;
   await observe(publicPage);
-  await publicPage.locator('.pokemon-screen').waitFor();
+  try {
+    await publicPage.locator('.pokemon-screen').waitFor();
+  } catch (error) {
+    evidence.publicLoad = await publicPage.evaluate(() => ({
+      path: location.pathname,
+      text: document.body.innerText,
+      resources: performance
+        .getEntriesByType('resource')
+        .map((item) => item.name),
+    }));
+    throw error;
+  }
   await publicPage.evaluate(() => {
     window.experienceReloadMarker = true;
   });

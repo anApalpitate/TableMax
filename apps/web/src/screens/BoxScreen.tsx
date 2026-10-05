@@ -1,3 +1,4 @@
+import { moduleFor } from '../catalog';
 import { useState } from 'react';
 import {
   AVATAR_PRESETS,
@@ -105,10 +106,10 @@ export function BoxScreen({ session }: { session: RoomSession }) {
           TableMax
         </span>
         <div className="header-status">
-          {(isHost || game?.id === 'pokemon-encounters') && (
+          {(isHost || moduleFor(game?.id)?.guidance) && (
             <CountdownSettings session={session}>
-              {game?.id === 'pokemon-encounters' && (
-                <BeginnerGuidanceSetting gameId={game.id} />
+              {moduleFor(game?.id)?.guidance && (
+                <BeginnerGuidanceSetting gameId={game!.id} />
               )}
             </CountdownSettings>
           )}
@@ -127,7 +128,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
         <div>
           <h1>{game?.name ?? '选个游戏，朋友们上桌'}</h1>
         </div>
-        {game?.id === 'pokemon-encounters' && <PokemonVersion />}
+        {moduleFor(game?.id)?.versions && <PokemonVersion gameId={game!.id} />}
         {isHost && game && (
           <button
             type="button"

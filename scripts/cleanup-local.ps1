@@ -321,7 +321,13 @@ function Assert-Idle {
       -not ([string]$_.ExecutablePath).StartsWith($sourceWorkspace + '\', [StringComparison]::OrdinalIgnoreCase) -and
       ([string]$_.CommandLine).IndexOf($workspace, [StringComparison]::OrdinalIgnoreCase) -lt 0 -and
       ([string]$_.CommandLine).IndexOf($sourceWorkspace, [StringComparison]::OrdinalIgnoreCase) -lt 0
-    $_.Name -match '^(node|electron|TableMax|dotnet|MSBuild|msedgewebview2|7za|7z)\.exe$' -and (
+    # Codex's persistent interpreter carries cwd in its arguments even when idle.
+    # Identify only its bundled bootstrap, never project children or unknown Node.
+    $codexToolKernel = $_.Name -eq 'node.exe' -and
+      ([string]$_.ExecutablePath) -match '[\\/]OpenAI[\\/]Codex[\\/]runtimes[\\/]cua_node[\\/][^\\/]+[\\/]bin[\\/]node\.exe$' -and
+      ([string]$_.CommandLine) -match '--experimental-vm-modules' -and
+      ([string]$_.CommandLine) -match '(?:[\\/]kernel\.js\s+--session-id\s+[0-9a-f]+\s+--working-dir\s+|[\\/]trusted-worker\.js\s+)'
+    -not $codexToolKernel -and $_.Name -match '^(node|electron|TableMax|dotnet|MSBuild|msedgewebview2|7za|7z)\.exe$' -and (
       -not $_.CommandLine -or ($_.Name -eq 'TableMax.exe' -and -not $unrelatedDesktop) -or
       ([string]$_.ExecutablePath).IndexOf($workspace, [StringComparison]::OrdinalIgnoreCase) -ge 0 -or
       ([string]$_.CommandLine).IndexOf($workspace, [StringComparison]::OrdinalIgnoreCase) -ge 0 -or

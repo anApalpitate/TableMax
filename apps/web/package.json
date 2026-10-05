@@ -7,6 +7,7 @@
     "@tablemax/protocol": "workspace:*",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "socket.io-client": "4.8.4"
+    "socket.io-client": "4.8.4",
+    "@tablemax/web-host": "workspace:*"
   }
 }

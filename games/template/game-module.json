@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "template",
+  "order": 3,
+  "internal": true,
+  "catalog": {
+    "id": "template",
+    "name": "幸运骰子 · 平台验证游戏",
+    "min": 2,
+    "max": 5
+  },
+  "compatibility": {
+    "sdk": 1,
+    "protocol": 6,
+    "webHost": 1,
+    "rulesVersion": "template-v1",
+    "stateVersion": 1,
+    "gameVersion": "1.0.0",
+    "strategyVersion": "1.0.0"
+  },
+  "entries": {
+    "rules": "games/template/rules/index.ts",
+    "bot": "games/template/bot/index.ts",
+    "web": "games/template/web/index.tsx"
+  },
+  "cover": null,
+  "budgets": {
+    "payloadBytes": 1048576,
+    "serviceHeapBytes": 67108864,
+    "desktopHeapBytes": 33554432,
+    "phoneHeapBytes": 33554432,
+    "privateIncrementBytes": 536870912,
+    "workerOldGenerationMiB": 32,
+    "basis": "Internal SDK prototype allocation set by agent: 1 MiB payload, 64 MiB service, 32 MiB per renderer and 512 MiB private increment; warning only. Not a formal-game measured baseline."
+  }
+}

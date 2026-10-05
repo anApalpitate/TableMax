@@ -11,7 +11,7 @@ import {
   type RoomView,
   type AvatarId,
 } from '@tablemax/protocol';
-import { getGameClient } from '../game-clients/registry';
+import { changedGameSlots, gameMotionDuration } from './presentation';
 import { navigate, type ScreenRole } from '../navigation';
 import { useAdmission } from './useAdmission';
 const messages: Record<string, string> = {
@@ -151,9 +151,7 @@ export function useRoomSession(role: ScreenRole) {
           previous.instanceId === next.instanceId &&
           previous.branch === next.branch
         ) {
-          const client = next.game && getGameClient(next.game.id);
-          changedSlots.current =
-            client?.savedChanges(previous.gameView, next.gameView) ?? [];
+          changedSlots.current = changedGameSlots(previous, next);
         }
         if (
           !previous ||
@@ -195,13 +193,9 @@ export function useRoomSession(role: ScreenRole) {
       setMotion(current.playMode === 'test' ? [] : changedSlots.current);
       if (motionTimer.current) clearTimeout(motionTimer.current);
       if (current.playMode === 'play') {
-        const duration =
-          current.game && getGameClient(current.game.id)?.motionDuration;
         motionTimer.current = setTimeout(
           () => setMotion([]),
-          (typeof duration === 'function'
-            ? duration(current.gameView)
-            : duration) || 1200,
+          gameMotionDuration(current),
         );
       }
     });

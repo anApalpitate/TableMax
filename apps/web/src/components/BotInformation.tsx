@@ -1,7 +1,5 @@
+import { moduleFor } from '../catalog';
 import type { BotDifficulty, RoomView } from '@tablemax/protocol';
-import { pokemonBotIntroduction } from '../../../../games/pokemon-encounters/ui/bot-introduction';
-import { modernArtBotIntroduction } from '../../../../games/modern-art/ui/bot-introduction';
-import { powerGridBotIntroduction } from '../../../../games/power-grid/ui/bot-introduction';
 import './box-overlays.css';
 
 const names: Record<BotDifficulty, string> = {
@@ -9,22 +7,12 @@ const names: Record<BotDifficulty, string> = {
   doubao: '豆包',
   juewu: '绝悟',
 };
-type BotIntroduction = Record<
-  BotDifficulty,
-  { lead: string; details: readonly string[] }
->;
-const introductions: Record<string, BotIntroduction> = {
-  'pokemon-encounters': pokemonBotIntroduction,
-  'modern-art': modernArtBotIntroduction,
-  'power-grid': powerGridBotIntroduction,
-};
-
 export function BotInformation({
   game,
 }: {
   game: NonNullable<RoomView['game']>;
 }) {
-  const introduction = introductions[game.id];
+  const introduction = moduleFor(game.id)?.botIntroduction;
   return (
     <div className="bot-information">
       <p className="bot-information__game">{game.name}</p>

@@ -14,6 +14,7 @@ import type { Save } from '@tablemax/platform-core';
 import { rules, bot } from '@tablemax/game-template';
 import { createService } from './service';
 import { SqliteSaveRepository } from './save-repository';
+import { safeHttpPort } from '../../../scripts/fixtures/safe-http-port';
 
 afterEach(() => vi.restoreAllMocks());
 function dirs() {
@@ -113,6 +114,7 @@ it('synchronizes HTTP players and Socket.IO viewers from saved platform timing; 
   let now = 1_900_000_000_000;
   vi.spyOn(Date, 'now').mockImplementation(() => now);
   const config = dirs();
+  config.port = await safeHttpPort();
   let service = await createService(config, { rules, bot });
   const sockets: Socket[] = [];
   try {

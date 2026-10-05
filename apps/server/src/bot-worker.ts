@@ -1,19 +1,11 @@
+import { loadInstalledModule } from './module-loader';
 import { parentPort, workerData } from 'node:worker_threads';
 import { RandomSource } from '@tablemax/platform-core/random';
 import type { RoomCoordinator } from '@tablemax/platform-core';
 
 const task = workerData as NonNullable<ReturnType<RoomCoordinator['botTask']>>;
 async function run() {
-  const bot =
-    task.gameId === 'power-grid'
-      ? (await import('../../../games/power-grid/bot')).bot
-      : task.gameId === 'modern-art'
-        ? (await import('../../../games/modern-art/bot')).bot
-        : task.gameId === 'pokemon-encounters'
-          ? (await import('../../../games/pokemon-encounters/bot')).bot
-          : task.gameId === 'template'
-            ? (await import('../../../games/template/bot')).bot
-            : null;
+  const bot = (await loadInstalledModule(task.gameId, 'bot')).bot;
   if (!bot || task.data.version !== bot.version)
     throw new Error('incompatible-strategy');
   if (

@@ -18,13 +18,14 @@
 | `apps/desktop/native/`                                                         | C# WinForms／net48／x64 外壳：双窗口、WebView2 桥接、显示／声音、私有服务管道、进程与单实例保障及锁定依赖 |
 | `apps/desktop/src/`                                                            | 网页使用的桌面显示／声音 TypeScript 契约及独立控制逻辑回归；不启动正式窗口或服务                          |
 | `apps/server/`                                                                 | HTTP／Socket.IO、构建后网页、二维码、SQLite 存档仓储、独立 bot Worker 与游戏注册／加载                    |
-| `apps/web/`                                                                    | 单一 React 工程；盒子与独立游戏页、会话／导航／通用控件，另保留隔离原型                                   |
+| `apps/web/`                                                                    | 平台盒子、会话／导航与网页宿主实现；游戏网页独立构建，另保留隔离原型 |
 | `apps/web/src/session/`、`screens/`、`components/`                             | 权威同步与可靠提交、平台页面和通用控件；具体牌桌留在游戏 UI                                               |
-| `apps/web/src/game-clients/`                                                   | 按游戏 ID 加载的适配器、加载失败重试及介绍；组合平台会话与游戏 UI                                         |
+| `apps/web/src/game-clients/`                                                   | 清单驱动的本地ESM加载与重试；旧Screen仅为源码fixture保留兼容包装 |
 | `packages/protocol/`                                                           | 通信与桌面／服务消息的类型和运行时校验                                                                    |
 | `packages/game-sdk/`                                                           | 游戏、策略和生命周期纯类型契约                                                                            |
+| `packages/web-host/`                                                          | 版本化授权网页契约、GameClient与共享控件／React运行时的实际入口 |
 | `packages/platform-core/`                                                      | 房间与授权、游戏切换、串行动作／去重、随机／checkpoint／回退恢复、bot 调度与存档校验                      |
-| `games/<id>/`                                                                  | 各游戏独立规则、计分、投影、数据、bot、UI、保存表现及测试；不跨游戏导入                                   |
+| `games/<id>/`                                                                  | game-module.json清单、独立rules／bot／web入口、UI、数据和测试；不跨游戏导入 |
 | `games/template/`                                                              | 可运行内部验证游戏，用于切换、容量与平台／策略兼容测试，不在正式目录展示                                  |
 | `assets/`、`assets/games/<id>/`、`assets/platform/`                            | 全部运行／原型美术和声音、游戏独立资源、平台头像／图标等，以及各自来源／版本清单                          |
 | `docs/requirements/`                                                           | 需求基线及用户确认的增补，区分要求、现状和规划                                                            |
@@ -36,6 +37,7 @@
 | `docs/subagent/`                                                               | 长期角色职责、派工输入、文件边界与交接标准；不保存会话实例或素材                                          |
 | `docs/archive/`                                                                | 已完成任务及历史过程／验收／开发记录；不作为当前实现或命令依据                                            |
 | `build/native/`、`build/native-obj/`、`build/desktop/`                         | 可再生编译与完整运行目录；规则／策略模块和前端分块随本地包收集，不手改生成物                              |
+| `.cache/build-modules/v1/`、`build/snapshots/`                               | 内容寻址的成功单元、隔离任务输出和冻结组装清单；按专用缓存保留规则维护 |
 | `artifacts/releases/`、`artifacts/maintenance/`、`artifacts/phase-*/`          | 最终交付、维护及阶段证据／原始资料；材料是否可再生分别判断                                                |
 | `tmp/`                                                                         | 隔离验证数据、解压副本及实验中间物；长期资料不能只留在临时目录                                            |
 

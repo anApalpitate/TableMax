@@ -38,7 +38,8 @@
     "verify:effects": "node scripts/verify-pokemon-effects.mjs",
     "verify:modern-art": "node scripts/verify-modern-art.mjs",
     "verify:power-grid": "node scripts/verify-power-grid.mjs",
-    "verify:power-grid-ui": "node scripts/verify-power-grid-ui.mjs"
+    "verify:power-grid-ui": "node scripts/verify-power-grid-ui.mjs",
+    "assemble:win": "node scripts/assemble.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

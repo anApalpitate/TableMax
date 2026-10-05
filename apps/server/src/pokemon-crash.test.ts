@@ -8,6 +8,8 @@ import { io, type Socket } from 'socket.io-client';
 import type { RoomView, CommandReply, Command } from '@tablemax/protocol';
 import { prepare } from '../../../scripts/fixtures/prepare-pokemon';
 import { createService } from './service';
+import { prepareModuleFixture } from '../../../scripts/fixtures/prepare-module-fixture';
+import { safeHttpPort } from '../../../scripts/fixtures/safe-http-port';
 
 it.each([
   {
@@ -35,6 +37,7 @@ it.each([
     writeFileSync(join(webDir, 'index.html'), '<html>fixture</html>');
     const players = await prepare(id, dir);
     const file = join(dir, 'crash.cjs');
+    await prepareModuleFixture(dir);
     await build({
       entryPoints: [resolve('scripts/fixtures/crash-pokemon.ts')],
       outfile: file,
@@ -49,6 +52,7 @@ it.each([
         ...process.env,
         TABLEMAX_CRASH_DATA: dir,
         TABLEMAX_CRASH_WEB: webDir,
+        TABLEMAX_CRASH_PORT: String(await safeHttpPort()),
       },
     });
     const exited = new Promise<void>((r) => child.once('exit', () => r()));
@@ -113,7 +117,7 @@ it.each([
       await exited;
       const service = await createService({
         host: '127.0.0.1',
-        port: 0,
+        port: await safeHttpPort(),
         dataDir: dir,
         webDir,
       });

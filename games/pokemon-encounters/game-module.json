@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "id": "pokemon-encounters",
+  "order": 0,
+  "internal": false,
+  "catalog": {
+    "id": "pokemon-encounters",
+    "name": "宝可梦奇遇：皮卡丘和朋友们",
+    "min": 2,
+    "max": 6
+  },
+  "compatibility": {
+    "sdk": 1,
+    "protocol": 6,
+    "webHost": 1,
+    "rulesVersion": "tablemax-cn-s19-v1",
+    "stateVersion": 1,
+    "gameVersion": "1.0.0",
+    "strategyVersion": "1"
+  },
+  "entries": {
+    "rules": "games/pokemon-encounters/rules/index.ts",
+    "bot": "games/pokemon-encounters/bot/index.ts",
+    "web": "games/pokemon-encounters/web/index.tsx"
+  },
+  "cover": "assets/games/pokemon-encounters/cover-v1.webp",
+  "introduction": {
+    "tagline": "记住暗牌，换牌降分，发动宝可梦能力。",
+    "lead": "用换牌和宝可梦能力，让自己的六张牌总分最低。",
+    "steps": [
+      {
+        "icon": "cards",
+        "title": "六张牌，先翻一张",
+        "text": "每人六张暗牌排成两行，先选一张公开，记住自己的牌。"
+      },
+      {
+        "icon": "swap",
+        "title": "取牌，换牌，发动能力",
+        "text": "从牌库或弃牌堆取牌，换入自己的场地。特殊宝可梦还能看牌、交换或影响朋友。"
+      },
+      {
+        "icon": "pair",
+        "title": "配对，让分数更低",
+        "text": "同一列两张分值相同就计零分。有人六张牌全明、能力处理完后，大家一起结算。"
+      }
+    ],
+    "goal": "每小局总分最低者获一星，先拿三颗星获胜。"
+  },
+  "botIntroduction": {
+    "default": {
+      "lead": "比较取牌、换入、弃掉与配对，结合局势决定是否收局。",
+      "details": [
+        "记住最近 2 张本人私看牌，3 个本人普通回合后遗忘；保留 8 条公开行动及上一小局摘要。"
+      ]
+    },
+    "doubao": {
+      "lead": "用 8 组未知牌假设，前瞻最多 1 个本人后续回合。",
+      "details": [
+        "最多记住 6 张私看牌，8 回合后遗忘；保留 32 条公开行动及最近 2 小局，旧摘要权重减半。"
+      ]
+    },
+    "juewu": {
+      "lead": "用 32 组假设，结合全桌局势前瞻最多 2 个本人后续回合。",
+      "details": [
+        "本小局合法私看不主动遗忘，保留 128 条公开行动及整局摘要；考虑百变怪、供牌、共同赢家、结束与第三胜风险。只使用本人获准信息。"
+      ]
+    }
+  },
+  "guidance": true,
+  "versions": [
+    {
+      "name": "原版",
+      "selected": true,
+      "description": "2×3 场地，16 类／56 张牌，三胜。"
+    },
+    {
+      "name": "扩展版",
+      "selected": false,
+      "description": "3×3 场地、更多精灵与新能力正在筹备。"
+    }
+  ],
+  "budgets": {
+    "payloadBytes": 4194304,
+    "serviceHeapBytes": 83886080,
+    "desktopHeapBytes": 37748736,
+    "phoneHeapBytes": 25165824,
+    "privateIncrementBytes": 898629632,
+    "workerOldGenerationMiB": 32,
+    "basis": "2026-10-05 one-time baseline: independent payload ×1.10; maxima of three real scenario runs ×1.25, rounded up to MiB. Evidence: artifacts/maintenance/v1.0.4/incremental-build-20261005/budgets/results.json. Sampled WebView2 heaps and owned process-tree private-byte increase from first box sample; full-match service heap measured separately."
+  }
+}

@@ -1,3 +1,4 @@
+import { claimAudioEvent } from '@tablemax/web-host';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { RoomFeedback } from '../../../packages/protocol/src';
 import type { PowerGridView } from '../types';
@@ -134,7 +135,7 @@ export function PowerGridSoundControl({
     }
     const current = generation.current,
       audio = playback.current;
-    void Promise.resolve(window.tablemaxAudio?.claimEvent(key) ?? true)
+    void Promise.resolve(claimAudioEvent(key) ?? true)
       .then((accepted) => {
         if (
           !accepted ||

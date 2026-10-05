@@ -4,13 +4,27 @@
 
 2026-10-05 已按用户新授权清理 maintenance 中历史运行截图，保留当前 v1.0.3 验收、原素材、存档与文字结果。本页较早章节的截图保留描述仅表示当次状态，最新退役范围与哈希见 [全量退役记录](project-slimming.md#历史运行截图全量退役2026-10-05)。
 
+## 1.0.4：独立增量构建与分块组装（2026-10-05）
+
+平台六单元及每游戏规则／人机／网页／轻量目录四单元已独立构建。正式包默认三游戏共18单元，开发含内部模板共22单元；服务、Worker、盒子由版本清单发现，额外验证游戏无需修改平台名单。游戏网页通过授权 web-host 和固定本地 ESM 共享 React／React DOM／通用控件，盒子只读轻量目录和小封面。玩法、策略版本、权限及存档格式保持兼容；下载、安装和差分更新未实现。
+
+类型、Lint、全库代码格式及117项平台／服务／协议相关测试通过。[缓存11项](../../artifacts/maintenance/v1.0.4/incremental-build-20261005/cache/results.json)验证独立失效、跨目录牌表、数组／排除素材glob新增重命名删除、损坏、并发、第五验证游戏实际发现、版本拒绝、增量与干净全量组装文件完全一致及失败回滚；[失败边界6项](../../artifacts/maintenance/v1.0.4/incremental-build-20261005/cache/failure-boundaries.json)检查非法单元路径、提前完成单元后续变化、编译失败、陈旧描述、编译途中变化及共享契约失效。实际暖构建13,453ms、强制全量29,928ms；最终18单元全命中，组装9,656ms，含构建／压缩／实际解压的打包31,031ms，各单元耗时在冻结清单中。并行验收时间不相加冒充总开发耗时。
+
+最终同一ZIP实际解压通过 [宝可梦14阶段、引导开关与恢复](../../artifacts/maintenance/v1.0.4/portable/modules-final-v104/results.json)、[现代艺术五人四轮／切换／权限与恢复](../../artifacts/maintenance/v1.0.4/modern-art/portable/modules-final-v104/results.json)、[电力公司六人三档Worker／STEP1–3／显示与恢复](../../artifacts/maintenance/v1.0.4/power-grid/runtime/portable/modules-final-v104/results.json)、[盒子加载及唯一声音窗口4项](../../artifacts/maintenance/v1.0.4/experience-portable/modules-final-v104/results.json)、[三款图文规则27项](../../artifacts/maintenance/v1.0.4/incremental-build-20261005/rules/modules-final-v104/results.json)和[原生安全10项](../../artifacts/maintenance/v1.0.4/webview2/modules-final-v104/results.json)。电力公司同包流程233.11s，重放581动作；规则页92.80s。118个原媒体文件与旧已验包逐哈希一致，路径按独立模块输出；正式包没有内部模板。早期独立模块缺失的旧崩溃fixture、HTTP随机禁用端口、重复头像／控件和公共页相对资源路径失败均已修复并保留原因，不改变规则规避检查。
+
+三款预算以独立文件×1.10及三个真实场景峰值最大值×1.25向上取整至MiB，一次初始化后固定，当前均无警告。文件预算宝可梦4MiB、现代艺术3MiB、电力公司2MiB；服务堆分别80／65／122MiB，电脑堆36／25／41MiB，手机堆24／24／43MiB，进程私有内存增量857／1894／1338MiB。设备、原始采样、三次完整最高等级Worker对局和共享基线见 [预算结果](../../artifacts/maintenance/v1.0.4/incremental-build-20261005/budgets/results.json)。共享运行时只计一次，服务／渲染上限包含共享基线，不能跨游戏相加；私有内存增量包含验证所开的模拟手机WebView。另完成 [20次牌桌往返](../../artifacts/maintenance/v1.0.4/incremental-build-20261005/memory/results.json)，GC后堆中位增量107,388字节，及 [重特效9项与100ms堆采样](../../artifacts/maintenance/v1.0.4/effects/module-effect-heap-final/results.json)，峰值10,194,692字节，未超宝可梦电脑堆预算。采样不称为分配分析器最大值或无泄漏证明，32MiB老生代限制不是整款游戏总内存预算。
+
+当前 [运行ZIP](../../artifacts/releases/TableMax-1.0.4-win-x64.zip) **40,730,284字节**，实际解压 **162文件／95,278,750字节**，均严格小于100,000,000；95MB工程预算超 **278,750字节**。SHA-256：`cbadd0e114854455f9f09a54188dbdee0f1773287d5321e9f83e5edc0c0a14cb`；[冻结清单](../../artifacts/maintenance/v1.0.4/incremental-build-20261005/final-delivery-manifest.json)及[最终审计](../../artifacts/maintenance/v1.0.4/incremental-build-20261005/final-checks.json)。上次已验ZIP及清单保留在本轮 previous-delivery；下节保留其原结果。本机回环、隐藏WebView2、手机尺寸和显示缩放模拟不等于实体手机、Wi-Fi或真人听感验收。验收后仅更新文档，不再打包；扩展草案与无关改动保留，仅提交本次改动、不推送。
+
+空闲后预览并受保护清理旧构建缓存577,310,720字节、打包临时目录231,322,093字节及38个已结束验证目录32,240,861,318字节；release只留当前ZIP与清单。工作区仍约32.44GiB，安全候选耗尽，近期数据、依赖缓存和材料继续保留，不扩大删除范围。首轮进程误判已通过六项回归修正，343个冻结运行输入在提交后仍逐哈希一致，收尾脚本变化未影响运行物；原包没有重新构建。详细保护、删除及提交记录见本轮最终审计。
+
 ## 1.0.4：新手引导开关与同版本更新（2026-10-05）
 
 宝可梦在盒子及牌桌菜单的“游戏设置”中新增默认关闭的新手引导，普通手机玩家也可调整；偏好按本设备保存，刷新和同设备窗口同步。关闭时保留当前能力短语及规则入口，隐藏完整步骤、触发条件和补充说明；普通取牌不保留冗余说明块，必要状态、选择与确认仍可见。开启后恢复完整提示。不发送房间动作，不改变计时权限、存档或原版玩法。
 
 [实际组件检查](../../artifacts/maintenance/v1.0.4/pokemon-polish-20261005/layout/guidance-toggle-v104-final/report.json)通过48组顶栏、36组操作栏、12组按钮及开关专项；320px喷火龙说明区由约169px缩为56px，切换保留选位。类型、Lint、格式及3项引导单测通过。新ZIP实际解压后完成 [新手设置与完整流程／恢复](../../artifacts/maintenance/v1.0.4/portable/guidance-toggle-v104/results.json)两次运行、12种自然阶段，以及 [三款游戏图文规则27项](../../artifacts/maintenance/v1.0.4/guidance-setting-20261005/rules/portable-final/results.json)，两份报告均核对同一包哈希。未变规则、策略、Worker及118个媒体文件沿用既有核验，不称为重新执行全部策略测试。回环服务、隐藏WebView2和手机尺寸模拟不等于实体手机或Wi-Fi验收。
 
-当前 [运行ZIP](../../artifacts/releases/TableMax-1.0.4-win-x64.zip) **40,630,608字节**，实际解压 **153文件／95,145,272字节**，均严格小于100,000,000；95MB工程预算超 **145,272字节**。SHA-256：`2b082190a56c058c2f4a9ec2ad6625a98ec8345762543bc85818dfc78227acd8`；[冻结清单](../../artifacts/maintenance/v1.0.4/guidance-setting-20261005/final-delivery-manifest.json)及 [审计与收尾](../../artifacts/maintenance/v1.0.4/guidance-setting-20261005/delivery-checks.json)。上一份已验证同版本ZIP及清单保留在本轮证据目录，下节仍记录其原有验收边界。验收后仅更新文档，不再次构建；仅提交本次明确改动，不推送，用户扩展草案及其他已有改动保留。
+该轮 [运行ZIP](../../artifacts/maintenance/v1.0.4/incremental-build-20261005/previous-delivery/TableMax-1.0.4-win-x64.zip) **40,630,608字节**，实际解压 **153文件／95,145,272字节**，均严格小于100,000,000；95MB工程预算超 **145,272字节**。SHA-256：`2b082190a56c058c2f4a9ec2ad6625a98ec8345762543bc85818dfc78227acd8`；[冻结清单](../../artifacts/maintenance/v1.0.4/guidance-setting-20261005/final-delivery-manifest.json)及 [审计与收尾](../../artifacts/maintenance/v1.0.4/guidance-setting-20261005/delivery-checks.json)。上一份已验证同版本ZIP及清单保留在本轮证据目录，下节仍记录其原有验收边界。验收后仅更新文档，不再次构建；仅提交本次明确改动，不推送，用户扩展草案及其他已有改动保留。
 
 空闲后受保护清理回收打包目录230,947,904字节及旧验证目录582,967,116字节；当前包、素材和验收证据保留。工作区仍为7,521,971,653逻辑字节，安全候选已耗尽，不扩大清理范围；详见上述审计与收尾记录。
 

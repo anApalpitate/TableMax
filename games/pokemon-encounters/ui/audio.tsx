@@ -1,3 +1,4 @@
+import { claimAudioEvent } from '@tablemax/web-host';
 import { useEffect, useRef, useState } from 'react';
 import type { RoomFeedback } from '../../../packages/protocol/src';
 import type { PokemonView } from '../rules/project';
@@ -133,7 +134,7 @@ export function SoundControl({
     const permit = permission.current,
       playback = player.current,
       occurredAt = Date.now();
-    void Promise.resolve(window.tablemaxAudio?.claimEvent(id) ?? true)
+    void Promise.resolve(claimAudioEvent(id) ?? true)
       .then((accepted) => {
         if (
           accepted &&
@@ -160,7 +161,7 @@ export function SoundControl({
       current = last.current,
       key = `${current}:error:${errorId}`,
       occurredAt = Date.now();
-    void Promise.resolve(window.tablemaxAudio?.claimEvent(key) ?? true)
+    void Promise.resolve(claimAudioEvent(key) ?? true)
       .then((accepted) => {
         if (
           accepted &&

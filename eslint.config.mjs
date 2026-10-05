@@ -32,7 +32,12 @@ export default tseslint.config(
     },
   },
   {
-    files: ['apps/web/src/**/*.{ts,tsx}', 'games/**/ui/**/*.{ts,tsx}'],
+    files: [
+      'apps/web/src/**/*.{ts,tsx}',
+      'games/**/ui/**/*.{ts,tsx}',
+      'games/**/web/**/*.{ts,tsx}',
+      'packages/web-host/src/**/*.{ts,tsx}',
+    ],
     plugins: { 'react-hooks': hooks, 'react-refresh': refresh },
     rules: {
       ...hooks.configs.recommended.rules,

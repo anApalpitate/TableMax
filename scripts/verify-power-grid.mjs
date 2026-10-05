@@ -1608,10 +1608,11 @@ try {
     evidence.coexistingStyles = await host.evaluate(() =>
       [...document.styleSheets].map((sheet) => sheet.href ?? ''),
     );
-    for (const name of ['PokemonScreen', 'ModernArtScreen', 'PowerGridScreen'])
+    for (const name of ['pokemon-encounters', 'modern-art', 'power-grid'])
       assert.ok(
         evidence.coexistingStyles.some(
-          (path) => path.includes(name) && path.endsWith('.css'),
+          (path) =>
+            path.includes('/games/' + name + '/web/') && path.endsWith('.css'),
         ),
         name + ' CSS coexists in same SPA',
       );

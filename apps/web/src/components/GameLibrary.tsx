@@ -1,3 +1,4 @@
+import { moduleFor } from '../catalog';
 import type { RoomSession } from '../session/useRoomSession';
 import { useEffect, useState } from 'react';
 import { gameCover } from '../assets/game-covers';
@@ -49,7 +50,9 @@ export function GameLibrary({
             )}
             <div>
               <h3>{game.name}</h3>
-              {game.id === 'pokemon-encounters' && <PokemonVersion />}
+              {moduleFor(game.id)?.versions && (
+                <PokemonVersion gameId={game.id} />
+              )}
               <p className="game-library__tagline">
                 {gameIntroduction(game.id)?.tagline}
               </p>

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "id": "modern-art",
+  "order": 1,
+  "internal": false,
+  "catalog": {
+    "id": "modern-art",
+    "name": "现代艺术",
+    "min": 3,
+    "max": 5,
+    "decisionTimer": true
+  },
+  "compatibility": {
+    "sdk": 1,
+    "protocol": 6,
+    "webHost": 1,
+    "rulesVersion": "tablemax-modern-art-classic-v1",
+    "stateVersion": 1,
+    "gameVersion": "1.0.0",
+    "strategyVersion": "1.0.0"
+  },
+  "entries": {
+    "rules": "games/modern-art/rules/index.ts",
+    "bot": "games/modern-art/bot/index.ts",
+    "web": "games/modern-art/web/index.tsx"
+  },
+  "cover": "assets/games/modern-art/cover-v1.webp",
+  "introduction": {
+    "tagline": "拍卖画作，判断行情，用买卖赚取最多资金。",
+    "lead": "轮流拍卖画作，低价收藏热门画家，用买卖赚取最多资金。",
+    "steps": [
+      {
+        "icon": "auction",
+        "title": "出画，开启拍卖",
+        "text": "轮到你时打出画作，牌面图标决定拍卖方式：公开竞价、暗标、定价等。"
+      },
+      {
+        "icon": "painting",
+        "title": "竞价，收藏画作",
+        "text": "出价买下朋友的画，卖画则收取成交款。判断画家热度，别让买价超过作品价值。"
+      },
+      {
+        "icon": "coins",
+        "title": "抓住行情，结算收益",
+        "text": "同一画家第五张画出现时结束本轮。前三名热门画家的作品有价值，其余当轮不值钱。"
+      }
+    ],
+    "goal": "经营四轮，最终资金最多的玩家获胜。"
+  },
+  "botIntroduction": {
+    "default": {
+      "lead": "围绕当前轮行情选画与报价。",
+      "details": ["记住最近 8 幅公开画作，换轮保留最近 2 幅。"]
+    },
+    "doubao": {
+      "lead": "比较收藏收益，并为下一轮保留画作与现金。",
+      "details": ["记住最近 28 幅公开画作，换轮保留最近 14 幅。"]
+    },
+    "juewu": {
+      "lead": "比较所有剩余轮次的可能行情与收益。",
+      "details": [
+        "保留实际观察过的公开画作，最多 70 幅；以多种供给情景估算未来，不读取对手手牌或暗标。"
+      ]
+    }
+  },
+  "budgets": {
+    "payloadBytes": 3145728,
+    "serviceHeapBytes": 68157440,
+    "desktopHeapBytes": 26214400,
+    "phoneHeapBytes": 25165824,
+    "privateIncrementBytes": 1986002944,
+    "workerOldGenerationMiB": 32,
+    "basis": "2026-10-05 one-time baseline: independent payload ×1.10; maxima of three real scenario runs ×1.25, rounded up to MiB. Evidence: artifacts/maintenance/v1.0.4/incremental-build-20261005/budgets/results.json. Sampled WebView2 heaps and owned process-tree private-byte increase from first box sample; full-match service heap measured separately."
+  }
+}
