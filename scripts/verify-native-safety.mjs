@@ -145,6 +145,11 @@ try {
   const origin = new URL(host.url()).origin;
   const nativeRuntime = await desktop.request('runtime');
   assert.equal(nativeRuntime.packaged, portable);
+  const expectedVersion = JSON.parse(
+    await readFile('package.json', 'utf8'),
+  ).version;
+  assert.equal(nativeRuntime.appVersion, expectedVersion);
+  evidence.appVersion = nativeRuntime.appVersion;
   evidence.webview2Version = nativeRuntime.versions.webview2;
   assert.equal(desktop.startup.hostToken, undefined);
   const health = await (await fetch(origin + '/api/foundation/health')).json();

@@ -4,9 +4,9 @@ Windows 局域网数字桌游平台。电脑运行本地服务、管理对局并
 
 适用于同一地点的多人聚会，可连接电视或第二块屏幕展示牌桌。游戏资源随程序提供，正式对局不依赖互联网。
 
-**当前本地版本：v1.0.3** · [下载 Windows 便携版](artifacts/releases/TableMax-1.0.3-win-x64.zip) · [逐文件校验清单](artifacts/releases/TableMax-1.0.3-win-x64-manifest.json)
+**当前本地版本：v1.0.4** · [下载 Windows 便携版](artifacts/releases/TableMax-1.0.4-win-x64.zip) · [逐文件校验清单](artifacts/releases/TableMax-1.0.4-win-x64-manifest.json)
 
-v1.0.3 在三款游戏基础上完成电力公司真实身份试玩后的界面优化：采购操作优先、阶段阅读位置、候选区域地图与短屏公开电网摘要。当前包及验证边界见 [验收记录](docs/reference/acceptance.md)；[线上 v1.0.1 Release](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.1) 保留原发布内容。
+v1.0.4 汇总宝可梦简短能力说明与手机按钮、电力公司分级人机与分页界面，以及现代艺术已完成的改动，按用户指定新版本重新打包。当前包及验证边界见 [验收记录](docs/reference/acceptance.md)；[线上 v1.0.1 Release](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.1) 保留原发布内容。
 
 ## 支持的游戏
 
