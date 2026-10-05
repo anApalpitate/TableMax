@@ -164,14 +164,15 @@ export function bestPreliminaryPlacement(
   board: BeliefBoard,
   incoming: CardId | null,
   distribution: ReturnType<typeof numericDistribution>,
-  faceUp: readonly boolean[],
+  _faceUp: readonly boolean[],
 ) {
+  if (board.length !== _faceUp.length)
+    throw new Error('Invalid placement board');
   let best = { slot: 0, score: Infinity };
   for (let slot = 0; slot < 6; slot++) {
     const next = [...board];
     next[slot] = incoming;
-    const score =
-      preliminaryScore(next, distribution) - (faceUp[slot] ? 0 : 0.35);
+    const score = preliminaryScore(next, distribution);
     if (score < best.score - 1e-9) best = { slot, score };
   }
   return best;
@@ -186,22 +187,55 @@ export function preliminaryAction(
   const boards = knownBoards(view, seatId, memory);
   const own = boards[seatId]!;
   const distribution = numericDistribution(unseenCounts(view, boards));
-  const baseline = preliminaryScore(own, distribution);
   const faceUp = view.boards[seatId]!.map((slot) => slot.faceUp);
   const otherBaseline = (seat: string) =>
     preliminaryScore(boards[seat]!, distribution);
+  const opponents = view.seatOrder.filter((seat) => seat !== seatId);
+  const lastRound = memory.version === 2 ? memory.summaries.at(-1) : undefined;
+  const pace = lastRound
+    ? Math.max(0.5, Math.min(1.5, 8 / Math.max(1, lastRound.turns)))
+    : 1;
+  const threatWeight = (seat: string) =>
+    (view.winsBySeat[seat] === 2 ? 0.5 : 0.18) +
+    (lastRound?.winners.includes(seat) ? 0.04 : 0);
+  const opponentScore = Math.min(...opponents.map(otherBaseline));
+  const endingRisk = Math.max(
+    ...opponents.map((seat) => {
+      const hidden = view.boards[seat]!.filter((slot) => !slot.faceUp).length;
+      const history =
+        memory.version === 2
+          ? memory.history.filter((event) => event.actor === seat)
+          : [];
+      const discardRate = history.length
+        ? history.filter((event) => event.verb === 'discard').length /
+          history.length
+        : 0;
+      return (
+        (hidden <= 1 ? 0.55 : hidden === 2 ? 0.25 : 0.05) *
+        pace *
+        (1 - discardRate * 0.3) *
+        (view.winsBySeat[seat] === 2 ? 1.5 : 1)
+      );
+    }),
+  );
+  const positionCost = (score: number) =>
+    score + Math.max(0, score - opponentScore) * endingRisk * 0.5;
+  const baseline = positionCost(preliminaryScore(own, distribution));
   const scorePlacement = (slot: number, incoming: CardId | null) => {
     const next = [...own];
     next[slot] = incoming;
     const ownScore = preliminaryScore(next, distribution);
     const closes = faceUp.filter(Boolean).length === 5 && !faceUp[slot];
-    const opponent = Math.min(
-      ...view.seatOrder.filter((seat) => seat !== seatId).map(otherBaseline),
+    const criticalRival = opponents.some(
+      (seat) => view.winsBySeat[seat] === 2 && otherBaseline(seat) < ownScore,
     );
     return (
-      ownScore -
-      (faceUp[slot] ? 0 : 0.35) +
-      (closes && ownScore > opponent ? 4 : 0)
+      positionCost(ownScore) +
+      (closes
+        ? ownScore > opponentScore
+          ? 24 + (criticalRival ? 12 : 0)
+          : -12
+        : 0)
     );
   };
   const score = (action: Action): number => {
@@ -213,7 +247,8 @@ export function preliminaryAction(
         const board = [...boards[other]!];
         board[action.slot] = null;
         result -=
-          0.12 * (preliminaryScore(board, distribution) - otherBaseline(other));
+          threatWeight(other) *
+          (preliminaryScore(board, distribution) - otherBaseline(other));
       }
       return result;
     }
@@ -222,15 +257,17 @@ export function preliminaryAction(
     if (action.type === 'swap') {
       const next = [...own];
       [next[action.a], next[action.b]] = [next[action.b]!, next[action.a]!];
-      return preliminaryScore(next, distribution) + 0.05;
+      return positionCost(preliminaryScore(next, distribution)) + 0.05;
     }
     if (action.type === 'mew-target') {
       const next = [...boards[action.seat]!];
       const incoming = next[action.slot]!;
       next[action.slot] = 'special-mew';
       return (
-        bestPreliminaryPlacement(own, incoming, distribution, faceUp).score -
-        0.12 *
+        positionCost(
+          bestPreliminaryPlacement(own, incoming, distribution, faceUp).score,
+        ) -
+        threatWeight(action.seat) *
           (preliminaryScore(next, distribution) - otherBaseline(action.seat))
       );
     }

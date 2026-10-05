@@ -24,6 +24,7 @@ import { GameIntroduction } from '../components/GameIntroduction';
 import { CountdownSettings } from '../components/CountdownSettings';
 import { LobbyReadiness } from '../components/LobbyReadiness';
 import { BotInformation } from '../components/BotInformation';
+import { PokemonVersion } from '../components/PokemonVersion';
 import type { RoomSession } from '../session/useRoomSession';
 
 const difficultyNames: Record<BotDifficulty, string> = {
@@ -119,6 +120,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
         <div>
           <h1>{game?.name ?? '选个游戏，朋友们上桌'}</h1>
         </div>
+        {game?.id === 'pokemon-encounters' && <PokemonVersion />}
         {isHost && game && (
           <button
             type="button"

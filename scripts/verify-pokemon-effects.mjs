@@ -145,7 +145,11 @@ await build({
                 imports +
                 '\n' +
                 table +
-                source.slice(source.indexOf('const frames')),
+                source.slice(
+                  source.indexOf('import {'),
+                  source.indexOf('const images'),
+                ) +
+                source.slice(source.indexOf('export function cardArt')),
               loader: 'ts',
               resolveDir: dirname(path),
             };
@@ -452,10 +456,10 @@ try {
   evidence.checks.push(
     'Validated two-seat joint match result renders both crowns and animated celebration particles over the entire viewport',
   );
-  for (const theme of ['mew', 'zapdos', 'snorlax', 'charizard']) {
+  for (const theme of ['mew', 'zapdos', 'rocket']) {
     await page.evaluate((theme) => {
       window.effectAnimations = [];
-      return window.showEffect('scene-' + theme);
+      return window.showEffect(theme === 'rocket' ? 'coin' : 'scene-' + theme);
     }, theme);
     assert.equal(
       await page.locator('.pokemon-scene').getAttribute('data-scene'),
@@ -472,7 +476,7 @@ try {
     );
     await capture('scene-' + theme);
   }
-  for (const followup of ['local-mew', 'decline']) {
+  for (const followup of ['local-mew', 'decline', 'snorlax', 'charizard']) {
     await page.evaluate((kind) => window.showEffect('scene-' + kind), followup);
     assert.equal(
       await page.locator('.pokemon-scene').count(),
@@ -480,8 +484,27 @@ try {
       'Follow-up decisions do not repeat full-screen entrances',
     );
   }
+  const nativeWindow = await desktop.browserWindow(page);
+  for (const [width, height] of [
+    [320, 568],
+    [1280, 720],
+    [3840, 2160],
+  ]) {
+    await nativeWindow.evaluate(
+      (w, size) => w.setContentSize(size[0], size[1]),
+      [width, height],
+    );
+    await page.evaluate(() => window.showEffect('scene-mew'));
+    assert.equal(
+      await page
+        .locator('.pokemon-scene')
+        .evaluate((el) => getComputedStyle(el).pointerEvents),
+      'none',
+    );
+    await capture(`mew-${width}x${height}`);
+  }
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.evaluate(() => window.showEffect('scene-charizard'));
+  await page.evaluate(() => window.showEffect('scene-mew'));
   assert.equal(
     await page
       .locator('.pokemon-scene')

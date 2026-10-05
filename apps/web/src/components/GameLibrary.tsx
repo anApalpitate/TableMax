@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { gameCover } from '../assets/game-covers';
 import { gameIntroduction } from '../game-clients/introductions';
 import { ConfirmationDialog } from './ConfirmationDialog';
+import { PokemonVersion } from './PokemonVersion';
 
 /** Catalog thumbnails are deliberately separate from the game client bundle. */
 export function GameLibrary({
@@ -48,6 +49,7 @@ export function GameLibrary({
             )}
             <div>
               <h3>{game.name}</h3>
+              {game.id === 'pokemon-encounters' && <PokemonVersion />}
               <p className="game-library__tagline">
                 {gameIntroduction(game.id)?.tagline}
               </p>

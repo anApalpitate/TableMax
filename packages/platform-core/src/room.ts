@@ -1036,6 +1036,27 @@ export class RoomCoordinator {
           bot.random = botUpdate.random;
           next.snapshot!.bots[seatId] = bot;
         }
+        if (this.strategy.observe) {
+          for (const [observerSeat, previousBot] of Object.entries(
+            next.snapshot!.bots,
+          )) {
+            const observedBot = { ...previousBot };
+            observedBot.memory = this.strategy.validateMemory(
+              this.strategy.observe({
+                view: structuredClone(
+                  this.rules.project(next.snapshot!.state, {
+                    role: 'player',
+                    seatId: observerSeat,
+                  }),
+                ),
+                memory: structuredClone(observedBot.memory),
+                seatId: observerSeat,
+                difficulty: observedBot.difficulty ?? 'default',
+              }),
+            );
+            next.snapshot!.bots[observerSeat] = observedBot;
+          }
+        }
         next.history.push({
           id: randomUUID(),
           ...result.decision,

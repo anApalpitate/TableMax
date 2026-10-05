@@ -1,3 +1,4 @@
+import { original } from '../variants/original';
 import { instances } from './cards';
 import { scoreBoard, type Score } from './scoring';
 import type { PublicAction } from '@tablemax/game-sdk';
@@ -73,8 +74,8 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     s.stateVersion !== 1 ||
     !Array.isArray(s.seatOrder) ||
     JSON.stringify(s.seatOrder) !== JSON.stringify(seats) ||
-    seats.length < 2 ||
-    seats.length > 6 ||
+    seats.length < original.players.min ||
+    seats.length > original.players.max ||
     new Set(seats).size !== seats.length ||
     !phases.includes(s.phase) ||
     !seats.includes(s.turnSeat) ||
@@ -99,9 +100,10 @@ export function validateState(input: unknown, seats: readonly string[]): State {
       (seat) =>
         !Number.isInteger(s.winsBySeat[seat]) ||
         s.winsBySeat[seat]! < 0 ||
-        s.winsBySeat[seat]! > 3 ||
+        s.winsBySeat[seat]! > original.winningRounds ||
         !Array.isArray(s.boards[seat]) ||
-        s.boards[seat]!.length !== 6 ||
+        s.boards[seat]!.length !==
+          original.layout.rows * original.layout.columns ||
         s.boards[seat]!.some(
           (slot) =>
             !slot ||
@@ -215,7 +217,9 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     )
       return fail();
   } else if (s.roundResult !== null) return fail();
-  const match = seats.filter((seat) => s.winsBySeat[seat] === 3);
+  const match = seats.filter(
+    (seat) => s.winsBySeat[seat] === original.winningRounds,
+  );
   if (
     JSON.stringify(match) !== JSON.stringify(s.matchWinners) ||
     (s.phase === 'match-result') !== match.length > 0

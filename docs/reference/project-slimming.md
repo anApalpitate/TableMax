@@ -115,3 +115,11 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 集中归档 **16 项**、共用手动清理 **200 项**、自动维护 **34 项**、同字节截图去重 **23 项**、可再生副本退役 **19 项**、历史截图退役 **26 项**共 **318 项隔离保护检查**通过。证据保存在[本轮审计目录](../../artifacts/maintenance/cleanup-history/consolidation-20261005/)，具体入口与恢复位置见[开发环境](development.md#清理记录集中归档)。
 
 [文档与运行包检查](../../artifacts/maintenance/v1.0.3/cleanup-history-consolidation-docs/project-checks.json)核验 64 份 Markdown、1,392 个本地链接与 273 个章节锚点，零失败；PowerShell 语法与 diff 检查通过。[收尾维护](../../artifacts/maintenance/cleanup-history/consolidation-20261005/maintenance-final.log)测量工作区 **3,556,285,544 字节（约 3.312 GiB）**，低于 5 GiB 启动阈值，未追加删除；跳过 1,338 个链接。后续文档／审计写入会使字节数略有变化。
+
+## 宝可梦人机与复用优化收尾（2026-10-05）
+
+沿用 v1.0.3，最终运行 ZIP **40,452,032 字节**，实际解压 **94,975,611 字节**，95 MB 工程预算余 **24,389 字节**；哈希与实际便携／显示验收见 [当前验收](acceptance.md#103宝可梦人机能力演出与版本复用2026-10-05)。原素材、存档、当前及历史证据保留，没有导出源码包。
+
+确认相关工程进程退出后，先预览再执行 `Clean-Releases.ps1 -KeepLatestOnly -Apply` 与 `Maintain-Project.ps1 -Apply`。[包清理记录](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/release-cleanup.log)为零候选、四个近期打包目录受保护；未降低默认 30 分钟保护。[维护预览](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/maintenance-preview.log)与[实际维护](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/maintenance-final.log)删除一处过期隔离验证目录 **17,253,310 字节**，[删除报告](../../artifacts/maintenance/local-cleanup-20261005-051210-835-maintenance/cleanup.json)保留路径和执行结果。
+
+维护后测量 **15,080,820,415 字节（约 14.045 GiB）**，跳过 1,338 个链接，25 项受保护；安全候选已耗尽，仍超过 5 GiB。近期便携解压／验证目录、依赖与工具缓存等继续按既有保护保留，不扩大范围强删。逻辑文件字节不计作便携包或 NTFS 物理压缩节省。

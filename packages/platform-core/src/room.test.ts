@@ -67,6 +67,47 @@ function choose(room: RoomCoordinator, credential: string, value = 1) {
 }
 
 describe('real room invariants', () => {
+  it('atomically observes each own projection, and restores observations after failure, rollback and restart', async () => {
+    const seen: JsonValue[] = [];
+    const strategy: BotStrategy = {
+      ...bot,
+      validateMemory: (value) =>
+        value === null ? { count: 0 } : (structuredClone(value) as JsonValue),
+      observe({ view, memory }) {
+        seen.push(structuredClone(view));
+        return { count: (memory as { count: number }).count + 1 };
+      },
+    };
+    const repository = new MemoryRepository();
+    const room = new RoomCoordinator(rules, strategy, repository);
+    await host(room, { type: 'add-bot', name: '观察一' });
+    await host(room, { type: 'add-bot', name: '观察二' });
+    await host(room, { type: 'start' });
+    const task = room.botTask()!;
+    const before = structuredClone(repository.value!.snapshot!.bots);
+    repository.fail = true;
+    expect(
+      (await room.submitBot(task, task.actions[0]!, task.data.memory, 123)).ok,
+    ).toBe(false);
+    expect(repository.value!.snapshot!.bots).toEqual(before);
+    repository.fail = false;
+    const retry = room.botTask()!;
+    expect(
+      (await room.submitBot(retry, retry.actions[0]!, retry.data.memory, 123))
+        .ok,
+    ).toBe(true);
+    for (const data of Object.values(repository.value!.snapshot!.bots))
+      expect(data.memory).toEqual({ count: 1 });
+    const count = seen.length;
+    const restored = new RoomCoordinator(rules, strategy, repository);
+    expect(seen).toHaveLength(count);
+    expect(JSON.stringify(restored.view())).not.toContain('"count"');
+    await host(restored, {
+      type: 'rollback',
+      checkpointId: restored.view(restored.hostToken).history[0]!.id,
+    });
+    expect(repository.value!.snapshot!.bots).toEqual(before);
+  });
   it('checkpoints host lifecycle transitions and replays the next deal after rollback', async () => {
     const { room, a, b } = await fixture();
     await room.command(a.token, choose(room, a.token));

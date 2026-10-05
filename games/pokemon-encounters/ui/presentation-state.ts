@@ -1,6 +1,7 @@
 import type { PublicAction } from '../../../packages/protocol/src';
 import type { PokemonView } from '../rules/project';
 import { COIN_LAND_MS, SOUND_MAX_LATE_MS } from './sound-timing';
+import { creatureCries, creatureThemes } from '../shared/presentation';
 
 export type EffectTheme = 'mew' | 'zapdos' | 'snorlax' | 'charizard' | 'rocket';
 export type SoundCue =
@@ -33,22 +34,9 @@ export interface SoundCueRecipe {
   maxLateMs: number;
 }
 
-const ordinaryCries: Record<string, SoundCue> = {
-  'ordinary--2': 'pikachu',
-  'ordinary-0': 'jigglypuff',
-  'ordinary-1': 'eevee',
-  'ordinary-3': 'bulbasaur',
-  'ordinary-4': 'squirtle',
-  'ordinary-7': 'gengar',
-};
+const ordinaryCries = creatureCries as Record<string, SoundCue>;
 
-const themes: Record<string, EffectTheme> = {
-  'special-mew': 'mew',
-  'special-zapdos': 'zapdos',
-  'special-snorlax': 'snorlax',
-  'special-charizard': 'charizard',
-  'special-team-rocket': 'rocket',
-};
+const themes = creatureThemes;
 
 /** Only committed public metadata and the viewer's authorized projection enter here. */
 export function actionEffects(

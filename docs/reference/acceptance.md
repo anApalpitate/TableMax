@@ -4,6 +4,30 @@
 
 2026-10-05 已按用户新授权清理 maintenance 中历史运行截图，保留当前 v1.0.3 验收、原素材、存档与文字结果。本页较早章节的截图保留描述仅表示当次状态，最新退役范围与哈希见 [全量退役记录](project-slimming.md#历史运行截图全量退役2026-10-05)。
 
+## 1.0.3：宝可梦人机、能力演出与版本复用（2026-10-05）
+
+当前 [运行 ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip) **40,452,032 字节**，145 个文件实际解压 **94,975,611 字节**，两者严格小于 100,000,000；95,000,000 工程预算余量 **24,389 字节**。SHA-256：`83234cf77c1cfa7e920699b2ff604a21f7b4748928f7c1539a332e7120695fa3`。本轮冻结 [逐文件清单](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/final-package-manifest.json) 保留该实际包边界；没有源码包、没有升级版本或推送。
+
+三档改为局势比较与分级历史记忆；默认不再固定盲换，豆包／绝悟用 8／32 个未知牌假设、最多一／两个本人后续回合。观察记忆随规则动作同事务保存，回退和重启不保留撤销知识。外部策略标识、规则、六格、牌组、三胜和存档外层未改变。五种能力分别采用短全屏或授权局部表现；共用资源和原版元数据拆出，盒子提供只读“版本：原版”，扩展版筹备中，未实现九格玩法。规格见 [人机](../games/pokemon-encounters/bot.md)、[交互](../games/pokemon-encounters/interaction.md) 和 [资源](../games/pokemon-encounters/assets.md)。
+
+[25 个固定种子完整大局](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/fixed-seeds.json)覆盖 2–6 人、三档、混合等级及旧默认基线。下表各档合计 5 局；盲换比例按普通换入次数，弃牌率按普通回合数。混合样本获胜座位为默认 1/8、豆包 3/7、绝悟 1/5；席次、人数和随机样本不同，不作为档位胜率排序或现实保证。
+
+| 策略   | 普通回合 | 盲换暗格比例 | 弃牌率 |
+| ------ | -------: | -----------: | -----: |
+| 旧默认 |      369 |         100% |     0% |
+| 默认   |      703 |        58.0% |  19.6% |
+| 豆包   |      647 |        61.2% |  13.6% |
+| 绝悟   |      598 |        56.2% |  15.7% |
+| 混合   |      625 |        59.0% |  15.5% |
+
+源码累计 **321 项测试通过**：[最终策略、观察记忆及平台事务 39 项](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/strategy-summary-final.log)一并通过，包括 25 大局、前瞻差异及默认跨小局目标选择；[其余全工程回归](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/tests.log) 306/307 通过，其中混合恢复测试因并行负载超过旧 5 秒时限，[单独重跑 3 项](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/recovery-retry.log)通过，未放宽产品截止。策略整局总测试时限为十分钟，最终组合实测约 296 秒；真实 32MiB Worker 取牌／梦幻为 505／450ms、9.6／11MiB，低于 1.5 秒目标，二秒硬截止不变。类型、Lint、源码格式检查通过。
+
+[重构前后固定随机源差分](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/original-compatibility.json)对照基线提交 `1b3930c`，2–6 人状态、发牌、能力、计分、生命周期、合法动作及所有投影一致；[实际 BoxScreen 版本检查](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/version/results.json)三个端零命令、房间不变、扩展禁用，盒子构建不含完整卡图和音频。八个原音源未修改；集中映射仍由声画单测核验，未新增真人试听结论。
+
+[实际组件手机布局](../../artifacts/maintenance/v1.0.3/pokemon-polish-20261005/layout/bot-variant-v103/report.json)通过 48 顶栏／36 选位栏；[隐藏 WebView2 声画 fixture](../../artifacts/maintenance/v1.0.3/effects/bot-variant-v103-final/results.json)覆盖三种全屏、两种局部、多阶段／连续币面、快速切换、共同赢家、减少动态、授权私看，并补 320px／720p／4K 演出渲染。最后补齐默认历史决策后，[逐文件差异](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/final-package-delta.json)确认仅两个宝可梦服务／bot 包改变，143 个其余文件（含实际前端）与前次已验包相同；[前次冻结清单](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/previous-verified-package-manifest.json)保留原哈希。fixture 不冒充自然对局。
+
+[最终同哈希 ZIP 便携验收](../../artifacts/maintenance/v1.0.3/portable/bot-variant-v103-summary-final/results.json)完成全部能力、两种币面、混合三胜大局、回退、重启及服务退出；[最终显示验收](../../artifacts/maintenance/v1.0.3/display/bot-variant-v103-summary-final/results.json)通过六人大厅／36 张牌的 720p–4K、100/125/150% 缩放、暂停、浮窗和独立窗口，保留 44 张实际隐藏渲染截图。第一次候选因版本按钮另起行导致 720p 大厅滚动，失败保留于 `display/bot-variant-v103/`；修正为同排后才验证最终哈希。并行原生 fixture 占用 EXE 的打包失败也保留日志，退出后重新导出。物理手机、Wi-Fi、电视和真实多屏未重新认证；原版火箭群像缺口仍按既有记录保留。
+
 ## 1.0.3：电力公司真实 UI 试玩与第二轮优化（2026-10-05）
 
 按用户明确版本指示导出 **v1.0.3**。试玩 agent 使用两个独立真人座位类型的手机身份（由 agent 通过实际 UI 操作）与一个默认人机，普通节奏走完第一轮并进入第二轮；没有读取隐藏牌堆、他人现金或数据库作决定。[基线试玩](../../artifacts/maintenance/v1.0.2/power-grid-agent-review-20261005/phone-play/review.md)保留 27 张截图、几何与退出证明，发现采购按钮埋在价阶下方、跨大阶段深滚动、重复市场入口和候选区域未映射地图四项 P2。逐份跨价、明确建城费用、发电默认最大合法供电及主动少供电都正常，未复现启动后仍默认 0 城，未据源码猜测修改发电逻辑。[多维度结论](../../artifacts/maintenance/v1.0.3/power-grid-play-review-20261005/review-summary.json)区分决策、操作效率、短屏、地图、隐私与未测边界。

@@ -1,8 +1,8 @@
 import type { BotStrategy } from '@tablemax/game-sdk';
 import type { PokemonView } from '../rules/project';
 import type { Action } from '../rules';
-import { validateMemory, observeMemory, rememberAction } from './memory';
-import { basicAction, preliminaryAction } from './strategy';
+import { validateMemory, observeMemory } from './memory';
+import { preliminaryAction } from './strategy';
 import { PositionEvaluator } from './evaluation';
 
 export const bot: BotStrategy = {
@@ -12,6 +12,8 @@ export const bot: BotStrategy = {
   rulesVersion: 'tablemax-cn-s19-v1',
   difficulties: ['default', 'doubao', 'juewu'],
   validateMemory,
+  observe: ({ view, memory, seatId, difficulty }) =>
+    observeMemory(memory, view as PokemonView, seatId, difficulty),
   async decide({
     view: input,
     actions: raw,
@@ -25,20 +27,19 @@ export const bot: BotStrategy = {
     const view = input as PokemonView;
     const actions = raw as readonly Action[];
     if (!actions.length) throw new Error('No legal choice');
-    if (difficulty === 'default')
-      return {
-        action: basicAction(view, actions, decision.seatId),
-        memory: null,
-      };
-    if (difficulty !== 'doubao' && difficulty !== 'juewu')
+    if (!['default', 'doubao', 'juewu'].includes(difficulty))
       throw new Error('Invalid bot difficulty');
-    const observed = observeMemory(memory, view, decision.seatId);
+    const observed = observeMemory(memory, view, decision.seatId, difficulty);
     const action =
-      difficulty === 'doubao'
+      difficulty === 'default'
         ? preliminaryAction(view, actions, decision.seatId, observed)
-        : new PositionEvaluator(view, decision.seatId, observed, signal).choose(
-            actions,
-          );
-    return { action, memory: rememberAction(observed, action) };
+        : new PositionEvaluator(
+            view,
+            decision.seatId,
+            observed,
+            signal,
+            difficulty,
+          ).choose(actions);
+    return { action, memory: observed };
   },
 };

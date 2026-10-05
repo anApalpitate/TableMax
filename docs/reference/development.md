@@ -1,5 +1,7 @@
 # 开发环境与验证
 
+2026-10-05 宝可梦人机／复用专项：`node scripts/verify-pokemon-original-compatibility.mjs --reference=1b3930cae9ffa66c480a26b69e4cbf6f6ac59827` 在固定随机源下比较重构前后的真实规则模块，覆盖 2–6 人完整小局／大局、合法动作、状态、计分及全部授权投影。未传 reference 时使用当前 HEAD，提交后复查本轮应显式传上述基线；只读取本地 Git，不联网。`node scripts/verify-pokemon-version.mjs` 用实际 BoxScreen 及样式检查三个端的只读版本面板和资源懒加载。源码策略固定种子统计、真实 Worker、最终 ZIP 与显示证据见当前验收；整局测试总时限与单次 Worker 两秒硬截止分开。原生 fixture 退出后再构建，避免占用 `build/desktop/TableMax.exe`。
+
 当前 Windows x64 桌面为 C# WinForms／.NET Framework 4.8、共享 WebView2 与包内 Node；正式入口选择宝可梦奇遇、现代艺术或经典德国版电力公司，已有对局按存档恢复对应游戏。第一至六阶段已完成，独立原型仍用于合成状态审阅。使用流程见 [项目说明](../../README.md#开始对局)，最近交付包、实际验证范围和设备模拟边界见 [验收记录](acceptance.md)。
 
 本页只维护当前运行、检查和本地维护方法；阶段结果、旧版本命令及 Electron 证据集中在 [开发与验证历史](../archive/development-2026-10-01-to-04.md)。工程依赖见 [工程结构](architecture.md)，文件归属见 [目录职责](project-structure.md)。

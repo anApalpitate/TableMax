@@ -1,4 +1,7 @@
 import { numeric } from './cards';
+import { original } from '../variants/original';
+import { topology } from '../shared/topology';
+const grid = topology(original.layout);
 
 export type Score = {
   values: number[];
@@ -14,7 +17,7 @@ export type Score = {
 
 // Enumerate directions jointly; a Ditto chain must terminate at a fixed card.
 export function scoreBoard(board: readonly string[]): Score {
-  if (board.length !== 6 || new Set(board).size !== 6)
+  if (board.length !== grid.count || new Set(board).size !== grid.count)
     throw new Error('Invalid scoring board');
   const fixed = board.map(numeric);
   const ditto = fixed.flatMap((value, i) => (value === null ? [i] : []));
@@ -26,10 +29,8 @@ export function scoreBoard(board: readonly string[]): Score {
       return;
     }
     const slot = ditto[index]!;
-    for (const to of [slot - 1, slot + 1]) {
-      if (to >= 0 && to < 6 && Math.floor(to / 3) === Math.floor(slot / 3))
-        enumerate(index + 1, { ...choices, [slot]: to });
-    }
+    for (const to of grid.neighbors(slot))
+      enumerate(index + 1, { ...choices, [slot]: to });
   }
   enumerate(0, {});
   const candidates: Score[] = [];
@@ -46,8 +47,8 @@ export function scoreBoard(board: readonly string[]): Score {
     const resolved = fixed.map((_, slot) => resolve(slot));
     if (resolved.some((r) => r === null)) continue;
     const values = resolved.map((r) => r!.value);
-    const columns = [0, 1, 2].map((i) =>
-      values[i] === values[i + 3] ? 0 : values[i]! + values[i + 3]!,
+    const columns = grid.columns.map(([a, b]) =>
+      values[a!] === values[b!] ? 0 : values[a!]! + values[b!]!,
     );
     candidates.push({
       values,

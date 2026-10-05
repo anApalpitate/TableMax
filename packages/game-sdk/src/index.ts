@@ -87,6 +87,13 @@ export interface BotStrategy {
   rulesVersion: string;
   difficulties?: readonly BotDifficulty[];
   validateMemory(input: unknown): JsonValue;
+  /** Pure, authorized observation committed atomically with a successful action. */
+  observe?(input: {
+    view: JsonValue;
+    memory: JsonValue;
+    seatId: string;
+    difficulty: BotDifficulty;
+  }): JsonValue;
   decide(input: {
     view: JsonValue;
     actions: readonly JsonValue[];

@@ -15,7 +15,7 @@
 | 牌框、牌背、角标 | CardFace／CSS 代码视觉；统一精灵球牌背不区分暗牌类别                                                                                                                          |
 | 封面／背景       | cover-v1.webp 与 tabletop/garden-table-v1.webp；既有 imagegen 原创环境图                                                                                                      |
 | 头像／骰子       | assets/platform；既有原创共享素材，不代表牌类或人数限制                                                                                                                       |
-| 14 类音效         | audio；12 类原创程序合成 PCM 16-bit mono、22050Hz，加本地 MP3 喵喵／皮卡丘游戏叫声；来源及哈希见声音清单                                                                             |
+| 14 类音效        | audio；12 类原创程序合成 PCM 16-bit mono、22050Hz，加本地 MP3 喵喵／皮卡丘游戏叫声；来源及哈希见声音清单                                                                      |
 | 帮助／字体       | 本地 GameHelp；Segoe UI／微软雅黑／sans-serif，不请求在线字体                                                                                                                 |
 
 全部游戏资源位于 assets/games/pokemon-encounters。[catalog.ts](../../../assets/games/pokemon-encounters/catalog.ts) 是浏览器资源表；新增版本文件并更新映射／来源清单即可替换，规则、策略、协议和存档不依赖素材文件名。角色图 contain 加内距保留全身；官方图自带白色柔边，在深底有轻微光晕。火箭队横图保留完整群像，后续可用同 ID 的竖图替换。
@@ -25,6 +25,8 @@
 原图、失败响应和奶油／深棕素材联系表在 artifacts/maintenance/pokemon-refresh；源码卡面等历史运行截图已按 2026-10-05 授权清理，路径与哈希见 [退役清单](../../../artifacts/maintenance/v1.0.3/historical-screenshot-retirement-20261005/manifest.json)。2026-10-02 清理 19 张已退出引用的自然静物牌／牌背／硬币 WebP，原始 PNG 逐项核对哈希后继续保留在 artifacts/phase-05/imagegen/source；[旧主题清单](../../../assets/games/pokemon-encounters/manifest.json) 的 assets 只列仍使用的封面，retiredAssets 保留旧路径、来源、提示词、哈希及可恢复压缩副本的 Git 版本。[声音清单](../../../assets/games/pokemon-encounters/audio/manifest.json)、[背景清单](../../../assets/games/pokemon-encounters/tabletop/manifest.json) 和 [平台清单](../../../assets/platform/manifest.json) 保留来源。1.0.0–1.0.2 原图和文字证据继续保留，历史运行截图已退役；旧版本 ZIP 已按用户 2026-10-02 要求清除。
 
 ## 权限、动画和声音
+
+v1.0.3 本轮将类别映射集中至 `shared/presentation.ts`：精灵资源 ID 独立于原版玩法牌类，角色、叫声、视觉主题与局部图案统一对应。浏览器 `creatureArt` 通过兼容 `cardArt` 装配原路径资源；原图、音频内容、哈希及来源不变。梦幻／闪电鸟／火箭队入场复用现有角色，以 CSS／SVG 添加全屏轨道、雷弧及漫画速度线；未生成新位图，既有火箭群像缺口没有冒充完成。
 
 2026-10-05 声音扩展采用用户本地提供的八个 WAV，来源标签和原始文件／哈希保留于 `artifacts/maintenance/v1.0.2/pokemon-polish-20261005/audio/`，运行映射及处理参数在 audio/manifest.json。用户确认火箭队为登场 BGM、硬币喵喵面为喵喵“喵”叫声，两段运行 WAV 与来源逐字节相同；其他六段保留完整长度、不变调，转 16kHz 单声道 PCM16，去 DC、RMS 目标 −22dBFS、峰值上限 −3dBFS、增益最多 +12dB、首尾 8ms 淡化。来源是用户提供资料，不声明官方出处或真人试听认证。旧 Showdown 叫声及原创火箭登场音的原文件和哈希继续保留，正式引用已由用户版本替代；原创离场音继续使用。合成脚本保留用户提供和其他非合成来源记录。
 

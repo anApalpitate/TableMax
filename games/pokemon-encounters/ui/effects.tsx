@@ -347,6 +347,52 @@ export function SavedEffects({
           aria-hidden="true"
         >
           <div className="scene-wash" />
+          {['mew', 'zapdos', 'rocket'].includes(scene.theme) && (
+            <>
+              <svg
+                className="scene-energy"
+                viewBox="0 0 1000 600"
+                preserveAspectRatio="none"
+              >
+                {scene.theme === 'zapdos' ? (
+                  <>
+                    <path d="M0 110L160 40 130 150 270 70 220 210 390 120" />
+                    <path d="M1000 490L830 560 870 440 720 520 770 370 610 460" />
+                    <path d="M70 600L120 470 50 480 210 290M930 0L860 140 930 120 790 300" />
+                  </>
+                ) : scene.theme === 'rocket' ? (
+                  <>
+                    {Array.from({ length: 18 }, (_, i) => (
+                      <path
+                        key={i}
+                        d={`M${i * 65 - 80} 0L${i * 65 + 220} 600`}
+                      />
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    <ellipse cx="500" cy="300" rx="430" ry="150" />
+                    <ellipse cx="500" cy="300" rx="240" ry="280" />
+                    <circle cx="500" cy="300" r="210" />
+                  </>
+                )}
+              </svg>
+              <img
+                className={`scene-character character-${scene.theme}`}
+                src={
+                  cardArt(
+                    scene.theme === 'rocket'
+                      ? 'special-team-rocket'
+                      : `special-${scene.theme}`,
+                  ).image
+                }
+                alt=""
+              />
+              {scene.theme === 'rocket' && (
+                <strong className="scene-rocket-r">R</strong>
+              )}
+            </>
+          )}
           <div className="scene-ring" />
           <div className="scene-ring scene-ring-second" />
           {Array.from({ length: 12 }, (_, i) => (
@@ -361,13 +407,6 @@ export function SavedEffects({
               }
             />
           ))}
-          {scene.theme === 'rocket' && (
-            <img
-              className="scene-rocket-art"
-              src={cardArt('special-team-rocket').image}
-              alt=""
-            />
-          )}
         </div>
       )}
       {(saved || result) && (

@@ -3,6 +3,8 @@ import { cardArt } from '../../../assets/games/pokemon-encounters/catalog';
 import { useContext, type CSSProperties } from 'react';
 import { SavedMotion, ActionTargets, EffectTargets } from './motion';
 import { publicZeroColumns } from './presentation-state';
+import { original } from '../variants/original';
+import { topology, type BoardLayout } from '../shared/topology';
 
 export function CardFace({ card }: { card: Face | null }) {
   const art = card ? cardArt(card.categoryId) : null;
@@ -53,6 +55,7 @@ export function Board({
   selected = [],
   locked = false,
   select,
+  layout = original.layout,
 }: {
   view: PokemonView;
   seatId: string;
@@ -60,11 +63,13 @@ export function Board({
   selected?: number[];
   locked?: boolean;
   select?(slot: number): void;
+  layout?: BoardLayout;
 }) {
   const motion = useContext(SavedMotion);
   const targets = useContext(ActionTargets);
   const effects = useContext(EffectTargets);
   const zeroColumns = publicZeroColumns(view, seatId);
+  const grid = topology(layout);
   const motionClass = (slotId: string) =>
     `${targets.includes(slotId) ? 'action-target' : ''} ${motion.includes(slotId) ? 'saved-motion' : ''} ${motion.includes(`reveal:${slotId}`) ? 'saved-reveal' : ''} ${motion.includes(`deal:${slotId}`) ? 'saved-deal' : ''} ${effects.slots.includes(slotId) && effects.theme ? `theme-${effects.theme}` : ''} ${effects.rocketReturns.includes(slotId) ? 'rocket-return' : ''}`;
   const contents = (
@@ -97,7 +102,7 @@ export function Board({
         )}
       </span>
       <span className="slot-index">{index + 1}</span>
-      {index < 3 && zeroColumns.includes(index) && (
+      {index < layout.columns && zeroColumns.includes(index) && (
         <span
           className="zero-column-badge"
           aria-label={`第 ${index + 1} 列公开确定为零分`}
@@ -108,13 +113,19 @@ export function Board({
     </>
   );
   return (
-    <div className="pokemon-board" aria-label="两行三列场地">
+    <div
+      className="pokemon-board"
+      style={{
+        gridTemplateColumns: `repeat(${layout.columns}, minmax(0, 1fr))`,
+      }}
+      aria-label={`${layout.rows} 行 ${layout.columns} 列场地`}
+    >
       {view.boards[seatId]!.map((slot, i) =>
         select ? (
           <button
             type="button"
             key={slot.slotId}
-            className={`card-slot ${selected.includes(i) ? 'selected' : ''} ${zeroColumns.includes(i % 3) ? 'zero-column' : ''} ${motionClass(slot.slotId)}`}
+            className={`card-slot ${selected.includes(i) ? 'selected' : ''} ${zeroColumns.includes(grid.column(i)) ? 'zero-column' : ''} ${motionClass(slot.slotId)}`}
             data-slot={slot.slotId}
             disabled={locked || !slots.includes(i)}
             aria-label={`位置 ${i + 1}：${slot.card ? `${slot.card.name}，${slot.card.value ?? '?'}` : '暗牌'}`}
@@ -146,7 +157,7 @@ export function Board({
         ) : (
           <div
             key={slot.slotId}
-            className={`card-slot ${zeroColumns.includes(i % 3) ? 'zero-column' : ''} ${motionClass(slot.slotId)}`}
+            className={`card-slot ${zeroColumns.includes(grid.column(i)) ? 'zero-column' : ''} ${motionClass(slot.slotId)}`}
             data-slot={slot.slotId}
           >
             {contents(slot, i)}

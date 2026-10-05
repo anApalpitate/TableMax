@@ -234,6 +234,155 @@
     animation: none;
   }
 }
+.pokemon-screen .scene-energy {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 5;
+  filter: drop-shadow(0 0 8px currentColor);
+  animation: pokemon-energy-sweep var(--scene-ms) ease-out both;
+}
+.pokemon-screen .scene-character {
+  position: absolute;
+  right: 5%;
+  top: 22%;
+  width: clamp(120px, 22vw, 320px);
+  height: min(32vh, 300px);
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px currentColor);
+  animation: pokemon-character-entry var(--scene-ms) ease-out both;
+}
+.pokemon-screen .scene-zapdos .scene-wash {
+  background:
+    radial-gradient(ellipse at 0 0, #a5844570, transparent 45%),
+    radial-gradient(ellipse at 100% 100%, #d1a62950, transparent 45%);
+}
+.pokemon-screen .scene-mew .scene-wash {
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    transparent 35%,
+    #a649ba35 80%,
+    #f2a5d060
+  );
+}
+.pokemon-screen .scene-mew .scene-spark {
+  animation-name: pokemon-psychic-orbit;
+  box-shadow: 0 0 14px #f79df2;
+}
+.pokemon-screen .scene-zapdos .scene-energy {
+  stroke-width: 8;
+  stroke-linejoin: bevel;
+}
+.pokemon-screen .scene-mew .scene-energy {
+  stroke: #ca6eda;
+  filter: drop-shadow(0 0 12px #dc76e7);
+}
+.pokemon-screen[data-play-mode='test'] .peek-flame {
+  display: none;
+}
+@keyframes pokemon-psychic-orbit {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateY(-90px) scale(0.5);
+  }
+  18% {
+    opacity: 0.9;
+  }
+  65% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(calc(var(--angle) + 150deg)) translateY(-320px)
+      scale(0.25);
+  }
+}
+.pokemon-screen .scene-rocket .scene-wash {
+  background:
+    linear-gradient(
+      145deg,
+      #dd315345,
+      transparent 35%,
+      transparent 65%,
+      #823aaa50
+    ),
+    repeating-conic-gradient(
+      from 25deg,
+      #b1225730 0deg 3deg,
+      transparent 3deg 16deg
+    );
+}
+.pokemon-screen .scene-rocket .scene-energy {
+  stroke-width: 2;
+}
+.pokemon-screen .scene-rocket-r {
+  position: absolute;
+  right: 24%;
+  top: 24%;
+  font-size: clamp(72px, 12vw, 180px);
+  font-style: italic;
+  color: #e33564;
+  -webkit-text-stroke: 2px #fff0e3;
+  text-shadow: 6px 5px #68346b;
+  animation: pokemon-character-entry var(--scene-ms) ease-out both;
+}
+.pokemon-screen .trail-theme-snorlax {
+  --trail-duration: 550ms;
+}
+.pokemon-screen .trail-theme-snorlax .target-impact,
+.pokemon-screen .trail-theme-snorlax .target-mote {
+  animation-duration: 550ms;
+}
+.pokemon-screen .theme-snorlax .card-surface {
+  animation-duration: 550ms;
+}
+.pokemon-screen .peek-flame .flame-edge {
+  animation-duration: 650ms;
+  animation-iteration-count: 1;
+  animation-delay: 0ms;
+}
+.pokemon-screen .peek-static .flame-edge {
+  animation: none;
+  opacity: 0.25;
+}
+@keyframes pokemon-energy-sweep {
+  0% {
+    opacity: 0;
+    stroke-dasharray: 30 1000;
+    stroke-dashoffset: 800;
+  }
+  18% {
+    opacity: 0.65;
+  }
+  65% {
+    opacity: 0.45;
+    stroke-dasharray: 900 1000;
+    stroke-dashoffset: 0;
+  }
+  100% {
+    opacity: 0;
+    stroke-dasharray: 1200 1000;
+    stroke-dashoffset: -300;
+  }
+}
+@keyframes pokemon-character-entry {
+  0% {
+    opacity: 0;
+    transform: translate(80px, 15px) scale(0.65) rotate(8deg);
+  }
+  22%,
+  62% {
+    opacity: 0.9;
+    transform: translate(0) scale(1) rotate(-3deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-20px, -25px) scale(1.1);
+  }
+}
 .pokemon-screen[data-play-mode='test'] .saved-action-trails,
 .pokemon-screen[data-play-mode='test'] .win-pips .newly-earned::after {
   display: none;

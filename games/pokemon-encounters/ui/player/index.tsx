@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import { SavedMotion } from '../motion';
 import type { JsonValue } from '@tablemax/game-sdk';
 import type { Action } from '../../rules';
 import type { PokemonView } from '../../rules/project';
@@ -21,6 +22,7 @@ export function PlayerControls({
   choose(action: JsonValue): void;
 }) {
   const actions = input as readonly Action[];
+  const motion = useContext(SavedMotion);
   const [selection, setSelection] = useState<Action | null>(null);
   const [first, setFirst] = useState<number | null>(null);
   const targets = view.seatOrder.filter((seat) =>
@@ -155,7 +157,10 @@ export function PlayerControls({
           </button>
           <span className="private-peek-card">
             <CardFace card={view.peek.card} />
-            <span className="peek-flame" aria-hidden="true">
+            <span
+              className={`peek-flame ${motion.includes('@saved') ? 'peek-just-saved' : 'peek-static'}`}
+              aria-hidden="true"
+            >
               {['top', 'right', 'bottom', 'left'].map((edge) => (
                 <svg
                   key={edge}

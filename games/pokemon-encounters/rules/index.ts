@@ -1,3 +1,4 @@
+import { original } from '../variants/original';
 import type { GameRules, JsonValue, RuleContext } from '@tablemax/game-sdk';
 import { instances, card } from './cards';
 import { scoreBoard } from './scoring';
@@ -17,7 +18,10 @@ export type Action =
   | { type: 'draw'; source: 'deck' | 'discard' }
   | { type: 'swap'; a: number; b: number }
   | { type: 'discard-held' | 'decline-ability' | 'close-peek' | 'next-round' };
-const slots = [0, 1, 2, 3, 4, 5];
+const slots = Array.from(
+  { length: original.layout.rows * original.layout.columns },
+  (_, i) => i,
+);
 export function shuffle(
   cards: readonly string[],
   random: RuleContext['random'],
@@ -42,7 +46,7 @@ function round(
     seatOrder.map((seat) => [seat, []]),
   );
   const order = clockwise(seatOrder, starter);
-  for (let slot = 0; slot < 6; slot++)
+  for (let slot = 0; slot < slots.length; slot++)
     for (const seat of order)
       boards[seat]!.push({ instanceId: deck.pop()!, faceUp: false });
   return {
@@ -115,7 +119,9 @@ function finish(s: State, ability: boolean) {
     const winners = s.seatOrder.filter((seat) => scores[seat]!.total === min);
     for (const seat of winners) s.winsBySeat[seat]!++;
     s.roundResult = { scores, winners };
-    s.matchWinners = s.seatOrder.filter((seat) => s.winsBySeat[seat] === 3);
+    s.matchWinners = s.seatOrder.filter(
+      (seat) => s.winsBySeat[seat] === original.winningRounds,
+    );
     s.phase = s.matchWinners.length ? 'match-result' : 'round-result';
     event(
       s,
@@ -157,12 +163,15 @@ export const rules: GameRules = {
     sdkVersion: 1,
     stateVersion: 1,
     // Six seats are a user-authorized digital variant, not a publisher claim.
-    players: { min: 2, max: 6 },
+    players: original.players,
     assetNamespace: 'pokemon-encounters',
     decisionTimer: false,
   },
   initialize(context) {
-    if (context.seats.length < 2 || context.seats.length > 6)
+    if (
+      context.seats.length < original.players.min ||
+      context.seats.length > original.players.max
+    )
       throw new Error('Invalid seats');
     const starter =
       context.seats[Math.floor(context.random.next() * context.seats.length)]!;

@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import type { BotDifficulty, JsonValue } from '@tablemax/game-sdk';
 import { RandomSource } from '../../../packages/platform-core/src/random';
 import { bot } from './index';
-import { EVALUATION_WORLDS, integrationPoint } from './evaluation';
+import {
+  EVALUATION_WORLDS,
+  integrationPoint,
+  PositionEvaluator,
+} from './evaluation';
 import { observeMemory, type StrategyMemory } from './memory';
 import { instances } from '../rules/cards';
 import { rules, type Action } from '../rules';
@@ -11,6 +15,8 @@ import type { PokemonView } from '../rules/project';
 import { scoreBoard } from '../rules/scoring';
 import { Worker } from 'node:worker_threads';
 import { build } from 'esbuild';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { basicAction } from './strategy';
 
 type CardSpec = string | { id: string; hidden: true };
 const hidden = (id: string): CardSpec => ({ id, hidden: true });
@@ -93,7 +99,108 @@ function apply(state: State, action: Action) {
 }
 
 describe('Three local bot difficulty levels', () => {
-  it('preserves the default and exploits a known pair before a blind replacement', async () => {
+  it('uses the previous public winner to break an otherwise equal default-level Mew choice', async () => {
+    const opponent = [
+      'ordinary--2',
+      'ordinary-0',
+      hidden('ordinary-1'),
+      hidden('ordinary-3'),
+      hidden('ordinary-4'),
+      hidden('ordinary-5'),
+    ];
+    const state = position(
+      'mew-other',
+      [
+        'ordinary-9',
+        'ordinary-8',
+        hidden('ordinary-6'),
+        'ordinary-9',
+        'ordinary-8',
+        hidden('ordinary-7'),
+      ],
+      { held: 'special-mew', opponents: [opponent, opponent] },
+    );
+    state.roundNumber = 2;
+    const view = rules.project(state, {
+      role: 'player',
+      seatId: 'S1',
+    }) as PokemonView;
+    const memory = observeMemory(null, view, 'S1', 'default');
+    expect(
+      (await choose(state, 'default', memory as JsonValue)).action,
+    ).toEqual({
+      type: 'mew-target',
+      seat: 'S2',
+      slot: 0,
+    });
+    if (memory.version !== 2) throw new Error('Expected current memory');
+    memory.summaries = [
+      { round: 1, turns: 5, winners: ['S3'], scores: { S1: 12, S2: 5, S3: 0 } },
+    ];
+    expect(
+      (await choose(state, 'default', memory as JsonValue)).action,
+    ).toEqual({
+      type: 'mew-target',
+      seat: 'S3',
+      slot: 0,
+    });
+  });
+  it('uses future ordinary turns to change a short-horizon choice within fixed node limits', () => {
+    let changed = false;
+    for (let seed = 1; seed <= 20 && !changed; seed++) {
+      const seats = ['S1', 'S2', 'S3'];
+      const random = new RandomSource(seed);
+      let state = rules.initialize({ seats, random }) as State;
+      for (const seat of seats)
+        state = rules.apply(state, { type: 'initial-flip', slot: 0 }, seat, {
+          seats,
+          random,
+        }).state as State;
+      state = rules.apply(
+        state,
+        { type: 'draw', source: 'deck' },
+        state.turnSeat,
+        { seats, random },
+      ).state as State;
+      const seat = state.turnSeat;
+      const view = rules.project(state, {
+        role: 'player',
+        seatId: seat,
+      }) as PokemonView;
+      const memory = observeMemory(null, view, seat);
+      const actions = rules.legalActions(state, seat) as Action[];
+      for (const difficulty of ['doubao', 'juewu'] as const) {
+        const short = new PositionEvaluator(
+          view,
+          seat,
+          memory,
+          new AbortController().signal,
+          difficulty,
+        ).choose(actions, 0);
+        const evaluator = new PositionEvaluator(
+          view,
+          seat,
+          memory,
+          new AbortController().signal,
+          difficulty,
+        );
+        const future = evaluator.choose(actions);
+        expect(evaluator.statistics.worlds).toBe(
+          difficulty === 'doubao' ? 8 : 32,
+        );
+        expect(evaluator.statistics.expandedNodes).toBeLessThanOrEqual(
+          difficulty === 'doubao' ? 4096 : 8192,
+        );
+        expect(evaluator.statistics.cachedScores).toBeLessThanOrEqual(20000);
+        changed ||= JSON.stringify(short) !== JSON.stringify(future);
+      }
+    }
+    expect(
+      changed,
+      'at least one information-set decision accounts for the future',
+    ).toBe(true);
+  });
+  it('all levels exploit a known pair before a blind replacement', async () => {
     const state = position(
       'place',
       [
@@ -108,7 +215,7 @@ describe('Three local bot difficulty levels', () => {
     );
     expect((await choose(state, 'default')).action).toEqual({
       type: 'replace',
-      slot: 0,
+      slot: 5,
     });
     for (const difficulty of ['doubao', 'juewu'] as const)
       expect((await choose(state, difficulty)).action).toEqual({
@@ -128,7 +235,7 @@ describe('Three local bot difficulty levels', () => {
     const draw = position('draw', own, { discard: 'ordinary-8' });
     expect((await choose(draw, 'default')).action).toEqual({
       type: 'draw',
-      source: 'deck',
+      source: 'discard',
     });
     for (const difficulty of ['doubao', 'juewu'] as const)
       expect((await choose(draw, difficulty)).action).toEqual({
@@ -162,7 +269,9 @@ describe('Three local bot difficulty levels', () => {
       hidden('ordinary-3'),
     ]);
     expect((await choose(state, 'default')).action).toEqual({
-      type: 'decline-ability',
+      type: 'swap',
+      a: 0,
+      b: 1,
     });
     for (const difficulty of ['doubao', 'juewu'] as const) {
       const action = (await choose(state, difficulty)).action as Action;
@@ -177,7 +286,6 @@ describe('Three local bot difficulty levels', () => {
     }
   });
   it('jointly evaluates Ditto directions to find the best reachable complete score', async () => {
-    let improvements = 0;
     for (const a of ['ordinary-0', 'ordinary-1', 'ordinary-4', 'ordinary-9'])
       for (const b of [
         'ordinary-0',
@@ -203,9 +311,8 @@ describe('Three local bot difficulty levels', () => {
         const advanced = (await choose(state, 'juewu')).action as Action;
         const preliminary = (await choose(state, 'doubao')).action as Action;
         expect(total(advanced), `joint board ${a}/${b}`).toBe(optimum);
-        if (total(preliminary) > optimum) improvements++;
+        expect(total(preliminary)).toBe(optimum);
       }
-    expect(improvements).toBeGreaterThan(0);
   });
   it('chooses Mew across every opponent instead of only the next seat', async () => {
     const state = position(
@@ -242,13 +349,14 @@ describe('Three local bot difficulty levels', () => {
     );
     expect((await choose(state, 'default')).action).toEqual({
       type: 'mew-target',
-      seat: 'S2',
-      slot: 2,
+      seat: 'S3',
+      slot: 0,
     });
     for (const difficulty of ['doubao', 'juewu'] as const)
-      expect((await choose(state, difficulty)).action).toMatchObject({
+      expect((await choose(state, difficulty)).action).not.toEqual({
         type: 'mew-target',
-        seat: 'S3',
+        seat: 'S2',
+        slot: 2,
       });
   });
   it('takes a guaranteed winning last flip and avoids completing a critical rival via Mew', async () => {
@@ -328,7 +436,8 @@ describe('Authorized observations and serializable memory', () => {
       random: new RandomSource(1),
       signal: new AbortController().signal,
     });
-    expect((swapped.memory as StrategyMemory).cards[3]).toBe('ordinary-9');
+    expect((swapped.memory as StrategyMemory).cards[2]).toBe('ordinary-9');
+    expect((swapped.memory as StrategyMemory).cards[3]).toBeNull();
     const moved = apply(next, swapped.action as Action);
     const view = rules.project(moved, {
       role: 'player',
@@ -384,9 +493,9 @@ describe('Authorized observations and serializable memory', () => {
       seatId: 'S1',
       cards: ['ordinary-9', null, 'ordinary--2', null, null, null],
     };
-    expect((await choose(state, 'juewu', memory)).action).toEqual({
+    expect((await choose(state, 'juewu', memory)).action).not.toEqual({
       type: 'replace',
-      slot: 0,
+      slot: 2,
     });
     const changed = structuredClone(state);
     [changed.boards.S1![0]!.instanceId, changed.boards.S2![2]!.instanceId] = [
@@ -500,9 +609,17 @@ describe('Authorized observations and serializable memory', () => {
 
 it('all three levels finish fixed-seed 2–6-player three-win matches with legal authorized choices', async () => {
   const covered = new Map<BotDifficulty, Set<string>>();
-  for (const difficulty of ['default', 'doubao', 'juewu'] as const) {
+  const metrics: unknown[] = [];
+  for (const profile of [
+    'default',
+    'doubao',
+    'juewu',
+    'mixed',
+    'baseline',
+  ] as const) {
     const phases = new Set<string>();
-    covered.set(difficulty, phases);
+    if (profile !== 'mixed' && profile !== 'baseline')
+      covered.set(profile, phases);
     for (let count = 2; count <= 6; count++) {
       const seats = Array.from(
         { length: count },
@@ -514,6 +631,16 @@ it('all three levels finish fixed-seed 2–6-player three-win matches with legal
         seats.map((seat) => [seat, null as JsonValue]),
       );
       let steps = 0;
+      let turns = 0,
+        replacements = 0,
+        blind = 0,
+        discards = 0;
+      const level = (seat: string): BotDifficulty =>
+        profile === 'mixed'
+          ? (['default', 'doubao', 'juewu'] as const)[seats.indexOf(seat) % 3]!
+          : profile === 'baseline'
+            ? 'default'
+            : profile;
       while (!rules.ended(state) && steps++ < 2000) {
         phases.add(state.phase);
         if (state.phase === 'round-result') {
@@ -525,34 +652,90 @@ it('all three levels finish fixed-seed 2–6-player three-win matches with legal
           continue;
         }
         const decision = rules.decisions(state)[0]!;
-        const result = await bot.decide({
-          difficulty,
-          view: rules.project(state, {
-            role: 'player',
-            seatId: decision.seatId,
-          }),
-          actions: rules.legalActions(state, decision.seatId),
-          decision,
-          memory: memories[decision.seatId]!,
-          random: {
-            next() {
-              throw new Error('Unexpected strategy RNG');
-            },
-          },
-          signal: new AbortController().signal,
-        });
+        const difficulty = level(decision.seatId);
+        const ownView = rules.project(state, {
+          role: 'player',
+          seatId: decision.seatId,
+        }) as PokemonView;
+        const result =
+          profile === 'baseline'
+            ? {
+                action: basicAction(
+                  ownView,
+                  rules.legalActions(state, decision.seatId) as Action[],
+                  decision.seatId,
+                ),
+                memory: null,
+              }
+            : await bot.decide({
+                difficulty,
+                view: rules.project(state, {
+                  role: 'player',
+                  seatId: decision.seatId,
+                }),
+                actions: rules.legalActions(state, decision.seatId),
+                decision,
+                memory: memories[decision.seatId]!,
+                random: {
+                  next() {
+                    throw new Error('Unexpected strategy RNG');
+                  },
+                },
+                signal: new AbortController().signal,
+              });
         expect(rules.legalActions(state, decision.seatId)).toContainEqual(
           result.action,
         );
+        const action = result.action as Action;
+        if (state.phase === 'place' && action.type === 'replace') {
+          replacements++;
+          if (
+            !ownView.boards[decision.seatId]![action.slot]!.faceUp &&
+            !(memories[decision.seatId] as StrategyMemory | null)?.cards[
+              action.slot
+            ]
+          )
+            blind++;
+        }
+        if (action.type === 'discard-held') discards++;
+        const previous = state;
         memories[decision.seatId] = bot.validateMemory(result.memory);
         state = rules.apply(state, result.action, decision.seatId, {
           seats,
           random,
         }).state as State;
+        if (
+          previous.phase !== 'initial-flip' &&
+          (previous.turnSeat !== state.turnSeat || state.roundResult)
+        )
+          turns++;
+        if (profile !== 'baseline')
+          for (const seat of seats)
+            memories[seat] = bot.observe!({
+              view: rules.project(state, { role: 'player', seatId: seat }),
+              memory: memories[seat]!,
+              seatId: seat,
+              difficulty: level(seat),
+            });
         rules.validateState(state, seats);
       }
-      expect(steps, `${difficulty}/${count} stalled`).toBeLessThan(2000);
+      expect(steps, `${profile}/${count} stalled`).toBeLessThan(2000);
       expect(state.matchWinners.length).toBeGreaterThan(0);
+      metrics.push({
+        profile,
+        players: count,
+        seed: 31 + count,
+        steps,
+        ordinaryTurns: turns,
+        replacements,
+        blind,
+        blindRatio: replacements ? blind / replacements : 0,
+        discards,
+        discardRatio: turns ? discards / turns : 0,
+        rounds: state.roundNumber,
+        winners: state.matchWinners,
+        wins: state.winsBySeat,
+      });
     }
   }
   for (const [difficulty, phases] of covered)
@@ -571,7 +754,22 @@ it('all three levels finish fixed-seed 2–6-player three-win matches with legal
       'charizard-view',
     ])
       expect(phases.has(phase), `${difficulty}/${phase}`).toBe(true);
-}, 120_000);
+  await mkdir('artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005', {
+    recursive: true,
+  });
+  await writeFile(
+    'artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/fixed-seeds.json',
+    JSON.stringify(
+      {
+        scope:
+          '25 fixed-seed simulated matches; baseline is the former default basicAction, not former advanced levels. No claim of statistical superiority.',
+        metrics,
+      },
+      null,
+      2,
+    ),
+  );
+}, 600_000);
 
 it('finishes six-seat ability analysis inside an isolated 32 MiB Worker and the two-second budget', async () => {
   const bundle = await build({

@@ -37,7 +37,6 @@ describe('committed scene boundaries', () => {
   });
   it('expresses a public peek without a target, position or private card', () => {
     const scene = effectScene(action('peek', 'special-charizard'), game, false);
-    expect(scene).toEqual({ theme: 'charizard', duration: 650 });
-    expect(Object.keys(scene!)).toEqual(['theme', 'duration']);
+    expect(scene).toBeNull();
   });
 });

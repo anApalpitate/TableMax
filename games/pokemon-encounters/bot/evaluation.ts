@@ -2,10 +2,12 @@ import type { Action } from '../rules';
 import { scoreBoard } from '../rules/scoring';
 import type { PokemonView } from '../rules/project';
 import type { StrategyMemory } from './memory';
+import type { BotDifficulty } from '@tablemax/game-sdk';
 import {
   bestPreliminaryPlacement,
   knownBoards,
   numericDistribution,
+  preliminaryScore,
   unseenCounts,
   type BeliefBoard,
 } from './strategy';
@@ -15,6 +17,10 @@ type World = {
   faceUp: Record<string, boolean[]>;
   future: string[];
   cursor: number;
+  discard: string[];
+  privateCards: (string | null)[];
+  privateSeat: string;
+  weight: number;
 };
 const slots = [0, 1, 2, 3, 4, 5];
 const swaps = slots.flatMap((a) =>
@@ -51,6 +57,10 @@ function clone(world: World): World {
     ),
     future: world.future,
     cursor: world.cursor,
+    discard: [...world.discard],
+    privateCards: [...world.privateCards],
+    privateSeat: world.privateSeat,
+    weight: world.weight,
   };
 }
 function replace(world: World, seat: string, slot: number, incoming: string) {
@@ -58,10 +68,16 @@ function replace(world: World, seat: string, slot: number, incoming: string) {
   const outgoing = next.boards[seat]![slot]!;
   next.boards[seat]![slot] = incoming;
   next.faceUp[seat]![slot] = true;
+  next.discard.push(outgoing);
   return { next, outgoing };
 }
 function swap(world: World, seat: string, a: number, b: number) {
   const next = clone(world);
+  if (seat === next.privateSeat)
+    [next.privateCards[a], next.privateCards[b]] = [
+      next.privateCards[b]!,
+      next.privateCards[a]!,
+    ];
   [next.boards[seat]![a], next.boards[seat]![b]] = [
     next.boards[seat]![b]!,
     next.boards[seat]![a]!,
@@ -78,17 +94,34 @@ export class PositionEvaluator {
   private distribution: ReturnType<typeof numericDistribution>;
   private worlds: World[];
   private scores = new Map<string, number>();
+  private nodes = 0;
+  private depth = 0;
+  private budget: number;
+  private nodeLimit: number;
+  private memory: StrategyMemory;
+  get statistics() {
+    return {
+      worlds: this.worlds.length,
+      expandedNodes: this.nodes,
+      cachedScores: this.scores.size,
+    };
+  }
 
   constructor(
     private view: PokemonView,
     private seatId: string,
     memory: StrategyMemory,
     private signal: AbortSignal,
+    private difficulty: BotDifficulty = 'juewu',
   ) {
+    this.memory = memory;
+    this.budget = difficulty === 'doubao' ? 4096 : 8192;
+    this.nodeLimit = this.budget;
     this.known = knownBoards(view, seatId, memory);
     const unseen = unseenCounts(view, this.known);
     this.distribution = numericDistribution(unseen);
-    this.worlds = Array.from({ length: EVALUATION_WORLDS }, (_, sample) => {
+    const samples = difficulty === 'doubao' ? 8 : EVALUATION_WORLDS;
+    this.worlds = Array.from({ length: samples }, (_, sample) => {
       const pool = new Map(unseen);
       let dimension = 0;
       const pick = () => {
@@ -96,7 +129,10 @@ export class PositionEvaluator {
         if (total < 1) throw new Error('Insufficient unseen-card belief');
         // Each dimension covers every equal-width probability interval once.
         // Independent fixed permutations avoid coupling corresponding slots.
-        const point = integrationPoint(sample, dimension);
+        const point = integrationPoint(
+          sample * (EVALUATION_WORLDS / samples),
+          dimension,
+        );
         dimension++;
         let target = Math.floor(point * total);
         for (const [id, count] of pool) {
@@ -115,11 +151,10 @@ export class PositionEvaluator {
         ]),
       );
       // A known discard top becomes eligible when an empty deck is reshuffled.
-      if (!view.deckCount && view.discardTop)
-        pool.set(
-          view.discardTop.categoryId,
-          (pool.get(view.discardTop.categoryId) ?? 0) + 1,
-        );
+      const remaining = [...pool.values()].reduce((a, b) => a + b, 0);
+      const shuffled = Array.from({ length: remaining }, pick);
+      const discard = shuffled.slice(view.deckCount);
+      if (view.discardTop) discard.push(view.discardTop.categoryId);
       return {
         boards,
         faceUp: Object.fromEntries(
@@ -128,8 +163,12 @@ export class PositionEvaluator {
             view.boards[seat]!.map((slot) => slot.faceUp),
           ]),
         ),
-        future: Array.from({ length: 7 }, pick),
+        future: shuffled.slice(0, view.deckCount),
         cursor: 0,
+        discard,
+        privateCards: [...memory.cards],
+        privateSeat: seatId,
+        weight: 1,
       };
     });
   }
@@ -172,27 +211,342 @@ export class PositionEvaluator {
     );
     // Complete-round probability dominates minor point improvements; a rival's
     // third victory carries extra risk. Ties remain wins under adopted rules.
-    if (ended)
-      return own - 0.12 * lowest + (losing ? 22 + (critical ? 12 : 0) : -10);
-    const threat = Math.max(
-      ...opponents.map((seat) => {
-        const hidden = world.faceUp[seat]!.filter((up) => !up).length;
-        return hidden === 1 ? 0.65 : hidden === 2 ? 0.3 : 0.08;
-      }),
+    if (ended) {
+      const ownMatch = !losing && this.view.winsBySeat[this.seatId] === 2;
+      const rivalMatch = critical && !ownMatch;
+      return (
+        own * 0.1 + (ownMatch ? -180 : rivalMatch ? 180 : losing ? 90 : -90)
+      );
+    }
+    const summaries = this.memory.version === 2 ? this.memory.summaries : [];
+    const endingSpeed = summaries.length
+      ? summaries.reduce(
+          (sum, s, i) =>
+            sum +
+            Math.max(0.5, Math.min(1.5, 8 / Math.max(1, s.turns))) *
+              (this.difficulty === 'doubao' && i === 0 && summaries.length > 1
+                ? 0.5
+                : 1),
+          0,
+        ) / summaries.length
+      : 1;
+    const threat = Math.min(
+      1,
+      endingSpeed *
+        Math.max(
+          ...opponents.map((seat) => {
+            const hidden = world.faceUp[seat]!.filter((up) => !up).length;
+            return hidden === 1 ? 0.65 : hidden === 2 ? 0.3 : 0.08;
+          }),
+        ),
     );
+    const allScores = [own, ...otherScores];
+    const allSeats = [this.seatId, ...opponents];
+    const minimum = Math.min(...allScores);
+    const hazards = allScores.map((score, i) => {
+      const past = summaries.length
+        ? summaries.reduce(
+            (sum, s, index) =>
+              sum +
+              (s.winners.includes(allSeats[i]!) ? 1 : 0) *
+                (this.difficulty === 'doubao' &&
+                index === 0 &&
+                summaries.length > 1
+                  ? 0.5
+                  : 1),
+            0,
+          ) / summaries.length
+        : 0;
+      return (
+        (Math.exp(-(score - minimum) / 6) + past * 0.12) /
+        (3 - this.view.winsBySeat[allSeats[i]!]!)
+      );
+    });
+    const matchChance = hazards[0]! / hazards.reduce((a, b) => a + b, 0);
     return (
-      own -
+      -60 * matchChance +
+      own * 0.35 -
       0.12 * lowest +
-      0.35 -
-      0.12 * world.faceUp[this.seatId]!.filter(Boolean).length +
+      0.35 +
       threat * (losing ? 10 + (critical ? 6 : 0) : -3)
     );
   }
   private mean(worlds: readonly World[]) {
     this.check();
+    return this.depth && this.nodes < this.nodeLimit
+      ? this.rollout(worlds, this.depth)
+      : worlds.reduce((total, world) => total + this.utility(world), 0) /
+          worlds.length;
+  }
+
+  private draw(world: World) {
+    const next = clone(world);
+    if (next.cursor >= next.future.length) {
+      // Unknown discard order remains exchangeable. A fixed rotation avoids
+      // favoring its known top without consuming the game's random source.
+      const half = Math.floor(next.discard.length / 2);
+      next.future = [
+        ...next.discard.slice(half),
+        ...next.discard.slice(0, half),
+      ];
+      next.cursor = 0;
+      next.discard = [];
+    }
+    const card = next.future[next.cursor++];
+    if (!card) throw new Error('Empty belief draw');
+    return { next, card };
+  }
+
+  private ended(world: World) {
+    return Object.values(world.faceUp).some((board) => board.every(Boolean));
+  }
+
+  private observation(world: World, seat: string) {
+    return JSON.stringify([
+      this.view.seatOrder.map((s) =>
+        world.boards[s]!.map((id, i) =>
+          world.faceUp[s]![i]
+            ? id
+            : s === seat && s === this.seatId
+              ? world.privateCards[i]
+              : null,
+        ),
+      ),
+      world.discard.at(-1) ?? null,
+    ]);
+  }
+
+  /** One common decision per information set; no policy sees sampled dark cards. */
+  private policy(
+    worlds: readonly World[],
+    seat: string,
+    changes: readonly ((w: World) => World)[],
+  ) {
+    const rated = changes
+      .map((change) => {
+        if (this.nodes + worlds.length > this.nodeLimit)
+          return { change, score: Infinity };
+        this.nodes += worlds.length;
+        const next = worlds.map(change);
+        const score =
+          next.reduce((sum, w) => {
+            if (seat === this.seatId) return sum + this.utility(w);
+            const visible = w.boards[seat]!.map((id, i) =>
+              w.faceUp[seat]![i] ? id : null,
+            );
+            // Opponents use their public information, not their sampled hidden board.
+            const own = preliminaryScore(visible, this.distribution);
+            const others = this.view.seatOrder
+              .filter((s) => s !== seat)
+              .map((s) =>
+                preliminaryScore(
+                  w.boards[s]!.map((id, i) => (w.faceUp[s]![i] ? id : null)),
+                  this.distribution,
+                ),
+              );
+            return (
+              sum +
+              own +
+              (this.ended(w) ? (own > Math.min(...others) ? 90 : -90) : 0)
+            );
+          }, 0) / worlds.length;
+        return { change, score };
+      })
+      .sort((a, b) => a.score - b.score);
+    return Number.isFinite(rated[0]!.score)
+      ? worlds.map(rated[0]!.change)
+      : [...worlds];
+  }
+
+  private futureIncoming(
+    worlds: readonly World[],
+    seat: string,
+    card: string,
+    mayDiscard: boolean,
+    trigger = true,
+  ): World[] {
+    if (this.nodes >= this.nodeLimit) return [...worlds];
+    if (trigger && card === 'special-team-rocket') {
+      const meowth = this.policy(
+        worlds,
+        seat,
+        slots.map((slot) => (w) => replace(w, seat, slot, card).next),
+      );
+      const pikachu = this.policy(
+        worlds,
+        seat,
+        slots.map((slot) => (w) => this.rocketWorld(w, seat, slot)),
+      );
+      return [...meowth, ...pikachu].map((w) => ({
+        ...w,
+        weight: w.weight / 2,
+      }));
+    }
+    if (trigger && card === 'special-mew') {
+      const other = this.view.seatOrder.filter((s) => s !== seat);
+      const targets = other.flatMap((s) =>
+        slots.map((slot) => (w: World) => {
+          const result = replace(w, s, slot, card);
+          result.next.discard.pop();
+          return result.next;
+        }),
+      );
+      const chosen = this.policy(worlds, seat, targets);
+      // Acquired card is a newly observable fact. Keep future histories separate.
+      const groups = new Map<string, World[]>();
+      chosen.forEach((w, i) => {
+        const prior = worlds[i]!;
+        const target = other
+          .flatMap((s) => slots.map((slot) => ({ s, slot })))
+          .find((t) => w.boards[t.s]![t.slot] !== prior.boards[t.s]![t.slot]);
+        if (!target) {
+          const group = groups.get('') ?? [];
+          group.push(w);
+          groups.set('', group);
+          return;
+        }
+        const revealed = prior.boards[target.s]![target.slot]!;
+        const group = groups.get(revealed) ?? [];
+        group.push(w);
+        groups.set(revealed, group);
+      });
+      return [...groups].flatMap(([revealed, group]) =>
+        revealed
+          ? this.futureIncoming(group, seat, revealed, false, false)
+          : group,
+      );
+    }
+    const changes = slots.map((slot) => (w: World) => {
+      const placed = replace(w, seat, slot, card);
+      if (trigger && card === 'special-zapdos') {
+        placed.next.discard.pop();
+        let next = placed.next,
+          held = placed.outgoing;
+        const start = this.view.seatOrder.indexOf(seat);
+        for (let i = 1; i < this.view.seatOrder.length; i++) {
+          const receiver =
+            this.view.seatOrder[(start + i) % this.view.seatOrder.length]!;
+          const visible = next.boards[receiver]!.map((id, index) =>
+            next.faceUp[receiver]![index] ? id : null,
+          );
+          const choice = bestPreliminaryPlacement(
+            visible,
+            held,
+            this.distribution,
+            next.faceUp[receiver]!,
+          );
+          const r = replace(next, receiver, choice.slot, held);
+          next = r.next;
+          next.discard.pop();
+          held = r.outgoing;
+        }
+        next.discard.push(held);
+        return next;
+      }
+      return placed.next;
+    });
+    if (mayDiscard && (!trigger || card !== 'special-zapdos'))
+      changes.push((w) => {
+        const next = clone(w);
+        next.discard.push(card);
+        return next;
+      });
+    let selected = this.policy(worlds, seat, changes);
+    if (trigger && card === 'special-snorlax')
+      selected = this.policy(selected, seat, [
+        (w) => w,
+        ...swaps.map(
+          ({ a, b }) =>
+            (w: World) =>
+              swap(w, seat, a, b),
+        ),
+      ]);
+    if (trigger && card === 'special-charizard' && seat === this.seatId) {
+      // Legal private information becomes available only after choosing a peek.
+      const visible = selected[0]!.faceUp[seat]!;
+      const slot = slots.find(
+        (i) => !visible[i] && selected[0]!.privateCards[i] === null,
+      );
+      if (slot !== undefined)
+        selected = selected.map((w) => {
+          const next = clone(w);
+          next.privateCards[slot] = next.boards[seat]![slot]!;
+          return next;
+        });
+    }
+    return selected;
+  }
+
+  private rollout(input: readonly World[], turns: number) {
+    let worlds = input.map(clone);
+    const start = this.view.seatOrder.indexOf(this.seatId);
+    for (
+      let step = 1;
+      step <= turns * this.view.seatOrder.length && this.nodes < this.nodeLimit;
+      step++
+    ) {
+      this.check();
+      const seat =
+        this.view.seatOrder[(start + step) % this.view.seatOrder.length]!;
+      const groups = new Map<string, World[]>();
+      const finished: World[] = [];
+      for (const world of worlds) {
+        if (this.ended(world)) {
+          finished.push(world);
+          continue;
+        }
+        const key = this.observation(world, seat);
+        const group = groups.get(key) ?? [];
+        group.push(world);
+        groups.set(key, group);
+      }
+      worlds = finished;
+      for (const group of groups.values()) {
+        const top = group[0]!.discard.at(-1);
+        const visible = group[0]!.boards[seat]!.map((id, i) =>
+          group[0]!.faceUp[seat]![i]
+            ? id
+            : seat === this.seatId
+              ? group[0]!.privateCards[i]!
+              : null,
+        );
+        const baseline = preliminaryScore(visible, this.distribution);
+        const history =
+          this.memory.version === 2
+            ? this.memory.history.filter((h) => h.actor === seat)
+            : [];
+        const discardHabit = history.length
+          ? history.filter((h) => h.verb === 'discard').length / history.length
+          : 0;
+        const preferDiscard =
+          top &&
+          bestPreliminaryPlacement(
+            visible,
+            top,
+            this.distribution,
+            group[0]!.faceUp[seat]!,
+          ).score <
+            baseline - (1 + discardHabit);
+        const draws = new Map<string, World[]>();
+        for (const world of group) {
+          const drawn = preferDiscard
+            ? { next: clone(world), card: top }
+            : this.draw(world);
+          if (preferDiscard) drawn.next.discard.pop();
+          const key = drawn.card!;
+          const peers = draws.get(key) ?? [];
+          peers.push(drawn.next);
+          draws.set(key, peers);
+        }
+        for (const [card, peers] of draws)
+          worlds.push(
+            ...this.futureIncoming(peers, seat, card, !preferDiscard),
+          );
+      }
+    }
     return (
-      worlds.reduce((total, world) => total + this.utility(world), 0) /
-      worlds.length
+      worlds.reduce((sum, w) => sum + this.utility(w) * w.weight, 0) /
+      worlds.reduce((sum, w) => sum + w.weight, 0)
     );
   }
   private best(
@@ -241,7 +595,8 @@ export class PositionEvaluator {
   }
 
   private pass(world: World, held: string) {
-    let next = world;
+    let next = clone(world);
+    next.discard.pop();
     const origin = this.view.seatOrder.indexOf(this.view.turnSeat);
     const clockwise = Array.from(
       { length: this.view.seatOrder.length - 1 },
@@ -267,33 +622,44 @@ export class PositionEvaluator {
       );
       const result = replace(next, other, choice.slot, held);
       next = result.next;
+      next.discard.pop();
       held = result.outgoing;
     }
+    next.discard.unshift(held);
     return next;
   }
 
   private rocket(worlds: readonly World[], slot: number) {
-    const start = this.view.seatOrder.indexOf(this.view.turnSeat);
+    return this.mean(
+      worlds.map((world) => this.rocketWorld(world, this.view.turnSeat, slot)),
+    );
+  }
+
+  private rocketWorld(world: World, actor: string, slot: number) {
+    const start = this.view.seatOrder.indexOf(actor);
     const order = Array.from(
       { length: this.view.seatOrder.length },
       (_, index) =>
         this.view.seatOrder[(start + index) % this.view.seatOrder.length]!,
     );
-    return this.mean(
-      worlds.map((world) => {
-        let next = clone(world);
-        for (const seat of order) {
-          next = replace(next, seat, slot, next.future[next.cursor++]!).next;
-        }
-        return next;
-      }),
-    );
+    let next = clone(world);
+    next.discard.unshift(next.boards[actor]![slot]!, 'special-team-rocket');
+    for (const seat of order.slice(1))
+      next.discard.unshift(next.boards[seat]![slot]!);
+    for (const seat of order) {
+      const drawn = this.draw(next);
+      next = drawn.next;
+      next.boards[seat]![slot] = drawn.card;
+      next.faceUp[seat]![slot] = true;
+    }
+    return next;
   }
 
   private mew(worlds: readonly World[], target: string, slot: number) {
     const groups = new Map<string, World[]>();
     for (const world of worlds) {
       const { next, outgoing } = replace(world, target, slot, 'special-mew');
+      next.discard.pop();
       const group = groups.get(outgoing) ?? [];
       group.push(next);
       groups.set(outgoing, group);
@@ -350,8 +716,9 @@ export class PositionEvaluator {
   private drawDeck() {
     const groups = new Map<string, World[]>();
     for (const world of this.worlds) {
-      const next = clone(world);
-      const incoming = next.future[next.cursor++]!;
+      const drawn = this.draw(world);
+      const next = drawn.next;
+      const incoming = drawn.card;
       const group = groups.get(incoming) ?? [];
       group.push(next);
       groups.set(incoming, group);
@@ -370,7 +737,7 @@ export class PositionEvaluator {
     const contributions = this.worlds.map((world) => {
       const before = this.score(world.boards[this.seatId]!);
       const altered = [...world.boards[this.seatId]!];
-      altered[slot] = world.future[world.cursor]!;
+      altered[slot] = this.draw(world).card;
       return before - this.score(altered);
     });
     const mean =
@@ -394,7 +761,10 @@ export class PositionEvaluator {
     );
   }
 
-  choose(actions: readonly Action[]) {
+  choose(
+    actions: readonly Action[],
+    futureTurns = this.difficulty === 'doubao' ? 1 : 2,
+  ) {
     if (this.view.phase === 'initial-flip')
       return (
         actions.find(
@@ -402,9 +772,7 @@ export class PositionEvaluator {
         ) ?? actions[0]!
       );
     if (this.view.phase === 'charizard-view') return actions[0]!;
-    let best = actions[0]!,
-      bestValue = Infinity;
-    for (const action of actions) {
+    const evaluate = (action: Action) => {
       this.check();
       let value: number;
       if (action.type === 'draw')
@@ -412,7 +780,11 @@ export class PositionEvaluator {
           action.source === 'deck'
             ? this.drawDeck()
             : this.incoming(
-                this.worlds,
+                this.worlds.map((world) => {
+                  const next = clone(world);
+                  next.discard.pop();
+                  return next;
+                }),
                 this.view.discardTop!.categoryId,
                 false,
               );
@@ -440,11 +812,36 @@ export class PositionEvaluator {
       else value = this.mean(this.worlds);
       // A strict tie keeps the earliest legal candidate. Evaluation never
       // invents a target or submits trial actions to the rule engine.
-      if (value < bestValue - 1e-9) {
-        best = action;
-        bestValue = value;
-      }
+      return value;
+    };
+    const roots = actions
+      .map((action) => ({ action, value: evaluate(action) }))
+      .sort((a, b) => a.value - b.value);
+    const discard = roots.find((r) => r.action.type === 'discard-held');
+    // Replacing an unknown card with a plainly worse ordinary card does not
+    // create a usable future advantage. Keep optional/mandatory abilities and
+    // winning endings; do not let a noisy short horizon reward blind revelation.
+    const ranked = roots.filter(
+      (r) =>
+        !(
+          discard &&
+          this.view.held?.categoryId.startsWith('ordinary-') &&
+          r.action.type === 'replace' &&
+          r.value > discard.value + 1
+        ),
+    );
+    // Every root has a complete baseline. Only the three best receive a bounded
+    // horizon; an exhausted search retains its completed baseline evaluations.
+    this.depth = futureTurns;
+    if (!futureTurns) return ranked[0]!.action;
+    for (const candidate of ranked.slice(0, 3)) {
+      if (this.nodes >= this.budget) break;
+      this.nodeLimit = Math.min(
+        this.budget,
+        this.nodes + Math.floor(this.budget / 3),
+      );
+      candidate.value = evaluate(candidate.action);
     }
-    return best;
+    return ranked.slice(0, 3).sort((a, b) => a.value - b.value)[0]!.action;
   }
 }
