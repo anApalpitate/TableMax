@@ -176,7 +176,7 @@ export function GameIntroduction({
 }: {
   game: NonNullable<RoomView['game']>;
 }) {
-  const content = gameIntroduction(game.id);
+  const content = gameIntroduction(game.id, game.variantId);
   const [title, ...subtitle] = game.name.split('：');
   return (
     <section className="game-introduction game-overview">

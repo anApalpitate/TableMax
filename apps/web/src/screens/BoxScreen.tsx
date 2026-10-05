@@ -128,7 +128,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
         <div>
           <h1>{game?.name ?? '选个游戏，朋友们上桌'}</h1>
         </div>
-        {moduleFor(game?.id)?.versions && <PokemonVersion gameId={game!.id} />}
+        {moduleFor(game?.id)?.versions && <PokemonVersion session={session} />}
         {isHost && game && (
           <button
             type="button"

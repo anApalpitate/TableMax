@@ -12,6 +12,7 @@ import {
 } from './state';
 import { project } from './project';
 import { announceAction } from './public-actions';
+import { pokemonExpansion } from '../expansion';
 
 export type Action =
   | { type: 'initial-flip' | 'replace' | 'peek'; slot: number }
@@ -484,3 +485,4 @@ export const rules: GameRules = {
 
 // Keep actions and views JSON-only at the SDK boundary.
 export const jsonAction = (action: Action): JsonValue => action;
+export const rulesByVariant = { original: rules, expansion: pokemonExpansion };

@@ -86,7 +86,7 @@ export async function createService(
   const health = HealthSchema.parse({
     status: 'ready',
     phase: 'platform-foundation',
-    protocolVersion: 6,
+    protocolVersion: 7,
     database: 'ok',
     starts: storage.starts,
     runtime: {

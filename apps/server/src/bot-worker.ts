@@ -5,8 +5,22 @@ import type { RoomCoordinator } from '@tablemax/platform-core';
 
 const task = workerData as NonNullable<ReturnType<RoomCoordinator['botTask']>>;
 async function run() {
-  const bot = (await loadInstalledModule(task.gameId, 'bot')).bot;
-  if (!bot || task.data.version !== bot.version)
+  const module = await loadInstalledModule(task.gameId, 'bot');
+  const bot =
+    task.variantId === undefined
+      ? module.bot
+      : (
+          module as typeof module & {
+            botsByVariant?: Record<string, typeof module.bot>;
+          }
+        ).botsByVariant?.[task.variantId];
+  if (
+    !bot ||
+    task.data.id !== bot.id ||
+    task.data.version !== bot.version ||
+    task.gameId !== bot.gameId ||
+    task.rulesVersion !== bot.rulesVersion
+  )
     throw new Error('incompatible-strategy');
   if (
     !(bot.difficulties ?? ['default']).includes(

@@ -121,7 +121,7 @@ export async function assemble(
       const modules = snapshot.modules.map((item) => {
         if (
           item.compatibility.sdk !== 1 ||
-          item.compatibility.protocol !== 6 ||
+          item.compatibility.protocol !== 7 ||
           item.compatibility.webHost !== 1
         )
           throw new Error('Incompatible module ' + item.id);

@@ -499,7 +499,7 @@ try {
   await host.keyboard.press('Escape');
   observe(host);
   const health = await (await fetch(`${origin}/api/foundation/health`)).json();
-  assert.equal(health.protocolVersion, 6);
+  assert.equal(health.protocolVersion, 7);
   assert.equal(await desktop.evaluate(({ app }) => app.isPackaged), portable);
   const hostToken = await host.evaluate(() =>
     sessionStorage.getItem('tablemax-host'),

@@ -4,6 +4,7 @@ import type { Action } from '../rules';
 import { validateMemory, observeMemory } from './memory';
 import { preliminaryAction } from './strategy';
 import { PositionEvaluator } from './evaluation';
+import { bot as expansionBot } from '../expansion/bot';
 
 export const bot: BotStrategy = {
   id: 'pokemon-encounters/basic',
@@ -43,3 +44,4 @@ export const bot: BotStrategy = {
     return { action, memory: observed };
   },
 };
+export const botsByVariant = { original: bot, expansion: expansionBot };

@@ -11,7 +11,7 @@
   },
   "compatibility": {
     "sdk": 1,
-    "protocol": 6,
+    "protocol": 7,
     "webHost": 1,
     "rulesVersion": "tablemax-cn-s19-v1",
     "stateVersion": 1,
@@ -67,6 +67,59 @@
     }
   },
   "guidance": true,
+  "defaultVariantId": "original",
+  "variants": [
+    {
+      "id": "original",
+      "name": "原版",
+      "description": "2×3，16类56张，三胜。",
+      "compatibility": {
+        "sdk": 1,
+        "protocol": 7,
+        "webHost": 1,
+        "rulesVersion": "tablemax-cn-s19-v1",
+        "stateVersion": 1,
+        "gameVersion": "1.0.0",
+        "strategyVersion": "1"
+      }
+    },
+    {
+      "id": "expansion",
+      "name": "扩展版",
+      "description": "3×3，34类112／144张，研究投票、三神任务与新能力，三胜。",
+      "introduction": {
+        "tagline": "九宫格成线，协作投票，争取研究减分。",
+        "lead": "每人九张牌，通过换牌、调位和宝可梦能力，让最终分数最低。",
+        "steps": [
+          {
+            "icon": "auction",
+            "title": "先投票，再翻一张",
+            "text": "每小局从三个候选研究中暗投选一项，再发九张暗牌，每人自行公开一格。"
+          },
+          {
+            "icon": "swap",
+            "title": "两张弃牌与普通调位",
+            "text": "可取弃牌顶部两张中的任意一张，也可用整个回合交换自己两格，朝向随牌移动。"
+          },
+          {
+            "icon": "pair",
+            "title": "三张同值成线",
+            "text": "行、列或主对角线三张有效值相同便归零；两项全桌研究在结算时累计减分。"
+          }
+        ],
+        "goal": "最终分最低者共同获一胜，先获三胜结束大局。"
+      },
+      "compatibility": {
+        "sdk": 1,
+        "protocol": 7,
+        "webHost": 1,
+        "rulesVersion": "tablemax-cn-expansion-v1",
+        "stateVersion": 1,
+        "gameVersion": "1.0.0",
+        "strategyVersion": "1"
+      }
+    }
+  ],
   "versions": [
     {
       "name": "原版",
@@ -76,7 +129,7 @@
     {
       "name": "扩展版",
       "selected": false,
-      "description": "3×3 场地、更多精灵与新能力正在筹备。"
+      "description": "3×3场地，34类112／144张，研究投票、丰缘齐聚与新增能力。"
     }
   ],
   "budgets": {

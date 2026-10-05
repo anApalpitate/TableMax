@@ -313,7 +313,7 @@ for (let run = 0; run < 2; run++) {
       await fetch(`${origin}/api/foundation/health`)
     ).json();
     assert.equal(health.starts, run + 1);
-    assert.equal(health.protocolVersion, 6);
+    assert.equal(health.protocolVersion, 7);
     if (run === 0) {
       assert.equal((await view(origin, hostToken)).game, null);
       await command(origin, host, hostToken, {

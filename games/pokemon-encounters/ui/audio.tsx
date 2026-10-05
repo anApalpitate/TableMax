@@ -2,7 +2,11 @@ import { claimAudioEvent } from '@tablemax/web-host';
 import { useEffect, useRef, useState } from 'react';
 import type { RoomFeedback } from '../../../packages/protocol/src';
 import type { PokemonView } from '../rules/project';
-import { soundRecipe, type SoundCue } from './presentation-state';
+import {
+  soundRecipe,
+  type SoundCue,
+  type SoundCueRecipe,
+} from './presentation-state';
 import { SavedSoundPlayer } from './sound-player';
 import { SOUND_MAX_LATE_MS } from './sound-timing';
 import draw from '../../../assets/games/pokemon-encounters/audio/draw-v1.wav';
@@ -72,6 +76,7 @@ export function SoundControl({
   disabled = false,
   paused = false,
   canPlay = true,
+  recipe,
 }: {
   feedback: RoomFeedback | null;
   game?: PokemonView | null;
@@ -80,6 +85,10 @@ export function SoundControl({
   disabled?: boolean;
   paused?: boolean;
   canPlay?: boolean;
+  recipe?: (
+    event: RoomFeedback['events'][number],
+    reducedMotion: boolean,
+  ) => SoundCueRecipe[];
 }) {
   const [enabled, setEnabled] = useState(preference);
   const [blocked, setBlocked] = useState(false);
@@ -144,14 +153,27 @@ export function SoundControl({
         )
           playback?.enqueueEvent(
             id,
-            soundRecipe(event.kind, event.action, game, { reducedMotion }).map(
-              ({ cue, ...recipe }) => ({ ...recipe, source: sources[cue] }),
-            ),
+            (recipe
+              ? recipe(event, reducedMotion)
+              : soundRecipe(event.kind, event.action, game, { reducedMotion })
+            ).map(({ cue, ...recipe }) => ({
+              ...recipe,
+              source: sources[cue],
+            })),
             occurredAt,
           );
       })
       .catch(() => undefined);
-  }, [feedback, game, enabled, disabled, paused, canPlay, reducedMotion]);
+  }, [
+    feedback,
+    game,
+    enabled,
+    disabled,
+    paused,
+    canPlay,
+    reducedMotion,
+    recipe,
+  ]);
   useEffect(() => {
     if (lastError.current === errorId) return;
     lastError.current = errorId;

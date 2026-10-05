@@ -30,7 +30,7 @@ export {
 export const HealthSchema = z.object({
   status: z.literal('ready'),
   phase: z.literal('platform-foundation'),
-  protocolVersion: z.literal(6),
+  protocolVersion: z.literal(7),
   database: z.literal('ok'),
   starts: z.number().int().positive(),
   runtime: z.object({
@@ -135,6 +135,12 @@ export const CommandSchema = z
           type: z.literal('select-game'),
           gameId: z.string().min(1),
           endCurrent: z.literal(true).optional(),
+        })
+        .strict(),
+      z
+        .object({
+          type: z.literal('select-variant'),
+          variantId: z.string().min(1).max(48),
         })
         .strict(),
       z
@@ -250,6 +256,7 @@ export interface RoomView {
     min: number;
     max: number;
     decisionTimer?: boolean | undefined;
+    variantId?: string | undefined;
   } | null;
   catalog: {
     id: string;
@@ -257,6 +264,8 @@ export interface RoomView {
     min: number;
     max: number;
     decisionTimer?: boolean | undefined;
+    defaultVariantId?: string | undefined;
+    variants?: { id: string; name: string; description: string }[] | undefined;
   }[];
   ownerSeatId: string | null;
   capabilities: {
@@ -313,6 +322,7 @@ export const RoomViewSchema = z
         min: z.number().int().positive(),
         max: z.number().int().positive(),
         decisionTimer: z.boolean().optional(),
+        variantId: z.string().optional(),
       })
       .strict()
       .nullable(),
@@ -324,6 +334,18 @@ export const RoomViewSchema = z
           min: z.number().int().positive(),
           max: z.number().int().positive(),
           decisionTimer: z.boolean().optional(),
+          defaultVariantId: z.string().optional(),
+          variants: z
+            .array(
+              z
+                .object({
+                  id: z.string(),
+                  name: z.string(),
+                  description: z.string(),
+                })
+                .strict(),
+            )
+            .optional(),
         })
         .strict(),
     ),

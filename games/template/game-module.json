@@ -11,7 +11,7 @@
   },
   "compatibility": {
     "sdk": 1,
-    "protocol": 6,
+    "protocol": 7,
     "webHost": 1,
     "rulesVersion": "template-v1",
     "stateVersion": 1,

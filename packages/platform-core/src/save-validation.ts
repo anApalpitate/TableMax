@@ -12,8 +12,14 @@ export function validateSave(
   input: unknown,
   rules: GameRules | null,
   strategy: BotStrategy | null,
+  variantId?: string,
 ): Save {
   const d = structuredClone(input) as Save;
+  requireThat(
+    d && (d.variantId === undefined || d.variantId === variantId),
+    'incompatible-save',
+  );
+  if (variantId !== undefined) d.variantId = variantId;
   requireThat(
     d &&
       d.formatVersion === 1 &&

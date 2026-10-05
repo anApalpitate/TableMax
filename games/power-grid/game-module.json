@@ -12,7 +12,7 @@
   },
   "compatibility": {
     "sdk": 1,
-    "protocol": 6,
+    "protocol": 7,
     "webHost": 1,
     "rulesVersion": "classic-germany-2009-project-1",
     "stateVersion": 1,

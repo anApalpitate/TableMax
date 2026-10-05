@@ -40,6 +40,7 @@ export interface SessionReceipt {
 }
 export interface Save {
   formatVersion: 1;
+  variantId?: string;
   manifest: {
     id: string;
     gameVersion: string;

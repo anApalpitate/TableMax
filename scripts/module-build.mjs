@@ -68,6 +68,39 @@ export async function inventory(directory) {
   await visit(directory);
   return records.sort((a, b) => a.path.localeCompare(b.path, 'en'));
 }
+// Node can reject a Windows cache-directory rename that the native move accepts.
+async function renameCache(from, to) {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      await rename(from, to);
+      return;
+    } catch (error) {
+      if (
+        process.platform !== 'win32' ||
+        !['EPERM', 'EBUSY'].includes(error.code) ||
+        attempt >= 5
+      ) {
+        if (process.platform === 'win32' && error.code === 'EPERM') {
+          await execute('powershell.exe', [
+            '-NoProfile',
+            '-NonInteractive',
+            '-File',
+            resolve('scripts/Move-BuildCache.ps1'),
+            '-Source',
+            resolve(from),
+            '-Destination',
+            resolve(to),
+          ]);
+          return;
+        }
+        throw error;
+      }
+      await new Promise((resolveWait) =>
+        setTimeout(resolveWait, 100 * 2 ** attempt),
+      );
+    }
+  }
+}
 export async function discover() {
   const items = [];
   for (const entry of await readdir('games', { withFileTypes: true })) {
@@ -85,7 +118,7 @@ export async function discover() {
       !/^[a-z][a-z0-9-]*$/.test(item.id) ||
       item.catalog.id !== item.id ||
       item.compatibility.sdk !== 1 ||
-      item.compatibility.protocol !== 6 ||
+      item.compatibility.protocol !== 7 ||
       item.compatibility.webHost !== 1
     )
       throw new Error('Invalid or incompatible module ' + entry.name);
@@ -176,7 +209,10 @@ async function inputsFor(unit) {
       unit.id === 'platform-box' &&
       file.endsWith('game-clients' + require('node:path').sep + 'registry.ts')
     )
-      source = source.slice(source.indexOf('const loaded'));
+      source = source.replace(
+        /const development = import\.meta\.glob<ClientExports>\([\s\S]*?\);/,
+        '',
+      );
     if (
       unit.id === 'platform-box' &&
       file.endsWith('catalog.ts') &&
@@ -284,6 +320,7 @@ async function inputsFor(unit) {
     'tsconfig.json',
     'global.json',
     'scripts/module-build.mjs',
+    'scripts/Move-BuildCache.ps1',
     'packages/game-sdk/src/index.ts',
     'packages/protocol/src/index.ts',
     'packages/web-host/src/types.ts',
@@ -584,15 +621,15 @@ export async function buildUnit(unit, full = false) {
       // A successful forced rebuild replaces the same key only after validation.
       const previous = directory + '.previous-' + process.pid;
       try {
-        await rename(directory, previous);
+        await renameCache(directory, previous);
       } catch (error) {
         if (error.code !== 'ENOENT') throw error;
       }
       try {
-        await rename(temp, directory);
+        await renameCache(temp, directory);
       } catch (error) {
         try {
-          await rename(previous, directory);
+          await renameCache(previous, directory);
         } catch {
           /* No previous cache. */
         }

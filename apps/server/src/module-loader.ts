@@ -27,7 +27,7 @@ export function installedModules(): ModuleManifest[] {
       item.schemaVersion !== 1 ||
       !/^[a-z][a-z0-9-]*$/.test(item.id) ||
       item.compatibility.sdk !== 1 ||
-      item.compatibility.protocol !== 6 ||
+      item.compatibility.protocol !== 7 ||
       item.compatibility.webHost !== 1
     )
       throw new Error('incompatible-game-module');

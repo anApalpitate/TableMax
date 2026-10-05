@@ -4,7 +4,9 @@
 
 ## 已创建结构
 
-宝可梦模块新增 `shared/`（共享卡牌、资源身份和纯棋盘拓扑）与 `variants/original.ts`（轻量原版元数据）。原版规则与存档仍限定六格；未来九格仅拓扑可测试，未定义计分或协议字段。`rules/cards.ts` 保留兼容导出，素材文件与实例 ID 不变。盒子的版本面板只导入轻量元数据，不加载完整游戏资源。
+宝可梦模块的 `shared/` 维护共享卡牌、资源身份和纯棋盘拓扑，`variants/original.ts` 保留轻量原版元数据；`expansion/` 独立维护九格规则、状态、研究与计分，其 `bot/`、`web/` 分别维护策略与界面。原版规则与存档仍限定六格，`rules/cards.ts` 保留兼容导出。规则／策略／客户端入口提供版本映射，盒子只加载目录元数据，不加载完整游戏资源。
+
+[宝可梦扩展版设计基线](../games/pokemon-encounters/expansion-design.md) 归游戏文档目录；九格计分、研究、扩展存档与权威版本选择已实现。原版 `cards.json` 和采用规格继续独立维护；正式资源在 `assets/games/pokemon-encounters/expansion/`，来源原件与生成证据在 `artifacts/pokemon-expansion/`。素材完整性与最终验收状态见任务页。
 
 | 路径                                                                           | 职责与允许内容                                                                                            |
 | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
@@ -17,16 +19,16 @@
 | `Compress-Workspace.ps1`                                                       | NTFS 透明压缩与实际分配审计入口；实现及隔离回归在 `scripts/`                                              |
 | `apps/desktop/native/`                                                         | C# WinForms／net48／x64 外壳：双窗口、WebView2 桥接、显示／声音、私有服务管道、进程与单实例保障及锁定依赖 |
 | `apps/desktop/src/`                                                            | 网页使用的桌面显示／声音 TypeScript 契约及独立控制逻辑回归；不启动正式窗口或服务                          |
-| `apps/desktop/release/` | 完整EXE发布启动器，内置已核验运行ZIP并解压至稳定应用目录；打包、验收和GitHub白名单入口在 `scripts/` |
+| `apps/desktop/release/`                                                        | 完整EXE发布启动器，内置已核验运行ZIP并解压至稳定应用目录；打包、验收和GitHub白名单入口在 `scripts/`       |
 | `apps/server/`                                                                 | HTTP／Socket.IO、构建后网页、二维码、SQLite 存档仓储、独立 bot Worker 与游戏注册／加载                    |
-| `apps/web/`                                                                    | 平台盒子、会话／导航与网页宿主实现；游戏网页独立构建，另保留隔离原型 |
+| `apps/web/`                                                                    | 平台盒子、会话／导航与网页宿主实现；游戏网页独立构建，另保留隔离原型                                      |
 | `apps/web/src/session/`、`screens/`、`components/`                             | 权威同步与可靠提交、平台页面和通用控件；具体牌桌留在游戏 UI                                               |
-| `apps/web/src/game-clients/`                                                   | 清单驱动的本地ESM加载与重试；旧Screen仅为源码fixture保留兼容包装 |
+| `apps/web/src/game-clients/`                                                   | 清单驱动的本地ESM加载与重试；旧Screen仅为源码fixture保留兼容包装                                          |
 | `packages/protocol/`                                                           | 通信与桌面／服务消息的类型和运行时校验                                                                    |
 | `packages/game-sdk/`                                                           | 游戏、策略和生命周期纯类型契约                                                                            |
-| `packages/web-host/`                                                          | 版本化授权网页契约、GameClient与共享控件／React运行时的实际入口 |
+| `packages/web-host/`                                                           | 版本化授权网页契约、GameClient与共享控件／React运行时的实际入口                                           |
 | `packages/platform-core/`                                                      | 房间与授权、游戏切换、串行动作／去重、随机／checkpoint／回退恢复、bot 调度与存档校验                      |
-| `games/<id>/`                                                                  | game-module.json清单、独立rules／bot／web入口、UI、数据和测试；不跨游戏导入 |
+| `games/<id>/`                                                                  | game-module.json清单、独立rules／bot／web入口、UI、数据和测试；不跨游戏导入                               |
 | `games/template/`                                                              | 可运行内部验证游戏，用于切换、容量与平台／策略兼容测试，不在正式目录展示                                  |
 | `assets/`、`assets/games/<id>/`、`assets/platform/`                            | 全部运行／原型美术和声音、游戏独立资源、平台头像／图标等，以及各自来源／版本清单                          |
 | `docs/requirements/`                                                           | 需求基线及用户确认的增补，区分要求、现状和规划                                                            |
@@ -38,7 +40,7 @@
 | `docs/subagent/`                                                               | 长期角色职责、派工输入、文件边界与交接标准；不保存会话实例或素材                                          |
 | `docs/archive/`                                                                | 已完成任务及历史过程／验收／开发记录；不作为当前实现或命令依据                                            |
 | `build/native/`、`build/native-obj/`、`build/desktop/`                         | 可再生编译与完整运行目录；规则／策略模块和前端分块随本地包收集，不手改生成物                              |
-| `.cache/build-modules/v1/`、`build/snapshots/`                               | 内容寻址的成功单元、隔离任务输出和冻结组装清单；按专用缓存保留规则维护 |
+| `.cache/build-modules/v1/`、`build/snapshots/`                                 | 内容寻址的成功单元、隔离任务输出和冻结组装清单；按专用缓存保留规则维护                                    |
 | `artifacts/releases/`、`artifacts/maintenance/`、`artifacts/phase-*/`          | 最终交付、维护及阶段证据／原始资料；材料是否可再生分别判断                                                |
 | `tmp/`                                                                         | 隔离验证数据、解压副本及实验中间物；长期资料不能只留在临时目录                                            |
 
@@ -51,6 +53,8 @@
 `packages/ui/` 仅在实际组件复用需要时建立，目前不预铺空包。新增目录须有明确职责，不预铺未来插件、多房间或后续游戏层级；确需跟踪空目录时使用 `.gitkeep` 或有实际用途的说明文件。
 
 ## 材料与产物边界
+
+宝可梦扩展版的开发阶段、完成标准与当前接续统一维护在[扩展任务](../tasks/pokemon-encounters-expansion.md)；候选规则仍归游戏目录的[设计草案](../games/pokemon-encounters/expansion-design.md)，不将阶段规划写成已实现玩法。
 
 长期需求、规则规格、来源清单和必要资源进入对应主题；本地实验和可再生中间物可进入 `tmp/`、`build/`，不作为长期资料入口。运行数据默认在当前用户 `LOCALAPPDATA/TableMax/`，测试覆盖为隔离目录；正式存档含秘密，不能公开或纳入程序包。
 

@@ -64,6 +64,7 @@ export class RoomCoordinator {
     initialPlayMode?: PlayMode,
     registry?: GameRegistry,
     loadedSave?: unknown,
+    loadedVariantId?: string,
   ) {
     this.hostToken = hostToken;
     requireThat(
@@ -74,7 +75,16 @@ export class RoomCoordinator {
           strategy.rulesVersion === rules.manifest.rulesVersion),
       'incompatible-strategy',
     );
-    this.game = rules && strategy ? { rules, bot: strategy } : null;
+    this.game =
+      rules && strategy
+        ? {
+            rules,
+            bot: strategy,
+            ...(loadedVariantId === undefined
+              ? {}
+              : { variantId: loadedVariantId }),
+          }
+        : null;
     const game = this.game;
     this.registry =
       registry ??
@@ -95,7 +105,9 @@ export class RoomCoordinator {
       );
     const saved = loadedSave === undefined ? repository.load() : loadedSave;
     this.data =
-      saved === null ? this.fresh() : validateSave(saved, rules, strategy);
+      saved === null
+        ? this.fresh()
+        : validateSave(saved, rules, strategy, this.game?.variantId);
     for (const seat of this.data.seats) {
       if (!seat.avatarId?.startsWith('custom-')) continue;
       const png = repository.getAvatar?.(seat.avatarId);
@@ -112,7 +124,9 @@ export class RoomCoordinator {
         (_, index) => (saved as Save).seats[index]!.avatarId === undefined,
       ) ||
         (saved as Save).countdownSeconds === undefined ||
-        (saved as Save).decisionClocks === undefined);
+        (saved as Save).decisionClocks === undefined ||
+        ((saved as Save).variantId === undefined &&
+          this.game?.variantId !== undefined));
     // SQLite journal revisions are unique; migrate an old lobby exactly once.
     if (persist && this.data.status !== 'playing') this.data.revision++;
     if (initialPlayMode !== undefined) {
@@ -156,9 +170,9 @@ export class RoomCoordinator {
   ) {
     const saved = repository.load() as Save | null;
     const game = saved?.manifest
-      ? await registry.load(saved.manifest.id)
+      ? await registry.load(saved.manifest.id, saved.variantId)
       : null;
-    return new RoomCoordinator(
+    const room = new RoomCoordinator(
       game?.rules ?? null,
       game?.bot ?? null,
       repository,
@@ -166,7 +180,10 @@ export class RoomCoordinator {
       initialPlayMode,
       registry,
       saved,
+      game?.variantId,
     );
+    if (game) room.game = game;
+    return room;
   }
   get rules(): GameRules {
     requireThat(this.game, 'game-not-selected');
@@ -183,6 +200,7 @@ export class RoomCoordinator {
     const manifest = game?.rules.manifest;
     return {
       formatVersion: 1,
+      ...(game?.variantId === undefined ? {} : { variantId: game.variantId }),
       manifest: manifest
         ? {
             id: manifest.id,
@@ -445,6 +463,7 @@ export class RoomCoordinator {
             name: this.rules.manifest.name,
             ...this.rules.manifest.players,
             decisionTimer: this.rules.manifest.decisionTimer !== false,
+            ...(d.variantId === undefined ? {} : { variantId: d.variantId }),
           }
         : null,
       catalog: this.registry.catalog(),
@@ -651,9 +670,13 @@ export class RoomCoordinator {
     const receipt = this.data.receipts[key];
     if (
       envelope.instanceId !== this.data.instanceId &&
-      ['new-room', 'replay', 'select-game', 'remove-seat'].includes(
-        envelope.command.type,
-      ) &&
+      [
+        'new-room',
+        'replay',
+        'select-game',
+        'select-variant',
+        'remove-seat',
+      ].includes(envelope.command.type) &&
       receipt?.fingerprint === fingerprint
     )
       return receipt.reply;
@@ -693,25 +716,36 @@ export class RoomCoordinator {
         );
         next.ownerSeatId = c.seatId;
         break;
+      case 'select-variant':
       case 'select-game': {
         host();
+        if (c.type === 'select-variant')
+          requireThat(next.status !== 'playing', 'end-first');
+        const gameId =
+          c.type === 'select-game' ? c.gameId : this.game?.rules.manifest.id;
+        requireThat(gameId, 'game-not-selected');
         requireThat(
-          next.status !== 'playing' || c.endCurrent === true,
+          next.status !== 'playing' ||
+            (c.type === 'select-game' && c.endCurrent === true),
           'end-first',
         );
         const catalog = this.registry
           .catalog()
-          .find((entry) => entry.id === c.gameId);
+          .find((entry) => entry.id === gameId);
         requireThat(catalog, 'unknown-game');
         requireThat(next.seats.length <= catalog.max, 'too-many-seats');
         if (
-          this.game?.rules.manifest.id === c.gameId &&
-          next.status === 'lobby'
+          this.game?.rules.manifest.id === gameId &&
+          next.status === 'lobby' &&
+          (c.type === 'select-game' || c.variantId === next.variantId)
         )
           break;
         let game: LoadedGame;
         try {
-          game = await this.registry.load(c.gameId);
+          game = await this.registry.load(
+            gameId,
+            c.type === 'select-variant' ? c.variantId : undefined,
+          );
         } catch {
           throw new Rejection('game-load-failed');
         }
@@ -1111,6 +1145,8 @@ export class RoomCoordinator {
     const data = d.snapshot.bots[decision.seatId]!;
     return {
       gameId: this.rules.manifest.id,
+      ...(d.variantId === undefined ? {} : { variantId: d.variantId }),
+      rulesVersion: this.rules.manifest.rulesVersion,
       instanceId: d.instanceId,
       revision: d.revision,
       branch: d.branch,

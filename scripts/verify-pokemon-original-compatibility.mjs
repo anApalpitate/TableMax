@@ -101,11 +101,16 @@ for (let players = 2; players <= 6; players++) {
     for (const viewer of [
       { role: 'public' },
       ...seats.map((seatId) => ({ role: 'player', seatId })),
-    ])
+    ]) {
+      const previousView = old.project(before, viewer);
+      const currentView = current.project(after, viewer);
       assert.deepEqual(
-        legacyProjection(current.project(after, viewer)),
-        old.project(before, viewer),
+        Object.hasOwn(previousView, 'publicMatchedColumns')
+          ? currentView
+          : legacyProjection(currentView),
+        previousView,
       );
+    }
     const lifecycle = old.lifecycleActions(before);
     assert.deepEqual(current.lifecycleActions(after), lifecycle);
     if (lifecycle.length) {

@@ -51,7 +51,7 @@ export function GameLibrary({
             <div>
               <h3>{game.name}</h3>
               {moduleFor(game.id)?.versions && (
-                <PokemonVersion gameId={game.id} />
+                <PokemonVersion session={session} gameId={game.id} />
               )}
               <p className="game-library__tagline">
                 {gameIntroduction(game.id)?.tagline}

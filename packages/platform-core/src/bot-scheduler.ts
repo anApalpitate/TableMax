@@ -40,6 +40,8 @@ export class BotScheduler {
     const key = task
       ? JSON.stringify([
           task.instanceId,
+          task.variantId,
+          task.rulesVersion,
           task.revision,
           task.branch,
           task.decision.id,

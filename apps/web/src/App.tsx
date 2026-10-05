@@ -7,11 +7,18 @@ import type { ScreenRole } from './navigation';
 
 function RoomApp({ role, inGame }: { role: ScreenRole; inGame: boolean }) {
   const session = useRoomSession(role);
-  const gameClient = useGameClient(inGame ? session.view?.game?.id : undefined);
+  const gameClient = useGameClient(
+    inGame ? session.view?.game?.id : undefined,
+    session.view?.game?.variantId,
+  );
   return (
     <>
       {inGame ? (
-        <GameScreen session={session} {...gameClient} />
+        <GameScreen
+          key={`${session.view?.game?.id}:${session.view?.game?.variantId}:${session.view?.instanceId}`}
+          session={session}
+          {...gameClient}
+        />
       ) : (
         <BoxScreen session={session} />
       )}

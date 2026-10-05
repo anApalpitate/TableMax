@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- Lazy adapters expose one platform client object. */
 import { useState } from 'react';
+import { client as expansionClient } from '../expansion/web';
 import type { JsonValue } from '../../../packages/game-sdk/src';
 import type { PokemonView } from '../rules/project';
 import { SeatResult, PublicLog } from '../ui/public';
@@ -278,4 +279,8 @@ export const client: GameClient = {
   savedChanges: (before, after) =>
     savedChanges(before as PokemonView, after as PokemonView),
   motionDuration: (view) => savedMotionDuration(view as PokemonView),
+};
+export const clientsByVariant = {
+  original: client,
+  expansion: expansionClient,
 };

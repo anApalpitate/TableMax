@@ -4,4 +4,10 @@ export type GameIntroductionContent = NonNullable<
   ModuleManifest['introduction']
 >;
 export type IntroductionIcon = GameIntroductionContent['steps'][number]['icon'];
-export const gameIntroduction = (id: string) => moduleFor(id)?.introduction;
+export const gameIntroduction = (id: string, variantId?: string) => {
+  const module = moduleFor(id);
+  return (
+    module?.variants?.find((variant) => variant.id === variantId)
+      ?.introduction ?? module?.introduction
+  );
+};

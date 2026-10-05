@@ -1,5 +1,7 @@
 # 三档人机逐决策规格
 
+本页前述详细规格维护原版。扩展策略采用独立入口 [expansion/bot/index.ts](../../../games/pokemon-encounters/expansion/bot/index.ts)、[记忆](../../../games/pokemon-encounters/expansion/bot/memory.ts)和[评估](../../../games/pokemon-encounters/expansion/bot/strategy.ts)，下节说明差异；当前产品沿用v1.0.2，前文其他版本号表示历史实施记录。
+
 2026-10-05，v1.0.3。三档为本地离线策略，不调用同名云端模型。入口为 [index.ts](../../../games/pokemon-encounters/bot/index.ts)，轻量评估见 [strategy.ts](../../../games/pokemon-encounters/bot/strategy.ts)，未知牌与后续回合见 [evaluation.ts](../../../games/pokemon-encounters/bot/evaluation.ts)，观察记忆见 [memory.ts](../../../games/pokemon-encounters/bot/memory.ts)。规则仍为原版六格、56 张、三胜。
 
 外部 `pokemon-encounters/basic`／策略版本 1、规则版本及存档外层保持不变，内部记忆升级为 2，兼容旧 null／版本 1。只接受本人投影、合法动作和决策标识，不接触完整规则状态、凭证或数据库。
@@ -37,3 +39,13 @@ SDK 可选纯 `observe({view,memory,seatId,difficulty})` 在成功游戏动作�
 ## 当前验证
 
 策略场景、记忆容量／遗忘、旧格式、交换／失效、授权等价、保存失败、回退和重启由策略、记忆及平台测试覆盖。固定种子 2–6 人、三档、混合等级与旧默认基线的回合数／盲换／弃牌／胜场记录在本次验收证据；基线是旧默认 basicAction，不冒充旧高级策略。完整比赛总测试时限因前瞻工作量提升到十分钟，单次 Worker 截止没有放宽。实际完成项与包边界见 [验收](../../reference/acceptance.md)。
+
+## 扩展版三档策略（2026-10-05）
+
+独立策略身份 `pokemon-encounters/expansion`／版本1，规则指纹 `tablemax-cn-expansion-v1`。输入仍只含本人授权投影、合法动作和独立策略随机源；候选投票、九格换牌／调位、两种弃牌、全部能力及任务收益在扩展内评价，不让平台读取某游戏暗牌。
+
+默认／豆包／绝悟分别用1／8／32组无放回未知牌假设，豆包最多一回合、绝悟最多两回合本人前瞻；采样扣除当前已知牌与暂持牌，不能读取真实牌库顺序。基础得分先最小化，再评价两项研究；调位惩罚和长局收局权重用于减少无收益循环。计算软预算120／400／750ms，真实Worker仍32MiB、两秒硬截止。CPU时间上限与假设组数为实施选择，不表示数学最优或已证明更高现实胜率。
+
+私看容量／遗忘为默认2张／3本人回合、豆包6张／8回合、绝悟本小局合法知识不主动忘；公开行动8／32／128条。公开交换、行交换、调位更新记忆位置，已知公开牌盖回仍可记住；新小局清空牌位知识，回退与保存失败不保留分支信息。投票前用假设评估研究路线，不以候选票读取其他玩家选择。
+
+独立150种子小局已覆盖2–6人、三档、21种决策阶段和14,274次合法动作，记忆逐位置与测试oracle一致，输入不变、规则RNG隔离，最长单次CPU723ms。真实混合三胜大局231次Worker调用、最长181ms；原版旧Worker仍可恢复。[汇总](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/verification-summary.json)给出实际源码哈希与边界。实体手机、普通节奏时长、三级胜率优势仍待测，不从快跑样本推断。

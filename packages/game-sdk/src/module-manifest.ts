@@ -23,6 +23,14 @@ export interface ModuleManifest {
   cover: string | null;
   guidance?: boolean;
   versions?: { name: string; selected: boolean; description: string }[];
+  defaultVariantId?: string;
+  variants?: {
+    id: string;
+    name: string;
+    description: string;
+    compatibility: ModuleManifest['compatibility'];
+    introduction?: ModuleManifest['introduction'];
+  }[];
   introduction?: {
     tagline: string;
     lead: string;
