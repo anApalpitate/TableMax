@@ -22,6 +22,7 @@ import { AvatarPicker } from '../components/AvatarPicker';
 import { AvatarUpload } from '../components/AvatarUpload';
 import { GameIntroduction } from '../components/GameIntroduction';
 import { CountdownSettings } from '../components/CountdownSettings';
+import { BeginnerGuidanceSetting } from '../components/BeginnerGuidanceSetting';
 import { LobbyReadiness } from '../components/LobbyReadiness';
 import { BotInformation } from '../components/BotInformation';
 import { PokemonVersion } from '../components/PokemonVersion';
@@ -104,7 +105,13 @@ export function BoxScreen({ session }: { session: RoomSession }) {
           TableMax
         </span>
         <div className="header-status">
-          {isHost && <CountdownSettings session={session} />}
+          {(isHost || game?.id === 'pokemon-encounters') && (
+            <CountdownSettings session={session}>
+              {game?.id === 'pokemon-encounters' && (
+                <BeginnerGuidanceSetting gameId={game.id} />
+              )}
+            </CountdownSettings>
+          )}
           {role !== 'player' && <DisplaySettings />}
           <PlayModeBadge mode={view?.playMode} />
           <span

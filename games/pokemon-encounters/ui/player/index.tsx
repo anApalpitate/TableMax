@@ -18,6 +18,7 @@ export function PlayerControls({
   locked,
   choose,
   showRules,
+  guidanceEnabled = false,
 }: {
   view: PokemonView;
   seatId: string;
@@ -26,6 +27,7 @@ export function PlayerControls({
   locked: boolean;
   choose(action: JsonValue): void;
   showRules?: ((chapter: string) => void) | undefined;
+  guidanceEnabled?: boolean;
 }) {
   const actions = input as readonly Action[];
   const motion = useContext(SavedMotion);
@@ -126,6 +128,7 @@ export function PlayerControls({
           guidance={decisionGuidance(view, actions, selection, first)}
           pending={locked}
           showRules={showRules}
+          expanded={guidanceEnabled}
         />
       )}
       {view.phase !== 'charizard-view' && view.phase !== 'mew-other' && (
@@ -248,6 +251,7 @@ export function PlayerControls({
             guidance={decisionGuidance(view, actions, selection, first)}
             pending={locked}
             showRules={showRules}
+            expanded={guidanceEnabled}
           />
         )}
         {ownSlots.length > 0 || view.phase === 'mew-other' ? (

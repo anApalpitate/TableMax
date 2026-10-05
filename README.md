@@ -6,7 +6,7 @@ Windows 局域网数字桌游平台。电脑运行本地服务、管理对局并
 
 **当前本地版本：v1.0.4** · [下载 Windows 便携版](artifacts/releases/TableMax-1.0.4-win-x64.zip) · [逐文件校验清单](artifacts/releases/TableMax-1.0.4-win-x64-manifest.json)
 
-v1.0.4 汇总宝可梦简短能力说明与手机按钮、电力公司分级人机与分页界面，以及现代艺术已完成的改动，按用户指定新版本重新打包。当前包及验证边界见 [验收记录](docs/reference/acceptance.md)；[线上 v1.0.1 Release](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.1) 保留原发布内容。
+v1.0.4 汇总宝可梦简短能力说明与手机按钮、电力公司分级人机与分页界面，以及现代艺术已完成的改动。宝可梦新增默认关闭的“新手引导”，可在盒子或牌桌菜单的游戏设置中开启，按本设备保存；关闭时只保留简短提示。当前包及验证边界见 [验收记录](docs/reference/acceptance.md)；[线上 v1.0.1 Release](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.1) 保留原发布内容。
 
 ## 支持的游戏
 

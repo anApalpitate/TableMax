@@ -14,6 +14,7 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
 const portable = process.argv.includes('--portable');
+const verifyGuidanceSettings = process.argv.includes('--guidance-settings');
 const project = JSON.parse(await readFile('package.json', 'utf8'));
 const evidenceName = process.argv
   .find((arg) => arg.startsWith('--evidence='))
@@ -247,6 +248,23 @@ async function phone(desktop, origin, index) {
   await page.locator('.connection.online').waitFor();
   return page;
 }
+
+async function setGuidance(mobile, enabled, inGame) {
+  if (inGame)
+    await mobile.getByRole('button', { name: '菜单', exact: true }).click();
+  await mobile.getByRole('button', { name: '游戏设置', exact: true }).click();
+  const toggle = mobile.getByRole('switch', { name: '新手引导', exact: true });
+  assert.equal(await toggle.getAttribute('aria-checked'), String(!enabled));
+  assert.equal(await mobile.getByRole('slider').count(), 0);
+  await toggle.click();
+  assert.equal(await toggle.getAttribute('aria-checked'), String(enabled));
+  await mobile
+    .getByRole('button', { name: '关闭面板', exact: true })
+    .last()
+    .click();
+  if (inGame)
+    await mobile.getByRole('button', { name: '关闭面板', exact: true }).click();
+}
 async function strategy(player) {
   return bot.decide({
     view: player.gameView,
@@ -333,6 +351,18 @@ for (let run = 0; run < 2; run++) {
       ];
     if (run === 0) {
       await capture(desktop, page, 'host-lobby');
+      if (verifyGuidanceSettings) {
+        const before = await view(origin);
+        await setGuidance(phones[0], true, false);
+        await setGuidance(phones[0], false, false);
+        const after = await view(origin);
+        assert.equal(after.countdownSeconds, before.countdownSeconds);
+        assert.deepEqual(after.gameView, before.gameView);
+        assert.deepEqual(after.seats, before.seats);
+        evidence.checks.push(
+          'Unseated ordinary phone can toggle local beginner guidance in box game settings without changing room settings, seats or game state',
+        );
+      }
       for (let index = 0; index < phones.length; index++) {
         const mobile = phones[index];
         await mobile
@@ -439,6 +469,30 @@ for (let run = 0; run < 2; run++) {
       [tokens[0], tokens[activeIndex]] = [tokens[activeIndex], tokens[0]];
       let own = await view(origin, tokens[0]);
       assert.equal(own.gameView.phase, 'draw');
+      if (verifyGuidanceSettings) {
+        assert.equal(await phones[0].locator('.decision-guidance').count(), 0);
+        await setGuidance(phones[0], true, true);
+        assert.ok(await phones[0].locator('.guidance-instruction').isVisible());
+        await phones[0].reload();
+        await phones[0].locator('.connection.online').waitFor();
+        await phones[0].locator('.guidance-instruction').waitFor();
+        assert.equal(
+          await phones[0].evaluate(() =>
+            localStorage.getItem('tablemax-player'),
+          ),
+          tokens[0],
+        );
+        await setGuidance(phones[0], false, true);
+        assert.equal(await phones[0].locator('.decision-guidance').count(), 0);
+        const after = await view(origin, tokens[0]);
+        assert.deepEqual(after.gameView, own.gameView);
+        assert.equal(after.decisionId, own.decisionId);
+        assert.equal(after.selectionToken, own.selectionToken);
+        own = after;
+        evidence.checks.push(
+          'Saved portable game uses compact guidance by default; ordinary phone toggles detailed instructions, retains preference and identity on reload, then disables it without changing the decision or saved game',
+        );
+      }
       const admin = await view(origin, hostToken);
       assert.deepEqual(admin.self, { role: 'host', seatId: null });
       assert.deepEqual(admin.actions, []);

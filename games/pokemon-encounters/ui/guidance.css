@@ -49,6 +49,9 @@
   margin-top: 6px;
   color: #85551a;
 }
+.pokemon-screen .guidance-compact .ability-summary {
+  margin-top: 0;
+}
 .pokemon-screen .decision-guidance .guidance-instruction {
   font-size: 18px;
   font-weight: 650;

@@ -37,6 +37,7 @@ export function GameTable({
   playMode = 'play',
   feedback = null,
   showRules,
+  guidanceEnabled = false,
 }: {
   game: PokemonView;
   seats: readonly TableSeat[];
@@ -54,6 +55,7 @@ export function GameTable({
   playAgain?: () => void;
   showFriends(): void;
   showRules?: ((chapter: string) => void) | undefined;
+  guidanceEnabled?: boolean;
   friendsInToolbar?: boolean;
   playMode?: 'play' | 'test';
   feedback?: RoomFeedback | null;
@@ -220,6 +222,7 @@ export function GameTable({
                     locked={locked}
                     choose={choose}
                     showRules={showRules}
+                    guidanceEnabled={guidanceEnabled}
                   />
                 ) : (
                   <SeatResult view={game} seatId={seat.id} />

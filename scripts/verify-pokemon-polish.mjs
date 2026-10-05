@@ -25,6 +25,7 @@ const report = {
   topbars: [],
   choices: [],
   buttonPolish: [],
+  guidanceSettings: [],
   commands: [],
   screenshots: [],
   errors: [],
@@ -58,7 +59,10 @@ const server = await serveFixture(join(work, 'bundle'));
 let browser;
 try {
   browser = await chromium.launch({ channel: 'msedge', headless: true });
-  const page = await browser.newPage({ viewport: { width: 360, height: 640 } });
+  const context = await browser.newContext({
+    viewport: { width: 360, height: 640 },
+  });
+  const page = await context.newPage();
   page.on('pageerror', (error) => report.errors.push(error.message));
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(server.url);
@@ -214,6 +218,145 @@ try {
     if (scene === 'snorlax') await board.locator('button').nth(0).click();
     await board.locator('button').nth(2).click();
   };
+
+  const openGuidanceSettings = async () => {
+    await page.getByRole('button', { name: '菜单', exact: true }).click();
+    await page.getByRole('button', { name: '游戏设置', exact: true }).click();
+  };
+  const closeGuidanceSettings = async () => {
+    await page
+      .getByRole('button', { name: '关闭面板', exact: true })
+      .last()
+      .click();
+    await page.getByRole('button', { name: '关闭面板', exact: true }).click();
+  };
+  const setGuidance = async (enabled) => {
+    await openGuidanceSettings();
+    const toggle = page.getByRole('switch', { name: '新手引导', exact: true });
+    if ((await toggle.getAttribute('aria-checked')) !== String(enabled))
+      await toggle.click();
+    await closeGuidanceSettings();
+  };
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: width === 320 ? 568 : 844 });
+    await reset({ scene: 'peek' });
+    assert.equal(
+      await page
+        .locator('.guidance-instruction, .guidance-notice, .ability-trigger')
+        .count(),
+      0,
+    );
+    assert.equal(
+      await page.locator('.ability-phrase').textContent(),
+      '喷火龙：查看暗牌',
+    );
+    const compactHeight = (
+      await page.locator('.decision-guidance').boundingBox()
+    ).height;
+    const prior = await page.evaluate(() =>
+      JSON.stringify(window.pokemonFixture),
+    );
+    await openGuidanceSettings();
+    const toggle = page.getByRole('switch', { name: '新手引导', exact: true });
+    assert.equal(await toggle.getAttribute('aria-checked'), 'false');
+    const size = await controls('.guidance-toggle');
+    assert.ok(
+      size[0].height >= 44 && size[0].fontSize >= 18 && size[0].uncovered,
+    );
+    assert.equal(
+      await page.getByRole('slider').count(),
+      0,
+      'Ordinary phone cannot change the room timer',
+    );
+    await capture(`guidance-setting-${width}`);
+    await toggle.click();
+    await closeGuidanceSettings();
+    const expandedHeight = (
+      await page.locator('.decision-guidance').boundingBox()
+    ).height;
+    assert.ok(expandedHeight > compactHeight + 30);
+    assert.ok(await page.locator('.guidance-instruction').isVisible());
+    assert.equal(
+      await page.evaluate(() => JSON.stringify(window.pokemonFixture)),
+      prior,
+    );
+    assert.equal(await page.evaluate(() => window.pokemonCommands.length), 0);
+    await setGuidance(false);
+    await capture(`guidance-compact-${width}`, true);
+    report.guidanceSettings.push({
+      width,
+      compactHeight,
+      expandedHeight,
+      defaultDisabled: true,
+      commands: 0,
+      toggle: size[0],
+    });
+  }
+  await reset({ scene: 'charizard', surface: 'box' });
+  await page.getByRole('button', { name: '游戏设置', exact: true }).click();
+  await page.getByRole('switch', { name: '新手引导', exact: true }).click();
+  await page.getByRole('button', { name: '关闭面板', exact: true }).click();
+  await reset({ scene: 'charizard' });
+  assert.ok(
+    await page.locator('.guidance-instruction').isVisible(),
+    'Box preference reaches the game',
+  );
+  await page.reload();
+  await page.waitForFunction(() => Boolean(window.setPokemonFixture));
+  await reset({ scene: 'charizard' });
+  assert.ok(
+    await page.locator('.guidance-instruction').isVisible(),
+    'Preference survives reload',
+  );
+  await select('charizard');
+  assert.ok(await page.locator('.cancel-selection').isEnabled());
+  await setGuidance(false);
+  assert.ok(
+    await page.locator('.cancel-selection').isEnabled(),
+    'Toggle preserves the selected slot',
+  );
+  assert.equal(await page.evaluate(() => window.pokemonCommands.length), 0);
+  const another = await page.context().newPage();
+  await another.goto(page.url());
+  await another.getByRole('button', { name: '菜单', exact: true }).click();
+  await another.getByRole('button', { name: '游戏设置', exact: true }).click();
+  await another.getByRole('switch', { name: '新手引导', exact: true }).click();
+  await page.waitForFunction(() =>
+    Boolean(document.querySelector('.guidance-instruction')),
+  );
+  await another.getByRole('switch', { name: '新手引导', exact: true }).click();
+  await page.waitForFunction(
+    () => !document.querySelector('.guidance-instruction'),
+  );
+  await another.close();
+  assert.ok(await page.locator('.cancel-selection').isEnabled());
+  report.guidanceSettings.push({
+    box: true,
+    reload: true,
+    crossWindow: true,
+    preservesSelection: true,
+    commands: 0,
+  });
+  await reset({ scene: 'draw' });
+  assert.equal(
+    await page.locator('.decision-guidance').count(),
+    0,
+    'Ordinary draw has no redundant guidance paragraph',
+  );
+  await reset({ scene: 'peek', role: 'host' });
+  await openGuidanceSettings();
+  assert.equal(
+    await page.getByRole('slider').count(),
+    1,
+    'Host timer remains available',
+  );
+  assert.equal(
+    await page
+      .getByRole('switch', { name: '新手引导', exact: true })
+      .getAttribute('aria-checked'),
+    'false',
+  );
+  await closeGuidanceSettings();
 
   for (const viewport of [
     { width: 320, height: 568 },
@@ -486,6 +629,9 @@ try {
     'snorlax',
     'charizard',
   ]) {
+    // The original detailed guidance checks now explicitly enable the opt-in setting.
+    await reset({ scene: 'peek' });
+    await setGuidance(true);
     await page.setViewportSize({ width: 390, height: 844 });
     await reset({ scene });
     const instruction = page.locator('.guidance-instruction');

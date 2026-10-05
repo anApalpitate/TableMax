@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { client } from '../../apps/web/src/game-clients/PokemonScreen';
+import { BoxScreen } from '../../apps/web/src/screens/BoxScreen';
 import type { RoomSession } from '../../apps/web/src/session/useRoomSession';
 import { rules, type Action } from '../../games/pokemon-encounters/rules';
 import {
@@ -36,6 +37,7 @@ type Setting = {
   serial: number;
   animate: boolean;
   longTargets: boolean;
+  surface: 'game' | 'box';
 };
 type FixtureState = { state: State; self: string };
 type FixtureCommand = { type: 'game'; decisionId: string; action: Action };
@@ -141,6 +143,7 @@ const initialSetting: Setting = {
   serial: 0,
   animate: false,
   longTargets: false,
+  surface: 'game',
 };
 function Fixture() {
   const [setting, setSetting] = useState(initialSetting);
@@ -186,9 +189,15 @@ function Fixture() {
     restored: false,
     joinOpen: false,
     playMode: setting.playMode,
-    countdownSeconds: 0,
+    countdownSeconds: 20,
     decisionClock: null,
-    game: { id: 'pokemon-encounters', name: '宝可梦奇遇', min: 2, max: 6 },
+    game: {
+      id: 'pokemon-encounters',
+      name: '宝可梦奇遇',
+      min: 2,
+      max: 6,
+      decisionTimer: true,
+    },
     catalog: [],
     ownerSeatId: null,
     capabilities: { manage: false, control: false, manageSeats: false },
@@ -220,6 +229,10 @@ function Fixture() {
     role: setting.role,
     view,
     connected: setting.connected,
+    name: seats.find((seat) => seat.id === current.self)!.name,
+    setName() {},
+    credential: setting.role === 'player' ? 'fixture-phone' : null,
+    join() {},
     locked,
     canControl: false,
     isHost: setting.role === 'host',
@@ -253,7 +266,11 @@ function Fixture() {
     },
     retry() {},
   } as unknown as RoomSession;
-  return <client.Screen key={setting.serial} session={session} />;
+  return setting.surface === 'box' ? (
+    <BoxScreen key={setting.serial} session={session} />
+  ) : (
+    <client.Screen key={setting.serial} session={session} />
+  );
 }
 
 window.pokemonCommands = [];

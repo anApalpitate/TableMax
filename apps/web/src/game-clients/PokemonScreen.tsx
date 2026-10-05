@@ -29,6 +29,9 @@ import { DisplaySettings } from '../components/DisplaySettings';
 import { RulesGuide } from '../components/RulesGuide';
 import { pokemonRulebook } from '../../../../games/pokemon-encounters/ui/RulesGuide';
 import type { RoomSession } from '../session/useRoomSession';
+import { CountdownSettings } from '../components/CountdownSettings';
+import { BeginnerGuidanceSetting } from '../components/BeginnerGuidanceSetting';
+import { useGuidancePreference } from '../session/useGuidancePreference';
 
 function PokemonScreen({ session }: { session: RoomSession }) {
   const {
@@ -45,6 +48,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
   } = session;
   const game = view?.gameView as PokemonView | null;
   const canPlay = useAudioOutput();
+  const [guidanceEnabled] = useGuidancePreference('pokemon-encounters');
   const [panel, setPanel] = useState<'menu' | 'friends' | 'rules' | null>(null);
   const [ruleChapter, setRuleChapter] = useState<string | null>(null);
   const names = Object.fromEntries(
@@ -202,6 +206,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
               }}
               showFriends={() => setPanel('friends')}
               friendsInToolbar={role === 'player'}
+              guidanceEnabled={guidanceEnabled}
               {...(canControl && view.status === 'ended'
                 ? { playAgain: () => command({ type: 'replay' }) }
                 : {})}
@@ -256,6 +261,9 @@ function PokemonScreen({ session }: { session: RoomSession }) {
                     <PlayModeBadge mode={view?.playMode} />
                   </div>
                 )}
+                <CountdownSettings session={session}>
+                  <BeginnerGuidanceSetting gameId="pokemon-encounters" />
+                </CountdownSettings>
                 {canControl && <RoomManagement session={session} />}
 
                 {game && (
