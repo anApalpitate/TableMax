@@ -27,19 +27,29 @@ const hook = production.includes('const initial = score(board, up);')
   ? 'const initial = score(board, up);'
   : 'const initial = score(board, first.up[seat]!);';
 const upExpression = hook.includes('first.up') ? 'first.up[seat]!' : 'up';
+const averaged = production.includes('const hypotheses: Forecast[] = [];');
 assert.equal(production.split(hook).length, 2);
-const instrumented = production.replace(
-  hook,
-  `${hook}
-      (globalThis as any).__strategyProbe.push({difficulty,action,initial,board:[...board],
-        before:[...first.boards[seat]!],up:[...${upExpression}]});`,
-);
+const instrumented = production
+  .replace(
+    hook,
+    `${hook}
+      (globalThis as any).__strategyProbe.push({difficulty:${averaged ? "depth === 2 ? 'juewu' : 'doubao'" : 'difficulty'},action,initial,board:[...board],
+        before:[...${averaged ? 'hypothesis.board' : 'first.boards[seat]!'}],up:[...${upExpression}]});`,
+  )
+  .replace(
+    'const hypotheses: Forecast[] = [];',
+    'const hypotheses: Forecast[] = []; let probeModel: Model | null = null;',
+  )
+  .replace(
+    'const model = sample(view, memory, random);',
+    `const model = sample(view, memory, random); ${averaged ? 'probeModel ??= model;' : ''}`,
+  );
 const orderedHook = 'const ordered = actions';
 assert.equal(instrumented.split(orderedHook).length, 2);
 const observedStrategy = instrumented.replace(
   orderedHook,
   `(globalThis as any).__evaluationProbe = {
-  baseline:utility(first!),discardForced:first!.discards.map(incoming=>bestReplace(first!,seat,incoming)),
+  baseline:utility(${averaged ? 'probeModel' : 'first'}!),discardForced:${averaged ? 'probeModel' : 'first'}!.discards.map(incoming=>bestReplace(${averaged ? 'probeModel' : 'first'}!,seat,incoming)),
   candidateValues:actions.map((action,i)=>({action,value:sums[i]!/samples}))};
   ${orderedHook}`,
 );

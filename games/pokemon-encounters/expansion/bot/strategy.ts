@@ -85,6 +85,105 @@ export function estimateDraw(
     0.08
   );
 }
+type Forecast = {
+  board: readonly string[];
+  up: readonly boolean[];
+  pool: readonly string[];
+  discards: readonly string[];
+};
+type Candidate = { action: Action; value: number };
+
+/** Average complete candidate batches so a first lucky hypothesis cannot dominate. */
+export function refineForecast(
+  candidates: readonly Candidate[],
+  hypotheses: readonly Forecast[],
+  tasks: readonly string[],
+  depth: 1 | 2,
+  mayContinue: () => boolean,
+): Candidate[] {
+  const result = candidates.map((candidate) => ({ ...candidate }));
+  const contenders = result.slice(0, 4);
+  const sums = contenders.map(() => 0);
+  let completed = 0;
+  const score = (board: readonly string[], up: readonly boolean[]) =>
+    scoreBoard(board, tasks, up).total;
+  const forecast = (hypothesis: Forecast, action: Action) => {
+    let board = [...hypothesis.board],
+      up = [...hypothesis.up];
+    if (action.type === 'reposition')
+      ({ board, up } = previewBoard(board, up, {
+        type: 'reposition',
+        a: action.a,
+        b: action.b,
+      }));
+    if (action.type === 'draw') {
+      const incoming =
+        action.source === 'deck'
+          ? hypothesis.pool.at(-1)
+          : hypothesis.discards[action.discardIndex];
+      let bestPreview: ReturnType<typeof previewBoard> | null = null;
+      let best = action.source === 'deck' ? score(board, up) : Infinity;
+      if (incoming)
+        for (const slot of grid.slots) {
+          const trial = previewBoard(board, up, {
+            type: 'replace',
+            slot,
+            incoming,
+          });
+          const value = score(trial.board, trial.up);
+          if (value < best) {
+            best = value;
+            bestPreview = trial;
+          }
+        }
+      if (bestPreview) ({ board, up } = bestPreview);
+    }
+    const initial = score(board, up);
+    let future = initial;
+    for (let turn = 0; turn < depth; turn++) {
+      const incoming = hypothesis.pool.at(
+        -1 -
+          turn -
+          (action.type === 'draw' && action.source === 'deck' ? 1 : 0),
+      );
+      if (!incoming) break;
+      let next = board,
+        nextUp = up;
+      for (const slot of grid.slots) {
+        const trial = previewBoard(board, up, {
+          type: 'replace',
+          slot,
+          incoming,
+        });
+        const value = score(trial.board, trial.up);
+        if (value < future) {
+          future = value;
+          next = trial.board;
+          nextUp = trial.up;
+        }
+      }
+      board = next;
+      up = nextUp;
+    }
+    return future - initial;
+  };
+  for (const hypothesis of hypotheses) {
+    if (!mayContinue()) break;
+    // All contenders receive this hypothesis, even when a soft budget expires mid-batch.
+    const batch = contenders.map((candidate) =>
+      forecast(hypothesis, candidate.action),
+    );
+    batch.forEach((value, index) => {
+      sums[index]! += value;
+    });
+    completed++;
+  }
+  if (completed)
+    contenders.forEach((candidate, index) => {
+      candidate.value += (0.12 * sums[index]!) / completed;
+    });
+  return result.sort((a, b) => a.value - b.value);
+}
 export function choose(
   view: View,
   actions: readonly Action[],
@@ -273,12 +372,18 @@ export function choose(
   };
   const sums = actions.map(() => 0);
   let samples = 0;
-  let first: Model | null = null;
+  const hypotheses: Forecast[] = [];
   for (let n = 0; n < count; n++) {
     if (signal.aborted) throw new Error('Aborted');
     if (n > 0 && performance.now() > deadline) break;
     const model = sample(view, memory, random);
-    first ??= model;
+    if (view.phase === 'draw' && difficulty !== 'default')
+      hypotheses.push({
+        board: model.boards[seat]!,
+        up: model.up[seat]!,
+        pool: model.pool,
+        discards: model.discards,
+      });
     actions.forEach((a, i) => {
       sums[i]! += evaluate(a, model);
     });
@@ -287,75 +392,20 @@ export function choose(
   const ordered = actions
     .map((action, i) => ({ action, value: sums[i]! / samples }))
     .sort((a, b) => a.value - b.value);
-  // Bounded optimistic own-turn lookahead uses sampled unknown cards, never hidden state.
+  // Bounded own-turn lookahead averages the same authorized hypotheses as immediate evaluation.
   if (
     difficulty !== 'default' &&
-    first &&
+    hypotheses.length &&
     view.phase === 'draw' &&
     performance.now() < deadline
   ) {
-    const depth = difficulty === 'juewu' ? 2 : 1;
-    for (const option of ordered.slice(0, 4)) {
-      if (performance.now() > deadline || signal.aborted) break;
-      let board = [...first.boards[seat]!];
-      let up = [...first.up[seat]!];
-      const action = option.action;
-      if (action.type === 'reposition')
-        ({ board, up } = previewBoard(board, up, {
-          type: 'reposition',
-          a: action.a,
-          b: action.b,
-        }));
-      if (action.type === 'draw') {
-        const incoming =
-          action.source === 'deck'
-            ? first.pool.at(-1)
-            : first.discards[action.discardIndex];
-        let bestPreview: ReturnType<typeof previewBoard> | null = null;
-        let best = action.source === 'deck' ? score(board, up) : Infinity;
-        if (incoming)
-          for (const i of grid.slots) {
-            const trial = previewBoard(board, up, {
-              type: 'replace',
-              slot: i,
-              incoming,
-            });
-            const value = score(trial.board, trial.up);
-            if (value < best) {
-              best = value;
-              bestPreview = trial;
-            }
-          }
-        if (bestPreview) ({ board, up } = bestPreview);
-      }
-      const initial = score(board, up);
-      let future = initial;
-      for (let d = 0; d < depth; d++) {
-        const incoming = first.pool.at(
-          -1 - d - (action.type === 'draw' && action.source === 'deck' ? 1 : 0),
-        );
-        if (!incoming) break;
-        let next = board,
-          nextUp = up;
-        for (const i of grid.slots) {
-          const trial = previewBoard(board, up, {
-            type: 'replace',
-            slot: i,
-            incoming,
-          });
-          const value = score(trial.board, trial.up);
-          if (value < future) {
-            future = value;
-            next = trial.board;
-            nextUp = trial.up;
-          }
-        }
-        board = next;
-        up = nextUp;
-      }
-      option.value += 0.12 * (future - initial);
-    }
-    ordered.sort((a, b) => a.value - b.value);
+    return refineForecast(
+      ordered,
+      hypotheses,
+      tasks,
+      difficulty === 'juewu' ? 2 : 1,
+      () => performance.now() < deadline && !signal.aborted,
+    )[0]!.action;
   }
   return ordered[0]!.action;
 }

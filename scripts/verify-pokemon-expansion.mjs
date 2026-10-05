@@ -122,22 +122,38 @@ async function connect(token) {
   return socket;
 }
 async function command(socket, token, value) {
-  const current = await view(token);
-  const reply = await new Promise((done, reject) =>
-    socket.timeout(8000).emit(
-      'room:command',
-      {
-        actionId: randomUUID(),
-        instanceId: current.instanceId,
-        revision: current.revision,
-        branch: current.branch,
-        command: value,
-      },
-      (error, result) => (error ? reject(error) : done(result)),
-    ),
-  );
-  assert.equal(reply.ok, true, JSON.stringify(reply));
-  return reply;
+  const initial = await view(token);
+  for (let attempt = 0; attempt < 8; attempt++) {
+    const current = attempt ? await view(token) : initial;
+    assert.equal(current.instanceId, initial.instanceId);
+    assert.equal(current.branch, initial.branch);
+    const reply = await new Promise((done, reject) =>
+      socket.timeout(8000).emit(
+        'room:command',
+        {
+          actionId: randomUUID(),
+          instanceId: current.instanceId,
+          revision: current.revision,
+          branch: current.branch,
+          command: value,
+        },
+        (error, result) => (error ? reject(error) : done(result)),
+      ),
+    );
+    if (
+      !reply.ok &&
+      reply.reason === 'stale-revision' &&
+      value.type === 'pause' &&
+      attempt < 7
+    ) {
+      evidence.pauseRevisionRetries = (evidence.pauseRevisionRetries ?? 0) + 1;
+      await wait(30);
+      continue;
+    }
+    assert.equal(reply.ok, true, JSON.stringify(reply));
+    return reply;
+  }
+  throw new Error('Pause retry limit exhausted');
 }
 function observe(page) {
   page.setDefaultTimeout(15000);

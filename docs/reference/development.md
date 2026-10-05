@@ -57,6 +57,12 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 ## 真实命令
 
+便携验收器遇到真实人机保存造成的 `stale-revision` 暂停请求时，只对同实例／同分支的暂停意图最多重取版本8次；其他命令不重试，异常原因继续失败。逐次重试计数进入报告，不放宽服务校验或修改规则，首次冲突证据单独保留为 `portable-676f9e75fb19-pause-race`。
+
+宝可梦扩展版普通模式验证：`node scripts/verify-pokemon-expansion-play.mjs --portable --evidence=<独立名>` 将当前ZIP解压到新目录，启动隐藏原生WebView2；开局前通过房主隐藏快捷键切到 `play` 并逐次核验运行模式。两台独立手机身份只点击真实生产控件，第三席采用真实默认Worker；管理设置使用权威Socket动作，不注入游戏状态。每次手机动作须收到保存成功回执，私看只在本人页面显示，其他手机、公共屏及管理员均无私看投影；记录实际阶段、公开人机动作、截图、页面错误、外部请求及进程退出。自动点击间隔不是真人思考时间，隐藏窗口和触控视口不是实体手机验证。
+
+扩展三档对照用 `node scripts/measure-pokemon-expansion-continuation.mjs --natural-seeds=24 --strength-seeds=48 --original-seeds=3 --seed-base=616200 --evidence=<独立名>`，保留源码前后哈希、完整合法动作、研究与能力自然频率、座位轮换及封顶。随后 `node scripts/analyze-pokemon-expansion-strength.mjs <report.json路径>` 审计结算算术和每个种子三次座位轮换，按完整种子块进行10,000次确定性bootstrap，保留块内相关性；输出同目录 `strength-analysis.json`。95%区间为单项描述区间，未作多重比较调整，只适用这组三人混合对手；不能据模拟CPU或三人样本认证真人时长、所有人数或整场三胜强度。
+
 宝可梦 2026-10-05 声画／手机专项：`node scripts/verify-pokemon-polish.mjs --evidence=名称` 用真实 PokemonScreen 与合法规则状态检查 320–430px、横屏、顶栏及选位栏；`node scripts/verify-pokemon-audio.mjs --evidence=名称` 在隐藏 WebView2 检查八音源解码、固定双槽、保存事件映射和硬币落定同步。后者 fixture 的播放权限桥接只证明表现层，实际公共屏优先与交接由 `pnpm verify:experience --portable` 核验。既有 `pnpm verify:effects --evidence=名称` 已扩展能力短全屏、局部路径、共同赢家、减少动态及私看边界。三种专项都不能代替最终 ZIP、真实网络或人耳试听。
 
 | 命令                                                        | 行为                                                                                                                                                      |
