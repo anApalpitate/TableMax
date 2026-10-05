@@ -8,6 +8,50 @@
   contain: layout paint;
   animation: pg-fx-life 1.1s ease-out both;
 }
+.pg-saved-fx--local {
+  position: relative;
+  inset: auto;
+  flex: none;
+  overflow: hidden;
+  min-height: 38px;
+  animation-duration: 350ms;
+}
+.pg-saved-fx--local .pg-saved-fx__current,
+.pg-saved-fx--local .pg-saved-fx__ring,
+.pg-saved-fx--local .pg-saved-fx__marks {
+  display: none;
+}
+.pg-saved-fx--local .pg-saved-fx__badge {
+  position: static;
+  padding: 5px 8px;
+  gap: 6px;
+  box-shadow: none;
+  animation: none;
+}
+.pg-saved-fx__badge span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.pg-saved-fx__badge small {
+  font-size: 16px;
+  line-height: 1.3;
+}
+.pg-saved-fx--local .pg-saved-fx__badge b {
+  font-size: 20px;
+}
+.pg-saved-fx--local .pg-saved-fx__badge strong {
+  font-size: 18px;
+}
+.pg-saved-fx:not(.pg-saved-fx--local) .pg-saved-fx__badge {
+  max-width: min(500px, calc(100% - 32px));
+}
+.pg-saved-fx--local .pg-saved-fx__badge small {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .pg-saved-fx--fuel {
   --pg-fx-color: #d9af6c;
 }

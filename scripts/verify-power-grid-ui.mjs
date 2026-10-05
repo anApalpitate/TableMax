@@ -14,6 +14,9 @@ const name =
 const maintenance =
   process.argv.find((value) => value.startsWith('--maintenance='))?.slice(14) ??
   'shared-visual-20261004';
+const cachedFixtures = process.argv
+  .find((v) => v.startsWith('--fixtures='))
+  ?.slice(11);
 const amountOnly = process.argv.includes('--amount-only');
 const mapOnly = process.argv.includes('--map-only');
 const seatCount = Number(
@@ -44,6 +47,7 @@ const generator = `
 import { rules, bot } from ${JSON.stringify(resolve('games/power-grid/index.ts'))};
 import { BOARD_WIDTH, BOARD_HEIGHT, GERMANY_CITIES, GERMANY_EDGES } from ${JSON.stringify(resolve('games/power-grid/data/germany.ts'))};
 import { INCOME } from ${JSON.stringify(resolve('games/power-grid/data/economy.ts'))};
+export const diagramData={income:INCOME,board:{width:BOARD_WIDTH,height:BOARD_HEIGHT,cities:GERMANY_CITIES,edges:GERMANY_EDGES}};
 export async function make(){
  const seats=Array.from({length:${seatCount}},(_,index)=>'p'+(index+1));let seed=728;
  const random={next(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296;}};
@@ -80,11 +84,17 @@ await bundle({
   target: 'node22',
   logLevel: 'silent',
 });
-const { fixtures, board, income } = await (
-  await import(
-    new URL('file:///' + join(work, 'generator.mjs').replaceAll('\\', '/'))
-  )
-).make();
+const generated = await import(
+  new URL('file:///' + join(work, 'generator.mjs').replaceAll('\\', '/'))
+);
+const { fixtures, board, income } = cachedFixtures
+  ? {
+      fixtures: JSON.parse(await readFile(cachedFixtures, 'utf8')),
+      ...generated.diagramData,
+    }
+  : await generated.make();
+assert.equal(fixtures.regions.game.seatOrder.length, seatCount);
+if (cachedFixtures) report.fixtureSource = resolve(cachedFixtures);
 await writeFile(join(work, 'fixtures.json'), JSON.stringify(fixtures));
 const entry = `
 import React,{useState} from 'react';import {createRoot} from 'react-dom/client';
@@ -207,9 +217,16 @@ try {
       'New phase restores market summary',
     );
     assert.equal(
-      await resourceSection.getAttribute('data-expanded'),
-      'true',
-      'Resource phase expands compact full price ladders',
+      await resourceSection.count(),
+      0,
+      'Primary fuel market has no duplicate sidebar summary',
+    );
+    const stairs = page.locator('.pg-primary-stage .pg-price-lanes');
+    const bounds = await stairs.boundingBox();
+    const stageBounds = await page.locator('.pg-primary-stage').boundingBox();
+    assert.ok(
+      bounds.y + bounds.height <= stageBounds.y + stageBounds.height,
+      'All four price ladders fit the desktop main area',
     );
     assert.equal((await page.evaluate(() => window.__commands)).length, 0);
     report.actions.push(
@@ -240,11 +257,14 @@ try {
     assert.equal(await map.locator('[data-map-edge]').count(), 83);
     assert.equal(await map.locator('[data-city]').count(), 42);
     await map.getByRole('button', { name: '放大地图' }).click();
-    const zoomBeforePhase = await map.locator('.pg-map').getAttribute('style');
+    const zoomBeforePhase = await map
+      .locator('.pg-map:visible')
+      .getAttribute('style');
     await page.evaluate(() => window.changeFixture('resources'));
     await page.waitForTimeout(60);
+    await page.getByRole('button', { name: '德国电网', exact: true }).click();
     assert.equal(
-      await map.locator('.pg-map').getAttribute('style'),
+      await map.locator('.pg-map:visible').getAttribute('style'),
       zoomBeforePhase,
       'Phase change does not move the map',
     );
@@ -391,118 +411,187 @@ try {
     );
   };
   const verifyPlayReview = async () => {
+    const swipe = async (selector, dx, dy = 0, fingers = 1) => {
+      await page.locator(selector).evaluate(
+        (node, args) => {
+          const touch = (x, y, id) =>
+            new Touch({ identifier: id, target: node, clientX: x, clientY: y });
+          const send = (name, x, y, count) =>
+            node.dispatchEvent(
+              new TouchEvent(name, {
+                bubbles: true,
+                cancelable: true,
+                touches: Array.from({ length: count }, (_, i) =>
+                  touch(x + i * 15, y, i),
+                ),
+                changedTouches: [touch(x, y, 0)],
+              }),
+            );
+          send('touchstart', 180, 240, args.fingers);
+          send('touchmove', 180 + args.dx, 240 + args.dy, args.fingers);
+          send('touchend', 180 + args.dx, 240 + args.dy, 0);
+        },
+        { dx, dy, fingers },
+      );
+      await page.waitForTimeout(30);
+    };
     for (const size of [
-      { width: 390, height: 844 },
       { width: 320, height: 568 },
+      { width: 360, height: 640 },
+      { width: 390, height: 844 },
     ]) {
       await page.setViewportSize(size);
       await page.evaluate(() => window.setFixture('resources', 'player'));
-      await page.waitForTimeout(70);
-      const purchase = page.locator('.pg-fuel-purchases button').first();
-      if (await purchase.count()) {
-        const box = await purchase.boundingBox();
-        assert.ok(
-          box.y >= 0 && box.y + box.height <= size.height + 1,
-          'First available purchase is visible before scrolling: ' +
-            JSON.stringify({ size, box }),
-        );
-      }
-      assert.equal(
-        await page
-          .getByRole('button', { name: '电厂市场', exact: true })
-          .count(),
-        1,
-        'One market expansion path replaces duplicate phone overlays',
-      );
-      const toolbar = await page.locator('.pg-toolbar').boundingBox();
+      await page.waitForTimeout(80);
+      assert.equal(await page.locator('.pg-page-nav button').count(), 4);
+      const done = page.getByRole('button', { name: '完成采购', exact: true });
+      const box = await done.boundingBox();
       assert.ok(
-        toolbar.height <= 52,
-        'Phone toolbar fits one row with 44px targets',
+        box.y >= 0 && box.y + box.height <= size.height,
+        'Completion dock stays in viewport',
       );
+      const purchase = page
+        .locator('.pg-fuel-purchases button:visible')
+        .first();
+      if (await purchase.count()) {
+        const b = await purchase.boundingBox();
+        assert.ok(b.y + b.height <= size.height, 'First purchase visible');
+      }
+      await page.getByRole('button', { name: '市场', exact: true }).click();
+      const scroll = page.locator('[data-phone-page="1"] .pg-page-scroll');
+      await scroll.evaluate((node) => {
+        node.scrollTop = 250;
+      });
+      const before = await scroll.evaluate((node) => node.scrollTop);
+      await page.evaluate(() => window.syncFixture());
+      await page.waitForTimeout(60);
+      assert.equal(await scroll.evaluate((node) => node.scrollTop), before);
+      await page.getByRole('button', { name: '公司', exact: true }).click();
+      const companyCards = page.locator(
+        '.pg-phone-page:not([hidden]) .pg-company',
+      );
+      assert.ok(await companyCards.count());
+      assert.equal(
+        await companyCards
+          .first()
+          .evaluate((node) => getComputedStyle(node).flexBasis),
+        'auto',
+      );
+      if (size.width === 320) {
+        await page.screenshot({
+          path: join(output, 'player-320-568-company.png'),
+        });
+        report.screenshots.push('player-320-568-company.png');
+      }
+      const companyScroll = page.locator(
+        '[data-phone-page="3"] .pg-page-scroll',
+      );
+      await companyScroll.evaluate((node) => {
+        node.scrollTop = node.scrollHeight;
+      });
+      const lastCompany = await companyCards.last().boundingBox();
+      const companyViewport = await companyScroll.boundingBox();
+      assert.ok(
+        lastCompany.y + lastCompany.height <=
+          companyViewport.y + companyViewport.height + 1,
+        'Last company is reachable above fixed phone navigation',
+      );
+      await page.getByRole('button', { name: '市场', exact: true }).click();
+      assert.equal(await scroll.evaluate((node) => node.scrollTop), before);
+      await page.evaluate(() => window.changeFixture('powering'));
+      await page.waitForTimeout(80);
+      assert.equal(
+        await page.locator('.pg-page-nav [aria-current="page"]').textContent(),
+        '行动',
+      );
+      assert.equal((await page.evaluate(() => window.__commands)).length, 0);
     }
-    await page.evaluate(() => window.scrollTo(0, 600));
-    const scroll = await page.evaluate(() => scrollY);
-    assert.ok(
-      scroll > 0,
-      'The preservation check begins below the first viewport',
-    );
-    await page.evaluate(() => window.syncFixture());
-    await page.waitForTimeout(70);
+    await page.evaluate(() => window.setFixture('auction', 'player'));
+    await page.waitForTimeout(80);
+    await swipe('.pg-phone-table', -100);
     assert.equal(
-      await page.evaluate(() => scrollY),
-      scroll,
-      'Same-stage saves retain reading position',
+      await page
+        .locator('.pg-page-nav [aria-current="page"]')
+        .getAttribute('aria-label'),
+      '市场',
     );
-    await page.evaluate(() => window.changeFixture('powering'));
-    await page.waitForTimeout(70);
+    await swipe('[data-phone-page="1"] .pg-market-tabs', 100, 150);
     assert.equal(
-      await page.evaluate(() => scrollY),
-      0,
-      'New stage starts at context',
+      await page
+        .locator('.pg-page-nav [aria-current="page"]')
+        .getAttribute('aria-label'),
+      '市场',
+    );
+    await swipe('[data-phone-page="1"] .pg-market-tabs', 100, 0, 2);
+    assert.equal(
+      await page
+        .locator('.pg-page-nav [aria-current="page"]')
+        .getAttribute('aria-label'),
+      '市场',
+    );
+    await swipe('[data-phone-page="1"] .pg-market-tabs', 100);
+    assert.equal(
+      await page
+        .locator('.pg-page-nav [aria-current="page"]')
+        .getAttribute('aria-label'),
+      '行动',
+    );
+    await page.getByRole('button', { name: '行动', exact: true }).focus();
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Enter');
+    assert.equal(
+      await page
+        .locator('.pg-page-nav [aria-current="page"]')
+        .getAttribute('aria-label'),
+      '市场',
+    );
+    await page.getByRole('button', { name: '行动', exact: true }).click();
+    const input = page.getByRole('spinbutton', { name: '报价金额' });
+    await input.fill(
+      String(fixtures.auction.actions.find((a) => a.type === 'bid').amount + 1),
+    );
+    const quote = await input.inputValue();
+    await swipe('.pg-phone-table', -100);
+    assert.equal(
+      await page
+        .locator('.pg-page-nav [aria-current="page"]')
+        .getAttribute('aria-label'),
+      '行动',
+      'Editing prevents swipe',
+    );
+    await page.getByRole('button', { name: '市场', exact: true }).click();
+    await page.getByRole('button', { name: '行动', exact: true }).click();
+    assert.equal(
+      await input.inputValue(),
+      quote,
+      'Quote draft survives paging',
+    );
+    await page.evaluate(() => window.setFixture('regions', 'player'));
+    await page.waitForTimeout(80);
+    const regions = page.locator(
+      '.pg-region-choices button[aria-pressed="true"]',
+    );
+    const count = await regions.count();
+    await regions.first().click();
+    await page.getByRole('button', { name: '地图', exact: true }).click();
+    const map = page.locator('[data-phone-page="2"] .pg-map-panel');
+    assert.equal(
+      await map.locator('[data-region-selected="true"]').count(),
+      count - 1,
+    );
+    await map.getByRole('button', { name: '放大地图' }).click();
+    const zoom = await map.locator('.pg-map:visible').getAttribute('style');
+    await page.getByRole('button', { name: '行动', exact: true }).click();
+    assert.equal(
+      await page.locator('[data-phone-page="0"] .pg-map').getAttribute('style'),
+      zoom,
     );
     assert.equal((await page.evaluate(() => window.__commands)).length, 0);
     report.actions.push(
-      'Phone purchase starts in view, one market path, compact header, same-stage scroll preservation and new-stage reset',
-    );
-    await page.evaluate(() => window.setFixture('regions', 'player'));
-    await page.waitForTimeout(70);
-    const selectedRegions = await page
-      .locator('.pg-region-choices button[aria-pressed="true"]')
-      .count();
-    await page
-      .locator('.pg-region-choices button[aria-pressed="true"]')
-      .first()
-      .click();
-    await page.getByRole('button', { name: '德国地图', exact: true }).click();
-    const map = page.locator('dialog .pg-map-panel');
-    assert.equal(
-      await map.locator('[data-region-selected="true"]').count(),
-      selectedRegions - 1,
-    );
-    assert.ok(await map.locator('[data-region-preview]').isVisible());
-    await map.locator('.pg-map-view-switch button').last().click();
-    assert.equal(
-      await map.locator('[data-region-selected="true"]').count(),
-      selectedRegions - 1,
-    );
-    await page.screenshot({ path: join(output, 'player-region-preview.png') });
-    report.screenshots.push('player-region-preview.png');
-    await page.keyboard.press('Escape');
-    assert.equal(
-      await page
-        .locator('.pg-region-choices button[aria-pressed="true"]')
-        .count(),
-      selectedRegions - 1,
-    );
-    assert.equal(
-      (await page.evaluate(() => window.__commands)).length,
-      0,
-      'Candidate viewing is local',
+      'Four phone pages preserve scroll, valid quote/region drafts and shared map viewport; dock remains visible; viewing emits zero game commands',
     );
     report.actions.push(
-      'Unconfirmed region draft maps to board and clear views, survives closing, and sends no command',
-    );
-    await page.setViewportSize({ width: 854, height: 480 });
-    await page.evaluate(() =>
-      window.setFixture(
-        window.fixtureNames.includes('crowded') ? 'crowded' : 'building',
-        'host',
-      ),
-    );
-    await page.waitForTimeout(70);
-    const buttons = page.locator('.pg-building-companies > button');
-    assert.equal(await buttons.count(), seatCount);
-    const last = await buttons.last().boundingBox();
-    assert.ok(
-      last.y + last.height <= 480,
-      'Every network summary is visible on the short building screen',
-    );
-    assert.equal(
-      await page.locator('.pg-building-companies').getByText(/现金/).count(),
-      0,
-    );
-    report.actions.push(
-      'Short-screen building shows all public networks before markets without cash',
+      'Horizontal single-touch paging, vertical/multitouch cancellation, keyboard navigation and focused-input lock emit no commands',
     );
   };
   const captureRuleScreens = async () => {
@@ -558,7 +647,9 @@ try {
     assert.ok(option, 'Rule network screenshot has a legal cost preview');
     await page.evaluate((stage) => window.setFixture(stage, 'player'), stage);
     await page.waitForTimeout(70);
-    await page.locator('.pg-phone-map select').selectOption(option.cityId);
+    await page
+      .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
+      .selectOption(option.cityId);
     await page
       .getByRole('button', { name: '放大地图' })
       .click({ clickCount: 2, delay: 70 });
@@ -594,7 +685,7 @@ try {
     await page.evaluate(() => window.setFixture('building', 'player'));
     await page.waitForTimeout(50);
     const rotatedMap = await page
-      .locator('.pg-phone-map .pg-map')
+      .locator('.pg-phone-page:not([hidden]) .pg-phone-map .pg-map')
       .evaluate((svg) => ({
         viewBox: svg.getAttribute('viewBox'),
         terrainRotation: svg.querySelector('image')?.getAttribute('transform'),
@@ -627,26 +718,36 @@ try {
       );
     }
     const city = fixtures.building.game.buildOptions[0].cityId;
-    const target = page.locator(`.pg-phone-map [data-city="${city}"]`);
+    const target = page.locator(
+      `.pg-phone-page:not([hidden]) .pg-phone-map [data-city="${city}"]`,
+    );
     const targetPoint = await target.evaluate((node) => {
       const matrix = node.getScreenCTM();
       return { x: matrix.e, y: matrix.f };
     });
     await page.mouse.click(targetPoint.x, targetPoint.y);
     assert.equal(
-      await page.locator('.pg-phone-map select').inputValue(),
+      await page
+        .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
+        .inputValue(),
       city,
       'Pointer hit selects the correct rotated city',
     );
-    await page.locator('.pg-phone-map select').selectOption('');
+    await page
+      .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
+      .selectOption('');
     await target.focus();
     await page.keyboard.press('Enter');
     assert.equal(
-      await page.locator('.pg-phone-map select').inputValue(),
+      await page
+        .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
+        .inputValue(),
       city,
       'Keyboard and pointer selection agree',
     );
-    await page.locator('.pg-phone-map select').selectOption(city);
+    await page
+      .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
+      .selectOption(city);
     await page
       .getByRole('button', { name: '放大地图' })
       .click({ clickCount: 2, delay: 70 });
@@ -683,7 +784,7 @@ try {
     );
     await page.getByRole('button', { name: '全图', exact: true }).click();
     assert.ok(
-      (await page.locator('.pg-map').getAttribute('style')).includes(
+      (await page.locator('.pg-map:visible').getAttribute('style')).includes(
         'scale(1)',
       ),
     );
@@ -695,14 +796,18 @@ try {
     await page.setViewportSize({ width: 320, height: 568 });
     await page.waitForTimeout(50);
     const selectableCities = await page
-      .locator('.pg-phone-map select option')
+      .locator('.pg-phone-page:not([hidden]) .pg-phone-map select option')
       .evaluateAll((nodes) => nodes.map((node) => node.value).filter(Boolean));
     for (const entry of board.cities.filter((city) =>
       selectableCities.includes(city.id),
     )) {
-      await page.locator('.pg-phone-map select').selectOption(entry.id);
+      await page
+        .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
+        .selectOption(entry.id);
       const bounds = await page
-        .locator(`.pg-phone-map [data-city="${entry.id}"] text`)
+        .locator(
+          `.pg-phone-page:not([hidden]) .pg-phone-map [data-city="${entry.id}"] text`,
+        )
         .evaluate((node) => {
           const frame = node.closest('.pg-map-frame').getBoundingClientRect();
           const label = node.getBoundingClientRect();
@@ -722,7 +827,9 @@ try {
           JSON.stringify({ city: entry.id, bounds }),
       );
     }
-    await page.locator('.pg-phone-map select').selectOption(city);
+    await page
+      .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
+      .selectOption(city);
     await page.screenshot({
       path: join(output, 'rotated-map-player-320.png'),
       fullPage: true,
@@ -944,7 +1051,10 @@ try {
         for (const group of geometry.cardGroups) {
           assert.ok(
             group.columns >=
-              (group.className.includes('pg-company-plants') ? 1 : 2),
+              (group.className.includes('pg-company-plants') ||
+              (role === 'player' && group.className.includes('pg-own-plants'))
+                ? 1
+                : 2),
             'Owned/selection collections keep two columns; narrow public companies may use one: ' +
               JSON.stringify({ role, stage, group }),
           );
@@ -989,7 +1099,10 @@ try {
         }
         const projected =
           role === 'player' ? fixtures[stage].game : fixtures[stage].publicGame;
-        if (!['regions', 'ended'].includes(projected.phase)) {
+        if (
+          role !== 'player' &&
+          !['regions', 'ended'].includes(projected.phase)
+        ) {
           const order = ['resources', 'building'].includes(projected.phase)
             ? [...projected.playerOrder].reverse()
             : projected.playerOrder;
@@ -1049,7 +1162,10 @@ try {
             geometry.rootHeight <= height + 1,
             'Desktop fills viewport',
           );
-          assert.equal(geometry.cityNodes, stage === 'ended' ? 0 : 42);
+          assert.equal(
+            geometry.cityNodes,
+            ['regions', 'building'].includes(projected.phase) ? 42 : 0,
+          );
         }
         report.layouts.push({ width, height, role, stage, ...geometry });
         if (
@@ -1085,7 +1201,9 @@ try {
     const legalCity = fixtures.building.actions.find(
       (action) => action.type === 'build',
     ).cityId;
-    await page.locator('.pg-phone-map select').selectOption(legalCity);
+    await page
+      .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
+      .selectOption(legalCity);
     await page.locator('.pg-build-preview .pg-primary').click();
     assert.deepEqual(
       (await page.evaluate(() => window.__commands)).at(-1).action,
@@ -1101,37 +1219,44 @@ try {
     report.screenshots.push('player-320-568-build-costs.png');
     await page.getByRole('button', { name: '放大地图' }).click();
     assert.ok(
-      (await page.locator('.pg-map').getAttribute('style')).includes(
+      (await page.locator('.pg-map:visible').getAttribute('style')).includes(
         'scale(1.4)',
       ),
     );
     await page.getByRole('button', { name: '全图', exact: true }).click();
     assert.ok(
-      (await page.locator('.pg-map').getAttribute('style')).includes(
+      (await page.locator('.pg-map:visible').getAttribute('style')).includes(
         'scale(1)',
       ),
     );
     report.actions.push('Map zoom and reset do not send game commands');
     await page.getByRole('button', { name: '放大地图' }).click();
     const mapRect = await page
-      .locator('.pg-phone-map .pg-map-frame')
+      .locator('.pg-phone-page:not([hidden]) .pg-phone-map .pg-map-frame')
       .boundingBox();
     const beforeDrag = await page
-      .locator('.pg-phone-map .pg-map')
+      .locator('.pg-phone-page:not([hidden]) .pg-phone-map .pg-map')
       .getAttribute('style');
-    await page.mouse.move(
-      mapRect.x + mapRect.width * 0.5,
-      mapRect.y + mapRect.height * 0.5,
-    );
+    const scrollRect = await page
+      .locator('.pg-phone-page:not([hidden]) .pg-page-scroll')
+      .boundingBox();
+    const dragY =
+      (Math.max(mapRect.y, scrollRect.y) +
+        Math.min(
+          mapRect.y + mapRect.height,
+          scrollRect.y + scrollRect.height,
+        )) /
+      2;
+    await page.mouse.move(mapRect.x + mapRect.width * 0.5, dragY);
     await page.mouse.down();
-    await page.mouse.move(
-      mapRect.x + mapRect.width * 0.5 + 25,
-      mapRect.y + mapRect.height * 0.5 + 15,
-      { steps: 5 },
-    );
+    await page.mouse.move(mapRect.x + mapRect.width * 0.5 + 25, dragY + 15, {
+      steps: 5,
+    });
     await page.mouse.up();
     assert.notEqual(
-      await page.locator('.pg-phone-map .pg-map').getAttribute('style'),
+      await page
+        .locator('.pg-phone-page:not([hidden]) .pg-phone-map .pg-map')
+        .getAttribute('style'),
       beforeDrag,
     );
     report.actions.push(
@@ -1183,7 +1308,11 @@ try {
     }
     await page.evaluate(() => window.setFixture('offer', 'player'));
     await page.waitForTimeout(50);
-    await page.getByRole('button', { name: '各家公司', exact: true }).click();
+    await page.getByRole('button', { name: '公司', exact: true }).click();
+    await page
+      .locator('.pg-phone-page:not([hidden]) .pg-company')
+      .first()
+      .click();
     await page.waitForFunction(() => document.querySelector('dialog[open]'));
     assert.ok(await page.locator('dialog .pg-screen .pg-companies').count());
     await page.keyboard.press('Escape');

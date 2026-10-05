@@ -14,6 +14,8 @@ import {
   StageSection,
   PlantMarketSummary,
 } from '../../../../games/power-grid/ui/StageSection';
+import { PhonePages } from '../../../../games/power-grid/ui/PhonePages';
+import '../../../../games/power-grid/ui/focus-layout.css';
 import { TurnOrder } from '../../../../games/power-grid/ui/TurnOrder';
 import {
   PHASE_LABELS,
@@ -63,6 +65,14 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
   const [panel, setPanel] = useState<
     'menu' | 'map' | 'companies' | 'rules' | 'order' | null
   >(null);
+  const [marketTab, setMarketTab] = useState<{
+    phase: string;
+    type: 'plants' | 'resources';
+  }>({ phase: '', type: 'plants' });
+  const [viewport, setViewport] = useState({
+    scale: 1,
+    offset: { x: 0, y: 0 },
+  });
   const [city, setCity] = useState<string | null>(null);
   const [plant, setPlant] = useState<number | null>(null);
   const [detailSeat, setDetailSeat] = useState<string | null>(null);
@@ -161,12 +171,20 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
       step={game.step}
       actor={game.actor}
       role={role}
+      viewport={viewport}
+      onViewportChange={setViewport}
     />
   );
   const actor = active && game?.actor ? names[game.actor] : undefined;
   const ownTurn = actor && game?.actor === game?.self?.seatId;
-  const plantDefault = role !== 'player' && layoutPhase === 'auction';
-  const resourceDefault = game?.phase === 'resources';
+  const shownMarket =
+    marketTab.phase === layoutPhase
+      ? marketTab.type
+      : game?.phase === 'resources'
+        ? 'resources'
+        : 'plants';
+  const plantDefault = false;
+  const resourceDefault = false;
   const plantSection = game && (
     <StageSection
       name="plants"
@@ -257,7 +275,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
             第 {game.round} 轮 <b>第 {game.step} 步</b>
           </span>
         )}
-        <FullscreenControl />
+        {role !== 'player' && <FullscreenControl />}
         {role !== 'player' && <DisplaySettings />}
         <PlayModeBadge mode={view?.playMode} />
         {role !== 'player' && (
@@ -271,17 +289,11 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
         {role !== 'player' && (
           <button onClick={() => showCompany()}>各家</button>
         )}
-        {role !== 'player' &&
-          game &&
-          game.phase !== 'regions' &&
-          game.phase !== 'ended' && (
-            <button
-              className="pg-order-entry"
-              onClick={() => setPanel('order')}
-            >
-              顺序
-            </button>
-          )}
+        {game && game.phase !== 'regions' && game.phase !== 'ended' && (
+          <button className="pg-order-entry" onClick={() => setPanel('order')}>
+            顺序
+          </button>
+        )}
         <button
           className="game-rulebook-entry"
           onClick={() => setPanel('rules')}
@@ -332,90 +344,154 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
               </button>
             )}
           </div>
-          {panel !== 'order' && (
+          {role !== 'player' && panel !== 'order' && (
             <TurnOrder
               view={game}
               names={names}
               active={Boolean(active)}
-              compact={role === 'player'}
+              compact={false}
             />
           )}
           {game.phase === 'ended' ? (
             results
           ) : role === 'player' ? (
-            <div className="pg-phone-table">
-              {game.phase === 'building' && (
-                <div className="pg-phone-map">{map}</div>
-              )}
-              {(game.phase === 'auction' || game.phase === 'offer') &&
-                game.auction && (
-                  <AuctionDisplay
-                    view={game}
-                    names={names}
-                    artFor={artFor}
-                    compact
-                  />
-                )}
-              {active && view.actions.length > 0 ? (
-                <PlayerControls
-                  key={`${view.instanceId}:${view.branch}:${view.selectionToken}`}
-                  view={game}
-                  actions={view.actions as Action[]}
-                  locked={locked || !active}
-                  choose={choose}
-                  city={city}
-                  selectCity={setCity}
-                  selectedPlant={plant}
-                  selectPlant={setPlant}
-                  artFor={artFor}
-                  {...(candidateRegions
-                    ? { regionSelection: candidateRegions }
-                    : {})}
-                  selectRegions={(regions) =>
-                    setRegionDraft({ token: regionToken, regions })
-                  }
-                />
-              ) : (
-                <div className="pg-waiting">
-                  <span className="pg-electric-symbol" aria-hidden="true">
-                    ϟ
-                  </span>
-                  <strong>
-                    {notice || (actor ? `等待 ${actor}` : '等待下一步')}
-                  </strong>
-                  {game.latest && (
-                    <span>
-                      <b>
-                        {game.latest.actor ? names[game.latest.actor] : '电网'}
-                      </b>
-                      <br />
-                      {game.latest.text}
-                    </span>
+            <PhonePages
+              stage={layoutPhase + ':' + view.instanceId + ':' + view.branch}
+              turn={Boolean(ownTurn)}
+              blocked={Boolean(panel || detailSeat || notice)}
+            >
+              {(dock) => [
+                <div key="action" className="pg-phone-table">
+                  {['building', 'regions'].includes(game.phase) && (
+                    <div className="pg-phone-map">{map}</div>
                   )}
-                </div>
-              )}
-              <div className="pg-phone-market-summaries">
-                {plantSection}
-                {resourceSection}
-              </div>
-              <div className="pg-phone-tools">
-                <button onClick={() => setPanel('map')}>德国地图</button>
-                <button onClick={() => showCompany()}>各家公司</button>
-                {!(
-                  game.phase === 'powering' &&
-                  active &&
-                  view.actions.length > 0
-                ) && <IncomeCard view={game} mobile />}
-              </div>
-            </div>
+                  {game.auction && (
+                    <AuctionDisplay
+                      view={game}
+                      names={names}
+                      artFor={artFor}
+                      compact
+                    />
+                  )}
+                  {active && view.actions.length > 0 ? (
+                    <PlayerControls
+                      key={
+                        view.instanceId +
+                        ':' +
+                        view.branch +
+                        ':' +
+                        view.selectionToken
+                      }
+                      view={game}
+                      actions={view.actions as Action[]}
+                      locked={locked || !active}
+                      choose={choose}
+                      city={city}
+                      selectCity={setCity}
+                      selectedPlant={plant}
+                      selectPlant={setPlant}
+                      artFor={artFor}
+                      dock={dock}
+                      {...(candidateRegions
+                        ? { regionSelection: candidateRegions }
+                        : {})}
+                      selectRegions={(regions) =>
+                        setRegionDraft({ token: regionToken, regions })
+                      }
+                    />
+                  ) : (
+                    <div className="pg-waiting">
+                      <strong>
+                        {notice || (actor ? '等待 ' + actor : '等待下一步')}
+                      </strong>
+                      {game.latest && (
+                        <span>
+                          <b>
+                            {game.latest.actor
+                              ? names[game.latest.actor]
+                              : '电网'}
+                          </b>{' '}
+                          {game.latest.text}
+                        </span>
+                      )}
+                      <IncomeCard view={game} mobile />
+                    </div>
+                  )}
+                  {game.phase === 'resources' && (
+                    <ResourceMarket view={game} summary />
+                  )}
+                </div>,
+                <div key="market">
+                  <div
+                    className="pg-market-tabs"
+                    role="group"
+                    aria-label="市场类型"
+                  >
+                    <button
+                      aria-pressed={shownMarket === 'plants'}
+                      onClick={() =>
+                        setMarketTab({ phase: layoutPhase, type: 'plants' })
+                      }
+                    >
+                      电厂
+                    </button>
+                    <button
+                      aria-pressed={shownMarket === 'resources'}
+                      onClick={() =>
+                        setMarketTab({ phase: layoutPhase, type: 'resources' })
+                      }
+                    >
+                      燃料
+                    </button>
+                  </div>
+                  {shownMarket === 'plants' ? (
+                    <PlantMarket view={game} artFor={artFor} />
+                  ) : (
+                    <ResourceMarket view={game} compact />
+                  )}
+                </div>,
+                <div key="map" className="pg-phone-map pg-phone-map--browse">
+                  {map}
+                </div>,
+                <PlayerCompanies
+                  key="companies"
+                  view={game}
+                  names={names}
+                  portraits={portraits}
+                  active={Boolean(active)}
+                  compact
+                  onDetails={showCompany}
+                />,
+              ]}
+            </PhonePages>
           ) : (
             <div className="pg-desktop-table">
-              <div className="pg-board-stage">
-                {map}
-                <div className="pg-board-stamp">
-                  <strong>DEUTSCHLAND</strong>
-                  <span>德国电力网络</span>
-                </div>
+              <div className="pg-board-stage pg-primary-stage">
+                {['regions', 'building'].includes(game.phase) ? (
+                  map
+                ) : ['offer', 'auction'].includes(game.phase) ? (
+                  <>
+                    {game.auction && (
+                      <AuctionDisplay
+                        view={game}
+                        names={names}
+                        artFor={artFor}
+                      />
+                    )}
+                    <PlantMarket view={game} artFor={artFor} />
+                  </>
+                ) : game.phase === 'resources' ? (
+                  <ResourceMarket view={game} />
+                ) : (
+                  <PlayerCompanies
+                    view={game}
+                    names={names}
+                    portraits={portraits}
+                    active={Boolean(active)}
+                    artFor={artFor}
+                    {...(game.actor ? { onlySeat: game.actor } : {})}
+                  />
+                )}
               </div>
               <aside className="pg-desktop-market">
                 {game.phase === 'building' && (
@@ -443,42 +519,21 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                     ))}
                   </section>
                 )}
-                {game.auction && (
-                  <AuctionDisplay view={game} names={names} artFor={artFor} />
-                )}
-                {(game.phase === 'replace' || game.phase === 'powering') &&
-                  game.actor && (
-                    <StageSection
-                      name="company"
-                      title={
-                        game.phase === 'replace'
-                          ? '当前公司换厂'
-                          : '当前公司发电'
-                      }
-                      expanded={sectionOpen('company', true)}
-                      toggle={() => toggleSection('company', true)}
-                      summary={
-                        <PlayerCompanies
-                          view={game}
-                          names={names}
-                          portraits={portraits}
-                          active={Boolean(active)}
-                          compact
-                          onlySeat={game.actor}
-                        />
-                      }
-                    >
-                      <PlayerCompanies
-                        view={game}
-                        names={names}
-                        portraits={portraits}
-                        active={Boolean(active)}
-                        artFor={artFor}
-                        onlySeat={game.actor}
-                      />
-                    </StageSection>
-                  )}
-                {game.phase === 'resources' && resourceSection}
+                <button
+                  className="pg-map-entry"
+                  onClick={() => setPanel('map')}
+                >
+                  德国电网
+                </button>
+                <PlayerCompanies
+                  view={game}
+                  names={names}
+                  portraits={portraits}
+                  active={Boolean(active)}
+                  compact
+                  {...(game.actor ? { onlySeat: game.actor } : {})}
+                  onDetails={showCompany}
+                />
                 {plantSection}
                 {game.phase !== 'resources' && resourceSection}
                 <div className="pg-short-companies">
@@ -516,6 +571,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
         </>
       )}
       <PowerGridSavedEffects
+        names={names}
         feedback={session.feedback}
         game={game}
         disabled={feedbackDisabled}
@@ -559,6 +615,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                 />
               ) : (
                 <>
+                  {role === 'player' && <FullscreenControl />}
                   {canControl && <RoomManagement session={session} />}
                   <h2>已保存的电网记录</h2>
                   <ol className="pg-log">

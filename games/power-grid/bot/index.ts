@@ -3,7 +3,6 @@ import type {
   BotStrategy,
 } from '../../../packages/game-sdk/src';
 import {
-  accepts,
   emptyStock,
   getPlant,
   RESOURCES,
@@ -17,6 +16,7 @@ import {
   planProduction,
   pooledResources,
 } from '../rules/production';
+import { forecast, nextBid, type Forecast } from './planner';
 import type {
   Action,
   OwnedPlant,
@@ -27,27 +27,67 @@ import type {
 
 class GridEvaluator {
   readonly player;
+  readonly plans = new Map<string, Forecast>();
   constructor(
     readonly view: PowerGridView,
     readonly level: number,
+    readonly signal?: AbortSignal,
   ) {
     this.player = view.players[view.self!.seatId]!;
   }
-  fuelCost(plant: Plant): number {
-    if (plant.input === 0) return 0;
-    const resource =
-      plant.fuel === 'hybrid'
-        ? this.unit('coal') <= this.unit('oil')
-          ? 'coal'
-          : 'oil'
-        : (plant.fuel as Resource);
-    let count = this.view.resources[resource],
-      cost = 0;
-    for (let i = 0; i < plant.input; i++) {
-      cost += price(resource, count) ?? 12;
-      count--;
+  plan(plants = this.player.plants, cash = this.view.self!.cash) {
+    const key =
+      plants
+        .map((p) => p.id)
+        .sort((a, b) => a - b)
+        .join(',') +
+      ':' +
+      cash;
+    if (!this.plans.has(key)) {
+      const cases =
+        this.view.phase === 'offer'
+          ? 1 +
+            this.view.actualMarket.length *
+              Math.max(1, this.player.plants.length)
+          : this.view.phase === 'auction'
+            ? 1 + Math.max(1, this.player.plants.length)
+            : this.view.phase === 'replace'
+              ? this.player.plants.length
+              : 1;
+      this.plans.set(
+        key,
+        forecast(
+          this.view,
+          plants,
+          cash,
+          this.level,
+          this.signal,
+          Math.floor(
+            (this.level === 2 ? 6000 : this.level === 1 ? 1000 : 160) / cases,
+          ),
+        ),
+      );
     }
-    return cost;
+    return this.plans.get(key)!;
+  }
+  fuelCost(plant: Plant): number {
+    const stock = pooledResources(this.player.plants);
+    let cheapest = Infinity;
+    for (
+      let coal = 0;
+      coal <= (plant.fuel === 'hybrid' ? plant.input : 0);
+      coal++
+    ) {
+      const use = fuelUse(plant.id, coal);
+      let cost = 0;
+      for (const r of RESOURCES)
+        for (let i = 0; i < Math.max(0, use[r] - stock[r]); i++) {
+          const unit = price(r, this.view.resources[r] - i);
+          cost += unit ?? Infinity;
+        }
+      cheapest = Math.min(cheapest, cost);
+    }
+    return cheapest;
   }
   unit(resource: Resource) {
     return (
@@ -63,6 +103,15 @@ class GridEvaluator {
       { id: plantId, resources: emptyStock() },
     ];
     if (plants.length <= this.view.plantLimit) return plants;
+    if (this.level > 0)
+      return this.player.plants
+        .map((old) => plants.filter((p) => p.id !== old.id))
+        .sort(
+          (a, b) =>
+            this.plan(b, Math.max(0, this.view.self!.cash - plantId)).score -
+              this.plan(a, Math.max(0, this.view.self!.cash - plantId)).score ||
+            a[0]!.id - b[0]!.id,
+        )[0]!;
     let best = plants.slice(1),
       score = -Infinity;
     for (const old of this.player.plants) {
@@ -82,6 +131,36 @@ class GridEvaluator {
   value(plantId: number): number {
     const plant = getPlant(plantId),
       next = this.replacement(plantId);
+    if (!Number.isFinite(this.fuelCost(plant))) return 0;
+    if (this.level > 0) {
+      const baseline = this.plan(),
+        proposed = this.plan(next, Math.max(0, this.view.self!.cash - plantId));
+      const fuelReserve = RESOURCES.reduce(
+        (n, r) => n + proposed.demand[r] * this.unit(r),
+        0,
+      );
+      const buildingReserve =
+        this.player.cities.length === 0
+          ? 10
+          : Math.min(22, ...this.view.buildOptions.map((o) => o.cost), 22);
+      return Math.max(
+        0,
+        Math.floor(
+          Math.min(
+            this.view.self!.cash - fuelReserve - buildingReserve,
+            Math.max(
+              0,
+              proposed.score - baseline.score,
+              (next.reduce((n, p) => n + getPlant(p.id).output, 0) -
+                this.capacity()) *
+                (this.player.cities.length >= this.view.endThreshold - 5
+                  ? 18
+                  : 10),
+            ),
+          ),
+        ),
+      );
+    }
     const output = next.reduce((sum, p) => sum + getPlant(p.id).output, 0),
       gain = output - this.capacity();
     if (this.player.plants.length >= this.view.plantLimit && gain <= 0) {
@@ -118,7 +197,10 @@ class GridEvaluator {
     const urgency = this.level === 2 && late && output >= rivals ? 9 : 0;
     const reserve =
       this.level === 0
-        ? 8
+        ? Math.max(8, this.fuelCost(plant)) +
+          (this.player.cities.length === 0
+            ? 10
+            : Math.min(22, ...this.view.buildOptions.map((o) => o.cost), 22))
         : this.player.plants.reduce(
             (sum, p) => sum + this.fuelCost(getPlant(p.id)),
             0,
@@ -193,12 +275,13 @@ export function chooseAction(
   actions: readonly Action[],
   difficulty: BotDifficulty,
   random: { next(): number },
+  signal?: AbortSignal,
 ): Action {
   if (!view.self || !actions.length)
     throw new Error('电力公司策略缺少本人决策。');
   const level = ['default', 'doubao', 'juewu'].indexOf(difficulty);
   if (level < 0) throw new Error('不支持的人机等级。');
-  const evaluate = new GridEvaluator(view, level),
+  const evaluate = new GridEvaluator(view, level, signal),
     p = evaluate.player;
   const finish = () => actions.filter((a) => a.type === 'finish').at(-1)!;
   if (view.phase === 'regions') {
@@ -235,12 +318,14 @@ export function chooseAction(
     return actions.find((a) => a.type === 'pass') ?? offers[0]!;
   }
   if (view.phase === 'auction') {
-    const bid = actions.find(
-      (a): a is Extract<Action, { type: 'bid' }> => a.type === 'bid',
+    const amount = nextBid(
+      view.auction!.amount,
+      evaluate.value(view.auction!.plantId),
     );
-    return bid && bid.amount <= evaluate.value(view.auction!.plantId)
-      ? bid
-      : actions.find((a) => a.type === 'pass')!;
+    return (
+      actions.find((a) => a.type === 'bid' && a.amount === amount) ??
+      actions.find((a) => a.type === 'pass')!
+    );
   }
   if (view.phase === 'replace') {
     const discard = actions.filter(
@@ -249,6 +334,13 @@ export function chooseAction(
     );
     if (discard.length)
       return discard.sort((a, b) => {
+        if (level > 0)
+          return (
+            evaluate.plan(p.plants.filter((plant) => plant.id !== b.plantId))
+              .score -
+              evaluate.plan(p.plants.filter((plant) => plant.id !== a.plantId))
+                .score || a.plantId - b.plantId
+          );
         const score = (id: number) => {
           const face = getPlant(id),
             plant = p.plants.find((entry) => entry.id === id)!;
@@ -271,91 +363,61 @@ export function chooseAction(
     if (salvage.length)
       return salvage.sort(
         (a, b) =>
+          evaluate.unit(b.resource) - evaluate.unit(a.resource) ||
+          Number(getPlant(a.plantId).fuel === 'hybrid') -
+            Number(getPlant(b.plantId).fuel === 'hybrid') ||
           getPlant(b.plantId).output / getPlant(b.plantId).input -
-          getPlant(a.plantId).output / getPlant(a.plantId).input,
+            getPlant(a.plantId).output / getPlant(a.plantId).input,
       )[0]!;
     return actions.find((a) => a.type === 'discard-salvage')!;
   }
   if (view.phase === 'resources') {
-    const stock = pooledResources(p.plants),
-      demand = emptyStock();
-    const desired = level === 2 && view.step < 3 ? 2 : 1;
-    // Fuel priority follows efficiency; hybrids choose the less contested type.
-    for (const owned of [...p.plants].sort(
-      (a, b) =>
-        getPlant(b.id).output / (getPlant(b.id).input || 0.01) -
-        getPlant(a.id).output / (getPlant(a.id).input || 0.01),
-    )) {
-      const face = getPlant(owned.id);
-      if (face.input === 0) continue;
-      let resource: Resource;
-      if (face.fuel === 'hybrid') {
-        const demandAt = (r: Resource) =>
-          Object.entries(view.players)
-            .filter(([seat]) => seat !== view.self!.seatId)
-            .reduce(
-              (sum, [, player]) =>
-                sum +
-                player.plants.reduce(
-                  (n, plant) =>
-                    n + (accepts(plant.id, r) ? getPlant(plant.id).input : 0),
-                  0,
-                ),
-              0,
-            );
-        resource =
-          evaluate.unit('coal') + (level === 2 ? demandAt('coal') * 0.3 : 0) <=
-          evaluate.unit('oil') + (level === 2 ? demandAt('oil') * 0.3 : 0)
-            ? 'coal'
-            : 'oil';
-      } else resource = face.fuel as Resource;
-      demand[resource] += face.input * desired;
-    }
-    const reserve =
-      level === 0
-        ? 5
-        : Math.min(
-            25,
-            view.buildOptions
-              .filter((o) => o.cost <= view.self!.cash)
-              .sort((a, b) => a.cost - b.cost)[0]?.cost ?? 10,
-          );
+    const planned = evaluate.plan();
     const buys = actions.filter(
       (a): a is Extract<Action, { type: 'buy-resource' }> =>
         a.type === 'buy-resource',
     );
-    const need = buys.filter(
-      (a) =>
-        stock[a.resource] < demand[a.resource] &&
-        (view.resourcePrices[a.resource] ?? 99) <= view.self!.cash - reserve,
-    );
-    if (need.length) {
-      const priority = (a: Extract<Action, { type: 'buy-resource' }>) =>
-        ((demand[a.resource] - stock[a.resource]) /
-          Math.max(1, demand[a.resource])) *
-          10 -
-        evaluate.unit(a.resource) * 0.15 +
-        getPlant(a.plantId).output / getPlant(a.plantId).input;
-      return need.sort((a, b) => priority(b) - priority(a))[0]!;
-    }
-    // When chosen fuel is sold out, hybrids can still run on the other fuel.
-    if (
-      maximumProduction(p.plants) <
-      Math.min(p.capacity, Math.max(1, p.cities.length))
-    ) {
-      const useful = buys.filter(
-        (a) =>
-          view.self!.cash > evaluate.unit(a.resource) &&
-          accepts(a.plantId, a.resource),
-      );
-      if (useful.length)
-        return useful.sort(
-          (a, b) => evaluate.unit(a.resource) - evaluate.unit(b.resource),
-        )[0]!;
-    }
+    const need = buys.filter((a) => planned.demand[a.resource] > 0);
+    if (need.length)
+      return need.sort(
+        (a, b) =>
+          evaluate.unit(a.resource) - evaluate.unit(b.resource) ||
+          Number(getPlant(a.plantId).fuel === 'hybrid') -
+            Number(getPlant(b.plantId).fuel === 'hybrid') ||
+          a.plantId - b.plantId,
+      )[0]!;
     return finish();
   }
   if (view.phase === 'building') {
+    if (level > 0) {
+      const planned = evaluate.plan();
+      const production = maximumProduction(p.plants);
+      const rival = Math.max(
+        0,
+        ...Object.entries(view.players)
+          .filter(([seat]) => seat !== view.self!.seatId)
+          .map(([, player]) =>
+            maximumProduction(player.plants, player.cities.length),
+          ),
+      );
+      const affordable = view.buildOptions
+        .filter((o) => o.cost <= view.self!.cash)
+        .sort((a, b) => a.cost - b.cost || a.cityId.localeCompare(b.cityId))[0];
+      return (
+        actions.find(
+          (a) => a.type === 'build' && a.cityId === planned.cities[0],
+        ) ??
+        (affordable &&
+        (p.cities.length < Math.min(p.capacity, production) ||
+          (p.cities.length >= view.endThreshold - 5 && production >= rival)) &&
+        (p.cities.length < view.endThreshold - 1 || production >= rival)
+          ? actions.find(
+              (a) => a.type === 'build' && a.cityId === affordable.cityId,
+            )
+          : null) ??
+        finish()
+      );
+    }
     const builds = actions
       .filter(
         (a): a is Extract<Action, { type: 'build' }> => a.type === 'build',
@@ -401,6 +463,7 @@ export function chooseAction(
     return builds[0]!;
   }
   if (view.phase === 'powering') {
+    const strategic = level > 0 ? evaluate.plan() : null;
     const plants = p.plants.filter((plant) => !p.ran.includes(plant.id));
     const remaining = Math.max(
         0,
@@ -408,7 +471,7 @@ export function chooseAction(
           p.ran.reduce((sum, id) => sum + getPlant(id).output, 0),
       ),
       plan = planProduction(plants, remaining, pooledResources(p.plants));
-    for (const intended of [...plan.runs].sort(
+    for (const intended of [...(strategic?.runs ?? plan.runs)].sort(
       (a, b) =>
         (getPlant(a.plantId).fuel === 'hybrid' ? 1 : 0) -
         (getPlant(b.plantId).fuel === 'hybrid' ? 1 : 0),
@@ -442,6 +505,12 @@ export function chooseAction(
       if (swap) return swap;
     }
     // Any locally legal alternative may be needed before a mixed warehouse frees space.
+    if (strategic && !strategic.runs.length)
+      return (
+        actions.find(
+          (a) => a.type === 'finish' && a.cities === strategic.powered,
+        ) ?? finish()
+      );
     const run = actions
       .filter((a): a is Extract<Action, { type: 'run' }> => a.type === 'run')
       .sort(
@@ -478,6 +547,7 @@ export const bot: BotStrategy = {
         actions as readonly Action[],
         difficulty,
         random,
+        signal,
       ),
       memory: null,
     };

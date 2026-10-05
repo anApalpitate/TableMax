@@ -100,7 +100,8 @@
 }
 .pg-screen .pg-fuel-summary > div {
   min-width: 0;
-  display: flex;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
@@ -110,6 +111,11 @@
   border-radius: 7px;
   background: #f3e9ce;
   font-size: 16px;
+}
+.pg-screen .pg-fuel-summary > div > strong,
+.pg-screen .pg-fuel-summary > div > span:last-child {
+  grid-column: 1 / -1;
+  text-align: center;
 }
 .pg-screen .pg-fuel-summary .pg-resource-icon {
   width: 24px;

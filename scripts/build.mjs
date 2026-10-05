@@ -47,8 +47,8 @@ await build({
   outdir: output,
   outExtension: { '.js': '.cjs' },
   bundle: true,
-  // Compact generated runtime whitespace while keeping names and expressions.
-  minifyWhitespace: true,
+  // Production-only code compression; property keys, sources and media stay intact.
+  minify: true,
   platform: 'node',
   format: 'cjs',
   target: 'node22',
@@ -70,6 +70,7 @@ await build({
   entryPoints: ['apps/server/src/bot-worker.ts'],
   outfile: `${output}/bot-worker.cjs`,
   bundle: true,
+  minify: true,
   platform: 'node',
   format: 'cjs',
   target: 'node22',

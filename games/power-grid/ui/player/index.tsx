@@ -1,4 +1,5 @@
-import { useState, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import { getPlant, RESOURCES, RESOURCE_LABELS } from '../../data/catalog';
 import { income, price } from '../../data/economy';
 import { GERMANY_REGIONS, getCity } from '../../data/germany';
@@ -16,10 +17,21 @@ type Props = {
   selectCity(city: string): void;
   selectedPlant: number | null;
   selectPlant(plant: number): void;
+  dock?: HTMLElement | null;
   artFor?(id: number): CSSProperties;
   regionSelection?: string[];
   selectRegions?(regions: string[]): void;
 };
+
+function ActionDock({
+  target,
+  children,
+}: {
+  target?: HTMLElement | null;
+  children: ReactNode;
+}) {
+  return target ? createPortal(children, target) : children;
+}
 
 function AmountPicker({
   minimum,
@@ -102,6 +114,7 @@ function OfferControls({
   selectedPlant,
   selectPlant,
   artFor,
+  dock,
 }: Props) {
   const offers = actions.filter((action) => action.type === 'offer');
   const ids = [...new Set(offers.map((action) => action.plantId))];
@@ -131,33 +144,38 @@ function OfferControls({
           />
         ))}
       </div>
-      {plantId != null && (
-        <>
-          <AmountPicker
-            minimum={minimum}
-            maximum={maximum}
-            value={value}
-            change={setAmount}
-          />
-          <button
-            className="pg-primary"
-            disabled={locked || !action}
-            onClick={() => action && choose(action)}
-          >
-            以 {Number.isFinite(value) ? value : '…'} E 竞拍 {plantId} 号电厂
-          </button>
-        </>
-      )}
-      {pass && (
-        <button disabled={locked} onClick={() => choose(pass)}>
-          本轮不买电厂
-        </button>
-      )}
+      <ActionDock target={dock ?? null}>
+        <div className="pg-offer-confirm">
+          {plantId != null && (
+            <>
+              <AmountPicker
+                minimum={minimum}
+                maximum={maximum}
+                value={value}
+                change={setAmount}
+              />
+              <button
+                className="pg-primary"
+                disabled={locked || !action}
+                onClick={() => action && choose(action)}
+              >
+                以 {Number.isFinite(value) ? value : '…'} E 竞拍 {plantId}{' '}
+                号电厂
+              </button>
+            </>
+          )}
+          {pass && (
+            <button disabled={locked} onClick={() => choose(pass)}>
+              本轮不买电厂
+            </button>
+          )}
+        </div>
+      </ActionDock>
     </section>
   );
 }
 
-function BidControls({ view, actions, locked, choose }: Props) {
+function BidControls({ view, actions, locked, choose, dock }: Props) {
   const bids = actions.filter((action) => action.type === 'bid');
   const minimum = bids[0]?.amount ?? 0,
     maximum = bids.at(-1)?.amount ?? minimum;
@@ -165,33 +183,35 @@ function BidControls({ view, actions, locked, choose }: Props) {
   const action = bids.find((entry) => entry.amount === amount);
   const pass = actions.find((entry) => entry.type === 'pass');
   return (
-    <section
-      className="pg-controls pg-bid-controls"
-      aria-label={`竞拍 ${view.auction?.plantId} 号电厂`}
-    >
-      {bids.length > 0 && (
-        <>
-          <AmountPicker
-            minimum={minimum}
-            maximum={maximum}
-            value={amount}
-            change={setAmount}
-          />
-          <button
-            className="pg-primary"
-            disabled={locked || !action}
-            onClick={() => action && choose(action)}
-          >
-            确认出价 {Number.isFinite(amount) ? amount : '…'} E
+    <ActionDock target={dock ?? null}>
+      <section
+        className="pg-controls pg-bid-controls"
+        aria-label={`竞拍 ${view.auction?.plantId} 号电厂`}
+      >
+        {bids.length > 0 && (
+          <>
+            <AmountPicker
+              minimum={minimum}
+              maximum={maximum}
+              value={amount}
+              change={setAmount}
+            />
+            <button
+              className="pg-primary"
+              disabled={locked || !action}
+              onClick={() => action && choose(action)}
+            >
+              确认出价 {Number.isFinite(amount) ? amount : '…'} E
+            </button>
+          </>
+        )}
+        {pass && (
+          <button disabled={locked} onClick={() => choose(pass)}>
+            退出本次竞拍
           </button>
-        </>
-      )}
-      {pass && (
-        <button disabled={locked} onClick={() => choose(pass)}>
-          退出本次竞拍
-        </button>
-      )}
-    </section>
+        )}
+      </section>
+    </ActionDock>
   );
 }
 
@@ -202,6 +222,7 @@ function RegionControls({
   choose,
   regionSelection,
   selectRegions,
+  dock,
 }: Props) {
   const choices = actions.filter((action) => action.type === 'select-regions');
   const [localSelection, setSelected] = useState<string[]>(
@@ -236,13 +257,15 @@ function RegionControls({
           </button>
         ))}
       </div>
-      <button
-        className="pg-primary"
-        disabled={locked || !action}
-        onClick={() => action && choose(action)}
-      >
-        确认区域 {selected.length}/{view.regionCount}
-      </button>
+      <ActionDock target={dock ?? null}>
+        <button
+          className="pg-primary"
+          disabled={locked || !action}
+          onClick={() => action && choose(action)}
+        >
+          确认区域 {selected.length}/{view.regionCount}
+        </button>
+      </ActionDock>
     </section>
   );
 }
@@ -296,7 +319,14 @@ function FuelTransfer({
   );
 }
 
-function ResourceControls({ view, actions, locked, choose, artFor }: Props) {
+function ResourceControls({
+  view,
+  actions,
+  locked,
+  choose,
+  artFor,
+  dock,
+}: Props) {
   const own = view.self && view.players[view.self.seatId];
   const finish = actions.find((action) => action.type === 'finish');
   return (
@@ -344,13 +374,15 @@ function ResourceControls({ view, actions, locked, choose, artFor }: Props) {
         ))}
       </div>
       {finish && (
-        <button
-          className="pg-primary"
-          disabled={locked}
-          onClick={() => choose(finish)}
-        >
-          完成采购
-        </button>
+        <ActionDock target={dock ?? null}>
+          <button
+            className="pg-primary"
+            disabled={locked}
+            onClick={() => choose(finish)}
+          >
+            完成采购
+          </button>
+        </ActionDock>
       )}
     </section>
   );
@@ -430,67 +462,70 @@ function BuildControls({
   choose,
   city,
   selectCity,
+  dock,
 }: Props) {
   const builds = actions.filter((action) => action.type === 'build');
   const option = view.buildOptions.find((entry) => entry.cityId === city);
   const action = builds.find((entry) => entry.cityId === city);
   const finish = actions.find((entry) => entry.type === 'finish');
   return (
-    <section className="pg-controls pg-build-controls">
-      <h2>扩建电网</h2>
-      <select
-        aria-label="可建设城市"
-        value={city ?? ''}
-        onChange={(event) => selectCity(event.target.value)}
-      >
-        <option value="">选择城市查看费用</option>
-        {view.buildOptions.map((entry) => (
-          <option key={entry.cityId} value={entry.cityId}>
-            {getCity(entry.cityId).name} {entry.cost} E
-          </option>
-        ))}
-      </select>
-      {city && (
-        <div className="pg-build-preview">
-          <strong>{getCity(city).name}</strong>
-          {option ? (
-            <>
-              <dl className="pg-build-costs">
-                <div>
-                  <dt>城市位置</dt>
-                  <dd>{option.buildingCost} 电币</dd>
-                </div>
-                <div>
-                  <dt>连接费</dt>
-                  <dd>{option.connectionCost} 电币</dd>
-                </div>
-              </dl>
-              <strong className="pg-build-price">
-                总价 {option.cost} 电币
-              </strong>
-              <button
-                className="pg-primary"
-                disabled={locked || !action}
-                onClick={() => action && choose(action)}
-              >
-                建设 {getCity(city).name}
-              </button>
-            </>
-          ) : (
-            <span>当前不能在这座城市建设</span>
-          )}
-        </div>
-      )}
-      {finish && (
-        <button disabled={locked} onClick={() => choose(finish)}>
-          完成建设
-        </button>
-      )}
-    </section>
+    <ActionDock target={dock ?? null}>
+      <section className="pg-controls pg-build-controls">
+        <h2>扩建电网</h2>
+        <select
+          aria-label="可建设城市"
+          value={city ?? ''}
+          onChange={(event) => selectCity(event.target.value)}
+        >
+          <option value="">选择城市查看费用</option>
+          {view.buildOptions.map((entry) => (
+            <option key={entry.cityId} value={entry.cityId}>
+              {getCity(entry.cityId).name} {entry.cost} E
+            </option>
+          ))}
+        </select>
+        {city && (
+          <div className="pg-build-preview">
+            <strong>{getCity(city).name}</strong>
+            {option ? (
+              <>
+                <dl className="pg-build-costs">
+                  <div>
+                    <dt>城市位置</dt>
+                    <dd>{option.buildingCost} 电币</dd>
+                  </div>
+                  <div>
+                    <dt>连接费</dt>
+                    <dd>{option.connectionCost} 电币</dd>
+                  </div>
+                </dl>
+                <strong className="pg-build-price">
+                  总价 {option.cost} 电币
+                </strong>
+                <button
+                  className="pg-primary"
+                  disabled={locked || !action}
+                  onClick={() => action && choose(action)}
+                >
+                  建设 {getCity(city).name}
+                </button>
+              </>
+            ) : (
+              <span>当前不能在这座城市建设</span>
+            )}
+          </div>
+        )}
+        {finish && (
+          <button disabled={locked} onClick={() => choose(finish)}>
+            完成建设
+          </button>
+        )}
+      </section>
+    </ActionDock>
   );
 }
 
-function PowerControls({ view, actions, locked, choose, artFor }: Props) {
+function PowerControls({ view, actions, locked, choose, artFor, dock }: Props) {
   const own = view.self && view.players[view.self.seatId];
   const finishes = actions.filter((action) => action.type === 'finish');
   const maximum = Math.max(0, ...finishes.map((action) => action.cities ?? 0));
@@ -525,7 +560,10 @@ function PowerControls({ view, actions, locked, choose, artFor }: Props) {
             </button>
           ));
           return (
-            <div className="pg-run-plant" key={plant.id}>
+            <div
+              className={`pg-run-plant${own.ran.includes(plant.id) ? ' pg-run-plant--done' : ''}`}
+              key={plant.id}
+            >
               <PlantCard
                 id={plant.id}
                 owned={plant}
@@ -551,35 +589,37 @@ function PowerControls({ view, actions, locked, choose, artFor }: Props) {
           );
         })}
       </div>
-      <div className="pg-power-finish">
-        <IncomeCard
-          view={view}
-          seatId={view.self?.seatId}
-          selectedCities={supply}
-          mobile
-        />
-        <label>
-          供电城市
-          <select
-            aria-label="选择供电城市数"
-            value={supply}
-            onChange={(event) => setCities(Number(event.target.value))}
+      <ActionDock target={dock ?? null}>
+        <div className="pg-power-finish">
+          <IncomeCard
+            view={view}
+            seatId={view.self?.seatId}
+            selectedCities={supply}
+            mobile
+          />
+          <label>
+            供电城市
+            <select
+              aria-label="选择供电城市数"
+              value={supply}
+              onChange={(event) => setCities(Number(event.target.value))}
+            >
+              {finishes.map((action) => (
+                <option key={action.cities} value={action.cities}>
+                  {action.cities} 城，收入 {income(action.cities ?? 0)} E
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            className="pg-primary"
+            disabled={locked || !finish}
+            onClick={() => finish && choose(finish)}
           >
-            {finishes.map((action) => (
-              <option key={action.cities} value={action.cities}>
-                {action.cities} 城，收入 {income(action.cities ?? 0)} E
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          className="pg-primary"
-          disabled={locked || !finish}
-          onClick={() => finish && choose(finish)}
-        >
-          供电 {supply} 城，收入 {income(supply)} E
-        </button>
-      </div>
+            供电 {supply} 城，收入 {income(supply)} E
+          </button>
+        </div>
+      </ActionDock>
     </section>
   );
 }

@@ -8,6 +8,11 @@ import plant from '../../../assets/games/power-grid/audio/plant-v2.wav';
 import run from '../../../assets/games/power-grid/audio/run-v2.wav';
 import end from '../../../assets/games/power-grid/audio/end-v2.wav';
 import './audio-effects.css';
+import {
+  classifySaved,
+  soundAllowed,
+  type SavedPresentation,
+} from './saved-presentation';
 
 const sources = { bid, fuel, build, plant, run, end };
 type Cue = keyof typeof sources;
@@ -53,42 +58,6 @@ function accept(seen: Set<string>, feedback: RoomFeedback | null) {
   if (seen.size > 24) seen.delete(seen.values().next().value!);
   return key;
 }
-function cueFor(
-  feedback: RoomFeedback,
-  game: PowerGridView | null,
-): Cue | null {
-  if (!game) return null;
-  const verbs = feedback.events
-    .map((event) => event.action?.verb)
-    .filter(Boolean);
-  if (
-    feedback.events.some((event) => event.kind === 'game-ended') ||
-    verbs.includes('end')
-  )
-    return 'end';
-  if (
-    verbs.some((verb) => verb === 'purchase-plant' || verb === 'discard-plant')
-  )
-    return 'plant';
-  if (verbs.includes('build')) return 'build';
-  if (
-    verbs.some((verb) =>
-      [
-        'buy-resource',
-        'transfer',
-        'swap-resources',
-        'salvage',
-        'discard-salvage',
-      ].includes(verb!),
-    )
-  )
-    return 'fuel';
-  if (verbs.some((verb) => ['run', 'supply', 'round', 'step'].includes(verb!)))
-    return 'run';
-  if (verbs.some((verb) => verb === 'offer' || verb === 'bid')) return 'bid';
-  return null;
-}
-
 export function PowerGridSoundControl({
   feedback,
   game,
@@ -103,6 +72,12 @@ export function PowerGridSoundControl({
   const [enabled, setEnabled] = usePreference();
   const [blocked, setBlocked] = useState(false);
   const seen = useRef(new Set([feedbackKey(feedback)]));
+  const previousView = useRef(game);
+  const lastSound = useRef<{
+    time: number;
+    until: number;
+    priority: number;
+  } | null>(null);
   const playback = useRef<HTMLAudioElement | null>(null);
   const generation = useRef(0);
   const claimSequence = useRef(0);
@@ -131,13 +106,27 @@ export function PowerGridSoundControl({
       unlocking.current = false;
       queued.current = null;
       playback.current?.pause();
+      if (!feedback || disabled) {
+        previousView.current = game ?? null;
+        lastSound.current = null;
+      }
     }
-  }, [disabled, enabled, canPlay, feedback]);
+  }, [disabled, enabled, canPlay, feedback, game]);
   useEffect(() => {
     const key = accept(seen.current, feedback);
-    if (!key || disabled || !enabled || !canPlay || !feedback) return;
-    const cue = cueFor(feedback, game);
-    if (!cue) return;
+    if (!key || !feedback || !game) return;
+    const item = classifySaved(feedback, game, previousView.current);
+    previousView.current = game;
+    if (disabled || !enabled || !canPlay) return;
+    const now = performance.now();
+    if (!item || !soundAllowed(lastSound.current, item, now) || !item.cue)
+      return;
+    const cue = item.cue;
+    lastSound.current = {
+      time: now,
+      until: now + (item.major ? 900 : 350),
+      priority: item.priority,
+    };
     const sequence = ++claimSequence.current;
     if (!unlocking.current) {
       generation.current++;
@@ -162,7 +151,7 @@ export function PowerGridSoundControl({
         audio.pause();
         audio.src = sources[cue];
         audio.currentTime = 0;
-        audio.volume = 0.42;
+        audio.volume = item.major ? 0.42 : 0.26;
         void audio.play().then(
           () => {
             if (current === generation.current) setBlocked(false);
@@ -261,15 +250,22 @@ export function PowerGridSavedEffects({
   feedback,
   game,
   disabled,
+  names = {},
 }: {
   feedback: RoomFeedback | null;
   game: PowerGridView | null;
   disabled: boolean;
+  names?: Record<string, string>;
 }) {
   const [reduced, setReduced] = useState(
     () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
-  const [effect, setEffect] = useState<{ key: string; cue: Cue } | null>(null);
+  const [effect, setEffect] = useState<{
+    key: string;
+    cue: Cue;
+    item: SavedPresentation;
+  } | null>(null);
+  const previousView = useRef(game);
   const seen = useRef(new Set([feedbackKey(feedback)]));
   useEffect(() => {
     const query = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -300,6 +296,7 @@ export function PowerGridSavedEffects({
   useEffect(() => {
     const clock = lifetime.current;
     if (disabled || !feedback) {
+      previousView.current = game;
       accept(seen.current, feedback);
       cancelAnimationFrame(clock.frame);
       clearTimeout(clock.expiry);
@@ -308,27 +305,45 @@ export function PowerGridSavedEffects({
     }
     const key = accept(seen.current, feedback);
     if (!key) return;
-    const cue = cueFor(feedback, game);
-    if (!cue) return;
+    if (!game) return;
+    const item = classifySaved(feedback, game, previousView.current);
+    previousView.current = game;
+    if (!item) return;
+    const cue = item.cue ?? 'bid';
     cancelAnimationFrame(clock.frame);
     clearTimeout(clock.expiry);
     clock.frame = requestAnimationFrame(() => {
-      setEffect({ key, cue });
+      setEffect({ key, cue, item });
       clock.expiry = setTimeout(
         () => setEffect(null),
-        reduced ? 350 : cue === 'end' ? 1800 : 1100,
+        reduced ? 350 : item.duration,
       );
     });
   }, [feedback, game, disabled, reduced]);
   if (!effect || disabled || !feedback) return null;
-  const { symbol, label } = presentation[effect.cue];
+  const { symbol } = presentation[effect.cue];
+  const { item } = effect;
+  const label = item.label;
+  const animation = 'pg_saved_' + effect.key.replace(/[^a-zA-Z0-9_]/g, '_');
+  const target =
+    item.plantId != null
+      ? '[data-plant-id="' + item.plantId + '"]'
+      : item.cityId
+        ? '[data-city="' + CSS.escape(item.cityId) + '"]'
+        : item.actor
+          ? '[data-company-seat="' + CSS.escape(item.actor) + '"]'
+          : null;
   return (
     <div
       key={effect.key}
       aria-hidden="true"
       data-power-grid-effect={effect.cue}
-      className={`pg-saved-fx pg-saved-fx--${effect.cue}${reduced ? ' pg-saved-fx--reduced' : ''}`}
+      data-power-grid-theme={item.theme}
+      className={`pg-saved-fx pg-saved-fx--${effect.cue}${reduced ? ' pg-saved-fx--reduced' : ''}${item.major ? '' : ' pg-saved-fx--local'}`}
     >
+      {target && !reduced && (
+        <style>{`@keyframes ${animation} {0%,100%{filter:none}35%{filter:drop-shadow(0 0 5px #ba8c29)}} .pg-screen ${target}{animation:${animation} ${item.duration}ms ease-out}`}</style>
+      )}
       <div className="pg-saved-fx__current" />
       <div className="pg-saved-fx__ring" />
       <div className="pg-saved-fx__marks">
@@ -338,7 +353,12 @@ export function PowerGridSavedEffects({
       </div>
       <div className="pg-saved-fx__badge">
         <b>{symbol}</b>
-        <span>{label}</span>
+        <span>
+          <strong>
+            {item.actor ? (names[item.actor] ?? item.actor) : '电网'} {label}
+          </strong>
+          <small>{item.text}</small>
+        </span>
       </div>
     </div>
   );

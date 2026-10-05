@@ -1,4 +1,18 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
+import { writeFileSync } from 'node:fs';
+import { forecast, nextBid } from '../bot/planner';
+const strategyMetrics: unknown[] = [];
+afterAll(() => {
+  if (strategyMetrics.length && process.env.TABLEMAX_STRATEGY_METRICS)
+    writeFileSync(
+      process.env.TABLEMAX_STRATEGY_METRICS,
+      JSON.stringify(strategyMetrics, null, 2),
+    );
+  if (strategyMetrics.length)
+    console.info(
+      'POWER_GRID_STRATEGY_METRICS=' + JSON.stringify(strategyMetrics),
+    );
+});
 import { RandomSource } from '../../../packages/platform-core/src/random';
 import { emptyStock, getPlant, PLANT_IDS, RESOURCES } from '../data/catalog';
 import {
@@ -665,7 +679,7 @@ describe('Power Grid bounded production and seeded full games', () => {
       2,
     );
   });
-  it('uses distinct fuel reserves at higher difficulty and ignores every rival cash balance', () => {
+  it('avoids unnecessary reserves at all difficulties and ignores every rival cash balance', () => {
     const s = fixture([[4], [3], [13]], 'resources');
     s.playerOrder = ['S3', 'S2', 'S1'];
     s.actor = 'S1';
@@ -682,9 +696,7 @@ describe('Power Grid bounded production and seeded full games', () => {
       type: 'finish',
     });
     expect(chooseAction(view, actions, 'juewu', { next: () => 0 })).toEqual({
-      type: 'buy-resource',
-      plantId: 4,
-      resource: 'coal',
+      type: 'finish',
     });
     const other = structuredClone(s);
     other.players.S2!.cash += 100;
@@ -735,57 +747,168 @@ describe('Power Grid bounded production and seeded full games', () => {
     plants[1]!.resources.oil = 1;
     expect(maximumProduction(plants)).toBe(13);
   });
+  it('limits every auction to three meaningful raises including a final one-unit margin', () => {
+    for (let budget = 1; budget <= 200; budget++) {
+      let current = 0,
+        raises = 0;
+      while (nextBid(current, budget) !== null) {
+        const next = nextBid(current, budget)!;
+        expect(next).toBeLessThanOrEqual(budget);
+        expect(next - current >= 2 || next === budget).toBe(true);
+        current = next + 1;
+        raises++;
+      }
+      expect(raises).toBeLessThanOrEqual(3);
+    }
+    expect(nextBid(29, 30)).toBe(30);
+    expect(nextBid(30, 30)).toBeNull();
+  });
+  it('uses future public fuel pressure to reserve rather than filling every plant blindly', () => {
+    const s = fixture([[4], [20], [42]], 'resources');
+    s.actor = 'S1';
+    fuel(s, 'S1', 4, { coal: 2 });
+    const view = rules.project(s, {
+      role: 'player',
+      seatId: 'S1',
+    }) as PowerGridView;
+    const actions = legalActions(s, 'S1');
+    expect(chooseAction(view, actions, 'default', { next: () => 0 })).toEqual({
+      type: 'finish',
+    });
+    expect(chooseAction(view, actions, 'juewu', { next: () => 0 }).type).toBe(
+      'buy-resource',
+    );
+    const before = JSON.stringify(view);
+    const plan = forecast(view, view.players.S1!.plants, view.self!.cash, 2);
+    expect(plan.nodes).toBeLessThanOrEqual(6000);
+    expect(JSON.stringify(view)).toBe(before);
+    const controller = new AbortController();
+    controller.abort();
+    expect(() =>
+      forecast(
+        view,
+        view.players.S1!.plants,
+        view.self!.cash,
+        2,
+        controller.signal,
+      ),
+    ).toThrow('取消');
+  });
+  it('buys a feasible mixed recipe when neither resource can provide the full input alone', () => {
+    const s = fixture([[21], [13], [18]], 'resources');
+    s.actor = 'S1';
+    cities(s, 'S1', 3);
+    for (const r of RESOURCES) {
+      if (r === 'coal' || r === 'oil') {
+        s.resources[r] = 1;
+        s.supply[r] = TOTAL_RESOURCES[r] - 1;
+      }
+    }
+    const view = rules.project(s, {
+      role: 'player',
+      seatId: 'S1',
+    }) as PowerGridView;
+    const plan = forecast(view, view.players.S1!.plants, view.self!.cash, 1);
+    expect(plan.demand.coal).toBe(1);
+    expect(plan.demand.oil).toBe(1);
+    expect(legalActions(s, 'S1')).toContainEqual(
+      chooseAction(view, legalActions(s, 'S1'), 'doubao', { next: () => 0 }),
+    );
+  });
+  it('triggers a winning two-player ending even when production is below 21 cities', () => {
+    let s = fixture([[3], [13, 18, 22, 27]], 'building', 3);
+    cities(s, 'S1', 10);
+    cities(s, 'S2', 20);
+    const view = rules.project(s, {
+      role: 'player',
+      seatId: 'S2',
+    }) as PowerGridView;
+    const legal = legalActions(s, 'S2');
+    const action = chooseAction(view, legal, 'juewu', { next: () => 0 });
+    expect(maximumProduction(s.players.S2!.plants)).toBeLessThan(21);
+    expect(action.type).toBe('build');
+    expect(legal).toContainEqual(action);
+    s = apply(s, action);
+    s = apply(s, { type: 'finish' });
+    s = apply(s, { type: 'finish' });
+    expect(s.phase).toBe('ended');
+    expect(s.winners).toEqual(['S2']);
+  });
   for (const count of [2, 3, 4, 5, 6])
     for (const difficulty of ['default', 'doubao', 'juewu'] as const)
-      it(`${count} players / ${difficulty} completes a conserved, restorable game`, async () => {
-        const seats = Array.from({ length: count }, (_, i) => `S${i + 1}`),
-          random = new RandomSource(count * 71 + difficulty.length);
-        let s = initialize({ seats, random }),
-          actionsTaken = 0;
-        while (s.phase !== 'ended' && actionsTaken++ < 6000) {
-          const decision = decisions(s)[0]!,
-            actions = legalActions(s, decision.seatId);
-          expect(actions.length).toBeGreaterThan(0);
-          for (const legal of actions)
-            expect(JSON.stringify(validateAction(legal))).toBe(
-              JSON.stringify(legal),
+      for (const seed of [0, 1, 2])
+        it(`${count} players / ${difficulty} seed ${seed} completes a conserved, restorable game`, async () => {
+          const seats = Array.from({ length: count }, (_, i) => `S${i + 1}`),
+            random = new RandomSource(
+              count * 71 + difficulty.length + seed * 719,
             );
-          const chosen = await bot.decide({
-            view: rules.project(s, { role: 'player', seatId: decision.seatId }),
-            actions,
-            decision,
-            memory: null,
-            difficulty,
-            random,
-            signal: new AbortController().signal,
+          let s = initialize({ seats, random }),
+            actionsTaken = 0,
+            longest = 0;
+          while (s.phase !== 'ended' && actionsTaken++ < 6000) {
+            const decision = decisions(s)[0]!,
+              actions = legalActions(s, decision.seatId);
+            expect(actions.length).toBeGreaterThan(0);
+            for (const legal of actions)
+              expect(JSON.stringify(validateAction(legal))).toBe(
+                JSON.stringify(legal),
+              );
+            const began = performance.now();
+            const chosen = await bot.decide({
+              view: rules.project(s, {
+                role: 'player',
+                seatId: decision.seatId,
+              }),
+              actions,
+              decision,
+              memory: null,
+              difficulty,
+              random,
+              signal: new AbortController().signal,
+            });
+            longest = Math.max(longest, performance.now() - began);
+            const before = JSON.stringify(s);
+            s = rules.apply(s, chosen.action, decision.seatId, {
+              seats,
+              random,
+            }).state as State;
+            expect(before).not.toBe(JSON.stringify(s));
+            validateState(s, seats);
+            if (actionsTaken % 25 === 0)
+              expect(
+                validateState(JSON.parse(JSON.stringify(s)), seats),
+              ).toEqual(s);
+          }
+          expect({
+            phase: s.phase,
+            round: s.round,
+            actionsTaken,
+          }).toMatchObject({
+            phase: 'ended',
           });
-          const before = JSON.stringify(s);
-          s = rules.apply(s, chosen.action, decision.seatId, { seats, random })
-            .state as State;
-          expect(before).not.toBe(JSON.stringify(s));
-          validateState(s, seats);
-          if (actionsTaken % 25 === 0)
-            expect(validateState(JSON.parse(JSON.stringify(s)), seats)).toEqual(
-              s,
-            );
-        }
-        expect({ phase: s.phase, round: s.round, actionsTaken }).toMatchObject({
-          phase: 'ended',
-        });
-        expect(s.winners.length).toBeGreaterThan(0);
-        for (const resource of RESOURCES)
-          expect(
-            s.resources[resource] +
-              s.supply[resource] +
-              Object.values(s.players).reduce(
-                (sum, p) =>
-                  sum +
-                  p.plants.reduce(
-                    (n, plant) => n + plant.resources[resource],
-                    0,
-                  ),
-                0,
-              ),
-          ).toBe(TOTAL_RESOURCES[resource]);
-      }, 60000);
+          strategyMetrics.push({
+            count,
+            difficulty,
+            seed,
+            actions: actionsTaken,
+            round: s.round,
+            longestMs: longest,
+          });
+          expect(longest).toBeLessThan(1500);
+          expect(s.winners.length).toBeGreaterThan(0);
+          for (const resource of RESOURCES)
+            expect(
+              s.resources[resource] +
+                s.supply[resource] +
+                Object.values(s.players).reduce(
+                  (sum, p) =>
+                    sum +
+                    p.plants.reduce(
+                      (n, plant) => n + plant.resources[resource],
+                      0,
+                    ),
+                  0,
+                ),
+            ).toBe(TOTAL_RESOURCES[resource]);
+        }, 60000);
 });

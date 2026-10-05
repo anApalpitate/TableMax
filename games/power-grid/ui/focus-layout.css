@@ -1,0 +1,373 @@
+.pg-screen .pg-primary-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, #fbf2d9, #e8d8b4);
+}
+.pg-screen .pg-desktop-table {
+  grid-template-rows: minmax(0, 1fr);
+}
+.pg-screen .pg-desktop-table > .pg-companies {
+  display: none;
+}
+.pg-screen .pg-primary-stage:has(> .pg-map-panel) {
+  padding: 0;
+}
+.pg-screen .pg-primary-stage > .pg-market {
+  flex: 1;
+  min-height: 0;
+}
+.pg-screen .pg-primary-stage .pg-market-row {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.pg-screen .pg-primary-stage .pg-company {
+  overflow: visible;
+}
+.pg-screen .pg-primary-stage .pg-company-plants {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: visible;
+}
+.pg-screen .pg-desktop-table > .pg-companies .pg-company {
+  overflow: visible;
+}
+.pg-screen .pg-desktop-market {
+  overflow-x: hidden;
+}
+.pg-screen .pg-map-entry {
+  width: 100%;
+}
+.pg-screen .pg-market-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.pg-screen .pg-market-tabs button {
+  flex: 1;
+}
+.pg-screen .pg-market-tabs button[aria-pressed='true'] {
+  background: #255c49;
+  color: #fff9e4;
+}
+
+.pg-screen.pg-screen--player {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: 6px;
+  gap: 6px;
+}
+.pg-screen.pg-screen--player > .pg-toolbar,
+.pg-screen.pg-screen--player > .pg-status-bar {
+  flex-shrink: 0;
+  margin: 0;
+}
+.pg-screen.pg-screen--player .pg-toolbar {
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+.pg-screen.pg-screen--player .pg-toolbar .pg-order-entry {
+  display: block;
+}
+.pg-screen.pg-screen--player .pg-toolbar .pg-brand {
+  flex: 1;
+  min-width: 0;
+  font-size: 18px;
+}
+.pg-screen.pg-screen--player .pg-toolbar .pg-brand-name {
+  display: inline;
+}
+.pg-screen.pg-screen--player .pg-toolbar > button,
+.pg-screen.pg-screen--player .pg-toolbar > a {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px;
+  font-size: 16px;
+}
+.pg-screen.pg-screen--player .pg-status-bar {
+  padding: 6px;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.pg-screen.pg-screen--player .pg-status-bar > div:first-child {
+  gap: 6px;
+}
+.pg-screen.pg-screen--player .pg-status-bar .pg-cash {
+  margin-left: auto;
+}
+.pg-screen.pg-screen--player .pg-status-bar .decision-countdown {
+  margin-left: auto;
+}
+.pg-screen .pg-phone-pages {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  touch-action: pan-y pinch-zoom;
+}
+.pg-screen .pg-phone-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.pg-screen .pg-phone-page[hidden] {
+  display: none;
+}
+.pg-screen .pg-phone-pages--editing .pg-phone-page:not([hidden]) {
+  overflow-y: auto;
+}
+.pg-screen .pg-phone-pages--editing .pg-page-scroll {
+  flex: none;
+  overflow: visible;
+}
+.pg-screen .pg-page-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  padding: 3px 1px 8px;
+}
+.pg-screen .pg-page-nav {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  padding: 6px 0 max(0px, env(safe-area-inset-bottom));
+  border-top: 1px solid #907b54;
+}
+.pg-screen .pg-page-nav button {
+  min-height: 44px;
+  min-width: 0;
+  font-size: 18px;
+  position: relative;
+}
+.pg-screen .pg-page-nav button[aria-current='page'] {
+  color: #fff9e4;
+  background: #255c49;
+  border-color: #174632;
+}
+.pg-screen .pg-turn-dot {
+  color: #aa421e;
+  position: absolute;
+  right: 4px;
+  top: 0;
+  font-size: 16px;
+}
+.pg-screen .pg-page-nav button:focus-visible {
+  outline: 3px solid #b26724;
+  outline-offset: 1px;
+}
+.pg-screen .pg-action-dock {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 5px 0;
+  background: #f6ebce;
+  border-top: 1px solid #9d8557;
+}
+.pg-screen .pg-action-dock:empty {
+  display: none;
+}
+.pg-screen .pg-action-dock > button {
+  width: 100%;
+  min-height: 44px;
+}
+.pg-screen .pg-action-dock .pg-power-finish {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  gap: 4px;
+  margin: 0;
+}
+.pg-screen .pg-action-dock .pg-power-finish > button {
+  grid-column: 1 / -1;
+}
+.pg-screen .pg-action-dock .pg-power-finish label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 16px;
+}
+.pg-screen .pg-action-dock .pg-power-finish select {
+  flex: 1;
+  min-width: 0;
+}
+.pg-screen .pg-phone-page .pg-controls {
+  padding: 8px;
+}
+.pg-screen .pg-phone-page .pg-controls > h2 {
+  display: none;
+}
+.pg-screen .pg-phone-page .pg-waiting {
+  min-height: 0;
+  padding: 12px;
+  gap: 8px;
+  text-align: left;
+  align-items: stretch;
+}
+.pg-screen .pg-phone-page .pg-own-plants {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.pg-screen .pg-phone-page .pg-fuel-plant,
+.pg-screen .pg-phone-page .pg-run-plant {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 5px;
+}
+.pg-screen .pg-phone-page .pg-own-plants .pg-plant-card {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  padding: 5px;
+  gap: 4px;
+}
+.pg-screen .pg-phone-page .pg-own-plants .pg-plant-top {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+}
+.pg-screen .pg-phone-page .pg-own-plants .pg-plant-number {
+  font-size: 24px;
+}
+.pg-screen .pg-phone-page .pg-own-plants .pg-plant-art {
+  display: block;
+  height: 48px;
+  min-height: 0;
+  grid-row: 2;
+  width: 68px;
+}
+.pg-screen .pg-phone-page .pg-own-plants .pg-plant-engine {
+  grid-column: 2;
+  grid-row: 2;
+  padding: 0;
+}
+.pg-screen .pg-phone-page .pg-own-plants .pg-stock {
+  grid-column: 1 / -1;
+  padding: 0;
+}
+.pg-screen .pg-phone-page .pg-own-plants .pg-fuel-purchases {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+.pg-screen .pg-phone-page .pg-own-plants .pg-fuel-purchases > button {
+  min-width: 0;
+  min-height: 44px;
+  padding: 5px;
+  flex-wrap: wrap;
+}
+.pg-screen .pg-phone-page .pg-own-plants .pg-run-plant--done .pg-plant-art,
+.pg-screen .pg-phone-page .pg-own-plants .pg-run-plant--done .pg-plant-engine {
+  display: none;
+}
+.pg-screen .pg-phone-page .pg-own-plants .pg-run-options > summary {
+  min-height: 44px;
+}
+.pg-screen .pg-phone-page .pg-select-plants {
+  max-height: none;
+  overflow: visible;
+}
+.pg-screen .pg-phone-page .pg-select-plants .pg-plant-art {
+  height: 52px;
+  min-height: 0;
+}
+.pg-screen .pg-phone-page .pg-companies {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+.pg-screen .pg-phone-page .pg-companies > .pg-company {
+  flex: none;
+  min-height: 0;
+  overflow: visible;
+}
+.pg-screen .pg-phone-map--browse .pg-map-frame {
+  aspect-ratio: 3 / 4;
+}
+
+@media (max-height: 900px) {
+  .pg-screen .pg-primary-stage .pg-fuel-market .pg-price-lane {
+    display: grid;
+    grid-template-columns: 70px minmax(0, 1fr);
+    gap: 5px;
+    padding: 4px;
+  }
+  .pg-screen .pg-primary-stage .pg-fuel-market .pg-price-lane > header {
+    margin: 0;
+    gap: 0 3px;
+    align-content: center;
+  }
+  .pg-screen .pg-primary-stage .pg-fuel-market .pg-price-lane > header > span {
+    margin: 0;
+    white-space: nowrap;
+  }
+  .pg-screen .pg-primary-stage .pg-fuel-market .pg-price-area {
+    padding: 1px 0;
+    gap: 0;
+  }
+  .pg-screen .pg-primary-stage .pg-fuel-market .pg-price-lanes {
+    gap: 5px;
+  }
+}
+@media (max-height: 650px) {
+  .pg-screen .pg-short-companies {
+    display: none;
+  }
+  .pg-screen .pg-primary-stage {
+    padding: 8px;
+    gap: 6px;
+  }
+  .pg-screen .pg-primary-stage .pg-plant-art {
+    height: 55px;
+    min-height: 0;
+  }
+  .pg-screen .pg-primary-stage .pg-plant-number {
+    font-size: 24px;
+  }
+  .pg-screen .pg-primary-stage .pg-plant-top {
+    padding: 3px;
+  }
+  .pg-screen .pg-primary-stage .pg-plant-engine {
+    padding: 3px;
+  }
+  .pg-screen .pg-primary-stage .pg-market-row--future {
+    display: none;
+  }
+  .pg-screen .pg-primary-stage .pg-market h3 {
+    display: none;
+  }
+  .pg-screen .pg-primary-stage .pg-auction-display {
+    padding: 6px;
+  }
+  .pg-screen .pg-primary-stage .pg-auction-display .pg-plant-art {
+    display: none;
+  }
+  .pg-screen .pg-primary-stage .pg-auction-display .pg-auction-sequence {
+    display: none;
+  }
+  .pg-screen .pg-primary-stage .pg-auction-price {
+    padding: 5px;
+  }
+  .pg-screen .pg-primary-stage .pg-company-plants {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .pg-screen.pg-screen--player .pg-toolbar .pg-brand-name {
+    display: none;
+  }
+  .pg-screen.pg-screen--player .pg-status-bar .decision-countdown {
+    font-size: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pg-screen .pg-phone-pages {
+    scroll-behavior: auto;
+  }
+}

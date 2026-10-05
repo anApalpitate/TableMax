@@ -1,5 +1,15 @@
 # 项目瘦身方案与执行记录
 
+## 电力公司 debug 收尾（2026-10-05）
+
+本轮方案分为运行包压缩和工作区退役：使用锁定 esbuild 压缩游戏／策略 CJS 及 Worker，保持源码可读、属性名、协议、存档、媒体原字节；先验三款实际解压游戏、规则、声画和原生安全，再清理生成副本。118 个媒体文件哈希未变，不采用降低图像质量或重编码用户声音来凑预算。最终运行 ZIP 40,626,986 字节，实际解压 151 文件／95,141,448 字节；比上一合并包少 21,768 字节，95 MB 工程预算仍超 141,448 字节，100 MB 硬限制通过。比较包含本轮新增代码，不能把净减少量全归功于压缩。[同包审计](../../artifacts/maintenance/v1.0.3/power-grid-debug-20261005/final-delivery-checks.json)和[冻结清单](../../artifacts/maintenance/v1.0.3/power-grid-debug-20261005/final-delivery-manifest.json)记录实际边界。
+
+三处历史 previous-delivery ZIP 在验收后以精确路径重命名成受保护工具认可的版本包名，逐包大小和哈希进入 [退役清单](../../artifacts/maintenance/v1.0.3/power-grid-debug-20261005/retired-packages.json)，保留各自原清单与通过／失败文字结果。旧链接改为清单，不再提供过时可运行程序。cleanup-history/preserved-history ZIP 是清理文字证据的无损归档，不是历史应用包，继续保留。当前 v1.0.3 验收图、素材原图、规则、正式存档、依赖与工具缓存保留；不按 Git 忽略状态删除内容。
+
+清理顺序为 Clean-Releases 的已退出打包残留、显式退役历史包、已知隔离临时目录，均先预览后 Apply；最后空闲执行 Maintain-Project。[release 清理](../../artifacts/maintenance/local-cleanup-20261005-100131-440-releases/cleanup.json)删除 230,936,288 字节；[历史包清理](../../artifacts/maintenance/local-cleanup-20261005-100533-347-intermediates/cleanup.json)删除 121,697,794 字节；[40 个隔离目录清理](../../artifacts/maintenance/local-cleanup-20261005-100744-349-intermediates/cleanup.json)删除 19,056,787,081 字节。合计删除 19,409,421,163 逻辑字节，不通过手动递归删除绕过路径、链接、进程或近期保护。其他对话未提交的扩展草案、索引和增量构建方案不包含于本次提交。
+
+最后空闲执行 [Maintain-Project 记录](../../artifacts/maintenance/v1.0.3/power-grid-debug-20261005/final-maintenance.json)，工作区 5,388,318,267 逻辑字节（约 5.018 GiB），安全候选耗尽，未继续扩大范围。四处未识别的隔离构建／版本预览目录保留；原资料、当前证据、正式存档及工具／依赖缓存不删除，链接与嵌套仓库按规则排除。物理磁盘节省未单独测量，不能把逻辑删除量当作 NTFS 实际释放量。
+
 ## 宝可梦引导与动漫切入收尾（2026-10-05）
 
 全部本轮原生验证退出后，先预览再执行受保护入口。`Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0 -Apply` 删除两处已退出打包残留461,925,666字节，见 [release清理](../../artifacts/maintenance/local-cleanup-20261005-081210-006-releases/cleanup.json)，releases仅保留当前运行ZIP和逐文件清单；上一已验包及清单已冻结于本轮证据目录。

@@ -313,6 +313,7 @@ export function PlantCard({
   return onClick ? (
     <button
       type="button"
+      data-plant-id={id}
       className={className}
       disabled={disabled}
       aria-label={label}
@@ -433,94 +434,104 @@ export function PlayerCompanies({
       aria-label="各家电力公司"
       style={{ '--pg-player-count': view.seatOrder.length } as CSSProperties}
     >
-      {view.seatOrder.map((seat, index) => {
-        if (onlySeat && onlySeat !== seat) return null;
-        const player = view.players[seat]!;
-        return (
-          <article
-            key={seat}
-            role={compact && onDetails ? 'button' : undefined}
-            tabIndex={compact && onDetails ? 0 : undefined}
-            aria-label={
-              compact && onDetails
-                ? `查看${names[seat] ?? `公司${index + 1}`}的电厂与库存`
-                : undefined
-            }
-            onClick={compact && onDetails ? () => onDetails(seat) : undefined}
-            onKeyDown={
-              compact && onDetails
-                ? (event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      onDetails(seat);
+      {view.seatOrder
+        .map((seat, index) => ({ seat, index }))
+        .sort(
+          (a, b) =>
+            Number(b.seat === view.self?.seatId) -
+            Number(a.seat === view.self?.seatId),
+        )
+        .map(({ seat, index }) => {
+          if (onlySeat && onlySeat !== seat) return null;
+          const player = view.players[seat]!;
+          return (
+            <article
+              key={seat}
+              role={compact && onDetails ? 'button' : undefined}
+              tabIndex={compact && onDetails ? 0 : undefined}
+              aria-label={
+                compact && onDetails
+                  ? `查看${names[seat] ?? `公司${index + 1}`}的电厂与库存`
+                  : undefined
+              }
+              onClick={compact && onDetails ? () => onDetails(seat) : undefined}
+              onKeyDown={
+                compact && onDetails
+                  ? (event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        onDetails(seat);
+                      }
                     }
-                  }
-                : undefined
-            }
-            className={`pg-company${active && view.actor === seat ? ' pg-company--acting' : ''}${view.winners.includes(seat) ? ' pg-company--winner' : ''}`}
-            style={
-              { '--pg-player-color': PLAYER_COLORS[index] } as CSSProperties
-            }
-          >
-            <header>
-              <img src={portraits[seat]} alt="" />
-              <strong title={names[seat]}>
-                <span className="pg-seat-number">{index + 1}</span>
-                {names[seat] ?? `公司${index + 1}`}
-              </strong>
-              {view.winners.includes(seat) && <span aria-label="冠军">★</span>}
-            </header>
-            <div className="pg-company-stats">
-              <span>
-                网络 <b>{player.cities.length}</b>城
-              </span>
-              <span>
-                产能 <b>{player.capacity}</b>城
-              </span>
-              {player.cash != null && <span>{player.cash} E</span>}
-              {active && view.actor === seat && (
-                <span className="pg-company-turn">行动中</span>
-              )}
-            </div>
-            {!compact && (
-              <div className="pg-company-plants">
-                {player.plants.map((plant) => (
-                  <PlantCard
-                    key={plant.id}
-                    id={plant.id}
-                    owned={plant}
-                    compact
-                    {...(artFor ? { art: artFor(plant.id) } : {})}
-                  />
-                ))}
-                {!player.plants.length && (
-                  <span className="pg-no-plant">等待购厂</span>
+                  : undefined
+              }
+              data-company-seat={seat}
+              className={`pg-company${active && view.actor === seat ? ' pg-company--acting' : ''}${view.winners.includes(seat) ? ' pg-company--winner' : ''}`}
+              style={
+                { '--pg-player-color': PLAYER_COLORS[index] } as CSSProperties
+              }
+            >
+              <header>
+                <img src={portraits[seat]} alt="" />
+                <strong title={names[seat]}>
+                  <span className="pg-seat-number">{index + 1}</span>
+                  {names[seat] ?? `公司${index + 1}`}
+                </strong>
+                {view.winners.includes(seat) && (
+                  <span aria-label="冠军">★</span>
+                )}
+              </header>
+              <div className="pg-company-stats">
+                <span>
+                  网络 <b>{player.cities.length}</b>城
+                </span>
+                <span>
+                  产能 <b>{player.capacity}</b>城
+                </span>
+                {player.cash != null && <span>{player.cash} E</span>}
+                {active && view.actor === seat && (
+                  <span className="pg-company-turn">行动中</span>
                 )}
               </div>
-            )}
-            <div className="pg-company-summary">
-              <span>
-                {player.plants.map((plant) => `#${plant.id}`).join(' ') ||
-                  '等待购厂'}
-              </span>
-              <div>
-                {RESOURCES.map((resource) => {
-                  const total = player.plants.reduce(
-                    (sum, plant) => sum + plant.resources[resource],
-                    0,
-                  );
-                  return total > 0 ? (
-                    <span key={resource}>
-                      <ResourceIcon resource={resource} />
-                      {total}
-                    </span>
-                  ) : null;
-                })}
+              {!compact && (
+                <div className="pg-company-plants">
+                  {player.plants.map((plant) => (
+                    <PlantCard
+                      key={plant.id}
+                      id={plant.id}
+                      owned={plant}
+                      compact
+                      {...(artFor ? { art: artFor(plant.id) } : {})}
+                    />
+                  ))}
+                  {!player.plants.length && (
+                    <span className="pg-no-plant">等待购厂</span>
+                  )}
+                </div>
+              )}
+              <div className="pg-company-summary">
+                <span>
+                  {player.plants.map((plant) => `#${plant.id}`).join(' ') ||
+                    '等待购厂'}
+                </span>
+                <div>
+                  {RESOURCES.map((resource) => {
+                    const total = player.plants.reduce(
+                      (sum, plant) => sum + plant.resources[resource],
+                      0,
+                    );
+                    return total > 0 ? (
+                      <span key={resource}>
+                        <ResourceIcon resource={resource} />
+                        {total}
+                      </span>
+                    ) : null;
+                  })}
+                </div>
               </div>
-            </div>
-          </article>
-        );
-      })}
+            </article>
+          );
+        })}
     </section>
   );
 }

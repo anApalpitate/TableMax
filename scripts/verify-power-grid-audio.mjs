@@ -14,6 +14,9 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
 const portable = process.argv.includes('--portable');
+const projectVersion = JSON.parse(
+  await readFile('package.json', 'utf8'),
+).version;
 const maintenance =
   process.argv.find((arg) => arg.startsWith('--maintenance='))?.slice(14) ??
   'power-grid-debug-20261004';
@@ -24,7 +27,7 @@ const run =
   (portable ? 'portable-final' : 'development');
 assert.match(run, /^[a-z0-9-]{1,48}$/, 'Safe independent evidence directory');
 const output = resolve(
-  'artifacts/maintenance/v1.0.2',
+  'artifacts/maintenance/v' + projectVersion,
   maintenance,
   'native-audio',
   run,
@@ -453,8 +456,6 @@ async function prepareFixtures() {
 }
 
 async function capture(page, label, cue) {
-  const window = await desktop.browserWindow(page);
-  assert.equal(await window.evaluate((window) => window.isVisible()), false);
   const rendered = await page.evaluate(() => {
     const effect = document.querySelector('[data-power-grid-effect]');
     if (!effect) return null;
@@ -473,6 +474,8 @@ async function capture(page, label, cue) {
     assert.equal(rendered.pointerEvents, 'none');
     assert.equal(rendered.ariaHidden, 'true');
   }
+  const window = await desktop.browserWindow(page);
+  assert.equal(await window.evaluate((window) => window.isVisible()), false);
   const encoded = await window.evaluate(async (window) =>
     (await window.webContents.capturePage()).toPNG().toString('base64'),
   );
@@ -613,7 +616,7 @@ async function savedSound(view, cue, owner, marks, label) {
   );
   assert.equal(plays[0].role, owner);
   assert.equal(plays[0].src, url);
-  assert.equal(plays[0].volume, 0.42);
+  assert.equal(plays[0].volume, ['plant', 'end'].includes(cue) ? 0.42 : 0.26);
   assert.equal(plays[0].rejected, null);
   assert.equal(plays[0].fulfilled, true);
   assert.ok(plays[0].readyState >= 2 && plays[0].duration > 0);
@@ -815,12 +818,11 @@ async function closeCase() {
 
 async function captureSavedFX(cue) {
   // Capture all active roles concurrently inside the actual animation lifetime.
-  for (const page of pages.values())
-    await page.locator(`[data-power-grid-effect="${cue}"]`).waitFor();
   await Promise.all(
-    [...pages].map(([role, page]) =>
-      capture(page, 'saved-' + cue + '-' + role, cue),
-    ),
+    [...pages].map(async ([role, page]) => {
+      await page.locator(`[data-power-grid-effect="${cue}"]`).waitFor();
+      await capture(page, 'saved-' + cue + '-' + role, cue);
+    }),
   );
   evidence.checks.push({
     check:

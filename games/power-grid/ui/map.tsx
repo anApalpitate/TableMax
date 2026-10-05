@@ -338,6 +338,8 @@ export function GermanyMap({
   actor = null,
   role = 'public',
   previewRegions = false,
+  viewport,
+  onViewportChange,
 }: {
   regions: readonly string[];
   networks: readonly MapNetwork[];
@@ -350,6 +352,11 @@ export function GermanyMap({
   actor?: string | null;
   role?: MapRole;
   previewRegions?: boolean;
+  viewport?: { scale: number; offset: { x: number; y: number } };
+  onViewportChange?(value: {
+    scale: number;
+    offset: { x: number; y: number };
+  }): void;
 }) {
   const definitionId = useId().replace(/:/g, '');
   const paperId = `${definitionId}-paper`,
@@ -381,8 +388,14 @@ export function GermanyMap({
     moved: boolean;
     houseCity: string | null;
   } | null>(null);
-  const [scale, setScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [localScale, setLocalScale] = useState(1);
+  const [localOffset, setLocalOffset] = useState({ x: 0, y: 0 });
+  const scale = viewport?.scale ?? localScale;
+  const offset = viewport?.offset ?? localOffset;
+  const setOffset = (value: { x: number; y: number }) => {
+    if (onViewportChange) onViewportChange({ scale, offset: value });
+    else setLocalOffset(value);
+  };
   const [baseScale, setBaseScale] = useState(0.5);
   useEffect(() => {
     const element = frame.current;
@@ -416,8 +429,16 @@ export function GermanyMap({
   const occupantsFor = (cityId: string) =>
     networks.filter((network) => network.cities.includes(cityId));
   const zoom = (value: number) => {
-    setScale(Math.max(1, Math.min(4, value)));
-    if (value <= 1) setOffset({ x: 0, y: 0 });
+    const next = Math.max(1, Math.min(4, value));
+    if (onViewportChange)
+      onViewportChange({
+        scale: next,
+        offset: value <= 1 ? { x: 0, y: 0 } : offset,
+      });
+    else {
+      setLocalScale(next);
+      if (value <= 1) setLocalOffset({ x: 0, y: 0 });
+    }
   };
   const pointerDown = (event: PointerEvent<SVGSVGElement>) => {
     pointers.current.set(event.pointerId, {
@@ -928,7 +949,6 @@ export function GermanyMap({
             type="button"
             onClick={() => {
               zoom(1);
-              setOffset({ x: 0, y: 0 });
             }}
           >
             全图

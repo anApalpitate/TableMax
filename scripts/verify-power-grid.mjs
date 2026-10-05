@@ -742,11 +742,20 @@ async function nativeMatrix() {
         42,
         'Actual Germany map renders all 42 cities',
       );
+      await page.getByRole('button', { name: '各家', exact: true }).click();
+      const companiesDialog = page.getByRole('dialog', {
+        name: '各家电力公司',
+        exact: true,
+      });
+      await companiesDialog.waitFor();
       assert.equal(
-        layout.companyRows,
+        await companiesDialog.locator('.pg-company').count(),
         before.seats.length,
-        'Every saved company is present in actual native scene',
+        'Every saved company is available through the native company overview',
       );
+      await companiesDialog
+        .getByRole('button', { name: '关闭面板', exact: true })
+        .click();
       assert.ok(
         layout.scrollHeight <= layout.height + 2,
         'Actual native document has no vertical overflow',
@@ -822,6 +831,11 @@ async function nativeMatrix() {
 const sampled = new Set();
 const capturedLivePhases = new Set();
 async function livePresentation(page, current, label, marketRequired) {
+  const phoneOrder =
+    current.self.role === 'player' &&
+    !(await page.locator('.pg-turn-order').count());
+  if (phoneOrder)
+    await page.getByRole('button', { name: '顺序', exact: true }).click();
   if (marketRequired) {
     const collapsed = page.locator(
       '[data-stage-section="resources"][data-expanded="false"] h2 > button',
@@ -949,6 +963,7 @@ async function livePresentation(page, current, label, marketRequired) {
     ...actual,
     passed: true,
   });
+  if (phoneOrder) await page.keyboard.press('Escape');
 }
 async function stablePhaseCapture(page, label) {
   await page.waitForFunction(
@@ -1014,7 +1029,7 @@ async function clickAction(entry, current, action) {
       .first();
   } else if (action.type === 'build') {
     await page
-      .locator('.pg-phone-map')
+      .locator('.pg-phone-page:not([hidden]) .pg-phone-map')
       .getByLabel('选择城市', { exact: true })
       .selectOption(action.cityId);
     button = page.getByRole('button', {
