@@ -205,3 +205,7 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 2026-10-06火箭队双面取牌／超梦来源源码续建后，相关测试与真实服务／Worker、格式检查全部退出，再执行安全维护：逻辑字节32,508,859,820，零候选、99项保护／近期内容跳过，删除零字节；安全候选耗尽，未扩大清理范围。正式存档、原素材与当前已验ZIP保留。[维护记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-coin-source-model-20261006/maintenance.json)和[接续](../tasks/pokemon-encounters-expansion.md#火箭队双面取牌与超梦来源续建2026-10-06)分别记录实际容量与源码尚未进入运行包的边界。
 
 2026-10-06路卡利欧可选取牌／终局潜力续建后，所有测试与真实服务／Worker、格式工具退出再执行维护：逻辑字节35,164,180,098，零候选、101项保护／近期内容跳过，删除零字节，安全候选耗尽。原素材、正式存档、首次冻结失败报告与当前已验ZIP保留，未扩大清理范围。[维护记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-lucario-model-20261006/maintenance.json)对应本轮实际容量，[接续](../tasks/pokemon-encounters-expansion.md#路卡利欧可选取牌与终局估值续建2026-10-06)记录最终源码重跑与尚未更新ZIP的边界。
+
+2026-10-06累积能力模型同包续验后，150种子、隔离构建／打包与实际原生／普通UI进程全部退出，再执行维护：逻辑字节35,222,690,518，零候选、106项保护／近期内容跳过，删除零字节，安全候选耗尽。当前 `79ace556…` ZIP和旧 `42205330…` ZIP、正式存档、原素材与本轮实际截图／失败记录均保留，未扩大范围。[维护记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-combined-model-delivery-20261006/maintenance.json)给出实际容量，[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-combined-model-delivery-20261006/final-checks.json)确认交付解压94,302,060字节，二者分开计量。
+
+同轮 `Clean-Releases.ps1 -KeepLatestOnly` 预览为零候选；脚本除当前ZIP／清单外还明确保护已存在的同版本EXE与source ZIP（`cleanup-local.ps1` 的 `publishedFile` 保留分支），未执行删除或移动。两文件为本轮开始前已有产物，本轮只更新运行ZIP与清单，未重新生成或发布它们。记录进入上述维护JSON，未绕过保护强行收敛目录为两文件。
