@@ -55,41 +55,41 @@
   font-size: 28px;
   line-height: 1;
 }
-.pg-screen.pg-income-card .pg-income-markers {
+.pg-screen .pg-income-markers {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 12px;
 }
-.pg-screen.pg-income-card .pg-income-markers > div {
+.pg-screen .pg-income-markers > div {
   flex: 1 1 180px;
   padding: 7px 9px;
   border: 2px solid #4b7953;
   border-radius: 8px;
   background: #e0edcf;
 }
-.pg-screen.pg-income-card .pg-income-markers > .pg-income-selected {
+.pg-screen .pg-income-markers > .pg-income-selected {
   border-color: #a76b25;
   background: #f8e6b7;
 }
-.pg-screen.pg-income-card .pg-income-markers > div > span {
+.pg-screen .pg-income-markers > div > span {
   display: block;
   font-size: 16px;
 }
-.pg-screen.pg-income-card .pg-income-markers strong {
+.pg-screen .pg-income-markers strong {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 9px;
   margin-top: 3px;
   font-size: 18px;
 }
-.pg-screen.pg-income-card .pg-income-table {
+.pg-screen .pg-income-table {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 5px;
   margin: 0;
 }
-.pg-screen.pg-income-card .pg-income-table > div {
+.pg-screen .pg-income-table > div {
   min-width: 0;
   display: flex;
   flex-wrap: wrap;
@@ -102,8 +102,8 @@
   background: #fff9edc9;
   font-size: 18px;
 }
-.pg-screen.pg-income-card .pg-income-table dt,
-.pg-screen.pg-income-card .pg-income-table dd {
+.pg-screen .pg-income-table dt,
+.pg-screen .pg-income-table dd {
   display: flex;
   align-items: baseline;
   gap: 3px;
@@ -111,16 +111,16 @@
   font-weight: 700;
   white-space: nowrap;
 }
-.pg-screen.pg-income-card .pg-income-table span {
+.pg-screen .pg-income-table span {
   font-size: 16px;
   font-weight: 400;
 }
-.pg-screen.pg-income-card .pg-income-table > .pg-income-tier--capability {
+.pg-screen .pg-income-table > .pg-income-tier--capability {
   border: 2px solid #4b7953;
   padding: 6px;
   background: #e0edcf;
 }
-.pg-screen.pg-income-card .pg-income-table > .pg-income-tier--selected {
+.pg-screen .pg-income-table > .pg-income-tier--selected {
   box-shadow: inset 0 -4px 0 #bd7f2e;
   background: #f8e6b7;
 }
@@ -142,17 +142,17 @@
   .pg-screen.pg-income-card {
     padding: 10px;
   }
-  .pg-screen.pg-income-card .pg-income-table > div {
+  .pg-screen .pg-income-table > div {
     flex-direction: column;
     align-items: center;
     padding: 5px 2px;
   }
-  .pg-screen.pg-income-card .pg-income-table > .pg-income-tier--capability {
+  .pg-screen .pg-income-table > .pg-income-tier--capability {
     padding: 4px 1px;
   }
 }
 
-.pg-screen.pg-income-card .pg-income-scroll-hint {
+.pg-screen .pg-income-scroll-hint {
   margin: 0 0 10px;
   font-size: 16px;
   color: #526044;

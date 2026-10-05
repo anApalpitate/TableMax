@@ -77,7 +77,7 @@ export function ResourceIcon({ resource }: { resource: Resource }) {
   );
 }
 
-function FuelMark({ fuel }: { fuel: Fuel }) {
+export function FuelMark({ fuel }: { fuel: Fuel }) {
   return (
     <span className="pg-fuel-mark" aria-hidden="true">
       {fuel === 'hybrid' ? (
@@ -434,13 +434,8 @@ export function PlayerCompanies({
       aria-label="各家电力公司"
       style={{ '--pg-player-count': view.seatOrder.length } as CSSProperties}
     >
-      {view.seatOrder
-        .map((seat, index) => ({ seat, index }))
-        .sort(
-          (a, b) =>
-            Number(b.seat === view.self?.seatId) -
-            Number(a.seat === view.self?.seatId),
-        )
+      {view.playerOrder
+        .map((seat) => ({ seat, index: view.seatOrder.indexOf(seat) }))
         .map(({ seat, index }) => {
           if (onlySeat && onlySeat !== seat) return null;
           const player = view.players[seat]!;

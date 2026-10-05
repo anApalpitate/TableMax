@@ -14,12 +14,25 @@ import {
   GERMANY_REGIONS,
 } from '../data/germany';
 import type { Phase } from '../types';
+import { OverlayPanel } from '@tablemax/web-host';
+import {
+  MAP_FRAME,
+  NO_INSETS,
+  initialCamera,
+  cameraScale,
+  clampCamera,
+  focusCamera,
+  panCamera,
+  zoomCamera,
+  safeMapRect,
+  type MapCamera,
+  type MapSurface,
+} from './map-camera';
 import './map-polish.css';
 
 // Only the presentation rotates and trims the outer paper margin.
 const MAP_WIDTH = BOARD_HEIGHT;
 const MAP_HEIGHT = BOARD_WIDTH;
-const MAP_FRAME = { x: 36, y: 24, width: 1152, height: 864 };
 const MAP_CITIES = GERMANY_CITIES.map((city) => ({
   ...city,
   x: BOARD_HEIGHT - city.y,
@@ -153,18 +166,19 @@ function placeLabel(
   candidates: readonly { x: number; y: number }[],
   reserved: LabelBox[],
   required: boolean,
+  bounds: LabelBox = MAP_FRAME,
 ): MapLabel | null {
   let best: LabelBox | null = null;
   let leastOverlap = Infinity;
   for (const candidate of candidates) {
     const box = {
       x: Math.max(
-        MAP_FRAME.x + 6,
-        Math.min(candidate.x, MAP_FRAME.x + MAP_FRAME.width - width - 6),
+        bounds.x + 6,
+        Math.min(candidate.x, bounds.x + bounds.width - width - 6),
       ),
       y: Math.max(
-        MAP_FRAME.y + 6,
-        Math.min(candidate.y, MAP_FRAME.y + MAP_FRAME.height - height - 6),
+        bounds.y + 6,
+        Math.min(candidate.y, bounds.y + bounds.height - height - 6),
       ),
       width,
       height,
@@ -191,6 +205,7 @@ function mapLabels(
   view: MapView,
   building: boolean,
   houseBounds: readonly LabelBox[],
+  visible: LabelBox = MAP_FRAME,
 ) {
   const cities = new Map<string, MapLabel>();
   const routes = new Map<number, MapLabel>();
@@ -199,7 +214,13 @@ function mapLabels(
   ).map((city) => ({ x: city.x - 31, y: city.y - 15, width: 62, height: 30 }));
   reserved.push(...houseBounds);
   const cityThreshold = view === 'clear' ? 0.62 : building ? 0.78 : 0.9;
+  const inView = (x: number, y: number) =>
+    x >= visible.x &&
+    x <= visible.x + visible.width &&
+    y >= visible.y &&
+    y <= visible.y + visible.height;
   const addCity = (city: (typeof MAP_CITIES)[number], required: boolean) => {
+    if (!required && !inView(city.x, city.y)) return;
     const width = city.name.length * fontSize * 1.02 + fontSize * 0.6;
     const height = fontSize * 1.35,
       gap = fontSize * 0.3;
@@ -216,6 +237,7 @@ function mapLabels(
       ],
       reserved,
       required,
+      required ? visible : MAP_FRAME,
     );
     if (label) cities.set(city.id, label);
   };
@@ -229,6 +251,7 @@ function mapLabels(
     if (!regions.includes(a.region) || !regions.includes(b.region)) return;
     const x = (a.x + b.x) / 2,
       y = (a.y + b.y) / 2;
+    if (!required && !inView(x, y)) return;
     const width = fontSize * 1.6,
       height = fontSize * 1.35;
     const length = Math.hypot(b.x - a.x, b.y - a.y);
@@ -244,6 +267,7 @@ function mapLabels(
       })),
       reserved,
       required,
+      required ? visible : MAP_FRAME,
     );
     if (label) routes.set(index, label);
   };
@@ -340,6 +364,11 @@ export function GermanyMap({
   previewRegions = false,
   viewport,
   onViewportChange,
+  focus,
+  contextKey = '',
+  animateFocus = true,
+  avoidDrawers = false,
+  selectionRequest = 0,
 }: {
   regions: readonly string[];
   networks: readonly MapNetwork[];
@@ -352,11 +381,17 @@ export function GermanyMap({
   actor?: string | null;
   role?: MapRole;
   previewRegions?: boolean;
-  viewport?: { scale: number; offset: { x: number; y: number } };
-  onViewportChange?(value: {
-    scale: number;
-    offset: { x: number; y: number };
-  }): void;
+  viewport?: MapCamera;
+  onViewportChange?(value: MapCamera): void;
+  focus?: {
+    key: string;
+    cities?: readonly string[];
+    regions?: readonly string[];
+  };
+  contextKey?: string;
+  animateFocus?: boolean;
+  avoidDrawers?: boolean;
+  selectionRequest?: number;
 }) {
   const definitionId = useId().replace(/:/g, '');
   const paperId = `${definitionId}-paper`,
@@ -379,42 +414,166 @@ export function GermanyMap({
   const frame = useRef<HTMLDivElement>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const drag = useRef<{
-    x: number;
-    y: number;
+    camera: MapCamera;
     startX: number;
     startY: number;
     distance: number;
-    scale: number;
     moved: boolean;
     houseCity: string | null;
   } | null>(null);
-  const [localScale, setLocalScale] = useState(1);
-  const [localOffset, setLocalOffset] = useState({ x: 0, y: 0 });
-  const scale = viewport?.scale ?? localScale;
-  const offset = viewport?.offset ?? localOffset;
-  const setOffset = (value: { x: number; y: number }) => {
-    if (onViewportChange) onViewportChange({ scale, offset: value });
-    else setLocalOffset(value);
-  };
-  const [baseScale, setBaseScale] = useState(0.5);
+  const [localCamera, setLocalCamera] = useState(initialCamera);
+  const [surface, setSurface] = useState<MapSurface>({
+    width: 0,
+    height: 0,
+    insets: NO_INSETS,
+  });
+  const [moving, setMoving] = useState(false);
+  const [cityDetailOpen, setCityDetailOpen] = useState(false);
+  const camera = viewport ?? localCamera;
+  const setCamera = onViewportChange ?? setLocalCamera;
+  const scale = camera.zoom;
+  const focusMemory = useRef('');
+  const contextMemory = useRef(contextKey);
+  const selectionMemory = useRef(selectionRequest);
   useEffect(() => {
     const element = frame.current;
     if (!element) return;
-    const observer = new ResizeObserver(() => {
+    const board = avoidDrawers ? element.closest('[data-map-table]') : null;
+    const measure = () => {
       const rect = element.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0)
-        setBaseScale(
-          Math.min(
-            rect.width / MAP_FRAME.width,
-            rect.height / MAP_FRAME.height,
-          ),
-        );
-    });
+      const insets = {
+        ...NO_INSETS,
+        ...(avoidDrawers ? { left: 52, right: 52 } : {}),
+      };
+      board
+        ?.querySelectorAll<HTMLElement>('[data-map-obstacle]')
+        .forEach((drawer) => {
+          if (drawer.hidden) return;
+          const bounds = drawer.getBoundingClientRect();
+          const edge = drawer.dataset.mapObstacle as keyof typeof insets;
+          if (edge === 'left')
+            insets.left = Math.max(0, bounds.right - rect.left + 12);
+          if (edge === 'right')
+            insets.right = Math.max(0, rect.right - bounds.left + 12);
+          if (edge === 'bottom')
+            insets.bottom = Math.max(0, rect.bottom - bounds.top + 12);
+        });
+      setSurface((previous) =>
+        previous.width === rect.width &&
+        previous.height === rect.height &&
+        JSON.stringify(previous.insets) === JSON.stringify(insets)
+          ? previous
+          : { width: rect.width, height: rect.height, insets },
+      );
+    };
+    const observer = new ResizeObserver(measure);
     observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-  const displayScale = Math.max(0.01, baseScale * scale);
+    board
+      ?.querySelectorAll('[data-map-obstacle]')
+      .forEach((drawer) => observer.observe(drawer));
+    const mutation = new MutationObserver(measure);
+    if (board)
+      mutation.observe(board, {
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['hidden'],
+      });
+    return () => {
+      observer.disconnect();
+      mutation.disconnect();
+    };
+  }, [avoidDrawers]);
+  const focusKey = focus?.key ?? '';
+  const focusCities = focus?.cities?.join(',') ?? '';
+  const focusRegions = focus?.regions?.join(',') ?? '';
+  useEffect(() => {
+    if (!surface.width || !surface.height) return;
+    const memory = `${contextKey}:${focusKey}:${surface.width}:${surface.height}:${JSON.stringify(surface.insets)}:${camera.follow}:${selectionRequest}`;
+    if (focusMemory.current === memory) return;
+    const newContext = contextMemory.current !== contextKey;
+    const first = !focusMemory.current || newContext;
+    const explicitSelection =
+      selectionMemory.current !== selectionRequest &&
+      selected !== null &&
+      POSITIONS[selected] !== undefined;
+    const points = explicitSelection
+      ? [POSITIONS[selected!]!]
+      : focusCities
+        ? focusCities
+            .split(',')
+            .map((id) => POSITIONS[id])
+            .filter(
+              (point): point is NonNullable<typeof point> =>
+                point !== undefined,
+            )
+        : focusRegions
+          ? MAP_CITIES.filter((city) =>
+              focusRegions.split(',').includes(city.region),
+            )
+          : [];
+    const next =
+      (camera.follow || explicitSelection) && points.length
+        ? focusCamera(camera, surface, points)
+        : clampCamera(camera, surface);
+    const request = requestAnimationFrame(() => {
+      contextMemory.current = contextKey;
+      focusMemory.current = memory;
+      selectionMemory.current = selectionRequest;
+      setMoving(!first && animateFocus && camera.follow && points.length > 0);
+      if (
+        next.center.x !== camera.center.x ||
+        next.center.y !== camera.center.y
+      )
+        setCamera(next);
+    });
+    return () => cancelAnimationFrame(request);
+  }, [
+    contextKey,
+    focusKey,
+    focusCities,
+    focusRegions,
+    surface,
+    camera,
+    setCamera,
+    animateFocus,
+    selected,
+    selectionRequest,
+  ]);
+  const displayScale = Math.max(0.01, cameraScale(surface, scale));
+  const pickCity = (id: string) => {
+    setMoving(false);
+    if (POSITIONS[id] && surface.width && surface.height)
+      setCamera(focusCamera(camera, surface, [POSITIONS[id]!]));
+    select(id);
+  };
   const labelSize = 16 / displayScale;
+  const safe = safeMapRect(surface);
+  const labelLeft = Math.max(
+    MAP_FRAME.x,
+    camera.center.x + (safe.left - surface.width / 2) / displayScale,
+  );
+  const labelTop = Math.max(
+    MAP_FRAME.y,
+    camera.center.y + (safe.top - surface.height / 2) / displayScale,
+  );
+  const labelBounds =
+    surface.width && surface.height
+      ? {
+          x: labelLeft,
+          y: labelTop,
+          width:
+            Math.min(
+              MAP_FRAME.x + MAP_FRAME.width,
+              camera.center.x + (safe.right - surface.width / 2) / displayScale,
+            ) - labelLeft,
+          height:
+            Math.min(
+              MAP_FRAME.y + MAP_FRAME.height,
+              camera.center.y +
+                (safe.bottom - surface.height / 2) / displayScale,
+            ) - labelTop,
+        }
+      : MAP_FRAME;
   const houses = layoutHouses(networks, regions, displayScale);
   const building = phase === undefined || phase === 'building';
   const labels = mapLabels(
@@ -425,20 +584,13 @@ export function GermanyMap({
     mapView,
     building,
     houses.bounds,
+    labelBounds,
   );
   const occupantsFor = (cityId: string) =>
     networks.filter((network) => network.cities.includes(cityId));
   const zoom = (value: number) => {
-    const next = Math.max(1, Math.min(4, value));
-    if (onViewportChange)
-      onViewportChange({
-        scale: next,
-        offset: value <= 1 ? { x: 0, y: 0 } : offset,
-      });
-    else {
-      setLocalScale(next);
-      if (value <= 1) setLocalOffset({ x: 0, y: 0 });
-    }
+    setMoving(false);
+    setCamera(zoomCamera(camera, surface, value));
   };
   const pointerDown = (event: PointerEvent<SVGSVGElement>) => {
     pointers.current.set(event.pointerId, {
@@ -448,15 +600,13 @@ export function GermanyMap({
     event.currentTarget.setPointerCapture(event.pointerId);
     const points = [...pointers.current.values()];
     drag.current = {
-      x: offset.x,
-      y: offset.y,
+      camera,
       startX: event.clientX,
       startY: event.clientY,
       distance:
         points.length === 2
           ? Math.hypot(points[0]!.x - points[1]!.x, points[0]!.y - points[1]!.y)
           : 0,
-      scale,
       moved: false,
       houseCity:
         event.target instanceof Element
@@ -466,6 +616,7 @@ export function GermanyMap({
               ?.getAttribute('data-city') ?? null)
           : null,
     };
+    setMoving(false);
   };
   const pointerMove = (event: PointerEvent<SVGSVGElement>) => {
     if (!pointers.current.has(event.pointerId) || !drag.current) return;
@@ -476,30 +627,29 @@ export function GermanyMap({
     const points = [...pointers.current.values()],
       state = drag.current;
     if (points.length === 2 && state.distance > 0) {
-      zoom(
-        (state.scale *
-          Math.hypot(
-            points[0]!.x - points[1]!.x,
-            points[0]!.y - points[1]!.y,
-          )) /
-          state.distance,
+      const rect = frame.current!.getBoundingClientRect();
+      setCamera(
+        zoomCamera(
+          state.camera,
+          surface,
+          (state.camera.zoom *
+            Math.hypot(
+              points[0]!.x - points[1]!.x,
+              points[0]!.y - points[1]!.y,
+            )) /
+            state.distance,
+          {
+            x: (points[0]!.x + points[1]!.x) / 2 - rect.left,
+            y: (points[0]!.y + points[1]!.y) / 2 - rect.top,
+          },
+        ),
       );
       state.moved = true;
-    } else if (scale > 1) {
+    } else {
       const dx = event.clientX - state.startX,
         dy = event.clientY - state.startY;
       if (Math.hypot(dx, dy) > 5) state.moved = true;
-      const rect = frame.current!.getBoundingClientRect();
-      setOffset({
-        x: Math.max(
-          (-rect.width * (scale - 1)) / 2,
-          Math.min((rect.width * (scale - 1)) / 2, state.x + dx),
-        ),
-        y: Math.max(
-          (-rect.height * (scale - 1)) / 2,
-          Math.min((rect.height * (scale - 1)) / 2, state.y + dy),
-        ),
-      });
+      if (state.moved) setCamera(panCamera(state.camera, surface, dx, dy));
     }
   };
   const pointerUp = (event: PointerEvent<SVGSVGElement>) => {
@@ -508,7 +658,7 @@ export function GermanyMap({
     if (!moved && event.type !== 'pointercancel') {
       const houseCity = drag.current?.houseCity;
       if (houseCity && regions.includes(POSITIONS[houseCity]!.region)) {
-        select(houseCity);
+        pickCity(houseCity);
         if (pointers.current.size === 0) drag.current = null;
         return;
       }
@@ -530,19 +680,94 @@ export function GermanyMap({
           candidates[0] &&
           candidates[0].distance <= Math.max(35, 22 / displayScale)
         )
-          select(candidates[0].city.id);
+          pickCity(candidates[0].city.id);
       }
     }
     if (pointers.current.size === 0) drag.current = null;
   };
   const selectedCity = selected ? POSITIONS[selected] : null;
   const selectedOccupants = selectedCity ? occupantsFor(selectedCity.id) : [];
+  const cityInfo = selectedCity && (
+    <div className="pg-map-city-information">
+      <div className="pg-city-slots" aria-label="城市位置费用图例">
+        <strong>城位费（电币）</strong>
+        <div className="pg-city-slot-values">
+          {[10, 15, 20].map((price, index) => {
+            const occupied = selectedOccupants.length > index,
+              locked = index >= step;
+            const state = occupied ? '已占' : locked ? '未开放' : '可用';
+            return (
+              <span
+                key={price}
+                className={`${occupied ? 'occupied' : ''} ${locked ? 'pg-map-slot--locked' : ''}`}
+                title={`第${index + 1}个位置，${price}电币，${state}`}
+              >
+                <b>
+                  {price}
+                  {locked && (
+                    <svg
+                      className="pg-map-lock"
+                      viewBox="0 0 16 16"
+                      aria-hidden="true"
+                    >
+                      <path d="M5 7V5a3 3 0 0 1 6 0v2M3 7h10v7H3Z" />
+                    </svg>
+                  )}
+                </b>
+                <span className="pg-map-slot-state">{state}</span>
+              </span>
+            );
+          })}
+        </div>
+      </div>
+      <div className="pg-map-occupancy" aria-label="当前城市公开占用">
+        <strong>已建 {selectedOccupants.length} 家</strong>
+        {selectedOccupants.map((network) => (
+          <span
+            className={`pg-map-occupant ${actor === network.seatId ? 'pg-map-occupant--current' : ''}`}
+            key={network.seatId}
+            title={`${network.seatNumber ?? networks.indexOf(network) + 1}号 ${network.name}${actor === network.seatId ? '，当前行动公司' : ''}`}
+          >
+            <span
+              className="pg-map-seat"
+              style={{
+                backgroundColor: network.color,
+                color: network.color === '#f5c92b' ? '#26332a' : '#fff',
+              }}
+            >
+              {network.seatNumber ?? networks.indexOf(network) + 1}
+            </span>
+            <svg
+              className="pg-map-seat-symbol"
+              viewBox="-5 -5 10 10"
+              aria-hidden="true"
+            >
+              <SeatSymbol
+                seatNumber={network.seatNumber ?? networks.indexOf(network) + 1}
+              />
+            </svg>
+            <span className="pg-map-occupant-name">{network.name}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
   return (
     <section
       className="pg-map-panel pg-map-polished"
       aria-label="德国电网地图"
       data-map-view={mapView}
       data-map-phase={phase ?? 'building'}
+      data-map-follow={camera.follow}
+      data-map-zoom={scale}
+      data-map-center={`${camera.center.x},${camera.center.y}`}
+      style={
+        {
+          '--pg-map-left-inset': `${surface.insets.left}px`,
+          '--pg-map-right-inset': `${surface.insets.right}px`,
+          '--pg-map-bottom-inset': `${surface.insets.bottom}px`,
+        } as React.CSSProperties
+      }
     >
       <div className="pg-map-frame" ref={frame}>
         <svg
@@ -561,7 +786,12 @@ export function GermanyMap({
             }
           }}
           style={{
-            transform: `translate(${offset.x}px,${offset.y}px) scale(${scale})`,
+            width: MAP_FRAME.width * displayScale,
+            height: MAP_FRAME.height * displayScale,
+            transformOrigin: '0 0',
+            transform: `translate(${surface.width / 2 - (camera.center.x - MAP_FRAME.x) * displayScale}px,${surface.height / 2 - (camera.center.y - MAP_FRAME.y) * displayScale}px)`,
+            transition:
+              moving && animateFocus ? 'transform 320ms ease-out' : 'none',
           }}
         >
           <defs>
@@ -735,7 +965,7 @@ export function GermanyMap({
                 onKeyDown={(event) => {
                   if (active && (event.key === 'Enter' || event.key === ' ')) {
                     event.preventDefault();
-                    select(city.id);
+                    pickCity(city.id);
                   }
                 }}
                 transform={`translate(${city.x},${city.y})`}
@@ -948,11 +1178,21 @@ export function GermanyMap({
           <button
             type="button"
             onClick={() => {
-              zoom(1);
+              setMoving(false);
+              setCamera(clampCamera(initialCamera(), surface));
             }}
           >
-            全图
+            复位
           </button>
+          {!camera.follow && (
+            <button
+              type="button"
+              aria-label="恢复跟随"
+              onClick={() => setCamera({ ...camera, follow: true })}
+            >
+              跟随
+            </button>
+          )}
         </div>
       </div>
       {previewRegions && (
@@ -969,7 +1209,7 @@ export function GermanyMap({
         <select
           aria-label="选择城市"
           value={selected ?? ''}
-          onChange={(event) => select(event.target.value)}
+          onChange={(event) => pickCity(event.target.value)}
         >
           <option value="">选择城市</option>
           {GERMANY_CITIES.filter((city) => regions.includes(city.region)).map(
@@ -980,74 +1220,31 @@ export function GermanyMap({
             ),
           )}
         </select>
-        {selectedCity && (
-          <div className="pg-map-city-information">
-            <div className="pg-city-slots" aria-label="城市位置费用图例">
-              <strong>城位费（电币）</strong>
-              <div className="pg-city-slot-values">
-                {[10, 15, 20].map((price, index) => {
-                  const occupied = selectedOccupants.length > index,
-                    locked = index >= step;
-                  const state = occupied ? '已占' : locked ? '未开放' : '可用';
-                  return (
-                    <span
-                      key={price}
-                      className={`${occupied ? 'occupied' : ''} ${locked ? 'pg-map-slot--locked' : ''}`}
-                      title={`第${index + 1}个位置，${price}电币，${state}`}
-                    >
-                      <b>
-                        {price}
-                        {locked && (
-                          <svg
-                            className="pg-map-lock"
-                            viewBox="0 0 16 16"
-                            aria-hidden="true"
-                          >
-                            <path d="M5 7V5a3 3 0 0 1 6 0v2M3 7h10v7H3Z" />
-                          </svg>
-                        )}
-                      </b>
-                      <span className="pg-map-slot-state">{state}</span>
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="pg-map-occupancy" aria-label="当前城市公开占用">
-              <strong>已建 {selectedOccupants.length} 家</strong>
-              {selectedOccupants.map((network) => (
-                <span
-                  className={`pg-map-occupant ${actor === network.seatId ? 'pg-map-occupant--current' : ''}`}
-                  key={network.seatId}
-                  title={`${network.seatNumber ?? networks.indexOf(network) + 1}号 ${network.name}${actor === network.seatId ? '，当前行动公司' : ''}`}
-                >
-                  <span
-                    className="pg-map-seat"
-                    style={{
-                      backgroundColor: network.color,
-                      color: network.color === '#f5c92b' ? '#26332a' : '#fff',
-                    }}
-                  >
-                    {network.seatNumber ?? networks.indexOf(network) + 1}
-                  </span>
-                  <svg
-                    className="pg-map-seat-symbol"
-                    viewBox="-5 -5 10 10"
-                    aria-hidden="true"
-                  >
-                    <SeatSymbol
-                      seatNumber={
-                        network.seatNumber ?? networks.indexOf(network) + 1
-                      }
-                    />
-                  </svg>
-                  <span className="pg-map-occupant-name">{network.name}</span>
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+        {selectedCity &&
+          (role === 'player' ? (
+            cityInfo
+          ) : (
+            <button
+              type="button"
+              aria-label={selectedCity.name + '城市详情'}
+              onClick={() => setCityDetailOpen(true)}
+            >
+              城位
+            </button>
+          ))}
       </div>
+      {cityDetailOpen && selectedCity && (
+        <OverlayPanel
+          title={selectedCity.name + '城市详情'}
+          close={() => setCityDetailOpen(false)}
+        >
+          <div className="pg-screen pg-panel">
+            <section className="pg-map-panel pg-map-polished">
+              {cityInfo}
+            </section>
+          </div>
+        </OverlayPanel>
+      )}
     </section>
   );
 }

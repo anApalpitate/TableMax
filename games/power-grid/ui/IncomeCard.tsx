@@ -23,7 +23,6 @@ export function IncomeCard({
   selectedCities?: number | undefined;
   mobile?: boolean;
 }) {
-  const preview = incomePreview(view, seatId, selectedCities);
   const [mode, setMode] = useState<'closed' | 'preview' | 'pinned'>('closed');
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLElement>(null);
@@ -156,6 +155,73 @@ export function IncomeCard({
           ×
         </button>
       </header>
+      <IncomeGuide
+        view={view}
+        seatId={seatId}
+        selectedCities={selectedCities}
+      />
+    </section>
+  );
+  return (
+    <>
+      <button
+        ref={trigger}
+        type="button"
+        className="pg-income-trigger"
+        aria-haspopup="dialog"
+        aria-expanded={mode !== 'closed'}
+        aria-controls={mode !== 'closed' ? cardId : undefined}
+        data-income-trigger=""
+        onMouseEnter={showPreview}
+        onMouseLeave={scheduleHide}
+        onFocus={() => {
+          if (!ignoreFocus.current) showPreview();
+        }}
+        onBlur={scheduleHide}
+        onClick={() => {
+          clearHideTimer();
+          if (mode === 'pinned') close();
+          else setMode('pinned');
+        }}
+      >
+        <span aria-hidden="true">⚡</span> 收益
+      </button>
+      {mode !== 'closed' &&
+        createPortal(
+          mobile ? (
+            <dialog
+              ref={dialog}
+              className="pg-income-dialog"
+              aria-labelledby={headingId}
+              onCancel={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                close();
+              }}
+            >
+              {card}
+            </dialog>
+          ) : (
+            card
+          ),
+          document.body,
+        )}
+    </>
+  );
+}
+
+export function IncomeGuide({
+  view,
+  seatId,
+  selectedCities,
+}: {
+  view: PowerGridView;
+  seatId?: string | undefined;
+  selectedCities?: number | undefined;
+}) {
+  const preview = incomePreview(view, seatId, selectedCities);
+  return (
+    <div className="pg-income-guide">
       <p className="pg-income-scroll-hint">完整收入表：0–20+ 城 · 可向下滚动</p>
       {preview && (
         <div className="pg-income-markers">
@@ -217,52 +283,6 @@ export function IncomeCard({
           );
         })}
       </dl>
-    </section>
-  );
-  return (
-    <>
-      <button
-        ref={trigger}
-        type="button"
-        className="pg-income-trigger"
-        aria-haspopup="dialog"
-        aria-expanded={mode !== 'closed'}
-        aria-controls={mode !== 'closed' ? cardId : undefined}
-        data-income-trigger=""
-        onMouseEnter={showPreview}
-        onMouseLeave={scheduleHide}
-        onFocus={() => {
-          if (!ignoreFocus.current) showPreview();
-        }}
-        onBlur={scheduleHide}
-        onClick={() => {
-          clearHideTimer();
-          if (mode === 'pinned') close();
-          else setMode('pinned');
-        }}
-      >
-        <span aria-hidden="true">⚡</span> 收益
-      </button>
-      {mode !== 'closed' &&
-        createPortal(
-          mobile ? (
-            <dialog
-              ref={dialog}
-              className="pg-income-dialog"
-              aria-labelledby={headingId}
-              onCancel={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                close();
-              }}
-            >
-              {card}
-            </dialog>
-          ) : (
-            card
-          ),
-          document.body,
-        )}
-    </>
+    </div>
   );
 }

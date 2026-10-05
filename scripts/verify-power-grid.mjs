@@ -693,20 +693,22 @@ async function nativeMatrix() {
           scrollHeight: document.documentElement.scrollHeight,
           panels: [
             ...document.querySelectorAll(
-              '.pg-board-stage,.pg-desktop-market,.pg-companies',
+              '.pg-map-table,.pg-board-drawer,.pg-board-companies',
             ),
           ]
             .filter(
               (element) =>
-                !element.closest('.pg-desktop-market') ||
-                element.matches('.pg-desktop-market'),
+                element.getBoundingClientRect().width > 0 &&
+                element.getBoundingClientRect().height > 0,
             )
             .map((element) => ({
               className: element.className,
               ...bounds(element),
             })),
           mapCities: document.querySelectorAll('.pg-map-city').length,
-          companyRows: [...document.querySelectorAll('.pg-company')].filter(
+          companyRows: [
+            ...document.querySelectorAll('.pg-company-card'),
+          ].filter(
             (item) =>
               item.getBoundingClientRect().width > 0 &&
               item.getBoundingClientRect().height > 0,
@@ -793,7 +795,7 @@ async function nativeMatrix() {
         transform,
         'Native map zoom button changes actual transform',
       );
-      await page.getByRole('button', { name: '全图', exact: true }).click();
+      await page.getByRole('button', { name: '复位', exact: true }).click();
       const picker = page.getByLabel('选择城市', { exact: true });
       const selected = await picker
         .locator('option')
@@ -801,7 +803,14 @@ async function nativeMatrix() {
           (options) => options.find((option) => option.value)?.value,
         );
       await picker.selectOption(selected);
-      await page.getByLabel('城市位置费用图例', { exact: true }).waitFor();
+      await page.getByRole('button', { name: /城市详情$/ }).click();
+      const cityDialog = page.getByRole('dialog', { name: /城市详情$/ });
+      await cityDialog
+        .getByLabel('城市位置费用图例', { exact: true })
+        .waitFor();
+      await cityDialog
+        .getByRole('button', { name: '关闭面板', exact: true })
+        .click();
       evidence.displayLayouts.at(-1).selectedCity = selected;
     }
     await cdp.send('Emulation.clearDeviceMetricsOverride');
@@ -831,17 +840,9 @@ async function nativeMatrix() {
 const sampled = new Set();
 const capturedLivePhases = new Set();
 async function livePresentation(page, current, label, marketRequired) {
-  const phoneOrder =
-    current.self.role === 'player' &&
-    !(await page.locator('.pg-turn-order').count());
-  if (phoneOrder)
+  const openedOrder = !(await page.locator('.pg-turn-order').count());
+  if (openedOrder)
     await page.getByRole('button', { name: '顺序', exact: true }).click();
-  if (marketRequired) {
-    const collapsed = page.locator(
-      '[data-stage-section="resources"][data-expanded="false"] h2 > button',
-    );
-    if (await collapsed.count()) await collapsed.click();
-  }
   const game = current.gameView;
   const reversed = game.phase === 'resources' || game.phase === 'building';
   const order = reversed ? [...game.playerOrder].reverse() : game.playerOrder;
@@ -963,7 +964,7 @@ async function livePresentation(page, current, label, marketRequired) {
     ...actual,
     passed: true,
   });
-  if (phoneOrder) await page.keyboard.press('Escape');
+  if (openedOrder) await page.keyboard.press('Escape');
 }
 async function stablePhaseCapture(page, label) {
   await page.waitForFunction(
@@ -1119,8 +1120,18 @@ async function clickAction(entry, current, action) {
       'replace',
     ].includes(saved.gameView.phase)
   ) {
-    await livePresentation(host, saved, 'host-' + action.type, true);
-    await livePresentation(publicPage, saved, 'public-' + action.type, true);
+    await livePresentation(
+      host,
+      saved,
+      'host-' + action.type,
+      saved.gameView.phase === 'resources',
+    );
+    await livePresentation(
+      publicPage,
+      saved,
+      'public-' + action.type,
+      saved.gameView.phase === 'resources',
+    );
     await livePresentation(
       page,
       saved,

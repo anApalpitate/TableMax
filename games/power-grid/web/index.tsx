@@ -1,12 +1,14 @@
 /* eslint-disable react-refresh/only-export-components -- Lazy adapters expose one platform client object. */
 import '../ui/style.css';
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import type { JsonValue } from '../../../packages/game-sdk/src';
 import type { Action, PowerGridView } from '../types';
 import { AuctionDisplay, PlantMarket, PlayerCompanies } from '../ui/components';
 import { ResourceMarket } from '../ui/ResourceMarket';
 import { IncomeCard } from '../ui/IncomeCard';
-import { StageSection, PlantMarketSummary } from '../ui/StageSection';
+import { DesktopBoard } from '../ui/DesktopBoard';
+import { CompanyCards } from '../ui/CompanyCards';
+import { initialCamera, type MapCamera } from '../ui/map-camera';
 import { PhonePages } from '../ui/PhonePages';
 import '../ui/focus-layout.css';
 import { TurnOrder } from '../ui/TurnOrder';
@@ -55,11 +57,20 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
     phase: string;
     type: 'plants' | 'resources';
   }>({ phase: '', type: 'plants' });
-  const [viewport, setViewport] = useState({
-    scale: 1,
-    offset: { x: 0, y: 0 },
-  });
+  const [viewport, setViewport] = useState(initialCamera);
   const [city, setCity] = useState<string | null>(null);
+  const [selectionRequest, setSelectionRequest] = useState(0);
+  const selectMapCity = useCallback((id: string) => {
+    setCity(id || null);
+    setSelectionRequest((value) => value + 1);
+  }, []);
+  const updateViewport = useCallback(
+    (next: MapCamera) => {
+      if (role !== 'player' && next.follow && !viewport.follow) setCity(null);
+      setViewport(next);
+    },
+    [role, viewport.follow],
+  );
   const [plant, setPlant] = useState<number | null>(null);
   const [detailSeat, setDetailSeat] = useState<string | null>(null);
   const [regionDraft, setRegionDraft] = useState<{
@@ -75,37 +86,13 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
       ? regionDraft.regions
       : regionAction.regions
     : undefined;
-  const [sections, setSections] = useState<{
-    phase: string;
-    plants?: boolean;
-    resources?: boolean;
-    company?: boolean;
-  }>({ phase: '' });
   const layoutPhase =
-    game && (game.phase === 'offer' || game.phase === 'auction')
+    game && ['offer', 'auction', 'replace'].includes(game.phase)
       ? 'auction'
       : (game?.phase ?? '');
-  // Saved actions within a stage preserve reading position. A new stage or
-  // replay starts at its context, without moving the map's own viewport.
   useEffect(() => {
     if (role === 'player') window.scrollTo({ top: 0, behavior: 'instant' });
   }, [role, layoutPhase, view?.instanceId, view?.branch]);
-  const sectionOpen = (
-    name: 'plants' | 'resources' | 'company',
-    fallback: boolean,
-  ) =>
-    sections.phase === layoutPhase ? (sections[name] ?? fallback) : fallback;
-  const toggleSection = (
-    name: 'plants' | 'resources' | 'company',
-    fallback: boolean,
-  ) =>
-    setSections((previous) => ({
-      ...(previous.phase === layoutPhase ? previous : {}),
-      phase: layoutPhase,
-      [name]: !(previous.phase === layoutPhase
-        ? (previous[name] ?? fallback)
-        : fallback),
-    }));
   const showCompany = (seat: string | null = null) => {
     setDetailSeat(seat);
     setPanel('companies');
@@ -139,28 +126,96 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
       name: names[seatId] ?? '',
       seatNumber: index + 1,
     })) ?? [];
-  const map = game && (
-    <GermanyMap
-      regions={
-        candidateRegions ??
-        (game.regions.length
-          ? game.regions
-          : ['north', 'northeast', 'northwest', 'southwest', 'east', 'south'])
+  const contextKey =
+    String(view?.instanceId ?? '') + ':' + String(view?.branch ?? '');
+  const currentFeedback =
+    session.feedback?.instanceId === view?.instanceId &&
+    session.feedback?.branch === view?.branch &&
+    session.feedback?.revision === view?.revision
+      ? session.feedback
+      : null;
+  const savedKey = currentFeedback
+    ? contextKey + ':' + currentFeedback.revision
+    : null;
+  const [mapFeedback, setMapFeedback] = useState<{
+    key: string | null;
+    scope: string;
+    focus: { scope: string; key: string; city: string } | null;
+  }>({ key: savedKey, scope: '', focus: null });
+  const focusScope = contextKey + ':' + layoutPhase + ':' + game?.actor;
+  if (mapFeedback.scope !== focusScope) {
+    setMapFeedback({ key: savedKey, scope: focusScope, focus: null });
+    if (role !== 'player' && viewport.follow && city !== null) setCity(null);
+  }
+  const followBuild =
+    role !== 'player' &&
+    currentFeedback?.events.some((event) => event.action?.verb === 'build') &&
+    game?.latest?.verb === 'build'
+      ? game.latest.cityId
+      : null;
+  if (savedKey && savedKey !== mapFeedback.key) {
+    setMapFeedback({
+      key: savedKey,
+      scope: focusScope,
+      focus:
+        followBuild && !feedbackDisabled
+          ? { scope: focusScope, key: savedKey, city: followBuild }
+          : mapFeedback.focus,
+    });
+    if (followBuild && !feedbackDisabled) setCity(followBuild);
+  }
+  const savedMapFocus = mapFeedback.focus;
+  const mapFocus = game
+    ? city
+      ? { key: 'selected:' + city, cities: [city] }
+      : savedMapFocus?.scope === focusScope
+        ? { key: savedMapFocus.key, cities: [savedMapFocus.city] }
+        : {
+            key: layoutPhase + ':' + game.actor + ':' + game.regions.join(','),
+            ...(game.phase === 'building' &&
+            game.actor &&
+            game.players[game.actor]!.cities.length
+              ? { cities: game.players[game.actor]!.cities }
+              : { regions: candidateRegions ?? game.regions }),
+          }
+    : undefined;
+  const mapProps = game
+    ? {
+        regions:
+          candidateRegions ??
+          (game.regions.length
+            ? game.regions
+            : [
+                'north',
+                'northeast',
+                'northwest',
+                'southwest',
+                'east',
+                'south',
+              ]),
+        previewRegions: candidateRegions !== undefined,
+        networks,
+        selected: city,
+        select: selectMapCity,
+        selectionRequest,
+        available: game.buildOptions.map((option) => option.cityId),
+        terrain: mapTerrain,
+        phase: game.phase,
+        step: game.step,
+        actor: game.actor,
+        role,
+        viewport,
+        onViewportChange: updateViewport,
+        contextKey,
+        ...(role !== 'player' && mapFocus
+          ? { focus: mapFocus }
+          : city
+            ? { focus: { key: 'selected:' + city, cities: [city] } }
+            : {}),
+        animateFocus: !feedbackDisabled,
       }
-      previewRegions={candidateRegions !== undefined}
-      networks={networks}
-      selected={city}
-      select={setCity}
-      available={game.buildOptions.map((option) => option.cityId)}
-      terrain={mapTerrain}
-      phase={game.phase}
-      step={game.step}
-      actor={game.actor}
-      role={role}
-      viewport={viewport}
-      onViewportChange={setViewport}
-    />
-  );
+    : null;
+  const map = mapProps && <GermanyMap {...mapProps} />;
   const actor = active && game?.actor ? names[game.actor] : undefined;
   const ownTurn = actor && game?.actor === game?.self?.seatId;
   const shownMarket =
@@ -169,30 +224,6 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
       : game?.phase === 'resources'
         ? 'resources'
         : 'plants';
-  const plantDefault = false;
-  const resourceDefault = false;
-  const plantSection = game && (
-    <StageSection
-      name="plants"
-      title="电厂市场"
-      expanded={sectionOpen('plants', plantDefault)}
-      toggle={() => toggleSection('plants', plantDefault)}
-      summary={<PlantMarketSummary view={game} />}
-    >
-      <PlantMarket view={game} artFor={artFor} />
-    </StageSection>
-  );
-  const resourceSection = game && (
-    <StageSection
-      name="resources"
-      title="燃料市场"
-      expanded={sectionOpen('resources', resourceDefault)}
-      toggle={() => toggleSection('resources', resourceDefault)}
-      summary={<ResourceMarket view={game} summary />}
-    >
-      <ResourceMarket view={game} compact={role === 'player'} />
-    </StageSection>
-  );
   const notice = !connected
     ? '正在重新连接'
     : view?.botError
@@ -252,7 +283,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
           ⚡ <span className="pg-brand-name">电力公司</span>
           {role === 'player' && game && (
             <span className="pg-brand-round">
-              {game.round}轮 · STEP {game.step}
+              {game.round}轮 第{game.step}步
             </span>
           )}
         </strong>
@@ -311,7 +342,6 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
             {game.self && !ended && (
               <strong className="pg-cash">现金 {game.self.cash} E</strong>
             )}
-            {role !== 'player' && <IncomeCard view={game} />}
             <DecisionCountdown view={view} connected={connected} compact />
             {canControl && view.paused && !ended && (
               <button
@@ -330,14 +360,6 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
               </button>
             )}
           </div>
-          {role !== 'player' && panel !== 'order' && (
-            <TurnOrder
-              view={game}
-              names={names}
-              active={Boolean(active)}
-              compact={false}
-            />
-          )}
           {game.phase === 'ended' ? (
             results
           ) : role === 'player' ? (
@@ -373,7 +395,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                       locked={locked || !active}
                       choose={choose}
                       city={city}
-                      selectCity={setCity}
+                      selectCity={selectMapCity}
                       selectedPlant={plant}
                       selectPlant={setPlant}
                       artFor={artFor}
@@ -439,120 +461,32 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                 <div key="map" className="pg-phone-map pg-phone-map--browse">
                   {map}
                 </div>,
-                <PlayerCompanies
+                <CompanyCards
                   key="companies"
                   view={game}
                   names={names}
                   portraits={portraits}
                   active={Boolean(active)}
-                  compact
                   onDetails={showCompany}
+                  savedKey={savedKey}
+                  contextKey={contextKey}
+                  animate={!feedbackDisabled}
                 />,
               ]}
             </PhonePages>
           ) : (
-            <div className="pg-desktop-table">
-              <div className="pg-board-stage pg-primary-stage">
-                {['regions', 'building'].includes(game.phase) ? (
-                  map
-                ) : ['offer', 'auction'].includes(game.phase) ? (
-                  <>
-                    {game.auction && (
-                      <AuctionDisplay
-                        view={game}
-                        names={names}
-                        artFor={artFor}
-                      />
-                    )}
-                    <PlantMarket view={game} artFor={artFor} />
-                  </>
-                ) : game.phase === 'resources' ? (
-                  <ResourceMarket view={game} />
-                ) : (
-                  <PlayerCompanies
-                    view={game}
-                    names={names}
-                    portraits={portraits}
-                    active={Boolean(active)}
-                    artFor={artFor}
-                    {...(game.actor ? { onlySeat: game.actor } : {})}
-                  />
-                )}
-              </div>
-              <aside className="pg-desktop-market">
-                {game.phase === 'building' && (
-                  <section className="pg-building-companies">
-                    <h2>公司电网</h2>
-                    {networks.map((network) => (
-                      <button
-                        key={network.seatId}
-                        onClick={() => showCompany(network.seatId)}
-                        style={
-                          {
-                            '--pg-player-color': network.color,
-                          } as CSSProperties
-                        }
-                        aria-current={
-                          network.seatId === game.actor ? 'step' : undefined
-                        }
-                      >
-                        <span className="pg-network-seat">
-                          {network.seatNumber}
-                        </span>
-                        <strong title={network.name}>{network.name}</strong>
-                        <span>{network.cities.length} 城</span>
-                      </button>
-                    ))}
-                  </section>
-                )}
-                <button
-                  className="pg-map-entry"
-                  onClick={() => setPanel('map')}
-                >
-                  德国电网
-                </button>
-                <PlayerCompanies
-                  view={game}
-                  names={names}
-                  portraits={portraits}
-                  active={Boolean(active)}
-                  compact
-                  {...(game.actor ? { onlySeat: game.actor } : {})}
-                  onDetails={showCompany}
-                />
-                {plantSection}
-                {game.phase !== 'resources' && resourceSection}
-                <div className="pg-short-companies">
-                  <h2>公司概览</h2>
-                  <PlayerCompanies
-                    view={game}
-                    names={names}
-                    portraits={portraits}
-                    active={Boolean(active)}
-                    compact
-                    onDetails={showCompany}
-                  />
-                </div>
-                {game.latest && (
-                  <div className="pg-latest" role="status">
-                    <span>最新行动</span>
-                    <strong>
-                      {game.latest.actor ? names[game.latest.actor] : '电网'}
-                    </strong>
-                    <span>{game.latest.text}</span>
-                  </div>
-                )}
-              </aside>
-              <PlayerCompanies
-                view={game}
-                names={names}
-                portraits={portraits}
-                active={Boolean(active)}
-                artFor={artFor}
-                compact
-                onDetails={showCompany}
-              />
-            </div>
+            <DesktopBoard
+              view={game}
+              names={names}
+              portraits={portraits}
+              active={Boolean(active)}
+              mapProps={mapProps!}
+              artFor={artFor}
+              contextKey={contextKey}
+              savedKey={savedKey}
+              animate={!feedbackDisabled}
+              onDetails={showCompany}
+            />
           )}
         </>
       )}
