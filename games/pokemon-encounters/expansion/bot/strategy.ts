@@ -256,8 +256,20 @@ export function choose(
       mine - { default: 0.03, doubao: 0.2, juewu: 0.35 }[difficulty] * opponent;
     const urgency = Math.max(0, memory.turn - 25) * 0.45;
     value -= completion * Math.min(16, urgency);
-    if (completion === 9)
-      value += mine <= opponent ? -6 : Math.max(0, 18 - urgency);
+    // Any fully revealed field closes the round after the whole ability chain.
+    if (view.seatOrder.some((id) => model.up[id]!.every(Boolean))) {
+      const minimum = Math.min(mine, opponent);
+      const winners = view.seatOrder.filter(
+        (id) => score(model.boards[id]!, model.up[id]!) === minimum,
+      );
+      const matchWinners = winners.filter((id) => view.winsBySeat[id]! >= 2);
+      if (matchWinners.includes(seat)) value -= 48;
+      else if (matchWinners.length) value += Math.max(0, 48 - urgency);
+      else
+        value += winners.includes(seat)
+          ? -6 - 2 * view.winsBySeat[seat]!
+          : Math.max(0, 18 - urgency);
+    }
     const resolved = scoreBoard(model.boards[seat]!).values;
     for (const line of lines) {
       const values = line.map((i) => resolved[i]);

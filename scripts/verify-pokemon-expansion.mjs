@@ -655,6 +655,67 @@ try {
   evidence.checks.push(
     'Eight original ability/research Ogg/Opus themes match packaged bytes and decode offline in actual WebView2; official voices/human listening not claimed',
   );
+  const cryManifest = JSON.parse(
+    await readFile(
+      'assets/games/pokemon-encounters/expansion/audio/cries/manifest.json',
+      'utf8',
+    ),
+  );
+  evidence.cryAudio = [];
+  for (const asset of cryManifest.assets) {
+    const built = assets.find(
+      (name) =>
+        name.startsWith(asset.id + '-encyclopedia-cry-v1-') &&
+        name.endsWith('.ogg'),
+    );
+    assert.ok(built, 'Packaged encyclopedia cry ' + asset.id);
+    const bytes = await readFile(
+      join(
+        dirname(executablePath),
+        'web/games/pokemon-encounters/web/assets',
+        built,
+      ),
+    );
+    assert.equal(
+      createHash('sha256').update(bytes).digest('hex'),
+      asset.sha256,
+    );
+    const decoded = await phones[0].evaluate(async (url) => {
+      const audio = new AudioContext();
+      try {
+        const buffer = await audio.decodeAudioData(
+          await (await fetch(url)).arrayBuffer(),
+        );
+        let peak = 0;
+        for (const sample of buffer.getChannelData(0))
+          peak = Math.max(peak, Math.abs(sample));
+        return {
+          duration: buffer.duration,
+          sampleRate: buffer.sampleRate,
+          channels: buffer.numberOfChannels,
+          peak,
+        };
+      } finally {
+        await audio.close();
+      }
+    }, `${origin}/games/pokemon-encounters/web/assets/${built}`);
+    assert.equal(decoded.channels, 1);
+    assert.ok(Math.abs(decoded.duration - asset.seconds) < 0.02);
+    assert.ok(Number.isFinite(decoded.peak) && decoded.peak > 0.01);
+    evidence.cryAudio.push({
+      id: asset.id,
+      built,
+      sha256: asset.sha256,
+      bytes: bytes.length,
+      ...decoded,
+      sourceGameGenerationVerified: false,
+      humanListeningVerified: false,
+    });
+  }
+  assert.equal(evidence.cryAudio.length, 27);
+  evidence.checks.push(
+    '27 Chinese encyclopedia linked game cries match derived encoding hashes and decode offline in actual WebView2; source bytes are archived, game generation, reuse license and human listening remain unverified',
+  );
   const result = await driveRound();
   assert.ok(result.gameView.roundResult);
   assert.ok(

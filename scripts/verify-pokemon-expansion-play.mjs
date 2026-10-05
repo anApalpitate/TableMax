@@ -276,6 +276,32 @@ try {
     env,
   });
   const host = await desktop.firstWindow();
+  const observeMedia = () => {
+    window.__pokemonMedia = [];
+    const play = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function () {
+      const entry = {
+        source: this.currentSrc || this.src,
+        playing: false,
+        rejected: false,
+      };
+      window.__pokemonMedia.push(entry);
+      this.addEventListener(
+        'playing',
+        () => {
+          entry.playing = true;
+        },
+        { once: true },
+      );
+      const result = play.call(this);
+      result.catch(() => {
+        entry.rejected = true;
+      });
+      return result;
+    };
+  };
+  await host.addInitScript(observeMedia);
+  await host.evaluate(observeMedia);
   await host.waitForURL('**/host');
   origin = new URL(host.url()).origin;
   observe(host, 'host');
@@ -478,6 +504,17 @@ try {
     .scrollIntoViewIfNeeded();
   await screenshot(phones[0], 'short-phone-result');
   await screenshot(host, 'host-result');
+  report.hostMedia = await host.evaluate(() => window.__pokemonMedia);
+  report.expansionCriesPlayed = report.hostMedia.filter(
+    (entry) =>
+      entry.source.includes('-encyclopedia-cry-v1-') &&
+      entry.playing &&
+      !entry.rejected,
+  );
+  assert.ok(
+    report.expansionCriesPlayed.length > 0,
+    'Actual normal host must play a newly packaged creature cry',
+  );
   assert.deepEqual(report.pageErrors, []);
   assert.deepEqual(report.externalRequests, []);
   if (portable) assert.equal(await hash(archive), manifest.archive.sha256);

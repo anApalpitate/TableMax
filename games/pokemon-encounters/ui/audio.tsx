@@ -163,7 +163,8 @@ export function SoundControl({
               : soundRecipe(event.kind, event.action, game, { reducedMotion })
             ).map(({ cue, ...recipe }) => ({
               ...recipe,
-              source: resolveSource?.(cue, event) ?? sources[cue],
+              source:
+                recipe.source ?? resolveSource?.(cue, event) ?? sources[cue],
             })),
             occurredAt,
           );

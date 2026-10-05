@@ -12,6 +12,51 @@ const action = (
   cardCategory: string | null = 'special-mewtwo',
 ): PublicAction => ({ actor: 'S1', verb, ability, cardCategory, targets: [] });
 describe('expansion committed presentation', () => {
+  it('plays a variant cry once for a public draw, without replaying it for private or later steps', () => {
+    const voices = { 'special-mewtwo': '/local/mewtwo.ogg' };
+    const game = { coin: null, matchWinners: [] };
+    expect(
+      expansionSoundRecipe('draw', action('draw'), game, false, voices),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ lane: 'effect', cue: 'draw' }),
+        expect.objectContaining({
+          lane: 'cry',
+          source: voices['special-mewtwo'],
+        }),
+      ]),
+    );
+    for (const verb of [
+      'replace',
+      'mewtwo-target',
+      'mewtwo-exchange',
+      'close-peek',
+      'decline-ability',
+    ])
+      expect(
+        expansionSoundRecipe(
+          'action',
+          action(verb),
+          game,
+          false,
+          voices,
+        ).filter((cue) => cue.source),
+      ).toEqual([]);
+    expect(
+      expansionSoundRecipe(
+        'draw',
+        action('draw', null, 'unknown'),
+        game,
+        false,
+        voices,
+      ).filter((cue) => cue.source),
+    ).toEqual([]);
+    expect(
+      expansionSoundRecipe('draw', action('draw'), game, true, voices).filter(
+        (cue) => cue.source,
+      ),
+    ).toHaveLength(1);
+  });
   it('uses original expansion themes only for saved activated abilities and research', () => {
     expect(
       expansionThemeFor('action', action('mewtwo-exchange'), 'effect-complete'),

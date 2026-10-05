@@ -107,6 +107,7 @@ export function expansionSoundRecipe(
   action: VisibleAction | undefined,
   game: { coin: 'meowth' | 'pikachu' | null; matchWinners: string[] },
   reducedMotion: boolean,
+  voices: Readonly<Record<string, string>> = {},
 ): SoundCueRecipe[] {
   const cue = (sound: SoundCueRecipe['cue'], delayMs = 0): SoundCueRecipe => ({
     cue: sound,
@@ -149,5 +150,18 @@ export function expansionSoundRecipe(
       : action?.verb === 'reposition'
         ? 'effect-complete'
         : kind;
-  return soundRecipe(mechanicalKind, normalized, null, { reducedMotion });
+  const recipe = soundRecipe(mechanicalKind, normalized, null, {
+    reducedMotion,
+  });
+  const voice = action?.cardCategory ? voices[action.cardCategory] : undefined;
+  if (action?.verb === 'draw' && voice)
+    recipe.push({
+      cue: 'draw',
+      source: voice,
+      lane: 'cry',
+      priority: 2,
+      delayMs: 0,
+      maxLateMs: SOUND_MAX_LATE_MS,
+    });
+  return recipe;
 }

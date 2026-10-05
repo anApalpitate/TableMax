@@ -31,6 +31,8 @@ export type SoundCue =
 export type SoundLane = 'effect' | 'cry';
 export interface SoundCueRecipe {
   cue: SoundCue;
+  /** Variant-local resource URL, resolved before the shared cue fallback. */
+  source?: string;
   lane: SoundLane;
   priority: 1 | 2 | 3;
   delayMs: number;

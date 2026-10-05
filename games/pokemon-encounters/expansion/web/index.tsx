@@ -23,6 +23,7 @@ import { categories, abilityText } from '../cards';
 import { BoardGrid } from '../../ui/BoardGrid';
 import { cardArt } from '../../../../assets/games/pokemon-encounters/catalog';
 import { SoundControl } from '../../ui/audio';
+import { expansionVoices } from './voice-resources';
 import {
   startedAbility,
   expansionSoundRecipe,
@@ -873,6 +874,7 @@ function Screen({ session }: { session: GameHost }) {
                   event.action,
                   game,
                   reducedMotion,
+                  expansionVoices,
                 )
               }
               resolveSource={(cue, event) => {

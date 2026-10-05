@@ -1,5 +1,19 @@
 # 首版交付与验收
 
+## 1.0.2：扩展版三胜策略与叫声同包续验（2026-10-06）
+
+本轮完成对手第三胜、共同大局胜利及忍蛙中对手全明的策略修复，63项相关策略／声画／资源测试、最新完整基线类型检查、相关Lint／格式及17项真实服务集成通过。规则、牌量、研究奖励和秘密权限未改。[72场完整三胜大局](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/match-aware-all-counts-20261006/report.json)覆盖2–6人、308小局／27,064动作，源码前后稳定，无封顶，三神任务自然触发1次，阿尔宙斯发动0次。[分人数种子块分析](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/match-aware-all-counts-20261006/match-strength-analysis.json)支持本组两档优于默认，仍未证明绝悟稳定优于豆包；每人数仅四个独立种子，不作普遍强度保证。
+
+27个中文百科来源游戏叫声已用于扩展版公开抽牌，原件270,112字节完整保留，播放派生版本24kbps／99,544字节，原用户音源不变。第一次原始码率试包使模块超4MiB约169KB，已保留[试包与冻结记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-delivery/module-budget-provisional/)，压缩后模块 **4,192,421字节**，低于4,194,304预算；未提高预算。来源世代、使用许可及人耳听感仍待核验，详见[资源](../games/pokemon-encounters/assets.md#续建素材与反馈2026-10-06)。
+
+[当前运行ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip)与[固定清单](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-delivery/final-delivery-manifest.json) SHA-256 **`49a3e58484e8bd9787b82dd8f19939e3290850b39f84d423fe59a32b24e648a8`**，ZIP **41,231,620字节**，216文件实际解压 **94,653,981字节**，95MB预算余 **346,019字节**。18单元17次缓存命中、无预算告警，打包实耗以固定清单为准。另一项电力公司工作在本轮中途完成提交 `123fbaf`，隔离工作树快进该提交后重新构建；与其已验清单相比，电力公司、现代艺术及全部旧媒体输出哈希一致，最终不交付旧基线试包。
+
+同一ZIP的[宝可梦实际便携结果](../../artifacts/maintenance/v1.0.2/pokemon-expansion-runtime/portable-49a3e58484e8/results.json)通过9项流程、11项显示、18张卡面、八主题音和27叫声离线解码；[普通模式真实UI](../../artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/match-cries-final-normal-20261006/results.json)63次手机操作、23次真实默认Worker保存结果及16阶段通过，喷火龙私看隔离，实际主机23次新增叫声 `playing` 事件、15种不同角色，页面错误／外部请求为零，进程退出。自动化85.580秒不是真人时长或听感认证。[电力公司同包显示](../../artifacts/maintenance/v1.0.2/power-grid/runtime/portable/pokemon-matches-combined-20261006/results.json)72.54秒通过，保留地图与抽屉；不是再跑完整三人对局，原完整对局对应原 `da2dd…` 包，证据继续保留。
+
+冻结输入、音频原件／派生哈希、集成源码、跨游戏逐文件比较和三胜分析集中在[续验审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-delivery/final-checks.json)。上一同版本已验电力公司包 `da2dd…` 及清单保留在[原包目录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-delivery/previous-delivery/)，旧基线已验试包及模块超额试包另存。旧工作树归档恢复实际失败，源码提交和原包未丢失；新工作树保持活动以便继续。
+
+完整计划仍未完成：62帧真实透明姿态、真人设备／听感／实际时长和三级强度收敛待完成。素材生成累计16次、15次输出被拒绝，不能把代码补间或来源截图计作真实姿态。沿用1.0.2，仅本地运行ZIP与清单，不推送或发布。
+
 ## 1.0.2：电力公司地图背景与阶段抽屉（2026-10-06）
 
 电脑持续铺满经典德国地图，世界坐标相机最低比例可四向拖动，自动聚焦避让市场／收益边栏和底部玩家抽屉；手动暂停与恢复跟随、阶段默认及同阶段手动选择保持。紧凑公司按playerOrder排列，稳定头像／身份色、四格基础厂信息、四类零库存、待安置燃料及新购待替换厂完整显示；两人临时第五厂不截掉。手机四页、本人高亮、完整价阶／城市列表、具体费用与逐厂确认保持。无规则、服务端接口、存档类型或地图42城／六区／83边变更。
