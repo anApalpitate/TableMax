@@ -1,6 +1,7 @@
 import { createContext } from 'react';
 import type { PokemonView } from '../rules/project';
 import type { EffectTheme } from './presentation-state';
+import { effectScene } from './effect-scene';
 export const SavedMotion = createContext<readonly string[]>([]);
 export const ActionTargets = createContext<readonly string[]>([]);
 export const EffectTargets = createContext<{
@@ -10,6 +11,14 @@ export const EffectTargets = createContext<{
 }>({ slots: [], rocketReturns: [] });
 
 export const SAVED_MOTION_MS = 1200;
+export function savedMotionDuration(view: PokemonView) {
+  if (!view?.events) return SAVED_MOTION_MS;
+  const action = view.events.at(-1)?.action;
+  return Math.max(
+    SAVED_MOTION_MS,
+    effectScene(action, view, Boolean(view.roundResult))?.duration ?? 0,
+  );
+}
 
 /** Compare only the viewer's authorized projection. Sync/rollback never calls this for presentation. */
 export function savedChanges(

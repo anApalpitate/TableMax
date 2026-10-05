@@ -5,15 +5,13 @@ import { mkdir, mkdtemp, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import { serveFixture } from './fixture-server.mjs';
+import { verificationOutput } from './verification-output.mjs';
 
 const name =
   process.argv.find((arg) => arg.startsWith('--evidence='))?.slice(11) ??
   'development';
 assert.match(name, /^[a-z0-9-]{1,40}$/);
-const output = resolve(
-  'artifacts/maintenance/v1.0.2/pokemon-polish-20261005/audio',
-  name,
-);
+const output = verificationOutput('pokemon-polish-20261005', 'audio', name);
 await mkdir(output, { recursive: true });
 const work = await mkdtemp(resolve('tmp/game-ui-'));
 await build({
@@ -231,10 +229,18 @@ try {
         .update(await readFile(path))
         .digest('hex');
     assert.equal(
-      await hash(join('D:/aLCYYDS/IDM下载/叫声', source)),
+      await hash(
+        join(
+          'artifacts/maintenance/v1.0.2/pokemon-polish-20261005/audio/source-originals',
+          source,
+        ),
+      ),
       await hash(join('assets/games/pokemon-encounters/audio', file)),
     );
   }
+  evidence.checks.push(
+    'Two untouched WAVs match preserved source-originals byte hashes; the external download directory is not required for repeat verification.',
+  );
   evidence.plays = await page.evaluate(() => window.audioPlays);
   assert.deepEqual(evidence.errors, []);
   evidence.result = 'passed';

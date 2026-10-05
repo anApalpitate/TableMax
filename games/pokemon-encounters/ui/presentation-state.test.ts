@@ -126,7 +126,7 @@ describe('public presentation preserves information boundaries', () => {
       summary([targets[0]!, targets[1]!, { seat: 'S3', slots: [4] }]),
     ).toBeNull();
   });
-  it('marks equal values and -2/+2, but never a hidden card or uncertain Ditto', () => {
+  it('marks only equal values, never -2/+2, a hidden card or uncertain Ditto', () => {
     const game = view();
     const board = game.boards.S1!;
     const show = (slot: number, card: string) => {
@@ -137,12 +137,12 @@ describe('public presentation preserves information boundaries', () => {
     show(1, 'ordinary--2#01');
     show(4, 'special-mew#01');
     show(2, 'special-ditto#01');
-    expect(publicZeroColumns(game, 'S1')).toEqual([0, 1]);
+    expect(publicZeroColumns(game, 'S1')).toEqual([0]);
     board[3] = { slotId: 'S1:3', faceUp: false, card: null };
-    expect(publicZeroColumns(game, 'S1')).toEqual([1]);
+    expect(publicZeroColumns(game, 'S1')).toEqual([]);
     show(5, 'ordinary--2#02');
     // Edge Ditto can only copy its known -2 neighbor, so this column is public and certain.
-    expect(publicZeroColumns(game, 'S1')).toEqual([1, 2]);
+    expect(publicZeroColumns(game, 'S1')).toEqual([2]);
     board[1] = { slotId: 'S1:1', faceUp: false, card: null };
     expect(publicZeroColumns(game, 'S1')).toEqual([]);
   });
@@ -164,6 +164,7 @@ describe('public presentation preserves information boundaries', () => {
     });
     expect(publicZeroColumns(game, 'S1')).toEqual([]);
     game.publicColumns = { S1: [4, 0, 9] };
+    game.publicMatchedColumns = { S1: [1] };
     expect(publicZeroColumns(game, 'S1')).toEqual([1]);
   });
   it('publishes resolved Ditto columns only after all their board inputs are public', () => {
@@ -182,8 +183,14 @@ describe('public presentation preserves information boundaries', () => {
     expect(project(state, { role: 'public' }).publicColumns.S1).toEqual([
       4, 0, 9,
     ]);
+    expect(project(state, { role: 'public' }).publicMatchedColumns.S1).toEqual([
+      1,
+    ]);
     state.boards.S1[0]!.faceUp = false;
     expect(project(state, { role: 'public' }).publicColumns.S1).toBeNull();
+    expect(
+      project(state, { role: 'public' }).publicMatchedColumns.S1,
+    ).toBeNull();
     expect(
       project(state, { role: 'player', seatId: 'S1' }).publicColumns.S1,
     ).toBeNull();
@@ -194,6 +201,35 @@ describe('public presentation preserves information boundaries', () => {
     expect(actionEffects(peek, game).targets).toEqual([]);
     expect(soundCues('replace', peek, game)).toEqual(['charizard']);
     expect(game.peek).toBeNull();
+  });
+  it('distinguishes natural zero sums from matched positive, negative and zero columns through settlement', () => {
+    const state = rules.initialize({
+      seats: ['S1', 'S2'],
+      random: { next: () => 0.4 },
+    }) as State;
+    state.boards.S1 = [
+      'ordinary--2#01',
+      'ordinary-0#01',
+      'ordinary--2#02',
+      'special-mew#01',
+      'ordinary-0#02',
+      'ordinary--2#03',
+    ].map((instanceId) => ({ instanceId, faceUp: true }));
+    const publicView = project(state, { role: 'public' });
+    expect(publicView.publicColumns.S1).toEqual([0, 0, 0]);
+    expect(publicZeroColumns(publicView, 'S1')).toEqual([1, 2]);
+    publicView.roundResult = {
+      winners: ['S1'],
+      scores: {
+        S1: {
+          values: [-2, 0, -2, 2, 0, -2],
+          columns: [0, 0, 0],
+          total: 0,
+          copies: [],
+        },
+      },
+    };
+    expect(publicZeroColumns(publicView, 'S1')).toEqual([1, 2]);
   });
   it('distinguishes returning Rocket art from triggering its rule ability', () => {
     const game = view();

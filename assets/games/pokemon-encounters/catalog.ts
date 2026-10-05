@@ -1,9 +1,9 @@
 /** Browser-only art registry. Rules and saved state never depend on asset filenames. */
 import {
   creatureResources,
-  originalCreatureIds,
   type CreatureResourceId,
-} from '../../../games/pokemon-encounters/shared/presentation';
+} from '../../../games/pokemon-encounters/shared/creature-resources';
+import { originalCreatureIds } from '../../../games/pokemon-encounters/variants/original-presentation';
 const images = import.meta.glob<string>('./characters/*.{png,webp}', {
   eager: true,
   query: '?url',
@@ -15,7 +15,7 @@ export function cardArt(categoryId: string) {
 }
 export function creatureArt(resourceId: CreatureResourceId | undefined) {
   const resource = resourceId ? creatureResources[resourceId] : undefined;
-  const categoryId = resource?.category;
+  const categoryId = resource?.imageStem;
   return {
     image:
       images[`./characters/${categoryId}-official.png`] ??

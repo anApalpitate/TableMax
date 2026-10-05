@@ -1,3 +1,6 @@
+import { original } from '../variants/original';
+import { topology } from '../shared/topology';
+const grid = topology(original.layout);
 import type { BotDifficulty, JsonValue } from '@tablemax/game-sdk';
 import { categories } from '../rules/cards';
 import type { PokemonView } from '../rules/project';
@@ -64,7 +67,7 @@ export function validateMemory(input: unknown): JsonValue {
     !value.seatId.length ||
     value.seatId.length > 128 ||
     !Array.isArray(value.cards) ||
-    value.cards.length !== 6 ||
+    value.cards.length !== grid.count ||
     value.cards.some(
       (id) => id !== null && !categories.some((c) => c.categoryId === id),
     ) ||
@@ -77,7 +80,7 @@ export function validateMemory(input: unknown): JsonValue {
   if (
     value.version === 2 &&
     (!Array.isArray(value.ages) ||
-      value.ages.length !== 6 ||
+      value.ages.length !== grid.count ||
       value.ages.some(
         (age) => !Number.isInteger(age) || age < 0 || age > value.turn,
       ) ||
@@ -136,8 +139,8 @@ export function observeMemory(
           seatId,
           cards: same
             ? [...previous.cards]
-            : Array<string | null>(6).fill(null),
-          ages: Array<number>(6).fill(0),
+            : Array<string | null>(grid.count).fill(null),
+          ages: Array<number>(grid.count).fill(0),
           turn: 0,
           lastEvent:
             previous?.version === 2 && previous.seatId === seatId
@@ -199,7 +202,7 @@ export function observeMemory(
     memory.lastEvent,
     ...view.events.map((e) => e.id),
   );
-  for (let slot = 0; slot < 6; slot++) {
+  for (let slot = 0; slot < grid.count; slot++) {
     if (
       view.boards[seatId]![slot]!.faceUp ||
       memory.turn - memory.ages[slot]! >= profile.turns

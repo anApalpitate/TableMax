@@ -2,6 +2,7 @@ import type { PublicAction } from '../../../packages/protocol/src';
 import type { PokemonView } from '../rules/project';
 import type { EffectTheme } from './presentation-state';
 import { creatureMotifs } from '../shared/presentation';
+import { abilityEntrances } from '../variants/original-presentation';
 
 /** Only decisive, committed public actions get a screen-wide entrance. */
 export function effectScene(
@@ -14,11 +15,11 @@ export function effectScene(
   if (!action) return null;
   if (action.verb === 'draw') {
     if (action.ability === 'special-mew')
-      return { theme: 'mew', duration: 1100 };
+      return { theme: 'mew', duration: abilityEntrances.mew.duration };
     if (action.ability === 'special-zapdos')
-      return { theme: 'zapdos', duration: 1050 };
+      return { theme: 'zapdos', duration: abilityEntrances.zapdos.duration };
     if (action.ability === 'special-team-rocket' && game.coin)
-      return { theme: 'rocket', duration: 1200 };
+      return { theme: 'rocket', duration: abilityEntrances.rocket.duration };
   }
   return null;
 }

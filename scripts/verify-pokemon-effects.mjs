@@ -212,12 +212,12 @@ try {
   await page.evaluate(() => window.showEffect('zero'));
   assert.equal(
     await page.locator('[data-seat="S1"] .zero-column-badge').count(),
-    2,
+    1,
   );
   assert.equal(await page.locator('[data-slot="S1:2"].zero-column').count(), 0);
   await capture('public-zero-columns');
   evidence.checks.push(
-    'Equal 4/4 and -2/+2 columns visibly marked; unknown Ditto column unmarked',
+    'Equal 4/4 marked; -2/+2 and unknown Ditto columns unmarked',
   );
   await page.evaluate(() => window.showEffect('swap'));
   assert.equal(
@@ -466,7 +466,7 @@ try {
       theme,
     );
     await page.waitForFunction(() =>
-      window.effectAnimations.includes('pokemon-scene-fade'),
+      window.effectAnimations.includes('anime-cut-in'),
     );
     assert.equal(
       await page
@@ -474,6 +474,50 @@ try {
         .evaluate((el) => getComputedStyle(el).pointerEvents),
       'none',
     );
+    const duration = { mew: 1650, zapdos: 1500, rocket: 1800 }[theme];
+    const sampled = await page.evaluate((duration) => {
+      const scene = document.querySelector('.anime-entrance');
+      const cutin = scene.querySelector('.anime-cut-in');
+      const animation = cutin.getAnimations()[0];
+      const frames = scene.getAnimations({ subtree: true });
+      for (const frame of frames) frame.pause();
+      animation.currentTime = 0;
+      const initialX = new DOMMatrix(getComputedStyle(cutin).transform).m41;
+      for (const frame of frames) frame.currentTime = duration * 0.45;
+      const poseX = new DOMMatrix(getComputedStyle(cutin).transform).m41;
+      const bounds = cutin.getBoundingClientRect();
+      return {
+        duration: animation.effect.getTiming().duration,
+        initialX,
+        poseX,
+        viewportWidth: innerWidth,
+        titleOpacity: Number(
+          getComputedStyle(scene.querySelector('.cut-in-title')).opacity,
+        ),
+        bounds: { top: bounds.top, bottom: bounds.bottom },
+        safeTop: parseFloat(
+          getComputedStyle(scene).getPropertyValue('--entrance-top'),
+        ),
+        safeHeight: parseFloat(
+          getComputedStyle(scene).getPropertyValue('--entrance-height'),
+        ),
+      };
+    }, duration);
+    assert.equal(sampled.duration, duration);
+    assert.ok(Math.abs(sampled.initialX) > sampled.viewportWidth);
+    assert.ok(theme === 'zapdos' ? sampled.initialX < 0 : sampled.initialX > 0);
+    assert.ok(Math.abs(sampled.poseX) < 1);
+    assert.equal(sampled.titleOpacity, 1);
+    assert.ok(
+      sampled.bounds.top >= sampled.safeTop - 1 &&
+        sampled.bounds.bottom <= sampled.safeTop + sampled.safeHeight + 1,
+    );
+    (evidence.entrances ??= []).push({
+      theme,
+      ...sampled,
+      method:
+        'Production CSS animation timeline sampled at 0% and 45%; natural animationstart separately observed.',
+    });
     await capture('scene-' + theme);
   }
   for (const followup of ['local-mew', 'decline', 'snorlax', 'charizard']) {

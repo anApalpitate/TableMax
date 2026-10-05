@@ -5,6 +5,10 @@ import type { Action } from '../../rules';
 import type { PokemonView } from '../../rules/project';
 import { Board, CardFace } from '../cards';
 import { WinTrack } from '../WinTrack';
+import { topology } from '../../shared/topology';
+import { original } from '../../variants/original';
+import { decisionGuidance } from '../decision-guidance';
+import { DecisionHint } from '../DecisionHint';
 
 export function PlayerControls({
   view,
@@ -13,6 +17,7 @@ export function PlayerControls({
   actions: input,
   locked,
   choose,
+  showRules,
 }: {
   view: PokemonView;
   seatId: string;
@@ -20,6 +25,7 @@ export function PlayerControls({
   actions: readonly JsonValue[];
   locked: boolean;
   choose(action: JsonValue): void;
+  showRules?: ((chapter: string) => void) | undefined;
 }) {
   const actions = input as readonly Action[];
   const motion = useContext(SavedMotion);
@@ -58,7 +64,7 @@ export function PlayerControls({
   };
   const ownSlots =
     view.phase === 'snorlax-choice'
-      ? [0, 1, 2, 3, 4, 5]
+      ? topology(original.layout).slots
       : actions.flatMap((a) =>
           'slot' in a && a.type !== 'mew-target' ? [a.slot] : [],
         );
@@ -115,19 +121,13 @@ export function PlayerControls({
   return (
     <div className="pokemon-player" data-phase={view.phase}>
       <WinTrack wins={view.winsBySeat[seatId]!} />
-      <p className="decision-hint">
-        {view.phase === 'draw'
-          ? '点牌堆取牌'
-          : view.phase === 'snorlax-choice'
-            ? '选择两张牌交换'
-            : view.phase === 'mew-other'
-              ? '选择朋友的一张牌'
-              : view.phase === 'charizard-choice'
-                ? '选择一张暗牌查看'
-                : view.phase === 'charizard-view'
-                  ? '记住这张牌'
-                  : '选好卡位后确认'}
-      </p>
+      {(view.phase === 'draw' || view.phase === 'charizard-view') && (
+        <DecisionHint
+          guidance={decisionGuidance(view, actions, selection, first)}
+          pending={locked}
+          showRules={showRules}
+        />
+      )}
       {view.phase !== 'charizard-view' && view.phase !== 'mew-other' && (
         <Board
           view={view}
@@ -237,6 +237,13 @@ export function PlayerControls({
         </>
       )}
       <div className="player-action-bar">
+        {view.phase !== 'draw' && view.phase !== 'charizard-view' && (
+          <DecisionHint
+            guidance={decisionGuidance(view, actions, selection, first)}
+            pending={locked}
+            showRules={showRules}
+          />
+        )}
         {ownSlots.length > 0 || view.phase === 'mew-other' ? (
           <div className="submit-choice">
             <p aria-live="polite">

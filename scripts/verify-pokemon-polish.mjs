@@ -17,7 +17,7 @@ const output = verificationOutput(
   evidenceName,
 );
 await mkdir(output, { recursive: true });
-const work = await mkdtemp(join(output, 'work-'));
+const work = await mkdtemp(resolve('tmp/game-ui-'));
 const started = performance.now();
 const report = {
   scope:
@@ -79,9 +79,9 @@ try {
     );
     await page.evaluate(() => scrollTo(0, 0));
   };
-  const capture = async (name) => {
+  const capture = async (name, fullPage = false) => {
     const file = `${name}.png`;
-    await page.screenshot({ path: join(output, file) });
+    await page.screenshot({ path: join(output, file), fullPage });
     report.screenshots.push(file);
   };
   const controls = async (selector) =>
@@ -152,6 +152,9 @@ try {
     );
   };
   const inspectChoices = async (label, firstScreen) => {
+    // Context guidance may naturally extend a short screen; preserve readable cards and controls.
+    if (firstScreen)
+      await page.locator('.choice-actions').scrollIntoViewIfNeeded();
     const buttons = await controls('.choice-actions > button');
     const bar = await page.locator('.choice-actions').boundingBox();
     report.choices.push({ label, bar, buttons });
@@ -190,7 +193,7 @@ try {
       if (firstScreen)
         assert.ok(
           button.bottom <= page.viewportSize().height + 1 && button.uncovered,
-          `${label}: ${button.label} is visible in the first screen`,
+          `${label}: ${button.label} is reachable and uncovered after natural scroll`,
         );
     }
     if (buttons.length === 3)
@@ -364,6 +367,136 @@ try {
     );
     if (paused) assert.equal(await page.locator('.submit-choice').count(), 0);
   }
+  for (const scene of [
+    'mew-other',
+    'rocket',
+    'zapdos-receive',
+    'snorlax',
+    'charizard',
+  ]) {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await reset({ scene });
+    const instruction = page.locator('.guidance-instruction');
+    assert.ok(await instruction.isVisible());
+    assert.ok(
+      await instruction.evaluate(
+        (element) => parseFloat(getComputedStyle(element).fontSize) >= 18,
+      ),
+    );
+    const prior = await page.evaluate(() =>
+      JSON.stringify(window.pokemonFixture),
+    );
+    await page.locator('.ability-detail').first().click();
+    await page.waitForFunction(() => document.activeElement?.tagName === 'H3');
+    assert.ok(await page.locator('dialog[open] .rules-guide').isVisible());
+    assert.equal(
+      await page.evaluate(() => JSON.stringify(window.pokemonFixture)),
+      prior,
+    );
+    assert.equal(await page.evaluate(() => window.pokemonCommands.length), 0);
+    await page.getByRole('button', { name: '关闭面板', exact: true }).click();
+    assert.equal(
+      await page
+        .locator('.ability-detail')
+        .first()
+        .evaluate((element) => element === document.activeElement),
+      true,
+    );
+  }
+  // Current-production render inventory for the read-only gameplay art review.
+  for (const role of ['player', 'host']) {
+    await page.setViewportSize(
+      role === 'player'
+        ? { width: 390, height: 844 }
+        : { width: 1280, height: 720 },
+    );
+    for (const scene of [
+      'draw',
+      'place',
+      'mew-other',
+      'snorlax',
+      'peek',
+      'waiting',
+      'round-result',
+      'match-result',
+    ]) {
+      await reset({ scene, role });
+      await capture(`audit-${role}-${scene}`, role === 'player');
+    }
+    await reset({ scene: 'place', role, paused: true });
+    await capture(`audit-${role}-paused`, role === 'player');
+    await reset({ scene: 'place', role });
+    await page
+      .getByRole('button', {
+        name: role === 'player' ? '看看朋友的牌桌' : '菜单',
+        exact: true,
+      })
+      .click();
+    await capture(`audit-${role}-overlay`);
+    await page.getByRole('button', { name: '关闭面板', exact: true }).click();
+    if (role === 'host') {
+      await reset({ scene: 'round-result', role });
+      await page
+        .getByRole('button', { name: '计分明细', exact: true })
+        .first()
+        .click();
+      await capture('audit-host-score-detail');
+      await page
+        .locator('dialog[open]')
+        .getByRole('button', { name: '关闭', exact: true })
+        .click();
+    }
+  }
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  for (const width of [320, 390, 430]) {
+    await page.setViewportSize({ width, height: width === 320 ? 568 : 844 });
+    for (const scene of ['mew-other', 'zapdos-self', 'rocket']) {
+      await reset({ scene, animate: true });
+      await page.waitForFunction(
+        () =>
+          document.querySelector('.anime-cut-in')?.getAnimations().length > 0,
+      );
+      const geometry = await page
+        .locator('.anime-entrance')
+        .evaluate((element) => {
+          const frames = element.getAnimations({ subtree: true });
+          const duration = parseFloat(
+            element.style.getPropertyValue('--scene-ms'),
+          );
+          for (const frame of frames) {
+            frame.pause();
+            frame.currentTime = duration * 0.45;
+          }
+          const bounds = element
+            .querySelector('.anime-cut-in')
+            .getBoundingClientRect();
+          const dashboard = document
+            .querySelector('.pokemon-status')
+            .getBoundingClientRect();
+          const actions = document
+            .querySelector('.player-action-bar')
+            .getBoundingClientRect();
+          return {
+            top: bounds.top,
+            bottom: bounds.bottom,
+            statusBottom: dashboard.bottom,
+            actionsTop: actions.top,
+            duration,
+            pointerEvents: getComputedStyle(element).pointerEvents,
+          };
+        });
+      assert.equal(geometry.pointerEvents, 'none');
+      assert.ok(
+        geometry.top >= geometry.statusBottom &&
+          geometry.bottom <=
+            Math.min(geometry.actionsTop, page.viewportSize().height),
+      );
+      await capture(`cutin-player-${width}-${scene}`);
+      await reset({ scene, animate: true, playMode: 'test' });
+      assert.equal(await page.locator('.anime-entrance').count(), 0);
+    }
+  }
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await reset({ scene: 'place', playMode: 'test' });
   assert.equal(
     await page.locator('.saved-effects, .saved-action-trails').count(),

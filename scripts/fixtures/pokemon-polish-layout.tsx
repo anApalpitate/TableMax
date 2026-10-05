@@ -23,7 +23,9 @@ type Scene =
   | 'mew-self'
   | 'rocket'
   | 'zapdos-self'
-  | 'zapdos-receive';
+  | 'zapdos-receive'
+  | 'round-result'
+  | 'match-result';
 type Setting = {
   scene: Scene;
   role: 'player' | 'host' | 'public';
@@ -32,6 +34,7 @@ type Setting = {
   playMode: 'play' | 'test';
   fullscreenSupported: boolean;
   serial: number;
+  animate: boolean;
 };
 type FixtureState = { state: State; self: string };
 type FixtureCommand = { type: 'game'; decisionId: string; action: Action };
@@ -94,6 +97,25 @@ function make(scene: Scene): FixtureState {
     if (scene === 'waiting') return { state, self: 'S1' };
   }
   if (scene === 'draw') return { state, self: 'S1' };
+  if (scene === 'round-result' || scene === 'match-result') {
+    if (scene === 'match-result')
+      state.winsBySeat = Object.fromEntries(seatIds.map((seat) => [seat, 2]));
+    for (let step = 0; step < 1000 && !state.roundResult; step++) {
+      const actor =
+        state.phase === 'zapdos-receive'
+          ? state.recipientQueue[state.recipientIndex]!
+          : state.turnSeat;
+      const choices = rules.legalActions(state, actor) as Action[];
+      const reveal = choices.find(
+        (action) =>
+          action.type === 'replace' &&
+          !state.boards[actor]![action.slot]!.faceUp,
+      );
+      state = apply(state, reveal ?? choices[0]!, actor);
+    }
+    if (!state.roundResult) throw new Error('Result fixture did not finish');
+    return { state, self: 'S1' };
+  }
   state = apply(state, { type: 'draw', source: 'deck' });
   if (scene === 'discard-place') {
     state = apply(state, { type: 'discard-held' });
@@ -116,6 +138,7 @@ const initialSetting: Setting = {
   playMode: 'play',
   fullscreenSupported: true,
   serial: 0,
+  animate: false,
 };
 function Fixture() {
   const [setting, setSetting] = useState(initialSetting);
@@ -163,7 +186,10 @@ function Fixture() {
     ownerSeatId: null,
     capabilities: { manage: false, control: false, manageSeats: false },
     seats,
-    self: { role: setting.role, seatId: current.self },
+    self: {
+      role: setting.role,
+      seatId: setting.role === 'player' ? current.self : null,
+    },
     gameView: game,
     actions:
       setting.role === 'player' && !locked
@@ -190,9 +216,16 @@ function Fixture() {
     locked,
     canControl: false,
     isHost: setting.role === 'host',
-    self: seats.find((seat) => seat.id === current.self),
+    self:
+      setting.role === 'player'
+        ? seats.find((seat) => seat.id === current.self)
+        : null,
     message: '',
-    motion: [],
+    motion: setting.animate
+      ? game.roundResult
+        ? ['@saved', '@result']
+        : ['@saved', ...(game.coin ? ['@coin'] : [])]
+      : [],
     feedback: null,
     busy: false,
     admissionPending: false,

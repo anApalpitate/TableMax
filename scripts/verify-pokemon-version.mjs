@@ -5,9 +5,17 @@ import { build } from 'vite';
 import react from '@vitejs/plugin-react';
 import { chromium } from 'playwright';
 import { serveFixture } from './fixture-server.mjs';
+import { verificationOutput } from './verification-output.mjs';
 
-const output = resolve(
-  'artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/version',
+const evidenceName =
+  process.argv
+    .find((argument) => argument.startsWith('--evidence='))
+    ?.slice(11) ?? 'original';
+assert.match(evidenceName, /^[a-z0-9-]{1,40}$/);
+const output = verificationOutput(
+  'pokemon-bot-variant-20261005',
+  'version',
+  evidenceName,
 );
 await mkdir(output, { recursive: true });
 const work = await mkdtemp(resolve('tmp/pokemon-version-'));

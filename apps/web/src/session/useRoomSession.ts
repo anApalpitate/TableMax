@@ -194,12 +194,16 @@ export function useRoomSession(role: ScreenRole) {
       setFeedback(item);
       setMotion(current.playMode === 'test' ? [] : changedSlots.current);
       if (motionTimer.current) clearTimeout(motionTimer.current);
-      if (current.playMode === 'play')
+      if (current.playMode === 'play') {
+        const duration =
+          current.game && getGameClient(current.game.id)?.motionDuration;
         motionTimer.current = setTimeout(
           () => setMotion([]),
-          (current.game && getGameClient(current.game.id)?.motionDuration) ||
-            1200,
+          (typeof duration === 'function'
+            ? duration(current.gameView)
+            : duration) || 1200,
         );
+      }
     });
     const revoked = () => {
       setConnected(false);

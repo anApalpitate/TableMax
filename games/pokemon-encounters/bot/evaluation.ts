@@ -1,3 +1,6 @@
+import { original } from '../variants/original';
+import { topology } from '../shared/topology';
+const grid = topology(original.layout);
 import type { Action } from '../rules';
 import { scoreBoard } from '../rules/scoring';
 import type { PokemonView } from '../rules/project';
@@ -22,7 +25,7 @@ type World = {
   privateSeat: string;
   weight: number;
 };
-const slots = [0, 1, 2, 3, 4, 5];
+const slots = grid.slots;
 const swaps = slots.flatMap((a) =>
   slots.filter((b) => b > a).map((b) => ({ a, b })),
 );
@@ -746,13 +749,11 @@ export class PositionEvaluator {
     const variance =
       contributions.reduce((sum, value) => sum + (value - mean) ** 2, 0) /
       contributions.length;
-    const adjacentDitto = [slot - 1, slot + 1].some(
-      (neighbor) =>
-        neighbor >= 0 &&
-        neighbor < 6 &&
-        Math.floor(neighbor / 3) === Math.floor(slot / 3) &&
-        this.known[this.seatId]![neighbor] === 'special-ditto',
-    );
+    const adjacentDitto = grid
+      .horizontalNeighbors(slot)
+      .some(
+        (neighbor) => this.known[this.seatId]![neighbor] === 'special-ditto',
+      );
     return (
       this.mean(this.worlds) -
       0.5 -

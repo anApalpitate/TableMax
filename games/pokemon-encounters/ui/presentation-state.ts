@@ -2,6 +2,9 @@ import type { PublicAction } from '../../../packages/protocol/src';
 import type { PokemonView } from '../rules/project';
 import { COIN_LAND_MS, SOUND_MAX_LATE_MS } from './sound-timing';
 import { creatureCries, creatureThemes } from '../shared/presentation';
+import { original } from '../variants/original';
+import { topology } from '../shared/topology';
+const originalGrid = topology(original.layout);
 
 export type EffectTheme = 'mew' | 'zapdos' | 'snorlax' | 'charizard' | 'rocket';
 export type SoundCue =
@@ -136,40 +139,37 @@ export function soundRecipe(
 export function publicZeroColumns(view: PokemonView, seat: string): number[] {
   const board = view.boards[seat];
   if (!board) return [];
-  const settled =
-    view.roundResult?.scores[seat]?.columns ?? view.publicColumns?.[seat];
+  const settled = view.roundResult?.scores[seat]?.values;
   if (settled)
-    return settled.flatMap((score, index) => (score === 0 ? [index] : []));
+    return originalGrid.columns.flatMap(([a, b], column) =>
+      settled[a!] === settled[b!] ? [column] : [],
+    );
+  const matched = view.publicMatchedColumns?.[seat];
+  if (matched) return matched;
   const resolve = (slot: number, path: number[] = []): Set<number | null> => {
     if (path.includes(slot)) return new Set();
     const item = board[slot];
     if (!item?.faceUp || !item.card) return new Set([null]);
     if (item.card.value !== null) return new Set([item.card.value]);
     const choices = new Set<number | null>();
-    for (const next of [slot - 1, slot + 1]) {
-      if (
-        next >= 0 &&
-        next < 6 &&
-        Math.floor(next / 3) === Math.floor(slot / 3)
-      )
-        for (const value of resolve(next, [...path, slot])) choices.add(value);
-    }
+    for (const next of originalGrid.horizontalNeighbors(slot))
+      for (const value of resolve(next, [...path, slot])) choices.add(value);
     return choices;
   };
-  return [0, 1, 2].filter((column) => {
-    if (!board[column]?.faceUp || !board[column + 3]?.faceUp) return false;
-    const first = resolve(column),
-      second = resolve(column + 3);
+  return originalGrid.columns.flatMap(([top, bottom], column) => {
+    if (!board[top!]?.faceUp || !board[bottom!]?.faceUp) return [];
+    const first = resolve(top!),
+      second = resolve(bottom!);
     if (
       first.size !== 1 ||
       second.size !== 1 ||
       first.has(null) ||
       second.has(null)
     )
-      return false;
+      return [];
     const a = [...first][0]!,
       b = [...second][0]!;
-    return a === b || a + b === 0;
+    return a === b ? [column] : [];
   });
 }
 

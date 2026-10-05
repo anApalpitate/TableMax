@@ -2,6 +2,9 @@ import type { Viewer } from '@tablemax/game-sdk';
 import { card, numeric } from './cards';
 import { actor, type State } from './state';
 import { scoreBoard } from './scoring';
+import { original } from '../variants/original';
+import { topology } from '../shared/topology';
+const grid = topology(original.layout);
 
 export function face(instance: string) {
   const c = card(instance);
@@ -14,16 +17,31 @@ export function face(instance: string) {
 }
 export type Face = ReturnType<typeof face>;
 export function project(s: State, viewer: Viewer) {
+  const publicScores = Object.fromEntries(
+    s.seatOrder.map((seat) => [
+      seat,
+      s.boards[seat]!.every((slot) => slot.faceUp)
+        ? scoreBoard(s.boards[seat]!.map((slot) => slot.instanceId))
+        : null,
+    ]),
+  );
   return {
     roundNumber: s.roundNumber,
     seatOrder: s.seatOrder,
     winsBySeat: s.winsBySeat,
     // Resolve Ditto's scoring choice only when every input is already public.
     publicColumns: Object.fromEntries(
+      s.seatOrder.map((seat) => [seat, publicScores[seat]?.columns ?? null]),
+    ),
+    publicMatchedColumns: Object.fromEntries(
       s.seatOrder.map((seat) => [
         seat,
-        s.boards[seat]!.every((slot) => slot.faceUp)
-          ? scoreBoard(s.boards[seat]!.map((slot) => slot.instanceId)).columns
+        publicScores[seat]
+          ? grid.columns.flatMap(([a, b], column) =>
+              publicScores[seat]!.values[a!] === publicScores[seat]!.values[b!]
+                ? [column]
+                : [],
+            )
           : null,
       ]),
     ),

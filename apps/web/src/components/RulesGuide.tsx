@@ -1,4 +1,4 @@
-import { useId, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import './rules-guide.css';
 
 export function RulesGuide({
@@ -6,6 +6,7 @@ export function RulesGuide({
   summary,
   chapters,
   source,
+  initialChapter,
 }: {
   className: string;
   summary: ReactNode;
@@ -16,10 +17,20 @@ export function RulesGuide({
     content: ReactNode;
   }[];
   source: ReactNode;
+  initialChapter?: string | null;
 }) {
   const label = useId();
   const navigation = useRef<HTMLElement>(null);
   const headings = useRef(new Map<string, HTMLHeadingElement>());
+  useEffect(() => {
+    if (!initialChapter) return;
+    const frame = requestAnimationFrame(() => {
+      const heading = headings.current.get(initialChapter);
+      heading?.scrollIntoView({ block: 'start', behavior: 'instant' });
+      heading?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [initialChapter]);
   const jump = (id: string) => {
     const heading = headings.current.get(id);
     heading?.scrollIntoView({ block: 'start', behavior: 'instant' });

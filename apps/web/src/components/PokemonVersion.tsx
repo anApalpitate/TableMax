@@ -12,7 +12,7 @@ export function PokemonVersion() {
       </button>
       {open && (
         <OverlayPanel title="宝可梦奇遇版本" close={() => setOpen(false)}>
-          <p>在同一个游戏入口中选择版本。</p>
+          <p>当前仅原版可用，扩展版仍待试玩。</p>
           <button type="button" disabled aria-current="true">
             原版 · 已选中
           </button>
@@ -20,7 +20,7 @@ export function PokemonVersion() {
           <button type="button" disabled>
             扩展版 · 筹备中
           </button>
-          <p>更多精灵、3×3 场地及获胜条件调整正在筹备。</p>
+          <p>3×3 场地、更多精灵与新能力正在筹备。</p>
         </OverlayPanel>
       )}
     </>

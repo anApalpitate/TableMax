@@ -21,8 +21,19 @@ it('preserves original cardinality and gives future grids row-safe topology', ()
   expect(instances).toHaveLength(original.cardCount);
   for (const card of categories)
     expect(
-      creatureResources[originalCreatureIds[card.categoryId]!].category,
+      creatureResources[originalCreatureIds[card.categoryId]!].imageStem,
     ).toBe(card.categoryId);
   expect(() => grid.column(6)).toThrow();
   expect(() => topology({ rows: 0, columns: 3 })).toThrow();
+  expect(grid.rows).toEqual([
+    [0, 1, 2],
+    [3, 4, 5],
+  ]);
+  expect(grid.verticalNeighbors(1)).toEqual([4]);
+  expect(grid.diagonals).toEqual([]);
+  expect(expanded.verticalNeighbors(4)).toEqual([1, 7]);
+  expect(expanded.diagonals).toEqual([
+    [0, 4, 8],
+    [2, 4, 6],
+  ]);
 });

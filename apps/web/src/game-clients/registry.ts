@@ -4,7 +4,7 @@ import type { RoomSession } from '../session/useRoomSession';
 export interface GameClient {
   Screen: ComponentType<{ session: RoomSession }>;
   savedChanges(before: unknown, after: unknown): string[];
-  motionDuration: number;
+  motionDuration: number | ((view: unknown) => number);
 }
 const loaders: Record<string, () => Promise<{ client: GameClient }>> = {
   'power-grid': () => import('./PowerGridScreen'),

@@ -1,0 +1,58 @@
+.pokemon-screen .decision-guidance {
+  margin: 4px 0 8px;
+  padding: 8px 10px;
+  color: #194d43;
+  background: #fff9e9;
+  border-left: 3px solid #bd8b32;
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: 1.4;
+  text-align: left;
+}
+.pokemon-screen .decision-guidance p {
+  margin: 0;
+  font-size: 16px;
+}
+.pokemon-screen .ability-summary {
+  margin-top: 6px;
+}
+.pokemon-screen .ability-summary > p:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+}
+.pokemon-screen .ability-trigger {
+  color: #84560c;
+  font-size: 16px;
+}
+.pokemon-screen .ability-detail {
+  min-height: 44px;
+  min-width: 88px;
+  padding: 4px 10px;
+  font-size: 16px;
+  margin-top: 4px;
+}
+.pokemon-screen .guidance-notice {
+  margin-top: 6px;
+  color: #85551a;
+}
+.pokemon-screen .decision-guidance .guidance-instruction {
+  font-size: 18px;
+  font-weight: 650;
+}
+.pokemon-screen.player .game-table[data-seats][data-layout] .decision-guidance {
+  width: 100%;
+  box-sizing: border-box;
+}
+@media (max-width: 600px) {
+  .pokemon-screen .decision-guidance {
+    padding: 6px 8px;
+  }
+  .pokemon-screen.player .player-action-bar:has(.decision-guidance) {
+    position: static;
+  }
+  .pokemon-screen.player .submit-choice:has(+ .decision-guidance) {
+    position: static;
+  }
+}

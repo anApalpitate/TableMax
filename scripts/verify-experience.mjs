@@ -11,8 +11,14 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
 const portable = process.argv.includes('--portable');
+const evidenceName = process.argv
+  .find((arg) => arg.startsWith('--evidence='))
+  ?.slice('--evidence='.length);
+if (evidenceName && !/^[a-zA-Z0-9_-]+$/.test(evidenceName))
+  throw new Error('Invalid evidence directory name');
 const output = verificationOutput(
   portable ? 'experience-portable' : 'experience',
+  ...(evidenceName ? [evidenceName] : []),
 );
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });

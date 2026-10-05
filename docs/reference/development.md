@@ -1,5 +1,13 @@
 # 开发环境与验证
 
+## 宝可梦引导与动漫切入验证（2026-10-05）
+
+本轮沿用v1.0.3。相关单测用 `pnpm exec vitest run games/pokemon-encounters/shared games/pokemon-encounters/ui games/pokemon-encounters/rules games/pokemon-encounters/bot/memory.test.ts --testTimeout=120000`，72项通过；120秒是整局集成测试容限，不放宽32MiB Worker两秒硬截止。策略专项13项通过，未重复此前耗时的三级整局统计。`node scripts/verify-pokemon-original-compatibility.mjs --reference=219ae95d165974a35a738d49fb175f5fe8acbcd5 --evidence=pokemon-guidance-cutin-20261005` 从Git实际读取基线规则及shared／variants，固定随机源比较2–6人完整状态、合法动作、计分及投影，仅排除本轮新增派生 `publicMatchedColumns`。
+
+`node scripts/verify-pokemon-polish.mjs --evidence=guidance-cutin-v103-final` 使用真实PokemonScreen和合法规则状态，48顶栏／36操作栏通过，另检查详情章节只读定位和手机切入安全区。新引导短屏允许自然滚动，检查按钮滚动后可达和无遮挡。`verify-pokemon-effects.mjs --evidence=guidance-cutin-v103` 9组检查分开记录实际animationstart、CSS时间线0%／45%采样与TTL；`verify-pokemon-audio.mjs --evidence=guidance-cutin-v103` 4组核验八WAV解码／播放、双槽及1200ms同步，原音频从已保留source-originals核对哈希，外部D盘目录当前不可用。解码及播放调用不称为真人试听。
+
+初次运行曾遇到整局测试超过默认5秒、旧首屏操作栏假设不适用于可见引导、fixture始终换同一格而未结束，以及外部音源目录不可达。分别采用整局适用测试容限、显式自然滚动核验、合法优先换暗格的fixture驱动和已有原始素材哈希；未改玩法、字号或音源内容规避失败。最终证据和包边界见 [验收](acceptance.md)，视觉分析见 [游戏验证](../games/pokemon-encounters/validation-scenarios.md#游玩过程视觉审查2026-10-05)。
+
 2026-10-05 宝可梦人机／复用专项：`node scripts/verify-pokemon-original-compatibility.mjs --reference=1b3930cae9ffa66c480a26b69e4cbf6f6ac59827` 在固定随机源下比较重构前后的真实规则模块，覆盖 2–6 人完整小局／大局、合法动作、状态、计分及全部授权投影。未传 reference 时使用当前 HEAD，提交后复查本轮应显式传上述基线；只读取本地 Git，不联网。`node scripts/verify-pokemon-version.mjs` 用实际 BoxScreen 及样式检查三个端的只读版本面板和资源懒加载。源码策略固定种子统计、真实 Worker、最终 ZIP 与显示证据见当前验收；整局测试总时限与单次 Worker 两秒硬截止分开。原生 fixture 退出后再构建，避免占用 `build/desktop/TableMax.exe`。
 
 当前 Windows x64 桌面为 C# WinForms／.NET Framework 4.8、共享 WebView2 与包内 Node；正式入口选择宝可梦奇遇、现代艺术或经典德国版电力公司，已有对局按存档恢复对应游戏。第一至六阶段已完成，独立原型仍用于合成状态审阅。使用流程见 [项目说明](../../README.md#开始对局)，最近交付包、实际验证范围和设备模拟边界见 [验收记录](acceptance.md)。

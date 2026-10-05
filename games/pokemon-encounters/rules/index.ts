@@ -1,4 +1,5 @@
 import { original } from '../variants/original';
+import { topology } from '../shared/topology';
 import type { GameRules, JsonValue, RuleContext } from '@tablemax/game-sdk';
 import { instances, card } from './cards';
 import { scoreBoard } from './scoring';
@@ -18,10 +19,7 @@ export type Action =
   | { type: 'draw'; source: 'deck' | 'discard' }
   | { type: 'swap'; a: number; b: number }
   | { type: 'discard-held' | 'decline-ability' | 'close-peek' | 'next-round' };
-const slots = Array.from(
-  { length: original.layout.rows * original.layout.columns },
-  (_, i) => i,
-);
+const slots = topology(original.layout).slots;
 export function shuffle(
   cards: readonly string[],
   random: RuleContext['random'],

@@ -64,7 +64,7 @@ export function scoreBoard(board: readonly string[]): Score {
   }
   const compare = (a: Score, b: Score) => {
     if (a.total !== b.total) return a.total - b.total;
-    for (let i = 0; i < 6; i++)
+    for (let i = 0; i < grid.count; i++)
       if (a.values[i] !== b.values[i]) return a.values[i]! - b.values[i]!;
     for (let i = 0; i < a.copies.length; i++)
       if (a.copies[i]!.direction !== b.copies[i]!.direction)

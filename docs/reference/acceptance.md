@@ -4,6 +4,22 @@
 
 2026-10-05 已按用户新授权清理 maintenance 中历史运行截图，保留当前 v1.0.3 验收、原素材、存档与文字结果。本页较早章节的截图保留描述仅表示当次状态，最新退役范围与哈希见 [全量退役记录](project-slimming.md#历史运行截图全量退役2026-10-05)。
 
+## 1.0.3：宝可梦操作引导、同值归零与动漫切入（2026-10-05）
+
+随操作可见的能力说明与详细规则定位、同值归零标记、1500／1650／1800ms动漫侧面切入及稳定复用边界完成。原版2×3／16类56张／三胜、能力、身份及存档保持兼容。−2／2贡献仍为0但不标记；全公开投影新增派生publicMatchedColumns。卡比兽／喷火龙继续局部授权效果，币面／叫声保持1200ms。扩展入口禁用，未实现扩展玩法。用户原有草案和索引未纳入本次提交。
+
+[游玩视觉报告](../games/pokemon-encounters/validation-scenarios.md#游玩过程视觉审查2026-10-05)覆盖手机／电脑各阶段，21张实际生产组件截图及9张手机切入截图。火箭队青色底、角色比例、材质层级、重复信息和结算差异等只分析，不实施整体改造。截图fixture不是自然整局；实际保存流程另核验。
+
+类型、Lint、本次代码／改动文档格式、72项相关单测、13项策略／32MiB Worker检查通过；[固定随机源差分](../../artifacts/maintenance/v1.0.3/pokemon-guidance-cutin-20261005/original-compatibility.json)以219ae95d基线验证2–6人发牌／状态／合法动作／计分／生命周期，旧投影仅排除新增派生字段后比较。原版资源118个媒体文件均与上一包哈希一致，其他两游戏规则／策略、Node和Worker模块字节不变，见 [交付差异](../../artifacts/maintenance/v1.0.3/pokemon-guidance-cutin-20261005/delivery-checks.json)。
+
+源码 [手机检查](../../artifacts/maintenance/v1.0.3/pokemon-polish-20261005/layout/guidance-cutin-v103-final/report.json)48组顶栏／36组操作栏通过，320–430px、横屏、长昵称、离线、测试模式及章节只读定位；短屏明确自然滚动后检查按钮可达／无遮挡。 [特效](../../artifacts/maintenance/v1.0.3/effects/guidance-cutin-v103/results.json)9组认证actual animationstart、0%／45%CSS轨迹采样、持续时间和权限／清理；[音效](../../artifacts/maintenance/v1.0.3/pokemon-polish-20261005/audio/guidance-cutin-v103/results.json)4组认证八WAV解码、双槽和1200ms同步，两段原WAV与已保留source-originals哈希一致，未修改声音。
+
+最终同哈希运行ZIP已实际解压并通过 [完整对局／恢复](../../artifacts/maintenance/v1.0.3/portable/guidance-cutin-v103-final/results.json)的14种阶段、[显示](../../artifacts/maintenance/v1.0.3/display/guidance-cutin-v103-final/results.json)44张720p–4K／100–150%／暂停六人画面、[窗口交接](../../artifacts/maintenance/v1.0.3/experience-portable/guidance-cutin-v103-final/results.json)的公共优先唯一播放与恢复、[真实保存后表现](../../artifacts/maintenance/v1.0.3/presentation-portable/guidance-cutin-v103-final-r2/results.json)的自然42步小局与三档Worker实际节奏。首次表现检查的旧“牌桌管理”定位失败保留在 [首轮记录](../../artifacts/maintenance/v1.0.3/presentation-portable/guidance-cutin-v103-final/results.json)，仅改验证脚本为现有“管理设置”，同包重跑通过。隐藏WebView2／Chromium尺寸与DPI模拟不等于实体手机、显示器或真人听感认证。
+
+[运行ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip) **40,624,792字节**，实际解压 **151文件／95,163,216字节**，两者严格小于100,000,000。超过95,000,000工程预算 **163,216字节**，如实记录。SHA-256：`8701cff952eee381175bb0ca14c31b95bccc626d16b7d127fa4ddc544bf49638`；[冻结清单](../../artifacts/maintenance/v1.0.3/pokemon-guidance-cutin-20261005/final-delivery-manifest.json)。只构建一次最终包，验收后不重打包，没有源码包或推送。上一已验包及清单保存在本轮证据目录，历史结论保持原哈希。
+
+最终全库格式复查发现另一会话新建的未跟踪 `games/power-grid/bot/planner.ts` 格式不通过；本次文件单独格式检查通过，未修改或提交该文件。此前全库类型、Lint与格式检查通过的时间边界保留，不将并行文件的状态归为本次已修复。
+
 ## 1.0.3：宝可梦原创图文规则页（2026-10-05）
 
 按用户要求参照现代艺术与电力公司的规则页，重写八章并 imagegen 制作九张新图，规则、计分、身份、人机与存档均未改变。原版两行三列、56 张、三胜以及六种能力的触发／完整结算边界逐项核对。数字、箭头、牌位与胜场由代码排版，百变怪复制右侧 9、同列归零后总分 14 的例子由真实计分单测通过，优于复制左侧 3 的 26。页面不读取实时暗牌。
@@ -12,7 +28,7 @@
 
 [源构建规则验收](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/rules/source-v103/results.json)通过 9 组合，23.53 秒；[最终同哈希 ZIP 规则验收](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/rules/final-v103/results.json)通过 9 组合，27.10 秒、27 张真实渲染截图。覆盖 host／public／player、手机 320／360／390、电脑 720p／4K 与 150% 显示缩放、九图本地解码、八章逐项导航、16px 图解／18px 正文／44px 触控、320px 减少动态、关闭／Escape 焦点及查看不改变 revision／身份。无页面异常或外网请求；隔离服务退出后不可达。本机隐藏 WebView2 与手机尺寸模拟不等于实体设备认证。
 
-最终 [运行 ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip) **40,620,970 字节**，实际解压 **151 文件／95,150,329 字节**，两项严格低于 100,000,000；超过 95,000,000 工程预算 **150,329 字节**，保留已核验图像质量，如实记录。SHA-256：`29d6b15e2a1dbb7b8701dcdd3db67bd4271c6ae6ec9081d4ca2a5c1f75b3686d`；[冻结逐文件清单](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/final-delivery-manifest.json)与实际验收对应，没有验收后重打包。[交付差异核验](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/delivery-checks.json)确认服务、规则、策略 CJS 及 Node 与上次已验包字节相同；同版本原生程序重新构建，哈希变化独立记录并使用新程序实际验收，不将上次整局通过冒充本轮重跑。类型、Lint、格式、图例单测与文档检查通过；本次只导出运行包与清单，无源码包或推送。
+当次 [运行 ZIP](../../artifacts/maintenance/v1.0.3/pokemon-guidance-cutin-20261005/previous-delivery.zip) **40,620,970 字节**，实际解压 **151 文件／95,150,329 字节**，两项严格低于 100,000,000；超过 95,000,000 工程预算 **150,329 字节**，保留已核验图像质量，如实记录。SHA-256：`29d6b15e2a1dbb7b8701dcdd3db67bd4271c6ae6ec9081d4ca2a5c1f75b3686d`；[冻结逐文件清单](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/final-delivery-manifest.json)与实际验收对应，没有验收后重打包。[交付差异核验](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/delivery-checks.json)确认服务、规则、策略 CJS 及 Node 与上次已验包字节相同；同版本原生程序重新构建，哈希变化独立记录并使用新程序实际验收，不将上次整局通过冒充本轮重跑。类型、Lint、格式、图例单测与文档检查通过；本次只导出运行包与清单，无源码包或推送。
 
 收尾维护先预览后执行，删除过期隔离验证数据约 9.48 GiB，工作区降至约 4.157 GiB；原图、当前验收及上一已验包保留，近期打包目录继续保护，详见 [收尾记录](project-slimming.md#宝可梦原创规则图解收尾2026-10-05)。首轮文档审计缺交付差异文件的失败记录保留，补齐 UTF-8 审计产物后重新核验。
 
@@ -34,7 +50,7 @@
 
 源码累计 **321 项测试通过**：[最终策略、观察记忆及平台事务 39 项](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/strategy-summary-final.log)一并通过，包括 25 大局、前瞻差异及默认跨小局目标选择；[其余全工程回归](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/tests.log) 306/307 通过，其中混合恢复测试因并行负载超过旧 5 秒时限，[单独重跑 3 项](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/recovery-retry.log)通过，未放宽产品截止。策略整局总测试时限为十分钟，最终组合实测约 296 秒；真实 32MiB Worker 取牌／梦幻为 505／450ms、9.6／11MiB，低于 1.5 秒目标，二秒硬截止不变。类型、Lint、源码格式检查通过。
 
-[重构前后固定随机源差分](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/original-compatibility.json)对照基线提交 `1b3930c`，2–6 人状态、发牌、能力、计分、生命周期、合法动作及所有投影一致；[实际 BoxScreen 版本检查](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/version/results.json)三个端零命令、房间不变、扩展禁用，盒子构建不含完整卡图和音频。八个原音源未修改；集中映射仍由声画单测核验，未新增真人试听结论。
+当次重构前后固定随机源差分对照基线提交 `1b3930c`，2–6 人状态、发牌、能力、计分、生命周期、合法动作及所有投影一致；[实际 BoxScreen 版本检查](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/version/results.json)三个端零命令、房间不变、扩展禁用，盒子构建不含完整卡图和音频。八个原音源未修改；集中映射仍由声画单测核验，未新增真人试听结论。原兼容JSON在本轮被同名验证脚本覆盖，旧基线与通过结论保留于本段；本轮219ae95d报告另冻结在新任务证据目录，脚本增加独立证据目录参数防止再次覆盖。
 
 [实际组件手机布局](../../artifacts/maintenance/v1.0.3/pokemon-polish-20261005/layout/bot-variant-v103/report.json)通过 48 顶栏／36 选位栏；[隐藏 WebView2 声画 fixture](../../artifacts/maintenance/v1.0.3/effects/bot-variant-v103-final/results.json)覆盖三种全屏、两种局部、多阶段／连续币面、快速切换、共同赢家、减少动态、授权私看，并补 320px／720p／4K 演出渲染。最后补齐默认历史决策后，[逐文件差异](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/final-package-delta.json)确认仅两个宝可梦服务／bot 包改变，143 个其余文件（含实际前端）与前次已验包相同；[前次冻结清单](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/previous-verified-package-manifest.json)保留原哈希。fixture 不冒充自然对局。
 

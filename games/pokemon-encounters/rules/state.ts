@@ -1,4 +1,6 @@
 import { original } from '../variants/original';
+import { topology } from '../shared/topology';
+const grid = topology(original.layout);
 import { instances } from './cards';
 import { scoreBoard, type Score } from './scoring';
 import type { PublicAction } from '@tablemax/game-sdk';
@@ -102,8 +104,7 @@ export function validateState(input: unknown, seats: readonly string[]): State {
         s.winsBySeat[seat]! < 0 ||
         s.winsBySeat[seat]! > original.winningRounds ||
         !Array.isArray(s.boards[seat]) ||
-        s.boards[seat]!.length !==
-          original.layout.rows * original.layout.columns ||
+        s.boards[seat]!.length !== grid.count ||
         s.boards[seat]!.some(
           (slot) =>
             !slot ||
@@ -120,8 +121,8 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     ...(s.held === null ? [] : [s.held]),
   ];
   if (
-    all.length !== 56 ||
-    new Set(all).size !== 56 ||
+    all.length !== instances.length ||
+    new Set(all).size !== instances.length ||
     all.some((id) => !instances.includes(id))
   )
     return fail();
@@ -129,7 +130,9 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     !['deck', 'discard', null].includes(s.drawSource) ||
     !['meowth', 'pikachu', null].includes(s.coin) ||
     (s.peekSlot !== null &&
-      (!Number.isInteger(s.peekSlot) || s.peekSlot < 0 || s.peekSlot > 5)) ||
+      (!Number.isInteger(s.peekSlot) ||
+        s.peekSlot < 0 ||
+        s.peekSlot >= grid.count)) ||
     !Number.isInteger(s.recipientIndex) ||
     s.recipientIndex < 0 ||
     new Set(s.initialDone).size !== s.initialDone.length ||

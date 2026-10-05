@@ -4,6 +4,13 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve, relative } from 'node:path';
 import { build } from 'esbuild';
 
+const evidenceName = process.argv
+  .find((arg) => arg.startsWith('--evidence='))
+  ?.slice('--evidence='.length);
+assert.ok(
+  !evidenceName || /^[a-zA-Z0-9_-]+$/.test(evidenceName),
+  'Invalid evidence directory',
+);
 const requested = process.argv
   .find((arg) => arg.startsWith('--reference='))
   ?.slice(12);
@@ -27,7 +34,10 @@ async function load(previous) {
             name: 'pre-refactor-rules',
             setup(b) {
               b.onLoad(
-                { filter: /pokemon-encounters[\\/]rules[\\/].*\.ts$/ },
+                {
+                  filter:
+                    /pokemon-encounters[\\/](rules|shared|variants)[\\/].*\.ts$/,
+                },
                 ({ path }) => ({
                   contents: execFileSync(
                     'git',
@@ -54,6 +64,11 @@ async function load(previous) {
   );
   return module.exports.rules;
 }
+const legacyProjection = (view) => {
+  const legacy = { ...view };
+  delete legacy.publicMatchedColumns;
+  return legacy;
+};
 const old = await load(true),
   current = await load(false);
 function random(seed) {
@@ -88,7 +103,7 @@ for (let players = 2; players <= 6; players++) {
       ...seats.map((seatId) => ({ role: 'player', seatId })),
     ])
       assert.deepEqual(
-        current.project(after, viewer),
+        legacyProjection(current.project(after, viewer)),
         old.project(before, viewer),
       );
     const lifecycle = old.lifecycleActions(before);
@@ -131,7 +146,8 @@ for (let players = 2; players <= 6; players++) {
   });
 }
 const output = resolve(
-  'artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005',
+  'artifacts/maintenance/v1.0.3',
+  evidenceName ?? 'pokemon-bot-variant-20261005',
 );
 await mkdir(output, { recursive: true });
 await writeFile(

@@ -11,7 +11,7 @@ import { SoundControl } from '../../../../games/pokemon-encounters/ui/audio';
 import {
   SavedMotion,
   savedChanges,
-  SAVED_MOTION_MS,
+  savedMotionDuration,
 } from '../../../../games/pokemon-encounters/ui/motion';
 import type { GameClient } from './registry';
 import { useAudioOutput } from '../session/useAudioOutput';
@@ -46,6 +46,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
   const game = view?.gameView as PokemonView | null;
   const canPlay = useAudioOutput();
   const [panel, setPanel] = useState<'menu' | 'friends' | 'rules' | null>(null);
+  const [ruleChapter, setRuleChapter] = useState<string | null>(null);
   const names = Object.fromEntries(
     view?.seats.map((seat) => [seat.id, seat.name]) ?? [],
   );
@@ -119,7 +120,10 @@ function PokemonScreen({ session }: { session: RoomSession }) {
           )}
           <button
             className="secondary game-rulebook-entry"
-            onClick={() => setPanel('rules')}
+            onClick={() => {
+              setRuleChapter(null);
+              setPanel('rules');
+            }}
           >
             规则
           </button>
@@ -192,6 +196,10 @@ function PokemonScreen({ session }: { session: RoomSession }) {
               selectionKey={`${view.instanceId}:${view.branch}:${view.selectionToken ?? 'none'}`}
               motionKey={`${view.instanceId}:${view.branch}:${feedback?.revision ?? 'sync'}`}
               choose={choose}
+              showRules={(chapter) => {
+                setRuleChapter(chapter);
+                setPanel('rules');
+              }}
               showFriends={() => setPanel('friends')}
               friendsInToolbar={role === 'player'}
               {...(canControl && view.status === 'ended'
@@ -228,7 +236,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
             close={() => setPanel(null)}
           >
             {panel === 'rules' ? (
-              <RulesGuide {...pokemonRulebook} />
+              <RulesGuide {...pokemonRulebook} initialChapter={ruleChapter} />
             ) : panel === 'friends' ? (
               <div className={`pokemon-screen pokemon-panel ${role}`}>
                 {view?.seats
@@ -269,5 +277,5 @@ export const client: GameClient = {
   Screen: PokemonScreen,
   savedChanges: (before, after) =>
     savedChanges(before as PokemonView, after as PokemonView),
-  motionDuration: SAVED_MOTION_MS,
+  motionDuration: (view) => savedMotionDuration(view as PokemonView),
 };

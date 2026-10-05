@@ -1,3 +1,6 @@
+import { original } from '../variants/original';
+import { topology } from '../shared/topology';
+const grid = topology(original.layout);
 import type { PublicAction } from '@tablemax/game-sdk';
 import { card, categories } from './cards';
 import type { Action } from './index';
@@ -62,10 +65,10 @@ export function validPublicAction(input: unknown, seats: readonly string[]) {
         Object.keys(target).sort().join(',') !== 'seat,slots' ||
         !seats.includes(target.seat) ||
         !Array.isArray(target.slots) ||
-        target.slots.length > 6 ||
+        target.slots.length > grid.count ||
         new Set(target.slots).size !== target.slots.length ||
         target.slots.some(
-          (slot) => !Number.isInteger(slot) || slot < 0 || slot > 5,
+          (slot) => !Number.isInteger(slot) || slot < 0 || slot >= grid.count,
         ),
     )
   )

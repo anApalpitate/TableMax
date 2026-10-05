@@ -1,3 +1,6 @@
+import { original } from '../variants/original';
+import { topology } from '../shared/topology';
+const grid = topology(original.layout);
 import type { Action } from '../rules';
 import { categories } from '../rules/cards';
 import type { PokemonView } from '../rules/project';
@@ -123,25 +126,18 @@ export function preliminaryScore(
     if (!id) return null;
     const fixed = valueOf(id);
     if (fixed !== null) return fixed;
-    const adjacent = [slot - 1, slot + 1]
-      .filter(
-        (next) =>
-          next >= 0 &&
-          next < 6 &&
-          Math.floor(next / 3) === Math.floor(slot / 3),
-      )
-      .flatMap((next) => {
-        const neighbor = board[next];
-        const fixed = neighbor ? valueOf(neighbor) : null;
-        return fixed === null ? [] : [fixed];
-      });
+    const adjacent = grid.horizontalNeighbors(slot).flatMap((next) => {
+      const neighbor = board[next];
+      const fixed = neighbor ? valueOf(neighbor) : null;
+      return fixed === null ? [] : [fixed];
+    });
     return adjacent.length ? Math.min(...adjacent) : mean;
   };
   const pair = (a: number, b: number) => (a === b ? 0 : a + b);
   let total = 0;
-  for (let column = 0; column < 3; column++) {
-    const a = value(column),
-      b = value(column + 3);
+  for (const [top, bottom] of grid.columns) {
+    const a = value(top!),
+      b = value(bottom!);
     if (a !== null && b !== null) total += pair(a, b);
     else if (a !== null || b !== null) {
       const known = a ?? b!;
@@ -169,7 +165,7 @@ export function bestPreliminaryPlacement(
   if (board.length !== _faceUp.length)
     throw new Error('Invalid placement board');
   let best = { slot: 0, score: Infinity };
-  for (let slot = 0; slot < 6; slot++) {
+  for (let slot = 0; slot < grid.count; slot++) {
     const next = [...board];
     next[slot] = incoming;
     const score = preliminaryScore(next, distribution);
@@ -282,14 +278,19 @@ export function preliminaryAction(
       )
         return baseline;
       return Math.min(
-        ...Array.from({ length: 6 }, (_, slot) =>
+        ...Array.from({ length: grid.count }, (_, slot) =>
           scorePlacement(slot, incoming),
         ),
       );
     }
     if (action.type === 'peek') {
       if (memory.cards[action.slot]) return baseline + 0.1;
-      const counterpart = own[(action.slot + 3) % 6];
+      const counterpart =
+        own[
+          grid.columns[grid.column(action.slot)]!.find(
+            (slot) => slot !== action.slot,
+          )!
+        ];
       return (
         baseline -
         0.5 -

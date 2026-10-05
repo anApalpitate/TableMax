@@ -1,5 +1,13 @@
 # 代码结构与工程边界
 
+## 宝可梦原版适配与稳定复用边界（2026-10-05）
+
+`shared/card-catalog.ts` 的纯 `createCardCatalog` 管理类别、实例及固定值；`variants/original-cards.ts` 绑定现有牌表，`shared/cards.ts` 保留兼容导出。实例ID、生成顺序和随机调用不变。`shared/creature-resources.ts` 按角色资源身份登记图片名、框色与声音，`variants/original-presentation.ts` 维护原版类别映射及切入配置；素材不复制、不改路径。
+
+纯拓扑提供行列、横纵邻接和方形对角线；原版规则、计分与人机仍读取原版六格描述。`ui/BoardGrid.tsx` 只收布局、已授权牌位、合法／已选状态及标记；原版 `ui/cards.tsx` 解释投影与同值归零。能力摘要和阶段归原版配置，提示容器与无规则状态的 `AbilityEntrance` 可组合复用。共享会话仅接受固定或按授权视图计算的动效时长，不依赖宝可梦类别。
+
+盒子仍仅一个游戏入口，扩展版禁用并说明3×3、更多精灵与新能力筹备中。版本面板不改房间状态；原版计分、能力、策略和三胜不泛化成插件框架，没有九格玩法、扩展牌表或版本存档字段。扩展草案与用户原有索引改动保留。
+
 第一至六阶段已完成；正式运行宝可梦完整游戏，验证模板继续用于契约、策略替换和恢复回归。采用依据：[工程基础](../decisions/001-engineering-foundation.md)、[平台授权与恢复](../decisions/005-platform-authority-and-recovery.md)、[游戏目录与房主分权](../decisions/007-library-owner-and-concurrency.md)、[小体积原生桌面](../decisions/008-small-native-desktop.md)。2026-10-03 桌面外壳改为共享 WebView2，最终交付验证状态仍以 [验收记录](acceptance.md) 为准。
 
 ## 已建立的工程
