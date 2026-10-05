@@ -28,7 +28,7 @@
 | 扩展三：完整能力与研究任务   | 全能力、暗投、专属任务触发、双奖励、多步恢复 | 全玩法闭合，关键故障与秘密投影通过         | 技术验证通过                   |
 | 扩展四：三档人机             | 投票、研究评价、能力、记忆、收局判断         | 真实Worker完整局、取消／恢复通过           | 技术通过；2–3人初步支持分级    |
 | 扩展五：完整界面、规则与声画 | 三端、图文规则、真实关键姿态、声音与调度     | 实际渲染／动态／播放及独立视觉审查通过     | UI通过；多姿态素材缺62帧       |
-| 扩展六：试玩与参数收敛       | 固定种子对照、普通节奏UI、强度统计           | 当选／达成、神兽频率、循环与胜负影响有依据 | 当前2–4人已测；5–6人与真人待测 |
+| 扩展六：试玩与参数收敛       | 固定种子对照、普通节奏UI、强度统计           | 当选／达成、神兽频率、循环与胜负影响有依据 | 当前2–5人已测；6人与真人待测   |
 | 扩展七：整合验收与便携交付   | 受影响回归、最终ZIP、解压、离线与体积        | 同一包哈希对应全部证据，运行ZIP与清单交付  | 技术同包通过；完整计划仍未完成 |
 
 ## 扩展一：规则基线与版本接入
@@ -218,3 +218,5 @@ UI以 `savedBoardEffects` 从已保存公开结果生成局部移位、盖回与
 扩展分析器增加开局当选／达成、两任务减分守恒、同最终场地奖励改变赢家以及神兽事件校验。两人全部24项当选、92/374任务机会达成、5/186局奖励改变赢家；三人23项当选、60/300达成、6/100局改变赢家。自然丰缘任务1次、阿尔宙斯2次，零观察分组不等于事件不可能。实际临时副本失配先被旧分析器接受、新分析器拒绝，原报告哈希不变，[TDD记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-analysis-20261006/red-green.json)与相关lint／格式通过；不以模拟CPU用时证明真人节奏。下一批继续4、5、6人各八种子，材料问题已询问现成目录或中文来源，62帧缺口未降低要求。
 
 四人续测已完成[24场／125小局／12,150动作](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/combined-source-holdout-4p-20261006/report.json)，八独立种子、三次轮换，耗时933.538秒，最长策略782.450ms，无封顶。[分析](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/combined-source-holdout-4p-20261006/match-strength-analysis.json)支持两档优于默认；绝悟减豆包每座分摊胜率差均值0.0625、95%描述区间[-0.1875,0.3125]，尚未支持四人三级顺序。22项开局任务当选，107/500任务机会达成，8/125局同最终场地奖励改变赢家；阿尔宙斯1次、丰缘任务零次。[源码核对](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/combined-source-holdout-4p-20261006/source-validation.json)确认14项游戏输入与当前ZIP相同，测量输入与两三人报告完全一致。下一步完成五、六人预定样本，再综合评估，不因四人差异未显著而临时调参或择取种子。
+
+五人续测完成[24场／115小局／12,821动作](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/combined-source-holdout-5p-20261006/report.json)，同样八独立种子、三轮换，耗时1,174.674秒、最长策略798.435ms，无封顶。[分析](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/combined-source-holdout-5p-20261006/match-strength-analysis.json)支持豆包和绝悟均优于默认；绝悟减豆包每座分摊胜率差0.075、95%描述区间[-0.15,0.25]，五人三级顺序仍未证明。23项开局任务当选、115/575机会达成、10/115局同最终场地奖励改变赢家，阿尔宙斯与丰缘任务均零观察。[源码核对](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/combined-source-holdout-5p-20261006/source-validation.json)通过，六人预定样本继续；完整姿态与真人验证未完成，当前ZIP不因本轮纯统计／文档变化重复打包。

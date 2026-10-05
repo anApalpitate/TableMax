@@ -139,6 +139,8 @@ EX-A11 通过站点正式访客流程取得，额度检查为 `allowed=1`、下�
 
 来源、页面／音频哈希、角色类别、时长和解码参数集中在[叫声清单](../../../assets/games/pokemon-encounters/expansion/audio/cries/manifest.json)，完整音源、HTML页面及FFmpeg解码记录保留在[原件目录](../../../artifacts/pokemon-expansion/encyclopedia-cries/originals/)。首次不带来源页的直接媒体请求403；使用实际来源页面正常Referer后取得200，未使用登录、代理或认证绕过。临时检索和两次请求记录仍在 `tmp/pokemon-expansion-materials/continuation/wiki-cries-20261006/`。已确认中文百科链接与解码，不宣称中文动画配音、官方来源认证、具体游戏世代、使用许可或真人听感已核验。实际离线播放与解码结论随对应交付包记录，不能用本次来源获取替代同包验收。
 
+后续核验喷火龙与超梦的公开文件说明页，网页读取不可用，正常HTTP请求均返回403挑战页面；[请求记录](../../../artifacts/pokemon-expansion/encyclopedia-cries/source-description-audit-20261006/requests.json)保存URL、状态和响应哈希，响应原件留在 `tmp/pokemon-expansion-materials/continuation/wiki-file-descriptions-20261006/`。未操作认证或继续同方法重试，未取得文件描述中的游戏世代或使用说明，27项来源缺口保持未核验；403响应不记为有效百科内容，也不改变音源字节。
+
 腾讯官方中文公开视频已取得卡比兽四个不同动作参考输入，来源时间点见[抽帧记录](../../../artifacts/pokemon-expansion/continuation-assets/public-unite-source/snorlax-source-frames.json)。[透明编辑请求](../../../artifacts/pokemon-expansion/continuation-assets/snorlax-transparent-edit/imagegen-edit-01-request.json)及[拒绝结果](../../../artifacts/pokemon-expansion/continuation-assets/snorlax-transparent-edit/imagegen-edit-01-result.json)保留原图与失败边界；实际视频参考不等于已取得可导入透明姿态或改编再分发许可。
 
 新增超梦、阿尔宙斯、固拉多、盖欧卡、烈空坐、甲贺忍蛙、路卡利欧与研究公布八项原创程序主题音，正式派生编码为Ogg／Opus单声道，共32,604字节。229,152字节原始WAV保留在 `artifacts/pokemon-expansion/continuation-audio/originals/`，原始／派生哈希、编码参数和用途见[主题音清单](../../../assets/games/pokemon-encounters/expansion/audio/themes.json)。这些声音不是角色官方叫声；八项已在最终实际WebView2同包离线解码通过，真人听感仍待验，不以解码成功替代人耳试听。原版媒体不改字节。
