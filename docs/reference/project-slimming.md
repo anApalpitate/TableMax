@@ -211,3 +211,5 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 同轮 `Clean-Releases.ps1 -KeepLatestOnly` 预览为零候选；脚本除当前ZIP／清单外还明确保护已存在的同版本EXE与source ZIP（`cleanup-local.ps1` 的 `publishedFile` 保留分支），未执行删除或移动。两文件为本轮开始前已有产物，本轮只更新运行ZIP与清单，未重新生成或发布它们。记录进入上述维护JSON，未绕过保护强行收敛目录为两文件。
 
 2026-10-06当前源码2–3人八种子三胜对照及分析／失配验证完成后、下一人数组启动前维护：逻辑字节35,223,908,812，零候选、108项保护／近期内容跳过，删除零字节，安全候选耗尽，未扩大清理范围。[记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-analysis-20261006/maintenance.json)保留当前包、原素材、存档和完整对照证据。
+
+四人八种子24场对照与分析退出、五人组尚未启动时执行维护：初次沙箱遍历拒绝访问且未改文件，正常权限重试后逻辑字节35,224,557,778，零候选、110项保护／近期内容跳过，删除零字节，安全候选耗尽。[记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/combined-source-holdout-4p-20261006/maintenance.json)保留本次权限边界及原素材、存档、当前包与全部对照证据，未扩大清理范围。
