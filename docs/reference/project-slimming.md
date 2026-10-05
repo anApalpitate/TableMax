@@ -70,3 +70,20 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 | 本轮合计           | 原素材、独有证据与正式存档保留              | **9,380,628,994（8.736 GiB）** |
 
 [release 预览](../../artifacts/maintenance/v1.0.3/power-grid-play-review-20261005/releases-preview.log)与 [实际报告](../../artifacts/maintenance/local-cleanup-20261004-210601-029-releases/cleanup.json)对应；打包目录先清理后，[中间物重新预览](../../artifacts/maintenance/v1.0.3/power-grid-play-review-20261005/intermediates-preview-after-release.log)和 [实际报告](../../artifacts/maintenance/local-cleanup-20261004-210826-855-intermediates/cleanup.json)不重复计算目录。显式 `-MinimumAgeMinutes 0` 仅在确认本轮程序退出后使用，其余路径／进程／链接／指纹／当前通过包保护仍生效。保留包含依赖链接的旧隔离源码 `tmp/modern-art-isolated-build-BQZ0BZ`，不手写递归删除或删缓存达到容量目标。[收尾维护](../../artifacts/maintenance/v1.0.3/power-grid-play-review-20261005/maintenance-final.log)再次确认无安全候选，按路径统计剩余 **14,964,296,548 字节（约 13.937 GiB）**，跳过 1,338 个链接；后续证据／文档写入会使值小幅变化。原资料、独有证据、依赖及活动缓存使工作区仍超过阈值，不扩大删除范围。
+
+## maintenance 历史残量专项（2026-10-05）
+
+用户单独授权清理 `artifacts/maintenance` 内历史版本的非必要残量。本轮盘点原有 **19,772 文件／12,922,668,939 字节**，其中 PNG **12,508 张／10,628,255,605 字节**。逐文件 SHA-256 审计仅选择低于当前版本、存在同字节保留副本的截图；排除原素材、文档直接引用以及以前退役清单承诺保留的位置。历史代码、生成器、独有画面、JSON、日志和迁移数据库保持原位，不扩大到目录整体删除。
+
+既有截图清理器的版本边界由固定 v1.0.0／v1.0.1 改为低于 `package.json` 当前版本，仍拒绝当前与更高版本。按目录深度分四份不重叠清单，逐批预览均为零跳过，然后通过 `Clean-Intermediates.ps1 -DuplicateScreenshotsManifest <清单> -Apply` 删除显式 PNG，保持默认 30 分钟近期保护与全部路径／链接／进程／指纹／互斥检查。
+
+| 历史版本 | 删除的同字节副本 | 逻辑删除字节                  |
+| -------- | ---------------- | ----------------------------- |
+| v1.0.0   | 71 张            | 41,180,179                    |
+| v1.0.1   | 2 张             | 2,118,790                     |
+| v1.0.2   | 1,406 张         | 1,117,471,791                 |
+| 合计     | 1,479 张         | 1,160,770,760（约 1.081 GiB） |
+
+[专项审计结果](../../artifacts/maintenance/v1.0.3/maintenance-residual-cleanup-20261005/results.json)链接四份实际删除报告；[原始 PNG 盘点](../../artifacts/maintenance/v1.0.3/maintenance-residual-cleanup-20261005/png-inventory.json)和[清理计划索引](../../artifacts/maintenance/v1.0.3/maintenance-residual-cleanup-20261005/plan-summary.json)保留每文件哈希及同字节保留位置。删除后重新核验 **749 个保留副本的 SHA-256**，另 **11,029 张 PNG**大小与修改时间未变，**10,425 种独有 PNG 字节内容**均有保留。当前 v1.0.3 ZIP 大小及哈希与交付清单一致，本轮未重新导出运行包。
+
+截图保护 **23 项**、共用手动清理 **200 项**和自动维护 **34 项**隔离检查通过；PowerShell 语法及文档／本地链接检查采用本轮证据。收尾维护仍无安全候选，唯一跳过项含依赖链接的旧隔离源码继续保留。工作区测量约 **12.861 GiB**，剩余历史存档、独有证据、原素材及依赖不因容量目标继续删除；本轮逻辑删除字节不计作运行 ZIP 或 NTFS 物理压缩的节省。

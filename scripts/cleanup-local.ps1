@@ -447,8 +447,9 @@ elseif ($DuplicateScreenshotsManifest) {
   $duplicateDeletePaths = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
   $duplicateGroupPaths = New-Object 'System.Collections.Generic.List[string]'
   foreach ($group in $duplicatePlan.groups) {
-    if ($group.path -notmatch '^artifacts/maintenance/(v1\.0\.[01])/' -or -not $group.files.Count -or $group.path -match '(^|/)(\.\.?)(/|$)|\\|:') { throw 'Only explicit old-version screenshot groups are supported.' }
+    if ($group.path -notmatch '^artifacts/maintenance/(v(\d+\.\d+\.\d+))/' -or -not $group.files.Count -or $group.path -match '(^|/)(\.\.?)(/|$)|\\|:') { throw 'Only explicit old-version screenshot groups are supported.' }
     $oldScreenshotRoot = Join-Path $maintenance $Matches[1]
+    if ([version]$Matches[2] -ge $currentVersion) { throw 'Current and future version screenshots cannot be retired.' }
     $groupPath = Assert-LocalPath (Join-Path $workspace $group.path)
     if (-not $groupPath.StartsWith($oldScreenshotRoot + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Screenshot group is outside the declared old version.' }
     $groupCursor = $groupPath

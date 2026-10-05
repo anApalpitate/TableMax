@@ -302,7 +302,7 @@ Windows 程序规则按完整可执行文件路径匹配；专用网络和本地
 
 ### 手动历史截图去重
 
-用户明确要求清理历史证据时，可用 `Clean-Intermediates.ps1 -DuplicateScreenshotsManifest <清单路径>` 先预览，核对后加 `-Apply`。清单位于 `artifacts/maintenance/`，版本字段为 `1`，`groups` 列出不重叠的历史目录及其直接 PNG 文件；每项含 `path`、`bytes`、`sha256` 和 `retainedPath`。当前范围仅接受 `artifacts/maintenance/v1.0.0/`、`v1.0.1/` 下经人工审计的截图，不接受整个目录删除，不与其他手动选择或自动维护混用。
+用户明确要求清理历史证据时，可用 `Clean-Intermediates.ps1 -DuplicateScreenshotsManifest <清单路径>` 先预览，核对后加 `-Apply`。清单位于 `artifacts/maintenance/`，版本字段为 `1`，`groups` 列出不重叠的历史目录及其直接 PNG 文件；每项含 `path`、`bytes`、`sha256` 和 `retainedPath`。仅接受 `artifacts/maintenance/v<版本>/` 下低于当前 `package.json` 版本的经人工审计截图；当前与更高版本拒绝退役，不接受整个目录删除，不与其他手动选择或自动维护混用。
 
 预览与删除前都逐文件核验源与保留 PNG 的大小和 SHA-256，保留文件不得在删除集合中；仍执行当前便携证明、路径、链接、嵌套仓库、进程、30 分钟近期、目录指纹和互斥保护。删除只针对显式 PNG 文件，目录里的 JSON、日志、存档、独有图片和其他文件保持原位。执行报告保留每张退役截图的哈希与同字节保留位置；旧验收结果正文不改写，清理后的历史副本从该清单追溯。来源图及正文直接引用图片须在生成清单时排除，不能仅根据名称或 Git 忽略判断。
 

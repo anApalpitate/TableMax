@@ -60,6 +60,18 @@ try {
   $latest=Get-ChildItem (Join-Path $fixture 'artifacts/maintenance') -Directory -Filter 'local-cleanup-*' | Sort-Object Name | Select-Object -Last 1
   $record=Get-Content (Join-Path $latest.FullName 'cleanup.json') -Raw | ConvertFrom-Json
   Check ($record.result -eq 'passed' -and $record.deletedBytes -eq 15 -and $record.candidates[0].duplicateScreenshots[0].sha256 -eq $sha -and $record.candidates[0].deletionScope -like '*parent directory retained*') 'Report records selected-file scope, deleted bytes, original SHA and retained path'
+  File 'package.json' '{"name":"tablemax","version":"1.0.3"}'
+  File 'artifacts/releases/TableMax-1.0.3-win-x64.zip' 'current-runtime'
+  File 'artifacts/maintenance/v1.0.2/old/copy.png' 'identical-image'
+  $item.path='artifacts/maintenance/v1.0.2/old/copy.png'; $group.path='artifacts/maintenance/v1.0.2/old'; Plan @($group)
+  Get-ChildItem -LiteralPath $fixture -Directory -Recurse -Force | ForEach-Object { $_.LastWriteTimeUtc=[DateTime]::UtcNow.AddHours(-2) }
+  Run | Out-Null
+  Check (Test-Path (Join-Path $fixture $item.path)) 'Preview supports v1.0.2 history after v1.0.3 delivery'
+  $group.path='artifacts/maintenance/v1.0.3/final'; Plan @($group); Reject { Run } 'Current v1.0.3 group rejected'
+  $group.path='artifacts/maintenance/v1.6.0/final'; Plan @($group); Reject { Run } 'Higher version group rejected'
+  $group.path='artifacts/maintenance/v1.0.2/old'; Plan @($group)
+  Run -Apply | Out-Null
+  Check (-not (Test-Path (Join-Path $fixture $item.path)) -and (Test-Path (Join-Path $fixture $item.retainedPath))) 'Historical v1.0.2 duplicate retired while retained PNG survives'
   if (-not $EvidenceDirectory) { $EvidenceDirectory=Join-Path $projectRoot 'artifacts/maintenance/screenshot-cleanup-tools' }
   New-Item -ItemType Directory -Path $EvidenceDirectory -Force | Out-Null
   @{result='passed';checks=$checks.ToArray();count=$checks.Count;seconds=$started.Elapsed.TotalSeconds} | ConvertTo-Json -Depth 4 | Set-Content (Join-Path $EvidenceDirectory 'results.json') -Encoding utf8
