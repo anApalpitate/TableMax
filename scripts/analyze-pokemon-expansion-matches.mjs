@@ -168,6 +168,84 @@ const strata = report.playerCounts.map((players) => {
     comparisons,
   };
 });
+const researchSummary = report.playerCounts.map((players) => {
+  const matches = report.matches.filter((match) => match.players === players);
+  const rounds = matches.flatMap((match) => match.rounds);
+  const tasks = new Map();
+  let changedWinnerRounds = 0;
+  for (const round of rounds) {
+    const entries = Object.entries(round.scores);
+    const active = entries[0][1].research.map((item) => item.taskId);
+    assert.equal(new Set(active).size, active.length);
+    assert.equal(active[0], round.opening);
+    assert.ok(active.length >= 1 && active.length <= 2);
+    assert.equal(active.length === 2, round.hoenn);
+    const minimumBase = Math.min(...entries.map(([, score]) => score.base));
+    const baseWinners = entries
+      .filter(([, score]) => score.base === minimumBase)
+      .map(([seat]) => seat)
+      .sort();
+    if (
+      JSON.stringify(baseWinners) !== JSON.stringify([...round.winners].sort())
+    )
+      changedWinnerRounds++;
+    for (const taskId of active) {
+      const item = tasks.get(taskId) ?? {
+        taskId,
+        activeRounds: 0,
+        seatOpportunities: 0,
+        achievedSeats: 0,
+        totalDeduction: 0,
+      };
+      item.activeRounds++;
+      for (const [, score] of entries) {
+        assert.deepEqual(
+          score.research.map((task) => task.taskId),
+          active,
+        );
+        assert.equal(
+          score.research.reduce((sum, task) => sum + task.deduction, 0),
+          score.deduction,
+        );
+        const award = score.research.find((task) => task.taskId === taskId);
+        assert.equal(award.achieved, award.deduction > 0);
+        item.seatOpportunities++;
+        item.achievedSeats += Number(award.achieved);
+        item.totalDeduction += award.deduction;
+      }
+      tasks.set(taskId, item);
+    }
+  }
+  const arceusActivatedRounds = rounds.filter((round) => round.arceus).length;
+  const hoennPublishedRounds = rounds.filter((round) => round.hoenn).length;
+  assert.equal(
+    arceusActivatedRounds,
+    matches.reduce((sum, match) => sum + match.arceusActivations, 0),
+  );
+  assert.equal(
+    hoennPublishedRounds,
+    matches.reduce((sum, match) => sum + match.hoennEvents, 0),
+  );
+  return {
+    players,
+    rounds: rounds.length,
+    openingSelections: Object.fromEntries(
+      Array.from(
+        { length: 24 },
+        (_, i) => `R${String(i + 1).padStart(2, '0')}`,
+      ).map((id) => [
+        id,
+        rounds.filter((round) => round.opening === id).length,
+      ]),
+    ),
+    tasks: [...tasks.values()].sort((a, b) => a.taskId.localeCompare(b.taskId)),
+    changedWinnerRounds,
+    arceusActivatedRounds,
+    hoennPublishedRounds,
+    scope:
+      'Settlement award frequencies and fixed-final-field base-score counterfactual; no claim about causal policy effects, candidate votes, human timing, or zero-event impossibility.',
+  };
+});
 const result = {
   generatedAt: new Date().toISOString(),
   sourceReport: input,
@@ -178,6 +256,7 @@ const result = {
     0,
   ),
   strata,
+  researchSummary,
   allAdjacentOrderingSupported: strata.every((stratum) =>
     stratum.comparisons
       .slice(0, 2)
@@ -186,7 +265,7 @@ const result = {
   audit:
     'All completed three-win matches; rederived winners, round-win increments, terminal and next-round boundaries, score arithmetic; each seed block has complete balanced seat exposure and paired two-player seat reversals.',
   scope:
-    '10,000 deterministic percentile bootstrap resamples of whole seed blocks, stratified by player count. For two players, each comparison uses only its paired two matches. Higher counts use per-seat fractional match wins averaged across cyclic grade compositions. Marginal descriptive intervals, not adjusted for multiple comparisons; four seeds is a small exploratory sample, not a universal tier guarantee.',
+    '10,000 deterministic percentile bootstrap resamples of whole seed blocks, stratified by player count. For two players, each comparison uses only its paired two matches. Higher counts use per-seat fractional match wins averaged across cyclic grade compositions. Each stratum records its actual independent seed-block count. Marginal descriptive intervals, not adjusted for multiple comparisons; small cohorts are exploratory, not a universal tier guarantee.',
 };
 const output = join(dirname(input), 'match-strength-analysis.json');
 await writeFile(output, JSON.stringify(result, null, 2) + '\n');

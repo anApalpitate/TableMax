@@ -209,3 +209,5 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 2026-10-06累积能力模型同包续验后，150种子、隔离构建／打包与实际原生／普通UI进程全部退出，再执行维护：逻辑字节35,222,690,518，零候选、106项保护／近期内容跳过，删除零字节，安全候选耗尽。当前 `79ace556…` ZIP和旧 `42205330…` ZIP、正式存档、原素材与本轮实际截图／失败记录均保留，未扩大范围。[维护记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-combined-model-delivery-20261006/maintenance.json)给出实际容量，[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-combined-model-delivery-20261006/final-checks.json)确认交付解压94,302,060字节，二者分开计量。
 
 同轮 `Clean-Releases.ps1 -KeepLatestOnly` 预览为零候选；脚本除当前ZIP／清单外还明确保护已存在的同版本EXE与source ZIP（`cleanup-local.ps1` 的 `publishedFile` 保留分支），未执行删除或移动。两文件为本轮开始前已有产物，本轮只更新运行ZIP与清单，未重新生成或发布它们。记录进入上述维护JSON，未绕过保护强行收敛目录为两文件。
+
+2026-10-06当前源码2–3人八种子三胜对照及分析／失配验证完成后、下一人数组启动前维护：逻辑字节35,223,908,812，零候选、108项保护／近期内容跳过，删除零字节，安全候选耗尽，未扩大清理范围。[记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-analysis-20261006/maintenance.json)保留当前包、原素材、存档和完整对照证据。
