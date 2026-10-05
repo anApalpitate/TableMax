@@ -1494,3 +1494,115 @@
     gap: 6px;
   }
 }
+
+/* Explicit action alignment also applies to narrow landscape player panels. */
+.pokemon-screen.player .game-table[data-seats][data-layout] .private-peek {
+  width: 100%;
+  max-width: 320px;
+  box-sizing: border-box;
+  padding: 12px;
+  margin: 8px auto;
+  text-align: center;
+}
+.pokemon-screen.player .game-table[data-seats][data-layout] .peek-caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: 16px;
+  line-height: 24px;
+  margin: 0 0 8px;
+}
+.pokemon-screen.player .game-table[data-seats][data-layout] .close-peek-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 220px);
+  min-height: 48px;
+  margin: 0 auto 20px;
+  padding: 10px 16px;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+  white-space: nowrap;
+  border: 1px solid #16483d;
+  border-radius: 12px;
+  color: #fffdf5;
+  background: #1b594b;
+  box-shadow: 0 3px 0 #123b32;
+  touch-action: manipulation;
+}
+.pokemon-screen.player .close-peek-action:not(:disabled):hover {
+  background: #24705d;
+}
+.pokemon-screen.player .close-peek-action:not(:disabled):active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0 #123b32;
+}
+.pokemon-screen.player .close-peek-action:focus-visible {
+  outline: 3px solid #b87913;
+  outline-offset: 3px;
+}
+.pokemon-screen.player .game-table[data-seats][data-layout] .target-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px;
+  overflow: visible;
+}
+.pokemon-screen.player
+  .game-table[data-seats][data-layout]
+  .target-tabs
+  button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1 1 calc((100% - 16px) / 3);
+  min-width: 0;
+  max-width: 180px;
+  min-height: 44px;
+  height: auto;
+  padding: 8px;
+  font-size: 18px;
+  line-height: 24px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pokemon-screen.player .game-table[data-seats][data-layout] .intent-actions {
+  justify-content: center;
+  gap: 8px;
+}
+.pokemon-screen.player .target-seat-number {
+  display: grid;
+  place-items: center;
+  flex: 0 0 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: #fffdf5;
+  background: #276657;
+  font-size: 16px;
+  line-height: 1;
+}
+.pokemon-screen.player .target-seat-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pokemon-screen.player
+  .game-table[data-seats][data-layout]
+  .intent-actions
+  button {
+  flex: 1;
+  max-width: 280px;
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 18px;
+  line-height: 24px;
+  white-space: nowrap;
+}

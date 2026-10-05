@@ -19,11 +19,13 @@ export function DecisionHint({
         .filter((item) => item !== null)
         .map((item, index) => (
           <div className="ability-summary" key={`${index}:${item.name}`}>
-            <p>
-              <strong>{item.name}</strong>
+            <p className="ability-copy">
+              <span className="ability-phrase">
+                <strong>{item.name}：</strong>
+                {item.summary}
+              </span>
               <span className="ability-trigger">{item.trigger}</span>
             </p>
-            <p>{item.summary}</p>
             {showRules && (
               <button
                 type="button"
@@ -31,7 +33,7 @@ export function DecisionHint({
                 onClick={() => showRules(item.chapter)}
                 aria-label={`查看${item.name}详细规则`}
               >
-                详细规则
+                规则
               </button>
             )}
           </div>

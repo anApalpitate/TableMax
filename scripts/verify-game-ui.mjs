@@ -717,7 +717,7 @@ for (const scene of selectedScenes) {
           .click();
       } else if (action.type === 'close-peek')
         await page
-          .getByRole('button', { name: '已看完，关闭查看', exact: true })
+          .getByRole('button', { name: '查看完成，关闭暗牌查看', exact: true })
           .click();
       else if (
         action.type === 'decline-ability' ||

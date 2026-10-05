@@ -7,37 +7,32 @@ export const abilityGuides: Record<
   }
 > = {
   'special-mew': {
-    summary:
-      '先用梦幻换朋友的一张牌，再用所得牌换入自己。转移得到的能力牌不再次发动。',
+    summary: '偷取卡牌',
     chapter: 'pokemon-rules-mew',
     trigger: 'required',
   },
   'special-team-rocket': {
-    summary:
-      '喵喵面换自己一格；皮卡丘面让全员同一个位置弃牌并补牌。补牌不发动能力。',
+    summary: '抛币换牌',
     chapter: 'pokemon-rules-rocket',
     trigger: 'required',
   },
   'special-zapdos': {
-    summary:
-      '换入后，将换出的牌顺时针传给下一位；每人自己选换入位置，最后一张弃底。传来的能力牌不再次发动。',
+    summary: '接力换牌',
     chapter: 'pokemon-rules-zapdos',
     trigger: 'required',
   },
   'special-snorlax': {
-    summary: '换入后可交换自己两个不同位置，明暗朝向随牌移动。也可以不发动。',
+    summary: '交换两牌',
     chapter: 'pokemon-rules-abilities',
     trigger: 'optional',
   },
   'special-charizard': {
-    summary:
-      '换入后可私看自己一张暗牌，只有你能看见，也可以不发动。看完关闭，原牌仍朝下。',
+    summary: '查看暗牌',
     chapter: 'pokemon-rules-abilities',
     trigger: 'optional',
   },
   'special-ditto': {
-    summary:
-      '结算时复制本行左右紧邻的数字，系统选择全场地总分最低的合法组合。无需主动发动。',
+    summary: '复制数字',
     chapter: 'pokemon-rules-scoring',
     trigger: 'scoring',
   },

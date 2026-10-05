@@ -84,7 +84,7 @@ export function PlayerControls({
         : a.type === 'decline-ability'
           ? '跳过能力'
           : a.type === 'close-peek'
-            ? '已看完，关闭查看'
+            ? '查看完成，关闭暗牌查看'
             : a.type === 'swap'
               ? `交换位置 ${a.a + 1} 和 ${a.b + 1}`
               : a.type === 'mew-target'
@@ -146,14 +146,16 @@ export function PlayerControls({
             <span>牌仍朝下</span>
           </p>
           <button
-            className="secondary"
-            disabled={locked}
+            type="button"
+            className="close-peek-action"
+            aria-label="查看完成，关闭暗牌查看"
+            disabled={locked || !actions.some((a) => a.type === 'close-peek')}
             onClick={() => {
               const close = actions.find((a) => a.type === 'close-peek');
               if (close) choose(close);
             }}
           >
-            已看完，关闭查看
+            查看完成
           </button>
           <span className="private-peek-card">
             <CardFace card={view.peek.card} />
@@ -191,13 +193,17 @@ export function PlayerControls({
                 className="secondary"
                 aria-pressed={target === seat}
                 title={names[seat]}
+                aria-label={`选择 ${view.seatOrder.indexOf(seat) + 1} 号 ${names[seat]} 的场地`}
                 onClick={() => {
                   setTarget(seat);
                   setSelection(null);
                 }}
                 disabled={locked}
               >
-                {names[seat]}
+                <span className="target-seat-number" aria-hidden="true">
+                  {view.seatOrder.indexOf(seat) + 1}
+                </span>
+                <span className="target-seat-name">{names[seat]}</span>
               </button>
             ))}
           </div>

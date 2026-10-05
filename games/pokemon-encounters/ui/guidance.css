@@ -14,13 +14,20 @@
   font-size: 16px;
 }
 .pokemon-screen .ability-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
   margin-top: 6px;
 }
-.pokemon-screen .ability-summary > p:first-child {
+.pokemon-screen .ability-copy {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 8px;
   align-items: center;
+}
+.pokemon-screen .ability-phrase {
+  overflow-wrap: anywhere;
 }
 .pokemon-screen .ability-trigger {
   color: #84560c;
@@ -28,10 +35,15 @@
 }
 .pokemon-screen .ability-detail {
   min-height: 44px;
-  min-width: 88px;
-  padding: 4px 10px;
+  min-width: 56px;
+  padding: 4px 8px;
   font-size: 16px;
-  margin-top: 4px;
+  white-space: nowrap;
+  justify-self: end;
+  border: 1px solid #d1c4a1;
+  border-radius: 10px;
+  background: #fffdf5;
+  color: #194d43;
 }
 .pokemon-screen .guidance-notice {
   margin-top: 6px;

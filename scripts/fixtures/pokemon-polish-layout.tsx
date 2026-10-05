@@ -35,6 +35,7 @@ type Setting = {
   fullscreenSupported: boolean;
   serial: number;
   animate: boolean;
+  longTargets: boolean;
 };
 type FixtureState = { state: State; self: string };
 type FixtureCommand = { type: 'game'; decisionId: string; action: Action };
@@ -139,6 +140,7 @@ const initialSetting: Setting = {
   fullscreenSupported: true,
   serial: 0,
   animate: false,
+  longTargets: false,
 };
 function Fixture() {
   const [setting, setSetting] = useState(initialSetting);
@@ -161,7 +163,12 @@ function Fixture() {
   });
   const seats = seatIds.map((id, index) => ({
     id,
-    name: index === 0 ? '第一位很长昵称的朋友ABCDEFGHIJ' : `朋友 ${index + 1}`,
+    name:
+      index === 0
+        ? '第一位很长昵称的朋友ABCDEFGHIJ'
+        : setting.longTargets
+          ? `很长昵称的朋友${index + 1}ABCDEFGHIJ`
+          : `朋友 ${index + 1}`,
     controller: 'human',
     ready: true,
     online: true,

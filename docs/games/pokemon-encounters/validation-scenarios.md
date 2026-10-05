@@ -1,5 +1,13 @@
 # 验证场景与交接
 
+## 简短说明与按钮专项（2026-10-05）
+
+本轮修改范围为功能短语、规则入口对齐、私看关闭按钮、朋友目标和独立意图按钮；原版规则／权限／声画／资源不变。 [实际组件专项](../../../artifacts/maintenance/v1.0.3/pokemon-polish-20261005/layout/brief-buttons-v103-final/report.json)使用当前PokemonScreen源码、合法规则状态及后台Edge真实渲染，复查48组顶栏、36组确认栏，增加六种屏幕尺寸的私看／长昵称目标共12组。
+
+新增断言核验“查看完成”居中、18px文字、48px高和至少180px宽，点击恰提交一次合法close-peek并关闭私看；断线与公共端不提供该私密按钮。朋友选择检查五个座号、完整可访问昵称、换行及每排居中；规则入口44px、靠右，查看章节仍零命令并恢复焦点；取消仍最右64px且仅清本地选择。覆盖320／360／390／430px及568×320／844×390横屏。前一轮 [截图](../../../artifacts/maintenance/v1.0.3/pokemon-polish-20261005/layout/brief-buttons-v103/report.json)保留加入座号前的范围，不覆盖旧证据。
+
+当前更清楚的 [私看按钮](../../../artifacts/maintenance/v1.0.3/pokemon-polish-20261005/layout/brief-buttons-v103-final/buttons-peek-390x844.png)与 [短手机目标](../../../artifacts/maintenance/v1.0.3/pokemon-polish-20261005/layout/brief-buttons-v103-final/buttons-mew-320x568.png)对应下节视觉报告中的按钮项返修，其余整体美术建议未实施。首轮全库类型检查通过；终检遇到并行修改的电力公司 saved-presentation.ts 类型错误，未改该文件。相关Lint、3项引导单测、本次代码／文档格式及全库链接检查通过；fixture的合法动作检查不冒充真实服务持久化或实体手机验收。本轮按用户要求交付源码与提交，未重打运行ZIP；收尾时另有电力公司规则测试进程仍运行，按空闲保护暂不执行维护或中断其他进程。当前ZIP仍对应上一轮已验交付的实际哈希，见 [验收记录](../../reference/acceptance.md)。
+
 ## 游玩过程视觉审查（2026-10-05）
 
 本轮主agent审查实际更新后的PokemonScreen隐藏WebView2渲染，手机390×844与电脑1280×720，覆盖普通取牌／换入、梦幻及卡比兽选位、本人私看／公共等待、暂停、小局／大局结算、朋友牌桌与菜单／计分浮窗。场景由真实规则合法动作构造；不是实体手机或自然整局逐帧认证。21张阶段截图和9张手机切入截图见 [布局证据](../../../artifacts/maintenance/v1.0.3/pokemon-polish-20261005/layout/guidance-cutin-v103-final/report.json)。以下均为分析及后续建议，未实施整体美术改造。

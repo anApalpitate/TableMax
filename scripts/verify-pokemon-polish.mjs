@@ -24,6 +24,7 @@ const report = {
     'Headless Edge renders the actual production PokemonScreen and PlayerControls with authorized projections from complete verification deck permutations and legal production-rule transitions. This checks source component layout and commands, not server persistence, native DPI, portable-package or physical-phone acceptance.',
   topbars: [],
   choices: [],
+  buttonPolish: [],
   commands: [],
   screenshots: [],
   errors: [],
@@ -342,10 +343,121 @@ try {
     if (scene === 'peek')
       assert.equal(
         await page
-          .getByRole('button', { name: '已看完，关闭查看', exact: true })
+          .getByRole('button', { name: '查看完成，关闭暗牌查看', exact: true })
           .count(),
         1,
       );
+  }
+  for (const viewport of [
+    { width: 320, height: 568 },
+    { width: 360, height: 640 },
+    { width: 390, height: 844 },
+    { width: 430, height: 932 },
+    { width: 568, height: 320 },
+    { width: 844, height: 390 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await reset({ scene: 'peek' });
+    const close = page.getByRole('button', {
+      name: '查看完成，关闭暗牌查看',
+      exact: true,
+    });
+    await close.scrollIntoViewIfNeeded();
+    const [button] = await controls('.close-peek-action');
+    const privateArea = await page.locator('.private-peek').boundingBox();
+    assert.equal(button.label, '查看完成');
+    assert.ok(
+      button.fontSize >= 18 && button.height >= 48 && button.width >= 180,
+    );
+    assert.ok(button.uncovered && button.whiteSpace === 'nowrap');
+    assert.ok(
+      Math.abs(
+        button.x + button.width / 2 - privateArea.x - privateArea.width / 2,
+      ) < 1,
+    );
+    assert.ok(
+      await page
+        .locator('.peek-caption')
+        .evaluate((el) => parseFloat(getComputedStyle(el).fontSize) >= 16),
+    );
+    const prior = await page.evaluate(() => window.pokemonFixture.step);
+    await capture(`buttons-peek-${viewport.width}x${viewport.height}`, true);
+    await close.click();
+    assert.equal(await page.locator('.private-peek').count(), 0);
+    assert.equal(
+      await page.evaluate(() => window.pokemonFixture.step),
+      prior + 1,
+    );
+    assert.deepEqual(
+      await page.evaluate(() =>
+        window.pokemonCommands.map((c) => c.action.type),
+      ),
+      ['close-peek'],
+    );
+    report.buttonPolish.push({ viewport, scene: 'peek', button });
+
+    await reset({ scene: 'mew-other', longTargets: true });
+    await page.locator('.target-tabs').scrollIntoViewIfNeeded();
+    const targets = await controls('.target-tabs button');
+    assert.equal(targets.length, 5);
+    assert.deepEqual(
+      await page.locator('.target-seat-number').allTextContents(),
+      ['2', '3', '4', '5', '6'],
+    );
+    for (const target of targets) {
+      assert.ok(
+        target.fontSize >= 18 && target.height >= 44 && target.width >= 44,
+      );
+      assert.ok(target.uncovered && target.whiteSpace === 'nowrap');
+      assert.ok(target.accessible.includes('很长昵称的朋友'));
+      assert.ok(target.right <= viewport.width + 1);
+    }
+    const rows = [...new Set(targets.map((target) => Math.round(target.y)))];
+    assert.ok(rows.length >= 2 && rows.length <= 3);
+    const area = await page.locator('.target-tabs').boundingBox();
+    for (const row of rows) {
+      const items = targets.filter((target) => Math.round(target.y) === row);
+      assert.ok(
+        Math.abs(
+          (items[0].x + items.at(-1).right) / 2 - area.x - area.width / 2,
+        ) < 1,
+      );
+    }
+    await page.locator('.ability-summary').first().scrollIntoViewIfNeeded();
+    assert.equal(
+      await page.locator('.ability-phrase').first().textContent(),
+      '梦幻：偷取卡牌',
+    );
+    const rule = await controls('.ability-detail');
+    const summary = await page
+      .locator('.ability-summary')
+      .first()
+      .boundingBox();
+    assert.ok(rule[0].height >= 44 && rule[0].width >= 44 && rule[0].uncovered);
+    assert.ok(Math.abs(rule[0].right - summary.x - summary.width) < 1);
+    await capture(`buttons-mew-${viewport.width}x${viewport.height}`, true);
+    report.buttonPolish.push({
+      viewport,
+      scene: 'mew-other',
+      targets,
+      rules: rule,
+    });
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await reset({ scene: 'peek', connected: false });
+  assert.equal(
+    await page.locator('.private-peek').count(),
+    0,
+    'Disconnected player cannot use the peek control',
+  );
+  assert.equal(await page.evaluate(() => window.pokemonCommands.length), 0);
+  for (const role of ['host', 'public']) {
+    await reset({ scene: 'peek', role });
+    assert.equal(
+      await page.locator('.private-peek, .close-peek-action').count(),
+      0,
+      'Peek remains owner-only',
+    );
   }
   for (const action of ['弃掉这张牌', '跳过能力']) {
     await reset({ scene: action === '弃掉这张牌' ? 'place' : 'snorlax' });
