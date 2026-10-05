@@ -58,6 +58,10 @@ export function project(s: State, viewer: Viewer) {
     discardOptions: s.discard.slice(-2).reverse().map(face),
     held: s.held ? face(s.held) : null,
     coin: s.coin,
+    relaySeats:
+      s.phase === 'zapdos-self' || s.phase === 'zapdos-receive'
+        ? s.recipientQueue.slice(s.recipientIndex)
+        : [],
     passProgress:
       s.phase === 'zapdos-receive'
         ? { completed: s.recipientIndex, total: s.recipientQueue.length }

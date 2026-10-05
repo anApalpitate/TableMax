@@ -68,7 +68,7 @@ SDK 可选纯 `observe({view,memory,seatId,difficulty})` 在成功游戏动作�
 
 火箭队皮卡丘面的选位评价修正为：从行动者起按座位顺序，为全桌同一格逐一补入授权假设池中的不同牌，全部朝上，最后评价收局；不再把它按本人换入12分火箭队牌计算。未改变真实规则、随机源、牌表、档位预算或人机授权信息。使用权威规则的先失败反例中，原模型选 `slot=3` 后实际本人46分，新模型选 `slot=1` 后38分；第二位行动者的补牌顺序以及相同授权投影／不同真实暗牌库选择一致另有测试。固定零随机仅用于夹具对齐假设与独立规则oracle，真实决策没有读入实际牌库；这不是普遍胜率提升证明。
 
-能力评价仍有明确近似与待补：取牌阶段主要按普通换入评价，未完整展开未来能力；闪电鸟方向尚未建接力链预测分支，不能将顺时针固定平票结果称作方向策略。后续优先补公开接力顺序、完整能力结束后的对手得分和三胜风险，再用独立种子复核强度，避免为已测种子调牌量或奖励。
+火箭队修正当时仍有明确近似与待补：取牌阶段主要按普通换入评价，未完整展开未来能力；当时闪电鸟方向尚未建接力链预测分支，不能将顺时针固定平票结果称作方向策略。后续优先补公开接力顺序、完整能力结束后的对手得分和三胜风险，再用独立种子复核强度，避免为已测种子调牌量或奖励。
 
 火箭队修正后的[独立三胜对照](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/rocket-model-holdout-20261006/report.json)使用两组新种子，覆盖两人换座与三人循环轮换，共18场／70小局／4,223动作，耗时197.874秒，源码前后一致，最大策略计算487.438ms；不是实际Worker或真人耗时。[逐局重算与种子块分析](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/rocket-model-holdout-20261006/match-strength-analysis.json)核验三胜边界，绝悟在本样本仍落后于豆包。仅两个独立种子，描述重采样区间不能作为总体强度认证，继续保留三级顺序缺口。
 
@@ -79,3 +79,11 @@ SDK 可选纯 `observe({view,memory,seatId,difficulty})` 在成功游戏动作�
 本轮精确源码 `4beb8fa5…` 的[15个种子小局](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/bot/run-1791230143044-ff581094/seeded-rounds.json)覆盖2–6人每档一局，共1,338动作、21种决策阶段，最大单次策略783.982ms，源码稳定、合法记忆／守恒通过；21项目标测试通过、142项未选测试跳过，不称全量重跑。[17项真实服务集成](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/integration/run-1791230255246-b44dc8db/results.json)通过约95.01秒，当前源码逐文件匹配，类型与相关lint通过。
 
 [相同种子三胜对照](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/mew-model-paired-20261006/report.json)共18场／74小局／4,332动作，耗时192.618秒、最大策略469.220ms，无封顶与源码漂移；两人数各仅两个独立种子，三神／阿尔宙斯自然发动仍零。与上轮相同初始种子／座位档位安排的[配对核对](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-mew-model-20261006/paired-comparison.json)显示三人绝悟／豆包各三场，两人绝悟五场、豆包六场；[种子块分析](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/mew-model-paired-20261006/match-strength-analysis.json)仍不支持三级顺序认证。两处估值修正共同改变后续对局轨迹，不能将全部差异归因于单一能力或宣称普遍提升。
+
+闪电鸟即时能力新增独立 `bot/relay.ts` 纯预测模块。方向阶段枚举两条完整座位顺序及本人九个换入位置；取到闪电鸟时比较两方向，必须换入，不估作可弃普通10分牌。本人换入与后续接牌阶段按公开 `relaySeats` 接续预测，前面已完成的座位不再行动；每张所得牌传给下一人、最终所得牌弃掉，不触发其能力，只在整条链结束评价任一场地全明与三胜。本人目标按统一全桌效用评价，后续座位按同一授权假设的稳定本人分数贪心选择；该近似不读取其真实暗牌或私有记忆，也不保证预测对手实际策略。
+
+两个方向与权威规则逐子步骤对照通过，包含非首位行动者、第一步全明后继续接力、末张弃牌、结算前明暗快照、复制与所得能力不连锁；公开剩余队列／中途恢复、暗牌隔离与输入不变通过。seed1反例暂时去掉方向评价以重现旧行为后先失败：旧策略固定顺时针，修正后选逆时针，动作列表倒序及真实暗牌库倒序不改变同授权信息的选择。[TDD记录](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-relay-model-20261006/red-green.json)与[15种子小局](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/bot/run-1791231070355-47899851/seeded-rounds.json)覆盖2–6人三档、1,358动作，最长单次策略794.606ms；30项相关测试及19项目标／136跳过通过，类型与lint通过，新模块纳入源码冻结。
+
+[17项真实服务集成](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/integration/run-1791231192461-5f4987b7/results.json)通过约156.66秒，四人混合档位真实Worker217次／291步／四小局三胜，最长852.452ms；两秒／32MiB限制不变。源码领先 `42205330…` 运行包，尚不作为该包的新增能力验收。火箭队双面取牌期望、超梦放弃来源约束、其他未来能力与三级强度仍待继续补齐。
+
+[接力修正三胜对照](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/relay-model-paired-20261006/report.json)与上轮采用相同初始种子和座位／档位安排，18场／73小局／4,544动作，耗时226.472秒，最长策略572.608ms，源码前后一致、无封顶，三神／阿尔宙斯自然发动均零。两人绝悟七场、豆包五场；三人绝悟两场、豆包三场、默认一场。[配对核对](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-relay-model-20261006/paired-comparison.json)保存前后精确源哈希，[种子块分析](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/relay-model-paired-20261006/match-strength-analysis.json)仍未支持三级顺序。每人数只有两个独立种子，仅为探索；后续策略会改变随机事件使用轨迹，不能将配对样本当作普遍胜率或自然频率认证。

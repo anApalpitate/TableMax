@@ -25,6 +25,7 @@ const sourceFiles = [
   'games/pokemon-encounters/expansion/bot/index.ts',
   'games/pokemon-encounters/expansion/bot/memory.ts',
   'games/pokemon-encounters/expansion/bot/strategy.ts',
+  'games/pokemon-encounters/expansion/bot/relay.ts',
 ];
 const hashes = () =>
   Object.fromEntries(

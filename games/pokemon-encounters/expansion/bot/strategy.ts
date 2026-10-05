@@ -5,6 +5,7 @@ import type { Action } from '../state';
 import { scoreBoard } from '../scoring';
 import { grid, lines } from '../research';
 import type { Memory } from './memory';
+import { previewRelay } from './relay';
 type Random = { next(): number };
 type Model = {
   boards: Record<string, string[]>;
@@ -313,6 +314,30 @@ export function choose(
       }
     return best;
   };
+  const relayOrder = (direction: 'clockwise' | 'counterclockwise') => {
+    const start = view.seatOrder.indexOf(view.turnSeat),
+      step = direction === 'clockwise' ? 1 : -1;
+    return view.seatOrder.map(
+      (_, offset) =>
+        view.seatOrder[
+          (start + offset * step + view.seatOrder.length) %
+            view.seatOrder.length
+        ]!,
+    );
+  };
+  const relayValue = (
+    model: Model,
+    order: string[],
+    incoming: string,
+    slot: number,
+  ) => {
+    const result = previewRelay(model, order, incoming, slot, score);
+    return utility({ ...model, boards: result.boards, up: result.up });
+  };
+  const bestRelay = (model: Model, order: string[], incoming: string) =>
+    Math.min(
+      ...grid.slots.map((slot) => relayValue(model, order, incoming, slot)),
+    );
   const evaluate = (a: Action, original: Model) => {
     const model: Model = {
       ...original,
@@ -325,6 +350,19 @@ export function choose(
     };
     const own = model.boards[seat]!,
       up = model.up[seat]!;
+    if (a.type === 'pass-direction' && model.held)
+      return bestRelay(model, relayOrder(a.direction), model.held);
+    if (
+      a.type === 'replace' &&
+      model.held &&
+      (view.phase === 'zapdos-self' || view.phase === 'zapdos-receive')
+    )
+      return relayValue(
+        model,
+        [seat, ...view.relaySeats.filter((id) => id !== seat)],
+        model.held,
+        a.slot,
+      );
     if (a.type === 'replace' && view.phase === 'rocket-pikachu') {
       const start = view.seatOrder.indexOf(view.turnSeat);
       for (let offset = 0; offset < view.seatOrder.length; offset++) {
@@ -346,6 +384,17 @@ export function choose(
           : model.discards[a.discardIndex];
       if (incoming && view.phase === 'draw' && card(incoming).ability === 'mew')
         return bestMewExchange(model, incoming) + 0.08;
+      if (
+        incoming &&
+        view.phase === 'draw' &&
+        card(incoming).ability === 'zapdos'
+      )
+        return (
+          Math.min(
+            bestRelay(model, relayOrder('clockwise'), incoming),
+            bestRelay(model, relayOrder('counterclockwise'), incoming),
+          ) + 0.08
+        );
       return incoming
         ? estimateDraw(
             a.source,

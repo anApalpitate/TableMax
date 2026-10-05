@@ -199,3 +199,5 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 2026-10-06火箭队估值／角色无损格式续验完成后，全部工程与验证进程结束，执行 `Maintain-Project.ps1 -Apply`：项目逻辑字节29,381,345,156，零合格候选，91项保护／近期内容跳过，删除零字节。仍超过10GiB，安全候选耗尽，未扩大清理范围；原素材、正式存档及当前已验包保留。[维护记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-ability-review-20261006/maintenance.json)与[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-ability-review-20261006/final-checks.json)分别记录空间和交付门禁，不将NTFS节省计入运行预算。
 
 2026-10-06梦幻模型源码续建后，所有测试／服务／测量进程结束再执行安全维护：逻辑字节30,178,343,748，零候选、93项保护／近期内容跳过，删除零字节，安全候选耗尽，未扩大范围。当前 `42205330…` 已验ZIP、正式存档及原素材保留；[维护记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-mew-model-20261006/maintenance.json)对应本轮容量，源码领先运行包的边界见[接续](../tasks/pokemon-encounters-expansion.md#梦幻完整交换估值续建2026-10-06)。
+
+2026-10-06闪电鸟接力源码续建后，所有工程／测量进程结束再执行安全维护：逻辑字节31,600,246,188，零候选、95项保护／近期内容跳过，删除零字节，安全候选耗尽，原素材、正式存档和 `42205330…` 已验ZIP保留。[维护记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-relay-model-20261006/maintenance.json)对应本轮实际容量，未扩大清理范围；源码尚未更新该ZIP的边界见[接力续建](../tasks/pokemon-encounters-expansion.md#闪电鸟完整接力预测续建2026-10-06)。
