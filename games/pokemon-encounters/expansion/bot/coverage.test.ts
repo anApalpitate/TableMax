@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, expect, it } from 'vitest';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { BotDifficulty, JsonValue } from '@tablemax/game-sdk';
@@ -11,6 +11,10 @@ import { bot } from './index';
 import { observeMemory, validateMemory, type Memory } from './memory';
 
 const difficulties = ['default', 'doubao', 'juewu'] as const;
+const directory = resolve(
+  'artifacts/maintenance/v1.0.2/pokemon-expansion-verification/bot',
+  `run-${Date.now()}-${randomUUID().slice(0, 8)}`,
+);
 const sourceFiles = [
   'games/pokemon-encounters/expansion/index.ts',
   'games/pokemon-encounters/expansion/state.ts',
@@ -42,14 +46,11 @@ const measurements: {
   phases: string[];
 }[] = [];
 beforeAll(() => {
+  mkdirSync(directory, { recursive: true });
   before = hashes();
 });
 afterAll(() => {
-  const after = hashes(),
-    directory = resolve(
-      'artifacts/maintenance/v1.0.2/pokemon-expansion-verification/bot',
-    );
-  mkdirSync(directory, { recursive: true });
+  const after = hashes();
   writeFileSync(
     resolve(directory, 'seeded-rounds.json'),
     JSON.stringify(
@@ -171,12 +172,25 @@ async function playRound(
 }
 
 for (const players of [2, 3, 4, 5, 6])
-  for (const difficulty of difficulties) {
-    it(`${players} players ${difficulty}: ten independent seeds finish a legal round with truthful authorized memory`, async () => {
-      for (let seed = 1; seed <= 10; seed++)
+  for (const difficulty of difficulties)
+    for (let seed = 1; seed <= 10; seed++)
+      it(`${players} players ${difficulty} seed ${seed}: finishes a legal round with truthful authorized memory`, async () => {
         await playRound(players, difficulty, 510500 + seed * 177 + players);
-    }, 240000);
-  }
+        const progress = {
+          completedRounds: measurements.length,
+          players,
+          difficulty,
+          seed,
+          latest: measurements.at(-1),
+          evidence: directory,
+        };
+        writeFileSync(
+          resolve(directory, 'progress.json'),
+          JSON.stringify(progress, null, 2) + '\n',
+        );
+        if (measurements.length % 10 === 0)
+          console.log(JSON.stringify(progress));
+      }, 60000);
 
 it('never initializes hidden knowledge, preserves its input, and aborts before choosing', async () => {
   const seats = ['a', 'b'],

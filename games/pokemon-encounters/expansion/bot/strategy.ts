@@ -305,6 +305,20 @@ export function choose(
     };
     const own = model.boards[seat]!,
       up = model.up[seat]!;
+    if (a.type === 'replace' && view.phase === 'rocket-pikachu') {
+      const start = view.seatOrder.indexOf(view.turnSeat);
+      for (let offset = 0; offset < view.seatOrder.length; offset++) {
+        const target =
+          view.seatOrder[(start + offset) % view.seatOrder.length]!;
+        const incoming = model.pool.at(-1 - offset);
+        if (!incoming)
+          throw new Error('Insufficient authorized Rocket hypothesis');
+        model.boards[target]![a.slot] = incoming;
+        model.up[target]![a.slot] = true;
+      }
+      // Newly dealt cards do not activate abilities; closure waits for all seats.
+      return utility(model);
+    }
     if (a.type === 'draw') {
       const incoming =
         a.source === 'deck'

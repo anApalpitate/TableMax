@@ -148,3 +148,5 @@ EX-A11 通过站点正式访客流程取得，额度检查为 `allowed=1`、下�
 中文现有姿态续检实际保留13张图片原件，共4,995,022字节，见[来源与动作核验](../../../artifacts/pokemon-expansion/existing-pose-audit-20261006/audit.json)。超梦单张高分辨率透明立绘可作为参考；奖杯图含底座或预烘焙效果，小智忍蛙商品图为同一手办的不同角度，均不构成所需完整动作序列，新增合格序列为零，62帧缺口不变。
 
 火箭队既有卡面采用无损WebP运行版本 `characters/special-team-rocket-official-lossless-v1.webp`，原 `special-team-rocket-official.png` 完整保留，构建glob排除该原件以避免双份打包。361,001字节转为242,110字节，节省118,891字节；1154×649尺寸、每个RGBA字节完全一致，源图本身不透明，未增加透明度或身体动作。原件／派生／解码像素哈希及编码参数见[格式核验](../../../artifacts/pokemon-expansion/existing-pose-audit-20261006/lossless-format-sample.json)。这次仅改变既有图像编码，原先“全部原媒体字节不变”的历史包结论不用于本次运行文件；实际离线解码与同包门禁须另行验证。
+
+继续对其余18张PNG完成串行、低优先级无损格式转换，尺寸、透明度与完整RGBA字节相同，原件哈希不变；[候选核验](../../../artifacts/pokemon-expansion/lossless-candidates-20261006/manifest.json)记录编码器、颜色元数据和逐文件哈希。三张规则PNG已有运行WebP，本轮不重复导入；采用其余15张角色／硬币图，新增净省235,843字节，连同火箭队共省354,734字节。[运行编码清单](../../../assets/games/pokemon-encounters/characters/lossless-runtime.json)区分源图与派生版本，原官方来源清单保留。硬币与卡面共用格式解析，16张PNG原件不进入运行glob，仍完整保留在工程。实际浏览器颜色／透明边缘相等及离线加载按本轮交付证据验收；格式替换不增加动作帧，62帧缺口仍在。

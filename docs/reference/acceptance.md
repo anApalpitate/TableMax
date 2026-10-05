@@ -1,8 +1,18 @@
 # 首版交付与验收
 
+## 1.0.2：火箭队能力估值与角色无损格式续验（2026-10-06）
+
+当前[运行ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) SHA-256 `42205330f5d0c8f93f1bda2203b1a73990fbeaf03643a34ce3ed67fc11860216`，ZIP40,886,136字节、实际解压94,300,018字节，95MB余699,982字节。[冻结与同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-ability-review-20261006/final-checks.json)核验18单元、当前服务源码及全部原件／派生哈希；相对上次正式包，仅宝可梦策略、网页入口及15张图像运行格式变化，其他游戏字节不变。原包完整保留，未推送或发布。
+
+火箭队皮卡丘面从错误的本人12分换入估值改为全桌同格依次补牌，三个先失败／边界测试通过；近期17项策略复核、17项真实服务集成、类型与相关lint通过。150种子小局实际完成，但六人绝悟组的首次整组测试超时；拆为每种子独立边界后，仅失败组十个种子重跑全部通过，不将首次完整命令称为全绿。新18场／70小局三胜对照未证明绝悟优于豆包，具体限制与证据见[人机页](../games/pokemon-encounters/bot.md#扩展版三档策略2026-10-05)。
+
+新增15张角色与硬币运行WebP净省235,843字节，原PNG全部保留。[实际便携验收](../../artifacts/maintenance/v1.0.2/pokemon-expansion-runtime/portable-42205330f5d0/results.json)通过10项流程／11项显示，16张无损运行图与原PNG在浏览器中每个显示RGBA字节一致，18扩展卡面、八主题及27叫声离线解码通过。[普通模式同包](../../artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/ability-final-normal-20261006/results.json)完成37次手机控件动作与九种阶段，真实默认Worker参与，保存／私看隔离／离线与进程退出通过；自动化46.022秒不是人类时长或听感验证。
+
+首次同步被自动审批拒绝后，逐文件确认目标与本聊天上次提交一致，备份再同步；同步在未跟踪Rocket文件断言处结束，首次试包漏闪电鸟素材，未交付，失败清单与原因保留。补齐并核对16素材后重新构建，实际验收只绑定上述 `42205330…` 包。完整计划仍进行中：缺62帧真实透明动作，三档强度／能力预测、真人手机／听感／实际时长及音源使用依据待完成。
+
 ## 1.0.2：普通收局前瞻与无损卡面续验（2026-10-06）
 
-当前[运行ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) SHA-256 `d13522ddd11cf7220e5ff7d3576c7e7873fca6156522e2720afe47ea301b5b47`，ZIP41,114,571字节、实际解压94,535,185字节，95MB余464,815字节。隔离18单元／16缓存命中、冻结输入及源哈希复核通过；[固定清单](../../artifacts/maintenance/v1.0.2/pokemon-expansion-terminal-delivery/final-delivery-manifest.json)与[最终核对](../../artifacts/maintenance/v1.0.2/pokemon-expansion-terminal-delivery/final-checks.json)绑定同一包。相对上一包，仅扩展策略产物、宝可梦网页入口及火箭队图像编码变化，其他游戏文件字节不变，不重复升级其完整对局验收结论。
+当时[运行ZIP](../../artifacts/maintenance/v1.0.2/pokemon-expansion-ability-review-20261006/previous-delivery/TableMax-1.0.2-win-x64.zip) SHA-256 `d13522ddd11cf7220e5ff7d3576c7e7873fca6156522e2720afe47ea301b5b47`，ZIP41,114,571字节、实际解压94,535,185字节，95MB余464,815字节。隔离18单元／16缓存命中、冻结输入及源哈希复核通过；[固定清单](../../artifacts/maintenance/v1.0.2/pokemon-expansion-terminal-delivery/final-delivery-manifest.json)与[最终核对](../../artifacts/maintenance/v1.0.2/pokemon-expansion-terminal-delivery/final-checks.json)绑定同一包。相对上一包，仅扩展策略产物、宝可梦网页入口及火箭队图像编码变化，其他游戏文件字节不变，不重复升级其完整对局验收结论。
 
 普通换牌全明后停止后续虚构取牌，两项先失败的边界与既有策略共20测试通过，类型、相关lint通过。[17项真实服务集成](../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/integration/run-1791226208005-22393822/results.json)通过；混合四人三胜154次真实Worker，最长487ms、三局完整对局约80.03秒。保留两次180秒整场超时；覆盖四席最多九局的整场测试边界改为十分钟，每次Worker仍32MiB／两秒硬截止，3,000步上限保留。330日志时约1.7GB的失败存档也保留，未宣称存档长期增长有界。
 

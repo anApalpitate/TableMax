@@ -507,3 +507,5 @@ GitHub附件白名单仅 `TableMax-<版本>-win-x64.exe` 与 `TableMax-<版本>-
 `node scripts/verify-power-grid-ui.mjs --maintenance=<维护名> --evidence=<运行名>` 运行生产组件的六人三端96布局、交互、字体／触控与声音调用矩阵；`--board-only`检查阶段抽屉、四向最低比例拖动、遮挡避让、跟随暂停／恢复、保存重排及公司权限。`--seats=2`覆盖两人四厂与新购第五厂；合法自然对局不一定产生有库存的待安置场景，该项由六人样本覆盖。`--map-only`补查手机真实节点／键盘选择、裁切后的城名与路线费用。`--fixtures=<已生成fixtures.json>`复用未改变的规则夹具，减少重复人机生成，不伪造规则状态。页面查看、拖动、抽屉和详情必须零游戏动作。
 
 本次相机／阶段默认的纯函数测试与电力公司数据／规则窄回归采用 `pnpm exec vitest run games/power-grid/ui games/power-grid/rules games/power-grid/data -t '^(?!.*completes a conserved)'`；排除45局未改动人机压力测试，实际自然对局另由夹具和运行验证证明。同版本ZIP导出后执行 `node scripts/verify-power-grid.mjs --portable --display-only --evidence=<运行名>`，在隐藏原生主机／公共窗口核验720p到4K、125%／150%显示请求及模拟Windows DPI，读取实际WebView2 viewport／ZoomFactor。模拟DPI不替代真人手机或真实Windows显示硬件验收。所有验证监听127.0.0.1。
+
+2026-10-06火箭队能力估值和15张角色无损运行格式续验：[同包冻结审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-ability-review-20261006/final-checks.json)对应 `42205330…`，实际解压94,300,018字节。16卡面／硬币实际浏览器逐显示RGBA相等，原PNG保留；首次漏闪电鸟的试包未交付，补齐后重新构建。策略种子覆盖改为每局独立60秒与独立输出目录，失败六人绝悟组十局重跑通过，单次Worker边界未放宽；真实服务17项、同包普通UI与冻结核对通过。闲时安全维护零合格候选，当前空间与保护范围见[瘦身记录](project-slimming.md)，不以试包或旧源码统计替代本包验收。

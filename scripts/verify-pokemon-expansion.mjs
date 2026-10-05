@@ -594,41 +594,92 @@ try {
   evidence.checks.push(
     '18 production glob portrait URLs decoded locally while external requests are blocked; private cards do not appear in public projection',
   );
-  const rocket = assets.find((name) =>
-    /^special-team-rocket-official-lossless-v1-.*\.webp$/.test(name),
-  );
-  assert.ok(rocket, 'Lossless Rocket card included');
-  assert.ok(
-    !assets.some((name) => /^special-team-rocket-official-.*\.png$/.test(name)),
-    'Preserved source PNG is excluded from runtime payload',
-  );
-  const rocketBytes = await readFile(
-    join(
-      dirname(executablePath),
-      'web/games/pokemon-encounters/web/assets',
-      rocket,
+  const lossless = JSON.parse(
+    await readFile(
+      'assets/games/pokemon-encounters/characters/lossless-runtime.json',
+      'utf8',
     ),
   );
-  assert.equal(
-    createHash('sha256').update(rocketBytes).digest('hex'),
-    '2c9b12e7588492bdc5ec491b80c7ac2665e00e87574e29c7cbc4ae7abdc4d554',
-  );
-  const rocketDimensions = await phones[0].evaluate(async (url) => {
-    const image = new Image();
-    image.src = url;
-    await image.decode();
-    return [image.naturalWidth, image.naturalHeight];
-  }, `${origin}/games/pokemon-encounters/web/assets/${rocket}`);
-  assert.deepEqual(rocketDimensions, [1154, 649]);
-  evidence.rocketLossless = {
-    built: rocket,
-    bytes: rocketBytes.length,
-    dimensions: rocketDimensions,
-    rgbaAudit:
-      'artifacts/pokemon-expansion/existing-pose-audit-20261006/lossless-format-sample.json',
-  };
+  assert.equal(lossless.assets.length, 16);
+  evidence.losslessCards = [];
+  for (const asset of lossless.assets) {
+    const stem = asset.runtime.split('/').at(-1).replace('.webp', '');
+    const sourceStem = asset.source.split('/').at(-1).replace('.png', '');
+    const built = assets.find(
+      (name) => name.startsWith(stem + '-') && name.endsWith('.webp'),
+    );
+    assert.ok(built, 'Lossless runtime card ' + stem);
+    assert.ok(
+      !assets.some(
+        (name) => name.startsWith(sourceStem + '-') && name.endsWith('.png'),
+      ),
+    );
+    const sourceBytes = await readFile(asset.source);
+    const runtimeBytes = await readFile(
+      join(
+        dirname(executablePath),
+        'web/games/pokemon-encounters/web/assets',
+        built,
+      ),
+    );
+    assert.equal(
+      createHash('sha256').update(sourceBytes).digest('hex'),
+      asset.sourceSha256,
+    );
+    assert.equal(
+      createHash('sha256').update(runtimeBytes).digest('hex'),
+      asset.runtimeSha256,
+    );
+    const decoded = await phones[0].evaluate(
+      async ({ source, runtime }) => {
+        const pixels = async (url) => {
+          const image = new Image();
+          image.src = url;
+          await image.decode();
+          const canvas = document.createElement('canvas');
+          canvas.width = image.naturalWidth;
+          canvas.height = image.naturalHeight;
+          const context = canvas.getContext('2d', { willReadFrequently: true });
+          context.drawImage(image, 0, 0);
+          return {
+            dimensions: [canvas.width, canvas.height],
+            rgba: context.getImageData(0, 0, canvas.width, canvas.height).data,
+          };
+        };
+        const original = await pixels(source),
+          converted = await pixels(runtime);
+        return {
+          dimensions: converted.dimensions,
+          sourceDimensions: original.dimensions,
+          browserRgbaEqual:
+            original.rgba.length === converted.rgba.length &&
+            original.rgba.every(
+              (value, index) => value === converted.rgba[index],
+            ),
+        };
+      },
+      {
+        source: 'data:image/png;base64,' + sourceBytes.toString('base64'),
+        runtime: `${origin}/games/pokemon-encounters/web/assets/${built}`,
+      },
+    );
+    assert.deepEqual(decoded.dimensions, asset.dimensions);
+    assert.deepEqual(decoded.sourceDimensions, asset.dimensions);
+    assert.equal(
+      decoded.browserRgbaEqual,
+      true,
+      'Actual browser colors and alpha ' + stem,
+    );
+    evidence.losslessCards.push({
+      built,
+      bytes: runtimeBytes.length,
+      sha256: asset.runtimeSha256,
+      sourceSha256: asset.sourceSha256,
+      ...decoded,
+    });
+  }
   evidence.checks.push(
-    'Pixel-identical lossless Rocket card decodes offline; original PNG preserved outside runtime payload',
+    '16 lossless cards and coin faces decode offline with exact browser RGBA equality; original PNGs preserved outside runtime payload',
   );
   const audioManifest = JSON.parse(
     await readFile(
