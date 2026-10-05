@@ -227,8 +227,6 @@ export function choose(
           : -1;
       return rank(b) - rank(a);
     })[0]!;
-  if (view.phase === 'lucario-choice')
-    return actions.find((a) => a.type === 'extra-draw') ?? actions[0]!;
   const started = performance.now(),
     deadline = started + { default: 120, doubao: 400, juewu: 750 }[difficulty];
   const count = { default: 1, doubao: 8, juewu: 32 }[difficulty];
@@ -264,7 +262,10 @@ export function choose(
     const urgency = Math.max(0, memory.turn - 25) * 0.45;
     value -= completion * Math.min(16, urgency);
     // Any fully revealed field closes the round after the whole ability chain.
-    if (view.seatOrder.some((id) => model.up[id]!.every(Boolean))) {
+    const closesRound = view.seatOrder.some((id) =>
+      model.up[id]!.every(Boolean),
+    );
+    if (closesRound) {
       const minimum = Math.min(mine, opponent);
       const winners = view.seatOrder.filter(
         (id) => score(model.boards[id]!, model.up[id]!) === minimum,
@@ -277,6 +278,8 @@ export function choose(
           ? -6 - 2 * view.winsBySeat[seat]!
           : Math.max(0, 18 - urgency);
     }
+    // Near-complete lines have no future value once this full chain settles.
+    if (closesRound) return value;
     const resolved = scoreBoard(model.boards[seat]!).values;
     for (const line of lines) {
       const values = line.map((i) => resolved[i]);
@@ -350,6 +353,23 @@ export function choose(
       consumed,
     );
     return utility({ ...model, boards: result.boards, up: result.up });
+  };
+  const extraDrawValues = (model: Model) => {
+    // Choose the draw source before learning the deck identity; average each
+    // source separately across the same authorized hypotheses first.
+    const incoming = model.pool.at(-1);
+    return [
+      incoming
+        ? estimateDraw(
+            'deck',
+            utility(model),
+            bestReplace(model, seat, incoming),
+          )
+        : Infinity,
+      ...model.discards.map((id) =>
+        estimateDraw('discard', utility(model), bestReplace(model, seat, id)),
+      ),
+    ];
   };
   const evaluate = (a: Action, original: Model) => {
     const model: Model = {
@@ -477,6 +497,7 @@ export function choose(
     return utility(model) + (a.type === 'reposition' ? 0.6 : 0);
   };
   const sums = actions.map(() => 0);
+  const extraSums = Array<number>(view.discardOptions.length + 1).fill(0);
   let samples = 0;
   const hypotheses: Forecast[] = [];
   for (let n = 0; n < count; n++) {
@@ -491,12 +512,21 @@ export function choose(
         discards: model.discards,
       });
     actions.forEach((a, i) => {
-      sums[i]! += evaluate(a, model);
+      if (a.type === 'extra-draw')
+        extraDrawValues(model).forEach((value, source) => {
+          extraSums[source]! += value;
+        });
+      else sums[i]! += evaluate(a, model);
     });
     samples++;
   }
   const ordered = actions
-    .map((action, i) => ({ action, value: sums[i]! / samples }))
+    .map((action, i) => ({
+      action,
+      value:
+        (action.type === 'extra-draw' ? Math.min(...extraSums) : sums[i]!) /
+        samples,
+    }))
     .sort((a, b) => a.value - b.value);
   // Bounded own-turn lookahead averages the same authorized hypotheses as immediate evaluation.
   if (
