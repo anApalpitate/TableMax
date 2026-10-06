@@ -6,7 +6,7 @@ import { resolve, join, extname, sep } from 'node:path';
 import { build as bundle } from 'esbuild';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
-import { chromium } from 'playwright';
+import { launchTestBrowser } from './browser-test.mjs';
 import { verificationOutput } from './verification-output.mjs';
 
 const name =
@@ -182,7 +182,11 @@ await new Promise((done) => server.listen(0, '127.0.0.1', done));
 const origin = 'http://127.0.0.1:' + server.address().port;
 let browser, page;
 try {
-  browser = await chromium.launch({ channel: 'msedge', headless: true });
+  browser = await launchTestBrowser({
+    channel: 'msedge',
+    headless: true,
+    soundEnabled: process.argv.includes('--sound'),
+  });
   page = await browser.newPage({ viewport: { width: 854, height: 480 } });
   page.on('pageerror', (error) => report.errors.push(String(error)));
   page.on('request', (request) => {

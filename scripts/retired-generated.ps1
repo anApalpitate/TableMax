@@ -79,7 +79,30 @@ function Initialize-RetiredGenerated {
         if ($entry.path -notmatch '/TableMax-\d+\.\d+\.\d+-(?:win-x64|source)\.zip$' -or $entry.files.Count -ne 1 -or
             (Get-Item -LiteralPath $absolute).PSIsContainer) { throw 'Retired packages must be individual historical archives.' }
       }
-      default { throw 'Only regenerable runtime copies, browser profiles, retired packages, obsolete Electron caches and verified consolidated cleanup history can be selected.' }
+      'isolated-test-database' {
+        $fixtureDir = $entry.path -replace '/room\.sqlite$',''
+        $singleDatabase = $entry.path.EndsWith('/room.sqlite')
+        if ($fixtureDir -notmatch '^artifacts/maintenance/v\d+\.\d+\.\d+/pokemon-expansion-verification/integration/run-\d+-[a-f0-9]{8}/worker-mixed$' -or
+            (Get-Item -LiteralPath $absolute).PSIsContainer -eq $singleDatabase -or
+            ($singleDatabase -and $entry.files.Count -ne 1) -or
+            @($entry.files | Where-Object { $_.path -notmatch ('^'+[regex]::Escape($fixtureDir)+'/room\.sqlite(?:-wal|-shm)?$') }).Count -or
+            -not @($entry.files | Where-Object { $_.path -eq ($fixtureDir+'/room.sqlite') }).Count) { throw 'Only explicitly audited mixed-worker fixture databases may be retired.' }
+        if ($singleDatabase) {
+          foreach ($suffix in @('-wal','-shm')) {
+            $sidecarRelative=$entry.path+$suffix
+            if ((Test-Path -LiteralPath ($absolute+$suffix)) -and -not @($entry.evidence | Where-Object { $_.path -eq $sidecarRelative }).Count) { throw 'A separately retained SQLite sidecar must be hash-bound evidence.' }
+          }
+        }
+        $auditPath = Assert-LocalPath (Join-Path $workspace $entry.audit.path)
+        if (-not @($entry.evidence | Where-Object { $_.path -eq $entry.audit.path -and $_.sha256 -eq $entry.audit.sha256 }).Count) { throw 'Test database audit must be retained and hash-bound.' }
+        $audit = Get-Content -LiteralPath $auditPath -Raw -Encoding utf8 | ConvertFrom-Json
+        $resultRelative = $fixtureDir -replace '/worker-mixed$','/results.json'
+        $database = @($entry.files | Where-Object { $_.path -eq ($fixtureDir+'/room.sqlite') })[0]
+        if ($audit.databasePath -ne $database.path -or $audit.origin -ne 'expansion-integration.test.ts Repository(worker-mixed)' -or
+            $audit.databaseSha256 -ne $database.sha256 -or $audit.userVersion -notin @(1,2) -or $audit.journalRows -lt 1 -or
+            -not @($entry.evidence | Where-Object { $_.path -eq $resultRelative }).Count) { throw 'Fixture origin, database summary and retained integration result are required.' }
+      }
+      default { throw 'Only audited generated copies, isolated fixture databases, retired packages and verified cleanup history can be selected.' }
     }
     Assert-RetiredGenerated $entry
     $countBefore = $candidates.Count

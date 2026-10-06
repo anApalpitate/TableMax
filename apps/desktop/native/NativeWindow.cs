@@ -88,6 +88,8 @@ namespace TableMax.Desktop
             options.ProfileName = profile;
             await browser.EnsureCoreWebView2Async(context.Environment, options);
             var core = browser.CoreWebView2;
+            // Automated verification remains silent even when it exercises play mode.
+            core.IsMuted = context.Testing && System.Environment.GetEnvironmentVariable("TABLEMAX_TEST_AUDIO") != "1";
             core.Settings.AreDevToolsEnabled = context.Testing;
             core.Settings.AreDefaultContextMenusEnabled = context.Testing;
             core.Settings.AreHostObjectsAllowed = false;
@@ -306,7 +308,7 @@ namespace TableMax.Desktop
         {
             var ratio = NativeMethods.Scale(Handle);
             var bounds = Bounds;
-            return new { id = Id, role = Role, managed = Managed, url = Url, visible = Visible && !context.Background, rendered = Visible, content = new[] { (int)Math.Round(browser.ClientSize.Width / ratio), (int)Math.Round(browser.ClientSize.Height / ratio) }, fullscreen, borderStyle = FormBorderStyle.ToString(), showInTaskbar = ShowInTaskbar, foregroundTest = context.ForegroundTest, windowState = WindowState.ToString(), restoreBounds = DesktopContext.RectangleValue(RestoreBounds), zoom = browser.ZoomFactor, bounds = DesktopContext.RectangleValue(bounds), display = ApplyDisplay(), bridgeSourcePath = lastMessageSourcePath, bridgeCurrentPath = lastMessageCurrentPath };
+            return new { id = Id, role = Role, managed = Managed, url = Url, visible = Visible && !context.Background, rendered = Visible, audioMuted = browser.CoreWebView2.IsMuted, content = new[] { (int)Math.Round(browser.ClientSize.Width / ratio), (int)Math.Round(browser.ClientSize.Height / ratio) }, fullscreen, borderStyle = FormBorderStyle.ToString(), showInTaskbar = ShowInTaskbar, foregroundTest = context.ForegroundTest, windowState = WindowState.ToString(), restoreBounds = DesktopContext.RectangleValue(RestoreBounds), zoom = browser.ZoomFactor, bounds = DesktopContext.RectangleValue(bounds), display = ApplyDisplay(), bridgeSourcePath = lastMessageSourcePath, bridgeCurrentPath = lastMessageCurrentPath };
         }
         public async Task<object> TestOperation(Dictionary<string, object> parameters)
         {

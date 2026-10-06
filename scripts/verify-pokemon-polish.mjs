@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
-import { chromium } from 'playwright';
+import { launchTestBrowser } from './browser-test.mjs';
 import { serveFixture } from './fixture-server.mjs';
 import { verificationOutput } from './verification-output.mjs';
 
@@ -58,7 +58,11 @@ await build({
 const server = await serveFixture(join(work, 'bundle'));
 let browser;
 try {
-  browser = await chromium.launch({ channel: 'msedge', headless: true });
+  browser = await launchTestBrowser({
+    channel: 'msedge',
+    headless: true,
+    soundEnabled: process.argv.includes('--sound'),
+  });
   const context = await browser.newContext({
     viewport: { width: 360, height: 640 },
   });

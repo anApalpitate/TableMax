@@ -1,5 +1,15 @@
 # 项目瘦身方案与执行记录
 
+## 测试静音与低于10GiB收尾（2026-10-06）
+
+按用户最新指示完成测试默认静音、非必要生成资源清理，并将长任务完成后检查体积／安全瘦身纳入AGENTS与维护规则。初始一次实际盘点44,582,597,297逻辑字节（约41.52GiB），相关工程进程结束后[最终维护](../../artifacts/maintenance/v1.0.2/slimming-test-silence-20261006/final-maintenance.json)实测10,441,893,057字节（约9.725GiB），低于10GiB；后续文字、审计与Git写入会小幅增加，不把此数值当作恒定水位。统计跳过1,346链接、零嵌套仓库，NTFS物理节省未测量。
+
+已核验删除四组：18个旧自动混合Worker主库28,302,213,120字节，见[退役清单](../../artifacts/maintenance/v1.0.2/slimming-test-silence-20261006/retired-test-databases.json)与[执行审计](../../artifacts/maintenance/local-cleanup-20261006-050840-255-intermediates/cleanup.json)；44个旧隔离验证目录5,745,138,266字节，见[目录清理](../../artifacts/maintenance/local-cleanup-20261006-051258-636-intermediates/cleanup.json)；两份旧打包解压副本188,741,298字节，见[副本审计](../../artifacts/maintenance/local-cleanup-20261006-051556-690-intermediates/cleanup.json)；140份旧成功构建产物687,371,269字节，见[缓存审计](../../artifacts/maintenance/v1.0.2/build-cache-cleanup/1791262316963-apply.json)。删除量与容量净降分开计量，期间新增验证、构建及旧包备份计入最终容量。
+
+旧库限 `expansion-integration.test.ts Repository(worker-mixed)` 生成的模拟资料，先保留来源、原结果／源码哈希、只读SQLite版本／journal行数／当前Save摘要和完整文件SHA，再按精确路径预览／Apply。整段旧模拟journal已退役，旧通过／失败结论不改写；近期只读审计生成的WAL／SHM作为单独保留证据，哈希变化阻止删除主库。正式存档、原素材、规则资料及当前截图保留，旧迁移存档前后SHA一致；未按忽略规则删除，也未降低30分钟保护。
+
+releases只保留当前v1.0.2运行ZIP与清单；本轮近期打包暂存以已核验绝对路径可恢复移入证据，逐文件哈希相同，见[保留记录](../../artifacts/maintenance/v1.0.2/slimming-test-silence-20261006/release-retention.json)，没有删除近期内容。旧运行ZIP与清单、已发布EXE／source ZIP原件保留。本轮只打包一次，18单元／16缓存命中，实际组装21,626ms；两次Edge参数核验失败、隔离清理夹具返修和后续通过分别保留。静音、206项清理／34项维护／34项精确退役检查及同包范围见[最新验收](acceptance.md#102测试静音与资源瘦身2026-10-06)。
+
 ## 电力公司布局交付收尾（2026-10-06）
 
 同版本新ZIP通过实际便携核验后，KeepLatestOnly先预览再执行，删除两个已退出打包目录，共460,493,527逻辑字节（约0.43GiB）；当前运行ZIP、清单、历史发布EXE／source ZIP及验收证据受保护，见[清理记录](../../artifacts/maintenance/local-cleanup-20261005-180608-811-releases/cleanup.json)。首轮空闲自动维护实际计量22,003,251,312逻辑字节（约20.492GiB），安全候选0、保护／跳过73项；追加完整便携对局退出后的[最终水位](../../artifacts/maintenance/v1.0.2/power-grid-layout-20261006/final-maintenance.json)为23,444,356,311逻辑字节（约21.834GiB），安全候选0、保护／跳过76项。超10GiB且未达8GiB，候选耗尽后不扩大范围或删除素材／存档／当前证据。NTFS物理释放未测量。

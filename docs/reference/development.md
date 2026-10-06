@@ -207,6 +207,14 @@ pnpm prototype:verify:game
 
 ## 当前维护验证
 
+原生专门试听还需显式选择游玩模式，例如 `launchDesktop({ soundEnabled: true, args: ['--tablemax-play-mode'] })`；游戏测试模式本身仍省略声音。显式开启状态核验不等于真人试听。
+
+直接Edge验证统一通过 `scripts/browser-test.mjs` 启动，默认追加 `--mute-audio`，保留调用方其他参数；对应入口专门试听时加 `--sound`。这仅关闭实际音频输出，不屏蔽网页播放事件与解码检查。
+
+`node scripts/verify-test-silence.mjs --evidence=<独立名称>` 实际解压当前ZIP、核对逐文件哈希及体积，用包内Node和隐藏WebView2检查主机／公共／模拟手机默认静音、显式试听选项、重新加载和电力公司暂停／测试／游玩声音按钮。显式试听检查仅核验窗口静音状态，不实际播放音频；证据在当前版本 `test-silence/<名称>/`，失败和修正用不同名称保留。
+
+测试默认静音：原生 `--foundation-test` 窗口在导航前设置WebView2静音，包括主机、公共屏、模拟手机及游玩模式节奏检查。`scripts/desktop-test.mjs` 默认强制 `TABLEMAX_TEST_AUDIO=0`；专门试听使用 `launchDesktop({ soundEnabled: true })`，直接测试启动需显式 `TABLEMAX_TEST_AUDIO=1`。声音调用、解码及播放权仍可验证；测试静音不修改用户偏好，普通启动沿用原声音设置。电力公司测试／暂停／离线的声音按钮显示关闭且禁用。
+
 先执行适用的工程检查，再按改动选专项；命令存在不代表已通过。使用 `verificationOutput` 的入口按根目录 `package.json` 写入 `artifacts/maintenance/v<版本>/`，当前为 `v1.0.2`；电力公司 UI 与三端规则检查也使用此入口，旧证据位置保留。部分游戏专项仍有自己的维护子目录，以脚本参数和实际报告为准。每次选择新的证据名，保留失败、返修和历史记录。最终便携通过必须对应实际执行的 ZIP 哈希，不能由开发构建推定；已通过且未受影响的功能不机械重跑。
 
 短屏布局返修可先运行 `pnpm verify:display --paused-720p-only`，只在真实六手机开局并暂停后检查主机 1280×720 首屏，证据进入当前版本的 `display/paused-720p`。该入口用于固定失败场景，不能替代完整显示矩阵或最终 ZIP 验证。
@@ -405,6 +413,12 @@ pnpm package:win
 相关隔离检查为 `powershell.exe -NoProfile -File scripts/historical-screenshots.test.ps1`；修改共用入口同时执行既有手动、自动维护、同字节去重和历史可再生副本退役回归。实际执行结果进入 [项目瘦身](project-slimming.md)，运行 ZIP 内容与版本号不因截图清理改变。
 
 ### 手动可再生副本与旧包退役
+
+同类型也允许精确选择上述测试目录中的单个旧 `room.sqlite`。目录若有近期辅助文件，将它们作为独立保留证据绑定SHA-256，任何变化阻止删除主库；只删除已过保护期的主库，不降低30分钟保护、不移动或删除近期WAL／SHM。原审计仍记录整个测试数据库文件组；这一选择限已退出且不再运行的模拟夹具，不用于业务数据库。
+
+2026-10-06增加手动 `isolated-test-database` 类型：仅接受 `artifacts/maintenance/v<版本>/pokemon-expansion-verification/integration/run-<数字>-<八位十六进制>/worker-mixed`，目录内只能有 `room.sqlite` 及其WAL／SHM。清单完整记录所有文件哈希；另含 `audit.path/sha256`，对应保留证据中的数据库只读摘要（来源、路径、SHA-256、v1／v2、journal行数），并保留相邻 `results.json` 的源码哈希／原结论。只用于已结束的自动模拟测试，运行进程、近期修改及其他保护照常生效；正式存档和未知目录拒绝处理。
+
+自动隔离中间物新增已核验的六位随机后缀 `tmp/pokemon-expansion-runtime-*`、`tmp/pokemon-expansion-normal-play-*`、`tmp/pokemon-expansion-effects-*` 和 `tmp/portable-storage-games-*`，分别由现有扩展实际窗口／普通节奏／特效／三游戏恢复验证生成。类似的素材、资料目录仍保留。长任务完成后必须核查逻辑体积并安全维护，结果归[项目瘦身](project-slimming.md)。
 
 用户 2026-10-05 授权完整检查通过后清理无后续用途内容。方案及实际结果见 [项目瘦身](project-slimming.md)。`Clean-Intermediates.ps1 -RetiredGeneratedManifest <相对清单>` 默认预览，核对后追加 `-Apply`；不与其他清理模式组合，不进入自动维护。
 

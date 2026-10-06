@@ -36,6 +36,7 @@ try {
   [IO.File]::WriteAllText((Join-Path $primary 'package.json'), '{"name":"tablemax","version":"1.6.0"}')
   Copy-Item -LiteralPath (Join-Path $workspaceForTest 'Maintain-Project.ps1') -Destination $primary
   Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'cleanup-local.ps1') -Destination (Join-Path $primary 'scripts')
+  foreach ($support in @('cleanup-guard.ps1','WorkspaceSnapshot.cs')) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $support) -Destination (Join-Path $primary 'scripts') }
   Git-At $primary @('init', '--quiet')
   Git-At $primary @('add', '.')
   Git-At $primary @('-c', 'user.name=TableMax test', '-c', 'user.email=test@localhost', '-c', 'commit.gpgsign=false', 'commit', '--quiet', '-m', 'Fixture only')

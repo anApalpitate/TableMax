@@ -61,6 +61,11 @@ try {
   Fixture-File 'tmp/fullscreen-portable-a1b2c3d4e5/notes.md' 'unknown-fullscreen-suffix'
   Fixture-File 'tmp/modern-art-audio-verify-AUD123/data/room.sqlite' 'isolated-modern-art-audio-data'
   Fixture-File 'tmp/countdown-crosslayer-CLK123/data/room.sqlite' 'isolated-countdown-data'
+  Fixture-File 'tmp/pokemon-expansion-runtime-RUN123/data/room.sqlite' 'isolated-expansion-runtime'
+  Fixture-File 'tmp/pokemon-expansion-normal-play-PLY123/data/room.sqlite' 'isolated-expansion-play'
+  Fixture-File 'tmp/pokemon-expansion-effects-EFX123/data/room.sqlite' 'isolated-expansion-effects'
+  Fixture-File 'tmp/portable-storage-games-SAV123/data/room.sqlite' 'isolated-three-game-storage'
+  Fixture-File 'tmp/pokemon-expansion-materials/notes.md' 'original material preserved'
   Fixture-File 'tmp/modern-art-polish-reference/notes.md' 'unknown-polish-reference'
   Fixture-File 'tmp/modern-art-verify-research/notes.md' 'unknown-modern-art-research'
   Fixture-File 'tmp/app-icon-verify-ICO123/icons.png' 'isolated-icon-verification'
@@ -87,6 +92,7 @@ try {
   New-Item -ItemType Junction -Path $temporaryJunction -Value (Join-Path $fixture 'protected') | Out-Null
   New-Item -ItemType Directory -Path (Join-Path $fixture 'scripts') -Force | Out-Null
   Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'cleanup-local.ps1') -Destination (Join-Path $fixture 'scripts/cleanup-local.ps1')
+  foreach ($support in @('cleanup-guard.ps1','WorkspaceSnapshot.cs')) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $support) -Destination (Join-Path $fixture 'scripts') }
   Copy-Item -LiteralPath (Join-Path $workspaceForTest 'Clean-Intermediates.ps1') -Destination $fixture
   Copy-Item -LiteralPath (Join-Path $workspaceForTest 'Clean-Releases.ps1') -Destination $fixture
   $currentZip = Join-Path $fixture 'artifacts/releases/TableMax-1.5.0-win-x64.zip'
@@ -307,6 +313,7 @@ try {
   $cleanupPath = Join-Path $fixture 'scripts/cleanup-local.ps1'
   $cleanupSource = [IO.File]::ReadAllText($cleanupPath)
   $mutationHook = '$lockDigest = [Security.Cryptography.SHA256]::Create()'
+  Check ($cleanupSource.Contains($mutationHook)) 'Race injection hook exists in the split cleanup entry point'
   $runtimePath = Join-Path $fixture ($verificationWork + '/extracted/node.exe')
   $proofPath = Join-Path $fixture ($verificationRun + '/results.json')
   foreach ($mutation in @('candidate', 'proof')) {
@@ -317,7 +324,7 @@ try {
     $injection = "[IO.File]::AppendAllText('" + $mutatedPath.Replace("'", "''") + "', ' ')`n" + $mutationHook
     [IO.File]::WriteAllText($cleanupPath, $cleanupSource.Replace($mutationHook, $injection), (New-Object Text.UTF8Encoding($false)))
     $refused = $false
-    try { Run-Cleanup -Kind Intermediates -Apply $true -VerificationCopies @($verificationWork + '/extracted') } catch { $refused = $_.Exception.Message -like '*changed during cleanup*' }
+    try { Run-Cleanup -Kind Intermediates -Apply $true -VerificationCopies @($verificationWork + '/extracted') } catch { $refused = $_.Exception.Message -like '*changed*'; if (-not $refused) { throw } }
     Check ($refused -and (Test-Path -LiteralPath (Join-Path $fixture ($verificationWork + '/extracted')))) ('Verification deletion refuses a changed planned ' + $mutation)
     [IO.File]::WriteAllText($mutatedPath, $originalContent, (New-Object Text.UTF8Encoding($false)))
     (Get-Item -LiteralPath $mutatedPath).LastWriteTimeUtc = $old
@@ -334,6 +341,8 @@ try {
 
   Run-Cleanup Intermediates $true
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/package-1.5.0-ABC123'))) 'Current regenerable stage is removed, current ZIP retained'
+  foreach ($name in @('pokemon-expansion-runtime-RUN123','pokemon-expansion-normal-play-PLY123','pokemon-expansion-effects-EFX123','portable-storage-games-SAV123')) { Check (-not (Test-Path -LiteralPath (Join-Path $fixture ('tmp/'+$name)))) ('Retired exact isolated verification prefix '+$name) }
+  Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/pokemon-expansion-materials/notes.md')) 'Expansion original material is not a verification prefix'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/display-ABC123'))) 'Recognized stopped verification directory is removed'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/experience-EXP123'))) 'Recognized stopped experience verification data is removed'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/runtime-memory-MEM123'))) 'Recognized stopped memory verification data is removed'
@@ -472,7 +481,7 @@ try {
     [IO.File]::SetLastWriteTimeUtc($mutatedPath, $originalTime)
     [IO.File]::WriteAllText($cleanupPath, $cleanupSource, (New-Object Text.UTF8Encoding($false)))
   }
-  $latestProtected = @('TableMax-1.5.0-win-x64.zip', 'TableMax-1.5.0-win-x64-manifest.json', 'package-1.4.0-Linked', 'latest-linked-copy', 'nested-release', 'recent-release.tmp')
+  $latestProtected = @('TableMax-1.5.0-win-x64.zip', 'TableMax-1.5.0-win-x64-manifest.json', 'TableMax-1.5.0-source.zip', 'package-1.4.0-Linked', 'latest-linked-copy', 'nested-release', 'recent-release.tmp')
   $latestCandidates = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/releases') -Force | Where-Object { $_.Name -notin $latestProtected } | ForEach-Object { $_.FullName })
   & (Join-Path $fixture 'Clean-Releases.ps1') -Apply -KeepLatestOnly
   foreach ($path in $latestCandidates) {
@@ -483,7 +492,7 @@ try {
   Check ((Get-FileHash -LiteralPath $currentZip -Algorithm SHA256).Hash.ToLowerInvariant() -eq $hash -and (Get-Content -LiteralPath $manifestPath -Raw) -eq $validManifest) 'KeepLatestOnly keeps the current runtime ZIP and matching manifest byte-identical'
   Check ((Test-Path -LiteralPath (Join-Path $fixture 'tmp/preserve-me/notes.md')) -and (Test-Path -LiteralPath (Join-Path $fixture ($verificationRun + '/results.json')))) 'KeepLatestOnly never cleans tmp or historical maintenance evidence'
   $latestReports = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Filter cleanup.json -Recurse -File | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw -Encoding utf8 | ConvertFrom-Json } | Where-Object { $_.keepLatestOnly -and $_.result -eq 'passed' })
-  Check ($latestReports.Count -eq 1 -and $latestReports[0].preservedFiles.Count -eq 2 -and $latestReports[0].candidates.Count -eq $latestCandidates.Count -and @($latestReports[0].candidates | Where-Object { $_.deleted }).Count -eq $latestCandidates.Count -and $latestReports[0].skipped.Count -eq 4) 'KeepLatestOnly audit records the mode, both preserved files, every safe candidate and every skipped child'
+  Check ($latestReports.Count -eq 1 -and $latestReports[0].preservedFiles.Count -eq 3 -and $latestReports[0].candidates.Count -eq $latestCandidates.Count -and @($latestReports[0].candidates | Where-Object { $_.deleted }).Count -eq $latestCandidates.Count -and $latestReports[0].skipped.Count -eq 4) 'KeepLatestOnly audit records the mode, current ZIP/manifest/source, every safe candidate and every skipped child'
   Fixture-File 'artifacts/releases/TableMax-1.5.0-win-x64.zip' 'changed-unverified-current'
   $refused = $false
   try { Run-Cleanup Releases $true 0 $false @('1.6.0') } catch { $refused = $_.Exception.Message -like '*No passing portable evidence*' }

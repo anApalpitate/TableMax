@@ -168,7 +168,11 @@ export function PowerGridSoundControl({
     <button
       type="button"
       data-power-grid-sound="true"
-      aria-pressed={enabled}
+      disabled={disabled}
+      aria-pressed={enabled && !disabled}
+      aria-label={
+        disabled ? '当前已关闭声音' : enabled ? '声音已开启' : '声音已关闭'
+      }
       title={
         blocked ? '点击启用声音；旧动作不会补播' : '已保存动作的电网主题提示音'
       }
@@ -233,7 +237,7 @@ export function PowerGridSoundControl({
         );
       }}
     >
-      {blocked ? '启用声音' : enabled ? '声音开' : '静音'}
+      {disabled ? '声音关' : blocked ? '启用声音' : enabled ? '声音开' : '静音'}
     </button>
   );
 }

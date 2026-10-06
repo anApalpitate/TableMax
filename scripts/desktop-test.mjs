@@ -43,6 +43,7 @@ export async function launchDesktop(options = {}) {
     env: {
       ...process.env,
       ...options.env,
+      TABLEMAX_TEST_AUDIO: options.soundEnabled === true ? '1' : '0',
       TABLEMAX_TEST_CDP_PORT: String(cdpPort),
     },
     stdio: ['pipe', 'pipe', 'pipe'],

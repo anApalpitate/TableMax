@@ -6,7 +6,7 @@ import { promisify } from 'node:util';
 import { join, resolve } from 'node:path';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
-import { chromium } from 'playwright';
+import { launchTestBrowser } from './browser-test.mjs';
 import { serveFixture } from './fixture-server.mjs';
 
 const args = process.argv.slice(2);
@@ -15,7 +15,8 @@ assert.ok(
     (arg) =>
       /^--evidence=[a-zA-Z0-9_-]+$/.test(arg) ||
       arg === '--sample' ||
-      arg === '--portable',
+      arg === '--portable' ||
+      arg === '--sound',
   ),
 );
 const name =
@@ -231,7 +232,11 @@ if (portable) {
 const server = await serveFixture(join(work, 'bundle'));
 let browser;
 try {
-  browser = await chromium.launch({ channel: 'msedge', headless: true });
+  browser = await launchTestBrowser({
+    channel: 'msedge',
+    headless: true,
+    soundEnabled: args.includes('--sound'),
+  });
   const context = await browser.newContext({
     viewport: { width: 1280, height: 720 },
   });

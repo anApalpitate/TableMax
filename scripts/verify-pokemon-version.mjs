@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, writeFile, readdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
-import { chromium } from 'playwright';
+import { launchTestBrowser } from './browser-test.mjs';
 import { serveFixture } from './fixture-server.mjs';
 import { verificationOutput } from './verification-output.mjs';
 
@@ -63,7 +63,11 @@ assert.ok(
   'Box must not load card portraits or audio',
 );
 const server = await serveFixture(join(work, 'bundle'));
-const browser = await chromium.launch({ channel: 'msedge', headless: true });
+const browser = await launchTestBrowser({
+  channel: 'msedge',
+  headless: true,
+  soundEnabled: process.argv.includes('--sound'),
+});
 const errors = [],
   checks = [];
 try {

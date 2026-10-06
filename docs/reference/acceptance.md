@@ -2,9 +2,19 @@
 
 宝可梦扩展版本次技术收尾已完成，按最新授权沿用v1.0.2。矢量动作、绝悟战术、SQLite v2、音源记录及同包交付均通过；真人设备与体验按[独立清单](../games/pokemon-encounters/validation-scenarios.md#本次真人验收交接2026-10-06)交接，历史位图及胜率门槛已由[最新口径](../tasks/pokemon-encounters-expansion.md#一次性技术收尾2026-10-06)取代。
 
+## 1.0.2：测试静音与资源瘦身（2026-10-06）
+
+当前[运行ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) SHA-256 `a9080180366c6d7976ab0bc04d63fa9b235f25b22a792de574ff7ead87a8f590`，ZIP40,911,321字节、216文件实际解压94,371,298字节，95MB预算余628,702字节，双100MB硬门禁通过。[逐文件清单](../../artifacts/releases/TableMax-1.0.2-win-x64-manifest.json)与[改动比对](../../artifacts/maintenance/v1.0.2/slimming-test-silence-20261006/package-impact.json)证明仅原生EXE／电力公司前端变化，其余214文件字节相同；18构建单元命中16项，实际组装21,626ms，仅执行一次package:win。规则、策略、保存及全部原声画资源沿用未变证据，下述原收尾报告保持其原包边界。
+
+[同包静音核验](../../artifacts/maintenance/v1.0.2/test-silence/complete-r3-20261006/test-silence.json)通过5项：实际解压全部文件哈希／体积、包内Node22.14.0／版本、主机／公共／模拟手机在游玩模式默认静音、显式试听开关、重载及电力公司测试／暂停／游玩切换保持用户声音偏好；直接Edge默认静音参数及显式开启也实际读回。零页面错误／外部请求，自有进程退出；显式开启仅核验静音状态，没有真人听感声明。两次浏览器参数核验失败和修正结果分别保留，没有覆盖早期通过记录。
+
+清理回归通过206项路径／进程／包与资料保护、34项维护阈值和34项精确退役检查。按本次授权审计旧模拟主库，保留原结果／源码哈希、只读数据库摘要、逐文件SHA及近期辅助文件；正式存档、原素材、当前截图与交付保留。具体删除清单和最终逻辑体积见[瘦身记录](project-slimming.md)。测试默认静音和长任务结束后体积检查／安全瘦身已纳入入口与维护规则；不推送或发布。
+
 ## 1.0.2：扩展版一次性技术收尾（2026-10-06）
 
-当前[运行ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) SHA-256 `1cf5e5c4a912022262fdeab7fcfc69cd41f5d3f047dcae110afbffaa70a48bef`，ZIP40,911,077字节、216文件实际解压94,370,680字节，95MB余629,320；相对旧包净增68,189字节，宝可梦模块3,906,502字节，小于4MiB。运行ZIP／实际解压双100,000,000字节硬门禁和≤300,000字节净增目标全部通过。[逐文件清单](../../artifacts/releases/TableMax-1.0.2-win-x64-manifest.json)与[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/final-checks.json)绑定最终源码、18单元冻结及所有报告；迁移故障修复后的正式增量组装17缓存命中，仅服务重建。此前一次全量编译由构建输入walker修正触发，未预先重复全量build。
+该收尾包已由下述静音维护包更新；本节数值与报告属于当时的 `1cf5e5c4…`，对应ZIP及清单完整保留在[历史交付](../../artifacts/maintenance/v1.0.2/slimming-test-silence-20261006/previous-delivery/TableMax-1.0.2-win-x64.zip)。当前包以测试静音节为准。
+
+当时[运行ZIP](../../artifacts/maintenance/v1.0.2/slimming-test-silence-20261006/previous-delivery/TableMax-1.0.2-win-x64.zip) SHA-256 `1cf5e5c4a912022262fdeab7fcfc69cd41f5d3f047dcae110afbffaa70a48bef`，ZIP40,911,077字节、216文件实际解压94,370,680字节，95MB余629,320；相对旧包净增68,189字节，宝可梦模块3,906,502字节，小于4MiB。运行ZIP／实际解压双100,000,000字节硬门禁和≤300,000字节净增目标全部通过。[逐文件清单](../../artifacts/maintenance/v1.0.2/slimming-test-silence-20261006/previous-delivery/TableMax-1.0.2-win-x64-manifest.json)与[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/final-checks.json)绑定最终源码、18单元冻结及所有报告；迁移故障修复后的正式增量组装17缓存命中，仅服务重建。此前一次全量编译由构建输入walker修正触发，未预先重复全量build。
 
 [原生便携](../../artifacts/maintenance/v1.0.2/pokemon-expansion-runtime/completion-final-portable-20261006-r2/results.json)通过10流程／11显示、包内Node、版本／游戏切换、原版恢复与离线媒体，16项浏览器RGBA与原件一致。[普通模式](../../artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/completion-final-normal-20261006-r2/results.json)由生产手机控件、真实默认Worker、私看隔离和实际声音播放完成小局。[声画专项](../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/effects/final-portable-06/results.json)直接加载同一ZIP的扩展客户端和共享React，逐套观察63关键姿态／14时间轴、十普通主题、两复制局部演出、末步能力→研究→结算、取消／减少动态及720p–4K／125%／150%模拟缩放／320–430px手机。独立视觉修正复审通过。以上均零页面错误／外部请求，自有程序进程退出；模拟viewport、DPI和播放事件不代替实体设备或人耳试听。
 
