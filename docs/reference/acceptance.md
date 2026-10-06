@@ -1,10 +1,20 @@
 # 首版交付与验收
 
-梦幻、闪电鸟、火箭队双面取牌、超梦来源及路卡利欧／终局估值修正已统一打包并完成技术同包续验，当前运行ZIP为下述 `79ace556…`。完整计划仍进行中，真实多姿态素材、三级强度与真人验证缺口见[最新接续](../tasks/pokemon-encounters-expansion.md#累积能力模型同包续验2026-10-06)，不将技术续验称为完整交付。
+三胜目标修复已完成技术同包续验，当前运行ZIP为下述 `71248726…`。完整计划仍进行中，真实多姿态素材、新策略分级与真人体验边界见[最新接续](../tasks/pokemon-encounters-expansion.md#三胜目标修复同包续验2026-10-06)，不将技术续验称为完整交付。
+
+## 1.0.2：三胜目标修复同包续验（2026-10-06）
+
+当前[运行ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) SHA-256 `7124872618e34296718af69f95f78ab86df11442b3c7fe7cc76cdfa959739088`，ZIP40,886,844字节、实际解压94,302,053字节，95MB余697,947。源码c019e11，18单元／15缓存命中、无预算告警；[固定清单](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/final-delivery-manifest.json)及[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/final-checks.json)通过。相对79ace只有策略CJS和原生EXE不同，其余214文件相同；原生两项输入仅换行字节不同、归一C#相同，构建目录指纹不同，未修改原生内容，[原生核对](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/native-baseline-audit.json)保留准确边界。网页重建输出相同，原[已验ZIP与清单](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/previous-delivery/TableMax-1.0.2-win-x64.zip)完整保留。
+
+三胜评价改为在授权假设内优先完整大局胜负，共同赢家计胜，长局紧迫度不能抵消失败。[三项有效先失败／42项通过](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/red-green.json)核对74对94反例、共同第三胜和普通小局区别，保留夹具错误。[15种子小局](../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/bot/run-1791245026795-7de11915/seeded-rounds.json)1,378动作／21阶段、最长799.349ms，实际16通过／135未选；不冒充全150小局重跑。[17项真实集成](../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/integration/run-1791245210566-0ffa1cea/results.json)379.574秒通过，混合四席六小局／346次Worker／472步，最长862.654ms；32MiB／两秒与整场十分钟限制不变。[完整五场](../../artifacts/maintenance/v1.0.2/pokemon-expansion-flow-audit/match-outcome-five-counts-20261006/report.json)覆盖2–6人26小局／2,564动作，无封顶；旧144场强度属于旧策略，不能作为本修正证据。[原版差分](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/original-compatibility.json)仍对照b973bbc通过。
+
+同一ZIP的[实际原生便携结果](../../artifacts/maintenance/v1.0.2/pokemon-expansion-runtime/portable-7124872618e3/results.json)10流程／11显示、18卡面／八主题／27叫声离线解码、16张原PNG与运行WebP浏览器RGBA相等通过。[普通模式实际UI](../../artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/match-outcome-final-20261006/results.json)34次手机控件／十阶段、真实默认Worker、秘密与播放通过，47.232秒为自动化时间；页面错误／外部请求零、相关进程退出。全源码／冻结输入与当前包逐项匹配，安全维护零候选，不扩大删除范围。未推送、发布、另导出源码包；根目录原有EXE／source ZIP继续保护，不绑定为新包。
+
+完整透明动作仍缺62帧，新策略全范围分级、真人手机／听感／实际时长和音源依据继续待验；实际第六局约3.52GB的SQLite历史增长风险保留，完成对局不证明长期有界。没有以静图变换或统计样本替代完整要求。
 
 ## 1.0.2：累积能力模型同包续验（2026-10-06）
 
-当前[运行ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) SHA-256 `79ace556cf314e9fc15a73e5d063f2e464c242e3e15c1794d82e50087200c331`，ZIP40,886,874字节、实际解压94,302,060字节，95MB余697,940字节。[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-combined-model-delivery-20261006/final-checks.json)绑定源码6566680、18单元冻结及全部原件／派生哈希，16单元复用缓存，仅宝可梦规则与策略重建，无预算告警。与旧 `42205330…` 相比仅两项CJS文件变化，其他游戏、平台与全部网页／媒体字节相同；旧包及其清单已[完整保留](../../artifacts/maintenance/v1.0.2/pokemon-expansion-combined-model-delivery-20261006/previous-delivery/TableMax-1.0.2-win-x64.zip)。版本仍1.0.2／协议7，未推送或发布，未导出源码ZIP。
+当时[运行ZIP](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/previous-delivery/TableMax-1.0.2-win-x64.zip) SHA-256 `79ace556cf314e9fc15a73e5d063f2e464c242e3e15c1794d82e50087200c331`，ZIP40,886,874字节、实际解压94,302,060字节，95MB余697,940字节。[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-combined-model-delivery-20261006/final-checks.json)绑定源码6566680、18单元冻结及全部原件／派生哈希，16单元复用缓存，仅宝可梦规则与策略重建，无预算告警。与旧 `42205330…` 相比仅两项CJS文件变化，其他游戏、平台与全部网页／媒体字节相同；旧包及其清单已[完整保留](../../artifacts/maintenance/v1.0.2/pokemon-expansion-combined-model-delivery-20261006/previous-delivery/TableMax-1.0.2-win-x64.zip)。版本仍1.0.2／协议7，未推送或发布，未导出源码ZIP。
 
 [151项完整种子测试](../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/bot/run-1791234062981-fc6294a3/seeded-rounds.json)通过，包含2–6人三档150小局／14,231动作／21种阶段，源码前后稳定，最长策略797.358ms，实际命令1163.25秒，无小局封顶。[17项真实服务集成](../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/integration/run-1791233569902-1307806b/results.json)与当前源码逐文件一致，混合四席五小局三胜、288次真实Worker／389步，最长850.961ms；32MiB／两秒不变。[原版2–6人差分](../../artifacts/maintenance/v1.0.2/pokemon-expansion-combined-model-delivery-20261006/original-compatibility.json)对照上次b973bbc通过。验证器原输出目录仍带历史v1.0.3名称，审计保留原路径并复制到本轮1.0.2证据目录，不表示产品升版。先前冻结失败记录继续保留，不升级为最终通过。
 

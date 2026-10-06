@@ -232,3 +232,9 @@ UI以 `savedBoardEffects` 从已保存公开结果生成局部移位、盖回与
 三胜目标审查发现有效反例并修复：已两胜时，合法中心换入以74对94立即赢下大局，旧三档却选择继续降分；长局紧迫度还会抵消对手第三胜惩罚。新效用在每个授权假设内优先完整大局胜负，共同赢家计胜，普通小局目标保持。[TDD与42项窄回归](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/red-green.json)、2–6人各档15小局／1,378动作及原版差分通过，实际小局测试16通过／135未选，不冒充全量。真实服务和完整大局继续验证，当前ZIP仍是修复前 `79ace556…`；牌表、研究、权限、记忆和预算不变。旧144场对照不作为新策略的强度证明，完整材料与真人边界未缩小。
 
 三胜修正的[17项真实服务／Worker／SQLite集成](../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/integration/run-1791245210566-0ffa1cea/results.json)全部通过，命令379.574秒、混合四席六局三胜／346次Worker／472步、最长862.654ms，源码稳定，原有时限不变。进一步运行2–6人完整大局与同包验收，保留现有存档增长风险；不能将旧144场或修正前预算诊断转写成新策略证据。
+
+## 三胜目标修复同包续验（2026-10-06）
+
+源码c019e11的修复已完成[五场完整大局](../../artifacts/maintenance/v1.0.2/pokemon-expansion-flow-audit/match-outcome-five-counts-20261006/report.json)，2–6人共26小局／2,564动作，201.387秒、无封顶、源码稳定；小样本12次有效盖回、零重复／闭环，不当作总体循环或胜率认证。新[运行ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) SHA-256 `7124872618e34296718af69f95f78ab86df11442b3c7fe7cc76cdfa959739088`，40,886,844字节、实际解压94,302,053字节，95MB余697,947；18单元／15缓存命中、无告警。[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/final-checks.json)绑定42项模型回归、15种子小局及17项真实服务／Worker。
+
+相对79ace仅策略CJS与原生EXE不同。两个C#输入仅CRLF／LF原始字节不同，归一文本相同，原生构建目录指纹也不同，未改原生代码；[核对](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/native-baseline-audit.json)与[真实解压程序](../../artifacts/maintenance/v1.0.2/pokemon-expansion-runtime/portable-7124872618e3/results.json)通过10流程／11显示、本地声画与浏览器RGBA核验。[普通模式](../../artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/match-outcome-final-20261006/results.json)34次手机控件／十阶段、真实默认Worker、私看和播放通过，47.232秒为自动化时间，页面错误／外部请求零、进程退出。旧ZIP与清单完整备份，根目录既有EXE／source ZIP保留原字节，不推送、发布或新增源码包。下一步以新策略独立种子块检查分级；62帧真实动作、真人体验和音源依据仍未完成，完整计划保持进行中。
