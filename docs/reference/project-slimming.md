@@ -1,5 +1,11 @@
 # 项目瘦身方案与执行记录
 
+## 扩展需求复查后的维护（2026-10-07）
+
+当前v1.0.3 `511ab391…` 同包的演出、正常游玩、原版及三游戏恢复全部通过后，工程进程退出。手动入口先[预览](../../artifacts/maintenance/v1.0.3/pokemon-requirements-audit/cleanup-preview.txt)再[应用](../../artifacts/maintenance/v1.0.3/pokemon-requirements-audit/cleanup-apply.txt)，[实际清理记录](../../artifacts/maintenance/local-cleanup-20261006-181350-053-intermediates/cleanup.json)删除7项再生打包／解压／隔离验证副本 **838,655,357字节**。保留当前ZIP／清单、63姿态及正常游玩截图、v1迁移样本与原备份、全部原素材／规则资料／正式存档和活动依赖。
+
+[最终维护实测](../../artifacts/maintenance/v1.0.3/pokemon-requirements-audit/space-final.json) **9,034,969,361字节（8.414GiB）**，低于10GiB；相比前轮结束8,990,170,832字节净增44,798,529字节，主要新增当前验收证据与构建内容，净变化不冒充删除量。8GiB目标仍未达到，沿用已完成的深度审计保护边界：安全候选已处理，不能删除当前截图、原素材、正式存档或用途未确认源码以强行达标。本次只维护新增再生副本，不重复扫描历史图片或扩大删除范围。
+
 ## v1.0.3 扩展修订后的深度瘦身（2026-10-07）
 
 开始[实际逻辑容量](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/space-start.json)12,434,523,306字节（11.581GiB）。当前ZIP `99f3be46…` 完成真实保存演出、63姿态、原版及三游戏恢复同包检查后，工程进程退出；release仅保留本轮运行ZIP与逐文件清单，无EXE、source ZIP或新发布。依用途、保留证据及逐文件哈希先预览再Apply，不按Git忽略或版本数字直接删除。

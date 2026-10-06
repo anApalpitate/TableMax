@@ -436,6 +436,11 @@ try {
       'reduced-motion static hero',
     );
     await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.evaluate(() => window.expansionShow({ creature: 'mewtwo' }));
+    await page.locator('[data-sequence="mewtwo"]').waitFor();
+    await page.evaluate(() => window.expansionReenter());
+    assert.equal(await page.locator('[data-sequence]').count(), 0);
+    report.cancellation.push('fast reentry ignores the previous saved receipt');
     const terminal = await page.evaluate(() =>
       window.expansionShow({ creature: 'groudon', terminal: true }),
     );
@@ -443,6 +448,13 @@ try {
     assert.ok(terminal.events.some((event) => event.kind === 'research'));
     const began = Date.now();
     await page.locator('[data-sequence="groudon"]').waitFor();
+    const starsBeforeResult = await page
+      .locator('.ex-player .win-pips .earned')
+      .count();
+    assert.equal(
+      await page.locator('.ex-player .win-track[aria-label*="赢家"]').count(),
+      0,
+    );
     assert.equal(await page.locator('.ex-victory').isVisible(), false);
     await page.locator('.ex-research-reveal').waitFor({ state: 'attached' });
     const researchAt = Date.now() - began;
@@ -452,11 +464,19 @@ try {
     const resultAt = Date.now() - began;
     assert.ok(resultAt >= researchAt + 2300);
     assert.ok(await page.locator('.ex-victory h2').isVisible());
+    const winnerCount = await page.locator('.ex-player.winner').count();
+    assert.ok(winnerCount > 0);
+    assert.equal(
+      await page.locator('.ex-player .win-pips .earned').count(),
+      starsBeforeResult + winnerCount,
+    );
     report.cancellation.push({
       terminal: terminal.phase,
       order: terminal.events.map((event) => event.kind),
       researchAt,
       resultAt,
+      starsBeforeResult,
+      winnerCount,
     });
     for (const [role, width, height, scale] of [
       ['host', 1280, 720, 1],

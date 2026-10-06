@@ -37,6 +37,7 @@ import { SavedEffects } from './SavedEffects';
 import { poseSequences } from './poses/timeline';
 import { GuideScene } from '../../ui/RuleDiagrams';
 import { CircularBadge } from './CircularBadge';
+import { presentedWins } from './playback';
 import {
   ExpansionPresentation,
   useExpansionPresentation,
@@ -964,18 +965,20 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
         />
         <h2>{s.name}</h2>
         <WinTrack
-          wins={game.winsBySeat[s.id] ?? 0}
+          wins={presentedWins(game, s.id, resultReady)}
           earnedNow={Boolean(
             resultReady &&
             game.roundResult?.winners.includes(s.id) &&
             motion.includes('@result'),
           )}
           winner={
-            game.matchWinners.includes(s.id)
-              ? 'match'
-              : game.roundResult?.winners.includes(s.id)
-                ? 'round'
-                : undefined
+            !resultReady
+              ? undefined
+              : game.matchWinners.includes(s.id)
+                ? 'match'
+                : game.roundResult?.winners.includes(s.id)
+                  ? 'round'
+                  : undefined
           }
         />
       </header>

@@ -22,6 +22,19 @@ export type PresentationStep = {
   match: boolean;
 };
 
+/** Keep the saved win hidden until the terminal presentation reaches results. */
+export function presentedWins(
+  game: Pick<View, 'winsBySeat' | 'roundResult'>,
+  seat: string,
+  resultReady: boolean,
+) {
+  return Math.max(
+    0,
+    (game.winsBySeat[seat] ?? 0) -
+      (!resultReady && game.roundResult?.winners.includes(seat) ? 1 : 0),
+  );
+}
+
 /** Capture only saved public presentation facts, never peek cards or votes. */
 export function presentationSteps(
   game: View,
@@ -94,9 +107,9 @@ export class PresentationQueue {
   private seen = new Set<number>();
   private scope = '';
   readonly steps: PresentationStep[] = [];
-  reset(scope: string) {
+  reset(scope: string, committedIds: readonly number[] = []) {
     this.scope = scope;
-    this.seen.clear();
+    this.seen = new Set(committedIds);
     this.steps.length = 0;
   }
   append(scope: string, steps: readonly PresentationStep[]) {

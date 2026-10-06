@@ -30,7 +30,8 @@ type Snapshot = {
   anchors: Readonly<Record<string, AnchorRect>>;
   seen: readonly number[];
 };
-class Clock {
+export class PresentationClock {
+  private initialized = true;
   private queue = new PresentationQueue();
   private timer: ReturnType<typeof setTimeout> | undefined;
   private listeners = new Set<() => void>();
@@ -42,6 +43,10 @@ class Clock {
     anchors: {},
     seen: [],
   };
+  constructor(scope: string, committedIds: readonly number[]) {
+    this.queue.reset(scope, committedIds);
+    this.state = { ...this.state, scope, seen: [...committedIds] };
+  }
   snapshot = () => this.state;
   subscribe = (fn: () => void) => {
     this.listeners.add(fn);
@@ -53,21 +58,34 @@ class Clock {
     this.state = { ...this.state, ...patch };
     this.listeners.forEach((fn) => fn());
   }
-  cancel(scope: string) {
+  cancel(scope: string, committedIds: readonly number[] = []) {
     clearTimeout(this.timer);
-    this.queue.reset(scope);
+    this.queue.reset(scope, committedIds);
     this.publish({
       scope,
       current: null,
       last: null,
       resultReady: true,
-      seen: [],
+      seen: [...committedIds],
     });
   }
-  receive(scope: string, steps: PresentationStep[], disabled: boolean) {
+  dispose() {
+    this.initialized = false;
+    this.cancel('disposed');
+  }
+  receive(
+    scope: string,
+    steps: PresentationStep[],
+    disabled: boolean,
+    committedIds: readonly number[],
+  ) {
+    if (!this.initialized) {
+      this.initialized = true;
+      this.cancel(scope, committedIds);
+      return;
+    }
     if (disabled) {
-      if (this.state.current || this.state.last || this.state.scope !== scope)
-        this.cancel(scope);
+      this.cancel(scope, committedIds);
       return;
     }
     if (this.state.scope !== scope) this.cancel(scope);
@@ -147,8 +165,6 @@ export function ExpansionPresentation({
   game: View | null;
   children: ReactNode;
 }) {
-  const [clock] = useState(() => new Clock());
-  const state = useSyncExternalStore(clock.subscribe, clock.snapshot);
   const scope =
     session.view?.instanceId +
     ':' +
@@ -157,6 +173,10 @@ export function ExpansionPresentation({
     game?.roundNumber +
     ':' +
     session.role;
+  const [clock] = useState(
+    () => new PresentationClock(scope, game?.events.map((e) => e.id) ?? []),
+  );
+  const state = useSyncExternalStore(clock.subscribe, clock.snapshot);
   const disabled =
     !session.connected ||
     Boolean(session.view?.paused) ||
@@ -190,9 +210,10 @@ export function ExpansionPresentation({
           )
         : [],
       disabled,
+      game?.events.map((e) => e.id) ?? [],
     );
   }, [clock, scope, disabled, game, session.feedback, session.motion]);
-  useEffect(() => () => clock.cancel('disposed'), [clock]);
+  useEffect(() => () => clock.dispose(), [clock]);
   const current = disabled || state.scope !== scope ? null : state.current;
   const sound =
     disabled || state.scope !== scope ? null : (current ?? state.last);

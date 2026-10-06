@@ -33,6 +33,7 @@ declare global {
       privateCards: string[];
     };
     expansionGallery(creature: string): void;
+    expansionReenter(): void;
     expansionTimelines: typeof poseSequences;
     expansionCommands: { action: string; before: string; after: string }[];
   }
@@ -40,6 +41,7 @@ declare global {
 const root = createRoot(document.getElementById('root')!);
 const seats = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
 let serial = 0;
+let currentSession: RoomSession;
 function fixture(settings: Settings) {
   window.expansionCommands = [];
   const ctx = { seats, random: new RandomSource(1060651) };
@@ -238,11 +240,25 @@ function fixture(settings: Settings) {
     join() {},
     retry() {},
   } as unknown as RoomSession;
-  return { session, state, game, events };
+  return { session, state, game, events, before };
 }
 window.expansionShow = (settings) => {
-  const { session, game, events } = fixture(settings);
+  const { session, game, events, before } = fixture(settings);
+  currentSession = session;
   document.body.className = '';
+  if (settings.animate !== false) {
+    const baseline = {
+      ...session,
+      view: { ...session.view!, gameView: before },
+      motion: [],
+      feedback: null,
+    } as RoomSession;
+    flushSync(() =>
+      root.render(
+        <HostedGame key={serial} session={baseline} client={client} />,
+      ),
+    );
+  }
   flushSync(() =>
     root.render(<HostedGame key={serial} session={session} client={client} />),
   );
@@ -251,6 +267,13 @@ window.expansionShow = (settings) => {
     events,
     privateCards: game.peek?.cards.map((card) => card.card.categoryId) ?? [],
   };
+};
+window.expansionReenter = () => {
+  flushSync(() =>
+    root.render(
+      <HostedGame key={++serial} session={currentSession} client={client} />,
+    ),
+  );
 };
 window.expansionTimelines = poseSequences;
 window.expansionGallery = (creature) => {

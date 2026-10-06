@@ -1,5 +1,13 @@
 # 首版交付与验收
 
+## 1.0.3：扩展需求复查与演出时序（2026-10-07）
+
+历次扩展需求已整理为[32项有序对照](../games/pokemon-encounters/expansion-design.md#当前需求有序对照2026-10-07)，冲突明确采用较新的要求；保留真人听感、实体设备与时长目标的待测身份。修复首次挂载／快速重入补播旧回执，以及能力／研究演出尚未结束时提前增加胜局星标的问题；暂停取消后的旧回执也不重播，共同赢家在结果阶段统一显示新星标及赢家标记。
+
+[20项播放专项](../../artifacts/maintenance/v1.0.3/pokemon-requirements-audit/clock-tests.json)、类型与相关lint通过。[实际ZIP演出](../../artifacts/maintenance/v1.0.3/pokemon-expansion-effects/requirements-audit-01/results.json)完成14套／63姿态，增加快速重入及终局星标顺序检查；[普通游玩](../../artifacts/maintenance/v1.0.3/pokemon-expansion-normal-play/requirements-audit-01/results.json)两手机身份及真实Worker完成33步／11阶段，[原版回归](../../artifacts/maintenance/v1.0.3/portable/requirements-audit-01/results.json)14阶段通过。此前规则、策略与存储专项按[17单元逐文件等价](../../artifacts/maintenance/v1.0.3/pokemon-requirements-audit/build-equivalence.json)复用；本轮仅增量重编译宝可梦客户端，从冻结快照 `ca55b3bd…` 组装，无重复全量构建。
+
+当前运行ZIP SHA-256 `511ab39171f57e697070c773664801c58ae2222ab37ed7b7188bb1235021ef29`，41,331,905字节；实际解压94,864,409字节、247文件，95MB预算及模块4MiB、ZIP／解压严格100MB门禁通过。相对前包解压净增336字节。[三游戏v1／v2实际恢复](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/storage/requirements-audit-01/results.json)通过，迁移原件及备份保留，工程进程退出。版本仍为v1.0.3，默认静音、本机回环；当前[ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip)与[逐文件清单](../../artifacts/releases/TableMax-1.0.3-win-x64-manifest.json)是唯一交付入口，历史哈希和通过边界保持原样。
+
 ## 1.0.3：扩展版能力消耗、原版演出与全量构建（2026-10-07）
 
 本轮十一项修订完成：两／三人高卡面、四人对称2×2及五／六人重排；圆形数字按字形居中，稳定牌桌底边，手机三牌源加全宽“卡牌换位”；接齐原版全屏构图、金色引线、两面硬币和共同赢家皇冠／烟花／扫光。主动能力按实例失星，路卡利欧仅摸牌库；旧存档当前副本惰性规范化，历史checkpoint不改写，暗牌使用状态保持秘密。新增规则均为项目约定，详见游戏规则与[真人交接](../games/pokemon-encounters/validation-scenarios.md)。
@@ -26,7 +34,7 @@
 
 ## 当前源码与本地交付
 
-当前本地交付为本页2026-10-07扩展修订章节的 `99f3be46…` 同包验收，基线 `6db5be1` 加本轮根源码全量生产构建及受影响修复。旧 `6df0feb5…`、`201de235…` 和 `943071ce…` 运行包已按精确清单退役，保留各自逐文件清单、哈希、通过／失败文字结论和原素材；历史通过结论只对应当时冻结输入，不升级为当前包通过。
+当前本地交付为本页扩展需求复查章节的 `511ab391…` 同包验收，在已完成一次全量构建的 `99f3be46…` 基础上仅修正客户端播放时序。旧包保留各自哈希、冻结清单、通过／失败文字结论和原素材；历史通过结论只对应当时冻结输入，不升级为当前包通过。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
 
