@@ -744,13 +744,10 @@ try {
       }));
     assert.equal(
       rotatedMap.viewBox,
-      '0 0 1200 900',
-      'Visual crop retains the horizontal classic board proportions',
+      '-300 -225 1800 1350',
+      'Decorative extensions preserve the classic board world coordinates',
     );
-    assert.equal(
-      rotatedMap.terrainRotation,
-      `translate(${board.height} 0) rotate(90)`,
-    );
+    assert.equal(rotatedMap.terrainRotation, null);
     for (const original of board.cities) {
       const actual = rotatedMap.cities.find(
         (entry) => entry.id === original.id,

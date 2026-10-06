@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   cameraScale,
+  CLASSIC_MAP_FRAME,
   clampCamera,
   focusCamera,
   initialCamera,
@@ -88,16 +89,16 @@ it('uses full-image hard edges even when drawers cover most of the viewport', ()
             ),
             scale = cameraScale(surface, zoom);
           expect(camera.center.x - width! / (2 * scale)).toBeGreaterThanOrEqual(
-            -0.00001,
+            MAP_FRAME.x - 0.00001,
           );
           expect(camera.center.x + width! / (2 * scale)).toBeLessThanOrEqual(
-            1200.00001,
+            MAP_FRAME.x + MAP_FRAME.width + 0.00001,
           );
           expect(
             camera.center.y - height! / (2 * scale),
-          ).toBeGreaterThanOrEqual(-0.00001);
+          ).toBeGreaterThanOrEqual(MAP_FRAME.y - 0.00001);
           expect(camera.center.y + height! / (2 * scale)).toBeLessThanOrEqual(
-            900.00001,
+            MAP_FRAME.y + MAP_FRAME.height + 0.00001,
           );
         }
     expect(width! / cameraScale(surface, 1)).toBeLessThan(1200);
@@ -109,7 +110,7 @@ it('normalizes pixel/line/page wheel deltas and respects zoom limits', () => {
   expect(wheelZoomTarget(1, 500, 0, 500)).toBe(1);
   expect(wheelZoomTarget(4, -500, 0, 500)).toBe(4);
 });
-it('reports edge targets still occluded at maximum zoom rather than exposing blank paper', () => {
+it('uses decorative side terrain to reveal edge targets behind drawers', () => {
   const surface = {
     width: 1280,
     height: 600,
@@ -117,6 +118,22 @@ it('reports edge targets still occluded at maximum zoom rather than exposing bla
   };
   const point = { x: 131, y: 324 };
   const camera = focusCamera(initialCamera(), surface, [point]);
-  expect(camera.zoom).toBe(4);
-  expect(focusVisible(camera, surface, point)).toBe(false);
+  expect(camera.zoom).toBeLessThanOrEqual(4);
+  expect(focusVisible(camera, surface, point)).toBe(true);
+});
+it('preserves classic scale and center while adding exactly 25 percent per side', () => {
+  expect(MAP_FRAME.x).toBe(-CLASSIC_MAP_FRAME.width / 4);
+  expect(MAP_FRAME.width).toBe(CLASSIC_MAP_FRAME.width * 1.5);
+  expect(MAP_FRAME.y).toBe(-CLASSIC_MAP_FRAME.height / 4);
+  expect(MAP_FRAME.height).toBe(CLASSIC_MAP_FRAME.height * 1.5);
+  expect(initialCamera().center).toEqual({ x: 600, y: 450 });
+  const surface = { width: 1280, height: 620, insets: NO_INSETS };
+  expect(cameraScale(surface, 1)).toBe(
+    Math.max(surface.width / 1200, surface.height / 900) * 1.06,
+  );
+  const covered = { ...surface, insets: { ...NO_INSETS, left: 322 } };
+  const leftCity = { x: 40, y: 450 };
+  const next = focusCamera(initialCamera(), covered, [leftCity]);
+  expect(next.zoom).toBe(1);
+  expect(focusVisible(next, covered, leftCity)).toBe(true);
 });

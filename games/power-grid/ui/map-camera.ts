@@ -1,4 +1,6 @@
-export const MAP_FRAME = { x: 0, y: 0, width: 1200, height: 900 };
+// Decorative extensions never move the classic board's world coordinates.
+export const CLASSIC_MAP_FRAME = { x: 0, y: 0, width: 1200, height: 900 };
+export const MAP_FRAME = { x: -300, y: -225, width: 1800, height: 1350 };
 export type MapPoint = { x: number; y: number };
 export type MapCamera = { center: MapPoint; zoom: number; follow: boolean };
 export type MapInsets = {
@@ -22,8 +24,8 @@ export function initialCamera(): MapCamera {
 export function cameraScale(surface: MapSurface, zoom: number) {
   return (
     Math.max(
-      surface.width / MAP_FRAME.width,
-      surface.height / MAP_FRAME.height,
+      surface.width / CLASSIC_MAP_FRAME.width,
+      surface.height / CLASSIC_MAP_FRAME.height,
     ) *
     1.06 *
     zoom

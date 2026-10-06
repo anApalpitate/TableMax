@@ -31,10 +31,11 @@ import {
   type MapSurface,
 } from './map-camera';
 import './map-polish.css';
+import { classicMapTerrain } from '../../../assets/games/power-grid/catalog';
 
-// Only the presentation rotates and trims the outer paper margin.
-const MAP_WIDTH = BOARD_HEIGHT;
-const MAP_HEIGHT = BOARD_WIDTH;
+// The classic board rotates; decorative terrain extends beyond its unchanged coordinates.
+const MAP_WIDTH = MAP_FRAME.width;
+const MAP_HEIGHT = MAP_FRAME.height;
 const MAP_CITIES = GERMANY_CITIES.map((city) => ({
   ...city,
   x: BOARD_HEIGHT - city.y,
@@ -403,6 +404,8 @@ export function GermanyMap({
   const definitionId = useId().replace(/:/g, '');
   const paperId = `${definitionId}-paper`,
     shadowId = `${definitionId}-house-shadow`;
+  const terrainBlendId = `${definitionId}-terrain-blend`;
+  const terrainEdgeId = `${definitionId}-terrain-edge`;
   const mapView = useSyncExternalStore(
     subscribeView,
     () => savedView(role),
@@ -891,12 +894,45 @@ export function GermanyMap({
             width: MAP_FRAME.width * displayScale,
             height: MAP_FRAME.height * displayScale,
             transformOrigin: '0 0',
-            transform: `translate(${surface.width / 2 - camera.center.x * displayScale}px,${surface.height / 2 - camera.center.y * displayScale}px)`,
+            transform: `translate(${surface.width / 2 - (camera.center.x - MAP_FRAME.x) * displayScale}px,${surface.height / 2 - (camera.center.y - MAP_FRAME.y) * displayScale}px)`,
             transition:
               moving && animateFocus ? 'transform 320ms ease-out' : 'none',
           }}
         >
           <defs>
+            <linearGradient id={terrainEdgeId}>
+              <stop stopColor="#000" />
+              <stop offset="1" stopColor="#000" stopOpacity="0" />
+            </linearGradient>
+            <mask
+              id={terrainBlendId}
+              maskUnits="userSpaceOnUse"
+              x="0"
+              y="0"
+              width="1200"
+              height="900"
+            >
+              <rect width="1200" height="900" fill="#fff" />
+              <rect width="36" height="900" fill={`url(#${terrainEdgeId})`} />
+              <rect
+                width="36"
+                height="900"
+                fill={`url(#${terrainEdgeId})`}
+                transform="translate(1200 900) rotate(180)"
+              />
+              <rect
+                width="36"
+                height="1200"
+                fill={`url(#${terrainEdgeId})`}
+                transform="translate(1200 0) rotate(90)"
+              />
+              <rect
+                width="36"
+                height="1200"
+                fill={`url(#${terrainEdgeId})`}
+                transform="translate(0 900) rotate(-90)"
+              />
+            </mask>
             <pattern
               id={paperId}
               width="12"
@@ -916,6 +952,8 @@ export function GermanyMap({
             </filter>
           </defs>
           <rect
+            x={MAP_FRAME.x}
+            y={MAP_FRAME.y}
             width={MAP_WIDTH}
             height={MAP_HEIGHT}
             rx="28"
@@ -925,11 +963,24 @@ export function GermanyMap({
             <image
               className="pg-map-terrain"
               href={terrain}
-              width={BOARD_WIDTH}
-              height={BOARD_HEIGHT}
+              x={MAP_FRAME.x}
+              y={MAP_FRAME.y}
+              width={MAP_WIDTH}
+              height={MAP_HEIGHT}
               preserveAspectRatio="none"
-              transform={TERRAIN_ROTATION}
             />
+          )}
+          {mapView === 'board' && terrain && (
+            <g mask={`url(#${terrainBlendId})`}>
+              <image
+                className="pg-map-terrain pg-map-terrain-core"
+                href={classicMapTerrain}
+                width={BOARD_WIDTH}
+                height={BOARD_HEIGHT}
+                preserveAspectRatio="none"
+                transform={TERRAIN_ROTATION}
+              />
+            </g>
           )}
           {(mapView === 'clear' || !terrain) &&
             GERMANY_REGIONS.map((region) => (
@@ -948,6 +999,8 @@ export function GermanyMap({
             ))}
           {mapView === 'board' && terrain && building && (
             <rect
+              x={MAP_FRAME.x}
+              y={MAP_FRAME.y}
               width={MAP_WIDTH}
               height={MAP_HEIGHT}
               fill="#fffcec"

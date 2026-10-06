@@ -113,6 +113,32 @@
   },
   "assets": [
     {
+      "id": "board-v3-expanded",
+      "file": "board-v3-expanded.webp",
+      "version": 3,
+      "source": "built-in imagegen precise-object-edit outpainting",
+      "transparent": false,
+      "editTarget": "assets/games/power-grid/board-v2.webp",
+      "sourceFile": "artifacts/maintenance/v1.0.3/power-grid-map-wide-20261006/imagegen/generated-four-sides.png",
+      "promptFile": "artifacts/maintenance/v1.0.3/power-grid-map-wide-20261006/imagegen/prompt-four-sides.txt",
+      "prompt": "Use case: precise-object-edit. Asset type: decorative natural-terrain board background. EDIT TARGET: referenced horizontal map of six colored regions. Outpaint canvas on ALL FOUR SIDES: add 25 percent of original width to LEFT and RIGHT, and 25 percent of original height to TOP and BOTTOM. Final image aspect ratio 4:3, target 2172x1629. Original image is 1448x1086 and must remain precisely centered as middle two thirds of width and height, at x=362 to1810, y=271.5 to1357.5. Preserve original center COMPOSITION and SCALE exactly; no zoom, rotation, crop or redesign. Added sides are solely decorative natural landscape. Left extensions continue green rural fields, scattered forest and brown mountains; right extensions continue blue sea with fine painted wave texture and adjacent green countryside. Top/bottom extensions naturally connect to the existing edges, farmland, forest, hills, rivers and sea as appropriate. Match the original colorful detailed hand-painted printed tabletop texture and terrain detail scale. Fill canvas completely with scenery; no paper margins or blank edges. CRITICAL: no new colored game regions, no cities, no buildings, no towns, no labels, no numbers, no text, no roads, no powerlines, no paths or game symbols. Keep every existing river, coastline and six colored region boundaries in the original center fixed. This is decorative outpainting around an unchanged playable map; preserve all original center content. Clean seamless continuous terrain.\r\n",
+      "width": 1447,
+      "height": 1087,
+      "bytes": 501680,
+      "sha256": "a1940377b253f7b011a10d3b4a76afba2bab0bed526d9e5fd2297fa1ee155ee6",
+      "status": {
+        "generated": true,
+        "visuallyVerified": true,
+        "importedInUi": true
+      },
+      "formalUsage": "Decorative four-side expansion at (-300,-225,1800,1350). Classic city/region/edge coordinates unchanged. Original board-v2 overlaid at (0,0,1200,900); only its 36-world-unit decorative outer edge fades into AI background. Classic scale and zoom preserved.",
+      "visualVerification": "Natural terrain fills all four sides without new cities, roads, numbers or labels. AI redraw drift is not used for the gameplay center. SVG display-layer edge fade softens original terrain seams; minor contour discontinuities remain, no pixel-perfect seamless claim.",
+      "postprocessing": "AI native PNG retained. RGB WebP encoding only; no procedural raster painting. SVG overlay/fade implemented in map.tsx.",
+      "verification": "artifacts/maintenance/v1.0.3/power-grid-map-wide-20261006/imagegen/verification.json",
+      "displayPreview": "artifacts/maintenance/v1.0.3/power-grid-map-wide-20261006/display-preview.png",
+      "deliveryBoundary": "Source-only update; no build or ZIP update."
+    },
+    {
       "id": "board-v2",
       "file": "board-v2.webp",
       "version": 2,

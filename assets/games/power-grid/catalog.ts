@@ -1,9 +1,11 @@
 /** Loaded with the Power Grid client; all references are local and game-owned. */
-import terrainUrl from './board-v2.webp?url';
+import terrainUrl from './board-v3-expanded.webp?url';
+import classicTerrainUrl from './board-v2.webp?url';
 import atlasUrl from './plants-atlas-v1.webp?url';
 import coverUrl from './cover-v1.webp?url';
 
 export const mapTerrain = terrainUrl;
+export const classicMapTerrain = classicTerrainUrl;
 export const plantAtlas = atlasUrl;
 export const cover = coverUrl;
 
