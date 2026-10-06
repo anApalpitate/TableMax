@@ -260,3 +260,7 @@ UI以 `savedBoardEffects` 从已保存公开结果生成局部移位、盖回与
 普通前瞻现用同一授权模型的全桌分数与公开累计胜数识别完整大局胜负，复用即时评价，保持原样本、深度、权重和预算。三项先失败／五项新边界／47项相关回归、类型与相关lint通过，[证据](../../artifacts/maintenance/v1.0.2/pokemon-expansion-forecast-match-20261006/red-green.json)区分函数目标缺口与未证明的整策略误选／强度因果。15小局／1,318动作、17项真实服务集成（五局三胜、266次Worker）源码前后稳定；原版2–6人对b973bbc差分通过。当前策略SHA-256为35102980e60c0aeb60d79ddef97ab41724d90a0390014ef3129348879fbb96e3，旧144场统计属于c019e11，不能迁移为新策略认证。
 
 当前执行2–6人完整大局、同版本冻结打包与实际解压验证；71248726旧包及清单已完整备份，后续包以同包证据更新。首次大局检查因沙箱阻止esbuild子进程而终止，未产生对局结论；改用独立证据名在授权环境执行。62帧真实透明动作、当前精确策略的全范围分级、真人手机／听感／实际小局时长仍未完成，完整计划保持进行中。
+
+普通前瞻修正已完成同包续验：源码f2b745c、[运行ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) SHA-256 `e802355117e8c94288d786bc64024864757567ec465171fb5d6181709cf2405c`，ZIP40,887,000字节、实际解压94,302,491字节，95MB余697,509；18单元／17缓存命中、无预算告警。仅策略CJS变化，其余215项（含原生EXE、网页、全部媒体）字节相同，[固定清单](../../artifacts/maintenance/v1.0.2/pokemon-expansion-forecast-match-20261006/final-delivery-manifest.json)与[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-forecast-match-20261006/final-checks.json)绑定47项相关回归、15种子小局、17项真实集成及五场／22小局／1894动作。
+
+同一ZIP的[便携原生核验](../../artifacts/maintenance/v1.0.2/pokemon-expansion-runtime/portable-e802355117e8/results.json)10流程／11显示、本地声画与16项浏览器RGBA相等通过；[普通模式](../../artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json)36次手机控件／14阶段、真实默认Worker、私看与实际播放通过，55.352秒为自动化时间。页面错误／外部请求零，自有进程退出。旧71248726包及清单逐字节保留，既有EXE／source ZIP未变；不推送、发布或另导出源码。62帧真实姿态、当前源码全人数分级、真人手机／听感／实际时长仍待完成。
