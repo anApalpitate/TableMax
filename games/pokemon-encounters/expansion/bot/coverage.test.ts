@@ -12,7 +12,7 @@ import { observeMemory, validateMemory, type Memory } from './memory';
 
 const difficulties = ['default', 'doubao', 'juewu'] as const;
 const directory = resolve(
-  'artifacts/maintenance/v1.0.2/pokemon-expansion-verification/bot',
+  'artifacts/maintenance/v1.0.3/pokemon-final-revision/strategy',
   `run-${Date.now()}-${randomUUID().slice(0, 8)}`,
 );
 const sourceFiles = [
@@ -87,6 +87,11 @@ function verifyMemory(memory: JsonValue, state: State, seat: string) {
         known.category,
         `${seat} remembers stale ${owner}:${slot} in ${state.phase}`,
       ).toBe(card(state.boards[owner]![slot]!.instanceId).categoryId);
+      expect(known.abilityUsed ?? false).toBe(
+        state.usedAbilityIds?.includes(
+          state.boards[owner]![slot]!.instanceId,
+        ) ?? false,
+      );
     }
 }
 

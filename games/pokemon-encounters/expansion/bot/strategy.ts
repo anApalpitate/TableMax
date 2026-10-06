@@ -7,20 +7,29 @@ import { grid, lines } from '../research';
 import type { Memory } from './memory';
 import { previewRelay } from './relay';
 import { previewRocketPikachu } from './rocket';
-import { copyTableFields, type TableFields } from './table';
+import {
+  abilityAvailable,
+  copyTableFields,
+  type AbilityKnowledge,
+  type TableFields,
+} from './table';
 import { createTactics, informationValue, nextActorRisk } from './tactics';
 type Random = { next(): number };
-type Model = TableFields & {
-  pool: string[];
-  held: string | null;
-  discards: string[];
-};
+type Model = TableFields &
+  AbilityKnowledge & {
+    pool: string[];
+    held: string | null;
+    discards: string[];
+  };
 function sample(view: View, memory: Memory, random: Random): Model {
   const pool = instancesForSeats(view.seatOrder.length);
-  const take = (category: string) => {
+  const usedAbilityIds: string[] = [];
+  const take = (category: string, used = false) => {
     const i = pool.findIndex((id) => card(id).categoryId === category);
     if (i < 0) throw new Error('Inconsistent authorized memory');
-    return pool.splice(i, 1)[0]!;
+    const id = pool.splice(i, 1)[0]!;
+    if (used) usedAbilityIds.push(id);
+    return id;
   };
   const boards: Record<string, string[]> = Object.fromEntries(
     view.seatOrder.map((id) => [id, Array<string>(9).fill('')]),
@@ -30,10 +39,20 @@ function sample(view: View, memory: Memory, random: Random): Model {
       const category =
         view.boards[seat]?.[i]?.card?.categoryId ??
         memory.known[seat]?.[i]?.category;
-      if (category) boards[seat]![i] = take(category);
+      if (category)
+        boards[seat]![i] = take(
+          category,
+          view.boards[seat]?.[i]?.card?.abilityUsed ??
+            memory.known[seat]?.[i]?.abilityUsed ??
+            false,
+        );
     }
-  const held = view.held ? take(view.held.categoryId) : null;
-  const discards = view.discardOptions.map((c) => take(c.categoryId));
+  const held = view.held
+    ? take(view.held.categoryId, view.held.abilityUsed)
+    : null;
+  const discards = view.discardOptions.map((c) =>
+    take(c.categoryId, c.abilityUsed),
+  );
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(random.next() * (i + 1));
     [pool[i], pool[j]] = [pool[j]!, pool[i]!];
@@ -52,6 +71,7 @@ function sample(view: View, memory: Memory, random: Random): Model {
     pool,
     held,
     discards,
+    usedAbilityIds,
   };
 }
 export function previewBoard(
@@ -87,7 +107,7 @@ export function estimateDraw(
     0.08
   );
 }
-type Forecast = {
+type Forecast = AbilityKnowledge & {
   board: readonly string[];
   up: readonly boolean[];
   pool: readonly string[];
@@ -152,7 +172,12 @@ export function refineForecast(
           : hypothesis.discards[action.discardIndex];
       // Immediate abilities are evaluated separately on the complete table.
       // This own-field ordinary horizon cannot predict an active ability chain.
-      if (incoming && card(incoming).ability !== null) return 0;
+      if (
+        incoming &&
+        card(incoming).ability !== null &&
+        abilityAvailable(hypothesis, incoming)
+      )
+        return 0;
       let bestPreview: ReturnType<typeof previewBoard> | null = null;
       let best = action.source === 'deck' ? score(board, up) : Infinity;
       if (incoming)
@@ -181,7 +206,11 @@ export function refineForecast(
           (action.type === 'draw' && action.source === 'deck' ? 1 : 0),
       );
       if (!incoming) break;
-      if (card(incoming).ability !== null) break;
+      if (
+        card(incoming).ability !== null &&
+        abilityAvailable(hypothesis, incoming)
+      )
+        break;
       let next = board,
         nextUp = up;
       for (const slot of grid.slots) {
@@ -408,8 +437,8 @@ export function choose(
     return utility({ ...model, boards: result.boards, up: result.up });
   };
   const extraDrawValues = (model: Model) => {
-    // Choose the draw source before learning the deck identity; average each
-    // source separately across the same authorized hypotheses first.
+    // Lucario draws only from the deck; compare its unknown expectation with
+    // declining before learning any extra card identity.
     const incoming = model.pool.at(-1);
     return [
       incoming
@@ -419,9 +448,6 @@ export function choose(
             bestReplace(model, seat, incoming),
           )
         : Infinity,
-      ...model.discards.map((id) =>
-        estimateDraw('discard', utility(model), bestReplace(model, seat, id)),
-      ),
     ];
   };
   const evaluate = (a: Action, original: Model) => {
@@ -460,10 +486,16 @@ export function choose(
         a.source === 'deck'
           ? model.pool.at(-1)
           : model.discards[a.discardIndex];
-      if (incoming && view.phase === 'draw' && card(incoming).ability === 'mew')
+      if (
+        incoming &&
+        abilityAvailable(model, incoming) &&
+        view.phase === 'draw' &&
+        card(incoming).ability === 'mew'
+      )
         return bestMewExchange(model, incoming) + 0.08;
       if (
         incoming &&
+        abilityAvailable(model, incoming) &&
         view.phase === 'draw' &&
         card(incoming).ability === 'zapdos'
       )
@@ -475,6 +507,7 @@ export function choose(
         );
       if (
         incoming &&
+        abilityAvailable(model, incoming) &&
         view.phase === 'draw' &&
         card(incoming).ability === 'team-rocket'
       ) {
@@ -576,7 +609,7 @@ export function choose(
     return utility(model) + (a.type === 'reposition' ? 0.6 : 0);
   };
   const sums = actions.map(() => 0);
-  const extraSums = Array<number>(view.discardOptions.length + 1).fill(0);
+  const extraSums = [0];
   let samples = 0;
   const hypotheses: Forecast[] = [];
   for (let n = 0; n < count; n++) {
@@ -591,7 +624,10 @@ export function choose(
         : null;
     if (difficulty === 'juewu' && view.phase === 'charizard-choice') {
       const incoming = model.pool.at(-1);
-      if (incoming && card(incoming).ability === null) {
+      if (
+        incoming &&
+        (card(incoming).ability === null || !abilityAvailable(model, incoming))
+      ) {
         const values = grid.slots.map((slot) => {
           const preview = previewBoard(model.boards[seat]!, model.up[seat]!, {
             type: 'replace',
@@ -620,6 +656,7 @@ export function choose(
         up: model.up[seat]!,
         pool: model.pool,
         discards: model.discards,
+        usedAbilityIds: model.usedAbilityIds ?? [],
         matchContext: {
           seat,
           winsBySeat: view.winsBySeat,

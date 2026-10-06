@@ -312,11 +312,13 @@ try {
       window.expansionShow({ creature: id, role: 'host' });
       const start = performance.now(),
         duration = window.expansionTimelines[id].durationMs;
+      let first = null;
       const trace = () => {
         const svg = document.querySelector(
           '[data-sequence] svg[data-creature]',
         );
-        if (svg)
+        if (svg) {
+          first ??= performance.now();
           window.poseTrace.push({
             elapsed: performance.now() - start,
             pose: svg.dataset.pose,
@@ -325,11 +327,18 @@ try {
               .map((joint) => joint.getAttribute('transform'))
               .join('|'),
           });
-        if (performance.now() - start < duration + 100)
+        }
+        if (
+          performance.now() - (first ?? start) <
+          (first ? duration + 100 : 10000)
+        )
           requestAnimationFrame(trace);
       };
       requestAnimationFrame(trace);
     }, creature);
+    await page
+      .locator(`[data-sequence="${creature}"]`)
+      .waitFor({ state: 'attached' });
     await page.waitForTimeout(Math.floor(timeline.durationMs * 0.52));
     await screenshot(`playing-${creature}`);
     await page.waitForTimeout(Math.ceil(timeline.durationMs * 0.48) + 180);
@@ -416,7 +425,8 @@ try {
     assert.equal(await page.locator('[data-sequence]').count(), 0);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.evaluate(() => window.expansionShow({ creature: 'mewtwo' }));
-    assert.equal(await page.locator('.ex-cinematic').isVisible(), false);
+    await page.locator('.ex-static-hero').waitFor();
+    assert.equal(await page.locator('.anime-entrance').isVisible(), false);
     assert.equal(await page.locator('.ex-static-hero').isVisible(), true);
     report.cancellation.push(
       'public private-peek isolation',
@@ -431,34 +441,22 @@ try {
     );
     assert.ok(['round-result', 'match-result'].includes(terminal.phase));
     assert.ok(terminal.events.some((event) => event.kind === 'research'));
-    const delays = await page.evaluate(() => ({
-      result: getComputedStyle(document.querySelector('.ex-victory'))
-        .animationDelay,
-      research: getComputedStyle(document.querySelector('.ex-research-reveal'))
-        .animationDelay,
-    }));
-    assert.equal(delays.research, '2.25s');
-    assert.equal(delays.result, '4.75s');
-    await page.waitForTimeout(2600);
-    assert.equal(
-      await page
-        .locator('.ex-victory')
-        .evaluate((el) => getComputedStyle(el).opacity),
-      '0',
-    );
+    const began = Date.now();
+    await page.locator('[data-sequence="groudon"]').waitFor();
+    assert.equal(await page.locator('.ex-victory').isVisible(), false);
+    await page.locator('.ex-research-reveal').waitFor({ state: 'attached' });
+    const researchAt = Date.now() - began;
+    assert.equal(await page.locator('.ex-victory').isVisible(), false);
     await screenshot('last-ability-research-before-settlement');
-    await page.waitForTimeout(2450);
-    assert.equal(
-      await page
-        .locator('.ex-victory')
-        .evaluate((el) => getComputedStyle(el).opacity),
-      '1',
-    );
+    await page.locator('.ex-victory').waitFor();
+    const resultAt = Date.now() - began;
+    assert.ok(resultAt >= researchAt + 2300);
     assert.ok(await page.locator('.ex-victory h2').isVisible());
     report.cancellation.push({
       terminal: terminal.phase,
       order: terminal.events.map((event) => event.kind),
-      ...delays,
+      researchAt,
+      resultAt,
     });
     for (const [role, width, height, scale] of [
       ['host', 1280, 720, 1],
@@ -565,7 +563,7 @@ try {
           window.expansionShow({ creature: 'mewtwo', role: 'player' }),
         );
         await page.waitForTimeout(800);
-        const overlay = await page.locator('.ex-cinematic').evaluate((el) => {
+        const overlay = await page.locator('.anime-entrance').evaluate((el) => {
           const bounds = el.getBoundingClientRect();
           return {
             inside:

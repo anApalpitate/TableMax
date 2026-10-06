@@ -38,6 +38,9 @@ function rocketFixture(turnSeat = 'a') {
   for (let i = state.deck.length - 1; i > 0; i--)
     [state.deck[i], state.deck[0]] = [state.deck[0]!, state.deck[i]!];
   state.initialDone = [...context.seats];
+  // This historical synthetic fixture represents a restored pre-usage chain.
+  delete state.usedAbilityIds;
+  delete state.pendingAbility;
   state.phase = 'rocket-pikachu';
   state.turnSeat = turnSeat;
   state.coin = 'pikachu';
@@ -154,6 +157,9 @@ it('values drawing Mew by its mandatory opponent-then-self exchange, not a self-
     state.discard[top]!,
     state.deck[index]!,
   ];
+  // This historical synthetic fixture represents a restored pre-usage chain.
+  delete state.usedAbilityIds;
+  delete state.pendingAbility;
   state.phase = 'draw';
   state.initialDone = [...context.seats];
   state.turnSeat = 'a';

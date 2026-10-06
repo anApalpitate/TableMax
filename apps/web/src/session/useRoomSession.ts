@@ -145,6 +145,7 @@ export function useRoomSession(role: ScreenRole) {
         changedSlots.current = [];
         if (
           previous?.game?.id === next.game?.id &&
+          previous?.game?.variantId === next.game?.variantId &&
           previous?.gameView &&
           next.gameView &&
           next.playMode === 'play' &&

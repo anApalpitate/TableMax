@@ -4,12 +4,15 @@ import { SavedMotion } from './motion';
 export function WinTrack({
   wins,
   winner,
+  earnedNow: providedEarnedNow,
 }: {
   wins: number;
   winner?: 'match' | 'round' | undefined;
+  earnedNow?: boolean | undefined;
 }) {
   const motion = useContext(SavedMotion);
-  const earnedNow = Boolean(winner) && motion.includes('@result');
+  const earnedNow =
+    providedEarnedNow ?? (Boolean(winner) && motion.includes('@result'));
   return (
     <span
       className="tag win-track"

@@ -22,6 +22,9 @@ function fixture(seed = 53) {
   state.held = state.deck.splice(index, 1)[0]!;
   state.drawSource = 'deck';
   state.initialDone = [...context.seats];
+  // This historical synthetic fixture represents a restored pre-usage chain.
+  delete state.usedAbilityIds;
+  delete state.pendingAbility;
   state.phase = 'zapdos-direction';
   state.turnSeat = 'b';
   if (seed === 53) {

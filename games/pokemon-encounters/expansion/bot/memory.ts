@@ -14,6 +14,7 @@ export const profiles = {
 } as const;
 type Knowledge = {
   category: string;
+  abilityUsed?: boolean;
   source: 'public' | 'private';
   turn: number;
 };
@@ -73,7 +74,12 @@ export function validateMemory(input: unknown): JsonValue {
           (k) =>
             k !== null &&
             (!k ||
-              Object.keys(k).sort().join(',') !== 'category,source,turn' ||
+              ![
+                'category,source,turn',
+                'abilityUsed,category,source,turn',
+              ].includes(Object.keys(k).sort().join(',')) ||
+              (k.abilityUsed !== undefined &&
+                typeof k.abilityUsed !== 'boolean') ||
               !categoryIds.has(k.category) ||
               !['public', 'private'].includes(k.source) ||
               !Number.isSafeInteger(k.turn) ||
@@ -144,6 +150,13 @@ export function observeMemory(
   if (m.turnSeat === seat && view.turnSeat !== seat && view.phase === 'draw')
     m.turn++;
   for (const e of view.events.filter((e) => e.id > m.lastEvent)) {
+    // The public effect identifies the previously visible source slot before
+    // a cover/swap, never the real instance ID or any hidden card identity.
+    const source = e.effect?.source;
+    if (source) {
+      const known = m.known[source.seat]?.[source.slot];
+      if (known) known.abilityUsed = true;
+    }
     const a = e.action;
     if (a) {
       const target = a.targets[0];
@@ -174,6 +187,7 @@ export function observeMemory(
       if (c.card)
         m.known[id]![i] = {
           category: c.card.categoryId,
+          abilityUsed: c.card.abilityUsed ?? false,
           source: 'public',
           turn: m.turn,
         };
@@ -181,6 +195,7 @@ export function observeMemory(
     for (const c of view.peek.cards)
       m.known[view.peek.seat]![c.slot] = {
         category: c.card.categoryId,
+        abilityUsed: c.card.abilityUsed ?? false,
         source: view.boards[view.peek.seat]?.[c.slot]?.faceUp
           ? 'public'
           : 'private',

@@ -1,8 +1,20 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.3 扩展修订后的深度瘦身（2026-10-07）
+
+开始[实际逻辑容量](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/space-start.json)12,434,523,306字节（11.581GiB）。当前ZIP `99f3be46…` 完成真实保存演出、63姿态、原版及三游戏恢复同包检查后，工程进程退出；release仅保留本轮运行ZIP与逐文件清单，无EXE、source ZIP或新发布。依用途、保留证据及逐文件哈希先预览再Apply，不按Git忽略或版本数字直接删除。
+
+[再生验证／打包副本](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-173741-266-intermediates/cleanup.json)删除2,210,645,948字节；[历史图片清单](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-173917-560-intermediates/cleanup.json)删除1,592,866,952字节，包括旧界面截图及旧运行副本内派生图，当前v1.0.3验收截图、素材原图与规则资料保留。v1.0.4是本页已记录的2026-10-05历史交付，因此加入明确旧版本白名单，未知未来版本仍受保护；保留失败／通过文字结论及逐图哈希，原记录不改写。
+
+[八项旧ZIP／解压](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-174309-867-intermediates/cleanup.json)删除488,024,023字节；旧ZIP链接改指对应退役记录，原逐文件清单及历史验收保留。仅增加已审计的旧 `retained-*/package-*/size-verification` 解压边界与 `previous-delivery.zip` 文件名，仍要求完整哈希、外部证据、程序标记、零源码／存档；当前ZIP哈希的副本也不能按旧包删除。历史图片删除改变旧解压目录计数，保护检查阻止首次Apply，重新审计剩余文件并预览后才应用，旧清单和失败日志保留。
+
+构建缓存保留当前开发与交付快照、每单元最新两份成功产物，删除25份旧产物35,728,434字节。[汇总](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/cleanup-summary.json)合计删除 **4,327,265,357字节**；[最终维护实测](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/space-final.json) **8,989,173,398字节（8.372GiB）**，逻辑容量净下降 **3,445,349,908字节**，与删除量区别记录，差额包括本轮构建／验收新增内容。低于10GiB；未达8GiB目标，已审计安全候选耗尽。当前验收、原素材、正式存档／迁移样本、活动依赖／工具缓存和用途未确认的临时源码继续保护，不扩大删除范围；NTFS节省不计作逻辑瘦身。
+
+清理工具隔离229检查、原样归档16检查通过；归档夹具遗漏既有进程保护器和树快照依赖，补齐后重验通过，未放松生产保护。三份已结束清理目录逐文件哈希核对后[原样集中归档](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/cleanup-record-archive.json)，历史JSON字节未改写，映射追加至cleanup-history索引。后续文档和Git写入会略增；按用户授权仅提交本轮改动并push当前分支，无新标签或GitHub Release。
+
 ## v1.0.3 电力公司数量采购与进度收尾（2026-10-06）
 
-最终ZIP `15a0dd45…` 的六人／两人布局、原生显示和完整采购／回退／恢复验收通过，自有工程进程正常退出。先把最终两个原生验收的数据库、审计源码及逐文件SHA[另存](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/quantity-final-match/saved-audit-inventory.json)，此前完整交付ZIP与清单也在[previous-delivery](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/previous-delivery/TableMax-1.0.3-win-x64.zip)保留；当前ZIP、原素材、规则资料、正式存档、截图及成功／失败JSON继续保留。
+最终ZIP `15a0dd45…` 的六人／两人布局、原生显示和完整采购／回退／恢复验收通过，自有工程进程正常退出。先把最终两个原生验收的数据库、审计源码及逐文件SHA[另存](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/quantity-final-match/saved-audit-inventory.json)，此前完整交付ZIP与清单也在[previous-delivery](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/previous-delivery/TableMax-1.0.3-win-x64.zip.retired.json)保留；当前ZIP、原素材、规则资料、正式存档、截图及成功／失败JSON继续保留。
 
 沿用已知副本的路径、进程、链接和内容变化保护，精确预览后按既有手动近期参数Apply：[release两组装目录](../../artifacts/maintenance/local-cleanup-20261006-150931-895-releases/cleanup.json)退役462,062,602字节；[15个已退出隔离副本](../../artifacts/maintenance/local-cleanup-20261006-150944-576-intermediates/cleanup.json)退役1,418,900,135字节，另161项保护／未知用途跳过。合计1,880,962,737字节，见[汇总](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/cleanup-summary.json)。未清空artifacts／tmp，release仅当前运行ZIP与清单；未删除当前验收、缓存依赖或原资源。
 

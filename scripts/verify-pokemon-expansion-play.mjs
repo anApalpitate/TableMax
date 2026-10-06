@@ -74,12 +74,14 @@ const report = {
   pageErrors: [],
   externalRequests: [],
   acknowledgements: [],
+  presentation: [],
 };
 const delay = (ms) => new Promise((done) => setTimeout(done, ms));
 let desktop, hostSocket, origin;
 const phones = [];
 const tokens = [];
 const phases = new Set();
+const entrances = new Set();
 async function view(token) {
   const reply = await (
     await fetch(`${origin}/api/session/view`, {
@@ -303,6 +305,39 @@ try {
   };
   await host.addInitScript(observeMedia);
   await host.evaluate(observeMedia);
+  const observePresentation = () => {
+    window.__pokemonPresentation = [];
+    let previous = '';
+    const sample = () => {
+      const scenes = [...document.querySelectorAll('[data-scene]')].map(
+        (el) => el.dataset.scene,
+      );
+      const trails = [...document.querySelectorAll('[data-from][data-to]')].map(
+        (el) => [el.dataset.from, el.dataset.to],
+      );
+      const coins = [...document.querySelectorAll('[data-coin]')].map(
+        (el) => el.dataset.coin,
+      );
+      const winners = [...document.querySelectorAll('[data-winner]')].map(
+        (el) => el.dataset.winner,
+      );
+      const state = { scenes, trails, coins, winners };
+      const key = JSON.stringify(state);
+      if (key !== previous) {
+        previous = key;
+        window.__pokemonPresentation.push({ at: performance.now(), ...state });
+      }
+    };
+    new MutationObserver(sample).observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-scene', 'data-from', 'data-to', 'data-coin'],
+    });
+    sample();
+  };
+  await host.addInitScript(observePresentation);
+  await host.evaluate(observePresentation);
   await host.waitForURL('**/host');
   origin = new URL(host.url()).origin;
   observe(host, 'host');
@@ -412,9 +447,11 @@ try {
   const botEvents = new Set();
   while (Date.now() - start < 600000) {
     const publicView = await view();
-    for (const event of publicView.gameView.events)
+    for (const event of publicView.gameView.events) {
+      if (event.effect?.entrance) entrances.add(event.effect.entrance);
       if (botSeats.includes(event.action?.actor))
         botEvents.add(event.id ?? JSON.stringify(event));
+    }
     phases.add(publicView.gameView.phase);
     if (['round-result', 'match-result'].includes(publicView.gameView.phase)) {
       report.roundResult = publicView.gameView.roundResult;
@@ -500,6 +537,40 @@ try {
     'Real normal Worker must commit public saved actions',
   );
   report.publicEventCount = final.gameView.events.length;
+  // Rules can finish while the committed visual queue is still playing.
+  await until(
+    () => host.locator('.ex-victory').isVisible(),
+    'Saved result must reach the presentation queue',
+    120000,
+  );
+  report.presentation = await host.evaluate(() => window.__pokemonPresentation);
+  report.savedEntrances = [...entrances];
+  const fullscreen = new Set([
+    'mew',
+    'mewtwo',
+    'team-rocket',
+    'zapdos',
+    'arceus',
+    'greninja',
+    'groudon',
+    'kyogre',
+    'rayquaza',
+  ]);
+  for (const ability of entrances) {
+    if (!fullscreen.has(ability)) continue;
+    assert.ok(
+      report.presentation.some((item) => item.scenes.includes(ability)),
+      `Saved ${ability} entrance must reach the actual host renderer`,
+    );
+  }
+  assert.ok(
+    report.presentation.some((item) => item.trails.length > 0),
+    'Actual saved normal UI actions must produce golden transfer paths',
+  );
+  assert.ok(
+    report.presentation.some((item) => item.winners.length > 0),
+    'Actual saved result must produce winner sweeps',
+  );
   await phones[0].locator('.ex-victory').scrollIntoViewIfNeeded();
   await screenshot(phones[0], 'short-phone-result');
   await screenshot(host, 'host-result');

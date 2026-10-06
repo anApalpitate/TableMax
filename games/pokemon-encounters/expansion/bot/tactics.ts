@@ -2,15 +2,21 @@ import { card } from '../cards';
 import type { View } from '../project';
 import type { Action } from '../state';
 import { grid } from '../research';
-import { copyTableFields, type TableFields } from './table';
+import {
+  abilityAvailable,
+  copyTableFields,
+  type AbilityKnowledge,
+  type TableFields,
+} from './table';
 import { previewRelay } from './relay';
 import { previewRocketPikachu } from './rocket';
 
-export type TacticalModel = TableFields & {
-  pool: string[];
-  held: string | null;
-  discards: string[];
-};
+export type TacticalModel = TableFields &
+  AbilityKnowledge & {
+    pool: string[];
+    held: string | null;
+    discards: string[];
+  };
 type Value = (model: TacticalModel) => number;
 type Score = (board: string[], up: boolean[]) => number;
 
@@ -81,7 +87,9 @@ export function createTactics(
     return value(trial);
   };
   const afterPlacement = (model: TacticalModel, incoming: string): number => {
-    const ability = card(incoming).ability;
+    const ability = abilityAvailable(model, incoming)
+      ? card(incoming).ability
+      : null;
     let best = value(model); // Declining a post-placement ability completes the turn.
     if (ability === 'snorlax') {
       for (let a = 0; a < 9; a++)
@@ -171,9 +179,8 @@ export function createTactics(
       best = Math.min(best, ...contenders.map(value));
     }
     if (ability === 'lucario') {
-      // Choose the source before learning the extra deck identity. Average a
-      // shared, symmetric four-card chance batch before comparing sources;
-      // never pick deck/discard based on one lucky hypothetical top card.
+      // Average a shared symmetric deck-only chance batch before deciding to
+      // activate. The extra placement suppresses its incoming active ability.
       const last = model.pool.length - 1;
       const third = Math.floor(last / 3);
       const chanceSlots = [...new Set([0, last, third, last - third])].filter(
@@ -196,19 +203,6 @@ export function createTactics(
           ) / chanceSlots.length;
         best = Math.min(best, expectedDeck);
       }
-      model.discards.forEach((incoming, index) => {
-        best = Math.min(
-          best,
-          ordinary(
-            {
-              ...copy(model),
-              discards: model.discards.filter((_, i) => i !== index),
-            },
-            incoming,
-            false,
-          ),
-        );
-      });
     }
     // Charizard finishes without another board change; information is valued
     // at its real choice point, after the player can legally select the peek.
@@ -277,7 +271,9 @@ export function createTactics(
     const model = copy(original);
     if (action.source === 'deck') model.pool.pop();
     else model.discards.splice(action.discardIndex, 1);
-    const ability = card(incoming).ability;
+    const ability = abilityAvailable(model, incoming)
+      ? card(incoming).ability
+      : null;
     if (view.phase === 'lucario-draw')
       return (
         replacement(model, incoming, action.source === 'deck', false) + 0.08
@@ -397,7 +393,7 @@ export function nextActorRisk(
   for (const id of incoming) {
     // These ordinary/suppressed endings are exact. Active abilities have a
     // separate full-chain model and are not falsely treated as forced closure.
-    if (card(id).ability !== null) continue;
+    if (card(id).ability !== null && abilityAvailable(model, id)) continue;
     const trial = place(model, next, dark, id);
     const own = score(trial.boards[seat]!, trial.up[seat]!);
     const opponent = score(trial.boards[next]!, trial.up[next]!);

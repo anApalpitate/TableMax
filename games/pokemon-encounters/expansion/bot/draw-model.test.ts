@@ -18,6 +18,9 @@ function fixture(source: 'deck' | 'discard') {
     ).state;
   const index = state.deck.findIndex((id) => card(id).ability === 'mewtwo');
   state.held = state.deck.splice(index, 1)[0]!;
+  // This historical synthetic fixture represents a restored pre-usage chain.
+  delete state.usedAbilityIds;
+  delete state.pendingAbility;
   state.phase = 'mewtwo-choice';
   state.turnSeat = 'a';
   state.initialDone = [...context.seats];

@@ -1,4 +1,9 @@
-import { useLayoutEffect, useRef, type CSSProperties } from 'react';
+import {
+  useLayoutEffect,
+  useRef,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import './anime-entrance.css';
 
 export type EntranceDefinition = {
@@ -14,24 +19,27 @@ export type EntranceDefinition = {
 export function AbilityEntrance({
   definition,
   image,
+  character,
 }: {
   definition: EntranceDefinition;
   image: string | undefined;
+  character?: ReactNode;
 }) {
   const surface = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const scene = surface.current;
-    const screen = scene?.closest('.pokemon-screen');
+    const screen =
+      scene?.closest('.expansion-screen') ?? scene?.closest('.pokemon-screen');
     if (!scene || !screen) return;
     const measure = () => {
       const dashboard = screen
-        .querySelector('.pokemon-status')
+        .querySelector('.pokemon-status, .ex-round-banner')
         ?.getBoundingClientRect();
       const toolbar = screen
         .querySelector('.game-toolbar')
         ?.getBoundingClientRect();
       const actions = screen
-        .querySelector('.player-action-bar')
+        .querySelector('.player-action-bar, .ex-confirm-bar')
         ?.getBoundingClientRect();
       const top = Math.max(toolbar?.bottom ?? 0, dashboard?.bottom ?? 0) + 8;
       const bottom =
@@ -101,7 +109,11 @@ export function AbilityEntrance({
       </div>
       <div className="anime-cut-in">
         <div className="cut-in-stripes" />
-        {image && <img className="cut-in-character" src={image} alt="" />}
+        {character ? (
+          <div className="cut-in-character">{character}</div>
+        ) : (
+          image && <img className="cut-in-character" src={image} alt="" />
+        )}
         <div className="cut-in-title">
           <strong>{definition.title}</strong>
           <span>{definition.subtitle}</span>

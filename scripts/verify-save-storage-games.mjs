@@ -4,7 +4,14 @@ import { DatabaseSync } from 'node:sqlite';
 import { createRequire } from 'node:module';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
+import {
+  copyFile,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  writeFile,
+} from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { launchDesktop } from './desktop-test.mjs';
 import { decodeSave, readCurrentSave } from './lib/save-audit.mjs';
@@ -13,16 +20,18 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
 const evidenceName = process.argv[2];
+const version = JSON.parse(await readFile('package.json', 'utf8')).version;
 assert.equal(process.argv.length, 3);
 assert.match(evidenceName, /^[a-zA-Z0-9_-]+$/);
 const output = resolve(
-  'artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/storage',
+  `artifacts/maintenance/v${version}/pokemon-final-revision/storage`,
   evidenceName,
 );
+await mkdir(resolve(output, '..'), { recursive: true });
 await mkdir(output, { recursive: false });
 const manifest = JSON.parse(
   await readFile(
-    'artifacts/releases/TableMax-1.0.2-win-x64-manifest.json',
+    `artifacts/releases/TableMax-${version}-win-x64-manifest.json`,
     'utf8',
   ),
 );
@@ -226,6 +235,20 @@ try {
     await boot(legacyDir);
     assert.deepEqual((await view()).gameView, before);
     await stop();
+    const samples = join(output, 'migration-samples', game);
+    await mkdir(samples, { recursive: true });
+    const sampleFiles = [];
+    for (const [name, source] of [
+      ['original-v1.sqlite', join(legacyDir, backup, 'room.sqlite')],
+      ['migrated-v2.sqlite', legacyPath],
+      ['fresh-v2.sqlite', join(fresh, 'room.sqlite')],
+    ]) {
+      const target = join(samples, name);
+      await copyFile(source, target);
+      const sha256 = hash(await readFile(source));
+      assert.equal(hash(await readFile(target)), sha256);
+      sampleFiles.push({ path: target, sha256 });
+    }
     report.games.push({
       game,
       seats,
@@ -235,6 +258,7 @@ try {
       v1BackupIdentical: true,
       allHistoricalRevisionsIdentical: true,
       v2ReopenIdentical: true,
+      retainedMigrationSamples: sampleFiles,
     });
   }
   assert.deepEqual(report.pageErrors, []);

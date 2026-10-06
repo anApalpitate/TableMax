@@ -23,7 +23,7 @@
     "bot": "games/pokemon-encounters/bot/index.ts",
     "web": "games/pokemon-encounters/web/index.tsx"
   },
-  "cover": "assets/games/pokemon-encounters/cover-v1.webp",
+  "cover": "assets/games/pokemon-encounters/cover-catalog-v2.webp",
   "introduction": {
     "tagline": "记住暗牌，换牌降分，发动宝可梦能力。",
     "lead": "用换牌和宝可梦能力，让自己的六张牌总分最低。",

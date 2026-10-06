@@ -3,6 +3,11 @@ export type TableFields = {
   up: Record<string, boolean[]>;
 };
 
+/** Synthetic identities only, derived from authorized faces and memory. */
+export type AbilityKnowledge = { usedAbilityIds?: readonly string[] };
+export const abilityAvailable = (model: AbilityKnowledge, id: string) =>
+  !model.usedAbilityIds?.includes(id);
+
 /** Copies hypothetical fields without changing identities, orientations or inputs. */
 export function copyTableFields(fields: TableFields): TableFields {
   return {

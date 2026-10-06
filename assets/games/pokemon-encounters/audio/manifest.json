@@ -134,7 +134,7 @@
       "peakDBFS": -6.496762742922259,
       "rms": 0.07943013598110994,
       "rmsDBFS": -22.000293879115382,
-      "dc": -1.290265251608456e-6,
+      "dc": -0.000001290265251608456,
       "clippedSamples": 0,
       "leadingAtMinus45DB": 0.008,
       "trailingAtMinus45DB": 0.0133125
@@ -230,7 +230,7 @@
       "peakDBFS": -8.935635833476365,
       "rms": 0.07942614527119728,
       "rmsDBFS": -22.00073028447012,
-      "dc": 1.41143798828125e-5,
+      "dc": 0.0000141143798828125,
       "clippedSamples": 0,
       "leadingAtMinus45DB": 0.0058125,
       "trailingAtMinus45DB": 0.0070625
@@ -278,7 +278,7 @@
       "peakDBFS": -7.0870315701758555,
       "rms": 0.07942854068587689,
       "rmsDBFS": -22.000468330503566,
-      "dc": -1.456173983487216e-5,
+      "dc": -0.00001456173983487216,
       "clippedSamples": 0,
       "leadingAtMinus45DB": 0.0060625,
       "trailingAtMinus45DB": 0.00625
@@ -326,7 +326,7 @@
       "peakDBFS": -7.433094622279029,
       "rms": 0.0794293367941871,
       "rmsDBFS": -22.0003812727003,
-      "dc": -1.1321733582694575e-5,
+      "dc": -0.000011321733582694575,
       "clippedSamples": 0,
       "leadingAtMinus45DB": 0.0083125,
       "trailingAtMinus45DB": 0.0083125
@@ -374,7 +374,7 @@
       "peakDBFS": -6.615737806600751,
       "rms": 0.07943042186705307,
       "rmsDBFS": -22.000262616808556,
-      "dc": -1.459880683661332e-6,
+      "dc": -0.000001459880683661332,
       "clippedSamples": 0,
       "leadingAtMinus45DB": 0.017625,
       "trailingAtMinus45DB": 0.019125
@@ -414,7 +414,7 @@
     "bytes": 352844,
     "sha256": "6630ccde812f1bf2d91c7e072cea9897ddb79f1f999ed1de86c5de406b40d925",
     "decoded": {
-      "seconds": 2.0,
+      "seconds": 2,
       "channels": 2,
       "sampleRate": 44100,
       "bits": 16,
@@ -422,7 +422,7 @@
       "peakDBFS": -14.39417828180948,
       "rms": 0.04599749717151887,
       "rmsDBFS": -26.745315972529422,
-      "dc": -2.1064741000566895e-6,
+      "dc": -0.0000021064741000566895,
       "clippedSamples": 0,
       "leadingAtMinus45DB": 0.0011111111111111111,
       "trailingAtMinus45DB": 0.0014058956916099773
@@ -460,7 +460,7 @@
       "peakDBFS": -6.481096356952252,
       "rms": 0.06967752340362432,
       "rmsDBFS": -23.138145883100442,
-      "dc": -1.6519073802356003e-5,
+      "dc": -0.000016519073802356003,
       "clippedSamples": 0,
       "leadingAtMinus45DB": 0.0025850340136054422,
       "trailingAtMinus45DB": 0.003287981859410431
@@ -473,5 +473,27 @@
     "categoryId": null,
     "verification": "Source/output hashes, PCM decoding and non-silent samples verified; no model listening or official recording-source claim.",
     "evidence": "artifacts/maintenance/v1.0.2/pokemon-polish-20261005/audio/import-results.json"
+  },
+  {
+    "id": "pokemon-encounters/audio/team-rocket-entrance-user-v2",
+    "path": "team-rocket-entrance-user-v2.flac",
+    "source": "Lossless encoding of retained user-provided WAV; no gain, tone or tempo changes",
+    "encoding": "FLAC",
+    "sha256": "f3af9aeb74025107852179b36ad16a7d8433126bc98c163db7f08d2a3f83c3de",
+    "originalFile": "assets/games/pokemon-encounters/audio/team-rocket-entrance-user-v2.wav",
+    "originalSha256": "6630ccde812f1bf2d91c7e072cea9897ddb79f1f999ed1de86c5de406b40d925",
+    "decodedPcmSha256": "1ac85a354bdfeba497580d8cd4df51d133011c3c5314f219dc8448b152a4e437",
+    "verification": "artifacts/maintenance/v1.0.3/pokemon-final-revision/lossless-audio.json"
+  },
+  {
+    "id": "pokemon-encounters/audio/meowth-coin-user-v2",
+    "path": "meowth-coin-user-v2.flac",
+    "source": "Lossless encoding of retained user-provided WAV; no gain, tone or tempo changes",
+    "encoding": "FLAC",
+    "sha256": "f7997ecc31612ac0e5f8281eb751b40e4944c29105a50a26435b39f63b374384",
+    "originalFile": "assets/games/pokemon-encounters/audio/meowth-coin-user-v2.wav",
+    "originalSha256": "332e218fb5913c7c3efa23a24afd283b624e1574f4c2288eb88cf28dffb954af",
+    "decodedPcmSha256": "365f5224600732d7d513db061bf40abc7ade9eace261d062b4c1390353999c3d",
+    "verification": "artifacts/maintenance/v1.0.3/pokemon-final-revision/lossless-audio.json"
   }
 ]

@@ -42,8 +42,24 @@ await build({
   format: 'iife',
   platform: 'browser',
   jsx: 'automatic',
-  loader: { '.wav': 'file', '.mp3': 'file' },
+  loader: { '.wav': 'file', '.mp3': 'file', '.flac': 'file' },
   nodePaths: [resolve('apps/web/node_modules')],
+  plugins: [
+    {
+      name: 'isolated-audio-owner',
+      setup(builder) {
+        builder.onResolve({ filter: /^@tablemax\/web-host$/ }, () => ({
+          path: 'audio-owner',
+          namespace: 'fixture',
+        }));
+        builder.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({
+          contents:
+            'export const claimAudioEvent = key => window.fixtureAudioOwner.claimEvent(key);',
+          loader: 'js',
+        }));
+      },
+    },
+  ],
   define: { 'window.tablemaxAudio': 'window.fixtureAudioOwner' },
   logLevel: 'silent',
 });
@@ -72,11 +88,12 @@ const evidence = {
 try {
   const page = await desktop.firstWindow();
   page.on('pageerror', (error) => evidence.errors.push(error.message));
+  await page.goto(server.url);
   await page.waitForFunction(
     () => window.audioRender && window.createdAudio === 2,
   );
   const files = (await readdir(work)).filter((file) =>
-    /user-v2-.*\.wav$/.test(file),
+    /user-v2-.*\.(wav|flac)$/.test(file),
   );
   assert.equal(files.length, 8);
   evidence.decoded = await page.evaluate(async (files) => {
@@ -126,7 +143,7 @@ try {
     );
   }
   evidence.checks.push(
-    'Eight imported WAVs decode; six ordinary public draw categories play their corresponding source.',
+    'Eight imported sources (six WAVs and two lossless FLACs) decode; six ordinary public draw categories play their corresponding source.',
   );
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   for (let turn = 0; turn < 2; turn++) {

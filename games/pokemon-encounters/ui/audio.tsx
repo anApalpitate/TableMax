@@ -19,9 +19,9 @@ import mew from '../../../assets/games/pokemon-encounters/audio/mew-v1.wav';
 import zapdos from '../../../assets/games/pokemon-encounters/audio/zapdos-v1.wav';
 import snorlax from '../../../assets/games/pokemon-encounters/audio/snorlax-v1.wav';
 import charizard from '../../../assets/games/pokemon-encounters/audio/charizard-v1.wav';
-import rocket from '../../../assets/games/pokemon-encounters/audio/team-rocket-entrance-user-v2.wav';
+import rocket from '../../../assets/games/pokemon-encounters/audio/team-rocket-entrance-user-v2.flac';
 import rocketReturn from '../../../assets/games/pokemon-encounters/audio/rocket-return-v1.wav';
-import meowth from '../../../assets/games/pokemon-encounters/audio/meowth-coin-user-v2.wav';
+import meowth from '../../../assets/games/pokemon-encounters/audio/meowth-coin-user-v2.flac';
 import pikachu from '../../../assets/games/pokemon-encounters/audio/pikachu-user-v2.wav';
 import jigglypuff from '../../../assets/games/pokemon-encounters/audio/jigglypuff-user-v2.wav';
 import eevee from '../../../assets/games/pokemon-encounters/audio/eevee-user-v2.wav';
@@ -70,6 +70,7 @@ function reducedMotionPreference() {
 
 export function SoundControl({
   feedback,
+  eventKey = '',
   game = null,
   errorId,
   compact = false,
@@ -81,6 +82,7 @@ export function SoundControl({
   resolveSource,
 }: {
   feedback: RoomFeedback | null;
+  eventKey?: string;
   game?: PokemonView | null;
   errorId: string;
   compact?: boolean;
@@ -101,7 +103,7 @@ export function SoundControl({
   const [blocked, setBlocked] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(reducedMotionPreference);
   // Mounting a screen never replays feedback that arrived before its subscription.
-  const last = useRef(feedbackKey(feedback));
+  const last = useRef(feedbackKey(feedback) + eventKey);
   const lastError = useRef(errorId);
   const player = useRef<SavedSoundPlayer | null>(null);
   const permission = useRef(0);
@@ -135,7 +137,7 @@ export function SoundControl({
     if (!enabled || disabled || paused || !canPlay) player.current?.stop();
   }, [enabled, disabled, paused, canPlay]);
   useEffect(() => {
-    const id = feedbackKey(feedback);
+    const id = feedbackKey(feedback) + eventKey;
     if (!feedback) {
       last.current = '';
       permission.current++;
@@ -174,6 +176,7 @@ export function SoundControl({
       .catch(() => undefined);
   }, [
     feedback,
+    eventKey,
     game,
     enabled,
     disabled,

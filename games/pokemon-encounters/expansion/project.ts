@@ -2,7 +2,7 @@ import type { Viewer } from '@tablemax/game-sdk';
 import { card, abilityText } from './cards';
 import { task } from './research';
 import { actor, type State } from './state';
-export const face = (instance: string) => {
+export const face = (instance: string, abilityUsed = false) => {
   const c = card(instance);
   return {
     categoryId: c.categoryId,
@@ -10,6 +10,7 @@ export const face = (instance: string) => {
     name: c.name,
     value: c.value,
     ability: c.ability,
+    abilityUsed,
     abilityText: c.ability
       ? abilityText[c.ability]
       : c.copy === 'horizontal'
@@ -22,6 +23,8 @@ export const face = (instance: string) => {
 };
 export type Face = ReturnType<typeof face>;
 export function project(s: State, viewer: Viewer) {
+  const visibleFace = (instance: string) =>
+    face(instance, s.usedAbilityIds?.includes(instance) ?? false);
   const own =
     viewer.role === 'player' && s.seatOrder.includes(viewer.seatId)
       ? viewer.seatId
@@ -37,7 +40,7 @@ export function project(s: State, viewer: Viewer) {
         s.boards[id]!.map((c, i) => ({
           slotId: `${id}:${i}`,
           faceUp: c.faceUp,
-          card: c.faceUp ? face(c.instanceId) : null,
+          card: c.faceUp ? visibleFace(c.instanceId) : null,
         })),
       ]),
     ),
@@ -54,9 +57,9 @@ export function project(s: State, viewer: Viewer) {
     initialDone: s.initialDone,
     deckCount: s.deck.length,
     discardCount: s.discard.length,
-    discardTop: s.discard.length ? face(s.discard.at(-1)!) : null,
-    discardOptions: s.discard.slice(-2).reverse().map(face),
-    held: s.held ? face(s.held) : null,
+    discardTop: s.discard.length ? visibleFace(s.discard.at(-1)!) : null,
+    discardOptions: s.discard.slice(-2).reverse().map(visibleFace),
+    held: s.held ? visibleFace(s.held) : null,
     drawSource: s.drawSource,
     coin: s.coin,
     relaySeats:
@@ -74,7 +77,7 @@ export function project(s: State, viewer: Viewer) {
             seat: s.targetSeat!,
             cards: s.peekSlots.map((slot) => ({
               slot,
-              card: face(s.boards[s.targetSeat!]![slot]!.instanceId),
+              card: visibleFace(s.boards[s.targetSeat!]![slot]!.instanceId),
             })),
           }
         : null,

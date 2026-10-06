@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import cardsJson from './cards.json';
 import decksJson from './decks.json';
 import researchJson from './research.json';
-import baseline from './compatibility-fixtures.json';
+import baseline from './ability-policy-fixtures.json';
 import { cardDefinitions, deckProfiles } from './card-data';
 import {
   validateCards,
@@ -169,7 +169,7 @@ describe('independent expansion configuration', () => {
   });
 });
 
-describe('pre-refactor seeded state, action, projection and RNG compatibility', () => {
+describe('2026-10-07 ability-policy seeded state, projection and RNG replay', () => {
   for (const expected of baseline.results)
     it(`${expected.seats} players, seed ${expected.seed}, saved-state/branch replay`, () => {
       expect(

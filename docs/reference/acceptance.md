@@ -1,5 +1,17 @@
 # 首版交付与验收
 
+## 1.0.3：扩展版能力消耗、原版演出与全量构建（2026-10-07）
+
+本轮十一项修订完成：两／三人高卡面、四人对称2×2及五／六人重排；圆形数字按字形居中，稳定牌桌底边，手机三牌源加全宽“卡牌换位”；接齐原版全屏构图、金色引线、两面硬币和共同赢家皇冠／烟花／扫光。主动能力按实例失星，路卡利欧仅摸牌库；旧存档当前副本惰性规范化，历史checkpoint不改写，暗牌使用状态保持秘密。新增规则均为项目约定，详见游戏规则与[真人交接](../games/pokemon-encounters/validation-scenarios.md)。
+
+规则与旧链／SQLite兼容53项、策略专项69项通过；[150固定种子小局](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/strategy/run-1791304949711-c6c20bad/seeded-rounds.json)及[五场混合大局](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/strategy/mixed-1791305488575/mixed-matches.json)共17,114动作通过，重组耗时618.11秒。真实Worker内存／截止／取消／暂停和旧结果失效、配置与恢复55项、表现19项及原版差分通过。策略源码未因最后反馈修复改变，重测试结果继续有效。
+
+实际[最终布局](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/ui/layout-slices-07/results.json)和[独立美术复核](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/ui/independent-review.json)检查手机320–430px、720p–4K、125%／150%、三人高卡／四人对称、视觉数字中心及稳定底边。[同包演出](../../artifacts/maintenance/v1.0.3/pokemon-expansion-effects/final-revision-03/results.json)14套63姿态、连续队列、取消／减少动态及结算次序通过；[真实普通对局](../../artifacts/maintenance/v1.0.3/pokemon-expansion-normal-play/final-revision-03/results.json)35次手机操作／12阶段、真实Worker及已保存能力／引线／赢家演出通过。[原生原版回归](../../artifacts/maintenance/v1.0.3/portable/final-revision-03/results.json)和[三游戏v1迁移／v2恢复](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/storage/final-revision-03/results.json)使用同一ZIP，实际解压、逐文件哈希、离线、切换／恢复与进程退出通过；迁移样本另存，不随临时目录清理。
+
+本轮全量生产构建18单元、零缓存，32,027ms。首次模块超预算19,172字节，随后目录小封面派生和两段原声无损FLAC编码仅重建metadata／客户端。真实保存验收还发现临时feedback误携带严格协议不接受的effect；[先失败再通过的协议回归](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/rules/feedback-fix-regression.json)修复后，仅重建规则单元，其余17项复用。保存事件的effect继续完整保留，未改网络协议。component样板未能检出该断链，因此最终以真实保存同包复验为准；早期超预算和普通对局失败记录保留。
+
+最终冻结快照 `6993a1af…` 直接组装，无重复编译。[当前运行ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip) **41,331,808字节**，SHA-256 `99f3be469bfd86f14ef4a1d00dee4f80520fd43de2ad91afb96f28133b2d86b1`；[逐文件清单](../../artifacts/releases/TableMax-1.0.3-win-x64-manifest.json)247文件、实际解压 **94,864,073字节**，95MB余135,927字节，宝可梦4MiB及ZIP／实际解压双100MB门禁通过。测试默认静音、本机回环；实体手机、现场局域网、物理DPI、真人听感和真人时长仍独立交接。版本保持v1.0.3，无新标签或GitHub Release；[安全深度瘦身](project-slimming.md)后仅提交本轮改动，并按用户授权push当前分支。
+
 ## 1.0.3：电力公司数量采购、进度与稳定反馈（2026-10-06）
 
 删除底部重复保存消息，保留地图白底最新记录及局部声画，连续保存不改变地图／公司抽屉几何。收益全部单行，0–9左列、10–19右列、20+末行横跨两列居中，保留唯一绿档和18px数字。手机原料选择数量，＋1／−1及输入均不保存，跨价阶累计总价，一次确认原子采购；现金、现货与混燃共用容量仍由服务器校验，旧单份动作兼容、人机保持单份策略、存档版本不变。声音改居中SVG及hover／聚焦提示；滚动条适配纸色与工业绿，用户原话已并入[美术倾向](art-preferences.md#电力公司附图反馈与滚动条适配2026-10-06)。新增真实地皮计数轨道及第二阶段／终局门槛，顶部显示“第N阶段”，规则卡明确与轮内行动阶段区别，第三阶段仍按第三步牌触发。
@@ -10,11 +22,11 @@
 
 初次原生验收暴露短屏空厂占位挤出城市详情入口，已压紧空位并让工具栏整行换行；[失败记录](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/purchase-progress-display/results.json)保留。回退脚本初次误读手机无权查看的管理记录，改由管理员读取checkpoint，采购保存本身正确，保留[脚本失败](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/purchase-progress-match/results.json)。修正后只重建受影响客户端，未更改权限、放松点击检查或绕过保存。
 
-[冻结快照](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/build-snapshot.json)为`0d93c551…`，最终18单元17缓存复用、只重建客户端356ms，构建10,292ms。[输出核对](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/output-equivalence.json)验证18单元源码未漂移，其他游戏和平台240文件字节相同，目录聚合文件随本游戏指纹更新。[当前运行ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip)41,261,674字节，SHA-256 `15a0dd459a71eb34d8ed46bd91d792ddc1a8b571cfa5eff4b0eef1f9463704b6`；[清单](../../artifacts/releases/TableMax-1.0.3-win-x64-manifest.json)246文件、实际解压94,859,028字节，95MB预算及ZIP／解压双100MB门禁通过。沿用v1.0.3，只导出本地运行ZIP／清单，不推送或发布；收尾实际水位见[瘦身记录](project-slimming.md)。
+[冻结快照](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/build-snapshot.json)为`0d93c551…`，最终18单元17缓存复用、只重建客户端356ms，构建10,292ms。[输出核对](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/output-equivalence.json)验证18单元源码未漂移，其他游戏和平台240文件字节相同，目录聚合文件随本游戏指纹更新。[当时运行ZIP（已退役）](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/previous-delivery/TableMax-1.0.3-win-x64.zip.retired.json)41,261,674字节，SHA-256 `15a0dd459a71eb34d8ed46bd91d792ddc1a8b571cfa5eff4b0eef1f9463704b6`；[当时清单](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/previous-delivery/TableMax-1.0.3-win-x64-manifest.json)246文件、实际解压94,859,028字节，95MB预算及ZIP／解压双100MB门禁通过。沿用v1.0.3，只导出本地运行ZIP／清单，不推送或发布；收尾实际水位见[瘦身记录](project-slimming.md)。
 
 ## 当前源码与本地交付
 
-当前 v1.0.3 从根目录源码直接整合：包含电力公司细化提交 `d97e299` 和本轮宝可梦扩展深度界面、研究主题及公开牌区修订。当前运行 ZIP 为 `6df0feb5…`，下节记录同一最终包的实际验收。前一份整合包 `201de235…` 保留于 `pokemon-ui-depth/previous-delivery/`，宝可梦独立旧包 `943071ce…` 保留于 `pokemon-ui-redesign/delivery/`；更早运行包按本轮精确清单退役，文字结论、逐文件清单与哈希继续保留。历史通过结论各自对应其冻结输入，不自动升级为新包验收。
+当前本地交付为本页2026-10-07扩展修订章节的 `99f3be46…` 同包验收，基线 `6db5be1` 加本轮根源码全量生产构建及受影响修复。旧 `6df0feb5…`、`201de235…` 和 `943071ce…` 运行包已按精确清单退役，保留各自逐文件清单、哈希、通过／失败文字结论和原素材；历史通过结论只对应当时冻结输入，不升级为当前包通过。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
 
@@ -32,7 +44,7 @@
 
 [输出等价](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/output-equivalence.json)确认237文件与 `201de235…` 相同，平台运行、原生、Node、现代艺术及电力公司输出字节一致；目录聚合文件仅随宝可梦样式指纹变化。复用上一包对应游戏的恢复／对局证据，不重跑未变化完整游戏。三张新研究背景压缩后，30背景135,570字节；原PNG和原角色素材保留，生成与编码边界见[资源](../games/pokemon-encounters/assets.md#研究插画与下载叫声再派生2026-10-06)。
 
-首次组装宝可梦模块超4MiB 6,485字节，保留[失败记录](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/budget-attempt/result.json)，三背景再派生节省11,100字节后只重建受影响客户端；未提高预算。[正式快照](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/build-snapshot.json)为 `6068ffef…`，续组装18缓存单元复用、9,882ms构建／22,168ms含打包。[当时运行ZIP](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/previous-delivery/TableMax-1.0.3-win-x64.zip)41,259,719字节，SHA-256 `6df0feb58951e3f547e415b3c667dbcf6d5208abd52dadc1a5d3425435ca3d39`；[逐文件清单](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/previous-delivery/TableMax-1.0.3-win-x64-manifest.json)246文件，实际解压94,850,050字节，宝可梦模块4,189,689字节。4MiB、95MB工程预算及ZIP／实际解压双100MB门禁通过。只生成本地运行ZIP／清单，安全清理与最终逻辑空间见[瘦身记录](project-slimming.md)。
+首次组装宝可梦模块超4MiB 6,485字节，保留[失败记录](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/budget-attempt/result.json)，三背景再派生节省11,100字节后只重建受影响客户端；未提高预算。[正式快照](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/build-snapshot.json)为 `6068ffef…`，续组装18缓存单元复用、9,882ms构建／22,168ms含打包。[当时运行ZIP](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/previous-delivery/TableMax-1.0.3-win-x64.zip.retired.json)41,259,719字节，SHA-256 `6df0feb58951e3f547e415b3c667dbcf6d5208abd52dadc1a5d3425435ca3d39`；[逐文件清单](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/previous-delivery/TableMax-1.0.3-win-x64-manifest.json)246文件，实际解压94,850,050字节，宝可梦模块4,189,689字节。4MiB、95MB工程预算及ZIP／实际解压双100MB门禁通过。只生成本地运行ZIP／清单，安全清理与最终逻辑空间见[瘦身记录](project-slimming.md)。
 
 ## 1.0.3：电力公司地图材质、动画与综合资料细化（2026-10-06）
 
@@ -42,7 +54,7 @@
 
 [同包原生显示](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/refinement-display/results.json)67.46秒通过静音隐藏WebView2／127.0.0.1的720p、1080p、4K和125%／150%显示请求。[同包完整对局](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/refinement-match/results.json)89.28秒通过真实手机控件、Worker、SQLite保存／重启恢复与跨游戏切换，467状态核验、431条合法动作独立重放，覆盖STEP1／2／3、换厂、转存及最终结算；自有桌面与服务正常退出。浏览器窗口／手势与模拟密度不代替实体手机、现场LAN或物理DPI认证。宝可梦规则／策略／客户端／元数据[135项输出](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/pokemon-output-equivalence.json)与其先前验收包逐字节一致，沿用其原有专项边界，没有重跑宝可梦完整专项。
 
-[冻结构建](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/build-snapshot.json)18单元中17项复用，只重建电力公司客户端376ms。首次组装被仍运行的旧验收程序门禁拦截；用户关闭后按同一快照续组装，19,485ms完成，没有重复编译或绕过门禁。[当时整合ZIP](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/previous-delivery/TableMax-1.0.3-win-x64.zip)41,243,018字节，SHA-256 `201de235e92fd763cf016bbbb526b407dd8a51aed4c76bb3849beb7e0259128e`；[逐文件清单](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/package-manifest.json)246文件，实际解压94,808,641字节，95MB预算及ZIP／解压双100MB门禁通过。只导出运行ZIP／清单，不生成新EXE或源码包、不推送发布。安全维护实际水位见[瘦身记录](project-slimming.md)，本轮汇总见[核验记录](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/final-checks.json)。
+[冻结构建](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/build-snapshot.json)18单元中17项复用，只重建电力公司客户端376ms。首次组装被仍运行的旧验收程序门禁拦截；用户关闭后按同一快照续组装，19,485ms完成，没有重复编译或绕过门禁。[当时整合ZIP](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/previous-delivery/TableMax-1.0.3-win-x64.zip.retired.json)41,243,018字节，SHA-256 `201de235e92fd763cf016bbbb526b407dd8a51aed4c76bb3849beb7e0259128e`；[逐文件清单](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/package-manifest.json)246文件，实际解压94,808,641字节，95MB预算及ZIP／解压双100MB门禁通过。只导出运行ZIP／清单，不生成新EXE或源码包、不推送发布。安全维护实际水位见[瘦身记录](project-slimming.md)，本轮汇总见[核验记录](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/final-checks.json)。
 
 ## 1.0.3：电力公司地图与带图公司卡优化（2026-10-06）
 
@@ -66,7 +78,7 @@
 
 [同包汇总](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/final-checks.json)核对五份通过报告、235项最终宝可梦输入及30项原图／派生图哈希；[默认静音](../../artifacts/maintenance/v1.0.3/test-silence/pokemon-ui-redesign-final-01/results.json)五项检查覆盖主机／公共／手机、重载、显式播放状态与偏好隔离。
 
-本次仅一次正式`package:win`，18单元命中12项（隔离路径令部分平台指纹重建，输出字节未变），完整构建／组装38,555ms。[运行ZIP](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/delivery/TableMax-1.0.3-win-x64.zip)41,067,266字节，SHA-256 `943071cec128b4ef9e8951459b2ccfca7b26b381f58654892c3e66cc5a455812`；[清单](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/delivery/TableMax-1.0.3-win-x64-manifest.json)246文件、实际解压94,619,465字节。宝可梦模块3,949,898字节、净增175,588字节，4MiB／250KB目标、95MB预算和ZIP／解压严格100MB门禁均通过；182文件字节不变，现代艺术及电力公司模块沿用未变证据。原EXE／ZIP／清单完整保留在本轮`previous-delivery`，本轮不生成EXE／源码包，不发布。真人设备／现场LAN／物理DPI／听感与时长仍按[交接](../games/pokemon-encounters/validation-scenarios.md#本次真人验收交接2026-10-06)独立填写；本次安全清理1,164,752,173字节，229项清理保护回归通过，最终工作区11.2411GiB，仍未达到10GiB；保护内容与候选耗尽边界见[瘦身记录](project-slimming.md)。
+本次仅一次正式`package:win`，18单元命中12项（隔离路径令部分平台指纹重建，输出字节未变），完整构建／组装38,555ms。[运行ZIP](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/delivery/TableMax-1.0.3-win-x64.zip.retired.json)41,067,266字节，SHA-256 `943071cec128b4ef9e8951459b2ccfca7b26b381f58654892c3e66cc5a455812`；[清单](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/delivery/TableMax-1.0.3-win-x64-manifest.json)246文件、实际解压94,619,465字节。宝可梦模块3,949,898字节、净增175,588字节，4MiB／250KB目标、95MB预算和ZIP／解压严格100MB门禁均通过；182文件字节不变，现代艺术及电力公司模块沿用未变证据。原EXE／ZIP／清单完整保留在本轮`previous-delivery`，本轮不生成EXE／源码包，不发布。真人设备／现场LAN／物理DPI／听感与时长仍按[交接](../games/pokemon-encounters/validation-scenarios.md#本次真人验收交接2026-10-06)独立填写；本次安全清理1,164,752,173字节，229项清理保护回归通过，最终工作区11.2411GiB，仍未达到10GiB；保护内容与候选耗尽边界见[瘦身记录](project-slimming.md)。
 
 ## 1.0.3：游戏介绍弹窗布局修复（2026-10-06）
 
@@ -306,7 +318,7 @@ README按产品介绍、游戏、快速开始、运行要求和常见问题重�
 
 同一个最终 ZIP 实际解压通过 [六人混合 Worker／恢复／原生显示](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/debug-final-r2/results.json)、[41 项／六类声画](../../artifacts/maintenance/v1.0.3/power-grid-debug-20261005/native-audio/portable-final-r2/results.json)、[三款规则 27 项](../../artifacts/maintenance/v1.0.3/power-grid-debug-20261005/rules/portable-final/results.json)、[宝可梦完整流程](../../artifacts/maintenance/v1.0.3/portable/power-grid-debug-final/results.json)、[现代艺术四轮与恢复](../../artifacts/maintenance/v1.0.3/modern-art-audit-20261004/runtime/power-grid-debug-final/results.json)及[原生安全 10 项](../../artifacts/maintenance/v1.0.3/webview2/power-grid-debug-final-r2/results.json)。电力公司 740 行日志／703 状态／670 回放动作覆盖全部阶段与 STEP 1–3，4K 和模拟 125／150% DPI 下操作保持身份及对局；检查末尾恢复到 playing 为回退验证，不表示原整局未结束。首轮旧常驻公司断言、短声画截图错过和原生重启加载失败记录保留，验证器按新版入口及并发即时捕获修正，同包重跑通过。
 
-该轮 [运行 ZIP](../../artifacts/maintenance/v1.0.3/combined-repackage-20261005/previous-delivery.zip)为 **40,626,986 字节**，实际解压 **151 文件／95,141,448 字节**，严格低于 100,000,000；95 MB 工程预算仍超 **141,448 字节**。SHA-256：`d5227cc8bee2827e6fa5ab1c5ce7a3846e91cbdd55b9de4a87b54bac7431d190`。游戏／策略 CJS 与 Worker 采用锁定 esbuild 压缩，118 个媒体文件与上一包大小及哈希完全相同；[冻结清单和同包审计](../../artifacts/maintenance/v1.0.3/power-grid-debug-20261005/final-delivery-checks.json)记录各检查哈希，没有验收后重新打包。本机回环、隐藏 WebView2 及手机尺寸模拟不等于实体手机、局域网或人耳听感认证。历史包／临时目录清理见 [瘦身记录](project-slimming.md#电力公司-debug-收尾2026-10-05)，保留当前交付、原素材、规则、失败文字及逐文件哈希。
+该轮 [运行 ZIP](../../artifacts/maintenance/v1.0.3/combined-repackage-20261005/previous-delivery.zip.retired.json)为 **40,626,986 字节**，实际解压 **151 文件／95,141,448 字节**，严格低于 100,000,000；95 MB 工程预算仍超 **141,448 字节**。SHA-256：`d5227cc8bee2827e6fa5ab1c5ce7a3846e91cbdd55b9de4a87b54bac7431d190`。游戏／策略 CJS 与 Worker 采用锁定 esbuild 压缩，118 个媒体文件与上一包大小及哈希完全相同；[冻结清单和同包审计](../../artifacts/maintenance/v1.0.3/power-grid-debug-20261005/final-delivery-checks.json)记录各检查哈希，没有验收后重新打包。本机回环、隐藏 WebView2 及手机尺寸模拟不等于实体手机、局域网或人耳听感认证。历史包／临时目录清理见 [瘦身记录](project-slimming.md#电力公司-debug-收尾2026-10-05)，保留当前交付、原素材、规则、失败文字及逐文件哈希。
 
 ## 1.0.3：宝可梦操作引导、同值归零与动漫切入（2026-10-05）
 

@@ -1,5 +1,5 @@
 import type { PublicAction } from '@tablemax/game-sdk';
-import { card, instancesForSeats, categories } from './cards';
+import { card, instancesForSeats, categories, type Ability } from './cards';
 import { scoreBoard, type Score } from './scoring';
 import { task } from './research';
 export const phases = [
@@ -52,6 +52,17 @@ export type Action =
         | 'next-round';
     };
 export type Slot = { instanceId: string; faceUp: boolean };
+export type PendingAbility = {
+  kind: 'current' | 'legacy';
+  ability: Ability;
+  sourceInstanceId: string | null;
+};
+export type EventEffect = {
+  entrance?: Ability;
+  coin?: 'meowth' | 'pikachu';
+  discardIndex?: 0 | 1;
+  source?: { seat: string; slot: number };
+};
 export type State = {
   gameId: 'pokemon-encounters';
   variantId: 'expansion';
@@ -75,6 +86,8 @@ export type State = {
   peekSlots: number[];
   targetSeat: string | null;
   suppressedAbility: boolean;
+  usedAbilityIds?: string[];
+  pendingAbility?: PendingAbility | null;
   rowAbility: 'groudon' | 'kyogre' | 'rayquaza' | null;
   researchCandidates: string[];
   votesBySeat: Record<string, string>;
@@ -89,8 +102,42 @@ export type State = {
   roundResult: { scores: Record<string, Score>; winners: string[] } | null;
   matchWinners: string[];
   eventCounter: number;
-  events: { id: number; kind: string; text: string; action?: PublicAction }[];
+  events: {
+    id: number;
+    kind: string;
+    text: string;
+    action?: PublicAction;
+    effect?: EventEffect;
+  }[];
 };
+/** Old in-flight saves retain their chain without guessing its physical source. */
+export function legacyPendingAbility(s: State): PendingAbility | null {
+  const map: Partial<Record<Phase, Ability>> = {
+    'mew-other': 'mew',
+    'mewtwo-target': 'mewtwo',
+    'mewtwo-choice': 'mewtwo',
+    'rocket-meowth': 'team-rocket',
+    'rocket-pikachu': 'team-rocket',
+    'zapdos-direction': 'zapdos',
+    'zapdos-self': 'zapdos',
+    'zapdos-receive': 'zapdos',
+    'snorlax-choice': 'snorlax',
+    'charizard-choice': 'charizard',
+    'charizard-view': 'charizard',
+    'arceus-choice': 'arceus',
+    'greninja-choice': 'greninja',
+    'lucario-choice': 'lucario',
+    'lucario-draw': 'lucario',
+  };
+  let ability = s.phase === 'row-choice' ? s.rowAbility : map[s.phase];
+  if (s.phase === 'mew-self')
+    ability =
+      s.events.at(-1)?.action?.verb === 'mewtwo-exchange' ? 'mewtwo' : 'mew';
+  if (s.phase === 'place' && s.suppressedAbility)
+    ability =
+      s.held && card(s.held).ability === 'mewtwo' ? 'mewtwo' : 'lucario';
+  return ability ? { kind: 'legacy', ability, sourceInstanceId: null } : null;
+}
 export const actor = (s: State) =>
   s.phase === 'zapdos-receive'
     ? s.recipientQueue[s.recipientIndex]!
@@ -214,6 +261,9 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     'eventCounter',
     'events',
   ];
+  const hasUsage =
+    Object.hasOwn(s, 'usedAbilityIds') && Object.hasOwn(s, 'pendingAbility');
+  if (hasUsage) keys.push('usedAbilityIds', 'pendingAbility');
   if (
     Object.keys(s).sort().join(',') !== keys.sort().join(',') ||
     s.gameId !== 'pokemon-encounters' ||
@@ -301,6 +351,59 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     all.some((id) => !expected.includes(id))
   )
     return fail();
+  if (hasUsage) {
+    if (
+      !stringArray(s.usedAbilityIds) ||
+      new Set(s.usedAbilityIds).size !== s.usedAbilityIds.length ||
+      s.usedAbilityIds.some(
+        (id) => !expected.includes(id) || card(id).ability === null,
+      )
+    )
+      return fail();
+    const pending = s.pendingAbility;
+    const phaseAbility = legacyPendingAbility(s)?.ability;
+    if (pending === null) {
+      if (phaseAbility) return fail();
+    } else if (
+      !record(pending) ||
+      Object.keys(pending).sort().join(',') !==
+        'ability,kind,sourceInstanceId' ||
+      !['current', 'legacy'].includes(pending.kind) ||
+      !categories.some((c) => c.ability === pending.ability) ||
+      !phaseAbility ||
+      // Both forced exchange chains end in the shared mew-self phase.
+      (s.phase === 'mew-self'
+        ? !['mew', 'mewtwo'].includes(pending.ability)
+        : s.phase === 'place' && s.suppressedAbility
+          ? !['lucario', 'mewtwo'].includes(pending.ability)
+          : pending.ability !== phaseAbility) ||
+      (pending.kind === 'legacy'
+        ? pending.sourceInstanceId !== null
+        : typeof pending.sourceInstanceId !== 'string' ||
+          !expected.includes(pending.sourceInstanceId) ||
+          card(pending.sourceInstanceId).ability !== pending.ability)
+    )
+      return fail();
+    if (pending?.kind === 'current') {
+      const source = pending.sourceInstanceId!;
+      const publicSource = seats.some((seat) =>
+        s.boards[seat]!.some((c) => c.instanceId === source && c.faceUp),
+      );
+      if (s.held !== source && !publicSource) return fail();
+      const consumed =
+        [
+          'rocket-meowth',
+          'rocket-pikachu',
+          'mew-self',
+          'mewtwo-choice',
+          'zapdos-receive',
+          'charizard-view',
+          'lucario-draw',
+        ].includes(s.phase) ||
+        (s.phase === 'place' && s.suppressedAbility);
+      if (s.usedAbilityIds.includes(source) !== consumed) return fail();
+    }
+  }
   if (
     s.researchCandidates.length !== 3 ||
     new Set(s.researchCandidates).size !== 3 ||
@@ -554,12 +657,84 @@ export function validateState(input: unknown, seats: readonly string[]): State {
         ) ||
         typeof e.text !== 'string' ||
         e.text.length > 500 ||
-        !['id,kind,text', 'action,id,kind,text'].includes(
-          Object.keys(e).sort().join(','),
-        ) ||
-        (e.action !== undefined && !validActionEvent(e.action, seats)),
+        ![
+          'id,kind,text',
+          'action,id,kind,text',
+          'action,effect,id,kind,text',
+        ].includes(Object.keys(e).sort().join(',')) ||
+        (e.action !== undefined && !validActionEvent(e.action, seats)) ||
+        (e.effect !== undefined && !validEffect(e.effect, e.action, seats)),
     )
   )
     return fail();
   return structuredClone(s);
+}
+
+function validEffect(
+  effect: unknown,
+  action: PublicAction | undefined,
+  seats: readonly string[],
+): boolean {
+  if (
+    !record(effect) ||
+    !action ||
+    !Object.keys(effect).length ||
+    Object.keys(effect).some(
+      (key) => !['entrance', 'coin', 'discardIndex', 'source'].includes(key),
+    )
+  )
+    return false;
+  const entrance = effect.entrance;
+  const verbs: Record<Ability, readonly string[]> = {
+    mew: ['draw'],
+    zapdos: ['draw'],
+    'team-rocket': ['draw'],
+    mewtwo: ['mewtwo-target'],
+    charizard: ['peek'],
+    snorlax: ['swap'],
+    arceus: ['activate-arceus'],
+    greninja: ['ninja-cover', 'ninja-swap'],
+    lucario: ['extra-draw'],
+    groudon: ['row-target'],
+    kyogre: ['row-target'],
+    rayquaza: ['row-target'],
+  };
+  if (
+    entrance !== undefined &&
+    (!categories.some((c) => c.ability === entrance) ||
+      !verbs[entrance as Ability]?.includes(action.verb) ||
+      (action.ability !== entrance &&
+        !categories.some(
+          (c) => c.categoryId === action.cardCategory && c.ability === entrance,
+        )))
+  )
+    return false;
+  if (entrance === 'team-rocket' && effect.coin === undefined) return false;
+  if (
+    effect.coin !== undefined &&
+    (entrance !== 'team-rocket' ||
+      action.verb !== 'draw' ||
+      !['meowth', 'pikachu'].includes(effect.coin as string))
+  )
+    return false;
+  if (
+    effect.discardIndex !== undefined &&
+    (action.verb !== 'draw' ||
+      action.source !== 'discard' ||
+      ![0, 1].includes(effect.discardIndex as number))
+  )
+    return false;
+  if (
+    effect.source !== undefined &&
+    (!['arceus', 'greninja'].includes(entrance as string) ||
+      !record(effect.source) ||
+      Object.keys(effect.source).sort().join(',') !== 'seat,slot' ||
+      !seats.includes(effect.source.seat as string) ||
+      effect.source.seat !== action.actor ||
+      !Number.isInteger(effect.source.slot) ||
+      (effect.source.slot as number) < 0 ||
+      (effect.source.slot as number) > 8)
+  )
+    return false;
+  return true;
 }

@@ -24,6 +24,25 @@ const hypothesis = (incoming: string) => ({
 });
 
 describe('forecast expectation over authorized hypotheses', () => {
+  it('continues the ordinary horizon through an exhausted ability instance', () => {
+    const sampled = {
+      ...hypothesis('special-mew#01'),
+      up: board.map((_, slot) => slot < 6),
+    };
+    const candidates = [
+      { action: { type: 'reposition' as const, a: 0, b: 2 }, value: 30 },
+    ];
+    const active = refineForecast(candidates, [sampled], [], 1, () => true);
+    const exhausted = refineForecast(
+      candidates,
+      [{ ...sampled, usedAbilityIds: ['special-mew#01'] }],
+      [],
+      1,
+      () => true,
+    );
+    expect(active[0]!.value).toBe(30);
+    expect(exhausted[0]!.value).toBeLessThan(30);
+  });
   it('does not invent a self-only placement or later ordinary turn after drawing an active Mew', () => {
     const result = refineForecast(
       [{ action: { type: 'draw', source: 'deck' }, value: 19 }],

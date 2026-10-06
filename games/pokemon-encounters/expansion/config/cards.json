@@ -384,11 +384,11 @@
       "value": 10,
       "ability": "lucario",
       "copy": null,
-      "abilityText": "可额外取牌一次，所取特殊牌不再触发主动能力。",
+      "abilityText": "可从牌库额外取牌一次，所取特殊牌不再触发主动能力。",
       "presentation": {
         "creature": "lucario",
         "frame": "#39779f",
-        "abilitySummary": "再取一张牌"
+        "abilitySummary": "牌库再取一张"
       }
     },
     {

@@ -19,7 +19,7 @@
   z-index: 64;
   pointer-events: none;
   overflow: visible;
-  animation: ex-board-life 700ms var(--ex-delay, 0ms) both;
+  animation: ex-board-life var(--ex-duration, 540ms) var(--ex-delay, 0ms) both;
   filter: drop-shadow(0 0 6px #fff4b0);
 }
 .ex-board-transfer circle {
@@ -32,13 +32,8 @@
   stroke: #fbbf24;
   stroke-width: 5;
   stroke-linecap: round;
-  stroke-dasharray: 12 14;
-  animation: ex-board-flow 650ms var(--ex-delay, 0ms) both;
-}
-.ex-board-trail-return {
-  stroke: #c6fff5;
-  stroke-dasharray: 7 19;
-  animation-direction: reverse;
+  stroke-dasharray: 1;
+  animation: committed-trail 540ms var(--ex-delay, 0ms) ease-out both;
 }
 .ex-board-cover {
   fill: #20557433;
@@ -63,6 +58,29 @@
   to {
     stroke-dashoffset: 0;
   }
+}
+.ex-original-effects.pokemon-screen {
+  position: fixed;
+  inset: 0;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  pointer-events: none;
+  z-index: 63;
+}
+.ex-original-effects .cut-in-character .ex-pose-art {
+  width: 100%;
+  height: 100%;
+}
+.ex-winner-halo {
+  fill: #ffe57b22;
+  stroke: #ffce42;
+  stroke-width: 5;
+  animation: committed-winner-halo 900ms ease-out both;
+}
+.ex-winner-sweep {
+  fill: #fff6c2;
+  animation: committed-winner-sweep 800ms 100ms ease-in-out both;
 }
 @keyframes ex-board-life {
   0%,
@@ -836,23 +854,6 @@
   to {
     opacity: 1;
   }
-}
-.expansion-screen.player .ex-cinematic {
-  inset: 76px 8px auto;
-  height: min(49vh, 390px);
-  border-radius: 20px;
-  box-shadow: 0 12px 28px #13294b40;
-}
-.expansion-screen.player .ex-cinematic-creature {
-  height: min(30vh, 250px);
-  width: min(70vw, 280px);
-}
-.expansion-screen.player .ex-cinematic strong {
-  font-size: 26px;
-}
-.expansion-screen.player .ex-cinematic > span {
-  font-size: 18px;
-  padding: 0 12px;
 }
 @media (prefers-reduced-motion: reduce) {
   .ex-ordinary-burst {

@@ -557,3 +557,518 @@
     animation: none;
   }
 }
+
+/* The table frame stays anchored while its public action and held card change. */
+.expansion-screen .ex-toolbar .secondary {
+  text-decoration: none;
+}
+.expansion-screen .ex-circular-badge.ex-seat-number,
+.expansion-screen .ex-circular-badge.ex-vote-mark {
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 0;
+}
+.expansion-screen .ex-circular-badge.ex-seat-number {
+  --badge-background: #277e74;
+  width: 26px;
+  height: 26px;
+}
+.expansion-screen .pokemon-board .slot-index {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 0;
+}
+.expansion-screen .ex-circular-badge.ex-vote-mark {
+  --badge-background: #e9eee0;
+  --badge-foreground: #507967;
+  width: 30px;
+  height: 30px;
+}
+.expansion-screen .selected .ex-circular-badge.ex-vote-mark {
+  --badge-background: #267b67;
+  --badge-foreground: white;
+}
+.expansion-screen .ex-turn-progress .ex-progress-number {
+  --badge-background: #ffffff1c;
+  --badge-foreground: #c8dcd3;
+}
+.expansion-screen .ex-turn-progress .current .ex-progress-number {
+  --badge-background: #ffe9a1;
+  --badge-foreground: #254b40;
+}
+.expansion-screen .ex-coin-result {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 8px 14px;
+  border: 1px solid #dec06c;
+  border-radius: 18px;
+  background: #fff1c2;
+  font-size: 18px;
+}
+.expansion-screen .ex-coin-result .coin-face {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border: 2px solid #ca9c35;
+  border-radius: 50%;
+  background: #ffe39a;
+  box-shadow: inset 0 0 0 3px #fff3cb;
+}
+.expansion-screen .ex-coin-result img {
+  display: block;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+.expansion-screen .winner-crown {
+  color: #aa7111;
+  text-shadow: 0 2px 0 #ffe999;
+  font-size: 32px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.expansion-screen .win-pips .newly-earned {
+  position: relative;
+  animation: ex-earned-star 380ms ease-out both;
+}
+.expansion-screen .win-pips .newly-earned::after {
+  content: '✧';
+  position: absolute;
+  right: -5px;
+  top: -7px;
+  color: #fffbe4;
+  font-size: 0.7em;
+  text-shadow: 0 0 4px #ca8d17;
+  animation: ex-earned-glint 600ms 100ms ease-out both;
+  pointer-events: none;
+}
+@keyframes ex-earned-star {
+  0% {
+    transform: scale(0.5) rotate(-24deg);
+  }
+  65% {
+    transform: scale(1.3) rotate(8deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+@keyframes ex-earned-glint {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+}
+@media (min-width: 761px) {
+  .expansion-screen:not(.player):not(.ex-friends):not(.ex-score-detail):not(
+      .ex-research-detail
+    ):not(.ex-research-reference) {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    min-height: 720px;
+  }
+  .expansion-screen:not(.player) > .ex-toolbar,
+  .expansion-screen:not(.player) > .ex-round-banner,
+  .expansion-screen:not(.player) > .ex-victory,
+  .expansion-screen:not(.player) > .ex-paused {
+    flex: 0 0 auto;
+  }
+  .expansion-screen:not(.player) > .ex-table-layout {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+  .expansion-screen:not(.player) > .ex-vote {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .expansion-screen:not(.player) .ex-supply {
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #a8bea0 #f6f4e6;
+  }
+  .expansion-screen:not(.player) .ex-players {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    max-width: none;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    align-items: stretch;
+  }
+  .expansion-screen:not(.player) .ex-player {
+    grid-column: span 2;
+    display: grid;
+    grid-template-rows: 28px minmax(0, 1fr);
+    gap: 4px;
+    min-width: 0;
+    padding: 6px;
+  }
+  .expansion-screen:not(.player) .ex-player:has(.ex-score) {
+    grid-template-rows: 28px minmax(0, 1fr) 36px;
+  }
+  .expansion-screen:not(.player) .ex-player > header {
+    margin: 0;
+  }
+  .expansion-screen:not(.player) .ex-player .pokemon-board {
+    min-height: 0;
+    height: 100%;
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    gap: 22px 8px;
+    padding-bottom: 22px;
+  }
+  .expansion-screen:not(.player) .ex-player .card-slot {
+    min-height: 0;
+  }
+  .expansion-screen:not(.player) .ex-player .slot-index {
+    bottom: -23px;
+  }
+  .expansion-screen:not(.player) .ex-player .ex-card {
+    height: 100%;
+    min-height: 55px;
+    aspect-ratio: auto;
+  }
+  .expansion-screen:not(.player) .ex-score {
+    min-height: 36px;
+    margin: 0;
+    padding: 2px 8px;
+  }
+  .expansion-screen[data-players='4']:not(.player) .ex-player:nth-child(odd),
+  .expansion-screen[data-players='5']:not(.player) .ex-player:nth-child(4) {
+    grid-column: 2 / span 2;
+  }
+  .expansion-screen[data-players='4']:not(.player) .ex-player:nth-child(even),
+  .expansion-screen[data-players='5']:not(.player) .ex-player:nth-child(5) {
+    grid-column: 4 / span 2;
+  }
+  .expansion-screen:is([data-players='2'], [data-players='3']):not(.player)
+    .ex-players {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .expansion-screen[data-players='2']:not(.player) .ex-player:first-child {
+    grid-column: 2 / span 2;
+  }
+  .expansion-screen[data-players='2']:not(.player) .ex-player:last-child {
+    grid-column: 4 / span 2;
+  }
+  .expansion-screen:is([data-players='2'], [data-players='3']):not(.player)
+    .ex-player {
+    grid-template-rows: 32px minmax(0, 1fr);
+  }
+  .expansion-screen:is([data-players='2'], [data-players='3']):not(.player)
+    .ex-player:has(.ex-score) {
+    grid-template-rows: 32px minmax(0, 1fr) 44px;
+  }
+  .expansion-screen:is([data-players='2'], [data-players='3']):not(.player)
+    .ex-player
+    .ex-card {
+    min-height: 120px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    padding: 4px;
+  }
+  .expansion-screen:is([data-players='2'], [data-players='3']):not(.player)
+    .ex-player
+    .ex-card
+    .card-heading {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    left: 4px;
+    height: 30px;
+    grid-column: auto;
+    padding: 0 3px;
+  }
+  .expansion-screen:is([data-players='2'], [data-players='3']):not(.player)
+    .ex-player
+    .ex-card
+    .ex-card-value {
+    font-size: 26px;
+    padding: 2px 5px;
+  }
+  .expansion-screen:is([data-players='2'], [data-players='3']):not(.player)
+    .ex-player
+    .ex-card
+    > :is(img, .card-portrait) {
+    grid-row: 1;
+    grid-column: 1;
+    height: 100%;
+    padding: 8px 10px 2px;
+  }
+  .expansion-screen:is([data-players='2'], [data-players='3']):not(.player)
+    .ex-player
+    .ex-card
+    .ex-card-name {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 18px;
+    min-height: 26px;
+    margin: 2px 0 0;
+    padding: 2px 1px;
+  }
+  .expansion-screen:is([data-players='2'], [data-players='3']):not(.player)
+    .ex-player
+    .ex-card.back {
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .expansion-screen:is([data-players='2'], [data-players='3']):not(.player)
+    .ex-player
+    .ex-card.back
+    .ex-ball {
+    width: 64%;
+  }
+  .expansion-screen.ex-pending-settlement .ex-table-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (min-width: 761px) and (max-height: 800px) {
+  .expansion-screen:not(.player) .ex-player {
+    padding: 4px;
+    gap: 2px;
+    grid-template-rows: 24px minmax(0, 1fr);
+  }
+  .expansion-screen:not(.player) .ex-player:has(.ex-score) {
+    grid-template-rows: 24px minmax(0, 1fr) 36px;
+  }
+  .expansion-screen:not(.player) .ex-player .winner-crown {
+    font-size: 26px;
+  }
+  .expansion-screen:not(.player) .ex-player .ex-card.face {
+    grid-template-columns: minmax(0, 0.68fr) minmax(0, 1fr);
+    grid-template-rows: 20px minmax(0, 1fr);
+    padding: 2px;
+  }
+  .expansion-screen:not(.player) .ex-player .ex-card.face .card-heading {
+    height: 20px;
+  }
+  .expansion-screen:not(.player) .ex-player .ex-card.face .ex-card-name {
+    min-height: 0;
+    line-height: 1;
+    padding: 0;
+    text-wrap: balance;
+  }
+  .expansion-screen:is([data-players='2'], [data-players='3']):not(.player)
+    .ex-player
+    .ex-card.face {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    padding: 4px;
+  }
+  .expansion-screen:is([data-players='2'], [data-players='3']):not(.player)
+    .ex-player
+    .ex-card.face
+    .card-heading {
+    height: 30px;
+  }
+  .expansion-screen:is([data-players='2'], [data-players='3']):not(.player)
+    .ex-player
+    .ex-card.face
+    .ex-card-name {
+    min-height: 26px;
+    line-height: 1.2;
+    padding: 2px 1px;
+  }
+}
+@media (max-width: 760px) {
+  .expansion-screen.player .ex-actions {
+    padding: 10px 8px;
+  }
+  .expansion-screen.player .ex-draw-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .expansion-screen.player .ex-source {
+    min-height: 166px;
+    padding: 8px 3px;
+    align-items: center;
+  }
+  .expansion-screen.player .ex-source > strong {
+    font-size: 18px;
+    white-space: nowrap;
+  }
+  .expansion-screen.player .ex-source-face {
+    gap: 4px;
+  }
+  .expansion-screen.player .ex-source-face > span:not(.ex-card) {
+    line-height: 1.2;
+  }
+  .expansion-screen.player .ex-source-face > span:not(.ex-card) > b {
+    margin: 2px 0 0;
+  }
+  .expansion-screen.player .ex-source-face .ex-card,
+  .expansion-screen.player .ex-empty-source {
+    width: 64px;
+    height: 80px;
+    min-height: 80px;
+  }
+  .expansion-screen.player .ex-reposition-source {
+    grid-column: 1/-1;
+    display: grid;
+    grid-template-columns: minmax(50px, auto) minmax(0, 1fr);
+    gap: 12px;
+    min-height: 64px;
+    padding: 8px 16px;
+  }
+  .expansion-screen.player .ex-reposition-source > strong {
+    width: auto;
+    font-size: 18px;
+  }
+  .expansion-screen.player .ex-reposition-source .ex-source-face {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+  .expansion-screen.player .ex-reposition-source .ex-swap-mark svg {
+    width: 42px;
+    height: 48px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .expansion-screen .win-pips .newly-earned,
+  .expansion-screen .win-pips .newly-earned::after {
+    animation: none;
+  }
+}
+
+/* Use actual layout width so desktop zoom also triggers the same reflow. */
+@media (min-width: 761px) {
+  .expansion-screen[data-narrow-table='true']:not(.player) {
+    height: auto;
+    min-height: 100dvh;
+  }
+  .expansion-screen[data-narrow-table='true']:is(
+      [data-players='4'],
+      [data-players='5'],
+      [data-players='6']
+    ):not(.player)
+    .ex-player
+    .ex-card.face {
+    grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr);
+  }
+  .expansion-screen[data-narrow-table='true']:not(.player) > .ex-table-layout {
+    flex: none;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 600px 320px;
+    height: 932px;
+    gap: 12px;
+  }
+  .expansion-screen[data-narrow-table='true']:is(
+      [data-phase='round-result'],
+      [data-phase='match-result']
+    ):not(.player)
+    > .ex-table-layout {
+    grid-template-rows: 600px;
+    height: 600px;
+  }
+  .expansion-screen[data-narrow-table='true']:not(.player) .ex-supply {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-rows: 44px 140px minmax(0, 1fr);
+    gap: 8px 12px;
+    padding: 8px;
+    height: 320px;
+    overflow: visible;
+  }
+  .expansion-screen[data-narrow-table='true']:not(.player) .ex-supply-heading {
+    grid-column: 1;
+    grid-row: 1;
+    margin: 0;
+  }
+  .expansion-screen[data-narrow-table='true']:not(.player)
+    .ex-supply
+    > .ex-coin-result {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    padding: 0 12px;
+  }
+  .expansion-screen[data-narrow-table='true']:not(.player) .ex-public-piles {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .expansion-screen[data-narrow-table='true']:not(.player)
+    .ex-public-piles
+    section
+    > header {
+    min-height: 40px;
+  }
+  .expansion-screen[data-narrow-table='true']:not(.player)
+    .ex-public-piles
+    .ex-card,
+  .expansion-screen[data-narrow-table='true']:not(.player) .ex-empty-pile {
+    height: 95px;
+  }
+  .expansion-screen[data-narrow-table='true']:not(.player) .ex-public-held {
+    grid-column: 2;
+    grid-row: 2;
+    margin: 0;
+    min-height: 0;
+  }
+  .expansion-screen[data-narrow-table='true']:not(.player) .ex-last-action {
+    grid-column: 1;
+    grid-row: 3;
+    margin: 0;
+    max-width: none;
+    padding: 6px 8px;
+  }
+  .expansion-screen[data-narrow-table='true']:not(.player) .ex-last-action p {
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  .expansion-screen[data-narrow-table='true']:not(.player)
+    .ex-supply
+    .ex-research-strip {
+    grid-column: 2;
+    grid-row: 3;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    align-content: center;
+    gap: 6px;
+  }
+  .expansion-screen[data-narrow-table='true']:not(.player)
+    .ex-supply
+    .ex-research-summary {
+    grid-template-columns: 64px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+  }
+  .expansion-screen[data-narrow-table='true']:not(.player)
+    .ex-supply
+    .ex-research-art {
+    grid-column: 1;
+    width: 64px;
+    height: 36px;
+  }
+  .expansion-screen[data-narrow-table='true']:not(.player)
+    .ex-supply
+    .ex-research-summary
+    > span:nth-child(2) {
+    grid-column: 2;
+  }
+  .expansion-screen[data-narrow-table='true']:not(.player)
+    .ex-supply
+    .ex-research-summary
+    > span:nth-child(2)
+    > span {
+    display: none;
+  }
+}

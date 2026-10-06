@@ -7,6 +7,8 @@ import {
   actor,
   decisionId,
   validateState,
+  legacyPendingAbility,
+  type EventEffect,
   type State,
   type Action,
   type Phase,
@@ -73,6 +75,8 @@ function round(
     peekSlots: [],
     targetSeat: null,
     suppressedAbility: false,
+    usedAbilityIds: [],
+    pendingAbility: null,
     rowAbility: null,
     researchCandidates: selectResearch(
       'opening',
@@ -120,13 +124,20 @@ function orderFrom(seats: readonly string[], start: string, direction = 1) {
       ]!,
   );
 }
-function event(s: State, kind: string, text: string, action?: PublicAction) {
+function event(
+  s: State,
+  kind: string,
+  text: string,
+  action?: PublicAction,
+  effect?: EventEffect,
+) {
   s.eventCounter++;
   s.events.push({
     id: s.eventCounter,
     kind,
     text,
     ...(action ? { action } : {}),
+    ...(effect ? { effect } : {}),
   });
   s.events = s.events.slice(-60);
 }
@@ -163,13 +174,47 @@ function publishHoenn(s: State) {
     s.hoennPending = null;
   }
 }
+const canDrawDeck = (s: State) => s.deck.length > 0 || s.discard.length > 2;
+function beginAbility(s: State, sourceInstanceId: string, ability: Ability) {
+  s.pendingAbility = { kind: 'current', ability, sourceInstanceId };
+}
+function useAbility(s: State) {
+  const pending = s.pendingAbility;
+  if (
+    pending?.kind === 'current' &&
+    pending.sourceInstanceId !== null &&
+    !s.usedAbilityIds!.includes(pending.sourceInstanceId)
+  )
+    s.usedAbilityIds!.push(pending.sourceInstanceId);
+}
+/** Only an already public source hidden by this result needs a public memory hint. */
+function coveredAbilitySource(
+  before: State,
+  after: State,
+): EventEffect['source'] {
+  const pending = before.pendingAbility;
+  if (pending?.kind !== 'current' || pending.sourceInstanceId === null)
+    return undefined;
+  for (const seat of before.seatOrder) {
+    const slot = before.boards[seat]!.findIndex(
+      (c) => c.instanceId === pending.sourceInstanceId && c.faceUp,
+    );
+    if (
+      slot >= 0 &&
+      after.boards[seat]!.some(
+        (c) => c.instanceId === pending.sourceInstanceId && !c.faceUp,
+      )
+    )
+      return { seat, slot };
+  }
+  return undefined;
+}
 function drawDeck(s: State, context: RuleContext) {
   if (!s.deck.length) {
-    const keep = Math.min(2, s.discard.length);
-    s.deck = shuffle(
-      s.discard.slice(0, s.discard.length - keep),
-      context.random,
-    );
+    const keep = Math.min(2, s.discard.length),
+      recycled = s.discard.slice(0, s.discard.length - keep);
+    s.usedAbilityIds = s.usedAbilityIds!.filter((id) => !recycled.includes(id));
+    s.deck = shuffle(recycled, context.random);
     s.discard = s.discard.slice(-keep);
   }
   const id = s.deck.pop();
@@ -194,6 +239,7 @@ function finish(s: State, context: RuleContext) {
   s.drawSource = null;
   s.rowAbility = null;
   s.suppressedAbility = false;
+  s.pendingAbility = null;
   if (s.seatOrder.some((id) => s.boards[id]!.every((c) => c.faceUp))) {
     s.preReveal = Object.fromEntries(
       s.seatOrder.map((id) => [id, s.boards[id]!.map((c) => c.faceUp)]),
@@ -228,7 +274,7 @@ function finish(s: State, context: RuleContext) {
 }
 function afterPlace(s: State, incoming: string, context: RuleContext) {
   const ability = card(incoming).ability;
-  if (s.suppressedAbility) {
+  if (s.suppressedAbility || s.usedAbilityIds!.includes(incoming)) {
     finish(s, context);
     return;
   }
@@ -252,6 +298,7 @@ function afterPlace(s: State, incoming: string, context: RuleContext) {
     return;
   }
   s.phase = phase;
+  beginAbility(s, incoming, ability!);
   if (phase === 'row-choice') s.rowAbility = ability as State['rowAbility'];
 }
 const slot = (n: unknown): n is number =>
@@ -386,7 +433,7 @@ export function legalActions(s: State, seat: string): Action[] {
         ...pairs.map((p) => ({ type: 'reposition' as const, ...p })),
       ];
     case 'lucario-draw':
-      return draws;
+      return canDrawDeck(s) ? [{ type: 'draw', source: 'deck' }] : [decline];
     case 'place':
       return [
         ...replaceActions,
@@ -451,7 +498,10 @@ export function legalActions(s: State, seat: string): Action[] {
         ),
       ];
     case 'lucario-choice':
-      return [decline, { type: 'extra-draw' }];
+      return [
+        decline,
+        ...(canDrawDeck(s) ? [{ type: 'extra-draw' as const }] : []),
+      ];
     case 'row-choice':
       return [
         decline,
@@ -547,6 +597,12 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
     throw new Error('Illegal expansion action');
   const s = structuredClone(input),
     before = s.phase;
+  // Do not enrich old snapshots during load: their exact bytes bind checkpoints.
+  if (s.usedAbilityIds === undefined) {
+    s.usedAbilityIds = [];
+    s.pendingAbility = legacyPendingAbility(s);
+  }
+  let effect: EventEffect | undefined;
   s.step++;
   if (a.type === 'vote-research') {
     s.votesBySeat[seat] = a.taskId;
@@ -575,6 +631,7 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
     publishHoenn(s);
     if (s.initialDone.length === s.seatOrder.length) s.phase = 'draw';
   } else if (a.type === 'draw') {
+    if (a.source === 'discard') effect = { discardIndex: a.discardIndex };
     s.drawSource = a.source;
     s.coin = null;
     s.held =
@@ -583,20 +640,37 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
         : s.discard.splice(s.discard.length - 1 - a.discardIndex, 1)[0]!;
     const ability = card(s.held).ability;
     s.phase = 'place';
-    if (!s.suppressedAbility) {
-      if (ability === 'mew') s.phase = 'mew-other';
-      if (ability === 'mewtwo') s.phase = 'mewtwo-target';
-      if (ability === 'zapdos') s.phase = 'zapdos-direction';
+    if (!s.suppressedAbility && !s.usedAbilityIds.includes(s.held)) {
+      if (ability === 'mew') {
+        beginAbility(s, s.held, ability);
+        s.phase = 'mew-other';
+        effect = { ...effect, entrance: ability };
+      }
+      if (ability === 'mewtwo') {
+        beginAbility(s, s.held, ability);
+        s.phase = 'mewtwo-target';
+      }
+      if (ability === 'zapdos') {
+        beginAbility(s, s.held, ability);
+        s.phase = 'zapdos-direction';
+        effect = { ...effect, entrance: ability };
+      }
       if (ability === 'team-rocket') {
+        beginAbility(s, s.held, ability);
+        useAbility(s);
         s.coin = context.random.next() < 0.5 ? 'meowth' : 'pikachu';
         s.phase = s.coin === 'meowth' ? 'rocket-meowth' : 'rocket-pikachu';
+        effect = { ...effect, entrance: ability, coin: s.coin };
       }
     }
   } else if (a.type === 'mew-target') {
+    useAbility(s);
     s.held = replace(s, a.seat, a.slot);
     checkHoenn(s, context);
     s.phase = 'mew-self';
   } else if (a.type === 'mewtwo-target') {
+    useAbility(s);
+    effect = { entrance: 'mewtwo' };
     s.targetSeat = a.seat;
     s.peekSlots = [a.a, a.b];
     s.phase = 'mewtwo-choice';
@@ -615,6 +689,7 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
     s.recipientIndex = 0;
     s.phase = 'zapdos-self';
   } else if (a.type === 'replace') {
+    if (before === 'zapdos-self') useAbility(s);
     if (before === 'rocket-pikachu') {
       const order = orderFrom(s.seatOrder, s.turnSeat),
         rocket = s.held!;
@@ -654,30 +729,46 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
     s.held = null;
     finish(s, context);
   } else if (a.type === 'swap' || a.type === 'reposition') {
+    if (a.type === 'swap') {
+      useAbility(s);
+      effect = { entrance: 'snorlax' };
+    }
     const b = s.boards[seat]!;
     [b[a.a], b[a.b]] = [b[a.b]!, b[a.a]!];
     checkHoenn(s, context);
     finish(s, context);
   } else if (a.type === 'peek') {
+    useAbility(s);
+    effect = { entrance: 'charizard' };
     s.targetSeat = seat;
     s.peekSlots = [a.slot];
     s.phase = 'charizard-view';
   } else if (a.type === 'activate-arceus') {
+    useAbility(s);
+    effect = { entrance: 'arceus' };
     s.arceusUsed = true;
     for (const id of s.seatOrder) {
       for (const c of s.boards[id]!) c.faceUp = false;
       s.boards[id]![Math.floor(context.random.next() * 9)]!.faceUp = true;
     }
+    const source = coveredAbilitySource(input, s);
+    if (source) effect.source = source;
     checkHoenn(s, context);
     finish(s, context);
   } else if (a.type === 'ninja-target') {
+    useAbility(s);
+    effect = { entrance: 'greninja' };
     const b = s.boards[a.seat]!;
     b[a.a]!.faceUp = false;
     b[a.b]!.faceUp = false;
     if (a.swap) [b[a.a], b[a.b]] = [b[a.b]!, b[a.a]!];
+    const source = coveredAbilitySource(input, s);
+    if (source) effect.source = source;
     checkHoenn(s, context);
     finish(s, context);
   } else if (a.type === 'row-target') {
+    useAbility(s);
+    effect = { entrance: s.rowAbility! };
     const row =
       grid.rows[
         s.rowAbility === 'groudon' ? 2 : s.rowAbility === 'kyogre' ? 1 : 0
@@ -690,6 +781,8 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
     checkHoenn(s, context);
     finish(s, context);
   } else if (a.type === 'extra-draw') {
+    useAbility(s);
+    effect = { entrance: 'lucario' };
     s.phase = 'lucario-draw';
     s.suppressedAbility = true;
   } else if (a.type === 'decline-ability' && before === 'mewtwo-choice') {
@@ -705,6 +798,7 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
     a.type === 'draw' ? 'draw' : 'action',
     `S${s.seatOrder.indexOf(seat) + 1}：${actionLabel(a)}。`,
     action,
+    effect,
   );
   // Saved visual order follows the action result, then task publication, then settlement.
   // Numbering is finalized atomically; restoring this state never synthesizes events.
@@ -736,6 +830,8 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
     },
     events: s.events
       .filter((e) => e.id > input.eventCounter)
+      // The generic feedback protocol only transports this three-field summary.
+      // Game-specific effects remain in saved/projected events for the queue.
       .map(({ kind, text, action }) => ({
         kind,
         text,

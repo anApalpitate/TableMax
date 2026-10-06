@@ -49,7 +49,26 @@
         ],
         "notes": "Landscape 3:2 cover. Text should be added as HTML outside image; no game rules depicted."
       },
-      "currentUsage": "active"
+      "currentUsage": "active",
+      "runtimeStatus": "Retained historical large derivative; catalog now uses cover-catalog-v2.webp"
+    },
+    {
+      "id": "pokemon-encounters/catalog-cover",
+      "assetId": "pokemon-encounters/catalog-cover",
+      "purpose": "Small box catalog cover; same original illustration",
+      "file": "cover-catalog-v2.webp",
+      "width": 480,
+      "height": 320,
+      "transparent": false,
+      "bytes": 57764,
+      "sha256": "7d651f4626f831ea4dd25c413aef09f9d905e3e2c373eade3990e6c02bb0eed7",
+      "originalFile": "artifacts/phase-05/imagegen/source/cover-v1.png",
+      "originalSha256": "fb823d9f0f753c60f43ce383ef8188b799c3d53c661f03314234694c8555b0e2",
+      "source": "Derived from retained built-in image_gen original; not newly generated",
+      "postprocessing": "Proportional Lanczos 480x320, WebP quality90 method6",
+      "version": 2,
+      "status": "derived-visual-reviewed",
+      "verification": "artifacts/maintenance/v1.0.3/pokemon-final-revision/catalog-thumbnail.json"
     }
   ],
   "adoptedVisualScheme": "Original garden plants/minerals/weather still life; labels and abilities mapped in code only.",

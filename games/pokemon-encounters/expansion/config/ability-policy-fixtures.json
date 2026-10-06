@@ -1,0 +1,479 @@
+{
+  "policy": "2026-10-07-instance-active-ability-and-deck-only-lucario",
+  "historicalBaseline": "compatibility-fixtures.json",
+  "researchDisplay": [
+    {
+      "id": "R01",
+      "name": "伙伴列队",
+      "description": "至少一行形成归零线"
+    },
+    {
+      "id": "R02",
+      "name": "高塔攀登",
+      "description": "至少一列形成归零线"
+    },
+    {
+      "id": "R03",
+      "name": "流星轨迹",
+      "description": "至少一条主对角线形成归零线"
+    },
+    {
+      "id": "R04",
+      "name": "波导十字",
+      "description": "中间行与中间列同时归零"
+    },
+    {
+      "id": "R05",
+      "name": "星陨交汇",
+      "description": "两条主对角线同时归零"
+    },
+    {
+      "id": "R06",
+      "name": "巨兽封印",
+      "description": "至少一条归零线的有效值≥10"
+    },
+    {
+      "id": "R07",
+      "name": "四角星座",
+      "description": "四角同值且该值≥0"
+    },
+    {
+      "id": "R08",
+      "name": "镜湖倒影",
+      "description": "上中＝下中，左中＝右中"
+    },
+    {
+      "id": "R09",
+      "name": "双子结界",
+      "description": "两组对角角格分别同值且两组值不同"
+    },
+    {
+      "id": "R10",
+      "name": "环形阶梯",
+      "description": "上中＜右中＜下中＜左中"
+    },
+    {
+      "id": "R11",
+      "name": "众星拱月",
+      "description": "中心严格小于其余八格"
+    },
+    {
+      "id": "R12",
+      "name": "王者之巅",
+      "description": "中心严格大于其余八格"
+    },
+    {
+      "id": "R13",
+      "name": "温柔生态",
+      "description": "九格有效值全部≤5"
+    },
+    {
+      "id": "R14",
+      "name": "阴阳调和",
+      "description": "一行之和为0且同时含正负值"
+    },
+    {
+      "id": "R15",
+      "name": "进化阶梯",
+      "description": "一行从左至右为三个连续整数"
+    },
+    {
+      "id": "R16",
+      "name": "跨级实验",
+      "description": "一列从上至下为等差数列且公差≥2"
+    },
+    {
+      "id": "R17",
+      "name": "三界平衡",
+      "description": "三行之和相等且每行至少两种值"
+    },
+    {
+      "id": "R18",
+      "name": "缤纷光谱",
+      "description": "至少六种不同有效值"
+    },
+    {
+      "id": "R19",
+      "name": "百花齐放",
+      "description": "九张牌属于九种不同角色"
+    },
+    {
+      "id": "R20",
+      "name": "异种协作",
+      "description": "一条归零线包含三种不同角色"
+    },
+    {
+      "id": "R21",
+      "name": "原野守护",
+      "description": "九张全部为普通牌"
+    },
+    {
+      "id": "R22",
+      "name": "海陆空同盟",
+      "description": "本人最终场地拥有三种丰缘神兽"
+    },
+    {
+      "id": "R23",
+      "name": "幻化桥梁",
+      "description": "合法解析的复制牌参加归零线"
+    },
+    {
+      "id": "R24",
+      "name": "幕后布阵",
+      "description": "揭示前至少三明三暗，归零线至少两格原暗牌"
+    },
+    {
+      "id": "H01",
+      "name": "天地初开",
+      "description": "上行全部≥8、中行全部4–7、下行全部≤3"
+    },
+    {
+      "id": "H02",
+      "name": "海渊回响",
+      "description": "中行全部≤0、上下两行全部≥6"
+    },
+    {
+      "id": "H03",
+      "name": "断崖隆升",
+      "description": "每列向下严格递增且底格减顶格均≥6"
+    },
+    {
+      "id": "H04",
+      "name": "天空环流",
+      "description": "四角均大于中心，四边均小于中心"
+    },
+    {
+      "id": "H05",
+      "name": "陨星天平",
+      "description": "两条主对角线之和相等且四角值互异"
+    },
+    {
+      "id": "H06",
+      "name": "终焉封印",
+      "description": "两条不同值归零线，一条≥8，另有未归零负值牌"
+    }
+  ],
+  "results": [
+    {
+      "seats": 2,
+      "seed": 701,
+      "actions": 39,
+      "restored": 4,
+      "phases": [
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "initial-flip",
+        "place",
+        "research-vote",
+        "row-choice",
+        "snorlax-choice"
+      ],
+      "sha256": "b8b79f0dd76d40741839e1b99f0fc69ed4768fd7a802318eea07a71ca09bd6fe"
+    },
+    {
+      "seats": 2,
+      "seed": 702,
+      "actions": 38,
+      "restored": 4,
+      "phases": [
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "initial-flip",
+        "mew-other",
+        "mew-self",
+        "mewtwo-choice",
+        "mewtwo-target",
+        "place",
+        "research-vote",
+        "snorlax-choice"
+      ],
+      "sha256": "cc9645d5293ea2c979bcab5bd66e670e4a0e9bbade2966a180ee5f0b72d1d728"
+    },
+    {
+      "seats": 2,
+      "seed": 703,
+      "actions": 61,
+      "restored": 6,
+      "phases": [
+        "arceus-choice",
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "initial-flip",
+        "lucario-choice",
+        "place",
+        "research-vote",
+        "row-choice"
+      ],
+      "sha256": "4d857280f0343134b2bd9e16f5943e615cbbfb0047c8fe12352b8a13540018ac"
+    },
+    {
+      "seats": 3,
+      "seed": 701,
+      "actions": 81,
+      "restored": 8,
+      "phases": [
+        "arceus-choice",
+        "charizard-choice",
+        "draw",
+        "greninja-choice",
+        "initial-flip",
+        "mewtwo-choice",
+        "mewtwo-target",
+        "place",
+        "research-vote",
+        "rocket-meowth",
+        "row-choice",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "ba3bec772909571ec6b50cb5ebf3c131de9ada00e36d140e513bd5666116313b"
+    },
+    {
+      "seats": 3,
+      "seed": 702,
+      "actions": 43,
+      "restored": 4,
+      "phases": [
+        "draw",
+        "initial-flip",
+        "mew-self",
+        "mewtwo-choice",
+        "mewtwo-target",
+        "place",
+        "research-vote",
+        "rocket-pikachu",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "fd1b2a724e6b93dd85cb8f0fbb09461fe1637be59fc0baf31cc585e962ce4127"
+    },
+    {
+      "seats": 3,
+      "seed": 703,
+      "actions": 57,
+      "restored": 6,
+      "phases": [
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "greninja-choice",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "mew-other",
+        "mew-self",
+        "mewtwo-choice",
+        "mewtwo-target",
+        "place",
+        "research-vote",
+        "row-choice"
+      ],
+      "sha256": "af40b07334f16645789c662c0be787617503efa2546f355cc6f7f30dcc1d51fb"
+    },
+    {
+      "seats": 4,
+      "seed": 701,
+      "actions": 72,
+      "restored": 7,
+      "phases": [
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "greninja-choice",
+        "initial-flip",
+        "place",
+        "research-vote",
+        "snorlax-choice",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "c7d38f8fefca489d51eb5d472f3d70a828a4373225af24d2feaf2d70fbc66bab"
+    },
+    {
+      "seats": 4,
+      "seed": 702,
+      "actions": 64,
+      "restored": 6,
+      "phases": [
+        "arceus-choice",
+        "charizard-choice",
+        "draw",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "place",
+        "research-vote",
+        "rocket-pikachu",
+        "snorlax-choice",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "ba70386090a3e4dee0a6454cc19626ae5f62b4ac93ebac30ae1fb90c658c1d14"
+    },
+    {
+      "seats": 4,
+      "seed": 703,
+      "actions": 65,
+      "restored": 6,
+      "phases": [
+        "charizard-choice",
+        "draw",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "place",
+        "research-vote",
+        "row-choice",
+        "snorlax-choice"
+      ],
+      "sha256": "9df2c0a19dc9561ae3c02521c28928e17d1ec5be8a42f4a9f3451dffb649186f"
+    },
+    {
+      "seats": 5,
+      "seed": 701,
+      "actions": 93,
+      "restored": 9,
+      "phases": [
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "greninja-choice",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "mew-self",
+        "mewtwo-choice",
+        "mewtwo-target",
+        "place",
+        "research-vote",
+        "rocket-meowth",
+        "rocket-pikachu",
+        "snorlax-choice"
+      ],
+      "sha256": "9247b47d76db25a9a1ef3edcf090659353518112ad659661e777edbd4d49f355"
+    },
+    {
+      "seats": 5,
+      "seed": 702,
+      "actions": 134,
+      "restored": 13,
+      "phases": [
+        "arceus-choice",
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "mew-self",
+        "mewtwo-choice",
+        "mewtwo-target",
+        "place",
+        "research-vote",
+        "rocket-meowth",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "5ac883bb6f92ec07e8290d616d0d4156b12fc4312e2ca7c4e0f4a739bdd24be7"
+    },
+    {
+      "seats": 5,
+      "seed": 703,
+      "actions": 79,
+      "restored": 8,
+      "phases": [
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "mew-other",
+        "mew-self",
+        "place",
+        "research-vote",
+        "rocket-meowth",
+        "snorlax-choice"
+      ],
+      "sha256": "9e7e3e50ec6d6373157f859b4551ab522f2b2c57c2a291524ba50d313fe7614c"
+    },
+    {
+      "seats": 6,
+      "seed": 701,
+      "actions": 94,
+      "restored": 9,
+      "phases": [
+        "draw",
+        "initial-flip",
+        "mew-other",
+        "mew-self",
+        "place",
+        "research-vote",
+        "rocket-pikachu",
+        "snorlax-choice",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "924e358603896321d6ea6e0bbc95497ce04c77d6045f8d8784f166f09f1bb344"
+    },
+    {
+      "seats": 6,
+      "seed": 702,
+      "actions": 75,
+      "restored": 7,
+      "phases": [
+        "arceus-choice",
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "mew-other",
+        "mew-self",
+        "place",
+        "research-vote",
+        "row-choice",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "9474fb19111af888dabf690639d2d8f1c24cd59cd4b3d74e88a1038ab56041d6"
+    },
+    {
+      "seats": 6,
+      "seed": 703,
+      "actions": 96,
+      "restored": 9,
+      "phases": [
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "greninja-choice",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "mew-other",
+        "mew-self",
+        "place",
+        "research-vote",
+        "rocket-meowth",
+        "row-choice",
+        "snorlax-choice",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "c41bbc748ae3cae9d107fa956f25c35ae992bcfe780a2ca7c6a64b4369ec0e7d"
+    }
+  ]
+}

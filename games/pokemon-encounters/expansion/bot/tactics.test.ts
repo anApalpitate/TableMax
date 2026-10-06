@@ -50,6 +50,9 @@ function knownFixture() {
   state.deck = pool;
   state.initialDone = [...context.seats];
   state.turnSeat = 'a';
+  // This historical synthetic fixture represents a restored pre-usage chain.
+  delete state.usedAbilityIds;
+  delete state.pendingAbility;
   state.phase = 'greninja-choice';
   state.drawSource = 'deck';
   state.activeResearch = ['R22'];
@@ -182,7 +185,7 @@ it('values an observation by the replacement it can improve, conditioning on the
   expect(rows[0]!.values).toEqual([0, 3]);
 });
 
-it('averages Lucario’s unknown extra deck chance before comparing it with a public zero', () => {
+it('averages Lucario’s unknown deck-only extra chance despite a public zero', () => {
   const { state, view } = knownFixture();
   const take = (category: string) =>
     state.deck.find((id) => card(id).categoryId === category)!;
@@ -204,15 +207,15 @@ it('averages Lucario’s unknown extra deck chance before comparing it with a pu
   const value = (model: TacticalModel) => score(model.boards.a!);
   const tactics = createTactics(view, 'a', score, value, 0);
   // Current 45. Blind deck expectation averages 33 and 45 => 39;
-  // the public zero is 35, rather than the clairvoyant deck minimum 33.
+  // The public zero would score 35, but is not an extra-draw source.
   expect(value(model)).toBe(45);
-  expect(tactics.afterPlacement(model, board[4]!)).toBe(35);
+  expect(tactics.afterPlacement(model, board[4]!)).toBe(39);
   expect(
     tactics.afterPlacement(
       { ...model, pool: [...model.pool].reverse() },
       board[4]!,
     ),
-  ).toBe(35);
+  ).toBe(39);
 });
 
 it('juewu chooses a useful private edge instead of always preferring the center', () => {
@@ -240,6 +243,9 @@ it('juewu chooses a useful private edge instead of always preferring the center'
   ].map((category) => ({ instanceId: take(category), faceUp: true }));
   state.deck = available;
   state.discard = [];
+  // This historical synthetic fixture represents a restored pre-usage chain.
+  delete state.usedAbilityIds;
+  delete state.pendingAbility;
   state.phase = 'charizard-choice';
   state.boards.a[1]!.faceUp = false;
   state.boards.a[4]!.faceUp = false;
@@ -294,6 +300,9 @@ it('matches the authoritative Snorlax replacement and complete optional swap bef
   state.deck = available;
   const index = state.deck.findIndex((id) => card(id).ability === 'snorlax');
   state.held = state.deck.splice(index, 1)[0]!;
+  // This historical synthetic fixture represents a restored pre-usage chain.
+  delete state.usedAbilityIds;
+  delete state.pendingAbility;
   state.phase = 'place';
   state.drawSource = 'discard';
   rules.validateState(state, context.seats);
@@ -378,6 +387,9 @@ it('juewu takes Snorlax for its complete swap chain when the old ordinary-card p
   ].map((category) => ({ instanceId: take(category), faceUp: true }));
   state.discard.push(take('special-snorlax'));
   state.deck = available;
+  // This historical synthetic fixture represents a restored pre-usage chain.
+  delete state.usedAbilityIds;
+  delete state.pendingAbility;
   state.phase = 'draw';
   state.winsBySeat = { a: 0, b: 0 };
   const known = rules.project(state, { role: 'player', seatId: 'a' });
@@ -533,6 +545,9 @@ it.each(['snorlax', 'greninja', 'mewtwo', 'lucario'] as const)(
     for (const seat of context.seats)
       for (const [slot, cell] of state.boards[seat]!.entries())
         cell.faceUp = slot !== 8;
+    // This historical synthetic fixture represents a restored pre-usage chain.
+    delete state.usedAbilityIds;
+    delete state.pendingAbility;
     state.phase = 'draw';
     state.initialDone = [...context.seats];
     state.turnSeat = 'a';

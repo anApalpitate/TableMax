@@ -54,6 +54,9 @@ function closureFixture(opponentWins: number, ownWins = 0) {
   state.voteCounts = { R22: 2, R01: 0, R02: 0 };
   state.activeResearch = ['R22'];
   state.usedOpeningResearch = ['R22'];
+  // This historical synthetic fixture represents a restored pre-usage chain.
+  delete state.usedAbilityIds;
+  delete state.pendingAbility;
   state.phase = 'place';
   state.turnSeat = 'a';
   state.drawSource = 'deck';
@@ -115,6 +118,9 @@ it('covers the opponent full field before the ability chain closes an otherwise 
   state.deck.push(state.boards.a![0]!.instanceId);
   state.boards.a![0] = { instanceId: ninja, faceUp: true };
   state.boards.b![8]!.faceUp = true;
+  // This historical synthetic fixture represents a restored pre-usage chain.
+  delete state.usedAbilityIds;
+  delete state.pendingAbility;
   state.phase = 'greninja-choice';
   rules.validateState(state, context.seats);
   const view = rules.project(state, { role: 'player', seatId: 'a' });

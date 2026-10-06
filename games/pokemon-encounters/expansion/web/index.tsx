@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- Independent expansion client adapter. */
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import type { GameClient, GameHost } from '@tablemax/web-host';
 import {
   avatarFor,
@@ -26,17 +26,21 @@ import { WinTrack } from '../../ui/WinTrack';
 import { ResearchCard, ResearchPicture } from './ResearchCard';
 import { portraitFor } from './card-art';
 import { portraitBoundsFor } from './portrait-bounds';
-import { cardArt } from '../../../../assets/games/pokemon-encounters/catalog';
+import {
+  cardArt,
+  coinArt,
+} from '../../../../assets/games/pokemon-encounters/catalog';
 import { SoundControl } from '../../ui/audio';
 import { expansionVoices } from './voice-resources';
-import {
-  expansionSoundRecipe,
-  expansionThemeFor,
-  presentationTiming,
-} from './presentation';
+import { expansionSoundRecipe, expansionThemeFor } from './presentation';
 import { SavedEffects } from './SavedEffects';
 import { poseSequences } from './poses/timeline';
 import { GuideScene } from '../../ui/RuleDiagrams';
+import { CircularBadge } from './CircularBadge';
+import {
+  ExpansionPresentation,
+  useExpansionPresentation,
+} from './PresentationContext';
 import './style.css';
 import './redesign.css';
 import './refinement.css';
@@ -88,6 +92,11 @@ const labels: Partial<Record<Action['type'], string>> = {
 };
 const namesOf = (session: GameHost) =>
   Object.fromEntries(session.view?.seats.map((s) => [s.id, s.name]) ?? []);
+const summaryOf = (face: Face) =>
+  face.abilityUsed && face.ability
+    ? '能力已使用'
+    : categoryPresentation(face.categoryId).abilitySummary ||
+      `${face.value ?? '复制'} 分`;
 const pairTypes = ['swap', 'reposition', 'mewtwo-target', 'ninja-target'];
 function eventText(
   event: View['events'][number],
@@ -169,7 +178,7 @@ function Board({
   selectable?: number[];
   select?: (slot: number) => void;
   locked?: boolean;
-  motion?: string[];
+  motion?: readonly string[];
 }) {
   const board = game.boards[seat] ?? [];
   if (board.length !== 9)
@@ -182,6 +191,7 @@ function Board({
       selectable={selectable}
       locked={locked}
       select={select}
+      renderIndex={(index) => <CircularBadge value={index + 1} />}
       slots={board.map((slot, i) => ({
         id: slot.slotId,
         label: `位置${i + 1}：${slot.card ? `${slot.card.name}，${slot.card.value ?? '复制'}` : '暗牌'}`,
@@ -226,7 +236,10 @@ function TurnProgress({ game }: { game: View }) {
           className={i === current ? 'current' : i < current ? 'complete' : ''}
           aria-current={i === current ? 'step' : undefined}
         >
-          <span>{i < current ? '✓' : i + 1}</span>
+          <CircularBadge
+            value={i < current ? '✓' : i + 1}
+            className="ex-progress-number"
+          />
           {label}
         </li>
       ))}
@@ -236,17 +249,16 @@ function TurnProgress({ game }: { game: View }) {
 
 function PublicSupply({
   game,
-  session,
   names,
   research,
 }: {
   game: View;
-  session: GameHost;
   names: Record<string, string>;
   research: ReactNode;
 }) {
+  const { motion } = useExpansionPresentation();
   const fresh = game.events.filter((event) =>
-    session.motion.includes(`event:${event.id}`),
+    motion.includes(`event:${event.id}`),
   );
   const moved = fresh.at(-1)?.action;
   return (
@@ -255,6 +267,14 @@ function PublicSupply({
         <h2>公开牌区</h2>
         <span>弃牌共 {game.discardCount} 张</span>
       </header>
+      {game.coin && (
+        <div className="ex-coin-result" role="status">
+          <span className="coin-face">
+            <img src={coinArt[game.coin]} alt="" />
+          </span>
+          <strong>{game.coin === 'meowth' ? '喵喵面' : '皮卡丘面'}</strong>
+        </div>
+      )}
       <div className="ex-public-piles">
         <section data-pile="deck">
           <header>
@@ -288,8 +308,10 @@ function PublicSupply({
               <span>当前取牌</span>
               <strong>{game.held.name}</strong>
               <p>
-                {categoryPresentation(game.held.categoryId).abilitySummary ||
-                  '选择一格放入场地'}
+                {game.held.abilityUsed && game.held.ability
+                  ? '能力已使用，选择一格放入场地'
+                  : categoryPresentation(game.held.categoryId).abilitySummary ||
+                    '选一格放入场地'}
               </p>
             </div>
           </>
@@ -320,6 +342,7 @@ function PublicSupply({
 }
 
 function Actions({ session, game }: { session: GameHost; game: View }) {
+  const { motion } = useExpansionPresentation();
   const actions = (session.view?.actions ?? []) as Action[];
   const [mode, setMode] = useState(''),
     [target, setTarget] = useState(''),
@@ -411,9 +434,10 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
               onClick={() => choose({ type: 'vote-research', taskId: t.id })}
               className={`ex-mission-option ${game.ownVote === t.id ? 'selected' : ''}`}
             >
-              <span className="ex-vote-mark" aria-hidden="true">
-                {game.ownVote === t.id ? '✓' : String.fromCharCode(65 + i)}
-              </span>
+              <CircularBadge
+                className="ex-vote-mark"
+                value={game.ownVote === t.id ? '✓' : i + 1}
+              />
               <strong>{t.name}</strong>
               <b>−{t.reward}分</b>
             </button>
@@ -439,7 +463,7 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
             ? `${names[game.actorSeat]}正在行动`
             : '等待其他玩家翻牌'}
         </div>
-        <Board game={game} seat={self} motion={session.motion} />
+        <Board game={game} seat={self} motion={motion} />
       </section>
     );
   return (
@@ -449,16 +473,26 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
         <h2>{session.self?.name ?? '本人'}的行动</h2>
         <WinTrack wins={game.winsBySeat[self] ?? 0} />
       </header>
+      {game.coin && (
+        <div className="ex-coin-result" role="status">
+          <span className="coin-face">
+            <img src={coinArt[game.coin]} alt="" />
+          </span>
+          <strong>{game.coin === 'meowth' ? '喵喵面' : '皮卡丘面'}</strong>
+        </div>
+      )}
       {game.held && (
         <div className="ex-held" data-pile="held">
           <Card face={game.held} />
           <div>
             <span className="ex-held-label">当前取牌</span>
             <p>
-              {categoryPresentation(game.held.categoryId).abilitySummary ||
-                '选择位置换入'}
+              {game.held.abilityUsed && game.held.ability
+                ? '能力已使用，选择位置换入'
+                : categoryPresentation(game.held.categoryId).abilitySummary ||
+                  '选择位置换入'}
             </p>
-            {game.held.abilityText && (
+            {game.held.abilityText && !game.held.abilityUsed && (
               <details>
                 <summary>能力说明</summary>
                 <p>{game.held.abilityText}</p>
@@ -518,26 +552,21 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
                   )}
                   <span>
                     {face?.name ?? '暂无卡牌'}
-                    <b>
-                      {face
-                        ? categoryPresentation(face.categoryId)
-                            .abilitySummary || `${face.value ?? '复制'} 分`
-                        : '不可选择'}
-                    </b>
+                    <b>{face ? summaryOf(face) : '不可选择'}</b>
                   </span>
                 </div>
               </button>
             );
           })}
           <button
-            className={`ex-source ${mode === 'reposition' ? 'selected' : ''}`}
+            className={`ex-source ex-reposition-source ${mode === 'reposition' ? 'selected' : ''}`}
             disabled={locked || !actions.some((a) => a.type === 'reposition')}
             onClick={() => {
               setMode(mode === 'reposition' ? '' : 'reposition');
               setSlots([]);
             }}
           >
-            <strong>调位</strong>
+            <strong>卡牌换位</strong>
             <div className="ex-source-face">
               <span className="ex-swap-mark" aria-hidden="true">
                 <svg viewBox="0 0 72 90">
@@ -606,7 +635,7 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
             selectable={selectable}
             select={select}
             locked={locked}
-            motion={session.motion}
+            motion={motion}
           />
           {selectedType === 'ninja-target' && (
             <div className="ex-branch">
@@ -640,13 +669,13 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
         </div>
       ) : (
         <div className="ex-target-board ex-own-board">
-          <Board game={game} seat={self} motion={session.motion} />
+          <Board game={game} seat={self} motion={motion} />
         </div>
       )}
       {chosenSeat !== self && (
         <details className="ex-own-preview">
           <summary>查看本人场地</summary>
-          <Board game={game} seat={self} motion={session.motion} />
+          <Board game={game} seat={self} motion={motion} />
         </details>
       )}
       {mode === 'reposition' && (
@@ -657,7 +686,7 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
             setSlots([]);
           }}
         >
-          取消调位
+          取消换位
         </button>
       )}
       {game.peek && (
@@ -761,7 +790,7 @@ function Rulebook() {
         },
         {
           id: 'turn',
-          label: '取牌调位',
+          label: '取牌换位',
           title: '顶部两弃牌，或交换本人两格',
           content: (
             <>
@@ -769,7 +798,7 @@ function Rulebook() {
                 可取牌库顶或弃牌顶部两张之一；牌库牌可弃，弃牌取得必须使用。普通换入朝上，换出公开弃顶。不取牌时可公开交换本人两格，朝向随牌移动，替代整个回合，不私看、不发动能力。
               </p>
               <p>
-                通常先取牌并换入，再处理能力；梦幻、火箭队、闪电鸟及超梦按各自流程先处理指定步骤。调位替代整个回合。两个“可选弃牌”来自同一弃牌堆；行动轮到你时才显示操作。
+                通常先取牌并换入，再处理能力；梦幻、火箭队、闪电鸟及超梦按各自流程先处理指定步骤。卡牌换位替代整个回合。两个“可选弃牌”来自同一弃牌堆；行动轮到你时才显示操作。
               </p>
             </>
           ),
@@ -780,6 +809,9 @@ function Rulebook() {
           title: '按功能看，完整处理后才收局',
           content: (
             <>
+              <p>
+                项目新约定：每张特殊牌的主动能力使用后移除星标。移位、盖回、换人或进入弃牌堆都保留已使用状态；从两个可选弃牌取回也不会恢复。只有该牌实际洗回牌库，或开始下一小局，才恢复能力。复制牌的被动计分规则不受影响。
+              </p>
               <ul>
                 {categories
                   .filter((c) => c.ability || c.copy)
@@ -798,7 +830,7 @@ function Rulebook() {
                               : c.ability === 'greninja'
                                 ? '任意一名玩家两格盖回，或盖回并公开交换。'
                                 : c.ability === 'lucario'
-                                  ? '可额外取一张，不发动主动能力。'
+                                  ? '仅从牌库额外摸一张，可按规则回洗补充牌库；无牌可摸时不可发动。额外牌不发动主动能力。'
                                   : c.ability === 'groudon'
                                     ? '交换对手第三行。'
                                     : c.ability === 'kyogre'
@@ -864,34 +896,32 @@ function Rulebook() {
     />
   );
 }
-function Screen({ session }: { session: GameHost }) {
+function ScreenBody({ session, game }: { session: GameHost; game: View }) {
   const canPlay = useAudioOutput();
-  const game = session.view?.gameView as View | null,
-    [panel, setPanel] = useState<
+  const frame = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    const node = frame.current;
+    if (!node) return;
+    const measure = () => {
+      node.dataset.narrowTable = String(node.clientWidth <= 1100);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  const presentation = useExpansionPresentation();
+  const { motion, resultReady } = presentation;
+  const [panel, setPanel] = useState<
       'menu' | 'rules' | 'friends' | 'research' | 'score' | null
     >(null),
     [detail, setDetail] = useState(''),
     names = namesOf(session);
-  if (!game)
-    return (
-      <main className="expansion-screen">
-        <p>正在连接扩展牌桌…</p>
-        <SessionFeedback session={session} />
-      </main>
-    );
   const seats = session.view?.seats ?? [],
     shown =
       session.role === 'player'
         ? seats.filter((s) => s.id === session.self?.id)
         : seats;
-  const timing = presentationTiming(
-    game.events.filter((event) => session.motion.includes(`event:${event.id}`)),
-    poseDurations,
-  );
-  const feedbackTiming = presentationTiming(
-    session.feedback?.events ?? [],
-    poseDurations,
-  );
   const research =
     game.activeResearch.length > 0 ? (
       <aside className="ex-research-strip" aria-label="本局研究">
@@ -917,17 +947,29 @@ function Screen({ session }: { session: GameHost }) {
     ) : null;
   const renderSeat = (s: (typeof seats)[number]) => (
     <article
-      className={`ex-player ${game.actorSeat === s.id ? 'acting' : ''} ${game.roundResult?.winners.includes(s.id) ? 'winner' : ''}`}
+      className={`ex-player ${game.actorSeat === s.id ? 'acting' : ''} ${resultReady && game.roundResult?.winners.includes(s.id) ? 'winner' : ''}`}
       key={s.id}
+      data-seat={s.id}
     >
       <header>
+        {resultReady && game.matchWinners.includes(s.id) && (
+          <span className="winner-crown" role="img" aria-label="大局赢家皇冠">
+            ♛
+          </span>
+        )}
         <img src={avatarFor(s.avatarId)} alt="" />
-        <span className="ex-seat-number">
-          {game.seatOrder.indexOf(s.id) + 1}
-        </span>
+        <CircularBadge
+          className="ex-seat-number"
+          value={game.seatOrder.indexOf(s.id) + 1}
+        />
         <h2>{s.name}</h2>
         <WinTrack
           wins={game.winsBySeat[s.id] ?? 0}
+          earnedNow={Boolean(
+            resultReady &&
+            game.roundResult?.winners.includes(s.id) &&
+            motion.includes('@result'),
+          )}
           winner={
             game.matchWinners.includes(s.id)
               ? 'match'
@@ -937,8 +979,8 @@ function Screen({ session }: { session: GameHost }) {
           }
         />
       </header>
-      <Board game={game} seat={s.id} motion={session.motion} />
-      {game.roundResult && (
+      <Board game={game} seat={s.id} motion={motion} />
+      {game.roundResult && resultReady && (
         <button
           className="ex-score ex-settlement-text"
           onClick={() => {
@@ -958,10 +1000,8 @@ function Screen({ session }: { session: GameHost }) {
   );
   return (
     <main
-      className={`expansion-screen ${session.role} ${timing.resultDelayMs && !session.view?.paused && session.connected ? 'ex-delayed-settlement' : ''}`}
-      style={
-        { '--ex-result-delay': `${timing.resultDelayMs}ms` } as CSSProperties
-      }
+      ref={frame}
+      className={`expansion-screen ${session.role} ${game.roundResult && !resultReady ? 'ex-pending-settlement' : ''}`}
       data-players={seats.length}
       data-phase={game.phase}
       data-play-mode={session.view?.playMode}
@@ -988,7 +1028,8 @@ function Screen({ session }: { session: GameHost }) {
               iconOnly
               disabled={session.view?.playMode === 'test' || !session.connected}
               paused={session.view?.paused ?? false}
-              feedback={session.feedback}
+              feedback={presentation.feedback}
+              eventKey={presentation.eventKey}
               errorId={session.errorId}
               canPlay={canPlay}
               recipe={(event, reducedMotion) =>
@@ -998,21 +1039,16 @@ function Screen({ session }: { session: GameHost }) {
                   game,
                   reducedMotion,
                   expansionVoices,
-                ).map((cue) => ({
-                  ...cue,
-                  delayMs:
-                    cue.delayMs +
-                    (reducedMotion
-                      ? 0
-                      : event.kind === 'round-result'
-                        ? feedbackTiming.resultDelayMs
-                        : event.kind === 'research'
-                          ? feedbackTiming.researchDelayMs
-                          : 0),
-                }))
+                  presentation.current?.event.effect ?? {},
+                )
               }
               resolveSource={(cue, event) => {
-                const theme = expansionThemeFor(event.kind, event.action, cue);
+                const theme = expansionThemeFor(
+                  event.kind,
+                  event.action,
+                  cue,
+                  presentation.current?.event.effect ?? {},
+                );
                 return theme
                   ? expansionThemes[
                       `../../../../assets/games/pokemon-encounters/expansion/audio/${theme}-theme-original-v1.ogg`
@@ -1057,7 +1093,7 @@ function Screen({ session }: { session: GameHost }) {
           对局已暂停，当前牌面与研究保留。
         </div>
       )}
-      {game.roundResult && (
+      {game.roundResult && resultReady && (
         <section
           className="ex-victory ex-settlement-text"
           aria-label="本局结果"
@@ -1153,12 +1189,7 @@ function Screen({ session }: { session: GameHost }) {
               game={game}
             />
           ) : !game.roundResult && session.role !== 'player' ? (
-            <PublicSupply
-              game={game}
-              session={session}
-              names={names}
-              research={research}
-            />
+            <PublicSupply game={game} names={names} research={research} />
           ) : null}
         </div>
       )}
@@ -1251,6 +1282,21 @@ function Screen({ session }: { session: GameHost }) {
       )}
       <PlayModeControl session={session} />
     </main>
+  );
+}
+function Screen({ session }: { session: GameHost }) {
+  const game = session.view?.gameView as View | null;
+  if (!game)
+    return (
+      <main className="expansion-screen">
+        <p>正在连接扩展牌桌…</p>
+        <SessionFeedback session={session} />
+      </main>
+    );
+  return (
+    <ExpansionPresentation session={session} game={game}>
+      <ScreenBody session={session} game={game} />
+    </ExpansionPresentation>
   );
 }
 export const client: GameClient = {

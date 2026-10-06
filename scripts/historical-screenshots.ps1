@@ -54,8 +54,9 @@ namespace TableMax {
     $name = $Matches[1]
     if ($name -eq ('v' + $project.version)) { throw 'Current screenshot evidence is protected.' }
     if ($name -match '^v(\d+\.\d+\.\d+)$') {
-      # v1.6.0 is the documented pre-renumbering release, not a future package.
-      if ([version]$Matches[1] -ge $currentVersion -and $name -ne 'v1.6.0') { throw 'Unknown future screenshot evidence is protected.' }
+      # Both are documented retired releases before the requested return to v1.0.2;
+      # see project-slimming.md (2026-10-05). Never infer retirement by version order.
+      if ([version]$Matches[1] -ge $currentVersion -and $name -notin @('v1.6.0','v1.0.4')) { throw 'Unknown future screenshot evidence is protected.' }
     }
     elseif ($name -notin $allowedLegacy) { throw 'Unknown unversioned evidence roots cannot be retired.' }
     $absolute = Assert-LocalPath (Join-Path $workspace $group.path)

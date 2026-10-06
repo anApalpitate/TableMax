@@ -1,5 +1,13 @@
 # 本地资源、卡牌映射与声音
 
+## 目录小封面与原版演出复用（2026-10-07）
+
+沿用原版全屏构图、硬币两面、皇冠、烟花、扫光和胜局星标，扩展以既有14套63矢量姿态嵌入，真实保存按能力→研究→结算排队；不新增下载声音或角色位图。源码全量组装首次测得模块4,213,476字节，超4MiB 19,172字节，原始失败记录保留。
+
+盒子封面实际36–66px，原1200×800／170,622字节派生图保留；从原PNG按比例生成480×320／WebP quality90 method6的小封面 `cover-catalog-v2.webp`，57,764字节，减少112,858字节，只更换模块目录封面。原PNG及大封面均未删除，不改变游戏背景或角色卡面。来源、哈希及编码见[派生核验](../../../artifacts/maintenance/v1.0.3/pokemon-final-revision/catalog-thumbnail.json)及[资源清单](../../../assets/games/pokemon-encounters/manifest.json)。受影响metadata单元重编，其余17项复用本轮全量产物，未增加预算。
+
+整包首次仍为95,273,127字节，超过95MB工程预算；继续将用户提供的火箭队入场及喵喵面两段运行WAV无损编码为FLAC，735,676→326,648字节。原WAV、用户原件与原哈希保留，音量、音调、节奏、采样率和声道不变；逐采样PCM字节一致，见[无损核验](../../../artifacts/maintenance/v1.0.3/pokemon-final-revision/lossless-audio.json)。[实际静音WebView2](../../../artifacts/maintenance/v1.0.3/pokemon-polish-20261005/audio/revision-lossless-03/results.json)解码与播放通过，不能替代真人听感；旧夹具的“Eight WAVs”固定描述已更新，原通过记录的decoded文件列表实际为六WAV＋两FLAC。客户端单元重编、其余17项复用，最终模块3,691,572字节，整包94,864,073字节，预算均通过。失败清单和构建边界保留，不把首次超预算ZIP计作交付。
+
 ## 研究插画与下载叫声再派生（2026-10-06）
 
 v1.0.3 前轮为 30 项研究逐项独立调用内置 imagegen，制作明亮简洁的绘本场景，原 PNG 与生成记录保留于 `artifacts/maintenance/v1.0.3/pokemon-ui-redesign/imagegen/`。2026-10-06 最新反馈要求主题与配图更有宝可梦关联和趣味：研究名称、原创短句与现有角色引用放在独立 `config/research.json` 的 `presentation`，全 30 项以 AI 环境加本地角色前景构图，精确数字、九格与箭头仍由代码绘制。

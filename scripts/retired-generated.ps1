@@ -66,7 +66,8 @@ function Initialize-RetiredGenerated {
             (Get-Content -LiteralPath (Join-Path $workspace 'package.json') -Raw) -match '"(?:electron|electron-builder)"\s*:') { throw 'Only unused historical Electron tool caches may be retired.' }
       }
       'runtime-copy' {
-        if ($entry.path -notmatch '/(?:extracted|win-unpacked|TableMax-\d+\.\d+\.\d+-win-x64)$' -or
+        $retiredSizeCheck = $entry.path -match '/retained-(?:release-staging|package-stage)/package-\d+\.\d+\.\d+-[A-Za-z0-9]{6}/size-verification$'
+        if (($entry.path -notmatch '/(?:extracted|win-unpacked|TableMax-\d+\.\d+\.\d+-win-x64)$' -and -not $retiredSizeCheck) -or
             -not (Test-Path -LiteralPath (Join-Path $absolute 'TableMax.exe')) -or -not (Test-Path -LiteralPath (Join-Path $absolute 'node.exe')) -or
             @($entry.files | Where-Object { $_.path -match '\.(?:sqlite|sqlite-wal|sqlite-shm|db|md|tsx?|ps1)$' }).Count) { throw 'Runtime copies must contain the program and no saves or source files.' }
       }
@@ -76,7 +77,8 @@ function Initialize-RetiredGenerated {
             @($entry.files | Where-Object { $_.path -match '/(?:room|foundation)\.sqlite(?:-wal|-shm)?$' }).Count) { throw 'Browser profiles require Chromium markers and must not contain platform saves.' }
       }
       'retired-package' {
-        if ($entry.path -notmatch '/TableMax-\d+\.\d+\.\d+-(?:win-x64|source)\.zip$' -or $entry.files.Count -ne 1 -or
+        if ($entry.path -notmatch '/(?:TableMax-\d+\.\d+\.\d+-(?:win-x64|source)|previous-delivery)\.zip$' -or $entry.files.Count -ne 1 -or
+            $entry.files[0].sha256 -eq $archiveHash -or
             (Get-Item -LiteralPath $absolute).PSIsContainer) { throw 'Retired packages must be individual historical archives.' }
       }
       'isolated-test-database' {

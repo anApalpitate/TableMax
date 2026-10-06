@@ -52,9 +52,20 @@ function fixture(usefulDraw = false) {
       faceUp: true,
     }));
   state.held = null;
-  state.discard = usefulDraw ? [take('ordinary--2')] : [];
+  state.discard = [];
   state.deck = pool;
+  if (usefulDraw) {
+    const index = state.deck.findIndex(
+      (id) => card(id).categoryId === 'ordinary--2',
+    );
+    [state.deck[0], state.deck[index]] = [state.deck[index]!, state.deck[0]!];
+    for (let i = state.deck.length - 1; i > 0; i--)
+      [state.deck[i], state.deck[0]] = [state.deck[0]!, state.deck[i]!];
+  }
   state.initialDone = [...context.seats];
+  // This historical synthetic fixture represents a restored pre-usage chain.
+  delete state.usedAbilityIds;
+  delete state.pendingAbility;
   state.phase = 'lucario-choice';
   state.turnSeat = 'a';
   state.drawSource = 'deck';
@@ -92,7 +103,7 @@ it.each(['default', 'doubao', 'juewu'] as const)(
   },
 );
 
-it('takes a useful publicly available extra draw and completes its suppressed chain', () => {
+it('takes a useful deck-only extra draw and completes its suppressed chain', () => {
   const { context, state, view, memory } = fixture(true);
   const action = choose(
     view,
@@ -105,12 +116,7 @@ it('takes a useful publicly available extra draw and completes its suppressed ch
   expect(action).toEqual({ type: 'extra-draw' });
   let end = rules.apply(state, action, 'a', context).state;
   expect(end.phase).toBe('lucario-draw');
-  end = rules.apply(
-    end,
-    { type: 'draw', source: 'discard', discardIndex: 0 },
-    'a',
-    context,
-  ).state;
+  end = rules.apply(end, { type: 'draw', source: 'deck' }, 'a', context).state;
   expect(end.phase).toBe('place');
   expect(end.suppressedAbility).toBe(true);
   end = rules.apply(end, { type: 'replace', slot: 8 }, 'a', context).state;

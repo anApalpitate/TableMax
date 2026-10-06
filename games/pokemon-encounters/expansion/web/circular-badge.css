@@ -1,0 +1,17 @@
+.expansion-screen .ex-circular-badge {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+.expansion-screen .ex-circular-badge circle {
+  fill: var(--badge-background, #245d53);
+}
+.expansion-screen .ex-circular-badge text {
+  fill: var(--badge-foreground, white);
+  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  font-size: 68px;
+  font-weight: 650;
+  text-anchor: start;
+}

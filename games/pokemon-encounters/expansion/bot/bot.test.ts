@@ -72,6 +72,7 @@ it('bounds private information by difficulty without accessing hidden truth', ()
         name: '伊布',
         value: 1,
         ability: null,
+        abilityUsed: false,
         abilityText: null,
         copy: null,
       },

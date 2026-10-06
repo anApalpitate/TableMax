@@ -14,6 +14,7 @@ export function CardSkin({
     name: string;
     value: number | null;
     ability: unknown;
+    abilityUsed?: boolean;
   } | null;
   image?: string | undefined;
   frame?: string | undefined;
@@ -46,7 +47,7 @@ export function CardSkin({
             >
               {value ?? face.value ?? '?'}
             </strong>
-            {Boolean(face.ability) && (
+            {Boolean(face.ability) && !face.abilityUsed && (
               <span
                 className={`ability-mark${expansion ? ' ex-ability-dot' : ''}`}
                 aria-label="能力牌"

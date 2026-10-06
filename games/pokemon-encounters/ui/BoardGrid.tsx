@@ -23,6 +23,7 @@ export function BoardGrid({
   locked = false,
   select,
   markers = [],
+  renderIndex,
 }: {
   layout: BoardLayout;
   slots: readonly GridSlot[];
@@ -31,6 +32,7 @@ export function BoardGrid({
   locked?: boolean;
   select?: ((slot: number) => void) | undefined;
   markers?: readonly GridMarker[];
+  renderIndex?: ((index: number) => ReactNode) | undefined;
 }) {
   const grid = topology(layout);
   if (slots.length !== grid.count) throw new Error('Invalid rendered board');
@@ -48,7 +50,9 @@ export function BoardGrid({
         const content = (
           <>
             {slot.content}
-            <span className="slot-index">{index + 1}</span>
+            <span className="slot-index">
+              {renderIndex ? renderIndex(index) : index + 1}
+            </span>
             {marked
               .filter((marker) => marker.slots[0] === index)
               .map((marker) => (

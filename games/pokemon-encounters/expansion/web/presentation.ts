@@ -4,6 +4,12 @@ import { SOUND_MAX_LATE_MS } from '../../ui/sound-timing';
 type VisibleAction = Omit<PublicAction, 'source'> & {
   source?: 'deck' | 'discard' | undefined;
 };
+export type EventEffect = {
+  entrance?: string;
+  coin?: 'meowth' | 'pikachu';
+  discardIndex?: 0 | 1;
+  source?: { seat: string; slot: number };
+};
 
 export type BoardEffects = {
   moves: { from: string; to: string }[];
@@ -16,6 +22,7 @@ export type BoardEffects = {
 export function savedBoardEffects(
   action: VisibleAction | undefined,
   boards: Record<string, readonly { slotId: string; faceUp: boolean }[]> = {},
+  effect?: EventEffect,
 ): BoardEffects {
   const result: BoardEffects = { moves: [], cover: [], reveal: [], pulse: [] };
   if (!action) return result;
@@ -24,7 +31,15 @@ export function savedBoardEffects(
     t.slots.map((slot) => `${t.seat}:${slot}`),
   );
   if (action.verb === 'draw' && action.source) {
-    result.moves = [{ from: `@${action.source}`, to: '@held' }];
+    result.moves = [
+      {
+        from:
+          action.source === 'discard' && effect?.discardIndex === 1
+            ? '@discard-second'
+            : `@${action.source}`,
+        to: '@held',
+      },
+    ];
     result.pulse = ['@held'];
   } else if (action.verb === 'discard-held') {
     result.moves = [{ from: '@held', to: '@discard' }];
@@ -70,7 +85,9 @@ export function savedBoardEffects(
 /** Enter only when a committed action actually starts the ability. */
 export function startedAbility(
   action: VisibleAction | undefined,
+  effect?: EventEffect,
 ): string | null {
+  if (effect !== undefined) return effect.entrance ?? null;
   if (!action) return null;
   const starts: Record<string, string> = {
     'mew-target': 'mew',
@@ -92,12 +109,13 @@ export function startedAbility(
 /** Copies react to their committed public placement, not to a guessed hidden face. */
 export function presentationCreature(
   action: VisibleAction | undefined,
+  effect?: EventEffect,
 ): string | null {
   if (action?.cardCategory === 'special-ditto')
     return action.verb === 'replace' ? 'ditto' : null;
   if (action?.cardCategory === 'special-zorua')
     return action.verb === 'replace' ? 'zorua' : null;
-  return startedAbility(action);
+  return startedAbility(action, effect);
 }
 
 export const ordinaryThemes = [
@@ -159,10 +177,11 @@ export function expansionThemeFor(
   kind: string,
   action: VisibleAction | undefined,
   cue: string,
+  effect?: EventEffect,
 ): string | null {
   if (cue !== 'effect-complete') return null;
   if (kind === 'research') return 'research';
-  const ability = startedAbility(action);
+  const ability = startedAbility(action, effect);
   return ability &&
     [
       'mewtwo',
@@ -184,6 +203,7 @@ export function expansionSoundRecipe(
   game: { coin: 'meowth' | 'pikachu' | null; matchWinners: string[] },
   reducedMotion: boolean,
   voices: Readonly<Record<string, string>> = {},
+  effect?: EventEffect,
 ): SoundCueRecipe[] {
   const cue = (sound: SoundCueRecipe['cue'], delayMs = 0): SoundCueRecipe => ({
     cue: sound,
@@ -200,11 +220,13 @@ export function expansionSoundRecipe(
       },
     ];
   if (kind === 'research') return [cue('effect-complete')];
-  const ability = startedAbility(action);
+  const ability = startedAbility(action, effect);
   if (ability === 'team-rocket')
     return [
       cue('rocket'),
-      ...(game.coin ? [cue(game.coin, reducedMotion ? 0 : 1200)] : []),
+      ...((effect?.coin ?? game.coin)
+        ? [cue((effect?.coin ?? game.coin)!, reducedMotion ? 0 : 1200)]
+        : []),
     ];
   if (ability && ['mew', 'zapdos', 'charizard', 'snorlax'].includes(ability))
     return [cue(ability as 'mew' | 'zapdos' | 'charizard' | 'snorlax')];

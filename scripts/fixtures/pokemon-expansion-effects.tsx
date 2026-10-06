@@ -209,7 +209,19 @@ function fixture(settings: Settings) {
     errorId: '',
     credential: role === 'player' ? 'fixture-owner' : null,
     motion: settings.animate === false ? [] : changed,
-    feedback: null,
+    feedback:
+      settings.animate === false
+        ? null
+        : {
+            instanceId: view.instanceId,
+            revision: view.revision,
+            branch: view.branch,
+            events: events.map(({ kind, text, action }) => ({
+              kind,
+              text,
+              ...(action ? { action } : {}),
+            })),
+          },
     command(command: { type: string; decisionId?: string; action?: Action }) {
       if (command.type !== 'game' || !command.action) return;
       if (command.decisionId !== decisionId(state, actor))

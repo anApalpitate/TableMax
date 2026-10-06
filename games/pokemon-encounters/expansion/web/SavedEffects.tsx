@@ -1,17 +1,14 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { GameHost } from '@tablemax/web-host';
-import { categories, abilityText } from '../cards';
+import { categories, abilityText, categoryPresentation } from '../cards';
+import { AbilityEntrance } from '../../ui/AbilityEntrance';
+import { coinArt } from '../../../../assets/games/pokemon-encounters/catalog';
+import { useExpansionPresentation } from './PresentationContext';
 import type { View } from '../project';
 import { PoseArt } from './poses';
 import { poseSequences } from './poses/timeline';
 import { BoardEffects } from './BoardEffects';
-import {
-  ordinaryTheme,
-  presentationCreature,
-  presentationTiming,
-  savedBoardEffects,
-  type OrdinaryTheme,
-} from './presentation';
+import { ordinaryTheme, type OrdinaryTheme } from './presentation';
 
 /** The parent is keyed by saved event and branch. A cancelled clock never resumes. */
 function MotionPose({
@@ -219,89 +216,88 @@ function OrdinaryBurst({ theme }: { theme: OrdinaryTheme }) {
 }
 
 export function SavedEffects({
-  game,
-  session,
   portraitFor,
 }: {
   game: View;
   session: GameHost;
   portraitFor: (categoryId: string) => string | undefined;
 }) {
-  if (
-    session.view?.playMode === 'test' ||
-    session.view?.paused ||
-    !session.connected
-  )
-    return null;
-  const fresh = game.events.filter((event) =>
-    session.motion.includes(`event:${event.id}`),
-  );
-  const research = fresh.find((event) => event.kind === 'research');
-  const action = [...fresh]
-    .reverse()
-    .find((event) => presentationCreature(event.action));
-  const saved = [...fresh].reverse().find((event) => event.action);
-  const draw = [...fresh]
-    .reverse()
-    .find((event) => ordinaryTheme(event.action));
-  const creature = presentationCreature(action?.action);
+  const { current, anchors } = useExpansionPresentation();
+  if (!current) return null;
+  const creature = current.kind === 'ability' ? current.creature : null;
   const sequence = creature ? poseSequences[creature] : undefined;
   const category = creature
-    ? categories.find((c) => c.categoryId === `special-${creature}`)
+    ? categories.find((c) => c.categoryId === 'special-' + creature)
     : undefined;
-  const effects = savedBoardEffects(saved?.action, game.boards);
-  const hasBoard =
-    effects.moves.length +
-      effects.cover.length +
-      effects.reveal.length +
-      effects.pulse.length >
-    0;
-  const duration = sequence?.durationMs ?? 0;
-  const timing = presentationTiming(
-    fresh,
-    Object.fromEntries(
-      Object.entries(poseSequences).map(([id, pose]) => [id, pose.durationMs]),
-    ),
-  );
-  const scope = `${session.view?.instanceId}:${session.view?.branch}`;
+  const draw =
+    current.kind === 'board' ? ordinaryTheme(current.event.action) : null;
+  const coin = current.kind === 'ability' ? current.event.effect?.coin : null;
+  const key = current.key;
   return (
     <>
-      {draw && (
-        <OrdinaryBurst
-          key={`${scope}:draw:${draw.id}`}
-          theme={ordinaryTheme(draw.action)!}
-        />
-      )}
-      {hasBoard && saved && (
+      {draw && <OrdinaryBurst key={'draw:' + key} theme={draw} />}
+      {current.kind === 'board' && (
         <BoardEffects
-          key={`${scope}:board:${saved.id}`}
-          effects={effects}
-          delay={duration}
+          key={'board:' + key}
+          effects={current.effects}
+          delay={0}
+          anchors={anchors}
         />
       )}
-      {creature && sequence && category && action && (
+      {creature && sequence && category && (
         <>
-          <div
-            className={`${sequence.fullscreen ? 'ex-cinematic' : 'ex-local-ability'} ex-theme-${creature}`}
-            key={`${scope}:pose:${action.id}`}
-            style={{ '--ex-duration': `${duration}ms` } as CSSProperties}
-            data-sequence={creature}
-            aria-hidden="true"
-          >
-            <div className="ex-cinematic-rings" />
-            {sequence.fullscreen && <div className="ex-cinematic-streaks" />}
-            <div className="ex-cinematic-creature">
-              <MotionPose creatureId={creature} durationMs={duration} />
+          {sequence.fullscreen ? (
+            <div
+              className="pokemon-screen ex-original-effects"
+              data-sequence={creature}
+              key={'pose:' + key}
+            >
+              <AbilityEntrance
+                image={undefined}
+                character={
+                  <MotionPose
+                    creatureId={creature}
+                    durationMs={current.durationMs}
+                  />
+                }
+                definition={{
+                  id: creature,
+                  motif:
+                    creature === 'team-rocket'
+                      ? 'comic'
+                      : ['zapdos', 'arceus', 'lucario'].includes(creature)
+                        ? 'electric'
+                        : 'psychic',
+                  side: 'left',
+                  duration: current.durationMs,
+                  title: category.name,
+                  subtitle: categoryPresentation(category.categoryId)
+                    .abilitySummary,
+                }}
+              />
             </div>
-            <strong>{category.name}</strong>
-            <span>
-              {category.ability
-                ? abilityText[category.ability]
-                : category.copy === 'vertical'
-                  ? '上下寻源 · 纵向复制'
-                  : '左右寻源 · 横向复制'}
-            </span>
-          </div>
+          ) : (
+            <div
+              className={'ex-local-ability ex-theme-' + creature}
+              key={'pose:' + key}
+              data-sequence={creature}
+              style={
+                { '--ex-duration': current.durationMs + 'ms' } as CSSProperties
+              }
+              aria-hidden="true"
+            >
+              <div className="ex-cinematic-creature">
+                <MotionPose
+                  creatureId={creature}
+                  durationMs={current.durationMs}
+                />
+              </div>
+              <strong>{category.name}</strong>
+              <span>
+                {categoryPresentation(category.categoryId).abilitySummary}
+              </span>
+            </div>
+          )}
           <aside className="ex-static-hero" role="status">
             {portraitFor(category.categoryId) && (
               <img src={portraitFor(category.categoryId)} alt="" />
@@ -311,38 +307,88 @@ export function SavedEffects({
               <p>
                 {category.ability
                   ? abilityText[category.ability]
-                  : category.copy === 'vertical'
-                    ? '复制上下紧邻有效值'
-                    : '复制左右紧邻有效值'}
+                  : '复制相邻有效值'}
               </p>
             </div>
           </aside>
         </>
       )}
-      {research && game.activeResearch.length > 0 && (
+      {coin && (
+        <div className="pokemon-screen ex-original-effects" key={'coin:' + key}>
+          <div
+            className="saved-effects coin-effects"
+            data-coin={coin}
+            aria-hidden="true"
+          >
+            <div className="effect-ring" />
+            <span className="tossed-coin">
+              <img src={coinArt[coin]} alt="" />
+            </span>
+            <span className="coin-effect-label">
+              {coin === 'meowth' ? '喵喵面' : '皮卡丘面'}
+            </span>
+          </div>
+        </div>
+      )}
+      {current.kind === 'research' && current.research && (
         <div
-          key={`${scope}:research:${research.id}`}
+          key={'research:' + key}
           className="ex-research-reveal"
-          data-research-event={research.id}
-          style={
-            {
-              '--ex-delay': `${timing.researchDelayMs}ms`,
-            } as CSSProperties
-          }
+          data-research-event={current.event.id}
         >
-          <span>特殊研究发布</span>
-          <strong>{game.activeResearch.at(-1)!.name}</strong>
-          <p>{game.activeResearch.at(-1)!.description}</p>
-          <b>结算减 {game.activeResearch.at(-1)!.reward} 分</b>
-          {game.voteCounts && game.activeResearch.length === 1 && (
-            <div className="ex-reveal-votes">
-              {game.researchCandidates.map((task) => (
-                <span key={task.id}>
-                  {task.name} {game.voteCounts![task.id]}票
-                </span>
-              ))}
-            </div>
-          )}
+          <span>研究任务发布</span>
+          <strong>{current.research.name}</strong>
+          <p>{current.research.description}</p>
+          <b>结算减 {current.research.reward} 分</b>
+        </div>
+      )}
+      {current.kind === 'result' && (
+        <div
+          className="pokemon-screen ex-original-effects"
+          key={'result:' + key}
+        >
+          <BoardEffects
+            effects={{ moves: [], cover: [], reveal: [], pulse: [] }}
+            delay={0}
+            anchors={anchors}
+            winners={current.winners}
+          />
+          <div
+            className={
+              'saved-effects result-effects ' +
+              (current.match ? 'match-fireworks' : '')
+            }
+            aria-hidden="true"
+          >
+            {Array.from({ length: current.match ? 5 : 2 }, (_, burst) => (
+              <div
+                className="firework-burst"
+                key={burst}
+                style={
+                  {
+                    '--burst-x': [18, 78, 48, 32, 88][burst] + '%',
+                    '--burst-y': [26, 30, 15, 65, 63][burst] + '%',
+                    '--burst-delay': burst * 110 + 'ms',
+                  } as CSSProperties
+                }
+              >
+                {Array.from({ length: 12 }, (_, spark) => (
+                  <i
+                    className="firework-spark"
+                    key={spark}
+                    style={
+                      {
+                        '--angle': spark * 30 + 'deg',
+                        '--spark-color': ['#ffd85c', '#83e7ec', '#ff9ac7'][
+                          burst % 3
+                        ],
+                      } as CSSProperties
+                    }
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </>

@@ -28,7 +28,7 @@ try{
   File ($old+'/reviewed-temporary-content/data/room.sqlite') 'migration-original'
   File 'artifacts/maintenance/cleanup-history/records/old.json' '{"result":"failed","reason":"preserved historical result"}'
   New-Item -ItemType Directory -Path (Join-Path $fixture 'scripts') -Force|Out-Null
-  foreach($script in @('cleanup-local.ps1','retired-generated.ps1','cleanup-history.ps1')){Copy-Item -LiteralPath (Join-Path $PSScriptRoot $script) -Destination (Join-Path $fixture ('scripts/'+$script))}
+  foreach($script in @('cleanup-local.ps1','cleanup-guard.ps1','WorkspaceSnapshot.cs','retired-generated.ps1','cleanup-history.ps1')){Copy-Item -LiteralPath (Join-Path $PSScriptRoot $script) -Destination (Join-Path $fixture ('scripts/'+$script))}
   $inventory=@(Get-ChildItem (Join-Path $fixture $old) -File -Recurse|ForEach-Object{@{path=$_.FullName.Substring($fixture.Length+1).Replace('\','/');bytes=$_.Length;sha256=(Get-FileHash $_.FullName).Hash.ToLowerInvariant()}})
   ($inventory|Where-Object{$_.path.EndsWith('/cleanup.json')}).retainedPath='artifacts/maintenance/cleanup-history/records/old.json'
   $archiveRelative='artifacts/maintenance/cleanup-history/preserved.zip'
