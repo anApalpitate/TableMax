@@ -378,14 +378,24 @@ export function chooseAction(
         a.type === 'buy-resource' && (a.quantity ?? 1) === 1,
     );
     const need = buys.filter((a) => planned.demand[a.resource] > 0);
-    if (need.length)
-      return need.sort(
+    if (need.length) {
+      const selected = need.sort(
         (a, b) =>
           evaluate.unit(a.resource) - evaluate.unit(b.resource) ||
           Number(getPlant(a.plantId).fuel === 'hybrid') -
             Number(getPlant(b.plantId).fuel === 'hybrid') ||
           a.plantId - b.plantId,
       )[0]!;
+      return actions
+        .filter(
+          (a): a is Extract<Action, { type: 'buy-resource' }> =>
+            a.type === 'buy-resource' &&
+            a.plantId === selected.plantId &&
+            a.resource === selected.resource &&
+            (a.quantity ?? 1) <= planned.demand[a.resource],
+        )
+        .sort((a, b) => (b.quantity ?? 1) - (a.quantity ?? 1))[0]!;
+    }
     return finish();
   }
   if (view.phase === 'building') {

@@ -909,7 +909,7 @@ describe('Power Grid atomic resource purchase', () => {
     ).toThrow();
     expect(soldOut).toEqual(soldOutBefore);
   });
-  it('retains the same unit-at-a-time bot choices at every difficulty', () => {
+  it('batches planned bot demand at every difficulty and accepts legacy actions', () => {
     const state = purchasing([[4], [3], [13]]);
     cities(state, 'S1', 1);
     const view = rules.project(state, {
@@ -923,14 +923,62 @@ describe('Power Grid atomic resource purchase', () => {
     );
     for (const difficulty of ['default', 'doubao', 'juewu'] as const) {
       const chosen = chooseAction(view, actions, difficulty, { next: () => 0 });
-      expect(chosen).toEqual(
-        chooseAction(view, legacy, difficulty, { next: () => 0 }),
-      );
-      expect(chosen).toEqual({
+      const unit = chooseAction(view, legacy, difficulty, { next: () => 0 });
+      expect(unit).toEqual({
         type: 'buy-resource',
         plantId: 4,
         resource: 'coal',
       });
+      const demand = forecast(
+        view,
+        view.players.S1!.plants,
+        view.self!.cash,
+        difficulty === 'default' ? 0 : difficulty === 'doubao' ? 1 : 2,
+      ).demand.coal;
+      expect(chosen).toEqual({ ...unit, quantity: demand });
+      expect(demand).toBeGreaterThan(1);
+      expect(actions).toContainEqual(chosen);
+      const bought = apply(state, chosen);
+      expect(bought.players.S1!.plants[0]!.resources.coal).toBe(demand);
+    }
+  });
+  it('caps bot batches at planned deficits and available legal quantities', () => {
+    for (const scarce of [false, true]) {
+      const state = purchasing([[4], [3], [13]]);
+      cities(state, 'S1', 1);
+      if (scarce) market(state, 'coal', 2);
+      else fuel(state, 'S1', 4, { coal: 1 });
+      const view = rules.project(state, {
+        role: 'player',
+        seatId: 'S1',
+      }) as PowerGridView;
+      const actions = legalActions(state, 'S1');
+      for (const difficulty of ['default', 'doubao', 'juewu'] as const) {
+        const demand = forecast(
+          view,
+          view.players.S1!.plants,
+          view.self!.cash,
+          difficulty === 'default' ? 0 : difficulty === 'doubao' ? 1 : 2,
+        ).demand.coal;
+        const eligible = actions.filter(
+          (a): a is Extract<Action, { type: 'buy-resource' }> =>
+            a.type === 'buy-resource' && (a.quantity ?? 1) <= demand,
+        );
+        const chosen = chooseAction(view, actions, difficulty, {
+          next: () => 0,
+        });
+        if (!eligible.length) {
+          expect(chosen).toEqual({ type: 'finish' });
+          continue;
+        }
+        expect(chosen.type).toBe('buy-resource');
+        expect(eligible).toContainEqual(chosen);
+        if (chosen.type === 'buy-resource')
+          expect(chosen.quantity ?? 1).toBe(
+            Math.max(...eligible.map((a) => a.quantity ?? 1)),
+          );
+        validateState(apply(state, chosen), state.seatOrder);
+      }
     }
   });
 });
