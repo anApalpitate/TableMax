@@ -1,5 +1,13 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.3 文档整理与推送前维护（2026-10-06）
+
+整理README、文档／任务索引及验收入口，明确当前源码包含两项界面维护，而宝可梦和电力公司仍各有独立冻结验收包；本轮不修改程序、重打包或发布。原包、清单、原素材、存档和全部当前验收证据保留。
+
+工程空闲后，对已过30分钟保护的运行副本先预览再执行：[首组两套副本](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/doc-space-runtime-apply.json)188,773,778字节，[末组两套副本及隔离build](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/doc-final-runtime-apply.json)283,160,880字节。只退役精确生成目录，过程ZIP／清单、源码、冻结记录和依赖junction保持原位；沿用已有路径、链接、内容哈希、近期修改和忙进程保护。
+
+`Maintain-Project.ps1 -Apply`的[实际清单](../../artifacts/maintenance/local-cleanup-20261006-080637-780-maintenance/cleanup.json)删除四个已结束验证目录283,014,794字节，维护水位11,879,904,695→11,596,920,535字节。本次合计删除754,949,452字节；末组退役后[最后实测](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/doc-space-final.json)为11,314,190,647字节（10.5372GiB），跳过1,370链接、零嵌套仓库。仍高于10GiB，已核验安全候选耗尽；保护或未知用途内容继续保留，不扩大删除、不常驻轮询。后续文档与Git写入会略增，逻辑空间不以NTFS物理压缩量替代。
+
 ## v1.0.3 宝可梦UI重设计收尾（2026-10-06）
 
 本次固定交付ZIP及清单保留在 pokemon-ui-redesign/delivery/，SHA-256 943071ce…；并行电力公司随后更新共用release，两包的验收边界分别保留。原图、来源、用户音源、历史验收和原交付均保留，不生成源码包或发布。全部工程进程退出后，25项定向清理检查及[229项完整隔离回归](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/config/cleanup-prefix-tests/full-final/tool-tests.json)通过，新目录前缀沿用精确六位、30分钟及路径／链接／进程保护；早先被忙进程拦截的失败日志保留，未弱化保护。
@@ -15,7 +23,6 @@
 最终ZIP与[原生通过记录](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/polish-shipping-match/results.json)哈希一致；原完整交付另存于 `power-grid-ui-polish-20261006/previous-delivery/`。工程验证进程退出后，`Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0`先预览再Apply，删除两个已结束打包中间目录460,094,396字节；[清单](../../artifacts/maintenance/local-cleanup-20261006-074231-624-releases/cleanup.json)保留。最新ZIP／清单与既有受保护EXE保留，无发布或源码导出。
 
 `Maintain-Project.ps1 -Apply`实际逻辑水位由14,767,674,848降至13,238,941,929字节（约12.33GiB），删除27个已核验隔离副本1,528,884,893字节；两次合计1,988,979,289字节。[维护记录](../../artifacts/maintenance/local-cleanup-20261006-074353-703-maintenance/cleanup.json)关联当前ZIP SHA-256 `7946907f4423f6e0c399d14c083dabb7faa2164a25377d523ccfa92cff277963`。安全候选耗尽、仍高于10GiB，169项保护／未知用途内容及1370链接跳过；未扩大清理范围，依赖、缓存、原素材、正式存档、当前及历史证据保留。逻辑字节不以NTFS物理压缩量替代。
-
 
 ## v1.0.3 游戏介绍修复收尾（2026-10-06）
 

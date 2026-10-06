@@ -1,5 +1,11 @@
 # 首版交付与验收
 
+## 当前源码与本地交付
+
+当前v1.0.3源码已合并电力公司地图／公司卡优化（`b0ba7c7`）及宝可梦扩展UI／研究／音频重设计（`38bd296`）。两项并行维护分别在隔离源码中组装、验收：共用 `artifacts/releases/` 当前为电力公司包 `7946907f…`，宝可梦包 `943071ce…` 固定保留在 `artifacts/maintenance/v1.0.3/pokemon-ui-redesign/delivery/`。下列通过结论各自对应冻结输入与完整哈希；合并后的源码尚未重新组装并执行合包验收。
+
+运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
+
 ## 1.0.3：电力公司地图与带图公司卡优化（2026-10-06）
 
 完整1200×900地图采用铺满后1.06倍最低比例，硬边界四向拖动无空白；普通滚轮指针锚点平滑缩放，单层身份色选城、外部取消及临时抽屉避让。市场为图标入口、窄／宽／收起三态；公司恢复带图厂牌和左上数字徽章，三厂一行、两人四厂2×2、手机逐厂横条，待替换第五厂保留。收益仅两列地皮到电币，0–10左列、11–20+右列及唯一绿档。本人资金及终局按已有授权显示，规则／投影／存档格式不变。
@@ -9,7 +15,6 @@
 [原生显示](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/polish-shipping-display/results.json)以同一ZIP的实际解压、静音隐藏WebView2／127.0.0.1服务覆盖主机／公共屏720p、1080p、4K及125%／150%显示请求与模拟密度；记录有效缩放、CSS／窗口／截图几何，未改OS显示设置。[原生整局](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/polish-shipping-match/results.json)121.31秒通过真实手机控件、Worker、SQLite保存／重启恢复与跨游戏切换，510状态验证、480条合法动作独立重放，覆盖STEP 1／2／3、换厂、待安置及现金权限。查看外部顺序会取消选城，旧脚本因此找不到建设按钮；按新交互重新选城后核验，原失败证据保留。模拟窗口和浏览器手势不替代实体手机、现场LAN或物理DPI认证。
 
 最终包使用03b7430基线加本次电力公司源码的隔离输入，排除其他任务未提交内容；[冻结构建](../../artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/build-snapshot.json)与[清单](../../artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/package-manifest.json)保留。最终组装26,506ms、18缓存单元复用（电力公司UI在前序重建）；[运行ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip)40,916,814字节，SHA-256 `7946907f4423f6e0c399d14c083dabb7faa2164a25377d523ccfa92cff277963`，实际解压216文件94,386,899字节，95MB预算及ZIP／解压双100MB门禁通过。前一份完整交付保留于 `artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/previous-delivery/`；未生成新EXE或源码包、未推送或发布。安全维护实际水位见[瘦身记录](project-slimming.md)。
-
 
 ## 1.0.3：宝可梦扩展版UI重设计（2026-10-06）
 
