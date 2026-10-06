@@ -91,8 +91,22 @@ type Forecast = {
   up: readonly boolean[];
   pool: readonly string[];
   discards: readonly string[];
+  matchContext?: {
+    seat: string;
+    opponentScores: Readonly<Record<string, number>>;
+    winsBySeat: Readonly<Record<string, number>>;
+  };
 };
 type Candidate = { action: Action; value: number };
+
+function completedMatchValue(
+  seat: string,
+  roundWinners: readonly string[],
+  winsBySeat: Readonly<Record<string, number>>,
+): number | null {
+  const winners = roundWinners.filter((id) => winsBySeat[id]! >= 2);
+  return winners.length ? (winners.includes(seat) ? -256 : 256) : null;
+}
 
 /** Average complete candidate batches so a first lucky hypothesis cannot dominate. */
 export function refineForecast(
@@ -106,9 +120,22 @@ export function refineForecast(
   const contenders = result.slice(0, 4);
   const sums = contenders.map(() => 0);
   let completed = 0;
-  const score = (board: readonly string[], up: readonly boolean[]) =>
-    scoreBoard(board, tasks, up).total;
   const forecast = (hypothesis: Forecast, action: Action) => {
+    const score = (board: readonly string[], up: readonly boolean[]) => {
+      const total = scoreBoard(board, tasks, up).total;
+      const context = hypothesis.matchContext;
+      if (!context || !up.every(Boolean)) return total;
+      // This ordinary own-turn horizon leaves the sampled opponent fields
+      // unchanged. A complete own field settles that same authorized table.
+      const minimum = Math.min(total, ...Object.values(context.opponentScores));
+      const winners = Object.keys(context.opponentScores).filter(
+        (id) => context.opponentScores[id] === minimum,
+      );
+      if (total === minimum) winners.push(context.seat);
+      return (
+        completedMatchValue(context.seat, winners, context.winsBySeat) ?? total
+      );
+    };
     let board = [...hypothesis.board],
       up = [...hypothesis.up];
     if (action.type === 'reposition')
@@ -270,11 +297,11 @@ export function choose(
       const winners = view.seatOrder.filter(
         (id) => score(model.boards[id]!, model.up[id]!) === minimum,
       );
-      const matchWinners = winners.filter((id) => view.winsBySeat[id]! >= 2);
+      const matchValue = completedMatchValue(seat, winners, view.winsBySeat);
       // A settled third win dominates every nonterminal score/urgency value.
       // Legal score range is -28..108; completion urgency is capped at 144.
       // Shared match winners are wins too; a long round cannot erase a loss.
-      if (matchWinners.length) return matchWinners.includes(seat) ? -256 : 256;
+      if (matchValue !== null) return matchValue;
       value += winners.includes(seat)
         ? -6 - 2 * view.winsBySeat[seat]!
         : Math.max(0, 18 - urgency);
@@ -511,6 +538,15 @@ export function choose(
         up: model.up[seat]!,
         pool: model.pool,
         discards: model.discards,
+        matchContext: {
+          seat,
+          winsBySeat: view.winsBySeat,
+          opponentScores: Object.fromEntries(
+            view.seatOrder
+              .filter((id) => id !== seat)
+              .map((id) => [id, score(model.boards[id]!, model.up[id]!)]),
+          ),
+        },
       });
     actions.forEach((a, i) => {
       if (a.type === 'extra-draw')
