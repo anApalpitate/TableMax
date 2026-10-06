@@ -20,6 +20,7 @@ import {
 } from './board-layout';
 import './desktop-board.css';
 import { BoardIcon } from './BoardIcon';
+import { useDrawerMotion } from './useDrawerMotion';
 
 export function DesktopBoard({
   view,
@@ -82,6 +83,12 @@ export function DesktopBoard({
     avoiding < 3 &&
     !(exclusive && panels.left && panels.last === 'left');
   const companies = companyBase && avoiding < 4;
+  const marketDrawer = useRef<HTMLElement>(null);
+  const incomeDrawer = useRef<HTMLElement>(null);
+  const companyDrawer = useRef<HTMLElement>(null);
+  const marketHidden = useDrawerMotion(marketDrawer, left, animate);
+  const incomeHidden = useDrawerMotion(incomeDrawer, right, animate);
+  const companyHidden = useDrawerMotion(companyDrawer, companies, animate);
   const onFocusOccluded = useCallback(() => {
     if (!mapProps.selected || manualFocusKey === selectionToken) return;
     setAvoidance((previous) => {
@@ -98,7 +105,7 @@ export function DesktopBoard({
     const observer = new ResizeObserver(() => {
       setNarrow(element.clientWidth <= 1100);
       setBoardWidth(element.clientWidth);
-      setBottomGap(companyDrawer.hidden ? 0 : companyDrawer.offsetHeight + 12);
+      if (!companyDrawer.hidden) setBottomGap(companyDrawer.offsetHeight + 12);
     });
     observer.observe(element);
     observer.observe(companyDrawer);
@@ -129,12 +136,6 @@ export function DesktopBoard({
     setManualRevision((value) => value + 1);
     setCompanyChoice({ instance, open });
   };
-  const direction =
-    view.phase === 'resources' || view.phase === 'building'
-      ? '位次从大到小行动'
-      : view.phase === 'auction'
-        ? '本场按座位顺时针报价'
-        : '位次从小到大行动';
   return (
     <div
       ref={board}
@@ -143,7 +144,11 @@ export function DesktopBoard({
       data-companies-open={companies}
       data-market-width={marketWidth}
       data-map-avoidance={avoiding}
-      style={{ '--pg-board-bottom-gap': `${bottomGap}px` } as CSSProperties}
+      style={
+        {
+          '--pg-board-bottom-gap': `${companies ? bottomGap : 0}px`,
+        } as CSSProperties
+      }
     >
       <GermanyMap
         {...mapProps}
@@ -161,10 +166,17 @@ export function DesktopBoard({
         <BoardIcon name="market" />
       </button>
       <aside
+        ref={marketDrawer}
         id="pg-board-market"
         className={`pg-board-drawer pg-board-drawer--left${marketWidth === 'wide' ? ' pg-board-drawer--wide' : ''}`}
         data-map-obstacle="left"
-        hidden={!left}
+        data-map-obstacle-width={
+          marketWidth === 'wide' ? Math.min(900, boardWidth - 96) : 310
+        }
+        data-drawer-open={left}
+        data-drawer-motion={marketHidden ? 'closed' : 'open'}
+        aria-hidden={!left}
+        hidden={marketHidden}
       >
         <header>
           <h2>市场</h2>
@@ -238,10 +250,14 @@ export function DesktopBoard({
         <BoardIcon name="income" />
       </button>
       <aside
+        ref={incomeDrawer}
         id="pg-board-income"
         className="pg-board-drawer pg-board-drawer--right"
         data-map-obstacle="right"
-        hidden={!right}
+        data-drawer-open={right}
+        data-drawer-motion={incomeHidden ? 'closed' : 'open'}
+        aria-hidden={!right}
+        hidden={incomeHidden}
       >
         <header>
           <h2>发电收益</h2>
@@ -254,13 +270,16 @@ export function DesktopBoard({
         </div>
       </aside>
       <section
+        ref={companyDrawer}
         className="pg-board-companies"
         data-map-obstacle="bottom"
-        hidden={!companies}
+        data-drawer-open={companies}
+        data-drawer-motion={companyHidden ? 'closed' : 'open'}
+        aria-hidden={!companies}
+        hidden={companyHidden}
       >
         <header>
           <h2>玩家公司</h2>
-          <span className="pg-board-order-note">{direction}</span>
           <button
             aria-controls="pg-board-companies-list"
             aria-expanded={companies}

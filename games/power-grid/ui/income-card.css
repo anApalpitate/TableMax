@@ -13,7 +13,7 @@
 }
 .pg-screen.pg-income-card {
   min-height: 0;
-  width: min(560px, calc(100vw - 24px));
+  width: min(360px, calc(100vw - 24px));
   max-height: calc(100dvh - 24px);
   overflow-y: auto;
   padding: 14px;
@@ -26,6 +26,7 @@
     inset 0 1px 0 #fff9;
   backdrop-filter: blur(14px);
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 .pg-screen.pg-income-card--desktop {
   position: fixed;
@@ -37,75 +38,59 @@
   z-index: 1;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-  padding: 4px 0;
+  justify-content: center;
+  min-height: 44px;
+  margin-bottom: 8px;
+  padding: 4px 44px;
   background: #fff7e4f5;
 }
 .pg-screen.pg-income-card .pg-income-card-heading h2 {
+  flex: 1;
   margin: 0;
+  text-align: center;
   font-size: 22px;
+  white-space: nowrap;
 }
 .pg-screen.pg-income-card .pg-income-card-heading button {
-  flex-shrink: 0;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
   width: 44px;
   height: 44px;
   padding: 0;
   font-size: 28px;
   line-height: 1;
 }
-.pg-screen .pg-income-markers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-.pg-screen .pg-income-markers > div {
-  flex: 1 1 180px;
-  padding: 7px 9px;
-  border: 2px solid #4b7953;
-  border-radius: 8px;
-  background: #e0edcf;
-}
-.pg-screen .pg-income-markers > .pg-income-selected {
-  border-color: #a76b25;
-  background: #f8e6b7;
-}
-.pg-screen .pg-income-markers > div > span {
-  display: block;
-  font-size: 16px;
-}
-.pg-screen .pg-income-markers strong {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 9px;
-  margin-top: 3px;
-  font-size: 18px;
-}
 .pg-screen .pg-income-table {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 5px;
+  grid-auto-flow: column;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(10, minmax(44px, auto)) auto;
+  gap: 2px 7px;
   margin: 0;
 }
 .pg-screen .pg-income-table > div {
   min-width: 0;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 3px 5px;
-  padding: 7px;
+  justify-content: center;
+  gap: 0;
+  padding: 2px 3px;
   border: 1px solid #b7a47b;
   border-radius: 7px;
   background: #fff9edc9;
   font-size: 18px;
+  line-height: 1.05;
 }
 .pg-screen .pg-income-table dt,
 .pg-screen .pg-income-table dd {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  justify-content: center;
   gap: 3px;
   margin: 0;
   font-weight: 700;
@@ -115,14 +100,28 @@
   font-size: 16px;
   font-weight: 400;
 }
+.pg-screen .pg-income-table .pg-income-land {
+  display: block;
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.pg-screen .pg-income-table dd::before {
+  content: '→';
+  font-size: 16px;
+}
+.pg-screen .pg-income-table > .pg-income-tier--maximum {
+  grid-column: 1 / -1;
+  grid-row: 11;
+  flex-direction: row;
+  gap: 8px;
+  min-height: 32px;
+  text-align: center;
+}
 .pg-screen .pg-income-table > .pg-income-tier--capability {
   border: 2px solid #4b7953;
-  padding: 6px;
+  padding: 1px 2px;
   background: #e0edcf;
-}
-.pg-screen .pg-income-table > .pg-income-tier--selected {
-  box-shadow: inset 0 -4px 0 #bd7f2e;
-  background: #f8e6b7;
 }
 .pg-income-dialog {
   width: fit-content;
@@ -142,57 +141,4 @@
   .pg-screen.pg-income-card {
     padding: 10px;
   }
-  .pg-screen .pg-income-table > div {
-    flex-direction: column;
-    align-items: center;
-    padding: 5px 2px;
-  }
-  .pg-screen .pg-income-table > .pg-income-tier--capability {
-    padding: 4px 1px;
-  }
-}
-
-.pg-screen .pg-income-scroll-hint {
-  margin: 0 0 10px;
-  font-size: 16px;
-  color: #526044;
-}
-.pg-screen.pg-income-card {
-  scrollbar-gutter: stable;
-}
-
-.pg-screen .pg-income-table {
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(11, minmax(24px, auto));
-  gap: 2px 7px;
-  margin: 0;
-}
-.pg-screen .pg-income-table > div {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  padding: 2px 3px;
-  font-size: 18px;
-  line-height: 1.2;
-}
-.pg-screen .pg-income-table dt,
-.pg-screen .pg-income-table dd {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-.pg-screen .pg-income-table .pg-income-land {
-  width: 16px;
-  height: 16px;
-  fill: currentColor;
-}
-.pg-screen .pg-income-table dd::before {
-  content: '→';
-  font-size: 16px;
-}
-.pg-screen .pg-income-card h2 {
-  text-align: center;
 }

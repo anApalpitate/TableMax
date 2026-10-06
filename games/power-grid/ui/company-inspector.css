@@ -1,0 +1,351 @@
+.pg-screen .pg-company-inspector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr));
+  align-items: start;
+  gap: 18px;
+  min-width: 0;
+  padding: 8px 4px 4px;
+  color: #24382f;
+  font-size: 16px;
+}
+.pg-screen .pg-company-inspector--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+.pg-screen .pg-inspector-company {
+  position: relative;
+  min-width: 0;
+  padding: 18px;
+  border: 2px solid var(--pg-player-color);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fffdf5, #f5efdc);
+  box-shadow: 0 5px 14px #2b352c18;
+}
+.pg-screen .pg-inspector-company--acting {
+  box-shadow:
+    0 0 0 3px #ffffff,
+    0 0 0 5px var(--pg-player-color),
+    0 6px 18px #2b352c25;
+}
+.pg-screen .pg-inspector-company--self {
+  background: linear-gradient(145deg, #fffef9, #eaf2e8);
+}
+.pg-screen .pg-inspector-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  margin-bottom: 14px;
+}
+.pg-screen .pg-inspector-heading > img {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+  border: 2px solid var(--pg-player-color);
+  border-radius: 50%;
+  object-fit: cover;
+}
+.pg-screen .pg-inspector-heading > div:not(.pg-inspector-cash) {
+  flex: 1;
+  min-width: 0;
+}
+.pg-screen .pg-inspector-heading h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.pg-screen .pg-inspector-rank {
+  position: absolute;
+  inset: -10px auto auto -10px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 2px solid #fffdf5;
+  border-radius: 50%;
+  background: var(--pg-player-color);
+  box-shadow: 0 2px 5px #24382f45;
+  color: #fff;
+  text-shadow: 0 1px 2px #000b;
+  font-size: 22px;
+  font-weight: 800;
+}
+.pg-screen .pg-inspector-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 8px;
+  margin-top: 5px;
+  font-size: 18px;
+  font-weight: 700;
+}
+.pg-screen .pg-inspector-status > span {
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: #e1e9df;
+  color: #244d39;
+}
+.pg-screen .pg-inspector-status > .pg-inspector-winner {
+  background: #f7d979;
+  color: #634609;
+}
+.pg-screen .pg-inspector-cash {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 3px;
+  justify-items: end;
+  font-size: 16px;
+}
+.pg-screen .pg-inspector-cash strong {
+  color: #755113;
+  font-size: 22px;
+}
+.pg-screen .pg-inspector-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 14px;
+}
+.pg-screen .pg-inspector-stats > div {
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+  padding: 9px 4px;
+  border-radius: 8px;
+  background: #e9e5d7;
+}
+.pg-screen .pg-inspector-stats dt {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 16px;
+  text-align: center;
+}
+.pg-screen .pg-inspector-stats dd {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+}
+.pg-screen .pg-inspector-power-label {
+  display: inline-flex;
+}
+.pg-screen .pg-inspector-stats .pg-inspector-supported {
+  background: #dcebd8;
+  color: #285d3c;
+}
+.pg-screen .pg-inspector-stats svg,
+.pg-screen .pg-inspector-network svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  fill: var(--pg-player-color);
+  stroke: #24382f;
+  stroke-width: 0.8;
+}
+.pg-screen .pg-inspector-company h3 {
+  margin: 0 0 9px;
+  color: #38503e;
+  font-size: 20px;
+  line-height: 1.3;
+}
+.pg-screen .pg-inspector-company > section + section {
+  margin-top: 16px;
+}
+.pg-screen .pg-inspector-inventory {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+.pg-screen .pg-inspector-inventory > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 7px 3px;
+  border: 1px solid #c7c8b8;
+  border-radius: 7px;
+  background: #fffdf6;
+  white-space: nowrap;
+}
+.pg-screen .pg-inspector-inventory b {
+  font-size: 18px;
+}
+.pg-screen .pg-inspector-plants {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 8px;
+}
+.pg-screen [data-plant-limit='4'] .pg-inspector-plants {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.pg-screen .pg-inspector-plant {
+  min-width: 0;
+}
+.pg-screen .pg-inspector-plant .pg-plant-card {
+  border-width: 3px;
+}
+.pg-screen .pg-inspector-plant .pg-plant-number {
+  font-size: 26px;
+}
+.pg-screen .pg-inspector-plant .pg-fuel-mark svg {
+  width: 24px;
+  height: 24px;
+}
+.pg-screen .pg-inspector-plant .pg-plant-top {
+  min-height: 36px;
+  padding: 5px;
+}
+.pg-screen .pg-inspector-plant .pg-plant-art {
+  aspect-ratio: 180 / 94;
+}
+.pg-screen .pg-inspector-plant .pg-plant-engine {
+  padding: 6px 4px;
+}
+.pg-screen .pg-inspector-plant .pg-plant-consumption {
+  flex-wrap: wrap;
+}
+.pg-screen .pg-inspector-plant .pg-plant-consumption > div {
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.pg-screen .pg-inspector-run {
+  display: block;
+  margin-top: 5px;
+  border-radius: 5px;
+  background: #e3e0d6;
+  padding: 5px;
+  text-align: center;
+  font-size: 18px;
+}
+.pg-screen .pg-inspector-run--completed {
+  background: #d6e7d0;
+  color: #285d3c;
+  font-weight: 700;
+}
+.pg-screen .pg-inspector-pending {
+  display: grid;
+  grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  border: 1px solid #c79436;
+  border-radius: 9px;
+  background: #fff2cf;
+  padding: 12px;
+}
+.pg-screen .pg-inspector-salvage {
+  grid-column: 2;
+}
+.pg-screen .pg-inspector-salvage .pg-inspector-inventory {
+  grid-template-columns: repeat(auto-fit, minmax(66px, 1fr));
+}
+.pg-screen .pg-inspector-network ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pg-screen .pg-inspector-network li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border: 1px solid #c4ccbd;
+  border-radius: 6px;
+  background: #fffdf6;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+.pg-screen .pg-inspector-empty {
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: #e9e5d7;
+  color: #4e5c4e;
+  font-size: 16px;
+}
+@media (max-width: 600px) {
+  .pg-screen .pg-company-inspector {
+    gap: 18px;
+    padding: 8px 2px 2px;
+  }
+  .pg-screen .pg-inspector-company {
+    padding: 14px 10px;
+  }
+  .pg-screen .pg-inspector-heading {
+    gap: 8px;
+  }
+  .pg-screen .pg-inspector-heading > img {
+    width: 48px;
+    height: 48px;
+  }
+  .pg-screen .pg-inspector-heading h2 {
+    font-size: 20px;
+  }
+  .pg-screen .pg-inspector-cash {
+    margin-left: auto;
+  }
+  .pg-screen .pg-inspector-stats {
+    gap: 4px;
+  }
+  .pg-screen .pg-inspector-stats dt {
+    flex-direction: column;
+    justify-content: center;
+    min-height: 38px;
+  }
+  .pg-screen .pg-inspector-power-label {
+    flex-direction: column;
+  }
+  .pg-screen .pg-inspector-inventory {
+    gap: 4px;
+  }
+  .pg-screen .pg-inspector-inventory .pg-resource-icon {
+    width: 20px;
+    height: 20px;
+  }
+  .pg-screen .pg-inspector-plants,
+  .pg-screen [data-plant-limit='4'] .pg-inspector-plants {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .pg-screen .pg-inspector-plant .pg-plant-card {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+  }
+  .pg-screen .pg-inspector-plant .pg-plant-art {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: center;
+    width: 92px;
+    height: 92px;
+    aspect-ratio: auto;
+  }
+  .pg-screen .pg-inspector-plant .pg-plant-top {
+    grid-column: 2;
+    grid-row: 1;
+    border-bottom-width: 1px;
+  }
+  .pg-screen .pg-inspector-plant .pg-plant-engine {
+    grid-column: 2;
+    grid-row: 2;
+    padding: 5px;
+  }
+  .pg-screen .pg-inspector-plant .pg-stock {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--pg-fuel-frame);
+  }
+  .pg-screen .pg-inspector-pending {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px;
+  }
+  .pg-screen .pg-inspector-salvage {
+    grid-column: 1;
+  }
+}
+@media (max-width: 360px) {
+  .pg-screen .pg-inspector-inventory {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

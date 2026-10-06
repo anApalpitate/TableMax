@@ -208,6 +208,7 @@ function mapLabels(
   building: boolean,
   houseBounds: readonly LabelBox[],
   visible: LabelBox = MAP_FRAME,
+  routeFontSize = fontSize,
 ) {
   const cities = new Map<string, MapLabel>();
   const routes = new Map<number, MapLabel>();
@@ -254,8 +255,8 @@ function mapLabels(
     const x = (a.x + b.x) / 2,
       y = (a.y + b.y) / 2;
     if (!required && !inView(x, y)) return;
-    const width = fontSize * 1.6,
-      height = fontSize * 1.35;
+    const width = routeFontSize * 1.6,
+      height = routeFontSize * 1.35;
     const length = Math.hypot(b.x - a.x, b.y - a.y);
     const normal = { x: -(b.y - a.y) / length, y: (b.x - a.x) / length };
     const label = placeLabel(
@@ -264,8 +265,8 @@ function mapLabels(
       width,
       height,
       [0, 0.8, -0.8, 1.6, -1.6, 2.4, -2.4, 3.2, -3.2].map((distance) => ({
-        x: x - width / 2 + normal.x * fontSize * distance,
-        y: y - height / 2 + normal.y * fontSize * distance,
+        x: x - width / 2 + normal.x * routeFontSize * distance,
+        y: y - height / 2 + normal.y * routeFontSize * distance,
       })),
       reserved,
       required,
@@ -514,8 +515,17 @@ export function GermanyMap({
       board
         ?.querySelectorAll<HTMLElement>('[data-map-obstacle]')
         .forEach((drawer) => {
-          if (drawer.hidden) return;
-          const bounds = drawer.getBoundingClientRect();
+          if (drawer.hidden || drawer.dataset.drawerOpen === 'false') return;
+          const parent = board!.getBoundingClientRect();
+          const bounds = {
+            left: parent.left + board!.clientLeft + drawer.offsetLeft,
+            top: parent.top + board!.clientTop + drawer.offsetTop,
+            right:
+              parent.left +
+              board!.clientLeft +
+              drawer.offsetLeft +
+              (Number(drawer.dataset.mapObstacleWidth) || drawer.offsetWidth),
+          };
           const edge = drawer.dataset.mapObstacle as keyof typeof insets;
           if (edge === 'left')
             insets.left = Math.max(0, bounds.right - rect.left + 12);
@@ -542,7 +552,11 @@ export function GermanyMap({
       mutation.observe(board, {
         subtree: true,
         attributes: true,
-        attributeFilter: ['hidden'],
+        attributeFilter: [
+          'hidden',
+          'data-drawer-open',
+          'data-map-obstacle-width',
+        ],
       });
     return () => {
       observer.disconnect();
@@ -628,6 +642,8 @@ export function GermanyMap({
     select(id);
   };
   const labelSize = 16 / displayScale;
+  const routeLabelSize =
+    (16 + 2.5 * Math.log2(Math.max(1, camera.zoom))) / displayScale;
   const safe = safeMapRect(surface);
   const labelLeft = Math.max(
     MAP_FRAME.x,
@@ -666,6 +682,7 @@ export function GermanyMap({
     building,
     houses.bounds,
     labelBounds,
+    routeLabelSize,
   );
   const occupantsFor = (cityId: string) =>
     networks.filter((network) => network.cities.includes(cityId));
@@ -1011,7 +1028,7 @@ export function GermanyMap({
                       y={label.y}
                       width={label.width}
                       height={label.height}
-                      rx={labelSize * 0.25}
+                      rx={routeLabelSize * 0.25}
                       fill="#fffef7"
                       stroke={selectedEdge ? selectionColor : '#736b51'}
                       strokeWidth={1 / displayScale}
@@ -1019,7 +1036,7 @@ export function GermanyMap({
                     <text
                       x={label.x + label.width / 2}
                       y={label.y + label.height / 2}
-                      fontSize={labelSize}
+                      fontSize={routeLabelSize}
                       textAnchor="middle"
                       dominantBaseline="central"
                       fill="#282d22"

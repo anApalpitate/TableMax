@@ -1,13 +1,11 @@
 /** Loaded with the Power Grid client; all references are local and game-owned. */
-const files = import.meta.glob('./*.webp', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-}) as Record<string, string>;
+import terrainUrl from './board-v2.webp?url';
+import atlasUrl from './plants-atlas-v1.webp?url';
+import coverUrl from './cover-v1.webp?url';
 
-export const mapTerrain = files['./board-v1.webp']!;
-export const plantAtlas = files['./plants-atlas-v1.webp']!;
-export const cover = files['./cover-v1.webp']!;
+export const mapTerrain = terrainUrl;
+export const plantAtlas = atlasUrl;
+export const cover = coverUrl;
 
 export type PlantArtFuel =
   'coal' | 'oil' | 'hybrid' | 'garbage' | 'uranium' | 'green' | 'fusion';

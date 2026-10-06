@@ -103,7 +103,7 @@
     "cropInset": "catalog.ts crops 0.0025 atlas dimension at each cell edge (1% of cell width) to exclude hairline seams"
   },
   "assetByteBudget": 1500000,
-  "webpTotalBytes": 457912,
+  "webpTotalBytes": 829262,
   "executionEvidence": {
     "mapInitialMs": 42674,
     "mapCorrectionMs": 39064,
@@ -112,6 +112,35 @@
     "timingNote": "Cover and initial atlas launched together; shared wall duration is not an individual generation duration. Timings are measured tool orchestration intervals, not user-facing completion claims."
   },
   "assets": [
+    {
+      "id": "board-v2",
+      "file": "board-v2.webp",
+      "version": 2,
+      "source": "built-in imagegen precise-object-edit",
+      "transparent": false,
+      "editTarget": "assets/games/power-grid/board-v1.webp",
+      "sourceFile": "artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/imagegen/board-v2-original.png",
+      "promptFile": "artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/imagegen/board-v2-prompt.txt",
+      "prompt": "Use case: precise-object-edit.\nAsset type: local tabletop-game terrain background for a classic Germany Power Grid board, displayed at high zoom behind exact vector cities and network paths.\nInput image 1 is the exact edit target, a north-up 900×1200 portrait terrain map with six tinted regions. Treat the entire coastline, all river courses, all six colored-region outlines and their boundaries as locked coordinate landmarks. Preserve their exact placement and relative dimensions. Do not shift, stretch, crop, rotate, recolor or redesign these landmarks.\nPrimary request: restore this same map as a sharper, refined premium printed board illustration at high resolution. Fill the existing blank cream paper strips at the very edges, particularly the upper-left empty rounded rectangular label and the bottom border, with seamless continuations of the adjacent terrain or sea. Remove the black outer frame and label outline. Extend the blue sea through the upper-left label area and the nearest water areas to the canvas edges, and extend green land, fields and existing foothills naturally into the narrow remaining border strips. Keep all existing land/sea boundaries inside the map exactly where they are. The final picture must have actual map landscape or sea everywhere, edge-to-edge, with no empty parchment margins, no blank labels and no framing line.\nStyle: crisp fine hand-painted board-game cartography printed on subtly grained matte paper, restrained warm tactile texture, clear softly shaded small forest clusters and agricultural terrain, blue water with delicate quiet wave texture. Improve micro-detail and clarity while keeping the same six distinctive flat tints: turquoise north/northwest, orange northeast, magenta central-west, blue southwest, yellow central-east, purple south, with green surrounding neighboring lands. Keep contrast moderate so dark vector cities and network cost labels are easy to read.\nPreserve the existing south-edge Alps where they are, but do not add mountain ranges across the six colored playable regions. Keep forests fine and scattered, do not create dense decorative clutter or giant peaks.\nComposition and output: exact 3:4 portrait aspect ratio, north-up. Aim for at least 1800×2400 pixels; deliver at the highest supported resolution, with no added outer padding. This is a fidelity-preserving image edit, not a new interpretation.\nNo city names, no letters, no numbers, no roads, no power lines, no icons, no buildings, no map keys, no logos, no watermark, no title.\n",
+      "width": 1086,
+      "height": 1448,
+      "originalWidth": 1086,
+      "originalHeight": 1448,
+      "bytes": 371350,
+      "sha256": "6177a790cdbe630746a41d0c45ebbfe63bb0ec1eb25fca05f1fa1eb8655a3a8a",
+      "originalSha256": "0ba52f1851323b108c8e0cdb4ab979fac60f2b13032737a39d3274d1eeec5fdc",
+      "webpQuality": 78,
+      "status": {
+        "generated": true,
+        "visuallyVerified": true,
+        "importedInUi": true
+      },
+      "visualVerification": "Portrait north-up six distinct tinted classic board regions. Coastline, main rivers and principal region boundaries retain normalized placement. All former parchment margins, upper-left blank label and black outer frame are replaced by continuous blue sea or surrounding terrain. No names, numerals, roads, power-line routes, symbols, city structures, labels or watermark. Fine fields and small forests improve material detail. Existing Alps remain along south edge. Opaque RGB.",
+      "formalUsage": "Decorative terrain beneath unchanged classic Germany 42-city / 6-region / 83-edge data. Complete canvas remains 1200x900 in landscape; no cartographic authority or pixel-perfect reconstruction.",
+      "postprocessing": "Copied PNG byte-for-byte. RGB WebP quality 78 method 6 encoding only, without cropping, compositing, resampling or programmed content edits.",
+      "resolutionNote": "Built-in tool returned 1086x1448 despite requested high resolution. Delivered native resolution, no artificial upscaling; each dimension is 20.6667% higher than prior asset.",
+      "verification": "artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/imagegen/verification.json"
+    },
     {
       "id": "board",
       "file": "board-v1.webp",
@@ -132,7 +161,7 @@
       "status": {
         "generated": true,
         "visuallyVerified": true,
-        "importedInUi": true
+        "importedInUi": false
       },
       "visualVerification": "Frontal opaque six-region classic-style terrain with seas, neighboring land and cardboard frame; no city markers, text, prices or pipes. Coastlines and terrain boundaries are generated approximations. Code-rendered verified cities, links, prices and city region membership take precedence; no pixel-perfect reproduction claimed.",
       "formalUsage": "Decorative terrain layer beneath code-rendered classic-board cities, pipes and values. Region membership comes from exact city data; approximate region paths are not drawn over the generated terrain. Never supplies gameplay data or exact geographic boundaries.",
@@ -522,5 +551,6 @@
       "evidence": "artifacts/maintenance/v1.0.2/power-grid-polish-20261005/power-grid/visual-final/results.json",
       "portableEvidence": "artifacts/maintenance/v1.0.2/power-grid-polish-20261005/rules/rules-portable-final/results.json"
     }
-  }
+  },
+  "runtimeMainWebpBytes": 630240
 }

@@ -231,7 +231,7 @@ export function IncomeGuide({
               key={cities}
               data-income-cities={cities}
               data-income-value={amount}
-              className={`${capability ? 'pg-income-tier--capability' : ''}`}
+              className={`${cities === 20 ? 'pg-income-tier--maximum' : ''}${capability ? ' pg-income-tier--capability' : ''}`}
             >
               <dt aria-label={`${cities === 20 ? '20以上' : cities}座地皮供电`}>
                 {cities === 20 ? '20+' : cities}

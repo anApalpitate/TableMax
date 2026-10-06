@@ -1,5 +1,13 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.3 电力公司材质与综合资料收尾（2026-10-06）
+
+当前运行ZIP SHA-256 `201de235e92fd763cf016bbbb526b407dd8a51aed4c76bb3849beb7e0259128e`与两项原生通过记录一致。前一份ZIP／清单、原地图／AI生成PNG与当前验收截图保留。清理前发现旧release解压目录存在数据库与配置，先将SQLite、配置、日志及浏览器状态共445文件43,230,361字节复制到本轮`previous-delivery/runtime-owned-state/`并逐文件核验哈希；[保留清单](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/previous-delivery/runtime-owned-state/state-backup-manifest.json)不包含存档内容。旧完整EXE也无损归档到本轮previous-delivery，[哈希记录](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/legacy-exe-archive.json)保留；不是删除旧程序，也没有生成新EXE。
+
+工程进程全部退出后，`Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0`先预览再Apply，仅退役两个release生成目录368,529,258字节；[实际清单](../../artifacts/maintenance/local-cleanup-20261006-085004-681-releases/cleanup.json)保留。release现仅当前ZIP与逐文件清单，旧完整交付及运行数据另行保留。
+
+执行`Maintain-Project.ps1 -Apply`：[维护清单](../../artifacts/maintenance/local-cleanup-20261006-085101-647-maintenance/cleanup.json)退役四个过期验证／解压副本303,381,068字节；[最终返回实测](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/maintenance-summary.json)逻辑水位12,126,786,242→11,823,435,804字节（约11.011GiB），与清单的删除量推算值分开记录。两次合计退役671,910,326字节；移位归档旧EXE不改变逻辑字节。仍高于10GiB，安全候选耗尽，165项保护／未知用途及1,370链接跳过，零嵌套仓库；不扩大到当前证据、正式存档、原素材、依赖或工具缓存。后续文档／Git写入会略增，未用NTFS压缩量替代逻辑水位，未常驻轮询或发布。
+
 ## v1.0.3 文档整理与推送前维护（2026-10-06）
 
 整理README、文档／任务索引及验收入口，明确当前源码包含两项界面维护，而宝可梦和电力公司仍各有独立冻结验收包；本轮不修改程序、重打包或发布。原包、清单、原素材、存档和全部当前验收证据保留。

@@ -532,7 +532,7 @@ GitHub附件白名单仅 `TableMax-<版本>-win-x64.exe` 与 `TableMax-<版本>-
 
 ### 电力公司地图与边栏回归
 
-`node scripts/verify-power-grid-ui.mjs --maintenance=<维护名> --evidence=<运行名>` 运行生产组件的六人三端96布局、交互、字体／触控与声音调用矩阵；`--board-only`检查阶段抽屉、四向最低比例拖动、遮挡避让、跟随暂停／恢复、保存重排及公司权限。`--seats=2`覆盖两人四厂与新购第五厂；合法自然对局不一定产生有库存的待安置场景，该项由六人样本覆盖。`--map-only`补查手机真实节点／键盘选择、裁切后的城名与路线费用。`--fixtures=<已生成fixtures.json>`复用未改变的规则夹具，减少重复人机生成，不伪造规则状态。页面查看、拖动、抽屉和详情必须零游戏动作。
+`node scripts/verify-power-grid-ui.mjs --maintenance=<维护名> --evidence=<运行名>` 运行生产组件的六人三端108布局、交互、字体／触控与声音调用矩阵，包含844×390手机横屏；`--board-only`检查阶段抽屉、四向最低比例拖动、遮挡避让、跟随暂停／恢复、保存重排及公司权限，并观察边栏双向中间帧、快速反向、减少动态／测试模式、综合详情与现金权限及路线费用的缓增字号。`--seats=2`覆盖两人四厂与新购第五厂；合法自然对局不一定产生有库存的待安置场景，该项由六人样本覆盖。`--map-only`补查手机真实节点／键盘选择、裁切后的城名与路线费用。`--fixtures=<已生成fixtures.json>`复用未改变的规则夹具，减少重复人机生成，不伪造规则状态。页面查看、拖动、抽屉和详情必须零游戏动作。
 
 本次相机／阶段默认的纯函数测试与电力公司数据／规则窄回归采用 `pnpm exec vitest run games/power-grid/ui games/power-grid/rules games/power-grid/data -t '^(?!.*completes a conserved)'`；排除45局未改动人机压力测试，实际自然对局另由夹具和运行验证证明。同版本ZIP导出后执行 `node scripts/verify-power-grid.mjs --portable --display-only --evidence=<运行名>`，在隐藏原生主机／公共窗口核验720p到4K、125%／150%显示请求及模拟Windows DPI，读取实际WebView2 viewport／ZoomFactor。模拟DPI不替代真人手机或真实Windows显示硬件验收。所有验证监听127.0.0.1。
 

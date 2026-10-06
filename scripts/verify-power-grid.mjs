@@ -744,14 +744,16 @@ async function nativeMatrix() {
         42,
         'Actual Germany map renders all 42 cities',
       );
-      await page.getByRole('button', { name: '各家', exact: true }).click();
+      await page
+        .getByRole('button', { name: '查看各家公司', exact: true })
+        .click();
       const companiesDialog = page.getByRole('dialog', {
         name: '各家电力公司',
         exact: true,
       });
       await companiesDialog.waitFor();
       assert.equal(
-        await companiesDialog.locator('.pg-company').count(),
+        await companiesDialog.locator('.pg-inspector-company').count(),
         before.seats.length,
         'Every saved company is available through the native company overview',
       );
@@ -840,47 +842,13 @@ async function nativeMatrix() {
 const sampled = new Set();
 const capturedLivePhases = new Set();
 async function livePresentation(page, current, label, marketRequired) {
-  const openedOrder = !(await page.locator('.pg-turn-order').count());
-  if (openedOrder)
-    await page.getByRole('button', { name: '顺序', exact: true }).click();
   const game = current.gameView;
-  const reversed = game.phase === 'resources' || game.phase === 'building';
-  const order = reversed ? [...game.playerOrder].reverse() : game.playerOrder;
-  const purchasing = ['offer', 'auction', 'replace'].includes(game.phase);
-  const currentIndex = order.indexOf(game.actor);
   const active = !current.paused && current.status === 'playing';
-  const expectedOrder = order.map((seat, index) => {
-    const status = purchasing
-      ? game.phase === 'replace' && game.replacement?.buyer === seat
-        ? '正在换厂'
-        : game.bought.includes(seat)
-          ? '已购厂'
-          : game.passed.includes(seat)
-            ? '本轮不买'
-            : game.phase === 'auction'
-              ? seat === game.auction.actor
-                ? '轮到报价'
-                : seat === game.auction.highBidder
-                  ? '最高价'
-                  : game.auction.passes.includes(seat)
-                    ? '已退本场'
-                    : '可竞拍'
-              : seat === game.actor
-                ? '轮到发起'
-                : '待购厂'
-      : index < currentIndex
-        ? '已完成'
-        : seat === game.actor
-          ? '当前行动'
-          : '等待';
-    return {
-      seat,
-      position: index + 1,
-      rank: `排名${game.playerOrder.indexOf(seat) + 1}`,
-      status: !active && seat === game.actor ? '等待继续' : status,
-      current: active && seat === game.actor ? 'step' : null,
-    };
-  });
+  const expectedOrder = game.playerOrder.map((seat, index) => ({
+    seat,
+    rank: `位次 ${index + 1}`,
+    current: active && seat === game.actor,
+  }));
   const expectedMarkets = ['coal', 'oil', 'garbage', 'uranium'].map(
     (resource) => {
       const capacity = resource === 'uranium' ? 1 : 3;
@@ -924,17 +892,13 @@ async function livePresentation(page, current, label, marketRequired) {
       actual = await page.evaluate(() => ({
         phase: document.querySelector('.pg-screen')?.dataset.phase,
         order: [
-          ...document.querySelectorAll('.pg-turn-order li[data-seat]'),
+          ...document.querySelectorAll('.pg-company-cards .pg-company-card'),
         ].map((item) => ({
-          seat: item.dataset.seat,
-          position: Number(
-            item.querySelector('.pg-order-position')?.textContent,
-          ),
-          rank: item.querySelector('.pg-order-state span:first-child')
-            ?.textContent,
-          status: item.querySelector('.pg-order-state span:last-child')
-            ?.textContent,
-          current: item.getAttribute('aria-current'),
+          seat: item.dataset.companySeat,
+          rank: item
+            .querySelector('.pg-company-rank')
+            ?.getAttribute('aria-label'),
+          current: item.classList.contains('pg-company-card--acting'),
         })),
         markets: [
           ...document.querySelectorAll('.pg-price-lane[data-resource]'),
@@ -964,7 +928,6 @@ async function livePresentation(page, current, label, marketRequired) {
     ...actual,
     passed: true,
   });
-  if (openedOrder) await page.keyboard.press('Escape');
 }
 async function stablePhaseCapture(page, label) {
   await page.waitForFunction(
@@ -1148,7 +1111,7 @@ async function clickAction(entry, current, action) {
     }
   }
   if (action.type === 'build') {
-    // Inspecting the external order panel cancels map selection by design.
+    // Restore the local city choice after inspecting the saved client presentation.
     await page
       .locator('.pg-phone-page:not([hidden]) .pg-phone-map')
       .getByLabel('选择城市', { exact: true })

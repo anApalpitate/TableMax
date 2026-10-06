@@ -37,6 +37,7 @@ export async function verifyUiPolish(page, fixtures, report, output) {
   await page.evaluate(() => window.syncFixture());
   assert.equal(await board.getAttribute('data-market-width'), 'wide');
   await page.getByRole('button', { name: '关闭市场边栏' }).click();
+  await market.waitFor({ state: 'hidden' });
   assert.ok(await market.isHidden());
   assert.ok(await page.getByRole('button', { name: '收窄市场' }).isHidden());
   await entry.click();
@@ -90,6 +91,7 @@ export async function verifyUiPolish(page, fixtures, report, output) {
     Number(await board.getAttribute('data-map-avoidance')) > 0,
     'Edge target temporarily reduces obstructing drawers',
   );
+  if (await entry.isVisible()) await entry.click();
   await page.getByRole('button', { name: '展开为宽市场' }).click();
   await page.waitForTimeout(350);
   assert.equal(await board.getAttribute('data-market-width'), 'wide');
@@ -243,15 +245,29 @@ export async function verifyUiPolish(page, fixtures, report, output) {
     .evaluateAll((nodes) =>
       nodes.map((n) => {
         const r = n.getBoundingClientRect();
-        return { cities: Number(n.dataset.incomeCities), x: r.x, y: r.y };
+        return {
+          cities: Number(n.dataset.incomeCities),
+          x: r.x,
+          y: r.y,
+          width: r.width,
+        };
       }),
     );
   assert.equal(tiers.length, 21);
-  assert.ok(tiers.slice(0, 11).every((t) => t.x === tiers[0].x));
-  assert.ok(tiers.slice(11).every((t) => t.x === tiers[11].x));
-  assert.ok(tiers[10].y > tiers[0].y && tiers[11].y === tiers[0].y);
+  assert.ok(tiers.slice(0, 10).every((t) => t.x === tiers[0].x));
+  assert.ok(tiers.slice(10, 20).every((t) => t.x === tiers[10].x));
+  assert.ok(tiers[9].y > tiers[0].y && tiers[10].y === tiers[0].y);
+  assert.equal(tiers[20].x, tiers[0].x);
+  assert.ok(tiers[20].width > tiers[0].width + tiers[10].width);
+  assert.ok(tiers[20].y > tiers[19].y);
+  assert.equal(
+    await guide
+      .locator('[data-income-cities="20"]')
+      .evaluate((n) => getComputedStyle(n).justifyContent),
+    'center',
+  );
   assert.ok(
-    (await guide.boundingBox()).height < 400,
+    (await guide.boundingBox()).height < 660,
     'Income guide wraps its content',
   );
   await page.setViewportSize({ width: 854, height: 480 });

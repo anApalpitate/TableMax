@@ -3,7 +3,7 @@ import '../ui/style.css';
 import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import type { JsonValue } from '../../../packages/game-sdk/src';
 import type { Action, PowerGridView } from '../types';
-import { AuctionDisplay, PlantMarket, PlayerCompanies } from '../ui/components';
+import { AuctionDisplay, PlantMarket } from '../ui/components';
 import { ResourceMarket } from '../ui/ResourceMarket';
 import { IncomeCard } from '../ui/IncomeCard';
 import { DesktopBoard } from '../ui/DesktopBoard';
@@ -11,7 +11,9 @@ import { CompanyCards } from '../ui/CompanyCards';
 import { initialCamera, type MapCamera } from '../ui/map-camera';
 import { PhonePages } from '../ui/PhonePages';
 import '../ui/focus-layout.css';
-import { TurnOrder } from '../ui/TurnOrder';
+import { BoardIcon } from '../ui/BoardIcon';
+import { CompanyInspector } from '../ui/CompanyInspector';
+import '../ui/toolbar-refinement.css';
 import { PHASE_LABELS, PLAYER_COLORS } from '../ui/labels';
 import { PlayerControls } from '../ui/player';
 import { GermanyMap } from '../ui/map';
@@ -51,7 +53,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
   const game = view?.gameView as PowerGridView | null;
   const canPlay = useAudioOutput();
   const [panel, setPanel] = useState<
-    'menu' | 'map' | 'companies' | 'rules' | 'order' | null
+    'menu' | 'map' | 'companies' | 'rules' | null
   >(null);
   const [marketTab, setMarketTab] = useState<{
     phase: string;
@@ -156,7 +158,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
   );
   useEffect(() => {
     if (!city) return;
-    const outside = (event: PointerEvent) => {
+    const outside = (event: MouseEvent) => {
       if (!(event.target instanceof Element)) return;
       if (
         event.target
@@ -180,10 +182,10 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
       )
         selectMapCity('');
     };
-    document.addEventListener('pointerdown', outside, true);
+    document.addEventListener('click', outside);
     document.addEventListener('keydown', escape);
     return () => {
-      document.removeEventListener('pointerdown', outside, true);
+      document.removeEventListener('click', outside);
       document.removeEventListener('keydown', escape);
     };
   }, [city, selectMapCity]);
@@ -347,10 +349,33 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
             </span>
           )}
         </strong>
+        {game && role !== 'player' && (
+          <div
+            className="pg-turn-heading"
+            data-current-actor={game.actor ?? ''}
+            style={
+              {
+                '--pg-actor-color':
+                  PLAYER_COLORS[game.seatOrder.indexOf(game.actor ?? '')] ??
+                  '#167b85',
+              } as CSSProperties
+            }
+          >
+            <span className="pg-stage-label">{PHASE_LABELS[game.phase]}</span>
+            {actor && (
+              <strong className="pg-actor-name" title={actor}>
+                {actor}
+              </strong>
+            )}
+          </div>
+        )}
         {game && (
           <span className="pg-round">
             第 {game.round} 轮 <b>第 {game.step} 步</b>
           </span>
+        )}
+        {role !== 'player' && view && (
+          <DecisionCountdown view={view} connected={connected} compact />
         )}
         {role !== 'player' && <FullscreenControl />}
         {role !== 'player' && <DisplaySettings />}
@@ -364,11 +389,13 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
           />
         )}
         {role !== 'player' && (
-          <button onClick={() => showCompany()}>各家</button>
-        )}
-        {game && game.phase !== 'regions' && game.phase !== 'ended' && (
-          <button className="pg-order-entry" onClick={() => setPanel('order')}>
-            顺序
+          <button
+            className="pg-company-inspect-entry"
+            aria-label="查看各家公司"
+            title="查看各家公司"
+            onClick={() => showCompany()}
+          >
+            <BoardIcon name="search" />
           </button>
         )}
         <button
@@ -389,37 +416,43 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
         </div>
       ) : (
         <>
-          <div className="pg-status-bar">
-            <div>
-              <strong>{PHASE_LABELS[game.phase]}</strong>
-              {actor && (
-                <span className={ownTurn ? 'pg-own-turn' : ''} title={actor}>
-                  {ownTurn ? '轮到你' : actor}
-                </span>
+          {(role === 'player' || notice) && (
+            <div className="pg-status-bar">
+              <div>
+                {role === 'player' && (
+                  <strong>{PHASE_LABELS[game.phase]}</strong>
+                )}
+                {role === 'player' && actor && (
+                  <span className={ownTurn ? 'pg-own-turn' : ''} title={actor}>
+                    {ownTurn ? '轮到你' : actor}
+                  </span>
+                )}
+                {notice && <span role="status">{notice}</span>}
+              </div>
+              {game.self && !ended && (
+                <strong className="pg-cash">现金 {game.self.cash} E</strong>
               )}
-              {notice && <span role="status">{notice}</span>}
+              {role === 'player' && (
+                <DecisionCountdown view={view} connected={connected} compact />
+              )}
+              {canControl && view.paused && !ended && (
+                <button
+                  disabled={locked}
+                  onClick={() => command({ type: 'resume' })}
+                >
+                  恢复游戏
+                </button>
+              )}
+              {canControl && ended && game.phase !== 'ended' && (
+                <button
+                  disabled={locked}
+                  onClick={() => command({ type: 'replay' })}
+                >
+                  再玩一局
+                </button>
+              )}
             </div>
-            {game.self && !ended && (
-              <strong className="pg-cash">现金 {game.self.cash} E</strong>
-            )}
-            <DecisionCountdown view={view} connected={connected} compact />
-            {canControl && view.paused && !ended && (
-              <button
-                disabled={locked}
-                onClick={() => command({ type: 'resume' })}
-              >
-                恢复游戏
-              </button>
-            )}
-            {canControl && ended && game.phase !== 'ended' && (
-              <button
-                disabled={locked}
-                onClick={() => command({ type: 'replay' })}
-              >
-                再玩一局
-              </button>
-            )}
-          </div>
+          )}
           {game.phase === 'ended' ? (
             results
           ) : role === 'player' ? (
@@ -565,8 +598,6 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                 <span className="rules-guide__title-part">电力公司</span>
                 <span className="rules-guide__title-part">图文规则</span>
               </>
-            ) : panel === 'order' ? (
-              '本轮行动顺序'
             ) : panel === 'map' ? (
               '德国电网'
             ) : panel === 'companies' ? (
@@ -581,12 +612,10 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
             <RulesGuide {...powerGridRulebook} />
           ) : (
             <div className="pg-screen pg-panel">
-              {panel === 'order' && game ? (
-                <TurnOrder view={game} names={names} active={Boolean(active)} />
-              ) : panel === 'map' ? (
+              {panel === 'map' ? (
                 <div className="pg-panel-map">{map}</div>
               ) : panel === 'companies' && game ? (
-                <PlayerCompanies
+                <CompanyInspector
                   view={game}
                   names={names}
                   portraits={portraits}

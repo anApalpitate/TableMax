@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { verifyUiPolish } from './power-grid-ui-polish-checks.mjs';
+import { verifyUiRefinement } from './power-grid-ui-refinement-checks.mjs';
 import { verifyBoardFacts } from './power-grid-board-checks.mjs';
 import { mkdir, writeFile, readFile, mkdtemp, readdir } from 'node:fs/promises';
 import { createServer } from 'node:http';
@@ -351,6 +352,7 @@ try {
     await page.screenshot({ path: join(output, 'host-income-card.png') });
     report.screenshots.push('host-income-card.png');
     await page.getByRole('button', { name: '关闭收益边栏' }).click();
+    await card.waitFor({ state: 'hidden' });
     assert.ok(await card.isHidden());
     assert.equal((await page.evaluate(() => window.__commands)).length, 0);
     report.actions.push(
@@ -620,10 +622,12 @@ try {
     await page.setViewportSize({ width: 1920, height: 1080 });
     await page.evaluate(() => window.setFixture('owned-resources', 'host'));
     await page.waitForTimeout(70);
-    await page.getByRole('button', { name: '各家', exact: true }).click();
+    await page
+      .getByRole('button', { name: '查看各家公司', exact: true })
+      .click();
     await page.waitForFunction(() => document.querySelector('dialog[open]'));
     await page
-      .locator('dialog .pg-company')
+      .locator('dialog .pg-inspector-company')
       .filter({ has: page.locator('.pg-plant-card') })
       .first()
       .screenshot({ path: join(directory, 'companies-v2.png') });
@@ -631,11 +635,10 @@ try {
     await page.setViewportSize({ width: 390, height: 1800 });
     await page.evaluate(() => window.setFixture('offer', 'player'));
     await page.waitForTimeout(70);
-    await page.getByRole('button', { name: '顺序', exact: true }).click();
+    await page.getByRole('button', { name: '公司', exact: true }).click();
     await page
-      .locator('.pg-turn-order')
+      .locator('.pg-phone-page:not([hidden]) .pg-company-cards')
       .screenshot({ path: join(directory, 'order.png') });
-    await page.keyboard.press('Escape');
     await page
       .locator('.pg-page-nav')
       .getByRole('button', { name: '市场', exact: true })
@@ -711,6 +714,7 @@ try {
     await verifyStageSummaries();
     await verifyBoardFacts(page, fixtures, report);
     await verifyUiPolish(page, fixtures, report, output);
+    await verifyUiRefinement(page, fixtures, report, output);
     await verifyPolish();
     await verifyPlayReview();
     assert.deepEqual(report.errors, []);
@@ -720,6 +724,7 @@ try {
     await verifyStageSummaries();
     await verifyBoardFacts(page, fixtures, report);
     await verifyUiPolish(page, fixtures, report, output);
+    await verifyUiRefinement(page, fixtures, report, output);
     await page.setViewportSize({ width: 320, height: 568 });
     await page.evaluate(() => window.setFixture('building', 'player'));
     await page.waitForTimeout(50);
@@ -1168,7 +1173,7 @@ try {
           assert.deepEqual(
             geometry.turnOrder,
             [],
-            'Full action order is available on demand rather than duplicated above the map',
+            'Player cards carry the order without a separate order panel',
           );
         }
         for (const lane of geometry.priceLanes) {
@@ -1254,6 +1259,7 @@ try {
     await verifyStageSummaries();
     await verifyBoardFacts(page, fixtures, report);
     await verifyUiPolish(page, fixtures, report, output);
+    await verifyUiRefinement(page, fixtures, report, output);
     await verifyPolish();
     await verifyPlayReview();
     await page.setViewportSize({ width: 320, height: 568 });
@@ -1379,7 +1385,9 @@ try {
       .first()
       .click();
     await page.waitForFunction(() => document.querySelector('dialog[open]'));
-    assert.ok(await page.locator('dialog .pg-screen .pg-companies').count());
+    assert.ok(
+      await page.locator('dialog .pg-screen .pg-company-inspector').count(),
+    );
     await page.keyboard.press('Escape');
     assert.equal(await page.locator('dialog[open]').count(), 0);
     report.actions.push(

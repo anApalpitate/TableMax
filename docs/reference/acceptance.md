@@ -2,9 +2,21 @@
 
 ## 当前源码与本地交付
 
-当前v1.0.3源码已合并电力公司地图／公司卡优化（`b0ba7c7`）及宝可梦扩展UI／研究／音频重设计（`38bd296`）。两项并行维护分别在隔离源码中组装、验收：共用 `artifacts/releases/` 当前为电力公司包 `7946907f…`，宝可梦包 `943071ce…` 固定保留在 `artifacts/maintenance/v1.0.3/pokemon-ui-redesign/delivery/`。下列通过结论各自对应冻结输入与完整哈希；合并后的源码尚未重新组装并执行合包验收。
+当前v1.0.3源码已合并电力公司地图／公司卡优化（`b0ba7c7`）及宝可梦扩展UI／研究／音频重设计（`38bd296`），并完成本轮电力公司细化。从合并基线`58260ee`加本次改动组装的当前运行ZIP为`201de235…`，下节记录其实际同包验收。前一份电力公司包`7946907f…`保留于`power-grid-ui-refinement-20261006/previous-delivery/`；宝可梦包`943071ce…`仍保留于`pokemon-ui-redesign/delivery/`。历史通过结论各自对应其冻结输入与完整哈希，不自动升级为新包验收。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
+
+本轮包验证完成后，收尾核对发现另任务继续修改宝可梦界面、研究配置及音频，全部原样保留、未纳入此ZIP或本次提交。电力公司仍与冻结输入一致；其他游戏的输出等价结论对应冻结包，不代表后来工作区改动已验收。
+
+## 1.0.3：电力公司地图材质、动画与综合资料细化（2026-10-06）
+
+收益档位统一两行：左0–9、右10–19，20+全宽居中，仅一个绿档。市场／收益／公司抽屉双向滑动、快速反向连续，减少动态和测试模式直接切换；SVG按实际可见轮廓居中。内置imagegen编辑原地图，补全边缘海面和地形，当前1086×1448原生尺寸、四边无原纸条空框，原图与生成PNG保留。精确1200×900／42城／六区／83边数据未变；路线价格由16px随缩放缓增至21px。取消选城后再完成边栏操作的事件顺序及目标宽度避让已修正。移除顺序入口，放大镜打开更宽综合公司资料；顶部阶段／当前公司与轮步并列，倒计时并入工具栏，收束旧空状态带。现金保持本人及终局授权，不推算对手资金。
+
+[最终六人](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/power-grid/final-six/results.json)和[两人](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/power-grid/final-two/results.json)各108布局通过，覆盖854×480至4K、320／360／390及手机横屏。[详情专项](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/power-grid/final-details/results.json)补查真实动画中间帧、快速反向、减少动态／测试模式、四向极限、连续滚轮／双指、临时避让与恢复、三厂／四厂／临时第五厂／待安置、公开零现金／本人一份／终局全现金及查看零命令。价格在1→1.8倍缩放中实测约16→18.1px；本机动画和帧间隔不泛化为实体手机帧率。相关UI19项测试、类型、局部Lint、项目Prettier与diff通过。独立截图审查发现旧空状态带与320px指标单字换行，已收束状态带并明确“燃料／可供电”换行，修正后实际渲染通过；横向玩家条带仍提供浏览按钮及滚动。
+
+[同包原生显示](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/refinement-display/results.json)67.46秒通过静音隐藏WebView2／127.0.0.1的720p、1080p、4K和125%／150%显示请求。[同包完整对局](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/refinement-match/results.json)89.28秒通过真实手机控件、Worker、SQLite保存／重启恢复与跨游戏切换，467状态核验、431条合法动作独立重放，覆盖STEP1／2／3、换厂、转存及最终结算；自有桌面与服务正常退出。浏览器窗口／手势与模拟密度不代替实体手机、现场LAN或物理DPI认证。宝可梦规则／策略／客户端／元数据[135项输出](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/pokemon-output-equivalence.json)与其先前验收包逐字节一致，沿用其原有专项边界，没有重跑宝可梦完整专项。
+
+[冻结构建](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/build-snapshot.json)18单元中17项复用，只重建电力公司客户端376ms。首次组装被仍运行的旧验收程序门禁拦截；用户关闭后按同一快照续组装，19,485ms完成，没有重复编译或绕过门禁。[当前运行ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip)41,243,018字节，SHA-256 `201de235e92fd763cf016bbbb526b407dd8a51aed4c76bb3849beb7e0259128e`；[逐文件清单](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/package-manifest.json)246文件，实际解压94,808,641字节，95MB预算及ZIP／解压双100MB门禁通过。只导出运行ZIP／清单，不生成新EXE或源码包、不推送发布。安全维护实际水位见[瘦身记录](project-slimming.md)，本轮汇总见[核验记录](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/final-checks.json)。
 
 ## 1.0.3：电力公司地图与带图公司卡优化（2026-10-06）
 
@@ -14,7 +26,7 @@
 
 [原生显示](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/polish-shipping-display/results.json)以同一ZIP的实际解压、静音隐藏WebView2／127.0.0.1服务覆盖主机／公共屏720p、1080p、4K及125%／150%显示请求与模拟密度；记录有效缩放、CSS／窗口／截图几何，未改OS显示设置。[原生整局](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/polish-shipping-match/results.json)121.31秒通过真实手机控件、Worker、SQLite保存／重启恢复与跨游戏切换，510状态验证、480条合法动作独立重放，覆盖STEP 1／2／3、换厂、待安置及现金权限。查看外部顺序会取消选城，旧脚本因此找不到建设按钮；按新交互重新选城后核验，原失败证据保留。模拟窗口和浏览器手势不替代实体手机、现场LAN或物理DPI认证。
 
-最终包使用03b7430基线加本次电力公司源码的隔离输入，排除其他任务未提交内容；[冻结构建](../../artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/build-snapshot.json)与[清单](../../artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/package-manifest.json)保留。最终组装26,506ms、18缓存单元复用（电力公司UI在前序重建）；[运行ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip)40,916,814字节，SHA-256 `7946907f4423f6e0c399d14c083dabb7faa2164a25377d523ccfa92cff277963`，实际解压216文件94,386,899字节，95MB预算及ZIP／解压双100MB门禁通过。前一份完整交付保留于 `artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/previous-delivery/`；未生成新EXE或源码包、未推送或发布。安全维护实际水位见[瘦身记录](project-slimming.md)。
+最终包使用03b7430基线加本次电力公司源码的隔离输入，排除其他任务未提交内容；[冻结构建](../../artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/build-snapshot.json)与[清单](../../artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/package-manifest.json)保留。最终组装26,506ms、18缓存单元复用（电力公司UI在前序重建）；[当时运行ZIP](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/previous-delivery/TableMax-1.0.3-win-x64.zip)40,916,814字节，SHA-256 `7946907f4423f6e0c399d14c083dabb7faa2164a25377d523ccfa92cff277963`，实际解压216文件94,386,899字节，95MB预算及ZIP／解压双100MB门禁通过。前一份完整交付保留于 `artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/previous-delivery/`；未生成新EXE或源码包、未推送或发布。安全维护实际水位见[瘦身记录](project-slimming.md)。
 
 ## 1.0.3：宝可梦扩展版UI重设计（2026-10-06）
 
