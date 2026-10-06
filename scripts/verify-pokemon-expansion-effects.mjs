@@ -24,8 +24,9 @@ const name =
   `run-${Date.now()}`;
 const sample = args.includes('--sample'),
   portable = args.includes('--portable');
+const version = JSON.parse(await readFile('package.json', 'utf8')).version;
 const output = resolve(
-  'artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/effects',
+  `artifacts/maintenance/v${version}/pokemon-expansion-effects`,
   name,
 );
 await mkdir(resolve(output, '..'), { recursive: true });
@@ -36,7 +37,7 @@ let manifest, extracted;
 if (portable) {
   manifest = JSON.parse(
     await readFile(
-      'artifacts/releases/TableMax-1.0.2-win-x64-manifest.json',
+      `artifacts/releases/TableMax-${version}-win-x64-manifest.json`,
       'utf8',
     ),
   );
@@ -431,7 +432,7 @@ try {
     assert.ok(['round-result', 'match-result'].includes(terminal.phase));
     assert.ok(terminal.events.some((event) => event.kind === 'research'));
     const delays = await page.evaluate(() => ({
-      result: getComputedStyle(document.querySelector('.ex-victory h2'))
+      result: getComputedStyle(document.querySelector('.ex-victory'))
         .animationDelay,
       research: getComputedStyle(document.querySelector('.ex-research-reveal'))
         .animationDelay,
@@ -439,8 +440,20 @@ try {
     assert.equal(delays.research, '2.25s');
     assert.equal(delays.result, '4.75s');
     await page.waitForTimeout(2600);
+    assert.equal(
+      await page
+        .locator('.ex-victory')
+        .evaluate((el) => getComputedStyle(el).opacity),
+      '0',
+    );
     await screenshot('last-ability-research-before-settlement');
     await page.waitForTimeout(2450);
+    assert.equal(
+      await page
+        .locator('.ex-victory')
+        .evaluate((el) => getComputedStyle(el).opacity),
+      '1',
+    );
     assert.ok(await page.locator('.ex-victory h2').isVisible());
     report.cancellation.push({
       terminal: terminal.phase,
@@ -518,7 +531,32 @@ try {
       assert.deepEqual(geometry.tiny, []);
       if (role !== 'player') {
         assert.equal(geometry.slots, 54);
-        assert.equal(geometry.outside, 0);
+        const unreachable = [];
+        if (geometry.outside) {
+          for (const slot of await page
+            .locator('.ex-player [data-slot]')
+            .all()) {
+            await slot.scrollIntoViewIfNeeded();
+            const reachable = await slot.evaluate((el) => {
+              const r = el.getBoundingClientRect();
+              return (
+                r.left >= -1 &&
+                r.top >= -1 &&
+                r.right <= innerWidth + 1 &&
+                r.bottom <= innerHeight + 1
+              );
+            });
+            if (!reachable)
+              unreachable.push(await slot.getAttribute('data-slot'));
+          }
+          await page.evaluate(() => window.scrollTo(0, 0));
+        }
+        geometry.scrollUnreachable = unreachable;
+        assert.deepEqual(
+          unreachable,
+          [],
+          'All 54 cards must remain reachable by real one-axis scrolling',
+        );
       }
       report.display.push({ role, width, height, scale, ...geometry });
       await screenshot(`display-${role}-${width}-${height}-${scale}`);

@@ -1,0 +1,327 @@
+{
+  "rulesVersion": "tablemax-cn-expansion-v1",
+  "sourceCommit": "03b74301e72d687844390bf601b0775c7843d97a",
+  "results": [
+    {
+      "seats": 2,
+      "seed": 701,
+      "actions": 39,
+      "restored": 4,
+      "phases": [
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "initial-flip",
+        "place",
+        "research-vote",
+        "row-choice",
+        "snorlax-choice"
+      ],
+      "sha256": "0522c06e159beaa74ff445c9f2e3412cafdecac6779633087d3a3a446985aad2"
+    },
+    {
+      "seats": 2,
+      "seed": 702,
+      "actions": 38,
+      "restored": 4,
+      "phases": [
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "initial-flip",
+        "mew-other",
+        "mew-self",
+        "mewtwo-choice",
+        "mewtwo-target",
+        "place",
+        "research-vote",
+        "snorlax-choice"
+      ],
+      "sha256": "4ff9a65c22a02d7dcf8ff5714e905aa40ea5d7ffaa3fdc09b9d61370b928ada3"
+    },
+    {
+      "seats": 2,
+      "seed": 703,
+      "actions": 61,
+      "restored": 6,
+      "phases": [
+        "arceus-choice",
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "initial-flip",
+        "lucario-choice",
+        "place",
+        "research-vote",
+        "row-choice"
+      ],
+      "sha256": "194a239cbbbc1ae3955243b36fad85e38185e6ee0783422e801f44bda9107e90"
+    },
+    {
+      "seats": 3,
+      "seed": 701,
+      "actions": 81,
+      "restored": 8,
+      "phases": [
+        "arceus-choice",
+        "charizard-choice",
+        "draw",
+        "greninja-choice",
+        "initial-flip",
+        "mewtwo-choice",
+        "mewtwo-target",
+        "place",
+        "research-vote",
+        "rocket-meowth",
+        "row-choice",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "428c7ca5d7a1ad183ee29fe75bf4135f0db29ee2b1af99ab108db403b89d05bd"
+    },
+    {
+      "seats": 3,
+      "seed": 702,
+      "actions": 43,
+      "restored": 4,
+      "phases": [
+        "draw",
+        "initial-flip",
+        "mew-self",
+        "mewtwo-choice",
+        "mewtwo-target",
+        "place",
+        "research-vote",
+        "rocket-pikachu",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "58d769420dfdaa2e41b9bee442559b5429b584024c447a768a007e3a4effb430"
+    },
+    {
+      "seats": 3,
+      "seed": 703,
+      "actions": 57,
+      "restored": 6,
+      "phases": [
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "greninja-choice",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "mew-other",
+        "mew-self",
+        "mewtwo-choice",
+        "mewtwo-target",
+        "place",
+        "research-vote",
+        "row-choice"
+      ],
+      "sha256": "5a10efd4b53144460cd95ee88c29bff866b982fee46f470bbe53168aabed1803"
+    },
+    {
+      "seats": 4,
+      "seed": 701,
+      "actions": 72,
+      "restored": 7,
+      "phases": [
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "greninja-choice",
+        "initial-flip",
+        "place",
+        "research-vote",
+        "snorlax-choice",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "8a4684ee151f31dda3b24ed70ab0b6686732491d6fd1c5c5b0bea643689812d9"
+    },
+    {
+      "seats": 4,
+      "seed": 702,
+      "actions": 64,
+      "restored": 6,
+      "phases": [
+        "arceus-choice",
+        "charizard-choice",
+        "draw",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "place",
+        "research-vote",
+        "rocket-pikachu",
+        "snorlax-choice",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "7c851745fb79b60fd47243134358f1c086d7373a9f0531026767186688577747"
+    },
+    {
+      "seats": 4,
+      "seed": 703,
+      "actions": 65,
+      "restored": 6,
+      "phases": [
+        "charizard-choice",
+        "draw",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "place",
+        "research-vote",
+        "row-choice",
+        "snorlax-choice"
+      ],
+      "sha256": "c204f36d599c4e1978353eba066594d0feea57e43fdc21fffa7b1b18b5d6983e"
+    },
+    {
+      "seats": 5,
+      "seed": 701,
+      "actions": 93,
+      "restored": 9,
+      "phases": [
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "greninja-choice",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "mew-self",
+        "mewtwo-choice",
+        "mewtwo-target",
+        "place",
+        "research-vote",
+        "rocket-meowth",
+        "rocket-pikachu",
+        "snorlax-choice"
+      ],
+      "sha256": "55b5eeb5659fa876a6a1d6db94c902a582ca5ce82f914452dc1b0020ce8007b3"
+    },
+    {
+      "seats": 5,
+      "seed": 702,
+      "actions": 134,
+      "restored": 13,
+      "phases": [
+        "arceus-choice",
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "mew-self",
+        "mewtwo-choice",
+        "mewtwo-target",
+        "place",
+        "research-vote",
+        "rocket-meowth",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "75748130ccb47b1cf17413e0f97a8b49b4ba989f25d88c2ab9d46cf5871c1c34"
+    },
+    {
+      "seats": 5,
+      "seed": 703,
+      "actions": 79,
+      "restored": 8,
+      "phases": [
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "mew-other",
+        "mew-self",
+        "place",
+        "research-vote",
+        "rocket-meowth",
+        "snorlax-choice"
+      ],
+      "sha256": "121ba87a11a607d76521c65c1d6d655a1367c223f55edc363a9d5aa6368b1375"
+    },
+    {
+      "seats": 6,
+      "seed": 701,
+      "actions": 94,
+      "restored": 9,
+      "phases": [
+        "draw",
+        "initial-flip",
+        "mew-other",
+        "mew-self",
+        "place",
+        "research-vote",
+        "rocket-pikachu",
+        "snorlax-choice",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "215aaccbd45475a727c6809932af03816b02f2ae419bb36265d54c4dd5a87ded"
+    },
+    {
+      "seats": 6,
+      "seed": 702,
+      "actions": 75,
+      "restored": 7,
+      "phases": [
+        "arceus-choice",
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "mew-other",
+        "mew-self",
+        "place",
+        "research-vote",
+        "row-choice",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "38cdd472890546cd7c33e33048564106226f9f69ab29828440b17a79bb9b08f7"
+    },
+    {
+      "seats": 6,
+      "seed": 703,
+      "actions": 96,
+      "restored": 9,
+      "phases": [
+        "charizard-choice",
+        "charizard-view",
+        "draw",
+        "greninja-choice",
+        "initial-flip",
+        "lucario-choice",
+        "lucario-draw",
+        "mew-other",
+        "mew-self",
+        "place",
+        "research-vote",
+        "rocket-meowth",
+        "row-choice",
+        "snorlax-choice",
+        "zapdos-direction",
+        "zapdos-receive",
+        "zapdos-self"
+      ],
+      "sha256": "4585649f7c08b031c72301bf18241e178c8ff29f26aca3c6123fb2603bb9cb0d"
+    }
+  ]
+}

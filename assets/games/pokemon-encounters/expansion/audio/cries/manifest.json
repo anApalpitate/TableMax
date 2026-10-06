@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "sourceKind": "Chinese encyclopedia linked game cries",
-  "scope": "Expansion-only public draw feedback; source game generation, reuse license and human listening remain unverified. Existing user-provided cries and original variant are unchanged.",
+  "scope": "Expansion-only public draw feedback. Revision 2 softens the 27 imported cries relative to the previous runtime; full sources, prior derivations, user-provided audio and original themes are preserved. Human listening, source game generation and reuse license remain unverified.",
   "decoderSha256": "2ce797a0f88d7f067180338fb227f7b1928ea727bd9a4d7a1d022f7c52af71a3",
   "assets": [
     {
@@ -21,8 +21,8 @@
       "mediaTitle": "0006_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "charizard-encyclopedia-cry-v1.ogg",
-      "bytes": 3311,
-      "sha256": "17799358e7c80dc8d266d65f9143aecfd934c393a996470dff636a101d017781",
+      "bytes": 3278,
+      "sha256": "d2f37fb597b75b66df2a5e00a63e0ca639b519e4bbeccae0f994e6567dce3160",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E5%96%B7%E7%81%AB%E9%BE%99",
       "duration": "00:00:01.01",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -33,13 +33,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/charizard-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/charizard-decode.txt",
       "seconds": 1.01,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "73bd1dd104538ed4f77cc61dbafbf980d9771f773c4a2242c05a1a701eec27e4",
       "originalBytes": 8997,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/charizard-runtime-decode.txt",
-      "runtimePeakDb": -0.827079,
-      "runtimeRmsDb": -10.79221,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -6.056080662499146,
+      "runtimeRmsDb": -15.39762495431465,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0006_cry.opus",
@@ -51,9 +51,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 3311,
+        "sha256": "17799358e7c80dc8d266d65f9143aecfd934c393a996470dff636a101d017781",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/charizard-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=0.999500000:d=0.005"
       }
     },
     {
@@ -73,8 +102,8 @@
       "mediaTitle": "0037_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "vulpix-encyclopedia-cry-v1.ogg",
-      "bytes": 4098,
-      "sha256": "4bc941afbb035caae150ab90b46d9587b10da33ab63a2b867e427242d665775f",
+      "bytes": 4092,
+      "sha256": "1e60fcbeb90ee3833594e245ab517751065785f5138e4d4ef26db81ec6336bb3",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E5%85%AD%E5%B0%BE",
       "duration": "00:00:01.26",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -85,13 +114,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/vulpix-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/vulpix-decode.txt",
       "seconds": 1.26,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "8abbf0f4404f0ff9359684567187eb34ee1e8a1c15ec8dd6f74e6b8e041e4fea",
       "originalBytes": 11023,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/vulpix-runtime-decode.txt",
-      "runtimePeakDb": -0.514699,
-      "runtimeRmsDb": -12.594689,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -5.622359147380508,
+      "runtimeRmsDb": -17.250092062686274,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0037_cry.opus",
@@ -103,9 +132,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 4098,
+        "sha256": "4bc941afbb035caae150ab90b46d9587b10da33ab63a2b867e427242d665775f",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/vulpix-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=1.249791667:d=0.005"
       }
     },
     {
@@ -125,8 +183,8 @@
       "mediaTitle": "0054_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "psyduck-encyclopedia-cry-v1.ogg",
-      "bytes": 3192,
-      "sha256": "32f92cde8de179f1cb7797e137bcfbc3740b69f58264e2ca448a8a99a1028e4a",
+      "bytes": 3145,
+      "sha256": "175a2bcb33f66cb922a2b13cf77e0eadc5eb3d84711418c95f8edbde0e465b2d",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E5%8F%AF%E8%BE%BE%E9%B8%AD",
       "duration": "00:00:00.85",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -137,13 +195,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/psyduck-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/psyduck-decode.txt",
       "seconds": 0.85,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "cbcb45e2a9625ee40e2762bb599fa902a07d2c7f7bd9ab58188ab8419b480108",
       "originalBytes": 8090,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/psyduck-runtime-decode.txt",
-      "runtimePeakDb": -1.273076,
-      "runtimeRmsDb": -12.087469,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -5.240918064914277,
+      "runtimeRmsDb": -16.527237060184,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0054_cry.opus",
@@ -155,9 +213,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 3192,
+        "sha256": "32f92cde8de179f1cb7797e137bcfbc3740b69f58264e2ca448a8a99a1028e4a",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/psyduck-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=0.843041667:d=0.005"
       }
     },
     {
@@ -177,8 +264,8 @@
       "mediaTitle": "0079_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "slowpoke-encyclopedia-cry-v1.ogg",
-      "bytes": 1746,
-      "sha256": "c3756301ea6b0558b41021fb1e8edf3473ea29c56ad37a47143b817e67823e8c",
+      "bytes": 1738,
+      "sha256": "f2d2e0d55277adf6dd6d223c8488d6361fd3ea809b0b713bdbb09ab9f67cf3bb",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E5%91%86%E5%91%86%E5%85%BD",
       "duration": "00:00:00.48",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -189,13 +276,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/slowpoke-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/slowpoke-decode.txt",
       "seconds": 0.48,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "79444ef13bf64ed31781a7e1de258221d4091e71a5fff2a31bbf64f9c5957a0f",
       "originalBytes": 4371,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/slowpoke-runtime-decode.txt",
-      "runtimePeakDb": -1.032575,
-      "runtimeRmsDb": -12.801812,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -6.189260218609376,
+      "runtimeRmsDb": -17.35140860457294,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0079_cry.opus",
@@ -207,9 +294,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 1746,
+        "sha256": "c3756301ea6b0558b41021fb1e8edf3473ea29c56ad37a47143b817e67823e8c",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/slowpoke-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=0.467583333:d=0.005"
       }
     },
     {
@@ -229,8 +345,8 @@
       "mediaTitle": "0095_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "onix-encyclopedia-cry-v1.ogg",
-      "bytes": 4442,
-      "sha256": "2d6a16958dc65ba3fb8fcb4e9b891ac47ca2c84f1051bd241ec18de91fa9ce26",
+      "bytes": 4408,
+      "sha256": "b4a0fb1e50301ef8d06fdd2d2c862f47106d69b0a953c40d6a9611bc33912a3c",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E5%A4%A7%E5%B2%A9%E8%9B%87",
       "duration": "00:00:01.38",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -241,13 +357,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/onix-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/onix-decode.txt",
       "seconds": 1.38,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "7a083a97be320a1af57d56a0073169c82cc4d80aa0f631c43a896591a4339e37",
       "originalBytes": 12931,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/onix-runtime-decode.txt",
-      "runtimePeakDb": -0.825485,
-      "runtimeRmsDb": -11.189495,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -5.980738082626976,
+      "runtimeRmsDb": -15.799081395569738,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0095_cry.opus",
@@ -259,9 +375,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 4442,
+        "sha256": "2d6a16958dc65ba3fb8fcb4e9b891ac47ca2c84f1051bd241ec18de91fa9ce26",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/onix-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=1.374958333:d=0.005"
       }
     },
     {
@@ -281,8 +426,8 @@
       "mediaTitle": "0122_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "mr-mime-encyclopedia-cry-v1.ogg",
-      "bytes": 3376,
-      "sha256": "a6fdc6a18a1d42196e02b6a05d671ec03127882da789be40c4db3c4b86c72912",
+      "bytes": 3355,
+      "sha256": "6cc4b484bdf57a6dd30179166b3307a2996f488e34157320796df03c5d34a86f",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E9%AD%94%E5%A2%99%E4%BA%BA%E5%81%B6",
       "duration": "00:00:01.04",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -293,13 +438,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/mr-mime-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/mr-mime-decode.txt",
       "seconds": 1.04,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "dcc24d1b234fe33acbf0f0fc0c7ac157d8f4bb8902a121f906cafda57a2f5054",
       "originalBytes": 9707,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/mr-mime-runtime-decode.txt",
-      "runtimePeakDb": -1.497128,
-      "runtimeRmsDb": -13.432143,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -5.88794194463032,
+      "runtimeRmsDb": -18.003279027589112,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0122_cry.opus",
@@ -311,9 +456,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 3376,
+        "sha256": "a6fdc6a18a1d42196e02b6a05d671ec03127882da789be40c4db3c4b86c72912",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/mr-mime-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=1.030791667:d=0.005"
       }
     },
     {
@@ -333,8 +507,8 @@
       "mediaTitle": "0129_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "magikarp-encyclopedia-cry-v1.ogg",
-      "bytes": 4031,
-      "sha256": "3dadb6edf8f1a1f0704c441fac77251e8289e04b50d41fe40a5a1aea891ba6f0",
+      "bytes": 3963,
+      "sha256": "4bb536a4a945088a6abf044465e1f276784b49aaf3fe8802183d8f511d0886f0",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E9%B2%A4%E9%B1%BC%E7%8E%8B",
       "duration": "00:00:01.23",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -345,13 +519,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/magikarp-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/magikarp-decode.txt",
       "seconds": 1.23,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "69047cbcc668991136e5a3edbbe05f9fc558ee6891bfd7fa474262ef2bb25b91",
       "originalBytes": 10413,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/magikarp-runtime-decode.txt",
-      "runtimePeakDb": -0.983499,
-      "runtimeRmsDb": -13.537249,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -5.562174596634769,
+      "runtimeRmsDb": -18.095715899064942,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0129_cry.opus",
@@ -363,9 +537,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 4031,
+        "sha256": "3dadb6edf8f1a1f0704c441fac77251e8289e04b50d41fe40a5a1aea891ba6f0",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/magikarp-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=1.218500000:d=0.005"
       }
     },
     {
@@ -385,8 +588,8 @@
       "mediaTitle": "0132_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "ditto-encyclopedia-cry-v1.ogg",
-      "bytes": 2252,
-      "sha256": "0483fc8ed7631bf2bc5f7aab72c4c9f5157ee9773226c32ce6a5b24f4090b5cb",
+      "bytes": 2253,
+      "sha256": "a8c543628578179ad54fdc4b47b9957f764911ccbf7ce6b98b879b7fe9830862",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E7%99%BE%E5%8F%98%E6%80%AA",
       "duration": "00:00:00.66",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -397,13 +600,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/ditto-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/ditto-decode.txt",
       "seconds": 0.66,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "a60e7f12556ba3e7d08d2a270b7ad3d2662c39bedf0649484fc4d9fe9482bdb6",
       "originalBytes": 6250,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/ditto-runtime-decode.txt",
-      "runtimePeakDb": -0.949195,
-      "runtimeRmsDb": -13.303562,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -7.082573514314905,
+      "runtimeRmsDb": -18.345474032570984,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0132_cry.opus",
@@ -415,9 +618,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 2252,
+        "sha256": "0483fc8ed7631bf2bc5f7aab72c4c9f5157ee9773226c32ce6a5b24f4090b5cb",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/ditto-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=0.655333333:d=0.005"
       }
     },
     {
@@ -437,8 +669,8 @@
       "mediaTitle": "0143_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "snorlax-encyclopedia-cry-v1.ogg",
-      "bytes": 1540,
-      "sha256": "c76942971b6406620f4f38dee013af4a5f22847251618a332ac88115a90a127f",
+      "bytes": 1496,
+      "sha256": "ec2c3e8242a396848edda7491a67ce5ef6f58813e75ceb7ca932c2d1eb7f2e8b",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E5%8D%A1%E6%AF%94%E5%85%BD",
       "duration": "00:00:00.41",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -449,13 +681,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/snorlax-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/snorlax-decode.txt",
       "seconds": 0.41,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "b4f02487ccbad177212f42a53c4420c7e84415b273a632788a298121cf40fc43",
       "originalBytes": 3969,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/snorlax-runtime-decode.txt",
-      "runtimePeakDb": -1.207194,
-      "runtimeRmsDb": -12.21177,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -6.236916484455541,
+      "runtimeRmsDb": -16.368062686826054,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0143_cry.opus",
@@ -467,9 +699,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 1540,
+        "sha256": "c76942971b6406620f4f38dee013af4a5f22847251618a332ac88115a90a127f",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/snorlax-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=0.405000000:d=0.005"
       }
     },
     {
@@ -489,8 +750,8 @@
       "mediaTitle": "0145_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "zapdos-encyclopedia-cry-v1.ogg",
-      "bytes": 3037,
-      "sha256": "df24dc4828f190c291a692d8fbddbaf47ee38ecdc61d3aa8007e2e8bc116e3bf",
+      "bytes": 2983,
+      "sha256": "7b607ee6e498c6ff41038890b0b937c2de385bf4c88ce959b8d3ca22e97681d3",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E9%97%AA%E7%94%B5%E9%B8%9F",
       "duration": "00:00:00.91",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -501,13 +762,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/zapdos-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/zapdos-decode.txt",
       "seconds": 0.91,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "5217fca9f6d386e88d8bfc09b8a9d114a4f12f533aec3abf453a3e6f4a324480",
       "originalBytes": 8390,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/zapdos-runtime-decode.txt",
-      "runtimePeakDb": -0.789867,
-      "runtimeRmsDb": -14.149037,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -5.073776488042203,
+      "runtimeRmsDb": -18.95818925741892,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0145_cry.opus",
@@ -519,9 +780,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 3037,
+        "sha256": "df24dc4828f190c291a692d8fbddbaf47ee38ecdc61d3aa8007e2e8bc116e3bf",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/zapdos-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=0.905625000:d=0.005"
       }
     },
     {
@@ -541,8 +831,8 @@
       "mediaTitle": "0149_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "dragonite-encyclopedia-cry-v1.ogg",
-      "bytes": 3459,
-      "sha256": "5915f931fa34384bf132e0a9cf02224002b3f1362e41ab31bb9566a26726de8c",
+      "bytes": 3369,
+      "sha256": "8cb248ee06edc4bb51419cf25d299b815818bae659cc753a38790033d1698c85",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E5%BF%AB%E9%BE%99",
       "duration": "00:00:01.07",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -553,13 +843,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/dragonite-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/dragonite-decode.txt",
       "seconds": 1.07,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "32fc4bf697044ccf6937363a36a7f04dc8061783133008973b8862ff3ce8ca21",
       "originalBytes": 9642,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/dragonite-runtime-decode.txt",
-      "runtimePeakDb": -1.130239,
-      "runtimeRmsDb": -12.169621,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -6.35403671400589,
+      "runtimeRmsDb": -16.947374933222267,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0149_cry.opus",
@@ -571,9 +861,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 3459,
+        "sha256": "5915f931fa34384bf132e0a9cf02224002b3f1362e41ab31bb9566a26726de8c",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/dragonite-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=1.062083333:d=0.005"
       }
     },
     {
@@ -593,8 +912,8 @@
       "mediaTitle": "0150_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "mewtwo-encyclopedia-cry-v1.ogg",
-      "bytes": 5971,
-      "sha256": "859b0503537339862e4d6fde5444f5428c701349c49a9c6cfe0f732d3594ef29",
+      "bytes": 5824,
+      "sha256": "87114c9ae9ac5b740b756b8d877404dfffc002fa1cf1ebaa5e7d2e341e9ab084",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E8%B6%85%E6%A2%A6",
       "duration": "00:00:01.60",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -605,13 +924,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/mewtwo-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/mewtwo-decode.txt",
       "seconds": 1.6,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "290c70b95a0707dbe6dd227c461c91b5653edd3c9298ba3f066824edc4a4dac6",
       "originalBytes": 14471,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/mewtwo-runtime-decode.txt",
-      "runtimePeakDb": -0.036142,
-      "runtimeRmsDb": -11.600108,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -5.279857017492606,
+      "runtimeRmsDb": -16.24967567433587,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0150_cry.opus",
@@ -623,9 +942,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 5971,
+        "sha256": "859b0503537339862e4d6fde5444f5428c701349c49a9c6cfe0f732d3594ef29",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/mewtwo-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=1.593958333:d=0.005"
       }
     },
     {
@@ -645,8 +993,8 @@
       "mediaTitle": "0151_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "mew-encyclopedia-cry-v1.ogg",
-      "bytes": 4876,
-      "sha256": "74e0053674f03db14b9205e7825a4d31b254135fe274d51a88e5d6802e879434",
+      "bytes": 4814,
+      "sha256": "0978b61c10cb2d0999f4bfd71aec899c0f97808af07e593fb89b510dd258efad",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E6%A2%A6%E5%B9%BB",
       "duration": "00:00:01.51",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -657,13 +1005,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/mew-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/mew-decode.txt",
       "seconds": 1.51,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "2358b127f62f5f13ddcf48c8395d12da96920e909b8fe8b5658661c7eb5f5580",
       "originalBytes": 14048,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/mew-runtime-decode.txt",
-      "runtimePeakDb": -1.899552,
-      "runtimeRmsDb": -15.653529,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -7.071398058227239,
+      "runtimeRmsDb": -20.517487304775187,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0151_cry.opus",
@@ -675,9 +1023,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 4876,
+        "sha256": "74e0053674f03db14b9205e7825a4d31b254135fe274d51a88e5d6802e879434",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/mew-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=1.500083333:d=0.005"
       }
     },
     {
@@ -697,8 +1074,8 @@
       "mediaTitle": "0175_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "togepi-encyclopedia-cry-v1.ogg",
-      "bytes": 2658,
-      "sha256": "f2c68260ac1ad2be3898cdb6055880970a952a4eb5825f66ebff830ab2c20e29",
+      "bytes": 2516,
+      "sha256": "b7dd21310ba1957ff348c62c24e3859c65670f610d6040a56917857849fca2e8",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E6%B3%A2%E5%85%8B%E6%AF%94",
       "duration": "00:00:00.66",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -709,13 +1086,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/togepi-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/togepi-decode.txt",
       "seconds": 0.66,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "6d0f7299aa7713e2de1ee41fa01b2c63d378ea8a033a6359a50d3703074cb4f2",
       "originalBytes": 6671,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/togepi-runtime-decode.txt",
-      "runtimePeakDb": -1.367493,
-      "runtimeRmsDb": -14.450001,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -6.680226861456217,
+      "runtimeRmsDb": -20.016732267409374,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0175_cry.opus",
@@ -727,9 +1104,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 2658,
+        "sha256": "f2c68260ac1ad2be3898cdb6055880970a952a4eb5825f66ebff830ab2c20e29",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/togepi-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=0.655333333:d=0.005"
       }
     },
     {
@@ -749,8 +1155,8 @@
       "mediaTitle": "0282_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "gardevoir-encyclopedia-cry-v1.ogg",
-      "bytes": 4748,
-      "sha256": "91ae0f33039891503cb0f290ef3157e716d28393cabea5d0d7499f0bf0ba8d29",
+      "bytes": 4660,
+      "sha256": "a7b142380442e7b162ef67a3502a77ed8778f7bc77209c944d886c813be9c913",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E6%B2%99%E5%A5%88%E6%9C%B5",
       "duration": "00:00:01.32",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -761,13 +1167,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/gardevoir-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/gardevoir-decode.txt",
       "seconds": 1.32,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "afc4b4cc23b68681811e1186cdee3ed5aa7308cb30c9768da2ef8a5f39ba86bf",
       "originalBytes": 12068,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/gardevoir-runtime-decode.txt",
-      "runtimePeakDb": -2.528654,
-      "runtimeRmsDb": -13.743938,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -6.506833602124327,
+      "runtimeRmsDb": -18.330429718976028,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0282_cry.opus",
@@ -779,9 +1185,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 4748,
+        "sha256": "91ae0f33039891503cb0f290ef3157e716d28393cabea5d0d7499f0bf0ba8d29",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/gardevoir-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=1.312375000:d=0.005"
       }
     },
     {
@@ -801,8 +1236,8 @@
       "mediaTitle": "0376_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "metagross-encyclopedia-cry-v1.ogg",
-      "bytes": 5796,
-      "sha256": "eaa2569b6b43a046c3eb86a9c26fefb261f703db05dedd5cf19d596be1068c6c",
+      "bytes": 5649,
+      "sha256": "93641a18dc059ffb6a725bccf9335e2be451f9448e31b85afe63beb5741c176a",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E5%B7%A8%E9%87%91%E6%80%AA",
       "duration": "00:00:01.92",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -813,13 +1248,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/metagross-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/metagross-decode.txt",
       "seconds": 1.92,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "e69d5f6c43bb84663be0ddc0a2ca1f7c423796527ad33a51342f920fad8369b3",
       "originalBytes": 15837,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/metagross-runtime-decode.txt",
-      "runtimePeakDb": -1.438536,
-      "runtimeRmsDb": -12.09476,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -6.403979228531908,
+      "runtimeRmsDb": -16.614834266996688,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0376_cry.opus",
@@ -831,9 +1266,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 5796,
+        "sha256": "eaa2569b6b43a046c3eb86a9c26fefb261f703db05dedd5cf19d596be1068c6c",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/metagross-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=1.906833333:d=0.005"
       }
     },
     {
@@ -853,8 +1317,8 @@
       "mediaTitle": "0382_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "kyogre-encyclopedia-cry-v1.ogg",
-      "bytes": 5164,
-      "sha256": "a9602b4b031e1ae7d448ea2ade6bf78ac08c33e2674d7c37afe56ff3fd1148bd",
+      "bytes": 5088,
+      "sha256": "132fb13a6dbcebd604e328909aa6ce5ced438586c9e45524adc2a63c6b166e2f",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E7%9B%96%E6%AC%A7%E5%8D%A1",
       "duration": "00:00:01.63",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -865,13 +1329,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/kyogre-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/kyogre-decode.txt",
       "seconds": 1.63,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "cd65b70ce777f3314fe78744a9c9630714d91a086b7059f9af0792c82a796c33",
       "originalBytes": 15207,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/kyogre-runtime-decode.txt",
-      "runtimePeakDb": -1.302969,
-      "runtimeRmsDb": -14.398271,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -7.1945014298917185,
+      "runtimeRmsDb": -19.41755817043012,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0382_cry.opus",
@@ -883,9 +1347,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 5164,
+        "sha256": "a9602b4b031e1ae7d448ea2ade6bf78ac08c33e2674d7c37afe56ff3fd1148bd",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/kyogre-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=1.625250000:d=0.005"
       }
     },
     {
@@ -905,8 +1398,8 @@
       "mediaTitle": "0383_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "groudon-encyclopedia-cry-v1.ogg",
-      "bytes": 5502,
-      "sha256": "76f7457556031e2045c714fad48df72aa9ad1d4dc3870ab2833b4dfd0245f77e",
+      "bytes": 5375,
+      "sha256": "e66e10024ea775c3b65a55fd3de0f494fa03337b11dfa288cc7ab42532912e10",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E5%9B%BA%E6%8B%89%E5%A4%9A",
       "duration": "00:00:01.79",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -917,13 +1410,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/groudon-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/groudon-decode.txt",
       "seconds": 1.79,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "fc5feb1e377788066724af5d82bb7efc0fd74328ac9a0332b178b0bb8ee97e3e",
       "originalBytes": 15511,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/groudon-runtime-decode.txt",
-      "runtimePeakDb": -1.286411,
-      "runtimeRmsDb": -10.688754,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -5.918337573419042,
+      "runtimeRmsDb": -15.302322196619018,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0383_cry.opus",
@@ -935,9 +1428,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 5502,
+        "sha256": "76f7457556031e2045c714fad48df72aa9ad1d4dc3870ab2833b4dfd0245f77e",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/groudon-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=1.781708333:d=0.005"
       }
     },
     {
@@ -957,8 +1479,8 @@
       "mediaTitle": "0384_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "rayquaza-encyclopedia-cry-v1.ogg",
-      "bytes": 4714,
-      "sha256": "0b15852d712ae10409386a0efe5e52803238c177a3a476a8e4028e3d9fa31801",
+      "bytes": 4638,
+      "sha256": "17cae18f578fa4ecf54a0f43d792b5c2b51205ac80eed52b8ee7c229024a6565",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E7%83%88%E7%A9%BA%E5%9D%90",
       "duration": "00:00:01.51",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -969,13 +1491,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/rayquaza-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/rayquaza-decode.txt",
       "seconds": 1.51,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "037825084bd5b2aa004da366fb41e06fd6f25d5d4764439413f8a4f00c7e7b1d",
       "originalBytes": 13290,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/rayquaza-runtime-decode.txt",
-      "runtimePeakDb": -1.300631,
-      "runtimeRmsDb": -11.315361,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -5.939977016394016,
+      "runtimeRmsDb": -16.054373376148938,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0384_cry.opus",
@@ -987,9 +1509,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 4714,
+        "sha256": "0b15852d712ae10409386a0efe5e52803238c177a3a476a8e4028e3d9fa31801",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/rayquaza-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=1.500083333:d=0.005"
       }
     },
     {
@@ -1009,8 +1560,8 @@
       "mediaTitle": "0393_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "piplup-encyclopedia-cry-v1.ogg",
-      "bytes": 2103,
-      "sha256": "1ea14ac474876dfc59358d1145d96985f268cea1dd51b53705078e834339676c",
+      "bytes": 2110,
+      "sha256": "688f1b2d4ababc6d816f516f54ffd4f263eb5dcf0526c01844915af70ddc84aa",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E6%B3%A2%E5%8A%A0%E6%9B%BC",
       "duration": "00:00:00.60",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -1021,13 +1572,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/piplup-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/piplup-decode.txt",
       "seconds": 0.6,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "d8ab8b9c5ea481106165d89e68fb09146c4936bf9410e1ec93719690124d1e85",
       "originalBytes": 5908,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/piplup-runtime-decode.txt",
-      "runtimePeakDb": -1.714289,
-      "runtimeRmsDb": -13.888724,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -7.412431510554134,
+      "runtimeRmsDb": -19.918310934764534,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0393_cry.opus",
@@ -1039,9 +1590,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 2103,
+        "sha256": "1ea14ac474876dfc59358d1145d96985f268cea1dd51b53705078e834339676c",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/piplup-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=0.592750000:d=0.005"
       }
     },
     {
@@ -1061,8 +1641,8 @@
       "mediaTitle": "0445_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "garchomp-encyclopedia-cry-v1.ogg",
-      "bytes": 3158,
-      "sha256": "79b64095b983d948d1ac9f1742cd4fc9033e7ccf83c2884d7c0e7f3b1ca910c0",
+      "bytes": 3097,
+      "sha256": "e3e6d2cb984538a74a0bb521fa63fe36aea29cf02ca4db4eb328d0b5a919998f",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E7%83%88%E5%92%AC%E9%99%86%E9%B2%A8",
       "duration": "00:00:00.98",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -1073,13 +1653,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/garchomp-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/garchomp-decode.txt",
       "seconds": 0.98,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "0bc43e8dec7dcd71503c87d1434d9610512269292f497d8df43aa9f5c97bc264",
       "originalBytes": 8771,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/garchomp-runtime-decode.txt",
-      "runtimePeakDb": -1.150114,
-      "runtimeRmsDb": -11.203624,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -5.598011573299075,
+      "runtimeRmsDb": -15.773493694896459,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0445_cry.opus",
@@ -1091,9 +1671,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 3158,
+        "sha256": "79b64095b983d948d1ac9f1742cd4fc9033e7ccf83c2884d7c0e7f3b1ca910c0",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/garchomp-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=0.968208333:d=0.005"
       }
     },
     {
@@ -1113,8 +1722,8 @@
       "mediaTitle": "0448_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "lucario-encyclopedia-cry-v1.ogg",
-      "bytes": 2403,
-      "sha256": "2cc7b19b9563f4ca463349b40a06ac8b513cc2c3e3f664eec55f41412c9d9528",
+      "bytes": 2399,
+      "sha256": "f48894c73d896bb8bc25334be892bb0d1bdbbba3ea8e68842d00f99628ab9209",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E8%B7%AF%E5%8D%A1%E5%88%A9%E6%AC%A7",
       "duration": "00:00:00.66",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -1125,13 +1734,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/lucario-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/lucario-decode.txt",
       "seconds": 0.66,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "705c36eff914646ba60ea5838bdede24f5c3ff03abe8101d3b145b66f7889f26",
       "originalBytes": 6405,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/lucario-runtime-decode.txt",
-      "runtimePeakDb": -1.5304,
-      "runtimeRmsDb": -13.696974,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -6.21059600738839,
+      "runtimeRmsDb": -18.170206718188254,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0448_cry.opus",
@@ -1143,9 +1752,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 2403,
+        "sha256": "2cc7b19b9563f4ca463349b40a06ac8b513cc2c3e3f664eec55f41412c9d9528",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/lucario-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=0.655333333:d=0.005"
       }
     },
     {
@@ -1165,8 +1803,8 @@
       "mediaTitle": "0493_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "arceus-encyclopedia-cry-v1.ogg",
-      "bytes": 5466,
-      "sha256": "ce91fe32c03563a1981fc0c9d7adebf5e71d0ad2d2fc2f2106b7f341f9d0a554",
+      "bytes": 5440,
+      "sha256": "ced2f39a5f3c919dde2257e6c8851b6ce7688c2d85237e75d2d72166f2897331",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E9%98%BF%E5%B0%94%E5%AE%99%E6%96%AF",
       "duration": "00:00:01.70",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -1177,13 +1815,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/arceus-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/arceus-decode.txt",
       "seconds": 1.7,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "a64958d9f384b6d97f045a5a6dc47c5b2ad2aa8cfdd3f832cdce714be3828e21",
       "originalBytes": 14839,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/arceus-runtime-decode.txt",
-      "runtimePeakDb": -2.179657,
-      "runtimeRmsDb": -15.715936,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -6.937058732732404,
+      "runtimeRmsDb": -20.681212773308168,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0493_cry.opus",
@@ -1195,9 +1833,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 5466,
+        "sha256": "ce91fe32c03563a1981fc0c9d7adebf5e71d0ad2d2fc2f2106b7f341f9d0a554",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/arceus-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=1.687833333:d=0.005"
       }
     },
     {
@@ -1217,8 +1884,8 @@
       "mediaTitle": "0570_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "zorua-encyclopedia-cry-v1.ogg",
-      "bytes": 1880,
-      "sha256": "a3d90f3723716b826e20a241ab47bc26fd46fa9c5bc7813ef0168fdecb314c7d",
+      "bytes": 1807,
+      "sha256": "70237f7089f51dbff4e9a29acd18fa8c8eb7c799b539d72757451db5ddbf40b3",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E7%B4%A2%E7%BD%97%E4%BA%9A",
       "duration": "00:00:00.44",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -1229,13 +1896,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/zorua-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/zorua-decode.txt",
       "seconds": 0.44,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "d1494b266b7701fa2781b3df342905e6decf4b5b001949a0641605b03be6c96b",
       "originalBytes": 4356,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/zorua-runtime-decode.txt",
-      "runtimePeakDb": -1.923905,
-      "runtimeRmsDb": -13.359849,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -6.037790700566605,
+      "runtimeRmsDb": -18.061427165851217,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0570_cry.opus",
@@ -1247,9 +1914,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 1880,
+        "sha256": "a3d90f3723716b826e20a241ab47bc26fd46fa9c5bc7813ef0168fdecb314c7d",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/zorua-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=0.436291667:d=0.005"
       }
     },
     {
@@ -1269,8 +1965,8 @@
       "mediaTitle": "0658_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "greninja-encyclopedia-cry-v1.ogg",
-      "bytes": 4094,
-      "sha256": "7385d953c032540fc8b4833fd26fd7e53604c815792ec0b664893718f2f157dc",
+      "bytes": 4018,
+      "sha256": "0e0c6390b32bcec1142df4c9b9256b207de363d12658104b5bc0da6f52d61276",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E7%94%B2%E8%B4%BA%E5%BF%8D%E8%9B%99",
       "duration": "00:00:01.20",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -1281,13 +1977,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/greninja-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/greninja-decode.txt",
       "seconds": 1.2,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "b7410856984b3029e61b3ad4fa06997099a393ced5418bce81caafc31c9b5cd1",
       "originalBytes": 11248,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/greninja-runtime-decode.txt",
-      "runtimePeakDb": -1.286505,
-      "runtimeRmsDb": -12.249193,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -5.499522156457795,
+      "runtimeRmsDb": -16.898008771175878,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0658_cry.opus",
@@ -1299,9 +1995,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 4094,
+        "sha256": "7385d953c032540fc8b4833fd26fd7e53604c815792ec0b664893718f2f157dc",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/greninja-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=1.187208333:d=0.005"
       }
     },
     {
@@ -1321,8 +2046,8 @@
       "mediaTitle": "0722_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "rowlet-encyclopedia-cry-v1.ogg",
-      "bytes": 2889,
-      "sha256": "e2cf9dfe66f636cbc43fdd74e5b201789c3f464c58f38fd575e96d35a0ba585b",
+      "bytes": 2914,
+      "sha256": "dd87add3ead297bdb5ce31fd43297687140644996e1cb664a26a50b3a81e49f4",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E6%9C%A8%E6%9C%A8%E6%9E%AD",
       "duration": "00:00:00.76",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -1333,13 +2058,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/rowlet-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/rowlet-decode.txt",
       "seconds": 0.76,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "ed007edd01af9d5f2b3b9cc5d76ba7d76f0afc0da9036d49576478f7c991ee65",
       "originalBytes": 7951,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/rowlet-runtime-decode.txt",
-      "runtimePeakDb": -2.127513,
-      "runtimeRmsDb": -12.488629,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -6.186862961455213,
+      "runtimeRmsDb": -17.00577484253668,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0722_cry.opus",
@@ -1351,9 +2076,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 2889,
+        "sha256": "e2cf9dfe66f636cbc43fdd74e5b201789c3f464c58f38fd575e96d35a0ba585b",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/rowlet-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=0.749166667:d=0.005"
       }
     },
     {
@@ -1373,8 +2127,8 @@
       "mediaTitle": "0778_cry.opus",
       "firstDirectError": "HTTP 403",
       "file": "mimikyu-encyclopedia-cry-v1.ogg",
-      "bytes": 3638,
-      "sha256": "b300fa1338ca719708005cd3ed6924a8a544d0f8b0aa7cafc943662a293d8665",
+      "bytes": 3622,
+      "sha256": "ef76e83314250d9c0162297ee530b3dcefa504c56329186608d538625d1efd32",
       "normalSourceReferrer": "https://wiki.52poke.com/wiki/%E8%B0%9C%E6%8B%9F%E4%B8%98",
       "duration": "00:00:01.13",
       "codec": "opus, 48000 Hz, mono, fltp",
@@ -1385,13 +2139,13 @@
       "pageSnapshot": "artifacts/pokemon-expansion/encyclopedia-cries/originals/mimikyu-page.html",
       "decodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/originals/mimikyu-decode.txt",
       "seconds": 1.13,
-      "transformation": "Derived Ogg/Opus 24kbps mono 48000Hz, fixed volume 0.75 (-2.50dB); complete source duration, no trimming. Original source bytes preserved separately.",
+      "transformation": "From preserved full original source: Ogg/Opus 24kbps mono 48000Hz, gain 0.45 (previous 0.75 × 0.6), 3kHz high shelf -3dB/Q0.5, first/last 5ms fade; no trimming or pitch change. Global playback volume remains 0.45.",
       "originalSha256": "94eb23c826caa4a7288d3f8fbba2ac2a5d0e55e6ed98b0cb581770952a47a957",
       "originalBytes": 9748,
-      "runtimeDecodedAtImport": false,
-      "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/mimikyu-runtime-decode.txt",
-      "runtimePeakDb": -3.300325,
-      "runtimeRmsDb": -17.461036,
+      "runtimeDecodedAtImport": true,
+      "runtimeDecodeRecord": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+      "runtimePeakDb": -8.300163423429762,
+      "runtimeRmsDb": -22.24262327011686,
       "sourceProvenance": {
         "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
         "descriptionUrl": "https://wiki.52poke.com/wiki/File:0778_cry.opus",
@@ -1403,9 +2157,38 @@
         "gameGeneration": null
       },
       "playbackVerification": {
-        "decodedAndPlaybackCallsVerified": true,
-        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
-        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        "decodedVerified": true,
+        "playbackCallsVerified": false,
+        "humanListeningVerified": false,
+        "evidence": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/all-results.json",
+        "scope": "New derivation verified offline; final-package playback must be verified separately."
+      },
+      "previousDerivation": {
+        "bytes": 3638,
+        "sha256": "b300fa1338ca719708005cd3ed6924a8a544d0f8b0aa7cafc943662a293d8665",
+        "gain": 0.75,
+        "file": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/mimikyu-encyclopedia-cry-v1.ogg",
+        "manifest": "artifacts/maintenance/v1.0.3/pokemon-ui-redesign/audio/previous-runtime/manifest.json",
+        "playbackVerification": {
+          "decodedAndPlaybackCallsVerified": true,
+          "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+          "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+        }
+      },
+      "runtimeRevision": 2,
+      "processing": {
+        "previousSourceGain": 0.75,
+        "relativeGain": 0.6,
+        "sourceGain": 0.45,
+        "trebleFrequencyHz": 3000,
+        "trebleGainDb": -3,
+        "trebleQ": 0.5,
+        "fadeSeconds": 0.005,
+        "sampleRate": 48000,
+        "channels": 1,
+        "bitrate": "24k",
+        "playbackVolume": 0.45,
+        "filter": "volume=0.45,treble=f=3000:g=-3:t=q:w=0.5,afade=t=in:st=0:d=0.005,afade=t=out:st=1.124625000:d=0.005"
       }
     }
   ],
@@ -1415,6 +2198,20 @@
     "bitrate": "24k",
     "sampleRate": 48000,
     "channels": 1,
-    "volume": 0.75
+    "volume": 0.45,
+    "processing": {
+      "previousSourceGain": 0.75,
+      "relativeGain": 0.6,
+      "sourceGain": 0.45,
+      "trebleFrequencyHz": 3000,
+      "trebleGainDb": -3,
+      "trebleQ": 0.5,
+      "fadeSeconds": 0.005,
+      "sampleRate": 48000,
+      "channels": 1,
+      "bitrate": "24k",
+      "playbackVolume": 0.45
+    },
+    "script": "scripts/soften-pokemon-cries.mjs"
   }
 }

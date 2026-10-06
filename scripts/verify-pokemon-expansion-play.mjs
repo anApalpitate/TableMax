@@ -16,8 +16,9 @@ assert.ok(
 const name =
   args.find((arg) => arg.startsWith('--evidence='))?.slice(11) ??
   `run-${Date.now()}`;
+const version = JSON.parse(await readFile('package.json', 'utf8')).version;
 const output = resolve(
-  'artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play',
+  `artifacts/maintenance/v${version}/pokemon-expansion-normal-play`,
   name,
 );
 await mkdir(resolve(output, '..'), { recursive: true });
@@ -25,7 +26,7 @@ await mkdir(output, { recursive: false });
 const work = await mkdtemp(resolve('tmp/pokemon-expansion-normal-play-'));
 const manifest = JSON.parse(
   await readFile(
-    'artifacts/releases/TableMax-1.0.2-win-x64-manifest.json',
+    `artifacts/releases/TableMax-${version}-win-x64-manifest.json`,
     'utf8',
   ),
 );
@@ -205,7 +206,7 @@ async function clickAction(page, player, action) {
   } else if (action.type === 'draw') {
     await page
       .locator('.ex-draw-options')
-      .getByRole('button', { name: /牌库取牌/ })
+      .getByRole('button', { name: /摸牌堆/ })
       .click();
   } else if (action.type === 'row-target') {
     const target = player.seats.find((seat) => seat.id === action.seat);
@@ -499,9 +500,7 @@ try {
     'Real normal Worker must commit public saved actions',
   );
   report.publicEventCount = final.gameView.events.length;
-  await phones[0]
-    .getByRole('heading', { name: '本小局赢家', exact: true })
-    .scrollIntoViewIfNeeded();
+  await phones[0].locator('.ex-victory').scrollIntoViewIfNeeded();
   await screenshot(phones[0], 'short-phone-result');
   await screenshot(host, 'host-result');
   report.hostMedia = await host.evaluate(() => window.__pokemonMedia);

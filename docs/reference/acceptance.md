@@ -11,13 +11,27 @@
 最终包使用03b7430基线加本次电力公司源码的隔离输入，排除其他任务未提交内容；[冻结构建](../../artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/build-snapshot.json)与[清单](../../artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/package-manifest.json)保留。最终组装26,506ms、18缓存单元复用（电力公司UI在前序重建）；[运行ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip)40,916,814字节，SHA-256 `7946907f4423f6e0c399d14c083dabb7faa2164a25377d523ccfa92cff277963`，实际解压216文件94,386,899字节，95MB预算及ZIP／解压双100MB门禁通过。前一份完整交付保留于 `artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/previous-delivery/`；未生成新EXE或源码包、未推送或发布。安全维护实际水位见[瘦身记录](project-slimming.md)。
 
 
+## 1.0.3：宝可梦扩展版UI重设计（2026-10-06）
+
+卡面复用原版骨架与蓝色牌背，34类配色、卡外深青编号、完整角色与独立牌名；手机统一四牌源和单操作牌阵，暂持只展示一次，按钮等宽居中。结算采用居中赢家横幅、头像／三星／九格及可展开总分。30项研究各有独立imagegen主题插画与固定公开精确图示，图片总125,986字节；角色／牌堆／研究配置独立JSON，玩法、ID／顺序、112／144、授权投影、旧存档与协议兼容。27项下载叫声完成当前音量×0.6、轻高频削减与5ms淡化，用户原声／主题不变，测试默认静音。
+
+[配置核验](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/config/audit-results.json)覆盖30项正反例／图示、2–6人15固定种子1091合法步骤及106恢复重放、30,000研究判定／2030完整计分对照；[真实SQLite](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/config/persistence-results.json)覆盖v1迁移／v2重启、投票边界回退与身份／当前房主授权。[相关回归](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/root-unit-results.json)134项通过，类型／局部lint及格式通过。并行电力公司改动由隔离源码排除；该任务随后更新共用release，本次已验ZIP／清单固定保留在本轮delivery，下面哈希只适用于该包；包基于03b7430加本次宝可梦改动，冻结输入与实际同包边界留证，不混入其他任务。
+
+[最终包真实UI](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/ui/portable-02/results.json)核对实际解压全部文件，覆盖320–430px、720p至4K、125%／150%模拟缩放、空弃牌、短能力、单牌阵、共同赢家、计分明细、研究暗投／30图及私看隔离；截图等待全部角色图片成功加载。独立视觉审查修正了研究编号歧义、双人角色大小、卡位徽章与横幅布局。[原生同包](../../artifacts/maintenance/v1.0.3/pokemon-expansion-runtime/ui-redesign-final-02/results.json)10项通过保存、重启恢复、身份、原版切换、包内Node与零外部请求；短／高缩放或暂停提示占空间时保留54格并逐格实际滚动验证可达，720p常规结算54格与六个总分完整在窗内。
+
+[普通模式](../../artifacts/maintenance/v1.0.3/pokemon-expansion-normal-play/ui-redesign-final-01/results.json)真实34次手机控件操作与人机完成一小局，自动化墙钟50,905ms，包含私看、整行交换及接力；下载叫声实际解码／播放调用与自有进程退出通过，不代表真人时长或听感。[声画同包](../../artifacts/maintenance/v1.0.3/pokemon-expansion-effects/ui-redesign-final-02/results.json)63姿态／14时间轴／十主题、秘密、取消、减少动态、能力→研究→结算透明度及双槽通过。旧原生失败断言沿用“所有短窗口54格同屏”，按最新单轴滚动口径改为实际逐格可达；旧声画检查定位h2而动画已由整个横幅承载，修正定位并实查透明度后通过。早期弱几何／未等图片截图与失败报告保留，不能作最终证据。
+
+[同包汇总](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/final-checks.json)核对五份通过报告、235项最终宝可梦输入及30项原图／派生图哈希；[默认静音](../../artifacts/maintenance/v1.0.3/test-silence/pokemon-ui-redesign-final-01/results.json)五项检查覆盖主机／公共／手机、重载、显式播放状态与偏好隔离。
+
+本次仅一次正式`package:win`，18单元命中12项（隔离路径令部分平台指纹重建，输出字节未变），完整构建／组装38,555ms。[运行ZIP](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/delivery/TableMax-1.0.3-win-x64.zip)41,067,266字节，SHA-256 `943071cec128b4ef9e8951459b2ccfca7b26b381f58654892c3e66cc5a455812`；[清单](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/delivery/TableMax-1.0.3-win-x64-manifest.json)246文件、实际解压94,619,465字节。宝可梦模块3,949,898字节、净增175,588字节，4MiB／250KB目标、95MB预算和ZIP／解压严格100MB门禁均通过；182文件字节不变，现代艺术及电力公司模块沿用未变证据。原EXE／ZIP／清单完整保留在本轮`previous-delivery`，本轮不生成EXE／源码包，不发布。真人设备／现场LAN／物理DPI／听感与时长仍按[交接](../games/pokemon-encounters/validation-scenarios.md#本次真人验收交接2026-10-06)独立填写；本次安全清理1,164,752,173字节，229项清理保护回归通过，最终工作区11.2411GiB，仍未达到10GiB；保护内容与候选耗尽边界见[瘦身记录](project-slimming.md)。
+
 ## 1.0.3：游戏介绍弹窗布局修复（2026-10-06）
 
 用户截图中的纵向文字挤压来自共享弹窗遗留的 `.game-introduction` 横向flex样式：运行时CSS在独立盒子CSS之后加载时覆盖新版分节布局。删除失效样式，并明确介绍／头像浮窗的宽度选择器优先级，封面、简介、步骤与胜负按正常段落排列，手机步骤保持单列；玩法、资源、权限和存档不变。
 
 [真实组件回归](../../artifacts/maintenance/v1.0.3/game-introduction/corrected/results.json)覆盖三端、三游戏及宝可梦两个版本、320–3840px共108布局，检查分节顺序、可读宽度、文字下限、横向溢出、滚动关闭与Escape焦点恢复、读取不发送命令。按生产CSS加载顺序执行的[旧版复现](../../artifacts/maintenance/v1.0.3/game-introduction/before-fix-cascade/results.json)确实断言 `flex`／`block` 失败；首轮夹具因未包含宝可梦版本组件所需capabilities而失败，原结果保留，完善夹具后执行完整回归。[最终包原生检查](../../artifacts/maintenance/v1.0.3/game-introduction/portable/results.json)在该EXE实际解压的隐藏静音WebView2／127.0.0.1服务中，通过真实入口切换三游戏及640／934／1280窗口共九布局，介绍分节、关闭与revision／branch不变均通过。模拟尺寸不代替实体手机认证。
 
-沿用v1.0.3，[最新EXE](../../artifacts/releases/TableMax-1.0.3-win-x64.exe)41,064,960字节、SHA-256 `68b0a767936b96b88b9da28bd3eb57c8406ad933c1c60d0b266afd2f02d73fac`；[运行ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip)40,914,627字节、SHA-256 `1d0d835b3f313a9efec52210185229d16a7fd77f16e3840afb401c094fc36c1a`。18构建单元命中16项，仅共用runtime／盒子重建；[包比对](../../artifacts/maintenance/v1.0.3/game-introduction/package-impact.json)212文件字节不变，其他变化限CSS与关联哈希／入口引用。[同包交付检查](../../artifacts/maintenance/v1.0.3/game-introduction/shipping-executable-checks.json)34,633ms通过完整文件哈希、重复解压与原生生命周期；实际解压217文件94,423,625字节，95MB预算和双100MB门禁通过。原包及验收证据保留，不发布GitHub或导出源码。局部lint、格式与diff通过；安全维护见[瘦身记录](project-slimming.md)。
+沿用v1.0.3，[最新EXE](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/previous-delivery/TableMax-1.0.3-win-x64.exe)41,064,960字节、SHA-256 `68b0a767936b96b88b9da28bd3eb57c8406ad933c1c60d0b266afd2f02d73fac`；[运行ZIP](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/previous-delivery/TableMax-1.0.3-win-x64.zip)40,914,627字节、SHA-256 `1d0d835b3f313a9efec52210185229d16a7fd77f16e3840afb401c094fc36c1a`。18构建单元命中16项，仅共用runtime／盒子重建；[包比对](../../artifacts/maintenance/v1.0.3/game-introduction/package-impact.json)212文件字节不变，其他变化限CSS与关联哈希／入口引用。[同包交付检查](../../artifacts/maintenance/v1.0.3/game-introduction/shipping-executable-checks.json)34,633ms通过完整文件哈希、重复解压与原生生命周期；实际解压217文件94,423,625字节，95MB预算和双100MB门禁通过。原包及验收证据保留，不发布GitHub或导出源码。局部lint、格式与diff通过；安全维护见[瘦身记录](project-slimming.md)。
 
 ## 1.0.3：单EXE专属目录初始化微调（2026-10-06）
 

@@ -361,6 +361,29 @@ async function displayCheck(page, width, height, name) {
     ...geometry,
   });
   await screenshot(page, name);
+  // The current redesign preserves readable cards with one-axis scrolling on
+  // short/high-scale windows and when pause/management notices need extra room.
+  // Verify real scrolling, rather than accepting a larger document blindly.
+  const scrollUnreachable = [];
+  if (!name.includes('phone') && geometry.fieldSlots.some((s) => s.outside)) {
+    for (const slot of await page.locator('.ex-player [data-slot]').all()) {
+      await slot.scrollIntoViewIfNeeded();
+      const bounds = await slot.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return {
+          id: el.dataset.slot,
+          inside:
+            r.left >= -1 &&
+            r.top >= -1 &&
+            r.right <= innerWidth + 1 &&
+            r.bottom <= innerHeight + 1,
+        };
+      });
+      if (!bounds.inside) scrollUnreachable.push(bounds.id);
+    }
+    await page.evaluate(() => window.scrollTo(0, 0));
+  }
+  evidence.displayChecks.at(-1).scrollUnreachable = scrollUnreachable;
 }
 async function shutdown() {
   for (const s of sockets) s.disconnect();
@@ -977,13 +1000,14 @@ try {
         g.smallTouch.length ||
         (!g.name.includes('phone') &&
           (g.fieldSlots.length !== 54 ||
-            g.fieldSlots.some((s) => s.outside || !s.visible))),
+            g.fieldSlots.some((s) => !s.visible) ||
+            g.scrollUnreachable.length)),
     ),
     [],
-    'Actual production display matrix must pass geometry/fonts/touch and all 54 desktop field slots must fit inside the viewport',
+    'Actual production display matrix must pass fonts/touch, preserve all 54 cards and prove each off-screen card reachable by real vertical scrolling',
   );
   evidence.checks.push(
-    'Actual six-seat saved expansion game production host/public/phone display matrix: requested 4K (host native usable space may be constrained, actual dimensions recorded), 1080p, 720p, 1024x576, 854x480 and 320x568; all 54 desktop field slots in viewport, no horizontal overflow, text >=16px and touch >=44px. Simulated viewport only, Windows DPI pending',
+    'Actual six-seat saved expansion game production host/public/phone display matrix: requested 4K (host native usable space may be constrained, actual dimensions recorded), 1080p, 720p, 1024x576, 854x480 and 320x568; 54 desktop cards preserved and every off-screen card reached by actual one-axis scrolling, no horizontal overflow, text >=16px and touch >=44px. Simulated viewport only, Windows DPI pending',
   );
   assert.deepEqual(evidence.pageErrors, []);
   assert.deepEqual(evidence.externalRequests, []);

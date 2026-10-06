@@ -1,6 +1,7 @@
 import type { Face, PokemonView } from '../rules/project';
 import { cardArt } from '../../../assets/games/pokemon-encounters/catalog';
-import { useContext, type CSSProperties } from 'react';
+import { useContext } from 'react';
+import { CardSkin } from './CardSkin';
 import { SavedMotion, ActionTargets, EffectTargets } from './motion';
 import { publicZeroColumns } from './presentation-state';
 import { original } from '../variants/original';
@@ -9,46 +10,9 @@ import { BoardGrid } from './BoardGrid';
 
 export function CardFace({ card }: { card: Face | null }) {
   const art = card ? cardArt(card.categoryId) : null;
-  return (
-    <span
-      className={`pokemon-card ${card ? 'face' : 'back'}`}
-      style={art ? ({ '--card-frame': art.frame } as CSSProperties) : undefined}
-      data-category={card?.categoryId}
-      title={
-        card
-          ? `${card.name} · ${card.value ?? '?'}${card.ability ? ` · ${card.ability}` : ''}`
-          : '暗牌'
-      }
-    >
-      {card ? (
-        <>
-          <span className="card-heading">
-            <strong className="card-value">{card.value ?? '?'}</strong>
-            {card.ability && (
-              <span className="ability-mark" aria-label="能力牌">
-                ✦
-              </span>
-            )}
-          </span>
-          {art?.image && (
-            <img
-              src={art.image}
-              alt=""
-              draggable={false}
-              width={475}
-              height={475}
-            />
-          )}
-          <span className="card-name">{card.name.replace('外观', '')}</span>
-        </>
-      ) : (
-        <>
-          <span className="pokeball-mark" aria-hidden="true" />
-        </>
-      )}
-    </span>
-  );
+  return <CardSkin face={card} image={art?.image} frame={art?.frame} />;
 }
+
 export function Board({
   view,
   seatId,

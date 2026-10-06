@@ -1,5 +1,15 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.3 宝可梦UI重设计收尾（2026-10-06）
+
+本次固定交付ZIP及清单保留在 pokemon-ui-redesign/delivery/，SHA-256 943071ce…；并行电力公司随后更新共用release，两包的验收边界分别保留。原图、来源、用户音源、历史验收和原交付均保留，不生成源码包或发布。全部工程进程退出后，25项定向清理检查及[229项完整隔离回归](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/config/cleanup-prefix-tests/full-final/tool-tests.json)通过，新目录前缀沿用精确六位、30分钟及路径／链接／进程保护；早先被忙进程拦截的失败日志保留，未弱化保护。
+
+先预览再应用：本轮[隔离构建／组装副本](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/isolated-build-apply.json)324,977,532字节、53项过期成功构建产物203,221,157字节、[旧解压副本](../../artifacts/maintenance/local-cleanup-20261006-075241-783-intermediates/cleanup.json)94,371,298字节，以及[额外三套运行副本](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/extra-runtime-apply.json)283,624,066字节。额外副本只删除旧电力公司暂存的两套解压和旧现代艺术build；过程ZIP／清单、冻结记录、源码、原素材和全部验收截图在目标之外继续保留。依赖和工具缓存保留；构建清理保留当前开发／交付及每单元两份最新成功产物。
+
+执行 Maintain-Project.ps1 -Apply：[实际维护](../../artifacts/maintenance/local-cleanup-20261006-075417-954-maintenance/cleanup.json)从12,611,745,619降至12,353,217,869逻辑字节，另删除两项过期验证目录258,558,120字节，169项保护或未知内容跳过。以上本次删除总1,164,752,173字节，容量净变化与删除量分别计量。
+
+补充窄范围退役后，[最后一次实际容量](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/final-space.json)为12,070,055,471字节（11.2411GiB），跳过1,370链接、零嵌套仓库。**未达到用户10GiB目标**；已核验的安全候选耗尽，两份近期打包副本、一份近期构建输出及未知用途目录继续保护，不扩大到原件、存档或当前证据，不常驻轮询。后续文档／Git写入略增；逻辑空间、ZIP预算与NTFS物理节省分开，未用压缩量代替目标。
+
 ## v1.0.3 电力公司地图优化收尾（2026-10-06）
 
 最终ZIP与[原生通过记录](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/polish-shipping-match/results.json)哈希一致；原完整交付另存于 `power-grid-ui-polish-20261006/previous-delivery/`。工程验证进程退出后，`Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0`先预览再Apply，删除两个已结束打包中间目录460,094,396字节；[清单](../../artifacts/maintenance/local-cleanup-20261006-074231-624-releases/cleanup.json)保留。最新ZIP／清单与既有受保护EXE保留，无发布或源码导出。

@@ -1,0 +1,1400 @@
+{
+  "schemaVersion": 1,
+  "tasks": [
+    {
+      "id": "R01",
+      "name": "伙伴列队",
+      "description": "至少一行形成归零线",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "zero-lines",
+        "lines": [0, 1, 2],
+        "require": "any",
+        "minimumValue": null,
+        "minimumRoles": null
+      },
+      "illustrationId": "R01",
+      "diagram": {
+        "kind": "lines",
+        "sample": {
+          "instances": [
+            "ordinary-4#01",
+            "ordinary-4#02",
+            "ordinary-4#03",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2],
+        "highlightLines": [0],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 1, 2],
+            "text": "同值成线 → 归零"
+          }
+        ],
+        "caption": "至少一行形成归零线"
+      }
+    },
+    {
+      "id": "R02",
+      "name": "高塔攀登",
+      "description": "至少一列形成归零线",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "zero-lines",
+        "lines": [3, 4, 5],
+        "require": "any",
+        "minimumValue": null,
+        "minimumRoles": null
+      },
+      "illustrationId": "R02",
+      "diagram": {
+        "kind": "lines",
+        "sample": {
+          "instances": [
+            "ordinary-4#01",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-4#02",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-4#03",
+            "ordinary-7#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 3, 6],
+        "highlightLines": [3],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 3, 6],
+            "text": "同值成列 → 归零"
+          }
+        ],
+        "caption": "至少一列形成归零线"
+      }
+    },
+    {
+      "id": "R03",
+      "name": "流星轨迹",
+      "description": "至少一条主对角线形成归零线",
+      "reward": 4,
+      "pool": "opening",
+      "condition": {
+        "type": "zero-lines",
+        "lines": [6, 7],
+        "require": "any",
+        "minimumValue": null,
+        "minimumRoles": null
+      },
+      "illustrationId": "R03",
+      "diagram": {
+        "kind": "lines",
+        "sample": {
+          "instances": [
+            "ordinary-4#01",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-5#01",
+            "ordinary-4#02",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01",
+            "ordinary-4#03"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 4, 8],
+        "highlightLines": [6],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 4, 8],
+            "text": "同值主斜线 → 归零"
+          }
+        ],
+        "caption": "至少一条主对角线形成归零线"
+      }
+    },
+    {
+      "id": "R04",
+      "name": "波导十字",
+      "description": "中间行与中间列同时归零",
+      "reward": 5,
+      "pool": "opening",
+      "condition": {
+        "type": "zero-lines",
+        "lines": [1, 4],
+        "require": "all",
+        "minimumValue": null,
+        "minimumRoles": null
+      },
+      "illustrationId": "R04",
+      "diagram": {
+        "kind": "lines",
+        "sample": {
+          "instances": [
+            "ordinary-1#01",
+            "ordinary-4#01",
+            "ordinary-3#01",
+            "ordinary-4#02",
+            "ordinary-4#03",
+            "ordinary-4#04",
+            "ordinary-5#01",
+            "ordinary-4#05",
+            "ordinary-6#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [1, 3, 4, 5, 7],
+        "highlightLines": [1, 4],
+        "arrows": [],
+        "annotations": [],
+        "caption": "中间行与中间列同时归零"
+      }
+    },
+    {
+      "id": "R05",
+      "name": "星陨交汇",
+      "description": "两条主对角线同时归零",
+      "reward": 5,
+      "pool": "opening",
+      "condition": {
+        "type": "zero-lines",
+        "lines": [6, 7],
+        "require": "all",
+        "minimumValue": null,
+        "minimumRoles": null
+      },
+      "illustrationId": "R05",
+      "diagram": {
+        "kind": "lines",
+        "sample": {
+          "instances": [
+            "ordinary-4#01",
+            "ordinary-1#01",
+            "ordinary-4#02",
+            "ordinary-3#01",
+            "ordinary-4#03",
+            "ordinary-5#01",
+            "ordinary-4#04",
+            "ordinary-6#01",
+            "ordinary-4#05"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 2, 4, 6, 8],
+        "highlightLines": [6, 7],
+        "arrows": [],
+        "annotations": [],
+        "caption": "两条主对角线同时归零"
+      }
+    },
+    {
+      "id": "R06",
+      "name": "巨兽封印",
+      "description": "至少一条归零线的有效值≥10",
+      "reward": 4,
+      "pool": "opening",
+      "condition": {
+        "type": "zero-lines",
+        "lines": [0, 1, 2, 3, 4, 5, 6, 7],
+        "require": "any",
+        "minimumValue": 10,
+        "minimumRoles": null
+      },
+      "illustrationId": "R06",
+      "diagram": {
+        "kind": "lines",
+        "sample": {
+          "instances": [
+            "ordinary-metagross#01",
+            "ordinary-metagross#02",
+            "ordinary-metagross#03",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2],
+        "highlightLines": [0],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 1, 2],
+            "text": "归零线有效值 ≥10"
+          }
+        ],
+        "caption": "至少一条归零线的有效值≥10"
+      }
+    },
+    {
+      "id": "R07",
+      "name": "四角星座",
+      "description": "四角同值且该值≥0",
+      "reward": 4,
+      "pool": "opening",
+      "condition": {
+        "type": "equal-groups",
+        "groups": [[0, 2, 6, 8]],
+        "minimumValue": 0,
+        "differentGroups": false
+      },
+      "illustrationId": "R07",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary-4#01",
+            "ordinary-1#01",
+            "ordinary-4#02",
+            "ordinary-3#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-4#03",
+            "ordinary-7#01",
+            "ordinary-4#04"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 2, 6, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 2, 6, 8],
+            "text": "四角同值，且 ≥0"
+          }
+        ],
+        "caption": "四角同值且该值≥0"
+      }
+    },
+    {
+      "id": "R08",
+      "name": "镜湖倒影",
+      "description": "上中＝下中，左中＝右中",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "equal-groups",
+        "groups": [
+          [1, 7],
+          [3, 5]
+        ],
+        "minimumValue": null,
+        "differentGroups": false
+      },
+      "illustrationId": "R08",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-piplup#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-3#02",
+            "ordinary-5#01",
+            "ordinary-1#02",
+            "ordinary-6#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [1, 7, 3, 5],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "上中＝下中，左中＝右中"
+      }
+    },
+    {
+      "id": "R09",
+      "name": "双子结界",
+      "description": "两组对角角格分别同值且两组值不同",
+      "reward": 4,
+      "pool": "opening",
+      "condition": {
+        "type": "equal-groups",
+        "groups": [
+          [0, 8],
+          [2, 6]
+        ],
+        "minimumValue": null,
+        "differentGroups": true
+      },
+      "illustrationId": "R09",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary-4#01",
+            "ordinary-1#01",
+            "ordinary-6#01",
+            "ordinary-3#01",
+            "ordinary-5#01",
+            "ordinary-7#01",
+            "ordinary-6#02",
+            "ordinary-8#01",
+            "ordinary-4#02"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 2, 6, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "两组对角角格分别同值且两组值不同"
+      }
+    },
+    {
+      "id": "R10",
+      "name": "环形阶梯",
+      "description": "上中＜右中＜下中＜左中",
+      "reward": 4,
+      "pool": "opening",
+      "condition": {
+        "type": "ordered-values",
+        "groups": [[1, 5, 7, 3]],
+        "require": "all",
+        "minimumStep": 1,
+        "equalStep": false,
+        "exactStep": null,
+        "minimumSpan": 0
+      },
+      "illustrationId": "R10",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-piplup#01",
+            "ordinary-5#01",
+            "ordinary-8#01",
+            "ordinary-3#01",
+            "ordinary-6#01",
+            "ordinary-4#01",
+            "ordinary-7#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [1, 5, 7, 3],
+        "highlightLines": [],
+        "arrows": [
+          {
+            "from": 1,
+            "to": 5
+          },
+          {
+            "from": 5,
+            "to": 7
+          },
+          {
+            "from": 7,
+            "to": 3
+          }
+        ],
+        "annotations": [],
+        "caption": "上中＜右中＜下中＜左中"
+      }
+    },
+    {
+      "id": "R11",
+      "name": "众星拱月",
+      "description": "中心严格小于其余八格",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "center-extreme",
+        "center": 4,
+        "slots": [0, 1, 2, 3, 5, 6, 7, 8],
+        "extreme": "minimum"
+      },
+      "illustrationId": "R11",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-piplup#01",
+            "ordinary-3#01",
+            "ordinary--2#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [4],
+            "text": "中心最小"
+          }
+        ],
+        "caption": "中心严格小于其余八格"
+      }
+    },
+    {
+      "id": "R12",
+      "name": "王者之巅",
+      "description": "中心严格大于其余八格",
+      "reward": 4,
+      "pool": "opening",
+      "condition": {
+        "type": "center-extreme",
+        "center": 4,
+        "slots": [0, 1, 2, 3, 5, 6, 7, 8],
+        "extreme": "maximum"
+      },
+      "illustrationId": "R12",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-piplup#01",
+            "ordinary-3#01",
+            "special-team-rocket#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [4],
+            "text": "中心最大"
+          }
+        ],
+        "caption": "中心严格大于其余八格"
+      }
+    },
+    {
+      "id": "R13",
+      "name": "温柔生态",
+      "description": "九格有效值全部≤5",
+      "reward": 4,
+      "pool": "opening",
+      "condition": {
+        "type": "value-bands",
+        "bands": [
+          {
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": null,
+            "maximum": 5
+          }
+        ]
+      },
+      "illustrationId": "R13",
+      "diagram": {
+        "kind": "values",
+        "sample": {
+          "instances": [
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-piplup#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-0#02",
+            "ordinary-1#02",
+            "ordinary-piplup#02"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "text": "全部 ≤5"
+          }
+        ],
+        "caption": "九格有效值全部≤5"
+      }
+    },
+    {
+      "id": "R14",
+      "name": "阴阳调和",
+      "description": "一行之和为0且同时含正负值",
+      "reward": 4,
+      "pool": "opening",
+      "condition": {
+        "type": "signed-line-sum",
+        "groups": [
+          [0, 1, 2],
+          [3, 4, 5],
+          [6, 7, 8]
+        ],
+        "sum": 0
+      },
+      "illustrationId": "R14",
+      "diagram": {
+        "kind": "values",
+        "sample": {
+          "instances": [
+            "ordinary--2#01",
+            "ordinary-togepi#01",
+            "ordinary-3#01",
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2],
+        "highlightLines": [0],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 1, 2],
+            "text": "−2 −1 ＋3 ＝0"
+          }
+        ],
+        "caption": "一行之和为0且同时含正负值"
+      }
+    },
+    {
+      "id": "R15",
+      "name": "进化阶梯",
+      "description": "一行从左至右为三个连续整数",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "ordered-values",
+        "groups": [
+          [0, 1, 2],
+          [3, 4, 5],
+          [6, 7, 8]
+        ],
+        "require": "any",
+        "minimumStep": 1,
+        "equalStep": true,
+        "exactStep": 1,
+        "minimumSpan": 0
+      },
+      "illustrationId": "R15",
+      "diagram": {
+        "kind": "values",
+        "sample": {
+          "instances": [
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-piplup#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2],
+        "highlightLines": [0],
+        "arrows": [
+          {
+            "from": 0,
+            "to": 1
+          },
+          {
+            "from": 1,
+            "to": 2
+          }
+        ],
+        "annotations": [],
+        "caption": "一行从左至右为三个连续整数"
+      }
+    },
+    {
+      "id": "R16",
+      "name": "跨级实验",
+      "description": "一列从上至下为等差数列且公差≥2",
+      "reward": 4,
+      "pool": "opening",
+      "condition": {
+        "type": "ordered-values",
+        "groups": [
+          [0, 3, 6],
+          [1, 4, 7],
+          [2, 5, 8]
+        ],
+        "require": "any",
+        "minimumStep": 2,
+        "equalStep": true,
+        "exactStep": null,
+        "minimumSpan": 0
+      },
+      "illustrationId": "R16",
+      "diagram": {
+        "kind": "values",
+        "sample": {
+          "instances": [
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-piplup#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 3, 6],
+        "highlightLines": [3],
+        "arrows": [
+          {
+            "from": 0,
+            "to": 3
+          },
+          {
+            "from": 3,
+            "to": 6
+          }
+        ],
+        "annotations": [
+          {
+            "slots": [0, 3, 6],
+            "text": "等差，公差 ≥2"
+          }
+        ],
+        "caption": "一列从上至下为等差数列且公差≥2"
+      }
+    },
+    {
+      "id": "R17",
+      "name": "三界平衡",
+      "description": "三行之和相等且每行至少两种值",
+      "reward": 5,
+      "pool": "opening",
+      "condition": {
+        "type": "equal-sums",
+        "groups": [
+          [0, 1, 2],
+          [3, 4, 5],
+          [6, 7, 8]
+        ],
+        "minimumDistinctPerGroup": 2,
+        "distinctSlots": [],
+        "minimumDistinctSlots": 0
+      },
+      "illustrationId": "R17",
+      "diagram": {
+        "kind": "values",
+        "sample": {
+          "instances": [
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-5#01",
+            "ordinary-1#02",
+            "ordinary-piplup#01",
+            "ordinary-3#01",
+            "ordinary-0#02",
+            "ordinary-piplup#02",
+            "ordinary-4#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 1, 2],
+            "text": "每行之和＝6"
+          },
+          {
+            "slots": [3, 4, 5],
+            "text": "每行之和＝6"
+          },
+          {
+            "slots": [6, 7, 8],
+            "text": "每行之和＝6"
+          }
+        ],
+        "caption": "三行之和相等且每行至少两种值"
+      }
+    },
+    {
+      "id": "R18",
+      "name": "缤纷光谱",
+      "description": "至少六种不同有效值",
+      "reward": 4,
+      "pool": "opening",
+      "condition": {
+        "type": "distinct-values",
+        "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "minimum": 6
+      },
+      "illustrationId": "R18",
+      "diagram": {
+        "kind": "values",
+        "sample": {
+          "instances": [
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-piplup#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "text": "至少六种有效值"
+          }
+        ],
+        "caption": "至少六种不同有效值"
+      }
+    },
+    {
+      "id": "R19",
+      "name": "百花齐放",
+      "description": "九张牌属于九种不同角色",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "distinct-roles",
+        "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "minimum": 9
+      },
+      "illustrationId": "R19",
+      "diagram": {
+        "kind": "roles",
+        "sample": {
+          "instances": [
+            "ordinary--2#01",
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "text": "九种不同角色"
+          }
+        ],
+        "caption": "九张牌属于九种不同角色"
+      }
+    },
+    {
+      "id": "R20",
+      "name": "异种协作",
+      "description": "一条归零线包含三种不同角色",
+      "reward": 4,
+      "pool": "opening",
+      "condition": {
+        "type": "zero-lines",
+        "lines": [0, 1, 2, 3, 4, 5, 6, 7],
+        "require": "any",
+        "minimumValue": null,
+        "minimumRoles": 3
+      },
+      "illustrationId": "R20",
+      "diagram": {
+        "kind": "roles",
+        "sample": {
+          "instances": [
+            "special-ditto#01",
+            "ordinary-4#01",
+            "special-zorua#01",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-4#02",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2],
+        "highlightLines": [0],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 1, 2],
+            "text": "同值，三种角色"
+          }
+        ],
+        "caption": "一条归零线包含三种不同角色"
+      }
+    },
+    {
+      "id": "R21",
+      "name": "原野守护",
+      "description": "九张全部为普通牌",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "ordinary-only",
+        "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8]
+      },
+      "illustrationId": "R21",
+      "diagram": {
+        "kind": "roles",
+        "sample": {
+          "instances": [
+            "ordinary--2#01",
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "text": "全部普通牌"
+          }
+        ],
+        "caption": "九张全部为普通牌"
+      }
+    },
+    {
+      "id": "R22",
+      "name": "海陆空同盟",
+      "description": "本人最终场地拥有三种丰缘神兽",
+      "reward": 5,
+      "pool": "opening",
+      "condition": {
+        "type": "required-abilities",
+        "abilities": ["groudon", "kyogre", "rayquaza"]
+      },
+      "illustrationId": "R22",
+      "diagram": {
+        "kind": "roles",
+        "sample": {
+          "instances": [
+            "special-groudon#01",
+            "special-kyogre#01",
+            "special-rayquaza#01",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 1, 2],
+            "text": "三种丰缘神兽"
+          }
+        ],
+        "caption": "本人最终场地拥有三种丰缘神兽"
+      }
+    },
+    {
+      "id": "R23",
+      "name": "幻化桥梁",
+      "description": "合法解析的复制牌参加归零线",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "copy-in-zero-line"
+      },
+      "illustrationId": "R23",
+      "diagram": {
+        "kind": "copy",
+        "sample": {
+          "instances": [
+            "ordinary-4#01",
+            "special-ditto#01",
+            "ordinary-4#02",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2],
+        "highlightLines": [0],
+        "arrows": [
+          {
+            "from": 1,
+            "to": 0
+          },
+          {
+            "from": 1,
+            "to": 2
+          }
+        ],
+        "annotations": [
+          {
+            "slots": [1],
+            "text": "百变怪复制左右 → 4"
+          }
+        ],
+        "caption": "合法解析的复制牌参加归零线"
+      }
+    },
+    {
+      "id": "R24",
+      "name": "幕后布阵",
+      "description": "揭示前至少三明三暗，归零线至少两格原暗牌",
+      "reward": 4,
+      "pool": "opening",
+      "condition": {
+        "type": "hidden-zero-line",
+        "minimumFaceUp": 3,
+        "minimumFaceDown": 3,
+        "minimumHiddenInLine": 2
+      },
+      "illustrationId": "R24",
+      "diagram": {
+        "kind": "visibility",
+        "sample": {
+          "instances": [
+            "ordinary-4#01",
+            "ordinary-4#02",
+            "ordinary-4#03",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [
+            false,
+            false,
+            true,
+            true,
+            true,
+            true,
+            false,
+            false,
+            false
+          ]
+        },
+        "highlightSlots": [0, 1, 2],
+        "highlightLines": [0],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 1],
+            "text": "原暗牌参与归零线"
+          }
+        ],
+        "caption": "揭示前至少三明三暗，归零线至少两格原暗牌"
+      }
+    },
+    {
+      "id": "H01",
+      "name": "天地初开",
+      "description": "上行全部≥8、中行全部4–7、下行全部≤3",
+      "reward": 5,
+      "pool": "hoenn",
+      "condition": {
+        "type": "value-bands",
+        "bands": [
+          {
+            "slots": [0, 1, 2],
+            "minimum": 8,
+            "maximum": null
+          },
+          {
+            "slots": [3, 4, 5],
+            "minimum": 4,
+            "maximum": 7
+          },
+          {
+            "slots": [6, 7, 8],
+            "minimum": null,
+            "maximum": 3
+          }
+        ]
+      },
+      "illustrationId": "H01",
+      "diagram": {
+        "kind": "values",
+        "sample": {
+          "instances": [
+            "ordinary-8#01",
+            "ordinary-9#01",
+            "ordinary-metagross#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-piplup#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 1, 2],
+            "text": "≥8"
+          },
+          {
+            "slots": [3, 4, 5],
+            "text": "4–7"
+          },
+          {
+            "slots": [6, 7, 8],
+            "text": "≤3"
+          }
+        ],
+        "caption": "上行全部≥8、中行全部4–7、下行全部≤3"
+      }
+    },
+    {
+      "id": "H02",
+      "name": "海渊回响",
+      "description": "中行全部≤0、上下两行全部≥6",
+      "reward": 5,
+      "pool": "hoenn",
+      "condition": {
+        "type": "value-bands",
+        "bands": [
+          {
+            "slots": [0, 1, 2],
+            "minimum": 6,
+            "maximum": null
+          },
+          {
+            "slots": [3, 4, 5],
+            "minimum": null,
+            "maximum": 0
+          },
+          {
+            "slots": [6, 7, 8],
+            "minimum": 6,
+            "maximum": null
+          }
+        ]
+      },
+      "illustrationId": "H02",
+      "diagram": {
+        "kind": "values",
+        "sample": {
+          "instances": [
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01",
+            "ordinary-0#01",
+            "ordinary-0#02",
+            "ordinary-0#03",
+            "ordinary-9#01",
+            "ordinary-metagross#01",
+            "ordinary-garchomp#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 1, 2],
+            "text": "≥6"
+          },
+          {
+            "slots": [3, 4, 5],
+            "text": "≤0"
+          },
+          {
+            "slots": [6, 7, 8],
+            "text": "≥6"
+          }
+        ],
+        "caption": "中行全部≤0、上下两行全部≥6"
+      }
+    },
+    {
+      "id": "H03",
+      "name": "断崖隆升",
+      "description": "每列向下严格递增且底格减顶格均≥6",
+      "reward": 5,
+      "pool": "hoenn",
+      "condition": {
+        "type": "ordered-values",
+        "groups": [
+          [0, 3, 6],
+          [1, 4, 7],
+          [2, 5, 8]
+        ],
+        "require": "all",
+        "minimumStep": 1,
+        "equalStep": false,
+        "exactStep": null,
+        "minimumSpan": 6
+      },
+      "illustrationId": "H03",
+      "diagram": {
+        "kind": "values",
+        "sample": {
+          "instances": [
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-piplup#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [
+          {
+            "from": 0,
+            "to": 3
+          },
+          {
+            "from": 3,
+            "to": 6
+          },
+          {
+            "from": 1,
+            "to": 4
+          },
+          {
+            "from": 4,
+            "to": 7
+          },
+          {
+            "from": 2,
+            "to": 5
+          },
+          {
+            "from": 5,
+            "to": 8
+          }
+        ],
+        "annotations": [
+          {
+            "slots": [0, 3, 6],
+            "text": "向下递增，跨度 ≥6"
+          },
+          {
+            "slots": [1, 4, 7],
+            "text": "向下递增，跨度 ≥6"
+          },
+          {
+            "slots": [2, 5, 8],
+            "text": "向下递增，跨度 ≥6"
+          }
+        ],
+        "caption": "每列向下严格递增且底格减顶格均≥6"
+      }
+    },
+    {
+      "id": "H04",
+      "name": "天空环流",
+      "description": "四角均大于中心，四边均小于中心",
+      "reward": 5,
+      "pool": "hoenn",
+      "condition": {
+        "type": "center-rings",
+        "center": 4,
+        "higherSlots": [0, 2, 6, 8],
+        "lowerSlots": [1, 3, 5, 7]
+      },
+      "illustrationId": "H04",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary-8#01",
+            "ordinary-0#01",
+            "ordinary-9#01",
+            "ordinary-1#01",
+            "ordinary-5#01",
+            "ordinary-piplup#01",
+            "ordinary-metagross#01",
+            "ordinary-3#01",
+            "ordinary-garchomp#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 2, 6, 8],
+            "text": "四角 ＞ 中心"
+          },
+          {
+            "slots": [1, 3, 5, 7],
+            "text": "四边 ＜ 中心"
+          }
+        ],
+        "caption": "四角均大于中心，四边均小于中心"
+      }
+    },
+    {
+      "id": "H05",
+      "name": "陨星天平",
+      "description": "两条主对角线之和相等且四角值互异",
+      "reward": 4,
+      "pool": "hoenn",
+      "condition": {
+        "type": "equal-sums",
+        "groups": [
+          [0, 4, 8],
+          [2, 4, 6]
+        ],
+        "minimumDistinctPerGroup": 0,
+        "distinctSlots": [0, 2, 6, 8],
+        "minimumDistinctSlots": 4
+      },
+      "illustrationId": "H05",
+      "diagram": {
+        "kind": "values",
+        "sample": {
+          "instances": [
+            "ordinary-0#01",
+            "ordinary-4#01",
+            "ordinary-1#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-piplup#01",
+            "ordinary-8#01",
+            "ordinary-3#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 2, 6, 8],
+        "highlightLines": [6, 7],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 4, 8],
+            "text": "斜线之和＝9"
+          },
+          {
+            "slots": [2, 4, 6],
+            "text": "斜线之和＝9"
+          }
+        ],
+        "caption": "两条主对角线之和相等且四角值互异"
+      }
+    },
+    {
+      "id": "H06",
+      "name": "终焉封印",
+      "description": "两条不同值归零线，一条≥8，另有未归零负值牌",
+      "reward": 5,
+      "pool": "hoenn",
+      "condition": {
+        "type": "different-zero-values",
+        "minimumDifferent": 2,
+        "minimumHighValue": 8,
+        "negativeOutsideZero": true
+      },
+      "illustrationId": "H06",
+      "diagram": {
+        "kind": "lines",
+        "sample": {
+          "instances": [
+            "ordinary-metagross#01",
+            "ordinary-metagross#02",
+            "ordinary-metagross#03",
+            "ordinary-3#01",
+            "ordinary-3#02",
+            "ordinary-3#03",
+            "ordinary--2#01",
+            "ordinary-1#01",
+            "ordinary-4#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6],
+        "highlightLines": [0, 1],
+        "arrows": [],
+        "annotations": [
+          {
+            "slots": [0, 1, 2],
+            "text": "高值归零线 ≥8"
+          },
+          {
+            "slots": [3, 4, 5],
+            "text": "另一种值归零线"
+          },
+          {
+            "slots": [6],
+            "text": "未归零负值"
+          }
+        ],
+        "caption": "两条不同值归零线，一条≥8，另有未归零负值牌"
+      }
+    }
+  ]
+}

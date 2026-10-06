@@ -1,4 +1,4 @@
-param([string]$EvidenceDirectory)
+param([string]$EvidenceDirectory, [switch]$VerificationPrefixesOnly)
 
 $ErrorActionPreference = 'Stop'
 $workspaceForTest = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\')
@@ -66,6 +66,29 @@ try {
   Fixture-File 'tmp/pokemon-expansion-effects-EFX123/data/room.sqlite' 'isolated-expansion-effects'
   Fixture-File 'tmp/portable-storage-games-SAV123/data/room.sqlite' 'isolated-three-game-storage'
   Fixture-File 'tmp/portable-storage-CFG123/data/room.sqlite' 'isolated-portable-config-storage'
+  $redesignVerificationNames = @('pokemon-ui-redesign-UiA123', 'shipping-executable-ShP123')
+  $recentRedesignNames = @('pokemon-ui-redesign-Young1', 'shipping-executable-Young2')
+  $similarRedesignNames = @(
+    'pokemon-ui-redesign-', 'pokemon-ui-redesign-ABCDE', 'pokemon-ui-redesign-ABCDEFG',
+    'pokemon-ui-redesign-AB_123', 'pokemon-ui-redesign-AB-123', 'pokemon-ui-redesign-reference',
+    'shipping-executable-', 'shipping-executable-ABCDE', 'shipping-executable-ABCDEFG',
+    'shipping-executable-AB_123', 'shipping-executable-AB-123', 'shipping-executable-reference'
+  )
+  foreach ($name in $redesignVerificationNames) { Fixture-File ('tmp/' + $name + '/generated.bin') 'regenerable-closed-verification' }
+  foreach ($name in $recentRedesignNames) { Fixture-File ('tmp/' + $name + '/generated.bin') 'recent-verification-protected' }
+  foreach ($name in $similarRedesignNames) { Fixture-File ('tmp/' + $name + '/original.png') 'similar-name-original-preserved' }
+  foreach ($name in @('pokemon-ui-redesign-File01', 'shipping-executable-File02')) { Fixture-File ('tmp/' + $name) 'ordinary-file-not-a-verification-directory' }
+  $redesignOriginals = @(
+    'assets/games/pokemon-encounters/expansion/research-illustrations/originals/R01.png',
+    'artifacts/maintenance/v1.5.0/pokemon-ui-redesign/illustration-originals/R23.png',
+    'artifacts/maintenance/v1.5.0/pokemon-ui-redesign/ui/screenshots/current.png',
+    'data/room.sqlite'
+  )
+  $redesignOriginalHashes = @{}
+  foreach ($relative in $redesignOriginals) {
+    Fixture-File $relative 'protected-original-save-or-current-evidence'
+    $redesignOriginalHashes[$relative] = (Get-FileHash -LiteralPath (Join-Path $fixture $relative) -Algorithm SHA256).Hash
+  }
   Fixture-File 'tmp/pokemon-expansion-materials/notes.md' 'original material preserved'
   Fixture-File 'tmp/modern-art-polish-reference/notes.md' 'unknown-polish-reference'
   Fixture-File 'tmp/modern-art-verify-research/notes.md' 'unknown-modern-art-research'
@@ -132,7 +155,32 @@ try {
     }
   }
   (Get-Item -LiteralPath (Join-Path $fixture 'tmp/game-ui-Young1/data/room.sqlite')).LastWriteTimeUtc = [DateTime]::UtcNow
+  foreach ($name in $recentRedesignNames) { (Get-Item -LiteralPath (Join-Path $fixture ('tmp/' + $name + '/generated.bin'))).LastWriteTimeUtc = [DateTime]::UtcNow }
   (Get-Item -LiteralPath (Join-Path $fixture 'tmp/review-young/notes.md')).LastWriteTimeUtc = [DateTime]::UtcNow
+
+  if ($VerificationPrefixesOnly) {
+    # Exercise actual automatic selection without Apply or suppressing busy-process guards.
+    [IO.File]::WriteAllBytes((Join-Path $fixture 'protected/maintenance-watermark.bin'), (New-Object byte[] (2MB)))
+    function Read-AutomaticPrefixPreview {
+      $null = . (Join-Path $fixture 'scripts/cleanup-local.ps1') -Kind Maintenance -ProjectRoot $fixture -HighWaterGiB 0.001 -LowWaterGiB 0
+      [PSCustomObject]@{ paths = @($candidates | ForEach-Object { $_.path }); skipped = @($skipped | ForEach-Object { $_.path }); result = $summary.result }
+    }
+    $reportCountBefore = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Directory).Count
+    $prefixPreview = Read-AutomaticPrefixPreview
+    Check ($prefixPreview.result -eq 'preview') 'Automatic prefix check runs actual maintenance preview above the threshold'
+    foreach ($name in $redesignVerificationNames) { Check ((Join-Path $fixture ('tmp/' + $name)) -in $prefixPreview.paths) ('Automatic maintenance selects exact six-character verification directory: ' + $name) }
+    foreach ($name in $recentRedesignNames) { Check (((Join-Path $fixture ('tmp/' + $name)) -notin $prefixPreview.paths) -and ((Join-Path $fixture ('tmp/' + $name)) -in $prefixPreview.skipped)) ('Automatic maintenance retains default 30-minute protection: ' + $name) }
+    foreach ($name in $similarRedesignNames) { Check (((Join-Path $fixture ('tmp/' + $name)) -notin $prefixPreview.paths) -and (Test-Path -LiteralPath (Join-Path $fixture ('tmp/' + $name + '/original.png')))) ('Automatic maintenance preserves invalid suffix or similar original directory: ' + $name) }
+    foreach ($name in @('pokemon-ui-redesign-File01', 'shipping-executable-File02')) { Check (((Join-Path $fixture ('tmp/' + $name)) -notin $prefixPreview.paths) -and (Test-Path -LiteralPath (Join-Path $fixture ('tmp/' + $name)) -PathType Leaf)) ('Automatic maintenance preserves same-name ordinary file: ' + $name) }
+    foreach ($relative in $redesignOriginals) { Check ((Get-FileHash -LiteralPath (Join-Path $fixture $relative) -Algorithm SHA256).Hash -eq $redesignOriginalHashes[$relative]) ('Automatic maintenance preview preserves original, screenshot and formal save bytes: ' + $relative) }
+    Check ((Get-FileHash -LiteralPath $currentZip -Algorithm SHA256).Hash.ToLowerInvariant() -eq $hash) 'Automatic maintenance preview preserves current verified ZIP bytes'
+    Check (@(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Directory).Count -eq $reportCountBefore) 'Automatic maintenance preview creates no cleanup record or deletes evidence'
+    $evidenceDir = if ($EvidenceDirectory) { [IO.Path]::GetFullPath($EvidenceDirectory) } else { Join-Path $workspaceForTest 'artifacts/maintenance/cleanup-history/tool-checks/current' }
+    New-Item -ItemType Directory -Path $evidenceDir -Force | Out-Null
+    [PSCustomObject]@{ verifiedAt = [DateTime]::UtcNow.ToString('o'); result = 'passed'; mode = 'automatic-prefix-preview'; checks = $checks.ToArray(); runtime = $PSVersionTable.PSVersion.ToString() } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $evidenceDir 'prefix-tests.json') -Encoding utf8
+    Write-Host ('PASS: ' + $checks.Count + ' automatic verification-prefix checks in an isolated preview fixture.')
+    return
+  }
 
   $initialMaintenanceDirectories = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Directory).Count
   Run-Cleanup Releases $false
@@ -343,6 +391,13 @@ try {
   Run-Cleanup Intermediates $true
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/package-1.5.0-ABC123'))) 'Current regenerable stage is removed, current ZIP retained'
   foreach ($name in @('pokemon-expansion-runtime-RUN123','pokemon-expansion-normal-play-PLY123','pokemon-expansion-effects-EFX123','portable-storage-games-SAV123','portable-storage-CFG123')) { Check (-not (Test-Path -LiteralPath (Join-Path $fixture ('tmp/'+$name)))) ('Retired exact isolated verification prefix '+$name) }
+  foreach ($name in $redesignVerificationNames) { Check (-not (Test-Path -LiteralPath (Join-Path $fixture ('tmp/' + $name)))) ('Closed exact six-character verification directory is removed: ' + $name) }
+  foreach ($name in $recentRedesignNames) { Check (Test-Path -LiteralPath (Join-Path $fixture ('tmp/' + $name + '/generated.bin'))) ('Default 30-minute protection keeps new verification prefix: ' + $name) }
+  foreach ($name in $similarRedesignNames) { Check (Test-Path -LiteralPath (Join-Path $fixture ('tmp/' + $name + '/original.png'))) ('Similar or invalid verification suffix preserves original: ' + $name) }
+  foreach ($name in @('pokemon-ui-redesign-File01', 'shipping-executable-File02')) { Check (Test-Path -LiteralPath (Join-Path $fixture ('tmp/' + $name)) -PathType Leaf) ('Exact verification name on an ordinary file is preserved: ' + $name) }
+  foreach ($relative in $redesignOriginals) {
+    Check ((Test-Path -LiteralPath (Join-Path $fixture $relative) -PathType Leaf) -and (Get-FileHash -LiteralPath (Join-Path $fixture $relative) -Algorithm SHA256).Hash -eq $redesignOriginalHashes[$relative]) ('New verification prefixes preserve original image, current screenshot or formal save bytes: ' + $relative)
+  }
   Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/pokemon-expansion-materials/notes.md')) 'Expansion original material is not a verification prefix'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/display-ABC123'))) 'Recognized stopped verification directory is removed'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/experience-EXP123'))) 'Recognized stopped experience verification data is removed'

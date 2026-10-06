@@ -1,0 +1,447 @@
+{
+  "schemaVersion": 1,
+  "cards": [
+    {
+      "categoryId": "ordinary--2",
+      "name": "皮卡丘",
+      "value": -2,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "pikachu",
+        "frame": "#f5ce42",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-0",
+      "name": "胖丁",
+      "value": 0,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "jigglypuff",
+        "frame": "#ec87ae",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-1",
+      "name": "伊布",
+      "value": 1,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "eevee",
+        "frame": "#d39c58",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-3",
+      "name": "妙蛙种子",
+      "value": 3,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "bulbasaur",
+        "frame": "#74b969",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-4",
+      "name": "杰尼龟",
+      "value": 4,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "squirtle",
+        "frame": "#6facdc",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-5",
+      "name": "六尾",
+      "value": 5,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "vulpix",
+        "frame": "#ee9461",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-6",
+      "name": "呆呆兽",
+      "value": 6,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "slowpoke",
+        "frame": "#eb9fa6",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-7",
+      "name": "耿鬼",
+      "value": 7,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "gengar",
+        "frame": "#9a84c7",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-8",
+      "name": "魔墙人偶",
+      "value": 8,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "mrMime",
+        "frame": "#d79bba",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-9",
+      "name": "大岩蛇",
+      "value": 9,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "onix",
+        "frame": "#aeb5b4",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-togepi",
+      "name": "波克比",
+      "value": -1,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "togepi",
+        "frame": "#d7ad57",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-magikarp",
+      "name": "鲤鱼王",
+      "value": 0,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "magikarp",
+        "frame": "#e47d46",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-piplup",
+      "name": "波加曼",
+      "value": 2,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "piplup",
+        "frame": "#3888c2",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-rowlet",
+      "name": "木木枭",
+      "value": 3,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "rowlet",
+        "frame": "#7ea357",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-psyduck",
+      "name": "可达鸭",
+      "value": 6,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "psyduck",
+        "frame": "#deb939",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-garchomp",
+      "name": "烈咬陆鲨",
+      "value": 11,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "garchomp",
+        "frame": "#476da7",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-gardevoir",
+      "name": "沙奈朵",
+      "value": 8,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "gardevoir",
+        "frame": "#78ac8b",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-dragonite",
+      "name": "快龙",
+      "value": 9,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "dragonite",
+        "frame": "#dca554",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-metagross",
+      "name": "巨金怪",
+      "value": 10,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "metagross",
+        "frame": "#698a9f",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "ordinary-mimikyu",
+      "name": "谜拟丘",
+      "value": -2,
+      "ability": null,
+      "copy": null,
+      "abilityText": null,
+      "presentation": {
+        "creature": "mimikyu",
+        "frame": "#baa86a",
+        "abilitySummary": ""
+      }
+    },
+    {
+      "categoryId": "special-mew",
+      "name": "梦幻",
+      "value": 2,
+      "ability": "mew",
+      "copy": null,
+      "abilityText": "换入对手一张牌，再将所得换入本人。",
+      "presentation": {
+        "creature": "mew",
+        "frame": "#f2ceda",
+        "abilitySummary": "偷取卡牌"
+      }
+    },
+    {
+      "categoryId": "special-team-rocket",
+      "name": "火箭队",
+      "value": 12,
+      "ability": "team-rocket",
+      "copy": null,
+      "abilityText": "抛币：喵喵换入本人；皮卡丘全员同格弃底补牌。",
+      "presentation": {
+        "creature": "rocket",
+        "frame": "#eee6ce",
+        "abilitySummary": "抛币突袭"
+      }
+    },
+    {
+      "categoryId": "special-zapdos",
+      "name": "闪电鸟",
+      "value": 10,
+      "ability": "zapdos",
+      "copy": null,
+      "abilityText": "选择传牌方向，换入本人后向其他玩家依次接力。",
+      "presentation": {
+        "creature": "zapdos",
+        "frame": "#f3cf48",
+        "abilitySummary": "接力换牌"
+      }
+    },
+    {
+      "categoryId": "special-charizard",
+      "name": "喷火龙",
+      "value": 10,
+      "ability": "charizard",
+      "copy": null,
+      "abilityText": "可私看本人一张暗牌，保持朝下。",
+      "presentation": {
+        "creature": "charizard",
+        "frame": "#ec9159",
+        "abilitySummary": "查看暗牌"
+      }
+    },
+    {
+      "categoryId": "special-snorlax",
+      "name": "卡比兽",
+      "value": 10,
+      "ability": "snorlax",
+      "copy": null,
+      "abilityText": "可交换本人两个不同位置，朝向随牌移动。",
+      "presentation": {
+        "creature": "snorlax",
+        "frame": "#74a9ab",
+        "abilitySummary": "交换两牌"
+      }
+    },
+    {
+      "categoryId": "special-ditto",
+      "name": "百变怪",
+      "value": null,
+      "ability": null,
+      "copy": "horizontal",
+      "abilityText": null,
+      "presentation": {
+        "creature": "ditto",
+        "frame": "#b793d3",
+        "abilitySummary": "横向复制"
+      }
+    },
+    {
+      "categoryId": "special-mewtwo",
+      "name": "超梦",
+      "value": 8,
+      "ability": "mewtwo",
+      "copy": null,
+      "abilityText": "私看同一对手两格，再决定与其中一张交换或放弃。",
+      "presentation": {
+        "creature": "mewtwo",
+        "frame": "#9179b6",
+        "abilitySummary": "侦察换牌"
+      }
+    },
+    {
+      "categoryId": "special-arceus",
+      "name": "阿尔宙斯",
+      "value": 0,
+      "ability": "arceus",
+      "copy": null,
+      "abilityText": "可把全桌盖回，每人均匀随机翻明一格；每小局一次。",
+      "presentation": {
+        "creature": "arceus",
+        "frame": "#bda867",
+        "abilitySummary": "全桌盖牌"
+      }
+    },
+    {
+      "categoryId": "special-greninja",
+      "name": "甲贺忍蛙",
+      "value": 7,
+      "ability": "greninja",
+      "copy": null,
+      "abilityText": "可把任意一名玩家两格盖回，或盖回并交换。",
+      "presentation": {
+        "creature": "greninja",
+        "frame": "#386fa8",
+        "abilitySummary": "盖回换牌"
+      }
+    },
+    {
+      "categoryId": "special-lucario",
+      "name": "路卡利欧",
+      "value": 10,
+      "ability": "lucario",
+      "copy": null,
+      "abilityText": "可额外取牌一次，所取特殊牌不再触发主动能力。",
+      "presentation": {
+        "creature": "lucario",
+        "frame": "#39779f",
+        "abilitySummary": "再取一张牌"
+      }
+    },
+    {
+      "categoryId": "special-groudon",
+      "name": "固拉多",
+      "value": 12,
+      "ability": "groudon",
+      "copy": null,
+      "abilityText": "可与一名对手交换第三行，朝向随牌移动。",
+      "presentation": {
+        "creature": "groudon",
+        "frame": "#b95343",
+        "abilitySummary": "底行交换"
+      }
+    },
+    {
+      "categoryId": "special-kyogre",
+      "name": "盖欧卡",
+      "value": 12,
+      "ability": "kyogre",
+      "copy": null,
+      "abilityText": "可与一名对手交换第二行，朝向随牌移动。",
+      "presentation": {
+        "creature": "kyogre",
+        "frame": "#386ea6",
+        "abilitySummary": "中行交换"
+      }
+    },
+    {
+      "categoryId": "special-rayquaza",
+      "name": "裂空座",
+      "value": 12,
+      "ability": "rayquaza",
+      "copy": null,
+      "abilityText": "可与一名对手交换第一行，朝向随牌移动。",
+      "presentation": {
+        "creature": "rayquaza",
+        "frame": "#43896b",
+        "abilitySummary": "顶行交换"
+      }
+    },
+    {
+      "categoryId": "special-zorua",
+      "name": "索罗亚",
+      "value": null,
+      "ability": null,
+      "copy": "vertical",
+      "abilityText": null,
+      "presentation": {
+        "creature": "zorua",
+        "frame": "#8f667d",
+        "abilitySummary": "纵向复制"
+      }
+    }
+  ]
+}

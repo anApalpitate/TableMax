@@ -546,6 +546,12 @@ GitHub附件白名单仅 `TableMax-<版本>-win-x64.exe` 与 `TableMax-<版本>-
 
 ## 扩展收尾与SQLite v2验证（2026-10-06）
 
+完成的 UI 与单EXE核验目录分别使用 pokemon-ui-redesign-<六位字母数字>、shipping-executable-<六位字母数字>；清理器只匹配精确目录名，继续执行30分钟、路径／链接／进程和当前交付保护，未知临时目录不因此获得删除授权。
+
+扩展UI重设计：`node scripts/verify-pokemon-ui-redesign.mjs --evidence=<独立名>`在静音真实Edge中检查四牌源、唯一暂持／牌阵、空弃牌、共同赢家、总分明细、暗投、私看隔离、目标切换和30项插画／精确图示；覆盖320–430px、720p–4K和125%／150%模拟缩放。`--sample`仅样板，不代替完整检查；`--portable`逐文件核验当前ZIP并导入实际包内Screen／共享运行时，不把源码图例页当最终包。服务器显式127.0.0.1，不开放网卡。
+
+`pnpm exec vitest run games/pokemon-encounters/expansion/config`检查30项正反例／图示、34类／112／144及固定种子重构兼容和真实SQLite恢复回退。JSON改动后只构建受影响游戏单元；三配置仍由有类型纯函数消费，不在运行端开放编辑。`node scripts/soften-pokemon-cries.mjs`从清单指定本地原件处理27项下载叫声，先代表再批量；先用 --representatives 核验五项，再用 --apply 派生全部；参数／验证与原件保护见资源清单，禁止把用户原声纳入批量。冻结后一次`package:win`，原包备份保留，音量与视觉真人判断另行交接。
+
 - `pnpm exec vitest run games/pokemon-encounters/expansion/bot/coverage.test.ts`：2–6人三档150个固定种子，每种子独立60秒（六人绝悟120秒）、700步，哈希覆盖新tactics模块。结果留独立run目录；旧策略结果不复用为当前源码证据。
 - `pnpm exec vitest run apps/server/src/expansion-integration.test.ts apps/server/src/bot-executor.test.ts --maxWorkers=1`：真实HTTP／Socket.IO／SQLite和32MiB Worker，暂停／取消／分支／重启旧结果，以及两秒截止。性能检查与其他重CPU工作串行。
 - `pnpm exec vitest run apps/server/src/save-storage.test.ts apps/server/src/save-storage-games.test.ts`：v1只读保护、流式迁移、故障／中断、历史分支及确认去重，三款真实规则恢复／合法动作／v2重启。固定512B节点和确认增量检查500／1000／2000保存磁盘增长，不将该结果外推任意游戏日志或CPU线性。

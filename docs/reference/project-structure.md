@@ -4,6 +4,8 @@
 
 ## 已创建结构
 
+扩展`config/cards.json`、`decks.json`、`research.json`分别维护34类角色／摘要、112／144数量和30项研究内容／条件／固定图示；有类型校验及纯函数条件注册表供规则、策略、UI共读，原版配置不变。AI派生图在`assets/games/pokemon-encounters/expansion/research-illustrations/`，原图与生成过程保留在对应维护证据目录。两版共用`ui/CardSkin.tsx`纯展示骨架，扩展排版限定自身根样式，不进入平台会话。
+
 宝可梦模块的 `shared/` 维护共享卡牌、资源身份和纯棋盘拓扑，`variants/original.ts` 保留轻量原版元数据；`expansion/` 独立维护九格规则、状态、研究与计分，其 `bot/`、`web/` 分别维护策略与界面。原版规则与存档仍限定六格，`rules/cards.ts` 保留兼容导出。规则／策略／客户端入口提供版本映射，盒子只加载目录元数据，不加载完整游戏资源。
 
 [宝可梦扩展版设计基线](../games/pokemon-encounters/expansion-design.md) 归游戏文档目录；九格计分、研究、扩展存档与权威版本选择已实现。原版 `cards.json` 和采用规格继续独立维护；正式资源在 `assets/games/pokemon-encounters/expansion/`，来源原件与生成证据在 `artifacts/pokemon-expansion/`。素材完整性与最终验收状态见任务页。

@@ -15,7 +15,7 @@
 | UI、布局、文字、角标、动效、规则浮层                   | [用户美术偏好](reference/art-preferences.md) → [通用视觉与规则说明](reference/visual-design.md) → 对应游戏主题                                                           |
 | 身份、座位、手机房主、提交、回退、恢复、计时、显示设置 | [通用平台规格](reference/phase-02-platform-spec.md)                                                                                                                      |
 | 宝可梦规则／能力／交互／秘密／策略／资源               | [宝可梦奇遇](games/pokemon-encounters/README.md)                                                                                                                         |
-| 宝可梦九宫格扩展、牌组、能力与研究任务                 | [扩展版设计基线](games/pokemon-encounters/expansion-design.md)；63矢量姿态、策略／存储及最终交付见[收尾](tasks/pokemon-encounters-expansion.md#一次性技术收尾2026-10-06) |
+| 宝可梦九宫格扩展、牌组、能力与研究任务                 | [扩展版设计基线](games/pokemon-encounters/expansion-design.md)；63矢量姿态、策略／存储见[技术收尾](tasks/pokemon-encounters-expansion.md#一次性技术收尾2026-10-06)，独立配置、30项插画与最终界面见[UI重设计](tasks/pokemon-encounters-expansion.md#ui重设计2026-10-06) |
 | 现代艺术规则／拍卖／行情／秘密／策略／资源             | [现代艺术](games/modern-art/README.md)                                                                                                                                   |
 | 电力公司规则／经典地图／经济／秘密／策略／资源         | [电力公司](games/power-grid/README.md)；空间数据与展示查 [地图](games/power-grid/map.md)                                                                                 |
 | 电脑玩家配置、输入权限与调度                           | [通用人机规格](reference/bot-players.md) → 对应游戏独立人机页                                                                                                            |
