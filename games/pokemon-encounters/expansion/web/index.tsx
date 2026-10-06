@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- Independent expansion client adapter. */
-import { useState, type CSSProperties } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import type { GameClient, GameHost } from '@tablemax/web-host';
 import {
   avatarFor,
@@ -25,6 +25,7 @@ import { CardSkin } from '../../ui/CardSkin';
 import { WinTrack } from '../../ui/WinTrack';
 import { ResearchCard, ResearchPicture } from './ResearchCard';
 import { portraitFor } from './card-art';
+import { portraitBoundsFor } from './portrait-bounds';
 import { cardArt } from '../../../../assets/games/pokemon-encounters/catalog';
 import { SoundControl } from '../../ui/audio';
 import { expansionVoices } from './voice-resources';
@@ -38,6 +39,7 @@ import { poseSequences } from './poses/timeline';
 import { GuideScene } from '../../ui/RuleDiagrams';
 import './style.css';
 import './redesign.css';
+import './refinement.css';
 
 const poseDurations = Object.fromEntries(
   Object.entries(poseSequences).map(([id, sequence]) => [
@@ -52,10 +54,10 @@ const expansionThemes = import.meta.glob<string>(
 );
 
 const phaseText: Record<View['phase'], string> = {
-  'research-vote': '投票选择研究',
-  'initial-flip': '选一张初始牌翻开',
-  draw: '取牌，或调整位置',
-  place: '选择换入位置',
+  'research-vote': '投票选择研究任务',
+  'initial-flip': '翻开一张初始牌',
+  draw: '选择取牌来源',
+  place: '选择放入位置',
   'mew-other': '梦幻：选择对手一张牌',
   'mew-self': '梦幻：换入本人场地',
   'rocket-meowth': '火箭队：选择换入位置',
@@ -143,6 +145,7 @@ function Card({
       face={face}
       image={face ? (portraitFor(face.categoryId) ?? art?.image) : undefined}
       frame={presentation?.frame}
+      bounds={face ? portraitBoundsFor(face.categoryId) : undefined}
       className={`ex-card ${compact ? 'compact' : ''}`}
       value={
         effective ?? face?.value ?? (face?.copy === 'vertical' ? '↕' : '↔')
@@ -193,6 +196,129 @@ function Board({
     />
   );
 }
+
+function TurnProgress({ game }: { game: View }) {
+  if (
+    ['research-vote', 'initial-flip', 'round-result', 'match-result'].includes(
+      game.phase,
+    )
+  )
+    return null;
+  let stages = ['取牌', '放入', '能力'];
+  let current = game.phase === 'draw' ? 0 : game.phase === 'place' ? 1 : 2;
+  if (game.phase === 'mew-other' || game.phase === 'mew-self') {
+    stages = ['取牌', '偷取', '换入'];
+    current = game.phase === 'mew-other' ? 1 : 2;
+  } else if (game.phase.startsWith('rocket-')) {
+    stages = ['取牌', '掷币', '换入'];
+  } else if (game.phase.startsWith('zapdos-')) {
+    stages = ['取牌', '接力', '换入'];
+    current = game.phase === 'zapdos-direction' ? 1 : 2;
+  } else if (game.phase.startsWith('mewtwo-')) {
+    stages = ['取牌', '私看', '交换'];
+    current = game.phase === 'mewtwo-target' ? 1 : 2;
+  }
+  return (
+    <ol className="ex-turn-progress" aria-label="回合阶段">
+      {stages.map((label, i) => (
+        <li
+          key={label}
+          className={i === current ? 'current' : i < current ? 'complete' : ''}
+          aria-current={i === current ? 'step' : undefined}
+        >
+          <span>{i < current ? '✓' : i + 1}</span>
+          {label}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function PublicSupply({
+  game,
+  session,
+  names,
+  research,
+}: {
+  game: View;
+  session: GameHost;
+  names: Record<string, string>;
+  research: ReactNode;
+}) {
+  const fresh = game.events.filter((event) =>
+    session.motion.includes(`event:${event.id}`),
+  );
+  const moved = fresh.at(-1)?.action;
+  return (
+    <aside className="ex-supply">
+      <header className="ex-supply-heading">
+        <h2>公开牌区</h2>
+        <span>弃牌共 {game.discardCount} 张</span>
+      </header>
+      <div className="ex-public-piles">
+        <section data-pile="deck">
+          <header>
+            <strong>摸牌堆</strong>
+            <span>{game.deckCount} 张</span>
+          </header>
+          <Card face={null} compact />
+        </section>
+        {([0, 1] as const).map((i) => (
+          <section key={i} data-pile={i === 0 ? 'discard' : 'discard-second'}>
+            <header>
+              <strong>可选弃牌{i + 1}</strong>
+            </header>
+            {game.discardOptions[i] ? (
+              <Card face={game.discardOptions[i]} compact />
+            ) : (
+              <div className="ex-empty-pile">暂无</div>
+            )}
+          </section>
+        ))}
+      </div>
+      <section
+        className={`ex-public-held ${game.held ? 'has-held' : ''} ${moved?.verb === 'draw' ? 'ex-saved' : ''}`}
+        data-pile="held"
+        aria-label="公开暂持区"
+      >
+        {game.held ? (
+          <>
+            <Card face={game.held} />
+            <div>
+              <span>当前取牌</span>
+              <strong>{game.held.name}</strong>
+              <p>
+                {categoryPresentation(game.held.categoryId).abilitySummary ||
+                  '选择一格放入场地'}
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <svg viewBox="0 0 48 56" aria-hidden="true">
+              <rect x="12" y="4" width="30" height="43" rx="5" />
+              <path d="M7 14H4v37h29" />
+              <circle cx="27" cy="25" r="8" />
+              <path d="M19 25h16" />
+            </svg>
+            <div>
+              <span>暂持区</span>
+              <strong>
+                {game.phase === 'draw' ? '等待取牌' : '本次操作已完成'}
+              </strong>
+            </div>
+          </>
+        )}
+      </section>
+      <div className="ex-last-action" role="status">
+        <span>最近行动</span>
+        <p>{game.events.at(-1) && eventText(game.events.at(-1)!, names)}</p>
+      </div>
+      {research}
+    </aside>
+  );
+}
+
 function Actions({ session, game }: { session: GameHost; game: View }) {
   const actions = (session.view?.actions ?? []) as Action[];
   const [mode, setMode] = useState(''),
@@ -272,10 +398,8 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
   if (game.phase === 'research-vote')
     return (
       <section className="ex-vote">
-        <h2>为本局选择研究方向</h2>
-        <p>每人一票，提交后锁定。全员完成后公布票数。</p>
         <div className="ex-vote-options">
-          {game.researchCandidates.map((t) => (
+          {game.researchCandidates.map((t, i) => (
             <button
               key={t.id}
               disabled={
@@ -287,32 +411,49 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
               onClick={() => choose({ type: 'vote-research', taskId: t.id })}
               className={`ex-mission-option ${game.ownVote === t.id ? 'selected' : ''}`}
             >
-              <ResearchCard task={t} />
-              {game.ownVote === t.id && <em>已投此项</em>}
+              <span className="ex-vote-mark" aria-hidden="true">
+                {game.ownVote === t.id ? '✓' : String.fromCharCode(65 + i)}
+              </span>
+              <strong>{t.name}</strong>
+              <b>−{t.reward}分</b>
             </button>
           ))}
         </div>
         <p className="ex-vote-status">
-          已投票 {game.votedSeats.length}／{game.seatOrder.length} ·{' '}
-          {game.ownVote ? '等待其他玩家' : '选择一项提交'}
+          {game.ownVote
+            ? '投票已锁定，等待其他玩家'
+            : '选择一项投票 · 提交后锁定'}
         </p>
+      </section>
+    );
+  if (!actions.length)
+    return (
+      <section className="ex-actions ex-observing" aria-label="本人场地">
+        <header className="ex-action-heading">
+          <img src={avatarFor(session.self?.avatarId ?? 'builtin-1')} alt="" />
+          <h2>{session.self?.name ?? '本人'}的场地</h2>
+          <WinTrack wins={game.winsBySeat[self] ?? 0} />
+        </header>
+        <div className="ex-wait" role="status">
+          {game.actorSeat
+            ? `${names[game.actorSeat]}正在行动`
+            : '等待其他玩家翻牌'}
+        </div>
+        <Board game={game} seat={self} motion={session.motion} />
       </section>
     );
   return (
     <section className="ex-actions" aria-label="本人操作">
       <header className="ex-action-heading">
         <img src={avatarFor(session.self?.avatarId ?? 'builtin-1')} alt="" />
-        <div>
-          <p>{session.self?.name ?? '本人牌桌'}</p>
-          <h2>{actions.length ? '你的行动' : '等待其他玩家'}</h2>
-        </div>
+        <h2>{session.self?.name ?? '本人'}的行动</h2>
         <WinTrack wins={game.winsBySeat[self] ?? 0} />
       </header>
       {game.held && (
-        <div className="ex-held">
+        <div className="ex-held" data-pile="held">
           <Card face={game.held} />
           <div>
-            <strong>{game.held.name}</strong>
+            <span className="ex-held-label">当前取牌</span>
             <p>
               {categoryPresentation(game.held.categoryId).abilitySummary ||
                 '选择位置换入'}
@@ -326,10 +467,14 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
           </div>
         </div>
       )}
+      {!game.held && (
+        <span className="ex-held-anchor" data-pile="held" aria-hidden="true" />
+      )}
       {(game.phase === 'draw' || game.phase === 'lucario-draw') && (
         <div className="ex-draw-options">
           <button
             className="ex-source"
+            data-pile="deck"
             disabled={
               locked ||
               !actions.some((a) => a.type === 'draw' && a.source === 'deck')
@@ -350,6 +495,7 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
               <button
                 key={i}
                 className="ex-source"
+                data-pile={i === 0 ? 'discard' : 'discard-second'}
                 disabled={
                   locked ||
                   !actions.some(
@@ -394,7 +540,11 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
             <strong>调位</strong>
             <div className="ex-source-face">
               <span className="ex-swap-mark" aria-hidden="true">
-                ▱⇄▱
+                <svg viewBox="0 0 72 90">
+                  <rect x="5" y="9" width="30" height="47" rx="5" />
+                  <rect x="37" y="34" width="30" height="47" rx="5" />
+                  <path d="M12 71h18l-6-6m6 6-6 6M60 18H42l6-6m-6 6 6 6" />
+                </svg>
               </span>
               <span>
                 交换两格<b>结束本回合</b>
@@ -551,7 +701,13 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
             <button
               key={'direction' in a ? a.direction : a.type}
               disabled={locked}
-              className={a.type === 'decline-ability' ? 'secondary' : ''}
+              className={
+                a.type === 'discard-held'
+                  ? 'ex-discard-action'
+                  : a.type === 'decline-ability'
+                    ? 'secondary'
+                    : ''
+              }
               onClick={() => choose(a)}
             >
               {'direction' in a
@@ -587,6 +743,9 @@ function Rulebook() {
               <p>
                 2–6人，投票三选一，全员锁定后最高票当选，平票随机。每人九张暗牌，自己翻一张；超梦、阿尔宙斯不进初始场地。
               </p>
+              <p>
+                手机只展示三项名称与奖励，点选即锁定。完整条件和示意图见电脑投票区及规则。角色配图与趣味名称不增加指定宝可梦的达成要求。
+              </p>
               <GuideScene
                 name="setup"
                 caption="九宫格扩展：牌位与数字由下方代码表示。"
@@ -605,9 +764,14 @@ function Rulebook() {
           label: '取牌调位',
           title: '顶部两弃牌，或交换本人两格',
           content: (
-            <p>
-              可取牌库顶或弃牌顶部两张之一；牌库牌可弃，弃牌取得必须使用。普通换入朝上，换出公开弃顶。不取牌时可公开交换本人两格，朝向随牌移动，替代整个回合，不私看、不发动能力。
-            </p>
+            <>
+              <p>
+                可取牌库顶或弃牌顶部两张之一；牌库牌可弃，弃牌取得必须使用。普通换入朝上，换出公开弃顶。不取牌时可公开交换本人两格，朝向随牌移动，替代整个回合，不私看、不发动能力。
+              </p>
+              <p>
+                通常先取牌并换入，再处理能力；梦幻、火箭队、闪电鸟及超梦按各自流程先处理指定步骤。调位替代整个回合。两个“可选弃牌”来自同一弃牌堆；行动轮到你时才显示操作。
+              </p>
+            </>
           ),
         },
         {
@@ -728,6 +892,29 @@ function Screen({ session }: { session: GameHost }) {
     session.feedback?.events ?? [],
     poseDurations,
   );
+  const research =
+    game.activeResearch.length > 0 ? (
+      <aside className="ex-research-strip" aria-label="本局研究">
+        {game.activeResearch.map((t) => (
+          <button
+            key={t.id}
+            className="ex-research-summary"
+            onClick={() => {
+              setDetail(t.id);
+              setPanel('research');
+            }}
+          >
+            {session.role !== 'player' && <ResearchPicture id={t.id} />}
+            <span>
+              <strong>{t.name}</strong>
+              <span>{t.description}</span>
+            </span>
+            <b>−{t.reward}分</b>
+            <span aria-hidden="true">›</span>
+          </button>
+        ))}
+      </aside>
+    ) : null;
   const renderSeat = (s: (typeof seats)[number]) => (
     <article
       className={`ex-player ${game.actorSeat === s.id ? 'acting' : ''} ${game.roundResult?.winners.includes(s.id) ? 'winner' : ''}`}
@@ -786,12 +973,11 @@ function Screen({ session }: { session: GameHost }) {
         <h1>
           宝可梦奇遇 <span>扩展版</span>
         </h1>
-        <span
-          className={`ex-connection ${session.connected ? 'online' : ''}`}
-          aria-label={session.connected ? '已连接' : '连接中'}
-        >
-          ●
-        </span>
+        {!session.connected && (
+          <span className="ex-connection" role="status">
+            连接中…
+          </span>
+        )}
         {session.role !== 'player' && (
           <>
             <FullscreenControl />
@@ -799,6 +985,7 @@ function Screen({ session }: { session: GameHost }) {
             <PlayModeBadge mode={session.view?.playMode} />
             <SoundControl
               compact
+              iconOnly
               disabled={session.view?.playMode === 'test' || !session.connected}
               paused={session.view?.paused ?? false}
               feedback={session.feedback}
@@ -859,8 +1046,9 @@ function Screen({ session }: { session: GameHost }) {
                 ? `翻牌 ${game.initialDone.length}/${seats.length}`
                 : '三胜赛制'}
         </span>
+        <TurnProgress game={game} />
       </div>
-      {(session.message ||
+      {((session.message && session.message !== '已保存') ||
         !session.connected ||
         session.admissionPending ||
         session.awaitingConfirmation) && <SessionFeedback session={session} />}
@@ -926,34 +1114,11 @@ function Screen({ session }: { session: GameHost }) {
           )}
         </section>
       )}
-      {game.activeResearch.length > 0 && (
-        <aside className="ex-research-strip" aria-label="本局研究">
-          {game.activeResearch.map((t) => (
-            <button
-              key={t.id}
-              className="ex-research-summary"
-              onClick={() => {
-                setDetail(t.id);
-                setPanel('research');
-              }}
-            >
-              <ResearchPicture id={t.id} />
-              <span>
-                <strong>{t.name}</strong>
-                <span>{t.description}</span>
-              </span>
-              <b>−{t.reward}分</b>
-              <span aria-hidden="true">›</span>
-            </button>
-          ))}
-        </aside>
-      )}
       {game.phase === 'research-vote' ? (
         session.role === 'player' ? (
           <Actions session={session} game={game} />
         ) : (
           <section className="ex-vote">
-            <h2>研究投票进行中</h2>
             <div className="ex-vote-options">
               {game.researchCandidates.map((t) => (
                 <article className="ex-mission-option" key={t.id}>
@@ -963,9 +1128,13 @@ function Screen({ session }: { session: GameHost }) {
             </div>
             <div className="ex-voter-list">
               {seats.map((s) => (
-                <span key={s.id}>
-                  {s.name}{' '}
-                  {game.votedSeats.includes(s.id) ? '✓ 已完成' : '等待投票'}
+                <span
+                  key={s.id}
+                  className={game.votedSeats.includes(s.id) ? 'complete' : ''}
+                >
+                  <img src={avatarFor(s.avatarId)} alt="" />
+                  <strong>{s.name}</strong>
+                  <span>{game.votedSeats.includes(s.id) ? '✓' : '…'}</span>
                 </span>
               ))}
             </div>
@@ -984,32 +1153,16 @@ function Screen({ session }: { session: GameHost }) {
               game={game}
             />
           ) : !game.roundResult && session.role !== 'player' ? (
-            <aside className="ex-supply">
-              <h2>公开牌区</h2>
-              <div className="ex-public-discard">
-                {game.discardOptions.map((c, i) => (
-                  <section key={i}>
-                    <Card face={c} />
-                    <span>可选弃牌{i + 1}</span>
-                  </section>
-                ))}
-              </div>
-              <p>
-                牌库 {game.deckCount} 张 弃牌 {game.discardCount} 张
-              </p>
-              {game.held && (
-                <div className="ex-public-held">
-                  <h3>当前暂持牌</h3>
-                  <Card face={game.held} />
-                </div>
-              )}
-              <div className="ex-last-action" role="status">
-                {game.events.at(-1) && eventText(game.events.at(-1)!, names)}
-              </div>
-            </aside>
+            <PublicSupply
+              game={game}
+              session={session}
+              names={names}
+              research={research}
+            />
           ) : null}
         </div>
       )}
+      {session.role === 'player' && !game.roundResult && research}
 
       <SavedEffects
         game={game}

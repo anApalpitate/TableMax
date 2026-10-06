@@ -7,6 +7,7 @@ export function CardSkin({
   frame,
   className = '',
   value,
+  bounds,
 }: {
   face: {
     categoryId: string;
@@ -18,6 +19,12 @@ export function CardSkin({
   frame?: string | undefined;
   className?: string;
   value?: ReactNode;
+  bounds?:
+    | {
+        size: readonly [number, number];
+        viewBox: readonly [number, number, number, number];
+      }
+    | undefined;
 }) {
   const expansion = className.includes('ex-card');
   return (
@@ -48,14 +55,28 @@ export function CardSkin({
               </span>
             )}
           </span>
-          {image && (
-            <img
-              src={image}
-              alt=""
-              draggable={false}
-              width={475}
-              height={475}
-            />
+          {image && bounds ? (
+            <svg
+              className="card-portrait"
+              viewBox={bounds.viewBox.join(' ')}
+              aria-hidden="true"
+            >
+              <image
+                href={image}
+                width={bounds.size[0]}
+                height={bounds.size[1]}
+              />
+            </svg>
+          ) : (
+            image && (
+              <img
+                src={image}
+                alt=""
+                draggable={false}
+                width={475}
+                height={475}
+              />
+            )
           )}
           <span className={`card-name${expansion ? ' ex-card-name' : ''}`}>
             {face.name.replace('外观', '')}

@@ -172,8 +172,12 @@ describe('independent expansion configuration', () => {
 describe('pre-refactor seeded state, action, projection and RNG compatibility', () => {
   for (const expected of baseline.results)
     it(`${expected.seats} players, seed ${expected.seed}, saved-state/branch replay`, () => {
-      expect(compatibilityFixture(expected.seats, expected.seed)).toEqual(
-        expected,
-      );
+      expect(
+        compatibilityFixture(
+          expected.seats,
+          expected.seed,
+          baseline.researchDisplay,
+        ),
+      ).toEqual(expected);
     });
 });

@@ -3,7 +3,7 @@
   "tasks": [
     {
       "id": "R01",
-      "name": "伙伴列队",
+      "name": "杰尼龟排排站",
       "description": "至少一行形成归零线",
       "reward": 3,
       "pool": "opening",
@@ -41,11 +41,15 @@
           }
         ],
         "caption": "至少一行形成归零线"
+      },
+      "presentation": {
+        "flavor": "站好一排，烦恼归零！",
+        "subjects": ["ordinary-4", "ordinary-4", "ordinary-4"]
       }
     },
     {
       "id": "R02",
-      "name": "高塔攀登",
+      "name": "大岩蛇叠叠乐",
       "description": "至少一列形成归零线",
       "reward": 3,
       "pool": "opening",
@@ -83,11 +87,15 @@
           }
         ],
         "caption": "至少一列形成归零线"
+      },
+      "presentation": {
+        "flavor": "一层一层，叠到归零。",
+        "subjects": ["ordinary-9"]
       }
     },
     {
       "id": "R03",
-      "name": "流星轨迹",
+      "name": "闪电鸟斜线冲刺",
       "description": "至少一条主对角线形成归零线",
       "reward": 4,
       "pool": "opening",
@@ -125,11 +133,15 @@
           }
         ],
         "caption": "至少一条主对角线形成归零线"
+      },
+      "presentation": {
+        "flavor": "抄条斜线，电光到站！",
+        "subjects": ["special-zapdos"]
       }
     },
     {
       "id": "R04",
-      "name": "波导十字",
+      "name": "路卡利欧十字波",
       "description": "中间行与中间列同时归零",
       "reward": 5,
       "pool": "opening",
@@ -162,11 +174,15 @@
         "arrows": [],
         "annotations": [],
         "caption": "中间行与中间列同时归零"
+      },
+      "presentation": {
+        "flavor": "波导，往四个方向发射！",
+        "subjects": ["special-lucario"]
       }
     },
     {
       "id": "R05",
-      "name": "星陨交汇",
+      "name": "梦幻星星连线",
       "description": "两条主对角线同时归零",
       "reward": 5,
       "pool": "opening",
@@ -199,11 +215,15 @@
         "arrows": [],
         "annotations": [],
         "caption": "两条主对角线同时归零"
+      },
+      "presentation": {
+        "flavor": "两条星路，刚好在这里相遇。",
+        "subjects": ["special-mew"]
       }
     },
     {
       "id": "R06",
-      "name": "巨兽封印",
+      "name": "巨金怪重装归零",
       "description": "至少一条归零线的有效值≥10",
       "reward": 4,
       "pool": "opening",
@@ -241,12 +261,16 @@
           }
         ],
         "caption": "至少一条归零线的有效值≥10"
+      },
+      "presentation": {
+        "flavor": "重装出场，账单归零。",
+        "subjects": ["ordinary-metagross"]
       }
     },
     {
       "id": "R07",
-      "name": "四角星座",
-      "description": "四角同值且该值≥0",
+      "name": "胖丁四角演唱会",
+      "description": "四角有效值相同，且该值≥0",
       "reward": 4,
       "pool": "opening",
       "condition": {
@@ -281,12 +305,16 @@
             "text": "四角同值，且 ≥0"
           }
         ],
-        "caption": "四角同值且该值≥0"
+        "caption": "四角有效值相同，且该值≥0"
+      },
+      "presentation": {
+        "flavor": "四个角落，都要听见这首歌！",
+        "subjects": ["ordinary-0"]
       }
     },
     {
       "id": "R08",
-      "name": "镜湖倒影",
+      "name": "可达鸭照镜子",
       "description": "上中＝下中，左中＝右中",
       "reward": 3,
       "pool": "opening",
@@ -321,12 +349,16 @@
         "arrows": [],
         "annotations": [],
         "caption": "上中＝下中，左中＝右中"
+      },
+      "presentation": {
+        "flavor": "这边一个我，那边还是我？",
+        "subjects": ["ordinary-psyduck", "ordinary-psyduck"]
       }
     },
     {
       "id": "R09",
-      "name": "双子结界",
-      "description": "两组对角角格分别同值且两组值不同",
+      "name": "水火各自成双",
+      "description": "两组对角角格分别同值，且两组值不同",
       "reward": 4,
       "pool": "opening",
       "condition": {
@@ -359,12 +391,16 @@
         "highlightLines": [],
         "arrows": [],
         "annotations": [],
-        "caption": "两组对角角格分别同值且两组值不同"
+        "caption": "两组对角角格分别同值，且两组值不同"
+      },
+      "presentation": {
+        "flavor": "杰尼龟一队，六尾另一队！",
+        "subjects": ["ordinary-4", "ordinary-5"]
       }
     },
     {
       "id": "R10",
-      "name": "环形阶梯",
+      "name": "伊布绕圈升级",
       "description": "上中＜右中＜下中＜左中",
       "reward": 4,
       "pool": "opening",
@@ -412,12 +448,16 @@
         ],
         "annotations": [],
         "caption": "上中＜右中＜下中＜左中"
+      },
+      "presentation": {
+        "flavor": "绕一圈，每一站都更厉害。",
+        "subjects": ["ordinary-1"]
       }
     },
     {
       "id": "R11",
-      "name": "众星拱月",
-      "description": "中心严格小于其余八格",
+      "name": "皮卡丘C位出道",
+      "description": "中心有效值严格小于其余八格",
       "reward": 3,
       "pool": "opening",
       "condition": {
@@ -452,13 +492,17 @@
             "text": "中心最小"
           }
         ],
-        "caption": "中心严格小于其余八格"
+        "caption": "中心有效值严格小于其余八格"
+      },
+      "presentation": {
+        "flavor": "个头不抢镜，分数才是绝招。",
+        "subjects": ["ordinary--2"]
       }
     },
     {
       "id": "R12",
-      "name": "王者之巅",
-      "description": "中心严格大于其余八格",
+      "name": "火箭队占据C位",
+      "description": "中心有效值严格大于其余八格",
       "reward": 4,
       "pool": "opening",
       "condition": {
@@ -493,12 +537,16 @@
             "text": "中心最大"
           }
         ],
-        "caption": "中心严格大于其余八格"
+        "caption": "中心有效值严格大于其余八格"
+      },
+      "presentation": {
+        "flavor": "今天，主角的位置我们要了！",
+        "subjects": ["special-team-rocket"]
       }
     },
     {
       "id": "R13",
-      "name": "温柔生态",
+      "name": "萌新村保护计划",
       "description": "九格有效值全部≤5",
       "reward": 4,
       "pool": "opening",
@@ -539,12 +587,16 @@
           }
         ],
         "caption": "九格有效值全部≤5"
+      },
+      "presentation": {
+        "flavor": "小伙伴们，今天不拼大数字。",
+        "subjects": ["ordinary-togepi", "ordinary-piplup", "ordinary-rowlet"]
       }
     },
     {
       "id": "R14",
-      "name": "阴阳调和",
-      "description": "一行之和为0且同时含正负值",
+      "name": "正负电荷碰个头",
+      "description": "至少一行之和为0，且同时含正、负值",
       "reward": 4,
       "pool": "opening",
       "condition": {
@@ -582,13 +634,17 @@
             "text": "−2 −1 ＋3 ＝0"
           }
         ],
-        "caption": "一行之和为0且同时含正负值"
+        "caption": "至少一行之和为0，且同时含正、负值"
+      },
+      "presentation": {
+        "flavor": "有加有减，刚好抵消！",
+        "subjects": ["ordinary--2", "ordinary-togepi", "ordinary-3"]
       }
     },
     {
       "id": "R15",
-      "name": "进化阶梯",
-      "description": "一行从左至右为三个连续整数",
+      "name": "伊布升级打卡",
+      "description": "至少一行从左至右为三个连续整数",
       "reward": 3,
       "pool": "opening",
       "condition": {
@@ -634,13 +690,17 @@
           }
         ],
         "annotations": [],
-        "caption": "一行从左至右为三个连续整数"
+        "caption": "至少一行从左至右为三个连续整数"
+      },
+      "presentation": {
+        "flavor": "一级一级来，训练不能跳级！",
+        "subjects": ["ordinary-1"]
       }
     },
     {
       "id": "R16",
-      "name": "跨级实验",
-      "description": "一列从上至下为等差数列且公差≥2",
+      "name": "快龙三级跳",
+      "description": "至少一列从上至下为等差数列，公差≥2",
       "reward": 4,
       "pool": "opening",
       "condition": {
@@ -691,13 +751,17 @@
             "text": "等差，公差 ≥2"
           }
         ],
-        "caption": "一列从上至下为等差数列且公差≥2"
+        "caption": "至少一列从上至下为等差数列，公差≥2"
+      },
+      "presentation": {
+        "flavor": "快龙：步子大，也要迈得整齐。",
+        "subjects": ["ordinary-dragonite"]
       }
     },
     {
       "id": "R17",
-      "name": "三界平衡",
-      "description": "三行之和相等且每行至少两种值",
+      "name": "卡比兽分便当",
+      "description": "三行之和相等，且每行至少两种有效值",
       "reward": 5,
       "pool": "opening",
       "condition": {
@@ -745,13 +809,17 @@
             "text": "每行之和＝6"
           }
         ],
-        "caption": "三行之和相等且每行至少两种值"
+        "caption": "三行之和相等，且每行至少两种有效值"
+      },
+      "presentation": {
+        "flavor": "三份一样重，谁也别少吃！",
+        "subjects": ["special-snorlax"]
       }
     },
     {
       "id": "R18",
-      "name": "缤纷光谱",
-      "description": "至少六种不同有效值",
+      "name": "伊布的彩虹图鉴",
+      "description": "九格中至少有六种不同有效值",
       "reward": 4,
       "pool": "opening",
       "condition": {
@@ -785,12 +853,16 @@
             "text": "至少六种有效值"
           }
         ],
-        "caption": "至少六种不同有效值"
+        "caption": "九格中至少有六种不同有效值"
+      },
+      "presentation": {
+        "flavor": "不是一个颜色，是整道彩虹。",
+        "subjects": ["ordinary-1"]
       }
     },
     {
       "id": "R19",
-      "name": "百花齐放",
+      "name": "全员宝可梦集合",
       "description": "九张牌属于九种不同角色",
       "reward": 3,
       "pool": "opening",
@@ -826,12 +898,16 @@
           }
         ],
         "caption": "九张牌属于九种不同角色"
+      },
+      "presentation": {
+        "flavor": "点名完毕，一个重复的都没有！",
+        "subjects": ["ordinary-rowlet", "ordinary-piplup", "ordinary-psyduck"]
       }
     },
     {
       "id": "R20",
-      "name": "异种协作",
-      "description": "一条归零线包含三种不同角色",
+      "name": "异类也能组队",
+      "description": "至少一条归零线包含三种不同角色",
       "reward": 4,
       "pool": "opening",
       "condition": {
@@ -867,13 +943,17 @@
             "text": "同值，三种角色"
           }
         ],
-        "caption": "一条归零线包含三种不同角色"
+        "caption": "至少一条归零线包含三种不同角色"
+      },
+      "presentation": {
+        "flavor": "长得不一样，配合照样满分。",
+        "subjects": ["special-ditto", "ordinary-4", "special-zorua"]
       }
     },
     {
       "id": "R21",
-      "name": "原野守护",
-      "description": "九张全部为普通牌",
+      "name": "今天神兽休假",
+      "description": "九张牌全部为普通牌",
       "reward": 3,
       "pool": "opening",
       "condition": {
@@ -906,13 +986,17 @@
             "text": "全部普通牌"
           }
         ],
-        "caption": "九张全部为普通牌"
+        "caption": "九张牌全部为普通牌"
+      },
+      "presentation": {
+        "flavor": "普通伙伴，也能把场子撑起来。",
+        "subjects": ["ordinary-magikarp", "ordinary-6", "ordinary-5"]
       }
     },
     {
       "id": "R22",
-      "name": "海陆空同盟",
-      "description": "本人最终场地拥有三种丰缘神兽",
+      "name": "海陆空开个会",
+      "description": "本人最终场地拥有固拉多、盖欧卡、裂空座",
       "reward": 5,
       "pool": "opening",
       "condition": {
@@ -945,13 +1029,17 @@
             "text": "三种丰缘神兽"
           }
         ],
-        "caption": "本人最终场地拥有三种丰缘神兽"
+        "caption": "本人最终场地拥有固拉多、盖欧卡、裂空座"
+      },
+      "presentation": {
+        "flavor": "地面、海里、天上，这次坐一桌。",
+        "subjects": ["special-groudon", "special-kyogre", "special-rayquaza"]
       }
     },
     {
       "id": "R23",
-      "name": "幻化桥梁",
-      "description": "合法解析的复制牌参加归零线",
+      "name": "百变怪混进队",
+      "description": "至少一条归零线包含复制值有效的复制牌",
       "reward": 3,
       "pool": "opening",
       "condition": {
@@ -992,13 +1080,17 @@
             "text": "百变怪复制左右 → 4"
           }
         ],
-        "caption": "合法解析的复制牌参加归零线"
+        "caption": "至少一条归零线包含复制值有效的复制牌"
+      },
+      "presentation": {
+        "flavor": "这个队友，好像哪里不对。",
+        "subjects": ["ordinary-4", "special-ditto", "ordinary-4"]
       }
     },
     {
       "id": "R24",
-      "name": "幕后布阵",
-      "description": "揭示前至少三明三暗，归零线至少两格原暗牌",
+      "name": "忍蛙藏好底牌",
+      "description": "强制揭示前至少三明三暗；归零线含至少两格原暗牌",
       "reward": 4,
       "pool": "opening",
       "condition": {
@@ -1043,13 +1135,17 @@
             "text": "原暗牌参与归零线"
           }
         ],
-        "caption": "揭示前至少三明三暗，归零线至少两格原暗牌"
+        "caption": "强制揭示前至少三明三暗；归零线含至少两格原暗牌"
+      },
+      "presentation": {
+        "flavor": "忍术的妙处，最后才揭晓。",
+        "subjects": ["special-greninja"]
       }
     },
     {
       "id": "H01",
-      "name": "天地初开",
-      "description": "上行全部≥8、中行全部4–7、下行全部≤3",
+      "name": "固拉多分层装修",
+      "description": "上行全部≥8，中行全部4–7，下行全部≤3",
       "reward": 5,
       "pool": "hoenn",
       "condition": {
@@ -1106,13 +1202,17 @@
             "text": "≤3"
           }
         ],
-        "caption": "上行全部≥8、中行全部4–7、下行全部≤3"
+        "caption": "上行全部≥8，中行全部4–7，下行全部≤3"
+      },
+      "presentation": {
+        "flavor": "上面高楼，下面小院，安排！",
+        "subjects": ["special-groudon"]
       }
     },
     {
       "id": "H02",
-      "name": "海渊回响",
-      "description": "中行全部≤0、上下两行全部≥6",
+      "name": "盖欧卡开空调",
+      "description": "中行全部≤0，上下两行全部≥6",
       "reward": 5,
       "pool": "hoenn",
       "condition": {
@@ -1169,13 +1269,17 @@
             "text": "≥6"
           }
         ],
-        "caption": "中行全部≤0、上下两行全部≥6"
+        "caption": "中行全部≤0，上下两行全部≥6"
+      },
+      "presentation": {
+        "flavor": "中间凉快，两边热闹。",
+        "subjects": ["special-kyogre"]
       }
     },
     {
       "id": "H03",
-      "name": "断崖隆升",
-      "description": "每列向下严格递增且底格减顶格均≥6",
+      "name": "固拉多垒高高",
+      "description": "每列向下严格递增，且每列底格减顶格≥6",
       "reward": 5,
       "pool": "hoenn",
       "condition": {
@@ -1250,13 +1354,17 @@
             "text": "向下递增，跨度 ≥6"
           }
         ],
-        "caption": "每列向下严格递增且底格减顶格均≥6"
+        "caption": "每列向下严格递增，且每列底格减顶格≥6"
+      },
+      "presentation": {
+        "flavor": "三根地柱，一起加把劲！",
+        "subjects": ["special-groudon"]
       }
     },
     {
       "id": "H04",
-      "name": "天空环流",
-      "description": "四角均大于中心，四边均小于中心",
+      "name": "裂空座盘一圈",
+      "description": "四角有效值均大于中心，四边有效值均小于中心",
       "reward": 5,
       "pool": "hoenn",
       "condition": {
@@ -1295,13 +1403,17 @@
             "text": "四边 ＜ 中心"
           }
         ],
-        "caption": "四角均大于中心，四边均小于中心"
+        "caption": "四角有效值均大于中心，四边有效值均小于中心"
+      },
+      "presentation": {
+        "flavor": "四角高一点，四边低一点。",
+        "subjects": ["special-rayquaza"]
       }
     },
     {
       "id": "H05",
-      "name": "陨星天平",
-      "description": "两条主对角线之和相等且四角值互异",
+      "name": "裂空座劝架指南",
+      "description": "两条主对角线之和相等，且四角值互异",
       "reward": 4,
       "pool": "hoenn",
       "condition": {
@@ -1344,13 +1456,17 @@
             "text": "斜线之和＝9"
           }
         ],
-        "caption": "两条主对角线之和相等且四角值互异"
+        "caption": "两条主对角线之和相等，且四角值互异"
+      },
+      "presentation": {
+        "flavor": "两边一样重，先别吵架啦。",
+        "subjects": ["special-groudon", "special-rayquaza", "special-kyogre"]
       }
     },
     {
       "id": "H06",
-      "name": "终焉封印",
-      "description": "两条不同值归零线，一条≥8，另有未归零负值牌",
+      "name": "皮卡丘压轴救场",
+      "description": "至少两条不同值归零线，其中一条有效值≥8；另有未归零负值牌",
       "reward": 5,
       "pool": "hoenn",
       "condition": {
@@ -1393,7 +1509,11 @@
             "text": "未归零负值"
           }
         ],
-        "caption": "两条不同值归零线，一条≥8，另有未归零负值牌"
+        "caption": "至少两条不同值归零线，其中一条有效值≥8；另有未归零负值牌"
+      },
+      "presentation": {
+        "flavor": "大家忙归零，最后还得看电鼠！",
+        "subjects": ["ordinary-metagross", "ordinary--2", "ordinary-3"]
       }
     }
   ]

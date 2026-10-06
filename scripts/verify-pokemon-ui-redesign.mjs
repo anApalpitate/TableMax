@@ -256,6 +256,15 @@ try {
     await page.waitForFunction(() =>
       [...document.images].every((img) => img.complete && img.naturalWidth > 0),
     );
+    await page.evaluate(async () => {
+      await Promise.all(
+        [...document.querySelectorAll('svg image')].map(async (element) => {
+          const img = new Image();
+          img.src = element.getAttribute('href');
+          await img.decode();
+        }),
+      );
+    });
     const path = join(output, label + '.png');
     await page.screenshot({ path, fullPage });
     report.screenshots.push({ label, path });
@@ -275,7 +284,7 @@ try {
         ),
       ].map((el) => {
         const rect = el.getBoundingClientRect(),
-          image = el.querySelector('img'),
+          image = el.querySelector('.card-portrait, img'),
           number = el.querySelector('.slot-index');
         return {
           slot: el.dataset.slot,
@@ -292,7 +301,7 @@ try {
     await page.evaluate((id) => window.redesignResearch(id), id);
     await shot('research-' + id, true);
     assert.equal(await page.locator('.ex-research-picture').count(), 1);
-    assert.equal(await page.locator('.ex-research-diagram svg').count(), 1);
+    assert.equal(await page.locator('.ex-research-diagram > svg').count(), 1);
   }
   await show({ scenario: 'draw', role: 'player' });
   assert.equal(await page.locator('.ex-source').count(), 4);
@@ -308,6 +317,16 @@ try {
     (await page.locator('.ex-source').nth(2).innerText()).includes('横向复制'),
   );
   await shot('draw-player-390', true);
+  await show({ scenario: 'draw', role: 'player', waiting: true });
+  assert.equal(
+    await page.locator('.ex-source').count(),
+    0,
+    'Another player turn must not show action choices',
+  );
+  assert.equal(await page.locator('.ex-held').count(), 0);
+  assert.equal(await page.locator('.ex-observing .card-slot').count(), 9);
+  await shot('waiting-player-390', true);
+  await show({ scenario: 'draw', role: 'player' });
   report.display.push(await geometries());
   await page.setViewportSize({ width: 320, height: 568 });
   await show({ scenario: 'place', ordinary: 'magikarp', role: 'player' });
@@ -320,6 +339,13 @@ try {
     1,
   );
   await shot('place-player-320', true);
+  const buttonColors = await page.evaluate(() => [
+    getComputedStyle(document.querySelector('.ex-submit button'))
+      .backgroundColor,
+    getComputedStyle(document.querySelector('.ex-discard-action'))
+      .backgroundColor,
+  ]);
+  assert.notEqual(buttonColors[0], buttonColors[1]);
   report.display.push(await geometries());
   await page.locator('.ex-submit button').click();
   assert.equal(
@@ -339,13 +365,95 @@ try {
   const resultBottom = await page
     .locator('.ex-players')
     .evaluate((el) => el.getBoundingClientRect().bottom);
-  assert.ok(resultBottom <= 721, `720p settlement overflow: ${resultBottom}`);
+  await shot('result-host-six-720', true);
+  const settlementGeometry = await page.evaluate(() =>
+    Object.fromEntries(
+      [
+        '.ex-toolbar',
+        '.ex-victory',
+        '.ex-players',
+        '.ex-player',
+        '.ex-player > header',
+        '.ex-score',
+        '.pokemon-board',
+      ].map((selector) => {
+        const el = document.querySelector(selector);
+        return [
+          selector,
+          {
+            height: el.getBoundingClientRect().height,
+            margin: getComputedStyle(el).margin,
+            padding: getComputedStyle(el).padding,
+          },
+        ];
+      }),
+    ),
+  );
+  assert.ok(
+    resultBottom <= 721,
+    `720p settlement overflow: ${resultBottom}; ${JSON.stringify(settlementGeometry)}`,
+  );
   await shot('result-host-six-720');
   report.display.push(await geometries());
   await page.locator('.ex-score').first().click();
   assert.equal(await page.locator('.ex-score-detail').count(), 1);
   await shot('score-detail');
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await show({ scenario: 'place', ordinary: 'piplup', role: 'public' });
+  assert.equal(await page.locator('.ex-public-piles section').count(), 3);
+  assert.equal(await page.locator('.ex-public-held .ex-card').count(), 1);
+  assert.equal(await page.locator('.ex-supply .ex-research-strip').count(), 1);
+  assert.equal(await page.locator('.ex-connection.online').count(), 0);
+  assert.equal(await page.locator('.sound-icon-control > svg').count(), 1);
+  const portraitMinimum = await page
+    .locator('.ex-player .card-portrait')
+    .evaluateAll((els) =>
+      Math.min(...els.map((el) => el.getBoundingClientRect().height)),
+    );
+  assert.ok(
+    portraitMinimum >= 80,
+    `Six player portrait track is too small: ${portraitMinimum}`,
+  );
+  const publicBottom = await page
+    .locator('.ex-players')
+    .evaluate((el) => el.getBoundingClientRect().bottom);
+  assert.ok(
+    publicBottom <= 1081,
+    `1080p six player board overflow: ${publicBottom}`,
+  );
+  await shot('public-six-held-1080', true);
+  await page.setViewportSize({ width: 320, height: 568 });
+  await show({ scenario: 'vote', role: 'player' });
+  assert.equal(
+    await page
+      .locator('.ex-vote img, .ex-vote svg, .ex-vote .ex-research-card')
+      .count(),
+    0,
+    'Phone ballot contains only options',
+  );
+  assert.equal(
+    await page.locator('.ex-round-banner > strong').innerText(),
+    '投票选择研究任务',
+  );
+  await shot('vote-player-320', true);
   if (!sample) {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    const sixCommon = await show({
+      scenario: 'result',
+      ordinary: '5',
+      terminal: true,
+      commonWinner: true,
+      seats: 6,
+      role: 'host',
+    });
+    assert.equal(sixCommon.phase, 'match-result');
+    assert.equal(await page.locator('.ex-player .card-slot').count(), 54);
+    assert.equal(await page.locator('.ex-player.winner').count(), 2);
+    const sixCommonGeometry = await geometries();
+    report.display.push(sixCommonGeometry);
+    await shot('result-host-six-common-720');
+    const sixCommonBoard = await page.locator('.ex-players').boundingBox();
+    assert.ok(sixCommonBoard.y + sixCommonBoard.height <= 721);
     await page.setViewportSize({ width: 1920, height: 1080 });
     const common = await show({
       scenario: 'result',
@@ -437,7 +545,7 @@ try {
       30,
     );
     assert.equal(
-      await page.locator('.ex-rule-tasks .ex-research-diagram svg').count(),
+      await page.locator('.ex-rule-tasks .ex-research-diagram > svg').count(),
       30,
     );
     for (const card of await page

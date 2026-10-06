@@ -315,6 +315,7 @@ export function validateResearch(
         'condition',
         'illustrationId',
         'diagram',
+        'presentation',
       ]) ||
       !text(t.id) ||
       !/^[RH]\d{2}$/.test(t.id) ||
@@ -328,6 +329,20 @@ export function validateResearch(
     )
       return fail();
     validateCondition(t.condition);
+    const p = t.presentation;
+    if (
+      !object(p) ||
+      !keys(p, ['flavor', 'subjects']) ||
+      !text(p.flavor) ||
+      !Array.isArray(p.subjects) ||
+      p.subjects.length < 1 ||
+      p.subjects.length > 3 ||
+      p.subjects.some(
+        (id) =>
+          typeof id !== 'string' || !cards.some((c) => c.categoryId === id),
+      )
+    )
+      return fail();
     const d = t.diagram;
     if (
       !object(d) ||

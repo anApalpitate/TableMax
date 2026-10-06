@@ -15,6 +15,32 @@ const action = (
   cardCategory: string | null = 'special-mewtwo',
 ): PublicAction => ({ actor: 'S1', verb, ability, cardCategory, targets: [] });
 describe('expansion committed presentation', () => {
+  it('connects public sources, held card and saved placement without using private peek targets', () => {
+    expect(
+      savedBoardEffects({
+        ...action('draw', null, 'ordinary-2'),
+        source: 'deck',
+      }).moves,
+    ).toEqual([{ from: '@deck', to: '@held' }]);
+    expect(
+      savedBoardEffects({
+        ...action('replace', null, 'ordinary-2'),
+        targets: [{ seat: 'S1', slots: [3] }],
+      }).moves,
+    ).toEqual([
+      { from: '@held', to: 'S1:3' },
+      { from: 'S1:3', to: '@discard' },
+    ]);
+    expect(savedBoardEffects(action('discard-held', null)).moves).toEqual([
+      { from: '@held', to: '@discard' },
+    ]);
+    expect(
+      savedBoardEffects({
+        ...action('mewtwo-target'),
+        targets: [{ seat: 'S2', slots: [0, 1] }],
+      }).moves,
+    ).toEqual([]);
+  });
   it('orders the saved last ability, board changes, research and settlement without delaying rules', () => {
     const saved = {
       ...action('activate-arceus', 'arceus', 'special-arceus'),

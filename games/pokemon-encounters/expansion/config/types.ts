@@ -122,4 +122,8 @@ export type ResearchDefinition = ResearchTask & {
   condition: ResearchCondition;
   illustrationId: string;
   diagram: ResearchDiagram;
+  presentation: {
+    flavor: string;
+    subjects: string[];
+  };
 };

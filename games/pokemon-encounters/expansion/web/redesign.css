@@ -41,7 +41,7 @@
 }
 .expansion-screen .ex-table-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 200px;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 20vw, 380px);
   gap: 12px;
   align-items: stretch;
   height: auto;
@@ -180,7 +180,7 @@
 .expansion-screen .ex-card {
   position: relative;
   display: grid;
-  grid-template-rows: 30px minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   align-items: center;
   width: 100%;
   height: 100%;
@@ -195,12 +195,15 @@
   overflow: hidden;
 }
 .expansion-screen .ex-card .card-heading {
-  grid-row: 1;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 4px;
   display: flex;
   flex-direction: row-reverse;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
+  width: auto;
   height: 30px;
   padding: 0 3px;
   z-index: 1;
@@ -221,21 +224,22 @@
   color: #ae802a;
   line-height: 1;
 }
-.expansion-screen .ex-card img {
+.expansion-screen .ex-card > img,
+.expansion-screen .ex-card > .card-portrait {
   position: static;
   display: block;
-  grid-row: 2;
+  grid-row: 1;
   width: 100%;
   height: 100%;
   min-height: 0;
   max-height: none;
-  padding: 0 4px;
+  padding: 6px 10px 2px;
   object-fit: contain;
   object-position: center;
   filter: drop-shadow(0 2px 1px #243d3320);
 }
 .expansion-screen .ex-card .ex-card-name {
-  grid-row: 3;
+  grid-row: 2;
   position: static;
   width: 100%;
   min-height: 22px;
@@ -685,7 +689,7 @@
   background: #fffdf6;
   border: 1px solid #e6dfca;
 }
-.expansion-screen .ex-research-diagram svg {
+.expansion-screen .ex-research-diagram > svg {
   width: 100%;
   height: 180px;
   display: block;
@@ -772,17 +776,14 @@
 @media (min-width: 761px) and (min-height: 801px) {
   .expansion-screen:not(.player) .ex-player .ex-card {
     min-height: 94px;
-    height: clamp(94px, calc((100vh - 430px) / 6), 240px);
+    height: clamp(100px, calc((100vh - 375px) / 6), 285px);
     aspect-ratio: auto;
   }
   .expansion-screen[data-players='2'] .ex-players {
     max-width: 1320px;
   }
   .expansion-screen[data-players='2']:not(.player) .ex-player .ex-card {
-    height: clamp(150px, calc((100vh - 468px) / 3), 350px);
-  }
-  .expansion-screen[data-players='2']:not(.player) .ex-player .ex-card img {
-    transform: scale(1.2);
+    height: clamp(150px, calc((100vh - 315px) / 3), 350px);
   }
 }
 .expansion-screen.ex-score-detail .pokemon-board {
@@ -837,13 +838,14 @@
   }
   .expansion-screen .ex-player .ex-card {
     min-height: 44px;
-    height: clamp(48px, calc((100vh - 395px) / 6), 88px);
+    height: clamp(58px, calc((100vh - 365px) / 6), 88px);
     aspect-ratio: auto;
     grid-template-columns: minmax(0, 1fr) minmax(70px, 1fr);
     grid-template-rows: 26px minmax(0, 1fr);
     padding: 2px;
   }
   .expansion-screen .ex-player .ex-card .card-heading {
+    position: static;
     grid-column: 2;
     height: 26px;
     padding: 0 1px;
@@ -852,7 +854,8 @@
     font-size: 20px;
     padding: 1px 3px;
   }
-  .expansion-screen .ex-player .ex-card img {
+  .expansion-screen .ex-player .ex-card > img,
+  .expansion-screen .ex-player .ex-card > .card-portrait {
     grid-column: 1;
     grid-row: 1/3;
     padding: 1px;
@@ -894,7 +897,7 @@
   }
   .expansion-screen[data-phase='round-result'] .ex-player .ex-card,
   .expansion-screen[data-phase='match-result'] .ex-player .ex-card {
-    height: clamp(44px, calc((100vh - 460px) / 6), 88px);
+    height: clamp(54px, calc((100vh - 390px) / 6), 88px);
   }
   .expansion-screen .ex-victory {
     margin-bottom: 10px;
@@ -934,7 +937,8 @@
   .expansion-screen .ex-player .ex-card .card-heading {
     grid-column: 2;
   }
-  .expansion-screen .ex-player .ex-card img {
+  .expansion-screen .ex-player .ex-card > img,
+  .expansion-screen .ex-player .ex-card > .card-portrait {
     grid-column: 1;
     grid-row: 1;
   }
@@ -1077,10 +1081,10 @@
   .expansion-screen .ex-research-picture {
     max-height: 140px;
   }
-  .expansion-screen .ex-research-diagram svg {
+  .expansion-screen .ex-research-diagram > svg {
     height: 180px;
   }
-  .expansion-screen.ex-research-detail .ex-research-diagram svg {
+  .expansion-screen.ex-research-detail .ex-research-diagram > svg {
     height: 230px;
   }
   .expansion-screen.ex-research-detail .ex-research-picture {

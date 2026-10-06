@@ -23,7 +23,18 @@ export function savedBoardEffects(
   const slots = action.targets.flatMap((t) =>
     t.slots.map((slot) => `${t.seat}:${slot}`),
   );
-  if (action.verb === 'row-target' && target && action.actor) {
+  if (action.verb === 'draw' && action.source) {
+    result.moves = [{ from: `@${action.source}`, to: '@held' }];
+    result.pulse = ['@held'];
+  } else if (action.verb === 'discard-held') {
+    result.moves = [{ from: '@held', to: '@discard' }];
+    result.pulse = ['@discard'];
+  } else if (action.verb === 'replace' && slots[0]) {
+    result.moves = [
+      { from: '@held', to: slots[0] },
+      { from: slots[0], to: '@discard' },
+    ];
+  } else if (action.verb === 'row-target' && target && action.actor) {
     result.moves = target.slots.map((slot) => ({
       from: `${action.actor}:${slot}`,
       to: `${target.seat}:${slot}`,

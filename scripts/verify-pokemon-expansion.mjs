@@ -430,6 +430,30 @@ function choose(player) {
     (a) => a.type === 'ninja-target' && a.seat !== own && !a.swap,
   );
   if (ninja) return ninja;
+  // Keep the round open until a real interactive ability has been exercised.
+  // This uses only the player's visible board and legal actions, avoiding a
+  // random short round that finishes before any special card is drawn.
+  const abilityExercised = Object.keys(evidence.actionCounts).some((type) =>
+    [
+      'activate-arceus',
+      'extra-draw',
+      'pass-direction',
+      'mewtwo-target',
+      'mewtwo-exchange',
+      'peek',
+      'swap',
+      'row-target',
+      'ninja-target',
+      'mew-target',
+    ].includes(type),
+  );
+  if (!abilityExercised) {
+    const visibleReplacement = actions.find(
+      (action) =>
+        action.type === 'replace' && g.boards[own][action.slot].faceUp,
+    );
+    if (visibleReplacement) return visibleReplacement;
+  }
   const hidden = actions.find(
     (a) =>
       ['replace', 'mew-target'].includes(a.type) &&

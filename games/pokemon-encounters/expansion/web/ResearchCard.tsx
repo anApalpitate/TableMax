@@ -3,24 +3,54 @@ import { researchDefinition, lines } from '../research';
 import { scoreBoard } from '../scoring';
 import { card } from '../cards';
 import { portraitFor } from './card-art';
+import { portraitBoundsFor } from './portrait-bounds';
 
 const illustrations = import.meta.glob<string>(
   '../../../../assets/games/pokemon-encounters/expansion/research-illustrations/*.webp',
   { eager: true, query: '?url', import: 'default' },
 );
 export function ResearchPicture({ id }: { id: string }) {
+  const { name, presentation } = researchDefinition(id);
   const source =
     illustrations[
       `../../../../assets/games/pokemon-encounters/expansion/research-illustrations/${id}.webp`
     ];
   return source ? (
-    <img
-      className="ex-research-picture"
-      src={source}
-      alt=""
-      width={320}
-      height={180}
-    />
+    <figure
+      className="ex-research-art"
+      role="img"
+      aria-label={`${name}主题插画`}
+    >
+      <img
+        className="ex-research-picture ex-research-backdrop"
+        src={source}
+        alt=""
+        width={320}
+        height={180}
+      />
+      <span className="ex-research-subjects" aria-hidden="true">
+        {presentation.subjects.map((categoryId, index, subjects) => {
+          const bounds = portraitBoundsFor(categoryId);
+          return (
+            <svg
+              key={`${categoryId}-${index}`}
+              className="ex-research-subject"
+              viewBox={bounds.viewBox.join(' ')}
+              style={{
+                left: `${subjects.length === 1 ? 25 : subjects.length === 2 ? 15 + index * 37 : 7 + index * 30}%`,
+                width: `${subjects.length === 1 ? 50 : subjects.length === 2 ? 33 : 28}%`,
+              }}
+            >
+              <image
+                href={portraitFor(categoryId)}
+                width={bounds.size[0]}
+                height={bounds.size[1]}
+              />
+            </svg>
+          );
+        })}
+      </span>
+    </figure>
   ) : null;
 }
 export function ResearchDiagram({ id }: { id: string }) {
@@ -56,7 +86,8 @@ export function ResearchDiagram({ id }: { id: string }) {
         {diagram.sample.instances.map((instance, slot) => {
           const point = center(slot),
             selected = diagram.highlightSlots.includes(slot),
-            face = card(instance);
+            face = card(instance),
+            bounds = portraitBoundsFor(face.categoryId);
           return (
             <g key={slot}>
               <rect
@@ -74,13 +105,19 @@ export function ResearchDiagram({ id }: { id: string }) {
               />
               {diagram.kind === 'roles' && portraitFor(face.categoryId) ? (
                 <>
-                  <image
-                    href={portraitFor(face.categoryId)}
+                  <svg
                     x={point.x - 26}
                     y={point.y - 20}
                     width={36}
                     height={40}
-                  />
+                    viewBox={bounds.viewBox.join(' ')}
+                  >
+                    <image
+                      href={portraitFor(face.categoryId)}
+                      width={bounds.size[0]}
+                      height={bounds.size[1]}
+                    />
+                  </svg>
                   <rect
                     x={point.x + 9}
                     y={point.y + 3}
@@ -204,6 +241,7 @@ export function ResearchDiagram({ id }: { id: string }) {
   );
 }
 export function ResearchCard({ task }: { task: ResearchTask }) {
+  const { presentation } = researchDefinition(task.id);
   return (
     <div className="ex-research-card" data-research={task.id}>
       <ResearchPicture id={task.id} />
@@ -212,6 +250,7 @@ export function ResearchCard({ task }: { task: ResearchTask }) {
           <h3>{task.name}</h3>
           <b>−{task.reward}分</b>
         </div>
+        <p className="ex-research-flavor">{presentation.flavor}</p>
         <p>{task.description}</p>
       </div>
       <ResearchDiagram id={task.id} />

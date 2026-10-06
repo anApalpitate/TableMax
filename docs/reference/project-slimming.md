@@ -1,5 +1,15 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.3 宝可梦深度界面与整合交付收尾（2026-10-06）
+
+开始[实际盘点](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/space-handoff.md)11,865,613,393逻辑字节（11.0507GiB）。最终ZIP `6df0feb5…` 的界面、原生恢复、普通对局、声画及静音检查完成，工程进程退出后按精确清单先预览再Apply。当前ZIP／清单、前一份整合包、宝可梦独立旧验收包、原素材、规则资料、正式存档和当前实际截图保留。
+
+[38项旧生成物](../../artifacts/maintenance/local-cleanup-20261006-093549-555-intermediates/cleanup.json)退役1,458,019,410字节，含23旧ZIP、两运行解压和13浏览器缓存；保留原清单、SHA及通过／失败文字结论。[16处链接](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/space-start/doc-link-retirement.json)改指保留证据。[519张旧截图](../../artifacts/maintenance/local-cleanup-20261006-094115-182-intermediates/cleanup.json)287,018,067字节退役；删除旧包刚更新历史根时间，默认30分钟保护先阻止截图Apply，核对原哈希后按已有手动规则使用近期参数重新预览／Apply，其他保护保持。
+
+[release两打包残留](../../artifacts/maintenance/local-cleanup-20261006-094251-516-releases/cleanup.json)462,056,341字节和[四份过期验证副本](../../artifacts/maintenance/local-cleanup-20261006-094457-275-intermediates/cleanup.json)304,200,045字节退役；release仅当前ZIP／清单。首次[自动维护](../../artifacts/maintenance/local-cleanup-20261006-094629-742-maintenance/cleanup.json)实际10,987,358,640→10,950,666,982字节，删除八过期UI副本36,738,593字节、169项保护／未知用途，仍超10GiB。另核实三份已结束UI临时目录零数据库、只含可再生解压与网页，截图／结果外部保留；[内容边界](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/ui-temp-retirement.json)与[执行记录](../../artifacts/maintenance/local-cleanup-20261006-094923-300-intermediates/cleanup.json)记319,145,664字节。仅对这三份明确副本使用既有手动近期参数，未扩大到其他近期资料。
+
+最终工程进程退出后的[实测维护](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/final-maintenance.json)为**10,631,526,855逻辑字节（9.901GiB），低于10GiB**；无新增删除，跳过1,370链接、零嵌套仓库。本轮共退役2,867,178,120字节，容量净降1,234,086,538字节，差额包含新组装、验证、原图和审计。后续文档／Git写入略增；依赖、工具缓存与受保护内容保留，未测NTFS物理释放、不折抵便携门禁，不把此水位当作恒定值。
+
 ## v1.0.3 电力公司材质与综合资料收尾（2026-10-06）
 
 当前运行ZIP SHA-256 `201de235e92fd763cf016bbbb526b407dd8a51aed4c76bb3849beb7e0259128e`与两项原生通过记录一致。前一份ZIP／清单、原地图／AI生成PNG与当前验收截图保留。清理前发现旧release解压目录存在数据库与配置，先将SQLite、配置、日志及浏览器状态共445文件43,230,361字节复制到本轮`previous-delivery/runtime-owned-state/`并逐文件核验哈希；[保留清单](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/previous-delivery/runtime-owned-state/state-backup-manifest.json)不包含存档内容。旧完整EXE也无损归档到本轮previous-delivery，[哈希记录](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/legacy-exe-archive.json)保留；不是删除旧程序，也没有生成新EXE。

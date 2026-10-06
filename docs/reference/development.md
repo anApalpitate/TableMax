@@ -550,6 +550,8 @@ GitHub附件白名单仅 `TableMax-<版本>-win-x64.exe` 与 `TableMax-<版本>-
 
 扩展UI重设计：`node scripts/verify-pokemon-ui-redesign.mjs --evidence=<独立名>`在静音真实Edge中检查四牌源、唯一暂持／牌阵、空弃牌、共同赢家、总分明细、暗投、私看隔离、目标切换和30项插画／精确图示；覆盖320–430px、720p–4K和125%／150%模拟缩放。`--sample`仅样板，不代替完整检查；`--portable`逐文件核验当前ZIP并导入实际包内Screen／共享运行时，不把源码图例页当最终包。服务器显式127.0.0.1，不开放网卡。
 
+深度界面检查另外核验手机投票只有选项、他人行动不展示本人动作、公开三牌源／暂持／研究的层级、弃掉与放入颜色及声音图标。SVG角色以实际可见轮廓和截图审查，先等待图片解码；六人720p共同赢家单独由正式规则生成并断言54格、两赢家及牌桌底边。真实随机对局的能力覆盖采用合法可见行动：触发能力前优先替换明牌，避免过早结束；不窥探牌库或修改规则状态。验证器变化不要求重打未变程序包，使用独立证据名保留失败及修正结果。
+
 `pnpm exec vitest run games/pokemon-encounters/expansion/config`检查30项正反例／图示、34类／112／144及固定种子重构兼容和真实SQLite恢复回退。JSON改动后只构建受影响游戏单元；三配置仍由有类型纯函数消费，不在运行端开放编辑。`node scripts/soften-pokemon-cries.mjs`从清单指定本地原件处理27项下载叫声，先代表再批量；先用 --representatives 核验五项，再用 --apply 派生全部；参数／验证与原件保护见资源清单，禁止把用户原声纳入批量。冻结后一次`package:win`，原包备份保留，音量与视觉真人判断另行交接。
 
 - `pnpm exec vitest run games/pokemon-encounters/expansion/bot/coverage.test.ts`：2–6人三档150个固定种子，每种子独立60秒（六人绝悟120秒）、700步，哈希覆盖新tactics模块。结果留独立run目录；旧策略结果不复用为当前源码证据。
@@ -561,6 +563,8 @@ GitHub附件白名单仅 `TableMax-<版本>-win-x64.exe` 与 `TableMax-<版本>-
 直接读SQLite的审计统一用脚本 `scripts/lib/save-audit.mjs` 的 `readCurrentSave`／`readJournalSave`／`decodeSave`，服务测试通过 `apps/server/src/save-audit.ts`。v2的saves／journal行包含引用，不能直接JSON.parse为完整Save。外层Save仍formatVersion1；旧v1在游戏兼容性通过后的保存时迁移，原库／WAL／SHM及迁移记录保留，未知或损坏库不替换。
 
 所有专项通过后只调用一次 `pnpm package:win`（已包含正式18单元构建，不预先重复全量build）。备份原ZIP／清单，对同一最终ZIP执行 `verify-pokemon-expansion.mjs --portable --evidence=<独立名>` 与普通模式控件验证，再核对冻结输入、离线媒体、退出、实际解压体积及模块预算。共享存储变化扩大三游戏恢复检查；未变规则／原版素材按影响复用既有证据。真人手机／听感／硬件DPI／现场LAN及人类时长单独交接，不重新执行胜率统计门禁。
+
+模块预算警告不能视为交付通过；先优化新增资源或实现，不自动上调。预算失败后的受影响单元修正允许重新冻结组装，保留失败清单、输入与理由，其余缓存单元复用。最终包需同时满足宝可梦4MiB、整包95MB工程预算及ZIP／实际解压双100MB硬门禁；所有最终证据核对同一完整ZIP哈希。
 
 若18单元构建完成后组装被运行中程序门禁阻止，可在程序退出后用 `pnpm package:win --snapshot=build/snapshots/<ID>.json` 恢复组装：重新核对快照ID、生产模块集合、全部源码输入及组装器指纹，继续执行原有进程、输出哈希和体积门禁，避免重复编译。默认命令仍执行正式构建。本轮首次组装因用户日常程序仍运行而中止，用户确认关闭后使用同一冻结快照恢复，未关闭或修改正式用户数据。
 

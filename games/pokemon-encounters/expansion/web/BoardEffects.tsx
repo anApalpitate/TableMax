@@ -17,11 +17,13 @@ export function BoardEffects({
     const measure = () => {
       const next: Record<string, Rect> = {};
       document
-        .querySelectorAll<HTMLElement>('.ex-players [data-slot]')
+        .querySelectorAll<HTMLElement>(
+          '.ex-players [data-slot], .ex-actions [data-slot], .expansion-screen [data-pile]',
+        )
         .forEach((slot) => {
           const rect = slot.getBoundingClientRect();
           if (rect.width && rect.height)
-            next[slot.dataset.slot!] = {
+            next[slot.dataset.slot ?? `@${slot.dataset.pile}`] = {
               x: rect.x,
               y: rect.y,
               width: rect.width,

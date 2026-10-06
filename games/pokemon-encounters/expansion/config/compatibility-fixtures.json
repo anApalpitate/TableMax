@@ -323,5 +323,158 @@
       ],
       "sha256": "4585649f7c08b031c72301bf18241e178c8ff29f26aca3c6123fb2603bb9cb0d"
     }
-  ]
+  ],
+  "researchDisplay": [
+    {
+      "id": "R01",
+      "name": "伙伴列队",
+      "description": "至少一行形成归零线"
+    },
+    {
+      "id": "R02",
+      "name": "高塔攀登",
+      "description": "至少一列形成归零线"
+    },
+    {
+      "id": "R03",
+      "name": "流星轨迹",
+      "description": "至少一条主对角线形成归零线"
+    },
+    {
+      "id": "R04",
+      "name": "波导十字",
+      "description": "中间行与中间列同时归零"
+    },
+    {
+      "id": "R05",
+      "name": "星陨交汇",
+      "description": "两条主对角线同时归零"
+    },
+    {
+      "id": "R06",
+      "name": "巨兽封印",
+      "description": "至少一条归零线的有效值≥10"
+    },
+    {
+      "id": "R07",
+      "name": "四角星座",
+      "description": "四角同值且该值≥0"
+    },
+    {
+      "id": "R08",
+      "name": "镜湖倒影",
+      "description": "上中＝下中，左中＝右中"
+    },
+    {
+      "id": "R09",
+      "name": "双子结界",
+      "description": "两组对角角格分别同值且两组值不同"
+    },
+    {
+      "id": "R10",
+      "name": "环形阶梯",
+      "description": "上中＜右中＜下中＜左中"
+    },
+    {
+      "id": "R11",
+      "name": "众星拱月",
+      "description": "中心严格小于其余八格"
+    },
+    {
+      "id": "R12",
+      "name": "王者之巅",
+      "description": "中心严格大于其余八格"
+    },
+    {
+      "id": "R13",
+      "name": "温柔生态",
+      "description": "九格有效值全部≤5"
+    },
+    {
+      "id": "R14",
+      "name": "阴阳调和",
+      "description": "一行之和为0且同时含正负值"
+    },
+    {
+      "id": "R15",
+      "name": "进化阶梯",
+      "description": "一行从左至右为三个连续整数"
+    },
+    {
+      "id": "R16",
+      "name": "跨级实验",
+      "description": "一列从上至下为等差数列且公差≥2"
+    },
+    {
+      "id": "R17",
+      "name": "三界平衡",
+      "description": "三行之和相等且每行至少两种值"
+    },
+    {
+      "id": "R18",
+      "name": "缤纷光谱",
+      "description": "至少六种不同有效值"
+    },
+    {
+      "id": "R19",
+      "name": "百花齐放",
+      "description": "九张牌属于九种不同角色"
+    },
+    {
+      "id": "R20",
+      "name": "异种协作",
+      "description": "一条归零线包含三种不同角色"
+    },
+    {
+      "id": "R21",
+      "name": "原野守护",
+      "description": "九张全部为普通牌"
+    },
+    {
+      "id": "R22",
+      "name": "海陆空同盟",
+      "description": "本人最终场地拥有三种丰缘神兽"
+    },
+    {
+      "id": "R23",
+      "name": "幻化桥梁",
+      "description": "合法解析的复制牌参加归零线"
+    },
+    {
+      "id": "R24",
+      "name": "幕后布阵",
+      "description": "揭示前至少三明三暗，归零线至少两格原暗牌"
+    },
+    {
+      "id": "H01",
+      "name": "天地初开",
+      "description": "上行全部≥8、中行全部4–7、下行全部≤3"
+    },
+    {
+      "id": "H02",
+      "name": "海渊回响",
+      "description": "中行全部≤0、上下两行全部≥6"
+    },
+    {
+      "id": "H03",
+      "name": "断崖隆升",
+      "description": "每列向下严格递增且底格减顶格均≥6"
+    },
+    {
+      "id": "H04",
+      "name": "天空环流",
+      "description": "四角均大于中心，四边均小于中心"
+    },
+    {
+      "id": "H05",
+      "name": "陨星天平",
+      "description": "两条主对角线之和相等且四角值互异"
+    },
+    {
+      "id": "H06",
+      "name": "终焉封印",
+      "description": "两条不同值归零线，一条≥8，另有未归零负值牌"
+    }
+  ],
+  "researchMechanicsSha256": "4fc3f2ed1daac2f8b861e739db22b471415bc2db4c4c47901f152287fc3d9e0c"
 }

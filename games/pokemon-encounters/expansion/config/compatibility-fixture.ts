@@ -4,8 +4,45 @@ import { categories, instancesForSeats } from '../cards';
 import { tasks } from '../research';
 import type { State, Action } from '../state';
 
+type LegacyDisplay = Pick<
+  (typeof tasks)[number],
+  'id' | 'name' | 'description'
+>;
+
+/** Compare old display strings without changing saved-state or rules semantics. */
+export function compatibilityFixture(
+  seats: number,
+  seed: number,
+  legacyDisplay?: readonly LegacyDisplay[],
+) {
+  const display = tasks.map(({ id, name, description }) => ({
+    id,
+    name,
+    description,
+  }));
+  try {
+    if (legacyDisplay) {
+      if (
+        legacyDisplay.length !== tasks.length ||
+        legacyDisplay.some((item, index) => item.id !== tasks[index]!.id)
+      )
+        throw new Error('Legacy research display identities changed');
+      for (const [index, item] of legacyDisplay.entries()) {
+        tasks[index]!.name = item.name;
+        tasks[index]!.description = item.description;
+      }
+    }
+    return collectCompatibilityFixture(seats, seed);
+  } finally {
+    for (const [index, item] of display.entries()) {
+      tasks[index]!.name = item.name;
+      tasks[index]!.description = item.description;
+    }
+  }
+}
+
 /** Test-only fixed-seed compatibility probe; not imported by runtime modules. */
-export function compatibilityFixture(seats: number, seed: number) {
+function collectCompatibilityFixture(seats: number, seed: number) {
   const ids = Array.from({ length: seats }, (_, i) => `s${i}`);
   let randomState = seed >>> 0;
   let actionState = (seed ^ 0x9e3779b9) >>> 0;

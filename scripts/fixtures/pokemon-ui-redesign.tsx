@@ -30,6 +30,7 @@ type Settings = {
   terminal?: boolean;
   commonWinner?: boolean;
   emptyDiscard?: boolean;
+  waiting?: boolean;
 };
 declare global {
   interface Window {
@@ -109,8 +110,6 @@ function fixture(settings: Settings) {
     state.winsBySeat[actor] = 2;
   }
   if (settings.commonWinner) {
-    if (seats.length !== 2)
-      throw new Error('Common-winner fixture requires two seats');
     const other = seats.find((seat) => seat !== actor)!;
     for (const [seat, values] of [
       [actor, [3, 4, 5]],
@@ -197,9 +196,12 @@ function fixture(settings: Settings) {
   }
   validateState(state, seats);
   const role = settings.role ?? 'host';
+  const viewerSeat = settings.waiting
+    ? seats.find((seat) => seat !== actor)!
+    : actor;
   const game = rules.project(
     state,
-    role === 'player' ? { role, seatId: actor } : { role },
+    role === 'player' ? { role, seatId: viewerSeat } : { role },
   );
   const changed = client.savedChanges(before, game);
   const currentSeats = seats.map((id, i) => ({
@@ -236,9 +238,9 @@ function fixture(settings: Settings) {
     ownerSeatId: null,
     capabilities: { manage: false, control: false, manageSeats: false },
     seats: currentSeats,
-    self: { role, seatId: role === 'player' ? actor : null },
+    self: { role, seatId: role === 'player' ? viewerSeat : null },
     gameView: game,
-    actions: role === 'player' ? rules.legalActions(state, actor) : [],
+    actions: role === 'player' ? rules.legalActions(state, viewerSeat) : [],
     decisionId: decisionId(state, actor),
     selectionToken: decisionId(state, actor),
     history: [],
@@ -253,7 +255,7 @@ function fixture(settings: Settings) {
     locked: settings.paused ?? false,
     self:
       role === 'player'
-        ? currentSeats.find((seat) => seat.id === actor)
+        ? currentSeats.find((seat) => seat.id === viewerSeat)
         : undefined,
     canControl: false,
     isHost: role === 'host',

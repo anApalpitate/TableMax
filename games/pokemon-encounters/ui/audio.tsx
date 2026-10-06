@@ -73,6 +73,7 @@ export function SoundControl({
   game = null,
   errorId,
   compact = false,
+  iconOnly = false,
   disabled = false,
   paused = false,
   canPlay = true,
@@ -83,6 +84,7 @@ export function SoundControl({
   game?: PokemonView | null;
   errorId: string;
   compact?: boolean;
+  iconOnly?: boolean;
   disabled?: boolean;
   paused?: boolean;
   canPlay?: boolean;
@@ -217,7 +219,7 @@ export function SoundControl({
   }, [errorId, enabled, disabled, paused, canPlay]);
   return (
     <button
-      className="secondary sound-control"
+      className={`secondary sound-control${iconOnly ? ' sound-icon-control' : ''}`}
       disabled={disabled}
       aria-pressed={enabled && !disabled}
       aria-label={
@@ -255,17 +257,51 @@ export function SoundControl({
             .catch(() => setBlocked(true));
       }}
     >
-      {disabled
-        ? '声音：关'
-        : blocked && enabled && canPlay
-          ? '点击启用声音'
-          : compact
-            ? enabled
-              ? '声音：开'
-              : '声音：关'
-            : enabled
-              ? '提示音已开启 · 静音'
-              : '开启提示音'}
+      {iconOnly ? (
+        <svg
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+          aria-hidden="true"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M3 9h4l5-4v14l-5-4H3z" />
+          {enabled && !disabled ? (
+            <>
+              <path d="M16 8a6 6 0 0 1 0 8M19 5a10 10 0 0 1 0 14" />
+              {blocked && canPlay && (
+                <circle
+                  cx="20"
+                  cy="3"
+                  r="1.5"
+                  fill="currentColor"
+                  stroke="none"
+                />
+              )}
+            </>
+          ) : (
+            <path d="m16 9 5 6m0-6-5 6" />
+          )}
+        </svg>
+      ) : disabled ? (
+        '声音：关'
+      ) : blocked && enabled && canPlay ? (
+        '点击启用声音'
+      ) : compact ? (
+        enabled ? (
+          '声音：开'
+        ) : (
+          '声音：关'
+        )
+      ) : enabled ? (
+        '提示音已开启 · 静音'
+      ) : (
+        '开启提示音'
+      )}
     </button>
   );
 }
