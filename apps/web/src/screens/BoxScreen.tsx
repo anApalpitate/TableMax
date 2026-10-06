@@ -115,6 +115,11 @@ export function BoxScreen({ session }: { session: RoomSession }) {
           )}
           {role !== 'player' && <DisplaySettings />}
           <PlayModeBadge mode={view?.playMode} />
+          {session.message === '已保存' && (
+            <span className="box-save-status" role="status">
+              已保存
+            </span>
+          )}
           <span
             className={`connection ${connected ? 'online' : ''}`}
             role="status"
@@ -164,7 +169,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
         )}
       </section>
       {!game && <GameLibrary session={session} />}
-      <SessionFeedback session={session} />
+      <SessionFeedback session={session} hideSaved />
       {game && canControl && (
         <div className="box-table-actions">
           <RoomManagement session={session} display="actions" />
@@ -346,16 +351,20 @@ export function BoxScreen({ session }: { session: RoomSession }) {
                       className="secondary"
                       disabled={locked || view.seats.length >= game.max}
                       onClick={() => {
+                        const prefix =
+                          difficulty === 'default'
+                            ? '人机'
+                            : difficultyNames[difficulty];
                         let number = 1;
                         while (
                           view.seats.some(
-                            (seat) => seat.name === `人机 ${number}`,
+                            (seat) => seat.name === `${prefix}${number}`,
                           )
                         )
                           number++;
                         command({
                           type: 'add-bot',
-                          name: `人机 ${number}`,
+                          name: `${prefix}${number}`,
                           difficulty,
                         });
                       }}

@@ -1,6 +1,6 @@
 # 目录职责
 
-本页说明当前文件归属与材料边界；运行命令只在 [开发环境](development.md) 维护，代码依赖与封装只在 [工程结构](architecture.md) 维护。
+本页说明当前文件归属与材料边界；运行与构建机制在[开发环境](development.md)，交付及GitHub发布流程在[Release流程](release.md)，代码依赖与封装在[工程结构](architecture.md)维护。
 
 ## 已创建结构
 
@@ -74,7 +74,7 @@
 
 宝可梦原始中文截图与转录保留于 `artifacts/phase-02/research/chinese-reference/s14/`，叠图数量由 S17 核对为 56；完整采用表在 `docs/games/pokemon-encounters/cards.json`，原图不直接导入运行时。原型美术重置的原图、检查和前后对比保留于 `artifacts/phase-02/art-reset/`，重置前走查另在 `verification/before-art-reset/`。这些资料的适用边界见 [规则来源](../games/pokemon-encounters/sources.md#规则来源与核验缺口)。
 
-已集中归档的清理历史位于 `artifacts/maintenance/cleanup-history/`：`records/` 保留可读清理报告，`tool-checks/` 保存工具检查，`preserved-history-<日期>.zip` 保留原目录的全部原字节，`index.json` 对应原路径／哈希／归档成员，`operations/` 保存整理操作记录。ZIP 内保留原仓库相对路径，原资料可按索引恢复；不把此目录当作可随意丢弃的缓存。
+已集中归档的清理历史位于 `artifacts/maintenance/cleanup-history/`：`directories/` 原样保存已结束的 `local-cleanup-*` 目录，`records/` 保留既有可读清理报告，`tool-checks/` 保存工具检查，`preserved-history-<日期>.zip` 保留此前归档的全部原字节，`index.json` 对应原路径／现路径／哈希及旧 ZIP 归档成员，`operations/` 保存整理操作记录。每轮清理结束后将分散记录目录移入 `directories/` 并修正引用；不改写原结果，不把此目录当作可随意丢弃的缓存。
 
 清理、容量维护和透明压缩的范围、保护及记录路径只在 [开发环境](development.md#清理本地中间物) 维护。忽略不是删除授权，已有资料不自动迁移、重命名或取消跟踪；原始资料与最终产物即使 Git 忽略也保持文件树可见。
 

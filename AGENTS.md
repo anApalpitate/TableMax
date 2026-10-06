@@ -6,7 +6,7 @@
 
 1. 先读本文件、[文档索引](docs/README.md)，检查 Git 状态与相关 diff；按 [定向查询](docs/README.md#定向查询)读必要章节和源码，复用未变结论，不重复遍历生成物。
 2. 目录归属查 [目录职责](docs/reference/project-structure.md)，实现边界查 [工程结构](docs/reference/architecture.md)，运行、验证、清理与压缩查 [开发环境](docs/reference/development.md)。维护文档前读 [维护规则](docs/reference/maintenance.md)，项目瘦身查 [方案与执行记录](docs/reference/project-slimming.md)。
-3. 当前交付查 [验收](docs/reference/acceptance.md)，接续工作查 [任务索引](docs/tasks/README.md#后续开发接续入口)，重要选择查 [决策索引](docs/decisions/README.md)；第一至六阶段已完成，仅追溯历史时读 [归档](docs/archive/README.md)。
+3. 当前交付查 [验收](docs/reference/acceptance.md)，发布流程、附件和更新说明查 [Release流程](docs/reference/release.md)，接续工作查 [任务索引](docs/tasks/README.md#后续开发接续入口)，重要选择查 [决策索引](docs/decisions/README.md)；第一至六阶段已完成，仅追溯历史时读 [归档](docs/archive/README.md)。
 4. 游戏规则、来源、权限、策略与验证各自维护：[宝可梦奇遇](docs/games/pokemon-encounters/README.md)、[现代艺术](docs/games/modern-art/README.md)、[电力公司](docs/games/power-grid/README.md)。电力公司只采用经典德国修正版，42 城／六区／83 边及横向绘图边界见 [地图](docs/games/power-grid/map.md)，不能混入 Recharged 或其他地图。
 5. 跨游戏交互、计时、恢复与显示查 [平台规格](docs/reference/phase-02-platform-spec.md)，接入新游戏查 [扩展指南](docs/game-development/README.md)，电脑玩家查 [人机规格](docs/reference/bot-players.md)。游戏 bot 与开发子 agent 是不同角色。
 6. UI、布局、图标、头像、插画、声画与视觉审查先读 [用户美术偏好](docs/reference/art-preferences.md)、[通用视觉](docs/reference/visual-design.md)及对应游戏规格；设计时按用途、端侧与人数适当参考偏好及细节，派工传入这些入口。偏好依据仅取用户历史请求，不能把 agent 回答、既有实现或实施选择写成用户偏好。
@@ -40,6 +40,8 @@
 ## 清理、协作与收尾
 
 - 长任务完成后必须检查项目逻辑体积，在全部工程进程退出后执行安全瘦身并记录实际结果；遵循下述10GiB阈值及保护范围，不以NTFS压缩节省替代逻辑体积。
+- 定期检查并清理验证产生的 `artifacts/` 与 `tmp/`：每轮集中验证结束、新交付验收通过及长任务收尾时，按 [定期验证产物清理要求](docs/reference/development.md#清理本地中间物)核对并退役已无后续用途的生成副本，不必等到超过10GiB。保留原素材、规则资料、正式存档、当前交付与验收证据，沿用现有清理入口及全部安全保护，不整目录清空。
+- 已结束的 `local-cleanup-*` 目录原样移入 `artifacts/maintenance/cleanup-history/directories/`，保留全部原文件，核验大小与哈希并更新索引和文档引用；每轮清理结束后归档，不让记录散落在 maintenance 直属目录。具体方法见 [清理记录集中归档](docs/reference/development.md#清理记录集中归档)。
 
 - 项目逻辑总空间超过10GiB时执行瘦身，默认目标8GiB或安全候选耗尽。生成副本可采用窄范围清理脚本，例如release过期过程截图；保留路径、链接、进程、近期修改和当前交付保护，减少重复全盘统计、重复候选扫描及无关哈希校验。删除前一次必要复核，结束后一次实际容量统计；操作与依据仍维护在开发环境和瘦身记录。
 - GitHub Release只上传完整可运行的EXE与当前发布提交的source ZIP，不上传JSON清单、运行ZIP、截图或过程报告。JSON清单留作本地审计；发布前校验同一EXE的解压和运行、源代码提交、体积与附件白名单，发布后核对线上附件。用户明确授权发布时可推送对应源码和标签。

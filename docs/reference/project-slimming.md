@@ -1,8 +1,14 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.3全量构建发布后的维护（2026-10-07）
+
+本轮18单元零缓存全量构建、新ZIP正常游玩／三游戏恢复及完整EXE检查结束后，先[预览](../../artifacts/maintenance/v1.0.3/github-release-20261007/cleanup-preview.txt)再[应用](../../artifacts/maintenance/v1.0.3/github-release-20261007/cleanup-apply.txt)，删除5项再生组装／解压／测试副本 **702,173,302字节**，见[原样归档记录](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-182415-395-intermediates/cleanup.json)。前轮及本轮两份已结束清理目录[逐文件核验后集中归档](../../artifacts/maintenance/v1.0.3/github-release-20261007/cleanup-record-archive.json)，原记录字节不变。
+
+[收尾实际体积](../../artifacts/maintenance/v1.0.3/github-release-20261007/space-final.json) **9,122,707,561字节（8.496GiB）**，低于10GiB，较上轮9,034,969,361字节净增87,738,200字节，包括发布EXE、旧包保留与当前验证证据；删除量与净变化分别报告。保持8GiB目标及既有安全候选耗尽边界，受保护原素材、当前截图、正式存档／迁移样本、依赖与工具继续保留。明确发布后release另保留当前完整EXE和最终提交的source ZIP，附件仅这两项。
+
 ## 扩展需求复查后的维护（2026-10-07）
 
-当前v1.0.3 `511ab391…` 同包的演出、正常游玩、原版及三游戏恢复全部通过后，工程进程退出。手动入口先[预览](../../artifacts/maintenance/v1.0.3/pokemon-requirements-audit/cleanup-preview.txt)再[应用](../../artifacts/maintenance/v1.0.3/pokemon-requirements-audit/cleanup-apply.txt)，[实际清理记录](../../artifacts/maintenance/local-cleanup-20261006-181350-053-intermediates/cleanup.json)删除7项再生打包／解压／隔离验证副本 **838,655,357字节**。保留当前ZIP／清单、63姿态及正常游玩截图、v1迁移样本与原备份、全部原素材／规则资料／正式存档和活动依赖。
+当前v1.0.3 `511ab391…` 同包的演出、正常游玩、原版及三游戏恢复全部通过后，工程进程退出。手动入口先[预览](../../artifacts/maintenance/v1.0.3/pokemon-requirements-audit/cleanup-preview.txt)再[应用](../../artifacts/maintenance/v1.0.3/pokemon-requirements-audit/cleanup-apply.txt)，[实际清理记录](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-181350-053-intermediates/cleanup.json)删除7项再生打包／解压／隔离验证副本 **838,655,357字节**。保留当前ZIP／清单、63姿态及正常游玩截图、v1迁移样本与原备份、全部原素材／规则资料／正式存档和活动依赖。
 
 [最终维护实测](../../artifacts/maintenance/v1.0.3/pokemon-requirements-audit/space-final.json) **9,034,969,361字节（8.414GiB）**，低于10GiB；相比前轮结束8,990,170,832字节净增44,798,529字节，主要新增当前验收证据与构建内容，净变化不冒充删除量。8GiB目标仍未达到，沿用已完成的深度审计保护边界：安全候选已处理，不能删除当前截图、原素材、正式存档或用途未确认源码以强行达标。本次只维护新增再生副本，不重复扫描历史图片或扩大删除范围。
 
@@ -18,11 +24,15 @@
 
 清理工具隔离229检查、原样归档16检查通过；归档夹具遗漏既有进程保护器和树快照依赖，补齐后重验通过，未放松生产保护。三份已结束清理目录逐文件哈希核对后[原样集中归档](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/cleanup-record-archive.json)，历史JSON字节未改写，映射追加至cleanup-history索引。后续文档和Git写入会略增；按用户授权仅提交本轮改动并push当前分支，无新标签或GitHub Release。
 
+## 清理记录目录原样集中归档（2026-10-06）
+
+按用户本轮要求新建 `artifacts/maintenance/cleanup-history/directories/`，将 maintenance 直属的49个已结束 `local-cleanup-*` 目录原样移入，含49份JSON、5,635,719逻辑字节；无文件删除或内容改写。移动前检查路径、链接、目标冲突及记录状态，移动前后逐文件大小与SHA-256一致，原路径／现路径映射追加到既有 `cleanup-history/index.json`，见[移动清单](../../artifacts/maintenance/cleanup-history/operations/20261006-152828-785-directory-move.json)。直属分散目录剩余0；文档引用已改到新位置，记录内部历史路径保留原文。维护规则要求每轮清理结束后归档，运行中的记录不移动；本次只整理目录，不计作空间回收。
+
 ## v1.0.3 电力公司数量采购与进度收尾（2026-10-06）
 
 最终ZIP `15a0dd45…` 的六人／两人布局、原生显示和完整采购／回退／恢复验收通过，自有工程进程正常退出。先把最终两个原生验收的数据库、审计源码及逐文件SHA[另存](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/quantity-final-match/saved-audit-inventory.json)，此前完整交付ZIP与清单也在[previous-delivery](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/previous-delivery/TableMax-1.0.3-win-x64.zip.retired.json)保留；当前ZIP、原素材、规则资料、正式存档、截图及成功／失败JSON继续保留。
 
-沿用已知副本的路径、进程、链接和内容变化保护，精确预览后按既有手动近期参数Apply：[release两组装目录](../../artifacts/maintenance/local-cleanup-20261006-150931-895-releases/cleanup.json)退役462,062,602字节；[15个已退出隔离副本](../../artifacts/maintenance/local-cleanup-20261006-150944-576-intermediates/cleanup.json)退役1,418,900,135字节，另161项保护／未知用途跳过。合计1,880,962,737字节，见[汇总](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/cleanup-summary.json)。未清空artifacts／tmp，release仅当前运行ZIP与清单；未删除当前验收、缓存依赖或原资源。
+沿用已知副本的路径、进程、链接和内容变化保护，精确预览后按既有手动近期参数Apply：[release两组装目录](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-150931-895-releases/cleanup.json)退役462,062,602字节；[15个已退出隔离副本](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-150944-576-intermediates/cleanup.json)退役1,418,900,135字节，另161项保护／未知用途跳过。合计1,880,962,737字节，见[汇总](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/cleanup-summary.json)。未清空artifacts／tmp，release仅当前运行ZIP与清单；未删除当前验收、缓存依赖或原资源。
 
 最后空闲执行`Maintain-Project.ps1 -Apply`：[实际返回](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/maintenance-summary.json)为10,533,047,880逻辑字节（约9.81GiB），低于10GiB，本次自动维护不再删除；跳过1,370链接、零嵌套仓库。该水位是全部副本清理后实测，不以删除量推算或NTFS节省替代；随后文档及Git写入会略增。无常驻轮询，不推送或发布。
 
@@ -30,9 +40,9 @@
 
 开始[实际盘点](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/space-handoff.md)11,865,613,393逻辑字节（11.0507GiB）。最终ZIP `6df0feb5…` 的界面、原生恢复、普通对局、声画及静音检查完成，工程进程退出后按精确清单先预览再Apply。当前ZIP／清单、前一份整合包、宝可梦独立旧验收包、原素材、规则资料、正式存档和当前实际截图保留。
 
-[38项旧生成物](../../artifacts/maintenance/local-cleanup-20261006-093549-555-intermediates/cleanup.json)退役1,458,019,410字节，含23旧ZIP、两运行解压和13浏览器缓存；保留原清单、SHA及通过／失败文字结论。[16处链接](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/space-start/doc-link-retirement.json)改指保留证据。[519张旧截图](../../artifacts/maintenance/local-cleanup-20261006-094115-182-intermediates/cleanup.json)287,018,067字节退役；删除旧包刚更新历史根时间，默认30分钟保护先阻止截图Apply，核对原哈希后按已有手动规则使用近期参数重新预览／Apply，其他保护保持。
+[38项旧生成物](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-093549-555-intermediates/cleanup.json)退役1,458,019,410字节，含23旧ZIP、两运行解压和13浏览器缓存；保留原清单、SHA及通过／失败文字结论。[16处链接](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/space-start/doc-link-retirement.json)改指保留证据。[519张旧截图](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-094115-182-intermediates/cleanup.json)287,018,067字节退役；删除旧包刚更新历史根时间，默认30分钟保护先阻止截图Apply，核对原哈希后按已有手动规则使用近期参数重新预览／Apply，其他保护保持。
 
-[release两打包残留](../../artifacts/maintenance/local-cleanup-20261006-094251-516-releases/cleanup.json)462,056,341字节和[四份过期验证副本](../../artifacts/maintenance/local-cleanup-20261006-094457-275-intermediates/cleanup.json)304,200,045字节退役；release仅当前ZIP／清单。首次[自动维护](../../artifacts/maintenance/local-cleanup-20261006-094629-742-maintenance/cleanup.json)实际10,987,358,640→10,950,666,982字节，删除八过期UI副本36,738,593字节、169项保护／未知用途，仍超10GiB。另核实三份已结束UI临时目录零数据库、只含可再生解压与网页，截图／结果外部保留；[内容边界](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/ui-temp-retirement.json)与[执行记录](../../artifacts/maintenance/local-cleanup-20261006-094923-300-intermediates/cleanup.json)记319,145,664字节。仅对这三份明确副本使用既有手动近期参数，未扩大到其他近期资料。
+[release两打包残留](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-094251-516-releases/cleanup.json)462,056,341字节和[四份过期验证副本](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-094457-275-intermediates/cleanup.json)304,200,045字节退役；release仅当前ZIP／清单。首次[自动维护](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-094629-742-maintenance/cleanup.json)实际10,987,358,640→10,950,666,982字节，删除八过期UI副本36,738,593字节、169项保护／未知用途，仍超10GiB。另核实三份已结束UI临时目录零数据库、只含可再生解压与网页，截图／结果外部保留；[内容边界](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/ui-temp-retirement.json)与[执行记录](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-094923-300-intermediates/cleanup.json)记319,145,664字节。仅对这三份明确副本使用既有手动近期参数，未扩大到其他近期资料。
 
 最终工程进程退出后的[实测维护](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/final-maintenance.json)为**10,631,526,855逻辑字节（9.901GiB），低于10GiB**；无新增删除，跳过1,370链接、零嵌套仓库。本轮共退役2,867,178,120字节，容量净降1,234,086,538字节，差额包含新组装、验证、原图和审计。后续文档／Git写入略增；依赖、工具缓存与受保护内容保留，未测NTFS物理释放、不折抵便携门禁，不把此水位当作恒定值。
 
@@ -40,9 +50,9 @@
 
 当前运行ZIP SHA-256 `201de235e92fd763cf016bbbb526b407dd8a51aed4c76bb3849beb7e0259128e`与两项原生通过记录一致。前一份ZIP／清单、原地图／AI生成PNG与当前验收截图保留。清理前发现旧release解压目录存在数据库与配置，先将SQLite、配置、日志及浏览器状态共445文件43,230,361字节复制到本轮`previous-delivery/runtime-owned-state/`并逐文件核验哈希；[保留清单](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/previous-delivery/runtime-owned-state/state-backup-manifest.json)不包含存档内容。旧完整EXE也无损归档到本轮previous-delivery，[哈希记录](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/legacy-exe-archive.json)保留；不是删除旧程序，也没有生成新EXE。
 
-工程进程全部退出后，`Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0`先预览再Apply，仅退役两个release生成目录368,529,258字节；[实际清单](../../artifacts/maintenance/local-cleanup-20261006-085004-681-releases/cleanup.json)保留。release现仅当前ZIP与逐文件清单，旧完整交付及运行数据另行保留。
+工程进程全部退出后，`Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0`先预览再Apply，仅退役两个release生成目录368,529,258字节；[实际清单](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-085004-681-releases/cleanup.json)保留。release现仅当前ZIP与逐文件清单，旧完整交付及运行数据另行保留。
 
-执行`Maintain-Project.ps1 -Apply`：[维护清单](../../artifacts/maintenance/local-cleanup-20261006-085101-647-maintenance/cleanup.json)退役四个过期验证／解压副本303,381,068字节；[最终返回实测](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/maintenance-summary.json)逻辑水位12,126,786,242→11,823,435,804字节（约11.011GiB），与清单的删除量推算值分开记录。两次合计退役671,910,326字节；移位归档旧EXE不改变逻辑字节。仍高于10GiB，安全候选耗尽，165项保护／未知用途及1,370链接跳过，零嵌套仓库；不扩大到当前证据、正式存档、原素材、依赖或工具缓存。后续文档／Git写入会略增，未用NTFS压缩量替代逻辑水位，未常驻轮询或发布。
+执行`Maintain-Project.ps1 -Apply`：[维护清单](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-085101-647-maintenance/cleanup.json)退役四个过期验证／解压副本303,381,068字节；[最终返回实测](../../artifacts/maintenance/v1.0.3/power-grid-ui-refinement-20261006/maintenance-summary.json)逻辑水位12,126,786,242→11,823,435,804字节（约11.011GiB），与清单的删除量推算值分开记录。两次合计退役671,910,326字节；移位归档旧EXE不改变逻辑字节。仍高于10GiB，安全候选耗尽，165项保护／未知用途及1,370链接跳过，零嵌套仓库；不扩大到当前证据、正式存档、原素材、依赖或工具缓存。后续文档／Git写入会略增，未用NTFS压缩量替代逻辑水位，未常驻轮询或发布。
 
 ## v1.0.3 文档整理与推送前维护（2026-10-06）
 
@@ -50,27 +60,27 @@
 
 工程空闲后，对已过30分钟保护的运行副本先预览再执行：[首组两套副本](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/doc-space-runtime-apply.json)188,773,778字节，[末组两套副本及隔离build](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/doc-final-runtime-apply.json)283,160,880字节。只退役精确生成目录，过程ZIP／清单、源码、冻结记录和依赖junction保持原位；沿用已有路径、链接、内容哈希、近期修改和忙进程保护。
 
-`Maintain-Project.ps1 -Apply`的[实际清单](../../artifacts/maintenance/local-cleanup-20261006-080637-780-maintenance/cleanup.json)删除四个已结束验证目录283,014,794字节，维护水位11,879,904,695→11,596,920,535字节。本次合计删除754,949,452字节；末组退役后[最后实测](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/doc-space-final.json)为11,314,190,647字节（10.5372GiB），跳过1,370链接、零嵌套仓库。仍高于10GiB，已核验安全候选耗尽；保护或未知用途内容继续保留，不扩大删除、不常驻轮询。后续文档与Git写入会略增，逻辑空间不以NTFS物理压缩量替代。
+`Maintain-Project.ps1 -Apply`的[实际清单](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-080637-780-maintenance/cleanup.json)删除四个已结束验证目录283,014,794字节，维护水位11,879,904,695→11,596,920,535字节。本次合计删除754,949,452字节；末组退役后[最后实测](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/doc-space-final.json)为11,314,190,647字节（10.5372GiB），跳过1,370链接、零嵌套仓库。仍高于10GiB，已核验安全候选耗尽；保护或未知用途内容继续保留，不扩大删除、不常驻轮询。后续文档与Git写入会略增，逻辑空间不以NTFS物理压缩量替代。
 
 ## v1.0.3 宝可梦UI重设计收尾（2026-10-06）
 
 本次固定交付ZIP及清单保留在 pokemon-ui-redesign/delivery/，SHA-256 943071ce…；并行电力公司随后更新共用release，两包的验收边界分别保留。原图、来源、用户音源、历史验收和原交付均保留，不生成源码包或发布。全部工程进程退出后，25项定向清理检查及[229项完整隔离回归](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/config/cleanup-prefix-tests/full-final/tool-tests.json)通过，新目录前缀沿用精确六位、30分钟及路径／链接／进程保护；早先被忙进程拦截的失败日志保留，未弱化保护。
 
-先预览再应用：本轮[隔离构建／组装副本](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/isolated-build-apply.json)324,977,532字节、53项过期成功构建产物203,221,157字节、[旧解压副本](../../artifacts/maintenance/local-cleanup-20261006-075241-783-intermediates/cleanup.json)94,371,298字节，以及[额外三套运行副本](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/extra-runtime-apply.json)283,624,066字节。额外副本只删除旧电力公司暂存的两套解压和旧现代艺术build；过程ZIP／清单、冻结记录、源码、原素材和全部验收截图在目标之外继续保留。依赖和工具缓存保留；构建清理保留当前开发／交付及每单元两份最新成功产物。
+先预览再应用：本轮[隔离构建／组装副本](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/isolated-build-apply.json)324,977,532字节、53项过期成功构建产物203,221,157字节、[旧解压副本](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-075241-783-intermediates/cleanup.json)94,371,298字节，以及[额外三套运行副本](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/extra-runtime-apply.json)283,624,066字节。额外副本只删除旧电力公司暂存的两套解压和旧现代艺术build；过程ZIP／清单、冻结记录、源码、原素材和全部验收截图在目标之外继续保留。依赖和工具缓存保留；构建清理保留当前开发／交付及每单元两份最新成功产物。
 
-执行 Maintain-Project.ps1 -Apply：[实际维护](../../artifacts/maintenance/local-cleanup-20261006-075417-954-maintenance/cleanup.json)从12,611,745,619降至12,353,217,869逻辑字节，另删除两项过期验证目录258,558,120字节，169项保护或未知内容跳过。以上本次删除总1,164,752,173字节，容量净变化与删除量分别计量。
+执行 Maintain-Project.ps1 -Apply：[实际维护](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-075417-954-maintenance/cleanup.json)从12,611,745,619降至12,353,217,869逻辑字节，另删除两项过期验证目录258,558,120字节，169项保护或未知内容跳过。以上本次删除总1,164,752,173字节，容量净变化与删除量分别计量。
 
 补充窄范围退役后，[最后一次实际容量](../../artifacts/maintenance/v1.0.3/pokemon-ui-redesign/final-space.json)为12,070,055,471字节（11.2411GiB），跳过1,370链接、零嵌套仓库。**未达到用户10GiB目标**；已核验的安全候选耗尽，两份近期打包副本、一份近期构建输出及未知用途目录继续保护，不扩大到原件、存档或当前证据，不常驻轮询。后续文档／Git写入略增；逻辑空间、ZIP预算与NTFS物理节省分开，未用压缩量代替目标。
 
 ## v1.0.3 电力公司地图优化收尾（2026-10-06）
 
-最终ZIP与[原生通过记录](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/polish-shipping-match/results.json)哈希一致；原完整交付另存于 `power-grid-ui-polish-20261006/previous-delivery/`。工程验证进程退出后，`Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0`先预览再Apply，删除两个已结束打包中间目录460,094,396字节；[清单](../../artifacts/maintenance/local-cleanup-20261006-074231-624-releases/cleanup.json)保留。最新ZIP／清单与既有受保护EXE保留，无发布或源码导出。
+最终ZIP与[原生通过记录](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/polish-shipping-match/results.json)哈希一致；原完整交付另存于 `power-grid-ui-polish-20261006/previous-delivery/`。工程验证进程退出后，`Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0`先预览再Apply，删除两个已结束打包中间目录460,094,396字节；[清单](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-074231-624-releases/cleanup.json)保留。最新ZIP／清单与既有受保护EXE保留，无发布或源码导出。
 
-`Maintain-Project.ps1 -Apply`实际逻辑水位由14,767,674,848降至13,238,941,929字节（约12.33GiB），删除27个已核验隔离副本1,528,884,893字节；两次合计1,988,979,289字节。[维护记录](../../artifacts/maintenance/local-cleanup-20261006-074353-703-maintenance/cleanup.json)关联当前ZIP SHA-256 `7946907f4423f6e0c399d14c083dabb7faa2164a25377d523ccfa92cff277963`。安全候选耗尽、仍高于10GiB，169项保护／未知用途内容及1370链接跳过；未扩大清理范围，依赖、缓存、原素材、正式存档、当前及历史证据保留。逻辑字节不以NTFS物理压缩量替代。
+`Maintain-Project.ps1 -Apply`实际逻辑水位由14,767,674,848降至13,238,941,929字节（约12.33GiB），删除27个已核验隔离副本1,528,884,893字节；两次合计1,988,979,289字节。[维护记录](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-074353-703-maintenance/cleanup.json)关联当前ZIP SHA-256 `7946907f4423f6e0c399d14c083dabb7faa2164a25377d523ccfa92cff277963`。安全候选耗尽、仍高于10GiB，169项保护／未知用途内容及1370链接跳过；未扩大清理范围，依赖、缓存、原素材、正式存档、当前及历史证据保留。逻辑字节不以NTFS物理压缩量替代。
 
 ## v1.0.3 游戏介绍修复收尾（2026-10-06）
 
-前一份EXE／ZIP／清单完整保留至 `game-introduction/previous-delivery/`，原初始化与迁移证据继续保留；release仅当前三份交付。自有工程进程全部退出后执行 `Maintain-Project.ps1 -Apply`：[维护审计](../../artifacts/maintenance/local-cleanup-20261006-061821-744-maintenance/cleanup.json)初始11,251,413,591逻辑字节（10.479GiB），删除一份已退出的旧隔离验证目录24,659,377字节，末次11,226,782,836字节（10.456GiB）。安全候选耗尽，161项保护／跳过；仍超过10GiB而未达8GiB，不扩大到近期验证、历史验收、存档、素材或缓存。
+前一份EXE／ZIP／清单完整保留至 `game-introduction/previous-delivery/`，原初始化与迁移证据继续保留；release仅当前三份交付。自有工程进程全部退出后执行 `Maintain-Project.ps1 -Apply`：[维护审计](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-061821-744-maintenance/cleanup.json)初始11,251,413,591逻辑字节（10.479GiB），删除一份已退出的旧隔离验证目录24,659,377字节，末次11,226,782,836字节（10.456GiB）。安全候选耗尽，161项保护／跳过；仍超过10GiB而未达8GiB，不扩大到近期验证、历史验收、存档、素材或缓存。
 
 ## v1.0.3 初始化微调收尾（2026-10-06）
 
@@ -78,7 +88,7 @@
 
 ## v1.0.3 导出与旧资源退役（2026-10-06）
 
-v1.0.3实际EXE／默认与自定义数据路径／3GB存档副本迁移验证通过后，执行先预览再Apply的[release清理](../../artifacts/maintenance/local-cleanup-20261006-054211-163-releases/cleanup.json)，删除旧v1.0.2 ZIP／清单及三份本次打包副本，共500,390,844字节；当前release仅保留v1.0.3 EXE、运行ZIP和逐文件清单，没有源码导出或发布。[隔离副本清理](../../artifacts/maintenance/local-cleanup-20261006-054220-894-intermediates/cleanup.json)删除本次两个已结束的存储验证目录，共3,559,438,389字节；正式C盘原库不在该范围。
+v1.0.3实际EXE／默认与自定义数据路径／3GB存档副本迁移验证通过后，执行先预览再Apply的[release清理](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-054211-163-releases/cleanup.json)，删除旧v1.0.2 ZIP／清单及三份本次打包副本，共500,390,844字节；当前release仅保留v1.0.3 EXE、运行ZIP和逐文件清单，没有源码导出或发布。[隔离副本清理](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-054220-894-intermediates/cleanup.json)删除本次两个已结束的存储验证目录，共3,559,438,389字节；正式C盘原库不在该范围。
 
 另按明确旧资源清理范围，先核验旧C盘 `TableMax/app` 的所有权标记、162文件全部哈希、准确文件集、路径／链接与进程，再用专项[脚本](../../scripts/retire-old-local-runtime.ps1)退役95,313,076字节旧运行资源。[旧安装清单](../../artifacts/maintenance/v1.0.3/portable-storage/old-installed-runtime-manifest.json)及[逐文件退役记录](../../artifacts/maintenance/v1.0.3/portable-storage/old-installed-runtime-retirement.json)保留；父数据目录、room.sqlite、WAL／SHM、旧迁移候选及正式原存档均保留，删除后再次验证原库SHA-256完全一致。不是清理整个C盘TableMax目录。
 
@@ -88,7 +98,7 @@ v1.0.3实际EXE／默认与自定义数据路径／3GB存档副本迁移验证�
 
 按用户最新指示完成测试默认静音、非必要生成资源清理，并将长任务完成后检查体积／安全瘦身纳入AGENTS与维护规则。初始一次实际盘点44,582,597,297逻辑字节（约41.52GiB），相关工程进程结束后[最终维护](../../artifacts/maintenance/v1.0.2/slimming-test-silence-20261006/final-maintenance.json)实测10,441,893,057字节（约9.725GiB），低于10GiB；后续文字、审计与Git写入会小幅增加，不把此数值当作恒定水位。统计跳过1,346链接、零嵌套仓库，NTFS物理节省未测量。
 
-已核验删除四组：18个旧自动混合Worker主库28,302,213,120字节，见[退役清单](../../artifacts/maintenance/v1.0.2/slimming-test-silence-20261006/retired-test-databases.json)与[执行审计](../../artifacts/maintenance/local-cleanup-20261006-050840-255-intermediates/cleanup.json)；44个旧隔离验证目录5,745,138,266字节，见[目录清理](../../artifacts/maintenance/local-cleanup-20261006-051258-636-intermediates/cleanup.json)；两份旧打包解压副本188,741,298字节，见[副本审计](../../artifacts/maintenance/local-cleanup-20261006-051556-690-intermediates/cleanup.json)；140份旧成功构建产物687,371,269字节，见[缓存审计](../../artifacts/maintenance/v1.0.2/build-cache-cleanup/1791262316963-apply.json)。删除量与容量净降分开计量，期间新增验证、构建及旧包备份计入最终容量。
+已核验删除四组：18个旧自动混合Worker主库28,302,213,120字节，见[退役清单](../../artifacts/maintenance/v1.0.2/slimming-test-silence-20261006/retired-test-databases.json)与[执行审计](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-050840-255-intermediates/cleanup.json)；44个旧隔离验证目录5,745,138,266字节，见[目录清理](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-051258-636-intermediates/cleanup.json)；两份旧打包解压副本188,741,298字节，见[副本审计](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-051556-690-intermediates/cleanup.json)；140份旧成功构建产物687,371,269字节，见[缓存审计](../../artifacts/maintenance/v1.0.2/build-cache-cleanup/1791262316963-apply.json)。删除量与容量净降分开计量，期间新增验证、构建及旧包备份计入最终容量。
 
 旧库限 `expansion-integration.test.ts Repository(worker-mixed)` 生成的模拟资料，先保留来源、原结果／源码哈希、只读SQLite版本／journal行数／当前Save摘要和完整文件SHA，再按精确路径预览／Apply。整段旧模拟journal已退役，旧通过／失败结论不改写；近期只读审计生成的WAL／SHM作为单独保留证据，哈希变化阻止删除主库。正式存档、原素材、规则资料及当前截图保留，旧迁移存档前后SHA一致；未按忽略规则删除，也未降低30分钟保护。
 
@@ -96,7 +106,7 @@ releases只保留当前v1.0.2运行ZIP与清单；本轮近期打包暂存以已
 
 ## 电力公司布局交付收尾（2026-10-06）
 
-同版本新ZIP通过实际便携核验后，KeepLatestOnly先预览再执行，删除两个已退出打包目录，共460,493,527逻辑字节（约0.43GiB）；当前运行ZIP、清单、历史发布EXE／source ZIP及验收证据受保护，见[清理记录](../../artifacts/maintenance/local-cleanup-20261005-180608-811-releases/cleanup.json)。首轮空闲自动维护实际计量22,003,251,312逻辑字节（约20.492GiB），安全候选0、保护／跳过73项；追加完整便携对局退出后的[最终水位](../../artifacts/maintenance/v1.0.2/power-grid-layout-20261006/final-maintenance.json)为23,444,356,311逻辑字节（约21.834GiB），安全候选0、保护／跳过76项。超10GiB且未达8GiB，候选耗尽后不扩大范围或删除素材／存档／当前证据。NTFS物理释放未测量。
+同版本新ZIP通过实际便携核验后，KeepLatestOnly先预览再执行，删除两个已退出打包目录，共460,493,527逻辑字节（约0.43GiB）；当前运行ZIP、清单、历史发布EXE／source ZIP及验收证据受保护，见[清理记录](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261005-180608-811-releases/cleanup.json)。首轮空闲自动维护实际计量22,003,251,312逻辑字节（约20.492GiB），安全候选0、保护／跳过73项；追加完整便携对局退出后的[最终水位](../../artifacts/maintenance/v1.0.2/power-grid-layout-20261006/final-maintenance.json)为23,444,356,311逻辑字节（约21.834GiB），安全候选0、保护／跳过76项。超10GiB且未达8GiB，候选耗尽后不扩大范围或删除素材／存档／当前证据。NTFS物理释放未测量。
 
 ## v1.0.2发布收尾（2026-10-05）
 
@@ -122,15 +132,15 @@ releases只保留当前v1.0.2运行ZIP与清单；本轮近期打包暂存以已
 
 三处历史 previous-delivery ZIP 在验收后以精确路径重命名成受保护工具认可的版本包名，逐包大小和哈希进入 [退役清单](../../artifacts/maintenance/v1.0.3/power-grid-debug-20261005/retired-packages.json)，保留各自原清单与通过／失败文字结果。旧链接改为清单，不再提供过时可运行程序。cleanup-history/preserved-history ZIP 是清理文字证据的无损归档，不是历史应用包，继续保留。当前 v1.0.3 验收图、素材原图、规则、正式存档、依赖与工具缓存保留；不按 Git 忽略状态删除内容。
 
-清理顺序为 Clean-Releases 的已退出打包残留、显式退役历史包、已知隔离临时目录，均先预览后 Apply；最后空闲执行 Maintain-Project。[release 清理](../../artifacts/maintenance/local-cleanup-20261005-100131-440-releases/cleanup.json)删除 230,936,288 字节；[历史包清理](../../artifacts/maintenance/local-cleanup-20261005-100533-347-intermediates/cleanup.json)删除 121,697,794 字节；[40 个隔离目录清理](../../artifacts/maintenance/local-cleanup-20261005-100744-349-intermediates/cleanup.json)删除 19,056,787,081 字节。合计删除 19,409,421,163 逻辑字节，不通过手动递归删除绕过路径、链接、进程或近期保护。其他对话未提交的扩展草案、索引和增量构建方案不包含于本次提交。
+清理顺序为 Clean-Releases 的已退出打包残留、显式退役历史包、已知隔离临时目录，均先预览后 Apply；最后空闲执行 Maintain-Project。[release 清理](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261005-100131-440-releases/cleanup.json)删除 230,936,288 字节；[历史包清理](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261005-100533-347-intermediates/cleanup.json)删除 121,697,794 字节；[40 个隔离目录清理](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261005-100744-349-intermediates/cleanup.json)删除 19,056,787,081 字节。合计删除 19,409,421,163 逻辑字节，不通过手动递归删除绕过路径、链接、进程或近期保护。其他对话未提交的扩展草案、索引和增量构建方案不包含于本次提交。
 
 最后空闲执行 [Maintain-Project 记录](../../artifacts/maintenance/v1.0.3/power-grid-debug-20261005/final-maintenance.json)，工作区 5,388,318,267 逻辑字节（约 5.018 GiB），安全候选耗尽，未继续扩大范围。四处未识别的隔离构建／版本预览目录保留；原资料、当前证据、正式存档及工具／依赖缓存不删除，链接与嵌套仓库按规则排除。物理磁盘节省未单独测量，不能把逻辑删除量当作 NTFS 实际释放量。
 
 ## 宝可梦引导与动漫切入收尾（2026-10-05）
 
-全部本轮原生验证退出后，先预览再执行受保护入口。`Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0 -Apply` 删除两处已退出打包残留461,925,666字节，见 [release清理](../../artifacts/maintenance/local-cleanup-20261005-081210-006-releases/cleanup.json)，releases仅保留当前运行ZIP和逐文件清单；上一已验包及清单已冻结于本轮证据目录。
+全部本轮原生验证退出后，先预览再执行受保护入口。`Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0 -Apply` 删除两处已退出打包残留461,925,666字节，见 [release清理](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261005-081210-006-releases/cleanup.json)，releases仅保留当前运行ZIP和逐文件清单；上一已验包及清单已冻结于本轮证据目录。
 
-`Maintain-Project.ps1 -Apply` 删除140,540,184字节已过保护期的已知隔离验证目录，工作区从8,086,147,245降至7,945,615,176逻辑字节（约7.40GiB），见 [维护清单](../../artifacts/maintenance/local-cleanup-20261005-081317-284-maintenance/cleanup.json)。超过5GiB但安全候选耗尽；近期验证数据、证据、原素材、正式存档、依赖与工具缓存继续保护，没有降低保护时限或扩大清理范围。当前包实际解压95,163,216字节，工程预算超163,216字节但硬限制通过，NTFS节省不抵扣交付体积。
+`Maintain-Project.ps1 -Apply` 删除140,540,184字节已过保护期的已知隔离验证目录，工作区从8,086,147,245降至7,945,615,176逻辑字节（约7.40GiB），见 [维护清单](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261005-081317-284-maintenance/cleanup.json)。超过5GiB但安全候选耗尽；近期验证数据、证据、原素材、正式存档、依赖与工具缓存继续保护，没有降低保护时限或扩大清理范围。当前包实际解压95,163,216字节，工程预算超163,216字节但硬限制通过，NTFS节省不抵扣交付体积。
 
 本页依据用户 2026-10-05 的清理与文档要求维护；合并深度检查完成后，用户又明确要求电力公司 agent 试玩、继续优化、导出 **v1.0.3** 并清理历史版本及临时文件。以下保留 v1.0.2 的历史执行数据，新交付另行审计；实际验收见 [验收记录](acceptance.md)，操作入口与安全保护见 [开发环境](development.md#清理本地中间物)。
 
@@ -252,7 +262,7 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 
 沿用 v1.0.3，最终运行 ZIP **40,452,032 字节**，实际解压 **94,975,611 字节**，95 MB 工程预算余 **24,389 字节**；哈希与实际便携／显示验收见 [当前验收](acceptance.md#103宝可梦人机能力演出与版本复用2026-10-05)。原素材、存档、当前及历史证据保留，没有导出源码包。
 
-确认相关工程进程退出后，先预览再执行 `Clean-Releases.ps1 -KeepLatestOnly -Apply` 与 `Maintain-Project.ps1 -Apply`。[包清理记录](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/release-cleanup.log)为零候选、四个近期打包目录受保护；未降低默认 30 分钟保护。[维护预览](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/maintenance-preview.log)与[实际维护](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/maintenance-final.log)删除一处过期隔离验证目录 **17,253,310 字节**，[删除报告](../../artifacts/maintenance/local-cleanup-20261005-051210-835-maintenance/cleanup.json)保留路径和执行结果。
+确认相关工程进程退出后，先预览再执行 `Clean-Releases.ps1 -KeepLatestOnly -Apply` 与 `Maintain-Project.ps1 -Apply`。[包清理记录](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/release-cleanup.log)为零候选、四个近期打包目录受保护；未降低默认 30 分钟保护。[维护预览](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/maintenance-preview.log)与[实际维护](../../artifacts/maintenance/v1.0.3/pokemon-bot-variant-20261005/maintenance-final.log)删除一处过期隔离验证目录 **17,253,310 字节**，[删除报告](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261005-051210-835-maintenance/cleanup.json)保留路径和执行结果。
 
 维护后测量 **15,080,820,415 字节（约 14.045 GiB）**，跳过 1,338 个链接，25 项受保护；安全候选已耗尽，仍超过 5 GiB。近期便携解压／验证目录、依赖与工具缓存等继续按既有保护保留，不扩大范围强删。逻辑文件字节不计作便携包或 NTFS 物理压缩节省。
 
@@ -260,7 +270,7 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 
 同版本九张新图合计 **347,266 字节**，替代当前导入的三张规则截图；旧图及全部原 PNG 留存。最终 ZIP **40,620,970 字节**、实际解压 **95,150,329 字节**，超过 95 MB 工程预算 **150,329 字节**，双 100 MB 硬门禁通过；实际哈希和便携验证见 [本次验收](acceptance.md#103宝可梦原创图文规则页2026-10-05)。上一已验包与清单复制到本次证据目录，历史通过结论仍绑定旧哈希。
 
-工程进程退出后，[包清理预览](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/release-preview.log)及[执行](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/release-cleanup.log)均为零候选，一处近期打包目录继续保护。[维护预览](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/maintenance-preview.log)核验 18 处工作区 tmp 内过期隔离数据与便携解压目录，确认绝对路径及无目录链接后执行既有 `Maintain-Project.ps1 -Apply`。[实际报告](../../artifacts/maintenance/local-cleanup-20261005-060737-718-maintenance/cleanup.json)删除 **10,174,387,299 字节（约 9.48 GiB）**，正式存档、素材、当前及历史验收证据、已验运行包保留。
+工程进程退出后，[包清理预览](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/release-preview.log)及[执行](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/release-cleanup.log)均为零候选，一处近期打包目录继续保护。[维护预览](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/maintenance-preview.log)核验 18 处工作区 tmp 内过期隔离数据与便携解压目录，确认绝对路径及无目录链接后执行既有 `Maintain-Project.ps1 -Apply`。[实际报告](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261005-060737-718-maintenance/cleanup.json)删除 **10,174,387,299 字节（约 9.48 GiB）**，正式存档、素材、当前及历史验收证据、已验运行包保留。
 
 [收尾结果](../../artifacts/maintenance/v1.0.3/pokemon-rules-redesign-20261005/maintenance-final.log)测量 **4,463,440,934 字节（约 4.157 GiB）**，跳过 1,338 个链接，六项继续保护，安全候选耗尽；已低于 5 GiB 启动阈值，未为降到 4 GiB 扩大范围。默认 30 分钟保护未降低，逻辑删除字节不计为运行包或 NTFS 物理压缩节省。
 
@@ -268,7 +278,7 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 
 本轮仍为本地v1.0.2，当前ZIP实际解压94,532,267字节，95MB工程预算剩467,733字节；服务Brotli内存恢复及Ogg主题音是实际运行文件减少，与工作区清理、NTFS物理节省分别计量。同包哈希和未完成素材边界见[验收](acceptance.md#102扩展版续建预算与同包复核2026-10-06)。
 
-全部构建／测试／原生验证退出后，执行既有 `Maintain-Project.ps1 -Apply`，沿用最新10GiB启动／8GiB目标、30分钟保护及当前同哈希便携通过证据。[实际清理](../../artifacts/maintenance/local-cleanup-20261005-162230-673-maintenance/cleanup.json)删除4个过期打包中间目录，共931,114,824字节。原素材、视频参考、PCM原件、存档、当前已验ZIP、现有发布EXE／源码包和全部验收证据保留，未扩大到未知临时目录或依赖缓存。
+全部构建／测试／原生验证退出后，执行既有 `Maintain-Project.ps1 -Apply`，沿用最新10GiB启动／8GiB目标、30分钟保护及当前同哈希便携通过证据。[实际清理](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261005-162230-673-maintenance/cleanup.json)删除4个过期打包中间目录，共931,114,824字节。原素材、视频参考、PCM原件、存档、当前已验ZIP、现有发布EXE／源码包和全部验收证据保留，未扩大到未知临时目录或依赖缓存。
 
 开始实测18,920,901,565字节，清理报告统计17,989,786,741字节；报告写入后控制台实测17,989,805,273字节，均为逻辑文件字节。跳过1,346个链接，60项受保护，安全候选耗尽，剩余超过10GiB；后续文档／审计写入会略增加，不扩大删除范围或常驻轮询。
 
@@ -276,7 +286,7 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 
 本轮v1.0.2正式ZIP实际解压94,532,561字节，95MB余额467,439字节；仅宝可梦策略及隔离目录重新编译的原生启动器变更，其他187个运行文件与上一已验包相同。共享工作区同时修改的电力公司地图未纳入正式包，混合试包及上次已验ZIP／清单都保留在[本轮交付证据](../../artifacts/maintenance/v1.0.2/pokemon-expansion-forecast-delivery/)。相关统计、真正普通模式小局及同包边界见[验收](acceptance.md#102前瞻均值修复与普通模式同包续验2026-10-06)。
 
-本轮构建／验收进程退出后执行 `Maintain-Project.ps1 -Apply`，[实际报告](../../artifacts/maintenance/local-cleanup-20261005-172021-441-maintenance/cleanup.json)删除2个过期打包中间目录，共461,024,004字节。开始21,478,087,986字节、结束21,017,083,413字节，跳过1,346个链接，安全候选耗尽；仍超过10GiB，不扩大清理范围。当前包、原素材、存档和证据保留，其他任务改动不提交。隔离工作树的正式包／清单、冻结快照及审计均已复制回项目证据目录，再申请可恢复归档；工作区逻辑字节与包体节省分别计量。
+本轮构建／验收进程退出后执行 `Maintain-Project.ps1 -Apply`，[实际报告](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261005-172021-441-maintenance/cleanup.json)删除2个过期打包中间目录，共461,024,004字节。开始21,478,087,986字节、结束21,017,083,413字节，跳过1,346个链接，安全候选耗尽；仍超过10GiB，不扩大清理范围。当前包、原素材、存档和证据保留，其他任务改动不提交。隔离工作树的正式包／清单、冻结快照及审计均已复制回项目证据目录，再申请可恢复归档；工作区逻辑字节与包体节省分别计量。
 
 ## 宝可梦三胜与叫声续验收尾（2026-10-06）
 
@@ -288,7 +298,7 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 
 火箭队原PNG保留，运行版采用RGBA逐字节一致的无损WebP，净省118,891字节；最新包实际解压94,535,185字节，95MB余464,815字节，其他游戏运行文件字节不变。这是包内格式节省，不计作新动作姿态或NTFS物理节省；依据见[最新验收](acceptance.md#102普通收局前瞻与无损卡面续验2026-10-06)。
 
-首次受保护维护从29,073,057,216字节开始，删除1,499,244,900字节过期验证副本后，因主负责人同时启动格式检查触发忙进程保护停止；[失败报告](../../artifacts/maintenance/local-cleanup-20261005-185743-901-maintenance/cleanup.json)保留。格式检查退出后重新执行，[完整报告](../../artifacts/maintenance/local-cleanup-20261005-185842-758-maintenance/cleanup.json)从27,573,830,748字节降至27,427,299,128字节，删除剩余两候选146,548,225字节。当前已验ZIP、原素材、正式存档及历史验收记录保留；安全候选耗尽，仍超过10GiB，不扩大清理范围。两次真实集成超时的正式数据库保留，存档／日志增长没有在本轮解决。
+首次受保护维护从29,073,057,216字节开始，删除1,499,244,900字节过期验证副本后，因主负责人同时启动格式检查触发忙进程保护停止；[失败报告](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261005-185743-901-maintenance/cleanup.json)保留。格式检查退出后重新执行，[完整报告](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261005-185842-758-maintenance/cleanup.json)从27,573,830,748字节降至27,427,299,128字节，删除剩余两候选146,548,225字节。当前已验ZIP、原素材、正式存档及历史验收记录保留；安全候选耗尽，仍超过10GiB，不扩大清理范围。两次真实集成超时的正式数据库保留，存档／日志增长没有在本轮解决。
 
 2026-10-06火箭队估值／角色无损格式续验完成后，全部工程与验证进程结束，执行 `Maintain-Project.ps1 -Apply`：项目逻辑字节29,381,345,156，零合格候选，91项保护／近期内容跳过，删除零字节。仍超过10GiB，安全候选耗尽，未扩大清理范围；原素材、正式存档及当前已验包保留。[维护记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-ability-review-20261006/maintenance.json)与[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-ability-review-20261006/final-checks.json)分别记录空间和交付门禁，不将NTFS节省计入运行预算。
 
@@ -318,7 +328,7 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 
 三胜修复、真实Worker、五场完整大局及同包普通／原生验证全部退出后维护：逻辑字节39,834,721,605，零候选／零删除、139项保护或近期内容跳过，1,346链接跳过、零嵌套仓库。新增真实SQLite和原包备份按验收证据保护，当前ZIP保留；[维护记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/maintenance.json)说明安全候选耗尽，未扩大范围。
 
-新策略2–4人96场独立对照及叫声来源补证全部退出后维护：按原脚本路径、近期修改与当前交付保护，仅删除已过保护期的可再生成打包暂存 `package-1.0.2-Mp5jm6`，229,536,884字节；151项内容、1,346链接和全部原素材／存档／证据保留。[清单](../../artifacts/maintenance/local-cleanup-20261006-010026-617-maintenance/cleanup.json)记录删除前39,836,458,127字节，结束容量统计39,606,959,541字节（含新写维护清单）。安全候选耗尽，仍高于10GiB，不扩大范围；当前71248726运行ZIP哈希再次核对一致，未删除当前或历史验收包。
+新策略2–4人96场独立对照及叫声来源补证全部退出后维护：按原脚本路径、近期修改与当前交付保护，仅删除已过保护期的可再生成打包暂存 `package-1.0.2-Mp5jm6`，229,536,884字节；151项内容、1,346链接和全部原素材／存档／证据保留。[清单](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-010026-617-maintenance/cleanup.json)记录删除前39,836,458,127字节，结束容量统计39,606,959,541字节（含新写维护清单）。安全候选耗尽，仍高于10GiB，不扩大范围；当前71248726运行ZIP哈希再次核对一致，未删除当前或历史验收包。
 
 新策略五人24场对照、分析与格式工具全部退出、六人组尚未启动时维护：逻辑字节39,607,829,665，零候选／零删除，154项保护或近期内容、1,346链接跳过，零嵌套仓库。脚本零候选不生成清单，[记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/match-outcome-holdout-5p-20261006/maintenance.json)保留实际终端结果；当前包、素材、存档与完整对照均保留，仍高于10GiB，不扩大范围。
 
@@ -326,6 +336,6 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 
 普通前瞻三胜续修的测试／完整大局／打包／两项实际程序验证全部退出后维护：首次沙箱拒绝读取、零删除；授权环境按原保护脚本执行，逻辑字节42,640,911,863，零候选／零删除、170项保护或近期内容、1,346链接跳过、零嵌套仓库。[终端记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-forecast-match-20261006/maintenance.json)保留边界；新增真实SQLite、旧包备份、当前e8023551包与正式证据均保留，超过10GiB但安全候选耗尽，不扩大范围。
 
-2026-10-06扩展一次性技术收尾全部工程进程退出后，先预览／应用 `Clean-Releases.ps1 -KeepLatestOnly`，删除已过保护期的打包暂存229,537,914字节，[清单](../../artifacts/maintenance/local-cleanup-20261006-043737-432-releases/cleanup.json)保留路径与保护依据。脚本保护的两份近期暂存和既有发布EXE／source ZIP仅可恢复移入本轮证据目录，没有删除近期内容或原件；原发布文件与此前备份逐项SHA相同，当前ZIP／清单哈希不变，[保留记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/release-retention.json)记录完整路径。`artifacts/releases/`现只留本次已验运行ZIP与清单，历史ZIP、失败迁移库、原素材、存档与当前截图继续保留。
+2026-10-06扩展一次性技术收尾全部工程进程退出后，先预览／应用 `Clean-Releases.ps1 -KeepLatestOnly`，删除已过保护期的打包暂存229,537,914字节，[清单](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-043737-432-releases/cleanup.json)保留路径与保护依据。脚本保护的两份近期暂存和既有发布EXE／source ZIP仅可恢复移入本轮证据目录，没有删除近期内容或原件；原发布文件与此前备份逐项SHA相同，当前ZIP／清单哈希不变，[保留记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/release-retention.json)记录完整路径。`artifacts/releases/`现只留本次已验运行ZIP与清单，历史ZIP、失败迁移库、原素材、存档与当前截图继续保留。
 
-随后 `Maintain-Project.ps1 -Apply` 按10GiB／8GiB边界执行：逻辑字节44,582,300,751→44,582,166,411（约41.52GiB），仅删除两个旧隔离倒计时验证目录共168,422字节；189项保护或近期内容、1,346链接跳过，零嵌套仓库。安全候选耗尽，仍超过10GiB，不扩大范围或重复全盘扫描。[维护记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/maintenance.json)及[原清单](../../artifacts/maintenance/local-cleanup-20261006-044006-648-maintenance/cleanup.json)保留实际容量，NTFS物理节省不计入运行ZIP门禁。
+随后 `Maintain-Project.ps1 -Apply` 按10GiB／8GiB边界执行：逻辑字节44,582,300,751→44,582,166,411（约41.52GiB），仅删除两个旧隔离倒计时验证目录共168,422字节；189项保护或近期内容、1,346链接跳过，零嵌套仓库。安全候选耗尽，仍超过10GiB，不扩大范围或重复全盘扫描。[维护记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/maintenance.json)及[原清单](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-044006-648-maintenance/cleanup.json)保留实际容量，NTFS物理节省不计入运行ZIP门禁。

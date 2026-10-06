@@ -3,6 +3,12 @@
   padding: 20px 28px;
   color: #173b32;
 }
+.box-screen .box-save-status {
+  color: #31554a;
+  font-size: 16px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 .box-screen .continue-game {
   display: flex;
   flex-wrap: wrap;

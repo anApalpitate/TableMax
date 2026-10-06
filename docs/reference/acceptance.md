@@ -1,5 +1,13 @@
 # 首版交付与验收
 
+## 1.0.3：全量构建与GitHub发布交付（2026-10-07）
+
+按用户最新指示重新[完整生产构建](../../artifacts/maintenance/v1.0.3/github-release-20261007/full-build-checks.json)：18单元全部重编译、零缓存命中、40,872ms，从冻结清单组装，没有再次编译。新ZIP SHA-256 `bdd69433cab5a2088155d839835ea6d282b858bf67ca4ce7c877426fcaa0d4a0`，41,331,905字节、247文件，实际解压94,864,409字节；与前包逐文件大小／SHA-256相同，封装哈希单独记录。95MB工程预算余135,591字节，宝可梦4MiB及双100MB门禁通过。
+
+新包[普通静音游玩](../../artifacts/maintenance/v1.0.3/pokemon-expansion-normal-play/github-release-full-01/results.json)33步／12阶段、[三游戏v1／v2恢复](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/storage/github-release-full-01/results.json)通过；此前63姿态、布局、原版及规则策略检查只按逐文件等价复用，不声称重新执行。类型／相关lint及[5项共享反馈与播放测试](../../artifacts/maintenance/v1.0.3/github-release-20261007/ui-tests.json)通过。完整发布EXE为41,488,384字节，SHA-256 `41994ea59521d3ef042ad9ce72919a55ace73b38e5e2e8617c441002f928f3e3`；[同一EXE实际检查](../../artifacts/maintenance/v1.0.3/github-release-20261007/shipping-executable-checks.json)提取94,916,329字节、248文件，完整哈希、重复提取复用及原生安全通过。
+
+本次按[Release流程](release.md)提交冻结运行输入、推送源码与 `v1.0.3` 标签，只上传完整EXE及该标签提交的source ZIP；标题 `TableMax v1.0.3`，正文总结后列更新内容。[GitHub v1.0.3](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.3)是正式下载入口，线上状态与附件以该页及本地发布记录为准。实体手机、现场局域网、物理DPI、真人听感和真人时长仍未替代技术模拟。
+
 ## 1.0.3：扩展需求复查与演出时序（2026-10-07）
 
 历次扩展需求已整理为[32项有序对照](../games/pokemon-encounters/expansion-design.md#当前需求有序对照2026-10-07)，冲突明确采用较新的要求；保留真人听感、实体设备与时长目标的待测身份。修复首次挂载／快速重入补播旧回执，以及能力／研究演出尚未结束时提前增加胜局星标的问题；暂停取消后的旧回执也不重播，共同赢家在结果阶段统一显示新星标及赢家标记。
@@ -34,7 +42,7 @@
 
 ## 当前源码与本地交付
 
-当前本地交付为本页扩展需求复查章节的 `511ab391…` 同包验收，在已完成一次全量构建的 `99f3be46…` 基础上仅修正客户端播放时序。旧包保留各自哈希、冻结清单、通过／失败文字结论和原素材；历史通过结论只对应当时冻结输入，不升级为当前包通过。
+当前交付为本页全量构建与GitHub发布章节的 `bdd69433…` ZIP及 `41994ea5…` 完整EXE，源码由最终 `v1.0.3` 标签提交导出。前包 `511ab391…` 与本包逐文件相同，原ZIP／清单另保留；旧包保留各自哈希、冻结清单、通过／失败文字结论和原素材，历史通过结论只对应当时冻结输入。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
 

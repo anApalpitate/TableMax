@@ -108,7 +108,7 @@ const url = await run('gh', [
   '--verify-tag',
   '--latest',
   '--title',
-  `TableMax ${tag} · 三款局域网桌游`,
+  `TableMax ${tag}`,
   '--notes-file',
   resolve(notes),
 ]);
@@ -120,11 +120,18 @@ const online = JSON.parse(
     '--repo',
     repo,
     '--json',
-    'url,assets,tagName,isDraft,isPrerelease',
+    'url,assets,tagName,name,body,isDraft,isPrerelease',
   ]),
 );
 assert.equal(online.isDraft, false);
 assert.equal(online.isPrerelease, false);
+assert.equal(online.tagName, tag);
+assert.equal(online.name, `TableMax ${tag}`);
+assert.equal(
+  online.body.trim(),
+  (await readFile(resolve(notes), 'utf8')).trim(),
+  'Published notes must match reviewed notes',
+);
 assert.equal(
   online.assets.length,
   2,
