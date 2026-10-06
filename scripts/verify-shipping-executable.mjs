@@ -83,12 +83,12 @@ await run(
     'scripts/verify-native-safety.mjs',
     '--portable',
     `--executable=${join(extracted, 'TableMax.exe')}`,
-    '--evidence=github-exe-v102',
+    `--evidence=shipping-v${version.replaceAll('.', '')}`,
   ],
   { windowsHide: true, timeout: 180000, maxBuffer: 1024 * 1024 },
 );
 const safetyPath = resolve(
-  `artifacts/maintenance/v${version}/webview2/github-exe-v102/results.json`,
+  `artifacts/maintenance/v${version}/webview2/shipping-v${version.replaceAll('.', '')}/results.json`,
 );
 const safety = JSON.parse(await readFile(safetyPath, 'utf8'));
 assert.equal(safety.result, 'passed');

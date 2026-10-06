@@ -1,3 +1,11 @@
+# 开发环境
+
+## v1.0.3 便携存储与启动迁移（2026-10-06）
+
+用户明确指定v1.0.3。正式运行默认在盒子EXE同级创建 `TableMax.config.json`，内容为 `{"dataDirectory":"."}`；相对路径以盒子EXE目录解析，绝对路径原样使用。主机 Alt → 程序 → 存储设置提供目录选择，原子写入配置并于重启后生效；不自动搬移或覆盖旧数据。存档、日志、显示设置、WebView2缓存均跟随所选数据目录。单文件EXE在同级 `.tablemax/app` 解压运行资源，并向内部桌面传递外层盒子目录；直接运行ZIP内EXE以该EXE目录为默认。不可写／无效配置报错，不能回退C盘。显式 `TABLEMAX_DATA_DIR` 继续服务于已有隔离验证。
+
+旧存档启动迁移通过私有stdout同步发送固定 `startup-progress/save-migration`，导入、逐修订深比较和文件哈希计算推进时报告，最多每秒一次；不包含存档内容、身份或凭证。普通启动仍20秒；收到迁移进度后允许120秒无进展，总计最多30分钟，不以定时器假进度延长等待。完整v1备份、校验与恢复事务保持。新验证 `node scripts/verify-portable-storage.mjs` 对同一最终EXE检查默认目录、配置变更重启、旧存档字节保留、缓存及单文件解压；可加 `--source=<空WAL的闲置旧数据目录>`，只复制至隔离目录并核验真实大存档迁移和重启。报告在当前版本 `portable-storage/results.json`，不导出秘密状态。真实用户原数据不参与写入。验证输出 `tmp/portable-storage-<六位随机后缀>` 纳入已知隔离副本清理入口；通过证据和原用户存档仍保留。
+
 # 开发环境与验证
 
 ## 宝可梦三胜大局与叫声续验（2026-10-06）
@@ -233,7 +241,7 @@ pnpm prototype:verify:game
 
 普通便携启动保持端口 38473，占用时停止并展示具体原因。手机身份仅在原浏览器源恢复，地址或端口变化后的新源不能自动沿用；换手机／绑定码已删除，确需重新入座时由管理员处理旧座位。服务运行期间防自动休眠，公共屏可见时保持亮屏，退出恢复系统电源行为；手动休眠或关机仍可能中断服务。身份和房主边界见 [通用平台规格](phase-02-platform-spec.md)。
 
-原生 Alt → 程序菜单提供“打开房主管理”“打开日志目录”。`LOCALAPPDATA/TableMax/logs/desktop.log` 保存启动失败原因，`service.log` 保存服务生命周期。损坏／不兼容存档保持原文件，排障前备份 `room.sqlite` 及 WAL／SHM。
+原生 Alt → 程序菜单提供“打开房主管理”“打开日志目录”。所选数据目录内的 `logs/desktop.log` 保存启动失败原因，`service.log` 保存服务生命周期。损坏／不兼容存档保持原文件，排障前备份 `room.sqlite` 及 WAL／SHM。
 
 ### 手机围桌与等级
 
@@ -255,7 +263,7 @@ pnpm prototype:verify:game
 
 | 内容                 | 位置／策略                                                                                                                             |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 默认本地数据         | 系统 `LOCALAPPDATA` 下的 `TableMax/`，不写入程序包或仓库                                                                               |
+| 默认本地数据         | EXE 同级目录，由同级 `TableMax.config.json` 的 `dataDirectory` 指定，默认 `"."`                                                        |
 | 工程验证数据库       | 数据目录 `foundation.sqlite` 与 SQLite WAL／SHM；仅保留工程启动计数，正式平台另用 room.sqlite                                          |
 | 正式平台存档         | 数据目录 `room.sqlite` 与 WAL／SHM；最新记录与修订 journal，包含秘密状态，禁止公开                                                     |
 | 服务日志             | 数据目录 `logs/service.log`，只记录服务启动／停止事件，不记录验证消息或秘密状态                                                        |
@@ -273,7 +281,7 @@ pnpm prototype:verify:game
 
 仅支持开发／验证覆盖的环境变量：`TABLEMAX_DATA_DIR` 指定数据位置，`TABLEMAX_HOST` 指定监听地址，`TABLEMAX_PORT` 指定端口（0 仅用于验证临时端口）。`TABLEMAX_WEB_DEV_URL` 只用于仓库中的已标记开发构建，便携包忽略它。原生壳清除继承的 WebView2 调试／缓存覆盖以及 Node 加载覆盖，正式程序不开放 CDP。不要将含秘密的本地配置纳入 Git。
 
-不兼容的旧模板存档保留原文件；需要新开时先备份，再在 PowerShell 用 `$env:TABLEMAX_DATA_DIR` 指定明确的新隔离目录，普通运行仍使用默认 `LOCALAPPDATA/TableMax`。不通过覆盖旧存档来消除错误。
+不兼容的旧模板存档保留原文件；需要新开时先备份，再在 PowerShell 用 `$env:TABLEMAX_DATA_DIR` 指定明确的新隔离目录，普通运行使用盒子配置指定目录，默认EXE同级。不通过覆盖旧存档来消除错误。
 
 没有自动修改防火墙、路由器或系统服务。手机连接还受私人网络防火墙、访客网络隔离和选错网卡影响。当前完成实际本地服务和禁止外部请求的完整混合局；手机／电视按用户授权模拟，不声称实际系统浏览器或外接硬件已测。
 
@@ -349,6 +357,8 @@ pnpm package:win
 
 ## 清理本地中间物
 
+v1.0.3新增已知隔离副本 `tmp/portable-storage-<六位随机后缀>`，通过后才按精确清单清理。用户明确授权退役旧安装资源时，专项 `scripts/retire-old-local-runtime.ps1` 默认预览，核对后加 `-Apply`；仅处理旧LOCALAPPDATA下的受管理 `TableMax/app`，要求当前实际存储／迁移通过证据、原库SHA不变、旧版本所有权标记、准确文件集及全文件哈希、无链接与运行占用。逐文件记录和旧清单保存在当前版本的portable-storage证据，旧存档及其父目录始终保留。缺少这些证据时拒绝删除，不作为通用C盘清理命令。
+
 2026-10-05更新：项目逻辑空间超过10GiB时瘦身，默认目标8GiB；安全候选耗尽仍超标只记录，不扩大范围。容量仅在开始与结束各实测一次，中间按已校验删除字节估计停止条件；候选元数据快照改用.NET遍历，删除前保留一次指纹／链接复核和进程检查。原素材、正式存档、当前交付和验收证据继续受保护。
 
 `Clean-ReleaseScreenshots.ps1` 是窄范围入口，默认预览，显式 `-Apply` 才删除：仅匹配release直属的已命名过程图片或纯图片目录，不扫描maintenance或assets，不处理运行／源码文件；保留30分钟保护、共享清理互斥和删除前复核，不要求对无保留价值的生成截图逐像素／内容哈希验证。
@@ -382,7 +392,7 @@ pnpm package:win
 .\Maintain-Project.ps1 -Apply -ProjectRoot C:\Projects\TableMax
 ```
 
-`build/` 供 `pnpm start` 使用，默认保留；手动 `Clean-Intermediates.ps1` 明确要删除时可加 `-IncludeBuild`，之后先执行 `pnpm build` 再启动。已确认最近候选停止使用时，手动入口可显式设置 `-MinimumAgeMinutes 0`，它不跳过其他安全检查。自动维护禁止这两种放宽；阈值可用 `-HighWaterGiB`、`-LowWaterGiB` 调整，低水位必须小于高水位。`.pnpm-store/`、`node_modules/`、工具缓存、正式存档、原始素材和历史证据继续保留；保护内容占用过大时只报告，不为达到阈值扩大删除范围。脚本不更改 PowerShell 执行策略、默认 `LOCALAPPDATA/TableMax` 数据或其他项目环境。
+`build/` 供 `pnpm start` 使用，默认保留；手动 `Clean-Intermediates.ps1` 明确要删除时可加 `-IncludeBuild`，之后先执行 `pnpm build` 再启动。已确认最近候选停止使用时，手动入口可显式设置 `-MinimumAgeMinutes 0`，它不跳过其他安全检查。自动维护禁止这两种放宽；阈值可用 `-HighWaterGiB`、`-LowWaterGiB` 调整，低水位必须小于高水位。`.pnpm-store/`、`node_modules/`、工具缓存、正式存档、原始素材和历史证据继续保留；保护内容占用过大时只报告，不为达到阈值扩大删除范围。脚本不更改 PowerShell 执行策略、正式用户数据或其他项目环境。
 
 只清理已核对的特定临时项时，使用 `Clean-Intermediates.ps1 -TemporaryNames @('game-ui-ABC123', 'review-tools')` 预览，核对后追加 `-Apply`。名称必须是 `tmp/` 直属项的精确名称，不允许路径、重复或不存在的项；此模式不扫描打包目录，不与 `-IncludeBuild` 或自动维护结合，未列出的内容保持原位。显式选择的未知临时内容先整体复制到清理记录的 `reviewed-temporary-content/`，核验文件数量、字节及逐文件 SHA-256 后才删除原目录；路径、进程、近期修改、链接、嵌套仓库和当前已验证 ZIP 保护仍生效。原始资料与历史证据应先核对其归档，不能因为放在 `tmp/` 就视为可丢弃。
 
@@ -438,7 +448,7 @@ pnpm package:win
 
 ## GitHub单文件发布
 
-当前发布版本按用户指定改为v1.0.2，仅调整交付编号，保留此前本地v1.0.3／v1.0.4已完成的功能，历史包和证据不改号。日常 `pnpm package:win` 仍生成本地ZIP与逐文件清单；明确发布时，在该ZIP实际便携通过后执行 `pnpm package:release`，输出完整单文件EXE。启动器首次将内置资源校验解压至 `%LOCALAPPDATA%\TableMax\app`，后续复用，保持程序／Node路径稳定；存档和设置位于独立数据位置。只更新带有效资源标记的目录，未知文件或运行占用时拒绝替换，暂存失败回滚。
+2026-10-05发布编号按用户指定为v1.0.2；2026-10-06当前本地版本按新指示为v1.0.3，历史包与证据不改号。日常 `pnpm package:win` 仍生成本地ZIP与逐文件清单；明确发布时，在该ZIP实际便携通过后执行 `pnpm package:release`，输出完整单文件EXE。v1.0.3启动器首次将内置资源校验解压至EXE同级 `.tablemax/app`，后续复用，保持程序／Node路径稳定；存档、设置及缓存按盒子同级配置指定目录保存。只更新带有效资源标记的目录，未知文件或运行占用时拒绝替换，暂存失败回滚。
 
 GitHub附件白名单仅 `TableMax-<版本>-win-x64.exe` 与 `TableMax-<版本>-source.zip`。source必须由最终发布提交的 `git archive` 导出，不包含工作区未提交草案、存档、缓存和过程材料。清单、哈希和验收报告保留本地，不上传JSON。发布先提交源码并推送对应提交与标签，随后上传已验文件并核对远端附件；历史误传JSON移除，旧版有效下载保留。正式导出时的EXE与source ZIP也受KeepLatestOnly保护。
 

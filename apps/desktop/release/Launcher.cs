@@ -137,6 +137,16 @@ namespace TableMax.Release {
         try { Prepare(extract, delegate { }); return 0; }
         catch (Exception error) { Console.Error.WriteLine(error.Message); return 1; }
       }
+      if (Array.IndexOf(args, "--foundation-check") >= 0) {
+        try {
+          var root = AppDomain.CurrentDomain.BaseDirectory;
+          var configuration = new TableMax.Portable.StorageConfiguration(root);
+          string program = Prepare(Path.Combine(root, ".tablemax", "app"), delegate { });
+          var start = new ProcessStartInfo(program, "--foundation-check") { WorkingDirectory = Path.GetDirectoryName(program), UseShellExecute = false, CreateNoWindow = true };
+          start.EnvironmentVariables["TABLEMAX_BOX_DIRECTORY"] = root;
+          using (var child = Process.Start(start)) { child.WaitForExit(); return child.ExitCode; }
+        } catch (Exception error) { Console.Error.WriteLine(error.Message); return 1; }
+      }
       Application.EnableVisualStyles();
       var form = new Form { Text = "TableMax", Width = 440, Height = 150, StartPosition = FormStartPosition.CenterScreen, FormBorderStyle = FormBorderStyle.FixedDialog, MaximizeBox = false };
       var label = new Label { Text = "正在检查运行资源…", Dock = DockStyle.Fill, TextAlign = System.Drawing.ContentAlignment.MiddleCenter };
@@ -145,9 +155,11 @@ namespace TableMax.Release {
       form.Controls.Add(label);
       form.Shown += async delegate {
         try {
-          string target = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TableMax", "app");
+          string target = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".tablemax", "app");
           string program = await Task.Run(() => Prepare(target, message => { if (!form.IsDisposed && form.IsHandleCreated) form.BeginInvoke((Action)(() => label.Text = message)); }));
-          Process.Start(new ProcessStartInfo(program) { WorkingDirectory = Path.GetDirectoryName(program), UseShellExecute = true });
+          var launch = new ProcessStartInfo(program) { WorkingDirectory = Path.GetDirectoryName(program), UseShellExecute = false };
+          launch.EnvironmentVariables["TABLEMAX_BOX_DIRECTORY"] = AppDomain.CurrentDomain.BaseDirectory;
+          Process.Start(launch);
           finished = true; form.Close();
         } catch (Exception error) { MessageBox.Show(form, error.Message, "TableMax 启动失败", MessageBoxButtons.OK, MessageBoxIcon.Error); finished = true; form.Close(); }
       };

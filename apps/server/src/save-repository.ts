@@ -15,7 +15,10 @@ export class SqliteSaveRepository implements SaveRepository {
   private version: number;
   private writable = false;
   private writer: SaveStorageWriter | undefined;
-  constructor(dataDir: string) {
+  constructor(
+    dataDir: string,
+    private readonly migrationProgress?: () => void,
+  ) {
     const path = join(dataDir, 'room.sqlite');
     this.path = path;
     recoverSaveMigration(path);
@@ -78,6 +81,8 @@ export class SqliteSaveRepository implements SaveRepository {
           this.database,
           value,
           extras,
+          undefined,
+          this.migrationProgress,
         );
       } catch (error) {
         try {

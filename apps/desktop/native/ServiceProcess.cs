@@ -16,6 +16,7 @@ namespace TableMax.Desktop
         private readonly TaskCompletionSource<Dictionary<string, object>> ready = new TaskCompletionSource<Dictionary<string, object>>();
         private readonly TaskCompletionSource<int> exited = new TaskCompletionSource<int>();
         private bool stopping;
+        private long migrationProgressTicks;
         private int exitReported;
         public event Action<int> UnexpectedExit;
         public int Id => process?.Id ?? 0;
@@ -51,6 +52,13 @@ namespace TableMax.Desktop
                                 throw new IOException("Invalid service ready response.");
                             ready.TrySetResult(message);
                         }
+                        else if (Json.String(message, "type") == "startup-progress")
+                        {
+                            if (message.Count != 2 || Json.String(message, "stage") != "save-migration")
+                                throw new IOException("Invalid service startup progress.");
+                            System.Threading.Interlocked.Exchange(ref migrationProgressTicks, Stopwatch.GetTimestamp());
+                            diagnostics("正在迁移并核验旧存档，请等待完成。不会删除原存档。");
+                        }
                         else if (Json.String(message, "type") == "error")
                             ready.TrySetException(new IOException(Json.String(message, "message", "Local service startup failed.") + " " + Json.String(message, "code", "")));
                         else throw new IOException("Unexpected service response.");
@@ -69,7 +77,17 @@ namespace TableMax.Desktop
                 catch (IOException) { }
             });
             input.WriteLine(Json.Encode(new { type = "start", config = configuration }));
-            if (await Task.WhenAny(ready.Task, Task.Delay(20000)) != ready.Task) throw new TimeoutException("Local service startup timed out.");
+            var waiting = Stopwatch.StartNew();
+            while (!ready.Task.IsCompleted)
+            {
+                await Task.WhenAny(ready.Task, Task.Delay(250));
+                if (ready.Task.IsCompleted) break;
+                var progress = System.Threading.Interlocked.Read(ref migrationProgressTicks);
+                if (progress == 0 && waiting.Elapsed.TotalSeconds >= 20)
+                    throw new TimeoutException("Local service startup timed out.");
+                if (progress != 0 && ((Stopwatch.GetTimestamp() - progress) / (double)Stopwatch.Frequency >= 120 || waiting.Elapsed.TotalMinutes >= 30))
+                    throw new TimeoutException("Save migration startup timed out.");
+            }
             return await ready.Task;
         }
         public async Task Stop()

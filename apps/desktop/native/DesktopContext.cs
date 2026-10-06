@@ -35,6 +35,7 @@ namespace TableMax.Desktop
         private int nextId = 1;
         private readonly object outputLock = new object();
         public string DataDirectory { get; }
+        public TableMax.Portable.StorageConfiguration Storage { get; }
         public bool Testing { get; }
         public bool Checking { get; }
         public bool ForegroundTest => Testing && arguments.Contains("--tablemax-test-foreground");
@@ -44,9 +45,9 @@ namespace TableMax.Desktop
         public CoreWebView2Environment Environment { get; private set; }
         public DisplaySettingsStore Displays { get; }
 
-        public DesktopContext(string dataDirectory, string[] arguments, bool testing, bool checking, EventWaitHandle reopenEvent)
+        public DesktopContext(string dataDirectory, string[] arguments, bool testing, bool checking, EventWaitHandle reopenEvent, TableMax.Portable.StorageConfiguration storage)
         {
-            DataDirectory = dataDirectory; this.arguments = arguments; Testing = testing; Checking = checking;
+            Storage = storage; DataDirectory = dataDirectory; this.arguments = arguments; Testing = testing; Checking = checking;
             Displays = new DisplaySettingsStore(dataDirectory);
             dispatch.CreateControl();
             reopen = ThreadPool.RegisterWaitForSingleObject(reopenEvent, (_, __) => Post(async () => { await ShowHost(); }), null, Timeout.Infinite, false);
@@ -315,6 +316,8 @@ namespace TableMax.Desktop
         {
             switch (method)
             {
+                case "storage.info": return new { configPath = Storage.Pathname, configured = Storage.DataDirectory, active = DataDirectory };
+                case "storage.set": Storage.Save(Json.String(parameters, "directory")); return new { restartRequired = true };
                 case "runtime":
                     var versions = new Dictionary<string, object>(Json.Object(Json.Value(health, "runtime", new Dictionary<string, object>())));
                     versions.Remove("electron");

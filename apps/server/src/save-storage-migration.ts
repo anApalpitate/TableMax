@@ -36,7 +36,7 @@ function* streamRows(database: DatabaseSync, query: string) {
   // statement keeps a strong reference across every yield until the scan ends.
   return statement;
 }
-function fingerprint(path: string): FileRecord {
+function fingerprint(path: string, progress?: () => void): FileRecord {
   if (lstatSync(path).isSymbolicLink())
     throw new Error('linked-save-migration-path');
   const hash = createHash('sha256');
@@ -47,6 +47,7 @@ function fingerprint(path: string): FileRecord {
       const count = readSync(fd, buffer, 0, buffer.length, null);
       if (!count) break;
       hash.update(buffer.subarray(0, count));
+      progress?.();
     }
     return {
       name: basename(path),
@@ -57,11 +58,11 @@ function fingerprint(path: string): FileRecord {
     closeSync(fd);
   }
 }
-function same(path: string, record: FileRecord) {
+function same(path: string, record: FileRecord, progress?: () => void) {
   return (
     existsSync(path) &&
     statSync(path).size === record.bytes &&
-    fingerprint(path).sha256 === record.sha256
+    fingerprint(path, progress).sha256 === record.sha256
   );
 }
 function marker(path: string) {
@@ -158,7 +159,9 @@ export function migrateSaveStorage(
   value: Save,
   extras?: SaveExtras,
   fault?: (stage: 'validated' | 'backed-up' | 'installed') => void,
+  progress?: () => void,
 ) {
+  progress?.();
   const root = dirname(path),
     token = randomUUID();
   const temporary = `room-v2-staging-${token}.sqlite`,
@@ -193,7 +196,7 @@ export function migrateSaveStorage(
     // A stale second repository must not migrate a database already replaced by another writer.
     const originals = files
       .filter((name) => existsSync(join(root, name)))
-      .map((name) => fingerprint(join(root, name)));
+      .map((name) => fingerprint(join(root, name), progress));
     source.exec('BEGIN');
     target = new DatabaseSync(join(root, temporary));
     target.exec('PRAGMA synchronous=FULL;');
@@ -207,6 +210,7 @@ export function migrateSaveStorage(
       if (saved.instanceId !== row.instance || saved.revision !== row.revision)
         throw new Error('damaged-save-journal');
       writer.write(saved);
+      progress?.();
     }
     const current = readCurrentSave(source) as Save | null;
     if (current) writer.write(current, undefined, false);
@@ -214,7 +218,8 @@ export function migrateSaveStorage(
     for (const row of streamRows(
       source,
       'SELECT rowid,data FROM journal ORDER BY rowid',
-    ))
+    )) {
+      progress?.();
       if (
         !isDeepStrictEqual(
           JSON.parse(String(row.data)),
@@ -222,6 +227,7 @@ export function migrateSaveStorage(
         )
       )
         throw new Error('save-migration-journal-mismatch');
+    }
     if (!isDeepStrictEqual(current, readCurrentSave(target)))
       throw new Error('save-migration-current-mismatch');
     if (
@@ -281,7 +287,9 @@ export function migrateSaveStorage(
     );
     if (
       currentFiles.length !== durableOriginals.length ||
-      durableOriginals.some((entry) => !same(join(root, entry.name), entry))
+      durableOriginals.some(
+        (entry) => !same(join(root, entry.name), entry, progress),
+      )
     )
       throw new Error('save-migration-source-changed');
     mkdirSync(join(root, backup));
@@ -292,10 +300,10 @@ export function migrateSaveStorage(
       originals: [
         ...durableOriginals,
         ...(existsSync(join(root, 'room.sqlite-shm'))
-          ? [fingerprint(join(root, 'room.sqlite-shm'))]
+          ? [fingerprint(join(root, 'room.sqlite-shm'), progress)]
           : []),
       ],
-      targetSha256: fingerprint(join(root, temporary)).sha256,
+      targetSha256: fingerprint(join(root, temporary), progress).sha256,
     };
     const receipt = openSync(marker(path), 'wx');
     try {

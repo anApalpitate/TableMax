@@ -55,6 +55,7 @@ export async function createReleaseExecutable({
     `/resource:${resolve(archivePath)},payload.zip`,
     `/resource:${resolve(manifestPath)},payload.json`,
     resolve('apps/desktop/release/Launcher.cs'),
+    resolve('apps/desktop/native/StorageConfiguration.cs'),
     metadata,
   ]);
   const bytes = (await stat(output)).size;

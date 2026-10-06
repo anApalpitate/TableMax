@@ -72,10 +72,12 @@ describe('normalized SQLite save storage', () => {
     const first = save();
     legacy(path, [first]);
     const original = readFileSync(join(path, 'room.sqlite'));
-    const repository = new SqliteSaveRepository(path);
+    let progress = 0;
+    const repository = new SqliteSaveRepository(path, () => progress++);
     expect(repository.load()).toEqual(first);
     expect(readFileSync(join(path, 'room.sqlite'))).toEqual(original);
     repository.save(save(1));
+    expect(progress).toBeGreaterThan(2);
     expect(repository.load()).toEqual(save(1));
     repository.close();
     const backup = readdirSync(path).find((name) =>

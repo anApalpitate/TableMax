@@ -22,10 +22,12 @@ namespace TableMax.Desktop
             Console.SetIn(new StreamReader(Console.OpenStandardInput(), new UTF8Encoding(false)));
             var testing = arguments.Contains("--foundation-test");
             var checking = arguments.Contains("--foundation-check");
-            var dataDirectory = Environment.GetEnvironmentVariable("TABLEMAX_DATA_DIR") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TableMax");
+            var boxDirectory = Environment.GetEnvironmentVariable("TABLEMAX_BOX_DIRECTORY") ?? AppDomain.CurrentDomain.BaseDirectory;
+            var dataDirectory = boxDirectory;
             try
             {
-                dataDirectory = Path.GetFullPath(dataDirectory);
+                var storage = new TableMax.Portable.StorageConfiguration(boxDirectory);
+                dataDirectory = Path.GetFullPath(Environment.GetEnvironmentVariable("TABLEMAX_DATA_DIR") ?? storage.DataDirectory);
                 Directory.CreateDirectory(dataDirectory);
                 string key;
                 using (var hash = SHA256.Create()) key = BitConverter.ToString(hash.ComputeHash(Encoding.UTF8.GetBytes(dataDirectory.ToUpperInvariant()))).Replace("-", "").Substring(0, 32);
@@ -36,7 +38,7 @@ namespace TableMax.Desktop
                     try { NativeMethods.SetProcessDpiAwarenessContext(new IntPtr(-4)); } catch (EntryPointNotFoundException) { }
                     Application.EnableVisualStyles();
                     Application.SetCompatibleTextRenderingDefault(false);
-                    using (var context = new DesktopContext(dataDirectory, arguments, testing, checking, reopen)) Application.Run(context);
+                    using (var context = new DesktopContext(dataDirectory, arguments, testing, checking, reopen, storage)) Application.Run(context);
                     mutex.ReleaseMutex();
                 }
             }
@@ -63,6 +65,7 @@ namespace TableMax.Desktop
             else if (new[] { "damaged", "SQLITE_CORRUPT", "malformed", "not a database" }.Any(message.Contains)) { reason = "存档损坏或无法通过校验。"; remedy = "请备份整个数据目录（包括 WAL／SHM）后检查；不要删除原存档。"; }
             else if (new[] { "EEXIST", "ENOTDIR" }.Any(message.Contains)) { reason = "数据目录路径不是可用的文件夹。"; remedy = "请检查该路径是否被同名文件占用；保留原文件，改用可写的数据目录。"; }
             else if (cause is UnauthorizedAccessException || new[] { "EACCES", "EPERM", "ENOSPC", "read-only", "unable to open database" }.Any(message.Contains)) { reason = "数据目录不可写，或磁盘空间不足。"; remedy = "请检查目录权限和磁盘剩余空间，再重新启动。"; }
+            else if (cause is TimeoutException && cause.Message == "Save migration startup timed out.") { reason = "旧存档迁移长时间没有进展，启动已停止。"; remedy = "原存档及迁移备份保留。请检查磁盘空间和日志，然后重新启动。"; }
             else if (cause is TimeoutException) { reason = "本地服务在 20 秒内没有完成启动。"; remedy = "请检查磁盘、安全软件和日志，然后重新启动。"; }
             return reason + "\n" + remedy + "\n\n数据目录：" + dataDirectory + "\n日志目录：" + Path.Combine(dataDirectory, "logs") + "\n\n具体原因：" + message.Substring(0, Math.Min(1500, message.Length));
         }

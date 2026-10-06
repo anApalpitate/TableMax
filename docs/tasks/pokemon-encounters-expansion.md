@@ -143,7 +143,7 @@ UI以 `savedBoardEffects` 从已保存公开结果生成局部移位、盖回与
 
 **最终技术同包验收：** [续建汇总](../../artifacts/maintenance/v1.0.2/pokemon-expansion-continuation-delivery/final-checks.json)对应ZIP SHA-256 `99514d30221a05dfe249a7fd6d16223b755f3937d72979c22127c393166bb7be`，18单元／385输入冻结通过，143项原媒体及其他游戏核心文件不变。[实际原生结果](../../artifacts/maintenance/v1.0.2/pokemon-expansion-runtime/portable-99514d30221a/results.json)完成8项真实流程、11项显示矩阵、18张卡面和8项Ogg离线解码，页面错误及外部请求为零；完整技术小局、保存、重启恢复与原版切回通过。当前包技术ZIP验收通过，完整计划仍未完成，未验证事项继续见[验收](../reference/acceptance.md)。
 
-最新[打包清单](../../artifacts/releases/TableMax-1.0.2-win-x64-manifest.json)记录189文件实际解压94,532,267字节、ZIP41,119,920字节，95MB工程余额467,733字节，无预算告警；18单元16次缓存命中，耗时21.475秒。打包与实际原生运行验收均已通过；余额未预留完整62帧素材预算。41局测量后仅将策略类型调用结构显式化，算法未变但源码精确哈希改变；类型、11项策略及17项集成已复核，不把先前测量哈希写成当前精确源码匹配。
+最新[打包清单](../../artifacts/maintenance/v1.0.3/portable-storage/old-release-retirement.json)记录189文件实际解压94,532,267字节、ZIP41,119,920字节，95MB工程余额467,733字节，无预算告警；18单元16次缓存命中，耗时21.475秒。打包与实际原生运行验收均已通过；余额未预留完整62帧素材预算。41局测量后仅将策略类型调用结构显式化，算法未变但源码精确哈希改变；类型、11项策略及17项集成已复核，不把先前测量哈希写成当前精确源码匹配。
 
 ## 前瞻均值修复与普通模式续验（2026-10-06）
 
@@ -237,7 +237,7 @@ UI以 `savedBoardEffects` 从已保存公开结果生成局部移位、盖回与
 
 ## 三胜目标修复同包续验（2026-10-06）
 
-源码c019e11的修复已完成[五场完整大局](../../artifacts/maintenance/v1.0.2/pokemon-expansion-flow-audit/match-outcome-five-counts-20261006/report.json)，2–6人共26小局／2,564动作，201.387秒、无封顶、源码稳定；小样本12次有效盖回、零重复／闭环，不当作总体循环或胜率认证。新[运行ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) SHA-256 `7124872618e34296718af69f95f78ab86df11442b3c7fe7cc76cdfa959739088`，40,886,844字节、实际解压94,302,053字节，95MB余697,947；18单元／15缓存命中、无告警。[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/final-checks.json)绑定42项模型回归、15种子小局及17项真实服务／Worker。
+源码c019e11的修复已完成[五场完整大局](../../artifacts/maintenance/v1.0.2/pokemon-expansion-flow-audit/match-outcome-five-counts-20261006/report.json)，2–6人共26小局／2,564动作，201.387秒、无封顶、源码稳定；小样本12次有效盖回、零重复／闭环，不当作总体循环或胜率认证。新[运行ZIP](../../artifacts/maintenance/v1.0.3/portable-storage/old-release-retirement.json) SHA-256 `7124872618e34296718af69f95f78ab86df11442b3c7fe7cc76cdfa959739088`，40,886,844字节、实际解压94,302,053字节，95MB余697,947；18单元／15缓存命中、无告警。[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/final-checks.json)绑定42项模型回归、15种子小局及17项真实服务／Worker。
 
 相对79ace仅策略CJS与原生EXE不同。两个C#输入仅CRLF／LF原始字节不同，归一文本相同，原生构建目录指纹也不同，未改原生代码；[核对](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/native-baseline-audit.json)与[真实解压程序](../../artifacts/maintenance/v1.0.2/pokemon-expansion-runtime/portable-7124872618e3/results.json)通过10流程／11显示、本地声画与浏览器RGBA核验。[普通模式](../../artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/match-outcome-final-20261006/results.json)34次手机控件／十阶段、真实默认Worker、私看和播放通过，47.232秒为自动化时间，页面错误／外部请求零、进程退出。旧ZIP与清单完整备份，根目录既有EXE／source ZIP保留原字节，不推送、发布或新增源码包。下一步以新策略独立种子块检查分级；62帧真实动作、真人体验和音源依据仍未完成，完整计划保持进行中。
 
@@ -263,7 +263,7 @@ UI以 `savedBoardEffects` 从已保存公开结果生成局部移位、盖回与
 
 当前执行2–6人完整大局、同版本冻结打包与实际解压验证；71248726旧包及清单已完整备份，后续包以同包证据更新。首次大局检查因沙箱阻止esbuild子进程而终止，未产生对局结论；改用独立证据名在授权环境执行。62帧真实透明动作、当前精确策略的全范围分级、真人手机／听感／实际小局时长仍未完成，完整计划保持进行中。
 
-普通前瞻修正已完成同包续验：源码f2b745c、[运行ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) SHA-256 `e802355117e8c94288d786bc64024864757567ec465171fb5d6181709cf2405c`，ZIP40,887,000字节、实际解压94,302,491字节，95MB余697,509；18单元／17缓存命中、无预算告警。仅策略CJS变化，其余215项（含原生EXE、网页、全部媒体）字节相同，[固定清单](../../artifacts/maintenance/v1.0.2/pokemon-expansion-forecast-match-20261006/final-delivery-manifest.json)与[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-forecast-match-20261006/final-checks.json)绑定47项相关回归、15种子小局、17项真实集成及五场／22小局／1894动作。
+普通前瞻修正已完成同包续验：源码f2b745c、[运行ZIP](../../artifacts/maintenance/v1.0.3/portable-storage/old-release-retirement.json) SHA-256 `e802355117e8c94288d786bc64024864757567ec465171fb5d6181709cf2405c`，ZIP40,887,000字节、实际解压94,302,491字节，95MB余697,509；18单元／17缓存命中、无预算告警。仅策略CJS变化，其余215项（含原生EXE、网页、全部媒体）字节相同，[固定清单](../../artifacts/maintenance/v1.0.2/pokemon-expansion-forecast-match-20261006/final-delivery-manifest.json)与[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-forecast-match-20261006/final-checks.json)绑定47项相关回归、15种子小局、17项真实集成及五场／22小局／1894动作。
 
 同一ZIP的[便携原生核验](../../artifacts/maintenance/v1.0.2/pokemon-expansion-runtime/portable-e802355117e8/results.json)10流程／11显示、本地声画与16项浏览器RGBA相等通过；[普通模式](../../artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json)36次手机控件／14阶段、真实默认Worker、私看与实际播放通过，55.352秒为自动化时间。页面错误／外部请求零，自有进程退出。旧71248726包及清单逐字节保留，既有EXE／source ZIP未变；不推送、发布或另导出源码。62帧真实姿态、当前源码全人数分级、真人手机／听感／实际时长仍待完成。
 
@@ -281,7 +281,7 @@ UI以 `savedBoardEffects` 从已保存公开结果生成局部移位、盖回与
 
 最多四线，主负责人负责UI调度／整合／文档，三个子agent分别负责矢量、策略和存储；文件唯一归属、证据目录隔离。先验证超梦五姿态、合法第三胜反例和旧库迁移／回退，再展开全量。生产源码冻结后串行协调CPU Worker、完整大局、实际UI、组装及清理；只重跑受影响组。已通过的历史玩法证据按影响复用，不重复导出每次策略微调。
 
-本次技术收尾已完成。[运行ZIP](../../artifacts/releases/TableMax-1.0.2-win-x64.zip) SHA-256 `1cf5e5c4a912022262fdeab7fcfc69cd41f5d3f047dcae110afbffaa70a48bef`，ZIP40,911,077字节、216文件实际解压94,370,680字节，95MB余629,320字节；净增68,189字节，宝可梦模块3,906,502字节，全部预算通过。透明PNG只作证据，正式包使用矢量。[固定清单](../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/final-delivery-manifest.json)绑定最终冻结快照和本次源码，历史报告继续保留原边界。
+本次技术收尾已完成。[运行ZIP](../../artifacts/maintenance/v1.0.3/portable-storage/old-release-retirement.json) SHA-256 `1cf5e5c4a912022262fdeab7fcfc69cd41f5d3f047dcae110afbffaa70a48bef`，ZIP40,911,077字节、216文件实际解压94,370,680字节，95MB余629,320字节；净增68,189字节，宝可梦模块3,906,502字节，全部预算通过。透明PNG只作证据，正式包使用矢量。[固定清单](../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/final-delivery-manifest.json)绑定最终冻结快照和本次源码，历史报告继续保留原边界。
 
 150局合计16,666合法动作，最长单次857.944ms；首次六人绝悟seed5整局76.6秒触发旧60秒上限，保留原失败，独立120秒整局重跑通过，其他组仍60秒，单次两秒及700步不变。五场完整混合大局共22小局／2,206动作；最新17项真实服务集成完成四席五局三胜、282次32MiB Worker、381步，最长853.302ms，122.152秒为自动化用时。原95项平台／Worker回归按影响复用，迁移修复后17项服务集成另行重跑；不执行胜率统计门禁。
 

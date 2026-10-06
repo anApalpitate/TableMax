@@ -224,6 +224,7 @@ namespace TableMax.Desktop
                 try { await context.OpenPublic(Uri.TryCreate(Url, UriKind.Absolute, out var current) && current.AbsolutePath.EndsWith("/game", StringComparison.Ordinal) ? "/public/game" : "/public"); }
                 catch (Exception cause) { context.Log(cause.Message); }
             }));
+            if (Managed && Role == "host") program.DropDownItems.Add("存储设置…", null, (_, __) => ShowStorageSettings());
             program.DropDownItems.Add("打开日志目录", null, (_, __) =>
             {
                 var logs = Path.Combine(context.DataDirectory, "logs"); Directory.CreateDirectory(logs);
@@ -233,6 +234,20 @@ namespace TableMax.Desktop
             menu.Items.Add(screens); menu.Items.Add(program); menu.Visible = false;
             menu.MenuDeactivate += (_, __) => { menu.Visible = false; ApplyDisplay(); };
             MainMenuStrip = menu; Controls.Add(menu);
+        }
+        private void ShowStorageSettings()
+        {
+            using (var dialog = new Form { Text = "TableMax · 存储设置", Width = 660, Height = 245, StartPosition = FormStartPosition.CenterParent, FormBorderStyle = FormBorderStyle.FixedDialog, MaximizeBox = false, MinimizeBox = false, Font = new System.Drawing.Font("Microsoft YaHei UI", 12) })
+            {
+                var label = new Label { Text = "存档、日志和浏览器缓存目录", Left = 20, Top = 18, Width = 610, Height = 30 };
+                var path = new TextBox { Text = context.Storage.DataDirectory, Left = 20, Top = 55, Width = 490, ReadOnly = true };
+                var browse = new Button { Text = "选择目录", Left = 520, Top = 52, Width = 110, Height = 38 };
+                browse.Click += (_, __) => { using (var folder = new FolderBrowserDialog { Description = "选择 TableMax 存储目录", SelectedPath = path.Text }) if (folder.ShowDialog(dialog) == DialogResult.OK) path.Text = folder.SelectedPath; };
+                var note = new Label { Text = "重启后生效。旧存档不会自动搬移或删除；继续旧对局请先复制完整数据。", Left = 20, Top = 100, Width = 610, Height = 55 };
+                var save = new Button { Text = "保存配置", Left = 500, Top = 160, Width = 130, Height = 38 };
+                save.Click += (_, __) => { try { context.Storage.Save(path.Text); dialog.Close(); } catch (Exception cause) { MessageBox.Show(dialog, cause.Message, "配置未保存", MessageBoxButtons.OK, MessageBoxIcon.Error); } };
+                dialog.Controls.AddRange(new Control[] { label, path, browse, note, save }); dialog.AcceptButton = save; dialog.ShowDialog(this);
+            }
         }
         protected override bool ProcessCmdKey(ref Message message, Keys keyData)
         {

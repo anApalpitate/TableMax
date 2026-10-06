@@ -65,6 +65,7 @@ try {
   Fixture-File 'tmp/pokemon-expansion-normal-play-PLY123/data/room.sqlite' 'isolated-expansion-play'
   Fixture-File 'tmp/pokemon-expansion-effects-EFX123/data/room.sqlite' 'isolated-expansion-effects'
   Fixture-File 'tmp/portable-storage-games-SAV123/data/room.sqlite' 'isolated-three-game-storage'
+  Fixture-File 'tmp/portable-storage-CFG123/data/room.sqlite' 'isolated-portable-config-storage'
   Fixture-File 'tmp/pokemon-expansion-materials/notes.md' 'original material preserved'
   Fixture-File 'tmp/modern-art-polish-reference/notes.md' 'unknown-polish-reference'
   Fixture-File 'tmp/modern-art-verify-research/notes.md' 'unknown-modern-art-research'
@@ -341,7 +342,7 @@ try {
 
   Run-Cleanup Intermediates $true
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/package-1.5.0-ABC123'))) 'Current regenerable stage is removed, current ZIP retained'
-  foreach ($name in @('pokemon-expansion-runtime-RUN123','pokemon-expansion-normal-play-PLY123','pokemon-expansion-effects-EFX123','portable-storage-games-SAV123')) { Check (-not (Test-Path -LiteralPath (Join-Path $fixture ('tmp/'+$name)))) ('Retired exact isolated verification prefix '+$name) }
+  foreach ($name in @('pokemon-expansion-runtime-RUN123','pokemon-expansion-normal-play-PLY123','pokemon-expansion-effects-EFX123','portable-storage-games-SAV123','portable-storage-CFG123')) { Check (-not (Test-Path -LiteralPath (Join-Path $fixture ('tmp/'+$name)))) ('Retired exact isolated verification prefix '+$name) }
   Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/pokemon-expansion-materials/notes.md')) 'Expansion original material is not a verification prefix'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/display-ABC123'))) 'Recognized stopped verification directory is removed'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/experience-EXP123'))) 'Recognized stopped experience verification data is removed'

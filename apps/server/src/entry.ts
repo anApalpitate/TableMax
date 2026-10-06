@@ -2,6 +2,7 @@ import { createService } from './service';
 import { ServiceConfigSchema } from '@tablemax/protocol';
 import type { ServiceConfig } from '@tablemax/protocol';
 import { join } from 'node:path';
+import { writeSync } from 'node:fs';
 import { DesktopPipe, DesktopPipeError } from './desktop-pipe';
 
 interface ParentPort {
@@ -19,10 +20,21 @@ let stopping = false;
 let failing = false;
 
 async function start(config: ServiceConfig) {
-  service = await createService({
-    ...config,
-    botWorkerPath: config.botWorkerPath ?? join(__dirname, 'bot-worker.cjs'),
-  });
+  let lastProgress = -Infinity;
+  service = await createService(
+    {
+      ...config,
+      botWorkerPath: config.botWorkerPath ?? join(__dirname, 'bot-worker.cjs'),
+    },
+    undefined,
+    () => {
+      if (!privatePipe || performance.now() - lastProgress < 1000) return;
+      lastProgress = performance.now();
+      // Migration is synchronous: a timer/queued stream write cannot deliver
+      // heartbeats while SQLite imports and verifies the historical journal.
+      writeSync(1, '{"type":"startup-progress","stage":"save-migration"}\n');
+    },
+  );
   const port = await service.listen();
   // EOF or stop can arrive while SQLite and the HTTP listener are opening.
   if (stopping) return;

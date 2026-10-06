@@ -13,6 +13,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { createInterface } from 'node:readline';
 import { createServer } from 'node:net';
+import { DatabaseSync } from 'node:sqlite';
 import { io } from 'socket.io-client';
 import {
   ServiceReadySchema,
@@ -361,4 +362,53 @@ it('keeps ordinary standalone stdout sanitized and ignores private stdin command
   running.child.stdin.end();
   expect(running.child.exitCode).toBeNull();
   expect(running.output().stdout).not.toContain('hostToken');
+});
+
+it('reports synchronous legacy migration progress over the private pipe before readiness', async () => {
+  const config = configuration();
+  const database = new DatabaseSync(join(config.dataDir, 'room.sqlite'));
+  database.exec(
+    'CREATE TABLE saves(id INTEGER PRIMARY KEY,data TEXT NOT NULL); CREATE TABLE journal(instance TEXT,revision INTEGER,data TEXT,PRIMARY KEY(instance,revision)); PRAGMA user_version=1;',
+  );
+  const saved = {
+    formatVersion: 1,
+    manifest: null,
+    instanceId: crypto.randomUUID(),
+    revision: 0,
+    branch: 0,
+    status: 'lobby',
+    paused: false,
+    joinOpen: true,
+    seats: [],
+    snapshot: null,
+    history: [],
+    receipts: {},
+    botError: null,
+    endReason: null,
+    playMode: 'play',
+  };
+  database.prepare('INSERT INTO saves VALUES(1,?)').run(JSON.stringify(saved));
+  database
+    .prepare('INSERT INTO journal VALUES(?,?,?)')
+    .run(saved.instanceId, 0, JSON.stringify(saved));
+  database.close();
+  const running = launch();
+  running.send({ type: 'start', config });
+  expect(await running.first()).toEqual({
+    type: 'startup-progress',
+    stage: 'save-migration',
+  });
+  await expect
+    .poll(
+      () =>
+        running.messages.some(
+          (value) => (value as { type?: string }).type === 'ready',
+        ),
+      { timeout: 5000 },
+    )
+    .toBe(true);
+  const ready = ServiceReadySchema.parse(running.messages.at(-1));
+  expect(running.output().stderr).not.toContain(ready.hostToken);
+  running.send({ type: 'stop' });
+  expect(await running.exited).toBe(0);
 });

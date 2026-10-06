@@ -31,6 +31,7 @@ import { normalizeAvatar, AVATAR_HTTP_LIMIT } from './avatar-images';
 export async function createService(
   input: ServiceConfig,
   game?: LoadedGame | GameRegistry,
+  migrationProgress?: () => void,
 ) {
   const config = ServiceConfigSchema.parse(input);
   mkdirSync(join(config.dataDir, 'logs'), { recursive: true });
@@ -43,7 +44,7 @@ export async function createService(
   let repository: SqliteSaveRepository;
   let room: RoomCoordinator;
   try {
-    repository = new SqliteSaveRepository(config.dataDir);
+    repository = new SqliteSaveRepository(config.dataDir, migrationProgress);
     try {
       room =
         game && !(game instanceof GameRegistry)
