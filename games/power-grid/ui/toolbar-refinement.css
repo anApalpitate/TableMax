@@ -47,6 +47,13 @@
   padding: 0;
 }
 @media (max-width: 1100px) {
+  .pg-screen:not(.pg-screen--player) .pg-toolbar {
+    flex-wrap: wrap;
+  }
+  .pg-screen:not(.pg-screen--player) .pg-toolbar :is(button, a) {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
   .pg-screen .pg-turn-heading {
     flex-direction: column;
     align-items: flex-start;

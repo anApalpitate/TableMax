@@ -9,12 +9,10 @@
   animation: pg-fx-life 1.1s ease-out both;
 }
 .pg-saved-fx--local {
-  position: relative;
-  inset: auto;
-  flex: none;
+  position: fixed;
+  inset: 0;
   overflow: hidden;
-  min-height: 38px;
-  animation-duration: 350ms;
+  animation: none;
 }
 .pg-saved-fx--local .pg-saved-fx__current,
 .pg-saved-fx--local .pg-saved-fx__ring,

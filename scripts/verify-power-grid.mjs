@@ -50,7 +50,7 @@ const verifier = await readFile(new URL(import.meta.url));
 await writeFile(join(output, 'verifier-start-source.mjs'), verifier);
 await build({
   stdin: {
-    contents: `export { rules } from './games/power-grid/rules'; export { bot } from './games/power-grid/bot'; export { RandomSource } from './packages/platform-core/src/random'; export { getPlant, RESOURCES, RESOURCE_LABELS } from './games/power-grid/data/catalog'; export { GERMANY_REGIONS, getCity } from './games/power-grid/data/germany'; export { income } from './games/power-grid/data/economy';`,
+    contents: `export { rules } from './games/power-grid/rules'; export { bot } from './games/power-grid/bot'; export { RandomSource } from './packages/platform-core/src/random'; export { getPlant, RESOURCES, RESOURCE_LABELS } from './games/power-grid/data/catalog'; export { GERMANY_REGIONS, getCity } from './games/power-grid/data/germany'; export { income } from './games/power-grid/data/economy'; export { resourcePurchaseCost } from './games/power-grid/rules/resource-purchase';`,
     resolveDir: resolve('.'),
     sourcefile: 'power-grid-verifier.ts',
     loader: 'ts',
@@ -61,9 +61,13 @@ await build({
   format: 'cjs',
   logLevel: 'silent',
 });
-const { getPlant, RESOURCE_LABELS, GERMANY_REGIONS, getCity, income } = require(
-  join(work, 'driver.cjs'),
-);
+const {
+  getPlant,
+  GERMANY_REGIONS,
+  getCity,
+  income,
+  resourcePurchaseCost,
+} = require(join(work, 'driver.cjs'));
 const evidence = {
   startedAt: new Date().toISOString(),
   portable,
@@ -980,17 +984,29 @@ async function clickAction(entry, current, action) {
       exact: true,
     });
   } else if (action.type === 'buy-resource') {
-    button = page
-      .locator('.pg-fuel-plant')
-      .filter({
-        has: page.locator('.pg-plant-number', {
-          hasText: new RegExp('^' + action.plantId + '$'),
-        }),
-      })
-      .getByRole('button', {
-        name: new RegExp('＋1\\s*' + RESOURCE_LABELS[action.resource]),
-      })
-      .first();
+    const purchase = page.locator(
+      `.pg-resource-purchase[data-plant-id="${action.plantId}"][data-resource="${action.resource}"]`,
+    );
+    await purchase.getByRole('spinbutton').fill(String(action.quantity ?? 1));
+    const sync = await connect(entry.token);
+    sync.disconnect();
+    await page.evaluate(
+      () =>
+        new Promise((done) =>
+          requestAnimationFrame(() => requestAnimationFrame(done)),
+        ),
+    );
+    assert.equal(
+      await purchase.getByRole('spinbutton').inputValue(),
+      String(action.quantity ?? 1),
+    );
+    const afterDraft = await view(entry.token);
+    assert.deepEqual(
+      [afterDraft.revision, afterDraft.branch, afterDraft.decisionId],
+      [saved.revision, saved.branch, saved.decisionId],
+      'Quantity and synchronization never save a purchase',
+    );
+    button = purchase.locator('[data-resource-purchase-confirm]');
   } else if (action.type === 'build') {
     await page
       .locator('.pg-phone-page:not([hidden]) .pg-phone-map')
@@ -1143,6 +1159,63 @@ async function clickAction(entry, current, action) {
     'Specific UI action durably saved: ' + action.type,
   );
   await capture(page, 'control-' + action.type + '-saved');
+  if (
+    action.type === 'buy-resource' &&
+    (action.quantity ?? 1) > 1 &&
+    !sampled.has('batch-purchase')
+  ) {
+    const after = await view(entry.token),
+      quantity = action.quantity;
+    const oldPlant = saved.gameView.players[actor].plants.find(
+      (plant) => plant.id === action.plantId,
+    );
+    const newPlant = after.gameView.players[actor].plants.find(
+      (plant) => plant.id === action.plantId,
+    );
+    const cost = resourcePurchaseCost(
+      action.resource,
+      saved.gameView.resources[action.resource],
+      quantity,
+    );
+    assert.equal(
+      after.gameView.resources[action.resource],
+      saved.gameView.resources[action.resource] - quantity,
+    );
+    assert.equal(
+      newPlant.resources[action.resource],
+      oldPlant.resources[action.resource] + quantity,
+    );
+    assert.equal(after.gameView.self.cash, saved.gameView.self.cash - cost);
+    const logs = after.gameView.history.filter(
+      (log) => Number(log.id.slice(3)) > serial,
+    );
+    assert.equal(logs.length, 1, 'Multi-unit purchase saves one log');
+    assert.equal(logs[0].amount, cost);
+    const stale = await commandAt(
+      entry.socket,
+      envelope(saved, { type: 'game', decisionId: saved.decisionId, action }),
+    );
+    assert.equal(stale.ok, false, 'Old purchase cannot be applied again');
+    assert.deepEqual((await view(entry.token)).gameView, after.gameView);
+    sampled.add('batch-purchase');
+    const management = await view(hostToken);
+    await send(hostSocket, hostToken, {
+      type: 'rollback',
+      checkpointId: management.history.at(-1).id,
+    });
+    const rolled = await view(entry.token);
+    assert.equal(rolled.paused, true);
+    assert.deepEqual(
+      rolled.gameView,
+      saved.gameView,
+      'Batch rollback restores cash, market and storage together',
+    );
+    evidence.checks.push(
+      'Real phone multi-unit purchase: one log/checkpoint, exact cumulative total, stale rejection, atomic rollback and repeat',
+    );
+    await send(hostSocket, hostToken, { type: 'resume' });
+    return clickAction(entry, await view(entry.token), action);
+  }
   sampled.add(action.type === 'finish' ? 'finish:powering' : action.type);
   await send(hostSocket, hostToken, { type: 'set-play-mode', mode: 'test' });
   return true;
@@ -1174,7 +1247,7 @@ for(const {rowid} of db.prepare('SELECT rowid FROM journal ORDER BY rowid').all(
  else if(first?.verb==='bid')a={type:'bid',amount:first.amount};
  else if(['pass','pass-round'].includes(first?.verb))a={type:'pass'};
  else if(first?.verb==='discard-plant')a={type:'discard-plant',plantId:first.plantId};
- else if(['buy-resource','salvage'].includes(first?.verb))a={type:first.verb,resource:first.resource,plantId:first.plantId};
+ else if(['buy-resource','salvage'].includes(first?.verb)){const quantity=first.verb==='buy-resource'?s.players[seat].plants.find(p=>p.id===first.plantId).resources[first.resource]-before.players[seat].plants.find(p=>p.id===first.plantId).resources[first.resource]:1;a={type:first.verb,resource:first.resource,plantId:first.plantId,...(quantity>1?{quantity}:{})};}
  else if(first?.verb==='discard-salvage')a={type:'discard-salvage',resource:first.resource};
  else if(first?.verb==='build')a={type:'build',cityId:first.cityId};
  else if(first?.verb==='run'){const plant=before.players[seat].plants.find(p=>p.id===first.plantId),after=s.players[seat].plants.find(p=>p.id===first.plantId);a={type:'run',plantId:first.plantId,coal:getPlant(first.plantId).fuel==='hybrid'?plant.resources.coal-after.resources.coal:0};}
@@ -1353,6 +1426,15 @@ try {
         if (!sampled.has('bid') && own.gameView.phase === 'auction')
           action =
             own.actions.find((choice) => choice.type === 'bid') ?? action;
+        if (
+          !sampled.has('batch-purchase') &&
+          own.gameView.phase === 'resources'
+        )
+          action =
+            own.actions.find(
+              (choice) =>
+                choice.type === 'buy-resource' && (choice.quantity ?? 1) > 1,
+            ) ?? action;
         assert.ok(
           own.actions.some((legal) => equal(legal, action)),
           'Driver only uses current authorized safe-view legalActions',
@@ -1424,6 +1506,7 @@ try {
       'offer',
       'bid',
       'buy-resource',
+      'batch-purchase',
       'build',
       'run',
       'discard-plant',

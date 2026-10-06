@@ -4,13 +4,21 @@ import type {
   PendingDecision,
   RuleContext,
 } from '../../../packages/game-sdk/src';
-import { accepts, PLANT_IDS, RESOURCES, RULES_VERSION } from '../data/catalog';
-import { price, settingsFor } from '../data/economy';
+import {
+  accepts,
+  getPlant,
+  PLANT_IDS,
+  RESOURCES,
+  RULES_VERSION,
+  totalStock,
+} from '../data/catalog';
+import { settingsFor } from '../data/economy';
 import { CITIES, isConnectedRegions, REGIONS } from '../data/germany';
 import type { Action, Resource } from '../types';
 import { applyAction, buildOptions, canStore, initialize } from './engine';
 import type { State } from './model';
 import { runChoices } from './production';
+import { resourcePurchaseCost } from './resource-purchase';
 import { project } from './project';
 import { validateState } from './state';
 export type { State } from './model';
@@ -55,15 +63,30 @@ export function validateAction(input: unknown): Action {
   if (a.type === 'discard-plant' && keys === 'plantId,type' && plant(a.plantId))
     return { type: 'discard-plant', plantId: a.plantId };
   if (
-    ['salvage', 'buy-resource'].includes(a.type as string) &&
+    a.type === 'salvage' &&
     keys === 'plantId,resource,type' &&
     plant(a.plantId) &&
     resource(a.resource)
   )
     return {
-      type: a.type as 'salvage' | 'buy-resource',
+      type: 'salvage',
       plantId: a.plantId,
       resource: a.resource,
+    };
+  if (
+    a.type === 'buy-resource' &&
+    (keys === 'plantId,resource,type' ||
+      (keys === 'plantId,quantity,resource,type' && integer(a.quantity, 1))) &&
+    plant(a.plantId) &&
+    resource(a.resource)
+  )
+    return {
+      type: 'buy-resource',
+      plantId: a.plantId,
+      resource: a.resource,
+      ...(typeof a.quantity === 'number' && a.quantity > 1
+        ? { quantity: a.quantity }
+        : {}),
     };
   if (
     a.type === 'discard-salvage' &&
@@ -243,11 +266,27 @@ function rawLegalActions(s: State, seat: string): Action[] {
   // Rearranging has a decision boundary and never changes another player's turn.
   if (s.phase === 'resources') {
     for (const resource of RESOURCES) {
-      const cost = price(resource, s.resources[resource]);
-      if (cost === null || cost > cash) continue;
-      for (const plant of p.plants)
-        if (canStore(s, seat, plant.id, resource))
-          actions.push({ type: 'buy-resource', resource, plantId: plant.id });
+      for (const plant of p.plants) {
+        if (!canStore(s, seat, plant.id, resource)) continue;
+        const limit = Math.min(
+          s.resources[resource],
+          getPlant(plant.id).input * 2 - totalStock(plant.resources),
+        );
+        for (let quantity = 1; quantity <= limit; quantity++) {
+          const cost = resourcePurchaseCost(
+            resource,
+            s.resources[resource],
+            quantity,
+          );
+          if (cost === null || cost > cash) break;
+          actions.push({
+            type: 'buy-resource',
+            resource,
+            plantId: plant.id,
+            ...(quantity > 1 ? { quantity } : {}),
+          });
+        }
+      }
     }
     actions.push({ type: 'finish' });
   } else if (s.phase === 'building') {

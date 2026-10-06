@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { verifyUiPolish } from './power-grid-ui-polish-checks.mjs';
 import { verifyUiRefinement } from './power-grid-ui-refinement-checks.mjs';
+import { verifyPurchaseProgress } from './power-grid-purchase-progress-checks.mjs';
 import { verifyBoardFacts } from './power-grid-board-checks.mjs';
 import { mkdir, writeFile, readFile, mkdtemp, readdir } from 'node:fs/promises';
 import { createServer } from 'node:http';
@@ -715,6 +716,7 @@ try {
     await verifyBoardFacts(page, fixtures, report);
     await verifyUiPolish(page, fixtures, report, output);
     await verifyUiRefinement(page, fixtures, report, output);
+    await verifyPurchaseProgress(page, fixtures, report, output);
     await verifyPolish();
     await verifyPlayReview();
     assert.deepEqual(report.errors, []);
@@ -725,6 +727,7 @@ try {
     await verifyBoardFacts(page, fixtures, report);
     await verifyUiPolish(page, fixtures, report, output);
     await verifyUiRefinement(page, fixtures, report, output);
+    await verifyPurchaseProgress(page, fixtures, report, output);
     await page.setViewportSize({ width: 320, height: 568 });
     await page.evaluate(() => window.setFixture('building', 'player'));
     await page.waitForTimeout(50);
@@ -1260,6 +1263,7 @@ try {
     await verifyBoardFacts(page, fixtures, report);
     await verifyUiPolish(page, fixtures, report, output);
     await verifyUiRefinement(page, fixtures, report, output);
+    await verifyPurchaseProgress(page, fixtures, report, output);
     await verifyPolish();
     await verifyPlayReview();
     await page.setViewportSize({ width: 320, height: 568 });

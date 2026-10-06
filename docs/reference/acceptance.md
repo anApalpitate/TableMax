@@ -1,5 +1,17 @@
 # 首版交付与验收
 
+## 1.0.3：电力公司数量采购、进度与稳定反馈（2026-10-06）
+
+删除底部重复保存消息，保留地图白底最新记录及局部声画，连续保存不改变地图／公司抽屉几何。收益全部单行，0–9左列、10–19右列、20+末行横跨两列居中，保留唯一绿档和18px数字。手机原料选择数量，＋1／−1及输入均不保存，跨价阶累计总价，一次确认原子采购；现金、现货与混燃共用容量仍由服务器校验，旧单份动作兼容、人机保持单份策略、存档版本不变。声音改居中SVG及hover／聚焦提示；滚动条适配纸色与工业绿，用户原话已并入[美术倾向](art-preferences.md#电力公司附图反馈与滚动条适配2026-10-06)。新增真实地皮计数轨道及第二阶段／终局门槛，顶部显示“第N阶段”，规则卡明确与轮内行动阶段区别，第三阶段仍按第三步牌触发。
+
+[最终六人](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/power-grid/compact-six/results.json)和[两人](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/power-grid/compact-two/results.json)各108布局通过，覆盖854×480至4K及320／360／390和手机横屏。专项证明单行收益完整顺序、20+跨列、连续反馈逐帧零位移、声音SVG可见轮廓居中、提示／本地静音零命令、主题滑块、跨价阶报价、数量草稿同步保留和确认仅一条合法动作。[六人短屏暂停](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/power-grid/short-paused-six/results.json)与[两人短屏暂停](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/power-grid/short-paused-two/results.json)实际点击菜单、完整城市列表和城市详情通过；未缩信息字体。规则41项回归含9个三档／2、3、6人完整守恒对局，UI25项、类型、相关Lint、Prettier与diff通过。
+
+[同包原生显示](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/quantity-final-display/results.json)62.20秒通过720p、1080p、4K与125%／150%显示请求；[同包完整对局](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/quantity-final-match/results.json)73.87秒通过真实手机数量确认、准确扣款／入库／市场变化、单条日志、过时采购拒绝、整笔checkpoint回退与再次确认、SQLite重启恢复及终局／续局。416状态核验、383条合法动作独立重放，覆盖STEP1／2／3、换厂与待安置。最终审计数据库及源码已从临时目录[另存](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/quantity-final-match/saved-audit-inventory.json)。全部使用静音隐藏窗口与127.0.0.1，模拟视口／显示请求不代替实体手机、物理DPI或现场LAN认证。
+
+初次原生验收暴露短屏空厂占位挤出城市详情入口，已压紧空位并让工具栏整行换行；[失败记录](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/purchase-progress-display/results.json)保留。回退脚本初次误读手机无权查看的管理记录，改由管理员读取checkpoint，采购保存本身正确，保留[脚本失败](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/purchase-progress-match/results.json)。修正后只重建受影响客户端，未更改权限、放松点击检查或绕过保存。
+
+[冻结快照](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/build-snapshot.json)为`0d93c551…`，最终18单元17缓存复用、只重建客户端356ms，构建10,292ms。[输出核对](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/output-equivalence.json)验证18单元源码未漂移，其他游戏和平台240文件字节相同，目录聚合文件随本游戏指纹更新。[当前运行ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip)41,261,674字节，SHA-256 `15a0dd459a71eb34d8ed46bd91d792ddc1a8b571cfa5eff4b0eef1f9463704b6`；[清单](../../artifacts/releases/TableMax-1.0.3-win-x64-manifest.json)246文件、实际解压94,859,028字节，95MB预算及ZIP／解压双100MB门禁通过。沿用v1.0.3，只导出本地运行ZIP／清单，不推送或发布；收尾实际水位见[瘦身记录](project-slimming.md)。
+
 ## 当前源码与本地交付
 
 当前 v1.0.3 从根目录源码直接整合：包含电力公司细化提交 `d97e299` 和本轮宝可梦扩展深度界面、研究主题及公开牌区修订。当前运行 ZIP 为 `6df0feb5…`，下节记录同一最终包的实际验收。前一份整合包 `201de235…` 保留于 `pokemon-ui-depth/previous-delivery/`，宝可梦独立旧包 `943071ce…` 保留于 `pokemon-ui-redesign/delivery/`；更早运行包按本轮精确清单退役，文字结论、逐文件清单与哈希继续保留。历史通过结论各自对应其冻结输入，不自动升级为新包验收。
@@ -20,7 +32,7 @@
 
 [输出等价](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/output-equivalence.json)确认237文件与 `201de235…` 相同，平台运行、原生、Node、现代艺术及电力公司输出字节一致；目录聚合文件仅随宝可梦样式指纹变化。复用上一包对应游戏的恢复／对局证据，不重跑未变化完整游戏。三张新研究背景压缩后，30背景135,570字节；原PNG和原角色素材保留，生成与编码边界见[资源](../games/pokemon-encounters/assets.md#研究插画与下载叫声再派生2026-10-06)。
 
-首次组装宝可梦模块超4MiB 6,485字节，保留[失败记录](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/budget-attempt/result.json)，三背景再派生节省11,100字节后只重建受影响客户端；未提高预算。[正式快照](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/build-snapshot.json)为 `6068ffef…`，续组装18缓存单元复用、9,882ms构建／22,168ms含打包。[当前运行ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip)41,259,719字节，SHA-256 `6df0feb58951e3f547e415b3c667dbcf6d5208abd52dadc1a5d3425435ca3d39`；[逐文件清单](../../artifacts/releases/TableMax-1.0.3-win-x64-manifest.json)246文件，实际解压94,850,050字节，宝可梦模块4,189,689字节。4MiB、95MB工程预算及ZIP／实际解压双100MB门禁通过。只生成本地运行ZIP／清单，安全清理与最终逻辑空间见[瘦身记录](project-slimming.md)。
+首次组装宝可梦模块超4MiB 6,485字节，保留[失败记录](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/budget-attempt/result.json)，三背景再派生节省11,100字节后只重建受影响客户端；未提高预算。[正式快照](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/build-snapshot.json)为 `6068ffef…`，续组装18缓存单元复用、9,882ms构建／22,168ms含打包。[当时运行ZIP](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/previous-delivery/TableMax-1.0.3-win-x64.zip)41,259,719字节，SHA-256 `6df0feb58951e3f547e415b3c667dbcf6d5208abd52dadc1a5d3425435ca3d39`；[逐文件清单](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/previous-delivery/TableMax-1.0.3-win-x64-manifest.json)246文件，实际解压94,850,050字节，宝可梦模块4,189,689字节。4MiB、95MB工程预算及ZIP／实际解压双100MB门禁通过。只生成本地运行ZIP／清单，安全清理与最终逻辑空间见[瘦身记录](project-slimming.md)。
 
 ## 1.0.3：电力公司地图材质、动画与综合资料细化（2026-10-06）
 

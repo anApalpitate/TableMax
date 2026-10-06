@@ -9,6 +9,7 @@ import plant from '../../../assets/games/power-grid/audio/plant-v2.wav';
 import run from '../../../assets/games/power-grid/audio/run-v2.wav';
 import end from '../../../assets/games/power-grid/audio/end-v2.wav';
 import './audio-effects.css';
+import { BoardIcon } from './BoardIcon';
 import {
   classifySaved,
   soundAllowed,
@@ -168,13 +169,29 @@ export function PowerGridSoundControl({
     <button
       type="button"
       data-power-grid-sound="true"
+      className="pg-sound-entry"
+      data-tooltip={
+        disabled
+          ? '当前已关闭声音'
+          : blocked
+            ? '点击启用声音'
+            : enabled
+              ? '关闭声音'
+              : '开启声音'
+      }
       disabled={disabled}
       aria-pressed={enabled && !disabled}
       aria-label={
         disabled ? '当前已关闭声音' : enabled ? '声音已开启' : '声音已关闭'
       }
       title={
-        blocked ? '点击启用声音；旧动作不会补播' : '已保存动作的电网主题提示音'
+        disabled
+          ? '当前已关闭声音'
+          : blocked
+            ? '点击启用声音；旧动作不会补播'
+            : enabled
+              ? '关闭声音'
+              : '开启声音'
       }
       onClick={() => {
         const value = blocked || !enabled;
@@ -237,30 +254,20 @@ export function PowerGridSoundControl({
         );
       }}
     >
-      {disabled ? '声音关' : blocked ? '启用声音' : enabled ? '声音开' : '静音'}
+      <BoardIcon name={enabled && !disabled && !blocked ? 'sound' : 'muted'} />
     </button>
   );
 }
 
-const presentation: Record<Cue, { symbol: string; label: string }> = {
-  bid: { symbol: '⌁', label: '电厂竞价' },
-  fuel: { symbol: '▣', label: '燃料装卸' },
-  build: { symbol: '⌂', label: '电网连接' },
-  plant: { symbol: '⚙', label: '电厂入网' },
-  run: { symbol: 'ϟ', label: '供电运行' },
-  end: { symbol: '✦', label: '电网结算' },
-};
 /** Decorative public feedback only; no command, hidden amount or modal layer. */
 export function PowerGridSavedEffects({
   feedback,
   game,
   disabled,
-  names = {},
 }: {
   feedback: RoomFeedback | null;
   game: PowerGridView | null;
   disabled: boolean;
-  names?: Record<string, string>;
 }) {
   const [reduced, setReduced] = useState(
     () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
@@ -326,9 +333,7 @@ export function PowerGridSavedEffects({
     });
   }, [feedback, game, disabled, reduced]);
   if (!effect || disabled || !feedback) return null;
-  const { symbol } = presentation[effect.cue];
   const { item } = effect;
-  const label = item.label;
   const animation = 'pg_saved_' + effect.key.replace(/[^a-zA-Z0-9_]/g, '_');
   const target =
     item.plantId != null
@@ -355,15 +360,6 @@ export function PowerGridSavedEffects({
         {Array.from({ length: 8 }, (_, i) => (
           <i key={i} style={{ '--pg-fx-index': i } as CSSProperties} />
         ))}
-      </div>
-      <div className="pg-saved-fx__badge">
-        <b>{symbol}</b>
-        <span>
-          <strong>
-            {item.actor ? (names[item.actor] ?? item.actor) : '电网'} {label}
-          </strong>
-          <small>{item.text}</small>
-        </span>
       </div>
     </div>
   );

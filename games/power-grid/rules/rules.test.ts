@@ -37,6 +37,7 @@ import {
 } from './index';
 import { maximumProduction } from './production';
 import { MarketFlow } from './market';
+import { resourcePurchaseCost } from './resource-purchase';
 
 const context = (seats: readonly string[], seed = 1) => ({
   seats,
@@ -654,6 +655,283 @@ describe('Power Grid classic risk boundaries', () => {
     // S2 and S3 both produce 17; cash and network are identical.
     for (let i = 0; i < 3; i++) all = apply(all, { type: 'finish' });
     expect(all.winners).toEqual(['S2', 'S3']);
+  });
+});
+
+describe('Power Grid atomic resource purchase', () => {
+  function purchasing(plants = [[8], [13], [18]]) {
+    const state = fixture(plants, 'resources');
+    state.playerOrder = ['S3', 'S2', 'S1'];
+    state.actor = 'S1';
+    return state;
+  }
+  function market(
+    state: State,
+    resource: (typeof RESOURCES)[number],
+    count: number,
+  ) {
+    state.supply[resource] += state.resources[resource] - count;
+    state.resources[resource] = count;
+  }
+  it('quotes each actual price tier for all four finite markets', () => {
+    for (const resource of RESOURCES) {
+      for (let count = 1; count <= TOTAL_RESOURCES[resource]; count++) {
+        let expected = 0;
+        for (let quantity = 1; quantity <= count; quantity++) {
+          expected += price(resource, count - quantity + 1)!;
+          expect(resourcePurchaseCost(resource, count, quantity)).toBe(
+            expected,
+          );
+        }
+      }
+      for (const [count, quantity] of [
+        [0, 1],
+        [2, 3],
+        [2, 0],
+        [2, 1.5],
+        [2, NaN],
+        [2, Infinity],
+        [-1, 1],
+        [1.5, 1],
+        [TOTAL_RESOURCES[resource] + 1, 1],
+      ])
+        expect(resourcePurchaseCost(resource, count!, quantity!)).toBeNull();
+    }
+    expect(resourcePurchaseCost('coal', 22, 4)).toBe(7);
+    expect(resourcePurchaseCost('uranium', 2, 2)).toBe(30);
+  });
+  it('preserves legacy single-unit actions and strictly validates quantity requests', () => {
+    const single = {
+      type: 'buy-resource',
+      plantId: 8,
+      resource: 'coal',
+    } as const;
+    expect(validateAction(single)).toEqual(single);
+    expect(validateAction({ ...single, quantity: 1 })).toEqual(single);
+    expect(validateAction({ ...single, quantity: 4 })).toEqual({
+      ...single,
+      quantity: 4,
+    });
+    for (const quantity of [0, -1, 1.5, NaN, Infinity, '2', null, undefined])
+      expect(() => validateAction({ ...single, quantity })).toThrow();
+    expect(() =>
+      validateAction({ ...single, quantity: 2, amount: 1 }),
+    ).toThrow();
+    expect(() =>
+      validateAction({
+        type: 'salvage',
+        plantId: 8,
+        resource: 'coal',
+        quantity: 2,
+      }),
+    ).toThrow();
+  });
+  it('crosses price tiers in one saved decision while matching legacy purchases', () => {
+    const before = purchasing();
+    market(before, 'coal', 22);
+    validateState(before, before.seatOrder);
+    const action: Action = {
+      type: 'buy-resource',
+      plantId: 8,
+      resource: 'coal',
+      quantity: 4,
+    };
+    expect(legalActions(before, 'S1')).toContainEqual(action);
+    const result = rules.apply(before, action, 'S1', context(before.seatOrder));
+    const next = result.state as State;
+    expect(next.actionSerial).toBe(before.actionSerial + 1);
+    expect(next.logSerial).toBe(before.logSerial + 1);
+    expect(result.events).toHaveLength(1);
+    expect(result.decision).toMatchObject({ roundNumber: before.round });
+    expect(next.history.at(-1)).toMatchObject({
+      actor: 'S1',
+      verb: 'buy-resource',
+      plantId: 8,
+      resource: 'coal',
+      amount: 7,
+      text: '购入 4 份煤，支付 7 电币。',
+    });
+    expect(next.players.S1!.cash).toBe(993);
+    expect(next.players.S1!.plants[0]!.resources.coal).toBe(4);
+    expect(next.resources.coal).toBe(18);
+    expect(next.actor).toBe(before.actor);
+    expect(next.playerOrder).toEqual(before.playerOrder);
+    validateState(next, next.seatOrder);
+    let sequential = structuredClone(before);
+    for (let unit = 0; unit < 4; unit++)
+      sequential = apply(sequential, {
+        type: 'buy-resource',
+        plantId: 8,
+        resource: 'coal',
+      });
+    expect(next.players).toEqual(sequential.players);
+    expect(next.resources).toEqual(sequential.resources);
+    expect(next.supply).toEqual(sequential.supply);
+    expect(next.spent).toBe(sequential.spent);
+    const restored = validateState(
+      JSON.parse(JSON.stringify(before)),
+      before.seatOrder,
+    );
+    expect(
+      rules.apply(restored, action, 'S1', context(before.seatOrder)).state,
+    ).toEqual(next);
+    expect(before.players.S1!.plants[0]!.resources.coal).toBe(0);
+    const publicView = rules.project(next, { role: 'public' }) as PowerGridView;
+    expect(
+      Object.values(publicView.players).every((player) => player.cash === null),
+    ).toBe(true);
+  });
+  it('limits quantities by cash, finite inventory and shared hybrid capacity', () => {
+    const affordable = purchasing();
+    market(affordable, 'coal', 22);
+    affordable.players.S1!.cash = 3;
+    affordable.incomeIssued -= 997;
+    validateState(affordable, affordable.seatOrder);
+    expect(
+      legalActions(affordable, 'S1').filter(
+        (action) => action.type === 'buy-resource',
+      ),
+    ).toEqual([
+      { type: 'buy-resource', plantId: 8, resource: 'coal' },
+      { type: 'buy-resource', plantId: 8, resource: 'coal', quantity: 2 },
+    ]);
+    const paid = apply(affordable, {
+      type: 'buy-resource',
+      plantId: 8,
+      resource: 'coal',
+      quantity: 2,
+    });
+    expect(paid.players.S1!.cash).toBe(0);
+    expect(
+      legalActions(paid, 'S1').some((action) => action.type === 'buy-resource'),
+    ).toBe(false);
+
+    const hybrid = purchasing([[5, 20], [13], [18]]);
+    fuel(hybrid, 'S1', 5, { coal: 1, oil: 1 });
+    validateState(hybrid, hybrid.seatOrder);
+    const hybridBuys = legalActions(hybrid, 'S1').filter(
+      (action) => action.type === 'buy-resource' && action.plantId === 5,
+    );
+    expect(hybridBuys).toHaveLength(4);
+    expect(
+      hybridBuys.every(
+        (action) =>
+          action.type === 'buy-resource' && (action.quantity ?? 1) <= 2,
+      ),
+    ).toBe(true);
+    const filled = apply(hybrid, {
+      type: 'buy-resource',
+      plantId: 5,
+      resource: 'oil',
+      quantity: 2,
+    });
+    expect(filled.players.S1!.plants[0]!.resources).toEqual({
+      coal: 1,
+      oil: 3,
+      garbage: 0,
+      uranium: 0,
+    });
+    expect(
+      legalActions(filled, 'S1').some(
+        (action) => action.type === 'buy-resource' && action.plantId === 5,
+      ),
+    ).toBe(false);
+
+    const uranium = purchasing([[11], [13], [18]]);
+    const exhausted = apply(uranium, {
+      type: 'buy-resource',
+      plantId: 11,
+      resource: 'uranium',
+      quantity: 2,
+    });
+    expect(exhausted.players.S1!.cash).toBe(970);
+    expect(exhausted.resources.uranium).toBe(0);
+    expect(
+      legalActions(exhausted, 'S1').some(
+        (action) => action.type === 'buy-resource',
+      ),
+    ).toBe(false);
+  });
+  it('rejects over-budget, excess, wrong-fuel, foreign and out-of-turn batches without mutation', () => {
+    const state = purchasing([[5, 8], [13], [18]]);
+    fuel(state, 'S1', 5, { coal: 2, oil: 1 });
+    const snapshot = structuredClone(state);
+    for (const [action, seat] of [
+      [
+        { type: 'buy-resource', plantId: 5, resource: 'oil', quantity: 2 },
+        'S1',
+      ],
+      [
+        { type: 'buy-resource', plantId: 8, resource: 'coal', quantity: 7 },
+        'S1',
+      ],
+      [
+        { type: 'buy-resource', plantId: 8, resource: 'oil', quantity: 2 },
+        'S1',
+      ],
+      [
+        { type: 'buy-resource', plantId: 13, resource: 'coal', quantity: 2 },
+        'S1',
+      ],
+      [
+        { type: 'buy-resource', plantId: 8, resource: 'coal', quantity: 2 },
+        'S2',
+      ],
+    ] as const) {
+      expect(() =>
+        rules.apply(state, action, seat, context(state.seatOrder)),
+      ).toThrow();
+      expect(state).toEqual(snapshot);
+    }
+    const poor = purchasing();
+    poor.players.S1!.cash = 1;
+    poor.incomeIssued -= 999;
+    const poorBefore = structuredClone(poor);
+    expect(() =>
+      rules.apply(
+        poor,
+        { type: 'buy-resource', plantId: 8, resource: 'coal', quantity: 2 },
+        'S1',
+        context(poor.seatOrder),
+      ),
+    ).toThrow();
+    expect(poor).toEqual(poorBefore);
+    const soldOut = purchasing([[11], [13], [18]]);
+    market(soldOut, 'uranium', 1);
+    const soldOutBefore = structuredClone(soldOut);
+    expect(() =>
+      rules.apply(
+        soldOut,
+        { type: 'buy-resource', plantId: 11, resource: 'uranium', quantity: 2 },
+        'S1',
+        context(soldOut.seatOrder),
+      ),
+    ).toThrow();
+    expect(soldOut).toEqual(soldOutBefore);
+  });
+  it('retains the same unit-at-a-time bot choices at every difficulty', () => {
+    const state = purchasing([[4], [3], [13]]);
+    cities(state, 'S1', 1);
+    const view = rules.project(state, {
+      role: 'player',
+      seatId: 'S1',
+    }) as PowerGridView;
+    const actions = legalActions(state, 'S1');
+    const legacy = actions.filter(
+      (action) =>
+        action.type !== 'buy-resource' || action.quantity === undefined,
+    );
+    for (const difficulty of ['default', 'doubao', 'juewu'] as const) {
+      const chosen = chooseAction(view, actions, difficulty, { next: () => 0 });
+      expect(chosen).toEqual(
+        chooseAction(view, legacy, difficulty, { next: () => 0 }),
+      );
+      expect(chosen).toEqual({
+        type: 'buy-resource',
+        plantId: 4,
+        resource: 'coal',
+      });
+    }
   });
 });
 

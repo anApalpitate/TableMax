@@ -1,0 +1,78 @@
+.pg-screen {
+  --pg-scroll-track: #e6d8b6;
+  --pg-scroll-thumb: #9e8658;
+  --pg-scroll-hover: #6c7952;
+}
+.pg-screen
+  :is(
+    .pg-board-drawer-content,
+    .pg-page-scroll,
+    .pg-company-strip,
+    .pg-progress-scroll
+  ) {
+  scrollbar-color: var(--pg-scroll-thumb) var(--pg-scroll-track);
+  scrollbar-width: thin;
+}
+.pg-screen
+  :is(
+    .pg-board-drawer-content,
+    .pg-page-scroll,
+    .pg-company-strip,
+    .pg-progress-scroll
+  )::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.pg-screen
+  :is(
+    .pg-board-drawer-content,
+    .pg-page-scroll,
+    .pg-company-strip,
+    .pg-progress-scroll
+  )::-webkit-scrollbar-track {
+  background: var(--pg-scroll-track);
+  border-radius: 8px;
+}
+.pg-screen
+  :is(
+    .pg-board-drawer-content,
+    .pg-page-scroll,
+    .pg-company-strip,
+    .pg-progress-scroll
+  )::-webkit-scrollbar-thumb {
+  background: var(--pg-scroll-thumb);
+  border: 2px solid var(--pg-scroll-track);
+  border-radius: 8px;
+}
+.pg-screen
+  :is(
+    .pg-board-drawer-content,
+    .pg-page-scroll,
+    .pg-company-strip,
+    .pg-progress-scroll
+  )::-webkit-scrollbar-thumb:hover {
+  background: var(--pg-scroll-hover);
+}
+.pg-screen .pg-sound-entry {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  padding: 0;
+  flex-shrink: 0;
+}
+.pg-screen .pg-sound-entry > svg {
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+@media (forced-colors: active) {
+  .pg-screen
+    :is(
+      .pg-board-drawer-content,
+      .pg-page-scroll,
+      .pg-company-strip,
+      .pg-progress-scroll
+    ) {
+    scrollbar-color: auto;
+  }
+}

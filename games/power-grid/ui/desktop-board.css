@@ -301,7 +301,7 @@
     height: 18px;
   }
   .pg-screen .pg-board-companies .pg-company-plant-empty {
-    min-height: 92px;
+    min-height: 44px;
   }
   .pg-screen
     .pg-board-companies
@@ -353,9 +353,6 @@
     position: absolute;
     top: 2px;
     right: 5px;
-  }
-  .pg-screen .pg-board-latest {
-    display: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -422,7 +419,7 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .pg-screen .pg-board-drawer--right {
-  width: 240px;
+  width: 280px;
   bottom: auto;
   max-height: calc(100% - var(--pg-board-bottom-gap, 0px) - 16px);
 }

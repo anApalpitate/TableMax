@@ -1,0 +1,124 @@
+.pg-screen .pg-game-progress {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 3px 8px;
+  border: 1px solid #b39c70;
+  border-radius: 8px;
+  background: linear-gradient(120deg, #fff8e6, #e7d8b6);
+}
+.pg-screen .pg-game-progress > .pg-progress-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  flex: none;
+}
+.pg-screen .pg-game-progress > .pg-progress-heading::-webkit-details-marker {
+  display: none;
+}
+.pg-screen .pg-game-progress > .pg-progress-heading > span:first-child {
+  display: grid;
+}
+.pg-screen .pg-game-progress strong {
+  font-size: 18px;
+}
+.pg-screen .pg-progress-gates {
+  font-size: 16px;
+  color: #66512e;
+}
+.pg-screen .pg-progress-mobile,
+.pg-screen .pg-game-progress > .pg-progress-heading > svg {
+  display: none;
+}
+/* Desktop keeps the track visible, while phones disclose it without losing the action area. */
+.pg-screen .pg-game-progress > .pg-progress-scroll {
+  display: block;
+  min-width: 0;
+  flex: 1;
+  overflow-x: auto;
+}
+.pg-screen .pg-progress-scroll ol {
+  display: grid;
+  grid-template-columns: repeat(var(--pg-progress-columns), minmax(24px, 1fr));
+  min-width: max-content;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  gap: 2px;
+}
+.pg-screen .pg-progress-scroll li {
+  text-align: center;
+  min-height: 40px;
+  border: 1px solid #c1ad83;
+  border-radius: 4px;
+  background: #faf3df;
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+}
+.pg-screen .pg-progress-scroll .pg-progress-step2 {
+  border-top: 3px solid #247866;
+}
+.pg-screen .pg-progress-scroll .pg-progress-end {
+  border-top: 3px solid #a35437;
+}
+.pg-screen .pg-progress-markers {
+  display: grid;
+  grid-template-columns: repeat(3, 7px);
+  justify-content: center;
+  gap: 2px;
+}
+.pg-screen .pg-progress-markers > span {
+  width: 7px;
+  height: 7px;
+  border: 1px solid #26302a;
+  background: var(--pg-progress-color);
+  border-radius: 1px;
+}
+.pg-screen.pg-screen--player .pg-game-progress {
+  display: block;
+  min-height: 44px;
+  padding: 0 8px;
+}
+.pg-screen.pg-screen--player .pg-game-progress > .pg-progress-heading {
+  pointer-events: auto;
+  cursor: pointer;
+  min-height: 44px;
+}
+.pg-screen.pg-screen--player
+  .pg-game-progress
+  > .pg-progress-heading
+  > span:first-child {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex: 1;
+}
+.pg-screen.pg-screen--player .pg-progress-gates {
+  display: none;
+}
+.pg-screen.pg-screen--player .pg-progress-mobile {
+  display: inline;
+  font-size: 18px;
+}
+.pg-screen.pg-screen--player .pg-game-progress > .pg-progress-heading > svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+.pg-screen.pg-screen--player
+  .pg-game-progress[open]
+  > .pg-progress-heading
+  > svg {
+  transform: rotate(180deg);
+}
+.pg-screen.pg-screen--player
+  .pg-game-progress:not([open])
+  > .pg-progress-scroll {
+  display: none;
+}
+.pg-screen.pg-screen--player .pg-progress-scroll {
+  padding-bottom: 5px;
+}

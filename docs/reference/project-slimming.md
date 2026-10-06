@@ -1,5 +1,13 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.3 电力公司数量采购与进度收尾（2026-10-06）
+
+最终ZIP `15a0dd45…` 的六人／两人布局、原生显示和完整采购／回退／恢复验收通过，自有工程进程正常退出。先把最终两个原生验收的数据库、审计源码及逐文件SHA[另存](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/quantity-final-match/saved-audit-inventory.json)，此前完整交付ZIP与清单也在[previous-delivery](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/previous-delivery/TableMax-1.0.3-win-x64.zip)保留；当前ZIP、原素材、规则资料、正式存档、截图及成功／失败JSON继续保留。
+
+沿用已知副本的路径、进程、链接和内容变化保护，精确预览后按既有手动近期参数Apply：[release两组装目录](../../artifacts/maintenance/local-cleanup-20261006-150931-895-releases/cleanup.json)退役462,062,602字节；[15个已退出隔离副本](../../artifacts/maintenance/local-cleanup-20261006-150944-576-intermediates/cleanup.json)退役1,418,900,135字节，另161项保护／未知用途跳过。合计1,880,962,737字节，见[汇总](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/cleanup-summary.json)。未清空artifacts／tmp，release仅当前运行ZIP与清单；未删除当前验收、缓存依赖或原资源。
+
+最后空闲执行`Maintain-Project.ps1 -Apply`：[实际返回](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/maintenance-summary.json)为10,533,047,880逻辑字节（约9.81GiB），低于10GiB，本次自动维护不再删除；跳过1,370链接、零嵌套仓库。该水位是全部副本清理后实测，不以删除量推算或NTFS节省替代；随后文档及Git写入会略增。无常驻轮询，不推送或发布。
+
 ## v1.0.3 宝可梦深度界面与整合交付收尾（2026-10-06）
 
 开始[实际盘点](../../artifacts/maintenance/v1.0.3/pokemon-ui-depth/space-handoff.md)11,865,613,393逻辑字节（11.0507GiB）。最终ZIP `6df0feb5…` 的界面、原生恢复、普通对局、声画及静音检查完成，工程进程退出后按精确清单先预览再Apply。当前ZIP／清单、前一份整合包、宝可梦独立旧验收包、原素材、规则资料、正式存档和当前实际截图保留。

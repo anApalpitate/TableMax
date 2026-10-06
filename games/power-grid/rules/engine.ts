@@ -12,7 +12,6 @@ import {
 import {
   INITIAL_MARKET,
   income,
-  price,
   settingsFor,
   TOTAL_RESOURCES,
 } from '../data/economy';
@@ -21,6 +20,7 @@ import type { Action, CityOption, PowerGridLog, Resource } from '../types';
 import { MarketFlow, shuffle } from './market';
 import type { State } from './model';
 import { fuelUse, planProduction, pooledResources } from './production';
+import { resourcePurchaseCost } from './resource-purchase';
 
 export function initialize(context: RuleContext): State {
   const seats = [...context.seats],
@@ -534,17 +534,23 @@ export function applyAction(s: State, action: Action, context: RuleContext) {
       auction.salvage(action.resource);
       break;
     case 'buy-resource': {
-      const cost = price(action.resource, s.resources[action.resource])!;
+      const quantity = action.quantity ?? 1,
+        cost = resourcePurchaseCost(
+          action.resource,
+          s.resources[action.resource],
+          quantity,
+        )!;
       spend(s, seat, cost);
-      s.resources[action.resource]--;
-      ownedPlant(s, seat, action.plantId).resources[action.resource]++;
+      s.resources[action.resource] -= quantity;
+      ownedPlant(s, seat, action.plantId).resources[action.resource] +=
+        quantity;
       log(s, {
         actor: seat,
         verb: 'buy-resource',
         plantId: action.plantId,
         resource: action.resource,
         amount: cost,
-        text: `购入 1 份${RESOURCE_LABELS[action.resource]}，支付 ${cost} 电币。`,
+        text: `购入 ${quantity} 份${RESOURCE_LABELS[action.resource]}，支付 ${cost} 电币。`,
       });
       break;
     }

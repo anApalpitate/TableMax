@@ -13,6 +13,8 @@ import { PhonePages } from '../ui/PhonePages';
 import '../ui/focus-layout.css';
 import { BoardIcon } from '../ui/BoardIcon';
 import { CompanyInspector } from '../ui/CompanyInspector';
+import { GameProgress } from '../ui/GameProgress';
+import '../ui/market-scrollbars.css';
 import '../ui/toolbar-refinement.css';
 import { PHASE_LABELS, PLAYER_COLORS } from '../ui/labels';
 import { PlayerControls } from '../ui/player';
@@ -345,7 +347,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
           ⚡ <span className="pg-brand-name">电力公司</span>
           {role === 'player' && game && (
             <span className="pg-brand-round">
-              {game.round}轮 第{game.step}步
+              {game.round}轮 第{game.step}阶段
             </span>
           )}
         </strong>
@@ -371,7 +373,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
         )}
         {game && (
           <span className="pg-round">
-            第 {game.round} 轮 <b>第 {game.step} 步</b>
+            第 {game.round} 轮 <b>第{game.step}阶段</b>
           </span>
         )}
         {role !== 'player' && view && (
@@ -453,6 +455,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
               )}
             </div>
           )}
+          <GameProgress view={game} names={names} mobile={role === 'player'} />
           {game.phase === 'ended' ? (
             results
           ) : role === 'player' ? (
@@ -585,7 +588,6 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
         </>
       )}
       <PowerGridSavedEffects
-        names={names}
         feedback={session.feedback}
         game={game}
         disabled={feedbackDisabled}

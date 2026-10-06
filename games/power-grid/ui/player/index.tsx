@@ -1,12 +1,13 @@
 import { createPortal } from 'react-dom';
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { getPlant, RESOURCES, RESOURCE_LABELS } from '../../data/catalog';
-import { income, price } from '../../data/economy';
+import { income } from '../../data/economy';
 import { GERMANY_REGIONS, getCity } from '../../data/germany';
 import type { Action, PowerGridView, Resource } from '../../types';
 import { PlantCard, ResourceIcon } from '../components';
 import { FUEL_LABELS } from '../labels';
 import { IncomeCard } from '../IncomeCard';
+import { ResourcePurchase } from './ResourcePurchase';
 
 type Props = {
   view: PowerGridView;
@@ -342,31 +343,23 @@ function ResourceControls({
             />
             <div className="pg-fuel-purchases">
               {RESOURCES.map((resource) => {
-                const action = actions.find(
+                const canBuy = actions.some(
                   (entry) =>
                     entry.type === 'buy-resource' &&
                     entry.plantId === plant.id &&
                     entry.resource === resource,
                 );
-                if (!action) return null;
+                if (!canBuy) return null;
                 return (
-                  <button
+                  <ResourcePurchase
                     key={resource}
-                    disabled={locked}
-                    onClick={() => choose(action)}
-                  >
-                    <ResourceIcon resource={resource} />
-                    <span>＋1 {RESOURCE_LABELS[resource]}</span>
-                    <strong>本次 {view.resourcePrices[resource]}电币</strong>
-                    {price(resource, view.resources[resource] - 1) !==
-                      view.resourcePrices[resource] && (
-                      <span className="pg-next-resource-price">
-                        {price(resource, view.resources[resource] - 1) == null
-                          ? '买后售罄'
-                          : `再买 ${price(resource, view.resources[resource] - 1)}电币/份`}
-                      </span>
-                    )}
-                  </button>
+                    plantId={plant.id}
+                    resource={resource}
+                    marketCount={view.resources[resource]}
+                    actions={actions}
+                    locked={locked}
+                    choose={choose}
+                  />
                 );
               })}
             </div>

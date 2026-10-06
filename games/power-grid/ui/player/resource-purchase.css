@@ -1,0 +1,63 @@
+.pg-screen.pg-screen--player .pg-phone-page .pg-own-plants .pg-fuel-purchases {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 5px;
+}
+.pg-screen .pg-resource-purchase {
+  min-width: 0;
+  padding: 5px;
+  border: 1px solid #b69c68;
+  border-radius: 8px;
+  background: linear-gradient(130deg, #fffbed, #ede1c3);
+}
+.pg-screen .pg-resource-purchase-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.pg-screen .pg-resource-purchase-head > strong {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 18px;
+  white-space: nowrap;
+}
+.pg-screen .pg-resource-quantity {
+  display: grid;
+  grid-template-columns: 44px 52px 44px;
+  gap: 3px;
+}
+.pg-screen .pg-resource-purchase .pg-resource-quantity button,
+.pg-screen .pg-resource-purchase .pg-resource-quantity input {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 44px;
+  padding: 3px;
+  font-size: 18px;
+  text-align: center;
+}
+.pg-screen .pg-resource-quantity input {
+  appearance: textfield;
+}
+.pg-screen .pg-resource-quantity input::-webkit-inner-spin-button,
+.pg-screen .pg-resource-quantity input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+.pg-screen .pg-resource-purchase .pg-resource-buy {
+  width: 100%;
+  min-height: 44px;
+  justify-content: space-between;
+  padding: 6px 10px;
+  font-size: 18px;
+}
+@media (min-width: 650px) {
+  .pg-screen.pg-screen--player
+    .pg-phone-page
+    .pg-own-plants
+    .pg-fuel-purchases {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

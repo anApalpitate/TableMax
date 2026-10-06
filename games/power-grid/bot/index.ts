@@ -375,7 +375,7 @@ export function chooseAction(
     const planned = evaluate.plan();
     const buys = actions.filter(
       (a): a is Extract<Action, { type: 'buy-resource' }> =>
-        a.type === 'buy-resource',
+        a.type === 'buy-resource' && (a.quantity ?? 1) === 1,
     );
     const need = buys.filter((a) => planned.demand[a.resource] > 0);
     if (need.length)

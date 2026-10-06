@@ -72,7 +72,7 @@ export function DesktopBoard({
     mapProps.selected && avoidance.token === focusToken ? avoidance.level : 0;
   const marketWidth = avoiding ? 'narrow' : panels.width;
   const occupiedWidth =
-    (marketWidth === 'wide' ? Math.min(900, boardWidth - 96) : 310) + 240 + 32;
+    (marketWidth === 'wide' ? Math.min(900, boardWidth - 96) : 310) + 280 + 32;
   const exclusive = narrow || occupiedWidth > boardWidth - 96;
   const left =
     panels.left &&

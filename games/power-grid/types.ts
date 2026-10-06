@@ -21,7 +21,12 @@ export type Action =
   | { type: 'discard-plant'; plantId: number }
   | { type: 'salvage'; resource: Resource; plantId: number }
   | { type: 'discard-salvage'; resource: Resource }
-  | { type: 'buy-resource'; resource: Resource; plantId: number }
+  | {
+      type: 'buy-resource';
+      resource: Resource;
+      plantId: number;
+      quantity?: number;
+    }
   | {
       type: 'transfer';
       resource: Resource;
