@@ -15,13 +15,14 @@ import { promisify } from 'node:util';
 import { resolve, join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { launchDesktop } from './desktop-test.mjs';
+import { assertReleaseIdle } from './release-executable.mjs';
 
 const { version } = JSON.parse(await readFile('package.json', 'utf8'));
-const output = resolve(
-  'artifacts/maintenance',
-  `v${version}`,
-  'portable-storage',
-);
+const evidenceName =
+  process.argv.find((value) => value.startsWith('--evidence='))?.slice(11) ??
+  'portable-storage';
+assert.match(evidenceName, /^[a-z0-9-]{1,48}$/);
+const output = resolve('artifacts/maintenance', `v${version}`, evidenceName);
 await mkdir(output, { recursive: true });
 const work = await mkdtemp(resolve('tmp/portable-storage-'));
 const extracted = join(work, 'extracted');
@@ -71,6 +72,13 @@ try {
       timeout: 1800000,
     });
   desktop = await boot();
+  await assert.rejects(
+    assertReleaseIdle(join(extracted, 'blocked-export.exe')),
+    /busy/,
+  );
+  report.checks.push(
+    'release target guard refuses an active native program in the output directory',
+  );
   const info = await desktop.request('storage.info');
   assert.equal(info.active.toLowerCase(), extracted.toLowerCase());
   assert.equal(info.configured.toLowerCase(), extracted.toLowerCase());
@@ -109,15 +117,29 @@ try {
     timeout: 180000,
     env,
   });
+  const boxRoot = join(box, 'TableMax');
   assert.deepEqual(
-    JSON.parse(await readFile(join(box, 'TableMax.config.json'), 'utf8')),
+    JSON.parse(await readFile(join(boxRoot, 'TableMax.config.json'), 'utf8')),
     { dataDirectory: '.' },
   );
-  await stat(join(box, 'room.sqlite'));
-  await stat(join(box, '.tablemax/app/node.exe'));
+  await stat(join(boxRoot, 'room.sqlite'));
+  await stat(join(boxRoot, 'desktop/webview2'));
+  await stat(join(boxRoot, 'app/node.exe'));
+  assert.deepEqual((await readdir(box)).sort(), ['TableMax', 'TableMax.exe']);
+  const firstRuntimeWrite = (await stat(join(boxRoot, 'app/node.exe'))).mtimeMs;
+  await run(launcher, ['--foundation-check'], {
+    windowsHide: true,
+    timeout: 180000,
+    env,
+  });
+  assert.equal(
+    (await stat(join(boxRoot, 'app/node.exe'))).mtimeMs,
+    firstRuntimeWrite,
+  );
+  assert.deepEqual((await readdir(box)).sort(), ['TableMax', 'TableMax.exe']);
   const configured = join(work, 'launcher-custom');
   await writeFile(
-    join(box, 'TableMax.config.json'),
+    join(boxRoot, 'TableMax.config.json'),
     JSON.stringify({ dataDirectory: configured }),
   );
   await run(launcher, ['--foundation-check'], {
@@ -127,8 +149,9 @@ try {
   });
   await stat(join(configured, 'room.sqlite'));
   report.checks.push(
-    'same shipping EXE defaults data to outer EXE directory',
-    'shipping resources stay beside EXE',
+    'single EXE creates one dedicated sibling TableMax folder for config and data',
+    'single EXE runtime and browser cache stay inside dedicated folder',
+    'repeat initialization reuses resources without loose sibling files',
     'shipping EXE honors custom configuration',
   );
 

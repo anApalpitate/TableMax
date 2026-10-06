@@ -57,7 +57,7 @@
 
 宝可梦扩展版的开发阶段、完成标准与当前接续统一维护在[扩展任务](../tasks/pokemon-encounters-expansion.md)；候选规则仍归游戏目录的[设计草案](../games/pokemon-encounters/expansion-design.md)，不将阶段规划写成已实现玩法。
 
-长期需求、规则规格、来源清单和必要资源进入对应主题；本地实验和可再生中间物可进入 `tmp/`、`build/`，不作为长期资料入口。v1.0.3运行数据默认在盒子EXE同级，`TableMax.config.json` 指定数据目录，`.tablemax/app` 存放单EXE运行资源；测试覆盖为隔离目录；正式存档含秘密，不能公开或纳入程序包。
+长期需求、规则规格、来源清单和必要资源进入对应主题；本地实验和可再生中间物可进入 `tmp/`、`build/`，不作为长期资料入口。v1.0.3单EXE旁新建 `TableMax/` 专属目录，配置与数据默认在其中，`TableMax/app` 存放运行资源；ZIP解压版直接使用解压目录。对应根目录内 `TableMax.config.json` 指定数据目录；测试覆盖为隔离目录；正式存档含秘密，不能公开或纳入程序包。
 
 `artifacts/` 同时包含必须保留的原始资料／文字验收记录、可退役的历史运行截图和可再生的构建／解压副本，不能按上级目录或 Git 忽略规则一起删除。阶段、旧版本、Electron 与 WebView2 证据保留原归属；当前证据及哈希从 [验收记录](acceptance.md) 查询，历史开发方法与路径从 [开发归档](../archive/development-2026-10-01-to-04.md) 查询。
 

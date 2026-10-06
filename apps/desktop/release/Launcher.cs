@@ -129,6 +129,11 @@ namespace TableMax.Release {
         } finally { if (locked) mutex.ReleaseMutex(); }
       }
     }
+    private static string BoxRoot() {
+      var root = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TableMax");
+      SafePath(root);
+      return root;
+    }
     [STAThread]
     private static int Main(string[] args) {
       string extract = null;
@@ -139,9 +144,9 @@ namespace TableMax.Release {
       }
       if (Array.IndexOf(args, "--foundation-check") >= 0) {
         try {
-          var root = AppDomain.CurrentDomain.BaseDirectory;
+          var root = BoxRoot();
           var configuration = new TableMax.Portable.StorageConfiguration(root);
-          string program = Prepare(Path.Combine(root, ".tablemax", "app"), delegate { });
+          string program = Prepare(Path.Combine(root, "app"), delegate { });
           var start = new ProcessStartInfo(program, "--foundation-check") { WorkingDirectory = Path.GetDirectoryName(program), UseShellExecute = false, CreateNoWindow = true };
           start.EnvironmentVariables["TABLEMAX_BOX_DIRECTORY"] = root;
           using (var child = Process.Start(start)) { child.WaitForExit(); return child.ExitCode; }
@@ -155,10 +160,11 @@ namespace TableMax.Release {
       form.Controls.Add(label);
       form.Shown += async delegate {
         try {
-          string target = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".tablemax", "app");
+          var root = BoxRoot();
+          string target = Path.Combine(root, "app");
           string program = await Task.Run(() => Prepare(target, message => { if (!form.IsDisposed && form.IsHandleCreated) form.BeginInvoke((Action)(() => label.Text = message)); }));
           var launch = new ProcessStartInfo(program) { WorkingDirectory = Path.GetDirectoryName(program), UseShellExecute = false };
-          launch.EnvironmentVariables["TABLEMAX_BOX_DIRECTORY"] = AppDomain.CurrentDomain.BaseDirectory;
+          launch.EnvironmentVariables["TABLEMAX_BOX_DIRECTORY"] = root;
           Process.Start(launch);
           finished = true; form.Close();
         } catch (Exception error) { MessageBox.Show(form, error.Message, "TableMax 启动失败", MessageBoxButtons.OK, MessageBoxIcon.Error); finished = true; form.Close(); }

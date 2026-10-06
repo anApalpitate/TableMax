@@ -1,5 +1,9 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.3 初始化微调收尾（2026-10-06）
+
+单EXE初始化目录更新后，前一份EXE／ZIP／清单完整保留至本轮 `initialization-folder/previous-delivery/`，原验收证据继续保留；release仅当前v1.0.3 EXE、ZIP和清单。全部自有工程进程退出后执行 `Maintain-Project.ps1 -Apply`，[实测记录](../../artifacts/maintenance/v1.0.3/initialization-folder/maintenance-result.json)为10,791,283,069逻辑字节（10.050GiB），安全候选0、保护／跳过153项，删除0字节。超过10GiB而候选耗尽，近期验证、当前交付及原资料仍按保护保留，没有降低保护期或扩大清理。用户下载目录正在运行的独立旧实例保持运行，未停止或修改。
+
 ## v1.0.3 导出与旧资源退役（2026-10-06）
 
 v1.0.3实际EXE／默认与自定义数据路径／3GB存档副本迁移验证通过后，执行先预览再Apply的[release清理](../../artifacts/maintenance/local-cleanup-20261006-054211-163-releases/cleanup.json)，删除旧v1.0.2 ZIP／清单及三份本次打包副本，共500,390,844字节；当前release仅保留v1.0.3 EXE、运行ZIP和逐文件清单，没有源码导出或发布。[隔离副本清理](../../artifacts/maintenance/local-cleanup-20261006-054220-894-intermediates/cleanup.json)删除本次两个已结束的存储验证目录，共3,559,438,389字节；正式C盘原库不在该范围。

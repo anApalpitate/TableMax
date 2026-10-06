@@ -98,7 +98,7 @@ C# WinForms / .NET Framework 4.8 / 共享 WebView2（窗口、主机身份与生
 
 WebView2 不暴露 Node 或原生 host objects；`Bridge.js` 只保持 `window.tablemaxDisplay`／`window.tablemaxAudio` 的固定接口。原生端仅处理顶层 WebMessageReceived，核验受管理窗口、本源、当前文档 URL、host／public 对应路径和参数；拒绝手机路径、子 frame、其他源导航、任意新窗口和网页下载。主机随机凭证只由服务通过私有管道交给桌面，再通过 fragment 初始化 sessionStorage 并清理可见 URL；不进入命令行、公共输出或日志，重启后重新生成。网页路由不授予管理权限，普通浏览器直接打开 `/host` 仍只有公共授权。二维码只包含普通手机入口。
 
-v1.0.3数据目录由盒子同级配置指定，默认EXE同级；保留手机身份和 SQLite／JSON 存档格式，迁移不改协议版本或数据版本。WebView2 缓存写入用户数据目录的 `desktop/webview2/`，独立显示设置仍为 `display-settings.json`。旧 Electron 写出的 SQLite 需在隔离副本上验证读取、继续保存和恢复；不以新建数据库代替兼容性验证。原生测试驱动及 CDP 仅由显式测试标志启用，正式启动不开放调试端口；验证使用后台不激活窗口与更新后的真实 WebView2 截图。
+v1.0.3单EXE默认在旁边新建 `TableMax/` 专属目录，配置、数据和其中的 `app/` 运行资源均集中于此；ZIP版直接使用解压目录。数据目录由对应根目录内配置指定；保留手机身份和 SQLite／JSON 存档格式，迁移不改协议版本或数据版本。WebView2 缓存写入用户数据目录的 `desktop/webview2/`，独立显示设置仍为 `display-settings.json`。旧 Electron 写出的 SQLite 需在隔离副本上验证读取、继续保存和恢复；不以新建数据库代替兼容性验证。原生测试驱动及 CDP 仅由显式测试标志启用，正式启动不开放调试端口；验证使用后台不激活窗口与更新后的真实 WebView2 截图。
 
 玩家身份用服务生成的随机凭证，服务器仅保存摘要。本人的凭证由手机 localStorage 保存，开局前排序不改变座位 ID；同设备同源刷新／断线沿用凭证，1.6.0 删除换手机及兑换接口。电脑房主仅为管理员，不提供参赛入口或加入参数；首局先手由对应游戏规则决定，宝可梦使用可恢复随机选取，现代艺术采用稳定座位首席，旧 hostSeat 字段只兼容读取。主机管理权不扩展游戏秘密。线上状态来自当前有效连接，不入 checkpoint。电脑地址／端口变化形成新浏览器源不会自动迁移身份。
 

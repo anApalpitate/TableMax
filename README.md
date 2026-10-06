@@ -32,7 +32,7 @@ TableMax 是为朋友线下聚会开发的数字桌游平台。用一台 Windows
 
 ## 快速开始
 
-1. 双击本地导出的 `TableMax-1.0.3-win-x64.exe`（GitHub 已发布包以 [Releases](https://github.com/anApalpitate/TableMax/releases/latest) 为准）。首次启动会在 EXE 旁的 `.tablemax/app` 解压运行资源，之后复用已校验的文件。
+1. 双击本地导出的 `TableMax-1.0.3-win-x64.exe`（GitHub 已发布包以 [Releases](https://github.com/anApalpitate/TableMax/releases/latest) 为准）。首次启动会在 EXE 旁新建的 `TableMax/app` 解压运行资源，之后复用已校验的文件。
 2. 电脑和玩家手机连接同一个可互相访问的 Wi-Fi 或局域网。
 3. 在电脑上选择游戏。玩家用各自手机扫码，填写昵称、选择头像并入座准备。
 4. 管理员按需加入人机；全员准备后开始游戏。连接电视或第二块屏幕时，可打开独立公共屏窗口。
@@ -62,7 +62,7 @@ TableMax 是为朋友线下聚会开发的数字桌游平台。用一台 Windows
 
 **新版会覆盖存档吗？**
 
-运行资源位于EXE同级 `.tablemax/app`，存档、设置及缓存按同级配置指定的位置保存，默认EXE同级。更新前先关闭正在运行的 TableMax；启动包使用暂存与回滚保护更新程序。备份方法见 [开发与运行说明](docs/reference/development.md)。
+单EXE首次启动在旁边新建 `TableMax/`，运行资源在 `TableMax/app`，配置、存档、设置及缓存默认在 `TableMax/`。ZIP解压版直接使用解压目录。更新前先关闭正在运行的 TableMax；启动包使用暂存与回滚保护更新程序。备份方法见 [开发与运行说明](docs/reference/development.md)。
 
 **支持在线联机或更多游戏吗？**
 
@@ -88,4 +88,4 @@ pnpm start
 
 TableMax 面向个人与朋友的线下聚会使用而开发。游戏内容的来源和采用范围见对应规格与资源说明；宝可梦六人玩法属于项目扩展，电力公司采用经典德国版。
 
-当前本地版本为 **v1.0.3**。EXE 同级的 `TableMax.config.json` 默认写入 `dataDirectory: "."`；存档、日志、显示设置和浏览器缓存均存放于该目录。按 Alt 打开“程序 → 存储设置”可指定其他目录，重启后生效。旧 C 盘数据不会自动搬移或删除；续局前将完整旧数据复制到所选目录。目录不可写时明确报错，不回退到 C 盘。
+当前本地版本为 **v1.0.3**。单EXE的配置位于旁边新建的 `TableMax/TableMax.config.json`；ZIP解压版配置直接位于解压目录。配置默认写入 `dataDirectory: "."`，相对配置所在目录解析；存档、日志、显示设置和浏览器缓存默认与配置放在同一目录。按 Alt 打开“程序 → 存储设置”可指定其他目录，重启后生效。旧 C 盘数据不会自动搬移或删除；续局前将完整旧数据复制到所选目录。目录不可写时明确报错，不回退到 C 盘。

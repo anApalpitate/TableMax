@@ -17,11 +17,15 @@ const hash = async (path) =>
     .update(await readFile(path))
     .digest('hex');
 const { version } = JSON.parse(await readFile('package.json', 'utf8'));
-const evidence = resolve(
-  'artifacts/maintenance',
-  `v${version}`,
-  'github-release-20261005',
-);
+const evidenceName =
+  process.argv.find((value) => value.startsWith('--evidence='))?.slice(11) ??
+  'github-release-20261005';
+assert.match(evidenceName, /^[a-z0-9-]{1,48}$/);
+const safetyName =
+  evidenceName === 'github-release-20261005'
+    ? `shipping-v${version.replaceAll('.', '')}`
+    : evidenceName;
+const evidence = resolve('artifacts/maintenance', `v${version}`, evidenceName);
 const executable = resolve(
   `artifacts/releases/TableMax-${version}-win-x64.exe`,
 );
@@ -83,12 +87,12 @@ await run(
     'scripts/verify-native-safety.mjs',
     '--portable',
     `--executable=${join(extracted, 'TableMax.exe')}`,
-    `--evidence=shipping-v${version.replaceAll('.', '')}`,
+    `--evidence=${safetyName}`,
   ],
   { windowsHide: true, timeout: 180000, maxBuffer: 1024 * 1024 },
 );
 const safetyPath = resolve(
-  `artifacts/maintenance/v${version}/webview2/shipping-v${version.replaceAll('.', '')}/results.json`,
+  `artifacts/maintenance/v${version}/webview2/${safetyName}/results.json`,
 );
 const safety = JSON.parse(await readFile(safetyPath, 'utf8'));
 assert.equal(safety.result, 'passed');

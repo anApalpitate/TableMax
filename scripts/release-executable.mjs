@@ -8,7 +8,30 @@ import {
   rename,
 } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { execute } from './setup-desktop.mjs';
+// Packaging a separate release file need not stop a downloaded copy running
+// elsewhere. Unknown desktop paths and engineering validation remain protected.
+export async function assertReleaseIdle(outputPath) {
+  if (process.platform !== 'win32') return;
+  await promisify(execFile)(
+    'powershell.exe',
+    [
+      '-NoProfile',
+      '-Command',
+      "$taskBusy = @(Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne [int]$env:TABLEMAX_BUILD_PID -and (($_.Name -eq 'TableMax.exe' -and (-not $_.ExecutablePath -or -not $_.CommandLine -or ([string]$_.ExecutablePath).StartsWith($env:TABLEMAX_RELEASE_ROOT + '\\', [StringComparison]::OrdinalIgnoreCase) -or ([string]$_.CommandLine).IndexOf($env:TABLEMAX_RELEASE_ROOT, [StringComparison]::OrdinalIgnoreCase) -ge 0)) -or ($_.Name -match '^(node|dotnet|MSBuild)\\.exe$' -and $_.CommandLine -match '(scripts[\\/](verify|dev|launch)|apps[\\/]desktop[\\/]native|vitest)')) }); if ($taskBusy.Count) { throw ('Release target or engineering verification busy: ' + (($taskBusy.ProcessId) -join ',')) }",
+    ],
+    {
+      windowsHide: true,
+      env: {
+        ...process.env,
+        TABLEMAX_BUILD_PID: String(process.pid),
+        TABLEMAX_RELEASE_ROOT: resolve(outputPath, '..'),
+      },
+    },
+  );
+}
 export async function createReleaseExecutable({
   archivePath,
   manifestPath,

@@ -1,12 +1,14 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { createReleaseExecutable } from './release-executable.mjs';
+import {
+  createReleaseExecutable,
+  assertReleaseIdle,
+} from './release-executable.mjs';
 import { lock } from './module-build.mjs';
-import { assertIdle } from './assemble.mjs';
 await lock('package-release', async () => {
-  await assertIdle();
   const { version } = JSON.parse(await readFile('package.json', 'utf8'));
   const base = `artifacts/releases/TableMax-${version}-win-x64`;
+  await assertReleaseIdle(base + '.exe');
   const manifest = JSON.parse(await readFile(base + '-manifest.json', 'utf8'));
   if (manifest.version !== version)
     throw new Error('Build and verify the current portable ZIP first');
