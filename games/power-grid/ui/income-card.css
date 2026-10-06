@@ -160,3 +160,39 @@
 .pg-screen.pg-income-card {
   scrollbar-gutter: stable;
 }
+
+.pg-screen .pg-income-table {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(11, minmax(24px, auto));
+  gap: 2px 7px;
+  margin: 0;
+}
+.pg-screen .pg-income-table > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 2px 3px;
+  font-size: 18px;
+  line-height: 1.2;
+}
+.pg-screen .pg-income-table dt,
+.pg-screen .pg-income-table dd {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.pg-screen .pg-income-table .pg-income-land {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.pg-screen .pg-income-table dd::before {
+  content: '→';
+  font-size: 16px;
+}
+.pg-screen .pg-income-card h2 {
+  text-align: center;
+}

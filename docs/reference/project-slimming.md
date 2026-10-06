@@ -1,5 +1,12 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.3 电力公司地图优化收尾（2026-10-06）
+
+最终ZIP与[原生通过记录](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/polish-shipping-match/results.json)哈希一致；原完整交付另存于 `power-grid-ui-polish-20261006/previous-delivery/`。工程验证进程退出后，`Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0`先预览再Apply，删除两个已结束打包中间目录460,094,396字节；[清单](../../artifacts/maintenance/local-cleanup-20261006-074231-624-releases/cleanup.json)保留。最新ZIP／清单与既有受保护EXE保留，无发布或源码导出。
+
+`Maintain-Project.ps1 -Apply`实际逻辑水位由14,767,674,848降至13,238,941,929字节（约12.33GiB），删除27个已核验隔离副本1,528,884,893字节；两次合计1,988,979,289字节。[维护记录](../../artifacts/maintenance/local-cleanup-20261006-074353-703-maintenance/cleanup.json)关联当前ZIP SHA-256 `7946907f4423f6e0c399d14c083dabb7faa2164a25377d523ccfa92cff277963`。安全候选耗尽、仍高于10GiB，169项保护／未知用途内容及1370链接跳过；未扩大清理范围，依赖、缓存、原素材、正式存档、当前及历史证据保留。逻辑字节不以NTFS物理压缩量替代。
+
+
 ## v1.0.3 游戏介绍修复收尾（2026-10-06）
 
 前一份EXE／ZIP／清单完整保留至 `game-introduction/previous-delivery/`，原初始化与迁移证据继续保留；release仅当前三份交付。自有工程进程全部退出后执行 `Maintain-Project.ps1 -Apply`：[维护审计](../../artifacts/maintenance/local-cleanup-20261006-061821-744-maintenance/cleanup.json)初始11,251,413,591逻辑字节（10.479GiB），删除一份已退出的旧隔离验证目录24,659,377字节，末次11,226,782,836字节（10.456GiB）。安全候选耗尽，161项保护／跳过；仍超过10GiB而未达8GiB，不扩大到近期验证、历史验收、存档、素材或缓存。

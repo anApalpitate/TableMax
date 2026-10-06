@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { INCOME, income } from '../data/economy';
+import { INCOME } from '../data/economy';
 import type { PowerGridView } from '../types';
 import { incomePreview } from './income-preview';
 import './income-card.css';
@@ -222,62 +222,30 @@ export function IncomeGuide({
   const preview = incomePreview(view, seatId, selectedCities);
   return (
     <div className="pg-income-guide">
-      <p className="pg-income-scroll-hint">完整收入表：0–20+ 城 · 可向下滚动</p>
-      {preview && (
-        <div className="pg-income-markers">
-          <div
-            className="pg-income-capability"
-            data-income-capability={preview.cities}
-          >
-            <span>
-              {preview.completed
-                ? view.phase === 'ended'
-                  ? '终局供电'
-                  : '本轮已供电'
-                : '现有燃料最多供电'}
-            </span>
-            <strong>
-              {preview.cities} 城
-              <span>
-                {view.phase === 'ended' ? '参考收益' : '→'} {preview.income} E
-              </span>
-            </strong>
-          </div>
-          {preview.selectedCities != null && (
-            <div
-              className="pg-income-selected"
-              data-income-selected={preview.selectedCities}
-            >
-              <span>本人已选</span>
-              <strong>
-                {preview.selectedCities} 城{' '}
-                <span>→ {income(preview.selectedCities)} E</span>
-              </strong>
-            </div>
-          )}
-        </div>
-      )}
       <dl className="pg-income-table" aria-label="供电城市数对应收入，单位电币">
         {INCOME.map((amount, cities) => {
           const capability =
             preview != null && Math.min(20, preview.cities) === cities;
-          const selected =
-            preview?.selectedCities != null &&
-            Math.min(20, preview.selectedCities) === cities;
           return (
             <div
               key={cities}
               data-income-cities={cities}
               data-income-value={amount}
-              className={`${capability ? 'pg-income-tier--capability' : ''}${selected ? ' pg-income-tier--selected' : ''}`}
+              className={`${capability ? 'pg-income-tier--capability' : ''}`}
             >
-              <dt>
+              <dt aria-label={`${cities === 20 ? '20以上' : cities}座地皮供电`}>
                 {cities === 20 ? '20+' : cities}
-                <span>城</span>
+                <svg
+                  className="pg-income-land"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path d="M2 11 12 2l10 9-2 2-2-2v11H6V11l-2 2Z" />
+                </svg>
               </dt>
-              <dd>
+              <dd aria-label={`${amount}电币`}>
                 {amount}
-                <span>E</span>
+                <span aria-hidden="true">◉</span>
               </dd>
             </div>
           );

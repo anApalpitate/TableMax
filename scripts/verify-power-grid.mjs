@@ -1147,6 +1147,13 @@ async function clickAction(entry, current, action) {
       capturedLivePhases.add(saved.gameView.phase);
     }
   }
+  if (action.type === 'build') {
+    // Inspecting the external order panel cancels map selection by design.
+    await page
+      .locator('.pg-phone-page:not([hidden]) .pg-phone-map')
+      .getByLabel('选择城市', { exact: true })
+      .selectOption(action.cityId);
+  }
   await geometry(button, action.type);
   await capture(page, 'control-' + action.type + '-before');
   const serial = Number(saved.gameView.latest?.id.slice(3) ?? 0),

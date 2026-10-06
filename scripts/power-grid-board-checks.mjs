@@ -15,7 +15,7 @@ export async function verifyBoardFacts(page, fixtures, report) {
   for (const card of await cards.all()) {
     assert.equal(
       await card.locator('.pg-company-card-plants > div').count(),
-      4,
+      fixtures.regions.publicGame.plantLimit,
     );
     assert.equal(await card.locator('[data-company-resource]').count(), 4);
     assert.deepEqual(
@@ -23,8 +23,12 @@ export async function verifyBoardFacts(page, fixtures, report) {
       ['×0', '×0', '×0', '×0'],
     );
     assert.equal(
-      await card.locator('.pg-plant-art,.pg-plant-illustration').count(),
-      0,
+      await card.locator('.pg-company-rank').textContent(),
+      await card.getAttribute('data-company-rank'),
+    );
+    assert.match(
+      await card.locator('.pg-company-rank').getAttribute('aria-label'),
+      /位次/,
     );
   }
   assert.equal(
@@ -33,7 +37,7 @@ export async function verifyBoardFacts(page, fixtures, report) {
     'Public cards do not reveal cash',
   );
   await page.getByRole('button', { name: '收起玩家公司' }).click();
-  const map = page.locator('.pg-map-panel');
+  const map = page.locator('.pg-map-panel[data-map-center]');
   for (const [dx, dy] of [
     [30, 0],
     [-30, 0],
@@ -183,7 +187,14 @@ export async function verifyBoardFacts(page, fixtures, report) {
   const owner = page.locator(
     `.pg-company-card[data-company-seat="${replacement.buyer}"]`,
   );
-  assert.equal(await owner.locator('.pg-company-card-plants > div').count(), 4);
+  assert.equal(
+    await owner.locator('.pg-company-card-plants > div').count(),
+    fixtures.replace.publicGame.plantLimit,
+  );
+  assert.equal(
+    await owner.locator('.pg-plant-art').count(),
+    fixtures.replace.publicGame.players[replacement.buyer].plants.length,
+  );
   assert.equal(
     await owner
       .locator('.pg-company-pending [data-plant-summary]')

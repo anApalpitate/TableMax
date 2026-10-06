@@ -1,38 +1,21 @@
 import { useLayoutEffect, useRef, type CSSProperties } from 'react';
-import { getPlant, RESOURCES, RESOURCE_LABELS } from '../data/catalog';
+import { RESOURCES, RESOURCE_LABELS } from '../data/catalog';
 import type { PowerGridView } from '../types';
-import { FuelMark, ResourceIcon } from './components';
-import { FUEL_LABELS, PLAYER_COLORS } from './labels';
+import { PlantCard, ResourceIcon } from './components';
+import { PLAYER_COLORS } from './labels';
 import './company-cards.css';
+import { BoardIcon } from './BoardIcon';
 
-function PlantSummary({ id }: { id: number }) {
-  const plant = getPlant(id);
+function PlantSummary({
+  id,
+  artFor,
+}: {
+  id: number;
+  artFor(id: number): CSSProperties;
+}) {
   return (
-    <div
-      className="pg-company-plant-info"
-      data-plant-summary={id}
-      aria-label={`电厂${id}，${FUEL_LABELS[plant.fuel]}，${plant.input ? `消耗${plant.input}份${plant.fuel === 'hybrid' ? '煤油合计' : ''}` : '免燃料'}，供电${plant.output}城`}
-    >
-      <div>
-        <b>#{id}</b>
-        <FuelMark fuel={plant.fuel} />
-      </div>
-      <span>
-        <span className="pg-plant-summary-input">
-          {plant.input ? (
-            <>
-              <span className="pg-plant-full-label">耗 </span>
-              {plant.input}
-            </>
-          ) : (
-            <>
-              <span className="pg-plant-full-label">免燃料</span>
-              <span className="pg-plant-short-label">0</span>
-            </>
-          )}
-        </span>
-        <strong>⚡ {plant.output}</strong>
-      </span>
+    <div className="pg-company-plant-info" data-plant-summary={id}>
+      <PlantCard id={id} art={artFor(id)} compact />
     </div>
   );
 }
@@ -47,6 +30,7 @@ export function CompanyCards({
   animate = false,
   horizontal = false,
   contextKey,
+  artFor,
 }: {
   view: PowerGridView;
   names: Record<string, string>;
@@ -57,6 +41,7 @@ export function CompanyCards({
   animate?: boolean;
   horizontal?: boolean;
   contextKey: string;
+  artFor(id: number): CSSProperties;
 }) {
   const list = useRef<HTMLElement>(null);
   const previous = useRef<{
@@ -128,7 +113,7 @@ export function CompanyCards({
           aria-label="向左浏览玩家公司"
           onClick={() => browse(-1)}
         >
-          ‹
+          <BoardIcon name="left" />
         </button>
       )}
       <section
@@ -153,7 +138,8 @@ export function CompanyCards({
               key={seatId}
               data-company-seat={seatId}
               data-company-rank={rank + 1}
-              className={`pg-company-card${view.self?.seatId === seatId ? ' pg-company-card--self' : ''}${active && view.actor === seatId ? ' pg-company-card--acting' : ''}`}
+              data-plant-limit={view.plantLimit}
+              className={`pg-company-card${pending ? ' pg-company-card--replacement' : ''}${view.self?.seatId === seatId ? ' pg-company-card--self' : ''}${active && view.actor === seatId ? ' pg-company-card--acting' : ''}`}
               style={
                 {
                   '--pg-player-color': PLAYER_COLORS[stableIndex],
@@ -163,9 +149,21 @@ export function CompanyCards({
               <header>
                 <img src={portraits[seatId]} alt="" />
                 <strong title={title}>{title}</strong>
-                <span className="pg-company-rank">
-                  位次 <b>{rank + 1}</b>
+                <span
+                  className="pg-company-rank"
+                  aria-label={`位次 ${rank + 1}`}
+                >
+                  <b>{rank + 1}</b>
                 </span>
+                {player.cash != null && (
+                  <span
+                    className="pg-company-cash"
+                    data-company-cash
+                    aria-label={`现金${player.cash}电币`}
+                  >
+                    ◉ <b>{player.cash}</b>
+                  </span>
+                )}
               </header>
               <div className="pg-company-card-network">
                 <span aria-label={`已建${player.cities.length}座城市`}>
@@ -182,28 +180,40 @@ export function CompanyCards({
                       : `座位 ${stableIndex + 1}`}
                 </span>
               </div>
-              <div
-                className="pg-company-card-plants"
-                aria-label={`电厂摘要，本局上限${view.plantLimit}座`}
-              >
-                {Array.from({ length: 4 }, (_, index) =>
-                  plants[index] ? (
-                    <PlantSummary key={index} id={plants[index]!.id} />
-                  ) : (
-                    <div
-                      key={index}
-                      className="pg-company-plant-empty"
-                      aria-label={
-                        index >= view.plantLimit
-                          ? `本局上限${view.plantLimit}厂`
-                          : '空电厂位'
-                      }
-                    >
-                      {index >= view.plantLimit
-                        ? `${view.plantLimit}厂上限`
-                        : '—'}
-                    </div>
-                  ),
+              <div className="pg-company-factory-layout">
+                <div
+                  className="pg-company-card-plants"
+                  aria-label={`电厂摘要，本局上限${view.plantLimit}座`}
+                >
+                  {Array.from({ length: view.plantLimit }, (_, index) =>
+                    plants[index] ? (
+                      <PlantSummary
+                        key={index}
+                        id={plants[index]!.id}
+                        artFor={artFor}
+                      />
+                    ) : (
+                      <div
+                        key={index}
+                        className="pg-company-plant-empty"
+                        aria-label={
+                          index >= view.plantLimit
+                            ? `本局上限${view.plantLimit}厂`
+                            : '空电厂位'
+                        }
+                      >
+                        {index >= view.plantLimit
+                          ? `${view.plantLimit}厂上限`
+                          : '—'}
+                      </div>
+                    ),
+                  )}
+                </div>
+                {pending && (
+                  <div className="pg-company-pending">
+                    <strong>新购待替换</strong>
+                    <PlantSummary id={pending.id} artFor={artFor} />
+                  </div>
                 )}
               </div>
               <div className="pg-company-card-stock" aria-label="四类燃料库存">
@@ -236,12 +246,6 @@ export function CompanyCards({
                   );
                 })}
               </div>
-              {pending && (
-                <div className="pg-company-pending">
-                  <strong>新购待替换</strong>
-                  <PlantSummary id={pending.id} />
-                </div>
-              )}
               {replacement &&
                 RESOURCES.some(
                   (resource) => replacement.salvage[resource] > 0,
@@ -278,7 +282,7 @@ export function CompanyCards({
           aria-label="向右浏览玩家公司"
           onClick={() => browse(1)}
         >
-          ›
+          <BoardIcon name="right" />
         </button>
       )}
     </div>

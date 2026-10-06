@@ -1,5 +1,16 @@
 # 首版交付与验收
 
+## 1.0.3：电力公司地图与带图公司卡优化（2026-10-06）
+
+完整1200×900地图采用铺满后1.06倍最低比例，硬边界四向拖动无空白；普通滚轮指针锚点平滑缩放，单层身份色选城、外部取消及临时抽屉避让。市场为图标入口、窄／宽／收起三态；公司恢复带图厂牌和左上数字徽章，三厂一行、两人四厂2×2、手机逐厂横条，待替换第五厂保留。收益仅两列地皮到电币，0–10左列、11–20+右列及唯一绿档。本人资金及终局按已有授权显示，规则／投影／存档格式不变。
+
+[最终六人组件](../../artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/power-grid/verified-final/results.json)108布局涵盖854×480至4K、320／360／390手机及844×390横屏；[两人矩阵](../../artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/power-grid/final-render-2/results.json)96布局及20组交互。零厂、混燃、满厂、临时第五厂、待安置、零库存、长昵称、首轮重排／普通同步不重排及现金权限通过。[地图专项](../../artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/power-grid/wheel-final/results.json)覆盖四向极限、连续滚轮、真实双指缩放、跟随暂停／恢复、外部取消、单框与无空城十字、临时避让恢复及新手动操作优先，读取不发送命令。35帧采样32个中间缩放值，p95帧间隔12.4ms属本机组件样本，不泛化为实体手机帧率。相关UI／德国数据23项单测、类型、局部Lint、项目Prettier及diff通过。
+
+[原生显示](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/polish-shipping-display/results.json)以同一ZIP的实际解压、静音隐藏WebView2／127.0.0.1服务覆盖主机／公共屏720p、1080p、4K及125%／150%显示请求与模拟密度；记录有效缩放、CSS／窗口／截图几何，未改OS显示设置。[原生整局](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/polish-shipping-match/results.json)121.31秒通过真实手机控件、Worker、SQLite保存／重启恢复与跨游戏切换，510状态验证、480条合法动作独立重放，覆盖STEP 1／2／3、换厂、待安置及现金权限。查看外部顺序会取消选城，旧脚本因此找不到建设按钮；按新交互重新选城后核验，原失败证据保留。模拟窗口和浏览器手势不替代实体手机、现场LAN或物理DPI认证。
+
+最终包使用03b7430基线加本次电力公司源码的隔离输入，排除其他任务未提交内容；[冻结构建](../../artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/build-snapshot.json)与[清单](../../artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/package-manifest.json)保留。最终组装26,506ms、18缓存单元复用（电力公司UI在前序重建）；[运行ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip)40,916,814字节，SHA-256 `7946907f4423f6e0c399d14c083dabb7faa2164a25377d523ccfa92cff277963`，实际解压216文件94,386,899字节，95MB预算及ZIP／解压双100MB门禁通过。前一份完整交付保留于 `artifacts/maintenance/v1.0.3/power-grid-ui-polish-20261006/previous-delivery/`；未生成新EXE或源码包、未推送或发布。安全维护实际水位见[瘦身记录](project-slimming.md)。
+
+
 ## 1.0.3：游戏介绍弹窗布局修复（2026-10-06）
 
 用户截图中的纵向文字挤压来自共享弹窗遗留的 `.game-introduction` 横向flex样式：运行时CSS在独立盒子CSS之后加载时覆盖新版分节布局。删除失效样式，并明确介绍／头像浮窗的宽度选择器优先级，封面、简介、步骤与胜负按正常段落排列，手机步骤保持单列；玩法、资源、权限和存档不变。

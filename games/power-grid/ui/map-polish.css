@@ -198,3 +198,9 @@
     max-width: min(190px, 100%);
   }
 }
+
+.pg-screen .pg-map-frame,
+.pg-screen .pg-map-frame * {
+  user-select: none;
+  -webkit-user-select: none;
+}

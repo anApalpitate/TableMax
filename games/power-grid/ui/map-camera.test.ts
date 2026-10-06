@@ -8,6 +8,8 @@ import {
   NO_INSETS,
   panCamera,
   zoomCamera,
+  wheelZoomTarget,
+  focusVisible,
 } from './map-camera';
 describe('cropped map camera', () => {
   const surface = { width: 1280, height: 620, insets: NO_INSETS };
@@ -60,4 +62,61 @@ describe('cropped map camera', () => {
     ).toBeCloseTo(worldX);
     expect(clampCamera({ ...camera, zoom: 100 }, surface).zoom).toBe(4);
   });
+});
+
+it('uses full-image hard edges even when drawers cover most of the viewport', () => {
+  for (const [width, height] of [
+    [854, 350],
+    [1280, 600],
+    [3840, 1900],
+    [320, 320],
+    [844, 220],
+  ]) {
+    const surface = {
+      width: width!,
+      height: height!,
+      insets: { left: 700, right: 240, top: 0, bottom: 250 },
+    };
+    for (const zoom of [1, 2, 4])
+      for (const dx of [-100000, 100000])
+        for (const dy of [-100000, 100000]) {
+          const camera = panCamera(
+              { ...initialCamera(), zoom },
+              surface,
+              dx,
+              dy,
+            ),
+            scale = cameraScale(surface, zoom);
+          expect(camera.center.x - width! / (2 * scale)).toBeGreaterThanOrEqual(
+            -0.00001,
+          );
+          expect(camera.center.x + width! / (2 * scale)).toBeLessThanOrEqual(
+            1200.00001,
+          );
+          expect(
+            camera.center.y - height! / (2 * scale),
+          ).toBeGreaterThanOrEqual(-0.00001);
+          expect(camera.center.y + height! / (2 * scale)).toBeLessThanOrEqual(
+            900.00001,
+          );
+        }
+    expect(width! / cameraScale(surface, 1)).toBeLessThan(1200);
+  }
+});
+it('normalizes pixel/line/page wheel deltas and respects zoom limits', () => {
+  expect(wheelZoomTarget(2, 16, 0, 500)).toBe(wheelZoomTarget(2, 1, 1, 500));
+  expect(wheelZoomTarget(2, 500, 0, 500)).toBe(wheelZoomTarget(2, 1, 2, 500));
+  expect(wheelZoomTarget(1, 500, 0, 500)).toBe(1);
+  expect(wheelZoomTarget(4, -500, 0, 500)).toBe(4);
+});
+it('reports edge targets still occluded at maximum zoom rather than exposing blank paper', () => {
+  const surface = {
+    width: 1280,
+    height: 600,
+    insets: { left: 920, right: 52, top: 0, bottom: 190 },
+  };
+  const point = { x: 131, y: 324 };
+  const camera = focusCamera(initialCamera(), surface, [point]);
+  expect(camera.zoom).toBe(4);
+  expect(focusVisible(camera, surface, point)).toBe(false);
 });

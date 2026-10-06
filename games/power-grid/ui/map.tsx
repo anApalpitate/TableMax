@@ -25,6 +25,8 @@ import {
   panCamera,
   zoomCamera,
   safeMapRect,
+  focusVisible,
+  wheelZoomTarget,
   type MapCamera,
   type MapSurface,
 } from './map-camera';
@@ -369,6 +371,8 @@ export function GermanyMap({
   animateFocus = true,
   avoidDrawers = false,
   selectionRequest = 0,
+  selectionColor = '#167b85',
+  onFocusOccluded,
 }: {
   regions: readonly string[];
   networks: readonly MapNetwork[];
@@ -392,6 +396,8 @@ export function GermanyMap({
   animateFocus?: boolean;
   avoidDrawers?: boolean;
   selectionRequest?: number;
+  selectionColor?: string;
+  onFocusOccluded?(): void;
 }) {
   const definitionId = useId().replace(/:/g, '');
   const paperId = `${definitionId}-paper`,
@@ -431,6 +437,66 @@ export function GermanyMap({
   const [cityDetailOpen, setCityDetailOpen] = useState(false);
   const camera = viewport ?? localCamera;
   const setCamera = onViewportChange ?? setLocalCamera;
+  const wheelFrame = useRef<number | null>(null);
+  const liveCamera = useRef({ camera, surface, setCamera });
+  useEffect(() => {
+    liveCamera.current = { camera, surface, setCamera };
+  }, [camera, surface, setCamera]);
+  useEffect(() => {
+    const element = frame.current;
+    if (!element) return;
+    let targetZoom: number | null = null;
+    let anchor = { x: 0, y: 0 },
+      previousTime = 0;
+    const tick = (time: number) => {
+      const live = liveCamera.current;
+      const difference = targetZoom! - live.camera.zoom;
+      const reduced = window.matchMedia(
+        '(prefers-reduced-motion: reduce)',
+      ).matches;
+      const fraction = reduced
+        ? 1
+        : 1 - Math.exp(-Math.min(32, time - previousTime || 16) / 45);
+      const value =
+        Math.abs(difference) < 0.0005
+          ? targetZoom!
+          : live.camera.zoom + difference * fraction;
+      const next = zoomCamera(live.camera, live.surface, value, anchor);
+      liveCamera.current = { ...live, camera: next };
+      live.setCamera(next);
+      previousTime = time;
+      if (Math.abs(targetZoom! - value) > 0.0005)
+        wheelFrame.current = requestAnimationFrame(tick);
+      else {
+        wheelFrame.current = null;
+        targetZoom = null;
+      }
+    };
+    const wheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const live = liveCamera.current,
+        rect = element.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      setMoving(false);
+      anchor = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      if (wheelFrame.current === null) targetZoom = live.camera.zoom;
+      targetZoom = wheelZoomTarget(
+        targetZoom ?? live.camera.zoom,
+        event.deltaY,
+        event.deltaMode,
+        rect.height,
+      );
+      if (wheelFrame.current === null) {
+        previousTime = 0;
+        wheelFrame.current = requestAnimationFrame(tick);
+      }
+    };
+    element.addEventListener('wheel', wheel, { passive: false });
+    return () => {
+      element.removeEventListener('wheel', wheel);
+      if (wheelFrame.current !== null) cancelAnimationFrame(wheelFrame.current);
+    };
+  }, []);
   const scale = camera.zoom;
   const focusMemory = useRef('');
   const contextMemory = useRef(contextKey);
@@ -492,6 +558,8 @@ export function GermanyMap({
     if (focusMemory.current === memory) return;
     const newContext = contextMemory.current !== contextKey;
     const first = !focusMemory.current || newContext;
+    const clearedSelection =
+      selectionMemory.current !== selectionRequest && selected === null;
     const explicitSelection =
       selectionMemory.current !== selectionRequest &&
       selected !== null &&
@@ -512,17 +580,25 @@ export function GermanyMap({
             )
           : [];
     const next =
-      (camera.follow || explicitSelection) && points.length
+      !clearedSelection && (camera.follow || explicitSelection) && points.length
         ? focusCamera(camera, surface, points)
         : clampCamera(camera, surface);
     const request = requestAnimationFrame(() => {
       contextMemory.current = contextKey;
       focusMemory.current = memory;
       selectionMemory.current = selectionRequest;
+      if (
+        !clearedSelection &&
+        (camera.follow || explicitSelection) &&
+        points.length === 1 &&
+        !focusVisible(next, surface, points[0]!)
+      )
+        onFocusOccluded?.();
       setMoving(!first && animateFocus && camera.follow && points.length > 0);
       if (
         next.center.x !== camera.center.x ||
-        next.center.y !== camera.center.y
+        next.center.y !== camera.center.y ||
+        next.zoom !== camera.zoom
       )
         setCamera(next);
     });
@@ -538,10 +614,15 @@ export function GermanyMap({
     animateFocus,
     selected,
     selectionRequest,
+    onFocusOccluded,
   ]);
   const displayScale = Math.max(0.01, cameraScale(surface, scale));
-  const pickCity = (id: string) => {
+  const pickCity = (id: string, toggle = false) => {
     setMoving(false);
+    if (toggle && id === selected && id) {
+      select('');
+      return;
+    }
     if (POSITIONS[id] && surface.width && surface.height)
       setCamera(focusCamera(camera, surface, [POSITIONS[id]!]));
     select(id);
@@ -589,10 +670,18 @@ export function GermanyMap({
   const occupantsFor = (cityId: string) =>
     networks.filter((network) => network.cities.includes(cityId));
   const zoom = (value: number) => {
+    if (wheelFrame.current !== null) {
+      cancelAnimationFrame(wheelFrame.current);
+      wheelFrame.current = null;
+    }
     setMoving(false);
     setCamera(zoomCamera(camera, surface, value));
   };
   const pointerDown = (event: PointerEvent<SVGSVGElement>) => {
+    if (wheelFrame.current !== null) {
+      cancelAnimationFrame(wheelFrame.current);
+      wheelFrame.current = null;
+    }
     pointers.current.set(event.pointerId, {
       x: event.clientX,
       y: event.clientY,
@@ -658,7 +747,7 @@ export function GermanyMap({
     if (!moved && event.type !== 'pointercancel') {
       const houseCity = drag.current?.houseCity;
       if (houseCity && regions.includes(POSITIONS[houseCity]!.region)) {
-        pickCity(houseCity);
+        pickCity(houseCity, true);
         if (pointers.current.size === 0) drag.current = null;
         return;
       }
@@ -680,7 +769,8 @@ export function GermanyMap({
           candidates[0] &&
           candidates[0].distance <= Math.max(35, 22 / displayScale)
         )
-          pickCity(candidates[0].city.id);
+          pickCity(candidates[0].city.id, true);
+        else select('');
       }
     }
     if (pointers.current.size === 0) drag.current = null;
@@ -688,7 +778,7 @@ export function GermanyMap({
   const selectedCity = selected ? POSITIONS[selected] : null;
   const selectedOccupants = selectedCity ? occupantsFor(selectedCity.id) : [];
   const cityInfo = selectedCity && (
-    <div className="pg-map-city-information">
+    <div className="pg-map-city-information" data-map-selection-preserve>
       <div className="pg-city-slots" aria-label="城市位置费用图例">
         <strong>城位费（电币）</strong>
         <div className="pg-city-slot-values">
@@ -763,6 +853,7 @@ export function GermanyMap({
       data-map-center={`${camera.center.x},${camera.center.y}`}
       style={
         {
+          '--pg-selection-color': selectionColor,
           '--pg-map-left-inset': `${surface.insets.left}px`,
           '--pg-map-right-inset': `${surface.insets.right}px`,
           '--pg-map-bottom-inset': `${surface.insets.bottom}px`,
@@ -779,17 +870,11 @@ export function GermanyMap({
           onPointerMove={pointerMove}
           onPointerUp={pointerUp}
           onPointerCancel={pointerUp}
-          onWheel={(event) => {
-            if (event.ctrlKey) {
-              event.preventDefault();
-              zoom(scale + (event.deltaY < 0 ? 0.15 : -0.15));
-            }
-          }}
           style={{
             width: MAP_FRAME.width * displayScale,
             height: MAP_FRAME.height * displayScale,
             transformOrigin: '0 0',
-            transform: `translate(${surface.width / 2 - (camera.center.x - MAP_FRAME.x) * displayScale}px,${surface.height / 2 - (camera.center.y - MAP_FRAME.y) * displayScale}px)`,
+            transform: `translate(${surface.width / 2 - camera.center.x * displayScale}px,${surface.height / 2 - camera.center.y * displayScale}px)`,
             transition:
               moving && animateFocus ? 'transform 320ms ease-out' : 'none',
           }}
@@ -896,7 +981,7 @@ export function GermanyMap({
                   />
                   <path
                     d={`M${a.x} ${a.y}L${b.x} ${b.y}`}
-                    stroke={selectedEdge ? '#165947' : '#51482f'}
+                    stroke={selectedEdge ? selectionColor : '#51482f'}
                     strokeWidth={selectedEdge ? 3 : 2}
                     fill="none"
                   />
@@ -928,7 +1013,7 @@ export function GermanyMap({
                       height={label.height}
                       rx={labelSize * 0.25}
                       fill="#fffef7"
-                      stroke={selectedEdge ? '#165947' : '#736b51'}
+                      stroke={selectedEdge ? selectionColor : '#736b51'}
                       strokeWidth={1 / displayScale}
                     />
                     <text
@@ -965,7 +1050,7 @@ export function GermanyMap({
                 onKeyDown={(event) => {
                   if (active && (event.key === 'Enter' || event.key === ' ')) {
                     event.preventDefault();
-                    pickCity(city.id);
+                    pickCity(city.id, true);
                   }
                 }}
                 transform={`translate(${city.x},${city.y})`}
@@ -978,27 +1063,28 @@ export function GermanyMap({
                   r={Math.max(35, 22 / displayScale)}
                   fill="transparent"
                 />
-                {isSelected && (
-                  <rect
-                    x="-35"
-                    y="-20"
-                    width="70"
-                    height="40"
-                    rx="8"
-                    fill="#fff4a7"
-                    stroke="#124d40"
-                    strokeWidth="5"
-                  />
-                )}
                 <rect
+                  className="pg-map-city-frame"
                   x="-29"
                   y="-13"
                   width="58"
                   height="26"
                   rx="5"
-                  fill={building && enabled ? '#fffef5' : '#eee8d4'}
-                  stroke={building && enabled ? '#255e49' : '#635d48'}
-                  strokeWidth={building ? 3.5 : 2.5}
+                  fill={
+                    isSelected
+                      ? '#fff9de'
+                      : building && enabled
+                        ? '#fffef5'
+                        : '#eee8d4'
+                  }
+                  stroke={
+                    isSelected
+                      ? selectionColor
+                      : building && enabled
+                        ? '#847653'
+                        : '#635d48'
+                  }
+                  strokeWidth={isSelected ? 4 : 2.5}
                 />
                 <path
                   d="M-10-13V13M10-13V13"
@@ -1057,13 +1143,6 @@ export function GermanyMap({
                     />
                   </g>
                 ))}
-                {!occupants.length && (
-                  <path
-                    d="M-20 0H20M0-7V7"
-                    stroke={building && enabled ? '#3f7556' : '#918976'}
-                    strokeWidth="3"
-                  />
-                )}
                 {label && (
                   <g pointerEvents="none" className="pg-map-city-label">
                     <line
@@ -1082,7 +1161,7 @@ export function GermanyMap({
                       rx={labelSize * 0.2}
                       fill="#fffef7"
                       fillOpacity=".97"
-                      stroke={isSelected ? '#165947' : '#b2aa91'}
+                      stroke={isSelected ? selectionColor : '#b2aa91'}
                       strokeWidth={1 / displayScale}
                     />
                     <text
@@ -1178,8 +1257,14 @@ export function GermanyMap({
           <button
             type="button"
             onClick={() => {
+              if (wheelFrame.current !== null) {
+                cancelAnimationFrame(wheelFrame.current);
+                wheelFrame.current = null;
+              }
               setMoving(false);
-              setCamera(clampCamera(initialCamera(), surface));
+              setCamera(
+                clampCamera({ ...initialCamera(), follow: false }, surface),
+              );
             }}
           >
             复位

@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -18,6 +19,7 @@ import {
   type BoardPanels,
 } from './board-layout';
 import './desktop-board.css';
+import { BoardIcon } from './BoardIcon';
 
 export function DesktopBoard({
   view,
@@ -43,6 +45,10 @@ export function DesktopBoard({
   onDetails(seatId: string): void;
 }) {
   const board = useRef<HTMLDivElement>(null);
+  const [boardWidth, setBoardWidth] = useState(1280);
+  const [manualRevision, setManualRevision] = useState(0);
+  const [manualFocusKey, setManualFocusKey] = useState('');
+  const [avoidance, setAvoidance] = useState({ token: '', level: 0 });
   const [narrow, setNarrow] = useState(false);
   const [bottomGap, setBottomGap] = useState(0);
   const stageKey = contextKey + ':' + boardStage(view.phase);
@@ -55,14 +61,34 @@ export function DesktopBoard({
     open: boolean;
   } | null>(null);
   const instance = contextKey.split(':')[0]!;
-  const companies =
+  const companyBase =
     companyChoice?.instance === instance ? companyChoice.open : true;
   const panels =
     choice?.key === stageKey ? choice.panels : defaultBoardPanels(view.phase);
+  const focusToken = `${stageKey}:${mapProps.selected ?? ''}:${manualRevision}`;
+  const selectionToken = `${stageKey}:${mapProps.selected ?? ''}:${mapProps.selectionRequest ?? 0}`;
+  const avoiding =
+    mapProps.selected && avoidance.token === focusToken ? avoidance.level : 0;
+  const marketWidth = avoiding ? 'narrow' : panels.width;
+  const occupiedWidth =
+    (marketWidth === 'wide' ? Math.min(900, boardWidth - 96) : 310) + 240 + 32;
+  const exclusive = narrow || occupiedWidth > boardWidth - 96;
   const left =
-    panels.left && !(narrow && panels.right && panels.last === 'right');
+    panels.left &&
+    avoiding < 2 &&
+    !(exclusive && panels.right && panels.last === 'right');
   const right =
-    panels.right && !(narrow && panels.left && panels.last === 'left');
+    panels.right &&
+    avoiding < 3 &&
+    !(exclusive && panels.left && panels.last === 'left');
+  const companies = companyBase && avoiding < 4;
+  const onFocusOccluded = useCallback(() => {
+    if (!mapProps.selected || manualFocusKey === selectionToken) return;
+    setAvoidance((previous) => {
+      const level = previous.token === focusToken ? previous.level : 0;
+      return level >= 4 ? previous : { token: focusToken, level: level + 1 };
+    });
+  }, [focusToken, mapProps.selected, manualFocusKey, selectionToken]);
   useEffect(() => {
     const element = board.current;
     if (!element) return;
@@ -71,17 +97,38 @@ export function DesktopBoard({
     )!;
     const observer = new ResizeObserver(() => {
       setNarrow(element.clientWidth <= 1100);
-      setBottomGap(companyDrawer.hidden ? 0 : companyDrawer.offsetHeight + 20);
+      setBoardWidth(element.clientWidth);
+      setBottomGap(companyDrawer.hidden ? 0 : companyDrawer.offsetHeight + 12);
     });
     observer.observe(element);
     observer.observe(companyDrawer);
     return () => observer.disconnect();
   }, []);
-  const toggle = (side: 'left' | 'right') =>
+  const toggle = (side: 'left' | 'right') => {
+    setManualFocusKey(selectionToken);
+    setManualRevision((value) => value + 1);
     setChoice({
       key: stageKey,
-      panels: toggleBoardPanel(panels, side, narrow),
+      panels: toggleBoardPanel(panels, side, exclusive),
     });
+  };
+  const switchWidth = () => {
+    setManualFocusKey(selectionToken);
+    setManualRevision((value) => value + 1);
+    setChoice({
+      key: stageKey,
+      panels: {
+        ...panels,
+        width: marketWidth === 'narrow' ? 'wide' : 'narrow',
+        last: 'left',
+      },
+    });
+  };
+  const chooseCompanies = (open: boolean) => {
+    setManualFocusKey(selectionToken);
+    setManualRevision((value) => value + 1);
+    setCompanyChoice({ instance, open });
+  };
   const direction =
     view.phase === 'resources' || view.phase === 'building'
       ? '位次从大到小行动'
@@ -94,27 +141,44 @@ export function DesktopBoard({
       className="pg-map-table"
       data-map-table
       data-companies-open={companies}
+      data-market-width={marketWidth}
+      data-map-avoidance={avoiding}
       style={{ '--pg-board-bottom-gap': `${bottomGap}px` } as CSSProperties}
     >
-      <GermanyMap {...mapProps} avoidDrawers />
+      <GermanyMap
+        {...mapProps}
+        avoidDrawers
+        onFocusOccluded={onFocusOccluded}
+      />
       <button
         className="pg-board-edge pg-board-edge--left"
+        aria-label="市场"
+        data-tooltip={left ? '收起市场' : '打开市场'}
         aria-controls="pg-board-market"
         aria-expanded={left}
         onClick={() => toggle('left')}
       >
-        市场
+        <BoardIcon name="market" />
       </button>
       <aside
         id="pg-board-market"
-        className="pg-board-drawer pg-board-drawer--left"
+        className={`pg-board-drawer pg-board-drawer--left${marketWidth === 'wide' ? ' pg-board-drawer--wide' : ''}`}
         data-map-obstacle="left"
         hidden={!left}
       >
         <header>
           <h2>市场</h2>
+          <button
+            aria-label={marketWidth === 'narrow' ? '展开为宽市场' : '收窄市场'}
+            data-tooltip={
+              marketWidth === 'narrow' ? '展开为宽市场' : '收窄市场'
+            }
+            onClick={switchWidth}
+          >
+            <BoardIcon name={marketWidth === 'narrow' ? 'wide' : 'narrow'} />
+          </button>
           <button aria-label="关闭市场边栏" onClick={() => toggle('left')}>
-            ×
+            <BoardIcon name="left" />
           </button>
         </header>
         <div
@@ -165,11 +229,13 @@ export function DesktopBoard({
       </aside>
       <button
         className="pg-board-edge pg-board-edge--right"
+        aria-label="收益"
+        data-tooltip={right ? '收起收益' : '打开收益'}
         aria-controls="pg-board-income"
         aria-expanded={right}
         onClick={() => toggle('right')}
       >
-        收益
+        <BoardIcon name="income" />
       </button>
       <aside
         id="pg-board-income"
@@ -180,7 +246,7 @@ export function DesktopBoard({
         <header>
           <h2>发电收益</h2>
           <button aria-label="关闭收益边栏" onClick={() => toggle('right')}>
-            ×
+            <BoardIcon name="right" />
           </button>
         </header>
         <div className="pg-board-drawer-content">
@@ -199,13 +265,14 @@ export function DesktopBoard({
             aria-controls="pg-board-companies-list"
             aria-expanded={companies}
             aria-label="收起玩家公司"
-            onClick={() => setCompanyChoice({ instance, open: false })}
+            onClick={() => chooseCompanies(false)}
           >
-            ⌄
+            <BoardIcon name="down" />
           </button>
         </header>
         <div id="pg-board-companies-list">
           <CompanyCards
+            artFor={artFor}
             view={view}
             names={names}
             portraits={portraits}
@@ -223,9 +290,9 @@ export function DesktopBoard({
           className="pg-board-edge pg-board-edge--bottom"
           aria-expanded={false}
           aria-label="展开玩家公司"
-          onClick={() => setCompanyChoice({ instance, open: true })}
+          onClick={() => chooseCompanies(true)}
         >
-          玩家公司 ⌃
+          <BoardIcon name="up" />
         </button>
       )}
       {view.latest && (

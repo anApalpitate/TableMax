@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { verifyUiPolish } from './power-grid-ui-polish-checks.mjs';
 import { verifyBoardFacts } from './power-grid-board-checks.mjs';
 import { mkdir, writeFile, readFile, mkdtemp, readdir } from 'node:fs/promises';
 import { createServer } from 'node:http';
@@ -250,6 +251,12 @@ try {
       bounds.y + bounds.height <= companies.y + 1,
       'Market ends above player drawer',
     );
+    assert.ok(
+      await market
+        .locator('.pg-board-drawer-content')
+        .evaluate((n) => n.clientHeight >= 44),
+      'Short screen keeps a usable market scrolling region',
+    );
     assert.equal((await page.evaluate(() => window.__commands)).length, 0);
     await page.screenshot({ path: join(output, 'board-short-market.png') });
     report.screenshots.push('board-short-market.png');
@@ -356,12 +363,8 @@ try {
     const overflow = await page.evaluate(() => document.body.style.overflow);
     await phoneTrigger.click();
     await page.locator('.pg-income-dialog[open]').waitFor();
-    assert.equal(
-      await page
-        .locator('[data-income-selected]')
-        .getAttribute('data-income-selected'),
-      await page.getByLabel('选择供电城市数').inputValue(),
-    );
+    assert.equal(await page.locator('.pg-income-tier--capability').count(), 1);
+    assert.equal(await page.locator('[data-income-selected]').count(), 0);
     assert.equal(
       await page.evaluate(() => document.body.style.overflow),
       'hidden',
@@ -376,7 +379,7 @@ try {
     );
     assert.equal((await page.evaluate(() => window.__commands)).length, 0);
     report.actions.push(
-      'Phone income modal marks own draft, locks and restores background scroll, and does not submit',
+      'Phone income modal shows only one authorized capability tier, locks and restores background scroll, and does not submit',
     );
     await page.getByRole('button', { name: '规则', exact: true }).click();
     const rules = page.getByRole('dialog');
@@ -483,7 +486,7 @@ try {
           .first()
           .locator('.pg-company-card-plants > div')
           .count(),
-        4,
+        fixtures['owned-resources'].publicGame.plantLimit,
       );
       if (size.width === 320) {
         await page.screenshot({
@@ -707,6 +710,7 @@ try {
   } else if (boardOnly) {
     await verifyStageSummaries();
     await verifyBoardFacts(page, fixtures, report);
+    await verifyUiPolish(page, fixtures, report, output);
     await verifyPolish();
     await verifyPlayReview();
     assert.deepEqual(report.errors, []);
@@ -715,6 +719,7 @@ try {
   } else if (mapOnly) {
     await verifyStageSummaries();
     await verifyBoardFacts(page, fixtures, report);
+    await verifyUiPolish(page, fixtures, report, output);
     await page.setViewportSize({ width: 320, height: 568 });
     await page.evaluate(() => window.setFixture('building', 'player'));
     await page.waitForTimeout(50);
@@ -731,7 +736,7 @@ try {
       }));
     assert.equal(
       rotatedMap.viewBox,
-      '36 24 1152 864',
+      '0 0 1200 900',
       'Visual crop retains the horizontal classic board proportions',
     );
     assert.equal(
@@ -759,6 +764,10 @@ try {
       .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
       .selectOption(city);
     await page.waitForTimeout(350);
+    await page
+      .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
+      .selectOption('');
+    await page.waitForTimeout(80);
     const targetPoint = await target.evaluate((node) => {
       const matrix = node.getScreenCTM();
       return { x: matrix.e, y: matrix.f };
@@ -966,6 +975,7 @@ try {
       [320, 568, 'player'],
       [360, 640, 'player'],
       [390, 844, 'player'],
+      [844, 390, 'player'],
     ]) {
       await page.setViewportSize({ width, height });
       for (const stage of stages) {
@@ -1027,6 +1037,9 @@ try {
             return {
               border: parseFloat(getComputedStyle(card).borderLeftWidth),
               aboveArt: !visibleArt || mark.bottom <= art.top + 1,
+              besideArt:
+                Boolean(card.closest('.pg-company-card')) &&
+                (mark.left >= art.right - 1 || mark.right <= art.left + 1),
               visibleArt,
               markerVisible: mark.width > 0 && mark.height > 0,
             };
@@ -1142,8 +1155,8 @@ try {
             'Fuel frame has explicit strong thickness',
           );
           assert.ok(
-            marker.aboveArt && marker.markerVisible,
-            'Fuel type badge remains above the illustration',
+            (marker.aboveArt || marker.besideArt) && marker.markerVisible,
+            'Fuel type badge remains visible outside the illustration',
           );
         }
         const projected =
@@ -1240,6 +1253,7 @@ try {
     }
     await verifyStageSummaries();
     await verifyBoardFacts(page, fixtures, report);
+    await verifyUiPolish(page, fixtures, report, output);
     await verifyPolish();
     await verifyPlayReview();
     await page.setViewportSize({ width: 320, height: 568 });
@@ -1264,11 +1278,15 @@ try {
       fullPage: true,
     });
     report.screenshots.push('player-320-568-build-costs.png');
+    const previousZoom = Number(
+      await page.locator('.pg-map-panel:visible').getAttribute('data-map-zoom'),
+    );
     await page.getByRole('button', { name: '放大地图' }).click();
     assert.ok(
       (await page
         .locator('.pg-map-panel:visible')
-        .getAttribute('data-map-zoom')) === '1.4',
+        .getAttribute('data-map-zoom')) ===
+        String(Math.min(4, previousZoom + 0.4)),
     );
     await page.getByRole('button', { name: '复位', exact: true }).click();
     assert.ok(

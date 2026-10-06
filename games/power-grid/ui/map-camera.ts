@@ -1,4 +1,4 @@
-export const MAP_FRAME = { x: 36, y: 24, width: 1152, height: 864 };
+export const MAP_FRAME = { x: 0, y: 0, width: 1200, height: 900 };
 export type MapPoint = { x: number; y: number };
 export type MapCamera = { center: MapPoint; zoom: number; follow: boolean };
 export type MapInsets = {
@@ -20,14 +20,12 @@ export function initialCamera(): MapCamera {
   };
 }
 export function cameraScale(surface: MapSurface, zoom: number) {
-  // A small overscan permits panning in both axes even at minimum zoom.
   return (
     Math.max(
       surface.width / MAP_FRAME.width,
       surface.height / MAP_FRAME.height,
-      0.65,
     ) *
-    1.2 *
+    1.06 *
     zoom
   );
 }
@@ -47,7 +45,12 @@ export function safeMapRect(surface: MapSurface) {
 export function clampCamera(camera: MapCamera, surface: MapSurface): MapCamera {
   const zoom = Math.max(1, Math.min(4, camera.zoom));
   const scale = cameraScale(surface, zoom);
-  const safe = safeMapRect(surface);
+  const safe = {
+    left: 0,
+    top: 0,
+    right: surface.width,
+    bottom: surface.height,
+  };
   const minX = MAP_FRAME.x + (surface.width / 2 - safe.left) / scale;
   const maxX =
     MAP_FRAME.x + MAP_FRAME.width - (safe.right - surface.width / 2) / scale;
@@ -70,7 +73,6 @@ export function focusCamera(
 ): MapCamera {
   if (!points.length) return clampCamera(camera, surface);
   const safe = safeMapRect(surface);
-  const scale = cameraScale(surface, camera.zoom);
   const x =
     (Math.min(...points.map((p) => p.x)) +
       Math.max(...points.map((p) => p.x))) /
@@ -79,16 +81,26 @@ export function focusCamera(
     (Math.min(...points.map((p) => p.y)) +
       Math.max(...points.map((p) => p.y))) /
     2;
-  return clampCamera(
-    {
-      ...camera,
-      center: {
-        x: x - (safe.left + safe.right - surface.width) / 2 / scale,
-        y: y - (safe.top + safe.bottom - surface.height) / 2 / scale,
+  for (let zoom = camera.zoom; ; zoom = Math.min(4, zoom * 1.15)) {
+    const scale = cameraScale(surface, zoom);
+    const next = clampCamera(
+      {
+        ...camera,
+        zoom,
+        center: {
+          x: x - (safe.left + safe.right - surface.width) / 2 / scale,
+          y: y - (safe.top + safe.bottom - surface.height) / 2 / scale,
+        },
       },
-    },
-    surface,
-  );
+      surface,
+    );
+    if (
+      points.length !== 1 ||
+      focusVisible(next, surface, points[0]!) ||
+      zoom >= 4
+    )
+      return next;
+  }
 }
 export function panCamera(
   camera: MapCamera,
@@ -130,5 +142,37 @@ export function zoomCamera(
       follow: false,
     },
     surface,
+  );
+}
+
+export function focusVisible(
+  camera: MapCamera,
+  surface: MapSurface,
+  point: MapPoint,
+) {
+  const rect = safeMapRect(surface),
+    scale = cameraScale(surface, camera.zoom);
+  const x = surface.width / 2 + (point.x - camera.center.x) * scale;
+  const y = surface.height / 2 + (point.y - camera.center.y) * scale;
+  return (
+    x >= rect.left + 22 &&
+    x <= rect.right - 22 &&
+    y >= rect.top + 22 &&
+    y <= rect.bottom - 22
+  );
+}
+export function wheelZoomTarget(
+  zoom: number,
+  delta: number,
+  mode: number,
+  height: number,
+) {
+  const pixels = delta * (mode === 1 ? 16 : mode === 2 ? height : 1);
+  return Math.max(
+    1,
+    Math.min(
+      4,
+      zoom * Math.exp(-Math.max(-240, Math.min(240, pixels)) * 0.0015),
+    ),
   );
 }

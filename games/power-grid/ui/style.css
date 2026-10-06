@@ -232,9 +232,9 @@
 .pg-screen .pg-map-city:focus {
   outline: none;
 }
-.pg-screen .pg-map-city:focus > rect {
-  stroke: #00a280;
-  stroke-width: 7px;
+.pg-screen .pg-map-city:focus-visible > .pg-map-city-frame {
+  stroke: var(--pg-selection-color, #167b85);
+  stroke-width: 4px;
 }
 .pg-screen .pg-map-zoom {
   position: absolute;

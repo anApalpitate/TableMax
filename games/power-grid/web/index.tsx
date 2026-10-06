@@ -57,16 +57,17 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
     phase: string;
     type: 'plants' | 'resources';
   }>({ phase: '', type: 'plants' });
+  const [suppressedFocus, setSuppressedFocus] = useState<string | null>(null);
   const [viewport, setViewport] = useState(initialCamera);
   const [city, setCity] = useState<string | null>(null);
+  const [citySource, setCitySource] = useState<'manual' | 'saved'>('manual');
   const [selectionRequest, setSelectionRequest] = useState(0);
-  const selectMapCity = useCallback((id: string) => {
-    setCity(id || null);
-    setSelectionRequest((value) => value + 1);
-  }, []);
   const updateViewport = useCallback(
     (next: MapCamera) => {
-      if (role !== 'player' && next.follow && !viewport.follow) setCity(null);
+      if (role !== 'player' && next.follow && !viewport.follow) {
+        setCity(null);
+        setSuppressedFocus(null);
+      }
       setViewport(next);
     },
     [role, viewport.follow],
@@ -143,6 +144,49 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
     focus: { scope: string; key: string; city: string } | null;
   }>({ key: savedKey, scope: '', focus: null });
   const focusScope = contextKey + ':' + layoutPhase + ':' + game?.actor;
+  const selectMapCity = useCallback(
+    (id: string) => {
+      setCity(id || null);
+      setCitySource('manual');
+      setSuppressedFocus(id ? null : focusScope);
+      if (!id) setMapFeedback((previous) => ({ ...previous, focus: null }));
+      setSelectionRequest((value) => value + 1);
+    },
+    [focusScope],
+  );
+  useEffect(() => {
+    if (!city) return;
+    const outside = (event: PointerEvent) => {
+      if (!(event.target instanceof Element)) return;
+      if (
+        event.target
+          .closest('dialog')
+          ?.querySelector('[data-map-selection-preserve]')
+      )
+        return;
+      if (
+        event.target.closest(
+          '.pg-map-panel,[data-map-selection-preserve],.pg-build-controls select,.pg-build-preview .pg-primary',
+        )
+      )
+        return;
+      selectMapCity('');
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (
+        event.key === 'Escape' &&
+        !event.defaultPrevented &&
+        !document.querySelector('dialog[open]')
+      )
+        selectMapCity('');
+    };
+    document.addEventListener('pointerdown', outside, true);
+    document.addEventListener('keydown', escape);
+    return () => {
+      document.removeEventListener('pointerdown', outside, true);
+      document.removeEventListener('keydown', escape);
+    };
+  }, [city, selectMapCity]);
   if (mapFeedback.scope !== focusScope) {
     setMapFeedback({ key: savedKey, scope: focusScope, focus: null });
     if (role !== 'player' && viewport.follow && city !== null) setCity(null);
@@ -154,6 +198,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
       ? game.latest.cityId
       : null;
   if (savedKey && savedKey !== mapFeedback.key) {
+    if (suppressedFocus !== null) setSuppressedFocus(null);
     setMapFeedback({
       key: savedKey,
       scope: focusScope,
@@ -162,22 +207,28 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
           ? { scope: focusScope, key: savedKey, city: followBuild }
           : mapFeedback.focus,
     });
-    if (followBuild && !feedbackDisabled) setCity(followBuild);
+    if (followBuild && !feedbackDisabled) {
+      setCity(followBuild);
+      setCitySource('saved');
+    }
   }
   const savedMapFocus = mapFeedback.focus;
   const mapFocus = game
     ? city
       ? { key: 'selected:' + city, cities: [city] }
-      : savedMapFocus?.scope === focusScope
-        ? { key: savedMapFocus.key, cities: [savedMapFocus.city] }
-        : {
-            key: layoutPhase + ':' + game.actor + ':' + game.regions.join(','),
-            ...(game.phase === 'building' &&
-            game.actor &&
-            game.players[game.actor]!.cities.length
-              ? { cities: game.players[game.actor]!.cities }
-              : { regions: candidateRegions ?? game.regions }),
-          }
+      : suppressedFocus === focusScope
+        ? undefined
+        : savedMapFocus?.scope === focusScope
+          ? { key: savedMapFocus.key, cities: [savedMapFocus.city] }
+          : {
+              key:
+                layoutPhase + ':' + game.actor + ':' + game.regions.join(','),
+              ...(game.phase === 'building' &&
+              game.actor &&
+              game.players[game.actor]!.cities.length
+                ? { cities: game.players[game.actor]!.cities }
+                : { regions: candidateRegions ?? game.regions }),
+            }
     : undefined;
   const mapProps = game
     ? {
@@ -198,6 +249,15 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
         selected: city,
         select: selectMapCity,
         selectionRequest,
+        selectionColor:
+          role === 'player'
+            ? (PLAYER_COLORS[game.seatOrder.indexOf(game.self?.seatId ?? '')] ??
+              '#167b85')
+            : citySource === 'saved'
+              ? (PLAYER_COLORS[
+                  game.seatOrder.indexOf(game.latest?.actor ?? '')
+                ] ?? '#167b85')
+              : '#167b85',
         available: game.buildOptions.map((option) => option.cityId),
         terrain: mapTerrain,
         phase: game.phase,
@@ -462,6 +522,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                   {map}
                 </div>,
                 <CompanyCards
+                  artFor={artFor}
                   key="companies"
                   view={game}
                   names={names}

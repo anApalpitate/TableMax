@@ -3,6 +3,7 @@ export type BoardPanels = {
   left: boolean;
   right: boolean;
   market: 'plants' | 'resources';
+  width: 'narrow' | 'wide';
   last: 'left' | 'right';
 };
 export function boardStage(phase: Phase) {
@@ -13,6 +14,7 @@ export function defaultBoardPanels(phase: Phase): BoardPanels {
     left: ['offer', 'auction', 'replace', 'resources'].includes(phase),
     right: phase === 'powering',
     market: phase === 'resources' ? 'resources' : 'plants',
+    width: 'narrow',
     last: phase === 'powering' ? 'right' : 'left',
   };
 }
