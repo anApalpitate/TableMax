@@ -149,22 +149,6 @@
   border-radius: 50%;
   background: #dfe7d7;
 }
-.dialog-surface .game-introduction {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-.dialog-surface .game-introduction img {
-  width: 100px;
-  height: 130px;
-  object-fit: cover;
-  border-radius: 12px;
-}
-.dialog-surface .game-introduction h3 {
-  font-size: 23px;
-  line-height: 1.4;
-  margin: 0 0 10px;
-}
 .dialog-surface .bot-level-description {
   padding: 14px 0;
   border-bottom: 1px solid #e0e6d5;
@@ -233,15 +217,5 @@
     align-items: stretch;
     flex-direction: column;
     gap: 8px;
-  }
-  .dialog-surface .game-introduction {
-    gap: 12px;
-  }
-  .dialog-surface .game-introduction img {
-    width: 70px;
-    height: 96px;
-  }
-  .dialog-surface .game-introduction h3 {
-    font-size: 20px;
   }
 }

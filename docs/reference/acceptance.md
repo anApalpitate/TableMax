@@ -1,14 +1,22 @@
 # 首版交付与验收
 
+## 1.0.3：游戏介绍弹窗布局修复（2026-10-06）
+
+用户截图中的纵向文字挤压来自共享弹窗遗留的 `.game-introduction` 横向flex样式：运行时CSS在独立盒子CSS之后加载时覆盖新版分节布局。删除失效样式，并明确介绍／头像浮窗的宽度选择器优先级，封面、简介、步骤与胜负按正常段落排列，手机步骤保持单列；玩法、资源、权限和存档不变。
+
+[真实组件回归](../../artifacts/maintenance/v1.0.3/game-introduction/corrected/results.json)覆盖三端、三游戏及宝可梦两个版本、320–3840px共108布局，检查分节顺序、可读宽度、文字下限、横向溢出、滚动关闭与Escape焦点恢复、读取不发送命令。按生产CSS加载顺序执行的[旧版复现](../../artifacts/maintenance/v1.0.3/game-introduction/before-fix-cascade/results.json)确实断言 `flex`／`block` 失败；首轮夹具因未包含宝可梦版本组件所需capabilities而失败，原结果保留，完善夹具后执行完整回归。[最终包原生检查](../../artifacts/maintenance/v1.0.3/game-introduction/portable/results.json)在该EXE实际解压的隐藏静音WebView2／127.0.0.1服务中，通过真实入口切换三游戏及640／934／1280窗口共九布局，介绍分节、关闭与revision／branch不变均通过。模拟尺寸不代替实体手机认证。
+
+沿用v1.0.3，[最新EXE](../../artifacts/releases/TableMax-1.0.3-win-x64.exe)41,064,960字节、SHA-256 `68b0a767936b96b88b9da28bd3eb57c8406ad933c1c60d0b266afd2f02d73fac`；[运行ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip)40,914,627字节、SHA-256 `1d0d835b3f313a9efec52210185229d16a7fd77f16e3840afb401c094fc36c1a`。18构建单元命中16项，仅共用runtime／盒子重建；[包比对](../../artifacts/maintenance/v1.0.3/game-introduction/package-impact.json)212文件字节不变，其他变化限CSS与关联哈希／入口引用。[同包交付检查](../../artifacts/maintenance/v1.0.3/game-introduction/shipping-executable-checks.json)34,633ms通过完整文件哈希、重复解压与原生生命周期；实际解压217文件94,423,625字节，95MB预算和双100MB门禁通过。原包及验收证据保留，不发布GitHub或导出源码。局部lint、格式与diff通过；安全维护见[瘦身记录](project-slimming.md)。
+
 ## 1.0.3：单EXE专属目录初始化微调（2026-10-06）
 
-按用户最新要求沿用v1.0.3：单EXE在旁边新建 `TableMax/`，配置、存档、缓存及 `app/` 运行资源默认集中其中；ZIP直接使用解压目录。配置路径仍可指定，已有散落文件不自动搬移。[最新完整EXE](../../artifacts/releases/TableMax-1.0.3-win-x64.exe)41,064,960字节，SHA-256 `5fe41e76a007da855028eb6390470c1df2df7c38aa6233645e5f3d1c07f76638`；ZIP及包内216文件与上次交付字节一致，只重编译外层启动器。[前一份交付](../../artifacts/maintenance/v1.0.3/initialization-folder/previous-delivery/TableMax-1.0.3-win-x64.exe)及原验收结论保留。
+按用户最新要求沿用v1.0.3：单EXE在旁边新建 `TableMax/`，配置、存档、缓存及 `app/` 运行资源默认集中其中；ZIP直接使用解压目录。配置路径仍可指定，已有散落文件不自动搬移。[当时完整EXE](../../artifacts/maintenance/v1.0.3/game-introduction/previous-delivery/TableMax-1.0.3-win-x64.exe)41,064,960字节，SHA-256 `5fe41e76a007da855028eb6390470c1df2df7c38aa6233645e5f3d1c07f76638`；ZIP及包内216文件与上次交付字节一致，只重编译外层启动器。[前一份交付](../../artifacts/maintenance/v1.0.3/initialization-folder/previous-delivery/TableMax-1.0.3-win-x64.exe)及原验收结论保留。
 
 [实际初始化验证](../../artifacts/maintenance/v1.0.3/initialization-folder/results.json)九项通过，覆盖两种默认目录、自定义配置、旧存档字节保留、缓存、重复启动复用和运行中目标导出保护。[同一EXE交付验证](../../artifacts/maintenance/v1.0.3/initialization-folder/shipping-executable-checks.json)33,058ms通过准确文件集／逐文件哈希、重复解压、实际WebView2／Node生命周期及双100MB门禁。用户在下载目录运行的旧实例保持运行；导出保护只允许已知无关实例，目标目录、未知路径及工程验证仍受保护。迁移与ZIP程序未变，复用上一节3GB存档验收，不重复宣称本轮执行迁移。
 
 ## 1.0.3：便携存储配置与大存档启动修复（2026-10-06）
 
-按用户明确指示升级v1.0.3，数据路径配置、运行资源位置和变更入口见[开发环境](development.md#v103-便携存储与启动迁移2026-10-06)。[当时完整EXE](../../artifacts/maintenance/v1.0.3/initialization-folder/previous-delivery/TableMax-1.0.3-win-x64.exe)为41,064,960字节，SHA-256 `4c4f5e664a457d97f4ca3344462a260a65f028846a580929f14058961839d28d`；[运行ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip)为40,914,712字节，SHA-256 `36baa7e84b8173b5fe54d4c07f3ace82c124ae063181d74dd8e63443c601c07f`。[逐文件清单](../../artifacts/releases/TableMax-1.0.3-win-x64-manifest.json)记录216文件／94,378,077字节，含启动器所有权标记的实际EXE解压217文件／94,424,014字节，95MB工程预算和双100MB硬门禁均通过。
+按用户明确指示升级v1.0.3，数据路径配置、运行资源位置和变更入口见[开发环境](development.md#v103-便携存储与启动迁移2026-10-06)。[当时完整EXE](../../artifacts/maintenance/v1.0.3/initialization-folder/previous-delivery/TableMax-1.0.3-win-x64.exe)为41,064,960字节，SHA-256 `4c4f5e664a457d97f4ca3344462a260a65f028846a580929f14058961839d28d`；[当时运行ZIP](../../artifacts/maintenance/v1.0.3/initialization-folder/previous-delivery/TableMax-1.0.3-win-x64.zip)为40,914,712字节，SHA-256 `36baa7e84b8173b5fe54d4c07f3ace82c124ae063181d74dd8e63443c601c07f`。[当时逐文件清单](../../artifacts/maintenance/v1.0.3/initialization-folder/previous-delivery/TableMax-1.0.3-win-x64-manifest.json)记录216文件／94,378,077字节，含启动器所有权标记的实际EXE解压217文件／94,424,014字节，95MB工程预算和双100MB硬门禁均通过。
 
 [实际同包存储验证](../../artifacts/maintenance/v1.0.3/portable-storage/results.json)通过默认EXE同级写入配置、存档与WebView2缓存、配置切换重启、旧数据字节保留、外层单EXE就近解压／自定义目录共九类检查。用户3,037,777,920字节旧v1库只读复制至隔离目录；迁移启动309,584ms，3233条历史修订完整比对，新库76,144,640字节并成功重启。正式原库及隔离迁移备份SHA-256一致，原C盘存档没有改写。隔离对局、配置边界与自动检查不等于真人设备认证。
 

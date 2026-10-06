@@ -75,6 +75,10 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 ## 真实命令
 
+### 游戏介绍弹窗布局检查
+
+`node scripts/verify-game-introduction.mjs --evidence=<独立名称>` 使用真实BoxScreen、GameIntroduction、OverlayPanel及生产样式，在隐藏静音Edge覆盖三端、三游戏／宝可梦原版与扩展版、320–3840px共108布局；额外按实际分包顺序晚加载共用弹窗CSS，避免夹具默认导入顺序掩盖冲突。检查分节顺序、步骤宽度、16px下限、无横向溢出、滚动关闭、Escape恢复焦点与零命令。测试服务仅监听127.0.0.1，输出留在对应版本 `game-introduction/<名称>/`，模拟视口不是实体设备验收。本次同一最终EXE的真实WebView2九布局及导出哈希见[验收](acceptance.md#103游戏介绍弹窗布局修复2026-10-06)。
+
 便携验收器遇到真实人机保存造成的 `stale-revision` 暂停请求时，只对同实例／同分支的暂停意图最多重取版本8次；其他命令不重试，异常原因继续失败。逐次重试计数进入报告，不放宽服务校验或修改规则，首次冲突证据单独保留为 `portable-676f9e75fb19-pause-race`。
 
 宝可梦扩展版普通模式验证：`node scripts/verify-pokemon-expansion-play.mjs --portable --evidence=<独立名>` 将当前ZIP解压到新目录，启动隐藏原生WebView2；开局前通过房主隐藏快捷键切到 `play` 并逐次核验运行模式。两台独立手机身份只点击真实生产控件，第三席采用真实默认Worker；管理设置使用权威Socket动作，不注入游戏状态。每次手机动作须收到保存成功回执，私看只在本人页面显示，其他手机、公共屏及管理员均无私看投影；记录实际阶段、公开人机动作、截图、页面错误、外部请求及进程退出。自动点击间隔不是真人思考时间，隐藏窗口和触控视口不是实体手机验证。

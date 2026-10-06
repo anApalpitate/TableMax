@@ -1,5 +1,5 @@
-.overlay-panel:has(.avatar-picker),
-.overlay-panel:has(.game-overview) {
+.dialog-surface.overlay-panel:has(.avatar-picker),
+.dialog-surface.overlay-panel:has(.game-overview) {
   width: min(94vw, 920px);
 }
 .avatar-picker__intro,
