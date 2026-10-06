@@ -271,12 +271,13 @@ export function choose(
         (id) => score(model.boards[id]!, model.up[id]!) === minimum,
       );
       const matchWinners = winners.filter((id) => view.winsBySeat[id]! >= 2);
-      if (matchWinners.includes(seat)) value -= 48;
-      else if (matchWinners.length) value += Math.max(0, 48 - urgency);
-      else
-        value += winners.includes(seat)
-          ? -6 - 2 * view.winsBySeat[seat]!
-          : Math.max(0, 18 - urgency);
+      // A settled third win dominates every nonterminal score/urgency value.
+      // Legal score range is -28..108; completion urgency is capped at 144.
+      // Shared match winners are wins too; a long round cannot erase a loss.
+      if (matchWinners.length) return matchWinners.includes(seat) ? -256 : 256;
+      value += winners.includes(seat)
+        ? -6 - 2 * view.winsBySeat[seat]!
+        : Math.max(0, 18 - urgency);
     }
     // Near-complete lines have no future value once this full chain settles.
     if (closesRound) return value;
