@@ -515,3 +515,5 @@ GitHub附件白名单仅 `TableMax-<版本>-win-x64.exe` 与 `TableMax-<版本>-
 2026-10-06扩展策略预算诊断采用临时esbuild `onLoad` 注入即时样本数、前瞻完整批次与计时，只保存阶段／档位／人数及计数，不输出暗牌身份或分值。完整脚本、补丁源及独立基线／注入CJS留在[诊断证据](../../artifacts/maintenance/v1.0.2/pokemon-expansion-budget-diagnostic-20261006/audit-source.mjs)；独立目录先建立，禁止覆盖原报告。先用恒定时钟比较授权动作、记忆及随机状态，再运行串行大局，最终检查观察不变量、冻结源码与实际ZIP。诊断有微小计时开销，固定时钟等价不能外推现实软截止轨迹；补充两个大局不并入预定强度样本，不作Worker／真人性能认证。未改生产源码时不重复打包或运行界面验收。
 
 2026-10-06三胜目标修复续验：42项模型回归、2–6人各档seed1小局及17项真实服务集成通过。小局窄选用 `vitest run games/pokemon-encounters/expansion/bot/coverage.test.ts -t 'seed 1:|never initializes'`，实际16通过／135未选，不把旧151全量结果用于新策略。同版本运行包从当前冻结源码构建，原生输入的CRLF／LF和原生构建目录变化可改变指纹及EXE，须核对归一源码并验证同一实际解压EXE；本轮未修改原生内容。相关命令与边界沿用上文，证据见[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/final-checks.json)。
+
+叫声文件说明续查可使用来源页实际公布的 `EditURI` 公开MediaWiki API，`imageinfo` 取文件URL／SHA-1，`revisions` 取文件说明；原件按哈希核对后再记录，不读取上传日期为游戏世代，不将百科合理使用标记当作本项目授权。27文件一次批量查询，普通公开请求，不交互403挑战；响应放既定临时目录，正式来源／哈希及失败边界见[核验脚本](../../artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/audit-source.mjs)。本次只更新来源文档，未改运行音频或资源清单，不触发打包／媒体回归。
