@@ -28,6 +28,7 @@ const sourceFiles = [
   'games/pokemon-encounters/expansion/bot/relay.ts',
   'games/pokemon-encounters/expansion/bot/rocket.ts',
   'games/pokemon-encounters/expansion/bot/table.ts',
+  'games/pokemon-encounters/expansion/bot/tactics.ts',
 ];
 const hashes = () =>
   Object.fromEntries(
@@ -177,23 +178,29 @@ async function playRound(
 for (const players of [2, 3, 4, 5, 6])
   for (const difficulty of difficulties)
     for (let seed = 1; seed <= 10; seed++)
-      it(`${players} players ${difficulty} seed ${seed}: finishes a legal round with truthful authorized memory`, async () => {
-        await playRound(players, difficulty, 510500 + seed * 177 + players);
-        const progress = {
-          completedRounds: measurements.length,
-          players,
-          difficulty,
-          seed,
-          latest: measurements.at(-1),
-          evidence: directory,
-        };
-        writeFileSync(
-          resolve(directory, 'progress.json'),
-          JSON.stringify(progress, null, 2) + '\n',
-        );
-        if (measurements.length % 10 === 0)
-          console.log(JSON.stringify(progress));
-      }, 60000);
+      it(
+        `${players} players ${difficulty} seed ${seed}: finishes a legal round with truthful authorized memory`,
+        async () => {
+          await playRound(players, difficulty, 510500 + seed * 177 + players);
+          const progress = {
+            completedRounds: measurements.length,
+            players,
+            difficulty,
+            seed,
+            latest: measurements.at(-1),
+            evidence: directory,
+          };
+          writeFileSync(
+            resolve(directory, 'progress.json'),
+            JSON.stringify(progress, null, 2) + '\n',
+          );
+          if (measurements.length % 10 === 0)
+            console.log(JSON.stringify(progress));
+          // Six-seat Juewu may legally approach the 700-action cap. This is an
+          // entire-round ceiling; every decision still has the strict 2s assertion.
+        },
+        players === 6 && difficulty === 'juewu' ? 120000 : 60000,
+      );
 
 it('never initializes hidden knowledge, preserves its input, and aborts before choosing', async () => {
   const seats = ['a', 'b'],

@@ -231,3 +231,7 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 新策略六人24场及全人数144场合并／分析／格式全部退出后维护：逻辑字节39,611,297,431，零候选／零删除，158项保护或近期内容、1,346链接跳过，零嵌套仓库。[终端记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/match-outcome-holdout-all-counts-20261006/maintenance.json)保留零候选结果，当前71248726包、四份原报告、合并数据、素材与存档不变；仍高于10GiB，不扩大清理范围。
 
 普通前瞻三胜续修的测试／完整大局／打包／两项实际程序验证全部退出后维护：首次沙箱拒绝读取、零删除；授权环境按原保护脚本执行，逻辑字节42,640,911,863，零候选／零删除、170项保护或近期内容、1,346链接跳过、零嵌套仓库。[终端记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-forecast-match-20261006/maintenance.json)保留边界；新增真实SQLite、旧包备份、当前e8023551包与正式证据均保留，超过10GiB但安全候选耗尽，不扩大范围。
+
+2026-10-06扩展一次性技术收尾全部工程进程退出后，先预览／应用 `Clean-Releases.ps1 -KeepLatestOnly`，删除已过保护期的打包暂存229,537,914字节，[清单](../../artifacts/maintenance/local-cleanup-20261006-043737-432-releases/cleanup.json)保留路径与保护依据。脚本保护的两份近期暂存和既有发布EXE／source ZIP仅可恢复移入本轮证据目录，没有删除近期内容或原件；原发布文件与此前备份逐项SHA相同，当前ZIP／清单哈希不变，[保留记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/release-retention.json)记录完整路径。`artifacts/releases/`现只留本次已验运行ZIP与清单，历史ZIP、失败迁移库、原素材、存档与当前截图继续保留。
+
+随后 `Maintain-Project.ps1 -Apply` 按10GiB／8GiB边界执行：逻辑字节44,582,300,751→44,582,166,411（约41.52GiB），仅删除两个旧隔离倒计时验证目录共168,422字节；189项保护或近期内容、1,346链接跳过，零嵌套仓库。安全候选耗尽，仍超过10GiB，不扩大范围或重复全盘扫描。[维护记录](../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/maintenance.json)及[原清单](../../artifacts/maintenance/local-cleanup-20261006-044006-648-maintenance/cleanup.json)保留实际容量，NTFS物理节省不计入运行ZIP门禁。

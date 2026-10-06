@@ -19,20 +19,27 @@ import type { JsonValue } from '@tablemax/game-sdk';
 import type { View, Face } from '../project';
 import type { Action } from '../state';
 import { tasks } from '../research';
-import { categories, abilityText } from '../cards';
+import { categories } from '../cards';
 import { BoardGrid } from '../../ui/BoardGrid';
 import { cardArt } from '../../../../assets/games/pokemon-encounters/catalog';
 import { SoundControl } from '../../ui/audio';
 import { expansionVoices } from './voice-resources';
 import {
-  startedAbility,
   expansionSoundRecipe,
-  savedBoardEffects,
   expansionThemeFor,
+  presentationTiming,
 } from './presentation';
-import { BoardEffects } from './BoardEffects';
+import { SavedEffects } from './SavedEffects';
+import { poseSequences } from './poses/timeline';
 import { GuideScene } from '../../ui/RuleDiagrams';
 import './style.css';
+
+const poseDurations = Object.fromEntries(
+  Object.entries(poseSequences).map(([id, sequence]) => [
+    id,
+    sequence.durationMs,
+  ]),
+);
 
 const expansionPortraits = import.meta.glob<string>(
   '../../../../assets/games/pokemon-encounters/expansion/portraits/*.webp',
@@ -524,130 +531,6 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
     </section>
   );
 }
-const timings: Record<string, number> = {
-  mewtwo: 1650,
-  arceus: 1750,
-  groudon: 1600,
-  kyogre: 1700,
-  rayquaza: 1650,
-  greninja: 1600,
-  mew: 1650,
-  'team-rocket': 1700,
-  zapdos: 1650,
-};
-function Effects({ game, session }: { game: View; session: GameHost }) {
-  if (
-    session.view?.playMode === 'test' ||
-    session.view?.paused ||
-    !session.connected
-  )
-    return null;
-  const fresh = game.events.filter((e) =>
-      session.motion.includes(`event:${e.id}`),
-    ),
-    research = fresh.find((e) => e.kind === 'research'),
-    action = [...fresh].reverse().find((e) => startedAbility(e.action));
-  const savedAction = [...fresh].reverse().find((e) => e.action);
-  const boardEffects = savedBoardEffects(savedAction?.action, game.boards);
-  const hasBoardEffects =
-    boardEffects.moves.length +
-      boardEffects.cover.length +
-      boardEffects.reveal.length +
-      boardEffects.pulse.length >
-    0;
-  const ability = startedAbility(action?.action);
-  const hero =
-    ability && timings[ability]
-      ? categories.find((c) => c.ability === ability)
-      : null;
-  return (
-    <>
-      {hasBoardEffects && savedAction && (
-        <BoardEffects
-          key={`board-${savedAction.id}`}
-          effects={boardEffects}
-          delay={hero ? timings[ability!]! : 0}
-        />
-      )}
-      {hero && (
-        <div
-          className={`ex-cinematic ex-theme-${ability}`}
-          key={`hero-${action!.id}`}
-          style={{ '--ex-duration': `${timings[ability!]}ms` } as CSSProperties}
-          aria-hidden="true"
-        >
-          <div className="ex-cinematic-rings" />
-          <div className="ex-cinematic-streaks" />
-          <div className="ex-cinematic-creature">
-            <Card
-              face={{
-                categoryId: hero.categoryId,
-                assetId: hero.categoryId,
-                name: hero.name,
-                value: hero.value,
-                ability: hero.ability,
-                abilityText: null,
-                copy: hero.copy,
-              }}
-            />
-          </div>
-          <strong>{hero.name}</strong>
-          <span>{hero.ability ? abilityText[hero.ability] : '能力生效'}</span>
-        </div>
-      )}
-      {hero && (
-        <aside className="ex-static-hero" role="status">
-          <img
-            src={portraitFor(hero.categoryId) ?? cardArt(hero.categoryId).image}
-            alt=""
-          />
-          <div>
-            <strong>{hero.name}</strong>
-            <p>{hero.ability ? abilityText[hero.ability] : '能力生效'}</p>
-          </div>
-        </aside>
-      )}
-      {ability && !hero && action && (
-        <div
-          className={`ex-local-ability ex-theme-${ability}`}
-          key={`local-${action.id}`}
-          aria-hidden="true"
-        >
-          <span>✦</span>
-          <strong>
-            {categories.find((c) => c.ability === ability)?.name ?? '能力生效'}
-          </strong>
-          <div className="ex-local-ripple" />
-        </div>
-      )}
-      {research && game.activeResearch.length > 0 && (
-        <div
-          key={`research-${research.id}`}
-          className="ex-research-reveal"
-          style={
-            {
-              '--ex-delay': `${(hero ? timings[ability!]! : 0) + (hasBoardEffects ? 700 : 0)}ms`,
-            } as CSSProperties
-          }
-        >
-          <span>特殊研究发布</span>
-          <strong>{game.activeResearch.at(-1)!.name}</strong>
-          <p>{game.activeResearch.at(-1)!.description}</p>
-          <b>结算减 {game.activeResearch.at(-1)!.reward} 分</b>
-          {game.voteCounts && game.activeResearch.length === 1 && (
-            <div className="ex-reveal-votes">
-              {game.researchCandidates.map((t) => (
-                <span key={t.id}>
-                  {t.name} {game.voteCounts![t.id]}票
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </>
-  );
-}
 function Rulebook() {
   return (
     <RulesGuide
@@ -799,6 +682,14 @@ function Screen({ session }: { session: GameHost }) {
       session.role === 'player'
         ? seats.filter((s) => s.id === session.self?.id)
         : seats;
+  const timing = presentationTiming(
+    game.events.filter((event) => session.motion.includes(`event:${event.id}`)),
+    poseDurations,
+  );
+  const feedbackTiming = presentationTiming(
+    session.feedback?.events ?? [],
+    poseDurations,
+  );
   const renderSeat = (s: (typeof seats)[number]) => (
     <article
       className={`ex-player ${game.actorSeat === s.id ? 'acting' : ''} ${game.roundResult?.winners.includes(s.id) ? 'winner' : ''}`}
@@ -820,7 +711,7 @@ function Screen({ session }: { session: GameHost }) {
       </header>
       <Board game={game} seat={s.id} motion={session.motion} />
       {game.roundResult && (
-        <div className="ex-score">
+        <div className="ex-score ex-settlement-text">
           <strong>{game.roundResult.scores[s.id]!.total} 分</strong>
           <span>
             基础 {game.roundResult.scores[s.id]!.base} 研究 −
@@ -838,7 +729,10 @@ function Screen({ session }: { session: GameHost }) {
   );
   return (
     <main
-      className={`expansion-screen ${session.role}`}
+      className={`expansion-screen ${session.role} ${timing.resultDelayMs && !session.view?.paused && session.connected ? 'ex-delayed-settlement' : ''}`}
+      style={
+        { '--ex-result-delay': `${timing.resultDelayMs}ms` } as CSSProperties
+      }
       data-players={seats.length}
       data-phase={game.phase}
       data-play-mode={session.view?.playMode}
@@ -863,7 +757,7 @@ function Screen({ session }: { session: GameHost }) {
             <PlayModeBadge mode={session.view?.playMode} />
             <SoundControl
               compact
-              disabled={session.view?.playMode === 'test'}
+              disabled={session.view?.playMode === 'test' || !session.connected}
               paused={session.view?.paused ?? false}
               feedback={session.feedback}
               errorId={session.errorId}
@@ -875,7 +769,18 @@ function Screen({ session }: { session: GameHost }) {
                   game,
                   reducedMotion,
                   expansionVoices,
-                )
+                ).map((cue) => ({
+                  ...cue,
+                  delayMs:
+                    cue.delayMs +
+                    (reducedMotion
+                      ? 0
+                      : event.kind === 'round-result'
+                        ? feedbackTiming.resultDelayMs
+                        : event.kind === 'research'
+                          ? feedbackTiming.researchDelayMs
+                          : 0),
+                }))
               }
               resolveSource={(cue, event) => {
                 const theme = expansionThemeFor(event.kind, event.action, cue);
@@ -988,10 +893,10 @@ function Screen({ session }: { session: GameHost }) {
                 牌库 {game.deckCount} 张 弃牌 {game.discardCount} 张
               </p>
               {game.held && (
-                <>
+                <div className="ex-public-held">
                   <h3>当前暂持牌</h3>
                   <Card face={game.held} />
-                </>
+                </div>
               )}
               <div className="ex-last-action" role="status">
                 {game.events.at(-1) && eventText(game.events.at(-1)!, names)}
@@ -1002,9 +907,11 @@ function Screen({ session }: { session: GameHost }) {
       )}
       {game.roundResult && (
         <section className="ex-victory">
-          <span>✦</span>
-          <h2>{game.phase === 'match-result' ? '三胜达成！' : '本小局赢家'}</h2>
-          <p>
+          <span className="ex-settlement-text">✦</span>
+          <h2 className="ex-settlement-text">
+            {game.phase === 'match-result' ? '三胜达成！' : '本小局赢家'}
+          </h2>
+          <p className="ex-settlement-text">
             {(game.phase === 'match-result'
               ? game.matchWinners
               : game.roundResult.winners
@@ -1017,7 +924,11 @@ function Screen({ session }: { session: GameHost }) {
           )}
         </section>
       )}
-      <Effects game={game} session={session} />
+      <SavedEffects
+        game={game}
+        session={session}
+        portraitFor={(id) => portraitFor(id) ?? cardArt(id).image}
+      />
       {panel && (
         <OverlayPanel
           title={
@@ -1087,5 +998,5 @@ export const client: GameClient = {
       ),
     ];
   },
-  motionDuration: 5000,
+  motionDuration: Math.max(...Object.values(poseDurations)) + 650 + 2500 + 150,
 };

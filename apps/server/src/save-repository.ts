@@ -2,18 +2,30 @@ import { DatabaseSync } from 'node:sqlite';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import type { Save, SaveExtras, SaveRepository } from '@tablemax/platform-core';
+import { readCurrentSave } from './save-audit';
+import { createSaveStorage, SaveStorageWriter } from './save-storage';
+import {
+  migrateSaveStorage,
+  recoverSaveMigration,
+} from './save-storage-migration';
 
 export class SqliteSaveRepository implements SaveRepository {
   private database: DatabaseSync;
+  private path: string;
+  private version: number;
+  private writable = false;
+  private writer: SaveStorageWriter | undefined;
   constructor(dataDir: string) {
     const path = join(dataDir, 'room.sqlite');
+    this.path = path;
+    recoverSaveMigration(path);
     const existing = existsSync(path);
     this.database = new DatabaseSync(path, { readOnly: existing });
     try {
       const version = this.database
         .prepare('PRAGMA user_version')
         .get()?.user_version;
-      if (existing ? version !== 1 : version !== 0)
+      if (existing ? version !== 1 && version !== 2 : version !== 0)
         throw new Error('incompatible-save-database');
       if (
         this.database.prepare('PRAGMA quick_check').get()?.quick_check !== 'ok'
@@ -26,15 +38,15 @@ export class SqliteSaveRepository implements SaveRepository {
         this.database
           .prepare('SELECT instance,revision FROM journal LIMIT 1')
           .get();
-        this.database.close();
-        this.database = new DatabaseSync(path);
+        this.version = Number(version);
       } else {
         this.database.exec(
           'PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;',
         );
-        this.database.exec(
-          'CREATE TABLE IF NOT EXISTS saves (id INTEGER PRIMARY KEY CHECK (id=1), data TEXT NOT NULL) STRICT; CREATE TABLE IF NOT EXISTS journal (instance TEXT NOT NULL, revision INTEGER NOT NULL, data TEXT NOT NULL, PRIMARY KEY(instance, revision)) STRICT; PRAGMA user_version=1;',
-        );
+        createSaveStorage(this.database);
+        this.version = 2;
+        this.writable = true;
+        this.writer = new SaveStorageWriter(this.database);
       }
     } catch (error) {
       this.database.close();
@@ -42,15 +54,7 @@ export class SqliteSaveRepository implements SaveRepository {
     }
   }
   load(): unknown | null {
-    const row = this.database
-      .prepare('SELECT data FROM saves WHERE id=1')
-      .get();
-    if (!row) return null;
-    try {
-      return JSON.parse(String(row.data));
-    } catch {
-      throw new Error('damaged-save-json');
-    }
+    return readCurrentSave(this.database);
   }
   getAvatar(id: string): Uint8Array | null {
     if (
@@ -67,39 +71,38 @@ export class SqliteSaveRepository implements SaveRepository {
     return row ? (row.png as Uint8Array) : null;
   }
   save(value: Save, extras?: SaveExtras) {
-    const json = JSON.stringify(value);
-    this.database.exec('BEGIN IMMEDIATE');
-    try {
-      if (extras?.avatars?.length) {
-        this.database.exec(
-          'CREATE TABLE IF NOT EXISTS avatar_images (id TEXT PRIMARY KEY, png BLOB NOT NULL) STRICT;',
+    if (this.version === 1) {
+      try {
+        this.database = migrateSaveStorage(
+          this.path,
+          this.database,
+          value,
+          extras,
         );
-        const insertAvatar = this.database.prepare(
-          'INSERT INTO avatar_images(id,png) VALUES(?,?) ON CONFLICT(id) DO NOTHING',
-        );
-        for (const avatar of extras.avatars)
-          insertAvatar.run(avatar.id, avatar.png);
+      } catch (error) {
+        try {
+          this.database.close();
+        } catch {
+          /* Migration already closed it. */
+        }
+        this.database = new DatabaseSync(this.path, { readOnly: true });
+        throw error;
       }
-      const insertJournal = this.database.prepare(
-        'INSERT INTO journal(instance,revision,data) VALUES(?,?,?)',
-      );
-      for (const previous of extras?.journal ?? [])
-        insertJournal.run(
-          previous.instanceId,
-          previous.revision,
-          JSON.stringify(previous),
-        );
-      insertJournal.run(value.instanceId, value.revision, json);
-      this.database
-        .prepare(
-          'INSERT INTO saves(id,data) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data',
-        )
-        .run(json);
-      this.database.exec('COMMIT');
-    } catch (error) {
-      this.database.exec('ROLLBACK');
-      throw error;
+      this.version = 2;
+      this.writable = true;
+      this.writer = new SaveStorageWriter(this.database);
+      return;
     }
+    if (!this.writable) {
+      this.database.close();
+      this.database = new DatabaseSync(this.path);
+      this.database.exec(
+        'PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;',
+      );
+      this.writable = true;
+      this.writer = new SaveStorageWriter(this.database);
+    }
+    this.writer!.write(value, extras);
   }
   close() {
     this.database.close();

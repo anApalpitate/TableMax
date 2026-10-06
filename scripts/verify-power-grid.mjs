@@ -1181,15 +1181,18 @@ async function clickAction(entry, current, action) {
 // Audit the real SQLite journal with the same delivered Node, without exporting
 // credentials, concealed balances or hidden deck order into the public evidence.
 await writeFile(
+  join(work, 'save-audit.mjs'),
+  await readFile(resolve('scripts/lib/save-audit.mjs')),
+);
+await writeFile(
   join(work, 'audit.cjs'),
   `
 const assert=require('node:assert/strict'),{DatabaseSync}=require('node:sqlite');
+const {readCurrentSave,readJournalSave}=require('./save-audit.mjs');
 const {RandomSource,getPlant,RESOURCES}=require('./driver.cjs'),{rules}=require(process.argv[3]);
 const db=new DatabaseSync(process.argv[2],{readOnly:true}),seen=new Set(),phases=new Set(),steps=new Set(),actors={},actions={},botData=new Map(); let rows=0,validatedStates=0,replayed=0;
-const readRow=db.prepare('SELECT data FROM journal WHERE rowid=?');
 for(const {rowid} of db.prepare('SELECT rowid FROM journal ORDER BY rowid').all()){
- const row=readRow.get(rowid);
- rows++; const save=JSON.parse(row.data); if(save.manifest?.id!=='power-grid'||!save.snapshot)continue;
+ rows++; const save=readJournalSave(db,rowid); if(save.manifest?.id!=='power-grid'||!save.snapshot)continue;
  const s=rules.validateState(save.snapshot.state,save.seats.map(p=>p.id)); validatedStates++; phases.add(s.phase);steps.add(s.step);
  for(const value of Object.values(save.snapshot.bots)){const metadata={id:value.id,version:value.version,difficulty:value.difficulty};botData.set(JSON.stringify(metadata),metadata);}
  const checkpoint=save.history.at(-1),before=checkpoint?.before?.state;
@@ -1212,7 +1215,7 @@ for(const {rowid} of db.prepare('SELECT rowid FROM journal ORDER BY rowid').all(
  const random=new RandomSource(checkpoint.before.random),applied=rules.apply(before,a,seat,{seats:s.seatOrder,random});assert.deepEqual(applied.state,s,'Deterministic replay of actual SQLite action');
  replayed++;actors[seat]=(actors[seat]??0)+1;actions[a.type]=(actions[a.type]??0)+1;
 }
-const final=JSON.parse(db.prepare('SELECT data FROM saves WHERE id=1').get().data);db.close();
+const final=readCurrentSave(db);db.close();
 console.log(JSON.stringify({rows,validatedStates,replayed,actors,actions,phases:[...phases],steps:[...steps],botData:[...botData.values()],finalStatus:final.status}));
 `,
 );

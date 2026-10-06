@@ -1253,6 +1253,204 @@
 .ex-static-hero {
   display: none;
 }
+
+/* Vector joints supply the body motion; the wrapper supplies only the camera. */
+.ex-pose-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 8px 12px #12253b45) drop-shadow(0 0 18px #fff1b580);
+}
+.ex-cinematic-creature {
+  width: min(68vh, 62vw, 610px);
+  max-height: 62vh;
+  height: 62vh;
+}
+.ex-local-ability {
+  background: radial-gradient(ellipse, #fff7dfe8, #fff7df00 72%);
+  border: none;
+  padding: 0;
+  width: min(320px, 68vw);
+  flex-direction: column;
+  gap: 0;
+  animation-duration: var(--ex-duration, 650ms);
+  text-align: center;
+}
+.ex-local-ability .ex-cinematic-creature {
+  width: 100%;
+  height: min(32vh, 240px);
+  animation: none;
+  transform: none;
+}
+.ex-local-ability .ex-cinematic-rings {
+  width: 85%;
+  height: 75%;
+  top: 0;
+  border-width: 5px;
+  box-shadow: 0 0 30px #dfaa5260;
+  animation-duration: var(--ex-duration, 650ms);
+}
+.ex-local-ability strong {
+  font-size: 22px;
+  background: #fff8e8;
+  border-radius: 12px;
+  padding: 2px 12px;
+}
+.ex-local-ability > span {
+  color: #36554c;
+  font-size: 18px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: #fff5d7;
+}
+.ex-ordinary-burst {
+  position: fixed;
+  width: clamp(130px, 20vw, 190px);
+  height: clamp(130px, 20vw, 190px);
+  z-index: 64;
+  pointer-events: none;
+  visibility: hidden;
+  transform: translate(-50%, -50%);
+  color: #58b9e6;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 3;
+  animation: ex-ordinary 320ms ease-out both;
+}
+.ex-burst-togepi {
+  color: #e8bb53;
+}
+.ex-burst-rowlet {
+  color: #82b56b;
+}
+.ex-burst-garchomp {
+  color: #6e8cbb;
+}
+.ex-burst-gardevoir {
+  color: #bc7ddd;
+}
+.ex-burst-dragonite {
+  color: #e4a94e;
+}
+.ex-burst-metagross {
+  color: #75a1b8;
+}
+.ex-burst-mimikyu {
+  color: #9d88ae;
+}
+.ex-burst-particle,
+.ex-burst-droplet {
+  transform-origin: 90px 110px;
+  animation: ex-particle 320ms ease-out both;
+}
+.ex-burst-wave,
+.ex-burst-magnet {
+  transform-origin: 90px 90px;
+  animation: ex-burst-ring 320ms ease-out both;
+}
+.ex-burst-wave-two {
+  animation-delay: 45ms;
+}
+.ex-burst-shell {
+  fill: #fffae2;
+  stroke-width: 4;
+}
+.ex-burst-shadow {
+  fill: #a991ba66;
+  stroke: none;
+}
+.ex-burst-thread {
+  stroke: #6e527b;
+  stroke-dasharray: 4 4;
+}
+.ex-burst-slash {
+  fill: #bcd9f899;
+  stroke-width: 1;
+}
+.ex-burst-wing {
+  fill: #b8d9ca88;
+  stroke-width: 2;
+}
+.ex-burst-wind {
+  stroke-width: 5;
+}
+@keyframes ex-ordinary {
+  0% {
+    opacity: 0;
+  }
+  22%,
+  65% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@keyframes ex-particle {
+  0% {
+    transform: translateY(12px) scale(0.65);
+  }
+  100% {
+    transform: translateY(calc(-20px - var(--particle, 0) * 4px)) scale(1.05);
+  }
+}
+@keyframes ex-burst-ring {
+  0% {
+    transform: scale(0.5);
+  }
+  100% {
+    transform: scale(1.16);
+  }
+}
+@media (max-width: 760px) {
+  .ex-cinematic-creature {
+    width: 88vw;
+    height: min(52vh, 430px);
+  }
+  .ex-cinematic > span {
+    max-width: 92vw;
+    text-align: center;
+  }
+}
+.ex-delayed-settlement .ex-settlement-text {
+  animation: ex-settlement-reveal 150ms ease-out var(--ex-result-delay) both;
+}
+@keyframes ex-settlement-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.expansion-screen.player .ex-cinematic {
+  inset: 76px 8px auto;
+  height: min(49vh, 390px);
+  border-radius: 20px;
+  box-shadow: 0 12px 28px #13294b40;
+}
+.expansion-screen.player .ex-cinematic-creature {
+  height: min(30vh, 250px);
+  width: min(70vw, 280px);
+}
+.expansion-screen.player .ex-cinematic strong {
+  font-size: 26px;
+}
+.expansion-screen.player .ex-cinematic > span {
+  font-size: 18px;
+  padding: 0 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ex-ordinary-burst {
+    display: none;
+  }
+  .ex-settlement-text {
+    animation: none !important;
+    opacity: 1;
+  }
+}
 /* A desktop table gives both player rows a share of the available height. */
 @media (min-width: 760px) {
   .expansion-screen:not(.player) {
@@ -1439,7 +1637,7 @@
     line-height: 20px;
   }
   .expansion-screen:not(.player) .ex-table-layout {
-    grid-template-columns: minmax(0, 1fr) 106px;
+    grid-template-columns: minmax(0, 1fr) 180px;
     gap: 6px;
   }
   .expansion-screen:not(.player) .ex-players {
@@ -1473,6 +1671,9 @@
     bottom: 2px;
     transform: none;
     text-align: center;
+    background: #fff8e8;
+    border-radius: 3px;
+    line-height: 18px;
   }
   .expansion-screen:not(.player) .ex-player .ex-card-value {
     padding: 0;
@@ -1482,17 +1683,17 @@
     left: 25%;
     top: 0;
     width: 45%;
-    height: 60%;
+    height: calc(100% - 22px);
   }
   .expansion-screen:not(.player) .ex-supply {
     padding: 6px;
   }
   .expansion-screen:not(.player) .ex-public-discard {
-    flex-direction: column;
+    flex-direction: row;
     gap: 6px;
   }
   .expansion-screen:not(.player) .ex-public-discard section {
-    width: 100%;
+    width: calc(50% - 3px);
   }
   .expansion-screen:not(.player) .ex-supply .ex-card {
     height: 60px;
@@ -1504,6 +1705,26 @@
   }
   .expansion-screen:not(.player) .ex-last-action {
     padding: 4px;
+  }
+  .expansion-screen:not(.player) .ex-supply h2 {
+    margin: 0 0 4px;
+  }
+  .expansion-screen:not(.player) .ex-supply p {
+    margin: 4px 0;
+  }
+  .expansion-screen:not(.player) .ex-public-held {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .expansion-screen:not(.player) .ex-public-held h3 {
+    margin: 0;
+    font-size: 20px;
+  }
+  .expansion-screen:not(.player) .ex-public-held .ex-card {
+    width: 76px;
+    flex-shrink: 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {

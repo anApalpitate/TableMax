@@ -3,6 +3,7 @@ import { io, type Socket } from 'socket.io-client';
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import { readCurrentSave } from './save-audit';
 import { randomUUID } from 'node:crypto';
 import {
   RoomViewSchema,
@@ -98,13 +99,10 @@ function readSave(dataDir: string) {
     readOnly: true,
   });
   try {
-    const json = database
-      .prepare('SELECT data FROM saves WHERE id=1')
-      .get() as { data: string };
     const count = database
       .prepare('SELECT COUNT(*) AS count FROM journal')
       .get() as { count: number };
-    return { value: JSON.parse(json.data) as Save, count: count.count };
+    return { value: readCurrentSave(database) as Save, count: count.count };
   } finally {
     database.close();
   }
@@ -235,11 +233,7 @@ it('migrates an old SQLite save to default 20 exactly once and protects explicit
   const edit = (change: (value: Save) => void) => {
     const database = new DatabaseSync(join(config.dataDir, 'room.sqlite'));
     try {
-      const value = JSON.parse(
-        String(
-          database.prepare('SELECT data FROM saves WHERE id=1').get()!.data,
-        ),
-      ) as Save;
+      const value = readCurrentSave(database) as Save;
       change(value);
       database
         .prepare('UPDATE saves SET data=? WHERE id=1')

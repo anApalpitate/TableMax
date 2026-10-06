@@ -517,3 +517,25 @@ GitHub附件白名单仅 `TableMax-<版本>-win-x64.exe` 与 `TableMax-<版本>-
 2026-10-06三胜目标修复续验：42项模型回归、2–6人各档seed1小局及17项真实服务集成通过。小局窄选用 `vitest run games/pokemon-encounters/expansion/bot/coverage.test.ts -t 'seed 1:|never initializes'`，实际16通过／135未选，不把旧151全量结果用于新策略。同版本运行包从当前冻结源码构建，原生输入的CRLF／LF和原生构建目录变化可改变指纹及EXE，须核对归一源码并验证同一实际解压EXE；本轮未修改原生内容。相关命令与边界沿用上文，证据见[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/final-checks.json)。
 
 叫声文件说明续查可使用来源页实际公布的 `EditURI` 公开MediaWiki API，`imageinfo` 取文件URL／SHA-1，`revisions` 取文件说明；原件按哈希核对后再记录，不读取上传日期为游戏世代，不将百科合理使用标记当作本项目授权。27文件一次批量查询，普通公开请求，不交互403挑战；响应放既定临时目录，正式来源／哈希及失败边界见[核验脚本](../../artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/audit-source.mjs)。本次只更新来源文档，未改运行音频或资源清单，不触发打包／媒体回归。
+
+## 扩展收尾与SQLite v2验证（2026-10-06）
+
+- `pnpm exec vitest run games/pokemon-encounters/expansion/bot/coverage.test.ts`：2–6人三档150个固定种子，每种子独立60秒（六人绝悟120秒）、700步，哈希覆盖新tactics模块。结果留独立run目录；旧策略结果不复用为当前源码证据。
+- `pnpm exec vitest run apps/server/src/expansion-integration.test.ts apps/server/src/bot-executor.test.ts --maxWorkers=1`：真实HTTP／Socket.IO／SQLite和32MiB Worker，暂停／取消／分支／重启旧结果，以及两秒截止。性能检查与其他重CPU工作串行。
+- `pnpm exec vitest run apps/server/src/save-storage.test.ts apps/server/src/save-storage-games.test.ts`：v1只读保护、流式迁移、故障／中断、历史分支及确认去重，三款真实规则恢复／合法动作／v2重启。固定512B节点和确认增量检查500／1000／2000保存磁盘增长，不将该结果外推任意游戏日志或CPU线性。
+- `node scripts/verify-pokemon-expansion-effects.mjs --evidence=<独立名>`：项目锁定Vite构建真实生产Screen，隐藏Edge观察63姿态关节、14时间轴、十普通主题、秘密／取消／减少动态和六人54格；覆盖720p至4K、125%／150%模拟缩放及320–430px手机演出／可滚动操作。`--portable`实际解压并逐文件核对当前ZIP，夹具直接导入包内游戏客户端、共享React运行时及样式，检查正式编译组件；合法规则夹具只证明组件路径，实际保存与原生流程另走原生验证器。
+- `node scripts/audit-pokemon-expansion-audio.mjs`：只复核既有原件／派生哈希和公开来源记录，将已确认说明与未知项写入资源清单；不下载或制作媒体。
+
+直接读SQLite的审计统一用脚本 `scripts/lib/save-audit.mjs` 的 `readCurrentSave`／`readJournalSave`／`decodeSave`，服务测试通过 `apps/server/src/save-audit.ts`。v2的saves／journal行包含引用，不能直接JSON.parse为完整Save。外层Save仍formatVersion1；旧v1在游戏兼容性通过后的保存时迁移，原库／WAL／SHM及迁移记录保留，未知或损坏库不替换。
+
+所有专项通过后只调用一次 `pnpm package:win`（已包含正式18单元构建，不预先重复全量build）。备份原ZIP／清单，对同一最终ZIP执行 `verify-pokemon-expansion.mjs --portable --evidence=<独立名>` 与普通模式控件验证，再核对冻结输入、离线媒体、退出、实际解压体积及模块预算。共享存储变化扩大三游戏恢复检查；未变规则／原版素材按影响复用既有证据。真人手机／听感／硬件DPI／现场LAN及人类时长单独交接，不重新执行胜率统计门禁。
+
+若18单元构建完成后组装被运行中程序门禁阻止，可在程序退出后用 `pnpm package:win --snapshot=build/snapshots/<ID>.json` 恢复组装：重新核对快照ID、生产模块集合、全部源码输入及组装器指纹，继续执行原有进程、输出哈希和体积门禁，避免重复编译。默认命令仍执行正式构建。本轮首次组装因用户日常程序仍运行而中止，用户确认关闭后使用同一冻结快照恢复，未关闭或修改正式用户数据。
+
+新增审计解码器采用 `.mjs`＋`.d.mts`，预检发现TypeScript模块解析只返回声明文件，旧增量walker漏记运行JS；独立小单元反例先失败，修正后运行JS变化使缓存失效、未变复用通过。`node scripts/verify-module-runtime-input.mjs <独立名>`只构建隔离小夹具；正式打包检查platform-server冻结输入含 `scripts/lib/save-audit.mjs`。构建工具指纹因此变化，本轮正式18单元需要重新构建一次，不能沿用旧缓存；没有预先重复全量构建。
+
+`node scripts/verify-save-storage-games.mjs <独立名>`实际解压当前ZIP并逐文件核哈希，用隐藏原生／实际服务在独立数据目录为三游戏生成真实已保存动作，把这些合法保存重建为v1夹具，再由同一包迁移及v2重启。检查全部历史、快照／座位、旧v1备份字节和进程退出，正式用户数据不参与。性能和GUI验收完成后串行运行，监听仅127.0.0.1。
+
+六人绝悟新增能力链可产生合法长小局：本轮seed5完成545动作、最长单次799.522ms，但整局76.6秒触发旧60秒测试限。原失败及150轮原始观测保留；仅该种子在六人绝悟整局120秒上限重跑通过。其他组仍60秒，每次决策两秒、700步和Worker内存限制不改；整局测试上限不作为真人时长或单次CPU预算。
+
+SQLite流式扫描须让 `StatementSync` 强引用保持至迭代完成；包内Node22.14.0的iterator不会保活临时 `prepare()` 返回值，垃圾回收可使下一行抛 `statement has been finalized`。首次实际便携迁移发现此问题，旧库未替换；以同一包内Node和 `--expose-gc` 每行强制GC建立迁移红绿反例，完整历史、头像与原备份逐项比较。失败候选及报告保留，修复后仅重建受影响服务单元并重新执行最终同包检查，不把失败候选通过项迁移为新ZIP证据。

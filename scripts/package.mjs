@@ -1,4 +1,5 @@
 import { buildProject } from './build.mjs';
+import assert from 'node:assert/strict';
 import { resolve, join, relative, sep } from 'node:path';
 import {
   copyFile,
@@ -13,12 +14,43 @@ import {
 } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { execute, nodeVersion, nodeArchiveSha256 } from './setup-desktop.mjs';
-import { lock, discover } from './module-build.mjs';
-import { assertIdle } from './assemble.mjs';
+import { lock, discover, validateInputs } from './module-build.mjs';
+import { assemble, assertIdle } from './assemble.mjs';
+
+const args = process.argv.slice(2);
+assert.ok(
+  args.length <= 1 && args.every((arg) => arg.startsWith('--snapshot=')),
+);
+async function resumeSnapshot(path) {
+  const snapshotPath = resolve(path);
+  const snapshot = JSON.parse(await readFile(snapshotPath, 'utf8'));
+  const id = createHash('sha256')
+    .update(
+      JSON.stringify({
+        version: snapshot.version,
+        assemblerSha256: snapshot.assemblerSha256,
+        units: snapshot.units.map(({ id, fingerprint }) => ({
+          id,
+          fingerprint,
+        })),
+      }),
+    )
+    .digest('hex');
+  assert.equal(snapshot.id, id);
+  assert.deepEqual(
+    snapshot.modules,
+    (await discover()).filter((module) => !module.internal),
+  );
+  for (const unit of snapshot.units) await validateInputs(unit);
+  await assemble(snapshotPath);
+  return { ...snapshot, snapshotPath };
+}
 
 await lock('package-win', async () => {
   const started = performance.now();
-  const buildSnapshot = await buildProject(['--production']);
+  const buildSnapshot = args.length
+    ? await resumeSnapshot(args[0].slice('--snapshot='.length))
+    : await buildProject(['--production']);
   for (const game of await discover())
     if (
       !game.internal &&

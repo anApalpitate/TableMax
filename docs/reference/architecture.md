@@ -8,7 +8,13 @@
 
 盒子保持一个宝可梦入口，模块目录提供 `original`／`expansion` 权威版本；新房间默认原版，管理员仅大厅或结束后可切换。原版六格与扩展九格分别维护规则、状态、策略及客户端，复用身份、拓扑、BoardGrid和事件调度；房间、存档、Worker携带版本身份，原版指纹与旧存档兼容。当前实现与未完成项见[扩展任务](../tasks/pokemon-encounters-expansion.md)。
 
-扩展 `web/presentation.ts` 的 `savedBoardEffects` 只从已保存公开结果生成场地轨迹，`BoardEffects.tsx` 按实际牌位几何绘制移位、盖回与翻明反馈，不改变规则或牌位。私看不生成公开目标；减少动态隐藏轨迹，取消／切换清理演出，不在恢复时追补队列。主题音配方复用共享双槽与唯一播放窗口，正式原创资源及多姿态缺口由[游戏资源表](../games/pokemon-encounters/assets.md#续建素材与反馈2026-10-06)维护。
+扩展 `web/presentation.ts` 只从已保存公开结果生成场地轨迹及演出顺序，`BoardEffects.tsx` 按实际牌位几何绘制移位、盖回与翻明反馈；`SavedEffects.tsx` 从游戏内 `poses/timeline.ts` 读取14套分层SVG关节动作时长，末步按能力→公开轨迹→研究→结算安排表现，不阻塞规则推进。私看不生成公开目标；减少动态保留静态主题，取消／切换清理演出，不在恢复时追补队列。主题音配方复用共享双槽与唯一播放窗口，资源和来源见[游戏资源表](../games/pokemon-encounters/assets.md#代码矢量动作与音源收尾2026-10-06)。
+
+## SQLite去重存储（2026-10-06）
+
+`SaveRepository.load/save` 与外层 `Save.formatVersion=1` 保持兼容，内部SQLite采用 `user_version=2`。Checkpoint节点按内容身份与前驱保存一次，修订记录只引用历史头；累积动作确认和会话确认用独立增量链重建。回退保留原分支历史与秘密权限，管理授权继续独立于checkpoint；游戏自身当前状态和日志不在此层裁剪。
+
+旧v1先只读，游戏兼容性验证后的下一次保存才流式导入同目录临时v2库。每条修订解码深比较、数据库检查及新保存成功后，保留原DB／WAL／SHM和可恢复迁移记录再切换；失败不替换未验证库。迁移连接开启外键和FULL同步，应用保存事务覆盖节点、修订及头像。服务审计入口 `apps/server/src/save-audit.ts`、脚本入口 `scripts/lib/save-audit.mjs` 统一解码v1／v2，不直接把 `saves.data` 当完整Save。固定载荷的磁盘增量近线性不代表任意游戏累积日志或保存CPU有界。
 
 第一至六阶段已完成；正式运行宝可梦完整游戏，验证模板继续用于契约、策略替换和恢复回归。采用依据：[工程基础](../decisions/001-engineering-foundation.md)、[平台授权与恢复](../decisions/005-platform-authority-and-recovery.md)、[游戏目录与房主分权](../decisions/007-library-owner-and-concurrency.md)、[小体积原生桌面](../decisions/008-small-native-desktop.md)。2026-10-03 桌面外壳改为共享 WebView2，最终交付验证状态仍以 [验收记录](acceptance.md) 为准。
 

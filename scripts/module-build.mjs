@@ -249,7 +249,9 @@ async function inputsFor(unit) {
       const resolved = ts.resolveModuleName(request, file, options, ts.sys)
         .resolvedModule?.resolvedFileName;
       if (resolved && !resolved.includes('node_modules')) await visit(resolved);
-      else if (request.startsWith('.')) {
+      // TypeScript can resolve a JS request to an adjacent declaration. Both
+      // files affect a reproducible build: the declaration and the runtime JS.
+      if (request.startsWith('.')) {
         const candidate = resolve(dirname(file), request.split('?')[0]);
         try {
           if ((await stat(candidate)).isFile()) await visit(candidate);

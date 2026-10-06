@@ -5,6 +5,9 @@ import {
   expansionSoundRecipe,
   savedBoardEffects,
   expansionThemeFor,
+  presentationCreature,
+  ordinaryTheme,
+  presentationTiming,
 } from './presentation';
 const action = (
   verb: string,
@@ -12,6 +15,78 @@ const action = (
   cardCategory: string | null = 'special-mewtwo',
 ): PublicAction => ({ actor: 'S1', verb, ability, cardCategory, targets: [] });
 describe('expansion committed presentation', () => {
+  it('orders the saved last ability, board changes, research and settlement without delaying rules', () => {
+    const saved = {
+      ...action('activate-arceus', 'arceus', 'special-arceus'),
+      targets: [{ seat: 'S1', slots: [0, 1, 2, 3, 4, 5, 6, 7, 8] }],
+    };
+    expect(
+      presentationTiming(
+        [
+          { kind: 'action', action: saved },
+          { kind: 'research' },
+          { kind: 'round-result' },
+        ],
+        { arceus: 1750 },
+      ),
+    ).toEqual({
+      creature: 'arceus',
+      abilityMs: 1750,
+      boardMs: 650,
+      researchDelayMs: 2400,
+      resultDelayMs: 4900,
+    });
+    expect(
+      presentationTiming([{ kind: 'round-result' }], {}).resultDelayMs,
+    ).toBe(0);
+    expect(presentationTiming([{ kind: 'research' }], {}).resultDelayMs).toBe(
+      0,
+    );
+    expect(
+      presentationTiming(
+        [{ kind: 'action', action: action('mewtwo-target') }],
+        { mewtwo: 1650 },
+      ).abilityMs,
+    ).toBe(0);
+  });
+  it('uses copy poses only for their public saved placement, without pretending a copy is an active ability', () => {
+    expect(presentationCreature(action('replace', null, 'special-ditto'))).toBe(
+      'ditto',
+    );
+    expect(presentationCreature(action('replace', null, 'special-zorua'))).toBe(
+      'zorua',
+    );
+    for (const verb of ['draw', 'peek', 'mewtwo-target', 'decline-ability'])
+      expect(
+        presentationCreature(action(verb, null, 'special-ditto')),
+      ).toBeNull();
+    expect(presentationCreature(action('mewtwo-exchange'))).toBe('mewtwo');
+  });
+  it('uses distinct ordinary themes only for new saved public draws, never from hidden positions', () => {
+    const themes = [
+      'togepi',
+      'magikarp',
+      'piplup',
+      'rowlet',
+      'psyduck',
+      'garchomp',
+      'gardevoir',
+      'dragonite',
+      'metagross',
+      'mimikyu',
+    ];
+    for (const theme of themes) {
+      expect(ordinaryTheme(action('draw', null, `ordinary-${theme}`))).toBe(
+        theme,
+      );
+      for (const verb of ['peek', 'replace', 'initial-flip', 'close-peek'])
+        expect(
+          ordinaryTheme(action(verb, null, `ordinary-${theme}`)),
+        ).toBeNull();
+    }
+    expect(ordinaryTheme(action('draw', null, 'ordinary--2'))).toBeNull();
+    expect(ordinaryTheme(undefined)).toBeNull();
+  });
   it('plays a variant cry once for a public draw, without replaying it for private or later steps', () => {
     const voices = { 'special-mewtwo': '/local/mewtwo.ogg' };
     const game = { coin: null, matchWinners: [] };

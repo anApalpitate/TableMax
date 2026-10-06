@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { basename, dirname, join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import { readCurrentSave } from './lib/save-audit.mjs';
 import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 
 const require = createRequire(import.meta.url);
@@ -128,9 +129,7 @@ async function command(token, value) {
     readOnly: true,
   });
   try {
-    const saved = JSON.parse(
-      database.prepare('SELECT data FROM saves WHERE id=1').get().data,
-    );
+    const saved = readCurrentSave(database);
     assert.equal(
       saved.revision,
       after.revision,

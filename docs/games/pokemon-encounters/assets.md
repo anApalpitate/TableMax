@@ -156,3 +156,11 @@ EX-A11 通过站点正式访客流程取得，额度检查为 `allowed=1`、下�
 文件说明续核验已取得新证据：从原存喷火龙页面的 `EditURI` 发现公开MediaWiki API，普通请求200，批量取得全部27项叫声的文件说明／上传日期及SHA-1，均与270,112字节原件一致。[逐文件来源](../../../artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json)及[核验](../../../artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/validation.json)保存原响应、请求URL／状态与哈希；临时响应仍在 `tmp/pokemon-expansion-materials/continuation/`，未交互挑战、登录或下载新的媒体。先前两说明页403继续作为当次失败记录；本次补齐文件说明，不把旧失败覆盖为成功。首次本地预检误找不存在的 `wgScriptPath` 后，依据页面实际公布的 `EditURI` 修正，未猜测私有接口。
 
 27项说明都使用 `I-Fairuse-audio-effects` 标记。[标记原文](https://wiki.52poke.com/wiki/Template:I-Fairuse-audio-effects)将其描述为受著作权保护的游戏音效，贡献者按百科条目用途和短低码率主张合理使用；[音频方针](https://wiki.52poke.com/wiki/%E7%A5%9E%E5%A5%87%E5%AE%9D%E8%B4%9D%E7%99%BE%E7%A7%91%3A%E9%9F%B3%E9%A2%91%E6%96%B9%E9%92%88)区分游戏叫声与动画声音。完整API原文保留在[方针与标记](../../../artifacts/pokemon-expansion/encyclopedia-cries/public-api-policy-audit-20261006/metadata.json)。这些文件说明没有具体游戏世代，也未授予本项目再分发许可；正式清单的世代、许可和真人听感标记继续未核验，原音频／派生／运行包字节不变。
+
+## 代码矢量动作与音源收尾（2026-10-06）
+
+用户本次明确采用代码多姿态替代位图制作：`expansion/web/poses/` 内14套共63个关键姿态，独立头部、躯干、四肢、尾部关节；百变怪与裂空座还改变路径轮廓。五神各五姿态、忍蛙六姿态，其他八套各四姿态；九套全屏、五套局部。正式运行采用透明SVG与共享时间轴，姿态在0–0.85之间展开，最后15%保留收势；不是静图平移补帧。未再下载或请求imagegen，历史失败和原素材完整保留。
+
+[消费清单](../../../assets/games/pokemon-encounters/expansion/frames.json)区分源码大小、组件播放及最终便携核验；[静态关节及裁切](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/poses/articulation-verification-fixed.json)覆盖63帧，首次阿尔宙斯冠尖越界失败与修正保留。[透明核验证据](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/poses/transparent/transparent-verification.json)逐帧记录512×512、alpha及PNG／SVG／源码哈希，约3.06MB只留证据，不进入包。独立审查及最终实际包证据见[本次任务](../../tasks/pokemon-encounters-expansion.md#一次性技术收尾2026-10-06)。
+
+[音源审计](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/audio/provenance-audit.json)核对全部27叫声与八主题的原件／运行SHA-256，并将27原件SHA-1与已有公开文件说明证据逐项对应。叫声清单新增已确认说明URL／上传时间／百科使用标记及既有实际播放证据；游戏世代和本项目再分发依据仍未确认，不声明官方授权。上传时间不是世代，百科标记不是项目许可。八主题明确标为项目原创程序合成，补充能力／研究反馈，不替换角色叫声；本轮没有新下载、重编码或音频字节变化，用户指定原件继续保留。最终同包听音调用与解码单独验收，真人听感交接待测。

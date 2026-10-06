@@ -8,7 +8,16 @@ import { promisify } from 'node:util';
 import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 
 const portable = process.argv.includes('--portable');
-assert.ok(process.argv.slice(2).every((arg) => arg === '--portable'));
+assert.ok(
+  process.argv
+    .slice(2)
+    .every(
+      (arg) => arg === '--portable' || /^--evidence=[a-zA-Z0-9_-]+$/.test(arg),
+    ),
+);
+const evidenceName = process.argv
+  .find((arg) => arg.startsWith('--evidence='))
+  ?.slice(11);
 const project = JSON.parse(await readFile('package.json', 'utf8'));
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
@@ -55,9 +64,10 @@ if (portable) {
   executablePath = join(work, 'portable', 'TableMax.exe');
 }
 const output = resolve(
-  `artifacts/maintenance/v${project.version}/pokemon-expansion-runtime/${portable ? 'portable-' + archiveSha256.slice(0, 12) : 'build'}`,
+  `artifacts/maintenance/v${project.version}/pokemon-expansion-runtime/${evidenceName ?? (portable ? 'portable-' + archiveSha256.slice(0, 12) : 'build-' + Date.now())}`,
 );
-await mkdir(output, { recursive: true });
+await mkdir(dirname(output), { recursive: true });
+await mkdir(output, { recursive: false });
 const env = {
   ...process.env,
   TABLEMAX_DATA_DIR: dataDir,
@@ -76,7 +86,7 @@ const evidence = {
   dataDir,
   started: new Date().toISOString(),
   scope:
-    'Actual hidden WinForms/WebView2 and actual service Socket intents; phone viewports simulated, no physical-phone/Windows-DPI/voice-listening claim. Multi-pose assets incomplete.',
+    'Actual hidden WinForms/WebView2 and actual service Socket intents; phone viewports simulated, no physical-phone/Windows-DPI/voice-listening claim. Pose completeness is recorded by the separate actual animation verification.',
   checks: [],
   screenshots: [],
   pageErrors: [],

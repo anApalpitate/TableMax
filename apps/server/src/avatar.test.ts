@@ -4,6 +4,7 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import { readCurrentSave } from './save-audit';
 import { randomBytes, randomUUID } from 'node:crypto';
 import {
   RoomViewSchema,
@@ -206,10 +207,10 @@ it('persists a legacy-avatar migration at a fresh journal revision and refuses d
   ) => {
     const database = new DatabaseSync(databasePath);
     try {
-      const row = database
-        .prepare('SELECT data FROM saves WHERE id=1')
-        .get() as { data: string };
-      const value = JSON.parse(row.data);
+      const value = readCurrentSave(database) as {
+        seats: { avatarId?: string }[];
+        revision: number;
+      };
       edit(value);
       database
         .prepare('UPDATE saves SET data=? WHERE id=1')

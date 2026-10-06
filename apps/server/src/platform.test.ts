@@ -4,6 +4,7 @@ import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
+import { readCurrentSave } from './save-audit';
 import { randomBytes } from 'node:crypto';
 import type { Command, CommandReply, RoomView } from '@tablemax/protocol';
 import { createService as createServiceBase } from './service';
@@ -40,10 +41,9 @@ it('persists host-only play mode through real sockets and SQLite restart, with e
     await service.close();
     const database = new DatabaseSync(join(config.dataDir, 'room.sqlite'));
     try {
-      const row = database.prepare('SELECT data FROM saves').get() as {
-        data: string;
-      };
-      expect(JSON.parse(row.data).playMode).toBe('test');
+      expect((readCurrentSave(database) as { playMode: string }).playMode).toBe(
+        'test',
+      );
     } finally {
       database.close();
     }
@@ -354,9 +354,8 @@ it('preserves corrupted and incompatible save records rather than silently creat
     else if (mode === 'json')
       db.prepare('UPDATE saves SET data=?').run('{broken');
     else {
-      const row = db.prepare('SELECT data FROM saves').get()!;
-      const value = JSON.parse(String(row.data));
-      value.seats[0].controller = 'impossible';
+      const value = readCurrentSave(db) as { seats: { controller: string }[] };
+      value.seats[0]!.controller = 'impossible';
       db.prepare('UPDATE saves SET data=?').run(JSON.stringify(value));
     }
     db.close();

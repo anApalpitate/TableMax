@@ -39,7 +39,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/charizard-runtime-decode.txt",
       "runtimePeakDb": -0.827079,
-      "runtimeRmsDb": -10.79221
+      "runtimeRmsDb": -10.79221,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0006_cry.opus",
+        "uploadedAt": "2025-03-11T07:47:12Z",
+        "originalSha1": "f60e7e4dfe861a774de761a498ff728f0eb08bea",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "vulpix",
@@ -76,7 +91,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/vulpix-runtime-decode.txt",
       "runtimePeakDb": -0.514699,
-      "runtimeRmsDb": -12.594689
+      "runtimeRmsDb": -12.594689,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0037_cry.opus",
+        "uploadedAt": "2025-03-11T07:48:22Z",
+        "originalSha1": "a94cf0346bbf885e036b2537e7113dec66e80d28",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "psyduck",
@@ -113,7 +143,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/psyduck-runtime-decode.txt",
       "runtimePeakDb": -1.273076,
-      "runtimeRmsDb": -12.087469
+      "runtimeRmsDb": -12.087469,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0054_cry.opus",
+        "uploadedAt": "2025-03-11T07:48:56Z",
+        "originalSha1": "f80f21cb6ff2c99c320a9620ed45cb85a1b3ed0b",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "slowpoke",
@@ -150,7 +195,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/slowpoke-runtime-decode.txt",
       "runtimePeakDb": -1.032575,
-      "runtimeRmsDb": -12.801812
+      "runtimeRmsDb": -12.801812,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0079_cry.opus",
+        "uploadedAt": "2025-03-11T07:49:49Z",
+        "originalSha1": "f5b4b068002f674b5c78992b91443d889dc3ed77",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "onix",
@@ -187,7 +247,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/onix-runtime-decode.txt",
       "runtimePeakDb": -0.825485,
-      "runtimeRmsDb": -11.189495
+      "runtimeRmsDb": -11.189495,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0095_cry.opus",
+        "uploadedAt": "2025-03-11T07:50:25Z",
+        "originalSha1": "f08446b62fd400a5434f78d8fe528eab69c55142",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "mr-mime",
@@ -224,7 +299,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/mr-mime-runtime-decode.txt",
       "runtimePeakDb": -1.497128,
-      "runtimeRmsDb": -13.432143
+      "runtimeRmsDb": -13.432143,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0122_cry.opus",
+        "uploadedAt": "2025-03-11T07:51:25Z",
+        "originalSha1": "050a822175933def2a60178eea3ee93d74b4b790",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "magikarp",
@@ -261,7 +351,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/magikarp-runtime-decode.txt",
       "runtimePeakDb": -0.983499,
-      "runtimeRmsDb": -13.537249
+      "runtimeRmsDb": -13.537249,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0129_cry.opus",
+        "uploadedAt": "2025-03-11T07:51:41Z",
+        "originalSha1": "c70337421c9d35eee72eb93ef9c9d3e4d55688a8",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "ditto",
@@ -298,7 +403,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/ditto-runtime-decode.txt",
       "runtimePeakDb": -0.949195,
-      "runtimeRmsDb": -13.303562
+      "runtimeRmsDb": -13.303562,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0132_cry.opus",
+        "uploadedAt": "2025-03-11T07:51:49Z",
+        "originalSha1": "592a6ede89c24de44d4b675d63cdf8da4e49ac07",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "snorlax",
@@ -335,7 +455,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/snorlax-runtime-decode.txt",
       "runtimePeakDb": -1.207194,
-      "runtimeRmsDb": -12.21177
+      "runtimeRmsDb": -12.21177,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0143_cry.opus",
+        "uploadedAt": "2025-03-11T07:52:13Z",
+        "originalSha1": "198b8787dadf4e402572d897bdbb22a51d92484e",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "zapdos",
@@ -372,7 +507,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/zapdos-runtime-decode.txt",
       "runtimePeakDb": -0.789867,
-      "runtimeRmsDb": -14.149037
+      "runtimeRmsDb": -14.149037,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0145_cry.opus",
+        "uploadedAt": "2025-03-11T07:52:17Z",
+        "originalSha1": "4fffb6b376f91786eee94a6f0cd6dd35394aa9a3",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "dragonite",
@@ -409,7 +559,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/dragonite-runtime-decode.txt",
       "runtimePeakDb": -1.130239,
-      "runtimeRmsDb": -12.169621
+      "runtimeRmsDb": -12.169621,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0149_cry.opus",
+        "uploadedAt": "2025-03-11T07:52:25Z",
+        "originalSha1": "ac9a7e06f741406a78e7ba1d675c00bfee59a2b5",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "mewtwo",
@@ -446,7 +611,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/mewtwo-runtime-decode.txt",
       "runtimePeakDb": -0.036142,
-      "runtimeRmsDb": -11.600108
+      "runtimeRmsDb": -11.600108,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0150_cry.opus",
+        "uploadedAt": "2025-03-11T07:52:27Z",
+        "originalSha1": "639ba73110a2042f5c57544e05255ba6245b95ed",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "mew",
@@ -483,7 +663,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/mew-runtime-decode.txt",
       "runtimePeakDb": -1.899552,
-      "runtimeRmsDb": -15.653529
+      "runtimeRmsDb": -15.653529,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0151_cry.opus",
+        "uploadedAt": "2025-03-11T07:52:33Z",
+        "originalSha1": "f7ce307a786887d04150d2032718e62fbeb647c8",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "togepi",
@@ -520,7 +715,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/togepi-runtime-decode.txt",
       "runtimePeakDb": -1.367493,
-      "runtimeRmsDb": -14.450001
+      "runtimeRmsDb": -14.450001,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0175_cry.opus",
+        "uploadedAt": "2025-03-11T07:53:21Z",
+        "originalSha1": "c1d9e87b3638d7c20f1669b4a72df7ea67310efd",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "gardevoir",
@@ -557,7 +767,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/gardevoir-runtime-decode.txt",
       "runtimePeakDb": -2.528654,
-      "runtimeRmsDb": -13.743938
+      "runtimeRmsDb": -13.743938,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0282_cry.opus",
+        "uploadedAt": "2025-03-11T07:57:15Z",
+        "originalSha1": "95153484b6252336336a0a2f23af95f7627f6c2f",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "metagross",
@@ -594,7 +819,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/metagross-runtime-decode.txt",
       "runtimePeakDb": -1.438536,
-      "runtimeRmsDb": -12.09476
+      "runtimeRmsDb": -12.09476,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0376_cry.opus",
+        "uploadedAt": "2025-03-11T08:00:50Z",
+        "originalSha1": "79de08108c2255edf5693cf507d71f9bdaaee9b0",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "kyogre",
@@ -631,7 +871,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/kyogre-runtime-decode.txt",
       "runtimePeakDb": -1.302969,
-      "runtimeRmsDb": -14.398271
+      "runtimeRmsDb": -14.398271,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0382_cry.opus",
+        "uploadedAt": "2025-03-11T08:01:08Z",
+        "originalSha1": "d9499aa8c0e7570e32ff82550f7077a44ada99d9",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "groudon",
@@ -668,7 +923,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/groudon-runtime-decode.txt",
       "runtimePeakDb": -1.286411,
-      "runtimeRmsDb": -10.688754
+      "runtimeRmsDb": -10.688754,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0383_cry.opus",
+        "uploadedAt": "2025-03-11T08:01:12Z",
+        "originalSha1": "47d34cdba9e821faeb5ade91ceec34aeb2df5929",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "rayquaza",
@@ -705,7 +975,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/rayquaza-runtime-decode.txt",
       "runtimePeakDb": -1.300631,
-      "runtimeRmsDb": -11.315361
+      "runtimeRmsDb": -11.315361,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0384_cry.opus",
+        "uploadedAt": "2025-03-11T08:01:16Z",
+        "originalSha1": "396a0d6f41efe4f22280ffdace01c01b10495d15",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "piplup",
@@ -742,7 +1027,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/piplup-runtime-decode.txt",
       "runtimePeakDb": -1.714289,
-      "runtimeRmsDb": -13.888724
+      "runtimeRmsDb": -13.888724,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0393_cry.opus",
+        "uploadedAt": "2025-03-11T08:01:36Z",
+        "originalSha1": "31bee59b8276824ca22363c085f7e9a73a6ae617",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "garchomp",
@@ -779,7 +1079,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/garchomp-runtime-decode.txt",
       "runtimePeakDb": -1.150114,
-      "runtimeRmsDb": -11.203624
+      "runtimeRmsDb": -11.203624,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0445_cry.opus",
+        "uploadedAt": "2025-03-11T08:03:22Z",
+        "originalSha1": "5b572874aea713a206a97ee142e11eb58eae8709",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "lucario",
@@ -816,7 +1131,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/lucario-runtime-decode.txt",
       "runtimePeakDb": -1.5304,
-      "runtimeRmsDb": -13.696974
+      "runtimeRmsDb": -13.696974,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0448_cry.opus",
+        "uploadedAt": "2025-03-11T08:03:30Z",
+        "originalSha1": "02c2b9425a275293a135ae3c1b02f2fc4cf6fa10",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "arceus",
@@ -853,7 +1183,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/arceus-runtime-decode.txt",
       "runtimePeakDb": -2.179657,
-      "runtimeRmsDb": -15.715936
+      "runtimeRmsDb": -15.715936,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0493_cry.opus",
+        "uploadedAt": "2025-03-11T08:05:09Z",
+        "originalSha1": "7f6d7e342c108b7f99b041755c69d5dce1223092",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "zorua",
@@ -890,7 +1235,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/zorua-runtime-decode.txt",
       "runtimePeakDb": -1.923905,
-      "runtimeRmsDb": -13.359849
+      "runtimeRmsDb": -13.359849,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0570_cry.opus",
+        "uploadedAt": "2025-03-11T08:07:46Z",
+        "originalSha1": "c4df8fdc3f3b0a25e908e1d98997bf61a036ed9c",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "greninja",
@@ -927,7 +1287,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/greninja-runtime-decode.txt",
       "runtimePeakDb": -1.286505,
-      "runtimeRmsDb": -12.249193
+      "runtimeRmsDb": -12.249193,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0658_cry.opus",
+        "uploadedAt": "2025-03-11T08:10:52Z",
+        "originalSha1": "003d3ca034508e800ec9a6d37fa5235bf3875816",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "rowlet",
@@ -964,7 +1339,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/rowlet-runtime-decode.txt",
       "runtimePeakDb": -2.127513,
-      "runtimeRmsDb": -12.488629
+      "runtimeRmsDb": -12.488629,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0722_cry.opus",
+        "uploadedAt": "2025-03-11T08:13:15Z",
+        "originalSha1": "1e3932fb20f5518894723198e15aef4955e28ada",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     },
     {
       "id": "mimikyu",
@@ -1001,7 +1391,22 @@
       "runtimeDecodedAtImport": false,
       "runtimeDecodeRecord": "artifacts/pokemon-expansion/encyclopedia-cries/encoding/mimikyu-runtime-decode.txt",
       "runtimePeakDb": -3.300325,
-      "runtimeRmsDb": -17.461036
+      "runtimeRmsDb": -17.461036,
+      "sourceProvenance": {
+        "evidence": "artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/provenance.json",
+        "descriptionUrl": "https://wiki.52poke.com/wiki/File:0778_cry.opus",
+        "uploadedAt": "2025-03-11T08:15:19Z",
+        "originalSha1": "c639e9a8f347a11340ea4a6b6e9d1426fefefa15",
+        "originalMatchesPublicFile": true,
+        "wikiUsageLabel": "I-Fairuse-audio-effects",
+        "projectRedistributionPermissionConfirmed": false,
+        "gameGeneration": null
+      },
+      "playbackVerification": {
+        "decodedAndPlaybackCallsVerified": true,
+        "evidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-normal-play/forecast-match-final-20261006/results.json",
+        "scope": "Existing same-byte audio in the prior verified package; final-package playback is recorded separately in acceptance. Human listening unverified."
+      }
     }
   ],
   "encoder": {

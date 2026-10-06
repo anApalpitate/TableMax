@@ -8,6 +8,7 @@ import type { Memory } from './memory';
 import { previewRelay } from './relay';
 import { previewRocketPikachu } from './rocket';
 import { copyTableFields, type TableFields } from './table';
+import { createTactics, informationValue, nextActorRisk } from './tactics';
 type Random = { next(): number };
 type Model = TableFields & {
   pool: string[];
@@ -235,7 +236,7 @@ export function choose(
       actions.find((a) => a.type === 'initial-flip' && a.slot === 4) ??
       actions[0]!
     );
-  if (view.phase === 'charizard-choice')
+  if (view.phase === 'charizard-choice' && difficulty !== 'juewu')
     return [...actions].sort((a, b) => {
       const rank = (x: Action) =>
         x.type === 'peek'
@@ -243,7 +244,7 @@ export function choose(
           : -2;
       return rank(b) - rank(a);
     })[0]!;
-  if (view.phase === 'mewtwo-target')
+  if (view.phase === 'mewtwo-target' && difficulty !== 'juewu')
     return [...actions].sort((a, b) => {
       const rank = (x: Action) =>
         x.type === 'mewtwo-target'
@@ -274,9 +275,18 @@ export function choose(
     }
     return actions[sums.indexOf(Math.max(...sums))]!;
   }
-  const score = (board: string[], up: boolean[]) =>
-    scoreBoard(board, tasks, up).total;
-  const utility = (model: Model) => {
+  const scoreCache = new Map<string, number>();
+  const resolvedCache = new Map<string, number[]>();
+  const score = (board: string[], up: boolean[]) => {
+    if (difficulty !== 'juewu') return scoreBoard(board, tasks, up).total;
+    const key = `${board.join(',')}/${up.map(Boolean).map(Number).join('')}`;
+    const cached = scoreCache.get(key);
+    if (cached !== undefined) return cached;
+    const value = scoreBoard(board, tasks, up).total;
+    if (scoreCache.size < 768) scoreCache.set(key, value);
+    return value;
+  };
+  const tableUtility = (model: Model) => {
     const mine = score(model.boards[seat]!, model.up[seat]!);
     const opponent = Math.min(
       ...view.seatOrder
@@ -308,7 +318,14 @@ export function choose(
     }
     // Near-complete lines have no future value once this full chain settles.
     if (closesRound) return value;
-    const resolved = scoreBoard(model.boards[seat]!).values;
+    const boardKey = model.boards[seat]!.join(',');
+    let resolved =
+      difficulty === 'juewu' ? resolvedCache.get(boardKey) : undefined;
+    if (!resolved) {
+      resolved = scoreBoard(model.boards[seat]!).values;
+      if (difficulty === 'juewu' && resolvedCache.size < 768)
+        resolvedCache.set(boardKey, resolved);
+    }
     for (const line of lines) {
       const values = line.map((i) => resolved[i]);
       if (new Set(values).size === 2)
@@ -316,6 +333,14 @@ export function choose(
     }
     return value;
   };
+  const utility = (model: Model) =>
+    tableUtility(model) +
+    (difficulty === 'juewu' ? nextActorRisk(view, seat, model, score) : 0);
+  let tactics: ReturnType<typeof createTactics> | null = null;
+  const information = new Map<
+    number,
+    { observable: string; revealed: string; values: number[] }[]
+  >();
   const bestReplace = (model: Model, target: string, incoming: string) => {
     let best = Infinity;
     for (const i of grid.slots) {
@@ -406,6 +431,14 @@ export function choose(
     };
     const own = model.boards[seat]!,
       up = model.up[seat]!;
+    if (tactics && a.type === 'draw') {
+      const value = tactics.draw(model, a);
+      if (value !== null) return value;
+    }
+    if (tactics && a.type === 'mewtwo-target') {
+      const value = tactics.target(model, a);
+      if (value !== null) return value;
+    }
     if (a.type === 'pass-direction' && model.held)
       return bestRelay(model, relayOrder(a.direction), model.held);
     if (
@@ -462,8 +495,25 @@ export function choose(
         : 1000;
     }
     if (a.type === 'replace' && model.held) {
-      own[a.slot] = model.held;
+      const incoming = model.held,
+        outgoing = own[a.slot]!;
+      own[a.slot] = incoming;
       up[a.slot] = true;
+      if (tactics && view.phase === 'place') {
+        const last = view.events.at(-1)?.action;
+        const suppressed =
+          last?.ability === 'lucario' ||
+          (last?.verb === 'decline-ability' && last.ability === 'mewtwo');
+        if (!suppressed)
+          return tactics.afterPlacement(
+            {
+              ...model,
+              held: null,
+              discards: [outgoing, ...model.discards].slice(0, 2),
+            },
+            incoming,
+          );
+      }
     }
     if (a.type === 'reposition' || a.type === 'swap') {
       [own[a.a], own[a.b]] = [own[a.b]!, own[a.a]!];
@@ -491,6 +541,7 @@ export function choose(
       return view.drawSource === 'deck'
         ? Math.min(discardValue(model), bestReplace(model, seat, model.held))
         : bestReplace(model, seat, model.held);
+    if (a.type === 'activate-arceus' && tactics) return tactics.arceus(model);
     if (a.type === 'activate-arceus')
       for (const id of view.seatOrder) {
         model.up[id] = Array<boolean>(9).fill(false);
@@ -532,6 +583,37 @@ export function choose(
     if (signal.aborted) throw new Error('Aborted');
     if (n > 0 && performance.now() > deadline) break;
     const model = sample(view, memory, random);
+    scoreCache.clear();
+    resolvedCache.clear();
+    tactics =
+      difficulty === 'juewu'
+        ? createTactics(view, seat, score, utility, n)
+        : null;
+    if (difficulty === 'juewu' && view.phase === 'charizard-choice') {
+      const incoming = model.pool.at(-1);
+      if (incoming && card(incoming).ability === null) {
+        const values = grid.slots.map((slot) => {
+          const preview = previewBoard(model.boards[seat]!, model.up[seat]!, {
+            type: 'replace',
+            slot,
+            incoming,
+          });
+          return score(preview.board, preview.up);
+        });
+        values.push(score(model.boards[seat]!, model.up[seat]!));
+        actions.forEach((action, index) => {
+          if (action.type !== 'peek' || memory.known[seat]?.[action.slot])
+            return;
+          const rows = information.get(index) ?? [];
+          rows.push({
+            observable: card(incoming).categoryId,
+            revealed: card(model.boards[seat]![action.slot]!).categoryId,
+            values,
+          });
+          information.set(index, rows);
+        });
+      }
+    }
     if (view.phase === 'draw' && difficulty !== 'default')
       hypotheses.push({
         board: model.boards[seat]!,
@@ -562,7 +644,11 @@ export function choose(
       action,
       value:
         (action.type === 'extra-draw' ? Math.min(...extraSums) : sums[i]!) /
-        samples,
+          samples -
+        (action.type === 'peek' && difficulty === 'juewu'
+          ? informationValue(information.get(i) ?? []) +
+            (memory.known[seat]?.[action.slot] ? 0 : 0.02)
+          : 0),
     }))
     .sort((a, b) => a.value - b.value);
   // Bounded own-turn lookahead averages the same authorized hypotheses as immediate evaluation.

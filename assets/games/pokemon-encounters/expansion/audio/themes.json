@@ -8,7 +8,7 @@
     "binarySha256": "2ce797a0f88d7f067180338fb227f7b1928ea727bd9a4d7a1d022f7c52af71a3",
     "toolRecord": "tmp/pokemon-expansion-materials/tools/ffmpeg-tool.json"
   },
-  "purpose": "Original ability/research theme feedback while official voice gap remains",
+  "purpose": "Original procedural ability and research themes complement existing character cries; they do not replace the 27 imported cries.",
   "assets": [
     {
       "id": "mewtwo",
@@ -132,7 +132,7 @@
       "sourceBitsPerSample": 16,
       "sourcePeakFraction": 0.5999938962981048,
       "sourceRmsFraction": 0.13834544011679709,
-      "sourceMeanFraction": 4.6094169349004285e-5,
+      "sourceMeanFraction": 0.000046094169349004285,
       "runtimeEvidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-runtime/portable-99514d30221a/results.json"
     },
     {
@@ -182,7 +182,7 @@
       "sourceBitsPerSample": 16,
       "sourcePeakFraction": 0.5999938962981048,
       "sourceRmsFraction": 0.11870676117717101,
-      "sourceMeanFraction": -5.1676419873653374e-5,
+      "sourceMeanFraction": -0.000051676419873653374,
       "runtimeEvidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-runtime/portable-99514d30221a/results.json"
     },
     {
@@ -207,7 +207,7 @@
       "sourceBitsPerSample": 16,
       "sourcePeakFraction": 0.5999938962981048,
       "sourceRmsFraction": 0.14909995980950522,
-      "sourceMeanFraction": 1.1825922421948912e-6,
+      "sourceMeanFraction": 0.0000011825922421948912,
       "runtimeEvidence": "artifacts/maintenance/v1.0.2/pokemon-expansion-runtime/portable-99514d30221a/results.json"
     }
   ]

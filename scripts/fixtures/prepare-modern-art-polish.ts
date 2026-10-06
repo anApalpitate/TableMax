@@ -9,6 +9,7 @@ import type {
 } from '../../packages/platform-core/src/model';
 import { validateSave } from '../../packages/platform-core/src/save-validation';
 import { SqliteSaveRepository } from '../../apps/server/src/save-repository';
+import { readCurrentSave } from '../../apps/server/src/save-audit';
 import { rules, bot } from '../../games/modern-art';
 import type {
   Action,
@@ -51,9 +52,7 @@ export async function clonePreparedEnded(
     });
     let bytes: string;
     try {
-      bytes = String(
-        database.prepare('SELECT data FROM saves WHERE id=1').get()!.data,
-      );
+      bytes = JSON.stringify(readCurrentSave(database));
     } finally {
       database.close();
     }
