@@ -39,10 +39,16 @@ describe('independent expansion configuration', () => {
     for (const t of tasks)
       expect(Object.keys(t).sort()).toEqual([
         'description',
+        'failurePenalty',
+        'failureVictory',
         'id',
         'name',
         'pool',
         'reward',
+        'rewardEffects',
+        'rewardText',
+        'riskText',
+        'successVictory',
       ]);
     expect(categoryPresentation('special-rayquaza').abilitySummary).toBe(
       '顶行交换',
@@ -67,9 +73,18 @@ describe('independent expansion configuration', () => {
       expect(instances.every((id) => available.has(id))).toBe(true);
       const score = scoreBoard(instances, [t.id], preReveal);
       expect(matchesTask(t.id, instances, score, preReveal)).toBe(true);
-      expect(score.research).toEqual([
-        { taskId: t.id, achieved: true, deduction: t.reward },
-      ]);
+      expect(score.research[0]).toMatchObject({
+        taskId: t.id,
+        achieved: true,
+        title: `${t.name}研究达成`,
+      });
+      expect(score.research[0]!.deduction).toBe(
+        -score.research[0]!.effects!.reduce(
+          (sum, effect) => sum + effect.adjustment,
+          0,
+        ),
+      );
+      expect(score.total).toBe(score.base - score.deduction);
       expect(definition.illustrationId).toBe(t.id);
       if (['lines', 'copy', 'visibility'].includes(definition.diagram.kind))
         expect(
@@ -80,19 +95,25 @@ describe('independent expansion configuration', () => {
     });
 
   it('parameter changes reach the registered predicate, including thresholds and distinctness', () => {
-    const definition = researchDefinition('R06');
+    const definition = researchDefinition('R06', 'legacy');
     const before = structuredClone(definition.condition);
     try {
       if (definition.condition.type !== 'zero-lines')
         throw new Error('Invalid fixture type');
       const { instances, preReveal } = definition.diagram.sample;
-      const score = scoreBoard(instances);
+      const score = scoreBoard(instances, [], preReveal, 'legacy');
       definition.condition.minimumValue = 11;
-      expect(matchesTask('R06', instances, score, preReveal)).toBe(false);
+      expect(matchesTask('R06', instances, score, preReveal, 'legacy')).toBe(
+        false,
+      );
       definition.condition.minimumValue = 10;
-      expect(matchesTask('R06', instances, score, preReveal)).toBe(true);
+      expect(matchesTask('R06', instances, score, preReveal, 'legacy')).toBe(
+        true,
+      );
       definition.condition.minimumRoles = 3;
-      expect(matchesTask('R06', instances, score, preReveal)).toBe(false);
+      expect(matchesTask('R06', instances, score, preReveal, 'legacy')).toBe(
+        false,
+      );
     } finally {
       definition.condition = before;
     }

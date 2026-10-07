@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { instancesForSeats, numeric } from './cards';
-import { tasks, matchesTask } from './research';
-import { scoreBoard } from './scoring';
+import { numeric } from './cards';
+import {
+  legacyTasks as tasks,
+  legacyMatches as matchesTask,
+  legacyInstances as instancesForSeats,
+  legacyScore as scoreBoard,
+} from './legacy-test';
+
 const values: Record<string, number[]> = {
   R01: [4, 4, 4, 1, 3, 5, 6, 7, 8],
   R02: [4, 1, 3, 4, 5, 6, 4, 7, 8],

@@ -4,414 +4,775 @@
     {
       "id": "R01",
       "name": "杰尼龟排排站",
-      "description": "至少一行形成归零线",
+      "description": "底行3张有效值均为0，且全盘恰好只有这一条归零线。",
       "reward": 3,
       "pool": "opening",
       "condition": {
-        "type": "zero-lines",
-        "lines": [0, 1, 2],
-        "require": "any",
-        "minimumValue": null,
-        "minimumRoles": null
+        "type": "all",
+        "conditions": [
+          {
+            "type": "zero-lines",
+            "lines": [2],
+            "require": "all",
+            "minimumValue": 0,
+            "minimumRoles": null
+          },
+          {
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [6, 7, 8],
+                "minimum": 0,
+                "maximum": 0
+              }
+            ]
+          },
+          {
+            "type": "zero-count",
+            "minimum": 1,
+            "maximum": 1
+          }
+        ]
       },
       "illustrationId": "R01",
       "diagram": {
-        "kind": "lines",
+        "kind": "positions",
         "sample": {
           "instances": [
-            "ordinary-4#01",
-            "ordinary-4#02",
-            "ordinary-4#03",
             "ordinary-1#01",
-            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-8#01",
             "ordinary-5#01",
-            "ordinary-6#01",
             "ordinary-7#01",
-            "ordinary-8#01"
+            "ordinary-9#01",
+            "ordinary-0#01",
+            "ordinary-0#02",
+            "ordinary-0#03"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [0, 1, 2],
-        "highlightLines": [0],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 1, 2],
-            "text": "同值成线 → 归零"
-          }
-        ],
-        "caption": "至少一行形成归零线"
+        "annotations": [],
+        "caption": "达成示例：底行3张有效值均为0，且全盘恰好只有这一条归零线。"
       },
       "presentation": {
         "flavor": "站好一排，烦恼归零！",
         "subjects": ["ordinary-4", "ordinary-4", "ordinary-4"]
+      },
+      "rewardText": "每个归零位置再减5分",
+      "riskText": "未达成加8分",
+      "rewardEffects": [
+        {
+          "kind": "zero-bounty",
+          "amount": 5,
+          "cap": 90
+        }
+      ],
+      "failurePenalty": 8,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R02",
       "name": "大岩蛇叠叠乐",
-      "description": "至少一列形成归零线",
+      "description": "中列有效值相同且至少8，全盘至少6种角色。",
       "reward": 3,
       "pool": "opening",
       "condition": {
-        "type": "zero-lines",
-        "lines": [3, 4, 5],
-        "require": "any",
-        "minimumValue": null,
-        "minimumRoles": null
+        "type": "all",
+        "conditions": [
+          {
+            "type": "zero-lines",
+            "lines": [4],
+            "require": "all",
+            "minimumValue": 8,
+            "minimumRoles": null
+          },
+          {
+            "type": "distinct-roles",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": 6
+          }
+        ]
       },
       "illustrationId": "R02",
       "diagram": {
-        "kind": "lines",
+        "kind": "roles",
         "sample": {
           "instances": [
-            "ordinary-4#01",
             "ordinary-1#01",
+            "ordinary-8#01",
             "ordinary-3#01",
-            "ordinary-4#02",
+            "ordinary-4#01",
+            "ordinary-gardevoir#01",
             "ordinary-5#01",
-            "ordinary-6#01",
-            "ordinary-4#03",
             "ordinary-7#01",
-            "ordinary-8#01"
+            "special-mewtwo#01",
+            "ordinary-9#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [0, 3, 6],
-        "highlightLines": [3],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 3, 6],
-            "text": "同值成列 → 归零"
-          }
-        ],
-        "caption": "至少一列形成归零线"
+        "annotations": [],
+        "caption": "达成示例：中列有效值相同且至少8，全盘至少6种角色。"
       },
       "presentation": {
         "flavor": "一层一层，叠到归零。",
         "subjects": ["ordinary-9"]
+      },
+      "rewardText": "正基础分折半（向下取整）",
+      "riskText": "未达成加10分",
+      "rewardEffects": [
+        {
+          "kind": "base-scale",
+          "denominator": 2
+        }
+      ],
+      "failurePenalty": 10,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R03",
       "name": "闪电鸟斜线冲刺",
-      "description": "至少一条主对角线形成归零线",
+      "description": "两条对角线均归零，且其有效值至少8。",
       "reward": 4,
       "pool": "opening",
       "condition": {
         "type": "zero-lines",
         "lines": [6, 7],
-        "require": "any",
-        "minimumValue": null,
+        "require": "all",
+        "minimumValue": 8,
         "minimumRoles": null
       },
       "illustrationId": "R03",
       "diagram": {
-        "kind": "lines",
+        "kind": "positions",
         "sample": {
           "instances": [
-            "ordinary-4#01",
-            "ordinary-1#01",
-            "ordinary-3#01",
-            "ordinary-5#01",
-            "ordinary-4#02",
-            "ordinary-6#01",
-            "ordinary-7#01",
             "ordinary-8#01",
-            "ordinary-4#03"
+            "ordinary-1#01",
+            "ordinary-8#02",
+            "ordinary-piplup#01",
+            "ordinary-8#03",
+            "ordinary-3#01",
+            "ordinary-gardevoir#01",
+            "ordinary-4#01",
+            "ordinary-gardevoir#02"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [0, 4, 8],
-        "highlightLines": [6],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 4, 8],
-            "text": "同值主斜线 → 归零"
-          }
-        ],
-        "caption": "至少一条主对角线形成归零线"
+        "annotations": [],
+        "caption": "达成示例：两条对角线均归零，且其有效值至少8。"
       },
       "presentation": {
         "flavor": "抄条斜线，电光到站！",
         "subjects": ["special-zapdos"]
+      },
+      "rewardText": "达成且赢本小局，额外获得1胜",
+      "riskText": "未达成加12分",
+      "rewardEffects": [],
+      "failurePenalty": 12,
+      "successVictory": {
+        "bonus": 1,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R04",
       "name": "路卡利欧十字波",
-      "description": "中间行与中间列同时归零",
+      "description": "中行与中列同时归零且有效值至少6，归零外至少2张负数。",
       "reward": 5,
       "pool": "opening",
       "condition": {
-        "type": "zero-lines",
-        "lines": [1, 4],
-        "require": "all",
-        "minimumValue": null,
-        "minimumRoles": null
+        "type": "all",
+        "conditions": [
+          {
+            "type": "zero-lines",
+            "lines": [1, 4],
+            "require": "all",
+            "minimumValue": 6,
+            "minimumRoles": null
+          },
+          {
+            "type": "count",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": null,
+            "maximum": -1,
+            "category": null,
+            "ability": null,
+            "copy": null,
+            "outsideZero": true,
+            "atLeast": 2,
+            "atMost": 9
+          }
+        ]
       },
       "illustrationId": "R04",
       "diagram": {
-        "kind": "lines",
+        "kind": "positions",
         "sample": {
           "instances": [
-            "ordinary-1#01",
-            "ordinary-4#01",
-            "ordinary-3#01",
-            "ordinary-4#02",
-            "ordinary-4#03",
-            "ordinary-4#04",
-            "ordinary-5#01",
-            "ordinary-4#05",
-            "ordinary-6#01"
+            "ordinary-togepi#01",
+            "ordinary-6#01",
+            "ordinary--2#01",
+            "ordinary-6#02",
+            "ordinary-6#03",
+            "ordinary-psyduck#01",
+            "ordinary-8#01",
+            "ordinary-psyduck#02",
+            "ordinary-9#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [1, 3, 4, 5, 7],
-        "highlightLines": [1, 4],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
         "arrows": [],
         "annotations": [],
-        "caption": "中间行与中间列同时归零"
+        "caption": "达成示例：中行与中列同时归零且有效值至少6，归零外至少2张负数。"
       },
       "presentation": {
         "flavor": "波导，往四个方向发射！",
         "subjects": ["special-lucario"]
+      },
+      "rewardText": "未归零的负数牌按3倍计分",
+      "riskText": "未达成加12分",
+      "rewardEffects": [
+        {
+          "kind": "negative-scale",
+          "factor": 3
+        }
+      ],
+      "failurePenalty": 12,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R05",
       "name": "梦幻星星连线",
-      "description": "两条主对角线同时归零",
+      "description": "中央为梦幻，外圈有效值都不高于3，全盘至少6种角色。",
       "reward": 5,
       "pool": "opening",
       "condition": {
-        "type": "zero-lines",
-        "lines": [6, 7],
-        "require": "all",
-        "minimumValue": null,
-        "minimumRoles": null
+        "type": "all",
+        "conditions": [
+          {
+            "type": "count",
+            "slots": [4],
+            "minimum": null,
+            "maximum": null,
+            "category": "special-mew",
+            "ability": null,
+            "copy": null,
+            "outsideZero": false,
+            "atLeast": 1,
+            "atMost": 1
+          },
+          {
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [0, 1, 2, 3, 5, 6, 7, 8],
+                "minimum": null,
+                "maximum": 3
+              }
+            ]
+          },
+          {
+            "type": "distinct-roles",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": 6
+          }
+        ]
       },
       "illustrationId": "R05",
       "diagram": {
-        "kind": "lines",
+        "kind": "roles",
         "sample": {
           "instances": [
-            "ordinary-4#01",
+            "ordinary-0#01",
             "ordinary-1#01",
-            "ordinary-4#02",
             "ordinary-3#01",
-            "ordinary-4#03",
-            "ordinary-5#01",
-            "ordinary-4#04",
-            "ordinary-6#01",
-            "ordinary-4#05"
+            "ordinary-togepi#01",
+            "special-mew#01",
+            "ordinary-piplup#01",
+            "ordinary--2#01",
+            "ordinary-rowlet#01",
+            "ordinary-magikarp#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [0, 2, 4, 6, 8],
-        "highlightLines": [6, 7],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
         "arrows": [],
         "annotations": [],
-        "caption": "两条主对角线同时归零"
+        "caption": "达成示例：中央为梦幻，外圈有效值都不高于3，全盘至少6种角色。"
       },
       "presentation": {
         "flavor": "两条星路，刚好在这里相遇。",
         "subjects": ["special-mew"]
+      },
+      "rewardText": "梦幻计为−12分，再减10分",
+      "riskText": "未达成加12分",
+      "rewardEffects": [
+        {
+          "kind": "card-value",
+          "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+          "category": "special-mew",
+          "minimum": null,
+          "highestOnly": false,
+          "value": -12,
+          "cap": 40
+        },
+        {
+          "kind": "flat",
+          "amount": -10
+        }
+      ],
+      "failurePenalty": 12,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R06",
       "name": "巨金怪重装归零",
-      "description": "至少一条归零线的有效值≥10",
+      "description": "至少1条有效值不低于10的归零线，归零外至少2张有效值不低于8。",
       "reward": 4,
       "pool": "opening",
       "condition": {
-        "type": "zero-lines",
-        "lines": [0, 1, 2, 3, 4, 5, 6, 7],
-        "require": "any",
-        "minimumValue": 10,
-        "minimumRoles": null
+        "type": "all",
+        "conditions": [
+          {
+            "type": "zero-lines",
+            "lines": [0, 1, 2, 3, 4, 5, 6, 7],
+            "require": "any",
+            "minimumValue": 10,
+            "minimumRoles": null
+          },
+          {
+            "type": "count",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": 8,
+            "maximum": null,
+            "category": null,
+            "ability": null,
+            "copy": null,
+            "outsideZero": true,
+            "atLeast": 2,
+            "atMost": 9
+          }
+        ]
       },
       "illustrationId": "R06",
       "diagram": {
-        "kind": "lines",
+        "kind": "positions",
         "sample": {
           "instances": [
             "ordinary-metagross#01",
             "ordinary-metagross#02",
             "ordinary-metagross#03",
+            "ordinary-8#01",
+            "ordinary-9#01",
             "ordinary-1#01",
+            "ordinary-piplup#01",
             "ordinary-3#01",
-            "ordinary-4#01",
-            "ordinary-5#01",
-            "ordinary-6#01",
-            "ordinary-7#01"
+            "ordinary-4#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [0, 1, 2],
-        "highlightLines": [0],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 1, 2],
-            "text": "归零线有效值 ≥10"
-          }
-        ],
-        "caption": "至少一条归零线的有效值≥10"
+        "annotations": [],
+        "caption": "达成示例：至少1条有效值不低于10的归零线，归零外至少2张有效值不低于8。"
       },
       "presentation": {
         "flavor": "重装出场，账单归零。",
         "subjects": ["ordinary-metagross"]
+      },
+      "rewardText": "未归零的8以上牌计为−2，最多减40分",
+      "riskText": "未达成加15分",
+      "rewardEffects": [
+        {
+          "kind": "card-value",
+          "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+          "category": null,
+          "minimum": 8,
+          "highestOnly": false,
+          "value": -2,
+          "cap": 40
+        }
+      ],
+      "failurePenalty": 15,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R07",
       "name": "胖丁四角演唱会",
-      "description": "四角有效值相同，且该值≥0",
+      "description": "四角有效值相同且至少8，中央为负数，全盘没有归零线。",
       "reward": 4,
       "pool": "opening",
       "condition": {
-        "type": "equal-groups",
-        "groups": [[0, 2, 6, 8]],
-        "minimumValue": 0,
-        "differentGroups": false
+        "type": "all",
+        "conditions": [
+          {
+            "type": "equal-groups",
+            "groups": [[0, 2, 6, 8]],
+            "minimumValue": 8,
+            "differentGroups": false
+          },
+          {
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [4],
+                "minimum": null,
+                "maximum": -1
+              }
+            ]
+          },
+          {
+            "type": "zero-count",
+            "minimum": 0,
+            "maximum": 0
+          }
+        ]
       },
       "illustrationId": "R07",
       "diagram": {
         "kind": "positions",
         "sample": {
           "instances": [
-            "ordinary-4#01",
+            "ordinary-8#01",
             "ordinary-1#01",
-            "ordinary-4#02",
+            "ordinary-8#02",
+            "ordinary-piplup#01",
+            "ordinary-togepi#01",
             "ordinary-3#01",
-            "ordinary-5#01",
-            "ordinary-6#01",
-            "ordinary-4#03",
-            "ordinary-7#01",
-            "ordinary-4#04"
+            "ordinary-8#03",
+            "ordinary-4#01",
+            "ordinary-gardevoir#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [0, 2, 6, 8],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 2, 6, 8],
-            "text": "四角同值，且 ≥0"
-          }
-        ],
-        "caption": "四角有效值相同，且该值≥0"
+        "annotations": [],
+        "caption": "达成示例：四角有效值相同且至少8，中央为负数，全盘没有归零线。"
       },
       "presentation": {
         "flavor": "四个角落，都要听见这首歌！",
         "subjects": ["ordinary-0"]
+      },
+      "rewardText": "正基础分折半（向下取整）",
+      "riskText": "未达成加12分",
+      "rewardEffects": [
+        {
+          "kind": "base-scale",
+          "denominator": 2
+        }
+      ],
+      "failurePenalty": 12,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R08",
       "name": "可达鸭照镜子",
-      "description": "上中＝下中，左中＝右中",
+      "description": "上下边中同值且不高于3，左右边中同值且至少8，中央有效值为0。",
       "reward": 3,
       "pool": "opening",
       "condition": {
-        "type": "equal-groups",
-        "groups": [
-          [1, 7],
-          [3, 5]
-        ],
-        "minimumValue": null,
-        "differentGroups": false
+        "type": "all",
+        "conditions": [
+          {
+            "type": "equal-groups",
+            "groups": [
+              [1, 7],
+              [3, 5]
+            ],
+            "minimumValue": null,
+            "differentGroups": true
+          },
+          {
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [1, 7],
+                "minimum": null,
+                "maximum": 3
+              }
+            ]
+          },
+          {
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [3, 5],
+                "minimum": 8,
+                "maximum": null
+              }
+            ]
+          },
+          {
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [4],
+                "minimum": 0,
+                "maximum": 0
+              }
+            ]
+          }
+        ]
       },
       "illustrationId": "R08",
       "diagram": {
         "kind": "positions",
         "sample": {
           "instances": [
-            "ordinary-0#01",
             "ordinary-1#01",
             "ordinary-piplup#01",
             "ordinary-3#01",
+            "ordinary-8#01",
+            "ordinary-0#01",
+            "ordinary-8#02",
             "ordinary-4#01",
-            "ordinary-3#02",
-            "ordinary-5#01",
-            "ordinary-1#02",
-            "ordinary-6#01"
+            "ordinary-piplup#02",
+            "ordinary-5#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [1, 7, 3, 5],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
         "arrows": [],
         "annotations": [],
-        "caption": "上中＝下中，左中＝右中"
+        "caption": "达成示例：上下边中同值且不高于3，左右边中同值且至少8，中央有效值为0。"
       },
       "presentation": {
         "flavor": "这边一个我，那边还是我？",
         "subjects": ["ordinary-psyduck", "ordinary-psyduck"]
+      },
+      "rewardText": "左右边中未归零牌计为−6分",
+      "riskText": "未达成加10分",
+      "rewardEffects": [
+        {
+          "kind": "card-value",
+          "slots": [3, 5],
+          "category": null,
+          "minimum": null,
+          "highestOnly": false,
+          "value": -6,
+          "cap": 120
+        }
+      ],
+      "failurePenalty": 10,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R09",
       "name": "水火各自成双",
-      "description": "两组对角角格分别同值，且两组值不同",
+      "description": "左上与右下同值且至少8，右上与左下同值且不高于2，中央至少10且严格高于其余牌。",
       "reward": 4,
       "pool": "opening",
       "condition": {
-        "type": "equal-groups",
-        "groups": [
-          [0, 8],
-          [2, 6]
-        ],
-        "minimumValue": null,
-        "differentGroups": true
+        "type": "all",
+        "conditions": [
+          {
+            "type": "equal-groups",
+            "groups": [
+              [0, 8],
+              [2, 6]
+            ],
+            "minimumValue": null,
+            "differentGroups": true
+          },
+          {
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [0, 8],
+                "minimum": 8,
+                "maximum": null
+              }
+            ]
+          },
+          {
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [2, 6],
+                "minimum": null,
+                "maximum": 2
+              }
+            ]
+          },
+          {
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [4],
+                "minimum": 10,
+                "maximum": null
+              }
+            ]
+          },
+          {
+            "type": "center-extreme",
+            "center": 4,
+            "slots": [0, 1, 2, 3, 5, 6, 7, 8],
+            "extreme": "maximum"
+          }
+        ]
       },
       "illustrationId": "R09",
       "diagram": {
         "kind": "positions",
         "sample": {
           "instances": [
-            "ordinary-4#01",
-            "ordinary-1#01",
-            "ordinary-6#01",
-            "ordinary-3#01",
-            "ordinary-5#01",
-            "ordinary-7#01",
-            "ordinary-6#02",
             "ordinary-8#01",
-            "ordinary-4#02"
+            "ordinary-1#01",
+            "ordinary-0#01",
+            "ordinary-3#01",
+            "ordinary-metagross#01",
+            "ordinary-4#01",
+            "ordinary-0#02",
+            "ordinary-5#01",
+            "ordinary-8#02"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [0, 2, 6, 8],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
         "arrows": [],
         "annotations": [],
-        "caption": "两组对角角格分别同值，且两组值不同"
+        "caption": "达成示例：左上与右下同值且至少8，右上与左下同值且不高于2，中央至少10且严格高于其余牌。"
       },
       "presentation": {
         "flavor": "杰尼龟一队，六尾另一队！",
         "subjects": ["ordinary-4", "ordinary-5"]
+      },
+      "rewardText": "未归零的中央牌计为−12分",
+      "riskText": "未达成加12分",
+      "rewardEffects": [
+        {
+          "kind": "card-value",
+          "slots": [4],
+          "category": null,
+          "minimum": null,
+          "highestOnly": false,
+          "value": -12,
+          "cap": 120
+        }
+      ],
+      "failurePenalty": 12,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R10",
       "name": "伊布绕圈升级",
-      "description": "上中＜右中＜下中＜左中",
+      "description": "上、右、下、左边中按顺时针每次严格增加2，且没有归零线。",
       "reward": 4,
       "pool": "opening",
       "condition": {
-        "type": "ordered-values",
-        "groups": [[1, 5, 7, 3]],
-        "require": "all",
-        "minimumStep": 1,
-        "equalStep": false,
-        "exactStep": null,
-        "minimumSpan": 0
+        "type": "all",
+        "conditions": [
+          {
+            "type": "ordered-values",
+            "groups": [[1, 5, 7, 3]],
+            "require": "all",
+            "minimumStep": 1,
+            "equalStep": true,
+            "exactStep": 2,
+            "minimumSpan": 0
+          },
+          {
+            "type": "zero-count",
+            "minimum": 0,
+            "maximum": 0
+          }
+        ]
       },
       "illustrationId": "R10",
       "diagram": {
@@ -420,348 +781,531 @@
           "instances": [
             "ordinary-0#01",
             "ordinary-1#01",
-            "ordinary-piplup#01",
-            "ordinary-5#01",
-            "ordinary-8#01",
             "ordinary-3#01",
-            "ordinary-6#01",
+            "ordinary-7#01",
             "ordinary-4#01",
-            "ordinary-7#01"
+            "ordinary-3#02",
+            "ordinary-8#01",
+            "ordinary-5#01",
+            "ordinary-9#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [1, 5, 7, 3],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
-        "arrows": [
-          {
-            "from": 1,
-            "to": 5
-          },
-          {
-            "from": 5,
-            "to": 7
-          },
-          {
-            "from": 7,
-            "to": 3
-          }
-        ],
+        "arrows": [],
         "annotations": [],
-        "caption": "上中＜右中＜下中＜左中"
+        "caption": "达成示例：上、右、下、左边中按顺时针每次严格增加2，且没有归零线。"
       },
       "presentation": {
         "flavor": "绕一圈，每一站都更厉害。",
         "subjects": ["ordinary-1"]
+      },
+      "rewardText": "再减正基础分的2倍，最多减80分",
+      "riskText": "未达成加20分",
+      "rewardEffects": [
+        {
+          "kind": "base-credit",
+          "factor": 2,
+          "cap": 80
+        }
+      ],
+      "failurePenalty": 20,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R11",
       "name": "皮卡丘C位出道",
-      "description": "中心有效值严格小于其余八格",
+      "description": "中央为负数，四角都至少8并包含至少3种有效值。",
       "reward": 3,
       "pool": "opening",
       "condition": {
-        "type": "center-extreme",
-        "center": 4,
-        "slots": [0, 1, 2, 3, 5, 6, 7, 8],
-        "extreme": "minimum"
+        "type": "all",
+        "conditions": [
+          {
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [4],
+                "minimum": null,
+                "maximum": -1
+              }
+            ]
+          },
+          {
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [0, 2, 6, 8],
+                "minimum": 8,
+                "maximum": null
+              }
+            ]
+          },
+          {
+            "type": "distinct-values",
+            "slots": [0, 2, 6, 8],
+            "minimum": 3
+          }
+        ]
       },
       "illustrationId": "R11",
       "diagram": {
         "kind": "positions",
         "sample": {
           "instances": [
-            "ordinary-0#01",
+            "ordinary-8#01",
             "ordinary-1#01",
+            "ordinary-9#01",
             "ordinary-piplup#01",
+            "ordinary-togepi#01",
             "ordinary-3#01",
-            "ordinary--2#01",
+            "ordinary-metagross#01",
             "ordinary-4#01",
-            "ordinary-5#01",
-            "ordinary-6#01",
-            "ordinary-7#01"
+            "ordinary-garchomp#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
         "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [4],
-            "text": "中心最小"
-          }
-        ],
-        "caption": "中心有效值严格小于其余八格"
+        "annotations": [],
+        "caption": "达成示例：中央为负数，四角都至少8并包含至少3种有效值。"
       },
       "presentation": {
         "flavor": "个头不抢镜，分数才是绝招。",
         "subjects": ["ordinary--2"]
+      },
+      "rewardText": "负数计3倍，再减15分",
+      "riskText": "未达成加8分",
+      "rewardEffects": [
+        {
+          "kind": "negative-scale",
+          "factor": 3
+        },
+        {
+          "kind": "flat",
+          "amount": -15
+        }
+      ],
+      "failurePenalty": 8,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R12",
       "name": "火箭队占据C位",
-      "description": "中心有效值严格大于其余八格",
+      "description": "中央为未归零的火箭队，其余位置至少3张主动能力牌，且至少1条归零线。",
       "reward": 4,
       "pool": "opening",
       "condition": {
-        "type": "center-extreme",
-        "center": 4,
-        "slots": [0, 1, 2, 3, 5, 6, 7, 8],
-        "extreme": "maximum"
+        "type": "all",
+        "conditions": [
+          {
+            "type": "count",
+            "slots": [4],
+            "minimum": null,
+            "maximum": null,
+            "category": "special-team-rocket",
+            "ability": null,
+            "copy": null,
+            "outsideZero": true,
+            "atLeast": 1,
+            "atMost": 1
+          },
+          {
+            "type": "count",
+            "slots": [0, 1, 2, 3, 5, 6, 7, 8],
+            "minimum": null,
+            "maximum": null,
+            "category": null,
+            "ability": true,
+            "copy": null,
+            "outsideZero": false,
+            "atLeast": 3,
+            "atMost": 8
+          },
+          {
+            "type": "zero-count",
+            "minimum": 1,
+            "maximum": 8
+          }
+        ]
       },
       "illustrationId": "R12",
       "diagram": {
-        "kind": "positions",
+        "kind": "roles",
         "sample": {
           "instances": [
-            "ordinary-0#01",
-            "ordinary-1#01",
+            "ordinary-metagross#01",
+            "ordinary-metagross#02",
+            "ordinary-metagross#03",
+            "special-mew#01",
+            "special-team-rocket#01",
+            "special-greninja#01",
             "ordinary-piplup#01",
             "ordinary-3#01",
-            "special-team-rocket#01",
-            "ordinary-4#01",
-            "ordinary-5#01",
-            "ordinary-6#01",
-            "ordinary-7#01"
+            "special-mewtwo#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
         "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [4],
-            "text": "中心最大"
-          }
-        ],
-        "caption": "中心有效值严格大于其余八格"
+        "annotations": [],
+        "caption": "达成示例：中央为未归零的火箭队，其余位置至少3张主动能力牌，且至少1条归零线。"
       },
       "presentation": {
         "flavor": "今天，主角的位置我们要了！",
         "subjects": ["special-team-rocket"]
+      },
+      "rewardText": "未归零的火箭队计为−12，最多减48分",
+      "riskText": "未达成加18分",
+      "rewardEffects": [
+        {
+          "kind": "card-value",
+          "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+          "category": "special-team-rocket",
+          "minimum": null,
+          "highestOnly": false,
+          "value": -12,
+          "cap": 48
+        }
+      ],
+      "failurePenalty": 18,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R13",
       "name": "萌新村保护计划",
-      "description": "九格有效值全部≤5",
+      "description": "全盘有效值不高于4，至少5种角色，没有归零线。",
       "reward": 4,
       "pool": "opening",
       "condition": {
-        "type": "value-bands",
-        "bands": [
+        "type": "all",
+        "conditions": [
           {
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                "minimum": null,
+                "maximum": 4
+              }
+            ]
+          },
+          {
+            "type": "distinct-roles",
             "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
-            "minimum": null,
-            "maximum": 5
+            "minimum": 5
+          },
+          {
+            "type": "zero-count",
+            "minimum": 0,
+            "maximum": 0
           }
         ]
       },
       "illustrationId": "R13",
       "diagram": {
-        "kind": "values",
+        "kind": "roles",
         "sample": {
           "instances": [
+            "ordinary--2#01",
+            "ordinary-togepi#01",
             "ordinary-0#01",
             "ordinary-1#01",
             "ordinary-piplup#01",
             "ordinary-3#01",
             "ordinary-4#01",
-            "ordinary-5#01",
-            "ordinary-0#02",
-            "ordinary-1#02",
-            "ordinary-piplup#02"
+            "ordinary-rowlet#01",
+            "ordinary-magikarp#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
         "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
-            "text": "全部 ≤5"
-          }
-        ],
-        "caption": "九格有效值全部≤5"
+        "annotations": [],
+        "caption": "达成示例：全盘有效值不高于4，至少5种角色，没有归零线。"
       },
       "presentation": {
         "flavor": "小伙伴们，今天不拼大数字。",
         "subjects": ["ordinary-togepi", "ordinary-piplup", "ordinary-rowlet"]
+      },
+      "rewardText": "减25分",
+      "riskText": "未达成加10分",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -25
+        }
+      ],
+      "failurePenalty": 10,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R14",
       "name": "正负电荷碰个头",
-      "description": "至少一行之和为0，且同时含正、负值",
+      "description": "一行含正负数且合计0，其余两行各至少15分且行和不同。",
       "reward": 4,
       "pool": "opening",
       "condition": {
-        "type": "signed-line-sum",
-        "groups": [
+        "type": "signed-row-balance",
+        "zeroGroups": [
           [0, 1, 2],
           [3, 4, 5],
           [6, 7, 8]
         ],
-        "sum": 0
+        "otherMinimum": 15
       },
       "illustrationId": "R14",
       "diagram": {
-        "kind": "values",
+        "kind": "positions",
         "sample": {
           "instances": [
             "ordinary--2#01",
-            "ordinary-togepi#01",
-            "ordinary-3#01",
             "ordinary-0#01",
-            "ordinary-1#01",
+            "ordinary-piplup#01",
             "ordinary-4#01",
             "ordinary-5#01",
             "ordinary-6#01",
-            "ordinary-7#01"
+            "ordinary-7#01",
+            "ordinary-8#01",
+            "ordinary-9#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [0, 1, 2],
-        "highlightLines": [0],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 1, 2],
-            "text": "−2 −1 ＋3 ＝0"
-          }
-        ],
-        "caption": "至少一行之和为0，且同时含正、负值"
+        "annotations": [],
+        "caption": "达成示例：一行含正负数且合计0，其余两行各至少15分且行和不同。"
       },
       "presentation": {
         "flavor": "有加有减，刚好抵消！",
         "subjects": ["ordinary--2", "ordinary-togepi", "ordinary-3"]
+      },
+      "rewardText": "正基础分折半，再减10分",
+      "riskText": "未达成加12分",
+      "rewardEffects": [
+        {
+          "kind": "base-scale",
+          "denominator": 2
+        },
+        {
+          "kind": "flat",
+          "amount": -10
+        }
+      ],
+      "failurePenalty": 12,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R15",
       "name": "伊布升级打卡",
-      "description": "至少一行从左至右为三个连续整数",
+      "description": "顶行、底行从左到右每次增加1，中行归零。",
       "reward": 3,
       "pool": "opening",
       "condition": {
-        "type": "ordered-values",
-        "groups": [
-          [0, 1, 2],
-          [3, 4, 5],
-          [6, 7, 8]
-        ],
-        "require": "any",
-        "minimumStep": 1,
-        "equalStep": true,
-        "exactStep": 1,
-        "minimumSpan": 0
+        "type": "all",
+        "conditions": [
+          {
+            "type": "ordered-values",
+            "groups": [
+              [0, 1, 2],
+              [6, 7, 8]
+            ],
+            "require": "all",
+            "minimumStep": 1,
+            "equalStep": true,
+            "exactStep": 1,
+            "minimumSpan": 0
+          },
+          {
+            "type": "zero-lines",
+            "lines": [1],
+            "require": "all",
+            "minimumValue": null,
+            "minimumRoles": null
+          }
+        ]
       },
       "illustrationId": "R15",
       "diagram": {
-        "kind": "values",
+        "kind": "positions",
         "sample": {
           "instances": [
-            "ordinary-3#01",
-            "ordinary-4#01",
-            "ordinary-5#01",
-            "ordinary-0#01",
             "ordinary-1#01",
             "ordinary-piplup#01",
-            "ordinary-6#01",
-            "ordinary-7#01",
-            "ordinary-8#01"
+            "ordinary-3#01",
+            "ordinary-8#01",
+            "ordinary-8#02",
+            "ordinary-8#03",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-6#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [0, 1, 2],
-        "highlightLines": [0],
-        "arrows": [
-          {
-            "from": 0,
-            "to": 1
-          },
-          {
-            "from": 1,
-            "to": 2
-          }
-        ],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
         "annotations": [],
-        "caption": "至少一行从左至右为三个连续整数"
+        "caption": "达成示例：顶行、底行从左到右每次增加1，中行归零。"
       },
       "presentation": {
         "flavor": "一级一级来，训练不能跳级！",
         "subjects": ["ordinary-1"]
+      },
+      "rewardText": "上下两行未归零牌计为−2，最多减48分",
+      "riskText": "未达成加12分",
+      "rewardEffects": [
+        {
+          "kind": "card-value",
+          "slots": [0, 1, 2, 6, 7, 8],
+          "category": null,
+          "minimum": null,
+          "highestOnly": false,
+          "value": -2,
+          "cap": 48
+        }
+      ],
+      "failurePenalty": 12,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R16",
       "name": "快龙三级跳",
-      "description": "至少一列从上至下为等差数列，公差≥2",
+      "description": "三列从上到下严格递增且各跨度至少6，中列每次恰好增加3。",
       "reward": 4,
       "pool": "opening",
       "condition": {
-        "type": "ordered-values",
-        "groups": [
-          [0, 3, 6],
-          [1, 4, 7],
-          [2, 5, 8]
-        ],
-        "require": "any",
-        "minimumStep": 2,
-        "equalStep": true,
-        "exactStep": null,
-        "minimumSpan": 0
+        "type": "all",
+        "conditions": [
+          {
+            "type": "ordered-values",
+            "groups": [
+              [0, 3, 6],
+              [1, 4, 7],
+              [2, 5, 8]
+            ],
+            "require": "all",
+            "minimumStep": 1,
+            "equalStep": false,
+            "exactStep": null,
+            "minimumSpan": 6
+          },
+          {
+            "type": "ordered-values",
+            "groups": [[1, 4, 7]],
+            "require": "all",
+            "minimumStep": 1,
+            "equalStep": true,
+            "exactStep": 3,
+            "minimumSpan": 6
+          }
+        ]
       },
       "illustrationId": "R16",
       "diagram": {
-        "kind": "values",
+        "kind": "positions",
         "sample": {
           "instances": [
             "ordinary-0#01",
+            "ordinary-0#02",
             "ordinary-1#01",
-            "ordinary-piplup#01",
             "ordinary-3#01",
+            "ordinary-3#02",
             "ordinary-4#01",
-            "ordinary-5#01",
+            "ordinary-8#01",
             "ordinary-6#01",
-            "ordinary-7#01",
-            "ordinary-8#01"
+            "ordinary-9#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [0, 3, 6],
-        "highlightLines": [3],
-        "arrows": [
-          {
-            "from": 0,
-            "to": 3
-          },
-          {
-            "from": 3,
-            "to": 6
-          }
-        ],
-        "annotations": [
-          {
-            "slots": [0, 3, 6],
-            "text": "等差，公差 ≥2"
-          }
-        ],
-        "caption": "至少一列从上至下为等差数列，公差≥2"
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "达成示例：三列从上到下严格递增且各跨度至少6，中列每次恰好增加3。"
       },
       "presentation": {
         "flavor": "快龙：步子大，也要迈得整齐。",
         "subjects": ["ordinary-dragonite"]
+      },
+      "rewardText": "达成且赢本小局，额外获得1胜",
+      "riskText": "未达成加15分",
+      "rewardEffects": [],
+      "failurePenalty": 15,
+      "successVictory": {
+        "bonus": 1,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R17",
       "name": "卡比兽分便当",
-      "description": "三行之和相等，且每行至少两种有效值",
+      "description": "三行合计相同，每行3种有效值，全盘至少5种有效值。",
       "reward": 5,
       "pool": "opening",
       "condition": {
@@ -771,105 +1315,178 @@
           [3, 4, 5],
           [6, 7, 8]
         ],
-        "minimumDistinctPerGroup": 2,
-        "distinctSlots": [],
-        "minimumDistinctSlots": 0
+        "minimumDistinctPerGroup": 3,
+        "distinctSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "minimumDistinctSlots": 5
       },
       "illustrationId": "R17",
       "diagram": {
-        "kind": "values",
+        "kind": "positions",
         "sample": {
           "instances": [
             "ordinary-0#01",
+            "ordinary-4#01",
+            "ordinary-8#01",
             "ordinary-1#01",
             "ordinary-5#01",
-            "ordinary-1#02",
+            "ordinary-6#01",
             "ordinary-piplup#01",
             "ordinary-3#01",
-            "ordinary-0#02",
-            "ordinary-piplup#02",
-            "ordinary-4#01"
+            "ordinary-7#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
         "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 1, 2],
-            "text": "每行之和＝6"
-          },
-          {
-            "slots": [3, 4, 5],
-            "text": "每行之和＝6"
-          },
-          {
-            "slots": [6, 7, 8],
-            "text": "每行之和＝6"
-          }
-        ],
-        "caption": "三行之和相等，且每行至少两种有效值"
+        "annotations": [],
+        "caption": "达成示例：三行合计相同，每行3种有效值，全盘至少5种有效值。"
       },
       "presentation": {
         "flavor": "三份一样重，谁也别少吃！",
         "subjects": ["special-snorlax"]
+      },
+      "rewardText": "最高未归零牌计为−12，再减6分",
+      "riskText": "未达成加10分",
+      "rewardEffects": [
+        {
+          "kind": "card-value",
+          "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+          "category": null,
+          "minimum": null,
+          "highestOnly": true,
+          "value": -12,
+          "cap": 120
+        },
+        {
+          "kind": "flat",
+          "amount": -6
+        }
+      ],
+      "failurePenalty": 10,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R18",
       "name": "伊布的彩虹图鉴",
-      "description": "九格中至少有六种不同有效值",
+      "description": "九张有效值各不相同，至少3张主动能力牌，没有归零线。",
       "reward": 4,
       "pool": "opening",
       "condition": {
-        "type": "distinct-values",
-        "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
-        "minimum": 6
+        "type": "all",
+        "conditions": [
+          {
+            "type": "distinct-values",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": 9
+          },
+          {
+            "type": "count",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": null,
+            "maximum": null,
+            "category": null,
+            "ability": true,
+            "copy": null,
+            "outsideZero": false,
+            "atLeast": 3,
+            "atMost": 9
+          },
+          {
+            "type": "zero-count",
+            "minimum": 0,
+            "maximum": 0
+          }
+        ]
       },
       "illustrationId": "R18",
       "diagram": {
-        "kind": "values",
+        "kind": "roles",
         "sample": {
           "instances": [
+            "ordinary--2#01",
+            "ordinary-togepi#01",
             "ordinary-0#01",
             "ordinary-1#01",
-            "ordinary-piplup#01",
+            "special-mew#01",
             "ordinary-3#01",
-            "ordinary-4#01",
-            "ordinary-5#01",
-            "ordinary-6#01",
-            "ordinary-7#01",
-            "ordinary-8#01"
+            "special-greninja#01",
+            "special-mewtwo#01",
+            "special-zapdos#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
         "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
-            "text": "至少六种有效值"
-          }
-        ],
-        "caption": "九格中至少有六种不同有效值"
+        "annotations": [],
+        "caption": "达成示例：九张有效值各不相同，至少3张主动能力牌，没有归零线。"
       },
       "presentation": {
         "flavor": "不是一个颜色，是整道彩虹。",
         "subjects": ["ordinary-1"]
+      },
+      "rewardText": "正基础分取三分之一（向下取整）",
+      "riskText": "未达成加16分",
+      "rewardEffects": [
+        {
+          "kind": "base-scale",
+          "denominator": 3
+        }
+      ],
+      "failurePenalty": 16,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R19",
       "name": "全员宝可梦集合",
-      "description": "九张牌属于九种不同角色",
+      "description": "九种角色、至少6种有效值，而且没有复制牌。",
       "reward": 3,
       "pool": "opening",
       "condition": {
-        "type": "distinct-roles",
-        "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
-        "minimum": 9
+        "type": "all",
+        "conditions": [
+          {
+            "type": "distinct-roles",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": 9
+          },
+          {
+            "type": "distinct-values",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": 6
+          },
+          {
+            "type": "count",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": null,
+            "maximum": null,
+            "category": null,
+            "ability": null,
+            "copy": true,
+            "outsideZero": false,
+            "atLeast": 0,
+            "atMost": 0
+          }
+        ]
       },
       "illustrationId": "R19",
       "diagram": {
@@ -877,131 +1494,224 @@
         "sample": {
           "instances": [
             "ordinary--2#01",
+            "ordinary-togepi#01",
             "ordinary-0#01",
             "ordinary-1#01",
+            "special-mew#01",
             "ordinary-3#01",
-            "ordinary-4#01",
-            "ordinary-5#01",
-            "ordinary-6#01",
-            "ordinary-7#01",
-            "ordinary-8#01"
+            "special-greninja#01",
+            "special-mewtwo#01",
+            "special-zapdos#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
         "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
-            "text": "九种不同角色"
-          }
-        ],
-        "caption": "九张牌属于九种不同角色"
+        "annotations": [],
+        "caption": "达成示例：九种角色、至少6种有效值，而且没有复制牌。"
       },
       "presentation": {
         "flavor": "点名完毕，一个重复的都没有！",
         "subjects": ["ordinary-rowlet", "ordinary-piplup", "ordinary-psyduck"]
+      },
+      "rewardText": "达成且赢本小局，额外获得1胜",
+      "riskText": "未达成加8分；本局新增胜局最多使累计达到2胜",
+      "rewardEffects": [],
+      "failurePenalty": 8,
+      "successVictory": {
+        "bonus": 1,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 2
       }
     },
     {
       "id": "R20",
       "name": "异类也能组队",
-      "description": "至少一条归零线包含三种不同角色",
+      "description": "全盘恰好1条归零线，其有效值至少8且包含3种不同角色。",
       "reward": 4,
       "pool": "opening",
       "condition": {
-        "type": "zero-lines",
-        "lines": [0, 1, 2, 3, 4, 5, 6, 7],
-        "require": "any",
-        "minimumValue": null,
-        "minimumRoles": 3
+        "type": "all",
+        "conditions": [
+          {
+            "type": "zero-lines",
+            "lines": [0, 1, 2, 3, 4, 5, 6, 7],
+            "require": "any",
+            "minimumValue": 8,
+            "minimumRoles": 3
+          },
+          {
+            "type": "zero-count",
+            "minimum": 1,
+            "maximum": 1
+          }
+        ]
       },
       "illustrationId": "R20",
       "diagram": {
         "kind": "roles",
         "sample": {
           "instances": [
-            "special-ditto#01",
-            "ordinary-4#01",
-            "special-zorua#01",
-            "ordinary-1#01",
-            "ordinary-3#01",
-            "ordinary-4#02",
-            "ordinary-5#01",
-            "ordinary-6#01",
-            "ordinary-7#01"
-          ],
-          "preReveal": [true, true, true, true, true, true, true, true, true]
-        },
-        "highlightSlots": [0, 1, 2],
-        "highlightLines": [0],
-        "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 1, 2],
-            "text": "同值，三种角色"
-          }
-        ],
-        "caption": "至少一条归零线包含三种不同角色"
-      },
-      "presentation": {
-        "flavor": "长得不一样，配合照样满分。",
-        "subjects": ["special-ditto", "ordinary-4", "special-zorua"]
-      }
-    },
-    {
-      "id": "R21",
-      "name": "今天神兽休假",
-      "description": "九张牌全部为普通牌",
-      "reward": 3,
-      "pool": "opening",
-      "condition": {
-        "type": "ordinary-only",
-        "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8]
-      },
-      "illustrationId": "R21",
-      "diagram": {
-        "kind": "roles",
-        "sample": {
-          "instances": [
-            "ordinary--2#01",
+            "ordinary-8#01",
+            "ordinary-gardevoir#01",
+            "special-mewtwo#01",
             "ordinary-0#01",
             "ordinary-1#01",
+            "ordinary-piplup#01",
             "ordinary-3#01",
             "ordinary-4#01",
-            "ordinary-5#01",
-            "ordinary-6#01",
-            "ordinary-7#01",
-            "ordinary-8#01"
+            "ordinary-5#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
         "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
         "arrows": [],
-        "annotations": [
+        "annotations": [],
+        "caption": "达成示例：全盘恰好1条归零线，其有效值至少8且包含3种不同角色。"
+      },
+      "presentation": {
+        "flavor": "长得不一样，配合照样满分。",
+        "subjects": ["special-ditto", "ordinary-4", "special-zorua"]
+      },
+      "rewardText": "每个归零位置再减8分",
+      "riskText": "未达成加12分",
+      "rewardEffects": [
+        {
+          "kind": "zero-bounty",
+          "amount": 8,
+          "cap": 90
+        }
+      ],
+      "failurePenalty": 12,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R21",
+      "name": "今天神兽休假",
+      "description": "九张均为普通牌，恰好4种有效值，并有至少2种不同值的归零线。",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "all",
+        "conditions": [
           {
+            "type": "ordinary-only",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8]
+          },
+          {
+            "type": "distinct-exact",
             "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
-            "text": "全部普通牌"
+            "count": 4
+          },
+          {
+            "type": "different-zero-values",
+            "minimumDifferent": 2,
+            "minimumHighValue": 0,
+            "negativeOutsideZero": false
           }
-        ],
-        "caption": "九张牌全部为普通牌"
+        ]
+      },
+      "illustrationId": "R21",
+      "diagram": {
+        "kind": "roles",
+        "sample": {
+          "instances": [
+            "ordinary-0#01",
+            "ordinary-0#02",
+            "ordinary-0#03",
+            "ordinary-1#01",
+            "ordinary-1#02",
+            "ordinary-1#03",
+            "ordinary-piplup#01",
+            "ordinary-piplup#02",
+            "ordinary-3#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "达成示例：九张均为普通牌，恰好4种有效值，并有至少2种不同值的归零线。"
       },
       "presentation": {
         "flavor": "普通伙伴，也能把场子撑起来。",
         "subjects": ["ordinary-magikarp", "ordinary-6", "ordinary-5"]
+      },
+      "rewardText": "减30分",
+      "riskText": "未达成加15分",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -30
+        }
+      ],
+      "failurePenalty": 15,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R22",
       "name": "海陆空开个会",
-      "description": "本人最终场地拥有固拉多、盖欧卡、裂空座",
+      "description": "固拉多、盖欧卡、裂空座都位于四角，阿尔宙斯位于中央。",
       "reward": 5,
       "pool": "opening",
       "condition": {
-        "type": "required-abilities",
-        "abilities": ["groudon", "kyogre", "rayquaza"]
+        "type": "all",
+        "conditions": [
+          {
+            "type": "required-abilities",
+            "abilities": ["groudon", "kyogre", "rayquaza"]
+          },
+          {
+            "type": "count",
+            "slots": [0, 2, 6, 8],
+            "minimum": null,
+            "maximum": null,
+            "category": "hoenn-god",
+            "ability": null,
+            "copy": null,
+            "outsideZero": false,
+            "atLeast": 3,
+            "atMost": 3
+          },
+          {
+            "type": "count",
+            "slots": [4],
+            "minimum": null,
+            "maximum": null,
+            "category": "special-arceus",
+            "ability": null,
+            "copy": null,
+            "outsideZero": false,
+            "atLeast": 1,
+            "atMost": 1
+          }
+        ]
       },
       "illustrationId": "R22",
       "diagram": {
@@ -1009,115 +1719,169 @@
         "sample": {
           "instances": [
             "special-groudon#01",
-            "special-kyogre#01",
-            "special-rayquaza#01",
             "ordinary-1#01",
+            "special-kyogre#01",
+            "ordinary-piplup#01",
+            "special-arceus#01",
             "ordinary-3#01",
+            "special-rayquaza#01",
             "ordinary-4#01",
-            "ordinary-5#01",
-            "ordinary-6#01",
-            "ordinary-7#01"
+            "ordinary-5#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [0, 1, 2],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 1, 2],
-            "text": "三种丰缘神兽"
-          }
-        ],
-        "caption": "本人最终场地拥有固拉多、盖欧卡、裂空座"
+        "annotations": [],
+        "caption": "达成示例：固拉多、盖欧卡、裂空座都位于四角，阿尔宙斯位于中央。"
       },
       "presentation": {
         "flavor": "地面、海里、天上，这次坐一桌。",
         "subjects": ["special-groudon", "special-kyogre", "special-rayquaza"]
+      },
+      "rewardText": "三神未归零牌计0；赢本小局额外1胜",
+      "riskText": "未达成加20分",
+      "rewardEffects": [
+        {
+          "kind": "card-value",
+          "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+          "category": "hoenn-god",
+          "minimum": null,
+          "highestOnly": false,
+          "value": 0,
+          "cap": 36
+        }
+      ],
+      "failurePenalty": 20,
+      "successVictory": {
+        "bonus": 1,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R23",
       "name": "百变怪混进队",
-      "description": "至少一条归零线包含复制值有效的复制牌",
+      "description": "同一条有效值至少6的归零线包含至少2张复制牌，其最终锚点来自至少2种角色。",
       "reward": 3,
       "pool": "opening",
       "condition": {
-        "type": "copy-in-zero-line"
+        "type": "copy-anchors",
+        "minimumCopies": 2,
+        "minimumRoles": 2,
+        "minimumValue": 6
       },
       "illustrationId": "R23",
       "diagram": {
         "kind": "copy",
         "sample": {
           "instances": [
-            "ordinary-4#01",
             "special-ditto#01",
-            "ordinary-4#02",
-            "ordinary-1#01",
-            "ordinary-3#01",
-            "ordinary-5#01",
             "ordinary-6#01",
-            "ordinary-7#01",
-            "ordinary-8#01"
+            "special-zorua#01",
+            "ordinary-1#01",
+            "ordinary-piplup#01",
+            "ordinary-psyduck#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [0, 1, 2],
-        "highlightLines": [0],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
         "arrows": [
           {
-            "from": 1,
-            "to": 0
+            "from": 0,
+            "to": 1
           },
           {
-            "from": 1,
-            "to": 2
+            "from": 2,
+            "to": 5
           }
         ],
-        "annotations": [
-          {
-            "slots": [1],
-            "text": "百变怪复制左右 → 4"
-          }
-        ],
-        "caption": "至少一条归零线包含复制值有效的复制牌"
+        "annotations": [],
+        "caption": "达成示例：同一条有效值至少6的归零线包含至少2张复制牌，其最终锚点来自至少2种角色。"
       },
       "presentation": {
         "flavor": "这个队友，好像哪里不对。",
         "subjects": ["ordinary-4", "special-ditto", "ordinary-4"]
+      },
+      "rewardText": "达标归零线的复制牌每张减10，再减10分",
+      "riskText": "未达成加12分",
+      "rewardEffects": [
+        {
+          "kind": "copy-zero-bounty",
+          "amount": 10,
+          "cap": 20,
+          "minimumValue": 6,
+          "minimumCopies": 2,
+          "minimumRoles": 2
+        },
+        {
+          "kind": "flat",
+          "amount": -10
+        }
+      ],
+      "failurePenalty": 12,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "R24",
       "name": "忍蛙藏好底牌",
-      "description": "强制揭示前至少三明三暗；归零线含至少两格原暗牌",
+      "description": "结算前恰好3明6暗，3张明牌角色不同，至少1条归零线原来全部暗置。",
       "reward": 4,
       "pool": "opening",
       "condition": {
-        "type": "hidden-zero-line",
-        "minimumFaceUp": 3,
-        "minimumFaceDown": 3,
-        "minimumHiddenInLine": 2
+        "type": "all",
+        "conditions": [
+          {
+            "type": "visible-roles",
+            "faceUp": 3,
+            "minimumRoles": 3
+          },
+          {
+            "type": "hidden-zero-line",
+            "minimumFaceUp": 3,
+            "minimumFaceDown": 6,
+            "minimumHiddenInLine": 3
+          }
+        ]
       },
       "illustrationId": "R24",
       "diagram": {
         "kind": "visibility",
         "sample": {
           "instances": [
-            "ordinary-4#01",
-            "ordinary-4#02",
-            "ordinary-4#03",
+            "ordinary-8#01",
+            "ordinary-8#02",
+            "ordinary-8#03",
             "ordinary-1#01",
+            "ordinary-piplup#01",
             "ordinary-3#01",
+            "ordinary-4#01",
             "ordinary-5#01",
-            "ordinary-6#01",
-            "ordinary-7#01",
-            "ordinary-8#01"
+            "ordinary-6#01"
           ],
           "preReveal": [
             false,
             false,
-            true,
+            false,
             true,
             true,
             true,
@@ -1126,263 +1890,366 @@
             false
           ]
         },
-        "highlightSlots": [0, 1, 2],
-        "highlightLines": [0],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 1],
-            "text": "原暗牌参与归零线"
-          }
-        ],
-        "caption": "强制揭示前至少三明三暗；归零线含至少两格原暗牌"
+        "annotations": [],
+        "caption": "达成示例：结算前恰好3明6暗，3张明牌角色不同，至少1条归零线原来全部暗置。"
       },
       "presentation": {
         "flavor": "忍术的妙处，最后才揭晓。",
         "subjects": ["special-greninja"]
+      },
+      "rewardText": "减35分",
+      "riskText": "未达成加10分；本局新增胜局最多使累计达到2胜",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -35
+        }
+      ],
+      "failurePenalty": 10,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 2
       }
     },
     {
       "id": "H01",
       "name": "固拉多分层装修",
-      "description": "上行全部≥8，中行全部4–7，下行全部≤3",
+      "description": "顶行至少8且含丰缘神兽，中行4至7，底行不高于1，九种角色。",
       "reward": 5,
       "pool": "hoenn",
       "condition": {
-        "type": "value-bands",
-        "bands": [
+        "type": "all",
+        "conditions": [
           {
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [0, 1, 2],
+                "minimum": 8,
+                "maximum": null
+              },
+              {
+                "slots": [3, 4, 5],
+                "minimum": 4,
+                "maximum": 7
+              },
+              {
+                "slots": [6, 7, 8],
+                "minimum": null,
+                "maximum": 1
+              }
+            ]
+          },
+          {
+            "type": "count",
             "slots": [0, 1, 2],
-            "minimum": 8,
-            "maximum": null
-          },
-          {
-            "slots": [3, 4, 5],
-            "minimum": 4,
-            "maximum": 7
-          },
-          {
-            "slots": [6, 7, 8],
             "minimum": null,
-            "maximum": 3
+            "maximum": null,
+            "category": "hoenn-god",
+            "ability": null,
+            "copy": null,
+            "outsideZero": false,
+            "atLeast": 1,
+            "atMost": 3
+          },
+          {
+            "type": "distinct-roles",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": 9
           }
         ]
       },
       "illustrationId": "H01",
       "diagram": {
-        "kind": "values",
+        "kind": "roles",
         "sample": {
           "instances": [
+            "special-groudon#01",
             "ordinary-8#01",
             "ordinary-9#01",
-            "ordinary-metagross#01",
             "ordinary-4#01",
             "ordinary-5#01",
             "ordinary-6#01",
+            "ordinary-togepi#01",
             "ordinary-0#01",
-            "ordinary-1#01",
-            "ordinary-piplup#01"
+            "ordinary-1#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
         "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 1, 2],
-            "text": "≥8"
-          },
-          {
-            "slots": [3, 4, 5],
-            "text": "4–7"
-          },
-          {
-            "slots": [6, 7, 8],
-            "text": "≤3"
-          }
-        ],
-        "caption": "上行全部≥8，中行全部4–7，下行全部≤3"
+        "annotations": [],
+        "caption": "达成示例：顶行至少8且含丰缘神兽，中行4至7，底行不高于1，九种角色。"
       },
       "presentation": {
         "flavor": "上面高楼，下面小院，安排！",
         "subjects": ["special-groudon"]
+      },
+      "rewardText": "顶部未归零牌计为−4，最多减48分",
+      "riskText": "未达成加15分",
+      "rewardEffects": [
+        {
+          "kind": "card-value",
+          "slots": [0, 1, 2],
+          "category": null,
+          "minimum": null,
+          "highestOnly": false,
+          "value": -4,
+          "cap": 48
+        }
+      ],
+      "failurePenalty": 15,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "H02",
       "name": "盖欧卡开空调",
-      "description": "中行全部≤0，上下两行全部≥6",
+      "description": "中行有效值都为0且中央为阿尔宙斯，上下两行都至少8且共有至少4种角色。",
       "reward": 5,
       "pool": "hoenn",
       "condition": {
-        "type": "value-bands",
-        "bands": [
+        "type": "all",
+        "conditions": [
           {
-            "slots": [0, 1, 2],
-            "minimum": 6,
-            "maximum": null
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [3, 4, 5],
+                "minimum": 0,
+                "maximum": 0
+              }
+            ]
           },
           {
-            "slots": [3, 4, 5],
+            "type": "count",
+            "slots": [4],
             "minimum": null,
-            "maximum": 0
+            "maximum": null,
+            "category": "special-arceus",
+            "ability": null,
+            "copy": null,
+            "outsideZero": false,
+            "atLeast": 1,
+            "atMost": 1
           },
           {
-            "slots": [6, 7, 8],
-            "minimum": 6,
-            "maximum": null
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [0, 1, 2, 6, 7, 8],
+                "minimum": 8,
+                "maximum": null
+              }
+            ]
+          },
+          {
+            "type": "distinct-roles",
+            "slots": [0, 1, 2, 6, 7, 8],
+            "minimum": 4
           }
         ]
       },
       "illustrationId": "H02",
       "diagram": {
-        "kind": "values",
+        "kind": "roles",
         "sample": {
           "instances": [
-            "ordinary-6#01",
-            "ordinary-7#01",
             "ordinary-8#01",
-            "ordinary-0#01",
-            "ordinary-0#02",
-            "ordinary-0#03",
             "ordinary-9#01",
             "ordinary-metagross#01",
-            "ordinary-garchomp#01"
+            "ordinary-0#01",
+            "special-arceus#01",
+            "ordinary-magikarp#01",
+            "ordinary-garchomp#01",
+            "ordinary-gardevoir#01",
+            "ordinary-dragonite#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
         "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 1, 2],
-            "text": "≥6"
-          },
-          {
-            "slots": [3, 4, 5],
-            "text": "≤0"
-          },
-          {
-            "slots": [6, 7, 8],
-            "text": "≥6"
-          }
-        ],
-        "caption": "中行全部≤0，上下两行全部≥6"
+        "annotations": [],
+        "caption": "达成示例：中行有效值都为0且中央为阿尔宙斯，上下两行都至少8且共有至少4种角色。"
       },
       "presentation": {
         "flavor": "中间凉快，两边热闹。",
         "subjects": ["special-kyogre"]
+      },
+      "rewardText": "正基础分折半，再减20分",
+      "riskText": "未达成加15分",
+      "rewardEffects": [
+        {
+          "kind": "base-scale",
+          "denominator": 2
+        },
+        {
+          "kind": "flat",
+          "amount": -20
+        }
+      ],
+      "failurePenalty": 15,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "H03",
       "name": "固拉多垒高高",
-      "description": "每列向下严格递增，且每列底格减顶格≥6",
+      "description": "三列从上到下严格递减且跨度至少6，底行恰好2张负数。",
       "reward": 5,
       "pool": "hoenn",
       "condition": {
-        "type": "ordered-values",
-        "groups": [
-          [0, 3, 6],
-          [1, 4, 7],
-          [2, 5, 8]
-        ],
-        "require": "all",
-        "minimumStep": 1,
-        "equalStep": false,
-        "exactStep": null,
-        "minimumSpan": 6
+        "type": "all",
+        "conditions": [
+          {
+            "type": "ordered-values",
+            "groups": [
+              [6, 3, 0],
+              [7, 4, 1],
+              [8, 5, 2]
+            ],
+            "require": "all",
+            "minimumStep": 1,
+            "equalStep": false,
+            "exactStep": null,
+            "minimumSpan": 6
+          },
+          {
+            "type": "count",
+            "slots": [6, 7, 8],
+            "minimum": null,
+            "maximum": -1,
+            "category": null,
+            "ability": null,
+            "copy": null,
+            "outsideZero": false,
+            "atLeast": 2,
+            "atMost": 2
+          }
+        ]
       },
       "illustrationId": "H03",
       "diagram": {
-        "kind": "values",
+        "kind": "positions",
         "sample": {
           "instances": [
-            "ordinary-0#01",
-            "ordinary-1#01",
-            "ordinary-piplup#01",
-            "ordinary-3#01",
+            "ordinary-8#01",
+            "ordinary-9#01",
+            "ordinary-metagross#01",
             "ordinary-4#01",
             "ordinary-5#01",
             "ordinary-6#01",
-            "ordinary-7#01",
-            "ordinary-8#01"
+            "ordinary-togepi#01",
+            "ordinary--2#01",
+            "ordinary-1#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
         "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
-        "arrows": [
-          {
-            "from": 0,
-            "to": 3
-          },
-          {
-            "from": 3,
-            "to": 6
-          },
-          {
-            "from": 1,
-            "to": 4
-          },
-          {
-            "from": 4,
-            "to": 7
-          },
-          {
-            "from": 2,
-            "to": 5
-          },
-          {
-            "from": 5,
-            "to": 8
-          }
-        ],
-        "annotations": [
-          {
-            "slots": [0, 3, 6],
-            "text": "向下递增，跨度 ≥6"
-          },
-          {
-            "slots": [1, 4, 7],
-            "text": "向下递增，跨度 ≥6"
-          },
-          {
-            "slots": [2, 5, 8],
-            "text": "向下递增，跨度 ≥6"
-          }
-        ],
-        "caption": "每列向下严格递增，且每列底格减顶格≥6"
+        "arrows": [],
+        "annotations": [],
+        "caption": "达成示例：三列从上到下严格递减且跨度至少6，底行恰好2张负数。"
       },
       "presentation": {
         "flavor": "三根地柱，一起加把劲！",
         "subjects": ["special-groudon"]
+      },
+      "rewardText": "负数计3倍，再减20分",
+      "riskText": "未达成加12分",
+      "rewardEffects": [
+        {
+          "kind": "negative-scale",
+          "factor": 3
+        },
+        {
+          "kind": "flat",
+          "amount": -20
+        }
+      ],
+      "failurePenalty": 12,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     },
     {
       "id": "H04",
       "name": "裂空座盘一圈",
-      "description": "四角有效值均大于中心，四边有效值均小于中心",
+      "description": "中央为甲贺忍蛙，四角高于7，四边中低于7，全盘至少6种有效值。",
       "reward": 5,
       "pool": "hoenn",
       "condition": {
-        "type": "center-rings",
-        "center": 4,
-        "higherSlots": [0, 2, 6, 8],
-        "lowerSlots": [1, 3, 5, 7]
+        "type": "all",
+        "conditions": [
+          {
+            "type": "count",
+            "slots": [4],
+            "minimum": null,
+            "maximum": null,
+            "category": "special-greninja",
+            "ability": null,
+            "copy": null,
+            "outsideZero": false,
+            "atLeast": 1,
+            "atMost": 1
+          },
+          {
+            "type": "center-rings",
+            "center": 4,
+            "higherSlots": [0, 2, 6, 8],
+            "lowerSlots": [1, 3, 5, 7]
+          },
+          {
+            "type": "distinct-values",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": 6
+          }
+        ]
       },
       "illustrationId": "H04",
       "diagram": {
-        "kind": "positions",
+        "kind": "roles",
         "sample": {
           "instances": [
             "ordinary-8#01",
             "ordinary-0#01",
             "ordinary-9#01",
             "ordinary-1#01",
-            "ordinary-5#01",
+            "special-greninja#01",
             "ordinary-piplup#01",
             "ordinary-metagross#01",
             "ordinary-3#01",
@@ -1393,49 +2260,82 @@
         "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
         "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 2, 6, 8],
-            "text": "四角 ＞ 中心"
-          },
-          {
-            "slots": [1, 3, 5, 7],
-            "text": "四边 ＜ 中心"
-          }
-        ],
-        "caption": "四角有效值均大于中心，四边有效值均小于中心"
+        "annotations": [],
+        "caption": "达成示例：中央为甲贺忍蛙，四角高于7，四边中低于7，全盘至少6种有效值。"
       },
       "presentation": {
         "flavor": "四角高一点，四边低一点。",
         "subjects": ["special-rayquaza"]
+      },
+      "rewardText": "达成且赢本小局，额外获得1胜",
+      "riskText": "未达成加10分；本局新增胜局最多使累计达到2胜",
+      "rewardEffects": [],
+      "failurePenalty": 10,
+      "successVictory": {
+        "bonus": 1,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 2
       }
     },
     {
       "id": "H05",
       "name": "裂空座劝架指南",
-      "description": "两条主对角线之和相等，且四角值互异",
+      "description": "两条对角线合计相同，四角有效值各不相同，中央为0，至少3种角色，至少一对相对边中合计12。",
       "reward": 4,
       "pool": "hoenn",
       "condition": {
-        "type": "equal-sums",
-        "groups": [
-          [0, 4, 8],
-          [2, 4, 6]
-        ],
-        "minimumDistinctPerGroup": 0,
-        "distinctSlots": [0, 2, 6, 8],
-        "minimumDistinctSlots": 4
+        "type": "all",
+        "conditions": [
+          {
+            "type": "equal-sums",
+            "groups": [
+              [0, 4, 8],
+              [2, 4, 6]
+            ],
+            "minimumDistinctPerGroup": 0,
+            "distinctSlots": [0, 2, 6, 8],
+            "minimumDistinctSlots": 4
+          },
+          {
+            "type": "value-bands",
+            "bands": [
+              {
+                "slots": [4],
+                "minimum": 0,
+                "maximum": 0
+              }
+            ]
+          },
+          {
+            "type": "distinct-roles",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": 3
+          },
+          {
+            "type": "group-sum",
+            "groups": [
+              [1, 7],
+              [3, 5]
+            ],
+            "sum": 12
+          }
+        ]
       },
       "illustrationId": "H05",
       "diagram": {
-        "kind": "values",
+        "kind": "roles",
         "sample": {
           "instances": [
             "ordinary-0#01",
             "ordinary-4#01",
             "ordinary-1#01",
             "ordinary-5#01",
-            "ordinary-6#01",
+            "ordinary-0#02",
             "ordinary-7#01",
             "ordinary-piplup#01",
             "ordinary-8#01",
@@ -1443,77 +2343,110 @@
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [0, 2, 6, 8],
-        "highlightLines": [6, 7],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 4, 8],
-            "text": "斜线之和＝9"
-          },
-          {
-            "slots": [2, 4, 6],
-            "text": "斜线之和＝9"
-          }
-        ],
-        "caption": "两条主对角线之和相等，且四角值互异"
+        "annotations": [],
+        "caption": "达成示例：两条对角线合计相同，四角有效值各不相同，中央为0，至少3种角色，至少一对相对边中合计12。"
       },
       "presentation": {
         "flavor": "两边一样重，先别吵架啦。",
         "subjects": ["special-groudon", "special-rayquaza", "special-kyogre"]
+      },
+      "rewardText": "达成且赢本小局，额外获得1胜",
+      "riskText": "未达成加18分；本局胜局奖励为0",
+      "rewardEffects": [],
+      "failurePenalty": 18,
+      "successVictory": {
+        "bonus": 1,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": false,
+        "cap": 3
       }
     },
     {
       "id": "H06",
       "name": "皮卡丘压轴救场",
-      "description": "至少两条不同值归零线，其中一条有效值≥8；另有未归零负值牌",
+      "description": "至少2种不同有效值的归零线，其中一种至少10，归零外恰好2张负数。",
       "reward": 5,
       "pool": "hoenn",
       "condition": {
-        "type": "different-zero-values",
-        "minimumDifferent": 2,
-        "minimumHighValue": 8,
-        "negativeOutsideZero": true
+        "type": "all",
+        "conditions": [
+          {
+            "type": "different-zero-values",
+            "minimumDifferent": 2,
+            "minimumHighValue": 10,
+            "negativeOutsideZero": true
+          },
+          {
+            "type": "count",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": null,
+            "maximum": -1,
+            "category": null,
+            "ability": null,
+            "copy": null,
+            "outsideZero": true,
+            "atLeast": 2,
+            "atMost": 2
+          }
+        ]
       },
       "illustrationId": "H06",
       "diagram": {
-        "kind": "lines",
+        "kind": "positions",
         "sample": {
           "instances": [
             "ordinary-metagross#01",
             "ordinary-metagross#02",
             "ordinary-metagross#03",
-            "ordinary-3#01",
-            "ordinary-3#02",
-            "ordinary-3#03",
+            "ordinary-8#01",
+            "ordinary-8#02",
+            "ordinary-8#03",
+            "ordinary-togepi#01",
             "ordinary--2#01",
-            "ordinary-1#01",
-            "ordinary-4#01"
+            "ordinary-3#01"
           ],
           "preReveal": [true, true, true, true, true, true, true, true, true]
         },
-        "highlightSlots": [0, 1, 2, 3, 4, 5, 6],
-        "highlightLines": [0, 1],
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
         "arrows": [],
-        "annotations": [
-          {
-            "slots": [0, 1, 2],
-            "text": "高值归零线 ≥8"
-          },
-          {
-            "slots": [3, 4, 5],
-            "text": "另一种值归零线"
-          },
-          {
-            "slots": [6],
-            "text": "未归零负值"
-          }
-        ],
-        "caption": "至少两条不同值归零线，其中一条有效值≥8；另有未归零负值牌"
+        "annotations": [],
+        "caption": "达成示例：至少2种不同有效值的归零线，其中一种至少10，归零外恰好2张负数。"
       },
       "presentation": {
         "flavor": "大家忙归零，最后还得看电鼠！",
         "subjects": ["ordinary-metagross", "ordinary--2", "ordinary-3"]
+      },
+      "rewardText": "负数计3倍；归零每位置再减3，最多减18分",
+      "riskText": "未达成加15分",
+      "rewardEffects": [
+        {
+          "kind": "negative-scale",
+          "factor": 3
+        },
+        {
+          "kind": "zero-bounty",
+          "amount": 3,
+          "cap": 18
+        }
+      ],
+      "failurePenalty": 15,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
       }
     }
   ]

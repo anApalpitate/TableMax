@@ -1,0 +1,887 @@
+{
+  "tasks": [
+    {
+      "description": "至少一行形成归零线",
+      "sample": {
+        "instances": [
+          "ordinary-4#01",
+          "ordinary-4#02",
+          "ordinary-4#03",
+          "ordinary-1#01",
+          "ordinary-3#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-7#01",
+          "ordinary-8#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "杰尼龟排排站",
+      "condition": {
+        "type": "zero-lines",
+        "lines": [0, 1, 2],
+        "require": "any",
+        "minimumValue": null,
+        "minimumRoles": null
+      },
+      "reward": 3,
+      "id": "R01",
+      "pool": "opening"
+    },
+    {
+      "description": "至少一列形成归零线",
+      "sample": {
+        "instances": [
+          "ordinary-4#01",
+          "ordinary-1#01",
+          "ordinary-3#01",
+          "ordinary-4#02",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-4#03",
+          "ordinary-7#01",
+          "ordinary-8#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "大岩蛇叠叠乐",
+      "condition": {
+        "type": "zero-lines",
+        "lines": [3, 4, 5],
+        "require": "any",
+        "minimumValue": null,
+        "minimumRoles": null
+      },
+      "reward": 3,
+      "id": "R02",
+      "pool": "opening"
+    },
+    {
+      "description": "至少一条主对角线形成归零线",
+      "sample": {
+        "instances": [
+          "ordinary-4#01",
+          "ordinary-1#01",
+          "ordinary-3#01",
+          "ordinary-5#01",
+          "ordinary-4#02",
+          "ordinary-6#01",
+          "ordinary-7#01",
+          "ordinary-8#01",
+          "ordinary-4#03"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "闪电鸟斜线冲刺",
+      "condition": {
+        "type": "zero-lines",
+        "lines": [6, 7],
+        "require": "any",
+        "minimumValue": null,
+        "minimumRoles": null
+      },
+      "reward": 4,
+      "id": "R03",
+      "pool": "opening"
+    },
+    {
+      "description": "中间行与中间列同时归零",
+      "sample": {
+        "instances": [
+          "ordinary-1#01",
+          "ordinary-4#01",
+          "ordinary-3#01",
+          "ordinary-4#02",
+          "ordinary-4#03",
+          "ordinary-4#04",
+          "ordinary-5#01",
+          "ordinary-4#05",
+          "ordinary-6#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "路卡利欧十字波",
+      "condition": {
+        "type": "zero-lines",
+        "lines": [1, 4],
+        "require": "all",
+        "minimumValue": null,
+        "minimumRoles": null
+      },
+      "reward": 5,
+      "id": "R04",
+      "pool": "opening"
+    },
+    {
+      "description": "两条主对角线同时归零",
+      "sample": {
+        "instances": [
+          "ordinary-4#01",
+          "ordinary-1#01",
+          "ordinary-4#02",
+          "ordinary-3#01",
+          "ordinary-4#03",
+          "ordinary-5#01",
+          "ordinary-4#04",
+          "ordinary-6#01",
+          "ordinary-4#05"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "梦幻星星连线",
+      "condition": {
+        "type": "zero-lines",
+        "lines": [6, 7],
+        "require": "all",
+        "minimumValue": null,
+        "minimumRoles": null
+      },
+      "reward": 5,
+      "id": "R05",
+      "pool": "opening"
+    },
+    {
+      "description": "至少一条归零线的有效值≥10",
+      "sample": {
+        "instances": [
+          "ordinary-metagross#01",
+          "ordinary-metagross#02",
+          "ordinary-metagross#03",
+          "ordinary-1#01",
+          "ordinary-3#01",
+          "ordinary-4#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-7#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "巨金怪重装归零",
+      "condition": {
+        "type": "zero-lines",
+        "lines": [0, 1, 2, 3, 4, 5, 6, 7],
+        "require": "any",
+        "minimumValue": 10,
+        "minimumRoles": null
+      },
+      "reward": 4,
+      "id": "R06",
+      "pool": "opening"
+    },
+    {
+      "description": "四角有效值相同，且该值≥0",
+      "sample": {
+        "instances": [
+          "ordinary-4#01",
+          "ordinary-1#01",
+          "ordinary-4#02",
+          "ordinary-3#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-4#03",
+          "ordinary-7#01",
+          "ordinary-4#04"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "胖丁四角演唱会",
+      "condition": {
+        "type": "equal-groups",
+        "groups": [[0, 2, 6, 8]],
+        "minimumValue": 0,
+        "differentGroups": false
+      },
+      "reward": 4,
+      "id": "R07",
+      "pool": "opening"
+    },
+    {
+      "description": "上中＝下中，左中＝右中",
+      "sample": {
+        "instances": [
+          "ordinary-0#01",
+          "ordinary-1#01",
+          "ordinary-piplup#01",
+          "ordinary-3#01",
+          "ordinary-4#01",
+          "ordinary-3#02",
+          "ordinary-5#01",
+          "ordinary-1#02",
+          "ordinary-6#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "可达鸭照镜子",
+      "condition": {
+        "type": "equal-groups",
+        "groups": [
+          [1, 7],
+          [3, 5]
+        ],
+        "minimumValue": null,
+        "differentGroups": false
+      },
+      "reward": 3,
+      "id": "R08",
+      "pool": "opening"
+    },
+    {
+      "description": "两组对角角格分别同值，且两组值不同",
+      "sample": {
+        "instances": [
+          "ordinary-4#01",
+          "ordinary-1#01",
+          "ordinary-6#01",
+          "ordinary-3#01",
+          "ordinary-5#01",
+          "ordinary-7#01",
+          "ordinary-6#02",
+          "ordinary-8#01",
+          "ordinary-4#02"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "水火各自成双",
+      "condition": {
+        "type": "equal-groups",
+        "groups": [
+          [0, 8],
+          [2, 6]
+        ],
+        "minimumValue": null,
+        "differentGroups": true
+      },
+      "reward": 4,
+      "id": "R09",
+      "pool": "opening"
+    },
+    {
+      "description": "上中＜右中＜下中＜左中",
+      "sample": {
+        "instances": [
+          "ordinary-0#01",
+          "ordinary-1#01",
+          "ordinary-piplup#01",
+          "ordinary-5#01",
+          "ordinary-8#01",
+          "ordinary-3#01",
+          "ordinary-6#01",
+          "ordinary-4#01",
+          "ordinary-7#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "伊布绕圈升级",
+      "condition": {
+        "type": "ordered-values",
+        "groups": [[1, 5, 7, 3]],
+        "require": "all",
+        "minimumStep": 1,
+        "equalStep": false,
+        "exactStep": null,
+        "minimumSpan": 0
+      },
+      "reward": 4,
+      "id": "R10",
+      "pool": "opening"
+    },
+    {
+      "description": "中心有效值严格小于其余八格",
+      "sample": {
+        "instances": [
+          "ordinary-0#01",
+          "ordinary-1#01",
+          "ordinary-piplup#01",
+          "ordinary-3#01",
+          "ordinary--2#01",
+          "ordinary-4#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-7#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "皮卡丘C位出道",
+      "condition": {
+        "type": "center-extreme",
+        "center": 4,
+        "slots": [0, 1, 2, 3, 5, 6, 7, 8],
+        "extreme": "minimum"
+      },
+      "reward": 3,
+      "id": "R11",
+      "pool": "opening"
+    },
+    {
+      "description": "中心有效值严格大于其余八格",
+      "sample": {
+        "instances": [
+          "ordinary-0#01",
+          "ordinary-1#01",
+          "ordinary-piplup#01",
+          "ordinary-3#01",
+          "special-team-rocket#01",
+          "ordinary-4#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-7#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "火箭队占据C位",
+      "condition": {
+        "type": "center-extreme",
+        "center": 4,
+        "slots": [0, 1, 2, 3, 5, 6, 7, 8],
+        "extreme": "maximum"
+      },
+      "reward": 4,
+      "id": "R12",
+      "pool": "opening"
+    },
+    {
+      "description": "九格有效值全部≤5",
+      "sample": {
+        "instances": [
+          "ordinary-0#01",
+          "ordinary-1#01",
+          "ordinary-piplup#01",
+          "ordinary-3#01",
+          "ordinary-4#01",
+          "ordinary-5#01",
+          "ordinary-0#02",
+          "ordinary-1#02",
+          "ordinary-piplup#02"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "萌新村保护计划",
+      "condition": {
+        "type": "value-bands",
+        "bands": [
+          {
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": null,
+            "maximum": 5
+          }
+        ]
+      },
+      "reward": 4,
+      "id": "R13",
+      "pool": "opening"
+    },
+    {
+      "description": "至少一行之和为0，且同时含正、负值",
+      "sample": {
+        "instances": [
+          "ordinary--2#01",
+          "ordinary-togepi#01",
+          "ordinary-3#01",
+          "ordinary-0#01",
+          "ordinary-1#01",
+          "ordinary-4#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-7#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "正负电荷碰个头",
+      "condition": {
+        "type": "signed-line-sum",
+        "groups": [
+          [0, 1, 2],
+          [3, 4, 5],
+          [6, 7, 8]
+        ],
+        "sum": 0
+      },
+      "reward": 4,
+      "id": "R14",
+      "pool": "opening"
+    },
+    {
+      "description": "至少一行从左至右为三个连续整数",
+      "sample": {
+        "instances": [
+          "ordinary-3#01",
+          "ordinary-4#01",
+          "ordinary-5#01",
+          "ordinary-0#01",
+          "ordinary-1#01",
+          "ordinary-piplup#01",
+          "ordinary-6#01",
+          "ordinary-7#01",
+          "ordinary-8#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "伊布升级打卡",
+      "condition": {
+        "type": "ordered-values",
+        "groups": [
+          [0, 1, 2],
+          [3, 4, 5],
+          [6, 7, 8]
+        ],
+        "require": "any",
+        "minimumStep": 1,
+        "equalStep": true,
+        "exactStep": 1,
+        "minimumSpan": 0
+      },
+      "reward": 3,
+      "id": "R15",
+      "pool": "opening"
+    },
+    {
+      "description": "至少一列从上至下为等差数列，公差≥2",
+      "sample": {
+        "instances": [
+          "ordinary-0#01",
+          "ordinary-1#01",
+          "ordinary-piplup#01",
+          "ordinary-3#01",
+          "ordinary-4#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-7#01",
+          "ordinary-8#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "快龙三级跳",
+      "condition": {
+        "type": "ordered-values",
+        "groups": [
+          [0, 3, 6],
+          [1, 4, 7],
+          [2, 5, 8]
+        ],
+        "require": "any",
+        "minimumStep": 2,
+        "equalStep": true,
+        "exactStep": null,
+        "minimumSpan": 0
+      },
+      "reward": 4,
+      "id": "R16",
+      "pool": "opening"
+    },
+    {
+      "description": "三行之和相等，且每行至少两种有效值",
+      "sample": {
+        "instances": [
+          "ordinary-0#01",
+          "ordinary-1#01",
+          "ordinary-5#01",
+          "ordinary-1#02",
+          "ordinary-piplup#01",
+          "ordinary-3#01",
+          "ordinary-0#02",
+          "ordinary-piplup#02",
+          "ordinary-4#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "卡比兽分便当",
+      "condition": {
+        "type": "equal-sums",
+        "groups": [
+          [0, 1, 2],
+          [3, 4, 5],
+          [6, 7, 8]
+        ],
+        "minimumDistinctPerGroup": 2,
+        "distinctSlots": [],
+        "minimumDistinctSlots": 0
+      },
+      "reward": 5,
+      "id": "R17",
+      "pool": "opening"
+    },
+    {
+      "description": "九格中至少有六种不同有效值",
+      "sample": {
+        "instances": [
+          "ordinary-0#01",
+          "ordinary-1#01",
+          "ordinary-piplup#01",
+          "ordinary-3#01",
+          "ordinary-4#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-7#01",
+          "ordinary-8#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "伊布的彩虹图鉴",
+      "condition": {
+        "type": "distinct-values",
+        "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "minimum": 6
+      },
+      "reward": 4,
+      "id": "R18",
+      "pool": "opening"
+    },
+    {
+      "description": "九张牌属于九种不同角色",
+      "sample": {
+        "instances": [
+          "ordinary--2#01",
+          "ordinary-0#01",
+          "ordinary-1#01",
+          "ordinary-3#01",
+          "ordinary-4#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-7#01",
+          "ordinary-8#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "全员宝可梦集合",
+      "condition": {
+        "type": "distinct-roles",
+        "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "minimum": 9
+      },
+      "reward": 3,
+      "id": "R19",
+      "pool": "opening"
+    },
+    {
+      "description": "至少一条归零线包含三种不同角色",
+      "sample": {
+        "instances": [
+          "special-ditto#01",
+          "ordinary-4#01",
+          "special-zorua#01",
+          "ordinary-1#01",
+          "ordinary-3#01",
+          "ordinary-4#02",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-7#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "异类也能组队",
+      "condition": {
+        "type": "zero-lines",
+        "lines": [0, 1, 2, 3, 4, 5, 6, 7],
+        "require": "any",
+        "minimumValue": null,
+        "minimumRoles": 3
+      },
+      "reward": 4,
+      "id": "R20",
+      "pool": "opening"
+    },
+    {
+      "description": "九张牌全部为普通牌",
+      "sample": {
+        "instances": [
+          "ordinary--2#01",
+          "ordinary-0#01",
+          "ordinary-1#01",
+          "ordinary-3#01",
+          "ordinary-4#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-7#01",
+          "ordinary-8#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "今天神兽休假",
+      "condition": {
+        "type": "ordinary-only",
+        "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8]
+      },
+      "reward": 3,
+      "id": "R21",
+      "pool": "opening"
+    },
+    {
+      "description": "本人最终场地拥有固拉多、盖欧卡、裂空座",
+      "sample": {
+        "instances": [
+          "special-groudon#01",
+          "special-kyogre#01",
+          "special-rayquaza#01",
+          "ordinary-1#01",
+          "ordinary-3#01",
+          "ordinary-4#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-7#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "海陆空开个会",
+      "condition": {
+        "type": "required-abilities",
+        "abilities": ["groudon", "kyogre", "rayquaza"]
+      },
+      "reward": 5,
+      "id": "R22",
+      "pool": "opening"
+    },
+    {
+      "description": "至少一条归零线包含复制值有效的复制牌",
+      "sample": {
+        "instances": [
+          "ordinary-4#01",
+          "special-ditto#01",
+          "ordinary-4#02",
+          "ordinary-1#01",
+          "ordinary-3#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-7#01",
+          "ordinary-8#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "百变怪混进队",
+      "condition": {
+        "type": "copy-in-zero-line"
+      },
+      "reward": 3,
+      "id": "R23",
+      "pool": "opening"
+    },
+    {
+      "description": "强制揭示前至少三明三暗；归零线含至少两格原暗牌",
+      "sample": {
+        "instances": [
+          "ordinary-4#01",
+          "ordinary-4#02",
+          "ordinary-4#03",
+          "ordinary-1#01",
+          "ordinary-3#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-7#01",
+          "ordinary-8#01"
+        ],
+        "preReveal": [false, false, true, true, true, true, false, false, false]
+      },
+      "name": "忍蛙藏好底牌",
+      "condition": {
+        "type": "hidden-zero-line",
+        "minimumFaceUp": 3,
+        "minimumFaceDown": 3,
+        "minimumHiddenInLine": 2
+      },
+      "reward": 4,
+      "id": "R24",
+      "pool": "opening"
+    },
+    {
+      "description": "上行全部≥8，中行全部4–7，下行全部≤3",
+      "sample": {
+        "instances": [
+          "ordinary-8#01",
+          "ordinary-9#01",
+          "ordinary-metagross#01",
+          "ordinary-4#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-0#01",
+          "ordinary-1#01",
+          "ordinary-piplup#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "固拉多分层装修",
+      "condition": {
+        "type": "value-bands",
+        "bands": [
+          {
+            "slots": [0, 1, 2],
+            "minimum": 8,
+            "maximum": null
+          },
+          {
+            "slots": [3, 4, 5],
+            "minimum": 4,
+            "maximum": 7
+          },
+          {
+            "slots": [6, 7, 8],
+            "minimum": null,
+            "maximum": 3
+          }
+        ]
+      },
+      "reward": 5,
+      "id": "H01",
+      "pool": "hoenn"
+    },
+    {
+      "description": "中行全部≤0，上下两行全部≥6",
+      "sample": {
+        "instances": [
+          "ordinary-6#01",
+          "ordinary-7#01",
+          "ordinary-8#01",
+          "ordinary-0#01",
+          "ordinary-0#02",
+          "ordinary-0#03",
+          "ordinary-9#01",
+          "ordinary-metagross#01",
+          "ordinary-garchomp#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "盖欧卡开空调",
+      "condition": {
+        "type": "value-bands",
+        "bands": [
+          {
+            "slots": [0, 1, 2],
+            "minimum": 6,
+            "maximum": null
+          },
+          {
+            "slots": [3, 4, 5],
+            "minimum": null,
+            "maximum": 0
+          },
+          {
+            "slots": [6, 7, 8],
+            "minimum": 6,
+            "maximum": null
+          }
+        ]
+      },
+      "reward": 5,
+      "id": "H02",
+      "pool": "hoenn"
+    },
+    {
+      "description": "每列向下严格递增，且每列底格减顶格≥6",
+      "sample": {
+        "instances": [
+          "ordinary-0#01",
+          "ordinary-1#01",
+          "ordinary-piplup#01",
+          "ordinary-3#01",
+          "ordinary-4#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-7#01",
+          "ordinary-8#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "固拉多垒高高",
+      "condition": {
+        "type": "ordered-values",
+        "groups": [
+          [0, 3, 6],
+          [1, 4, 7],
+          [2, 5, 8]
+        ],
+        "require": "all",
+        "minimumStep": 1,
+        "equalStep": false,
+        "exactStep": null,
+        "minimumSpan": 6
+      },
+      "reward": 5,
+      "id": "H03",
+      "pool": "hoenn"
+    },
+    {
+      "description": "四角有效值均大于中心，四边有效值均小于中心",
+      "sample": {
+        "instances": [
+          "ordinary-8#01",
+          "ordinary-0#01",
+          "ordinary-9#01",
+          "ordinary-1#01",
+          "ordinary-5#01",
+          "ordinary-piplup#01",
+          "ordinary-metagross#01",
+          "ordinary-3#01",
+          "ordinary-garchomp#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "裂空座盘一圈",
+      "condition": {
+        "type": "center-rings",
+        "center": 4,
+        "higherSlots": [0, 2, 6, 8],
+        "lowerSlots": [1, 3, 5, 7]
+      },
+      "reward": 5,
+      "id": "H04",
+      "pool": "hoenn"
+    },
+    {
+      "description": "两条主对角线之和相等，且四角值互异",
+      "sample": {
+        "instances": [
+          "ordinary-0#01",
+          "ordinary-4#01",
+          "ordinary-1#01",
+          "ordinary-5#01",
+          "ordinary-6#01",
+          "ordinary-7#01",
+          "ordinary-piplup#01",
+          "ordinary-8#01",
+          "ordinary-3#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "裂空座劝架指南",
+      "condition": {
+        "type": "equal-sums",
+        "groups": [
+          [0, 4, 8],
+          [2, 4, 6]
+        ],
+        "minimumDistinctPerGroup": 0,
+        "distinctSlots": [0, 2, 6, 8],
+        "minimumDistinctSlots": 4
+      },
+      "reward": 4,
+      "id": "H05",
+      "pool": "hoenn"
+    },
+    {
+      "description": "至少两条不同值归零线，其中一条有效值≥8；另有未归零负值牌",
+      "sample": {
+        "instances": [
+          "ordinary-metagross#01",
+          "ordinary-metagross#02",
+          "ordinary-metagross#03",
+          "ordinary-3#01",
+          "ordinary-3#02",
+          "ordinary-3#03",
+          "ordinary--2#01",
+          "ordinary-1#01",
+          "ordinary-4#01"
+        ],
+        "preReveal": [true, true, true, true, true, true, true, true, true]
+      },
+      "name": "皮卡丘压轴救场",
+      "condition": {
+        "type": "different-zero-values",
+        "minimumDifferent": 2,
+        "minimumHighValue": 8,
+        "negativeOutsideZero": true
+      },
+      "reward": 5,
+      "id": "H06",
+      "pool": "hoenn"
+    }
+  ],
+  "schemaVersion": 1
+}

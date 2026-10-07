@@ -17,7 +17,7 @@ import {
   type SaveRepository,
 } from '../../../packages/platform-core/src/index';
 import { SqliteSaveRepository } from '../../../apps/server/src/save-repository';
-import { pokemonExpansion as rules } from './index';
+import { legacyRules as rules } from './legacy-test';
 import { bot } from './bot';
 import type { State } from './state';
 

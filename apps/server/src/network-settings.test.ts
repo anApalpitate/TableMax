@@ -27,12 +27,13 @@ afterEach(() => {
 });
 
 it.each([
-  [' https://EXAMPLE.com/ ', 'https://example.com/player'],
-  ['https://example.com:443/player/', 'https://example.com/player'],
-  ['http://example.com:8080', 'http://example.com:8080/player'],
-  ['http://127.0.0.1:38473/player', 'http://127.0.0.1:38473/player'],
-  ['https://[::1]:443/', 'https://[::1]/player'],
-  ['https://桌游.中国', 'https://xn--hyvt5k.xn--fiqs8s/player'],
+  [' https://EXAMPLE.com/ ', 'https://example.com'],
+  ['https://example.com:443/player/', 'https://example.com'],
+  ['http://example.com:8080', 'http://example.com:8080'],
+  ['http://127.0.0.1:38473/player', 'http://127.0.0.1:38473'],
+  ['https://[::1]:443/', 'https://[::1]'],
+  ['http://[::1]:8080/player', 'http://[::1]:8080'],
+  ['https://桌游.中国', 'https://xn--hyvt5k.xn--fiqs8s'],
 ])('normalizes supported external entry %s', (input, expected) => {
   expect(normalizeUrl(input)).toBe(expected);
 });
@@ -69,7 +70,7 @@ it('defaults without creating a file, saves atomically, restores and clears the 
   expect(readdirSync(directory)).toEqual([]);
   settings.save('https://example.com:8443/');
   expect(settings.read()).toEqual({
-    externalJoinUrl: 'https://example.com:8443/player',
+    externalJoinUrl: 'https://example.com:8443',
   });
   expect(new NetworkSettings(directory).read()).toEqual(settings.read());
   expect(readdirSync(directory)).toEqual(['network-settings.json']);
@@ -77,6 +78,24 @@ it('defaults without creating a file, saves atomically, restores and clears the 
   expect(new NetworkSettings(directory).read()).toEqual({
     externalJoinUrl: null,
   });
+});
+
+it('reads an existing /player entry as the root address without rewriting the saved file', () => {
+  const directory = fixture();
+  const file = join(directory, 'network-settings.json');
+  const source = '{"externalJoinUrl":"https://EXAMPLE.com:8443/player/"}\n';
+  writeFileSync(file, source);
+  const settings = new NetworkSettings(directory);
+  expect(settings.read()).toEqual({
+    externalJoinUrl: 'https://example.com:8443',
+  });
+  expect(readFileSync(file, 'utf8')).toBe(source);
+  expect(readdirSync(directory)).toEqual(['network-settings.json']);
+  settings.save('https://example.com:8443/player');
+  expect(JSON.parse(readFileSync(file, 'utf8'))).toEqual({
+    externalJoinUrl: 'https://example.com:8443',
+  });
+  expect(new NetworkSettings(directory).read()).toEqual(settings.read());
 });
 
 it.each([
@@ -102,7 +121,7 @@ it.each([
     expect(backup).toBeTruthy();
     expect(readFileSync(join(directory, backup!), 'utf8')).toBe(source);
     expect(settings.read()).toEqual({
-      externalJoinUrl: 'https://example.com/player',
+      externalJoinUrl: 'https://example.com',
     });
   },
 );
@@ -117,7 +136,7 @@ it('keeps the previous in-memory value and original file on failed replacement',
   mkdirSync(file);
   expect(() => settings.save('https://new.example')).toThrow();
   expect(settings.read()).toEqual({
-    externalJoinUrl: 'https://old.example/player',
+    externalJoinUrl: 'https://old.example',
   });
   expect(readFileSync(join(directory, 'original.json'), 'utf8')).toBe(original);
   expect(readdirSync(directory).some((name) => name.endsWith('.tmp'))).toBe(
@@ -137,5 +156,5 @@ it('rejects invalid changes before touching a saved entry', () => {
   expect(readFileSync(join(directory, 'network-settings.json'), 'utf8')).toBe(
     original,
   );
-  expect(settings.read().externalJoinUrl).toBe('https://old.example/player');
+  expect(settings.read().externalJoinUrl).toBe('https://old.example');
 });

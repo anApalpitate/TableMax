@@ -33,7 +33,10 @@ export function BoardEffects({
         .forEach((slot) => {
           const rect = slot.getBoundingClientRect();
           if (rect.width > 2 && rect.height > 2)
-            next[slot.dataset.slot ?? `@${slot.dataset.pile}`] = {
+            next[
+              slot.dataset.slot ??
+                `@${slot.dataset.pile}${slot.dataset.pile === 'buffer' ? ':' + slot.dataset.seat : ''}`
+            ] = {
               x: rect.x,
               y: rect.y,
               width: rect.width,

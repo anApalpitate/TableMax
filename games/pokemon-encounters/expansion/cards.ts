@@ -1,5 +1,13 @@
-import { cardDefinitions, deckProfiles } from './config/card-data';
-import type { Ability, CategoryPresentation } from './config/types';
+import {
+  cardDefinitions,
+  deckProfiles,
+  legacyDeckProfiles,
+} from './config/card-data';
+import type {
+  Ability,
+  CategoryPresentation,
+  RulesProfile,
+} from './config/types';
 export type { Ability, CategoryPresentation } from './config/types';
 
 export type Category = {
@@ -36,12 +44,15 @@ export function categoryPresentation(categoryId: string): CategoryPresentation {
   return { ...found };
 }
 
-export const instancesForSeats = (seats: number) => {
+export const instancesForSeats = (
+  seats: number,
+  rulesProfile: RulesProfile = 'research-buffer-v2',
+) => {
   if (!Number.isInteger(seats) || seats < 2 || seats > 6)
     throw new Error('Invalid expansion seats');
-  const profile = deckProfiles.find(
-    (p) => seats >= p.minSeats && seats <= p.maxSeats,
-  )!;
+  const profile = (
+    rulesProfile === 'legacy' ? legacyDeckProfiles : deckProfiles
+  ).find((p) => seats >= p.minSeats && seats <= p.maxSeats)!;
   return categories.flatMap((c) =>
     Array.from(
       { length: profile.counts[c.categoryId]! },
@@ -49,9 +60,23 @@ export const instancesForSeats = (seats: number) => {
     ),
   );
 };
-const instances = new Set(
-  deckProfiles.flatMap((p) => instancesForSeats(p.minSeats)),
-);
+const instances = new Set([
+  ...instancesForSeats(2),
+  ...instancesForSeats(6),
+  ...instancesForSeats(2, 'legacy'),
+  ...instancesForSeats(6, 'legacy'),
+]);
+const profileInstances: Record<RulesProfile, Set<string>> = {
+  legacy: new Set(instancesForSeats(6, 'legacy')),
+  'research-buffer-v2': new Set(instancesForSeats(6)),
+};
+export const validProfileInstance = (instance: string, profile: RulesProfile) =>
+  profileInstances[profile].has(instance);
+export const legacyCategories: Category[] = categories.map((c) => ({
+  ...c,
+  small: legacyDeckProfiles[0]!.counts[c.categoryId]!,
+  standard: legacyDeckProfiles[1]!.counts[c.categoryId]!,
+}));
 export function card(instance: string): Category {
   if (!instances.has(instance)) throw new Error('Invalid expansion card');
   return definitions.get(instance.split('#')[0]!)!;

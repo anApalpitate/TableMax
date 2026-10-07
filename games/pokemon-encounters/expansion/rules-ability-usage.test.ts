@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pokemonExpansion as rules } from './index';
+import { legacyRules as rules } from './legacy-test';
 import { card, categories } from './cards';
 import { RoomFeedbackSchema } from '../../../packages/protocol/src';
 import type { State, Action } from './state';

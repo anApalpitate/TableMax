@@ -107,7 +107,7 @@ export function Prototype() {
     !state.paused &&
     !['pending', 'uncertain'].includes(state.submission);
   const joined = state.seats.find((seat) => seat.id === state.joinedSeat);
-  const url = `http://${address}:38473/player`;
+  const url = `http://${address}:38473`;
 
   function switchScreen(screen: Screen) {
     setDialog(null);

@@ -45,7 +45,7 @@ export function normalizeUrl(input: string): string {
           ))
   )
     throw new Error('外部入口的域名或 IP 地址无效，请检查后重试。');
-  return `${address.origin}/player`;
+  return address.origin;
 }
 
 export class NetworkSettings {

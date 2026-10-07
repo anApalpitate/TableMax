@@ -1,7 +1,7 @@
 import type { Viewer } from '@tablemax/game-sdk';
 import { card, abilityText } from './cards';
 import { task } from './research';
-import { actor, type State } from './state';
+import { actor, stateRulesProfile, type State } from './state';
 export const face = (instance: string, abilityUsed = false) => {
   const c = card(instance);
   return {
@@ -31,6 +31,17 @@ export function project(s: State, viewer: Viewer) {
       : null;
   return structuredClone({
     variantId: 'expansion' as const,
+    ...(s.rulesProfile
+      ? {
+          rulesProfile: s.rulesProfile,
+          buffersBySeat: Object.fromEntries(
+            s.seatOrder.map((id) => [
+              id,
+              s.buffersBySeat![id] ? visibleFace(s.buffersBySeat![id]!) : null,
+            ]),
+          ),
+        }
+      : {}),
     roundNumber: s.roundNumber,
     seatOrder: s.seatOrder,
     winsBySeat: s.winsBySeat,
@@ -58,7 +69,10 @@ export function project(s: State, viewer: Viewer) {
     deckCount: s.deck.length,
     discardCount: s.discard.length,
     discardTop: s.discard.length ? visibleFace(s.discard.at(-1)!) : null,
-    discardOptions: s.discard.slice(-2).reverse().map(visibleFace),
+    discardOptions: s.discard
+      .slice(s.rulesProfile ? -1 : -2)
+      .reverse()
+      .map(visibleFace),
     held: s.held ? visibleFace(s.held) : null,
     drawSource: s.drawSource,
     coin: s.coin,
@@ -81,11 +95,15 @@ export function project(s: State, viewer: Viewer) {
             })),
           }
         : null,
-    researchCandidates: s.researchCandidates.map(task),
+    researchCandidates: s.researchCandidates.map((id) =>
+      task(id, stateRulesProfile(s)),
+    ),
     votedSeats: s.seatOrder.filter((id) => s.votesBySeat[id] !== undefined),
     ownVote: own ? (s.votesBySeat[own] ?? null) : null,
     voteCounts: s.voteCounts,
-    activeResearch: s.activeResearch.map(task),
+    activeResearch: s.activeResearch.map((id) =>
+      task(id, stateRulesProfile(s)),
+    ),
     hoennTriggered: s.activeResearch.length === 2,
     arceusUsed: s.arceusUsed,
     rowAbility: s.rowAbility,

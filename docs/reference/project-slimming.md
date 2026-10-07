@@ -1,5 +1,15 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.4 研究重设计与根入口收尾（2026-10-08）
+
+最终运行ZIP `a9ee8498…` 的根入口、普通模式、研究图示／关键阶段、四变体入口及HTTPS等价远程故障全部通过，全部工程进程退出后才清理。[开始实测](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/space-start.json)为 **12,687,373,228逻辑字节**。上一已验v1.0.4包与关键返修前原包保留各自SHA；releases只留当前运行ZIP和逐文件清单，未导出EXE或source ZIP。
+
+先预览、核对再Apply：[13个打包暂存](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261007-231212-229-releases/cleanup.json)退役 **3,006,662,446字节**，[34个已结束隔离验证副本](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261007-231302-408-intermediates/cleanup.json)退役 **4,389,192,833字节**，合计 **7,395,855,279字节（约6.888GiB）**。仅使用精确六位后缀目录清单，当前包／清单、原素材、规则资料、正式存档、当前及失败／过渡验收截图报告继续保留；未清空artifacts／tmp。51项清理前缀保护检查通过，新验证入口不扩大至未知用途内容。
+
+随后空闲执行 `Maintain-Project.ps1 -Apply`。[最终实际容量](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/space-final.json)为 **14,785,532,381逻辑字节（13.770GiB）**，跳过1,370链接、零嵌套仓库；178项保护／未知用途跳过，安全候选零，仍超过10GiB且未达8GiB，不扩大删除范围。期间新增并保留多轮实际验收及关键失败画面、审计与原包，较开始净增2,098,159,153字节；删除量不能冒充容量净下降或NTFS物理节省，见[汇总](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/cleanup-summary.json)。后续文档及Git写入略增。
+
+两份结束记录[原样集中归档](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/cleanup-record-archive.json)，移动前后逐文件大小／SHA-256不变，索引追加现路径，maintenance直属记录目录剩余零。按本轮用户授权提交并push源码，不创建标签或GitHub Release；本地包体积与瘦身逻辑水位分别计量。
+
 ## v1.0.4 手机玩家视窗与远程续验收尾（2026-10-08）
 
 最终实际 ZIP `96518cad…` 的入口、盒子浮窗、等价 HTTPS 代理双向操作与换机恢复通过后，全部工程进程退出。[开始实测](../../artifacts/maintenance/v1.0.4/debug-20261008/implementation/space-start.json) **17,544,706,145 逻辑字节（16.340 GiB）**。前一已验 v1.0.3 ZIP 与清单[原样移入证据](../../artifacts/maintenance/v1.0.4/debug-20261008/previous-delivery/preserved.json)，大小及 SHA-256 不变；releases 仅保留当前 v1.0.4 运行 ZIP 和清单，不新增 EXE 或源码包。

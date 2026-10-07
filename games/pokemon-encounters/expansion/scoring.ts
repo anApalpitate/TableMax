@@ -1,11 +1,25 @@
-import { card } from './cards';
+import { card, validProfileInstance } from './cards';
 import { grid, lines, matchesTask, task } from './research';
+import type { RulesProfile, VictoryPolicy } from './config/types';
+import {
+  researchReward,
+  mergeVictory,
+  type ScoreEffect,
+} from './research-rewards';
 export type Score = {
   values: number[];
   matchedLines: number[];
   zeroSlots: number[];
   base: number;
-  research: { taskId: string; achieved: boolean; deduction: number }[];
+  research: {
+    taskId: string;
+    achieved: boolean;
+    deduction: number;
+    effects?: ScoreEffect[];
+    title?: string | null;
+    victory?: VictoryPolicy;
+  }[];
+  victory?: VictoryPolicy;
   deduction: number;
   total: number;
   copies: {
@@ -19,12 +33,14 @@ export function scoreBoard(
   board: readonly string[],
   taskIds: readonly string[] = [],
   preReveal: readonly boolean[] = Array(9).fill(true),
+  profile: RulesProfile = 'research-buffer-v2',
 ): Score {
   if (
     board.length !== 9 ||
     new Set(board).size !== 9 ||
     preReveal.length !== 9 ||
-    new Set(taskIds).size !== taskIds.length
+    new Set(taskIds).size !== taskIds.length ||
+    board.some((id) => !validProfileInstance(id, profile))
   )
     throw new Error('Invalid expansion scoring board');
   const cards = board.map(card),
@@ -86,15 +102,23 @@ export function scoreBoard(
       })),
     };
     score.research = taskIds.map((taskId) => {
-      const achieved = matchesTask(taskId, board, score, preReveal);
+      const achieved = matchesTask(taskId, board, score, preReveal, profile);
+      if (profile === 'research-buffer-v2')
+        return {
+          taskId,
+          achieved,
+          ...researchReward(task(taskId, profile), achieved, board, score),
+        };
       return {
         taskId,
         achieved,
-        deduction: achieved ? task(taskId).reward : 0,
+        deduction: achieved ? task(taskId, profile).reward : 0,
       };
     });
     score.deduction = score.research.reduce((n, r) => n + r.deduction, 0);
     score.total = base - score.deduction;
+    if (profile === 'research-buffer-v2')
+      score.victory = mergeVictory(score.research.map((r) => r.victory!));
     candidates.push(score);
   }
   enumerate(0, {});

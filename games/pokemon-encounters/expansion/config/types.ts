@@ -34,14 +34,69 @@ export type DeckProfile = {
   total: number;
   counts: Record<string, number>;
 };
+export type RulesProfile = 'legacy' | 'research-buffer-v2';
+export type VictoryPolicy = { bonus: 0 | 1; eligible: boolean; cap: 2 | 3 };
+export type ResearchEffect =
+  | { kind: 'flat'; amount: number }
+  | { kind: 'base-scale'; denominator: 2 | 3 }
+  | { kind: 'base-credit'; factor: number; cap: number }
+  | { kind: 'negative-scale'; factor: number }
+  | { kind: 'zero-bounty'; amount: number; cap: number }
+  | {
+      kind: 'copy-zero-bounty';
+      amount: number;
+      cap: number;
+      minimumValue: number;
+      minimumCopies: number;
+      minimumRoles: number;
+    }
+  | {
+      kind: 'card-value';
+      slots: number[];
+      category: string | null;
+      minimum: number | null;
+      highestOnly: boolean;
+      value: number;
+      cap: number;
+    };
 export type ResearchTask = {
   id: string;
   name: string;
   description: string;
   reward: number;
   pool: 'opening' | 'hoenn';
+  rewardText?: string;
+  riskText?: string;
+  rewardEffects?: ResearchEffect[];
+  failurePenalty?: number;
+  successVictory?: VictoryPolicy;
+  failureVictory?: VictoryPolicy;
 };
 export type ResearchCondition =
+  | { type: 'all'; conditions: ResearchCondition[] }
+  | {
+      type: 'count';
+      slots: number[];
+      minimum: number | null;
+      maximum: number | null;
+      category: string | null;
+      ability: boolean | null;
+      copy: boolean | null;
+      outsideZero: boolean;
+      atLeast: number;
+      atMost: number;
+    }
+  | { type: 'zero-count'; minimum: number; maximum: number }
+  | { type: 'distinct-exact'; slots: number[]; count: number }
+  | { type: 'signed-row-balance'; zeroGroups: number[][]; otherMinimum: number }
+  | {
+      type: 'copy-anchors';
+      minimumCopies: number;
+      minimumRoles: number;
+      minimumValue: number;
+    }
+  | { type: 'visible-roles'; faceUp: number; minimumRoles: number }
+  | { type: 'group-sum'; groups: number[][]; sum: number }
   | {
       type: 'zero-lines';
       lines: number[];

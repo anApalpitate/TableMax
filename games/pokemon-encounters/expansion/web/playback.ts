@@ -31,7 +31,10 @@ export function presentedWins(
   return Math.max(
     0,
     (game.winsBySeat[seat] ?? 0) -
-      (!resultReady && game.roundResult?.winners.includes(seat) ? 1 : 0),
+      (!resultReady
+        ? (game.roundResult?.awardsBySeat?.[seat] ??
+          (game.roundResult?.winners.includes(seat) ? 1 : 0))
+        : 0),
   );
 }
 

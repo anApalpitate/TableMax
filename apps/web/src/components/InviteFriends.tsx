@@ -21,7 +21,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
     isHost,
   } = session;
   const joinUrl =
-    externalJoinUrl || (address ? `http://${address}:${port}/player` : '');
+    externalJoinUrl || (address ? `http://${address}:${port}` : '');
   const saveExternal = async (value: string | null) => {
     if (saving || !isHost) return;
     setSaving(true);
@@ -144,7 +144,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
                   }}
                 />
                 <p id={`${externalId}-hint`}>
-                  支持 HTTP、HTTPS 网站根地址或 /player，暂不支持路径前缀。
+                  支持 HTTP、HTTPS 网站根地址与端口，暂不支持路径前缀。
                 </p>
                 <div className="connection-help__external-actions">
                   <button type="submit" disabled={saving || !draftUrl.trim()}>

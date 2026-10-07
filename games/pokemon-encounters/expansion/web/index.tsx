@@ -18,12 +18,13 @@ import {
 import type { JsonValue } from '@tablemax/game-sdk';
 import type { View, Face } from '../project';
 import type { Action } from '../state';
-import { tasks } from '../research';
+import { task, tasksForProfile, type RulesProfile } from '../research';
 import { categories, categoryPresentation } from '../cards';
 import { BoardGrid } from '../../ui/BoardGrid';
 import { CardSkin } from '../../ui/CardSkin';
 import { WinTrack } from '../../ui/WinTrack';
 import { ResearchCard, ResearchPicture } from './ResearchCard';
+import { ResearchReward } from './ResearchReward';
 import { portraitFor } from './card-art';
 import { portraitBoundsFor } from './portrait-bounds';
 import {
@@ -39,12 +40,19 @@ import { GuideScene } from '../../ui/RuleDiagrams';
 import { CircularBadge } from './CircularBadge';
 import { presentedWins } from './playback';
 import {
+  researchAdjustmentText,
+  researchRewardText,
+  researchRiskText,
+  researchScoreText,
+} from './research-presentation';
+import {
   ExpansionPresentation,
   useExpansionPresentation,
 } from './PresentationContext';
 import './style.css';
 import './redesign.css';
 import './refinement.css';
+import './player-flow.css';
 
 const poseDurations = Object.fromEntries(
   Object.entries(poseSequences).map(([id, sequence]) => [
@@ -127,6 +135,8 @@ function eventText(
     'decline-ability': '放弃可选能力',
     'initial-flip': '翻开初始牌',
     'discard-held': '弃掉暂持牌',
+    'store-buffer': '将暂持牌存入本人缓冲',
+    'draw-buffer': '从本人缓冲取出',
   };
   const category =
     categories.find((c) => c.categoryId === action.cardCategory) ??
@@ -138,6 +148,67 @@ function eventText(
     )
     .join('；');
   return `${names[action.actor] ?? '玩家'}${verbs[action.verb] ?? '完成操作'}${category ? ` ${category.name}` : ''}${targets ? `，目标为${targets}` : ''}。`;
+}
+
+function BufferCard({
+  game,
+  seat,
+  label = '本人缓冲',
+  publicCard = false,
+}: {
+  game: View;
+  seat: string;
+  label?: string;
+  publicCard?: boolean;
+}) {
+  if (!game.buffersBySeat) return null;
+  const face = game.buffersBySeat[seat] ?? null;
+  return (
+    <div
+      className={`ex-buffer-card ${face ? 'occupied' : 'empty'}`}
+      data-pile="buffer"
+      data-seat={seat}
+      aria-label="缓冲区"
+    >
+      {face ? (
+        <span className="ex-buffer-portrait">
+          <img
+            src={portraitFor(face.categoryId) ?? cardArt(face.categoryId).image}
+            alt=""
+          />
+          <b>{face.value ?? (face.copy === 'vertical' ? '↕' : '↔')}</b>
+        </span>
+      ) : (
+        <span className="ex-buffer-empty" aria-hidden="true">
+          ＋
+        </span>
+      )}
+      <div>
+        <span
+          className="ex-buffer-label"
+          title={publicCard ? label : undefined}
+        >
+          {label}
+        </span>
+        <strong>{face?.name ?? '未存牌'}</strong>
+        <span className="ex-buffer-state">
+          {face
+            ? publicCard
+              ? face.ability
+                ? face.abilityUsed
+                  ? '能力已用'
+                  : '能力未用'
+                : face.copy
+                  ? '被动复制'
+                  : '普通牌'
+              : face.abilityUsed && face.ability
+                ? '能力已使用'
+                : '取出后必须使用'
+            : '最多一张，所有人可见'}
+        </span>
+      </div>
+    </div>
+  );
 }
 function Card({
   face,
@@ -284,21 +355,27 @@ function PublicSupply({
           </header>
           <Card face={null} compact />
         </section>
-        {([0, 1] as const).map((i) => (
-          <section key={i} data-pile={i === 0 ? 'discard' : 'discard-second'}>
-            <header>
-              <strong>可选弃牌{i + 1}</strong>
-            </header>
-            {game.discardOptions[i] ? (
-              <Card face={game.discardOptions[i]} compact />
-            ) : (
-              <div className="ex-empty-pile">暂无</div>
-            )}
-          </section>
-        ))}
+        {(game.rulesProfile === 'research-buffer-v2' ? [0] : [0, 1]).map(
+          (i) => (
+            <section key={i} data-pile={i === 0 ? 'discard' : 'discard-second'}>
+              <header>
+                <strong>
+                  {game.rulesProfile === 'research-buffer-v2'
+                    ? '弃牌顶部'
+                    : `可选弃牌${i + 1}`}
+                </strong>
+              </header>
+              {game.discardOptions[i] ? (
+                <Card face={game.discardOptions[i]} compact />
+              ) : (
+                <div className="ex-empty-pile">暂无</div>
+              )}
+            </section>
+          ),
+        )}
       </div>
       <section
-        className={`ex-public-held ${game.held ? 'has-held' : ''} ${moved?.verb === 'draw' ? 'ex-saved' : ''}`}
+        className={`ex-public-held ${game.held ? 'has-held' : ''} ${moved && ['draw', 'draw-buffer'].includes(moved.verb) ? 'ex-saved' : ''}`}
         data-pile="held"
         aria-label="公开暂持区"
       >
@@ -337,12 +414,36 @@ function PublicSupply({
         <span>最近行动</span>
         <p>{game.events.at(-1) && eventText(game.events.at(-1)!, names)}</p>
       </div>
+      {game.buffersBySeat && (
+        <section className="ex-public-buffers" aria-label="公开缓冲区">
+          <h3>玩家缓冲</h3>
+          <div>
+            {game.seatOrder.map((seat) => (
+              <BufferCard
+                key={seat}
+                game={game}
+                seat={seat}
+                label={names[seat] ?? '玩家'}
+                publicCard
+              />
+            ))}
+          </div>
+        </section>
+      )}
       {research}
     </aside>
   );
 }
 
-function Actions({ session, game }: { session: GameHost; game: View }) {
+function Actions({
+  session,
+  game,
+  showResearch,
+}: {
+  session: GameHost;
+  game: View;
+  showResearch: (id: string) => void;
+}) {
   const { motion } = useExpansionPresentation();
   const actions = (session.view?.actions ?? []) as Action[];
   const [mode, setMode] = useState(''),
@@ -419,29 +520,79 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
                 : selectedType === 'swap'
                   ? '交换这两格'
                   : '换入这个位置';
+  const heldOptions =
+    game.held &&
+    actions.some(
+      (a) => a.type === 'discard-held' || a.type === 'store-buffer',
+    ) ? (
+      <div className="ex-held-options" aria-label="暂持牌其他处理">
+        {actions
+          .filter((a) => a.type === 'discard-held' || a.type === 'store-buffer')
+          .map((a) => (
+            <button
+              key={a.type}
+              data-action={a.type}
+              className={
+                a.type === 'discard-held'
+                  ? 'ex-discard-action'
+                  : 'ex-store-action'
+              }
+              disabled={locked}
+              onClick={() => choose(a)}
+            >
+              {a.type === 'discard-held' ? '弃到牌堆' : '存入本人缓冲'}
+            </button>
+          ))}
+      </div>
+    ) : null;
   if (game.phase === 'research-vote')
     return (
       <section className="ex-vote">
         <div className="ex-vote-options">
           {game.researchCandidates.map((t, i) => (
-            <button
+            <article
               key={t.id}
-              disabled={
-                locked ||
-                !actions.some(
-                  (a) => a.type === 'vote-research' && a.taskId === t.id,
-                )
-              }
-              onClick={() => choose({ type: 'vote-research', taskId: t.id })}
+              data-research-option={t.id}
               className={`ex-mission-option ${game.ownVote === t.id ? 'selected' : ''}`}
             >
-              <CircularBadge
-                className="ex-vote-mark"
-                value={game.ownVote === t.id ? '✓' : i + 1}
-              />
-              <strong>{t.name}</strong>
-              <b>−{t.reward}分</b>
-            </button>
+              <button
+                className="ex-vote-choice"
+                data-action="vote-research"
+                data-research={t.id}
+                aria-label={`${t.name}，${researchRewardText(t)}${researchRiskText(t) ? `，${researchRiskText(t)}` : ''}${game.ownVote === t.id ? '，本人投票已锁定' : ''}`}
+                disabled={
+                  locked ||
+                  !actions.some(
+                    (a) => a.type === 'vote-research' && a.taskId === t.id,
+                  )
+                }
+                onClick={() => choose({ type: 'vote-research', taskId: t.id })}
+              >
+                <CircularBadge
+                  className="ex-vote-mark"
+                  value={game.ownVote === t.id ? '✓' : i + 1}
+                />
+                <span className="ex-vote-copy">
+                  <strong>{t.name}</strong>
+                  <b>
+                    <ResearchReward task={t} />
+                  </b>
+                  {researchRiskText(t) && (
+                    <span className="ex-research-risk">
+                      {researchRiskText(t)}
+                    </span>
+                  )}
+                </span>
+              </button>
+              <button
+                className="secondary ex-research-details"
+                data-research-details={t.id}
+                aria-label={`查看${t.name}的条件与风险`}
+                onClick={() => showResearch(t.id)}
+              >
+                条件与风险 <span aria-hidden="true">›</span>
+              </button>
+            </article>
           ))}
         </div>
         <p className="ex-vote-status">
@@ -465,13 +616,16 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
             : '等待其他玩家翻牌'}
         </div>
         <Board game={game} seat={self} motion={motion} />
+        <BufferCard game={game} seat={self} />
       </section>
     );
   return (
     <section className="ex-actions" aria-label="本人操作">
       <header className="ex-action-heading">
         <img src={avatarFor(session.self?.avatarId ?? 'builtin-1')} alt="" />
-        <h2>{session.self?.name ?? '本人'}的行动</h2>
+        <h2 title={session.self?.name ?? '本人'}>
+          {session.self?.name ?? '本人'}
+        </h2>
         <WinTrack wins={game.winsBySeat[self] ?? 0} />
       </header>
       {game.coin && (
@@ -487,11 +641,35 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
           <Card face={game.held} />
           <div>
             <span className="ex-held-label">当前取牌</span>
-            <p>
-              {game.held.abilityUsed && game.held.ability
-                ? '能力已使用，选择位置换入'
-                : categoryPresentation(game.held.categoryId).abilitySummary ||
-                  '选择位置换入'}
+            <strong>{game.held.name}</strong>
+            {game.drawSource !== 'deck' && (
+              <span className="ex-source-rule">
+                <span className="ex-source-label-full">
+                  {game.drawSource === 'buffer' ? '来自本人缓冲' : '来自弃牌堆'}
+                  ，必须使用
+                </span>
+                <span className="ex-source-label-compact">
+                  {game.drawSource === 'buffer' ? '本人缓冲' : '弃牌堆'} ·
+                  必须换入
+                </span>
+              </span>
+            )}
+            <p
+              className={
+                game.held.abilityUsed && game.held.ability
+                  ? 'ex-held-ability-used'
+                  : 'ex-held-summary'
+              }
+            >
+              {game.held.abilityUsed && game.held.ability ? (
+                <>
+                  能力已使用
+                  <span className="ex-placement-reminder">，选择位置换入</span>
+                </>
+              ) : (
+                categoryPresentation(game.held.categoryId).abilitySummary ||
+                '选择位置换入'
+              )}
             </p>
             {game.held.abilityText && !game.held.abilityUsed && (
               <details>
@@ -505,6 +683,7 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
       {!game.held && (
         <span className="ex-held-anchor" data-pile="held" aria-hidden="true" />
       )}
+      {game.phase !== 'place' && heldOptions}
       {(game.phase === 'draw' || game.phase === 'lucario-draw') && (
         <div className="ex-draw-options">
           <button
@@ -524,7 +703,13 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
               </span>
             </div>
           </button>
-          {([0, 1] as const).map((i) => {
+          {(game.phase === 'draw'
+            ? game.rulesProfile === 'research-buffer-v2'
+              ? [0]
+              : [0, 1]
+            : []
+          ).map((index) => {
+            const i = index as 0 | 1;
             const face = game.discardOptions[i] ?? null;
             return (
               <button
@@ -544,7 +729,11 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
                   choose({ type: 'draw', source: 'discard', discardIndex: i })
                 }
               >
-                <strong>可选弃牌{i + 1}</strong>
+                <strong>
+                  {game.rulesProfile === 'research-buffer-v2'
+                    ? '弃牌顶部'
+                    : `可选弃牌${i + 1}`}
+                </strong>
                 <div className="ex-source-face">
                   {face ? (
                     <Card face={face} compact />
@@ -559,28 +748,59 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
               </button>
             );
           })}
-          <button
-            className={`ex-source ex-reposition-source ${mode === 'reposition' ? 'selected' : ''}`}
-            disabled={locked || !actions.some((a) => a.type === 'reposition')}
-            onClick={() => {
-              setMode(mode === 'reposition' ? '' : 'reposition');
-              setSlots([]);
-            }}
-          >
-            <strong>卡牌换位</strong>
-            <div className="ex-source-face">
-              <span className="ex-swap-mark" aria-hidden="true">
-                <svg viewBox="0 0 72 90">
-                  <rect x="5" y="9" width="30" height="47" rx="5" />
-                  <rect x="37" y="34" width="30" height="47" rx="5" />
-                  <path d="M12 71h18l-6-6m6 6-6 6M60 18H42l6-6m-6 6 6 6" />
-                </svg>
-              </span>
-              <span>
-                交换两格<b>结束本回合</b>
-              </span>
-            </div>
-          </button>
+          {game.buffersBySeat && game.phase === 'draw' && (
+            <button
+              className="ex-source ex-buffer-source"
+              data-pile="buffer"
+              data-seat={self}
+              data-action="draw-buffer"
+              disabled={
+                locked || !actions.some((a) => a.type === 'draw-buffer')
+              }
+              onClick={() => choose({ type: 'draw-buffer' })}
+            >
+              <strong>本人缓冲</strong>
+              <div className="ex-source-face">
+                {game.buffersBySeat[self] ? (
+                  <Card face={game.buffersBySeat[self]!} compact />
+                ) : (
+                  <span className="ex-buffer-empty" aria-hidden="true">
+                    ＋
+                  </span>
+                )}
+                <span>
+                  {game.buffersBySeat[self]?.name ?? '空位'}
+                  <b>
+                    {game.buffersBySeat[self] ? '取出后必须使用' : '尚未存牌'}
+                  </b>
+                </span>
+              </div>
+            </button>
+          )}
+          {game.phase === 'draw' && (
+            <button
+              className={`ex-source ex-reposition-source ${mode === 'reposition' ? 'selected' : ''}`}
+              disabled={locked || !actions.some((a) => a.type === 'reposition')}
+              onClick={() => {
+                setMode(mode === 'reposition' ? '' : 'reposition');
+                setSlots([]);
+              }}
+            >
+              <strong>卡牌换位</strong>
+              <div className="ex-source-face">
+                <span className="ex-swap-mark" aria-hidden="true">
+                  <svg viewBox="0 0 72 90">
+                    <rect x="5" y="9" width="30" height="47" rx="5" />
+                    <rect x="37" y="34" width="30" height="47" rx="5" />
+                    <path d="M12 71h18l-6-6m6 6-6 6M60 18H42l6-6m-6 6 6 6" />
+                  </svg>
+                </span>
+                <span>
+                  交换两格<b>结束本回合</b>
+                </span>
+              </div>
+            </button>
+          )}
         </div>
       )}
       {targets.length > 0 && (
@@ -625,10 +845,12 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
       ) : selectable.length > 0 &&
         (game.phase !== 'draw' || mode === 'reposition') ? (
         <div className="ex-target-board">
-          <p>
-            {chosenSeat === self ? '本人场地' : `${names[chosenSeat]}的场地`} ·{' '}
-            {pairs.length ? '选择两个不同位置' : '选择一个位置'}
-          </p>
+          <div className="ex-target-heading">
+            <strong>
+              {chosenSeat === self ? '本人场地' : `${names[chosenSeat]}的场地`}
+            </strong>
+            <span>{pairs.length ? '选择两个不同位置' : '选择一个位置'}</span>
+          </div>
           <Board
             game={game}
             seat={chosenSeat}
@@ -673,6 +895,7 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
           <Board game={game} seat={self} motion={motion} />
         </div>
       )}
+      {game.phase === 'place' && heldOptions}
       {chosenSeat !== self && (
         <details className="ex-own-preview">
           <summary>查看本人场地</summary>
@@ -723,7 +946,6 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
               'close-peek',
               'activate-arceus',
               'extra-draw',
-              'discard-held',
               'pass-direction',
             ].includes(a.type),
           )
@@ -731,13 +953,7 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
             <button
               key={'direction' in a ? a.direction : a.type}
               disabled={locked}
-              className={
-                a.type === 'discard-held'
-                  ? 'ex-discard-action'
-                  : a.type === 'decline-ability'
-                    ? 'secondary'
-                    : ''
-              }
+              className={a.type === 'decline-ability' ? 'secondary' : ''}
               onClick={() => choose(a)}
             >
               {'direction' in a
@@ -748,20 +964,20 @@ function Actions({ session, game }: { session: GameHost; game: View }) {
             </button>
           ))}
       </div>
-      {!actions.length && (
-        <p className="ex-wait">
-          {game.actorSeat ? `${names[game.actorSeat]}正在行动` : '等待全员完成'}
-          。公开画面仅显示已保存结果。
-        </p>
-      )}
+      {game.phase !== 'draw' && <BufferCard game={game} seat={self} />}
     </section>
   );
 }
-function Rulebook() {
+function Rulebook({ profile }: { profile: RulesProfile }) {
+  const buffered = profile === 'research-buffer-v2';
   return (
     <RulesGuide
       className="expansion-rules"
-      summary="经营九格，用三张同值连线归零。结算最低分得一胜，先到三胜。"
+      summary={
+        buffered
+          ? '经营九格，用三张同值连线归零。最低最终分获胜，研究会改变分数和授胜，先到三胜结束。'
+          : '经营九格，用三张同值连线归零。结算最低分得一胜，先到三胜。'
+      }
       source="TableMax自制扩展；数值与任务为项目方案，原版出版来源缺口保持记录。"
       chapters={[
         {
@@ -774,7 +990,7 @@ function Rulebook() {
                 2–6人，投票三选一，全员锁定后最高票当选，平票随机。每人九张暗牌，自己翻一张；超梦、阿尔宙斯不进初始场地。
               </p>
               <p>
-                手机只展示三项名称与奖励，点选即锁定。完整条件和示意图见电脑投票区及规则。角色配图与趣味名称不增加指定宝可梦的达成要求。
+                选择研究即锁定投票。每项的“条件与风险”可查看完整要求、收益和示意图，不会提交投票。角色插画表达主题，不代替任务条件。
               </p>
               <GuideScene
                 name="setup"
@@ -792,15 +1008,38 @@ function Rulebook() {
         {
           id: 'turn',
           label: '取牌换位',
-          title: '顶部两弃牌，或交换本人两格',
+          title: buffered
+            ? '取牌、缓冲，或交换本人两格'
+            : '顶部两弃牌，或交换本人两格',
           content: (
             <>
               <p>
-                可取牌库顶或弃牌顶部两张之一；牌库牌可弃，弃牌取得必须使用。普通换入朝上，换出公开弃顶。不取牌时可公开交换本人两格，朝向随牌移动，替代整个回合，不私看、不发动能力。
+                {buffered
+                  ? '普通回合可取摸牌堆顶、唯一弃牌顶部，或本人缓冲。弃牌和缓冲取得必须使用。允许弃掉的摸牌可存入自己的空缓冲，替代放入或弃牌并结束回合；强制换入和接力过程中不能存牌。路卡利欧的额外摸牌，以及超梦未偷换而放弃侦察后的摸牌，仍可按原来源弃掉或存入空缓冲。'
+                  : '可取牌库顶或弃牌顶部两张之一；牌库牌可弃，弃牌取得必须使用。'}
+                普通换入朝上，换出公开弃顶。不取牌时可公开交换本人两格，朝向随牌移动，替代整个回合，不私看、不发动能力。
               </p>
               <p>
-                通常先取牌并换入，再处理能力；梦幻、火箭队、闪电鸟及超梦按各自流程先处理指定步骤。卡牌换位替代整个回合。两个“可选弃牌”来自同一弃牌堆；行动轮到你时才显示操作。
+                通常先取牌并换入，再处理能力；梦幻、火箭队、闪电鸟及超梦按各自流程先处理指定步骤。卡牌换位替代整个回合。
+                {buffered
+                  ? '每人缓冲最多一张，牌公开但只有本人能取出，不能直接交换两张缓冲；缓冲不计场地分、归零或研究条件。'
+                  : '两个“可选弃牌”来自同一弃牌堆。'}
+                行动轮到你时才显示操作。
               </p>
+              {buffered && (
+                <figure className="ex-buffer-rule">
+                  <div>
+                    <span>摸牌堆</span>
+                    <span>弃牌顶部</span>
+                    <span>本人缓冲</span>
+                  </div>
+                  <p aria-hidden="true">↓</p>
+                  <strong>当前取牌</strong>
+                  <p>
+                    弃牌和缓冲牌必须使用；可弃的摸牌可换入、弃掉或存入空缓冲。
+                  </p>
+                </figure>
+              )}
             </>
           ),
         },
@@ -811,7 +1050,9 @@ function Rulebook() {
           content: (
             <>
               <p>
-                项目新约定：每张特殊牌的主动能力使用后移除星标。移位、盖回、换人或进入弃牌堆都保留已使用状态；从两个可选弃牌取回也不会恢复。只有该牌实际洗回牌库，或开始下一小局，才恢复能力。复制牌的被动计分规则不受影响。
+                每张特殊牌的主动能力使用后移除星标。移位、盖回、换人、弃牌
+                {buffered ? '或缓冲' : ''}
+                都保留已使用状态，取回不会恢复。只有该牌实际洗回牌库，或开始下一小局，才恢复能力。复制牌的被动计分规则不受影响。
               </p>
               <ul>
                 {categories
@@ -858,7 +1099,7 @@ function Rulebook() {
           content: (
             <>
               <p>
-                三张有效值相同即归零，交叉格只一次，负值连线也归零，牌不拿走。复制路径必须到固定数字，联合最低基础分优先，同分选两任务奖励最多的解。完整能力后任意玩家全明就收局，不留残局回合。
+                三张有效值相同即归零，交叉格只一次，负值连线也归零，牌不拿走。复制路径必须到固定数字，最低基础分优先，同分选择研究处理后最有利的解。完整能力后任意玩家全明就收局，不留残局回合。
               </p>
               <div className="ex-rule-grid">
                 {[7, 4, 7, 0, 7, 3, 7, 6, 7].map((v, i) => (
@@ -871,7 +1112,13 @@ function Rulebook() {
                 ))}
               </div>
               <p>
-                示例：两条对角线归零，余牌合计13分。最低最终分可共同获胜，先到三胜。
+                示例：两条对角线归零，余牌合计13分。最低最终分可共同获胜。
+                {buffered
+                  ? '每位赢家按本人的研究条件授胜：通常一胜，奖励最多再加一胜；失败代价可能限制本局授胜或累计上限，已有胜场不撤回。累计达到三胜即可成为大局赢家。'
+                  : '先到三胜。'}
+                {buffered
+                  ? '计分明细显示本局实际增减分与授胜；最低分但未获胜星时，仍是下一小局起手候选。'
+                  : '计分明细显示基础分与研究减分。'}
               </p>
             </>
           ),
@@ -883,11 +1130,17 @@ function Rulebook() {
           content: (
             <>
               <p>
-                三种丰缘神兽首次同时在玩家场地明置，追加专属任务；弃牌／暂持和结算强制揭牌不计，最后合法行动仍可触发。两项只在结算判定，各减分一次。数字使用复制后、归零前值，无局中暗牌进度。
+                三种丰缘神兽首次同时在玩家场地明置，追加专属任务；弃牌、暂持
+                {buffered ? '、缓冲' : ''}
+                和结算强制揭牌不计，最后合法行动仍可触发。两项只在结算判定。
+                {buffered
+                  ? '奖励可能改变牌分、扩大负分收益或增加授胜；归零判定保持不变。高收益任务也可能有未达成代价，逐项查看下方条件与风险。'
+                  : '各减分一次。'}
+                数字使用复制后、归零前值，不展示局中暗牌进度。
               </p>
               <div className="expansion-screen ex-research-reference ex-rule-tasks">
-                {tasks.map((t) => (
-                  <ResearchCard key={t.id} task={t} />
+                {tasksForProfile(profile).map((t) => (
+                  <ResearchCard key={t.id} task={t} profile={profile} />
                 ))}
               </div>
             </>
@@ -913,11 +1166,16 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
   }, []);
   const presentation = useExpansionPresentation();
   const { motion, resultReady } = presentation;
+  const profile = game.rulesProfile ?? 'legacy';
   const [panel, setPanel] = useState<
       'menu' | 'rules' | 'friends' | 'research' | 'score' | null
     >(null),
     [detail, setDetail] = useState(''),
     names = namesOf(session);
+  const showResearch = (id: string) => {
+    setDetail(id);
+    setPanel('research');
+  };
   const seats = session.view?.seats ?? [],
     shown =
       session.role === 'player'
@@ -930,17 +1188,19 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
           <button
             key={t.id}
             className="ex-research-summary"
-            onClick={() => {
-              setDetail(t.id);
-              setPanel('research');
-            }}
+            data-research-details={t.id}
+            onClick={() => showResearch(t.id)}
           >
-            {session.role !== 'player' && <ResearchPicture id={t.id} />}
+            {session.role !== 'player' && (
+              <ResearchPicture id={t.id} profile={profile} />
+            )}
             <span>
               <strong>{t.name}</strong>
-              <span>{t.description}</span>
+              <span>
+                <ResearchReward task={t} />
+              </span>
             </span>
-            <b>−{t.reward}分</b>
+            <span className="ex-research-open">详情</span>
             <span aria-hidden="true">›</span>
           </button>
         ))}
@@ -963,12 +1223,13 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
           className="ex-seat-number"
           value={game.seatOrder.indexOf(s.id) + 1}
         />
-        <h2>{s.name}</h2>
+        <h2 title={s.name}>{s.name}</h2>
         <WinTrack
           wins={presentedWins(game, s.id, resultReady)}
           earnedNow={Boolean(
             resultReady &&
             game.roundResult?.winners.includes(s.id) &&
+            (game.roundResult.awardsBySeat?.[s.id] ?? 1) > 0 &&
             motion.includes('@result'),
           )}
           winner={
@@ -996,7 +1257,16 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
             {game.roundResult.scores[s.id]!.total}
             <span>分</span>
           </strong>
-          <span>计分明细 ›</span>
+          {game.roundResult.awardsBySeat ? (
+            <span className="ex-score-summary">
+              <span className="ex-award">
+                本局获 {game.roundResult.awardsBySeat[s.id] ?? 0} 胜
+              </span>
+              <span>明细 ›</span>
+            </span>
+          ) : (
+            <span>计分明细 ›</span>
+          )}
         </button>
       )}
     </article>
@@ -1008,6 +1278,7 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
       data-players={seats.length}
       data-phase={game.phase}
       data-play-mode={session.view?.playMode}
+      data-rules-profile={profile}
     >
       <header className="ex-toolbar">
         <ScreenLink href={`/${session.role}`} className="secondary">
@@ -1076,7 +1347,10 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
       <div className="ex-round-banner">
         <span>第 {game.roundNumber} 小局</span>
         <strong>{phaseText[game.phase]}</strong>
-        <span>
+        <span
+          className="ex-current-actor"
+          title={game.actorSeat ? names[game.actorSeat] : undefined}
+        >
           {game.actorSeat
             ? names[game.actorSeat]
             : game.phase === 'research-vote'
@@ -1119,9 +1393,16 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
                 .join('、')}
             </h2>
             <p>
-              {game.roundResult.winners.length > 1
-                ? '并列获胜，各记一胜'
-                : '这一胜，属于你'}
+              {game.roundResult.awardsBySeat
+                ? game.roundResult.winners
+                    .map(
+                      (id) =>
+                        `${names[id]}获 ${game.roundResult!.awardsBySeat![id] ?? 0} 胜`,
+                    )
+                    .join('，')
+                : game.roundResult.winners.length > 1
+                  ? '并列获胜，各记一胜'
+                  : '这一胜，属于你'}
             </p>
           </div>
           {session.canControl && (
@@ -1155,13 +1436,13 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
       )}
       {game.phase === 'research-vote' ? (
         session.role === 'player' ? (
-          <Actions session={session} game={game} />
+          <Actions session={session} game={game} showResearch={showResearch} />
         ) : (
           <section className="ex-vote">
             <div className="ex-vote-options">
               {game.researchCandidates.map((t) => (
                 <article className="ex-mission-option" key={t.id}>
-                  <ResearchCard task={t} />
+                  <ResearchCard task={t} profile={profile} />
                 </article>
               ))}
             </div>
@@ -1190,6 +1471,7 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
               key={session.view?.decisionId ?? game.phase}
               session={session}
               game={game}
+              showResearch={showResearch}
             />
           ) : !game.roundResult && session.role !== 'player' ? (
             <PublicSupply game={game} names={names} research={research} />
@@ -1220,20 +1502,36 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
         >
           {panel === 'research' ? (
             <div className="expansion-screen ex-research-detail">
-              <ResearchCard task={tasks.find((t) => t.id === detail)!} />
+              <ResearchCard task={task(detail, profile)} profile={profile} />
             </div>
           ) : panel === 'score' && game.roundResult ? (
             <div className="expansion-screen ex-score-detail">
               <h2>最终 {game.roundResult.scores[detail]!.total} 分</h2>
-              <p>
-                基础分 {game.roundResult.scores[detail]!.base} − 研究奖励{' '}
-                {game.roundResult.scores[detail]!.deduction}
-              </p>
-              {game.roundResult.scores[detail]!.research.map((r) => (
-                <p key={r.taskId}>
-                  {tasks.find((t) => t.id === r.taskId)?.name} ·{' '}
-                  {r.achieved ? `达成，减${r.deduction}分` : '未达成'}
+              <p>{researchScoreText(game.roundResult.scores[detail]!)}</p>
+              {game.roundResult.awardsBySeat && (
+                <p className="ex-award">
+                  本局实际获 {game.roundResult.awardsBySeat[detail] ?? 0} 胜
                 </p>
+              )}
+              {game.roundResult.scores[detail]!.research.map((r) => (
+                <section className="ex-research-outcome" key={r.taskId}>
+                  <h3>{task(r.taskId, profile).name}</h3>
+                  <p>
+                    <strong>{r.achieved ? '已达成' : '未达成'}</strong>
+                    {researchAdjustmentText(r.deduction)}
+                  </p>
+                  {r.effects?.map((effect, i) => (
+                    <p key={i}>
+                      {effect.label}
+                      {effect.adjustment !== 0 &&
+                        `，${researchAdjustmentText(-effect.adjustment)}`}
+                      {effect.slots?.length
+                        ? `，${effect.slots.map((slot) => slot + 1).join('、')}号位`
+                        : ''}
+                    </p>
+                  ))}
+                  {r.title && <p>{r.title}</p>}
+                </section>
               ))}
               <h3>归零与复制</h3>
               <p>
@@ -1248,9 +1546,19 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
                 </p>
               ))}
               <Board game={game} seat={detail} />
+              {game.buffersBySeat && (
+                <>
+                  <BufferCard
+                    game={game}
+                    seat={detail}
+                    label={`${names[detail] ?? '玩家'}的缓冲`}
+                  />
+                  <p>缓冲不计入九格得分或研究条件。</p>
+                </>
+              )}
             </div>
           ) : panel === 'rules' ? (
-            <Rulebook />
+            <Rulebook profile={profile} />
           ) : panel === 'friends' ? (
             <div className="expansion-screen ex-friends">
               {seats.filter((s) => s.id !== session.self?.id).map(renderSeat)}

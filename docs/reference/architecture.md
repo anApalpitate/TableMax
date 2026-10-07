@@ -86,7 +86,8 @@ C# WinForms / .NET Framework 4.8 / 共享 WebView2（窗口、主机身份与生
        ├─ SqliteSaveRepository → room.sqlite
        └─ BotScheduler → 隔离 Worker → 授权意图 → 统一命令入口
 
-/host、/public、/player        盒子、加入与准备（身份授权各自保持）
+/host、/public                管理／公共盒子（身份授权各自保持）
+/、/player                   玩家盒子、加入与准备（根地址默认，旧路径兼容）
 /host/game                   公共游戏投影 + 按需打开的房主管理
 /public/game                 公共游戏投影，只读
 /player/game                 独立玩家凭证 + 本人合法投影与意图
@@ -100,7 +101,7 @@ WebView2 不暴露 Node 或原生 host objects；`Bridge.js` 只保持 `window.t
 
 v1.0.3单EXE默认在旁边新建 `TableMax/` 专属目录，配置、数据和其中的 `app/` 运行资源均集中于此；ZIP版直接使用解压目录。数据目录由对应根目录内配置指定；保留手机身份和 SQLite／JSON 存档格式，迁移不改协议版本或数据版本。WebView2 缓存写入用户数据目录的 `desktop/webview2/`，独立显示设置仍为 `display-settings.json`。旧 Electron 写出的 SQLite 需在隔离副本上验证读取、继续保存和恢复；不以新建数据库代替兼容性验证。原生测试驱动及 CDP 仅由显式测试标志启用，正式启动不开放调试端口；验证使用后台不激活窗口与更新后的真实 WebView2 截图。
 
-玩家身份用服务生成的随机凭证，服务器仅保存摘要；本人手机或电脑浏览器在同源 localStorage 保存凭证，排序不改变座位 ID，刷新／断线沿用身份。电脑管理员不参赛，电脑浏览器真人从 `/player` 加入。2026-10-07 授权的换机由管理员批准，候选凭证加密与申请收据独立于 checkpoint，原子激活新凭证并撤销旧连接；跨源需申请接续。首局先手仍由游戏规则决定，旧 hostSeat 只兼容读取。主机管理权不扩展游戏秘密，线上状态来自当前有效连接，不入 checkpoint。具体接口与边界见[平台规格](phase-02-platform-spec.md#浏览器入座换机与外部连接2026-10-07)。
+玩家身份用服务生成的随机凭证，服务器仅保存摘要；本人手机或电脑浏览器在同源 localStorage 保存凭证，排序不改变座位 ID，刷新／断线沿用身份。电脑管理员不参赛，电脑浏览器真人从网站根地址加入，旧 `/player` 保留兼容。2026-10-07 授权的换机由管理员批准，候选凭证加密与申请收据独立于 checkpoint，原子激活新凭证并撤销旧连接；跨源需申请接续。首局先手仍由游戏规则决定，旧 hostSeat 只兼容读取。主机管理权不扩展游戏秘密，线上状态来自当前有效连接，不入 checkpoint。具体接口与边界见[平台规格](phase-02-platform-spec.md#浏览器入座换机与外部连接2026-10-07)。
 
 HTTP 提供加入、授权同步和网络地址；Socket.IO 握手绑定凭证，逐连接生成 `room:view`，`room:command` 校验信封并确认，`room:revoked` 撤销旧连接。命令被拒绝后同步最新投影；未确认的原意图保留，重试沿用编号。运行时 schema 校验投影与 ACK，不能靠 UI 隐藏完整状态。
 

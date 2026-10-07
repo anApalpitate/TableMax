@@ -6,8 +6,8 @@ import { tasks, matchesTask } from './research';
 describe('expansion immutable deck and scoring contract', () => {
   it('has 34 classes and conserved 112/144 decks with near-original ability ratios', () => {
     for (const [seats, size, active] of [
-      [2, 112, 30],
-      [6, 144, 38],
+      [2, 112, 27],
+      [6, 144, 35],
     ]) {
       const deck = instancesForSeats(seats!);
       expect(deck).toHaveLength(size!);
@@ -85,7 +85,7 @@ describe('expansion immutable deck and scoring contract', () => {
       matchesTask('R24', board, score, [
         false,
         false,
-        true,
+        false,
         true,
         true,
         true,

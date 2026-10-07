@@ -41,6 +41,12 @@ export function savedBoardEffects(
       },
     ];
     result.pulse = ['@held'];
+  } else if (action.verb === 'draw-buffer' && action.actor) {
+    result.moves = [{ from: `@buffer:${action.actor}`, to: '@held' }];
+    result.pulse = ['@held'];
+  } else if (action.verb === 'store-buffer' && action.actor) {
+    result.moves = [{ from: '@held', to: `@buffer:${action.actor}` }];
+    result.pulse = [`@buffer:${action.actor}`];
   } else if (action.verb === 'discard-held') {
     result.moves = [{ from: '@held', to: '@discard' }];
     result.pulse = ['@discard'];
@@ -101,7 +107,10 @@ export function startedAbility(
     'extra-draw': 'lucario',
   };
   if (action.verb === 'row-target') return action.ability;
-  if (action.verb === 'draw' && action.cardCategory === 'special-team-rocket')
+  if (
+    ['draw', 'draw-buffer'].includes(action.verb) &&
+    action.cardCategory === 'special-team-rocket'
+  )
     return 'team-rocket';
   return starts[action.verb] ?? null;
 }
@@ -136,7 +145,7 @@ export type OrdinaryTheme = (typeof ordinaryThemes)[number];
 export function ordinaryTheme(
   action: VisibleAction | undefined,
 ): OrdinaryTheme | null {
-  if (action?.verb !== 'draw') return null;
+  if (!action || !['draw', 'draw-buffer'].includes(action.verb)) return null;
   return (
     ordinaryThemes.find(
       (theme) => action.cardCategory === `ordinary-${theme}`,
@@ -245,14 +254,16 @@ export function expansionSoundRecipe(
   const mechanicalKind =
     action && ['replace', 'discard-held'].includes(action.verb)
       ? 'replace'
-      : action?.verb === 'reposition'
-        ? 'effect-complete'
-        : kind;
+      : action?.verb === 'draw-buffer'
+        ? 'draw'
+        : action && ['reposition', 'store-buffer'].includes(action.verb)
+          ? 'effect-complete'
+          : kind;
   const recipe = soundRecipe(mechanicalKind, normalized, null, {
     reducedMotion,
   });
   const voice = action?.cardCategory ? voices[action.cardCategory] : undefined;
-  if (action?.verb === 'draw' && voice)
+  if (action && ['draw', 'draw-buffer'].includes(action.verb) && voice)
     recipe.push({
       cue: 'draw',
       source: voice,

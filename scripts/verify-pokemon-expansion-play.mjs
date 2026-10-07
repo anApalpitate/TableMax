@@ -1,28 +1,34 @@
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
+import { join, relative, resolve, sep } from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { launchDesktop } from './desktop-test.mjs';
+import { playerFrame, playerUi } from './player-test.mjs';
 
 const args = process.argv.slice(2);
 assert.ok(
   args.every(
-    (arg) => arg === '--portable' || /^--evidence=[a-zA-Z0-9_-]+$/.test(arg),
+    (arg) =>
+      arg === '--portable' ||
+      /^--evidence=[a-zA-Z0-9_-]+$/.test(arg) ||
+      /^--sha256=[a-f0-9]{64}$/i.test(arg),
   ),
 );
 const name =
   args.find((arg) => arg.startsWith('--evidence='))?.slice(11) ??
   `run-${Date.now()}`;
 const version = JSON.parse(await readFile('package.json', 'utf8')).version;
+const expectedSha = args.find((arg) => arg.startsWith('--sha256='))?.slice(9);
 const output = resolve(
   `artifacts/maintenance/v${version}/pokemon-expansion-normal-play`,
   name,
 );
 await mkdir(resolve(output, '..'), { recursive: true });
 await mkdir(output, { recursive: false });
+await mkdir(resolve('tmp'), { recursive: true });
 const work = await mkdtemp(resolve('tmp/pokemon-expansion-normal-play-'));
 const manifest = JSON.parse(
   await readFile(
@@ -36,6 +42,9 @@ const hash = async (path) =>
     .update(await readFile(path))
     .digest('hex');
 assert.equal(await hash(archive), manifest.archive.sha256);
+assert.equal((await readFile(archive)).length, manifest.archive.bytes);
+if (expectedSha)
+  assert.equal(manifest.archive.sha256, expectedSha.toLowerCase());
 const portable = args.includes('--portable');
 let executablePath = resolve('build/desktop/TableMax.exe');
 if (portable) {
@@ -56,6 +65,42 @@ if (portable) {
     },
   );
   executablePath = join(work, 'portable/TableMax.exe');
+  assert.ok(
+    manifest.archive.bytes < 100000000 && manifest.extractedBytes < 100000000,
+  );
+  assert.equal(manifest.fileCount, 248);
+  const expected = new Set(),
+    actual = new Set();
+  let total = 0;
+  for (const file of manifest.files) {
+    const path = resolve(work, 'portable', file.path);
+    assert.ok(path.startsWith(resolve(work, 'portable') + sep));
+    const bytes = await readFile(path);
+    assert.equal(bytes.length, file.bytes, file.path);
+    assert.equal(
+      createHash('sha256').update(bytes).digest('hex'),
+      file.sha256,
+      file.path,
+    );
+    total += bytes.length;
+    expected.add(file.path.replaceAll('\\', '/'));
+  }
+  async function inventory(directory) {
+    for (const file of await readdir(directory, { withFileTypes: true })) {
+      assert.equal(file.isSymbolicLink(), false);
+      const path = join(directory, file.name);
+      if (file.isDirectory()) await inventory(path);
+      else
+        actual.add(
+          relative(join(work, 'portable'), path).replaceAll('\\', '/'),
+        );
+    }
+  }
+  await inventory(join(work, 'portable'));
+  assert.deepEqual(actual, expected);
+  assert.equal(total, manifest.extractedBytes);
+  assert.ok(total <= 95000000, 'Runtime exceeds the 95 MB engineering budget');
+  assert.equal(actual.size, manifest.fileCount);
 }
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
@@ -65,6 +110,9 @@ const report = {
   startedAt: new Date().toISOString(),
   portable,
   archiveSha256: portable ? manifest.archive.sha256 : null,
+  extractedFiles: portable ? manifest.fileCount : null,
+  extractedBytes: portable ? manifest.extractedBytes : null,
+  muted: true,
   scope:
     'Actual normal play mode, production UI clicks by two automated phone identities and one real default Worker. No test mode, injected game state or game commands outside UI. Administrative setup uses authority Socket actions. Automated wall time is not human round duration, physical phone or human listening evidence.',
   steps: [],
@@ -126,12 +174,12 @@ function observe(page, index) {
       report.externalRequests.push(request.url());
   });
   const pending = new Map();
-  page.on('websocket', (socket) => {
-    socket.on('framesent', ({ payload }) => {
-      const match = /^42(\d+)(\[.*)$/.exec(String(payload));
-      if (!match) return;
+  const sent = (payload) => {
+    for (const packet of String(payload ?? '').split('\x1e')) {
+      const match = /^42(\d+)(\[.*)$/.exec(packet);
+      if (!match) continue;
       const [event, envelope] = JSON.parse(match[2]);
-      if (event !== 'room:command') return;
+      if (event !== 'room:command') continue;
       const item = {
         phone: index,
         command: envelope.command.type,
@@ -142,17 +190,35 @@ function observe(page, index) {
       };
       pending.set(match[1], item);
       report.acknowledgements.push(item);
-    });
-    socket.on('framereceived', ({ payload }) => {
-      const match = /^43(\d+)(\[.*)$/.exec(String(payload));
-      if (!match || !pending.has(match[1])) return;
+    }
+  };
+  const received = (payload) => {
+    for (const packet of String(payload ?? '').split('\x1e')) {
+      const match = /^43(\d+)(\[.*)$/.exec(packet);
+      if (!match || !pending.has(match[1])) continue;
       const [reply] = JSON.parse(match[2]);
       const item = pending.get(match[1]);
       item.ok = reply.ok;
       item.elapsedMs = Date.now() - item.sentAt;
       if (!reply.ok) item.error = reply.error;
       pending.delete(match[1]);
-    });
+    }
+  };
+  page.on('websocket', (socket) => {
+    socket.on('framesent', ({ payload }) => sent(payload));
+    socket.on('framereceived', ({ payload }) => received(payload));
+  });
+  page.on('request', (request) => {
+    if (request.url().includes('/socket.io/') && request.method() === 'POST')
+      sent(request.postData());
+  });
+  page.on('response', async (response) => {
+    if (!response.url().includes('/socket.io/')) return;
+    try {
+      received(await response.text());
+    } catch {
+      /* An aborted polling request carries no ACK. */
+    }
   });
 }
 async function screenshot(page, name) {
@@ -163,10 +229,17 @@ async function screenshot(page, name) {
   await writeFile(join(output, name + '.png'), Buffer.from(png, 'base64'));
   report.screenshots.push(name + '.png');
 }
-function choose(player) {
+function choose(player, index) {
   const actions = player.actions;
   if (player.gameView.phase === 'initial-flip')
     return actions.find((a) => a.slot === 4) ?? actions[0];
+  const stored = report.steps.some(
+    (step) => step.index === index && step.actionType === 'store-buffer',
+  );
+  const buffer =
+    actions.find((a) => a.type === 'draw-buffer') ??
+    (!stored ? actions.find((a) => a.type === 'store-buffer') : null);
+  if (buffer) return buffer;
   for (const type of [
     'activate-arceus',
     'extra-draw',
@@ -196,51 +269,54 @@ function choose(player) {
   );
 }
 async function clickAction(page, player, action) {
+  const ui = playerUi(page);
   if (action.type === 'vote-research') {
-    await page
-      .locator('.ex-mission-option')
-      .nth(
-        player.gameView.researchCandidates.findIndex(
-          (task) => task.id === action.taskId,
-        ),
+    await ui
+      .locator(
+        `button[data-action="vote-research"][data-research="${action.taskId}"]`,
       )
       .click();
   } else if (action.type === 'draw') {
-    await page
-      .locator('.ex-draw-options')
-      .getByRole('button', { name: /摸牌堆/ })
+    await ui
+      .locator(
+        `.ex-draw-options [data-pile="${action.source === 'deck' ? 'deck' : 'discard'}"]`,
+      )
       .click();
+  } else if (
+    ['store-buffer', 'draw-buffer', 'discard-held'].includes(action.type)
+  ) {
+    await ui.locator(`[data-action="${action.type}"]`).click();
   } else if (action.type === 'row-target') {
     const target = player.seats.find((seat) => seat.id === action.seat);
-    await page
+    await ui
       .locator('.ex-target-list')
       .getByRole('button', { name: target.name, exact: true })
       .click();
-    await page
+    await ui
       .getByRole('button', { name: '确认交换这一整行', exact: true })
       .click();
   } else if (action.type === 'mewtwo-exchange') {
-    await page
+    await ui
       .locator('.ex-private-peek section')
       .filter({
-        has: page.getByText(`${action.slot + 1}号位`, { exact: true }),
+        has: ui.getByText(`${action.slot + 1}号位`, { exact: true }),
       })
       .getByRole('button', { name: '与此牌交换', exact: true })
       .click();
   } else if ('slot' in action || 'a' in action) {
     if ('seat' in action) {
       const target = player.seats.find((seat) => seat.id === action.seat);
-      await page
+      await ui
         .locator('.ex-target-list')
         .getByRole('button', { name: target.name, exact: true })
         .click();
     }
     const seat = action.seat ?? player.self.seatId;
     for (const slot of 'a' in action ? [action.a, action.b] : [action.slot])
-      await page
+      await ui
         .locator(`.ex-target-board [data-slot="${seat}:${slot}"]`)
         .click();
-    await page.locator('.ex-submit button').click();
+    await ui.locator('.ex-submit button').click();
   } else {
     const names = {
       'decline-ability': '放弃能力',
@@ -249,7 +325,7 @@ async function clickAction(page, player, action) {
       'extra-draw': '再取一张',
       'discard-held': '弃掉这张牌',
     };
-    await page
+    await ui
       .locator('.ex-simple-actions')
       .getByRole('button', {
         name:
@@ -276,6 +352,7 @@ try {
   desktop = await launchDesktop({
     executablePath,
     args: ['--foundation-test'],
+    soundEnabled: false,
     env,
   });
   const host = await desktop.firstWindow();
@@ -398,7 +475,7 @@ try {
         void window.loadURL(config.url);
       },
       {
-        url: `${origin}/player`,
+        url: origin,
         width: index ? 390 : 320,
         height: index ? 844 : 568,
         index,
@@ -417,14 +494,24 @@ try {
       enabled: true,
       maxTouchPoints: 5,
     });
-    await page.locator('.connection.online').waitFor();
-    await page.getByLabel('你的昵称').fill(`普通节奏${index + 1}`);
-    await page.getByRole('button', { name: '加入', exact: true }).click();
-    await page.getByRole('button', { name: '我准备好了', exact: true }).click();
-    await page.getByRole('button', { name: '取消准备', exact: true }).waitFor();
+    await playerUi(page).locator('.connection.online').waitFor();
+    await playerUi(page)
+      .getByLabel('你的昵称')
+      .fill(`普通节奏${index + 1}`);
+    await playerUi(page)
+      .getByRole('button', { name: '加入', exact: true })
+      .click();
+    await playerUi(page)
+      .getByRole('button', { name: '我准备好了', exact: true })
+      .click();
+    await playerUi(page)
+      .getByRole('button', { name: '取消准备', exact: true })
+      .waitFor();
     phones.push(page);
     tokens.push(
-      await page.evaluate(() => localStorage.getItem('tablemax-player')),
+      await (
+        await playerFrame(page)
+      ).evaluate(() => localStorage.getItem('tablemax-player')),
     );
   }
   await command(hostToken, {
@@ -434,7 +521,64 @@ try {
   });
   assert.equal((await view(hostToken)).playMode, 'play');
   await command(hostToken, { type: 'start' });
-  for (const page of phones) await page.locator('.ex-vote').waitFor();
+  for (const page of phones) await playerUi(page).locator('.ex-vote').waitFor();
+  const detailBefore = await view(tokens[0]);
+  assert.equal(detailBefore.gameView.rulesProfile, 'research-buffer-v2');
+  for (const task of detailBefore.gameView.researchCandidates) {
+    const choice = playerUi(phones[0]).locator(
+      `button[data-action="vote-research"][data-research="${task.id}"]`,
+    );
+    assert.ok((await choice.innerText()).includes(task.name));
+    assert.ok(
+      task.rewardText,
+      'New research profile must describe its actual reward',
+    );
+    assert.ok((await choice.innerText()).includes(task.rewardText));
+    if (task.riskText)
+      assert.ok((await choice.innerText()).includes(task.riskText));
+  }
+  const detailAckCount = report.acknowledgements.length;
+  await playerUi(phones[0]).locator('[data-research-details]').first().click();
+  const detail = playerUi(phones[0]).getByRole('dialog', {
+    name: '研究任务',
+    exact: true,
+  });
+  await detail.waitFor();
+  await screenshot(phones[0], 'short-phone-research-details');
+  assert.equal(
+    (await view(tokens[0])).gameView.ownVote,
+    detailBefore.gameView.ownVote,
+  );
+  assert.equal(
+    report.acknowledgements
+      .slice(detailAckCount)
+      .filter((ack) => ack.phone === 0 && ack.actionType === 'vote-research')
+      .length,
+    0,
+  );
+  await detail.getByRole('button', { name: '关闭面板', exact: true }).click();
+  report.researchDetailsPreserveVote = true;
+  await playerUi(phones[0])
+    .getByRole('button', { name: '规则', exact: true })
+    .click();
+  const rulebook = playerUi(phones[0]).getByRole('dialog', {
+    name: '扩展版图文规则',
+    exact: true,
+  });
+  await rulebook.getByRole('button', { name: '研究任务', exact: true }).click();
+  assert.equal(
+    await rulebook
+      .locator('.expansion-rules .ex-rule-tasks [data-research]')
+      .count(),
+    30,
+  );
+  await screenshot(phones[0], 'short-phone-all-research');
+  await rulebook.getByRole('button', { name: '关闭面板', exact: true }).click();
+  assert.equal(
+    (await view(tokens[0])).gameView.ownVote,
+    detailBefore.gameView.ownVote,
+  );
+  report.researchReferenceCount = 30;
   await screenshot(phones[0], 'short-phone-vote');
   const start = Date.now();
   const captured = new Set();
@@ -462,7 +606,29 @@ try {
       const player = await view(tokens[index]);
       assert.equal(player.playMode, 'play');
       if (!player.actions.length) continue;
-      const action = choose(player);
+      await playerUi(phones[index])
+        .locator(
+          `[data-room-instance="${player.instanceId}"][data-room-branch="${player.branch}"][data-room-revision="${player.revision}"]`,
+        )
+        .waitFor();
+      if (['draw', 'lucario-draw'].includes(player.gameView.phase)) {
+        assert.equal(
+          await playerUi(phones[index])
+            .locator('.ex-draw-options [data-pile="discard"]')
+            .count(),
+          player.gameView.phase === 'draw' ? 1 : 0,
+          'Normal draw has one discard pile; Lucario extra draw offers only the deck',
+        );
+        assert.equal(
+          await playerUi(phones[index])
+            .locator('[data-pile="discard-second"]')
+            .count(),
+          0,
+        );
+      }
+      const action = choose(player, index);
+      if (['store-buffer', 'draw-buffer'].includes(action.type))
+        await screenshot(phones[index], `phone-${index}-${action.type}-before`);
       const baseline = report.acknowledgements.length;
       await clickAction(phones[index], player, action);
       await until(
@@ -483,13 +649,78 @@ try {
           (item) => item.phone === index && item.actionType === action.type,
         );
       assert.equal(ack.ok, true, JSON.stringify(ack));
+      if (action.type === 'vote-research' && index === 0) {
+        const voted = await view(tokens[index]);
+        if (voted.gameView.phase === 'research-vote') {
+          const choice = playerUi(phones[index]).locator(
+            `button[data-action="vote-research"][data-research="${action.taskId}"]`,
+          );
+          await until(
+            () => choice.isDisabled(),
+            'Saved research vote must be locked',
+          );
+          const details = playerUi(phones[index]).locator(
+            `[data-research-details="${action.taskId}"]`,
+          );
+          assert.equal(await details.isEnabled(), true);
+          await details.click();
+          const panel = playerUi(phones[index]).getByRole('dialog', {
+            name: '研究任务',
+            exact: true,
+          });
+          await panel.waitFor();
+          assert.equal(
+            (await view(tokens[index])).gameView.ownVote,
+            action.taskId,
+          );
+          await screenshot(
+            phones[index],
+            'short-phone-locked-research-details',
+          );
+          await panel
+            .getByRole('button', { name: '关闭面板', exact: true })
+            .click();
+          report.lockedVoteDetailsAvailable = true;
+        }
+      }
+      if (['store-buffer', 'draw-buffer'].includes(action.type)) {
+        const after = await view(tokens[index]);
+        const buffer = after.gameView.buffersBySeat[player.self.seatId];
+        if (action.type === 'store-buffer') {
+          assert.ok(buffer, 'Saved buffer must contain the held card');
+          assert.deepEqual(buffer, player.gameView.held);
+        } else {
+          assert.equal(
+            buffer,
+            null,
+            'Taking the card must empty the saved buffer',
+          );
+          assert.deepEqual(
+            after.gameView.held,
+            player.gameView.buffersBySeat[player.self.seatId],
+          );
+          assert.equal(
+            after.actions.some(
+              (a) => a.type === 'discard-held' || a.type === 'store-buffer',
+            ),
+            false,
+            'Buffered cards must be used after taking them',
+          );
+        }
+        await playerUi(phones[index])
+          .locator(
+            `[data-room-instance="${after.instanceId}"][data-room-branch="${after.branch}"][data-room-revision="${after.revision}"]`,
+          )
+          .waitFor();
+        await screenshot(phones[index], `phone-${index}-${action.type}-after`);
+      }
       if (action.type === 'peek') {
-        await phones[index].locator('.ex-private-peek').waitFor();
+        await playerUi(phones[index]).locator('.ex-private-peek').waitFor();
         for (let other = 0; other < phones.length; other++) {
           if (other === index) continue;
           assert.equal((await view(tokens[other])).gameView.peek, null);
           assert.equal(
-            await phones[other].locator('.ex-private-peek').count(),
+            await playerUi(phones[other]).locator('.ex-private-peek').count(),
             0,
           );
         }
@@ -530,6 +761,16 @@ try {
   );
   report.automationRoundWallMs = Date.now() - start;
   const final = await view();
+  assert.ok(
+    final.gameView.roundResult.awardsBySeat,
+    'New research profile must preserve actual award outcomes',
+  );
+  for (const seat of final.seats) {
+    assert.ok(
+      Number.isInteger(final.gameView.roundResult.awardsBySeat[seat.id]),
+    );
+    assert.ok(final.gameView.roundResult.awardsBySeat[seat.id] >= 0);
+  }
   report.botSeatIds = botSeats;
   report.botActions = botEvents.size;
   assert.ok(
@@ -571,9 +812,58 @@ try {
     report.presentation.some((item) => item.winners.length > 0),
     'Actual saved result must produce winner sweeps',
   );
-  await phones[0].locator('.ex-victory').scrollIntoViewIfNeeded();
+  assert.ok(
+    report.steps.some((step) => step.actionType === 'store-buffer'),
+    'Actual UI must save a held card into the buffer',
+  );
+  assert.ok(
+    report.steps.some((step) => step.actionType === 'draw-buffer'),
+    'Actual UI must take the saved card from the buffer',
+  );
+  await playerUi(phones[0]).locator('.ex-victory').scrollIntoViewIfNeeded();
   await screenshot(phones[0], 'short-phone-result');
   await screenshot(host, 'host-result');
+  const adjustmentText = (deduction) =>
+    deduction > 0
+      ? `减 ${deduction} 分`
+      : deduction < 0
+        ? `加 ${-deduction} 分`
+        : '分数不变';
+  for (const [index, seat] of final.seats.entries()) {
+    const result = final.gameView.roundResult;
+    const score = result.scores[seat.id];
+    await host
+      .getByRole('button', { name: `查看${seat.name}的计分明细`, exact: true })
+      .click();
+    const panel = host.getByRole('dialog', {
+      name: `${seat.name} · 计分明细`,
+      exact: true,
+    });
+    await panel.waitFor();
+    assert.ok(
+      (await panel.innerText()).includes(
+        `场地 ${score.base} 分，研究${adjustmentText(score.deduction)}，最终 ${score.total} 分`,
+      ),
+    );
+    assert.ok(
+      (await panel.innerText()).includes(
+        `本局实际获 ${result.awardsBySeat[seat.id]} 胜`,
+      ),
+    );
+    const outcomes = panel.locator('.ex-research-outcome');
+    assert.equal(await outcomes.count(), score.research.length);
+    for (const [taskIndex, research] of score.research.entries()) {
+      const outcome = await outcomes.nth(taskIndex).innerText();
+      assert.ok(outcome.includes(research.achieved ? '已达成' : '未达成'));
+      assert.ok(outcome.includes(adjustmentText(research.deduction)));
+      if (research.title) assert.ok(outcome.includes(research.title));
+      for (const effect of research.effects ?? [])
+        assert.ok(outcome.includes(effect.label));
+    }
+    await screenshot(host, `host-score-${index}`);
+    await panel.getByRole('button', { name: '关闭面板', exact: true }).click();
+  }
+  report.researchAndAwardsRendered = true;
   report.hostMedia = await host.evaluate(() => window.__pokemonMedia);
   report.expansionCriesPlayed = report.hostMedia.filter(
     (entry) =>

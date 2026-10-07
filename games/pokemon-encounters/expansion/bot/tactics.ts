@@ -2,6 +2,8 @@ import { card } from '../cards';
 import type { View } from '../project';
 import type { Action } from '../state';
 import { grid } from '../research';
+import { scoreBoard } from '../scoring';
+import { victoryAward } from '../research-rewards';
 import {
   abilityAvailable,
   copyTableFields,
@@ -16,6 +18,8 @@ export type TacticalModel = TableFields &
     pool: string[];
     held: string | null;
     discards: string[];
+    buffers?: Record<string, string | null>;
+    discardLimit?: 1 | 2;
   };
 type Value = (model: TacticalModel) => number;
 type Score = (board: string[], up: boolean[]) => number;
@@ -25,6 +29,7 @@ const copy = (model: TacticalModel): TacticalModel => ({
   ...copyTableFields(model),
   pool: [...model.pool],
   discards: [...model.discards],
+  ...(model.buffers ? { buffers: { ...model.buffers } } : {}),
 });
 function place(
   model: TacticalModel,
@@ -37,7 +42,10 @@ function place(
   result.boards[seat]![slot] = incoming;
   result.up[seat]![slot] = true;
   result.held = null;
-  result.discards = [outgoing, ...result.discards].slice(0, 2);
+  result.discards = [outgoing, ...result.discards].slice(
+    0,
+    model.discardLimit ?? 2,
+  );
   return result;
 }
 const closed = (model: TacticalModel) =>
@@ -73,7 +81,16 @@ export function createTactics(
       outcomes.push({
         ...copy(model),
         held: null,
-        discards: [incoming, ...model.discards].slice(0, 2),
+        discards: [incoming, ...model.discards].slice(
+          0,
+          model.discardLimit ?? 2,
+        ),
+      });
+    if (allowDiscard && model.buffers?.[seat] === null)
+      outcomes.push({
+        ...copy(model),
+        held: null,
+        buffers: { ...model.buffers, [seat]: incoming },
       });
     return Math.min(...outcomes.map(value));
   };
@@ -236,8 +253,20 @@ export function createTactics(
         value({
           ...copy(model),
           held: null,
-          discards: [incoming, ...model.discards].slice(0, 2),
+          discards: [incoming, ...model.discards].slice(
+            0,
+            model.discardLimit ?? 2,
+          ),
         }) + 0.25,
+      );
+    if (allowDiscard && model.buffers?.[seat] === null)
+      best = Math.min(
+        best,
+        value({
+          ...copy(model),
+          held: null,
+          buffers: { ...model.buffers, [seat]: incoming },
+        }) + 0.4,
       );
     return best;
   };
@@ -261,23 +290,26 @@ export function createTactics(
   };
   const draw = (
     original: TacticalModel,
-    action: Extract<Action, { type: 'draw' }>,
+    action: Extract<Action, { type: 'draw' }> | { type: 'draw-buffer' },
   ) => {
     const incoming =
-      action.source === 'deck'
-        ? original.pool.at(-1)
-        : original.discards[action.discardIndex];
+      action.type === 'draw-buffer'
+        ? original.buffers?.[seat]
+        : action.source === 'deck'
+          ? original.pool.at(-1)
+          : original.discards[action.discardIndex];
     if (!incoming) return null;
     const model = copy(original);
-    if (action.source === 'deck') model.pool.pop();
+    if (action.type === 'draw-buffer') model.buffers![seat] = null;
+    else if (action.source === 'deck') model.pool.pop();
     else model.discards.splice(action.discardIndex, 1);
+    const fromDeck = action.type === 'draw' && action.source === 'deck';
+    const fromDiscard = action.type === 'draw' && action.source === 'discard';
     const ability = abilityAvailable(model, incoming)
       ? card(incoming).ability
       : null;
     if (view.phase === 'lucario-draw')
-      return (
-        replacement(model, incoming, action.source === 'deck', false) + 0.08
-      );
+      return replacement(model, incoming, fromDeck, false) + 0.08;
     if (ability === 'mew') return mew(model, incoming) + 0.08;
     if (ability === 'mewtwo') {
       // Choose a public target before the private result. Only the subsequent
@@ -293,7 +325,7 @@ export function createTactics(
       return (
         Math.min(
           mew(model, incoming, { seat: target, slots }),
-          replacement(model, incoming, action.source === 'deck', false),
+          replacement(model, incoming, fromDeck, false),
         ) + 0.08
       );
     }
@@ -309,10 +341,13 @@ export function createTactics(
             score,
           );
           const remainingDiscardCount =
-            view.discardCount - (action.source === 'discard' ? 1 : 0);
+            view.discardCount - (fromDiscard ? 1 : 0);
           const discards =
             remainingDiscardCount <= model.discards.length
-              ? [...model.discards, result.discarded].slice(0, 2)
+              ? [...model.discards, result.discarded].slice(
+                  0,
+                  model.discardLimit ?? 2,
+                )
               : model.discards;
           best = Math.min(
             best,
@@ -326,8 +361,7 @@ export function createTactics(
       let pikachu = Infinity;
       for (const slot of grid.slots) {
         const result = previewRocketPikachu(model, order(), model.pool, slot);
-        const remainingDiscardCount =
-          view.discardCount - (action.source === 'discard' ? 1 : 0);
+        const remainingDiscardCount = view.discardCount - (fromDiscard ? 1 : 0);
         const discards =
           remainingDiscardCount <= model.discards.length
             ? [
@@ -335,7 +369,7 @@ export function createTactics(
                 result.removed[0]!,
                 incoming,
                 ...result.removed.slice(1),
-              ].slice(0, 2)
+              ].slice(0, model.discardLimit ?? 2)
             : model.discards;
         pikachu = Math.min(
           pikachu,
@@ -350,7 +384,7 @@ export function createTactics(
       }
       return (meowth + pikachu) / 2 + 0.08;
     }
-    return replacement(model, incoming, action.source === 'deck', true) + 0.08;
+    return replacement(model, incoming, fromDeck, true) + 0.08;
   };
   return {
     draw,
@@ -386,9 +420,11 @@ export function nextActorRisk(
     ]!;
   if (next === seat || model.up[next]!.filter(Boolean).length !== 8) return 0;
   const dark = model.up[next]!.indexOf(false);
-  const incoming = [...model.discards, model.pool.at(-1)].filter(
-    (id): id is string => id !== undefined,
-  );
+  const incoming = [
+    ...model.discards,
+    model.buffers?.[next] ?? undefined,
+    model.pool.at(-1),
+  ].filter((id): id is string => id !== undefined);
   let risk = 0;
   for (const id of incoming) {
     // These ordinary/suppressed endings are exact. Active abilities have a
@@ -403,6 +439,37 @@ export function nextActorRisk(
       ),
     );
     if (opponent !== minimum) continue;
+    if (view.rulesProfile) {
+      const taskIds = view.activeResearch.map((t) => t.id);
+      const nextAward = victoryAward(
+        view.winsBySeat[next]!,
+        scoreBoard(
+          trial.boards[next]!,
+          taskIds,
+          trial.up[next]!,
+          view.rulesProfile,
+        ).victory!,
+      );
+      const ownAward =
+        own === minimum
+          ? victoryAward(
+              view.winsBySeat[seat]!,
+              scoreBoard(
+                trial.boards[seat]!,
+                taskIds,
+                trial.up[seat]!,
+                view.rulesProfile,
+              ).victory!,
+            )
+          : 0;
+      if (
+        view.winsBySeat[next]! + nextAward >= 3 &&
+        view.winsBySeat[seat]! + ownAward < 3
+      )
+        risk = Math.max(risk, 96);
+      else if (own !== minimum && nextAward > 0) risk = Math.max(risk, 12);
+      continue;
+    }
     if (
       view.winsBySeat[next]! >= 2 &&
       !(own === minimum && view.winsBySeat[seat]! >= 2)

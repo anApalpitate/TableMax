@@ -47,8 +47,10 @@ if (expectedSha) assert.match(expectedSha, /^[a-f0-9]{64}$/i);
 const preflightOnly = process.argv.includes('--preflight-only');
 const freezeMode = argument('freeze-mode') ?? 'debugger';
 assert.ok(['debugger', 'lifecycle'].includes(freezeMode));
+const evidence = argument('evidence') ?? 'debug-20261008';
+assert.match(evidence, /^[a-z0-9][a-z0-9-]{0,95}$/);
 const output = resolve(
-  `artifacts/maintenance/v${packageVersion}/debug-20261008/remote`,
+  `artifacts/maintenance/v${packageVersion}/${evidence}/remote`,
   `${scenario}-${new Date().toISOString().replace(/[:.]/g, '-')}`,
 );
 const execute = promisify(execFile);
@@ -63,7 +65,7 @@ const report = {
   version: packageVersion,
   scenario,
   scope:
-    'Actual ZIP; hidden WinForms/WebView2, muted headless Edge, isolated local TLS root /player at a nonstandard port on 127.0.0.1. Equivalent Sakura/FRP reverse-proxy behavior only; no actual tunnel, physical phone, public certificate, cellular/Wi-Fi or Safari claim.',
+    'Actual ZIP; hidden WinForms/WebView2, muted headless Edge, isolated local TLS root entry at a nonstandard port on 127.0.0.1. Equivalent Sakura/FRP reverse-proxy behavior only; no actual tunnel, physical phone, public certificate, cellular/Wi-Fi or Safari claim.',
   checks: [],
   traffic: [],
   pageErrors: [],
@@ -238,7 +240,11 @@ async function player(token, tunnel, wide = false) {
   page.navigationCounts = { outer: 0, inner: 0 };
   page.on('framenavigated', (frame) => {
     if (frame === page.mainFrame()) page.navigationCounts.outer++;
-    else if (new URL(frame.url(), page.url()).pathname.startsWith('/player'))
+    else if (
+      /^\/(?:player(?:\/game)?)?$/.test(
+        new URL(frame.url(), page.url()).pathname,
+      )
+    )
       page.navigationCounts.inner++;
   });
   page.on('pageerror', (error) =>
@@ -280,7 +286,7 @@ async function player(token, tunnel, wide = false) {
       );
     });
   });
-  await page.goto(tunnel.url + '/player');
+  await page.goto(tunnel.url);
   await ready(page);
   const state = await view(token || '');
   await rendered(page, state);
@@ -619,7 +625,7 @@ async function pollingCase(token) {
   );
   await snapshot(page, 'tls-polling-bidirectional');
   await checked(
-    'HTTPS nonstandard root /player remains interactive when WebSocket is denied; a real ready operation is saved and its revision renders',
+    'HTTPS nonstandard root entry remains interactive when WebSocket is denied; a real ready operation is saved and its revision renders',
     {
       entryOrigin: tunnel.url,
       operationToRenderMs,

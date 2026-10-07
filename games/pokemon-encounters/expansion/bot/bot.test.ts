@@ -1,5 +1,6 @@
+import { legacyRules as rules } from '../legacy-test';
 import { expect, it } from 'vitest';
-import { pokemonExpansion as rules } from '../index';
+
 import { RandomSource } from '../../../../packages/platform-core/src/random';
 import { observeMemory, validateMemory } from './memory';
 import { bot } from './index';

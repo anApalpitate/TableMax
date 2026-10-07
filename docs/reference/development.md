@@ -1,5 +1,15 @@
 # 开发环境
 
+## 根加入入口与研究重设计验证（2026-10-08）
+
+默认分享网址与二维码使用网站根地址，`/player` 及 `/player/game` 保留兼容；根页面属于玩家，不能取得管理员或原生桥接权限。`node scripts/verify-root-entry.mjs --sha256=<冻结包SHA256> --evidence=<独立名>` 审核实际 ZIP 全部成员、HTTP／HTTPS 非标准端口根入口真实 UI 入座／准备／刷新、旧路由与身份权限；证据在 `artifacts/maintenance/v1.0.4/root-entry/`。代理仅监听 `127.0.0.1`，不配置真实穿透服务。
+
+`node scripts/verify-debug-20261007.mjs --phases-only --expansion-only --max-first --evidence=<独立名>` 从实际包推进扩展最少／最多人数合法阶段，检查 320／360／390／430、1023／1024、720p、1080p及4K的 CSS 几何，保留玩家、主机与公共屏截图及全部30研究参考卡。六人场景包含长昵称，按合法取牌／存牌动作逐步填满六个缓冲，再合法取出本人缓冲强制换入；检查空缓冲及1–6张占牌的完整视口边界、16px文字、实际图片解码及各玩家九格不侵入相邻场地。每个实际放入状态另查320×568首排三目标及位置编号完整可见，包含特殊牌能力说明和强制来源；存入按钮检查18px单行文字。这条受控动作路径不是普通模式体验测量。`--max-first`只调整验证顺序；`--placement-only`只做六人首个放入场景的诊断，不替代完整验收。完整默认矩阵另回归原版及其他游戏。`--evidence` 仅接受独立安全名称，避免覆盖旧同版本验收。
+
+`node scripts/verify-pokemon-expansion-play.mjs --portable --sha256=<同一包SHA256> --evidence=<独立名>` 通过实际生产玩家子文档控件与真实默认 Worker，检查研究详情不提交投票、单弃顶、本人缓冲存入／取出／强制换入、保存确认与最新渲染版本；普通模式仍默认静音。根入口的 HTTPS 丢推送、丢同步／动作确认、WSS、执行暂停和换机另由 `verify-debug-remote.mjs --sha256=<同一包SHA256> --evidence=<独立名>` 检查。隐藏浏览器与代理等价情形不能代表实体手机、真实樱花隧道、公网证书、物理 Windows DPI、真人听感或新任务平衡测量。
+
+`node scripts/verify-pokemon-expansion-awards.mjs --portable --sha256=<同一包SHA256> --evidence=<独立名>` 补查高风险研究的稀有结算：同一实际包规则执行最后一笔合法动作并验证状态，实际包客户端与共享运行时展示 0／1／2 新增胜局、共同赢家、计分明细及 320／390px 和主机／公共屏。此为受控结算组件夹具，不是服务端完整对局，也不代替普通模式、真实存档或平衡测量。截图与报告保存在 `artifacts/maintenance/v1.0.4/pokemon-expansion-awards/`；本地头像／角色图片必须实际解码，不能把占位或错误夹具元数据当作美术验收。
+
 ## 10.7 浏览器玩家与穿透恢复验证（v1.0.3）
 
 当前按 2026-10-08 用户纠正交付 v1.0.4；本标题保留旧锚点。电脑浏览器真人保持中央手机区域，三游戏原手机布局不做宽屏重排。验证器从根 `package.json` 读取版本并核验对应 ZIP／清单的全部解压成员；当前证据位于 `artifacts/maintenance/v1.0.4/debug-20261008/`。玩家 DOM 断言在稳定同源子文档中进行，外层仅用于窗口尺寸与实际截图。
@@ -12,7 +22,7 @@
 
 `node scripts/verify-box-layout.mjs --sha256=<当前包SHA256> --evidence=<本轮名称>` 从同一运行包检查盒子四种游戏版本、主机／公共／未入座玩家／已入座房主及关键浮窗，输出实际截图、字体／溢出／裁剪／操作可达结果。原生窗口记录实际 CSS 尺寸、缩放和模拟密度，不能把请求的物理窗口大小直接当作 CSS 视口；电脑玩家外层尺寸与内层手机区域分别检查。自动几何检查后人工复核代表截图，竖排标题等虽无溢出仍需修正。
 
-日常使用：电脑管理员的“连接帮助”可保存外部 HTTP(S) 根地址、IP／域名及端口，或对应 `/player` 地址；清空后恢复网卡入口。网址保存在数据目录的 `network-settings.json`，与 checkpoint 分离。樱花等穿透软件仍由用户映射实际服务端口；TableMax 不自动配置隧道，不支持 `/tablemax/` 路径前缀。换设备时在未入座盒子申请原真人座位，电脑管理员在管理设置核对六位码后批准。
+日常使用：电脑管理员的“连接帮助”可保存外部 HTTP(S) 根地址、IP／域名及端口，也兼容旧 `/player` 地址；局域网和外部默认分享／二维码均使用根地址，旧玩家路由继续可用，清空后恢复网卡入口。网址保存在数据目录的 `network-settings.json`，与 checkpoint 分离。樱花等穿透软件仍由用户映射实际服务端口；TableMax 不自动配置隧道，不支持 `/tablemax/` 路径前缀。换设备时在未入座盒子申请原真人座位，电脑管理员在管理设置核对六位码后批准。
 
 本轮 Windows 沙箱曾使 pnpm dependency junction 的 realpath 返回 EPERM，导致 TypeScript 出现依赖类型缺失的误报；沙箱多 worker 的临时转换和 SQLite rename 也受限。使用获准的项目内直接 Node 入口执行相同只读检查及隔离测试，未修改依赖版本或全局配置；失败日志与后续真实检查分开保留。
 
@@ -143,7 +153,9 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 `scripts/service-brotli.mjs` 将生产服务CJS编码为Brotli质量11的 `server.cjs.br`，生成小型 `server.cjs` CommonJS入口；只在精确还原且净节省时接受。启动先核对载荷SHA-256，再以限定输出长度解压、核对原源码长度与SHA-256，最后在当前模块内 `_compile`。不在用户存档、缓存或程序目录落盘还原源码；缺失或损坏载荷直接失败。官方Node PE不压缩、裁剪或升级，Worker和媒体字节不变。
 
-`scripts/module-build.mjs` 只对platform-server应用该步骤，helper纳入指纹，两个产物共同进入缓存哈希、冻结和组装；`scripts/package.mjs` 白名单同时收集入口和载荷。相关单测命令为 `node --test scripts/service-brotli.test.mjs`，覆盖原字节还原、CommonJS路径／exports／require.main、依赖加载、无落盘，以及缺失、载荷损坏、合法压缩但源码哈希错误。
+`scripts/module-build.mjs` 对platform-server与宝可梦人机单元应用该步骤，helper纳入各自指纹，入口和载荷共同进入缓存哈希、冻结和组装；`scripts/package.mjs` 白名单同时收集两者，游戏载荷预算计入 `bots/pokemon-encounters.cjs.br`。其他游戏人机、规则和媒体保持原构建。相关单测命令为 `node --import tsx --test scripts/service-brotli.test.mjs scripts/pokemon-bot-brotli.test.mjs`，覆盖原字节还原、CommonJS路径／exports／require.main、依赖加载、无落盘，以及缺失、载荷损坏、合法压缩但源码哈希错误。宝可梦原版／扩展三档另经实际32MiB生产Worker执行合法决定，保持原2秒取消边界。
+
+2026-10-08研究重设计的第一包实际解压95,035,481字节，超过95MB工程预算35,481字节，未作交付验收。只压缩宝可梦人机144,410字节为715字节入口＋28,397字节载荷，净省115,298字节；该轮压缩包248文件实际解压94,920,183字节，余79,817字节；后续客户端返修后的当前体积以验收记录为准。相关[载荷检查](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/pokemon-bot-brotli.json)及[首包预算失败](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/budget-failure.json)保留；当前实际包验收见[验收记录](acceptance.md)。
 
 隔离[实测](../../artifacts/maintenance/v1.0.2/pokemon-expansion-size-continuation/runtime.json)以历史实际解压程序为输入：1,655,164字节服务变为717字节入口＋354,905字节载荷，净省1,299,542字节。隐藏原生窗口经父子私有管道启动包内Node，真实Socket恢复／保存、bot Worker行动和再次重启通过；故障入口不监听端口、不改存档，正常退出后Job关联服务已停止。原始官方Node字节保持一致。
 
@@ -424,7 +436,7 @@ v1.0.3新增已知隔离副本 `tmp/portable-storage-<六位随机后缀>`，通
 
 `tmp/app-icon-verify-*` 与 `tmp/tablemax-sqlite-migration-*` 的六位随机后缀目录分别是图标验证／便携解压及服务迁移验证的隔离副本，归入已知中间物；图标原素材和迁移原始存档仍保留在资源及历史证据目录。
 
-v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`、`tmp/debug-remote-*` 和 `tmp/game-review-*` 纳入已知隔离副本，只匹配六位字母数字后缀；分别对应本轮盒子、游戏与连接、恢复、远程双向验证及只读游戏视图补拍。补拍源码、实际图与报告保留在 `artifacts/maintenance/v1.0.4/debug-20261008/portable/game-review/`，当前截图和报告不参与临时目录清理。使用 `scripts/cleanup-local.test.ps1 -VerificationPrefixesOnly` 复核这些精确匹配及类似名称／近期保护；新增前缀不扩大至未知临时内容。
+v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`、`tmp/debug-remote-*`、`tmp/game-review-*` 和 `tmp/root-entry-*` 纳入已知隔离副本，只匹配六位字母数字后缀；分别用于盒子、游戏与连接、恢复、远程双向验证、只读游戏视图补拍及根入口检查。实际图和报告保留在 `artifacts/maintenance/v1.0.4/`，当前截图和报告不参与临时目录清理。使用 `scripts/cleanup-local.test.ps1 -VerificationPrefixesOnly` 复核精确匹配及类似名称／近期／链接保护；本次 51 项隔离夹具检查通过，证据在 `research-redesign-20261008/implementation/cleanup-prefix-tests/`，新增前缀不扩大至未知临时内容。
 
 修改工具后运行 `powershell.exe -NoProfile -File scripts/cleanup-local.test.ps1` 与 `powershell.exe -NoProfile -File scripts/project-maintenance.test.ps1`。前者检查手动预览、ZIP／进程／链接／白名单／近期保护、脚本归档及显式构建清理；后者用隔离 Git 主仓库和 worktree 检查目录发现、不重复计量、高低水位、最旧优先、互斥及候选耗尽。测试不清理真实 release，结果分别保存在 `artifacts/maintenance/cleanup-history/tool-checks/current/tool-tests.json` 和 `artifacts/maintenance/project-maintenance-tools/tool-tests.json`。
 

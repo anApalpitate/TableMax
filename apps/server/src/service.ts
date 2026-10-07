@@ -106,7 +106,7 @@ export async function createService(
       reply.header('Cache-Control', 'no-store');
     reply.header(
       'Content-Security-Policy',
-      `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'none'; frame-ancestors ${/^\/player(?:\/game)?(?:\?|$)/.test(request.url) ? "'self'" : "'none'"}`,
+      `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'none'; frame-ancestors ${/^\/(?:player(?:\/game)?)?(?:\?|$)/.test(request.url) ? "'self'" : "'none'"}`,
     );
     reply.header('X-Content-Type-Options', 'nosniff');
     reply.header('Referrer-Policy', 'no-referrer');
@@ -314,7 +314,7 @@ export async function createService(
       const target = external
         ? networkSettings.read().externalJoinUrl
         : port && address && network.read().addresses.includes(address)
-          ? `http://${address}:${port}/player`
+          ? `http://${address}:${port}`
           : null;
       if (!target)
         return reply.code(400).send({

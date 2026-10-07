@@ -1,6 +1,7 @@
 import type { GameRules, RuleContext, PublicAction } from '@tablemax/game-sdk';
 import { card, instancesForSeats, type Ability } from './cards';
-import { grid, tasks, task } from './research';
+import { grid, tasksForProfile, task, type RulesProfile } from './research';
+import { victoryAward } from './research-rewards';
 import { scoreBoard } from './scoring';
 import {
   phases,
@@ -8,6 +9,7 @@ import {
   decisionId,
   validateState,
   legacyPendingAbility,
+  stateRulesProfile,
   type EventEffect,
   type State,
   type Action,
@@ -32,7 +34,9 @@ function selectResearch(
   used: string[],
   count: number,
   context: RuleContext,
+  profile: RulesProfile,
 ) {
+  const tasks = tasksForProfile(profile);
   let available = tasks.filter((t) => t.pool === pool && !used.includes(t.id));
   if (available.length < count) {
     used.length = 0;
@@ -49,19 +53,31 @@ function round(
   wins: Record<string, number>,
   number: number,
   previous?: State,
+  profile: RulesProfile = 'research-buffer-v2',
 ): State {
-  const usedOpeningResearch = previous ? [...previous.usedOpeningResearch] : [],
-    usedHoennResearch = previous ? [...previous.usedHoennResearch] : [];
+  const sameProfile = previous && stateRulesProfile(previous) === profile;
+  const usedOpeningResearch = sameProfile
+      ? [...previous.usedOpeningResearch]
+      : [],
+    usedHoennResearch = sameProfile ? [...previous.usedHoennResearch] : [];
   return {
     gameId: 'pokemon-encounters',
     variantId: 'expansion',
     rulesVersion: 'tablemax-cn-expansion-v1',
     stateVersion: 1,
+    ...(profile === 'research-buffer-v2'
+      ? {
+          rulesProfile: profile,
+          buffersBySeat: Object.fromEntries(
+            context.seats.map((id) => [id, null]),
+          ),
+        }
+      : {}),
     roundNumber: number,
     seatOrder: [...context.seats],
     winsBySeat: wins,
     boards: Object.fromEntries(context.seats.map((id) => [id, []])),
-    deck: instancesForSeats(context.seats.length),
+    deck: instancesForSeats(context.seats.length, profile),
     discard: [],
     held: null,
     phase: 'research-vote',
@@ -83,6 +99,7 @@ function round(
       usedOpeningResearch,
       3,
       context,
+      profile,
     ),
     votesBySeat: {},
     voteCounts: null,
@@ -112,7 +129,8 @@ function deal(s: State, context: RuleContext) {
     for (const seat of order)
       s.boards[seat]!.push({ instanceId: s.deck.pop()!, faceUp: false });
   s.deck = shuffle([...s.deck, ...excluded], context.random);
-  s.discard.push(s.deck.pop()!, s.deck.pop()!);
+  s.discard.push(s.deck.pop()!);
+  if (stateRulesProfile(s) === 'legacy') s.discard.push(s.deck.pop()!);
   s.phase = 'initial-flip';
 }
 function orderFrom(seats: readonly string[], start: string, direction = 1) {
@@ -159,6 +177,7 @@ function checkHoenn(s: State, context: RuleContext) {
       s.usedHoennResearch,
       1,
       context,
+      stateRulesProfile(s),
     )[0]!;
     s.usedHoennResearch.push(s.hoennPending);
   }
@@ -169,12 +188,15 @@ function publishHoenn(s: State) {
     event(
       s,
       'research',
-      `丰缘三神齐聚，发布「${task(s.hoennPending).name}」。`,
+      `丰缘三神齐聚，发布「${task(s.hoennPending, stateRulesProfile(s)).name}」。`,
     );
     s.hoennPending = null;
   }
 }
-const canDrawDeck = (s: State) => s.deck.length > 0 || s.discard.length > 2;
+const discardWindow = (s: State) => (stateRulesProfile(s) === 'legacy' ? 2 : 1);
+const canDrawDeck = (s: State) =>
+  s.deck.length > 0 || s.discard.length > discardWindow(s);
+const canDiscardHeld = (s: State) => s.drawSource === 'deck';
 function beginAbility(s: State, sourceInstanceId: string, ability: Ability) {
   s.pendingAbility = { kind: 'current', ability, sourceInstanceId };
 }
@@ -211,7 +233,7 @@ function coveredAbilitySource(
 }
 function drawDeck(s: State, context: RuleContext) {
   if (!s.deck.length) {
-    const keep = Math.min(2, s.discard.length),
+    const keep = Math.min(discardWindow(s), s.discard.length),
       recycled = s.discard.slice(0, s.discard.length - keep);
     s.usedAbilityIds = s.usedAbilityIds!.filter((id) => !recycled.includes(id));
     s.deck = shuffle(recycled, context.random);
@@ -251,13 +273,27 @@ function finish(s: State, context: RuleContext) {
           s.boards[id]!.map((c) => c.instanceId),
           s.activeResearch,
           s.preReveal![id]!,
+          stateRulesProfile(s),
         ),
       ]),
     );
     const min = Math.min(...Object.values(scores).map((v) => v.total)),
       winners = s.seatOrder.filter((id) => scores[id]!.total === min);
-    for (const id of winners) s.winsBySeat[id]!++;
-    s.roundResult = { scores, winners };
+    if (stateRulesProfile(s) === 'research-buffer-v2') {
+      const awardsBySeat = Object.fromEntries(
+        s.seatOrder.map((id) => [
+          id,
+          winners.includes(id)
+            ? victoryAward(s.winsBySeat[id]!, scores[id]!.victory!)
+            : 0,
+        ]),
+      ) as Record<string, 0 | 1 | 2>;
+      for (const id of winners) s.winsBySeat[id]! += awardsBySeat[id]!;
+      s.roundResult = { scores, winners, awardsBySeat };
+    } else {
+      for (const id of winners) s.winsBySeat[id]!++;
+      s.roundResult = { scores, winners };
+    }
     s.matchWinners = s.seatOrder.filter((id) => s.winsBySeat[id] === 3);
     s.phase = s.matchWinners.length ? 'match-result' : 'round-result';
     for (const id of s.seatOrder)
@@ -313,6 +349,8 @@ export function validateAction(input: unknown): Action {
   if (
     [
       'discard-held',
+      'store-buffer',
+      'draw-buffer',
       'decline-ability',
       'close-peek',
       'activate-arceus',
@@ -417,10 +455,10 @@ export function legalActions(s: State, seat: string): Action[] {
     ),
     opponents = s.seatOrder.filter((id) => id !== seat);
   const draws: Action[] = [
-    ...(s.deck.length || s.discard.length > 2
+    ...(canDrawDeck(s)
       ? [{ type: 'draw' as const, source: 'deck' as const }]
       : []),
-    ...s.discard.slice(-2).map((_, discardIndex) => ({
+    ...s.discard.slice(-discardWindow(s)).map((_, discardIndex) => ({
       type: 'draw' as const,
       source: 'discard' as const,
       discardIndex: discardIndex as 0 | 1,
@@ -430,6 +468,7 @@ export function legalActions(s: State, seat: string): Action[] {
     case 'draw':
       return [
         ...draws,
+        ...(s.buffersBySeat?.[seat] ? [{ type: 'draw-buffer' as const }] : []),
         ...pairs.map((p) => ({ type: 'reposition' as const, ...p })),
       ];
     case 'lucario-draw':
@@ -437,7 +476,10 @@ export function legalActions(s: State, seat: string): Action[] {
     case 'place':
       return [
         ...replaceActions,
-        ...(s.drawSource === 'deck' ? [{ type: 'discard-held' as const }] : []),
+        ...(canDiscardHeld(s) ? [{ type: 'discard-held' as const }] : []),
+        ...(canDiscardHeld(s) && s.buffersBySeat?.[seat] === null
+          ? [{ type: 'store-buffer' as const }]
+          : []),
       ];
     case 'mew-other':
       return opponents.flatMap((id) =>
@@ -581,7 +623,9 @@ function announcement(
           : 'ninja-cover'
         : a.type,
     cardCategory:
-      a.type === 'draw' && s.held ? card(s.held).categoryId : incoming,
+      (a.type === 'draw' || a.type === 'draw-buffer') && s.held
+        ? card(s.held).categoryId
+        : incoming,
     ability,
     ...(a.type === 'draw' ? { source: a.source } : {}),
     targets,
@@ -622,7 +666,11 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
       s.activeResearch = [selected];
       s.usedOpeningResearch.push(selected);
       deal(s, context);
-      event(s, 'research', `投票结束，本小局任务「${task(selected).name}」。`);
+      event(
+        s,
+        'research',
+        `投票结束，本小局任务「${task(selected, stateRulesProfile(s)).name}」。`,
+      );
     } else event(s, 'vote', '一位玩家已提交研究投票。');
   } else if (a.type === 'initial-flip') {
     s.boards[seat]![a.slot]!.faceUp = true;
@@ -630,14 +678,18 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
     checkHoenn(s, context);
     publishHoenn(s);
     if (s.initialDone.length === s.seatOrder.length) s.phase = 'draw';
-  } else if (a.type === 'draw') {
-    if (a.source === 'discard') effect = { discardIndex: a.discardIndex };
-    s.drawSource = a.source;
+  } else if (a.type === 'draw' || a.type === 'draw-buffer') {
+    if (a.type === 'draw' && a.source === 'discard')
+      effect = { discardIndex: a.discardIndex };
+    s.drawSource = a.type === 'draw-buffer' ? 'buffer' : a.source;
     s.coin = null;
     s.held =
-      a.source === 'deck'
-        ? drawDeck(s, context)
-        : s.discard.splice(s.discard.length - 1 - a.discardIndex, 1)[0]!;
+      a.type === 'draw-buffer'
+        ? s.buffersBySeat![seat]!
+        : a.source === 'deck'
+          ? drawDeck(s, context)
+          : s.discard.splice(s.discard.length - 1 - a.discardIndex, 1)[0]!;
+    if (a.type === 'draw-buffer') s.buffersBySeat![seat] = null;
     const ability = card(s.held).ability;
     s.phase = 'place';
     if (!s.suppressedAbility && !s.usedAbilityIds.includes(s.held)) {
@@ -724,8 +776,9 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
         else finish(s, context);
       }
     }
-  } else if (a.type === 'discard-held') {
-    s.discard.push(s.held!);
+  } else if (a.type === 'discard-held' || a.type === 'store-buffer') {
+    if (a.type === 'store-buffer') s.buffersBySeat![seat] = s.held!;
+    else s.discard.push(s.held!);
     s.held = null;
     finish(s, context);
   } else if (a.type === 'swap' || a.type === 'reposition') {
@@ -795,7 +848,7 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
   const action = announcement(input, s, a, seat);
   event(
     s,
-    a.type === 'draw' ? 'draw' : 'action',
+    a.type === 'draw' || a.type === 'draw-buffer' ? 'draw' : 'action',
     `S${s.seatOrder.indexOf(seat) + 1}：${actionLabel(a)}。`,
     action,
     effect,
@@ -820,6 +873,7 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
       revealedInformation:
         [
           'draw',
+          'draw-buffer',
           'peek',
           'mewtwo-target',
           'initial-flip',
@@ -844,6 +898,8 @@ function actionLabel(a: Action) {
     'vote-research': '提交研究投票',
     'initial-flip': '翻开初始牌',
     draw: '取牌',
+    'draw-buffer': '从本人缓冲区取牌（必须换入）',
+    'store-buffer': '存入本人公开缓冲区并结束回合',
     replace: '换入牌',
     peek: '私看本人一张暗牌',
     'mew-target': '梦幻换入对方',
@@ -924,7 +980,11 @@ export const pokemonExpansion: GameRules<State, Action, View> = {
         s.roundNumber + 1,
         s,
       );
-    event(next, 'research', `第${next.roundNumber}小局：投票选择研究任务。`);
+    event(
+      next,
+      'research',
+      `第${next.roundNumber}小局：${s.rulesProfile ? '' : '启用新版研究、单弃顶与公开缓冲区；'}投票选择研究任务。`,
+    );
     return {
       state: next,
       decision: {
@@ -940,5 +1000,24 @@ export const pokemonExpansion: GameRules<State, Action, View> = {
   apply,
   project,
 };
+export function createInitialState(
+  context: RuleContext,
+  profile: RulesProfile = 'research-buffer-v2',
+): State {
+  if (
+    context.seats.length < 2 ||
+    context.seats.length > 6 ||
+    new Set(context.seats).size !== context.seats.length
+  )
+    throw new Error('Invalid expansion seats');
+  return round(
+    context,
+    context.seats[Math.floor(context.random.next() * context.seats.length)]!,
+    Object.fromEntries(context.seats.map((id) => [id, 0])),
+    1,
+    undefined,
+    profile,
+  );
+}
 export const rules = pokemonExpansion;
 export { phases };

@@ -227,6 +227,7 @@ export async function assemble(
             (file) =>
               file.path === `games/${game.id}.cjs` ||
               file.path === `bots/${game.id}.cjs` ||
+              file.path === `bots/${game.id}.cjs.br` ||
               file.path.startsWith(`web/games/${game.id}/`),
           )
           .reduce((sum, file) => sum + file.bytes, 0);

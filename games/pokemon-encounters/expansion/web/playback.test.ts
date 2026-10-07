@@ -1,6 +1,10 @@
 import { expect, it } from 'vitest';
 import type { View } from '../project';
-import { PresentationQueue, presentationSteps } from './playback';
+import {
+  PresentationQueue,
+  presentationSteps,
+  presentedWins,
+} from './playback';
 const action = {
   actor: 'A',
   verb: 'draw',
@@ -15,6 +19,16 @@ const game = {
   matchWinners: [],
   roundResult: null,
 } as unknown as View;
+it('reveals the actual research win award only when the saved result presentation completes', () => {
+  const awarded = {
+    winsBySeat: { A: 3, B: 1 },
+    roundResult: { winners: ['A', 'B'], awardsBySeat: { A: 2, B: 0 } },
+  } as unknown as View;
+  expect(presentedWins(awarded, 'A', false)).toBe(1);
+  expect(presentedWins(awarded, 'A', true)).toBe(3);
+  expect(presentedWins(awarded, 'B', false)).toBe(1);
+  expect(presentedWins(awarded, 'B', true)).toBe(1);
+});
 it('retains a full entrance followed by its board step while another save arrives; deduplicates receipts and cancels branches', () => {
   const q = new PresentationQueue();
   const a = presentationSteps(

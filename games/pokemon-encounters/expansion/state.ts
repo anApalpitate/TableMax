@@ -2,6 +2,8 @@ import type { PublicAction } from '@tablemax/game-sdk';
 import { card, instancesForSeats, categories, type Ability } from './cards';
 import { scoreBoard, type Score } from './scoring';
 import { task } from './research';
+import type { RulesProfile } from './config/types';
+import { victoryAward } from './research-rewards';
 export const phases = [
   'research-vote',
   'initial-flip',
@@ -37,6 +39,8 @@ export type Action =
   | { type: 'mew-target'; seat: string; slot: number }
   | { type: 'draw'; source: 'deck' }
   | { type: 'draw'; source: 'discard'; discardIndex: 0 | 1 }
+  | { type: 'draw-buffer' }
+  | { type: 'store-buffer' }
   | { type: 'swap' | 'reposition'; a: number; b: number }
   | { type: 'mewtwo-target'; seat: string; a: number; b: number }
   | { type: 'ninja-target'; seat: string; a: number; b: number; swap: boolean }
@@ -68,6 +72,8 @@ export type State = {
   variantId: 'expansion';
   rulesVersion: 'tablemax-cn-expansion-v1';
   stateVersion: 1;
+  rulesProfile?: 'research-buffer-v2';
+  buffersBySeat?: Record<string, string | null>;
   roundNumber: number;
   seatOrder: string[];
   winsBySeat: Record<string, number>;
@@ -79,7 +85,7 @@ export type State = {
   turnSeat: string;
   initialDone: string[];
   step: number;
-  drawSource: 'deck' | 'discard' | null;
+  drawSource: 'deck' | 'discard' | 'buffer' | null;
   coin: 'meowth' | 'pikachu' | null;
   recipientQueue: string[];
   recipientIndex: number;
@@ -99,7 +105,11 @@ export type State = {
   hoennPending: string | null;
   arceusUsed: boolean;
   preReveal: Record<string, boolean[]> | null;
-  roundResult: { scores: Record<string, Score>; winners: string[] } | null;
+  roundResult: {
+    scores: Record<string, Score>;
+    winners: string[];
+    awardsBySeat?: Record<string, 0 | 1 | 2>;
+  } | null;
   matchWinners: string[];
   eventCounter: number;
   events: {
@@ -110,6 +120,9 @@ export type State = {
     effect?: EventEffect;
   }[];
 };
+export const stateRulesProfile = (
+  s: Pick<State, 'rulesProfile'>,
+): RulesProfile => s.rulesProfile ?? 'legacy';
 /** Old in-flight saves retain their chain without guessing its physical source. */
 export function legacyPendingAbility(s: State): PendingAbility | null {
   const map: Partial<Record<Phase, Ability>> = {
@@ -156,6 +169,8 @@ function validActionEvent(input: unknown, seats: readonly string[]): boolean {
     'vote-research',
     'initial-flip',
     'draw',
+    'draw-buffer',
+    'store-buffer',
     'replace',
     'peek',
     'mew-target',
@@ -264,8 +279,13 @@ export function validateState(input: unknown, seats: readonly string[]): State {
   const hasUsage =
     Object.hasOwn(s, 'usedAbilityIds') && Object.hasOwn(s, 'pendingAbility');
   if (hasUsage) keys.push('usedAbilityIds', 'pendingAbility');
+  const modern =
+    Object.hasOwn(s, 'rulesProfile') && Object.hasOwn(s, 'buffersBySeat');
+  const profile = stateRulesProfile(s);
+  if (modern) keys.push('rulesProfile', 'buffersBySeat');
   if (
     Object.keys(s).sort().join(',') !== keys.sort().join(',') ||
+    (modern && !hasUsage) ||
     s.gameId !== 'pokemon-encounters' ||
     s.variantId !== 'expansion' ||
     s.rulesVersion !== 'tablemax-cn-expansion-v1' ||
@@ -285,12 +305,22 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     s.eventCounter < 0 ||
     !record(s.boards) ||
     !record(s.winsBySeat) ||
-    !record(s.votesBySeat)
+    !record(s.votesBySeat) ||
+    (modern &&
+      (s.rulesProfile !== 'research-buffer-v2' || !record(s.buffersBySeat)))
   )
     return fail();
   const sameKeys = (v: Record<string, unknown>) =>
     Object.keys(v).sort().join(',') === [...seats].sort().join(',');
   if (!sameKeys(s.boards) || !sameKeys(s.winsBySeat)) return fail();
+  if (
+    modern &&
+    (!sameKeys(s.buffersBySeat!) ||
+      Object.values(s.buffersBySeat!).some(
+        (v) => v !== null && typeof v !== 'string',
+      ))
+  )
+    return fail();
   const stringArray = (v: unknown): v is string[] =>
     Array.isArray(v) && v.every((n) => typeof n === 'string');
   if (
@@ -310,7 +340,9 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     typeof s.suppressedAbility !== 'boolean' ||
     typeof s.hoennTriggered !== 'boolean' ||
     typeof s.arceusUsed !== 'boolean' ||
-    !['deck', 'discard', null].includes(s.drawSource) ||
+    !['deck', 'discard', ...(modern ? ['buffer'] : []), null].includes(
+      s.drawSource,
+    ) ||
     !['meowth', 'pikachu', null].includes(s.coin) ||
     ![null, 'groudon', 'kyogre', 'rayquaza'].includes(s.rowAbility) ||
     !Number.isInteger(s.recipientIndex) ||
@@ -343,8 +375,11 @@ export function validateState(input: unknown, seats: readonly string[]): State {
       ...s.deck,
       ...s.discard,
       ...(s.held === null ? [] : [s.held]),
+      ...(modern
+        ? Object.values(s.buffersBySeat!).filter((v): v is string => v !== null)
+        : []),
     ],
-    expected = instancesForSeats(seats.length);
+    expected = instancesForSeats(seats.length, profile);
   if (
     all.length !== expected.length ||
     new Set(all).size !== expected.length ||
@@ -369,6 +404,7 @@ export function validateState(input: unknown, seats: readonly string[]): State {
       Object.keys(pending).sort().join(',') !==
         'ability,kind,sourceInstanceId' ||
       !['current', 'legacy'].includes(pending.kind) ||
+      (modern && pending.kind === 'legacy') ||
       !categories.some((c) => c.ability === pending.ability) ||
       !phaseAbility ||
       // Both forced exchange chains end in the shared mew-self phase.
@@ -431,7 +467,8 @@ export function validateState(input: unknown, seats: readonly string[]): State {
       s.initialDone.length ||
       s.arceusUsed ||
       s.hoennTriggered ||
-      s.held !== null
+      s.held !== null ||
+      (modern && Object.values(s.buffersBySeat!).some((v) => v !== null))
     )
       return fail();
   } else {
@@ -463,8 +500,9 @@ export function validateState(input: unknown, seats: readonly string[]): State {
   if (
     s.phase === 'initial-flip' &&
     (s.initialDone.length === seats.length ||
-      s.discard.length !== 2 ||
-      s.deck.length !== expected.length - seats.length * 9 - 2 ||
+      s.discard.length !== (modern ? 1 : 2) ||
+      s.deck.length !== expected.length - seats.length * 9 - (modern ? 1 : 2) ||
+      (modern && Object.values(s.buffersBySeat!).some((v) => v !== null)) ||
       seats.some((id) =>
         s.boards[id]!.some((c) =>
           ['special-mewtwo', 'special-arceus'].includes(
@@ -493,6 +531,7 @@ export function validateState(input: unknown, seats: readonly string[]): State {
   ].includes(s.phase);
   if (
     holds !== (s.held !== null) ||
+    (s.drawSource === 'buffer' && s.buffersBySeat![s.turnSeat] !== null) ||
     s.peekSlots.some((i) => !Number.isInteger(i) || i < 0 || i > 8) ||
     new Set(s.peekSlots).size !== s.peekSlots.length
   )
@@ -624,6 +663,7 @@ export function validateState(input: unknown, seats: readonly string[]): State {
           s.boards[id]!.map((c) => c.instanceId),
           s.activeResearch,
           s.preReveal![id]!,
+          profile,
         ),
       ]),
     );
@@ -632,8 +672,30 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     if (
       JSON.stringify(scores) !== JSON.stringify(s.roundResult.scores) ||
       JSON.stringify(winners) !== JSON.stringify(s.roundResult.winners) ||
-      winners.some((id) => s.winsBySeat[id]! < 1)
+      (!modern && winners.some((id) => s.winsBySeat[id]! < 1))
     )
+      return fail();
+    if (modern) {
+      const awards = s.roundResult.awardsBySeat;
+      if (
+        Object.keys(s.roundResult).sort().join(',') !==
+          'awardsBySeat,scores,winners' ||
+        !record(awards) ||
+        !sameKeys(awards) ||
+        seats.some(
+          (id) =>
+            ![0, 1, 2].includes(awards[id]!) ||
+            awards[id]! > s.winsBySeat[id]! ||
+            (winners.includes(id)
+              ? victoryAward(
+                  s.winsBySeat[id]! - awards[id]!,
+                  scores[id]!.victory!,
+                ) !== awards[id]
+              : awards[id] !== 0),
+        )
+      )
+        return fail();
+    } else if (Object.keys(s.roundResult).sort().join(',') !== 'scores,winners')
       return fail();
   } else if (s.preReveal !== null || s.roundResult !== null) return fail();
   const winners = seats.filter((id) => s.winsBySeat[id] === 3);
@@ -686,9 +748,9 @@ function validEffect(
     return false;
   const entrance = effect.entrance;
   const verbs: Record<Ability, readonly string[]> = {
-    mew: ['draw'],
-    zapdos: ['draw'],
-    'team-rocket': ['draw'],
+    mew: ['draw', 'draw-buffer'],
+    zapdos: ['draw', 'draw-buffer'],
+    'team-rocket': ['draw', 'draw-buffer'],
     mewtwo: ['mewtwo-target'],
     charizard: ['peek'],
     snorlax: ['swap'],
@@ -713,7 +775,7 @@ function validEffect(
   if (
     effect.coin !== undefined &&
     (entrance !== 'team-rocket' ||
-      action.verb !== 'draw' ||
+      !['draw', 'draw-buffer'].includes(action.verb) ||
       !['meowth', 'pikachu'].includes(effect.coin as string))
   )
     return false;

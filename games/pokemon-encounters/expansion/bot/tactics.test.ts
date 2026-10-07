@@ -1,11 +1,15 @@
+import {
+  legacyRules as rules,
+  legacyScore as scoreBoard,
+  legacyInstances as instancesForSeats,
+} from '../legacy-test';
 import { expect, it, vi } from 'vitest';
-import { pokemonExpansion as rules } from '../index';
-import { card, instancesForSeats } from '../cards';
+
+import { card } from '../cards';
 import { RandomSource } from '../../../../packages/platform-core/src/random';
 import { observeMemory } from './memory';
 import { choose } from './strategy';
 import { createTactics, informationValue, type TacticalModel } from './tactics';
-import { scoreBoard } from '../scoring';
 
 function knownFixture() {
   const context = { seats: ['a', 'b'], random: new RandomSource(31) };

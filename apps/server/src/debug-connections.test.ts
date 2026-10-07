@@ -228,7 +228,7 @@ it('restricts external entry settings to the desktop administrator, pushes the s
   });
   expect(updated.status).toBe(200);
   const network = NetworkSchema.parse(await updated.json());
-  expect(network.externalJoinUrl).toBe('https://example.com:8443/player');
+  expect(network.externalJoinUrl).toBe('https://example.com:8443');
   expect(NetworkSchema.parse(await received)).toEqual(network);
   expect(
     NetworkSchema.parse(
@@ -279,17 +279,29 @@ it('restricts external entry settings to the desktop administrator, pushes the s
       ).externalJoinUrl,
     ).toBe(network.externalJoinUrl);
   }
-  const nextTarget = 'http://mapped.example:8080/player';
+  const nextTarget = 'http://mapped.example:8080';
   expect(
     (
       await post(origin, '/api/room/network', {
         token: service.hostToken,
-        externalJoinUrl: 'http://mapped.example:8080',
+        externalJoinUrl: 'http://mapped.example:8080/player',
       })
     ).status,
   ).toBe(200);
   expect(await assertQr(origin, 'external=1', nextTarget)).not.toBe(firstQr);
-  await assertQr(origin, 'address=127.0.0.1', `${origin}/player`);
+  await assertQr(origin, 'address=127.0.0.1', origin);
+  const forwardedQr = await fetch(
+    `${origin}/api/foundation/qr?address=127.0.0.1`,
+    {
+      headers: {
+        'X-Forwarded-Host': 'unauthorized.example',
+        'X-Forwarded-Proto': 'https',
+      },
+    },
+  );
+  expect(await forwardedQr.text()).toBe(
+    await QRCode.toString(origin, { type: 'svg', margin: 2 }),
+  );
   expect(
     (await fetch(`${origin}/api/foundation/qr?address=not-an-adapter`)).status,
   ).toBe(400);
@@ -317,11 +329,100 @@ it('restricts external entry settings to the desktop administrator, pushes the s
   expect(
     (await fetch(`${restarted.origin}/api/foundation/qr?external=1`)).status,
   ).toBe(400);
-  await assertQr(
-    restarted.origin,
-    'address=127.0.0.1',
-    `${restarted.origin}/player`,
-  );
+  await assertQr(restarted.origin, 'address=127.0.0.1', restarted.origin);
+});
+
+it('keeps root and legacy player links reloadable while protecting saved identities, secrets and administrator authority', async () => {
+  const config = await fixture();
+  const legacySettings =
+    '{"externalJoinUrl":"https://mapped.example:8443/player"}\n';
+  writeFileSync(join(config.dataDir, 'network-settings.json'), legacySettings);
+  const { service, origin } = await start(config);
+  expect(
+    NetworkSchema.parse(
+      await (await fetch(`${origin}/api/room/network`)).json(),
+    ).externalJoinUrl,
+  ).toBe('https://mapped.example:8443');
+  expect(
+    readFileSync(join(config.dataDir, 'network-settings.json'), 'utf8'),
+  ).toBe(legacySettings);
+  await assertQr(origin, 'external=1', 'https://mapped.example:8443');
+
+  const playerToken = await joinPlayer(origin, '根入口玩家');
+  const friendToken = await joinPlayer(origin, '旧入口朋友');
+  const host = await connect(origin, service.hostToken);
+  const player = await connect(origin, playerToken, 'polling');
+  const friend = await connect(origin, friendToken, 'polling');
+  expect((await send(player, { type: 'ready', ready: true })).ok).toBe(true);
+  expect((await send(friend, { type: 'ready', ready: true })).ok).toBe(true);
+  expect((await send(host, { type: 'start' })).ok).toBe(true);
+  const original = await sync(player);
+  const publicView = await sync(await connect(origin));
+  expect(original.self.role).toBe('player');
+  expect(original.gameView).toMatchObject({
+    ownSecret: expect.any(Number),
+    results: null,
+  });
+  expect(original.capabilities.control).toBe(false);
+  expect(publicView.gameView).toMatchObject({ ownSecret: null, results: null });
+  expect((await sync(host)).gameView).toMatchObject({
+    ownSecret: null,
+    results: null,
+  });
+  const beforeReload = saved(config.dataDir);
+
+  for (const path of ['/', '/?invite=friend', '/player', '/player/game']) {
+    const page = await fetch(`${origin}${path}`);
+    expect(page.status).toBe(200);
+    expect(page.headers.get('Content-Security-Policy')).toContain(
+      "frame-ancestors 'self'",
+    );
+    const html = await page.text();
+    expect(html).toContain('connection fixture');
+    expect(html).not.toContain(playerToken);
+    expect(html).not.toContain(service.hostToken);
+    const response = await post(origin, '/api/session/view', {
+      token: playerToken,
+    });
+    expect(response.status).toBe(200);
+    const { view } = (await response.json()) as { view: unknown };
+    const reloaded = RoomViewSchema.parse(view);
+    expect(reloaded.self).toEqual(original.self);
+    expect(reloaded.gameView).toEqual(original.gameView);
+    expect(reloaded.capabilities.control).toBe(false);
+    const unauthenticated = await post(origin, '/api/session/view', {});
+    const anonymousView = RoomViewSchema.parse(
+      ((await unauthenticated.json()) as { view: unknown }).view,
+    );
+    expect(anonymousView.self).toEqual({ role: 'public', seatId: null });
+    expect(anonymousView.gameView).toMatchObject({
+      ownSecret: null,
+      results: null,
+    });
+  }
+  expect(saved(config.dataDir)).toEqual(beforeReload);
+  for (const path of ['/host', '/host/game', '/public', '/public/game']) {
+    const page = await fetch(`${origin}${path}`);
+    expect(page.status).toBe(200);
+    expect(page.headers.get('Content-Security-Policy')).toContain(
+      "frame-ancestors 'none'",
+    );
+    expect(await page.text()).not.toContain(service.hostToken);
+  }
+  const invalid = await post(origin, '/api/session/view', {
+    token: requestKey(),
+  });
+  expect(invalid.status).toBe(401);
+  const denied = await send(player, {
+    type: 'set-owner',
+    seatId: original.self.seatId,
+  });
+  expect(denied.ok).toBe(false);
+  expect((await sync(player)).capabilities.control).toBe(false);
+  player.disconnect();
+  const reconnected = await connect(origin, playerToken, 'polling');
+  expect((await sync(reconnected)).self).toEqual(original.self);
+  expect((await sync(reconnected)).gameView).toEqual(original.gameView);
 });
 
 it('acknowledges authorized sync, preserves event-only clients and pushes saved changes through polling', async () => {

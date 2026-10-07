@@ -1,7 +1,12 @@
 import { createHash } from 'node:crypto';
-import { pokemonExpansion as rules } from '../index';
-import { categories, instancesForSeats } from '../cards';
-import { tasks } from '../research';
+import { pokemonExpansion as rules, createInitialState } from '../index';
+import {
+  legacyCategories as categories,
+  instancesForSeats as currentInstances,
+} from '../cards';
+import { tasksForProfile } from '../research';
+const tasks = tasksForProfile('legacy');
+const instancesForSeats = (seats: number) => currentInstances(seats, 'legacy');
 import type { State, Action } from '../state';
 
 type LegacyDisplay = Pick<
@@ -71,7 +76,7 @@ function collectCompatibilityFixture(seats: number, seed: number) {
     ),
     tasks,
   });
-  let state = rules.initialize(context);
+  let state = createInitialState(context, 'legacy');
   let actions = 0;
   let restored = 0;
   const phases = new Set<string>();

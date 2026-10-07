@@ -1,19 +1,30 @@
 import type { ResearchTask } from '../research';
-import { researchDefinition, lines } from '../research';
+import { researchDefinition, lines, type RulesProfile } from '../research';
 import { scoreBoard } from '../scoring';
 import { card } from '../cards';
 import { portraitFor } from './card-art';
 import { portraitBoundsFor } from './portrait-bounds';
+import { researchRiskText } from './research-presentation';
+import { ResearchReward } from './ResearchReward';
 
 const illustrations = import.meta.glob<string>(
   '../../../../assets/games/pokemon-encounters/expansion/research-illustrations/*.webp',
   { eager: true, query: '?url', import: 'default' },
 );
-export function ResearchPicture({ id }: { id: string }) {
-  const { name, presentation } = researchDefinition(id);
+export function ResearchPicture({
+  id,
+  profile = 'research-buffer-v2',
+}: {
+  id: string;
+  profile?: RulesProfile;
+}) {
+  const { name, presentation, illustrationId } = researchDefinition(
+    id,
+    profile,
+  );
   const source =
     illustrations[
-      `../../../../assets/games/pokemon-encounters/expansion/research-illustrations/${id}.webp`
+      `../../../../assets/games/pokemon-encounters/expansion/research-illustrations/${illustrationId}.webp`
     ];
   return source ? (
     <figure
@@ -53,12 +64,19 @@ export function ResearchPicture({ id }: { id: string }) {
     </figure>
   ) : null;
 }
-export function ResearchDiagram({ id }: { id: string }) {
-  const { diagram } = researchDefinition(id);
+export function ResearchDiagram({
+  id,
+  profile = 'research-buffer-v2',
+}: {
+  id: string;
+  profile?: RulesProfile;
+}) {
+  const { diagram } = researchDefinition(id, profile);
   const score = scoreBoard(
     diagram.sample.instances,
     [id],
     diagram.sample.preReveal,
+    profile,
   );
   const center = (slot: number) => ({
     x: 42 + (slot % 3) * 72,
@@ -103,13 +121,23 @@ export function ResearchDiagram({ id }: { id: string }) {
                   diagram.sample.preReveal[slot] ? undefined : '4 3'
                 }
               />
-              {diagram.kind === 'roles' && portraitFor(face.categoryId) ? (
+              {(diagram.kind === 'roles' ||
+                (diagram.kind === 'copy' &&
+                  !face.copy &&
+                  diagram.arrows.some((a) => a.to === slot))) &&
+              portraitFor(face.categoryId) ? (
                 <>
                   <svg
-                    x={point.x - 26}
-                    y={point.y - 20}
-                    width={36}
-                    height={40}
+                    x={
+                      point.x -
+                      (face.categoryId === 'special-team-rocket' ? 28 : 26)
+                    }
+                    y={
+                      point.y -
+                      (face.categoryId === 'special-team-rocket' ? 23 : 20)
+                    }
+                    width={face.categoryId === 'special-team-rocket' ? 56 : 36}
+                    height={face.categoryId === 'special-team-rocket' ? 28 : 40}
                     viewBox={bounds.viewBox.join(' ')}
                   >
                     <image
@@ -119,16 +147,29 @@ export function ResearchDiagram({ id }: { id: string }) {
                     />
                   </svg>
                   <rect
-                    x={point.x + 9}
-                    y={point.y + 3}
-                    width={19}
-                    height={19}
+                    x={
+                      point.x +
+                      29 -
+                      Math.max(19, String(score.values[slot]).length * 10 + 5)
+                    }
+                    y={
+                      point.y +
+                      (face.categoryId === 'special-team-rocket' ? 6 : 3)
+                    }
+                    width={Math.max(
+                      19,
+                      String(score.values[slot]).length * 10 + 5,
+                    )}
+                    height={face.categoryId === 'special-team-rocket' ? 17 : 19}
                     rx={4}
                     fill="#fffdf4"
                   />
                   <text
                     x={point.x + 21}
-                    y={point.y + 19}
+                    y={
+                      point.y +
+                      (face.categoryId === 'special-team-rocket' ? 22 : 19)
+                    }
                     textAnchor="end"
                     fill="#1f4646"
                     fontSize={20}
@@ -172,36 +213,38 @@ export function ResearchDiagram({ id }: { id: string }) {
           );
         })}
         {diagram.kind === 'lines' &&
-          diagram.highlightLines.map((line) => {
-            const x =
-              line < 3
-                ? 235
-                : line < 6
-                  ? center((line - 3) * 1).x - 15
-                  : line === 6
-                    ? 236
-                    : 6;
-            const y =
-              line < 3
-                ? center(line * 3).y + 7
-                : line < 6
-                  ? 207
-                  : line === 6
-                    ? 174
-                    : 207;
-            return (
-              <text
-                key={`zero-${line}`}
-                x={x}
-                y={y}
-                fontSize={20}
-                fontWeight={700}
-                fill="#258c77"
-              >
-                {line < 3 ? '→0' : line < 6 ? '↓0' : line === 6 ? '↘0' : '↙0'}
-              </text>
-            );
-          })}
+          diagram.highlightLines
+            .filter((line) => score.matchedLines.includes(line))
+            .map((line) => {
+              const x =
+                line < 3
+                  ? 235
+                  : line < 6
+                    ? center((line - 3) * 1).x - 15
+                    : line === 6
+                      ? 236
+                      : 6;
+              const y =
+                line < 3
+                  ? center(line * 3).y + 7
+                  : line < 6
+                    ? 207
+                    : line === 6
+                      ? 174
+                      : 207;
+              return (
+                <text
+                  key={`zero-${line}`}
+                  x={x}
+                  y={y}
+                  fontSize={20}
+                  fontWeight={700}
+                  fill="#258c77"
+                >
+                  {line < 3 ? '→0' : line < 6 ? '↓0' : line === 6 ? '↘0' : '↙0'}
+                </text>
+              );
+            })}
         {diagram.arrows.map((arrow, index) => {
           const a = center(arrow.from),
             b = center(arrow.to);
@@ -223,13 +266,22 @@ export function ResearchDiagram({ id }: { id: string }) {
           虚线表示揭示前暗牌；数字为结算有效值。
         </p>
       )}
-      {diagram.kind === 'roles' && (
+      {(diagram.kind === 'roles' || diagram.kind === 'copy') && (
         <p className="ex-diagram-roles">
           {diagram.sample.instances
-            .filter((_, slot) => diagram.highlightSlots.includes(slot))
+            .filter((_, slot) =>
+              diagram.kind === 'roles'
+                ? diagram.highlightSlots.includes(slot)
+                : diagram.arrows.some((a) => a.to === slot),
+            )
             .map((instance) => card(instance).name)
             .filter((name, index, names) => names.indexOf(name) === index)
-            .join('、')}
+            .map((name, i, names) => (
+              <span className="ex-role-name" key={name}>
+                {name}
+                {i < names.length - 1 ? '、' : ''}
+              </span>
+            ))}
         </p>
       )}
       {diagram.annotations.length > 0 && (
@@ -240,20 +292,37 @@ export function ResearchDiagram({ id }: { id: string }) {
     </figure>
   );
 }
-export function ResearchCard({ task }: { task: ResearchTask }) {
-  const { presentation } = researchDefinition(task.id);
+export function ResearchCard({
+  task,
+  profile = 'research-buffer-v2',
+}: {
+  task: ResearchTask;
+  profile?: RulesProfile;
+}) {
+  const { presentation } = researchDefinition(task.id, profile);
   return (
     <div className="ex-research-card" data-research={task.id}>
-      <ResearchPicture id={task.id} />
+      <ResearchPicture id={task.id} profile={profile} />
       <div className="ex-research-copy">
         <div className="ex-research-title">
           <h3>{task.name}</h3>
-          <b>−{task.reward}分</b>
+          <b>
+            <ResearchReward task={task} />
+          </b>
         </div>
         <p className="ex-research-flavor">{presentation.flavor}</p>
-        <p>{task.description}</p>
+        <p className="ex-research-condition">
+          <strong>达成条件</strong>
+          {task.description}
+        </p>
+        {researchRiskText(task) && (
+          <p className="ex-research-risk">
+            <strong>未达成的代价</strong>
+            {researchRiskText(task)}
+          </p>
+        )}
       </div>
-      <ResearchDiagram id={task.id} />
+      <ResearchDiagram id={task.id} profile={profile} />
     </div>
   );
 }

@@ -1,10 +1,11 @@
+import { legacyRules as rules } from '../legacy-test';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import type { BotDifficulty, JsonValue } from '@tablemax/game-sdk';
 import { RandomSource } from '../../../../packages/platform-core/src/random';
-import { pokemonExpansion as rules } from '../index';
+
 import type { Action } from '../state';
 import { bot } from './index';
 import { observeMemory } from './memory';

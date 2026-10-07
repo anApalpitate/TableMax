@@ -1,6 +1,10 @@
+import {
+  legacyRules as rules,
+  legacyInstances as instancesForSeats,
+} from '../legacy-test';
 import { expect, it } from 'vitest';
-import { pokemonExpansion as rules } from '../index';
-import { card, instancesForSeats } from '../cards';
+
+import { card } from '../cards';
 import { RandomSource } from '../../../../packages/platform-core/src/random';
 import { observeMemory } from './memory';
 import { choose } from './strategy';

@@ -4,6 +4,7 @@ import {
   type DeckProfile,
   type ResearchCondition,
   type ResearchDefinition,
+  type ResearchEffect,
 } from './types';
 
 const fail = (): never => {
@@ -127,12 +128,90 @@ export function validateDecks(
   return profiles as DeckProfile[];
 }
 
-export function validateCondition(input: unknown): ResearchCondition {
-  if (!object(input)) return fail();
+export function validateCondition(
+  input: unknown,
+  depth = 0,
+): ResearchCondition {
+  if (!object(input) || depth > 4) return fail();
   const c = input;
   const require = () => ['any', 'all'].includes(c.require as string);
   let valid = false;
   switch (c.type) {
+    case 'all':
+      valid =
+        conditionKeys(c, ['conditions']) &&
+        Array.isArray(c.conditions) &&
+        c.conditions.length > 0 &&
+        c.conditions.length <= 9;
+      if (valid)
+        for (const child of c.conditions as unknown[])
+          validateCondition(child, depth + 1);
+      break;
+    case 'count':
+      valid =
+        conditionKeys(c, [
+          'slots',
+          'minimum',
+          'maximum',
+          'category',
+          'ability',
+          'copy',
+          'outsideZero',
+          'atLeast',
+          'atMost',
+        ]) &&
+        slots(c.slots) &&
+        optionalNumber(c.minimum) &&
+        optionalNumber(c.maximum) &&
+        (c.category === null ||
+          (text(c.category) &&
+            /^(ordinary|special)-[A-Za-z0-9-]+$|^hoenn-god$/.test(
+              c.category,
+            ))) &&
+        (c.ability === null || typeof c.ability === 'boolean') &&
+        (c.copy === null || typeof c.copy === 'boolean') &&
+        typeof c.outsideZero === 'boolean' &&
+        integer(c.atLeast, 0, 9) &&
+        integer(c.atMost, c.atLeast, 9);
+      break;
+    case 'zero-count':
+      valid =
+        conditionKeys(c, ['minimum', 'maximum']) &&
+        integer(c.minimum, 0, 8) &&
+        integer(c.maximum, c.minimum, 8);
+      break;
+    case 'distinct-exact':
+      valid =
+        conditionKeys(c, ['slots', 'count']) &&
+        slots(c.slots) &&
+        integer(c.count, 1, (c.slots as number[]).length);
+      break;
+    case 'signed-row-balance':
+      valid =
+        conditionKeys(c, ['zeroGroups', 'otherMinimum']) &&
+        groups(c.zeroGroups) &&
+        (c.zeroGroups as number[][]).length === 3 &&
+        integer(c.otherMinimum, 1, 200);
+      break;
+    case 'copy-anchors':
+      valid =
+        conditionKeys(c, ['minimumCopies', 'minimumRoles', 'minimumValue']) &&
+        integer(c.minimumCopies, 1, 3) &&
+        integer(c.minimumRoles, 1, 3) &&
+        number(c.minimumValue);
+      break;
+    case 'visible-roles':
+      valid =
+        conditionKeys(c, ['faceUp', 'minimumRoles']) &&
+        integer(c.faceUp, 0, 9) &&
+        integer(c.minimumRoles, 0, c.faceUp);
+      break;
+    case 'group-sum':
+      valid =
+        conditionKeys(c, ['groups', 'sum']) &&
+        groups(c.groups) &&
+        number(c.sum);
+      break;
     case 'zero-lines':
       valid =
         conditionKeys(c, [
@@ -281,6 +360,79 @@ export function validateCondition(input: unknown): ResearchCondition {
   return valid ? (c as ResearchCondition) : fail();
 }
 
+export function validateEffects(input: unknown): ResearchEffect[] {
+  if (!Array.isArray(input) || input.length > 3) return fail();
+  for (const e of input) {
+    if (!object(e)) return fail();
+    let valid = false;
+    switch (e.kind) {
+      case 'flat':
+        valid = keys(e, ['kind', 'amount']) && integer(e.amount, -100, 100);
+        break;
+      case 'base-scale':
+        valid =
+          keys(e, ['kind', 'denominator']) &&
+          [2, 3].includes(e.denominator as number);
+        break;
+      case 'base-credit':
+        valid =
+          keys(e, ['kind', 'factor', 'cap']) &&
+          integer(e.factor, 1, 3) &&
+          integer(e.cap, 1, 120);
+        break;
+      case 'negative-scale':
+        valid = keys(e, ['kind', 'factor']) && integer(e.factor, 2, 3);
+        break;
+      case 'zero-bounty':
+        valid =
+          keys(e, ['kind', 'amount', 'cap']) &&
+          integer(e.amount, 1, 10) &&
+          integer(e.cap, 1, 90);
+        break;
+      case 'copy-zero-bounty':
+        valid =
+          keys(e, [
+            'kind',
+            'amount',
+            'cap',
+            'minimumValue',
+            'minimumCopies',
+            'minimumRoles',
+          ]) &&
+          integer(e.amount, 1, 10) &&
+          integer(e.cap, 1, 90) &&
+          integer(e.minimumValue, 0, 12) &&
+          integer(e.minimumCopies, 1, 3) &&
+          integer(e.minimumRoles, 1, 3);
+        break;
+      case 'card-value':
+        valid =
+          keys(e, [
+            'kind',
+            'slots',
+            'category',
+            'minimum',
+            'highestOnly',
+            'value',
+            'cap',
+          ]) &&
+          slots(e.slots) &&
+          (e.category === null ||
+            (text(e.category) &&
+              /^(ordinary|special)-[A-Za-z0-9-]+$|^hoenn-god$/.test(
+                e.category,
+              ))) &&
+          optionalNumber(e.minimum) &&
+          typeof e.highestOnly === 'boolean' &&
+          integer(e.value, -12, 0) &&
+          integer(e.cap, 1, 120);
+        break;
+    }
+    if (!valid) return fail();
+  }
+  return input as ResearchEffect[];
+}
+
 export function validateResearch(
   input: unknown,
   cards: readonly CardDefinition[],
@@ -316,6 +468,16 @@ export function validateResearch(
         'illustrationId',
         'diagram',
         'presentation',
+        ...(t.rewardText === undefined
+          ? []
+          : [
+              'rewardText',
+              'riskText',
+              'rewardEffects',
+              'failurePenalty',
+              'successVictory',
+              'failureVictory',
+            ]),
       ]) ||
       !text(t.id) ||
       !/^[RH]\d{2}$/.test(t.id) ||
@@ -328,6 +490,24 @@ export function validateResearch(
       t.illustrationId !== t.id
     )
       return fail();
+    if (t.rewardText !== undefined) {
+      if (
+        !text(t.rewardText) ||
+        !text(t.riskText) ||
+        !integer(t.failurePenalty, 1, 30)
+      )
+        return fail();
+      validateEffects(t.rewardEffects);
+      for (const policy of [t.successVictory, t.failureVictory])
+        if (
+          !object(policy) ||
+          !keys(policy, ['bonus', 'eligible', 'cap']) ||
+          ![0, 1].includes(policy.bonus as number) ||
+          typeof policy.eligible !== 'boolean' ||
+          ![2, 3].includes(policy.cap as number)
+        )
+          return fail();
+    }
     validateCondition(t.condition);
     const p = t.presentation;
     if (

@@ -27,6 +27,10 @@ const { globSync } = createRequire(require.resolve('vite/package.json'))(
   'tinyglobby',
 );
 const hash = (value) => createHash('sha256').update(value).digest('hex');
+const compressedNodeUnits = new Set([
+  'platform-server',
+  'game-pokemon-encounters-bot',
+]);
 const posix = (value) => value.replaceAll('\\', '/');
 const external = [
   'react',
@@ -317,6 +321,8 @@ async function inputsFor(unit) {
     }
   }
   for (const file of unit.inputs) await visit(file);
+  if (compressedNodeUnits.has(unit.id))
+    await visit('scripts/service-brotli.mjs');
   for (const file of [
     'pnpm-lock.yaml',
     'package.json',
@@ -504,7 +510,7 @@ async function compile(unit, out) {
       metafile: true,
       logLevel: 'warning',
     });
-    if (unit.id === 'platform-server')
+    if (compressedNodeUnits.has(unit.id))
       await packService(join(out, unit.output));
     return result;
   }

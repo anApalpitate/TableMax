@@ -123,7 +123,9 @@ export class PresentationClock {
           r.bottom > 0 &&
           r.top < innerHeight
         ) {
-          const id = el.dataset.slot ?? '@' + el.dataset.pile;
+          const id =
+            el.dataset.slot ??
+            `@${el.dataset.pile}${el.dataset.pile === 'buffer' ? ':' + el.dataset.seat : ''}`;
           const rect = {
             x: r.x + scrollX,
             y: r.y + scrollY,

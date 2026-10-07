@@ -4,6 +4,8 @@ import type { View } from '../project';
 import type { Action } from '../state';
 import { scoreBoard } from '../scoring';
 import { grid, lines } from '../research';
+import type { RulesProfile, VictoryPolicy } from '../config/types';
+import { victoryAward } from '../research-rewards';
 import type { Memory } from './memory';
 import { previewRelay } from './relay';
 import { previewRocketPikachu } from './rocket';
@@ -20,9 +22,14 @@ type Model = TableFields &
     pool: string[];
     held: string | null;
     discards: string[];
+    buffers?: Record<string, string | null>;
+    discardLimit?: 1 | 2;
   };
 function sample(view: View, memory: Memory, random: Random): Model {
-  const pool = instancesForSeats(view.seatOrder.length);
+  const pool = instancesForSeats(
+    view.seatOrder.length,
+    view.rulesProfile ?? 'legacy',
+  );
   const usedAbilityIds: string[] = [];
   const take = (category: string, used = false) => {
     const i = pool.findIndex((id) => card(id).categoryId === category);
@@ -53,6 +60,19 @@ function sample(view: View, memory: Memory, random: Random): Model {
   const discards = view.discardOptions.map((c) =>
     take(c.categoryId, c.abilityUsed),
   );
+  const buffers = view.buffersBySeat
+    ? Object.fromEntries(
+        view.seatOrder.map((id) => [
+          id,
+          view.buffersBySeat![id]
+            ? take(
+                view.buffersBySeat![id]!.categoryId,
+                view.buffersBySeat![id]!.abilityUsed,
+              )
+            : null,
+        ]),
+      )
+    : undefined;
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(random.next() * (i + 1));
     [pool[i], pool[j]] = [pool[j]!, pool[i]!];
@@ -72,6 +92,8 @@ function sample(view: View, memory: Memory, random: Random): Model {
     held,
     discards,
     usedAbilityIds,
+    ...(buffers ? { buffers } : {}),
+    discardLimit: view.rulesProfile ? 1 : 2,
   };
 }
 export function previewBoard(
@@ -98,7 +120,7 @@ export function previewBoard(
   return result;
 }
 export function estimateDraw(
-  source: 'deck' | 'discard',
+  source: 'deck' | 'discard' | 'buffer',
   current: number,
   replacement: number,
 ) {
@@ -112,10 +134,13 @@ type Forecast = AbilityKnowledge & {
   up: readonly boolean[];
   pool: readonly string[];
   discards: readonly string[];
+  rulesProfile?: RulesProfile;
+  buffer?: string | null;
   matchContext?: {
     seat: string;
     opponentScores: Readonly<Record<string, number>>;
     winsBySeat: Readonly<Record<string, number>>;
+    opponentVictories?: Readonly<Record<string, VictoryPolicy>>;
   };
 };
 type Candidate = { action: Action; value: number };
@@ -124,9 +149,13 @@ function completedMatchValue(
   seat: string,
   roundWinners: readonly string[],
   winsBySeat: Readonly<Record<string, number>>,
+  awards?: Readonly<Record<string, number>>,
 ): number | null {
-  const winners = roundWinners.filter((id) => winsBySeat[id]! >= 2);
-  return winners.length ? (winners.includes(seat) ? -256 : 256) : null;
+  const winners = roundWinners.filter((id) =>
+    awards ? winsBySeat[id]! + awards[id]! >= 3 : winsBySeat[id]! >= 2,
+  );
+  const limit = awards ? 4096 : 256;
+  return winners.length ? (winners.includes(seat) ? -limit : limit) : null;
 }
 
 /** Average complete candidate batches so a first lucky hypothesis cannot dominate. */
@@ -143,7 +172,13 @@ export function refineForecast(
   let completed = 0;
   const forecast = (hypothesis: Forecast, action: Action) => {
     const score = (board: readonly string[], up: readonly boolean[]) => {
-      const total = scoreBoard(board, tasks, up).total;
+      const result = scoreBoard(
+        board,
+        tasks,
+        up,
+        hypothesis.rulesProfile ?? 'legacy',
+      );
+      const total = result.total;
       const context = hypothesis.matchContext;
       if (!context || !up.every(Boolean)) return total;
       // This ordinary own-turn horizon leaves the sampled opponent fields
@@ -154,7 +189,24 @@ export function refineForecast(
       );
       if (total === minimum) winners.push(context.seat);
       return (
-        completedMatchValue(context.seat, winners, context.winsBySeat) ?? total
+        completedMatchValue(
+          context.seat,
+          winners,
+          context.winsBySeat,
+          hypothesis.rulesProfile === 'research-buffer-v2'
+            ? Object.fromEntries(
+                winners.map((id) => [
+                  id,
+                  victoryAward(
+                    context.winsBySeat[id]!,
+                    id === context.seat
+                      ? result.victory!
+                      : context.opponentVictories![id]!,
+                  ),
+                ]),
+              )
+            : undefined,
+        ) ?? total
       );
     };
     let board = [...hypothesis.board],
@@ -165,11 +217,13 @@ export function refineForecast(
         a: action.a,
         b: action.b,
       }));
-    if (action.type === 'draw') {
+    if (action.type === 'draw' || action.type === 'draw-buffer') {
       const incoming =
-        action.source === 'deck'
-          ? hypothesis.pool.at(-1)
-          : hypothesis.discards[action.discardIndex];
+        action.type === 'draw-buffer'
+          ? hypothesis.buffer
+          : action.source === 'deck'
+            ? hypothesis.pool.at(-1)
+            : hypothesis.discards[action.discardIndex];
       // Immediate abilities are evaluated separately on the complete table.
       // This own-field ordinary horizon cannot predict an active ability chain.
       if (
@@ -179,7 +233,10 @@ export function refineForecast(
       )
         return 0;
       let bestPreview: ReturnType<typeof previewBoard> | null = null;
-      let best = action.source === 'deck' ? score(board, up) : Infinity;
+      let best =
+        action.type === 'draw' && action.source === 'deck'
+          ? score(board, up)
+          : Infinity;
       if (incoming)
         for (const slot of grid.slots) {
           const trial = previewBoard(board, up, {
@@ -260,6 +317,7 @@ export function choose(
   if (actions.length === 1) return actions[0]!;
   const seat = memory.seat,
     tasks = view.activeResearch.map((t) => t.id);
+  const profile = view.rulesProfile ?? 'legacy';
   if (view.phase === 'initial-flip')
     return (
       actions.find((a) => a.type === 'initial-flip' && a.slot === 4) ??
@@ -289,7 +347,7 @@ export function choose(
   const count = { default: 1, doubao: 8, juewu: 32 }[difficulty];
   if (view.phase === 'research-vote') {
     const sums = actions.map(() => 0),
-      pool = instancesForSeats(view.seatOrder.length);
+      pool = instancesForSeats(view.seatOrder.length, profile);
     for (let n = 0; n < count; n++) {
       const shuffled = [...pool];
       for (let i = shuffled.length - 1; i > 0; i--) {
@@ -298,8 +356,19 @@ export function choose(
       }
       const board = shuffled.slice(0, 9);
       actions.forEach((a, i) => {
-        if (a.type === 'vote-research')
-          sums[i]! += scoreBoard(board, [a.taskId]).deduction;
+        if (a.type === 'vote-research') {
+          const result = scoreBoard(
+            board,
+            [a.taskId],
+            Array(9).fill(true),
+            profile,
+          );
+          sums[i]! +=
+            result.deduction +
+            (result.victory?.bonus ?? 0) * 14 -
+            (result.victory?.eligible === false ? 8 : 0) -
+            (result.victory?.cap === 2 ? 4 : 0);
+        }
       });
     }
     return actions[sums.indexOf(Math.max(...sums))]!;
@@ -307,11 +376,12 @@ export function choose(
   const scoreCache = new Map<string, number>();
   const resolvedCache = new Map<string, number[]>();
   const score = (board: string[], up: boolean[]) => {
-    if (difficulty !== 'juewu') return scoreBoard(board, tasks, up).total;
+    if (difficulty !== 'juewu')
+      return scoreBoard(board, tasks, up, profile).total;
     const key = `${board.join(',')}/${up.map(Boolean).map(Number).join('')}`;
     const cached = scoreCache.get(key);
     if (cached !== undefined) return cached;
-    const value = scoreBoard(board, tasks, up).total;
+    const value = scoreBoard(board, tasks, up, profile).total;
     if (scoreCache.size < 768) scoreCache.set(key, value);
     return value;
   };
@@ -336,13 +406,35 @@ export function choose(
       const winners = view.seatOrder.filter(
         (id) => score(model.boards[id]!, model.up[id]!) === minimum,
       );
-      const matchValue = completedMatchValue(seat, winners, view.winsBySeat);
+      const awards =
+        profile === 'research-buffer-v2'
+          ? Object.fromEntries(
+              winners.map((id) => [
+                id,
+                victoryAward(
+                  view.winsBySeat[id]!,
+                  scoreBoard(model.boards[id]!, tasks, model.up[id]!, profile)
+                    .victory!,
+                ),
+              ]),
+            )
+          : undefined;
+      const matchValue = completedMatchValue(
+        seat,
+        winners,
+        view.winsBySeat,
+        awards,
+      );
       // A settled third win dominates every nonterminal score/urgency value.
       // Legal score range is -28..108; completion urgency is capped at 144.
       // Shared match winners are wins too; a long round cannot erase a loss.
       if (matchValue !== null) return matchValue;
       value += winners.includes(seat)
-        ? -6 - 2 * view.winsBySeat[seat]!
+        ? awards?.[seat] === 0
+          ? 0
+          : -6 -
+            2 * view.winsBySeat[seat]! -
+            Math.max(0, (awards?.[seat] ?? 1) - 1) * 12
         : Math.max(0, 18 - urgency);
     }
     // Near-complete lines have no future value once this full chain settles.
@@ -351,7 +443,12 @@ export function choose(
     let resolved =
       difficulty === 'juewu' ? resolvedCache.get(boardKey) : undefined;
     if (!resolved) {
-      resolved = scoreBoard(model.boards[seat]!).values;
+      resolved = scoreBoard(
+        model.boards[seat]!,
+        [],
+        model.up[seat]!,
+        profile,
+      ).values;
       if (difficulty === 'juewu' && resolvedCache.size < 768)
         resolvedCache.set(boardKey, resolved);
     }
@@ -364,6 +461,9 @@ export function choose(
   };
   const utility = (model: Model) =>
     tableUtility(model) +
+    (model.buffers?.[seat]
+      ? Math.min(0, card(model.buffers[seat]!).value ?? 0) * 0.15
+      : 0) +
     (difficulty === 'juewu' ? nextActorRisk(view, seat, model, score) : 0);
   let tactics: ReturnType<typeof createTactics> | null = null;
   const information = new Map<
@@ -457,7 +557,7 @@ export function choose(
     };
     const own = model.boards[seat]!,
       up = model.up[seat]!;
-    if (tactics && a.type === 'draw') {
+    if (tactics && (a.type === 'draw' || a.type === 'draw-buffer')) {
       const value = tactics.draw(model, a);
       if (value !== null) return value;
     }
@@ -481,11 +581,13 @@ export function choose(
     if (a.type === 'replace' && view.phase === 'rocket-pikachu') {
       return rocketValue(model, a.slot);
     }
-    if (a.type === 'draw') {
+    if (a.type === 'draw' || a.type === 'draw-buffer') {
       const incoming =
-        a.source === 'deck'
-          ? model.pool.at(-1)
-          : model.discards[a.discardIndex];
+        a.type === 'draw-buffer'
+          ? model.buffers?.[seat]
+          : a.source === 'deck'
+            ? model.pool.at(-1)
+            : model.discards[a.discardIndex];
       if (
         incoming &&
         abilityAvailable(model, incoming) &&
@@ -514,14 +616,18 @@ export function choose(
         const meowth = bestReplace(model, seat, incoming);
         const pikachu = Math.min(
           ...grid.slots.map((slot) =>
-            rocketValue(model, slot, a.source === 'deck' ? 1 : 0),
+            rocketValue(
+              model,
+              slot,
+              a.type === 'draw' && a.source === 'deck' ? 1 : 0,
+            ),
           ),
         );
         return (meowth + pikachu) / 2 + 0.08;
       }
       return incoming
         ? estimateDraw(
-            a.source,
+            a.type === 'draw-buffer' ? 'buffer' : a.source,
             utility(model),
             bestReplace(model, seat, incoming),
           )
@@ -542,7 +648,10 @@ export function choose(
             {
               ...model,
               held: null,
-              discards: [outgoing, ...model.discards].slice(0, 2),
+              discards: [outgoing, ...model.discards].slice(
+                0,
+                model.discardLimit ?? 2,
+              ),
             },
             incoming,
           );
@@ -553,6 +662,17 @@ export function choose(
       [up[a.a], up[a.b]] = [up[a.b]!, up[a.a]!];
     }
     if (a.type === 'discard-held') return discardValue(model);
+    if (a.type === 'store-buffer' && model.held) {
+      const incoming = model.held;
+      model.buffers = { ...model.buffers, [seat]: incoming };
+      model.held = null;
+      const current = utility(model);
+      return (
+        current +
+        0.4 +
+        0.3 * Math.min(0, bestReplace(model, seat, incoming) - current)
+      );
+    }
     if (a.type === 'mew-target') {
       const outgoing = model.boards[a.seat]![a.slot]!;
       model.boards[a.seat]![a.slot] = model.held!;
@@ -656,6 +776,8 @@ export function choose(
         up: model.up[seat]!,
         pool: model.pool,
         discards: model.discards,
+        rulesProfile: profile,
+        buffer: model.buffers?.[seat] ?? null,
         usedAbilityIds: model.usedAbilityIds ?? [],
         matchContext: {
           seat,
@@ -665,6 +787,23 @@ export function choose(
               .filter((id) => id !== seat)
               .map((id) => [id, score(model.boards[id]!, model.up[id]!)]),
           ),
+          ...(profile === 'research-buffer-v2'
+            ? {
+                opponentVictories: Object.fromEntries(
+                  view.seatOrder
+                    .filter((id) => id !== seat)
+                    .map((id) => [
+                      id,
+                      scoreBoard(
+                        model.boards[id]!,
+                        tasks,
+                        model.up[id]!,
+                        profile,
+                      ).victory!,
+                    ]),
+                ),
+              }
+            : {}),
         },
       });
     actions.forEach((a, i) => {

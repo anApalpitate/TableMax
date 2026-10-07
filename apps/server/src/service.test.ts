@@ -20,17 +20,36 @@ it('serves role routes, rejects unknown APIs, and keeps data paths private', asy
     expect(health.statusCode).toBe(200);
     expect(health.body).not.toContain(dataDir);
     for (const path of [
+      '/',
+      '/?invite=friend',
       '/host',
+      '/host?invite=friend',
       '/public',
       '/player',
+      '/player?invite=friend',
       '/host/game',
       '/public/game',
       '/player/game',
+      '/player/game?choice=test',
     ]) {
       const page = await service.app.inject(path);
+      expect(page.statusCode).toBe(200);
       expect(page.body).toContain('local fixture');
+      expect(page.body).not.toContain(service.hostToken);
       expect(page.headers['content-security-policy']).toContain(
-        `frame-ancestors ${path.startsWith('/player') ? "'self'" : "'none'"}`,
+        `frame-ancestors ${path === '/' || path.startsWith('/?') || path.startsWith('/player') ? "'self'" : "'none'"}`,
+      );
+    }
+    for (const path of [
+      '/api/health',
+      '/player/admin',
+      '/player-other',
+      '/game',
+    ]) {
+      const page = await service.app.inject(path);
+      expect(page.statusCode).toBe(404);
+      expect(page.headers['content-security-policy']).toContain(
+        "frame-ancestors 'none'",
       );
     }
     expect((await service.app.inject('/api/missing')).statusCode).toBe(404);

@@ -1,7 +1,10 @@
+import {
+  legacyRules as rules,
+  legacyScore as scoreBoard,
+} from '../legacy-test';
 import { describe, expect, it } from 'vitest';
 import { previewBoard, estimateDraw, choose } from './strategy';
-import { scoreBoard } from '../scoring';
-import { pokemonExpansion as rules } from '../index';
+
 import { observeMemory } from './memory';
 import { RandomSource } from '../../../../packages/platform-core/src/random';
 

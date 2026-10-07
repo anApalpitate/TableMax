@@ -15,6 +15,36 @@ const action = (
   cardCategory: string | null = 'special-mewtwo',
 ): PublicAction => ({ actor: 'S1', verb, ability, cardCategory, targets: [] });
 describe('expansion committed presentation', () => {
+  it('keeps each public buffer trajectory attached to its owner', () => {
+    expect(savedBoardEffects(action('store-buffer', null)).moves).toEqual([
+      { from: '@held', to: '@buffer:S1' },
+    ]);
+    expect(savedBoardEffects(action('draw-buffer', null)).moves).toEqual([
+      { from: '@buffer:S1', to: '@held' },
+    ]);
+    expect(
+      savedBoardEffects({ ...action('draw-buffer', null), actor: 'S2' }).moves,
+    ).toEqual([{ from: '@buffer:S2', to: '@held' }]);
+  });
+  it('presents a saved buffer draw without restoring an exhausted active ability', () => {
+    expect(ordinaryTheme(action('draw-buffer', null, 'ordinary-piplup'))).toBe(
+      'piplup',
+    );
+    expect(
+      presentationCreature(
+        action('draw-buffer', 'team-rocket', 'special-team-rocket'),
+        {},
+      ),
+    ).toBeNull();
+    expect(
+      expansionSoundRecipe(
+        'action',
+        action('draw-buffer', null, 'ordinary-piplup'),
+        { coin: null, matchWinners: [] },
+        false,
+      ).map((cue) => cue.cue),
+    ).toContain('draw');
+  });
   it('connects public sources, held card and saved placement without using private peek targets', () => {
     expect(
       savedBoardEffects({

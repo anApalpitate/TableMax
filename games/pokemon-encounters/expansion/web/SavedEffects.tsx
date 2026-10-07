@@ -9,6 +9,7 @@ import { PoseArt } from './poses';
 import { poseSequences } from './poses/timeline';
 import { BoardEffects } from './BoardEffects';
 import { ordinaryTheme, type OrdinaryTheme } from './presentation';
+import { ResearchReward } from './ResearchReward';
 
 /** The parent is keyed by saved event and branch. A cancelled clock never resumes. */
 function MotionPose({
@@ -339,7 +340,9 @@ export function SavedEffects({
           <span>研究任务发布</span>
           <strong>{current.research.name}</strong>
           <p>{current.research.description}</p>
-          <b>结算减 {current.research.reward} 分</b>
+          <b>
+            <ResearchReward task={current.research} />
+          </b>
         </div>
       )}
       {current.kind === 'result' && (

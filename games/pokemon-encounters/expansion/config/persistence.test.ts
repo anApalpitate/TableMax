@@ -11,6 +11,7 @@ import {
 import type { Command } from '../../../../packages/protocol/src';
 import { SqliteSaveRepository } from '../../../../apps/server/src/save-repository';
 import { pokemonExpansion as rules } from '../index';
+import { legacyRules } from '../legacy-test';
 import { bot } from '../bot';
 import type { State } from '../state';
 
@@ -25,9 +26,13 @@ class LegacySource implements SaveRepository {
     this.journal.push(this.value);
   }
 }
-const coordinator = (repository: SaveRepository, hostToken?: string) =>
+const coordinator = (
+  repository: SaveRepository,
+  hostToken?: string,
+  engine = rules,
+) =>
   new RoomCoordinator(
-    rules,
+    engine,
     bot,
     repository,
     hostToken,
@@ -105,7 +110,7 @@ describe('configuration extraction keeps real SQLite saves and branch authority 
       );
       const checkpoint = afterFinalVote.history.at(-1)!;
       const directory = resolve(
-        'artifacts/maintenance/v1.0.3/pokemon-ui-redesign/config',
+        'artifacts/maintenance/v1.0.4/research-redesign-20261008/core',
         `sqlite-${seats}-${Date.now()}-${randomUUID().slice(0, 8)}`,
       );
       mkdirSync(directory, { recursive: true });
@@ -186,5 +191,133 @@ describe('configuration extraction keeps real SQLite saves and branch authority 
           2,
         ) + '\n',
       );
+    });
+});
+
+describe('actual SQLite rules-profile and buffer restore', () => {
+  for (const profile of ['legacy', 'research-buffer-v2'] as const)
+    it(`${profile}: current-round bytes and credentials survive the new runtime`, async () => {
+      const source = new LegacySource(),
+        original = coordinator(
+          source,
+          undefined,
+          profile === 'legacy' ? legacyRules : rules,
+        );
+      const credentials = new Map<string, string>();
+      for (let i = 0; i < 2; i++) {
+        const player = await original.join(`档案验证${i + 1}`);
+        credentials.set(original.view(player.token).self.seatId!, player.token);
+        await command(original, { type: 'ready', ready: true }, player.token);
+      }
+      await command(original, { type: 'start' });
+      for (let i = 0; i < 2; i++)
+        await vote(original, source.value!, credentials);
+      const before = source.load()!;
+      expect((before.snapshot!.state as State).rulesProfile).toBe(
+        profile === 'legacy' ? undefined : profile,
+      );
+      const directory = resolve(
+        'artifacts/maintenance/v1.0.4/research-redesign-20261008/core',
+        `sqlite-${profile}-${Date.now()}-${randomUUID().slice(0, 8)}`,
+      );
+      mkdirSync(directory, { recursive: true });
+      writeLegacy(directory, source);
+      const repository = new SqliteSaveRepository(directory);
+      let continued: Save;
+      try {
+        const restored = coordinator(repository, original.hostToken);
+        expect(restored.restored).toBe(true);
+        expect((repository.load() as Save).snapshot).toEqual(before.snapshot);
+        expect((repository.load() as Save).history).toEqual(before.history);
+        for (const [id, token] of credentials)
+          expect(restored.view(token).self.seatId).toBe(id);
+        await command(restored, { type: 'resume' });
+        for (const [id, token] of credentials) {
+          const decision = rules
+            .decisions((repository.load() as Save).snapshot!.state as State)
+            .find((d) => d.seatId === id)!;
+          await command(
+            restored,
+            {
+              type: 'game',
+              decisionId: decision.id,
+              action: { type: 'initial-flip', slot: 0 },
+            },
+            token,
+          );
+        }
+        if (profile === 'research-buffer-v2') {
+          let stored = false;
+          for (let step = 0; step < 100 && !stored; step++) {
+            const state = (repository.load() as Save).snapshot!.state as State;
+            if (['round-result', 'match-result'].includes(state.phase))
+              throw Error('Buffer fixture ended too early');
+            const decision = rules.decisions(state)[0]!,
+              legal = rules.legalActions(state, decision.seatId);
+            const selected =
+              legal.find((a) => a.type === 'store-buffer') ??
+              legal.find((a) => a.type === 'draw' && a.source === 'deck') ??
+              legal.find((a) => a.type === 'decline-ability') ??
+              legal[0]!;
+            await command(
+              restored,
+              { type: 'game', decisionId: decision.id, action: selected },
+              credentials.get(decision.seatId)!,
+            );
+            if (selected.type === 'store-buffer') {
+              stored = true;
+              const after = repository.load() as Save,
+                checkpoint = after.history.at(-1)!;
+              expect(
+                Object.values(
+                  (after.snapshot!.state as State).buffersBySeat!,
+                ).some(Boolean),
+              ).toBe(true);
+              await command(restored, {
+                type: 'rollback',
+                checkpointId: checkpoint.id,
+              });
+              const reverted = (repository.load() as Save).snapshot!
+                .state as State;
+              expect(reverted.held).not.toBeNull();
+              expect(
+                Object.values(reverted.buffersBySeat!).every((v) => v === null),
+              ).toBe(true);
+              await command(restored, { type: 'resume' });
+              const replayDecision = rules.decisions(reverted)[0]!;
+              await command(
+                restored,
+                {
+                  type: 'game',
+                  decisionId: replayDecision.id,
+                  action: { type: 'store-buffer' },
+                },
+                credentials.get(replayDecision.seatId)!,
+              );
+              expect((repository.load() as Save).snapshot!.state).toEqual(
+                after.snapshot!.state,
+              );
+            }
+          }
+          expect(stored).toBe(true);
+        }
+        continued = repository.load() as Save;
+      } finally {
+        repository.close();
+      }
+      const reopened = new SqliteSaveRepository(directory);
+      try {
+        const restarted = coordinator(reopened, original.hostToken);
+        expect(restarted.restored).toBe(true);
+        expect((reopened.load() as Save).snapshot).toEqual(continued!.snapshot);
+        expect((reopened.load() as Save).history).toEqual(continued!.history);
+        expect(
+          ((reopened.load() as Save).snapshot!.state as State).rulesProfile,
+        ).toBe(profile === 'legacy' ? undefined : profile);
+        for (const [id, token] of credentials)
+          expect(restarted.view(token).self.seatId).toBe(id);
+      } finally {
+        reopened.close();
+      }
     });
 });

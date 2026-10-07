@@ -15,10 +15,11 @@ function subscribe(listener: () => void) {
 
 export function useScreenRoute() {
   const path = useSyncExternalStore(subscribe, () => location.pathname);
-  const role: ScreenRole = path.startsWith('/player')
-    ? 'player'
-    : path.startsWith('/public')
-      ? 'public'
-      : 'host';
+  const role: ScreenRole =
+    path === '/' || path.startsWith('/player')
+      ? 'player'
+      : path.startsWith('/public')
+        ? 'public'
+        : 'host';
   return { role, inGame: path.endsWith('/game') };
 }

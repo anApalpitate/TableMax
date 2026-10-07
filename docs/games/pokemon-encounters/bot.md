@@ -1,6 +1,12 @@
 # 三档人机逐决策规格
 
-本页前述详细规格维护原版。扩展策略采用独立入口 [expansion/bot/index.ts](../../../games/pokemon-encounters/expansion/bot/index.ts)、[记忆](../../../games/pokemon-encounters/expansion/bot/memory.ts)和[评估](../../../games/pokemon-encounters/expansion/bot/strategy.ts)，下节说明差异；当前产品沿用v1.0.2，前文其他版本号表示历史实施记录。
+本页前述详细规格维护原版。扩展策略采用独立入口 [expansion/bot/index.ts](../../../games/pokemon-encounters/expansion/bot/index.ts)、[记忆](../../../games/pokemon-encounters/expansion/bot/memory.ts)和[评估](../../../games/pokemon-encounters/expansion/bot/strategy.ts)，下节说明差异；当前产品为 v1.0.4，其余版本号表示历史实施记录。
+
+## 新研究与缓冲策略（2026-10-08）
+
+新小局按投影的 `research-buffer-v2` 配置评价单弃顶、本人缓冲与新的研究分数调整、额外胜局和失败授胜限制。公开缓冲需从剩余牌假设中扣除，不当作九格；存入结束回合、取出必须换入，能力使用状态不能重置。只能从本人合法动作选择缓冲操作，不能代他人取牌或读取未知牌库。旧小局使用旧牌数与原研究评价，下一小局切入新配置。
+
+三档身份、假设数量、记忆权限与 Worker 硬截止保持原契约。以下旧研究的自然频率、强度和战术报告保留原源码边界，不能用于宣称重设计后的任务平衡或胜率；本次适用检查与真实 Worker 流程见 [任务](../../tasks/pokemon-encounters-expansion.md#研究与玩家操作重设计2026-10-08)。
 
 2026-10-05，v1.0.3。三档为本地离线策略，不调用同名云端模型。入口为 [index.ts](../../../games/pokemon-encounters/bot/index.ts)，轻量评估见 [strategy.ts](../../../games/pokemon-encounters/bot/strategy.ts)，未知牌与后续回合见 [evaluation.ts](../../../games/pokemon-encounters/bot/evaluation.ts)，观察记忆见 [memory.ts](../../../games/pokemon-encounters/bot/memory.ts)。规则仍为原版六格、56 张、三胜。
 

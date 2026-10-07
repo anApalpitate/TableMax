@@ -1,22 +1,40 @@
 import { topology } from '../shared/topology';
 import { card, type Category } from './cards';
 import type { Score } from './scoring';
-import { researchDefinitions } from './config/research-data';
+import {
+  researchDefinitions,
+  legacyResearchDefinitions,
+} from './config/research-data';
 import type {
   ResearchCondition,
   ResearchDefinition,
   ResearchTask,
+  RulesProfile,
 } from './config/types';
 export type {
   ResearchCondition,
   ResearchDefinition,
   ResearchDiagram,
   ResearchTask,
+  RulesProfile,
 } from './config/types';
 
 export const grid = topology({ rows: 3, columns: 3 });
 export const lines = [...grid.rows, ...grid.columns, ...grid.diagonals];
-export const tasks: ResearchTask[] = researchDefinitions.map(
+export const tasks: ResearchTask[] = researchDefinitions.map((t) => ({
+  id: t.id,
+  name: t.name,
+  description: t.description,
+  reward: t.reward,
+  pool: t.pool,
+  rewardText: t.rewardText!,
+  riskText: t.riskText!,
+  rewardEffects: t.rewardEffects!,
+  failurePenalty: t.failurePenalty!,
+  successVictory: t.successVictory!,
+  failureVictory: t.failureVictory!,
+}));
+const legacyTasks: ResearchTask[] = legacyResearchDefinitions.map(
   ({ id, name, description, reward, pool }) => ({
     id,
     name,
@@ -25,15 +43,23 @@ export const tasks: ResearchTask[] = researchDefinitions.map(
     pool,
   }),
 );
-const byId = new Map(tasks.map((t) => [t.id, t]));
-const definitionsById = new Map(researchDefinitions.map((t) => [t.id, t]));
-export const task = (id: string) => {
-  const found = byId.get(id);
+export const tasksForProfile = (profile: RulesProfile) =>
+  profile === 'legacy' ? legacyTasks : tasks;
+export const task = (
+  id: string,
+  profile: RulesProfile = 'research-buffer-v2',
+) => {
+  const found = tasksForProfile(profile).find((t) => t.id === id);
   if (!found) throw new Error('Invalid research task');
   return found;
 };
-export function researchDefinition(id: string): ResearchDefinition {
-  const found = definitionsById.get(id);
+export function researchDefinition(
+  id: string,
+  profile: RulesProfile = 'research-buffer-v2',
+): ResearchDefinition {
+  const found = (
+    profile === 'legacy' ? legacyResearchDefinitions : researchDefinitions
+  ).find((t) => t.id === id);
   if (!found) throw new Error('Invalid research task');
   return found;
 }
@@ -56,9 +82,77 @@ const sum = (values: readonly number[], slots: readonly number[]) =>
   slots.reduce((n, i) => n + values[i]!, 0);
 const quantify = (require: 'any' | 'all', checks: boolean[]) =>
   require === 'all' ? checks.every(Boolean) : checks.some(Boolean);
+export const categoryMatches = (categoryId: string, selector: string | null) =>
+  selector === null ||
+  selector === categoryId ||
+  (selector === 'hoenn-god' &&
+    ['special-groudon', 'special-kyogre', 'special-rayquaza'].includes(
+      categoryId,
+    ));
+function evaluateCondition(
+  condition: ResearchCondition,
+  context: EvaluationContext,
+): boolean {
+  const evaluate = evaluators[condition.type] as (
+    c: ResearchCondition,
+    x: EvaluationContext,
+  ) => boolean;
+  return evaluate(condition, context);
+}
 
 /** Predicates use typed data parameters, never task IDs or executable config. */
 const evaluators: Evaluators = {
+  all: (c, x) => c.conditions.every((child) => evaluateCondition(child, x)),
+  count: (c, x) => {
+    const total = c.slots.filter(
+      (i) =>
+        (c.minimum === null || x.values[i]! >= c.minimum) &&
+        (c.maximum === null || x.values[i]! <= c.maximum) &&
+        categoryMatches(x.categories[i]!.categoryId, c.category) &&
+        (c.ability === null ||
+          (x.categories[i]!.ability !== null) === c.ability) &&
+        (c.copy === null || (x.categories[i]!.copy !== null) === c.copy) &&
+        (!c.outsideZero || !x.score.zeroSlots.includes(i)),
+    ).length;
+    return total >= c.atLeast && total <= c.atMost;
+  },
+  'zero-count': (c, x) =>
+    x.matched.length >= c.minimum && x.matched.length <= c.maximum,
+  'distinct-exact': (c, x) => distinct(x.values, c.slots) === c.count,
+  'signed-row-balance': (c, x) =>
+    c.zeroGroups.some((g, i) => {
+      const others = c.zeroGroups
+        .filter((_row, n) => n !== i)
+        .map((row) => sum(x.values, row));
+      return (
+        sum(x.values, g) === 0 &&
+        g.some((n) => x.values[n]! < 0) &&
+        g.some((n) => x.values[n]! > 0) &&
+        others.every((n) => n >= c.otherMinimum) &&
+        new Set(others).size === others.length
+      );
+    }),
+  'copy-anchors': (c, x) =>
+    x.matched.some((line) => {
+      const copies = x.score.copies.filter((copy) =>
+        lines[line]!.includes(copy.slot),
+      );
+      return (
+        x.values[lines[line]![0]!]! >= c.minimumValue &&
+        copies.length >= c.minimumCopies &&
+        new Set(
+          copies.map((copy) => x.categories[copy.path.at(-1)!]!.categoryId),
+        ).size >= c.minimumRoles
+      );
+    }),
+  'visible-roles': (c, x) =>
+    x.preReveal.filter(Boolean).length === c.faceUp &&
+    new Set(
+      x.categories
+        .filter((_category, i) => x.preReveal[i])
+        .map((category) => category.categoryId),
+    ).size >= c.minimumRoles,
+  'group-sum': (c, x) => c.groups.some((g) => sum(x.values, g) === c.sum),
   'zero-lines': (c, x) =>
     quantify(
       c.require,
@@ -158,14 +252,10 @@ export function matchesTask(
   board: readonly string[],
   score: Score,
   preReveal: readonly boolean[] = Array(9).fill(true),
+  profile: RulesProfile = 'research-buffer-v2',
 ): boolean {
-  const { condition } = researchDefinition(id);
-  // JSON is validated above; this cast preserves the discriminated registry dispatch.
-  const evaluate = evaluators[condition.type] as (
-    c: ResearchCondition,
-    x: EvaluationContext,
-  ) => boolean;
-  return evaluate(condition, {
+  const { condition } = researchDefinition(id, profile);
+  return evaluateCondition(condition, {
     values: score.values,
     matched: score.matchedLines,
     categories: board.map((i) => card(i)),

@@ -1,5 +1,23 @@
 # 首版交付与验收
 
+## 1.0.4：根入口、研究风险与公开缓冲重设计（2026-10-08）
+
+默认分享及二维码使用网站根网址；旧 `/player` 和 `/player/game` 继续兼容，根入口只有玩家权限。扩展全部30项研究重设计条件、奖励及失败代价，包括正基础分折半／三分之一、负分放大、归零与复制奖励、额外胜局及失败授胜限制。效果读取同一原始计分，不连锁放大，失败不扣已有胜数；最低分赢家与本局新增0／1／2胜分别展示。
+
+新小局采用单弃牌顶部来源，每人一格公开缓冲；仅原本合法可弃的暂持牌可存入，存入结束回合，后续只能取本人缓冲且必须换入。实例能力消耗随牌保留，缓冲不计场地、研究或三神齐聚。112／144张新牌组中阿尔宙斯、固拉多、盖欧卡、裂空座各一张。旧小局按原配置继续，下一小局升级，历史checkpoint不改写；这些是项目扩展规则，未认证真人平衡。
+
+手机保留唯一本人动作、暂持与目标牌阵，研究详情与锁票分开，等待显示真实行动者；电脑浏览器玩家继续使用中央手机区域。实际审查修正奖励单位与括号拆行、短句／牌名孤字、R12数字压图、R23复制目标歧义、六人720p缓冲裁切及长昵称侵入邻区。短手机放入阶段将目标和确认排在弃掉／存入前，强制来源单行，完整能力可展开，本人身份／胜星与币面结果保留在操作之后。正文／主要动作／触控尺寸未缩小。[最新独立短屏图](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/visual-forced-final-independent.md)无P1／P2，P3为能力入口仍使用通用名称；[主协调者上下文复核](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/visual-forced-final-root.md)明确六席角色缩略图与观察边界。各旧候选审查保留其自身SHA，未改标为最终图。
+
+[同一实际包汇总](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/results.json)对应ZIP SHA-256 `a9ee84989b051e69749698cb79e2f6b7f2fb404bd01506f7cfe740cb032905ec`，**41,359,962字节**；248文件实际解压**94,931,816字节**，95MB工程预算余68,184字节，宝可梦4MiB与双100MB门禁通过。[冻结输入核验](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/final-output-equivalence.json)18单元全部验证、236文件与上一已验包相同，现代艺术／电力公司规则与人机字节未变；最终构建14,897ms，17缓存命中，仅重建宝可梦客户端。上一已验`96518cad…`包[原样保留](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/previous-delivery/TableMax-1.0.4-win-x64.zip)。
+
+[扩展实际阶段](../../artifacts/maintenance/v1.0.4/research-redesign-forced-final-20261008/portable/phases/results.json)405布局／34检查、全部30任务的60张参考图、27行动几何；六人长昵称、空缓冲及1–6占牌均覆盖。89个实际放入状态检查320×568首排三牌和编号，覆盖牌库、弃牌、缓冲及已用能力，最坏底边552.266px。[全游戏入口矩阵](../../artifacts/maintenance/v1.0.4/research-redesign-forced-final-20261008/portable/matrix/results.json)64布局／14检查，回归四变体最少／最多人数、1023／1024、720p／1080p／4K、125%／150%模拟密度以及390px玩家，包含HTTP／HTTPS禁止WebSocket、丢推送、断线、真实换机批准与外部二维码。
+
+[普通模式](../../artifacts/maintenance/v1.0.4/pokemon-expansion-normal-play/research-redesign-forced-final-20261008/results.json)43次真实UI步骤、17次真实默认Worker行动，研究详情不投票、锁票后可查详情、缓冲存取／强制换入与实际授胜通过；无注入游戏状态。[授胜专项](../../artifacts/maintenance/v1.0.4/pokemon-expansion-awards/research-awards-forced-final-20261008/results.json)24张实际包组件截图，通过合法最后一步产生0授胜赢家及双赢家额外胜／达到三胜，明确属于受控组件夹具，不冒充完整服务对局。[根入口](../../artifacts/maintenance/v1.0.4/root-entry/research-redesign-forced-final-20261008/results.json)5检查核对全部解压成员、HTTP／HTTPS非标准端口真实入座／刷新、旧路由与玩家权限。[远程等价故障](../../artifacts/maintenance/v1.0.4/research-redesign-forced-final-20261008/remote/all-2026-10-07T23-09-27-335Z/results.json)覆盖丢推送、丢同步确认后重建、丢动作确认以原编号重发且只保存一次、断线、实际Frame执行暂停、WSS以及大厅／进行中／结束换机和同数据重启；断言最新授权revision实际渲染。
+
+源码检查包括145项规则／SQLite／旧能力链兼容、47项根入口／网络／玩家框架、23项界面／研究展示、7项压缩载荷与真实32MiB Worker、22项原版回归及51项清理前缀保护；前轮124项含30研究正反例、15旧存档SHA，两次统计有重叠，不相加。审查修复新版存档混入无来源旧能力链绕过消耗的问题，红复现保留，旧测试使用真实legacy配置且不改断言。[文档逐字段审计](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/core/final-doc-audit.md)和最终类型／相关格式／lint通过。
+
+第一包95,035,481字节超95MB预算35,481字节，未作交付；宝可梦人机使用有界Brotli内存还原入口净省115,298字节，损坏／缺失失败关闭，不落盘解压。失败、返修及过渡包结论保留原身份，组装忙进程门禁未绕过。只导出本地运行ZIP及清单，按用户授权提交并push源码，不创建标签、EXE、source ZIP或GitHub Release。测试全部默认静音、只监听127.0.0.1；代理和模拟视口不代替实体手机、现场樱花／FRP、公网证书、物理DPI、真人听感、时长或平衡测量。进程退出后的安全清理及实际逻辑容量见[瘦身记录](project-slimming.md)。
+
 ## 1.0.4：电脑玩家手机视窗、盒子排版与远程续验（2026-10-08）
 
 按用户最新纠正，电脑浏览器参赛者保持原手机界面，在窗口中央操作，四周使用桌游背景；服务电脑的管理员和公共屏继续使用大屏。稳定玩家子文档保留会话和跨宽度草稿，并限制管理／公共文档嵌入及原生桥接。盒子修正长昵称裁边、标题被挤成竖列、游戏库标题／版本折行、孤立说明尾字及控件对齐；现代艺术和电力公司手机顶栏按整组排列。游戏规则、人机策略和秘密权限不变。
@@ -70,7 +88,7 @@
 
 ## 当前源码与本地交付
 
-当前本地交付为本页v1.0.4章节的 [运行ZIP](../../artifacts/releases/TableMax-1.0.4-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.4-win-x64-manifest.json)，SHA-256 `96518cad…`。前一轮10.7修复 `6761ef78…` 保留在[历史交付](../../artifacts/maintenance/v1.0.4/debug-20261008/previous-delivery/TableMax-1.0.3-win-x64.zip)，不作为当前下载。此前公开发布的 `bdd69433…` ZIP与 `41994ea5…` 完整EXE仍按GitHub发布章节追溯；[原发布附件本地副本](../../artifacts/maintenance/v1.0.3/debug-20261007/previous-release/preserved.json)保留旧EXE／source ZIP大小和哈希，未用本轮源码替换线上附件。旧包各自的冻结清单、通过／失败文字结论和原素材继续保留，历史通过结论只对应当时冻结输入。
+当前本地交付为本页v1.0.4章节的 [运行ZIP](../../artifacts/releases/TableMax-1.0.4-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.4-win-x64-manifest.json)，SHA-256 `a9ee8498…`。上一已验v1.0.4 `96518cad…` 保留在[本轮历史交付](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/previous-delivery/TableMax-1.0.4-win-x64.zip)。前一轮10.7修复 `6761ef78…` 保留在[历史交付](../../artifacts/maintenance/v1.0.4/debug-20261008/previous-delivery/TableMax-1.0.3-win-x64.zip)，不作为当前下载。此前公开发布的 `bdd69433…` ZIP与 `41994ea5…` 完整EXE仍按GitHub发布章节追溯；[原发布附件本地副本](../../artifacts/maintenance/v1.0.3/debug-20261007/previous-release/preserved.json)保留旧EXE／source ZIP大小和哈希，未用本轮源码替换线上附件。旧包各自的冻结清单、通过／失败文字结论和原素材继续保留，历史通过结论只对应当时冻结输入。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
 

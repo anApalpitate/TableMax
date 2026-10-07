@@ -1,7 +1,11 @@
+import {
+  legacyRules as rules,
+  legacyInstances as instancesForSeats,
+} from './legacy-test';
 import { describe, expect, it } from 'vitest';
-import { pokemonExpansion as rules } from './index';
+
 import type { State, Action } from './state';
-import { instancesForSeats } from './cards';
+import {} from './cards';
 
 const context = (n = 2) => ({
   seats: Array.from({ length: n }, (_, i) => `s${i}`),
