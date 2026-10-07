@@ -27,7 +27,11 @@ it('serves role routes, rejects unknown APIs, and keeps data paths private', asy
       '/public/game',
       '/player/game',
     ]) {
-      expect((await service.app.inject(path)).body).toContain('local fixture');
+      const page = await service.app.inject(path);
+      expect(page.body).toContain('local fixture');
+      expect(page.headers['content-security-policy']).toContain(
+        `frame-ancestors ${path.startsWith('/player') ? "'self'" : "'none'"}`,
+      );
     }
     expect((await service.app.inject('/api/missing')).statusCode).toBe(404);
     const hostJoin = await service.app.inject({

@@ -110,6 +110,52 @@
 .pg-screen .pg-toolbar .pg-round b {
   padding-left: 8px;
 }
+.pg-screen .pg-toolbar-tools {
+  display: contents;
+}
+/* Keep the phone's status legible before moving its controls to a new row. */
+.pg-screen.pg-screen--player > .pg-toolbar.pg-toolbar--grouped {
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.pg-screen.pg-screen--player > .pg-toolbar.pg-toolbar--grouped .pg-brand {
+  flex: 1 1 120px;
+  min-width: 120px;
+  font-size: 18px;
+  white-space: normal;
+}
+.pg-screen.pg-screen--player > .pg-toolbar.pg-toolbar--grouped .pg-brand-round {
+  display: block;
+  color: #51472e;
+  font-size: 16px;
+  font-weight: 500;
+}
+.pg-screen.pg-screen--player
+  > .pg-toolbar.pg-toolbar--grouped
+  .pg-toolbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.pg-screen.pg-screen--player
+  > .pg-toolbar.pg-toolbar--grouped
+  .pg-toolbar-tools
+  > button {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px;
+  font-size: 16px;
+  white-space: nowrap;
+}
+.pg-screen.pg-screen--player
+  > .pg-toolbar.pg-toolbar--grouped
+  .test-mode-badge {
+  font-size: 16px;
+}
 .pg-screen .pg-order-entry {
   display: none;
   font-size: 18px;
@@ -1561,7 +1607,8 @@
     font-size: 16px;
     padding-left: 0;
   }
-  .pg-screen .pg-toolbar > button {
+  .pg-screen .pg-toolbar > button,
+  .pg-screen .pg-toolbar .pg-toolbar-tools > button {
     padding: 6px 9px;
   }
   .pg-screen .pg-toolbar .fullscreen-control {

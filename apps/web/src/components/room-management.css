@@ -1,0 +1,23 @@
+.dialog-surface .management.room-management-details {
+  display: grid;
+  gap: 16px;
+}
+.room-management-details .room-management-section {
+  min-width: 0;
+}
+.room-management-details .room-management-section + .room-management-section {
+  padding-top: 16px;
+  border-top: 1px solid #d7decd;
+}
+.room-management-details .room-management-section .owner-control {
+  gap: 8px;
+  margin: 0;
+}
+.room-management-details .room-management-section .owner-control p {
+  font-size: 16px;
+  line-height: 1.5;
+}
+.dialog-surface .management.room-management-details > .button {
+  margin: 0;
+  font-size: 18px;
+}

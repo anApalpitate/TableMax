@@ -38,6 +38,16 @@ export interface SessionReceipt {
   duplicateName: boolean;
   expires: number;
 }
+export interface DeviceTransfer {
+  id: string;
+  seatId: string;
+  previousTokenHash: string;
+  candidateTokenHash: string;
+  sealedCredential: string;
+  verificationCode: string;
+  expires: number;
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+}
 export interface Save {
   formatVersion: 1;
   variantId?: string;
@@ -66,6 +76,7 @@ export interface Save {
   history: Checkpoint[];
   receipts: Record<string, { fingerprint: string; reply: CommandReply }>;
   sessionReceipts?: Record<string, SessionReceipt>;
+  transferRequests?: Record<string, DeviceTransfer>;
   bindings?: Record<string, { seatId: string; expires: number }>;
   botError: string | null;
   endReason: string | null;

@@ -5,6 +5,8 @@ import { RollbackHistory } from './RollbackHistory';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import { SessionFeedback } from './SessionFeedback';
 import { OwnerControl } from './OwnerControl';
+import { DeviceTransferRequests } from './DeviceTransfer';
+import './room-management.css';
 
 export function RoomManagement({
   session,
@@ -24,12 +26,21 @@ export function RoomManagement({
   const showDetails = display !== 'actions';
   return (
     <section
-      className={`management${display === 'actions' ? ' room-actions' : ''}`}
+      className={`management${display === 'actions' ? ' room-actions' : ' room-management-details'}`}
       aria-label={display === 'actions' ? '牌桌操作' : '牌桌管理'}
     >
       {display === 'full' && <SessionFeedback session={session} />}
-      {showDetails && <h3>{isHost ? '管理员设置' : '房主控制'}</h3>}
-      {showDetails && isHost && <OwnerControl session={session} />}
+      {display === 'full' && <h3>{isHost ? '管理员设置' : '房主控制'}</h3>}
+      {showDetails && isHost && (
+        <div className="room-management-section">
+          <OwnerControl session={session} />
+        </div>
+      )}
+      {showDetails && isHost && (
+        <div className="room-management-section">
+          <DeviceTransferRequests session={session} />
+        </div>
+      )}
       {showActions && view.status === 'playing' && (
         <>
           <button
@@ -129,14 +140,14 @@ export function RoomManagement({
         >
           {confirmation === 'end' ? (
             <>
-              <p>当前游戏将立即结束，所有手机停止行动。</p>
+              <p>当前游戏将立即结束，所有玩家停止行动。</p>
               <p>
                 已保存状态和历史保留。结束后可原班重新准备，选择其他游戏，或回退后恢复。
               </p>
             </>
           ) : (
             <p>
-              所有手机身份和人机座位都将移除，朋友们需要重新扫码入座。当前牌桌状态与有效历史将清空。
+              所有玩家身份和人机座位都将移除，朋友们需要重新进入并入座。当前牌桌状态与有效历史将清空。
             </p>
           )}
         </ConfirmationDialog>

@@ -109,6 +109,18 @@ export const CommandSchema = z
       z.object({ type: z.literal('remove-seat'), seatId: z.string() }).strict(),
       z
         .object({
+          type: z.literal('approve-transfer'),
+          requestId: z.string().uuid(),
+        })
+        .strict(),
+      z
+        .object({
+          type: z.literal('reject-transfer'),
+          requestId: z.string().uuid(),
+        })
+        .strict(),
+      z
+        .object({
           type: z.literal('set-bot-name'),
           seatId: z.string(),
           name: z.string().trim().min(1).max(24),
@@ -186,6 +198,8 @@ export const AvatarUploadSchema = z
   })
   .strict();
 export const NetworkSchema = z.object({
+  externalJoinUrl: z.string().nullable().default(null),
+  networkMessage: z.string().optional(),
   addresses: z.array(z.string()),
   adapters: z.array(
     z.object({
@@ -196,6 +210,51 @@ export const NetworkSchema = z.object({
   ),
   port: z.number().int().positive(),
 });
+export const TransferRequestSchema = z
+  .object({
+    seatId: z.string().uuid(),
+    requestKey: z.string().regex(/^[0-9a-f]{64}$/),
+  })
+  .strict();
+export const TransferProofSchema = TransferRequestSchema.omit({ seatId: true });
+const transferMetadata = {
+  requestId: z.string().uuid(),
+  seatId: z.string(),
+  verificationCode: z.string().regex(/^[0-9]{6}$/),
+  expiresAt: z.number().int().positive(),
+};
+export const TransferStateSchema = z.discriminatedUnion('status', [
+  z
+    .object({
+      ...transferMetadata,
+      status: z.literal('approved'),
+      token: CredentialSchema,
+    })
+    .strict(),
+  z
+    .object({
+      ...transferMetadata,
+      status: z.enum([
+        'pending',
+        'rejected',
+        'cancelled',
+        'expired',
+        'revoked',
+      ]),
+    })
+    .strict(),
+]);
+export type TransferState = z.infer<typeof TransferStateSchema>;
+export const TransferReplySchema = z.discriminatedUnion('ok', [
+  z.object({ ok: z.literal(true), transfer: TransferStateSchema }).strict(),
+  z.object({ ok: z.literal(false), reason: z.string() }).strict(),
+]);
+export const NetworkUpdateSchema = z
+  .object({
+    token: CredentialSchema,
+    externalJoinUrl: z.string().max(2048).nullable(),
+  })
+  .strict();
 export const SessionSchema = z
   .object({ token: CredentialSchema.optional() })
   .strict();
@@ -298,6 +357,14 @@ export interface RoomView {
   }[];
   botError: string | null;
   endReason: string | null;
+  transferRequests?:
+    | {
+        requestId: string;
+        seatId: string;
+        verificationCode: string;
+        expiresAt: number;
+      }[]
+    | undefined;
 }
 export type CommandReply =
   | { ok: true; revision: number; branch: number }
@@ -350,6 +417,10 @@ export const RoomViewSchema = z
         .strict(),
     ),
     ownerSeatId: z.string().nullable(),
+    transferRequests: z
+      .array(z.object(transferMetadata).strict())
+      .max(32)
+      .optional(),
     capabilities: z
       .object({
         manage: z.boolean(),

@@ -24,6 +24,13 @@ import { RandomSource } from './random';
 import { sealCredential, openCredential } from './session-receipts';
 import { GameRegistry, type LoadedGame } from './game-registry';
 import { synchronizeDecisionClocks, projectDecisionClock } from './countdown';
+import {
+  createTransfer,
+  decideTransfer,
+  pendingTransfers,
+  transferForKey,
+  transferState,
+} from './device-transfer';
 
 export const token = () => randomBytes(32).toString('hex');
 export const hash = (value: string) =>
@@ -44,6 +51,12 @@ function copySave(data: Save): Save {
     history: [...data.history],
     receipts: { ...data.receipts },
     sessionReceipts: { ...data.sessionReceipts },
+    transferRequests: Object.fromEntries(
+      Object.entries(data.transferRequests ?? {}).map(([key, value]) => [
+        key,
+        { ...value },
+      ]),
+    ),
   };
 }
 
@@ -227,6 +240,7 @@ export class RoomCoordinator {
       history: [],
       receipts: {},
       sessionReceipts: {},
+      transferRequests: {},
       botError: null,
       endReason: null,
     };
@@ -242,6 +256,7 @@ export class RoomCoordinator {
     }));
     fresh.ownerSeatId = this.data.ownerSeatId ?? null;
     fresh.sessionReceipts = this.data.sessionReceipts ?? {};
+    fresh.transferRequests = this.data.transferRequests ?? {};
     return fresh;
   }
   identity(credential?: string): Identity {
@@ -432,6 +447,40 @@ export class RoomCoordinator {
       return { token: credential, duplicateName };
     });
   }
+  requestTransfer(seatId: string, requestKey: string) {
+    return this.enqueue(() => {
+      requireThat(/^[0-9a-f]{64}$/.test(requestKey), 'invalid-message');
+      const previous = this.data.transferRequests?.[hash(requestKey)];
+      if (previous) {
+        requireThat(previous.seatId === seatId, 'session-request-conflict');
+        return transferState(this.data, previous, requestKey);
+      }
+      const next = copySave(this.data);
+      const request = createTransfer(next, seatId, requestKey);
+      next.revision++;
+      // Metadata does not close independent game/ready windows or reset clocks.
+      this.commit(next);
+      return transferState(next, request, requestKey);
+    });
+  }
+  transferStatus(requestKey: string) {
+    return transferState(
+      this.data,
+      transferForKey(this.data, requestKey),
+      requestKey,
+    );
+  }
+  cancelTransfer(requestKey: string) {
+    return this.enqueue(() => {
+      const current = this.transferStatus(requestKey);
+      if (current.status !== 'pending') return current;
+      const next = copySave(this.data);
+      transferForKey(next, requestKey).status = 'cancelled';
+      next.revision++;
+      this.commit(next);
+      return transferState(next, transferForKey(next, requestKey), requestKey);
+    });
+  }
   view(credential?: string, online: ReadonlySet<string> = new Set()): RoomView {
     const identity = this.identity(credential);
     const d = this.data;
@@ -468,6 +517,9 @@ export class RoomCoordinator {
         : null,
       catalog: this.registry.catalog(),
       ownerSeatId: d.ownerSeatId ?? null,
+      ...(identity.role === 'host'
+        ? { transferRequests: pendingTransfers(d) }
+        : {}),
       capabilities: {
         manage: identity.role === 'host',
         manageSeats: this.managesSeats(identity),
@@ -705,6 +757,11 @@ export class RoomCoordinator {
     const lobby = () => requireThat(next.status === 'lobby', 'not-in-lobby');
     let events: PublicEvent[] = [];
     switch (c.type) {
+      case 'approve-transfer':
+      case 'reject-transfer':
+        host();
+        decideTransfer(next, c.requestId, c.type === 'approve-transfer');
+        break;
       case 'set-owner':
         host();
         requireThat(

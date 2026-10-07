@@ -25,7 +25,7 @@
 | `apps/desktop/release/`                                                        | 完整EXE发布启动器，内置已核验运行ZIP并解压至稳定应用目录；打包、验收和GitHub白名单入口在 `scripts/`       |
 | `apps/server/`                                                                 | HTTP／Socket.IO、构建后网页、二维码、SQLite 存档仓储、独立 bot Worker 与游戏注册／加载                    |
 | `apps/web/`                                                                    | 平台盒子、会话／导航与网页宿主实现；游戏网页独立构建，另保留隔离原型                                      |
-| `apps/web/src/session/`、`screens/`、`components/`                             | 权威同步与可靠提交、平台页面和通用控件；具体牌桌留在游戏 UI                                               |
+| `apps/web/src/session/`、`screens/`、`components/`                             | 权威同步、可靠提交、换机、盒子和通用控件；PlayerFrame 为电脑浏览器玩家保留同源手机界面，具体牌桌留在游戏 UI |
 | `apps/web/src/game-clients/`                                                   | 清单驱动的本地ESM加载与重试；旧Screen仅为源码fixture保留兼容包装                                          |
 | `packages/protocol/`                                                           | 通信与桌面／服务消息的类型和运行时校验                                                                    |
 | `packages/game-sdk/`                                                           | 游戏、策略和生命周期纯类型契约                                                                            |

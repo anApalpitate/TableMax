@@ -1,0 +1,115 @@
+.device-transfer {
+  display: grid;
+  gap: 16px;
+}
+.device-transfer p,
+.device-transfer-requests p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.device-transfer__field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.device-transfer__field label {
+  font-weight: 700;
+}
+.device-transfer select {
+  width: 100%;
+  min-height: 44px;
+  font-size: 18px;
+}
+.device-transfer__code {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 20px;
+  background: #e6f4ee;
+  border-radius: 16px;
+}
+.device-transfer__code strong {
+  font-size: 32px;
+  letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+}
+.device-transfer .device-transfer__status,
+.device-transfer-requests .device-transfer-requests__empty {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f1f5e9;
+  color: #31554a;
+}
+.device-transfer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.device-transfer .device-transfer__actions button,
+.dialog-surface .management .device-transfer__actions button {
+  flex: 1 1 120px;
+  width: auto;
+  margin: 0;
+  min-height: 44px;
+  font-size: 18px;
+}
+.device-transfer-requests {
+  display: grid;
+  gap: 12px;
+}
+.device-transfer-requests__heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dialog-surface .management .device-transfer-requests__heading h3 {
+  margin: 0;
+}
+.device-transfer-requests__heading > span {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0 6px;
+  border-radius: 9px;
+  color: #31554a;
+  background: #e6f0df;
+  font-variant-numeric: tabular-nums;
+}
+.device-transfer-request {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: #f1f8f4;
+  border-radius: 12px;
+}
+.device-transfer-request .device-transfer-request__identity {
+  display: grid;
+  gap: 6px;
+  flex: 1 1 220px;
+  min-width: 0;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+.device-transfer-request__verification {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.device-transfer-request__verification span {
+  color: #577065;
+  font-size: 16px;
+}
+.device-transfer-request__verification strong,
+.device-transfer-confirm-code {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+}
+.device-transfer-request > .device-transfer__actions {
+  flex: 1 1 250px;
+}

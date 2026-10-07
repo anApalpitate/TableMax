@@ -1,0 +1,208 @@
+.box-screen .hero .box-game-title {
+  min-width: 0;
+}
+.box-screen .hero .box-game-title h1 {
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.box-screen .room-heading .room-heading__identity {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.box-screen .room-heading .room-heading__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.box-screen .room-heading .room-capacity {
+  padding: 3px 10px;
+  border-radius: 10px;
+  color: #3e5d51;
+  background: #edf3e7;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.box-screen .room-heading .owner-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+  line-height: 1.4;
+}
+.box-screen .room-heading .owner-badge strong {
+  min-width: 0;
+  color: #31554a;
+  overflow-wrap: anywhere;
+}
+.box-screen .room-heading .owner-badge > span {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.box-screen .header-status .test-mode-badge {
+  font-size: 16px;
+}
+.box-screen .room-table {
+  min-height: 500px;
+}
+.box-screen .room-table__seat {
+  height: auto;
+  min-height: 200px;
+}
+.box-screen .room-table__name {
+  display: block;
+  flex-shrink: 0;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+  line-height: 1.35;
+}
+.box-screen .room-table__avatar,
+.box-screen .room-table__identity,
+.box-screen .room-table__ready {
+  flex-shrink: 0;
+}
+.box-screen .room-table__felt {
+  top: calc(50% - 130px);
+  height: 260px;
+}
+.box-screen .room-table__felt strong {
+  max-width: 100%;
+  font-size: 18px;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+.box-screen .room-table__logo,
+.box-screen .room-table__table-label,
+.box-screen .room-table__cards {
+  display: none;
+}
+.box-screen .join-table .join-table__fields {
+  display: grid;
+  gap: 6px;
+}
+.box-screen .join-table .join-table__fields label {
+  margin: 0;
+}
+.box-screen .join-table .join-table__row {
+  align-items: stretch;
+}
+.box-screen .join-table .join-table__row > button {
+  margin: 0;
+  min-height: 48px;
+  font-size: 18px;
+}
+.box-screen .player-actions .player-profile strong {
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+.box-screen .stage > .box-transfer-entry {
+  width: 100%;
+  margin: 0 0 14px;
+  font-size: 18px;
+}
+.box-screen .controls .box-identity-notice {
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid #d7decd;
+  font-size: 16px;
+  line-height: 1.5;
+  text-align: center;
+}
+.dialog-surface .avatar-picker .avatar-choice__claimed,
+.dialog-surface .avatar-picker .avatar-choice__current,
+.dialog-surface .avatar-picker .avatar-choice__available {
+  font-size: 16px;
+}
+.dialog-surface .avatar-picker__intro,
+.dialog-surface .connection-help__steps li {
+  text-wrap: balance;
+}
+@media (min-width: 861px) and (max-height: 850px) {
+  .box-screen:not(.player) .room-table {
+    min-height: 472px;
+  }
+  .box-screen:not(.player) .room-table__seat {
+    height: auto;
+    min-height: 200px;
+  }
+  .box-screen:not(.player) .room-table__felt {
+    top: calc(50% - 130px);
+    height: 260px;
+  }
+  .box-screen:not(.player) .room-table__name {
+    line-height: 1.35;
+  }
+}
+@media (max-width: 720px) {
+  .box-screen .hero:has(.box-game-title) {
+    flex-wrap: wrap;
+    column-gap: 8px;
+    row-gap: 10px;
+  }
+  .box-screen .hero > img {
+    order: 0;
+  }
+  .box-screen .hero .box-game-title {
+    order: 1;
+    flex: 1 0 calc(100% - 132px);
+  }
+  .box-screen .hero .box-info-control {
+    order: 2;
+  }
+  .box-screen .hero > button:not(.box-info-control) {
+    order: 3;
+    flex: 1 1 130px;
+    margin: 0;
+  }
+}
+@media (max-width: 600px) {
+  .dialog-surface .game-library {
+    padding: 0;
+    margin-bottom: 0;
+    border: 0;
+    background: transparent;
+  }
+  .dialog-surface .game-library__item {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+  }
+  .dialog-surface .game-library__item img,
+  .dialog-surface .game-library__placeholder {
+    grid-row: auto;
+    justify-self: start;
+  }
+  .dialog-surface .game-library__item h3 {
+    line-height: 1.35;
+    text-wrap: balance;
+  }
+  .dialog-surface .game-library__item .game-library__tagline {
+    text-wrap: balance;
+  }
+  .dialog-surface .game-library__item > div > button {
+    white-space: nowrap;
+  }
+  .dialog-surface .game-library__item > button {
+    justify-self: stretch;
+    margin: 0;
+  }
+  .box-screen .room-table {
+    min-height: 648px;
+  }
+  .box-screen .room-table__seat--3,
+  .box-screen .room-table__seat--4 {
+    top: 224px;
+  }
+  .box-screen .room-table__felt {
+    top: calc(50% - 150px);
+    height: 300px;
+  }
+  .box-screen .room-table__felt strong {
+    max-width: 80px;
+  }
+}

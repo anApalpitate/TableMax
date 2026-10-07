@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import {
   RoomViewSchema,
@@ -14,6 +14,13 @@ import {
 import { changedGameSlots, gameMotionDuration } from './presentation';
 import { navigate, type ScreenRole } from '../navigation';
 import { useAdmission } from './useAdmission';
+import { randomId } from './randomId';
+import {
+  ReliableRoomSync,
+  ROOM_SYNC_INTERVAL,
+  ROOM_SYNC_TIMEOUT,
+  type RoomSyncReply,
+} from './reliableRoomSync';
 const messages: Record<string, string> = {
   unauthorized: '你没有此操作的管理权限。',
   'game-not-selected': '请先由管理员选择游戏。',
@@ -75,7 +82,11 @@ export function useRoomSession(role: ScreenRole) {
   >([]);
   const [address, setAddress] = useState('');
   const [networkMessage, setNetworkMessage] = useState('');
+  const [externalJoinUrl, setExternalJoinUrl] = useState<string | null>(null);
   const refreshNetworkRef = useRef<(() => Promise<void>) | null>(null);
+  const saveExternalJoinUrlRef = useRef<
+    ((value: string | null) => Promise<boolean>) | null
+  >(null);
   const [port, setPort] = useState(38473);
   const [feedback, setFeedback] = useState<RoomFeedback | null>(null);
   const [errorId, setErrorId] = useState('');
@@ -89,61 +100,51 @@ export function useRoomSession(role: ScreenRole) {
   const pendingImage = useRef<string | null>(null);
   const recoveredImage = useRef(false);
   const sendRef = useRef<(envelope: Command) => void>(() => {});
+  const synchronizeRef = useRef<(() => void) | null>(null);
+  const identityEpoch = useRef({ value: 0 });
   const admission = useAdmission(
     role === 'player' && !credential,
     setCredential,
     setMessage,
     messages,
   );
+  const cancelAdmission = admission.cancel;
   useEffect(() => {
+    const identity = identityEpoch.current;
+    identity.value++;
+    let disposed = false;
     const socket = io({
       auth: credential ? { token: credential } : {},
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
+      tryAllTransports: true,
+      timeout: ROOM_SYNC_TIMEOUT,
+      forceNew: true,
     });
     socketRef.current = socket;
-    socket.on('connect', () => {
-      setConnected(true);
-      socket.emit('room:sync');
-      setMessage((current) => (current.startsWith('连接') ? '' : current));
-    });
-    socket.on('disconnect', () => {
-      setConnected(false);
-      setView(null);
-      synced.current = null;
-      changedSlots.current = [];
-      setMotion([]);
-      setFeedback(null);
-      setMessage('连接已断开，等待重新同步。');
-    });
-    socket.on('room:view', (input: unknown) => {
-      const parsed = RoomViewSchema.safeParse(input);
-      if (parsed.success) {
-        const next = parsed.data,
-          previous = synced.current;
-        if (!recoveredImage.current && next.self.role === 'player') {
-          recoveredImage.current = true;
-          try {
-            const saved = JSON.parse(
-              localStorage.getItem('tablemax-avatar-upload') ?? 'null',
-            ) as { seatId: string; envelope: Command; image: string } | null;
-            if (
-              saved?.seatId === next.self.seatId &&
-              typeof saved.image === 'string'
-            ) {
-              const parsedEnvelope = CommandSchema.safeParse(saved.envelope);
-              if (parsedEnvelope.success) {
-                pendingImage.current = saved.image;
-                sendRef.current(parsedEnvelope.data);
-              }
-            }
-          } catch {
-            /* A corrupt local draft is never submitted. */
-          }
-        }
-        if (previous?.revision !== next.revision || next.playMode === 'test')
+    const applyView = (
+      next: RoomView,
+      source: 'broadcast' | 'sync',
+      restoring: boolean,
+    ) => {
+      const previous = synced.current;
+      const sameStep =
+        previous?.instanceId === next.instanceId &&
+        previous.branch === next.branch &&
+        previous.revision === next.revision;
+      // A healthy periodic acknowledgement must not cut short a live saved
+      // animation. Recovery snapshots update the table without replaying it.
+      if (source !== 'sync' || !sameStep || restoring) {
+        if (
+          restoring ||
+          source === 'sync' ||
+          previous?.revision !== next.revision ||
+          next.playMode === 'test'
+        )
           setMotion([]);
         changedSlots.current = [];
         if (
+          !restoring &&
+          source === 'broadcast' &&
           previous?.game?.id === next.game?.id &&
           previous?.game?.variantId === next.game?.variantId &&
           previous?.gameView &&
@@ -155,6 +156,8 @@ export function useRoomSession(role: ScreenRole) {
           changedSlots.current = changedGameSlots(previous, next);
         }
         if (
+          restoring ||
+          source === 'sync' ||
           !previous ||
           next.paused ||
           previous.status !== next.status ||
@@ -164,15 +167,110 @@ export function useRoomSession(role: ScreenRole) {
           setMotion([]);
           setFeedback(null);
         }
-        if (previous?.status === 'lobby' && next.gameView)
-          navigate(`/${role}/game`);
-        if (next.status === 'lobby' && location.pathname.endsWith('/game'))
-          navigate(`/${role}`, true);
-        synced.current = next;
-        setView(next);
-      } else {
-        setView(null);
+        if (restoring || source === 'sync')
+          lastFeedback.current = `${next.instanceId}:${next.branch}:${next.revision}`;
+      }
+      if (previous?.status === 'lobby' && next.gameView)
+        navigate(`/${role}/game`);
+      if (next.status === 'lobby' && location.pathname.endsWith('/game'))
+        navigate(`/${role}`, true);
+      synced.current = next;
+      setView(next);
+    };
+    const synchronization = new ReliableRoomSync<RoomView>({
+      connected: () => socket.connected,
+      request: (receive) => {
+        socket
+          .timeout(ROOM_SYNC_TIMEOUT)
+          .emit('room:sync', (error: Error | null, input: unknown) => {
+            if (error) return receive(error, null);
+            const reply = input as {
+              ok?: unknown;
+              view?: unknown;
+              reason?: unknown;
+            } | null;
+            if (reply?.ok === false && typeof reply.reason === 'string')
+              return receive(null, { ok: false, reason: reply.reason });
+            const parsed = RoomViewSchema.safeParse(reply?.view);
+            const result: RoomSyncReply<RoomView> | null =
+              reply?.ok === true && parsed.success
+                ? { ok: true, view: parsed.data }
+                : null;
+            receive(result ? null : new Error('invalid-sync-reply'), result);
+          });
+      },
+      apply: applyView,
+      phase: (phase) => {
+        setConnected(phase === 'ready');
+        if (phase !== 'ready') {
+          if (motionTimer.current) clearTimeout(motionTimer.current);
+          changedSlots.current = [];
+          setMotion([]);
+          setFeedback(null);
+        }
+        if (phase === 'reconnecting') setMessage('连接已断开，正在重新同步。');
+      },
+      reconnect: () => {
+        if (disposed) return;
+        if (socket.connected) socket.disconnect();
+        socket.connect();
+      },
+      rejected: (reason) => {
+        if (reason === 'invalid-identity') revoked();
+        else {
+          setMessage(messages[reason] ?? '连接确认失败，正在重新同步。');
+          socket.disconnect().connect();
+        }
+      },
+      confirmed: (next, restoring) => {
+        setMessage((current) =>
+          current.startsWith('连接') || current.startsWith('正在重新同步')
+            ? ''
+            : current,
+        );
+        if (!restoring) return;
+        if (!recoveredImage.current && next.self.role === 'player') {
+          recoveredImage.current = true;
+          try {
+            const saved = JSON.parse(
+              localStorage.getItem('tablemax-avatar-upload') ?? 'null',
+            ) as { seatId: string; envelope: Command; image: string } | null;
+            if (
+              saved?.seatId === next.self.seatId &&
+              typeof saved.image === 'string'
+            ) {
+              const parsed = CommandSchema.safeParse(saved.envelope);
+              if (parsed.success) {
+                pendingImage.current = saved.image;
+                pending.current = parsed.data;
+              }
+            }
+          } catch {
+            /* A corrupt local draft is never submitted. */
+          }
+        }
+        const envelope = pending.current;
+        if (envelope)
+          queueMicrotask(() => {
+            if (
+              !disposed &&
+              synchronization.ready &&
+              pending.current === envelope
+            )
+              sendRef.current(envelope);
+          });
+      },
+    });
+    synchronizeRef.current = () => synchronization.request();
+    socket.on('connect', () => synchronization.transportConnected());
+    socket.on('disconnect', () => synchronization.transportDisconnected());
+    socket.on('room:view', (input: unknown) => {
+      const parsed = RoomViewSchema.safeParse(input);
+      if (parsed.success) synchronization.observe(parsed.data);
+      else {
+        setConnected(false);
         setMessage('服务数据不兼容，请重新启动程序。');
+        synchronization.request(true);
       }
     });
     socket.on('room:feedback', (input: unknown) => {
@@ -190,6 +288,8 @@ export function useRoomSession(role: ScreenRole) {
       )
         return;
       lastFeedback.current = key;
+      if (!synchronization.ready || document.visibilityState === 'hidden')
+        return;
       setFeedback(item);
       setMotion(current.playMode === 'test' ? [] : changedSlots.current);
       if (motionTimer.current) clearTimeout(motionTimer.current);
@@ -201,6 +301,9 @@ export function useRoomSession(role: ScreenRole) {
       }
     });
     const revoked = () => {
+      synchronization.dispose();
+      socket.disconnect();
+      identity.value++;
       setConnected(false);
       setView(null);
       synced.current = null;
@@ -223,51 +326,127 @@ export function useRoomSession(role: ScreenRole) {
       if (error.message === 'invalid-identity') revoked();
       else setMessage('连接失败，请检查电脑服务和局域网。');
     });
-    let disposed = false;
     let networkRequest: AbortController | null = null;
+    let networkSequence = 0;
+    let networkSaving = false;
+    const applyNetwork = (network: ReturnType<typeof NetworkSchema.parse>) => {
+      setAddresses(network.addresses);
+      setAdapters(network.adapters);
+      setAddress((selected) => {
+        const preferred =
+          selected || localStorage.getItem('tablemax-address') || '';
+        return network.addresses.includes(preferred)
+          ? preferred
+          : (network.addresses[0] ?? '');
+      });
+      setPort(network.port);
+      setExternalJoinUrl(network.externalJoinUrl);
+      setNetworkMessage(
+        network.networkMessage ||
+          (network.addresses.length || network.externalJoinUrl
+            ? ''
+            : '未发现可用地址，请连接局域网后刷新。'),
+      );
+    };
+    socket.on('room:network', (input: unknown) => {
+      if (role === 'player' || disposed || networkSaving) return;
+      const parsed = NetworkSchema.safeParse(input);
+      if (!parsed.success) return;
+      // A pre-change GET may still be in flight when another host saves.
+      networkSequence++;
+      networkRequest?.abort();
+      applyNetwork(parsed.data);
+    });
     const refreshNetwork = async () => {
       if (networkRequest || role === 'player') return;
       const controller = new AbortController();
       networkRequest = controller;
+      const sequence = ++networkSequence;
       const timeout = setTimeout(() => controller.abort(), 5000);
       try {
         const response = await fetch('/api/room/network', {
           signal: controller.signal,
+          cache: 'no-store',
         });
+        if (!response.ok) throw new Error('network-refresh-failed');
         const network = NetworkSchema.parse(await response.json());
-        if (disposed) return;
-        setAddresses(network.addresses);
-        setAdapters(network.adapters);
-        setAddress((selected) => {
-          const preferred =
-            selected || localStorage.getItem('tablemax-address') || '';
-          return network.addresses.includes(preferred)
-            ? preferred
-            : (network.addresses[0] ?? '');
-        });
-        setPort(network.port);
-        setNetworkMessage(
-          network.addresses.length
-            ? ''
-            : '未发现可用地址，请连接局域网后刷新。',
-        );
+        if (disposed || sequence !== networkSequence) return;
+        applyNetwork(network);
       } catch {
-        if (!disposed)
+        if (!disposed && sequence === networkSequence)
           setNetworkMessage('地址刷新失败，请检查电脑服务后重试。');
       } finally {
         clearTimeout(timeout);
-        networkRequest = null;
+        if (networkRequest === controller) networkRequest = null;
+      }
+    };
+    const saveExternalJoinUrl = async (value: string | null) => {
+      if (role !== 'host' || disposed) return false;
+      const sequence = ++networkSequence;
+      networkRequest?.abort();
+      const controller = new AbortController();
+      networkRequest = controller;
+      networkSaving = true;
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      try {
+        const response = await fetch('/api/room/network', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({ token: credential, externalJoinUrl: value }),
+        });
+        const input: unknown = await response.json();
+        if (!response.ok) {
+          const failure = input as {
+            reason?: unknown;
+            message?: unknown;
+          } | null;
+          const reason = failure?.reason;
+          throw new Error(
+            typeof failure?.message === 'string'
+              ? failure.message
+              : reason === 'unauthorized'
+                ? '只有电脑管理员可以修改加入地址。'
+                : reason === 'invalid-external-url' ||
+                    reason === 'invalid-message'
+                  ? '请输入有效的 HTTP 或 HTTPS 网站根地址。'
+                  : '加入地址未保存，请检查电脑配置目录后重试。',
+          );
+        }
+        const parsed = NetworkSchema.safeParse(input);
+        if (!parsed.success)
+          throw new Error('加入地址确认无效，请重新同步后重试。');
+        if (disposed || sequence !== networkSequence) return false;
+        applyNetwork(parsed.data);
+        return true;
+      } catch (error) {
+        if (!disposed && sequence === networkSequence)
+          setNetworkMessage(
+            error instanceof Error && error.name !== 'AbortError'
+              ? error.message
+              : '加入地址保存尚未确认，请检查电脑服务后重试。',
+          );
+        return false;
+      } finally {
+        clearTimeout(timeout);
+        if (networkRequest === controller) {
+          networkRequest = null;
+          networkSaving = false;
+        }
       }
     };
     refreshNetworkRef.current = refreshNetwork;
+    saveExternalJoinUrlRef.current = saveExternalJoinUrl;
     void refreshNetwork();
     const interval = setInterval(() => {
-      if (document.visibilityState !== 'hidden') void refreshNetwork();
-    }, 10000);
+      if (document.visibilityState !== 'hidden') {
+        synchronization.request();
+        void refreshNetwork();
+      }
+    }, ROOM_SYNC_INTERVAL);
     const wake = () => {
       if (document.visibilityState === 'hidden') return;
-      if (socket.connected) socket.emit('room:sync');
-      else socket.connect();
+      synchronization.request(true);
       void refreshNetwork();
     };
     window.addEventListener('online', wake);
@@ -275,8 +454,12 @@ export function useRoomSession(role: ScreenRole) {
     document.addEventListener('visibilitychange', wake);
     return () => {
       disposed = true;
+      synchronization.dispose();
+      identity.value++;
       networkRequest?.abort();
       refreshNetworkRef.current = null;
+      saveExternalJoinUrlRef.current = null;
+      synchronizeRef.current = null;
       clearInterval(interval);
       window.removeEventListener('online', wake);
       window.removeEventListener('pageshow', wake);
@@ -290,30 +473,55 @@ export function useRoomSession(role: ScreenRole) {
       synced.current = null;
       socketRef.current = null;
       pending.current = null;
+      pendingImage.current = null;
+      recoveredImage.current = false;
+      setBusy(false);
+      setAwaitingConfirmation(false);
       if (motionTimer.current) clearTimeout(motionTimer.current);
     };
   }, [credential, role]);
+  const setPlayerCredential = useCallback(
+    (token: string) => {
+      // Store before switching sockets. A browser storage failure keeps the
+      // current identity and lets the transfer receipt be confirmed again.
+      localStorage.setItem('tablemax-player', token);
+      cancelAdmission();
+      if (token === credential) return;
+      identityEpoch.current.value++;
+      pending.current = null;
+      pendingImage.current = null;
+      localStorage.removeItem('tablemax-avatar-upload');
+      recoveredImage.current = false;
+      setConnected(false);
+      setView(null);
+      synced.current = null;
+      setCredential(token);
+    },
+    [cancelAdmission, credential],
+  );
   const isHost = view?.self.role === 'host';
   const self = view?.seats.find((s) => s.id === view.self.seatId);
   const locked = busy || admission.busy || !connected || !view;
   function send(envelope: Command) {
+    const epoch = identityEpoch.current.value;
     pending.current = envelope;
     setBusy(true);
     setAwaitingConfirmation(false);
     setMessage('正在提交…');
     const receive = (error: Error | null, input: unknown) => {
-      if (pending.current !== envelope) return;
+      if (pending.current !== envelope || epoch !== identityEpoch.current.value)
+        return;
       if (error) {
         setAwaitingConfirmation(true);
         setMessage('尚未收到保存确认，请重试确认。');
-        socketRef.current?.emit('room:sync');
+        synchronizeRef.current?.();
         return;
       }
       const parsed = CommandReplySchema.safeParse(input);
       if (!parsed.success) {
         setAwaitingConfirmation(true);
         setMessage('服务确认无效，请重新同步。');
-        socketRef.current?.emit('room:sync');
+        synchronizeRef.current?.();
         return;
       }
       pending.current = null;
@@ -328,7 +536,7 @@ export function useRoomSession(role: ScreenRole) {
       } else {
         setErrorId(envelope.actionId);
         setMessage(messages[reply.reason] ?? '操作未完成，请按最新状态重试。');
-        socketRef.current?.emit('room:sync');
+        synchronizeRef.current?.();
       }
     };
     if (pendingImage.current) {
@@ -359,9 +567,7 @@ export function useRoomSession(role: ScreenRole) {
   function command(value: Command['command']) {
     if (!view || locked || pending.current) return;
     send({
-      actionId: Array.from(crypto.getRandomValues(new Uint32Array(4))).join(
-        '-',
-      ),
+      actionId: randomId(),
       instanceId: view.instanceId,
       revision: view.revision,
       branch: view.branch,
@@ -386,6 +592,9 @@ export function useRoomSession(role: ScreenRole) {
     addresses,
     adapters,
     networkMessage,
+    externalJoinUrl,
+    saveExternalJoinUrl: (value: string | null) =>
+      saveExternalJoinUrlRef.current?.(value) ?? Promise.resolve(false),
     refreshNetwork: () => refreshNetworkRef.current?.(),
     address,
     setAddress: (selected: string) => {
@@ -397,6 +606,7 @@ export function useRoomSession(role: ScreenRole) {
     errorId,
     motion,
     credential,
+    setPlayerCredential,
     isHost,
     canControl: view?.capabilities.control ?? false,
     canManageSeats: view?.capabilities.manageSeats ?? false,
@@ -409,7 +619,7 @@ export function useRoomSession(role: ScreenRole) {
     uploadAvatar: (image: string) => {
       if (!view || locked || pending.current || !self) return;
       const envelope: Command = {
-        actionId: crypto.randomUUID(),
+        actionId: randomId(),
         instanceId: view.instanceId,
         revision: view.revision,
         branch: view.branch,

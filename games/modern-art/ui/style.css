@@ -73,6 +73,17 @@
 .ma-screen .ma-toolbar .test-mode-badge {
   font-size: 16px;
 }
+.ma-screen .ma-toolbar-tools {
+  display: contents;
+}
+.ma-screen.player .ma-toolbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  margin-left: auto;
+  flex-shrink: 0;
+}
 .ma-screen .ma-brand {
   display: flex;
   gap: 9px;

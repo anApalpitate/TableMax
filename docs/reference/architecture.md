@@ -100,17 +100,17 @@ WebView2 不暴露 Node 或原生 host objects；`Bridge.js` 只保持 `window.t
 
 v1.0.3单EXE默认在旁边新建 `TableMax/` 专属目录，配置、数据和其中的 `app/` 运行资源均集中于此；ZIP版直接使用解压目录。数据目录由对应根目录内配置指定；保留手机身份和 SQLite／JSON 存档格式，迁移不改协议版本或数据版本。WebView2 缓存写入用户数据目录的 `desktop/webview2/`，独立显示设置仍为 `display-settings.json`。旧 Electron 写出的 SQLite 需在隔离副本上验证读取、继续保存和恢复；不以新建数据库代替兼容性验证。原生测试驱动及 CDP 仅由显式测试标志启用，正式启动不开放调试端口；验证使用后台不激活窗口与更新后的真实 WebView2 截图。
 
-玩家身份用服务生成的随机凭证，服务器仅保存摘要。本人的凭证由手机 localStorage 保存，开局前排序不改变座位 ID；同设备同源刷新／断线沿用凭证，1.6.0 删除换手机及兑换接口。电脑房主仅为管理员，不提供参赛入口或加入参数；首局先手由对应游戏规则决定，宝可梦使用可恢复随机选取，现代艺术采用稳定座位首席，旧 hostSeat 字段只兼容读取。主机管理权不扩展游戏秘密。线上状态来自当前有效连接，不入 checkpoint。电脑地址／端口变化形成新浏览器源不会自动迁移身份。
+玩家身份用服务生成的随机凭证，服务器仅保存摘要；本人手机或电脑浏览器在同源 localStorage 保存凭证，排序不改变座位 ID，刷新／断线沿用身份。电脑管理员不参赛，电脑浏览器真人从 `/player` 加入。2026-10-07 授权的换机由管理员批准，候选凭证加密与申请收据独立于 checkpoint，原子激活新凭证并撤销旧连接；跨源需申请接续。首局先手仍由游戏规则决定，旧 hostSeat 只兼容读取。主机管理权不扩展游戏秘密，线上状态来自当前有效连接，不入 checkpoint。具体接口与边界见[平台规格](phase-02-platform-spec.md#浏览器入座换机与外部连接2026-10-07)。
 
 HTTP 提供加入、授权同步和网络地址；Socket.IO 握手绑定凭证，逐连接生成 `room:view`，`room:command` 校验信封并确认，`room:revoked` 撤销旧连接。命令被拒绝后同步最新投影；未确认的原意图保留，重试沿用编号。运行时 schema 校验投影与 ACK，不能靠 UI 隐藏完整状态。
 
-1.2.0 引入的持久化加入请求回复由 RoomCoordinator 管理，`session-receipts.ts` 只负责凭证加密／解密；随机玩家凭证仍保存摘要，恢复密钥只由手机持有。可选 sessionReceipts 字段向前读取格式 1 旧存档；历史 bindings 兼容校验后丢弃，不再兑换，随同一次 SQLite 事务保存。当前网络协议为 6，增加目录、可空当前游戏、ownerSeatId、capabilities 和 selectionToken；历史协议 4 引入的人机等级与公开席位等级继续保留；手机 `useAdmission` 负责持久请求、超时和恢复确认；会话回到前台重新同步，主动换身份关闭旧 Socket 时不发送断网错误。详见 [采用理由](../decisions/005-platform-authority-and-recovery.md#加入确认与原班续局2026-10-02)。
+1.2.0 引入的持久化加入请求回复由 RoomCoordinator 管理，`session-receipts.ts` 只负责凭证加密／解密；随机玩家凭证仍保存摘要，恢复密钥由申请浏览器持有。v1.0.4 新收据使用版本 02 的 AES-GCM 密文，密钥派生与持久化请求摘要使用不同域，摘要不能作为解密密钥；原 120 位十六进制旧密文继续读取兼容，旧格式的原有加密边界不倒写为已升级。可选 sessionReceipts 字段向前读取格式 1 旧存档；历史 bindings 兼容校验后丢弃，不再兑换，随同一次 SQLite 事务保存。当前网络协议为 7，增加目录、可空当前游戏、ownerSeatId、capabilities 和 selectionToken；历史协议 4 引入的人机等级与公开席位等级继续保留；浏览器 `useAdmission` 负责持久请求、超时和恢复确认；会话回到前台重新同步，主动换身份关闭旧 Socket 时不发送断网错误。详见 [采用理由](../decisions/005-platform-authority-and-recovery.md#加入确认与原班续局2026-10-02)。
 
 服务 `NetworkDirectory` 每次读取系统网卡并标注、排序，保留手动选择；前端按需及定时刷新。原生 `DesktopContext` 管理服务与公共屏的防休眠生命周期，`Program.cs` 中的 `StartupError` 将安全服务错误转为中文排障提示。按数据目录取得单实例互斥锁后才启动服务；重复启动通过本地事件请求重开管理，公共屏保留时也可重新打开管理。正式窗口行为与后台验证分开。
 
-正式网页 `App.tsx` 只组装按角色隔离的会话与页面。会话逻辑在 `session/useRoomSession.ts`，盒子和游戏外壳在 `screens/`，弹窗、邀请、管理及全屏等在 `components/`，共享素材与清单在根目录 `assets/platform/`；游戏资源及浏览器资源表在 `assets/games/<id>/`。游戏的场地、结算和选择维护在对应游戏 UI，不导入平台凭证或 Socket。页面切换不产生游戏命令；角色变化重建会话，防止沿用另一身份。
+正式网页 `App.tsx` 只组装按角色隔离的会话与页面。顶层玩家入口由 `components/PlayerFrame.tsx` 提供稳定同源手机视窗，子文档独占一份玩家会话；管理与公共页直接渲染，子文档不能使用原生桥接。窗口变化只改变视窗尺寸，不重建草稿。会话逻辑在 `session/useRoomSession.ts`，盒子和游戏外壳在 `screens/`，弹窗、邀请、管理及全屏等在 `components/`，共享素材与清单在根目录 `assets/platform/`；游戏资源及浏览器资源表在 `assets/games/<id>/`。游戏的场地、结算和选择维护在对应游戏 UI，不导入平台凭证或 Socket。页面切换不产生游戏命令；角色变化重建会话，防止沿用另一身份。
 
-盒子 `RoomTable` 只呈现公开席位和围桌房间；开局／准备／等级设置仍由 BoxScreen 通过会话发送动作。所有真人控制入口属于手机 player，电脑 host/public 不参与游戏。SDK `BotDifficulty` 与策略可选 `difficulties` 声明支持范围，平台只保存等级、检验权限和兼容性，游戏入口按 `decide.difficulty` 分发不同算法；Worker 读取存档中的等级，不能依据 UI 昵称推断。座位与快照的等级必须一致，旧可选字段缺省为 default，checkpoint 同时恢复记忆与等级；详见 [人机边界](bot-players.md#三档智能与配置)。
+盒子 `RoomTable` 只呈现公开席位和围桌房间；开局／准备／等级设置仍由 BoxScreen 通过会话发送动作。所有真人控制入口属于浏览器 player，电脑 host/public 不参与游戏；电脑加入的真人仍是 player。SDK `BotDifficulty` 与策略可选 `difficulties` 声明支持范围，平台只保存等级、检验权限和兼容性，游戏入口按 `decide.difficulty` 分发不同算法；Worker 读取存档中的等级，不能依据 UI 昵称推断。座位与快照的等级必须一致，旧可选字段缺省为 default，checkpoint 同时恢复记忆与等级；详见 [人机边界](bot-players.md#三档智能与配置)。
 
 ## 游戏目录与授权（1.6.0）
 

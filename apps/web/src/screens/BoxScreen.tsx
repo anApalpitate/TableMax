@@ -28,6 +28,10 @@ import { LobbyReadiness } from '../components/LobbyReadiness';
 import { BotInformation } from '../components/BotInformation';
 import { PokemonVersion } from '../components/PokemonVersion';
 import type { RoomSession } from '../session/useRoomSession';
+import { useDeviceTransfer } from '../session/useDeviceTransfer';
+import { DeviceTransfer } from '../components/DeviceTransfer';
+import { navigate } from '../navigation';
+import './box-refinements.css';
 
 const difficultyNames: Record<BotDifficulty, string> = {
   default: '默认',
@@ -35,7 +39,14 @@ const difficultyNames: Record<BotDifficulty, string> = {
   juewu: '绝悟',
 };
 type BoxPanel =
-  'intro' | 'seats' | 'management' | 'library' | 'bot-info' | 'avatars' | null;
+  | 'intro'
+  | 'seats'
+  | 'management'
+  | 'library'
+  | 'bot-info'
+  | 'avatars'
+  | 'transfer'
+  | null;
 
 export function BoxScreen({ session }: { session: RoomSession }) {
   const [difficulty, setDifficulty] = useState<BotDifficulty>('default');
@@ -59,6 +70,13 @@ export function BoxScreen({ session }: { session: RoomSession }) {
     connected,
   } = session;
   const game = view?.game;
+  const transfer = useDeviceTransfer(
+    role === 'player' && !credential,
+    (token) => {
+      session.setPlayerCredential(token);
+      if (view?.gameView) navigate('/player/game');
+    },
+  );
   const cover = gameCover(game?.id);
   const owner = view?.seats.find((seat) => seat.id === view.ownerSeatId);
   const lobby = view?.status === 'lobby';
@@ -130,7 +148,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
       </header>
       <section className="hero">
         {cover && game && <img src={cover} alt={`${game.name}游戏封面`} />}
-        <div>
+        <div className="box-game-title">
           <h1>{game?.name ?? '选个游戏，朋友们上桌'}</h1>
         </div>
         {moduleFor(game?.id)?.versions && <PokemonVersion session={session} />}
@@ -194,7 +212,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
           )}
         </div>
       )}
-      {Boolean(view?.gameView) && view && (
+      {Boolean(view?.gameView) && view && (role !== 'player' || credential) && (
         <div className="continue-game">
           <div>
             <h2>
@@ -209,14 +227,22 @@ export function BoxScreen({ session }: { session: RoomSession }) {
       <div className="grid">
         <section className="card stage">
           <div className="room-heading">
-            <div>
-              <h2>
-                聚会牌桌{' '}
-                <span>
+            <div className="room-heading__identity">
+              <div className="room-heading__title">
+                <h2>聚会牌桌</h2>
+                <span
+                  className="room-capacity"
+                  aria-label={`已入座 ${view?.seats.length ?? 0} 人，最多 ${view?.game?.max ?? 6} 人`}
+                >
                   {view?.seats.length ?? 0} / {view?.game?.max ?? 6}
                 </span>
-              </h2>
-              {owner && <p className="owner-badge">房主：{owner.name}</p>}
+              </div>
+              {owner && (
+                <p className="owner-badge">
+                  <span>房主</span>
+                  <strong>{owner.name}</strong>
+                </p>
+              )}
             </div>
             <div className="room-heading__actions">
               <span className="room-status">{roomStatus}</span>
@@ -256,7 +282,12 @@ export function BoxScreen({ session }: { session: RoomSession }) {
               className="join-table"
               onSubmit={(event) => {
                 event.preventDefault();
-                if (!locked && name.trim() && avatarAvailable)
+                if (
+                  !locked &&
+                  !transfer.pending &&
+                  name.trim() &&
+                  avatarAvailable
+                )
                   void join(
                     draftImage ? undefined : (chosenAvatar ?? undefined),
                     draftImage ?? undefined,
@@ -287,7 +318,9 @@ export function BoxScreen({ session }: { session: RoomSession }) {
                   <div className="join-table__row">
                     <input
                       id="nickname"
+                      name="nickname"
                       autoComplete="nickname"
+                      spellCheck={false}
                       placeholder="朋友们怎么称呼你？"
                       value={name}
                       maxLength={24}
@@ -298,6 +331,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
                       disabled={
                         locked ||
                         session.admissionPending ||
+                        transfer.pending ||
                         !name.trim() ||
                         !avatarAvailable
                       }
@@ -314,6 +348,18 @@ export function BoxScreen({ session }: { session: RoomSession }) {
               )}
             </form>
           )}
+          {role === 'player' &&
+            !credential &&
+            view?.seats.some((seat) => seat.controller === 'human') && (
+              <button
+                type="button"
+                className="secondary box-transfer-entry"
+                disabled={session.admissionPending || transfer.busy}
+                onClick={() => setPanel('transfer')}
+              >
+                {transfer.pending ? '查看换机申请' : '换手机进入'}
+              </button>
+            )}
           {canControl && lobby && view && game && (
             <div className="host-lobby">
               <div className="lobby-toolbar">
@@ -400,7 +446,9 @@ export function BoxScreen({ session }: { session: RoomSession }) {
           <aside className="card controls">
             <InviteFriends session={session} />
             {role === 'host' && !isHost && (
-              <p>本页面没有管理员身份，请从桌面程序打开主机。</p>
+              <p className="box-identity-notice" role="status">
+                本页面没有管理员身份，请从桌面程序打开主机。
+              </p>
             )}
           </aside>
         )}
@@ -415,6 +463,11 @@ export function BoxScreen({ session }: { session: RoomSession }) {
         </OverlayPanel>
       )}
       <PlayModeControl session={session} />
+      {panel === 'transfer' && role === 'player' && !credential && (
+        <OverlayPanel title="换手机进入" close={() => setPanel(null)}>
+          <DeviceTransfer session={session} transfer={transfer} />
+        </OverlayPanel>
+      )}
       {panel === 'intro' && game && (
         <OverlayPanel title="游戏介绍" close={() => setPanel(null)}>
           <GameIntroduction game={game} />

@@ -582,3 +582,7 @@ footer {
   animation: none !important;
   transition: none !important;
 }
+
+.room-root {
+  display: contents;
+}

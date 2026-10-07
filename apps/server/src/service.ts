@@ -13,6 +13,9 @@ import {
   SessionSchema,
   AvatarUploadSchema,
   type RoomFeedback,
+  TransferRequestSchema,
+  TransferProofSchema,
+  NetworkUpdateSchema,
 } from '@tablemax/protocol';
 import {
   RoomCoordinator,
@@ -27,6 +30,7 @@ import { WorkerBotExecutor } from './bot-executor';
 import { openFoundationDatabase } from './database';
 import { NetworkDirectory } from './network-directory';
 import { normalizeAvatar, AVATAR_HTTP_LIMIT } from './avatar-images';
+import { NetworkSettings, normalizeUrl } from './network-settings';
 
 export async function createService(
   input: ServiceConfig,
@@ -97,10 +101,12 @@ export async function createService(
     },
   });
 
-  app.addHook('onSend', async (_request, reply) => {
+  app.addHook('onSend', async (request, reply) => {
+    if (request.url.startsWith('/api/'))
+      reply.header('Cache-Control', 'no-store');
     reply.header(
       'Content-Security-Policy',
-      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+      `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'none'; frame-ancestors ${/^\/player(?:\/game)?(?:\?|$)/.test(request.url) ? "'self'" : "'none'"}`,
     );
     reply.header('X-Content-Type-Options', 'nosniff');
     reply.header('Referrer-Policy', 'no-referrer');
@@ -108,6 +114,7 @@ export async function createService(
   app.get('/api/foundation/health', () => health);
 
   const network = new NetworkDirectory();
+  const networkSettings = new NetworkSettings(config.dataDir);
   const sessionFailure = (error: unknown) =>
     error instanceof Rejection ? error.message : 'save-or-action-failed';
   const online = () => {
@@ -140,6 +147,40 @@ export async function createService(
     }
   };
   const unsubscribe = room.subscribe(broadcast);
+  app.post('/api/session/transfer/request', async (request, reply) => {
+    const parsed = TransferRequestSchema.safeParse(request.body);
+    if (!parsed.success)
+      return reply.code(400).send({ ok: false, reason: 'invalid-message' });
+    try {
+      return {
+        ok: true,
+        transfer: await room.requestTransfer(
+          parsed.data.seatId,
+          parsed.data.requestKey,
+        ),
+      };
+    } catch (error) {
+      return reply.code(409).send({ ok: false, reason: sessionFailure(error) });
+    }
+  });
+  for (const operation of ['status', 'cancel'] as const) {
+    app.post(`/api/session/transfer/${operation}`, async (request, reply) => {
+      const parsed = TransferProofSchema.safeParse(request.body);
+      if (!parsed.success)
+        return reply.code(400).send({ ok: false, reason: 'invalid-message' });
+      try {
+        const transfer =
+          operation === 'cancel'
+            ? await room.cancelTransfer(parsed.data.requestKey)
+            : room.transferStatus(parsed.data.requestKey);
+        return { ok: true, transfer };
+      } catch (error) {
+        return reply
+          .code(409)
+          .send({ ok: false, reason: sessionFailure(error) });
+      }
+    });
+  }
   app.post(
     '/api/session/join',
     { bodyLimit: AVATAR_HTTP_LIMIT },
@@ -221,19 +262,65 @@ export async function createService(
       return reply.code(401).send({ ok: false, reason: 'invalid-identity' });
     }
   });
-  app.get('/api/room/network', () => ({
+  const networkView = () => ({
     ...network.read(),
+    ...networkSettings.read(),
     port: (app.server.address() as { port: number }).port,
-  }));
+  });
+  app.get('/api/room/network', networkView);
+  app.post('/api/room/network', (request, reply) => {
+    const parsed = NetworkUpdateSchema.safeParse(request.body);
+    if (!parsed.success)
+      return reply.code(400).send({ ok: false, reason: 'invalid-message' });
+    try {
+      if (room.identity(parsed.data.token).role !== 'host')
+        throw new Rejection('unauthorized');
+    } catch {
+      return reply.code(403).send({ ok: false, reason: 'unauthorized' });
+    }
+    let externalJoinUrl: string | null;
+    try {
+      externalJoinUrl =
+        parsed.data.externalJoinUrl === null
+          ? null
+          : normalizeUrl(parsed.data.externalJoinUrl);
+    } catch (error) {
+      return reply.code(400).send({
+        ok: false,
+        reason: 'invalid-external-url',
+        message: (error as Error).message,
+      });
+    }
+    try {
+      networkSettings.save(externalJoinUrl);
+      const next = networkView();
+      sockets.emit('room:network', next);
+      return next;
+    } catch {
+      return reply.code(409).send({
+        ok: false,
+        reason: 'network-settings-failed',
+        message: '连接设置未能保存，请检查数据目录后重试。',
+      });
+    }
+  });
   app.get('/api/foundation/addresses', () => network.read());
-  app.get<{ Querystring: { address?: string } }>(
+  app.get<{ Querystring: { address?: string; external?: string } }>(
     '/api/foundation/qr',
     async (request, reply) => {
+      const port = (app.server.address() as { port: number } | null)?.port;
       const address = request.query.address;
-      if (!address || !network.read().addresses.includes(address))
-        return reply.code(400).send({ error: 'invalid-address' });
-      const port = (app.server.address() as { port: number }).port;
-      const svg = await QRCode.toString(`http://${address}:${port}/player`, {
+      const external = request.query.external === '1';
+      const target = external
+        ? networkSettings.read().externalJoinUrl
+        : port && address && network.read().addresses.includes(address)
+          ? `http://${address}:${port}/player`
+          : null;
+      if (!target)
+        return reply.code(400).send({
+          error: external ? 'external-entry-not-configured' : 'invalid-address',
+        });
+      const svg = await QRCode.toString(target, {
         type: 'svg',
         margin: 2,
       });
@@ -255,13 +342,17 @@ export async function createService(
   sockets.on('connection', (socket) => {
     broadcast();
     socket.on('disconnect', () => broadcast());
-    socket.on('room:sync', () => {
+    socket.on('room:sync', (acknowledge?: unknown) => {
       try {
-        socket.emit(
-          'room:view',
-          room.view(socket.data.credential as string | undefined, online()),
+        const view = room.view(
+          socket.data.credential as string | undefined,
+          online(),
         );
+        if (typeof acknowledge === 'function') acknowledge({ ok: true, view });
+        else socket.emit('room:view', view);
       } catch {
+        if (typeof acknowledge === 'function')
+          acknowledge({ ok: false, reason: 'invalid-identity' });
         socket.emit('room:revoked');
         socket.disconnect(true);
       }

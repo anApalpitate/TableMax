@@ -1,5 +1,33 @@
 # 首版交付与验收
 
+## 1.0.4：电脑玩家手机视窗、盒子排版与远程续验（2026-10-08）
+
+按用户最新纠正，电脑浏览器参赛者保持原手机界面，在窗口中央操作，四周使用桌游背景；服务电脑的管理员和公共屏继续使用大屏。稳定玩家子文档保留会话和跨宽度草稿，并限制管理／公共文档嵌入及原生桥接。盒子修正长昵称裁边、标题被挤成竖列、游戏库标题／版本折行、孤立说明尾字及控件对齐；现代艺术和电力公司手机顶栏按整组排列。游戏规则、人机策略和秘密权限不变。
+
+最终本地运行 ZIP SHA-256 `96518caddac848de9dc93763480c9fd6ec15795f1c8a4948e00f5161bb6f45c6`，**41,341,886 字节**；247 文件实际解压 **94,899,175 字节**，95MB预算余100,825字节，双100MB门禁通过。[冻结快照](../../artifacts/maintenance/v1.0.4/debug-20261008/implementation/verified-final-snapshot.json)18单元命中17项、只重建盒子，生产构建13,989ms；组装门禁捕捉到正在结束的验证脚本检查进程，退出后沿用同一快照续装，没有重复编译或绕过保护。只导出运行ZIP与清单，不生成新单文件EXE／源码包，不push或发布GitHub Release。
+
+[最终实际包入口](../../artifacts/maintenance/v1.0.4/debug-20261008/portable/matrix/results.json)64布局／14检查，覆盖四变体合法最少／最多人数、1023／1024、720p／1080p／4K、125%／150%模拟密度及390px玩家，包含HTTP／HTTPS禁止WebSocket、丢推送、断线、真实换机批准和外部二维码控件。[完整盒子](../../artifacts/maintenance/v1.0.4/debug-20261008/box/box-delivery/results.json)96布局／21浮窗对应前包 `3a4b…`；最后仅三个局部正文均衡换行，在最终包的[15受影响浮窗](../../artifacts/maintenance/v1.0.4/debug-20261008/box/box-refinements-external/results.json)另做真实截图复核。人工审查发现的竖列标题、孤字及版本拆行均已修正，不以几何零问题代替美观结论。
+
+[游戏独立复核](../../artifacts/maintenance/v1.0.4/debug-20261008/portable/game-review/package-30af/results.json)36实际截图、22张人工代表图，覆盖普通360px玩家与原生主机／公共窗口720p至4K；[关键阶段](../../artifacts/maintenance/v1.0.4/debug-20261008/second-package/portable/phases/results.json)396布局／91检查、[草稿](../../artifacts/maintenance/v1.0.4/debug-20261008/third-package/portable/drafts/results.json)84布局／21检查、[混合真人人机](../../artifacts/maintenance/v1.0.4/debug-20261008/third-package/portable/mixed/results.json)32布局／4检查分别保留原包SHA。[逐文件与冻结输入核验](../../artifacts/maintenance/v1.0.4/debug-20261008/implementation/final-output-equivalence.json)证明游戏模块全部不变，按字节等价复用；不回写旧报告或把旧图称为最终包截图。扩展研究发布演出帧与稳定54格画面分别记录。
+
+[HTTPS远程故障](../../artifacts/maintenance/v1.0.4/debug-20261008/remote/30af-final-summary.json)实际操作渲染474ms、丢同步ACK约5秒重建、丢动作ACK使用原编号重发两次且只保存一次、断线恢复592ms、玩家Frame执行暂停恢复2,606ms、WSS双向54ms；新增重启尾项漏点“进入牌桌”的验证器失败保留并窄重跑通过。[后续同服务包复核](../../artifacts/maintenance/v1.0.4/debug-20261008/remote/3a4b-final-summary.json)再次通过WSS、三阶段管理员换机及同数据目录实际重启，新入座和换机收据均为02格式，原密钥取回同凭证、旧凭证仍撤销。最终服务字节与这些报告相同，最新网页由最终入口／浮窗实测覆盖。
+
+[加密回归](../../artifacts/maintenance/v1.0.4/debug-20261008/implementation/receipt-security-checks.json)先复现持久化摘要可解密旧收据的问题，再用独立域派生的新02密文阻断；相关11文件103测试和最终12项收据测试通过（有重叠，不相加），旧入座／批准换机收据真实重载兼容。旧120hex收据仍保留原有存储安全边界，不宣称旧备份已升级。全量类型、相关lint／格式及46项隔离清理前缀保护检查通过。验证默认静音、仅回环监听；本机TLS代理与Debugger执行暂停不替代实体手机锁屏、现场樱花／FRP、物理DPI或真人听感。收尾实际逻辑容量与安全退役见[瘦身记录](project-slimming.md)。
+
+## 1.0.3：10.7 浏览器玩家、实时恢复与换机（2026-10-08）
+
+按2026-10-07授权完成三游戏1024 CSS px宽屏玩家布局、polling优先与授权同步ACK、电脑管理员批准换机及持久化外部二维码。只改布局、连接与身份接续；游戏规则、人机策略和秘密投影保持原契约。此前“全部真人用手机／不恢复换机”当前约定已由最新规格替代，历史删除接口及发布结论保留。
+
+[同包汇总](../../artifacts/maintenance/v1.0.3/debug-20261007/results.json)对应最终ZIP SHA-256 `6761ef789e0d6644d1142d551f9c8dcf6f428f3fc0cb574542e5d03871a8dad5`：**41,340,186字节**，247文件，实际解压 **94,891,709字节**；95MB预算余108,291字节，双100MB门禁通过。最终18单元生产构建28,455ms、包含打包40,343ms；第一次实现包18单元35,571ms。最终格式规范后重新冻结输入，[逐文件等价](../../artifacts/maintenance/v1.0.3/debug-20261007/implementation/output-equivalence.json)证明247运行文件与第一次已验收包 `8ff98ede…` 完全相同，ZIP封装哈希变化单独记录。当前只导出运行ZIP及清单，未导出新EXE／源码包，未push或发布。
+
+[关键阶段](../../artifacts/maintenance/v1.0.3/debug-20261007/portable/phases/results.json)426布局／79检查，覆盖原版、扩展、现代艺术和电力公司的合法最少／最多人数及结算；[草稿专项](../../artifacts/maintenance/v1.0.3/debug-20261007/portable/drafts/results.json)72布局／17检查，报价、采购数量、选城、卡槽在1023／1024px切换后保留，选卡不提交动作；[混合人机](../../artifacts/maintenance/v1.0.3/debug-20261007/portable/mixed/results.json)32初始布局使用真实Worker并通过管理暂停固定版本；[最终密度](../../artifacts/maintenance/v1.0.3/debug-20261007/portable/density/results.json)16布局补查125%／150%模拟像素密度。普通宽度范围包括1023／1024、720p、1080p、4K及390px手机。秘密隔离沿用玩家授权投影，并执行暗标、现金、私看专项。
+
+[连接与真实入口](../../artifacts/maintenance/v1.0.3/debug-20261007/portable/connections/results.json)通过HTTP／HTTPS禁止WebSocket、丢推送及断线恢复，断言最新instance／branch／revision实际渲染；换机核对码、新设备身份、旧浏览器失效、管理员真实批准按钮、外部网址编辑及公共屏二维码同步通过，非法路径保持原配置。[丢确认与冻结](../../artifacts/maintenance/v1.0.3/debug-20261007/recovery/results.json)分别实测5,012ms重建及3,952ms无合成wake恢复；该轮末项因仅等待probe提前保存而未取得WSS广播，原失败保留，[独立WSS复查](../../artifacts/maintenance/v1.0.3/debug-20261007/recovery/wss-2026-10-07T16-28-07-673Z/results.json)等待完整升级及WSS同步确认后通过，保存广播与DOM版本一致且无CSP错误。局部22测试（含5项换机事务）和既有相关游戏29测试通过；全量类型、相关lint／格式通过。服务／核心广测202项先通过，另1项跳过，仅二维码未监听边界失败，修复后该文件2项通过；Windows沙箱依赖junction及临时worker限制的失败与获准执行结果分开保留。
+
+[终局补查](../../artifacts/maintenance/v1.0.3/debug-20261007/portable/finals/results.json)216布局／45检查，实际完成扩展六人三胜和现代艺术五人四轮，另外复查电力公司六人终局；扩展梦幻两段目标在跨断点后也保持。验证器首次从普通玩家投影读取下一轮动作而被正确拒绝，改从管理员授权投影推进，原失败保留，未更改产品授权。
+
+换机涵盖大厅、进行中、结束、拒绝／取消／过期、竞争批准、保存失败、丢回复和重启；24小时收据过期不使新设备身份过期，回退不恢复旧授权。证据使用隐藏原生WebView2与静音Edge、回环代理和隔离存档，不替代实体手机、现场FRP／樱花隧道、物理Windows DPI、公共受信任证书或真人听感。安全清理及最终逻辑体积见[瘦身记录](project-slimming.md)。
+
 ## 1.0.3：全量构建与GitHub发布交付（2026-10-07）
 
 按用户最新指示重新[完整生产构建](../../artifacts/maintenance/v1.0.3/github-release-20261007/full-build-checks.json)：18单元全部重编译、零缓存命中、40,872ms，从冻结清单组装，没有再次编译。新ZIP SHA-256 `bdd69433cab5a2088155d839835ea6d282b858bf67ca4ce7c877426fcaa0d4a0`，41,331,905字节、247文件，实际解压94,864,409字节；与前包逐文件大小／SHA-256相同，封装哈希单独记录。95MB工程预算余135,591字节，宝可梦4MiB及双100MB门禁通过。
@@ -14,7 +42,7 @@
 
 [20项播放专项](../../artifacts/maintenance/v1.0.3/pokemon-requirements-audit/clock-tests.json)、类型与相关lint通过。[实际ZIP演出](../../artifacts/maintenance/v1.0.3/pokemon-expansion-effects/requirements-audit-01/results.json)完成14套／63姿态，增加快速重入及终局星标顺序检查；[普通游玩](../../artifacts/maintenance/v1.0.3/pokemon-expansion-normal-play/requirements-audit-01/results.json)两手机身份及真实Worker完成33步／11阶段，[原版回归](../../artifacts/maintenance/v1.0.3/portable/requirements-audit-01/results.json)14阶段通过。此前规则、策略与存储专项按[17单元逐文件等价](../../artifacts/maintenance/v1.0.3/pokemon-requirements-audit/build-equivalence.json)复用；本轮仅增量重编译宝可梦客户端，从冻结快照 `ca55b3bd…` 组装，无重复全量构建。
 
-当前运行ZIP SHA-256 `511ab39171f57e697070c773664801c58ae2222ab37ed7b7188bb1235021ef29`，41,331,905字节；实际解压94,864,409字节、247文件，95MB预算及模块4MiB、ZIP／解压严格100MB门禁通过。相对前包解压净增336字节。[三游戏v1／v2实际恢复](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/storage/requirements-audit-01/results.json)通过，迁移原件及备份保留，工程进程退出。版本仍为v1.0.3，默认静音、本机回环；当前[ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip)与[逐文件清单](../../artifacts/releases/TableMax-1.0.3-win-x64-manifest.json)是唯一交付入口，历史哈希和通过边界保持原样。
+当前运行ZIP SHA-256 `511ab39171f57e697070c773664801c58ae2222ab37ed7b7188bb1235021ef29`，41,331,905字节；实际解压94,864,409字节、247文件，95MB预算及模块4MiB、ZIP／解压严格100MB门禁通过。相对前包解压净增336字节。[三游戏v1／v2实际恢复](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/storage/requirements-audit-01/results.json)通过，迁移原件及备份保留，工程进程退出。版本仍为v1.0.3，默认静音、本机回环；[当时运行包验证](../../artifacts/maintenance/v1.0.3/pokemon-expansion-normal-play/requirements-audit-01/results.json)保留该包哈希与通过边界，当前交付见[本地交付](#当前源码与本地交付)。
 
 ## 1.0.3：扩展版能力消耗、原版演出与全量构建（2026-10-07）
 
@@ -26,7 +54,7 @@
 
 本轮全量生产构建18单元、零缓存，32,027ms。首次模块超预算19,172字节，随后目录小封面派生和两段原声无损FLAC编码仅重建metadata／客户端。真实保存验收还发现临时feedback误携带严格协议不接受的effect；[先失败再通过的协议回归](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/rules/feedback-fix-regression.json)修复后，仅重建规则单元，其余17项复用。保存事件的effect继续完整保留，未改网络协议。component样板未能检出该断链，因此最终以真实保存同包复验为准；早期超预算和普通对局失败记录保留。
 
-最终冻结快照 `6993a1af…` 直接组装，无重复编译。[当前运行ZIP](../../artifacts/releases/TableMax-1.0.3-win-x64.zip) **41,331,808字节**，SHA-256 `99f3be469bfd86f14ef4a1d00dee4f80520fd43de2ad91afb96f28133b2d86b1`；[逐文件清单](../../artifacts/releases/TableMax-1.0.3-win-x64-manifest.json)247文件、实际解压 **94,864,073字节**，95MB余135,927字节，宝可梦4MiB及ZIP／实际解压双100MB门禁通过。测试默认静音、本机回环；实体手机、现场局域网、物理DPI、真人听感和真人时长仍独立交接。版本保持v1.0.3，无新标签或GitHub Release；[安全深度瘦身](project-slimming.md)后仅提交本轮改动，并按用户授权push当前分支。
+最终冻结快照 `6993a1af…` 直接组装，无重复编译。[当时运行ZIP审计](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/final-checks.json) **41,331,808字节**，SHA-256 `99f3be469bfd86f14ef4a1d00dee4f80520fd43de2ad91afb96f28133b2d86b1`；[逐文件清单](../../artifacts/maintenance/v1.0.3/pokemon-final-revision/final-package-manifest.json)247文件、实际解压 **94,864,073字节**，95MB余135,927字节，宝可梦4MiB及ZIP／实际解压双100MB门禁通过。测试默认静音、本机回环；实体手机、现场局域网、物理DPI、真人听感和真人时长仍独立交接。版本保持v1.0.3，无新标签或GitHub Release；[安全深度瘦身](project-slimming.md)后仅提交本轮改动，并按用户授权push当前分支。
 
 ## 1.0.3：电力公司数量采购、进度与稳定反馈（2026-10-06）
 
@@ -42,7 +70,7 @@
 
 ## 当前源码与本地交付
 
-当前交付为本页全量构建与GitHub发布章节的 `bdd69433…` ZIP及 `41994ea5…` 完整EXE，源码由最终 `v1.0.3` 标签提交导出。前包 `511ab391…` 与本包逐文件相同，原ZIP／清单另保留；旧包保留各自哈希、冻结清单、通过／失败文字结论和原素材，历史通过结论只对应当时冻结输入。
+当前本地交付为本页v1.0.4章节的 [运行ZIP](../../artifacts/releases/TableMax-1.0.4-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.4-win-x64-manifest.json)，SHA-256 `96518cad…`。前一轮10.7修复 `6761ef78…` 保留在[历史交付](../../artifacts/maintenance/v1.0.4/debug-20261008/previous-delivery/TableMax-1.0.3-win-x64.zip)，不作为当前下载。此前公开发布的 `bdd69433…` ZIP与 `41994ea5…` 完整EXE仍按GitHub发布章节追溯；[原发布附件本地副本](../../artifacts/maintenance/v1.0.3/debug-20261007/previous-release/preserved.json)保留旧EXE／source ZIP大小和哈希，未用本轮源码替换线上附件。旧包各自的冻结清单、通过／失败文字结论和原素材继续保留，历史通过结论只对应当时冻结输入。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
 

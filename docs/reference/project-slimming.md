@@ -1,5 +1,19 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.4 手机玩家视窗与远程续验收尾（2026-10-08）
+
+最终实际 ZIP `96518cad…` 的入口、盒子浮窗、等价 HTTPS 代理双向操作与换机恢复通过后，全部工程进程退出。[开始实测](../../artifacts/maintenance/v1.0.4/debug-20261008/implementation/space-start.json) **17,544,706,145 逻辑字节（16.340 GiB）**。前一已验 v1.0.3 ZIP 与清单[原样移入证据](../../artifacts/maintenance/v1.0.4/debug-20261008/previous-delivery/preserved.json)，大小及 SHA-256 不变；releases 仅保留当前 v1.0.4 运行 ZIP 和清单，不新增 EXE 或源码包。
+
+按明确路径先预览、核对再 Apply：[六个打包暂存目录](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261007-190304-757-releases/cleanup.json)退役 **1,155,948,320 字节**，其中一个为空；[30 个已完成隔离验证目录](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261007-190508-114-intermediates/cleanup.json)退役 **3,743,379,188 字节**。新增已知前缀只匹配六位字母数字后缀，46 项隔离测试确认类似名称和近期保护；手机视窗截图、盒子联系表、远程成功／失败报告及补拍脚本均在外部证据目录保留，不清空 artifacts／tmp。
+
+随后空闲执行 `Maintain-Project.ps1 -Apply`，再退役两份已过保护期的计时验证副本 **172,518 字节**。[最终维护实测](../../artifacts/maintenance/v1.0.4/debug-20261008/implementation/space-final.json)为 **12,645,263,472 逻辑字节（11.777 GiB）**，跳过 1,370 链接、零嵌套仓库。仍超过 10 GiB 且未达 8 GiB，安全候选已耗尽；原素材、正式存档、当前验收证据、依赖／工具缓存及必须原样保留的清理历史继续保护，不扩大删除范围。全部清理共退役 **4,899,500,026 字节**，实测净下降 **4,899,442,673 字节**，差额包括清理中新增的审计／文档，不能把删除量当成容量净变化或 NTFS 物理节省。详见[汇总](../../artifacts/maintenance/v1.0.4/debug-20261008/implementation/cleanup-summary.json)。
+
+三份结束记录[逐文件核验后原样归档](../../artifacts/maintenance/v1.0.4/debug-20261008/implementation/cleanup-record-archive.json)，索引追加现路径，直属 `local-cleanup-*` 剩余零。后续文档和 Git 写入会略增；本轮仅本地提交，不 push 或发布。
+
+## 10.7 浏览器恢复与换机验证的前轮清理（2026-10-08）
+
+前轮 v1.0.3 `6761ef78…` 同包检查结束后，已退出的[两个打包暂存](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261007-163748-254-releases/cleanup.json)退役 **462,351,034 字节**。当时未知的隔离验证前缀采用清理入口的原样保留模式：先保存原内容，再退役临时原路径，共约 1.89 GB；这些字节仍在审计目录中，不能计作净空间回收。中断、进程保护失败及恢复后的原报告均保留，四份结束目录[原样集中归档](../../artifacts/maintenance/v1.0.3/debug-20261007/implementation/cleanup-record-archive.json)，9,853 文件的大小与哈希不变。本轮新增精确前缀后，只清理新的可再生副本，不删除原样归档的旧记录内容。
+
 ## v1.0.3全量构建发布后的维护（2026-10-07）
 
 本轮18单元零缓存全量构建、新ZIP正常游玩／三游戏恢复及完整EXE检查结束后，先[预览](../../artifacts/maintenance/v1.0.3/github-release-20261007/cleanup-preview.txt)再[应用](../../artifacts/maintenance/v1.0.3/github-release-20261007/cleanup-apply.txt)，删除5项再生组装／解压／测试副本 **702,173,302字节**，见[原样归档记录](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261006-182415-395-intermediates/cleanup.json)。前轮及本轮两份已结束清理目录[逐文件核验后集中归档](../../artifacts/maintenance/v1.0.3/github-release-20261007/cleanup-record-archive.json)，原记录字节不变。

@@ -339,7 +339,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
       data-phase={game?.phase}
       data-play-mode={view?.playMode ?? 'play'}
     >
-      <header className="pg-toolbar">
+      <header className="pg-toolbar pg-toolbar--grouped">
         <ScreenLink className="pg-box-link" href={`/${role}`}>
           ‹ 盒子
         </ScreenLink>
@@ -381,32 +381,34 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
         )}
         {role !== 'player' && <FullscreenControl />}
         {role !== 'player' && <DisplaySettings />}
-        <PlayModeBadge mode={view?.playMode} />
-        {role !== 'player' && (
-          <PowerGridSoundControl
-            feedback={session.feedback}
-            game={game}
-            disabled={feedbackDisabled}
-            canPlay={canPlay}
-          />
-        )}
-        {role !== 'player' && (
+        <div className="pg-toolbar-tools">
+          <PlayModeBadge mode={view?.playMode} />
+          {role !== 'player' && (
+            <PowerGridSoundControl
+              feedback={session.feedback}
+              game={game}
+              disabled={feedbackDisabled}
+              canPlay={canPlay}
+            />
+          )}
+          {role !== 'player' && (
+            <button
+              className="pg-company-inspect-entry"
+              aria-label="查看各家公司"
+              title="查看各家公司"
+              onClick={() => showCompany()}
+            >
+              <BoardIcon name="search" />
+            </button>
+          )}
           <button
-            className="pg-company-inspect-entry"
-            aria-label="查看各家公司"
-            title="查看各家公司"
-            onClick={() => showCompany()}
+            className="game-rulebook-entry"
+            onClick={() => setPanel('rules')}
           >
-            <BoardIcon name="search" />
+            规则
           </button>
-        )}
-        <button
-          className="game-rulebook-entry"
-          onClick={() => setPanel('rules')}
-        >
-          规则
-        </button>
-        <button onClick={() => setPanel('menu')}>菜单</button>
+          <button onClick={() => setPanel('menu')}>菜单</button>
+        </div>
       </header>
       {((session.message && session.message !== '已保存') ||
         session.admissionPending ||

@@ -1,0 +1,101 @@
+.player-frame {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 40%, #fffdf0 0, #fffdf000 65%),
+    repeating-linear-gradient(3deg, #fff9ed22 0 3px, #e8d9b800 3px 24px),
+    linear-gradient(120deg, #ead9b5, #f5edd9 50%, #ddceac);
+}
+.player-frame__viewport {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 390px;
+  max-width: 100%;
+  height: min(844px, calc(100dvh - 48px));
+  border: 0;
+  border-radius: 22px;
+  background: #f4f3ed;
+  box-shadow:
+    0 0 0 1px #8c76575c,
+    0 8px 0 #a88c6352,
+    0 24px 70px #5b4a3538;
+}
+.player-frame__scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.player-frame__cards {
+  position: absolute;
+  width: 160px;
+  height: 224px;
+  border: 10px solid #fffaf0;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 50%, #fff4d391 0 25px, #fff4d300 26px),
+    repeating-linear-gradient(45deg, #4c8671 0 10px, #609783 10px 20px);
+  box-shadow:
+    12px 9px 0 -1px #fffaf0,
+    12px 9px 0 0 #bca781,
+    18px 22px 28px #65563724;
+  opacity: 0.65;
+}
+.player-frame__cards--left {
+  top: 28%;
+  right: calc(50% + 270px);
+  transform: rotate(-18deg);
+}
+.player-frame__cards--right {
+  bottom: 22%;
+  left: calc(50% + 270px);
+  transform: rotate(16deg);
+  background:
+    radial-gradient(circle at 50% 50%, #fff4d391 0 25px, #fff4d300 26px),
+    repeating-linear-gradient(45deg, #c79468 0 10px, #d4a87e 10px 20px);
+}
+.player-frame__chip {
+  position: absolute;
+  width: 62px;
+  height: 62px;
+  border: 8px dashed #fff5d6;
+  border-radius: 50%;
+  background: #c5a256;
+  box-shadow:
+    inset 0 0 0 3px #93723e,
+    0 5px 0 #aa8547,
+    0 12px 18px #6556372b;
+  opacity: 0.65;
+}
+.player-frame__chip--left {
+  bottom: 20%;
+  right: calc(50% + 300px);
+  transform: rotate(12deg);
+}
+.player-frame__chip--right {
+  top: 23%;
+  left: calc(50% + 315px);
+  transform: rotate(-15deg);
+}
+@media (max-width: 600px), (hover: none) and (pointer: coarse) {
+  .player-frame {
+    display: block;
+    padding: 0;
+  }
+  .player-frame__viewport {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .player-frame__scene {
+    display: none;
+  }
+}

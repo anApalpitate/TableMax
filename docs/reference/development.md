@@ -1,5 +1,21 @@
 # 开发环境
 
+## 10.7 浏览器玩家与穿透恢复验证（v1.0.3）
+
+当前按 2026-10-08 用户纠正交付 v1.0.4；本标题保留旧锚点。电脑浏览器真人保持中央手机区域，三游戏原手机布局不做宽屏重排。验证器从根 `package.json` 读取版本并核验对应 ZIP／清单的全部解压成员；当前证据位于 `artifacts/maintenance/v1.0.4/debug-20261008/`。玩家 DOM 断言在稳定同源子文档中进行，外层仅用于窗口尺寸与实际截图。
+
+运行 `node scripts/verify-debug-20261007.mjs` 检查当前实际运行 ZIP：隐藏原生 WebView2、静音 Edge、真人授权投影及仅监听 `127.0.0.1` 的 HTTP／HTTPS 代理。默认检查各版本最少／最多人数、1023／1024px、720p、1080p、4K、125%／150%模拟像素密度和手机视口；`--phases-only` 通过合法动作推进关键阶段／结算，`--drafts-only` 检查数量、选城和卡槽草稿，`--mixed-only` 用真实 Worker 人机并以管理员暂停固定验收版本，`--connection-only` 单独检查丢推送、断线、换机批准及二维码配置。当前证据在 `artifacts/maintenance/v1.0.4/debug-20261008/portable/`，凭证不输出到报告。网页根节点仅提供公开的 instance／branch／revision 属性，断言实际渲染版本，不以连接标记替代。
+
+`--finals-only` 从管理员投影取得下一轮动作，完成最大人数的现代艺术四轮和扩展三胜终局；`--density-only` 可只补查125%／150%模拟像素密度。HTTPS 代理证书仅在隔离目录生成；验证器使用本机 OpenSSL 3.4.1，并传入自己的配置，不安装证书或修改全局环境。模拟像素密度及隐藏浏览器不能替代实体手机、现场穿透软件、物理 Windows DPI 与真人听感。`node scripts/verify-debug-recovery.mjs` 另查丢确认、执行暂停恢复和 WSS 升级，核对交付清单哈希和全部解压成员；各报告分别说明证明范围。
+
+`node scripts/verify-debug-remote.mjs --sha256=<当前包SHA256>` 增补 HTTPS 非标准端口根入口的 polling／WSS 双向实际操作，丢推送、同步 ACK、动作 ACK、原动作编号去重、断线与玩家子文档执行暂停恢复，以及真实管理员换机入口。CDP Debugger 暂停实际玩家 Frame，以暂停前后计时差分证明其停止执行；恢复时不合成前台事件、不刷新页面。这是执行暂停模拟，不是实体手机锁屏验收。代理、证书和存档均隔离在仓库内并只监听 127.0.0.1；不访问示例穿透站点、不配置隧道或安装证书。`--self-test` 只核验滤包，`--preflight-only` 只核验包，均不等同于产品连接验收。
+
+`node scripts/verify-box-layout.mjs --sha256=<当前包SHA256> --evidence=<本轮名称>` 从同一运行包检查盒子四种游戏版本、主机／公共／未入座玩家／已入座房主及关键浮窗，输出实际截图、字体／溢出／裁剪／操作可达结果。原生窗口记录实际 CSS 尺寸、缩放和模拟密度，不能把请求的物理窗口大小直接当作 CSS 视口；电脑玩家外层尺寸与内层手机区域分别检查。自动几何检查后人工复核代表截图，竖排标题等虽无溢出仍需修正。
+
+日常使用：电脑管理员的“连接帮助”可保存外部 HTTP(S) 根地址、IP／域名及端口，或对应 `/player` 地址；清空后恢复网卡入口。网址保存在数据目录的 `network-settings.json`，与 checkpoint 分离。樱花等穿透软件仍由用户映射实际服务端口；TableMax 不自动配置隧道，不支持 `/tablemax/` 路径前缀。换设备时在未入座盒子申请原真人座位，电脑管理员在管理设置核对六位码后批准。
+
+本轮 Windows 沙箱曾使 pnpm dependency junction 的 realpath 返回 EPERM，导致 TypeScript 出现依赖类型缺失的误报；沙箱多 worker 的临时转换和 SQLite rename 也受限。使用获准的项目内直接 Node 入口执行相同只读检查及隔离测试，未修改依赖版本或全局配置；失败日志与后续真实检查分开保留。
+
 ## v1.0.3 便携存储与启动迁移（2026-10-06）
 
 用户明确指定v1.0.3。按同日最新微调，单EXE首次启动在旁边新建 `TableMax/` 专属目录，并在其中创建 `TableMax.config.json`；ZIP解压版直接在解压目录创建配置，内容为 `{"dataDirectory":"."}`；相对路径以配置所在目录解析，绝对路径原样使用。主机 Alt → 程序 → 存储设置提供目录选择，原子写入配置并于重启后生效；不自动搬移或覆盖旧数据。存档、日志、显示设置、WebView2缓存均跟随所选数据目录。单文件EXE在 `TableMax/app` 解压运行资源，并向内部桌面传递 `TableMax/` 专属目录；直接运行ZIP内EXE以该EXE目录为默认。不可写／无效配置报错，不能回退C盘。显式 `TABLEMAX_DATA_DIR` 继续服务于已有隔离验证。
@@ -407,6 +423,8 @@ v1.0.3新增已知隔离副本 `tmp/portable-storage-<六位随机后缀>`，通
 实际执行记录写入 `artifacts/maintenance/local-cleanup-<UTC时间>-<类别>/cleanup.json`，逐项记录路径、字节、删除状态、跳过原因及保留的当前 ZIP 哈希；维护模式另记目标工作区、水位和前后字节。一次性脚本在同目录 `temporary-scripts` 归档。记录保持文件树可见、Git 忽略。`tmp/modern-art-verify-*` 仅对应已核验的旧现代艺术整局隔离数据（六位随机后缀），不包含 UI 工具、研究或截图证据目录；`tmp/experience-*` 仅用于新版操作验证的隔离数据和便携解压，`tmp/runtime-memory-*` 仅用于内存测量；均按已知前缀清理，正式证据按版本保留在 `artifacts/maintenance/v<版本>/`，不参与临时文件清理。
 
 `tmp/app-icon-verify-*` 与 `tmp/tablemax-sqlite-migration-*` 的六位随机后缀目录分别是图标验证／便携解压及服务迁移验证的隔离副本，归入已知中间物；图标原素材和迁移原始存档仍保留在资源及历史证据目录。
+
+v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`、`tmp/debug-remote-*` 和 `tmp/game-review-*` 纳入已知隔离副本，只匹配六位字母数字后缀；分别对应本轮盒子、游戏与连接、恢复、远程双向验证及只读游戏视图补拍。补拍源码、实际图与报告保留在 `artifacts/maintenance/v1.0.4/debug-20261008/portable/game-review/`，当前截图和报告不参与临时目录清理。使用 `scripts/cleanup-local.test.ps1 -VerificationPrefixesOnly` 复核这些精确匹配及类似名称／近期保护；新增前缀不扩大至未知临时内容。
 
 修改工具后运行 `powershell.exe -NoProfile -File scripts/cleanup-local.test.ps1` 与 `powershell.exe -NoProfile -File scripts/project-maintenance.test.ps1`。前者检查手动预览、ZIP／进程／链接／白名单／近期保护、脚本归档及显式构建清理；后者用隔离 Git 主仓库和 worktree 检查目录发现、不重复计量、高低水位、最旧优先、互斥及候选耗尽。测试不清理真实 release，结果分别保存在 `artifacts/maintenance/cleanup-history/tool-checks/current/tool-tests.json` 和 `artifacts/maintenance/project-maintenance-tools/tool-tests.json`。
 

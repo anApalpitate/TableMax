@@ -168,32 +168,34 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
           />
         )}
         <PlayModeBadge mode={view?.playMode} />
-        <ModernArtSoundControl
-          feedback={session.feedback}
-          game={game}
-          errorId={session.errorId}
-          disabled={view?.playMode === 'test' || view?.paused || !connected}
-          canPlay={canPlay}
-          localOnly={role === 'player'}
-          timer={
-            clock && view
-              ? {
-                  key: `${view.instanceId}:${view.branch}:modern-art-time-elapsed:${clock.id}`,
-                  remainingMs,
-                  running: clock.running,
-                }
-              : null
-          }
-        />
-        <button
-          className="secondary game-rulebook-entry"
-          onClick={() => setPanel('rules')}
-        >
-          规则
-        </button>
-        <button className="secondary" onClick={() => setPanel('menu')}>
-          菜单
-        </button>
+        <div className="ma-toolbar-tools">
+          <ModernArtSoundControl
+            feedback={session.feedback}
+            game={game}
+            errorId={session.errorId}
+            disabled={view?.playMode === 'test' || view?.paused || !connected}
+            canPlay={canPlay}
+            localOnly={role === 'player'}
+            timer={
+              clock && view
+                ? {
+                    key: `${view.instanceId}:${view.branch}:modern-art-time-elapsed:${clock.id}`,
+                    remainingMs,
+                    running: clock.running,
+                  }
+                : null
+            }
+          />
+          <button
+            className="secondary game-rulebook-entry"
+            onClick={() => setPanel('rules')}
+          >
+            规则
+          </button>
+          <button className="secondary" onClick={() => setPanel('menu')}>
+            菜单
+          </button>
+        </div>
       </header>
       {showSessionFeedback && <SessionFeedback session={session} />}
       {!game || !view ? (

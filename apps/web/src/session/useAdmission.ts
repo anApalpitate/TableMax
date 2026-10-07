@@ -4,6 +4,9 @@ import {
   SessionReplySchema,
   type AvatarId,
 } from '@tablemax/protocol';
+import { randomId } from './randomId';
+import { AdmissionRecovery, ADMISSION_TIMEOUT } from './admissionRecovery';
+import { ROOM_SYNC_INTERVAL } from './reliableRoomSync';
 
 const storageKey = 'tablemax-admission';
 type Admission = {
@@ -48,11 +51,12 @@ export function useAdmission(
   );
   const [busy, setBusy] = useState(false);
   const current = useRef(pending);
-  const active = useRef<AbortController | null>(null);
+  const recovery = useRef(new AdmissionRecovery());
+  const runRef = useRef<(request: Admission) => Promise<void>>(async () => {});
   const mounted = useRef(true);
   const run = useCallback(
     async (request: Admission) => {
-      if (active.current) return;
+      if (!mounted.current) return;
       // Do not automatically resubmit an old request after the server's
       // recovery window: its receipt may already have been pruned.
       if (request.createdAt + 24 * 60 * 60 * 1000 <= Date.now()) {
@@ -66,11 +70,12 @@ export function useAdmission(
         setMessage(messages['session-request-expired']!);
         return;
       }
-      const controller = new AbortController();
-      active.current = controller;
+      const attempt = recovery.current.begin();
+      if (!attempt) return;
+      const controller = attempt.controller;
       setBusy(true);
       setMessage('正在入座…');
-      const timeout = setTimeout(() => controller.abort(), 8000);
+      const timeout = setTimeout(() => controller.abort(), ADMISSION_TIMEOUT);
       try {
         // Persist before sending. Reload and uncertain replies reuse this key.
         localStorage.setItem(storageKey, JSON.stringify(request));
@@ -88,6 +93,7 @@ export function useAdmission(
           }),
         });
         const parsed = SessionReplySchema.safeParse(await response.json());
+        if (!mounted.current || !recovery.current.isCurrent(attempt)) return;
         if (!parsed.success) throw new Error('invalid-session-reply');
         const reply = parsed.data;
         if (reply.ok) {
@@ -116,7 +122,7 @@ export function useAdmission(
             );
         }
       } catch {
-        if (mounted.current)
+        if (mounted.current && recovery.current.isCurrent(attempt))
           setMessage(
             current.current
               ? '尚未收到入座确认。可重试原请求，刷新也不会重复占座。'
@@ -124,28 +130,53 @@ export function useAdmission(
           );
       } finally {
         clearTimeout(timeout);
-        active.current = null;
-        if (mounted.current) setBusy(false);
+        const finished = recovery.current.finish(attempt);
+        if (mounted.current && finished.current) setBusy(false);
+        if (
+          mounted.current &&
+          finished.recover &&
+          current.current &&
+          document.visibilityState !== 'hidden'
+        )
+          queueMicrotask(() => {
+            if (mounted.current && current.current)
+              void runRef.current(current.current);
+          });
       }
     },
     [setCredential, setMessage, messages],
   );
   useEffect(() => {
-    mounted.current = true;
+    runRef.current = run;
+  }, [run]);
+  const cancel = useCallback(() => {
+    recovery.current.cancel();
+    current.current = null;
+    localStorage.removeItem(storageKey);
+    setPending(null);
+    setBusy(false);
+  }, []);
+  useEffect(() => {
+    mounted.current = enabled;
     if (!enabled) return;
+    const gate = recovery.current;
     try {
       const previous = JSON.parse(
         localStorage.getItem(storageKey) ?? 'null',
       ) as { kind?: string } | null;
       if (previous?.kind === 'redeem') {
         localStorage.removeItem(storageKey);
-        setMessage('换手机功能已移除，请使用原浏览器检查原座位。');
+        setMessage('旧换机请求已过期，请重新申请接管座位。');
       }
     } catch {
       /* Invalid local data never becomes a new admission. */
     }
     const recover = () => {
-      if (document.visibilityState !== 'hidden' && current.current)
+      if (
+        document.visibilityState !== 'hidden' &&
+        current.current &&
+        gate.recover()
+      )
         void run(current.current);
     };
     const initialRecovery = setTimeout(() => {
@@ -154,16 +185,19 @@ export function useAdmission(
     window.addEventListener('online', recover);
     window.addEventListener('pageshow', recover);
     document.addEventListener('visibilitychange', recover);
+    const interval = setInterval(recover, ROOM_SYNC_INTERVAL);
     return () => {
       mounted.current = false;
       clearTimeout(initialRecovery);
-      active.current?.abort();
+      gate.cancel();
+      clearInterval(interval);
       window.removeEventListener('online', recover);
       window.removeEventListener('pageshow', recover);
       document.removeEventListener('visibilitychange', recover);
     };
   }, [enabled, run, setMessage]);
   return {
+    cancel,
     busy,
     pending: Boolean(pending),
     avatarId: pending?.avatarId,
@@ -178,10 +212,7 @@ export function useAdmission(
           value: value.trim(),
           createdAt: Date.now(),
           ...(avatarImage ? { avatarImage } : avatarId ? { avatarId } : {}),
-          requestKey: Array.from(
-            crypto.getRandomValues(new Uint8Array(32)),
-            (byte) => byte.toString(16).padStart(2, '0'),
-          ).join(''),
+          requestKey: randomId(32),
         };
       return run(request);
     },

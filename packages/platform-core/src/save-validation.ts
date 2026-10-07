@@ -8,6 +8,7 @@ import {
 import type { Save, Snapshot } from './model';
 import { requireThat } from './errors';
 import { decisionClockKey } from './countdown';
+import { isSealedCredential } from './session-receipts';
 export function validateSave(
   input: unknown,
   rules: GameRules | null,
@@ -316,7 +317,7 @@ export function validateSave(
       /^[0-9a-f]{64}$/.test(key) &&
         receipt &&
         /^[0-9a-f]{64}$/.test(receipt.fingerprint) &&
-        /^[0-9a-f]{120}$/.test(receipt.sealedCredential) &&
+        isSealedCredential(receipt.sealedCredential) &&
         typeof receipt.seatId === 'string' &&
         typeof receipt.duplicateName === 'boolean' &&
         Number.isSafeInteger(receipt.expires) &&
@@ -324,6 +325,34 @@ export function validateSave(
       'damaged-save',
     );
   d.sessionReceipts ??= {};
+  requireThat(
+    d.transferRequests === undefined ||
+      (d.transferRequests !== null &&
+        typeof d.transferRequests === 'object' &&
+        !Array.isArray(d.transferRequests) &&
+        Object.keys(d.transferRequests).length <= 128),
+    'damaged-save',
+  );
+  for (const [key, request] of Object.entries(d.transferRequests ?? {})) {
+    requireThat(
+      /^[0-9a-f]{64}$/.test(key) &&
+        request &&
+        typeof request.id === 'string' &&
+        /^[0-9a-f-]{36}$/.test(request.id) &&
+        typeof request.seatId === 'string' &&
+        /^[0-9a-f]{64}$/.test(request.previousTokenHash) &&
+        /^[0-9a-f]{64}$/.test(request.candidateTokenHash) &&
+        isSealedCredential(request.sealedCredential) &&
+        /^[0-9]{6}$/.test(request.verificationCode) &&
+        Number.isSafeInteger(request.expires) &&
+        request.expires > 0 &&
+        ['pending', 'approved', 'rejected', 'cancelled'].includes(
+          request.status,
+        ),
+      'damaged-save',
+    );
+  }
+  d.transferRequests ??= {};
   d.readyWindow ??= { floor: d.revision, seats: {} };
   // Old binding requests are inert; existing phone credentials still restore.
   delete d.bindings;
