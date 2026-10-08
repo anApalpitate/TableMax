@@ -270,7 +270,9 @@ export function PlantCard({
         <span className="pg-plant-fuel-name">{FUEL_LABELS[plant.fuel]}</span>
       </div>
       {art ? (
-        <div className="pg-plant-art" style={art} />
+        <div className="pg-plant-art">
+          <div className="pg-plant-art__sprite" style={art} />
+        </div>
       ) : (
         <PlantIllustration fuel={plant.fuel} />
       )}

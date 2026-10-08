@@ -1012,3 +1012,41 @@
     margin: 0;
   }
 }
+
+.box-screen .box-transfer-entry {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  align-self: center;
+  width: 180px;
+  min-height: 48px;
+  margin: 12px auto;
+  padding: 10px 12px;
+  border: 1px solid #a5bda3;
+  border-radius: 14px;
+  background: #e9f0e2;
+  color: #245a49;
+  font-size: 18px;
+  line-height: 1.3;
+}
+.box-screen .box-transfer-entry svg {
+  flex: none;
+}
+.box-screen .box-transfer-entry:hover:not(:disabled) {
+  background: #dce9d5;
+  border-color: #547c5c;
+}
+.box-screen .box-transfer-entry:focus-visible {
+  outline: 3px solid #c99c3b;
+  outline-offset: 3px;
+}
+.box-screen .room-table__seat {
+  gap: 3px;
+}
+.box-screen .room-table__identity {
+  margin-top: 4px;
+}
+.box-screen .room-table__name {
+  line-height: 1.3;
+}

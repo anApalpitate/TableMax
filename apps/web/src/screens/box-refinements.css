@@ -50,12 +50,11 @@
 }
 .box-screen .room-table__seat {
   height: auto;
-  min-height: 200px;
+  min-height: 160px;
 }
 .box-screen .room-table__name {
   display: block;
   flex-shrink: 0;
-  -webkit-line-clamp: unset;
   overflow: visible;
   line-height: 1.35;
 }
@@ -101,8 +100,8 @@
   line-height: 1.35;
 }
 .box-screen .stage > .box-transfer-entry {
-  width: 100%;
-  margin: 0 0 14px;
+  width: 180px;
+  margin: 12px auto;
   font-size: 18px;
 }
 .box-screen .controls .box-identity-notice {
@@ -128,7 +127,7 @@
   }
   .box-screen:not(.player) .room-table__seat {
     height: auto;
-    min-height: 200px;
+    min-height: 160px;
   }
   .box-screen:not(.player) .room-table__felt {
     top: calc(50% - 130px);
@@ -204,5 +203,50 @@
   }
   .box-screen .room-table__felt strong {
     max-width: 80px;
+  }
+}
+
+@media (max-width: 600px) {
+  .box-screen.player .room-table {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 12px;
+    min-height: 0;
+  }
+  .box-screen.player .room-table__seat {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    min-height: 160px;
+  }
+  .box-screen.player .room-table__felt strong {
+    visibility: hidden;
+  }
+}
+
+@media (min-width: 861px) and (max-height: 760px) {
+  .box-screen:not(.player) .hero {
+    margin: 8px 0;
+    padding: 6px 16px;
+  }
+  .box-screen:not(.player) .hero > img {
+    width: 40px;
+    height: 44px;
+  }
+  .box-screen:not(.player) .host-lobby {
+    padding: 4px 10px;
+    margin-bottom: 8px;
+  }
+  .box-screen:not(.player) .stage {
+    padding: 10px;
+  }
+  .box-screen:not(.player) .room-table {
+    min-height: 400px;
+  }
+  .box-screen:not(.player) .room-table__felt {
+    top: calc(50% - 100px);
+    height: 200px;
   }
 }

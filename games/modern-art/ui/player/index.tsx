@@ -284,7 +284,7 @@ export function PlayerControls({
       <div className="ma-player__cards">
         <div className="ma-section-heading ma-hand-heading">
           <h2>
-            {!activityMessage && view.phase === 'double'
+            {!activityMessage && view.phase === 'double' && offered.size > 0
               ? '选择同艺术家的第二幅画'
               : view.phase === 'offer' && offered.size
                 ? '选择一幅画作上拍'

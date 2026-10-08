@@ -320,7 +320,7 @@ async function rootPlayer(url, label, viewport) {
   assert.ok(rect);
   const expectedWidth =
     viewport.width >= 800
-      ? Math.max(320, Math.min(430, ((viewport.height - 48) * 9) / 19.5))
+      ? Math.max(390, Math.min(480, ((viewport.height - 32) * 9) / 20))
       : viewport.width;
   assert.ok(Math.abs(rect.width - expectedWidth) < 2);
   assert.ok(Math.abs(rect.x + rect.width / 2 - viewport.width / 2) < 2);

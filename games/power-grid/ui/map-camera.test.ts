@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   cameraScale,
+  MIN_MAP_ZOOM,
   CLASSIC_MAP_FRAME,
   clampCamera,
   focusCamera,
@@ -78,7 +79,7 @@ it('uses full-image hard edges even when drawers cover most of the viewport', ()
       height: height!,
       insets: { left: 700, right: 240, top: 0, bottom: 250 },
     };
-    for (const zoom of [1, 2, 4])
+    for (const zoom of [MIN_MAP_ZOOM, 1, 2, 4])
       for (const dx of [-100000, 100000])
         for (const dy of [-100000, 100000]) {
           const camera = panCamera(
@@ -107,7 +108,13 @@ it('uses full-image hard edges even when drawers cover most of the viewport', ()
 it('normalizes pixel/line/page wheel deltas and respects zoom limits', () => {
   expect(wheelZoomTarget(2, 16, 0, 500)).toBe(wheelZoomTarget(2, 1, 1, 500));
   expect(wheelZoomTarget(2, 500, 0, 500)).toBe(wheelZoomTarget(2, 1, 2, 500));
-  expect(wheelZoomTarget(1, 500, 0, 500)).toBe(1);
+  expect(wheelZoomTarget(MIN_MAP_ZOOM, 500, 0, 500)).toBe(MIN_MAP_ZOOM);
+  expect(
+    clampCamera(
+      { ...initialCamera(), zoom: 0 },
+      { width: 320, height: 640, insets: NO_INSETS },
+    ).zoom,
+  ).toBe(MIN_MAP_ZOOM);
   expect(wheelZoomTarget(4, -500, 0, 500)).toBe(4);
 });
 it('uses decorative side terrain to reveal edge targets behind drawers', () => {

@@ -458,7 +458,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
               )}
             </div>
           )}
-          <GameProgress view={game} names={names} mobile={role === 'player'} />
+          {role !== 'player' && <GameProgress view={game} names={names} />}
           {game.phase === 'ended' ? (
             results
           ) : role === 'player' ? (
@@ -469,6 +469,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
             >
               {(dock) => [
                 <div key="action" className="pg-phone-table">
+                  <GameProgress view={game} names={names} mobile />
                   {['building', 'regions'].includes(game.phase) && (
                     <div className="pg-phone-map">{map}</div>
                   )}

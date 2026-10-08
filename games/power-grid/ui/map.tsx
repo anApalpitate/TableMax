@@ -17,6 +17,7 @@ import type { Phase } from '../types';
 import { OverlayPanel } from '@tablemax/web-host';
 import {
   MAP_FRAME,
+  MIN_MAP_ZOOM,
   NO_INSETS,
   initialCamera,
   cameraScale,
@@ -1319,7 +1320,7 @@ export function GermanyMap({
           <button
             type="button"
             aria-label="缩小地图"
-            disabled={scale <= 1}
+            disabled={scale <= MIN_MAP_ZOOM}
             onClick={() => zoom(scale - 0.4)}
           >
             −
@@ -1361,20 +1362,22 @@ export function GermanyMap({
         </p>
       )}
       <div className="pg-city-picker">
-        <select
-          aria-label="选择城市"
-          value={selected ?? ''}
-          onChange={(event) => pickCity(event.target.value)}
-        >
-          <option value="">选择城市</option>
-          {GERMANY_CITIES.filter((city) => regions.includes(city.region)).map(
-            (city) => (
-              <option key={city.id} value={city.id}>
-                {city.name} {city.nameDe}
-              </option>
-            ),
-          )}
-        </select>
+        {role === 'host' && (
+          <select
+            aria-label="选择城市"
+            value={selected ?? ''}
+            onChange={(event) => pickCity(event.target.value)}
+          >
+            <option value="">选择城市</option>
+            {GERMANY_CITIES.filter((city) => regions.includes(city.region)).map(
+              (city) => (
+                <option key={city.id} value={city.id}>
+                  {city.name} {city.nameDe}
+                </option>
+              ),
+            )}
+          </select>
+        )}
         {selectedCity &&
           (role === 'player' ? (
             cityInfo

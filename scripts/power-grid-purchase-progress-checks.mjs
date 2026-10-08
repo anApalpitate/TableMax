@@ -299,9 +299,15 @@ export async function verifyPurchaseProgress(page, fixtures, report, output) {
         scrollable: node.scrollHeight > node.clientHeight,
       };
     });
-  assert.notEqual(report.marketScrollbar.colors, 'auto');
   assert.notEqual(report.marketScrollbar.thumb, report.marketScrollbar.track);
-  assert.equal(report.marketScrollbar.width, 'thin');
+  assert.equal(report.marketScrollbar.width, 'auto');
+  assert.equal(
+    await page
+      .locator('#pg-board-market .pg-board-drawer-content')
+      .evaluate((node) => getComputedStyle(node, '::-webkit-scrollbar').width),
+    '10px',
+    'Chromium uses the round native scrollbar without standard-property overrides',
+  );
   assert.ok(
     report.marketScrollbar.scrollable,
     'The market exercises its scrollbar',
@@ -395,7 +401,8 @@ export async function verifyPurchaseProgress(page, fixtures, report, output) {
       'Quantity controls fit the phone width without clipping',
     );
     const progress = page.locator('.pg-game-progress');
-    await progress.locator('summary').click();
+    if ((await progress.getAttribute('open')) === null)
+      await progress.locator('summary').click();
     assert.equal(await progress.getAttribute('open'), '');
     await verifyTrack(page, fixture.game);
     const browsing = await progress

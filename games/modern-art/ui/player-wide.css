@@ -10,42 +10,124 @@
 @media (min-width: 960px) {
   [data-player-display='wide'] .ma-screen.player .ma-table {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(180px, 0.28fr) minmax(260px, 0.34fr) minmax(
+        280px,
+        0.38fr
+      );
+    gap: 16px;
     align-items: start;
-    gap: 16px 24px;
     max-width: 1480px;
     margin: 0 auto;
   }
   [data-player-display='wide'] .ma-screen.player .ma-table > .ma-market {
-    grid-column: 1 / -1;
+    grid-column: 1/-1;
+    padding: 8px 12px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
   }
-  [data-player-display='wide'] .ma-screen.player .ma-table > .ma-center {
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-market
+    > .ma-section-heading {
+    display: none;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-market__columns {
+    gap: 8px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-artist {
+    position: relative;
+    padding: 6px 8px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 2px 6px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-artist__identity {
+    grid-column: 1/-1;
+    gap: 4px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-artist__swatch {
+    width: 24px;
+    height: 24px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-artist h3 {
+    font-size: 16px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-artist__count {
+    margin: 0;
+    font-size: 16px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-artist__value {
+    margin: 0;
+    font-size: 24px;
+    grid-row: 2;
+    grid-column: 2;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-artist__meaning {
+    grid-column: 1/-1;
+    font-size: 16px;
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    :is(
+      .ma-artist__pips,
+      .ma-artist__breakdown,
+      .ma-market-tips,
+      .ma-market__supply > span
+    ) {
+    display: none;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-market__supply {
+    margin: 0;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-market-history-control {
+    min-height: 48px;
+    max-width: 80px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-center {
     grid-column: 1;
     grid-row: 2;
+    min-width: 0;
   }
   [data-player-display='wide'] .ma-screen.player .ma-player {
     display: contents;
   }
   [data-player-display='wide'] .ma-screen.player .ma-player__operations {
-    grid-column: 1;
-    grid-row: 3;
+    grid-column: 2;
+    grid-row: 2;
     min-width: 0;
+    background: #f9f2e5;
+    border: 1px solid #d9b995;
+    border-radius: 16px;
+    padding: 14px;
   }
   [data-player-display='wide'] .ma-screen.player .ma-player__cards {
-    grid-column: 2;
-    grid-row: 2 / span 3;
+    grid-column: 3;
+    grid-row: 2 / span 2;
     min-width: 0;
+    max-height: calc(100dvh - 230px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    padding: 0 6px;
   }
   [data-player-display='wide'] .ma-screen.player .ma-table > .ma-latest {
-    grid-column: 1;
-    grid-row: 4;
+    grid-column: 1 / span 2;
+    grid-row: 3;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-museums-control {
+    grid-column: 3;
+    justify-self: start;
   }
   [data-player-display='wide'] .ma-screen.player .ma-hand {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 190px));
     gap: 10px;
     overflow: visible;
     max-height: none;
+    justify-content: center;
   }
   [data-player-display='wide'] .ma-screen.player .ma-hand__card {
     width: 100%;
@@ -54,31 +136,283 @@
   [data-player-display='wide'] .ma-screen.player .ma-section-heading h2 {
     font-size: 20px;
   }
-}
-@media (min-width: 960px) and (max-height: 760px) {
-  [data-player-display='wide'] .ma-screen.player .ma-player__operations {
-    grid-row: 2;
+  [data-player-display='wide'] .ma-screen.player .ma-auction {
+    padding: 12px;
+    min-height: 0;
   }
-  [data-player-display='wide'] .ma-screen.player .ma-table > .ma-center {
-    grid-row: 3;
+  [data-player-display='wide'] .ma-screen.player .ma-auction__paintings {
+    gap: 8px;
+    margin: 8px 0;
   }
-  [data-player-display='wide'] .ma-screen.player .ma-artist {
-    padding: 8px;
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-auction__paintings
+    > .ma-card {
+    width: min(100%, 220px);
+    max-width: 220px;
   }
-  [data-player-display='wide'] .ma-screen.player .ma-artist__pips {
+  [data-player-display='wide'] .ma-screen.player .ma-auction__participants {
+    grid-template-columns: repeat(var(--ma-seats), minmax(0, 1fr));
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-auction--waiting {
+    padding: 20px 12px;
+    min-height: 0;
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-auction--waiting
+    .ma-gavel {
     display: none;
   }
-  [data-player-display='wide'] .ma-screen.player .ma-artist__value {
-    font-size: 28px;
-    margin: 2px 0;
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-table:is([data-hand-action], [data-phase='double']) {
+    grid-template-columns: minmax(320px, 0.4fr) minmax(0, 0.6fr);
+    grid-template-rows: auto max-content max-content 1fr;
   }
-  [data-player-display='wide'] .ma-screen.player .ma-market-tips {
-    margin-top: 4px;
-    padding: 4px 8px;
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-table:is([data-hand-action], [data-phase='double'])
+    .ma-player__operations {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-table:is([data-hand-action], [data-phase='double'])
+    .ma-player__cards {
+    grid-column: 2;
+    grid-row: 2 / span 3;
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-table:is([data-hand-action], [data-phase='double'])
+    > .ma-latest {
+    grid-column: 1;
+    grid-row: 4;
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-table:is([data-hand-action], [data-phase='double'])
+    .ma-museums-control {
+    grid-column: 2;
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-table:is([data-hand-action], [data-phase='double'])
+    .ma-auction:has(.ma-theme--double) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-table:is([data-hand-action], [data-phase='double'])
+    .ma-auction__label {
+    grid-column: 1 / -1;
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-table[data-phase='ended']
+    .ma-center,
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-table[data-phase='round-result']
+    .ma-center {
+    grid-column: 1 / span 2;
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-table:is([data-phase='ended'], [data-phase='round-result'])
+    .ma-player__operations {
+    grid-row: 3;
+    grid-column: 1 / span 2;
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-table[data-phase='ended']
+    :is(.ma-player__cards, .ma-player__operations) {
+    display: none;
   }
 }
-@media (min-width: 1200px) {
-  [data-player-display='wide'] .ma-screen.player .ma-hand {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+@media (min-width: 960px) and (max-height: 760px) {
+  [data-player-display='wide'] .ma-screen.player .ma-player__cards {
+    max-height: none;
+    overflow: visible;
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-auction__paintings
+    > .ma-card {
+    max-width: 170px;
+  }
+}
+
+@media (min-width: 960px) {
+  [data-player-display='wide'] .ma-screen.player .ma-artist__identity {
+    margin: 0;
+    flex-wrap: nowrap;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-artist__count strong {
+    font-size: 18px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-artist__meaning {
+    line-height: 1.25;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-market-history-control {
+    white-space: nowrap;
+    max-width: none;
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-auction:has(.ma-theme--once, .ma-theme--sealed)
+    .ma-auction__participants {
+    display: none;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-theme {
+    padding: 8px;
+  }
+}
+
+.ma-screen.ma-panel .ma-market-history-control {
+  display: none;
+}
+
+@media (min-width: 960px) {
+  [data-player-display='wide'] .ma-screen.player .ma-auction {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-auction__label h2 {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-auction__label p {
+    max-width: none;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-auction__paintings {
+    width: 100%;
+    flex: none;
+    margin: 0;
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-auction__paintings
+    > .ma-card {
+    flex: 0 1 220px;
+    min-width: 0;
+    transform: none;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-theme {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-theme__caption {
+    display: none;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-theme__envelopes {
+    gap: 6px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-theme__envelopes svg {
+    width: 24px;
+    height: 20px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-theme__envelopes > span {
+    gap: 3px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-theme__ring {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-theme__ring > span {
+    position: static;
+    transform: none;
+    width: 28px;
+    height: 28px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-theme__ring > b {
+    position: static;
+    transform: none;
+    flex: none;
+    width: 28px;
+    height: 28px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-theme__lead {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-theme__identity {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-theme__identity > span {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-wallet {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-wallet > div {
+    white-space: nowrap;
+    flex: none;
+  }
+}
+@media (min-width: 960px) and (max-height: 760px) {
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-auction__paintings
+    > .ma-card {
+    max-width: 140px;
+    flex-basis: 140px;
+  }
+}
+
+@media (min-width: 960px) {
+  [data-player-display='wide'] .ma-screen.player .ma-theme__ring > svg,
+  [data-player-display='wide'] .ma-screen.player .ma-theme__ring > span {
+    display: none;
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-theme--once
+    > .ma-theme__caption {
+    display: block;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-theme__stairs {
+    height: 28px;
+    max-width: 150px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-theme__stairs i {
+    height: 10px;
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-theme__stairs
+    i:nth-child(2) {
+    height: 18px;
+  }
+  [data-player-display='wide']
+    .ma-screen.player
+    .ma-theme__stairs
+    i:nth-child(3) {
+    height: 28px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-theme__stairs svg {
+    width: 22px;
+    height: 22px;
+    top: 0;
   }
 }

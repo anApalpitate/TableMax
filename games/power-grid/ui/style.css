@@ -435,6 +435,17 @@
 .pg-screen .pg-plant-art {
   width: 100%;
   aspect-ratio: 180 / 94;
+  position: relative;
+  overflow: hidden;
+  container-type: size;
+}
+.pg-screen .pg-plant-art__sprite {
+  position: absolute;
+  width: max(100cqw, 100cqh);
+  height: max(100cqw, 100cqh);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   background-repeat: no-repeat;
 }
 .pg-screen .pg-plant-engine {

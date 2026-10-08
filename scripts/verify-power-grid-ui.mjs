@@ -106,6 +106,7 @@ const entry = `
 import React,{useState} from 'react';import {createRoot} from 'react-dom/client';
 import {client} from ${JSON.stringify(resolve('apps/web/src/game-clients/PowerGridScreen.tsx'))};
 import ${JSON.stringify(resolve('apps/web/src/styles.css'))};
+import ${JSON.stringify(resolve('apps/web/src/scrollbars.css'))};
 const fixtures=await (await fetch('./fixtures.json')).json();
 window.__commands=[];window.__plays=[];
 HTMLMediaElement.prototype.play=function(){window.__plays.push(this.src);return Promise.resolve();};
@@ -677,9 +678,7 @@ try {
       .locator('.pg-page-nav')
       .getByRole('button', { name: '地图', exact: true })
       .click();
-    await page
-      .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
-      .selectOption(option.cityId);
+    await choosePhoneCity(page, option.cityId);
     await page
       .getByRole('button', { name: '放大地图' })
       .click({ clickCount: 2, delay: 70 });
@@ -723,6 +722,27 @@ try {
     assert.deepEqual(report.requests, []);
     report.status = 'passed';
   } else if (mapOnly) {
+    for (const role of ['host', 'public', 'player']) {
+      await page.setViewportSize({ width: 1280, height: 720 });
+      await page.evaluate((role) => window.setFixture('building', role), role);
+      await page.waitForTimeout(150);
+      assert.equal(
+        await page.getByLabel('选择城市', { exact: true }).count(),
+        role === 'host' ? 1 : 0,
+      );
+      const map = page.locator('.pg-map-panel:visible').first();
+      await map.getByRole('button', { name: '复位', exact: true }).click();
+      const minus = map.getByRole('button', { name: '缩小地图', exact: true });
+      for (let i = 0; i < 4 && (await minus.isEnabled()); i++)
+        await minus.click();
+      assert.equal(Number(await map.getAttribute('data-map-zoom')), 0.64);
+      assert.ok(await minus.isDisabled());
+      await map.getByRole('button', { name: '复位', exact: true }).click();
+      assert.equal(Number(await map.getAttribute('data-map-zoom')), 1);
+    }
+    report.actions.push(
+      'Host-only city locator; three roles can zoom to 0.64 and reset to 1',
+    );
     await verifyStageSummaries();
     await verifyBoardFacts(page, fixtures, report);
     await verifyUiPolish(page, fixtures, report, output);
@@ -765,13 +785,9 @@ try {
     const target = page.locator(
       `.pg-phone-page:not([hidden]) .pg-phone-map [data-city="${city}"]`,
     );
-    await page
-      .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
-      .selectOption(city);
+    await choosePhoneCity(page, city);
     await page.waitForTimeout(350);
-    await page
-      .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
-      .selectOption('');
+    await choosePhoneCity(page, '');
     await page.waitForTimeout(80);
     const targetPoint = await target.evaluate((node) => {
       const matrix = node.getScreenCTM();
@@ -780,26 +796,26 @@ try {
     await page.mouse.click(targetPoint.x, targetPoint.y);
     assert.equal(
       await page
-        .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
-        .inputValue(),
+        .locator(
+          '.pg-phone-page:not([hidden]) .pg-phone-map [aria-pressed="true"][data-city]',
+        )
+        .getAttribute('data-city'),
       city,
       'Pointer hit selects the correct rotated city',
     );
-    await page
-      .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
-      .selectOption('');
+    await choosePhoneCity(page, '');
     await target.focus();
     await page.keyboard.press('Enter');
     assert.equal(
       await page
-        .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
-        .inputValue(),
+        .locator(
+          '.pg-phone-page:not([hidden]) .pg-phone-map [aria-pressed="true"][data-city]',
+        )
+        .getAttribute('data-city'),
       city,
       'Keyboard and pointer selection agree',
     );
-    await page
-      .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
-      .selectOption(city);
+    await choosePhoneCity(page, city);
     await page
       .getByRole('button', { name: '放大地图' })
       .click({ clickCount: 2, delay: 70 });
@@ -858,14 +874,14 @@ try {
     await page.setViewportSize({ width: 320, height: 568 });
     await page.waitForTimeout(50);
     const selectableCities = await page
-      .locator('.pg-phone-page:not([hidden]) .pg-phone-map select option')
-      .evaluateAll((nodes) => nodes.map((node) => node.value).filter(Boolean));
+      .locator(
+        '.pg-phone-page:not([hidden]) .pg-phone-map [data-city][tabindex="0"]',
+      )
+      .evaluateAll((nodes) => nodes.map((node) => node.dataset.city));
     for (const entry of board.cities.filter((city) =>
       selectableCities.includes(city.id),
     )) {
-      await page
-        .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
-        .selectOption(entry.id);
+      await choosePhoneCity(page, entry.id);
       await page.waitForTimeout(50);
       const bounds = await page
         .locator(
@@ -890,9 +906,7 @@ try {
           JSON.stringify({ city: entry.id, bounds }),
       );
     }
-    await page
-      .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
-      .selectOption(city);
+    await choosePhoneCity(page, city);
     await page.screenshot({
       path: join(output, 'rotated-map-player-320.png'),
       fullPage: true,
@@ -1269,9 +1283,7 @@ try {
     const legalCity = fixtures.building.actions.find(
       (action) => action.type === 'build',
     ).cityId;
-    await page
-      .locator('.pg-phone-page:not([hidden]) .pg-phone-map select')
-      .selectOption(legalCity);
+    await choosePhoneCity(page, legalCity);
     await page.locator('.pg-build-preview .pg-primary').click();
     assert.deepEqual(
       (await page.evaluate(() => window.__commands)).at(-1).action,
@@ -1547,4 +1559,14 @@ try {
       output,
     }),
   );
+}
+
+async function choosePhoneCity(page, city) {
+  await page.keyboard.press('Escape');
+  if (city)
+    await page
+      .locator(
+        `.pg-phone-page:not([hidden]) .pg-phone-map [data-city="${city}"]`,
+      )
+      .press('Enter');
 }

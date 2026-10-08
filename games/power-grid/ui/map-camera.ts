@@ -1,4 +1,5 @@
 // Decorative extensions never move the classic board's world coordinates.
+export const MIN_MAP_ZOOM = 0.64;
 export const CLASSIC_MAP_FRAME = { x: 0, y: 0, width: 1200, height: 900 };
 export const MAP_FRAME = { x: -300, y: -225, width: 1800, height: 1350 };
 export type MapPoint = { x: number; y: number };
@@ -45,7 +46,7 @@ export function safeMapRect(surface: MapSurface) {
   };
 }
 export function clampCamera(camera: MapCamera, surface: MapSurface): MapCamera {
-  const zoom = Math.max(1, Math.min(4, camera.zoom));
+  const zoom = Math.max(MIN_MAP_ZOOM, Math.min(4, camera.zoom));
   const scale = cameraScale(surface, zoom);
   const safe = {
     left: 0,
@@ -129,7 +130,7 @@ export function zoomCamera(
   zoom: number,
   anchor?: MapPoint,
 ): MapCamera {
-  const next = Math.max(1, Math.min(4, zoom));
+  const next = Math.max(MIN_MAP_ZOOM, Math.min(4, zoom));
   const previousScale = cameraScale(surface, camera.zoom);
   const nextScale = cameraScale(surface, next);
   const dx = (anchor?.x ?? surface.width / 2) - surface.width / 2;
@@ -171,7 +172,7 @@ export function wheelZoomTarget(
 ) {
   const pixels = delta * (mode === 1 ? 16 : mode === 2 ? height : 1);
   return Math.max(
-    1,
+    MIN_MAP_ZOOM,
     Math.min(
       4,
       zoom * Math.exp(-Math.max(-240, Math.min(240, pixels)) * 0.0015),

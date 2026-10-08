@@ -190,7 +190,7 @@
   justify-content: center;
   gap: 4px;
   font-size: 13px;
-  margin-top: auto;
+  margin-top: 6px;
   line-height: 1.5;
 }
 .room-table__self {

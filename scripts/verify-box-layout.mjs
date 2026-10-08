@@ -509,7 +509,7 @@ async function layout(surface, label, dialog = false) {
       .boundingBox();
     metrics.frameBounds = frame;
     const outerWidth = await surface.page.evaluate(() => innerWidth);
-    if (!frame || frame.width > Math.min(390, outerWidth) + 0.5)
+    if (!frame || frame.width > Math.min(480, outerWidth) + 0.5)
       metrics.issues.push({
         kind: 'player-frame-width',
         frameBounds: frame,

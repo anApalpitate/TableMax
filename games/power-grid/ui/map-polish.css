@@ -204,3 +204,11 @@
   user-select: none;
   -webkit-user-select: none;
 }
+
+.pg-screen .pg-map-panel.pg-map-polished .pg-city-picker:not(:has(select)) {
+  display: flex;
+  justify-content: flex-end;
+}
+.pg-screen .pg-map-panel.pg-map-polished .pg-city-picker:empty {
+  display: none;
+}

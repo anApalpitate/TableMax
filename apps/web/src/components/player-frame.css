@@ -4,7 +4,7 @@
   display: grid;
   place-items: center;
   min-height: 100dvh;
-  padding: 24px;
+  padding: 16px;
   overflow: hidden;
   background:
     radial-gradient(ellipse at 50% 40%, #fffdf0 0, #fffdf000 65%),
@@ -15,9 +15,9 @@
   position: relative;
   z-index: 1;
   display: block;
-  width: clamp(320px, calc((100dvh - 48px) * 9 / 19.5), 430px);
+  width: clamp(390px, calc((100dvh - 32px) * 9 / 20), 480px);
   max-width: 100%;
-  height: min(931.667px, calc(100dvh - 48px));
+  height: min(1066.667px, calc(100dvh - 32px));
   border: 0;
   border-radius: 22px;
   background: #f4f3ed;
@@ -116,11 +116,11 @@
   outline-offset: 4px;
 }
 .player-frame[data-player-display='wide'] {
-  padding-top: 84px;
+  padding: 16px 80px 16px 16px;
 }
 .player-frame[data-player-display='wide'] .player-frame__viewport {
-  width: min(1600px, calc(100vw - 48px));
-  height: calc(100dvh - 108px);
+  width: min(1600px, calc(100vw - 96px));
+  height: calc(100dvh - 32px);
   border-radius: 18px;
 }
 .player-frame[data-player-display='mobile'] {

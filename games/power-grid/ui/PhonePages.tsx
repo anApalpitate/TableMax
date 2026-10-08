@@ -58,7 +58,7 @@ export function PhonePages({
         // Keep the dock still between pointer-down focus transfer and click.
         if (
           event.relatedTarget instanceof Element &&
-          event.relatedTarget.closest('button')
+          event.relatedTarget.closest('button,summary')
         )
           return;
         if (
@@ -71,7 +71,7 @@ export function PhonePages({
       }}
       onClickCapture={(event) => {
         if (
-          (event.target as Element).closest('button') &&
+          (event.target as Element).closest('button,summary') &&
           !document.activeElement?.matches(
             'input,select,textarea,[contenteditable]',
           )
@@ -85,7 +85,7 @@ export function PhonePages({
           Boolean(window.getSelection()?.toString()) ||
           event.touches.length !== 1 ||
           target.closest(
-            'button,input,select,textarea,a,[contenteditable],.pg-map-panel,[data-swipe-lock]',
+            'button,summary,input,select,textarea,a,[contenteditable],.pg-map-panel,[data-swipe-lock]',
           ) ||
           document.activeElement?.matches(
             'input,select,textarea,[contenteditable]',

@@ -222,12 +222,74 @@ async function geometry(page, name, size, next) {
     tokens: getComputedStyle(document.documentElement)
       .getPropertyValue('--tm-scroll-thumb')
       .trim(),
+    cityLocators: document.querySelectorAll('select[aria-label="选择城市"]')
+      .length,
+    sprites: [...document.querySelectorAll('.pg-plant-art__sprite')]
+      .map((e) => {
+        const r = e.getBoundingClientRect();
+        return [r.width, r.height];
+      })
+      .filter(([w, h]) => w && h),
+    progressPages: [...document.querySelectorAll('.pg-game-progress')].map(
+      (e) => e.closest('[data-phone-page]')?.getAttribute('data-phone-page'),
+    ),
+    seats: [...document.querySelectorAll('.room-table__seat')].map((e) => {
+      const r = e.getBoundingClientRect();
+      return { x: r.x, y: r.y, w: r.width, h: r.height };
+    }),
+    auctionCore: [
+      ...document.querySelectorAll(
+        '.ma-auction__paintings > .ma-card,.ma-theme > strong,.ma-theme__price-tag,.ma-bid button[type="submit"],.ma-controls__simple button:not(:disabled)',
+      ),
+    ]
+      .map((e) => {
+        const r = e.getBoundingClientRect();
+        return { bottom: r.bottom, top: r.top, height: r.height };
+      })
+      .filter((r) => r.height),
     frameCount: document.querySelectorAll('iframe[data-player-frame]').length,
   }));
   assert.ok(
     metrics.overflow <= 2,
     `${name} ${size}/${next}: overflow ${metrics.overflow}`,
   );
+  if (
+    next === 'wide' &&
+    metrics.width >= 960 &&
+    metrics.height >= 680 &&
+    (name.includes('auction') || name.includes('double'))
+  )
+    assert.ok(
+      metrics.auctionCore.every(
+        (r) => r.top >= 0 && r.bottom <= metrics.height,
+      ),
+      name + ': painting, price and main action must be fully visible',
+    );
+  if (await child.locator('.pg-screen--player').count()) {
+    assert.equal(
+      metrics.cityLocators,
+      0,
+      'Player must not have host city locator',
+    );
+    assert.ok(
+      metrics.progressPages.every((p) => p === '0'),
+      'Player progress belongs only to action page',
+    );
+    assert.ok(
+      metrics.sprites.every(([w, h]) => Math.abs(w - h) < 1),
+      'Plant sprite must stay square',
+    );
+  }
+  for (let i = 0; i < metrics.seats.length; i++)
+    for (let j = i + 1; j < metrics.seats.length; j++) {
+      const a = metrics.seats[i],
+        b = metrics.seats[j];
+      assert.ok(
+        Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x) <= 1 ||
+          Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y) <= 1,
+        'Seat cards overlap',
+      );
+    }
   const frame = await page.locator('iframe[data-player-frame]').boundingBox();
   assert.ok(frame.width <= size[0] && frame.height <= size[1]);
   if (size[0] >= 800) {
@@ -240,6 +302,13 @@ async function geometry(page, name, size, next) {
       'Display control overlaps player UI',
     );
     assert.equal(metrics.mode, next);
+    if (next === 'portrait')
+      assert.ok(
+        frame.width >= 390 && frame.width <= 480,
+        'Portrait readable width',
+      );
+    if (next === 'wide')
+      assert.ok(frame.y <= 17, 'Wide frame must not reserve a toggle row');
   }
   report.layouts.push({ name, size, requested: next, frame, ...metrics });
   if ([1280, 1920, 390].includes(size[0]))
@@ -268,27 +337,54 @@ async function stableDraft(page, token, label) {
   const slot = playerUi(page)
     .locator('button.card-slot:enabled:visible')
     .first();
-  const city = playerUi(page).getByRole('combobox', {
-    name: '选择城市',
-    exact: true,
-  });
+  const cityId = before.gameView?.buildOptions?.[0]?.cityId;
+  const city = cityId ? map.locator(`[data-city="${cityId}"]`) : null;
+  const progress = playerUi(page).locator('details.pg-game-progress:visible');
+  const sort = playerUi(page).locator('.ma-hand-tools select').first();
   let numberValue,
     cityValue,
+    sortValue,
+    progressOpen,
     selectedSlot = false;
   if (await number.count()) {
     await number.fill('7');
     numberValue = await number.inputValue();
+    await number.evaluate((node, value) => {
+      node.__displayDraft = value;
+    }, marker);
   }
   if (await slot.count()) {
     await slot.click();
     selectedSlot = (await slot.getAttribute('aria-pressed')) === 'true';
+    await slot.evaluate((node, value) => {
+      node.__displayDraft = value;
+    }, marker);
   }
-  if (await city.count()) {
-    const option = await city.locator('option').nth(1).getAttribute('value');
-    if (option) {
-      await city.selectOption(option);
-      cityValue = option;
-    }
+  if (city && (await city.count())) {
+    await city.press('Enter');
+    cityValue = await city.getAttribute('aria-pressed');
+    assert.equal(cityValue, 'true');
+  }
+  if (await progress.count()) {
+    if ((await progress.getAttribute('open')) === null)
+      await progress.locator('summary').click();
+    progressOpen = await progress.getAttribute('open');
+    assert.equal(
+      progressOpen,
+      '',
+      'Progress disclosure must open after editing a draft',
+    );
+    await progress.evaluate((node, value) => {
+      node.__displayDraft = value;
+    }, marker);
+  }
+  if (await sort.count()) {
+    const option = await sort.locator('option').last().getAttribute('value');
+    await sort.selectOption(option);
+    sortValue = await sort.inputValue();
+    await sort.evaluate((node, value) => {
+      node.__displayDraft = value;
+    }, marker);
   }
   if (await map.count()) {
     await page.waitForTimeout(400);
@@ -323,11 +419,29 @@ async function stableDraft(page, token, label) {
       'Map center reset during display switch',
     );
   }
-  if (numberValue !== undefined)
+  if (numberValue !== undefined) {
     assert.equal(await number.inputValue(), numberValue);
+    assert.equal(
+      await number.evaluate((node) => node.__displayDraft),
+      marker,
+      'Input node remounted',
+    );
+  }
   if (selectedSlot)
     assert.equal(await slot.getAttribute('aria-pressed'), 'true');
-  if (cityValue !== undefined) assert.equal(await city.inputValue(), cityValue);
+  if (cityValue !== undefined)
+    assert.equal(await city.getAttribute('aria-pressed'), cityValue);
+  if (progressOpen !== undefined) {
+    assert.equal(await progress.getAttribute('open'), progressOpen);
+    assert.equal(
+      await progress.evaluate((node) => node.__displayDraft),
+      marker,
+    );
+  }
+  if (sortValue !== undefined) {
+    assert.equal(await sort.inputValue(), sortValue);
+    assert.equal(await sort.evaluate((node) => node.__displayDraft), marker);
+  }
   if (tabLabel !== null) assert.equal(await pageTab.innerText(), tabLabel);
   assert.equal(
     (await view(token)).revision,
@@ -443,10 +557,10 @@ async function layouts(page, name, token, full) {
           [1280, 720],
           [1920, 1080],
           [3840, 2160],
-          [1007, 768],
-          [1008, 768],
-          [1247, 900],
-          [1248, 900],
+          [1055, 768],
+          [1056, 768],
+          [1295, 900],
+          [1296, 900],
         ]
       : [[1280, 720]])
       await geometry(page, name, size, next);
@@ -680,7 +794,15 @@ try {
           game.id === 'power-grid'
             ? ['regions', 'auction', 'resources', 'building', 'powering']
             : game.id === 'modern-art'
-              ? ['offer', 'auction', 'round-result']
+              ? [
+                  'offer',
+                  'double',
+                  'auction-open',
+                  'auction-once',
+                  'auction-sealed',
+                  'auction-fixed',
+                  'round-result',
+                ]
               : variant === 'expansion'
                 ? [
                     'research-vote',
@@ -732,9 +854,24 @@ try {
                   (p === 'auction' &&
                     [...seen].some((p) => p.startsWith('auction'))),
               ) ||
-                ['round-result', 'match-result', 'ended'].includes(phase)))
+                (game.id === 'modern-art'
+                  ? ['ended']
+                  : ['round-result', 'match-result', 'ended']
+                ).includes(phase)))
           )
             break;
+          if (
+            actor < 0 &&
+            game.id === 'modern-art' &&
+            phase === 'round-result'
+          ) {
+            const host = await view();
+            await command({
+              type: 'lifecycle',
+              action: host.lifecycleActions[0],
+            });
+            continue;
+          }
           if (actor < 0) break;
           const human = humans[actor];
           const chosen = await bot.decide({
@@ -746,6 +883,20 @@ try {
             random: { next: Math.random },
             signal: new AbortController().signal,
           });
+          if (game.id === 'modern-art' && phase === 'offer') {
+            const missing = state.actions.find((a) => {
+              const c = state.gameView.self.hand.find((c) => c.id === a.cardId);
+              return (
+                c &&
+                !seen.has(
+                  c.auctionKind === 'double'
+                    ? 'double'
+                    : 'auction-' + c.auctionKind,
+                )
+              );
+            });
+            if (missing) chosen.action = missing;
+          }
           if (variant === 'expansion') {
             const buffer = state.actions.find(
               (action) =>

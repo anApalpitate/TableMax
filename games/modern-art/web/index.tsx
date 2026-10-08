@@ -211,6 +211,11 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
         <>
           {role === 'player' && !mergedPausedOffer && notice}
           <div
+            data-phase={game.phase}
+            data-hand-action={
+              (view.actions as Action[]).some((action) => 'cardId' in action) ||
+              undefined
+            }
             className={`ma-table ${featuredAuction ? 'ma-table--featured-auction' : ''} ${featuredAuction && game.auction && game.auction.cards.length > 1 ? 'ma-table--paired-auction' : ''}`}
           >
             <MarketBoard view={game} showHistory={() => setPanel('market')} />
@@ -345,6 +350,7 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
             </div>
           ) : panel === 'market' && game ? (
             <div className="ma-screen ma-panel">
+              <MarketBoard view={game} showHistory={() => setPanel(null)} />
               <MarketHistory view={game} />
             </div>
           ) : (

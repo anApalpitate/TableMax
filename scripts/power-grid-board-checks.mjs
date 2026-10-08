@@ -250,7 +250,7 @@ export async function verifyBoardFacts(page, fixtures, report) {
     .getByRole('button', { name: '地图', exact: true })
     .click();
   const phoneMap = page.locator('.pg-map-panel:visible');
-  await phoneMap.locator('select').selectOption(chosen);
+  await phoneMap.locator(`[data-city="${chosen}"]`).press('Enter');
   await page.waitForTimeout(80);
   const phoneCenter = await phoneMap.getAttribute('data-map-center');
   await page.evaluate(() => window.advanceFeedback(7, 'build'));
@@ -260,6 +260,8 @@ export async function verifyBoardFacts(page, fixtures, report) {
     phoneCenter,
     'Other saved construction never moves phone map',
   );
+  await phoneMap.getByRole('button', { name: '复位', exact: true }).click();
+  await page.waitForTimeout(80);
   const frameTouch = await phoneMap.locator('.pg-map-frame').boundingBox();
   const x = frameTouch.x + frameTouch.width / 2;
   const y = frameTouch.y + frameTouch.height / 2;

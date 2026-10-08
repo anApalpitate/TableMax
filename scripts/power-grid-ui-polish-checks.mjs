@@ -87,11 +87,16 @@ export async function verifyUiPolish(page, fixtures, report, output) {
       visibility.y > visibility.top &&
       visibility.y < visibility.bottom,
   );
+  const obstruction = await market.boundingBox();
+  const companies = await page.locator('.pg-board-companies').boundingBox();
   assert.ok(
-    Number(await board.getAttribute('data-map-avoidance')) > 0,
-    'Edge target temporarily reduces obstructing drawers',
+    visibility.x > obstruction.x + obstruction.width + 22 &&
+      (!companies || visibility.y < companies.y - 22),
+    'Selected edge city is actually clear of drawers',
   );
   if (await entry.isVisible()) await entry.click();
+  if ((await board.getAttribute('data-market-width')) === 'wide')
+    await page.getByRole('button', { name: '收窄市场' }).click();
   await page.getByRole('button', { name: '展开为宽市场' }).click();
   await page.waitForTimeout(350);
   assert.equal(await board.getAttribute('data-market-width'), 'wide');
