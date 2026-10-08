@@ -23,6 +23,9 @@ export function AvatarUpload({
   } | null>(null);
   const selection = useRef(0);
   const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (source) frame.current?.scrollIntoView({ block: 'center' });
+  }, [source]);
   useEffect(
     () => () => {
       selection.current++;
@@ -49,7 +52,7 @@ export function AvatarUpload({
   }
   return (
     <section className="avatar-upload" aria-label="上传头像">
-      <label className="avatar-upload__choose">
+      <label className="avatar-upload__choose" hidden={Boolean(source)}>
         <span>上传图片</span>
         <input
           type="file"
@@ -163,27 +166,6 @@ export function AvatarUpload({
               }}
             />
           </label>
-          <div className="avatar-upload__position" aria-label="微调位置">
-            {(
-              [
-                ['左', -12, 0],
-                ['上', 0, -12],
-                ['下', 0, 12],
-                ['右', 12, 0],
-              ] as const
-            ).map(([label, dx, dy]) => (
-              <button
-                key={label}
-                type="button"
-                className="secondary"
-                aria-label={`头像向${label}移动`}
-                disabled={disabled}
-                onClick={() => setOffset(clamp(offset.x + dx, offset.y + dy))}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
           <div className="dialog-actions">
             <button
               className="secondary"
@@ -194,7 +176,7 @@ export function AvatarUpload({
                 setError('');
               }}
             >
-              取消裁剪
+              取消
             </button>
             <button
               type="button"
@@ -219,7 +201,7 @@ export function AvatarUpload({
                 }
               }}
             >
-              使用这张头像
+              确定
             </button>
           </div>
         </div>

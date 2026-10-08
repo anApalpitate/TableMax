@@ -9,23 +9,23 @@ import {
   type ModernArtSoundCue,
 } from './presentation-state';
 import { ModernArtSoundPlayer } from './sound-player';
-import offer from '../../../assets/games/modern-art/audio/offer-v2.wav';
-import open from '../../../assets/games/modern-art/audio/auction-open-v2.wav';
-import once from '../../../assets/games/modern-art/audio/auction-once-v2.wav';
-import sealed from '../../../assets/games/modern-art/audio/auction-sealed-v2.wav';
-import fixed from '../../../assets/games/modern-art/audio/auction-fixed-v2.wav';
-import doubleOpen from '../../../assets/games/modern-art/audio/double-open-v2.wav';
-import doubleAdd from '../../../assets/games/modern-art/audio/double-add-v2.wav';
-import bid from '../../../assets/games/modern-art/audio/bid-v2.wav';
-import sealedSubmit from '../../../assets/games/modern-art/audio/sealed-submit-v2.wav';
-import priceSet from '../../../assets/games/modern-art/audio/price-set-v2.wav';
-import pass from '../../../assets/games/modern-art/audio/pass-v2.wav';
-import sale from '../../../assets/games/modern-art/audio/sale-v2.wav';
-import roundStart from '../../../assets/games/modern-art/audio/round-start-v2.wav';
-import roundResult from '../../../assets/games/modern-art/audio/round-result-v2.wav';
-import matchResult from '../../../assets/games/modern-art/audio/match-result-v2.wav';
-import error from '../../../assets/games/modern-art/audio/error-v2.wav';
-import timeElapsed from '../../../assets/games/modern-art/audio/time-elapsed-v2.wav';
+import offer from '../../../assets/games/modern-art/audio/offer-v2.flac';
+import open from '../../../assets/games/modern-art/audio/auction-open-v2.flac';
+import once from '../../../assets/games/modern-art/audio/auction-once-v2.flac';
+import sealed from '../../../assets/games/modern-art/audio/auction-sealed-v2.flac';
+import fixed from '../../../assets/games/modern-art/audio/auction-fixed-v2.flac';
+import doubleOpen from '../../../assets/games/modern-art/audio/double-open-v2.flac';
+import doubleAdd from '../../../assets/games/modern-art/audio/double-add-v2.flac';
+import bid from '../../../assets/games/modern-art/audio/bid-v2.flac';
+import sealedSubmit from '../../../assets/games/modern-art/audio/sealed-submit-v2.flac';
+import priceSet from '../../../assets/games/modern-art/audio/price-set-v2.flac';
+import pass from '../../../assets/games/modern-art/audio/pass-v2.flac';
+import sale from '../../../assets/games/modern-art/audio/sale-v2.flac';
+import roundStart from '../../../assets/games/modern-art/audio/round-start-v2.flac';
+import roundResult from '../../../assets/games/modern-art/audio/round-result-v2.flac';
+import matchResult from '../../../assets/games/modern-art/audio/match-result-v2.flac';
+import error from '../../../assets/games/modern-art/audio/error-v2.flac';
+import timeElapsed from '../../../assets/games/modern-art/audio/time-elapsed-v2.flac';
 import { ModernArtTimerFeedback } from './timer-feedback';
 
 const sources: Record<ModernArtSoundCue, string> = {

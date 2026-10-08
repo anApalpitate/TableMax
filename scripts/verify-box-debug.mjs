@@ -348,18 +348,23 @@ try {
     await dialog
       .getByRole('slider', { name: '头像缩放', exact: true })
       .press('ArrowRight');
-  await dialog
-    .getByRole('button', { name: '头像向左移动', exact: true })
-    .click();
+  const crop = await dialog.locator('.avatar-upload__frame').boundingBox();
+  assert.ok(crop);
+  await phone.mouse.move(crop.x + crop.width / 2, crop.y + crop.height / 2);
+  await phone.mouse.down();
+  await phone.mouse.move(
+    crop.x + crop.width / 2 - 20,
+    crop.y + crop.height / 2,
+    { steps: 4 },
+  );
+  await phone.mouse.up();
   await fit(phone, 'phone-crop-390');
   await capture(phone, 'phone-crop-390');
-  await dialog.getByRole('button', { name: '取消裁剪', exact: true }).click();
+  await dialog.getByRole('button', { name: '取消', exact: true }).click();
   assert.equal(await dialog.locator('.avatar-upload__frame').count(), 0);
   await dialog.locator('input[type=file]').setInputFiles(file);
   await dialog.locator('.avatar-upload__frame img').waitFor();
-  await dialog
-    .getByRole('button', { name: '使用这张头像', exact: true })
-    .click();
+  await dialog.getByRole('button', { name: '确定', exact: true }).click();
   await phone.getByLabel('你的昵称').fill('自定义头像朋友');
   await phone.getByRole('button', { name: '加入', exact: true }).click();
   await phone.getByRole('button', { name: '更换头像', exact: true }).waitFor();

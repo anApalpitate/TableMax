@@ -1,4 +1,5 @@
 import { z } from 'zod';
+export * from './interactions';
 import {
   AvatarIdSchema,
   PresetAvatarIdSchema,

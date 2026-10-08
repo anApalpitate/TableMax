@@ -23,3 +23,7 @@
 历史五张规则配图 v2 来自当时实际 React 区域渲染：电厂市场 306×927、横向网络 378×723、公司牌 272×509、本轮顺序 378×326、燃料价区 269×1038。运行使用无损 WebP，合计 **421,250 字节**；原 PNG 与旧 v1 图保留。当前来源、SHA-256 和逐 RGB 像素核验结果由资源清单及 `artifacts/maintenance/v1.0.2/power-grid-debug-20261004/rules-compression.json` 维护。规则正文的流程图与价格示意使用本游戏代码排版，不能把它们写成实物截图。
 
 2026-10-05 当前规则改用六组代码图解，复用厂景图集并导入两项原创透明插画：`rules/illustrations-v1/fuels-atlas-v1.webp`（1024×1024，192,460 字节）与 `house-v1.webp`（512×512，30,688 字节），新增合计 **223,148 字节**，小于 300 KiB。imagegen 原图、完整提示词、透明度／缩放与哈希核验保留在 `artifacts/maintenance/v1.0.2/power-grid-polish-20261005/imagegen/`；准确价阶、厂号、箭头、城位与收入由现有数据和代码排版。旧五张截图、原 PNG 及历史证据完整保留，属于历史配图。
+
+## v1.0.5 运行音频无损派生（2026-10-08）
+
+运行入口中的原WAV改用同目录、同稳定文件名的FLAC派生，原WAV与原素材保留；本游戏声音ID、时间轴及播放权限不变。三游戏合计40份新派生逐项核验s16le PCM相等，净省711,478字节，实际逐文件字节／哈希见`artifacts/maintenance/v1.0.5/implementation/audio-lossless.json`；正式包WebView2离线解码42份FLAC通过，其中两份为既有用户FLAC资源。本项不代表人耳听感验收。

@@ -48,7 +48,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
   };
   return (
     <section className="invite-friends">
-      <h2>扫码或打开网站</h2>
+      <h2>扫码或使用网址</h2>
       {joinUrl ? (
         <>
           <img
@@ -69,7 +69,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
             target="_blank"
             rel="noopener noreferrer"
             data-tablemax-join-link=""
-            aria-label="打开网站，在浏览器中加入牌桌"
+            aria-label="使用网址，在浏览器中加入牌桌"
             onClick={(event) => {
               setOpenMessage('');
               // Native WebView2 only accepts a trusted top-document activation
@@ -93,7 +93,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
             >
               <path d="M14 3h7v7M21 3l-9 9M10 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5" />
             </svg>
-            打开网站
+            使用网址
           </a>
           {openMessage && (
             <p className="invite-friends__empty" role="status">
@@ -127,7 +127,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
               </p>
               <p>
                 <strong>直接打开</strong>
-                点击二维码下方“打开网站”，或在手机、电脑浏览器输入当前加入地址。
+                点击二维码下方“使用网址”，或在手机、电脑浏览器输入当前加入地址。
               </p>
             </div>
             <div className="connection-help__field">

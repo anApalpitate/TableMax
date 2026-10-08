@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient
+      id="pile"
+      x1="33"
+      y1="28"
+      x2="82"
+      y2="109"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop stop-color="#c79765" />
+      <stop offset=".5" stop-color="#986541" />
+      <stop offset="1" stop-color="#633f2d" />
+    </linearGradient>
+    <linearGradient
+      id="ridge"
+      x1="32"
+      y1="46"
+      x2="95"
+      y2="94"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop stop-color="#d7ab78" />
+      <stop offset="1" stop-color="#9b6947" />
+    </linearGradient>
+  </defs>
+  <path
+    d="M21 90c-9 9-4 22 12 24h62c16-2 22-15 11-24-3-2-7-4-12-5 9-7 3-18-7-20 6-8 0-17-9-20-2-9-2-22-15-29 2 13-7 17-15 25-5 5-6 13-3 19-12 4-16 13-11 21-5 1-10 4-13 9Z"
+    fill="url(#pile)"
+  />
+  <path
+    d="M39 82c16 8 40 8 54 3M49 61c11 7 25 10 38 5M48 42c7 5 17 7 27 6"
+    stroke="url(#ridge)"
+    stroke-width="7"
+    stroke-linecap="round"
+  />
+  <path
+    d="M25 96c10 4 24 6 39 6"
+    stroke="#d3a478"
+    stroke-width="5"
+    stroke-linecap="round"
+    opacity=".7"
+  />
+</svg>

@@ -24,6 +24,8 @@ namespace TableMax.Desktop
         private readonly List<NativeWindow> windows = new List<NativeWindow>();
         private readonly HashSet<string> played = new HashSet<string>();
         private readonly Queue<string> playedOrder = new Queue<string>();
+        private readonly HashSet<string> interactionPlayed = new HashSet<string>();
+        private readonly Queue<string> interactionPlayedOrder = new Queue<string>();
         private readonly RegisteredWaitHandle reopen;
         private ServiceProcess service;
         private NativeWindow hostWindow;
@@ -188,7 +190,7 @@ namespace TableMax.Desktop
             {
                 windows.Remove(window);
                 if (hostWindow == window) hostWindow = null;
-                BroadcastAudio(); UpdatePower();
+                BroadcastAudio(); BroadcastInteractionAudio(); UpdatePower();
                 if (!quitting && windows.Count == 0) Post(async () => { await Quit(); });
             };
             try { await window.Initialize(url); }
@@ -248,6 +250,17 @@ namespace TableMax.Desktop
                     if (parameters.Length != 1 || !(parameters[0] is string key) || key.Length < 1 || key.Length > 240 || !Allowed(window.Url, window.Role, true)) throw new ArgumentException("Invalid audio event.");
                     if (AudioOwner() != window || played.Contains(key)) return false;
                     played.Add(key); playedOrder.Enqueue(key); if (playedOrder.Count > 256) played.Remove(playedOrder.Dequeue()); return true;
+                case "interaction-audio.connect":
+                    if (parameters.Length != 0) throw new ArgumentException("Invalid interaction audio request.");
+                    window.InteractionAudioReady = true; BroadcastInteractionAudio(); return InteractionAudioOwner() == window;
+                case "interaction-audio.disconnect":
+                    if (parameters.Length != 0) throw new ArgumentException("Invalid interaction audio request.");
+                    window.InteractionAudioReady = false; BroadcastInteractionAudio(); return null;
+                case "interaction-audio.claim":
+                    if (parameters.Length != 1 || !(parameters[0] is string interactionKey) || interactionKey.Length < 1 || interactionKey.Length > 240) throw new ArgumentException("Invalid interaction audio event.");
+                    if (InteractionAudioOwner() != window || interactionPlayed.Contains(interactionKey)) return false;
+                    interactionPlayed.Add(interactionKey); interactionPlayedOrder.Enqueue(interactionKey);
+                    if (interactionPlayedOrder.Count > 256) interactionPlayed.Remove(interactionPlayedOrder.Dequeue()); return true;
                 default: throw new ArgumentException("Unknown desktop request.");
             }
         }
@@ -256,6 +269,12 @@ namespace TableMax.Desktop
         {
             var owner = AudioOwner();
             foreach (var window in windows.ToArray()) if (!window.IsDisposed && window.Managed) window.Changed("audio", window == owner);
+        }
+        private NativeWindow InteractionAudioOwner() => windows.Where(window => !window.IsDisposed && window.Managed && window.InteractionAudioReady).OrderBy(window => window.Role == "public" ? 0 : 1).FirstOrDefault();
+        public void BroadcastInteractionAudio()
+        {
+            var owner = InteractionAudioOwner();
+            foreach (var window in windows.ToArray()) if (!window.IsDisposed && window.Managed) window.Changed("interaction-audio", window == owner);
         }
         public void UpdatePower()
         {

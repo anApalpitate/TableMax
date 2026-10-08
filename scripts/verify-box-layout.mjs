@@ -1,3 +1,4 @@
+import { MAXIMUM_PACKAGE_BYTES } from './lib/package-limits.mjs';
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';
@@ -152,7 +153,7 @@ async function rendered(surface, state = null) {
 async function connectionEntry(surface, expectedUrl) {
   const page = surface.page;
   const link = page.getByRole('link', {
-    name: '打开网站，在浏览器中加入牌桌',
+    name: '使用网址，在浏览器中加入牌桌',
     exact: true,
   });
   await until(
@@ -629,7 +630,10 @@ async function verifyPackage() {
   assert.equal(bytes.length, manifest.archive.bytes);
   if (argument('sha256'))
     assert.equal(report.archiveSha256, argument('sha256').toLowerCase());
-  assert.ok(bytes.length < 100000000 && manifest.extractedBytes < 100000000);
+  assert.ok(
+    bytes.length < MAXIMUM_PACKAGE_BYTES &&
+      manifest.extractedBytes < MAXIMUM_PACKAGE_BYTES,
+  );
   await mkdir(resolve('tmp'), { recursive: true });
   work = await mkdtemp(resolve('tmp/box-layout-'));
   report.work = relative(resolve('.'), work).replaceAll('\\', '/');

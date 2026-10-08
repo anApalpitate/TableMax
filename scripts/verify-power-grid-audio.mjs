@@ -276,7 +276,7 @@ async function observe(page, role) {
       evidence.externalRequests.push({ role, url: request.url() });
   });
   page.on('requestfailed', (request) => {
-    if (new URL(request.url()).pathname.endsWith('.wav'))
+    if (/\.(wav|flac)$/.test(new URL(request.url()).pathname))
       evidence.audioRequestFailures.push({
         role,
         url: request.url(),
@@ -646,20 +646,40 @@ async function assetsAndDecode() {
     'plant',
     'run',
   ]);
-  const assetRoot = join(dirname(executablePath), 'web/assets');
-  const files = await readdir(assetRoot);
+  const legacyAssetRoot = join(dirname(executablePath), 'web/assets');
+  const moduleAssetRoot = join(
+    dirname(executablePath),
+    'web/games/power-grid/web/assets',
+  );
+  let assetRoot = moduleAssetRoot;
+  const files = await readdir(moduleAssetRoot).catch(() => {
+    assetRoot = legacyAssetRoot;
+    return readdir(legacyAssetRoot);
+  });
+  const assetUrlPrefix =
+    assetRoot === legacyAssetRoot
+      ? '/assets/'
+      : '/games/power-grid/web/assets/';
   for (const asset of assets) {
     const original = await readFile(
       resolve('assets/games/power-grid/audio', asset.file),
     );
     assert.equal(hash(original), asset.sha256);
+    const lossless = await readFile(
+      resolve(
+        'assets/games/power-grid/audio',
+        asset.file.replace(/\.wav$/, '.flac'),
+      ),
+    ).catch(() => null);
+    const expectedHash = (file) =>
+      file.endsWith('.flac') && lossless ? hash(lossless) : asset.sha256;
     const matches = [];
     for (const file of files.filter(
       (file) =>
         file.startsWith(basename(asset.file, '.wav') + '-') &&
-        file.endsWith('.wav'),
+        /\.(wav|flac)$/.test(file),
     ))
-      if (hash(await readFile(join(assetRoot, file))) === asset.sha256)
+      if (hash(await readFile(join(assetRoot, file))) === expectedHash(file))
         matches.push(file);
     assert.equal(
       matches.length,
@@ -668,9 +688,12 @@ async function assetsAndDecode() {
     );
     evidence.assets.push({
       cue: asset.cue,
-      url: origin + '/assets/' + encodeURIComponent(matches[0]),
-      sha256: asset.sha256,
-      bytes: asset.bytes,
+      url: origin + assetUrlPrefix + encodeURIComponent(matches[0]),
+      sha256: expectedHash(matches[0]),
+      bytes:
+        matches[0].endsWith('.flac') && lossless
+          ? lossless.length
+          : asset.bytes,
       seconds: asset.durationSeconds,
       peak: asset.peak,
     });

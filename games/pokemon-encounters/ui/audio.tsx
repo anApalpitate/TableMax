@@ -9,25 +9,25 @@ import {
 } from './presentation-state';
 import { SavedSoundPlayer } from './sound-player';
 import { SOUND_MAX_LATE_MS } from './sound-timing';
-import draw from '../../../assets/games/pokemon-encounters/audio/draw-v1.wav';
-import replace from '../../../assets/games/pokemon-encounters/audio/replace-v1.wav';
-import effect from '../../../assets/games/pokemon-encounters/audio/effect-complete-v1.wav';
-import result from '../../../assets/games/pokemon-encounters/audio/round-result-v1.wav';
-import victory from '../../../assets/games/pokemon-encounters/audio/match-result-v1.wav';
-import error from '../../../assets/games/pokemon-encounters/audio/error-v1.wav';
-import mew from '../../../assets/games/pokemon-encounters/audio/mew-v1.wav';
-import zapdos from '../../../assets/games/pokemon-encounters/audio/zapdos-v1.wav';
-import snorlax from '../../../assets/games/pokemon-encounters/audio/snorlax-v1.wav';
-import charizard from '../../../assets/games/pokemon-encounters/audio/charizard-v1.wav';
+import draw from '../../../assets/games/pokemon-encounters/audio/draw-v1.flac';
+import replace from '../../../assets/games/pokemon-encounters/audio/replace-v1.flac';
+import effect from '../../../assets/games/pokemon-encounters/audio/effect-complete-v1.flac';
+import result from '../../../assets/games/pokemon-encounters/audio/round-result-v1.flac';
+import victory from '../../../assets/games/pokemon-encounters/audio/match-result-v1.flac';
+import error from '../../../assets/games/pokemon-encounters/audio/error-v1.flac';
+import mew from '../../../assets/games/pokemon-encounters/audio/mew-v1.flac';
+import zapdos from '../../../assets/games/pokemon-encounters/audio/zapdos-v1.flac';
+import snorlax from '../../../assets/games/pokemon-encounters/audio/snorlax-v1.flac';
+import charizard from '../../../assets/games/pokemon-encounters/audio/charizard-v1.flac';
 import rocket from '../../../assets/games/pokemon-encounters/audio/team-rocket-entrance-user-v2.flac';
-import rocketReturn from '../../../assets/games/pokemon-encounters/audio/rocket-return-v1.wav';
+import rocketReturn from '../../../assets/games/pokemon-encounters/audio/rocket-return-v1.flac';
 import meowth from '../../../assets/games/pokemon-encounters/audio/meowth-coin-user-v2.flac';
-import pikachu from '../../../assets/games/pokemon-encounters/audio/pikachu-user-v2.wav';
-import jigglypuff from '../../../assets/games/pokemon-encounters/audio/jigglypuff-user-v2.wav';
-import eevee from '../../../assets/games/pokemon-encounters/audio/eevee-user-v2.wav';
-import bulbasaur from '../../../assets/games/pokemon-encounters/audio/bulbasaur-user-v2.wav';
-import squirtle from '../../../assets/games/pokemon-encounters/audio/squirtle-user-v2.wav';
-import gengar from '../../../assets/games/pokemon-encounters/audio/gengar-user-v2.wav';
+import pikachu from '../../../assets/games/pokemon-encounters/audio/pikachu-user-v2.flac';
+import jigglypuff from '../../../assets/games/pokemon-encounters/audio/jigglypuff-user-v2.flac';
+import eevee from '../../../assets/games/pokemon-encounters/audio/eevee-user-v2.flac';
+import bulbasaur from '../../../assets/games/pokemon-encounters/audio/bulbasaur-user-v2.flac';
+import squirtle from '../../../assets/games/pokemon-encounters/audio/squirtle-user-v2.flac';
+import gengar from '../../../assets/games/pokemon-encounters/audio/gengar-user-v2.flac';
 
 const sources: Record<SoundCue, string> = {
   draw,

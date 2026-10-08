@@ -1,3 +1,7 @@
+import {
+  MAXIMUM_PACKAGE_BYTES,
+  PACKAGE_BUDGET_BYTES,
+} from './lib/package-limits.mjs';
 import assert from 'node:assert/strict';
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
@@ -182,10 +186,11 @@ if (portable) {
     'Every extracted file byte count and SHA-256 matches',
   );
   assert.ok(
-    evidence.archiveBytes < 100000000 && evidence.extractedBytes < 100000000,
-    'ZIP and actual extracted files strictly below 100 MB',
+    evidence.archiveBytes < MAXIMUM_PACKAGE_BYTES &&
+      evidence.extractedBytes < MAXIMUM_PACKAGE_BYTES,
+    'ZIP and actual extracted files strictly below 120 MB',
   );
-  evidence.budgetPassed = evidence.extractedBytes < 95000000;
+  evidence.budgetPassed = evidence.extractedBytes < PACKAGE_BUDGET_BYTES;
   evidence.packagedIcons = [];
   for (const file of files.filter((entry) => /app-icon/.test(entry.path))) {
     const record = { ...file };

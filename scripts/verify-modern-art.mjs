@@ -233,7 +233,7 @@ function observe(page) {
             return (
               path.endsWith('/' + name) ||
               (path.includes('/assets/' + name.slice(0, -4) + '-') &&
-                path.endsWith('.wav'))
+                /\.(wav|flac)$/.test(path))
             );
           }),
         expectedNetworkOutage:

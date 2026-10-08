@@ -1,0 +1,631 @@
+{
+  "version": "1.0.5",
+  "createdAt": "2026-10-08",
+  "purpose": "Local packaged TableMax interaction voices, authored four-second shot sound combinations, and transparent projectile objects. Replace assets through this manifest without embedding sources into UI or protocol.",
+  "voices": [
+    {
+      "id": "hurry",
+      "file": "hurry.mp3",
+      "bytes": 15500,
+      "sha256": "0155a75599e1ac611b0d34362cb27c2eb6f6086218b1487d55b04db5d85e9574",
+      "durationMs": 2490,
+      "codec": "MP3",
+      "channels": 1,
+      "sampleRate": 24000,
+      "bitrate": 48000,
+      "processing": {
+        "start": 0,
+        "duration": "complete",
+        "filter": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9"
+      },
+      "label": "能不能快一点啊，兵贵神速啊",
+      "sourceId": "hurry-original",
+      "verification": {
+        "fullDecodePassed": true,
+        "browserDurationMs": 2490,
+        "acousticTranscript": ["能不能快一点啊", "兵跪前速啊"],
+        "method": "Local whisper.cpp v1.8.4, multilingual base-q5_1, no expected-text prompt. Corroboration with independent source mapping; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
+        "humanListeningPerformed": false
+      }
+    },
+    {
+      "id": "nice",
+      "file": "nice.mp3",
+      "bytes": 10316,
+      "sha256": "8db7f91f61550fb72db0284fa062340316614b32cf10181541dd2b4ab5c325ff",
+      "durationMs": 1620,
+      "codec": "MP3",
+      "channels": 1,
+      "sampleRate": 24000,
+      "bitrate": 48000,
+      "processing": {
+        "start": 0,
+        "duration": "complete",
+        "filter": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9"
+      },
+      "label": "干得漂亮",
+      "sourceId": "nice-source-zip",
+      "verification": {
+        "fullDecodePassed": true,
+        "browserDurationMs": 1620,
+        "acousticTranscript": ["赶得漂亮"],
+        "method": "Local whisper.cpp v1.8.4, multilingual base-q5_1, no expected-text prompt. Corroboration with independent source mapping; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
+        "humanListeningPerformed": false
+      }
+    },
+    {
+      "id": "carry",
+      "file": "carry.mp3",
+      "bytes": 12620,
+      "sha256": "852dacb8c45dd4223db40db18718f4efa74ac2b383acd4383d8605bf28415789",
+      "durationMs": 2000,
+      "codec": "MP3",
+      "channels": 1,
+      "sampleRate": 24000,
+      "bitrate": 48000,
+      "processing": {
+        "start": 560,
+        "duration": 2,
+        "filter": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9"
+      },
+      "label": "I'll carry you",
+      "sourceId": "carry-video-original",
+      "verification": {
+        "fullDecodePassed": true,
+        "browserDurationMs": 2000,
+        "acousticTranscript": [" I will carry you."],
+        "method": "Local whisper.cpp v1.8.4, multilingual base-q5_1, no expected-text prompt. Corroboration with independent source mapping; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
+        "humanListeningPerformed": false
+      }
+    },
+    {
+      "id": "seventeen",
+      "file": "seventeen.mp3",
+      "bytes": 15644,
+      "sha256": "3207c1ff6e7f1268a4fde8ca2d0196e84187d4c3f00e31a6c35445ed9dd55a28",
+      "durationMs": 2500,
+      "codec": "MP3",
+      "channels": 1,
+      "sampleRate": 24000,
+      "bitrate": 48000,
+      "processing": {
+        "start": 0,
+        "duration": 2.5,
+        "filter": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9"
+      },
+      "label": "十七张牌你能秒我？",
+      "sourceId": "seventeen-original",
+      "verification": {
+        "fullDecodePassed": true,
+        "browserDurationMs": 2500,
+        "acousticTranscript": ["十七張牌 你能瞄我"],
+        "method": "Local whisper.cpp v1.8.4, multilingual base-q5_1, no expected-text prompt. Corroboration with independent source mapping; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
+        "humanListeningPerformed": false
+      }
+    },
+    {
+      "id": "shameless",
+      "file": "shameless.mp3",
+      "bytes": 26732,
+      "sha256": "3676af601484757ff44971553aac7d590a115f367f687015f15408c4f3902633",
+      "durationMs": 4352,
+      "codec": "MP3",
+      "channels": 1,
+      "sampleRate": 24000,
+      "bitrate": 48000,
+      "processing": {
+        "start": 0,
+        "duration": "complete",
+        "filter": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9"
+      },
+      "label": "我从未见过如此厚颜无耻之人！",
+      "sourceId": "shameless-original",
+      "verification": {
+        "fullDecodePassed": true,
+        "browserDurationMs": 4352,
+        "acousticTranscript": ["我从未见过如此后言无齐之人"],
+        "method": "Local whisper.cpp v1.8.4, multilingual base-q5_1, no expected-text prompt. Corroboration with independent source mapping; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
+        "humanListeningPerformed": false
+      }
+    },
+    {
+      "id": "friendly",
+      "file": "friendly.mp3",
+      "bytes": 13772,
+      "sha256": "b00bea0202e34d7de653f76c78ae5459dd457d44e6a4f98454e8bd1e2185863f",
+      "durationMs": 2204,
+      "codec": "MP3",
+      "channels": 1,
+      "sampleRate": 24000,
+      "bitrate": 48000,
+      "processing": {
+        "start": 0,
+        "duration": "complete",
+        "filter": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9"
+      },
+      "label": "主公，别开枪，自己人",
+      "sourceId": "friendly-original",
+      "verification": {
+        "fullDecodePassed": true,
+        "browserDurationMs": 2204,
+        "acousticTranscript": ["主公別開槍", "自己人"],
+        "method": "Local whisper.cpp v1.8.4, multilingual base-q5_1, no expected-text prompt. Corroboration with independent source mapping; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
+        "humanListeningPerformed": false
+      }
+    }
+  ],
+  "effects": [
+    {
+      "id": "egg",
+      "file": "egg.mp3",
+      "durationMs": 4000,
+      "bytes": 24572,
+      "sha256": "4667416c9f43f4f99590995bc38af1d5e6ec4bb62e825414f0aa36fbd5cc72a3",
+      "codec": "MP3",
+      "channels": 1,
+      "sampleRate": 24000,
+      "bitrate": 48000,
+      "master": "artifacts/maintenance/v1.0.5/interaction-assets/egg-composition-master.wav",
+      "masterSha256": "7f5a81b1685cecad9bf7801bdc074b0756a2dee9344289d5b12cc7b1327b86be",
+      "peakAfterDecode": 0.8631595373153687,
+      "rmsAfterDecode": 0.0968478466749792,
+      "processing": "Mono24kHz48kbps MP3; highpass55Hz/lowpass10kHz; loudnorm -20LUFS/-2dBTP; 4second combination timeline preserved; 150ms fadeout.",
+      "sourceIds": [
+        "egg1-original",
+        "egg2-original",
+        "shoe1-original",
+        "shoe2-original"
+      ],
+      "timelineMs": [420, 600, 780, 1470, 1650, 1830, 2640, 2990],
+      "method": "Unmodified FreeKill decoded source sounds sequenced around the two egg waves and slipper finale.",
+      "verification": {
+        "fullDecodePassed": true,
+        "browserDurationMs": 4000,
+        "acousticTranscript": null,
+        "method": "Complete final audio decode; non-silent waveform, peak and RMS checked. Original recorded foley or deterministic authored foley.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
+        "humanListeningPerformed": false
+      }
+    },
+    {
+      "id": "cappuccino",
+      "file": "cappuccino.mp3",
+      "durationMs": 4000,
+      "bytes": 24572,
+      "sha256": "a2e14b6eea2de1b140d875bcc20489664d12c3bfdb659090e5a413f36d284f33",
+      "codec": "MP3",
+      "channels": 1,
+      "sampleRate": 24000,
+      "bitrate": 48000,
+      "master": "artifacts/maintenance/v1.0.5/interaction-assets/cappuccino-composition-master.wav",
+      "masterSha256": "591a60593ad3cf5967eb45d1fee847f671fccf18c6c04b0b1017531018c17163",
+      "peakAfterDecode": 0.31295180320739746,
+      "rmsAfterDecode": 0.07664725113124436,
+      "processing": "Mono24kHz48kbps MP3; highpass55Hz/lowpass10kHz; loudnorm -20LUFS/-2dBTP; 4second combination timeline preserved; 150ms fadeout.",
+      "sourceIds": ["cappuccino-video-original"],
+      "quoteStart": 86.1,
+      "quoteDuration": 3.05,
+      "method": "Original recorded streamer quote plus original deterministic pouring-water foley (filtered noise, bubbles, amplitude envelope; no synthesized speech).",
+      "verification": {
+        "fullDecodePassed": true,
+        "browserDurationMs": 4000,
+        "acousticTranscript": ["給阿姨倒意杯咖啡廳喔!"],
+        "method": "Local whisper.cpp v1.8.4, multilingual base-q5_1, no expected-text prompt. Corroboration with independent source mapping; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
+        "humanListeningPerformed": false
+      }
+    },
+    {
+      "id": "tomato",
+      "file": "tomato.mp3",
+      "durationMs": 4000,
+      "bytes": 24572,
+      "sha256": "1fd8ada3e360282c758a27d7262c162e66e5cd1dda8735cffcfbfda0d8df773f",
+      "codec": "MP3",
+      "channels": 1,
+      "sampleRate": 24000,
+      "bitrate": 48000,
+      "master": "artifacts/maintenance/v1.0.5/interaction-assets/tomato-composition-master.wav",
+      "masterSha256": "d6829b54c38bf18f457e55c0ebfd06a28ca540b7794e72fdecf9db71a714d454",
+      "peakAfterDecode": 0.7620627880096436,
+      "rmsAfterDecode": 0.07907253702901736,
+      "processing": "Mono24kHz48kbps MP3; highpass55Hz/lowpass10kHz; loudnorm -20LUFS/-2dBTP; 4second combination timeline preserved; 150ms fadeout.",
+      "sourceIds": [],
+      "timelineMs": [400, 720, 1120, 1670, 2080, 2670],
+      "method": "Original deterministic wet splat foley: transient bandlimited noise, decaying low resonant chirps and bubbles; seed100–105.",
+      "verification": {
+        "fullDecodePassed": true,
+        "browserDurationMs": 4000,
+        "acousticTranscript": null,
+        "method": "Complete final audio decode; non-silent waveform, peak and RMS checked. Original recorded foley or deterministic authored foley.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
+        "humanListeningPerformed": false
+      }
+    },
+    {
+      "id": "flower",
+      "file": "flower.mp3",
+      "durationMs": 4000,
+      "bytes": 24572,
+      "sha256": "83fdb05c63e910773908bf360f22a16ae2b5a4c85c21fb3b28ce6f5eecbde3b8",
+      "codec": "MP3",
+      "channels": 1,
+      "sampleRate": 24000,
+      "bitrate": 48000,
+      "master": "artifacts/maintenance/v1.0.5/interaction-assets/flower-composition-master.wav",
+      "masterSha256": "54b06d6954c2ef162a365f45024b2c9d230199276e4b5e918e0fff60faa62978",
+      "peakAfterDecode": 0.500090479850769,
+      "rmsAfterDecode": 0.08154564126075962,
+      "processing": "Mono24kHz48kbps MP3; highpass55Hz/lowpass10kHz; loudnorm -20LUFS/-2dBTP; 4second combination timeline preserved; 150ms fadeout.",
+      "sourceIds": ["flower1-original", "flower2-original"],
+      "timelineMs": [400, 1100, 1850],
+      "method": "Unmodified FreeKill original gift sounds layered in three timed bursts.",
+      "verification": {
+        "fullDecodePassed": true,
+        "browserDurationMs": 4000,
+        "acousticTranscript": null,
+        "method": "Complete final audio decode; non-silent waveform, peak and RMS checked. Original recorded foley or deterministic authored foley.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
+        "humanListeningPerformed": false
+      }
+    },
+    {
+      "id": "poop",
+      "file": "poop.mp3",
+      "durationMs": 4000,
+      "bytes": 24572,
+      "sha256": "4171f88d676462e2ede302d57295990a4d2e88a60cecb5126e4ef736fdc82b25",
+      "codec": "MP3",
+      "channels": 1,
+      "sampleRate": 24000,
+      "bitrate": 48000,
+      "master": "artifacts/maintenance/v1.0.5/interaction-assets/poop-composition-master.wav",
+      "masterSha256": "9e8d94e0a30ac5112fa15a745685c40fcbdfa2b7a17b148533d2889435e27e70",
+      "peakAfterDecode": 0.755785346031189,
+      "rmsAfterDecode": 0.08028775483336693,
+      "processing": "Mono24kHz48kbps MP3; highpass55Hz/lowpass10kHz; loudnorm -20LUFS/-2dBTP; 4second combination timeline preserved; 150ms fadeout.",
+      "sourceIds": [],
+      "timelineMs": [480, 1050, 1670, 2270, 2970],
+      "method": "Original deterministic soft plop foley: filtered wet hit plus descending low resonant wobble, seeds200–204.",
+      "verification": {
+        "fullDecodePassed": true,
+        "browserDurationMs": 4000,
+        "acousticTranscript": null,
+        "method": "Complete final audio decode; non-silent waveform, peak and RMS checked. Original recorded foley or deterministic authored foley.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
+        "humanListeningPerformed": false
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "egg",
+      "file": "object-egg.webp",
+      "bytes": 2990,
+      "sha256": "525afba5431c0c4dc745701223cbed1d4204be03eef8cb81501802e2fa1e0fb2",
+      "dimensions": [65, 78],
+      "transparent": true,
+      "sourceId": "object-egg-original",
+      "source": "FreeKill v0.5.19 original sprite",
+      "processing": "Lossless WebP encoding at original dimensions; decoded RGBA exactly matches original PNG.",
+      "verification": "Browser decode and light/dark background visual review; no crop or edge halo observed; source sprites retained at native resolution.",
+      "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/objects-browser-verification.json"
+    },
+    {
+      "id": "slipper",
+      "file": "object-slipper.webp",
+      "bytes": 3812,
+      "sha256": "b94d4b13fdd0cc892253ea19c504b6601028a4f212df57bec60f5ddf594d096e",
+      "dimensions": [66, 100],
+      "transparent": true,
+      "sourceId": "object-shoe-original",
+      "source": "FreeKill v0.5.19 original sprite",
+      "processing": "Lossless WebP encoding at original dimensions; decoded RGBA exactly matches original PNG.",
+      "verification": "Browser decode and light/dark background visual review; no crop or edge halo observed; source sprites retained at native resolution.",
+      "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/objects-browser-verification.json"
+    },
+    {
+      "id": "tomato",
+      "file": "object-tomato.svg",
+      "bytes": 1123,
+      "sha256": "ea4fa504e6e52fe8c9ac9f547045289ab47bd9173681e1c76de7d9e4cee3348a",
+      "dimensions": [128, 128],
+      "transparent": true,
+      "sourceId": null,
+      "source": "TableMax original code-native SVG",
+      "processing": "Original vector paths, gradients, and highlights; transparent backdrop; no generated bitmap.",
+      "verification": "Browser decode and light/dark background visual review; no crop or edge halo observed; source sprites retained at native resolution.",
+      "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/objects-browser-verification.json"
+    },
+    {
+      "id": "cappuccino",
+      "file": "object-cappuccino.svg",
+      "bytes": 1504,
+      "sha256": "dd8f13d7fe92634e76cd7a9fbe7e92d7c2fd582c19c7a80b6ad099f27b194b4d",
+      "dimensions": [128, 128],
+      "transparent": true,
+      "sourceId": null,
+      "source": "TableMax original code-native SVG",
+      "processing": "Original vector paths, gradients, and highlights; transparent backdrop; no generated bitmap.",
+      "verification": "Browser decode and light/dark background visual review; no crop or edge halo observed; source sprites retained at native resolution.",
+      "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/objects-browser-verification.json"
+    },
+    {
+      "id": "flower",
+      "file": "object-flower.webp",
+      "bytes": 4446,
+      "sha256": "fdd94996669f763848110cb585c764e11571dcd9629efcbb2c11dced4bf213f4",
+      "dimensions": [88, 88],
+      "transparent": true,
+      "sourceId": "object-flower-original",
+      "source": "FreeKill v0.5.19 original sprite",
+      "processing": "Lossless WebP encoding at original dimensions; decoded RGBA exactly matches original PNG.",
+      "verification": "Browser decode and light/dark background visual review; no crop or edge halo observed; source sprites retained at native resolution.",
+      "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/objects-browser-verification.json"
+    },
+    {
+      "id": "poop",
+      "file": "object-poop.svg",
+      "bytes": 1122,
+      "sha256": "69a290ea262767c220bf4d0c9ba7152c0b1922a15e829627f721a55a632c3234",
+      "dimensions": [128, 128],
+      "transparent": true,
+      "sourceId": null,
+      "source": "TableMax original code-native SVG",
+      "processing": "Original vector paths, gradients, and highlights; transparent backdrop; no generated bitmap.",
+      "verification": "Browser decode and light/dark background visual review; no crop or edge halo observed; source sprites retained at native resolution.",
+      "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/objects-browser-verification.json"
+    }
+  ],
+  "sources": [
+    {
+      "id": "cappuccino-original",
+      "url": "https://cdn.uwupad.me/85476.mp3",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/cappuccino-original.mp3",
+      "bytes": 19133,
+      "sha256": "72eac54f604c7df3fee22ef83a7fe3f659fb6ef2956207d3e591dbd2044a42b7",
+      "acquiredAt": "2026-10-08",
+      "note": "Community uploaded recording; https://uwupad.me/sound/85476; title 给阿姨 给你倒一杯卡布奇诺; speaker/source authenticity requires listening"
+    },
+    {
+      "id": "seventeen-original",
+      "url": "https://cdn.uwupad.me/107202.mp3",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/seventeen-original.mp3",
+      "bytes": 142823,
+      "sha256": "23f3eab8f9d4937c8c2b102fe818e555974c1e269049f8b80da6cf3fb00f8823",
+      "acquiredAt": "2026-10-08",
+      "note": "Community uploaded recording; https://uwupad.me/sound/107202; title 十七张牌你能秒我; trim after listening"
+    },
+    {
+      "id": "nice-source-zip",
+      "url": "https://godbiao.com/tools/wzry/sounds/快捷语音.zip",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/wzry-quick-voice.zip",
+      "bytes": 1605103,
+      "sha256": "bb1aec5d63a4f38079cd82f9ab596e64ae38d9e9b08f5ef92105699ee81ab320",
+      "acquiredAt": "2026-10-08",
+      "note": "Public community archive; relevant entry credits 微博IM追清风; https://godbiao.com/tools/wzry/"
+    },
+    {
+      "id": "tomato-reference-original",
+      "url": "https://cdn.uwupad.me/16187.mp3",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/tomato-reference-original.mp3",
+      "bytes": 323392,
+      "sha256": "8e69eeefbdc30c7fa792ccce1146c6129f7175fe28a51348a9bdb4540111fe14",
+      "acquiredAt": "2026-10-08",
+      "note": "Reference recording 卢 番茄连招; https://uwupad.me/sound/16187; may include dialogue or background music; not blindly imported"
+    },
+    {
+      "id": "hurry-original",
+      "url": "https://raw.githubusercontent.com/libccy/noname/e18a8256e01ab1357e4c7472349dceb3d0aa1a3a/audio/voice/male/7.mp3",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/hurry-original.mp3",
+      "bytes": 102047,
+      "sha256": "7a2b9f134940e5a13ac74f93bbb19db6f1576bda94bbe9f3a7345c79dbc6f2ea",
+      "acquiredAt": "2026-10-08",
+      "note": "noname quickVoice[7]: 能不能快一点啊，兵贵神速啊; mapping verified in library/index.js and element/player.js; community copy, not an official source claim"
+    },
+    {
+      "id": "shameless-original",
+      "url": "https://raw.githubusercontent.com/libccy/noname/e18a8256e01ab1357e4c7472349dceb3d0aa1a3a/audio/voice/male/0.mp3",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/shameless-original.mp3",
+      "bytes": 176631,
+      "sha256": "d490f3488c98f72352a9b59f15abe9483c88a05c6e81b175fd5f5312d4eb0245",
+      "acquiredAt": "2026-10-08",
+      "note": "noname quickVoice[0]: 我从未见过如此厚颜无耻之人！; code mapping verified"
+    },
+    {
+      "id": "friendly-original",
+      "url": "https://raw.githubusercontent.com/libccy/noname/e18a8256e01ab1357e4c7472349dceb3d0aa1a3a/audio/voice/male/8.mp3",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/friendly-original.mp3",
+      "bytes": 90527,
+      "sha256": "80650aff0c7956d3d2188684a021a913a62afa3231586861d5c8ba102a989add",
+      "acquiredAt": "2026-10-08",
+      "note": "noname quickVoice[8]: 主公，别开枪，自己人; code mapping verified"
+    },
+    {
+      "id": "egg1-original",
+      "url": "https://raw.githubusercontent.com/Qsgs-Fans/FreeKill/v0.5.19/audio/system/egg1.mp3",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/egg1-original.mp3",
+      "bytes": 11667,
+      "sha256": "db163f487efaa01232219c675b74e86852ddec654dcd76112fb7633daa89a0bc",
+      "acquiredAt": "2026-10-08",
+      "note": "FreeKill v0.5.19 community audiovisual asset; upstream GPLv3 does not establish all third-party game rights"
+    },
+    {
+      "id": "egg2-original",
+      "url": "https://raw.githubusercontent.com/Qsgs-Fans/FreeKill/v0.5.19/audio/system/egg2.mp3",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/egg2-original.mp3",
+      "bytes": 9160,
+      "sha256": "9d55defa1aa754a7eb6e05329c5840bfb5bc7d89bb49fc82bfac1fd76b3a5e85",
+      "acquiredAt": "2026-10-08",
+      "note": "FreeKill v0.5.19 community audiovisual asset; upstream GPLv3 does not establish all third-party game rights"
+    },
+    {
+      "id": "flower1-original",
+      "url": "https://raw.githubusercontent.com/Qsgs-Fans/FreeKill/v0.5.19/audio/system/flower1.mp3",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/flower1-original.mp3",
+      "bytes": 30894,
+      "sha256": "fdbc2a1094da5151253d7d000d3e83a673ead24c65d8c83ba90302dfed01f9af",
+      "acquiredAt": "2026-10-08",
+      "note": "FreeKill v0.5.19 community audiovisual asset; upstream GPLv3 does not establish all third-party game rights"
+    },
+    {
+      "id": "flower2-original",
+      "url": "https://raw.githubusercontent.com/Qsgs-Fans/FreeKill/v0.5.19/audio/system/flower2.mp3",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/flower2-original.mp3",
+      "bytes": 35491,
+      "sha256": "9289f26f8ba6cd9fbcfbb1d09e22ec80cf1ddd5ba96aa27a3f7b2e35472992b5",
+      "acquiredAt": "2026-10-08",
+      "note": "FreeKill v0.5.19 community audiovisual asset; upstream GPLv3 does not establish all third-party game rights"
+    },
+    {
+      "id": "shoe1-original",
+      "url": "https://raw.githubusercontent.com/Qsgs-Fans/FreeKill/v0.5.19/audio/system/shoe1.mp3",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/shoe1-original.mp3",
+      "bytes": 6949,
+      "sha256": "8138c317bc4cf6e992b20f9ef8d8db8a3f6cfec2f7832b36b7913da5c9a36d5d",
+      "acquiredAt": "2026-10-08",
+      "note": "FreeKill v0.5.19 community audiovisual asset; upstream GPLv3 does not establish all third-party game rights"
+    },
+    {
+      "id": "shoe2-original",
+      "url": "https://raw.githubusercontent.com/Qsgs-Fans/FreeKill/v0.5.19/audio/system/shoe2.mp3",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/shoe2-original.mp3",
+      "bytes": 6181,
+      "sha256": "a9458a53c9cf6ed998c3792e12d26eb332eec6f125c18a31fec9cc409d8c32c3",
+      "acquiredAt": "2026-10-08",
+      "note": "FreeKill v0.5.19 community audiovisual asset; upstream GPLv3 does not establish all third-party game rights"
+    },
+    {
+      "id": "object-egg-original",
+      "url": "https://raw.githubusercontent.com/Qsgs-Fans/FreeKill/v0.5.19/image/anim/egg/egg.png",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/object-egg-original.png",
+      "bytes": 4303,
+      "sha256": "da7fcb79210db15cc6fefbddc8365bde7951c80c26bbeae23eda72640dc83c83",
+      "acquiredAt": "2026-10-08",
+      "note": "FreeKill v0.5.19 unmodified original; transparency and visual review pending"
+    },
+    {
+      "id": "object-flower-original",
+      "url": "https://raw.githubusercontent.com/Qsgs-Fans/FreeKill/v0.5.19/image/anim/flower/egg.png",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/object-flower-original.png",
+      "bytes": 6386,
+      "sha256": "76b2dd9f10b7a38c1c98d9525be565590ac5767c4201c9cd49267b96b00fbd7a",
+      "acquiredAt": "2026-10-08",
+      "note": "FreeKill v0.5.19 unmodified original; transparency and visual review pending"
+    },
+    {
+      "id": "object-shoe-original",
+      "url": "https://raw.githubusercontent.com/Qsgs-Fans/FreeKill/v0.5.19/image/anim/shoe/shoe.png",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/object-shoe-original.png",
+      "bytes": 4841,
+      "sha256": "6606926845594b88d9828a76efa991e6e73ae74300e66539eef60110229b1ff5",
+      "acquiredAt": "2026-10-08",
+      "note": "FreeKill v0.5.19 unmodified original; transparency and visual review pending"
+    },
+    {
+      "id": "freekill-license",
+      "url": "https://raw.githubusercontent.com/Qsgs-Fans/FreeKill/v0.5.19/LICENSE",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/freekill-LICENSE.txt",
+      "bytes": 35147,
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+      "acquiredAt": "2026-10-08",
+      "note": "Upstream source license text retained"
+    },
+    {
+      "id": "freekill-third-party-notice",
+      "url": "https://raw.githubusercontent.com/CircleCly/WoTKSpire/v0.5.1/THIRD_PARTY_NOTICES.md",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/freekill-THIRD_PARTY_NOTICES.md",
+      "bytes": 2140,
+      "sha256": "ebac5bbd2e07bb53e89e05338362470b146c2e69373b854ddfd8841fb3438abb",
+      "acquiredAt": "2026-10-08",
+      "note": "Source attribution of the unmodified FreeKill v0.5.19 audiovisual assets and original QML timing"
+    },
+    {
+      "id": "nice-original",
+      "url": "https://godbiao.com/tools/wzry/sounds/%E5%BF%AB%E6%8D%B7%E8%AF%AD%E9%9F%B3.zip",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/nice-original.mp3",
+      "bytes": 28376,
+      "sha256": "9cfe3cd0a11466b624aa080027dd40140f0605d3c2ee1f7354384f99ae560522",
+      "acquiredAt": "2026-10-08",
+      "note": "Archive entry 快捷语音/干得漂亮_转载使用请注明来自微博IM追清风.mp3; attribution retained. Public community archive, official ownership not inferred."
+    },
+    {
+      "id": "carry-video-original",
+      "url": "https://api.bilibili.com/x/player/playurl?bvid=BV1Nt411w7M2&cid=107128915&qn=32&fnval=0",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/carry-system-original.mp4",
+      "bytes": 29695918,
+      "sha256": "e4cec0e76615eeda92f2934491f71ebbf16ce9bcfd860c9c606a28910839df5b",
+      "acquiredAt": "2026-10-08",
+      "note": "Bili BV1Nt411w7M2 P9 系统, cid107128915; public temporary media URL resolved through stable API. Timed comment 561.077 seconds: i will carry you; acoustic content verification pending."
+    },
+    {
+      "id": "cappuccino-video-original",
+      "url": "https://www.bilibili.com/video/BV1Kx411W7Nx/",
+      "resolver": "https://api.bilibili.com/x/player/playurl?bvid=BV1Kx411W7Nx&cid=20754839&qn=32&fnval=0",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/originals/cappuccino-video-original.mp4",
+      "bytes": 3462305,
+      "sha256": "7cd4ecc9d8097accaadca6eadc2b539ce7f90a679284dfea25ebcb53c3cac353",
+      "acquiredAt": "2026-10-08",
+      "note": "2017-07-26 recording/repost 给阿姨倒一杯卡布奇诺，答应我一定要看完; clip selected at86.1–89.15; acoustic transcript corroborates. Source video retained; screenshot shows the original streaming scene."
+    }
+  ],
+  "sourceNotes": [
+    {
+      "source": "FreeKill v0.5.19",
+      "license": "Upstream GNU GPLv3; full license and third-party attribution retained in originals. Community game resources; upstream license text does not independently document every original game rights holder.",
+      "files": [
+        "originals/freekill-LICENSE.txt",
+        "originals/freekill-THIRD_PARTY_NOTICES.md"
+      ]
+    },
+    {
+      "source": "libccy/noname fixed commit e18a8256e01ab1357e4c7472349dceb3d0aa1a3a",
+      "note": "Community preserved recorded quick voices. Expected Chinese text-to-file mapping verified through quickVoice indices and player audio call; availability does not itself prove original recording ownership."
+    },
+    {
+      "source": "godbiao 王者荣耀社区语音合集",
+      "credit": "转载使用请注明来自微博IM追清风",
+      "note": "Exact source archive filename attribution retained; no official collection/authorship claim."
+    },
+    {
+      "source": "Bilibili / UwUpad",
+      "note": "Public recording/repost metadata retained; no independent speaker identity certification or original publisher licence supplied on the cited pages."
+    },
+    {
+      "source": "TableMax original",
+      "note": "Tomato, cappuccino, and poop SVG objects plus wet splat, pouring, and soft plop foley are original deterministic code-native assets; no generated or cloned speech."
+    }
+  ],
+  "verification": {
+    "date": "2026-10-08",
+    "audio": "All eleven final MP3s fully decoded. All six preset voices plus cappuccino independently transcribed without expected-text prompt; ASR homophone errors retained in evidence and compared with independent source mappings. Direct model audio input was unsupported, so no human listening claim.",
+    "objects": "All twelve light/dark previews loaded in local Edge; transparent original sprites and SVG drawings visually reviewed.",
+    "runtimeNetworkDependencies": 0,
+    "importedIntoUi": false,
+    "voiceBytes": 94584,
+    "effectBytes": 122860,
+    "objectBytes": 14997,
+    "totalAssetBytes": 232441,
+    "evidence": "artifacts/maintenance/v1.0.5/interaction-assets"
+  },
+  "replacementContract": {
+    "voiceIds": [
+      "hurry",
+      "nice",
+      "carry",
+      "seventeen",
+      "shameless",
+      "friendly"
+    ],
+    "effectIds": ["egg", "cappuccino", "tomato", "flower", "poop"],
+    "objectIds": ["egg", "slipper", "tomato", "cappuccino", "flower", "poop"],
+    "duration": "durationMs is the final gapless PCM sample count after full MP3 decode; it is not an estimated source label. Four-second shots remain authored four-second combinations.",
+    "scope": "Sources and originals are retained in audit artifacts; only runtime MP3, WebP, SVG and this manifest are needed during offline play."
+  }
+}

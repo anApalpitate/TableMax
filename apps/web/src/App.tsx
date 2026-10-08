@@ -5,6 +5,7 @@ import { BoxScreen } from './screens/BoxScreen';
 import { GameScreen } from './screens/GameScreen';
 import type { ScreenRole } from './navigation';
 import { PlayerFrame } from './components/PlayerFrame';
+import { InteractionLayer } from './interactions/InteractionLayer';
 
 function RoomApp({ role, inGame }: { role: ScreenRole; inGame: boolean }) {
   const session = useRoomSession(role);
@@ -28,6 +29,7 @@ function RoomApp({ role, inGame }: { role: ScreenRole; inGame: boolean }) {
       ) : (
         <BoxScreen session={session} />
       )}
+      <InteractionLayer session={session} />
     </div>
   );
 }

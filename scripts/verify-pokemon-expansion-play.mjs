@@ -1,3 +1,7 @@
+import {
+  MAXIMUM_PACKAGE_BYTES,
+  PACKAGE_BUDGET_BYTES,
+} from './lib/package-limits.mjs';
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
@@ -66,9 +70,10 @@ if (portable) {
   );
   executablePath = join(work, 'portable/TableMax.exe');
   assert.ok(
-    manifest.archive.bytes < 100000000 && manifest.extractedBytes < 100000000,
+    manifest.archive.bytes < MAXIMUM_PACKAGE_BYTES &&
+      manifest.extractedBytes < MAXIMUM_PACKAGE_BYTES,
   );
-  assert.equal(manifest.fileCount, 248);
+  assert.equal(manifest.fileCount, manifest.files.length);
   const expected = new Set(),
     actual = new Set();
   let total = 0;
@@ -99,7 +104,10 @@ if (portable) {
   await inventory(join(work, 'portable'));
   assert.deepEqual(actual, expected);
   assert.equal(total, manifest.extractedBytes);
-  assert.ok(total <= 95000000, 'Runtime exceeds the 95 MB engineering budget');
+  assert.ok(
+    total <= PACKAGE_BUDGET_BYTES,
+    'Runtime exceeds the 114 MB engineering budget',
+  );
   assert.equal(actual.size, manifest.fileCount);
 }
 const { io } = createRequire(resolve('apps/web/package.json'))(

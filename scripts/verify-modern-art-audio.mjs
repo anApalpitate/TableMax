@@ -268,7 +268,7 @@ async function observe(page, role) {
       evidence.externalRequests.push({ role, url: request.url() });
   });
   page.on('requestfailed', (request) => {
-    if (new URL(request.url()).pathname.endsWith('.wav'))
+    if (/\.(wav|flac)$/.test(new URL(request.url()).pathname))
       evidence.audioRequestFailures.push({
         role,
         url: request.url(),
@@ -479,8 +479,20 @@ async function assetsAndDecode() {
     await readFile('assets/games/modern-art/manifest.json', 'utf8'),
   );
   assert.equal(manifest.audio.assets.length, 17);
-  const assetRoot = join(dirname(executablePath), 'web/assets');
-  const files = await readdir(assetRoot);
+  const legacyAssetRoot = join(dirname(executablePath), 'web/assets');
+  const moduleAssetRoot = join(
+    dirname(executablePath),
+    'web/games/modern-art/web/assets',
+  );
+  let assetRoot = moduleAssetRoot;
+  const files = await readdir(moduleAssetRoot).catch(() => {
+    assetRoot = legacyAssetRoot;
+    return readdir(legacyAssetRoot);
+  });
+  const assetUrlPrefix =
+    assetRoot === legacyAssetRoot
+      ? '/assets/'
+      : '/games/modern-art/web/assets/';
   for (const asset of manifest.audio.assets) {
     const original = await readFile(
       resolve('assets/games/modern-art/audio', asset.path),
@@ -490,27 +502,38 @@ async function assetsAndDecode() {
       asset.sha256,
       'Source audio matches recorded generation',
     );
+    const lossless = await readFile(
+      resolve(
+        'assets/games/modern-art/audio',
+        asset.path.replace(/\.wav$/, '.flac'),
+      ),
+    ).catch(() => null);
+    const expectedHash = (file) =>
+      file.endsWith('.flac') && lossless ? hash(lossless) : asset.sha256;
     const candidates = files.filter(
       (file) =>
         file.startsWith(basename(asset.path, '.wav') + '-') &&
-        file.endsWith('.wav'),
+        /\.(wav|flac)$/.test(file),
     );
     const matches = [];
     for (const file of candidates)
-      if (hash(await readFile(join(assetRoot, file))) === asset.sha256)
+      if (hash(await readFile(join(assetRoot, file))) === expectedHash(file))
         matches.push(file);
     assert.equal(
       matches.length,
       1,
       `One exact production asset for ${asset.cue}`,
     );
-    const url = origin + '/assets/' + encodeURIComponent(matches[0]);
+    const url = origin + assetUrlPrefix + encodeURIComponent(matches[0]);
     evidence.assets.push({
       cue: asset.cue,
       url,
       sourceSha256: asset.sha256,
-      packedSha256: asset.sha256,
-      bytes: asset.bytes,
+      packedSha256: expectedHash(matches[0]),
+      bytes:
+        matches[0].endsWith('.flac') && lossless
+          ? lossless.length
+          : asset.bytes,
       seconds: asset.measurements.seconds,
     });
   }
@@ -548,7 +571,7 @@ async function assetsAndDecode() {
   }, evidence.assets);
   for (const item of decoded) {
     const asset = evidence.assets.find((asset) => asset.cue === item.cue);
-    assert.equal(item.sha256, asset.sourceSha256);
+    assert.equal(item.sha256, asset.packedSha256);
     assert.equal(item.channels, 1);
     assert.ok(Math.abs(item.duration - asset.seconds) < 0.001);
   }

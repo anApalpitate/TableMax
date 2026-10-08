@@ -1,6 +1,6 @@
 # 文档索引
 
-当前程序为 **v1.0.4**，内置宝可梦奇遇、现代艺术与经典德国版电力公司。真人通过手机或电脑浏览器操作，电脑主机负责服务、管理与公共展示；电脑浏览器玩家首次保持居中竖屏，可切换并记住横屏选择，见[玩家显示与滚动条](reference/visual-design.md#电脑浏览器玩家的手机区域2026-10-08)。加入支持扫码和二维码下“打开网站”两种方案，使用根网址并兼容旧玩家路由；宝可梦扩展的新研究、单弃牌与缓冲见 [设计基线](games/pokemon-encounters/expansion-design.md)，实施及检查状态见 [本次任务](tasks/pokemon-encounters-expansion.md#研究与玩家操作重设计2026-10-08)。实现概况见 [项目说明](../README.md)，本地运行ZIP及验证边界见 [验收记录](reference/acceptance.md#当前源码与本地交付)。
+当前程序为 **v1.0.5**，内置宝可梦奇遇、现代艺术与经典德国版电力公司。真人通过手机或电脑浏览器操作，电脑主机负责服务、管理与公共展示；电脑浏览器玩家首次保持居中竖屏，可切换并记住横屏选择，见[玩家显示与滚动条](reference/visual-design.md#电脑浏览器玩家的手机区域2026-10-08)。加入支持扫码和二维码下“使用网址”两种方案，使用根网址并兼容旧玩家路由；宝可梦扩展的新研究、单弃牌与缓冲见 [设计基线](games/pokemon-encounters/expansion-design.md)，实施及检查状态见 [本次任务](tasks/pokemon-encounters-expansion.md#研究与玩家操作重设计2026-10-08)。实现概况见 [项目说明](../README.md)，本地运行ZIP及验证边界见 [验收记录](reference/acceptance.md#当前源码与本地交付)。
 
 ## 开始开发
 
@@ -65,3 +65,5 @@ rg -n '公开竞价|debug' docs/archive/acceptance-2026-10-01-to-04.md
 新增、迁移或归档主题时同步相关索引和目录职责；旧锚点保留短转链。当前验收页只保留最近交付与必要导航，历史原结论保留在归档，不因新版维护倒改。新包与证据分别位于 `artifacts/releases`、`artifacts/maintenance`；后续计划不写成已实现。
 
 收尾安全维护、手动清理和无损压缩均从 [开发环境](reference/development.md#清理本地中间物)进入；按预览和保护范围执行，不按 Git 忽略规则批量删除资料。桌面运行时前提与双 100 MB 门禁见 [小体积桌面决策](decisions/008-small-native-desktop.md)。
+
+跨游戏互动、队列和身份边界见[平台规格](reference/phase-02-platform-spec.md#跨游戏互动v1052026-10-08)，本地素材来源见[互动清单](../assets/platform/interaction/manifest.json)。

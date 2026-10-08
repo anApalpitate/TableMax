@@ -1,3 +1,4 @@
+import { MAXIMUM_PACKAGE_BYTES } from './lib/package-limits.mjs';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -70,7 +71,10 @@ const marker = JSON.parse(
 );
 assert.equal(marker.version, version);
 assert.equal(marker.archive.sha256, manifest.archive.sha256);
-assert.ok(bytes < 100000000, 'Actual extraction including ownership marker');
+assert.ok(
+  bytes < MAXIMUM_PACKAGE_BYTES,
+  'Actual extraction including ownership marker',
+);
 const firstWrite = (await stat(join(extracted, 'TableMax.exe'))).mtimeMs;
 await run(executable, [`--extract-only=${extracted}`], {
   windowsHide: true,

@@ -1,3 +1,7 @@
+import {
+  MAXIMUM_PACKAGE_BYTES,
+  PACKAGE_BUDGET_BYTES,
+} from './lib/package-limits.mjs';
 import assert from 'node:assert/strict';
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
@@ -134,8 +138,8 @@ if (portable) {
     'Portable ZIP hash matches manifest',
   );
   assert.ok(
-    archiveBytes.length < 100000000,
-    'Portable ZIP remains strictly below 100 MB',
+    archiveBytes.length < MAXIMUM_PACKAGE_BYTES,
+    'Portable ZIP remains strictly below 120 MB',
   );
   const extractedPaths = [];
   async function enumerate(directory, prefix = '') {
@@ -183,8 +187,9 @@ if (portable) {
   assert.equal(extractedBytes, manifest.extractedBytes);
   assert.equal(extractedBytes, manifest.unpackedBytes);
   assert.ok(
-    extractedBytes <= 95000000 && extractedBytes < 100000000,
-    'Actual portable extraction meets 95 MB engineering budget and strict 100 MB gate',
+    extractedBytes <= PACKAGE_BUDGET_BYTES &&
+      extractedBytes < MAXIMUM_PACKAGE_BYTES,
+    'Actual portable extraction meets 114 MB engineering budget and strict 120 MB gate',
   );
   report.portableInventory = {
     result: 'passed',

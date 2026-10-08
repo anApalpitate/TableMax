@@ -35,7 +35,21 @@
       "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. One original friendly teal bear wooden toy character head and shoulders, front-facing, compact centered square avatar, recognizably distinct silhouette, charming simple face, no clothing accessories, generous transparent margin around entire silhouette. Genuinely transparent background.",
       "file": "avatar-1.webp",
       "source": "built-in imagegen",
-      "version": 1
+      "version": 1,
+      "original": "artifacts/phase-02/art-reset/source/avatar-1.png",
+      "dimensions": [640, 640],
+      "bytes": 55648,
+      "sha256": "126f8f82c411ccfe4f71382e1c50316b1952ebcfe2e49ba33806dfa5ca86d9ea",
+      "alphaExtrema": [0, 255],
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 69050,
+        "afterBytes": 55648,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-2",
@@ -43,7 +57,21 @@
       "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. One original friendly coral fox wooden toy character head and shoulders, front-facing, compact centered square avatar, recognizably distinct silhouette, charming simple face, no clothing accessories, generous transparent margin around entire silhouette. Genuinely transparent background.",
       "file": "avatar-2.webp",
       "source": "built-in imagegen",
-      "version": 1
+      "version": 1,
+      "original": "artifacts/phase-02/art-reset/source/avatar-2.png",
+      "dimensions": [640, 640],
+      "bytes": 38318,
+      "sha256": "b86a1b1fcef28f007eda7391873958c2ba59aefdc66d8878aeda8296c70b9da5",
+      "alphaExtrema": [0, 255],
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 47734,
+        "afterBytes": 38318,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-3",
@@ -51,7 +79,21 @@
       "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. One original friendly golden rabbit wooden toy character head and shoulders, front-facing, compact centered square avatar, recognizably distinct silhouette, charming simple face, no clothing accessories, generous transparent margin around entire silhouette. Genuinely transparent background.",
       "file": "avatar-3.webp",
       "source": "built-in imagegen",
-      "version": 1
+      "version": 1,
+      "original": "artifacts/phase-02/art-reset/source/avatar-3.png",
+      "dimensions": [640, 640],
+      "bytes": 40462,
+      "sha256": "8708fdc41515fae0ee08d0d32401dd105a3dbc1898075d08b1bf0c542006aa42",
+      "alphaExtrema": [0, 255],
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 49100,
+        "afterBytes": 40462,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-4",
@@ -59,7 +101,21 @@
       "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. One original friendly sage owl wooden toy character head and shoulders, front-facing, compact centered square avatar, recognizably distinct silhouette, charming simple face, no clothing accessories, generous transparent margin around entire silhouette. Genuinely transparent background.",
       "file": "avatar-4.webp",
       "source": "built-in imagegen",
-      "version": 1
+      "version": 1,
+      "original": "artifacts/phase-02/art-reset/source/avatar-4.png",
+      "dimensions": [640, 640],
+      "bytes": 55228,
+      "sha256": "fd2744d41e5104dddc64b13e5bca7d1ab6779e81dec70d87acbc2c51a020a2d5",
+      "alphaExtrema": [0, 255],
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 66914,
+        "afterBytes": 55228,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-5",
@@ -67,7 +123,21 @@
       "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. One original friendly blue penguin wooden toy character head and shoulders, front-facing, compact centered square avatar, recognizably distinct silhouette, charming simple face, no clothing accessories, generous transparent margin around entire silhouette. Genuinely transparent background.",
       "file": "avatar-5.webp",
       "source": "built-in imagegen",
-      "version": 1
+      "version": 1,
+      "original": "artifacts/phase-02/art-reset/source/avatar-5.png",
+      "dimensions": [640, 640],
+      "bytes": 47834,
+      "sha256": "2903f5867360a61c7aac9ce3603660830efc9111ac58f955ce873b208ff78f13",
+      "alphaExtrema": [0, 255],
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 57498,
+        "afterBytes": 47834,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-6",
@@ -75,7 +145,21 @@
       "prompt": "Use case: stylized-concept. TableMax original bright board-game console art. Match the provided reference ONLY for style: rounded silhouettes, charming gouache, sculpted wooden toys, subtle paper grain, restrained soft shadows. Palette warm cream #F6F2E8, teal #247C75, gold #F4BE45, coral #E77A60. No words, letters, text, logos, watermarks or UI controls. One original friendly orange cat wooden toy character head and shoulders, front-facing, compact centered square avatar, recognizably distinct silhouette, charming simple face, no clothing accessories, generous transparent margin around entire silhouette. Genuinely transparent background.",
       "file": "avatar-6.webp",
       "source": "built-in imagegen",
-      "version": 1
+      "version": 1,
+      "original": "artifacts/phase-02/art-reset/source/avatar-6.png",
+      "dimensions": [640, 640],
+      "bytes": 45588,
+      "sha256": "48466c0d27d805887b93883121f265975b155f68d6e7e120ad83282f12b4001f",
+      "alphaExtrema": [0, 255],
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 56826,
+        "afterBytes": 45588,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-7",
@@ -98,14 +182,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 46742,
-      "sha256": "01e9e689df43e6bcce4e80985ffb3d97a4f6bd2f3999684407756b7f4fd7f3ce",
+      "bytes": 42278,
+      "sha256": "f21fee6470a93f50734d2f62bcc273b159d5cfb3fb9108170cca2e89b9b21f96",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-7-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 46742,
+        "afterBytes": 42278,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-8",
@@ -128,14 +221,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 41250,
-      "sha256": "b5395265b4a418ebd9b0a0b8dab073a2dec5e4996156e6b864db2b4780acd31d",
+      "bytes": 36864,
+      "sha256": "8368d7cca6efca8cf2d0443fb2a09d7e0b6f3fe24534c0f066094ba31072c2f6",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-8-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 41250,
+        "afterBytes": 36864,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-9",
@@ -158,14 +260,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 40502,
-      "sha256": "ceafb1e7b92c2f121e8cb0c253e476cce05433d3729f721acc2cfc89c67538da",
+      "bytes": 35842,
+      "sha256": "9234a16d17d1f20fdd12d7f0278edfba3b356fc7ba005136dcd82e3ecc323f3a",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-9-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 40502,
+        "afterBytes": 35842,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-10",
@@ -188,14 +299,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 47438,
-      "sha256": "0b76e773eb4327855751b7fd82936971055d9cea36ed630467a71b65262c6ae2",
+      "bytes": 42946,
+      "sha256": "1cbb1d2b8bdd0253cfca464ef78b64998d65f6a6b2726d0e46c43d9c23f4b310",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-10-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 47438,
+        "afterBytes": 42946,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-11",
@@ -218,14 +338,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 37644,
-      "sha256": "a459f21bdfa061bbdbf2e0e8d1a0bf69f39e553e1ef02f776ed7517f4c2c9439",
+      "bytes": 32990,
+      "sha256": "28c17be41c1bd3373dec2e58cfd878f771ab76c59432911a502c7f07c06fd5d7",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-11-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 37644,
+        "afterBytes": 32990,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-12",
@@ -248,14 +377,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 40700,
-      "sha256": "3a3bbf079f65f5250f47dbc41c4f8d7c8730c55ee6edee846c28bd7f853a3dee",
+      "bytes": 35940,
+      "sha256": "eb0226619edfdad498f2a1e76067e68b35d207c88f3edbbb7cbb4f6a5a682885",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-12-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 40700,
+        "afterBytes": 35940,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-13",
@@ -278,14 +416,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 37216,
-      "sha256": "5e335168495b23a92cd89edbb3dd555edd0adbe9ded7a7364b9588ec183dd3c1",
+      "bytes": 32880,
+      "sha256": "31c573835deb4db7060cf840ed67ee597aae889e47e349aa3c0451809af29c52",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-13-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 37216,
+        "afterBytes": 32880,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-14",
@@ -308,14 +455,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 42562,
-      "sha256": "327175e70bae349ea9c1ec65f3c7ac7e8f6cc4d2923f72416a1abc585a9c3a3a",
+      "bytes": 38378,
+      "sha256": "0456dd6ffc3ae464849a0992af122694bc49e1eb6bec752c01d27b0f66ba3f4b",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-14-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 42562,
+        "afterBytes": 38378,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-15",
@@ -338,14 +494,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 46552,
-      "sha256": "e68c5ec84138998c3c90739badb8631dd139a679fea1f4d0e575477c4591fa8d",
+      "bytes": 41756,
+      "sha256": "ab23208f8eec64ec668b2efb1720fb2bafbe05d39927c8e665b712a02f77011a",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-15-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 46552,
+        "afterBytes": 41756,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-16",
@@ -368,14 +533,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 41870,
-      "sha256": "0ea2332f9bbac0def90f8d346621e959501095a24c493ee0ed4ad57dffdbf47c",
+      "bytes": 37374,
+      "sha256": "2138053cd05c84fdab0a14d5ebf16353860ab658a053e7a67336af5aceed2aad",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-16-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 41870,
+        "afterBytes": 37374,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-17",
@@ -398,14 +572,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 36578,
-      "sha256": "eb2b0e7fe8bcd716e17ba60c679d56af434c6c0b47adbf329cc4957b1a804e02",
+      "bytes": 31856,
+      "sha256": "dde12012b639d19a0ceffd7c02c0c5f71c1c57b74892606243ed70756fb66933",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-17-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 36578,
+        "afterBytes": 31856,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-18",
@@ -428,14 +611,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 39508,
-      "sha256": "b78dceb935ba85c1db3589139e8c4c5aae43310b54041579f139792f901d4dc1",
+      "bytes": 35342,
+      "sha256": "d34269c0c2ec07758fe4349d7dff8ea2cda6ea44b4a4627edc26444dbb019f52",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-18-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 39508,
+        "afterBytes": 35342,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-19",
@@ -458,14 +650,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 34086,
-      "sha256": "e13b3a3e8760c1304eef25cb87c21574d8d3db7ea19612ca3cb244a539b35c73",
+      "bytes": 29958,
+      "sha256": "008dda5a49130238cada038dab89adb681ee3d2b116766ad4264bd644b54c9d2",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-19-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 34086,
+        "afterBytes": 29958,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-20",
@@ -488,14 +689,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 37142,
-      "sha256": "661c87169f098d43fda3ee6db51578f30ef8fcce4d57b372c93839cee78cf9a6",
+      "bytes": 33624,
+      "sha256": "a3a103fb5655216733fac5b1f0c5cd4b7505c20086823ae93fba535544e006d4",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-20-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 37142,
+        "afterBytes": 33624,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-21",
@@ -518,14 +728,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 42778,
-      "sha256": "1507305b23529d250ccebda8aebf51e6476d0f4d3e9b95215ada6ee4802a972c",
+      "bytes": 38556,
+      "sha256": "135ac3aa0f8a164185601cc7a71a487b15a45230828b1e1d64294585c1141c03",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-21-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 42778,
+        "afterBytes": 38556,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-22",
@@ -548,14 +767,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 32728,
-      "sha256": "345a161a0fb32d02f9c4a25cbb749cc6e604cbcb803b5b09d47a17e5b74bfb46",
+      "bytes": 29372,
+      "sha256": "1c293f22f53c98057b807ae3b3bcc1c58232531581550c66c82dad39ef164fbb",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-22-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 32728,
+        "afterBytes": 29372,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-23",
@@ -578,14 +806,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 38118,
-      "sha256": "a1ed7bd2288d1f41c6df51e21c9dc0be9165b2341c905f4e025f31a343b94e10",
+      "bytes": 32776,
+      "sha256": "663b9a8e92cbda33db0dfb680f96de67be7c5fd679dfd38d44e0a7ce9e12be3d",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-23-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 38118,
+        "afterBytes": 32776,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-24",
@@ -608,14 +845,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 43992,
-      "sha256": "d1cc95a191583c6c280cb352b82707f93d17625121004bf4aa1024de8904c8f7",
+      "bytes": 39080,
+      "sha256": "2bad6c08491c493413b1651fb031e49550dd61d576495467003dff30adcfbffb",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-24-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 43992,
+        "afterBytes": 39080,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-25",
@@ -638,14 +884,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 30072,
-      "sha256": "97311f9b340948d50a50f138f2839f1be32d30d630df2945f09608811029f5d6",
+      "bytes": 26716,
+      "sha256": "e09250b57b17b7a2946c4a1d8d917519a61afb02d78940181dadd9816d67f4ce",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-25-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 30072,
+        "afterBytes": 26716,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "avatar-26",
@@ -668,14 +923,23 @@
       ],
       "transparent": true,
       "dimensions": [512, 512],
-      "bytes": 33510,
-      "sha256": "222f5674f30d88321f30b266fef1d62f7753f96300d3717f2f8a3068d870ec89",
+      "bytes": 29266,
+      "sha256": "05de6135d8d493bb2b2d8d98d401116891b77ff2fd115209de262d4431c85f4f",
       "alphaExtrema": [0, 255],
       "original": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen/originals/avatar-26-source-v1.png",
       "postprocessing": "Proportional LANCZOS resize to 512x512; WebP quality 84 method 6; original alpha preserved; no content edits.",
       "verification": "artifacts/maintenance/v1.0.1/box-avatars-20261004/imagegen",
       "status": "generated, alpha and small-scale verified, imported; actual native/web/portable selection and local bitmap checks passed",
-      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text."
+      "note": "Original animal player avatar; style references are existing bear and fox. Art preferences S01/S07/S09 consulted. Avatar selection, availability and names remain coded UI state, not painted image text.",
+      "compressionV105": {
+        "replaced": true,
+        "quality": 80,
+        "method": 6,
+        "beforeBytes": 33510,
+        "afterBytes": 29266,
+        "alphaUnchanged": true,
+        "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json"
+      }
     },
     {
       "id": "dice",
@@ -864,5 +1128,26 @@
     "to": "assets/platform",
     "reason": "Shared platform artwork is owned by the production web app; historical source art and evidence remain in place.",
     "verification": "All sixteen WebP files retain their original Git bytes; import references and prototype CSS are updated."
+  },
+  "avatarCompressionV105": {
+    "date": "2026-10-08",
+    "quality": 80,
+    "method": 6,
+    "beforeBytes": 1138110,
+    "afterBytes": 986872,
+    "savedBytes": 151238,
+    "replacedCount": 26,
+    "verification": "artifacts/maintenance/v1.0.5/interaction-assets/avatars/report.json",
+    "note": "Derived from preserved original PNGs; dimensions and exact delivered alpha remain unchanged; non-smaller candidates leave previous WebP untouched."
+  },
+  "interactionV105": {
+    "version": "1.0.5",
+    "manifest": "assets/platform/interaction/manifest.json",
+    "voices": ["hurry", "nice", "carry", "seventeen", "shameless", "friendly"],
+    "effects": ["egg", "cappuccino", "tomato", "flower", "poop"],
+    "objects": ["egg", "slipper", "tomato", "cappuccino", "flower", "poop"],
+    "totalAssetBytes": 232441,
+    "verification": "artifacts/maintenance/v1.0.5/interaction-assets",
+    "status": "Resources acquired/derived and locally verified; UI integration owned by main agent"
   }
 }

@@ -37,7 +37,7 @@
 
 便携包收集原生壳、x64 WebView2 必需 DLL、官方 Node 22.14.0 的 `node.exe` 和许可证、`server.cjs`／`server.cjs.br`、`bot-worker.cjs`、`games/*.cjs`、`bots/*.cjs` 与本地网页。服务入口校验压缩载荷与还原源码的SHA-256及精确长度，在内存解压并由当前CommonJS模块编译；不另行落盘源码，保留入口、exports、require.main及文件路径语义。Worker、官方Node字节和原生Job生命周期不变；缓存与冻结同时登记两个服务文件，细节和验证见[开发环境](development.md#服务载荷无损压缩2026-10-06)。使用系统共享 WebView2 与 .NET Framework 4.8，不分发 Electron、WebView2 Fixed Version 或现代 .NET 自包含运行时；电脑无需预装 Node.js 或开发工具。缺少 WebView2 时提示用户安装官方 Evergreen Runtime，可取消，安装后正式对局仍不依赖互联网。
 
-新增游戏前，Windows x64 ZIP 和实际解压目录内全部交付文件各自必须严格小于 100,000,000 字节；95,000,000 字节为工程预算，达到预算时报告、达到硬上限时拒绝交付。系统共享运行时、用户存档和浏览器缓存不计入交付目录；打包清单记录实际大小、文件哈希与运行时版本，并核对 ZIP 实际解压结果。
+新增游戏前，Windows x64 ZIP 和实际解压目录内全部交付文件各自必须严格小于 120,000,000 字节；114,000,000 字节为工程预算，达到预算时报告、达到硬上限时拒绝交付。系统共享运行时、用户存档和浏览器缓存不计入交付目录；打包清单记录实际大小、文件哈希与运行时版本，并核对 ZIP 实际解压结果。
 
 当前没有实际复用需求支持独立 `packages/ui`，因此未创建空包。首版游戏集中在 `games/pokemon-encounters/`；模块编译打包、运行时按目录选择并懒加载，不实现外部插件安装或多房间。模板注册及策略替换入口见 [扩展指南](../game-development/README.md)。
 
@@ -171,3 +171,5 @@ SDK `PublicEvent.action` 及首版历史可选记录真实行动者、动词、�
 当前使用独立 WebView2 控件的 `ZoomFactor` 与 PerMonitorV2 DPI，管理和公共窗口分别应用缩放。自动比例来自原生内容窗口的 DIP 宽高与 1920×1080 基准，不能读取已缩放的 `innerWidth` 再反馈计算。分辨率预设先按当前显示器 DPI 转为 DIP；界面大小叠加用户倍率，限制到窗口可用空间与三倍上限。resize／全屏／显示器变化重新计算，页面导航和刷新应用当前窗口偏好；房主管理与公共屏分别持久化最近选择，作为新开窗口／重启的默认值，不覆盖其他已打开窗口。关闭与迟到事件先判断窗口／浏览器存活，避免阻断退出。
 
 此前 Electron 44 的 isolated zoom、utilityProcess 与 preload 属于旧实现；原交付证据保留，不作为新原生壳通过依据。迁移采用理由与重新验收责任见 [决策 008](../decisions/008-small-native-desktop.md)。
+
+共享互动配置／协议位于`packages/protocol/src/interactions.ts`及相邻JSON；服务内存队列在`apps/server/src/interactions.ts`，只使用房间身份与实例／分支上下文。`apps/web/src/interactions/`独立组装手势、透明显示和浏览器音频，原生互动桥接与游戏声音通道分离。游戏规则／会话存档不依赖互动素材或队列。

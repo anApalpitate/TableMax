@@ -36,6 +36,7 @@ namespace TableMax.Desktop
         public string Role { get; }
         public bool Managed { get; }
         public bool AudioReady { get; set; }
+        public bool InteractionAudioReady { get; set; }
         public DisplayPreferences Preferences { get; set; }
         public string Url => !IsDisposed && browser.CoreWebView2 != null ? browser.CoreWebView2.Source : "";
         protected override bool ShowWithoutActivation => context?.Testing == true || context?.Background == true;
@@ -69,7 +70,7 @@ namespace TableMax.Desktop
             Move += (_, __) => ApplyDisplay();
             DpiChanged += (_, __) => ApplyDisplay();
             VisibleChanged += (_, __) => context.UpdatePower();
-            FormClosed += (_, __) => { AudioReady = false; browser.Dispose(); };
+            FormClosed += (_, __) => { AudioReady = false; InteractionAudioReady = false; browser.Dispose(); };
         }
         protected override void Dispose(bool disposing)
         {
@@ -114,10 +115,10 @@ namespace TableMax.Desktop
             core.SourceChanged += (_, args) =>
             {
                 // Only a committed document clears the old game audio membership.
-                if (args.IsNewDocument) { AudioReady = false; context.BroadcastAudio(); }
+                if (args.IsNewDocument) { AudioReady = false; InteractionAudioReady = false; context.BroadcastAudio(); context.BroadcastInteractionAudio(); }
                 ApplyDisplay();
             };
-            core.ProcessFailed += (_, __) => { AudioReady = false; context.BroadcastAudio(); };
+            core.ProcessFailed += (_, __) => { AudioReady = false; InteractionAudioReady = false; context.BroadcastAudio(); context.BroadcastInteractionAudio(); };
             core.WebMessageReceived += OnWebMessage;
             core.NavigationCompleted += (_, __) => ApplyDisplay();
             browser.ZoomFactorChanged += (_, __) => { if (!applyingDisplay && Managed) ApplyDisplay(); };

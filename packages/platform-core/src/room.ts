@@ -268,6 +268,9 @@ export class RoomCoordinator {
     requireThat(seat, 'invalid-identity');
     return { role: 'player', seatId: seat.id };
   }
+  interactionContext() {
+    return { instanceId: this.data.instanceId, branch: this.data.branch };
+  }
   subscribe(listener: (feedback?: RoomFeedback) => void) {
     this.listeners.add(listener);
     return () => {

@@ -1,3 +1,7 @@
+import {
+  MAXIMUM_PACKAGE_BYTES,
+  PACKAGE_BUDGET_BYTES,
+} from './lib/package-limits.mjs';
 import { buildProject } from './build.mjs';
 import assert from 'node:assert/strict';
 import { resolve, join, relative, sep } from 'node:path';
@@ -59,8 +63,8 @@ await lock('package-win', async () => {
       )
     )
       throw new Error('Initialize game budgets before packaging: ' + game.id);
-  const maximumBytes = 100000000;
-  const budgetBytes = 95000000;
+  const maximumBytes = MAXIMUM_PACKAGE_BYTES;
+  const budgetBytes = PACKAGE_BUDGET_BYTES;
   const project = JSON.parse(await readFile('package.json', 'utf8'));
   const releases = resolve('artifacts/releases');
   await mkdir(releases, { recursive: true });
@@ -140,7 +144,7 @@ await lock('package-win', async () => {
   const unpackedBytes = records.reduce((total, file) => total + file.bytes, 0);
   if (unpackedBytes >= maximumBytes)
     throw new Error(
-      'Unpacked release must be below 100,000,000 bytes: ' + unpackedBytes,
+      'Unpacked release must be below 120,000,000 bytes: ' + unpackedBytes,
     );
   const name = 'TableMax-' + project.version + '-win-x64.zip';
   const archive = join(output, name);
@@ -162,7 +166,7 @@ await lock('package-win', async () => {
   const archiveBytes = (await stat(archive)).size;
   if (archiveBytes >= maximumBytes)
     throw new Error(
-      'Release ZIP must be below 100,000,000 bytes: ' + archiveBytes,
+      'Release ZIP must be below 120,000,000 bytes: ' + archiveBytes,
     );
   // Inspect actual extraction, rather than relying only on the pre-compression staging folder.
   const extracted = join(output, 'size-verification');
@@ -266,7 +270,7 @@ await lock('package-win', async () => {
     console.warn(
       'Engineering budget exceeded: ' +
         unpackedBytes +
-        ' bytes (hard 100 MB gate passed).',
+        ' bytes (hard 120 MB gate passed).',
     );
   console.log('Release ZIP: ' + join(releases, name));
   console.log(

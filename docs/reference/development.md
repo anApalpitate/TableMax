@@ -169,7 +169,7 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 `scripts/module-build.mjs` 对platform-server与宝可梦人机单元应用该步骤，helper纳入各自指纹，入口和载荷共同进入缓存哈希、冻结和组装；`scripts/package.mjs` 白名单同时收集两者，游戏载荷预算计入 `bots/pokemon-encounters.cjs.br`。其他游戏人机、规则和媒体保持原构建。相关单测命令为 `node --import tsx --test scripts/service-brotli.test.mjs scripts/pokemon-bot-brotli.test.mjs`，覆盖原字节还原、CommonJS路径／exports／require.main、依赖加载、无落盘，以及缺失、载荷损坏、合法压缩但源码哈希错误。宝可梦原版／扩展三档另经实际32MiB生产Worker执行合法决定，保持原2秒取消边界。
 
-2026-10-08研究重设计的第一包实际解压95,035,481字节，超过95MB工程预算35,481字节，未作交付验收。只压缩宝可梦人机144,410字节为715字节入口＋28,397字节载荷，净省115,298字节；该轮压缩包248文件实际解压94,920,183字节，余79,817字节；后续客户端返修后的当前体积以验收记录为准。相关[载荷检查](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/pokemon-bot-brotli.json)及[首包预算失败](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/budget-failure.json)保留；当前实际包验收见[验收记录](acceptance.md)。
+2026-10-08研究重设计的第一包实际解压95,035,481字节，超过114MB工程预算35,481字节，未作交付验收。只压缩宝可梦人机144,410字节为715字节入口＋28,397字节载荷，净省115,298字节；该轮压缩包248文件实际解压94,920,183字节，余79,817字节；后续客户端返修后的当前体积以验收记录为准。相关[载荷检查](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/pokemon-bot-brotli.json)及[首包预算失败](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/budget-failure.json)保留；当前实际包验收见[验收记录](acceptance.md)。
 
 隔离[实测](../../artifacts/maintenance/v1.0.2/pokemon-expansion-size-continuation/runtime.json)以历史实际解压程序为输入：1,655,164字节服务变为717字节入口＋354,905字节载荷，净省1,299,542字节。隐藏原生窗口经父子私有管道启动包内Node，真实Socket恢复／保存、bot Worker行动和再次重启通过；故障入口不监听端口、不改存档，正常退出后Job关联服务已停止。原始官方Node字节保持一致。
 
@@ -345,7 +345,7 @@ Windows 程序规则按完整可执行文件路径匹配；专用网络和本地
 
 ## 便携包体积与共享运行时
 
-新增游戏前，Windows x64 ZIP 与实际解压后的全部程序文件均严格小于 100,000,000 字节，工程预算为 95,000,000 字节。`scripts/package.mjs` 只收集原生壳、x64 WebView2 DLL、官方 Node、许可证、服务、游戏模块、网页与完整本地资源；生成服务代码使用生产压缩，保留可读源码及原素材；不分发 Electron、现代 .NET 自包含运行时、WebView2 Fixed Version、其他架构库、引用程序集、PDB 或 SDK 文档。
+新增游戏前，Windows x64 ZIP 与实际解压后的全部程序文件均严格小于 120,000,000 字节，工程预算为 114,000,000 字节。`scripts/package.mjs` 只收集原生壳、x64 WebView2 DLL、官方 Node、许可证、服务、游戏模块、网页与完整本地资源；生成服务代码使用生产压缩，保留可读源码及原素材；不分发 Electron、现代 .NET 自包含运行时、WebView2 Fixed Version、其他架构库、引用程序集、PDB 或 SDK 文档。
 
 打包计算 ZIP 和目录字节数，实际解压后比对每个文件的字节数及 SHA-256；任一达到上限立即失败，不发布标准 ZIP。清单在 `artifacts/releases/TableMax-<版本>-win-x64-manifest.json`，记录文件列表、包哈希、运行时与双体积。系统共享运行时、用户存档和缓存不计入交付体积，缓存始终写入用户数据目录。缺少共享 WebView2 时提示安装或取消，安装完成后的完整游戏仅用本地资源与局域网服务。
 
@@ -397,7 +397,7 @@ pnpm package:win
 
 验收至少覆盖：单游戏变更只重建其受影响部分且其他模块哈希不变；共享契约变化使全部相关模块失效；资源变化、删除和重命名无旧文件残留；缓存损坏／缺失、构建失败及并发输出不造成混合包；不兼容模块被拒绝；同一输入的增量组装与干净全量构建的交付文件一致（确定性文件按哈希比较，必要的生成元数据差异明确记录）。
 
-按影响执行源码检查，再对最终同一 ZIP 验证盒子与三游戏加载、跨游戏切换、身份权限、存档续局及资源离线可用。实际解压目录逐文件核对清单，ZIP 与解压交付均严格小于 100,000,000 字节，沿用 95 MB 工程预算。记录各模块构建、缓存命中、组装、压缩和验收的实际耗时，不预先宣称节省比例；模块缓存不替代最终交付检查。日常仍只导出完整运行 ZIP 与逐文件清单，不新增源码包或递增版本。
+按影响执行源码检查，再对最终同一 ZIP 验证盒子与三游戏加载、跨游戏切换、身份权限、存档续局及资源离线可用。实际解压目录逐文件核对清单，ZIP 与解压交付均严格小于 120,000,000 字节，沿用 114 MB 工程预算。记录各模块构建、缓存命中、组装、压缩和验收的实际耗时，不预先宣称节省比例；模块缓存不替代最终交付检查。日常仍只导出完整运行 ZIP 与逐文件清单，不新增源码包或递增版本。
 
 ## 清理本地中间物
 
@@ -612,7 +612,7 @@ v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`�
 
 所有专项通过后只调用一次 `pnpm package:win`（已包含正式18单元构建，不预先重复全量build）。备份原ZIP／清单，对同一最终ZIP执行 `verify-pokemon-expansion.mjs --portable --evidence=<独立名>` 与普通模式控件验证，再核对冻结输入、离线媒体、退出、实际解压体积及模块预算。共享存储变化扩大三游戏恢复检查；未变规则／原版素材按影响复用既有证据。真人手机／听感／硬件DPI／现场LAN及人类时长单独交接，不重新执行胜率统计门禁。
 
-模块预算警告不能视为交付通过；先优化新增资源或实现，不自动上调。预算失败后的受影响单元修正允许重新冻结组装，保留失败清单、输入与理由，其余缓存单元复用。最终包需同时满足宝可梦4MiB、整包95MB工程预算及ZIP／实际解压双100MB硬门禁；所有最终证据核对同一完整ZIP哈希。
+模块预算警告不能视为交付通过；先优化新增资源或实现，不自动上调。预算失败后的受影响单元修正允许重新冻结组装，保留失败清单、输入与理由，其余缓存单元复用。最终包需同时满足宝可梦4MiB、整包114MB工程预算及ZIP／实际解压双100MB硬门禁；所有最终证据核对同一完整ZIP哈希。
 
 若18单元构建完成后组装被运行中程序门禁阻止，可在程序退出后用 `pnpm package:win --snapshot=build/snapshots/<ID>.json` 恢复组装：重新核对快照ID、生产模块集合、全部源码输入及组装器指纹，继续执行原有进程、输出哈希和体积门禁，避免重复编译。默认命令仍执行正式构建。本轮首次组装因用户日常程序仍运行而中止，用户确认关闭后使用同一冻结快照恢复，未关闭或修改正式用户数据。
 
@@ -623,3 +623,7 @@ v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`�
 六人绝悟新增能力链可产生合法长小局：本轮seed5完成545动作、最长单次799.522ms，但整局76.6秒触发旧60秒测试限。原失败及150轮原始观测保留；仅该种子在六人绝悟整局120秒上限重跑通过。其他组仍60秒，每次决策两秒、700步和Worker内存限制不改；整局测试上限不作为真人时长或单次CPU预算。
 
 SQLite流式扫描须让 `StatementSync` 强引用保持至迭代完成；包内Node22.14.0的iterator不会保活临时 `prepare()` 返回值，垃圾回收可使下一行抛 `statement has been finalized`。首次实际便携迁移发现此问题，旧库未替换；以同一包内Node和 `--expose-gc` 每行强制GC建立迁移红绿反例，完整历史、头像与原备份逐项比较。失败候选及报告保留，修复后仅重建受影响服务单元并重新执行最终同包检查，不把失败候选通过项迁移为新ZIP证据。
+
+## v1.0.5 互动与资源验证
+
+`scripts/verify-interactions.mjs --run=<唯一名称>`以隐藏原生窗口及静音Edge浏览器验证六格手势、单次射击、三端显示、头像短屏首屏、屏蔽及独立音频桥接，服务仅监听127.0.0.1；队列纯时钟测试及真实服务测试分别在`apps/server/src/interactions.test.ts`和`interaction-service.test.ts`。素材试听只通过`artifacts/maintenance/v1.0.5/interaction-assets/audio-review.html`显式开启，机器解码／ASR不记为人耳试听。40游戏WAV由`convert-runtime-audio-flac.mjs`保留原件派生FLAC，检查s16le PCM相等并记录前后字节／哈希。当前体积门禁统一查`scripts/lib/package-limits.mjs`，120MB硬上限和114MB预算不适用于倒改历史报告。

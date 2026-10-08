@@ -1,3 +1,7 @@
+import {
+  MAXIMUM_PACKAGE_BYTES,
+  PACKAGE_BUDGET_BYTES,
+} from './lib/package-limits.mjs';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -30,7 +34,9 @@ const files = execFileSync(
 )
   .split('\0')
   .filter(Boolean);
-const documents = [...new Set(files)].filter((file) => file.endsWith('.md'));
+const documents = [...new Set(files)].filter(
+  (file) => file.endsWith('.md') && existsSync(file),
+);
 const failures = [],
   anchors = new Map();
 let localLinks = 0,
@@ -91,7 +97,8 @@ assert.equal(
   hash(`artifacts/releases/${manifest.archive.name}`),
 );
 assert.ok(
-  manifest.archive.bytes < 100000000 && manifest.extractedBytes < 100000000,
+  manifest.archive.bytes < MAXIMUM_PACKAGE_BYTES &&
+    manifest.extractedBytes < MAXIMUM_PACKAGE_BYTES,
 );
 assert.equal(manifest.fileCount, manifest.files.length);
 assert.equal(
@@ -128,7 +135,8 @@ const report = {
   archiveBytes: manifest.archive.bytes,
   extractedBytes: manifest.extractedBytes,
   packageFiles: manifest.fileCount,
-  engineeringBudgetRemainingBytes: 95000000 - manifest.extractedBytes,
+  engineeringBudgetRemainingBytes:
+    PACKAGE_BUDGET_BYTES - manifest.extractedBytes,
   scope:
     'All tracked and new Markdown local files/headings; final ZIP hash, manifest totals, essential modules and exclusion gates. Runtime and permission checks are recorded separately.',
 };

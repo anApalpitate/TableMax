@@ -1,3 +1,7 @@
+import {
+  MAXIMUM_PACKAGE_BYTES,
+  PACKAGE_BUDGET_BYTES,
+} from './lib/package-limits.mjs';
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';
@@ -151,7 +155,10 @@ try {
     );
   assert.equal(hash(zip), expectedHash);
   assert.equal(manifest.archive.sha256, expectedHash);
-  assert.ok(zip.length < 100000000 && manifest.extractedBytes <= 95000000);
+  assert.ok(
+    zip.length < MAXIMUM_PACKAGE_BYTES &&
+      manifest.extractedBytes <= PACKAGE_BUDGET_BYTES,
+  );
   await mkdir('tmp', { recursive: true });
   work = await mkdtemp(resolve('tmp/connection-entry-'));
   report.work = work;
@@ -307,7 +314,7 @@ try {
   await publicBrowser.goto(origin + '/public');
   const popupEvent = publicBrowser.waitForEvent('popup');
   await publicBrowser
-    .getByRole('link', { name: '打开网站，在浏览器中加入牌桌', exact: true })
+    .getByRole('link', { name: '使用网址，在浏览器中加入牌桌', exact: true })
     .click();
   const player = await popupEvent;
   player.on('pageerror', (error) => report.pageErrors.push(error.message));

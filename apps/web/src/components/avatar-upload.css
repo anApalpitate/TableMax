@@ -30,13 +30,13 @@
 .avatar-upload__editor {
   display: grid;
   justify-items: center;
-  gap: 16px;
-  padding-top: 18px;
+  gap: 8px;
+  padding-top: 0;
 }
 .avatar-upload__frame {
   position: relative;
   container-type: inline-size;
-  width: min(100%, 256px);
+  width: min(100%, 256px, max(96px, calc(90dvh - 220px)));
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 18px;
@@ -72,11 +72,22 @@
   width: 100%;
   min-height: 44px;
 }
-.avatar-upload__position {
-  display: flex;
-  gap: 8px;
+.avatar-upload__choose[hidden] {
+  display: none;
 }
-.avatar-upload__position button {
-  min-width: 44px;
-  min-height: 44px;
+.dialog-surface:has(.avatar-upload__editor) .avatar-picker {
+  display: none;
+}
+.dialog-surface:has(.avatar-upload__editor) .avatar-upload {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.dialog-surface .avatar-upload__editor .dialog-actions {
+  width: min(100%, 360px);
+  margin: 0;
+  position: sticky;
+  bottom: 0;
+  background: #fffdf3;
+  padding: 4px 0;
 }

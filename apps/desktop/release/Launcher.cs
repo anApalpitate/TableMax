@@ -99,7 +99,7 @@ namespace TableMax.Release {
             if (Path.IsPathRooted(relative) || relative.Contains(":") || !output.StartsWith(stage + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) || expected.ContainsKey(file.path)) throw new IOException("资源路径无效。");
             expected.Add(file.path, file); total += file.bytes;
           }
-          if (total + System.Text.Encoding.UTF8.GetByteCount(manifestText) >= 100000000) throw new IOException("运行资源超过体积限制。");
+          if (total + System.Text.Encoding.UTF8.GetByteCount(manifestText) >= 120000000) throw new IOException("运行资源超过体积限制。");
           Directory.CreateDirectory(stage);
           bool moved = false;
           try {

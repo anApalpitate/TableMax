@@ -222,7 +222,7 @@ try {
   assert.equal(
     (await (await fetch(origin + '/api/foundation/health')).json())
       .protocolVersion,
-    6,
+    7,
   );
   const initialResources = await host.evaluate(() =>
     performance.getEntriesByType('resource').map((entry) => entry.name),
@@ -230,7 +230,9 @@ try {
   assert.ok(
     initialResources.every(
       (url) =>
-        !/PokemonScreen|ordinary-|special-|garden-table|\.mp3|\.wav/i.test(url),
+        !/PokemonScreen|ordinary-|special-|garden-table|\/games\/[^/]+\/.*\.(?:mp3|wav|flac|ogg)/i.test(
+          url,
+        ),
     ),
     'Unselected box loads no game client/audio/character/table resources',
   );

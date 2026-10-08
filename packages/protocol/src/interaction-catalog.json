@@ -1,0 +1,162 @@
+{
+  "version": 1,
+  "cooldownMs": 200,
+  "queueLimit": 3,
+  "shots": [
+    {
+      "id": "egg",
+      "label": "砸鸡蛋",
+      "durationMs": 4000,
+      "audio": "egg.mp3",
+      "image": "object-egg.webp",
+      "steps": [
+        {
+          "object": "egg",
+          "atMs": 0
+        },
+        {
+          "object": "egg",
+          "atMs": 180
+        },
+        {
+          "object": "egg",
+          "atMs": 360
+        },
+        {
+          "object": "egg",
+          "atMs": 1050
+        },
+        {
+          "object": "egg",
+          "atMs": 1230
+        },
+        {
+          "object": "egg",
+          "atMs": 1410
+        },
+        {
+          "object": "slipper",
+          "atMs": 2200
+        },
+        {
+          "object": "slipper",
+          "atMs": 2550
+        }
+      ]
+    },
+    {
+      "id": "cappuccino",
+      "label": "倒卡布奇诺",
+      "durationMs": 4000,
+      "audio": "cappuccino.mp3",
+      "image": "object-cappuccino.svg",
+      "steps": [
+        {
+          "object": "cappuccino",
+          "atMs": 0
+        }
+      ]
+    },
+    {
+      "id": "tomato",
+      "label": "砸番茄",
+      "durationMs": 4000,
+      "audio": "tomato.mp3",
+      "image": "object-tomato.svg",
+      "steps": [
+        {
+          "object": "tomato",
+          "atMs": 0
+        },
+        {
+          "object": "tomato",
+          "atMs": 400
+        },
+        {
+          "object": "tomato",
+          "atMs": 800
+        },
+        {
+          "object": "tomato",
+          "atMs": 1350
+        }
+      ]
+    },
+    {
+      "id": "flower",
+      "label": "送花",
+      "durationMs": 4000,
+      "audio": "flower.mp3",
+      "image": "object-flower.webp",
+      "steps": [
+        {
+          "object": "flower",
+          "atMs": 0
+        },
+        {
+          "object": "flower",
+          "atMs": 450
+        },
+        {
+          "object": "flower",
+          "atMs": 950
+        }
+      ]
+    },
+    {
+      "id": "poop",
+      "label": "砸粑粑",
+      "durationMs": 4000,
+      "audio": "poop.mp3",
+      "image": "object-poop.svg",
+      "steps": [
+        {
+          "object": "poop",
+          "atMs": 0
+        },
+        {
+          "object": "poop",
+          "atMs": 700
+        }
+      ]
+    }
+  ],
+  "phrases": [
+    {
+      "id": "hurry",
+      "text": "能不能快点啊，兵贵神速啊",
+      "audio": "hurry.mp3",
+      "durationMs": 4000
+    },
+    {
+      "id": "nice",
+      "text": "干得漂亮",
+      "audio": "nice.mp3",
+      "durationMs": 4000
+    },
+    {
+      "id": "carry",
+      "text": "I'll carry you",
+      "audio": "carry.mp3",
+      "durationMs": 4000
+    },
+    {
+      "id": "seventeen",
+      "text": "十七张牌你能秒我？",
+      "audio": "seventeen.mp3",
+      "durationMs": 4000
+    },
+    {
+      "id": "shameless",
+      "text": "我从未见过如此厚颜无耻之人！",
+      "audio": "shameless.mp3",
+      "durationMs": 4352
+    },
+    {
+      "id": "friendly",
+      "text": "主公，别开枪，自己人",
+      "audio": "friendly.mp3",
+      "durationMs": 4000
+    }
+  ]
+}

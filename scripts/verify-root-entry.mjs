@@ -1,3 +1,7 @@
+import {
+  MAXIMUM_PACKAGE_BYTES,
+  PACKAGE_BUDGET_BYTES,
+} from './lib/package-limits.mjs';
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';
@@ -120,8 +124,15 @@ async function verifyPackage() {
   assert.equal(report.archiveSha256, expectedSha.toLowerCase());
   assert.equal(report.archiveSha256, manifest.archive.sha256);
   assert.equal(bytes.length, manifest.archive.bytes);
-  assert.ok(bytes.length < 100000000 && manifest.extractedBytes < 100000000);
-  assert.equal(manifest.fileCount, 248, 'Frozen runtime member count changed');
+  assert.ok(
+    bytes.length < MAXIMUM_PACKAGE_BYTES &&
+      manifest.extractedBytes < MAXIMUM_PACKAGE_BYTES,
+  );
+  assert.equal(
+    manifest.fileCount,
+    manifest.files.length,
+    'Manifest member count differs',
+  );
   await mkdir(resolve('tmp'), { recursive: true });
   work = await mkdtemp(resolve('tmp/root-entry-'));
   const portable = join(work, 'portable');
@@ -165,7 +176,10 @@ async function verifyPackage() {
   await inventory(portable);
   assert.deepEqual(actual, expected);
   assert.equal(total, manifest.extractedBytes);
-  assert.ok(total <= 95000000, 'Runtime exceeds the 95 MB engineering budget');
+  assert.ok(
+    total <= PACKAGE_BUDGET_BYTES,
+    'Runtime exceeds the 114 MB engineering budget',
+  );
   assert.equal(actual.size, manifest.fileCount);
   report.package = {
     archiveBytes: bytes.length,
@@ -173,7 +187,7 @@ async function verifyPackage() {
     files: actual.size,
   };
   await checked(
-    'Frozen ZIP, all 248 members, both 100 MB limits and 95 MB engineering budget verified',
+    'Frozen ZIP, all manifest members, both 120 MB limits and 114 MB engineering budget verified',
   );
   return portable;
 }

@@ -1,3 +1,7 @@
+import {
+  MAXIMUM_PACKAGE_BYTES,
+  PACKAGE_BUDGET_BYTES,
+} from './lib/package-limits.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile, writeFile, copyFile } from 'node:fs/promises';
@@ -152,7 +156,8 @@ if (!sourceOnly) {
     manifest.archive.sha256,
   );
   assert.ok(
-    manifest.extractedBytes < 95000000 && manifest.archive.bytes < 100000000,
+    manifest.extractedBytes < PACKAGE_BUDGET_BYTES &&
+      manifest.archive.bytes < MAXIMUM_PACKAGE_BYTES,
   );
   const previous = await record(
     `${root}/previous-delivery/TableMax-1.0.2-win-x64-manifest.json`,
@@ -214,7 +219,7 @@ if (!sourceOnly) {
     archive: manifest.archive,
     extractedBytes: manifest.extractedBytes,
     netIncrementBytes: delta,
-    engineeringHeadroomBytes: 95000000 - manifest.extractedBytes,
+    engineeringHeadroomBytes: PACKAGE_BUDGET_BYTES - manifest.extractedBytes,
     pokemonPayloadBytes: pokemonBytes,
     moduleHeadroomBytes: 4 * 1024 * 1024 - pokemonBytes,
     samePackage: true,

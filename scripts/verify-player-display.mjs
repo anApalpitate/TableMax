@@ -1,3 +1,7 @@
+import {
+  MAXIMUM_PACKAGE_BYTES,
+  PACKAGE_BUDGET_BYTES,
+} from './lib/package-limits.mjs';
 import assert from 'node:assert/strict';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
@@ -78,7 +82,10 @@ if (!source) {
   );
   assert.equal(report.archiveSha256, manifest.archive.sha256);
   assert.equal(bytes.length, manifest.archive.bytes);
-  assert.ok(bytes.length < 100000000 && manifest.extractedBytes < 100000000);
+  assert.ok(
+    bytes.length < MAXIMUM_PACKAGE_BYTES &&
+      manifest.extractedBytes < MAXIMUM_PACKAGE_BYTES,
+  );
   portable = join(work, 'portable');
   await execute(
     'powershell.exe',
@@ -104,7 +111,7 @@ if (!source) {
     total += bytes.length;
   }
   assert.equal(total, manifest.extractedBytes);
-  assert.ok(total <= 95000000);
+  assert.ok(total <= PACKAGE_BUDGET_BYTES);
   report.packageBytes = { archive: bytes.length, extracted: total };
 }
 const { io } = createRequire(resolve('apps/web/package.json'))(

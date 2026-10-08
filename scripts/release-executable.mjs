@@ -1,3 +1,4 @@
+import { MAXIMUM_PACKAGE_BYTES } from './lib/package-limits.mjs';
 import { createHash } from 'node:crypto';
 import {
   readFile,
@@ -42,7 +43,7 @@ export async function createReleaseExecutable({
     throw new Error('Invalid release version');
   const payload = await readFile(archivePath);
   if (
-    payload.length >= 100000000 ||
+    payload.length >= MAXIMUM_PACKAGE_BYTES ||
     createHash('sha256').update(payload).digest('hex') !==
       manifest.archive.sha256
   )
@@ -82,8 +83,8 @@ export async function createReleaseExecutable({
     metadata,
   ]);
   const bytes = (await stat(output)).size;
-  if (bytes >= 100000000)
-    throw new Error('Single EXE must be strictly below 100,000,000 bytes');
+  if (bytes >= MAXIMUM_PACKAGE_BYTES)
+    throw new Error('Single EXE must be strictly below 120,000,000 bytes');
   await mkdir(resolve(outputPath, '..'), { recursive: true });
   await rename(output, resolve(outputPath));
   return {

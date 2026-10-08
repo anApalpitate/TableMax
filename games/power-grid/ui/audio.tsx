@@ -2,12 +2,12 @@ import { claimAudioEvent } from '@tablemax/web-host';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { RoomFeedback } from '../../../packages/protocol/src';
 import type { PowerGridView } from '../types';
-import bid from '../../../assets/games/power-grid/audio/bid-v2.wav';
-import fuel from '../../../assets/games/power-grid/audio/fuel-v2.wav';
-import build from '../../../assets/games/power-grid/audio/build-v2.wav';
-import plant from '../../../assets/games/power-grid/audio/plant-v2.wav';
-import run from '../../../assets/games/power-grid/audio/run-v2.wav';
-import end from '../../../assets/games/power-grid/audio/end-v2.wav';
+import bid from '../../../assets/games/power-grid/audio/bid-v2.flac';
+import fuel from '../../../assets/games/power-grid/audio/fuel-v2.flac';
+import build from '../../../assets/games/power-grid/audio/build-v2.flac';
+import plant from '../../../assets/games/power-grid/audio/plant-v2.flac';
+import run from '../../../assets/games/power-grid/audio/run-v2.flac';
+import end from '../../../assets/games/power-grid/audio/end-v2.flac';
 import './audio-effects.css';
 import { BoardIcon } from './BoardIcon';
 import {

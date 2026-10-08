@@ -192,3 +192,7 @@ EX-A11 通过站点正式访客流程取得，额度检查为 `allowed=1`、下�
 [消费清单](../../../assets/games/pokemon-encounters/expansion/frames.json)区分源码大小、组件播放及最终便携核验；[静态关节及裁切](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/poses/articulation-verification-fixed.json)覆盖63帧，首次阿尔宙斯冠尖越界失败与修正保留。[透明核验证据](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/poses/transparent/transparent-verification.json)逐帧记录512×512、alpha及PNG／SVG／源码哈希，约3.06MB只留证据，不进入包。独立审查及最终实际包证据见[本次任务](../../tasks/pokemon-encounters-expansion.md#一次性技术收尾2026-10-06)。
 
 [音源审计](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/audio/provenance-audit.json)核对全部27叫声与八主题的原件／运行SHA-256，并将27原件SHA-1与已有公开文件说明证据逐项对应。叫声清单新增已确认说明URL／上传时间／百科使用标记及既有实际播放证据；游戏世代和本项目再分发依据仍未确认，不声明官方授权。上传时间不是世代，百科标记不是项目许可。八主题明确标为项目原创程序合成，补充能力／研究反馈，不替换角色叫声；该次技术收尾没有新下载、重编码或音频字节变化，之后 UI 重设计的 60% 派生见本页首节，用户指定原件继续保留。最终同包听音调用与解码单独验收，真人听感交接待测。
+
+## v1.0.5 运行音频无损派生（2026-10-08）
+
+运行入口中的原WAV改用同目录、同稳定文件名的FLAC派生，原WAV与原素材保留；本游戏声音ID、时间轴及播放权限不变。三游戏合计40份新派生逐项核验s16le PCM相等，净省711,478字节，实际逐文件字节／哈希见`artifacts/maintenance/v1.0.5/implementation/audio-lossless.json`；正式包WebView2离线解码42份FLAC通过，其中两份为既有用户FLAC资源。本项不代表人耳听感验收。

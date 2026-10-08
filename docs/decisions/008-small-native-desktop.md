@@ -27,3 +27,7 @@
 选择此方案是为了同时满足解压体积与独立桌面体验。更换压缩格式只缩小下载，不满足解压要求；使用系统浏览器难以等价保留桌面窗口／显示／声音控制。多游戏按需安装维持 [未来计划](../tasks/README.md#多游戏按需安装未来计划未实现)，本轮不实施。
 
 官方依据：[WebView2 分发](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution)、[.NET Framework 系统要求](https://learn.microsoft.com/en-us/dotnet/framework/get-started/system-requirements)、[WebView2 SDK](https://www.nuget.org/packages/Microsoft.Web.WebView2/1.0.4258.31)。
+
+## v1.0.5 容量授权（2026-10-08）
+
+用户明确将导出硬上限调整为120,000,000字节：运行ZIP和实际解压交付均严格小于该值，保留5%预留，工程预算为114,000,000字节。当前门禁由`scripts/lib/package-limits.mjs`统一提供，历史100MB验收不改写。26头像从保留原图按WebP quality80／method6轻度派生，只替换实际变小的文件；40运行WAV派生为无损FLAC并核验PCM相等，原件保留。

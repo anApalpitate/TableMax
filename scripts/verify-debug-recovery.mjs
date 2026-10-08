@@ -1,3 +1,4 @@
+import { MAXIMUM_PACKAGE_BYTES } from './lib/package-limits.mjs';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
@@ -604,7 +605,8 @@ try {
   report.archiveSha256 = sha256(archiveBytes);
   assert.equal(report.archiveSha256, manifest.archive.sha256);
   assert.ok(
-    manifest.archive.bytes < 100000000 && manifest.extractedBytes < 100000000,
+    manifest.archive.bytes < MAXIMUM_PACKAGE_BYTES &&
+      manifest.extractedBytes < MAXIMUM_PACKAGE_BYTES,
   );
   await mkdir(resolve('tmp'), { recursive: true });
   work = await mkdtemp(resolve('tmp/debug-recovery-'));

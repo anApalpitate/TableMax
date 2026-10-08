@@ -13,5 +13,6 @@ export interface TablemaxAudio {
 declare global {
   interface Window {
     tablemaxAudio?: TablemaxAudio;
+    tablemaxInteractionAudio?: TablemaxAudio;
   }
 }

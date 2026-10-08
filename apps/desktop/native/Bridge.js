@@ -7,7 +7,12 @@
     Object.defineProperty(window, '__tablemaxWindowId', { value: windowId });
   if (!managed || !window.chrome?.webview) return;
   const pending = new Map();
-  const listeners = { display: new Set(), audio: new Set(), window: new Set() };
+  const listeners = {
+    display: new Set(),
+    audio: new Set(),
+    window: new Set(),
+    'interaction-audio': new Set(),
+  };
   let sequence = 0;
   function request(method, params) {
     const id = ++sequence;
@@ -59,6 +64,14 @@
       disconnect: (...args) => request('audio.disconnect', args),
       claimEvent: (...args) => request('audio.claim', args),
       subscribe: (listener) => subscribe('audio', listener),
+    }),
+  });
+  Object.defineProperty(window, 'tablemaxInteractionAudio', {
+    value: Object.freeze({
+      connect: (...args) => request('interaction-audio.connect', args),
+      disconnect: (...args) => request('interaction-audio.disconnect', args),
+      claimEvent: (...args) => request('interaction-audio.claim', args),
+      subscribe: (listener) => subscribe('interaction-audio', listener),
     }),
   });
   // WebView2's native child HWND consumes accelerators before a WinForms form

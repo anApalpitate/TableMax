@@ -1,5 +1,11 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.5 本地交付与安全维护（2026-10-08）
+
+v1.0.5实际ZIP40,857,197字节／解压94,363,202字节，120MB硬上限与114MB预算通过。头像轻度派生节省151,238字节，40无损FLAC节省711,478字节，互动媒体232,441字节；原素材、原WAV、来源及失败证据保留。[历史v1.0.4四文件](../../artifacts/maintenance/v1.0.5/previous-delivery/preserved.json)逐文件大小／SHA核验后另存，再按Clean-Releases预览／Apply退役releases副本，共100,647,197字节，当前目录只留v1.0.5运行ZIP和清单。新打包暂存尚受近期保护，原样迁入维护证据目录并逐文件复核，不作为删除或空间节省。
+
+全部工程进程退出后执行Maintain-Project预览／Apply，[实际结果](../../artifacts/maintenance/v1.0.5/implementation/maintenance-apply.log)为14,961,838,773逻辑字节（约13.934GiB），安全候选为零，199项保护／用途待确认内容跳过，1,370链接跳过，零嵌套仓库。仍高于10GiB；没有扩大范围、降低近期保护或以NTFS压缩替代逻辑容量。保留当前交付、原件、验收和失败记录，清理记录集中归档，后续Git及文字写入会略增；此值记录在该次实测时点。
+
 ## v1.0.4 网络连接与多设备页面适配收尾（2026-10-08）
 
 最终运行ZIP `d08c299b…` 的完整显示、盒子、新连接入口、HTTP／HTTPS等价故障与完整EXE核验通过，全部工程进程退出后才执行安全清理，保留默认30分钟近期保护。先预览再Apply：[7份过期打包暂存](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261008-071449-337-releases/cleanup.json)退役 **1,619,378,488字节**，[16份明确隔离测试副本](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261008-071633-328-intermediates/cleanup.json)退役 **1,592,680,400字节**；另按逐文件审计[退役两个旧测试浏览器配置目录](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261008-073031-329-intermediates/cleanup.json) **100,581,893字节**，原同级SQLite、设置、报告及库存证明哈希不变。两份用途不能确定的旧浏览器状态继续保留。

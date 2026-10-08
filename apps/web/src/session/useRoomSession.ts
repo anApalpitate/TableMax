@@ -10,6 +10,11 @@ import {
   type Command,
   type RoomView,
   type AvatarId,
+  InteractionEventSchema,
+  InteractionReplySchema,
+  type InteractionEvent,
+  type InteractionPayload,
+  type InteractionReply,
 } from '@tablemax/protocol';
 import { changedGameSlots, gameMotionDuration } from './presentation';
 import { navigate, type ScreenRole } from '../navigation';
@@ -89,6 +94,10 @@ export function useRoomSession(role: ScreenRole) {
   >(null);
   const [port, setPort] = useState(38473);
   const [feedback, setFeedback] = useState<RoomFeedback | null>(null);
+  const [interaction, setInteraction] = useState<InteractionEvent | null>(null);
+  const interactionSender = useRef<
+    (payload: InteractionPayload) => Promise<InteractionReply>
+  >(async () => ({ ok: false, reason: 'invalid-identity' }));
   const [errorId, setErrorId] = useState('');
   const [motion, setMotion] = useState<string[]>([]);
   const synced = useRef<RoomView | null>(null);
@@ -127,6 +136,12 @@ export function useRoomSession(role: ScreenRole) {
       restoring: boolean,
     ) => {
       const previous = synced.current;
+      if (
+        restoring ||
+        previous?.instanceId !== next.instanceId ||
+        previous.branch !== next.branch
+      )
+        setInteraction(null);
       const sameStep =
         previous?.instanceId === next.instanceId &&
         previous.branch === next.branch &&
@@ -203,6 +218,7 @@ export function useRoomSession(role: ScreenRole) {
       phase: (phase) => {
         setConnected(phase === 'ready');
         if (phase !== 'ready') {
+          setInteraction(null);
           if (motionTimer.current) clearTimeout(motionTimer.current);
           changedSlots.current = [];
           setMotion([]);
@@ -262,6 +278,55 @@ export function useRoomSession(role: ScreenRole) {
       },
     });
     synchronizeRef.current = () => synchronization.request();
+    interactionSender.current = async (payload) => {
+      const current = synced.current;
+      if (
+        disposed ||
+        !synchronization.ready ||
+        !socket.connected ||
+        current?.self.role !== 'player'
+      )
+        return { ok: false, reason: 'invalid-identity' };
+      return new Promise((resolve) => {
+        socket.timeout(5000).emit(
+          'room:interaction:send',
+          {
+            requestId: randomId(),
+            instanceId: current.instanceId,
+            branch: current.branch,
+            interaction: payload,
+          },
+          (error: Error | null, reply: unknown) => {
+            const parsed = InteractionReplySchema.safeParse(reply);
+            resolve(
+              !error && parsed.success
+                ? parsed.data
+                : { ok: false, reason: 'invalid-message' },
+            );
+          },
+        );
+      });
+    };
+    const interactionReceipts = new Set<string>();
+    socket.on('room:interaction', (input: unknown) => {
+      const parsed = InteractionEventSchema.safeParse(input);
+      const current = synced.current;
+      if (!parsed.success || !current) return;
+      const event = parsed.data;
+      if (interactionReceipts.has(event.eventId)) return;
+      interactionReceipts.add(event.eventId);
+      if (interactionReceipts.size > 256)
+        interactionReceipts.delete(interactionReceipts.values().next().value!);
+      if (
+        !synchronization.ready ||
+        document.visibilityState === 'hidden' ||
+        event.instanceId !== current.instanceId ||
+        event.branch !== current.branch ||
+        (role === 'player' && current.self.role !== 'player')
+      )
+        return;
+      setInteraction(event);
+    });
     socket.on('connect', () => synchronization.transportConnected());
     socket.on('disconnect', () => synchronization.transportDisconnected());
     socket.on('room:view', (input: unknown) => {
@@ -603,6 +668,9 @@ export function useRoomSession(role: ScreenRole) {
     },
     port,
     feedback,
+    interaction,
+    sendInteraction: (payload: InteractionPayload) =>
+      interactionSender.current(payload),
     errorId,
     motion,
     credential,

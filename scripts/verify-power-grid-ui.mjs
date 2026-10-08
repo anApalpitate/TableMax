@@ -1489,7 +1489,7 @@ try {
     assert.equal(await page.locator('[data-power-grid-sound]').count(), 0);
     report.audio.push('Phone exposes no sound control');
     const audioFiles = (await readdir(join(directory, 'assets'))).filter(
-      (file) => file.endsWith('.wav'),
+      (file) => /\.(wav|flac)$/.test(file),
     );
     assert.equal(audioFiles.length, 6);
     report.audio.push(

@@ -31,6 +31,7 @@ import { openFoundationDatabase } from './database';
 import { NetworkDirectory } from './network-directory';
 import { normalizeAvatar, AVATAR_HTTP_LIMIT } from './avatar-images';
 import { NetworkSettings, normalizeUrl } from './network-settings';
+import { InteractionQueue } from './interactions';
 
 export async function createService(
   input: ServiceConfig,
@@ -131,7 +132,18 @@ export async function createService(
     }
     return seats;
   };
+  const interactions = new InteractionQueue(room, (event) => {
+    for (const socket of sockets.sockets.sockets.values()) {
+      try {
+        room.identity(socket.data.credential as string | undefined);
+        socket.emit('room:interaction', event);
+      } catch {
+        /* Revoked connections receive no further interactions. */
+      }
+    }
+  });
   const broadcast = (feedback?: RoomFeedback) => {
+    interactions.synchronize();
     const connected = online();
     for (const socket of sockets.sockets.sockets.values()) {
       try {
@@ -342,6 +354,18 @@ export async function createService(
   sockets.on('connection', (socket) => {
     broadcast();
     socket.on('disconnect', () => broadcast());
+    socket.on(
+      'room:interaction:send',
+      (input: unknown, acknowledge: unknown) => {
+        if (typeof acknowledge === 'function')
+          acknowledge(
+            interactions.send(
+              socket.data.credential as string | undefined,
+              input,
+            ),
+          );
+      },
+    );
     socket.on('room:sync', (acknowledge?: unknown) => {
       try {
         const view = room.view(
@@ -379,6 +403,7 @@ export async function createService(
   });
 
   app.addHook('preClose', async () => {
+    interactions.dispose();
     scheduler.stop();
     unsubscribe();
     // Disconnect clients without calling io.close(), which also closes HTTP.

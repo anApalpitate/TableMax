@@ -1,3 +1,7 @@
+import {
+  MAXIMUM_PACKAGE_BYTES,
+  PACKAGE_BUDGET_BYTES,
+} from './lib/package-limits.mjs';
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
@@ -56,7 +60,10 @@ for (const file of manifest.files) {
   extractedBytes += bytes.length;
 }
 assert.equal(extractedBytes, manifest.extractedBytes);
-assert.ok(extractedBytes < 95000000 && manifest.archive.bytes < 100000000);
+assert.ok(
+  extractedBytes < PACKAGE_BUDGET_BYTES &&
+    manifest.archive.bytes < MAXIMUM_PACKAGE_BYTES,
+);
 const report = {
   portable: true,
   archiveSha256: manifest.archive.sha256,

@@ -1,5 +1,17 @@
 # 首版交付与验收
 
+## 1.0.5：盒子调整与跨游戏互动（2026-10-08）
+
+产品、原生程序集及manifest为1.0.5。真人玩家透明互动球在盒子和游戏共用六等分环盘，五种单次射击与六条固定语音通过独立临时通道发送。全桌1播放＋3等待FIFO、完整时长＋200ms、身份／实例／分支复核和有界去重不改变游戏修订、随机状态、存档或checkpoint。各端可独立屏蔽，电脑互动独立音频桥接优先公共屏；浏览器玩家沿用本地手势解锁。头像裁剪删除方向键，“取消／确定”紧接缩放条并适配短屏；网址入口统一“使用网址”。
+
+[最终运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) **40,857,197字节**，逐文件清单 **265文件／94,363,202字节**，SHA-256 `ab27e4d31ea03d7dec2565d7d8bee11384f950c7375399e93dc07c66ce8f0815`。ZIP及实际解压均严格小于120,000,000字节，114,000,000工程预算余19,636,798字节；[同包根入口](../../artifacts/maintenance/v1.0.5/root-entry/v105-final/results.json)逐文件大小／哈希、实际解压和HTTP／HTTPS入口5检查通过。未导出完整安装EXE或源码ZIP，未推送／发布GitHub。
+
+[互动实际界面](../../artifacts/maintenance/v1.0.5/interaction-ui/final/results.json)12检查：六格选择、五射击三端显示与防误触、六发言槽、本端即时屏蔽、不补播、公共屏优先／主机接管、player无桥接、真实dialog顶层、320×568／844×390／1280×720头像首屏按钮、三游戏及宝可梦两版入口；42个打包FLAC和11MP3离线WebView2解码。[同包游戏显示](../../artifacts/maintenance/v1.0.5/player-display/v105-final/results.json)quick范围 **22检查／34布局／34截图**，包含实际合法动作与四变体；不是完整整局或历史460布局重跑。5文件29项相关会话／服务／队列／几何测试通过，另新增长语音4352ms＋200ms和新实例清空边界通过；最终类型检查通过。
+
+[素材清单](../../assets/platform/interaction/manifest.json)记录原件、来源、派生参数和哈希；互动运行媒体232,441字节，低于500KB目标。26头像从保留原图按quality80／method6派生，尺寸／alpha一致且全部更小，1,138,110→986,872字节，节省151,238字节；40运行WAV无损FLAC转换PCM逐项相等，净省711,478字节，原件保留。机器ASR、完整解码及真实浏览器时长核验通过，**尚未进行人耳试听**，不将模型音频输入失败或ASR同音字当作试听认证；显式试听页保留在素材证据目录。
+
+首轮服务测试因验收读取不存在seatId失败，修正验证器后通过；两次互动页面脚本分别误用了管理员`/game`和select-game携带variantId，修正为`/player/game`与select-variant后通过。素材完成后首次冻结包输入变化被正确拒绝，重新冻结受影响单元后交付；所有失败记录保留。Windows依赖链接沙箱权限问题以本项目沙箱外检查解决，不更改全局工具。测试默认静音、隐藏窗口、仅127.0.0.1；实体手机、现场LAN、物理DPI及人耳听感仍是未测边界。
+
 ## 1.0.4：网络连接与多设备页面适配（2026-10-08）
 
 连接区采用“扫码或打开网站”，二维码下方增加48px绿色图标按钮，连接帮助说明手机扫码与手机／电脑直接打开两种方式。二维码、按钮及帮助地址使用同一当前局域网／外部根入口，旧`/player`路由兼容。原生host／public仅将当前顶层邀请链接的可信用户点击交给系统浏览器；普通新页实际按真人玩家权限入座，无管理员凭证或原生桥接。盒子窄屏座位设置重新对齐，对局返回标题按进行中／暂停／结束显示。逐页审查收紧电力公司空厂位、修正现代艺术320px行情拆行，并将宝可梦原版归零提示移至牌下编号行，避免遮住牌值；原版宽屏结算将结果与授权继续入口置于左上，最新保存动作紧邻其下，牌阵位于右侧。游戏规则、投影权限和连接实例未改变。
@@ -132,7 +144,7 @@
 
 ## 当前源码与本地交付
 
-当前本地交付为本页v1.0.4章节的 [运行ZIP](../../artifacts/releases/TableMax-1.0.4-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.4-win-x64-manifest.json)，SHA-256 `d08c299b…`；完整EXE和本轮发布边界见页首。前一份研究重设计交付 `a9ee8498…` 原样保留在[横屏前历史交付](../../artifacts/maintenance/v1.0.4/player-display/previous-delivery/TableMax-1.0.4-win-x64.zip)。上一已验v1.0.4 `96518cad…` 保留在[本轮历史交付](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/previous-delivery/TableMax-1.0.4-win-x64.zip)。前一轮10.7修复 `6761ef78…` 保留在[历史交付](../../artifacts/maintenance/v1.0.4/debug-20261008/previous-delivery/TableMax-1.0.3-win-x64.zip)，不作为当前下载。此前公开发布的 `bdd69433…` ZIP与 `41994ea5…` 完整EXE仍按GitHub发布章节追溯；[原发布附件本地副本](../../artifacts/maintenance/v1.0.3/debug-20261007/previous-release/preserved.json)保留旧EXE／source ZIP大小和哈希，未用本轮源码替换线上附件。旧包各自的冻结清单、通过／失败文字结论和原素材继续保留，历史通过结论只对应当时冻结输入。
+当前本地交付为本页v1.0.5章节的[运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json)，SHA-256 `ab27e4d31ea03d7dec2565d7d8bee11384f950c7375399e93dc07c66ce8f0815`；历史v1.0.4大小、证据、发布附件及结论保留在对应章节，不当作当前包验收。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
 

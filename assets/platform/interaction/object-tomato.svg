@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <radialGradient id="body" cx=".3" cy=".23" r=".82">
+      <stop stop-color="#ff8b64" />
+      <stop offset=".45" stop-color="#ed503a" />
+      <stop offset="1" stop-color="#ad2e28" />
+    </radialGradient>
+    <linearGradient
+      id="leaf"
+      x1="35"
+      y1="20"
+      x2="86"
+      y2="48"
+      gradientUnits="userSpaceOnUse"
+    >
+      <stop stop-color="#82bb58" />
+      <stop offset="1" stop-color="#26713f" />
+    </linearGradient>
+  </defs>
+  <path
+    d="M64 34c-27-17-51 5-51 34 0 28 22 47 51 47s51-19 51-47c0-29-24-51-51-34Z"
+    fill="url(#body)"
+  />
+  <path
+    d="M25 64c0-13 7-23 18-25"
+    stroke="#ffd3a5"
+    stroke-width="7"
+    stroke-linecap="round"
+    opacity=".65"
+  />
+  <path
+    d="m65 38-23-8 9 15-23 5 25 5 10-10 13 11 22-6-20-5 7-14-19 7Z"
+    fill="url(#leaf)"
+  />
+  <path
+    d="M63 37c-2-10 2-19 8-24"
+    stroke="#467b43"
+    stroke-width="7"
+    stroke-linecap="round"
+  />
+  <path
+    d="M72 16c-4 1-6 5-7 9"
+    stroke="#9ac06a"
+    stroke-width="2"
+    stroke-linecap="round"
+  />
+</svg>

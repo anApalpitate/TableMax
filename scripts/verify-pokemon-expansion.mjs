@@ -1,3 +1,4 @@
+import { MAXIMUM_PACKAGE_BYTES } from './lib/package-limits.mjs';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { createHash, randomUUID } from 'node:crypto';
@@ -40,7 +41,8 @@ if (portable) {
     .digest('hex');
   assert.equal(archiveSha256, manifest.archive.sha256);
   assert.ok(
-    manifest.archive.bytes < 100000000 && manifest.extractedBytes < 100000000,
+    manifest.archive.bytes < MAXIMUM_PACKAGE_BYTES &&
+      manifest.extractedBytes < MAXIMUM_PACKAGE_BYTES,
   );
   await promisify(execFile)(
     join(

@@ -87,3 +87,5 @@
 Git 远程 `origin` 为 GitHub 的 `anApalpitate/TableMax`，尚未配置仓库 CI。提交与推送遵循 [维护约定](maintenance.md#更新与归档)，默认仅提交；入口变化同步项目说明、Agent 入口及所属文档索引。
 
 工作区与交付的瘦身依据、历史包退役及执行报告统一维护在 [项目瘦身](project-slimming.md)，不按文件目录名推断资料是否可删除。
+
+共享互动归属：`apps/web/src/interactions/`负责真人手势、顶层显示与本端音频；`apps/server/src/interactions.ts`负责临时FIFO；`packages/protocol/src/interactions.ts`与`interaction-catalog.json`负责稳定ID／配置与严格校验；`assets/platform/interaction/manifest.json`维护资源来源、派生、哈希与核验边界。`scripts/prepare-platform-interaction-assets.mjs`及`convert-runtime-audio-flac.mjs`为受控离线派生入口。

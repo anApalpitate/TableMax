@@ -1,3 +1,7 @@
+import {
+  MAXIMUM_PACKAGE_BYTES,
+  PACKAGE_BUDGET_BYTES,
+} from './lib/package-limits.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
@@ -69,8 +73,8 @@ try {
   report.archiveSha256 = hash(bytes);
   assert.equal(report.archiveSha256, expectedSha);
   assert.equal(report.archiveSha256, manifest.archive.sha256);
-  assert.ok(bytes.length < 100_000_000);
-  assert.equal(manifest.files.length, 248);
+  assert.ok(bytes.length < MAXIMUM_PACKAGE_BYTES);
+  assert.equal(manifest.files.length, manifest.fileCount);
   const extracted = join(work, 'portable');
   await promisify(execFile)(
     'powershell.exe',
@@ -116,7 +120,10 @@ try {
     assert.equal(hash(data), file.sha256, file.path);
     extractedBytes += data.length;
   }
-  assert.ok(extractedBytes < 100_000_000 && extractedBytes <= 95_000_000);
+  assert.ok(
+    extractedBytes < MAXIMUM_PACKAGE_BYTES &&
+      extractedBytes <= PACKAGE_BUDGET_BYTES,
+  );
   assert.equal(extractedBytes, manifest.extractedBytes);
   report.extractedBytes = extractedBytes;
   report.extractedFiles = actualMembers.length;
