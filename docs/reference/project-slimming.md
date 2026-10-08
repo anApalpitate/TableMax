@@ -1,5 +1,13 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.4 玩家横屏与滚动条收尾（2026-10-08）
+
+最终同包验收 `2b3439ec…` 完成后，全部本轮工程进程退出，再按现有安全入口预览／核对／Apply。[两份打包暂存](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261008-035938-154-releases/cleanup.json)退役462,612,776字节，[20个明确隔离验证副本](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261008-040137-229-intermediates/cleanup.json)退役1,690,088,226字节，合计 **2,152,701,002字节（约2.005GiB）**。只放宽已确认停止使用副本的近期门限，保留路径／进程／链接／指纹与当前便携证明保护；没有清空tmp／artifacts，当前及失败截图、报告、原素材、规则资料、正式存档、旧交付证明与依赖缓存保留。
+
+维护预览开始实测13,240,304,320逻辑字节（12.331GiB）；手动退役后[自动维护最终实测](../../artifacts/maintenance/v1.0.4/player-display/cleanup/maintenance-final.json) **11,087,647,639字节（10.326GiB）**。10GiB／8GiB规则下安全候选为0，186项保护／未知用途跳过，结果no-candidates；仍超门限如实记录，不扩大删除范围。逻辑变化与退役量的差额为新增审计／文档写入，不用NTFS物理节省折抵便携预算。
+
+releases只保留当前运行ZIP与逐文件清单，SHA-256未变，未导出EXE／source ZIP或创建Release。[清理记录归档](../../artifacts/maintenance/v1.0.4/player-display/cleanup/cleanup-record-archive.json)原样移入cleanup-history/directories并更新索引，逐文件大小与SHA一致；两个记录目录不再散落maintenance直属。实际同包显示、远程、体积与待测边界见[验收](acceptance.md#104滚动条与电脑玩家横屏2026-10-08)。
+
 ## v1.0.4 研究重设计与根入口收尾（2026-10-08）
 
 最终运行ZIP `a9ee8498…` 的根入口、普通模式、研究图示／关键阶段、四变体入口及HTTPS等价远程故障全部通过，全部工程进程退出后才清理。[开始实测](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/space-start.json)为 **12,687,373,228逻辑字节**。上一已验v1.0.4包与关键返修前原包保留各自SHA；releases只留当前运行ZIP和逐文件清单，未导出EXE或source ZIP。

@@ -1,0 +1,79 @@
+:root:has(.pg-screen),
+.pg-screen {
+  --tm-scroll-track: #e6d8b6;
+  --tm-scroll-thumb: #806c43;
+  --tm-scroll-hover: #485e38;
+}
+@media (min-width: 960px) {
+  [data-player-display='wide'] .pg-screen.pg-screen--player {
+    padding: 12px 24px;
+  }
+  [data-player-display='wide'] .pg-screen .pg-phone-table:has(> .pg-phone-map) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
+    align-items: start;
+    gap: 16px;
+  }
+  [data-player-display='wide'] .pg-screen .pg-phone-map .pg-map-frame {
+    aspect-ratio: auto;
+    height: clamp(280px, calc(100dvh - 235px), 760px);
+  }
+  [data-player-display='wide'] .pg-screen .pg-phone-map--browse .pg-map-frame {
+    height: clamp(280px, calc(100dvh - 220px), 760px);
+  }
+  [data-player-display='wide'] .pg-screen .pg-phone-page .pg-own-plants {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+  [data-player-display='wide'] .pg-screen .pg-phone-page .pg-companies {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  [data-player-display='wide'] .pg-screen .pg-phone-page .pg-market-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  [data-player-display='wide'] .pg-screen .pg-action-dock {
+    max-width: 720px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  [data-player-display='wide'] .pg-screen .pg-page-nav {
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+    gap: 8px;
+  }
+  [data-player-display='wide'] .pg-screen .pg-phone-page[hidden] {
+    display: none;
+  }
+  [data-player-display='wide']
+    .pg-screen[data-phase='building']
+    .pg-phone-page[data-phone-page='0']:not([hidden]) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+  [data-player-display='wide']
+    .pg-screen[data-phase='building']
+    .pg-phone-table {
+    display: block;
+  }
+  [data-player-display='wide']
+    .pg-screen[data-phase='building']
+    .pg-action-dock {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+  }
+}
+@media (min-width: 1200px) {
+  [data-player-display='wide']
+    .pg-screen
+    .pg-phone-page
+    :is(.pg-own-plants, .pg-companies) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

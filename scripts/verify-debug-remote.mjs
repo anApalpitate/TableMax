@@ -291,6 +291,34 @@ async function player(token, tunnel, wide = false) {
   const state = await view(token || '');
   await rendered(page, state);
   tunnel.traffic.renderedFrame = await rendered(page, state);
+  // Exercise desktop presentation through the same local reverse proxy as the
+  // reliability scenarios. Resizing/toggling cannot create another session.
+  await page.setViewportSize({ width: 1280, height: 720 });
+  const control = page.locator('.player-frame__display');
+  await control.waitFor();
+  const child = await playerFrame(page);
+  const marker = randomUUID();
+  await child.evaluate((value) => {
+    window.__remoteDisplayDocument = value;
+  }, marker);
+  const beforeSwitch = { ...page.navigationCounts };
+  for (const desired of ['wide', 'portrait', 'wide']) {
+    if (
+      (await page
+        .locator('.player-frame')
+        .getAttribute('data-player-display')) !== desired
+    )
+      await control.click();
+    await playerUi(page)
+      .locator(`html[data-player-display="${desired}"]`)
+      .waitFor();
+  }
+  assert.equal(
+    await child.evaluate(() => window.__remoteDisplayDocument),
+    marker,
+  );
+  assert.deepEqual(page.navigationCounts, beforeSwitch);
+  await rendered(page, state);
   return page;
 }
 

@@ -1,0 +1,54 @@
+:root {
+  --tm-scroll-track: #ede7d9;
+  --tm-scroll-thumb: #55786b;
+  --tm-scroll-hover: #234f40;
+}
+/* Style native scrolling only. Touch and forced-color users keep OS controls. */
+@media (pointer: fine) and (forced-colors: none) {
+  :where(*) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--tm-scroll-thumb) var(--tm-scroll-track);
+  }
+  @supports selector(::-webkit-scrollbar) {
+    :where(*) {
+      scrollbar-width: auto;
+      scrollbar-color: auto;
+    }
+    :where(*)::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    :where(*)::-webkit-scrollbar-track {
+      background: var(--tm-scroll-track);
+      border-radius: 10px;
+    }
+    :where(*)::-webkit-scrollbar-thumb {
+      background: var(--tm-scroll-thumb);
+      border: 2px solid var(--tm-scroll-track);
+      border-radius: 10px;
+      min-height: 32px;
+      min-width: 32px;
+    }
+    :where(*)::-webkit-scrollbar-thumb:hover {
+      background: var(--tm-scroll-hover);
+    }
+    :where(*)::-webkit-scrollbar-button {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+    :where(*)::-webkit-scrollbar-corner {
+      background: var(--tm-scroll-track);
+    }
+  }
+  :root,
+  :where(.dialog-surface, .pg-page-scroll, .ma-hand) {
+    scrollbar-gutter: stable;
+  }
+}
+:where(.dialog-surface) {
+  overscroll-behavior: contain;
+}
+:root:has(.player-frame) {
+  scrollbar-gutter: auto;
+}

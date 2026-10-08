@@ -1,0 +1,127 @@
+:root:has(.expansion-screen),
+.expansion-screen {
+  --tm-scroll-track: #e9eedc;
+  --tm-scroll-thumb: #52776c;
+  --tm-scroll-hover: #215c51;
+}
+/* Players never have the public supply sidebar, even below the wide breakpoint. */
+[data-player-display='wide'] .expansion-screen.player {
+  max-width: none;
+}
+[data-player-display='wide'] .expansion-screen.player .ex-table-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 960px) {
+  [data-player-display='wide'] .expansion-screen.player {
+    padding: 16px 24px;
+  }
+  [data-player-display='wide'] .expansion-screen.player .ex-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 12px 24px;
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  [data-player-display='wide'] .expansion-screen.player .ex-actions > * {
+    grid-column: 1;
+    min-width: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  [data-player-display='wide']
+    .expansion-screen.player
+    .ex-actions
+    > .ex-action-heading {
+    grid-column: 1 / -1;
+  }
+  [data-player-display='wide']
+    .expansion-screen.player
+    .ex-actions
+    > :is(.ex-target-board, .ex-row-choice) {
+    grid-column: 2;
+    grid-row: 2 / span 10;
+    width: 100%;
+    max-width: 480px;
+    justify-self: center;
+  }
+  [data-player-display='wide']
+    .expansion-screen.player
+    .ex-actions
+    .pokemon-board {
+    max-width: 450px;
+    margin: 8px auto;
+  }
+  [data-player-display='wide'] .expansion-screen.player .ex-actions .ex-card {
+    height: clamp(132px, calc((100dvh - 230px) / 3), 186px);
+    min-height: 132px;
+  }
+  [data-player-display='wide'] .expansion-screen.player .ex-draw-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  [data-player-display='wide']
+    .expansion-screen.player
+    .ex-actions.ex-observing {
+    display: block;
+    max-width: 520px;
+  }
+  [data-player-display='wide'] .expansion-screen.player .ex-vote-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    align-items: stretch;
+  }
+  [data-player-display='wide'] .expansion-screen.player .ex-mission-option {
+    display: flex;
+    flex-direction: column;
+  }
+  [data-player-display='wide'] .expansion-screen.player .ex-vote-choice {
+    flex: 1;
+  }
+  [data-player-display='wide'] .expansion-screen.player .ex-research-strip {
+    max-width: 1280px;
+    margin: 12px auto;
+  }
+}
+@media (min-width: 960px) and (max-height: 760px) {
+  [data-player-display='wide'] .expansion-screen.player .ex-toolbar {
+    margin-bottom: 6px;
+  }
+  [data-player-display='wide'] .expansion-screen.player .ex-round-banner {
+    padding: 8px 12px;
+    margin-bottom: 8px;
+  }
+  [data-player-display='wide']
+    .expansion-screen.player
+    .ex-actions
+    > .ex-action-heading {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  [data-player-display='wide']
+    .expansion-screen.player
+    .ex-actions
+    > :is(.ex-target-board, .ex-row-choice) {
+    grid-row: 1 / span 10;
+  }
+  [data-player-display='wide']
+    .expansion-screen.player
+    .ex-actions
+    .pokemon-board {
+    gap: 22px 6px;
+    padding-bottom: 20px;
+    margin: 4px auto;
+  }
+  [data-player-display='wide']
+    .expansion-screen.player
+    .ex-actions
+    .slot-index {
+    bottom: -20px;
+    height: 20px;
+  }
+  [data-player-display='wide'] .expansion-screen.player .ex-actions .ex-card {
+    height: clamp(90px, calc((100dvh - 360px) / 3), 132px);
+    min-height: 90px;
+  }
+}

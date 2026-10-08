@@ -248,191 +248,197 @@ export function BoxScreen({ session }: { session: RoomSession }) {
               <span className="room-status">{roomStatus}</span>
             </div>
           </div>
-          {self && game && (
-            <div className="player-actions">
-              <button
-                type="button"
-                className="profile-avatar secondary"
-                aria-label="更换头像"
-                disabled={avatarLocked}
-                onClick={() => setPanel('avatars')}
-              >
-                <img src={avatarFor(self.avatarId)} alt="" />
-                <span>更换头像</span>
-              </button>
-              <div className="player-profile">
-                <strong title={self.name}>{self.name}</strong>
-                <span>
-                  {view!.seats.findIndex((seat) => seat.id === self.id) + 1}{' '}
-                  号位
-                </span>
-              </div>
-              {lobby && (
-                <button
-                  disabled={locked}
-                  onClick={() => command({ type: 'ready', ready: !self.ready })}
-                >
-                  {self.ready ? '取消准备' : '我准备好了'}
-                </button>
-              )}
-            </div>
-          )}
-          {role === 'player' && !credential && game && (
-            <form
-              className="join-table"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (
-                  !locked &&
-                  !transfer.pending &&
-                  name.trim() &&
-                  avatarAvailable
-                )
-                  void join(
-                    draftImage ? undefined : (chosenAvatar ?? undefined),
-                    draftImage ?? undefined,
-                  );
-              }}
-            >
-              <h2>加入牌桌</h2>
-              <div className="join-table__profile">
+          <div className="box-player-dock">
+            {self && game && (
+              <div className="player-actions">
                 <button
                   type="button"
                   className="profile-avatar secondary"
-                  aria-label="选择头像"
+                  aria-label="更换头像"
                   disabled={avatarLocked}
                   onClick={() => setPanel('avatars')}
                 >
-                  {draftImage || session.admissionAvatarImage ? (
-                    <img
-                      src={`data:image/png;base64,${session.admissionAvatarImage ?? draftImage}`}
-                      alt=""
-                    />
-                  ) : (
-                    chosenAvatar && <img src={avatarFor(chosenAvatar)} alt="" />
-                  )}
-                  <span>选择头像</span>
+                  <img src={avatarFor(self.avatarId)} alt="" />
+                  <span>更换头像</span>
                 </button>
-                <div className="join-table__fields">
-                  <label htmlFor="nickname">你的昵称</label>
-                  <div className="join-table__row">
-                    <input
-                      id="nickname"
-                      name="nickname"
-                      autoComplete="nickname"
-                      spellCheck={false}
-                      placeholder="朋友们怎么称呼你？"
-                      value={name}
-                      maxLength={24}
-                      disabled={busy || session.admissionPending}
-                      onChange={(event) => setName(event.target.value)}
-                    />
-                    <button
-                      disabled={
-                        locked ||
-                        session.admissionPending ||
-                        transfer.pending ||
-                        !name.trim() ||
-                        !avatarAvailable
-                      }
-                    >
-                      加入
-                    </button>
-                  </div>
+                <div className="player-profile">
+                  <strong title={self.name}>{self.name}</strong>
+                  <span>
+                    {view!.seats.findIndex((seat) => seat.id === self.id) + 1}{' '}
+                    号位
+                  </span>
                 </div>
+                {lobby && (
+                  <button
+                    disabled={locked}
+                    onClick={() =>
+                      command({ type: 'ready', ready: !self.ready })
+                    }
+                  >
+                    {self.ready ? '取消准备' : '我准备好了'}
+                  </button>
+                )}
               </div>
-              {!avatarAvailable && (
-                <p role="status" className="avatar-unavailable">
-                  头像已被选走，请选择另一个。
-                </p>
-              )}
-            </form>
-          )}
-          {role === 'player' &&
-            !credential &&
-            view?.seats.some((seat) => seat.controller === 'human') && (
-              <button
-                type="button"
-                className="secondary box-transfer-entry"
-                disabled={session.admissionPending || transfer.busy}
-                onClick={() => setPanel('transfer')}
-              >
-                {transfer.pending ? '查看换机申请' : '换手机进入'}
-              </button>
             )}
-          {canControl && lobby && view && game && (
-            <div className="host-lobby">
-              <div className="lobby-toolbar">
-                {isHost && (
-                  <div className="bot-invite">
-                    <div>
-                      <label htmlFor="bot-difficulty">人机等级</label>
-                      <select
-                        id="bot-difficulty"
-                        value={difficulty}
-                        disabled={locked}
-                        onChange={(event) =>
-                          setDifficulty(event.target.value as BotDifficulty)
+            {role === 'player' && !credential && game && (
+              <form
+                className="join-table"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  if (
+                    !locked &&
+                    !transfer.pending &&
+                    name.trim() &&
+                    avatarAvailable
+                  )
+                    void join(
+                      draftImage ? undefined : (chosenAvatar ?? undefined),
+                      draftImage ?? undefined,
+                    );
+                }}
+              >
+                <h2>加入牌桌</h2>
+                <div className="join-table__profile">
+                  <button
+                    type="button"
+                    className="profile-avatar secondary"
+                    aria-label="选择头像"
+                    disabled={avatarLocked}
+                    onClick={() => setPanel('avatars')}
+                  >
+                    {draftImage || session.admissionAvatarImage ? (
+                      <img
+                        src={`data:image/png;base64,${session.admissionAvatarImage ?? draftImage}`}
+                        alt=""
+                      />
+                    ) : (
+                      chosenAvatar && (
+                        <img src={avatarFor(chosenAvatar)} alt="" />
+                      )
+                    )}
+                    <span>选择头像</span>
+                  </button>
+                  <div className="join-table__fields">
+                    <label htmlFor="nickname">你的昵称</label>
+                    <div className="join-table__row">
+                      <input
+                        id="nickname"
+                        name="nickname"
+                        autoComplete="nickname"
+                        spellCheck={false}
+                        placeholder="朋友们怎么称呼你？"
+                        value={name}
+                        maxLength={24}
+                        disabled={busy || session.admissionPending}
+                        onChange={(event) => setName(event.target.value)}
+                      />
+                      <button
+                        disabled={
+                          locked ||
+                          session.admissionPending ||
+                          transfer.pending ||
+                          !name.trim() ||
+                          !avatarAvailable
                         }
                       >
-                        {Object.entries(difficultyNames).map(
-                          ([value, label]) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ),
-                        )}
-                      </select>
-                      <button
-                        type="button"
-                        className="secondary bot-info-control"
-                        aria-label="人机等级说明"
-                        title="人机等级说明"
-                        onClick={() => setPanel('bot-info')}
-                      >
-                        ⓘ
+                        加入
                       </button>
                     </div>
-                    <button
-                      className="secondary"
-                      disabled={locked || view.seats.length >= game.max}
-                      onClick={() => {
-                        const prefix =
-                          difficulty === 'default'
-                            ? '人机'
-                            : difficultyNames[difficulty];
-                        let number = 1;
-                        while (
-                          view.seats.some(
-                            (seat) => seat.name === `${prefix}${number}`,
+                  </div>
+                </div>
+                {!avatarAvailable && (
+                  <p role="status" className="avatar-unavailable">
+                    头像已被选走，请选择另一个。
+                  </p>
+                )}
+              </form>
+            )}
+            {role === 'player' &&
+              !credential &&
+              view?.seats.some((seat) => seat.controller === 'human') && (
+                <button
+                  type="button"
+                  className="secondary box-transfer-entry"
+                  disabled={session.admissionPending || transfer.busy}
+                  onClick={() => setPanel('transfer')}
+                >
+                  {transfer.pending ? '查看换机申请' : '换手机进入'}
+                </button>
+              )}
+            {canControl && lobby && view && game && (
+              <div className="host-lobby">
+                <div className="lobby-toolbar">
+                  {isHost && (
+                    <div className="bot-invite">
+                      <div>
+                        <label htmlFor="bot-difficulty">人机等级</label>
+                        <select
+                          id="bot-difficulty"
+                          value={difficulty}
+                          disabled={locked}
+                          onChange={(event) =>
+                            setDifficulty(event.target.value as BotDifficulty)
+                          }
+                        >
+                          {Object.entries(difficultyNames).map(
+                            ([value, label]) => (
+                              <option key={value} value={value}>
+                                {label}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                        <button
+                          type="button"
+                          className="secondary bot-info-control"
+                          aria-label="人机等级说明"
+                          title="人机等级说明"
+                          onClick={() => setPanel('bot-info')}
+                        >
+                          ⓘ
+                        </button>
+                      </div>
+                      <button
+                        className="secondary"
+                        disabled={locked || view.seats.length >= game.max}
+                        onClick={() => {
+                          const prefix =
+                            difficulty === 'default'
+                              ? '人机'
+                              : difficultyNames[difficulty];
+                          let number = 1;
+                          while (
+                            view.seats.some(
+                              (seat) => seat.name === `${prefix}${number}`,
+                            )
                           )
-                        )
-                          number++;
-                        command({
-                          type: 'add-bot',
-                          name: `${prefix}${number}`,
-                          difficulty,
-                        });
-                      }}
+                            number++;
+                          command({
+                            type: 'add-bot',
+                            name: `${prefix}${number}`,
+                            difficulty,
+                          });
+                        }}
+                      >
+                        添加人机
+                      </button>
+                    </div>
+                  )}
+                  <div className="lobby-start">
+                    <LobbyReadiness seats={view.seats} minimum={game.min} />
+                    <button
+                      disabled={
+                        locked || view.seats.length < game.min || !everyoneReady
+                      }
+                      onClick={() => command({ type: 'start' })}
                     >
-                      添加人机
+                      开始游戏
                     </button>
                   </div>
-                )}
-                <div className="lobby-start">
-                  <LobbyReadiness seats={view.seats} minimum={game.min} />
-                  <button
-                    disabled={
-                      locked || view.seats.length < game.min || !everyoneReady
-                    }
-                    onClick={() => command({ type: 'start' })}
-                  >
-                    开始游戏
-                  </button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
           <RoomTable
             seats={view?.seats ?? []}
             capacity={view?.game?.max ?? 6}

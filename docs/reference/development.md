@@ -1,5 +1,11 @@
 # 开发环境
 
+## 玩家横屏与滚动条验证（2026-10-08）
+
+`node scripts/verify-player-display.mjs --source --quick --evidence=<名称>` 用已构建源码进行静音隐藏窗口与实际浏览器快查；完整实际包检查用 `--sha256=<当前ZIP哈希> --evidence=<名称>`，不加 `--source/--quick`。只监听 `127.0.0.1`，临时目录沿用已审计的 `tmp/debug-portable-<六位后缀>`，证据在 `artifacts/maintenance/v1.0.4/player-display/`。检查四变体合法最少／最多真人、关键阶段、真实授权动作、宽度边界、CSS视口／密度、设备识别、偏好、键盘、浮窗、高对比和切换草稿；不宣称实体手机或物理DPI通过。截图仅等待已加载图片，屏外懒加载规则图不会阻塞探针。
+
+同包根入口用 `scripts/verify-root-entry.mjs --sha256=<哈希> --evidence=<名称>`；远程故障用 `scripts/verify-debug-remote.mjs --sha256=<哈希> --evidence=<名称> --scenario=all`，后者在本机HTTPS非标准端口代理下实际切换玩家模式，再检查禁WebSocket、丢推送／确认、断线、冻结恢复、WSS与换机。只保存版本与操作摘要，不记录凭证或秘密载荷。实际结果及未测范围见[验收](acceptance.md)。
+
 ## 根加入入口与研究重设计验证（2026-10-08）
 
 默认分享网址与二维码使用网站根地址，`/player` 及 `/player/game` 保留兼容；根页面属于玩家，不能取得管理员或原生桥接权限。`node scripts/verify-root-entry.mjs --sha256=<冻结包SHA256> --evidence=<独立名>` 审核实际 ZIP 全部成员、HTTP／HTTPS 非标准端口根入口真实 UI 入座／准备／刷新、旧路由与身份权限；证据在 `artifacts/maintenance/v1.0.4/root-entry/`。代理仅监听 `127.0.0.1`，不配置真实穿透服务。

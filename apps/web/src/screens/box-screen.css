@@ -937,3 +937,78 @@
     font-size: 16px;
   }
 }
+.box-player-dock {
+  display: contents;
+}
+@media (max-width: 360px) {
+  .box-screen.player .player-actions {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr);
+  }
+  .box-screen.player .player-actions > button:last-child:not(.profile-avatar) {
+    grid-column: 1 / -1;
+    width: 100%;
+    white-space: nowrap;
+  }
+  .box-screen.player .player-profile strong {
+    white-space: nowrap;
+  }
+}
+@media (min-width: 960px) {
+  [data-player-display='wide'] .box-screen.player {
+    max-width: 1600px;
+    padding: 20px 28px;
+  }
+  [data-player-display='wide'] .box-screen.player .stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+    gap: 18px;
+    align-items: start;
+  }
+  [data-player-display='wide'] .box-screen.player .room-heading {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+  [data-player-display='wide'] .box-screen.player .room-table {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    margin: 0;
+  }
+  [data-player-display='wide'] .box-screen.player .box-player-dock {
+    grid-column: 2;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+  [data-player-display='wide'] .box-screen.player .player-actions {
+    display: grid;
+    grid-template-columns: 90px minmax(0, 1fr);
+    margin: 0;
+  }
+  [data-player-display='wide']
+    .box-screen.player
+    .player-actions
+    > button:last-child:not(.profile-avatar) {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  [data-player-display='wide'] .box-screen.player .join-table {
+    margin: 0;
+    padding: 16px;
+  }
+  [data-player-display='wide'] .box-screen.player .join-table__profile {
+    flex-wrap: wrap;
+  }
+  [data-player-display='wide'] .box-screen.player .join-table__fields {
+    flex: 1 1 100%;
+  }
+  [data-player-display='wide'] .box-screen.player .box-transfer-entry {
+    margin: 0;
+  }
+  [data-player-display='wide'] .box-screen.player .host-lobby {
+    margin: 0;
+  }
+}

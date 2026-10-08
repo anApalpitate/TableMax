@@ -1,0 +1,84 @@
+:root:has(.ma-screen),
+.ma-screen {
+  --tm-scroll-track: #eee1c9;
+  --tm-scroll-thumb: #92683e;
+  --tm-scroll-hover: #644629;
+}
+[data-player-display='wide'] .ma-screen.player {
+  max-width: none;
+}
+@media (min-width: 960px) {
+  [data-player-display='wide'] .ma-screen.player .ma-table {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 16px 24px;
+    max-width: 1480px;
+    margin: 0 auto;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-table > .ma-market {
+    grid-column: 1 / -1;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-table > .ma-center {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-player {
+    display: contents;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-player__operations {
+    grid-column: 1;
+    grid-row: 3;
+    min-width: 0;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-player__cards {
+    grid-column: 2;
+    grid-row: 2 / span 3;
+    min-width: 0;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-table > .ma-latest {
+    grid-column: 1;
+    grid-row: 4;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-hand {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    overflow: visible;
+    max-height: none;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-hand__card {
+    width: 100%;
+    min-width: 0;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-section-heading h2 {
+    font-size: 20px;
+  }
+}
+@media (min-width: 960px) and (max-height: 760px) {
+  [data-player-display='wide'] .ma-screen.player .ma-player__operations {
+    grid-row: 2;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-table > .ma-center {
+    grid-row: 3;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-artist {
+    padding: 8px;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-artist__pips {
+    display: none;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-artist__value {
+    font-size: 28px;
+    margin: 2px 0;
+  }
+  [data-player-display='wide'] .ma-screen.player .ma-market-tips {
+    margin-top: 4px;
+    padding: 4px 8px;
+  }
+}
+@media (min-width: 1200px) {
+  [data-player-display='wide'] .ma-screen.player .ma-hand {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

@@ -11,6 +11,7 @@ import type { GameClient, GameHost as RoomSession } from '@tablemax/web-host';
 import { useAudioOutput } from '@tablemax/web-host';
 import '../ui/screen.css';
 import '../ui/style.css';
+import '../ui/player-wide.css';
 import { avatarFor } from '@tablemax/web-host';
 import { ScreenLink } from '@tablemax/web-host';
 import { SessionFeedback } from '@tablemax/web-host';

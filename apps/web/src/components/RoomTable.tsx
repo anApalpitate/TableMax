@@ -65,7 +65,7 @@ export function RoomTable({
             data-self={isSelf}
             aria-label={
               seat
-                ? `${index + 1} 号位，${seat.name}${isSelf ? '，你' : ''}，${seat.controller === 'bot' ? `${botDifficultyNames[seat.botDifficulty ?? 'default']}人机` : '手机玩家'}，${lobby ? (seat.ready ? '已准备' : '未准备') : '已入座'}`
+                ? `${index + 1} 号位，${seat.name}${isSelf ? '，你' : ''}，${seat.controller === 'bot' ? `${botDifficultyNames[seat.botDifficulty ?? 'default']}人机` : '真人玩家'}，${lobby ? (seat.ready ? '已准备' : '未准备') : '已入座'}`
                 : `${index + 1} 号空座`
             }
           >
@@ -96,7 +96,7 @@ export function RoomTable({
                           : 'room-table__offline'
                       }
                     >
-                      {seat.online ? '手机在线' : '手机离线'}
+                      {seat.online ? '在线' : '离线'}
                     </span>
                   )}
                 </div>

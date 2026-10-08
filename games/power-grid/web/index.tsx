@@ -16,6 +16,7 @@ import { CompanyInspector } from '../ui/CompanyInspector';
 import { GameProgress } from '../ui/GameProgress';
 import '../ui/market-scrollbars.css';
 import '../ui/toolbar-refinement.css';
+import '../ui/player-wide.css';
 import { PHASE_LABELS, PLAYER_COLORS } from '../ui/labels';
 import { PlayerControls } from '../ui/player';
 import { GermanyMap } from '../ui/map';

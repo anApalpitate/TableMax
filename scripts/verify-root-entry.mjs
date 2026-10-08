@@ -318,7 +318,10 @@ async function rootPlayer(url, label, viewport) {
   assert.equal(denied.reply.reason, 'unauthorized');
   const rect = await page.locator('iframe[data-player-frame]').boundingBox();
   assert.ok(rect);
-  const expectedWidth = viewport.width > 600 ? 390 : viewport.width;
+  const expectedWidth =
+    viewport.width >= 800
+      ? Math.max(320, Math.min(430, ((viewport.height - 48) * 9) / 19.5))
+      : viewport.width;
   assert.ok(Math.abs(rect.width - expectedWidth) < 2);
   assert.ok(Math.abs(rect.x + rect.width / 2 - viewport.width / 2) < 2);
   await capture(page, label + '-root');

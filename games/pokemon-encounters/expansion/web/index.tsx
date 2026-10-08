@@ -53,6 +53,7 @@ import './style.css';
 import './redesign.css';
 import './refinement.css';
 import './player-flow.css';
+import './player-wide.css';
 
 const poseDurations = Object.fromEntries(
   Object.entries(poseSequences).map(([id, sequence]) => [

@@ -700,8 +700,6 @@
   .expansion-screen:not(.player) .ex-supply {
     min-height: 0;
     overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #a8bea0 #f6f4e6;
   }
   .expansion-screen:not(.player) .ex-players {
     display: grid;

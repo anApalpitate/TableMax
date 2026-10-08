@@ -1,5 +1,17 @@
 # 首版交付与验收
 
+## 1.0.4：滚动条与电脑玩家横屏（2026-10-08）
+
+电脑玩家首次采用 9:19.5 优先竖屏，浏览器独立记住 portrait/wide；区域外右上角 48px 深绿／金色按钮切换。外层不足800px暂时使用移动布局，扩大后恢复；识别排除手机及桌面UA的iPad，触屏Windows仍提供按钮。盒子和四游戏变体在实际子文档960／1200px适配，电力公司保留四页及hidden/inert；共享圆角原生滚动条提供游戏配色，触摸与强制高对比使用系统回退。权限、规则、存档字段未变。
+
+当前实际 ZIP SHA-256 `2b3439eca289c9e6fd7f98a86a865b0cde5f8ba5481c91dfe57d3c5116c4c5c2`，41,362,411字节，实际解压94,945,976字节、248文件，95MB预算剩54,024字节，ZIP／解压严格双100MB门禁通过。冻结快照 `5016d1a5…`，构建12,370ms、17缓存单元复用；上一已验 `a9ee8498…` 在[历史交付](../../artifacts/maintenance/v1.0.4/player-display/previous-delivery/TableMax-1.0.4-win-x64.zip)原样保留。候选 `75a39b14…` 的完整检查另留原证据，未改标为当前包。
+
+[最终根入口](../../artifacts/maintenance/v1.0.4/root-entry/player-display-delivery/results.json)核验全部248实际解压成员及HTTP／HTTPS非标准端口真实入座、刷新、准备、旧路径与玩家权限。[最终远程](../../artifacts/maintenance/v1.0.4/player-display-delivery/remote/all-2026-10-08T03-49-49-662Z/results.json)在同一ZIP的HTTPS本机非标准端口代理实际切换横竖，检查禁止WebSocket、丢推送／同步确认、原动作编号重发一次保存、断线、实际Frame执行暂停后恢复、WSS、三阶段换机与同数据重启；最新revision实际渲染，旧身份持续撤销。
+
+[显示汇总](../../artifacts/maintenance/v1.0.4/player-display/delivery-audit/results.json)绑定同一最终包：八个合法最少／最多人数场景，502布局、323张实际图（包含有界探针失败图，不冒充独立通过项）；核验720p／1080p／4K、800／960／1200边界、320–430手机、125%／150%模拟密度、识别缺失、iPad／触屏Windows、偏好与键盘切换。原版六格、扩展九格／投票／缓冲存取／能力及现代艺术拍卖草稿通过。[电力公司复验](../../artifacts/maintenance/v1.0.4/player-display/delivery-power-grid-precise/results.json)覆盖四页、采购、建城、供电，选城完成后记录视角，切换保留中心／缩放及分页，仅允许小于1e-6板坐标的浮点误差。[实际滚动输入](../../artifacts/maintenance/v1.0.4/player-display/delivery-scroll-input/results.json)通过键盘、滚轮、拖动原生滑块、浮窗切换与系统高对比回退。宝可梦模块3,730,495字节，4MiB预算通过。
+
+测试默认静音、隐藏窗口、只监听127.0.0.1。真实公网樱花穿透、实体手机、Safari、现场LAN及物理Windows DPI仍未认证；125%／150%属于CSS视口与密度模拟。源码类型、9项显示识别／存储／可信路由测试、相关lint／Prettier通过。此前假固定390px根入口断言、屏外懒加载图片解码等待及选城前采样／浮点字符串比较属于验证器问题，失败／中断证据原样保留，修正后只重跑受影响项。[项目检查](../../artifacts/maintenance/v1.0.4/player-display-docs-final/project-checks.json)通过全部Markdown本地链接与当前包预算；收尾空间及安全退役见[瘦身记录](project-slimming.md)。
+
 ## 1.0.4：根入口、研究风险与公开缓冲重设计（2026-10-08）
 
 默认分享及二维码使用网站根网址；旧 `/player` 和 `/player/game` 继续兼容，根入口只有玩家权限。扩展全部30项研究重设计条件、奖励及失败代价，包括正基础分折半／三分之一、负分放大、归零与复制奖励、额外胜局及失败授胜限制。效果读取同一原始计分，不连锁放大，失败不扣已有胜数；最低分赢家与本局新增0／1／2胜分别展示。
@@ -88,7 +100,7 @@
 
 ## 当前源码与本地交付
 
-当前本地交付为本页v1.0.4章节的 [运行ZIP](../../artifacts/releases/TableMax-1.0.4-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.4-win-x64-manifest.json)，SHA-256 `a9ee8498…`。上一已验v1.0.4 `96518cad…` 保留在[本轮历史交付](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/previous-delivery/TableMax-1.0.4-win-x64.zip)。前一轮10.7修复 `6761ef78…` 保留在[历史交付](../../artifacts/maintenance/v1.0.4/debug-20261008/previous-delivery/TableMax-1.0.3-win-x64.zip)，不作为当前下载。此前公开发布的 `bdd69433…` ZIP与 `41994ea5…` 完整EXE仍按GitHub发布章节追溯；[原发布附件本地副本](../../artifacts/maintenance/v1.0.3/debug-20261007/previous-release/preserved.json)保留旧EXE／source ZIP大小和哈希，未用本轮源码替换线上附件。旧包各自的冻结清单、通过／失败文字结论和原素材继续保留，历史通过结论只对应当时冻结输入。
+当前本地交付为本页v1.0.4章节的 [运行ZIP](../../artifacts/releases/TableMax-1.0.4-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.4-win-x64-manifest.json)，SHA-256 `2b3439ec…`。前一份研究重设计交付 `a9ee8498…` 原样保留在[横屏前历史交付](../../artifacts/maintenance/v1.0.4/player-display/previous-delivery/TableMax-1.0.4-win-x64.zip)。上一已验v1.0.4 `96518cad…` 保留在[本轮历史交付](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/previous-delivery/TableMax-1.0.4-win-x64.zip)。前一轮10.7修复 `6761ef78…` 保留在[历史交付](../../artifacts/maintenance/v1.0.4/debug-20261008/previous-delivery/TableMax-1.0.3-win-x64.zip)，不作为当前下载。此前公开发布的 `bdd69433…` ZIP与 `41994ea5…` 完整EXE仍按GitHub发布章节追溯；[原发布附件本地副本](../../artifacts/maintenance/v1.0.3/debug-20261007/previous-release/preserved.json)保留旧EXE／source ZIP大小和哈希，未用本轮源码替换线上附件。旧包各自的冻结清单、通过／失败文字结论和原素材继续保留，历史通过结论只对应当时冻结输入。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
 

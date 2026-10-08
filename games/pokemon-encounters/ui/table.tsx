@@ -186,8 +186,8 @@ export function GameTable({
                         {seat.controller === 'bot'
                           ? (seat.botLabel ?? '人机')
                           : seat.online
-                            ? '手机在线'
-                            : '手机离线'}
+                            ? '在线'
+                            : '离线'}
                       </span>
                       <span className="seat-state">
                         {!paused && playing && game.phase === 'initial-flip'
