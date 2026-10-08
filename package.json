@@ -16,7 +16,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run",
+    "test": "node scripts/test-scoped.mjs",
     "build": "node scripts/build.mjs",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "verify:desktop": "node scripts/verify-pokemon.mjs",

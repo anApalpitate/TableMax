@@ -17,6 +17,7 @@
 | `TableMax.code-workspace`、`.gitignore`                                        | 本项目编辑器设置与 Git 忽略；文件树、搜索和监听各自维护                                                   |
 | `scripts/`                                                                     | 桌面运行时准备、构建／启动、便携打包、原型与真实跨层验证、资源派生及本地维护工具                          |
 | `scripts/fixtures/`                                                            | 验证专用合法状态／存档、进程故障与测量入口；不进入正式包或生产调试 API                                    |
+| `scripts/testing/`                                                             | 测试范围归属、历史统计、Vitest排序／阈值及工具回归；`test-scoped.mjs`统一范围入口，另提供历史导入与独立批次，不进入产品运行包 |
 | `scripts/lib/save-audit.mjs`                                                   | SQLite v1／v2只读审计解码，共用完整Save重建逻辑；运行JS与类型声明均纳入服务构建输入                       |
 | `Clean-Releases.ps1`、`Clean-Intermediates.ps1`、`Maintain-Project.ps1`        | 手动分类清理及空闲边界容量维护入口；共用 `scripts/cleanup-local.ps1` 保护                                 |
 | `Compress-Workspace.ps1`                                                       | NTFS 透明压缩与实际分配审计入口；实现及隔离回归在 `scripts/`                                              |

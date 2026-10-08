@@ -102,7 +102,9 @@ pnpm --version
 dotnet --version
 pnpm install --frozen-lockfile
 pnpm setup:desktop
+$env:TABLEMAX_TEST_SCOPE = 'full' # 首次工程基线核验；日常按实际变更设置范围
 pnpm check
+Remove-Item Env:TABLEMAX_TEST_SCOPE
 pnpm build
 pnpm verify:desktop
 ```
@@ -114,6 +116,22 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 `.editorconfig` 与 `.gitattributes` 统一文本 UTF-8／LF 习惯，Git 自动识别二进制资源，不按扩展名笼统改变资源内容。类型检查和规则验证的匹配范围包含未来 `games/` 源码，但不因此创建空游戏工程。
 
 ## 真实命令
+
+### 按变更范围选择检查
+
+2026-10-08 最新要求：仅改盒子只运行盒子项，仅改游戏只允许对应游戏项；测试、检查、构建与优化都按本次实际变化收敛。共享变化列明依赖后选择受影响项，不能依据工作区其他未提交内容扩大范围。规则改动按需检查规则，UI改动按需检查UI；纯文档／配置／素材记录只做格式、链接、配置、来源或解码等适用检查。
+
+`pnpm test -- --scope=box` 或 `node scripts/test-scoped.mjs --scope=<范围>` 是统一范围入口；`--list` 只列选中／排除／未分类文件，不启动产品。支持 `box`、`game:pokemon-encounters`、`game:modern-art`、`game:power-grid` 和 `shared`，逗号组合仅用于实际受影响的多个范围。可追加准确的 `.test.ts` 文件继续收窄；遗漏范围的宽泛执行会拒绝。直接Vitest命令可指定准确文件，或设置当前进程的 `TABLEMAX_TEST_SCOPE`，配置仍会过滤越界文件。`full` 仅用于本次确实涉及全部范围或明确要求全量验收的任务，不能用于绕过盒子／单游戏限制。
+
+范围归属在 `scripts/testing/scopes.mjs` 维护，游戏目录归对应游戏，其他测试按实际内容登记：服务端单游戏集成也归游戏；目录元数据和模板夹具可归盒子。混合文件／验证脚本涉及的全部范围必须被允许，不能仅有交集；窄范围排除未分类文件，列单时显示缺口，新增或改变测试覆盖内容须同步登记。独立脚本未知时拒绝窄范围执行，先登记实际范围或加入真实筛选；不能仅向不支持筛选的脚本添加 `--game` 假定矩阵已缩小。
+
+独立验证使用 `node scripts/test-scoped.mjs --scope=<范围> --plan=<计划.json>`；先校验整份计划，再交给独立批次统计，运行后保存 `scope.json`。`verify-rules-guides.mjs --game=<id>` 为对应游戏；`verify-player-display.mjs` 须同时指定 `--game=<id> --visual-audit` 才为单游戏，默认及`--quick`仍包含盒子检查，且不支持`--game=all`。工具机制回归用 `node --test scripts/testing/scopes.test.mjs`，不启动产品。
+
+```powershell
+node scripts/test-scoped.mjs --scope=box --list
+node scripts/test-scoped.mjs --scope=box apps/server/src/avatar.test.ts
+node scripts/test-scoped.mjs --scope=game:modern-art games/modern-art/ui/sorting.test.ts
+```
 
 ### 游戏介绍弹窗布局检查
 
@@ -134,8 +152,8 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 | `pnpm typecheck`                                            | 严格 TypeScript 检查，不生成文件                                                                                                                          |
 | `pnpm lint`                                                 | ESLint 与 React Hooks 规则检查                                                                                                                            |
 | `pnpm format:check` / `pnpm format`                         | 检查格式／按项目配置格式化                                                                                                                                |
-| `pnpm test`                                                 | Vitest 执行核心、真实 Socket.IO、SQLite、强制终止恢复及 Worker 验证                                                                                       |
-| `pnpm check`                                                | 顺序执行类型、静态、格式检查与当前测试                                                                                                                    |
+| `pnpm test -- --scope=<范围>`                                | 先按盒子／对应游戏／实际共享依赖筛选，再执行所选Vitest测试；可追加准确文件或`--list`                                                                        |
+| `pnpm check`                                                | 全工程聚合入口，仅适合明确全工程核验；测试范围须通过`TABLEMAX_TEST_SCOPE`设置，局部改动分别执行适用检查                                                       |
 | `pnpm build`                                                | 构建网页、独立服务、游戏模块与 net48 原生壳，收集到 `build/desktop`                                                                                       |
 | `pnpm verify:desktop`                                       | 隐藏窗口验证开发构建，包括真实大厅、宝可梦六人混合整局、回退、两次启动恢复、独立进程与退出协调                                                            |
 | `pnpm verify:modern-art`                                    | 隐藏原生窗口执行现代艺术五席四轮、五类拍卖与真实手机控件，验证保密、回退／重启及两游戏切换；加 `--portable` 验证最终 ZIP                                  |
@@ -251,8 +269,8 @@ pnpm prototype:verify:game
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 文档、索引或目录说明 | 相对链接与锚点、正文归属、命令／配置一致性、改动文件的 Prettier 格式及 `git diff --check`。`docs/` 默认被格式命令忽略，需要格式化改动页时对明确路径使用 `pnpm exec prettier --check --ignore-path .gitignore <文件路径>`，将 `--check` 改为 `--write` 可格式化。 |
 | 独立原型源码         | 类型、静态、格式与独立构建，再执行受影响的通用／游戏走查；`pnpm prototype:verify:game --layout-only` 仅补查布局，不能替代流程走查。                                                                                                                              |
-| 正式平台与共享契约   | `pnpm check` 与 `pnpm build`，按行为补真实服务、授权及恢复测试；影响桌面生命周期时执行 `pnpm verify:desktop`。                                                                                                                                                   |
-| 正式游戏、计分或策略 | 接入后执行游戏规则、投影、人机和恢复测试，覆盖 [游戏场景](../games/pokemon-encounters/validation-scenarios.md) 的适用项；pnpm check 包含首版规则／策略／D01–D13／真实崩溃测试；pnpm verify:game-ui 运行能力 UI fixture。                                         |
+| 正式平台与共享契约   | 选择实际受影响的共享及对应游戏范围，按行为补真实服务、授权及恢复检查；类型、静态与构建也按依赖选择必要项，桌面生命周期变化才选相应验证。                                                                                                                       |
+| 正式游戏、计分或策略 | 只允许对应游戏项，并按规则／投影／人机／恢复／UI的实际改动继续收窄，覆盖 [游戏场景](../games/pokemon-encounters/validation-scenarios.md) 的适用项；混合脚本先增加真实过滤或拆分，不运行其他游戏。                                                                   |
 | 正式便携交付         | pnpm package:win 和 pnpm verify:portable；当前用户授权设备模拟范围和证据见验收记录。                                                                                                                                                                             |
 
 新报告只声明本次执行的范围。历史证据保留对应构建、日期与限制，不因更新说明或局部补查而改成完整产品验收。
