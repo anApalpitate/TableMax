@@ -223,6 +223,18 @@ export function SoundControl({
   return (
     <button
       className={`secondary sound-control${iconOnly ? ' sound-icon-control' : ''}`}
+      style={
+        iconOnly
+          ? {
+              display: 'grid',
+              placeItems: 'center',
+              width: 44,
+              height: 44,
+              padding: 9,
+              flex: '0 0 44px',
+            }
+          : undefined
+      }
       disabled={disabled}
       aria-pressed={enabled && !disabled}
       aria-label={
@@ -235,7 +247,15 @@ export function SoundControl({
               : '提示音已静音 · 开启'
       }
       title={
-        !canPlay && enabled ? '由电脑指定的公共屏或管理窗口播放' : undefined
+        !canPlay && enabled
+          ? '由电脑指定的公共屏或管理窗口播放'
+          : disabled
+            ? '测试模式已关闭提示音'
+            : blocked && enabled
+              ? '声音待启用，点击允许播放'
+              : enabled
+                ? '关闭提示音'
+                : '开启提示音'
       }
       onClick={() => {
         if (blocked && enabled && canPlay) {
@@ -265,6 +285,7 @@ export function SoundControl({
           viewBox="0 0 24 24"
           width="24"
           height="24"
+          style={{ display: 'block' }}
           aria-hidden="true"
           fill="none"
           stroke="currentColor"

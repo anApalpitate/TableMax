@@ -7,7 +7,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { readCurrentSave } from './save-audit';
 import { randomBytes, randomUUID } from 'node:crypto';
 import {
-  RoomViewSchema,
+  RoomProjectionSchema,
   type Command,
   type CommandReply,
   type RoomView,
@@ -45,7 +45,7 @@ async function sync(socket: Socket): Promise<RoomView> {
     socket.once('room:view', (view) => {
       clearTimeout(timer);
       try {
-        resolve(RoomViewSchema.parse(view));
+        resolve(RoomProjectionSchema.parse(view).view);
       } catch (error) {
         reject(error);
       }

@@ -13,7 +13,6 @@ import {
   SessionFeedback,
   PlayModeControl,
   PlayModeBadge,
-  CountdownSettings,
 } from '@tablemax/web-host';
 import type { JsonValue } from '@tablemax/game-sdk';
 import type { View, Face } from '../project';
@@ -1293,7 +1292,6 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
             连接中…
           </span>
         )}
-        <DisplaySettings role={session.role} />
         {session.role !== 'player' && (
           <>
             <FullscreenControl />
@@ -1566,7 +1564,9 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
             </div>
           ) : (
             <>
-              <CountdownSettings session={session} />
+              <div className="dialog-actions game-menu-settings">
+                <DisplaySettings role={session.role} />
+              </div>
               {session.canControl && <RoomManagement session={session} />}
               {game.voteCounts && (
                 <section className="ex-vote-results">

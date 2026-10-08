@@ -1,10 +1,20 @@
 # 首版交付与验收
 
+## 1.0.5：菜单、互动并发与手机同步（2026-10-09）
+
+四游戏版本的游戏／视频设置归入菜单，声音入口为图标并保持原权限；互动采用三射击槽及独立最新发言，发言时音效压至30%，300ms启动窗口内从头播放，超时不补播。同步使用运行期stamp、轻量probe、15秒完整校验与800ms只读动作查询；真正恢复清空播放并退休互动水位，健康校验保持连续。
+
+[当前运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) **40,859,424字节**，[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json) **266文件／实际解压94,355,356字节**，SHA-256 `8a8c9c8ffe391eeefef19b496235bb535692bcd5b0e2d95fd19b7069b6b754f0`。114,000,000预算和ZIP／实际解压严格小于120,000,000字节门禁均通过，实际解压大小／哈希与清单一致；最终快照`85129453…`。保留[前一交付](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/delivery-before-optimization/TableMax-1.0.5-win-x64-manifest.json)，没有源码ZIP、push或Release。
+
+[定向检查](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/checks/summary.json)覆盖66项产品单测、8项范围工具检查，类型和ESLint通过。共享互动[9项真实渲染检查／8截图](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/ui/portable-box-20261009-repair/results.json)通过；最终包[四版本菜单／12截图](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/ui/portable-menus-touch-repair-20261009/results.json)通过，涵盖三角色权限、嵌套设置、独立屏蔽记忆及三玩家视窗。首次路径错误、验收脚本误用旧HTTP视图接口和42px声音按钮失败均保留；修复仅更新受影响项。最后按钮修复只改变现代艺术UI，[逐文件依赖复核](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/checks/menu-repair-dependency-proof.json)确认共享互动等文件字节未变，复用其通过证据，没有重跑无关游戏规则。
+
+[本机六Socket模拟](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/socket-performance/2026-10-08T18-12-06-412Z-ef1c02bc/results.json)在127.0.0.1对polling／WebSocket各执行30次合法保存及180个接收样本，保存至接收P95分别12.88／4.44ms，漏一推送后514.66／505.48ms恢复。[准备就绪后的音频启动](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/checks/audio-start-latency.json)本机玩家／公共P95为0.70／1.90ms；测试静音，只验证实际声源启动，不认证听感。这些数值不含真实手机、LAN、跨设备时钟误差或手机关键画面更新，真实设备目标仍待[手机同步任务](../tasks/mobile-room-sync.md)验收。
+
 ## 1.0.5：互动精修与即时覆盖（2026-10-09）
 
 按本轮最新要求取消互动FIFO及间隔，新事件立即覆盖旧动画和声音；身份、实例／分支复核和有界去重保持独立于游戏状态。浮球可拖拽并记忆相对位置，240ms长按显示以球为中心的六格环盘，中间取消、发言图标；视频设置提供三端独立屏蔽按钮。异步手机解锁、预加载与迟到音轨守卫避免旧音抢播，射击只接收从射击层开始的同一pointer，弹窗迁移清理捕获手势。
 
-[当前运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) **40,851,905字节**，[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json) **266文件／实际解压94,333,009字节**，SHA-256 `a7574e9b6402b8bb42dd88c00e80f1a86a0f2fe8957d600ded3b4a989553c4bb`。硬上限120,000,000字节和工程预算114,000,000字节通过，预算余19,666,991字节；完整打包46,894ms，冻结快照`71eb694d…`，实际解压逐文件大小／哈希一致。[前一同版包](../../artifacts/maintenance/v1.0.5/interaction-refinement/delivery-before-refinement/TableMax-1.0.5-win-x64.zip)及原清单原样保留，以下初次交付结论仅对应旧包。没有源码ZIP、push或GitHub Release。
+[当时运行ZIP](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/delivery-before-optimization/TableMax-1.0.5-win-x64.zip) **40,851,905字节**，[当时逐文件清单](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/delivery-before-optimization/TableMax-1.0.5-win-x64-manifest.json) **266文件／实际解压94,333,009字节**，SHA-256 `a7574e9b6402b8bb42dd88c00e80f1a86a0f2fe8957d600ded3b4a989553c4bb`。硬上限120,000,000字节和工程预算114,000,000字节通过，预算余19,666,991字节；完整打包46,894ms，冻结快照`71eb694d…`，实际解压逐文件大小／哈希一致。[前一同版包](../../artifacts/maintenance/v1.0.5/interaction-refinement/delivery-before-refinement/TableMax-1.0.5-win-x64.zip)及原清单原样保留，以下初次交付结论仅对应旧包。没有源码ZIP、push或GitHub Release。
 
 [同包实际UI](../../artifacts/maintenance/v1.0.5/interaction-refinement/ui/final/results.json) **10检查／12截图**通过：拖动持久化、六格与中心取消、取消滑出不误发、dialog迁移恢复、五射击及六语音即时覆盖、真实11音源decode／start／stop、三端独立视频设置、电脑公共屏优先／管理员接管、短屏横屏和四个游戏／版本共享入口；暂停不推进游戏，新房间清场且重连不补播。运行的是本轮ZIP实际解压EXE，非源目录或原型；只做受影响共享控件，不跑游戏规则或整局。服务派发／权限／去重及真实轮询／WebSocket集成13项、几何3项、音频引擎6项、范围门禁7项通过；针对本次文件的TypeScript和ESLint通过。
 
@@ -158,7 +168,7 @@
 
 ## 当前源码与本地交付
 
-当前本地交付为本页v1.0.5章节的[运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json)，SHA-256 `a7574e9b6402b8bb42dd88c00e80f1a86a0f2fe8957d600ded3b4a989553c4bb`；历史同版初包及v1.0.4大小、证据、发布附件及结论保留在对应章节，不当作当前包验收。
+当前本地交付为本页v1.0.5章节的[运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json)，SHA-256 `8a8c9c8ffe391eeefef19b496235bb535692bcd5b0e2d95fd19b7069b6b754f0`；历史同版初包及v1.0.4大小、证据、发布附件及结论保留在对应章节，不当作当前包验收。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
 

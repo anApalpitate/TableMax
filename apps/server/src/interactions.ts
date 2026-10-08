@@ -19,11 +19,16 @@ export class InteractionDispatcher {
   >();
   private context: InteractionContext;
   private disposed = false;
+  private sequence = 0;
   constructor(
     private authority: InteractionAuthority,
     private publish: (event: InteractionEvent) => void,
+    readonly serverSessionId = randomUUID(),
   ) {
     this.context = authority.interactionContext();
+  }
+  get watermark() {
+    return this.sequence;
   }
   synchronize() {
     const current = this.authority.interactionContext();
@@ -64,6 +69,8 @@ export class InteractionDispatcher {
         : { ok: false, reason: 'invalid-message' };
     const event: InteractionEvent = {
       ...request,
+      serverSessionId: this.serverSessionId,
+      interactionSeq: ++this.sequence,
       actorSeatId: seatId,
       eventId: randomUUID(),
       durationMs: interactionDuration(request.interaction),

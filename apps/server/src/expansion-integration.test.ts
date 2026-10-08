@@ -13,7 +13,11 @@ import {
   type SaveExtras,
 } from '@tablemax/platform-core';
 import type { Command, RoomView } from '@tablemax/protocol';
-import { CommandReplySchema, RoomViewSchema } from '@tablemax/protocol';
+import {
+  CommandReplySchema,
+  RoomViewSchema,
+  RoomProjectionSchema,
+} from '@tablemax/protocol';
 import type { JsonValue } from '@tablemax/game-sdk';
 import { createGameRegistry } from './game-registry';
 import { installedModules } from './module-loader';
@@ -299,7 +303,7 @@ describe('actual installed expansion and authoritative persistence', () => {
       const health = (await fetch(`${origin}/api/foundation/health`).then(
         (response) => response.json(),
       )) as { protocolVersion: number };
-      expect(health.protocolVersion).toBe(7);
+      expect(health.protocolVersion).toBe(8);
       const connect = async (credential?: string) => {
         const socket = io(origin, {
           auth: credential ? { token: credential } : {},
@@ -309,7 +313,7 @@ describe('actual installed expansion and authoritative persistence', () => {
         sockets.push(socket);
         await new Promise<void>((resolve, reject) => {
           socket.on('room:view', (value) => {
-            views.set(socket, RoomViewSchema.parse(value));
+            views.set(socket, RoomProjectionSchema.parse(value).view);
             resolve();
           });
           socket.once('connect_error', reject);

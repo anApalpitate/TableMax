@@ -3,7 +3,7 @@ import type {} from '../../../desktop/src/audio-types';
 import { INTERACTION_CATALOG, type InteractionEvent } from '@tablemax/protocol';
 import { interactionAsset } from './assets';
 import { InteractionAudioPlayer } from './audio-player';
-const audioUrls = [...INTERACTION_CATALOG.shots, ...INTERACTION_CATALOG.phrases]
+const audioUrls = [...INTERACTION_CATALOG.phrases, ...INTERACTION_CATALOG.shots]
   .map((entry) => interactionAsset(entry.audio))
   .filter(Boolean);
 export function useInteractionAudio(enabled: boolean) {
@@ -29,9 +29,16 @@ export function useInteractionAudio(enabled: boolean) {
             ? window.tablemaxInteractionAudio.claimEvent(eventId)
             : true,
         now: () => performance.now(),
+        maxActiveShots: INTERACTION_CATALOG.maxActiveShots,
+        startDeadlineMs: INTERACTION_CATALOG.startDeadlineMs,
+        speechDucking: INTERACTION_CATALOG.speechDucking,
       }),
   );
   const stop = useCallback(() => engine.stop(), [engine]);
+  const stopEvent = useCallback(
+    (eventId: string) => engine.stopEvent(eventId),
+    [engine],
+  );
   const unlock = useCallback(() => {
     if (!enabled) return;
     try {
@@ -49,7 +56,12 @@ export function useInteractionAudio(enabled: boolean) {
       if (!active) return;
       engine.setOwner(value && enabled);
     });
-    if (enabled) engine.prepare(audioUrls);
+    if (enabled)
+      try {
+        engine.prepare(audioUrls);
+      } catch {
+        /* Visual feedback remains available. */
+      }
     if (bridge) {
       if (enabled) {
         unlock();
@@ -79,7 +91,7 @@ export function useInteractionAudio(enabled: boolean) {
   }, [enabled, engine, stop, unlock]);
   useEffect(() => () => engine.close(), [engine]);
   const play = useCallback(
-    async (event: InteractionEvent, startedAt: number) => {
+    async (event: InteractionEvent, receivedAt: number) => {
       const payload = event.interaction;
       const entry =
         payload.type === 'shot'
@@ -90,10 +102,16 @@ export function useInteractionAudio(enabled: boolean) {
               (phrase) => phrase.id === payload.phraseId,
             )!;
       const url = interactionAsset(entry.audio);
-      if (url)
-        await engine.play(url, event.eventId, startedAt, event.durationMs);
+      if (!url) return { status: 'unavailable' as const };
+      return engine.play({
+        url,
+        eventId: event.eventId,
+        channel: payload.type === 'shot' ? 'shot' : 'speech',
+        receivedAt,
+        durationMs: event.durationMs,
+      });
     },
     [engine],
   );
-  return { play, stop, unlock };
+  return { play, stop, stopEvent, unlock };
 }

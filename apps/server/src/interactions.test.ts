@@ -52,6 +52,9 @@ it('immediately publishes every new mixed interaction across players without wai
     expect(reply).toEqual({ ok: true, eventId: events.at(-1)!.eventId });
     expect(events).toHaveLength(id);
     expect(events.at(-1)).toMatchObject({ ...input, actorSeatId: actor });
+    expect(events.at(-1)!.serverSessionId).toBe(dispatcher.serverSessionId);
+    expect(events.at(-1)!.interactionSeq).toBe(id);
+    expect(dispatcher.watermark).toBe(id);
   }
   expect(vi.getTimerCount()).toBe(0);
   vi.advanceTimersByTime(60_000);
@@ -77,6 +80,7 @@ it('returns an old acknowledgement without publishing it again after a newer eve
     reason: 'invalid-message',
   });
   expect(events).toHaveLength(2);
+  expect(dispatcher.watermark).toBe(2);
   expect(events.at(-1)!.eventId).toBe(newer.ok ? newer.eventId : undefined);
   dispatcher.dispose();
 });
@@ -140,6 +144,7 @@ it('clears receipts on branch changes and rejects stale requests before acceptin
   const current = dispatcher.send('a', request(1));
   expect(current.ok).toBe(true);
   expect(current).not.toEqual(reply);
+  expect(events.at(-1)!.interactionSeq).toBe(2);
   vi.advanceTimersByTime(60_000);
   expect(events).toHaveLength(2);
   dispatcher.dispose();
@@ -159,6 +164,7 @@ it('automatically clears receipts when a room or game instance changes', () => {
   expect(next).not.toEqual(original);
   expect(events).toHaveLength(2);
   expect(events[1]!.instanceId).toBe(context.instanceId);
+  expect(events[1]!.interactionSeq).toBe(2);
   dispatcher.dispose();
 });
 

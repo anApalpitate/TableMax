@@ -14,10 +14,14 @@ const unitScopes = {
   'apps/web/src/game-clients/styles.test.ts': ['shared'],
   'apps/web/src/interactions/model.test.ts': ['shared'],
   'apps/web/src/interactions/audio-player.test.ts': ['shared'],
+  'apps/web/src/interactions/playback-controller.test.ts': ['shared'],
+  'apps/web/src/interactions/shot-slots.test.ts': ['shared'],
+  'apps/web/src/interactions/diagnostics.test.ts': ['shared'],
   'apps/web/src/session/admissionRecovery.test.ts': ['box'],
   'apps/web/src/session/presentation.test.ts': ['shared'],
   'apps/web/src/session/randomId.test.ts': ['shared'],
   'apps/web/src/session/reliableRoomSync.test.ts': ['shared'],
+  'apps/web/src/session/interactionInbox.test.ts': ['shared'],
   'apps/server/src/avatar-upload.test.ts': ['box'],
   'apps/server/src/avatar.test.ts': ['box'],
   'apps/server/src/bot-executor.test.ts': ['shared'],
@@ -42,6 +46,9 @@ const unitScopes = {
   'apps/server/src/save-storage-gc.test.ts': ['shared'],
   'apps/server/src/save-storage.test.ts': ['shared'],
   'apps/server/src/service.test.ts': ['shared'],
+  'apps/server/src/room-projections.test.ts': ['shared'],
+  'apps/server/src/room-sync.test.ts': ['shared'],
+  'apps/server/src/sync-diagnostics.test.ts': ['shared'],
   'packages/platform-core/src/admission.test.ts': ['box'],
   'packages/platform-core/src/avatar.test.ts': ['box'],
   'packages/platform-core/src/bot-difficulty.test.ts': ['shared'],
@@ -58,6 +65,7 @@ const unitScopes = {
     'game:pokemon-encounters',
   ],
   'packages/platform-core/src/room.test.ts': ['shared'],
+  'packages/platform-core/src/room-status.test.ts': ['shared'],
   'packages/platform-core/src/session-receipts.test.ts': ['box'],
   'packages/platform-core/src/transfer.test.ts': ['box'],
 };
@@ -183,6 +191,27 @@ export function verificationTestScopes(item) {
   );
   if (
     script === 'scripts/verify-interactions.mjs' &&
+    item.args.includes('--menus-only')
+  ) {
+    if (
+      item.args.includes('--box-only') ||
+      item.args.includes('--shot-visuals')
+    )
+      throw new Error(
+        'Interaction menu/visual/box filters are mutually exclusive',
+      );
+    if (
+      selectors.length > 1 ||
+      (selectors.length && !gameIds.includes(selectors[0].slice(7)))
+    )
+      throw new Error('Invalid/duplicate --game option');
+    return [
+      'shared',
+      ...(selectors.length ? [`game:${selectors[0].slice(7)}`] : gameScopes),
+    ];
+  }
+  if (
+    script === 'scripts/verify-interactions.mjs' &&
     item.args.includes('--shot-visuals')
   ) {
     if (selectors.length || item.args.includes('--box-only'))
@@ -197,7 +226,7 @@ export function verificationTestScopes(item) {
   ) {
     if (selectors.length)
       throw new Error('Interaction box/game filters are mutually exclusive');
-    return ['box'];
+    return ['box', 'shared'];
   }
   if (selectors.length && !gameFilteredVerifiers.has(script))
     throw new Error(`This verifier has no registered game filter: ${script}`);

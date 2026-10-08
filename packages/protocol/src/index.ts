@@ -31,7 +31,7 @@ export {
 export const HealthSchema = z.object({
   status: z.literal('ready'),
   phase: z.literal('platform-foundation'),
-  protocolVersion: z.literal(7),
+  protocolVersion: z.literal(8),
   database: z.literal('ok'),
   starts: z.number().int().positive(),
   runtime: z.object({
@@ -479,3 +479,114 @@ export const CommandReplySchema = z.discriminatedUnion('ok', [
     .strict(),
   z.object({ ok: z.literal(false), reason: z.string() }).strict(),
 ]);
+
+// Transport metadata is deliberately outside the room's saved domain view.
+const sequence = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
+export const RoomStampSchema = z
+  .object({
+    serverSessionId: z.string().uuid(),
+    instanceId: z.string().uuid(),
+    branch: sequence,
+    viewSeq: sequence,
+  })
+  .strict();
+export type RoomStamp = z.infer<typeof RoomStampSchema>;
+export const SyncHintSchema = z.enum(['active', 'idle']);
+export type SyncHint = z.infer<typeof SyncHintSchema>;
+const projectionFields = {
+  stamp: RoomStampSchema,
+  syncHint: SyncHintSchema,
+  interactionWatermark: sequence,
+  view: RoomViewSchema,
+};
+function matchingProjection(
+  projection: {
+    stamp: RoomStamp;
+    view: { instanceId: string; branch: number };
+  },
+  context: z.RefinementCtx,
+) {
+  if (
+    projection.stamp.instanceId !== projection.view.instanceId ||
+    projection.stamp.branch !== projection.view.branch
+  )
+    context.addIssue({
+      code: 'custom',
+      message: 'Projection stamp does not match its room context',
+      path: ['stamp'],
+    });
+}
+export const RoomProjectionSchema = z
+  .object(projectionFields)
+  .strict()
+  .superRefine(matchingProjection);
+export type RoomProjection = {
+  stamp: RoomStamp;
+  syncHint: SyncHint;
+  interactionWatermark: number;
+  view: RoomView;
+};
+export type RoomSyncMetadata = Omit<RoomProjection, 'view'>;
+const syncFailure = z
+  .object({ ok: z.literal(false), reason: z.string() })
+  .strict();
+export const RoomSyncReplySchema = z.union([
+  z
+    .object({ ok: z.literal(true), ...projectionFields })
+    .strict()
+    .superRefine(matchingProjection),
+  syncFailure,
+]);
+export type RoomSyncReply =
+  ({ ok: true } & RoomProjection) | { ok: false; reason: string };
+export const RoomProbeRequestSchema = z
+  .object({ stamp: RoomStampSchema })
+  .strict();
+export type RoomProbeRequest = z.infer<typeof RoomProbeRequestSchema>;
+export const RoomProbeReplySchema = z.union([
+  z
+    .object({
+      ok: z.literal(true),
+      unchanged: z.literal(true),
+      stamp: RoomStampSchema,
+      syncHint: SyncHintSchema,
+      interactionWatermark: sequence,
+    })
+    .strict(),
+  z
+    .object({
+      ok: z.literal(true),
+      unchanged: z.literal(false),
+      ...projectionFields,
+    })
+    .strict()
+    .superRefine(matchingProjection),
+  syncFailure,
+]);
+export type RoomProbeReply =
+  | ({ ok: true; unchanged: true } & RoomSyncMetadata)
+  | ({ ok: true; unchanged: false } & RoomProjection)
+  | { ok: false; reason: string };
+export const CommandStatusSchema = z.discriminatedUnion('status', [
+  z
+    .object({ status: z.literal('completed'), reply: CommandReplySchema })
+    .strict(),
+  z.object({ status: z.literal('processing') }).strict(),
+  z.object({ status: z.literal('unknown') }).strict(),
+  z.object({ status: z.literal('unqueryable'), reason: z.string() }).strict(),
+]);
+export type CommandStatus = z.infer<typeof CommandStatusSchema>;
+export const RoomCommandStatusReplySchema = z.union([
+  z
+    .object({
+      ok: z.literal(true),
+      ...projectionFields,
+      outcome: CommandStatusSchema,
+    })
+    .strict()
+    .superRefine(matchingProjection),
+  syncFailure,
+]);
+export type RoomCommandStatusReply =
+  | ({ ok: true; outcome: CommandStatus } & RoomProjection)
+  | { ok: false; reason: string };

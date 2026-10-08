@@ -355,7 +355,7 @@ it('keeps ordinary standalone stdout sanitized and ignores private stdin command
   const first = await running.first();
   expect(first).toMatchObject({
     type: 'ready',
-    health: { protocolVersion: 7 },
+    health: { protocolVersion: 8 },
   });
   expect(first).not.toHaveProperty('hostToken');
   running.send({ type: 'stop' });

@@ -103,11 +103,11 @@ function PokemonScreen({ session }: { session: RoomSession }) {
               朋友
             </button>
           )}
-          <DisplaySettings role={role} />
           {role !== 'player' && <PlayModeBadge mode={view?.playMode} />}
           {role !== 'player' && (
             <SoundControl
               compact
+              iconOnly
               disabled={view?.playMode === 'test'}
               paused={view?.paused ?? false}
               feedback={feedback}
@@ -255,9 +255,12 @@ function PokemonScreen({ session }: { session: RoomSession }) {
                     <PlayModeBadge mode={view?.playMode} />
                   </div>
                 )}
-                <CountdownSettings session={session}>
-                  <BeginnerGuidanceSetting gameId="pokemon-encounters" />
-                </CountdownSettings>
+                <div className="dialog-actions game-menu-settings">
+                  <CountdownSettings session={session}>
+                    <BeginnerGuidanceSetting gameId="pokemon-encounters" />
+                  </CountdownSettings>
+                  <DisplaySettings role={role} />
+                </div>
                 {canControl && <RoomManagement session={session} />}
 
                 {game && (

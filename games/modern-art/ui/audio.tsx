@@ -270,6 +270,15 @@ export function ModernArtSoundControl({
   return (
     <button
       className="secondary ma-sound-control"
+      style={{
+        display: 'grid',
+        placeItems: 'center',
+        width: 44,
+        minWidth: 44,
+        height: 44,
+        padding: 9,
+        flex: '0 0 44px',
+      }}
       data-modern-art-sound="true"
       data-local-sound={localOnly ? 'true' : 'false'}
       disabled={disabled}
@@ -320,7 +329,6 @@ export function ModernArtSoundControl({
           />
         )}
       </svg>
-      {localOnly && blocked && enabled && !disabled && <span>启用声音</span>}
     </button>
   );
 }

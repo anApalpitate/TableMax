@@ -1,6 +1,9 @@
 {
   "version": 1,
-  "playbackPolicy": "replace",
+  "playbackPolicy": "overlap",
+  "maxActiveShots": 3,
+  "startDeadlineMs": 300,
+  "speechDucking": 0.3,
   "shots": [
     {
       "id": "egg",

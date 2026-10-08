@@ -15,10 +15,12 @@ import {
   CommandReplySchema,
   NetworkSchema,
   RoomViewSchema,
+  RoomProjectionSchema,
   SessionReplySchema,
   TransferReplySchema,
   type Command,
   type RoomView,
+  type RoomProjection,
   type ServiceConfig,
   type TransferState,
 } from '@tablemax/protocol';
@@ -106,7 +108,7 @@ async function connect(
   clients.push(socket);
   const ready = event<unknown>(socket, 'room:view');
   socket.connect();
-  RoomViewSchema.parse(await ready);
+  RoomProjectionSchema.parse(await ready);
   return socket;
 }
 
@@ -437,19 +439,21 @@ it('acknowledges authorized sync, preserves event-only clients and pushes saved 
   expect(a.io.engine.transport.name).toBe('polling');
   const legacyReply = event<unknown>(publicClient, 'room:view');
   publicClient.emit('room:sync');
-  expect(RoomViewSchema.parse(await legacyReply).self.role).toBe('public');
+  expect(RoomProjectionSchema.parse(await legacyReply).view.self.role).toBe(
+    'public',
+  );
   expect((await sync(host)).self.role).toBe('host');
   expect((await sync(a)).self.role).toBe('player');
   expect((await sync(a)).self.seatId).not.toBe((await sync(b)).self.seatId);
   const before = await sync(a);
-  const pushed = event<RoomView>(
+  const pushed = event<RoomProjection>(
     publicClient,
     'room:view',
-    (view) => view.revision > before.revision,
+    (projection) => projection.view.revision > before.revision,
   );
   expect((await send(a, { type: 'ready', ready: true })).ok).toBe(true);
   expect(
-    RoomViewSchema.parse(await pushed).seats.find(
+    RoomProjectionSchema.parse(await pushed).view.seats.find(
       (seat) => seat.id === before.self.seatId,
     )?.ready,
   ).toBe(true);

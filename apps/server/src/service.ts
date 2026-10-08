@@ -4,6 +4,8 @@ import { Server } from 'socket.io';
 import QRCode from 'qrcode';
 import { appendFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { performance } from 'node:perf_hooks';
 import {
   EchoSchema,
   HealthSchema,
@@ -16,6 +18,7 @@ import {
   TransferRequestSchema,
   TransferProofSchema,
   NetworkUpdateSchema,
+  type RoomProjection,
 } from '@tablemax/protocol';
 import {
   RoomCoordinator,
@@ -32,6 +35,8 @@ import { NetworkDirectory } from './network-directory';
 import { normalizeAvatar, AVATAR_HTTP_LIMIT } from './avatar-images';
 import { NetworkSettings, normalizeUrl } from './network-settings';
 import { InteractionDispatcher } from './interactions';
+import { RoomProjectionState } from './room-projections';
+import { SyncDiagnostics } from './sync-diagnostics';
 
 export async function createService(
   input: ServiceConfig,
@@ -92,7 +97,7 @@ export async function createService(
   const health = HealthSchema.parse({
     status: 'ready',
     phase: 'platform-foundation',
-    protocolVersion: 7,
+    protocolVersion: 8,
     database: 'ok',
     starts: storage.starts,
     runtime: {
@@ -132,31 +137,76 @@ export async function createService(
     }
     return seats;
   };
-  const interactions = new InteractionDispatcher(room, (event) => {
-    for (const socket of sockets.sockets.sockets.values()) {
-      try {
-        room.identity(socket.data.credential as string | undefined);
-        socket.emit('room:interaction', event);
-      } catch {
-        /* Revoked connections receive no further interactions. */
+  const serverSessionId = randomUUID();
+  const syncDiagnostics = new SyncDiagnostics();
+  const interactions = new InteractionDispatcher(
+    room,
+    (event) => {
+      for (const socket of sockets.sockets.sockets.values()) {
+        try {
+          room.identity(socket.data.credential as string | undefined);
+          socket.emit('room:interaction', event);
+        } catch {
+          /* Revoked connections receive no further interactions. */
+        }
       }
-    }
-  });
-  const broadcast = (feedback?: RoomFeedback) => {
+    },
+    serverSessionId,
+  );
+  const projections = new RoomProjectionState(
+    room,
+    () => interactions.watermark,
+    () => broadcast(),
+    serverSessionId,
+    syncDiagnostics,
+  );
+  let connectedSeats = online();
+  let closing = false;
+  const broadcast = (feedback?: RoomFeedback, savedAt?: number) => {
+    if (closing) return;
+    const startedAt = performance.now();
     interactions.synchronize();
     const connected = online();
+    connectedSeats = connected;
+    projections.advance();
+    // Duplicate tabs for one identity share this broadcast's projection only.
+    // No long-lived cache can retain revoked authority or stale clock samples.
+    const views = new Map<string, RoomProjection>();
     for (const socket of sockets.sockets.sockets.values()) {
       try {
-        socket.emit(
-          'room:view',
-          room.view(socket.data.credential as string | undefined, connected),
-        );
+        const credential = socket.data.credential as string | undefined;
+        const identity = room.identity(credential);
+        const key =
+          identity.role === 'player'
+            ? `player:${identity.seatId}`
+            : identity.role;
+        let projection = views.get(key);
+        if (!projection) {
+          projection = projections.project(credential, connected);
+          views.set(key, projection);
+        }
+        socket.emit('room:view', projection);
         if (feedback) socket.emit('room:feedback', feedback);
       } catch {
         socket.emit('room:revoked');
         socket.disconnect(true);
       }
     }
+    const completedAt = performance.now();
+    syncDiagnostics.record('broadcast', completedAt - startedAt);
+    if (savedAt !== undefined)
+      syncDiagnostics.record('saveToBroadcast', completedAt - savedAt);
+  };
+  const onlineChanged = () => {
+    if (closing) return false;
+    const current = online();
+    if (
+      current.size === connectedSeats.size &&
+      [...current].every((seat) => connectedSeats.has(seat))
+    )
+      return false;
+    broadcast();
+    return true;
   };
   const unsubscribe = room.subscribe(broadcast);
   app.post('/api/session/transfer/request', async (request, reply) => {
@@ -352,8 +402,22 @@ export async function createService(
     }
   });
   sockets.on('connection', (socket) => {
-    broadcast();
-    socket.on('disconnect', () => broadcast());
+    try {
+      room.identity(socket.data.credential as string | undefined);
+      if (!onlineChanged())
+        socket.emit(
+          'room:view',
+          projections.project(
+            socket.data.credential as string | undefined,
+            online(),
+          ),
+        );
+    } catch {
+      socket.emit('room:revoked');
+      socket.disconnect(true);
+      return;
+    }
+    socket.on('disconnect', onlineChanged);
     socket.on(
       'room:interaction:send',
       (input: unknown, acknowledge: unknown) => {
@@ -368,12 +432,13 @@ export async function createService(
     );
     socket.on('room:sync', (acknowledge?: unknown) => {
       try {
-        const view = room.view(
+        const projection = projections.project(
           socket.data.credential as string | undefined,
           online(),
         );
-        if (typeof acknowledge === 'function') acknowledge({ ok: true, view });
-        else socket.emit('room:view', view);
+        if (typeof acknowledge === 'function')
+          acknowledge({ ok: true, ...projection });
+        else socket.emit('room:view', projection);
       } catch {
         if (typeof acknowledge === 'function')
           acknowledge({ ok: false, reason: 'invalid-identity' });
@@ -381,13 +446,47 @@ export async function createService(
         socket.disconnect(true);
       }
     });
+    socket.on('room:probe', (input: unknown, acknowledge: unknown) => {
+      if (typeof acknowledge !== 'function') return;
+      try {
+        acknowledge(
+          projections.probe(
+            socket.data.credential as string | undefined,
+            input,
+            online,
+          ),
+        );
+      } catch {
+        acknowledge({ ok: false, reason: 'invalid-identity' });
+        socket.emit('room:revoked');
+        socket.disconnect(true);
+      }
+    });
+    socket.on('room:command:status', (input: unknown, acknowledge: unknown) => {
+      if (typeof acknowledge !== 'function') return;
+      try {
+        const credential = socket.data.credential as string | undefined;
+        room.identity(credential);
+        const outcome = room.commandStatus(credential, input);
+        acknowledge({
+          ok: true,
+          ...projections.project(credential, online()),
+          outcome,
+        });
+      } catch {
+        acknowledge({ ok: false, reason: 'invalid-identity' });
+        socket.emit('room:revoked');
+        socket.disconnect(true);
+      }
+    });
     socket.on('room:command', (input: unknown, acknowledge: unknown) => {
       if (typeof acknowledge !== 'function') return;
+      const startedAt = performance.now();
       void room
         .command(socket.data.credential as string | undefined, input)
         .then((result) => {
+          syncDiagnostics.record('commandReply', performance.now() - startedAt);
           acknowledge(result);
-          if (!result.ok) broadcast();
         });
     });
     socket.emit('foundation:ready', health);
@@ -403,6 +502,8 @@ export async function createService(
   });
 
   app.addHook('preClose', async () => {
+    closing = true;
+    projections.dispose();
     interactions.dispose();
     scheduler.stop();
     unsubscribe();
@@ -442,6 +543,7 @@ export async function createService(
     health,
     room,
     hostToken: room.hostToken,
+    syncDiagnostics: () => syncDiagnostics.snapshot(),
     async listen() {
       await app.listen({ host: config.host, port: config.port });
       log('service-ready');

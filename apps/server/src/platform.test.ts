@@ -7,6 +7,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { readCurrentSave } from './save-audit';
 import { randomBytes } from 'node:crypto';
 import type { Command, CommandReply, RoomView } from '@tablemax/protocol';
+import { RoomProjectionSchema } from '@tablemax/protocol';
 import { createService as createServiceBase } from './service';
 import { rules, bot } from '@tablemax/game-template';
 const createService = (input: Parameters<typeof createServiceBase>[0]) =>
@@ -163,7 +164,9 @@ async function connect(origin: string, token?: string) {
 }
 async function sync(socket: Socket): Promise<RoomView> {
   return new Promise((resolve) => {
-    socket.once('room:view', resolve);
+    socket.once('room:view', (projection) =>
+      resolve(RoomProjectionSchema.parse(projection).view),
+    );
     socket.emit('room:sync');
   });
 }

@@ -1,4 +1,5 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { performance } from 'node:perf_hooks';
 import type {
   GameRules,
   BotStrategy,
@@ -13,6 +14,8 @@ import {
   type AvatarId,
   type Command,
   type CommandReply,
+  type CommandStatus,
+  type SyncHint,
   type RoomView,
   type RoomFeedback,
   type PlayMode,
@@ -38,6 +41,22 @@ export const hash = (value: string) =>
 export type Identity =
   { role: 'public' } | { role: 'host' } | { role: 'player'; seatId: string };
 type AvatarImage = { id: AvatarId; png: Uint8Array };
+type TrackedCommand = {
+  fingerprint: string;
+  promise: Promise<CommandReply>;
+};
+type RejectedCommand = {
+  fingerprint: string;
+  reply: CommandReply;
+  expiresAt: number;
+};
+const instanceChangingCommands = new Set<Command['command']['type']>([
+  'new-room',
+  'replay',
+  'select-game',
+  'select-variant',
+  'remove-seat',
+]);
 
 // Saved states/checkpoints are immutable after commit. Copy only the containers
 // that a command can change, instead of cloning every historical game state.
@@ -63,8 +82,12 @@ function copySave(data: Save): Save {
 export class RoomCoordinator {
   private data: Save;
   private queue: Promise<unknown> = Promise.resolve();
-  private listeners = new Set<(feedback?: RoomFeedback) => void>();
+  private listeners = new Set<
+    (feedback?: RoomFeedback, savedAt?: number) => void
+  >();
   private transientBotError: string | null = null;
+  private processingCommands = new Map<string, TrackedCommand>();
+  private rejectedCommands = new Map<string, RejectedCommand>();
   readonly hostToken: string;
   private game: LoadedGame | null;
   private registry: GameRegistry;
@@ -271,16 +294,36 @@ export class RoomCoordinator {
   interactionContext() {
     return { instanceId: this.data.instanceId, branch: this.data.branch };
   }
-  subscribe(listener: (feedback?: RoomFeedback) => void) {
+  // Read only when transport viewSeq advances, never on unchanged probes.
+  synchronizationState(): {
+    instanceId: string;
+    branch: number;
+    syncHint: SyncHint;
+    nextExpiryAt: number | null;
+  } {
+    const d = this.data;
+    const active =
+      d.status === 'playing' &&
+      !d.paused &&
+      d.snapshot !== null &&
+      this.rules.decisions(d.snapshot.state).length > 0;
+    const expirations = pendingTransfers(d).map((request) => request.expiresAt);
+    return {
+      ...this.interactionContext(),
+      syncHint: active ? 'active' : 'idle',
+      nextExpiryAt: expirations.length ? Math.min(...expirations) : null,
+    };
+  }
+  subscribe(listener: (feedback?: RoomFeedback, savedAt?: number) => void) {
     this.listeners.add(listener);
     return () => {
       this.listeners.delete(listener);
     };
   }
-  notify(feedback?: RoomFeedback) {
+  notify(feedback?: RoomFeedback, savedAt?: number) {
     for (const listener of this.listeners) {
       try {
-        listener(feedback);
+        listener(feedback, savedAt);
       } catch {
         /* Observer failure cannot undo a committed action or its ACK. */
       }
@@ -300,6 +343,7 @@ export class RoomCoordinator {
   ) {
     synchronizeDecisionClocks(next, this.data, game?.rules ?? null, Date.now());
     this.repository.save(next, extras);
+    const savedAt = performance.now();
     this.data = next;
     this.game = game;
     if (clearBotError) this.transientBotError = null;
@@ -312,6 +356,7 @@ export class RoomCoordinator {
             events,
           }
         : undefined,
+      savedAt,
     );
   }
   private sessionResult(requestKey: string | undefined, fingerprint: string) {
@@ -670,47 +715,148 @@ export class RoomCoordinator {
     credential: string | undefined,
     input: unknown,
   ): Promise<CommandReply> {
-    return this.enqueue(async () => {
-      try {
-        const parsed = CommandSchema.safeParse(input);
-        requireThat(parsed.success, 'invalid-message');
-        const identity = this.identity(credential);
-        return await this.execute(identity, parsed.data);
-      } catch (error) {
-        return {
-          ok: false,
-          reason:
-            error instanceof Rejection
-              ? error.message
-              : 'save-or-action-failed',
-        };
-      }
-    });
+    return this.trackCommand(credential, input);
   }
   uploadAvatar(
     credential: string,
     metadata: Omit<Command, 'command'>,
     image: AvatarImage,
   ): Promise<CommandReply> {
-    return this.enqueue(async () => {
-      try {
-        const identity = this.identity(credential);
-        requireThat(identity.role === 'player', 'unauthorized');
-        const envelope = CommandSchema.parse({
-          ...metadata,
-          command: { type: 'set-avatar', avatarId: image.id },
-        });
-        return await this.execute(identity, envelope, undefined, image);
-      } catch (error) {
-        return {
-          ok: false,
-          reason:
-            error instanceof Rejection
-              ? error.message
-              : 'save-or-action-failed',
-        };
+    return this.trackCommand(
+      credential,
+      { ...metadata, command: { type: 'set-avatar', avatarId: image.id } },
+      image,
+    );
+  }
+  private commandKeys(identity: Identity, envelope: Command) {
+    requireThat(identity.role !== 'public', 'unauthorized');
+    const principal = identity.role === 'host' ? 'host' : identity.seatId;
+    const key = hash(`${principal}:${envelope.actionId}`);
+    return {
+      key,
+      trackingKey: `${key}:${envelope.instanceId}:${envelope.branch}`,
+      fingerprint: hash(JSON.stringify(envelope)),
+    };
+  }
+  private commandFailure(error: unknown): Extract<CommandReply, { ok: false }> {
+    return {
+      ok: false,
+      reason:
+        error instanceof Rejection ? error.message : 'save-or-action-failed',
+    };
+  }
+  private pruneRejectedCommands() {
+    const now = Date.now();
+    for (const [key, result] of this.rejectedCommands)
+      if (result.expiresAt <= now) this.rejectedCommands.delete(key);
+  }
+  private trackCommand(
+    credential: string | undefined,
+    input: unknown,
+    image?: AvatarImage,
+  ): Promise<CommandReply> {
+    try {
+      const parsed = CommandSchema.safeParse(input);
+      requireThat(parsed.success, 'invalid-message');
+      const envelope = parsed.data;
+      const identity = this.identity(credential);
+      if (image) requireThat(identity.role === 'player', 'unauthorized');
+      const { trackingKey, fingerprint } = this.commandKeys(identity, envelope);
+      const existing = this.processingCommands.get(trackingKey);
+      if (existing) {
+        requireThat(existing.fingerprint === fingerprint, 'action-id-conflict');
+        return existing.promise;
       }
-    });
+      const promise = this.enqueue(async () => {
+        try {
+          // An approval/removal queued before this intent may revoke its owner.
+          const currentIdentity = this.identity(credential);
+          if (image)
+            requireThat(currentIdentity.role === 'player', 'unauthorized');
+          return await this.execute(
+            currentIdentity,
+            envelope,
+            undefined,
+            image,
+          );
+        } catch (error) {
+          return this.commandFailure(error);
+        }
+      }).then((reply) => {
+        if (this.processingCommands.get(trackingKey) === tracked)
+          this.processingCommands.delete(trackingKey);
+        this.pruneRejectedCommands();
+        if (!reply.ok) {
+          this.rejectedCommands.delete(trackingKey);
+          this.rejectedCommands.set(trackingKey, {
+            fingerprint,
+            reply,
+            expiresAt: Date.now() + 60_000,
+          });
+          if (this.rejectedCommands.size > 256)
+            this.rejectedCommands.delete(
+              this.rejectedCommands.keys().next().value!,
+            );
+        } else this.rejectedCommands.delete(trackingKey);
+        return reply;
+      });
+      const tracked: TrackedCommand = { fingerprint, promise };
+      this.processingCommands.set(trackingKey, tracked);
+      return promise;
+    } catch (error) {
+      return Promise.resolve(this.commandFailure(error));
+    }
+  }
+  // A query never joins the action queue and never executes or saves an intent.
+  commandStatus(credential: string | undefined, input: unknown): CommandStatus {
+    try {
+      const identity = this.identity(credential);
+      const parsed = CommandSchema.safeParse(input);
+      requireThat(parsed.success, 'invalid-message');
+      const envelope = parsed.data;
+      const { key, trackingKey, fingerprint } = this.commandKeys(
+        identity,
+        envelope,
+      );
+      const receipt = this.data.receipts[key];
+      // Existing instance-changing command acknowledgements remain recoverable.
+      if (
+        envelope.instanceId !== this.data.instanceId &&
+        instanceChangingCommands.has(envelope.command.type) &&
+        receipt?.fingerprint === fingerprint
+      )
+        return { status: 'completed', reply: receipt.reply };
+      requireThat(
+        envelope.instanceId === this.data.instanceId,
+        'stale-instance',
+      );
+      requireThat(envelope.branch === this.data.branch, 'stale-branch');
+      if (receipt) {
+        requireThat(receipt.fingerprint === fingerprint, 'action-id-conflict');
+        return { status: 'completed', reply: receipt.reply };
+      }
+      const processing = this.processingCommands.get(trackingKey);
+      if (processing) {
+        requireThat(
+          processing.fingerprint === fingerprint,
+          'action-id-conflict',
+        );
+        return { status: 'processing' };
+      }
+      this.pruneRejectedCommands();
+      const rejected = this.rejectedCommands.get(trackingKey);
+      if (rejected) {
+        requireThat(rejected.fingerprint === fingerprint, 'action-id-conflict');
+        return { status: 'completed', reply: rejected.reply };
+      }
+      return { status: 'unknown' };
+    } catch (error) {
+      const failure = this.commandFailure(error);
+      return {
+        status: 'unqueryable',
+        reason: failure.reason,
+      };
+    }
   }
   private async execute(
     identity: Identity,
@@ -719,19 +865,11 @@ export class RoomCoordinator {
     image?: AvatarImage,
   ): Promise<CommandReply> {
     requireThat(identity.role !== 'public', 'unauthorized');
-    const principal = identity.role === 'host' ? 'host' : identity.seatId;
-    const key = hash(`${principal}:${envelope.actionId}`);
-    const fingerprint = hash(JSON.stringify(envelope));
+    const { key, fingerprint } = this.commandKeys(identity, envelope);
     const receipt = this.data.receipts[key];
     if (
       envelope.instanceId !== this.data.instanceId &&
-      [
-        'new-room',
-        'replay',
-        'select-game',
-        'select-variant',
-        'remove-seat',
-      ].includes(envelope.command.type) &&
+      instanceChangingCommands.has(envelope.command.type) &&
       receipt?.fingerprint === fingerprint
     )
       return receipt.reply;

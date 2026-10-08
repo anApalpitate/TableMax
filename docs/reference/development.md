@@ -644,4 +644,6 @@ SQLite流式扫描须让 `StatementSync` 强引用保持至迭代完成；包内
 
 ## v1.0.5 互动与资源验证
 
-`scripts/verify-interactions.mjs --run=<唯一名称>`以隐藏原生窗口及静音Edge验证拖动／240ms长按／中心取消、六格选择、单次射击、视频设置内三端屏蔽、立即替换和独立音频桥接，服务仅监听127.0.0.1。盒子修改使用`--box-only`，单游戏修改使用`--game=<id>`，二者互斥；默认矩阵仅用于影响全部入口的共享互动修改，不跑游戏规则或整局。即时派发和真实服务测试在`apps/server/src/interactions.test.ts`、`interaction-service.test.ts`，异步手机解锁／替换与单声源失权测试在`apps/web/src/interactions/audio-player.test.ts`。素材试听通过`artifacts/maintenance/v1.0.5/interaction-refinement/audio-review.html`显式开启；机器解码／ASR不记为人耳试听，旧版试听证据保留在`interaction-assets/`。40游戏WAV原件及FLAC派生和PCM核验保持原样。体积门禁统一查`scripts/lib/package-limits.mjs`，120MB硬上限和114MB预算不倒改历史报告。
+菜单共性调整使用`--menus-only`，仅验证四游戏版本的菜单／设置／声音入口，可加`--game=<id>`收窄；范围登记为shared及实际游戏。`--box-only`包含盒子共享互动，须允许box＋shared；不以界面所在目录假定只覆盖盒子。菜单、盒子及命中视觉筛选互斥。最终包按钮修复后的共享证据可在逐文件哈希确认全部相关运行依赖未变后复用，并记录前后包边界。
+
+`scripts/verify-interactions.mjs --run=<唯一名称>`以隐藏原生窗口及静音Edge验证拖动／240ms长按／中心取消、六格选择、单次射击、视频设置内三端屏蔽、三射击叠加／第四淘汰、单发言替换和独立音频桥接，服务仅监听127.0.0.1。盒子修改使用`--box-only`，单游戏修改使用`--game=<id>`，二者互斥；默认矩阵仅用于影响全部入口的共享互动修改，不跑游戏规则或整局。即时派发和真实服务测试在`apps/server/src/interactions.test.ts`、`interaction-service.test.ts`，异步手机解锁／替换与单声源失权测试在`apps/web/src/interactions/audio-player.test.ts`。素材试听通过`artifacts/maintenance/v1.0.5/interaction-refinement/audio-review.html`显式开启；机器解码／ASR不记为人耳试听，旧版试听证据保留在`interaction-assets/`。40游戏WAV原件及FLAC派生和PCM核验保持原样。体积门禁统一查`scripts/lib/package-limits.mjs`，120MB硬上限和114MB预算不倒改历史报告。

@@ -23,7 +23,10 @@ const asset = z.string().regex(/^[a-z][a-z0-9-]*\.(mp3|svg|webp)$/);
 export const INTERACTION_CATALOG = z
   .object({
     version: z.literal(1),
-    playbackPolicy: z.literal('replace'),
+    playbackPolicy: z.literal('overlap'),
+    maxActiveShots: z.literal(3),
+    startDeadlineMs: z.number().int().min(1).max(1000),
+    speechDucking: z.number().min(0).max(1),
     shots: z
       .array(
         z.object({
@@ -70,7 +73,15 @@ if (
 )
   throw new Error('Duplicate interaction slot');
 for (const shot of INTERACTION_CATALOG.shots) {
-  if (shot.steps.some((step) => step.atMs >= shot.durationMs || (step.hitMs !== undefined && (step.hitMs < step.atMs || step.hitMs >= shot.durationMs))) || (shot.pourAtMs !== undefined && shot.pourAtMs >= shot.durationMs))
+  if (
+    shot.steps.some(
+      (step) =>
+        step.atMs >= shot.durationMs ||
+        (step.hitMs !== undefined &&
+          (step.hitMs < step.atMs || step.hitMs >= shot.durationMs)),
+    ) ||
+    (shot.pourAtMs !== undefined && shot.pourAtMs >= shot.durationMs)
+  )
     throw new Error(`Interaction timeline exceeds audio: ${shot.id}`);
 }
 
@@ -103,6 +114,8 @@ export const InteractionRequestSchema = InteractionContextSchema.extend({
 }).strict();
 export type InteractionRequest = z.infer<typeof InteractionRequestSchema>;
 export const InteractionEventSchema = InteractionRequestSchema.extend({
+  serverSessionId: z.string().uuid(),
+  interactionSeq: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
   eventId: z.string().uuid(),
   actorSeatId: z.string().min(1),
   durationMs: duration,

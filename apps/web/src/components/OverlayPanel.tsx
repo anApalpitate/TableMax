@@ -40,11 +40,13 @@ export function OverlayPanel({
   close,
   children,
   initialFocus,
+  className,
 }: {
   title: ReactNode;
   close(): void;
   children: ReactNode;
   initialFocus?: RefObject<HTMLElement | null>;
+  className?: string;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -61,7 +63,7 @@ export function OverlayPanel({
   return createPortal(
     <dialog
       ref={dialog}
-      className="overlay-panel dialog-surface"
+      className={`overlay-panel dialog-surface${className ? ` ${className}` : ''}`}
       aria-labelledby={titleId}
       onCancel={(event) => {
         event.preventDefault();

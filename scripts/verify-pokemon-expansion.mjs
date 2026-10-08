@@ -257,7 +257,7 @@ async function launch() {
   );
   assert.ok(hostToken);
   const health = await (await fetch(`${origin}/api/foundation/health`)).json();
-  assert.equal(health.protocolVersion, 7);
+  assert.equal(health.protocolVersion, 8);
   assert.equal(health.runtime.node, '22.14.0');
   evidence.runs.push({ health, origin });
   return connect(hostToken);

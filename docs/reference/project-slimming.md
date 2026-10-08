@@ -1,5 +1,9 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.5 同步优化收尾（2026-10-09）
+
+全部本轮服务与验收进程退出后执行`Maintain-Project.ps1 -Apply`，实际逻辑字节6,622,672,315（约6.17GiB），低于10GiB阈值，未删除或采用NTFS压缩抵扣。结果见[维护记录](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/checks/maintenance.json)。`Clean-Releases.ps1 -KeepLatestOnly`预览及Apply均无到龄候选，两个本轮打包过程目录仍受30分钟保护；原样放入`tmp/delivery-stage-package-1.0.5-ShkA7e`及`tmp/delivery-stage-package-1.0.5-28dfGH`，不计为删除或容量节省，不建立历史归档副本。releases仅保留当前运行ZIP及清单；素材、存档和本轮截图／失败证据保持原位。容量对应维护测量时点，后续少量文档／提交记录字节另增。
+
 ## v1.0.5 互动精修收尾（2026-10-09）
 
 本轮运行ZIP40,851,905字节、实际解压94,333,009字节，同包原生／浏览器互动检查及精准补拍通过；旧同版ZIP和清单保留在`artifacts/maintenance/v1.0.5/interaction-refinement/delivery-before-refinement/`，原素材、来源、失败及当前验收截图保留。互动媒体195,117字节；没有推送或GitHub Release。

@@ -22,6 +22,7 @@ import { OverlayPanel } from '@tablemax/web-host';
 import { RoomManagement } from '@tablemax/web-host';
 import { FullscreenControl } from '@tablemax/web-host';
 import { DisplaySettings } from '@tablemax/web-host';
+import { CountdownSettings } from '@tablemax/web-host';
 import { PlayModeBadge } from '@tablemax/web-host';
 import { PlayModeControl } from '@tablemax/web-host';
 import { avatarFor } from '@tablemax/web-host';
@@ -160,7 +161,6 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
           {connected ? '本地已连接' : '正在连接'}
         </span>
         <FullscreenControl />
-        <DisplaySettings role={role} />
         {role !== 'player' && (
           <PaintingSortControl
             value={collectionSort}
@@ -355,6 +355,10 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
             </div>
           ) : (
             <>
+              <div className="dialog-actions game-menu-settings">
+                <CountdownSettings session={session} />
+                <DisplaySettings role={role} />
+              </div>
               {canControl && (
                 <RoomManagement session={session} lifecycleLabel="开始下一轮" />
               )}

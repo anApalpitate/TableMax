@@ -45,7 +45,7 @@
   min-height: 64px;
   padding: 6px;
   gap: 0;
-  background: #ffffffe0;
+  background: #ffffff70;
   cursor: pointer;
   transition: width 160ms ease-out;
 }
@@ -79,12 +79,12 @@
   height: 100%;
 }
 .interaction-wheel__sectors path {
-  fill: #ffffff9e;
+  fill: #ffffff70;
   stroke: #ffffffd9;
   stroke-width: 1.5;
 }
 .interaction-wheel__sectors path[data-selected='true'] {
-  fill: #aee5d7d6;
+  fill: #aee5d799;
   stroke: #438b7a;
   stroke-width: 2;
 }
@@ -123,7 +123,7 @@
   pointer-events: auto;
   touch-action: none;
   cursor: crosshair;
-  background: radial-gradient(ellipse, transparent 50%, #174b3a15);
+  background: transparent;
 }
 .interaction-aim__hint {
   position: absolute;
@@ -135,7 +135,7 @@
   align-items: center;
   padding: 8px 10px 8px 16px;
   border-radius: 22px;
-  background: #ffffffdb;
+  background: #ffffffad;
   backdrop-filter: blur(12px);
   box-shadow: 0 4px 20px #173b322d;
   white-space: nowrap;
@@ -150,15 +150,15 @@
   padding: 8px 14px;
   font-size: 16px;
 }
-.interaction-message,
-.interaction-speech {
+.interaction-message {
   position: absolute;
   left: 50%;
   top: 18%;
   transform: translateX(-50%);
   width: max-content;
   max-width: calc(100% - 32px);
-  background: #fffffff0;
+  background: #ffffffb8;
+  backdrop-filter: blur(18px);
   border: 1px solid #ffffff;
   border-radius: 20px;
   box-shadow: 0 8px 32px #173b3233;
@@ -170,37 +170,143 @@
   bottom: 18%;
   z-index: 5;
 }
-.interaction-speech {
-  display: grid;
-  gap: 6px;
+.dialog-surface.overlay-panel.interaction-voice-dialog {
+  width: min(94vw, 650px);
+  padding: 20px;
+  border-color: #ffffffb8;
+  background: #ffffff96;
+  backdrop-filter: blur(24px) saturate(125%);
+  box-shadow: 0 18px 64px #173b322b;
 }
-.interaction-speech strong {
-  font-size: 16px;
-  color: #487d6b;
+.dialog-surface.overlay-panel.interaction-voice-dialog::backdrop {
+  background: #173b3224;
+  backdrop-filter: blur(3px);
 }
-.interaction-speech span {
-  font-size: 20px;
-  font-weight: 650;
+.interaction-voice-dialog .panel-heading {
+  position: static;
+  padding: 0 0 6px;
+  background: transparent;
+}
+.interaction-voice-dialog .panel-heading button {
+  border-color: #ffffffb8;
+  background: #ffffff70;
+  color: #173b32;
 }
 .interaction-phrases {
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
-.dialog-surface .interaction-phrases button {
+.interaction-phrase {
+  --phrase-accent: #306f61;
+}
+.dialog-surface .interaction-phrases .interaction-phrase {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) 18px;
+  gap: 10px;
+  align-items: center;
   width: 100%;
-  min-height: 50px;
-  padding: 12px 16px;
+  min-height: 92px;
+  padding: 16px 12px;
   margin: 0;
-  border: 1px solid #bed3c7;
-  border-radius: 14px;
-  background: #ecf4ed;
+  border: 1px solid #ffffffd1;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #ffffffba, #ffffff63);
+  box-shadow:
+    0 3px 12px #24483d12,
+    inset 0 1px #fffc;
   color: #173b32;
   font-size: 18px;
+  line-height: 1.4;
+  text-align: left;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+.interaction-phrase[data-phrase='hurry'] {
+  --phrase-accent: #a76a24;
+}
+.interaction-phrase[data-phrase='carry'] {
+  --phrase-accent: #367eb0;
+}
+.interaction-phrase[data-phrase='seventeen'] {
+  --phrase-accent: #925b9e;
+}
+.interaction-phrase[data-phrase='shameless'] {
+  --phrase-accent: #b35e43;
+}
+.interaction-phrase[data-phrase='friendly'] {
+  --phrase-accent: #507ba2;
+}
+.interaction-phrase__icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 40px;
+  color: var(--phrase-accent);
+}
+.interaction-phrase__icon svg {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.interaction-phrase__text {
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.interaction-phrase__play {
+  color: var(--phrase-accent);
+  font-size: 16px;
+  opacity: 0.75;
+}
+.dialog-surface .interaction-phrases .interaction-phrase:active {
+  transform: scale(0.98);
+  background: #ffffffd4;
+}
+.dialog-surface .interaction-phrases .interaction-phrase:focus-visible {
+  outline: 3px solid var(--phrase-accent);
+  outline-offset: 3px;
+}
+@media (hover: hover) {
+  .dialog-surface .interaction-phrases .interaction-phrase:hover {
+    background: #ffffffc4;
+    border-color: var(--phrase-accent);
+  }
+}
+@media (max-width: 440px) {
+  .dialog-surface.overlay-panel.interaction-voice-dialog {
+    padding: 16px 12px;
+  }
+  .interaction-phrases {
+    gap: 10px;
+  }
+  .dialog-surface .interaction-phrases .interaction-phrase {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 8px;
+    min-height: 110px;
+    padding: 12px 8px;
+  }
+  .interaction-phrase__icon {
+    width: 28px;
+  }
+  .interaction-phrase__icon svg {
+    width: 27px;
+    height: 27px;
+  }
+  .interaction-phrase__play {
+    display: none;
+  }
 }
 .interaction-shot {
   position: absolute;
   inset: 0;
   overflow: hidden;
+  background: transparent;
   --splash: #fff0a7;
 }
 .interaction-shot[data-effect='tomato'] {
@@ -334,7 +440,8 @@
   transform: translateX(-50%);
   padding: 5px 12px;
   border-radius: 14px;
-  background: #ffffffe8;
+  background: #ffffff9c;
+  backdrop-filter: blur(12px);
   font-size: 16px;
   animation: interaction-label var(--duration) ease-out forwards;
 }
@@ -505,6 +612,9 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .dialog-surface .interaction-phrases .interaction-phrase {
+    transition: none;
+  }
   .interaction-shot[data-effect='cappuccino'] .interaction-projectile {
     animation: none;
   }

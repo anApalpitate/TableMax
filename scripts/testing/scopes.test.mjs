@@ -244,7 +244,7 @@ test('interaction verifier limits box and single-game checks without accepting m
   assert.doesNotThrow(() =>
     validateBatchScope(
       plan(item('scripts/verify-interactions.mjs', ['--box-only'])),
-      'box',
+      'box,shared',
     ),
   );
   assert.throws(
@@ -297,4 +297,31 @@ test('real scoped entry lists selections without running product tests and rejec
   });
   assert.equal(rejected.status, 1);
   assert.match(rejected.stderr, /explicit test scope/);
+});
+
+test('menu-only validation requires shared and precisely the affected game scopes', () => {
+  const menus = plan(
+    item('scripts/verify-interactions.mjs', [
+      '--menus-only',
+      '--game=modern-art',
+    ]),
+  );
+  assert.doesNotThrow(() =>
+    validateBatchScope(menus, 'shared,game:modern-art'),
+  );
+  assert.throws(() => validateBatchScope(menus, 'game:modern-art'), /outside/);
+  assert.throws(() => validateBatchScope(menus, 'box,shared'), /outside/);
+  assert.throws(
+    () =>
+      validateBatchScope(
+        plan(
+          item('scripts/verify-interactions.mjs', [
+            '--menus-only',
+            '--box-only',
+          ]),
+        ),
+        'full',
+      ),
+    /mutually exclusive/,
+  );
 });

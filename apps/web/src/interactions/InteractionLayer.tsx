@@ -21,6 +21,8 @@ import {
   normalizedInteractionPoint,
 } from './model';
 import { useInteractionAudio } from './useInteractionAudio';
+import { useInteractionPlayback } from './useInteractionPlayback';
+import { PhraseIcon } from './PhraseIcon';
 import { useInteractionPreference } from './useInteractionPreference';
 import './interaction.css';
 
@@ -76,17 +78,7 @@ function SavedInteraction({
     );
   }, [event.durationMs, endsAt]);
   const payload = event.interaction;
-  if (payload.type === 'speech') {
-    const phrase = INTERACTION_CATALOG.phrases.find(
-      (p) => p.id === payload.phraseId,
-    )!;
-    return (
-      <div className="interaction-speech" role="status">
-        <strong>{actor}</strong>
-        <span>{phrase.text}</span>
-      </div>
-    );
-  }
+  if (payload.type === 'speech') return null;
   const shot = INTERACTION_CATALOG.shots.find(
     (s) => s.id === payload.effectId,
   )!;
@@ -97,6 +89,7 @@ function SavedInteraction({
       ref={element}
       className="interaction-shot"
       data-effect={shot.id}
+      data-interaction-event={event.eventId}
       aria-label={`${actor}${shot.label}`}
       style={
         {
@@ -165,7 +158,7 @@ function SavedInteraction({
 }
 
 export function InteractionLayer({ session }: { session: RoomSession }) {
-  const { role, self, connected, view, interaction } = session;
+  const { role, self, connected, view } = session;
   const canSend = role === 'player' && Boolean(self) && connected;
   const surface = useInteractionSurface();
   const [blocked] = useInteractionPreference(role);
@@ -209,14 +202,8 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
   const aimPointer = useRef<number | null>(null);
   const [speech, setSpeech] = useState(false);
   const [message, setMessage] = useState('');
-  const [live, setLive] = useState<{
-    event: InteractionEvent;
-    endsAt: number;
-  } | null>(null);
-  const consumed = useRef('');
   const audio = useInteractionAudio(!blocked);
-  const audioPlay = audio.play,
-    audioStop = audio.stop;
+  const { shots } = useInteractionPlayback(session, blocked, audio);
   const contextKey = `${view?.instanceId}:${view?.branch}`;
   useEffect(() => {
     // Moving the portal into/out of a modal replaces the captured DOM node.
@@ -238,7 +225,6 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
   }, [surface]);
   useEffect(() => {
     let active = true;
-    audioStop();
     if (pointer.current?.timer) clearTimeout(pointer.current.timer);
     pointer.current = null;
     aimPointer.current = null;
@@ -247,13 +233,12 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
       setShooting(null);
       setWheel(null);
       setSpeech(false);
-      setLive(null);
       setDragging(false);
     });
     return () => {
       active = false;
     };
-  }, [contextKey, connected, audioStop]);
+  }, [contextKey, connected, session.interactionResetKey]);
   useEffect(() => {
     const resize = () => {
       setViewport({ width: window.innerWidth, height: window.innerHeight });
@@ -269,45 +254,6 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
     };
   }, []);
   useEffect(() => {
-    let active = true;
-    if (blocked) {
-      audioStop();
-      queueMicrotask(() => {
-        if (active) setLive(null);
-      });
-    }
-    return () => {
-      active = false;
-    };
-  }, [blocked, audioStop]);
-  useEffect(() => {
-    if (!interaction || consumed.current === interaction.eventId) return;
-    consumed.current = interaction.eventId;
-    if (blocked || !connected || document.visibilityState === 'hidden') return;
-    let active = true;
-    const startedAt = performance.now();
-    const endsAt = startedAt + interaction.durationMs;
-    queueMicrotask(() => {
-      if (!active) return;
-      setLive({ event: interaction, endsAt });
-      void audioPlay(interaction, startedAt);
-    });
-    return () => {
-      active = false;
-    };
-  }, [interaction, blocked, connected, audioPlay]);
-  useEffect(() => {
-    if (!live) return;
-    const timer = setTimeout(
-      () => {
-        setLive(null);
-        audioStop();
-      },
-      Math.max(0, live.endsAt - performance.now()),
-    );
-    return () => clearTimeout(timer);
-  }, [live, audioStop]);
-  useEffect(() => {
     const hide = () => {
       if (document.visibilityState === 'hidden') {
         if (pointer.current?.timer) clearTimeout(pointer.current.timer);
@@ -315,10 +261,8 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
         aimPointer.current = null;
         selection.current = -1;
         setDragging(false);
-        setLive(null);
         setWheel(null);
         setShooting(null);
-        audioStop();
       }
     };
     document.addEventListener('visibilitychange', hide);
@@ -339,7 +283,7 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
       document.removeEventListener('visibilitychange', hide);
       document.removeEventListener('keydown', cancel, true);
     };
-  }, [shooting, wheel, audioStop]);
+  }, [shooting, wheel]);
   useEffect(() => {
     if (!message) return;
     const timer = setTimeout(() => setMessage(''), 3000);
@@ -379,17 +323,18 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
           data-interaction-layer
           data-blocked={blocked}
         >
-          {live && !blocked && (
-            <SavedInteraction
-              key={live.event.eventId}
-              event={live.event}
-              endsAt={live.endsAt}
-              actor={
-                view?.seats.find((s) => s.id === live.event.actorSeatId)
-                  ?.name ?? '玩家'
-              }
-            />
-          )}
+          {!blocked &&
+            shots.map((live) => (
+              <SavedInteraction
+                key={live.event.eventId}
+                event={live.event}
+                endsAt={live.endsAt}
+                actor={
+                  view?.seats.find((s) => s.id === live.event.actorSeatId)
+                    ?.name ?? '玩家'
+                }
+              />
+            ))}
           {canSend && (
             <button
               type="button"
@@ -696,12 +641,18 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
         surface,
       )}
       {speech && (
-        <OverlayPanel title="发言" close={() => setSpeech(false)}>
+        <OverlayPanel
+          title="发言"
+          close={() => setSpeech(false)}
+          className="interaction-voice-dialog"
+        >
           <div className="interaction-phrases">
             {INTERACTION_CATALOG.phrases.map((phrase) => (
               <button
                 type="button"
                 key={phrase.id}
+                className="interaction-phrase"
+                data-phrase={phrase.id}
                 disabled={!canSend}
                 onClick={() => {
                   audio.unlock();
@@ -709,7 +660,13 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
                   void send({ type: 'speech', phraseId: phrase.id });
                 }}
               >
-                {phrase.text}
+                <span className="interaction-phrase__icon">
+                  <PhraseIcon id={phrase.id} />
+                </span>
+                <span className="interaction-phrase__text">{phrase.text}</span>
+                <span className="interaction-phrase__play" aria-hidden="true">
+                  ▶
+                </span>
               </button>
             ))}
           </div>

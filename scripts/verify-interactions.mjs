@@ -13,7 +13,10 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 const catalog = JSON.parse(
   await readFile('packages/protocol/src/interaction-catalog.json', 'utf8'),
 );
-assert.equal(catalog.playbackPolicy, 'replace');
+assert.equal(catalog.playbackPolicy, 'overlap');
+assert.equal(catalog.maxActiveShots, 3);
+assert.ok(catalog.startDeadlineMs > 0);
+assert.ok(catalog.speechDucking > 0 && catalog.speechDucking < 1);
 assert.equal(catalog.shots.length, 5);
 assert.equal(catalog.phrases.length, 6);
 const args = process.argv.slice(2);
@@ -36,6 +39,7 @@ const packageManifest = executableOptions.length
   : null;
 const gameOptions = args.filter((arg) => arg.startsWith('--game='));
 const boxOnly = args.includes('--box-only');
+const menusOnly = args.includes('--menus-only');
 const shotVisuals = args.includes('--shot-visuals');
 const effectOptions = args.filter((arg) => arg.startsWith('--effect='));
 assert.ok(effectOptions.length <= 1, 'Only one --effect option is supported');
@@ -47,6 +51,8 @@ assert.ok(
 );
 assert.ok(gameOptions.length <= 1, 'Only one --game option is supported');
 assert.ok(!boxOnly || !gameOptions.length, '--box-only excludes --game');
+assert.ok(!menusOnly || !boxOnly, '--menus-only excludes --box-only');
+assert.ok(!menusOnly || !shotVisuals, '--menus-only excludes --shot-visuals');
 assert.ok(
   !shotVisuals || (!boxOnly && !gameOptions.length),
   '--shot-visuals excludes --box-only and --game',
@@ -68,7 +74,7 @@ const run =
   `${Date.now()}-${randomUUID().slice(0, 8)}`;
 assert.match(run, /^[a-zA-Z0-9_-]+$/, 'Unsafe evidence directory name');
 const evidenceRoot = resolve(
-  'artifacts/maintenance/v1.0.5/interaction-refinement/ui',
+  'artifacts/maintenance/v1.0.5/mobile-sync-optimization/ui',
 );
 await mkdir(evidenceRoot, { recursive: true });
 const output = join(evidenceRoot, run);
@@ -83,23 +89,29 @@ const report = {
   external: [],
   screenshots: [],
   events: [],
+  projections: [],
   selections: [],
   playback: [],
   gameChoices: choices,
   effectFilter,
+  menusOnly,
   executablePath,
   packagedWeb,
   portable: !!packageManifest,
   archiveSha256: packageManifest?.archive.sha256,
   packageSnapshot: packageManifest?.snapshot,
   pauseFixture: !boxOnly && !shotVisuals,
-  scope: shotVisuals
-    ? `Actual hidden frozen WinForms/WebView2 package and muted headless Edge on 127.0.0.1; admission and ${effectFilter ? effectFilter : 'five'} shots only. Production CSS animations naturally reach the selected frame, then pause briefly for screenshot stability; currentTime is never assigned. Local decoded images, canvas alpha, opacity and hit geometry are inspected; no game matrix, gesture regression, speech, settings or audio regression.`
-    : `Actual hidden WinForms/WebView2 and muted headless Edge on 127.0.0.1. Shared interaction/video controls only; ${boxOnly ? 'no game routes or start/pause fixture' : 'one start/pause fixture'}, no game rules or complete-game matrix. Simulated mobile viewports; real audio decode/start/stop observations, no human listening or physical-phone claim.`,
+  scope: menusOnly
+    ? 'Actual hidden WinForms/WebView2 and muted headless Edge on 127.0.0.1. Selected game menus/settings/icon/focus/top-layer and mobile layouts only, using a three-human start/immediate-pause fixture for each selected version. No shots or speech are sent; no audio-media, overlap, blocking, recovery, gameplay or complete-game matrix is run.'
+    : shotVisuals
+      ? `Actual hidden frozen WinForms/WebView2 package and muted headless Edge on 127.0.0.1; admission and ${effectFilter ? effectFilter : 'five'} shots only. Production CSS animations naturally reach the selected frame, then pause briefly for screenshot stability; currentTime is never assigned. Local decoded images, canvas alpha, opacity and hit geometry are inspected; no game matrix, gesture regression, speech, settings or audio regression.`
+      : `Actual hidden WinForms/WebView2 and muted headless Edge on 127.0.0.1. Shared interaction/video controls only; ${boxOnly ? 'no game routes or start/pause fixture' : 'one start/pause fixture'}, no game rules or complete-game matrix. Simulated mobile viewports; real audio decode/start/stop observations, no human listening or physical-phone claim.`,
 };
 let desktop, browser, origin, host, publicPage, player, hostToken, token;
 let hostSocket, playerSocket;
+const fixturePlayers = [];
 const sockets = [];
+const credentialSockets = new Map();
 const wait = (ms) => new Promise((done) => setTimeout(done, ms));
 const save = () =>
   writeFile(join(output, 'results.json'), JSON.stringify(report, null, 2));
@@ -222,14 +234,59 @@ async function post(path, body) {
   assert.ok(reply.ok, JSON.stringify(reply));
   return reply;
 }
+function assertProjection(projection) {
+  assert.ok(
+    projection?.view && projection?.stamp,
+    'Expected RoomProjection.view and stamp',
+  );
+  assert.equal(projection.stamp.instanceId, projection.view.instanceId);
+  assert.equal(projection.stamp.branch, projection.view.branch);
+  assert.match(projection.stamp.serverSessionId, /^[a-f0-9-]{36}$/i);
+  assert.ok(
+    Number.isSafeInteger(projection.stamp.viewSeq) &&
+      projection.stamp.viewSeq >= 0,
+  );
+  assert.ok(
+    Number.isSafeInteger(projection.interactionWatermark) &&
+      projection.interactionWatermark >= 0,
+  );
+  return projection;
+}
+async function projection(credential = hostToken) {
+  const socket = credentialSockets.get(credential);
+  assert.ok(
+    socket?.connected,
+    'Projection requires the current authenticated socket',
+  );
+  // The compatibility HTTP endpoint returns only { ok, view }. Transport stamps
+  // come from room:sync, whose ACK has projection fields at its top level.
+  const reply = await socket.timeout(5000).emitWithAck('room:sync');
+  assert.ok(reply.ok, JSON.stringify(reply));
+  return assertProjection(reply);
+}
 async function view(credential = hostToken) {
-  return (await post('/api/session/view', { token: credential })).view;
+  return (await projection(credential)).view;
 }
 async function connect(credential) {
   const socket = io(origin, {
     auth: { token: credential },
     transports: ['websocket'],
     forceNew: true,
+  });
+  socket.on('room:view', (input) => {
+    try {
+      const projected = assertProjection(input);
+      report.projectionCount = (report.projectionCount ?? 0) + 1;
+      report.projections.push({
+        stamp: projected.stamp,
+        syncHint: projected.syncHint,
+        interactionWatermark: projected.interactionWatermark,
+        revision: projected.view.revision,
+      });
+      if (report.projections.length > 32) report.projections.shift();
+    } catch (error) {
+      report.errors.push(String(error));
+    }
   });
   sockets.push(socket);
   await new Promise((done, reject) => {
@@ -246,6 +303,7 @@ async function connect(credential) {
       reject(error);
     });
   });
+  credentialSockets.set(credential, socket);
   return socket;
 }
 async function command(command, credential = hostToken, socket = hostSocket) {
@@ -261,6 +319,64 @@ async function command(command, credential = hostToken, socket = hostSocket) {
 }
 async function audit(surface) {
   return surface.evaluate(() => window.__interactionAudioAudit);
+}
+async function diagnostics(surface) {
+  return surface.evaluate(() => {
+    if (typeof window.__tablemaxReadInteractionDiagnostics !== 'function')
+      throw new Error('Read-only interaction diagnostics are unavailable');
+    return window.__tablemaxReadInteractionDiagnostics();
+  });
+}
+function activeAudio(entries) {
+  const active = new Map();
+  for (const entry of entries) {
+    if (!entry.eventId) continue;
+    if (entry.phase === 'start') active.set(entry.eventId, entry);
+    if (entry.phase === 'stop') active.delete(entry.eventId);
+  }
+  return [...active.values()];
+}
+function activeRealSources(observed) {
+  const ended = new Set(
+    [...observed.stops, ...observed.ended].map((entry) => entry.id),
+  );
+  return observed.starts.filter(
+    (entry) =>
+      !ended.has(entry.id) &&
+      [...catalog.shots, ...catalog.phrases].some((sound) =>
+        matchesAudio(entry.url, sound.audio),
+      ),
+  );
+}
+async function assertDesktopSource(eventId, owner = 'public') {
+  const snapshots = await Promise.all([
+    diagnostics(host),
+    diagnostics(publicPage),
+  ]);
+  const starts = snapshots.map((entries) =>
+    entries.filter(
+      (entry) => entry.phase === 'start' && entry.eventId === eventId,
+    ),
+  );
+  assert.equal(
+    starts[0].length + starts[1].length,
+    1,
+    `One desktop owner must start ${eventId}`,
+  );
+  assert.equal(starts[owner === 'host' ? 0 : 1].length, 1);
+}
+async function sendInteraction(interaction) {
+  const current = await projection(token);
+  const reply = await playerSocket
+    .timeout(5000)
+    .emitWithAck('room:interaction:send', {
+      requestId: randomUUID().replaceAll('-', ''),
+      instanceId: current.view.instanceId,
+      branch: current.view.branch,
+      interaction,
+    });
+  assert.ok(reply.ok, JSON.stringify(reply));
+  return reply;
 }
 function matchesAudio(url, file) {
   if (!url) return false;
@@ -346,6 +462,9 @@ async function select(index) {
   report.selections.push({ index, openedAfterMs: opened.openedAfterMs });
 }
 async function video(surface) {
+  const entry = surface.getByRole('button', { name: '视频设置', exact: true });
+  if (!(await entry.count()) || !(await entry.isVisible()))
+    await openMenu(surface);
   await surface.getByRole('button', { name: '视频设置', exact: true }).click();
   const dialog = surface.getByRole('dialog', { name: '视频设置', exact: true });
   await dialog.waitFor();
@@ -354,6 +473,21 @@ async function video(surface) {
     1,
   );
   return dialog;
+}
+async function openMenu(surface) {
+  const menu = surface.getByRole('dialog', {
+    name: /^(牌桌菜单|拍卖行菜单|电网菜单)$/,
+  });
+  if (!(await menu.count()))
+    await surface.getByRole('button', { name: '菜单', exact: true }).click();
+  await menu.waitFor();
+  return menu;
+}
+async function closeMenu(surface) {
+  const menu = surface.getByRole('dialog', {
+    name: /^(牌桌菜单|拍卖行菜单|电网菜单)$/,
+  });
+  if (await menu.count()) await closePanel(menu);
 }
 async function closePanel(dialog) {
   await dialog.getByRole('button', { name: '关闭面板', exact: true }).click();
@@ -374,20 +508,31 @@ async function setBlocked(surface, blocked) {
   assert.equal(await next.getAttribute('aria-pressed'), String(blocked));
   await closePanel(dialog);
 }
-async function assertVisibleEvent(entry, surface) {
-  const locator =
-    entry.type === 'shot'
-      ? surface.locator(`[data-effect="${entry.id}"]`)
-      : surface
-          .locator('.interaction-speech span')
-          .filter({ hasText: entry.text });
-  await locator.waitFor({ timeout: 1500 });
-  if (entry.type === 'speech')
-    assert.equal(await locator.textContent(), entry.text);
-  assert.equal(
-    await surface.locator('.interaction-shot,.interaction-speech').count(),
-    1,
+async function assertVisibleEvent(entry, surface, event) {
+  await until(
+    async () =>
+      (await diagnostics(surface)).some(
+        (item) => item.phase === 'receive' && item.eventId === event.eventId,
+      ),
+    'document received interaction',
   );
+  assert.equal(
+    await surface.locator('.interaction-speech').count(),
+    0,
+    'Speech playback has no text window',
+  );
+  if (entry.type === 'shot') {
+    await surface
+      .locator(
+        `[data-interaction-event="${event.eventId}"][data-effect="${entry.id}"]`,
+      )
+      .waitFor({ timeout: 1500 });
+    const count = await surface.locator('.interaction-shot').count();
+    assert.ok(
+      count >= 1 && count <= catalog.maxActiveShots,
+      `Active shot count ${count}`,
+    );
+  }
 }
 async function playback(entry, action, { blockedRole = null } = {}) {
   const frame = await playerFrame(player);
@@ -409,6 +554,21 @@ async function playback(entry, action, { blockedRole = null } = {}) {
     `immediate ${entry.id} server broadcast`,
   );
   assert.equal(observed.event.interaction.type, entry.type);
+  const currentProjection = await projection();
+  assert.equal(
+    observed.event.serverSessionId,
+    currentProjection.stamp.serverSessionId,
+  );
+  assert.ok(
+    Number.isSafeInteger(observed.event.interactionSeq) &&
+      observed.event.interactionSeq > 0,
+  );
+  const previous = report.events[eventIndex - 1]?.event;
+  if (previous?.serverSessionId === observed.event.serverSessionId)
+    assert.ok(
+      observed.event.interactionSeq > previous.interactionSeq,
+      'Interaction sequence increases',
+    );
   assert.equal(
     observed.event.interaction[entry.type === 'shot' ? 'effectId' : 'phraseId'],
     entry.id,
@@ -426,7 +586,7 @@ async function playback(entry, action, { blockedRole = null } = {}) {
             .count(),
           0,
         );
-      } else await assertVisibleEvent(entry, surface);
+      } else await assertVisibleEvent(entry, surface, observed.event);
     }),
   );
   const audioRole = blockedRole === 'public' ? 'host' : 'public';
@@ -436,11 +596,21 @@ async function playback(entry, action, { blockedRole = null } = {}) {
     const surface = surfaces[role];
     await until(async () => {
       const current = await audit(surface);
-      return current.starts
-        .slice(audits[role].starts.length)
-        .some((item) => matchesAudio(item.url, entry.audio));
+      const started = (await diagnostics(surface)).some(
+        (item) =>
+          item.phase === 'start' && item.eventId === observed.event.eventId,
+      );
+      return (
+        started &&
+        current.starts
+          .slice(audits[role].starts.length)
+          .some((item) => matchesAudio(item.url, entry.audio))
+      );
     }, `real ${role} source.start for ${entry.audio}`);
   }
+  if (blockedRole !== 'host' && blockedRole !== 'public')
+    await assertDesktopSource(observed.event.eventId);
+  else await assertDesktopSource(observed.event.eventId, audioRole);
   for (const [role, surface] of Object.entries(surfaces)) {
     const current = await audit(surface);
     if (role === blockedRole)
@@ -451,6 +621,9 @@ async function playback(entry, action, { blockedRole = null } = {}) {
       role,
       sourceStarts: current.starts.slice(audits[role].starts.length),
       sourceStops: current.stops.slice(audits[role].stops.length),
+      diagnostics: (await diagnostics(surface)).filter(
+        (item) => item.eventId === observed.event.eventId,
+      ),
     });
   }
   assert.equal((await view()).revision, before.revision);
@@ -466,7 +639,7 @@ async function shot(entry, index, options) {
       .querySelector('.room-root')
       .addEventListener('click', () => window.__interactionUnderlyingClicks++);
   });
-  await playback(
+  const event = await playback(
     { ...entry, type: 'shot' },
     async () => {
       const rect = await frame.locator('body').boundingBox();
@@ -485,7 +658,7 @@ async function shot(entry, index, options) {
   await until(
     () =>
       frame
-        .locator('.interaction-shot img')
+        .locator(`[data-interaction-event="${event.eventId}"] img`)
         .evaluateAll(
           (images) =>
             images.length > 0 &&
@@ -507,6 +680,437 @@ async function speak(entry, options) {
     options,
   );
   await dialog.waitFor({ state: 'detached' });
+}
+async function waitForPlaybackEnd() {
+  const surfaces = [host, publicPage, await playerFrame(player)];
+  await until(
+    async () =>
+      (
+        await Promise.all(
+          surfaces.map(
+            async (surface) =>
+              (await surface.locator('.interaction-shot').count()) === 0 &&
+              activeAudio(await diagnostics(surface)).length === 0,
+          ),
+        )
+      ).every(Boolean),
+    'previous interaction lanes completed',
+    Math.max(
+      ...catalog.shots.map((entry) => entry.durationMs),
+      ...catalog.phrases.map((entry) => entry.durationMs),
+    ) + 1500,
+  );
+}
+async function verifyOverlapLanes() {
+  await waitForPlaybackEnd();
+  const before = await view();
+  const frame = await playerFrame(player);
+  const surfaces = { player: frame, host, public: publicPage };
+  const entry = [...catalog.shots].sort(
+    (a, b) => b.durationMs - a.durationMs,
+  )[0];
+  assert.ok(
+    entry.durationMs >= 2000,
+    'Overlap fixture needs a sufficiently long real sound',
+  );
+  const readSnapshots = () =>
+    Promise.all(
+      Object.entries(surfaces).map(async ([role, surface]) => [
+        role,
+        await surface.evaluate(() => ({
+          shotIds: [...document.querySelectorAll('.interaction-shot')].map(
+            (node) => node.dataset.interactionEvent,
+          ),
+          speechWindows: document.querySelectorAll('.interaction-speech')
+            .length,
+          diagnostics: window.__tablemaxReadInteractionDiagnostics(),
+          audio: window.__interactionAudioAudit,
+        })),
+      ]),
+    );
+  const publish = async (payload) => {
+    const reply = await sendInteraction(payload);
+    const observed = await until(
+      () => report.events.find((item) => item.event.eventId === reply.eventId),
+      'direct human interaction broadcast',
+    );
+    assert.equal(observed.event.interaction.type, payload.type);
+    const sequenceIndex = report.events.indexOf(observed);
+    const prior = report.events[sequenceIndex - 1]?.event;
+    assert.ok(
+      Number.isSafeInteger(observed.event.interactionSeq) &&
+        observed.event.interactionSeq > 0,
+    );
+    if (prior?.serverSessionId === observed.event.serverSessionId)
+      assert.ok(observed.event.interactionSeq > prior.interactionSeq);
+    return observed.event;
+  };
+  const stage = async (expectedShots, expectedSpeech = null) => {
+    const pairs = await until(
+      async () => {
+        const snapshots = await readSnapshots();
+        return snapshots.every(([role, snapshot]) => {
+          const active = activeAudio(snapshot.diagnostics);
+          return (
+            JSON.stringify(snapshot.shotIds) ===
+              JSON.stringify(expectedShots) &&
+            (role === 'host' ||
+              (JSON.stringify(
+                active
+                  .filter((item) => item.channel === 'shot')
+                  .map((item) => item.eventId)
+                  .sort(),
+              ) === JSON.stringify([...expectedShots].sort()) &&
+                JSON.stringify(
+                  active
+                    .filter((item) => item.channel === 'speech')
+                    .map((item) => item.eventId),
+                ) === JSON.stringify(expectedSpeech ? [expectedSpeech] : [])))
+          );
+        })
+          ? snapshots
+          : null;
+      },
+      'overlap animation and actual audio lanes',
+      1500,
+    );
+    for (const [role, snapshot] of pairs) {
+      assert.equal(snapshot.speechWindows, 0);
+      const sources = activeRealSources(snapshot.audio);
+      assert.equal(
+        sources.length,
+        role === 'host' ? 0 : expectedShots.length + (expectedSpeech ? 1 : 0),
+        `${role}: real concurrent sources match lanes`,
+      );
+    }
+    return Object.fromEntries(pairs);
+  };
+  const events = [];
+  for (let index = 0; index < 3; index++) {
+    events.push(
+      await publish({
+        type: 'shot',
+        effectId: entry.id,
+        point: { x: 0.25 + index * 0.18, y: 0.42 },
+      }),
+    );
+  }
+  const firstIds = events.map((event) => event.eventId);
+  const three = await stage(firstIds);
+  events.push(
+    await publish({
+      type: 'shot',
+      effectId: entry.id,
+      point: { x: 0.74, y: 0.42 },
+    }),
+  );
+  const retainedIds = events.slice(1).map((event) => event.eventId);
+  const four = await stage(retainedIds);
+  for (const role of ['player', 'public'])
+    assert.ok(
+      four[role].diagnostics.some(
+        (item) =>
+          item.phase === 'stop' &&
+          item.eventId === firstIds[0] &&
+          item.outcome === 'cancelled',
+      ),
+    );
+  const voices = [...catalog.phrases]
+    .sort((a, b) => b.durationMs - a.durationMs)
+    .slice(0, 2);
+  const speechEvents = [];
+  const speechSnapshots = [];
+  for (const voice of voices) {
+    speechEvents.push(await publish({ type: 'speech', phraseId: voice.id }));
+    const newestSpeech = speechEvents.at(-1).eventId;
+    const snapshot = await stage(retainedIds, newestSpeech);
+    speechSnapshots.push(snapshot);
+    if (speechEvents.length === 2)
+      for (const role of ['player', 'public'])
+        assert.ok(
+          snapshot[role].diagnostics.some(
+            (item) =>
+              item.phase === 'stop' &&
+              item.eventId === speechEvents[0].eventId &&
+              item.outcome === 'cancelled',
+          ),
+        );
+  }
+  const final = speechSnapshots.at(-1);
+  const expectedSession = (await projection()).stamp.serverSessionId;
+  for (const event of [...events, ...speechEvents]) {
+    assert.equal(event.serverSessionId, expectedSession);
+    const starts = ['host', 'public'].map((role) =>
+      final[role].diagnostics.filter(
+        (item) => item.phase === 'start' && item.eventId === event.eventId,
+      ),
+    );
+    assert.equal(
+      starts[0].length,
+      0,
+      'Host never duplicates the public source',
+    );
+    assert.equal(starts[1].length, 1, 'Public starts each accepted event once');
+    assert.ok(
+      starts[1][0].durationMs <= catalog.startDeadlineMs,
+      'Real source starts within the configured deadline',
+    );
+  }
+  report.overlap = {
+    shotEvents: events,
+    retainedIds,
+    speechEvents,
+    three,
+    four,
+    speechSnapshots,
+  };
+  assert.equal((await view()).revision, before.revision);
+  await checked(
+    'Three real shot animations/sources coexist; the fourth evicts the oldest only; one speech lane preserves all shots and replaces only the previous voice; all six events have one desktop audio owner, with no speech text window',
+  );
+}
+async function prepareGameFixture(choice) {
+  const current = await view();
+  if (current.status === 'playing') await command({ type: 'end' });
+  await command({ type: 'select-game', gameId: choice.gameId });
+  if (choice.variantId)
+    await command({ type: 'select-variant', variantId: choice.variantId });
+  if (!fixturePlayers.length) {
+    for (let index = 0; index < 2; index++) {
+      const joined = await post('/api/session/join', {
+        name: `菜单夹具${index + 1}`,
+        avatarId: `avatar-${18 + index}`,
+      });
+      fixturePlayers.push({
+        token: joined.token,
+        socket: await connect(joined.token),
+      });
+    }
+  }
+  await command({ type: 'ready', ready: true }, token, playerSocket);
+  for (const extra of fixturePlayers)
+    await command({ type: 'ready', ready: true }, extra.token, extra.socket);
+  await command({ type: 'start' });
+  await command({ type: 'pause' });
+  await Promise.all([
+    host.goto(origin + '/host/game'),
+    publicPage.goto(origin + '/public/game'),
+    player.goto(origin + '/player/game'),
+  ]);
+  await playerUi(player)
+    .getByRole('button', { name: '菜单', exact: true })
+    .waitFor();
+}
+async function verifyMenuRole(choice, role, surface) {
+  const before = await view();
+  assert.equal(
+    await surface
+      .getByRole('button', { name: '视频设置', exact: true })
+      .count(),
+    0,
+    `${role}: video entry is absent from toolbar`,
+  );
+  const sounds = surface.locator(
+    '.sound-control,.ma-sound-control,[data-power-grid-sound]',
+  );
+  const soundExpected = role !== 'player' || choice.gameId === 'modern-art';
+  assert.equal(await sounds.count(), soundExpected ? 1 : 0);
+  if (soundExpected) {
+    const metrics = await sounds.evaluate((button) => {
+      const rect = button.getBoundingClientRect();
+      const icon = button.querySelector('svg');
+      const iconRect = icon?.getBoundingClientRect();
+      return {
+        text: button.textContent.trim(),
+        label: button.getAttribute('aria-label'),
+        title: button.title,
+        pressed: button.getAttribute('aria-pressed'),
+        width: rect.width,
+        height: rect.height,
+        iconCount: button.querySelectorAll('svg').length,
+        centerError: iconRect
+          ? Math.hypot(
+              iconRect.x + iconRect.width / 2 - rect.x - rect.width / 2,
+              iconRect.y + iconRect.height / 2 - rect.y - rect.height / 2,
+            )
+          : Infinity,
+      };
+    });
+    assert.equal(metrics.text, '');
+    assert.equal(metrics.iconCount, 1);
+    assert.ok(metrics.label && metrics.title);
+    assert.ok(['true', 'false'].includes(metrics.pressed));
+    assert.ok(
+      metrics.width >= 43 && metrics.height >= 43,
+      JSON.stringify(metrics),
+    );
+    assert.ok(metrics.centerError < 3, JSON.stringify(metrics));
+    report.menuIcons ??= [];
+    report.menuIcons.push({ choice, role, ...metrics });
+  }
+  const menu = await openMenu(surface);
+  const settings = menu.getByRole('button', { name: '游戏设置', exact: true });
+  const gameExpected =
+    choice.gameId === 'pokemon-encounters'
+      ? choice.variantId === 'original'
+      : role === 'host';
+  assert.equal(
+    await settings.count(),
+    gameExpected ? 1 : 0,
+    `${role}: game settings keep existing permissions`,
+  );
+  if (gameExpected) {
+    await settings.click();
+    const dialog = surface.getByRole('dialog', {
+      name: '游戏设置',
+      exact: true,
+    });
+    await dialog.waitFor();
+    assert.equal(
+      await dialog.locator('input[type="range"]').count(),
+      choice.gameId === 'pokemon-encounters' ? 0 : 1,
+    );
+    if (choice.gameId === 'pokemon-encounters')
+      assert.equal(await dialog.getByRole('switch').count(), 1);
+    await closePanel(dialog);
+    assert.equal(
+      await settings.evaluate((element) => document.activeElement === element),
+      true,
+      'Game settings returns focus to its menu entry',
+    );
+  }
+  const entry = menu.getByRole('button', { name: '视频设置', exact: true });
+  const dialog = await video(surface);
+  await until(
+    () =>
+      dialog
+        .locator('.display-settings-fields')
+        .count()
+        .then((count) => count === (role === 'player' ? 0 : 1)),
+    `${role}: correct display bridge fields`,
+  );
+  const toggle = dialog.locator('.interaction-video-setting button');
+  const original = await toggle.getAttribute('aria-pressed');
+  await toggle.click();
+  const expected = original === 'true' ? 'false' : 'true';
+  assert.equal(await toggle.getAttribute('aria-pressed'), expected);
+  assert.equal(
+    await surface.evaluate(
+      (key) => localStorage.getItem(key),
+      `tablemax-interaction-blocked-${role}`,
+    ),
+    expected,
+  );
+  await toggle.click();
+  assert.equal(await toggle.getAttribute('aria-pressed'), original);
+  if (role === 'player') {
+    await until(
+      () =>
+        dialog
+          .locator('.interaction-orb')
+          .count()
+          .then((count) => count === 1),
+      'Player orb is in the highest video dialog',
+    );
+    assert.equal(
+      await dialog.locator('.interaction-orb').evaluate((orb) => {
+        const rect = orb.getBoundingClientRect();
+        return !!document
+          .elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2)
+          ?.closest('.interaction-orb');
+      }),
+      true,
+    );
+  }
+  await closePanel(dialog);
+  assert.equal(
+    await entry.evaluate((element) => document.activeElement === element),
+    true,
+    'Video settings returns focus to its menu entry',
+  );
+  await closePanel(menu);
+  assert.equal(
+    await surface
+      .getByRole('button', { name: '菜单', exact: true })
+      .evaluate((element) => document.activeElement === element),
+    true,
+    'Menu returns focus to its toolbar entry',
+  );
+  assert.equal((await view()).revision, before.revision);
+}
+async function verifyMenusOnly() {
+  const eventCount = report.events.length;
+  for (const choice of choices) {
+    await prepareGameFixture(choice);
+    for (const [role, surface] of Object.entries({
+      host,
+      public: publicPage,
+      player: await playerFrame(player),
+    }))
+      await verifyMenuRole(choice, role, surface);
+    for (const viewport of [
+      { width: 320, height: 568 },
+      { width: 844, height: 390 },
+      { width: 1280, height: 720 },
+    ]) {
+      await player.setViewportSize(viewport);
+      const frame = await playerFrame(player);
+      const dialog = await video(frame);
+      const opened = await beginWheel();
+      const metrics = await opened.wheel.evaluate((wheel) => {
+        const rect = wheel.getBoundingClientRect();
+        const orb = document
+          .querySelector('.interaction-orb')
+          .getBoundingClientRect();
+        const button = document
+          .querySelector('.interaction-video-setting button')
+          .getBoundingClientRect();
+        return {
+          width: innerWidth,
+          height: innerHeight,
+          rect: {
+            x: rect.x,
+            y: rect.y,
+            right: rect.right,
+            bottom: rect.bottom,
+          },
+          button: { width: button.width, height: button.height },
+          hitIsOrb: !!document
+            .elementFromPoint(orb.x + orb.width / 2, orb.y + orb.height / 2)
+            ?.closest('.interaction-orb'),
+          inModal: !!wheel.closest('dialog[open]'),
+        };
+      });
+      assert.ok(
+        metrics.rect.x >= 0 &&
+          metrics.rect.y >= 0 &&
+          metrics.rect.right <= metrics.width &&
+          metrics.rect.bottom <= metrics.height,
+        JSON.stringify(metrics),
+      );
+      assert.ok(metrics.button.width >= 44 && metrics.button.height >= 44);
+      assert.equal(metrics.hitIsOrb, true);
+      assert.equal(metrics.inModal, true);
+      await screenshot(
+        `menu-${choice.gameId}-${choice.variantId ?? 'default'}-${viewport.width}x${viewport.height}`,
+      );
+      await player.mouse.move(
+        opened.ring.x + opened.ring.width / 2,
+        opened.ring.y + opened.ring.height / 2,
+      );
+      await player.mouse.up();
+      await opened.wheel.waitFor({ state: 'detached' });
+      await closePanel(dialog);
+      await closeMenu(frame);
+      report.menuLayouts ??= [];
+      report.menuLayouts.push({ choice, viewport, ...metrics });
+    }
+    await player.setViewportSize({ width: 390, height: 844 });
+    await checked(
+      `${choice.gameId}/${choice.variantId ?? 'default'}: three-role menu/video/game-settings permissions, icon-only sound controls, nested focus recovery, persistent local block preference, and three player viewport top layers; no interaction sent`,
+    );
+  }
+  assert.equal(report.events.length, eventCount);
 }
 async function verifyDragAndCancel() {
   let frame = await playerFrame(player);
@@ -597,6 +1201,12 @@ async function verifyDragAndCancel() {
 async function verifyPortalGestureRecovery() {
   const frame = await playerFrame(player);
   const eventCount = report.events.length;
+  if (
+    !(await frame
+      .getByRole('button', { name: '视频设置', exact: true })
+      .count())
+  )
+    await openMenu(frame);
   // Focus before pointer-down: preventing the orb's default down preserves focus,
   // so a real Enter opens/closes the actual dialog during pointer capture.
   const videoButton = frame.getByRole('button', {
@@ -669,6 +1279,11 @@ async function verifyBlockControls() {
       `${role} clears active playback`,
     );
     assert.equal(
+      activeAudio(await diagnostics(surface)).length,
+      0,
+      `${role}: blocking stops every sound lane`,
+    );
+    assert.equal(
       await surface.evaluate(
         (key) => localStorage.getItem(key),
         `tablemax-interaction-blocked-${role}`,
@@ -686,6 +1301,11 @@ async function verifyBlockControls() {
     assert.equal(
       (await audit(surface)).starts.length,
       beforeRestore.starts.length,
+    );
+    assert.equal(
+      activeAudio(await diagnostics(surface)).length,
+      0,
+      `${role}: restore does not restart old lanes`,
     );
     await speak(catalog.phrases[1]);
   }
@@ -791,14 +1411,7 @@ async function verifyMobileAndModal() {
 }
 async function verifyGameEntries() {
   for (const choice of choices) {
-    await command({ type: 'select-game', gameId: choice.gameId });
-    if (choice.variantId)
-      await command({ type: 'select-variant', variantId: choice.variantId });
-    await Promise.all([
-      host.goto(origin + '/host/game'),
-      publicPage.goto(origin + '/public/game'),
-      player.goto(origin + '/player/game'),
-    ]);
+    await prepareGameFixture(choice);
     await playerUi(player).locator('.interaction-orb').waitFor();
     const frame = await playerFrame(player);
     for (const surface of [host, publicPage, frame]) {
@@ -830,29 +1443,13 @@ async function verifyGameEntries() {
 async function verifyPauseAndNewRoom() {
   if (!boxOnly) {
     const fixtureGame = selectedGame ?? 'modern-art';
-    await command({ type: 'select-game', gameId: fixtureGame });
-    const extraPlayers = [];
-    for (let index = 0; index < 2; index++) {
-      const joined = await post('/api/session/join', {
-        name: `暂停夹具${index + 1}`,
-        avatarId: `avatar-${20 + index}`,
-      });
-      extraPlayers.push({
-        token: joined.token,
-        socket: await connect(joined.token),
-      });
-    }
-    await command({ type: 'ready', ready: true }, token, playerSocket);
-    for (const extra of extraPlayers)
-      await command({ type: 'ready', ready: true }, extra.token, extra.socket);
-    await command({ type: 'start' });
-    await command({ type: 'pause' });
+    await prepareGameFixture({ gameId: fixtureGame });
     assert.equal((await view()).paused, true);
     await speak(catalog.phrases[3]);
     await speak(catalog.phrases[0]);
     assert.equal((await view()).paused, true);
     await checked(
-      'Paused game accepts immediately replacing speech/audio without resuming or advancing game state',
+      'Paused game accepts immediately replacing only its voice lane without resuming or advancing game state',
     );
     await command({ type: 'end' });
   } else await speak(catalog.phrases[0]);
@@ -865,8 +1462,11 @@ async function verifyPauseAndNewRoom() {
     const frame = await playerFrame(player);
     return (
       await Promise.all(
-        [host, publicPage, frame].map((surface) =>
-          surface.locator('.interaction-shot,.interaction-speech').count(),
+        [host, publicPage, frame].map(
+          async (surface) =>
+            (await surface
+              .locator('.interaction-shot,.interaction-speech')
+              .count()) + activeAudio(await diagnostics(surface)).length,
         ),
       )
     ).every((count) => count === 0);
@@ -1216,7 +1816,9 @@ try {
     ]);
     await playerUi(player).locator('.interaction-orb').waitFor();
   }
-  if (shotVisuals) {
+  if (menusOnly) {
+    await verifyMenusOnly();
+  } else if (shotVisuals) {
     await verifyShotVisuals();
   } else {
     for (const surface of [host, publicPage, await playerFrame(player)])
@@ -1256,7 +1858,7 @@ try {
     }
     assert.ok(
       playerAudit.stops.length > 0 && publicAudit.stops.length > 0,
-      'Replacement stops old real sources',
+      'Speech replacement stops previous real voice sources',
     );
     report.initialAudio = {
       player: playerAudit,
@@ -1264,8 +1866,9 @@ try {
       host: await audit(host),
     };
     await checked(
-      'Five aimed effects and all six speech choices rapidly replace prior visuals/audio on three roles; all eleven decoded sources actually start in player and native audio-owner documents; old sources stop; room revision stays unchanged',
+      'Five aimed effects and all six speech choices start through separate shot/voice lanes; all eleven decoded sources actually start in player and the desktop audio owner; voice replacement stops old voice sources without a text window; room revision stays unchanged',
     );
+    await verifyOverlapLanes();
     await verifyBlockControls();
     await verifyMobileAndModal();
     await verifyGameEntries();

@@ -33,6 +33,7 @@ import { OverlayPanel } from '@tablemax/web-host';
 import { RoomManagement } from '@tablemax/web-host';
 import { FullscreenControl } from '@tablemax/web-host';
 import { DisplaySettings } from '@tablemax/web-host';
+import { CountdownSettings } from '@tablemax/web-host';
 import { PlayModeBadge } from '@tablemax/web-host';
 import { PlayModeControl } from '@tablemax/web-host';
 import { DecisionCountdown } from '@tablemax/web-host';
@@ -381,7 +382,6 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
           <DecisionCountdown view={view} connected={connected} compact />
         )}
         {role !== 'player' && <FullscreenControl />}
-        <DisplaySettings role={role} />
         <div className="pg-toolbar-tools">
           <PlayModeBadge mode={view?.playMode} />
           {role !== 'player' && (
@@ -632,6 +632,10 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
               ) : (
                 <>
                   {role === 'player' && <FullscreenControl />}
+                  <div className="dialog-actions game-menu-settings">
+                    <CountdownSettings session={session} />
+                    <DisplaySettings role={role} />
+                  </div>
                   {canControl && <RoomManagement session={session} />}
                   <h2>已保存的电网记录</h2>
                   <ol className="pg-log">
