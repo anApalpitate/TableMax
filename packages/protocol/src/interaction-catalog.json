@@ -1,122 +1,140 @@
 {
   "version": 1,
-  "cooldownMs": 200,
-  "queueLimit": 3,
+  "playbackPolicy": "replace",
   "shots": [
     {
       "id": "egg",
       "label": "砸鸡蛋",
-      "durationMs": 4000,
+      "durationMs": 3380,
       "audio": "egg.mp3",
       "image": "object-egg.webp",
       "steps": [
         {
           "object": "egg",
-          "atMs": 0
+          "atMs": 0,
+          "hitMs": 208
         },
         {
           "object": "egg",
-          "atMs": 180
+          "atMs": 180,
+          "hitMs": 388
         },
         {
           "object": "egg",
-          "atMs": 360
+          "atMs": 360,
+          "hitMs": 568
         },
         {
           "object": "egg",
-          "atMs": 1050
+          "atMs": 1050,
+          "hitMs": 1258
         },
         {
           "object": "egg",
-          "atMs": 1230
+          "atMs": 1230,
+          "hitMs": 1438
         },
         {
           "object": "egg",
-          "atMs": 1410
+          "atMs": 1410,
+          "hitMs": 1618
         },
         {
           "object": "slipper",
-          "atMs": 2200
+          "atMs": 2200,
+          "hitMs": 2780
         },
         {
           "object": "slipper",
-          "atMs": 2550
+          "atMs": 2550,
+          "hitMs": 3130
         }
       ]
     },
     {
       "id": "cappuccino",
       "label": "倒卡布奇诺",
-      "durationMs": 4000,
+      "durationMs": 3090,
+      "pourAtMs": 620,
       "audio": "cappuccino.mp3",
       "image": "object-cappuccino.svg",
       "steps": [
         {
           "object": "cappuccino",
-          "atMs": 0
+          "atMs": 0,
+          "hitMs": 620
         }
       ]
     },
     {
       "id": "tomato",
       "label": "砸番茄",
-      "durationMs": 4000,
+      "durationMs": 2710,
       "audio": "tomato.mp3",
       "image": "object-tomato.svg",
       "steps": [
         {
           "object": "tomato",
-          "atMs": 0
+          "atMs": 0,
+          "hitMs": 410
         },
         {
           "object": "tomato",
-          "atMs": 400
+          "atMs": 400,
+          "hitMs": 810
         },
         {
           "object": "tomato",
-          "atMs": 800
+          "atMs": 800,
+          "hitMs": 1210
         },
         {
           "object": "tomato",
-          "atMs": 1350
+          "atMs": 1350,
+          "hitMs": 1760
         }
       ]
     },
     {
       "id": "flower",
       "label": "送花",
-      "durationMs": 4000,
+      "durationMs": 3060,
       "audio": "flower.mp3",
       "image": "object-flower.webp",
       "steps": [
         {
           "object": "flower",
-          "atMs": 0
+          "atMs": 0,
+          "hitMs": 360
         },
         {
           "object": "flower",
-          "atMs": 450
+          "atMs": 450,
+          "hitMs": 810
         },
         {
           "object": "flower",
-          "atMs": 950
+          "atMs": 950,
+          "hitMs": 1310
         }
       ]
     },
     {
       "id": "poop",
       "label": "砸粑粑",
-      "durationMs": 4000,
+      "durationMs": 1270,
       "audio": "poop.mp3",
-      "image": "object-poop.svg",
+      "image": "object-poop.webp",
       "steps": [
         {
           "object": "poop",
-          "atMs": 0
+          "atMs": 0,
+          "hitMs": 330
         },
         {
           "object": "poop",
-          "atMs": 700
+          "atMs": 700,
+          "hitMs": 1030
         }
       ]
     }
@@ -126,37 +144,37 @@
       "id": "hurry",
       "text": "能不能快点啊，兵贵神速啊",
       "audio": "hurry.mp3",
-      "durationMs": 4000
+      "durationMs": 2400
     },
     {
       "id": "nice",
       "text": "干得漂亮",
       "audio": "nice.mp3",
-      "durationMs": 4000
+      "durationMs": 750
     },
     {
       "id": "carry",
-      "text": "I'll carry you",
+      "text": "I will carry you",
       "audio": "carry.mp3",
-      "durationMs": 4000
+      "durationMs": 1420
     },
     {
       "id": "seventeen",
       "text": "十七张牌你能秒我？",
       "audio": "seventeen.mp3",
-      "durationMs": 4000
+      "durationMs": 2020
     },
     {
       "id": "shameless",
       "text": "我从未见过如此厚颜无耻之人！",
       "audio": "shameless.mp3",
-      "durationMs": 4352
+      "durationMs": 4990
     },
     {
       "id": "friendly",
       "text": "主公，别开枪，自己人",
       "audio": "friendly.mp3",
-      "durationMs": 4000
+      "durationMs": 2120
     }
   ]
 }

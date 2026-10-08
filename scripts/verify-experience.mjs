@@ -238,7 +238,7 @@ try {
   );
   evidence.resources.push({ phase: 'unselected', urls: initialResources });
   const alignment = await host
-    .getByRole('button', { name: '显示设置', exact: true })
+    .getByRole('button', { name: /^(?:视频|显示)设置$/, exact: true })
     .evaluate((button) => {
       const a = button.querySelector('svg').getBoundingClientRect(),
         b = button.querySelector('span').getBoundingClientRect();

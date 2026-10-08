@@ -1,162 +1,354 @@
 {
   "version": "1.0.5",
   "createdAt": "2026-10-08",
-  "purpose": "Local packaged TableMax interaction voices, authored four-second shot sound combinations, and transparent projectile objects. Replace assets through this manifest without embedding sources into UI or protocol.",
+  "purpose": "Offline interaction voices, synchronized recorded shot combinations and transparent objects. Stable IDs use replacement playback; sources, originals and derivation history remain auditable.",
   "voices": [
     {
       "id": "hurry",
       "file": "hurry.mp3",
-      "bytes": 15500,
-      "sha256": "0155a75599e1ac611b0d34362cb27c2eb6f6086218b1487d55b04db5d85e9574",
-      "durationMs": 2490,
+      "bytes": 14924,
+      "sha256": "3ab101a5101124c8ff65041b3aaf2f604fb5fe967250dccf2327d52ace6f2a13",
+      "durationMs": 2400,
       "codec": "MP3",
       "channels": 1,
       "sampleRate": 24000,
       "bitrate": 48000,
       "processing": {
-        "start": 0,
-        "duration": "complete",
-        "filter": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9"
+        "filters": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9",
+        "fadeMs": 5,
+        "trim": "Trim only outside first/last active10ms RMS window, retain25ms breathing/natural-decay guard. Per-source threshold above measured quiet/background floor; no internal pauses removed.",
+        "leadingTrimMs": 45,
+        "trailingTrimMs": 45.125,
+        "silenceDetection": {
+          "thresholdDbFS": -42,
+          "windowMs": 10,
+          "guardMs": 25,
+          "firstActiveMs": 70,
+          "lastActiveEndMs": 2420,
+          "max10msRmsAtMs": 1730
+        },
+        "decodedBoundaryCheck": {
+          "thresholdDbFS": -42,
+          "windowMs": 10,
+          "guardMs": 25,
+          "firstActiveMs": 20,
+          "lastActiveEndMs": 2360,
+          "max10msRmsAtMs": 1460
+        }
       },
       "label": "能不能快一点啊，兵贵神速啊",
       "sourceId": "hurry-original",
       "verification": {
         "fullDecodePassed": true,
-        "browserDurationMs": 2490,
-        "acousticTranscript": ["能不能快一点啊", "兵跪前速啊"],
-        "method": "Local whisper.cpp v1.8.4, multilingual base-q5_1, no expected-text prompt. Corroboration with independent source mapping; not human listening.",
-        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
-        "humanListeningPerformed": false
+        "finiteSamples": true,
+        "humanListeningPerformed": false,
+        "acousticTranscript": ["能不能快一点冰柜神速"],
+        "method": "Independent ASR without expected-text prompt, source mapping and complete PCM decode; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-refinement/audio-processing.json",
+        "browserDurationMs": null
+      },
+      "master": "artifacts/maintenance/v1.0.5/interaction-refinement/hurry-master.wav",
+      "masterSha256": "38a1252d30c4230a075f56bd5e8a40cf1efa23782defa08bfe68c5f84d73ba73",
+      "peakAfterDecode": 0.57952,
+      "rmsAfterDecode": 0.111368,
+      "method": "Original recording, complete phrase retained; no synthesized voice. Outer quiet/background floor measured before per-source threshold selection.",
+      "sourceIds": ["hurry-original"],
+      "previous": {
+        "sha256": "0155a75599e1ac611b0d34362cb27c2eb6f6086218b1487d55b04db5d85e9574",
+        "bytes": 15500,
+        "durationMs": 2490,
+        "manifest": "artifacts/maintenance/v1.0.5/interaction-refinement/baseline/assets_platform_interaction_manifest.json",
+        "retainedRuntime": "artifacts/maintenance/v1.0.5/interaction-refinement/before/hurry.mp3"
       }
     },
     {
       "id": "nice",
       "file": "nice.mp3",
-      "bytes": 10316,
-      "sha256": "8db7f91f61550fb72db0284fa062340316614b32cf10181541dd2b4ab5c325ff",
-      "durationMs": 1620,
+      "bytes": 5132,
+      "sha256": "982eb8512ce116b335ce89c3dbdaf65e24ce29e124963502de57ccd99092c0f0",
+      "durationMs": 750,
       "codec": "MP3",
       "channels": 1,
       "sampleRate": 24000,
       "bitrate": 48000,
       "processing": {
-        "start": 0,
-        "duration": "complete",
-        "filter": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9"
+        "filters": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9",
+        "fadeMs": 5,
+        "trim": "Trim only outside first/last active10ms RMS window, retain25ms breathing/natural-decay guard. Per-source threshold above measured quiet/background floor; no internal pauses removed.",
+        "leadingTrimMs": 145,
+        "trailingTrimMs": 725,
+        "silenceDetection": {
+          "thresholdDbFS": -42,
+          "windowMs": 10,
+          "guardMs": 25,
+          "firstActiveMs": 170,
+          "lastActiveEndMs": 870,
+          "max10msRmsAtMs": 490
+        },
+        "decodedBoundaryCheck": {
+          "thresholdDbFS": -42,
+          "windowMs": 10,
+          "guardMs": 25,
+          "firstActiveMs": 20,
+          "lastActiveEndMs": 720,
+          "max10msRmsAtMs": 350
+        }
       },
       "label": "干得漂亮",
-      "sourceId": "nice-source-zip",
+      "sourceId": "nice-original",
       "verification": {
         "fullDecodePassed": true,
-        "browserDurationMs": 1620,
-        "acousticTranscript": ["赶得漂亮"],
-        "method": "Local whisper.cpp v1.8.4, multilingual base-q5_1, no expected-text prompt. Corroboration with independent source mapping; not human listening.",
-        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
-        "humanListeningPerformed": false
+        "finiteSamples": true,
+        "humanListeningPerformed": false,
+        "acousticTranscript": ["幹得漂亮"],
+        "method": "Independent ASR without expected-text prompt, source mapping and complete PCM decode; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-refinement/audio-processing.json",
+        "browserDurationMs": null
+      },
+      "master": "artifacts/maintenance/v1.0.5/interaction-refinement/nice-master.wav",
+      "masterSha256": "66333bafdfc0d12d1794f51e3006471fb42d4306dc802c3e804423235c4fc16d",
+      "peakAfterDecode": 0.557646,
+      "rmsAfterDecode": 0.12151,
+      "method": "Original recording, complete phrase retained; no synthesized voice. Outer quiet/background floor measured before per-source threshold selection.",
+      "sourceIds": ["nice-original"],
+      "previous": {
+        "sha256": "8db7f91f61550fb72db0284fa062340316614b32cf10181541dd2b4ab5c325ff",
+        "bytes": 10316,
+        "durationMs": 1620,
+        "manifest": "artifacts/maintenance/v1.0.5/interaction-refinement/baseline/assets_platform_interaction_manifest.json",
+        "retainedRuntime": "artifacts/maintenance/v1.0.5/interaction-refinement/before/nice.mp3"
       }
     },
     {
       "id": "carry",
       "file": "carry.mp3",
-      "bytes": 12620,
-      "sha256": "852dacb8c45dd4223db40db18718f4efa74ac2b383acd4383d8605bf28415789",
-      "durationMs": 2000,
+      "bytes": 9164,
+      "sha256": "8f50cb1c92961d5c14a616991f1c18e9bff5a4561fa36fecfb816def47717ea3",
+      "durationMs": 1420,
       "codec": "MP3",
       "channels": 1,
       "sampleRate": 24000,
       "bitrate": 48000,
       "processing": {
-        "start": 560,
-        "duration": 2,
-        "filter": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9"
+        "filters": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9",
+        "fadeMs": 5,
+        "trim": "Trim only outside first/last active10ms RMS window, retain30ms breathing/natural-decay guard. Per-source threshold above measured quiet/background floor; no internal pauses removed.",
+        "leadingTrimMs": 30,
+        "trailingTrimMs": 100,
+        "silenceDetection": {
+          "thresholdDbFS": -42,
+          "windowMs": 10,
+          "guardMs": 30,
+          "firstActiveMs": 60,
+          "lastActiveEndMs": 1420,
+          "max10msRmsAtMs": 760
+        },
+        "decodedBoundaryCheck": {
+          "thresholdDbFS": -42,
+          "windowMs": 10,
+          "guardMs": 30,
+          "firstActiveMs": 30,
+          "lastActiveEndMs": 1390,
+          "max10msRmsAtMs": 730
+        }
       },
-      "label": "I'll carry you",
-      "sourceId": "carry-video-original",
+      "label": "I will carry you",
+      "sourceId": "carry-refinement-source-22",
       "verification": {
         "fullDecodePassed": true,
-        "browserDurationMs": 2000,
+        "finiteSamples": true,
+        "humanListeningPerformed": false,
         "acousticTranscript": [" I will carry you."],
-        "method": "Local whisper.cpp v1.8.4, multilingual base-q5_1, no expected-text prompt. Corroboration with independent source mapping; not human listening.",
-        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
-        "humanListeningPerformed": false
+        "method": "Independent ASR without expected-text prompt, source mapping and complete PCM decode; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-refinement/audio-processing.json",
+        "browserDurationMs": null
+      },
+      "master": "artifacts/maintenance/v1.0.5/interaction-refinement/carry-master.wav",
+      "masterSha256": "4c1dfd259eef5761ea4de6442d1799172bf3031acf74f373479df0ce9c3d06ec",
+      "peakAfterDecode": 0.42889,
+      "rmsAfterDecode": 0.128356,
+      "method": "Actual 王者 system phrase; local verified MDX instrumental separation removes musical bed. Outer preceding-utterance bleed excluded by measured quiet450ms window. Residual/artifact perceptual quality still requires human listening; not a clean-source claim.",
+      "sourceIds": ["carry-refinement-source-22"],
+      "previous": {
+        "sha256": "852dacb8c45dd4223db40db18718f4efa74ac2b383acd4383d8605bf28415789",
+        "bytes": 12620,
+        "durationMs": 2000,
+        "manifest": "artifacts/maintenance/v1.0.5/interaction-refinement/baseline/assets_platform_interaction_manifest.json",
+        "retainedRuntime": "artifacts/maintenance/v1.0.5/interaction-refinement/before/carry.mp3"
       }
     },
     {
       "id": "seventeen",
       "file": "seventeen.mp3",
-      "bytes": 15644,
-      "sha256": "3207c1ff6e7f1268a4fde8ca2d0196e84187d4c3f00e31a6c35445ed9dd55a28",
-      "durationMs": 2500,
+      "bytes": 12764,
+      "sha256": "6804cb53b8da708daeb71cca7c07bb956d98084d17a62d347e69614c8666ce70",
+      "durationMs": 2020,
       "codec": "MP3",
       "channels": 1,
       "sampleRate": 24000,
       "bitrate": 48000,
       "processing": {
-        "start": 0,
-        "duration": 2.5,
-        "filter": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9"
+        "filters": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9",
+        "fadeMs": 5,
+        "trim": "Trim only outside first/last active10ms RMS window, retain40ms breathing/natural-decay guard. Per-source threshold above measured quiet/background floor; no internal pauses removed.",
+        "leadingTrimMs": 230,
+        "trailingTrimMs": 250,
+        "silenceDetection": {
+          "thresholdDbFS": -34,
+          "windowMs": 10,
+          "guardMs": 40,
+          "firstActiveMs": 270,
+          "lastActiveEndMs": 2210,
+          "max10msRmsAtMs": 1820
+        },
+        "decodedBoundaryCheck": {
+          "thresholdDbFS": -34,
+          "windowMs": 10,
+          "guardMs": 40,
+          "firstActiveMs": 40,
+          "lastActiveEndMs": 1970,
+          "max10msRmsAtMs": 1590
+        }
       },
       "label": "十七张牌你能秒我？",
       "sourceId": "seventeen-original",
       "verification": {
         "fullDecodePassed": true,
-        "browserDurationMs": 2500,
+        "finiteSamples": true,
+        "humanListeningPerformed": false,
         "acousticTranscript": ["十七張牌 你能瞄我"],
-        "method": "Local whisper.cpp v1.8.4, multilingual base-q5_1, no expected-text prompt. Corroboration with independent source mapping; not human listening.",
-        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
-        "humanListeningPerformed": false
+        "method": "Independent ASR without expected-text prompt, source mapping and complete PCM decode; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-refinement/audio-processing.json",
+        "browserDurationMs": null
+      },
+      "master": "artifacts/maintenance/v1.0.5/interaction-refinement/seventeen-master.wav",
+      "masterSha256": "53de986ae597e2d6ad609a0c34d9886d7ba6363541432e6a76352587941a15db",
+      "peakAfterDecode": 0.424417,
+      "rmsAfterDecode": 0.120227,
+      "method": "Original recording, complete phrase retained; no synthesized voice. Outer quiet/background floor measured before per-source threshold selection.",
+      "sourceIds": ["seventeen-original"],
+      "previous": {
+        "sha256": "3207c1ff6e7f1268a4fde8ca2d0196e84187d4c3f00e31a6c35445ed9dd55a28",
+        "bytes": 15644,
+        "durationMs": 2500,
+        "manifest": "artifacts/maintenance/v1.0.5/interaction-refinement/baseline/assets_platform_interaction_manifest.json",
+        "retainedRuntime": "artifacts/maintenance/v1.0.5/interaction-refinement/before/seventeen.mp3"
       }
     },
     {
       "id": "shameless",
       "file": "shameless.mp3",
-      "bytes": 26732,
-      "sha256": "3676af601484757ff44971553aac7d590a115f367f687015f15408c4f3902633",
-      "durationMs": 4352,
+      "bytes": 30476,
+      "sha256": "4e3f9d650038a351dc0e483095d2b2a01cb24a4c38495872386150c70c4292f8",
+      "durationMs": 4990,
       "codec": "MP3",
       "channels": 1,
       "sampleRate": 24000,
       "bitrate": 48000,
       "processing": {
-        "start": 0,
-        "duration": "complete",
-        "filter": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9"
+        "filters": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9",
+        "fadeMs": 5,
+        "trim": "Trim only outside first/last active10ms RMS window, retain30ms breathing/natural-decay guard. Per-source threshold above measured quiet/background floor; no internal pauses removed.",
+        "leadingTrimMs": 750,
+        "trailingTrimMs": 20,
+        "silenceDetection": {
+          "thresholdDbFS": -38,
+          "windowMs": 10,
+          "guardMs": 30,
+          "firstActiveMs": 780,
+          "lastActiveEndMs": 5710,
+          "max10msRmsAtMs": 2110
+        },
+        "decodedBoundaryCheck": {
+          "thresholdDbFS": -38,
+          "windowMs": 10,
+          "guardMs": 30,
+          "firstActiveMs": 30,
+          "lastActiveEndMs": 4960,
+          "max10msRmsAtMs": 1360
+        }
       },
       "label": "我从未见过如此厚颜无耻之人！",
-      "sourceId": "shameless-original",
+      "sourceId": "shameless-refinement-source-23",
       "verification": {
         "fullDecodePassed": true,
-        "browserDurationMs": 4352,
-        "acousticTranscript": ["我从未见过如此后言无齐之人"],
-        "method": "Local whisper.cpp v1.8.4, multilingual base-q5_1, no expected-text prompt. Corroboration with independent source mapping; not human listening.",
-        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
-        "humanListeningPerformed": false
+        "finiteSamples": true,
+        "humanListeningPerformed": false,
+        "acousticTranscript": ["我从未见我有如此耗言无尘之恩"],
+        "method": "Independent ASR without expected-text prompt, source mapping and complete PCM decode; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-refinement/audio-processing.json",
+        "browserDurationMs": null
+      },
+      "master": "artifacts/maintenance/v1.0.5/interaction-refinement/shameless-master.wav",
+      "masterSha256": "f7e5c352dcbf8969432fb8e1b66c8c26c91c28de7ea7a7ad39ecb0ace200c466",
+      "peakAfterDecode": 0.393681,
+      "rmsAfterDecode": 0.132429,
+      "method": "Actual official1994 source recording. ASR +waveform positioning only; no human listening claim. End54.28 excludes next speaker onset near54.34; original speech includes 有如此, preserve source wording.",
+      "sourceIds": ["shameless-refinement-source-23"],
+      "previous": {
+        "sha256": "3676af601484757ff44971553aac7d590a115f367f687015f15408c4f3902633",
+        "bytes": 26732,
+        "durationMs": 4352,
+        "manifest": "artifacts/maintenance/v1.0.5/interaction-refinement/baseline/assets_platform_interaction_manifest.json",
+        "retainedRuntime": "artifacts/maintenance/v1.0.5/interaction-refinement/before/shameless.mp3"
       }
     },
     {
       "id": "friendly",
       "file": "friendly.mp3",
-      "bytes": 13772,
-      "sha256": "b00bea0202e34d7de653f76c78ae5459dd457d44e6a4f98454e8bd1e2185863f",
-      "durationMs": 2204,
+      "bytes": 13340,
+      "sha256": "78d22e69ef8de7bfaf32123e5b6efc63988dad6e838c5a0f1d009a07c437a407",
+      "durationMs": 2120,
       "codec": "MP3",
       "channels": 1,
       "sampleRate": 24000,
       "bitrate": 48000,
       "processing": {
-        "start": 0,
-        "duration": "complete",
-        "filter": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9"
+        "filters": "highpass=f=70,lowpass=f=10000,loudnorm=I=-18:TP=-2:LRA=9",
+        "fadeMs": 5,
+        "trim": "Trim only outside first/last active10ms RMS window, retain25ms breathing/natural-decay guard. Per-source threshold above measured quiet/background floor; no internal pauses removed.",
+        "leadingTrimMs": 65,
+        "trailingTrimMs": 19.125,
+        "silenceDetection": {
+          "thresholdDbFS": -42,
+          "windowMs": 10,
+          "guardMs": 25,
+          "firstActiveMs": 90,
+          "lastActiveEndMs": 2160,
+          "max10msRmsAtMs": 900
+        },
+        "decodedBoundaryCheck": {
+          "thresholdDbFS": -42,
+          "windowMs": 10,
+          "guardMs": 25,
+          "firstActiveMs": 20,
+          "lastActiveEndMs": 2100,
+          "max10msRmsAtMs": 840
+        }
       },
       "label": "主公，别开枪，自己人",
       "sourceId": "friendly-original",
       "verification": {
         "fullDecodePassed": true,
-        "browserDurationMs": 2204,
-        "acousticTranscript": ["主公別開槍", "自己人"],
-        "method": "Local whisper.cpp v1.8.4, multilingual base-q5_1, no expected-text prompt. Corroboration with independent source mapping; not human listening.",
-        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
-        "humanListeningPerformed": false
+        "finiteSamples": true,
+        "humanListeningPerformed": false,
+        "acousticTranscript": ["主公別開槍自己人"],
+        "method": "Independent ASR without expected-text prompt, source mapping and complete PCM decode; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-refinement/audio-processing.json",
+        "browserDurationMs": null
+      },
+      "master": "artifacts/maintenance/v1.0.5/interaction-refinement/friendly-master.wav",
+      "masterSha256": "6386f19901a0f9af6aac2ddb32d10880103918f9fa8cda58e4eab286dc1bbad0",
+      "peakAfterDecode": 0.582771,
+      "rmsAfterDecode": 0.111138,
+      "method": "Original recording, complete phrase retained; no synthesized voice. Outer quiet/background floor measured before per-source threshold selection.",
+      "sourceIds": ["friendly-original"],
+      "previous": {
+        "sha256": "b00bea0202e34d7de653f76c78ae5459dd457d44e6a4f98454e8bd1e2185863f",
+        "bytes": 13772,
+        "durationMs": 2204,
+        "manifest": "artifacts/maintenance/v1.0.5/interaction-refinement/baseline/assets_platform_interaction_manifest.json",
+        "retainedRuntime": "artifacts/maintenance/v1.0.5/interaction-refinement/before/friendly.mp3"
       }
     }
   ],
@@ -164,143 +356,413 @@
     {
       "id": "egg",
       "file": "egg.mp3",
-      "durationMs": 4000,
-      "bytes": 24572,
-      "sha256": "4667416c9f43f4f99590995bc38af1d5e6ec4bb62e825414f0aa36fbd5cc72a3",
+      "durationMs": 3380,
+      "bytes": 20828,
+      "sha256": "227c8a0d51ad85a06c006c125133a7250c01ce464592e224ddad52d0115c352b",
       "codec": "MP3",
       "channels": 1,
       "sampleRate": 24000,
       "bitrate": 48000,
-      "master": "artifacts/maintenance/v1.0.5/interaction-assets/egg-composition-master.wav",
-      "masterSha256": "7f5a81b1685cecad9bf7801bdc074b0756a2dee9344289d5b12cc7b1327b86be",
-      "peakAfterDecode": 0.8631595373153687,
-      "rmsAfterDecode": 0.0968478466749792,
-      "processing": "Mono24kHz48kbps MP3; highpass55Hz/lowpass10kHz; loudnorm -20LUFS/-2dBTP; 4second combination timeline preserved; 150ms fadeout.",
+      "master": "artifacts/maintenance/v1.0.5/interaction-refinement/egg-master.wav",
+      "masterSha256": "e9031bab0a9c8b2943e0d58dff0a63b75e2a1621dbf16b0833efa1aae67f09c8",
+      "peakAfterDecode": 0.777391,
+      "rmsAfterDecode": 0.090182,
+      "processing": {
+        "filters": "highpass=f=55,lowpass=f=10000,loudnorm=I=-20:TP=-2:LRA=11",
+        "fadeMs": 5,
+        "trim": "Trim only outside first/last active10ms RMS window, retain20ms breathing/natural-decay guard. Per-source threshold above measured quiet/background floor; no internal pauses removed.",
+        "leadingTrimMs": 0,
+        "trailingTrimMs": 185.333,
+        "silenceDetection": {
+          "thresholdDbFS": -48,
+          "windowMs": 10,
+          "guardMs": 20,
+          "firstActiveMs": 10,
+          "lastActiveEndMs": 3360,
+          "max10msRmsAtMs": 3210
+        },
+        "decodedBoundaryCheck": {
+          "thresholdDbFS": -48,
+          "windowMs": 10,
+          "guardMs": 20,
+          "firstActiveMs": 10,
+          "lastActiveEndMs": 3370,
+          "max10msRmsAtMs": 2860
+        }
+      },
       "sourceIds": [
         "egg1-original",
         "egg2-original",
         "shoe1-original",
-        "shoe2-original"
+        "shoe2-original",
+        "egg-refinement-source-24",
+        "egg-refinement-source-25"
       ],
-      "timelineMs": [420, 600, 780, 1470, 1650, 1830, 2640, 2990],
-      "method": "Unmodified FreeKill decoded source sounds sequenced around the two egg waves and slipper finale.",
+      "timelineMs": [208, 388, 568, 1258, 1438, 1618, 2780, 3130],
+      "method": "FreeKill/Sanguosha-style6egg +2slipper combination. All source sounds atempo1.2; source launch and impact clips retained; no synthesized noise.",
       "verification": {
         "fullDecodePassed": true,
-        "browserDurationMs": 4000,
+        "finiteSamples": true,
+        "humanListeningPerformed": false,
         "acousticTranscript": null,
-        "method": "Complete final audio decode; non-silent waveform, peak and RMS checked. Original recorded foley or deterministic authored foley.",
-        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
-        "humanListeningPerformed": false
-      }
+        "method": "Independent ASR without expected-text prompt, source mapping and complete PCM decode; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-refinement/audio-processing.json",
+        "browserDurationMs": null
+      },
+      "previous": {
+        "sha256": "4667416c9f43f4f99590995bc38af1d5e6ec4bb62e825414f0aa36fbd5cc72a3",
+        "bytes": 24572,
+        "durationMs": 4000,
+        "manifest": "artifacts/maintenance/v1.0.5/interaction-refinement/baseline/assets_platform_interaction_manifest.json",
+        "retainedRuntime": "artifacts/maintenance/v1.0.5/interaction-refinement/before/egg.mp3"
+      },
+      "steps": [
+        {
+          "object": "egg",
+          "atMs": 0,
+          "hitMs": 208
+        },
+        {
+          "object": "egg",
+          "atMs": 180,
+          "hitMs": 388
+        },
+        {
+          "object": "egg",
+          "atMs": 360,
+          "hitMs": 568
+        },
+        {
+          "object": "egg",
+          "atMs": 1050,
+          "hitMs": 1258
+        },
+        {
+          "object": "egg",
+          "atMs": 1230,
+          "hitMs": 1438
+        },
+        {
+          "object": "egg",
+          "atMs": 1410,
+          "hitMs": 1618
+        },
+        {
+          "object": "slipper",
+          "atMs": 2200,
+          "hitMs": 2780
+        },
+        {
+          "object": "slipper",
+          "atMs": 2550,
+          "hitMs": 3130
+        }
+      ]
     },
     {
       "id": "cappuccino",
       "file": "cappuccino.mp3",
-      "durationMs": 4000,
-      "bytes": 24572,
-      "sha256": "a2e14b6eea2de1b140d875bcc20489664d12c3bfdb659090e5a413f36d284f33",
+      "durationMs": 3090,
+      "bytes": 19100,
+      "sha256": "2953a1413419365eb3486856fa720774b5584819eef50a8eab5dd2cec5695243",
       "codec": "MP3",
       "channels": 1,
       "sampleRate": 24000,
       "bitrate": 48000,
-      "master": "artifacts/maintenance/v1.0.5/interaction-assets/cappuccino-composition-master.wav",
-      "masterSha256": "591a60593ad3cf5967eb45d1fee847f671fccf18c6c04b0b1017531018c17163",
-      "peakAfterDecode": 0.31295180320739746,
-      "rmsAfterDecode": 0.07664725113124436,
-      "processing": "Mono24kHz48kbps MP3; highpass55Hz/lowpass10kHz; loudnorm -20LUFS/-2dBTP; 4second combination timeline preserved; 150ms fadeout.",
-      "sourceIds": ["cappuccino-video-original"],
+      "master": "artifacts/maintenance/v1.0.5/interaction-refinement/cappuccino-master.wav",
+      "masterSha256": "38e8c3f0fb5998779746d026646926f1efd1e1a231c0d89ce5c1bfbbc666bbe3",
+      "peakAfterDecode": 0.306527,
+      "rmsAfterDecode": 0.087152,
+      "processing": {
+        "filters": "highpass=f=55,lowpass=f=10000,loudnorm=I=-20:TP=-2:LRA=11",
+        "fadeMs": 5,
+        "trim": "Trim only outside first/last active10ms RMS window, retain20ms breathing/natural-decay guard. Per-source threshold above measured quiet/background floor; no internal pauses removed.",
+        "leadingTrimMs": 30,
+        "trailingTrimMs": 880,
+        "silenceDetection": {
+          "thresholdDbFS": -48,
+          "windowMs": 10,
+          "guardMs": 20,
+          "firstActiveMs": 50,
+          "lastActiveEndMs": 3100,
+          "max10msRmsAtMs": 1400
+        },
+        "decodedBoundaryCheck": {
+          "thresholdDbFS": -48,
+          "windowMs": 10,
+          "guardMs": 20,
+          "firstActiveMs": 20,
+          "lastActiveEndMs": 3070,
+          "max10msRmsAtMs": 1370
+        }
+      },
+      "sourceIds": [
+        "cappuccino-video-original",
+        "cappuccino-refinement-source-26"
+      ],
       "quoteStart": 86.1,
       "quoteDuration": 3.05,
-      "method": "Original recorded streamer quote plus original deterministic pouring-water foley (filtered noise, bubbles, amplitude envelope; no synthesized speech).",
+      "method": "Preserve original2017 streamer quote and current pour combination; trim outer quiet only.",
       "verification": {
         "fullDecodePassed": true,
-        "browserDurationMs": 4000,
-        "acousticTranscript": ["給阿姨倒意杯咖啡廳喔!"],
-        "method": "Local whisper.cpp v1.8.4, multilingual base-q5_1, no expected-text prompt. Corroboration with independent source mapping; not human listening.",
-        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
-        "humanListeningPerformed": false
-      }
+        "finiteSamples": true,
+        "humanListeningPerformed": false,
+        "acousticTranscript": ["給阿姨到一杯咖啡廳"],
+        "method": "Independent ASR without expected-text prompt, source mapping and complete PCM decode; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-refinement/audio-processing.json",
+        "browserDurationMs": null
+      },
+      "previous": {
+        "sha256": "a2e14b6eea2de1b140d875bcc20489664d12c3bfdb659090e5a413f36d284f33",
+        "bytes": 24572,
+        "durationMs": 4000,
+        "manifest": "artifacts/maintenance/v1.0.5/interaction-refinement/baseline/assets_platform_interaction_manifest.json",
+        "retainedRuntime": "artifacts/maintenance/v1.0.5/interaction-refinement/before/cappuccino.mp3"
+      },
+      "steps": [
+        {
+          "object": "cappuccino",
+          "atMs": 0,
+          "hitMs": 620
+        }
+      ],
+      "timelineMs": [620],
+      "pourAtMs": 620
     },
     {
       "id": "tomato",
       "file": "tomato.mp3",
-      "durationMs": 4000,
-      "bytes": 24572,
-      "sha256": "1fd8ada3e360282c758a27d7262c162e66e5cd1dda8735cffcfbfda0d8df773f",
+      "durationMs": 2710,
+      "bytes": 16796,
+      "sha256": "c48a12d303df1644bb7767a1edec77969023919005e77363baf6aa355c6abbbc",
       "codec": "MP3",
       "channels": 1,
       "sampleRate": 24000,
       "bitrate": 48000,
-      "master": "artifacts/maintenance/v1.0.5/interaction-assets/tomato-composition-master.wav",
-      "masterSha256": "d6829b54c38bf18f457e55c0ebfd06a28ca540b7794e72fdecf9db71a714d454",
-      "peakAfterDecode": 0.7620627880096436,
-      "rmsAfterDecode": 0.07907253702901736,
-      "processing": "Mono24kHz48kbps MP3; highpass55Hz/lowpass10kHz; loudnorm -20LUFS/-2dBTP; 4second combination timeline preserved; 150ms fadeout.",
-      "sourceIds": [],
-      "timelineMs": [400, 720, 1120, 1670, 2080, 2670],
-      "method": "Original deterministic wet splat foley: transient bandlimited noise, decaying low resonant chirps and bubbles; seed100–105.",
+      "master": "artifacts/maintenance/v1.0.5/interaction-refinement/tomato-master.wav",
+      "masterSha256": "cad0b8ba4bfcd0cf0ee985c1a2adc49008bd14622c87bc52a7bda9cd32ac84d7",
+      "peakAfterDecode": 0.700635,
+      "rmsAfterDecode": 0.047515,
+      "processing": {
+        "filters": "highpass=f=55,lowpass=f=10000,loudnorm=I=-20:TP=-2:LRA=11",
+        "fadeMs": 5,
+        "trim": "Trim only outside first/last active10ms RMS window, retain20ms breathing/natural-decay guard. Per-source threshold above measured quiet/background floor; no internal pauses removed.",
+        "leadingTrimMs": 0,
+        "trailingTrimMs": 177.875,
+        "silenceDetection": {
+          "thresholdDbFS": -48,
+          "windowMs": 10,
+          "guardMs": 20,
+          "firstActiveMs": 10,
+          "lastActiveEndMs": 2690,
+          "max10msRmsAtMs": 860
+        },
+        "decodedBoundaryCheck": {
+          "thresholdDbFS": -48,
+          "windowMs": 10,
+          "guardMs": 20,
+          "firstActiveMs": 10,
+          "lastActiveEndMs": 2690,
+          "max10msRmsAtMs": 860
+        }
+      },
+      "sourceIds": [
+        "tomato-refinement-source-27",
+        "egg-refinement-source-24",
+        "egg-refinement-source-25"
+      ],
+      "timelineMs": [410, 810, 1210, 1760],
+      "method": "Genuine recorded Foley, no generated noise. HonorHunter, Tomato squish;wet.wav,2015-04-25,CC0",
       "verification": {
         "fullDecodePassed": true,
-        "browserDurationMs": 4000,
+        "finiteSamples": true,
+        "humanListeningPerformed": false,
         "acousticTranscript": null,
-        "method": "Complete final audio decode; non-silent waveform, peak and RMS checked. Original recorded foley or deterministic authored foley.",
-        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
-        "humanListeningPerformed": false
-      }
+        "method": "Independent ASR without expected-text prompt, source mapping and complete PCM decode; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-refinement/audio-processing.json",
+        "browserDurationMs": null
+      },
+      "previous": {
+        "sha256": "1fd8ada3e360282c758a27d7262c162e66e5cd1dda8735cffcfbfda0d8df773f",
+        "bytes": 24572,
+        "durationMs": 4000,
+        "manifest": "artifacts/maintenance/v1.0.5/interaction-refinement/baseline/assets_platform_interaction_manifest.json",
+        "retainedRuntime": "artifacts/maintenance/v1.0.5/interaction-refinement/before/tomato.mp3"
+      },
+      "steps": [
+        {
+          "object": "tomato",
+          "atMs": 0,
+          "hitMs": 410
+        },
+        {
+          "object": "tomato",
+          "atMs": 400,
+          "hitMs": 810
+        },
+        {
+          "object": "tomato",
+          "atMs": 800,
+          "hitMs": 1210
+        },
+        {
+          "object": "tomato",
+          "atMs": 1350,
+          "hitMs": 1760
+        }
+      ]
     },
     {
       "id": "flower",
       "file": "flower.mp3",
-      "durationMs": 4000,
-      "bytes": 24572,
-      "sha256": "83fdb05c63e910773908bf360f22a16ae2b5a4c85c21fb3b28ce6f5eecbde3b8",
+      "durationMs": 3060,
+      "bytes": 18956,
+      "sha256": "9631741b730284f4be01a787f0e3be8f02b92289f8d5822dbbf9fca888bbae8a",
       "codec": "MP3",
       "channels": 1,
       "sampleRate": 24000,
       "bitrate": 48000,
-      "master": "artifacts/maintenance/v1.0.5/interaction-assets/flower-composition-master.wav",
-      "masterSha256": "54b06d6954c2ef162a365f45024b2c9d230199276e4b5e918e0fff60faa62978",
-      "peakAfterDecode": 0.500090479850769,
-      "rmsAfterDecode": 0.08154564126075962,
-      "processing": "Mono24kHz48kbps MP3; highpass55Hz/lowpass10kHz; loudnorm -20LUFS/-2dBTP; 4second combination timeline preserved; 150ms fadeout.",
-      "sourceIds": ["flower1-original", "flower2-original"],
-      "timelineMs": [400, 1100, 1850],
-      "method": "Unmodified FreeKill original gift sounds layered in three timed bursts.",
+      "master": "artifacts/maintenance/v1.0.5/interaction-refinement/flower-master.wav",
+      "masterSha256": "22b19a2e76b8fed1164ca5b74e6a8e42a3e4df0cdccc0c451cc9ecffdba6e31d",
+      "peakAfterDecode": 0.553259,
+      "rmsAfterDecode": 0.09225,
+      "processing": {
+        "filters": "highpass=f=55,lowpass=f=10000,loudnorm=I=-20:TP=-2:LRA=11",
+        "fadeMs": 5,
+        "trim": "Trim only outside first/last active10ms RMS window, retain20ms breathing/natural-decay guard. Per-source threshold above measured quiet/background floor; no internal pauses removed.",
+        "leadingTrimMs": 0,
+        "trailingTrimMs": 277.083,
+        "silenceDetection": {
+          "thresholdDbFS": -48,
+          "windowMs": 10,
+          "guardMs": 20,
+          "firstActiveMs": 10,
+          "lastActiveEndMs": 3040,
+          "max10msRmsAtMs": 1010
+        },
+        "decodedBoundaryCheck": {
+          "thresholdDbFS": -48,
+          "windowMs": 10,
+          "guardMs": 20,
+          "firstActiveMs": 10,
+          "lastActiveEndMs": 3040,
+          "max10msRmsAtMs": 1010
+        }
+      },
+      "sourceIds": [
+        "flower1-original",
+        "flower2-original",
+        "egg-refinement-source-24",
+        "egg-refinement-source-25"
+      ],
+      "timelineMs": [360, 810, 1310],
+      "method": "Original FreeKill launch+gift sounds,3flowers; preserve complete source gift chimes and natural decay.",
       "verification": {
         "fullDecodePassed": true,
-        "browserDurationMs": 4000,
+        "finiteSamples": true,
+        "humanListeningPerformed": false,
         "acousticTranscript": null,
-        "method": "Complete final audio decode; non-silent waveform, peak and RMS checked. Original recorded foley or deterministic authored foley.",
-        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
-        "humanListeningPerformed": false
-      }
+        "method": "Independent ASR without expected-text prompt, source mapping and complete PCM decode; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-refinement/audio-processing.json",
+        "browserDurationMs": null
+      },
+      "previous": {
+        "sha256": "83fdb05c63e910773908bf360f22a16ae2b5a4c85c21fb3b28ce6f5eecbde3b8",
+        "bytes": 24572,
+        "durationMs": 4000,
+        "manifest": "artifacts/maintenance/v1.0.5/interaction-refinement/baseline/assets_platform_interaction_manifest.json",
+        "retainedRuntime": "artifacts/maintenance/v1.0.5/interaction-refinement/before/flower.mp3"
+      },
+      "steps": [
+        {
+          "object": "flower",
+          "atMs": 0,
+          "hitMs": 360
+        },
+        {
+          "object": "flower",
+          "atMs": 450,
+          "hitMs": 810
+        },
+        {
+          "object": "flower",
+          "atMs": 950,
+          "hitMs": 1310
+        }
+      ]
     },
     {
       "id": "poop",
       "file": "poop.mp3",
-      "durationMs": 4000,
-      "bytes": 24572,
-      "sha256": "4171f88d676462e2ede302d57295990a4d2e88a60cecb5126e4ef736fdc82b25",
+      "durationMs": 1270,
+      "bytes": 8156,
+      "sha256": "7db3da0b4f8c563f770bdb1ed3b56d739b6f9b8835f17af24c9038858daf2e7b",
       "codec": "MP3",
       "channels": 1,
       "sampleRate": 24000,
       "bitrate": 48000,
-      "master": "artifacts/maintenance/v1.0.5/interaction-assets/poop-composition-master.wav",
-      "masterSha256": "9e8d94e0a30ac5112fa15a745685c40fcbdfa2b7a17b148533d2889435e27e70",
-      "peakAfterDecode": 0.755785346031189,
-      "rmsAfterDecode": 0.08028775483336693,
-      "processing": "Mono24kHz48kbps MP3; highpass55Hz/lowpass10kHz; loudnorm -20LUFS/-2dBTP; 4second combination timeline preserved; 150ms fadeout.",
-      "sourceIds": [],
-      "timelineMs": [480, 1050, 1670, 2270, 2970],
-      "method": "Original deterministic soft plop foley: filtered wet hit plus descending low resonant wobble, seeds200–204.",
+      "master": "artifacts/maintenance/v1.0.5/interaction-refinement/poop-master.wav",
+      "masterSha256": "1ee7c71a9efb1aa48ace9b972f7c922739ca7a89b652709be94c560ca9143095",
+      "peakAfterDecode": 0.736345,
+      "rmsAfterDecode": 0.061779,
+      "processing": {
+        "filters": "highpass=f=55,lowpass=f=10000,loudnorm=I=-20:TP=-2:LRA=11",
+        "fadeMs": 5,
+        "trim": "Trim only outside first/last active10ms RMS window, retain20ms breathing/natural-decay guard. Per-source threshold above measured quiet/background floor; no internal pauses removed.",
+        "leadingTrimMs": 0,
+        "trailingTrimMs": 187.458,
+        "silenceDetection": {
+          "thresholdDbFS": -48,
+          "windowMs": 10,
+          "guardMs": 20,
+          "firstActiveMs": 10,
+          "lastActiveEndMs": 1250,
+          "max10msRmsAtMs": 330
+        },
+        "decodedBoundaryCheck": {
+          "thresholdDbFS": -48,
+          "windowMs": 10,
+          "guardMs": 20,
+          "firstActiveMs": 20,
+          "lastActiveEndMs": 1250,
+          "max10msRmsAtMs": 1030
+        }
+      },
+      "sourceIds": [
+        "poop-refinement-source-28",
+        "egg-refinement-source-24",
+        "egg-refinement-source-25"
+      ],
+      "timelineMs": [330, 1030],
+      "method": "Genuine recorded Foley, no generated noise. GameDevSpence, Hard Splat SFX Videogame/video sound,2025-06-19,CC-BY4.0 https://creativecommons.org/licenses/by/4.0/; modification:slower0.85x,lowpass5kHz,sequencing,mono48kbps",
       "verification": {
         "fullDecodePassed": true,
-        "browserDurationMs": 4000,
+        "finiteSamples": true,
+        "humanListeningPerformed": false,
         "acousticTranscript": null,
-        "method": "Complete final audio decode; non-silent waveform, peak and RMS checked. Original recorded foley or deterministic authored foley.",
-        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/final-audio-verification.json",
-        "humanListeningPerformed": false
-      }
+        "method": "Independent ASR without expected-text prompt, source mapping and complete PCM decode; not human listening.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-refinement/audio-processing.json",
+        "browserDurationMs": null
+      },
+      "previous": {
+        "sha256": "4171f88d676462e2ede302d57295990a4d2e88a60cecb5126e4ef736fdc82b25",
+        "bytes": 24572,
+        "durationMs": 4000,
+        "manifest": "artifacts/maintenance/v1.0.5/interaction-refinement/baseline/assets_platform_interaction_manifest.json",
+        "retainedRuntime": "artifacts/maintenance/v1.0.5/interaction-refinement/before/poop.mp3"
+      },
+      "steps": [
+        {
+          "object": "poop",
+          "atMs": 0,
+          "hitMs": 330
+        },
+        {
+          "object": "poop",
+          "atMs": 700,
+          "hitMs": 1030
+        }
+      ]
     }
   ],
   "objects": [
@@ -371,16 +833,33 @@
     },
     {
       "id": "poop",
-      "file": "object-poop.svg",
-      "bytes": 1122,
-      "sha256": "69a290ea262767c220bf4d0c9ba7152c0b1922a15e829627f721a55a632c3234",
-      "dimensions": [128, 128],
+      "file": "object-poop.webp",
+      "bytes": 10484,
+      "sha256": "55186780f313b5640a4cc78dc5e1e6848488a2cf58326cbb457e0e2a44fc1ea3",
+      "dimensions": [256, 256],
       "transparent": true,
-      "sourceId": null,
-      "source": "TableMax original code-native SVG",
-      "processing": "Original vector paths, gradients, and highlights; transparent backdrop; no generated bitmap.",
-      "verification": "Browser decode and light/dark background visual review; no crop or edge halo observed; source sprites retained at native resolution.",
-      "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/objects-browser-verification.json"
+      "sourceId": "poop-emoji-generated-original",
+      "source": "Built-in imagegen, user-requested emoji illustration",
+      "processing": {
+        "resize": "256x256 RGBA with balanced transparent margins",
+        "derivationEvidence": "artifacts/maintenance/v1.0.5/interaction-refinement/imagegen/image-verification.json"
+      },
+      "verification": "Root visually reviewed 70/128/256px on cream, gray and dark backgrounds; alpha corners zero, clean antialiased edges.",
+      "evidence": "artifacts/maintenance/v1.0.5/interaction-refinement/imagegen/image-verification.json",
+      "previous": {
+        "id": "poop",
+        "file": "object-poop.svg",
+        "bytes": 1122,
+        "sha256": "69a290ea262767c220bf4d0c9ba7152c0b1922a15e829627f721a55a632c3234",
+        "dimensions": [128, 128],
+        "transparent": true,
+        "sourceId": null,
+        "source": "TableMax original code-native SVG",
+        "processing": "Original vector paths, gradients, and highlights; transparent backdrop; no generated bitmap.",
+        "verification": "Browser decode and light/dark background visual review; no crop or edge halo observed; source sprites retained at native resolution.",
+        "evidence": "artifacts/maintenance/v1.0.5/interaction-assets/objects-browser-verification.json",
+        "retainedOriginal": "artifacts/maintenance/v1.0.5/interaction-refinement/imagegen/object-poop-previous.svg"
+      }
     }
   ],
   "sources": [
@@ -573,6 +1052,96 @@
       "sha256": "7cd4ecc9d8097accaadca6eadc2b539ce7f90a679284dfea25ebcb53c3cac353",
       "acquiredAt": "2026-10-08",
       "note": "2017-07-26 recording/repost 给阿姨倒一杯卡布奇诺，答应我一定要看完; clip selected at86.1–89.15; acoustic transcript corroborates. Source video retained; screenshot shows the original streaming scene."
+    },
+    {
+      "id": "carry-refinement-source-22",
+      "file": "artifacts/maintenance/v1.0.5/interaction-refinement/sources/carry-context-vocals.wav",
+      "bytes": 1411244,
+      "sha256": "d7f6de0680f6645b787950e29b5643e4a2b023546cd6cdbe5f05f5cef08c56d4",
+      "url": "https://www.bilibili.com/video/BV1Nt411w7M2/?p=9",
+      "sourceVideo": "artifacts/maintenance/v1.0.5/interaction-assets/originals/carry-system-original.mp4",
+      "sourceVideoSha256": "e4cec0e76615eeda92f2934491f71ebbf16ce9bcfd860c9c606a28910839df5b",
+      "sourceStartSeconds": 560.45,
+      "sourceDurationSeconds": 1.55,
+      "separationRecord": "artifacts/maintenance/v1.0.5/interaction-refinement/carry-separation.json",
+      "modelSha256": "317554b07fe1ea5279a77f2b1520a41ea4b93432560c4ffd08792c30fddf9adc",
+      "acquiredAt": "2026-10-09"
+    },
+    {
+      "id": "shameless-refinement-source-23",
+      "file": "artifacts/maintenance/v1.0.5/interaction-refinement/sources/cctv-window.wav",
+      "bytes": 2031694,
+      "sha256": "3d92b1e1618877628774f1185d4e0b887bab6afcb4a5effa173dfc9927f68a23",
+      "url": "https://tv.cctv.com/2010/05/31/VIDE1355904509197793.shtml",
+      "edition": "1994央视版三国演义，第69集收姜维，诸葛亮唐国强",
+      "windowStartEpisodeSeconds": 2357.3200000000006,
+      "cutStartWithinWindowSeconds": 48.52,
+      "cutEndWithinWindowSeconds": 54.28,
+      "episodeCutStartSeconds": 2405.84,
+      "episodeCutEndSeconds": 2411.6,
+      "rawSegmentManifest": "artifacts/maintenance/v1.0.5/interaction-refinement/sources/cctv-window-segments.json",
+      "authorizationMetadata": "Official public unencrypted HLS; no authentication or protection bypass.",
+      "acquiredAt": "2026-10-09"
+    },
+    {
+      "id": "egg-refinement-source-24",
+      "file": "artifacts/maintenance/v1.0.5/interaction-refinement/sources/fly1-original.mp3",
+      "bytes": 5816,
+      "sha256": "861f68ec4d59c17c2a28b3e209e372e8a644b71eb245f6183d3d257ceda9b5ec",
+      "url": "https://raw.githubusercontent.com/Qsgs-Fans/FreeKill/v0.5.19/audio/system/fly1.mp3",
+      "version": "FreeKill v0.5.19",
+      "rights": "Community audiovisual copy; upstreamGPLv3 alone does not establish all third-party game rights.",
+      "acquiredAt": "2026-10-09"
+    },
+    {
+      "id": "egg-refinement-source-25",
+      "file": "artifacts/maintenance/v1.0.5/interaction-refinement/sources/fly2-original.mp3",
+      "bytes": 6652,
+      "sha256": "741821cd55de3acc9395ca417d49a50b90aedf29b0c3ed905790068dbdaa39ac",
+      "url": "https://raw.githubusercontent.com/Qsgs-Fans/FreeKill/v0.5.19/audio/system/fly2.mp3",
+      "version": "FreeKill v0.5.19",
+      "rights": "Community audiovisual copy; upstreamGPLv3 alone does not establish all third-party game rights.",
+      "acquiredAt": "2026-10-09"
+    },
+    {
+      "id": "cappuccino-refinement-source-26",
+      "file": "artifacts/maintenance/v1.0.5/interaction-assets/cappuccino-composition-master.wav",
+      "bytes": 192044,
+      "sha256": "591a60593ad3cf5967eb45d1fee847f671fccf18c6c04b0b1017531018c17163",
+      "priorProcessing": "Original streamer recording at50ms plus prior deterministic pouring Foley, not new recorded pour; preserve existing requested quote.",
+      "acquiredAt": "2026-10-09"
+    },
+    {
+      "id": "tomato-refinement-source-27",
+      "file": "artifacts/maintenance/v1.0.5/interaction-refinement/sources/tomato-recording-hq-preview.mp3",
+      "bytes": 27120,
+      "sha256": "8feb83dfab5fd71c7002fb8c7777a7e4c80d1e6b2b96a99ffc52e32a173101db",
+      "url": "https://freesound.org/people/HonorHunter/sounds/271666/",
+      "attribution": "HonorHunter, Tomato squish;wet.wav,2015-04-25,CC0",
+      "acquiredForm": "Public HQ MP3 preview derivative; login-gated original WAV not obtained.",
+      "recordingEvidence": "Hand-squished physical tomato",
+      "sourceFilters": null,
+      "acquiredAt": "2026-10-09"
+    },
+    {
+      "id": "poop-refinement-source-28",
+      "file": "artifacts/maintenance/v1.0.5/interaction-refinement/sources/cartoon-splat-recording-hq-preview.mp3",
+      "bytes": 8142,
+      "sha256": "1468752e38dcc0900e66aee180cd58ebe4cb1e1788a532b711dcb4f2e3cca79f",
+      "url": "https://freesound.org/people/GameDevSpence/sounds/812486/",
+      "attribution": "GameDevSpence, Hard Splat SFX Videogame/video sound,2025-06-19,CC-BY4.0 https://creativecommons.org/licenses/by/4.0/; modification:slower0.85x,lowpass5kHz,sequencing,mono48kbps",
+      "acquiredForm": "Public HQ MP3 preview derivative; login-gated original WAV not obtained.",
+      "recordingEvidence": "Author personally recorded layered mouth noises and chest thumps with Shure SM58/Maonocaster; soft cartoon organic plop, no claim of literal feces recording.",
+      "sourceFilters": "atempo=0.85,lowpass=f=5000",
+      "acquiredAt": "2026-10-09"
+    },
+    {
+      "id": "poop-emoji-generated-original",
+      "file": "artifacts/maintenance/v1.0.5/interaction-refinement/imagegen/poop-emoji-original.png",
+      "bytes": 1042225,
+      "sha256": "dec3220d4da362571eb541d928f2414c484c391460e09541128d1310a6f9d80e",
+      "source": "image_gen.imagegen",
+      "promptAndGeneration": "artifacts/maintenance/v1.0.5/interaction-refinement/imagegen/generation.json"
     }
   ],
   "sourceNotes": [
@@ -599,20 +1168,48 @@
     },
     {
       "source": "TableMax original",
-      "note": "Tomato, cappuccino, and poop SVG objects plus wet splat, pouring, and soft plop foley are original deterministic code-native assets; no generated or cloned speech."
+      "note": "Cappuccino/tomato SVG objects and existing pouring Foley remain code-native. Former tomato/poop generated Foley and poop SVG are retained only as prior-version evidence; current splats use recorded sources and poop uses generated emoji WebP."
+    },
+    {
+      "source": "GameDevSpence",
+      "title": "Hard Splat SFX Videogame/video sound",
+      "url": "https://freesound.org/people/GameDevSpence/sounds/812486/",
+      "license": "CC-BY4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "changes": "0.85x timing, low-pass5kHz, sequencing with launch sounds, normalization, outer silence trimming, mono24kHz48kbps MP3"
+    },
+    {
+      "source": "HonorHunter",
+      "title": "Tomato squish;wet.wav",
+      "url": "https://freesound.org/people/HonorHunter/sounds/271666/",
+      "license": "CC0",
+      "changes": "Sequencing with launch sounds, normalization, outer silence trimming, mono24kHz48kbps MP3"
+    },
+    {
+      "source": "1994央视版三国演义，第69集收姜维",
+      "url": "https://tv.cctv.com/2010/05/31/VIDE1355904509197793.shtml",
+      "note": "诸葛亮（唐国强）原台词；保留官方公开原音片段与定位证据，不把可访问性记为额外著作权授权。"
+    },
+    {
+      "source": "carry local separation",
+      "record": "artifacts/maintenance/v1.0.5/interaction-refinement/carry-separation.json",
+      "measurement": "artifacts/maintenance/v1.0.5/interaction-refinement/carry-background-measurement.json",
+      "note": "Verified MDX model and actual local CPU inference; reduced measured neighboring background energy, perceptual artifacts/residuals require human listening."
     }
   ],
   "verification": {
-    "date": "2026-10-08",
-    "audio": "All eleven final MP3s fully decoded. All six preset voices plus cappuccino independently transcribed without expected-text prompt; ASR homophone errors retained in evidence and compared with independent source mappings. Direct model audio input was unsupported, so no human listening claim.",
-    "objects": "All twelve light/dark previews loaded in local Edge; transparent original sprites and SVG drawings visually reviewed.",
+    "date": "2026-10-09",
+    "audio": "All11 MP3 fully decoded and finite; six speech voices and cappuccino independently transcribed without expected prompt. Browser decode/start observations are stored separately in final UI evidence; no human listening claim.",
+    "objects": "Generated emoji alpha and small-size light/dark composites visually reviewed. Actual runtime UI observations are stored separately in final UI evidence.",
     "runtimeNetworkDependencies": 0,
-    "importedIntoUi": false,
-    "voiceBytes": 94584,
-    "effectBytes": 122860,
-    "objectBytes": 14997,
-    "totalAssetBytes": 232441,
-    "evidence": "artifacts/maintenance/v1.0.5/interaction-assets"
+    "importedIntoUi": true,
+    "humanListeningPerformed": false,
+    "voiceBytes": 85800,
+    "effectBytes": 83836,
+    "objectBytes": 25481,
+    "totalAssetBytes": 195117,
+    "evidence": "artifacts/maintenance/v1.0.5/interaction-refinement",
+    "runtimeUiEvidence": "artifacts/maintenance/v1.0.5/interaction-refinement/ui/final/results.json"
   },
   "replacementContract": {
     "voiceIds": [
@@ -625,7 +1222,8 @@
     ],
     "effectIds": ["egg", "cappuccino", "tomato", "flower", "poop"],
     "objectIds": ["egg", "slipper", "tomato", "cappuccino", "flower", "poop"],
-    "duration": "durationMs is the final gapless PCM sample count after full MP3 decode; it is not an estimated source label. Four-second shots remain authored four-second combinations.",
+    "duration": "durationMs follows complete gapless decoded audio after measured outer silence trimming; projectile atMs/hitMs share the composed audio timeline. New events immediately replace old visuals/audio.",
     "scope": "Sources and originals are retained in audit artifacts; only runtime MP3, WebP, SVG and this manifest are needed during offline play."
-  }
+  },
+  "updatedAt": "2026-10-09"
 }

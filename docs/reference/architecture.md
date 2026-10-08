@@ -172,4 +172,4 @@ SDK `PublicEvent.action` 及首版历史可选记录真实行动者、动词、�
 
 此前 Electron 44 的 isolated zoom、utilityProcess 与 preload 属于旧实现；原交付证据保留，不作为新原生壳通过依据。迁移采用理由与重新验收责任见 [决策 008](../decisions/008-small-native-desktop.md)。
 
-共享互动配置／协议位于`packages/protocol/src/interactions.ts`及相邻JSON；服务内存队列在`apps/server/src/interactions.ts`，只使用房间身份与实例／分支上下文。`apps/web/src/interactions/`独立组装手势、透明显示和浏览器音频，原生互动桥接与游戏声音通道分离。游戏规则／会话存档不依赖互动素材或队列。
+共享互动配置／协议位于`packages/protocol/src/interactions.ts`及相邻JSON；服务即时派发在`apps/server/src/interactions.ts`，只使用房间身份与实例／分支上下文。`apps/web/src/interactions/`独立组装手势、透明显示和浏览器音频，原生互动桥接与游戏声音通道分离。游戏规则／会话存档不依赖互动素材或播放。

@@ -620,12 +620,12 @@ async function nativeMatrix() {
         mobile: false,
       });
       const trigger = page.getByRole('button', {
-        name: '显示设置',
+        name: /^(?:视频|显示)设置$/,
         exact: true,
       });
       await trigger.click();
       const dialog = page.getByRole('dialog', {
-        name: '显示设置',
+        name: /^(?:视频|显示)设置$/,
         exact: true,
       });
       await dialog
@@ -839,7 +839,7 @@ async function nativeMatrix() {
   );
   assert.equal(
     await phones[0].page
-      .getByRole('button', { name: '显示设置', exact: true })
+      .getByRole('button', { name: /^(?:视频|显示)设置$/, exact: true })
       .count(),
     0,
     'Phone never receives computer display settings',

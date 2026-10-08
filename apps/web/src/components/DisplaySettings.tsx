@@ -4,6 +4,8 @@ import type {
   DisplaySnapshot,
 } from '../../../desktop/src/display-types';
 import { OverlayPanel } from './OverlayPanel';
+import type { ScreenRole } from '../navigation';
+import { useInteractionPreference } from '../interactions/useInteractionPreference';
 import './display-settings.css';
 
 const resolutions = [
@@ -14,8 +16,17 @@ const resolutions = [
   ['3840x2160', '3840 × 2160 · 4K'],
 ] as const;
 
-export function DisplaySettings() {
+export function DisplaySettings({
+  role = location.pathname.startsWith('/host')
+    ? 'host'
+    : location.pathname.startsWith('/public')
+      ? 'public'
+      : 'player',
+}: {
+  role?: ScreenRole;
+}) {
   const bridge = window.tablemaxDisplay;
+  const [blocked, setBlocked] = useInteractionPreference(role);
   const [open, setOpen] = useState(false);
   const [snapshot, setSnapshot] = useState<DisplaySnapshot | null>(null);
   const [busy, setBusy] = useState(false);
@@ -39,12 +50,11 @@ export function DisplaySettings() {
       unsubscribe();
     };
   }, [bridge]);
-  if (!bridge) return null;
   const update = async (preferences: DisplayPreferences) => {
     setBusy(true);
     setError('');
     try {
-      setSnapshot(await bridge.update(preferences));
+      setSnapshot(await bridge!.update(preferences));
     } catch {
       setError('显示设置未保存，请重试。');
     } finally {
@@ -56,11 +66,11 @@ export function DisplaySettings() {
       <button
         type="button"
         className="secondary icon-label-control display-settings-control"
-        aria-label="显示设置"
-        title="显示设置"
+        aria-label="视频设置"
+        title="视频设置"
         onClick={() => {
           setOpen(true);
-          if (!snapshot)
+          if (bridge && !snapshot)
             void bridge.read().then(
               (value) => {
                 setSnapshot(value);
@@ -89,10 +99,25 @@ export function DisplaySettings() {
             strokeLinecap="round"
           />
         </svg>
-        <span>显示设置</span>
+        <span>视频设置</span>
       </button>
       {open && (
-        <OverlayPanel title="显示设置" close={() => setOpen(false)}>
+        <OverlayPanel title="视频设置" close={() => setOpen(false)}>
+          <div className="display-settings-choice interaction-video-setting">
+            <button
+              type="button"
+              className="secondary"
+              aria-pressed={blocked}
+              onClick={() => setBlocked(!blocked)}
+            >
+              {blocked ? '恢复互动特效' : '禁用互动特效'}
+            </button>
+            <p className="display-settings-hint">
+              {blocked
+                ? '本端互动动画、发言和声音已关闭。'
+                : '本端显示互动动画、发言并播放声音。'}
+            </p>
+          </div>
           {error && (
             <p className="display-settings-error" role="alert">
               {error}
@@ -190,7 +215,7 @@ export function DisplaySettings() {
               </p>
             </div>
           ) : (
-            !error && <p role="status">正在读取显示设置…</p>
+            bridge && !error && <p role="status">正在读取显示设置…</p>
           )}
         </OverlayPanel>
       )}

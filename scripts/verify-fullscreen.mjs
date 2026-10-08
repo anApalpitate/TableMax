@@ -181,7 +181,9 @@ try {
     operation: 'menu-fullscreen',
   });
   await until(host, true);
-  await host.getByRole('button', { name: '显示设置', exact: true }).click();
+  await host
+    .getByRole('button', { name: /^(?:视频|显示)设置$/, exact: true })
+    .click();
   await host.keyboard.press('Escape');
   await host.locator('dialog[open]').waitFor({ state: 'hidden' });
   await until(host, true);

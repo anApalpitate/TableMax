@@ -381,7 +381,7 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
           <DecisionCountdown view={view} connected={connected} compact />
         )}
         {role !== 'player' && <FullscreenControl />}
-        {role !== 'player' && <DisplaySettings />}
+        <DisplaySettings role={role} />
         <div className="pg-toolbar-tools">
           <PlayModeBadge mode={view?.playMode} />
           {role !== 'player' && (

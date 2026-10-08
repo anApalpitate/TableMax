@@ -26,3 +26,18 @@ export function normalizedInteractionPoint(
     y: Math.max(0, Math.min(1, y / Math.max(1, height))),
   };
 }
+
+export function clampInteractionOrb(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  margin = 30,
+) {
+  const horizontal = Math.min(margin, width / 2);
+  const vertical = Math.min(margin, height / 2);
+  return {
+    x: Math.max(horizontal, Math.min(width - horizontal, x)),
+    y: Math.max(vertical, Math.min(height - vertical, y)),
+  };
+}

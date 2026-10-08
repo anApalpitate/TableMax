@@ -335,10 +335,16 @@ async function capture(page, name) {
   });
 }
 async function settings(page) {
-  const trigger = page.getByRole('button', { name: '显示设置', exact: true });
+  const trigger = page.getByRole('button', {
+    name: /^(?:视频|显示)设置$/,
+    exact: true,
+  });
   assert.equal(await trigger.count(), 1);
   await trigger.click();
-  const dialog = page.getByRole('dialog', { name: '显示设置', exact: true });
+  const dialog = page.getByRole('dialog', {
+    name: /^(?:视频|显示)设置$/,
+    exact: true,
+  });
   await dialog.waitFor();
   assert.equal(
     await dialog.evaluate((panel) => panel.contains(document.activeElement)),
@@ -613,10 +619,9 @@ try {
       const phone = await openPhone(index);
       phones.push(phone);
       assert.equal(
-        await phone
-          .getByRole('button', { name: '显示设置', exact: true })
-          .count(),
-        0,
+        await phone.evaluate(() => typeof window.tablemaxDisplay),
+        'undefined',
+        'Browser video settings never expose native computer display privileges',
       );
       await phone
         .getByLabel('你的昵称')
@@ -636,11 +641,9 @@ try {
     const publicPage = await openPublic(host);
     const plainPublic = await openPhone(7, `${origin}/public`);
     assert.equal(
-      await plainPublic
-        .getByRole('button', { name: '显示设置', exact: true })
-        .count(),
-      0,
-      'A web browser public page without the native bridge has no computer display control',
+      await plainPublic.evaluate(() => typeof window.tablemaxDisplay),
+      'undefined',
+      'Browser video settings never expose native computer display privileges',
     );
     const phoneBefore = await nativeState(phones[0]);
     for (const [width, height] of sizes) {
@@ -752,10 +755,9 @@ try {
         .click();
       await phone.locator('.confirm-action').click();
       assert.equal(
-        await phone
-          .getByRole('button', { name: '显示设置', exact: true })
-          .count(),
-        0,
+        await phone.evaluate(() => typeof window.tablemaxDisplay),
+        'undefined',
+        'Browser video settings never expose native computer display privileges',
       );
     }
     await until(
@@ -982,7 +984,7 @@ try {
       );
     }
     evidence.checks.push(
-      'Both computer game routes show all 36 cards at all four resolutions; 100/125/150% alter native zoom immediately, dialog close/Escape returns focus, settings survive reload and actual restart, host/public preferences are independent, and player routes have no setting button or zoom change.',
+      'Both computer game routes show all 36 cards at all four resolutions; 100/125/150% alter native zoom immediately, dialog close/Escape returns focus, settings survive reload and actual restart, host/public preferences are independent, and browser video settings have no native display privilege or zoom change.',
     );
     evidence.checks.push(
       'Native 150% display density simulation retains first-screen six-player geometry and records actual devicePixelRatio/zoom and screenshot dimensions; this is renderer simulation, not a physical display test.',

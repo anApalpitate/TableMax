@@ -66,4 +66,4 @@ rg -n '公开竞价|debug' docs/archive/acceptance-2026-10-01-to-04.md
 
 收尾安全维护、手动清理和无损压缩均从 [开发环境](reference/development.md#清理本地中间物)进入；按预览和保护范围执行，不按 Git 忽略规则批量删除资料。桌面运行时前提与双 100 MB 门禁见 [小体积桌面决策](decisions/008-small-native-desktop.md)。
 
-跨游戏互动、队列和身份边界见[平台规格](reference/phase-02-platform-spec.md#跨游戏互动v1052026-10-08)，本地素材来源见[互动清单](../assets/platform/interaction/manifest.json)。
+跨游戏互动、覆盖播放和身份边界见[平台规格](reference/phase-02-platform-spec.md#跨游戏互动v1052026-10-08)，本地素材来源见[互动清单](../assets/platform/interaction/manifest.json)。

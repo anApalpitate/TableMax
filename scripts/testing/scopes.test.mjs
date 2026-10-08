@@ -135,6 +135,7 @@ test('batch scope validates the entire matrix and real game selectors before any
   for (const script of [
     'scripts/verify-player-display.mjs',
     'scripts/verify-rules-guides.mjs',
+    'scripts/verify-interactions.mjs',
   ]) {
     assert.doesNotThrow(() =>
       validateBatchScope(
@@ -209,6 +210,68 @@ test('batch scope validates the entire matrix and real game selectors before any
   );
   assert.doesNotThrow(() =>
     validateBatchScope(plan(item('unknown.mjs')), 'full'),
+  );
+});
+
+test('interaction verifier limits box and single-game checks without accepting mixed filters', () => {
+  assert.doesNotThrow(() =>
+    validateBatchScope(
+      plan(item('scripts/verify-interactions.mjs', ['--shot-visuals'])),
+      'box,shared',
+    ),
+  );
+  assert.throws(
+    () =>
+      validateBatchScope(
+        plan(item('scripts/verify-interactions.mjs', ['--shot-visuals'])),
+        'game:modern-art',
+      ),
+    /outside/,
+  );
+  assert.throws(
+    () =>
+      validateBatchScope(
+        plan(
+          item('scripts/verify-interactions.mjs', [
+            '--shot-visuals',
+            '--box-only',
+          ]),
+        ),
+        'full',
+      ),
+    /mutually exclusive/,
+  );
+  assert.doesNotThrow(() =>
+    validateBatchScope(
+      plan(item('scripts/verify-interactions.mjs', ['--box-only'])),
+      'box',
+    ),
+  );
+  assert.throws(
+    () =>
+      validateBatchScope(plan(item('scripts/verify-interactions.mjs')), 'box'),
+    /outside/,
+  );
+  assert.throws(
+    () =>
+      validateBatchScope(
+        plan(item('scripts/verify-interactions.mjs', ['--game=power-grid'])),
+        'game:modern-art',
+      ),
+    /outside/,
+  );
+  assert.throws(
+    () =>
+      validateBatchScope(
+        plan(
+          item('scripts/verify-interactions.mjs', [
+            '--box-only',
+            '--game=modern-art',
+          ]),
+        ),
+        'full',
+      ),
+    /mutually exclusive/,
   );
 });
 

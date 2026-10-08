@@ -31,7 +31,7 @@ import { openFoundationDatabase } from './database';
 import { NetworkDirectory } from './network-directory';
 import { normalizeAvatar, AVATAR_HTTP_LIMIT } from './avatar-images';
 import { NetworkSettings, normalizeUrl } from './network-settings';
-import { InteractionQueue } from './interactions';
+import { InteractionDispatcher } from './interactions';
 
 export async function createService(
   input: ServiceConfig,
@@ -132,7 +132,7 @@ export async function createService(
     }
     return seats;
   };
-  const interactions = new InteractionQueue(room, (event) => {
+  const interactions = new InteractionDispatcher(room, (event) => {
     for (const socket of sockets.sockets.sockets.values()) {
       try {
         room.identity(socket.data.credential as string | undefined);

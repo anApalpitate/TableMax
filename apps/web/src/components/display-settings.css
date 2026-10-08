@@ -2,6 +2,18 @@
   flex: 0 0 auto;
   font-size: 18px;
 }
+.interaction-video-setting {
+  margin-bottom: 14px;
+}
+.dialog-surface .interaction-video-setting button {
+  min-height: 48px;
+  width: 100%;
+  font-size: 18px;
+}
+.interaction-video-setting button[aria-pressed='true'] {
+  background: #f9ded9;
+  color: #953e37;
+}
 .display-settings-fields {
   display: grid;
   gap: 14px;

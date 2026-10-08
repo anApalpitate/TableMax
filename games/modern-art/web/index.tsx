@@ -160,7 +160,7 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
           {connected ? '本地已连接' : '正在连接'}
         </span>
         <FullscreenControl />
-        {role !== 'player' && <DisplaySettings />}
+        <DisplaySettings role={role} />
         {role !== 'player' && (
           <PaintingSortControl
             value={collectionSort}

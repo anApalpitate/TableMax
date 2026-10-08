@@ -3,6 +3,7 @@ import {
   interactionSector,
   normalizedInteractionPoint,
   interactionWheel,
+  clampInteractionOrb,
 } from './model';
 it('provides six equal sectors with a cancellation hole, outside and every direction reachable', () => {
   expect(interactionWheel).toHaveLength(6);
@@ -14,6 +15,17 @@ it('provides six equal sectors with a cancellation hole, outside and every direc
       index,
     );
   }
+});
+it('keeps a dragged orb and its centered open wheel inside resized viewports', () => {
+  expect(clampInteractionOrb(-50, 1000, 320, 568)).toEqual({ x: 30, y: 538 });
+  expect(clampInteractionOrb(290, 538, 320, 568, 138)).toEqual({
+    x: 182,
+    y: 430,
+  });
+  expect(clampInteractionOrb(100, 100, 200, 220, 138)).toEqual({
+    x: 100,
+    y: 110,
+  });
 });
 it('maps clicks to viewport proportions independently of display size and clamps edge coordinates', () => {
   expect(normalizedInteractionPoint(80, 142, 320, 568)).toEqual({

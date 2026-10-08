@@ -1,5 +1,13 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.5 互动精修收尾（2026-10-09）
+
+本轮运行ZIP40,851,905字节、实际解压94,333,009字节，同包原生／浏览器互动检查及精准补拍通过；旧同版ZIP和清单保留在`artifacts/maintenance/v1.0.5/interaction-refinement/delivery-before-refinement/`，原素材、来源、失败及当前验收截图保留。互动媒体195,117字节；没有推送或GitHub Release。
+
+全部工程应用退出后，`Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0`先预览再Apply，退役已完成打包副本229,573,074字节，releases只留当前运行ZIP和清单。随后按默认30分钟保护执行`Maintain-Project.ps1 -Apply`，两项已知隔离验证副本退役227,957,462字节；两者是审计退役量，不冒充工作区净降幅。所有清理记录[原样集中归档](../../artifacts/maintenance/cleanup-history/operations/interaction-refinement-20261009-directory-move.json)，逐文件字节／SHA核验并更新索引，目录移动不计空间节省。
+
+[维护最终实测](../../artifacts/maintenance/v1.0.5/interaction-refinement/checks/maintenance-apply.log)为15,146,704,131逻辑字节（约14.106GiB），219项保护／用途待确认内容跳过、1,370链接跳过，零嵌套仓库，结果candidates-exhausted。仍超过10GiB，已耗尽安全候选，未扩大清理范围或以NTFS物理节省替代逻辑门槛；原资料、正式存档、依赖／工具缓存、当前包及审计原件继续保留。后续文字与Git写入会略增，此值仅对应实测时点。
+
 ## v1.0.5 本地交付与安全维护（2026-10-08）
 
 v1.0.5实际ZIP40,857,197字节／解压94,363,202字节，120MB硬上限与114MB预算通过。头像轻度派生节省151,238字节，40无损FLAC节省711,478字节，互动媒体232,441字节；原素材、原WAV、来源及失败证据保留。[历史v1.0.4四文件](../../artifacts/maintenance/v1.0.5/previous-delivery/preserved.json)逐文件大小／SHA核验后另存，再按Clean-Releases预览／Apply退役releases副本，共100,647,197字节，当前目录只留v1.0.5运行ZIP和清单。新打包暂存尚受近期保护，原样迁入维护证据目录并逐文件复核，不作为删除或空间节省。

@@ -587,8 +587,13 @@ async function introduction(page, gameId, label) {
   await page.keyboard.press('Escape');
 }
 async function chooseScale(page, percent) {
-  await page.getByRole('button', { name: '显示设置', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: '显示设置', exact: true });
+  await page
+    .getByRole('button', { name: /^(?:视频|显示)设置$/, exact: true })
+    .click();
+  const dialog = page.getByRole('dialog', {
+    name: /^(?:视频|显示)设置$/,
+    exact: true,
+  });
   const select = dialog.getByLabel('界面大小', { exact: true });
   const options = await select
     .locator('option')

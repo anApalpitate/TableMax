@@ -17,9 +17,11 @@ import { interactionAsset } from './assets';
 import {
   interactionSector,
   interactionWheel,
+  clampInteractionOrb,
   normalizedInteractionPoint,
 } from './model';
 import { useInteractionAudio } from './useInteractionAudio';
+import { useInteractionPreference } from './useInteractionPreference';
 import './interaction.css';
 
 function useInteractionSurface() {
@@ -101,6 +103,7 @@ function SavedInteraction({
           '--hit-x': `${x}px`,
           '--hit-y': `${y}px`,
           '--duration': `${event.durationMs}ms`,
+          '--pour-at': `${shot.pourAtMs ?? Math.round(event.durationMs * 0.24)}ms`,
         } as CSSProperties
       }
     >
@@ -112,6 +115,9 @@ function SavedInteraction({
           style={
             {
               '--delay': `${step.atMs}ms`,
+              '--hit-delay': `${step.hitMs ?? Math.min(event.durationMs - 1, step.atMs + 320)}ms`,
+              '--flight-duration': `${Math.max(1, (step.hitMs ?? Math.min(event.durationMs - 1, step.atMs + 320)) - step.atMs)}ms`,
+              '--object-fade-duration': `${Math.min(180, event.durationMs - (step.hitMs ?? Math.min(event.durationMs - 1, step.atMs + 320)))}ms`,
               '--scatter-x': `${((index % 3) - 1) * 22}px`,
               '--scatter-y': `${(index % 2 ? -1 : 1) * 13}px`,
             } as CSSProperties
@@ -119,12 +125,17 @@ function SavedInteraction({
         >
           <img
             src={
-              interactionAsset(`object-${step.object}.svg`) ||
-              interactionAsset(`object-${step.object}.webp`)
+              interactionAsset(`object-${step.object}.webp`) ||
+              interactionAsset(`object-${step.object}.svg`)
             }
             alt=""
           />
           <span className="interaction-splash" />
+          {step.object === 'flower' && (
+            <span className="interaction-flower-bloom">
+              <img src={interactionAsset('object-flower.webp')} alt="" />
+            </span>
+          )}
         </div>
       ))}
       {shot.id === 'cappuccino' && (
@@ -141,7 +152,7 @@ function SavedInteraction({
               style={
                 {
                   '--petal-angle': `${i * 30}deg`,
-                  '--delay': `${1100 + i * 90}ms`,
+                  '--delay': `${Math.min(event.durationMs - 180, (shot.steps[0]?.hitMs ?? 320) + i * 55)}ms`,
                 } as CSSProperties
               }
             />
@@ -157,18 +168,45 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
   const { role, self, connected, view, interaction } = session;
   const canSend = role === 'player' && Boolean(self) && connected;
   const surface = useInteractionSurface();
-  const preferenceKey = `tablemax-interaction-blocked-${role}`;
-  const [blocked, setBlocked] = useState(() => {
+  const [blocked] = useInteractionPreference(role);
+  const orbKey = `tablemax-interaction-orb-${role}`;
+  const [orb, setOrb] = useState(() => {
     try {
-      return localStorage.getItem(preferenceKey) === 'true';
+      const saved = JSON.parse(localStorage.getItem(orbKey) ?? 'null');
+      if (
+        saved &&
+        Number.isFinite(saved.x) &&
+        Number.isFinite(saved.y) &&
+        saved.x >= 0 &&
+        saved.x <= 1 &&
+        saved.y >= 0 &&
+        saved.y <= 1
+      )
+        return saved as { x: number; y: number };
     } catch {
-      return false;
+      // A missing preference uses the initial right-hand position.
     }
+    return { x: 1 - 38 / window.innerWidth, y: 0.67 };
   });
+  const [viewport, setViewport] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+  const [dragging, setDragging] = useState(false);
+  const pointer = useRef<{
+    id: number;
+    x: number;
+    y: number;
+    anchor: { x: number; y: number };
+    last: { x: number; y: number };
+    dragged: boolean;
+    timer: ReturnType<typeof setTimeout> | null;
+  } | null>(null);
   const [wheel, setWheel] = useState<{ x: number; y: number } | null>(null);
   const [selected, setSelected] = useState(-1);
   const selection = useRef(-1);
   const [shooting, setShooting] = useState<ShotId | null>(null);
+  const aimPointer = useRef<number | null>(null);
   const [speech, setSpeech] = useState(false);
   const [message, setMessage] = useState('');
   const [live, setLive] = useState<{
@@ -181,26 +219,55 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
     audioStop = audio.stop;
   const contextKey = `${view?.instanceId}:${view?.branch}`;
   useEffect(() => {
+    // Moving the portal into/out of a modal replaces the captured DOM node.
+    // Discard that gesture before the new orb can receive another pointer.
+    if (pointer.current?.timer) clearTimeout(pointer.current.timer);
+    pointer.current = null;
+    aimPointer.current = null;
+    selection.current = -1;
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      setWheel(null);
+      setSelected(-1);
+      setDragging(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [surface]);
+  useEffect(() => {
     let active = true;
     audioStop();
+    if (pointer.current?.timer) clearTimeout(pointer.current.timer);
+    pointer.current = null;
+    aimPointer.current = null;
     queueMicrotask(() => {
       if (!active) return;
       setShooting(null);
       setWheel(null);
       setSpeech(false);
       setLive(null);
+      setDragging(false);
     });
     return () => {
       active = false;
     };
   }, [contextKey, connected, audioStop]);
   useEffect(() => {
-    const listener = (event: StorageEvent) => {
-      if (event.key === preferenceKey) setBlocked(event.newValue === 'true');
+    const resize = () => {
+      setViewport({ width: window.innerWidth, height: window.innerHeight });
+      if (pointer.current?.timer) clearTimeout(pointer.current.timer);
+      pointer.current = null;
+      setDragging(false);
+      setWheel(null);
     };
-    window.addEventListener('storage', listener);
-    return () => window.removeEventListener('storage', listener);
-  }, [preferenceKey]);
+    window.addEventListener('resize', resize);
+    return () => {
+      window.removeEventListener('resize', resize);
+      if (pointer.current?.timer) clearTimeout(pointer.current.timer);
+    };
+  }, []);
   useEffect(() => {
     let active = true;
     if (blocked) {
@@ -218,11 +285,12 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
     consumed.current = interaction.eventId;
     if (blocked || !connected || document.visibilityState === 'hidden') return;
     let active = true;
-    const endsAt = performance.now() + interaction.durationMs;
+    const startedAt = performance.now();
+    const endsAt = startedAt + interaction.durationMs;
     queueMicrotask(() => {
       if (!active) return;
       setLive({ event: interaction, endsAt });
-      void audioPlay(interaction);
+      void audioPlay(interaction, startedAt);
     });
     return () => {
       active = false;
@@ -242,6 +310,11 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
   useEffect(() => {
     const hide = () => {
       if (document.visibilityState === 'hidden') {
+        if (pointer.current?.timer) clearTimeout(pointer.current.timer);
+        pointer.current = null;
+        aimPointer.current = null;
+        selection.current = -1;
+        setDragging(false);
         setLive(null);
         setWheel(null);
         setShooting(null);
@@ -253,6 +326,10 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
       if (event.key === 'Escape' && (shooting || wheel)) {
         event.preventDefault();
         event.stopImmediatePropagation();
+        if (pointer.current?.timer) clearTimeout(pointer.current.timer);
+        pointer.current = null;
+        selection.current = -1;
+        setDragging(false);
         setShooting(null);
         setWheel(null);
       }
@@ -270,12 +347,7 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
   }, [message]);
   async function send(payload: Parameters<RoomSession['sendInteraction']>[0]) {
     const reply = await session.sendInteraction(payload);
-    if (!reply.ok)
-      setMessage(
-        reply.reason === 'queue-full'
-          ? '您的手速太快了，请稍后再试'
-          : '互动未发送，请检查连接后再试',
-      );
+    if (!reply.ok) setMessage('互动未发送，请检查连接后再试');
   }
   function choose(index: number) {
     const slot = interactionWheel[index];
@@ -288,13 +360,17 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
       setSpeech(true);
     } else {
       setSpeech(false);
+      aimPointer.current = null;
       setShooting(slot.id);
     }
   }
-  const restingY = Math.max(
-    145,
-    Math.min(window.innerHeight - 145, window.innerHeight * 0.67),
+  const resting = clampInteractionOrb(
+    orb.x * viewport.width,
+    orb.y * viewport.height,
+    viewport.width,
+    viewport.height,
   );
+  const displayed = wheel ?? resting;
   return (
     <>
       {createPortal(
@@ -318,53 +394,144 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
             <button
               type="button"
               className="interaction-orb"
-              aria-label="按住打开互动轮盘"
-              title="按住并滑动选择互动"
-              style={{ top: `${restingY}px` }}
+              aria-label={wheel ? '取消互动' : '拖动移动，按住打开互动轮盘'}
+              title={wheel ? '取消互动' : '拖动移动，按住并滑动选择互动'}
+              data-dragging={dragging}
+              data-open={Boolean(wheel)}
+              style={{ left: displayed.x, top: displayed.y }}
               onPointerDown={(event) => {
-                if (event.button !== 0) return;
+                if (event.button !== 0 || pointer.current) return;
                 event.preventDefault();
                 event.stopPropagation();
                 event.currentTarget.setPointerCapture(event.pointerId);
                 selection.current = -1;
                 setSelected(-1);
-                setShooting(null);
-                setWheel({
-                  x: Math.min(
-                    window.innerWidth - 134,
-                    Math.max(134, event.clientX),
-                  ),
-                  y: Math.min(
-                    window.innerHeight - 134,
-                    Math.max(134, event.clientY),
-                  ),
-                });
+                const rect = event.currentTarget.getBoundingClientRect();
+                const anchor = {
+                  x: rect.left + rect.width / 2,
+                  y: rect.top + rect.height / 2,
+                };
+                const gesture = {
+                  id: event.pointerId,
+                  x: event.clientX,
+                  y: event.clientY,
+                  anchor,
+                  last: anchor,
+                  dragged: false,
+                  timer: null as ReturnType<typeof setTimeout> | null,
+                };
+                pointer.current = gesture;
+                gesture.timer = setTimeout(() => {
+                  if (pointer.current !== gesture || gesture.dragged) return;
+                  setShooting(null);
+                  setWheel(
+                    clampInteractionOrb(
+                      gesture.anchor.x,
+                      gesture.anchor.y,
+                      viewport.width,
+                      viewport.height,
+                      138,
+                    ),
+                  );
+                }, 240);
               }}
               onPointerMove={(event) => {
-                if (!wheel) return;
-                const index = interactionSector(
-                  event.clientX - wheel.x,
-                  event.clientY - wheel.y,
+                const gesture = pointer.current;
+                if (!gesture || event.pointerId !== gesture.id) return;
+                event.preventDefault();
+                if (wheel) {
+                  const index = interactionSector(
+                    event.clientX - wheel.x,
+                    event.clientY - wheel.y,
+                  );
+                  selection.current = index;
+                  setSelected(index);
+                  return;
+                }
+                const dx = event.clientX - gesture.x,
+                  dy = event.clientY - gesture.y;
+                if (Math.hypot(dx, dy) < 8 && !gesture.dragged) return;
+                gesture.dragged = true;
+                if (gesture.timer) clearTimeout(gesture.timer);
+                setDragging(true);
+                gesture.last = clampInteractionOrb(
+                  gesture.anchor.x + dx,
+                  gesture.anchor.y + dy,
+                  viewport.width,
+                  viewport.height,
                 );
-                selection.current = index;
-                setSelected(index);
+                setOrb(
+                  normalizedInteractionPoint(
+                    gesture.last.x,
+                    gesture.last.y,
+                    viewport.width,
+                    viewport.height,
+                  ),
+                );
               }}
               onPointerUp={(event) => {
-                if (!wheel) return;
+                const gesture = pointer.current;
+                if (!gesture || gesture.id !== event.pointerId) return;
                 event.preventDefault();
                 event.stopPropagation();
-                choose(selection.current);
+                if (gesture.timer) clearTimeout(gesture.timer);
+                pointer.current = null;
+                setDragging(false);
+                if (event.currentTarget.hasPointerCapture(event.pointerId))
+                  event.currentTarget.releasePointerCapture(event.pointerId);
+                if (gesture.dragged) {
+                  try {
+                    localStorage.setItem(
+                      orbKey,
+                      JSON.stringify(
+                        normalizedInteractionPoint(
+                          gesture.last.x,
+                          gesture.last.y,
+                          viewport.width,
+                          viewport.height,
+                        ),
+                      ),
+                    );
+                  } catch {
+                    /* Current position remains usable. */
+                  }
+                } else if (wheel) choose(selection.current);
               }}
               onPointerCancel={() => {
+                if (pointer.current?.timer) clearTimeout(pointer.current.timer);
+                pointer.current = null;
+                setDragging(false);
                 setWheel(null);
                 setSelected(-1);
                 selection.current = -1;
+              }}
+              onLostPointerCapture={() => {
+                if (!pointer.current) return;
+                if (pointer.current.timer) clearTimeout(pointer.current.timer);
+                pointer.current = null;
+                setDragging(false);
+                setWheel(null);
+                setSelected(-1);
+                selection.current = -1;
+              }}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                if (wheel) setWheel(null);
               }}
               onKeyDown={(event) => {
                 if (event.key === ' ' || event.key === 'Enter') {
                   event.preventDefault();
                   if (!wheel)
-                    setWheel({ x: window.innerWidth / 2, y: restingY });
+                    setWheel(
+                      clampInteractionOrb(
+                        resting.x,
+                        resting.y,
+                        viewport.width,
+                        viewport.height,
+                        138,
+                      ),
+                    );
                 } else if (
                   wheel &&
                   ['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp'].includes(
@@ -391,37 +558,17 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
               }}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 2v4m0 12v4M2 12h4m12 0h4" />
-                <circle cx="12" cy="12" r="6" />
-                <circle cx="12" cy="12" r="1" />
-              </svg>
-            </button>
-          )}
-          {(role !== 'player' || self) && (
-            <button
-              type="button"
-              className="interaction-block"
-              aria-label={blocked ? '恢复互动' : '屏蔽互动'}
-              title={blocked ? '恢复互动' : '屏蔽互动'}
-              aria-pressed={blocked}
-              onClick={() => {
-                const next = !blocked;
-                setBlocked(next);
-                try {
-                  localStorage.setItem(preferenceKey, String(next));
-                } catch {
-                  /* Memory preference still works. */
-                }
-              }}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-8l-5 3v-3H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
-                {blocked ? (
-                  <path d="m8 8 8 6m0-6-8 6" />
+                {wheel ? (
+                  <path d="m6 6 12 12M18 6 6 18" />
                 ) : (
-                  <path d="M7 11h.01M12 11h.01M17 11h.01" />
+                  <>
+                    <path d="M12 2v4m0 12v4M2 12h4m12 0h4" />
+                    <circle cx="12" cy="12" r="6" />
+                    <circle cx="12" cy="12" r="1" />
+                  </>
                 )}
               </svg>
+              {wheel && <span className="interaction-orb__cancel">取消</span>}
             </button>
           )}
           {wheel && (
@@ -465,20 +612,20 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
                     {slot.image ? (
                       <img src={interactionAsset(slot.image)} alt="" />
                     ) : (
-                      <span
+                      <svg
                         className="interaction-wheel__speech-icon"
-                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        role="img"
+                        aria-label="发言"
                       >
-                        •••
-                      </span>
+                        <path d="M5 3h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" />
+                        <path d="M7 10h.01M12 10h.01M17 10h.01" />
+                      </svg>
                     )}
-                    <span>{slot.label}</span>
+                    {slot.id !== 'speech' && <span>{slot.label}</span>}
                   </div>
                 );
               })}
-              <span className="interaction-wheel__centre" aria-hidden="true">
-                松手选择
-              </span>
             </div>
           )}
           {shooting && (
@@ -488,14 +635,18 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
                 if (event.button !== 0) return;
                 event.preventDefault();
                 event.stopPropagation();
+                aimPointer.current = event.pointerId;
                 event.currentTarget.setPointerCapture(event.pointerId);
               }}
               onPointerUp={(event) => {
                 if (event.button !== 0) return;
                 event.preventDefault();
                 event.stopPropagation();
+                const beganHere = aimPointer.current === event.pointerId;
+                aimPointer.current = null;
                 const effectId = shooting;
                 setShooting(null);
+                if (!beganHere) return;
                 void send({
                   type: 'shot',
                   effectId,
@@ -507,6 +658,10 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
                   ),
                 });
               }}
+              onPointerCancel={() => {
+                aimPointer.current = null;
+                setShooting(null);
+              }}
             >
               <div className="interaction-aim__hint">
                 <span>点击位置发射</span>
@@ -515,6 +670,7 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
                   className="secondary"
                   onPointerDown={(event) => {
                     event.stopPropagation();
+                    aimPointer.current = null;
                   }}
                   onPointerUp={(event) => {
                     event.preventDefault();
@@ -548,6 +704,7 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
                 key={phrase.id}
                 disabled={!canSend}
                 onClick={() => {
+                  audio.unlock();
                   setSpeech(false);
                   void send({ type: 'speech', phraseId: phrase.id });
                 }}

@@ -260,8 +260,13 @@ async function resize(page, width, height) {
   await pause(100);
 }
 async function scale(page, percent) {
-  await page.getByRole('button', { name: '显示设置', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: '显示设置', exact: true });
+  await page
+    .getByRole('button', { name: /^(?:视频|显示)设置$/, exact: true })
+    .click();
+  const dialog = page.getByRole('dialog', {
+    name: /^(?:视频|显示)设置$/,
+    exact: true,
+  });
   const control = dialog.getByLabel('界面大小', { exact: true });
   const options = await control.locator('option').evaluateAll((options) =>
     options.map((option) => ({

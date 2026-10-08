@@ -23,8 +23,7 @@ const asset = z.string().regex(/^[a-z][a-z0-9-]*\.(mp3|svg|webp)$/);
 export const INTERACTION_CATALOG = z
   .object({
     version: z.literal(1),
-    cooldownMs: z.literal(200),
-    queueLimit: z.literal(3),
+    playbackPolicy: z.literal('replace'),
     shots: z
       .array(
         z.object({
@@ -33,6 +32,7 @@ export const INTERACTION_CATALOG = z
           durationMs: duration,
           audio: asset,
           image: asset,
+          pourAtMs: z.number().int().min(0).optional(),
           steps: z
             .array(
               z.object({
@@ -45,6 +45,7 @@ export const INTERACTION_CATALOG = z
                   'poop',
                 ]),
                 atMs: z.number().int().min(0),
+                hitMs: z.number().int().min(0).optional(),
               }),
             )
             .min(1),
@@ -68,6 +69,10 @@ if (
   new Set(INTERACTION_CATALOG.phrases.map((p) => p.id)).size !== 6
 )
   throw new Error('Duplicate interaction slot');
+for (const shot of INTERACTION_CATALOG.shots) {
+  if (shot.steps.some((step) => step.atMs >= shot.durationMs || (step.hitMs !== undefined && (step.hitMs < step.atMs || step.hitMs >= shot.durationMs))) || (shot.pourAtMs !== undefined && shot.pourAtMs >= shot.durationMs))
+    throw new Error(`Interaction timeline exceeds audio: ${shot.id}`);
+}
 
 export const InteractionContextSchema = z
   .object({
@@ -109,7 +114,6 @@ export const InteractionReplySchema = z.discriminatedUnion('ok', [
     .object({
       ok: z.literal(false),
       reason: z.enum([
-        'queue-full',
         'invalid-message',
         'invalid-identity',
         'unauthorized',

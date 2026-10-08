@@ -644,4 +644,4 @@ SQLite流式扫描须让 `StatementSync` 强引用保持至迭代完成；包内
 
 ## v1.0.5 互动与资源验证
 
-`scripts/verify-interactions.mjs --run=<唯一名称>`以隐藏原生窗口及静音Edge浏览器验证六格手势、单次射击、三端显示、头像短屏首屏、屏蔽及独立音频桥接，服务仅监听127.0.0.1；队列纯时钟测试及真实服务测试分别在`apps/server/src/interactions.test.ts`和`interaction-service.test.ts`。素材试听只通过`artifacts/maintenance/v1.0.5/interaction-assets/audio-review.html`显式开启，机器解码／ASR不记为人耳试听。40游戏WAV由`convert-runtime-audio-flac.mjs`保留原件派生FLAC，检查s16le PCM相等并记录前后字节／哈希。当前体积门禁统一查`scripts/lib/package-limits.mjs`，120MB硬上限和114MB预算不适用于倒改历史报告。
+`scripts/verify-interactions.mjs --run=<唯一名称>`以隐藏原生窗口及静音Edge验证拖动／240ms长按／中心取消、六格选择、单次射击、视频设置内三端屏蔽、立即替换和独立音频桥接，服务仅监听127.0.0.1。盒子修改使用`--box-only`，单游戏修改使用`--game=<id>`，二者互斥；默认矩阵仅用于影响全部入口的共享互动修改，不跑游戏规则或整局。即时派发和真实服务测试在`apps/server/src/interactions.test.ts`、`interaction-service.test.ts`，异步手机解锁／替换与单声源失权测试在`apps/web/src/interactions/audio-player.test.ts`。素材试听通过`artifacts/maintenance/v1.0.5/interaction-refinement/audio-review.html`显式开启；机器解码／ASR不记为人耳试听，旧版试听证据保留在`interaction-assets/`。40游戏WAV原件及FLAC派生和PCM核验保持原样。体积门禁统一查`scripts/lib/package-limits.mjs`，120MB硬上限和114MB预算不倒改历史报告。

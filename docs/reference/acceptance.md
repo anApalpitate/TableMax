@@ -1,10 +1,24 @@
 # 首版交付与验收
 
+## 1.0.5：互动精修与即时覆盖（2026-10-09）
+
+按本轮最新要求取消互动FIFO及间隔，新事件立即覆盖旧动画和声音；身份、实例／分支复核和有界去重保持独立于游戏状态。浮球可拖拽并记忆相对位置，240ms长按显示以球为中心的六格环盘，中间取消、发言图标；视频设置提供三端独立屏蔽按钮。异步手机解锁、预加载与迟到音轨守卫避免旧音抢播，射击只接收从射击层开始的同一pointer，弹窗迁移清理捕获手势。
+
+[当前运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) **40,851,905字节**，[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json) **266文件／实际解压94,333,009字节**，SHA-256 `a7574e9b6402b8bb42dd88c00e80f1a86a0f2fe8957d600ded3b4a989553c4bb`。硬上限120,000,000字节和工程预算114,000,000字节通过，预算余19,666,991字节；完整打包46,894ms，冻结快照`71eb694d…`，实际解压逐文件大小／哈希一致。[前一同版包](../../artifacts/maintenance/v1.0.5/interaction-refinement/delivery-before-refinement/TableMax-1.0.5-win-x64.zip)及原清单原样保留，以下初次交付结论仅对应旧包。没有源码ZIP、push或GitHub Release。
+
+[同包实际UI](../../artifacts/maintenance/v1.0.5/interaction-refinement/ui/final/results.json) **10检查／12截图**通过：拖动持久化、六格与中心取消、取消滑出不误发、dialog迁移恢复、五射击及六语音即时覆盖、真实11音源decode／start／stop、三端独立视频设置、电脑公共屏优先／管理员接管、短屏横屏和四个游戏／版本共享入口；暂停不推进游戏，新房间清场且重连不补播。运行的是本轮ZIP实际解压EXE，非源目录或原型；只做受影响共享控件，不跑游戏规则或整局。服务派发／权限／去重及真实轮询／WebSocket集成13项、几何3项、音频引擎6项、范围门禁7项通过；针对本次文件的TypeScript和ESLint通过。
+
+[命中阶段补拍](../../artifacts/maintenance/v1.0.5/interaction-refinement/ui/shot-visual-final/results.json)实际确认鸡蛋、杯子倾倒、番茄飞溅和送花绽放／花瓣；首次粑粑检查因64px Canvas采样要求Alpha恰为255而失败。原图有514个Alpha255像素，浏览器64px采样最大254，属缩放舍入；改用原尺寸采样并先保存诊断后，[仅粑粑精准复核](../../artifacts/maintenance/v1.0.5/interaction-refinement/ui/poop-visual-repair/results.json)通过飞行和命中后飞溅，未改产品或重新构建，原失败与历史次数保留。根已目视复核实际花朵、emoji及飞溅截图。
+
+全部11MP3去掉首尾静音并保留自然尾声，时长750–4990ms；鸡蛋六蛋加两拖鞋按1.2x原音和配置发射／命中点同步，送花补原版发射与赠花声音，番茄／粑粑改为实录音效，粑粑替换透明emoji图。厚颜无耻来自央视1994版唐国强诸葛亮；carry实际执行已核验模型的背景音乐分离，邻接非语音区能量减少约28–31dB，此测量不代表听感或完全无残余。当前互动媒体195,117字节，低于500KB目标。来源、原件、处理、署名和哈希见[资源清单](../../assets/platform/interaction/manifest.json)与[处理记录](../../artifacts/maintenance/v1.0.5/interaction-refinement/audio-processing.json)。[11条显式试听页](../../artifacts/maintenance/v1.0.5/interaction-refinement/audio-review.html)默认静音、无自动播放；机器ASR／完整解码不能替代人耳试听，分离伪影与音效听感仍待确认。
+
+首轮静态检查两次因React refs规则拒绝构造器闭包、一次因窄范围tsconfig漏Vite声明和首时间点缺少可选保护而失败；达到3项后停止并修复，仅复核受影响项，记录见[静态批次](../../artifacts/maintenance/v1.0.5/interaction-refinement/checks/static-initial-failures.json)。服务批次的C盘临时目录ENOENT以本项目TMP／TEMP隔离修复，原失败和历史次数保留。全部运行隐藏、静音且监听127.0.0.1，零外联／页面错误，[工程进程退出](../../artifacts/maintenance/v1.0.5/interaction-refinement/ui/final/process-exit.json)已核对。实体手机、LAN、物理DPI及人耳听感未作为已通过。
+
 ## 1.0.5：盒子调整与跨游戏互动（2026-10-08）
 
 产品、原生程序集及manifest为1.0.5。真人玩家透明互动球在盒子和游戏共用六等分环盘，五种单次射击与六条固定语音通过独立临时通道发送。全桌1播放＋3等待FIFO、完整时长＋200ms、身份／实例／分支复核和有界去重不改变游戏修订、随机状态、存档或checkpoint。各端可独立屏蔽，电脑互动独立音频桥接优先公共屏；浏览器玩家沿用本地手势解锁。头像裁剪删除方向键，“取消／确定”紧接缩放条并适配短屏；网址入口统一“使用网址”。
 
-[最终运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) **40,857,197字节**，逐文件清单 **265文件／94,363,202字节**，SHA-256 `ab27e4d31ea03d7dec2565d7d8bee11384f950c7375399e93dc07c66ce8f0815`。ZIP及实际解压均严格小于120,000,000字节，114,000,000工程预算余19,636,798字节；[同包根入口](../../artifacts/maintenance/v1.0.5/root-entry/v105-final/results.json)逐文件大小／哈希、实际解压和HTTP／HTTPS入口5检查通过。未导出完整安装EXE或源码ZIP，未推送／发布GitHub。
+[首次运行ZIP](../../artifacts/maintenance/v1.0.5/interaction-refinement/delivery-before-refinement/TableMax-1.0.5-win-x64.zip) **40,857,197字节**，逐文件清单 **265文件／94,363,202字节**，SHA-256 `ab27e4d31ea03d7dec2565d7d8bee11384f950c7375399e93dc07c66ce8f0815`。ZIP及实际解压均严格小于120,000,000字节，114,000,000工程预算余19,636,798字节；[同包根入口](../../artifacts/maintenance/v1.0.5/root-entry/v105-final/results.json)逐文件大小／哈希、实际解压和HTTP／HTTPS入口5检查通过。未导出完整安装EXE或源码ZIP，未推送／发布GitHub。
 
 [互动实际界面](../../artifacts/maintenance/v1.0.5/interaction-ui/final/results.json)12检查：六格选择、五射击三端显示与防误触、六发言槽、本端即时屏蔽、不补播、公共屏优先／主机接管、player无桥接、真实dialog顶层、320×568／844×390／1280×720头像首屏按钮、三游戏及宝可梦两版入口；42个打包FLAC和11MP3离线WebView2解码。[同包游戏显示](../../artifacts/maintenance/v1.0.5/player-display/v105-final/results.json)quick范围 **22检查／34布局／34截图**，包含实际合法动作与四变体；不是完整整局或历史460布局重跑。5文件29项相关会话／服务／队列／几何测试通过，另新增长语音4352ms＋200ms和新实例清空边界通过；最终类型检查通过。
 
@@ -144,7 +158,7 @@
 
 ## 当前源码与本地交付
 
-当前本地交付为本页v1.0.5章节的[运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json)，SHA-256 `ab27e4d31ea03d7dec2565d7d8bee11384f950c7375399e93dc07c66ce8f0815`；历史v1.0.4大小、证据、发布附件及结论保留在对应章节，不当作当前包验收。
+当前本地交付为本页v1.0.5章节的[运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json)，SHA-256 `a7574e9b6402b8bb42dd88c00e80f1a86a0f2fe8957d600ded3b4a989553c4bb`；历史同版初包及v1.0.4大小、证据、发布附件及结论保留在对应章节，不当作当前包验收。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
 

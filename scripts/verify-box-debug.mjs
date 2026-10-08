@@ -435,7 +435,9 @@ try {
     await resize(host, width, height);
     await fit(host, `host-${width}`);
     await capture(host, `host-${width}`);
-    await host.getByRole('button', { name: '显示设置', exact: true }).click();
+    await host
+      .getByRole('button', { name: /^(?:视频|显示)设置$/, exact: true })
+      .click();
     await fit(host, `display-${width}`);
     await capture(host, `display-${width}`);
     await host.keyboard.press('Escape');
@@ -450,7 +452,9 @@ try {
         }),
       scale,
     );
-    await host.getByRole('button', { name: '显示设置', exact: true }).click();
+    await host
+      .getByRole('button', { name: /^(?:视频|显示)设置$/, exact: true })
+      .click();
     await fit(host, `display-720-${scale}`);
     await capture(host, `display-720-${scale}`);
     await host.keyboard.press('Escape');

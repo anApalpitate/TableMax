@@ -131,7 +131,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
               )}
             </CountdownSettings>
           )}
-          {role !== 'player' && <DisplaySettings />}
+          <DisplaySettings role={role} />
           <PlayModeBadge mode={view?.playMode} />
           {session.message === '已保存' && (
             <span className="box-save-status" role="status">

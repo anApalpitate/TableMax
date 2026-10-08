@@ -103,7 +103,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
               朋友
             </button>
           )}
-          {role !== 'player' && <DisplaySettings />}
+          <DisplaySettings role={role} />
           {role !== 'player' && <PlayModeBadge mode={view?.playMode} />}
           {role !== 'player' && (
             <SoundControl

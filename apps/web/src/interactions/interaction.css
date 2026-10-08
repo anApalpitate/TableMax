@@ -10,8 +10,7 @@
   pointer-events: auto;
   margin: 0;
 }
-.interaction-orb,
-.interaction-block {
+.interaction-orb {
   position: absolute;
   display: grid;
   place-items: center;
@@ -29,22 +28,32 @@
   touch-action: none;
 }
 .interaction-orb {
-  right: max(12px, env(safe-area-inset-right));
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%);
+  transition:
+    left 160ms ease-out,
+    top 160ms ease-out,
+    width 160ms ease-out;
   z-index: 4;
+  cursor: grab;
 }
-.interaction-block {
-  top: max(12px, env(safe-area-inset-top));
-  right: max(12px, env(safe-area-inset-right));
-  opacity: 0.88;
-  z-index: 4;
+.interaction-orb[data-dragging='true'] {
+  transition: none;
+  cursor: grabbing;
 }
-.interaction-block[aria-pressed='true'] {
-  background: #f9ded9b3;
-  color: #953e37;
+.interaction-orb[data-open='true'] {
+  width: 64px;
+  min-height: 64px;
+  padding: 6px;
+  gap: 0;
+  background: #ffffffe0;
+  cursor: pointer;
+  transition: width 160ms ease-out;
 }
-.interaction-orb svg,
-.interaction-block svg {
+.interaction-orb__cancel {
+  font-size: 16px;
+  line-height: 1;
+}
+.interaction-orb svg {
   width: 24px;
   height: 24px;
   fill: none;
@@ -99,22 +108,13 @@
   color: #0b4d3e;
 }
 .interaction-wheel__speech-icon {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 30px;
-  border: 1.5px solid currentColor;
-  border-radius: 9px;
-  letter-spacing: 2px;
-}
-.interaction-wheel__centre {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 64px;
-  text-align: center;
-  line-height: 1.2;
+  width: 40px;
+  height: 40px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .interaction-aim {
   position: absolute;
@@ -227,16 +227,20 @@
   object-fit: contain;
   opacity: 0;
   filter: drop-shadow(0 3px 3px #173b3233);
-  animation: interaction-flight 1.1s var(--delay)
-    cubic-bezier(0.22, 0.58, 0.25, 1) forwards;
+  animation:
+    interaction-flight var(--flight-duration) var(--delay)
+      cubic-bezier(0.22, 0.58, 0.25, 1) forwards,
+    interaction-object-fade var(--object-fade-duration) var(--hit-delay)
+      ease-out forwards;
 }
 .interaction-projectile img {
-  animation-delay: calc(var(--delay) - var(--elapsed));
+  animation-delay:
+    calc(var(--delay) - var(--elapsed)), calc(var(--hit-delay) - var(--elapsed));
 }
 .interaction-projectile[data-object='slipper'] img {
   width: 108px;
   height: 108px;
-  animation-name: interaction-slipper;
+  animation-name: interaction-slipper, interaction-object-fade;
 }
 .interaction-splash {
   position: absolute;
@@ -247,11 +251,11 @@
     radial-gradient(ellipse at 25% 38%, var(--splash) 0 7%, transparent 9%),
     radial-gradient(ellipse at 78% 22%, var(--splash) 0 9%, transparent 12%),
     radial-gradient(ellipse at 80% 72%, var(--splash) 0 12%, transparent 15%);
-  animation: interaction-splash calc(var(--duration) - var(--delay) - 500ms)
-    calc(var(--delay) + 500ms) ease-out forwards;
+  animation: interaction-splash calc(var(--duration) - var(--hit-delay))
+    var(--hit-delay) ease-out forwards;
 }
 .interaction-splash {
-  animation-delay: calc(var(--delay) + 500ms - var(--elapsed));
+  animation-delay: calc(var(--hit-delay) - var(--elapsed));
 }
 .interaction-projectile[data-object='slipper'] .interaction-splash {
   --splash: #ffdb86;
@@ -260,11 +264,22 @@
 .interaction-shot[data-effect='cappuccino'] .interaction-splash {
   display: none;
 }
-.interaction-shot[data-effect='flower'] .interaction-projectile img {
-  animation: interaction-flower 3.4s var(--delay) ease-out forwards;
+.interaction-flower-bloom {
+  position: absolute;
+  inset: 0;
+}
+.interaction-flower-bloom img {
+  animation: interaction-flower calc(var(--duration) - var(--hit-delay))
+    calc(var(--hit-delay) - var(--elapsed)) ease-out forwards;
 }
 .interaction-shot[data-effect='cappuccino'] .interaction-projectile img {
-  animation: interaction-cup 4s ease-in-out forwards;
+  opacity: 1;
+  animation: interaction-cup calc(var(--duration) - var(--pour-at))
+    calc(var(--pour-at) - var(--elapsed)) ease-in-out forwards;
+}
+.interaction-shot[data-effect='cappuccino'] .interaction-projectile {
+  animation: interaction-cup-arrival var(--hit-delay) calc(0ms - var(--elapsed))
+    ease-out forwards;
 }
 .interaction-coffee-stream {
   position: absolute;
@@ -276,7 +291,8 @@
   transform: translate(-50%, -15px) rotate(-12deg);
   transform-origin: top;
   background: linear-gradient(90deg, #794926, #ca9363, #7d4c2c);
-  animation: interaction-pour 4s ease-in-out forwards;
+  animation: interaction-pour calc(var(--duration) - var(--pour-at))
+    calc(var(--pour-at) - var(--elapsed)) ease-in-out forwards;
 }
 .interaction-coffee-foam {
   position: absolute;
@@ -293,7 +309,8 @@
   );
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  animation: interaction-foam 4s ease-out forwards;
+  animation: interaction-foam calc(var(--duration) - var(--pour-at))
+    calc(var(--pour-at) - var(--elapsed)) ease-out forwards;
 }
 .interaction-petals {
   position: absolute;
@@ -307,7 +324,8 @@
   border-radius: 80% 10% 80% 10%;
   background: linear-gradient(135deg, #ffdce9, #e95c9a);
   opacity: 0;
-  animation: interaction-petal 2.4s var(--delay) ease-out forwards;
+  animation: interaction-petal calc(var(--duration) - var(--delay)) var(--delay)
+    ease-out forwards;
 }
 .interaction-actor {
   position: absolute;
@@ -320,12 +338,6 @@
   font-size: 16px;
   animation: interaction-label var(--duration) ease-out forwards;
 }
-.interaction-shot[data-effect='flower'] .interaction-projectile img {
-  animation-delay: calc(var(--delay) - var(--elapsed));
-}
-.interaction-shot[data-effect='cappuccino'] .interaction-projectile img,
-.interaction-coffee-stream,
-.interaction-coffee-foam,
 .interaction-actor {
   animation-delay: calc(0ms - var(--elapsed));
 }
@@ -345,18 +357,9 @@
   10% {
     opacity: 1;
   }
-  46% {
+  100% {
     opacity: 1;
     transform: translate(0, 0) rotate(10deg) scale(1);
-  }
-  58% {
-    opacity: 1;
-    transform: translate(0, 0) rotate(-8deg) scale(0.85);
-  }
-  72%,
-  100% {
-    opacity: 0;
-    transform: scale(1.15);
   }
 }
 @keyframes interaction-slipper {
@@ -367,17 +370,17 @@
   8% {
     opacity: 1;
   }
-  60% {
+  100% {
     opacity: 1;
     transform: translate(0, 0) rotate(-22deg);
   }
-  72% {
+}
+@keyframes interaction-object-fade {
+  from {
     opacity: 1;
-    transform: scale(0.8) rotate(-22deg);
   }
-  100% {
+  to {
     opacity: 0;
-    transform: translate(35px, 60px) rotate(40deg);
   }
 }
 @keyframes interaction-splash {
@@ -398,12 +401,12 @@
 @keyframes interaction-flower {
   0% {
     opacity: 0;
-    transform: translate(-35vw, 28vh) scale(0.3);
+    transform: scale(0.4) rotate(-12deg);
   }
-  18%,
+  12%,
   80% {
     opacity: 1;
-    transform: translate(0, 0) scale(1.1);
+    transform: scale(1.1) rotate(0);
   }
   100% {
     opacity: 0;
@@ -412,15 +415,11 @@
 }
 @keyframes interaction-cup {
   0% {
-    opacity: 0;
-    transform: translate(-35vw, 20vh);
-  }
-  15% {
     opacity: 1;
     transform: translate(-30px, -55px);
   }
-  30%,
-  72% {
+  10%,
+  80% {
     opacity: 1;
     transform: translate(-30px, -55px) rotate(35deg);
   }
@@ -433,30 +432,40 @@
     transform: translate(-30px, -90px);
   }
 }
+@keyframes interaction-cup-arrival {
+  0% {
+    opacity: 0;
+    transform: translate(calc(-50% - 35vw), calc(-50% + 20vh));
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
 @keyframes interaction-pour {
-  0%,
-  22% {
+  0% {
     opacity: 0;
     scale: 1 0.1;
   }
-  32%,
-  68% {
+  5%,
+  82% {
     opacity: 1;
     scale: 1 1;
   }
-  77%,
   100% {
     opacity: 0;
     scale: 0.8 0.1;
   }
 }
 @keyframes interaction-foam {
-  0%,
-  28% {
+  0% {
     opacity: 0;
     scale: 0.2;
   }
-  60%,
+  22%,
   85% {
     opacity: 1;
     scale: 1;
@@ -496,6 +505,9 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .interaction-shot[data-effect='cappuccino'] .interaction-projectile {
+    animation: none;
+  }
   .interaction-aim__hint span {
     animation: none;
   }
@@ -505,6 +517,7 @@
   }
   .interaction-projectile:not(:first-child),
   .interaction-splash,
+  .interaction-flower-bloom,
   .interaction-petals,
   .interaction-coffee-stream {
     display: none;

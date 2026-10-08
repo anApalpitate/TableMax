@@ -1293,10 +1293,10 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
             连接中…
           </span>
         )}
+        <DisplaySettings role={session.role} />
         {session.role !== 'player' && (
           <>
             <FullscreenControl />
-            <DisplaySettings />
             <PlayModeBadge mode={session.view?.playMode} />
             <SoundControl
               compact

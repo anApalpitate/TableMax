@@ -13,6 +13,7 @@ const unitScopes = {
   'apps/web/src/components/player-frame.test.ts': ['shared'],
   'apps/web/src/game-clients/styles.test.ts': ['shared'],
   'apps/web/src/interactions/model.test.ts': ['shared'],
+  'apps/web/src/interactions/audio-player.test.ts': ['shared'],
   'apps/web/src/session/admissionRecovery.test.ts': ['box'],
   'apps/web/src/session/presentation.test.ts': ['shared'],
   'apps/web/src/session/randomId.test.ts': ['shared'],
@@ -83,6 +84,7 @@ const verificationScopes = {
 const gameFilteredVerifiers = new Set([
   'scripts/verify-player-display.mjs',
   'scripts/verify-rules-guides.mjs',
+  'scripts/verify-interactions.mjs',
 ]);
 
 export function parseScope(value) {
@@ -179,17 +181,38 @@ export function verificationTestScopes(item) {
   const selectors = item.args.filter(
     (arg) => arg === '--game' || arg.startsWith('--game='),
   );
+  if (
+    script === 'scripts/verify-interactions.mjs' &&
+    item.args.includes('--shot-visuals')
+  ) {
+    if (selectors.length || item.args.includes('--box-only'))
+      throw new Error(
+        'Interaction visual/box/game filters are mutually exclusive',
+      );
+    return ['box', 'shared'];
+  }
+  if (
+    script === 'scripts/verify-interactions.mjs' &&
+    item.args.includes('--box-only')
+  ) {
+    if (selectors.length)
+      throw new Error('Interaction box/game filters are mutually exclusive');
+    return ['box'];
+  }
   if (selectors.length && !gameFilteredVerifiers.has(script))
     throw new Error(`This verifier has no registered game filter: ${script}`);
   if (gameFilteredVerifiers.has(script)) {
     if (selectors.length > 1)
       throw new Error(`Invalid/duplicate --game option: ${script}`);
     if (
-      script === 'scripts/verify-player-display.mjs' &&
+      [
+        'scripts/verify-player-display.mjs',
+        'scripts/verify-interactions.mjs',
+      ].includes(script) &&
       selectors[0] === '--game=all'
     )
       throw new Error(
-        'verify-player-display does not support --game=all; omit the game option for its full matrix',
+        `${script} does not support --game=all; omit the game option for its full matrix`,
       );
     if (
       selectors.length &&
@@ -201,6 +224,8 @@ export function verificationTestScopes(item) {
       !selectors.length || selectors[0] === '--game=all'
         ? [...gameScopes]
         : [`game:${selectors[0].slice(7)}`];
+    if (script === 'scripts/verify-interactions.mjs' && !selectors.length)
+      return ['box', 'shared', ...games];
     if (
       script === 'scripts/verify-player-display.mjs' &&
       !item.args.includes('--visual-audit')

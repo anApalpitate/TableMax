@@ -1,122 +1,99 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type {} from '../../../desktop/src/audio-types';
 import { INTERACTION_CATALOG, type InteractionEvent } from '@tablemax/protocol';
 import { interactionAsset } from './assets';
-
+import { InteractionAudioPlayer } from './audio-player';
+const audioUrls = [...INTERACTION_CATALOG.shots, ...INTERACTION_CATALOG.phrases]
+  .map((entry) => interactionAsset(entry.audio))
+  .filter(Boolean);
 export function useInteractionAudio(enabled: boolean) {
-  const context = useRef<AudioContext | null>(null);
-  const source = useRef<AudioBufferSourceNode | null>(null);
-  const epoch = useRef(0);
-  const allowed = useRef(false);
-  const currentEnabled = useRef(enabled);
-  useEffect(() => {
-    currentEnabled.current = enabled;
-  }, [enabled]);
-  const buffers = useRef(new Map<string, AudioBuffer>());
-  const stop = useCallback(() => {
-    epoch.current++;
+  const [engine] = useState(
+    () =>
+      new InteractionAudioPlayer({
+        createContext: () => {
+          const constructor =
+            window.AudioContext ??
+            (window as Window & { webkitAudioContext?: typeof AudioContext })
+              .webkitAudioContext;
+          if (!constructor) throw new Error('Audio is unavailable');
+          return new constructor();
+        },
+        fetchAudio: async (url) => {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error('Interaction audio is unavailable');
+          return response.arrayBuffer();
+        },
+        canPlay: () => document.visibilityState !== 'hidden',
+        claim: async (eventId) =>
+          window.tablemaxInteractionAudio
+            ? window.tablemaxInteractionAudio.claimEvent(eventId)
+            : true,
+        now: () => performance.now(),
+      }),
+  );
+  const stop = useCallback(() => engine.stop(), [engine]);
+  const unlock = useCallback(() => {
+    if (!enabled) return;
     try {
-      source.current?.stop();
+      void engine.unlock(audioUrls).catch(() => undefined);
     } catch {
-      /* Already ended. */
+      /* Unsupported browsers keep visual interactions. */
     }
-    source.current = null;
-  }, []);
+  }, [engine, enabled]);
   useEffect(() => {
     const bridge = window.tablemaxInteractionAudio;
     let active = true;
-    allowed.current = enabled && !bridge;
+    engine.setEnabled(enabled);
+    engine.setOwner(enabled && !bridge);
     const unsubscribe = bridge?.subscribe((value) => {
       if (!active) return;
-      allowed.current = value && currentEnabled.current;
-      if (!allowed.current) stop();
+      engine.setOwner(value && enabled);
     });
+    if (enabled) engine.prepare(audioUrls);
     if (bridge) {
-      if (enabled)
+      if (enabled) {
+        unlock();
         void bridge
           .connect()
           .then((value) => {
-            if (active) allowed.current = value;
+            if (active) engine.setOwner(value && enabled);
           })
           .catch(() => {
-            allowed.current = false;
+            engine.setOwner(false);
           });
-      else void bridge.disconnect().catch(() => undefined);
+      } else void bridge.disconnect().catch(() => undefined);
     }
-    const unlock = () => {
-      if (!currentEnabled.current) return;
-      context.current ??= new AudioContext();
-      void context.current.resume().catch(() => undefined);
-    };
-    // Native windows can enable Web Audio immediately; browsers use a gesture.
-    if (bridge && enabled) unlock();
     document.addEventListener('pointerdown', unlock, { capture: true });
+    document.addEventListener('pointerup', unlock, { capture: true });
     document.addEventListener('keydown', unlock, { capture: true });
     return () => {
       active = false;
+      engine.setOwner(false);
       stop();
       unsubscribe?.();
       document.removeEventListener('pointerdown', unlock, true);
+      document.removeEventListener('pointerup', unlock, true);
       document.removeEventListener('keydown', unlock, true);
       if (bridge) void bridge.disconnect().catch(() => undefined);
     };
-  }, [enabled, stop]);
-  useEffect(
-    () => () => {
-      void context.current?.close().catch(() => undefined);
-    },
-    [],
-  );
+  }, [enabled, engine, stop, unlock]);
+  useEffect(() => () => engine.close(), [engine]);
   const play = useCallback(
-    async (event: InteractionEvent) => {
-      stop();
-      const generation = epoch.current;
-      const audio = context.current;
-      if (
-        !allowed.current ||
-        !currentEnabled.current ||
-        !audio ||
-        audio.state !== 'running'
-      )
-        return;
+    async (event: InteractionEvent, startedAt: number) => {
       const payload = event.interaction;
       const entry =
         payload.type === 'shot'
-          ? INTERACTION_CATALOG.shots.find((s) => s.id === payload.effectId)!
-          : INTERACTION_CATALOG.phrases.find((p) => p.id === payload.phraseId)!;
+          ? INTERACTION_CATALOG.shots.find(
+              (shot) => shot.id === payload.effectId,
+            )!
+          : INTERACTION_CATALOG.phrases.find(
+              (phrase) => phrase.id === payload.phraseId,
+            )!;
       const url = interactionAsset(entry.audio);
-      if (!url) return;
-      try {
-        // Claim before decoding: a later owner never restarts this same sound.
-        if (
-          window.tablemaxInteractionAudio &&
-          !(await window.tablemaxInteractionAudio.claimEvent(event.eventId))
-        )
-          return;
-        let buffer = buffers.current.get(url);
-        if (!buffer) {
-          const response = await fetch(url);
-          if (!response.ok) return;
-          buffer = await audio.decodeAudioData(await response.arrayBuffer());
-          buffers.current.set(url, buffer);
-        }
-        if (
-          generation !== epoch.current ||
-          !allowed.current ||
-          !currentEnabled.current ||
-          document.visibilityState === 'hidden'
-        )
-          return;
-        const node = audio.createBufferSource();
-        node.buffer = buffer;
-        node.connect(audio.destination);
-        source.current = node;
-        node.start();
-      } catch {
-        /* Playback failure never blocks the room FIFO or game. */
-      }
+      if (url)
+        await engine.play(url, event.eventId, startedAt, event.durationMs);
     },
-    [stop],
+    [engine],
   );
-  return { play, stop };
+  return { play, stop, unlock };
 }
