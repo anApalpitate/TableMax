@@ -149,6 +149,37 @@ async function rendered(surface, state = null) {
     );
   });
 }
+async function connectionEntry(surface, expectedUrl) {
+  const page = surface.page;
+  const link = page.getByRole('link', {
+    name: '打开网站，在浏览器中加入牌桌',
+    exact: true,
+  });
+  await until(
+    async () => (await link.getAttribute('href')) === expectedUrl,
+    'Open-website link did not follow the current QR entry',
+  );
+  assert.equal(await link.getAttribute('target'), '_blank');
+  assert.equal(await link.getAttribute('rel'), 'noopener noreferrer');
+  const before = await view();
+  const originalUrl = page.url();
+  const id = await page.evaluate(() => window.__tablemaxWindowId);
+  const previous = (await desktop.request('windows')).find(
+    (window) => window.id === id,
+  ).externalJoin.count;
+  await link.click();
+  await until(async () => {
+    const current = (await desktop.request('windows')).find(
+      (window) => window.id === id,
+    ).externalJoin;
+    return current.count === previous + 1 && current.url === expectedUrl + '/';
+  }, 'Trusted native website entry was not approved');
+  assert.equal(page.url(), originalUrl, 'Entry displaced the desktop page');
+  assert.equal((await view()).revision, before.revision);
+  await checked(
+    `${surface.role}: current QR and native open-website link matched; unchanged desktop page and game revision`,
+  );
+}
 function observe(page) {
   page.on('pageerror', (error) =>
     report.pageErrors.push(redact(error.message)),
@@ -657,6 +688,7 @@ try {
       executablePath: join(portable, 'TableMax.exe'),
       soundEnabled: false,
       env: {
+        TABLEMAX_TEST_CAPTURE_EXTERNAL: '1',
         TABLEMAX_HOST: '127.0.0.1',
         TABLEMAX_PORT: '0',
         TABLEMAX_DATA_DIR: join(work, 'data'),
@@ -702,6 +734,8 @@ try {
       for (const surface of surfaces) await rendered(surface);
       await dialogMatrix(hostSurface, '切换游戏', '游戏库', 'host-library');
       const expandTroubleshooting = async (panel) => {
+        await panel.getByText('手机扫码', { exact: true }).waitFor();
+        await panel.getByText('直接打开', { exact: true }).waitFor();
         await panel.locator('summary').click();
       };
       await dialogMatrix(
@@ -734,6 +768,8 @@ try {
           await expandTroubleshooting(panel);
         },
       );
+      await connectionEntry(hostSurface, origin);
+      await connectionEntry(publicSurface, origin);
       await dialogMatrix(
         unseated,
         '选择头像',
@@ -819,6 +855,8 @@ try {
       );
       await resize(hostSurface, sizes[1]);
       await host.locator('.qr[src="/api/foundation/qr?external=1"]').waitFor();
+      await connectionEntry(hostSurface, origin);
+      await connectionEntry(publicSurface, origin);
       await screenshot(hostSurface, 'host-external-qr-720p');
       await host.getByRole('button', { name: '连接帮助', exact: true }).click();
       await host

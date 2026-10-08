@@ -66,13 +66,13 @@ try {
   Fixture-File 'tmp/pokemon-expansion-effects-EFX123/data/room.sqlite' 'isolated-expansion-effects'
   Fixture-File 'tmp/portable-storage-games-SAV123/data/room.sqlite' 'isolated-three-game-storage'
   Fixture-File 'tmp/portable-storage-CFG123/data/room.sqlite' 'isolated-portable-config-storage'
-  $redesignVerificationNames = @('pokemon-ui-redesign-UiA123', 'shipping-executable-ShP123', 'box-layout-Box123', 'debug-portable-Prt123', 'debug-recovery-Rcv123', 'debug-remote-Rem123', 'game-review-Rev123', 'root-entry-Ent123')
-  $recentRedesignNames = @('pokemon-ui-redesign-Young1', 'shipping-executable-Young2', 'box-layout-Young3', 'debug-portable-Young4', 'debug-recovery-Young5', 'debug-remote-Young6', 'game-review-Young7', 'root-entry-Young8')
+  $redesignVerificationNames = @('pokemon-ui-redesign-UiA123', 'shipping-executable-ShP123', 'box-layout-Box123', 'debug-portable-Prt123', 'debug-recovery-Rcv123', 'debug-remote-Rem123', 'game-review-Rev123', 'root-entry-Ent123', 'connection-entry-Con123')
+  $recentRedesignNames = @('pokemon-ui-redesign-Young1', 'shipping-executable-Young2', 'box-layout-Young3', 'debug-portable-Young4', 'debug-recovery-Young5', 'debug-remote-Young6', 'game-review-Young7', 'root-entry-Young8', 'connection-entry-Young9')
   $similarRedesignNames = @(
     'pokemon-ui-redesign-', 'pokemon-ui-redesign-ABCDE', 'pokemon-ui-redesign-ABCDEFG',
     'pokemon-ui-redesign-AB_123', 'pokemon-ui-redesign-AB-123', 'pokemon-ui-redesign-reference',
     'box-layout-reference', 'box-layout-AB_123', 'debug-portable-reference', 'debug-portable-ABCDEFG', 'debug-recovery-reference', 'debug-recovery-ABCDE', 'debug-remote-reference', 'debug-remote-AB-123', 'game-review-reference', 'game-review-ABCDE', 'game-review-AB_123', 'shipping-executable-', 'shipping-executable-ABCDE', 'shipping-executable-ABCDEFG',
-    'shipping-executable-AB_123', 'shipping-executable-AB-123', 'shipping-executable-reference', 'root-entry-reference', 'root-entry-ABCDE', 'root-entry-AB_123'
+    'shipping-executable-AB_123', 'shipping-executable-AB-123', 'shipping-executable-reference', 'root-entry-reference', 'root-entry-ABCDE', 'root-entry-AB_123', 'connection-entry-reference', 'connection-entry-ABCDE', 'connection-entry-ABCDEFG', 'connection-entry-AB_123'
   )
   foreach ($name in $redesignVerificationNames) { Fixture-File ('tmp/' + $name + '/generated.bin') 'regenerable-closed-verification' }
   foreach ($name in $recentRedesignNames) { Fixture-File ('tmp/' + $name + '/generated.bin') 'recent-verification-protected' }

@@ -29,6 +29,8 @@ namespace TableMax.Desktop
         private DisplayGeometry simulated;
         private readonly int initialWidth, initialHeight;
         private string lastMessageSourcePath, lastMessageCurrentPath;
+        private string capturedJoinUrl;
+        private int capturedJoinCount;
         private const int BackgroundMaximumPixels = 16384;
         public int Id { get; }
         public string Role { get; }
@@ -96,7 +98,7 @@ namespace TableMax.Desktop
             core.Settings.IsStatusBarEnabled = false;
             core.Settings.IsZoomControlEnabled = false;
             core.Settings.IsBuiltInErrorPageEnabled = false;
-            core.NewWindowRequested += (_, args) => { args.Handled = true; };
+            core.NewWindowRequested += OnNewWindowRequested;
             core.PermissionRequested += (_, args) => { args.State = CoreWebView2PermissionState.Deny; args.Handled = true; };
             core.DownloadStarting += (_, args) => { args.Cancel = true; };
             core.NavigationStarting += (_, args) =>
@@ -166,6 +168,53 @@ namespace TableMax.Desktop
             {
                 if (id != null && !IsDisposed && browser.CoreWebView2 != null) browser.CoreWebView2.PostWebMessageAsJson(Json.Encode(new { id, error = cause.Message }));
             }
+        }
+        private void OnNewWindowRequested(object sender, CoreWebView2NewWindowRequestedEventArgs args)
+        {
+            // No arbitrary popup, player frame or link can launch a desktop URL.
+            args.Handled = true;
+            if (!Managed || IsDisposed || (Role != "host" && Role != "public") || !args.IsUserInitiated) return;
+            var source = args.OriginalSourceFrameInfo?.Source;
+            var documentUrl = Url;
+            if (source != documentUrl || !context.Allowed(source, Role)) return;
+            if (!Uri.TryCreate(args.Uri, UriKind.Absolute, out var target) ||
+                (target.Scheme != "http" && target.Scheme != "https") ||
+                target.UserInfo.Length != 0 || target.AbsolutePath != "/" ||
+                target.Query.Length != 0 || target.Fragment.Length != 0) return;
+            // Complete the popup event before evaluating its document. Holding
+            // a deferral while waiting for script execution blocks the click.
+            context.Post(async () =>
+            {
+                try
+                {
+                    // Consume the React component's trusted top-document click.
+                    // Compare the exact current entry, so a replaced QR never opens
+                    // a stale URL and no administrator fragment is exported.
+                    var result = await browser.CoreWebView2.ExecuteScriptAsync(@"(() => {
+                        const link = document.querySelector('a[data-tablemax-join-link]');
+                        const request = Number(link?.dataset.tablemaxJoinRequest);
+                        if (link) delete link.dataset.tablemaxJoinRequest;
+                        return window === window.top && document.activeElement === link && request > 0 && Date.now() - request < 2000 ? link.href : null;
+                    })()");
+                    var current = Json.Decode("{\"url\":" + result + "}");
+                    if (IsDisposed || Url != documentUrl || Json.String(current, "url") != target.AbsoluteUri) return;
+                    if (context.Testing && System.Environment.GetEnvironmentVariable("TABLEMAX_TEST_CAPTURE_EXTERNAL") == "1")
+                    {
+                        // Explicit test mode records the approved OS launch target;
+                        // browser navigation/authorization is checked separately.
+                        capturedJoinUrl = target.AbsoluteUri;
+                        capturedJoinCount++;
+                    }
+                    else Process.Start(new ProcessStartInfo(target.AbsoluteUri) { UseShellExecute = true });
+                }
+                catch (Exception cause)
+                {
+                    context.Log("Open player website: " + cause.GetType().Name);
+                    if (!IsDisposed && browser.CoreWebView2 != null)
+                        try { await browser.CoreWebView2.ExecuteScriptAsync("window.dispatchEvent(new Event('tablemax:join-open-error'))"); }
+                        catch (InvalidOperationException) { }
+                }
+            });
         }
         private bool AllowedNavigation(string url)
         {
@@ -323,7 +372,7 @@ namespace TableMax.Desktop
         {
             var ratio = NativeMethods.Scale(Handle);
             var bounds = Bounds;
-            return new { id = Id, role = Role, managed = Managed, url = Url, visible = Visible && !context.Background, rendered = Visible, audioMuted = browser.CoreWebView2.IsMuted, content = new[] { (int)Math.Round(browser.ClientSize.Width / ratio), (int)Math.Round(browser.ClientSize.Height / ratio) }, fullscreen, borderStyle = FormBorderStyle.ToString(), showInTaskbar = ShowInTaskbar, foregroundTest = context.ForegroundTest, windowState = WindowState.ToString(), restoreBounds = DesktopContext.RectangleValue(RestoreBounds), zoom = browser.ZoomFactor, bounds = DesktopContext.RectangleValue(bounds), display = ApplyDisplay(), bridgeSourcePath = lastMessageSourcePath, bridgeCurrentPath = lastMessageCurrentPath };
+            return new { id = Id, role = Role, managed = Managed, url = Url, visible = Visible && !context.Background, rendered = Visible, audioMuted = browser.CoreWebView2.IsMuted, content = new[] { (int)Math.Round(browser.ClientSize.Width / ratio), (int)Math.Round(browser.ClientSize.Height / ratio) }, fullscreen, borderStyle = FormBorderStyle.ToString(), showInTaskbar = ShowInTaskbar, foregroundTest = context.ForegroundTest, windowState = WindowState.ToString(), restoreBounds = DesktopContext.RectangleValue(RestoreBounds), zoom = browser.ZoomFactor, bounds = DesktopContext.RectangleValue(bounds), display = ApplyDisplay(), bridgeSourcePath = lastMessageSourcePath, bridgeCurrentPath = lastMessageCurrentPath, externalJoin = context.Testing ? new { url = capturedJoinUrl, count = capturedJoinCount } : null };
         }
         public async Task<object> TestOperation(Dictionary<string, object> parameters)
         {

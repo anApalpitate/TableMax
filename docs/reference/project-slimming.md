@@ -1,5 +1,15 @@
 # 项目瘦身方案与执行记录
 
+## v1.0.4 网络连接与多设备页面适配收尾（2026-10-08）
+
+最终运行ZIP `d08c299b…` 的完整显示、盒子、新连接入口、HTTP／HTTPS等价故障与完整EXE核验通过，全部工程进程退出后才执行安全清理，保留默认30分钟近期保护。先预览再Apply：[7份过期打包暂存](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261008-071449-337-releases/cleanup.json)退役 **1,619,378,488字节**，[16份明确隔离测试副本](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261008-071633-328-intermediates/cleanup.json)退役 **1,592,680,400字节**；另按逐文件审计[退役两个旧测试浏览器配置目录](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261008-073031-329-intermediates/cleanup.json) **100,581,893字节**，原同级SQLite、设置、报告及库存证明哈希不变。两份用途不能确定的旧浏览器状态继续保留。
+
+[构建缓存清理](../../artifacts/maintenance/v1.0.4/build-cache-cleanup/1791445362710-apply.json)退役49份过期生成产物，清单输出合计 **88,005,562字节**；当前开发与交付快照、每单元最近两份成功产物、依赖和工具缓存保留。随后 `Maintain-Project.ps1 -Apply` [退役57项已过保护期的生成副本](../../artifacts/maintenance/cleanup-history/directories/local-cleanup-20261008-074415-052-maintenance/cleanup.json) **6,186,650,654字节**。本轮[审计退役量](../../artifacts/maintenance/v1.0.4/network-adaptation/cleanup-summary.json)合计 **9,587,296,997字节（约8.929GiB）**，其中缓存只统计输出清单，不能把这个量冒充工程净下降或NTFS物理释放。
+
+[自动维护最终实测](../../artifacts/maintenance/v1.0.4/network-adaptation/checks/maintenance-final.log)从20,307,216,695降至 **14,120,624,037逻辑字节（约13.151GiB）**；起点在手动退役和缓存清理之后。10GiB／8GiB规则下结果candidates-exhausted，192项保护／用途待确认内容跳过，1,370链接跳过、零嵌套仓库；仍超门限，不扩大删除范围。与本轮开始前只读水位13,974,399,310字节相比净增146,224,727字节，期间新增并保留实际验收、失败画面和候选原包；退役量与新增证据、实际容量分别记录。后续source ZIP、审计及Git写入会继续略增。
+
+四份结束记录[逐文件大小及SHA不变地集中归档](../../artifacts/maintenance/v1.0.4/network-adaptation/cleanup-record-archive.json)，原文件不改写、索引追加现路径，maintenance直属local-cleanup目录剩余零。原素材、规则资料、正式存档、当前和失败验收证据继续保护。releases仅留当前运行ZIP、清单及完整EXE；本轮用户明确授权GitHub发布，最终提交另导出source ZIP，线上附件仅完整EXE与source ZIP，详见[验收](acceptance.md#104网络连接与多设备页面适配2026-10-08)。
+
 ## v1.0.4 玩家比例与工作区修订收尾（2026-10-08）
 
 最终ZIP `bdb08d10…` 的完整显示、草稿、盒子、根入口、混合Worker及远程恢复通过，全部工程进程结束后才预览并执行既有脚本。保留默认30分钟近期保护：三份过期打包暂存退役 **693,965,613字节**，六份明确隔离验证副本退役 **570,855,046字节**；自动维护再退役一份已过保护期的盒子验证副本 **136,394,922字节**，合计 **1,401,215,581逻辑字节（约1.305GiB）**。原素材、规则资料、正式存档、依赖／工具缓存、候选原包、当前及失败验收截图继续保留。

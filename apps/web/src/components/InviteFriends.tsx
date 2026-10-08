@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import type { RoomSession } from '../session/useRoomSession';
 import { OverlayPanel } from './OverlayPanel';
 import './invite-friends.css';
@@ -7,7 +7,14 @@ export function InviteFriends({ session }: { session: RoomSession }) {
   const [draftUrl, setDraftUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+  const [openMessage, setOpenMessage] = useState('');
   const externalId = useId();
+  useEffect(() => {
+    const failed = () =>
+      setOpenMessage('无法打开系统浏览器，请在连接帮助中复制当前加入地址。');
+    window.addEventListener('tablemax:join-open-error', failed);
+    return () => window.removeEventListener('tablemax:join-open-error', failed);
+  }, []);
   const {
     addresses,
     adapters,
@@ -41,7 +48,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
   };
   return (
     <section className="invite-friends">
-      <h2>手机扫码入座</h2>
+      <h2>扫码或打开网站</h2>
       {joinUrl ? (
         <>
           <img
@@ -54,8 +61,45 @@ export function InviteFriends({ session }: { session: RoomSession }) {
                 ? '/api/foundation/qr?external=1'
                 : `/api/foundation/qr?address=${encodeURIComponent(address)}`
             }
-            alt="手机加入二维码"
+            alt="玩家加入二维码"
           />
+          <a
+            className="button invite-friends__open"
+            href={joinUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-tablemax-join-link=""
+            aria-label="打开网站，在浏览器中加入牌桌"
+            onClick={(event) => {
+              setOpenMessage('');
+              // Native WebView2 only accepts a trusted top-document activation
+              // of this current entry. Player frames cannot grant desktop access.
+              if (event.isTrusted && window === window.top)
+                event.currentTarget.dataset.tablemaxJoinRequest = String(
+                  Date.now(),
+                );
+            }}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="22"
+              height="22"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M14 3h7v7M21 3l-9 9M10 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5" />
+            </svg>
+            打开网站
+          </a>
+          {openMessage && (
+            <p className="invite-friends__empty" role="status">
+              {openMessage}
+            </p>
+          )}
         </>
       ) : (
         <p className="invite-friends__empty" role="status">
@@ -76,6 +120,16 @@ export function InviteFriends({ session }: { session: RoomSession }) {
       {help && (
         <OverlayPanel title="连接帮助" close={() => setHelp(false)}>
           <div className="connection-help">
+            <div className="connection-help__methods">
+              <p>
+                <strong>手机扫码</strong>
+                用手机相机或扫码工具打开二维码中的网站。
+              </p>
+              <p>
+                <strong>直接打开</strong>
+                点击二维码下方“打开网站”，或在手机、电脑浏览器输入当前加入地址。
+              </p>
+            </div>
             <div className="connection-help__field">
               <label htmlFor="address">电脑地址</label>
               <div className="connection-help__address">

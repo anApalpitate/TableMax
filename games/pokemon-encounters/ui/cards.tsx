@@ -75,7 +75,7 @@ export function Board({
       select={select}
       markers={zeroColumns.map((column) => ({
         slots: grid.columns[column]!,
-        label: '同值归零',
+        label: '归零',
         accessibleLabel: '第 ' + (column + 1) + ' 列同值归零',
         className: 'zero-column',
       }))}

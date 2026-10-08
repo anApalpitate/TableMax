@@ -16,6 +16,11 @@ const argument = (name) =>
 const source = process.argv.includes('--source');
 const quick = process.argv.includes('--quick');
 const scrollOnly = process.argv.includes('--scroll-only');
+const visualAudit = process.argv.includes('--visual-audit');
+const resultCssDiagnostic = process.argv.includes('--result-css-diagnostic');
+const onlyAuditPhase = argument('audit-phase');
+const auditMin = process.argv.includes('--audit-min');
+const onlyVariant = argument('variant');
 const onlyGame = argument('game');
 assert.ok(
   !onlyGame ||
@@ -25,7 +30,9 @@ const evidence = argument('evidence') ?? `run-${Date.now()}`;
 assert.match(evidence, /^[a-z0-9-]+$/);
 const { version } = JSON.parse(await readFile('package.json', 'utf8'));
 const output = resolve(
-  `artifacts/maintenance/v${version}/player-display`,
+  visualAudit
+    ? `artifacts/maintenance/v${version}/network-adaptation/game-audit`
+    : `artifacts/maintenance/v${version}/player-display`,
   evidence,
 );
 await mkdir(output, { recursive: true });
@@ -41,16 +48,24 @@ const report = {
   source,
   quick,
   scrollOnly,
+  visualAudit,
+  resultCssDiagnostic,
+  onlyAuditPhase: onlyAuditPhase ?? null,
+  auditMin,
+  onlyVariant: onlyVariant ?? null,
   onlyGame: onlyGame ?? null,
   scope:
     'Muted hidden WinForms/WebView2 and headless Edge; authorized real server state, CSS viewport and device emulation. No physical hardware DPI or phone claim.',
   checks: [],
   layouts: [],
   screenshots: [],
+  audits: [],
   errors: [],
 };
 if (!source) {
-  const archive = resolve(`artifacts/releases/TableMax-${version}-win-x64.zip`);
+  const archive = resolve(
+    argument('archive') ?? `artifacts/releases/TableMax-${version}-win-x64.zip`,
+  );
   const manifest = JSON.parse(
     await readFile(archive.replace('.zip', '-manifest.json'), 'utf8'),
   );
@@ -97,7 +112,7 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 );
 const sockets = [];
 const pages = [];
-let desktop, browser, origin, hostToken, hostSocket;
+let desktop, browser, origin, hostToken, hostSocket, auditHost, auditPublic;
 const save = () =>
   writeFile(
     join(output, 'results.json'),
@@ -205,11 +220,194 @@ async function capture(page, name) {
   await page.screenshot({ path: join(output, name + '.png'), fullPage: true });
   report.screenshots.push(name + '.png');
 }
+async function markerGeometry(frame, name) {
+  const markers = await frame.evaluate(() =>
+    [...document.querySelectorAll('.pokemon-screen .zero-column-badge')].map(
+      (badge) => {
+        const slot = badge.closest('.card-slot');
+        const surface = slot
+          .querySelector('.card-surface')
+          .getBoundingClientRect();
+        const rect = badge.getBoundingClientRect();
+        return {
+          label: badge.getAttribute('aria-label'),
+          column: Number(badge.parentElement.firstChild.textContent),
+          font: parseFloat(getComputedStyle(badge).fontSize),
+          rect: [rect.x, rect.y, rect.width, rect.height],
+          visible: rect.width > 0 && rect.height > 0,
+          belowCard: rect.top >= surface.bottom - 1,
+        };
+      },
+    ),
+  );
+  for (const marker of markers.filter((value) => value.visible)) {
+    assert.ok(
+      marker.font >= 16,
+      `${name}: zero-column marker text is too small`,
+    );
+    assert.ok(
+      marker.belowCard,
+      `${name}: zero-column marker overlaps the card`,
+    );
+    assert.equal(
+      marker.label.replace(/\s+/g, ''),
+      `第${marker.column}列同值归零`,
+      `${name}: zero marker must retain its column association`,
+    );
+  }
+  return markers;
+}
+async function resultGeometry(frame, name) {
+  const measure = () =>
+    frame.evaluate(() => {
+      const banner = document.querySelector(
+        '[data-player-display="wide"] .pokemon-screen.player .result-table > .round-banner',
+      );
+      if (!banner || innerWidth < 960 || document.querySelector('dialog[open]'))
+        return null;
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      const bounds = (element) => {
+        const r = element.getBoundingClientRect();
+        return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
+      };
+      const rect = bounds(banner);
+      const table = getComputedStyle(banner.parentElement);
+      const board = bounds(banner.parentElement.querySelector('.game-seats'));
+      const recent = bounds(
+        banner.parentElement.querySelector(':scope > .action-announcement'),
+      );
+      const content = [...banner.querySelectorAll('h2,p,button:not(:disabled)')]
+        .map((element) => ({
+          text: element.textContent?.trim(),
+          ...bounds(element),
+        }))
+        .filter((element) => element.bottom > element.top);
+      const legalButtons = [
+        ...banner.querySelectorAll('button:not(:disabled)'),
+      ].map((button) => {
+        const r = button.getBoundingClientRect();
+        const hit = document.elementFromPoint(
+          r.x + r.width / 2,
+          r.y + r.height / 2,
+        );
+        return {
+          text: button.textContent?.trim(),
+          reachable: hit === button || button.contains(hit),
+        };
+      });
+      return {
+        viewport: [innerWidth, innerHeight],
+        rect,
+        board,
+        recent,
+        content,
+        legalButtons,
+        grid: {
+          rows: table.gridTemplateRows,
+          rowGap: table.rowGap,
+          alignContent: table.alignContent,
+          height: table.height,
+          minHeight: table.minHeight,
+          bannerAlign: getComputedStyle(banner).alignSelf,
+          recentAlign: getComputedStyle(
+            banner.parentElement.querySelector(':scope > .action-announcement'),
+          ).alignSelf,
+        },
+      };
+    });
+  let result = await measure();
+  if (!result) return null;
+  const gapValid = () =>
+    result.recent.top >= result.rect.bottom - 1 &&
+    result.recent.top - result.rect.bottom <= 24;
+  const record = async (stage) => {
+    const screenshot = `${name}-result-geometry-${stage}.png`;
+    await frame
+      .page()
+      .screenshot({ path: join(output, screenshot), fullPage: false });
+    report.screenshots.push(screenshot);
+    (report.resultDiagnostics ??= []).push({
+      name,
+      stage,
+      screenshot,
+      ...result,
+    });
+    await save();
+  };
+  if (!gapValid()) {
+    await record('package');
+    if (resultCssDiagnostic) {
+      await frame.evaluate(() => {
+        document.styleSheets[0].insertRule(
+          `@media (min-width:960px) {
+          [data-player-display='wide'] .pokemon-screen.player .game-table.result-table[data-seats][data-layout] > .action-announcement {
+            grid-column: 1 !important;
+            grid-row: 2 !important;
+            align-self: start !important;
+            width: 100% !important;
+            margin: 0 !important;
+          }
+        }`,
+          document.styleSheets[0].cssRules.length,
+        );
+      });
+      await frame.evaluate(
+        () =>
+          new Promise((done) =>
+            requestAnimationFrame(() => requestAnimationFrame(done)),
+          ),
+      );
+      result = await measure();
+      await record('candidate-css-not-package-proof');
+    }
+  }
+  const visible = (r) =>
+    r.top >= 0 &&
+    r.left >= 0 &&
+    r.bottom <= result.viewport[1] + 1 &&
+    r.right <= result.viewport[0] + 1;
+  assert.ok(
+    visible(result.rect) && result.content.every(visible),
+    `${name}: full result banner text and legal continuation must be in the first screen`,
+  );
+  assert.ok(
+    result.rect.right <= result.board.left + 1,
+    `${name}: result banner cannot overlap the player board`,
+  );
+  assert.ok(
+    visible(result.recent) && result.recent.right <= result.board.left + 1,
+    `${name}: latest saved result must be fully visible beside the player board`,
+  );
+  assert.ok(
+    gapValid(),
+    `${name}: latest saved result must sit within 24px below the winner banner`,
+  );
+  assert.ok(
+    result.legalButtons.every((button) => button.reachable),
+    `${name}: legal continuation must be reachable without scrolling`,
+  );
+  return result;
+}
 async function geometry(page, name, size, next) {
   await page.setViewportSize({ width: size[0], height: size[1] });
   if (size[0] >= 800) await mode(page, next);
-  await page.waitForTimeout(100);
+  else {
+    await page
+      .locator('main.player-frame[data-player-display="mobile"]')
+      .waitFor();
+    await playerUi(page)
+      .locator('html[data-player-display="mobile"]')
+      .waitFor();
+  }
   const child = await playerFrame(page);
+  await child.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise((done) =>
+      requestAnimationFrame(() => requestAnimationFrame(done)),
+    );
+  });
+  await markerGeometry(child, name);
+  const resultHero = await resultGeometry(child, name);
   const metrics = await child.evaluate(() => ({
     width: innerWidth,
     height: innerHeight,
@@ -249,6 +447,26 @@ async function geometry(page, name, size, next) {
       .filter((r) => r.height),
     frameCount: document.querySelectorAll('iframe[data-player-frame]').length,
   }));
+  metrics.resultHero = resultHero;
+  if (metrics.overflow > 2) {
+    metrics.overflowElements = await child.evaluate(() =>
+      [...document.querySelectorAll('body *')]
+        .map((element) => {
+          const rect = element.getBoundingClientRect();
+          return {
+            tag: element.tagName,
+            class: element.className,
+            text: element.textContent?.trim().slice(0, 100),
+            left: rect.left,
+            right: rect.right,
+          };
+        })
+        .filter((rect) => rect.right > innerWidth + 1 || rect.left < -1)
+        .slice(0, 25),
+    );
+    report.layouts.push({ name, size, next, ...metrics });
+    await capture(page, `${name}-${size.join('-')}-${next}-overflow`);
+  }
   assert.ok(
     metrics.overflow <= 2,
     `${name} ${size}/${next}: overflow ${metrics.overflow}`,
@@ -706,6 +924,358 @@ async function pageControls(page, name, token) {
     );
   }
 }
+// This audit records real authorized pages and reachable controls. Scrollable
+// content below the fold is reviewed separately from clipping or occlusion.
+async function auditSnapshot(page, ui, frame, name) {
+  await frame.evaluate(async () => {
+    await document.fonts.ready;
+    await Promise.all(
+      [...document.images]
+        .filter((image) => image.complete)
+        .map((image) => image.decode().catch(() => {})),
+    );
+  });
+  const resultHero = await resultGeometry(frame, name);
+  const metrics = await frame.evaluate(() => {
+    const visible = (element) => {
+      const rect = element.getBoundingClientRect();
+      return (
+        rect.width > 0 &&
+        rect.height > 0 &&
+        !element.closest('[hidden],[inert]')
+      );
+    };
+    const dialog = document.querySelector('dialog[open]');
+    const root = dialog ?? document;
+    const controls = [
+      ...root.querySelectorAll('button, input, select, summary'),
+    ].filter(visible);
+    return {
+      viewport: [innerWidth, innerHeight],
+      overflow: document.documentElement.scrollWidth - innerWidth,
+      dialog: dialog?.textContent?.trim().slice(0, 100) ?? null,
+      controls: controls.map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          name:
+            element.getAttribute('aria-label') ??
+            element.textContent?.trim() ??
+            '',
+          rect: [rect.x, rect.y, rect.width, rect.height],
+          disabled: element.disabled === true,
+          font: getComputedStyle(element).fontSize,
+        };
+      }),
+      scrollOwners: [...root.querySelectorAll('*')]
+        .filter((element) => {
+          const style = getComputedStyle(element);
+          return (
+            visible(element) &&
+            /auto|scroll/.test(style.overflowY) &&
+            element.scrollHeight > element.clientHeight + 10
+          );
+        })
+        .map((element) => ({
+          class: element.className,
+          visible: element.clientHeight,
+          content: element.scrollHeight,
+        })),
+    };
+  });
+  assert.ok(
+    metrics.overflow <= 2,
+    `${name}: unintended document horizontal overflow ${metrics.overflow}px`,
+  );
+  const screenshot = `${name}.png`;
+  await page.screenshot({ path: join(output, screenshot), fullPage: false });
+  report.screenshots.push(screenshot);
+  report.audits.push({
+    name,
+    screenshot,
+    dialogCount: await ui.getByRole('dialog').count(),
+    zeroMarkers: await markerGeometry(frame, name),
+    resultHero,
+    ...metrics,
+  });
+  await save();
+}
+async function auditDialogs(page, ui, frame, name, state, kinds = null) {
+  const before = await view();
+  const entries = [
+    ['rules', ui.getByRole('button', { name: /^(规则|玩法)$/ }).first()],
+    ['menu', ui.getByRole('button', { name: /^菜单$/ }).first()],
+    ['friends', ui.getByRole('button', { name: /^朋友$/ }).first()],
+    ['market', ui.getByRole('button', { name: /^历轮行情$/ }).first()],
+    ['museums', ui.getByRole('button', { name: /^各家博物馆$/ }).first()],
+    ['research', ui.locator('[data-research-details]').first()],
+    ['score', ui.getByRole('button', { name: /查看.*计分明细/ }).first()],
+    ['company', ui.locator('.pg-company-details').first()],
+    ['income', ui.getByRole('button', { name: /收益/ }).first()],
+  ];
+  for (const [kind, entry] of entries) {
+    if (kinds && !kinds.includes(kind)) continue;
+    if (
+      !(await entry.count()) ||
+      !(await entry.isVisible()) ||
+      !(await entry.isEnabled())
+    )
+      continue;
+    await entry.scrollIntoViewIfNeeded();
+    await entry.click();
+    await page.waitForTimeout(50);
+    const dialog = ui.getByRole('dialog').first();
+    if (!(await dialog.count()) || !(await dialog.isVisible())) {
+      await auditSnapshot(page, ui, frame, `${name}-${kind}-expanded`);
+      if (kind === 'income') await entry.click();
+      continue;
+    }
+    await auditSnapshot(page, ui, frame, `${name}-${kind}-top`);
+    if (kind === 'market') {
+      const market = dialog.locator('.ma-panel .ma-market');
+      if (await market.count()) {
+        const title = market.locator('.ma-section-heading h2');
+        assert.equal(
+          await title.evaluate((element) => {
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            return range.getClientRects().length;
+          }),
+          1,
+          `${name}: market title must stay whole`,
+        );
+        for (const counter of await market.locator('.ma-artist__count').all()) {
+          const number = await counter.locator('strong').boundingBox();
+          const total = await counter.locator('span').last().boundingBox();
+          assert.ok(
+            Math.abs(number.y - total.y) < 3,
+            `${name}: played count and /5 must stay together`,
+          );
+        }
+      }
+    }
+    if (kind === 'rules') {
+      const sections = dialog.locator('.rules-guide__nav button');
+      for (let index = 0; index < (await sections.count()); index++) {
+        await sections.nth(index).click();
+        await auditSnapshot(
+          page,
+          ui,
+          frame,
+          `${name}-${kind}-section-${index}`,
+        );
+      }
+      if (name.endsWith('player-320-mobile')) {
+        const tasks = dialog.locator('.ex-research-card');
+        for (let index = 0; index < (await tasks.count()); index++) {
+          const task = tasks.nth(index);
+          const id = await task.getAttribute('data-research');
+          for (const selector of [
+            '.ex-research-title',
+            '.ex-research-condition',
+            '.ex-research-diagram',
+          ]) {
+            await task.locator(selector).scrollIntoViewIfNeeded();
+            await auditSnapshot(
+              page,
+              ui,
+              frame,
+              `${name}-${kind}-${id}-${selector.slice(1)}`,
+            );
+          }
+        }
+      }
+    }
+    await dialog.evaluate((element) => {
+      for (const owner of [element, ...element.querySelectorAll('*')])
+        if (
+          /auto|scroll/.test(getComputedStyle(owner).overflowY) &&
+          owner.scrollHeight > owner.clientHeight
+        )
+          owner.scrollTop = owner.scrollHeight;
+    });
+    await auditSnapshot(page, ui, frame, `${name}-${kind}-bottom`);
+    await dialog.press('Escape');
+    await dialog.waitFor({ state: 'hidden' });
+    assert.ok(
+      await entry.evaluate(
+        (element) =>
+          document.activeElement === element ||
+          element.contains(document.activeElement),
+      ),
+      `${name}-${kind}: closing must restore entry focus`,
+    );
+  }
+  assert.equal(
+    (await view()).revision,
+    before.revision,
+    `${name}: browsing dialogs cannot submit a game action`,
+  );
+  await checked(
+    `${name}: ${kinds?.join('/') ?? 'applicable'} dialogs scroll, close and restore focus without revision change (${state.gameView.phase})`,
+  );
+}
+async function auditPhase(current, humans, index, state, name, first) {
+  const allDialogs =
+    first ||
+    ['round-result', 'match-result', 'ended'].includes(state.gameView.phase);
+  const incomeDialogs = state.gameView.phase === 'powering';
+  const player = playerUi(current);
+  const frame = await playerFrame(current);
+  for (const [width, height, display] of [
+    [320, 568, 'mobile'],
+    [360, 640, 'mobile'],
+    [390, 844, 'mobile'],
+    [1280, 720, 'portrait'],
+    [1280, 720, 'wide'],
+  ]) {
+    await current.setViewportSize({ width, height });
+    if (width >= 800) await mode(current, display);
+    await current.waitForTimeout(80);
+    await frame.evaluate(() => {
+      window.scrollTo(0, 0);
+      for (const owner of document.querySelectorAll(
+        '.pg-page-scroll, .pg-action-dock',
+      ))
+        owner.scrollTop = 0;
+    });
+    await auditSnapshot(
+      current,
+      player,
+      frame,
+      `${name}-player-${width}-${display}`,
+    );
+    if (
+      (allDialogs || incomeDialogs) &&
+      [320, 1280].includes(width) &&
+      display !== 'portrait'
+    )
+      await auditDialogs(
+        current,
+        player,
+        frame,
+        `${name}-player-${width}-${display}`,
+        state,
+        allDialogs ? null : ['income'],
+      );
+    const actions = player
+      .locator(
+        '[data-action], .submit-choice button, .ma-cash-panel button, .pg-action-dock button',
+      )
+      .filter({ visible: true });
+    for (let action = 0; action < (await actions.count()); action++) {
+      const element = actions.nth(action);
+      if (!(await element.isEnabled())) continue;
+      await element.scrollIntoViewIfNeeded();
+      assert.ok(
+        await element.evaluate((button) => {
+          const rect = button.getBoundingClientRect();
+          const hit = document.elementFromPoint(
+            rect.x + rect.width / 2,
+            rect.y + rect.height / 2,
+          );
+          return hit === button || button.contains(hit);
+        }),
+        `${name}: legal primary control is obscured after scrolling`,
+      );
+    }
+    const tabs = player.locator('.pg-page-nav button');
+    if (await tabs.count()) {
+      for (let tab = 0; tab < (await tabs.count()); tab++) {
+        await tabs.nth(tab).click();
+        await auditSnapshot(
+          current,
+          player,
+          frame,
+          `${name}-player-${width}-${display}-page-${tab}`,
+        );
+      }
+      await tabs.first().click();
+    }
+  }
+  const otherViews = await Promise.all(
+    humans
+      .filter((_, seat) => seat !== index)
+      .map(async (human) => ({ human, projection: await view(human.token) })),
+  );
+  const other = (
+    otherViews.find(({ projection }) => {
+      const values =
+        projection.gameView.roundResult?.scores[projection.self.seatId]?.values;
+      return (
+        values?.length === 6 &&
+        values.slice(0, 3).some((value, column) => value === values[column + 3])
+      );
+    }) ?? otherViews[0]
+  )?.human;
+  if (other) {
+    const waiting =
+      pages.find((page) => page.__displayToken === other.token) ??
+      (await open(other.token));
+    await rendered(waiting, await view(other.token));
+    await waiting.setViewportSize({ width: 390, height: 844 });
+    await auditSnapshot(
+      waiting,
+      playerUi(waiting),
+      await playerFrame(waiting),
+      `${name}-other-player`,
+    );
+    // Result boards may have no zero column for the first viewer. Cover the
+    // marked player's phone and desktop layouts without editing server state.
+    const waitingUi = playerUi(waiting);
+    if (await waitingUi.locator('.zero-column-badge').count()) {
+      for (const [width, height, display] of [
+        [320, 568, 'mobile'],
+        [360, 640, 'mobile'],
+        [1280, 720, 'portrait'],
+        [1280, 720, 'wide'],
+      ]) {
+        await waiting.setViewportSize({ width, height });
+        if (width >= 800) await mode(waiting, display);
+        const waitingFrame = await playerFrame(waiting);
+        await waitingFrame.evaluate(() => window.scrollTo(0, 0));
+        await auditSnapshot(
+          waiting,
+          waitingUi,
+          waitingFrame,
+          `${name}-other-player-${width}-${display}`,
+        );
+      }
+    }
+  }
+  for (const [role, page] of [
+    ['host', auditHost],
+    ['public', auditPublic],
+  ]) {
+    await page.locator(`[data-room-revision="${state.revision}"]`).waitFor();
+    const cdp = await page.context().newCDPSession(page);
+    try {
+      for (const [width, height] of [
+        [1280, 720],
+        [1920, 1080],
+      ]) {
+        await cdp.send('Emulation.setDeviceMetricsOverride', {
+          width,
+          height,
+          deviceScaleFactor: 1,
+          mobile: false,
+        });
+        await auditSnapshot(page, page, page, `${name}-${role}-${width}`);
+        if ((allDialogs || incomeDialogs) && width === 1280)
+          await auditDialogs(
+            page,
+            page,
+            page,
+            `${name}-${role}-${width}`,
+            state,
+            allDialogs ? null : ['income'],
+          );
+      }
+    } finally {
+      await cdp.send('Emulation.clearDeviceMetricsOverride');
+      await cdp.detach();
+    }
+  }
+}
 try {
   desktop = await launchDesktop({
     executablePath: join(portable, 'TableMax.exe'),
@@ -727,17 +1297,25 @@ try {
     headless: true,
     ignoreDefaultArgs: ['--hide-scrollbars'],
   });
+  if (visualAudit) {
+    auditHost = host;
+    const opened = desktop.waitForEvent('window');
+    await desktop.request('open-public');
+    auditPublic = await opened;
+  }
   const catalog = (await view()).catalog;
   for (const game of catalog.filter(
     (game) => !onlyGame || game.id === onlyGame,
   ))
     for (const variant of game.id === 'pokemon-encounters'
-      ? scrollOnly
-        ? ['original']
-        : ['original', 'expansion']
+      ? onlyVariant
+        ? [onlyVariant]
+        : scrollOnly
+          ? ['original']
+          : ['original', 'expansion']
       : [null])
-      for (const count of quick || scrollOnly
-        ? [scrollOnly ? game.min : game.max]
+      for (const count of quick || scrollOnly || visualAudit
+        ? [scrollOnly || auditMin ? game.min : game.max]
         : [...new Set([game.min, game.max])]) {
         if ((await view()).status === 'playing') await command({ type: 'end' });
         await command({ type: 'new-room' });
@@ -755,11 +1333,22 @@ try {
           humans.push({ token: reply.token, client });
           await command({ type: 'ready', ready: true }, reply.token, client);
         }
+        if (
+          visualAudit &&
+          onlyAuditPhase === 'round-result' &&
+          onlyVariant === 'original'
+        )
+          await command({
+            type: 'set-owner',
+            seatId: (await view(humans[0].token)).self.seatId,
+          });
         const page = await open(humans[0].token);
         const name = `${game.id}-${variant ?? 'default'}-${count}`;
-        await layouts(page, name + '-box', humans[0].token, !quick);
+        if (!visualAudit)
+          await layouts(page, name + '-box', humans[0].token, !quick);
         if (
           !quick &&
+          !visualAudit &&
           report.checks.every((label) => !label.startsWith('Touch Windows'))
         ) {
           await deviceChecks(humans[0].token);
@@ -779,6 +1368,10 @@ try {
           );
         }
         await command({ type: 'start' });
+        if (visualAudit) {
+          await auditHost.goto(origin + '/host/game');
+          await auditPublic.goto(origin + '/public/game');
+        }
         await playerUi(page)
           .locator('.pokemon-screen, .expansion-screen, .ma-screen, .pg-screen')
           .first()
@@ -835,16 +1428,27 @@ try {
             .waitFor();
           if (!seen.has(label)) {
             seen.add(label);
-            await layouts(
-              current,
-              name + '-' + label,
-              humans[index].token,
-              !quick && seen.size === 1,
-            );
-            if (!quick && seen.size === 1)
+            if (visualAudit && (!onlyAuditPhase || label === onlyAuditPhase))
+              await auditPhase(
+                current,
+                humans,
+                index,
+                state,
+                name + '-' + label,
+                seen.size === 1,
+              );
+            else if (!visualAudit)
+              await layouts(
+                current,
+                name + '-' + label,
+                humans[index].token,
+                !quick && seen.size === 1,
+              );
+            if (!quick && !visualAudit && seen.size === 1)
               await pageControls(current, name, humans[index].token);
           }
           if (scrollOnly) break;
+          if (visualAudit && onlyAuditPhase && seen.has(onlyAuditPhase)) break;
           if (
             (quick && seen.size >= (variant === 'expansion' ? 4 : 3)) ||
             (!quick &&
@@ -935,7 +1539,7 @@ try {
         for (const human of humans) human.client.disconnect();
       }
   assert.deepEqual(report.errors, []);
-  report.status = 'passed';
+  report.status = resultCssDiagnostic ? 'diagnostic' : 'passed';
 } catch (error) {
   report.status = 'failed';
   report.failure = String(error.stack ?? error);

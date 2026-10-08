@@ -79,6 +79,31 @@
   }
   [data-player-display='wide']
     .pokemon-screen.player
+    .game-table.result-table[data-seats][data-layout]
+    > .round-banner {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+  }
+  [data-player-display='wide']
+    .pokemon-screen.player
+    .game-table.result-table[data-seats][data-layout]
+    > .action-announcement {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+    width: 100%;
+    margin: 0;
+  }
+  [data-player-display='wide']
+    .pokemon-screen.player
+    .game-table.result-table[data-seats][data-layout]
+    > .game-seats {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+  [data-player-display='wide']
+    .pokemon-screen.player
     .game-table[data-seats][data-layout]
     > .pokemon-status.decision-dashboard {
     display: grid;

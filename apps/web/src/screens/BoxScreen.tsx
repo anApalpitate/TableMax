@@ -106,7 +106,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
     ? '正在同步牌桌'
     : lobby
       ? view.joinOpen
-        ? '扫码入座中'
+        ? '开放入座'
         : '已关闭入座'
       : view.status === 'ended'
         ? '对局已结束'
@@ -216,7 +216,11 @@ export function BoxScreen({ session }: { session: RoomSession }) {
         <div className="continue-game">
           <div>
             <h2>
-              {view.status === 'ended' ? '查看对局结果' : '牌桌已经准备好'}
+              {view.status === 'ended'
+                ? '查看对局结果'
+                : view.paused || view.botError
+                  ? '对局已暂停'
+                  : '对局进行中'}
             </h2>
           </div>
           <ScreenLink className="button" href={`/${role}/game`}>

@@ -1,5 +1,11 @@
 # 开发环境
 
+## 扫码与直接打开入口验证（2026-10-08）
+
+`node scripts/verify-connection-entry.mjs --sha256=<当前ZIP哈希> --evidence=<独立名称>` 解压并核验实际包，检查二维码与“打开网站”使用同一当前根网址、局域网／外部入口切换、窄屏排版和键盘操作。原生窗口只接受当前顶层邀请链接的真实用户点击；验证模式记录系统浏览器目标，普通浏览器实际新窗口继续入座、准备及游戏返回，不向新页传递管理员凭证或桥接。
+
+`node scripts/verify-player-display.mjs --visual-audit --game=<游戏id> --evidence=<独立名称> --sha256=<当前ZIP哈希>` 通过真实服务与合法动作审查三端、关键阶段和规则／菜单浮窗；可用 `--audit-phase=<阶段>` 定向补验，原版使用 `--variant=original`，最少人数使用 `--audit-min`。完整显示矩阵与远程故障入口继续使用下节命令。全部隐藏、静音、仅监听127.0.0.1；候选包与最终包报告分别绑定各自SHA，不将旧模块检查改标为新包通过。
+
 ## 玩家横屏与滚动条验证（2026-10-08）
 
 `node scripts/verify-player-display.mjs --source --quick --evidence=<名称>` 用已构建源码进行静音隐藏窗口与实际浏览器快查；完整实际包检查用 `--sha256=<当前ZIP哈希> --evidence=<名称>`，不加 `--source/--quick`。只监听 `127.0.0.1`，临时目录沿用已审计的 `tmp/debug-portable-<六位后缀>`，证据在 `artifacts/maintenance/v1.0.4/player-display/`。检查四变体合法最少／最多真人、关键阶段、真实授权动作、宽度边界、CSS视口／密度、设备识别、偏好、键盘、浮窗、高对比和切换草稿；不宣称实体手机或物理DPI通过。截图仅等待已加载图片，屏外懒加载规则图不会阻塞探针。

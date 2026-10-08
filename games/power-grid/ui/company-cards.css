@@ -326,3 +326,16 @@
 .pg-screen.pg-screen--player .pg-company-pending {
   flex-basis: auto;
 }
+.pg-screen.pg-screen--player .pg-company-card-plants:not(:has(.pg-plant-card)) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.pg-screen.pg-screen--player
+  .pg-company-card[data-plant-limit='4']
+  .pg-company-card-plants:not(:has(.pg-plant-card)) {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.pg-screen.pg-screen--player
+  .pg-company-card-plants:not(:has(.pg-plant-card))
+  .pg-company-plant-empty {
+  min-height: 44px;
+}

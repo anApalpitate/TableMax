@@ -1,5 +1,21 @@
 # 首版交付与验收
 
+## 1.0.4：网络连接与多设备页面适配（2026-10-08）
+
+连接区采用“扫码或打开网站”，二维码下方增加48px绿色图标按钮，连接帮助说明手机扫码与手机／电脑直接打开两种方式。二维码、按钮及帮助地址使用同一当前局域网／外部根入口，旧`/player`路由兼容。原生host／public仅将当前顶层邀请链接的可信用户点击交给系统浏览器；普通新页实际按真人玩家权限入座，无管理员凭证或原生桥接。盒子窄屏座位设置重新对齐，对局返回标题按进行中／暂停／结束显示。逐页审查收紧电力公司空厂位、修正现代艺术320px行情拆行，并将宝可梦原版归零提示移至牌下编号行，避免遮住牌值；原版宽屏结算将结果与授权继续入口置于左上，最新保存动作紧邻其下，牌阵位于右侧。游戏规则、投影权限和连接实例未改变。
+
+当前[同包汇总](../../artifacts/maintenance/v1.0.4/network-adaptation/results.json)绑定ZIP SHA-256 `d08c299bce3cef019a8960af9bde1be4cd28cd0654552758ca002f6ce19f804b`：**41,365,985字节**，248文件实际解压**94,964,067字节**，95MB工程预算余35,933字节，双100MB门禁通过。冻结快照`4ae871de…`，完整打包20,571ms，17／18单元缓存命中。前一已验`bdb08d10…`与本轮各候选保留原包／清单及成功失败记录，不改标为最终包。
+
+[最终入口](../../artifacts/maintenance/v1.0.4/network-adaptation/connection/release-delivery/results.json)7检查核验真实原生鼠标／键盘点击、禁止任意弹窗、普通浏览器新页入座／准备、外部地址保存／清空及开始游戏后刷新返回。[最终盒子](../../artifacts/maintenance/v1.0.4/debug-20261008/box/network-adaptation-release/results.json)96布局／21浮窗／118图；[完整玩家显示](../../artifacts/maintenance/v1.0.4/player-display/network-adaptation-release-display/results.json)460布局／126检查／288图覆盖四变体最少／最多人数、设备识别、偏好、720p／1080p／4K、800／960／1200边界、125%／150%模拟密度与320–430手机，检查同一iframe、连接和输入节点，切换不改变revision。[根入口](../../artifacts/maintenance/v1.0.4/root-entry/network-adaptation-release/results.json)5检查及[远程等价故障](../../artifacts/maintenance/v1.0.4/network-adaptation-release/remote/all-2026-10-08T07-10-49-141Z/results.json)11检查核验HTTP／HTTPS非标准端口、禁止WebSocket、推送／确认丢失、重发去重、断线及执行冻结恢复、WSS、换机三阶段和重启，最新revision实际渲染且能提交动作。
+
+[游戏逐页评判](../../artifacts/maintenance/v1.0.4/network-adaptation/game-audit/page-review.json)区分全流程候选审查与最终受影响阶段：电力公司四页及收益、现代艺术五类拍卖／双拍／结算、宝可梦两版关键阶段和30研究说明。最终原版2／6人结算、归零及横屏结果单独补验；行情、收益与新入口独立审查通过[模块等价核验](../../artifacts/maintenance/v1.0.4/network-adaptation/checks/final-module-equivalence.json)明确原包边界，不将早候选截图当成最终ZIP证据。[新入口独立逐图复核](../../artifacts/maintenance/v1.0.4/network-adaptation/visual-review/final-entry-review.json)四图SHA匹配、无可见P1／P2，首屏外座位与帮助需正常滚动，观察范围明确保留。
+
+原生点击首次候选的回调等待死锁已修复；首次完整显示320px瞬时3px溢出保留，验证器等待实际mobile标记、字体与渲染后复验通过，阈值未放宽。原版宽屏结算返修中，旧选择器命中了内部记录按钮而非动作根容器，实际间距检查失败，后续使用根容器实测修正。候选CSS诊断受CSP阻止的失败及后续CSSOM诊断单独保留，诊断状态不可作为便携通过，最终聚合显式拒绝注入和源码模式。受限沙盒依赖realpath／Edge管道失败和懒图片等待等验证器失败继续保留，未计作产品通过。
+
+[完整EXE核验](../../artifacts/maintenance/v1.0.4/github-release-20261005/shipping-executable-checks.json)对应EXE SHA-256 `e14a822ff50453e883de35267f8ec38c843d06251e95eaa4319b01f0c13ad533`、**41,522,176字节**；实际提取含归属标记 **95,016,135字节**／249文件，逐文件哈希、重复提取复用及原生安全通过。95MB工程预算按冻结运行载荷计，100MB提取门禁包含标记。本轮用户明确授权提交／推送、`v1.0.4`标签及GitHub Release，主题为网络连接与多设备页面适配；仅上传该完整EXE与精确发布提交的source ZIP，发布记录由现有入口落盘，公开下载以[Release](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.4)为准。
+
+全部测试隐藏、静音且仅监听127.0.0.1。类型、相关lint／项目Prettier及清理前缀57项检查通过；实体手机、Safari、现场樱花穿透、物理Windows DPI、真实公网证书与默认系统浏览器关联未认证，125%／150%属于CSS视口和密度模拟。工程实际空间与安全退役见[瘦身记录](project-slimming.md)。
+
 ## 1.0.4：玩家比例与游戏工作区修订（2026-10-08）
 
 电脑竖屏采用390–480px宽度优先、9:20理想比例，横屏上下16px且框外按钮不占一行。座位身份连续排列、完整长昵称随内容增高，玩家窄屏两列防重叠；换手机入口180×48px居中。管理员短屏收紧间距并保留牌桌构图，页面仍可纵向滚动。电力公司定位下拉仅管理员、共用最小缩放0.64、玩家地皮进度仅行动页；四页内部重排选择／确认、市场和公司，厂景方形图集等比裁切。现代艺术以行情摘要、拍卖工作台与私有手牌组织，双拍所有参与者采用40%工作台／60%手牌，拍品、价格与合法主要动作短屏同见。规则、身份权限和存档字段未改。
@@ -116,7 +132,7 @@
 
 ## 当前源码与本地交付
 
-当前本地交付为本页v1.0.4章节的 [运行ZIP](../../artifacts/releases/TableMax-1.0.4-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.4-win-x64-manifest.json)，SHA-256 `bdb08d10…`。前一份研究重设计交付 `a9ee8498…` 原样保留在[横屏前历史交付](../../artifacts/maintenance/v1.0.4/player-display/previous-delivery/TableMax-1.0.4-win-x64.zip)。上一已验v1.0.4 `96518cad…` 保留在[本轮历史交付](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/previous-delivery/TableMax-1.0.4-win-x64.zip)。前一轮10.7修复 `6761ef78…` 保留在[历史交付](../../artifacts/maintenance/v1.0.4/debug-20261008/previous-delivery/TableMax-1.0.3-win-x64.zip)，不作为当前下载。此前公开发布的 `bdd69433…` ZIP与 `41994ea5…` 完整EXE仍按GitHub发布章节追溯；[原发布附件本地副本](../../artifacts/maintenance/v1.0.3/debug-20261007/previous-release/preserved.json)保留旧EXE／source ZIP大小和哈希，未用本轮源码替换线上附件。旧包各自的冻结清单、通过／失败文字结论和原素材继续保留，历史通过结论只对应当时冻结输入。
+当前本地交付为本页v1.0.4章节的 [运行ZIP](../../artifacts/releases/TableMax-1.0.4-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.4-win-x64-manifest.json)，SHA-256 `d08c299b…`；完整EXE和本轮发布边界见页首。前一份研究重设计交付 `a9ee8498…` 原样保留在[横屏前历史交付](../../artifacts/maintenance/v1.0.4/player-display/previous-delivery/TableMax-1.0.4-win-x64.zip)。上一已验v1.0.4 `96518cad…` 保留在[本轮历史交付](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/previous-delivery/TableMax-1.0.4-win-x64.zip)。前一轮10.7修复 `6761ef78…` 保留在[历史交付](../../artifacts/maintenance/v1.0.4/debug-20261008/previous-delivery/TableMax-1.0.3-win-x64.zip)，不作为当前下载。此前公开发布的 `bdd69433…` ZIP与 `41994ea5…` 完整EXE仍按GitHub发布章节追溯；[原发布附件本地副本](../../artifacts/maintenance/v1.0.3/debug-20261007/previous-release/preserved.json)保留旧EXE／source ZIP大小和哈希，未用本轮源码替换线上附件。旧包各自的冻结清单、通过／失败文字结论和原素材继续保留，历史通过结论只对应当时冻结输入。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
 

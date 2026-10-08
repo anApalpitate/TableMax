@@ -1417,19 +1417,22 @@
     0 0 14px #7adaae55;
 }
 :where(.pokemon-screen) .zero-column-badge {
-  position: absolute;
-  top: -6px;
-  left: -4px;
-  z-index: 2;
-  padding: 1px 5px;
-  border: 1px solid #fff7ca;
-  border-radius: 6px;
+  position: static;
+  padding: 0;
   color: #fff;
-  background: #23604e;
-  font-size: 11px;
+  font-size: 16px;
   line-height: 18px;
   font-weight: 800;
   pointer-events: none;
+}
+.pokemon-screen .slot-index:has(.zero-column-badge) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 0 4px;
+  width: max-content;
+  font-size: 16px;
 }
 :where(.pokemon-screen) .draw-pile:not(:disabled) > .pokemon-card {
   animation: none;

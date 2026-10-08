@@ -1052,6 +1052,30 @@
 .ma-screen.ma-panel .ma-museums {
   grid-template-columns: minmax(0, 1fr);
 }
+@media (max-width: 600px) {
+  .ma-screen.ma-panel .ma-market .ma-section-heading {
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 12px;
+  }
+  .ma-screen.ma-panel .ma-market .ma-section-heading h2 {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .ma-screen.ma-panel .ma-market .ma-section-heading > span {
+    text-align: left;
+    white-space: nowrap;
+  }
+  .ma-screen.ma-panel .ma-market .ma-artist__count {
+    display: grid;
+    grid-template-columns: max-content max-content;
+    justify-content: center;
+    gap: 0 3px;
+  }
+  .ma-screen.ma-panel .ma-market .ma-artist__count > span:first-child {
+    grid-column: 1 / -1;
+  }
+}
 .ma-screen .ma-log {
   min-width: 0;
   max-width: 100%;

@@ -52,18 +52,19 @@ export function BoardGrid({
             {slot.content}
             <span className="slot-index">
               {renderIndex ? renderIndex(index) : index + 1}
+              {marked
+                .filter((marker) => marker.slots[0] === index)
+                .map((marker) => (
+                  <span
+                    key={marker.accessibleLabel}
+                    className="zero-column-badge"
+                    aria-label={marker.accessibleLabel}
+                    title={marker.accessibleLabel}
+                  >
+                    {marker.label}
+                  </span>
+                ))}
             </span>
-            {marked
-              .filter((marker) => marker.slots[0] === index)
-              .map((marker) => (
-                <span
-                  key={marker.accessibleLabel}
-                  className="zero-column-badge"
-                  aria-label={marker.accessibleLabel}
-                >
-                  {marker.label}
-                </span>
-              ))}
           </>
         );
         return select ? (

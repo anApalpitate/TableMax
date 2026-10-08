@@ -17,6 +17,35 @@
   margin: 0;
   font-size: 18px;
 }
+.box-screen .controls .invite-friends .invite-friends__open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 16px;
+  border: 1px solid #163f34;
+  border-radius: 14px;
+  background: #1d4d40;
+  color: #fffdf3;
+  box-shadow: 0 3px 0 #143b31;
+  font-size: 18px;
+  line-height: 1.4;
+}
+.invite-friends__open svg {
+  flex-shrink: 0;
+}
+.box-screen .controls .invite-friends .invite-friends__open:hover {
+  background: #28634f;
+}
+.box-screen .controls .invite-friends .invite-friends__open:active {
+  box-shadow: 0 1px 0 #143b31;
+}
+.box-screen .controls .invite-friends .invite-friends__open:focus-visible {
+  outline: 3px solid #bd7b30;
+  outline-offset: 4px;
+}
 .invite-friends .invite-friends__empty {
   margin: 0;
   padding: 18px 12px;
@@ -33,6 +62,24 @@
 .connection-help__field > label,
 .connection-help__current > span {
   font-weight: 700;
+}
+.connection-help__methods {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #d7decd;
+  border-radius: 14px;
+  background: #f3f5eb;
+}
+.connection-help__methods p {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  line-height: 1.5;
+}
+.connection-help__methods strong {
+  color: #1d4d40;
+  font-size: 18px;
 }
 .connection-help .connection-help__address {
   gap: 10px;
