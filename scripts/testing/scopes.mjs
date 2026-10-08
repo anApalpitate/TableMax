@@ -73,6 +73,7 @@ const unitScopes = {
 // Unregistered scripts may only run with an explicitly chosen full scope.
 // Mixed matrices cannot be narrowed by adding an option they do not implement.
 const verificationScopes = {
+  'scripts/verify-shipping-executable.mjs': ['box', 'shared'],
   'scripts/testing/scopes.test.mjs': ['tooling'],
   'scripts/testing/history.test.mjs': ['tooling'],
   'scripts/verify-box-layout.mjs': ['box'],

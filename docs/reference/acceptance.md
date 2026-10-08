@@ -1,5 +1,11 @@
 # 首版交付与验收
 
+## 1.0.5：GitHub发布核验（2026-10-09）
+
+本轮用户明确授权commit、push并发布v1.0.5，主题“互动效果与网络优化”。[完整EXE](../../artifacts/releases/TableMax-1.0.5-win-x64.exe)41,018,880字节，SHA-256 `359d2cd5bb184c61a737cf44598e939c66be450f7a59a9a702b13769d6c8216d`，内嵌本页已验证运行ZIP。实际提取267文件／94,410,471字节（含所有权标记），重复提取复用、逐文件哈希及原生安全验证通过，见[发布EXE检查](../../artifacts/maintenance/v1.0.5/github-release-20261005/shipping-executable-checks.json)。558项冻结运行输入均已提交且无工作区差异，用户未提交文档重构另行保留。
+
+发布附件仅完整EXE与由标签提交导出的source ZIP；不上传运行ZIP、JSON清单或截图。正文以互动效果、声音播放、网络同步及菜单体验为主，不宣称实体手机LAN目标已达标。线上状态、标签提交与附件大小／SHA-256以[发布记录](../../artifacts/maintenance/v1.0.5/github-release-20261005/github-publication.json)和[GitHub v1.0.5](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.5)为准。
+
 ## 1.0.5：菜单、互动并发与手机同步（2026-10-09）
 
 四游戏版本的游戏／视频设置归入菜单，声音入口为图标并保持原权限；互动采用三射击槽及独立最新发言，发言时音效压至30%，300ms启动窗口内从头播放，超时不补播。同步使用运行期stamp、轻量probe、15秒完整校验与800ms只读动作查询；真正恢复清空播放并退休互动水位，健康校验保持连续。
