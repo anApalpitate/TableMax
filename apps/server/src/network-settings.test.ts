@@ -27,10 +27,6 @@ afterEach(() => {
 });
 
 it.each([
-  ['frp-off.com:33684', 'http://frp-off.com:33684'],
-  ['example.com', 'http://example.com'],
-  [' 127.0.0.1:38473/player ', 'http://127.0.0.1:38473'],
-  ['[::1]:8080', 'http://[::1]:8080'],
   [' https://EXAMPLE.com/ ', 'https://example.com'],
   ['https://example.com:443/player/', 'https://example.com'],
   ['http://example.com:8080', 'http://example.com:8080'],
@@ -44,6 +40,10 @@ it.each([
 
 it.each([
   '',
+  'example.com:12345',
+  'example.com',
+  '127.0.0.1:38473/player',
+  '[::1]:8080',
   'http:example.com',
   '//example.com',
   'javascript:alert(1)',

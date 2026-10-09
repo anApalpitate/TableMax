@@ -262,6 +262,7 @@ it('restricts external entry settings to the desktop administrator, pushes the s
     adapters: network.adapters,
   });
   for (const externalJoinUrl of [
+    'example.com:12345',
     'https://example.com/tablemax/player',
     'https://user:pass@example.com',
     'javascript:alert(1)',
@@ -286,7 +287,7 @@ it('restricts external entry settings to the desktop administrator, pushes the s
     (
       await post(origin, '/api/room/network', {
         token: service.hostToken,
-        externalJoinUrl: 'mapped.example:8080/player',
+        externalJoinUrl: 'http://mapped.example:8080/player',
       })
     ).status,
   ).toBe(200);

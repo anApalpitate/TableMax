@@ -1,6 +1,8 @@
 # 首版交付与验收
 
-2026-10-09连接帮助示例脱敏：占位文案改为`example.com:12345`；运行网页已检索确认不再含原域名，真实地址保存逻辑保持。[当前运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) 41015461字节／解压94595489字节，SHA-256 `dd2019e403385220773bcb4644dbe2856dd660d55c8153a7a7798a26fe7dfc72`；[同包盒子核验](../../artifacts/maintenance/v1.0.5/network-adaptation/connection/example-redacted-20261009/results.json)8项通过。前一发言面板包保存在`join-example-20261009/delivery-before-change/`，保留原验收。
+2026-10-10入口文案与协议回调：按钮改为“打开网址”，外部入口恢复必须显式HTTP／HTTPS前缀，示例保留脱敏。43项地址及保存权限回归、格式与静态检查通过。[当前运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) 41015416字节／实际解压94595477字节，SHA-256 `3af6de317c3b5b9184d9eee6f575802feb27eb98c7ae52b4a4525c8abbc9bfdd`；[同包盒子检查](../../artifacts/maintenance/v1.0.5/network-adaptation/connection/prefix-restored-20261010/results.json)8项通过。前包保留于`join-prefix-20261010/delivery-before-change/`，历史结论保持。
+
+2026-10-09连接帮助示例脱敏：占位文案改为`example.com:12345`；运行网页已检索确认不再含原域名，真实地址保存逻辑保持。[当时运行ZIP](../../artifacts/maintenance/v1.0.5/join-prefix-20261010/delivery-before-change/TableMax-1.0.5-win-x64.zip) 41015461字节／解压94595489字节，SHA-256 `dd2019e403385220773bcb4644dbe2856dd660d55c8153a7a7798a26fe7dfc72`；[同包盒子核验](../../artifacts/maintenance/v1.0.5/network-adaptation/connection/example-redacted-20261009/results.json)8项通过。前一发言面板包保存在`join-example-20261009/delivery-before-change/`，保留原验收。
 
 ## 1.0.5：发言面板优化（2026-10-09）
 

@@ -109,7 +109,7 @@ async function nativeEntry(page, url, keyboard = false) {
     async () => (await link.getAttribute('href')) === url,
     'Website entry did not update',
   );
-  assert.equal((await link.innerText()).trim(), url);
+  assert.equal((await link.innerText()).trim(), '打开网址');
   const before = await snapshot(page),
     state = await view(),
     original = page.url();
@@ -380,11 +380,26 @@ try {
   );
   const external =
     'https://network-multidevice-entry.long-player-connection.complete-lobby.example.test:33684';
-  await setExternal(host, 'frp-off.com:33684');
-  await nativeEntry(host, 'http://frp-off.com:33684');
-  await nativeEntry(publicPage, 'http://frp-off.com:33684');
+  await host.getByRole('button', { name: '连接帮助', exact: true }).click();
+  const prefixPanel = host.getByRole('dialog', {
+    name: '连接帮助',
+    exact: true,
+  });
+  const prefixInput = prefixPanel.getByLabel('外部入口网址', { exact: true });
+  await prefixInput.fill('example.com');
+  assert.equal(
+    await prefixInput.evaluate((element) => element.checkValidity()),
+    false,
+  );
+  await prefixPanel
+    .getByRole('button', { name: '保存外部入口', exact: true })
+    .click();
+  await prefixPanel
+    .getByRole('button', { name: '关闭面板', exact: true })
+    .click();
+  await nativeEntry(host, origin);
   await checked(
-    'Bare frp-off.com:33684 accepted through the help form and synchronized HTTP link and QR',
+    'Help form rejects an address without a protocol prefix and preserves the saved QR entry',
   );
   await setExternal(host, external + '/player');
   await nativeEntry(host, external);
@@ -402,7 +417,7 @@ try {
       height: width < 500 ? 640 : 720,
     });
     const displayedLink = publicBrowser.locator('a[data-tablemax-join-link]');
-    assert.equal((await displayedLink.innerText()).trim(), external);
+    assert.equal((await displayedLink.innerText()).trim(), '打开网址');
     assert.ok(
       await displayedLink.evaluate(
         (element) => element.scrollWidth <= element.clientWidth + 2,
