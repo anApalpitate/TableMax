@@ -16,6 +16,7 @@
 | Release发布       | [Release流程与发布约定](release.md)：本地交付、GitHub附件、源码／标签一致性、更新说明格式及发布收尾。                                                     |
 | 当前交付          | [验收记录](acceptance.md)：最近同包验证与设备边界；[历史验收](../archive/acceptance-2026-10-01-to-04.md)保留早期 AC、哈希和过程。                         |
 | 文件归属          | [目录职责](project-structure.md)：源码、资源、原资料、缓存与产物边界。                                                                                    |
+| 游戏接入          | [游戏接入与验证](game-development.md)：模块清单、SDK／网页契约、策略、恢复与接入验证。 |
 | 文档维护          | [维护规则](maintenance.md)：唯一正文、定向查询、视觉适用边界、更新、归档与提交。                                                                          |
 
-玩法与版本来源从 [游戏索引](../games/README.md)进入；产品范围查 [需求基线](../requirements/TableMax_需求文档_v1.0.md)，游戏接入查 [开发指南](../game-development/README.md)，后续工作查 [任务索引](../tasks/README.md)。返回 [文档总索引](../README.md)。
+玩法与版本来源从 [游戏索引](../games/README.md)进入；产品范围查 [需求基线](../requirements.md)，游戏接入查 [开发指南](game-development.md)，后续工作查 [任务索引](../tasks/README.md)。返回 [文档总索引](../README.md)。

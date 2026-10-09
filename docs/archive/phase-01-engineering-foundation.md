@@ -21,7 +21,7 @@
 
 采用依据见 [工程基础技术决策](../decisions/001-engineering-foundation.md)，实际依赖方向与后续机制归属见 [代码结构设计](../reference/architecture.md)，完整命令和验证记录见 [开发环境](../reference/development.md)。
 
-依据：[需求基线](../requirements/TableMax_需求文档_v1.0.md) 第 6、8、11、12、13 节及 [开发阶段总览](../tasks/README.md)。本阶段为后续平台和游戏开发建立可复现的工程基础。
+依据：[需求基线](../requirements.md) 第 6、8、11、12、13 节及 [开发阶段总览](../tasks/README.md)。本阶段为后续平台和游戏开发建立可复现的工程基础。
 
 ## 阶段目标与边界
 

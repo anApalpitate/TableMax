@@ -68,7 +68,7 @@ UI 合法存档 fixture 的构造入口在 scripts/fixtures/prepare-pokemon.ts�
 
 地址或端口变化会改变手机浏览器源，localStorage 凭证不会自动跨源迁移；由房主当面换绑可保留原座位。原服务地址下刷新／重连／重启自动使用原身份。二维码、日志及报告不包含管理或玩家凭证。服务启动失败时保留存档，不静默新建；人工排查／备份时保留 SQLite 及 WAL／SHM 文件。
 
-这些验证证明模板及平台机制，未运行宝可梦全部能力 D01–D13、完整人机首版局、产品 AC、Android／iPhone 实机、断互联网整局或无开发环境 Windows 交付验收。第五阶段使用 [游戏场景](../games/pokemon-encounters/validation-scenarios.md) 接入完整规则和策略；第六阶段完成产品组合验收。实际接入和策略替换流程见 [游戏开发指南](../game-development/README.md)。
+这些验证证明模板及平台机制，未运行宝可梦全部能力 D01–D13、完整人机首版局、产品 AC、Android／iPhone 实机、断互联网整局或无开发环境 Windows 交付验收。第五阶段使用 [游戏场景](../games/pokemon-encounters/validation-scenarios.md) 接入完整规则和策略；第六阶段完成产品组合验收。实际接入和策略替换流程见 [游戏开发指南](../reference/game-development.md)。
 
 ## 人机与封装的后续验证
 
@@ -165,7 +165,7 @@ UI 合法存档 fixture 的构造入口在 scripts/fixtures/prepare-pokemon.ts�
 
 2026-10-02 用户要求清除历史版本，已移除 0.1.0 至 1.3.0 的七个 ZIP，以及 phase-01／phase-06／releases 下三个旧 `win-unpacked`；当次保留 1.4.0 ZIP、解压程序和打包目录。历史原图、截图及 JSON 保留，以下历史包路径只用于追溯当时交付；详情见 [清理记录](../../artifacts/maintenance/release-cleanup-2026-10-02/cleanup.json)。打包不会自动清除其他版本。
 
-同日新一轮清理按用户要求移除 1.4.0 程序包及已结束的中间物，当前 1.5.0 ZIP 保持原哈希；结果及清理工具验证见 [本轮记录](../../artifacts/maintenance/cleanup-history/tool-checks/legacy/cleanup-summary.json) 与 [20 项隔离检查](../../artifacts/maintenance/cleanup-history/tool-checks/legacy/tool-tests.json)。
+同日新一轮清理按用户要求移除 1.4.0 程序包及已结束的中间物，当前 1.5.0 ZIP 保持原哈希；结果及清理工具验证见 [本轮记录（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json) 与 [20 项隔离检查（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)。
 
 ## 历史材料与产物位置
 

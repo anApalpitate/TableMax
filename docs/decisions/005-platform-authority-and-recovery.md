@@ -12,7 +12,7 @@ bot 策略在正式服务的独立 Worker 执行，输入只有本人授权投�
 
 这样将生命周期职责收敛在 RoomCoordinator、BotScheduler、WorkerBotExecutor 和 SqliteSaveRepository，状态、投影、计分与简单策略仍是普通数据／纯函数。存档校验独立维护，平台核心不依赖具体游戏、数据库或 Socket.IO。后果是策略替换须重建注册入口，历史保存会随对局增大；首版不引入热加载、历史压缩或多房间体系。
 
-实际入口、版本、操作与验证见 [工程结构](../reference/architecture.md)、[开发环境](../reference/development.md) 和 [游戏接入指南](../game-development/README.md)。模板证明基础能力，首版完整游戏与实机产品验收仍属第五、六阶段。
+实际入口、版本、操作与验证见 [工程结构](../reference/architecture.md)、[开发环境](../reference/development.md) 和 [游戏接入指南](../reference/game-development.md)。模板证明基础能力，首版完整游戏与实机产品验收仍属第五、六阶段。
 
 ## 加入确认与原班续局（2026-10-02）
 

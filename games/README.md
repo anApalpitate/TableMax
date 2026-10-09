@@ -4,7 +4,7 @@
 
 当前正式游戏为 [宝可梦奇遇](pokemon-encounters/index.ts)，已实现全部采用规则、三胜大局、独立基础 bot、本地资源与授权两端 UI；采用 tablemax-cn-s19-v1，官方原文认证和项目约定分开记录。规格入口见 [游戏主题](../docs/games/pokemon-encounters/README.md)，当前交付证据与模拟边界见 [验收记录](../docs/reference/acceptance.md)。
 
-[幸运骰子](template/index.ts) 保留为开发验证模板，包含独立规则、纯计分、投影、两端 UI、原创 SVG 资源、独立策略与恢复测试，不作为另一款首版面向用户游戏。注册、资源、生命周期、策略替换／兼容和验证方法见 [扩展指南](../docs/game-development/README.md)。
+[幸运骰子](template/index.ts) 保留为开发验证模板，包含独立规则、纯计分、投影、两端 UI、原创 SVG 资源、独立策略与恢复测试，不作为另一款首版面向用户游戏。注册、资源、生命周期、策略替换／兼容和验证方法见 [扩展指南](../docs/reference/game-development.md)。
 
 [现代艺术](modern-art/index.ts) 是独立第二款游戏，70 卡、五种拍卖、四轮估值与三档本地策略集中于自己的目录；其规则、bot、界面和资源不依赖宝可梦，规格和来源见 [游戏入口](../docs/games/modern-art/README.md)。
 

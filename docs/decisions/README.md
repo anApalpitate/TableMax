@@ -1,6 +1,6 @@
 # 决策索引
 
-当前产品决策以 [需求基线](../requirements/TableMax_需求文档_v1.0.md) 第 2 节为准，首版与后续范围见第 3 节。
+当前产品决策以 [需求基线](../requirements.md) 第 2 节为准，首版与后续范围见第 3 节。
 
 需求第 11 节是技术建议；当前采用方向以以下决策及用户最新指示为准。这里定位已确定选择、理由与后果；实际结构查 [工程结构](../reference/architecture.md)，当前命令查 [开发环境](../reference/development.md)，实际包与验证边界查 [当前验收](../reference/acceptance.md)。
 

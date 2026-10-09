@@ -143,9 +143,59 @@ node scripts/test-scoped.mjs --scope=box apps/server/src/avatar.test.ts
 node scripts/test-scoped.mjs --scope=game:modern-art games/modern-art/ui/sorting.test.ts
 ```
 
+### 历史通过率与失败阈值
+
+所选Vitest测试已接入逐项历史统计：通过率为累计通过次数／累计完成次数，同时保存分子、分母与百分比。身份由测试类型、Vitest项目名、仓库相对文件路径及完整组／用例名称组成；独立场景使用稳定且唯一的名称，改名或移文件会形成新身份。范围字段不加入身份，不重置历史。历史库在 `artifacts/maintenance/test-history/history.sqlite`，跨版本及重启保留，不随版本导出或历史截图退役清空，也不进入运行包。每轮明细在同目录的 `runs/<随机运行编号>.json`；SQLite事务保证并发写入与重复回执不会重复计数。
+
+先按改动选择相关测试，文件按其中最低历史通过率排序，文件内按组及用例递归排序，保留 `beforeAll`／`afterAll` 等钩子的原作用域。同通过率保持声明顺序；已失败的0%项优先于未知项，未知项优先于已有通过记录的项。为确保达到阈值后不会抢先启动其他项，本入口串行执行文件和用例，关闭自动重试。默认本轮累计失败3项停止后续测试，退出码非零并转入修复；修复后重跑受影响项，历史失败仍计入分母。阈值是本轮累计失败数，不是历史失败数或连续失败数。
+
+一次完整结束的用例调用计一次，跳过、取消和未开始的用例不计入分母；失败的收集／模块或组生命周期单独记录，不能把未运行的测试正文补记为失败或通过。显式用例 `retry`／`repeat` 的最终调用结果计一次，重试／重复次数另留诊断，不自动添加重试。运行器未捕获的错误留在本轮报告并使本轮失败，不伪造有名称的用例。默认 reporter 与自定义 runner 配套使用，使用CLI自选 reporter 时须同时保留 `scripts/testing/vitest-history.mjs`。
+
+```powershell
+# 只列盒子项，再按需选定准确文件；单游戏不会运行其他游戏
+node scripts/test-scoped.mjs --scope=box --list
+node scripts/test-scoped.mjs --scope=box apps/server/src/avatar.test.ts
+node scripts/test-scoped.mjs --scope=game:modern-art games/modern-art/ui/sorting.test.ts
+
+# 可选：本轮只容许1项失败；不设置时为3，合法范围1–1000
+$env:TABLEMAX_TEST_MAX_FAILURES = '1'
+node scripts/test-scoped.mjs --scope=shared apps/server/src/countdown.test.ts
+Remove-Item Env:TABLEMAX_TEST_MAX_FAILURES
+
+# 查看累计通过次数、完成次数、百分比及通过次数/完成次数
+node scripts/test-history.mjs
+
+# 仅导入有逐项结果和startTime的完整Vitest JSON，重复导入不重复计数
+node scripts/test-history.mjs --import artifacts/<已有逐项报告>.json
+
+# 测试工具本身的隔离回归，不启动正式桌面或服务
+node --test scripts/testing/history.test.mjs
+node --test scripts/testing/scopes.test.mjs
+```
+
+没有逐项结果的旧汇总报告不能推算各项次数，初始未知保持未知；已有逐项Vitest JSON可按上例导入。`TABLEMAX_TEST_HISTORY_DIR` 可将本次隔离统计改到项目内部的独立目录，不能指向项目外部。临时环境变量只作用于当前终端／子进程，不修改系统配置。测试工具回归的实际日志和独立数据库保存在 `artifacts/maintenance/v1.0.4/test-history-verification-20261008/`；首次跨文件回归曾遇到沙箱Vite临时转换文件缺失，改用各自项目内临时目录后通过，原失败日志保留。
+
+独立的 `verify-*.mjs`／PowerShell检查用 `node scripts/test-scoped.mjs --scope=<范围> --plan=<计划.json>`，先校验整份计划的实际覆盖范围，再交给底层 `test-batch.mjs` 统一记录和排序；`--list` 可预览，真正运行后保存 `scope.json`。计划须明确测试ID、运行器、仓库内脚本及参数数组。每个计划项对应一次独立检查命令，其内部矩阵不能由退出码推算逐场景通过率；需要逐场景排序时应拆成脚本实际支持的独立选项。`verify-rules-guides.mjs --game=<id>` 为对应游戏；`verify-player-display.mjs` 须同时指定 `--game=<id> --visual-audit` 才为单游戏，默认仍检查盒子布局及共享显示，`--quick`也包含盒子。不指定游戏仍属多游戏矩阵。示例盒子计划如下，执行前填入本轮实际包哈希和独立证据名：
+
+```json
+{
+  "version": 1,
+  "tests": [
+    {
+      "id": "box/layout",
+      "runtime": "node",
+      "script": "scripts/verify-box-layout.mjs",
+      "args": ["--sha256=<当前包SHA256>", "--evidence=<本轮独立名>"]
+    }
+  ]
+}
+```
+
+批次串行、隐藏启动且沿用各脚本默认静音，达到同一失败阈值停止，原始输出／错误／运行明细保存在历史目录的 `runs/<编号>/`。未执行或范围排除项不计次数；非零退出、启动失败及异常结束均为失败。阈值停止后依据证据修复，不自动改源码、放宽断言或重复全套测试。底层批次API保留给工具夹具，日常执行用上述范围入口；单独验证命令同样必须满足本次范围约束。
+
 ### 游戏介绍弹窗布局检查
 
-`node scripts/verify-game-introduction.mjs --evidence=<独立名称>` 使用真实BoxScreen、GameIntroduction、OverlayPanel及生产样式，在隐藏静音Edge覆盖三端、三游戏／宝可梦原版与扩展版、320–3840px共108布局；额外按实际分包顺序晚加载共用弹窗CSS，避免夹具默认导入顺序掩盖冲突。检查分节顺序、步骤宽度、16px下限、无横向溢出、滚动关闭、Escape恢复焦点与零命令。测试服务仅监听127.0.0.1，输出留在对应版本 `game-introduction/<名称>/`，模拟视口不是实体设备验收。本次同一最终EXE的真实WebView2九布局及导出哈希见[验收](acceptance.md#103游戏介绍弹窗布局修复2026-10-06)。
+`node scripts/verify-game-introduction.mjs --evidence=<独立名称>` 使用真实BoxScreen、GameIntroduction、OverlayPanel及生产样式，在隐藏静音Edge覆盖三端、三游戏／宝可梦原版与扩展版、320–3840px共108布局；额外按实际分包顺序晚加载共用弹窗CSS，避免夹具默认导入顺序掩盖冲突。检查分节顺序、步骤宽度、16px下限、无横向溢出、滚动关闭、Escape恢复焦点与零命令。测试服务仅监听127.0.0.1，输出留在对应版本 `game-introduction/<名称>/`，模拟视口不是实体设备验收。本次同一最终EXE的真实WebView2九布局及导出哈希见[验收](../archive/acceptance-2026-10-05-to-08.md#103游戏介绍弹窗布局修复2026-10-06)。
 
 便携验收器遇到真实人机保存造成的 `stale-revision` 暂停请求时，只对同实例／同分支的暂停意图最多重取版本8次；其他命令不重试，异常原因继续失败。逐次重试计数进入报告，不放宽服务校验或修改规则，首次冲突证据单独保留为 `portable-676f9e75fb19-pause-race`。
 
@@ -162,8 +212,8 @@ node scripts/test-scoped.mjs --scope=game:modern-art games/modern-art/ui/sorting
 | `pnpm typecheck`                                            | 严格 TypeScript 检查，不生成文件                                                                                                                          |
 | `pnpm lint`                                                 | ESLint 与 React Hooks 规则检查                                                                                                                            |
 | `pnpm format:check` / `pnpm format`                         | 检查格式／按项目配置格式化                                                                                                                                |
-| `pnpm test -- --scope=<范围>`                                | 先按盒子／对应游戏／实际共享依赖筛选，再执行所选Vitest测试；可追加准确文件或`--list`                                                                        |
-| `pnpm check`                                                | 全工程聚合入口，仅适合明确全工程核验；测试范围须通过`TABLEMAX_TEST_SCOPE`设置，局部改动分别执行适用检查                                                       |
+| `pnpm test -- --scope=<范围>`                               | 先按盒子／对应游戏／实际共享依赖筛选，再执行所选Vitest测试；可追加准确文件或`--list`                                                                      |
+| `pnpm check`                                                | 全工程聚合入口，仅适合明确全工程核验；测试范围须通过`TABLEMAX_TEST_SCOPE`设置，局部改动分别执行适用检查                                                   |
 | `pnpm build`                                                | 构建网页、独立服务、游戏模块与 net48 原生壳，收集到 `build/desktop`                                                                                       |
 | `pnpm verify:desktop`                                       | 隐藏窗口验证开发构建，包括真实大厅、宝可梦六人混合整局、回退、两次启动恢复、独立进程与退出协调                                                            |
 | `pnpm verify:modern-art`                                    | 隐藏原生窗口执行现代艺术五席四轮、五类拍卖与真实手机控件，验证保密、回退／重启及两游戏切换；加 `--portable` 验证最终 ZIP                                  |
@@ -279,8 +329,8 @@ pnpm prototype:verify:game
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 文档、索引或目录说明 | 相对链接与锚点、正文归属、命令／配置一致性、改动文件的 Prettier 格式及 `git diff --check`。`docs/` 默认被格式命令忽略，需要格式化改动页时对明确路径使用 `pnpm exec prettier --check --ignore-path .gitignore <文件路径>`，将 `--check` 改为 `--write` 可格式化。 |
 | 独立原型源码         | 类型、静态、格式与独立构建，再执行受影响的通用／游戏走查；`pnpm prototype:verify:game --layout-only` 仅补查布局，不能替代流程走查。                                                                                                                              |
-| 正式平台与共享契约   | 选择实际受影响的共享及对应游戏范围，按行为补真实服务、授权及恢复检查；类型、静态与构建也按依赖选择必要项，桌面生命周期变化才选相应验证。                                                                                                                       |
-| 正式游戏、计分或策略 | 只允许对应游戏项，并按规则／投影／人机／恢复／UI的实际改动继续收窄，覆盖 [游戏场景](../games/pokemon-encounters/validation-scenarios.md) 的适用项；混合脚本先增加真实过滤或拆分，不运行其他游戏。                                                                   |
+| 正式平台与共享契约   | 选择实际受影响的共享及对应游戏范围，按行为补真实服务、授权及恢复检查；类型、静态与构建也按依赖选择必要项，桌面生命周期变化才选相应验证。                                                                                                                         |
+| 正式游戏、计分或策略 | 只允许对应游戏项，并按规则／投影／人机／恢复／UI的实际改动继续收窄，覆盖 [游戏场景](../games/pokemon-encounters/validation-scenarios.md) 的适用项；混合脚本先增加真实过滤或拆分，不运行其他游戏。                                                                |
 | 正式便携交付         | pnpm package:win 和 pnpm verify:portable；当前用户授权设备模拟范围和证据见验收记录。                                                                                                                                                                             |
 
 新报告只声明本次执行的范围。历史证据保留对应构建、日期与限制，不因更新说明或局部补查而改成完整产品验收。
@@ -387,7 +437,7 @@ Windows 程序规则按完整可执行文件路径匹配；专用网络和本地
 
 ## 增量构建与分块组装需求
 
-2026-10-05 实现独立内容寻址缓存与冻结组装。模块职责见 [工程结构](architecture.md#独立构建与模块边界)，产品范围见 [需求增补](../requirements/TableMax_需求文档_v1.0.md#621-游戏解耦与增量交付增补)。
+2026-10-05 实现独立内容寻址缓存与冻结组装。模块职责见 [工程结构](architecture.md#独立构建与模块边界)，产品范围见 [需求增补](../requirements.md#621-游戏解耦与增量交付增补)。
 
 ```powershell
 pnpm build
@@ -518,6 +568,10 @@ v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`�
 
 ### 清理记录集中归档
 
+2026-10-09用户更新要求：清理历史归档不再需要；历史版本内容核对无需复用后可删除。此要求取代下述2026-10-06的完整归档保留约定，不再把已退役的临时程序、浏览器数据或旧清理记录原样归档以抵消空间回收。当前交付与验收、原素材、规则资料、正式存档及可复用内容继续保留。删除采用明确清单，沿用路径、链接、嵌套仓库、工程进程、近期修改、互斥与当前交付保护；只留本轮精简删除清单和结果，失效文档链接改指本轮记录。历史归档说明仅用于追溯旧行为。
+
+2026-10-08用户指定的旧版本审计采用独立窄范围脚本，复用上述当前ZIP证明、共享进程保护器及路径／近期／指纹／哈希／互斥检查；仅处理明确清单中的旧截图、旧程序副本、ZIP、原型构建与过期构建输出，不扩展自动维护范围。过程、中途工程进程保护停止及恢复结果见[瘦身记录](../archive/project-slimming-2026-10-05-to-08.md#用户指定旧版本资料清理2026-10-08)，原始资料、存档、当前验收与原清理历史保持保护。
+
 2026-10-06 用户明确要求新建归档目录并原样移入 `local-cleanup-*`。每轮清理操作结束后，将 maintenance 直属的已结束记录目录移入 `artifacts/maintenance/cleanup-history/directories/`，保留原目录名、全部文件及记录原字节，不删除、不合并目录内容，不覆盖同名目标。清理工具当前仍在直属目录生成记录，归档由收尾步骤完成；运行中的记录不得移动。
 
 移动前解析源、目标的绝对路径并核对项目边界，拒绝链接、嵌套仓库、目标冲突或仍在写入的记录；先列出准确目录与文件清单并记录大小、SHA-256，移动前复核源内容，移动后逐文件核验。`cleanup-history/index.json` 保存原路径、现路径、字节及哈希，操作清单直接保存在 `cleanup-history/operations/`，避免再次产生分散目录。同步修正文档引用；JSON／日志内部的历史路径保留原文，由索引追溯，不改写当时结论。移动只整理目录，不作为回收逻辑空间的清理量。
@@ -612,11 +666,11 @@ v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`�
 
 本次相机／阶段默认的纯函数测试与电力公司数据／规则窄回归采用 `pnpm exec vitest run games/power-grid/ui games/power-grid/rules games/power-grid/data -t '^(?!.*completes a conserved)'`；排除45局未改动人机压力测试，实际自然对局另由夹具和运行验证证明。同版本ZIP导出后执行 `node scripts/verify-power-grid.mjs --portable --display-only --evidence=<运行名>`，在隐藏原生主机／公共窗口核验720p到4K、125%／150%显示请求及模拟Windows DPI，读取实际WebView2 viewport／ZoomFactor。模拟DPI不替代真人手机或真实Windows显示硬件验收。所有验证监听127.0.0.1。
 
-2026-10-06火箭队能力估值和15张角色无损运行格式续验：[同包冻结审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-ability-review-20261006/final-checks.json)对应 `42205330…`，实际解压94,300,018字节。16卡面／硬币实际浏览器逐显示RGBA相等，原PNG保留；首次漏闪电鸟的试包未交付，补齐后重新构建。策略种子覆盖改为每局独立60秒与独立输出目录，失败六人绝悟组十局重跑通过，单次Worker边界未放宽；真实服务17项、同包普通UI与冻结核对通过。闲时安全维护零合格候选，当前空间与保护范围见[瘦身记录](project-slimming.md)，不以试包或旧源码统计替代本包验收。
+当次结果见[开发验证历史](../archive/development-results-2026-10-06.md)。
 
 2026-10-06扩展策略预算诊断采用临时esbuild `onLoad` 注入即时样本数、前瞻完整批次与计时，只保存阶段／档位／人数及计数，不输出暗牌身份或分值。完整脚本、补丁源及独立基线／注入CJS留在[诊断证据](../../artifacts/maintenance/v1.0.2/pokemon-expansion-budget-diagnostic-20261006/audit-source.mjs)；独立目录先建立，禁止覆盖原报告。先用恒定时钟比较授权动作、记忆及随机状态，再运行串行大局，最终检查观察不变量、冻结源码与实际ZIP。诊断有微小计时开销，固定时钟等价不能外推现实软截止轨迹；补充两个大局不并入预定强度样本，不作Worker／真人性能认证。未改生产源码时不重复打包或运行界面验收。
 
-2026-10-06三胜目标修复续验：42项模型回归、2–6人各档seed1小局及17项真实服务集成通过。小局窄选用 `vitest run games/pokemon-encounters/expansion/bot/coverage.test.ts -t 'seed 1:|never initializes'`，实际16通过／135未选，不把旧151全量结果用于新策略。同版本运行包从当前冻结源码构建，原生输入的CRLF／LF和原生构建目录变化可改变指纹及EXE，须核对归一源码并验证同一实际解压EXE；本轮未修改原生内容。相关命令与边界沿用上文，证据见[同包审计](../../artifacts/maintenance/v1.0.2/pokemon-expansion-match-outcome-20261006/final-checks.json)。
+当次结果见[开发验证历史](../archive/development-results-2026-10-06.md)。
 
 叫声文件说明续查可使用来源页实际公布的 `EditURI` 公开MediaWiki API，`imageinfo` 取文件URL／SHA-1，`revisions` 取文件说明；原件按哈希核对后再记录，不读取上传日期为游戏世代，不将百科合理使用标记当作本项目授权。27文件一次批量查询，普通公开请求，不交互403挑战；响应放既定临时目录，正式来源／哈希及失败边界见[核验脚本](../../artifacts/pokemon-expansion/encyclopedia-cries/public-api-file-provenance-20261006/audit-source.mjs)。本次只更新来源文档，未改运行音频或资源清单，不触发打包／媒体回归。
 

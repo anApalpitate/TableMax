@@ -4,9 +4,9 @@
 
 首批迁移前历史正文（统一 LF）的 SHA-256：`6e21fd15911ba6fd4a1505cd58d6306237124ea0d863a5e062d8dbc90caa0adf`。
 
-2026-10-05 完成合并应用验收后，用户明确授权退役历史版本。下文包链接已改指同位置的 `.zip.retired.json`，原包字节已删除；独有源码／素材、清单、结果、日志和独有截图继续保留。历史正文的“当前”“保留副本”等表述均指当轮验收时点，不代表旧 ZIP 仍可下载。原大小、哈希与通过／失败结论不变，实际清理及保留核验见 [瘦身记录](../reference/project-slimming.md#执行结果)。
+2026-10-05 完成合并应用验收后，用户明确授权退役历史版本。下文包链接已改指同位置的 `.zip.retired.json`，原包字节已删除；独有源码／素材、清单、结果、日志和独有截图继续保留。历史正文的“当前”“保留副本”等表述均指当轮验收时点，不代表旧 ZIP 仍可下载。原大小、哈希与通过／失败结论不变，实际清理及保留核验见 [瘦身记录](project-slimming-2026-10-05-to-08.md#执行结果)。
 
-2026-10-04 用户授权清理不再需要的历史内容后，部分完全重复的验收 PNG 按精确清单去重。原结果与本页历史结论保持原文；已退役截图的路径、哈希和同字节保留位置，从 [当前清理记录](../reference/acceptance.md#历史截图去重2026-10-04)查询，不能把去重当成重新执行旧验收。
+2026-10-04 用户授权清理不再需要的历史内容后，部分完全重复的验收 PNG 按精确清单去重。原结果与本页历史结论保持原文；已退役截图的路径、哈希和同字节保留位置，从 [当前清理记录](acceptance-2026-10-05-to-08.md#历史截图去重2026-10-04)查询，不能把去重当成重新执行旧验收。
 
 现代艺术 debug 正文另于本轮维护后移入，统一 LF 原文 SHA-256：`dfdf6e33b9cacf627dfcc17f1d3456b0deed2121334c91d176324203aa3da215`；下节同名 ZIP 是当时产物，其原字节另存 [本轮保留副本（已退役）](../../artifacts/maintenance/v1.0.2/shared-visual-20261004/delivery/before/TableMax-1.0.2-win-x64.zip.retired.json)，不由当前同名包代替。
 
@@ -38,7 +38,7 @@
 
 验收采用隔离存档／手机身份、回环监听和隐藏真实 WebView2；所有启动均退出并确认服务不可达。完整局使用测试节奏并另取普通 Worker 样本，媒体准备例用合法两真人路径，不能冒称人类六席全程普通节奏。未认证实体手机、Safari、Wi-Fi、电视、人耳听感或扬声器输出；暂停检查证明不补播及效果清理，不证明物理输出停止时延。旧 `9f02b332…` 正式 ZIP／清单、原素材及失败／中间证据保留；本轮统一 Git commit 不包含用户原有两处 Node／防火墙文档新增，不 push。
 
-构建与验收进程全部退出后执行 `Maintain-Project.ps1 -Apply`，[安全维护](../../artifacts/maintenance/cleanup-history/records/20261004-124243-809-maintenance.json)删除 3 个已过保护期的隔离中间目录，**7,988,716,414 字节（7.44 GiB）**，45.58 秒。其余 5 个近期修改目录按 30 分钟保护保留，当前 ZIP 哈希不变；剩余工作区约 **22.784 GiB 逻辑字节**，结果为 `candidates-exhausted`，没有扩大删除素材、历史证据、正式存档、依赖／缓存或绕过近期保护。工程格式、12 个修改文档的 236 个文件／锚点链接及 diff 检查通过。耗时分开记录，不把并行步骤相加为总时长。
+构建与验收进程全部退出后执行 `Maintain-Project.ps1 -Apply`，[安全维护（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)删除 3 个已过保护期的隔离中间目录，**7,988,716,414 字节（7.44 GiB）**，45.58 秒。其余 5 个近期修改目录按 30 分钟保护保留，当前 ZIP 哈希不变；剩余工作区约 **22.784 GiB 逻辑字节**，结果为 `candidates-exhausted`，没有扩大删除素材、历史证据、正式存档、依赖／缓存或绕过近期保护。工程格式、12 个修改文档的 236 个文件／锚点链接及 diff 检查通过。耗时分开记录，不把并行步骤相加为总时长。
 
 ## 1.0.2：通用视觉、规则说明与项目瘦身（2026-10-04）
 
@@ -67,7 +67,7 @@
 
 最终电力公司自然局按规则直接从 STEP 1 进入 STEP 3，没有冒称本局出现 STEP 2；首个中间包的 STEP 1／2／3 自然局已完整归档，且最终规则引擎逐字节相同。实际包内 Node 22.14.0 的路径／文件哈希及所有本轮原生／服务进程退出见 [进程证明](../../artifacts/maintenance/v1.0.2/shared-visual-20261004/delivery/final-actual-processes.json)与[退出证明](../../artifacts/maintenance/v1.0.2/shared-visual-20261004/delivery/final-exit-proof.json)。全部本机服务监听 127.0.0.1，独立存档与手机身份，不改变正式数据或防火墙；未认证实体手机、Safari、Wi-Fi、电视或真人听感。
 
-全部构建／验收退出后，先预览再执行根目录清理工具。历史发行候选为零；[中间物清理](../../artifacts/maintenance/cleanup-history/records/20261004-110045-360-intermediates.json)删除 **65 个目录／25,128,356,433 字节（23.40 GiB）**，实际两项 Apply 共 **312.02 秒**，预览共 **94.70 秒**。当前已验证 ZIP、同名正式运行目录、存档、原素材、依赖／缓存和历史证据保留。剩余旧构建日志 9,761 字节经显式预览、哈希归档后清理；压缩后启动检查的 6,489,128 字节独立目录也按同一工具清理，不删除其已留存证明。
+全部构建／验收退出后，先预览再执行根目录清理工具。历史发行候选为零；[中间物清理（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)删除 **65 个目录／25,128,356,433 字节（23.40 GiB）**，实际两项 Apply 共 **312.02 秒**，预览共 **94.70 秒**。当前已验证 ZIP、同名正式运行目录、存档、原素材、依赖／缓存和历史证据保留。剩余旧构建日志 9,761 字节经显式预览、哈希归档后清理；压缩后启动检查的 6,489,128 字节独立目录也按同一工具清理，不删除其已留存证明。
 
 工作区透明压缩先预览，再空闲执行：[3,514 个文件](../../artifacts/maintenance/workspace-compression-20261004-110947-175/compression.json)逐哈希核验通过，实际 **91.86 秒**，3,512 个存储分配减少、零未确认项，物理分配减少 **99,396,985 字节**。审核范围物理分配由 12,884,095,681 降至 **12,784,698,696 字节**；新报告不计入该范围。此数与清理逻辑字节、便携包计量分开。压缩后的隐藏原生／Node 回环启动与正常退出通过 **3.34 秒**，最终 ZIP 哈希保持不变，不机械重跑字节未变的完整游戏矩阵。
 
@@ -118,9 +118,9 @@
 
 父验证环境清除所有大小写的 `NODE_PATH`／`NODE_OPTIONS`／网页开发覆盖，实际便携子 PATH 仅系统目录。[补充运行证明](../../artifacts/maintenance/v1.0.2/portable/runtime-proof.json)用同一解压程序短启动 **7.19 秒**，核验每个文件字节／哈希和实际服务 `tmp/portable-game-jqlCwJ/node.exe`，Node 22.14.0，退出后服务不可达；仅补首次 CIM 采样晚于退出的路径缺口，不重复整局。[最终关闭证明](../../artifacts/maintenance/v1.0.2/portable/shutdown-proof.json)显示全部本次自有程序／服务／浏览器进程为零，该验证未操作正式旧版程序。
 
-清理前默认保护发现旧版正式程序仍运行，先完成新包，等待旧程序退出后进入清理，没有自动结束用户进程。核对 `Clean-Releases.ps1 -MinimumAgeMinutes 0`／`Clean-Intermediates.ps1 -MinimumAgeMinutes 0` 的完整预览，确认所有已知验证结束，再追加 `-Apply`。历史交付删除 **6 项／365,171,568 字节**（10.92 秒），已知验证及打包中间物删除 **18 项／21,059,420,040 字节**（51.81 秒），合计 **24 项／21,424,591,608 字节，约 19.95 GiB 逻辑文件字节**；[历史版本报告](../../artifacts/maintenance/cleanup-history/records/20261004-060900-741-releases.json)与[中间物报告](../../artifacts/maintenance/cleanup-history/records/20261004-060921-197-intermediates.json)通过。清理后 releases 只保留当前 ZIP 和逐文件清单，旧 1.0.1 程序／源码 ZIP、清单、解压目录及打包工作目录已移除；旧包清单另作核验资料保留于 `export/previous-1.0.1-manifest.json`，历史验收证据不删除。
+清理前默认保护发现旧版正式程序仍运行，先完成新包，等待旧程序退出后进入清理，没有自动结束用户进程。核对 `Clean-Releases.ps1 -MinimumAgeMinutes 0`／`Clean-Intermediates.ps1 -MinimumAgeMinutes 0` 的完整预览，确认所有已知验证结束，再追加 `-Apply`。历史交付删除 **6 项／365,171,568 字节**（10.92 秒），已知验证及打包中间物删除 **18 项／21,059,420,040 字节**（51.81 秒），合计 **24 项／21,424,591,608 字节，约 19.95 GiB 逻辑文件字节**；[历史版本报告（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)与[中间物报告（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)通过。清理后 releases 只保留当前 ZIP 和逐文件清单，旧 1.0.1 程序／源码 ZIP、清单、解压目录及打包工作目录已移除；旧包清单另作核验资料保留于 `export/previous-1.0.1-manifest.json`，历史验收证据不删除。
 
-剩余三项是历史预览副本，以 `Clean-Intermediates.ps1 -TemporaryNames` 精确选名再次预览，再归档、逐文件哈希核对后移除临时目录（9.98 秒）。**22 文件／12,421,218 字节**全部保留在[归档清理记录](../../artifacts/maintenance/cleanup-history/records/20261004-061259-584-intermediates.json)同目录的 `reviewed-temporary-content/`；下文三组预览链接同步改指归档原样内容，未计作实际释放空间。`tmp/` 现为空，正式存档、原素材、依赖／工具缓存、历史截图／JSON 和最终 ZIP 均保留；清理后当前 ZIP 哈希仍为 `18791333…`。
+剩余三项是历史预览副本，以 `Clean-Intermediates.ps1 -TemporaryNames` 精确选名再次预览，再归档、逐文件哈希核对后移除临时目录（9.98 秒）。**22 文件／12,421,218 字节**全部保留在[归档清理记录（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)同目录的 `reviewed-temporary-content/`；下文三组预览链接同步改指归档原样内容，未计作实际释放空间。`tmp/` 现为空，正式存档、原素材、依赖／工具缓存、历史截图／JSON 和最终 ZIP 均保留；清理后当前 ZIP 哈希仍为 `18791333…`。
 
 最后执行 `Maintain-Project.ps1 -Apply`（**10.26 秒**），结果 `no-candidates`、再删零字节；工作区余 **13,577,093,892 字节／12.65 GiB 逻辑文件字节**，已超过水位但安全候选耗尽，保留受保护资料、不扩大范围。[维护结果](../../artifacts/maintenance/v1.0.2/export/maintenance-result.json)与[计时](../../artifacts/maintenance/v1.0.2/export/maintenance-timing.json)可复查。效率核对：只改应用版本／当前文档，检查配置／格式／链接、真实构建及同哈希便携；通过的游戏专项不重复。所有清理先预览后执行，实际关键耗时分别记录；同步当前入口后统一提交，原有 Node／防火墙文档改动继续保留，不 push 或修改线上 Release。
 
@@ -177,7 +177,7 @@
 
 最终两局页面、非预期控制台、请求与外网请求错误为零；公共屏实际播放分别 **103／200 次**，正音量授权播放 **102／198 次**，主机播放为零、媒体错误为零，未人工听音。各自原生窗口和服务退出、CIM 按本次目录核验残留为零。终局之外的拍卖代码和素材未再改变，保留中间包 108 布局的准确哈希边界，未机械重跑它或规则测试。最终集成类型／ESLint／格式检查通过，实际 **6.15／11.11／7.27 秒**；后续验证脚本的小范围几何／权限纠正分别完成语法、ESLint 与格式复核。设备仍限本机 Windows 隐藏 WebView2 与独立 Chromium 手机、窗口／DPI 模拟，不代表实体手机、Safari、电视或现场网络认证。
 
-所有应用、构建和验证进程结束后，预览核对 28 个本次验证目录、两个倒计时测试目录及三个可再生打包目录，再执行 `Clean-Intermediates.ps1 -MinimumAgeMinutes 0 -Apply`。共删除 **33 项／8,275,309,981 字节（7.71 GiB 逻辑文件字节）**；[逐项报告](../../artifacts/maintenance/cleanup-history/records/20261004-040833-413-intermediates.json)通过。预览 **48.26 秒**、执行 **147.10 秒**，三个截图预览目录的 HTML 哈希和当前 ZIP 哈希均保持；正式存档、原素材、依赖／工具缓存、全部历史证据及当前解压程序未纳入清理。
+所有应用、构建和验证进程结束后，预览核对 28 个本次验证目录、两个倒计时测试目录及三个可再生打包目录，再执行 `Clean-Intermediates.ps1 -MinimumAgeMinutes 0 -Apply`。共删除 **33 项／8,275,309,981 字节（7.71 GiB 逻辑文件字节）**；[逐项报告（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)通过。预览 **48.26 秒**、执行 **147.10 秒**，三个截图预览目录的 HTML 哈希和当前 ZIP 哈希均保持；正式存档、原素材、依赖／工具缓存、全部历史证据及当前解压程序未纳入清理。
 
 收尾按规则执行一次 `Maintain-Project.ps1 -Apply`（**12.59 秒**），结果为 `no-candidates`、再删零字节；主工作区余 **13,351,202,615 字节（12.43 GiB 逻辑字节）**。超过水位后安全候选已耗尽，继续保留受保护资料，未扩大范围；[维护结果](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/maintenance-final-result.json)与 [维护计时](../../artifacts/maintenance/v1.0.1/modern-art-audit-20261004/maintenance-final-timing.json)可复查。本轮效率核对完成环境／素材预检、窄屏及跨层高风险先验、受影响返修和同 ZIP 终验；实际关键耗时分别留存，未把并行阶段相加成开发总耗时。后续仅同步文档、检查链接／格式与 diff，再统一提交；同期新增的 Node／防火墙规则保持原工作区改动，不混入本次审计提交。
 
@@ -225,7 +225,7 @@
 
 最终六张实际 UI 截图和一张头像素材接触表复制到 [盒子预览（原文件已归档）](../../artifacts/maintenance/cleanup-history/index.json)，逐文件哈希与来源见 [预览记录](../../artifacts/maintenance/v1.0.1/box-avatars-20261004/preview-record.json)。1.0.2 导出清理时完整归档，内容与哈希保持。独立现代艺术结果审查确认收益完整、无重叠，另提出既有博物馆次要状态小字的非阻断 P3 建议，本轮保持盒子与头像范围，裁定记录在上述审查 JSON。
 
-全部应用／构建／验证进程退出后，先预览并核对，再用 `Clean-Intermediates.ps1 -TemporaryNames … -MinimumAgeMinutes 0 -Apply` 清理本轮已结束的 **18 个隔离测试目录／5,346,133,680 字节（4.98 GiB）**；保留当前 ZIP、正式存档、原素材、全部验收证据及新旧截图预览。逐项结果见 [临时清理](../../artifacts/maintenance/cleanup-history/records/20261003-195855-474-intermediates.json)，预览 **67.267 秒**、实际清理 **315.547 秒**，历史失败完整当前 Save 已在清理前只读导出。`tmp/` 最终仅保留上述盒子预览与上一轮宝可梦截图目录。
+全部应用／构建／验证进程退出后，先预览并核对，再用 `Clean-Intermediates.ps1 -TemporaryNames … -MinimumAgeMinutes 0 -Apply` 清理本轮已结束的 **18 个隔离测试目录／5,346,133,680 字节（4.98 GiB）**；保留当前 ZIP、正式存档、原素材、全部验收证据及新旧截图预览。逐项结果见 [临时清理（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)，预览 **67.267 秒**、实际清理 **315.547 秒**，历史失败完整当前 Save 已在清理前只读导出。`tmp/` 最终仅保留上述盒子预览与上一轮宝可梦截图目录。
 
 最后执行 `Maintain-Project.ps1 -Apply`，删除一项可再生打包中间目录 **227,525,735 字节**，当前包哈希未变。主工作区余 **12,133,961,262 字节（11.30 GiB）**，安全候选耗尽后保持原素材、历史证据、依赖／工具缓存、正式存档和当前交付，未扩大清理范围；结果与耗时见 [维护记录](../../artifacts/maintenance/v1.0.1/box-avatars-20261004/maintenance-result.json)、[维护计时](../../artifacts/maintenance/v1.0.1/box-avatars-20261004/maintenance-timing.json)及其逐项报告。
 
@@ -245,9 +245,9 @@
 
 最终 ZIP 的 [便携整局](../../artifacts/maintenance/v1.0.1/box-avatars-20261004/before/portable/results.json)、[显示矩阵](../../artifacts/maintenance/v1.0.1/display/portable/results.json)和 [自然声画](../../artifacts/maintenance/v1.0.1/presentation-portable/results.json)首次验收全部通过，均关联上述 `d21389dc…` 哈希：六席三胜、14 阶段、129 次 driver 动作、回退、两次真实启动恢复及原班续局；显示 35 布局／47 浮窗检查／44 张截图；六位实际手机身份自然小局、28px 星标、计分焦点和三档生产节奏／取消。各组页面错误与外部请求为空。最终打包 15.994 秒，整局／显示／声画分别 73.414／114.501／45.796 秒；并行耗时不相加，实际交付与前次失败记录见 [交付记录](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/delivery-record.json)。本次所有验收子进程已退出。
 
-按用户要求清理临时文件夹：先逐项预览，再通过 `Clean-Intermediates.ps1 -TemporaryNames … -MinimumAgeMinutes 0 -Apply` 删除 **71 项／6,315,587,478 字节（5.88 GiB）**，临时日志先归档并核验哈希，路径、链接目录、进程与修改保护仍执行。`tmp/` 最终只保留四张更新 PNG 和预览页所在的 `pokemon-screenshots-5a6f7893/`；逐项结果见 [清理记录](../../artifacts/maintenance/cleanup-history/records/20261003-181404-326-intermediates.json)，实际命令耗时 1582.645 秒，见 [耗时记录](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/temporary-cleanup-timing.json)。
+按用户要求清理临时文件夹：先逐项预览，再通过 `Clean-Intermediates.ps1 -TemporaryNames … -MinimumAgeMinutes 0 -Apply` 删除 **71 项／6,315,587,478 字节（5.88 GiB）**，临时日志先归档并核验哈希，路径、链接目录、进程与修改保护仍执行。`tmp/` 最终只保留四张更新 PNG 和预览页所在的 `pokemon-screenshots-5a6f7893/`；逐项结果见 [清理记录（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)，实际命令耗时 1582.645 秒，见 [耗时记录](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/temporary-cleanup-timing.json)。
 
-随后执行 `Maintain-Project.ps1 -Apply`，删除两项安全打包中间物共 **450,194,796 字节**。工作区剩余 **10,104,036,170 字节（9.41 GiB）**，合格候选耗尽；历史证据、原始素材、正式存档、依赖与工具缓存继续保护，未扩大删除范围。当前 ZIP 哈希仍为上述 `d21389dc…`，实际维护耗时 17.437 秒，见 [维护汇总](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/maintenance-summary.json)、[逐项记录](../../artifacts/maintenance/cleanup-history/records/20261003-183328-416-maintenance.json)及同目录任务日志。
+随后执行 `Maintain-Project.ps1 -Apply`，删除两项安全打包中间物共 **450,194,796 字节**。工作区剩余 **10,104,036,170 字节（9.41 GiB）**，合格候选耗尽；历史证据、原始素材、正式存档、依赖与工具缓存继续保护，未扩大删除范围。当前 ZIP 哈希仍为上述 `d21389dc…`，实际维护耗时 17.437 秒，见 [维护汇总](../../artifacts/maintenance/v1.0.1/pokemon-polish-20261004/maintenance-summary.json)、[逐项记录（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)及同目录任务日志。
 
 ## 1.0.1：应用图标更新（2026-10-03）
 
@@ -273,7 +273,7 @@
 
 本次仅调整应用版本及发布资料，不改游戏实现；设备边界沿用前次验收，仍为 Windows 后台真实渲染和 Chromium 手机尺寸／触控模拟。首次构建被沙箱子进程权限拦截，授权范围内重跑成功；三组实际新包验证分别保留开始／结束时间，不相加为总耗时。发布源码由对应提交导出，排除用户未提交的 README 改写、依赖、存档、原始素材和中间物；历史 1.0.0 验收保持原记录。发布后复核 GitHub 标签指向 `c63b36f9f0129b711ede79df67f419c7627410a2`，四个附件的大小及 SHA-256 与本地一致，Release 为正式最新版；[发布回读](../../artifacts/maintenance/v1.0.1/github-release.json)保存结果。旧 1.0.0 交付先按原哈希归档至 `before-v1.0.1/`，安全维护随后从 releases 移除旧 ZIP；其余近期修改和受保护项保留，工作区超过水位只报告。
 
-随后按用户要求清理历史版本及中间文件：手动入口在完整空闲检查后使用零分钟年龄边界，共删除 **14 项／3,435,627,475 字节（3.20 GiB）**，包括旧解压程序、旧源码与配套清单、打包目录及已结束的隔离验证数据。清理器补齐旧源码／两类清单及六位随机后缀 `modern-art-verify-*` 的识别，当前／未来交付及相似研究目录保持保护；[37 项手动清理检查](../../artifacts/maintenance/cleanup-history/tool-checks/legacy/tool-tests.json)与[34 项维护检查](../../artifacts/maintenance/project-maintenance-tools/tool-tests.json)通过。逐项删除记录见 `artifacts/maintenance/local-cleanup-20261003-152207-455-releases/`、`local-cleanup-20261003-152219-114-intermediates/`、`local-cleanup-20261003-152431-213-releases/` 和 `local-cleanup-20261003-152444-298-intermediates/`；当前 ZIP 哈希不变。最终统一维护实测 **8,675,898,844 字节（8.08 GiB）**、0 合格候选；8 项未识别临时内容、历史证据、原始素材、依赖与工具缓存、当前构建和正式存档保留，未扩大清理范围。仅清理工具与文档变化，不重跑游戏构建或修改已发布的 v1.0.1 包。
+随后按用户要求清理历史版本及中间文件：手动入口在完整空闲检查后使用零分钟年龄边界，共删除 **14 项／3,435,627,475 字节（3.20 GiB）**，包括旧解压程序、旧源码与配套清单、打包目录及已结束的隔离验证数据。清理器补齐旧源码／两类清单及六位随机后缀 `modern-art-verify-*` 的识别，当前／未来交付及相似研究目录保持保护；[37 项手动清理检查（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)与[34 项维护检查](../../artifacts/maintenance/project-maintenance-tools/tool-tests.json)通过。逐项删除记录见 `artifacts/maintenance/local-cleanup-20261003-152207-455-releases/`、`local-cleanup-20261003-152219-114-intermediates/`、`local-cleanup-20261003-152431-213-releases/` 和 `local-cleanup-20261003-152444-298-intermediates/`；当前 ZIP 哈希不变。最终统一维护实测 **8,675,898,844 字节（8.08 GiB）**、0 合格候选；8 项未识别临时内容、历史证据、原始素材、依赖与工具缓存、当前构建和正式存档保留，未扩大清理范围。仅清理工具与文档变化，不重跑游戏构建或修改已发布的 v1.0.1 包。
 
 2026-10-01，交付版本 1.0.0；游戏采用 `tablemax-cn-s19-v1`，状态版本 1，基础策略 `pokemon-encounters/basic`／`1`。以下记录真实工程执行结果，规则原文认证状态仍见 [来源页](../games/pokemon-encounters/sources.md)。
 
@@ -335,11 +335,11 @@
 
 ## 使用与维护
 
-当前便携包为 `artifacts/releases/TableMax-1.0.2-win-x64.zip`，使用步骤见 [项目说明](../../README.md#快速开始)。命令、数据位置和排障见 [开发环境](../reference/development.md)；接入与替换策略见 [扩展指南](../game-development/README.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
+当前便携包为 `artifacts/releases/TableMax-1.0.2-win-x64.zip`，使用步骤见 [项目说明](../../README.md#快速开始)。命令、数据位置和排障见 [开发环境](../reference/development.md)；接入与替换策略见 [扩展指南](../reference/game-development.md)。历史第一阶段 0.1.0 ZIP 不代表当前产品。
 
 2026-10-02 按用户要求清除历史版本：移除 0.1.0、1.0.0、1.0.1、1.0.2、1.1.0、1.2.0、1.3.0 共七个 ZIP，以及 phase-01／phase-06／releases 下三个旧 `win-unpacked`，释放 2,161,988,613 字节（约 2.01 GiB）。当次保留 1.4.0 ZIP、解压程序及打包目录，ZIP 哈希与该版最终验证一致；原始素材、截图、JSON、默认玩家数据和 Git 历史保留。以下历次验收中的“旧包保留”描述当时状态，0.1.0–1.3.0 旧包现已清除；[清理记录](../../artifacts/maintenance/release-cleanup-2026-10-02/cleanup.json) 保存删除清单、空间和证据目录检查。
 
-同日用户再次要求清理历史版本和中间产物，并提供可复用工具：移除 1.4.0 ZIP、解压程序、旧打包目录共三项，以及 116 项已结束的测试数据／便携解压副本／打包中间物，释放 16,771,539,807 字节（约 15.62 GiB）。当前 1.5.0 ZIP 保持 `9f87af8ca7079d3136fd457d652184c89e632319561ed77ebf25e63bf9050a75`，原始素材、phase-01 至 phase-06 及维护验收证据、默认玩家存档和当前构建保留；十一份一次性脚本先归档，`tmp/` 已无残留。以下历史验收中的“保留旧包／程序”只指当时状态，1.4.0 程序现已清除。逐项结果见 [清理核验](../../artifacts/maintenance/cleanup-history/tool-checks/legacy/cleanup-summary.json)，两份完整删除记录由其 `reports` 字段链接；[20 项工具验证](../../artifacts/maintenance/cleanup-history/tool-checks/legacy/tool-tests.json) 使用独立模拟工作区，包含默认预览、当前／未来包、运行进程阻止、junction 防护、近期／未知内容保护、一次性脚本归档、显式构建清理和未验证 ZIP 拒绝。Windows PowerShell 5.1 实际执行通过，工具与保护约定见 [清理说明](../reference/development.md#清理本地中间物)。游戏源码／release 未改，无需重新执行游戏整局验证。
+同日用户再次要求清理历史版本和中间产物，并提供可复用工具：移除 1.4.0 ZIP、解压程序、旧打包目录共三项，以及 116 项已结束的测试数据／便携解压副本／打包中间物，释放 16,771,539,807 字节（约 15.62 GiB）。当前 1.5.0 ZIP 保持 `9f87af8ca7079d3136fd457d652184c89e632319561ed77ebf25e63bf9050a75`，原始素材、phase-01 至 phase-06 及维护验收证据、默认玩家存档和当前构建保留；十一份一次性脚本先归档，`tmp/` 已无残留。以下历史验收中的“保留旧包／程序”只指当时状态，1.4.0 程序现已清除。逐项结果见 [清理核验（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)，两份完整删除记录由其 `reports` 字段链接；[20 项工具验证（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json) 使用独立模拟工作区，包含默认预览、当前／未来包、运行进程阻止、junction 防护、近期／未知内容保护、一次性脚本归档、显式构建清理和未验证 ZIP 拒绝。Windows PowerShell 5.1 实际执行通过，工具与保护约定见 [清理说明](../reference/development.md#清理本地中间物)。游戏源码／release 未改，无需重新执行游戏整局验证。
 
 后续新增游戏、跨游戏调试或第三方插件按独立需求安排；新规则／策略版本需要明确存档迁移方案，不能直接覆盖原文件。设备模拟中的限制保留供后续实际使用时复查，本轮不将取得其他设备作为剩余开发关口。
 
@@ -444,7 +444,7 @@
 - [便携六手机体验](../../artifacts/maintenance/v1.6.0/experience-portable/results.json)：四组按需加载、多人并发、手机房主权限与电脑单声源交接，恢复不补播。
 - [便携显示专项](../../artifacts/maintenance/v1.6.0/display/portable/results.json)：同样通过 720p—4K、独立窗口缩放、暂停／恢复及 DPI 模拟，保留 44 张实际隐藏渲染截图。
 
-维护的 [22 项清理测试](../../artifacts/maintenance/cleanup-history/tool-checks/legacy/tool-tests.json) 和 [32 项统一维护测试](../../artifacts/maintenance/project-maintenance-tools/tool-tests.json) 全部通过，覆盖阈值、低水位、最旧优先、忙碌跳过、近期修改、链接、ZIP 哈希、证据及正式数据保护。全部验证与打包进程退出后执行 [实际维护检查](../../artifacts/maintenance/v1.6.0/maintenance.json)：自动解析同仓库主工作区 `E:\Proj\TableMax`，逻辑大小 3,049,074,100 字节（约 2.840 GiB），低于 5 GiB 阈值，删除 0 字节；跳过 1,330 个链接且不重复统计其他 checkout。未终止用户进程、放宽保护或扩大删除范围。
+维护的 [22 项清理测试（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json) 和 [32 项统一维护测试](../../artifacts/maintenance/project-maintenance-tools/tool-tests.json) 全部通过，覆盖阈值、低水位、最旧优先、忙碌跳过、近期修改、链接、ZIP 哈希、证据及正式数据保护。全部验证与打包进程退出后执行 [实际维护检查](../../artifacts/maintenance/v1.6.0/maintenance.json)：自动解析同仓库主工作区 `E:\Proj\TableMax`，逻辑大小 3,049,074,100 字节（约 2.840 GiB），低于 5 GiB 阈值，删除 0 字节；跳过 1,330 个链接且不重复统计其他 checkout。未终止用户进程、放宽保护或扩大删除范围。
 
 本轮实现已提交为 `542ccfd`（`feat: release 1.6.0 game library, mobile owners and reliable play`），未推送。[交付时文档核验](../../artifacts/maintenance/v1.6.0/document-links.json) 检查 40 份 Markdown、541 个本地链接和 138 个锚点，当前问题为零；61 处旧 artifact 路径在本 worktree 缺失，作为历史证据缺口单独记录。四份最终便携记录均与 ZIP 的实际哈希一致。
 

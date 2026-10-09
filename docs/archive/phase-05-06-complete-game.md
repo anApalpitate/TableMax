@@ -17,4 +17,4 @@
 
 2026-10-01 完成并归档：正式宝可梦模块、专属 UI、20 张原创自然主题 WebP 与 5 类短音、独立基础 bot、Windows 1.0.0 便携包及 AC-01–AC-23 记录。长期规格、资源与设备模拟边界已合并当前主题；本页只保留阶段范围和完成证据。
 
-适用验证通过：48 项工程测试，20 种子 2–5 座位完整大局，D01–D13 回退／重演，3 处实际服务 SIGKILL 恢复，7 组真实能力 UI 和系统 PATH 隔离的最终便携完整混合大局／两次启动。验收与证据见 [当前验收记录](../reference/acceptance.md)。来源与采用规则见[游戏规格](../games/pokemon-encounters/README.md)，产品验收见[需求基线](../requirements/TableMax_需求文档_v1.0.md)。
+适用验证通过：48 项工程测试，20 种子 2–5 座位完整大局，D01–D13 回退／重演，3 处实际服务 SIGKILL 恢复，7 组真实能力 UI 和系统 PATH 隔离的最终便携完整混合大局／两次启动。验收与证据见 [当前验收记录](../reference/acceptance.md)。来源与采用规则见[游戏规格](../games/pokemon-encounters/README.md)，产品验收见[需求基线](../requirements.md)。

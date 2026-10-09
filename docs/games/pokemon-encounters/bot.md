@@ -6,7 +6,7 @@
 
 新小局按投影的 `research-buffer-v2` 配置评价单弃顶、本人缓冲与新的研究分数调整、额外胜局和失败授胜限制。公开缓冲需从剩余牌假设中扣除，不当作九格；存入结束回合、取出必须换入，能力使用状态不能重置。只能从本人合法动作选择缓冲操作，不能代他人取牌或读取未知牌库。旧小局使用旧牌数与原研究评价，下一小局切入新配置。
 
-三档身份、假设数量、记忆权限与 Worker 硬截止保持原契约。以下旧研究的自然频率、强度和战术报告保留原源码边界，不能用于宣称重设计后的任务平衡或胜率；本次适用检查与真实 Worker 流程见 [任务](../../tasks/pokemon-encounters-expansion.md#研究与玩家操作重设计2026-10-08)。
+三档身份、假设数量、记忆权限与 Worker 硬截止保持原契约。以下旧研究的自然频率、强度和战术报告保留原源码边界，不能用于宣称重设计后的任务平衡或胜率；本次适用检查与真实 Worker 流程见 [任务](../../archive/completed-tasks-2026-10-10.md#研究与玩家操作重设计2026-10-08)。
 
 2026-10-05，v1.0.3。三档为本地离线策略，不调用同名云端模型。入口为 [index.ts](../../../games/pokemon-encounters/bot/index.ts)，轻量评估见 [strategy.ts](../../../games/pokemon-encounters/bot/strategy.ts)，未知牌与后续回合见 [evaluation.ts](../../../games/pokemon-encounters/bot/evaluation.ts)，观察记忆见 [memory.ts](../../../games/pokemon-encounters/bot/memory.ts)。规则仍为原版六格、56 张、三胜。
 
@@ -108,7 +108,7 @@ SDK 可选纯 `observe({view,memory,seatId,difficulty})` 在成功游戏动作�
 
 最终[15种子重跑](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/bot/run-1791233440050-ed6b66c6/seeded-rounds.json)2–6人三档通过，1,297动作／18种阶段、最长818.020ms，源哈希稳定。[17项真实集成](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/integration/run-1791233569902-1307806b/results.json)通过263.25秒，混合四席五小局三胜、288次Worker／389步、最长850.961ms；实际对局259.323秒为服务验证用时，不是人类节奏或强度对照。[TDD记录](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-lucario-model-20261006/red-green.json)绑定最终源码并保留首次冻结失败；没有放宽Worker限制或重跑全150种子。源码尚未更新旧 `42205330…` 运行包，未来能力与三级强度／完整素材继续待补。
 
-累积模型已在后续[同包续验](../../reference/acceptance.md#102累积能力模型同包续验2026-10-06)进入运行ZIP `79ace556…`，精确源码6566680。[全150种子](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/bot/run-1791234062981-fc6294a3/seeded-rounds.json)覆盖2–6人三档、14,231动作／21阶段，151项测试完整命令通过，源哈希稳定，最长策略797.358ms；上述17项集成源码逐文件一致，原版2–6人对照b973bbc通过。规则和策略两个CJS更新，其他输出字节不变，新三个能力／场地模块进入冻结依赖。实际同包界面与离线媒体通过，不据此升级旧胜率统计或宣称三级强度已经证明；未来近似、独立三胜统计及完整素材仍待完成。
+累积模型已在后续[同包续验](../../archive/acceptance-2026-10-05-to-08.md#102累积能力模型同包续验2026-10-06)进入运行ZIP `79ace556…`，精确源码6566680。[全150种子](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-verification/bot/run-1791234062981-fc6294a3/seeded-rounds.json)覆盖2–6人三档、14,231动作／21阶段，151项测试完整命令通过，源哈希稳定，最长策略797.358ms；上述17项集成源码逐文件一致，原版2–6人对照b973bbc通过。规则和策略两个CJS更新，其他输出字节不变，新三个能力／场地模块进入冻结依赖。实际同包界面与离线媒体通过，不据此升级旧胜率统计或宣称三级强度已经证明；未来近似、独立三胜统计及完整素材仍待完成。
 
 [当前源码独立小人数对照](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/combined-source-holdout-small-20261006/report.json)使用全新种子基数1030701，两人八种子六种配对／反转、三人八种子三次轮换，共72场／286小局／17,601动作，源码稳定、无封顶，实耗900.787秒，最大策略765.173ms。[种子块分析](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-matches/combined-source-holdout-small-20261006/match-strength-analysis.json)中，两人绝悟减豆包配对胜率差均值0.5、95%描述区间[0.125,0.875]；三人每座分摊胜率差0.333、区间[0.083,0.583]，两档优于默认的区间也为正。这支持本批两人／三人分级，未推广至4–6人；每人数八独立种子，区间未作多重比较调整，不作普遍胜率保证。
 
@@ -164,4 +164,4 @@ SDK 可选纯 `observe({view,memory,seatId,difficulty})` 在成功游戏动作�
 
 新增13项战术／权限／预算回归，相关65项通过，[红绿证据](../../../artifacts/maintenance/v1.0.2/pokemon-expansion-completion-20261006/strategy/red-green.json)包含合法忍蛙第三胜威胁反例：旧绝悟放弃后下一席即时第三胜，修正选择盖回阻止。另覆盖卡比兽完整交换、共同赢家、研究路线、私看边缘价值和未知信息隔离。模型仍用有界忍蛙候选束、下一玩家普通收局近似，未预测全部对手策略；具体逻辑增强不作普遍胜率保证。
 
-本次不再把绝悟胜率高于豆包作为技术完成门槛，不重跑约83分钟的144场统计。历史强度报告只对应当次源码，不能升级为当前策略证明；本次150固定种子、2–6人各一完整混合大局及真实Worker状态见[收尾任务](../../tasks/pokemon-encounters-expansion.md#一次性技术收尾2026-10-06)。
+本次不再把绝悟胜率高于豆包作为技术完成门槛，不重跑约83分钟的144场统计。历史强度报告只对应当次源码，不能升级为当前策略证明；本次150固定种子、2–6人各一完整混合大局及真实Worker状态见[收尾任务](../../archive/pokemon-encounters-expansion-2026-10-05-to-06.md#一次性技术收尾2026-10-06)。

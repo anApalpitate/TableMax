@@ -85,7 +85,7 @@
 
 ## 正式初始契约缺口与交接
 
-第三、四阶段 `GameRules.apply` 仍返回安全 `DecisionBoundary{label,revealedInformation}`，平台形成完整 before checkpoint；已补 `decisions` 多行动者列表、状态不变量校验、独立策略与 `lifecycleActions/applyLifecycle` 契约。`legalActions` 为合法意图集合，`project` 保持 public／player。实际模板与接入方法见[开发指南](../../game-development/README.md)。当前 project 已提供公开主机全弃牌与玩家弃牌顶的不同字段，无需新增“房主看全部秘密”投影。
+第三、四阶段 `GameRules.apply` 仍返回安全 `DecisionBoundary{label,revealedInformation}`，平台形成完整 before checkpoint；已补 `decisions` 多行动者列表、状态不变量校验、独立策略与 `lifecycleActions/applyLifecycle` 契约。`legalActions` 为合法意图集合，`project` 保持 public／player。实际模板与接入方法见[开发指南](../../reference/game-development.md)。当前 project 已提供公开主机全弃牌与玩家弃牌顶的不同字段，无需新增“房主看全部秘密”投影。
 
 - 第三阶段：在纯授权 Viewer 下补 decisionId、逐座位合法动作／参数模式、可能多个初始行动者、电脑控制者与策略契约；以规则数据声明 2–5 人，不硬编码平台人数。
 - 第四阶段：apply 返回前边界及原子自动推进结果、下一待选、规则随机恢复、已生成币／洗牌结果；多步传递 actorSeat 不等于 turnSeat；checkpoint 包含策略版本及恢复数据，动作去重／分支校验在平台。

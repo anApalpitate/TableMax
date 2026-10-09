@@ -9,4 +9,4 @@
 - 玩家选择按决策 token 保存，动效按已保存修订触发；别人独立翻牌不清本人选择。声画只使用授权投影，公开反馈不包含私看位置。桌面公共屏优先且全窗口去重，手机静音。
 - 每次事务复制可变容器，共享不可变 checkpoint，规则本身仍纯变换。保存失败与回退不能修改已发布状态；不裁剪历史，不声称长期内存有界。维护检查在工程进程退出后执行，超过 5 GiB 清到 4 GiB 或安全候选耗尽，保留全部路径／进程／链接／近期修改及 ZIP 证据保护。
 
-接口及接入见 [扩展指南](../game-development/README.md)，实现边界见 [工程结构](../reference/architecture.md)，实测与限制见 [1.6.0 验收](../reference/acceptance.md#160盒子对局体验与可靠性)。
+接口及接入见 [扩展指南](../reference/game-development.md)，实现边界见 [工程结构](../reference/architecture.md)，实测与限制见 [1.6.0 验收](../reference/acceptance.md#160盒子对局体验与可靠性)。
