@@ -1,10 +1,18 @@
 # 首版交付与验收
 
+## 1.0.5：发言面板优化（2026-10-09）
+
+按用户截图反馈，将六个大卡片改为紧凑单列，保留毛玻璃、独立短语图标和完整原文；修正标题不透明底色的样式覆盖。只改互动面板CSS。[同包结果](../../artifacts/maintenance/v1.0.5/speech-panel-20261009/results.json)核验320×568、390×844、480×640、1280×720电脑玩家竖屏，六条完整可见、无横向溢出、按钮至少48px／正文至少18px；六条真实点击经服务端确认广播，关闭、Escape与焦点未困在浮窗内通过，房间修订不变。测试静音，不代替人耳或实体手机验收；缩放过渡、浮层尺寸与焦点断言的探针失败均保留；320px短屏底部裁切已修复。9项范围工具与格式、静态检查通过。
+
+[当前运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) 41015459字节，[清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json) 275成员／实际解压94595489字节，SHA-256 `281f1bff587fc821dddb7af7a1f1dcaa293dddd115b14cf309a88deac1d74c75`。只重建平台网页560ms，21单元复用；包内文件运行前后哈希一致，均满足114MB预算和严格小于120MB门禁。前一盒子优化包保存在`speech-panel-20261009/delivery-before-change/`并保持历史结论。
+
+收尾经预览核对删除本轮六个便携解压／浏览器副本与三个发布过程目录，共1,361,631,219字节；保留当前与前一交付、全部截图、失败结论及原始资料。[逻辑空间维护](../../artifacts/maintenance/v1.0.5/speech-panel-20261009/maintenance-final.log)实际统计8,569,192,538字节（7.981GiB），低于10GiB阈值。
+
 ## 1.0.5：盒子初始选择与网址入口（2026-10-09）
 
 首次无存档启动直接选中宝可梦奇遇，存档恢复保持原选择；二维码按钮显示当前完整网址，长网址换行。连接帮助支持无协议的域名／IP与端口，默认HTTP，明确HTTPS保持。48项地址、外部入口及初始选择回归、9项范围工具检查、类型与静态检查通过；首轮沙箱SSR临时目录失败已修复，标题断言改用实际完整游戏名。
 
-[当前运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) 41015354字节，[清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json) 275成员／实际解压94594995字节，SHA-256 `f1603f0fe175d4f0ede034ad447d1285c7f0b6967f76a64055eac1d8896e462a`。仅重建平台网页与服务（2.336／11.183秒），20单元复用；严格小于120,000,000字节并在114MB预算内。
+[当时运行ZIP](../../artifacts/maintenance/v1.0.5/speech-panel-20261009/delivery-before-change/TableMax-1.0.5-win-x64.zip) 41015354字节，[清单](../../artifacts/maintenance/v1.0.5/speech-panel-20261009/delivery-before-change/TableMax-1.0.5-win-x64-manifest.json) 275成员／实际解压94594995字节，SHA-256 `f1603f0fe175d4f0ede034ad447d1285c7f0b6967f76a64055eac1d8896e462a`。仅重建平台网页与服务（2.336／11.183秒），20单元复用；严格小于120,000,000字节并在114MB预算内。
 
 [同包盒子验证](../../artifacts/maintenance/v1.0.5/network-adaptation/connection/box-final-20261009/results.json)检查实际ZIP成员大小与哈希、静音隐藏主机／公共窗口、真实浏览器加入、裸地址表单保存、QR及按钮同步与320／390／1280px长网址。外部地址只捕获授权目标，不代表现场FRP或实体设备验收。前一声音修复包保存在`box-entry-20261009/delivery-before-change/`，其原验收结论保持。
 

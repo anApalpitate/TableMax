@@ -171,10 +171,11 @@
   z-index: 5;
 }
 .dialog-surface.overlay-panel.interaction-voice-dialog {
-  width: min(94vw, 650px);
-  padding: 20px;
-  border-color: #ffffffb8;
-  background: #ffffff96;
+  width: min(calc(100vw - 32px), 500px);
+  padding: 18px;
+  border-radius: 24px;
+  border-color: #ffffffc4;
+  background: linear-gradient(155deg, #f8fffcce, #edf5f0a6);
   backdrop-filter: blur(24px) saturate(125%);
   box-shadow: 0 18px 64px #173b322b;
 }
@@ -182,42 +183,55 @@
   background: #173b3224;
   backdrop-filter: blur(3px);
 }
-.interaction-voice-dialog .panel-heading {
+.dialog-surface.interaction-voice-dialog .panel-heading {
   position: static;
-  padding: 0 0 6px;
+  padding: 0;
+  margin: 0 0 14px;
   background: transparent;
 }
-.interaction-voice-dialog .panel-heading button {
+.dialog-surface.interaction-voice-dialog .panel-heading h2 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0.03em;
+}
+.dialog-surface.interaction-voice-dialog .panel-heading button {
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  font-weight: 500;
   border-color: #ffffffb8;
   background: #ffffff70;
   color: #173b32;
 }
+.interaction-voice-dialog .interaction-orb {
+  visibility: hidden;
+}
 .interaction-phrases {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
 }
 .interaction-phrase {
   --phrase-accent: #306f61;
 }
 .dialog-surface .interaction-phrases .interaction-phrase {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) 18px;
-  gap: 10px;
+  grid-template-columns: 38px minmax(0, 1fr) 24px;
+  gap: 12px;
   align-items: center;
   width: 100%;
-  min-height: 92px;
-  padding: 16px 12px;
+  min-height: 64px;
+  padding: 10px 12px;
   margin: 0;
   border: 1px solid #ffffffd1;
-  border-radius: 18px;
-  background: linear-gradient(145deg, #ffffffba, #ffffff63);
+  border-radius: 16px;
+  background: #ffffff66;
   box-shadow:
-    0 3px 12px #24483d12,
-    inset 0 1px #fffc;
+    0 2px 6px #24483d08,
+    inset 0 1px #ffffffa6;
   color: #173b32;
   font-size: 18px;
-  line-height: 1.4;
+  line-height: 1.5;
   text-align: left;
   transition:
     background 140ms ease,
@@ -242,13 +256,15 @@
 .interaction-phrase__icon {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--phrase-accent) 10%, transparent);
   color: var(--phrase-accent);
 }
 .interaction-phrase__icon svg {
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.7;
@@ -256,13 +272,21 @@
   stroke-linejoin: round;
 }
 .interaction-phrase__text {
-  overflow-wrap: anywhere;
-  font-weight: 600;
+  min-width: 0;
+  overflow-wrap: break-word;
+  font-weight: 500;
+  text-wrap: balance;
 }
 .interaction-phrase__play {
   color: var(--phrase-accent);
-  font-size: 16px;
-  opacity: 0.75;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--phrase-accent) 8%, transparent);
+  opacity: 0.65;
 }
 .dialog-surface .interaction-phrases .interaction-phrase:active {
   transform: scale(0.98);
@@ -280,26 +304,19 @@
 }
 @media (max-width: 440px) {
   .dialog-surface.overlay-panel.interaction-voice-dialog {
-    padding: 16px 12px;
+    padding: 12px;
+  }
+  .dialog-surface.interaction-voice-dialog .panel-heading {
+    margin-bottom: 10px;
   }
   .interaction-phrases {
-    gap: 10px;
+    gap: 6px;
   }
   .dialog-surface .interaction-phrases .interaction-phrase {
-    grid-template-columns: 28px minmax(0, 1fr);
-    gap: 8px;
-    min-height: 110px;
-    padding: 12px 8px;
-  }
-  .interaction-phrase__icon {
-    width: 28px;
-  }
-  .interaction-phrase__icon svg {
-    width: 27px;
-    height: 27px;
-  }
-  .interaction-phrase__play {
-    display: none;
+    grid-template-columns: 38px minmax(0, 1fr) 24px;
+    gap: 10px;
+    min-height: 60px;
+    padding: 8px 10px;
   }
 }
 .interaction-shot {
