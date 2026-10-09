@@ -204,11 +204,14 @@ export class RoomCoordinator {
     repository: SaveRepository,
     hostToken?: string,
     initialPlayMode?: PlayMode,
+    initialGameId?: string,
   ) {
     const saved = repository.load() as Save | null;
     const game = saved?.manifest
       ? await registry.load(saved.manifest.id, saved.variantId)
-      : null;
+      : saved === null && initialGameId
+        ? await registry.load(initialGameId)
+        : null;
     const room = new RoomCoordinator(
       game?.rules ?? null,
       game?.bot ?? null,

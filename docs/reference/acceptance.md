@@ -1,10 +1,20 @@
 # 首版交付与验收
 
+## 1.0.5：盒子初始选择与网址入口（2026-10-09）
+
+首次无存档启动直接选中宝可梦奇遇，存档恢复保持原选择；二维码按钮显示当前完整网址，长网址换行。连接帮助支持无协议的域名／IP与端口，默认HTTP，明确HTTPS保持。48项地址、外部入口及初始选择回归、9项范围工具检查、类型与静态检查通过；首轮沙箱SSR临时目录失败已修复，标题断言改用实际完整游戏名。
+
+[当前运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) 41015354字节，[清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json) 275成员／实际解压94594995字节，SHA-256 `f1603f0fe175d4f0ede034ad447d1285c7f0b6967f76a64055eac1d8896e462a`。仅重建平台网页与服务（2.336／11.183秒），20单元复用；严格小于120,000,000字节并在114MB预算内。
+
+[同包盒子验证](../../artifacts/maintenance/v1.0.5/network-adaptation/connection/box-final-20261009/results.json)检查实际ZIP成员大小与哈希、静音隐藏主机／公共窗口、真实浏览器加入、裸地址表单保存、QR及按钮同步与320／390／1280px长网址。外部地址只捕获授权目标，不代表现场FRP或实体设备验收。前一声音修复包保存在`box-entry-20261009/delivery-before-change/`，其原验收结论保持。
+
+本轮验证结束后，经预览核对清理两个便携解压／浏览器副本及发布过程目录，共454,317,974字节；当前交付、前包、截图与原始资料保留。[收尾维护](../../artifacts/maintenance/v1.0.5/box-entry-20261009/maintenance-final.log)实际统计8,523,745,211逻辑字节（7.938GiB），低于10GiB阈值。
+
 ## 1.0.5：玩家互动音效触摸解锁（2026-10-09）
 
 严格浏览器播放策略下，首次触摸的 `pointerdown` 尚未获得用户激活，提前调用的 `resume()` 会挂起；原实现复用该 Promise，导致已激活的 `pointerup` 无法再次恢复音频。已通过[真实触摸红例](../../artifacts/maintenance/v1.0.5/player-interaction-audio/touch-cdp-input-clean-20261009/results.json)复现，修复为上下文尚未运行时允许后续手势同步重试。300ms过期丢弃、静音视觉及历史事件不补播保持原行为。
 
-[当前运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) **41,015,324字节**，[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json) **275成员／实际解压94,594,904字节**，SHA-256 `b23f340cab62674ed8a611d2fc526a50003d7e28868669717879cf934fa8aa35`。114,000,000字节预算及ZIP／实际解压严格小于120,000,000字节门禁通过，快照 `2e21656ca15fcf951c1a3e0161332ba1db6fa8c5a155296ca218048bd680c2f5`；仅平台网页重建2.044秒，其他模块复用缓存。构建中发现旧占用保护误拦下载目录中的独立TableMax，按已知绝对路径与参数缩窄，17项真实PowerShell库存检查通过，工作区／来源工作区及未知实例继续保护。原包与清单保存在 `player-interaction-audio/delivery-before-fix/`，下方拉密验收引用该历史副本。
+[当时运行ZIP](../../artifacts/maintenance/v1.0.5/box-entry-20261009/delivery-before-change/TableMax-1.0.5-win-x64.zip) **41,015,324字节**，[逐文件清单](../../artifacts/maintenance/v1.0.5/box-entry-20261009/delivery-before-change/TableMax-1.0.5-win-x64-manifest.json) **275成员／实际解压94,594,904字节**，SHA-256 `b23f340cab62674ed8a611d2fc526a50003d7e28868669717879cf934fa8aa35`。114,000,000字节预算及ZIP／实际解压严格小于120,000,000字节门禁通过，快照 `2e21656ca15fcf951c1a3e0161332ba1db6fa8c5a155296ca218048bd680c2f5`；仅平台网页重建2.044秒，其他模块复用缓存。构建中发现旧占用保护误拦下载目录中的独立TableMax，按已知绝对路径与参数缩窄，17项真实PowerShell库存检查通过，工作区／来源工作区及未知实例继续保护。原包与清单保存在 `player-interaction-audio/delivery-before-fix/`，下方拉密验收引用该历史副本。
 
 [同包声音核验](../../artifacts/maintenance/v1.0.5/player-interaction-audio/portable-final-20261009/results.json)和[便携证明](../../artifacts/maintenance/v1.0.5/player-interaction-audio/portable-proof.json)通过。真实Edge采用严格自动播放策略、非激活CDP读取与可信触摸／鼠标输入；五射击和六发言逐项本地解码、从头启动并产生非零destination输入，两个玩家环境各16次播放，最长启动延迟分别5.5／1.8ms。刷新不补播、全新未激活接收页静音、可信手势后新音效、禁用／恢复、盒子与游戏页往返通过，275程序成员运行后哈希不变，无外部请求。玩家浏览器显式开启声音，桌面验证窗口保持静音；这是机器音频信号及设备模拟结果，不代表实体手机、扬声器或人耳听感验收。
 

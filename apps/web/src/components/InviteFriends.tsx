@@ -93,7 +93,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
             >
               <path d="M14 3h7v7M21 3l-9 9M10 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5" />
             </svg>
-            使用网址
+            <span>{joinUrl}</span>
           </a>
           {openMessage && (
             <p className="invite-friends__empty" role="status">
@@ -127,7 +127,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
               </p>
               <p>
                 <strong>直接打开</strong>
-                点击二维码下方“使用网址”，或在手机、电脑浏览器输入当前加入地址。
+                点击二维码下方的网址，或在手机、电脑浏览器输入当前加入地址。
               </p>
             </div>
             <div className="connection-help__field">
@@ -181,7 +181,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
                 <label htmlFor={externalId}>外部入口网址</label>
                 <input
                   id={externalId}
-                  type="url"
+                  type="text"
                   name="external-entry"
                   inputMode="url"
                   autoCapitalize="none"
@@ -190,7 +190,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
                   maxLength={2048}
                   value={draftUrl}
                   disabled={saving}
-                  placeholder="例如 https://example.com…"
+                  placeholder="例如 frp-off.com:33684"
                   aria-describedby={`${externalId}-hint`}
                   onChange={(event) => {
                     setDraftUrl(event.target.value);
@@ -198,7 +198,8 @@ export function InviteFriends({ session }: { session: RoomSession }) {
                   }}
                 />
                 <p id={`${externalId}-hint`}>
-                  支持 HTTP、HTTPS 网站根地址与端口，暂不支持路径前缀。
+                  支持域名、IP 与端口；省略协议时使用 HTTP，也可填写完整
+                  HTTP／HTTPS 网址。暂不支持路径前缀。
                 </p>
                 <div className="connection-help__external-actions">
                   <button type="submit" disabled={saving || !draftUrl.trim()}>

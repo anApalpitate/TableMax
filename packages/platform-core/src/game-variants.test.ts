@@ -58,6 +58,31 @@ function envelope(
   };
 }
 describe('authoritative game variants', () => {
+  it('selects an initial game only for a fresh repository and preserves saved selection', async () => {
+    const repository = new Repository();
+    const room = await RoomCoordinator.open(
+      registry(),
+      repository,
+      undefined,
+      undefined,
+      rules.manifest.id,
+    );
+    expect(room.view().game?.id).toBe(rules.manifest.id);
+    expect(room.view().game?.variantId).toBe('original');
+    await room.command(
+      room.hostToken,
+      envelope(room, { type: 'set-play-mode', mode: 'test' }),
+    );
+    const restored = await RoomCoordinator.open(
+      registry(),
+      repository,
+      undefined,
+      undefined,
+      'not-installed',
+    );
+    expect(restored.view().game?.id).toBe(rules.manifest.id);
+    expect(restored.view().instanceId).toBe(room.view().instanceId);
+  });
   it('rejects ambiguous default and duplicate variant metadata', () => {
     const catalog = registry().catalog()[0]!;
     const { defaultVariantId: _default, ...withoutDefault } = catalog;

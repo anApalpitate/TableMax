@@ -36,6 +36,10 @@
 .invite-friends__open svg {
   flex-shrink: 0;
 }
+.invite-friends__open span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .box-screen .controls .invite-friends .invite-friends__open:hover {
   background: #28634f;
 }

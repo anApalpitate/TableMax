@@ -70,6 +70,7 @@ export async function createService(
               repository,
               undefined,
               config.playMode,
+              game === undefined ? 'pokemon-encounters' : undefined,
             );
     } catch (error) {
       repository.close();

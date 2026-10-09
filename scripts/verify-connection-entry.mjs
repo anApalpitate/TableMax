@@ -18,6 +18,7 @@ import { playerFrame, playerUi } from './player-test.mjs';
 const argument = (name) =>
   process.argv.find((v) => v.startsWith(`--${name}=`))?.slice(name.length + 3);
 const expectedHash = argument('sha256');
+const boxOnly = process.argv.includes('--box-only');
 assert.match(expectedHash ?? '', /^[a-f0-9]{64}$/);
 const evidence = argument('evidence') ?? `run-${Date.now()}`;
 assert.match(evidence, /^[A-Za-z0-9_-]+$/);
@@ -35,6 +36,7 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 const QRCode = createRequire(resolve('apps/server/package.json'))('qrcode');
 const report = {
   status: 'running',
+  mode: boxOnly ? 'box-only' : 'box-and-game-return',
   portable: true,
   version,
   archiveSha256: expectedHash,
@@ -107,6 +109,7 @@ async function nativeEntry(page, url, keyboard = false) {
     async () => (await link.getAttribute('href')) === url,
     'Website entry did not update',
   );
+  assert.equal((await link.innerText()).trim(), url);
   const before = await snapshot(page),
     state = await view(),
     original = page.url();
@@ -160,7 +163,7 @@ try {
       manifest.extractedBytes <= PACKAGE_BUDGET_BYTES,
   );
   await mkdir('tmp', { recursive: true });
-  work = await mkdtemp(resolve('tmp/connection-entry-'));
+  work = await mkdtemp(resolve('tmp/root-entry-'));
   report.work = work;
   const portable = join(work, 'extracted');
   await execute(
@@ -233,7 +236,15 @@ try {
     socket.once('connect', done);
     socket.once('connect_error', reject);
   });
-  await command({ type: 'select-game', gameId: 'pokemon-encounters' });
+  const initialGame = (await view()).game;
+  assert.equal(initialGame.id, 'pokemon-encounters');
+  await host
+    .getByRole('heading', { name: initialGame.name, exact: true })
+    .waitFor();
+  assert.equal(await host.locator('.game-library').count(), 0);
+  await checked(
+    'Fresh startup selected Pokemon directly without the four-game library',
+  );
   const oldLanUrl = await host
     .locator('a[data-tablemax-join-link]')
     .getAttribute('href');
@@ -369,6 +380,12 @@ try {
   );
   const external =
     'https://network-multidevice-entry.long-player-connection.complete-lobby.example.test:33684';
+  await setExternal(host, 'frp-off.com:33684');
+  await nativeEntry(host, 'http://frp-off.com:33684');
+  await nativeEntry(publicPage, 'http://frp-off.com:33684');
+  await checked(
+    'Bare frp-off.com:33684 accepted through the help form and synchronized HTTP link and QR',
+  );
   await setExternal(host, external + '/player');
   await nativeEntry(host, external);
   await nativeEntry(publicPage, external);
@@ -384,6 +401,13 @@ try {
       width,
       height: width < 500 ? 640 : 720,
     });
+    const displayedLink = publicBrowser.locator('a[data-tablemax-join-link]');
+    assert.equal((await displayedLink.innerText()).trim(), external);
+    assert.ok(
+      await displayedLink.evaluate(
+        (element) => element.scrollWidth <= element.clientWidth + 2,
+      ),
+    );
     await publicBrowser
       .getByRole('button', { name: '连接帮助', exact: true })
       .click();
@@ -422,39 +446,41 @@ try {
   await checked(
     'Clearing external entry restored exact selected LAN QR and direct website URL',
   );
-  const secondContext = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-  });
-  const secondPlayer = await secondContext.newPage();
-  await secondPlayer.goto(origin);
-  await playerUi(secondPlayer)
-    .getByLabel('你的昵称', { exact: true })
-    .fill('游戏返回连接验证');
-  await playerUi(secondPlayer)
-    .getByRole('button', { name: '加入', exact: true })
-    .click();
-  await playerUi(secondPlayer)
-    .getByRole('button', { name: '我准备好了', exact: true })
-    .click();
-  await playerUi(secondPlayer)
-    .getByRole('button', { name: '取消准备', exact: true })
-    .waitFor();
-  await command({ type: 'start' });
-  for (const page of [host, publicPage]) {
-    await page.locator('.pokemon-screen').waitFor();
-    await page.reload();
-    await page.locator('.pokemon-screen').waitFor();
-    await page.locator('.back-to-box').click();
-    await page.locator('.invite-friends').waitFor();
-    await page
-      .getByRole('heading', { name: '对局进行中', exact: true })
+  if (!boxOnly) {
+    const secondContext = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+    });
+    const secondPlayer = await secondContext.newPage();
+    await secondPlayer.goto(origin);
+    await playerUi(secondPlayer)
+      .getByLabel('你的昵称', { exact: true })
+      .fill('游戏返回连接验证');
+    await playerUi(secondPlayer)
+      .getByRole('button', { name: '加入', exact: true })
+      .click();
+    await playerUi(secondPlayer)
+      .getByRole('button', { name: '我准备好了', exact: true })
+      .click();
+    await playerUi(secondPlayer)
+      .getByRole('button', { name: '取消准备', exact: true })
       .waitFor();
-    await nativeEntry(page, oldLanUrl);
+    await command({ type: 'start' });
+    for (const page of [host, publicPage]) {
+      await page.locator('.pokemon-screen').waitFor();
+      await page.reload();
+      await page.locator('.pokemon-screen').waitFor();
+      await page.locator('.back-to-box').click();
+      await page.locator('.invite-friends').waitFor();
+      await page
+        .getByRole('heading', { name: '对局进行中', exact: true })
+        .waitFor();
+      await nativeEntry(page, oldLanUrl);
+    }
+    await capture(host, 'host-game-refresh-return-entry');
+    await checked(
+      'After real two-human game start, game-page reload and return-to-box navigation preserved authorized host/public website entry',
+    );
   }
-  await capture(host, 'host-game-refresh-return-entry');
-  await checked(
-    'After real two-human game start, game-page reload and return-to-box navigation preserved authorized host/public website entry',
-  );
   assert.deepEqual(report.externalRequests, []);
   assert.deepEqual(report.pageErrors, []);
   assert.equal(hash(await readFile(archive)), expectedHash);
@@ -475,6 +501,7 @@ try {
     process.exitCode = 1;
   });
   report.finishedAt = new Date().toISOString();
+  report.result = report.status;
   await save();
   console.log(
     `Connection entry: ${report.status}; ${report.checks.length} checks; ${output}`,

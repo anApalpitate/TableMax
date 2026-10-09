@@ -286,7 +286,7 @@ it('restricts external entry settings to the desktop administrator, pushes the s
     (
       await post(origin, '/api/room/network', {
         token: service.hostToken,
-        externalJoinUrl: 'http://mapped.example:8080/player',
+        externalJoinUrl: 'mapped.example:8080/player',
       })
     ).status,
   ).toBe(200);

@@ -91,6 +91,7 @@ const verificationScopes = {
   'scripts/testing/scopes.test.mjs': ['tooling'],
   'scripts/testing/history.test.mjs': ['tooling'],
   'scripts/verify-box-layout.mjs': ['box'],
+  'scripts/verify-connection-entry.mjs': ['box', 'game:pokemon-encounters'],
   'scripts/verify-box-avatars.mjs': [
     'box',
     'game:pokemon-encounters',
@@ -207,6 +208,11 @@ export function scopedVitestIncludes(root, value, args = []) {
 
 export function verificationTestScopes(item) {
   const script = item.script.replaceAll('\\', '/');
+  if (
+    script === 'scripts/verify-connection-entry.mjs' &&
+    item.args.includes('--box-only')
+  )
+    return ['box'];
   const selectors = item.args.filter(
     (arg) => arg === '--game' || arg.startsWith('--game='),
   );

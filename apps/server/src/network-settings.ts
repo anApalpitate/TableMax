@@ -12,17 +12,21 @@ import { isIP } from 'node:net';
 import { join } from 'node:path';
 
 export function normalizeUrl(input: string): string {
-  const value = input.trim();
+  const trimmed = input.trim();
+  // Bare hosts (including host:port) use HTTP for manually mapped entries.
+  const value = /^(?:https?:\/\/|[a-z][a-z0-9+.-]*:\/\/)/i.test(trimmed)
+    ? trimmed
+    : `http://${trimmed}`;
   const parts = /^(https?):\/\/([^/?#]+)([^?#]*)$/i.exec(value);
   if (
-    value.length > 2048 ||
+    trimmed.length > 2048 ||
     /[\s\\]/.test(value) ||
     !parts ||
     parts[2]!.includes('@') ||
     !['', '/', '/player', '/player/'].includes(parts[3]!)
   )
     throw new Error(
-      '请填写 HTTP 或 HTTPS 网址；仅支持网站根地址或 /player，不支持路径前缀、登录信息或查询参数。',
+      '请填写域名、IP 或 HTTP／HTTPS 网址；仅支持网站根地址或 /player，不支持路径前缀、登录信息或查询参数。',
     );
 
   let address: URL;
