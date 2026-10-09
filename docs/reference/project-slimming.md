@@ -1,5 +1,7 @@
 # 项目瘦身方案与执行记录
 
+2026-10-10同版本附件替换收尾：已结束本轮工程进程，按精确清单预览后删除5个验证临时目录（362729549字节）和1个打包目录（230264211字节），合计592993760字节；当前EXE、运行ZIP、source ZIP、逐文件清单及历史验收证据保留。清理明细见[临时目录](../../artifacts/maintenance/local-cleanup-20261009-162153-832-intermediates/cleanup.json)、[打包目录](../../artifacts/maintenance/local-cleanup-20261009-162222-507-releases/cleanup.json)。收尾 `Maintain-Project.ps1 -Apply` 实测逻辑空间8857752882字节（8.249GiB），低于10GiB阈值，不扩大清理，见[维护记录](../../artifacts/maintenance/v1.0.5/release-replace-20261010/maintenance-final.log)。
+
 ## 玩家互动音效验证收尾（2026-10-09）
 
 同包声音核验通过、本工程进程退出后，按精确预览退役本轮实际ZIP解压副本与浏览器临时数据，共112,251,506字节，见[中间物清理](../../artifacts/maintenance/local-cleanup-20261009-132524-021-intermediates/cleanup.json)；再退役一个release打包过程目录230,262,543字节，见[release清理](../../artifacts/maintenance/local-cleanup-20261009-132650-195-releases/cleanup.json)，合计342,514,049字节。当前ZIP／清单、旧包备份、原资料及声音红例／最终验收保留；未识别的早期探针目录继续按工具保护保留，没有转存清理归档。
