@@ -190,7 +190,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
                   maxLength={2048}
                   value={draftUrl}
                   disabled={saving}
-                  placeholder="例如 frp-off.com:33684"
+                  placeholder="例如 example.com:12345"
                   aria-describedby={`${externalId}-hint`}
                   onChange={(event) => {
                     setDraftUrl(event.target.value);
