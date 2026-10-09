@@ -1,10 +1,20 @@
 # 首版交付与验收
 
+## 1.0.5：玩家互动音效触摸解锁（2026-10-09）
+
+严格浏览器播放策略下，首次触摸的 `pointerdown` 尚未获得用户激活，提前调用的 `resume()` 会挂起；原实现复用该 Promise，导致已激活的 `pointerup` 无法再次恢复音频。已通过[真实触摸红例](../../artifacts/maintenance/v1.0.5/player-interaction-audio/touch-cdp-input-clean-20261009/results.json)复现，修复为上下文尚未运行时允许后续手势同步重试。300ms过期丢弃、静音视觉及历史事件不补播保持原行为。
+
+[当前运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) **41,015,324字节**，[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json) **275成员／实际解压94,594,904字节**，SHA-256 `b23f340cab62674ed8a611d2fc526a50003d7e28868669717879cf934fa8aa35`。114,000,000字节预算及ZIP／实际解压严格小于120,000,000字节门禁通过，快照 `2e21656ca15fcf951c1a3e0161332ba1db6fa8c5a155296ca218048bd680c2f5`；仅平台网页重建2.044秒，其他模块复用缓存。构建中发现旧占用保护误拦下载目录中的独立TableMax，按已知绝对路径与参数缩窄，17项真实PowerShell库存检查通过，工作区／来源工作区及未知实例继续保护。原包与清单保存在 `player-interaction-audio/delivery-before-fix/`，下方拉密验收引用该历史副本。
+
+[同包声音核验](../../artifacts/maintenance/v1.0.5/player-interaction-audio/portable-final-20261009/results.json)和[便携证明](../../artifacts/maintenance/v1.0.5/player-interaction-audio/portable-proof.json)通过。真实Edge采用严格自动播放策略、非激活CDP读取与可信触摸／鼠标输入；五射击和六发言逐项本地解码、从头启动并产生非零destination输入，两个玩家环境各16次播放，最长启动延迟分别5.5／1.8ms。刷新不补播、全新未激活接收页静音、可信手势后新音效、禁用／恢复、盒子与游戏页往返通过，275程序成员运行后哈希不变，无外部请求。玩家浏览器显式开启声音，桌面验证窗口保持静音；这是机器音频信号及设备模拟结果，不代表实体手机、扬声器或人耳听感验收。
+
+18项相关音频／播放／恢复单测、类型检查及所改文件静态检查通过。首轮沙箱SSR临时路径与依赖类型读取失败已通过项目内临时目录及正常权限检查排除；旧探针的Playwright伪用户激活结果不计产品通过，保留各失败边界。当前声音与新验证入口见[开发环境](development.md#玩家互动音效解锁核验2026-10-09)。本次不发布GitHub，也不导出源码包。
+
 ## 1.0.5：拉密经典版本地完整交付（2026-10-09）
 
 新增经典版拉密2–4人／106牌：私有牌架、公开桌面、整回合重组草稿及统一合法提交，保存／回退／重启／管理员批准换机，主机／公共／玩家三端图文规则、本地素材及默认／豆包／绝悟人机。按用户最新要求以2025官方经典原件为最高依据，不额外加入百搭先后释放限制；原文明文与数字解释分记，见[来源](../games/rummikub/sources.md)。本次仅本地交付，没有push、源码导出或GitHub发布。
 
-[当前运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) **41,015,328字节**，[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json) **275成员／实际解压94,594,942字节**，SHA-256 `2c5474f86a1b2282d1fd21bde1fd26868e1c055649e9c11ebd4d3ccfecdecf5f`。114,000,000字节预算及ZIP／实际解压严格小于120,000,000字节门禁通过。最终快照`1f8750626a45d378f0f59f311b5ab498c62400fed3724d3af5f1879c4233bc31`，22单元复用20项，组装24.393秒；完整包及275文件哈希、实际运行后的原字节与当前冻结源输入复核见[便携证明](../../artifacts/maintenance/v1.0.5/rummikub-20261009/portable-final.json)。前一同版交付保留在[原包清单](../../artifacts/maintenance/v1.0.5/rummikub-20261009/delivery-before-rummikub/TableMax-1.0.5-win-x64-manifest.json)，历史通过不自动成为新包证据。
+[当时运行ZIP](../../artifacts/maintenance/v1.0.5/player-interaction-audio/delivery-before-fix/TableMax-1.0.5-win-x64.zip) **41,015,328字节**，[逐文件清单](../../artifacts/maintenance/v1.0.5/player-interaction-audio/delivery-before-fix/TableMax-1.0.5-win-x64-manifest.json) **275成员／实际解压94,594,942字节**，SHA-256 `2c5474f86a1b2282d1fd21bde1fd26868e1c055649e9c11ebd4d3ccfecdecf5f`。114,000,000字节预算及ZIP／实际解压严格小于120,000,000字节门禁通过。最终快照`1f8750626a45d378f0f59f311b5ab498c62400fed3724d3af5f1879c4233bc31`，22单元复用20项，组装24.393秒；完整包及275文件哈希、实际运行后的原字节与当前冻结源输入复核见[便携证明](../../artifacts/maintenance/v1.0.5/rummikub-20261009/portable-final.json)。前一同版交付保留在[原包清单](../../artifacts/maintenance/v1.0.5/rummikub-20261009/delivery-before-rummikub/TableMax-1.0.5-win-x64-manifest.json)，历史通过不自动成为新包证据。
 
 同包[三端UI](../../artifacts/rummikub/validation/ui-preview/final-authoritative-20261009/results.json)四组通过：首出与私有草稿、百搭重组提交及回退、小局／整场结束和原班再玩，覆盖320–430px手机、短横屏、电脑720p–4K、六章规则与本地三WAV静音解码。[实际服务](../../artifacts/rummikub/validation/runtime-final-authoritative-fresh-20261009/results.json)2／3／4人完整大局共九小局通过，每场一次真实停服／重启／本人身份恢复，439次服务Worker启动维持32MiB老生代及两秒边界，最长受测真人身份Worker决定1162.18ms。Socket／SQLite保存失败、去重、私有权限、回退和换机，以及未变代码的81源码自然小局等证据入口见[游戏验证](../games/rummikub/validation-scenarios.md)。新增双百搭五项风险与原七项规则共12项通过，当前源码类型检查通过。
 

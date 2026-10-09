@@ -1,5 +1,11 @@
 # 项目瘦身方案与执行记录
 
+## 玩家互动音效验证收尾（2026-10-09）
+
+同包声音核验通过、本工程进程退出后，按精确预览退役本轮实际ZIP解压副本与浏览器临时数据，共112,251,506字节，见[中间物清理](../../artifacts/maintenance/local-cleanup-20261009-132524-021-intermediates/cleanup.json)；再退役一个release打包过程目录230,262,543字节，见[release清理](../../artifacts/maintenance/local-cleanup-20261009-132650-195-releases/cleanup.json)，合计342,514,049字节。当前ZIP／清单、旧包备份、原资料及声音红例／最终验收保留；未识别的早期探针目录继续按工具保护保留，没有转存清理归档。
+
+`Maintain-Project.ps1 -Apply`实测8,479,114,943逻辑字节（约7.897GiB），低于10GiB，自动删除0、跳过983链接，见[最终维护日志](../../artifacts/maintenance/v1.0.5/player-interaction-audio/maintenance-final.log)。外部下载目录的独立TableMax继续运行；它与本工作区的路径／参数均无关，没有结束用户程序。该水位对应维护时点，后续文档和Git写入另增。
+
 2026-10-09，拉密完整交付收尾按精确预览退役两个release打包过程目录，删除460,520,308字节；当前ZIP／清单、原已发布附件与验收证据保护，见[清理记录](../../artifacts/maintenance/local-cleanup-20261009-043721-393-releases/cleanup.json)。空闲安全维护实测8,347,570,674逻辑字节（7.774GiB），低于10GiB，自动删除0、跳过983链接，[实际日志](../../artifacts/maintenance/v1.0.5/rummikub-20261009/maintain-authoritative-final.log)。新拉密临时范围未擅自扩入旧工具白名单，保留存档及来源资料。
 
 ## v1.0.5 同步优化收尾（2026-10-09）

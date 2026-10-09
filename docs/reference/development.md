@@ -657,3 +657,11 @@ SQLite流式扫描须让 `StatementSync` 强引用保持至迭代完成；包内
 菜单共性调整使用`--menus-only`，仅验证四游戏版本的菜单／设置／声音入口，可加`--game=<id>`收窄；范围登记为shared及实际游戏。`--box-only`包含盒子共享互动，须允许box＋shared；不以界面所在目录假定只覆盖盒子。菜单、盒子及命中视觉筛选互斥。最终包按钮修复后的共享证据可在逐文件哈希确认全部相关运行依赖未变后复用，并记录前后包边界。
 
 `scripts/verify-interactions.mjs --run=<唯一名称>`以隐藏原生窗口及静音Edge验证拖动／240ms长按／中心取消、六格选择、单次射击、视频设置内三端屏蔽、三射击叠加／第四淘汰、单发言替换和独立音频桥接，服务仅监听127.0.0.1。盒子修改使用`--box-only`，单游戏修改使用`--game=<id>`，二者互斥；默认矩阵仅用于影响全部入口的共享互动修改，不跑游戏规则或整局。即时派发和真实服务测试在`apps/server/src/interactions.test.ts`、`interaction-service.test.ts`，异步手机解锁／替换与单声源失权测试在`apps/web/src/interactions/audio-player.test.ts`。素材试听通过`artifacts/maintenance/v1.0.5/interaction-refinement/audio-review.html`显式开启；机器解码／ASR不记为人耳试听，旧版试听证据保留在`interaction-assets/`。40游戏WAV原件及FLAC派生和PCM核验保持原样。体积门禁统一查`scripts/lib/package-limits.mjs`，120MB硬上限和114MB预算不倒改历史报告。
+
+### 玩家互动音效解锁核验（2026-10-09）
+
+`scripts/verify-player-interaction-audio.mjs --run=<唯一名称>`专查共享玩家互动声音，范围为box＋shared；默认隐藏静音、监听127.0.0.1及隔离数据。`--profile=touch|desktop|all`选择真实触摸模拟／鼠标输入，`--scenario=refresh`只查刷新与首次可信解锁，默认`full`另覆盖五射击／六发言、非零音频输出、禁用／恢复与盒子／游戏页往返，不运行游戏规则或整局。`--sound`仅显式开启玩家浏览器试听，桌面保持静音；`--executable=<实际解压EXE>`核验指定运行包，运行前后另按逐文件清单核对字节与哈希。
+
+严格自动播放采用`document-user-activation-required`，通过CDP `Runtime.evaluate`的`userGesture:false`读取状态与首次输入坐标，再用真实touchscreen／mouse输入。Playwright普通evaluate与locator内部执行可能授予用户激活，不能用其证明无手势前置条件；初次恢复必须实测未激活且AudioContext suspended。分析器并联在真实destination输入，不替换原音频连接；从头播放、300ms内启动及非零PCM只证明浏览器链路，实体手机与人耳听感仍单列。结果写入当前版本`player-interaction-audio/<run>/results.json`，拒绝覆盖旧run；临时数据沿用可安全清理的`root-entry-<六位随机>`。
+
+`node --test scripts/testing/build-idle.test.mjs`用模拟Win32_Process库存执行构建保护的真实PowerShell表达式，检查独立下载目录TableMax可继续运行，工作区／来源工作区、未知路径／参数及实际验证进程仍阻止组装。它不启动产品或删除内容。近期修复和实际同包结果见[验收](acceptance.md#105玩家互动音效触摸解锁2026-10-09)。
