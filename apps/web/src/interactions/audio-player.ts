@@ -160,9 +160,10 @@ export class InteractionAudioPlayer {
     const context = this.ensureContext();
     this.prepare(urls);
     if (context.state === 'running') return Promise.resolve();
-    if (this.resuming) return this.resuming;
     const began = this.options.now();
-    // resume is invoked synchronously inside the trusted gesture.
+    // A touch pointerdown can leave resume pending before user activation.
+    // Each later gesture must call resume synchronously again until running;
+    // reusing that blocked promise would prevent pointerup from unlocking audio.
     const pending = context
       .resume()
       .then(

@@ -112,6 +112,25 @@ it('shares a trusted pending unlock and starts the full phrase from zero after a
   expect(f.sources[0]!.start).toHaveBeenCalledWith(0, 0);
   expect(f.context.resume).toHaveBeenCalledTimes(1);
 });
+it('a later activating gesture retries a resume blocked before user activation', async () => {
+  const f = fixture();
+  const blocked = deferred<void>();
+  f.context.state = 'suspended';
+  f.context.resume
+    .mockImplementationOnce(() => blocked.promise)
+    .mockImplementationOnce(async () => {
+      f.context.state = 'running';
+      blocked.resolve(undefined);
+    });
+  const early = f.player.unlock(['voice']);
+  const waitingEvent = f.play('waiting-event', 'speech', 'voice');
+  const activating = f.player.unlock(['voice']);
+  expect(f.context.resume).toHaveBeenCalledTimes(2);
+  await Promise.all([early, activating]);
+  expect((await waitingEvent).status).toBe('started');
+  expect((await f.play('new-event', 'speech', 'voice')).status).toBe('started');
+  expect(f.sources[0]!.start).toHaveBeenCalledWith(0, 0);
+});
 it('three effects overlap and the fourth stops only the oldest effect while speech stays independent', async () => {
   const f = fixture();
   await f.player.unlock([]);

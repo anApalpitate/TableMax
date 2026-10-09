@@ -17,16 +17,51 @@ const run = promisify(execFile);
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 export async function assertIdle() {
   if (process.platform !== 'win32') return;
+  const idleCommand = String.raw`
+    $taskWorkspace = [IO.Path]::GetFullPath($env:TABLEMAX_BUILD_WORKSPACE).TrimEnd('\')
+    $taskSourceWorkspace = [IO.Path]::GetFullPath($env:TABLEMAX_SOURCE_WORKSPACE).TrimEnd('\')
+    $taskBusy = @(Get-CimInstance Win32_Process | Where-Object {
+      $taskExecutable = [string]$_.ExecutablePath
+      $taskCommandLine = [string]$_.CommandLine
+      $unrelatedDesktop = $false
+      # A downloaded app uses its own runtime tree; unknown paths/arguments stay protected.
+      if ($_.Name -eq 'TableMax.exe' -and
+          -not [string]::IsNullOrWhiteSpace($taskExecutable) -and
+          -not [string]::IsNullOrWhiteSpace($taskCommandLine) -and
+          [IO.Path]::IsPathRooted($taskExecutable) -and
+          $taskExecutable -match '^(?:[A-Za-z]:[\\/]|[\\/]{2}[^\\/]+[\\/][^\\/]+[\\/])') {
+        try {
+          $taskExecutable = [IO.Path]::GetFullPath($taskExecutable)
+          $taskCommandLine = $taskCommandLine.Replace('/', '\')
+          $unrelatedDesktop =
+            -not $taskExecutable.StartsWith($taskWorkspace + '\', [StringComparison]::OrdinalIgnoreCase) -and
+            -not $taskExecutable.StartsWith($taskSourceWorkspace + '\', [StringComparison]::OrdinalIgnoreCase) -and
+            $taskCommandLine.IndexOf($taskWorkspace, [StringComparison]::OrdinalIgnoreCase) -lt 0 -and
+            $taskCommandLine.IndexOf($taskSourceWorkspace, [StringComparison]::OrdinalIgnoreCase) -lt 0
+        } catch { $unrelatedDesktop = $false }
+      }
+      $_.Name -match '^(TableMax|node|dotnet|MSBuild)\.exe$' -and
+        $_.ProcessId -ne [int]$env:TABLEMAX_BUILD_PID -and (
+          [string]::IsNullOrWhiteSpace($taskCommandLine) -or
+          ($_.Name -eq 'TableMax.exe' -and -not $unrelatedDesktop) -or
+          $taskCommandLine -match '(scripts[\\/](verify|dev|launch)|apps[\\/]desktop[\\/]native|vitest)'
+        )
+    })
+    if ($taskBusy.Count) { throw ('Engineering process busy: ' + (($taskBusy.ProcessId) -join ',')) }
+  `;
   const { stdout } = await run(
     'powershell.exe',
-    [
-      '-NoProfile',
-      '-Command',
-      "$taskBusy = @(Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^(TableMax|node|dotnet|MSBuild)\\.exe$' -and $_.ProcessId -ne [int]$env:TABLEMAX_BUILD_PID -and ($_.Name -eq 'TableMax.exe' -or $_.CommandLine -match '(scripts[\\/](verify|dev|launch)|apps[\\/]desktop[\\/]native|vitest)') }); if ($taskBusy.Count) { throw ('Engineering process busy: ' + (($taskBusy.ProcessId) -join ',')) }",
-    ],
+    ['-NoProfile', '-Command', idleCommand],
     {
       windowsHide: true,
-      env: { ...process.env, TABLEMAX_BUILD_PID: String(process.pid) },
+      env: {
+        ...process.env,
+        TABLEMAX_BUILD_PID: String(process.pid),
+        TABLEMAX_BUILD_WORKSPACE: resolve('.'),
+        TABLEMAX_SOURCE_WORKSPACE: dirname(
+          createRequire(import.meta.url).resolve('../package.json'),
+        ),
+      },
     },
   );
   return stdout;
