@@ -1611,6 +1611,14 @@
     padding: 10px;
   }
 }
+@media (min-width: 480px) and (max-height: 480px) {
+  .uno-screen--player {
+    padding-right: max(120px, 14vw);
+  }
+  .uno-screen--player .uno-hand-section {
+    padding-right: 0;
+  }
+}
 @media (max-height: 760px) and (min-width: 960px) {
   .uno-screen {
     gap: 7px;

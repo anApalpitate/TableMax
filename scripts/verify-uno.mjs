@@ -33,7 +33,8 @@ assert.ok(
       (arg) =>
         /^--(mode|seats|evidence|executable|zip|only)=.+$/.test(arg) ||
         arg === '--sample' ||
-        arg === '--compact',
+        arg === '--compact' ||
+        arg === '--landscape',
     ),
   'Unknown UNO verification argument',
 );
@@ -42,6 +43,7 @@ const count = Number(option('seats', '6'));
 const name = option('evidence', `${mode}-${count}-${Date.now()}`);
 const sample = process.argv.includes('--sample');
 const compact = process.argv.includes('--compact');
+const landscape = process.argv.includes('--landscape');
 const only = option('only', '').split(',').filter(Boolean);
 assert.ok(['ui', 'runtime'].includes(mode));
 assert.ok([2, 4, 6].includes(count));
@@ -68,6 +70,7 @@ const evidence = {
   seats: count,
   sample,
   compact,
+  landscape,
   only,
   workDir: work,
   startedAt: new Date().toISOString(),
@@ -417,7 +420,9 @@ async function sampleMemory(page, label, role) {
   });
 }
 async function measure(page, label, role, geometry) {
-  await wait(100);
+  // The shared orb repositions over 160 ms when a touch viewport rotates.
+  // Read the settled current render, rather than an intermediate CSS frame.
+  await wait(220);
   const layout = await surface(page).evaluate(() => {
     const visible = (el) => {
       const r = el.getBoundingClientRect(),
@@ -501,7 +506,7 @@ async function measure(page, label, role, geometry) {
     const orbObscures = orb
       ? [
           ...document.querySelectorAll(
-            '.uno-hand-actions button,.uno-hand-card',
+            '.uno-hand-actions button,.uno-hand-card,.uno-active-color,.uno-table-pending',
           ),
         ]
           .filter(visible)
@@ -580,7 +585,7 @@ async function measure(page, label, role, geometry) {
   );
   if (
     role === 'player' &&
-    label === 'player-320x568' &&
+    ['player-320x568', 'player-844x390'].includes(label) &&
     ['opening', 'dense'].includes(currentScenario)
   ) {
     assert.equal(
@@ -1043,8 +1048,9 @@ async function uiCase(scenario, prepare) {
     await nativeAudioClaims();
   }
   if (['opening', 'dense'].includes(scenario)) {
-    const phoneSizes =
-      sample || compact
+    const phoneSizes = landscape
+      ? [[844, 390]]
+      : sample || compact
         ? [[320, 568]]
         : [
             [320, 568],

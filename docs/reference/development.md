@@ -2,7 +2,11 @@
 
 ## UNO 专项构建与验证
 
-新增游戏通过模块清单发现，独立构建 `node scripts/build.mjs --only=game:uno`；单测入口 `node scripts/test-scoped.mjs --scope=game:uno`，只选择 UNO 规则、策略、UI 与 UNO 服务／Worker 测试。实际隐藏桌面验收由 `scripts/verify-uno.mjs` 的 UI／runtime 分项完成；从 [UNO 验证](../games/uno/validation-scenarios.md) 查询实际命令、证据和设备边界。范围隔离工具变化另运行 `node --test scripts/testing/scopes.test.mjs`，不启动其他游戏。
+新增游戏通过模块清单发现，独立构建 `node scripts/build.mjs --only=game:uno`；单测入口 `node scripts/test-scoped.mjs --scope=game:uno`，只选择 UNO 规则、策略、UI 与 UNO 服务／Worker 测试。范围隔离工具变化另运行 `node --test scripts/testing/scopes.test.mjs`，不启动其他游戏。实际结果与设备边界见 [UNO 验证](../games/uno/validation-scenarios.md)。
+
+`node scripts/verify-uno.mjs --mode=ui --seats=6 --executable=<实际解压的TableMax.exe> --zip=artifacts/releases/TableMax-1.0.5-win-x64.zip --evidence=<安全独立名称>` 在实际隐藏 WinForms／WebView2 核验三端、秘密、完整108牌场景、图文规则、触控和保存声画；`--only=opening,dense,reverse,skip,draw-two,wild,draw-four,uno,challenge,round-finish,match-finish` 选择受影响项。`--compact` 只做320px／720p，`--landscape` 定向844×390；`--sample` 只取初始样本，不能代替完整 UI。普通节奏和减少动态分别核验，原生物理静音。
+
+同一入口 `--mode=runtime --seats=2|4|6` 推进自然500分比赛、下一小局与真正退出／重启 Native；包内32MiB Worker只收到本人授权信息，服务端bot走原统一动作流程。每次选择新证据名，保留原失败和包哈希。首次完整检查后只返验实际变化；若最终仅条件 CSS 改变，使用实际成员等价证明复用未受影响组件，旧报告仍对应旧 ZIP。运行前后核验全部程序成员，监听固定为127.0.0.1，不改玩家声音偏好、系统 DPI 或防火墙。
 
 Node 与 pnpm 沿用锁定版本。沙箱默认 Corepack 缓存落在不可用的用户临时位置时，仅对本进程设置 `COREPACK_HOME=E:\Proj\TableMax\.cache\corepack` 和 `COREPACK_ENABLE_DOWNLOAD_PROMPT=0`；使用仓库内缓存及 `pnpm install --offline --ignore-scripts` 链接新增工作区，不升级包、不修改全局环境。运行必须遵守下文回环监听与测试静音规则。
 

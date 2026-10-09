@@ -49,13 +49,26 @@
         "derivedDecodeVerified": true,
         "derivedVisuallyVerified": true,
         "importedInUi": true,
-        "packagedRuntimeVerified": false
+        "packagedRuntimeVerified": true
       },
       "visualInspection": {
         "date": "2026-10-10",
         "method": "direct view_image inspection of final WebP; cover also inspected at 320x240 thumbnail",
         "result": "PASS",
         "findings": "Center is blank and readable, subtle tactile woven linen, pale oak border and tiny colored corners; no text, cards, numbers or fake UI baked in."
+      },
+      "runtimeVerification": {
+        "archiveSha256": "08828727f5c6ce09d1d8283be4d1eec1f262c3f293c7264133e52a9d7923bdad",
+        "snapshot": "c90aba9839a02dcd85df41c6875c2b63051255d7f53c39de2cba4033ce8694ff",
+        "id": "table-v1",
+        "runtimeMember": "web/games/uno/web/assets/table-v1-cms7iLo8.webp",
+        "actualBytes": 153662,
+        "actualSha256": "4dd5a7a016c06669028642173561a294eab18a4f630a60278e2b0f532cd08b22",
+        "actualDimensions": [1672, 941],
+        "actualMode": "RGB",
+        "decoded": true,
+        "actualUi": "../../../artifacts/uno/validation/portable-landscape-6-02/results.json",
+        "scope": "Original packaged bytes decoded; actual hidden Native UNO surface and cover decoded by the UI verifier. No human-listening or physical-phone claim."
       }
     },
     {
@@ -93,13 +106,26 @@
         "derivedDecodeVerified": true,
         "derivedVisuallyVerified": true,
         "importedInUi": true,
-        "packagedRuntimeVerified": false
+        "packagedRuntimeVerified": true
       },
       "visualInspection": {
         "date": "2026-10-10",
         "method": "direct view_image inspection of final WebP; cover also inspected at 320x240 thumbnail",
         "result": "PASS",
         "findings": "Four paper cards retain distinct classic colors and clear tilted ovals at thumbnail size. Realistic paper edges and natural contact shadows; no text, numbers, logo or rules symbols baked in."
+      },
+      "runtimeVerification": {
+        "archiveSha256": "08828727f5c6ce09d1d8283be4d1eec1f262c3f293c7264133e52a9d7923bdad",
+        "snapshot": "c90aba9839a02dcd85df41c6875c2b63051255d7f53c39de2cba4033ce8694ff",
+        "id": "cover-v1",
+        "runtimeMember": "web/games/uno/metadata/cover.webp",
+        "actualBytes": 93080,
+        "actualSha256": "5bdf516654e04c5e403f9a42967f57dcea481dec419e7a229a702abd5fe5406f",
+        "actualDimensions": [800, 600],
+        "actualMode": "RGB",
+        "decoded": true,
+        "actualUi": "../../../artifacts/uno/validation/portable-landscape-6-02/results.json",
+        "scope": "Original packaged bytes decoded; actual hidden Native UNO surface and cover decoded by the UI verifier. No human-listening or physical-phone claim."
       }
     }
   ],
@@ -107,7 +133,8 @@
     "prompts": "../../../artifacts/uno/imagegen/prompts-v1.json",
     "reproducibleExport": "../../../artifacts/uno/imagegen/export-v1.py",
     "verification": "../../../artifacts/uno/imagegen/verification-v1.json",
-    "actualUi": "../../../artifacts/uno/validation/source-opening-04/results.json"
+    "actualUi": "../../../artifacts/uno/validation/portable-landscape-6-02/results.json",
+    "actualPackage": "../../../artifacts/uno/validation/packaged-art-final.json"
   },
   "scope": "Two static raster assets only. Precise card faces, numbers, symbols, rules diagrams, title typography, animation and audio belong to UNO UI code and its own resource manifest."
 }

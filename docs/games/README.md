@@ -7,11 +7,11 @@
 | [宝可梦奇遇：皮卡丘和朋友们](pokemon-encounters/README.md) | `pokemon-encounters`，采用 `tablemax-cn-s19-v1`；完整规则／计分／投影／bot／两端 UI 已实现；当前 Windows 与设备模拟交付验证见 [验收记录](../reference/acceptance.md)          |
 | [现代艺术](modern-art/README.md)                           | `modern-art`，采用 `tablemax-modern-art-classic-v1`；经典 3–5 人、70 卡、五种拍卖、四轮与三档独立策略；出版规则与项目采用缺口见 [来源](modern-art/sources.md)                 |
 | [电力公司](power-grid/README.md)                           | `power-grid`，采用 `classic-germany-2009-project-1`；经典德国修正版 42 城／六区／83 边、42 张电厂、2–6 人与三档独立策略；出版依据与项目采用项见 [来源](power-grid/sources.md) |
-| [UNO](uno/README.md)                                       | `uno`，采用 `classic-108-g7942-1`；经典 108 牌、2–6 人、+4 质疑、UNO 抓漏与 500 分；制作与验证状态见 [任务](../tasks/uno.md)                                                  |
+| [UNO](uno/README.md)                                       | `uno`，采用 `classic-108-g7942-1`；经典 108 牌、2–6 人、+4 质疑、UNO 抓漏与 500 分；完整本地交付与实际验证见 [构建归档](../archive/uno-2026-10-10.md)                         |
 
-三款正式游戏均已完成独立实现与适用便携验收。较早交付见 [历史验收](../archive/acceptance-2026-10-01-to-04.md)，现代艺术与电力公司接入过程从 [归档索引](../archive/README.md)进入。
+宝可梦奇遇、现代艺术、电力公司与 UNO 四款开放游戏均已完成独立实现与适用便携验收。较早交付见 [历史验收](../archive/acceptance-2026-10-01-to-04.md)，接入过程从 [归档索引](../archive/README.md)进入。
 
-[拉密经典版](rummikub/README.md)已按用户选择的 2–4 人版本启动完整构建，采用 `classic-2025-digital-v1`；官方来源、数字适配及当前未闭合项见[构建任务](../archive/rummikub-2026-10-09.md)。完成最终运行 ZIP 验收前，不记为第四款交付已完成。
+[拉密经典版](rummikub/README.md)采用 `classic-2025-digital-v1`，2–4 人完整本地交付及证据见 [构建归档](../archive/rummikub-2026-10-09.md)；游戏库入口按最新要求标记为开发中并禁用，当前状态以 [验收](../reference/acceptance.md) 为准。
 
 中文互联网的人气线索、跨品类候选、手机／公共屏及人机适配判断见 [候选与接入评估](candidates.md)；现代艺术与电力公司后来已正式接入，其他研究建议不代表接入确认或开发排期。
 

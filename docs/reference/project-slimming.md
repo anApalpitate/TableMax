@@ -1,6 +1,14 @@
 # 项目瘦身方案与执行记录
 
-2026-10-10同版本附件替换收尾：已结束本轮工程进程，按精确清单预览后删除5个验证临时目录（362729549字节）和1个打包目录（230264211字节），合计592993760字节；当前EXE、运行ZIP、source ZIP、逐文件清单及历史验收证据保留。清理明细见[临时目录](../../artifacts/maintenance/local-cleanup-20261009-162153-832-intermediates/cleanup.json)、[打包目录](../../artifacts/maintenance/local-cleanup-20261009-162222-507-releases/cleanup.json)。收尾 `Maintain-Project.ps1 -Apply` 实测逻辑空间8857752882字节（8.249GiB），低于10GiB阈值，不扩大清理，见[维护记录](../../artifacts/maintenance/v1.0.5/release-replace-20261010/maintenance-final.log)。
+## UNO 完整制作收尾（2026-10-10）
+
+当前 UNO ZIP 已实际核验，全部本轮 Native／Node／验证进程退出后，按默认30分钟保护先预览再执行：六个隔离验证副本退役216,905,989字节，见 [精确临时清理](../../artifacts/maintenance/local-cleanup-20261009-185638-006-intermediates/cleanup.json)；三个打包目录退役464,484,686字节，见 [release清理](../../artifacts/maintenance/local-cleanup-20261009-185833-744-releases/cleanup.json)。当前ZIP／清单、原素材／WAV、Mattel规则资料、正式存档及全部当前验收图／失败结论保留。
+
+两个近期打包目录原样移至 `tmp/delivery-stage-package-1.0.5-MIhcZZ` 与 `tmp/delivery-stage-package-1.0.5-Ap6hfK`，继续保留内容，不计删除或容量节省，不建立清理历史归档。旧发布EXE与source ZIP收回已核验同SHA备份，冗余副本59,727,661字节另计；releases仅展示当前本地运行ZIP及清单。移动前核验绝对路径、链接／嵌套仓库及空闲，移动后核验文件数／字节，附件逐文件SHA一致，见 [精简移动记录](../../artifacts/maintenance/v1.0.5/uno-20261010/release-relocation.json)。
+
+[空闲维护](../../artifacts/maintenance/v1.0.5/uno-20261010/maintenance-final.log)初始11,944,020,974逻辑字节（11.124GiB），11个安全候选退役878,945,438字节；最终实际 **11,065,160,003字节（约10.305GiB）**，结果 `candidates-exhausted`，见 [维护清单](../../artifacts/maintenance/local-cleanup-20261009-190041-309-maintenance/cleanup.json)。986链接跳过、零嵌套仓库；近期、用途未知、依赖／工具缓存及原始内容继续保护。仍超过10GiB且安全候选耗尽，只报告，不扩大删除、不常驻轮询、不采用NTFS节省抵扣逻辑水位。手动与自动候选合计退役1,560,336,113字节，容量数字只对应本次实测时点。
+
+此前2026-10-10同版本附件替换收尾：已结束本轮工程进程，按精确清单预览后删除5个验证临时目录（362729549字节）和1个打包目录（230264211字节），合计592993760字节；当时EXE、运行ZIP、source ZIP、逐文件清单及历史验收证据保留。清理明细见[临时目录](../../artifacts/maintenance/local-cleanup-20261009-162153-832-intermediates/cleanup.json)、[打包目录](../../artifacts/maintenance/local-cleanup-20261009-162222-507-releases/cleanup.json)。当时 `Maintain-Project.ps1 -Apply` 实测逻辑空间8857752882字节（8.249GiB），低于10GiB阈值，见[维护记录](../../artifacts/maintenance/v1.0.5/release-replace-20261010/maintenance-final.log)。
 
 ## 玩家互动音效验证收尾（2026-10-09）
 

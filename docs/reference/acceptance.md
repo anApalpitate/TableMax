@@ -1,6 +1,18 @@
 # 首版交付与验收
 
-2026-10-10同版本发布附件替换完成：拉密游戏库按钮显示“开发中”且禁用，[同包盒子](../../artifacts/maintenance/v1.0.5/network-adaptation/connection/release-rummikub-final-20261010/results.json)9项通过，[实际单EXE检查](../../artifacts/maintenance/v1.0.5/release-replace-20261010/shipping-executable-checks.json)通过逐文件哈希、重复提取复用、实际运行和原生安全。[当前运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) 41015483字节／实际解压94595648字节，SHA-256 `89e6412a799d7a076b0cde8e450a9593e027dd24df376ffc0c9809a99092e041`；单EXE 41177088字节，SHA-256 `3d7f5ff112ef5bb4035c463a38b7587a9181e12dbe48a42fe86da2f8907e747f`，带所有权标记的提取目录94653080字节，均满足114MB预算与严格小于120MB门禁。类型、格式及静态检查通过；卡片相对定位的探针失败保留。[原v1.0.5 Release](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.5)的EXE与source ZIP已替换，线上大小与SHA-256一致，标题、正文及原标签对象保持不变，见[发布审计](../../artifacts/maintenance/v1.0.5/release-replace-20261010/github-replacement.json)。源码ZIP对应已验证提交 `4943ca5cf89aabc850df3fb566519973913feb3e`，18550573字节，SHA-256 `57b6e9df5b28f98171b113fc2b4d795235b873e3f86bd73ea3886d03a986ba32`；后续审计文档提交不重导源码ZIP；前包保存在`release-replace-20261010/delivery-before-change/`，线上旧EXE／source ZIP在`online-before/`按原SHA256备份。
+## 1.0.5：经典 UNO 完整本地交付（2026-10-10）
+
+新增 Mattel G7942 同版经典 108 牌、2–6 人 UNO：普通回合、两人特别规则、+4 质疑、UNO 抓漏、末张罚牌与 500 分累计，默认／豆包／绝悟独立本地策略，服务端秘密投影与保存恢复。三端采用自然织垫、木边和实体纸牌，包含原创图文规则、保存后的飞牌／功能牌／四色纸屑反馈与十条原创离线音效。规则、出版依据与数字适配从 [游戏主题](../games/uno/README.md) 进入。
+
+当前 [运行 ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) **41,625,580 字节**，[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json) **292 成员／实际解压 95,278,471 字节**，SHA-256 `08828727f5c6ce09d1d8283be4d1eec1f262c3f293c7264133e52a9d7923bdad`。114MB 工程预算及 ZIP／实际解压严格小于 120,000,000 字节通过。[独立审计](../../artifacts/maintenance/v1.0.5/uno-20261010/source-audit.json)核验 616 个冻结输入与实际 ZIP，四款旧游戏 200 成员逐字节未变。
+
+规则／策略 39 项、真实服务／32MiB Worker 13 项、范围工具 10 项通过；类型、适用静态及格式检查通过。实际隐藏 WinForms／WebView2 完成 2／4／6 人自然 500 分比赛，共 32 小局，693 个本人权限 Worker 决定最长 304ms；每场真实暂停、回退、退出／重启和原身份恢复。开局、六人 30 牌、9 类特殊／结束状态、320px—4K、独立显示设置、秘密权限、十音轨解码与唯一公共声道、历史不补播和减少动态通过。
+
+上述完整比赛与主要矩阵绑定保留的 `41881a…` 原包。最后仅修正短横屏互动浮球遮跟色标记，规则／策略／运行 JavaScript／音频／位图逐字节未变；当前包实际六人横屏和 320px 密集手牌返验通过，292 成员运行前后哈希一致。[当前便携证明](../../artifacts/maintenance/v1.0.5/uno-20261010/portable-final/results.json)明确当前实测、旧证据与 [增量等价](../../artifacts/maintenance/v1.0.5/uno-20261010/landscape-delta.json)边界，不把旧图改标为新图。全部验证仅监听 127.0.0.1、物理静音；实体手机、LAN、物理 DPI 和人耳听感不记为已认证。沿用 v1.0.5，源码分阶段提交／推送，本轮只交付本地 ZIP，不替换 GitHub Release。
+
+收尾安全退役1,560,336,113字节到龄生成副本；当前交付、原资料、素材、正式存档和验收保留。实际维护结束11,065,160,003逻辑字节（10.305GiB），安全候选耗尽，近期与未知内容继续保护；不扩大删除或把NTFS物理节省计入逻辑目标，见 [清理范围与结果](project-slimming.md#uno-完整制作收尾2026-10-10)。
+
+2026-10-10同版本发布附件替换完成：拉密游戏库按钮显示“开发中”且禁用，[同包盒子](../../artifacts/maintenance/v1.0.5/network-adaptation/connection/release-rummikub-final-20261010/results.json)9项通过，[实际单EXE检查](../../artifacts/maintenance/v1.0.5/release-replace-20261010/shipping-executable-checks.json)通过逐文件哈希、重复提取复用、实际运行和原生安全。[当时运行ZIP](../../artifacts/maintenance/v1.0.5/uno-20261010/delivery-before-uno/TableMax-1.0.5-win-x64.zip) 41015483字节／实际解压94595648字节，SHA-256 `89e6412a799d7a076b0cde8e450a9593e027dd24df376ffc0c9809a99092e041`；单EXE 41177088字节，SHA-256 `3d7f5ff112ef5bb4035c463a38b7587a9181e12dbe48a42fe86da2f8907e747f`，带所有权标记的提取目录94653080字节，均满足114MB预算与严格小于120MB门禁。类型、格式及静态检查通过；卡片相对定位的探针失败保留。[原v1.0.5 Release](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.5)的EXE与source ZIP已替换，线上大小与SHA-256一致，标题、正文及原标签对象保持不变，见[发布审计](../../artifacts/maintenance/v1.0.5/release-replace-20261010/github-replacement.json)。源码ZIP对应已验证提交 `4943ca5cf89aabc850df3fb566519973913feb3e`，18550573字节，SHA-256 `57b6e9df5b28f98171b113fc2b4d795235b873e3f86bd73ea3886d03a986ba32`；后续审计文档提交不重导源码ZIP；前包保存在`release-replace-20261010/delivery-before-change/`，线上旧EXE／source ZIP在`online-before/`按原SHA256备份。
 
 2026-10-10入口文案与协议回调：按钮改为“打开网址”，外部入口恢复必须显式HTTP／HTTPS前缀，示例保留脱敏。43项地址及保存权限回归、格式与静态检查通过。[当时运行ZIP](../../artifacts/maintenance/v1.0.5/release-replace-20261010/delivery-before-change/TableMax-1.0.5-win-x64.zip) 41015416字节／实际解压94595477字节，SHA-256 `3af6de317c3b5b9184d9eee6f575802feb27eb98c7ae52b4a4525c8abbc9bfdd`；[同包盒子检查](../../artifacts/maintenance/v1.0.5/network-adaptation/connection/prefix-restored-20261010/results.json)8项通过。前包保留于`join-prefix-20261010/delivery-before-change/`，历史结论保持。
 
@@ -48,7 +60,7 @@
 
 ## 1.0.5：GitHub发布核验（2026-10-09）
 
-本轮用户明确授权commit、push并发布v1.0.5，主题“互动效果与网络优化”。[完整EXE](../../artifacts/releases/TableMax-1.0.5-win-x64.exe)41,018,880字节，SHA-256 `359d2cd5bb184c61a737cf44598e939c66be450f7a59a9a702b13769d6c8216d`，内嵌本页已验证运行ZIP。实际提取267文件／94,410,471字节（含所有权标记），重复提取复用、逐文件哈希及原生安全验证通过，见[发布EXE检查](../../artifacts/maintenance/v1.0.5/github-release-20261005/shipping-executable-checks.json)。558项冻结运行输入均已提交且无工作区差异，用户未提交文档重构另行保留。
+本轮用户明确授权commit、push并发布v1.0.5，主题“互动效果与网络优化”。[当时完整EXE审计](../../artifacts/maintenance/v1.0.5/github-release-20261005/shipping-executable-checks.json)41,018,880字节，SHA-256 `359d2cd5bb184c61a737cf44598e939c66be450f7a59a9a702b13769d6c8216d`，内嵌本页已验证运行ZIP。实际提取267文件／94,410,471字节（含所有权标记），重复提取复用、逐文件哈希及原生安全验证通过，见[发布EXE检查](../../artifacts/maintenance/v1.0.5/github-release-20261005/shipping-executable-checks.json)。558项冻结运行输入均已提交且无工作区差异，用户未提交文档重构另行保留。
 
 发布附件仅完整EXE与由标签提交导出的source ZIP；不上传运行ZIP、JSON清单或截图。正文以互动效果、声音播放、网络同步及菜单体验为主，不宣称实体手机LAN目标已达标。线上状态、标签提交与附件大小／SHA-256以[发布记录](../../artifacts/maintenance/v1.0.5/github-release-20261005/github-publication.json)和[GitHub v1.0.5](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.5)为准。
 
@@ -142,7 +154,7 @@
 
 ## 当前源码与本地交付
 
-当前本地交付为本页[拉密经典版本地完整交付](#105拉密经典版本地完整交付2026-10-09)的[运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json)，SHA-256 `2c5474f86a1b2282d1fd21bde1fd26868e1c055649e9c11ebd4d3ccfecdecf5f`；历史同版初包及v1.0.4大小、证据、发布附件及结论保留在对应章节，不当作当前包验收。
+当前本地交付为本页[经典 UNO 完整本地交付](#105经典-uno-完整本地交付2026-10-10)的[运行 ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json)，SHA-256 `08828727f5c6ce09d1d8283be4d1eec1f262c3f293c7264133e52a9d7923bdad`；历史同版包及发布附件保留各自实际哈希、证据和结论，不当作当前包验收。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
 
