@@ -3,6 +3,7 @@ export interface ModuleManifest {
   id: string;
   order: number;
   internal: boolean;
+  development?: boolean;
   catalog: {
     id: string;
     name: string;

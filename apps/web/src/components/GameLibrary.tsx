@@ -85,11 +85,13 @@ export function GameLibrary({
             {isHost && (
               <button
                 disabled={
+                  moduleFor(game.id)?.development ||
                   locked ||
                   view.seats.length > game.max ||
                   view.game?.id === game.id
                 }
                 onClick={() => {
+                  if (moduleFor(game.id)?.development) return;
                   if (view.status === 'playing') {
                     setTargetId(game.id);
                     return;
@@ -101,11 +103,13 @@ export function GameLibrary({
                   });
                 }}
               >
-                {view.game?.id === game.id
-                  ? '已选中'
-                  : view.seats.length > game.max
-                    ? `最多 ${game.max} 席`
-                    : '选择游戏'}
+                {moduleFor(game.id)?.development
+                  ? '开发中'
+                  : view.game?.id === game.id
+                    ? '已选中'
+                    : view.seats.length > game.max
+                      ? `最多 ${game.max} 席`
+                      : '选择游戏'}
               </button>
             )}
           </article>
@@ -128,6 +132,7 @@ export function GameLibrary({
           confirmLabel={view.status === 'playing' ? '结束并切换' : '切换游戏'}
           cancel={() => setTargetId(null)}
           disabled={
+            moduleFor(target.id)?.development ||
             locked ||
             view.seats.length > target.max ||
             view.game?.id === target.id

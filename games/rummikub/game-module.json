@@ -3,6 +3,7 @@
   "id": "rummikub",
   "order": 3,
   "internal": false,
+  "development": true,
   "catalog": {
     "id": "rummikub",
     "name": "拉密",

@@ -245,6 +245,21 @@ try {
   await checked(
     'Fresh startup selected Pokemon directly without the four-game library',
   );
+  await host.getByRole('button', { name: '切换游戏', exact: true }).click();
+  const library = host.getByRole('dialog', { name: '游戏库', exact: true });
+  const rummikub = library.locator('article').filter({ hasText: '拉密' });
+  assert.equal(
+    await rummikub
+      .getByRole('button', { name: '开发中', exact: true })
+      .isDisabled(),
+    true,
+  );
+  assert.equal((await view()).game.id, 'pokemon-encounters');
+  await capture(host, 'rummikub-development-disabled');
+  await library.getByRole('button', { name: '关闭面板', exact: true }).click();
+  await checked(
+    'Rummikub remains visible with a disabled development button; current selected game is preserved',
+  );
   const oldLanUrl = await host
     .locator('a[data-tablemax-join-link]')
     .getAttribute('href');
