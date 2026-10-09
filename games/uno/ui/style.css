@@ -37,6 +37,9 @@
     url('../../../assets/games/uno/table-v1.webp') center/cover,
     #e8dec5;
 }
+.uno-screen .test-mode-badge {
+  font-size: 16px;
+}
 .uno-screen :is(button, a, select, input),
 .uno-panel :is(button, a, select, input) {
   font: inherit;
@@ -1267,6 +1270,26 @@
   }
 }
 @media (max-width: 959px) {
+  .uno-screen--player .uno-toolbar:has(.test-mode-badge) {
+    flex-wrap: wrap;
+  }
+  .uno-screen--player .uno-toolbar:has(.test-mode-badge) .uno-toolbar-tools {
+    flex: 0 0 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+  .uno-screen--player .uno-toolbar:has(.test-mode-badge) .test-mode-badge {
+    margin-right: auto;
+    flex: 0 0 auto;
+  }
+  .uno-screen--player
+    .uno-toolbar:has(.test-mode-badge)
+    .uno-toolbar-tools
+    > button {
+    flex: 0 0 auto;
+    min-width: 44px;
+    white-space: nowrap;
+  }
   .uno-screen--player {
     overflow: auto;
     padding: 8px 12px;
