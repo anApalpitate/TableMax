@@ -59,6 +59,11 @@ export interface GameRules<
   decisions(state: State): readonly PendingDecision[];
   ended(state: State): boolean;
   validateAction(input: unknown): Action;
+  /** Authoritative validation for complete actions that cannot be enumerated.
+   * legalActions remains a bounded set of suggestions; old modules retain exact
+   * list membership validation when this extension is absent.
+   */
+  isLegalAction?(state: State, action: Action, seatId: string): boolean;
   legalActions(state: State, seatId: string): readonly Action[];
   lifecycleActions(state: State): readonly Action[];
   applyLifecycle(

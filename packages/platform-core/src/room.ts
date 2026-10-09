@@ -26,6 +26,7 @@ import { Rejection, requireThat } from './errors';
 import { RandomSource } from './random';
 import { sealCredential, openCredential } from './session-receipts';
 import { GameRegistry, type LoadedGame } from './game-registry';
+import { allowsGameAction } from './game-actions';
 import { synchronizeDecisionClocks, projectDecisionClock } from './countdown';
 import {
   createTransfer,
@@ -1228,10 +1229,16 @@ export class RoomCoordinator {
           throw new Rejection('illegal-action');
         }
         requireThat(
-          (c.type === 'lifecycle'
-            ? this.rules.lifecycleActions(next.snapshot!.state)
-            : this.rules.legalActions(next.snapshot!.state, seatId)
-          ).some((a) => JSON.stringify(a) === JSON.stringify(action)),
+          c.type === 'lifecycle'
+            ? this.rules
+                .lifecycleActions(next.snapshot!.state)
+                .some((a) => JSON.stringify(a) === JSON.stringify(action))
+            : allowsGameAction(
+                this.rules,
+                next.snapshot!.state,
+                action,
+                seatId,
+              ),
           'illegal-action',
         );
         const before = this.data.snapshot!;

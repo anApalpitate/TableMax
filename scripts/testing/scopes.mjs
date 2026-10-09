@@ -64,6 +64,7 @@ const unitScopes = {
     'shared',
     'game:pokemon-encounters',
   ],
+  'packages/platform-core/src/game-action-contract.test.ts': ['shared'],
   'packages/platform-core/src/room.test.ts': ['shared'],
   'packages/platform-core/src/room-status.test.ts': ['shared'],
   'packages/platform-core/src/session-receipts.test.ts': ['box'],
