@@ -35,6 +35,21 @@ test('scope is explicit, validated, and matches every exercised domain', () => {
   assert.equal(allowsScope(parseScope('box'), undefined), false);
 });
 
+test('rummikub has its own scope without opening another game matrix', () => {
+  assert.deepEqual(parseScope('game:rummikub'), ['game:rummikub']);
+  assert.deepEqual(unitTestScopes('games/rummikub/rules/rules.test.ts'), [
+    'game:rummikub',
+  ]);
+  assert.equal(allowsScope(parseScope('game:rummikub'), ['shared']), false);
+  assert.throws(
+    () =>
+      selectUnitTests(root, 'game:rummikub', [
+        'games/modern-art/rules/rules.test.ts',
+      ]),
+    /outside/,
+  );
+});
+
 test('box selection excludes game and shared checks, while exact avatar filters remain available', () => {
   const selected = selectUnitTests(root, 'box');
   assert.ok(
@@ -276,10 +291,12 @@ test('interaction verifier limits box and single-game checks without accepting m
 });
 
 test('real scoped entry lists selections without running product tests and rejects missing scope', () => {
+  const isolatedEnv = { ...process.env };
+  delete isolatedEnv.TABLEMAX_TEST_SCOPE;
   const listed = spawnSync(
     process.execPath,
     ['scripts/test-scoped.mjs', '--scope=box', '--list'],
-    { cwd: root, encoding: 'utf8', windowsHide: true },
+    { cwd: root, encoding: 'utf8', windowsHide: true, env: isolatedEnv },
   );
   assert.equal(listed.status, 0, listed.stderr);
   const selection = JSON.parse(listed.stdout);
@@ -294,6 +311,7 @@ test('real scoped entry lists selections without running product tests and rejec
     cwd: root,
     encoding: 'utf8',
     windowsHide: true,
+    env: isolatedEnv,
   });
   assert.equal(rejected.status, 1);
   assert.match(rejected.stderr, /explicit test scope/);

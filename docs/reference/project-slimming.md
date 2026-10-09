@@ -1,5 +1,7 @@
 # 项目瘦身方案与执行记录
 
+2026-10-09，拉密完整交付收尾按精确预览退役两个release打包过程目录，删除460,520,308字节；当前ZIP／清单、原已发布附件与验收证据保护，见[清理记录](../../artifacts/maintenance/local-cleanup-20261009-043721-393-releases/cleanup.json)。空闲安全维护实测8,347,570,674逻辑字节（7.774GiB），低于10GiB，自动删除0、跳过983链接，[实际日志](../../artifacts/maintenance/v1.0.5/rummikub-20261009/maintain-authoritative-final.log)。新拉密临时范围未擅自扩入旧工具白名单，保留存档及来源资料。
+
 ## v1.0.5 同步优化收尾（2026-10-09）
 
 全部本轮服务与验收进程退出后执行`Maintain-Project.ps1 -Apply`，实际逻辑字节6,622,672,315（约6.17GiB），低于10GiB阈值，未删除或采用NTFS压缩抵扣。结果见[维护记录](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/checks/maintenance.json)。`Clean-Releases.ps1 -KeepLatestOnly`预览及Apply均无到龄候选，两个本轮打包过程目录仍受30分钟保护；原样放入`tmp/delivery-stage-package-1.0.5-ShkA7e`及`tmp/delivery-stage-package-1.0.5-28dfGH`，不计为删除或容量节省，不建立历史归档副本。releases仅保留当前运行ZIP及清单；素材、存档和本轮截图／失败证据保持原位。容量对应维护测量时点，后续少量文档／提交记录字节另增。

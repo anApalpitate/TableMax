@@ -17,9 +17,9 @@ it('exposes independent production games and keeps the template internal', async
     createGameRegistry()
       .catalog()
       .map((entry) => entry.id),
-  ).toEqual(['pokemon-encounters', 'modern-art', 'power-grid']);
+  ).toEqual(['pokemon-encounters', 'modern-art', 'power-grid', 'rummikub']);
   const internal = createGameRegistry(true);
-  expect(internal.catalog()).toHaveLength(4);
+  expect(internal.catalog()).toHaveLength(5);
   expect((await internal.load('power-grid')).rules.manifest.id).toBe(
     'power-grid',
   );
@@ -27,6 +27,7 @@ it('exposes independent production games and keeps the template internal', async
     'modern-art',
   );
   expect((await internal.load('template')).rules.manifest.id).toBe('template');
+  expect((await internal.load('rummikub')).rules.manifest.id).toBe('rummikub');
 });
 
 it('persists lazy selection and accepts six real sockets submitting from the same snapshot', async () => {
@@ -76,7 +77,7 @@ it('persists lazy selection and accepts six real sockets submitting from the sam
     const host = await connect(service.hostToken);
     const empty = RoomViewSchema.parse(service.room.view(service.hostToken));
     expect(empty.game).toBeNull();
-    expect(empty.catalog).toHaveLength(3);
+    expect(empty.catalog).toHaveLength(4);
     expect(
       (
         await send(host, empty, {

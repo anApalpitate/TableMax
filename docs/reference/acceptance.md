@@ -1,5 +1,17 @@
 # 首版交付与验收
 
+## 1.0.5：拉密经典版本地完整交付（2026-10-09）
+
+新增经典版拉密2–4人／106牌：私有牌架、公开桌面、整回合重组草稿及统一合法提交，保存／回退／重启／管理员批准换机，主机／公共／玩家三端图文规则、本地素材及默认／豆包／绝悟人机。按用户最新要求以2025官方经典原件为最高依据，不额外加入百搭先后释放限制；原文明文与数字解释分记，见[来源](../games/rummikub/sources.md)。本次仅本地交付，没有push、源码导出或GitHub发布。
+
+[当前运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) **41,015,328字节**，[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json) **275成员／实际解压94,594,942字节**，SHA-256 `2c5474f86a1b2282d1fd21bde1fd26868e1c055649e9c11ebd4d3ccfecdecf5f`。114,000,000字节预算及ZIP／实际解压严格小于120,000,000字节门禁通过。最终快照`1f8750626a45d378f0f59f311b5ab498c62400fed3724d3af5f1879c4233bc31`，22单元复用20项，组装24.393秒；完整包及275文件哈希、实际运行后的原字节与当前冻结源输入复核见[便携证明](../../artifacts/maintenance/v1.0.5/rummikub-20261009/portable-final.json)。前一同版交付保留在[原包清单](../../artifacts/maintenance/v1.0.5/rummikub-20261009/delivery-before-rummikub/TableMax-1.0.5-win-x64-manifest.json)，历史通过不自动成为新包证据。
+
+同包[三端UI](../../artifacts/rummikub/validation/ui-preview/final-authoritative-20261009/results.json)四组通过：首出与私有草稿、百搭重组提交及回退、小局／整场结束和原班再玩，覆盖320–430px手机、短横屏、电脑720p–4K、六章规则与本地三WAV静音解码。[实际服务](../../artifacts/rummikub/validation/runtime-final-authoritative-fresh-20261009/results.json)2／3／4人完整大局共九小局通过，每场一次真实停服／重启／本人身份恢复，439次服务Worker启动维持32MiB老生代及两秒边界，最长受测真人身份Worker决定1162.18ms。Socket／SQLite保存失败、去重、私有权限、回退和换机，以及未变代码的81源码自然小局等证据入口见[游戏验证](../games/rummikub/validation-scenarios.md)。新增双百搭五项风险与原七项规则共12项通过，当前源码类型检查通过。
+
+最终服务绝对heap峰值68,737,968字节；相对空盒基线最高采样增量51,240,264字节。前者超过初始64MiB标量，包含共享平台成本，后者是本次服务增量检查，不能混同两种指标；额度未提高。此前整页重载及连续4K截图的手机／进程私有内存压力警告保留，普通入桌／游戏三次采样通过不证明全生命周期或完整未GC往返。手机、LAN、物理屏幕与真人听感仍属人工设备边界，自动验收默认静音。
+
+首次最终服务预检使用已启动Native的目录，因程序正常生成`TableMax.config.json`而不再是纯275程序成员，尚未开始任何对局即停止；改为同ZIP全新解压后只重跑服务项，原失败保留，新引用的Native报告路径同步纠正，没有改产品或重复通过的UI。
+
 ## 1.0.5：GitHub发布核验（2026-10-09）
 
 本轮用户明确授权commit、push并发布v1.0.5，主题“互动效果与网络优化”。[完整EXE](../../artifacts/releases/TableMax-1.0.5-win-x64.exe)41,018,880字节，SHA-256 `359d2cd5bb184c61a737cf44598e939c66be450f7a59a9a702b13769d6c8216d`，内嵌本页已验证运行ZIP。实际提取267文件／94,410,471字节（含所有权标记），重复提取复用、逐文件哈希及原生安全验证通过，见[发布EXE检查](../../artifacts/maintenance/v1.0.5/github-release-20261005/shipping-executable-checks.json)。558项冻结运行输入均已提交且无工作区差异，用户未提交文档重构另行保留。
@@ -10,7 +22,7 @@
 
 四游戏版本的游戏／视频设置归入菜单，声音入口为图标并保持原权限；互动采用三射击槽及独立最新发言，发言时音效压至30%，300ms启动窗口内从头播放，超时不补播。同步使用运行期stamp、轻量probe、15秒完整校验与800ms只读动作查询；真正恢复清空播放并退休互动水位，健康校验保持连续。
 
-[当前运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip) **40,859,424字节**，[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json) **266文件／实际解压94,355,356字节**，SHA-256 `8a8c9c8ffe391eeefef19b496235bb535692bcd5b0e2d95fd19b7069b6b754f0`。114,000,000预算和ZIP／实际解压严格小于120,000,000字节门禁均通过，实际解压大小／哈希与清单一致；最终快照`85129453…`。保留[前一交付](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/delivery-before-optimization/TableMax-1.0.5-win-x64-manifest.json)，没有源码ZIP、push或Release。
+[当时运行ZIP](../../artifacts/maintenance/v1.0.5/rummikub-20261009/delivery-before-rummikub/TableMax-1.0.5-win-x64.zip) **40,859,424字节**，[逐文件清单](../../artifacts/maintenance/v1.0.5/rummikub-20261009/delivery-before-rummikub/TableMax-1.0.5-win-x64-manifest.json) **266文件／实际解压94,355,356字节**，SHA-256 `8a8c9c8ffe391eeefef19b496235bb535692bcd5b0e2d95fd19b7069b6b754f0`。114,000,000预算和ZIP／实际解压严格小于120,000,000字节门禁均通过，实际解压大小／哈希与清单一致；最终快照`85129453…`。保留[前一交付](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/delivery-before-optimization/TableMax-1.0.5-win-x64-manifest.json)，没有源码ZIP、push或Release。
 
 [定向检查](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/checks/summary.json)覆盖66项产品单测、8项范围工具检查，类型和ESLint通过。共享互动[9项真实渲染检查／8截图](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/ui/portable-box-20261009-repair/results.json)通过；最终包[四版本菜单／12截图](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/ui/portable-menus-touch-repair-20261009/results.json)通过，涵盖三角色权限、嵌套设置、独立屏蔽记忆及三玩家视窗。首次路径错误、验收脚本误用旧HTTP视图接口和42px声音按钮失败均保留；修复仅更新受影响项。最后按钮修复只改变现代艺术UI，[逐文件依赖复核](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/checks/menu-repair-dependency-proof.json)确认共享互动等文件字节未变，复用其通过证据，没有重跑无关游戏规则。
 
@@ -174,7 +186,7 @@
 
 ## 当前源码与本地交付
 
-当前本地交付为本页v1.0.5章节的[运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json)，SHA-256 `8a8c9c8ffe391eeefef19b496235bb535692bcd5b0e2d95fd19b7069b6b754f0`；历史同版初包及v1.0.4大小、证据、发布附件及结论保留在对应章节，不当作当前包验收。
+当前本地交付为本页[拉密经典版本地完整交付](#105拉密经典版本地完整交付2026-10-09)的[运行ZIP](../../artifacts/releases/TableMax-1.0.5-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.5-win-x64-manifest.json)，SHA-256 `2c5474f86a1b2282d1fd21bde1fd26868e1c055649e9c11ebd4d3ccfecdecf5f`；历史同版初包及v1.0.4大小、证据、发布附件及结论保留在对应章节，不当作当前包验收。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
 

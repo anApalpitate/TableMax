@@ -1,5 +1,15 @@
 # 开发环境
 
+## 拉密专项构建与验证
+
+经典版 2–4 人只选择 `game:rummikub` 范围；实际动作契约影响共享层时另选 `shared` 的精确文件，不展开其他游戏矩阵。首次针对规则、完整回合、草稿、真实服务及实际 Worker 检查后，仅重跑修改或失败相关项；完整大局耗时与每次决定的两秒／32MiB 限制分别记录。来源及边界见[拉密验证](../games/rummikub/validation-scenarios.md)。
+
+`node scripts/verify-rummikub-ui.mjs --executable=<实际解压的TableMax.exe> --evidence=<安全独立名称>` 在真实生产程序的合法 106 牌 SQLite 场景核验三端、草稿、导航、尺寸、图文规则和小局／大局结果；`--only=opening,reorganization,finish,finish-final` 可选择所需场景，`--navigation-only --rack-size=30` 专查大牌架。`--skip-verified` 仅供本轮已通过项的接续，不能替代首次完整检查。测试静音、隐藏窗口、仅监听 `127.0.0.1`；模拟视口不能记为实体手机验收。
+
+`node scripts/verify-rummikub-runtime.mjs --evidence=<安全独立名称>` 默认只生成并静态检查测量脚本，显式加 `--run` 才启动实际包。运行入口核对当前 ZIP／逐文件清单，使用包内 Node、原字节服务／规则／三档 Worker及真实 Socket／SQLite推进自然完整大局、下一局和重启续局；只读 preload 采样实际服务／Worker 堆，报告明确标注观测边界，不用 Native 的绝对 private bytes 代替服务堆。可用 `--seats=2,3,4` 定向未完成人数；单次决定两秒不放宽。实际 Native／UI 检查单独绑定同包证据。
+
+需要测量渲染堆与应用进程增量时，给 UI 验证进程设置独立 `TABLEMAX_BUDGET_TRACE` 目录及 `TABLEMAX_BUDGET_GAME=rummikub`，沿用现有只读采样；盒子首样本、完整页／iframe 堆、服务 private 和本应用进程树分别记量。无权限或缺样本不能写零值通过；额外窗口及导航缓存的增量不称为游戏净分配。正式打包与清理仍使用下文统一入口。
+
 ## 扫码与直接打开入口验证（2026-10-08）
 
 `node scripts/verify-connection-entry.mjs --sha256=<当前ZIP哈希> --evidence=<独立名称>` 解压并核验实际包，检查二维码与“打开网站”使用同一当前根网址、局域网／外部入口切换、窄屏排版和键盘操作。原生窗口只接受当前顶层邀请链接的真实用户点击；验证模式记录系统浏览器目标，普通浏览器实际新窗口继续入座、准备及游戏返回，不向新页传递管理员凭证或桥接。

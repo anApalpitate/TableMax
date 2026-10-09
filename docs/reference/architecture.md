@@ -125,7 +125,7 @@ RoomView 的 self.role 保持 host／player／public。capabilities.manage 仅�
 
 ## 动作、随机与恢复
 
-规则可选实现纯 `isLegalAction(state, action, seatId)`，用于无法穷举的参数化整回合动作。平台复制输入并要求明确返回 `true`，异常或其他返回值拒绝；未实现此接口的已有游戏仍按 `legalActions` 精确匹配。建议动作列表继续用于按钮与电脑玩家输入，不替代完整动作的权威校验。生命周期动作保留独立列表和管理授权，不能借此接口扩大权限。
+规则可选实现纯 `isLegalAction(state, action, seatId)`，用于无法穷举的参数化整回合动作。平台复制输入并要求明确返回 `true`，异常或其他返回值拒绝；未实现此接口的已有游戏仍按 `legalActions` 精确匹配。建议动作列表继续用于按钮与电脑玩家输入，不替代完整动作的权威校验。生命周期动作保留独立列表和管理授权，不能借此接口扩大权限。拉密的具体牌实例守恒、首出和百搭证据见[权限与决策规格](../games/rummikub/information-and-decisions.md)。
 
 SDK 的可选纯 bot `observe` 接口在成功游戏动作／生命周期动作后运行；平台为每个 bot 复制本人的玩家投影及记忆，校验新记忆后与动作同一事务提交。观察不运行搜索，不取得完整状态；保存失败、回退和重启均沿用现有事务／checkpoint 语义。外层存档和平台协议无需增加字段。
 

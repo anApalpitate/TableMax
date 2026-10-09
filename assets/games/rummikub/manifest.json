@@ -1,0 +1,123 @@
+{
+  "gameId": "rummikub",
+  "version": 1,
+  "created": "2026-10-09",
+  "source": "TableMax original code-native SVG, HTML/CSS and synthesized PCM",
+  "imagegen": false,
+  "files": [
+    {
+      "id": "cover",
+      "file": "cover.svg",
+      "width": 640,
+      "height": 400,
+      "bytes": 3849,
+      "sha256": "d5de50f51efde4b863f14f78102d9aa4633d7c85d52adf4161d4c423f78f5523",
+      "usage": "original code-native source for production WebP cover",
+      "status": "XML parsed and Edge rendered; preserved original source"
+    },
+    {
+      "id": "cover-webp-v1",
+      "file": "cover-v1.webp",
+      "width": 640,
+      "height": 400,
+      "bytes": 69762,
+      "sha256": "e2d69c46e147b9594b8566972dc8772dff63a0670b5939dd89fe1559d2c8401a",
+      "source": "cover.svg",
+      "sourceSha256": "d5de50f51efde4b863f14f78102d9aa4633d7c85d52adf4161d4c423f78f5523",
+      "derivation": {
+        "renderer": "Microsoft Edge headless 154.0.4258.62",
+        "viewport": [640, 400],
+        "deviceScaleFactor": 1,
+        "omitBackground": true,
+        "fontFamily": "Segoe UI,Arial,sans-serif",
+        "intermediatePngSha256": "490a71566fcc5ec9928a9c4940801744551882241f08e7ea87720810ae39dc6f",
+        "format": "WebP lossless RGBA",
+        "quality": 100,
+        "method": 6,
+        "exact": true,
+        "pixelSha256": "0b25a72e80c2d7716c10bd67f8ea87581a0ea5f4f303a1e3d3a5e0faee3823eb",
+        "pixelEquality": true
+      },
+      "usage": "production box catalog cover.webp contract",
+      "status": "file decode and exact RGBA equality passed; actual candidate ZIP browser decode 640x400 passed"
+    },
+    {
+      "id": "place-v1",
+      "file": "audio/place-v1.wav",
+      "durationSeconds": 0.24,
+      "sampleRate": 22050,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "bytes": 10628,
+      "sha256": "ca62c8c2335612cf8bb815c46e7461f10ba4943cfe1a7657f650359feff4d39f",
+      "frequenciesHz": [880, 1174],
+      "usage": "new saved submit-turn feedback",
+      "status": "RIFF parameters and actual candidate ZIP local browser decode passed; silent verification, no human listening claim"
+    },
+    {
+      "id": "draw-v1",
+      "file": "audio/draw-v1.wav",
+      "durationSeconds": 0.2,
+      "sampleRate": 22050,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "bytes": 8864,
+      "sha256": "d7f202ad49b3c54851db6db3dd372aaa98aa7b3b80b9708d5b720583d0a158e8",
+      "frequenciesHz": [240, 350],
+      "usage": "new saved draw feedback",
+      "status": "RIFF parameters and actual candidate ZIP local browser decode passed; silent verification, no human listening claim"
+    },
+    {
+      "id": "win-v1",
+      "file": "audio/win-v1.wav",
+      "durationSeconds": 0.82,
+      "sampleRate": 22050,
+      "channels": 1,
+      "bitsPerSample": 16,
+      "bytes": 36206,
+      "sha256": "a124b719eae7a04851e04a6dde41ac6ccb8868e0b715756ae6c5fc281ce26e57",
+      "frequenciesHz": [523.25, 659.25, 783.99, 1046.5],
+      "usage": "new saved game-ended feedback",
+      "status": "RIFF parameters and actual candidate ZIP local browser decode passed; silent verification, no human listening claim"
+    }
+  ],
+  "codeNative": [
+    {
+      "id": "number-tile-v1",
+      "file": "../../../games/rummikub/ui/NumberTile.tsx",
+      "usage": "public saved table and authorized private draft/rack"
+    },
+    {
+      "id": "rules-diagrams-v1",
+      "file": "../../../games/rummikub/ui/RulesGuide.tsx",
+      "usage": "six top-level illustrated rule chapters"
+    }
+  ],
+  "audioGeneration": {
+    "format": "WAVE PCM1 signed little-endian 16-bit mono",
+    "attackSeconds": 0.008,
+    "endEnvelopeSeconds": 0.03,
+    "decayPerSecond": {
+      "place": 22,
+      "draw": 22,
+      "win": 7
+    },
+    "noteOffsetSeconds": {
+      "place": 0.018,
+      "draw": 0.018,
+      "win": 0.115
+    },
+    "amplitudePerNote": {
+      "place": 0.12,
+      "draw": 0.11,
+      "win": 0.12
+    },
+    "playbackVolume": 0.42
+  },
+  "runtimeEvidence": {
+    "zipSha256": "afa4c170709072017453fc44cfcb36c0b1419d7b857cd4383b5072fc38c08fec",
+    "cover": "../../../artifacts/rummikub/validation/ui-preview/candidate-01/opening-box-game-cover.png",
+    "audio": "../../../artifacts/rummikub/validation/ui-preview/candidate-03/results.json",
+    "audioScope": "Local packaged WAV decode via AudioContext while physically muted; saved-feedback consumption source reviewed separately; not human listening"
+  }
+}

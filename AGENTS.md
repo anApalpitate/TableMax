@@ -7,7 +7,7 @@
 1. 先读本文件、[文档索引](docs/README.md)，检查 Git 状态与相关 diff；按 [定向查询](docs/README.md#定向查询)读必要章节和源码，复用未变结论，不重复遍历生成物。
 2. 目录归属查 [目录职责](docs/reference/project-structure.md)，实现边界查 [工程结构](docs/reference/architecture.md)，运行、验证、清理与压缩查 [开发环境](docs/reference/development.md)。维护文档前读 [维护规则](docs/reference/maintenance.md)，项目瘦身查 [方案与执行记录](docs/reference/project-slimming.md)。
 3. 当前交付查 [验收](docs/reference/acceptance.md)，发布流程、附件和更新说明查 [Release流程](docs/reference/release.md)，接续工作查 [任务索引](docs/tasks/README.md#后续开发接续入口)，重要选择查 [决策索引](docs/decisions/README.md)；第一至六阶段已完成，仅追溯历史时读 [归档](docs/archive/README.md)。
-4. 游戏规则、来源、权限、策略与验证各自维护：[宝可梦奇遇](docs/games/pokemon-encounters/README.md)、[现代艺术](docs/games/modern-art/README.md)、[电力公司](docs/games/power-grid/README.md)。电力公司只采用经典德国修正版，42 城／六区／83 边及横向绘图边界见 [地图](docs/games/power-grid/map.md)，不能混入 Recharged 或其他地图。
+4. 游戏规则、来源、权限、策略与验证各自维护：[宝可梦奇遇](docs/games/pokemon-encounters/README.md)、[现代艺术](docs/games/modern-art/README.md)、[电力公司](docs/games/power-grid/README.md)、[拉密](docs/games/rummikub/README.md)。电力公司只采用经典德国修正版，42 城／六区／83 边及横向绘图边界见 [地图](docs/games/power-grid/map.md)，不能混入 Recharged 或其他地图。拉密仅采用经典版 2–4 人，不混入 XP／六人版；整回合与百搭边界见该游戏规格。
 5. 跨游戏交互、计时、恢复与显示查 [平台规格](docs/reference/phase-02-platform-spec.md)，接入新游戏查 [扩展指南](docs/game-development/README.md)，电脑玩家查 [人机规格](docs/reference/bot-players.md)。游戏 bot 与开发子 agent 是不同角色。
 6. UI、布局、图标、头像、插画、声画与视觉审查先读 [用户美术偏好](docs/reference/art-preferences.md)、[通用视觉](docs/reference/visual-design.md)及对应游戏规格；设计时按用途、端侧与人数适当参考偏好及细节，派工传入这些入口。偏好依据仅取用户历史请求，不能把 agent 回答、既有实现或实施选择写成用户偏好。
 7. 协作先读 [职责索引](docs/subagent/README.md)及对应角色文档；已授权的位图生成、编辑与核验交给 [imagegen 子 agent](docs/subagent/imagegen.md)。
@@ -16,6 +16,8 @@
 
 - 修改前明确范围与完成标准；关键未知项影响目录或实现选择时先询问。保留用户及其他 agent 的已有改动，只改本次授权内容；区分产品要求、已实现行为和技术建议。
 - 游戏开发前核验对应版本原文、卡牌数据、秘密权限与决策点。宝可梦新增检索仅用中文来源，优先用户资料；按 2026-10-01 授权，查不到时自行选择合理项目方案并记录理由，不再追问。保留来源编号、原文缺口与历史裁定，不能把项目约定或未核实事实写成官方规则。
+
+- 按2026-10-09最新指示，同类游戏规则解释疑问以对应游戏最权威版本自主处理：优先发布方原文及同版官方修订，不混用版次；必要实施解释与官方明文分开记录，不因原文未举例而反复要求用户选择项目解释。已明确的数字平台适配继续遵循用户要求。
 - 服务端权威、按身份投影秘密信息；动作统一校验、保存与决策点回退，持久化恢复不绕过权限。正式运行所需资源本地打包，不依赖互联网。
 - 真人通过手机扫码或电脑浏览器打开网站根地址入座操作，旧 `/player` 兼容；电脑管理员不占座位，公共屏只读。管理员可指定真人玩家房主，仅授权开局、下一小局／轮、再玩一局、暂停／恢复；管理授权与 checkpoint 分离，回退不能恢复旧授权。按 2026-10-07 最新授权提供管理员批准的换机接续，保留原座位与对局，撤销旧凭证及连接；换机授权不随回退恢复。连接确认、身份恢复与外部地址边界见 [平台规格](docs/reference/phase-02-platform-spec.md#浏览器入座换机与外部连接2026-10-07)。
 - 人机提供“默认／豆包／绝悟”，智能逐级提升，各游戏独立维护决策文件；仅用本人授权信息，走统一动作流程，不代掉线真人行动，不把规划写成已实现。

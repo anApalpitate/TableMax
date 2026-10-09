@@ -1,7 +1,12 @@
 import { readdirSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 
-export const gameIds = ['pokemon-encounters', 'modern-art', 'power-grid'];
+export const gameIds = [
+  'pokemon-encounters',
+  'modern-art',
+  'power-grid',
+  'rummikub',
+];
 const gameScopes = gameIds.map((id) => `game:${id}`);
 const validScopes = ['box', 'shared', 'tooling', ...gameScopes];
 
@@ -42,7 +47,13 @@ const unitScopes = {
   'apps/server/src/pokemon-crash.test.ts': ['game:pokemon-encounters'],
   'apps/server/src/power-grid-concurrency.test.ts': ['game:power-grid'],
   'apps/server/src/power-grid.test.ts': ['game:power-grid'],
-  'apps/server/src/save-storage-games.test.ts': [...gameScopes],
+  'apps/server/src/rummikub.test.ts': ['game:rummikub'],
+  'apps/server/src/rummikub-worker.test.ts': ['game:rummikub'],
+  'apps/server/src/save-storage-games.test.ts': [
+    'game:pokemon-encounters',
+    'game:modern-art',
+    'game:power-grid',
+  ],
   'apps/server/src/save-storage-gc.test.ts': ['shared'],
   'apps/server/src/save-storage.test.ts': ['shared'],
   'apps/server/src/service.test.ts': ['shared'],
@@ -64,8 +75,8 @@ const unitScopes = {
     'shared',
     'game:pokemon-encounters',
   ],
-  'packages/platform-core/src/game-action-contract.test.ts': ['shared'],
   'packages/platform-core/src/room.test.ts': ['shared'],
+  'packages/platform-core/src/game-action-contract.test.ts': ['shared'],
   'packages/platform-core/src/room-status.test.ts': ['shared'],
   'packages/platform-core/src/session-receipts.test.ts': ['box'],
   'packages/platform-core/src/transfer.test.ts': ['box'],
@@ -89,7 +100,13 @@ const verificationScopes = {
     'game:modern-art',
     'game:pokemon-encounters',
   ],
-  'scripts/verify-power-grid.mjs': [...gameScopes],
+  'scripts/verify-power-grid.mjs': [
+    'game:pokemon-encounters',
+    'game:modern-art',
+    'game:power-grid',
+  ],
+  'scripts/verify-rummikub-ui.mjs': ['game:rummikub'],
+  'scripts/verify-rummikub-runtime.mjs': ['game:rummikub'],
 };
 const gameFilteredVerifiers = new Set([
   'scripts/verify-player-display.mjs',

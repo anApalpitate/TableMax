@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "id": "rummikub",
+  "order": 3,
+  "internal": false,
+  "catalog": {
+    "id": "rummikub",
+    "name": "拉密",
+    "min": 2,
+    "max": 4,
+    "decisionTimer": true
+  },
+  "compatibility": {
+    "sdk": 1,
+    "protocol": 7,
+    "webHost": 1,
+    "rulesVersion": "classic-2025-digital-v1",
+    "stateVersion": 1,
+    "gameVersion": "1.0.0",
+    "strategyVersion": "1.0.0"
+  },
+  "entries": {
+    "rules": "games/rummikub/rules/index.ts",
+    "bot": "games/rummikub/bot/index.ts",
+    "web": "games/rummikub/web/index.tsx"
+  },
+  "cover": "assets/games/rummikub/cover-v1.webp",
+  "introduction": {
+    "tagline": "组合数字牌，重排桌面，率先清空牌架。",
+    "lead": "拼出同数异色的组和同色连续的顺，巧妙重组整桌牌，让自己的牌全部落桌。",
+    "steps": [
+      {
+        "icon": "cards",
+        "title": "首次落桌至少 30 点",
+        "text": "每人持有 14 张牌。首次落桌只用自己的牌，组成至少 30 点的合法组或顺。"
+      },
+      {
+        "icon": "table",
+        "title": "拆组，补牌，重组桌面",
+        "text": "完成首出后的回合可自由重组桌面。所有牌必须留在合法组合中，百搭牌释放后须当回合重用。"
+      },
+      {
+        "icon": "trophy",
+        "title": "一次提交，清空牌架",
+        "text": "在自己的草稿中调整组合，确认整回合后统一保存。无法出牌时摸一张，率先清空者赢下本局。"
+      }
+    ],
+    "goal": "默认一轮、每位玩家对应一局。最终先比赢局数，再比累计分。"
+  },
+  "botIntroduction": {
+    "default": {
+      "lead": "寻找牌架组合与直接补牌机会。",
+      "details": ["只根据本人牌架和公开桌面作决定。"]
+    },
+    "doubao": {
+      "lead": "比较多组出牌，并尝试局部拆分与重组。",
+      "details": ["用有界搜索兼顾出牌数量和保留组合。"]
+    },
+    "juewu": {
+      "lead": "搜索全桌重组机会，评估出牌与剩余牌架。",
+      "details": ["公开桌面与本人牌架的有界规划，不读取对手手牌或牌库顺序。"]
+    }
+  },
+  "budgets": {
+    "payloadBytes": 1048576,
+    "serviceHeapBytes": 67108864,
+    "desktopHeapBytes": 33554432,
+    "phoneHeapBytes": 33554432,
+    "privateIncrementBytes": 536870912,
+    "workerOldGenerationMiB": 32,
+    "basis": "Original warning allocations retained. Candidate afa4c170: payload 233402 B; 2/3/4-seat natural-match service V8 heap peak 66050336 B; actual Worker V8 old-generation limit 32 MiB. Three normal ScreenLink/no-screenshot fixed-window entry/game phases before first explicit GC: phone page heap max 20336428 B, desktop max 13333428 B, owned process-tree private peak minus host-only box max 527130624 B. Whole-page/iframe and process-tree measurements include shared platform costs. Return-to-box samples after diagnostic GC do not prove an uncollected full round trip. Full reload/continuous 4K screenshot pressure exceeded phone/private allocations; warnings remain in docs/games/rummikub/validation-scenarios.md. These samples do not establish worst-case bounds."
+  }
+}

@@ -1,0 +1,1986 @@
+{
+  "dataClass": "generated-private-strategy-test-fixture",
+  "containsPrivateTestData": true,
+  "productionData": false,
+  "source": "games/rummikub/bot/matches.test.ts",
+  "fixtureRunId": "7f67d1c8-2085-41b3-ad27-55abba101eb9",
+  "gameId": "rummikub",
+  "rulesVersion": "classic-2025-digital-v1",
+  "strategyId": "rummikub-local",
+  "strategyVersion": "1.0.0",
+  "difficulty": "juewu",
+  "elapsedMs": 1600.5422999999719,
+  "randomSnapshot": 711,
+  "randomAfter": 711,
+  "view": {
+    "gameId": "rummikub",
+    "rulesVersion": "classic-2025-digital-v1",
+    "phase": "playing",
+    "seatOrder": ["S1", "S2"],
+    "gameNumber": 1,
+    "gameCount": 2,
+    "roundCount": 1,
+    "turnNumber": 57,
+    "turnSeat": "S1",
+    "table": [
+      {
+        "kind": "run",
+        "tiles": [
+          {
+            "tileId": "blue-10-a",
+            "color": "blue",
+            "value": 10
+          },
+          {
+            "tileId": "joker-a",
+            "color": "blue",
+            "value": 11
+          },
+          {
+            "tileId": "blue-12-b",
+            "color": "blue",
+            "value": 12
+          },
+          {
+            "tileId": "blue-13-a",
+            "color": "blue",
+            "value": 13
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-13-a",
+            "color": "black",
+            "value": 13
+          },
+          {
+            "tileId": "blue-13-b",
+            "color": "blue",
+            "value": 13
+          },
+          {
+            "tileId": "joker-b",
+            "color": "orange",
+            "value": 13
+          },
+          {
+            "tileId": "red-13-a",
+            "color": "red",
+            "value": 13
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-12-b",
+            "color": "black",
+            "value": 12
+          },
+          {
+            "tileId": "blue-12-a",
+            "color": "blue",
+            "value": 12
+          },
+          {
+            "tileId": "orange-12-a",
+            "color": "orange",
+            "value": 12
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-07-b",
+            "color": "black",
+            "value": 7
+          },
+          {
+            "tileId": "blue-07-b",
+            "color": "blue",
+            "value": 7
+          },
+          {
+            "tileId": "orange-07-a",
+            "color": "orange",
+            "value": 7
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-02-b",
+            "color": "black",
+            "value": 2
+          },
+          {
+            "tileId": "blue-02-a",
+            "color": "blue",
+            "value": 2
+          },
+          {
+            "tileId": "orange-02-a",
+            "color": "orange",
+            "value": 2
+          },
+          {
+            "tileId": "red-02-a",
+            "color": "red",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-03-b",
+            "color": "black",
+            "value": 3
+          },
+          {
+            "tileId": "blue-03-b",
+            "color": "blue",
+            "value": 3
+          },
+          {
+            "tileId": "red-03-a",
+            "color": "red",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-04-a",
+            "color": "black",
+            "value": 4
+          },
+          {
+            "tileId": "blue-04-a",
+            "color": "blue",
+            "value": 4
+          },
+          {
+            "tileId": "orange-04-a",
+            "color": "orange",
+            "value": 4
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-05-a",
+            "color": "black",
+            "value": 5
+          },
+          {
+            "tileId": "blue-05-b",
+            "color": "blue",
+            "value": 5
+          },
+          {
+            "tileId": "orange-05-a",
+            "color": "orange",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "kind": "run",
+        "tiles": [
+          {
+            "tileId": "red-11-b",
+            "color": "red",
+            "value": 11
+          },
+          {
+            "tileId": "red-12-b",
+            "color": "red",
+            "value": 12
+          },
+          {
+            "tileId": "red-13-b",
+            "color": "red",
+            "value": 13
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-01-b",
+            "color": "black",
+            "value": 1
+          },
+          {
+            "tileId": "orange-01-a",
+            "color": "orange",
+            "value": 1
+          },
+          {
+            "tileId": "red-01-b",
+            "color": "red",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "kind": "run",
+        "tiles": [
+          {
+            "tileId": "orange-11-b",
+            "color": "orange",
+            "value": 11
+          },
+          {
+            "tileId": "orange-12-b",
+            "color": "orange",
+            "value": 12
+          },
+          {
+            "tileId": "orange-13-a",
+            "color": "orange",
+            "value": 13
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-10-a",
+            "color": "black",
+            "value": 10
+          },
+          {
+            "tileId": "orange-10-b",
+            "color": "orange",
+            "value": 10
+          },
+          {
+            "tileId": "red-10-b",
+            "color": "red",
+            "value": 10
+          }
+        ]
+      },
+      {
+        "kind": "run",
+        "tiles": [
+          {
+            "tileId": "black-04-b",
+            "color": "black",
+            "value": 4
+          },
+          {
+            "tileId": "black-05-b",
+            "color": "black",
+            "value": 5
+          },
+          {
+            "tileId": "black-06-a",
+            "color": "black",
+            "value": 6
+          }
+        ]
+      },
+      {
+        "kind": "run",
+        "tiles": [
+          {
+            "tileId": "orange-06-a",
+            "color": "orange",
+            "value": 6
+          },
+          {
+            "tileId": "orange-07-b",
+            "color": "orange",
+            "value": 7
+          },
+          {
+            "tileId": "orange-08-a",
+            "color": "orange",
+            "value": 8
+          },
+          {
+            "tileId": "orange-09-a",
+            "color": "orange",
+            "value": 9
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-08-a",
+            "color": "black",
+            "value": 8
+          },
+          {
+            "tileId": "orange-08-b",
+            "color": "orange",
+            "value": 8
+          },
+          {
+            "tileId": "red-08-a",
+            "color": "red",
+            "value": 8
+          }
+        ]
+      },
+      {
+        "kind": "run",
+        "tiles": [
+          {
+            "tileId": "red-05-a",
+            "color": "red",
+            "value": 5
+          },
+          {
+            "tileId": "red-06-a",
+            "color": "red",
+            "value": 6
+          },
+          {
+            "tileId": "red-07-b",
+            "color": "red",
+            "value": 7
+          },
+          {
+            "tileId": "red-08-b",
+            "color": "red",
+            "value": 8
+          },
+          {
+            "tileId": "red-09-a",
+            "color": "red",
+            "value": 9
+          }
+        ]
+      }
+    ],
+    "poolCount": 47,
+    "players": {
+      "S1": {
+        "rackCount": 3,
+        "opened": true,
+        "score": 0,
+        "wins": 0
+      },
+      "S2": {
+        "rackCount": 2,
+        "opened": true,
+        "score": 0,
+        "wins": 0
+      }
+    },
+    "self": {
+      "seatId": "S1",
+      "rack": [
+        {
+          "id": "black-01-a",
+          "color": "black",
+          "value": 1,
+          "joker": false
+        },
+        {
+          "id": "red-02-b",
+          "color": "red",
+          "value": 2,
+          "joker": false
+        },
+        {
+          "id": "blue-09-a",
+          "color": "blue",
+          "value": 9,
+          "joker": false
+        }
+      ],
+      "opened": true
+    },
+    "results": [],
+    "winners": [],
+    "latest": {
+      "serial": 56,
+      "actor": "S2",
+      "verb": "draw",
+      "text": "座位 2 摸一张牌，回合结束。",
+      "placedTileIds": []
+    }
+  },
+  "decision": {
+    "id": "rummikub:1:57:S1",
+    "seatId": "S1"
+  },
+  "actions": [
+    {
+      "type": "submit-turn",
+      "table": [
+        {
+          "kind": "run",
+          "tiles": [
+            {
+              "tileId": "blue-07-b",
+              "color": "blue",
+              "value": 7
+            },
+            {
+              "tileId": "joker-a",
+              "color": "blue",
+              "value": 8
+            },
+            {
+              "tileId": "blue-09-a",
+              "color": "blue",
+              "value": 9
+            },
+            {
+              "tileId": "blue-10-a",
+              "color": "blue",
+              "value": 10
+            },
+            {
+              "tileId": "joker-b",
+              "color": "blue",
+              "value": 11
+            },
+            {
+              "tileId": "blue-12-b",
+              "color": "blue",
+              "value": 12
+            },
+            {
+              "tileId": "blue-13-a",
+              "color": "blue",
+              "value": 13
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-10-a",
+              "color": "black",
+              "value": 10
+            },
+            {
+              "tileId": "orange-10-b",
+              "color": "orange",
+              "value": 10
+            },
+            {
+              "tileId": "red-10-b",
+              "color": "red",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-01-b",
+              "color": "black",
+              "value": 1
+            },
+            {
+              "tileId": "orange-01-a",
+              "color": "orange",
+              "value": 1
+            },
+            {
+              "tileId": "red-01-b",
+              "color": "red",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "kind": "run",
+          "tiles": [
+            {
+              "tileId": "orange-11-b",
+              "color": "orange",
+              "value": 11
+            },
+            {
+              "tileId": "orange-12-a",
+              "color": "orange",
+              "value": 12
+            },
+            {
+              "tileId": "orange-13-a",
+              "color": "orange",
+              "value": 13
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-13-a",
+              "color": "black",
+              "value": 13
+            },
+            {
+              "tileId": "blue-13-b",
+              "color": "blue",
+              "value": 13
+            },
+            {
+              "tileId": "red-13-a",
+              "color": "red",
+              "value": 13
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-03-b",
+              "color": "black",
+              "value": 3
+            },
+            {
+              "tileId": "blue-03-b",
+              "color": "blue",
+              "value": 3
+            },
+            {
+              "tileId": "red-03-a",
+              "color": "red",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-04-a",
+              "color": "black",
+              "value": 4
+            },
+            {
+              "tileId": "blue-04-a",
+              "color": "blue",
+              "value": 4
+            },
+            {
+              "tileId": "orange-04-a",
+              "color": "orange",
+              "value": 4
+            }
+          ]
+        },
+        {
+          "kind": "run",
+          "tiles": [
+            {
+              "tileId": "red-11-b",
+              "color": "red",
+              "value": 11
+            },
+            {
+              "tileId": "red-12-b",
+              "color": "red",
+              "value": 12
+            },
+            {
+              "tileId": "red-13-b",
+              "color": "red",
+              "value": 13
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-12-b",
+              "color": "black",
+              "value": 12
+            },
+            {
+              "tileId": "blue-12-a",
+              "color": "blue",
+              "value": 12
+            },
+            {
+              "tileId": "orange-12-b",
+              "color": "orange",
+              "value": 12
+            }
+          ]
+        },
+        {
+          "kind": "run",
+          "tiles": [
+            {
+              "tileId": "black-04-b",
+              "color": "black",
+              "value": 4
+            },
+            {
+              "tileId": "black-05-a",
+              "color": "black",
+              "value": 5
+            },
+            {
+              "tileId": "black-06-a",
+              "color": "black",
+              "value": 6
+            },
+            {
+              "tileId": "black-07-b",
+              "color": "black",
+              "value": 7
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-08-a",
+              "color": "black",
+              "value": 8
+            },
+            {
+              "tileId": "orange-08-a",
+              "color": "orange",
+              "value": 8
+            },
+            {
+              "tileId": "red-08-a",
+              "color": "red",
+              "value": 8
+            }
+          ]
+        },
+        {
+          "kind": "run",
+          "tiles": [
+            {
+              "tileId": "orange-07-a",
+              "color": "orange",
+              "value": 7
+            },
+            {
+              "tileId": "orange-08-b",
+              "color": "orange",
+              "value": 8
+            },
+            {
+              "tileId": "orange-09-a",
+              "color": "orange",
+              "value": 9
+            }
+          ]
+        },
+        {
+          "kind": "run",
+          "tiles": [
+            {
+              "tileId": "orange-05-a",
+              "color": "orange",
+              "value": 5
+            },
+            {
+              "tileId": "orange-06-a",
+              "color": "orange",
+              "value": 6
+            },
+            {
+              "tileId": "orange-07-b",
+              "color": "orange",
+              "value": 7
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-05-b",
+              "color": "black",
+              "value": 5
+            },
+            {
+              "tileId": "blue-05-b",
+              "color": "blue",
+              "value": 5
+            },
+            {
+              "tileId": "red-05-a",
+              "color": "red",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "kind": "run",
+          "tiles": [
+            {
+              "tileId": "red-06-a",
+              "color": "red",
+              "value": 6
+            },
+            {
+              "tileId": "red-07-b",
+              "color": "red",
+              "value": 7
+            },
+            {
+              "tileId": "red-08-b",
+              "color": "red",
+              "value": 8
+            },
+            {
+              "tileId": "red-09-a",
+              "color": "red",
+              "value": 9
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-02-b",
+              "color": "black",
+              "value": 2
+            },
+            {
+              "tileId": "blue-02-a",
+              "color": "blue",
+              "value": 2
+            },
+            {
+              "tileId": "orange-02-a",
+              "color": "orange",
+              "value": 2
+            },
+            {
+              "tileId": "red-02-a",
+              "color": "red",
+              "value": 2
+            }
+          ]
+        }
+      ],
+      "releases": [
+        {
+          "jokerId": "joker-a",
+          "replacementSets": [
+            {
+              "kind": "group",
+              "tiles": [
+                {
+                  "tileId": "black-13-a",
+                  "color": "black",
+                  "value": 13
+                },
+                {
+                  "tileId": "blue-13-a",
+                  "color": "blue",
+                  "value": 13
+                },
+                {
+                  "tileId": "orange-13-a",
+                  "color": "orange",
+                  "value": 13
+                },
+                {
+                  "tileId": "red-13-a",
+                  "color": "red",
+                  "value": 13
+                }
+              ]
+            },
+            {
+              "kind": "run",
+              "tiles": [
+                {
+                  "tileId": "blue-09-a",
+                  "color": "blue",
+                  "value": 9
+                },
+                {
+                  "tileId": "blue-10-a",
+                  "color": "blue",
+                  "value": 10
+                },
+                {
+                  "tileId": "joker-b",
+                  "color": "blue",
+                  "value": 11
+                },
+                {
+                  "tileId": "blue-12-b",
+                  "color": "blue",
+                  "value": 12
+                },
+                {
+                  "tileId": "blue-13-b",
+                  "color": "blue",
+                  "value": 13
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "jokerId": "joker-b",
+          "replacementSets": [
+            {
+              "kind": "group",
+              "tiles": [
+                {
+                  "tileId": "black-10-a",
+                  "color": "black",
+                  "value": 10
+                },
+                {
+                  "tileId": "orange-10-b",
+                  "color": "orange",
+                  "value": 10
+                },
+                {
+                  "tileId": "red-10-b",
+                  "color": "red",
+                  "value": 10
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "tiles": [
+                {
+                  "tileId": "black-01-b",
+                  "color": "black",
+                  "value": 1
+                },
+                {
+                  "tileId": "orange-01-a",
+                  "color": "orange",
+                  "value": 1
+                },
+                {
+                  "tileId": "red-01-b",
+                  "color": "red",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "kind": "run",
+              "tiles": [
+                {
+                  "tileId": "orange-11-b",
+                  "color": "orange",
+                  "value": 11
+                },
+                {
+                  "tileId": "orange-12-a",
+                  "color": "orange",
+                  "value": 12
+                },
+                {
+                  "tileId": "orange-13-a",
+                  "color": "orange",
+                  "value": 13
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "tiles": [
+                {
+                  "tileId": "black-13-a",
+                  "color": "black",
+                  "value": 13
+                },
+                {
+                  "tileId": "blue-13-b",
+                  "color": "blue",
+                  "value": 13
+                },
+                {
+                  "tileId": "red-13-a",
+                  "color": "red",
+                  "value": 13
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "tiles": [
+                {
+                  "tileId": "black-03-b",
+                  "color": "black",
+                  "value": 3
+                },
+                {
+                  "tileId": "blue-03-b",
+                  "color": "blue",
+                  "value": 3
+                },
+                {
+                  "tileId": "red-03-a",
+                  "color": "red",
+                  "value": 3
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "tiles": [
+                {
+                  "tileId": "black-04-a",
+                  "color": "black",
+                  "value": 4
+                },
+                {
+                  "tileId": "blue-04-a",
+                  "color": "blue",
+                  "value": 4
+                },
+                {
+                  "tileId": "orange-04-a",
+                  "color": "orange",
+                  "value": 4
+                }
+              ]
+            },
+            {
+              "kind": "run",
+              "tiles": [
+                {
+                  "tileId": "red-11-b",
+                  "color": "red",
+                  "value": 11
+                },
+                {
+                  "tileId": "red-12-b",
+                  "color": "red",
+                  "value": 12
+                },
+                {
+                  "tileId": "red-13-b",
+                  "color": "red",
+                  "value": 13
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "tiles": [
+                {
+                  "tileId": "black-12-b",
+                  "color": "black",
+                  "value": 12
+                },
+                {
+                  "tileId": "blue-12-a",
+                  "color": "blue",
+                  "value": 12
+                },
+                {
+                  "tileId": "orange-12-b",
+                  "color": "orange",
+                  "value": 12
+                }
+              ]
+            },
+            {
+              "kind": "run",
+              "tiles": [
+                {
+                  "tileId": "black-04-b",
+                  "color": "black",
+                  "value": 4
+                },
+                {
+                  "tileId": "black-05-a",
+                  "color": "black",
+                  "value": 5
+                },
+                {
+                  "tileId": "black-06-a",
+                  "color": "black",
+                  "value": 6
+                },
+                {
+                  "tileId": "black-07-b",
+                  "color": "black",
+                  "value": 7
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "tiles": [
+                {
+                  "tileId": "black-08-a",
+                  "color": "black",
+                  "value": 8
+                },
+                {
+                  "tileId": "orange-08-a",
+                  "color": "orange",
+                  "value": 8
+                },
+                {
+                  "tileId": "red-08-a",
+                  "color": "red",
+                  "value": 8
+                }
+              ]
+            },
+            {
+              "kind": "run",
+              "tiles": [
+                {
+                  "tileId": "orange-07-a",
+                  "color": "orange",
+                  "value": 7
+                },
+                {
+                  "tileId": "orange-08-b",
+                  "color": "orange",
+                  "value": 8
+                },
+                {
+                  "tileId": "orange-09-a",
+                  "color": "orange",
+                  "value": 9
+                }
+              ]
+            },
+            {
+              "kind": "run",
+              "tiles": [
+                {
+                  "tileId": "orange-05-a",
+                  "color": "orange",
+                  "value": 5
+                },
+                {
+                  "tileId": "orange-06-a",
+                  "color": "orange",
+                  "value": 6
+                },
+                {
+                  "tileId": "orange-07-b",
+                  "color": "orange",
+                  "value": 7
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "tiles": [
+                {
+                  "tileId": "black-05-b",
+                  "color": "black",
+                  "value": 5
+                },
+                {
+                  "tileId": "blue-05-b",
+                  "color": "blue",
+                  "value": 5
+                },
+                {
+                  "tileId": "red-05-a",
+                  "color": "red",
+                  "value": 5
+                }
+              ]
+            },
+            {
+              "kind": "run",
+              "tiles": [
+                {
+                  "tileId": "red-06-a",
+                  "color": "red",
+                  "value": 6
+                },
+                {
+                  "tileId": "red-07-b",
+                  "color": "red",
+                  "value": 7
+                },
+                {
+                  "tileId": "red-08-b",
+                  "color": "red",
+                  "value": 8
+                },
+                {
+                  "tileId": "red-09-a",
+                  "color": "red",
+                  "value": 9
+                }
+              ]
+            },
+            {
+              "kind": "group",
+              "tiles": [
+                {
+                  "tileId": "black-02-b",
+                  "color": "black",
+                  "value": 2
+                },
+                {
+                  "tileId": "blue-02-a",
+                  "color": "blue",
+                  "value": 2
+                },
+                {
+                  "tileId": "orange-02-a",
+                  "color": "orange",
+                  "value": 2
+                },
+                {
+                  "tileId": "red-02-a",
+                  "color": "red",
+                  "value": 2
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "draw"
+    }
+  ],
+  "memory": null,
+  "choice": {
+    "action": {
+      "type": "submit-turn",
+      "table": [
+        {
+          "kind": "run",
+          "tiles": [
+            {
+              "tileId": "blue-09-a",
+              "color": "blue",
+              "value": 9
+            },
+            {
+              "tileId": "blue-10-a",
+              "color": "blue",
+              "value": 10
+            },
+            {
+              "tileId": "joker-a",
+              "color": "blue",
+              "value": 11
+            },
+            {
+              "tileId": "blue-12-b",
+              "color": "blue",
+              "value": 12
+            },
+            {
+              "tileId": "blue-13-a",
+              "color": "blue",
+              "value": 13
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-13-a",
+              "color": "black",
+              "value": 13
+            },
+            {
+              "tileId": "blue-13-b",
+              "color": "blue",
+              "value": 13
+            },
+            {
+              "tileId": "joker-b",
+              "color": "orange",
+              "value": 13
+            },
+            {
+              "tileId": "red-13-a",
+              "color": "red",
+              "value": 13
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-12-b",
+              "color": "black",
+              "value": 12
+            },
+            {
+              "tileId": "blue-12-a",
+              "color": "blue",
+              "value": 12
+            },
+            {
+              "tileId": "orange-12-a",
+              "color": "orange",
+              "value": 12
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-07-b",
+              "color": "black",
+              "value": 7
+            },
+            {
+              "tileId": "blue-07-b",
+              "color": "blue",
+              "value": 7
+            },
+            {
+              "tileId": "orange-07-a",
+              "color": "orange",
+              "value": 7
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-02-b",
+              "color": "black",
+              "value": 2
+            },
+            {
+              "tileId": "blue-02-a",
+              "color": "blue",
+              "value": 2
+            },
+            {
+              "tileId": "orange-02-a",
+              "color": "orange",
+              "value": 2
+            },
+            {
+              "tileId": "red-02-a",
+              "color": "red",
+              "value": 2
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-03-b",
+              "color": "black",
+              "value": 3
+            },
+            {
+              "tileId": "blue-03-b",
+              "color": "blue",
+              "value": 3
+            },
+            {
+              "tileId": "red-03-a",
+              "color": "red",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-04-a",
+              "color": "black",
+              "value": 4
+            },
+            {
+              "tileId": "blue-04-a",
+              "color": "blue",
+              "value": 4
+            },
+            {
+              "tileId": "orange-04-a",
+              "color": "orange",
+              "value": 4
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-05-a",
+              "color": "black",
+              "value": 5
+            },
+            {
+              "tileId": "blue-05-b",
+              "color": "blue",
+              "value": 5
+            },
+            {
+              "tileId": "orange-05-a",
+              "color": "orange",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "kind": "run",
+          "tiles": [
+            {
+              "tileId": "red-11-b",
+              "color": "red",
+              "value": 11
+            },
+            {
+              "tileId": "red-12-b",
+              "color": "red",
+              "value": 12
+            },
+            {
+              "tileId": "red-13-b",
+              "color": "red",
+              "value": 13
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-01-b",
+              "color": "black",
+              "value": 1
+            },
+            {
+              "tileId": "orange-01-a",
+              "color": "orange",
+              "value": 1
+            },
+            {
+              "tileId": "red-01-b",
+              "color": "red",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "kind": "run",
+          "tiles": [
+            {
+              "tileId": "orange-11-b",
+              "color": "orange",
+              "value": 11
+            },
+            {
+              "tileId": "orange-12-b",
+              "color": "orange",
+              "value": 12
+            },
+            {
+              "tileId": "orange-13-a",
+              "color": "orange",
+              "value": 13
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-10-a",
+              "color": "black",
+              "value": 10
+            },
+            {
+              "tileId": "orange-10-b",
+              "color": "orange",
+              "value": 10
+            },
+            {
+              "tileId": "red-10-b",
+              "color": "red",
+              "value": 10
+            }
+          ]
+        },
+        {
+          "kind": "run",
+          "tiles": [
+            {
+              "tileId": "black-04-b",
+              "color": "black",
+              "value": 4
+            },
+            {
+              "tileId": "black-05-b",
+              "color": "black",
+              "value": 5
+            },
+            {
+              "tileId": "black-06-a",
+              "color": "black",
+              "value": 6
+            }
+          ]
+        },
+        {
+          "kind": "run",
+          "tiles": [
+            {
+              "tileId": "orange-06-a",
+              "color": "orange",
+              "value": 6
+            },
+            {
+              "tileId": "orange-07-b",
+              "color": "orange",
+              "value": 7
+            },
+            {
+              "tileId": "orange-08-a",
+              "color": "orange",
+              "value": 8
+            },
+            {
+              "tileId": "orange-09-a",
+              "color": "orange",
+              "value": 9
+            }
+          ]
+        },
+        {
+          "kind": "group",
+          "tiles": [
+            {
+              "tileId": "black-08-a",
+              "color": "black",
+              "value": 8
+            },
+            {
+              "tileId": "orange-08-b",
+              "color": "orange",
+              "value": 8
+            },
+            {
+              "tileId": "red-08-a",
+              "color": "red",
+              "value": 8
+            }
+          ]
+        },
+        {
+          "kind": "run",
+          "tiles": [
+            {
+              "tileId": "red-05-a",
+              "color": "red",
+              "value": 5
+            },
+            {
+              "tileId": "red-06-a",
+              "color": "red",
+              "value": 6
+            },
+            {
+              "tileId": "red-07-b",
+              "color": "red",
+              "value": 7
+            },
+            {
+              "tileId": "red-08-b",
+              "color": "red",
+              "value": 8
+            },
+            {
+              "tileId": "red-09-a",
+              "color": "red",
+              "value": 9
+            }
+          ]
+        }
+      ]
+    },
+    "memory": null
+  },
+  "tableTileCount": 54,
+  "tableMeldCount": 16,
+  "rackTileCount": 3,
+  "heapAfterDecision": 51422296,
+  "state": {
+    "gameId": "rummikub",
+    "rulesVersion": "classic-2025-digital-v1",
+    "stateVersion": 1,
+    "seats": ["S1", "S2"],
+    "phase": "playing",
+    "roundCount": 1,
+    "gameCount": 2,
+    "gameNumber": 1,
+    "pool": [
+      "orange-10-a",
+      "red-06-b",
+      "black-10-b",
+      "blue-02-b",
+      "blue-11-a",
+      "red-01-a",
+      "blue-04-b",
+      "orange-03-b",
+      "blue-06-a",
+      "blue-03-a",
+      "orange-13-b",
+      "blue-05-a",
+      "blue-10-b",
+      "black-03-a",
+      "red-05-b",
+      "blue-09-b",
+      "blue-06-b",
+      "orange-03-a",
+      "red-04-b",
+      "red-04-a",
+      "blue-01-a",
+      "orange-09-b",
+      "orange-04-b",
+      "blue-11-b",
+      "red-03-b",
+      "black-09-a",
+      "black-12-a",
+      "black-13-b",
+      "orange-05-b",
+      "blue-08-a",
+      "orange-02-b",
+      "black-09-b",
+      "black-11-a",
+      "orange-06-b",
+      "black-11-b",
+      "red-10-a",
+      "red-12-a",
+      "black-02-a",
+      "red-07-a",
+      "blue-08-b",
+      "blue-07-a",
+      "black-07-a",
+      "black-06-b",
+      "black-08-b",
+      "red-11-a",
+      "orange-01-b",
+      "blue-01-b"
+    ],
+    "racks": {
+      "S1": ["black-01-a", "red-02-b", "blue-09-a"],
+      "S2": ["orange-11-a", "red-09-b"]
+    },
+    "startSeat": "S1",
+    "turnSeat": "S1",
+    "turnNumber": 57,
+    "table": [
+      {
+        "kind": "run",
+        "tiles": [
+          {
+            "tileId": "blue-10-a",
+            "color": "blue",
+            "value": 10
+          },
+          {
+            "tileId": "joker-a",
+            "color": "blue",
+            "value": 11
+          },
+          {
+            "tileId": "blue-12-b",
+            "color": "blue",
+            "value": 12
+          },
+          {
+            "tileId": "blue-13-a",
+            "color": "blue",
+            "value": 13
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-13-a",
+            "color": "black",
+            "value": 13
+          },
+          {
+            "tileId": "blue-13-b",
+            "color": "blue",
+            "value": 13
+          },
+          {
+            "tileId": "joker-b",
+            "color": "orange",
+            "value": 13
+          },
+          {
+            "tileId": "red-13-a",
+            "color": "red",
+            "value": 13
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-12-b",
+            "color": "black",
+            "value": 12
+          },
+          {
+            "tileId": "blue-12-a",
+            "color": "blue",
+            "value": 12
+          },
+          {
+            "tileId": "orange-12-a",
+            "color": "orange",
+            "value": 12
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-07-b",
+            "color": "black",
+            "value": 7
+          },
+          {
+            "tileId": "blue-07-b",
+            "color": "blue",
+            "value": 7
+          },
+          {
+            "tileId": "orange-07-a",
+            "color": "orange",
+            "value": 7
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-02-b",
+            "color": "black",
+            "value": 2
+          },
+          {
+            "tileId": "blue-02-a",
+            "color": "blue",
+            "value": 2
+          },
+          {
+            "tileId": "orange-02-a",
+            "color": "orange",
+            "value": 2
+          },
+          {
+            "tileId": "red-02-a",
+            "color": "red",
+            "value": 2
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-03-b",
+            "color": "black",
+            "value": 3
+          },
+          {
+            "tileId": "blue-03-b",
+            "color": "blue",
+            "value": 3
+          },
+          {
+            "tileId": "red-03-a",
+            "color": "red",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-04-a",
+            "color": "black",
+            "value": 4
+          },
+          {
+            "tileId": "blue-04-a",
+            "color": "blue",
+            "value": 4
+          },
+          {
+            "tileId": "orange-04-a",
+            "color": "orange",
+            "value": 4
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-05-a",
+            "color": "black",
+            "value": 5
+          },
+          {
+            "tileId": "blue-05-b",
+            "color": "blue",
+            "value": 5
+          },
+          {
+            "tileId": "orange-05-a",
+            "color": "orange",
+            "value": 5
+          }
+        ]
+      },
+      {
+        "kind": "run",
+        "tiles": [
+          {
+            "tileId": "red-11-b",
+            "color": "red",
+            "value": 11
+          },
+          {
+            "tileId": "red-12-b",
+            "color": "red",
+            "value": 12
+          },
+          {
+            "tileId": "red-13-b",
+            "color": "red",
+            "value": 13
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-01-b",
+            "color": "black",
+            "value": 1
+          },
+          {
+            "tileId": "orange-01-a",
+            "color": "orange",
+            "value": 1
+          },
+          {
+            "tileId": "red-01-b",
+            "color": "red",
+            "value": 1
+          }
+        ]
+      },
+      {
+        "kind": "run",
+        "tiles": [
+          {
+            "tileId": "orange-11-b",
+            "color": "orange",
+            "value": 11
+          },
+          {
+            "tileId": "orange-12-b",
+            "color": "orange",
+            "value": 12
+          },
+          {
+            "tileId": "orange-13-a",
+            "color": "orange",
+            "value": 13
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-10-a",
+            "color": "black",
+            "value": 10
+          },
+          {
+            "tileId": "orange-10-b",
+            "color": "orange",
+            "value": 10
+          },
+          {
+            "tileId": "red-10-b",
+            "color": "red",
+            "value": 10
+          }
+        ]
+      },
+      {
+        "kind": "run",
+        "tiles": [
+          {
+            "tileId": "black-04-b",
+            "color": "black",
+            "value": 4
+          },
+          {
+            "tileId": "black-05-b",
+            "color": "black",
+            "value": 5
+          },
+          {
+            "tileId": "black-06-a",
+            "color": "black",
+            "value": 6
+          }
+        ]
+      },
+      {
+        "kind": "run",
+        "tiles": [
+          {
+            "tileId": "orange-06-a",
+            "color": "orange",
+            "value": 6
+          },
+          {
+            "tileId": "orange-07-b",
+            "color": "orange",
+            "value": 7
+          },
+          {
+            "tileId": "orange-08-a",
+            "color": "orange",
+            "value": 8
+          },
+          {
+            "tileId": "orange-09-a",
+            "color": "orange",
+            "value": 9
+          }
+        ]
+      },
+      {
+        "kind": "group",
+        "tiles": [
+          {
+            "tileId": "black-08-a",
+            "color": "black",
+            "value": 8
+          },
+          {
+            "tileId": "orange-08-b",
+            "color": "orange",
+            "value": 8
+          },
+          {
+            "tileId": "red-08-a",
+            "color": "red",
+            "value": 8
+          }
+        ]
+      },
+      {
+        "kind": "run",
+        "tiles": [
+          {
+            "tileId": "red-05-a",
+            "color": "red",
+            "value": 5
+          },
+          {
+            "tileId": "red-06-a",
+            "color": "red",
+            "value": 6
+          },
+          {
+            "tileId": "red-07-b",
+            "color": "red",
+            "value": 7
+          },
+          {
+            "tileId": "red-08-b",
+            "color": "red",
+            "value": 8
+          },
+          {
+            "tileId": "red-09-a",
+            "color": "red",
+            "value": 9
+          }
+        ]
+      }
+    ],
+    "passed": [],
+    "opened": {
+      "S1": true,
+      "S2": true
+    },
+    "wins": {
+      "S1": 0,
+      "S2": 0
+    },
+    "scores": {
+      "S1": 0,
+      "S2": 0
+    },
+    "results": [],
+    "winners": [],
+    "serial": 56,
+    "latest": {
+      "serial": 56,
+      "actor": "S2",
+      "verb": "draw",
+      "text": "座位 2 摸一张牌，回合结束。",
+      "placedTileIds": []
+    }
+  }
+}

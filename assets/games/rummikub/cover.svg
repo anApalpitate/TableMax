@@ -1,0 +1,156 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="640"
+  height="400"
+  viewBox="0 0 640 400"
+>
+  <defs>
+    <linearGradient id="wood" x2="1" y2="1">
+      <stop stop-color="#e8ceb0" />
+      <stop offset="1" stop-color="#ba845c" />
+    </linearGradient>
+    <linearGradient id="felt" x2="0" y2="1">
+      <stop stop-color="#b6d9cb" />
+      <stop offset="1" stop-color="#8fbdac" />
+    </linearGradient>
+    <linearGradient id="tile" x2="0" y2="1">
+      <stop stop-color="#fffdf6" />
+      <stop offset="1" stop-color="#eee5d6" />
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="180%" height="180%">
+      <feDropShadow
+        dx="0"
+        dy="7"
+        stdDeviation="6"
+        flood-color="#314e40"
+        flood-opacity=".22"
+      />
+    </filter>
+  </defs>
+  <rect width="640" height="400" rx="32" fill="#f5efe3" />
+  <rect x="18" y="18" width="604" height="364" rx="28" fill="url(#wood)" />
+  <rect
+    x="33"
+    y="33"
+    width="574"
+    height="334"
+    rx="21"
+    fill="url(#felt)"
+    stroke="#6f9d88"
+    stroke-width="2"
+  />
+  <g
+    transform="translate(94 92) rotate(-8 200 70)"
+    filter="url(#shadow)"
+    font-family="Segoe UI,Arial,sans-serif"
+    font-weight="700"
+    text-anchor="middle"
+    font-size="66"
+  >
+    <g>
+      <rect
+        width="80"
+        height="112"
+        rx="11"
+        fill="url(#tile)"
+        stroke="#d5c4ad"
+        stroke-width="2"
+      />
+      <text x="40" y="79" fill="#b63337">8</text>
+      <circle cx="40" cy="95" r="4" fill="#b63337" />
+    </g>
+    <g transform="translate(92)">
+      <rect
+        width="80"
+        height="112"
+        rx="11"
+        fill="url(#tile)"
+        stroke="#d5c4ad"
+        stroke-width="2"
+      />
+      <text x="40" y="79" fill="#b63337">9</text>
+      <circle cx="40" cy="95" r="4" fill="#b63337" />
+    </g>
+    <g transform="translate(184)">
+      <rect
+        width="80"
+        height="112"
+        rx="11"
+        fill="url(#tile)"
+        stroke="#d5c4ad"
+        stroke-width="2"
+      />
+      <text x="40" y="79" fill="#b63337">10</text>
+      <circle cx="40" cy="95" r="4" fill="#b63337" />
+    </g>
+    <g transform="translate(276)">
+      <rect
+        width="80"
+        height="112"
+        rx="11"
+        fill="url(#tile)"
+        stroke="#d5c4ad"
+        stroke-width="2"
+      />
+      <text x="40" y="79" fill="#b63337">11</text>
+      <circle cx="40" cy="95" r="4" fill="#b63337" />
+    </g>
+  </g>
+  <g
+    transform="translate(224 244) rotate(6 200 50)"
+    filter="url(#shadow)"
+    font-family="Segoe UI,Arial,sans-serif"
+    font-weight="700"
+    text-anchor="middle"
+    font-size="58"
+  >
+    <g>
+      <rect
+        width="70"
+        height="96"
+        rx="10"
+        fill="url(#tile)"
+        stroke="#d5c4ad"
+        stroke-width="2"
+      />
+      <text x="35" y="66" fill="#245992">7</text>
+      <path d="m35 76 5 8-5 8-5-8Z" fill="#245992" />
+    </g>
+    <g transform="translate(80)">
+      <rect
+        width="70"
+        height="96"
+        rx="10"
+        fill="url(#tile)"
+        stroke="#d5c4ad"
+        stroke-width="2"
+      />
+      <text x="35" y="66" fill="#b63337">7</text>
+      <circle cx="35" cy="84" r="4" fill="#b63337" />
+    </g>
+    <g transform="translate(160)">
+      <rect
+        width="70"
+        height="96"
+        rx="10"
+        fill="url(#tile)"
+        stroke="#d5c4ad"
+        stroke-width="2"
+      />
+      <text x="35" y="66" fill="#9a5a0d">7</text>
+      <path d="m35 76 6 11H29Z" fill="#9a5a0d" />
+    </g>
+    <g transform="translate(240)">
+      <rect
+        width="70"
+        height="96"
+        rx="10"
+        fill="url(#tile)"
+        stroke="#d5c4ad"
+        stroke-width="2"
+      />
+      <text x="35" y="66" fill="#27343d">7</text>
+      <rect x="31" y="80" width="8" height="8" rx="1" fill="#27343d" />
+    </g>
+  </g>
+</svg>

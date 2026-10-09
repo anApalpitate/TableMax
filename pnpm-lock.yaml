@@ -157,6 +157,18 @@ importers:
         specifier: 19.3.0
         version: 19.3.0
 
+  games/rummikub:
+    dependencies:
+      '@tablemax/game-sdk':
+        specifier: workspace:*
+        version: link:../../packages/game-sdk
+      '@tablemax/web-host':
+        specifier: workspace:*
+        version: link:../../packages/web-host
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+
   games/template:
     dependencies:
       '@tablemax/game-sdk':
