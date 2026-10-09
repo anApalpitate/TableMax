@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "id": "uno",
+  "order": 4,
+  "internal": false,
+  "development": false,
+  "catalog": {
+    "id": "uno",
+    "name": "UNO",
+    "min": 2,
+    "max": 6,
+    "decisionTimer": true
+  },
+  "compatibility": {
+    "sdk": 1,
+    "protocol": 7,
+    "webHost": 1,
+    "rulesVersion": "classic-108-g7942-1",
+    "stateVersion": 1,
+    "gameVersion": "1.0.0",
+    "strategyVersion": "1.0.0"
+  },
+  "entries": {
+    "rules": "games/uno/rules/index.ts",
+    "bot": "games/uno/bot/index.ts",
+    "web": "games/uno/web/index.tsx"
+  },
+  "cover": "assets/games/uno/cover-v1.webp",
+  "introduction": {
+    "tagline": "四色接龙，逆转局势，最后一张喊 UNO！",
+    "lead": "把手中的实体四色牌一张张接上桌面：跟颜色、跟数字，或用功能牌改变节奏。先清空手牌，赢取对手留下的分数。",
+    "steps": [
+      {
+        "icon": "cards",
+        "title": "同色、同数字或同功能",
+        "text": "每人七张牌，轮到你时出一张匹配牌，也可主动摸一张。摸牌后只能打出刚摸到的牌。"
+      },
+      {
+        "icon": "table",
+        "title": "反转、跳过与变色",
+        "text": "功能牌改变轮转与颜色。+2 和 +4 按经典规则直接罚摸，+4 的下一位可提出质疑。"
+      },
+      {
+        "icon": "trophy",
+        "title": "剩一张时喊 UNO",
+        "text": "出到剩一张时记得喊 UNO，漏喊可被抓并罚摸两张。先出完赢下小局，累计达到 500 分赢得整场。"
+      }
+    ],
+    "goal": "经典 108 张牌，2–6 人；采用 Mattel G7942 同版规则与两人特别规则。"
+  },
+  "botIntroduction": {
+    "default": {
+      "lead": "优先出普通牌，选择手中较多的颜色。",
+      "details": [
+        "本人手牌和公开场面决定合法选择；覆盖抽牌、选色、质疑和 UNO。"
+      ]
+    },
+    "doubao": {
+      "lead": "比较颜色后续与功能牌的节奏收益。",
+      "details": ["兼顾剩余手牌、下家牌数和当前攻击压力。"]
+    },
+    "juewu": {
+      "lead": "结合公开出牌、授权记忆与后续衔接安排留牌。",
+      "details": [
+        "只根据授权观察估计风险，使用有界策略，不读取别人手牌或牌库顺序。"
+      ]
+    }
+  },
+  "budgets": {
+    "payloadBytes": 1048576,
+    "serviceHeapBytes": 67108864,
+    "desktopHeapBytes": 33554432,
+    "phoneHeapBytes": 33554432,
+    "privateIncrementBytes": 536870912,
+    "workerOldGenerationMiB": 32,
+    "basis": "Initial agent allocations for 108-card partition, bounded public history and local strategy: 1MiB payload, 64MiB service, 32MiB per renderer, 512MiB owned private increment. Warning allocations pending actual measurement; not a worst-case claim."
+  }
+}

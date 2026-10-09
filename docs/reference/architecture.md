@@ -1,5 +1,7 @@
 # 代码结构与工程边界
 
+UNO 通过自身 `game-module.json` 被模块发现器组装，规则／计分／投影、三档本地 bot 与网页客户端独立维护，不向平台会话增加游戏特例。+4 证据只进入挑战者本人投影，UNO 抓漏与当前回合冲突且不声明并发；版本与决策定义见 [UNO 信息与决策](../games/uno/information-and-decisions.md)。
+
 ## 宝可梦原版适配与稳定复用边界（2026-10-05）
 
 `shared/card-catalog.ts` 的纯 `createCardCatalog` 管理类别、实例及固定值；`variants/original-cards.ts` 绑定现有牌表，`shared/cards.ts` 保留兼容导出。实例ID、生成顺序和随机调用不变。`shared/creature-resources.ts` 按角色资源身份登记图片名、框色与声音，`variants/original-presentation.ts` 维护原版类别映射及切入配置；素材不复制、不改路径。

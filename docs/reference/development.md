@@ -1,5 +1,11 @@
 # 开发环境
 
+## UNO 专项构建与验证
+
+新增游戏通过模块清单发现，独立构建 `node scripts/build.mjs --only=game:uno`；单测入口 `node scripts/test-scoped.mjs --scope=game:uno`，只选择 UNO 规则、策略、UI 与 UNO 服务／Worker 测试。实际隐藏桌面验收由 `scripts/verify-uno.mjs` 的 UI／runtime 分项完成；从 [UNO 验证](../games/uno/validation-scenarios.md) 查询实际命令、证据和设备边界。范围隔离工具变化另运行 `node --test scripts/testing/scopes.test.mjs`，不启动其他游戏。
+
+Node 与 pnpm 沿用锁定版本。沙箱默认 Corepack 缓存落在不可用的用户临时位置时，仅对本进程设置 `COREPACK_HOME=E:\Proj\TableMax\.cache\corepack` 和 `COREPACK_ENABLE_DOWNLOAD_PROMPT=0`；使用仓库内缓存及 `pnpm install --offline --ignore-scripts` 链接新增工作区，不升级包、不修改全局环境。运行必须遵守下文回环监听与测试静音规则。
+
 ## 拉密专项构建与验证
 
 经典版 2–4 人只选择 `game:rummikub` 范围；实际动作契约影响共享层时另选 `shared` 的精确文件，不展开其他游戏矩阵。首次针对规则、完整回合、草稿、真实服务及实际 Worker 检查后，仅重跑修改或失败相关项；完整大局耗时与每次决定的两秒／32MiB 限制分别记录。来源及边界见[拉密验证](../games/rummikub/validation-scenarios.md)。

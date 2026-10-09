@@ -6,6 +6,7 @@ export const gameIds = [
   'modern-art',
   'power-grid',
   'rummikub',
+  'uno',
 ];
 const gameScopes = gameIds.map((id) => `game:${id}`);
 const validScopes = ['box', 'shared', 'tooling', ...gameScopes];
@@ -49,6 +50,8 @@ const unitScopes = {
   'apps/server/src/power-grid.test.ts': ['game:power-grid'],
   'apps/server/src/rummikub.test.ts': ['game:rummikub'],
   'apps/server/src/rummikub-worker.test.ts': ['game:rummikub'],
+  'apps/server/src/uno.test.ts': ['game:uno'],
+  'apps/server/src/uno-worker.test.ts': ['game:uno'],
   'apps/server/src/save-storage-games.test.ts': [
     'game:pokemon-encounters',
     'game:modern-art',
@@ -111,6 +114,7 @@ const verificationScopes = {
   ],
   'scripts/verify-rummikub-ui.mjs': ['game:rummikub'],
   'scripts/verify-rummikub-runtime.mjs': ['game:rummikub'],
+  'scripts/verify-uno.mjs': ['game:uno'],
 };
 const gameFilteredVerifiers = new Set([
   'scripts/verify-player-display.mjs',

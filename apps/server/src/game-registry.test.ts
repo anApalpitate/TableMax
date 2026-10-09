@@ -17,9 +17,15 @@ it('exposes independent production games and keeps the template internal', async
     createGameRegistry()
       .catalog()
       .map((entry) => entry.id),
-  ).toEqual(['pokemon-encounters', 'modern-art', 'power-grid', 'rummikub']);
+  ).toEqual([
+    'pokemon-encounters',
+    'modern-art',
+    'power-grid',
+    'rummikub',
+    'uno',
+  ]);
   const internal = createGameRegistry(true);
-  expect(internal.catalog()).toHaveLength(5);
+  expect(internal.catalog()).toHaveLength(6);
   expect((await internal.load('power-grid')).rules.manifest.id).toBe(
     'power-grid',
   );

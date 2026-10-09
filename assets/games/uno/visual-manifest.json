@@ -1,0 +1,113 @@
+{
+  "gameId": "uno",
+  "version": 1,
+  "created": "2026-10-10",
+  "source": "TableMax original generated promotional tabletop art; not official Mattel artwork and not rules evidence",
+  "imagegen": true,
+  "tool": "built-in image_gen.imagegen",
+  "generationMode": "generate",
+  "toolModel": "not returned by tool",
+  "userRequest": "经典桌游 UNO；美术风格体现桌游特质；画面精美自然；动态效果与音频足够吸睛",
+  "designInputs": [
+    "docs/reference/art-preferences.md: new game selection, G01 G02 G08 G09 G17",
+    "docs/reference/visual-design.md: tactile tabletop theme, readable central gameplay and locally packaged art",
+    "docs/subagent/imagegen.md: art/precise gameplay data separation"
+  ],
+  "files": [
+    {
+      "id": "table-v1",
+      "file": "table-v1.webp",
+      "width": 1672,
+      "height": 941,
+      "mode": "RGB",
+      "transparent": false,
+      "bytes": 153662,
+      "sha256": "4dd5a7a016c06669028642173561a294eab18a4f630a60278e2b0f532cd08b22",
+      "usage": "UNO game table background; readable central mat with decorative four-color corner stitching",
+      "source": "../../../artifacts/uno/imagegen/table-original-v1.png",
+      "sourceDimensions": [1672, 941],
+      "sourceMode": "RGB",
+      "sourceBytes": 2867511,
+      "sourceSha256": "fe9114eccffbf93d257d6c2dcdf7349925673bceba2ecd1c395cc9b053110c2e",
+      "prompt": "Use case: photorealistic-natural\nAsset type: production background for a polished digital version of the classic UNO card game, all real playable cards and labels added later by code.\nPrimary request: A refined, naturally beautiful physical tabletop game atmosphere, wide horizontal 16:9 composition, photographed straight overhead with no perspective tilt.\nScene/backdrop: a broad, softly woven cream linen play mat occupying most of the frame, on pale honey oak with very subtle natural grain. The linen's central 80 percent is completely empty and clean so gameplay cards and player controls can remain readable. Wood is visible only as a restrained narrow border at the edges.\nStyle/medium: sophisticated editorial tabletop product photograph, realistic tactile materials, fine paper and linen texture, soft natural daylight, crisp but never sterile, inviting social board game feeling.\nComposition/framing: stable flat overhead surface, very spacious neutral center, decoration only in the outermost corners. At each corner, a tiny understated stitched color accent, one in rich red, one golden yellow, one blue and one green, referencing UNO's four colors without icons or writing. The accents are part of the mat trim, not loose game pieces.\nLighting/mood: warm cream daylight, delicate soft shadows only at the very outer wooden frame, balanced even light through the usable central field.\nColor palette: warm ivory, light oak, restrained classic red yellow blue green edge accents; central field stays neutral and bright.\nConstraints: no text, no letters, no numbers, no logo, no watermark, no user-interface, no baked-in cards, no hands, no players, no dice or tokens, no fake scoring track. Preserve a large quiet play area without a decorative focal object.\nAvoid: childish toy render, plastic shiny table, garish rainbow gradient, fire, neon, busy wood knots, fantasy scene, hard sunlight stripes, dramatic dark vignette.",
+      "tool": "built-in image_gen.imagegen",
+      "toolMode": "generate",
+      "referenceImages": [],
+      "derivation": {
+        "tool": "Pillow 12.3.0",
+        "resize": "proportional LANCZOS thumbnail; no crop",
+        "longestEdgeLimit": 1920,
+        "format": "WebP RGB lossy",
+        "quality": 82,
+        "method": 6,
+        "contentEditing": false,
+        "pixelEqualityClaim": false
+      },
+      "status": {
+        "generated": true,
+        "sourceVisuallyVerified": true,
+        "derivedDecodeVerified": true,
+        "derivedVisuallyVerified": true,
+        "importedInUi": true,
+        "packagedRuntimeVerified": false
+      },
+      "visualInspection": {
+        "date": "2026-10-10",
+        "method": "direct view_image inspection of final WebP; cover also inspected at 320x240 thumbnail",
+        "result": "PASS",
+        "findings": "Center is blank and readable, subtle tactile woven linen, pale oak border and tiny colored corners; no text, cards, numbers or fake UI baked in."
+      }
+    },
+    {
+      "id": "cover-v1",
+      "file": "cover-v1.webp",
+      "width": 800,
+      "height": 600,
+      "mode": "RGB",
+      "transparent": false,
+      "bytes": 93080,
+      "sha256": "5bdf516654e04c5e403f9a42967f57dcea481dec419e7a229a702abd5fe5406f",
+      "usage": "UNO box catalog cover; abstract tactile four-color paper cards; title is added by UI code",
+      "source": "../../../artifacts/uno/imagegen/cover-original-v1.png",
+      "sourceDimensions": [1448, 1086],
+      "sourceMode": "RGB",
+      "sourceBytes": 2621816,
+      "sourceSha256": "b617421489c048d3e527a20650c70d02bb390735d99760414112c54d2b42ea17",
+      "prompt": "Use case: product-mockup\nAsset type: landscape small game library cover for a sophisticated classic UNO tabletop card game, final title added later by UI code.\nPrimary request: A beautiful naturally lit arrangement of four physically convincing rounded paper game cards, fanned slightly and overlapped at a dynamic diagonal on a warm cream linen tabletop, with a small face-down card deck behind them. A distinctive timeless four-color card-game feel, instantly legible at thumbnail size.\nSubject: four rich red, golden yellow, cobalt blue and emerald green rounded cards, each showing one large elegant off-white tilted oval occupying most of its colored face. The cards are abstract promotional props, not readable gameplay cards: all ovals stay empty, and no card has a number, text, or action symbol. The deck behind them shows a charcoal card back with a subtle four-color diagonal oval motif.\nStyle/medium: exceptionally polished editorial product photography with a slight crafted miniature quality; real thick paper stock and soft rounded corners, matte satin printed surfaces, thin white borders, tangible edges and gentle layered shadows. Mature, joyful, natural, unmistakably a social physical card game.\nComposition/framing: horizontal 4:3 framing, the colorful fan centered in the lower two thirds, clean warm negative space in the upper third suitable for a separately coded title, cards generously fill the frame without clipping corners; small understated four-color linen trim at a distant edge only.\nLighting/mood: warm soft daylight, natural contact shadows, relaxed friends-around-table mood, bright but premium.\nColor palette: classic red yellow blue green with soft cream and charcoal contrast.\nConstraints: no text, no letters, no numbers, no readable UNO logo, no watermark, no UI, no hands or people, no extra suits, no dice, no money, no flames. The paper cards and tactile tabletop are the sole focus.\nAvoid: toy-like 3D plastic, cartoon mascot, glossy lens flare, exploding particles, dark neon nightclub, excessively elaborate scene, tiny clutter.",
+      "tool": "built-in image_gen.imagegen",
+      "toolMode": "generate",
+      "referenceImages": [],
+      "derivation": {
+        "tool": "Pillow 12.3.0",
+        "resize": "proportional LANCZOS thumbnail; no crop",
+        "longestEdgeLimit": 800,
+        "format": "WebP RGB lossy",
+        "quality": 86,
+        "method": 6,
+        "contentEditing": false,
+        "pixelEqualityClaim": false
+      },
+      "status": {
+        "generated": true,
+        "sourceVisuallyVerified": true,
+        "derivedDecodeVerified": true,
+        "derivedVisuallyVerified": true,
+        "importedInUi": true,
+        "packagedRuntimeVerified": false
+      },
+      "visualInspection": {
+        "date": "2026-10-10",
+        "method": "direct view_image inspection of final WebP; cover also inspected at 320x240 thumbnail",
+        "result": "PASS",
+        "findings": "Four paper cards retain distinct classic colors and clear tilted ovals at thumbnail size. Realistic paper edges and natural contact shadows; no text, numbers, logo or rules symbols baked in."
+      }
+    }
+  ],
+  "evidence": {
+    "prompts": "../../../artifacts/uno/imagegen/prompts-v1.json",
+    "reproducibleExport": "../../../artifacts/uno/imagegen/export-v1.py",
+    "verification": "../../../artifacts/uno/imagegen/verification-v1.json",
+    "actualUi": "../../../artifacts/uno/validation/source-opening-04/results.json"
+  },
+  "scope": "Two static raster assets only. Precise card faces, numbers, symbols, rules diagrams, title typography, animation and audio belong to UNO UI code and its own resource manifest."
+}

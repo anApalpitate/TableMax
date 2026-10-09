@@ -50,6 +50,30 @@ test('rummikub has its own scope without opening another game matrix', () => {
   );
 });
 
+test('uno checks are isolated from other games and mixed verification matrices', () => {
+  assert.deepEqual(parseScope('game:uno'), ['game:uno']);
+  for (const file of [
+    'games/uno/rules/rules.test.ts',
+    'apps/server/src/uno.test.ts',
+    'apps/server/src/uno-worker.test.ts',
+  ])
+    assert.deepEqual(unitTestScopes(file), ['game:uno']);
+  assert.doesNotThrow(() =>
+    validateBatchScope(
+      plan(item('scripts/verify-uno.mjs', ['--mode=ui'])),
+      'game:uno',
+    ),
+  );
+  assert.throws(
+    () =>
+      validateBatchScope(
+        plan(item('scripts/verify-rummikub-ui.mjs')),
+        'game:uno',
+      ),
+    /outside/,
+  );
+});
+
 test('box selection excludes game and shared checks, while exact avatar filters remain available', () => {
   const selected = selectUnitTests(root, 'box');
   assert.ok(

@@ -7,6 +7,7 @@
 | [宝可梦奇遇：皮卡丘和朋友们](pokemon-encounters/README.md) | `pokemon-encounters`，采用 `tablemax-cn-s19-v1`；完整规则／计分／投影／bot／两端 UI 已实现；当前 Windows 与设备模拟交付验证见 [验收记录](../reference/acceptance.md)          |
 | [现代艺术](modern-art/README.md)                           | `modern-art`，采用 `tablemax-modern-art-classic-v1`；经典 3–5 人、70 卡、五种拍卖、四轮与三档独立策略；出版规则与项目采用缺口见 [来源](modern-art/sources.md)                 |
 | [电力公司](power-grid/README.md)                           | `power-grid`，采用 `classic-germany-2009-project-1`；经典德国修正版 42 城／六区／83 边、42 张电厂、2–6 人与三档独立策略；出版依据与项目采用项见 [来源](power-grid/sources.md) |
+| [UNO](uno/README.md)                                       | `uno`，采用 `classic-108-g7942-1`；经典 108 牌、2–6 人、+4 质疑、UNO 抓漏与 500 分；制作与验证状态见 [任务](../tasks/uno.md)                                                  |
 
 三款正式游戏均已完成独立实现与适用便携验收。较早交付见 [历史验收](../archive/acceptance-2026-10-01-to-04.md)，现代艺术与电力公司接入过程从 [归档索引](../archive/README.md)进入。
 
