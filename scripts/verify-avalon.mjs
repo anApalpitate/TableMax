@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import {
+  copyFile,
   mkdir,
   mkdtemp,
   readFile,
@@ -47,6 +48,7 @@ assert.ok(
     'failure',
     'rejections',
     'assassination',
+    'long-quest',
   ].includes(only),
 );
 assert.match(evidenceName, /^[a-z0-9-]{1,65}$/);
@@ -328,7 +330,33 @@ async function layout(page, label, mobile) {
     return {
       width: innerWidth,
       height: innerHeight,
-      overflow: document.documentElement.scrollWidth > innerWidth + 1,
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      overflow:
+        document.documentElement.scrollWidth >
+        document.documentElement.clientWidth + 1,
+      overflowElements: [...root.querySelectorAll('*')]
+        .map((node) => {
+          const box = node.getBoundingClientRect();
+          const css = getComputedStyle(node);
+          return {
+            tag: node.tagName,
+            class: node.className,
+            text: node.textContent?.trim().slice(0, 65),
+            left: box.left,
+            right: box.right,
+            width: box.width,
+            minWidth: css.minWidth,
+            whiteSpace: css.whiteSpace,
+          };
+        })
+        .filter(
+          (box) =>
+            box.width > 0 &&
+            (box.left < -1 ||
+              box.right > document.documentElement.clientWidth + 1),
+        )
+        .slice(0, 30),
       root: { width: bounds.width, height: bounds.height },
       buttons,
       words,
@@ -523,6 +551,12 @@ async function effect(label, trigger, reduced = false) {
   });
   evidence.effects.push({ label, expected, reduced, ...result });
   await capture(publicPage, `effect-${label}`);
+  if (expected === 'assassination') {
+    await surface(phone)
+      .locator('[data-avalon-effect="assassination"]')
+      .waitFor();
+    await capture(phone, `effect-${label}-player`);
+  }
   await wait(reduced ? 400 : label.includes('assassination') ? 2650 : 1900);
 }
 async function round(path) {
@@ -546,7 +580,10 @@ async function round(path) {
       const index = players.findIndex((p) => p.seatId === g.leader);
       const own = await view(players[index].token);
       let action = own.actions.find((a) => a.type === 'propose-team');
-      if (path === 'failure') {
+      if (
+        path === 'failure' ||
+        (path === 'long-quest' && g.questNumber % 2 === 0)
+      ) {
         const alignments = await Promise.all(
           players.map(async (p) => ({
             seat: p.seatId,
@@ -628,7 +665,9 @@ async function round(path) {
             action: {
               type: 'quest-card',
               card:
-                path === 'failure' && own.gameView.self.alignment === 'evil'
+                (path === 'failure' ||
+                  (path === 'long-quest' && g.questNumber % 2 === 0)) &&
+                own.gameView.self.alignment === 'evil'
                   ? 'fail'
                   : 'success',
             },
@@ -664,12 +703,13 @@ async function round(path) {
       const target = roles.find(
         (p) =>
           p.alignment === 'good' &&
-          (path === 'assassination'
+          (path === 'assassination' || path === 'long-quest'
             ? p.role === 'merlin'
             : p.role !== 'merlin'),
       ).seat;
       assert.ok(own.actions.some((a) => a.target === target));
       await phoneFor(index);
+      await resize(phone, 320, 568, true);
       await layout(phone, `${path}-assassin-player`, true);
       await effect(`${path}-assassination`, () =>
         clickAction(index, { type: 'assassinate', target }),
@@ -681,6 +721,7 @@ async function round(path) {
   assert.equal(final.status, 'ended');
   assert.equal(final.gameView.winner, path === 'success' ? 'good' : 'evil');
   assert.ok(final.gameView.revealedRoles);
+  await layout(phone, `${path}-final-player`, true);
   await capture(host, `${path}-final-host`);
   await privacy();
   evidence.checks.push({
@@ -847,6 +888,22 @@ try {
   evidence.elapsedSeconds =
     Math.round((performance.now() - started) / 10) / 100;
   evidence.ownedDesktopClosed = true;
+  const data = join(workDir, 'data');
+  const savedFiles = await readdir(data).catch(() => []);
+  evidence.savedState = [];
+  for (const name of savedFiles.filter((name) =>
+    /^[a-z-]+\.sqlite$/.test(name),
+  )) {
+    const target = join(output, 'saved-state', name);
+    await mkdir(dirname(target), { recursive: true });
+    await copyFile(join(data, name), target);
+    const bytes = await readFile(target);
+    evidence.savedState.push({
+      path: target,
+      bytes: bytes.length,
+      sha256: hash(bytes),
+    });
+  }
   await writeFile(
     join(output, 'results.json'),
     JSON.stringify(evidence, null, 2) + '\n',

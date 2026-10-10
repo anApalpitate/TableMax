@@ -106,11 +106,20 @@ export function AvalonEffects({
             : theme.line}
         </span>
         <strong>
-          {effect.cue === 'assassination'
-            ? game?.winner === 'evil'
-              ? '最后一剑 · 暗影降临'
-              : '最后一剑 · 黎明到来'
-            : theme.title}
+          {effect.cue === 'assassination' ? (
+            <>
+              <span className="av-performance-title-part">最后一剑</span>
+              <span className="av-performance-title-divider" aria-hidden="true">
+                {' '}
+                ·{' '}
+              </span>
+              <span className="av-performance-title-part">
+                {game?.winner === 'evil' ? '暗影降临' : '黎明到来'}
+              </span>
+            </>
+          ) : (
+            theme.title
+          )}
         </strong>
       </div>
       <div className="av-performance-sweep" />

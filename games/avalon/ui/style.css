@@ -245,6 +245,9 @@
   justify-content: center;
   gap: 30px;
 }
+:where(.avalon-screen, .av-overlay) .av-score > span {
+  white-space: nowrap;
+}
 :where(.avalon-screen, .av-overlay) .av-score span:first-child {
   color: #2e6454;
 }
@@ -1193,6 +1196,9 @@
   font-size: 18px;
   color: #ffedc6;
 }
+:where(.avalon-screen, .av-overlay) .av-performance-title-part {
+  white-space: nowrap;
+}
 :where(.avalon-screen, .av-overlay) .av-performance-sweep {
   position: absolute;
   top: -25%;
@@ -1247,6 +1253,15 @@
   .av-performance--assassination
   .av-performance-relic {
   animation-name: av-sword-fall;
+}
+/* The last sword and its faction relic land beside the central result copy. */
+:where(.avalon-screen, .av-overlay)
+  .av-performance--assassination
+  .av-performance-relic,
+:where(.avalon-screen, .av-overlay)
+  .av-performance--assassination
+  .av-performance-finale {
+  left: 25%;
 }
 :where(.avalon-screen, .av-overlay) .av-performance--assassination {
   animation-duration: 2600ms;
@@ -1693,10 +1708,13 @@
     gap: 8px;
   }
   :where(.avalon-screen, .av-overlay) .av-quest-track {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 5px;
   }
   :where(.avalon-screen, .av-overlay) .av-quest-token {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
     min-height: 99px;
     padding: 20px 2px 5px;
     gap: 0;
@@ -1719,6 +1737,9 @@
   :where(.avalon-screen, .av-overlay) .av-quest-card-count {
     font-size: 16px;
     letter-spacing: -0.03em;
+    white-space: normal;
+    word-break: keep-all;
+    text-align: center;
   }
   :where(.avalon-screen, .av-overlay) .av-score {
     gap: 12px;
@@ -2022,6 +2043,36 @@
   :where(.avalon-screen, .av-overlay) .av-performance-banner > span {
     font-size: 16px;
   }
+  :where(.avalon-screen, .av-overlay)
+    .av-performance--assassination
+    .av-performance-banner
+    > strong {
+    display: grid;
+    gap: 6px;
+  }
+  :where(.avalon-screen, .av-overlay)
+    .av-performance--assassination
+    .av-performance-title-part {
+    display: block;
+  }
+  :where(.avalon-screen, .av-overlay)
+    .av-performance--assassination
+    .av-performance-title-divider {
+    display: none;
+  }
+  :where(.avalon-screen, .av-overlay)
+    .av-performance--assassination
+    .av-performance-relic,
+  :where(.avalon-screen, .av-overlay)
+    .av-performance--assassination
+    .av-performance-finale {
+    left: 14%;
+    top: 35%;
+    width: 120px;
+    height: 120px;
+    min-width: 120px;
+    min-height: 120px;
+  }
 }
 @media (max-width: 360px) {
   .avalon-screen {
@@ -2050,10 +2101,12 @@
     gap: 2px;
   }
   :where(.avalon-screen, .av-overlay) .av-score {
-    gap: 7px;
+    gap: 18px;
   }
   :where(.avalon-screen, .av-overlay) .av-campaign-side {
-    gap: 4px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
   }
   :where(.avalon-screen, .av-overlay) .av-council-seats {
     gap: 6px;
