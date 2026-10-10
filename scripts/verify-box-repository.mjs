@@ -344,41 +344,57 @@ try {
       .locator('#repository-player-frame')
       .evaluate((frame) => frame.remove());
 
-    await host.evaluate((url) => {
-      const frame = document.createElement('iframe');
-      frame.id = 'repository-same-url-frame';
-      frame.src = url;
-      frame.style.cssText =
-        'position:fixed;inset:0;width:390px;height:600px;z-index:99999;background:white';
-      document.body.append(frame);
-    }, host.url());
-    const sameUrlFrameLink = host
-      .frameLocator('#repository-same-url-frame')
-      .locator(repositorySelector);
-    await sameUrlFrameLink.waitFor();
-    await sameUrlFrameLink.evaluate((link) => {
-      link.addEventListener('click', () => {
-        const topLink = window.parent.document.querySelector(
-          'a[data-tablemax-repository-link]',
-        );
-        topLink.dataset.tablemaxJoinRequest = String(Date.now());
-        topLink.focus();
+    if (fixture || sourcePageUrl) {
+      await host.evaluate((url) => {
+        const frame = document.createElement('iframe');
+        frame.id = 'repository-same-url-frame';
+        frame.src = url;
+        frame.style.cssText =
+          'position:fixed;inset:0;width:390px;height:600px;z-index:99999;background:white';
+        document.body.append(frame);
+      }, host.url());
+      const sameUrlFrameLink = host
+        .frameLocator('#repository-same-url-frame')
+        .locator(repositorySelector);
+      await sameUrlFrameLink.waitFor();
+      await sameUrlFrameLink.evaluate((link) => {
+        link.addEventListener('click', () => {
+          const topLink = window.parent.document.querySelector(
+            'a[data-tablemax-repository-link]',
+          );
+          topLink.dataset.tablemaxJoinRequest = String(Date.now());
+          topLink.focus();
+        });
       });
-    });
-    await rejected(
-      host,
-      () => sameUrlFrameLink.click(),
-      'Same-URL child frame with forged top request and top focus rejected',
-    );
-    await host
-      .locator('#repository-same-url-frame')
-      .evaluate((frame) => frame.remove());
+      await rejected(
+        host,
+        () => sameUrlFrameLink.click(),
+        'Same-URL child frame with forged top request and top focus rejected',
+      );
+      await host
+        .locator('#repository-same-url-frame')
+        .evaluate((frame) => frame.remove());
+    } else {
+      const response = await fetch(host.url());
+      assert.ok(
+        response.headers
+          .get('content-security-policy')
+          ?.includes("frame-ancestors 'none'"),
+      );
+      await checked(
+        'Actual host route forbids embedding via CSP; same-URL frame attack belongs to the native fixture',
+      );
+    }
 
     await host.goto(origin + '/player');
-    await host.locator(repositorySelector).waitFor();
+    const playerRepository =
+      fixture || sourcePageUrl
+        ? host.locator(repositorySelector)
+        : host.frameLocator('iframe').locator(repositorySelector);
+    await playerRepository.waitFor();
     await rejected(
       host,
-      () => host.locator(repositorySelector).click(),
+      () => playerRepository.click(),
       'Managed host on player route cannot launch repository',
     );
     await host.goto(origin + '/host');

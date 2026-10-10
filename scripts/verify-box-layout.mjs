@@ -21,7 +21,9 @@ const argument = (name) =>
     ?.split('=')
     .slice(1)
     .join('=');
-const refinementsOnly = process.argv.includes('--refinements-only');
+const libraryOnly = process.argv.includes('--library-only');
+const refinementsOnly =
+  libraryOnly || process.argv.includes('--refinements-only');
 const evidence =
   argument('evidence') ?? new Date().toISOString().replace(/[:.]/g, '-');
 assert.match(
@@ -48,11 +50,17 @@ const clients = [],
 let desktop, browser, host, publicPage, origin, hostToken, hostSocket, work;
 const report = {
   version,
-  mode: refinementsOnly ? 'affected-dialogs' : 'full-box-matrix',
+  mode: libraryOnly
+    ? 'game-library'
+    : refinementsOnly
+      ? 'affected-dialogs'
+      : 'full-box-matrix',
   status: 'running',
-  scope: refinementsOnly
-    ? 'Actual current-version ZIP and all extracted members; muted hidden WinForms/WebView2 host/public and headless Edge player iframe. Authorized lobby joins, owner and bot; affected game-library, avatar and connection-help dialogs at 390, 720p and 1080p. CSS viewport simulation does not certify physical Windows DPI, physical phones or public tunnels.'
-    : 'Actual current-version ZIP and all extracted members; muted hidden WinForms/WebView2 host/public and headless Edge player iframe. Authorized lobby joins, owner, bots and device transfer. CSS viewport and 125/150 percent density simulation do not certify physical Windows DPI, physical phones or public tunnels.',
+  scope: libraryOnly
+    ? 'Actual current-version ZIP and all extracted members; hidden muted WinForms/WebView2 game-library dialog at 390, 720p and 1080p. Does not certify physical devices or unrelated dialogs.'
+    : refinementsOnly
+      ? 'Actual current-version ZIP and all extracted members; muted hidden WinForms/WebView2 host/public and headless Edge player iframe. Authorized lobby joins, owner and bot; affected game-library, avatar and connection-help dialogs at 390, 720p and 1080p. CSS viewport simulation does not certify physical Windows DPI, physical phones or public tunnels.'
+      : 'Actual current-version ZIP and all extracted members; muted hidden WinForms/WebView2 host/public and headless Edge player iframe. Authorized lobby joins, owner, bots and device transfer. CSS viewport and 125/150 percent density simulation do not certify physical Windows DPI, physical phones or public tunnels.',
   layouts: [],
   dialogs: [],
   screenshots: [],
@@ -340,6 +348,13 @@ async function reviewSheets() {
 }
 async function layout(surface, label, dialog = false) {
   const doc = await documentFor(surface);
+  // Static dialog density is measured after dismissing transient feedback.
+  // Notifications intentionally occupy the modal top layer and have separate
+  // interaction coverage in verify-box-notifications.mjs.
+  const notices = ui(surface).locator('.tablemax-notice button');
+  for (const notice of await notices.all())
+    if (await notice.isVisible()) await notice.click();
+  await ui(surface).locator('.tablemax-notice').waitFor({ state: 'hidden' });
   const metrics = await doc.evaluate(() => {
     const root =
       [...document.querySelectorAll('dialog[open]')].at(-1) ??
@@ -737,58 +752,62 @@ try {
     if (refinementsOnly) {
       for (const surface of surfaces) await rendered(surface);
       await dialogMatrix(hostSurface, '切换游戏', '游戏库', 'host-library');
-      const expandTroubleshooting = async (panel) => {
-        await panel.getByText('手机扫码', { exact: true }).waitFor();
-        await panel.getByText('直接打开', { exact: true }).waitFor();
-        await panel.locator('summary').click();
-      };
-      await dialogMatrix(
-        hostSurface,
-        '连接帮助',
-        '连接帮助',
-        'host-connection',
-        async (panel) => {
-          await panel
-            .getByLabel('外部入口网址', { exact: true })
-            .fill(origin + '/player');
-          await panel
-            .getByRole('button', { name: '保存外部入口', exact: true })
-            .click();
-          await panel.getByText('二维码已更新。', { exact: true }).waitFor();
-          await expandTroubleshooting(panel);
-        },
-      );
-      await dialogMatrix(
-        publicSurface,
-        '连接帮助',
-        '连接帮助',
-        'public-connection',
-        async (panel) => {
-          assert.equal(
-            await panel.getByLabel('外部入口网址', { exact: true }).count(),
-            0,
-            'Public screen must not edit the network entry',
-          );
-          await expandTroubleshooting(panel);
-        },
-      );
-      await connectionEntry(hostSurface, origin);
-      await connectionEntry(publicSurface, origin);
-      await dialogMatrix(
-        unseated,
-        '选择头像',
-        '选择头像',
-        'player-avatar-unseated',
-      );
-      await dialogMatrix(
-        chinese,
-        '更换头像',
-        '选择头像',
-        'player-avatar-seated',
-      );
+      if (!libraryOnly) {
+        const expandTroubleshooting = async (panel) => {
+          await panel.getByText('手机扫码', { exact: true }).waitFor();
+          await panel.getByText('直接打开', { exact: true }).waitFor();
+          await panel.locator('summary').click();
+        };
+        await dialogMatrix(
+          hostSurface,
+          '连接帮助',
+          '连接帮助',
+          'host-connection',
+          async (panel) => {
+            await panel
+              .getByLabel('外部入口网址', { exact: true })
+              .fill(origin + '/player');
+            await panel
+              .getByRole('button', { name: '保存外部入口', exact: true })
+              .click();
+            await panel.getByText('二维码已更新。', { exact: true }).waitFor();
+            await expandTroubleshooting(panel);
+          },
+        );
+        await dialogMatrix(
+          publicSurface,
+          '连接帮助',
+          '连接帮助',
+          'public-connection',
+          async (panel) => {
+            assert.equal(
+              await panel.getByLabel('外部入口网址', { exact: true }).count(),
+              0,
+              'Public screen must not edit the network entry',
+            );
+            await expandTroubleshooting(panel);
+          },
+        );
+        await connectionEntry(hostSurface, origin);
+        await connectionEntry(publicSurface, origin);
+        await dialogMatrix(
+          unseated,
+          '选择头像',
+          '选择头像',
+          'player-avatar-unseated',
+        );
+        await dialogMatrix(
+          chinese,
+          '更换头像',
+          '选择头像',
+          'player-avatar-seated',
+        );
+      }
       assert.deepEqual(report.pageErrors, []);
       await checked(
-        'Affected authorized game-library, avatar and host/public connection-help dialogs recorded at 390, 720p and 1080p',
+        libraryOnly
+          ? 'Actual game-library dialog recorded at 390, 720p and 1080p'
+          : 'Affected authorized game-library, avatar and host/public connection-help dialogs recorded at 390, 720p and 1080p',
       );
       await reviewSheets();
     } else {
