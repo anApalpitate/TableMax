@@ -15,6 +15,11 @@ import { promisify } from 'node:util';
 import { launchDesktop } from '../support/desktop-test.mjs';
 import { launchTestBrowser } from '../support/browser-test.mjs';
 import { playerFrame, playerUi } from '../support/player-test.mjs';
+import {
+  ScreenshotPolicy,
+  registerArtifacts,
+  writeScreenshot,
+} from '../../maintenance/verification-artifacts.mjs';
 
 // This verifies real, authorized UI from the current delivery. It never writes
 // checkpoints, assigns browser administrator credentials or opens a LAN port.
@@ -53,7 +58,16 @@ const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const clients = [],
   contexts = [],
   secrets = new Set();
-let desktop, browser, host, publicPage, origin, hostToken, hostSocket, work;
+const screenshotPolicy = new ScreenshotPolicy();
+let desktop,
+  browser,
+  host,
+  publicPage,
+  origin,
+  hostToken,
+  hostSocket,
+  work,
+  lastSurface;
 const report = {
   version,
   mode: libraryOnly
@@ -70,6 +84,9 @@ const report = {
   layouts: [],
   dialogs: [],
   screenshots: [],
+  screenshotAliases: [],
+  previewEncodings: [],
+  skippedScreenshots: [],
   issues: [],
   pageErrors: [],
   checks: [],
@@ -241,6 +258,7 @@ const sizes = [
 async function resize(surface, size) {
   const { width, height, density } = size;
   surface.requestedGeometry = size;
+  lastSurface = surface;
   if (surface.native) {
     const win = await desktop.browserWindow(surface.page);
     await win.evaluate(
@@ -297,59 +315,138 @@ async function resize(surface, size) {
       ),
   );
 }
-async function screenshot(surface, name) {
-  const path = join(output, name + '.png');
+async function screenshot(
+  surface,
+  name,
+  { preview = false, failure = false } = {},
+) {
+  const measurement = [...report.layouts, ...report.dialogs].findLast(
+    (entry) => entry.label === name,
+  );
+  failure ||= (measurement?.issues.length ?? 0) > 0;
+  const geometry = surface.requestedGeometry;
+  const density = geometry?.density ?? 1;
+  const zoom = surface.nativeState?.zoom ?? 1;
+  const mustKeep = density !== 1 || zoom !== 1 || geometry?.label === '4k';
+  const group = name.replace(/-(390|720p|1080p|4k|125pct|150pct)$/, '');
+  // Ordinary 1080p repeats the measured landscape branch. Full assertions run
+  // before this choice; nondefault zoom and density remain pixel evidence.
+  const boundary =
+    geometry?.label === '1080p' && density === 1 && zoom === 1
+      ? null
+      : geometry?.label === '390'
+        ? 'narrow'
+        : geometry?.label === '4k'
+          ? '4k'
+          : density !== 1
+            ? `density-${density}`
+            : 'short-landscape';
+  const filename = screenshotPolicy.path(
+    `${name}${failure ? '-failure' : ''}.png`,
+    {
+      group,
+      label: name,
+      layout: !!measurement,
+      role: surface.role,
+      boundary,
+      zoom,
+      dpi: density,
+      mustKeep,
+      failure,
+    },
+  );
+  if (!filename) {
+    report.skippedScreenshots.push({
+      label: name,
+      group,
+      role: surface.role,
+      requestedGeometry: geometry,
+      reason:
+        'Successful ordinary size already represented; full assertions retained',
+    });
+    await save();
+    return;
+  }
+  let bytes;
   if (surface.native) {
     const win = await desktop.browserWindow(surface.page);
     assert.equal(await win.evaluate((window) => window.isVisible()), false);
     const encoded = await win.evaluate(async (window) =>
       (await window.webContents.capturePage()).toPNG().toString('base64'),
     );
-    await writeFile(path, Buffer.from(encoded, 'base64'));
-  } else await surface.page.screenshot({ path, fullPage: false });
-  const bytes = await readFile(path);
+    bytes = Buffer.from(encoded, 'base64');
+  } else bytes = await surface.page.screenshot({ fullPage: false });
+  const retained = await writeScreenshot(
+    output,
+    filename,
+    bytes,
+    report.screenshotAliases,
+    {
+      preview: preview && !failure,
+      encodings: report.previewEncodings,
+      mustKeep,
+      failure,
+    },
+  );
+  const stored = await readFile(join(output, retained));
   report.screenshots.push({
-    file: basename(path),
+    label: name,
+    group,
+    role: surface.role,
+    file: retained,
+    requestedGeometry: geometry,
+    nativeState: surface.nativeState,
     width: bytes.readUInt32BE(16),
     height: bytes.readUInt32BE(20),
-    sha256: hash(bytes),
+    bytes: stored.length,
+    sourcePngBytes: bytes.length,
+    sha256: hash(stored),
+    sourcePngSha256: hash(bytes),
+    purpose: failure
+      ? 'failure-evidence'
+      : retained.endsWith('.webp')
+        ? 'ordinary-preview'
+        : 'layout-evidence',
   });
+  await save();
 }
 async function reviewSheets() {
   const groups = new Map();
-  for (const entry of [...report.layouts, ...report.dialogs]) {
-    const group = entry.label.replace(
-      /-(390|720p|1080p|4k|125pct|150pct)$/,
-      '',
-    );
-    if (!groups.has(group)) groups.set(group, []);
-    groups.get(group).push(entry.label + '.png');
+  for (const entry of report.screenshots) {
+    // Extra all-mode process previews are temporary and must not become the
+    // only originals linked from a permanent review page.
+    if (entry.file.startsWith('process/')) continue;
+    if (!groups.has(entry.group)) groups.set(entry.group, new Set());
+    groups.get(entry.group).add(entry.file);
   }
-  const context = await browser.newContext({
-    viewport: { width: 1600, height: 1100 },
-  });
-  try {
-    const page = await context.newPage();
-    for (const [group, files] of groups) {
-      const figures = [];
-      for (const file of files)
-        figures.push(
-          `<figure><figcaption>${file}</figcaption><img src="data:image/png;base64,${(await readFile(join(output, file))).toString('base64')}" /></figure>`,
-        );
-      await page.setContent(
-        `<html><head><style>*{box-sizing:border-box}body{margin:0;padding:20px;background:#e9eee7;color:#173b32;font:16px Segoe UI,sans-serif}h1{font-size:24px;margin:0 0 16px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}figure{margin:0;padding:12px;background:white;border-radius:12px}figcaption{font-weight:600;overflow-wrap:anywhere;margin:0 0 10px}img{display:block;width:100%;height:480px;object-fit:contain;background:#f4f3ed}</style></head><body><h1>Actual screenshots: ${group}</h1><div class="grid">${figures.join('')}</div></body></html>`,
-      );
-      await page
-        .locator('img')
-        .evaluateAll((images) =>
-          Promise.all(images.map((image) => image.decode())),
-        );
-      const filename = 'review-' + group + '.png';
-      await page.screenshot({ path: join(output, filename), fullPage: true });
-      report.contactSheets.push({ file: filename, originals: files });
-    }
-  } finally {
-    await context.close();
+  const escape = (value) =>
+    String(value).replace(
+      /[&<>"']/g,
+      (character) =>
+        ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+        })[character],
+    );
+  for (const [group, originals] of groups) {
+    const files = [...originals];
+    const figures = files.map(
+      (file) =>
+        `<figure><figcaption>${escape(file)}</figcaption><a href="${escape(file)}"><img loading="lazy" src="${escape(file)}" alt="${escape(file)}" /></a></figure>`,
+    );
+    const filename = 'review-' + group + '.html';
+    await writeFile(
+      join(output, filename),
+      `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(group)}</title><style>*{box-sizing:border-box}body{margin:0;padding:20px;background:#e9eee7;color:#173b32;font:16px Segoe UI,sans-serif}h1{font-size:24px;margin:0 0 16px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));gap:16px}figure{margin:0;padding:12px;background:white;border-radius:12px}figcaption{font-weight:600;overflow-wrap:anywhere;margin:0 0 10px}img{display:block;width:100%;height:480px;object-fit:contain;background:#f4f3ed}</style></head><body><h1>Actual screenshots: ${escape(group)}</h1><p>按需浏览；点击图片打开原尺寸证据。WebP 仅为普通预览。</p><div class="grid">${figures.join('')}</div></body></html>`,
+    );
+    report.contactSheets.push({
+      file: filename,
+      format: 'linked-html',
+      originals: files,
+    });
   }
 }
 async function layout(surface, label, dialog = false) {
@@ -886,7 +983,7 @@ try {
       await host.locator('.qr[src="/api/foundation/qr?external=1"]').waitFor();
       await connectionEntry(hostSurface, origin);
       await connectionEntry(publicSurface, origin);
-      await screenshot(hostSurface, 'host-external-qr-720p');
+      await screenshot(hostSurface, 'host-external-qr-720p', { preview: true });
       await host.getByRole('button', { name: '连接帮助', exact: true }).click();
       await host
         .getByRole('button', { name: '使用局域网', exact: true })
@@ -995,12 +1092,27 @@ try {
   report.status = report.issues.length ? 'layout-issues-found' : 'passed';
   await save();
   console.log(
-    `Box layout result: ${report.status}; ${report.layouts.length} layouts, ${report.dialogs.length} dialogs, ${report.issues.length} issues; ${output}`,
+    `Box layout result: ${report.status}; ${report.layouts.length} layouts, ${report.dialogs.length} dialogs, ${report.issues.length} issues, ${new Set(report.screenshots.map((item) => item.file)).size} screenshot files, ${screenshotPolicy.skipped} skipped; ${output}`,
   );
   if (report.issues.length) process.exitCode = 1;
 } catch (error) {
   report.status = 'failed';
   report.error = redact(error.stack ?? error.message);
+  const failures = new Map();
+  if (lastSurface?.page && !lastSurface.page.isClosed())
+    failures.set(lastSurface.page, lastSurface);
+  if (host && !host.isClosed() && !failures.has(host))
+    failures.set(host, { page: host, role: 'host', native: true });
+  for (const surface of failures.values()) {
+    try {
+      await screenshot(surface, `failure-${surface.role}`, { failure: true });
+    } catch (captureError) {
+      (report.failureCaptureErrors ??= []).push({
+        role: surface.role,
+        reason: redact(captureError.message),
+      });
+    }
+  }
   await save();
   console.error(report.error);
   process.exitCode = 1;
@@ -1011,5 +1123,20 @@ try {
   await desktop?.close().catch((error) => {
     console.error(redact(error.message));
     process.exitCode = 1;
+    report.status = 'failed';
+    (report.shutdownErrors ??= []).push(redact(error.message));
+  });
+  report.screenshotPolicy = {
+    mode: screenshotPolicy.mode,
+    skipped: screenshotPolicy.skipped,
+  };
+  report.finishedAt = new Date().toISOString();
+  await save();
+  await registerArtifacts({
+    output,
+    reportPath: join(output, 'results.json'),
+    work,
+    passed: report.status === 'passed',
+    policy: screenshotPolicy,
   });
 }

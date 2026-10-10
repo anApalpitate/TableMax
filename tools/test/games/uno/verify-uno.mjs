@@ -110,6 +110,7 @@ const evidence = {
   layouts: [],
   screenshots: [],
   screenshotAliases: [],
+  previewEncodings: [],
   audio: [],
   memory: [],
   payloadMaxBytes: {},
@@ -443,6 +444,7 @@ async function capture(page, label, layout = false) {
     filename,
     png,
     evidence.screenshotAliases,
+    { encodings: evidence.previewEncodings },
   );
   evidence.screenshots.push(retained);
 }

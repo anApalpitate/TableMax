@@ -4,9 +4,10 @@
 
 [开发环境](../../docs/reference/development.md)维护具体运行要求；[工具总索引](../README.md)用于按任务定位。下表覆盖本分类文件，内部辅助不作为独立业务命令。
 
-| 工具                                         | 入口／用途                                                  |
-| -------------------------------------------- | ----------------------------------------------------------- |
-| [migration-paths.json](migration-paths.json) | 内部辅助／声明／夹具；由对应入口调用                        |
-| [migration-paths.mjs](migration-paths.mjs)   | 内部辅助／声明／夹具；由对应入口调用                        |
-| [migration.test.mjs](migration.test.mjs)     | 工具隔离回归：`node --test tools/shared/migration.test.mjs` |
-| [workspace-root.mjs](workspace-root.mjs)     | 内部辅助／声明／夹具；由对应入口调用                        |
+| 工具                                             | 入口／用途                                                             |
+| ------------------------------------------------ | ---------------------------------------------------------------------- |
+| [migration-paths.json](migration-paths.json)     | 内部辅助／声明／夹具；由对应入口调用                                   |
+| [migration-paths.mjs](migration-paths.mjs)       | 内部辅助／声明／夹具；由对应入口调用                                   |
+| [migration.test.mjs](migration.test.mjs)         | 工具隔离回归：`node --test tools/shared/migration.test.mjs`            |
+| [workspace-root.mjs](workspace-root.mjs)         | 内部辅助／声明／夹具；由对应入口调用                                   |
+| [screenshot-preview.mjs](screenshot-preview.mjs) | 内部预览编码桥接；隐藏 Python 子进程、根目录与输出格式核验，不改原素材 |

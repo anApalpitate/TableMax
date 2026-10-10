@@ -16,12 +16,14 @@
 
 ## 截图与产物归属
 
-目前 UNO、阿瓦隆与盒子座位验证登记产物，其余旧产物不从目录名猜测用途。通过结果、代表截图、规则／素材原件、正式存档与当前交付继续保留。失败验证不登记可退役目标，保留定位现场。验证登记在 `artifacts/maintenance/v<版本>/artifact-runs/`，仅证明该次验证拥有对应临时生成目录；成员哈希在空闲收尾时冻结，并在删除前复核。
+目前 UNO、阿瓦隆、盒子座位／布局与拉密 UI 验证登记产物，其余旧产物不从目录名猜测用途。通过结果、代表截图、规则／素材原件、正式存档与当前交付继续保留。失败验证不登记可退役目标，保留定位现场。验证登记在 `artifacts/maintenance/v<版本>/artifact-runs/`，仅证明该次验证拥有对应临时生成目录；成员哈希在空闲收尾时冻结，并在删除前复核。
 
-UNO／阿瓦隆默认 `representative`：布局矩阵依然全部检查，只保留各状态／端侧的代表图、横屏与4K边界，以及独立关键状态／失败画面。PNG不重编码，不降低实际 DPI 渲染；相同字节的图片引用已有永久证据，SHA与节省字节记录在结果的 `screenshotAliases`。
+UNO／阿瓦隆、盒子布局和拉密 UI 默认 `representative`：完整布局与行为断言照常执行，重复成功尺寸在拍摄前跳过，保留状态／端侧／牌架数量、窄屏／短横屏／4K、缩放和实际 DPI 的必要边界。关键验收和失败保持原尺寸 PNG。盒子联系表改为按需加载原图的 HTML，不再复制成 PNG 或嵌入 base64。
+
+普通盒子 QR／拉密封面预览和 `all` 模式的额外 `process/` 图采用 WebP 品质90，不覆盖原素材，不降低渲染尺寸。预览有损，不能替代精细或 DPI 验收。共享 writer 返回实际后缀，`previewEncodings` 记录原 PNG／WebP 的 SHA、字节、尺寸、品质与编码器；相同内容仅在同种用途之间引用永久文件，`screenshotAliases` 记录实际保留文件 SHA。两种节省分别计量，不能重复相加。预览依赖 Python 与锁定的 Pillow 11.1.0／WebP，见[编码器](../assets/README.md)；缺失时保留明确失败原因，不静默降级。
 
 ```powershell
-# 可选：完整矩阵。代表图仍永久保留，额外画面归本轮 process/ 临时目录。
+# 可选：完整矩阵。代表 PNG 永久保留，额外画面以 WebP90 归 process/。
 $env:TABLEMAX_TEST_SCREENSHOTS = 'all'
 node tools/test/games/uno/verify-uno.mjs --sample --layout-only --seats=2 --evidence=my-debug-run
 Remove-Item Env:TABLEMAX_TEST_SCREENSHOTS
@@ -49,6 +51,8 @@ node --test tools/maintenance/maintenance.test.mjs
 
 ## 手动与专项工具索引
 
+已审查的旧候选包图、重复矩阵和与源资产完全相同的生成副本使用 `Clean-Intermediates.ps1 -ImageCopiesManifest <maintenance内清单>`，先预览后 `-Apply`。清单须绑定当前 ZIP、保护文件和保留报告；源副本须与 `assets/` 原件字节／SHA 一致。仅处理列出的图片，保留目录、报告、源码、存档、独有失败和关键代表，不纳入自动维护。只接受工具内明确核验过的旧 UNO／拉密目录与生成 bundle/assets 子路径；新增类别先审计并补隔离回归。哈希、文档引用、路径／链接／嵌套仓库、30分钟、进程和互斥保护仍有效。详见[开发环境](../../docs/reference/development.md#清理本地中间物)。
+
 日常清理优先使用根目录 `Clean-Releases.ps1`、`Clean-Intermediates.ps1`、`Maintain-Project.ps1`，压缩使用 `Compress-Workspace.ps1`。根入口参数保持不变；手动先预览，核对后才 `-Apply`。
 
 `retire-old-local-runtime.ps1` 只处理有迁移证明的旧用户运行目录，仍为显式专项工具，不纳入自动清理。历史截图／旧清单工具保留精确清单与证据保护；名称带历史不代表可直接删除。`verify-project.mjs` 检查文档、配置和交付清单，写证据报告，不修改交付 ZIP。
@@ -68,8 +72,11 @@ node --test tools/maintenance/maintenance.test.mjs
 | [finish-task.ps1](finish-task.ps1)                                               | `powershell -NoProfile -File tools/maintenance/finish-task.ps1 -OutputDirectory <维护证据目录>`      |
 | [historical-screenshots.ps1](historical-screenshots.ps1)                         | 内部辅助；由清理入口加载                                                                             |
 | [historical-screenshots.test.ps1](historical-screenshots.test.ps1)               | 工具隔离回归：`powershell -NoProfile -File tools/maintenance/historical-screenshots.test.ps1`        |
+| [image-copies.ps1](image-copies.ps1)                                             | 内部辅助；由 `Clean-Intermediates.ps1 -ImageCopiesManifest <清单>` 加载                              |
+| [image-copies.test.ps1](image-copies.test.ps1)                                   | 隔离回归：`powershell -NoProfile -File tools/maintenance/image-copies.test.ps1`                      |
 | [lifecycle.mjs](lifecycle.mjs)                                                   | 内部辅助；由构建／验证入口调用                                                                       |
 | [maintenance.test.mjs](maintenance.test.mjs)                                     | 工具隔离回归：`node --test tools/maintenance/maintenance.test.mjs`                                   |
+| [screenshot-preview.test.mjs](screenshot-preview.test.mjs)                       | 编码、关键 PNG、选择边界与实际别名回归：`node --test tools/maintenance/screenshot-preview.test.mjs`  |
 | [project-maintenance.test.ps1](project-maintenance.test.ps1)                     | 工具隔离回归：`powershell -NoProfile -File tools/maintenance/project-maintenance.test.ps1`           |
 | [registered-artifacts.ps1](registered-artifacts.ps1)                             | 内部辅助；由清理入口加载                                                                             |
 | [retire-old-local-runtime.ps1](retire-old-local-runtime.ps1)                     | `powershell -NoProfile -File tools/maintenance/retire-old-local-runtime.ps1`                         |

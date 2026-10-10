@@ -9,13 +9,18 @@ import { createHash, randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, writeFile, readdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve, sep } from 'node:path';
 import { promisify } from 'node:util';
 import { build } from 'esbuild';
 import {
   launchDesktop,
   desktopExecutable,
 } from '../../support/desktop-test.mjs';
+import {
+  ScreenshotPolicy,
+  registerArtifacts,
+  writeScreenshot,
+} from '../../../maintenance/verification-artifacts.mjs';
 
 const require = createRequire(import.meta.url);
 const run = promisify(execFile);
@@ -65,7 +70,22 @@ assert.ok(
       ['opening', 'reorganization', 'finish', 'finish-final'].includes(value),
     ),
 );
-const output = resolve('artifacts/rummikub/validation/ui-preview', name);
+const output = resolve(
+  process.argv.find((value) => value.startsWith('--output='))?.slice(9) ??
+    join('artifacts/rummikub/validation/ui-preview', name),
+);
+assert.ok(
+  relative(resolve('artifacts'), output).split(sep)[0] !== '..' &&
+    !relative(resolve('artifacts'), output).includes(':') &&
+    relative(resolve('artifacts'), output).length > 0,
+  'Evidence output must be inside artifacts/',
+);
+assert.match(
+  relative(resolve('.'), output).split(sep).join('/'),
+  /^artifacts\/(?:rummikub\/validation\/ui-preview\/|maintenance\/v\d+\.\d+\.\d+\/screenshot-storage-implementation-20261010\/rummikub\/)[\w-]+$/,
+  'Evidence output must use the supported Rummikub validation directories',
+);
+const screenshotPolicy = new ScreenshotPolicy();
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/rummikub-ui-'));
@@ -90,6 +110,10 @@ const evidence = {
     .digest('hex'),
   cases: [],
   screenshots: [],
+  screenshotMode: screenshotPolicy.mode,
+  screenshotSelections: [],
+  screenshotAliases: [],
+  previewEncodings: [],
   layouts: [],
   audio: [],
   memory: [],
@@ -192,12 +216,13 @@ async function until(predicate, description, timeout = 20000) {
   throw new Error(description);
 }
 
-for (const scenario of [
+const scenarios = [
   'opening',
   'reorganization',
   'finish',
   'finish-final',
-].filter((id) => !only || only.includes(id))) {
+].filter((id) => !only || only.includes(id));
+for (const scenario of scenarios) {
   const item = { id: scenario, checks: [], commands: [], layouts: [] };
   evidence.cases.push(item);
   const dataDir = join(work, scenario);
@@ -467,26 +492,84 @@ for (const scenario of [
         }),
         body: (await surface(page).locator('body').innerText()).slice(0, 2000),
       };
-      await capture(page, `open-failure-${role}-${index}`);
+      await capture(page, `open-failure-${role}-${index}`, { role });
       throw error;
     }
     return page;
   };
-  const capture = async (page, label) => {
+  const capture = async (
+    page,
+    label,
+    {
+      role = page === host ? 'host' : page === publicPage ? 'public' : 'player',
+      state = label,
+      boundary = 'state',
+      layout = false,
+      mustKeep = false,
+      preview = false,
+    } = {},
+  ) => {
     if (budgetDiagnostic) return;
+    const failure = /failure/i.test(label);
+    const native = await desktop.browserWindow(page);
+    const zoom = await native.evaluate((window) =>
+      window.webContents.getZoomFactor(),
+    );
+    const geometry = await page.evaluate(() => ({
+      width: innerWidth,
+      height: innerHeight,
+      dpi: devicePixelRatio,
+    }));
+    const filename = `${scenario}-${label}.png`;
+    const selected = screenshotPolicy.path(filename, {
+      group: `${scenario}:rack-${rackSize}:${state}`,
+      label,
+      role,
+      boundary,
+      layout,
+      mustKeep,
+      failure,
+      zoom,
+      dpi: geometry.dpi,
+    });
+    const selection = {
+      scenario,
+      rackSize,
+      label,
+      role,
+      state,
+      boundary,
+      zoom,
+      actual: geometry,
+      requested: filename,
+      selected,
+      purpose:
+        failure || mustKeep
+          ? 'key-evidence'
+          : preview
+            ? 'preview'
+            : 'representative',
+    };
+    evidence.screenshotSelections.push(selection);
+    if (!selected) return;
     await page.evaluate(
       () =>
         new Promise((done) =>
           requestAnimationFrame(() => requestAnimationFrame(done)),
         ),
     );
-    const native = await desktop.browserWindow(page);
     const bytes = await native.evaluate(async (window) =>
       (await window.webContents.capturePage()).toPNG(),
     );
-    const file = `${scenario}-${label}.png`;
-    await writeFile(join(output, file), bytes);
-    evidence.screenshots.push(file);
+    const file = await writeScreenshot(
+      output,
+      selected,
+      bytes,
+      evidence.screenshotAliases,
+      { preview, mustKeep, failure, encodings: evidence.previewEncodings },
+    );
+    selection.retained = file;
+    if (!evidence.screenshots.includes(file)) evidence.screenshots.push(file);
   };
   const measure = async (page, label, role) => {
     if (role === 'player') await moveInteractionOrb();
@@ -606,7 +689,29 @@ for (const scenario of [
         label + ': desktop section headings >=20px',
       );
     await sampleMemory(page, label, role);
-    await capture(page, label);
+    const state = label.startsWith('rules-')
+      ? 'rules'
+      : label.startsWith('player-desktop-portrait-')
+        ? 'desktop-portrait'
+        : label.startsWith('player-desktop-wide-')
+          ? 'desktop-wide'
+          : label.startsWith('game-result-') || label.startsWith('ended-')
+            ? label
+            : 'turn-workshop';
+    const dimensions = label.match(/(\d+)x(\d+)/);
+    const width = dimensions ? Number(dimensions[1]) : layout.width;
+    const height = dimensions ? Number(dimensions[2]) : layout.height;
+    const boundary =
+      width >= 3840
+        ? '4k'
+        : width > height && role === 'player' && height <= 390
+          ? 'landscape'
+          : width <= 320
+            ? 'narrow'
+            : role === 'player'
+              ? 'phone-standard'
+              : 'desktop';
+    await capture(page, label, { role, state, boundary, layout: true });
   };
   const select = async (id, container = '') => {
     const target = surface(phone).locator(
@@ -703,7 +808,11 @@ for (const scenario of [
       'true',
       'initial table viewport is selected',
     );
-    await capture(phone, `rack-${rackSize}-initial-table`);
+    await capture(phone, `rack-${rackSize}-initial-table`, {
+      state: 'rack-table',
+      boundary: 'phone-standard',
+      layout: true,
+    });
     for (const [width, height] of budgetDiagnostic
       ? [[390, 640]]
       : [
@@ -736,7 +845,17 @@ for (const scenario of [
         'rack sort unobscured',
       );
       await sort.selectOption('value');
-      await capture(phone, `rack-${rackSize}-${width}x${height}-start`);
+      const boundary =
+        width === 320
+          ? 'narrow'
+          : width > height
+            ? 'landscape'
+            : 'phone-standard';
+      await capture(phone, `rack-${rackSize}-${width}x${height}-start`, {
+        state: 'rack-start',
+        boundary,
+        layout: true,
+      });
       const cards = ui().locator('[data-own-rack] button[data-tile-id]');
       assert.equal(await cards.count(), rackSize);
       const indices =
@@ -760,14 +879,22 @@ for (const scenario of [
           `rack card ${index + 1}/${rackSize} unobscured: ${JSON.stringify(hit)}`,
         );
       }
-      await capture(phone, `rack-${rackSize}-${width}x${height}-end`);
+      await capture(phone, `rack-${rackSize}-${width}x${height}-end`, {
+        state: 'rack-end',
+        boundary,
+        layout: true,
+      });
       await tableButton().click();
       await until(
         async () =>
           (await tableButton().getAttribute('aria-pressed')) === 'true',
         'visible table is selected',
       );
-      await capture(phone, `rack-${rackSize}-${width}x${height}-table`);
+      await capture(phone, `rack-${rackSize}-${width}x${height}-table`, {
+        state: 'rack-table',
+        boundary,
+        layout: true,
+      });
     }
     item.checks.push(
       budgetDiagnostic
@@ -959,7 +1086,7 @@ for (const scenario of [
         ),
       true,
     );
-    await capture(host, 'box-game-cover');
+    await capture(host, 'box-game-cover', { preview: true });
     await sampleMemory(host, 'box-before-game', 'host');
     if (budgetDiagnostic) {
       publicPage = await open('public', 0, true);
@@ -1666,6 +1793,7 @@ for (const scenario of [
     item.ownedDesktopClosed = true;
     evidence.elapsedSeconds =
       Math.round((performance.now() - started) / 10) / 100;
+    evidence.skippedScreenshots = screenshotPolicy.skipped;
     evidence.result = evidence.failures.length
       ? 'failed'
       : evidence.cases.every((entry) => entry.result === 'passed')
@@ -1675,6 +1803,23 @@ for (const scenario of [
       join(output, 'results.json'),
       JSON.stringify(evidence, null, 2) + '\n',
     );
+    if (item.result === 'failed' || evidence.cases.length === scenarios.length)
+      try {
+        await registerArtifacts({
+          output,
+          reportPath: join(output, 'results.json'),
+          work,
+          passed: evidence.result === 'passed',
+          policy: screenshotPolicy,
+        });
+      } catch (error) {
+        // Registration cannot change the completed product verification result.
+        evidence.artifactRegistrationError = error.message;
+        await writeFile(
+          join(output, 'results.json'),
+          JSON.stringify(evidence, null, 2) + '\n',
+        );
+      }
   }
 }
 assert.deepEqual(evidence.errors, [], 'No production page errors');

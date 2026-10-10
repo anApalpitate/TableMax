@@ -11,6 +11,7 @@ param(
   [string]$RetiredGeneratedManifest,
   [string]$HistoricalScreenshotsManifest,
   [string]$RegisteredArtifactsManifest,
+  [string]$ImageCopiesManifest,
   [ValidateRange(0, 10080)][int]$MinimumAgeMinutes = 30,
   [ValidateRange(0.001, 1024)][double]$HighWaterGiB = 10,
   [ValidateRange(0, 1024)][double]$LowWaterGiB = 8,
@@ -20,6 +21,10 @@ param(
 $ErrorActionPreference = 'Stop'
 $sourceWorkspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..')).TrimEnd('\')
 $automatic = $Kind -eq 'Maintenance'
+if ($PSBoundParameters.ContainsKey('ImageCopiesManifest') -and
+    ([string]::IsNullOrWhiteSpace($ImageCopiesManifest) -or $Kind -ne 'Intermediates' -or $IncludeBuild -or $KeepLatestOnly -or $TemporaryNames.Count -or $VerificationCopies.Count -or $RetiredVersions.Count -or $DuplicateScreenshotsManifest -or $RetiredGeneratedManifest -or $HistoricalScreenshotsManifest -or $RegisteredArtifactsManifest -or $MinimumAgeMinutes -lt 30)) {
+  throw 'ImageCopiesManifest requires exclusive manual cleanup and at least 30 minutes protection.'
+}
 if ($PSBoundParameters.ContainsKey('RegisteredArtifactsManifest') -and ([string]::IsNullOrWhiteSpace($RegisteredArtifactsManifest) -or $Kind -ne 'Intermediates' -or $IncludeBuild -or $KeepLatestOnly -or $TemporaryNames.Count -or $VerificationCopies.Count -or $RetiredVersions.Count -or $DuplicateScreenshotsManifest -or $RetiredGeneratedManifest -or $HistoricalScreenshotsManifest -or $MinimumAgeMinutes -lt 30)) {
   throw 'RegisteredArtifactsManifest requires exclusive intermediate cleanup with at least 30 minutes protection.'
 }
@@ -426,7 +431,11 @@ elseif ($Kind -eq 'Releases' -or $automatic) {
     }
   }
 }
-if ($RegisteredArtifactsManifest) {
+if ($ImageCopiesManifest) {
+  . (Join-Path $PSScriptRoot 'image-copies.ps1')
+  Initialize-ImageCopies
+}
+elseif ($RegisteredArtifactsManifest) {
   . (Join-Path $PSScriptRoot 'registered-artifacts.ps1')
   Initialize-RegisteredArtifacts
 }
@@ -564,6 +573,9 @@ try {
     retiredGeneratedManifest = $RetiredGeneratedManifest
     historicalScreenshotsManifest = $HistoricalScreenshotsManifest
     registeredArtifactsManifest = $RegisteredArtifactsManifest
+    imageCopiesManifest = $ImageCopiesManifest
+    imageCopiesManifestSha256 = $(if ($ImageCopiesManifest) { $imagePlanHash } else { $null })
+    protectedImageFiles = $(if ($ImageCopiesManifest) { $imageProtected } else { $null })
     workspace = $workspace; highWaterBytes = $summary.highWaterBytes; lowWaterBytes = $summary.lowWaterBytes
     bytesBefore = $summary.bytesBefore; bytesAfter = $summary.bytesAfter
     candidates = $ordered; skipped = $skipped.ToArray(); deletedBytes = [long]0; result = 'started'
@@ -572,6 +584,7 @@ try {
   function Save-Report { $report | ConvertTo-Json -Depth 7 | Set-Content -LiteralPath $reportPath -Encoding utf8 }
   Save-Report
   try {
+    if ($ImageCopiesManifest) { foreach ($file in $imageProtected) { Assert-ImageAuditFile $file | Out-Null } }
     foreach ($candidate in $ordered) {
       if ($automatic -and $report.bytesAfter -le $summary.lowWaterBytes) { break }
       $current = Get-Item -LiteralPath $archive
@@ -619,7 +632,13 @@ try {
       if ($candidate.PSObject.Properties['retiredGenerated']) {
         Assert-RetiredGenerated $candidate.retiredGenerated
       }
-      if ($candidate.PSObject.Properties['historicalScreenshots']) {
+      if ($candidate.PSObject.Properties['imageCopies']) {
+        Assert-ImageCopies $candidate.imageCopies
+        if ((Read-Snapshot $candidate.path).fingerprint -ne $candidate.fingerprint) { throw 'Image copy directory changed during verification.' }
+        $selectedImagePaths = @($candidate.imageCopies.files | ForEach-Object { Assert-LocalPath (Join-Path $workspace $_.path) })
+        Remove-Item -LiteralPath $selectedImagePaths -Force
+      }
+      elseif ($candidate.PSObject.Properties['historicalScreenshots']) {
         Assert-HistoricalScreenshots $candidate.historicalScreenshots
         if ((Read-Snapshot $candidate.path).fingerprint -ne $candidate.fingerprint) { throw 'Historical screenshot directory changed during verification.' }
         $selectedScreenshotPaths = @($candidate.historicalScreenshots.files | ForEach-Object { Join-Path $workspace $_.path })
@@ -646,6 +665,7 @@ try {
       if ($automatic) { $report.bytesAfter = [Math]::Max(0L, $summary.bytesBefore - $report.deletedBytes) }
       Save-Report
     }
+    if ($ImageCopiesManifest) { foreach ($file in $imageProtected) { Assert-ImageAuditFile $file | Out-Null } }
     if ($KeepLatestOnly) { Assert-PreservedRelease }
     elseif ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $archiveHash) { throw 'Current release hash changed.' }
     $report.result = 'passed'

@@ -8,6 +8,7 @@ param(
   [string]$DuplicateScreenshotsManifest,
   [string]$RetiredGeneratedManifest,
   [string]$HistoricalScreenshotsManifest,
+  [string]$ImageCopiesManifest,
   [ValidateRange(0, 10080)][int]$MinimumAgeMinutes = 30
 )
 
@@ -19,4 +20,5 @@ if ($PSBoundParameters.ContainsKey('VerificationCopies')) { $cleanupOptions.Veri
 if ($PSBoundParameters.ContainsKey('DuplicateScreenshotsManifest')) { $cleanupOptions.DuplicateScreenshotsManifest = $DuplicateScreenshotsManifest }
 if ($PSBoundParameters.ContainsKey('RetiredGeneratedManifest')) { $cleanupOptions.RetiredGeneratedManifest = $RetiredGeneratedManifest }
 if ($PSBoundParameters.ContainsKey('HistoricalScreenshotsManifest')) { $cleanupOptions.HistoricalScreenshotsManifest = $HistoricalScreenshotsManifest }
+if ($PSBoundParameters.ContainsKey('ImageCopiesManifest')) { $cleanupOptions.ImageCopiesManifest = $ImageCopiesManifest }
 & (Join-Path $PSScriptRoot 'tools/maintenance/cleanup-local.ps1') @cleanupOptions

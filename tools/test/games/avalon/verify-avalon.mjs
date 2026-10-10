@@ -92,6 +92,7 @@ const evidence = {
   checks: [],
   screenshots: [],
   screenshotAliases: [],
+  previewEncodings: [],
   layouts: [],
   effects: [],
   pageErrors: [],
@@ -315,6 +316,7 @@ async function capture(page, label, layout = false) {
     filename,
     image,
     evidence.screenshotAliases,
+    { encodings: evidence.previewEncodings },
   );
   evidence.screenshots.push(retained);
 }

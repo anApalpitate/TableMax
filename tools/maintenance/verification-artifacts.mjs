@@ -3,6 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { resolve, relative, sep, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { inventory } from '../analysis/storage/space-analysis.mjs';
+import { encodeScreenshotPreview } from '../shared/screenshot-preview.mjs';
 
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const local = (root, path) => {
@@ -22,19 +23,36 @@ export class ScreenshotPolicy {
     this.seen = new Set();
     this.skipped = 0;
   }
-  path(filename, { group = '', label = filename, layout = false } = {}) {
+  path(filename, options = {}) {
+    const {
+      group = '',
+      label = filename,
+      layout = false,
+      mustKeep = false,
+      failure = false,
+    } = options;
     if (!/^[a-zA-Z0-9_.-]+\.png$/.test(filename))
       throw new Error('Unsafe screenshot name');
-    if (/failure/i.test(label)) return filename;
-    const role = label.match(/host|public|player|phone/i)?.[0] ?? 'other';
-    const boundary = /3840|2160/.test(label)
-      ? '4k'
-      : /844x390|landscape/.test(label)
-        ? 'landscape'
-        : 'first';
+    if (failure || mustKeep || /failure/i.test(label)) return filename;
+    if (options.boundary === null) {
+      if (this.mode === 'all') return `process/${filename}`;
+      this.skipped++;
+      return null;
+    }
+    const role =
+      options.role ?? label.match(/host|public|player|phone/i)?.[0] ?? 'other';
+    const boundary =
+      options.boundary ??
+      (/3840|2160/.test(label)
+        ? '4k'
+        : /844x390|landscape/.test(label)
+          ? 'landscape'
+          : 'first');
+    const zoom = options.zoom ?? label.match(/zoom[=-]([\d.]+)/i)?.[1] ?? '';
+    const dpi = options.dpi ?? '';
     const key =
-      layout && /\d+x\d+/.test(label)
-        ? `${group}:${role}:${boundary}`
+      (layout && /\d+x\d+/.test(label)) || options.boundary !== undefined
+        ? JSON.stringify([group, role, boundary, zoom, dpi])
         : `${group}:${label}`;
     if (this.seen.has(key)) {
       if (this.mode === 'all') return `process/${filename}`;
@@ -47,25 +65,64 @@ export class ScreenshotPolicy {
 }
 
 const captured = new Map();
-export async function writeScreenshot(output, filename, image, aliases) {
+export async function writeScreenshot(
+  output,
+  filename,
+  image,
+  aliases = [],
+  options = {},
+) {
   if (!/^(?:process\/)?[a-zA-Z0-9_.-]+\.png$/.test(filename))
     throw new Error('Unsafe screenshot path');
-  const digest = hash(image);
-  const key = `${resolve(output)}:${digest}`;
+  const sourceSha256 = hash(image);
+  const critical =
+    options.failure || options.mustKeep || /failure/i.test(filename);
+  if (critical && filename.startsWith('process/'))
+    throw new Error('Critical screenshots cannot be temporary');
+  const preview =
+    !critical && (options.preview || filename.startsWith('process/'));
+  const key = `${resolve(output)}:${preview ? 'preview' : 'evidence'}:${sourceSha256}`;
   const previous = captured.get(key);
-  if (previous && !/failure/i.test(filename)) {
-    aliases.push({
-      requested: filename,
-      retained: previous,
-      sha256: digest,
-      bytesSaved: image.length,
+  if (previous && !critical) {
+    let bytes;
+    try {
+      bytes = await readFile(resolve(output, previous.path));
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+    }
+    // Repeated capture names can overwrite a representative in the same run.
+    // An alias is valid only while the retained file still has these bytes.
+    if (bytes && hash(bytes) === previous.sha256) {
+      aliases.push({
+        requested: filename,
+        retained: previous.path,
+        sha256: previous.sha256,
+        sourceSha256,
+        bytesSaved: previous.bytes,
+      });
+      return previous.path;
+    }
+    captured.delete(key);
+  }
+  if (preview) {
+    const encoded = await encodeScreenshotPreview(image);
+    filename = filename.replace(/\.png$/, '.webp');
+    image = encoded.image;
+    options.encodings?.push({
+      path: filename,
+      ...encoded.metadata,
+      bytesSaved: encoded.metadata.sourceBytes - image.length,
     });
-    return previous;
   }
   await mkdir(resolve(output, filename, '..'), { recursive: true });
   await writeFile(resolve(output, filename), image);
   // A permanent representative must never alias a temporary process screenshot.
-  if (!filename.startsWith('process/')) captured.set(key, filename);
+  if (!filename.startsWith('process/'))
+    captured.set(key, {
+      path: filename,
+      sha256: hash(image),
+      bytes: image.length,
+    });
   return filename;
 }
 
@@ -82,7 +139,7 @@ export async function registerArtifacts({
   );
   const outputPath = local(root, output);
   if (
-    !/^artifacts\/(?:maintenance\/v\d+\.\d+\.\d+\/box-seats\/|(?:uno|avalon)\/validation\/)[\w-]+$/.test(
+    !/^artifacts\/(?:maintenance\/v\d+\.\d+\.\d+\/(?:box-seats\/|debug-20261008\/box\/|screenshot-storage-implementation-20261010\/rummikub\/)|(?:uno|avalon)\/validation\/|rummikub\/validation\/ui-preview\/)[\w-]+$/.test(
       outputPath,
     )
   )
@@ -111,7 +168,11 @@ export async function registerArtifacts({
     const targets = [];
     if (work) {
       const path = local(root, work);
-      if (!/^tmp\/(?:game-review|box-layout)-[a-zA-Z0-9]{6}$/.test(path))
+      if (
+        !/^tmp\/(?:game-review|box-layout|rummikub-ui)-[a-zA-Z0-9]{6}$/.test(
+          path,
+        )
+      )
         throw new Error('Unrecognized verification work');
       targets.push({ path, kind: 'temporary-directory' });
     }
@@ -235,7 +296,10 @@ export async function retirementPlan(
         const files = [];
         for (const file of snapshot.files) {
           const path = `${entry.path}/${file.path}`;
-          if (entry.kind === 'process-screenshots' && !/\.png$/i.test(path))
+          if (
+            entry.kind === 'process-screenshots' &&
+            !/\.(?:png|webp)$/i.test(path)
+          )
             throw new Error('Unexpected process screenshot member');
           files.push({
             path,

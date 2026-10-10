@@ -11,7 +11,7 @@ function Assert-RegisteredArtifact($Entry) {
     $target = Assert-LocalPath (Join-Path $workspace $file.path)
     $item = Get-Item -LiteralPath $target -Force
     if ($item.PSIsContainer -or $item.Length -ne $file.bytes -or (Get-FileHash -LiteralPath $target).Hash.ToLowerInvariant() -ne $file.sha256) { throw 'Registered member changed.' }
-    if ($Entry.kind -eq 'process-screenshots' -and $file.path -notmatch '\.png$') { throw 'Only PNG process screenshots can be retired.' }
+    if ($Entry.kind -eq 'process-screenshots' -and $file.path -notmatch '\.(?:png|webp)$') { throw 'Only PNG/WebP process screenshots can be retired.' }
   }
   foreach ($evidence in $Entry.evidence) {
     $target = Assert-LocalPath (Join-Path $workspace $evidence.path)
@@ -45,8 +45,8 @@ function Initialize-RegisteredArtifacts {
   $paths = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
   foreach ($entry in $plan.entries) {
     if (-not $paths.Add($entry.path) -or
-        ($entry.kind -eq 'temporary-directory' -and $entry.path -notmatch '^tmp/(?:game-review|box-layout)-[A-Za-z0-9]{6}$') -or
-        ($entry.kind -eq 'process-screenshots' -and $entry.path -notmatch '^artifacts/(?:maintenance/v\d+\.\d+\.\d+/box-seats/|(?:uno|avalon)/validation/)[A-Za-z0-9_-]+/process$') -or
+        ($entry.kind -eq 'temporary-directory' -and $entry.path -notmatch '^tmp/(?:game-review|box-layout|rummikub-ui)-[A-Za-z0-9]{6}$') -or
+        ($entry.kind -eq 'process-screenshots' -and $entry.path -notmatch '^artifacts/(?:maintenance/v\d+\.\d+\.\d+/(?:box-seats/|debug-20261008/box/|screenshot-storage-implementation-20261010/rummikub/)|(?:uno|avalon)/validation/|rummikub/validation/ui-preview/)[A-Za-z0-9_-]+/process$') -or
         $entry.kind -notin @('temporary-directory', 'process-screenshots') -or $entry.evidence.Count -ne 2) { throw 'Invalid registered artifact target.' }
     if ($documentText.Contains($entry.path.ToLowerInvariant())) { throw 'Document-linked artifact directory remains protected.' }
     foreach ($file in $entry.files) {

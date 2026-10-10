@@ -109,12 +109,10 @@ test('artifact registry preserves failures, report references and unknown direct
       writeScreenshot(output, '../unsafe.png', Buffer.from('image'), aliases),
       /Unsafe/,
     );
-    await writeScreenshot(
-      output,
-      'process/extra.png',
-      Buffer.from('extra'),
-      aliases,
-    );
+    // Registry testing does not invoke an encoder: the real codec has its own
+    // regression test, while this fixture freezes a pre-existing process image.
+    await mkdir(join(output, 'process'), { recursive: true });
+    await writeFile(join(output, 'process/extra.webp'), 'extra');
     const reportPath = join(output, 'results.json');
     await writeFile(reportPath, JSON.stringify({ result: 'failed' }));
     await registerArtifacts({ root, output, reportPath, work, passed: false });
@@ -135,7 +133,7 @@ test('artifact registry preserves failures, report references and unknown direct
     assert.ok(plan.entries.every((entry) => entry.evidence.length === 2));
     await writeFile(
       join(root, 'docs/linked.md'),
-      '![keep](../artifacts/uno/validation/test/process/extra.png)',
+      '![keep](../artifacts/uno/validation/test/process/extra.webp)',
     );
     plan = await retirementPlan(root, { minimumAgeMinutes: 0 });
     assert.equal(plan.entries.length, 1);
@@ -208,7 +206,7 @@ test('artifact registry preserves failures, report references and unknown direct
       const old = new Date(Date.now() - 60 * 60000);
       for (const path of [
         join(work, 'node.exe'),
-        join(output, 'process/extra.png'),
+        join(output, 'process/extra.webp'),
         work,
         join(output, 'process'),
       ])
