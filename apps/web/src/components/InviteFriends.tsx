@@ -2,7 +2,9 @@ import { useEffect, useId, useState } from 'react';
 import type { RoomSession } from '../session/useRoomSession';
 import { OverlayPanel } from './OverlayPanel';
 import './invite-friends.css';
+import { useNotifications } from './notifications/context';
 export function InviteFriends({ session }: { session: RoomSession }) {
+  const notifications = useNotifications();
   const [help, setHelp] = useState(false);
   const [draftUrl, setDraftUrl] = useState('');
   const [saving, setSaving] = useState(false);
@@ -10,11 +12,14 @@ export function InviteFriends({ session }: { session: RoomSession }) {
   const [openMessage, setOpenMessage] = useState('');
   const externalId = useId();
   useEffect(() => {
-    const failed = () =>
-      setOpenMessage('无法打开系统浏览器，请在连接帮助中复制当前加入地址。');
+    const failed = () => {
+      const message = '无法打开系统浏览器，请在连接帮助中复制当前加入地址。';
+      if (notifications) notifications.show(message, 'error');
+      else setOpenMessage(message);
+    };
     window.addEventListener('tablemax:join-open-error', failed);
     return () => window.removeEventListener('tablemax:join-open-error', failed);
-  }, []);
+  }, [notifications]);
   const {
     addresses,
     adapters,
@@ -36,12 +41,15 @@ export function InviteFriends({ session }: { session: RoomSession }) {
     try {
       if (await saveExternalJoinUrl(value)) {
         if (value === null) setDraftUrl('');
-        setSaveMessage(
-          value === null ? '已切回局域网二维码。' : '二维码已更新。',
-        );
+        const message =
+          value === null ? '已切回局域网二维码。' : '二维码已更新。';
+        if (notifications) notifications.show(message, 'success');
+        else setSaveMessage(message);
       }
     } catch {
-      setSaveMessage('外部入口保存失败，请重试。');
+      const message = '外部入口保存失败，请重试。';
+      if (notifications) notifications.show(message, 'error');
+      else setSaveMessage(message);
     } finally {
       setSaving(false);
     }

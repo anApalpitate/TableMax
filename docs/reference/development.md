@@ -145,6 +145,8 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 范围归属在 `scripts/testing/scopes.mjs` 维护，游戏目录归对应游戏，其他测试按实际内容登记：服务端单游戏集成也归游戏；目录元数据和模板夹具可归盒子。混合文件／验证脚本涉及的全部范围必须被允许，不能仅有交集；窄范围排除未分类文件，列单时显示缺口，新增或改变测试覆盖内容须同步登记。独立脚本未知时拒绝窄范围执行，先登记实际范围或加入真实筛选；不能仅向不支持筛选的脚本添加 `--game` 假定矩阵已缩小。
 
+盒子通知专项：`node scripts/test-scoped.mjs --scope=box apps/web/src/components/notifications/notification-center.test.ts` 检查限额、重复续时、淡出、独立暂停和清理；`scripts/verify-box-notifications.mjs` 登记为box，可纳入独立批次计划。后者使用当前源码构建的盒子与真实入座hook、模拟HTTP拒绝响应，隐藏静音Edge仅监听127.0.0.1；覆盖320px、390px、横屏、桌面与4K、重试入口、原生浮窗、触控尺寸、自动退出及减少动态。证据在 `artifacts/maintenance/v1.0.5/box-notifications/`，不代表实物手机、局域网或便携包验收，隔离副本沿用 `tmp/box-layout-<六位后缀>` 清理边界。
+
 独立验证使用 `node scripts/test-scoped.mjs --scope=<范围> --plan=<计划.json>`；先校验整份计划，再交给独立批次统计，运行后保存 `scope.json`。`verify-rules-guides.mjs --game=<id>` 为对应游戏；`verify-player-display.mjs` 须同时指定 `--game=<id> --visual-audit` 才为单游戏，默认及`--quick`仍包含盒子检查，且不支持`--game=all`。工具机制回归用 `node --test scripts/testing/scopes.test.mjs`，不启动产品。
 
 ```powershell

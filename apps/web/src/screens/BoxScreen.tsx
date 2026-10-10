@@ -11,7 +11,8 @@ import appIcon from '../../../../assets/platform/app-icon-180.png';
 import { ScreenLink } from '../components/ScreenLink';
 import { RoomManagement } from '../components/RoomManagement';
 import { InviteFriends } from '../components/InviteFriends';
-import { SessionFeedback } from '../components/SessionFeedback';
+import { BoxFeedback } from '../components/BoxFeedback';
+import { Notifications } from '../components/notifications/Notifications';
 import { RoomTable } from '../components/RoomTable';
 import { OverlayPanel } from '../components/OverlayPanel';
 import { SeatSettings } from '../components/SeatSettings';
@@ -49,6 +50,14 @@ type BoxPanel =
   | null;
 
 export function BoxScreen({ session }: { session: RoomSession }) {
+  return (
+    <Notifications>
+      <BoxScreenContent session={session} />
+    </Notifications>
+  );
+}
+
+function BoxScreenContent({ session }: { session: RoomSession }) {
   const [difficulty, setDifficulty] = useState<BotDifficulty>('default');
   const [panel, setPanel] = useState<BoxPanel>(null);
   const [draftAvatar, setDraftAvatar] = useState<AvatarId | null>(null);
@@ -187,7 +196,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
         )}
       </section>
       {!game && <GameLibrary session={session} />}
-      <SessionFeedback session={session} hideSaved />
+      <BoxFeedback session={session} />
       {game && canControl && (
         <div className="box-table-actions">
           <RoomManagement session={session} display="actions" />
@@ -535,7 +544,7 @@ export function BoxScreen({ session }: { session: RoomSession }) {
             selfId={self?.id ?? null}
             selectedId={!self && draftImage ? null : chosenAvatar}
             disabled={avatarLocked}
-            message={self ? session.message : ''}
+            message=""
             onSelect={(avatarId) => {
               if (self) {
                 if (avatarId !== self.avatarId)

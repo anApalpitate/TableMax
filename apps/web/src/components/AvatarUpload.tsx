@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import './avatar-upload.css';
+import { useNotifications } from './notifications/context';
 
 export function AvatarUpload({
   disabled,
@@ -10,6 +11,11 @@ export function AvatarUpload({
 }) {
   const [source, setSource] = useState('');
   const [error, setError] = useState('');
+  const notifications = useNotifications();
+  const reportError = (message: string) => {
+    setError(message);
+    notifications?.show(message, 'error');
+  };
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -68,7 +74,7 @@ export function AvatarUpload({
               !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
               file.size > 10 * 1024 * 1024
             ) {
-              setError('请选择 10 MB 以内的 JPG、PNG 或 WebP 图片。');
+              reportError('请选择 10 MB 以内的 JPG、PNG 或 WebP 图片。');
               return;
             }
             setLoading(true);
@@ -91,7 +97,7 @@ export function AvatarUpload({
             probe.onerror = () => {
               URL.revokeObjectURL(url);
               if (current === selection.current) {
-                setError('这张图片无法读取，请换一张。');
+                reportError('这张图片无法读取，请换一张。');
                 setLoading(false);
               }
             };
@@ -100,7 +106,7 @@ export function AvatarUpload({
         />
       </label>
       {loading && <p role="status">正在读取图片…</p>}
-      {error && <p role="alert">{error}</p>}
+      {error && !notifications && <p role="alert">{error}</p>}
       {source && (
         <div className="avatar-upload__editor">
           <div
@@ -197,7 +203,7 @@ export function AvatarUpload({
                   );
                   onConfirm(canvas.toDataURL('image/png').split(',')[1]!);
                 } catch {
-                  setError('头像裁剪失败，请重新选择图片。');
+                  reportError('头像裁剪失败，请重新选择图片。');
                 }
               }}
             >

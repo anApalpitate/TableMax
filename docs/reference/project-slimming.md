@@ -1,5 +1,11 @@
 # 项目瘦身方案与执行记录
 
+## 盒子通知优化收尾（2026-10-10）
+
+源码通知单测与盒子渲染验证完成、工程进程退出后，精确预览并退役本轮6个 `tmp/box-layout-*` 隔离副本，共11,566,799字节，见[清理清单](../../artifacts/maintenance/local-cleanup-20261010-040729-375-intermediates/cleanup.json)。当前ZIP、原素材、存档、通知截图／报告和逐项测试历史继续保留。
+
+随后执行 `Maintain-Project.ps1 -Apply`，初始11,065,835,202逻辑字节；16个已识别旧验证副本退役1,201,835,930字节，最终实际 **9,864,057,781字节（约9.19GiB）**，结果 `candidates-exhausted`，见[维护清单](../../artifacts/maintenance/local-cleanup-20261010-040825-815-maintenance/cleanup.json)与[日志](../../artifacts/maintenance/v1.0.5/box-notifications/maintenance-final.log)。986链接跳过、零嵌套仓库；安全候选耗尽后停止，不扩大至依赖缓存、素材或用途未知内容。
+
 ## UNO 完整制作收尾（2026-10-10）
 
 当前 UNO ZIP 已实际核验，全部本轮 Native／Node／验证进程退出后，按默认30分钟保护先预览再执行：六个隔离验证副本退役216,905,989字节，见 [精确临时清理](../../artifacts/maintenance/local-cleanup-20261009-185638-006-intermediates/cleanup.json)；三个打包目录退役464,484,686字节，见 [release清理](../../artifacts/maintenance/local-cleanup-20261009-185833-744-releases/cleanup.json)。当前ZIP／清单、原素材／WAV、Mattel规则资料、正式存档及全部当前验收图／失败结论保留。

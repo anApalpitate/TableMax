@@ -1,0 +1,111 @@
+.tablemax-notifications {
+  --notice-top: max(76px, calc(env(safe-area-inset-top) + 20px));
+  position: fixed;
+  top: var(--notice-top);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(440px, calc(100vw - 24px));
+  max-height: calc(100dvh - var(--notice-top) - 12px);
+  overflow-y: auto;
+  display: grid;
+  gap: 10px;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.tablemax-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #a0c4b8;
+  border-radius: 18px;
+  background: #fffdf7;
+  color: #173b32;
+  box-shadow: 0 8px 30px #173b3233;
+  pointer-events: auto;
+  animation: tablemax-notice-enter 180ms ease-out both;
+}
+
+.tablemax-notice[data-tone='error'] {
+  border-color: #d69c7c;
+  background: #fff7ef;
+}
+
+.tablemax-notice p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  color: inherit;
+}
+
+.tablemax-notice__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #d9eadf;
+  color: #285e49;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.tablemax-notice[data-tone='error'] .tablemax-notice__icon {
+  background: #f6dccb;
+  color: #9b4328;
+}
+
+.tablemax-notice .tablemax-notice__dismiss {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+}
+
+.tablemax-notice .tablemax-notice__dismiss:hover,
+.tablemax-notice .tablemax-notice__dismiss:focus-visible {
+  background: #173b3212;
+}
+
+.tablemax-notice[data-leaving='true'] {
+  pointer-events: none;
+  animation: tablemax-notice-leave 320ms ease-in both;
+}
+
+@keyframes tablemax-notice-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes tablemax-notice-leave {
+  to {
+    opacity: 0;
+    filter: blur(5px);
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tablemax-notice,
+  .tablemax-notice[data-leaving='true'] {
+    animation: none;
+  }
+  .tablemax-notice[data-leaving='true'] {
+    opacity: 0;
+  }
+}
