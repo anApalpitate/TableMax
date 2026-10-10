@@ -1,5 +1,13 @@
 # 开发环境
 
+## 阿瓦隆专项构建与验证
+
+经典2012原版只接入平台5–6人，规则与两种角色配置见 [游戏主题](../games/avalon/README.md)。独立构建 `node scripts/build.mjs --only=game:avalon`；单测 `node scripts/test-scoped.mjs --scope=game:avalon` 仅选本游戏规则、策略、UI与实际服务／Worker项。范围隔离工具单独运行 `node --test scripts/testing/scopes.test.mjs`，不增加其他游戏检查。
+
+`node scripts/verify-avalon.mjs --executable=<实际解压的TableMax.exe> --zip=artifacts/releases/TableMax-1.0.6-win-x64.zip --seats=6 --variant=court --only=all --evidence=<安全独立名称>` 启动实际隐藏WinForms／WebView2及包内Socket／SQLite服务，显式监听127.0.0.1，使用隔离 `tmp/game-review-<六位随机后缀>`。`--seats=5|6`、`--variant=classic|court`；`--only=layout|success|failure|rejections|assassination|long-quest|all` 定向选择三端布局、三成功梅林幸存、三失败、五否决及梅林遇刺流程。`long-quest` 额外按成功／失败交替推进五次任务后刺杀，检查五张已结算任务牌；`all` 保留原四种终局。终局通过真实合法动作进入，不改写秘密存档；首项身份确认、表决、任务及刺杀用实际UI按钮核验，`success` 另含提名及暂停／回退。
+
+人数与阶段计划通过 `node scripts/test-scoped.mjs --scope=game:avalon --plan=<计划JSON>` 排序运行，沿用累计3失败停止与不自动重试。`artifacts/avalon/validation/portable-plan.json` 和 `grid-final-plan.json` 是当次参数记录；重新执行时先解压当前ZIP，复制计划到新名称并更新实际EXE路径及证据名，历史临时目录可能已安全退役。验证包括实际ZIP解压成员前后哈希、公开秘密边界、保存／暂停／回退、320px—4K与横屏、图文规则、正确事件全屏特效／减少动态、12条本地音频解码、真实播放调用和原生单窗口播放权、刷新不重播。最窄玩家画面以实际 `documentElement.clientWidth` 断言横向溢出，并检查终局；不以包含滚动条的 `innerWidth` 放宽边界。原生物理输出始终静音，隔离数据中的音频偏好只用于观察调用，不修改日常设置；不把模拟手机、DPI或解码／播放调用作为实体手机、LAN或真人听感认证。实际证据与原失败见 [阿瓦隆验证](../games/avalon/validation-scenarios.md)。
+
 ## UNO 专项构建与验证
 
 新增游戏通过模块清单发现，独立构建 `node scripts/build.mjs --only=game:uno`；单测入口 `node scripts/test-scoped.mjs --scope=game:uno`，只选择 UNO 规则、策略、UI 与 UNO 服务／Worker 测试。范围隔离工具变化另运行 `node --test scripts/testing/scopes.test.mjs`，不启动其他游戏。实际结果与设备边界见 [UNO 验证](../games/uno/validation-scenarios.md)。

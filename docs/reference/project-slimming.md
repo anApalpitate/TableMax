@@ -1,5 +1,11 @@
 # 项目瘦身方案与执行记录
 
+## 阿瓦隆制作收尾（2026-10-10）
+
+最终阿瓦隆ZIP的五人／六人原生验证、单图审查、冻结源码与实际包审计通过，全部本轮构建／验证／审计进程退出后，先沿既有入口预览，再精确退役4个本次打包目录 **953,328,584字节** 和17个已结束浏览器／实际解压副本 **858,501,525字节**，合计 **1,811,830,109字节**。手动精确范围采用已确认结束候选的MinimumAgeMinutes=0，路径、活动进程、链接、目录指纹与当前ZIP保护均保留；自动维护仍采用30分钟保护。实际范围、逐项结果与原清单见 [本轮收尾](../../artifacts/maintenance/v1.0.6/avalon/cleanup-result.json)，[预览记录](../../artifacts/maintenance/v1.0.6/avalon/cleanup-preview-summary.json)、[release清单](../../artifacts/maintenance/local-cleanup-20261010-063202-412-releases/cleanup.json)和 [临时副本清单](../../artifacts/maintenance/local-cleanup-20261010-063231-796-intermediates/cleanup.json)。
+
+随后执行Maintain-Project.ps1 -Apply，实际 **10,322,446,955逻辑字节（9.614GiB）**，结果below-threshold，低于10GiB触发门槛，零追加删除；不为追求8GiB扩大清理。见 [维护实测](../../artifacts/maintenance/v1.0.6/avalon/maintenance-result.json)和 [日志](../../artifacts/maintenance/v1.0.6/avalon/maintenance-final.log)。当前43,563,681字节运行ZIP与清单、完整与定向验收图、13轮原生结果及SQLite证据、原素材／PCM、2012规则资料、源码冻结与24份原日志均保留；release仅当前ZIP／清单。最终ZIP哈希48d71a06…在清理后再次一致，NTFS物理节省不计入逻辑容量或包门禁。
+
 ## UNO v1.0.6 交互优化收尾（2026-10-10）
 
 最终ZIP的2／3／4／6人、手机／桌面、实际触控、特殊动作与旧版恢复通过后，工程进程退出，预览并清理release旧版副本 **41,686,696字节**，见[清单](../../artifacts/maintenance/local-cleanup-20261010-045052-195-releases/cleanup.json)。旧版已按原SHA保存到`artifacts/maintenance/v1.0.6/uno-ui/delivery-v1.0.5/`，原验收与原素材继续保留；本地release目录仅当前ZIP及清单。两份本轮近期生成阶段目录原样移入tmp，零删除／零容量节省，不作长期历史归档，见[移动记录](../../artifacts/maintenance/v1.0.6/uno-ui/stage-relocation.json)。
