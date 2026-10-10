@@ -19,7 +19,7 @@ import {
   type GameHost,
 } from '@tablemax/web-host';
 import type { Action, UnoView } from '../types';
-import { Board, Seats } from '../ui/Board';
+import { Board, Seats, Leaderboard } from '../ui/Board';
 import { Card } from '../ui/Card';
 import { ColorChoice, Hand, colorNames } from '../ui/Hand';
 import { UnoSoundControl } from '../ui/audio';
@@ -295,8 +295,23 @@ function UnoScreen({ session }: { session: GameHost }) {
               </button>
             )}
             {player && (
-              <button type="button" onClick={() => setPanel('players')}>
-                玩家
+              <button
+                type="button"
+                className="uno-icon-button"
+                aria-label="积分榜"
+                onClick={() => setPanel('players')}
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
+                  <path d="M3 21h18M5 21V11h4v10M10 21V4h4v17M15 21V8h4v13" />
+                </svg>
               </button>
             )}
           </div>
@@ -381,8 +396,38 @@ function UnoScreen({ session }: { session: GameHost }) {
                       查看你的质疑证据
                     </button>
                   )}
+                  {game.latest && (
+                    <div
+                      className="uno-latest"
+                      data-latest-saved-action
+                      aria-live="polite"
+                    >
+                      <strong>
+                        {game.latest.actor ? names[game.latest.actor] : 'UNO'}
+                      </strong>
+                      <span>
+                        {game.latest.text
+                          .replace(/^座位 \d+ /, '')
+                          .replace(
+                            /座位 (\d+)/g,
+                            (_text, number: string) =>
+                              names[game.seatOrder[Number(number) - 1]!] ??
+                              `座位 ${number}`,
+                          )
+                          .replace(
+                            /下一位/g,
+                            game.latest.targets[0]
+                              ? (names[game.latest.targets[0]] ?? '下一位')
+                              : '下一位',
+                          )}
+                      </span>
+                      <span className="uno-saved-label">已保存</span>
+                    </div>
+                  )}
                   <Hand
-                    key={`${view.instanceId}:${view.branch}:${view.decisionId ?? 'waiting'}`}
+                    key={`${view.instanceId}:${game.self.seatId}:${game.roundNumber}`}
+                    scope={`${view.instanceId}:${game.self.seatId}:${game.roundNumber}`}
+                    boundary={`${view.branch}:${view.decisionId ?? 'waiting'}`}
                     game={game}
                     actions={actions}
                     choose={choose}
@@ -482,7 +527,7 @@ function UnoScreen({ session }: { session: GameHost }) {
               </section>
             )
           )}
-          {game.latest && (
+          {(!player || game.phase !== 'playing') && game.latest && (
             <div
               className="uno-latest"
               data-latest-saved-action
@@ -524,7 +569,7 @@ function UnoScreen({ session }: { session: GameHost }) {
             panel === 'rules'
               ? 'UNO 经典版图文规则'
               : panel === 'players'
-                ? '围桌玩家'
+                ? '积分榜'
                 : panel === 'evidence'
                   ? '仅你可见的质疑证据'
                   : 'UNO 菜单'
@@ -537,7 +582,7 @@ function UnoScreen({ session }: { session: GameHost }) {
           ) : (
             <div className="uno-panel">
               {panel === 'players' ? (
-                game && view && <Seats game={game} seats={view.seats} compact />
+                game && view && <Leaderboard game={game} seats={view.seats} />
               ) : panel === 'evidence' ? (
                 evidence && (
                   <>

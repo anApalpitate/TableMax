@@ -1690,3 +1690,125 @@
     forced-color-adjust: none;
   }
 }
+
+/* Stable local hand layout and compact paper feedback. */
+.uno-hand-heading {
+  min-height: 44px;
+}
+.uno-hand-card {
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.uno-screen .uno-hand-card--dragging {
+  opacity: 0.5;
+  transform: translateY(-12px) rotate(0);
+}
+.uno-screen .uno-hand-card--insert::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: -8px;
+  bottom: -8px;
+  width: 4px;
+  background: #447941;
+  border-radius: 3px;
+  z-index: 5;
+}
+.uno-leaderboard {
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.uno-leaderboard li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #fffcf1b8;
+  border: 1px solid #b7ab8b;
+  border-radius: 16px;
+}
+.uno-leaderboard img {
+  width: 48px;
+  height: 48px;
+}
+.uno-leaderboard strong {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.uno-rank {
+  font-size: 20px;
+  min-width: 24px;
+  color: #846330;
+}
+.uno-screen--player .uno-player-workspace > .uno-latest {
+  order: initial;
+  margin: 0;
+  min-height: 34px;
+  padding: 5px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  border: 1px solid #c6b99180;
+  background: #fffceeaa;
+  box-shadow:
+    inset 0 1px #fff9,
+    0 2px 6px #75653b0d;
+}
+.uno-screen--player
+  .uno-player-workspace
+  > .uno-latest
+  > span:not(.uno-saved-label) {
+  flex: 1 1 150px;
+  width: auto;
+  order: initial;
+  overflow-wrap: anywhere;
+}
+.uno-screen--player .uno-player-workspace > .uno-latest > strong {
+  font-size: 16px;
+  max-width: 45%;
+  margin: 0;
+}
+@media (max-width: 959px) {
+  .uno-screen--player .uno-hand-card {
+    --uno-card-width: 88px;
+  }
+  .uno-screen--player .uno-hand-cards {
+    gap: 0;
+    padding-right: 8px;
+  }
+  .uno-screen--player .uno-hand-card + .uno-hand-card {
+    margin-left: -40px;
+  }
+  .uno-screen--player .uno-hand-card:hover {
+    transform: rotate(var(--card-tilt));
+  }
+}
+
+.uno-hand-cards[data-insert-end]::after {
+  content: '';
+  width: 4px;
+  flex: 0 0 4px;
+  margin-left: 5px;
+  border-radius: 3px;
+  background: #447941;
+}
+
+@media (max-width: 479px) {
+  .uno-screen--player .uno-hand-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .uno-screen--player .uno-hand-actions {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 479px) {
+  .uno-screen--player .uno-hand-section {
+    padding-right: 60px;
+  }
+}

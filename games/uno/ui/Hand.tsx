@@ -8,6 +8,7 @@ import {
   type UnoView,
 } from '../types';
 import { Card, cardName } from './Card';
+import { useHandOrder } from './use-hand-order';
 
 export const colorNames: Record<Color, string> = {
   red: '红色',
@@ -52,21 +53,46 @@ export function Hand({
   actions,
   choose,
   locked,
+  scope,
+  boundary,
 }: {
+  scope: string;
+  boundary: string;
   game: UnoView;
   actions: Action[];
   choose(action: Action): void;
   locked: boolean;
 }) {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [sayUno, setSayUno] = useState(false);
+  const [selection, setSelection] = useState<{
+    id: string;
+    boundary: string;
+  } | null>(null);
+  const selected = selection?.boundary === boundary ? selection.id : null;
+  const setSelected = (id: string | null) =>
+    setSelection(id ? { id, boundary } : null);
+  const [unoChoice, setUnoChoice] = useState({ boundary, value: false });
+  const sayUno = unoChoice.boundary === boundary && unoChoice.value;
+  const setSayUno = (value: boolean) => setUnoChoice({ boundary, value });
   const self = game.self;
-  if (!self) return null;
   const plays = actions.filter(
     (action): action is Extract<Action, { type: 'play' }> =>
       action.type === 'play',
   );
   const legalIds = new Set(plays.map((action) => action.cardId));
+  const {
+    ids,
+    mode,
+    attachScroll,
+    drag,
+    sort,
+    down,
+    move,
+    up,
+    cancel,
+    canClick,
+    shift,
+  } = useHandOrder(self?.hand ?? [], legalIds, scope, boundary, locked);
+  if (!self) return null;
   const selectedCard = self.hand.find(
     (card) => card.id === selected && legalIds.has(card.id),
   );
@@ -91,6 +117,25 @@ export function Hand({
           我的手牌 <span>{self.hand.length} 张</span>
         </h2>
         <div className="uno-hand-actions">
+          <button
+            type="button"
+            className="uno-icon-button"
+            onClick={sort}
+            aria-label={mode === 'color' ? '按数字排序' : '按颜色排序'}
+            title={mode === 'color' ? '按数字排序' : '按颜色排序'}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M5 4v16m-3-3 3 3 3-3M12 5h9M12 12h6M12 19h3" />
+            </svg>
+          </button>
           {self.hand.length === 2 && plays.length > 0 && (
             <button
               className={`uno-call-toggle${sayUno ? ' uno-call-toggle--on' : ''}`}
@@ -125,44 +170,54 @@ export function Hand({
           )}
         </div>
       </div>
-      <p className="uno-hand-hint">
-        {locked
-          ? '等待连接或继续对局'
-          : plays.length
-            ? game.stage === 'drawn'
-              ? '这回合只能出刚摸到的牌'
-              : '点亮起的牌，直接打出'
-            : draw
-              ? '没有可出的牌，或选择摸一张'
-              : '看好手牌，等待你的回合'}
-      </p>
       <div
         className="uno-hand-scroll"
+        ref={attachScroll}
         tabIndex={0}
         aria-label="横向浏览全部手牌"
       >
-        <div className="uno-hand-cards">
-          {self.hand.map((card, index) => (
-            <button
-              type="button"
-              key={card.id}
-              data-card-id={card.id}
-              className={`uno-hand-card${legalIds.has(card.id) ? ' uno-hand-card--legal' : ''}${card.id === self.drawnCardId ? ' uno-hand-card--drawn' : ''}`}
-              disabled={locked || !legalIds.has(card.id)}
-              onClick={() => play(card)}
-              aria-label={`${cardName(card)}${card.id === self.drawnCardId ? '，刚摸到' : ''}${legalIds.has(card.id) ? '，可出牌' : ''}`}
-              style={
-                {
-                  '--card-tilt': `${((index % 5) - 2) * 0.65}deg`,
-                } as CSSProperties
-              }
-            >
-              <Card card={card} />
-              {card.id === self.drawnCardId && (
-                <span className="uno-new-card">刚摸到</span>
-              )}
-            </button>
-          ))}
+        <div
+          className="uno-hand-cards"
+          data-insert-end={drag && drag.before === null ? true : undefined}
+        >
+          {ids
+            .map((id) => self.hand.find((card) => card.id === id)!)
+            .map((card) => (
+              <button
+                type="button"
+                key={card.id}
+                data-card-id={card.id}
+                className={`uno-hand-card${legalIds.has(card.id) ? ' uno-hand-card--legal' : ''}${card.id === self.drawnCardId ? ' uno-hand-card--drawn' : ''}${drag?.id === card.id ? ' uno-hand-card--dragging' : ''}${drag?.before === card.id ? ' uno-hand-card--insert' : ''}`}
+                aria-disabled={locked || !legalIds.has(card.id)}
+                onPointerDown={(event) => down(event, card.id)}
+                onPointerMove={move}
+                onPointerUp={up}
+                onPointerCancel={cancel}
+                onClick={() => {
+                  if (canClick()) play(card);
+                }}
+                onKeyDown={(event) => {
+                  if (
+                    event.altKey &&
+                    ['ArrowLeft', 'ArrowRight'].includes(event.key)
+                  ) {
+                    event.preventDefault();
+                    shift(card.id, event.key === 'ArrowLeft' ? -1 : 1);
+                  }
+                }}
+                aria-label={`${cardName(card)}${card.id === self.drawnCardId ? '，刚摸到' : ''}${legalIds.has(card.id) ? '，可出牌' : ''}`}
+                style={
+                  {
+                    '--card-tilt': `${((Array.from(card.id).reduce((sum, char) => sum + char.charCodeAt(0), 0) % 5) - 2) * 0.65}deg`,
+                  } as CSSProperties
+                }
+              >
+                <Card card={card} />
+                {card.id === self.drawnCardId && (
+                  <span className="uno-new-card">刚摸到</span>
+                )}
+              </button>
+            ))}
         </div>
       </div>
       {selectedCard && (
