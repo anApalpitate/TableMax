@@ -133,6 +133,7 @@ const verificationScopes = {
   'tools/shared/migration.test.mjs': ['tooling'],
   'tools/test/runner/scopes.test.mjs': ['tooling'],
   'tools/test/runner/history.test.mjs': ['tooling'],
+  'tools/test/runner/typecheck.test.mjs': ['tooling'],
   'tools/test/box/verify-box-layout.mjs': ['box'],
   'tools/test/platform/verify-connection-entry.mjs': [
     'box',

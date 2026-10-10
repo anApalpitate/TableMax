@@ -93,6 +93,8 @@
 | [runner/test-batch.mjs](runner/test-batch.mjs)                                                                                           | `node tools/test/runner/test-batch.mjs`                                              |
 | [runner/test-history.mjs](runner/test-history.mjs)                                                                                       | `node tools/test/runner/test-history.mjs`                                            |
 | [runner/test-scoped.mjs](runner/test-scoped.mjs)                                                                                         | `pnpm test`                                                                          |
+| [runner/typecheck.mjs](runner/typecheck.mjs)                                                                                             | `pnpm typecheck`；完整 TypeScript CLI 与目录链接回退                                 |
+| [runner/typecheck.test.mjs](runner/typecheck.test.mjs)                                                                                   | 工具回归：目录链接、缺失路径、真实类型错误拒绝                                       |
 | [runner/vitest-history.d.mts](runner/vitest-history.d.mts)                                                                               | 内部辅助／声明／夹具；由对应入口调用                                                 |
 | [runner/vitest-history.mjs](runner/vitest-history.mjs)                                                                                   | `node tools/test/runner/vitest-history.mjs`                                          |
 | [support/browser-test.mjs](support/browser-test.mjs)                                                                                     | 内部辅助／声明／夹具；由对应入口调用                                                 |
@@ -101,3 +103,5 @@
 | [support/fixture-server.mjs](support/fixture-server.mjs)                                                                                 | 内部辅助／声明／夹具；由对应入口调用                                                 |
 | [support/player-test.mjs](support/player-test.mjs)                                                                                       | 内部辅助／声明／夹具；由对应入口调用                                                 |
 | [support/verification-output.mjs](support/verification-output.mjs)                                                                       | 内部辅助／声明／夹具；由对应入口调用                                                 |
+
+`pnpm typecheck` 使用 [typecheck.mjs](runner/typecheck.mjs) 调用锁定的 TypeScript CLI，保留原参数、诊断和退出码。Windows 原生 realpath 无法读取 pnpm 目录链接时，回退到普通 realpath；都失败时保留编译器原有缺失文件行为，不跳过测试或放宽类型。机制回归：`node --test tools/test/runner/typecheck.test.mjs`。
