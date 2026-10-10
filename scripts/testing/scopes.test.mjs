@@ -98,6 +98,24 @@ test('box selection excludes game and shared checks, while exact avatar filters 
   );
 });
 
+test('Avalon rules, service and portable checks remain within their own game scope', () => {
+  assert.deepEqual(parseScope('game:avalon'), ['game:avalon']);
+  for (const file of [
+    'games/avalon/rules/rules.test.ts',
+    'apps/server/src/avalon.test.ts',
+    'apps/server/src/avalon-worker.test.ts',
+  ])
+    assert.deepEqual(unitTestScopes(file), ['game:avalon']);
+  assert.doesNotThrow(() =>
+    validateBatchScope(plan(item('scripts/verify-avalon.mjs')), 'game:avalon'),
+  );
+  assert.throws(
+    () =>
+      validateBatchScope(plan(item('scripts/verify-uno.mjs')), 'game:avalon'),
+    /outside/,
+  );
+});
+
 test('each single game includes its service tests and excludes mixed matrices and other games', () => {
   for (const [id, serverFile] of [
     ['pokemon-encounters', 'pokemon-crash'],

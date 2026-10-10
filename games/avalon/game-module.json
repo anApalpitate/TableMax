@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "id": "avalon",
+  "order": 5,
+  "internal": false,
+  "development": false,
+  "library": {
+    "tags": ["身份", "推理", "聚会", "卡牌"],
+    "searchTerms": [
+      "Avalon",
+      "The Resistance",
+      "阿瓦隆",
+      "梅林",
+      "刺客",
+      "圆桌骑士"
+    ]
+  },
+  "catalog": {
+    "id": "avalon",
+    "name": "阿瓦隆",
+    "min": 5,
+    "max": 6,
+    "decisionTimer": true
+  },
+  "compatibility": {
+    "sdk": 1,
+    "protocol": 7,
+    "webHost": 1,
+    "rulesVersion": "classic-2012-1",
+    "stateVersion": 1,
+    "gameVersion": "1.0.0",
+    "strategyVersion": "1.0.0"
+  },
+  "entries": {
+    "rules": "games/avalon/rules/index.ts",
+    "bot": "games/avalon/bot/index.ts",
+    "web": "games/avalon/web/index.tsx"
+  },
+  "cover": "assets/games/avalon/cover.webp",
+  "introduction": {
+    "tagline": "圆桌之上，忠诚与谎言同行。",
+    "lead": "亚瑟的骑士中潜藏着莫德雷德的爪牙。提名任务队伍，秘密投票；梅林知晓邪恶，却必须隐藏自己。",
+    "steps": [
+      {
+        "icon": "cards",
+        "title": "查看身份，守住秘密",
+        "text": "每人获得一张秘密角色牌。梅林知道邪恶是谁，邪恶互相知晓；忠臣只能从讨论与公开记录推理。"
+      },
+      {
+        "icon": "table",
+        "title": "组队、密投与任务",
+        "text": "队长提名队伍，全员秘密投票，过半赞成才出征。任务牌匿名结算，一张失败就让任务失败。"
+      },
+      {
+        "icon": "trophy",
+        "title": "三次任务与最后一刺",
+        "text": "三次任务失败或连续五次组队被否决，邪恶获胜。三次任务成功后，刺客仍可指认梅林逆转胜负。"
+      }
+    ],
+    "goal": "2012经典原版，平台支持5–6人；基础角色及派西维尔／莫甘娜宫廷组合。"
+  },
+  "botIntroduction": {
+    "default": {
+      "lead": "以本人身份和最近任务结果作简单组队与投票。",
+      "details": ["覆盖确认身份、提名、投票、任务牌及刺杀；未知角色始终未知。"]
+    },
+    "doubao": {
+      "lead": "结合最近两次任务，比较安全队伍与失败风险。",
+      "details": [
+        "用公开失败张数筛选阵营假设；已知邪恶同伴在队时只安排一人破坏。"
+      ]
+    },
+    "juewu": {
+      "lead": "比较全部公开任务与逐人投票，评估阵营与梅林线索。",
+      "details": [
+        "最多枚举15组邪恶身份假设，成功任务不直接判定忠诚；只使用本人授权投影，本地运行，不承诺必胜。"
+      ]
+    }
+  },
+  "defaultVariantId": "classic",
+  "variants": [
+    {
+      "id": "classic",
+      "name": "经典基础",
+      "description": "梅林、刺客、忠臣与爪牙；5–6人。",
+      "compatibility": {
+        "sdk": 1,
+        "protocol": 7,
+        "webHost": 1,
+        "rulesVersion": "classic-2012-1",
+        "stateVersion": 1,
+        "gameVersion": "1.0.0",
+        "strategyVersion": "1.0.0"
+      }
+    },
+    {
+      "id": "court",
+      "name": "宫廷迷局",
+      "description": "加入原版派西维尔与莫甘娜；派西维尔看见两位梅林候选。",
+      "compatibility": {
+        "sdk": 1,
+        "protocol": 7,
+        "webHost": 1,
+        "rulesVersion": "classic-2012-court-1",
+        "stateVersion": 1,
+        "gameVersion": "1.0.0",
+        "strategyVersion": "1.0.0"
+      }
+    }
+  ],
+  "budgets": {
+    "payloadBytes": 4194304,
+    "serviceHeapBytes": 67108864,
+    "desktopHeapBytes": 50331648,
+    "phoneHeapBytes": 33554432,
+    "privateIncrementBytes": 536870912,
+    "workerOldGenerationMiB": 32,
+    "basis": "Initial reviewed resource allocation: 4MiB complete module payload includes up to 3MiB original WebP illustrations, twelve local FLAC cues and code. This disk metric is distinct from RoomView JSON; the earlier 1MiB JSON placeholder was corrected before delivery. Six seats, at most 25 proposals, five quest records and 15 authorized faction hypotheses; service/renderer/32MiB Worker allocations stay fixed pending measurement, not worst-case claims."
+  }
+}

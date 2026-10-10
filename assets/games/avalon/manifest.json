@@ -1,0 +1,242 @@
+{
+  "createdAt": "2026-10-10",
+  "purpose": "Original vintage Arthurian tabletop artwork for Avalon; illustration only, no official card-art reproduction or rules evidence.",
+  "generator": "built-in imagegen",
+  "version": 1,
+  "referenceSources": [
+    {
+      "source": "User request, 2026-10-10",
+      "role": "Classic Avalon, vintage Arthurian setting, physical tabletop character and vivid thematic effects."
+    },
+    {
+      "source": "docs/reference/art-preferences.md",
+      "role": "G01/G02/G08/G09/G17 image-led, mature tactile tabletop art, distinctive readable roles and saved-result performance."
+    }
+  ],
+  "postprocessing": "Original PNG retained. Atlas object extraction and centered portrait square crops, proportional Lanczos resizing, exact equal-grid reassembly and WebP compression only; no painted content redrawn, no alpha removal or inferred roles/secret data.",
+  "derivationScript": "artifacts/avalon-art/derive-assets-v1.py",
+  "runtimeBytes": 1245020,
+  "assets": [
+    {
+      "id": "council",
+      "file": "council.webp",
+      "version": 1,
+      "transparent": false,
+      "source": "built-in imagegen",
+      "attribution": "TableMax original interpretive artwork, built-in imagegen; not official Avalon artwork.",
+      "sourceFile": "artifacts/avalon-art/council-source-v1.png",
+      "promptFile": "artifacts/avalon-art/council-prompt-v1.txt",
+      "prompt": "Use case: stylized-concept\nAsset type: Local background illustration for a classic Avalon social-deduction tabletop game, landscape 1536x1024 composition.\nPrimary request: An original, refined vintage Arthurian storybook board-game table environment, atmospheric and richly crafted while bright enough to support readable playing pieces.\nScene: A great round oak council table seen from slightly above, taking most of the lower half and foreground; the tabletop is clear, softly illuminated honey-colored wood, with subtle circular carving but no actual text or symbols with rule meaning. Beyond the table is a medieval stone castle arch, a glimpse of misty ancient forest, deep teal distant Camelot towers, ivy and tiny warm candles at the extreme side edges. Weathered copper and old parchment tones.\nComposition: Wide horizontal panorama. Important: middle 60% is calm low-contrast uninterrupted wood/parchment space for interactive tabletop tokens. Narrative detail only at far left/right and top 25%, no giant objects in the middle. Table rim sweeps across lower edge; avoid obstructing centre. No characters, no cards or game pieces depicted. Do not draw an actual in-game board, dice, or printed scoring numbers.\nStyle: mature illustrated tabletop-box art, hand-painted watercolor and gouache with delicate copperplate engraving linework, Renaissance book illustration, faded pigment, very fine vintage print grain; NOT photorealistic, NOT cartoon, NOT videogame screenshot. Soft luminous parchment and antique gold, patinated bronze, muted peacock teal, restrained burgundy accent.\nLighting: warm amber interior daylight versus cool forest mist, inviting yet mysterious and dramatic. Physical tactile materials, refined borders at edges. No excessive darkness.\nConstraints: Original artwork; no official Avalon card reproduction. Absolutely no writing, words, letters, numerals, UI, logos, watermarks. No role identity information. No fixed seat count or fixed player arrangement. Do not draw large recognizable religious logos. Full bleed landscape illustration.",
+      "width": 1536,
+      "height": 1024,
+      "originalWidth": 1536,
+      "originalHeight": 1024,
+      "bytes": 409180,
+      "sha256": "cf166a4f4054312ec5feafa1f03624e3d1d173ff907c4bfbc6f8286a2f621728",
+      "originalSha256": "75a671aa047b990df53184a44c016061a57cbe4f0cf84662aff769925018a659",
+      "alphaExtrema": null,
+      "webpQuality": 82,
+      "toolElapsedMs": 24992,
+      "status": {
+        "generated": true,
+        "visuallyVerified": true,
+        "importedInUi": true,
+        "candidate": false
+      },
+      "visualVerification": "Original castle/ancient woodland council setting; softly lit clear oak tabletop, edge storytelling, no writing or game secrets; landscape composition visually inspected.",
+      "uiVerification": {
+        "referenceFile": "games/avalon/ui/style.css",
+        "resultFile": "artifacts/avalon/validation/source-layout-resources-fixed/results.json",
+        "screenshots": [
+          "artifacts/avalon/validation/source-layout-resources-fixed/005-host-1920x1080.png",
+          "artifacts/avalon/validation/source-layout-resources-fixed/007-public-opening.png",
+          "artifacts/avalon/validation/source-layout-resources-fixed/002-player-390x844.png"
+        ],
+        "verification": "Actual hidden WinForms/WebView2 rendering shows the local council image in host/public and simulated player viewports."
+      }
+    },
+    {
+      "id": "cover",
+      "file": "cover.webp",
+      "version": 1,
+      "transparent": false,
+      "source": "built-in imagegen",
+      "attribution": "TableMax original interpretive artwork, built-in imagegen; not official Avalon artwork.",
+      "sourceFile": "artifacts/avalon-art/cover-source-v1.png",
+      "promptFile": "artifacts/avalon-art/cover-prompt-v1.txt",
+      "prompt": "Use case: stylized-concept\nAsset type: Square box-cover illustration for classic Avalon Arthurian social-deduction board game, original artwork, without title.\nScene and subject: In the foreground a richly carved round oak tabletop with tactile physical tabletop objects: a few elegant illustrated parchment portrait cards face-down (decorative abstract backs, no letters), a patinated bronze leader crown seal, a wax token and a luminous golden chalice. Behind it an elderly silver-bearded wizard in a flowing peacock-teal cloak gazes thoughtfully toward an elegant burgundy-cloaked hooded conspirator at the right margin, with a gleaming sword resting between them. Further back Camelot castle towers emerge from cool ancient woodland mist. The opposition is conveyed by theatrical glances and amber versus burgundy light, not by obvious color-coded labels. Nonviolent, intriguing game-night mood.\nComposition: Square 1024x1024, strong box-cover silhouette and clear chalice/table/card shapes readable at small size; foreground physical board-game objects 40%, faces and forest castle balance remaining area. No text space band and no blank poster header; use full image elegantly. Face and props fully visible within crop; avoid overcrowding.\nStyle: Mature premium physical tabletop-box artwork; antique storybook watercolor and gouache, fine copperplate engraving lines, old parchment print grain, velvety rich pigments. Hand-painted original designs; not photorealistic, not anime, not cartoon, no modern videogame HUD. Palette antique gold/honey wood, patinated copper, parchment ivory, peacock teal and burgundy; inviting light, refined and dramatic.\nConstraints: No words, letters, numbers, typography, title, logo, signature, watermark or UI anywhere; no official card reproduction. Physical cards contain only abstract decorative backs, no role information or readable rules. No fixed number of players represented. All people fully clothed. No blood or injury. Make it unmistakably an illustrated board-game cover in a vintage Arthurian world.",
+      "width": 768,
+      "height": 768,
+      "originalWidth": 1254,
+      "originalHeight": 1254,
+      "bytes": 215500,
+      "sha256": "295744624cc88643aa33ed7553a459c520550459e601ccb17091c8a3c90375c6",
+      "originalSha256": "b543b5413e3efc10d8be33d8d171a7d5c24f4dd05849394eee82dbd35a82590c",
+      "alphaExtrema": null,
+      "webpQuality": 86,
+      "toolElapsedMs": 47429,
+      "status": {
+        "generated": true,
+        "visuallyVerified": true,
+        "importedInUi": true,
+        "candidate": false
+      },
+      "visualVerification": "Vintage Arthurian physical tabletop-box composition; readable chalice, crown, cards and two thoughtful figures, no text or official reproduced card art.",
+      "uiVerification": {
+        "referenceFile": "games/avalon/game-module.json",
+        "verification": "Box catalog metadata points to the local cover.webp; imported resource reference inspected. Provided game rendering screenshots do not show the box catalog cover."
+      }
+    },
+    {
+      "id": "roles",
+      "file": "roles.webp",
+      "version": 1,
+      "transparent": false,
+      "source": "built-in imagegen",
+      "attribution": "TableMax original interpretive artwork, built-in imagegen; not official Avalon artwork.",
+      "sourceFile": "artifacts/avalon-art/roles-source-v1.png",
+      "promptFile": "artifacts/avalon-art/roles-prompt-v1.txt",
+      "prompt": "Use case: stylized-concept\nAsset type: Six character portrait artworks in ONE exact texture atlas for original vintage Arthurian Avalon tabletop game. This is artwork only; card borders and role names will be added by code.\nCanvas: portrait sheet ideally1024x1536, EXACT TWO columns by THREE rows, every cell square, all cells edge-to-edge, ZERO gutters, ZERO seams, NO frames, NO outer margins. Each cell is a complete separate original portrait composition, its face and props kept inside its own cell, no objects cross cell boundaries. Full-bleed color/background in every tile.\nStyle family: mature premium physical board-game illustration, hand-painted watercolor/gouache and copperplate engraving linework, antique parchment and print grain, Arthurian medieval fantasy. Original people and costume designs, not reproductions of official cards or actors. Natural expressive anatomy, theatrical gesture, face easy to read at thumbnail size. Crisp eyes, tactile brocade, engraved bronze, velvety pigments. Avoid photorealistic/photo, avoid cute/cartoon/anime, avoid digital neon.\nEXACT ROW-MAJOR PLAN:\nTop left: MERLIN, elderly wise wizard, silver beard, contemplative eyes, peacock teal robe with bronze clasp, one hand lifting a small warm guiding light, ancient woodland blurred behind.\nTop right: PERCIVAL, noble young adult knight in burnished steel and warm bronze armor, dark wavy hair, a gentle resolute expression, a round shield edge visible, ivory and teal light on parchment atmosphere.\nMiddle left: LOYAL SERVANT OF ARTHUR, courageous adult woman knight with short copper-brown hair, warm dignified expression, bronze and ivory lamellar armor, teal cloak, holding a modest banner pole at edge, sunny castle stone behind.\nMiddle right: MORGANA, enigmatic powerful adult sorceress with long dark hair, burgundy velvet and ornate bronze jewelry, poised sideward glance, a raised hand with faint wisps, plum and jade mist behind. Refined allure, fully clothed, dramatic but not horror.\nBottom left: ASSASSIN, hooded adult male in weathered burgundy cloak, visible angular face and intense eyes, one hand gripping a short blade angled upward below face, steel glint and wine-red background. No injury or gore.\nBottom right: MINION OF MORDRED, imposing adult armored conspirator, dark iron armor and muted crimson tabard, half-shadowed readable male face, clasped gauntlets, old stone and tarnished copper backdrop. No helmet covering eyes.\nComposition: Bust portraits with each face occupying middle top third of its SQUARE TILE; shoulders and distinct symbolic gesture fill remaining area. Visible faces and varied silhouettes, elegant and strongly differentiated.\nConstraints: ABSOLUTELY NO words, letters, numerals, captions, role labels, signatures, logos, watermarks, UI, card border or printed text. Do not copy any official Avalon artwork. Exactly six square images, strictly2x3 edge-to-edge grid.",
+      "width": 1024,
+      "height": 1536,
+      "originalWidth": 1024,
+      "originalHeight": 1536,
+      "bytes": 413248,
+      "sha256": "64e42aea23c6d2525e0a2f05c3bd4e6d26e4718bc2be5695f809e6ae9e869f44",
+      "originalSha256": "cb96ac80c47e992c1fa6855e076656704ccb5aac90756b8ebe8c8a0b225aa8b9",
+      "alphaExtrema": null,
+      "webpQuality": 84,
+      "toolElapsedMs": 37213,
+      "status": {
+        "generated": true,
+        "visuallyVerified": true,
+        "importedInUi": true,
+        "candidate": false
+      },
+      "visualVerification": "Six distinct mature Arthurian bust portraits; faces/gestures readable, all equal square atlas tiles after extraction; no labels or text. Role interpretation is original artwork, not rules evidence.",
+      "atlasLayout": {
+        "columns": 2,
+        "rows": 3,
+        "tileWidth": 512,
+        "tileHeight": 512,
+        "indexOrder": "row-major, zero-based",
+        "roleIds": [
+          "merlin",
+          "percival",
+          "loyal-servant",
+          "morgana",
+          "assassin",
+          "minion"
+        ],
+        "sourceCrops": [
+          {
+            "roleId": "merlin",
+            "sourceBounds": [13, 0, 499, 486],
+            "tileIndex": 0
+          },
+          {
+            "roleId": "percival",
+            "sourceBounds": [525, 0, 1011, 486],
+            "tileIndex": 1
+          },
+          {
+            "roleId": "loyal-servant",
+            "sourceBounds": [6, 486, 506, 986],
+            "tileIndex": 2
+          },
+          {
+            "roleId": "morgana",
+            "sourceBounds": [518, 486, 1018, 986],
+            "tileIndex": 3
+          },
+          {
+            "roleId": "assassin",
+            "sourceBounds": [0, 1005, 512, 1517],
+            "tileIndex": 4
+          },
+          {
+            "roleId": "minion",
+            "sourceBounds": [512, 1005, 1024, 1517],
+            "tileIndex": 5
+          }
+        ]
+      },
+      "uiVerification": {
+        "referenceFile": "games/avalon/ui/RoleCard.tsx",
+        "styleFile": "games/avalon/ui/style.css",
+        "resultFile": "artifacts/avalon/validation/source-success-first/results.json",
+        "screenshots": [
+          "artifacts/avalon/validation/source-success-first/001-private-role-card.png",
+          "artifacts/avalon/validation/source-success-first/011-success-final-host.png"
+        ],
+        "verification": "Actual hidden WinForms/WebView2 rendering shows the correctly cropped own role card and revealed end-of-match portraits, with labels composed in code."
+      }
+    },
+    {
+      "id": "effect-relics",
+      "file": "effect-relics.webp",
+      "version": 1,
+      "transparent": true,
+      "source": "built-in imagegen",
+      "attribution": "TableMax original interpretive artwork, built-in imagegen; not official Avalon artwork.",
+      "sourceFile": "artifacts/avalon-art/effect-relics-source-v1.png",
+      "promptFile": "artifacts/avalon-art/effect-relics-prompt-v1.txt",
+      "prompt": "Use case: stylized-concept\nAsset type: Four premium Arthurian relic cutout illustrations in ONE 2x2 texture atlas for local and full-screen board-game celebration animation. Actual transparent background, no background plate.\nCanvas: Square, ideally1024x1024. EXACT TWO columns by TWO rows, four equal square quadrants. Each quadrant contains ONE separate object centred fully within its square quadrant, with generous transparent padding to avoid neighboring objects. Object art stays between15% and85% of its own quadrant. No object or shadow may cross grid midpoint lines. No visible grid.\nEXACT ROW-MAJOR OBJECTS:\nTop left: a luminous antique golden chalice, frontal three-quarter view, engraved natural vine pattern, tiny sparkling edge highlights, round fluted foot. Upright, warm amber radiance only close to object.\nTop right: an elegant upright medieval longsword, pointed blade downward, silver blade and patinated bronze pommel and crossguard, a small peacock-teal jewel. Entire sword visible from pommel to tip, no blood.\nBottom left: a graceful black raven in flight, wings raised in a theatrical open V, bronze warm edge light, readable individual feathers and clear bird silhouette, facing left. One bird only, no branch.\nBottom right: a circular patinated bronze seal bearing a relief of a round council table inside a braided vine ring, viewed straight on, no numbers or letters, amber/teal reflective edges. This is a purely decorative thematic medallion, not a role badge.\nStyle: Original hand-painted vintage tabletop-component art, watercolor/gouache and fine copperplate engraving details, restrained antique print grain ON OBJECTS only. Tactile mature physical board-game craftsmanship, rich gold/copper/teal/burgundy palette, matches a vintage Arthurian illustrated card set. No cartoon, anime, photo, 3D-plastic, neon.\nConstraints: genuinely transparent alpha background around and between all four objects; no parchment, no checkerboard graphic, no floor, no rectangular backdrop, no cast shadow extending beyond own quadrant. No text, letters, numerals, captions, role labels, borders, logos, watermark or UI. Original designs. 2x2 separate centered cutouts, no single scene.",
+      "width": 1024,
+      "height": 1024,
+      "originalWidth": 1254,
+      "originalHeight": 1254,
+      "bytes": 207092,
+      "sha256": "1f455b15ed991333d8731842cf192625fc62f7939254c9c3ad15d1316c3e7fd0",
+      "originalSha256": "989e5887f415178fa7b867725701d53773a6d56b32d5d4c067ed2d9b7778ccf6",
+      "alphaExtrema": [0, 255],
+      "webpQuality": 88,
+      "toolElapsedMs": 40995,
+      "status": {
+        "generated": true,
+        "visuallyVerified": true,
+        "importedInUi": true,
+        "candidate": false
+      },
+      "visualVerification": "Four isolated relic objects with genuine RGBA alpha (0..255); chalice, full-length sword, raven and decorative council seal; normalized 2x2 with at least32px padding. Edges checked on parchment and dark teal previews; minor warm engraving edge grain retained.",
+      "atlasLayout": {
+        "columns": 2,
+        "rows": 2,
+        "tileWidth": 512,
+        "tileHeight": 512,
+        "indexOrder": "row-major, zero-based",
+        "objectIds": ["chalice", "sword", "raven", "council-seal"],
+        "sourceCrops": [
+          [60, 0, 590, 635],
+          [690, 0, 1230, 642],
+          [0, 637, 660, 1254],
+          [660, 643, 1254, 1254]
+        ]
+      },
+      "uiVerification": {
+        "referenceFile": "games/avalon/ui/Relic.tsx",
+        "styleFile": "games/avalon/ui/style.css",
+        "resultFiles": [
+          "artifacts/avalon/validation/source-layout-resources-fixed/results.json",
+          "artifacts/avalon/validation/source-success-first/results.json"
+        ],
+        "screenshots": [
+          "artifacts/avalon/validation/source-layout-resources-fixed/005-host-1920x1080.png",
+          "artifacts/avalon/validation/source-success-first/006-effect-success-quest-1.png",
+          "artifacts/avalon/validation/source-success-first/010-effect-success-assassination.png"
+        ],
+        "verification": "Actual hidden WinForms/WebView2 rendering shows decorative council seals, quest chalice and full-screen final sword with alpha retained. Dynamic animation telemetry is maintained in the cited successful native rendering results."
+      }
+    }
+  ],
+  "uiIntegrationVerification": {
+    "checkedAt": "2026-10-10",
+    "scope": "Source-build actual hidden WinForms/WebView2 with shipped Socket/SQLite service; screenshots visually inspected. Phone viewports and DPI are simulated. This metadata update does not claim final portable-ZIP, physical-phone/LAN or human-listening verification.",
+    "resultFiles": [
+      "artifacts/avalon/validation/source-layout-resources-fixed/results.json",
+      "artifacts/avalon/validation/source-success-first/results.json"
+    ],
+    "nativeExecutableSha256": "347493916c36a9430368df9c5c33ac2d56e1c5500e345ac300cd12e7b761e7d2",
+    "audioManifest": "assets/games/avalon/audio/manifest.json"
+  }
+}

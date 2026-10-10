@@ -1,0 +1,12 @@
+{
+  "name": "@tablemax/game-avalon",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": "./index.ts",
+  "dependencies": {
+    "react": "19.3.0",
+    "@tablemax/game-sdk": "workspace:*",
+    "@tablemax/web-host": "workspace:*"
+  }
+}

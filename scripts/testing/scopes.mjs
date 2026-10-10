@@ -7,6 +7,7 @@ export const gameIds = [
   'power-grid',
   'rummikub',
   'uno',
+  'avalon',
 ];
 const gameScopes = gameIds.map((id) => `game:${id}`);
 const validScopes = ['box', 'shared', 'tooling', ...gameScopes];
@@ -55,6 +56,8 @@ const unitScopes = {
   'apps/server/src/rummikub-worker.test.ts': ['game:rummikub'],
   'apps/server/src/uno.test.ts': ['game:uno'],
   'apps/server/src/uno-worker.test.ts': ['game:uno'],
+  'apps/server/src/avalon.test.ts': ['game:avalon'],
+  'apps/server/src/avalon-worker.test.ts': ['game:avalon'],
   'apps/server/src/save-storage-games.test.ts': [
     'game:pokemon-encounters',
     'game:modern-art',
@@ -91,6 +94,7 @@ const unitScopes = {
 // Unregistered scripts may only run with an explicitly chosen full scope.
 // Mixed matrices cannot be narrowed by adding an option they do not implement.
 const verificationScopes = {
+  'scripts/verify-avalon.mjs': ['game:avalon'],
   'scripts/verify-game-library.mjs': ['box'],
   'scripts/verify-box-repository.mjs': ['box'],
   'scripts/verify-box-notifications.mjs': ['box'],

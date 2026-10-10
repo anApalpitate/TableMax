@@ -9,7 +9,9 @@
 | [电力公司](power-grid/README.md)                           | `power-grid`，采用 `classic-germany-2009-project-1`；经典德国修正版 42 城／六区／83 边、42 张电厂、2–6 人与三档独立策略；出版依据与项目采用项见 [来源](power-grid/sources.md) |
 | [UNO](uno/README.md)                                       | `uno`，采用 `classic-108-g7942-1`；经典 108 牌、2–6 人、+4 质疑、UNO 抓漏与 500 分；完整本地交付与实际验证见 [构建归档](../archive/uno-2026-10-10.md)                         |
 
-宝可梦奇遇、现代艺术、电力公司与 UNO 四款开放游戏均已完成独立实现与适用便携验收。较早交付见 [历史验收](../archive/acceptance-2026-10-01-to-04.md)，接入过程从 [归档索引](../archive/README.md)进入。
+宝可梦奇遇、现代艺术、电力公司与 UNO 的已有独立实现与便携验收保持原结论；阿瓦隆实际交付状态见 [当前验收](../reference/acceptance.md)。较早交付见 [历史验收](../archive/acceptance-2026-10-01-to-04.md)，接入过程从 [归档索引](../archive/README.md)进入。
+
+[阿瓦隆](avalon/README.md)：`avalon`，2012 经典版，5–6 人；基础角色与派西维尔／莫甘娜组合，秘密投票、匿名任务与刺杀，复古三端及本地声画。
 
 [拉密经典版](rummikub/README.md)采用 `classic-2025-digital-v1`，2–4 人完整本地交付及证据见 [构建归档](../archive/rummikub-2026-10-09.md)；游戏库入口按最新要求标记为开发中并禁用，当前状态以 [验收](../reference/acceptance.md) 为准。
 

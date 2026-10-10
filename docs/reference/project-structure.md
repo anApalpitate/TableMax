@@ -1,5 +1,7 @@
 # 目录职责
 
+阿瓦隆模块在 `games/avalon/`，独立图像与音频在 `assets/games/avalon/`，经典版原始规则册与采用规格在 `docs/games/avalon/`；生成原图留 `artifacts/avalon-art/`，实际游戏验证留 `artifacts/avalon/validation/`，便携交付审计留 `artifacts/maintenance/v1.0.6/avalon/`。
+
 本页说明当前文件归属与材料边界；运行与构建机制在[开发环境](development.md)，交付及GitHub发布流程在[Release流程](release.md)，代码依赖与封装在[工程结构](architecture.md)维护。
 
 ## 已创建结构
