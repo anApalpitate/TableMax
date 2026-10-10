@@ -227,39 +227,39 @@ node --test tools/test/runner/scopes.test.mjs
 
 宝可梦 2026-10-05 声画／手机专项：`node tools/test/games/pokemon-encounters/verify-pokemon-polish.mjs --evidence=名称` 用真实 PokemonScreen 与合法规则状态检查 320–430px、横屏、顶栏及选位栏；`node tools/test/games/pokemon-encounters/verify-pokemon-audio.mjs --evidence=名称` 在隐藏 WebView2 检查八音源解码、固定双槽、保存事件映射和硬币落定同步。后者 fixture 的播放权限桥接只证明表现层，实际公共屏优先与交接由 `pnpm verify:experience --portable` 核验。既有 `pnpm verify:effects --evidence=名称` 已扩展能力短全屏、局部路径、共同赢家、减少动态及私看边界。三种专项都不能代替最终 ZIP、真实网络或人耳试听。
 
-| 命令                                                        | 行为                                                                                                                                                      |
-| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                                                  | 先构建，启动 Vite、原生壳与包内 Node 独立服务；前端热更新，服务与桌面源码修改后重启该命令                                                                 |
-| `pnpm start`                                                | 运行已有 `build/desktop`；先执行 `pnpm build`                                                                                                             |
-| `pnpm typecheck`                                            | 严格 TypeScript 检查，不生成文件                                                                                                                          |
-| `pnpm lint`                                                 | ESLint 与 React Hooks 规则检查                                                                                                                            |
-| `pnpm format:check` / `pnpm format`                         | 检查格式／按项目配置格式化                                                                                                                                |
-| `pnpm test -- --scope=<范围>`                               | 先按盒子／对应游戏／实际共享依赖筛选，再执行所选Vitest测试；可追加准确文件或`--list`                                                                      |
-| `pnpm check`                                                | 全工程聚合入口，仅适合明确全工程核验；测试范围须通过`TABLEMAX_TEST_SCOPE`设置，局部改动分别执行适用检查                                                   |
-| `pnpm build`                                                | 构建网页、独立服务、游戏模块与 net48 原生壳，收集到 `build/desktop`                                                                                       |
-| `pnpm verify:desktop`                                       | 隐藏窗口验证开发构建，包括真实大厅、宝可梦六人混合整局、回退、两次启动恢复、独立进程与退出协调                                                            |
-| `pnpm verify:modern-art`                                    | 隐藏原生窗口执行现代艺术五席四轮、五类拍卖与真实手机控件，验证保密、回退／重启及两游戏切换；加 `--portable` 验证最终 ZIP                                  |
-| `pnpm verify:power-grid --seats=3 --evidence=source-3`      | 隐藏原生桌面与各自手机、真实 Worker 的电力公司混合整局；`--seats=6` 覆盖六席，`--portable` 验最终同一 ZIP                                                 |
-| `pnpm verify:power-grid-ui --evidence=fixture`              | 独立实际 React 授权 fixture 的短屏至 4K、320–390 手机、地图操作与保存声音；不替代原生 DPI 或真实整局                                                      |
-| `pnpm verify:party`                                         | 隐藏窗口验证加入丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP                                   |
-| `pnpm verify:room-levels`                                   | 隐藏窗口验证手机各自入座、电脑仅管理／展示、六席围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证当前 ZIP                          |
-| `node tools/test/box/verify-box-avatars.mjs`                       | 隐藏窗口核验 26 个本地头像、占用／并发／身份恢复与游戏介绍尺寸；先用 `--compact-only` 检查 360×640 首屏，`--portable` 对应最终 ZIP，`--run=名称` 分开证据 |
-| `pnpm verify:presentation`                                  | 隐藏窗口验证六真人、游玩／测试时序、浮窗焦点／结束、公开行动及星标；可加 `--portable` 验证当前 ZIP                                                        |
-| `pnpm verify:display`                                       | 隐藏窗口验证电脑 720p／1080p／1440p／4K、独立缩放、显示浮窗、设置恢复与 DPI；可加 `--portable` 验证最终 ZIP，`--box-debug` 独立保存本次盒子证据           |
-| `node tools/test/box/verify-box-debug.mjs`                         | 回环服务、隐藏真实 WebView2 检查上传裁剪、房主座位操作、原子切换、三游戏头像、320–390px 手机与电脑设置；`--run=名称` 分开证据，`--portable` 检查最终 ZIP  |
-| `pnpm verify:experience`                                    | 隐藏窗口验证游戏库按需加载、管理员指定手机房主、并发初始翻牌和准备、连接／显示控件及声音归属；可加 `--portable` 验证当前 ZIP                              |
-| `pnpm verify:effects`                                       | 后台 WebView2 用实际游戏组件和授权投影 fixture 验证主题、同币面、暗牌交换、零分列、共同赢家和减少动态；不冒充自然对局                                     |
-| `pnpm verify:memory`                                        | 独立 Node 比较存档复制开销，再用后台 WebView2 执行 20 轮游戏切换的 heap／DOM 回归；可加 `--copy-only` 或 `--desktop-only`                                 |
+| 命令                                                                   | 行为                                                                                                                                                      |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                                                             | 先构建，启动 Vite、原生壳与包内 Node 独立服务；前端热更新，服务与桌面源码修改后重启该命令                                                                 |
+| `pnpm start`                                                           | 运行已有 `build/desktop`；先执行 `pnpm build`                                                                                                             |
+| `pnpm typecheck`                                                       | 严格 TypeScript 检查，不生成文件                                                                                                                          |
+| `pnpm lint`                                                            | ESLint 与 React Hooks 规则检查                                                                                                                            |
+| `pnpm format:check` / `pnpm format`                                    | 检查格式／按项目配置格式化                                                                                                                                |
+| `pnpm test -- --scope=<范围>`                                          | 先按盒子／对应游戏／实际共享依赖筛选，再执行所选Vitest测试；可追加准确文件或`--list`                                                                      |
+| `pnpm check`                                                           | 全工程聚合入口，仅适合明确全工程核验；测试范围须通过`TABLEMAX_TEST_SCOPE`设置，局部改动分别执行适用检查                                                   |
+| `pnpm build`                                                           | 构建网页、独立服务、游戏模块与 net48 原生壳，收集到 `build/desktop`                                                                                       |
+| `pnpm verify:desktop`                                                  | 隐藏窗口验证开发构建，包括真实大厅、宝可梦六人混合整局、回退、两次启动恢复、独立进程与退出协调                                                            |
+| `pnpm verify:modern-art`                                               | 隐藏原生窗口执行现代艺术五席四轮、五类拍卖与真实手机控件，验证保密、回退／重启及两游戏切换；加 `--portable` 验证最终 ZIP                                  |
+| `pnpm verify:power-grid --seats=3 --evidence=source-3`                 | 隐藏原生桌面与各自手机、真实 Worker 的电力公司混合整局；`--seats=6` 覆盖六席，`--portable` 验最终同一 ZIP                                                 |
+| `pnpm verify:power-grid-ui --evidence=fixture`                         | 独立实际 React 授权 fixture 的短屏至 4K、320–390 手机、地图操作与保存声音；不替代原生 DPI 或真实整局                                                      |
+| `pnpm verify:party`                                                    | 隐藏窗口验证加入丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP                                   |
+| `pnpm verify:room-levels`                                              | 隐藏窗口验证手机各自入座、电脑仅管理／展示、六席围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证当前 ZIP                          |
+| `node tools/test/box/verify-box-avatars.mjs`                           | 隐藏窗口核验 26 个本地头像、占用／并发／身份恢复与游戏介绍尺寸；先用 `--compact-only` 检查 360×640 首屏，`--portable` 对应最终 ZIP，`--run=名称` 分开证据 |
+| `pnpm verify:presentation`                                             | 隐藏窗口验证六真人、游玩／测试时序、浮窗焦点／结束、公开行动及星标；可加 `--portable` 验证当前 ZIP                                                        |
+| `pnpm verify:display`                                                  | 隐藏窗口验证电脑 720p／1080p／1440p／4K、独立缩放、显示浮窗、设置恢复与 DPI；可加 `--portable` 验证最终 ZIP，`--box-debug` 独立保存本次盒子证据           |
+| `node tools/test/box/verify-box-debug.mjs`                             | 回环服务、隐藏真实 WebView2 检查上传裁剪、房主座位操作、原子切换、三游戏头像、320–390px 手机与电脑设置；`--run=名称` 分开证据，`--portable` 检查最终 ZIP  |
+| `pnpm verify:experience`                                               | 隐藏窗口验证游戏库按需加载、管理员指定手机房主、并发初始翻牌和准备、连接／显示控件及声音归属；可加 `--portable` 验证当前 ZIP                              |
+| `pnpm verify:effects`                                                  | 后台 WebView2 用实际游戏组件和授权投影 fixture 验证主题、同币面、暗牌交换、零分列、共同赢家和减少动态；不冒充自然对局                                     |
+| `pnpm verify:memory`                                                   | 独立 Node 比较存档复制开销，再用后台 WebView2 执行 20 轮游戏切换的 heap／DOM 回归；可加 `--copy-only` 或 `--desktop-only`                                 |
 | `node tools/test/desktop/verify-native-safety.mjs --evidence=<独立名>` | 检查桥接拒绝、重复启动、缺运行时、生产 CDP 关闭及服务／父进程崩溃清理                                                                                     |
-| `pnpm verify:game-ui`                                       | 正式能力／2–6 人保存 fixture 的十五组 UI、多尺寸触控／隐私、已保存动效和声音                                                                              |
-| `pnpm verify:cards`                                         | 正式六人保存状态的全部 16 类卡面及公共／手机十三种布局、图像／文字／分区几何                                                                              |
-| `pnpm package:win`                                          | 构建 Windows x64 运行 ZIP 和逐文件清单；解压目录只作打包验证，本地不导出源码包                                                                            |
-| `pnpm verify:portable`                                      | 将最终 ZIP 解压到新的项目临时目录，对其中的 `TableMax.exe` 运行同一跨层验证，子进程 PATH 不含 Node／开发工具目录                                          |
-| `pnpm prototype:dev`                                        | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                                                               |
-| `pnpm prototype:build`                                      | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/`                                                                                              |
-| `pnpm prototype:preview`                                    | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建                                                                             |
-| `pnpm prototype:verify:game`                                | 对游戏原型执行 Playwright／后台 WebView2 能力、角色、恢复、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/`                                 |
-| `pnpm prototype:verify`                                     | 对已有原型构建运行 Playwright／后台 WebView2 走查，生成 JSON 和截图；先执行原型与桌面构建                                                                 |
+| `pnpm verify:game-ui`                                                  | 正式能力／2–6 人保存 fixture 的十五组 UI、多尺寸触控／隐私、已保存动效和声音                                                                              |
+| `pnpm verify:cards`                                                    | 正式六人保存状态的全部 16 类卡面及公共／手机十三种布局、图像／文字／分区几何                                                                              |
+| `pnpm package:win`                                                     | 构建 Windows x64 运行 ZIP 和逐文件清单；解压目录只作打包验证，本地不导出源码包                                                                            |
+| `pnpm verify:portable`                                                 | 将最终 ZIP 解压到新的项目临时目录，对其中的 `TableMax.exe` 运行同一跨层验证，子进程 PATH 不含 Node／开发工具目录                                          |
+| `pnpm prototype:dev`                                                   | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                                                               |
+| `pnpm prototype:build`                                                 | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/`                                                                                              |
+| `pnpm prototype:preview`                                               | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建                                                                             |
+| `pnpm prototype:verify:game`                                           | 对游戏原型执行 Playwright／后台 WebView2 能力、角色、恢复、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/`                                 |
+| `pnpm prototype:verify`                                                | 对已有原型构建运行 Playwright／后台 WebView2 走查，生成 JSON 和截图；先执行原型与桌面构建                                                                 |
 
 服务 CJS 构建使用 esbuild `minify`，随后执行[服务载荷无损压缩](#服务载荷无损压缩2026-10-06)；规则和策略 CJS 使用 `minifyWhitespace`，源码及规则／状态／策略版本保留，`bot-worker.cjs` 保持原构建选项。该构建配置不改变游戏规则，也不以源码或预估字节代替最终 ZIP／实际解压双体积核验；当前包与清理结果见验收记录。
 
@@ -756,4 +756,6 @@ SQLite流式扫描须让 `StatementSync` 强引用保持至迭代完成；包内
 
 ## 工具分类与旧路径迁移（2026-10-10）
 
-现有操作工具按用途迁入 `tools/`，总入口见[工具索引](../../tools/README.md)。pnpm 命令名和根维护入口保持不变，直接调用改用新路径；不保留 `scripts/` 转发。Node／Python 从项目根目录运行，错误 cwd 在写入前拒绝。正式存档编解码放在服务源码，工具反向依赖，不进入运行包。测试范围、历史统计及产物位置沿用原契约；唯一路径映射保持移动前后的历史身份连续，不重写原统计和证据。构建输入路径迁移会使相关首次缓存失效，后续相同输入复用；旧冻结快照不改写。清理、组装、发布及压缩的进程保护同步识别新路径，协调者仍限明确登记入口。
+现有操作工具按用途迁入 `tools/`，总入口见[工具索引](../../tools/README.md)。pnpm 命令名和根维护入口保持不变，直接调用改用新路径；不保留 `scripts/` 转发。Node／Python 从项目根目录运行，错误 cwd 在写入前拒绝。存档编解码归服务源码并随服务打包，工具反向依赖；开发工具不进入运行包。测试范围、历史统计及产物位置沿用原契约；唯一路径映射保持移动前后的历史身份连续，不重写原统计和证据。构建输入路径迁移会使相关首次缓存失效，后续相同输入复用；旧冻结快照不改写。清理、组装、发布及压缩的进程保护同步识别新路径，协调者仍限明确登记入口。
+
+迁移验收见[汇总审计](../../artifacts/maintenance/v1.0.6/tools-migration/results.json)：适用工具回归、存档读取／恢复、缓存损坏与冻结输入拒绝、静音原生两人样本及自动收尾通过。冷构建44.125秒，相同输入第二次14.554秒、34/34缓存命中；最终源码另经实际构建和原生样本验证。全局类型检查迁前迁后均为317项既有错误，新增0项，尚不能视为全局类型检查通过。当前ZIP哈希不变，未递增版本或重新交付。
