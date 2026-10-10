@@ -1,5 +1,9 @@
 # 项目瘦身方案与执行记录
 
+## 盒子12席显示兼容收尾（2026-10-10）
+
+本轮93组源码布局检查、结束操作与人数筛选通过，全部构建／浏览器进程已退出。[维护实测](../../artifacts/maintenance/v1.0.6/box-seats/maintenance-final.log)为 **10,331,898,891逻辑字节（9.622GiB）**，低于10GiB，`Maintain-Project.ps1 -Apply`追加删除0，不扩大清理。三份已结束源码夹具约6MB经精确预览核对，仍保留默认30分钟近期保护；首次手动清理因沙箱CIM进程查询限制未执行删除，之后按默认维护入口收尾。当前ZIP／清单、素材、规则资料、存档、失败报告和8张当前源码截图保留，未重新打包。
+
 ## 阿瓦隆制作收尾（2026-10-10）
 
 最终阿瓦隆ZIP的五人／六人原生验证、单图审查、冻结源码与实际包审计通过，全部本轮构建／验证／审计进程退出后，先沿既有入口预览，再精确退役4个本次打包目录 **953,328,584字节** 和17个已结束浏览器／实际解压副本 **858,501,525字节**，合计 **1,811,830,109字节**。手动精确范围采用已确认结束候选的MinimumAgeMinutes=0，路径、活动进程、链接、目录指纹与当前ZIP保护均保留；自动维护仍采用30分钟保护。实际范围、逐项结果与原清单见 [本轮收尾](../../artifacts/maintenance/v1.0.6/avalon/cleanup-result.json)，[预览记录](../../artifacts/maintenance/v1.0.6/avalon/cleanup-preview-summary.json)、[release清单](../../artifacts/maintenance/local-cleanup-20261010-063202-412-releases/cleanup.json)和 [临时副本清单](../../artifacts/maintenance/local-cleanup-20261010-063231-796-intermediates/cleanup.json)。

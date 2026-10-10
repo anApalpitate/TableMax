@@ -46,6 +46,10 @@ export function GameLibrary({
     };
   });
   const tags = availableLibraryTags(games);
+  const maximumPlayers = Math.min(
+    12,
+    Math.max(2, ...games.map((game) => game.max)),
+  );
   const visible = filterLibraryGames(games, { query, tag, players });
   const filtered = Boolean(query || tag !== null || players !== null);
   const resetFilters = () => {
@@ -110,11 +114,13 @@ export function GameLibrary({
               }
             >
               <option value="">不限</option>
-              {[2, 3, 4, 5, 6].map((count) => (
-                <option key={count} value={count}>
-                  {count} 人
-                </option>
-              ))}
+              {Array.from({ length: maximumPlayers - 1 }, (_, i) => i + 2).map(
+                (count) => (
+                  <option key={count} value={count}>
+                    {count} 人
+                  </option>
+                ),
+              )}
             </select>
           </label>
         </div>

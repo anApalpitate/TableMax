@@ -97,6 +97,7 @@ const verificationScopes = {
   'scripts/verify-avalon.mjs': ['game:avalon'],
   'scripts/verify-game-library.mjs': ['box'],
   'scripts/verify-box-repository.mjs': ['box'],
+  'scripts/verify-box-seats.mjs': ['box'],
   'scripts/verify-box-notifications.mjs': ['box'],
   'scripts/verify-speech-panel.mjs': ['box', 'shared'],
   'scripts/verify-player-interaction-audio.mjs': ['box', 'shared'],

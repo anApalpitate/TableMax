@@ -492,3 +492,148 @@
     margin-bottom: -3px;
   }
 }
+
+/* Larger rooms use normal flow. Specificity keeps ring overrides from restoring
+   fixed heights, seat offsets or the hidden player status after CSS loads. */
+.room-table.room-table--expanded[data-layout='grid'][data-capacity] {
+  container-name: room-seats;
+  container-type: inline-size;
+  display: block;
+  min-height: 0;
+  max-width: 1100px;
+  padding: 12px;
+  overflow: visible;
+}
+
+.room-table.room-table--expanded[data-layout='grid'] .room-table__felt {
+  position: relative;
+  visibility: visible;
+  inset: auto;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  margin-bottom: 14px;
+  padding: 12px;
+  gap: 4px;
+  border-width: 4px;
+  border-radius: 16px;
+  box-shadow: inset 0 0 0 1px #c4ab7a;
+}
+
+.room-table.room-table--expanded[data-layout='grid'] .room-table__felt::before {
+  inset: 5px;
+  border-radius: 11px;
+}
+
+.room-table.room-table--expanded[data-layout='grid'] .room-table__felt strong {
+  visibility: visible;
+  max-width: 100%;
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.35;
+}
+
+.room-table.room-table--expanded[data-layout='grid'] .room-table__table-label {
+  display: block;
+  max-width: 100%;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #f4f0d7;
+}
+
+.room-table.room-table--expanded[data-layout='grid'] .room-table__logo,
+.room-table.room-table--expanded[data-layout='grid'] .room-table__cards {
+  display: none;
+}
+
+.room-table--expanded .room-table__seats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 12px;
+}
+
+.room-table.room-table--expanded[data-layout='grid'] .room-table__seat {
+  position: relative;
+  inset: auto;
+  width: auto;
+  min-width: 0;
+  height: auto;
+  min-height: 176px;
+  gap: 4px;
+  padding: 10px 8px;
+  border-radius: 16px;
+}
+
+.room-table.room-table--expanded[data-layout='grid'] .room-table__avatar {
+  width: 44px;
+  height: 44px;
+}
+
+.room-table.room-table--expanded[data-layout='grid'] .room-table__seat-number {
+  top: 8px;
+  left: 8px;
+  width: 28px;
+  height: 28px;
+  font-size: 16px;
+}
+
+.room-table.room-table--expanded[data-layout='grid'] .room-table__name {
+  display: block;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  margin: 2px 0;
+  min-height: 0;
+  font-size: 18px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.room-table.room-table--expanded[data-layout='grid'] .room-table__identity {
+  flex-wrap: wrap;
+  margin-top: 0;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.room-table.room-table--expanded[data-layout='grid'] .room-table__ready {
+  margin-top: 0;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.room-table.room-table--expanded[data-layout='grid']
+  .room-table__seat--empty
+  h3 {
+  font-size: 18px;
+}
+
+.room-table.room-table--expanded[data-layout='grid']
+  .room-table__seat--empty
+  p {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.room-table.room-table--expanded[data-layout='grid'] .room-table__empty-avatar {
+  transform: none;
+  margin-bottom: 0;
+}
+
+@container room-seats (max-width: 249px) {
+  .room-table--expanded .room-table__seats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container room-seats (min-width: 620px) {
+  .room-table--expanded .room-table__seats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container room-seats (min-width: 860px) {
+  .room-table--expanded .room-table__seats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

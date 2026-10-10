@@ -152,6 +152,7 @@
     "confirmRemoveBot": "移除 {player}？这名人机将离开牌桌。"
   },
   "management": {
+    "resumeJoining": "恢复加入",
     "confirmEnd": "当前游戏将立即结束，所有玩家停止行动。",
     "endEffect": "已保存状态和历史保留。结束后可原班重新准备，选择其他游戏，或回退后恢复。",
     "confirmClear": "所有玩家身份和人机座位都将移除，朋友们需要重新进入并入座。当前牌桌状态与有效历史将清空。",
