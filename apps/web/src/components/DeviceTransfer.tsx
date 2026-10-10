@@ -2,6 +2,7 @@ import { useId, useState } from 'react';
 import type { RoomSession } from '../session/useRoomSession';
 import type { DeviceTransferSession } from '../session/useDeviceTransfer';
 import { ConfirmationDialog } from './ConfirmationDialog';
+import { feedbackText } from '../content/feedback';
 import './device-transfer.css';
 
 export function DeviceTransfer({
@@ -18,9 +19,7 @@ export function DeviceTransfer({
   const selected = transfer.seatId ?? selectedId;
   return (
     <section className="device-transfer" aria-label="换手机进入">
-      <p className="device-transfer__hint">
-        接续原座位，管理员批准后原设备退出。
-      </p>
+      <p className="device-transfer__hint">{feedbackText('transfer.hint')}</p>
       <div className="device-transfer__field">
         <label htmlFor={seatInputId}>原座位</label>
         <select
@@ -46,13 +45,13 @@ export function DeviceTransfer({
         </select>
         {!seats.length && (
           <p className="device-transfer__status" role="status">
-            暂无可接续的真人座位。
+            {feedbackText('transfer.noSeats')}
           </p>
         )}
       </div>
       {transfer.state?.status === 'pending' && (
         <div className="device-transfer__code">
-          <span>向管理员核对以下号码</span>
+          <span>{feedbackText('transfer.verificationHint')}</span>
           <strong>{transfer.state.verificationCode}</strong>
         </div>
       )}
@@ -107,18 +106,27 @@ export function DeviceTransferRequests({ session }: { session: RoomSession }) {
   const selected = requests.find(
     (request) => request.requestId === confirmation,
   );
+  const verificationCopy = feedbackText('transfer.confirmVerifyCode').split(
+    '{code}',
+  );
   return (
     <section className="device-transfer-requests" aria-label="换机申请">
       <div className="device-transfer-requests__heading">
         <h3>换机申请</h3>
         {requests.length > 0 && (
-          <span aria-label={`${requests.length} 个待批准申请`}>
+          <span
+            aria-label={feedbackText('transfer.pendingRequests', {
+              count: requests.length,
+            })}
+          >
             {requests.length}
           </span>
         )}
       </div>
       {!requests.length && (
-        <p className="device-transfer-requests__empty">暂无等待批准的申请。</p>
+        <p className="device-transfer-requests__empty">
+          {feedbackText('transfer.noRequests')}
+        </p>
       )}
       {requests.map((request) => {
         const seat = session.view!.seats.find(
@@ -173,13 +181,13 @@ export function DeviceTransferRequests({ session }: { session: RoomSession }) {
           }}
         >
           <p>
-            请与新设备核对{' '}
+            {verificationCopy[0]}
             <strong className="device-transfer-confirm-code">
               {selected.verificationCode}
             </strong>
-            。
+            {verificationCopy[1]}
           </p>
-          <p>批准后原设备立即失效，座位和游戏数据保持。</p>
+          <p>{feedbackText('transfer.approvalEffect')}</p>
         </ConfirmationDialog>
       )}
     </section>

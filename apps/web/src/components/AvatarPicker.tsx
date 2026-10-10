@@ -1,5 +1,6 @@
 import type { AvatarId, RoomView } from '@tablemax/protocol';
 import { avatarChoices } from '../assets/avatars';
+import { feedbackText } from '../content/feedback';
 import './box-overlays.css';
 
 export function AvatarPicker({
@@ -20,7 +21,7 @@ export function AvatarPicker({
   return (
     <section className="avatar-picker">
       <p className="avatar-picker__intro">
-        选个喜欢的伙伴，入座后就是你的专属头像。
+        {feedbackText('avatar.pickerHint')}
       </p>
       {message && (
         <p className="avatar-picker__message" role="status">
@@ -40,7 +41,18 @@ export function AvatarPicker({
               data-avatar-id={avatar.id}
               data-occupied={occupied}
               aria-pressed={selectedId === avatar.id}
-              aria-label={`${avatar.name}${occupied ? `，已被选择，${owner!.name}` : current ? '，当前头像' : ''}`}
+              aria-label={
+                occupied
+                  ? feedbackText('avatar.occupiedDescription', {
+                      avatar: avatar.name,
+                      owner: owner!.name,
+                    })
+                  : current
+                    ? feedbackText('avatar.currentDescription', {
+                        avatar: avatar.name,
+                      })
+                    : avatar.name
+              }
               disabled={disabled || occupied || !avatar.src}
               onClick={() => onSelect(avatar.id)}
             >
@@ -52,13 +64,21 @@ export function AvatarPicker({
               />
               <strong>{avatar.name}</strong>
               {occupied ? (
-                <span className="avatar-choice__claimed">已被选择</span>
+                <span className="avatar-choice__claimed">
+                  {feedbackText('avatar.claimed')}
+                </span>
               ) : current ? (
-                <span className="avatar-choice__current">当前头像</span>
+                <span className="avatar-choice__current">
+                  {feedbackText('avatar.current')}
+                </span>
               ) : selectedId === avatar.id ? (
-                <span className="avatar-choice__current">已选中</span>
+                <span className="avatar-choice__current">
+                  {feedbackText('avatar.selected')}
+                </span>
               ) : (
-                <span className="avatar-choice__available">可选择</span>
+                <span className="avatar-choice__available">
+                  {feedbackText('avatar.available')}
+                </span>
               )}
             </button>
           );

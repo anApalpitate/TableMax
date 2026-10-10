@@ -281,6 +281,14 @@ node --test scripts/testing/scopes.test.mjs
 
 Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 并发曾使既有 Socket 和宝可梦整局测试超过原来的 5 秒期限。保留原超时与断言，限制本项目测试并发；不提高测试超时掩盖故障，也不修改全局工具环境。
 
+## 提示文案与游戏库维护
+
+[`apps/web/src/content/feedback.zh-CN.json`](../../apps/web/src/content/feedback.zh-CN.json) 集中盒子入座、保存、连接、上传、换机、显示、准备、计时、座位管理及操作确认的短文案。手动维护只改字符串值，保留组名、键名和 `{game}`、`{player}`、`{code}`、`{seconds}`、`{count}`、`{step}` 等占位符；源码修改后重新构建运行包生效。`feedbackText` 插值按普通文字渲染，`feedbackReason` 映射服务原因码，`feedbackKind` 分类保证改中文文字不改变状态行为。完整帮助、游戏规则与纯控件名称不在此文件范围。
+
+游戏分类和搜索别名分别放在各 `games/<id>/game-module.json` 的 `library.tags`、`library.searchTerms`，不需要改盒子名单；名称、简介、分类、别名、版本名和 ID 都可检索，多个词按共同匹配处理，支持全角及大小写归一。精确单测入口：`node scripts/test-scoped.mjs --scope=box apps/web/src/components/game-library/filter.test.ts`（22项）；文案分类测试使用 `--scope=box,shared apps/web/src/content/feedback.test.ts`（8项）。
+
+`scripts/verify-game-library.mjs` 登记为box，通过源代码 BoxScreen、模拟会话及隐藏静音 Edge 检查组合筛选、无结果重置、权限／容量限制、进行中切换确认、GitHub 新窗口与320px至4K布局。本轮证据在 `artifacts/maintenance/v1.0.6/game-library/`；盒子通知的文案分类回归在同版本 `box-notifications/`。它们是源码渲染与模拟回复验证，不代表物理设备、局域网或便携包验收。原生 GitHub 精确白名单、可信顶层点击及失败回执由 `scripts/verify-box-repository.mjs --native-fixture` 单独检查；独立编译不覆盖共享桌面构建输出。
+
 ## 图文规则维护与验证
 
 三款游戏均已采用原创图解：现代艺术九张逻辑场景，电力公司六组代码图解与两项透明插画，宝可梦九张主题场景与八章代码图解。准确规则文字、数字和箭头由代码排版；旧截图捕获命令仅用于历史 UI 证据，不再生产当前规则配图。新素材提示词、原图、导出参数与哈希见各游戏资源清单，[任务索引](../tasks/README.md#原创规则图解重做已完成)保存完成入口；原素材与规则参考资料保留，maintenance 中历史运行截图按下述手动全量退役入口清理。

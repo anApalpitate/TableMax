@@ -6,6 +6,7 @@ import type {
 import { OverlayPanel } from './OverlayPanel';
 import type { ScreenRole } from '../navigation';
 import { useInteractionPreference } from '../interactions/useInteractionPreference';
+import { feedbackText } from '../content/feedback';
 import './display-settings.css';
 
 const resolutions = [
@@ -42,7 +43,7 @@ export function DisplaySettings({
         if (active) setSnapshot(value);
       },
       () => {
-        if (active) setError('暂时无法读取显示设置，请重新打开面板重试。');
+        if (active) setError(feedbackText('display.initialReadFailed'));
       },
     );
     return () => {
@@ -56,7 +57,7 @@ export function DisplaySettings({
     try {
       setSnapshot(await bridge!.update(preferences));
     } catch {
-      setError('显示设置未保存，请重试。');
+      setError(feedbackText('display.saveFailed'));
     } finally {
       setBusy(false);
     }
@@ -76,7 +77,7 @@ export function DisplaySettings({
                 setSnapshot(value);
                 setError('');
               },
-              () => setError('暂时无法读取显示设置，请稍后重试。'),
+              () => setError(feedbackText('display.readFailed')),
             );
         }}
       >
@@ -114,8 +115,8 @@ export function DisplaySettings({
             </button>
             <p className="display-settings-hint">
               {blocked
-                ? '本端互动动画、发言和声音已关闭。'
-                : '本端显示互动动画、发言并播放声音。'}
+                ? feedbackText('display.interactionDisabled')
+                : feedbackText('display.interactionEnabled')}
             </p>
           </div>
           {error && (
@@ -170,7 +171,7 @@ export function DisplaySettings({
                   ))}
                 </select>
                 <p className="display-settings-hint">
-                  自动随窗口适配；预设仅调整界面大小。
+                  {feedbackText('display.autoHint')}
                 </p>
               </div>
               <div className="display-settings-choice">
@@ -195,7 +196,7 @@ export function DisplaySettings({
               </div>
               {snapshot.limited && (
                 <p className="display-settings-hint" role="status">
-                  窗口空间有限，已限制放大。放大窗口后可继续调整。
+                  {feedbackText('display.limited')}
                 </p>
               )}
               <div className="dialog-actions">
@@ -211,11 +212,14 @@ export function DisplaySettings({
                 </button>
               </div>
               <p className="display-settings-hint" role="status">
-                {busy ? '正在保存…' : '当前窗口独立保存，即时生效。'}
+                {busy
+                  ? feedbackText('common.saving')
+                  : feedbackText('display.saved')}
               </p>
             </div>
           ) : (
-            bridge && !error && <p role="status">正在读取显示设置…</p>
+            bridge &&
+            !error && <p role="status">{feedbackText('display.reading')}</p>
           )}
         </OverlayPanel>
       )}

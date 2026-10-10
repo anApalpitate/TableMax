@@ -28,17 +28,18 @@ import {useAdmission} from ${JSON.stringify(resolve('apps/web/src/session/useAdm
 import {Notifications} from ${JSON.stringify(resolve('apps/web/src/components/notifications/Notifications.tsx'))};
 import {useNotifications} from ${JSON.stringify(resolve('apps/web/src/components/notifications/context.ts'))};
 import {OverlayPanel} from ${JSON.stringify(resolve('apps/web/src/components/OverlayPanel.tsx'))};
+import {feedbackKind} from ${JSON.stringify(resolve('apps/web/src/content/feedback.ts'))};
 import ${JSON.stringify(resolve('apps/web/src/styles.css'))};
 import ${JSON.stringify(resolve('apps/web/src/screens/box-screen.css'))};
 const root=createRoot(document.getElementById('root'));
-const messages={'room-full':'牌桌已满，请电脑管理员检查是否有离线的重复座位。','joining-closed':'牌桌已关闭入座或已经开始，请联系电脑管理员。'};
 const game={id:'pokemon-encounters',name:'宝可梦奇遇：皮卡丘和朋友们',min:2,max:6};
 const base={revision:12,instanceId:'fixture',branch:0,status:'lobby',game,catalog:[game],seats:[],ownerSeatId:null,joinOpen:true,gameView:null,history:[],lifecycleActions:[],playMode:'play',decisionClock:null,capabilities:{manage:false}};
 function Box(){
  const [message,setMessage]=useState(''),[name,setName]=useState('朋友'),[credential,setCredential]=useState(''),[patch,setPatch]=useState({});
- const admission=useAdmission(!credential,setCredential,setMessage,messages);
+ const admission=useAdmission(!credential,setCredential,setMessage);
  window.patchBox=setPatch;
  const session={role:'player',view:base,self:null,isHost:false,canControl:false,canManageSeats:false,locked:admission.busy,busy:admission.busy,connected:true,credential,name,setName,message,errorId:'',admissionPending:admission.pending,admissionAvatarId:admission.avatarId,admissionAvatarImage:admission.avatarImage,awaitingConfirmation:false,join:(id,image)=>admission.join(name,id,image),retryAdmission:admission.retry,command(){},retry(){},setPlayerCredential:setCredential,...patch};
+ session.messageKind=feedbackKind(session.message);
  return <BoxScreen session={session}/>;
 }
 function Probe(){

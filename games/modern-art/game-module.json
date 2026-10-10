@@ -3,6 +3,10 @@
   "id": "modern-art",
   "order": 1,
   "internal": false,
+  "library": {
+    "tags": ["拍卖", "经济", "策略"],
+    "searchTerms": ["Modern Art", "艺术", "竞价"]
+  },
   "catalog": {
     "id": "modern-art",
     "name": "现代艺术",

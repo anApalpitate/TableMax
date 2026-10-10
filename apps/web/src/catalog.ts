@@ -4,7 +4,7 @@ const definitions = import.meta.glob<ModuleManifest>(
   { eager: true, import: 'default' },
 );
 const covers = import.meta.glob<string>(
-  '../../../assets/games/*/cover-v1.webp',
+  '../../../assets/games/*/cover-*.webp',
   { eager: true, query: '?url', import: 'default' },
 );
 export const moduleCatalog: ModuleManifest[] = Object.values(definitions)

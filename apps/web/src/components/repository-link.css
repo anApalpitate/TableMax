@@ -1,0 +1,21 @@
+.box-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+}
+
+.box-repository-link {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #365c51;
+  background: #e9eee5;
+}
+
+.box-repository-link:hover,
+.box-repository-link:focus-visible {
+  color: #163d31;
+  background: #d9e6d5;
+}

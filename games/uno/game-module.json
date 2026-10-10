@@ -4,6 +4,10 @@
   "order": 4,
   "internal": false,
   "development": false,
+  "library": {
+    "tags": ["卡牌", "聚会", "家庭"],
+    "searchTerms": ["UNO", "乌诺", "四色"]
+  },
   "catalog": {
     "id": "uno",
     "name": "UNO",

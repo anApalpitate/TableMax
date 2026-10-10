@@ -3,6 +3,10 @@
   "id": "template",
   "order": 3,
   "internal": true,
+  "library": {
+    "tags": ["验证"],
+    "searchTerms": ["幸运骰子", "平台验证"]
+  },
   "catalog": {
     "id": "template",
     "name": "幸运骰子 · 平台验证游戏",

@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import type { RoomSession } from '../session/useRoomSession';
 import { OverlayPanel } from './OverlayPanel';
 import { ConfirmationDialog } from './ConfirmationDialog';
+import { feedbackText } from '../content/feedback';
 import './seat-settings.css';
 
 const difficultyNames: Record<BotDifficulty, string> = {
@@ -124,7 +125,8 @@ export function SeatSettings({ session }: { session: RoomSession }) {
                 className="secondary seat-settings-rename"
                 disabled={locked}
                 onClick={() => {
-                  if (playing) setHint('请先结束游戏，再修改人机名称。');
+                  if (playing)
+                    setHint(feedbackText('seats.renameWhilePlaying'));
                   else setOperation('rename');
                 }}
               >
@@ -136,14 +138,16 @@ export function SeatSettings({ session }: { session: RoomSession }) {
               className="secondary seat-settings-remove"
               disabled={locked || (!isHost && selected.id === view.self.seatId)}
               onClick={() => {
-                if (playing) setHint('请先结束游戏，再移除座位。');
+                if (playing) setHint(feedbackText('seats.removeWhilePlaying'));
                 else setOperation('remove');
               }}
             >
               移除{selected.controller === 'bot' ? '人机' : '玩家'}
             </button>
             {!isHost && selected.id === view.self.seatId && (
-              <p className="seat-settings-hint">房主座位由电脑管理员管理。</p>
+              <p className="seat-settings-hint">
+                {feedbackText('seats.ownerManagedByHost')}
+              </p>
             )}
             {hint && (
               <p className="seat-settings-hint" role="status">
@@ -217,10 +221,12 @@ export function SeatSettings({ session }: { session: RoomSession }) {
           }}
         >
           <p>
-            移除 {selected.name}？
-            {selected.controller === 'human'
-              ? '原手机身份将失效，需要重新入座。'
-              : '这名人机将离开牌桌。'}
+            {feedbackText(
+              selected.controller === 'human'
+                ? 'seats.confirmRemoveHuman'
+                : 'seats.confirmRemoveBot',
+              { player: selected.name },
+            )}
           </p>
         </ConfirmationDialog>
       )}

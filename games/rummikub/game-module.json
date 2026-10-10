@@ -4,6 +4,10 @@
   "order": 3,
   "internal": false,
   "development": true,
+  "library": {
+    "tags": ["数字", "组合", "家庭"],
+    "searchTerms": ["Rummikub", "拉米"]
+  },
   "catalog": {
     "id": "rummikub",
     "name": "拉密",

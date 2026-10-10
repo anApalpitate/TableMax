@@ -50,6 +50,8 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 | `artifacts/releases/`、`artifacts/maintenance/`、`artifacts/phase-*/`          | 最终交付、维护及阶段证据／原始资料；材料是否可再生分别判断                                                                    |
 | `tmp/`                                                                         | 隔离验证数据、解压副本及实验中间物；长期资料不能只留在临时目录                                                                |
 
+盒子短提示及确认正文集中在 `apps/web/src/content/feedback.zh-CN.json`，同目录维护插值、原因码映射和状态分类。游戏库分类及检索别名分别属于各游戏 `game-module.json` 的 `library` 字段，盒子只消费轻量目录。维护方法见[开发环境](development.md#提示文案与游戏库维护)。
+
 ## 已采用与计划结构
 
 四款注册游戏分别使用 `games/pokemon-encounters/`、`games/modern-art/`、`games/power-grid/` 和 `games/rummikub/`，资源与规格使用同名命名空间。各游戏的 data／rules／bot／ui／types 按实际职责组织，布局 CSS 限定自身根节点；共享平台只按通用契约组装，盒子缩略图由 `apps/web/src/assets/game-covers.ts` 提供。服务与 Worker 注册入口分别加载独立规则和策略，网页适配器加载对应 UI。拉密使用 `shared/` 纯函数共享组合与整回合证明，`ui/` 与 bot 只消费本人授权投影；完整交付状态见 [构建归档](../archive/rummikub-2026-10-09.md)。

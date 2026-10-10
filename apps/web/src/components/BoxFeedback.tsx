@@ -1,23 +1,28 @@
 import { useEffect } from 'react';
 import type { RoomSession } from '../session/useRoomSession';
 import { useNotifications } from './notifications/context';
+import { feedbackText } from '../content/feedback';
 
 export function BoxFeedback({ session }: { session: RoomSession }) {
   const notifications = useNotifications();
-  const { message, errorId, connected } = session;
-  const progress = message === '正在入座…' || message === '正在提交…';
-  const connectionMessage =
-    message.startsWith('连接') || message.startsWith('正在重新同步');
+  const { message, messageKind, errorId, connected } = session;
+  const progress = messageKind === 'progress';
+  const connectionMessage = messageKind === 'connection';
   useEffect(() => {
-    if (!message || progress || connectionMessage || message === '已保存')
+    if (!message || progress || connectionMessage || messageKind === 'saved')
       return;
     notifications?.show(
       message,
-      message === '已入座' || message.startsWith('已有同名朋友')
-        ? 'success'
-        : 'error',
+      messageKind === 'success' ? 'success' : 'error',
     );
-  }, [message, errorId, progress, connectionMessage, notifications]);
+  }, [
+    message,
+    messageKind,
+    errorId,
+    progress,
+    connectionMessage,
+    notifications,
+  ]);
   const persistent =
     !connected ||
     connectionMessage ||
@@ -28,7 +33,9 @@ export function BoxFeedback({ session }: { session: RoomSession }) {
   return (
     <div className="session-feedback">
       <p className="feedback" role="status">
-        {!connected && !connectionMessage ? '正在连接本地服务…' : message}
+        {!connected && !connectionMessage
+          ? feedbackText('session.connecting')
+          : message}
       </p>
       {session.admissionPending && (
         <button

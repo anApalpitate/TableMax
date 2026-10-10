@@ -1,4 +1,5 @@
 import type { RoomView } from '@tablemax/protocol';
+import { feedbackText } from '../content/feedback';
 
 export function LobbyReadiness({
   seats,
@@ -14,12 +15,16 @@ export function LobbyReadiness({
     <div
       className="lobby-readiness"
       role="status"
-      aria-label={`已入座 ${seats.length} 人，至少需要 ${minimum} 人；${ready} 人已准备`}
+      aria-label={feedbackText('lobby.readiness', {
+        seated: seats.length,
+        minimum,
+        ready,
+      })}
       data-minimum-players={minimum}
     >
       <span
         className={`lobby-readiness__item${enough ? ' is-complete' : ''}`}
-        title={`至少 ${minimum} 人开局`}
+        title={feedbackText('lobby.minimumPlayers', { minimum })}
       >
         <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
           <circle

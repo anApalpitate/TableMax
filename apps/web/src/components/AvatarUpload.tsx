@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import './avatar-upload.css';
 import { useNotifications } from './notifications/context';
+import { feedbackText } from '../content/feedback';
 
 export function AvatarUpload({
   disabled,
@@ -74,7 +75,7 @@ export function AvatarUpload({
               !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
               file.size > 10 * 1024 * 1024
             ) {
-              reportError('请选择 10 MB 以内的 JPG、PNG 或 WebP 图片。');
+              reportError(feedbackText('avatar.invalidFile'));
               return;
             }
             setLoading(true);
@@ -97,7 +98,7 @@ export function AvatarUpload({
             probe.onerror = () => {
               URL.revokeObjectURL(url);
               if (current === selection.current) {
-                reportError('这张图片无法读取，请换一张。');
+                reportError(feedbackText('avatar.readFailed'));
                 setLoading(false);
               }
             };
@@ -105,7 +106,7 @@ export function AvatarUpload({
           }}
         />
       </label>
-      {loading && <p role="status">正在读取图片…</p>}
+      {loading && <p role="status">{feedbackText('avatar.reading')}</p>}
       {error && !notifications && <p role="alert">{error}</p>}
       {source && (
         <div className="avatar-upload__editor">
@@ -203,7 +204,7 @@ export function AvatarUpload({
                   );
                   onConfirm(canvas.toDataURL('image/png').split(',')[1]!);
                 } catch {
-                  reportError('头像裁剪失败，请重新选择图片。');
+                  reportError(feedbackText('avatar.cropFailed'));
                 }
               }}
             >

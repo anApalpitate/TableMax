@@ -31,6 +31,8 @@ import { PokemonVersion } from '../components/PokemonVersion';
 import type { RoomSession } from '../session/useRoomSession';
 import { useDeviceTransfer } from '../session/useDeviceTransfer';
 import { DeviceTransfer } from '../components/DeviceTransfer';
+import { RepositoryLink } from '../components/RepositoryLink';
+import { feedbackText } from '../content/feedback';
 import { navigate } from '../navigation';
 import './box-refinements.css';
 
@@ -142,9 +144,9 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           )}
           <DisplaySettings role={role} />
           <PlayModeBadge mode={view?.playMode} />
-          {session.message === '已保存' && (
+          {session.messageKind === 'saved' && (
             <span className="box-save-status" role="status">
-              已保存
+              {feedbackText('session.saved')}
             </span>
           )}
           <span
@@ -361,7 +363,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                 </div>
                 {!avatarAvailable && (
                   <p role="status" className="avatar-unavailable">
-                    头像已被选走，请选择另一个。
+                    {feedbackText('avatar.unavailableDraft')}
                   </p>
                 )}
               </form>
@@ -492,14 +494,18 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
             <InviteFriends session={session} />
             {role === 'host' && !isHost && (
               <p className="box-identity-notice" role="status">
-                本页面没有管理员身份，请从桌面程序打开主机。
+                {feedbackText('common.hostIdentityMissing')}
               </p>
             )}
           </aside>
         )}
       </div>
       {panel === 'library' && isHost && (
-        <OverlayPanel title="游戏库" close={() => setPanel(null)}>
+        <OverlayPanel
+          title="游戏库"
+          className="game-library-panel"
+          close={() => setPanel(null)}
+        >
           <GameLibrary
             session={session}
             close={() => setPanel(null)}
@@ -573,6 +579,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           <BotInformation game={game} />
         </OverlayPanel>
       )}
+      <RepositoryLink />
     </main>
   );
 }

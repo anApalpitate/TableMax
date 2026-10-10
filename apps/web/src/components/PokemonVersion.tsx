@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { OverlayPanel } from './OverlayPanel';
 import { moduleFor } from '../catalog';
 import type { RoomSession } from '../session/useRoomSession';
+import { feedbackText } from '../content/feedback';
 export function PokemonVersion({
   session,
   gameId,
@@ -36,8 +37,8 @@ export function PokemonVersion({
         >
           <p>
             {session.view?.status === 'playing'
-              ? '结束当前对局后可切换版本。'
-              : '切换版本保留玩家与房主，真人需要重新准备。'}
+              ? feedbackText('library.endBeforeSwitchVersion')
+              : feedbackText('library.switchVersionPreservesPlayers')}
           </p>
           {choices.map((v) => (
             <section key={v.id}>

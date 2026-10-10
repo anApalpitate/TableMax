@@ -1,0 +1,173 @@
+{
+  "sessionErrors": {
+    "unauthorized": "你没有此操作的管理权限。",
+    "game-not-selected": "请先由管理员选择游戏。",
+    "game-load-failed": "游戏加载失败，当前牌桌保持不变，请重试。",
+    "unknown-game": "这个游戏尚未安装。",
+    "too-many-seats": "当前人数超过目标游戏上限，请先调整座位。",
+    "invalid-identity": "身份已失效，请使用原浏览器恢复，或联系管理员检查座位。",
+    "stale-branch": "历史已回退，请按最新状态重新选择。",
+    "stale-revision": "状态已变化，请重新选择。",
+    "stale-decision": "该选择已结束，请按最新状态操作。",
+    "not-ready": "请达到所选游戏的最低人数，并等待全部玩家准备。",
+    "joining-closed-or-full": "当前不能加入：牌桌已关闭入座、开始或满员。",
+    "joining-closed": "牌桌已关闭入座或已经开始，请联系电脑管理员。",
+    "room-full": "牌桌已满，请电脑管理员检查是否有离线的重复座位。",
+    "session-request-revoked": "原座位身份已撤销，请使用原浏览器恢复，或联系管理员检查座位。",
+    "session-request-conflict": "入座请求不一致，请联系电脑管理员检查原座位。",
+    "session-request-expired": "入座确认已超过一天，请联系管理员检查原座位。",
+    "session-request-limit": "入座请求过多，请联系电脑管理员检查座位。",
+    "invalid-name": "请输入 1–24 字的昵称。",
+    "invalid-message": "请求内容无效，请重新选择。",
+    "invalid-avatar": "请选择一个可用头像。",
+    "avatar-unavailable": "这个头像已被朋友选走，请选择另一个。",
+    "avatars-locked": "对局进行中，请在结束后更换头像。",
+    "invalid-avatar-image": "头像图片无法使用，请重新裁剪或换一张。",
+    "cannot-remove-self": "房主不能移除自己，请由电脑管理员处理。",
+    "end-first": "请先结束对局。",
+    "invalid-setting": "这个游戏没有此设置。",
+    "stale-instance": "新的大局已经准备好，请按当前牌桌重新操作。",
+    "unsupported-bot-difficulty": "当前游戏不支持这个人机等级。",
+    "save-or-action-failed": "操作未确认保存，请检查本地存储后重试。",
+    "illegal-action": "选择无效，请重新同步。"
+  },
+  "session": {
+    "saved": "已保存",
+    "submitting": "正在提交…",
+    "connecting": "正在连接本地服务…",
+    "tableChanged": "牌桌已变化，请按当前状态重新选择。",
+    "reconnecting": "连接已断开，正在重新同步。",
+    "syncFailed": "连接确认失败，正在重新同步。",
+    "saveUnconfirmed": "尚未收到保存确认，请重试确认。",
+    "operationUnavailable": "原操作无法继续，请按当前状态重新选择。",
+    "incompatibleData": "服务数据不兼容，请重新启动程序。",
+    "connectionFailed": "连接失败，请检查电脑服务和局域网。",
+    "connectionUnconfirmed": "连接尚未确认，请恢复连接后再试。",
+    "invalidConfirmation": "服务确认无效，请重新同步。",
+    "operationFailed": "操作未完成，请按最新状态重试。",
+    "uploadStorageFailed": "浏览器无法保存上传确认，请释放空间后重试。"
+  },
+  "admission": {
+    "joining": "正在入座…",
+    "joined": "已入座",
+    "duplicateName": "已有同名朋友，以座位编号区分。",
+    "failed": "入座未完成，请联系电脑管理员检查牌桌。",
+    "unconfirmed": "尚未收到入座确认。可重试原请求，刷新也不会重复占座。",
+    "storageFailed": "浏览器无法保存身份，请在系统浏览器中打开。",
+    "legacyTransferExpired": "旧换机请求已过期，请重新申请接管座位。"
+  },
+  "transferErrors": {
+    "invalid-seat": "原座位已不存在，请联系电脑管理员。",
+    "transfer-request-limit": "换机申请较多，请管理员处理后再试。",
+    "session-request-conflict": "申请座位不一致，请取消后重新选择。",
+    "transfer-request-expired": "申请已过期，请重新申请。",
+    "save-or-action-failed": "申请尚未确认保存，请重试原申请。"
+  },
+  "transferStatus": {
+    "approved": "已接续原座位。",
+    "pending": "等待电脑管理员核对并批准。",
+    "rejected": "管理员未批准本次换机。",
+    "cancelled": "已取消申请。",
+    "revoked": "原座位或设备身份已变化，请重新申请。"
+  },
+  "transfer": {
+    "failed": "换机未完成，请联系电脑管理员。",
+    "unconfirmed": "尚未收到换机确认，请重试原申请。",
+    "storageFailed": "浏览器无法保存申请，请使用可保存身份的浏览器。",
+    "hint": "接续原座位，管理员批准后原设备退出。",
+    "noSeats": "暂无可接续的真人座位。",
+    "noRequests": "暂无等待批准的申请。",
+    "approvalEffect": "批准后原设备立即失效，座位和游戏数据保持。",
+    "verificationHint": "向管理员核对以下号码",
+    "pendingRequests": "{count} 个待批准申请",
+    "confirmVerifyCode": "请与新设备核对 {code}。"
+  },
+  "network": {
+    "openFailed": "无法打开系统浏览器，请在连接帮助中复制当前加入地址。",
+    "restoredLan": "已切回局域网二维码。",
+    "qrUpdated": "二维码已更新。",
+    "externalSaveFailed": "外部入口保存失败，请重试。",
+    "noAddressHelp": "未发现可用地址，请打开连接帮助。",
+    "noAddress": "未发现可用地址，请连接局域网后刷新。",
+    "refreshFailed": "地址刷新失败，请检查电脑服务后重试。",
+    "unauthorized": "只有电脑管理员可以修改加入地址。",
+    "invalidUrl": "请输入有效的 HTTP 或 HTTPS 网站根地址。",
+    "saveFailed": "加入地址未保存，请检查电脑配置目录后重试。",
+    "invalidConfirmation": "加入地址确认无效，请重新同步后重试。",
+    "saveUnconfirmed": "加入地址保存尚未确认，请检查电脑服务后重试。",
+    "repositoryOpenFailed": "无法打开 GitHub 仓库，请在系统浏览器中打开 https://github.com/anApalpitate/TableMax。",
+    "urlHint": "请填写带 http:// 或 https:// 前缀的网址，支持网站根地址与端口，暂不支持路径前缀。",
+    "configurationReadFailed": "外部入口配置无法读取，原文件已保留。请在连接帮助中重新保存；当前使用局域网地址。"
+  },
+  "avatar": {
+    "invalidFile": "请选择 10 MB 以内的 JPG、PNG 或 WebP 图片。",
+    "readFailed": "这张图片无法读取，请换一张。",
+    "reading": "正在读取图片…",
+    "cropFailed": "头像裁剪失败，请重新选择图片。",
+    "unavailableDraft": "头像已被选走，请选择另一个。",
+    "pickerHint": "选个喜欢的伙伴，入座后就是你的专属头像。",
+    "claimed": "已被选择",
+    "current": "当前头像",
+    "selected": "已选中",
+    "available": "可选择",
+    "occupiedDescription": "{avatar}，已被选择，{owner}",
+    "currentDescription": "{avatar}，当前头像"
+  },
+  "display": {
+    "initialReadFailed": "暂时无法读取显示设置，请重新打开面板重试。",
+    "saveFailed": "显示设置未保存，请重试。",
+    "readFailed": "暂时无法读取显示设置，请稍后重试。",
+    "interactionDisabled": "本端互动动画、发言和声音已关闭。",
+    "interactionEnabled": "本端显示互动动画、发言并播放声音。",
+    "limited": "窗口空间有限，已限制放大。放大窗口后可继续调整。",
+    "saved": "当前窗口独立保存，即时生效。",
+    "reading": "正在读取显示设置…",
+    "autoHint": "自动随窗口适配；预设仅调整界面大小。"
+  },
+  "common": {
+    "saving": "正在保存…",
+    "waitingForSave": "正在等待保存确认",
+    "hostIdentityMissing": "本页面没有管理员身份，请从桌面程序打开主机。"
+  },
+  "lobby": {
+    "readiness": "已入座 {seated} 人，至少需要 {minimum} 人；{ready} 人已准备",
+    "minimumPlayers": "至少 {minimum} 人开局"
+  },
+  "countdown": {
+    "current": "当前 {seconds} 秒",
+    "hint": "到时仅提醒，仍可继续选择。"
+  },
+  "history": {
+    "hint": "恢复到该选择之前。已看见的信息无法撤销；回退后保持暂停。",
+    "results": "找到 {count} 个步骤，最近的在前。",
+    "confirmRollback": "恢复到“{step}”之前？将撤销当前有效历史中的后续 {count} 个步骤。",
+    "revealedInformation": "该步骤涉及揭示信息。",
+    "rollbackEffect": "已经看见的信息无法从记忆消除；所有端将同步并暂停。"
+  },
+  "seats": {
+    "renameWhilePlaying": "请先结束游戏，再修改人机名称。",
+    "removeWhilePlaying": "请先结束游戏，再移除座位。",
+    "ownerManagedByHost": "房主座位由电脑管理员管理。",
+    "confirmRemoveHuman": "移除 {player}？原手机身份将失效，需要重新入座。",
+    "confirmRemoveBot": "移除 {player}？这名人机将离开牌桌。"
+  },
+  "management": {
+    "confirmEnd": "当前游戏将立即结束，所有玩家停止行动。",
+    "endEffect": "已保存状态和历史保留。结束后可原班重新准备，选择其他游戏，或回退后恢复。",
+    "confirmClear": "所有玩家身份和人机座位都将移除，朋友们需要重新进入并入座。当前牌桌状态与有效历史将清空。",
+    "ownerCapabilities": "房主可开局、续局、暂停／恢复，移除其他座位和修改人机名称。"
+  },
+  "library": {
+    "waitingForHost": "等待电脑管理员选择游戏。",
+    "seatLimitConflict": "人数超过游戏上限时，请先结束对局并调整座位。",
+    "switchPreservesSeats": "保留朋友们的身份、头像与座位，重新准备后开局。",
+    "noResults": "没有找到符合条件的游戏，请调整筛选或搜索。",
+    "emptyCatalog": "暂无可用游戏，请联系电脑管理员检查游戏目录。",
+    "filtersEmpty": "没有符合筛选和搜索条件的游戏。",
+    "resetFilters": "清除筛选和搜索即可查看全部游戏。",
+    "confirmEndAndSwitch": "结束当前对局，切换到 {game}？",
+    "confirmSwitch": "切换到 {game}？",
+    "endBeforeSwitchVersion": "结束当前对局后可切换版本。",
+    "switchVersionPreservesPlayers": "切换版本保留玩家与房主，真人需要重新准备。"
+  }
+}

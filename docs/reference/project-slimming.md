@@ -1,5 +1,13 @@
 # 项目瘦身方案与执行记录
 
+## 盒子游戏库与仓库入口收尾（2026-10-10）
+
+源码游戏库／通知、精确单测和独立原生链接验证已完成；证据在 `artifacts/maintenance/v1.0.6/game-library/`、`box-notifications/` 与 `box-repository/`。本轮生成的 `tmp/box-layout-*` 与 `tmp/box-repository-fbed1f` 已识别用途，后者的编译、最终和失败报告及实际截图均已转存上述证据；原素材、规则资料、正式存档和当前交付保留。
+
+[维护预览](../../artifacts/maintenance/v1.0.6/game-library/maintenance-preview.json)实测14,278,077,343逻辑字节（约13.297GiB），超过10GiB；当时当前ZIP正在另一任务验证，预览因没有匹配的便携通过证明而停止。随后自动审批因UNO实际验证仍运行而拒绝清理，所有文件保留，没有结束其他任务进程或绕过保护。
+
+工程进程退出并取得当前ZIP匹配证明后，先按四个精确目录预览，再由 `Clean-Intermediates.ps1` 退役本轮已结束源码验证副本 **6,004,170字节**，见[清理记录](../../artifacts/maintenance/local-cleanup-20261010-045053-580-intermediates/cleanup.json)。随后 `Maintain-Project.ps1 -Apply` [实测](../../artifacts/maintenance/v1.0.6/game-library/maintenance-result.json) **14,231,275,318逻辑字节（约13.254GiB）**，零可用安全候选、328项保护跳过、1,764链接跳过；仍超过10GiB，不扩大删除范围。新的 `tmp/box-repository-fbed1f` 独立原生程序尚未登记进清理白名单，继续保留；当前交付、验收及全部原始内容受保护。容量分别对应当时实测，不把并行任务清理或NTFS物理节省计成本轮退役量。
+
 ## 盒子通知优化收尾（2026-10-10）
 
 源码通知单测与盒子渲染验证完成、工程进程退出后，精确预览并退役本轮6个 `tmp/box-layout-*` 隔离副本，共11,566,799字节，见[清理清单](../../artifacts/maintenance/local-cleanup-20261010-040729-375-intermediates/cleanup.json)。当前ZIP、原素材、存档、通知截图／报告和逐项测试历史继续保留。

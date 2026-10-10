@@ -1,4 +1,5 @@
 import type { RoomSession } from '../session/useRoomSession';
+import { feedbackText } from '../content/feedback';
 export function SessionFeedback({
   session,
   hideSaved = false,
@@ -8,12 +9,13 @@ export function SessionFeedback({
 }) {
   return (
     <div className="session-feedback">
-      {!(hideSaved && session.message === '已保存') && (
+      {!(hideSaved && session.messageKind === 'saved') && (
         <p
-          className={`feedback ${session.message === '已保存' ? 'saved-acknowledgement' : ''}`}
+          className={`feedback ${session.messageKind === 'saved' ? 'saved-acknowledgement' : ''}`}
           aria-live="polite"
         >
-          {session.message || (session.connected ? '' : '正在连接本地服务…')}
+          {session.message ||
+            (session.connected ? '' : feedbackText('session.connecting'))}
         </p>
       )}
       {session.admissionPending && (

@@ -2,6 +2,7 @@ import { useId, useState, type ReactNode } from 'react';
 import { COUNTDOWN_STEPS, DEFAULT_COUNTDOWN_SECONDS } from '@tablemax/protocol';
 import type { RoomSession } from '../session/useRoomSession';
 import { OverlayPanel } from './OverlayPanel';
+import { feedbackText } from '../content/feedback';
 import './countdown.css';
 
 export function CountdownSettings({
@@ -66,9 +67,11 @@ export function CountdownSettings({
               <div className="countdown-settings__heading">
                 <label htmlFor={sliderId}>思考时间提醒</label>
                 <span className="countdown-settings__saved">
-                  当前{' '}
-                  {session.view?.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS}{' '}
-                  秒
+                  {feedbackText('countdown.current', {
+                    seconds:
+                      session.view?.countdownSeconds ??
+                      DEFAULT_COUNTDOWN_SECONDS,
+                  })}
                 </span>
               </div>
               <output htmlFor={sliderId}>
@@ -101,12 +104,12 @@ export function CountdownSettings({
                 <span>120 秒</span>
               </div>
               <p className="countdown-settings__note">
-                到时仅提醒，仍可继续选择。
+                {feedbackText('countdown.hint')}
               </p>
               {attempted && (
                 <p role="status">
                   {session.awaitingConfirmation
-                    ? '正在等待保存确认'
+                    ? feedbackText('common.waitingForSave')
                     : session.message}
                 </p>
               )}

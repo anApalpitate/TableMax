@@ -15,6 +15,8 @@ export interface GameHost {
   locked: boolean;
   canControl: boolean;
   message: string;
+  messageKind?:
+    'none' | 'saved' | 'progress' | 'connection' | 'success' | 'error';
   admissionPending: boolean;
   awaitingConfirmation: boolean;
   feedback: RoomFeedback | null;

@@ -5,6 +5,7 @@ import {
   type TransferState,
 } from '@tablemax/protocol';
 import { randomId } from './randomId';
+import { feedbackReason, feedbackText } from '../content/feedback';
 
 const storageKey = 'tablemax-device-transfer';
 type Request = { seatId: string; requestKey: string; createdAt: number };
@@ -25,13 +26,6 @@ function load(): Request | null {
     return null;
   }
 }
-const reasons: Record<string, string> = {
-  'invalid-seat': '原座位已不存在，请联系电脑管理员。',
-  'transfer-request-limit': '换机申请较多，请管理员处理后再试。',
-  'session-request-conflict': '申请座位不一致，请取消后重新选择。',
-  'transfer-request-expired': '申请已过期，请重新申请。',
-  'save-or-action-failed': '申请尚未确认保存，请重试原申请。',
-};
 export function useDeviceTransfer(
   enabled: boolean,
   acceptCredential: (token: string) => void,
@@ -79,7 +73,11 @@ export function useDeviceTransfer(
         if (!mounted.current || current.current !== input) return;
         if (!parsed.data.ok) {
           setMessage(
-            reasons[parsed.data.reason] ?? '换机未完成，请联系电脑管理员。',
+            feedbackReason(
+              parsed.data.reason,
+              'transfer.failed',
+              'transferErrors',
+            ),
           );
           if (
             ['invalid-seat', 'transfer-request-expired'].includes(
@@ -96,23 +94,23 @@ export function useDeviceTransfer(
           // Keep the proof until the replacement credential is stored successfully.
           accept.current(next.token);
           clear();
-          setMessage('已接续原座位。');
+          setMessage(feedbackText('transferStatus.approved'));
         } else if (next.status === 'pending')
-          setMessage('等待电脑管理员核对并批准。');
+          setMessage(feedbackText('transferStatus.pending'));
         else {
           clear();
           setMessage(
             {
-              rejected: '管理员未批准本次换机。',
-              cancelled: '已取消申请。',
-              expired: '申请已过期，请重新申请。',
-              revoked: '原座位或设备身份已变化，请重新申请。',
+              rejected: feedbackText('transferStatus.rejected'),
+              cancelled: feedbackText('transferStatus.cancelled'),
+              expired: feedbackText('transferErrors.transfer-request-expired'),
+              revoked: feedbackText('transferStatus.revoked'),
             }[next.status],
           );
         }
       } catch {
         if (mounted.current && current.current === input)
-          setMessage('尚未收到换机确认，请重试原申请。');
+          setMessage(feedbackText('transfer.unconfirmed'));
       } finally {
         clearTimeout(timeout);
         if (active.current === controller) active.current = null;
@@ -166,7 +164,7 @@ export function useDeviceTransfer(
         known.current = false;
         void run('request', value);
       } catch {
-        setMessage('浏览器无法保存申请，请使用可保存身份的浏览器。');
+        setMessage(feedbackText('transfer.storageFailed'));
       }
     },
     retry: () => {

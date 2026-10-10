@@ -3,6 +3,10 @@
   "id": "power-grid",
   "order": 2,
   "internal": false,
+  "library": {
+    "tags": ["经营", "经济", "策略"],
+    "searchTerms": ["Power Grid", "发电", "经典德国"]
+  },
   "catalog": {
     "id": "power-grid",
     "name": "电力公司",

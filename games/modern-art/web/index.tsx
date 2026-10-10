@@ -81,7 +81,7 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
   const showSessionFeedback = !(
     ended &&
     connected &&
-    session.message === '已保存' &&
+    session.messageKind === 'saved' &&
     !session.admissionPending &&
     !session.awaitingConfirmation
   );

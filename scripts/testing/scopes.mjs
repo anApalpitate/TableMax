@@ -13,6 +13,8 @@ const validScopes = ['box', 'shared', 'tooling', ...gameScopes];
 
 // Classify what a test actually exercises, rather than its containing app.
 const unitScopes = {
+  'apps/web/src/components/game-library/filter.test.ts': ['box'],
+  'apps/web/src/content/feedback.test.ts': ['box', 'shared'],
   'apps/web/src/components/notifications/notification-center.test.ts': ['box'],
   'apps/desktop/src/audio-controller.test.ts': ['shared'],
   'apps/desktop/src/display-controller.test.ts': ['shared'],
@@ -89,6 +91,8 @@ const unitScopes = {
 // Unregistered scripts may only run with an explicitly chosen full scope.
 // Mixed matrices cannot be narrowed by adding an option they do not implement.
 const verificationScopes = {
+  'scripts/verify-game-library.mjs': ['box'],
+  'scripts/verify-box-repository.mjs': ['box'],
   'scripts/verify-box-notifications.mjs': ['box'],
   'scripts/verify-speech-panel.mjs': ['box', 'shared'],
   'scripts/verify-player-interaction-audio.mjs': ['box', 'shared'],

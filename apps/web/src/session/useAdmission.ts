@@ -7,6 +7,7 @@ import {
 import { randomId } from './randomId';
 import { AdmissionRecovery, ADMISSION_TIMEOUT } from './admissionRecovery';
 import { ROOM_SYNC_INTERVAL } from './reliableRoomSync';
+import { feedbackReason, feedbackText } from '../content/feedback';
 
 const storageKey = 'tablemax-admission';
 type Admission = {
@@ -44,7 +45,6 @@ export function useAdmission(
   enabled: boolean,
   setCredential: (token: string) => void,
   setMessage: (message: string) => void,
-  messages: Record<string, string>,
 ) {
   const [pending, setPending] = useState<Admission | null>(() =>
     enabled ? loadAdmission() : null,
@@ -67,14 +67,14 @@ export function useAdmission(
         }
         current.current = null;
         setPending(null);
-        setMessage(messages['session-request-expired']!);
+        setMessage(feedbackText('sessionErrors.session-request-expired'));
         return;
       }
       const attempt = recovery.current.begin();
       if (!attempt) return;
       const controller = attempt.controller;
       setBusy(true);
-      setMessage('正在入座…');
+      setMessage(feedbackText('admission.joining'));
       const timeout = setTimeout(() => controller.abort(), ADMISSION_TIMEOUT);
       try {
         // Persist before sending. Reload and uncertain replies reuse this key.
@@ -104,7 +104,9 @@ export function useAdmission(
             setPending(null);
             setCredential(reply.token);
             setMessage(
-              reply.duplicateName ? '已有同名朋友，以座位编号区分。' : '已入座',
+              reply.duplicateName
+                ? feedbackText('admission.duplicateName')
+                : feedbackText('admission.joined'),
             );
           }
         } else {
@@ -116,17 +118,14 @@ export function useAdmission(
             if (mounted.current) setPending(null);
           }
           if (mounted.current)
-            setMessage(
-              messages[reply.reason] ??
-                '入座未完成，请联系电脑管理员检查牌桌。',
-            );
+            setMessage(feedbackReason(reply.reason, 'admission.failed'));
         }
       } catch {
         if (mounted.current && recovery.current.isCurrent(attempt))
           setMessage(
             current.current
-              ? '尚未收到入座确认。可重试原请求，刷新也不会重复占座。'
-              : '浏览器无法保存身份，请在系统浏览器中打开。',
+              ? feedbackText('admission.unconfirmed')
+              : feedbackText('admission.storageFailed'),
           );
       } finally {
         clearTimeout(timeout);
@@ -144,7 +143,7 @@ export function useAdmission(
           });
       }
     },
-    [setCredential, setMessage, messages],
+    [setCredential, setMessage],
   );
   useEffect(() => {
     runRef.current = run;
@@ -166,7 +165,7 @@ export function useAdmission(
       ) as { kind?: string } | null;
       if (previous?.kind === 'redeem') {
         localStorage.removeItem(storageKey);
-        setMessage('旧换机请求已过期，请重新申请接管座位。');
+        setMessage(feedbackText('admission.legacyTransferExpired'));
       }
     } catch {
       /* Invalid local data never becomes a new admission. */

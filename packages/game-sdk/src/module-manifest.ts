@@ -4,6 +4,10 @@ export interface ModuleManifest {
   order: number;
   internal: boolean;
   development?: boolean;
+  library?: {
+    tags: string[];
+    searchTerms?: string[];
+  };
   catalog: {
     id: string;
     name: string;

@@ -27,6 +27,8 @@ SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)
 
 `validateState(input,seats)` 校验读档、初始化与动作后的状态。保存分别校验平台格式、游戏／规则／状态版本和策略版本。随机通过 `RuleContext.random.next()` 提供；不要调用 `Math.random()` 或时钟。电脑管理员只管理、不占玩家座位，手机房主是正常真人座位；规则上下文只有玩家座位与随机源，不从昵称或客户端参数推断管理权。平台保存规则与策略两个独立 xorshift32 状态，回退后相同边界和相同意图重演相同随机结果。
 
+盒子目录分类在 `game-module.json` 的 `library.tags` 维护，例如卡牌、家庭、策略；可选 `library.searchTerms` 补充英文名、常用别名或玩法关键词。名称、简介、分类、版本名与 ID 自动参与检索，人数筛选使用已有 `catalog.min/max`。这些字段随轻量目录打包，不加载完整游戏客户端；缺少分类时显示“未分类”，正式游戏应填写适用 tag。
+
 ## 注册与策略替换
 
 1. 给游戏建立 pnpm 工作区包和 `workspace:*` SDK 依赖，保持版本与锁文件在项目内。

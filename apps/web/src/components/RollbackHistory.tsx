@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { RoomSession } from '../session/useRoomSession';
 import { OverlayPanel } from './OverlayPanel';
 import { ConfirmationDialog } from './ConfirmationDialog';
+import { feedbackText } from '../content/feedback';
 
 export function RollbackHistory({ session }: { session: RoomSession }) {
   const { view, command, locked } = session;
@@ -43,7 +44,7 @@ export function RollbackHistory({ session }: { session: RoomSession }) {
           }}
         >
           <section className="rollback-history">
-            <p>恢复到该选择之前。已看见的信息无法撤销；回退后保持暂停。</p>
+            <p>{feedbackText('history.hint')}</p>
             <label>
               小局
               <select
@@ -81,7 +82,9 @@ export function RollbackHistory({ session }: { session: RoomSession }) {
                 ))}
               </select>
             </label>
-            <p role="status">找到 {history.length} 个步骤，最近的在前。</p>
+            <p role="status">
+              {feedbackText('history.results', { count: history.length })}
+            </p>
             {history.slice(0, limit).map((h) => (
               <button
                 className="secondary"
@@ -115,12 +118,16 @@ export function RollbackHistory({ session }: { session: RoomSession }) {
               }}
             >
               <p>
-                恢复到“{describe(selectedStep)}”之前？将撤销当前有效历史中的后续{' '}
-                {view.history.length - selectedStep.step + 1} 个步骤。
+                {feedbackText('history.confirmRollback', {
+                  step: describe(selectedStep),
+                  count: view.history.length - selectedStep.step + 1,
+                })}
               </p>
               <p>
-                {selectedStep.revealedInformation ? '该步骤涉及揭示信息。' : ''}
-                已经看见的信息无法从记忆消除；所有端将同步并暂停。
+                {selectedStep.revealedInformation
+                  ? feedbackText('history.revealedInformation')
+                  : ''}
+                {feedbackText('history.rollbackEffect')}
               </p>
             </ConfirmationDialog>
           )}

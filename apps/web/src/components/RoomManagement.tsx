@@ -6,6 +6,7 @@ import { ConfirmationDialog } from './ConfirmationDialog';
 import { SessionFeedback } from './SessionFeedback';
 import { OwnerControl } from './OwnerControl';
 import { DeviceTransferRequests } from './DeviceTransfer';
+import { feedbackText } from '../content/feedback';
 import './room-management.css';
 
 export function RoomManagement({
@@ -140,15 +141,11 @@ export function RoomManagement({
         >
           {confirmation === 'end' ? (
             <>
-              <p>当前游戏将立即结束，所有玩家停止行动。</p>
-              <p>
-                已保存状态和历史保留。结束后可原班重新准备，选择其他游戏，或回退后恢复。
-              </p>
+              <p>{feedbackText('management.confirmEnd')}</p>
+              <p>{feedbackText('management.endEffect')}</p>
             </>
           ) : (
-            <p>
-              所有玩家身份和人机座位都将移除，朋友们需要重新进入并入座。当前牌桌状态与有效历史将清空。
-            </p>
+            <p>{feedbackText('management.confirmClear')}</p>
           )}
         </ConfirmationDialog>
       )}

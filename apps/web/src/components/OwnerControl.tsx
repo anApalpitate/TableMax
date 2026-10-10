@@ -1,4 +1,5 @@
 import type { RoomSession } from '../session/useRoomSession';
+import { feedbackText } from '../content/feedback';
 export function OwnerControl({ session }: { session: RoomSession }) {
   const { view, locked, command, isHost } = session;
   if (!view || !isHost) return null;
@@ -23,7 +24,7 @@ export function OwnerControl({ session }: { session: RoomSession }) {
             </option>
           ))}
       </select>
-      <p>房主可开局、续局、暂停／恢复，移除其他座位和修改人机名称。</p>
+      <p>{feedbackText('management.ownerCapabilities')}</p>
     </section>
   );
 }

@@ -3,6 +3,7 @@ import type { RoomSession } from '../session/useRoomSession';
 import { OverlayPanel } from './OverlayPanel';
 import './invite-friends.css';
 import { useNotifications } from './notifications/context';
+import { feedbackText } from '../content/feedback';
 export function InviteFriends({ session }: { session: RoomSession }) {
   const notifications = useNotifications();
   const [help, setHelp] = useState(false);
@@ -13,7 +14,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
   const externalId = useId();
   useEffect(() => {
     const failed = () => {
-      const message = '无法打开系统浏览器，请在连接帮助中复制当前加入地址。';
+      const message = feedbackText('network.openFailed');
       if (notifications) notifications.show(message, 'error');
       else setOpenMessage(message);
     };
@@ -42,12 +43,14 @@ export function InviteFriends({ session }: { session: RoomSession }) {
       if (await saveExternalJoinUrl(value)) {
         if (value === null) setDraftUrl('');
         const message =
-          value === null ? '已切回局域网二维码。' : '二维码已更新。';
+          value === null
+            ? feedbackText('network.restoredLan')
+            : feedbackText('network.qrUpdated');
         if (notifications) notifications.show(message, 'success');
         else setSaveMessage(message);
       }
     } catch {
-      const message = '外部入口保存失败，请重试。';
+      const message = feedbackText('network.externalSaveFailed');
       if (notifications) notifications.show(message, 'error');
       else setSaveMessage(message);
     } finally {
@@ -111,7 +114,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
         </>
       ) : (
         <p className="invite-friends__empty" role="status">
-          未发现可用地址，请打开连接帮助。
+          {feedbackText('network.noAddressHelp')}
         </p>
       )}
       <button
@@ -206,12 +209,11 @@ export function InviteFriends({ session }: { session: RoomSession }) {
                   }}
                 />
                 <p id={`${externalId}-hint`}>
-                  请填写带 http:// 或 https://
-                  前缀的网址，支持网站根地址与端口， 暂不支持路径前缀。
+                  {feedbackText('network.urlHint')}
                 </p>
                 <div className="connection-help__external-actions">
                   <button type="submit" disabled={saving || !draftUrl.trim()}>
-                    {saving ? '正在保存…' : '保存外部入口'}
+                    {saving ? feedbackText('common.saving') : '保存外部入口'}
                   </button>
                   {(externalJoinUrl || draftUrl) && (
                     <button

@@ -3,6 +3,10 @@
   "id": "pokemon-encounters",
   "order": 0,
   "internal": false,
+  "library": {
+    "tags": ["卡牌", "家庭", "运气"],
+    "searchTerms": ["Pokemon", "皮卡丘", "原版", "九宫格", "扩展版"]
+  },
   "catalog": {
     "id": "pokemon-encounters",
     "name": "宝可梦奇遇：皮卡丘和朋友们",

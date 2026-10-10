@@ -91,6 +91,7 @@ export function HostedGame({
     locked: session.locked,
     canControl: session.canControl,
     message: session.message,
+    messageKind: session.messageKind,
     admissionPending: session.admissionPending,
     awaitingConfirmation: session.awaitingConfirmation,
     feedback: session.feedback,
