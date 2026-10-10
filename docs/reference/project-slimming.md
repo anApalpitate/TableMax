@@ -1,5 +1,11 @@
 # 项目瘦身方案与执行记录
 
+## UNO v1.0.6 交互优化收尾（2026-10-10）
+
+最终ZIP的2／3／4／6人、手机／桌面、实际触控、特殊动作与旧版恢复通过后，工程进程退出，预览并清理release旧版副本 **41,686,696字节**，见[清单](../../artifacts/maintenance/local-cleanup-20261010-045052-195-releases/cleanup.json)。旧版已按原SHA保存到`artifacts/maintenance/v1.0.6/uno-ui/delivery-v1.0.5/`，原验收与原素材继续保留；本地release目录仅当前ZIP及清单。两份本轮近期生成阶段目录原样移入tmp，零删除／零容量节省，不作长期历史归档，见[移动记录](../../artifacts/maintenance/v1.0.6/uno-ui/stage-relocation.json)。
+
+普通中间物预览没有到龄候选；随后`Maintain-Project.ps1 -Apply`按10GiB→8GiB默认门槛执行，退役1份到龄验证副本 **31,150,337字节**。最终实际 **14,237,283,404逻辑字节（13.260GiB）**，结果`candidates-exhausted`，见[维护清单](../../artifacts/maintenance/local-cleanup-20261010-045424-322-maintenance/cleanup.json)与[日志](../../artifacts/maintenance/v1.0.6/uno-ui/maintenance-final.log)。18个近期候选、310个用途未纳入标准清理的临时项、依赖／构建缓存及其他任务内容继续保护；1,760链接跳过，无嵌套仓库，不扩大删除或以NTFS物理节省代替逻辑容量。
+
 ## 盒子游戏库与仓库入口收尾（2026-10-10）
 
 源码游戏库／通知、精确单测和独立原生链接验证已完成；证据在 `artifacts/maintenance/v1.0.6/game-library/`、`box-notifications/` 与 `box-repository/`。本轮生成的 `tmp/box-layout-*` 与 `tmp/box-repository-fbed1f` 已识别用途，后者的编译、最终和失败报告及实际截图均已转存上述证据；原素材、规则资料、正式存档和当前交付保留。

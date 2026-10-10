@@ -31,10 +31,14 @@ assert.ok(
     .slice(2)
     .every(
       (arg) =>
-        /^--(mode|seats|evidence|executable|zip|only)=.+$/.test(arg) ||
+        /^--(mode|seats|evidence|executable|legacy-executable|zip|only)=.+$/.test(
+          arg,
+        ) ||
         arg === '--sample' ||
         arg === '--compact' ||
-        arg === '--landscape',
+        arg === '--landscape' ||
+        arg === '--hand-interactions' ||
+        arg === '--layout-only',
     ),
   'Unknown UNO verification argument',
 );
@@ -44,12 +48,17 @@ const name = option('evidence', `${mode}-${count}-${Date.now()}`);
 const sample = process.argv.includes('--sample');
 const compact = process.argv.includes('--compact');
 const landscape = process.argv.includes('--landscape');
+const handInteractions = process.argv.includes('--hand-interactions');
+const layoutOnly = process.argv.includes('--layout-only');
 const only = option('only', '').split(',').filter(Boolean);
 assert.ok(['ui', 'runtime'].includes(mode));
-assert.ok([2, 4, 6].includes(count));
+assert.ok([2, 3, 4, 6].includes(count));
 assert.match(name, /^[a-z0-9-]{1,60}$/);
 const executablePath = resolve(option('executable', desktopExecutable));
 const runtimeRoot = dirname(executablePath);
+const legacyExecutable = option('legacy-executable')
+  ? resolve(option('legacy-executable'))
+  : null;
 const zipPath = option('zip') ? resolve(option('zip')) : null;
 const output = resolve('artifacts/uno/validation', name);
 await mkdir(dirname(output), { recursive: true });
@@ -191,7 +200,13 @@ function observe(page) {
 }
 async function instrumentation(page) {
   await page.addInitScript(() => {
-    window.__unoAudit = { plays: [], animations: [] };
+    window.__unoAudit = { plays: [], animations: [], commands: [] };
+    const originalSend = WebSocket.prototype.send;
+    WebSocket.prototype.send = function (data) {
+      if (typeof data === 'string' && data.includes('room:command'))
+        window.__unoAudit.commands.push(data);
+      return originalSend.call(this, data);
+    };
     const original = HTMLMediaElement.prototype.play;
     HTMLMediaElement.prototype.play = function (...args) {
       const item = {
@@ -489,6 +504,43 @@ async function measure(page, label, role, geometry) {
         )
           seatOverlaps.push([a.label, b.label]);
       }
+    const centralRects = [
+      ...document.querySelectorAll(
+        '.uno-piles .uno-card,.uno-pile-label,.uno-active-color,.uno-table-pending',
+      ),
+    ].map((el) => el.getBoundingClientRect());
+    const piles = centralRects.length
+      ? {
+          left: Math.min(...centralRects.map((rect) => rect.left)),
+          right: Math.max(...centralRects.map((rect) => rect.right)),
+          top: Math.min(...centralRects.map((rect) => rect.top)),
+          bottom: Math.max(...centralRects.map((rect) => rect.bottom)),
+        }
+      : null;
+    const pileGaps = piles
+      ? seatRects.map((seat) => ({
+          label: seat.label,
+          gap: Math.max(
+            piles.left - seat.right,
+            seat.x - piles.right,
+            piles.top - seat.bottom,
+            seat.y - piles.bottom,
+          ),
+        }))
+      : [];
+    const handViewport = document
+      .querySelector('.uno-hand-scroll')
+      ?.getBoundingClientRect();
+    const exposed = [...document.querySelectorAll('.uno-hand-card')].filter(
+      (el) => {
+        const r = el.getBoundingClientRect();
+        return (
+          handViewport &&
+          r.left >= handViewport.left - 1 &&
+          r.left + 44 <= handViewport.right + 1
+        );
+      },
+    ).length;
     const latest = document
       .querySelector('.uno-latest')
       ?.getBoundingClientRect();
@@ -535,6 +587,8 @@ async function measure(page, label, role, geometry) {
       smallText,
       smallTargets,
       seatOverlaps,
+      pileGaps,
+      exposed,
       firstScreen: {
         latest: latest
           ? {
@@ -585,7 +639,7 @@ async function measure(page, label, role, geometry) {
   );
   if (
     role === 'player' &&
-    ['player-320x568', 'player-844x390'].includes(label) &&
+    ['player-320x568', 'player-390x844', 'player-844x390'].includes(label) &&
     ['opening', 'dense'].includes(currentScenario)
   ) {
     assert.equal(
@@ -601,12 +655,23 @@ async function measure(page, label, role, geometry) {
   }
   if (role !== 'player')
     assert.ok(
+      layout.pileGaps.every((seat) => seat.gap >= 15.9),
+      `${label}: seats separated from piles by >=16px`,
+    );
+  if (role === 'player' && ['opening', 'dense'].includes(currentScenario)) {
+    assert.ok(
+      layout.exposed >= (label === 'player-390x844' ? 6 : 4),
+      `${label}: distinguishable exposed hand cards`,
+    );
+  }
+  if (role !== 'player')
+    assert.ok(
       layout.headings.every((heading) => heading.size >= 20),
       `${label}: desktop section headings >=20px`,
     );
   await sampleMemory(page, label, role);
 }
-async function launch(dataDir, fast = false) {
+async function launch(dataDir, fast = false, executable = executablePath) {
   const env = {
     ...process.env,
     TABLEMAX_DATA_DIR: dataDir,
@@ -620,7 +685,7 @@ async function launch(dataDir, fast = false) {
   if (zipPath)
     env.PATH = `${process.env.SystemRoot}\\system32;${process.env.SystemRoot}`;
   desktop = await launchDesktop({
-    executablePath,
+    executablePath: executable,
     args: [
       '--foundation-test',
       fast ? '--tablemax-test-mode' : '--tablemax-play-mode',
@@ -640,6 +705,15 @@ async function launch(dataDir, fast = false) {
   );
   assert.ok(hostToken);
   hostSocket = await connect(hostToken);
+  const nativeRuntime = await desktop.request('runtime');
+  assert.equal(
+    nativeRuntime.appVersion,
+    executable === legacyExecutable
+      ? '1.0.5'
+      : JSON.parse(await readFile('package.json', 'utf8')).version,
+    'Actual native running product version',
+  );
+  evidence.nativeAppVersion = nativeRuntime.appVersion;
   const health = await (await fetch(origin + '/api/foundation/health')).json();
   assert.equal(health.runtime.node, '22.14.0');
   evidence.checks.push({
@@ -844,12 +918,228 @@ async function nativeAudioClaims() {
       'real native audio owner is public; duplicate and host claims denied; player frame has no native audio bridge',
   });
 }
+async function handInteractionCheck() {
+  await resize(phone, 390, 844, true);
+  const frame = surface(phone);
+  const snapshot = () =>
+    frame.evaluate(() => ({
+      ids: [...document.querySelectorAll('.uno-hand-card')].map(
+        (el) => el.dataset.cardId,
+      ),
+      scroll: document.querySelector('.uno-hand-scroll').scrollLeft,
+      commands: window.__unoAudit.commands.length,
+      plays: window.__unoAudit.plays.length,
+    }));
+  const initial = await snapshot();
+  const revision = (await view(players[0].token)).revision;
+  await frame.getByRole('button', { name: '按数字排序', exact: true }).click();
+  await frame.getByRole('button', { name: '按颜色排序', exact: true }).click();
+  await frame.locator('.uno-hand-scroll').evaluate((el) => {
+    el.scrollLeft = 0;
+    window.__stableHand = el;
+  });
+  const illegal = frame.locator('.uno-hand-card[aria-disabled="true"]').first();
+  const illegalId = await illegal.getAttribute('data-card-id');
+  await illegal.scrollIntoViewIfNeeded();
+  const box = await illegal.boundingBox();
+  const previous = await frame
+    .locator('.uno-hand-card')
+    .evaluateAll((els, id) => {
+      const index = els.findIndex((el) => el.dataset.cardId === id);
+      return els[Math.max(0, index - 1)].dataset.cardId;
+    }, illegalId);
+  const first = await frame
+    .locator(`[data-card-id="${previous}"]`)
+    .boundingBox();
+  assert.ok(box && first);
+  const input = await cdp(phone);
+  const touch = (type, x, y) =>
+    input.send('Input.dispatchTouchEvent', {
+      type,
+      touchPoints:
+        type === 'touchEnd' || type === 'touchCancel' ? [] : [{ x, y, id: 1 }],
+    });
+  await touch('touchStart', box.x + 22, box.y + 45);
+  await wait(370);
+  assert.equal(
+    await frame.locator('.uno-hand-card--dragging').count(),
+    1,
+    'Long hold enters drag for an illegal card',
+  );
+  await touch('touchMove', first.x + 10, first.y + 45);
+  await wait(40);
+  await touch('touchEnd');
+  await wait(100);
+  const manual = await snapshot();
+  assert.equal(
+    manual.ids.indexOf(illegalId) + 1,
+    manual.ids.indexOf(previous),
+    'Illegal card reordered without playing',
+  );
+  assert.equal(
+    manual.commands,
+    initial.commands,
+    'Sorting and dragging produce no game commands',
+  );
+  assert.equal(manual.plays, initial.plays, 'Organizing is silent');
+  assert.equal((await view(players[0].token)).revision, revision);
+  await frame.locator('.uno-hand-scroll').evaluate((el) => {
+    el.scrollLeft = 0;
+  });
+  const swipeBox = await frame.locator('.uno-hand-card').first().boundingBox();
+  await touch('touchStart', swipeBox.x + 22, swipeBox.y + 45);
+  await touch('touchMove', swipeBox.x - 70, swipeBox.y + 45);
+  await touch('touchEnd');
+  await wait(100);
+  assert.deepEqual(
+    (await snapshot()).ids,
+    manual.ids,
+    'Quick horizontal swipe does not reorder',
+  );
+  assert.equal(
+    (await view(players[0].token)).revision,
+    revision,
+    'Swipe does not play',
+  );
+  await frame.locator('.uno-hand-scroll').evaluate((el) => {
+    el.scrollLeft = 0;
+  });
+  const edgeBox = await frame.locator('.uno-hand-card').first().boundingBox();
+  const scrollBox = await frame.locator('.uno-hand-scroll').boundingBox();
+  await touch('touchStart', edgeBox.x + 22, edgeBox.y + 45);
+  await wait(370);
+  await touch('touchMove', scrollBox.x + scrollBox.width - 8, edgeBox.y + 45);
+  await wait(180);
+  assert.ok((await snapshot()).scroll > 0, 'Held drag autoscrolls at edge');
+  await touch('touchCancel');
+  await wait(80);
+  assert.deepEqual(
+    (await snapshot()).ids,
+    manual.ids,
+    'Canceled edge drag keeps committed order',
+  );
+  await frame.locator('.uno-hand-scroll').evaluate((el) => {
+    el.scrollLeft = 0;
+  });
+  const cancelBox = await frame.locator('.uno-hand-card').first().boundingBox();
+  await touch('touchStart', cancelBox.x + 22, cancelBox.y + 45);
+  await wait(370);
+  await send(hostSocket, hostToken, { type: 'pause' });
+  await until(
+    () =>
+      frame
+        .locator('.uno-hand-card--dragging')
+        .count()
+        .then((n) => n === 0),
+    'Pause cancels pending drag',
+  );
+  const pausedRevision = (await view(players[0].token)).revision;
+  await touch('touchEnd');
+  assert.equal(
+    (await view(players[0].token)).revision,
+    pausedRevision,
+    'Canceled drag never plays',
+  );
+  await send(hostSocket, hostToken, { type: 'resume' });
+  await frame.getByRole('button', { name: '积分榜', exact: true }).click();
+  assert.equal(await frame.locator('.uno-leaderboard li').count(), count);
+  assert.equal(
+    await frame.locator('.uno-leaderboard li[data-rank="1"]').count(),
+    count,
+    'Equal starting scores share rank',
+  );
+  await frame.getByRole('button', { name: /关闭/ }).last().click();
+  await phone.reload();
+  await until(
+    () =>
+      surface(phone)
+        .locator('.uno-hand-card')
+        .count()
+        .then((n) => n === manual.ids.length),
+    'Hand restored after refresh',
+  );
+  assert.deepEqual(
+    await surface(phone)
+      .locator('.uno-hand-card')
+      .evaluateAll((els) => els.map((el) => el.dataset.cardId)),
+    manual.ids,
+    'Same-tab session order restored',
+  );
+  await surface(phone)
+    .locator('.uno-hand-scroll')
+    .evaluate((el) => {
+      window.__stableHand = el;
+      el.scrollLeft = 123;
+      window.__handScrollAnchor = el.scrollLeft;
+    });
+  const own = await view(players[0].token);
+  const draw = own.actions.find((action) => action.type === 'draw');
+  assert.ok(draw);
+  await send(await connect(players[0].token), players[0].token, {
+    type: 'game',
+    decisionId: own.decisionId,
+    action: draw,
+  });
+  await until(
+    () =>
+      surface(phone)
+        .locator('.uno-hand-card')
+        .count()
+        .then((n) => n === manual.ids.length + 1),
+    'Draw appears',
+  );
+  const drawnIds = await surface(phone)
+    .locator('.uno-hand-card')
+    .evaluateAll((els) => els.map((el) => el.dataset.cardId));
+  assert.deepEqual(
+    drawnIds.slice(0, -1),
+    manual.ids,
+    'Draw appends without reordering manual hand',
+  );
+  assert.equal(
+    await surface(phone).evaluate(
+      () => window.__stableHand === document.querySelector('.uno-hand-scroll'),
+    ),
+    true,
+    'Saved decision retains hand DOM',
+  );
+  assert.equal(
+    await surface(phone).evaluate(
+      () => document.querySelector('.uno-hand-scroll').scrollLeft,
+    ),
+    await surface(phone).evaluate(() => window.__handScrollAnchor),
+    'Saved draw retains horizontal scroll anchor',
+  );
+  await send(hostSocket, hostToken, { type: 'pause' });
+  const saved = await view(hostToken);
+  assert.ok(saved.history.at(-1));
+  await send(hostSocket, hostToken, {
+    type: 'rollback',
+    checkpointId: saved.history.at(-1).id,
+  });
+  await send(hostSocket, hostToken, { type: 'resume' });
+  await wait(200);
+  assert.deepEqual(
+    await surface(phone)
+      .locator('.uno-hand-card')
+      .evaluateAll((els) => els.map((el) => el.dataset.cardId)),
+    manual.ids,
+    'Manual order survives branch change',
+  );
+  evidence.checks.push({
+    scenario: currentScenario,
+    check:
+      'trusted touch: illegal-card drag, sort toggle, swipe isolation, no command/audio, score ties, same-tab refresh and rollback order',
+    before: initial.ids,
+    after: manual.ids,
+  });
+}
 async function clickCard(id) {
   const card = surface(phone).locator(`button[data-card-id="${id}"]`);
   assert.equal(await card.count(), 1);
   await card.scrollIntoViewIfNeeded();
   const before = await view(players[0].token);
-  await card.click();
+  await card.click({ position: { x: 22, y: 45 } });
   if (
     (await view(players[0].token)).revision === before.revision &&
     (await surface(phone).locator('.uno-wild-selection').count())
@@ -1006,6 +1296,8 @@ async function reducedSavedAction() {
   }
   return null;
 }
+const gameScores = (game) =>
+  game.seatOrder.map((id) => game.players[id].score).sort((a, b) => b - a);
 async function uiCase(scenario, prepare) {
   currentScenario = scenario;
   const item = {
@@ -1019,7 +1311,45 @@ async function uiCase(scenario, prepare) {
   await mkdir(dataDir);
   const fixture = await prepare(scenario, dataDir, count);
   players = fixture.players;
+  let legacyState, legacyPreferences;
+  if (legacyExecutable) {
+    await launch(dataDir, false, legacyExecutable);
+    await send(hostSocket, hostToken, { type: 'resume' });
+    await send(hostSocket, hostToken, { type: 'pause' });
+    legacyState = (await view(players[0].token)).gameView;
+    await host.evaluate(() =>
+      window.tablemaxDisplay.update({
+        resolution: 'auto',
+        interfaceScale: 125,
+      }),
+    );
+    legacyPreferences = await host.evaluate(() =>
+      window.tablemaxDisplay.read().then((state) => state.preferences),
+    );
+    await shutdown();
+  }
   await launch(dataDir);
+  if (legacyState) {
+    assert.deepEqual(
+      (await view(players[0].token)).gameView,
+      legacyState,
+      'v1.0.5 actual save restored unchanged',
+    );
+    assert.deepEqual(
+      await host.evaluate(() =>
+        window.tablemaxDisplay.read().then((state) => state.preferences),
+      ),
+      legacyPreferences,
+      'v1.0.5 display settings restored',
+    );
+    evidence.checks.push({
+      scenario,
+      check:
+        'Actual v1.0.5 runtime writes settings/save, v1.0.6 restores game and settings unchanged',
+      legacyExecutable,
+      legacyExeSha256: hash(await readFile(legacyExecutable)),
+    });
+  }
   const cover = host.locator('img[alt="UNO游戏封面"]');
   await cover.waitFor();
   const coverSize = await cover.evaluate(async (image) => {
@@ -1043,7 +1373,7 @@ async function uiCase(scenario, prepare) {
     () => surface(phone).locator('.uno-hand-card--legal').first().isEnabled(),
     'Fixture human can act after resume',
   );
-  if (!sample && evidence.audio.length === 0) {
+  if (!sample && !layoutOnly && evidence.audio.length === 0) {
     await audioDecode(publicPage);
     await nativeAudioClaims();
   }
@@ -1059,6 +1389,11 @@ async function uiCase(scenario, prepare) {
           ];
     for (const [width, height] of phoneSizes) {
       const geometry = await resize(phone, width, height, true);
+      await surface(phone)
+        .locator('.uno-hand-scroll')
+        .evaluate((el) => {
+          el.scrollLeft = 0;
+        });
       await measure(phone, `player-${width}x${height}`, 'player', geometry);
       await rulesCheck(phone, players[0].token, `player-${width}x${height}`);
       const cards = surface(phone).locator('.uno-hand-card');
@@ -1067,10 +1402,7 @@ async function uiCase(scenario, prepare) {
         await cards.nth(index).scrollIntoViewIfNeeded();
         const access = await cards.nth(index).evaluate((el) => {
           const r = el.getBoundingClientRect();
-          const hit = document.elementFromPoint(
-            r.x + r.width / 2,
-            r.y + r.height / 2,
-          );
+          const hit = document.elementFromPoint(r.x + 22, r.y + r.height / 2);
           return {
             inside:
               r.x >= -1 &&
@@ -1119,8 +1451,9 @@ async function uiCase(scenario, prepare) {
         );
       }
     }
-    if (sample) {
-      item.scope = `${scenario} sample only: 320x568 player and illustrated rules, 1280x720 host/public, private projection and first/last hand-card access.`;
+    if (handInteractions) await handInteractionCheck();
+    if (sample || layoutOnly) {
+      item.scope = `${scenario} layout only: actual viewport matrix, illustrated rules, private projection, density, pile separation and exposed hand-card access; no natural-match claim.`;
       item.result = 'passed';
       await shutdown();
       return;
@@ -1201,6 +1534,30 @@ async function uiCase(scenario, prepare) {
     const expected = scenario === 'match-finish' ? 'ended' : 'round-result';
     assert.equal(after.gameView.phase, expected);
     assert.equal(after.gameView.results.at(-1).winner, players[0].seatId);
+    await surface(phone)
+      .getByRole('button', { name: '积分榜', exact: true })
+      .click();
+    const ranks = await surface(phone)
+      .locator('.uno-leaderboard li')
+      .evaluateAll((rows) =>
+        rows.map((row) => ({
+          rank: Number(row.dataset.rank),
+          score: Number(row.querySelector('span b').textContent),
+        })),
+      );
+    const expectedScores = gameScores(after.gameView);
+    assert.deepEqual(
+      ranks.map((row) => row.score),
+      expectedScores,
+      'Actual score leaderboard descending',
+    );
+    assert.deepEqual(
+      ranks.map((row) => row.rank),
+      expectedScores.map((score) => expectedScores.indexOf(score) + 1),
+      'Actual score leaderboard tied ranks',
+    );
+    await surface(phone).getByRole('button', { name: /关闭/ }).last().click();
+
     assert.equal(
       after.gameView.results.at(-1).points,
       Object.values(after.gameView.results.at(-1).handValues).reduce(

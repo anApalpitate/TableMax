@@ -28,7 +28,7 @@ export async function prepare(
   count: number,
 ) {
   assert.ok(scenarios.includes(scenario as (typeof scenarios)[number]));
-  assert.ok([2, 4, 6].includes(count));
+  assert.ok([2, 3, 4, 6].includes(count));
   const custom: typeof rules = {
     ...rules,
     initialize(context) {
