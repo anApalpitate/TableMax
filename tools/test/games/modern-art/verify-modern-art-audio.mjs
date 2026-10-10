@@ -1,3 +1,4 @@
+import { saveVerificationScreenshot } from '../../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -329,7 +330,10 @@ async function capture(page, label) {
   const encoded = await window.evaluate(async (window) =>
     (await window.webContents.capturePage()).toPNG().toString('base64'),
   );
-  await writeFile(join(output, label + '.png'), Buffer.from(encoded, 'base64'));
+  await saveVerificationScreenshot(
+    join(output, label + '.png'),
+    Buffer.from(encoded, 'base64'),
+  );
   evidence.screenshots.push(label + '.png');
 }
 async function openPublic() {

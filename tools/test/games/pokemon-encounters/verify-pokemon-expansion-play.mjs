@@ -1,3 +1,4 @@
+import { saveVerificationScreenshot } from '../../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -240,7 +241,10 @@ async function screenshot(page, name) {
   const png = await native.evaluate(async (w) =>
     (await w.webContents.capturePage()).toPNG().toString('base64'),
   );
-  await writeFile(join(output, name + '.png'), Buffer.from(png, 'base64'));
+  await saveVerificationScreenshot(
+    join(output, name + '.png'),
+    Buffer.from(png, 'base64'),
+  );
   report.screenshots.push(name + '.png');
 }
 function choose(player, index) {

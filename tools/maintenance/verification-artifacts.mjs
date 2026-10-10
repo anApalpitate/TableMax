@@ -83,7 +83,7 @@ export async function writeScreenshot(
     !critical && (options.preview || filename.startsWith('process/'));
   const key = `${resolve(output)}:${preview ? 'preview' : 'evidence'}:${sourceSha256}`;
   const previous = captured.get(key);
-  if (previous && !critical) {
+  if (previous && !critical && options.allowAlias !== false) {
     let bytes;
     try {
       bytes = await readFile(resolve(output, previous.path));

@@ -1,4 +1,8 @@
 import {
+  captureBrowserScreenshot,
+  saveVerificationScreenshot,
+} from '../../support/screenshots.mjs';
+import {
   assertWorkspaceRoot,
   isDirectExecution,
 } from '../../../shared/workspace-root.mjs';
@@ -169,13 +173,14 @@ async function resize(page, width, height, mobile = false, zoom = 1) {
 }
 async function shot(page, label, selector) {
   const path = join(output, label + '.png');
-  if (selector) await page.locator(selector).screenshot({ path });
+  if (selector)
+    await captureBrowserScreenshot(page.locator(selector), { path });
   else {
     const win = await desktop.browserWindow(page);
     const bytes = await win.evaluate(async (w) =>
       (await w.webContents.capturePage()).toPNG().toString('base64'),
     );
-    await writeFile(path, Buffer.from(bytes, 'base64'));
+    await saveVerificationScreenshot(path, Buffer.from(bytes, 'base64'));
   }
   evidence.screenshots.push(path);
   return path;

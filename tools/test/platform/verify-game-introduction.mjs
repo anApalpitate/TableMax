@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -140,7 +141,7 @@ try {
           index === 0 &&
           [360, 620, 934, 1280].includes(width)
         )
-          await page.screenshot({
+          await captureBrowserScreenshot(page, {
             path: join(output, `power-grid-${width}.png`),
           });
         assert.equal(

@@ -120,6 +120,9 @@ const verificationScopes = {
   'tools/maintenance/verify-cleanup-fast.ps1': ['tooling'],
   'tools/maintenance/verify-cleanup-idle.ps1': ['tooling'],
   'tools/test/games/avalon/verify-avalon.mjs': ['game:avalon'],
+  'tools/test/games/modern-art/verify-modern-art-empty-gallery.mjs': [
+    'game:modern-art',
+  ],
   'tools/test/box/verify-game-library.mjs': ['box'],
   'tools/test/box/verify-box-repository.mjs': ['box'],
   'tools/test/box/verify-box-seats.mjs': ['box'],
@@ -130,6 +133,7 @@ const verificationScopes = {
   'tools/build/build-idle.test.mjs': ['tooling'],
   'tools/maintenance/maintenance.test.mjs': ['tooling'],
   'tools/maintenance/screenshot-preview.test.mjs': ['tooling'],
+  'tools/test/support/screenshots.test.mjs': ['tooling'],
   'tools/maintenance/coordinator.test.mjs': ['tooling'],
   'tools/analysis/storage/space-analysis.test.mjs': ['tooling'],
   'tools/shared/migration.test.mjs': ['tooling'],

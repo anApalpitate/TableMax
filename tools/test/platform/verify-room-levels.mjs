@@ -1,3 +1,4 @@
+import { saveVerificationScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -244,7 +245,10 @@ async function capture(page, name, width, height, mobile = false) {
       .toPNG()
       .toString('base64'),
   );
-  await writeFile(join(output, `${name}.png`), Buffer.from(png, 'base64'));
+  await saveVerificationScreenshot(
+    join(output, `${name}.png`),
+    Buffer.from(png, 'base64'),
+  );
   evidence.screenshots.push(`${name}.png`);
 }
 async function tableGeometry(page, label) {

@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -281,7 +282,9 @@ try {
     'Duplicate instance reopens management without another service',
   );
 
-  await host.screenshot({ path: join(output, 'actual-host.png') });
+  await captureBrowserScreenshot(host, {
+    path: join(output, 'actual-host.png'),
+  });
   await desktop.close();
   desktop = undefined;
   await stopped(origin);

@@ -1,4 +1,8 @@
 import {
+  captureMatrixScreenshot,
+  browserScreenshotMetrics,
+} from '../support/screenshots.mjs';
+import {
   assertWorkspaceRoot,
   isDirectExecution,
 } from '../../shared/workspace-root.mjs';
@@ -318,24 +322,35 @@ async function nativeState(page) {
 async function capture(page, name) {
   const window = await desktop.browserWindow(page);
   assert.equal(await window.evaluate((w) => w.isVisible()), false);
-  const encoded = await deadline(
-    window.evaluate(async (w) =>
-      (
-        await w.webContents.capturePage(undefined, {
-          stayHidden: true,
-          stayAwake: true,
-        })
-      )
-        .toPNG()
-        .toString('base64'),
+  const screenshot = await captureMatrixScreenshot(
+    join(output, name + '.png'),
+    async () =>
+      Buffer.from(
+        await deadline(
+          window.evaluate(async (w) =>
+            (
+              await w.webContents.capturePage(undefined, {
+                stayHidden: true,
+                stayAwake: true,
+              })
+            )
+              .toPNG()
+              .toString('base64'),
+          ),
+          'Hidden native screenshot timed out',
+          8000,
+        ),
+        'base64',
+      ),
+    await browserScreenshotMetrics(
+      page,
+      await window.evaluate((w) => w.webContents.getZoomFactor()),
     ),
-    'Hidden native screenshot timed out',
-    8000,
+    { state: name },
   );
-  const png = Buffer.from(encoded, 'base64');
-  await writeFile(join(output, `${name}.png`), png);
+  const png = screenshot.image;
   evidence.screenshots.push({
-    name: `${name}.png`,
+    name: screenshot.path,
     width: png.readUInt32BE(16),
     height: png.readUInt32BE(20),
   });

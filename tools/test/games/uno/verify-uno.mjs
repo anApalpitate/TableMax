@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -1742,7 +1743,7 @@ async function runtimeCase() {
     [800, 600],
   );
   const tilePath = join(output, 'natural-match-library-tile.png');
-  await tile.screenshot({ path: tilePath });
+  await captureBrowserScreenshot(tile, { path: tilePath });
   evidence.screenshots.push({
     scenario: currentScenario,
     label: 'library-tile',

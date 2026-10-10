@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -48,7 +49,9 @@ export async function verifyUiPolish(page, fixtures, report, output) {
   assert.ok(await page.getByRole('button', { name: '收窄市场' }).isHidden());
   await entry.click();
   assert.equal(await board.getAttribute('data-market-width'), 'wide');
-  await page.screenshot({ path: join(output, 'wide-market-1280.png') });
+  await captureBrowserScreenshot(page, {
+    path: join(output, 'wide-market-1280.png'),
+  });
   report.screenshots.push('wide-market-1280.png');
   await page.evaluate(() => window.setFixture('regions', 'host'));
   await page.waitForTimeout(400);

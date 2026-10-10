@@ -1,3 +1,4 @@
+import { saveVerificationScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -134,9 +135,16 @@ try {
         .toString('base64'),
     );
     assert.ok(png.length > 1000);
-    await writeFile(join(output, `${name}.png`), Buffer.from(png, 'base64'));
+    const screenshot = await saveVerificationScreenshot(
+      join(output, `${name}.png`),
+      Buffer.from(png, 'base64'),
+      {
+        purpose: name.endsWith('-art') ? 'preview' : 'key',
+        allowAlias: true,
+      },
+    );
     evidence.screenshots.push({
-      file: `${name}.png`,
+      file: screenshot.path,
       width,
       height,
       deviceScaleFactor: await page.evaluate(() => devicePixelRatio),

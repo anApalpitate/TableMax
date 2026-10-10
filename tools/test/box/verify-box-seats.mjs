@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -366,7 +367,10 @@ const screenshotCases = new Set([
 ]);
 async function capture(name) {
   const file = name + '.png';
-  await page.screenshot({ path: join(output, file), fullPage: true });
+  await captureBrowserScreenshot(page, {
+    path: join(output, file),
+    fullPage: true,
+  });
   report.screenshots.push({
     file,
     sha256: hash(await readFile(join(output, file))),
@@ -581,9 +585,10 @@ try {
   report.status = 'failed';
   report.error = error.stack ?? error.message;
   if (page && !page.isClosed())
-    await page
-      .screenshot({ path: join(output, 'failure.png'), fullPage: true })
-      .catch(() => {});
+    await captureBrowserScreenshot(page, {
+      path: join(output, 'failure.png'),
+      fullPage: true,
+    }).catch(() => {});
   throw error;
 } finally {
   await browser?.close();

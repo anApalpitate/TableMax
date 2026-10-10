@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -164,7 +165,9 @@ export async function verifyPurchaseProgress(page, fixtures, report, output) {
     rows.slice(10, 20).every((row) => Math.abs(row.x - rows[10].x) < 1),
   );
   assert.equal(await income.locator('.pg-income-tier--capability').count(), 1);
-  await income.screenshot({ path: join(output, 'income-single-line.png') });
+  await captureBrowserScreenshot(income, {
+    path: join(output, 'income-single-line.png'),
+  });
   report.screenshots.push('income-single-line.png');
 
   const representativeSteps = new Map();
@@ -435,7 +438,7 @@ export async function verifyPurchaseProgress(page, fixtures, report, output) {
     await progress.locator('summary').click();
     await input.scrollIntoViewIfNeeded();
     const screenshot = `purchase-quantity-${viewport.width}.png`;
-    await page.screenshot({ path: join(output, screenshot) });
+    await captureBrowserScreenshot(page, { path: join(output, screenshot) });
     report.screenshots.push(screenshot);
     await confirm.click();
     const submitted = await commands(page);

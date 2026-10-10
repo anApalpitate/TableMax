@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -146,7 +147,9 @@ export async function verifyUiRefinement(page, fixtures, report, output) {
       );
     }
   }
-  await page.screenshot({ path: join(output, 'company-inspector-1280.png') });
+  await captureBrowserScreenshot(page, {
+    path: join(output, 'company-inspector-1280.png'),
+  });
   report.screenshots.push('company-inspector-1280.png');
   assert.equal((await page.evaluate(() => window.__commands)).length, 0);
   await page.keyboard.press('Escape');
@@ -200,7 +203,9 @@ export async function verifyUiRefinement(page, fixtures, report, output) {
       ),
     'Phone company detail has no clipped horizontal content',
   );
-  await page.screenshot({ path: join(output, 'company-inspector-320.png') });
+  await captureBrowserScreenshot(page, {
+    path: join(output, 'company-inspector-320.png'),
+  });
   report.screenshots.push('company-inspector-320.png');
   assert.equal((await page.evaluate(() => window.__commands)).length, 0);
   await page.keyboard.press('Escape');
@@ -247,7 +252,9 @@ export async function verifyUiRefinement(page, fixtures, report, output) {
     zoomBefore,
     zoomAfter,
   };
-  await page.screenshot({ path: join(output, 'map-price-zoom.png') });
+  await captureBrowserScreenshot(page, {
+    path: join(output, 'map-price-zoom.png'),
+  });
   report.screenshots.push('map-price-zoom.png');
   await page.evaluate(() => window.setFixture('powering', 'host'));
   await page.waitForTimeout(350);
@@ -255,7 +262,9 @@ export async function verifyUiRefinement(page, fixtures, report, output) {
   await page.waitForTimeout(350);
   const guide = page.locator('#pg-board-income');
   assert.ok(await guide.locator('[data-income-cities="20"]').isVisible());
-  await page.screenshot({ path: join(output, 'income-full-1280.png') });
+  await captureBrowserScreenshot(page, {
+    path: join(output, 'income-full-1280.png'),
+  });
   report.screenshots.push('income-full-1280.png');
   report.actions.push(
     'Open/close intermediate frames, quick reversal, reduced motion and test mode; larger read-only company detail and authorized cash; sublinear route price growth',

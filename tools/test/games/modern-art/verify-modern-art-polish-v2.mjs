@@ -1,4 +1,8 @@
 import {
+  captureMatrixScreenshot,
+  browserScreenshotMetrics,
+} from '../../support/screenshots.mjs';
+import {
   assertWorkspaceRoot,
   isDirectExecution,
 } from '../../../shared/workspace-root.mjs';
@@ -336,17 +340,28 @@ async function capture(page, label) {
   await settle(page);
   const win = await desktop.browserWindow(page);
   assert.equal(await win.evaluate((w) => w.isVisible()), false);
-  const encoded = await win.evaluate(async (w) =>
-    (await w.webContents.capturePage()).toPNG().toString('base64'),
+  const screenshot = await captureMatrixScreenshot(
+    join(output, label + '.png'),
+    async () =>
+      Buffer.from(
+        await win.evaluate(async (w) =>
+          (await w.webContents.capturePage()).toPNG().toString('base64'),
+        ),
+        'base64',
+      ),
+    await browserScreenshotMetrics(
+      page,
+      await win.evaluate((w) => w.webContents.getZoomFactor()),
+    ),
+    { state: label },
   );
-  const bytes = Buffer.from(encoded, 'base64');
-  const filename = `${label}.png`;
-  await writeFile(join(output, filename), bytes);
+  const bytes = screenshot.image;
+  const filename = screenshot.path;
   report.screenshots.push({
     filename,
     width: bytes.readUInt32BE(16),
     height: bytes.readUInt32BE(20),
-    sha256: createHash('sha256').update(bytes).digest('hex'),
+    sha256: screenshot.sha256,
   });
 }
 async function openPhone(token) {

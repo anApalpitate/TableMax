@@ -1,4 +1,8 @@
 import {
+  captureBrowserScreenshot,
+  captureBrowserMatrixScreenshot,
+} from '../support/screenshots.mjs';
+import {
   assertWorkspaceRoot,
   isDirectExecution,
 } from '../../shared/workspace-root.mjs';
@@ -230,8 +234,12 @@ async function capture(page, name) {
         .map((image) => image.decode().catch(() => {})),
     );
   });
-  await page.screenshot({ path: join(output, name + '.png'), fullPage: true });
-  report.screenshots.push(name + '.png');
+  const screenshot = await captureBrowserMatrixScreenshot(
+    page,
+    { path: join(output, name + '.png'), fullPage: true },
+    { state: name },
+  );
+  report.screenshots.push(screenshot.path);
 }
 async function markerGeometry(frame, name) {
   const markers = await frame.evaluate(() =>
@@ -335,9 +343,10 @@ async function resultGeometry(frame, name) {
     result.recent.top - result.rect.bottom <= 24;
   const record = async (stage) => {
     const screenshot = `${name}-result-geometry-${stage}.png`;
-    await frame
-      .page()
-      .screenshot({ path: join(output, screenshot), fullPage: false });
+    await captureBrowserScreenshot(frame.page(), {
+      path: join(output, screenshot),
+      fullPage: false,
+    });
     report.screenshots.push(screenshot);
     (report.resultDiagnostics ??= []).push({
       name,
@@ -754,7 +763,9 @@ async function deviceChecks(token) {
       await page.locator('.player-frame').getAttribute('data-player-display'),
       device.desktop ? 'portrait' : 'mobile',
     );
-    await page.screenshot({ path: join(output, device.name + '.png') });
+    await captureBrowserScreenshot(page, {
+      path: join(output, device.name + '.png'),
+    });
     await context.close();
   }
   const context = await browser.newContext({
@@ -1000,7 +1011,10 @@ async function auditSnapshot(page, ui, frame, name) {
     `${name}: unintended document horizontal overflow ${metrics.overflow}px`,
   );
   const screenshot = `${name}.png`;
-  await page.screenshot({ path: join(output, screenshot), fullPage: false });
+  await captureBrowserScreenshot(page, {
+    path: join(output, screenshot),
+    fullPage: false,
+  });
   report.screenshots.push(screenshot);
   report.audits.push({
     name,
@@ -1557,10 +1571,9 @@ try {
   report.status = 'failed';
   report.failure = String(error.stack ?? error);
   if (pages.at(-1))
-    await pages
-      .at(-1)
-      .screenshot({ path: join(output, 'failure.png') })
-      .catch(() => {});
+    await captureBrowserScreenshot(pages.at(-1), {
+      path: join(output, 'failure.png'),
+    }).catch(() => {});
   throw error;
 } finally {
   for (const socket of sockets) socket.disconnect();

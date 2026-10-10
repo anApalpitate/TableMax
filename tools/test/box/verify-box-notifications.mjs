@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -101,7 +102,9 @@ try {
       getComputedStyle(document.querySelector('.tablemax-notice')).opacity ===
       '1',
   );
-  await page.screenshot({ path: joinPath('mobile-admission.png') });
+  await captureBrowserScreenshot(page, {
+    path: joinPath('mobile-admission.png'),
+  });
   await notices.getByRole('button', { name: '关闭提示' }).click();
   await notices.waitFor({ state: 'detached' });
   await join.click();
@@ -271,7 +274,9 @@ try {
         getComputedStyle(document.querySelector('.tablemax-notice')).opacity ===
         '1',
     );
-    await page.screenshot({ path: joinPath('limit-' + width + '.png') });
+    await captureBrowserScreenshot(page, {
+      path: joinPath('limit-' + width + '.png'),
+    });
   }
   checked(
     'Three-item cap and minimum 18px text / 44px close targets at phone, landscape, desktop and 4K sizes.',
@@ -316,7 +321,9 @@ try {
       element.contains(document.activeElement),
     ),
   );
-  await page.screenshot({ path: joinPath('dialog-notification.png') });
+  await captureBrowserScreenshot(page, {
+    path: joinPath('dialog-notification.png'),
+  });
   await notices.getByRole('button', { name: '关闭提示' }).click();
   await notices.waitFor({ state: 'detached' });
   await page.click('#dialog-action');

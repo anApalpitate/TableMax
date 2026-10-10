@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -492,7 +493,7 @@ try {
         );
       });
       const path = join(output, `${label}.png`);
-      await page.screenshot({ path, fullPage: true });
+      await captureBrowserScreenshot(page, { path, fullPage: true });
       report.screenshots.push({ label, path });
     }
     for (const name of ['bonus', 'two', 'zero'])

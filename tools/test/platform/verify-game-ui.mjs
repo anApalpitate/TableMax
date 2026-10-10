@@ -1,4 +1,8 @@
 import {
+  captureMatrixScreenshot,
+  browserScreenshotMetrics,
+} from '../support/screenshots.mjs';
+import {
   assertWorkspaceRoot,
   isDirectExecution,
 } from '../../shared/workspace-root.mjs';
@@ -422,18 +426,33 @@ for (const scene of selectedScenes) {
         false,
         'Verification windows remain hidden',
       );
-      const data = await window.evaluate(async (w) =>
-        (
-          await w.webContents.capturePage(undefined, {
-            stayHidden: true,
-            stayAwake: true,
-          })
-        )
-          .toPNG()
-          .toString('base64'),
+      const screenshot = await captureMatrixScreenshot(
+        join(output, name),
+        async () =>
+          Buffer.from(
+            await window.evaluate(async (w) =>
+              (
+                await w.webContents.capturePage(undefined, {
+                  stayHidden: true,
+                  stayAwake: true,
+                })
+              )
+                .toPNG()
+                .toString('base64'),
+            ),
+            'base64',
+          ),
+        await browserScreenshotMetrics(
+          page,
+          await window.evaluate((w) => w.webContents.getZoomFactor()),
+        ),
+        {
+          purpose: /-step-/.test(name) ? 'preview' : 'representative',
+          state: `${name}-scroll-${keepScroll}`,
+          allowAlias: true,
+        },
       );
-      await writeFile(join(output, name), Buffer.from(data, 'base64'));
-      item.screenshots.push(name);
+      item.screenshots.push(screenshot.path);
     };
     const saveCaseProgress = async () => {
       await writeFile(

@@ -6,8 +6,12 @@
 
 [开发环境](../../docs/reference/development.md)维护具体运行要求；[工具总索引](../README.md)用于按任务定位。下表覆盖本分类文件，内部辅助不作为独立业务命令。
 
+截图统一通过 [support/screenshots.mjs](support/screenshots.mjs) 或既有共享 writer 保存。默认保留关键／失败 PNG；普通预览显式使用 WebP 品质90，矩阵代表筛选保留完整断言与必要边界，报告须消费返回的实际路径。输出目录的 `screenshot-index.json` 留存请求与代表／编码关系。规则素材捕获保留原格式。公共回归包含隐藏 Edge／WebView2 实测，需当前开发 EXE、系统 Edge 与锁定的 Python／Pillow；原生 profile 随进程关闭后交给既有临时目录维护，继续保护近期文件。策略、依赖与自动维护边界见[截图与产物归属](../maintenance/README.md#截图与产物归属)。
+
 | 工具                                                                                                                                     | 入口／用途                                                                           |
 | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [support/screenshots.mjs](support/screenshots.mjs)                                                                                       | 内部截图保存、代表筛选与索引；普通预览 WebP90，关键／失败 PNG                        |
+| [support/screenshots.test.mjs](support/screenshots.test.mjs)                                                                             | 工具回归：`node --test tools/test/support/screenshots.test.mjs`；包含隐藏浏览器实测  |
 | [box/verify-box-avatars.mjs](box/verify-box-avatars.mjs)                                                                                 | `node tools/test/box/verify-box-avatars.mjs`                                         |
 | [box/verify-box-debug.mjs](box/verify-box-debug.mjs)                                                                                     | `node tools/test/box/verify-box-debug.mjs`                                           |
 | [box/verify-box-layout.mjs](box/verify-box-layout.mjs)                                                                                   | `node tools/test/box/verify-box-layout.mjs`                                          |

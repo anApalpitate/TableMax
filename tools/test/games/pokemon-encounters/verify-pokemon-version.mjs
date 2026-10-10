@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -105,7 +106,7 @@ try {
       before,
     );
     assert.deepEqual(await page.evaluate(() => window.commands), []);
-    await page.screenshot({ path: join(output, role + '.png') });
+    await captureBrowserScreenshot(page, { path: join(output, role + '.png') });
     checks.push(
       role +
         ': readonly original/disabled expansion, zero commands and unchanged room',

@@ -1,3 +1,4 @@
+import { saveVerificationScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -349,7 +350,10 @@ async function capture(page, name, width, height, mobile = false) {
   const png = await window.evaluate(async (window) =>
     (await window.webContents.capturePage()).toPNG().toString('base64'),
   );
-  await writeFile(join(output, name + '.png'), Buffer.from(png, 'base64'));
+  await saveVerificationScreenshot(
+    join(output, name + '.png'),
+    Buffer.from(png, 'base64'),
+  );
   evidence.screenshots.push(name + '.png');
   evidence.layouts ??= [];
   evidence.layouts.push({
@@ -2401,7 +2405,7 @@ try {
       await page.locator('[data-ma-action]:not(:disabled)').count(),
       0,
     );
-    await writeFile(
+    await saveVerificationScreenshot(
       join(output, 'phone-actual-offline-320.png'),
       await page.screenshot({ fullPage: false }),
     );

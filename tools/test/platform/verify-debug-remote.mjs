@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -214,7 +215,10 @@ async function snapshot(page, name) {
         requestAnimationFrame(() => requestAnimationFrame(done)),
       ),
   );
-  await page.screenshot({ path: join(output, name + '.png'), fullPage: true });
+  await captureBrowserScreenshot(page, {
+    path: join(output, name + '.png'),
+    fullPage: true,
+  });
 }
 async function sameIdentity(page, token) {
   const frame = await playerFrame(page);
@@ -1606,12 +1610,10 @@ try {
   report.failure = redact(error.stack ?? error.message ?? error);
   for (const [index, page] of pages.entries())
     if (!page.isClosed())
-      await page
-        .screenshot({
-          path: join(output, `failed-page-${index}.png`),
-          fullPage: true,
-        })
-        .catch(() => {});
+      await captureBrowserScreenshot(page, {
+        path: join(output, `failed-page-${index}.png`),
+        fullPage: true,
+      }).catch(() => {});
 } finally {
   for (const socket of sockets) socket.disconnect();
   const cleanupErrors = [];

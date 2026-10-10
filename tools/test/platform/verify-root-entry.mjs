@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -118,7 +119,10 @@ async function capture(page, name) {
       [...document.images].map((image) => image.decode().catch(() => {})),
     );
   });
-  await page.screenshot({ path: join(output, name + '.png'), fullPage: true });
+  await captureBrowserScreenshot(page, {
+    path: join(output, name + '.png'),
+    fullPage: true,
+  });
   report.screenshots.push(name + '.png');
 }
 async function verifyPackage() {

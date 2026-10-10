@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -385,7 +386,7 @@ try {
       `${width}: readable text sizes`,
     );
     report.layouts.push({ width, height, ...geometry });
-    await page.screenshot({
+    await captureBrowserScreenshot(page, {
       path: join(output, `library-${width}x${height}.png`),
     });
     await page.keyboard.press('Escape');

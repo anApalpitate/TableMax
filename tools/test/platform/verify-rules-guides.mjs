@@ -1,3 +1,4 @@
+import { saveVerificationScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -201,7 +202,7 @@ async function shot(page, name) {
   const bytes = await win.evaluate(async (w) =>
     (await w.webContents.capturePage()).toPNG().toString('base64'),
   );
-  await writeFile(path, Buffer.from(bytes, 'base64'));
+  await saveVerificationScreenshot(path, Buffer.from(bytes, 'base64'));
   report.screenshots.push(path);
 }
 async function asset(page, selector, name) {

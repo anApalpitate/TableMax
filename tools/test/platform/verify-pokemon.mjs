@@ -1,3 +1,4 @@
+import { saveVerificationScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -206,7 +207,10 @@ async function capture(desktop, page, name, width, height) {
       .toPNG()
       .toString('base64'),
   );
-  await writeFile(join(output, `${name}.png`), Buffer.from(png, 'base64'));
+  await saveVerificationScreenshot(
+    join(output, `${name}.png`),
+    Buffer.from(png, 'base64'),
+  );
   evidence.screenshots.push(`${name}.png`);
   await window.evaluate((window) => window.hide());
 }

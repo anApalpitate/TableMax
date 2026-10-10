@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -267,7 +268,9 @@ try {
       'Short screen keeps a usable market scrolling region',
     );
     assert.equal((await page.evaluate(() => window.__commands)).length, 0);
-    await page.screenshot({ path: join(output, 'board-short-market.png') });
+    await captureBrowserScreenshot(page, {
+      path: join(output, 'board-short-market.png'),
+    });
     report.screenshots.push('board-short-market.png');
     report.actions.push(
       'Stage drawers, persistent company choice, narrow exclusivity and viewing zero actions',
@@ -321,7 +324,9 @@ try {
       'clear',
       'Map presentation preference survives remount',
     );
-    await page.screenshot({ path: join(output, 'host-clear-map.png') });
+    await captureBrowserScreenshot(page, {
+      path: join(output, 'host-clear-map.png'),
+    });
     assert.ok(
       await map.evaluate((node) => {
         const finalEdge = [...node.querySelectorAll('[data-map-edge]')].at(-1);
@@ -357,7 +362,9 @@ try {
       0,
       'Public guide has no private draft',
     );
-    await page.screenshot({ path: join(output, 'host-income-card.png') });
+    await captureBrowserScreenshot(page, {
+      path: join(output, 'host-income-card.png'),
+    });
     report.screenshots.push('host-income-card.png');
     await page.getByRole('button', { name: '关闭收益边栏' }).click();
     await card.waitFor({ state: 'hidden' });
@@ -379,7 +386,9 @@ try {
       await page.evaluate(() => document.body.style.overflow),
       'hidden',
     );
-    await page.screenshot({ path: join(output, 'player-income-card.png') });
+    await captureBrowserScreenshot(page, {
+      path: join(output, 'player-income-card.png'),
+    });
     report.screenshots.push('player-income-card.png');
     await page.keyboard.press('Escape');
     await page.locator('.pg-income-dialog').waitFor({ state: 'hidden' });
@@ -418,7 +427,7 @@ try {
       await rules
         .locator(`[data-rule-diagram="${theme}"]`)
         .scrollIntoViewIfNeeded();
-      await page.screenshot({
+      await captureBrowserScreenshot(page, {
         path: join(output, `player-rules-${theme}.png`),
       });
       report.screenshots.push(`player-rules-${theme}.png`);
@@ -499,7 +508,7 @@ try {
         fixtures['owned-resources'].publicGame.plantLimit,
       );
       if (size.width === 320) {
-        await page.screenshot({
+        await captureBrowserScreenshot(page, {
           path: join(output, 'player-320-568-company.png'),
         });
         report.screenshots.push('player-320-568-company.png');
@@ -913,7 +922,7 @@ try {
       );
     }
     await choosePhoneCity(page, city);
-    await page.screenshot({
+    await captureBrowserScreenshot(page, {
       path: join(output, 'rotated-map-player-320.png'),
       fullPage: true,
     });
@@ -921,7 +930,7 @@ try {
     report.actions.push(
       'Clockwise landscape map with 42 upright city markers and 83 unchanged routes; pointer/keyboard select the same city; narrow zoom shows readable selected prices; reset stays local',
     );
-    await page.screenshot({
+    await captureBrowserScreenshot(page, {
       path: join(output, 'rotated-map-player-390.png'),
       fullPage: true,
     });
@@ -981,7 +990,7 @@ try {
       'Directional amount steps recover into exact legal integer bounds',
       'Only confirmed legal recovered offer sends an action',
     );
-    await page.screenshot({
+    await captureBrowserScreenshot(page, {
       path: join(output, 'player-320-568-amount-recovered.png'),
       fullPage: true,
     });
@@ -1268,7 +1277,7 @@ try {
           ].includes(stage)
         ) {
           const file = `${role}-${width}-${height}-${stage}.png`;
-          await page.screenshot({
+          await captureBrowserScreenshot(page, {
             path: join(output, file),
             fullPage: role === 'player',
           });
@@ -1298,7 +1307,7 @@ try {
     report.actions.push(
       'City selection shows exact current cost and sends the authorized build intent',
     );
-    await page.screenshot({
+    await captureBrowserScreenshot(page, {
       path: join(output, 'player-320-568-build-costs.png'),
       fullPage: true,
     });
@@ -1542,8 +1551,10 @@ try {
 } catch (error) {
   report.status = 'failed';
   report.failure = String(error);
-  await page
-    ?.screenshot({ path: join(output, 'failure.png'), fullPage: true })
+  await captureBrowserScreenshot(page, {
+    path: join(output, 'failure.png'),
+    fullPage: true,
+  })
     .then(() => report.screenshots.push('failure.png'))
     .catch(() => {});
   throw error;

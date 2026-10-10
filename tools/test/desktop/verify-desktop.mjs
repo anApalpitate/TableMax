@@ -1,3 +1,4 @@
+import { saveVerificationScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -102,7 +103,7 @@ async function capture(desktop, page, file, size) {
     return image.toPNG().toString('base64');
   });
   assert.ok(png.length > 1000, 'Screenshot must contain a rendered image');
-  await writeFile(file, Buffer.from(png, 'base64'));
+  await saveVerificationScreenshot(file, Buffer.from(png, 'base64'));
 }
 
 for (let run = 0; run < 2; run++) {

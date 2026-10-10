@@ -1,3 +1,4 @@
+import { saveVerificationScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -134,7 +135,7 @@ async function capture(page, label) {
     ),
     'base64',
   );
-  await writeFile(join(output, `${label}.png`), png);
+  await saveVerificationScreenshot(join(output, `${label}.png`), png);
   evidence.screenshots.push(`${label}.png`);
   await save();
 }

@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -103,7 +104,7 @@ async function snapshot(page) {
 }
 async function capture(page, name) {
   const path = join(output, name + '.png');
-  await page.screenshot({ path });
+  await captureBrowserScreenshot(page, { path });
   report.screenshots.push({
     file: name + '.png',
     sha256: hash(await readFile(path)),

@@ -1,4 +1,8 @@
 import {
+  captureMatrixScreenshot,
+  browserScreenshotMetrics,
+} from '../../support/screenshots.mjs';
+import {
   assertWorkspaceRoot,
   isDirectExecution,
 } from '../../../shared/workspace-root.mjs';
@@ -306,15 +310,24 @@ async function screenshot(page, name) {
   );
   const window = await desktop.browserWindow(page);
   assert.equal(await window.evaluate((window) => window.isVisible()), false);
-  const bytes = Buffer.from(
-    await window.evaluate(async (window) =>
-      (await window.webContents.capturePage()).toPNG().toString('base64'),
+  const screenshot = await captureMatrixScreenshot(
+    join(output, name + '.png'),
+    async () =>
+      Buffer.from(
+        await window.evaluate(async (window) =>
+          (await window.webContents.capturePage()).toPNG().toString('base64'),
+        ),
+        'base64',
+      ),
+    await browserScreenshotMetrics(
+      page,
+      await window.evaluate((w) => w.webContents.getZoomFactor()),
     ),
-    'base64',
+    { state: name },
   );
-  await writeFile(join(output, name + '.png'), bytes);
+  const bytes = screenshot.image;
   evidence.screenshots.push({
-    name: name + '.png',
+    name: screenshot.path,
     width: bytes.readUInt32BE(16),
     height: bytes.readUInt32BE(20),
   });

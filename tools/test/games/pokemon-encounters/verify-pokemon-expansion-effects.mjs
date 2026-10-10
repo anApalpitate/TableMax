@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -270,7 +271,7 @@ try {
   const creatures = sample ? ['mewtwo'] : Object.keys(timelines);
   const screenshot = async (label) => {
     const path = join(output, `${label}.png`);
-    await page.screenshot({ path, fullPage: false });
+    await captureBrowserScreenshot(page, { path, fullPage: false });
     report.screenshots.push({ label, path });
   };
   for (const creature of creatures) {

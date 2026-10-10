@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -164,7 +165,9 @@ try {
       };
     });
     report.layouts.push({ size, metrics });
-    await page.screenshot({ path: join(output, `speech-${size.width}.png`) });
+    await captureBrowserScreenshot(page, {
+      path: join(output, `speech-${size.width}.png`),
+    });
     assert.equal(metrics.rows.length, 6);
     assert.equal(metrics.overflow, false);
     assert.equal(metrics.headingBackground, 'rgba(0, 0, 0, 0)');

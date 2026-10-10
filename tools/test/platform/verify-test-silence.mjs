@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -240,7 +241,9 @@ try {
         preference,
       );
       await send({ type: 'pause' });
-      await host.screenshot({ path: join(output, 'silent-power-grid.png') });
+      await captureBrowserScreenshot(host, {
+        path: join(output, 'silent-power-grid.png'),
+      });
       await host.reload();
       await button.waitFor();
       assert.ok(

@@ -1,3 +1,4 @@
+import { saveVerificationScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -291,7 +292,7 @@ async function capture(page, name) {
       .toString('base64'),
   );
   const png = Buffer.from(encoded, 'base64');
-  await writeFile(join(output, name + '.png'), png);
+  await saveVerificationScreenshot(join(output, name + '.png'), png);
   evidence.screenshots.push({
     name: name + '.png',
     width: png.readUInt32BE(16),

@@ -1,3 +1,4 @@
+import { saveVerificationScreenshot } from '../../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -216,7 +217,10 @@ try {
         .toPNG()
         .toString('base64'),
     );
-    await writeFile(join(output, `${name}.png`), Buffer.from(png, 'base64'));
+    await saveVerificationScreenshot(
+      join(output, `${name}.png`),
+      Buffer.from(png, 'base64'),
+    );
   };
   await page.evaluate(() => window.showEffect('zero'));
   assert.equal(

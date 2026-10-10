@@ -1,4 +1,8 @@
 import {
+  captureBrowserScreenshot,
+  captureBrowserMatrixScreenshot,
+} from '../../support/screenshots.mjs';
+import {
   assertWorkspaceRoot,
   isDirectExecution,
 } from '../../../shared/workspace-root.mjs';
@@ -96,8 +100,12 @@ try {
   };
   const capture = async (name, fullPage = false) => {
     const file = `${name}.png`;
-    await page.screenshot({ path: join(output, file), fullPage });
-    report.screenshots.push(file);
+    const screenshot = await captureBrowserMatrixScreenshot(
+      page,
+      { path: join(output, file), fullPage },
+      { state: name },
+    );
+    report.screenshots.push(screenshot.path);
   };
   const controls = async (selector) =>
     page.locator(selector).evaluateAll((elements) =>
@@ -782,7 +790,7 @@ try {
   report.failure = error.stack ?? String(error);
   const page = browser?.contexts()[0]?.pages()[0];
   if (page) {
-    await page.screenshot({ path: join(output, 'failure.png') });
+    await captureBrowserScreenshot(page, { path: join(output, 'failure.png') });
     report.screenshots.push('failure.png');
   }
   throw error;

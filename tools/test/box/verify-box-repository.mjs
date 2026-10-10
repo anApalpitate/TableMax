@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -229,7 +230,9 @@ try {
     await checked(
       'Real compiled source BoxScreen repository icon approved trusted mouse and keyboard activation in actual WebView2',
     );
-    await host.screenshot({ path: join(output, 'repository-host.png') });
+    await captureBrowserScreenshot(host, {
+      path: join(output, 'repository-host.png'),
+    });
     await desktop.close();
     desktop = undefined;
     report.status = 'passed';
@@ -411,8 +414,10 @@ try {
       'Approved repository and join activation still work after rejected cases and route restoration',
     );
 
-    await host.screenshot({ path: join(output, 'repository-host.png') });
-    await publicPage.screenshot({
+    await captureBrowserScreenshot(host, {
+      path: join(output, 'repository-host.png'),
+    });
+    await captureBrowserScreenshot(publicPage, {
       path: join(output, 'repository-public.png'),
     });
     await desktop.close();

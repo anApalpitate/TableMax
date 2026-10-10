@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -191,7 +192,7 @@ async function rendered(page, state) {
         .getAttribute('data-room-revision'),
       text: (await playerUi(page).locator('body').innerText()).slice(0, 200),
     };
-    await page.screenshot({
+    await captureBrowserScreenshot(page, {
       path: join(output, 'failed-render.png'),
       fullPage: true,
     });
@@ -350,16 +351,16 @@ async function phases(game, variant, count, humans) {
       }));
       assert.ok(facts.overflow <= 2, `${role}/${id} research overflow`);
       assert.equal(facts.imagesReady, true, `${role}/${id} research art`);
-      await card.screenshot({
+      await captureBrowserScreenshot(card, {
         path: join(output, `research-${id}-${role}.png`),
       });
       if (role === 'player') {
         await card.locator('h3').scrollIntoViewIfNeeded();
-        await page.screenshot({
+        await captureBrowserScreenshot(page, {
           path: join(output, `research-${id}-player-text.png`),
         });
         await card.locator('.ex-research-diagram').scrollIntoViewIfNeeded();
-        await page.screenshot({
+        await captureBrowserScreenshot(page, {
           path: join(output, `research-${id}-player-diagram.png`),
         });
       }
@@ -427,7 +428,7 @@ async function phases(game, variant, count, humans) {
         (card) => card.top < 0 || card.bottom > 568 || card.height < 44,
       )
     )
-      await page.screenshot({
+      await captureBrowserScreenshot(page, {
         path: join(output, `short-phone-target-failure-${count}.png`),
       });
     assert.equal(cards.length, 3, 'Own first target row present');
@@ -438,7 +439,7 @@ async function phases(game, variant, count, humans) {
       );
     if (!captured.has(`short-place-${context}`)) {
       captured.add(`short-place-${context}`);
-      await page.screenshot({
+      await captureBrowserScreenshot(page, {
         path: join(output, `short-place-${count}-${context}.png`),
       });
     }
@@ -586,7 +587,7 @@ async function phases(game, variant, count, humans) {
             )
             .waitFor();
           await bufferGeometry(display.page, phase, populatedBuffers);
-          await display.page.screenshot({
+          await captureBrowserScreenshot(display.page, {
             path: join(
               output,
               `pokemon-expansion-6-buffers-${populatedBuffers}-${display.role}-720.png`,
@@ -689,7 +690,7 @@ async function phases(game, variant, count, humans) {
             report.actionGeometry.push({ count, phase, width, buttons });
           }
           if (width === 1280 || width === 320)
-            await page.screenshot({
+            await captureBrowserScreenshot(page, {
               path: join(
                 output,
                 `${game.id}-${variant ?? 'default'}-${count}-${phase}${width === 320 ? '-phone' : ''}.png`,
@@ -733,7 +734,7 @@ async function phases(game, variant, count, humans) {
             );
             if (variant === 'expansion' && count === 6 && size[0] === 1280)
               await bufferGeometry(display.page, phase, populatedBuffers);
-            await display.page.screenshot({
+            await captureBrowserScreenshot(display.page, {
               path: join(
                 output,
                 `${game.id}-${variant}-${count}-${phase}-${display.role}-${size[0]}.png`,
@@ -741,7 +742,7 @@ async function phases(game, variant, count, humans) {
               fullPage: true,
             });
             if (size[0] === 1280)
-              await display.page.screenshot({
+              await captureBrowserScreenshot(display.page, {
                 path: join(
                   output,
                   `${game.id}-${variant}-${count}-${phase}-${display.role}-720-viewport.png`,
@@ -1059,7 +1060,7 @@ try {
               ...geometry,
             });
             if ([1023, 1024, 1280, 390].includes(width))
-              await page.screenshot({
+              await captureBrowserScreenshot(page, {
                 path: join(
                   output,
                   `${game.id}-${variant ?? 'default'}-${count}-${width}.png`,
@@ -1151,7 +1152,7 @@ try {
       oldToken,
     );
     await playerUi(oldPage).getByText('身份已失效', { exact: false }).waitFor();
-    await newPage.screenshot({
+    await captureBrowserScreenshot(newPage, {
       path: join(output, 'replacement-approved.png'),
       fullPage: true,
     });

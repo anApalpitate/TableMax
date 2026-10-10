@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -232,7 +233,9 @@ try {
     operation: 'window-state',
     value: 'Normal',
   });
-  await host.screenshot({ path: join(output, 'restored-host.png') });
+  await captureBrowserScreenshot(host, {
+    path: join(output, 'restored-host.png'),
+  });
   evidence.checks.push(
     'Fullscreen exit restores original maximized state and restore geometry',
   );
@@ -253,7 +256,7 @@ try {
     await host.evaluate(() => Boolean(document.fullscreenElement)),
     false,
   );
-  await host.screenshot({
+  await captureBrowserScreenshot(host, {
     path: join(output, 'actual-game-button-fullscreen.png'),
   });
   await host.keyboard.press('F11');

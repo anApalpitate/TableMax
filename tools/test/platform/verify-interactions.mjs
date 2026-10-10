@@ -1,3 +1,4 @@
+import { captureBrowserScreenshot } from '../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -393,7 +394,7 @@ function matchesAudio(url, file) {
   );
 }
 async function screenshot(name) {
-  await player.screenshot({ path: join(output, name + '.png') });
+  await captureBrowserScreenshot(player, { path: join(output, name + '.png') });
   report.screenshots.push(name + '.png');
 }
 async function beginWheel({ checkDelay = false } = {}) {

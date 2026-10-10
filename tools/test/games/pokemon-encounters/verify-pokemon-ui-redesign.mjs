@@ -1,4 +1,8 @@
 import {
+  captureBrowserScreenshot,
+  captureBrowserMatrixScreenshot,
+} from '../../support/screenshots.mjs';
+import {
   assertWorkspaceRoot,
   isDirectExecution,
 } from '../../../shared/workspace-root.mjs';
@@ -272,8 +276,12 @@ try {
       );
     });
     const path = join(output, label + '.png');
-    await page.screenshot({ path, fullPage });
-    report.screenshots.push({ label, path });
+    const screenshot = await captureBrowserMatrixScreenshot(
+      page,
+      { path, fullPage },
+      { state: label },
+    );
+    report.screenshots.push({ label, path: join(output, screenshot.path) });
   };
   const show = async (settings) =>
     page.evaluate(
@@ -559,7 +567,9 @@ try {
       .all()) {
       const id = await card.getAttribute('data-research');
       await card.scrollIntoViewIfNeeded();
-      await card.screenshot({ path: join(output, `research-card-${id}.png`) });
+      await captureBrowserScreenshot(card, {
+        path: join(output, `research-card-${id}.png`),
+      });
       const decoded = await card
         .locator('.ex-research-picture')
         .evaluate((img) => img.complete && img.naturalWidth > 0);
