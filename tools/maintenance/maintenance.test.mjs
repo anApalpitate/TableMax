@@ -58,7 +58,8 @@ test('representative screenshots keep role and 4K boundaries; all retains repres
 
 test('Node cache fingerprints follow pinned runtime, not game or protocol inputs', async () => {
   const content = new Map([
-    ['scripts/setup-desktop.mjs', 'prepare'],
+    ['tools/build/setup-desktop.mjs', 'prepare'],
+    ['tools/shared/workspace-root.mjs', 'root helper'],
     ['tools/build/node-runtime-inputs.mjs', 'inputs'],
   ]);
   const read = async (path) => content.get(path);
@@ -71,7 +72,7 @@ test('Node cache fingerprints follow pinned runtime, not game or protocol inputs
     await nodeRuntimeInputs({ ...options, archiveSha256: 'b'.repeat(64) }),
     first,
   );
-  content.set('scripts/setup-desktop.mjs', 'changed preparer');
+  content.set('tools/build/setup-desktop.mjs', 'changed preparer');
   assert.notDeepEqual(await nodeRuntimeInputs(options), first);
 });
 
@@ -155,7 +156,7 @@ test('artifact registry preserves failures, report references and unknown direct
       plan = await retirementPlan(root, { minimumAgeMinutes: 0 });
       await writeFile(planPath, JSON.stringify(plan));
       const cleanup = await readFile(
-        resolve('scripts/cleanup-local.ps1'),
+        resolve('tools/maintenance/cleanup-local.ps1'),
         'utf8',
       );
       const functions = cleanup.slice(
@@ -170,7 +171,7 @@ test('artifact registry preserves failures, report references and unknown direct
       const quote = (s) => "'" + s.replaceAll("'", "''") + "'";
       await writeFile(
         harness,
-        `$ErrorActionPreference='Stop'\n$env:PSModulePath=(Join-Path $PSHOME 'Modules')+';'+$env:PSModulePath\n$workspace=${quote(root)}\n$maintenance=Join-Path $workspace 'artifacts/maintenance'\n$archiveHash=${quote(plan.currentArchiveSha256)}\n$RegisteredArtifactsManifest=${quote(planPath)}\nAdd-Type -Path ${quote(resolve('scripts/WorkspaceSnapshot.cs'))}\n${functions}\n${candidate}\n. ${quote(resolve('scripts/registered-artifacts.ps1'))}\n$candidates=New-Object 'System.Collections.Generic.List[object]'\n$skipped=New-Object 'System.Collections.Generic.List[object]'\n$cutoff=[DateTime]::UtcNow.AddMinutes(-30)\nInitialize-RegisteredArtifacts\nif($candidates.Count -ne 0 -or $skipped.Count -ne 2){throw 'Recent artifacts not protected'}\n$entry=$plan=$null\n$plan=Get-Content -LiteralPath $RegisteredArtifactsManifest -Raw | ConvertFrom-Json\n$entry=$plan.entries[0]\nSet-Content -LiteralPath (Join-Path $workspace 'tmp/game-review-Ab1234/node.exe') -Value 'tampered'\n$blocked=$false\ntry{Assert-RegisteredArtifact $entry}catch{$blocked=$true}\nif(-not $blocked){throw 'Tampered artifact not blocked'}\nWrite-Output 'Recent and changed artifacts protected'\n`,
+        `$ErrorActionPreference='Stop'\n$env:PSModulePath=(Join-Path $PSHOME 'Modules')+';'+$env:PSModulePath\n$workspace=${quote(root)}\n$maintenance=Join-Path $workspace 'artifacts/maintenance'\n$archiveHash=${quote(plan.currentArchiveSha256)}\n$RegisteredArtifactsManifest=${quote(planPath)}\nAdd-Type -Path ${quote(resolve('tools/maintenance/WorkspaceSnapshot.cs'))}\n${functions}\n${candidate}\n. ${quote(resolve('tools/maintenance/registered-artifacts.ps1'))}\n$candidates=New-Object 'System.Collections.Generic.List[object]'\n$skipped=New-Object 'System.Collections.Generic.List[object]'\n$cutoff=[DateTime]::UtcNow.AddMinutes(-30)\nInitialize-RegisteredArtifacts\nif($candidates.Count -ne 0 -or $skipped.Count -ne 2){throw 'Recent artifacts not protected'}\n$entry=$plan=$null\n$plan=Get-Content -LiteralPath $RegisteredArtifactsManifest -Raw | ConvertFrom-Json\n$entry=$plan.entries[0]\nSet-Content -LiteralPath (Join-Path $workspace 'tmp/game-review-Ab1234/node.exe') -Value 'tampered'\n$blocked=$false\ntry{Assert-RegisteredArtifact $entry}catch{$blocked=$true}\nif(-not $blocked){throw 'Tampered artifact not blocked'}\nWrite-Output 'Recent and changed artifacts protected'\n`,
       );
       const run = spawnSync(
         'powershell.exe',
@@ -180,14 +181,17 @@ test('artifact registry preserves failures, report references and unknown direct
       assert.equal(run.status, 0, run.stdout + run.stderr);
       // Exercise the public deletion path only against this isolated fixture.
       await writeFile(join(work, 'node.exe'), 'runtime');
-      await mkdir(join(root, 'scripts'), { recursive: true });
+      await mkdir(join(root, 'tools/maintenance'), { recursive: true });
       for (const name of [
         'cleanup-local.ps1',
         'cleanup-guard.ps1',
         'registered-artifacts.ps1',
         'WorkspaceSnapshot.cs',
       ])
-        await copyFile(resolve('scripts', name), join(root, 'scripts', name));
+        await copyFile(
+          resolve('tools/maintenance', name),
+          join(root, 'tools/maintenance', name),
+        );
       await mkdir(join(root, 'artifacts/maintenance/delivery'), {
         recursive: true,
       });
@@ -211,7 +215,7 @@ test('artifact registry preserves failures, report references and unknown direct
         await utimes(path, old, old);
       await writeFile(
         harness,
-        `$ErrorActionPreference='Stop'\n$env:PSModulePath=(Join-Path $PSHOME 'Modules')+';'+$env:PSModulePath\nfunction Get-CimInstance { return @() }\n& ${quote(join(root, 'scripts/cleanup-local.ps1'))} -Kind Intermediates -RegisteredArtifactsManifest ${quote(planPath)}\nif(-not (Test-Path -LiteralPath ${quote(work)})){throw 'Preview deleted files'}\n& ${quote(join(root, 'scripts/cleanup-local.ps1'))} -Kind Intermediates -RegisteredArtifactsManifest ${quote(planPath)} -Apply\nif(Test-Path -LiteralPath ${quote(work)}){throw 'Eligible work not removed'}\nif(Test-Path -LiteralPath ${quote(join(output, 'process'))}){throw 'Eligible process screenshots not removed'}\nif(-not (Test-Path -LiteralPath ${quote(join(output, 'a.png'))})){throw 'Representative evidence removed'}\nif(-not (Test-Path -LiteralPath ${quote(reportPath)})){throw 'Result removed'}\nif(-not (Test-Path -LiteralPath ${quote(join(root, 'tmp/unregistered/keep.txt'))})){throw 'Unregistered content removed'}\n`,
+        `$ErrorActionPreference='Stop'\n$env:PSModulePath=(Join-Path $PSHOME 'Modules')+';'+$env:PSModulePath\nfunction Get-CimInstance { return @() }\n& ${quote(join(root, 'tools/maintenance/cleanup-local.ps1'))} -Kind Intermediates -RegisteredArtifactsManifest ${quote(planPath)}\nif(-not (Test-Path -LiteralPath ${quote(work)})){throw 'Preview deleted files'}\n& ${quote(join(root, 'tools/maintenance/cleanup-local.ps1'))} -Kind Intermediates -RegisteredArtifactsManifest ${quote(planPath)} -Apply\nif(Test-Path -LiteralPath ${quote(work)}){throw 'Eligible work not removed'}\nif(Test-Path -LiteralPath ${quote(join(output, 'process'))}){throw 'Eligible process screenshots not removed'}\nif(-not (Test-Path -LiteralPath ${quote(join(output, 'a.png'))})){throw 'Representative evidence removed'}\nif(-not (Test-Path -LiteralPath ${quote(reportPath)})){throw 'Result removed'}\nif(-not (Test-Path -LiteralPath ${quote(join(root, 'tmp/unregistered/keep.txt'))})){throw 'Unregistered content removed'}\n`,
       );
       const applied = spawnSync(
         'powershell.exe',

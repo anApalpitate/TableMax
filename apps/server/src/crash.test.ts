@@ -19,7 +19,7 @@ it('recovers a transaction ACK after forcibly killing the actual server process'
   mkdirSync(webDir);
   writeFileSync(join(webDir, 'index.html'), '<html>fixture</html>');
   await build({
-    entryPoints: [resolve('scripts/fixtures/crash-service.ts')],
+    entryPoints: [resolve('tools/test/fixtures/crash-service.ts')],
     outfile: path,
     bundle: true,
     platform: 'node',

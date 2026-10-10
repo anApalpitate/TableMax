@@ -251,7 +251,7 @@
   ],
   "audio": {
     "version": 2,
-    "generator": "scripts/generate-power-grid-audio.mjs",
+    "generator": "tools/assets/games/power-grid/generate-power-grid-audio.mjs",
     "attribution": "TableMax 原创确定性工业合成音效，无录音采样",
     "evidence": "artifacts/maintenance/v1.0.2/power-grid-debug-20261004/rules-audio/generation-v2.json",
     "sampleRate": 22050,
@@ -396,7 +396,7 @@
     "createdAt": "2026-10-04",
     "appVersion": "1.0.2",
     "purpose": "Local illustrated rules from current production components with legally generated isolated six-player examples; no formal player data",
-    "generator": "node scripts/verify-power-grid-ui.mjs --maintenance=power-grid-debug-20261004 --evidence=rules-captures-label-fit --capture-rules-only",
+    "generator": "node tools/test/games/power-grid/verify-power-grid-ui.mjs --maintenance=power-grid-debug-20261004 --evidence=rules-captures-label-fit --capture-rules-only",
     "evidence": "artifacts/maintenance/v1.0.2/power-grid-debug-20261004/power-grid/rules-captures-label-fit/results.json",
     "source": "Actual production React components rendered in background Chromium; legal authorized fixture, not native DPI or live service certification",
     "files": [
@@ -471,7 +471,7 @@
         "status": "captured-verified-imported"
       }
     ],
-    "postprocessing": "PNG to WebP lossless via scripts/compress-rule-captures.py, Pillow 11.1.0; original dimensions and RGB pixel bytes verified identical. Source PNGs retained.",
+    "postprocessing": "PNG to WebP lossless via tools/assets/rules/compress-rule-captures.py, Pillow 11.1.0; original dimensions and RGB pixel bytes verified identical. Source PNGs retained.",
     "previousEvidence": "artifacts/maintenance/v1.0.2/shared-visual-20261004/power-grid/source-controls-fit/results.json",
     "rawOriginalsRetained": [
       "rules/market-v1.png",

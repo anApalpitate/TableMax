@@ -29,7 +29,7 @@ import type { Save } from '@tablemax/platform-core';
 import { createService } from './service';
 import { NetworkDirectory } from './network-directory';
 import { readCurrentSave } from './save-audit';
-import { safeHttpPort } from '../../../scripts/fixtures/safe-http-port';
+import { safeHttpPort } from '../../../tools/test/fixtures/safe-http-port';
 
 type Service = Awaited<ReturnType<typeof createService>>;
 const tmpRoot = resolve('tmp');

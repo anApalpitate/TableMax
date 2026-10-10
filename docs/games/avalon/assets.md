@@ -17,7 +17,7 @@
 
 ## 原创离线音频
 
-[生成脚本](../../../scripts/prepare-avalon-audio.mjs) 使用固定随机种子和原创建模，合成类鲁特琴拨弦、铜钟泛音、框鼓、纸蜡和剑鸣。没有下载采样、连续背景音乐或网络播放。固定 ffmpeg 工具的二进制哈希在音频清单中记录，原始 PCM 保留在 [音频原素材](../../../artifacts/avalon/audio/source-originals/)。
+[生成脚本](../../../tools/assets/games/avalon/prepare-avalon-audio.mjs) 使用固定随机种子和原创建模，合成类鲁特琴拨弦、铜钟泛音、框鼓、纸蜡和剑鸣。没有下载采样、连续背景音乐或网络播放。固定 ffmpeg 工具的二进制哈希在音频清单中记录，原始 PCM 保留在 [音频原素材](../../../artifacts/avalon/audio/source-originals/)。
 
 | 事件资源（后缀 `-v1.flac`） | 时长 | 内容 |
 | --- | ---: | --- |

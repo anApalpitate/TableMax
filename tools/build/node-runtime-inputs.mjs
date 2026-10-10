@@ -7,8 +7,9 @@ export async function nodeRuntimeInputs({
   read = readFile,
 }) {
   const paths = [
-    'scripts/setup-desktop.mjs',
+    'tools/build/setup-desktop.mjs',
     'tools/build/node-runtime-inputs.mjs',
+    'tools/shared/workspace-root.mjs',
   ];
   return {
     files: await Promise.all(

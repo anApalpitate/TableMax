@@ -1,5 +1,11 @@
 import { defineConfig } from 'vitest/config';
-import { scopedVitestIncludes } from './scripts/testing/scopes.mjs';
+import { fileURLToPath } from 'node:url';
+import { scopedVitestIncludes } from './tools/test/runner/scopes.mjs';
+import {
+  failureLimit,
+  HistoryReporter,
+  HistorySequencer,
+} from './tools/test/runner/vitest-history.mjs';
 
 export default defineConfig({
   test: {
@@ -9,8 +15,15 @@ export default defineConfig({
       process.argv.slice(2),
     ),
     environment: 'node',
-    // Seeded full-game checks are CPU-heavy. Bound file concurrency so local
-    // Socket/SQLite tests retain their normal timeouts on Windows.
-    maxWorkers: 4,
+    // Ordered execution prevents later work starting after the failure budget.
+    maxWorkers: 1,
+    fileParallelism: false,
+    bail: failureLimit(),
+    retry: 0,
+    reporters: ['default', new HistoryReporter()],
+    runner: fileURLToPath(
+      new URL('./tools/test/runner/history-runner.mjs', import.meta.url),
+    ),
+    sequence: { sequencer: HistorySequencer, concurrent: false },
   },
 });

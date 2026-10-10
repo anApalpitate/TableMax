@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, expect, it } from 'vitest';
 import { build } from 'esbuild';
-import { prepareModuleFixture } from '../../../scripts/fixtures/prepare-module-fixture';
+import { prepareModuleFixture } from '../../../tools/test/fixtures/prepare-module-fixture';
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import {
   mkdtempSync,

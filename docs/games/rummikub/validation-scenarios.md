@@ -43,7 +43,7 @@ bot实际CPU分析定位到同一物理牌集合反复生成百搭替代证明�
 
 ## 实际包完整大局入口
 
-[verify-rummikub-runtime.mjs](../../../scripts/verify-rummikub-runtime.mjs)已实现并完成隔离候选包自然完整大局；最终同包证据另行记录，候选不自动成为最终交付。此前[静态准备](../../../artifacts/rummikub/validation/runtime-static-ready-20261009/results.json)与只读独立审查修正公开投影不含顶层serial（改读latest.serial）、bot回合管理命令可能过期（恢复样本只在稳定本人／生命周期决策触发），并确保故障清理等待所有所属子进程退出，这些不记成实际包测试。默认不启动服务，需显式`--run --evidence=<独立安全名> --sha256=<输入ZIP哈希>`；候选加`--candidate`，可指定`--zip`、`--manifest`、`--extracted`绑定已核验目录，并用`--native-evidence`关联同包Native报告、`--bot-evidence`关联无需重跑的纯策略证据。原生启动会在解压目录生成配置；服务验收应从ZIP全新解压，不能将已经启动过的整个目录当作只有清单程序成员的干净输入。
+[verify-rummikub-runtime.mjs](../../../tools/test/games/rummikub/verify-rummikub-runtime.mjs)已实现并完成隔离候选包自然完整大局；最终同包证据另行记录，候选不自动成为最终交付。此前[静态准备](../../../artifacts/rummikub/validation/runtime-static-ready-20261009/results.json)与只读独立审查修正公开投影不含顶层serial（改读latest.serial）、bot回合管理命令可能过期（恢复样本只在稳定本人／生命周期决策触发），并确保故障清理等待所有所属子进程退出，这些不记成实际包测试。默认不启动服务，需显式`--run --evidence=<独立安全名> --sha256=<输入ZIP哈希>`；候选加`--candidate`，可指定`--zip`、`--manifest`、`--extracted`绑定已核验目录，并用`--native-evidence`关联同包Native报告、`--bot-evidence`关联无需重跑的纯策略证据。原生启动会在解压目录生成配置；服务验收应从ZIP全新解压，不能将已经启动过的整个目录当作只有清单程序成员的干净输入。
 
 入口核对同一ZIP与manifest哈希、实际解压所有成员字节／SHA-256和双体积门禁，使用未修改的包内Node／服务／规则／策略／Worker；自然2／3／4人每场推进人数对应全部小局，一名授权真人身份驱动与三档混合服务bot，Socket动作仍经过权威规则和SQLite保存。每场保存后关闭服务、以原身份恢复精确本人投影、继续自然终局；小局通过真实`next-game`生命周期推进。每场最多6,000动作、十分钟，单Worker正式两秒和32MiB旧生代限额不放宽，取消样本不提交动作，所有所属子进程均等待退出。
 

@@ -23,12 +23,12 @@ UNO／阿瓦隆默认 `representative`：布局矩阵依然全部检查，只保
 ```powershell
 # 可选：完整矩阵。代表图仍永久保留，额外画面归本轮 process/ 临时目录。
 $env:TABLEMAX_TEST_SCREENSHOTS = 'all'
-node scripts/verify-uno.mjs --sample --layout-only --seats=2 --evidence=my-debug-run
+node tools/test/games/uno/verify-uno.mjs --sample --layout-only --seats=2 --evidence=my-debug-run
 Remove-Item Env:TABLEMAX_TEST_SCREENSHOTS
 
 # 特殊检查期间暂时关闭自动收尾，仅影响当前进程环境。
 $env:TABLEMAX_AUTO_MAINTENANCE = '0'
-node scripts/build.mjs --only=platform
+node tools/build/build.mjs --only=platform
 Remove-Item Env:TABLEMAX_AUTO_MAINTENANCE
 ```
 
@@ -46,3 +46,37 @@ node --test tools/maintenance/maintenance.test.mjs
 ```
 
 单次报告保留结果、跳过原因及精确退役清单，旧清理记录按项目既有退役规则处理。测试覆盖指纹稳定性、截图选取／精确复用、失败保留、文档引用、近期／变更保护，以及隔离夹具中的真实预览和删除；不代表重新验收运行包或整局游戏。
+
+## 手动与专项工具索引
+
+日常清理优先使用根目录 `Clean-Releases.ps1`、`Clean-Intermediates.ps1`、`Maintain-Project.ps1`，压缩使用 `Compress-Workspace.ps1`。根入口参数保持不变；手动先预览，核对后才 `-Apply`。
+
+`retire-old-local-runtime.ps1` 只处理有迁移证明的旧用户运行目录，仍为显式专项工具，不纳入自动清理。历史截图／旧清单工具保留精确清单与证据保护；名称带历史不代表可直接删除。`verify-project.mjs` 检查文档、配置和交付清单，写证据报告，不修改交付 ZIP。
+
+| 工具                                                                             | 入口／用途                                                                                           |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| [clean-build-cache.mjs](clean-build-cache.mjs)                                   | `node tools/maintenance/clean-build-cache.mjs`                                                       |
+| [cleanup-guard.ps1](cleanup-guard.ps1)                                           | 内部辅助；由清理入口加载                                                                             |
+| [cleanup-history.ps1](cleanup-history.ps1)                                       | 内部辅助；由清理入口加载                                                                             |
+| [cleanup-history.test.ps1](cleanup-history.test.ps1)                             | 工具隔离回归：`powershell -NoProfile -File tools/maintenance/cleanup-history.test.ps1`               |
+| [cleanup-local.ps1](cleanup-local.ps1)                                           | `powershell -NoProfile -File tools/maintenance/cleanup-local.ps1`                                    |
+| [cleanup-local.test.ps1](cleanup-local.test.ps1)                                 | 工具隔离回归：`powershell -NoProfile -File tools/maintenance/cleanup-local.test.ps1`                 |
+| [compress-workspace.ps1](compress-workspace.ps1)                                 | `powershell -NoProfile -File tools/maintenance/compress-workspace.ps1`                               |
+| [compress-workspace.test.ps1](compress-workspace.test.ps1)                       | 工具隔离回归：`powershell -NoProfile -File tools/maintenance/compress-workspace.test.ps1`            |
+| [coordinator.test.mjs](coordinator.test.mjs)                                     | 工具隔离回归：`node --test tools/maintenance/coordinator.test.mjs`                                   |
+| [duplicate-screenshots-cleanup.test.ps1](duplicate-screenshots-cleanup.test.ps1) | 工具隔离回归：`powershell -NoProfile -File tools/maintenance/duplicate-screenshots-cleanup.test.ps1` |
+| [finish-task.ps1](finish-task.ps1)                                               | `powershell -NoProfile -File tools/maintenance/finish-task.ps1 -OutputDirectory <维护证据目录>`      |
+| [historical-screenshots.ps1](historical-screenshots.ps1)                         | 内部辅助；由清理入口加载                                                                             |
+| [historical-screenshots.test.ps1](historical-screenshots.test.ps1)               | 工具隔离回归：`powershell -NoProfile -File tools/maintenance/historical-screenshots.test.ps1`        |
+| [lifecycle.mjs](lifecycle.mjs)                                                   | 内部辅助；由构建／验证入口调用                                                                       |
+| [maintenance.test.mjs](maintenance.test.mjs)                                     | 工具隔离回归：`node --test tools/maintenance/maintenance.test.mjs`                                   |
+| [project-maintenance.test.ps1](project-maintenance.test.ps1)                     | 工具隔离回归：`powershell -NoProfile -File tools/maintenance/project-maintenance.test.ps1`           |
+| [registered-artifacts.ps1](registered-artifacts.ps1)                             | 内部辅助；由清理入口加载                                                                             |
+| [retire-old-local-runtime.ps1](retire-old-local-runtime.ps1)                     | `powershell -NoProfile -File tools/maintenance/retire-old-local-runtime.ps1`                         |
+| [retired-generated.ps1](retired-generated.ps1)                                   | 内部辅助；由清理入口加载                                                                             |
+| [retired-generated.test.ps1](retired-generated.test.ps1)                         | 工具隔离回归：`powershell -NoProfile -File tools/maintenance/retired-generated.test.ps1`             |
+| [verification-artifacts.mjs](verification-artifacts.mjs)                         | `node tools/maintenance/verification-artifacts.mjs`                                                  |
+| [verify-cleanup-fast.ps1](verify-cleanup-fast.ps1)                               | `powershell -NoProfile -File tools/maintenance/verify-cleanup-fast.ps1`                              |
+| [verify-cleanup-idle.ps1](verify-cleanup-idle.ps1)                               | `powershell -NoProfile -File tools/maintenance/verify-cleanup-idle.ps1`                              |
+| [verify-project.mjs](verify-project.mjs)                                         | `node tools/maintenance/verify-project.mjs`                                                          |
+| [WorkspaceSnapshot.cs](WorkspaceSnapshot.cs)                                     | 内部辅助／声明／夹具；由对应入口调用                                                                 |

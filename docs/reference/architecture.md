@@ -18,7 +18,7 @@ UNO 通过自身 `game-module.json` 被模块发现器组装，规则／计分�
 
 `SaveRepository.load/save` 与外层 `Save.formatVersion=1` 保持兼容，内部SQLite采用 `user_version=2`。Checkpoint节点按内容身份与前驱保存一次，修订记录只引用历史头；累积动作确认和会话确认用独立增量链重建。回退保留原分支历史与秘密权限，管理授权继续独立于checkpoint；游戏自身当前状态和日志不在此层裁剪。
 
-旧v1先只读，游戏兼容性验证后的下一次保存才流式导入同目录临时v2库。每条修订解码深比较、数据库检查及新保存成功后，保留原DB／WAL／SHM和可恢复迁移记录再切换；失败不替换未验证库。迁移连接开启外键和FULL同步，应用保存事务覆盖节点、修订及头像。服务审计入口 `apps/server/src/save-audit.ts`、脚本入口 `scripts/lib/save-audit.mjs` 统一解码v1／v2，不直接把 `saves.data` 当完整Save。固定载荷的磁盘增量近线性不代表任意游戏累积日志或保存CPU有界。
+旧v1先只读，游戏兼容性验证后的下一次保存才流式导入同目录临时v2库。每条修订解码深比较、数据库检查及新保存成功后，保留原DB／WAL／SHM和可恢复迁移记录再切换；失败不替换未验证库。迁移连接开启外键和FULL同步，应用保存事务覆盖节点、修订及头像。服务审计入口 `apps/server/src/save-audit.ts`、脚本入口 `apps/server/src/save-codec.mjs` 统一解码v1／v2，不直接把 `saves.data` 当完整Save。固定载荷的磁盘增量近线性不代表任意游戏累积日志或保存CPU有界。
 
 第一至六阶段已完成；正式运行宝可梦完整游戏，验证模板继续用于契约、策略替换和恢复回归。采用依据：[工程基础](../decisions/001-engineering-foundation.md)、[平台授权与恢复](../decisions/005-platform-authority-and-recovery.md)、[游戏目录与房主分权](../decisions/007-library-owner-and-concurrency.md)、[小体积原生桌面](../decisions/008-small-native-desktop.md)。2026-10-03 桌面外壳改为共享 WebView2，最终交付验证状态仍以 [验收记录](acceptance.md) 为准。
 
@@ -35,7 +35,7 @@ UNO 通过自身 `game-module.json` 被模块发现器组装，规则／计分�
 | `packages/platform-core`   | 单房间、凭证摘要授权、串行动作、checkpoint／分支、兼容校验和 bot 调度      | SDK、protocol、Node 随机凭证；不依赖具体游戏、Socket.IO 或 SQLite  |
 | `games/template`           | 可玩验证游戏，独立规则、状态校验、计分、投影、策略和两端 UI                | 规则／策略仅 SDK，UI 仅 React 与投影类型                           |
 | `games/pokemon-encounters` | 首版完整规则、独立计分、授权投影、基础策略、两端 UI 与本地资源             | 规则／策略仅 SDK 与纯数据，UI 仅 React 与投影类型                  |
-| `scripts`                  | 构建、开发、桌面／便携／原型验证及隔离强制退出 fixture                     | 开发工具；不进入游戏规则                                           |
+| `tools`                    | 构建、开发、桌面／便携／原型验证及隔离强制退出 fixture                     | 开发工具；不进入游戏规则                                           |
 
 应用组装具体规则、策略和适配器，核心只依赖抽象契约。共享包使用 `workspace:*`，开发导出 TS 源码，Vite／esbuild 消费；严格类型检查统一覆盖 apps、packages 和 games 的 TypeScript。服务、bot Worker 和游戏输出独立 CJS，生成服务 CJS 使用生产压缩，源码继续保持可读；网页输出本地静态资源；原生桌面单独编译为 `TableMax.exe`。`global.json` 固定 .NET SDK 9.0.102，原生锁文件固定 WebView2 SDK 1.0.4258.31 和编译用 net48 引用程序集。
 

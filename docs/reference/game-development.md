@@ -34,8 +34,8 @@ SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)
 ## 注册与策略替换
 
 1. 给游戏建立 pnpm 工作区包和 `workspace:*` SDK 依赖，保持版本与锁文件在项目内。
-2. 由 `game-module.json` 声明规则、策略和网页入口；[构建发现器](../../scripts/module-build.mjs)扫描 `games/*/game-module.json`，生成供[服务目录](../../apps/server/src/game-registry.ts)、Worker与盒子共用的模块清单。稳定ID、导出契约和兼容版本必须一致，不逐项修改服务、Worker或构建名单；正式目录不列内部模板，测试可用 `createGameRegistry(true)`。
-3. 网页入口导出 `client`，有变体时另导出 `clientsByVariant`；[游戏客户端加载器](../../apps/web/src/game-clients/registry.ts)按模块清单懒加载对应入口。游戏CSS／资源由所属网页模块引入，规则／策略不进入网页；通用GameScreen与会话保持游戏无关。[便携打包脚本](../../scripts/package.mjs)收集冻结后的规则、策略、网页与完整本地资源。
+2. 由 `game-module.json` 声明规则、策略和网页入口；[构建发现器](../../tools/build/module-build.mjs)扫描 `games/*/game-module.json`，生成供[服务目录](../../apps/server/src/game-registry.ts)、Worker与盒子共用的模块清单。稳定ID、导出契约和兼容版本必须一致，不逐项修改服务、Worker或构建名单；正式目录不列内部模板，测试可用 `createGameRegistry(true)`。
+3. 网页入口导出 `client`，有变体时另导出 `clientsByVariant`；[游戏客户端加载器](../../apps/web/src/game-clients/registry.ts)按模块清单懒加载对应入口。游戏CSS／资源由所属网页模块引入，规则／策略不进入网页；通用GameScreen与会话保持游戏无关。[便携打包脚本](../../tools/release/package.mjs)收集冻结后的规则、策略、网页与完整本地资源。
 
 盒子的轻量介绍和小封面维护在每款游戏的 `game-module.json`，不能提前加载游戏主界面或规则。设计前必须查询[用户美术偏好](art-preferences.md)。头像通过平台席位的稳定 `avatarId` 传入游戏展示，规则和计分不依赖头像。
 4. 在游戏内维护逐选择覆盖测试、固定随机输入、权限与规则不变量。修改源码后按 [开发环境](development.md) 检查和重建；独立 Worker 随桌面构建／便携包本地打包。

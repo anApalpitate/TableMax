@@ -11,8 +11,11 @@ test(
   async () => {
     const root = await mkdtemp(join(tmpdir(), 'tablemax-coordinator-test-'));
     try {
-      await mkdir(join(root, 'scripts'), { recursive: true });
-      await writeFile(join(root, 'scripts/build.mjs'), '// test entrypoint');
+      await mkdir(join(root, 'tools/build'), { recursive: true });
+      await writeFile(
+        join(root, 'tools/build/build.mjs'),
+        '// test entrypoint',
+      );
       const record = join(
         root,
         'artifacts/maintenance/v1.0.6/automatic-maintenance/test/coordinator.json',
@@ -27,9 +30,9 @@ $ErrorActionPreference='Stop'
 $env:PSModulePath=(Join-Path $PSHOME 'Modules')+';'+$env:PSModulePath
 $workspace=${quote(root)}; $sourceWorkspace=$workspace
 $env:TABLEMAX_MAINTENANCE_COORDINATOR=${quote(record)}
-$owner=[PSCustomObject]@{Name='node.exe';ProcessId=99101;ParentProcessId=99102;CommandLine='node.exe scripts/build.mjs';ExecutablePath='E:\\Data\\nodejs\\node.exe';CreationDate=[DateTime]::UtcNow.AddMinutes(-1)}
+$owner=[PSCustomObject]@{Name='node.exe';ProcessId=99101;ParentProcessId=99102;CommandLine='node.exe tools/build/build.mjs';ExecutablePath='E:\\Data\\nodejs\\node.exe';CreationDate=[DateTime]::UtcNow.AddMinutes(-1)}
 $parent=[PSCustomObject]@{Name='node.exe';ProcessId=99102;ParentProcessId=99104;CommandLine='node.exe E:\\Data\\pnpm\\pnpm.cjs build';ExecutablePath='E:\\Data\\nodejs\\node.exe'}
-$active=[PSCustomObject]@{Name='node.exe';ProcessId=99103;ParentProcessId=99104;CommandLine='node.exe scripts/verify-uno.mjs';ExecutablePath='E:\\Data\\nodejs\\node.exe'}
+$active=[PSCustomObject]@{Name='node.exe';ProcessId=99103;ParentProcessId=99104;CommandLine='node.exe tools/test/games/uno/verify-uno.mjs';ExecutablePath='E:\\Data\\nodejs\\node.exe'}
 $current=[PSCustomObject]@{ProcessId=$PID;ParentProcessId=99101}
 $testProcesses=@($owner,$parent,$active)
 function Get-CimInstance {
@@ -38,8 +41,8 @@ function Get-CimInstance {
   if($Filter){return @($testProcesses|Where-Object {('ProcessId='+$_.ProcessId) -eq $Filter})}
   return @($testProcesses)+@($current)
 }
-. ${quote(resolve('scripts/cleanup-guard.ps1'))}
-$record=[ordered]@{schemaVersion=1;phase='idle';pid=99101;entrypoint=(Join-Path $workspace 'scripts/build.mjs');startedAtMs=$owner.CreationDate.Subtract([DateTime]'1970-01-01').TotalMilliseconds}
+. ${quote(resolve('tools/maintenance/cleanup-guard.ps1'))}
+$record=[ordered]@{schemaVersion=1;phase='idle';pid=99101;entrypoint=(Join-Path $workspace 'tools/build/build.mjs');startedAtMs=$owner.CreationDate.Subtract([DateTime]'1970-01-01').TotalMilliseconds}
 $record|ConvertTo-Json|Set-Content -LiteralPath $env:TABLEMAX_MAINTENANCE_COORDINATOR
 $allowed=@(Get-MaintenanceCoordinatorPids)
 if($allowed.Count -ne 2 -or 99103 -in $allowed){throw 'Exemption includes active sibling'}

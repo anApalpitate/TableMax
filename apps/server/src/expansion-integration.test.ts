@@ -44,7 +44,7 @@ const sourceFiles = [
   'apps/server/src/save-repository.ts',
   'apps/server/src/save-storage.ts',
   'apps/server/src/save-storage-migration.ts',
-  'scripts/lib/save-audit.mjs',
+  'apps/server/src/save-codec.mjs',
   'apps/server/src/bot-executor.ts',
   'packages/platform-core/src/room.ts',
   'packages/platform-core/src/game-registry.ts',

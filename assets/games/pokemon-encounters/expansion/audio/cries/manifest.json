@@ -2212,6 +2212,6 @@
       "bitrate": "24k",
       "playbackVolume": 0.45
     },
-    "script": "scripts/soften-pokemon-cries.mjs"
+    "script": "tools/assets/games/pokemon-encounters/soften-pokemon-cries.mjs"
   }
 }

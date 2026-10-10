@@ -2,17 +2,17 @@
 
 ## 阿瓦隆专项构建与验证
 
-经典2012原版只接入平台5–6人，规则与两种角色配置见 [游戏主题](../games/avalon/README.md)。独立构建 `node scripts/build.mjs --only=game:avalon`；单测 `node scripts/test-scoped.mjs --scope=game:avalon` 仅选本游戏规则、策略、UI与实际服务／Worker项。范围隔离工具单独运行 `node --test scripts/testing/scopes.test.mjs`，不增加其他游戏检查。
+经典2012原版只接入平台5–6人，规则与两种角色配置见 [游戏主题](../games/avalon/README.md)。独立构建 `node tools/build/build.mjs --only=game:avalon`；单测 `node tools/test/runner/test-scoped.mjs --scope=game:avalon` 仅选本游戏规则、策略、UI与实际服务／Worker项。范围隔离工具单独运行 `node --test tools/test/runner/scopes.test.mjs`，不增加其他游戏检查。
 
-`node scripts/verify-avalon.mjs --executable=<实际解压的TableMax.exe> --zip=artifacts/releases/TableMax-1.0.6-win-x64.zip --seats=6 --variant=court --only=all --evidence=<安全独立名称>` 启动实际隐藏WinForms／WebView2及包内Socket／SQLite服务，显式监听127.0.0.1，使用隔离 `tmp/game-review-<六位随机后缀>`。`--seats=5|6`、`--variant=classic|court`；`--only=layout|success|failure|rejections|assassination|long-quest|all` 定向选择三端布局、三成功梅林幸存、三失败、五否决及梅林遇刺流程。`long-quest` 额外按成功／失败交替推进五次任务后刺杀，检查五张已结算任务牌；`all` 保留原四种终局。终局通过真实合法动作进入，不改写秘密存档；首项身份确认、表决、任务及刺杀用实际UI按钮核验，`success` 另含提名及暂停／回退。
+`node tools/test/games/avalon/verify-avalon.mjs --executable=<实际解压的TableMax.exe> --zip=artifacts/releases/TableMax-1.0.6-win-x64.zip --seats=6 --variant=court --only=all --evidence=<安全独立名称>` 启动实际隐藏WinForms／WebView2及包内Socket／SQLite服务，显式监听127.0.0.1，使用隔离 `tmp/game-review-<六位随机后缀>`。`--seats=5|6`、`--variant=classic|court`；`--only=layout|success|failure|rejections|assassination|long-quest|all` 定向选择三端布局、三成功梅林幸存、三失败、五否决及梅林遇刺流程。`long-quest` 额外按成功／失败交替推进五次任务后刺杀，检查五张已结算任务牌；`all` 保留原四种终局。终局通过真实合法动作进入，不改写秘密存档；首项身份确认、表决、任务及刺杀用实际UI按钮核验，`success` 另含提名及暂停／回退。
 
-人数与阶段计划通过 `node scripts/test-scoped.mjs --scope=game:avalon --plan=<计划JSON>` 排序运行，沿用累计3失败停止与不自动重试。`artifacts/avalon/validation/portable-plan.json` 和 `grid-final-plan.json` 是当次参数记录；重新执行时先解压当前ZIP，复制计划到新名称并更新实际EXE路径及证据名，历史临时目录可能已安全退役。验证包括实际ZIP解压成员前后哈希、公开秘密边界、保存／暂停／回退、320px—4K与横屏、图文规则、正确事件全屏特效／减少动态、12条本地音频解码、真实播放调用和原生单窗口播放权、刷新不重播。最窄玩家画面以实际 `documentElement.clientWidth` 断言横向溢出，并检查终局；不以包含滚动条的 `innerWidth` 放宽边界。原生物理输出始终静音，隔离数据中的音频偏好只用于观察调用，不修改日常设置；不把模拟手机、DPI或解码／播放调用作为实体手机、LAN或真人听感认证。实际证据与原失败见 [阿瓦隆验证](../games/avalon/validation-scenarios.md)。
+人数与阶段计划通过 `node tools/test/runner/test-scoped.mjs --scope=game:avalon --plan=<计划JSON>` 排序运行，沿用累计3失败停止与不自动重试。`artifacts/avalon/validation/portable-plan.json` 和 `grid-final-plan.json` 是当次参数记录；重新执行时先解压当前ZIP，复制计划到新名称并更新实际EXE路径及证据名，历史临时目录可能已安全退役。验证包括实际ZIP解压成员前后哈希、公开秘密边界、保存／暂停／回退、320px—4K与横屏、图文规则、正确事件全屏特效／减少动态、12条本地音频解码、真实播放调用和原生单窗口播放权、刷新不重播。最窄玩家画面以实际 `documentElement.clientWidth` 断言横向溢出，并检查终局；不以包含滚动条的 `innerWidth` 放宽边界。原生物理输出始终静音，隔离数据中的音频偏好只用于观察调用，不修改日常设置；不把模拟手机、DPI或解码／播放调用作为实体手机、LAN或真人听感认证。实际证据与原失败见 [阿瓦隆验证](../games/avalon/validation-scenarios.md)。
 
 ## UNO 专项构建与验证
 
-新增游戏通过模块清单发现，独立构建 `node scripts/build.mjs --only=game:uno`；单测入口 `node scripts/test-scoped.mjs --scope=game:uno`，只选择 UNO 规则、策略、UI 与 UNO 服务／Worker 测试。范围隔离工具变化另运行 `node --test scripts/testing/scopes.test.mjs`，不启动其他游戏。实际结果与设备边界见 [UNO 验证](../games/uno/validation-scenarios.md)。
+新增游戏通过模块清单发现，独立构建 `node tools/build/build.mjs --only=game:uno`；单测入口 `node tools/test/runner/test-scoped.mjs --scope=game:uno`，只选择 UNO 规则、策略、UI 与 UNO 服务／Worker 测试。范围隔离工具变化另运行 `node --test tools/test/runner/scopes.test.mjs`，不启动其他游戏。实际结果与设备边界见 [UNO 验证](../games/uno/validation-scenarios.md)。
 
-`node scripts/verify-uno.mjs --mode=ui --seats=6 --executable=<实际解压的TableMax.exe> --zip=artifacts/releases/TableMax-1.0.6-win-x64.zip --evidence=<安全独立名称>` 在实际隐藏 WinForms／WebView2 核验三端、秘密、完整108牌场景、图文规则、触控和保存声画；`--only=opening,dense,reverse,skip,draw-two,wild,draw-four,uno,challenge,round-finish,match-finish` 选择受影响项。`--compact` 只做320px／720p，`--landscape` 定向844×390；`--sample` 只取初始样本，不能代替完整 UI。普通节奏和减少动态分别核验，原生物理静音。
+`node tools/test/games/uno/verify-uno.mjs --mode=ui --seats=6 --executable=<实际解压的TableMax.exe> --zip=artifacts/releases/TableMax-1.0.6-win-x64.zip --evidence=<安全独立名称>` 在实际隐藏 WinForms／WebView2 核验三端、秘密、完整108牌场景、图文规则、触控和保存声画；`--only=opening,dense,reverse,skip,draw-two,wild,draw-four,uno,challenge,round-finish,match-finish` 选择受影响项。`--compact` 只做320px／720p，`--landscape` 定向844×390；`--sample` 只取初始样本，不能代替完整 UI。普通节奏和减少动态分别核验，原生物理静音。
 
 v1.0.6 交互专项：`--layout-only --only=dense` 保留三种手机尺寸及720p—4K主机／公共屏矩阵，支持 `--seats=2|3|4|6`，核验叠牌暴露宽度、浮球与整个中央状态区的避让。`--hand-interactions` 增加可信触摸长按、非法牌调位、横滑隔离、边缘滚动／取消、摸牌追加、稳定DOM、排行榜同分、刷新和回退；整理期间核验无游戏命令及声画。`--legacy-executable=<保留的v1.0.5程序>` 先由旧程序加载并保存对局与显示设置，再由当前程序恢复，不能将新夹具单独冒称旧版自然对局。仅游戏UI改变时不重跑规则或自然完整比赛；模拟手机、缩放及机器音频不等同实体设备／人耳验收。
 
@@ -24,47 +24,47 @@ Node 与 pnpm 沿用锁定版本。沙箱默认 Corepack 缓存落在不可用�
 
 经典版 2–4 人只选择 `game:rummikub` 范围；实际动作契约影响共享层时另选 `shared` 的精确文件，不展开其他游戏矩阵。首次针对规则、完整回合、草稿、真实服务及实际 Worker 检查后，仅重跑修改或失败相关项；完整大局耗时与每次决定的两秒／32MiB 限制分别记录。来源及边界见[拉密验证](../games/rummikub/validation-scenarios.md)。
 
-`node scripts/verify-rummikub-ui.mjs --executable=<实际解压的TableMax.exe> --evidence=<安全独立名称>` 在真实生产程序的合法 106 牌 SQLite 场景核验三端、草稿、导航、尺寸、图文规则和小局／大局结果；`--only=opening,reorganization,finish,finish-final` 可选择所需场景，`--navigation-only --rack-size=30` 专查大牌架。`--skip-verified` 仅供本轮已通过项的接续，不能替代首次完整检查。测试静音、隐藏窗口、仅监听 `127.0.0.1`；模拟视口不能记为实体手机验收。
+`node tools/test/games/rummikub/verify-rummikub-ui.mjs --executable=<实际解压的TableMax.exe> --evidence=<安全独立名称>` 在真实生产程序的合法 106 牌 SQLite 场景核验三端、草稿、导航、尺寸、图文规则和小局／大局结果；`--only=opening,reorganization,finish,finish-final` 可选择所需场景，`--navigation-only --rack-size=30` 专查大牌架。`--skip-verified` 仅供本轮已通过项的接续，不能替代首次完整检查。测试静音、隐藏窗口、仅监听 `127.0.0.1`；模拟视口不能记为实体手机验收。
 
-`node scripts/verify-rummikub-runtime.mjs --evidence=<安全独立名称>` 默认只生成并静态检查测量脚本，显式加 `--run` 才启动实际包。运行入口核对当前 ZIP／逐文件清单，使用包内 Node、原字节服务／规则／三档 Worker及真实 Socket／SQLite推进自然完整大局、下一局和重启续局；只读 preload 采样实际服务／Worker 堆，报告明确标注观测边界，不用 Native 的绝对 private bytes 代替服务堆。可用 `--seats=2,3,4` 定向未完成人数；单次决定两秒不放宽。实际 Native／UI 检查单独绑定同包证据。
+`node tools/test/games/rummikub/verify-rummikub-runtime.mjs --evidence=<安全独立名称>` 默认只生成并静态检查测量脚本，显式加 `--run` 才启动实际包。运行入口核对当前 ZIP／逐文件清单，使用包内 Node、原字节服务／规则／三档 Worker及真实 Socket／SQLite推进自然完整大局、下一局和重启续局；只读 preload 采样实际服务／Worker 堆，报告明确标注观测边界，不用 Native 的绝对 private bytes 代替服务堆。可用 `--seats=2,3,4` 定向未完成人数；单次决定两秒不放宽。实际 Native／UI 检查单独绑定同包证据。
 
 需要测量渲染堆与应用进程增量时，给 UI 验证进程设置独立 `TABLEMAX_BUDGET_TRACE` 目录及 `TABLEMAX_BUDGET_GAME=rummikub`，沿用现有只读采样；盒子首样本、完整页／iframe 堆、服务 private 和本应用进程树分别记量。无权限或缺样本不能写零值通过；额外窗口及导航缓存的增量不称为游戏净分配。正式打包与清理仍使用下文统一入口。
 
 ## 扫码与直接打开入口验证（2026-10-08）
 
-`node scripts/verify-connection-entry.mjs --sha256=<当前ZIP哈希> --evidence=<独立名称>` 解压并核验实际包，检查二维码与“打开网站”使用同一当前根网址、局域网／外部入口切换、窄屏排版和键盘操作。原生窗口只接受当前顶层邀请链接的真实用户点击；验证模式记录系统浏览器目标，普通浏览器实际新窗口继续入座、准备及游戏返回，不向新页传递管理员凭证或桥接。
+`node tools/test/platform/verify-connection-entry.mjs --sha256=<当前ZIP哈希> --evidence=<独立名称>` 解压并核验实际包，检查二维码与“打开网站”使用同一当前根网址、局域网／外部入口切换、窄屏排版和键盘操作。原生窗口只接受当前顶层邀请链接的真实用户点击；验证模式记录系统浏览器目标，普通浏览器实际新窗口继续入座、准备及游戏返回，不向新页传递管理员凭证或桥接。
 
-`node scripts/verify-player-display.mjs --visual-audit --game=<游戏id> --evidence=<独立名称> --sha256=<当前ZIP哈希>` 通过真实服务与合法动作审查三端、关键阶段和规则／菜单浮窗；可用 `--audit-phase=<阶段>` 定向补验，原版使用 `--variant=original`，最少人数使用 `--audit-min`。完整显示矩阵与远程故障入口继续使用下节命令。全部隐藏、静音、仅监听127.0.0.1；候选包与最终包报告分别绑定各自SHA，不将旧模块检查改标为新包通过。
+`node tools/test/desktop/verify-player-display.mjs --visual-audit --game=<游戏id> --evidence=<独立名称> --sha256=<当前ZIP哈希>` 通过真实服务与合法动作审查三端、关键阶段和规则／菜单浮窗；可用 `--audit-phase=<阶段>` 定向补验，原版使用 `--variant=original`，最少人数使用 `--audit-min`。完整显示矩阵与远程故障入口继续使用下节命令。全部隐藏、静音、仅监听127.0.0.1；候选包与最终包报告分别绑定各自SHA，不将旧模块检查改标为新包通过。
 
 ## 玩家横屏与滚动条验证（2026-10-08）
 
-`node scripts/verify-player-display.mjs --source --quick --evidence=<名称>` 用已构建源码进行静音隐藏窗口与实际浏览器快查；完整实际包检查用 `--sha256=<当前ZIP哈希> --evidence=<名称>`，不加 `--source/--quick`。只监听 `127.0.0.1`，临时目录沿用已审计的 `tmp/debug-portable-<六位后缀>`，证据在 `artifacts/maintenance/v1.0.4/player-display/`。检查四变体合法最少／最多真人、关键阶段、真实授权动作、宽度边界、CSS视口／密度、设备识别、偏好、键盘、浮窗、高对比和切换草稿；不宣称实体手机或物理DPI通过。截图仅等待已加载图片，屏外懒加载规则图不会阻塞探针。
+`node tools/test/desktop/verify-player-display.mjs --source --quick --evidence=<名称>` 用已构建源码进行静音隐藏窗口与实际浏览器快查；完整实际包检查用 `--sha256=<当前ZIP哈希> --evidence=<名称>`，不加 `--source/--quick`。只监听 `127.0.0.1`，临时目录沿用已审计的 `tmp/debug-portable-<六位后缀>`，证据在 `artifacts/maintenance/v1.0.4/player-display/`。检查四变体合法最少／最多真人、关键阶段、真实授权动作、宽度边界、CSS视口／密度、设备识别、偏好、键盘、浮窗、高对比和切换草稿；不宣称实体手机或物理DPI通过。截图仅等待已加载图片，屏外懒加载规则图不会阻塞探针。
 
-同包根入口用 `scripts/verify-root-entry.mjs --sha256=<哈希> --evidence=<名称>`；远程故障用 `scripts/verify-debug-remote.mjs --sha256=<哈希> --evidence=<名称> --scenario=all`，后者在本机HTTPS非标准端口代理下实际切换玩家模式，再检查禁WebSocket、丢推送／确认、断线、冻结恢复、WSS与换机。只保存版本与操作摘要，不记录凭证或秘密载荷。实际结果及未测范围见[验收](acceptance.md)。
+同包根入口用 `tools/test/platform/verify-root-entry.mjs --sha256=<哈希> --evidence=<名称>`；远程故障用 `tools/test/platform/verify-debug-remote.mjs --sha256=<哈希> --evidence=<名称> --scenario=all`，后者在本机HTTPS非标准端口代理下实际切换玩家模式，再检查禁WebSocket、丢推送／确认、断线、冻结恢复、WSS与换机。只保存版本与操作摘要，不记录凭证或秘密载荷。实际结果及未测范围见[验收](acceptance.md)。
 
 2026-10-08显示修订：桌面竖屏宽390–480px、9:20理想比例；横屏16px上下边距及96px总横向留白，因此外层1055／1056、1295／1296分别检查子文档960／1200边界。玩家显示验收还断言按钮不占顶部行、电厂图集内部方形、地图定位下拉仅管理员、玩家地皮进度仅行动页；现代艺术短屏同时检查拍品、价格及主要操作实际可见，双拍也包含在内。完整盒子继续检查超长昵称全部可读和卡片不重叠。电力公司独立夹具须加载正式网页的共享scrollbars.css，Chromium检查10px圆角伪元素而非要求标准scrollbar-color覆盖；地图最小0.64后按实际抽屉遮挡判断目标可见，不强求每次选城都触发避让标记。
 
 ## 根加入入口与研究重设计验证（2026-10-08）
 
-默认分享网址与二维码使用网站根地址，`/player` 及 `/player/game` 保留兼容；根页面属于玩家，不能取得管理员或原生桥接权限。`node scripts/verify-root-entry.mjs --sha256=<冻结包SHA256> --evidence=<独立名>` 审核实际 ZIP 全部成员、HTTP／HTTPS 非标准端口根入口真实 UI 入座／准备／刷新、旧路由与身份权限；证据在 `artifacts/maintenance/v1.0.4/root-entry/`。代理仅监听 `127.0.0.1`，不配置真实穿透服务。
+默认分享网址与二维码使用网站根地址，`/player` 及 `/player/game` 保留兼容；根页面属于玩家，不能取得管理员或原生桥接权限。`node tools/test/platform/verify-root-entry.mjs --sha256=<冻结包SHA256> --evidence=<独立名>` 审核实际 ZIP 全部成员、HTTP／HTTPS 非标准端口根入口真实 UI 入座／准备／刷新、旧路由与身份权限；证据在 `artifacts/maintenance/v1.0.4/root-entry/`。代理仅监听 `127.0.0.1`，不配置真实穿透服务。
 
-`node scripts/verify-debug-20261007.mjs --phases-only --expansion-only --max-first --evidence=<独立名>` 从实际包推进扩展最少／最多人数合法阶段，检查 320／360／390／430、1023／1024、720p、1080p及4K的 CSS 几何，保留玩家、主机与公共屏截图及全部30研究参考卡。六人场景包含长昵称，按合法取牌／存牌动作逐步填满六个缓冲，再合法取出本人缓冲强制换入；检查空缓冲及1–6张占牌的完整视口边界、16px文字、实际图片解码及各玩家九格不侵入相邻场地。每个实际放入状态另查320×568首排三目标及位置编号完整可见，包含特殊牌能力说明和强制来源；存入按钮检查18px单行文字。这条受控动作路径不是普通模式体验测量。`--max-first`只调整验证顺序；`--placement-only`只做六人首个放入场景的诊断，不替代完整验收。完整默认矩阵另回归原版及其他游戏。`--evidence` 仅接受独立安全名称，避免覆盖旧同版本验收。
+`node tools/test/platform/verify-debug-20261007.mjs --phases-only --expansion-only --max-first --evidence=<独立名>` 从实际包推进扩展最少／最多人数合法阶段，检查 320／360／390／430、1023／1024、720p、1080p及4K的 CSS 几何，保留玩家、主机与公共屏截图及全部30研究参考卡。六人场景包含长昵称，按合法取牌／存牌动作逐步填满六个缓冲，再合法取出本人缓冲强制换入；检查空缓冲及1–6张占牌的完整视口边界、16px文字、实际图片解码及各玩家九格不侵入相邻场地。每个实际放入状态另查320×568首排三目标及位置编号完整可见，包含特殊牌能力说明和强制来源；存入按钮检查18px单行文字。这条受控动作路径不是普通模式体验测量。`--max-first`只调整验证顺序；`--placement-only`只做六人首个放入场景的诊断，不替代完整验收。完整默认矩阵另回归原版及其他游戏。`--evidence` 仅接受独立安全名称，避免覆盖旧同版本验收。
 
-`node scripts/verify-pokemon-expansion-play.mjs --portable --sha256=<同一包SHA256> --evidence=<独立名>` 通过实际生产玩家子文档控件与真实默认 Worker，检查研究详情不提交投票、单弃顶、本人缓冲存入／取出／强制换入、保存确认与最新渲染版本；普通模式仍默认静音。根入口的 HTTPS 丢推送、丢同步／动作确认、WSS、执行暂停和换机另由 `verify-debug-remote.mjs --sha256=<同一包SHA256> --evidence=<独立名>` 检查。隐藏浏览器与代理等价情形不能代表实体手机、真实樱花隧道、公网证书、物理 Windows DPI、真人听感或新任务平衡测量。
+`node tools/test/games/pokemon-encounters/verify-pokemon-expansion-play.mjs --portable --sha256=<同一包SHA256> --evidence=<独立名>` 通过实际生产玩家子文档控件与真实默认 Worker，检查研究详情不提交投票、单弃顶、本人缓冲存入／取出／强制换入、保存确认与最新渲染版本；普通模式仍默认静音。根入口的 HTTPS 丢推送、丢同步／动作确认、WSS、执行暂停和换机另由 `verify-debug-remote.mjs --sha256=<同一包SHA256> --evidence=<独立名>` 检查。隐藏浏览器与代理等价情形不能代表实体手机、真实樱花隧道、公网证书、物理 Windows DPI、真人听感或新任务平衡测量。
 
-`node scripts/verify-pokemon-expansion-awards.mjs --portable --sha256=<同一包SHA256> --evidence=<独立名>` 补查高风险研究的稀有结算：同一实际包规则执行最后一笔合法动作并验证状态，实际包客户端与共享运行时展示 0／1／2 新增胜局、共同赢家、计分明细及 320／390px 和主机／公共屏。此为受控结算组件夹具，不是服务端完整对局，也不代替普通模式、真实存档或平衡测量。截图与报告保存在 `artifacts/maintenance/v1.0.4/pokemon-expansion-awards/`；本地头像／角色图片必须实际解码，不能把占位或错误夹具元数据当作美术验收。
+`node tools/test/games/pokemon-encounters/verify-pokemon-expansion-awards.mjs --portable --sha256=<同一包SHA256> --evidence=<独立名>` 补查高风险研究的稀有结算：同一实际包规则执行最后一笔合法动作并验证状态，实际包客户端与共享运行时展示 0／1／2 新增胜局、共同赢家、计分明细及 320／390px 和主机／公共屏。此为受控结算组件夹具，不是服务端完整对局，也不代替普通模式、真实存档或平衡测量。截图与报告保存在 `artifacts/maintenance/v1.0.4/pokemon-expansion-awards/`；本地头像／角色图片必须实际解码，不能把占位或错误夹具元数据当作美术验收。
 
 ## 10.7 浏览器玩家与穿透恢复验证（v1.0.3）
 
 当前按 2026-10-08 用户纠正交付 v1.0.4；本标题保留旧锚点。电脑浏览器真人保持中央手机区域，三游戏原手机布局不做宽屏重排。验证器从根 `package.json` 读取版本并核验对应 ZIP／清单的全部解压成员；当前证据位于 `artifacts/maintenance/v1.0.4/debug-20261008/`。玩家 DOM 断言在稳定同源子文档中进行，外层仅用于窗口尺寸与实际截图。
 
-运行 `node scripts/verify-debug-20261007.mjs` 检查当前实际运行 ZIP：隐藏原生 WebView2、静音 Edge、真人授权投影及仅监听 `127.0.0.1` 的 HTTP／HTTPS 代理。默认检查各版本最少／最多人数、1023／1024px、720p、1080p、4K、125%／150%模拟像素密度和手机视口；`--phases-only` 通过合法动作推进关键阶段／结算，`--drafts-only` 检查数量、选城和卡槽草稿，`--mixed-only` 用真实 Worker 人机并以管理员暂停固定验收版本，`--connection-only` 单独检查丢推送、断线、换机批准及二维码配置。当前证据在 `artifacts/maintenance/v1.0.4/debug-20261008/portable/`，凭证不输出到报告。网页根节点仅提供公开的 instance／branch／revision 属性，断言实际渲染版本，不以连接标记替代。
+运行 `node tools/test/platform/verify-debug-20261007.mjs` 检查当前实际运行 ZIP：隐藏原生 WebView2、静音 Edge、真人授权投影及仅监听 `127.0.0.1` 的 HTTP／HTTPS 代理。默认检查各版本最少／最多人数、1023／1024px、720p、1080p、4K、125%／150%模拟像素密度和手机视口；`--phases-only` 通过合法动作推进关键阶段／结算，`--drafts-only` 检查数量、选城和卡槽草稿，`--mixed-only` 用真实 Worker 人机并以管理员暂停固定验收版本，`--connection-only` 单独检查丢推送、断线、换机批准及二维码配置。当前证据在 `artifacts/maintenance/v1.0.4/debug-20261008/portable/`，凭证不输出到报告。网页根节点仅提供公开的 instance／branch／revision 属性，断言实际渲染版本，不以连接标记替代。
 
-`--finals-only` 从管理员投影取得下一轮动作，完成最大人数的现代艺术四轮和扩展三胜终局；`--density-only` 可只补查125%／150%模拟像素密度。HTTPS 代理证书仅在隔离目录生成；验证器使用本机 OpenSSL 3.4.1，并传入自己的配置，不安装证书或修改全局环境。模拟像素密度及隐藏浏览器不能替代实体手机、现场穿透软件、物理 Windows DPI 与真人听感。`node scripts/verify-debug-recovery.mjs` 另查丢确认、执行暂停恢复和 WSS 升级，核对交付清单哈希和全部解压成员；各报告分别说明证明范围。
+`--finals-only` 从管理员投影取得下一轮动作，完成最大人数的现代艺术四轮和扩展三胜终局；`--density-only` 可只补查125%／150%模拟像素密度。HTTPS 代理证书仅在隔离目录生成；验证器使用本机 OpenSSL 3.4.1，并传入自己的配置，不安装证书或修改全局环境。模拟像素密度及隐藏浏览器不能替代实体手机、现场穿透软件、物理 Windows DPI 与真人听感。`node tools/test/platform/verify-debug-recovery.mjs` 另查丢确认、执行暂停恢复和 WSS 升级，核对交付清单哈希和全部解压成员；各报告分别说明证明范围。
 
-`node scripts/verify-debug-remote.mjs --sha256=<当前包SHA256>` 增补 HTTPS 非标准端口根入口的 polling／WSS 双向实际操作，丢推送、同步 ACK、动作 ACK、原动作编号去重、断线与玩家子文档执行暂停恢复，以及真实管理员换机入口。CDP Debugger 暂停实际玩家 Frame，以暂停前后计时差分证明其停止执行；恢复时不合成前台事件、不刷新页面。这是执行暂停模拟，不是实体手机锁屏验收。代理、证书和存档均隔离在仓库内并只监听 127.0.0.1；不访问示例穿透站点、不配置隧道或安装证书。`--self-test` 只核验滤包，`--preflight-only` 只核验包，均不等同于产品连接验收。
+`node tools/test/platform/verify-debug-remote.mjs --sha256=<当前包SHA256>` 增补 HTTPS 非标准端口根入口的 polling／WSS 双向实际操作，丢推送、同步 ACK、动作 ACK、原动作编号去重、断线与玩家子文档执行暂停恢复，以及真实管理员换机入口。CDP Debugger 暂停实际玩家 Frame，以暂停前后计时差分证明其停止执行；恢复时不合成前台事件、不刷新页面。这是执行暂停模拟，不是实体手机锁屏验收。代理、证书和存档均隔离在仓库内并只监听 127.0.0.1；不访问示例穿透站点、不配置隧道或安装证书。`--self-test` 只核验滤包，`--preflight-only` 只核验包，均不等同于产品连接验收。
 
-`node scripts/verify-box-layout.mjs --sha256=<当前包SHA256> --evidence=<本轮名称>` 从同一运行包检查盒子四种游戏版本、主机／公共／未入座玩家／已入座房主及关键浮窗，输出实际截图、字体／溢出／裁剪／操作可达结果。原生窗口记录实际 CSS 尺寸、缩放和模拟密度，不能把请求的物理窗口大小直接当作 CSS 视口；电脑玩家外层尺寸与内层手机区域分别检查。自动几何检查后人工复核代表截图，竖排标题等虽无溢出仍需修正。
+`node tools/test/box/verify-box-layout.mjs --sha256=<当前包SHA256> --evidence=<本轮名称>` 从同一运行包检查盒子四种游戏版本、主机／公共／未入座玩家／已入座房主及关键浮窗，输出实际截图、字体／溢出／裁剪／操作可达结果。原生窗口记录实际 CSS 尺寸、缩放和模拟密度，不能把请求的物理窗口大小直接当作 CSS 视口；电脑玩家外层尺寸与内层手机区域分别检查。自动几何检查后人工复核代表截图，竖排标题等虽无溢出仍需修正。
 
 日常使用：电脑管理员的“连接帮助”可保存外部 HTTP(S) 根地址、IP／域名及端口，也兼容旧 `/player` 地址；局域网和外部默认分享／二维码均使用根地址，旧玩家路由继续可用，清空后恢复网卡入口。网址保存在数据目录的 `network-settings.json`，与 checkpoint 分离。樱花等穿透软件仍由用户映射实际服务端口；TableMax 不自动配置隧道，不支持 `/tablemax/` 路径前缀。换设备时在未入座盒子申请原真人座位，电脑管理员在管理设置核对六位码后批准。
 
@@ -74,15 +74,15 @@ Node 与 pnpm 沿用锁定版本。沙箱默认 Corepack 缓存落在不可用�
 
 用户明确指定v1.0.3。按同日最新微调，单EXE首次启动在旁边新建 `TableMax/` 专属目录，并在其中创建 `TableMax.config.json`；ZIP解压版直接在解压目录创建配置，内容为 `{"dataDirectory":"."}`；相对路径以配置所在目录解析，绝对路径原样使用。主机 Alt → 程序 → 存储设置提供目录选择，原子写入配置并于重启后生效；不自动搬移或覆盖旧数据。存档、日志、显示设置、WebView2缓存均跟随所选数据目录。单文件EXE在 `TableMax/app` 解压运行资源，并向内部桌面传递 `TableMax/` 专属目录；直接运行ZIP内EXE以该EXE目录为默认。不可写／无效配置报错，不能回退C盘。显式 `TABLEMAX_DATA_DIR` 继续服务于已有隔离验证。
 
-旧存档启动迁移通过私有stdout同步发送固定 `startup-progress/save-migration`，导入、逐修订深比较和文件哈希计算推进时报告，最多每秒一次；不包含存档内容、身份或凭证。普通启动仍20秒；收到迁移进度后允许120秒无进展，总计最多30分钟，不以定时器假进度延长等待。完整v1备份、校验与恢复事务保持。新验证 `node scripts/verify-portable-storage.mjs` 对同一最终EXE检查默认目录、配置变更重启、旧存档字节保留、缓存及单文件解压；可加 `--source=<空WAL的闲置旧数据目录>`，只复制至隔离目录并核验真实大存档迁移和重启。报告默认在当前版本 `portable-storage/results.json`；`--evidence=<独立名称>` 可保留同版本不同初始化验收，不导出秘密状态。真实用户原数据不参与写入。验证输出 `tmp/portable-storage-<六位随机后缀>` 纳入已知隔离副本清理入口；通过证据和原用户存档仍保留。
+旧存档启动迁移通过私有stdout同步发送固定 `startup-progress/save-migration`，导入、逐修订深比较和文件哈希计算推进时报告，最多每秒一次；不包含存档内容、身份或凭证。普通启动仍20秒；收到迁移进度后允许120秒无进展，总计最多30分钟，不以定时器假进度延长等待。完整v1备份、校验与恢复事务保持。新验证 `node tools/test/desktop/verify-portable-storage.mjs` 对同一最终EXE检查默认目录、配置变更重启、旧存档字节保留、缓存及单文件解压；可加 `--source=<空WAL的闲置旧数据目录>`，只复制至隔离目录并核验真实大存档迁移和重启。报告默认在当前版本 `portable-storage/results.json`；`--evidence=<独立名称>` 可保留同版本不同初始化验收，不导出秘密状态。真实用户原数据不参与写入。验证输出 `tmp/portable-storage-<六位随机后缀>` 纳入已知隔离副本清理入口；通过证据和原用户存档仍保留。
 
 ## 宝可梦三胜大局与叫声续验（2026-10-06）
 
-`node scripts/measure-pokemon-expansion-matches.mjs --seeds=4 --evidence=match-run` 使用真实扩展规则与策略模拟2–6人完整三胜大局。两人对每个种子作六种配对／座位反转，3–6人作三次循环档位轮换；每座独立策略随机源，检查授权知识、守恒、规则RNG和输入不变，逐小局走下一局生命周期。结果包含精确源码前后哈希、每轮计分／胜场和档位暴露。`node scripts/analyze-pokemon-expansion-matches.mjs 路径/report.json` 重算三胜终点和每种子完整配对，按人数以整种子块作10,000次描述重采样。四种子是探索样本，不能保证普遍强度顺序。运行期间保持测量依赖源码不变；CPU／自动化时间不作真人节奏证据。
+`node tools/analysis/games/pokemon-encounters/measure-pokemon-expansion-matches.mjs --seeds=4 --evidence=match-run` 使用真实扩展规则与策略模拟2–6人完整三胜大局。两人对每个种子作六种配对／座位反转，3–6人作三次循环档位轮换；每座独立策略随机源，检查授权知识、守恒、规则RNG和输入不变，逐小局走下一局生命周期。结果包含精确源码前后哈希、每轮计分／胜场和档位暴露。`node tools/analysis/games/pokemon-encounters/analyze-pokemon-expansion-matches.mjs 路径/report.json` 重算三胜终点和每种子完整配对，按人数以整种子块作10,000次描述重采样。四种子是探索样本，不能保证普遍强度顺序。运行期间保持测量依赖源码不变；CPU／自动化时间不作真人节奏证据。
 
-`node scripts/measure-pokemon-expansion-flow.mjs <独立证据名>` 补充2–6人各一个固定种子的混合档位三胜大局，结果在 `artifacts/maintenance/v1.0.2/pokemon-expansion-flow-audit/<证据名>/report.json`。仅在独立测量进程串行安装观察钩子，原规则结果原样返回，成功或异常退出均恢复钩子；不修改既有完整对照测量器或生产规则／策略。统计按同一小局内的牌身份追踪盖回，行交换不误算盖回，阿尔宙斯同一步盖回再翻明计零动作间隔闭环，结算用 `preReveal` 排除强制揭牌；离场与结算未翻明分别记为中断／未闭环。公开统计不含暗牌身份或分值，延迟单位是已保存游戏动作数，不能视作回合数、秒数或全人数强度重复认证。纯观察器边界检查用 `node --test scripts/pokemon-expansion-flow-observer.test.mjs`；测量期间冻结其全部输入，检查源码前后哈希和逐牌盖回事件守恒。
+`node tools/analysis/games/pokemon-encounters/measure-pokemon-expansion-flow.mjs <独立证据名>` 补充2–6人各一个固定种子的混合档位三胜大局，结果在 `artifacts/maintenance/v1.0.2/pokemon-expansion-flow-audit/<证据名>/report.json`。仅在独立测量进程串行安装观察钩子，原规则结果原样返回，成功或异常退出均恢复钩子；不修改既有完整对照测量器或生产规则／策略。统计按同一小局内的牌身份追踪盖回，行交换不误算盖回，阿尔宙斯同一步盖回再翻明计零动作间隔闭环，结算用 `preReveal` 排除强制揭牌；离场与结算未翻明分别记为中断／未闭环。公开统计不含暗牌身份或分值，延迟单位是已保存游戏动作数，不能视作回合数、秒数或全人数强度重复认证。纯观察器边界检查用 `node --test tools/analysis/games/pokemon-encounters/pokemon-expansion-flow-observer.test.mjs`；测量期间冻结其全部输入，检查源码前后哈希和逐牌盖回事件守恒。
 
-`node scripts/verify-pokemon-expansion.mjs --portable` 对当前ZIP实际解压并运行隐藏WebView2，新增27项本地叫声哈希／单声道／时长／非静音解码检查，保留八项原创主题和原有流程／显示。`node scripts/verify-pokemon-expansion-play.mjs --portable --evidence=normal-run` 通过正式普通模式控件和真实默认Worker完成小局，观察主机 `HTMLMediaElement.play` 及 `playing` 事件，要求至少一个新增叫声实际播放；解码／播放观测均不是真人试听认证。每次使用独立证据名，后台只监听127.0.0.1。叫声原件与派生编码依据见[资源页](../games/pokemon-encounters/assets.md#续建素材与反馈2026-10-06)，同包边界见[验收](acceptance.md)。
+`node tools/test/games/pokemon-encounters/verify-pokemon-expansion.mjs --portable` 对当前ZIP实际解压并运行隐藏WebView2，新增27项本地叫声哈希／单声道／时长／非静音解码检查，保留八项原创主题和原有流程／显示。`node tools/test/games/pokemon-encounters/verify-pokemon-expansion-play.mjs --portable --evidence=normal-run` 通过正式普通模式控件和真实默认Worker完成小局，观察主机 `HTMLMediaElement.play` 及 `playing` 事件，要求至少一个新增叫声实际播放；解码／播放观测均不是真人试听认证。每次使用独立证据名，后台只监听127.0.0.1。叫声原件与派生编码依据见[资源页](../games/pokemon-encounters/assets.md#续建素材与反馈2026-10-06)，同包边界见[验收](acceptance.md)。
 
 扩展集成的四席三胜完整大局使用十分钟整场测试上限，仍限制3,000步、每次真实32MiB Worker两秒截止。原三分钟两次超时记录保留；其中一次在330条日志、第五局开局时存档约1.7GB，合法对局仍推进，不能把整场超时认定为单次Worker超限。四席最多九小局，历史／SQLite工作也计入整场耗时；放宽整场测试边界不等于证明存档长期增长有界，实际耗时另记结果。
 
@@ -90,13 +90,13 @@ Node 与 pnpm 沿用锁定版本。沙箱默认 Corepack 缓存落在不可用�
 
 ## 宝可梦引导与动漫切入验证（2026-10-05）
 
-本轮沿用v1.0.3。相关单测用 `pnpm exec vitest run games/pokemon-encounters/shared games/pokemon-encounters/ui games/pokemon-encounters/rules games/pokemon-encounters/bot/memory.test.ts --testTimeout=120000`，72项通过；120秒是整局集成测试容限，不放宽32MiB Worker两秒硬截止。策略专项13项通过，未重复此前耗时的三级整局统计。`node scripts/verify-pokemon-original-compatibility.mjs --reference=219ae95d165974a35a738d49fb175f5fe8acbcd5 --evidence=pokemon-guidance-cutin-20261005` 从Git实际读取基线规则及shared／variants，固定随机源比较2–6人完整状态、合法动作、计分及投影，仅排除本轮新增派生 `publicMatchedColumns`。
+本轮沿用v1.0.3。相关单测用 `pnpm exec vitest run games/pokemon-encounters/shared games/pokemon-encounters/ui games/pokemon-encounters/rules games/pokemon-encounters/bot/memory.test.ts --testTimeout=120000`，72项通过；120秒是整局集成测试容限，不放宽32MiB Worker两秒硬截止。策略专项13项通过，未重复此前耗时的三级整局统计。`node tools/test/games/pokemon-encounters/verify-pokemon-original-compatibility.mjs --reference=219ae95d165974a35a738d49fb175f5fe8acbcd5 --evidence=pokemon-guidance-cutin-20261005` 从Git实际读取基线规则及shared／variants，固定随机源比较2–6人完整状态、合法动作、计分及投影，仅排除本轮新增派生 `publicMatchedColumns`。
 
-`node scripts/verify-pokemon-polish.mjs --evidence=guidance-cutin-v103-final` 使用真实PokemonScreen和合法规则状态，48顶栏／36操作栏通过，另检查详情章节只读定位和手机切入安全区。新引导短屏允许自然滚动，检查按钮滚动后可达和无遮挡。`verify-pokemon-effects.mjs --evidence=guidance-cutin-v103` 9组检查分开记录实际animationstart、CSS时间线0%／45%采样与TTL；`verify-pokemon-audio.mjs --evidence=guidance-cutin-v103` 4组核验八WAV解码／播放、双槽及1200ms同步，原音频从已保留source-originals核对哈希，外部D盘目录当前不可用。解码及播放调用不称为真人试听。
+`node tools/test/games/pokemon-encounters/verify-pokemon-polish.mjs --evidence=guidance-cutin-v103-final` 使用真实PokemonScreen和合法规则状态，48顶栏／36操作栏通过，另检查详情章节只读定位和手机切入安全区。新引导短屏允许自然滚动，检查按钮滚动后可达和无遮挡。`verify-pokemon-effects.mjs --evidence=guidance-cutin-v103` 9组检查分开记录实际animationstart、CSS时间线0%／45%采样与TTL；`verify-pokemon-audio.mjs --evidence=guidance-cutin-v103` 4组核验八WAV解码／播放、双槽及1200ms同步，原音频从已保留source-originals核对哈希，外部D盘目录当前不可用。解码及播放调用不称为真人试听。
 
 初次运行曾遇到整局测试超过默认5秒、旧首屏操作栏假设不适用于可见引导、fixture始终换同一格而未结束，以及外部音源目录不可达。分别采用整局适用测试容限、显式自然滚动核验、合法优先换暗格的fixture驱动和已有原始素材哈希；未改玩法、字号或音源内容规避失败。最终证据和包边界见 [验收](acceptance.md)，视觉分析见 [游戏验证](../games/pokemon-encounters/validation-scenarios.md#游玩过程视觉审查2026-10-05)。
 
-2026-10-05 宝可梦人机／复用专项：`node scripts/verify-pokemon-original-compatibility.mjs --reference=1b3930cae9ffa66c480a26b69e4cbf6f6ac59827` 在固定随机源下比较重构前后的真实规则模块，覆盖 2–6 人完整小局／大局、合法动作、状态、计分及全部授权投影。未传 reference 时使用当前 HEAD，提交后复查本轮应显式传上述基线；只读取本地 Git，不联网。`node scripts/verify-pokemon-version.mjs` 用实际 BoxScreen 及样式检查三个端的只读版本面板和资源懒加载。源码策略固定种子统计、真实 Worker、最终 ZIP 与显示证据见当前验收；整局测试总时限与单次 Worker 两秒硬截止分开。原生 fixture 退出后再构建，避免占用 `build/desktop/TableMax.exe`。
+2026-10-05 宝可梦人机／复用专项：`node tools/test/games/pokemon-encounters/verify-pokemon-original-compatibility.mjs --reference=1b3930cae9ffa66c480a26b69e4cbf6f6ac59827` 在固定随机源下比较重构前后的真实规则模块，覆盖 2–6 人完整小局／大局、合法动作、状态、计分及全部授权投影。未传 reference 时使用当前 HEAD，提交后复查本轮应显式传上述基线；只读取本地 Git，不联网。`node tools/test/games/pokemon-encounters/verify-pokemon-version.mjs` 用实际 BoxScreen 及样式检查三个端的只读版本面板和资源懒加载。源码策略固定种子统计、真实 Worker、最终 ZIP 与显示证据见当前验收；整局测试总时限与单次 Worker 两秒硬截止分开。原生 fixture 退出后再构建，避免占用 `build/desktop/TableMax.exe`。
 
 当前 Windows x64 桌面为 C# WinForms／.NET Framework 4.8、共享 WebView2 与包内 Node；正式入口选择宝可梦奇遇、现代艺术或经典德国版电力公司，已有对局按存档恢复对应游戏。第一至六阶段已完成，独立原型仍用于合成状态审阅。使用流程见 [项目说明](../../README.md#快速开始)，最近交付包、实际验证范围和设备模拟边界见 [验收记录](acceptance.md)。
 
@@ -151,18 +151,18 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 2026-10-08 最新要求：仅改盒子只运行盒子项，仅改游戏只允许对应游戏项；测试、检查、构建与优化都按本次实际变化收敛。共享变化列明依赖后选择受影响项，不能依据工作区其他未提交内容扩大范围。规则改动按需检查规则，UI改动按需检查UI；纯文档／配置／素材记录只做格式、链接、配置、来源或解码等适用检查。
 
-`pnpm test -- --scope=box` 或 `node scripts/test-scoped.mjs --scope=<范围>` 是统一范围入口；`--list` 只列选中／排除／未分类文件，不启动产品。支持 `box`、`game:pokemon-encounters`、`game:modern-art`、`game:power-grid` 和 `shared`，逗号组合仅用于实际受影响的多个范围。可追加准确的 `.test.ts` 文件继续收窄；遗漏范围的宽泛执行会拒绝。直接Vitest命令可指定准确文件，或设置当前进程的 `TABLEMAX_TEST_SCOPE`，配置仍会过滤越界文件。`full` 仅用于本次确实涉及全部范围或明确要求全量验收的任务，不能用于绕过盒子／单游戏限制。
+`pnpm test -- --scope=box` 或 `node tools/test/runner/test-scoped.mjs --scope=<范围>` 是统一范围入口；`--list` 只列选中／排除／未分类文件，不启动产品。支持 `box`、`game:pokemon-encounters`、`game:modern-art`、`game:power-grid` 和 `shared`，逗号组合仅用于实际受影响的多个范围。可追加准确的 `.test.ts` 文件继续收窄；遗漏范围的宽泛执行会拒绝。直接Vitest命令可指定准确文件，或设置当前进程的 `TABLEMAX_TEST_SCOPE`，配置仍会过滤越界文件。`full` 仅用于本次确实涉及全部范围或明确要求全量验收的任务，不能用于绕过盒子／单游戏限制。
 
-范围归属在 `scripts/testing/scopes.mjs` 维护，游戏目录归对应游戏，其他测试按实际内容登记：服务端单游戏集成也归游戏；目录元数据和模板夹具可归盒子。混合文件／验证脚本涉及的全部范围必须被允许，不能仅有交集；窄范围排除未分类文件，列单时显示缺口，新增或改变测试覆盖内容须同步登记。独立脚本未知时拒绝窄范围执行，先登记实际范围或加入真实筛选；不能仅向不支持筛选的脚本添加 `--game` 假定矩阵已缩小。
+范围归属在 `tools/test/runner/scopes.mjs` 维护，游戏目录归对应游戏，其他测试按实际内容登记：服务端单游戏集成也归游戏；目录元数据和模板夹具可归盒子。混合文件／验证脚本涉及的全部范围必须被允许，不能仅有交集；窄范围排除未分类文件，列单时显示缺口，新增或改变测试覆盖内容须同步登记。独立脚本未知时拒绝窄范围执行，先登记实际范围或加入真实筛选；不能仅向不支持筛选的脚本添加 `--game` 假定矩阵已缩小。
 
-盒子通知专项：`node scripts/test-scoped.mjs --scope=box apps/web/src/components/notifications/notification-center.test.ts` 检查限额、重复续时、淡出、独立暂停和清理；`scripts/verify-box-notifications.mjs` 登记为box，可纳入独立批次计划。后者使用当前源码构建的盒子与真实入座hook、模拟HTTP拒绝响应，隐藏静音Edge仅监听127.0.0.1；覆盖320px、390px、横屏、桌面与4K、重试入口、原生浮窗、触控尺寸、自动退出及减少动态。证据在 `artifacts/maintenance/v1.0.5/box-notifications/`，不代表实物手机、局域网或便携包验收，隔离副本沿用 `tmp/box-layout-<六位后缀>` 清理边界。
+盒子通知专项：`node tools/test/runner/test-scoped.mjs --scope=box apps/web/src/components/notifications/notification-center.test.ts` 检查限额、重复续时、淡出、独立暂停和清理；`tools/test/box/verify-box-notifications.mjs` 登记为box，可纳入独立批次计划。后者使用当前源码构建的盒子与真实入座hook、模拟HTTP拒绝响应，隐藏静音Edge仅监听127.0.0.1；覆盖320px、390px、横屏、桌面与4K、重试入口、原生浮窗、触控尺寸、自动退出及减少动态。证据在 `artifacts/maintenance/v1.0.5/box-notifications/`，不代表实物手机、局域网或便携包验收，隔离副本沿用 `tmp/box-layout-<六位后缀>` 清理边界。
 
-独立验证使用 `node scripts/test-scoped.mjs --scope=<范围> --plan=<计划.json>`；先校验整份计划，再交给独立批次统计，运行后保存 `scope.json`。`verify-rules-guides.mjs --game=<id>` 为对应游戏；`verify-player-display.mjs` 须同时指定 `--game=<id> --visual-audit` 才为单游戏，默认及`--quick`仍包含盒子检查，且不支持`--game=all`。工具机制回归用 `node --test scripts/testing/scopes.test.mjs`，不启动产品。
+独立验证使用 `node tools/test/runner/test-scoped.mjs --scope=<范围> --plan=<计划.json>`；先校验整份计划，再交给独立批次统计，运行后保存 `scope.json`。`verify-rules-guides.mjs --game=<id>` 为对应游戏；`verify-player-display.mjs` 须同时指定 `--game=<id> --visual-audit` 才为单游戏，默认及`--quick`仍包含盒子检查，且不支持`--game=all`。工具机制回归用 `node --test tools/test/runner/scopes.test.mjs`，不启动产品。
 
 ```powershell
-node scripts/test-scoped.mjs --scope=box --list
-node scripts/test-scoped.mjs --scope=box apps/server/src/avatar.test.ts
-node scripts/test-scoped.mjs --scope=game:modern-art games/modern-art/ui/sorting.test.ts
+node tools/test/runner/test-scoped.mjs --scope=box --list
+node tools/test/runner/test-scoped.mjs --scope=box apps/server/src/avatar.test.ts
+node tools/test/runner/test-scoped.mjs --scope=game:modern-art games/modern-art/ui/sorting.test.ts
 ```
 
 ### 历史通过率与失败阈值
@@ -171,33 +171,33 @@ node scripts/test-scoped.mjs --scope=game:modern-art games/modern-art/ui/sorting
 
 先按改动选择相关测试，文件按其中最低历史通过率排序，文件内按组及用例递归排序，保留 `beforeAll`／`afterAll` 等钩子的原作用域。同通过率保持声明顺序；已失败的0%项优先于未知项，未知项优先于已有通过记录的项。为确保达到阈值后不会抢先启动其他项，本入口串行执行文件和用例，关闭自动重试。默认本轮累计失败3项停止后续测试，退出码非零并转入修复；修复后重跑受影响项，历史失败仍计入分母。阈值是本轮累计失败数，不是历史失败数或连续失败数。
 
-一次完整结束的用例调用计一次，跳过、取消和未开始的用例不计入分母；失败的收集／模块或组生命周期单独记录，不能把未运行的测试正文补记为失败或通过。显式用例 `retry`／`repeat` 的最终调用结果计一次，重试／重复次数另留诊断，不自动添加重试。运行器未捕获的错误留在本轮报告并使本轮失败，不伪造有名称的用例。默认 reporter 与自定义 runner 配套使用，使用CLI自选 reporter 时须同时保留 `scripts/testing/vitest-history.mjs`。
+一次完整结束的用例调用计一次，跳过、取消和未开始的用例不计入分母；失败的收集／模块或组生命周期单独记录，不能把未运行的测试正文补记为失败或通过。显式用例 `retry`／`repeat` 的最终调用结果计一次，重试／重复次数另留诊断，不自动添加重试。运行器未捕获的错误留在本轮报告并使本轮失败，不伪造有名称的用例。默认 reporter 与自定义 runner 配套使用，使用CLI自选 reporter 时须同时保留 `tools/test/runner/vitest-history.mjs`。
 
 ```powershell
 # 只列盒子项，再按需选定准确文件；单游戏不会运行其他游戏
-node scripts/test-scoped.mjs --scope=box --list
-node scripts/test-scoped.mjs --scope=box apps/server/src/avatar.test.ts
-node scripts/test-scoped.mjs --scope=game:modern-art games/modern-art/ui/sorting.test.ts
+node tools/test/runner/test-scoped.mjs --scope=box --list
+node tools/test/runner/test-scoped.mjs --scope=box apps/server/src/avatar.test.ts
+node tools/test/runner/test-scoped.mjs --scope=game:modern-art games/modern-art/ui/sorting.test.ts
 
 # 可选：本轮只容许1项失败；不设置时为3，合法范围1–1000
 $env:TABLEMAX_TEST_MAX_FAILURES = '1'
-node scripts/test-scoped.mjs --scope=shared apps/server/src/countdown.test.ts
+node tools/test/runner/test-scoped.mjs --scope=shared apps/server/src/countdown.test.ts
 Remove-Item Env:TABLEMAX_TEST_MAX_FAILURES
 
 # 查看累计通过次数、完成次数、百分比及通过次数/完成次数
-node scripts/test-history.mjs
+node tools/test/runner/test-history.mjs
 
 # 仅导入有逐项结果和startTime的完整Vitest JSON，重复导入不重复计数
-node scripts/test-history.mjs --import artifacts/<已有逐项报告>.json
+node tools/test/runner/test-history.mjs --import artifacts/<已有逐项报告>.json
 
 # 测试工具本身的隔离回归，不启动正式桌面或服务
-node --test scripts/testing/history.test.mjs
-node --test scripts/testing/scopes.test.mjs
+node --test tools/test/runner/history.test.mjs
+node --test tools/test/runner/scopes.test.mjs
 ```
 
 没有逐项结果的旧汇总报告不能推算各项次数，初始未知保持未知；已有逐项Vitest JSON可按上例导入。`TABLEMAX_TEST_HISTORY_DIR` 可将本次隔离统计改到项目内部的独立目录，不能指向项目外部。临时环境变量只作用于当前终端／子进程，不修改系统配置。测试工具回归的实际日志和独立数据库保存在 `artifacts/maintenance/v1.0.4/test-history-verification-20261008/`；首次跨文件回归曾遇到沙箱Vite临时转换文件缺失，改用各自项目内临时目录后通过，原失败日志保留。
 
-独立的 `verify-*.mjs`／PowerShell检查用 `node scripts/test-scoped.mjs --scope=<范围> --plan=<计划.json>`，先校验整份计划的实际覆盖范围，再交给底层 `test-batch.mjs` 统一记录和排序；`--list` 可预览，真正运行后保存 `scope.json`。计划须明确测试ID、运行器、仓库内脚本及参数数组。每个计划项对应一次独立检查命令，其内部矩阵不能由退出码推算逐场景通过率；需要逐场景排序时应拆成脚本实际支持的独立选项。`verify-rules-guides.mjs --game=<id>` 为对应游戏；`verify-player-display.mjs` 须同时指定 `--game=<id> --visual-audit` 才为单游戏，默认仍检查盒子布局及共享显示，`--quick`也包含盒子。不指定游戏仍属多游戏矩阵。示例盒子计划如下，执行前填入本轮实际包哈希和独立证据名：
+独立的 `verify-*.mjs`／PowerShell检查用 `node tools/test/runner/test-scoped.mjs --scope=<范围> --plan=<计划.json>`，先校验整份计划的实际覆盖范围，再交给底层 `test-batch.mjs` 统一记录和排序；`--list` 可预览，真正运行后保存 `scope.json`。计划须明确测试ID、运行器、仓库内脚本及参数数组。每个计划项对应一次独立检查命令，其内部矩阵不能由退出码推算逐场景通过率；需要逐场景排序时应拆成脚本实际支持的独立选项。`verify-rules-guides.mjs --game=<id>` 为对应游戏；`verify-player-display.mjs` 须同时指定 `--game=<id> --visual-audit` 才为单游戏，默认仍检查盒子布局及共享显示，`--quick`也包含盒子。不指定游戏仍属多游戏矩阵。示例盒子计划如下，执行前填入本轮实际包哈希和独立证据名：
 
 ```json
 {
@@ -206,7 +206,7 @@ node --test scripts/testing/scopes.test.mjs
     {
       "id": "box/layout",
       "runtime": "node",
-      "script": "scripts/verify-box-layout.mjs",
+      "script": "tools/test/box/verify-box-layout.mjs",
       "args": ["--sha256=<当前包SHA256>", "--evidence=<本轮独立名>"]
     }
   ]
@@ -217,15 +217,15 @@ node --test scripts/testing/scopes.test.mjs
 
 ### 游戏介绍弹窗布局检查
 
-`node scripts/verify-game-introduction.mjs --evidence=<独立名称>` 使用真实BoxScreen、GameIntroduction、OverlayPanel及生产样式，在隐藏静音Edge覆盖三端、三游戏／宝可梦原版与扩展版、320–3840px共108布局；额外按实际分包顺序晚加载共用弹窗CSS，避免夹具默认导入顺序掩盖冲突。检查分节顺序、步骤宽度、16px下限、无横向溢出、滚动关闭、Escape恢复焦点与零命令。测试服务仅监听127.0.0.1，输出留在对应版本 `game-introduction/<名称>/`，模拟视口不是实体设备验收。本次同一最终EXE的真实WebView2九布局及导出哈希见[验收](../archive/acceptance-2026-10-05-to-08.md#103游戏介绍弹窗布局修复2026-10-06)。
+`node tools/test/platform/verify-game-introduction.mjs --evidence=<独立名称>` 使用真实BoxScreen、GameIntroduction、OverlayPanel及生产样式，在隐藏静音Edge覆盖三端、三游戏／宝可梦原版与扩展版、320–3840px共108布局；额外按实际分包顺序晚加载共用弹窗CSS，避免夹具默认导入顺序掩盖冲突。检查分节顺序、步骤宽度、16px下限、无横向溢出、滚动关闭、Escape恢复焦点与零命令。测试服务仅监听127.0.0.1，输出留在对应版本 `game-introduction/<名称>/`，模拟视口不是实体设备验收。本次同一最终EXE的真实WebView2九布局及导出哈希见[验收](../archive/acceptance-2026-10-05-to-08.md#103游戏介绍弹窗布局修复2026-10-06)。
 
 便携验收器遇到真实人机保存造成的 `stale-revision` 暂停请求时，只对同实例／同分支的暂停意图最多重取版本8次；其他命令不重试，异常原因继续失败。逐次重试计数进入报告，不放宽服务校验或修改规则，首次冲突证据单独保留为 `portable-676f9e75fb19-pause-race`。
 
-宝可梦扩展版普通模式验证：`node scripts/verify-pokemon-expansion-play.mjs --portable --evidence=<独立名>` 将当前ZIP解压到新目录，启动隐藏原生WebView2；开局前通过房主隐藏快捷键切到 `play` 并逐次核验运行模式。两台独立手机身份只点击真实生产控件，第三席采用真实默认Worker；管理设置使用权威Socket动作，不注入游戏状态。每次手机动作须收到保存成功回执，私看只在本人页面显示，其他手机、公共屏及管理员均无私看投影；记录实际阶段、公开人机动作、截图、页面错误、外部请求及进程退出。自动点击间隔不是真人思考时间，隐藏窗口和触控视口不是实体手机验证。
+宝可梦扩展版普通模式验证：`node tools/test/games/pokemon-encounters/verify-pokemon-expansion-play.mjs --portable --evidence=<独立名>` 将当前ZIP解压到新目录，启动隐藏原生WebView2；开局前通过房主隐藏快捷键切到 `play` 并逐次核验运行模式。两台独立手机身份只点击真实生产控件，第三席采用真实默认Worker；管理设置使用权威Socket动作，不注入游戏状态。每次手机动作须收到保存成功回执，私看只在本人页面显示，其他手机、公共屏及管理员均无私看投影；记录实际阶段、公开人机动作、截图、页面错误、外部请求及进程退出。自动点击间隔不是真人思考时间，隐藏窗口和触控视口不是实体手机验证。
 
-扩展三档对照用 `node scripts/measure-pokemon-expansion-continuation.mjs --natural-seeds=24 --strength-seeds=48 --original-seeds=3 --seed-base=616200 --evidence=<独立名>`，保留源码前后哈希、完整合法动作、研究与能力自然频率、座位轮换及封顶。随后 `node scripts/analyze-pokemon-expansion-strength.mjs <report.json路径>` 审计结算算术和每个种子三次座位轮换，按完整种子块进行10,000次确定性bootstrap，保留块内相关性；输出同目录 `strength-analysis.json`。95%区间为单项描述区间，未作多重比较调整，只适用这组三人混合对手；不能据模拟CPU或三人样本认证真人时长、所有人数或整场三胜强度。
+扩展三档对照用 `node tools/analysis/games/pokemon-encounters/measure-pokemon-expansion-continuation.mjs --natural-seeds=24 --strength-seeds=48 --original-seeds=3 --seed-base=616200 --evidence=<独立名>`，保留源码前后哈希、完整合法动作、研究与能力自然频率、座位轮换及封顶。随后 `node tools/analysis/games/pokemon-encounters/analyze-pokemon-expansion-strength.mjs <report.json路径>` 审计结算算术和每个种子三次座位轮换，按完整种子块进行10,000次确定性bootstrap，保留块内相关性；输出同目录 `strength-analysis.json`。95%区间为单项描述区间，未作多重比较调整，只适用这组三人混合对手；不能据模拟CPU或三人样本认证真人时长、所有人数或整场三胜强度。
 
-宝可梦 2026-10-05 声画／手机专项：`node scripts/verify-pokemon-polish.mjs --evidence=名称` 用真实 PokemonScreen 与合法规则状态检查 320–430px、横屏、顶栏及选位栏；`node scripts/verify-pokemon-audio.mjs --evidence=名称` 在隐藏 WebView2 检查八音源解码、固定双槽、保存事件映射和硬币落定同步。后者 fixture 的播放权限桥接只证明表现层，实际公共屏优先与交接由 `pnpm verify:experience --portable` 核验。既有 `pnpm verify:effects --evidence=名称` 已扩展能力短全屏、局部路径、共同赢家、减少动态及私看边界。三种专项都不能代替最终 ZIP、真实网络或人耳试听。
+宝可梦 2026-10-05 声画／手机专项：`node tools/test/games/pokemon-encounters/verify-pokemon-polish.mjs --evidence=名称` 用真实 PokemonScreen 与合法规则状态检查 320–430px、横屏、顶栏及选位栏；`node tools/test/games/pokemon-encounters/verify-pokemon-audio.mjs --evidence=名称` 在隐藏 WebView2 检查八音源解码、固定双槽、保存事件映射和硬币落定同步。后者 fixture 的播放权限桥接只证明表现层，实际公共屏优先与交接由 `pnpm verify:experience --portable` 核验。既有 `pnpm verify:effects --evidence=名称` 已扩展能力短全屏、局部路径、共同赢家、减少动态及私看边界。三种专项都不能代替最终 ZIP、真实网络或人耳试听。
 
 | 命令                                                        | 行为                                                                                                                                                      |
 | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -243,14 +243,14 @@ node --test scripts/testing/scopes.test.mjs
 | `pnpm verify:power-grid-ui --evidence=fixture`              | 独立实际 React 授权 fixture 的短屏至 4K、320–390 手机、地图操作与保存声音；不替代原生 DPI 或真实整局                                                      |
 | `pnpm verify:party`                                         | 隐藏窗口验证加入丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP                                   |
 | `pnpm verify:room-levels`                                   | 隐藏窗口验证手机各自入座、电脑仅管理／展示、六席围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证当前 ZIP                          |
-| `node scripts/verify-box-avatars.mjs`                       | 隐藏窗口核验 26 个本地头像、占用／并发／身份恢复与游戏介绍尺寸；先用 `--compact-only` 检查 360×640 首屏，`--portable` 对应最终 ZIP，`--run=名称` 分开证据 |
+| `node tools/test/box/verify-box-avatars.mjs`                       | 隐藏窗口核验 26 个本地头像、占用／并发／身份恢复与游戏介绍尺寸；先用 `--compact-only` 检查 360×640 首屏，`--portable` 对应最终 ZIP，`--run=名称` 分开证据 |
 | `pnpm verify:presentation`                                  | 隐藏窗口验证六真人、游玩／测试时序、浮窗焦点／结束、公开行动及星标；可加 `--portable` 验证当前 ZIP                                                        |
 | `pnpm verify:display`                                       | 隐藏窗口验证电脑 720p／1080p／1440p／4K、独立缩放、显示浮窗、设置恢复与 DPI；可加 `--portable` 验证最终 ZIP，`--box-debug` 独立保存本次盒子证据           |
-| `node scripts/verify-box-debug.mjs`                         | 回环服务、隐藏真实 WebView2 检查上传裁剪、房主座位操作、原子切换、三游戏头像、320–390px 手机与电脑设置；`--run=名称` 分开证据，`--portable` 检查最终 ZIP  |
+| `node tools/test/box/verify-box-debug.mjs`                         | 回环服务、隐藏真实 WebView2 检查上传裁剪、房主座位操作、原子切换、三游戏头像、320–390px 手机与电脑设置；`--run=名称` 分开证据，`--portable` 检查最终 ZIP  |
 | `pnpm verify:experience`                                    | 隐藏窗口验证游戏库按需加载、管理员指定手机房主、并发初始翻牌和准备、连接／显示控件及声音归属；可加 `--portable` 验证当前 ZIP                              |
 | `pnpm verify:effects`                                       | 后台 WebView2 用实际游戏组件和授权投影 fixture 验证主题、同币面、暗牌交换、零分列、共同赢家和减少动态；不冒充自然对局                                     |
 | `pnpm verify:memory`                                        | 独立 Node 比较存档复制开销，再用后台 WebView2 执行 20 轮游戏切换的 heap／DOM 回归；可加 `--copy-only` 或 `--desktop-only`                                 |
-| `node scripts/verify-native-safety.mjs --evidence=<独立名>` | 检查桥接拒绝、重复启动、缺运行时、生产 CDP 关闭及服务／父进程崩溃清理                                                                                     |
+| `node tools/test/desktop/verify-native-safety.mjs --evidence=<独立名>` | 检查桥接拒绝、重复启动、缺运行时、生产 CDP 关闭及服务／父进程崩溃清理                                                                                     |
 | `pnpm verify:game-ui`                                       | 正式能力／2–6 人保存 fixture 的十五组 UI、多尺寸触控／隐私、已保存动效和声音                                                                              |
 | `pnpm verify:cards`                                         | 正式六人保存状态的全部 16 类卡面及公共／手机十三种布局、图像／文字／分区几何                                                                              |
 | `pnpm package:win`                                          | 构建 Windows x64 运行 ZIP 和逐文件清单；解压目录只作打包验证，本地不导出源码包                                                                            |
@@ -265,9 +265,9 @@ node --test scripts/testing/scopes.test.mjs
 
 ### 服务载荷无损压缩（2026-10-06）
 
-`scripts/service-brotli.mjs` 将生产服务CJS编码为Brotli质量11的 `server.cjs.br`，生成小型 `server.cjs` CommonJS入口；只在精确还原且净节省时接受。启动先核对载荷SHA-256，再以限定输出长度解压、核对原源码长度与SHA-256，最后在当前模块内 `_compile`。不在用户存档、缓存或程序目录落盘还原源码；缺失或损坏载荷直接失败。官方Node PE不压缩、裁剪或升级，Worker和媒体字节不变。
+`tools/build/service-brotli.mjs` 将生产服务CJS编码为Brotli质量11的 `server.cjs.br`，生成小型 `server.cjs` CommonJS入口；只在精确还原且净节省时接受。启动先核对载荷SHA-256，再以限定输出长度解压、核对原源码长度与SHA-256，最后在当前模块内 `_compile`。不在用户存档、缓存或程序目录落盘还原源码；缺失或损坏载荷直接失败。官方Node PE不压缩、裁剪或升级，Worker和媒体字节不变。
 
-`scripts/module-build.mjs` 对platform-server与宝可梦人机单元应用该步骤，helper纳入各自指纹，入口和载荷共同进入缓存哈希、冻结和组装；`scripts/package.mjs` 白名单同时收集两者，游戏载荷预算计入 `bots/pokemon-encounters.cjs.br`。其他游戏人机、规则和媒体保持原构建。相关单测命令为 `node --import tsx --test scripts/service-brotli.test.mjs scripts/pokemon-bot-brotli.test.mjs`，覆盖原字节还原、CommonJS路径／exports／require.main、依赖加载、无落盘，以及缺失、载荷损坏、合法压缩但源码哈希错误。宝可梦原版／扩展三档另经实际32MiB生产Worker执行合法决定，保持原2秒取消边界。
+`tools/build/module-build.mjs` 对platform-server与宝可梦人机单元应用该步骤，helper纳入各自指纹，入口和载荷共同进入缓存哈希、冻结和组装；`tools/release/package.mjs` 白名单同时收集两者，游戏载荷预算计入 `bots/pokemon-encounters.cjs.br`。其他游戏人机、规则和媒体保持原构建。相关单测命令为 `node --import tsx --test tools/build/service-brotli.test.mjs tools/build/pokemon-bot-brotli.test.mjs`，覆盖原字节还原、CommonJS路径／exports／require.main、依赖加载、无落盘，以及缺失、载荷损坏、合法压缩但源码哈希错误。宝可梦原版／扩展三档另经实际32MiB生产Worker执行合法决定，保持原2秒取消边界。
 
 2026-10-08研究重设计的第一包实际解压95,035,481字节，超过114MB工程预算35,481字节，未作交付验收。只压缩宝可梦人机144,410字节为715字节入口＋28,397字节载荷，净省115,298字节；该轮压缩包248文件实际解压94,920,183字节，余79,817字节；后续客户端返修后的当前体积以验收记录为准。相关[载荷检查](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/pokemon-bot-brotli.json)及[首包预算失败](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/budget-failure.json)保留；当前实际包验收见[验收记录](acceptance.md)。
 
@@ -279,15 +279,15 @@ node --test scripts/testing/scopes.test.mjs
 
 现代艺术自然对局深查可加 `--audit --long-names --seats=5 --evidence=audit-run`，全程保留普通 `play` 节奏；`--seats=3`／`4` 覆盖其他人数，`--portable` 改验当前 ZIP。审计在原有五类拍卖、真实手机控件与恢复断言之外，增加窄屏长昵称、非法金额、暗标并发草稿、旧价确认、排序、倒计时和公开资金账本检查。真实结束页覆盖 720p／1080p／4K 主机与公共屏、320／360 手机，逐字核验完整姓名的布局、裁切与实际命中，不能只凭 DOM 或 title 完整判定可读；最终资产／冠军对应公开账本，有管理权限的主机／手机房主再玩按钮须在首屏完整可用，公共屏则核验没有该控制。每次启动保存实际脚本副本与 SHA-256，失败和返修分开证据目录；截图仍使用后台真实渲染，不将测试提速当作普通对局。
 
-`node scripts/verify-modern-art-empty-gallery.mjs --evidence=empty-gallery-run` 定向检查三／四／五位真人入座后的空收藏拍卖布局，使用真实开局、出画、追加同画家第二幅及决策点回退；不直接写游戏状态。单幅／双幅、主机／公共屏分别覆盖 720p／1080p／4K 和 100%／125%／150% 显示请求，记录空间保护后的实际 CSS 尺寸与缩放；加 `--portable` 验证当前 ZIP。先用 `--short-only` 检查最短桌面，`--scale-only` 仅补 4K 125%／150%，两者互斥，默认运行完整矩阵。它只证明这些真实准备场景的排版，不能替代自然四轮整局、资金账本或恢复验证。
+`node tools/test/games/modern-art/verify-modern-art-empty-gallery.mjs --evidence=empty-gallery-run` 定向检查三／四／五位真人入座后的空收藏拍卖布局，使用真实开局、出画、追加同画家第二幅及决策点回退；不直接写游戏状态。单幅／双幅、主机／公共屏分别覆盖 720p／1080p／4K 和 100%／125%／150% 显示请求，记录空间保护后的实际 CSS 尺寸与缩放；加 `--portable` 验证当前 ZIP。先用 `--short-only` 检查最短桌面，`--scale-only` 仅补 4K 125%／150%，两者互斥，默认运行完整矩阵。它只证明这些真实准备场景的排版，不能替代自然四轮整局、资金账本或恢复验证。
 
-`node scripts/verify-modern-art-debug.mjs --seats=5 --run=debug-run` 使用合法隔离示例局检查现代艺术选画无倒计时、行情文字、纵向两列画廊、规则四图及关闭焦点恢复，模拟其他手机两次加价并核验原金额控件、草稿和焦点保留。`--seats=4` 检查四人，`--portable` 检查当前实际解压 ZIP；源运行加 `--capture-rules` 保存四个实际区域 PNG，随后用 `python scripts/compress-modern-art-rule-captures.py` 生成并逐像素核验无损 WebP，保留原 PNG。更新配图后同步游戏资源清单与图文卡片，再构建和验收。
+`node tools/test/games/modern-art/verify-modern-art-debug.mjs --seats=5 --run=debug-run` 使用合法隔离示例局检查现代艺术选画无倒计时、行情文字、纵向两列画廊、规则四图及关闭焦点恢复，模拟其他手机两次加价并核验原金额控件、草稿和焦点保留。`--seats=4` 检查四人，`--portable` 检查当前实际解压 ZIP；源运行加 `--capture-rules` 保存四个实际区域 PNG，随后用 `python tools/assets/rules/compress-rule-captures.py` 生成并逐像素核验无损 WebP，保留原 PNG。更新配图后同步游戏资源清单与图文卡片，再构建和验收。
 
-`node scripts/verify-modern-art-audio.mjs --evidence=audio-run` 检查真实桌面归属、盒子重进、手机手势解锁、刷新不补播、独立静音及 WAV 解码／媒体播放。`--entrances-only` 专查五种实际上拍的声音、全屏特效、刷新、测试及减少动态；`--reentry-only` 只验重进，`--portable` 改验当前 ZIP。每次选择新的安全证据名，源与便携结果在 `artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio/` 分开；播放观测不等于实体手机自动播放政策或真人试听认证。以上本机检查全部显式监听回环并隔离存档。
+`node tools/test/games/modern-art/verify-modern-art-audio.mjs --evidence=audio-run` 检查真实桌面归属、盒子重进、手机手势解锁、刷新不补播、独立静音及 WAV 解码／媒体播放。`--entrances-only` 专查五种实际上拍的声音、全屏特效、刷新、测试及减少动态；`--reentry-only` 只验重进，`--portable` 改验当前 ZIP。每次选择新的安全证据名，源与便携结果在 `artifacts/maintenance/v1.0.2/modern-art-debug-20261004/audio/` 分开；播放观测不等于实体手机自动播放政策或真人试听认证。以上本机检查全部显式监听回环并隔离存档。
 
 电力公司原接入验证在 `artifacts/maintenance/v1.0.1/power-grid/` 分别保存 `ui/` 的组件 fixture 与 `runtime/` 的自然混合局、恢复和最终便携证据。整局测试可采用平台测试节奏，但每个动作仍经过身份、合法动作、SQLite 与真实 Worker；普通游玩节奏另取真实保存动作样本，不能将提速局写成全程普通节奏。SQLite 审计在隔离数据上逐 checkpoint／随机源重放，核对电厂分区、燃料和资金，公开报告不导出隐藏现金或牌堆。所有本机启动显式使用 127.0.0.1 与随机端口。新工作区包加入后执行冻结锁文件离线安装以建立本地依赖链接，仅更新 lockfile 不足以保证 React 构建解析。
 
-`node scripts/verify-power-grid-audio.mjs --portable --maintenance=power-grid-debug-20261004 --evidence=<独立名>` 在真实隐藏原生 WebView2 与包内运行时检查六种保存结果。准备器只从本游戏合法规则和两真人对局取得隔离 checkpoint，真实 Socket 动作写入 SQLite 后检查原生 `claimEvent` 单一归属、原 `HTMLMediaElement.play` 返回与 `onplaying`、WAV 解码及有限 FX 帧；不伪造反馈或直接调用音效冒充保存。还核验公共屏优先／主机回退、普通同步、刷新、盒子重进、暂停恢复、静音与测试模式不补播。省略 `--portable` 使用当前构建；`--prepare-only` 只预检合法素材和 checkpoint，不能写成原生播放通过。结果在 `artifacts/maintenance/v1.0.2/<维护名>/native-audio/<名称>/`，真实媒体观察不等于实体手机自动播放政策、人耳或扬声器试听认证。
+`node tools/test/games/power-grid/verify-power-grid-audio.mjs --portable --maintenance=power-grid-debug-20261004 --evidence=<独立名>` 在真实隐藏原生 WebView2 与包内运行时检查六种保存结果。准备器只从本游戏合法规则和两真人对局取得隔离 checkpoint，真实 Socket 动作写入 SQLite 后检查原生 `claimEvent` 单一归属、原 `HTMLMediaElement.play` 返回与 `onplaying`、WAV 解码及有限 FX 帧；不伪造反馈或直接调用音效冒充保存。还核验公共屏优先／主机回退、普通同步、刷新、盒子重进、暂停恢复、静音与测试模式不补播。省略 `--portable` 使用当前构建；`--prepare-only` 只预检合法素材和 checkpoint，不能写成原生播放通过。结果在 `artifacts/maintenance/v1.0.2/<维护名>/native-audio/<名称>/`，真实媒体观察不等于实体手机自动播放政策、人耳或扬声器试听认证。
 
 Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 并发曾使既有 Socket 和宝可梦整局测试超过原来的 5 秒期限。保留原超时与断言，限制本项目测试并发；不提高测试超时掩盖故障，也不修改全局工具环境。
 
@@ -295,40 +295,40 @@ Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 
 
 [`apps/web/src/content/feedback.zh-CN.json`](../../apps/web/src/content/feedback.zh-CN.json) 集中盒子入座、保存、连接、上传、换机、显示、准备、计时、座位管理及操作确认的短文案。手动维护只改字符串值，保留组名、键名和 `{game}`、`{player}`、`{code}`、`{seconds}`、`{count}`、`{step}` 等占位符；源码修改后重新构建运行包生效。`feedbackText` 插值按普通文字渲染，`feedbackReason` 映射服务原因码，`feedbackKind` 分类保证改中文文字不改变状态行为。完整帮助、游戏规则与纯控件名称不在此文件范围。
 
-游戏分类和搜索别名分别放在各 `games/<id>/game-module.json` 的 `library.tags`、`library.searchTerms`，不需要改盒子名单；名称、简介、分类、别名、版本名和 ID 都可检索，多个词按共同匹配处理，支持全角及大小写归一。精确单测入口：`node scripts/test-scoped.mjs --scope=box apps/web/src/components/game-library/filter.test.ts`（22项）；文案分类测试使用 `--scope=box,shared apps/web/src/content/feedback.test.ts`（8项）。
+游戏分类和搜索别名分别放在各 `games/<id>/game-module.json` 的 `library.tags`、`library.searchTerms`，不需要改盒子名单；名称、简介、分类、别名、版本名和 ID 都可检索，多个词按共同匹配处理，支持全角及大小写归一。精确单测入口：`node tools/test/runner/test-scoped.mjs --scope=box apps/web/src/components/game-library/filter.test.ts`（22项）；文案分类测试使用 `--scope=box,shared apps/web/src/content/feedback.test.ts`（8项）。
 
-`scripts/verify-box-seats.mjs` 登记为box，使用实际源码 BoxScreen 的合成目录和座位输入，核验1／6席原布局及7／9／12席网格、长昵称、真人与三档人机、本人第12席、各端状态和320px至4K的滚动／字号／重叠。结束动作只检查“恢复加入”发出既有 `replay`；人数筛选随目录最高人数生成至最多12。隐藏静音Edge与夹具仅监听127.0.0.1，证据保存于 `artifacts/maintenance/v1.0.6/box-seats/`，隔离构建使用现有 `tmp/box-layout-<六位后缀>`。合成12人输入仅验证盒子显示兼容，现有游戏仍按原人数限制；不代表实物设备、游戏规则或便携包验收。
+`tools/test/box/verify-box-seats.mjs` 登记为box，使用实际源码 BoxScreen 的合成目录和座位输入，核验1／6席原布局及7／9／12席网格、长昵称、真人与三档人机、本人第12席、各端状态和320px至4K的滚动／字号／重叠。结束动作只检查“恢复加入”发出既有 `replay`；人数筛选随目录最高人数生成至最多12。隐藏静音Edge与夹具仅监听127.0.0.1，证据保存于 `artifacts/maintenance/v1.0.6/box-seats/`，隔离构建使用现有 `tmp/box-layout-<六位后缀>`。合成12人输入仅验证盒子显示兼容，现有游戏仍按原人数限制；不代表实物设备、游戏规则或便携包验收。
 
-`scripts/verify-game-library.mjs` 登记为box，通过源代码 BoxScreen、模拟会话及隐藏静音 Edge 检查组合筛选、无结果重置、权限／容量限制、进行中切换确认、GitHub 新窗口与320px至4K布局。本轮证据在 `artifacts/maintenance/v1.0.6/game-library/`；盒子通知的文案分类回归在同版本 `box-notifications/`。它们是源码渲染与模拟回复验证，不代表物理设备、局域网或便携包验收。原生 GitHub 精确白名单、可信顶层点击及失败回执由 `scripts/verify-box-repository.mjs --native-fixture` 单独检查；独立编译不覆盖共享桌面构建输出。
+`tools/test/box/verify-game-library.mjs` 登记为box，通过源代码 BoxScreen、模拟会话及隐藏静音 Edge 检查组合筛选、无结果重置、权限／容量限制、进行中切换确认、GitHub 新窗口与320px至4K布局。本轮证据在 `artifacts/maintenance/v1.0.6/game-library/`；盒子通知的文案分类回归在同版本 `box-notifications/`。它们是源码渲染与模拟回复验证，不代表物理设备、局域网或便携包验收。原生 GitHub 精确白名单、可信顶层点击及失败回执由 `tools/test/box/verify-box-repository.mjs --native-fixture` 单独检查；独立编译不覆盖共享桌面构建输出。
 
 ## 图文规则维护与验证
 
 三款游戏均已采用原创图解：现代艺术九张逻辑场景，电力公司六组代码图解与两项透明插画，宝可梦九张主题场景与八章代码图解。准确规则文字、数字和箭头由代码排版；旧截图捕获命令仅用于历史 UI 证据，不再生产当前规则配图。新素材提示词、原图、导出参数与哈希见各游戏资源清单，[任务索引](../tasks/README.md#原创规则图解重做已完成)保存完成入口；原素材与规则参考资料保留，maintenance 中历史运行截图按下述手动全量退役入口清理。
 
-`node scripts/verify-modern-art-polish-v2.mjs --evidence=<独立名>` 核验三／四／五人的市场拆分、五种拍卖、密集收藏、合法双拍描边、减少动态、三端字号／滚动／规则图和桌面密度；`--representative` 先查三人短屏及短手机，`--diagnostic` 仅取短屏密集收藏几何信息。加 `--portable` 检查实际当前 ZIP、逐文件清单和包内运行时。证据留在 `artifacts/maintenance/v1.0.2/modern-art-polish-20261005/ui-v2/`。
+`node tools/test/games/modern-art/verify-modern-art-polish-v2.mjs --evidence=<独立名>` 核验三／四／五人的市场拆分、五种拍卖、密集收藏、合法双拍描边、减少动态、三端字号／滚动／规则图和桌面密度；`--representative` 先查三人短屏及短手机，`--diagnostic` 仅取短屏密集收藏几何信息。加 `--portable` 检查实际当前 ZIP、逐文件清单和包内运行时。证据留在 `artifacts/maintenance/v1.0.2/modern-art-polish-20261005/ui-v2/`。
 
-`node scripts/verify-modern-art-audio.mjs --timer-only --evidence=<独立名>` 检查时间到只响一次、暂停冻结、静音消费、刷新不补播及到时后合法报价，沿用真实媒体观察和原生声音归属；加 `--portable` 验最终运行包。`node scripts/verify-fullscreen.mjs --run=<独立名>` 检查真实原生按钮、F11／菜单／Escape、窗口恢复及两窗口独立；`--foreground` 补充普通前台边框／任务栏，仍只在隔离测试模式运行。`--executable=<绝对路径>` 可指定实际解压程序。测试服务仅监听 `127.0.0.1`，媒体观察与密度模拟不等于实体手机、人耳试听或物理多显示器认证。
+`node tools/test/games/modern-art/verify-modern-art-audio.mjs --timer-only --evidence=<独立名>` 检查时间到只响一次、暂停冻结、静音消费、刷新不补播及到时后合法报价，沿用真实媒体观察和原生声音归属；加 `--portable` 验最终运行包。`node tools/test/desktop/verify-fullscreen.mjs --run=<独立名>` 检查真实原生按钮、F11／菜单／Escape、窗口恢复及两窗口独立；`--foreground` 补充普通前台边框／任务栏，仍只在隔离测试模式运行。`--executable=<绝对路径>` 可指定实际解压程序。测试服务仅监听 `127.0.0.1`，媒体观察与密度模拟不等于实体手机、人耳试听或物理多显示器认证。
 
 三款游戏均可按需打开规则顶层卡片，教学不自动触发；设计、截图权限与维护要求见 [通用视觉](visual-design.md#顶层图文规则说明)，具体规则依据和区域说明分别维护在游戏主题。本节列运行方法，命令存在不表示已通过，实际源／便携结论与包哈希从验收记录查询。
 
-宝可梦专项用 `node scripts/verify-rules-guides.mjs --game=pokemon-encounters --maintenance=pokemon-rules-redesign-20261005 --evidence=<独立名>`，加 `--portable` 检查最终同哈希 ZIP。九图实际解码、八章逐项导航、准确六格／百变怪／共同赢家图例、三端 9 组合与 320px 减少动态均被核验，首次短手机及 720p 保存九种场景真实渲染。只改图文 UI 的任务不机械重跑未变的人机整局；规则图例单测使用真实计分模块，不能把原图预览当作运行验收。
+宝可梦专项用 `node tools/test/platform/verify-rules-guides.mjs --game=pokemon-encounters --maintenance=pokemon-rules-redesign-20261005 --evidence=<独立名>`，加 `--portable` 检查最终同哈希 ZIP。九图实际解码、八章逐项导航、准确六格／百变怪／共同赢家图例、三端 9 组合与 320px 减少动态均被核验，首次短手机及 720p 保存九种场景真实渲染。只改图文 UI 的任务不机械重跑未变的人机整局；规则图例单测使用真实计分模块，不能把原图预览当作运行验收。
 
-`node scripts/verify-rules-guides.mjs --evidence=rules-source-run` 使用真实隐藏原生 WebView2、隔离合法规则示例和独立手机身份，检查三款游戏的 host／public／player 在三种对应尺寸下共 27 个规则浮层：图片实际解码、文字下限、44px 目标、章节导航、关闭／Escape 后焦点恢复，以及查看规则不改变 revision 或身份。`--game=power-grid` 等可限定单个游戏的 9 组合；默认 `--game=all`。加 `--portable` 解压当前最终 ZIP，用包内 Node 与原生程序运行同一检查；每次选择独立的安全证据名。`--maintenance=<安全名称>` 可分开本次证据，默认仍为 `shared-visual-20261004`；证据在 `artifacts/maintenance/v1.0.2/<维护名>/rules/<名称>/`。本机服务显式监听 `127.0.0.1`。这是本机真实运行与手机尺寸／触控模拟，不是实体手机、Safari、电视或现场网络认证。
+`node tools/test/platform/verify-rules-guides.mjs --evidence=rules-source-run` 使用真实隐藏原生 WebView2、隔离合法规则示例和独立手机身份，检查三款游戏的 host／public／player 在三种对应尺寸下共 27 个规则浮层：图片实际解码、文字下限、44px 目标、章节导航、关闭／Escape 后焦点恢复，以及查看规则不改变 revision 或身份。`--game=power-grid` 等可限定单个游戏的 9 组合；默认 `--game=all`。加 `--portable` 解压当前最终 ZIP，用包内 Node 与原生程序运行同一检查；每次选择独立的安全证据名。`--maintenance=<安全名称>` 可分开本次证据，默认仍为 `shared-visual-20261004`；证据在 `artifacts/maintenance/v1.0.2/<维护名>/rules/<名称>/`。本机服务显式监听 `127.0.0.1`。这是本机真实运行与手机尺寸／触控模拟，不是实体手机、Safari、电视或现场网络认证。
 
 更新配图先源后包：
 
 ```powershell
 # 宝可梦三个实际区域；capture-rules 不允许同时使用 --portable
-node scripts/verify-rules-guides.mjs --capture-rules --evidence=capture-regions
+node tools/test/platform/verify-rules-guides.mjs --capture-rules --evidence=capture-regions
 
 # 电力公司五个实际区域的独立组件渲染；每轮采用新证据名
-node scripts/verify-power-grid-ui.mjs --maintenance=power-grid-debug-20261004 --capture-rules-only --evidence=rule-capture-run
+node tools/test/games/power-grid/verify-power-grid-ui.mjs --maintenance=power-grid-debug-20261004 --capture-rules-only --evidence=rule-capture-run
 
 # 三游戏 PNG→WebP，无损并逐像素核验；按需加 --game=power-grid 等限定
-python scripts/compress-rule-captures.py --report=artifacts/maintenance/v1.0.2/shared-visual-20261004/rules-compression.json
+python tools/assets/rules/compress-rule-captures.py --report=artifacts/maintenance/v1.0.2/shared-visual-20261004/rules-compression.json
 ```
 
-旧规则截图及原 PNG 保留在各游戏 `assets/games/<id>/rules/`，历史无损 WebP 继续保留对应像素核验记录；现代艺术当前入口仅加载 `rules/illustrations-v2/` 的九图，宝可梦仅加载 `rules/illustrations-v1/` 九图。原创场景与真实 UI 验收截图分别记录，不能把生成图标为真实渲染。新图 WebP 为有损导出，记录实际质量和哈希，不标成与原 PNG 像素相同。源图／组件检查不替代最终同 ZIP 规则浮层检查。电力公司视觉专项仍用 `pnpm verify:power-grid-ui --maintenance=<安全名称> --evidence=<独立名>`，`--map-only` 定向核验横向地图的 42 个正向城市、83 边、坐标转换和键盘／指针；完整矩阵另核验阶段顺序、竞拍草稿、价区及容量。`node scripts/verify-power-grid.mjs --seats=6 --display --evidence=<独立名>` 走真实混合局／恢复／三游戏切换，保存五阶段 host／public 游玩图与手机操作前后帧，并在三端投影上核对实际顺序、价区和同步时的报价控件。加 `--portable` 验同一最终 ZIP，不能将组件 fixture 写成完整对局证据。
+旧规则截图及原 PNG 保留在各游戏 `assets/games/<id>/rules/`，历史无损 WebP 继续保留对应像素核验记录；现代艺术当前入口仅加载 `rules/illustrations-v2/` 的九图，宝可梦仅加载 `rules/illustrations-v1/` 九图。原创场景与真实 UI 验收截图分别记录，不能把生成图标为真实渲染。新图 WebP 为有损导出，记录实际质量和哈希，不标成与原 PNG 像素相同。源图／组件检查不替代最终同 ZIP 规则浮层检查。电力公司视觉专项仍用 `pnpm verify:power-grid-ui --maintenance=<安全名称> --evidence=<独立名>`，`--map-only` 定向核验横向地图的 42 个正向城市、83 边、坐标转换和键盘／指针；完整矩阵另核验阶段顺序、竞拍草稿、价区及容量。`node tools/test/platform/verify-power-grid.mjs --seats=6 --display --evidence=<独立名>` 走真实混合局／恢复／三游戏切换，保存五阶段 host／public 游玩图与手机操作前后帧，并在三端投影上核对实际顺序、价区和同步时的报价控件。加 `--portable` 验同一最终 ZIP，不能将组件 fixture 写成完整对局证据。
 
 ## 独立原型的运行与检查
 
@@ -371,11 +371,11 @@ pnpm prototype:verify:game
 
 原生专门试听还需显式选择游玩模式，例如 `launchDesktop({ soundEnabled: true, args: ['--tablemax-play-mode'] })`；游戏测试模式本身仍省略声音。显式开启状态核验不等于真人试听。
 
-直接Edge验证统一通过 `scripts/browser-test.mjs` 启动，默认追加 `--mute-audio`，保留调用方其他参数；对应入口专门试听时加 `--sound`。这仅关闭实际音频输出，不屏蔽网页播放事件与解码检查。
+直接Edge验证统一通过 `tools/test/support/browser-test.mjs` 启动，默认追加 `--mute-audio`，保留调用方其他参数；对应入口专门试听时加 `--sound`。这仅关闭实际音频输出，不屏蔽网页播放事件与解码检查。
 
-`node scripts/verify-test-silence.mjs --evidence=<独立名称>` 实际解压当前ZIP、核对逐文件哈希及体积，用包内Node和隐藏WebView2检查主机／公共／模拟手机默认静音、显式试听选项、重新加载和电力公司暂停／测试／游玩声音按钮。显式试听检查仅核验窗口静音状态，不实际播放音频；证据在当前版本 `test-silence/<名称>/`，失败和修正用不同名称保留。
+`node tools/test/platform/verify-test-silence.mjs --evidence=<独立名称>` 实际解压当前ZIP、核对逐文件哈希及体积，用包内Node和隐藏WebView2检查主机／公共／模拟手机默认静音、显式试听选项、重新加载和电力公司暂停／测试／游玩声音按钮。显式试听检查仅核验窗口静音状态，不实际播放音频；证据在当前版本 `test-silence/<名称>/`，失败和修正用不同名称保留。
 
-测试默认静音：原生 `--foundation-test` 窗口在导航前设置WebView2静音，包括主机、公共屏、模拟手机及游玩模式节奏检查。`scripts/desktop-test.mjs` 默认强制 `TABLEMAX_TEST_AUDIO=0`；专门试听使用 `launchDesktop({ soundEnabled: true })`，直接测试启动需显式 `TABLEMAX_TEST_AUDIO=1`。声音调用、解码及播放权仍可验证；测试静音不修改用户偏好，普通启动沿用原声音设置。电力公司测试／暂停／离线的声音按钮显示关闭且禁用。
+测试默认静音：原生 `--foundation-test` 窗口在导航前设置WebView2静音，包括主机、公共屏、模拟手机及游玩模式节奏检查。`tools/test/support/desktop-test.mjs` 默认强制 `TABLEMAX_TEST_AUDIO=0`；专门试听使用 `launchDesktop({ soundEnabled: true })`，直接测试启动需显式 `TABLEMAX_TEST_AUDIO=1`。声音调用、解码及播放权仍可验证；测试静音不修改用户偏好，普通启动沿用原声音设置。电力公司测试／暂停／离线的声音按钮显示关闭且禁用。
 
 先执行适用的工程检查，再按改动选专项；命令存在不代表已通过。使用 `verificationOutput` 的入口按根目录 `package.json` 写入 `artifacts/maintenance/v<版本>/`，当前为 `v1.0.2`；电力公司 UI 与三端规则检查也使用此入口，旧证据位置保留。部分游戏专项仍有自己的维护子目录，以脚本参数和实际报告为准。每次选择新的证据名，保留失败、返修和历史记录。最终便携通过必须对应实际执行的 ZIP 哈希，不能由开发构建推定；已通过且未受影响的功能不机械重跑。
 
@@ -455,7 +455,7 @@ Windows 程序规则按完整可执行文件路径匹配；专用网络和本地
 
 ## 便携包体积与共享运行时
 
-新增游戏前，Windows x64 ZIP 与实际解压后的全部程序文件均严格小于 120,000,000 字节，工程预算为 114,000,000 字节。`scripts/package.mjs` 只收集原生壳、x64 WebView2 DLL、官方 Node、许可证、服务、游戏模块、网页与完整本地资源；生成服务代码使用生产压缩，保留可读源码及原素材；不分发 Electron、现代 .NET 自包含运行时、WebView2 Fixed Version、其他架构库、引用程序集、PDB 或 SDK 文档。
+新增游戏前，Windows x64 ZIP 与实际解压后的全部程序文件均严格小于 120,000,000 字节，工程预算为 114,000,000 字节。`tools/release/package.mjs` 只收集原生壳、x64 WebView2 DLL、官方 Node、许可证、服务、游戏模块、网页与完整本地资源；生成服务代码使用生产压缩，保留可读源码及原素材；不分发 Electron、现代 .NET 自包含运行时、WebView2 Fixed Version、其他架构库、引用程序集、PDB 或 SDK 文档。
 
 打包计算 ZIP 和目录字节数，实际解压后比对每个文件的字节数及 SHA-256；任一达到上限立即失败，不发布标准 ZIP。清单在 `artifacts/releases/TableMax-<版本>-win-x64-manifest.json`，记录文件列表、包哈希、运行时与双体积。系统共享运行时、用户存档和缓存不计入交付体积，缓存始终写入用户数据目录。缺少共享 WebView2 时提示安装或取消，安装完成后的完整游戏仅用本地资源与局域网服务。
 
@@ -463,7 +463,7 @@ Windows 程序规则按完整可执行文件路径匹配；专用网络和本地
 
 ### 原生桌面后台验证
 
-`scripts/desktop-test.mjs` 通过测试专用 `--foundation-test` 与私有 IPC 控制实际原生窗口，连接临时回环 CDP。窗口位于屏幕外，不激活、不进入任务栏，但保持合成器渲染；状态分别记录 `visible: false` 和 `rendered: true`，截图来自实际更新后的 WebView2。该方式不等同于 Electron offscreen，也不代表普通前台启动或实体电视实测。正式启动忽略测试 CDP 设置。
+`tools/test/support/desktop-test.mjs` 通过测试专用 `--foundation-test` 与私有 IPC 控制实际原生窗口，连接临时回环 CDP。窗口位于屏幕外，不激活、不进入任务栏，但保持合成器渲染；状态分别记录 `visible: false` 和 `rendered: true`，截图来自实际更新后的 WebView2。该方式不等同于 Electron offscreen，也不代表普通前台启动或实体电视实测。正式启动忽略测试 CDP 设置。
 
 电脑显示使用每窗口 WebView2 `ZoomFactor` 与 PerMonitorV2 DPI，显示设置文件格式保持。验证通过原生窗口尺寸、显式测试几何与 CDP 密度组合覆盖 720p—4K／100、125、150%，不修改系统显示配置；记录实际 viewport、DPI、倍率与 PNG 尺寸。手机模拟使用隔离 profile，只有对应本机服务来源可进入，全部桌面桥接禁用。旧显示矩阵和旧截图继续属于原运行时验收。
 
@@ -486,13 +486,13 @@ pnpm package:win
 
 组装、发行和每个单元分别互斥；程序占用时拒绝替换。暂存目录完整验证后替换开发目录，失败回滚；发行 ZIP 与清单成对回滚。缓存中的有效单元可独立重用，不复用 ZIP 压缩条目，也不提供用户侧差分更新。
 
-缓存维护先运行 `node scripts/clean-build-cache.mjs` 预览，再 `--apply`。仅处理专用构建缓存：保留当前开发快照、当前发行引用、活动锁／任务及每单元最近两份成功产物，另保留最近30分钟。删除前再次核验绝对路径、链接、单元清单哈希和空闲状态；不涉及依赖缓存、素材、存档及验收证据。
+缓存维护先运行 `node tools/maintenance/clean-build-cache.mjs` 预览，再 `--apply`。仅处理专用构建缓存：保留当前开发快照、当前发行引用、活动锁／任务及每单元最近两份成功产物，另保留最近30分钟。删除前再次核验绝对路径、链接、单元清单哈希和空闲状态；不涉及依赖缓存、素材、存档及验收证据。
 
-预算清单分别记录交付字节、服务堆、电脑／手机渲染堆、应用进程私有内存增量。现有游戏按独立文件实测×1.10、三次场景峰值最大值×1.25向上取整至MiB，仅初始化一次；`scripts/game-budget-report.mjs --initialize` 拒绝重复初始化，常规报告只警告超限并记录整改，不自动上调。`scripts/measure-game-heap.mjs` 测量真实完整对局服务堆与最高等级Worker，验证脚本可用 TABLEMAX_BUDGET_TRACE／TABLEMAX_BUDGET_GAME 采样隐藏WebView2；采样峰值不称为分配分析器最大值。Worker32MiB老生代与2秒截止仍独立存在。新游戏开始开发前须填写预算与依据。
+预算清单分别记录交付字节、服务堆、电脑／手机渲染堆、应用进程私有内存增量。现有游戏按独立文件实测×1.10、三次场景峰值最大值×1.25向上取整至MiB，仅初始化一次；`tools/analysis/budgets/game-budget-report.mjs --initialize` 拒绝重复初始化，常规报告只警告超限并记录整改，不自动上调。`tools/analysis/memory/measure-game-heap.mjs` 测量真实完整对局服务堆与最高等级Worker，验证脚本可用 TABLEMAX_BUDGET_TRACE／TABLEMAX_BUDGET_GAME 采样隐藏WebView2；采样峰值不称为分配分析器最大值。Worker32MiB老生代与2秒截止仍独立存在。新游戏开始开发前须填写预算与依据。
 
-缓存回归使用 `node scripts/verify-module-build.mjs` 和 `node scripts/verify-cache-failures.mjs`；前者会完整组装及建立临时验证游戏，须在运行／其他验证进程退出后执行。
+缓存回归使用 `node tools/build/verify-module-build.mjs` 和 `node tools/build/verify-cache-failures.mjs`；前者会完整组装及建立临时验证游戏，须在运行／其他验证进程退出后执行。
 
-清理空闲判断区分带项目工作目录的Codex常驻工具解释器与实际工程子进程：只有已识别的Codex自带Node及kernel／trusted-worker引导不计作工程占用，未知Node、实际构建／验证及原生进程仍阻止清理。`scripts/verify-cleanup-idle.ps1` 用真实判断函数验证六种进程清单，不执行删除。本次首次清理因该误判被保护拒绝，修正后按原路径、近期修改、已验ZIP及哈希保护顺序重新执行。
+清理空闲判断区分带项目工作目录的Codex常驻工具解释器与实际工程子进程：只有已识别的Codex自带Node及kernel／trusted-worker引导不计作工程占用，未知Node、实际构建／验证及原生进程仍阻止清理。`tools/maintenance/verify-cleanup-idle.ps1` 用真实判断函数验证六种进程清单，不执行删除。本次首次清理因该误判被保护拒绝，修正后按原路径、近期修改、已验ZIP及哈希保护顺序重新执行。
 
 ### 构建与缓存要求
 
@@ -517,7 +517,7 @@ pnpm package:win
 
 清理前确认相关工程进程全部退出，沿用当前便携通过证明、精确路径、近期修改、链接、候选变化及互斥保护。原素材、规则资料、正式存档、当前已验证交付与验收证据继续保留；历史截图仅按已有明确授权和专用清单退役，保留文字结论、失败原因、构建边界与哈希并修复文档引用。未知内容或不受现有工具支持的用途先审计并保留，不清空整个 `artifacts/` 或 `tmp/`。执行后记录实际回收字节、保留／跳过原因和逻辑水位，结果归 [项目瘦身](project-slimming.md)。
 
-v1.0.3新增已知隔离副本 `tmp/portable-storage-<六位随机后缀>`，通过后才按精确清单清理。用户明确授权退役旧安装资源时，专项 `scripts/retire-old-local-runtime.ps1` 默认预览，核对后加 `-Apply`；仅处理旧LOCALAPPDATA下的受管理 `TableMax/app`，要求当前实际存储／迁移通过证据、原库SHA不变、旧版本所有权标记、准确文件集及全文件哈希、无链接与运行占用。逐文件记录和旧清单保存在当前版本的portable-storage证据，旧存档及其父目录始终保留。缺少这些证据时拒绝删除，不作为通用C盘清理命令。
+v1.0.3新增已知隔离副本 `tmp/portable-storage-<六位随机后缀>`，通过后才按精确清单清理。用户明确授权退役旧安装资源时，专项 `tools/maintenance/retire-old-local-runtime.ps1` 默认预览，核对后加 `-Apply`；仅处理旧LOCALAPPDATA下的受管理 `TableMax/app`，要求当前实际存储／迁移通过证据、原库SHA不变、旧版本所有权标记、准确文件集及全文件哈希、无链接与运行占用。逐文件记录和旧清单保存在当前版本的portable-storage证据，旧存档及其父目录始终保留。缺少这些证据时拒绝删除，不作为通用C盘清理命令。
 
 2026-10-05更新：项目逻辑空间超过10GiB时瘦身，默认目标8GiB；安全候选耗尽仍超标只记录，不扩大范围。容量仅在开始与结束各实测一次，中间按已校验删除字节估计停止条件；候选元数据快照改用.NET遍历，删除前保留一次指纹／链接复核和进程检查。原素材、正式存档、当前交付和验收证据继续受保护。
 
@@ -525,7 +525,7 @@ v1.0.3新增已知隔离副本 `tmp/portable-storage-<六位随机后缀>`，通
 
 日常本地导出运行 `pnpm package:win`，生成当前运行 ZIP 和逐文件清单。仅在用户明确声明发布到 GitHub 时才准备源码 ZIP；现有本地打包入口不会自动生成源码包，也不执行发布。
 
-项目根目录提供三个可从任意工作目录运行的 PowerShell 入口，共用 [清理实现](../../scripts/cleanup-local.ps1)：
+项目根目录提供三个可从任意工作目录运行的 PowerShell 入口，共用 [清理实现](../../tools/maintenance/cleanup-local.ps1)：
 
 - [Clean-Releases.ps1](../../Clean-Releases.ps1)：清理 `artifacts/releases` 中低于 `package.json` 当前版本的程序／源码 ZIP、配套交付／逐文件清单、解压程序和独立打包目录；当前／未来版本及不认识的名称默认保留。版本重新编号后，可用 `-RetiredVersions 1.6.0` 显式指定已退役标签，仍执行全部安全检查；禁止指定当前版本，自动维护不接受该选项。
 - 用户明确要求本地只留最新导出时，手动 `Clean-Releases.ps1 -KeepLatestOnly` 先预览，核对后加 `-Apply`。该模式只处理 `artifacts/releases/` 的直属项，保留当前运行 ZIP 与 `win-x64-manifest.json`；明确发布时也保留当前完整 EXE 与源码 ZIP，其余旧版本、源码包、同版旧解压目录、打包目录及诊断均作为候选；不清理其他历史证据目录。先验证当前 ZIP 的实际便携通过记录和清单哈希，再沿用进程、路径、链接、近期修改、指纹及互斥保护；不与其他清理选择模式或自动维护混用。已确认本次打包／验证退出后，可明确使用手动近期参数回收本次打包残留。
@@ -562,9 +562,9 @@ v1.0.3新增已知隔离副本 `tmp/portable-storage-<六位随机后缀>`，通
 
 `tmp/app-icon-verify-*` 与 `tmp/tablemax-sqlite-migration-*` 的六位随机后缀目录分别是图标验证／便携解压及服务迁移验证的隔离副本，归入已知中间物；图标原素材和迁移原始存档仍保留在资源及历史证据目录。
 
-v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`、`tmp/debug-remote-*`、`tmp/game-review-*` 和 `tmp/root-entry-*` 纳入已知隔离副本，只匹配六位字母数字后缀；分别用于盒子、游戏与连接、恢复、远程双向验证、只读游戏视图补拍及根入口检查。实际图和报告保留在 `artifacts/maintenance/v1.0.4/`，当前截图和报告不参与临时目录清理。使用 `scripts/cleanup-local.test.ps1 -VerificationPrefixesOnly` 复核精确匹配及类似名称／近期／链接保护；本次 51 项隔离夹具检查通过，证据在 `research-redesign-20261008/implementation/cleanup-prefix-tests/`，新增前缀不扩大至未知临时内容。
+v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`、`tmp/debug-remote-*`、`tmp/game-review-*` 和 `tmp/root-entry-*` 纳入已知隔离副本，只匹配六位字母数字后缀；分别用于盒子、游戏与连接、恢复、远程双向验证、只读游戏视图补拍及根入口检查。实际图和报告保留在 `artifacts/maintenance/v1.0.4/`，当前截图和报告不参与临时目录清理。使用 `tools/maintenance/cleanup-local.test.ps1 -VerificationPrefixesOnly` 复核精确匹配及类似名称／近期／链接保护；本次 51 项隔离夹具检查通过，证据在 `research-redesign-20261008/implementation/cleanup-prefix-tests/`，新增前缀不扩大至未知临时内容。
 
-修改工具后运行 `powershell.exe -NoProfile -File scripts/cleanup-local.test.ps1` 与 `powershell.exe -NoProfile -File scripts/project-maintenance.test.ps1`。前者检查手动预览、ZIP／进程／链接／白名单／近期保护、脚本归档及显式构建清理；后者用隔离 Git 主仓库和 worktree 检查目录发现、不重复计量、高低水位、最旧优先、互斥及候选耗尽。测试不清理真实 release，结果分别保存在 `artifacts/maintenance/cleanup-history/tool-checks/current/tool-tests.json` 和 `artifacts/maintenance/project-maintenance-tools/tool-tests.json`。
+修改工具后运行 `powershell.exe -NoProfile -File tools/maintenance/cleanup-local.test.ps1` 与 `powershell.exe -NoProfile -File tools/maintenance/project-maintenance.test.ps1`。前者检查手动预览、ZIP／进程／链接／白名单／近期保护、脚本归档及显式构建清理；后者用隔离 Git 主仓库和 worktree 检查目录发现、不重复计量、高低水位、最旧优先、互斥及候选耗尽。测试不清理真实 release，结果分别保存在 `artifacts/maintenance/cleanup-history/tool-checks/current/tool-tests.json` 和 `artifacts/maintenance/project-maintenance-tools/tool-tests.json`。
 
 ### 手动历史截图去重
 
@@ -572,7 +572,7 @@ v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`�
 
 预览与删除前都逐文件核验源与保留 PNG 的大小和 SHA-256，保留文件不得在删除集合中；仍执行当前便携证明、路径、链接、嵌套仓库、进程、30 分钟近期、目录指纹和互斥保护。删除只针对显式 PNG 文件，目录里的 JSON、日志、存档、独有图片和其他文件保持原位。执行报告保留每张退役截图的哈希与同字节保留位置；旧验收结果正文不改写，清理后的历史副本从该清单追溯。来源图及正文直接引用图片须在生成清单时排除，不能仅根据名称或 Git 忽略判断。
 
-相关隔离验证为 `powershell -NoProfile -File scripts/duplicate-screenshots-cleanup.test.ps1`；修改共用清理实现还需既有手动／自动保护回归。该模式不减少当前交付 ZIP 的内容，也不导出源码包。
+相关隔离验证为 `powershell -NoProfile -File tools/maintenance/duplicate-screenshots-cleanup.test.ps1`；修改共用清理实现还需既有手动／自动保护回归。该模式不减少当前交付 ZIP 的内容，也不导出源码包。
 
 ### 手动历史截图全量退役
 
@@ -582,7 +582,7 @@ v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`�
 
 默认仍有 30 分钟近期保护，且执行当前便携证明、工程进程、互斥、目录指纹和删除前逐文件哈希检查。若同一已结束清理刚改变历史目录时间，可在核对清单且无工程进程时显式用 `-MinimumAgeMinutes 0`，其他保护保持。该模式只支持手动中间物清理，不能与其他手动选择混用，自动维护不采用此范围。删除后将文档截图链接改到退役清单并标注已清理，不将清单作为图片显示，也不改写当时通过／失败结果。
 
-相关隔离检查为 `powershell.exe -NoProfile -File scripts/historical-screenshots.test.ps1`；修改共用入口同时执行既有手动、自动维护、同字节去重和历史可再生副本退役回归。实际执行结果进入 [项目瘦身](project-slimming.md)，运行 ZIP 内容与版本号不因截图清理改变。
+相关隔离检查为 `powershell.exe -NoProfile -File tools/maintenance/historical-screenshots.test.ps1`；修改共用入口同时执行既有手动、自动维护、同字节去重和历史可再生副本退役回归。实际执行结果进入 [项目瘦身](project-slimming.md)，运行 ZIP 内容与版本号不因截图清理改变。
 
 ### 手动可再生副本与旧包退役
 
@@ -596,9 +596,9 @@ v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`�
 
 清单位于 `artifacts/maintenance/`，版本为 1，绑定当前 ZIP 的 SHA-256。`entries` 每项含精确 `path`、`kind`、`reason`、完整 `files`（path／bytes／sha256）及保留 `evidence`（path／sha256）。接受维护版本目录中的具体解压程序、带 Chromium 标记且不含平台存档的浏览器 profile、单个历史 TableMax ZIP，以及已退出活动依赖的 `.cache/electron`／`.cache/electron-builder`；另支持下节已完整保留的旧清理目录集中归档。每项及删除前都核验逐文件内容，保留证据不能处于任何删除集合中；沿用当前便携证明、路径／链接／嵌套 Git、进程、近期修改、候选指纹与互斥保护。清理报告保存原清单、全部哈希及保留位置。
 
-新增的六位 `tmp/modern-art-polish-v2-*`、`tmp/desktop-fullscreen-*`、`tmp/modern-art-fullscreen-*` 及八位十六进制 `tmp/fullscreen-portable-*` 均已从实际验证脚本／结果确认用途，属于已知隔离中间物；其他相似名称和未知后缀仍保留。工具回归增加 `powershell.exe -NoProfile -File scripts/retired-generated.test.ps1`，并执行既有手动、自动和截图保护测试。
+新增的六位 `tmp/modern-art-polish-v2-*`、`tmp/desktop-fullscreen-*`、`tmp/modern-art-fullscreen-*` 及八位十六进制 `tmp/fullscreen-portable-*` 均已从实际验证脚本／结果确认用途，属于已知隔离中间物；其他相似名称和未知后缀仍保留。工具回归增加 `powershell.exe -NoProfile -File tools/maintenance/retired-generated.test.ps1`，并执行既有手动、自动和截图保护测试。
 
-`node scripts/verify-project.mjs --evidence=<独立名>` 检查整个 Markdown 库的本地文件／章节链接与当前运行包哈希、文件总量、必要模块、体积和排除规则。结果进入当前版本对应的独立维护目录；省略名称时使用时间戳，避免覆盖旧验收。历史退役后先修复指向包的文档链接，再执行此检查；运行时安全、规则、显示和对局验收仍用对应真实验证器。
+`node tools/maintenance/verify-project.mjs --evidence=<独立名>` 检查整个 Markdown 库的本地文件／章节链接与当前运行包哈希、文件总量、必要模块、体积和排除规则。结果进入当前版本对应的独立维护目录；省略名称时使用时间戳，避免覆盖旧验收。历史退役后先修复指向包的文档链接，再执行此检查；运行时安全、规则、显示和对局验收仍用对应真实验证器。
 
 ### 清理记录集中归档
 
@@ -612,7 +612,7 @@ v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`�
 
 既有 `records/`、`tool-checks/legacy/` 与 `preserved-history-<日期>.zip` 继续保留。以下手动无损 ZIP 退役模式兼容旧归档，不作为原样移动目录的必经步骤：
 
-沿用 `-RetiredGeneratedManifest` 手动入口，清单类型为 `consolidated-cleanup-history`，仅接受上述精确目录名。每项增加保留 ZIP 的 `archive`（`path`／`sha256`）；可读记录增加 `retainedPath`。工具核验整个 ZIP 哈希及每个解压成员的路径、字节、SHA-256，逐文件确认原内容全部可恢复，并检查原清理报告有独立可读副本，再允许删除目录。先预览、核对再 `-Apply`，不会自动扫描或清空 maintenance；操作记录进入 `cleanup-history/operations/`，避免此次整理再生成分散目录。相关隔离检查为 `scripts/cleanup-history.test.ps1`，共用入口变化同时回归既有清理保护。
+沿用 `-RetiredGeneratedManifest` 手动入口，清单类型为 `consolidated-cleanup-history`，仅接受上述精确目录名。每项增加保留 ZIP 的 `archive`（`path`／`sha256`）；可读记录增加 `retainedPath`。工具核验整个 ZIP 哈希及每个解压成员的路径、字节、SHA-256，逐文件确认原内容全部可恢复，并检查原清理报告有独立可读副本，再允许删除目录。先预览、核对再 `-Apply`，不会自动扫描或清空 maintenance；操作记录进入 `cleanup-history/operations/`，避免此次整理再生成分散目录。相关隔离检查为 `tools/maintenance/cleanup-history.test.ps1`，共用入口变化同时回归既有清理保护。
 
 进程检查持续阻止使用目标工作区或工具来源工作区的应用及构建／验证进程。只有可确认可执行文件和命令行均与这两个工作区无关的外部 `TableMax.exe` 才不阻止清理；无法确认路径或命令行的进程仍按保护处理。工具不结束用户运行的应用。
 
@@ -636,7 +636,7 @@ v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`�
 
 操作与清理工具共用互斥保护；活动项目进程存在时拒绝执行，不关闭用户程序。`artifacts/maintenance/workspace-compression-*/` 保存开始报告、逐文件 JSONL 审计和最终汇总；异常或中止后的 started 条目不能视为已核验成功。逻辑字节、按路径累计字节和按文件身份去重的实际磁盘分配分别记录；便携 ZIP 及实际解压字节门禁仍按原始字节计算。后续新增文件不自动进入本次压缩，不建立后台轮询。
 
-底层采用 [FSCTL_SET_COMPRESSION](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fscc/77f650a3-e3a2-4a25-baac-4bf9b36bcc46)、[FILE_STANDARD_INFO](https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_standard_info) 与 [GetCompressedFileSizeW](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getcompressedfilesizew)；隔离回归执行 `powershell.exe -NoProfile -File scripts/compress-workspace.test.ps1 -EvidenceDirectory <项目内 artifacts/maintenance 的绝对路径>`，新回归不得覆盖旧版本证据；覆盖无损内容、普通读写、硬链接边界、嵌套仓库、链接目录、无收益撤销和活动进程拒绝。
+底层采用 [FSCTL_SET_COMPRESSION](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fscc/77f650a3-e3a2-4a25-baac-4bf9b36bcc46)、[FILE_STANDARD_INFO](https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_standard_info) 与 [GetCompressedFileSizeW](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getcompressedfilesizew)；隔离回归执行 `powershell.exe -NoProfile -File tools/maintenance/compress-workspace.test.ps1 -EvidenceDirectory <项目内 artifacts/maintenance 的绝对路径>`，新回归不得覆盖旧版本证据；覆盖无损内容、普通读写、硬链接边界、嵌套仓库、链接目录、无收益撤销和活动进程拒绝。
 
 ## 历史开发与验证
 
@@ -696,9 +696,9 @@ v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`�
 
 ### 电力公司地图与边栏回归
 
-`node scripts/verify-power-grid-ui.mjs --maintenance=<维护名> --evidence=<运行名>` 运行生产组件的六人三端108布局、交互、字体／触控与声音调用矩阵，包含844×390手机横屏；`--board-only`检查阶段抽屉、四向最低比例拖动、遮挡避让、跟随暂停／恢复、保存重排及公司权限，并观察边栏双向中间帧、快速反向、减少动态／测试模式、综合详情与现金权限及路线费用的缓增字号。`--seats=2`覆盖两人四厂与新购第五厂；合法自然对局不一定产生有库存的待安置场景，该项由六人样本覆盖。`--map-only`补查手机真实节点／键盘选择、裁切后的城名与路线费用。`--fixtures=<已生成fixtures.json>`复用未改变的规则夹具，减少重复人机生成，不伪造规则状态。页面查看、拖动、抽屉和详情必须零游戏动作。
+`node tools/test/games/power-grid/verify-power-grid-ui.mjs --maintenance=<维护名> --evidence=<运行名>` 运行生产组件的六人三端108布局、交互、字体／触控与声音调用矩阵，包含844×390手机横屏；`--board-only`检查阶段抽屉、四向最低比例拖动、遮挡避让、跟随暂停／恢复、保存重排及公司权限，并观察边栏双向中间帧、快速反向、减少动态／测试模式、综合详情与现金权限及路线费用的缓增字号。`--seats=2`覆盖两人四厂与新购第五厂；合法自然对局不一定产生有库存的待安置场景，该项由六人样本覆盖。`--map-only`补查手机真实节点／键盘选择、裁切后的城名与路线费用。`--fixtures=<已生成fixtures.json>`复用未改变的规则夹具，减少重复人机生成，不伪造规则状态。页面查看、拖动、抽屉和详情必须零游戏动作。
 
-本次相机／阶段默认的纯函数测试与电力公司数据／规则窄回归采用 `pnpm exec vitest run games/power-grid/ui games/power-grid/rules games/power-grid/data -t '^(?!.*completes a conserved)'`；排除45局未改动人机压力测试，实际自然对局另由夹具和运行验证证明。同版本ZIP导出后执行 `node scripts/verify-power-grid.mjs --portable --display-only --evidence=<运行名>`，在隐藏原生主机／公共窗口核验720p到4K、125%／150%显示请求及模拟Windows DPI，读取实际WebView2 viewport／ZoomFactor。模拟DPI不替代真人手机或真实Windows显示硬件验收。所有验证监听127.0.0.1。
+本次相机／阶段默认的纯函数测试与电力公司数据／规则窄回归采用 `pnpm exec vitest run games/power-grid/ui games/power-grid/rules games/power-grid/data -t '^(?!.*completes a conserved)'`；排除45局未改动人机压力测试，实际自然对局另由夹具和运行验证证明。同版本ZIP导出后执行 `node tools/test/platform/verify-power-grid.mjs --portable --display-only --evidence=<运行名>`，在隐藏原生主机／公共窗口核验720p到4K、125%／150%显示请求及模拟Windows DPI，读取实际WebView2 viewport／ZoomFactor。模拟DPI不替代真人手机或真实Windows显示硬件验收。所有验证监听127.0.0.1。
 
 当次结果见[开发验证历史](../archive/development-results-2026-10-06.md)。
 
@@ -712,19 +712,19 @@ v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`�
 
 完成的 UI 与单EXE核验目录分别使用 pokemon-ui-redesign-<六位字母数字>、shipping-executable-<六位字母数字>；清理器只匹配精确目录名，继续执行30分钟、路径／链接／进程和当前交付保护，未知临时目录不因此获得删除授权。
 
-扩展UI重设计：`node scripts/verify-pokemon-ui-redesign.mjs --evidence=<独立名>`在静音真实Edge中检查四牌源、唯一暂持／牌阵、空弃牌、共同赢家、总分明细、暗投、私看隔离、目标切换和30项插画／精确图示；覆盖320–430px、720p–4K和125%／150%模拟缩放。`--sample`仅样板，不代替完整检查；`--portable`逐文件核验当前ZIP并导入实际包内Screen／共享运行时，不把源码图例页当最终包。服务器显式127.0.0.1，不开放网卡。
+扩展UI重设计：`node tools/test/games/pokemon-encounters/verify-pokemon-ui-redesign.mjs --evidence=<独立名>`在静音真实Edge中检查四牌源、唯一暂持／牌阵、空弃牌、共同赢家、总分明细、暗投、私看隔离、目标切换和30项插画／精确图示；覆盖320–430px、720p–4K和125%／150%模拟缩放。`--sample`仅样板，不代替完整检查；`--portable`逐文件核验当前ZIP并导入实际包内Screen／共享运行时，不把源码图例页当最终包。服务器显式127.0.0.1，不开放网卡。
 
 深度界面检查另外核验手机投票只有选项、他人行动不展示本人动作、公开三牌源／暂持／研究的层级、弃掉与放入颜色及声音图标。SVG角色以实际可见轮廓和截图审查，先等待图片解码；六人720p共同赢家单独由正式规则生成并断言54格、两赢家及牌桌底边。真实随机对局的能力覆盖采用合法可见行动：触发能力前优先替换明牌，避免过早结束；不窥探牌库或修改规则状态。验证器变化不要求重打未变程序包，使用独立证据名保留失败及修正结果。
 
-`pnpm exec vitest run games/pokemon-encounters/expansion/config`检查30项正反例／图示、34类／112／144及固定种子重构兼容和真实SQLite恢复回退。JSON改动后只构建受影响游戏单元；三配置仍由有类型纯函数消费，不在运行端开放编辑。`node scripts/soften-pokemon-cries.mjs`从清单指定本地原件处理27项下载叫声，先代表再批量；先用 --representatives 核验五项，再用 --apply 派生全部；参数／验证与原件保护见资源清单，禁止把用户原声纳入批量。冻结后一次`package:win`，原包备份保留，音量与视觉真人判断另行交接。
+`pnpm exec vitest run games/pokemon-encounters/expansion/config`检查30项正反例／图示、34类／112／144及固定种子重构兼容和真实SQLite恢复回退。JSON改动后只构建受影响游戏单元；三配置仍由有类型纯函数消费，不在运行端开放编辑。`node tools/assets/games/pokemon-encounters/soften-pokemon-cries.mjs`从清单指定本地原件处理27项下载叫声，先代表再批量；先用 --representatives 核验五项，再用 --apply 派生全部；参数／验证与原件保护见资源清单，禁止把用户原声纳入批量。冻结后一次`package:win`，原包备份保留，音量与视觉真人判断另行交接。
 
 - `pnpm exec vitest run games/pokemon-encounters/expansion/bot/coverage.test.ts`：2–6人三档150个固定种子，每种子独立60秒（六人绝悟120秒）、700步，哈希覆盖新tactics模块。结果留独立run目录；旧策略结果不复用为当前源码证据。
 - `pnpm exec vitest run apps/server/src/expansion-integration.test.ts apps/server/src/bot-executor.test.ts --maxWorkers=1`：真实HTTP／Socket.IO／SQLite和32MiB Worker，暂停／取消／分支／重启旧结果，以及两秒截止。性能检查与其他重CPU工作串行。
 - `pnpm exec vitest run apps/server/src/save-storage.test.ts apps/server/src/save-storage-games.test.ts`：v1只读保护、流式迁移、故障／中断、历史分支及确认去重，三款真实规则恢复／合法动作／v2重启。固定512B节点和确认增量检查500／1000／2000保存磁盘增长，不将该结果外推任意游戏日志或CPU线性。
-- `node scripts/verify-pokemon-expansion-effects.mjs --evidence=<独立名>`：项目锁定Vite构建真实生产Screen，隐藏Edge观察63姿态关节、14时间轴、十普通主题、秘密／取消／减少动态和六人54格；覆盖720p至4K、125%／150%模拟缩放及320–430px手机演出／可滚动操作。`--portable`实际解压并逐文件核对当前ZIP，夹具直接导入包内游戏客户端、共享React运行时及样式，检查正式编译组件；合法规则夹具只证明组件路径，实际保存与原生流程另走原生验证器。
-- `node scripts/audit-pokemon-expansion-audio.mjs`：只复核既有原件／派生哈希和公开来源记录，将已确认说明与未知项写入资源清单；不下载或制作媒体。
+- `node tools/test/games/pokemon-encounters/verify-pokemon-expansion-effects.mjs --evidence=<独立名>`：项目锁定Vite构建真实生产Screen，隐藏Edge观察63姿态关节、14时间轴、十普通主题、秘密／取消／减少动态和六人54格；覆盖720p至4K、125%／150%模拟缩放及320–430px手机演出／可滚动操作。`--portable`实际解压并逐文件核对当前ZIP，夹具直接导入包内游戏客户端、共享React运行时及样式，检查正式编译组件；合法规则夹具只证明组件路径，实际保存与原生流程另走原生验证器。
+- `node tools/assets/games/pokemon-encounters/audit-pokemon-expansion-audio.mjs`：只复核既有原件／派生哈希和公开来源记录，将已确认说明与未知项写入资源清单；不下载或制作媒体。
 
-直接读SQLite的审计统一用脚本 `scripts/lib/save-audit.mjs` 的 `readCurrentSave`／`readJournalSave`／`decodeSave`，服务测试通过 `apps/server/src/save-audit.ts`。v2的saves／journal行包含引用，不能直接JSON.parse为完整Save。外层Save仍formatVersion1；旧v1在游戏兼容性通过后的保存时迁移，原库／WAL／SHM及迁移记录保留，未知或损坏库不替换。
+直接读SQLite的审计统一用脚本 `apps/server/src/save-codec.mjs` 的 `readCurrentSave`／`readJournalSave`／`decodeSave`，服务测试通过 `apps/server/src/save-audit.ts`。v2的saves／journal行包含引用，不能直接JSON.parse为完整Save。外层Save仍formatVersion1；旧v1在游戏兼容性通过后的保存时迁移，原库／WAL／SHM及迁移记录保留，未知或损坏库不替换。
 
 所有专项通过后只调用一次 `pnpm package:win`（已包含正式18单元构建，不预先重复全量build）。备份原ZIP／清单，对同一最终ZIP执行 `verify-pokemon-expansion.mjs --portable --evidence=<独立名>` 与普通模式控件验证，再核对冻结输入、离线媒体、退出、实际解压体积及模块预算。共享存储变化扩大三游戏恢复检查；未变规则／原版素材按影响复用既有证据。真人手机／听感／硬件DPI／现场LAN及人类时长单独交接，不重新执行胜率统计门禁。
 
@@ -732,9 +732,9 @@ v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`�
 
 若18单元构建完成后组装被运行中程序门禁阻止，可在程序退出后用 `pnpm package:win --snapshot=build/snapshots/<ID>.json` 恢复组装：重新核对快照ID、生产模块集合、全部源码输入及组装器指纹，继续执行原有进程、输出哈希和体积门禁，避免重复编译。默认命令仍执行正式构建。本轮首次组装因用户日常程序仍运行而中止，用户确认关闭后使用同一冻结快照恢复，未关闭或修改正式用户数据。
 
-新增审计解码器采用 `.mjs`＋`.d.mts`，预检发现TypeScript模块解析只返回声明文件，旧增量walker漏记运行JS；独立小单元反例先失败，修正后运行JS变化使缓存失效、未变复用通过。`node scripts/verify-module-runtime-input.mjs <独立名>`只构建隔离小夹具；正式打包检查platform-server冻结输入含 `scripts/lib/save-audit.mjs`。构建工具指纹因此变化，本轮正式18单元需要重新构建一次，不能沿用旧缓存；没有预先重复全量构建。
+新增审计解码器采用 `.mjs`＋`.d.mts`，预检发现TypeScript模块解析只返回声明文件，旧增量walker漏记运行JS；独立小单元反例先失败，修正后运行JS变化使缓存失效、未变复用通过。`node tools/build/verify-module-runtime-input.mjs <独立名>`只构建隔离小夹具；正式打包检查platform-server冻结输入含 `apps/server/src/save-codec.mjs`。构建工具指纹因此变化，本轮正式18单元需要重新构建一次，不能沿用旧缓存；没有预先重复全量构建。
 
-`node scripts/verify-save-storage-games.mjs <独立名>`实际解压当前ZIP并逐文件核哈希，用隐藏原生／实际服务在独立数据目录为三游戏生成真实已保存动作，把这些合法保存重建为v1夹具，再由同一包迁移及v2重启。检查全部历史、快照／座位、旧v1备份字节和进程退出，正式用户数据不参与。性能和GUI验收完成后串行运行，监听仅127.0.0.1。
+`node tools/test/platform/verify-save-storage-games.mjs <独立名>`实际解压当前ZIP并逐文件核哈希，用隐藏原生／实际服务在独立数据目录为三游戏生成真实已保存动作，把这些合法保存重建为v1夹具，再由同一包迁移及v2重启。检查全部历史、快照／座位、旧v1备份字节和进程退出，正式用户数据不参与。性能和GUI验收完成后串行运行，监听仅127.0.0.1。
 
 六人绝悟新增能力链可产生合法长小局：本轮seed5完成545动作、最长单次799.522ms，但整局76.6秒触发旧60秒测试限。原失败及150轮原始观测保留；仅该种子在六人绝悟整局120秒上限重跑通过。其他组仍60秒，每次决策两秒、700步和Worker内存限制不改；整局测试上限不作为真人时长或单次CPU预算。
 
@@ -744,12 +744,16 @@ SQLite流式扫描须让 `StatementSync` 强引用保持至迭代完成；包内
 
 菜单共性调整使用`--menus-only`，仅验证四游戏版本的菜单／设置／声音入口，可加`--game=<id>`收窄；范围登记为shared及实际游戏。`--box-only`包含盒子共享互动，须允许box＋shared；不以界面所在目录假定只覆盖盒子。菜单、盒子及命中视觉筛选互斥。最终包按钮修复后的共享证据可在逐文件哈希确认全部相关运行依赖未变后复用，并记录前后包边界。
 
-`scripts/verify-interactions.mjs --run=<唯一名称>`以隐藏原生窗口及静音Edge验证拖动／240ms长按／中心取消、六格选择、单次射击、视频设置内三端屏蔽、三射击叠加／第四淘汰、单发言替换和独立音频桥接，服务仅监听127.0.0.1。盒子修改使用`--box-only`，单游戏修改使用`--game=<id>`，二者互斥；默认矩阵仅用于影响全部入口的共享互动修改，不跑游戏规则或整局。即时派发和真实服务测试在`apps/server/src/interactions.test.ts`、`interaction-service.test.ts`，异步手机解锁／替换与单声源失权测试在`apps/web/src/interactions/audio-player.test.ts`。素材试听通过`artifacts/maintenance/v1.0.5/interaction-refinement/audio-review.html`显式开启；机器解码／ASR不记为人耳试听，旧版试听证据保留在`interaction-assets/`。40游戏WAV原件及FLAC派生和PCM核验保持原样。体积门禁统一查`scripts/lib/package-limits.mjs`，120MB硬上限和114MB预算不倒改历史报告。
+`tools/test/platform/verify-interactions.mjs --run=<唯一名称>`以隐藏原生窗口及静音Edge验证拖动／240ms长按／中心取消、六格选择、单次射击、视频设置内三端屏蔽、三射击叠加／第四淘汰、单发言替换和独立音频桥接，服务仅监听127.0.0.1。盒子修改使用`--box-only`，单游戏修改使用`--game=<id>`，二者互斥；默认矩阵仅用于影响全部入口的共享互动修改，不跑游戏规则或整局。即时派发和真实服务测试在`apps/server/src/interactions.test.ts`、`interaction-service.test.ts`，异步手机解锁／替换与单声源失权测试在`apps/web/src/interactions/audio-player.test.ts`。素材试听通过`artifacts/maintenance/v1.0.5/interaction-refinement/audio-review.html`显式开启；机器解码／ASR不记为人耳试听，旧版试听证据保留在`interaction-assets/`。40游戏WAV原件及FLAC派生和PCM核验保持原样。体积门禁统一查`tools/release/package-limits.mjs`，120MB硬上限和114MB预算不倒改历史报告。
 
 ### 玩家互动音效解锁核验（2026-10-09）
 
-`scripts/verify-player-interaction-audio.mjs --run=<唯一名称>`专查共享玩家互动声音，范围为box＋shared；默认隐藏静音、监听127.0.0.1及隔离数据。`--profile=touch|desktop|all`选择真实触摸模拟／鼠标输入，`--scenario=refresh`只查刷新与首次可信解锁，默认`full`另覆盖五射击／六发言、非零音频输出、禁用／恢复与盒子／游戏页往返，不运行游戏规则或整局。`--sound`仅显式开启玩家浏览器试听，桌面保持静音；`--executable=<实际解压EXE>`核验指定运行包，运行前后另按逐文件清单核对字节与哈希。
+`tools/test/platform/verify-player-interaction-audio.mjs --run=<唯一名称>`专查共享玩家互动声音，范围为box＋shared；默认隐藏静音、监听127.0.0.1及隔离数据。`--profile=touch|desktop|all`选择真实触摸模拟／鼠标输入，`--scenario=refresh`只查刷新与首次可信解锁，默认`full`另覆盖五射击／六发言、非零音频输出、禁用／恢复与盒子／游戏页往返，不运行游戏规则或整局。`--sound`仅显式开启玩家浏览器试听，桌面保持静音；`--executable=<实际解压EXE>`核验指定运行包，运行前后另按逐文件清单核对字节与哈希。
 
 严格自动播放采用`document-user-activation-required`，通过CDP `Runtime.evaluate`的`userGesture:false`读取状态与首次输入坐标，再用真实touchscreen／mouse输入。Playwright普通evaluate与locator内部执行可能授予用户激活，不能用其证明无手势前置条件；初次恢复必须实测未激活且AudioContext suspended。分析器并联在真实destination输入，不替换原音频连接；从头播放、300ms内启动及非零PCM只证明浏览器链路，实体手机与人耳听感仍单列。结果写入当前版本`player-interaction-audio/<run>/results.json`，拒绝覆盖旧run；临时数据沿用可安全清理的`root-entry-<六位随机>`。
 
-`node --test scripts/testing/build-idle.test.mjs`用模拟Win32_Process库存执行构建保护的真实PowerShell表达式，检查独立下载目录TableMax可继续运行，工作区／来源工作区、未知路径／参数及实际验证进程仍阻止组装。它不启动产品或删除内容。近期修复和实际同包结果见[验收](acceptance.md#105玩家互动音效触摸解锁2026-10-09)。
+`node --test tools/build/build-idle.test.mjs`用模拟Win32_Process库存执行构建保护的真实PowerShell表达式，检查独立下载目录TableMax可继续运行，工作区／来源工作区、未知路径／参数及实际验证进程仍阻止组装。它不启动产品或删除内容。近期修复和实际同包结果见[验收](acceptance.md#105玩家互动音效触摸解锁2026-10-09)。
+
+## 工具分类与旧路径迁移（2026-10-10）
+
+现有操作工具按用途迁入 `tools/`，总入口见[工具索引](../../tools/README.md)。pnpm 命令名和根维护入口保持不变，直接调用改用新路径；不保留 `scripts/` 转发。Node／Python 从项目根目录运行，错误 cwd 在写入前拒绝。正式存档编解码放在服务源码，工具反向依赖，不进入运行包。测试范围、历史统计及产物位置沿用原契约；唯一路径映射保持移动前后的历史身份连续，不重写原统计和证据。构建输入路径迁移会使相关首次缓存失效，后续相同输入复用；旧冻结快照不改写。清理、组装、发布及压缩的进程保护同步识别新路径，协调者仍限明确登记入口。

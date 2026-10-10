@@ -146,7 +146,7 @@ releases只保留当前运行ZIP与逐文件清单，SHA-256未变，未导出EX
 
 v1.0.3实际EXE／默认与自定义数据路径／3GB存档副本迁移验证通过后，执行先预览再Apply的[release清理（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)，删除旧v1.0.2 ZIP／清单及三份本次打包副本，共500,390,844字节；当前release仅保留v1.0.3 EXE、运行ZIP和逐文件清单，没有源码导出或发布。[隔离副本清理（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)删除本次两个已结束的存储验证目录，共3,559,438,389字节；正式C盘原库不在该范围。
 
-另按明确旧资源清理范围，先核验旧C盘 `TableMax/app` 的所有权标记、162文件全部哈希、准确文件集、路径／链接与进程，再用专项[脚本](../../scripts/retire-old-local-runtime.ps1)退役95,313,076字节旧运行资源。[旧安装清单](../../artifacts/maintenance/v1.0.3/portable-storage/old-installed-runtime-manifest.json)及[逐文件退役记录](../../artifacts/maintenance/v1.0.3/portable-storage/old-installed-runtime-retirement.json)保留；父数据目录、room.sqlite、WAL／SHM、旧迁移候选及正式原存档均保留，删除后再次验证原库SHA-256完全一致。不是清理整个C盘TableMax目录。
+另按明确旧资源清理范围，先核验旧C盘 `TableMax/app` 的所有权标记、162文件全部哈希、准确文件集、路径／链接与进程，再用专项[脚本](../../tools/maintenance/retire-old-local-runtime.ps1)退役95,313,076字节旧运行资源。[旧安装清单](../../artifacts/maintenance/v1.0.3/portable-storage/old-installed-runtime-manifest.json)及[逐文件退役记录](../../artifacts/maintenance/v1.0.3/portable-storage/old-installed-runtime-retirement.json)保留；父数据目录、room.sqlite、WAL／SHM、旧迁移候选及正式原存档均保留，删除后再次验证原库SHA-256完全一致。不是清理整个C盘TableMax目录。
 
 全部工程进程退出后执行 `Maintain-Project.ps1 -Apply`：[维护结果](../../artifacts/maintenance/v1.0.3/portable-storage/maintenance-result.json)初始实测10,795,128,770逻辑字节（10.054GiB），超过10GiB；安全候选4项共506,155,285字节删除后，末次实测10,289,001,461字节（9.582GiB）。安全候选耗尽而未到8GiB，保护内容继续保留，没有扩大范围或用NTFS压缩替代逻辑空间。207项清理保护回归通过，旧同名交付链接转至[退役记录](../../artifacts/maintenance/v1.0.3/portable-storage/old-release-retirement.json)，保留历史哈希与固定验收边界。
 

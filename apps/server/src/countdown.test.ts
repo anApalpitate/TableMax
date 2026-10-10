@@ -15,7 +15,7 @@ import type { Save } from '@tablemax/platform-core';
 import { rules, bot } from '@tablemax/game-template';
 import { createService } from './service';
 import { SqliteSaveRepository } from './save-repository';
-import { safeHttpPort } from '../../../scripts/fixtures/safe-http-port';
+import { safeHttpPort } from '../../../tools/test/fixtures/safe-http-port';
 
 afterEach(() => vi.restoreAllMocks());
 function dirs() {

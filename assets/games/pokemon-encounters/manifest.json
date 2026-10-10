@@ -990,7 +990,7 @@
     "createdAt": "2026-10-04",
     "appVersion": "1.0.2",
     "purpose": "Local illustrated rules from current production components with legally generated isolated six-player examples; no formal player data",
-    "generator": "node scripts/verify-rules-guides.mjs --capture-rules --evidence=capture-regions",
+    "generator": "node tools/test/platform/verify-rules-guides.mjs --capture-rules --evidence=capture-regions",
     "evidence": "artifacts/maintenance/v1.0.2/shared-visual-20261004/rules/capture-regions/results.json",
     "source": "Actual hidden native WinForms/WebView2 with local service and SQLite",
     "files": [
@@ -1040,7 +1040,7 @@
         "status": "captured-verified-imported"
       }
     ],
-    "postprocessing": "PNG to WebP lossless via scripts/compress-rule-captures.py, Pillow 11.1.0; original dimensions and RGB pixel bytes verified identical. Source PNGs retained.",
+    "postprocessing": "PNG to WebP lossless via tools/assets/rules/compress-rule-captures.py, Pillow 11.1.0; original dimensions and RGB pixel bytes verified identical. Source PNGs retained.",
     "currentUsage": "Retained original UI captures and historical evidence; superseded by rulesIllustrations v1 in the active guide; excluded from runtime imports."
   },
   "rulesIllustrations": {

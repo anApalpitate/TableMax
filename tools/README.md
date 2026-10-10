@@ -1,12 +1,20 @@
 # 工具索引
 
-按用途分目录。`tools/` 正在建立；已有构建、验证与维护入口仍在 `scripts/`，整体迁移尚未执行，当前命令保持可用。
+工具已由 `scripts/` 统一迁入 `tools/`，按用途分目录，不另建 npm 包。现有 pnpm 命令名与根目录维护 PowerShell 入口保持不变；直接脚本调用使用下列新路径，旧路径不提供转发。
 
-| 类型                       | 入口                                           | 用途与影响                                                                  |
-| -------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------- |
-| 空间分析                   | [analysis/storage](analysis/storage/README.md) | 单次容量快照、目录／截图占比、Node 副本与精确重复分析；仅写指定报告，不删除 |
-| 自动维护                   | [maintenance](maintenance/README.md)           | 构建／验证退出后，按证据和保护规则修剪模块缓存及已登记临时产物              |
-| 构建支持（内部）           | [Node 指纹](build/node-runtime-inputs.mjs)     | 固定目标版本、架构、归档校验值及准备实现；不因游戏或协议修改重复缓存运行时  |
-| 现有构建、运行、验证、清理 | [开发环境](../docs/reference/development.md)   | 依现有命令执行；清理入口仍实行预览及安全保护                                |
+| 要做的事                   | 分类入口                             | 常用入口与影响                                                         |
+| -------------------------- | ------------------------------------ | ---------------------------------------------------------------------- |
+| 开发、启动                 | [dev](dev/README.md)                 | `pnpm dev`／`pnpm start`；构建或启动进程                               |
+| 准备运行时、构建、组装     | [build](build/README.md)             | `pnpm setup:desktop`／`pnpm build`／`pnpm assemble:win`；写缓存与构建  |
+| 导包、交付验证、发布       | [release](release/README.md)         | `pnpm package:win`／`pnpm package:release`；写交付产物，发布需明确授权 |
+| 按范围验证、查询历史       | [test](test/README.md)               | `pnpm test -- --scope=<范围>`；默认静音，按实际范围选择                |
+| 生成、转换与审计资源       | [assets](assets/README.md)           | 按平台／游戏／规则资料分类；可能写正式素材或清单                       |
+| 空间、预算、内存和策略分析 | [analysis](analysis/README.md)       | 各工具分别说明只读报告、模拟或写入参数                                 |
+| 清理、压缩、自动收尾       | [maintenance](maintenance/README.md) | 根目录维护入口不变；预览、精确清单与保护继续生效                       |
+| 工作区与迁移辅助           | [shared](shared/README.md)           | 跨分类内部接口；测试历史身份兼容                                       |
 
-新工具按目的归入 `dev/`、`build/`、`release/`、`test/`、`assets/`、`analysis/`、`maintenance/`；通用辅助放 `shared/`。这是目录分类，不另建 npm 包。整体迁移时同步修改导入、命令、测试范围、构建指纹及文档，保留根目录维护入口。
+Node／Python 工具从项目根目录运行，Node 子进程显式使用项目工作目录。PowerShell 维护默认按脚本位置定位源码根，保留受校验的 `-ProjectRoot`。参数、证据及产物位置沿用现有行为，迁移不扩大执行或删除范围。
+
+新增工具放入已有职责分类；工具自身回归与实现同目录，产品验证按真实依赖分组。`package.json` 保留命令别名，测试范围以 runner/scopes 为权威，统计以测试历史实现为权威；不再建设重复注册表。迁移映射只维护路径与历史兼容。
+
+详细操作见[开发环境](../docs/reference/development.md)，源码与产物边界见[目录职责](../docs/reference/project-structure.md)。

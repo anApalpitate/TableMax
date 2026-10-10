@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generator": "scripts/generate-pokemon-expansion-audio.mjs",
+  "generator": "tools/assets/games/pokemon-encounters/generate-pokemon-expansion-audio.mjs",
   "status": "original PCM preserved/measured; Ogg/Opus hashed and decoded offline in actual portable WebView2; human listening pending",
   "encoder": {
     "package": "imageio-ffmpeg",

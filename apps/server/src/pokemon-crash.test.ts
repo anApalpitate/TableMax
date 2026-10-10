@@ -6,10 +6,10 @@ import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { io, type Socket } from 'socket.io-client';
 import type { RoomView, CommandReply, Command } from '@tablemax/protocol';
-import { prepare } from '../../../scripts/fixtures/prepare-pokemon';
+import { prepare } from '../../../tools/test/fixtures/prepare-pokemon';
 import { createService } from './service';
-import { prepareModuleFixture } from '../../../scripts/fixtures/prepare-module-fixture';
-import { safeHttpPort } from '../../../scripts/fixtures/safe-http-port';
+import { prepareModuleFixture } from '../../../tools/test/fixtures/prepare-module-fixture';
+import { safeHttpPort } from '../../../tools/test/fixtures/safe-http-port';
 
 it.each([
   {
@@ -39,7 +39,7 @@ it.each([
     const file = join(dir, 'crash.cjs');
     await prepareModuleFixture(dir);
     await build({
-      entryPoints: [resolve('scripts/fixtures/crash-pokemon.ts')],
+      entryPoints: [resolve('tools/test/fixtures/crash-pokemon.ts')],
       outfile: file,
       bundle: true,
       platform: 'node',

@@ -3,7 +3,7 @@ import type { Save, SaveExtras } from '@tablemax/platform-core';
 import {
   readCurrentSave,
   storageHash,
-} from '../../../scripts/lib/save-audit.mjs';
+} from './save-codec.mjs';
 
 export function createSaveStorage(database: DatabaseSync) {
   database.exec(`

@@ -7,4 +7,4 @@ param(
   [ValidatePattern('^\d+\.\d+\.\d+$')][string[]]$RetiredVersions = @()
 )
 
-& (Join-Path $PSScriptRoot 'scripts/cleanup-local.ps1') -Kind Releases -Apply:$Apply -ProjectRoot $ProjectRoot -MinimumAgeMinutes $MinimumAgeMinutes -KeepLatestOnly:$KeepLatestOnly -RetiredVersions $RetiredVersions
+& (Join-Path $PSScriptRoot 'tools/maintenance/cleanup-local.ps1') -Kind Releases -Apply:$Apply -ProjectRoot $ProjectRoot -MinimumAgeMinutes $MinimumAgeMinutes -KeepLatestOnly:$KeepLatestOnly -RetiredVersions $RetiredVersions

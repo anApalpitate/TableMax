@@ -10,6 +10,6 @@
 
 ## 声画
 
-本游戏使用独立原创离线音效，由 [生成脚本](../../../scripts/prepare-uno-audio.mjs) 复现，资源位于 `assets/games/uno/audio/`。十条运行 FLAC 共 345,275 字节，解码 PCM 与保留的原始 WAV 逐字节一致。卡牌放置、摸牌、跳过、反转、罚牌、UNO、质疑和胜利使用各自反馈；具体映射、时长与哈希在 [生成清单](../../../assets/games/uno/audio/manifest.json) 和 [交互](interaction.md) 维护。
+本游戏使用独立原创离线音效，由 [生成脚本](../../../tools/assets/games/uno/prepare-uno-audio.mjs) 复现，资源位于 `assets/games/uno/audio/`。十条运行 FLAC 共 345,275 字节，解码 PCM 与保留的原始 WAV 逐字节一致。卡牌放置、摸牌、跳过、反转、罚牌、UNO、质疑和胜利使用各自反馈；具体映射、时长与哈希在 [生成清单](../../../assets/games/uno/audio/manifest.json) 和 [交互](interaction.md) 维护。
 
 仅新的已保存结果触发声音和动效，刷新、回退、恢复及重新进桌不补播历史。测试静音、暂停取消、唯一桌面声音消费与浏览器手势解锁沿用宿主契约；减少动态保留清楚的静态结果。机器解码及静音信号验证不等同真人听感验收。

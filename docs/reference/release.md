@@ -17,8 +17,8 @@
 2. 默认执行 `pnpm package:win`，该入口包含生产构建。若本轮明确要求一次全量生产构建，先执行下列第一条命令，再用它返回的冻结清单执行第二条，避免重复编译：
 
    ```powershell
-   node scripts/build.mjs --production --full
-   node scripts/package.mjs --snapshot=<本轮冻结清单绝对路径>
+   node tools/build/build.mjs --production --full
+   node tools/release/package.mjs --snapshot=<本轮冻结清单绝对路径>
    ```
 
 3. 对生成的同一ZIP核验实际解压、逐文件字节与SHA-256、包内Node、本地资源、适用游戏加载／切换／恢复、离线外部请求及进程退出。实际界面和动态验收应来自该包；源码样板、旧包结论不可代替。
@@ -32,7 +32,7 @@
 仅在用户明确授权GitHub发布后执行以下步骤。
 
 1. 确认本轮运行ZIP已通过验收，执行 `pnpm package:release`。此入口将已验ZIP封装为 `TableMax-<版本>-win-x64.exe`，不代替运行ZIP验收。
-2. 执行 `node scripts/verify-shipping-executable.mjs`。验证实际提取发布EXE、逐文件哈希、重复启动复用、实际资源目录体积及提取程序的原生安全行为。EXE验证后发生改变必须重新验收。
+2. 执行 `node tools/release/verify-shipping-executable.mjs`。验证实际提取发布EXE、逐文件哈希、重复启动复用、实际资源目录体积及提取程序的原生安全行为。EXE验证后发生改变必须重新验收。
 3. 整理本次源码、文档和更新说明，完成适用检查并提交最终发布源码；核对冻结运行输入无未提交差异。推送该提交和对应 `v<版本>` 标签，标签必须指向发布提交。已有同名标签或Release时先核对现状，不强推、不擅自覆盖历史。
 4. 按下节格式准备已审阅的更新说明文件，执行 `pnpm release:github -- --notes=<说明文件路径>`。当前入口核对EXE验收证据、HEAD与标签一致、远端标签和已提交运行输入；随后从最终提交执行 `git archive` 生成源码ZIP、创建Release并上传附件。
 5. 发布后核对线上标题、正文、标签、正式／预发布状态及附件名称、数量、大小与SHA-256。保存本地发布记录并更新验收入口；失败记录保留，不把部分上传写成发布成功。
