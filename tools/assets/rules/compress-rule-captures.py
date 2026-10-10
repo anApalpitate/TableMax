@@ -1,6 +1,6 @@
 from pathlib import Path
 import json
-_workspace_root = Path(__file__).resolve().parents[2]
+_workspace_root = Path(__file__).resolve().parents[3]
 if Path.cwd().resolve() != _workspace_root or json.loads((_workspace_root / 'package.json').read_text(encoding='utf-8'))['name'] != 'tablemax':
     raise RuntimeError('Run this tool from the TableMax repository root: ' + str(_workspace_root))
 
