@@ -10,6 +10,7 @@ param(
   [string]$DuplicateScreenshotsManifest,
   [string]$RetiredGeneratedManifest,
   [string]$HistoricalScreenshotsManifest,
+  [string]$RegisteredArtifactsManifest,
   [ValidateRange(0, 10080)][int]$MinimumAgeMinutes = 30,
   [ValidateRange(0.001, 1024)][double]$HighWaterGiB = 10,
   [ValidateRange(0, 1024)][double]$LowWaterGiB = 8,
@@ -19,6 +20,9 @@ param(
 $ErrorActionPreference = 'Stop'
 $sourceWorkspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\')
 $automatic = $Kind -eq 'Maintenance'
+if ($PSBoundParameters.ContainsKey('RegisteredArtifactsManifest') -and ([string]::IsNullOrWhiteSpace($RegisteredArtifactsManifest) -or $Kind -ne 'Intermediates' -or $IncludeBuild -or $KeepLatestOnly -or $TemporaryNames.Count -or $VerificationCopies.Count -or $RetiredVersions.Count -or $DuplicateScreenshotsManifest -or $RetiredGeneratedManifest -or $HistoricalScreenshotsManifest -or $MinimumAgeMinutes -lt 30)) {
+  throw 'RegisteredArtifactsManifest requires exclusive intermediate cleanup with at least 30 minutes protection.'
+}
 if ($PSBoundParameters.ContainsKey('HistoricalScreenshotsManifest') -and
     ([string]::IsNullOrWhiteSpace($HistoricalScreenshotsManifest) -or $Kind -ne 'Intermediates' -or $IncludeBuild -or $KeepLatestOnly -or $TemporaryNames.Count -or $VerificationCopies.Count -or $RetiredVersions.Count -or $DuplicateScreenshotsManifest -or $RetiredGeneratedManifest)) {
   throw 'HistoricalScreenshotsManifest requires an explicit manifest and exclusive manual intermediate cleanup.'
@@ -422,7 +426,11 @@ elseif ($Kind -eq 'Releases' -or $automatic) {
     }
   }
 }
-if ($HistoricalScreenshotsManifest) {
+if ($RegisteredArtifactsManifest) {
+  . (Join-Path $PSScriptRoot 'registered-artifacts.ps1')
+  Initialize-RegisteredArtifacts
+}
+elseif ($HistoricalScreenshotsManifest) {
   . (Join-Path $PSScriptRoot 'historical-screenshots.ps1')
   Initialize-HistoricalScreenshots
 }
@@ -555,6 +563,7 @@ try {
     duplicateScreenshotsManifest = $DuplicateScreenshotsManifest
     retiredGeneratedManifest = $RetiredGeneratedManifest
     historicalScreenshotsManifest = $HistoricalScreenshotsManifest
+    registeredArtifactsManifest = $RegisteredArtifactsManifest
     workspace = $workspace; highWaterBytes = $summary.highWaterBytes; lowWaterBytes = $summary.lowWaterBytes
     bytesBefore = $summary.bytesBefore; bytesAfter = $summary.bytesAfter
     candidates = $ordered; skipped = $skipped.ToArray(); deletedBytes = [long]0; result = 'started'
@@ -602,6 +611,7 @@ try {
         }
       }
       Assert-Idle
+      if ($candidate.PSObject.Properties['registeredArtifact']) { Assert-RegisteredArtifact $candidate.registeredArtifact }
       if ((Read-Snapshot $candidate.path).fingerprint -ne $candidate.fingerprint) {
         throw ('Candidate changed before deletion; stopped: ' + $candidate.path)
       }

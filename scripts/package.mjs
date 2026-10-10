@@ -3,6 +3,8 @@ import {
   PACKAGE_BUDGET_BYTES,
 } from './lib/package-limits.mjs';
 import { buildProject } from './build.mjs';
+import { scheduleMaintenance } from '../tools/maintenance/lifecycle.mjs';
+scheduleMaintenance();
 import assert from 'node:assert/strict';
 import { resolve, join, relative, sep } from 'node:path';
 import {

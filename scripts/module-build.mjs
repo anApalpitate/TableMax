@@ -17,7 +17,14 @@ import {
   access,
 } from 'node:fs/promises';
 import { resolve, join, relative, dirname } from 'node:path';
-import { prepareDesktop, execute, nodeRuntime } from './setup-desktop.mjs';
+import {
+  prepareDesktop,
+  execute,
+  nodeRuntime,
+  nodeVersion,
+  nodeArchiveSha256,
+} from './setup-desktop.mjs';
+import { nodeRuntimeInputs } from '../tools/build/node-runtime-inputs.mjs';
 import { packService } from './service-brotli.mjs';
 
 export const root = resolve('.');
@@ -193,6 +200,11 @@ export async function lock(name, operation) {
 }
 // Track source imports, type-only dependencies, CSS and each newly expanded glob.
 async function inputsFor(unit) {
+  if (unit.kind === 'runtime')
+    return nodeRuntimeInputs({
+      version: nodeVersion,
+      archiveSha256: nodeArchiveSha256,
+    });
   const files = new Set(),
     globs = [];
   const options = {

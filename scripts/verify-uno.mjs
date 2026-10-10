@@ -14,6 +14,11 @@ import { Worker } from 'node:worker_threads';
 import { build } from 'esbuild';
 import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import {
+  ScreenshotPolicy,
+  registerArtifacts,
+  writeScreenshot,
+} from '../tools/maintenance/verification-artifacts.mjs';
+import {
   MAXIMUM_PACKAGE_BYTES,
   PACKAGE_BUDGET_BYTES,
 } from './lib/package-limits.mjs';
@@ -61,6 +66,7 @@ const legacyExecutable = option('legacy-executable')
   : null;
 const zipPath = option('zip') ? resolve(option('zip')) : null;
 const output = resolve('artifacts/uno/validation', name);
+const screenshotPolicy = new ScreenshotPolicy();
 await mkdir(dirname(output), { recursive: true });
 await mkdir(output, { recursive: false });
 await mkdir('tmp', { recursive: true });
@@ -94,6 +100,7 @@ const evidence = {
   cases: [],
   layouts: [],
   screenshots: [],
+  screenshotAliases: [],
   audio: [],
   memory: [],
   payloadMaxBytes: {},
@@ -404,7 +411,13 @@ async function resize(page, width, height, mobile = false, zoom = 1) {
     })),
   };
 }
-async function capture(page, label) {
+async function capture(page, label, layout = false) {
+  const filename = screenshotPolicy.path(`${currentScenario}-${label}.png`, {
+    group: currentScenario,
+    label,
+    layout,
+  });
+  if (!filename) return;
   await page.evaluate(
     () =>
       new Promise((done) =>
@@ -416,9 +429,13 @@ async function capture(page, label) {
   const png = await window.evaluate(async (native) =>
     (await native.webContents.capturePage()).toPNG(),
   );
-  const filename = `${currentScenario}-${label}.png`;
-  await writeFile(join(output, filename), png);
-  evidence.screenshots.push(filename);
+  const retained = await writeScreenshot(
+    output,
+    filename,
+    png,
+    evidence.screenshotAliases,
+  );
+  evidence.screenshots.push(retained);
 }
 async function sampleMemory(page, label, role) {
   const session = await cdp(page);
@@ -617,7 +634,7 @@ async function measure(page, label, role, geometry) {
     geometry,
     ...layout,
   });
-  await capture(page, label);
+  await capture(page, label, true);
   assert.ok(
     layout.scrollWidth <= layout.width + 1,
     `${label}: no horizontal document overflow`,
@@ -2010,10 +2027,21 @@ try {
   evidence.elapsedSeconds =
     Math.round((performance.now() - started) / 10) / 100;
   evidence.ownedDesktopClosed = true;
+  evidence.screenshotPolicy = {
+    mode: screenshotPolicy.mode,
+    skipped: screenshotPolicy.skipped,
+  };
   await writeFile(
     join(output, 'results.json'),
     JSON.stringify(evidence, null, 2) + '\n',
   );
+  await registerArtifacts({
+    output,
+    reportPath: join(output, 'results.json'),
+    work,
+    passed: evidence.result === 'passed',
+    policy: screenshotPolicy,
+  });
 }
 console.log(
   JSON.stringify({

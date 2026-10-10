@@ -8,6 +8,7 @@ import react from '@vitejs/plugin-react';
 import { launchTestBrowser } from './browser-test.mjs';
 import { serveFixture } from './fixture-server.mjs';
 import { verificationOutput } from './verification-output.mjs';
+import { registerArtifacts } from '../tools/maintenance/verification-artifacts.mjs';
 
 const argument = (name) =>
   process.argv
@@ -583,5 +584,11 @@ try {
   await server?.close();
   report.finishedAt = new Date().toISOString();
   await save();
+  await registerArtifacts({
+    output,
+    reportPath: join(output, 'report.json'),
+    work,
+    passed: report.status === 'passed',
+  });
   console.log('Evidence: ' + output);
 }

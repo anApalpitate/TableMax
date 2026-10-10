@@ -5,6 +5,7 @@ import { EventEmitter } from 'node:events';
 import { createServer } from 'node:net';
 import { resolve } from 'node:path';
 import { traceBudgets } from './budget-trace.mjs';
+import { scheduleMaintenance } from '../tools/maintenance/lifecycle.mjs';
 
 export const desktopExecutable = resolve('build/desktop/TableMax.exe');
 const wait = (ms) => new Promise((done) => setTimeout(done, ms));
@@ -32,6 +33,7 @@ async function deadline(promise, timeout, description) {
   }
 }
 export async function launchDesktop(options = {}) {
+  scheduleMaintenance();
   const timeout = options.timeout ?? 30000;
   const cdpPort = await freePort();
   const executablePath = options.executablePath ?? desktopExecutable;

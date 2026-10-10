@@ -10,7 +10,9 @@ import { assemble } from './assemble.mjs';
 import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createHash } from 'node:crypto';
+import { scheduleMaintenance } from '../tools/maintenance/lifecycle.mjs';
 export async function buildProject(args = process.argv.slice(2)) {
+  scheduleMaintenance();
   return lock('build-task-' + process.pid, async () => {
     const started = performance.now();
     const modules = (await discover()).filter(
@@ -94,10 +96,39 @@ export async function buildProject(args = process.argv.slice(2)) {
       }),
     );
     return { snapshotPath, id, units: results };
+  }).catch(async (error) => {
+    const version = (await json('package.json')).version;
+    const directory = resolve(
+      `artifacts/maintenance/v${version}/build-failures`,
+    );
+    await mkdir(directory, { recursive: true });
+    await writeFile(
+      resolve(directory, `${Date.now()}-${process.pid}.json`),
+      JSON.stringify(
+        {
+          result: 'failed',
+          args,
+          failedAtUtc: new Date().toISOString(),
+          message: error.message,
+          stack: error.stack,
+        },
+        null,
+        2,
+      ) + '\n',
+      { flag: 'wx' },
+    );
+    throw error;
   });
 }
 if (
   process.argv[1] &&
   resolve(process.argv[1]) === resolve('scripts/build.mjs')
-)
-  await buildProject();
+) {
+  scheduleMaintenance();
+  try {
+    await buildProject();
+  } catch (error) {
+    console.error(error.stack ?? error.message);
+    process.exitCode = 1;
+  }
+}

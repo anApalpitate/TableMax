@@ -6,6 +6,8 @@
 
 ## 已创建结构
 
+`tools/build/`维护专属 Node 运行时指纹；`tools/maintenance/`维护构建／验证退出后的单次维护、截图策略与产物登记，安全删除仍复用 `scripts/cleanup-local.ps1`，见[自动维护](../../tools/maintenance/README.md)。其余工具整体迁移尚未执行。
+
 UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 UI 和声画集中在 `games/uno/`；运行素材在 `assets/games/uno/`，原生成物与规则原件在 `artifacts/uno/`。采用规格见 [UNO 主题](../games/uno/README.md)，真实验证脚本 `scripts/verify-uno.mjs` 仅检查本游戏。
 
 扩展`config/cards.json`、`decks.json`、`research.json`分别维护34类角色／摘要、112／144数量和30项研究内容／条件／固定图示；有类型校验及纯函数条件注册表供规则、策略、UI共读，原版配置不变。AI派生图在`assets/games/pokemon-encounters/expansion/research-illustrations/`，原图与生成过程保留在对应维护证据目录。两版共用`ui/CardSkin.tsx`纯展示骨架，扩展排版限定自身根样式，不进入平台会话。

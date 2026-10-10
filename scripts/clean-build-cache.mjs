@@ -6,11 +6,25 @@ import {
   stat,
   lstat,
   rm,
+  appendFile,
 } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { assertIdle } from './assemble.mjs';
 import { lock, validateCached } from './module-build.mjs';
 const base = resolve('.cache/build-modules/v1');
+async function newestWrite(path) {
+  const info = await lstat(path);
+  if (info.isSymbolicLink()) throw new Error('Linked cache member rejected');
+  let newest = info.mtimeMs;
+  if (info.isDirectory()) {
+    for (const name of await readdir(path)) {
+      if (name === '.git')
+        throw new Error('Nested repository in cache rejected');
+      newest = Math.max(newest, await newestWrite(join(path, name)));
+    }
+  }
+  return newest;
+}
 await lock('build-cache-maintenance', async () => {
   await assertIdle();
   for (const entry of await readdir(base))
@@ -66,10 +80,13 @@ await lock('build-cache-maintenance', async () => {
         if ((await lstat(item.path)).isSymbolicLink())
           throw new Error('Linked cache directory rejected');
         const manifest = await validateCached(item.path);
+        const newest = await newestWrite(item.path);
+        if (Date.now() - newest <= 30 * 60000) continue;
         candidates.push({
           ...item,
           files: manifest.files,
           bytes: manifest.files.reduce((sum, file) => sum + file.bytes, 0),
+          newest,
         });
       }
   }
@@ -80,6 +97,21 @@ await lock('build-cache-maintenance', async () => {
     retained: [...retained],
     candidates: [],
   };
+  const output = resolve(
+    `artifacts/maintenance/v${project.version}/build-cache-cleanup`,
+  );
+  await mkdir(output, { recursive: true });
+  const runId = Date.now() + '-' + report.mode;
+  const auditPath = join(output, runId + '.jsonl');
+  report.auditPath = auditPath;
+  await appendFile(
+    auditPath,
+    JSON.stringify({
+      event: 'started',
+      mode: report.mode,
+      retention: report.retention,
+    }) + '\n',
+  );
   for (const item of candidates) {
     let result = 'preview';
     if (process.argv.includes('--apply')) {
@@ -94,20 +126,36 @@ await lock('build-cache-maintenance', async () => {
       const current = await validateCached(item.path);
       if (
         JSON.stringify(current.files) !== JSON.stringify(item.files) ||
+        (await newestWrite(item.path)) !== item.newest ||
         (await stat(join(item.path, 'manifest.json'))).mtimeMs !== item.mtime
       )
         throw new Error('Cache changed during cleanup');
+      await appendFile(
+        auditPath,
+        JSON.stringify({
+          event: 'selected',
+          key: item.key,
+          path: item.path,
+          bytes: item.bytes,
+          files: item.files,
+        }) + '\n',
+      );
       await rm(item.path, { recursive: true });
+      await appendFile(
+        auditPath,
+        JSON.stringify({
+          event: 'removed',
+          key: item.key,
+          path: item.path,
+          bytes: item.bytes,
+        }) + '\n',
+      );
       result = 'removed';
     }
     report.candidates.push({ ...item, result });
   }
-  const output = resolve(
-    `artifacts/maintenance/v${project.version}/build-cache-cleanup`,
-  );
-  await mkdir(output, { recursive: true });
   await writeFile(
-    join(output, Date.now() + '-' + report.mode + '.json'),
+    join(output, runId + '.json'),
     JSON.stringify(report, null, 2) + '\n',
   );
   console.log(

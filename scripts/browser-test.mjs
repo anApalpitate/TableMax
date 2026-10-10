@@ -1,7 +1,9 @@
 import { chromium } from 'playwright';
+import { scheduleMaintenance } from '../tools/maintenance/lifecycle.mjs';
 
 // Keep verification output quiet without suppressing media decode/play events.
 export function launchTestBrowser({ soundEnabled = false, ...options } = {}) {
+  scheduleMaintenance();
   const enabled = soundEnabled === true;
   return chromium.launch({
     ...options,

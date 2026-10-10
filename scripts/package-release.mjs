@@ -5,6 +5,8 @@ import {
   assertReleaseIdle,
 } from './release-executable.mjs';
 import { lock } from './module-build.mjs';
+import { scheduleMaintenance } from '../tools/maintenance/lifecycle.mjs';
+scheduleMaintenance();
 await lock('package-release', async () => {
   const { version } = JSON.parse(await readFile('package.json', 'utf8'));
   const base = `artifacts/releases/TableMax-${version}-win-x64`;

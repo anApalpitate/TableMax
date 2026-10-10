@@ -13,6 +13,11 @@ import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { launchDesktop, desktopExecutable } from './desktop-test.mjs';
 import {
+  ScreenshotPolicy,
+  registerArtifacts,
+  writeScreenshot,
+} from '../tools/maintenance/verification-artifacts.mjs';
+import {
   MAXIMUM_PACKAGE_BYTES,
   PACKAGE_BUDGET_BYTES,
 } from './lib/package-limits.mjs';
@@ -53,6 +58,7 @@ assert.ok(
 );
 assert.match(evidenceName, /^[a-z0-9-]{1,65}$/);
 const output = resolve('artifacts/avalon/validation', evidenceName);
+const screenshotPolicy = new ScreenshotPolicy();
 await mkdir(dirname(output), { recursive: true });
 await mkdir(output);
 await mkdir('tmp', { recursive: true });
@@ -76,6 +82,7 @@ const evidence = {
     'Actual hidden WinForms/WebView2 and shipped Socket/SQLite service, only Avalon. Phone viewports and DPI are simulated. Native output remains physically muted; decoder signal checks do not certify human listening or physical phones/LAN.',
   checks: [],
   screenshots: [],
+  screenshotAliases: [],
   layouts: [],
   effects: [],
   pageErrors: [],
@@ -277,7 +284,12 @@ async function resize(page, width, height, mobile) {
   await session.detach();
   await wait(120);
 }
-async function capture(page, label) {
+async function capture(page, label, layout = false) {
+  const filename = screenshotPolicy.path(
+    `${String(evidence.screenshots.length + 1).padStart(3, '0')}-${label}.png`,
+    { label, layout },
+  );
+  if (!filename) return;
   await page.evaluate(
     () =>
       new Promise((done) =>
@@ -289,9 +301,13 @@ async function capture(page, label) {
   const image = await native.evaluate(async (win) =>
     (await win.webContents.capturePage()).toPNG(),
   );
-  const filename = `${String(evidence.screenshots.length + 1).padStart(3, '0')}-${label}.png`;
-  await writeFile(join(output, filename), image);
-  evidence.screenshots.push(filename);
+  const retained = await writeScreenshot(
+    output,
+    filename,
+    image,
+    evidence.screenshotAliases,
+  );
+  evidence.screenshots.push(retained);
 }
 async function layout(page, label, mobile) {
   await surface(page).locator('.avalon-screen').waitFor();
@@ -376,7 +392,7 @@ async function layout(page, label, mobile) {
         .every((b) => b.height >= 43.9),
       `${label}: touch controls >=44px`,
     );
-  await capture(page, label);
+  await capture(page, label, true);
 }
 async function phoneFor(index) {
   await phone.evaluate((token) => {
@@ -888,6 +904,10 @@ try {
   evidence.elapsedSeconds =
     Math.round((performance.now() - started) / 10) / 100;
   evidence.ownedDesktopClosed = true;
+  evidence.screenshotPolicy = {
+    mode: screenshotPolicy.mode,
+    skipped: screenshotPolicy.skipped,
+  };
   const data = join(workDir, 'data');
   const savedFiles = await readdir(data).catch(() => []);
   evidence.savedState = [];
@@ -908,6 +928,13 @@ try {
     join(output, 'results.json'),
     JSON.stringify(evidence, null, 2) + '\n',
   );
+  await registerArtifacts({
+    output,
+    reportPath: join(output, 'results.json'),
+    work: workDir,
+    passed: evidence.result === 'passed',
+    policy: screenshotPolicy,
+  });
 }
 console.log(
   JSON.stringify({

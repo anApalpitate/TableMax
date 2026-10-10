@@ -20,6 +20,12 @@ export async function assertIdle() {
   const idleCommand = String.raw`
     $taskWorkspace = [IO.Path]::GetFullPath($env:TABLEMAX_BUILD_WORKSPACE).TrimEnd('\')
     $taskSourceWorkspace = [IO.Path]::GetFullPath($env:TABLEMAX_SOURCE_WORKSPACE).TrimEnd('\')
+    $taskIdleCoordinators = @()
+    if ($env:TABLEMAX_MAINTENANCE_COORDINATOR) {
+      $workspace = $taskWorkspace; $sourceWorkspace = $taskSourceWorkspace
+      . (Join-Path $taskSourceWorkspace 'scripts/cleanup-guard.ps1')
+      $taskIdleCoordinators = @(Get-MaintenanceCoordinatorPids)
+    }
     $taskBusy = @(Get-CimInstance Win32_Process | Where-Object {
       $taskExecutable = [string]$_.ExecutablePath
       $taskCommandLine = [string]$_.CommandLine
@@ -41,7 +47,7 @@ export async function assertIdle() {
         } catch { $unrelatedDesktop = $false }
       }
       $_.Name -match '^(TableMax|node|dotnet|MSBuild)\.exe$' -and
-        $_.ProcessId -ne [int]$env:TABLEMAX_BUILD_PID -and (
+        $_.ProcessId -ne [int]$env:TABLEMAX_BUILD_PID -and $_.ProcessId -notin $taskIdleCoordinators -and (
           [string]::IsNullOrWhiteSpace($taskCommandLine) -or
           ($_.Name -eq 'TableMax.exe' -and -not $unrelatedDesktop) -or
           $taskCommandLine -match '(scripts[\\/](verify|dev|launch)|apps[\\/]desktop[\\/]native|vitest)'
