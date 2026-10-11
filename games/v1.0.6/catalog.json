@@ -1,0 +1,3840 @@
+{
+  "payload": {
+    "schemaVersion": 1,
+    "releases": [
+      {
+        "releaseId": "e04e7b3ec69457ced5d8e4720bf6f1e2453c7853e7e6cb21cc5f11d58329846c",
+        "gameId": "pokemon-encounters",
+        "variantId": "original",
+        "module": {
+          "schemaVersion": 1,
+          "id": "pokemon-encounters",
+          "order": 0,
+          "internal": false,
+          "library": {
+            "tags": [
+              "卡牌",
+              "家庭",
+              "运气"
+            ],
+            "searchTerms": [
+              "Pokemon",
+              "皮卡丘",
+              "原版",
+              "九宫格",
+              "扩展版"
+            ],
+            "displayName": "宝可梦奇遇"
+          },
+          "catalog": {
+            "id": "pokemon-encounters",
+            "name": "宝可梦奇遇：皮卡丘和朋友们",
+            "min": 2,
+            "max": 6
+          },
+          "compatibility": {
+            "sdk": 1,
+            "protocol": 7,
+            "webHost": 1,
+            "rulesVersion": "tablemax-cn-s19-v1",
+            "stateVersion": 1,
+            "gameVersion": "1.0.0",
+            "strategyVersion": "1"
+          },
+          "entries": {
+            "rules": "rules/pokemon-encounters.cjs",
+            "bot": "bots/pokemon-encounters.cjs",
+            "web": "web/entry.js"
+          },
+          "cover": "assets/games/pokemon-encounters/cover-catalog-v2.webp",
+          "introduction": {
+            "tagline": "记住暗牌，换牌降分，发动宝可梦能力。",
+            "lead": "用换牌和宝可梦能力，让自己的六张牌总分最低。",
+            "steps": [
+              {
+                "icon": "cards",
+                "title": "六张牌，先翻一张",
+                "text": "每人六张暗牌排成两行，先选一张公开，记住自己的牌。"
+              },
+              {
+                "icon": "swap",
+                "title": "取牌，换牌，发动能力",
+                "text": "从牌库或弃牌堆取牌，换入自己的场地。特殊宝可梦还能看牌、交换或影响朋友。"
+              },
+              {
+                "icon": "pair",
+                "title": "配对，让分数更低",
+                "text": "同一列两张分值相同就计零分。有人六张牌全明、能力处理完后，大家一起结算。"
+              }
+            ],
+            "goal": "每小局总分最低者获一星，先拿三颗星获胜。"
+          },
+          "botIntroduction": {
+            "default": {
+              "lead": "比较取牌、换入、弃掉与配对，结合局势决定是否收局。",
+              "details": [
+                "记住最近 2 张本人私看牌，3 个本人普通回合后遗忘；保留 8 条公开行动及上一小局摘要。"
+              ]
+            },
+            "doubao": {
+              "lead": "用 8 组未知牌假设，前瞻最多 1 个本人后续回合。",
+              "details": [
+                "最多记住 6 张私看牌，8 回合后遗忘；保留 32 条公开行动及最近 2 小局，旧摘要权重减半。"
+              ]
+            },
+            "juewu": {
+              "lead": "用 32 组假设，结合全桌局势前瞻最多 2 个本人后续回合。",
+              "details": [
+                "本小局合法私看不主动遗忘，保留 128 条公开行动及整局摘要；考虑百变怪、供牌、共同赢家、结束与第三胜风险。只使用本人获准信息。"
+              ]
+            }
+          },
+          "guidance": true,
+          "defaultVariantId": "original",
+          "variants": [
+            {
+              "id": "original",
+              "name": "原版",
+              "description": "2×3，16类56张，三胜。",
+              "compatibility": {
+                "sdk": 1,
+                "protocol": 7,
+                "webHost": 1,
+                "rulesVersion": "tablemax-cn-s19-v1",
+                "stateVersion": 1,
+                "gameVersion": "1.0.0",
+                "strategyVersion": "1"
+              }
+            },
+            {
+              "id": "expansion",
+              "name": "扩展版",
+              "description": "3×3，34类112／144张，研究投票、三神任务与新能力，三胜。",
+              "introduction": {
+                "tagline": "九宫格成线，研究挑战，取舍风险与回报。",
+                "lead": "在九张牌之间换牌、调位和发动能力，用研究挑战改变结算与胜局奖励。",
+                "steps": [
+                  {
+                    "icon": "auction",
+                    "title": "先投票，再翻一张",
+                    "text": "每小局从三个候选研究中暗投选一项，再发九张暗牌，每人自行公开一格。"
+                  },
+                  {
+                    "icon": "swap",
+                    "title": "单弃牌、缓冲与普通调位",
+                    "text": "从牌库、弃牌顶或本人的缓冲区取牌；合法的暂持牌可以存入缓冲，也可用整个回合交换自己的两格。"
+                  },
+                  {
+                    "icon": "pair",
+                    "title": "三张同值成线",
+                    "text": "行、列或主对角线三张有效值相同便归零；研究的达成条件、奖励和风险会影响最终结果。"
+                  }
+                ],
+                "goal": "按研究修正后的结算争取胜局，先累计三胜结束大局。"
+              },
+              "compatibility": {
+                "sdk": 1,
+                "protocol": 7,
+                "webHost": 1,
+                "rulesVersion": "tablemax-cn-expansion-v1",
+                "stateVersion": 1,
+                "gameVersion": "1.0.0",
+                "strategyVersion": "1"
+              }
+            }
+          ],
+          "versions": [
+            {
+              "name": "原版",
+              "selected": true,
+              "description": "2×3 场地，16 类／56 张牌，三胜。"
+            },
+            {
+              "name": "扩展版",
+              "selected": false,
+              "description": "3×3场地，34类112／144张，研究投票、丰缘齐聚与新增能力。"
+            }
+          ],
+          "budgets": {
+            "payloadBytes": 4194304,
+            "serviceHeapBytes": 83886080,
+            "desktopHeapBytes": 37748736,
+            "phoneHeapBytes": 25165824,
+            "privateIncrementBytes": 898629632,
+            "workerOldGenerationMiB": 32,
+            "basis": "2026-10-05 one-time baseline: independent payload ×1.10; maxima of three real scenario runs ×1.25, rounded up to MiB. Evidence: artifacts/maintenance/v1.0.4/incremental-build-20261005/budgets/results.json. Sampled WebView2 heaps and owned process-tree private-byte increase from first box sample; full-match service heap measured separately."
+          },
+          "styles": [
+            "web/index-Dm7-YB2j.css"
+          ]
+        },
+        "code": "35b29e5bf5cd7c4991d89c8185140348b3149e65b606b3b0fd6773863377c68b",
+        "resources": [
+          "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9"
+        ],
+        "resourceMap": {
+          "pokemon-encounters/audio/bulbasaur-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/bulbasaur-user-v2.flac"
+          },
+          "pokemon-encounters/audio/charizard-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/charizard-v1.flac"
+          },
+          "pokemon-encounters/audio/draw-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/draw-v1.flac"
+          },
+          "pokemon-encounters/audio/eevee-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/eevee-user-v2.flac"
+          },
+          "pokemon-encounters/audio/effect-complete-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/effect-complete-v1.flac"
+          },
+          "pokemon-encounters/audio/error-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/error-v1.flac"
+          },
+          "pokemon-encounters/audio/gengar-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/gengar-user-v2.flac"
+          },
+          "pokemon-encounters/audio/jigglypuff-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/jigglypuff-user-v2.flac"
+          },
+          "pokemon-encounters/audio/match-result-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/match-result-v1.flac"
+          },
+          "pokemon-encounters/audio/meowth-coin-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/meowth-coin-user-v2.flac"
+          },
+          "pokemon-encounters/audio/mew-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/mew-v1.flac"
+          },
+          "pokemon-encounters/audio/pikachu-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/pikachu-user-v2.flac"
+          },
+          "pokemon-encounters/audio/replace-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/replace-v1.flac"
+          },
+          "pokemon-encounters/audio/rocket-return-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/rocket-return-v1.flac"
+          },
+          "pokemon-encounters/audio/round-result-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/round-result-v1.flac"
+          },
+          "pokemon-encounters/audio/snorlax-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/snorlax-v1.flac"
+          },
+          "pokemon-encounters/audio/squirtle-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/squirtle-user-v2.flac"
+          },
+          "pokemon-encounters/audio/team-rocket-entrance-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/team-rocket-entrance-user-v2.flac"
+          },
+          "pokemon-encounters/audio/zapdos-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/zapdos-v1.flac"
+          },
+          "pokemon-encounters/characters/coin-meowth-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/coin-meowth-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary--2-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary--2-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-0-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-0-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-1-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-1-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-3-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-3-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-4-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-4-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-5-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-5-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-6-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-6-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-7-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-7-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-8-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-8-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-9-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-9-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/special-charizard-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/special-charizard-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/special-ditto-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/special-ditto-v1.webp"
+          },
+          "pokemon-encounters/characters/special-mew-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/special-mew-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/special-snorlax-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/special-snorlax-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/special-team-rocket-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/special-team-rocket-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/special-zapdos-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/special-zapdos-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/charizard-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/charizard-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/ditto-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/ditto-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/match-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/match-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/mew-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/mew-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/rocket-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/rocket-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/setup-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/setup-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/snorlax-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/snorlax-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/turn-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/turn-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/zapdos-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/zapdos-v1.webp"
+          },
+          "pokemon-encounters/tabletop/garden-table-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "tabletop/garden-table-v1.webp"
+          }
+        },
+        "releaseTag": "v1.0.6",
+        "offlineAsset": "TableMax-pokemon-encounters-original-v1.0.6-6d8e2befb3eda84c5bed07a2e2eb3a1e67ce5187b9374f4d1ea68ba4ea81f545-offline.zip"
+      },
+      {
+        "releaseId": "935147c6f57fdeb576f9f1cd1e6451db5f3fa08c8105630bdf0fc39720dfcf18",
+        "gameId": "pokemon-encounters",
+        "variantId": "expansion",
+        "module": {
+          "schemaVersion": 1,
+          "id": "pokemon-encounters",
+          "order": 0,
+          "internal": false,
+          "library": {
+            "tags": [
+              "卡牌",
+              "家庭",
+              "运气"
+            ],
+            "searchTerms": [
+              "Pokemon",
+              "皮卡丘",
+              "原版",
+              "九宫格",
+              "扩展版"
+            ],
+            "displayName": "宝可梦奇遇"
+          },
+          "catalog": {
+            "id": "pokemon-encounters",
+            "name": "宝可梦奇遇：皮卡丘和朋友们",
+            "min": 2,
+            "max": 6
+          },
+          "compatibility": {
+            "sdk": 1,
+            "protocol": 7,
+            "webHost": 1,
+            "rulesVersion": "tablemax-cn-s19-v1",
+            "stateVersion": 1,
+            "gameVersion": "1.0.0",
+            "strategyVersion": "1"
+          },
+          "entries": {
+            "rules": "rules/pokemon-encounters.cjs",
+            "bot": "bots/pokemon-encounters.cjs",
+            "web": "web/entry.js"
+          },
+          "cover": "assets/games/pokemon-encounters/cover-catalog-v2.webp",
+          "introduction": {
+            "tagline": "记住暗牌，换牌降分，发动宝可梦能力。",
+            "lead": "用换牌和宝可梦能力，让自己的六张牌总分最低。",
+            "steps": [
+              {
+                "icon": "cards",
+                "title": "六张牌，先翻一张",
+                "text": "每人六张暗牌排成两行，先选一张公开，记住自己的牌。"
+              },
+              {
+                "icon": "swap",
+                "title": "取牌，换牌，发动能力",
+                "text": "从牌库或弃牌堆取牌，换入自己的场地。特殊宝可梦还能看牌、交换或影响朋友。"
+              },
+              {
+                "icon": "pair",
+                "title": "配对，让分数更低",
+                "text": "同一列两张分值相同就计零分。有人六张牌全明、能力处理完后，大家一起结算。"
+              }
+            ],
+            "goal": "每小局总分最低者获一星，先拿三颗星获胜。"
+          },
+          "botIntroduction": {
+            "default": {
+              "lead": "比较取牌、换入、弃掉与配对，结合局势决定是否收局。",
+              "details": [
+                "记住最近 2 张本人私看牌，3 个本人普通回合后遗忘；保留 8 条公开行动及上一小局摘要。"
+              ]
+            },
+            "doubao": {
+              "lead": "用 8 组未知牌假设，前瞻最多 1 个本人后续回合。",
+              "details": [
+                "最多记住 6 张私看牌，8 回合后遗忘；保留 32 条公开行动及最近 2 小局，旧摘要权重减半。"
+              ]
+            },
+            "juewu": {
+              "lead": "用 32 组假设，结合全桌局势前瞻最多 2 个本人后续回合。",
+              "details": [
+                "本小局合法私看不主动遗忘，保留 128 条公开行动及整局摘要；考虑百变怪、供牌、共同赢家、结束与第三胜风险。只使用本人获准信息。"
+              ]
+            }
+          },
+          "guidance": true,
+          "defaultVariantId": "original",
+          "variants": [
+            {
+              "id": "original",
+              "name": "原版",
+              "description": "2×3，16类56张，三胜。",
+              "compatibility": {
+                "sdk": 1,
+                "protocol": 7,
+                "webHost": 1,
+                "rulesVersion": "tablemax-cn-s19-v1",
+                "stateVersion": 1,
+                "gameVersion": "1.0.0",
+                "strategyVersion": "1"
+              }
+            },
+            {
+              "id": "expansion",
+              "name": "扩展版",
+              "description": "3×3，34类112／144张，研究投票、三神任务与新能力，三胜。",
+              "introduction": {
+                "tagline": "九宫格成线，研究挑战，取舍风险与回报。",
+                "lead": "在九张牌之间换牌、调位和发动能力，用研究挑战改变结算与胜局奖励。",
+                "steps": [
+                  {
+                    "icon": "auction",
+                    "title": "先投票，再翻一张",
+                    "text": "每小局从三个候选研究中暗投选一项，再发九张暗牌，每人自行公开一格。"
+                  },
+                  {
+                    "icon": "swap",
+                    "title": "单弃牌、缓冲与普通调位",
+                    "text": "从牌库、弃牌顶或本人的缓冲区取牌；合法的暂持牌可以存入缓冲，也可用整个回合交换自己的两格。"
+                  },
+                  {
+                    "icon": "pair",
+                    "title": "三张同值成线",
+                    "text": "行、列或主对角线三张有效值相同便归零；研究的达成条件、奖励和风险会影响最终结果。"
+                  }
+                ],
+                "goal": "按研究修正后的结算争取胜局，先累计三胜结束大局。"
+              },
+              "compatibility": {
+                "sdk": 1,
+                "protocol": 7,
+                "webHost": 1,
+                "rulesVersion": "tablemax-cn-expansion-v1",
+                "stateVersion": 1,
+                "gameVersion": "1.0.0",
+                "strategyVersion": "1"
+              }
+            }
+          ],
+          "versions": [
+            {
+              "name": "原版",
+              "selected": true,
+              "description": "2×3 场地，16 类／56 张牌，三胜。"
+            },
+            {
+              "name": "扩展版",
+              "selected": false,
+              "description": "3×3场地，34类112／144张，研究投票、丰缘齐聚与新增能力。"
+            }
+          ],
+          "budgets": {
+            "payloadBytes": 4194304,
+            "serviceHeapBytes": 83886080,
+            "desktopHeapBytes": 37748736,
+            "phoneHeapBytes": 25165824,
+            "privateIncrementBytes": 898629632,
+            "workerOldGenerationMiB": 32,
+            "basis": "2026-10-05 one-time baseline: independent payload ×1.10; maxima of three real scenario runs ×1.25, rounded up to MiB. Evidence: artifacts/maintenance/v1.0.4/incremental-build-20261005/budgets/results.json. Sampled WebView2 heaps and owned process-tree private-byte increase from first box sample; full-match service heap measured separately."
+          },
+          "styles": [
+            "web/index-Dm7-YB2j.css"
+          ]
+        },
+        "code": "35b29e5bf5cd7c4991d89c8185140348b3149e65b606b3b0fd6773863377c68b",
+        "resources": [
+          "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+          "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32"
+        ],
+        "resourceMap": {
+          "pokemon-encounters/audio/bulbasaur-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/bulbasaur-user-v2.flac"
+          },
+          "pokemon-encounters/audio/charizard-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/charizard-v1.flac"
+          },
+          "pokemon-encounters/audio/draw-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/draw-v1.flac"
+          },
+          "pokemon-encounters/audio/eevee-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/eevee-user-v2.flac"
+          },
+          "pokemon-encounters/audio/effect-complete-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/effect-complete-v1.flac"
+          },
+          "pokemon-encounters/audio/error-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/error-v1.flac"
+          },
+          "pokemon-encounters/audio/gengar-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/gengar-user-v2.flac"
+          },
+          "pokemon-encounters/audio/jigglypuff-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/jigglypuff-user-v2.flac"
+          },
+          "pokemon-encounters/audio/match-result-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/match-result-v1.flac"
+          },
+          "pokemon-encounters/audio/meowth-coin-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/meowth-coin-user-v2.flac"
+          },
+          "pokemon-encounters/audio/mew-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/mew-v1.flac"
+          },
+          "pokemon-encounters/audio/pikachu-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/pikachu-user-v2.flac"
+          },
+          "pokemon-encounters/audio/replace-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/replace-v1.flac"
+          },
+          "pokemon-encounters/audio/rocket-return-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/rocket-return-v1.flac"
+          },
+          "pokemon-encounters/audio/round-result-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/round-result-v1.flac"
+          },
+          "pokemon-encounters/audio/snorlax-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/snorlax-v1.flac"
+          },
+          "pokemon-encounters/audio/squirtle-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/squirtle-user-v2.flac"
+          },
+          "pokemon-encounters/audio/team-rocket-entrance-user-v2.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/team-rocket-entrance-user-v2.flac"
+          },
+          "pokemon-encounters/audio/zapdos-v1.flac": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "audio/zapdos-v1.flac"
+          },
+          "pokemon-encounters/characters/coin-meowth-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/coin-meowth-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary--2-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary--2-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-0-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-0-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-1-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-1-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-3-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-3-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-4-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-4-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-5-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-5-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-6-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-6-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-7-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-7-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-8-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-8-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/ordinary-9-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/ordinary-9-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/special-charizard-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/special-charizard-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/special-ditto-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/special-ditto-v1.webp"
+          },
+          "pokemon-encounters/characters/special-mew-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/special-mew-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/special-snorlax-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/special-snorlax-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/special-team-rocket-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/special-team-rocket-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/characters/special-zapdos-official-lossless-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "characters/special-zapdos-official-lossless-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/charizard-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/charizard-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/ditto-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/ditto-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/match-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/match-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/mew-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/mew-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/rocket-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/rocket-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/setup-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/setup-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/snorlax-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/snorlax-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/turn-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/turn-v1.webp"
+          },
+          "pokemon-encounters/rules/illustrations-v1/zapdos-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "rules/illustrations-v1/zapdos-v1.webp"
+          },
+          "pokemon-encounters/tabletop/garden-table-v1.webp": {
+            "blobId": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+            "path": "tabletop/garden-table-v1.webp"
+          },
+          "pokemon-encounters/expansion/audio/arceus-theme-original-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/arceus-theme-original-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/arceus-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/arceus-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/charizard-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/charizard-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/ditto-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/ditto-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/dragonite-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/dragonite-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/garchomp-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/garchomp-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/gardevoir-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/gardevoir-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/greninja-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/greninja-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/groudon-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/groudon-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/kyogre-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/kyogre-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/lucario-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/lucario-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/magikarp-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/magikarp-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/metagross-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/metagross-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/mew-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/mew-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/mewtwo-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/mewtwo-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/mimikyu-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/mimikyu-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/mr-mime-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/mr-mime-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/onix-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/onix-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/piplup-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/piplup-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/psyduck-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/psyduck-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/rayquaza-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/rayquaza-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/rowlet-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/rowlet-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/slowpoke-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/slowpoke-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/snorlax-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/snorlax-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/togepi-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/togepi-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/vulpix-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/vulpix-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/zapdos-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/zapdos-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/cries/zorua-encyclopedia-cry-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/cries/zorua-encyclopedia-cry-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/greninja-theme-original-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/greninja-theme-original-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/groudon-theme-original-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/groudon-theme-original-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/kyogre-theme-original-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/kyogre-theme-original-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/lucario-theme-original-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/lucario-theme-original-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/mewtwo-theme-original-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/mewtwo-theme-original-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/rayquaza-theme-original-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/rayquaza-theme-original-v1.ogg"
+          },
+          "pokemon-encounters/expansion/audio/research-theme-original-v1.ogg": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/audio/research-theme-original-v1.ogg"
+          },
+          "pokemon-encounters/expansion/portraits/arceus-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/arceus-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/dragonite-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/dragonite-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/garchomp-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/garchomp-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/gardevoir-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/gardevoir-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/greninja-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/greninja-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/groudon-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/groudon-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/kyogre-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/kyogre-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/lucario-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/lucario-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/magikarp-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/magikarp-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/metagross-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/metagross-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/mewtwo-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/mewtwo-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/mimikyu-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/mimikyu-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/piplup-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/piplup-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/psyduck-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/psyduck-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/rayquaza-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/rayquaza-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/rowlet-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/rowlet-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/togepi-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/togepi-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/portraits/zorua-official-v1.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/portraits/zorua-official-v1.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/H01.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/H01.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/H02.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/H02.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/H03.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/H03.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/H04.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/H04.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/H05.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/H05.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/H06.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/H06.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R01.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R01.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R02.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R02.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R03.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R03.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R04.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R04.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R05.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R05.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R06.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R06.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R07.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R07.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R08.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R08.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R09.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R09.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R10.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R10.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R11.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R11.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R12.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R12.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R13.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R13.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R14.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R14.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R15.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R15.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R16.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R16.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R17.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R17.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R18.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R18.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R19.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R19.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R20.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R20.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R21.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R21.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R22.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R22.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R23.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R23.webp"
+          },
+          "pokemon-encounters/expansion/research-illustrations/R24.webp": {
+            "blobId": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+            "path": "expansion/research-illustrations/R24.webp"
+          }
+        },
+        "releaseTag": "v1.0.6",
+        "offlineAsset": "TableMax-pokemon-encounters-expansion-v1.0.6-9dacd6df5f4a07168a6786dc5b8244ec7b5b50a3d292cab46da5261e33737f23-offline.zip"
+      },
+      {
+        "releaseId": "dc8b410ce2cd2fc0641400787f2154ec34492ebb511f8d1b6d186d4fa0d10dad",
+        "gameId": "modern-art",
+        "module": {
+          "schemaVersion": 1,
+          "id": "modern-art",
+          "order": 1,
+          "internal": false,
+          "library": {
+            "tags": [
+              "拍卖",
+              "经济",
+              "策略"
+            ],
+            "searchTerms": [
+              "Modern Art",
+              "艺术",
+              "竞价"
+            ]
+          },
+          "catalog": {
+            "id": "modern-art",
+            "name": "现代艺术",
+            "min": 3,
+            "max": 5,
+            "decisionTimer": true
+          },
+          "compatibility": {
+            "sdk": 1,
+            "protocol": 7,
+            "webHost": 1,
+            "rulesVersion": "tablemax-modern-art-classic-v1",
+            "stateVersion": 1,
+            "gameVersion": "1.0.0",
+            "strategyVersion": "1.0.0"
+          },
+          "entries": {
+            "rules": "rules/modern-art.cjs",
+            "bot": "bots/modern-art.cjs",
+            "web": "web/entry.js"
+          },
+          "cover": "assets/games/modern-art/cover-v1.webp",
+          "introduction": {
+            "tagline": "拍卖画作，判断行情，用买卖赚取最多资金。",
+            "lead": "轮流拍卖画作，低价收藏热门画家，用买卖赚取最多资金。",
+            "steps": [
+              {
+                "icon": "auction",
+                "title": "出画，开启拍卖",
+                "text": "轮到你时打出画作，牌面图标决定拍卖方式：公开竞价、暗标、定价等。"
+              },
+              {
+                "icon": "painting",
+                "title": "竞价，收藏画作",
+                "text": "出价买下朋友的画，卖画则收取成交款。判断画家热度，别让买价超过作品价值。"
+              },
+              {
+                "icon": "coins",
+                "title": "抓住行情，结算收益",
+                "text": "同一画家第五张画出现时结束本轮。前三名热门画家的作品有价值，其余当轮不值钱。"
+              }
+            ],
+            "goal": "经营四轮，最终资金最多的玩家获胜。"
+          },
+          "botIntroduction": {
+            "default": {
+              "lead": "围绕当前轮行情选画与报价。",
+              "details": [
+                "记住最近 8 幅公开画作，换轮保留最近 2 幅。"
+              ]
+            },
+            "doubao": {
+              "lead": "比较收藏收益，并为下一轮保留画作与现金。",
+              "details": [
+                "记住最近 28 幅公开画作，换轮保留最近 14 幅。"
+              ]
+            },
+            "juewu": {
+              "lead": "比较所有剩余轮次的可能行情与收益。",
+              "details": [
+                "保留实际观察过的公开画作，最多 70 幅；以多种供给情景估算未来，不读取对手手牌或暗标。"
+              ]
+            }
+          },
+          "budgets": {
+            "payloadBytes": 3145728,
+            "serviceHeapBytes": 68157440,
+            "desktopHeapBytes": 26214400,
+            "phoneHeapBytes": 25165824,
+            "privateIncrementBytes": 1986002944,
+            "workerOldGenerationMiB": 32,
+            "basis": "2026-10-05 one-time baseline: independent payload ×1.10; maxima of three real scenario runs ×1.25, rounded up to MiB. Evidence: artifacts/maintenance/v1.0.4/incremental-build-20261005/budgets/results.json. Sampled WebView2 heaps and owned process-tree private-byte increase from first box sample; full-match service heap measured separately."
+          },
+          "styles": [
+            "web/index-Vu1AMr5N.css"
+          ]
+        },
+        "code": "011edadd418d6dc092a1f9880bd96a4444d05112db4dffbd9a4f295850f67c6f",
+        "resources": [
+          "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97"
+        ],
+        "resourceMap": {
+          "modern-art/audio/auction-fixed-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/auction-fixed-v2.flac"
+          },
+          "modern-art/audio/auction-once-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/auction-once-v2.flac"
+          },
+          "modern-art/audio/auction-open-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/auction-open-v2.flac"
+          },
+          "modern-art/audio/auction-sealed-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/auction-sealed-v2.flac"
+          },
+          "modern-art/audio/bid-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/bid-v2.flac"
+          },
+          "modern-art/audio/double-add-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/double-add-v2.flac"
+          },
+          "modern-art/audio/double-open-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/double-open-v2.flac"
+          },
+          "modern-art/audio/error-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/error-v2.flac"
+          },
+          "modern-art/audio/match-result-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/match-result-v2.flac"
+          },
+          "modern-art/audio/offer-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/offer-v2.flac"
+          },
+          "modern-art/audio/pass-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/pass-v2.flac"
+          },
+          "modern-art/audio/price-set-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/price-set-v2.flac"
+          },
+          "modern-art/audio/round-result-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/round-result-v2.flac"
+          },
+          "modern-art/audio/round-start-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/round-start-v2.flac"
+          },
+          "modern-art/audio/sale-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/sale-v2.flac"
+          },
+          "modern-art/audio/sealed-submit-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/sealed-submit-v2.flac"
+          },
+          "modern-art/audio/time-elapsed-v2.flac": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "audio/time-elapsed-v2.flac"
+          },
+          "modern-art/daniel-atlas-v1.webp": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "daniel-atlas-v1.webp"
+          },
+          "modern-art/manuel-atlas-v1.webp": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "manuel-atlas-v1.webp"
+          },
+          "modern-art/rafael-atlas-v1.webp": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "rafael-atlas-v1.webp"
+          },
+          "modern-art/ramon-atlas-v1.webp": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "ramon-atlas-v1.webp"
+          },
+          "modern-art/rules/illustrations-v2/auction-double.webp": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "rules/illustrations-v2/auction-double.webp"
+          },
+          "modern-art/rules/illustrations-v2/auction-fixed.webp": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "rules/illustrations-v2/auction-fixed.webp"
+          },
+          "modern-art/rules/illustrations-v2/auction-once.webp": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "rules/illustrations-v2/auction-once.webp"
+          },
+          "modern-art/rules/illustrations-v2/auction-open.webp": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "rules/illustrations-v2/auction-open.webp"
+          },
+          "modern-art/rules/illustrations-v2/auction-sealed.webp": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "rules/illustrations-v2/auction-sealed.webp"
+          },
+          "modern-art/rules/illustrations-v2/hand-to-auction.webp": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "rules/illustrations-v2/hand-to-auction.webp"
+          },
+          "modern-art/rules/illustrations-v2/history-value.webp": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "rules/illustrations-v2/history-value.webp"
+          },
+          "modern-art/rules/illustrations-v2/round-trigger.webp": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "rules/illustrations-v2/round-trigger.webp"
+          },
+          "modern-art/rules/illustrations-v2/settlement.webp": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "rules/illustrations-v2/settlement.webp"
+          },
+          "modern-art/sigrid-atlas-v1.webp": {
+            "blobId": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+            "path": "sigrid-atlas-v1.webp"
+          }
+        },
+        "releaseTag": "v1.0.6",
+        "offlineAsset": "TableMax-modern-art-v1.0.6-448d922a426cb3e8191b8089bd9d8e6cb152abe71b90ccb897612e1710c6e4ee-offline.zip"
+      },
+      {
+        "releaseId": "b5d9df71904c62e677aee38e2e7dd93f95ebb8abf4572837b79ef159420fb02b",
+        "gameId": "power-grid",
+        "module": {
+          "schemaVersion": 1,
+          "id": "power-grid",
+          "order": 2,
+          "internal": false,
+          "library": {
+            "tags": [
+              "经营",
+              "经济",
+              "策略",
+              "德式"
+            ],
+            "searchTerms": [
+              "Power Grid",
+              "发电",
+              "经典德国"
+            ]
+          },
+          "catalog": {
+            "id": "power-grid",
+            "name": "电力公司",
+            "min": 2,
+            "max": 6,
+            "decisionTimer": true
+          },
+          "compatibility": {
+            "sdk": 1,
+            "protocol": 7,
+            "webHost": 1,
+            "rulesVersion": "classic-germany-2009-project-1",
+            "stateVersion": 1,
+            "gameVersion": "1.0.1",
+            "strategyVersion": "1.0.1"
+          },
+          "entries": {
+            "rules": "rules/power-grid.cjs",
+            "bot": "bots/power-grid.cjs",
+            "web": "web/entry.js"
+          },
+          "cover": "assets/games/power-grid/cover-v1.webp",
+          "introduction": {
+            "tagline": "德国电网，运筹竞逐",
+            "lead": "经营自己的电力公司，竞拍电厂、采购燃料，把供电网络连接到德国各地。",
+            "steps": [
+              {
+                "icon": "auction",
+                "title": "竞拍电厂",
+                "text": "选择合适的发电能力，把握竞价与资金储备。"
+              },
+              {
+                "icon": "coins",
+                "title": "燃料与建设",
+                "text": "采购市场燃料，支付连接费用，扩大城市网络。"
+              },
+              {
+                "icon": "cards",
+                "title": "发电收入",
+                "text": "决定启动哪些电厂，获得收入，迎接下一轮。"
+              }
+            ],
+            "goal": "终局实际供电城市最多者获胜；同分时比较剩余现金。"
+          },
+          "botIntroduction": {
+            "default": {
+              "lead": "按基础产能与费用购厂、买料和建城。",
+              "details": [
+                "通常预备一次运行，选择便宜的起点与连接。"
+              ]
+            },
+            "doubao": {
+              "lead": "权衡升级效率、燃料成本与扩城预算。",
+              "details": [
+                "按实际可发电产能扩城，避免明显不利的提前终局。"
+              ]
+            },
+            "juewu": {
+              "lead": "结合公开对手产能、城市拥挤与终局节奏规划。",
+              "details": [
+                "前中期最多预备两次运行，比较后续连接成本与燃料需求。"
+              ]
+            }
+          },
+          "budgets": {
+            "payloadBytes": 2097152,
+            "serviceHeapBytes": 127926272,
+            "desktopHeapBytes": 42991616,
+            "phoneHeapBytes": 45088768,
+            "privateIncrementBytes": 1402994688,
+            "workerOldGenerationMiB": 32,
+            "basis": "2026-10-05 one-time baseline: independent payload ×1.10; maxima of three real scenario runs ×1.25, rounded up to MiB. Evidence: artifacts/maintenance/v1.0.4/incremental-build-20261005/budgets/results.json. Sampled WebView2 heaps and owned process-tree private-byte increase from first box sample; full-match service heap measured separately."
+          },
+          "styles": [
+            "web/index-Bn4EK8S1.css"
+          ]
+        },
+        "code": "56b99d61a3e96472e604c202c29c7bb1714df099754ae65b5d2cfba08a9142c2",
+        "resources": [
+          "73a2788502f039baaa890acf56163b428c3682dba1d8a183dead071d34296c25"
+        ],
+        "resourceMap": {
+          "power-grid/audio/bid-v2.flac": {
+            "blobId": "73a2788502f039baaa890acf56163b428c3682dba1d8a183dead071d34296c25",
+            "path": "audio/bid-v2.flac"
+          },
+          "power-grid/audio/build-v2.flac": {
+            "blobId": "73a2788502f039baaa890acf56163b428c3682dba1d8a183dead071d34296c25",
+            "path": "audio/build-v2.flac"
+          },
+          "power-grid/audio/end-v2.flac": {
+            "blobId": "73a2788502f039baaa890acf56163b428c3682dba1d8a183dead071d34296c25",
+            "path": "audio/end-v2.flac"
+          },
+          "power-grid/audio/fuel-v2.flac": {
+            "blobId": "73a2788502f039baaa890acf56163b428c3682dba1d8a183dead071d34296c25",
+            "path": "audio/fuel-v2.flac"
+          },
+          "power-grid/audio/plant-v2.flac": {
+            "blobId": "73a2788502f039baaa890acf56163b428c3682dba1d8a183dead071d34296c25",
+            "path": "audio/plant-v2.flac"
+          },
+          "power-grid/audio/run-v2.flac": {
+            "blobId": "73a2788502f039baaa890acf56163b428c3682dba1d8a183dead071d34296c25",
+            "path": "audio/run-v2.flac"
+          },
+          "power-grid/board-v2.webp": {
+            "blobId": "73a2788502f039baaa890acf56163b428c3682dba1d8a183dead071d34296c25",
+            "path": "board-v2.webp"
+          },
+          "power-grid/board-v3-expanded.webp": {
+            "blobId": "73a2788502f039baaa890acf56163b428c3682dba1d8a183dead071d34296c25",
+            "path": "board-v3-expanded.webp"
+          },
+          "power-grid/cover-v1.webp": {
+            "blobId": "73a2788502f039baaa890acf56163b428c3682dba1d8a183dead071d34296c25",
+            "path": "cover-v1.webp"
+          },
+          "power-grid/plants-atlas-v1.webp": {
+            "blobId": "73a2788502f039baaa890acf56163b428c3682dba1d8a183dead071d34296c25",
+            "path": "plants-atlas-v1.webp"
+          },
+          "power-grid/rules/illustrations-v1/fuels-atlas-v1.webp": {
+            "blobId": "73a2788502f039baaa890acf56163b428c3682dba1d8a183dead071d34296c25",
+            "path": "rules/illustrations-v1/fuels-atlas-v1.webp"
+          },
+          "power-grid/rules/illustrations-v1/house-v1.webp": {
+            "blobId": "73a2788502f039baaa890acf56163b428c3682dba1d8a183dead071d34296c25",
+            "path": "rules/illustrations-v1/house-v1.webp"
+          }
+        },
+        "releaseTag": "v1.0.6",
+        "offlineAsset": "TableMax-power-grid-v1.0.6-4d828e950ab95fdccbc4be4c510fea515fbb52b607b9771434aad2c9b802dd78-offline.zip"
+      },
+      {
+        "releaseId": "608427a169033a9fcb76e99aea51349f841b7319eda0afe6dd8cacbe11304a92",
+        "gameId": "rummikub",
+        "module": {
+          "schemaVersion": 1,
+          "id": "rummikub",
+          "order": 3,
+          "internal": false,
+          "development": false,
+          "library": {
+            "tags": [
+              "数字",
+              "组合",
+              "家庭"
+            ],
+            "searchTerms": [
+              "Rummikub",
+              "拉米"
+            ]
+          },
+          "catalog": {
+            "id": "rummikub",
+            "name": "拉密",
+            "min": 2,
+            "max": 4,
+            "decisionTimer": true
+          },
+          "compatibility": {
+            "sdk": 1,
+            "protocol": 7,
+            "webHost": 1,
+            "rulesVersion": "classic-2025-digital-v1",
+            "stateVersion": 1,
+            "gameVersion": "1.0.0",
+            "strategyVersion": "1.0.0"
+          },
+          "entries": {
+            "rules": "rules/rummikub.cjs",
+            "bot": "bots/rummikub.cjs",
+            "web": "web/entry.js"
+          },
+          "cover": "assets/games/rummikub/cover-v1.webp",
+          "introduction": {
+            "tagline": "组合数字牌，重排桌面，率先清空牌架。",
+            "lead": "拼出同数异色的组和同色连续的顺，巧妙重组整桌牌，让自己的牌全部落桌。",
+            "steps": [
+              {
+                "icon": "cards",
+                "title": "首次落桌至少 30 点",
+                "text": "每人持有 14 张牌。首次落桌只用自己的牌，组成至少 30 点的合法组或顺。"
+              },
+              {
+                "icon": "table",
+                "title": "拆组，补牌，重组桌面",
+                "text": "完成首出后的回合可自由重组桌面。所有牌必须留在合法组合中，百搭牌释放后须当回合重用。"
+              },
+              {
+                "icon": "trophy",
+                "title": "一次提交，清空牌架",
+                "text": "在自己的草稿中调整组合，确认整回合后统一保存。无法出牌时摸一张，率先清空者赢下本局。"
+              }
+            ],
+            "goal": "默认一轮、每位玩家对应一局。最终先比赢局数，再比累计分。"
+          },
+          "botIntroduction": {
+            "default": {
+              "lead": "寻找牌架组合与直接补牌机会。",
+              "details": [
+                "只根据本人牌架和公开桌面作决定。"
+              ]
+            },
+            "doubao": {
+              "lead": "比较多组出牌，并尝试局部拆分与重组。",
+              "details": [
+                "用有界搜索兼顾出牌数量和保留组合。"
+              ]
+            },
+            "juewu": {
+              "lead": "搜索全桌重组机会，评估出牌与剩余牌架。",
+              "details": [
+                "公开桌面与本人牌架的有界规划，不读取对手手牌或牌库顺序。"
+              ]
+            }
+          },
+          "budgets": {
+            "payloadBytes": 1048576,
+            "serviceHeapBytes": 67108864,
+            "desktopHeapBytes": 33554432,
+            "phoneHeapBytes": 33554432,
+            "privateIncrementBytes": 536870912,
+            "workerOldGenerationMiB": 32,
+            "basis": "Original warning allocations retained. Candidate afa4c170: payload 233402 B; 2/3/4-seat natural-match service V8 heap peak 66050336 B; actual Worker V8 old-generation limit 32 MiB. Three normal ScreenLink/no-screenshot fixed-window entry/game phases before first explicit GC: phone page heap max 20336428 B, desktop max 13333428 B, owned process-tree private peak minus host-only box max 527130624 B. Whole-page/iframe and process-tree measurements include shared platform costs. Return-to-box samples after diagnostic GC do not prove an uncollected full round trip. Full reload/continuous 4K screenshot pressure exceeded phone/private allocations; warnings remain in docs/games/rummikub/validation-scenarios.md. These samples do not establish worst-case bounds."
+          },
+          "styles": [
+            "web/index-DJwKhzws.css"
+          ]
+        },
+        "code": "9e740861d1b2167ac9d8a7df818132a6aa310c2a5e44b15b4994544d37dd47d2",
+        "resources": [
+          "a92232f2776327165f4b7fc7d0e0c28df397ab6118052b775d0d671b218805e9"
+        ],
+        "resourceMap": {
+          "rummikub/audio/draw-v1.wav": {
+            "blobId": "a92232f2776327165f4b7fc7d0e0c28df397ab6118052b775d0d671b218805e9",
+            "path": "audio/draw-v1.wav"
+          },
+          "rummikub/audio/place-v1.wav": {
+            "blobId": "a92232f2776327165f4b7fc7d0e0c28df397ab6118052b775d0d671b218805e9",
+            "path": "audio/place-v1.wav"
+          },
+          "rummikub/audio/win-v1.wav": {
+            "blobId": "a92232f2776327165f4b7fc7d0e0c28df397ab6118052b775d0d671b218805e9",
+            "path": "audio/win-v1.wav"
+          }
+        },
+        "releaseTag": "v1.0.6",
+        "offlineAsset": "TableMax-rummikub-v1.0.6-dd4133fa0fed866bdb40f04b3ad5c2db33b1769375a16f5f2bee4cff320458e0-offline.zip"
+      },
+      {
+        "releaseId": "ae4cc0220d7d9d50601de493e6edeadca6dd24351a633cc130b3bf740aefbcf8",
+        "gameId": "uno",
+        "module": {
+          "schemaVersion": 1,
+          "id": "uno",
+          "order": 4,
+          "internal": false,
+          "development": false,
+          "library": {
+            "tags": [
+              "卡牌",
+              "聚会",
+              "家庭"
+            ],
+            "searchTerms": [
+              "UNO",
+              "乌诺",
+              "四色"
+            ]
+          },
+          "catalog": {
+            "id": "uno",
+            "name": "UNO",
+            "min": 2,
+            "max": 6,
+            "decisionTimer": true
+          },
+          "compatibility": {
+            "sdk": 1,
+            "protocol": 7,
+            "webHost": 1,
+            "rulesVersion": "classic-108-g7942-1",
+            "stateVersion": 1,
+            "gameVersion": "1.0.0",
+            "strategyVersion": "1.0.0"
+          },
+          "entries": {
+            "rules": "rules/uno.cjs",
+            "bot": "bots/uno.cjs",
+            "web": "web/entry.js"
+          },
+          "cover": "assets/games/uno/cover-v1.webp",
+          "introduction": {
+            "tagline": "四色接龙，逆转局势，最后一张喊 UNO！",
+            "lead": "把手中的实体四色牌一张张接上桌面：跟颜色、跟数字，或用功能牌改变节奏。先清空手牌，赢取对手留下的分数。",
+            "steps": [
+              {
+                "icon": "cards",
+                "title": "同色、同数字或同功能",
+                "text": "每人七张牌，轮到你时出一张匹配牌，也可主动摸一张。摸牌后只能打出刚摸到的牌。"
+              },
+              {
+                "icon": "table",
+                "title": "反转、跳过与变色",
+                "text": "功能牌改变轮转与颜色。+2 和 +4 按经典规则直接罚摸，+4 的下一位可提出质疑。"
+              },
+              {
+                "icon": "trophy",
+                "title": "剩一张时喊 UNO",
+                "text": "出到剩一张时记得喊 UNO，漏喊可被抓并罚摸两张。先出完赢下小局，累计达到 500 分赢得整场。"
+              }
+            ],
+            "goal": "经典 108 张牌，2–6 人；采用 Mattel G7942 同版规则与两人特别规则。"
+          },
+          "botIntroduction": {
+            "default": {
+              "lead": "优先出普通牌，选择手中较多的颜色。",
+              "details": [
+                "本人手牌和公开场面决定合法选择；覆盖抽牌、选色、质疑和 UNO。"
+              ]
+            },
+            "doubao": {
+              "lead": "比较颜色后续与功能牌的节奏收益。",
+              "details": [
+                "兼顾剩余手牌、下家牌数和当前攻击压力。"
+              ]
+            },
+            "juewu": {
+              "lead": "结合公开出牌、授权记忆与后续衔接安排留牌。",
+              "details": [
+                "只根据授权观察估计风险，使用有界策略，不读取别人手牌或牌库顺序。"
+              ]
+            }
+          },
+          "budgets": {
+            "payloadBytes": 1048576,
+            "serviceHeapBytes": 67108864,
+            "desktopHeapBytes": 33554432,
+            "phoneHeapBytes": 33554432,
+            "privateIncrementBytes": 536870912,
+            "workerOldGenerationMiB": 32,
+            "basis": "Initial agent allocations for 108-card partition, bounded public history and local strategy: 1MiB payload, 64MiB service, 32MiB per renderer, 512MiB owned private increment. Warning allocations pending actual measurement; not a worst-case claim."
+          },
+          "styles": [
+            "web/index-xDCo-lnp.css"
+          ]
+        },
+        "code": "ff6bd480c90ae510e8fb5d370dd2f3f28460283bc995e585885d9c0403630aa1",
+        "resources": [
+          "2fdcdf21c7ba3de4da10681c1ab8fadf2f15d5954a2e0e708e6c8e17d5ab4939"
+        ],
+        "resourceMap": {
+          "uno/audio/catch-uno-v1.flac": {
+            "blobId": "2fdcdf21c7ba3de4da10681c1ab8fadf2f15d5954a2e0e708e6c8e17d5ab4939",
+            "path": "audio/catch-uno-v1.flac"
+          },
+          "uno/audio/challenge-v1.flac": {
+            "blobId": "2fdcdf21c7ba3de4da10681c1ab8fadf2f15d5954a2e0e708e6c8e17d5ab4939",
+            "path": "audio/challenge-v1.flac"
+          },
+          "uno/audio/draw-four-v1.flac": {
+            "blobId": "2fdcdf21c7ba3de4da10681c1ab8fadf2f15d5954a2e0e708e6c8e17d5ab4939",
+            "path": "audio/draw-four-v1.flac"
+          },
+          "uno/audio/draw-two-v1.flac": {
+            "blobId": "2fdcdf21c7ba3de4da10681c1ab8fadf2f15d5954a2e0e708e6c8e17d5ab4939",
+            "path": "audio/draw-two-v1.flac"
+          },
+          "uno/audio/draw-v1.flac": {
+            "blobId": "2fdcdf21c7ba3de4da10681c1ab8fadf2f15d5954a2e0e708e6c8e17d5ab4939",
+            "path": "audio/draw-v1.flac"
+          },
+          "uno/audio/place-v1.flac": {
+            "blobId": "2fdcdf21c7ba3de4da10681c1ab8fadf2f15d5954a2e0e708e6c8e17d5ab4939",
+            "path": "audio/place-v1.flac"
+          },
+          "uno/audio/reverse-v1.flac": {
+            "blobId": "2fdcdf21c7ba3de4da10681c1ab8fadf2f15d5954a2e0e708e6c8e17d5ab4939",
+            "path": "audio/reverse-v1.flac"
+          },
+          "uno/audio/skip-v1.flac": {
+            "blobId": "2fdcdf21c7ba3de4da10681c1ab8fadf2f15d5954a2e0e708e6c8e17d5ab4939",
+            "path": "audio/skip-v1.flac"
+          },
+          "uno/audio/uno-v1.flac": {
+            "blobId": "2fdcdf21c7ba3de4da10681c1ab8fadf2f15d5954a2e0e708e6c8e17d5ab4939",
+            "path": "audio/uno-v1.flac"
+          },
+          "uno/audio/wild-v1.flac": {
+            "blobId": "2fdcdf21c7ba3de4da10681c1ab8fadf2f15d5954a2e0e708e6c8e17d5ab4939",
+            "path": "audio/wild-v1.flac"
+          },
+          "uno/audio/win-v1.flac": {
+            "blobId": "2fdcdf21c7ba3de4da10681c1ab8fadf2f15d5954a2e0e708e6c8e17d5ab4939",
+            "path": "audio/win-v1.flac"
+          },
+          "uno/table-v1.webp": {
+            "blobId": "2fdcdf21c7ba3de4da10681c1ab8fadf2f15d5954a2e0e708e6c8e17d5ab4939",
+            "path": "table-v1.webp"
+          }
+        },
+        "releaseTag": "v1.0.6",
+        "offlineAsset": "TableMax-uno-v1.0.6-d696fea460c51101fdb5e34466242905e60c99828584f8c232bbb1f54f4fecb7-offline.zip"
+      },
+      {
+        "releaseId": "839bc4bfa73a44bea85db6bea37244ce3f9398fb06e7cb35239b838b04d70130",
+        "gameId": "avalon",
+        "variantId": "classic",
+        "module": {
+          "schemaVersion": 1,
+          "id": "avalon",
+          "order": 5,
+          "internal": false,
+          "development": false,
+          "library": {
+            "tags": [
+              "身份",
+              "推理",
+              "聚会",
+              "卡牌"
+            ],
+            "searchTerms": [
+              "Avalon",
+              "The Resistance",
+              "阿瓦隆",
+              "梅林",
+              "刺客",
+              "圆桌骑士"
+            ]
+          },
+          "catalog": {
+            "id": "avalon",
+            "name": "阿瓦隆",
+            "min": 5,
+            "max": 10,
+            "decisionTimer": true
+          },
+          "compatibility": {
+            "sdk": 1,
+            "protocol": 7,
+            "webHost": 1,
+            "rulesVersion": "classic-2012-1",
+            "stateVersion": 1,
+            "gameVersion": "1.0.0",
+            "strategyVersion": "1.0.0"
+          },
+          "entries": {
+            "rules": "rules/avalon.cjs",
+            "bot": "bots/avalon.cjs",
+            "web": "web/entry.js"
+          },
+          "cover": "assets/games/avalon/cover.webp",
+          "introduction": {
+            "tagline": "圆桌之上，忠诚与谎言同行。",
+            "lead": "亚瑟的骑士中潜藏着莫德雷德的爪牙。提名任务队伍，秘密投票；梅林知晓邪恶，却必须隐藏自己。",
+            "steps": [
+              {
+                "icon": "cards",
+                "title": "查看身份，守住秘密",
+                "text": "每人获得一张秘密角色牌。梅林知道邪恶是谁，邪恶互相知晓；忠臣只能从讨论与公开记录推理。"
+              },
+              {
+                "icon": "table",
+                "title": "组队、密投与任务",
+                "text": "队长提名队伍，全员秘密投票，过半赞成才出征。通常一张失败牌就失败；7人以上第四任务需要两张。"
+              },
+              {
+                "icon": "trophy",
+                "title": "三次任务与最后一刺",
+                "text": "三次任务失败或连续五次组队被否决，邪恶获胜。三次任务成功后，刺客仍可指认梅林逆转胜负。"
+              }
+            ],
+            "goal": "2012经典原版，平台支持5–10人；基础角色及派西维尔／莫甘娜宫廷组合。"
+          },
+          "botIntroduction": {
+            "default": {
+              "lead": "以本人身份和最近任务结果作简单组队与投票。",
+              "details": [
+                "覆盖确认身份、提名、投票、任务牌及刺杀；未知角色始终未知。"
+              ]
+            },
+            "doubao": {
+              "lead": "结合最近两次任务，比较安全队伍与失败风险。",
+              "details": [
+                "用公开失败张数筛选阵营假设；已知邪恶同伴按任务门槛安排破坏。"
+              ]
+            },
+            "juewu": {
+              "lead": "比较全部公开任务与逐人投票，评估阵营与梅林线索。",
+              "details": [
+                "最多枚举210组邪恶身份假设，成功任务不直接判定忠诚；只使用本人授权投影，本地运行，不承诺必胜。"
+              ]
+            }
+          },
+          "defaultVariantId": "classic",
+          "variants": [
+            {
+              "id": "classic",
+              "name": "经典基础",
+              "description": "梅林、刺客、忠臣与爪牙；5–6人。",
+              "compatibility": {
+                "sdk": 1,
+                "protocol": 7,
+                "webHost": 1,
+                "rulesVersion": "classic-2012-1",
+                "stateVersion": 1,
+                "gameVersion": "1.0.0",
+                "strategyVersion": "1.0.0"
+              }
+            },
+            {
+              "id": "court",
+              "name": "宫廷迷局",
+              "description": "加入原版派西维尔与莫甘娜；派西维尔看见两位梅林候选。",
+              "compatibility": {
+                "sdk": 1,
+                "protocol": 7,
+                "webHost": 1,
+                "rulesVersion": "classic-2012-court-1",
+                "stateVersion": 1,
+                "gameVersion": "1.0.0",
+                "strategyVersion": "1.0.0"
+              }
+            }
+          ],
+          "budgets": {
+            "payloadBytes": 4194304,
+            "serviceHeapBytes": 67108864,
+            "desktopHeapBytes": 50331648,
+            "phoneHeapBytes": 33554432,
+            "privateIncrementBytes": 536870912,
+            "workerOldGenerationMiB": 32,
+            "basis": "Initial reviewed resource allocation: 4MiB complete module payload includes up to 3MiB original WebP illustrations, twelve local FLAC cues and code. This disk metric is distinct from RoomView JSON; the earlier 1MiB JSON placeholder was corrected before delivery. Six seats, at most 25 proposals, five quest records and 15 authorized faction hypotheses; service/renderer/32MiB Worker allocations stay fixed pending measurement, not worst-case claims."
+          },
+          "styles": [
+            "web/index-Y2IcWkDO.css"
+          ]
+        },
+        "code": "6f6a7be6cfe0f6a8bc3e8c01788083266dd03939ced95af2bfe5c4ebd0564b40",
+        "resources": [
+          "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b"
+        ],
+        "resourceMap": {
+          "avalon/audio/approved-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/approved-v1.flac"
+          },
+          "avalon/audio/assassination-evil-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/assassination-evil-v1.flac"
+          },
+          "avalon/audio/assassination-good-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/assassination-good-v1.flac"
+          },
+          "avalon/audio/assassination-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/assassination-v1.flac"
+          },
+          "avalon/audio/ballot-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/ballot-v1.flac"
+          },
+          "avalon/audio/evil-win-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/evil-win-v1.flac"
+          },
+          "avalon/audio/good-win-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/good-win-v1.flac"
+          },
+          "avalon/audio/pledge-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/pledge-v1.flac"
+          },
+          "avalon/audio/quest-fail-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/quest-fail-v1.flac"
+          },
+          "avalon/audio/quest-success-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/quest-success-v1.flac"
+          },
+          "avalon/audio/rejected-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/rejected-v1.flac"
+          },
+          "avalon/audio/team-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/team-v1.flac"
+          },
+          "avalon/council.webp": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "council.webp"
+          },
+          "avalon/effect-relics.webp": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "effect-relics.webp"
+          },
+          "avalon/roles.webp": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "roles.webp"
+          }
+        },
+        "releaseTag": "v1.0.6",
+        "offlineAsset": "TableMax-avalon-classic-v1.0.6-8c367d2049617700a0c7cf474004fd0bb6941cabed805ef3611e88dda4b91116-offline.zip"
+      },
+      {
+        "releaseId": "cd3a0dc6e6e5413cd73450d8d0bbb31e387cb4bea4d71bbebb00f901d1a1c123",
+        "gameId": "avalon",
+        "variantId": "court",
+        "module": {
+          "schemaVersion": 1,
+          "id": "avalon",
+          "order": 5,
+          "internal": false,
+          "development": false,
+          "library": {
+            "tags": [
+              "身份",
+              "推理",
+              "聚会",
+              "卡牌"
+            ],
+            "searchTerms": [
+              "Avalon",
+              "The Resistance",
+              "阿瓦隆",
+              "梅林",
+              "刺客",
+              "圆桌骑士"
+            ]
+          },
+          "catalog": {
+            "id": "avalon",
+            "name": "阿瓦隆",
+            "min": 5,
+            "max": 10,
+            "decisionTimer": true
+          },
+          "compatibility": {
+            "sdk": 1,
+            "protocol": 7,
+            "webHost": 1,
+            "rulesVersion": "classic-2012-1",
+            "stateVersion": 1,
+            "gameVersion": "1.0.0",
+            "strategyVersion": "1.0.0"
+          },
+          "entries": {
+            "rules": "rules/avalon.cjs",
+            "bot": "bots/avalon.cjs",
+            "web": "web/entry.js"
+          },
+          "cover": "assets/games/avalon/cover.webp",
+          "introduction": {
+            "tagline": "圆桌之上，忠诚与谎言同行。",
+            "lead": "亚瑟的骑士中潜藏着莫德雷德的爪牙。提名任务队伍，秘密投票；梅林知晓邪恶，却必须隐藏自己。",
+            "steps": [
+              {
+                "icon": "cards",
+                "title": "查看身份，守住秘密",
+                "text": "每人获得一张秘密角色牌。梅林知道邪恶是谁，邪恶互相知晓；忠臣只能从讨论与公开记录推理。"
+              },
+              {
+                "icon": "table",
+                "title": "组队、密投与任务",
+                "text": "队长提名队伍，全员秘密投票，过半赞成才出征。通常一张失败牌就失败；7人以上第四任务需要两张。"
+              },
+              {
+                "icon": "trophy",
+                "title": "三次任务与最后一刺",
+                "text": "三次任务失败或连续五次组队被否决，邪恶获胜。三次任务成功后，刺客仍可指认梅林逆转胜负。"
+              }
+            ],
+            "goal": "2012经典原版，平台支持5–10人；基础角色及派西维尔／莫甘娜宫廷组合。"
+          },
+          "botIntroduction": {
+            "default": {
+              "lead": "以本人身份和最近任务结果作简单组队与投票。",
+              "details": [
+                "覆盖确认身份、提名、投票、任务牌及刺杀；未知角色始终未知。"
+              ]
+            },
+            "doubao": {
+              "lead": "结合最近两次任务，比较安全队伍与失败风险。",
+              "details": [
+                "用公开失败张数筛选阵营假设；已知邪恶同伴按任务门槛安排破坏。"
+              ]
+            },
+            "juewu": {
+              "lead": "比较全部公开任务与逐人投票，评估阵营与梅林线索。",
+              "details": [
+                "最多枚举210组邪恶身份假设，成功任务不直接判定忠诚；只使用本人授权投影，本地运行，不承诺必胜。"
+              ]
+            }
+          },
+          "defaultVariantId": "classic",
+          "variants": [
+            {
+              "id": "classic",
+              "name": "经典基础",
+              "description": "梅林、刺客、忠臣与爪牙；5–6人。",
+              "compatibility": {
+                "sdk": 1,
+                "protocol": 7,
+                "webHost": 1,
+                "rulesVersion": "classic-2012-1",
+                "stateVersion": 1,
+                "gameVersion": "1.0.0",
+                "strategyVersion": "1.0.0"
+              }
+            },
+            {
+              "id": "court",
+              "name": "宫廷迷局",
+              "description": "加入原版派西维尔与莫甘娜；派西维尔看见两位梅林候选。",
+              "compatibility": {
+                "sdk": 1,
+                "protocol": 7,
+                "webHost": 1,
+                "rulesVersion": "classic-2012-court-1",
+                "stateVersion": 1,
+                "gameVersion": "1.0.0",
+                "strategyVersion": "1.0.0"
+              }
+            }
+          ],
+          "budgets": {
+            "payloadBytes": 4194304,
+            "serviceHeapBytes": 67108864,
+            "desktopHeapBytes": 50331648,
+            "phoneHeapBytes": 33554432,
+            "privateIncrementBytes": 536870912,
+            "workerOldGenerationMiB": 32,
+            "basis": "Initial reviewed resource allocation: 4MiB complete module payload includes up to 3MiB original WebP illustrations, twelve local FLAC cues and code. This disk metric is distinct from RoomView JSON; the earlier 1MiB JSON placeholder was corrected before delivery. Six seats, at most 25 proposals, five quest records and 15 authorized faction hypotheses; service/renderer/32MiB Worker allocations stay fixed pending measurement, not worst-case claims."
+          },
+          "styles": [
+            "web/index-Y2IcWkDO.css"
+          ]
+        },
+        "code": "6f6a7be6cfe0f6a8bc3e8c01788083266dd03939ced95af2bfe5c4ebd0564b40",
+        "resources": [
+          "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b"
+        ],
+        "resourceMap": {
+          "avalon/audio/approved-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/approved-v1.flac"
+          },
+          "avalon/audio/assassination-evil-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/assassination-evil-v1.flac"
+          },
+          "avalon/audio/assassination-good-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/assassination-good-v1.flac"
+          },
+          "avalon/audio/assassination-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/assassination-v1.flac"
+          },
+          "avalon/audio/ballot-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/ballot-v1.flac"
+          },
+          "avalon/audio/evil-win-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/evil-win-v1.flac"
+          },
+          "avalon/audio/good-win-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/good-win-v1.flac"
+          },
+          "avalon/audio/pledge-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/pledge-v1.flac"
+          },
+          "avalon/audio/quest-fail-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/quest-fail-v1.flac"
+          },
+          "avalon/audio/quest-success-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/quest-success-v1.flac"
+          },
+          "avalon/audio/rejected-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/rejected-v1.flac"
+          },
+          "avalon/audio/team-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/team-v1.flac"
+          },
+          "avalon/council.webp": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "council.webp"
+          },
+          "avalon/effect-relics.webp": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "effect-relics.webp"
+          },
+          "avalon/roles.webp": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "roles.webp"
+          }
+        },
+        "releaseTag": "v1.0.6",
+        "offlineAsset": "TableMax-avalon-court-v1.0.6-0fa7303f2a8d092b356122582aae9238674d83a0af17f1b127c951ed89df6479-offline.zip"
+      },
+      {
+        "releaseId": "926c381b53a7e72a1e8c5eba3b5e07305b360453a9367d8767320e1450e4bab5",
+        "gameId": "avalon",
+        "variantId": "classic",
+        "module": {
+          "schemaVersion": 1,
+          "id": "avalon",
+          "order": 5,
+          "internal": false,
+          "development": false,
+          "library": {
+            "tags": [
+              "身份",
+              "推理",
+              "聚会",
+              "卡牌"
+            ],
+            "searchTerms": [
+              "Avalon",
+              "The Resistance",
+              "阿瓦隆",
+              "梅林",
+              "刺客",
+              "圆桌骑士"
+            ]
+          },
+          "catalog": {
+            "id": "avalon",
+            "name": "阿瓦隆",
+            "min": 5,
+            "max": 10,
+            "decisionTimer": true
+          },
+          "compatibility": {
+            "sdk": 1,
+            "protocol": 7,
+            "webHost": 1,
+            "rulesVersion": "classic-2012-1",
+            "stateVersion": 1,
+            "gameVersion": "1.0.0",
+            "strategyVersion": "1.0.0"
+          },
+          "entries": {
+            "rules": "rules/avalon.cjs",
+            "bot": "bots/avalon.cjs",
+            "web": "web/entry.js"
+          },
+          "cover": "assets/games/avalon/cover.webp",
+          "introduction": {
+            "tagline": "圆桌之上，忠诚与谎言同行。",
+            "lead": "亚瑟的骑士中潜藏着莫德雷德的爪牙。提名任务队伍，秘密投票；梅林知晓邪恶，却必须隐藏自己。",
+            "steps": [
+              {
+                "icon": "cards",
+                "title": "查看身份，守住秘密",
+                "text": "每人获得一张秘密角色牌。梅林知道邪恶是谁，邪恶互相知晓；忠臣只能从讨论与公开记录推理。"
+              },
+              {
+                "icon": "table",
+                "title": "组队、密投与任务",
+                "text": "队长提名队伍，全员秘密投票，过半赞成才出征。通常一张失败牌就失败；7人以上第四任务需要两张。"
+              },
+              {
+                "icon": "trophy",
+                "title": "三次任务与最后一刺",
+                "text": "三次任务失败或连续五次组队被否决，邪恶获胜。三次任务成功后，刺客仍可指认梅林逆转胜负。"
+              }
+            ],
+            "goal": "2012经典原版，平台支持5–10人；基础角色及派西维尔／莫甘娜宫廷组合。"
+          },
+          "botIntroduction": {
+            "default": {
+              "lead": "以本人身份和最近任务结果作简单组队与投票。",
+              "details": [
+                "覆盖确认身份、提名、投票、任务牌及刺杀；未知角色始终未知。"
+              ]
+            },
+            "doubao": {
+              "lead": "结合最近两次任务，比较安全队伍与失败风险。",
+              "details": [
+                "用公开失败张数筛选阵营假设；已知邪恶同伴按任务门槛安排破坏。"
+              ]
+            },
+            "juewu": {
+              "lead": "比较全部公开任务与逐人投票，评估阵营与梅林线索。",
+              "details": [
+                "最多枚举210组邪恶身份假设，成功任务不直接判定忠诚；只使用本人授权投影，本地运行，不承诺必胜。"
+              ]
+            }
+          },
+          "defaultVariantId": "classic",
+          "variants": [
+            {
+              "id": "classic",
+              "name": "经典基础",
+              "description": "梅林、刺客、忠臣与爪牙；5–6人。",
+              "compatibility": {
+                "sdk": 1,
+                "protocol": 7,
+                "webHost": 1,
+                "rulesVersion": "classic-2012-1",
+                "stateVersion": 1,
+                "gameVersion": "1.0.0",
+                "strategyVersion": "1.0.0"
+              }
+            },
+            {
+              "id": "court",
+              "name": "宫廷迷局",
+              "description": "加入原版派西维尔与莫甘娜；派西维尔看见两位梅林候选。",
+              "compatibility": {
+                "sdk": 1,
+                "protocol": 7,
+                "webHost": 1,
+                "rulesVersion": "classic-2012-court-1",
+                "stateVersion": 1,
+                "gameVersion": "1.0.0",
+                "strategyVersion": "1.0.0"
+              }
+            }
+          ],
+          "budgets": {
+            "payloadBytes": 4194304,
+            "serviceHeapBytes": 67108864,
+            "desktopHeapBytes": 50331648,
+            "phoneHeapBytes": 33554432,
+            "privateIncrementBytes": 536870912,
+            "workerOldGenerationMiB": 32,
+            "basis": "Initial reviewed resource allocation: 4MiB complete module payload includes up to 3MiB original WebP illustrations, twelve local FLAC cues and code. This disk metric is distinct from RoomView JSON; the earlier 1MiB JSON placeholder was corrected before delivery. Six seats, at most 25 proposals, five quest records and 15 authorized faction hypotheses; service/renderer/32MiB Worker allocations stay fixed pending measurement, not worst-case claims."
+          },
+          "styles": [
+            "web/index-Y2IcWkDO.css"
+          ]
+        },
+        "code": "3a07e75d47424f0b953e845c37c872d24d16a7b6097ee7fd428346c2a34c51f0",
+        "resources": [
+          "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b"
+        ],
+        "resourceMap": {
+          "avalon/audio/approved-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/approved-v1.flac"
+          },
+          "avalon/audio/assassination-evil-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/assassination-evil-v1.flac"
+          },
+          "avalon/audio/assassination-good-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/assassination-good-v1.flac"
+          },
+          "avalon/audio/assassination-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/assassination-v1.flac"
+          },
+          "avalon/audio/ballot-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/ballot-v1.flac"
+          },
+          "avalon/audio/evil-win-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/evil-win-v1.flac"
+          },
+          "avalon/audio/good-win-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/good-win-v1.flac"
+          },
+          "avalon/audio/pledge-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/pledge-v1.flac"
+          },
+          "avalon/audio/quest-fail-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/quest-fail-v1.flac"
+          },
+          "avalon/audio/quest-success-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/quest-success-v1.flac"
+          },
+          "avalon/audio/rejected-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/rejected-v1.flac"
+          },
+          "avalon/audio/team-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/team-v1.flac"
+          },
+          "avalon/council.webp": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "council.webp"
+          },
+          "avalon/effect-relics.webp": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "effect-relics.webp"
+          },
+          "avalon/roles.webp": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "roles.webp"
+          }
+        },
+        "releaseTag": "v1.0.6",
+        "offlineAsset": "TableMax-avalon-classic-v1.0.6-8a131c993b1b207b7db21627a5cc050cc4fe2d7e0c8dea59a4ddc103bbe43c0e-offline.zip"
+      },
+      {
+        "releaseId": "99364c388f4db575698622713ba86a8c05789e3aa004b5b385c9105c727e0c80",
+        "gameId": "avalon",
+        "variantId": "court",
+        "module": {
+          "schemaVersion": 1,
+          "id": "avalon",
+          "order": 5,
+          "internal": false,
+          "development": false,
+          "library": {
+            "tags": [
+              "身份",
+              "推理",
+              "聚会",
+              "卡牌"
+            ],
+            "searchTerms": [
+              "Avalon",
+              "The Resistance",
+              "阿瓦隆",
+              "梅林",
+              "刺客",
+              "圆桌骑士"
+            ]
+          },
+          "catalog": {
+            "id": "avalon",
+            "name": "阿瓦隆",
+            "min": 5,
+            "max": 10,
+            "decisionTimer": true
+          },
+          "compatibility": {
+            "sdk": 1,
+            "protocol": 7,
+            "webHost": 1,
+            "rulesVersion": "classic-2012-1",
+            "stateVersion": 1,
+            "gameVersion": "1.0.0",
+            "strategyVersion": "1.0.0"
+          },
+          "entries": {
+            "rules": "rules/avalon.cjs",
+            "bot": "bots/avalon.cjs",
+            "web": "web/entry.js"
+          },
+          "cover": "assets/games/avalon/cover.webp",
+          "introduction": {
+            "tagline": "圆桌之上，忠诚与谎言同行。",
+            "lead": "亚瑟的骑士中潜藏着莫德雷德的爪牙。提名任务队伍，秘密投票；梅林知晓邪恶，却必须隐藏自己。",
+            "steps": [
+              {
+                "icon": "cards",
+                "title": "查看身份，守住秘密",
+                "text": "每人获得一张秘密角色牌。梅林知道邪恶是谁，邪恶互相知晓；忠臣只能从讨论与公开记录推理。"
+              },
+              {
+                "icon": "table",
+                "title": "组队、密投与任务",
+                "text": "队长提名队伍，全员秘密投票，过半赞成才出征。通常一张失败牌就失败；7人以上第四任务需要两张。"
+              },
+              {
+                "icon": "trophy",
+                "title": "三次任务与最后一刺",
+                "text": "三次任务失败或连续五次组队被否决，邪恶获胜。三次任务成功后，刺客仍可指认梅林逆转胜负。"
+              }
+            ],
+            "goal": "2012经典原版，平台支持5–10人；基础角色及派西维尔／莫甘娜宫廷组合。"
+          },
+          "botIntroduction": {
+            "default": {
+              "lead": "以本人身份和最近任务结果作简单组队与投票。",
+              "details": [
+                "覆盖确认身份、提名、投票、任务牌及刺杀；未知角色始终未知。"
+              ]
+            },
+            "doubao": {
+              "lead": "结合最近两次任务，比较安全队伍与失败风险。",
+              "details": [
+                "用公开失败张数筛选阵营假设；已知邪恶同伴按任务门槛安排破坏。"
+              ]
+            },
+            "juewu": {
+              "lead": "比较全部公开任务与逐人投票，评估阵营与梅林线索。",
+              "details": [
+                "最多枚举210组邪恶身份假设，成功任务不直接判定忠诚；只使用本人授权投影，本地运行，不承诺必胜。"
+              ]
+            }
+          },
+          "defaultVariantId": "classic",
+          "variants": [
+            {
+              "id": "classic",
+              "name": "经典基础",
+              "description": "梅林、刺客、忠臣与爪牙；5–6人。",
+              "compatibility": {
+                "sdk": 1,
+                "protocol": 7,
+                "webHost": 1,
+                "rulesVersion": "classic-2012-1",
+                "stateVersion": 1,
+                "gameVersion": "1.0.0",
+                "strategyVersion": "1.0.0"
+              }
+            },
+            {
+              "id": "court",
+              "name": "宫廷迷局",
+              "description": "加入原版派西维尔与莫甘娜；派西维尔看见两位梅林候选。",
+              "compatibility": {
+                "sdk": 1,
+                "protocol": 7,
+                "webHost": 1,
+                "rulesVersion": "classic-2012-court-1",
+                "stateVersion": 1,
+                "gameVersion": "1.0.0",
+                "strategyVersion": "1.0.0"
+              }
+            }
+          ],
+          "budgets": {
+            "payloadBytes": 4194304,
+            "serviceHeapBytes": 67108864,
+            "desktopHeapBytes": 50331648,
+            "phoneHeapBytes": 33554432,
+            "privateIncrementBytes": 536870912,
+            "workerOldGenerationMiB": 32,
+            "basis": "Initial reviewed resource allocation: 4MiB complete module payload includes up to 3MiB original WebP illustrations, twelve local FLAC cues and code. This disk metric is distinct from RoomView JSON; the earlier 1MiB JSON placeholder was corrected before delivery. Six seats, at most 25 proposals, five quest records and 15 authorized faction hypotheses; service/renderer/32MiB Worker allocations stay fixed pending measurement, not worst-case claims."
+          },
+          "styles": [
+            "web/index-Y2IcWkDO.css"
+          ]
+        },
+        "code": "3a07e75d47424f0b953e845c37c872d24d16a7b6097ee7fd428346c2a34c51f0",
+        "resources": [
+          "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b"
+        ],
+        "resourceMap": {
+          "avalon/audio/approved-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/approved-v1.flac"
+          },
+          "avalon/audio/assassination-evil-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/assassination-evil-v1.flac"
+          },
+          "avalon/audio/assassination-good-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/assassination-good-v1.flac"
+          },
+          "avalon/audio/assassination-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/assassination-v1.flac"
+          },
+          "avalon/audio/ballot-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/ballot-v1.flac"
+          },
+          "avalon/audio/evil-win-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/evil-win-v1.flac"
+          },
+          "avalon/audio/good-win-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/good-win-v1.flac"
+          },
+          "avalon/audio/pledge-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/pledge-v1.flac"
+          },
+          "avalon/audio/quest-fail-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/quest-fail-v1.flac"
+          },
+          "avalon/audio/quest-success-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/quest-success-v1.flac"
+          },
+          "avalon/audio/rejected-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/rejected-v1.flac"
+          },
+          "avalon/audio/team-v1.flac": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "audio/team-v1.flac"
+          },
+          "avalon/council.webp": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "council.webp"
+          },
+          "avalon/effect-relics.webp": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "effect-relics.webp"
+          },
+          "avalon/roles.webp": {
+            "blobId": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+            "path": "roles.webp"
+          }
+        },
+        "releaseTag": "v1.0.6",
+        "offlineAsset": "TableMax-avalon-court-v1.0.6-dd753b01ecbc2e53d90fcf09218f841a4a0261033ae42f535f8ad7e60f0e040b-offline.zip"
+      }
+    ],
+    "blobs": [
+      {
+        "id": "35b29e5bf5cd7c4991d89c8185140348b3149e65b606b3b0fd6773863377c68b",
+        "kind": "code",
+        "files": [
+          {
+            "path": "bots/pokemon-encounters.cjs",
+            "size": 715,
+            "sha256": "84de92c5a0ee428ebbc84cde61c0f21de90152d5bb81103e23652952fa691dc3"
+          },
+          {
+            "path": "bots/pokemon-encounters.cjs.br",
+            "size": 28397,
+            "sha256": "4528c81974bcb8805e5b097e5346b66ad06e297dfb4799b5bb20ab2706ed4958"
+          },
+          {
+            "path": "rules/pokemon-encounters.cjs",
+            "size": 157048,
+            "sha256": "9dec69b51c28367f70e76ac9c9b6763beaefbde7fec9fd4aa898fac288b7600f"
+          },
+          {
+            "path": "web/entry.js",
+            "size": 285595,
+            "sha256": "8ac42d636cc78d694ee3d3adfba30610c01b1d695442353193ec8ed14516b5a1"
+          },
+          {
+            "path": "web/index-Dm7-YB2j.css",
+            "size": 182923,
+            "sha256": "7539acc8fa38e4fd9d38a61cef3dfb697ba5b82f4f1789765093d6440304d4db"
+          }
+        ],
+        "archiveBytes": 170927,
+        "archiveSha256": "fc980553dde3710b4efa965783c27d968acd637ee019261724c5299857b973a4",
+        "installedBytes": 654678,
+        "assetName": "TableMax-code-35b29e5bf5cd7c4991d89c8185140348b3149e65b606b3b0fd6773863377c68b.zip",
+        "releaseTag": "v1.0.6"
+      },
+      {
+        "id": "f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9",
+        "kind": "resources",
+        "files": [
+          {
+            "path": "audio/bulbasaur-user-v2.flac",
+            "size": 11439,
+            "sha256": "f0148c4f1ec272b96b4755f6e65bc04efef957fe00aa8e56e89a7777b0cd3f61"
+          },
+          {
+            "path": "audio/charizard-v1.flac",
+            "size": 6041,
+            "sha256": "574e2f76fe5ce3ea9dc2880b622f3c3c8e8d7d55bfc458d39fe0ebb13218890c"
+          },
+          {
+            "path": "audio/draw-v1.flac",
+            "size": 1888,
+            "sha256": "c86c39db78e62e2e4b6ffe5e67a4f505ba5502fa2f1c903d3a61d67ee00afc83"
+          },
+          {
+            "path": "audio/eevee-user-v2.flac",
+            "size": 7981,
+            "sha256": "88028d1db6c0cb12582f13caa79293e610c09cffefcc767fc07c21f71be97ec5"
+          },
+          {
+            "path": "audio/effect-complete-v1.flac",
+            "size": 2493,
+            "sha256": "177f2a91a851fc930c364001ce714f777c09ac88b0727bfcab4172e12eba1b15"
+          },
+          {
+            "path": "audio/error-v1.flac",
+            "size": 1677,
+            "sha256": "aaeabefb2cd0a8c320cd5a9fa179bd69b80d4c66e5f996bb4a2c41b19a53c070"
+          },
+          {
+            "path": "audio/gengar-user-v2.flac",
+            "size": 30810,
+            "sha256": "e1ae1fdc97b68aa8a98a3a0c97cc96acc908451c110efc6294dcc7153e0d1bb6"
+          },
+          {
+            "path": "audio/jigglypuff-user-v2.flac",
+            "size": 40180,
+            "sha256": "eadd201bab9ba39daba61b5f7c269a09d499aef1eefc951c5a31cbe93f46aa22"
+          },
+          {
+            "path": "audio/match-result-v1.flac",
+            "size": 5386,
+            "sha256": "39bc129f6b3f01b2acfc4ae4ddf5df6e43a9b97637e340ed70339061ba0f13fa"
+          },
+          {
+            "path": "audio/meowth-coin-user-v2.flac",
+            "size": 154048,
+            "sha256": "f7997ecc31612ac0e5f8281eb751b40e4944c29105a50a26435b39f63b374384"
+          },
+          {
+            "path": "audio/mew-v1.flac",
+            "size": 3323,
+            "sha256": "b8c226469ec628035ba7e7aea6c2d67b4e079ee487e2ff26a8793b22dd0a5ee8"
+          },
+          {
+            "path": "audio/pikachu-user-v2.flac",
+            "size": 9669,
+            "sha256": "528fed08854c713c7e91c83d2a69c332187656905f90119561494ea753344fe8"
+          },
+          {
+            "path": "audio/replace-v1.flac",
+            "size": 1781,
+            "sha256": "5e457b4df76cbf835869c066d30d206339ac9226977475fda1b706f055fa4ac0"
+          },
+          {
+            "path": "audio/rocket-return-v1.flac",
+            "size": 5753,
+            "sha256": "4b689ebc4ef9d3bf1017b29ad0f5bd72f6cdbdd747b6bc0a12f297bf2a7e80e0"
+          },
+          {
+            "path": "audio/round-result-v1.flac",
+            "size": 3173,
+            "sha256": "3683b40262b9a994b5266662fa33c31ce32a67b7dd66966b2f7d722a99c71db0"
+          },
+          {
+            "path": "audio/snorlax-v1.flac",
+            "size": 2185,
+            "sha256": "629f63fb7151a36f556f846bdef285fd7f4f6b5038f626461be551f0646e2227"
+          },
+          {
+            "path": "audio/squirtle-user-v2.flac",
+            "size": 11815,
+            "sha256": "3d4443bcc14de587c2e204b1283b07586adcc6d98f80a072338cca560ff2ae96"
+          },
+          {
+            "path": "audio/team-rocket-entrance-user-v2.flac",
+            "size": 172600,
+            "sha256": "f3af9aeb74025107852179b36ad16a7d8433126bc98c163db7f08d2a3f83c3de"
+          },
+          {
+            "path": "audio/zapdos-v1.flac",
+            "size": 4359,
+            "sha256": "b9f64234536f42a927f23fe0506b0f54fa885c061c4e17306f33570534827e0e"
+          },
+          {
+            "path": "characters/coin-meowth-official-lossless-v1.webp",
+            "size": 64654,
+            "sha256": "645614fb589ee2cb5283f8992336c49d0b44973485371101acaa3db9a1a784e7"
+          },
+          {
+            "path": "characters/ordinary--2-official-lossless-v1.webp",
+            "size": 63850,
+            "sha256": "673848cf53051c130c6187fd92752e7ecc2d464ca03e0fc4ab83b5a12c478cd4"
+          },
+          {
+            "path": "characters/ordinary-0-official-lossless-v1.webp",
+            "size": 60566,
+            "sha256": "d29fcd356ea2ba9e1719c41fa5989278559754a37581800aeb623052bd75a17c"
+          },
+          {
+            "path": "characters/ordinary-1-official-lossless-v1.webp",
+            "size": 58922,
+            "sha256": "98e1da475c495bb07bca41d2b69f9e82aac2f720b266bf5fbf2248a8a6ce9759"
+          },
+          {
+            "path": "characters/ordinary-3-official-lossless-v1.webp",
+            "size": 59658,
+            "sha256": "e91cc65995c89821b9cf49cba972347cf077fcc039a7afe07aa03e27ed573e93"
+          },
+          {
+            "path": "characters/ordinary-4-official-lossless-v1.webp",
+            "size": 62440,
+            "sha256": "7e217685ce2bd48d0ffd9f193b8ae182b65f44540b4dabc0e0adcba9d9dd2863"
+          },
+          {
+            "path": "characters/ordinary-5-official-lossless-v1.webp",
+            "size": 68456,
+            "sha256": "3c6b058127fd45873032ad48ee56228a785b6471d2550a8b11c238d56f49b54b"
+          },
+          {
+            "path": "characters/ordinary-6-official-lossless-v1.webp",
+            "size": 60426,
+            "sha256": "703630c0d6c7692528de57ae3c96c33c4d16f68a87b280d3299c4b128bc4a9bc"
+          },
+          {
+            "path": "characters/ordinary-7-official-lossless-v1.webp",
+            "size": 60676,
+            "sha256": "ce6d6f5869240755ff6a5935e07d09e80c23e574e53d9b2f111b28396f82787e"
+          },
+          {
+            "path": "characters/ordinary-8-official-lossless-v1.webp",
+            "size": 58716,
+            "sha256": "014375f37bca9f929356e48a7c4c3ed375e0640b9503f3a3b4d2bab5c8a63109"
+          },
+          {
+            "path": "characters/ordinary-9-official-lossless-v1.webp",
+            "size": 65976,
+            "sha256": "a0cf65a1cb545aa4cefb80ffd00332d821d6322047ca1b2b0db0b6716fa4d7a6"
+          },
+          {
+            "path": "characters/special-charizard-official-lossless-v1.webp",
+            "size": 70990,
+            "sha256": "7a7f0be56063c426330556ddd802ba3b166244f4f416f449d853874a1005223f"
+          },
+          {
+            "path": "characters/special-ditto-v1.webp",
+            "size": 43912,
+            "sha256": "b53468ffa556daae7680de2092c2de811f9f9a95b11148dc3f1fd1479612f494"
+          },
+          {
+            "path": "characters/special-mew-official-lossless-v1.webp",
+            "size": 55460,
+            "sha256": "2cc2304467392ea7e2399a8849ca8f0a424d456072d28a010cb366aa7c0a6e5a"
+          },
+          {
+            "path": "characters/special-snorlax-official-lossless-v1.webp",
+            "size": 63416,
+            "sha256": "cb99c24d1a47f72e72c92383ecd387ef5a1b791d787da62aecfdae86a7eae7b3"
+          },
+          {
+            "path": "characters/special-team-rocket-official-lossless-v1.webp",
+            "size": 242110,
+            "sha256": "2c9b12e7588492bdc5ec491b80c7ac2665e00e87574e29c7cbc4ae7abdc4d554"
+          },
+          {
+            "path": "characters/special-zapdos-official-lossless-v1.webp",
+            "size": 55118,
+            "sha256": "87882fd34142af6b8ce3f0407d78182ec4399959ac24c7db0103b030e77d402c"
+          },
+          {
+            "path": "rules/illustrations-v1/charizard-v1.webp",
+            "size": 45398,
+            "sha256": "845c036194671e6421dbe34330270cd3e742dea9f990f6d344d777c61a011817"
+          },
+          {
+            "path": "rules/illustrations-v1/ditto-v1.webp",
+            "size": 31514,
+            "sha256": "c22c84da60b8bb0c4f028b25f5693ea8ecb03439ff294ad86980857264745357"
+          },
+          {
+            "path": "rules/illustrations-v1/match-v1.webp",
+            "size": 36294,
+            "sha256": "7971d58014c915faa740a52026958c9ce15bd3c688d56bbab47032bc33577e6d"
+          },
+          {
+            "path": "rules/illustrations-v1/mew-v1.webp",
+            "size": 46390,
+            "sha256": "6eaee48f27dc16dde4be9c2592b13d652d6f910f63076c5ff2ec4ad296764d36"
+          },
+          {
+            "path": "rules/illustrations-v1/rocket-v1.webp",
+            "size": 37868,
+            "sha256": "a934d8232a11fbf8d6e3de104b256744cb0c5cc94bc97c8dc706839a497979cf"
+          },
+          {
+            "path": "rules/illustrations-v1/setup-v1.webp",
+            "size": 38292,
+            "sha256": "12387940349299dc1a3507f20bd64de8032796b6bced9464b44af89f1e15010d"
+          },
+          {
+            "path": "rules/illustrations-v1/snorlax-v1.webp",
+            "size": 34140,
+            "sha256": "351f2697f081c3cad62d431781a20e91545fb2b2569936303a64a6b22d5eceb5"
+          },
+          {
+            "path": "rules/illustrations-v1/turn-v1.webp",
+            "size": 33990,
+            "sha256": "7acba8de6757e96d95e5b26a82c2126264bb278a728ab09b7fde5e6522c4f049"
+          },
+          {
+            "path": "rules/illustrations-v1/zapdos-v1.webp",
+            "size": 43380,
+            "sha256": "638e4f6eded95f4e49f97c27a039ad96c4c888d909d421cfd3af9481458176c8"
+          },
+          {
+            "path": "tabletop/garden-table-v1.webp",
+            "size": 101962,
+            "sha256": "a332d20c81115e49c12593ec42530682e8574efdf05b2b3260706749820b1951"
+          }
+        ],
+        "archiveBytes": 2129250,
+        "archiveSha256": "bed2e3f21b6d7b8fe93be7a15a568016756bcb6ef2cf68c56a84f882021325d2",
+        "installedBytes": 2141175,
+        "assetName": "TableMax-resources-f63599a0f72f6d642eb4bb8573668e695d85e3df28d78dc9c8e81c35237d7ad9.zip",
+        "releaseTag": "v1.0.6"
+      },
+      {
+        "id": "f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32",
+        "kind": "resources",
+        "files": [
+          {
+            "path": "expansion/audio/arceus-theme-original-v1.ogg",
+            "size": 5853,
+            "sha256": "006d027b88dba5138249f4fb8c77d7dec3a1630628f53c718a724f8d732a120a"
+          },
+          {
+            "path": "expansion/audio/cries/arceus-encyclopedia-cry-v1.ogg",
+            "size": 5440,
+            "sha256": "ced2f39a5f3c919dde2257e6c8851b6ce7688c2d85237e75d2d72166f2897331"
+          },
+          {
+            "path": "expansion/audio/cries/charizard-encyclopedia-cry-v1.ogg",
+            "size": 3278,
+            "sha256": "d2f37fb597b75b66df2a5e00a63e0ca639b519e4bbeccae0f994e6567dce3160"
+          },
+          {
+            "path": "expansion/audio/cries/ditto-encyclopedia-cry-v1.ogg",
+            "size": 2253,
+            "sha256": "a8c543628578179ad54fdc4b47b9957f764911ccbf7ce6b98b879b7fe9830862"
+          },
+          {
+            "path": "expansion/audio/cries/dragonite-encyclopedia-cry-v1.ogg",
+            "size": 3369,
+            "sha256": "8cb248ee06edc4bb51419cf25d299b815818bae659cc753a38790033d1698c85"
+          },
+          {
+            "path": "expansion/audio/cries/garchomp-encyclopedia-cry-v1.ogg",
+            "size": 3097,
+            "sha256": "e3e6d2cb984538a74a0bb521fa63fe36aea29cf02ca4db4eb328d0b5a919998f"
+          },
+          {
+            "path": "expansion/audio/cries/gardevoir-encyclopedia-cry-v1.ogg",
+            "size": 4660,
+            "sha256": "a7b142380442e7b162ef67a3502a77ed8778f7bc77209c944d886c813be9c913"
+          },
+          {
+            "path": "expansion/audio/cries/greninja-encyclopedia-cry-v1.ogg",
+            "size": 4018,
+            "sha256": "0e0c6390b32bcec1142df4c9b9256b207de363d12658104b5bc0da6f52d61276"
+          },
+          {
+            "path": "expansion/audio/cries/groudon-encyclopedia-cry-v1.ogg",
+            "size": 5375,
+            "sha256": "e66e10024ea775c3b65a55fd3de0f494fa03337b11dfa288cc7ab42532912e10"
+          },
+          {
+            "path": "expansion/audio/cries/kyogre-encyclopedia-cry-v1.ogg",
+            "size": 5088,
+            "sha256": "132fb13a6dbcebd604e328909aa6ce5ced438586c9e45524adc2a63c6b166e2f"
+          },
+          {
+            "path": "expansion/audio/cries/lucario-encyclopedia-cry-v1.ogg",
+            "size": 2399,
+            "sha256": "f48894c73d896bb8bc25334be892bb0d1bdbbba3ea8e68842d00f99628ab9209"
+          },
+          {
+            "path": "expansion/audio/cries/magikarp-encyclopedia-cry-v1.ogg",
+            "size": 3963,
+            "sha256": "4bb536a4a945088a6abf044465e1f276784b49aaf3fe8802183d8f511d0886f0"
+          },
+          {
+            "path": "expansion/audio/cries/metagross-encyclopedia-cry-v1.ogg",
+            "size": 5649,
+            "sha256": "93641a18dc059ffb6a725bccf9335e2be451f9448e31b85afe63beb5741c176a"
+          },
+          {
+            "path": "expansion/audio/cries/mew-encyclopedia-cry-v1.ogg",
+            "size": 4814,
+            "sha256": "0978b61c10cb2d0999f4bfd71aec899c0f97808af07e593fb89b510dd258efad"
+          },
+          {
+            "path": "expansion/audio/cries/mewtwo-encyclopedia-cry-v1.ogg",
+            "size": 5824,
+            "sha256": "87114c9ae9ac5b740b756b8d877404dfffc002fa1cf1ebaa5e7d2e341e9ab084"
+          },
+          {
+            "path": "expansion/audio/cries/mimikyu-encyclopedia-cry-v1.ogg",
+            "size": 3622,
+            "sha256": "ef76e83314250d9c0162297ee530b3dcefa504c56329186608d538625d1efd32"
+          },
+          {
+            "path": "expansion/audio/cries/mr-mime-encyclopedia-cry-v1.ogg",
+            "size": 3355,
+            "sha256": "6cc4b484bdf57a6dd30179166b3307a2996f488e34157320796df03c5d34a86f"
+          },
+          {
+            "path": "expansion/audio/cries/onix-encyclopedia-cry-v1.ogg",
+            "size": 4408,
+            "sha256": "b4a0fb1e50301ef8d06fdd2d2c862f47106d69b0a953c40d6a9611bc33912a3c"
+          },
+          {
+            "path": "expansion/audio/cries/piplup-encyclopedia-cry-v1.ogg",
+            "size": 2110,
+            "sha256": "688f1b2d4ababc6d816f516f54ffd4f263eb5dcf0526c01844915af70ddc84aa"
+          },
+          {
+            "path": "expansion/audio/cries/psyduck-encyclopedia-cry-v1.ogg",
+            "size": 3145,
+            "sha256": "175a2bcb33f66cb922a2b13cf77e0eadc5eb3d84711418c95f8edbde0e465b2d"
+          },
+          {
+            "path": "expansion/audio/cries/rayquaza-encyclopedia-cry-v1.ogg",
+            "size": 4638,
+            "sha256": "17cae18f578fa4ecf54a0f43d792b5c2b51205ac80eed52b8ee7c229024a6565"
+          },
+          {
+            "path": "expansion/audio/cries/rowlet-encyclopedia-cry-v1.ogg",
+            "size": 2914,
+            "sha256": "dd87add3ead297bdb5ce31fd43297687140644996e1cb664a26a50b3a81e49f4"
+          },
+          {
+            "path": "expansion/audio/cries/slowpoke-encyclopedia-cry-v1.ogg",
+            "size": 1738,
+            "sha256": "f2d2e0d55277adf6dd6d223c8488d6361fd3ea809b0b713bdbb09ab9f67cf3bb"
+          },
+          {
+            "path": "expansion/audio/cries/snorlax-encyclopedia-cry-v1.ogg",
+            "size": 1496,
+            "sha256": "ec2c3e8242a396848edda7491a67ce5ef6f58813e75ceb7ca932c2d1eb7f2e8b"
+          },
+          {
+            "path": "expansion/audio/cries/togepi-encyclopedia-cry-v1.ogg",
+            "size": 2516,
+            "sha256": "b7dd21310ba1957ff348c62c24e3859c65670f610d6040a56917857849fca2e8"
+          },
+          {
+            "path": "expansion/audio/cries/vulpix-encyclopedia-cry-v1.ogg",
+            "size": 4092,
+            "sha256": "1e60fcbeb90ee3833594e245ab517751065785f5138e4d4ef26db81ec6336bb3"
+          },
+          {
+            "path": "expansion/audio/cries/zapdos-encyclopedia-cry-v1.ogg",
+            "size": 2983,
+            "sha256": "7b607ee6e498c6ff41038890b0b937c2de385bf4c88ce959b8d3ca22e97681d3"
+          },
+          {
+            "path": "expansion/audio/cries/zorua-encyclopedia-cry-v1.ogg",
+            "size": 1807,
+            "sha256": "70237f7089f51dbff4e9a29acd18fa8c8eb7c799b539d72757451db5ddbf40b3"
+          },
+          {
+            "path": "expansion/audio/greninja-theme-original-v1.ogg",
+            "size": 3164,
+            "sha256": "849dff008e52175f59a7e09d023e8fececef3465f23e1c2f5922554fe7e2c239"
+          },
+          {
+            "path": "expansion/audio/groudon-theme-original-v1.ogg",
+            "size": 3683,
+            "sha256": "56471d1da232bb470aab77b20720eebbb9bdbed89fe3fe43d5dcd0593b73302f"
+          },
+          {
+            "path": "expansion/audio/kyogre-theme-original-v1.ogg",
+            "size": 4199,
+            "sha256": "257f45aaa08ce42c79636215516170c84a1ddb223724840d843f109960d6773b"
+          },
+          {
+            "path": "expansion/audio/lucario-theme-original-v1.ogg",
+            "size": 3299,
+            "sha256": "cd648b4a2c3514de87c5d45c6ff1433cc9734ae8266be8c96bc690e5b1cffa2c"
+          },
+          {
+            "path": "expansion/audio/mewtwo-theme-original-v1.ogg",
+            "size": 4403,
+            "sha256": "1846415053d9f0621eb3d075c52ad43b20a614a6086f9d77bd4f026befd53895"
+          },
+          {
+            "path": "expansion/audio/rayquaza-theme-original-v1.ogg",
+            "size": 4013,
+            "sha256": "87d9cc37bb368de34128ddf4b9790e9e5280b83521c6b4b3ab3b7355b9327fa4"
+          },
+          {
+            "path": "expansion/audio/research-theme-original-v1.ogg",
+            "size": 3990,
+            "sha256": "fc6a66bceab61e051e74fb80ffcf1e941fd4063cb457797e428aadd5a29245c2"
+          },
+          {
+            "path": "expansion/portraits/arceus-official-v1.webp",
+            "size": 26890,
+            "sha256": "e46a3b8ed37a3baf78addf18eb89693401ffb6868d6b2e7f0c8bcf0fe02db04c"
+          },
+          {
+            "path": "expansion/portraits/dragonite-official-v1.webp",
+            "size": 25352,
+            "sha256": "6371704699a934d111119a16ebb0a83d9e980fe73caf94bc966e859e66cae285"
+          },
+          {
+            "path": "expansion/portraits/garchomp-official-v1.webp",
+            "size": 28568,
+            "sha256": "41ed34745b9585c42e69cd552633768358afc980ac0fdd0603659ed12400afaa"
+          },
+          {
+            "path": "expansion/portraits/gardevoir-official-v1.webp",
+            "size": 21200,
+            "sha256": "4d9d51d97b670bcb13063d2d3bcf2ef29ea1bf04c918686c0a415fb524f86f1b"
+          },
+          {
+            "path": "expansion/portraits/greninja-official-v1.webp",
+            "size": 21304,
+            "sha256": "4475544f9a3cd3c2d6dc43749a4b4f02a514abaaee39efb650f8b9d29eb23641"
+          },
+          {
+            "path": "expansion/portraits/groudon-official-v1.webp",
+            "size": 29648,
+            "sha256": "a060d0561475b490e0a9caef51d2821a05227e80021f46d36b11c1f86275aad4"
+          },
+          {
+            "path": "expansion/portraits/kyogre-official-v1.webp",
+            "size": 21866,
+            "sha256": "79c9d53470a364f1a6236cf17d663550e66db0dcbed5f610d459aaf7f503688d"
+          },
+          {
+            "path": "expansion/portraits/lucario-official-v1.webp",
+            "size": 21736,
+            "sha256": "5e39dd266102f826bed349a595a598a2cdc7369b888bf51c6658fa59e7a2043f"
+          },
+          {
+            "path": "expansion/portraits/magikarp-official-v1.webp",
+            "size": 25112,
+            "sha256": "cb3d3dac55412a44e75ecfe224a8e8cd06753b812a24eafc5d5ca0965790927e"
+          },
+          {
+            "path": "expansion/portraits/metagross-official-v1.webp",
+            "size": 22556,
+            "sha256": "f5c0b44a9a7a3c8bce0e3cdcf4f24008b12e4d6ff64ffe72b314ffaf180714dd"
+          },
+          {
+            "path": "expansion/portraits/mewtwo-official-v1.webp",
+            "size": 25750,
+            "sha256": "726b1083cf2e0ea4c3fdd34edee8fe85f58090d9fde263f5dcdcaffaff87d6d1"
+          },
+          {
+            "path": "expansion/portraits/mimikyu-official-v1.webp",
+            "size": 17642,
+            "sha256": "20be2b763b8b8392ba221d8e7da50ac421e8094641a947c041a6439752cf3fe3"
+          },
+          {
+            "path": "expansion/portraits/piplup-official-v1.webp",
+            "size": 15740,
+            "sha256": "a39d1c4c6acbc247e99986b906f2b5b8bd9c16dfd8d279c759b1f0a7da90707f"
+          },
+          {
+            "path": "expansion/portraits/psyduck-official-v1.webp",
+            "size": 17706,
+            "sha256": "b4c0e2e63a7410a669afda1190da1b1e54ffe90fa17a9227c64498d826c9a151"
+          },
+          {
+            "path": "expansion/portraits/rayquaza-official-v1.webp",
+            "size": 25410,
+            "sha256": "515343a71cbd7a5ca50f988f1e1582177056adc7e1631ae8957da7f02568ce16"
+          },
+          {
+            "path": "expansion/portraits/rowlet-official-v1.webp",
+            "size": 15462,
+            "sha256": "a0a4029807e0066476abe41345ae909f50f36177a0866ef80816147614b73e8c"
+          },
+          {
+            "path": "expansion/portraits/togepi-official-v1.webp",
+            "size": 17816,
+            "sha256": "6f86625042c9cba4b877c2d24c10e02467e4745d5fb2c2c3587b26301bec580f"
+          },
+          {
+            "path": "expansion/portraits/zorua-official-v1.webp",
+            "size": 16966,
+            "sha256": "feea1288e86bfb619cad1a5e23f1515021c85d0237742304d314f3738f917b50"
+          },
+          {
+            "path": "expansion/research-illustrations/H01.webp",
+            "size": 3546,
+            "sha256": "4f750cd940e9d038ea25fece42379905818c1eec245a1a4572e49b856d4163b4"
+          },
+          {
+            "path": "expansion/research-illustrations/H02.webp",
+            "size": 9152,
+            "sha256": "32e3e0b5040cd43c8bff6c0ccb26e4e39794f99cdfa72effed6da8257aaef704"
+          },
+          {
+            "path": "expansion/research-illustrations/H03.webp",
+            "size": 4988,
+            "sha256": "ef0587629b556be7be5bd27a2d0721af08a0c6d2994a0e46b5f4ee492389c252"
+          },
+          {
+            "path": "expansion/research-illustrations/H04.webp",
+            "size": 4390,
+            "sha256": "97a0419914e4b793f9a79f3e28708b972e18f0ce3c2239e62dcd3dbd9d525dcc"
+          },
+          {
+            "path": "expansion/research-illustrations/H05.webp",
+            "size": 3368,
+            "sha256": "f10d3c4e65cadb298cd8b5214e368021259ef869403c46ec69d48f82e09fe82b"
+          },
+          {
+            "path": "expansion/research-illustrations/H06.webp",
+            "size": 4698,
+            "sha256": "50a1937eff99fe660afc66910f48edfcf80cad1033c0f152ede558175c5ccfbd"
+          },
+          {
+            "path": "expansion/research-illustrations/R01.webp",
+            "size": 7236,
+            "sha256": "929ba883c98d98da0f137c0bdd8eeb6b9d768760680fbcd9d0d729049635248d"
+          },
+          {
+            "path": "expansion/research-illustrations/R02.webp",
+            "size": 6304,
+            "sha256": "b8422deab27430500aa7965c8345c1a9d6d6433af954bcc67dd6116630829a82"
+          },
+          {
+            "path": "expansion/research-illustrations/R03.webp",
+            "size": 4072,
+            "sha256": "61dd5a3253d51b944246e9f1a451e219a681f938317f48859e29b8ec51855a9e"
+          },
+          {
+            "path": "expansion/research-illustrations/R04.webp",
+            "size": 5836,
+            "sha256": "55ce0b5dceb26ae2b13bedc991eec775548933aaed103bee6d7cc9276b74a3e0"
+          },
+          {
+            "path": "expansion/research-illustrations/R05.webp",
+            "size": 2814,
+            "sha256": "40a3bb0202e530ddd5eb68562f26af5889b594b980ce278be92d31cb3a9cc056"
+          },
+          {
+            "path": "expansion/research-illustrations/R06.webp",
+            "size": 3686,
+            "sha256": "531fa436f70ede5c63fbde7802f8076f33c6b4dadd5720794020816372e7e216"
+          },
+          {
+            "path": "expansion/research-illustrations/R07.webp",
+            "size": 2870,
+            "sha256": "2b12e29e70655bb9e2d98adcff8abb1a809354d839b673a28a1e6f42f3eda8f0"
+          },
+          {
+            "path": "expansion/research-illustrations/R08.webp",
+            "size": 2948,
+            "sha256": "e4b6b5ab571d114084de4a1fa3273b03182dc8a574d4e14cd95adf7d9b3cf4d1"
+          },
+          {
+            "path": "expansion/research-illustrations/R09.webp",
+            "size": 4304,
+            "sha256": "0fe14496f7a621587bd5c5d12191a4306da7a3445aded5aca51d54ab0bb43920"
+          },
+          {
+            "path": "expansion/research-illustrations/R10.webp",
+            "size": 3780,
+            "sha256": "19719de64777680c549a55de91ce4a1728832e61c68cff1ec4a3c379b74279d8"
+          },
+          {
+            "path": "expansion/research-illustrations/R11.webp",
+            "size": 4590,
+            "sha256": "6f747f6104823f12f7de6f471f9e74cde8784c69ad9e0b536e2f31f6c1397f1c"
+          },
+          {
+            "path": "expansion/research-illustrations/R12.webp",
+            "size": 3176,
+            "sha256": "5276285424d3c15958b9aa07568e3ff5b9eb5be831b6dc0f1a0693b4655f2745"
+          },
+          {
+            "path": "expansion/research-illustrations/R13.webp",
+            "size": 2550,
+            "sha256": "109d9f636f70971942145c1632d099932ab5a1c2ef4c09a9bdb6f372289c0cf8"
+          },
+          {
+            "path": "expansion/research-illustrations/R14.webp",
+            "size": 4746,
+            "sha256": "39fef30f74998deb1a1edeb5be78568a1a734f111ed57a86d19b0da280c4ed45"
+          },
+          {
+            "path": "expansion/research-illustrations/R15.webp",
+            "size": 2134,
+            "sha256": "09763b3f43eb62dcecfa915f38a5fda4a5543240d6e358d12734ce0c866c497b"
+          },
+          {
+            "path": "expansion/research-illustrations/R16.webp",
+            "size": 3996,
+            "sha256": "d4a7b89a3addcc7adc7665aaa66c08ac47f126fb146ee5f3f53f9727605040cd"
+          },
+          {
+            "path": "expansion/research-illustrations/R17.webp",
+            "size": 5274,
+            "sha256": "56fda7311dfbe76e5da6d1afe37b1163624c6a82f1b514ab2bf34e90d00c5f3f"
+          },
+          {
+            "path": "expansion/research-illustrations/R18.webp",
+            "size": 3464,
+            "sha256": "f78bbf8c0518ddbdd58275a1086fbfdaf8063fd9e7998c7b686e170492edc177"
+          },
+          {
+            "path": "expansion/research-illustrations/R19.webp",
+            "size": 4220,
+            "sha256": "e2d1ef666d47f6a3c40c96de458967207642266b54f8bd4ed84e597b23feb207"
+          },
+          {
+            "path": "expansion/research-illustrations/R20.webp",
+            "size": 3630,
+            "sha256": "841cc8a431b4d9c846e68cd802b031ac8c3198f0270347ad0e0c68c64daac43b"
+          },
+          {
+            "path": "expansion/research-illustrations/R21.webp",
+            "size": 3780,
+            "sha256": "8a142c6f492e93ab35f5a7ece7ea182e4543a497f6bfbe8ff8cb694836039b97"
+          },
+          {
+            "path": "expansion/research-illustrations/R22.webp",
+            "size": 2458,
+            "sha256": "2c32142223e8867d5a880130a57bfeff7233eb0e2214815ec194935bafee35b9"
+          },
+          {
+            "path": "expansion/research-illustrations/R23.webp",
+            "size": 11186,
+            "sha256": "7574878ccb3de925437ce5af6657a767c25fb15eb66f634d91f5d03779980363"
+          },
+          {
+            "path": "expansion/research-illustrations/R24.webp",
+            "size": 6374,
+            "sha256": "4d518419ebeb75b8d318967ea5bce316100335a029db96c946447fb8e0d98262"
+          }
+        ],
+        "archiveBytes": 676858,
+        "archiveSha256": "4216baa8e8aca570fab948f8467afb70e97bec06fbd9b732110089b87d0e21c2",
+        "installedBytes": 662949,
+        "assetName": "TableMax-resources-f3f331d92123cfa1f5d8f652ca6ae5c3d0e1ced0dee1713f2cb2ac8e7ae42c32.zip",
+        "releaseTag": "v1.0.6"
+      },
+      {
+        "id": "011edadd418d6dc092a1f9880bd96a4444d05112db4dffbd9a4f295850f67c6f",
+        "kind": "code",
+        "files": [
+          {
+            "path": "bots/modern-art.cjs",
+            "size": 8900,
+            "sha256": "090b2507b8792647c4b50d9895bdf03bde03b9028b8e4a249202fadb8bea0f36"
+          },
+          {
+            "path": "rules/modern-art.cjs",
+            "size": 20394,
+            "sha256": "6e70cfc451bdbbfd9376c5a39ccdd6199d12abaec48f3bfd4ae5f207574fd9b3"
+          },
+          {
+            "path": "web/entry.js",
+            "size": 50087,
+            "sha256": "4760578a1b6c2a67a586c13d88251aa6d1d1b66d8dc94d76d68165f778329e72"
+          },
+          {
+            "path": "web/index-Vu1AMr5N.css",
+            "size": 60519,
+            "sha256": "1fb72e71ffc8bd05e0ab0bc5078d10529a807ab5c01ddb93a14801959ea48b3d"
+          }
+        ],
+        "archiveBytes": 38345,
+        "archiveSha256": "7bafe896941ea7f07a3227503358ad575b7500528344a784021cb19b373b508a",
+        "installedBytes": 139900,
+        "assetName": "TableMax-code-011edadd418d6dc092a1f9880bd96a4444d05112db4dffbd9a4f295850f67c6f.zip",
+        "releaseTag": "v1.0.6"
+      },
+      {
+        "id": "1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97",
+        "kind": "resources",
+        "files": [
+          {
+            "path": "audio/auction-fixed-v2.flac",
+            "size": 10255,
+            "sha256": "daf024b47550ea3ec4ac1540f4a41b143f472a9e372535fe1ec3435b01e955c1"
+          },
+          {
+            "path": "audio/auction-once-v2.flac",
+            "size": 11167,
+            "sha256": "d262313ad1445972a21c8a657975e8c5b6de80ed77e4290e458c54ee3096f454"
+          },
+          {
+            "path": "audio/auction-open-v2.flac",
+            "size": 17930,
+            "sha256": "ba2981aa426171e1cb429bad086c4e6ec502efbf585409bbad39f45e662ec684"
+          },
+          {
+            "path": "audio/auction-sealed-v2.flac",
+            "size": 21114,
+            "sha256": "c8f7ba8c8668f21508daf0e20ca393f6d353d0690fe01bd265b1fc58770a6e5a"
+          },
+          {
+            "path": "audio/bid-v2.flac",
+            "size": 3352,
+            "sha256": "f2e353396ecd42af7abf1c14354bd6eadaba5a15384c2f28a5ab426f8c4aa133"
+          },
+          {
+            "path": "audio/double-add-v2.flac",
+            "size": 7911,
+            "sha256": "b3488435659510c2568b225690df760d76146a5b21333cac6393d5792d1abcbf"
+          },
+          {
+            "path": "audio/double-open-v2.flac",
+            "size": 18666,
+            "sha256": "571f3e8c5c7964e37bd6d5649ce5b217a6255de7be59783215b793c4424ec8b6"
+          },
+          {
+            "path": "audio/error-v2.flac",
+            "size": 4370,
+            "sha256": "466915386dac0022a5ca28d6d3be362a3e465b935e0df701a8ab719ff6be8c67"
+          },
+          {
+            "path": "audio/match-result-v2.flac",
+            "size": 13875,
+            "sha256": "469eb465d760b11f4175f4fc169114b32b3ac5c1c633480bede505209ee235a1"
+          },
+          {
+            "path": "audio/offer-v2.flac",
+            "size": 7734,
+            "sha256": "5c9bbc2c7f1f3925f5968d4bbb61aa8709158cb34a2964ea15479b2b04c9e1df"
+          },
+          {
+            "path": "audio/pass-v2.flac",
+            "size": 6033,
+            "sha256": "b04e8a514c250ec338db70004ca7b7e384ebb8568e7c2da4f2711831543a4253"
+          },
+          {
+            "path": "audio/price-set-v2.flac",
+            "size": 7503,
+            "sha256": "d8b1de5010ded79f3df4d61b9155af0e646c236a6dc76778f2d48062b8f8e914"
+          },
+          {
+            "path": "audio/round-result-v2.flac",
+            "size": 9377,
+            "sha256": "0369de10023b0a70aa567f4dd800cd2fa2703f7262638c23e0769be25bd34266"
+          },
+          {
+            "path": "audio/round-start-v2.flac",
+            "size": 9259,
+            "sha256": "13ba89730e3492f94add2f3bd9869425677958590f23a14759e5f436f92b2047"
+          },
+          {
+            "path": "audio/sale-v2.flac",
+            "size": 6834,
+            "sha256": "e58b267f7c654dfd23e762f23b77341e66ac75aa0f27e17d70f40e14089ef232"
+          },
+          {
+            "path": "audio/sealed-submit-v2.flac",
+            "size": 7780,
+            "sha256": "795905a41c74dc3bc1c06cd0afdbe24201c7535ab0a692eda1d2206e57ee05ad"
+          },
+          {
+            "path": "audio/time-elapsed-v2.flac",
+            "size": 3909,
+            "sha256": "b9b1f4edca0ca1e2856f83e0d5d53e2d78880ff36f618e4a001776292986d3cd"
+          },
+          {
+            "path": "daniel-atlas-v1.webp",
+            "size": 401674,
+            "sha256": "dabc837a427d0b3078195dc79cb9121f20f2864085fc064e57e3e065e2748b15"
+          },
+          {
+            "path": "manuel-atlas-v1.webp",
+            "size": 279342,
+            "sha256": "bd7919fa31d89ed0829cb16d967705d18976dbfeec9dff00d2f28e612bbf5752"
+          },
+          {
+            "path": "rafael-atlas-v1.webp",
+            "size": 261770,
+            "sha256": "6cf98bbe2c593d77900b48169b7dccfafa061e686e5e0fea8b27741c8e4569b0"
+          },
+          {
+            "path": "ramon-atlas-v1.webp",
+            "size": 435738,
+            "sha256": "e06cb0edfa8e3e3a16be42aed9feb05a8ed2cc75354f43eb5d5196d6856e253b"
+          },
+          {
+            "path": "rules/illustrations-v2/auction-double.webp",
+            "size": 33708,
+            "sha256": "96de96b271c2e601b767247c58d80f16e6ee0e6cf82778fd01b991c660b44856"
+          },
+          {
+            "path": "rules/illustrations-v2/auction-fixed.webp",
+            "size": 33450,
+            "sha256": "426f20e5cd388f75dd9d9afbb1a7cd2540d39aad9b85566fc132ac73244f2521"
+          },
+          {
+            "path": "rules/illustrations-v2/auction-once.webp",
+            "size": 35298,
+            "sha256": "c98f40a55a95436279855798314ebe67d31b26082447c9363eee564fce8c2920"
+          },
+          {
+            "path": "rules/illustrations-v2/auction-open.webp",
+            "size": 33608,
+            "sha256": "3664b6d7c6b160b2b212f4a28d8e6953150f6b3e53cf0ffdb855532cc636ff23"
+          },
+          {
+            "path": "rules/illustrations-v2/auction-sealed.webp",
+            "size": 31918,
+            "sha256": "c5221e0cbb4c2c6bbb9df580ffce6f7f5f48ddbdedf037189e7f8481f9840325"
+          },
+          {
+            "path": "rules/illustrations-v2/hand-to-auction.webp",
+            "size": 27948,
+            "sha256": "ecde85fac46a03d3b0a9243434ce522de3b01b988a77acd1d14a8a3540290437"
+          },
+          {
+            "path": "rules/illustrations-v2/history-value.webp",
+            "size": 19848,
+            "sha256": "5d0b3b79f4bdcabf379030bfdcecfabfce3c634a6a3ecbb43863b5d907b918ae"
+          },
+          {
+            "path": "rules/illustrations-v2/round-trigger.webp",
+            "size": 41148,
+            "sha256": "a3c7273cb800bcdbe5dd058d1ab83f756929e2266702538b154569efe09c0901"
+          },
+          {
+            "path": "rules/illustrations-v2/settlement.webp",
+            "size": 31102,
+            "sha256": "6fd4dbb947d04061c66fbebc053665f0e8cb347121a66ae25e194e44f7d2e90e"
+          },
+          {
+            "path": "sigrid-atlas-v1.webp",
+            "size": 86348,
+            "sha256": "5e8ab5573a6a6ad53c94ca7df5de74d35b20267adf5958560123e75f8d21e38c"
+          }
+        ],
+        "archiveBytes": 1920794,
+        "archiveSha256": "1ddde29fa2322085686efd2376b084da67f61b026a4b027124001da8504b4057",
+        "installedBytes": 1919969,
+        "assetName": "TableMax-resources-1e53971aeb849fd50301014148b9b5b9936ba146cfc418b7a4420924964d1f97.zip",
+        "releaseTag": "v1.0.6"
+      },
+      {
+        "id": "56b99d61a3e96472e604c202c29c7bb1714df099754ae65b5d2cfba08a9142c2",
+        "kind": "code",
+        "files": [
+          {
+            "path": "bots/power-grid.cjs",
+            "size": 24767,
+            "sha256": "e55c4b8520d48c245494ccc83731c8839b4746dab36a53b4b6ae2c61754318da"
+          },
+          {
+            "path": "rules/power-grid.cjs",
+            "size": 39254,
+            "sha256": "ee18b6845cb973c405106a7bb015e706a329ea1cc108aa97fd9bc221c74b95cf"
+          },
+          {
+            "path": "web/entry.js",
+            "size": 115099,
+            "sha256": "663c17d982241e5ab7f67d8fb56b061e838c9980becc76aed172ba3e38cc042c"
+          },
+          {
+            "path": "web/index-Bn4EK8S1.css",
+            "size": 93746,
+            "sha256": "923e9203caf6df834a16402339c886d5c25635e89ac1d0d918d71eb0965c6869"
+          }
+        ],
+        "archiveBytes": 78711,
+        "archiveSha256": "e81f64d34eb0c77ff7fac0e05ed8e1562c1d886663677bcb867414196585f4fe",
+        "installedBytes": 272866,
+        "assetName": "TableMax-code-56b99d61a3e96472e604c202c29c7bb1714df099754ae65b5d2cfba08a9142c2.zip",
+        "releaseTag": "v1.0.6"
+      },
+      {
+        "id": "73a2788502f039baaa890acf56163b428c3682dba1d8a183dead071d34296c25",
+        "kind": "resources",
+        "files": [
+          {
+            "path": "audio/bid-v2.flac",
+            "size": 4922,
+            "sha256": "69d837030c184758b53d81e1d789547fe6b3215e95e10042be73ad6218efc40e"
+          },
+          {
+            "path": "audio/build-v2.flac",
+            "size": 11761,
+            "sha256": "dc5f423d9bea6abc001d19ddb7ae793452797286b7ba8fb35d742741506d3a33"
+          },
+          {
+            "path": "audio/end-v2.flac",
+            "size": 11111,
+            "sha256": "cc623c78e02dbb18ef78246eb1acfb35d8879b7db3566df1e13483ebe85e8c9b"
+          },
+          {
+            "path": "audio/fuel-v2.flac",
+            "size": 9489,
+            "sha256": "36688b6eefef0a35e9a6e1d9b00192b4ced46a9559044af3d013a4397f22a1b3"
+          },
+          {
+            "path": "audio/plant-v2.flac",
+            "size": 12154,
+            "sha256": "bdabbdd467ff76e04db8298da16b217e7f64fc74cef44af15934bbaf856afed7"
+          },
+          {
+            "path": "audio/run-v2.flac",
+            "size": 10849,
+            "sha256": "51e77651c44cc963ec923df4b86ed8ee769980057285fa67568d20f28263e2f8"
+          },
+          {
+            "path": "board-v2.webp",
+            "size": 371350,
+            "sha256": "6177a790cdbe630746a41d0c45ebbfe63bb0ec1eb25fca05f1fa1eb8655a3a8a"
+          },
+          {
+            "path": "board-v3-expanded.webp",
+            "size": 501680,
+            "sha256": "a1940377b253f7b011a10d3b4a76afba2bab0bed526d9e5fd2297fa1ee155ee6"
+          },
+          {
+            "path": "cover-v1.webp",
+            "size": 69950,
+            "sha256": "e78aaeda7270c36492ba9316085c42705c44cc99e64f9887c55fb9e7ca48cd98"
+          },
+          {
+            "path": "plants-atlas-v1.webp",
+            "size": 188940,
+            "sha256": "eb7c388e8d9e5622cd1a60524b7a4876545ca34b26c4890b32d38107cb4deb7e"
+          },
+          {
+            "path": "rules/illustrations-v1/fuels-atlas-v1.webp",
+            "size": 192460,
+            "sha256": "5e0c6db0078ad9902eb1869e7a02f0df7183166921291bea99d11b49b1151425"
+          },
+          {
+            "path": "rules/illustrations-v1/house-v1.webp",
+            "size": 30688,
+            "sha256": "1f6d979c432b10da90b5dfbdd6b50b448572828f0c42417f69d0ecafb01f8520"
+          }
+        ],
+        "archiveBytes": 1416085,
+        "archiveSha256": "e142eecefa10b4d480791a2e55bdcc63901285d8acc06f68c5bf039a81edf0cc",
+        "installedBytes": 1415354,
+        "assetName": "TableMax-resources-73a2788502f039baaa890acf56163b428c3682dba1d8a183dead071d34296c25.zip",
+        "releaseTag": "v1.0.6"
+      },
+      {
+        "id": "9e740861d1b2167ac9d8a7df818132a6aa310c2a5e44b15b4994544d37dd47d2",
+        "kind": "code",
+        "files": [
+          {
+            "path": "bots/rummikub.cjs",
+            "size": 17478,
+            "sha256": "e1f1b9e0687258e60b10ad30c67fe9cd381a7a82928dc6549bbc7936849479dd"
+          },
+          {
+            "path": "rules/rummikub.cjs",
+            "size": 23729,
+            "sha256": "19561b8c0c816b57045123d537342eef4136fda22fbf649274a1be9ffbf5c5db"
+          },
+          {
+            "path": "web/entry.js",
+            "size": 49685,
+            "sha256": "0fed238402e5f0a6fce9ee87125eccd046b672893b8c0db1aee1b6cb41e3ac1c"
+          },
+          {
+            "path": "web/index-DJwKhzws.css",
+            "size": 21826,
+            "sha256": "94fb36746dcc92f02008170ef941a3ab304ff2b3c2c2284ea143fe8a22b9401e"
+          }
+        ],
+        "archiveBytes": 37878,
+        "archiveSha256": "b6c6a1cc13b02df4653723a6c2ad6c212a4d57f04e399d20ed5593c8c88e5ee1",
+        "installedBytes": 112718,
+        "assetName": "TableMax-code-9e740861d1b2167ac9d8a7df818132a6aa310c2a5e44b15b4994544d37dd47d2.zip",
+        "releaseTag": "v1.0.6"
+      },
+      {
+        "id": "a92232f2776327165f4b7fc7d0e0c28df397ab6118052b775d0d671b218805e9",
+        "kind": "resources",
+        "files": [
+          {
+            "path": "audio/draw-v1.wav",
+            "size": 8864,
+            "sha256": "d7f202ad49b3c54851db6db3dd372aaa98aa7b3b80b9708d5b720583d0a158e8"
+          },
+          {
+            "path": "audio/place-v1.wav",
+            "size": 10628,
+            "sha256": "ca62c8c2335612cf8bb815c46e7461f10ba4943cfe1a7657f650359feff4d39f"
+          },
+          {
+            "path": "audio/win-v1.wav",
+            "size": 36206,
+            "sha256": "a124b719eae7a04851e04a6dde41ac6ccb8868e0b715756ae6c5fc281ce26e57"
+          }
+        ],
+        "archiveBytes": 47499,
+        "archiveSha256": "3f302b0b2e852ec813ca59292b06c5f9bbaa3c905ada153b64840d05f95b9162",
+        "installedBytes": 55698,
+        "assetName": "TableMax-resources-a92232f2776327165f4b7fc7d0e0c28df397ab6118052b775d0d671b218805e9.zip",
+        "releaseTag": "v1.0.6"
+      },
+      {
+        "id": "ff6bd480c90ae510e8fb5d370dd2f3f28460283bc995e585885d9c0403630aa1",
+        "kind": "code",
+        "files": [
+          {
+            "path": "bots/uno.cjs",
+            "size": 6820,
+            "sha256": "5879134e983afea081555b40dfe8141c40b70de2f4d70ed2c15b5e8ad71844fb"
+          },
+          {
+            "path": "rules/uno.cjs",
+            "size": 20079,
+            "sha256": "72d5d839d3c6b976f9d67e6fb1d440853d104190f1f6ee87f68856af3ed12a5e"
+          },
+          {
+            "path": "web/entry.js",
+            "size": 34920,
+            "sha256": "22e826035104a60a0622730c055a29c3591562ce68082b0ccac961a14121cefb"
+          },
+          {
+            "path": "web/index-xDCo-lnp.css",
+            "size": 30792,
+            "sha256": "12c40bc1f4481162bba02ff3ae5833604c5f2abb1996aa1afff737b85fe4bddf"
+          }
+        ],
+        "archiveBytes": 30189,
+        "archiveSha256": "c195d0126340fb173a694f335569420778aa1db6da67940bfae3a9efcd57fac9",
+        "installedBytes": 92611,
+        "assetName": "TableMax-code-ff6bd480c90ae510e8fb5d370dd2f3f28460283bc995e585885d9c0403630aa1.zip",
+        "releaseTag": "v1.0.6"
+      },
+      {
+        "id": "2fdcdf21c7ba3de4da10681c1ab8fadf2f15d5954a2e0e708e6c8e17d5ab4939",
+        "kind": "resources",
+        "files": [
+          {
+            "path": "audio/catch-uno-v1.flac",
+            "size": 23065,
+            "sha256": "d11bfbb0a61a9f06ded50efdbc365d7340e130ca933f1bfb3eaada0d0f3fc96c"
+          },
+          {
+            "path": "audio/challenge-v1.flac",
+            "size": 26911,
+            "sha256": "efcbb7ebaf6922442b38078badc567ce6389835ddb3a46af640c5b9d4441f897"
+          },
+          {
+            "path": "audio/draw-four-v1.flac",
+            "size": 59323,
+            "sha256": "002b2b6044e518c94fe20004e72f65fd4b82f42aa7f477136c9295df66a13be3"
+          },
+          {
+            "path": "audio/draw-two-v1.flac",
+            "size": 37466,
+            "sha256": "99afc3165405b042cfe0a81711a45ca22eceb0d53ae16c34926f2039e5e6fc6c"
+          },
+          {
+            "path": "audio/draw-v1.flac",
+            "size": 33485,
+            "sha256": "7c7033f1be4abf431fe37e9c6f8ac83b3e63a9ffa7bca123c7dff9001df792a6"
+          },
+          {
+            "path": "audio/place-v1.flac",
+            "size": 19092,
+            "sha256": "512b89925daae38d71c704ef198e6a8342ece09d36fdb733b2d6e343ffce0aa4"
+          },
+          {
+            "path": "audio/reverse-v1.flac",
+            "size": 27270,
+            "sha256": "0a60d5a39576b0d7a211bc9e387dc109cd58e3050d2ab3463ca473405fc4a967"
+          },
+          {
+            "path": "audio/skip-v1.flac",
+            "size": 18796,
+            "sha256": "010a17eafcd406de6ebf02adaa04141fe3cf8b4104e045eb5bb14680f3664bf6"
+          },
+          {
+            "path": "audio/uno-v1.flac",
+            "size": 25455,
+            "sha256": "75ab029cc4beaa18802097ac1066254b5ff35dc87f508a16d9d5e6b6762b8dd7"
+          },
+          {
+            "path": "audio/wild-v1.flac",
+            "size": 25865,
+            "sha256": "b8c30883779081b688ab3a0f077938c51318c936ea5bd1b13e5d5e2d59ded3ef"
+          },
+          {
+            "path": "audio/win-v1.flac",
+            "size": 71612,
+            "sha256": "928949e0278b8f8cff8eaf00969f39d71f0fbf3a776ab18a372bcb9f15cefd93"
+          },
+          {
+            "path": "table-v1.webp",
+            "size": 153662,
+            "sha256": "4dd5a7a016c06669028642173561a294eab18a4f630a60278e2b0f532cd08b22"
+          }
+        ],
+        "archiveBytes": 507239,
+        "archiveSha256": "9168de46f61235fa8f457743cd891fc85e177c75c96df8809466c7d297e67eb6",
+        "installedBytes": 522002,
+        "assetName": "TableMax-resources-2fdcdf21c7ba3de4da10681c1ab8fadf2f15d5954a2e0e708e6c8e17d5ab4939.zip",
+        "releaseTag": "v1.0.6"
+      },
+      {
+        "id": "6f6a7be6cfe0f6a8bc3e8c01788083266dd03939ced95af2bfe5c4ebd0564b40",
+        "kind": "code",
+        "files": [
+          {
+            "path": "bots/avalon.cjs",
+            "size": 5653,
+            "sha256": "83bc004498e1112e934e4da36878687068079eec100daa743a5494f5fce63db5"
+          },
+          {
+            "path": "rules/avalon.cjs",
+            "size": 18447,
+            "sha256": "4c319bc58a874e061df325e2c15a2858128b4cdd7b9811000592cf56ef8d658e"
+          },
+          {
+            "path": "web/entry.js",
+            "size": 35902,
+            "sha256": "71ecbcb51ce7e3985d88b0a5b9eff4d02b50ac4e89bff470792a5a806a8d3192"
+          },
+          {
+            "path": "web/index-Y2IcWkDO.css",
+            "size": 46364,
+            "sha256": "f0da9ea90042de633145f567e9e11504d95e73b7476ef6d5542007b4e2f2dc50"
+          }
+        ],
+        "archiveBytes": 29622,
+        "archiveSha256": "a8dfcc681265105f9df7079d8ec715f930a6dcb821be514122183ab829705968",
+        "installedBytes": 106366,
+        "assetName": "TableMax-code-6f6a7be6cfe0f6a8bc3e8c01788083266dd03939ced95af2bfe5c4ebd0564b40.zip",
+        "releaseTag": "v1.0.6"
+      },
+      {
+        "id": "233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b",
+        "kind": "resources",
+        "files": [
+          {
+            "path": "audio/approved-v1.flac",
+            "size": 39710,
+            "sha256": "490f83acb3247c83cfde4a954544976d0d435308d9b313d91cd1868c2b46c308"
+          },
+          {
+            "path": "audio/assassination-evil-v1.flac",
+            "size": 104043,
+            "sha256": "f39444519660709e6f2eba151915e7f0e25c2eb55ebcd1bccf83ebf8b03f2da1"
+          },
+          {
+            "path": "audio/assassination-good-v1.flac",
+            "size": 96462,
+            "sha256": "b9a3fee3d507d720aa01a4ff83f7e0a80fed82cf26b9cc6ec31e4893a8a93971"
+          },
+          {
+            "path": "audio/assassination-v1.flac",
+            "size": 57495,
+            "sha256": "6ae295b731ab89aa8acec2e3a3c1806c712327cc93a2f7e946c99ecf2d7786ef"
+          },
+          {
+            "path": "audio/ballot-v1.flac",
+            "size": 29158,
+            "sha256": "ad9269435d76648509ad0ae268b4589ebe0a399396300b829b83f38f1d215c60"
+          },
+          {
+            "path": "audio/evil-win-v1.flac",
+            "size": 61157,
+            "sha256": "504c13a7d29b57c586eabe728e60e2fa350b33e2dc520283e7088b61fd1d4861"
+          },
+          {
+            "path": "audio/good-win-v1.flac",
+            "size": 56833,
+            "sha256": "d25137f368be22963233a7953cde5e195798822f63a29745b88fb05e6e81582e"
+          },
+          {
+            "path": "audio/pledge-v1.flac",
+            "size": 27291,
+            "sha256": "0a3f77938d9553de561038cf85a0ae7afc5c43279d5dbc9c76e7cfa3d9d1fa2b"
+          },
+          {
+            "path": "audio/quest-fail-v1.flac",
+            "size": 64499,
+            "sha256": "9aa581ede7fcc10d3f14ed7c507433831096d8efabfc6a7a27ce460412fcffbf"
+          },
+          {
+            "path": "audio/quest-success-v1.flac",
+            "size": 44902,
+            "sha256": "c702a048858dc163e60be01c710ee7f06a7ecfeec0fc3b13890d18266316e4a8"
+          },
+          {
+            "path": "audio/rejected-v1.flac",
+            "size": 47178,
+            "sha256": "80e91f36fd182e2c42c691d2aff3f9aa8899fdd28c4fec814746f40ba9230194"
+          },
+          {
+            "path": "audio/team-v1.flac",
+            "size": 47360,
+            "sha256": "58eda1f6663235a0ae459721f4983856ce23f356f841c66a200734fe089dc988"
+          },
+          {
+            "path": "council.webp",
+            "size": 409180,
+            "sha256": "cf166a4f4054312ec5feafa1f03624e3d1d173ff907c4bfbc6f8286a2f621728"
+          },
+          {
+            "path": "effect-relics.webp",
+            "size": 207092,
+            "sha256": "1f455b15ed991333d8731842cf192625fc62f7939254c9c3ad15d1316c3e7fd0"
+          },
+          {
+            "path": "roles.webp",
+            "size": 413248,
+            "sha256": "64e42aea23c6d2525e0a2f05c3bd4e6d26e4718bc2be5695f809e6ae9e869f44"
+          }
+        ],
+        "archiveBytes": 1675204,
+        "archiveSha256": "e17ba7947c482fc0d0f68a5367d64b2d6371259d5f91107412b7de7f4dc90188",
+        "installedBytes": 1705608,
+        "assetName": "TableMax-resources-233c3e8e9bd72bb5fc40e547d59f0b0aedab4d7ef2bec76124ebadd6d0daec8b.zip",
+        "releaseTag": "v1.0.6"
+      },
+      {
+        "id": "3a07e75d47424f0b953e845c37c872d24d16a7b6097ee7fd428346c2a34c51f0",
+        "kind": "code",
+        "files": [
+          {
+            "path": "bots/avalon.cjs",
+            "size": 5614,
+            "sha256": "5acf70e17b43e27dbf04dee06d37bc97d6e2f708c0770e336adda1826ab698d9"
+          },
+          {
+            "path": "rules/avalon.cjs",
+            "size": 18447,
+            "sha256": "4c319bc58a874e061df325e2c15a2858128b4cdd7b9811000592cf56ef8d658e"
+          },
+          {
+            "path": "web/entry.js",
+            "size": 35902,
+            "sha256": "71ecbcb51ce7e3985d88b0a5b9eff4d02b50ac4e89bff470792a5a806a8d3192"
+          },
+          {
+            "path": "web/index-Y2IcWkDO.css",
+            "size": 46364,
+            "sha256": "f0da9ea90042de633145f567e9e11504d95e73b7476ef6d5542007b4e2f2dc50"
+          }
+        ],
+        "archiveBytes": 29607,
+        "archiveSha256": "321dde50eabf9118bcd9f2bfa92fd71c1f2996991e9110ac7ce9744352f06c24",
+        "installedBytes": 106327,
+        "assetName": "TableMax-code-3a07e75d47424f0b953e845c37c872d24d16a7b6097ee7fd428346c2a34c51f0.zip",
+        "releaseTag": "v1.0.6"
+      }
+    ]
+  },
+  "signature": "iyzldz7aS062ICcGwVkS/ilaJA+m3HIcHKqc7q1O9boMft5Lz89fXThGRNZeObWCT2pre/SXOb/UK2sZgQDrDg=="
+}
