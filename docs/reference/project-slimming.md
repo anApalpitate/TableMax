@@ -1,5 +1,11 @@
 # 项目瘦身方案与执行记录
 
+## 版本适应性维护收尾（2026-10-12）
+
+当前1.0.6.1两种实际EXE、原生安全和新旧盒子下载／恢复通过，全部本轮工程退出后先预览，再唯一一次 `scripts/Maintain-Project.ps1 -Apply`。[实际维护](../../artifacts/maintenance/local-cleanup-20261011-164239-715-maintenance/cleanup.json)退役6个已结束验证目录，删除 **143,214,365逻辑字节**；结束 **23,814,653,748字节（22.179GiB）**，安全候选耗尽，607项内容、1,768链接及1个嵌套仓库继续保护。仍超过10GiB，只报告，不扩大范围或追加第二轮。
+
+原release两种三位EXE及两份本地清单先逐文件SHA保全到[原字节证据](../../artifacts/maintenance/v1.0.6/version-adaptability-20261012/before/preservation.json)，新四位EXE通过后再[退役旧目录副本](../../artifacts/maintenance/v1.0.6/version-adaptability-20261012/release-retirement.json)，移除78,646,718字节；其原字节仍在历史证据，不能把这部分目录退役当成原内容彻底删除。release保留当前两种EXE和各自清单，已有TableMax数据目录未动。签名历史包、当前载荷、素材、规则资料、存档及验收证据保持；没有压缩或线上变化。
+
 ## 下载文字与EXE命名收尾（2026-10-11）
 
 新无后缀完整游戏版及 `-box` 版本实际提取、原生安全与哈希验收通过后，所有验证程序退出，先预览再一次 `scripts/Maintain-Project.ps1 -Apply`。[实际结果](../../artifacts/maintenance/v1.0.6/exe-naming-20261011/maintenance.json)为无安全候选、删除0字节；标准逻辑容量 **22,417,307,747字节（20.878GiB）**，594项近期或未知内容、1,768链接、1个嵌套仓库及当前交付继续保护，没有扩大清理或追加第二轮。

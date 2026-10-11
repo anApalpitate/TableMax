@@ -4,13 +4,15 @@
 
 公开版本保持1.0.6，本地交付为 **1.0.6.1**。修订号原子分配，full／box共用；冻结快照、载荷清单、包装器与原生文件版本一致。新盒子按SDK、协议、页面接口与实际能力选最新兼容发行，阿瓦隆新包采用协议8；旧协议7发行和历史精确引用保留。稳定签名目录、旧协议兼容目录、退役配置过滤及失败保留缓存已实现，规则见[Release流程](release.md#盒子与游戏的兼容目录2026-10-12)。本轮未发布、未部署Pages、未生成源码ZIP。
 
-限定服务／目录／安装／恢复回归33项通过：首次批次32项通过、一个预装夹具遗漏闭包过滤失败，修正后只重跑该文件3项通过。原始失败报告保留；之前的夹具问题、沙盒子进程EPERM和输入并行变化均不计作已通过结果。版本分配、能力契约、历史合并和JS／PowerShell交付保护分别通过，覆盖并发分配、公开版本切换、越界／缺失证据／内容篡改、历史地址和退役项；全局类型检查与定向格式／静态检查结果由收尾记录绑定。
+限定服务／目录／安装／恢复回归33项通过：首次批次32项通过、一个预装夹具遗漏闭包过滤失败，修正后只重跑该文件3项通过。原始失败报告保留；之前的夹具问题、沙盒子进程EPERM和输入并行变化均不计作已通过结果。版本分配、能力契约、历史合并和JS／PowerShell交付保护分别通过，覆盖并发分配、公开版本切换、越界／缺失证据／内容篡改、历史地址和退役项；全局类型检查、定向ESLint、适用Prettier及23个新增本地链接检查通过，结果与实际包由[收尾映射](../../artifacts/maintenance/v1.0.6/version-adaptability-20261012/completion.json)绑定。
 
 [实际跨版本验证](../../artifacts/maintenance/v1.0.6/version-adaptability-20261012/actual-compatibility.json)使用旧、新盒子实际EXE提取出的包内Node服务：旧盒子安装协议7原包并拒绝协议8新阿瓦隆包；补充[实际目录与下载验证](../../artifacts/maintenance/v1.0.6/version-adaptability-20261012/actual-compatibility-online.json)确认旧盒子通过原固定URL推荐旧兼容阿瓦隆并下载当前兼容的现代艺术代码／资源，新盒子通过稳定URL推荐新能力包，分发请求只重定向至127.0.0.1签名夹具；新盒子恢复旧盒子生成的SQLite对局，保留原UNO发行及对局身份，再导入新旧包不替换原存档引用。两次提取夹具在嵌套新目录遇访问限制，改用已通过交付检查的tmp直接独立目录后通过，未修改权限或历史EXE。
 
 两种[实际EXE证明](../../artifacts/maintenance/v1.0.6/windows-editions/7731b4230e052468c53ef652ad4b4040f93d130e1ca55e5f8742089077ce576a/shipping-executable-checks-full.json)均绑定快照 `7731b4230e05…576a`，盒子[证明](../../artifacts/maintenance/v1.0.6/windows-editions/7731b4230e052468c53ef652ad4b4040f93d130e1ca55e5f8742089077ce576a/shipping-executable-checks-box.json)同目录。full／box EXE分别 **43,706,368／34,910,208字节**，实际验收提取 **96,533,614／87,494,954字节**，均低于120MB；完整成员、重复提取和静音隐藏原生安全通过，运行时身份实测为1.0.6.1。full仅预装当前7个玩法，签名目录另保留历史引用。当前[指针](../../artifacts/package-payloads/v1.0.6/current.json)绑定两种EXE及内部payload。
 
 历史公开字节未修改。上一轮两种EXE与本地清单逐文件SHA保全到[历史证据](../../artifacts/maintenance/v1.0.6/version-adaptability-20261012/before/preservation.json)。当前候选目录包含18个发行／20个内容包；历史离线包中同名不同内嵌总目录的两份字节按显式历史来源优先，双方路径与SHA留[构建记录](../../artifacts/game-packages/v1.0.6/current/build-record.json)。新离线包只签自身闭包，后续无关目录更新不会改变它。[49文件静态目录回环检查](../../artifacts/pages/verification-pYQ92w/results.json)覆盖逐文件URL、哈希、离线闭包和篡改／覆盖拒绝；不代表真实CDN、所有历史盒子、实体手机或现场LAN已认证。
+
+一次安全维护删除143,214,365字节，剩余逻辑体积23,814,653,748字节（22.179GiB）；安全候选耗尽，未扩大范围或追加删除。旧release四文件仅在SHA保全核对后退役，原数据目录继续保护；实际范围见[瘦身记录](project-slimming.md#版本适应性维护收尾2026-10-12)。
 
 ## 1.0.6：游戏包失败原因细化（2026-10-12，源码）
 
