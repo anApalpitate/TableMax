@@ -48,6 +48,7 @@ import { RoomProjectionState } from './room-projections';
 import { SyncDiagnostics } from './sync-diagnostics';
 import { PackageStore } from './game-packages/store';
 import { PROJECT_GAME_PUBLIC_KEY } from './game-packages/project-public-key';
+import { gameAssetUrl, gameCatalogUrl } from './game-packages/distribution';
 
 export async function createService(
   input: ServiceConfig,
@@ -76,8 +77,7 @@ export async function createService(
                 .map((r) => r.releaseId)
             : []),
         ],
-        assetUrl: (blob) =>
-          `https://github.com/anApalpitate/TableMax/releases/download/${encodeURIComponent(blob.releaseTag)}/${encodeURIComponent(blob.assetName)}`,
+        assetUrl: gameAssetUrl,
       })
     : undefined;
   if (packages) {
@@ -243,10 +243,9 @@ export async function createService(
         const { operation, releaseId } = request.body ?? {};
         try {
           if (operation === 'refresh') {
-            const response = await fetch(
-              'https://github.com/anApalpitate/TableMax/releases/download/v1.0.6/TableMax-game-catalog-v1.0.6.json',
-              { signal: AbortSignal.timeout(30000) },
-            );
+            const response = await fetch(gameCatalogUrl(), {
+              signal: AbortSignal.timeout(30000),
+            });
             if (
               !response.ok ||
               Number(response.headers.get('content-length')) > 2_000_000

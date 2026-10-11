@@ -1,0 +1,51 @@
+.dialog-surface.overlay-panel.box-overlay-panel {
+  overflow: hidden;
+  padding: 20px;
+  background: linear-gradient(145deg, #fffef8f5, #f3f6eaf5);
+  border-color: #c4ceb6;
+  box-shadow:
+    0 24px 90px #173b3240,
+    inset 0 1px 0 #ffffff;
+}
+.dialog-surface.overlay-panel.box-overlay-panel[open] {
+  display: flex;
+  flex-direction: column;
+}
+.box-overlay-panel > .panel-heading {
+  position: static;
+  flex: 0 0 auto;
+  margin: 0 0 12px;
+  padding: 0 0 12px;
+  border-bottom: 1px solid #cbd7bf;
+  background: transparent;
+}
+.box-overlay-panel > .panel-heading h2 {
+  margin: 0;
+}
+.box-overlay-panel__content {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #91a787 #edf2e5;
+  padding-inline-end: 8px;
+}
+.box-overlay-panel__content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.box-overlay-panel__content::-webkit-scrollbar-thumb {
+  border: 2px solid #edf2e5;
+  border-radius: 8px;
+  background: #91a787;
+}
+.box-overlay-panel__content::-webkit-scrollbar-track {
+  border-radius: 8px;
+  background: #edf2e5;
+}
+@media (max-width: 600px) {
+  .dialog-surface.overlay-panel.box-overlay-panel {
+    padding: 14px;
+  }
+}

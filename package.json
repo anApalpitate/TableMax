@@ -43,7 +43,9 @@
     "assemble:win": "node tools/build/assemble.mjs",
     "release:github": "node --import tsx tools/release/publish-release.mjs",
     "package:games": "node tools/release/game-packages.mjs",
-    "verify:game-packages": "node --import tsx tools/release/verify-game-packages.mjs"
+    "verify:game-packages": "node --import tsx tools/release/verify-game-packages.mjs",
+    "prepare:pages": "node --import tsx tools/release/prepare-pages.mjs",
+    "verify:pages": "node --import tsx tools/release/verify-pages.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

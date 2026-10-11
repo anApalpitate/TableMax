@@ -34,6 +34,7 @@ import ${JSON.stringify(resolve('apps/web/src/screens/box-screen.css'))};
 const catalog=moduleCatalog.filter(m=>!m.internal).map(m=>m.catalog);
 window.commands=[];
 window.catalog=catalog;
+window.developmentIds=moduleCatalog.filter(m=>m.development).map(m=>m.id);
 let resourceSnapshot=[];
 const resourceListeners=new Set();
 window.resourceDownloads=[];
@@ -99,6 +100,16 @@ try {
   assert.ok((await repository.getAttribute('rel')).includes('noopener'));
   const repoBounds = await repository.boundingBox();
   assert.ok(repoBounds.width >= 44 && repoBounds.height >= 44);
+  assert.equal(await repository.innerText(), 'TableMax');
+  assert.equal(
+    await page.locator('.box-footer,.box-repository-link').count(),
+    0,
+  );
+  assert.equal(await repository.locator('svg').count(), 0);
+  assert.equal(
+    await repository.evaluate((el) => !!el.closest('.box-screen > header')),
+    true,
+  );
   for (const role of ['player', 'public', 'host']) {
     await page.evaluate(
       (role) =>
@@ -128,7 +139,7 @@ try {
   assert.equal(popup[0].url(), 'https://github.com/anApalpitate/TableMax');
   await popup[0].close();
   checked(
-    'Repository icon is accessible on all three box roles; browser click opens the exact project destination.',
+    'Top-left TableMax brand is the sole repository link on all three box roles; browser click opens the exact project destination.',
   );
   await page.getByRole('button', { name: '切换游戏', exact: true }).click();
   const library = page.getByRole('region', { name: '游戏库', exact: true });
@@ -137,9 +148,10 @@ try {
   assert.equal(await cards.count(), 6);
   assert.equal(await cards.locator('.game-library__tags').count(), 6);
   assert.equal(await cards.locator(':scope > img').count(), 6);
-  assert.ok(
-    await library.locator('[data-game-id="rummikub"] button').isDisabled(),
-  );
+  for (const id of await page.evaluate(() => window.developmentIds))
+    assert.ok(
+      await library.locator(`[data-game-id="${id}"] button`).isDisabled(),
+    );
   assert.ok(
     await library.locator('[data-game-id="uno"] > button').isDisabled(),
   );
@@ -562,6 +574,52 @@ try {
     exact: true,
   });
   await versions.waitFor();
+  for (const [width, height] of [
+    [320, 568],
+    [390, 844],
+    [844, 390],
+    [1280, 720],
+    [3840, 2160],
+  ]) {
+    await page.setViewportSize({ width, height });
+    const metrics = await versions.evaluate((dialog) => {
+      const outer = dialog.getBoundingClientRect();
+      const scroll = dialog.querySelector('.box-overlay-panel__content');
+      const inner = scroll.getBoundingClientRect();
+      return {
+        outer: { width: outer.width, height: outer.height, right: outer.right },
+        inner: {
+          right: inner.right,
+          scroll: scroll.scrollHeight,
+          client: scroll.clientHeight,
+        },
+        dialogScroll: dialog.scrollHeight,
+        dialogClient: dialog.clientHeight,
+        controls: [...dialog.querySelectorAll('button')].map((el) => ({
+          height: el.getBoundingClientRect().height,
+          font: parseFloat(getComputedStyle(el).fontSize),
+        })),
+        fonts: [...dialog.querySelectorAll('p,h3')].map((el) =>
+          parseFloat(getComputedStyle(el).fontSize),
+        ),
+      };
+    });
+    assert.ok(metrics.outer.width <= width && metrics.outer.height <= height);
+    assert.ok(
+      metrics.inner.right <= metrics.outer.right - 13,
+      'Scrollbar inset inside rounded shell',
+    );
+    assert.ok(
+      metrics.dialogScroll <= metrics.dialogClient + 1,
+      'Only inset content scrolls',
+    );
+    assert.ok(metrics.controls.every((item) => item.height >= 44));
+    assert.ok(metrics.fonts.every((font) => font >= 16));
+    report.layouts.push({ versionPicker: true, width, height, ...metrics });
+    await captureBrowserScreenshot(page, {
+      path: join(output, `versions-${width}x${height}.png`),
+    });
+  }
   assert.equal(
     await versions
       .getByRole('button', { name: '原版 · 已选中', exact: true })

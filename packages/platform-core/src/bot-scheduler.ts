@@ -101,13 +101,14 @@ export class BotScheduler {
       if (!entry) {
         entry = {
           task,
-          remaining:
-            this.delayMs ??
-            (this.room.playMode === 'test'
-              ? 40
-              : task.timing
-                ? reactionDelayMs(task)
-                : botDelayMs(this.room.playMode, task.data.difficulty)),
+          remaining: task.immediate
+            ? 0
+            : (this.delayMs ??
+              (this.room.playMode === 'test'
+                ? 40
+                : task.timing
+                  ? reactionDelayMs(task)
+                  : botDelayMs(this.room.playMode, task.data.difficulty))),
           due: 0,
         };
         this.waiting.set(key, entry);

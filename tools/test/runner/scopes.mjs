@@ -179,6 +179,8 @@ const verificationScopes = {
     'shared',
     'game:modern-art',
   ],
+  'tools/test/desktop/verify-f11.mjs': ['box', 'shared', 'tooling'],
+  'tools/release/verify-pages.mjs': ['shared', 'tooling'],
   'tools/test/platform/verify-connection-entry.mjs': [
     'box',
     'game:pokemon-encounters',
@@ -238,6 +240,8 @@ export function allowsScope(allowed, required) {
 
 export function unitTestScopes(file) {
   const normalized = file.replaceAll('\\', '/');
+  if (normalized === 'games/avalon/bot/timing.test.ts')
+    return ['game:avalon', 'shared'];
   const game = normalized.match(/^games\/([^/]+)\/.+\.test\.ts$/)?.[1];
   if (gameIds.includes(game)) return [`game:${game}`];
   return unitScopes[normalized];
@@ -304,6 +308,28 @@ export function scopedVitestIncludes(root, value, args = []) {
 
 export function verificationTestScopes(item) {
   const script = item.script.replaceAll('\\', '/');
+  if (script === 'tools/test/platform/verify-installed-games.mjs') {
+    const only = item.args.filter((arg) => arg.startsWith('--only='));
+    if (
+      only.length === 1 &&
+      only[0]
+        .slice(7)
+        .split(',')
+        .every((value) => gameIds.includes(value.split(':')[0]))
+    )
+      return [
+        'box',
+        'shared',
+        'tooling',
+        ...new Set(
+          only[0]
+            .slice(7)
+            .split(',')
+            .map((value) => `game:${value.split(':')[0]}`),
+        ),
+      ];
+    if (only.length) throw new Error('Invalid installed-game selection');
+  }
   if (
     script === 'tools/test/games/rummikub/verify-rummikub-ui.mjs' &&
     item.args.includes('--entry-only')

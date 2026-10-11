@@ -81,6 +81,25 @@ assert.equal(seen.mode, 'borderless');
 const child = { top: fakeWindow };
 vm.runInNewContext(bridgeSource, { window: child });
 assert.equal(child.tablemaxWindow, undefined);
+for (const [mode, expected] of [
+  ['windowed', 'fullscreen'],
+  ['borderless', 'windowed'],
+  ['fullscreen', 'windowed'],
+]) {
+  handlers.get('keydown')({
+    key: 'F11',
+    isTrusted: true,
+    repeat: false,
+    preventDefault() {},
+  });
+  assert.equal(calls.at(-1).method, 'window.read');
+  reply({ fullscreen: mode === 'fullscreen', mode });
+  await new Promise((done) => setImmediate(done));
+  assert.equal(calls.at(-1).method, 'window.setMode');
+  assert.deepEqual(Array.from(calls.at(-1).params), [expected]);
+  reply({ fullscreen: expected === 'fullscreen', mode: expected });
+  await new Promise((done) => setImmediate(done));
+}
 console.log(
   'Window bridge VM: read, legacy fullscreen, all three modes, notification, unsubscribe and frame exclusion passed',
 );
@@ -317,9 +336,11 @@ try {
   });
   await closeVideo(boxVideo.dialog);
   await host.keyboard.press('F11');
+  await until(host, 'windowed');
+  await host.keyboard.press('F11');
   await until(host, 'fullscreen');
   await host.keyboard.press('F11');
-  await until(host, 'borderless');
+  await until(host, 'windowed');
   assert.deepEqual((await state(host)).bounds, borderless.bounds);
   await desktop.request('window', {
     id: initial.id,
@@ -332,14 +353,14 @@ try {
   await fullVideo.dialog.waitFor({ state: 'detached' });
   await until(host, 'fullscreen');
   await host.keyboard.press('Escape');
-  await until(host, 'borderless');
+  await until(host, 'windowed');
   assert.deepEqual((await state(host)).bounds, borderless.bounds);
   const restoredVideo = await openVideo(host);
   await selectMode(host, restoredVideo.select, 'windowed');
   assert.deepEqual((await state(host)).bounds, initial.bounds);
   await closeVideo(restoredVideo.dialog);
   evidence.checks.push(
-    'Box video settings expose all three modes; borderless is idempotent; F11 and native menu restore borderless geometry; Escape closes video before returning from fullscreen',
+    'Box video settings expose all three modes; F11 and native menu return borderless/fullscreen to windowed; Escape closes video before returning from fullscreen',
   );
 
   if (!foreground) {
@@ -412,11 +433,11 @@ try {
     path: join(output, 'actual-game-video-fullscreen.png'),
   });
   await host.keyboard.press('F11');
-  await until(host, 'borderless');
+  await until(host, 'windowed');
   await host.waitForFunction(
-    () => document.querySelector('#window-mode')?.value === 'borderless',
+    () => document.querySelector('#window-mode')?.value === 'windowed',
   );
-  assert.equal(await gameVideo.select.inputValue(), 'borderless');
+  assert.equal(await gameVideo.select.inputValue(), 'windowed');
   assert.deepEqual((await state(host)).bounds, beforeGameFullscreen.bounds);
   await host.keyboard.press('F11');
   await until(host, 'fullscreen');
@@ -428,7 +449,7 @@ try {
   await menu.getByRole('button', { name: '关闭面板', exact: true }).click();
   await menu.waitFor({ state: 'detached' });
   await host.keyboard.press('Escape');
-  await until(host, 'borderless');
+  await until(host, 'windowed');
   assert.deepEqual((await state(host)).bounds, beforeGameFullscreen.bounds);
   const finalVideo = await openVideo(host);
   await selectMode(host, finalVideo.select, 'windowed');
@@ -438,7 +459,7 @@ try {
   });
   await closeVideo(finalVideo.dialog);
   evidence.checks.push(
-    'Actual saved Modern Art moves fullscreen into video settings; all three select modes change native bounds without DOM fullscreen; F11 updates the open select and Escape restores borderless geometry',
+    'Actual saved Modern Art moves fullscreen into video settings; all three select modes change native bounds without DOM fullscreen; F11 exits to windowed and updates the open select',
   );
   assert.deepEqual(evidence.errors, []);
   evidence.result = 'passed';

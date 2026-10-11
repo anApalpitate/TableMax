@@ -99,9 +99,11 @@
       keyPending = true;
       void request('window.read', [])
         .then((state) =>
-          request('window.setFullscreen', [
-            event.key === 'F11' ? !state.fullscreen : false,
-          ]),
+          event.key === 'F11'
+            ? request('window.setMode', [
+                state.mode === 'windowed' ? 'fullscreen' : 'windowed',
+              ])
+            : request('window.setFullscreen', [false]),
         )
         .catch(() => {})
         .finally(() => {

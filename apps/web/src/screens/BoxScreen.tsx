@@ -14,7 +14,7 @@ import { InviteFriends } from '../components/InviteFriends';
 import { BoxFeedback } from '../components/BoxFeedback';
 import { Notifications } from '../components/notifications/Notifications';
 import { RoomTable } from '../components/RoomTable';
-import { OverlayPanel } from '../components/OverlayPanel';
+import { BoxOverlayPanel as OverlayPanel } from '../components/BoxOverlayPanel';
 import { SeatSettings } from '../components/SeatSettings';
 import { GameLibrary } from '../components/GameLibrary';
 import { PlayModeControl } from '../components/PlayModeControl';
@@ -153,10 +153,10 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
       data-play-mode={view?.playMode ?? 'play'}
     >
       <header>
-        <span className="brand">
+        <RepositoryLink>
           <img className="brand-mark" src={appIcon} alt="" />
           TableMax
-        </span>
+        </RepositoryLink>
         <div className="header-status">
           {(isHost || moduleFor(game?.id)?.guidance) && (
             <CountdownSettings session={session}>
@@ -631,7 +631,6 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
         </OverlayPanel>
       )}
       {removal.confirmation}
-      <RepositoryLink />
     </main>
   );
 }

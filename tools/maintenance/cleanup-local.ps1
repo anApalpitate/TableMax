@@ -284,8 +284,8 @@ function Add-Candidate([string]$Path, [string]$Reason, $VerificationProof = $nul
   try {
     $absolute = Assert-LocalPath $Path
     $relativeCandidate = $absolute.Substring($workspace.Length).TrimStart('\', '/').Replace('\', '/')
-    if ($relativeCandidate -match '^(games|secrets|artifacts/game-packages|artifacts/author-toolkit)(/|$)') {
-      throw 'Installed game repository, signing configuration or current game/toolkit distribution is protected.'
+    if ($relativeCandidate -match '^(games|secrets|artifacts/game-packages|artifacts/author-toolkit|artifacts/pages)(/|$)') {
+      throw 'Installed game repository, signing configuration or current game/toolkit/Pages distribution is protected.'
     }
     $packageFolders = New-Object 'System.Collections.Generic.Stack[string]'
     if ([IO.Directory]::Exists($absolute)) { $packageFolders.Push($absolute) }

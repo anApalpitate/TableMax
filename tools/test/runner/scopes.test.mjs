@@ -25,6 +25,35 @@ const item = (script, args = []) => ({
 });
 const plan = (...tests) => ({ version: 1, tests });
 
+test('installed Avalon verification requires exactly its shared dependencies', () => {
+  const selected = plan(
+    item('tools/test/platform/verify-installed-games.mjs', ['--only=avalon']),
+  );
+  assert.doesNotThrow(() =>
+    validateBatchScope(selected, 'box,shared,tooling,game:avalon'),
+  );
+  assert.throws(
+    () => validateBatchScope(selected, 'box,shared,tooling'),
+    /outside/,
+  );
+  assert.throws(
+    () =>
+      validateBatchScope(
+        plan(
+          item('tools/test/platform/verify-installed-games.mjs', [
+            '--only=unknown',
+          ]),
+        ),
+        'full',
+      ),
+    /Invalid/,
+  );
+  assert.deepEqual(unitTestScopes('games/avalon/bot/timing.test.ts'), [
+    'game:avalon',
+    'shared',
+  ]);
+});
+
 test('scope is explicit, validated, and matches every exercised domain', () => {
   assert.throws(() => parseScope(undefined), /explicit test scope/);
   assert.throws(() => parseScope('game:unknown'), /Invalid/);

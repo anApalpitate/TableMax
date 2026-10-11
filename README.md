@@ -14,14 +14,14 @@
 
 ### 下载并打开
 
-1. 点击 **[直接下载 TableMax v1.0.6 Windows 版](https://github.com/anApalpitate/TableMax/releases/download/v1.0.6/TableMax-1.0.6-win-x64.exe)**，下载文件 `TableMax-1.0.6-win-x64.exe`。
+1. 点击 **[官方下载页](https://github.com/anApalpitate/TableMax/releases/latest)**，下载当前公开版本的 `-win-x64.exe` 文件。v1.0.6 暂时撤回，正在准备新的游戏包分发方式。
 2. 下载完成后，在浏览器的“下载”列表中找到它，点击“在文件夹中显示”；也可以打开电脑的“下载”文件夹。
 3. 建议在桌面新建一个“桌游”文件夹，把下载的文件放进去，再双击打开。第一次启动会自动在程序旁边创建 `TableMax` 文件夹，用来保存游戏资源、存档和设置。
 4. 如果程序提示缺少运行组件，按提示完成安装，再重新打开 TableMax。准备完成后，就可以按下方的“快速开始”和朋友入座。
 
 **想查看其他版本？** 打开 [官方下载页](https://github.com/anApalpitate/TableMax/releases/latest)，找到 **Assets（资源／附件）**，点击名称以 `-win-x64.exe` 结尾的文件。`-source.zip` 和 **Source code** 是供开发者使用的源代码；游玩请选择 EXE 程序。
 
-**版本说明：** 当前公开下载为 **v1.0.6**，支持按需安装游戏、离线包导入和独立作者工具；实际更新内容见[本版说明](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.6)。
+**版本说明：** v1.0.6 已暂时撤回为草稿，当前源码和本地包继续沿用该版本，暂不重新发布。下一次明确发布时，游戏包通过 GitHub Pages 目录提供，基础程序仍从 GitHub Release 下载；准备状态见[Release流程](docs/reference/release.md#最新分发决定与暂缓发布2026-10-11)。
 
 ### 开始前准备什么
 
@@ -34,7 +34,7 @@
 
 基础程序包含所需的 Node.js；缺少 Microsoft Edge WebView2 时会提供安装入口。首次准备运行环境及下载游戏可能需要联网，安装好后，同一局域网内的游戏、规则图和音效都可以离线使用。
 
-新基础程序包含盒子、服务、共享运行时、目录与封面。电脑管理员在游戏库下载需要的玩法，安装后即可选择；离线准备时可从[本版附件](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.6)下载对应的 `-offline.zip`，在“游戏包管理”中导入。游戏保存在便携目录 `games/`，正在进行的对局固定原发行，旧游戏与存档升级时保留。实际验证与设备边界见[验收记录](docs/reference/acceptance.md)，外部作者入口见[开发指南](docs/reference/game-development.md#独立作者工具包2026-10-11)。
+v1.0.6新基础程序包含盒子、服务、共享运行时、目录与封面。发布后，电脑管理员在游戏库下载需要的玩法，安装后即可选择；离线包将从游戏包目录提供，在“游戏包管理”中导入。本轮 Pages 尚未发布，现有本地离线包和已安装游戏继续使用。游戏保存在便携目录 `games/`，进行中的对局固定原发行，旧游戏与存档升级时保留。实际验证边界见[验收记录](docs/reference/acceptance.md)，外部作者入口见[开发指南](docs/reference/game-development.md#独立作者工具包2026-10-11)。
 
 ## 游戏与玩法
 

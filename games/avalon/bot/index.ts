@@ -271,6 +271,7 @@ function createBot(rulesVersion: string): BotStrategy {
     gameId: 'avalon',
     rulesVersion,
     difficulties: ['default', 'doubao', 'juewu'],
+    immediateActions: ['finish-discussion'],
     validateMemory(input) {
       if (input !== null) throw new Error('阿瓦隆策略记忆格式无效。');
       return null;

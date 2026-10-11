@@ -21,6 +21,26 @@ const strategy: BotStrategy = {
   ...bot,
   difficulties: ['default', 'doubao', 'juewu'],
 };
+it('immediate confirmation declarations require every authorized action to match', async () => {
+  const immediateStrategy = { ...strategy, immediateActions: ['confirm'] };
+  for (const actions of [
+    [{ type: 'confirm' }],
+    [{ type: 'confirm' }, { type: 'choose', value: 1 }],
+    [],
+  ]) {
+    const room = new RoomCoordinator(
+      { ...rules, legalActions: () => actions },
+      immediateStrategy,
+      new Repository(),
+    );
+    await add(room, 'default');
+    await add(room, 'default');
+    await command(room, { type: 'start' });
+    expect(room.botTask()!.immediate).toBe(
+      actions.length === 1 ? true : undefined,
+    );
+  }
+});
 function command(
   room: RoomCoordinator,
   value: Command['command'],

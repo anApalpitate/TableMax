@@ -1,0 +1,54 @@
+name: Publish approved game package directory
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Explicit release authorization required; type PUBLISH_TABLEMAX
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: tablemax-pages
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit publication confirmation
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: test "$CONFIRMATION" = PUBLISH_TABLEMAX
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+          persist-credentials: false
+      - name: Check static directory boundary and size
+        run: |
+          rm -rf site/.git
+          python3 - <<'PY'
+          import pathlib
+          root = pathlib.Path('site')
+          files = list(root.rglob('*'))
+          assert not any(p.is_symlink() for p in files), 'Links forbidden'
+          assert sum(p.stat().st_size for p in files if p.is_file()) <= 1_000_000_000, 'Published Pages site exceeds 1 GB'
+          assert (root / 'index.html').is_file() and (root / '.nojekyll').is_file()
+          PY
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+  deploy:
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy approved directory
+        id: deployment
+        uses: actions/deploy-pages@v4

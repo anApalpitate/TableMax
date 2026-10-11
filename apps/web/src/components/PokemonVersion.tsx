@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { OverlayPanel } from './OverlayPanel';
+import { BoxOverlayPanel } from './BoxOverlayPanel';
 import { moduleFor } from '../catalog';
 import type { RoomSession } from '../session/useRoomSession';
 import { ResourceButton } from './game-library/resources';
 import { feedbackText } from '../content/feedback';
+import './pokemon-version.css';
 export function PokemonVersion({
   session,
   gameId,
@@ -32,33 +33,57 @@ export function PokemonVersion({
           game.versions.find((v) => v.selected)?.name}
       </button>
       {open && (
-        <OverlayPanel
+        <BoxOverlayPanel
           title={game.catalog.name + '版本'}
+          className="pokemon-version-panel"
           close={() => setOpen(false)}
         >
-          <p>
+          <p className="pokemon-version-panel__notice">
             {session.view?.status === 'playing'
               ? feedbackText('library.endBeforeSwitchVersion')
               : feedbackText('library.switchVersionPreservesPlayers')}
           </p>
-          {choices.map((v) => (
-            <section key={v.id}>
-              <ResourceButton
-                resource={{ gameId: game.catalog.id, variantId: v.id }}
-                canDownload={!!session.isHost && !session.locked}
-                disabled={!editable}
-                installedLabel={v.name}
-                current={active && v.id === selected}
-                currentReleaseRef={session.view?.game?.releaseRef}
-                select={() => {
-                  session.command({ type: 'select-variant', variantId: v.id });
-                  setOpen(false);
-                }}
-              />
-              <p>{v.description}</p>
-            </section>
-          ))}
-        </OverlayPanel>
+          <div className="pokemon-version-panel__choices">
+            {choices.map((v, index) => (
+              <section
+                className="pokemon-version-card"
+                data-selected={active && v.id === selected}
+                key={v.id}
+              >
+                <div className="pokemon-version-card__heading">
+                  <span
+                    className="pokemon-version-card__number"
+                    aria-hidden="true"
+                  >
+                    {index + 1}
+                  </span>
+                  <h3>{v.name}</h3>
+                  {active && v.id === selected && (
+                    <span className="pokemon-version-card__current">
+                      当前版本
+                    </span>
+                  )}
+                </div>
+                <p>{v.description}</p>
+                <ResourceButton
+                  resource={{ gameId: game.catalog.id, variantId: v.id }}
+                  canDownload={!!session.isHost && !session.locked}
+                  disabled={!editable}
+                  installedLabel={v.name}
+                  current={active && v.id === selected}
+                  currentReleaseRef={session.view?.game?.releaseRef}
+                  select={() => {
+                    session.command({
+                      type: 'select-variant',
+                      variantId: v.id,
+                    });
+                    setOpen(false);
+                  }}
+                />
+              </section>
+            ))}
+          </div>
+        </BoxOverlayPanel>
       )}
     </>
   );

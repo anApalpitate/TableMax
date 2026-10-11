@@ -1490,8 +1490,22 @@ export class RoomCoordinator {
       decision.seatId,
       data.difficulty ?? 'default',
     );
+    const actions = structuredClone(
+      this.rules.legalActions(d.snapshot.state, decision.seatId),
+    );
+    const immediate =
+      actions.length > 0 &&
+      actions.every(
+        (action) =>
+          action !== null &&
+          typeof action === 'object' &&
+          !Array.isArray(action) &&
+          typeof action.type === 'string' &&
+          this.strategy.immediateActions?.includes(action.type),
+      );
     return {
       ...(timing ? { timing } : {}),
+      ...(immediate ? { immediate: true } : {}),
       gameId: this.rules.manifest.id,
       ...(d.releaseRef === undefined ? {} : { releaseRef: d.releaseRef }),
       ...(d.variantId === undefined ? {} : { variantId: d.variantId }),
@@ -1506,9 +1520,7 @@ export class RoomCoordinator {
           seatId: decision.seatId,
         }),
       ),
-      actions: structuredClone(
-        this.rules.legalActions(d.snapshot.state, decision.seatId),
-      ),
+      actions,
       data: structuredClone(data),
     };
   }

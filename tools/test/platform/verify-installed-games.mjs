@@ -41,6 +41,14 @@ const releases = catalog.releases.filter(
 );
 assert.ok(releases.length);
 const maxMs = Number(option('max-ms', '300000'));
+const playMode = option('play-mode', 'test');
+assert.ok(['play', 'test'].includes(playMode));
+const timingCheckpoint = option('timing-checkpoint', 'false') === 'true';
+assert.ok(!timingCheckpoint || playMode === 'play');
+const maxFailures = Number(option('max-failures', '3'));
+assert.ok(
+  Number.isInteger(maxFailures) && maxFailures >= 1 && maxFailures <= 3,
+);
 const onlineRelease = option('online-release', '');
 if (onlineRelease)
   assert.equal(
@@ -79,6 +87,7 @@ const report = {
       : 'service uses offline import only; ') +
     'no OS-level Node egress-denial claim.',
   ...(onlineRelease ? { onlineRelease } : {}),
+  playMode,
 };
 const save = () =>
   writeFile(
@@ -280,11 +289,13 @@ async function verifyRelease(release) {
   };
   report.games.push(result);
   await save();
-  let phone, publicPage, playerSocket;
+  let phone, publicPage, playerSocket, observeTiming;
   try {
     if ((await current(hostToken)).status === 'playing') {
-      // A failed prior case remains failed; this is explicit administrative cleanup only.
-      result.resetPriorFailedCase = true;
+      // Explicit cleanup never counts as natural match completion.
+      if (report.games.at(-2)?.checkpointOnly)
+        result.resetPriorCheckpointCase = true;
+      else result.resetPriorFailedCase = true;
       await hostCommand({
         type: 'select-game',
         gameId: release.gameId,
@@ -298,6 +309,8 @@ async function verifyRelease(release) {
         type: 'select-variant',
         variantId: release.variantId,
       });
+    await hostCommand({ type: 'set-play-mode', mode: playMode });
+    assert.equal((await current(hostToken)).playMode, playMode);
     assert.equal((await current(hostToken)).game.releaseRef, release.releaseId);
     const admitted = await (
       await fetch(origin + '/api/session/join', {
@@ -390,6 +403,64 @@ async function verifyRelease(release) {
       { origin, ref: release.releaseId, ids: audioIds },
     );
     await hostCommand({ type: 'resume' });
+    if (release.gameId === 'avalon' && playMode === 'play') {
+      result.discussionTimings = [];
+      result.botSavedActions = [];
+      result.phaseEvidence = [];
+      let pendingSpeaker,
+        seenSerial,
+        previousActionAt = performance.now();
+      observeTiming = (projection) => {
+        const view = projection.view ?? projection;
+        if (view.game?.releaseRef !== release.releaseId || view.paused) {
+          pendingSpeaker = undefined;
+          return;
+        }
+        const game = view.gameView;
+        if (!game) return;
+        const now = performance.now();
+        const latest = game.latest;
+        if (latest && latest.serial !== seenSerial) {
+          if (
+            view.seats.find((seat) => seat.id === latest.actor)?.controller ===
+            'bot'
+          ) {
+            result.botSavedActions.push({
+              verb: latest.verb,
+              actor: latest.actor,
+              serial: latest.serial,
+              sincePreviousSaveMs: now - previousActionAt,
+            });
+            if (
+              latest.verb === 'finish-discussion' &&
+              pendingSpeaker?.seat === latest.actor
+            )
+              result.discussionTimings.push({
+                seat: latest.actor,
+                elapsedMs: now - pendingSpeaker.at,
+                serial: latest.serial,
+              });
+          }
+          seenSerial = latest.serial;
+          previousActionAt = now;
+        }
+        const currentSpeaker =
+          game.phase === 'discussion' ? game.discussion?.current : null;
+        if (currentSpeaker !== pendingSpeaker?.seat) {
+          pendingSpeaker = currentSpeaker
+            ? { seat: currentSpeaker, at: now }
+            : undefined;
+          result.phaseEvidence.push({
+            phase: game.phase,
+            current: currentSpeaker,
+            atMs: now,
+          });
+        } else if (result.phaseEvidence.at(-1)?.phase !== game.phase)
+          result.phaseEvidence.push({ phase: game.phase, atMs: now });
+      };
+      hostSocket.on('room:view', observeTiming);
+      observeTiming(await current(hostToken));
+    }
     if (entryOnly) {
       result.check = 'passed';
       result.entryOnly = true;
@@ -427,6 +498,18 @@ async function verifyRelease(release) {
         result.check = 'passed';
         break;
       }
+      if (
+        timingCheckpoint &&
+        administrator.gameView?.phase === 'vote' &&
+        result.humanWaitProof &&
+        result.discussionTimings?.length >= result.seats - 1
+      ) {
+        await hostCommand({ type: 'pause' });
+        result.final = administrator.gameView;
+        result.checkpointOnly = true;
+        result.check = 'passed';
+        break;
+      }
       const lifecycleAction = administrator.lifecycleActions.find(
         (action) => action.type !== 'skip-discussion',
       );
@@ -440,6 +523,25 @@ async function verifyRelease(release) {
       }
       const own = await current(playerToken);
       if (own.decisionId) {
+        if (
+          release.gameId === 'avalon' &&
+          playMode === 'play' &&
+          own.actions.some((action) => action.type === 'finish-discussion') &&
+          !result.humanWaitProof
+        ) {
+          const before = await current(hostToken);
+          await wait(150);
+          const after = await current(hostToken);
+          assert.equal(
+            after.revision,
+            before.revision,
+            'human speaker advanced automatically',
+          );
+          result.humanWaitProof = {
+            waitedMs: 150,
+            unchangedRevision: after.revision,
+          };
+        }
         const before = performance.now();
         const decision = { id: own.decisionId, seatId: own.self.seatId };
         const selected = await decisionWorker(
@@ -500,6 +602,27 @@ async function verifyRelease(release) {
       'passed',
       `${caseName} did not naturally complete within ${maxMs}ms`,
     );
+    if (result.discussionTimings) {
+      assert.ok(
+        result.discussionTimings.length >= result.seats - 1,
+        'missing real server discussion confirmations',
+      );
+      assert.ok(
+        result.discussionTimings.every((sample) => sample.elapsedMs < 1000),
+        'discussion retained the normal thinking delay',
+      );
+      assert.ok(
+        result.humanWaitProof,
+        'missing ordinary-mode human wait proof',
+      );
+      assert.ok(
+        result.botSavedActions.some(
+          (action) =>
+            action.verb === 'acknowledge' && action.sincePreviousSaveMs >= 1400,
+        ),
+        'identity acknowledgement lost normal delay',
+      );
+    }
     result.durationMs = Date.now() - Date.parse(result.startedAt);
     assert.ok(
       !report.pageErrors.some((error) => error.label.startsWith(caseName)),
@@ -511,6 +634,7 @@ async function verifyRelease(release) {
     report.failures++;
     console.error(JSON.stringify({ game: caseName, error: error.message }));
   } finally {
+    if (observeTiming) hostSocket.off('room:view', observeTiming);
     playerSocket?.disconnect();
     await phone?.close().catch(() => {});
     await publicPage?.close().catch(() => {});
@@ -729,7 +853,7 @@ try {
   );
   await save();
   for (const release of releases) {
-    if (report.failures >= 3) break;
+    if (report.failures >= maxFailures) break;
     await verifyRelease(release);
   }
   report.skipped = releases

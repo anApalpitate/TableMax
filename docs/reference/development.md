@@ -1,5 +1,7 @@
 # 开发环境
 
+2026-10-11游戏包分发入口改为GitHub Pages静态目录，Release暂撤为草稿，本轮不发布。`pnpm prepare:pages`准备全新静态输出，`pnpm verify:pages`做回环逐文件验证；游戏包通过 `--packages=<独立候选目录>` 指定，基础ZIP通过 `node tools/release/package.mjs --games=<同一候选目录>` 读取，不覆盖既有受保护游戏包。手动部署、历史包保全及显式发布门禁见[Release流程](release.md#最新分发决定与暂缓发布2026-10-11)。原Release附件下载记录属于历史验证，不代表当前Pages已可访问。
+
 ## 阿瓦隆专项构建与验证
 
 经典2012原版只接入平台5–6人，规则与两种角色配置见 [游戏主题](../games/avalon/README.md)。独立构建 `node tools/build/build.mjs --only=game:avalon`；单测 `node tools/test/runner/test-scoped.mjs --scope=game:avalon` 仅选本游戏规则、策略、UI与实际服务／Worker项。范围隔离工具单独运行 `node --test tools/test/runner/scopes.test.mjs`，不增加其他游戏检查。

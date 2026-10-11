@@ -98,6 +98,11 @@ export interface BotStrategy {
   gameId: string;
   rulesVersion: string;
   difficulties?: readonly BotDifficulty[];
+  /** Action types that need no presentation/thinking wait when they are the
+   * only authorized choices. Strategy execution and authoritative saving still
+   * apply; this declaration never acts for a human seat.
+   */
+  immediateActions?: readonly string[];
   validateMemory(input: unknown): JsonValue;
   /** Pure, authorized observation committed atomically with a successful action. */
   observe?(input: {

@@ -35,7 +35,11 @@ import { assemble, assertIdle } from '../build/assemble.mjs';
 
 const args = process.argv.slice(2);
 assert.ok(
-  args.length <= 1 && args.every((arg) => arg.startsWith('--snapshot=')),
+  args.length <= 2 &&
+    args.every(
+      (arg) => arg.startsWith('--snapshot=') || arg.startsWith('--games='),
+    ) &&
+    new Set(args.map((arg) => arg.split('=')[0])).size === args.length,
 );
 async function resumeSnapshot(path) {
   const snapshotPath = resolve(path);
@@ -64,8 +68,9 @@ async function resumeSnapshot(path) {
 
 await lock('package-win', async () => {
   const started = performance.now();
-  const buildSnapshot = args.length
-    ? await resumeSnapshot(args[0].slice('--snapshot='.length))
+  const snapshotArgument = args.find((arg) => arg.startsWith('--snapshot='));
+  const buildSnapshot = snapshotArgument
+    ? await resumeSnapshot(snapshotArgument.slice('--snapshot='.length))
     : await buildProject(['--production']);
   for (const game of await discover())
     if (
@@ -126,13 +131,19 @@ await lock('package-win', async () => {
     for (const directory of ['web'])
       await copyTree(join(source, directory), join(unpacked, directory));
   });
-  const catalogSource = resolve(
-    'artifacts/game-packages/v1.0.6/TableMax-game-catalog-v1.0.6.json',
+  const gamesDirectory = resolve(
+    args.find((arg) => arg.startsWith('--games='))?.slice(8) ??
+      'artifacts/game-packages/v1.0.6',
+  );
+  const catalogSource = join(
+    gamesDirectory,
+    'TableMax-game-catalog-v1.0.6.json',
   );
   await execute(process.execPath, [
     '--import',
     'tsx',
     'tools/release/verify-game-packages.mjs',
+    '--out=' + gamesDirectory,
   ]);
   const catalogBytes = await readFile(catalogSource);
   await copyFile(catalogSource, join(unpacked, 'game-catalog.json'));

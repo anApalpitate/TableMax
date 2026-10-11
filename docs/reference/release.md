@@ -1,5 +1,31 @@
 # Release流程与发布约定
 
+## 最新分发决定与暂缓发布（2026-10-11）
+
+用户采用 GitHub Pages 按目录分发游戏包，并要求暂时撤回 v1.0.6；该 Release 已改为草稿（ID `409577467`），保留原标签与25个附件作为历史审计。本轮只准备本地站点、流程和程序，不部署 Pages，不重新发布 Release。只有用户再次明确说“发 release”才执行线上发布；提交、推送和构建不构成发布授权。
+
+基础 EXE、发布提交的 source ZIP 和已验证作者工具包继续放 GitHub Release；签名目录、代码／资源包及完整玩法离线包改放 `https://anapalpitate.github.io/TableMax/`。这覆盖下文原 Release 游戏附件方案；旧发布记录保留当时的事实。
+
+目录固定为：
+
+```text
+index.html
+.nojekyll
+games/v1.0.6/catalog.json
+games/v1.0.6/packages/<目录中的精确附件名>
+games/v1.0.6/<gameId>/<variantId或default>/index.html
+```
+
+`releaseTag` 现在定位版本目录，`assetName` 定位其中的包；内容哈希、发行引用、Ed25519 签名和本机安装事务不变。管理员主动刷新签名目录，所有玩家仍只访问主机。没有在线目录时保留已验证缓存，离线导入和已安装游戏继续可用。
+
+首次Pages部署还须保全已撤回Release签名目录引用的旧内容包与离线包（本地原 `artifacts/game-packages/v1.0.6/` 未覆盖），按原精确包名合并进同一版本的packages目录；旧签名目录另存到历史子目录。不能因为此前没有Pages历史站点而遗漏旧发行。旧档缺包可导入对应原发行离线包；发布前单独核验新旧引用和同名文件字节，不能用最新发行替代。
+
+执行 `pnpm prepare:pages -- --packages=<已验独立游戏包目录> --out=<全新输出目录>` 生成静态站点及站点外逐文件清单；执行 `pnpm verify:pages -- --packages=<同一目录>` 在127.0.0.1检查目录路径、哈希、离线依赖、篡改拒绝和不覆盖旧输出。工具不调用 GitHub。每次准备使用新目录，部署时合并既有历史目录：内容寻址包不可覆盖或删除，旧对局引用必须仍可下载；当前签名目录和浏览目录可以更新。跨版本依赖须一并保全，不能只上传最新文件。本地 `artifacts/pages/` 当前候选与清单受维护保护，不自动清空。
+
+已准备 `.github/workflows/pages.yml`，仅手动触发，要求输入 `PUBLISH_TABLEMAX`；没有 push、定时或 Release 自动触发器。本轮不创建／推送 `gh-pages`、不启用 Pages 设置、不触发工作流。获明确发布指示后，核对本地清单及历史目录，提交已验证的纯静态目录到 `gh-pages`，配置 Pages 使用 GitHub Actions，再手动部署。整个站点不超过 [Pages 的1GB限制](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)，累计历史文件也计入；部署权限与环境按 [官方工作流说明](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。私钥、存档和本地审计永不上传。
+
+部署后执行 `pnpm release:github -- --publish --notes=<说明> --devkit=<已验工具包> --pages-manifest=<已审站点清单>`；入口默认拒绝发布，且先核对实际 Pages 每个文件的公开字节，再只上传 EXE、source ZIP、作者工具包。保留的 v1.0.6 标签指向历史提交，重新发布同版本前须明确核对草稿、标签及实际发布源码映射；不得为了通过旧标签门禁强推标签或隐瞒差异。源码、EXE和实际 Pages 都通过验收后才能恢复发布。
+
 2026-10-10同版本附件替换授权：用户明确要求重新导出并只替换原v1.0.5的附件，因此本轮保持Release标题、正文、版本与已有标签对象，上传完整EXE及从本次已验证源码提交导出的source ZIP。源码提交与保留的旧标签对象映射记录在本地发布审计，不移动标签、不新增Release，也不上传运行ZIP或JSON。本条是此次明确授权的同版本替换边界；后文新版本发布流程仍适用。
 
 本页统一维护本地交付和GitHub Release的流程、前提与事项。工具链、增量构建、运行和安全清理的具体实现见[开发环境](development.md)，当前实际交付与未验证边界见[验收记录](acceptance.md)。本页是操作规范，不表示某版本已完成或已发布。
@@ -33,30 +59,28 @@
 
 代码、公共资源和玩法资源分别形成内容寻址ZIP；每个 `gameId/variantId` 的发行记录精确绑定依赖与资源逻辑ID。执行 `pnpm package:games` 时从冻结构建生成八个当前玩法及项目签名目录，执行 `pnpm verify:game-packages` 验证完整依赖、签名、逐文件哈希、资源与代码分离和门禁。签名私钥保存在受保护本地 `secrets/`，不随源码或作者工具包分发。
 
-主机按Release标签与附件名称下载并验证SHA-256；定位方式对应[GitHub附件接口](https://docs.github.com/en/rest/releases/assets)返回的 `browser_download_url`。更新目录由管理员主动触发，已验证缓存及离线包支持不联网安装与运行。首次线上分发必须先完成下面的显式发布流程；本地生成签名包不代表线上已存在这些附件。
+主机按Pages版本目录与精确包名下载并验证SHA-256；更新目录由管理员主动触发，已验证缓存及离线包支持不联网安装与运行。首次Pages分发先完成本页最新手动部署步骤；本地生成签名包不代表线上已存在。
 
 仅在用户明确授权GitHub发布后执行以下步骤。
 
 1. 确认本轮运行ZIP已通过验收，执行 `pnpm package:release`。此入口将已验ZIP封装为 `TableMax-<版本>-win-x64.exe`，不代替运行ZIP验收。
 2. 执行 `node tools/release/verify-shipping-executable.mjs`。验证实际提取发布EXE、逐文件哈希、重复启动复用、实际资源目录体积及提取程序的原生安全行为。EXE验证后发生改变必须重新验收。
 3. 整理本次源码、文档和更新说明，完成适用检查并提交最终发布源码；核对冻结运行输入无未提交差异。推送该提交和对应 `v<版本>` 标签，标签必须指向发布提交。已有同名标签或Release时先核对现状，不强推、不擅自覆盖历史。
-4. 按下节格式准备已审阅的更新说明文件，执行 `pnpm release:github -- --notes=<说明文件路径>`。当前入口核对EXE验收证据、HEAD与标签一致、远端标签和已提交运行输入；随后从最终提交执行 `git archive` 生成源码ZIP、创建Release并上传附件。
+4. 按下节格式准备更新说明，使用本页最新含 `--publish`、工具包及Pages清单的命令。入口核对EXE证据、HEAD与标签一致、远端标签和已提交运行输入，并核对Pages实际字节；由最终提交生成源码ZIP、创建Release并上传白名单附件。当前v1.0.6草稿需先解决历史标签与本次提交的明确映射，不能直接重复创建或强推标签。
 5. 发布后核对线上标题、正文、标签、正式／预发布状态及附件名称、数量、大小与SHA-256。保存本地发布记录并更新验收入口；失败记录保留，不把部分上传写成发布成功。
 
 当前 `package:release`、发布入口及默认EXE检查共用 `artifacts/maintenance/v<版本>/github-release-20261005/` 证据目录；该目录名是现有工具路径，不代表新版本的发布日期。EXE检查可用 `--evidence=<独立名称>`，但当前发布入口仍读取默认目录；使用独立证据时不能宣称发布入口已经自动采用。
 
 ### 附件与运行事项
 
-2026-10-11用户确认独立游戏包分发后，附件白名单扩展为以下运行与作者交付文件。历史发布仍保留当时的附件边界：
+按2026-10-11最新Pages方案，Release附件白名单如下；已撤回的历史草稿25附件保留供审计，不能作为新发布的白名单：
 
 1. `TableMax-<版本>-win-x64.exe`：可运行的基础程序，新安装不包含游戏代码与完整资源。
 2. `TableMax-<版本>-source.zip`：由该发布提交的 `git archive` 导出。
 
-3. `TableMax-game-catalog-<标签>.json`：项目Ed25519签名目录；这份产品目录是JSON附件的明确例外。
-4. 目录精确列出的内容寻址代码包、公共／玩法资源包，以及包含完整依赖的玩法离线ZIP。文件名绑定内容哈希，发布标签、名称与SHA-256共同定位，不覆盖旧发行引用。
-5. `TableMax-author-toolkit-*.zip`：实际独立作者接入验证通过的开发工具包。
+3. `TableMax-author-toolkit-*.zip`：实际独立作者接入验证通过的开发工具包。
 
-发布入口通过 `tools/release/game-release-assets.mjs` 验证签名并生成精确白名单，执行时追加 `--devkit=<实际工具包路径>`。发布前先完成 `pnpm package:games` 和 `pnpm verify:game-packages`，并验收同一基础包及其安装组合；源码提交、标签与EXE验证仍遵守上节门禁。审计JSON、基础运行ZIP、截图和过程报告继续只留本地。GitHub自动提供的仓库源码下载不属于手动上传附件。
+签名游戏目录、内容寻址代码／资源及完整离线ZIP只进Pages目录。`tools/release/game-release-assets.mjs`继续核验用于Pages的精确文件集合；发布入口使用 `--devkit` 和 `--pages-manifest`。先完成游戏包签名、逐文件验证以及同一基础包和安装组合验收；源码、标签与EXE遵守上节门禁。审计JSON、基础运行ZIP、截图及过程报告只留本地，GitHub自动源码下载不属手动附件。
 
 v1.0.3单EXE默认在旁边新建 `TableMax/`，运行资源位于 `TableMax/app/`；ZIP解压版直接使用解压目录。配置、存档、设置、日志和浏览器缓存由对应根目录内 `TableMax.config.json` 指定，不可写时不回退C盘。启动器只更新带有效标记的资源目录，未知文件或占用时拒绝替换，暂存失败回滚；旧数据保留，目录更换需重启。平台条件和迁移细节见[便携存储与启动迁移](development.md#v103-便携存储与启动迁移2026-10-06)。这些运行说明属于项目文档，不重复放进更新正文。
 

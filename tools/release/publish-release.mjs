@@ -10,8 +10,11 @@ import { promisify } from 'node:util';
 import { readFile, writeFile, stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
-import { gameReleaseAssets } from './game-release-assets.mjs';
-import { PROJECT_GAME_PUBLIC_KEY } from '../../apps/server/src/game-packages/project-public-key.ts';
+import { GAME_PAGES_ROOT } from '../../apps/server/src/game-packages/distribution.ts';
+assert.ok(
+  process.argv.includes('--publish'),
+  'Publication is disabled by default. Explicit user release authorization and --publish are required.',
+);
 const run = async (command, args) =>
   (
     await promisify(execFile)(command, args, {
@@ -102,14 +105,42 @@ assert.ok(
   devkit,
   'Provide the independently verified developer toolkit with --devkit=<zip>',
 );
-const gameAssets = await gameReleaseAssets(
-  resolve('artifacts/game-packages', tag),
-  {
-    publicKey: PROJECT_GAME_PUBLIC_KEY,
-    devkitPath: resolve(devkit),
-  },
+assert.ok(
+  /^TableMax-author-toolkit-[A-Za-z0-9._-]+\.zip$/.test(
+    devkit.split(/[\\/]/).at(-1),
+  ),
+  'Invalid developer toolkit name',
 );
-const assets = [exe, source, ...gameAssets.map((file) => file.path)];
+const pagesManifest = process.argv
+  .find((arg) => arg.startsWith('--pages-manifest='))
+  ?.slice(17);
+assert.ok(
+  pagesManifest,
+  'Provide reviewed Pages manifest with --pages-manifest=<file>',
+);
+const pages = JSON.parse(await readFile(resolve(pagesManifest), 'utf8'));
+assert.equal(pages.tag, tag);
+assert.equal(pages.root, GAME_PAGES_ROOT);
+assert.ok(pages.bytes <= 1_000_000_000 && pages.files.length > 0);
+// A local preparation never proves deployment. Verify exact public bytes first.
+for (const file of pages.files) {
+  const url = new URL(file.path, GAME_PAGES_ROOT);
+  assert.equal(url.origin, new URL(GAME_PAGES_ROOT).origin);
+  assert.ok(url.pathname.startsWith('/TableMax/'));
+  const response = await fetch(url, {
+    signal: AbortSignal.timeout(30000),
+    cache: 'no-store',
+  });
+  assert.ok(response.ok, 'Pages directory is not published: ' + url);
+  const bytes = Buffer.from(await response.arrayBuffer());
+  assert.equal(bytes.length, file.bytes);
+  assert.equal(
+    createHash('sha256').update(bytes).digest('hex'),
+    file.sha256,
+    'Pages published bytes mismatch: ' + url,
+  );
+}
+const assets = [exe, source, resolve(devkit)];
 const record = {
   version,
   commit,
@@ -160,7 +191,7 @@ assert.equal(
 assert.equal(
   online.assets.length,
   assets.length,
-  'Public release must match the verified base, source, signed game catalog and toolkit whitelist',
+  'Public release must contain only base EXE, source ZIP and verified author toolkit; game packages are on Pages',
 );
 for (const file of record.assets) {
   const name = file.path.split(/[\\/]/).at(-1);

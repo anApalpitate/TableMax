@@ -23,6 +23,7 @@ const extracted = join(output, 'runtime');
 const dataDir = join(output, 'data');
 await mkdir(dataDir);
 const report = {
+  portable: true,
   archiveSha256: archiveHash,
   output,
   result: 'running',

@@ -267,7 +267,7 @@ namespace TableMax.Desktop
         private void BuildMenu()
         {
             var screens = new ToolStripMenuItem("屏幕(&S)");
-            var full = new ToolStripMenuItem("全屏") { ShortcutKeys = Keys.F11, ShowShortcutKeys = false }; full.Click += (_, __) => ToggleFullscreen(); screens.DropDownItems.Add(full);
+            var full = new ToolStripMenuItem("全屏") { ShortcutKeys = Keys.F11, ShowShortcutKeys = false }; full.Click += (_, __) => ToggleF11(); screens.DropDownItems.Add(full);
             var borderless = new ToolStripMenuItem("无边框窗口"); borderless.Click += (_, __) => SetMode("borderless"); screens.DropDownItems.Add(borderless);
             var windowed = new ToolStripMenuItem("窗口"); windowed.Click += (_, __) => SetMode("windowed"); screens.DropDownItems.Add(windowed);
             screens.DropDownItems.Add(new ToolStripSeparator());
@@ -317,7 +317,7 @@ namespace TableMax.Desktop
         }
         protected override bool ProcessCmdKey(ref Message message, Keys keyData)
         {
-            if (keyData == Keys.F11) { ToggleFullscreen(); return true; }
+            if (keyData == Keys.F11) { ToggleF11(); return true; }
             if (keyData == Keys.Menu || keyData == (Keys.Alt | Keys.S)) { ToggleMenu(); return true; }
             return base.ProcessCmdKey(ref message, keyData);
         }
@@ -355,6 +355,7 @@ namespace TableMax.Desktop
             ApplyDisplay();
         }
         public object WindowSnapshot() => new { fullscreen, mode = windowMode };
+        private void ToggleF11() => SetMode(windowMode == "windowed" ? "fullscreen" : "windowed");
         public void ToggleFullscreen() => SetFullscreen(!fullscreen);
         public object SetFullscreen(bool value) => value ? SetMode("fullscreen") : fullscreen ? SetMode(fullscreenReturnMode) : WindowSnapshot();
         public object SetMode(string value)
@@ -412,6 +413,9 @@ namespace TableMax.Desktop
                     Bounds = new Rectangle(context.Background ? -20000 : (int)Json.Number(bounds, "x"), context.Background ? -20000 : (int)Json.Number(bounds, "y"), (int)Json.Number(bounds, "width", 1280), (int)Json.Number(bounds, "height", 800)); break;
                 case "fullscreen": SetFullscreen(Json.Bool(parameters, "value", !fullscreen)); break;
                 case "window-mode": SetMode(Json.String(parameters, "value")); break;
+                case "key-f11":
+                    var keyMessage = new Message();
+                    ProcessCmdKey(ref keyMessage, Keys.F11); break;
                 case "menu-fullscreen": ((ToolStripMenuItem)((ToolStripMenuItem)menu.Items[0]).DropDownItems[0]).PerformClick(); break;
                 case "window-state":
                     WindowState = Json.String(parameters, "value") == "Maximized" ? FormWindowState.Maximized : FormWindowState.Normal; break;

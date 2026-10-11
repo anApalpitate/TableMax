@@ -1,10 +1,28 @@
 # 首版交付与验收
 
+## 1.0.6：Pages准备、盒子界面与人机发言（2026-10-11）
+
+v1.0.6 Release 已撤回为草稿，25个历史附件和标签保留；[撤回审计](../../artifacts/maintenance/v1.0.6/pages-box-20261011/withdrawal.json)。本轮没有发布Pages、没有恢复Release，旧线上下载结论属于历史记录。分发路径、白名单及手动发布门禁见[Release流程](release.md#最新分发决定与暂缓发布2026-10-11)。
+
+当前[本地运行ZIP](../../artifacts/releases/TableMax-1.0.6-win-x64.zip) **34,828,408字节**，SHA-256 `3bc7c2c0853c2fe50f24b6b055d192f4856f3130194743e021081b4de7746850`；[清单](../../artifacts/releases/TableMax-1.0.6-win-x64-manifest.json)实际解压 **87,679,056字节**，快照 `f54efa228907bca87e0ea60074f8dc7c2294c7269f2f9ba958a0ad39d5464e1a`。新签名游戏包独立保存在 `artifacts/game-packages/v1.0.6/pages-ready-20261011/`，不覆盖旧目录；八玩法闭包、逐文件哈希、签名及资源分离验证通过，阿瓦隆传输／安装量为1,704,826／1,811,974字节，其余组合不变，全部门禁通过。
+
+盒子版本选择、美化、内层滚动及唯一TableMax仓库链接由[实际源码渲染](../../artifacts/maintenance/v1.0.6/game-library/report.json)11项检查覆盖320px、390px、横屏、720p和4K，零页面错误；[同一ZIP解压原生界面](../../artifacts/package-library-FT7dVg/report.json)检查资源状态和权限。F11三模式、真实WebView可信按键、WinForms键处理、菜单及公共窗口独立共11项通过，[同包证据](../../artifacts/results/native-f11/1791714112030/results.json)。显式全屏和Escape保留原返回模式。
+
+阿瓦隆声明仅finish-discussion免前置等待，仍经Worker、授权动作及保存。普通实时时钟测试5项和通用调度兼容7项通过，两配置／三档、真人等待、暂停及保存失败受保护；SDK可选字段保持兼容，类型检查及外部作者契约通过。作者工具包已同步冻结到 `artifacts/author-toolkit/v1.0.6/pages-ready-20261011/`。
+
+[同ZIP普通模式实际Worker](../../artifacts/maintenance/v1.0.6/game-packages/pages-avalon-immediate-retry-20261011/results.json)两配置各4次发言确认，基础32.58–44.62ms、宫廷31.97–44.59ms；身份确认保持1.83–1.85秒，真人150ms等待期间revision不变。均自然到首次投票检查点，无管理员跳过、页面错误或退出错误；不是本轮新增完整整局验收。首次计时观察器未拆消息封装以及中断记录保留，不记为成功。
+
+[Pages回环校验](../../artifacts/pages/verification-1DLvlW/results.json)通过32个文件（21,870,152字节）、目录路径、签名篡改拒绝及旧输出保护；这是本地静态站点验证，不代表实际Pages CDN、部署或线上下载通过。实体手机、Safari、真实键盘与硬件显示器未新增验收。
+
+最终候选在[静态站点](../../artifacts/pages/v1.0.6/ready-20261011/site/index.html)与[逐文件清单](../../artifacts/pages/v1.0.6/ready-20261011/site-manifest.json)，仅本地准备。维护保护增加Pages目录；两次隔离清理检查被仍运行的验证／静态检查PID拦截，保护生效；全部退出、独占重跑后[262项检查通过](../../artifacts/maintenance/v1.0.6/pages-box-20261011/cleanup-tests/tool-tests.json)。
+
+手写单中“盒子界面”四项已完成并移除，其余手写原内容及任务量标记保留。
+
 ## 1.0.6：独立游戏包与公共作者契约（2026-10-11）
 
 基础程序已拆为盒子、服务、共享运行时、目录与小封面，正式游戏按需安装到便携根 `games/`。八个玩法的不可变发行绑定代码、公共资源与玩法资源；安装和版本选择分开，当前对局及下一小局继续使用原发行。网络协议8、模块契约7和各游戏规则／状态／策略版本保持原边界。
 
-当前[基础运行ZIP](../../artifacts/releases/TableMax-1.0.6-win-x64.zip) **34,827,783字节**，SHA-256 `ccd8f613a0d4a682a38089cc2aac664a3ba4cbf08761f13677fb6f47f454116d`；[89成员清单](../../artifacts/releases/TableMax-1.0.6-win-x64-manifest.json)实际解压 **87,676,016字节**，快照 `d109af44c745cce902516c59d2e85280dbdb321461eaab37115e80ab7cc1d73c`。发行EXE **34,957,312字节**，SHA-256 `4f923f099c3f198adf8e8a7656f63d8366916ed78996e6932dac05bb73a8e157`；[实际提取与原生安全](../../artifacts/maintenance/v1.0.6/github-release-20261005/shipping-executable-checks.json)通过，提取后含所有权标记 **87,698,375字节**，重复启动复用原文件。均低于110MB工程预警和严格120,000,000字节门禁。
+此前[基础运行ZIP备份](../../artifacts/maintenance/v1.0.6/pages-box-20261011/previous-runtime.zip) **34,827,783字节**，SHA-256 `ccd8f613a0d4a682a38089cc2aac664a3ba4cbf08761f13677fb6f47f454116d`；[89成员清单](../../artifacts/maintenance/v1.0.6/pages-box-20261011/previous-runtime-manifest.json)解压 **87,676,016字节**，快照 `d109af44c745cce902516c59d2e85280dbdb321461eaab37115e80ab7cc1d73c`。历史发行EXE **34,957,312字节**，SHA-256 `4f923f099c3f198adf8e8a7656f63d8366916ed78996e6932dac05bb73a8e157`；[实际提取与原生安全](../../artifacts/maintenance/v1.0.6/github-release-20261005/shipping-executable-checks.json)通过，提取后含所有权标记 **87,698,375字节**。这是撤回前构建，不能替代上方新包验收。
 
 [签名目录](../../artifacts/game-packages/v1.0.6/TableMax-game-catalog-v1.0.6.json)包含8发行、13内容包，去重安装9,801,855字节。单玩法完整依赖（同组合共享资源仅计一次）的传输／安装字节如下，全部低于48MB工程预警及严格64,000,000字节门禁：
 
