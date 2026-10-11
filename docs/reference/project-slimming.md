@@ -1,5 +1,13 @@
 # 项目瘦身方案与执行记录
 
+## 独立游戏包交付收尾（2026-10-11）
+
+全部本轮工程进程退出后执行[标准收尾](../../artifacts/maintenance/v1.0.6/game-packages/maintenance-final/result.json)：过期构建缓存177项回收66,921,452字节，4份登记过的已结束验证副本回收210,517,141字节，[精确删除审计](../../artifacts/maintenance/local-cleanup-20261011-100015-785-intermediates/cleanup.json)保留范围与理由。缓存、当前基础包、签名玩法包及作者工具包经过用途区分；不因Git忽略而删除。
+
+`scripts/Maintain-Project.ps1 -Apply` 随后实测 **14,030,832,307逻辑字节（13.067GiB）**，按10GiB高水位筛选并退役15个安全候选、回收 **1,316,665,558字节**；[实际容量与保护](../../artifacts/maintenance/local-cleanup-20261011-100122-367-maintenance/cleanup.json)记录最终 **12,714,166,749字节（11.841GiB）**。三阶段共回收1,594,104,151字节。533项跳过：530项临时内容用途未登记、3项仍在近期修改保护内；安装仓库、正式引用／证据与保留缓存另受保护。安全候选已耗尽，仍高于10GiB；未扩大清理范围、放宽30分钟保护或常驻轮询，不把NTFS物理压缩计入逻辑容量。
+
+当前ZIP SHA-256 `ccd8f613a0d4a682a38089cc2aac664a3ba4cbf08761f13677fb6f47f454116d`，发布EXE／源码ZIP、签名目录与玩法包、作者工具包、旧包及迁移存档、实际验收与失败记录继续保留。安装仓库与签名密钥保护已加入工具门禁，262项隔离清理检查通过；嵌套验证副本内的 `games/index.json` 也不会被当作普通缓存整目录删除。
+
 ## 手写改动单第1项收尾（2026-10-11）
 
 本轮当前ZIP及全部实际检查通过后结束工程进程，将631成员／238,477,682字节的打包过程目录完整迁入 `tmp/portable-extracted-v27WoA`，逐文件路径、大小及SHA-256一致；近期副本继续保护，release仅留当前ZIP／清单，见[迁移清单](../../artifacts/maintenance/v1.0.6/box-task1/staging-relocation.json)。首次收尾因调用方未预建报告目录而停止，过期缓存已清理9项12,523,531字节，未进入其他退役；补目录继续后另清理1项643,624字节，停止原因保留在[首次记录](../../artifacts/maintenance/v1.0.6/box-task1/maintenance-final/initial-failure.json)。
