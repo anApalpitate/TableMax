@@ -390,7 +390,6 @@ if (replaceDraft)
     ) + '\n',
     { flag: 'wx' },
   );
-let url;
 if (replaceDraft) {
   // Re-read immediately before mutations: an already published draft is not authorized.
   const current = JSON.parse(
@@ -487,9 +486,8 @@ if (replaceDraft) {
     '--notes-file',
     resolve(notes),
   ]);
-  url = previous.html_url;
 } else
-  url = await run('gh', [
+  await run('gh', [
     'release',
     'create',
     tag,
@@ -514,6 +512,8 @@ const online = JSON.parse(
     'url,assets,tagName,name,body,isDraft,isPrerelease',
   ]),
 );
+// Draft URLs may contain an untagged placeholder; use the published canonical URL.
+const url = online.url;
 assert.equal(online.isDraft, false);
 assert.equal(online.isPrerelease, false);
 assert.equal(online.tagName, tag);

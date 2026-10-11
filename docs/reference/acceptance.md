@@ -1,12 +1,22 @@
 # 首版交付与验收
 
-## 1.0.6：Pages部署与同版本重新发布（2026-10-11，线上核验待完成）
+## 1.0.6：Pages部署与同版本重新发布（2026-10-11）
 
-用户最新明确授权现在部署Pages并重新发布v1.0.6。本轮沿用已验源码与实际程序，保全历史内容包及旧标签，当前部署、公开文件字节、线上安装与Release附件的结果待主 agent 完成后补写，尚不记为发布通过。
+经用户明确授权，本次Pages部署与[v1.0.6正式重新发布](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.6)已完成。本轮沿用已验源码与实际程序，保全历史内容包及旧标签；[最终发布审计](../../artifacts/maintenance/v1.0.6/pages-release-20261011/github-draft-replacement-1791717345309.json)确认非草稿、非预发行且为latest，九条正文一致、附件恰为以下三份，线上名称、字节数与SHA-256全部一致。
+
+| 发布附件                            |     字节数 | SHA-256                                                            |
+| ----------------------------------- | ---------: | ------------------------------------------------------------------ |
+| `TableMax-1.0.6-win-x64.exe`        | 34,957,824 | `eb4aa8cc03e384b5ed7de24bf5f95f56c5be02a2f1915f57444be96e05b0924e` |
+| `TableMax-1.0.6-source.zip`         | 25,105,119 | `57270f099e7253195cfe41568e2a1d81257de8e1b29bf126e4a97ef32b1e2ead` |
+| `TableMax-author-toolkit-1.0.6.zip` |     41,935 | `8564c4cc312e9034bcfff7dae588f5121f1527f97f21a53e513cb60b85ba9eb4` |
+
+source ZIP对应实际发布提交 `a7d13f7388442bbc3083913c0786ca43278214ef`；保留的v1.0.6标签仍指向历史提交 `1f8267a4bdf4d8172719a3e71be1f7445f88c3bc`，标签对象 `482235f4fe1385fea701225c426b80800d1f1b3f`未移动。映射和此前附件备份见最终审计；不上传基础运行ZIP、JSON或过程截图。
+
+[真实Pages安装与版本固定](../../artifacts/maintenance/v1.0.6/pages-release-20261011/online-install/run-be51e264-f8b5-4d5f-846b-557ed306f280/results.json)通过，耗时137秒：读取10个发行引用，7次真实HTTP 200传输4,884,918字节（含目录），记录190次进度。生产PackageStore校验下载归档摘要及安装后逐文件inventory，目录摘要来自实际响应字节。旧阿瓦隆基础局固定的规则／策略对象、存档及资源路径SHA保留，新基础发行默认优先，拒绝卸载旧局引用；新Store重启后旧局暂停恢复。宝可梦两玩法的重复请求复用共享依赖闭包，三个blob各只下载一次。首次离线包hash／发行引用误配、网络失败及取消后的观察器错误记录保留，修正审计clone观察器后通过。此项不是浏览器、Worker或新增完整整局证据；其余游戏沿用既有整局及旧v1.0.5实际迁移结论，实体手机边界不变。
 
 Pages已通过[手动工作流部署](https://github.com/anApalpitate/TableMax/actions/runs/38133974837)（第二次尝试），静态分支提交 `7b9e651387cf32748b65d8f7e05e62811150e974`。站点36文件、25,533,257字节，含一个部署标记；[35个公开文件的真实HTTPS大小与SHA核验](../../artifacts/maintenance/v1.0.6/pages-release-20261011/public-pages.json)全部通过。[联合清单](../../artifacts/pages/v1.0.6/published-history-20261011-2/site-manifest.json)保留当前八玩法、旧阿瓦隆两发行、14个内容包及旧签名目录原字节，原21个代码／资源／离线包均按旧线上摘要保全。同名离线包仅内嵌全目录不同且发行和依赖相同的，继续使用旧已发布字节；不覆盖原引用。首次部署因旧式Pages环境拒绝master，改为workflow后仅重跑部署；回环、网络超时和`.nojekyll`404均不冒称首次通过。
 
-新[实际EXE验收](../../artifacts/maintenance/v1.0.6/github-release-20261005/shipping-executable-checks.json)通过：34,957,824字节，SHA `eb4aa8cc03e384b5ed7de24bf5f95f56c5be02a2f1915f57444be96e05b0924e`；原ZIP未改变，实际提取含标记87,701,411字节。[作者工具包ZIP](../../artifacts/maintenance/v1.0.6/pages-release-20261011/toolkit-zip.json)38成员及全部源文件哈希核对通过；旧EXE、原审计及原生证据完整备份。以上不代替后续Release附件与正文核验。
+新[实际EXE验收](../../artifacts/maintenance/v1.0.6/github-release-20261005/shipping-executable-checks.json)通过：34,957,824字节，SHA `eb4aa8cc03e384b5ed7de24bf5f95f56c5be02a2f1915f57444be96e05b0924e`；原ZIP未改变，实际提取含标记87,701,411字节。逐文件载荷哈希、精确成员、重复提取复用和真实原生／WebView2／Node安全检查通过，EXE及实际解压均严格小于120,000,000字节。[作者工具包ZIP](../../artifacts/maintenance/v1.0.6/pages-release-20261011/toolkit-zip.json)38成员及全部源文件哈希核对通过；旧EXE、原审计及原生证据完整备份。公开字节与发布状态核验不代表实体手机验收或本轮新增完整整局。
 
 [已审更新说明](../../artifacts/maintenance/v1.0.6/pages-release-20261011/release-notes.md)比较v1.0.5实际发布source提交 `4943ca5cf89aabc850df3fb566519973913feb3e` 与本次已验实现提交 `1cf25774a0b1ca4d1443f68107e721b4fb183856`，不采用v1.0.5保留旧标签对象作为基线。下方Pages准备与历史发布结论继续保留各自的包和证据边界。
 
@@ -32,7 +42,7 @@ Pages已通过[手动工作流部署](https://github.com/anApalpitate/TableMax/a
 
 基础程序已拆为盒子、服务、共享运行时、目录与小封面，正式游戏按需安装到便携根 `games/`。八个玩法的不可变发行绑定代码、公共资源与玩法资源；安装和版本选择分开，当前对局及下一小局继续使用原发行。网络协议8、模块契约7和各游戏规则／状态／策略版本保持原边界。
 
-此前[基础运行ZIP备份](../../artifacts/maintenance/v1.0.6/pages-box-20261011/previous-runtime.zip) **34,827,783字节**，SHA-256 `ccd8f613a0d4a682a38089cc2aac664a3ba4cbf08761f13677fb6f47f454116d`；[89成员清单](../../artifacts/maintenance/v1.0.6/pages-box-20261011/previous-runtime-manifest.json)解压 **87,676,016字节**，快照 `d109af44c745cce902516c59d2e85280dbdb321461eaab37115e80ab7cc1d73c`。历史发行EXE **34,957,312字节**，SHA-256 `4f923f099c3f198adf8e8a7656f63d8366916ed78996e6932dac05bb73a8e157`；[实际提取与原生安全](../../artifacts/maintenance/v1.0.6/github-release-20261005/shipping-executable-checks.json)通过，提取后含所有权标记 **87,698,375字节**。这是撤回前构建，不能替代上方新包验收。
+此前[基础运行ZIP备份](../../artifacts/maintenance/v1.0.6/pages-box-20261011/previous-runtime.zip) **34,827,783字节**，SHA-256 `ccd8f613a0d4a682a38089cc2aac664a3ba4cbf08761f13677fb6f47f454116d`；[89成员清单](../../artifacts/maintenance/v1.0.6/pages-box-20261011/previous-runtime-manifest.json)解压 **87,676,016字节**，快照 `d109af44c745cce902516c59d2e85280dbdb321461eaab37115e80ab7cc1d73c`。历史发行EXE **34,957,312字节**，SHA-256 `4f923f099c3f198adf8e8a7656f63d8366916ed78996e6932dac05bb73a8e157`；[实际提取与原生安全](../../artifacts/maintenance/v1.0.6/pages-release-20261011/previous/github-release-20261005/shipping-executable-checks.json)通过，提取后含所有权标记 **87,698,375字节**。这是撤回前构建，不能替代上方新包验收。
 
 [签名目录](../../artifacts/game-packages/v1.0.6/TableMax-game-catalog-v1.0.6.json)包含8发行、13内容包，去重安装9,801,855字节。单玩法完整依赖（同组合共享资源仅计一次）的传输／安装字节如下，全部低于48MB工程预警及严格64,000,000字节门禁：
 

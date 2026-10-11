@@ -2,9 +2,9 @@
 
 ## 最新分发决定与暂缓发布（2026-10-11）
 
-用户此前采用 GitHub Pages 按目录分发游戏包，并暂时撤回 v1.0.6；该 Release 已改为草稿（ID `409577467`），原标签与25个附件留有历史审计。随后用户明确授权“现在部署Pages并重新发布v1.0.6”，本次进入部署与同版本重新发布流程，实际线上字节、下载和附件状态仍待核验。普通提交、推送和构建不自动构成以后发布的授权。
+用户此前采用 GitHub Pages 按目录分发游戏包，并暂时撤回 v1.0.6；该 Release 曾改为草稿（ID `409577467`），原标签与25个附件留有历史审计。随后用户明确授权“现在部署Pages并重新发布v1.0.6”，本次已完成[游戏包目录部署](https://anapalpitate.github.io/TableMax/)及[v1.0.6正式重新发布](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.6)。35个公开文件的大小／SHA、正式及latest状态、九条正文和严格三附件核验全部通过，见[最终发布审计](../../artifacts/maintenance/v1.0.6/pages-release-20261011/github-draft-replacement-1791717345309.json)与[验收记录](acceptance.md)。普通提交、推送和构建不自动构成以后发布的授权。
 
-本次[已审更新说明](../../artifacts/maintenance/v1.0.6/pages-release-20261011/release-notes.md)以v1.0.5实际发布source提交 `4943ca5cf89aabc850df3fb566519973913feb3e` 为比较基线，不能以保留的旧标签对象替代。发布源码与v1.0.6保留标签的映射须另记审计，不移动或强推历史标签；主 agent 核对源码、实际EXE、站点和附件后补写最终线上结果。
+本次[已审更新说明](../../artifacts/maintenance/v1.0.6/pages-release-20261011/release-notes.md)以v1.0.5实际发布source提交 `4943ca5cf89aabc850df3fb566519973913feb3e` 为比较基线，不能以保留的旧标签对象替代。本次source ZIP对应 `a7d13f7388442bbc3083913c0786ca43278214ef`，v1.0.6原标签继续指向 `1f8267a4bdf4d8172719a3e71be1f7445f88c3bc`；两者映射已记录在最终发布审计，未移动或强推历史标签。
 
 基础 EXE、发布提交的 source ZIP 和已验证作者工具包继续放 GitHub Release；签名目录、代码／资源包及完整玩法离线包改放 `https://anapalpitate.github.io/TableMax/`。这覆盖下文原 Release 游戏附件方案；旧发布记录保留当时的事实。
 
@@ -24,7 +24,7 @@ games/v1.0.6/<gameId>/<variantId或default>/index.html
 
 执行 `pnpm prepare:pages -- --packages=<已验独立游戏包目录> --out=<全新输出目录>` 生成静态站点及站点外逐文件清单；执行 `pnpm verify:pages -- --packages=<同一目录>` 在127.0.0.1检查目录路径、哈希、离线依赖、篡改拒绝和不覆盖旧输出。工具不调用 GitHub。每次准备使用新目录，部署时合并既有历史目录：内容寻址包不可覆盖或删除，旧对局引用必须仍可下载；当前签名目录和浏览目录可以更新。跨版本依赖须一并保全，不能只上传最新文件。本地 `artifacts/pages/` 当前候选与清单受维护保护，不自动清空。
 
-已准备 `.github/workflows/pages.yml`，仅手动触发，要求输入 `PUBLISH_TABLEMAX`；没有 push、定时或 Release 自动触发器。本次已获明确发布授权：核对本地清单及历史目录，将已验证的纯静态目录提交到 `gh-pages`，配置 Pages 使用 GitHub Actions，再手动部署，完成线上核验前不记为发布成功。整个站点不超过 [Pages 的1GB限制](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)，累计历史文件也计入；部署权限与环境按 [官方工作流说明](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。私钥、存档和本地审计永不上传。
+`.github/workflows/pages.yml`仅手动触发，要求输入 `PUBLISH_TABLEMAX`；没有 push、定时或 Release 自动触发器。本次已核对本地清单及历史目录，将已验证的纯静态目录提交到 `gh-pages`，配置 Pages 使用 GitHub Actions并手动部署；[部署工作流](https://github.com/anApalpitate/TableMax/actions/runs/38133974837)及[公开字节核验](../../artifacts/maintenance/v1.0.6/pages-release-20261011/public-pages.json)通过。后续部署仍须获授权，并在完成线上核验后才记为成功。整个站点不超过 [Pages 的1GB限制](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)，累计历史文件也计入；部署权限与环境按 [官方工作流说明](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。私钥、存档和本地审计永不上传。
 
 部署后执行 `pnpm release:github -- --publish --replace-draft --draft-id=409577467 --notes=<说明> --devkit=<已验工具包> --pages-manifest=<已审站点清单>`；入口默认拒绝发布，且先核对实际 Pages 每个文件的公开字节，再只上传 EXE、source ZIP、作者工具包。`--replace-draft`只用于本次已授权的既有草稿替换，保留的 v1.0.6 标签指向历史提交，须明确核对草稿、标签及实际发布源码映射；不得为了通过旧标签门禁强推标签或隐瞒差异。源码、EXE和实际 Pages 都通过验收后才能恢复发布。
 

@@ -1,6 +1,6 @@
 # 开发环境
 
-2026-10-11游戏包分发入口改为GitHub Pages静态目录；此前Release暂撤为草稿，随后用户明确授权本次部署Pages并重新发布v1.0.6，线上核验待完成。`pnpm prepare:pages`准备全新静态输出，`pnpm verify:pages`做回环逐文件验证；游戏包通过 `--packages=<独立候选目录>` 指定，基础ZIP通过 `node tools/release/package.mjs --games=<同一候选目录>` 读取，不覆盖既有受保护游戏包及同名旧发行离线包的字节。手动部署、历史引用保全及显式发布门禁见[Release流程](release.md#最新分发决定与暂缓发布2026-10-11)。原Release附件下载记录属于历史验证，不代表本次Pages线上下载已通过。
+2026-10-11游戏包分发入口改为GitHub Pages静态目录；此前Release暂撤为草稿，随后经用户明确授权，本次Pages已部署、v1.0.6已正式重新发布，35个公开文件及Release三附件线上大小／哈希核验通过。`pnpm prepare:pages`准备全新静态输出，`pnpm verify:pages`做回环逐文件验证；游戏包通过 `--packages=<独立候选目录>` 指定，基础ZIP通过 `node tools/release/package.mjs --games=<同一候选目录>` 读取，不覆盖既有受保护游戏包及同名旧发行离线包的字节。手动部署、历史引用保全及显式发布门禁见[Release流程](release.md#最新分发决定与暂缓发布2026-10-11)。原Release附件下载记录属于历史验证，公开字节核验也不代替本次实际安装或实体设备验收。
 
 ## 阿瓦隆专项构建与验证
 
