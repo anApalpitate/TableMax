@@ -70,9 +70,6 @@ export function Hand({
   const selected = selection?.boundary === boundary ? selection.id : null;
   const setSelected = (id: string | null) =>
     setSelection(id ? { id, boundary } : null);
-  const [unoChoice, setUnoChoice] = useState({ boundary, value: false });
-  const sayUno = unoChoice.boundary === boundary && unoChoice.value;
-  const setSayUno = (value: boolean) => setUnoChoice({ boundary, value });
   const self = game.self;
   const plays = actions.filter(
     (action): action is Extract<Action, { type: 'play' }> =>
@@ -107,7 +104,6 @@ export function Hand({
     const action = plays.find((action) => action.cardId === card.id)!;
     choose({
       ...action,
-      ...(self.hand.length === 2 && sayUno ? { uno: true } : {}),
     });
   };
   return (
@@ -136,18 +132,6 @@ export function Hand({
               <path d="M5 4v16m-3-3 3 3 3-3M12 5h9M12 12h6M12 19h3" />
             </svg>
           </button>
-          {self.hand.length === 2 && plays.length > 0 && (
-            <button
-              className={`uno-call-toggle${sayUno ? ' uno-call-toggle--on' : ''}`}
-              type="button"
-              aria-pressed={sayUno}
-              disabled={locked}
-              onClick={() => setSayUno(!sayUno)}
-            >
-              <span>UNO!</span>
-              {sayUno ? '随出牌喊出' : '出牌时喊出'}
-            </button>
-          )}
           {draw && (
             <button
               className="uno-primary"
@@ -245,7 +229,6 @@ export function Hand({
               if (action)
                 choose({
                   ...action,
-                  ...(self.hand.length === 2 && sayUno ? { uno: true } : {}),
                 });
             }}
           />

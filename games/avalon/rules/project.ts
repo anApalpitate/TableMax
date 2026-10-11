@@ -69,6 +69,12 @@ export function project(s: State, viewer: Viewer): AvalonView {
       questFailThreshold(s.seats.length, i + 1),
     ),
     team: s.team,
+    discussion: s.discussion
+      ? {
+          ...s.discussion,
+          current: s.discussion.order[s.discussion.completed.length] ?? null,
+        }
+      : null,
     submittedSeats,
     history: s.history,
     quests: s.quests,

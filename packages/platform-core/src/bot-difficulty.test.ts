@@ -202,3 +202,83 @@ it('refuses incompatible or inconsistent saved levels without replacing the save
   );
   expect(repository.value!.snapshot!.bots[seatId]!.difficulty).toBe('juewu');
 });
+
+it('reaction timers compete independently, freeze on pause and cancel stale windows without bot failures', async () => {
+  vi.useFakeTimers();
+  let notify = () => {};
+  let paused = false,
+    window = 'first',
+    revision = 1;
+  const submitted: string[] = [];
+  const failed = vi.fn();
+  const tasks = () =>
+    ['a', 'b'].map((seat, i) => ({
+      gameId: 'test',
+      rulesVersion: '1',
+      instanceId: 'i',
+      revision,
+      branch: 0,
+      decision: { id: `${window}:${seat}`, seatId: seat },
+      view: null,
+      actions: [{ type: 'respond' }],
+      data: {
+        id: 'test',
+        version: '1',
+        memory: null,
+        random: 123,
+        difficulty: 'default' as const,
+      },
+      timing: { key: window, minMs: i ? 100 : 300, maxMs: i ? 100 : 300 },
+    }));
+  const fake = {
+    get botPaused() {
+      return paused;
+    },
+    playMode: 'normal',
+    subscribe(cb: () => void) {
+      notify = cb;
+      return () => {};
+    },
+    botTasks: tasks,
+    submitBot: async (task: ReturnType<typeof tasks>[number]) => {
+      submitted.push(task.decision.seatId);
+      window = 'closed';
+      notify();
+      return { ok: true };
+    },
+    botFailed: failed,
+  } as unknown as RoomCoordinator;
+  // Once one response saves, its window no longer has any pending actions.
+  const initialTasks = tasks;
+  Object.defineProperty(fake, 'botTasks', {
+    value: () => (window === 'closed' ? [] : initialTasks()),
+  });
+  const executor = {
+    execute: async () => ({
+      action: { type: 'respond' },
+      memory: null,
+      random: 123,
+    }),
+  };
+  const scheduler = new BotScheduler(fake, undefined, 2000, executor);
+  try {
+    await vi.advanceTimersByTimeAsync(40);
+    paused = true;
+    notify();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(submitted).toEqual([]);
+    paused = false;
+    revision++;
+    notify();
+    await vi.advanceTimersByTimeAsync(59);
+    expect(submitted).toEqual([]);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(submitted).toEqual(['b']);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(submitted).toEqual(['b']);
+    expect(failed).not.toHaveBeenCalled();
+  } finally {
+    scheduler.stop();
+    vi.useRealTimers();
+  }
+});

@@ -198,13 +198,15 @@ function AvalonScreen({ session }: { session: GameHost }) {
       ? '圆桌宣誓'
       : game?.phase === 'team'
         ? `${names[game.leader] ?? '队长'} 正在组队`
-        : game?.phase === 'vote'
-          ? '议会秘密表决'
-          : game?.phase === 'quest'
-            ? '远征任务进行中'
-            : game?.phase === 'assassinate'
-              ? '三次成功 · 最后刺杀'
-              : '圆桌传奇落幕';
+        : game?.phase === 'discussion'
+          ? `${names[game.discussion?.current ?? ''] ?? '当前玩家'} 正在发言 · 逆时针，队长最后`
+          : game?.phase === 'vote'
+            ? '议会秘密表决'
+            : game?.phase === 'quest'
+              ? '远征任务进行中'
+              : game?.phase === 'assassinate'
+                ? '三次成功 · 最后刺杀'
+                : '圆桌传奇落幕';
   const expected =
     game?.phase === 'quest'
       ? game.team.length
@@ -313,6 +315,35 @@ function AvalonScreen({ session }: { session: GameHost }) {
               )}
             </div>
           </div>
+          {game.phase === 'discussion' && (
+            <section className="av-discussion" aria-label="发言顺序">
+              <span>
+                逆时针 →{' '}
+                {game.discussion?.order
+                  .map(
+                    (id) =>
+                      `${names[id]}${game.discussion?.skipped.includes(id) ? '（已跳过）' : game.discussion?.completed.includes(id) ? '（完成）' : ''}`,
+                  )
+                  .join(' → ')}
+              </span>
+              {role === 'host' &&
+                view.lifecycleActions.map((raw, i) => {
+                  const action = raw as Action;
+                  return action.type === 'skip-discussion' ? (
+                    <button
+                      key={i}
+                      type="button"
+                      disabled={!connected || locked || view.paused}
+                      onClick={() =>
+                        command({ type: 'lifecycle', action: raw as JsonValue })
+                      }
+                    >
+                      跳过 {names[action.target]} 的发言
+                    </button>
+                  ) : null;
+                })}
+            </section>
+          )}
           <div className="av-campaign">
             <QuestTrack game={game} />
             <div className="av-campaign-side">

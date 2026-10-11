@@ -27,7 +27,21 @@ function decide(
   );
 }
 function apply(s: State, action: Action, seat = s.turnSeat!): State {
-  return rules.apply(s, action, seat, context(97, s.seats)).state as State;
+  // Legacy scenario helpers express an old simultaneous declaration as two saved actions.
+  const declare = action.type === 'play' && action.uno === true;
+  if (action.type === 'play') {
+    action = {
+      type: 'play',
+      cardId: action.cardId,
+      ...(action.color ? { color: action.color } : {}),
+    };
+  }
+  const next = rules.apply(s, action, seat, context(97, s.seats))
+    .state as State;
+  return declare && next.unoWindow
+    ? (rules.apply(next, { type: 'declare-uno' }, seat, context(41, s.seats))
+        .state as State)
+    : next;
 }
 describe('UNO三档本地策略逐节点与授权记忆', () => {
   it.each(difficulties)(
@@ -40,7 +54,7 @@ describe('UNO三档本地策略逐节点与授权记忆', () => {
       wild.stage = 'choose-color';
       expect(decide(wild, 'a', difficulty)).toEqual({
         type: 'choose-color',
-        color: 'green',
+        color: difficulty === 'default' ? 'red' : 'green',
       });
       const play = fixture({
         a: ['red-8-a', 'green-2-a'],
@@ -50,7 +64,6 @@ describe('UNO三档本地策略逐节点与授权记忆', () => {
       expect(decide(play, 'a', difficulty)).toEqual({
         type: 'play',
         cardId: 'red-8-a',
-        uno: true,
       });
       const noMatch = fixture({
         a: ['green-3-a', 'blue-2-a'],
@@ -268,5 +281,29 @@ describe('UNO三档本地策略逐节点与授权记忆', () => {
       const action = decide(s, 'a', difficulty);
       expect(isLegalAction(s, action, 'a')).toBe(true);
     }
+  });
+});
+
+it('默认随机选实体牌与Wild颜色，豆包继续拦截下一席', () => {
+  const s = fixture({
+    a: ['red-2-a', 'red-skip-a', 'wild-1'],
+    b: ['blue-1-a'],
+    c: ['green-1-a'],
+  });
+  const view = project(s, { role: 'player', seatId: 'a' }),
+    actions = legalActions(s, 'a');
+  const random = { next: () => 0.99 };
+  const weak = chooseAction(
+    view,
+    actions,
+    memory(s),
+    'default',
+    undefined,
+    random,
+  );
+  expect(weak).toEqual({ type: 'play', cardId: 'wild-1', color: 'blue' });
+  expect(decide(s, 'a', 'doubao')).toEqual({
+    type: 'play',
+    cardId: 'red-skip-a',
   });
 });

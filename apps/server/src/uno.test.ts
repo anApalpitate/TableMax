@@ -280,3 +280,57 @@ it('UNO approved device continuation preserves the hand and revokes the old cred
     await f.close();
   }
 }, 60000);
+
+it('UNO simultaneous Socket responses have one saved winner; failed save leaves every response available', async () => {
+  const f = await fixture();
+  try {
+    for (
+      let step = 0;
+      step < 600 && !game(f.service.room.view()).unoWindow;
+      step++
+    ) {
+      const actor = f.actor(),
+        v = f.service.room.view(actor.token);
+      const action =
+        v.actions.find((a) => (a as { type: string }).type === 'play') ??
+        v.actions[0]!;
+      expect(
+        (
+          await f.run(actor.socket, actor.token, {
+            type: 'game',
+            decisionId: v.decisionId!,
+            action: action as JsonValue,
+          })
+        ).ok,
+      ).toBe(true);
+    }
+    const before = f.service.room.view();
+    expect(game(before).unoWindow).not.toBeNull();
+    const windows = f.tokens.map((token) => f.service.room.view(token));
+    const commands = windows.map((v) =>
+      envelope(v, {
+        type: 'game',
+        decisionId: v.decisionId!,
+        action: v.actions.find((a) =>
+          ['declare-uno', 'catch-uno'].includes((a as { type: string }).type),
+        ) as JsonValue,
+      }),
+    );
+    const spy = vi
+      .spyOn(SqliteSaveRepository.prototype, 'save')
+      .mockImplementationOnce(() => {
+        throw new Error('disk-full');
+      });
+    expect((await f.send(f.players[0]!, commands[0]!)).ok).toBe(false);
+    spy.mockRestore();
+    expect(game(f.service.room.view())).toEqual(game(before));
+    const replies = await Promise.all(
+      commands.map((command, i) => f.send(f.players[i]!, command)),
+    );
+    expect(replies.filter((reply) => reply.ok)).toHaveLength(1);
+    expect(f.service.room.view().revision).toBe(before.revision + 1);
+    expect(game(f.service.room.view()).unoWindow).toBeNull();
+  } finally {
+    await f.close();
+  }
+}, 60000);

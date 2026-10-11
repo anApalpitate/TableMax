@@ -2,6 +2,7 @@ import type { RuleContext } from '@tablemax/game-sdk';
 import type { Action, Alignment, Variant } from '../types';
 import {
   alignment,
+  discussionOrder,
   nextSeat,
   roleDeck,
   questFailThreshold,
@@ -36,6 +37,8 @@ export function initialize(
     proposalNumber: 1,
     rejectedTeams: 0,
     team: [],
+    discussion: null,
+    discussionActions: 0,
     votes: {},
     questCards: {},
     history: [],
@@ -74,12 +77,34 @@ export function applyAction(
     );
   } else if (action.type === 'propose-team') {
     s.team = s.seats.filter((id) => action.team.includes(id));
-    s.phase = 'vote';
+    s.phase = 'discussion';
+    s.discussion = { order: discussionOrder(s), completed: [], skipped: [] };
     event(
       'propose-team',
       `${number(seat)}提名第 ${s.questNumber} 次任务队伍：${s.team.map(number).join('、')}。`,
       s.team,
     );
+  } else if (
+    action.type === 'finish-discussion' ||
+    action.type === 'skip-discussion'
+  ) {
+    const d = s.discussion!;
+    const target = d.order[d.completed.length]!;
+    d.completed.push(target);
+    s.discussionActions++;
+    if (action.type === 'skip-discussion') d.skipped.push(target);
+    event(
+      action.type,
+      action.type === 'skip-discussion'
+        ? `电脑管理员跳过${number(target)}的发言。`
+        : `${number(target)}发言完成。`,
+      [target],
+    );
+    if (action.type === 'skip-discussion') s.latest!.actor = null;
+    if (d.completed.length === d.order.length) {
+      s.phase = 'vote';
+      s.discussion = null;
+    }
   } else if (action.type === 'vote-team') {
     s.votes[seat] = action.vote;
     if (Object.keys(s.votes).length < s.seats.length)

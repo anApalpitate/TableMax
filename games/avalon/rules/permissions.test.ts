@@ -1,3 +1,4 @@
+import { discuss } from './test-fixtures';
 import { describe, expect, it } from 'vitest';
 import { project, roleKnowledge } from './project';
 import { rulesByVariant, decisions } from './index';
@@ -66,6 +67,7 @@ describe('阿瓦隆秘密投影与保存反馈', () => {
     const evil = s.seats.find((seat) => alignment(s.roles[seat]!) === 'evil')!;
     const good = s.seats.find((seat) => alignment(s.roles[seat]!) === 'good')!;
     s = apply(s, { type: 'propose-team', team: [evil, good] }, s.leader);
+    s = discuss(s);
     const a = rulesByVariant.classic.apply(
       s,
       { type: 'vote-team', vote: 'approve' },

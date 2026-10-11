@@ -16,6 +16,7 @@ export const scenarios = [
   'wild',
   'draw-four',
   'uno',
+  'catch-uno',
   'challenge',
   'round-finish',
   'match-finish',
@@ -28,7 +29,7 @@ export async function prepare(
   count: number,
 ) {
   assert.ok(scenarios.includes(scenario as (typeof scenarios)[number]));
-  assert.ok([2, 3, 4, 6].includes(count));
+  assert.ok([2, 3, 4, 5, 6].includes(count));
   const custom: typeof rules = {
     ...rules,
     initialize(context) {
@@ -48,7 +49,7 @@ export async function prepare(
         )[scenario] ?? 'red-1-a';
       const wanted = scenario.endsWith('finish')
         ? [firstCard]
-        : ['uno', 'challenge'].includes(scenario)
+        : ['uno', 'catch-uno', 'challenge'].includes(scenario)
           ? [firstCard, 'red-2-a']
           : [
               firstCard,

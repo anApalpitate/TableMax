@@ -43,3 +43,13 @@
 实际同版本包通过[7人](../../../artifacts/avalon/validation/bug-four-7-layout/results.json)、[8人](../../../artifacts/avalon/validation/bug-four-8-layout/results.json)、[9人](../../../artifacts/avalon/validation/bug-four-9-layout/results.json)三端320px至4K布局；[10人五次任务／刺杀](../../../artifacts/avalon/validation/bug-four-10-long-isolated/results.json)验证第四任务双失败，[10人第四任务一失败仍成功](../../../artifacts/avalon/validation/bug-four-10-one-failure/results.json)验证结果与成功演出。实际旧程序生成5人基础／6人宫廷SQLite，保存秘密角色及一票后关机，新程序恢复暂停、本人权限、投票并继续任务，[旧存档报告](../../../artifacts/avalon/validation/bug-four-legacy-restore/results.json)通过。
 
 首轮10人验证在WebView2打开主机页面时报告Unknown，服务已启动但尚未进入游戏，保存[原失败](../../../artifacts/avalon/validation/bug-four-10-long/results.json)及日志；隔离其他原生启动后一次定向检查通过，不把该次启动失败写成规则错误。共享菜单夹具补齐UNO／阿瓦隆声音按钮及游戏专属菜单标题后，三端设置烟测通过。实体手机、现场LAN与真人听感未新增认证。最终包及收尾空间记录见[总验收](../../reference/acceptance.md#106手写bug前四条修复2026-10-11)。
+
+## Bug第6条修复（2026-10-11）
+
+`discussion.test.ts`覆盖5–10人×两配置的逆时针／队长最后、重提名、提前投票拒绝、逐席完成、跳过、严格字段及旧投票不倒退，共13项。实际SQLite／Socket服务覆盖房主及公共端跳过越权、保存失败不推进、重启与checkpoint恢复。规则／秘密／恢复相关25项通过，策略和服务受影响13项通过；37项实际Worker检查包含36场5–10人×两配置×三档自然整局，32MiB／每次2秒预算保留，含新增真实讨论动作，实际约180秒。
+
+[十人宫廷实际包](../../../artifacts/avalon/validation/bug-567-avalon-10-fixed/results.json)四类终局、管理员真实跳过、讨论和身份浮窗、320px至4K、保存反馈与声音通过160检查／40截图，实际137.4秒。第二局曾缺投票通过演出，修复重复投影取消待渲染帧的时序，原失败保留。截图审查另发现终局容器查询导致宽度收缩；显式填满可用宽度后新增按内容宽度判断两／三列的断言，并定向复验，见[终局宽度](../../../artifacts/avalon/validation/bug-567-avalon-final-width/results.json)。未把最初脚本通过当作视觉审查通过。
+
+实体手机、现场LAN及真人听感未新增认证；原证据绑定各自包哈希，最终包只复验受影响项，不能把模拟视口写成实体设备。
+
+[旧版实际存档](../../../artifacts/avalon/validation/bug-567-legacy-restore/results.json)分别由旧程序生成五人基础、六人宫廷SQLite，保留已密封的一票；新程序恢复本人秘密投影，discussion为空，剩余票正常推进任务。实际通过2项；后续最终包阿瓦隆成员字节未变，沿用原包边界。

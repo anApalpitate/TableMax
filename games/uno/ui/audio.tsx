@@ -9,6 +9,7 @@ import drawTwo from '../../../assets/games/uno/audio/draw-two-v1.flac';
 import drawFour from '../../../assets/games/uno/audio/draw-four-v1.flac';
 import wild from '../../../assets/games/uno/audio/wild-v1.flac';
 import uno from '../../../assets/games/uno/audio/uno-v1.flac';
+import catchUno from '../../../assets/games/uno/audio/catch-uno-v1.flac';
 import challenge from '../../../assets/games/uno/audio/challenge-v1.flac';
 import win from '../../../assets/games/uno/audio/win-v1.flac';
 
@@ -29,7 +30,8 @@ const preference = () => {
 function sourceFor(latest: LatestAction, phase: UnoView['phase']) {
   if (phase !== 'playing') return win;
   if (/ended|result|round-won/.test(latest.verb)) return win;
-  if (/challenge|catch/.test(latest.verb)) return challenge;
+  if (latest.verb === 'catch-uno') return catchUno;
+  if (/challenge/.test(latest.verb)) return challenge;
   if (latest.verb === 'choose-color') return wild;
   if (
     /declare/.test(latest.verb) ||

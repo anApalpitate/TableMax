@@ -124,7 +124,6 @@ export function legalActions(s: State, seat: string): Action[] {
           : [{ type: 'play' as const, cardId: id }];
     for (const action of variants) {
       actions.push(action);
-      if (s.hands[seat]!.length === 2) actions.push({ ...action, uno: true });
     }
   }
   actions.push(s.stage === 'drawn' ? { type: 'pass' } : { type: 'draw' });
@@ -160,6 +159,20 @@ export function decisions(s: State): PendingDecision[] {
     }));
 }
 export const rules: GameRules = {
+  botTiming(input, seat, difficulty) {
+    const s = input as State;
+    if (!s.unoWindow || !s.seats.includes(seat)) return null;
+    const own = s.unoWindow.seatId === seat;
+    const limits = own
+      ? { default: [800, 3200], doubao: [400, 1800], juewu: [200, 900] }
+      : { default: [1200, 4000], doubao: [700, 2400], juewu: [400, 1200] };
+    const [minMs, maxMs] = limits[difficulty]!;
+    return {
+      key: `${s.roundNumber}:${s.turnNumber}:${s.actionSerial}:${s.unoWindow.seatId}`,
+      minMs: minMs!,
+      maxMs: maxMs!,
+    };
+  },
   manifest: {
     id: 'uno',
     name: 'UNO',

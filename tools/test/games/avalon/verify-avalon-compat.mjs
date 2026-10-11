@@ -9,7 +9,9 @@ const { io } = createRequire(resolve('apps/web/package.json'))(
 );
 const oldExe = resolve(process.argv[2]);
 const newExe = resolve(process.argv[3]);
-const output = resolve('artifacts/avalon/validation/bug-four-legacy-restore');
+const name = process.argv[4] ?? 'bug-four-legacy-restore';
+assert.match(name, /^[a-z0-9-]{1,65}$/);
+const output = resolve('artifacts/avalon/validation', name);
 await mkdir(output, { recursive: true });
 const work = await mkdtemp(resolve('tmp/avalon-compat-'));
 const report = {
@@ -64,15 +66,13 @@ async function view(token = hostToken) {
 }
 async function send(socket, token, command) {
   const before = await view(token);
-  const reply = await socket
-    .timeout(8000)
-    .emitWithAck('room:command', {
-      actionId: randomUUID(),
-      instanceId: before.instanceId,
-      branch: before.branch,
-      revision: before.revision,
-      command,
-    });
+  const reply = await socket.timeout(8000).emitWithAck('room:command', {
+    actionId: randomUUID(),
+    instanceId: before.instanceId,
+    branch: before.branch,
+    revision: before.revision,
+    command,
+  });
   assert.equal(reply.ok, true, reply.reason);
 }
 async function stop() {
@@ -136,7 +136,9 @@ try {
     for (let i = 0; i < count; i++) {
       const restored = await view(players[i].token);
       assert.equal(restored.paused, true);
-      const { evilCount, questFailThresholds, ...legacy } = restored.gameView;
+      const { evilCount, questFailThresholds, discussion, ...legacy } =
+        restored.gameView;
+      assert.equal(discussion, null);
       assert.equal(evilCount, 2);
       assert.deepEqual(questFailThresholds, [1, 1, 1, 1, 1]);
       assert.deepEqual(legacy, saved[i]);

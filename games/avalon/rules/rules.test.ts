@@ -1,3 +1,4 @@
+import { discuss } from './test-fixtures';
 import { describe, expect, it } from 'vitest';
 import {
   rulesByVariant,
@@ -67,6 +68,7 @@ describe('阿瓦隆2012经典规则与公开边界', () => {
       ),
     ).toBe(false);
     s = apply(s, { type: 'propose-team', team }, s.leader);
+    s = discuss(s);
     const pending = decisions(s).find((d) => d.seatId === 'b')!;
     s = apply(s, { type: 'vote-team', vote: 'reject' }, 'a');
     expect(decisions(s).find((d) => d.seatId === 'b')).toEqual(pending);
@@ -76,6 +78,7 @@ describe('阿瓦隆2012经典规则与公开边界', () => {
     let s = reveal(fixture('court', 6));
     const oldLeader = s.leader;
     s = apply(s, { type: 'propose-team', team: s.seats.slice(0, 2) }, s.leader);
+    s = discuss(s);
     for (let i = 0; i < 6; i++)
       s = apply(
         s,
@@ -102,6 +105,7 @@ describe('阿瓦隆2012经典规则与公开边界', () => {
         { type: 'propose-team', team: s.seats.slice(0, 2) },
         s.leader,
       );
+      s = discuss(s);
       for (const seat of s.seats)
         s = apply(s, { type: 'vote-team', vote: 'reject' }, seat);
     }
@@ -115,6 +119,7 @@ describe('阿瓦隆2012经典规则与公开边界', () => {
     const evil = s.seats.find((seat) => alignment(s.roles[seat]!) === 'evil')!;
     const good = s.seats.find((seat) => alignment(s.roles[seat]!) === 'good')!;
     s = apply(s, { type: 'propose-team', team: [evil, good] }, s.leader);
+    s = discuss(s);
     for (const seat of s.seats)
       s = apply(s, { type: 'vote-team', vote: 'reject' }, seat);
     s = approve(s, [evil, good]);

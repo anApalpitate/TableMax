@@ -57,6 +57,11 @@ export interface GameRules<
   initialize(context: RuleContext): State;
   validateState(input: unknown, seats: readonly string[]): State;
   decisions(state: State): readonly PendingDecision[];
+  botTiming?(
+    state: State,
+    seatId: string,
+    difficulty: BotDifficulty,
+  ): { key: string; minMs: number; maxMs: number } | null;
   ended(state: State): boolean;
   validateAction(input: unknown): Action;
   /** Authoritative validation for complete actions that cannot be enumerated.
@@ -65,6 +70,7 @@ export interface GameRules<
    */
   isLegalAction?(state: State, action: Action, seatId: string): boolean;
   legalActions(state: State, seatId: string): readonly Action[];
+  lifecyclePermission?(state: State, action: Action): 'host' | 'control';
   lifecycleActions(state: State): readonly Action[];
   applyLifecycle(
     state: State,

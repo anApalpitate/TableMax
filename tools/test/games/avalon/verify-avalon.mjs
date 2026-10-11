@@ -244,6 +244,8 @@ async function clickAction(index, action) {
     await page.locator('[data-av-secret="true"]').waitFor();
     await capture(phone, 'private-role-card');
     await page.locator('[data-av-action="acknowledge"]').click();
+  } else if (action.type === 'finish-discussion') {
+    await page.locator('[data-av-action="finish-discussion"]').click();
   } else if (action.type === 'propose-team' || action.type === 'assassinate') {
     for (const seat of action.type === 'propose-team'
       ? action.team
@@ -654,6 +656,34 @@ async function round(path) {
         await phoneFor(index);
         await layout(phone, 'team-vote-player', true);
       }
+    } else if (g.phase === 'discussion') {
+      const current = g.discussion.current;
+      const index = players.findIndex((p) => p.seatId === current);
+      if (
+        g.questNumber === 1 &&
+        g.proposalNumber === 1 &&
+        g.discussion.completed.length === 0
+      ) {
+        await phoneFor(index);
+        await layout(phone, 'discussion-player', true);
+        assert.equal(
+          await surface(phone)
+            .getByRole('button', { name: /跳过.*发言/ })
+            .count(),
+          0,
+        );
+        await host.getByRole('button', { name: /跳过.*发言/ }).click();
+        await until(
+          async () => (await view()).revision > v.revision,
+          'saved admin discussion skip',
+        );
+        assert.ok((await view()).gameView.discussion.skipped.includes(current));
+        evidence.checks.push({
+          check:
+            'actual admin skip button saves publicly; player has no skip control',
+          result: 'passed',
+        });
+      } else await clickAction(index, { type: 'finish-discussion' });
     } else if (g.phase === 'vote') {
       const pending = [];
       for (let i = 0; i < players.length; i++) {
@@ -772,6 +802,34 @@ async function round(path) {
     ['success', 'single-fail-fourth'].includes(path) ? 'good' : 'evil',
   );
   assert.ok(final.gameView.revealedRoles);
+  for (const width of [320, 390]) {
+    await resize(phone, width, 844, true);
+    const geometry = await surface(phone)
+      .locator('.av-final')
+      .evaluate((node) => {
+        const roles = node.querySelector('.av-revealed-roles');
+        return {
+          width: node.getBoundingClientRect().width,
+          available: node.parentElement.getBoundingClientRect().width,
+          columns:
+            getComputedStyle(roles).gridTemplateColumns.split(' ').length,
+        };
+      });
+    assert.ok(
+      geometry.width >= geometry.available - 2,
+      'Final content fills available player width',
+    );
+    assert.equal(
+      geometry.columns,
+      geometry.width >= 360 ? 3 : 2,
+      'Final role columns follow actual content width',
+    );
+    evidence.checks.push({
+      check: `${path} final columns ${width}px`,
+      geometry,
+      result: 'passed',
+    });
+  }
   await layout(phone, `${path}-final-player`, true);
   await capture(host, `${path}-final-host`);
   await privacy();

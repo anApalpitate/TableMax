@@ -60,7 +60,9 @@ export class AvalonSavedFeedback {
     if (key) this.seen.add(key);
   }
   accept(feedback: Feedback | null) {
-    const key = avalonFeedbackKey(feedback);
+    return this.acceptKey(avalonFeedbackKey(feedback));
+  }
+  acceptKey(key: string) {
     if (!key || this.seen.has(key)) return false;
     this.seen.add(key);
     if (this.seen.size > 40) this.seen.delete(this.seen.values().next().value!);

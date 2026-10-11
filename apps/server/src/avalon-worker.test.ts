@@ -103,7 +103,7 @@ for (const count of [5, 6, 7, 8, 9, 10])
         const phases = new Set<string>();
         while (
           room.view(room.hostToken).status === 'playing' &&
-          decisions < 400
+          decisions < 650
         ) {
           const g = room.view(room.hostToken).gameView as AvalonView;
           phases.add(g.phase);

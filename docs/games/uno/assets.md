@@ -13,3 +13,7 @@
 本游戏使用独立原创离线音效，由 [生成脚本](../../../tools/assets/games/uno/prepare-uno-audio.mjs) 复现，资源位于 `assets/games/uno/audio/`。十条运行 FLAC 共 345,275 字节，解码 PCM 与保留的原始 WAV 逐字节一致。卡牌放置、摸牌、跳过、反转、罚牌、UNO、质疑和胜利使用各自反馈；具体映射、时长与哈希在 [生成清单](../../../assets/games/uno/audio/manifest.json) 和 [交互](interaction.md) 维护。
 
 仅新的已保存结果触发声音和动效，刷新、回退、恢复及重新进桌不补播历史。测试静音、暂停取消、唯一桌面声音消费与浏览器手势解锁沿用宿主契约；减少动态保留清楚的静态结果。机器解码及静音信号验证不等同真人听感验收。
+
+2026-10-11 增加原创 catch-uno-v1.flac（0.58秒），漏喊质疑与UNO、+4质疑各自映射；11项FLAC与合成WAV解码PCM一致，原WAV继续保护。全项目格式审计见 `artifacts/maintenance/v1.0.6/bug-five-seven/audio-audit.json`，同名原素材不作为可删除副本。
+
+全项目[音效审计](../../../artifacts/maintenance/v1.0.6/bug-five-seven/audio-audit.json)逐文件记录哈希、解码PCM、采样率／声道／时长、源码引用与实际包成员。289份项目音频（181份assets音频及108份清单指向的原素材／历史参考）中65组WAV／FLAC解码一致，WAV为受保护原素材；114份实际运行音频没有相同哈希副本或同名双格式，保留必要运行格式，本次删除0文件，仓库及运行包节省均0字节。新抓漏音效23,065字节，旧10条音频字节未变。WebView2实际事件播放、Edge静音WebAudio解码通过；Windows WebKit缺WebAudio且FLAC加载超时，保留失败记录，不冒称iOS Safari通过。

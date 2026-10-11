@@ -623,7 +623,16 @@ export class RoomCoordinator {
         snap &&
         !d.paused &&
         !['房主结束', '管理员结束'].includes(d.endReason ?? '')
-          ? [...this.rules.lifecycleActions(structuredClone(snap.state))]
+          ? [
+              ...this.rules.lifecycleActions(structuredClone(snap.state)),
+            ].filter(
+              (action) =>
+                identity.role === 'host' ||
+                this.rules.lifecyclePermission?.(
+                  structuredClone(snap.state),
+                  action,
+                ) !== 'host',
+            )
           : [],
       botError: d.botError ?? this.transientBotError,
       endReason: d.endReason,
@@ -1244,6 +1253,14 @@ export class RoomCoordinator {
               ),
           'illegal-action',
         );
+        if (
+          c.type === 'lifecycle' &&
+          this.rules.lifecyclePermission?.(
+            structuredClone(next.snapshot!.state),
+            action,
+          ) === 'host'
+        )
+          requireThat(identity.role === 'host', 'unauthorized');
         const before = this.data.snapshot!;
         const random = new RandomSource(next.snapshot!.random);
         const context = { seats: next.seats.map((s) => s.id), random };
@@ -1334,7 +1351,21 @@ export class RoomCoordinator {
     if (changedInstance || c.type === 'resume') this.restored = false;
     return reply;
   }
-  botTask() {
+  get botPaused() {
+    return this.data.paused;
+  }
+  botTasks() {
+    const first = this.botTask();
+    if (!first) return [];
+    if (!first.timing) return [first];
+    return this.data.seats
+      .filter((s) => s.controller === 'bot')
+      .flatMap((s) => {
+        const task = this.botTask(s.id);
+        return task?.timing ? [task] : [];
+      });
+  }
+  botTask(requestedSeat?: string) {
     const d = this.data;
     if (
       d.status !== 'playing' ||
@@ -1346,12 +1377,20 @@ export class RoomCoordinator {
       return null;
     const decision = this.rules
       .decisions(d.snapshot.state)
-      .find((p) =>
-        d.seats.some((s) => s.id === p.seatId && s.controller === 'bot'),
+      .find(
+        (p) =>
+          (!requestedSeat || p.seatId === requestedSeat) &&
+          d.seats.some((s) => s.id === p.seatId && s.controller === 'bot'),
       );
     if (!decision) return null;
     const data = d.snapshot.bots[decision.seatId]!;
+    const timing = this.rules.botTiming?.(
+      structuredClone(d.snapshot.state),
+      decision.seatId,
+      data.difficulty ?? 'default',
+    );
     return {
+      ...(timing ? { timing } : {}),
       gameId: this.rules.manifest.id,
       ...(d.variantId === undefined ? {} : { variantId: d.variantId }),
       rulesVersion: this.rules.manifest.rulesVersion,

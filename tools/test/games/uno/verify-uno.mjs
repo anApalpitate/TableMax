@@ -67,7 +67,7 @@ const handInteractions = process.argv.includes('--hand-interactions');
 const layoutOnly = process.argv.includes('--layout-only');
 const only = option('only', '').split(',').filter(Boolean);
 assert.ok(['ui', 'runtime'].includes(mode));
-assert.ok([2, 3, 4, 6].includes(count));
+assert.ok([2, 3, 4, 5, 6].includes(count));
 assert.match(name, /^[a-z0-9-]{1,60}$/);
 const executablePath = resolve(option('executable', desktopExecutable));
 const runtimeRoot = dirname(executablePath);
@@ -1272,11 +1272,16 @@ async function newAudioCall(start, expectedCue) {
   await until(
     () =>
       publicPage.evaluate(
-        (index) =>
+        ({ index, cue }) =>
           window.__unoAudit.plays
             .slice(index)
-            .some((play) => !play.muted && play.resolved),
-        start,
+            .some(
+              (play) =>
+                !play.muted &&
+                play.resolved &&
+                new URL(play.src).pathname.includes(`/${cue}-v1-`),
+            ),
+        { index: start, cue: expectedCue },
       ),
     'Actual native public owner plays a newly saved local cue while physically muted',
     4000,
@@ -1491,17 +1496,44 @@ async function uiCase(scenario, prepare) {
     await rulesCheck(host, hostToken, 'host');
   }
   await connect(players[0].token);
-  if (scenario === 'uno')
-    await surface(phone).locator('.uno-call-toggle').click();
+
   const before = await view(players[0].token);
+  const opponent = ['uno', 'catch-uno'].includes(scenario)
+    ? await openPhone(1)
+    : null;
   const audioStart = await publicPage.evaluate(
     () => window.__unoAudit.plays.length,
   );
   await clickCard(fixture.firstCard);
+  if (opponent) {
+    await surface(phone)
+      .getByRole('button', { name: 'UNO!', exact: true })
+      .waitFor();
+    await surface(opponent)
+      .getByRole('button', { name: '质疑漏喊 UNO', exact: true })
+      .waitFor();
+    item.raceButtons =
+      'Own UNO and opposing catch are both available before either reaction saves';
+  }
+  if (scenario === 'uno')
+    await surface(phone)
+      .getByRole('button', { name: 'UNO!', exact: true })
+      .click();
+  if (scenario === 'catch-uno') {
+    await surface(opponent)
+      .getByRole('button', { name: '质疑漏喊 UNO', exact: true })
+      .click();
+    await until(
+      async () =>
+        (await view(players[0].token)).gameView.self.hand.length ===
+        before.gameView.self.hand.length + 1,
+      'Real catch button saves two-card penalty',
+    );
+  }
   const after = await view(players[0].token);
   assert.equal(
     after.gameView.self.hand.length,
-    before.gameView.self.hand.length - 1,
+    before.gameView.self.hand.length + (scenario === 'catch-uno' ? 1 : -1),
   );
   item.savedAction = {
     revision: after.revision,
@@ -1514,11 +1546,13 @@ async function uiCase(scenario, prepare) {
     ? 'win'
     : scenario === 'uno'
       ? 'uno'
-      : ['draw-four', 'challenge'].includes(scenario)
-        ? 'draw-four'
-        : ['reverse', 'skip', 'draw-two', 'wild'].includes(scenario)
-          ? scenario
-          : 'place';
+      : scenario === 'catch-uno'
+        ? 'catch-uno'
+        : ['draw-four', 'challenge'].includes(scenario)
+          ? 'draw-four'
+          : ['reverse', 'skip', 'draw-two', 'wild'].includes(scenario)
+            ? scenario
+            : 'place';
   item.newSavedAudio = await newAudioCall(audioStart, expectedCue);
   assert.deepEqual(
     await host.evaluate(() =>
@@ -1596,6 +1630,26 @@ async function uiCase(scenario, prepare) {
     );
     if (scenario === 'match-finish')
       assert.ok(after.gameView.players[players[0].seatId].score >= 500);
+    const resultLayout = await surface(phone).evaluate(() => {
+      const saved = document
+        .querySelector('.uno-latest')
+        .getBoundingClientRect();
+      const result = document
+        .querySelector('.uno-results')
+        .getBoundingClientRect();
+      return {
+        savedTop: saved.top,
+        savedBottom: saved.bottom,
+        resultTop: result.top,
+        resultBottom: result.bottom,
+      };
+    });
+    assert.ok(
+      resultLayout.savedTop >= resultLayout.resultBottom - 1 ||
+        resultLayout.savedBottom <= resultLayout.resultTop + 1,
+      'Saved action is in normal flow without covering results or continue buttons',
+    );
+    item.resultLayout = resultLayout;
   }
   await capture(host, 'saved-result-host');
   await capture(phone, 'saved-result-player');

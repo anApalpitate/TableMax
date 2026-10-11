@@ -2235,3 +2235,84 @@
     height: 68px;
   }
 }
+
+.av-discussion {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px;
+  border: 2px solid #b59456;
+  border-radius: 16px;
+  background: #fff4d9;
+  font-size: 18px;
+}
+.av-discussion > span {
+  flex: 1 1 240px;
+  overflow-wrap: anywhere;
+}
+.av-discussion button {
+  min-height: 44px;
+  font-size: 18px;
+}
+.avalon-screen .av-council-center > strong,
+.avalon-screen .av-council-center > span {
+  color: #342e23;
+  text-shadow:
+    0 1px 1px #fff8e0,
+    1px 0 #fff8e0,
+    -1px 0 #fff8e0;
+}
+.avalon-screen .av-seat--selected {
+  outline: 3px solid #24513d;
+  outline-offset: 3px;
+  background: #f7ffe8;
+  box-shadow: 0 0 0 7px #d6b66d;
+}
+.avalon-screen .av-seat[data-speaking='true'] {
+  border: 3px dashed #8a562f;
+}
+.avalon-screen .av-quest-number {
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  padding-bottom: 2px;
+}
+.av-screen--player .av-final {
+  container-type: inline-size;
+  width: 100%;
+  min-width: 0;
+}
+.av-screen--player .av-revealed-roles {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-inline: 0;
+}
+@container (min-width: 360px) {
+  .av-screen--player .av-revealed-roles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.av-revealed-roles > article > strong {
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.av-overlay--secret .panel-heading {
+  background: transparent;
+  border-bottom: 1px solid #b5945670;
+  box-shadow: none;
+}
+.av-overlay--secret .panel-heading > button {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 1px solid #b59456;
+  background: #fff4d9;
+}
+
+.av-rejections > div > span {
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  padding-bottom: 2px;
+}

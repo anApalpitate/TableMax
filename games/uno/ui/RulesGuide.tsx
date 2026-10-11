@@ -156,7 +156,7 @@ export const unoRulebook = {
       title: '剩一张前，大声喊 UNO!',
       content: (
         <>
-          <Diagram caption="手里还剩两张时，可开启“出牌时喊出”，随出牌一起宣布 UNO。">
+          <Diagram caption="倒数第二张牌保存后，本人喊 UNO 与其他玩家质疑漏喊同时开放。">
             <div className="uno-rule-cards">
               <Card card={face('red', 3)} />
               <Card card={face('yellow', 8)} />
@@ -164,8 +164,9 @@ export const unoRulebook = {
             <strong className="uno-rule-call">UNO!</strong>
           </Diagram>
           <p>
-            打出倒数第二张时须喊
-            UNO。开启手牌区的“出牌时喊出”后，下一次出牌会同时宣告。漏喊者可在窗口关闭前补喊；其他玩家也可以抓漏，让漏喊者罚摸两张。
+            打出倒数第二张时须喊 UNO。数字平台采用出牌后独立抢按：本人按
+            UNO，其他玩家按“质疑漏喊
+            UNO”，先成功保存者生效；漏喊被抓住罚摸两张。
           </p>
           <p>
             抓漏必须发生在下一位开始行动之前。平台的窗口持续到下一位出牌、摸牌或响应

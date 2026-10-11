@@ -176,6 +176,7 @@ export function Council({
               disabled={!choice}
               aria-pressed={choice ? member : undefined}
               aria-label={`${seat?.name ?? `座位 ${index + 1}`}${leader ? '，队长' : ''}${member ? '，已选入队伍' : ''}${submitted ? '，已提交' : ''}${ballot ? (ballot === 'approve' ? '，赞成' : '，反对') : ''}`}
+              data-speaking={game.discussion?.current === id}
               onClick={() => toggle(id)}
             >
               <span className="av-seat-portrait">
@@ -200,19 +201,21 @@ export function Council({
               </span>
               <strong>{seat?.name ?? `座位 ${index + 1}`}</strong>
               <span className="av-seat-status">
-                {game.phase === 'assassinate' && game.assassin === id
-                  ? '刺客'
-                  : submitted
-                    ? '已提交'
-                    : ballot
-                      ? ballot === 'approve'
-                        ? '赞成'
-                        : '反对'
-                      : leader
-                        ? '队长'
-                        : member
-                          ? '远征队员'
-                          : '圆桌成员'}
+                {game.discussion?.current === id
+                  ? '正在发言'
+                  : game.phase === 'assassinate' && game.assassin === id
+                    ? '刺客'
+                    : submitted
+                      ? '已提交'
+                      : ballot
+                        ? ballot === 'approve'
+                          ? '赞成'
+                          : '反对'
+                        : leader
+                          ? '队长'
+                          : member
+                            ? '远征队员'
+                            : '圆桌成员'}
               </span>
             </button>
           );

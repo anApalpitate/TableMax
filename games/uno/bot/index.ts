@@ -157,6 +157,7 @@ export function chooseAction(
   memory: Memory,
   difficulty: BotDifficulty,
   signal?: AbortSignal,
+  random: { next(): number } = { next: () => 0 },
 ): Action {
   if (!view.self || !rawActions.length)
     throw new Error('UNO 策略没有本人合法选择。');
@@ -172,6 +173,8 @@ export function chooseAction(
     (a): a is Extract<Action, { type: 'choose-color' }> =>
       a.type === 'choose-color',
   );
+  if (choose.length && difficulty === 'default')
+    return choose[Math.floor(random.next() * choose.length)]!;
   if (choose.length)
     return [...choose].sort(
       (a, b) =>
@@ -198,14 +201,19 @@ export function chooseAction(
       (a) =>
         getCard(a.cardId).kind !== 'wild-draw-four' ||
         !hand.some((c) => c.color === view.activeColor),
-    )
-    .filter((a) => hand.length !== 2 || a.uno === true);
+    );
   if (!plays.length) {
     const fallback = rawActions.find(
       (a) => a.type === 'draw' || a.type === 'pass',
     );
     if (!fallback) throw new Error('UNO 策略没有合法主动作。');
     return fallback;
+  }
+  if (difficulty === 'default') {
+    const ids = [...new Set(plays.map((a) => a.cardId))];
+    const id = ids[Math.floor(random.next() * ids.length)]!;
+    const variants = plays.filter((a) => a.cardId === id);
+    return variants[Math.floor(random.next() * variants.length)]!;
   }
   const seat = self.seatId,
     next = adjacent(view, seat),
@@ -215,13 +223,6 @@ export function chooseAction(
       remaining = hand.filter((c) => c.id !== action.cardId),
       color = card.color ?? action.color!;
     if (!remaining.length) return 100000;
-    if (difficulty === 'default')
-      return (
-        (card.color ? 100 : 0) +
-        (card.kind === 'number' ? 20 : 0) +
-        colorCount(remaining, color) +
-        points(card) * 0.02
-      );
     let score =
       points(card) * 0.6 +
       chosenColorScore(view, color, remaining, memory, difficulty);
@@ -319,6 +320,7 @@ export const bot: BotStrategy = {
     decision,
     memory,
     difficulty = 'default',
+    random,
     signal,
   }) {
     const view = inputView as UnoView;
@@ -326,7 +328,14 @@ export const bot: BotStrategy = {
       throw new Error('UNO 策略决策身份不一致。');
     const m = observe(view, memory, difficulty);
     return {
-      action: chooseAction(view, actions as Action[], m, difficulty, signal),
+      action: chooseAction(
+        view,
+        actions as Action[],
+        m,
+        difficulty,
+        signal,
+        random,
+      ),
       memory: m as JsonValue,
     };
   },

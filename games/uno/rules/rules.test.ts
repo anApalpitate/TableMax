@@ -14,7 +14,21 @@ import {
 import { handValue } from './scoring';
 import type { State } from './state';
 function apply(s: State, action: Action, seat = s.turnSeat!): State {
-  return rules.apply(s, action, seat, context(41, s.seats)).state as State;
+  // Legacy scenario helpers express an old simultaneous declaration as two saved actions.
+  const declare = action.type === 'play' && action.uno === true;
+  if (action.type === 'play') {
+    action = {
+      type: 'play',
+      cardId: action.cardId,
+      ...(action.color ? { color: action.color } : {}),
+    };
+  }
+  const next = rules.apply(s, action, seat, context(41, s.seats))
+    .state as State;
+  return declare && next.unoWindow
+    ? (rules.apply(next, { type: 'declare-uno' }, seat, context(41, s.seats))
+        .state as State)
+    : next;
 }
 describe('UNO 经典108牌与出牌边界', () => {
   it('牌组精确108且独立物理编号，标准点数1240', () => {

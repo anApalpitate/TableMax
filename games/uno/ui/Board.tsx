@@ -99,6 +99,7 @@ export function Seats({
     <div
       ref={container}
       className={`uno-seats${compact ? ' uno-seats--compact' : ''}`}
+      data-seat-count={game.seatOrder.length}
       aria-label="围桌玩家"
     >
       {game.seatOrder.map((id, index) => {
@@ -135,6 +136,20 @@ export function Seats({
                 <span className="uno-seat-points">{player.score} 分</span>
               </span>
             </div>
+            {compact && game.turnSeat && (
+              <span className="uno-seat-order">
+                {game.turnSeat === id
+                  ? '正在行动'
+                  : game.seatOrder[
+                        (game.seatOrder.indexOf(game.turnSeat) +
+                          game.direction +
+                          game.seatOrder.length) %
+                          game.seatOrder.length
+                      ] === id
+                    ? '下一位'
+                    : `第 ${index + 1} 席`}
+              </span>
+            )}
             <div className="uno-mini-hand" aria-hidden="true">
               {Array.from(
                 { length: Math.min(player.handCount, 5) },

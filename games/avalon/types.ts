@@ -14,11 +14,13 @@ export type Role = (typeof ROLES)[number];
 export type Alignment = 'good' | 'evil';
 export type Variant = 'classic' | 'court';
 export type Phase =
-  'reveal' | 'team' | 'vote' | 'quest' | 'assassinate' | 'ended';
+  'reveal' | 'team' | 'discussion' | 'vote' | 'quest' | 'assassinate' | 'ended';
 export type Vote = 'approve' | 'reject';
 export type QuestCard = 'success' | 'fail';
 export type Action =
   | { type: 'acknowledge' }
+  | { type: 'finish-discussion' }
+  | { type: 'skip-discussion'; target: string }
   | { type: 'propose-team'; team: string[] }
   | { type: 'vote-team'; vote: Vote }
   | { type: 'quest-card'; card: QuestCard }
@@ -61,6 +63,12 @@ export type AvalonView = {
   evilCount: number;
   questFailThresholds: number[];
   team: string[];
+  discussion: {
+    order: string[];
+    completed: string[];
+    skipped: string[];
+    current: string | null;
+  } | null;
   submittedSeats: string[];
   history: ProposalResult[];
   quests: QuestResult[];

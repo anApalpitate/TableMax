@@ -139,7 +139,9 @@ export function chooseAction(
   if (signal?.aborted) throw new Error('阿瓦隆策略已取消。');
   const self = view.self;
   const threshold = view.questFailThresholds[view.questNumber - 1]!;
-  const acknowledge = actions.find((a) => a.type === 'acknowledge');
+  const acknowledge = actions.find(
+    (a) => a.type === 'acknowledge' || a.type === 'finish-discussion',
+  );
   if (acknowledge) return acknowledge;
   const questCards = actions.filter((a) => a.type === 'quest-card');
   if (questCards.length) {

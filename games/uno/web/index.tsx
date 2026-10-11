@@ -338,7 +338,7 @@ function UnoScreen({ session }: { session: GameHost }) {
                         disabled={locked || !active}
                         onClick={() => choose((declare ?? catchUno)!)}
                       >
-                        {declare ? '喊 UNO!' : '抓漏喊'}
+                        {declare ? 'UNO!' : '质疑漏喊 UNO'}
                       </button>
                     </div>
                   )}
@@ -396,34 +396,7 @@ function UnoScreen({ session }: { session: GameHost }) {
                       查看你的质疑证据
                     </button>
                   )}
-                  {game.latest && (
-                    <div
-                      className="uno-latest"
-                      data-latest-saved-action
-                      aria-live="polite"
-                    >
-                      <strong>
-                        {game.latest.actor ? names[game.latest.actor] : 'UNO'}
-                      </strong>
-                      <span>
-                        {game.latest.text
-                          .replace(/^座位 \d+ /, '')
-                          .replace(
-                            /座位 (\d+)/g,
-                            (_text, number: string) =>
-                              names[game.seatOrder[Number(number) - 1]!] ??
-                              `座位 ${number}`,
-                          )
-                          .replace(
-                            /下一位/g,
-                            game.latest.targets[0]
-                              ? (names[game.latest.targets[0]] ?? '下一位')
-                              : '下一位',
-                          )}
-                      </span>
-                      <span className="uno-saved-label">已保存</span>
-                    </div>
-                  )}
+
                   <Hand
                     key={`${view.instanceId}:${game.self.seatId}:${game.roundNumber}`}
                     scope={`${view.instanceId}:${game.self.seatId}:${game.roundNumber}`}
@@ -527,7 +500,7 @@ function UnoScreen({ session }: { session: GameHost }) {
               </section>
             )
           )}
-          {(!player || game.phase !== 'playing') && game.latest && (
+          {game.latest && (
             <div
               className="uno-latest"
               data-latest-saved-action

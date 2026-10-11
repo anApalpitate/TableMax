@@ -163,6 +163,22 @@
       "runtimeBytes": 71612,
       "runtimeSha256": "928949e0278b8f8cff8eaf00969f39d71f0fbf3a776ab18a372bcb9f15cefd93",
       "decodedPcm": "Identical to source WAV samples"
+    },
+    {
+      "id": "catch-uno",
+      "version": 1,
+      "source": "Original deterministic PCM synthesis, prepare-uno-audio.mjs",
+      "durationSeconds": 0.58,
+      "sampleRate": 44100,
+      "channels": 2,
+      "peak": 0.3122179039651191,
+      "original": "artifacts/uno/audio/source-originals/catch-uno-v1.wav",
+      "originalBytes": 102356,
+      "originalSha256": "ab8554c3a8ecafd9a447e5d84c54ed4213ed2c8af9456c8ff83fb818391f839d",
+      "runtime": "assets/games/uno/audio/catch-uno-v1.flac",
+      "runtimeBytes": 23065,
+      "runtimeSha256": "d11bfbb0a61a9f06ded50efdbc365d7340e130ca933f1bfb3eaada0d0f3fc96c",
+      "decodedPcm": "Identical to source WAV samples"
     }
   ]
 }

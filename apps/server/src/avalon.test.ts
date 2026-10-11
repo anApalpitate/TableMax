@@ -158,6 +158,14 @@ for (const count of [5, 6, 10])
       const leader = f.tokens.findIndex((_, i) => f.own(i).actions.length > 0);
       const proposal = f.own(leader).actions[0] as Action;
       expect((await f.act(leader, proposal)).ok).toBe(true);
+      while (game(f.service.room.view()).phase === 'discussion') {
+        const g = game(f.service.room.view());
+        const i = f.tokens.findIndex(
+          (_, index) =>
+            game(f.own(index)).self!.seatId === g.discussion!.current,
+        );
+        await f.act(i, { type: 'finish-discussion' });
+      }
       const before = f.tokens.map((_, i) => f.own(i));
       const commands = before.map((v) =>
         envelope(v, {
@@ -234,6 +242,14 @@ it.each([5, 6, 10])(
       expect((await f.act(leader, f.own(leader).actions[0] as Action)).ok).toBe(
         true,
       );
+      while (game(f.service.room.view()).phase === 'discussion') {
+        const g = game(f.service.room.view());
+        const i = f.tokens.findIndex(
+          (_, index) =>
+            game(f.own(index)).self!.seatId === g.discussion!.current,
+        );
+        await f.act(i, { type: 'finish-discussion' });
+      }
       const before = f.own(0),
         action: Action = { type: 'vote-team', vote: 'reject' };
       const command = envelope(before, {
@@ -336,6 +352,65 @@ it('Avalon administrator-approved device transfer preserves the secret role and 
     ).toBe(true);
     expect(game(f.service.room.view(approved.token))).toEqual(game(before));
     expect(() => f.service.room.view(f.tokens[0]!)).toThrow();
+  } finally {
+    await f.close();
+  }
+}, 60000);
+
+it('discussion skip is admin-only and failed saves do not advance; restart and rollback retain progress', async () => {
+  const f = await fixture();
+  try {
+    await f.run(f.host, f.service.hostToken, {
+      type: 'set-owner',
+      seatId: game(f.own(0)).self!.seatId,
+    });
+    await f.allAck();
+    const leader = f.tokens.findIndex((_, i) => f.own(i).actions.length > 0);
+    await f.act(leader, f.own(leader).actions[0] as Action);
+    const before = f.service.room.view(f.service.hostToken);
+    const action = before.lifecycleActions[0] as JsonValue;
+    expect(f.own(0).lifecycleActions).toEqual([]);
+    expect(
+      (await f.run(f.players[0]!, f.tokens[0]!, { type: 'lifecycle', action }))
+        .ok,
+    ).toBe(false);
+    expect(
+      (
+        await f.send(
+          f.observer,
+          envelope(before, { type: 'lifecycle', action }),
+        )
+      ).ok,
+    ).toBe(false);
+    const spy = vi
+      .spyOn(SqliteSaveRepository.prototype, 'save')
+      .mockImplementationOnce(() => {
+        throw new Error('disk-full');
+      });
+    expect(
+      (await f.run(f.host, f.service.hostToken, { type: 'lifecycle', action }))
+        .ok,
+    ).toBe(false);
+    expect(game(f.service.room.view())).toEqual(game(before));
+    spy.mockRestore();
+    expect(
+      (await f.run(f.host, f.service.hostToken, { type: 'lifecycle', action }))
+        .ok,
+    ).toBe(true);
+    const saved = game(f.service.room.view());
+    expect(saved.discussion!.skipped).toHaveLength(1);
+    const checkpoint = f.service.room.view(f.service.hostToken).history.at(-1)!;
+    await f.restart();
+    expect(game(f.service.room.view())).toEqual(saved);
+    expect(
+      (
+        await f.run(f.host, f.service.hostToken, {
+          type: 'rollback',
+          checkpointId: checkpoint.id,
+        })
+      ).ok,
+    ).toBe(true);
+    expect(game(f.service.room.view())).toEqual(game(before));
   } finally {
     await f.close();
   }

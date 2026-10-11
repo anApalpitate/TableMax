@@ -37,8 +37,17 @@ export function reveal(s: State): State {
       s = apply(s, { type: 'acknowledge' }, seat);
   return s;
 }
+export function discuss(s: State): State {
+  while (s.phase === 'discussion')
+    s = apply(
+      s,
+      { type: 'finish-discussion' },
+      s.discussion!.order[s.discussion!.completed.length]!,
+    );
+  return s;
+}
 export function approve(s: State, team: string[]): State {
-  s = apply(s, { type: 'propose-team', team }, s.leader);
+  s = discuss(apply(s, { type: 'propose-team', team }, s.leader));
   for (const seat of s.seats)
     s = apply(s, { type: 'vote-team', vote: 'approve' }, seat);
   return s;

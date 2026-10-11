@@ -21,6 +21,14 @@ export type { Action } from '../types';
 export function validateAction(input: unknown): Action {
   if (!object(input) || typeof input.type !== 'string')
     throw new Error('阿瓦隆动作格式无效。');
+  if (input.type === 'finish-discussion' && exact(input, ['type']))
+    return { type: 'finish-discussion' };
+  if (
+    input.type === 'skip-discussion' &&
+    exact(input, ['type', 'target']) &&
+    typeof input.target === 'string'
+  )
+    return { type: 'skip-discussion', target: input.target };
   if (input.type === 'acknowledge' && exact(input, ['type']))
     return { type: 'acknowledge' };
   if (
@@ -76,6 +84,11 @@ export function legalActions(s: State, seat: string): Action[] {
       s.seats,
       questSizes(s.seats.length)[s.questNumber - 1]!,
     ).map((team) => ({ type: 'propose-team', team }));
+  if (
+    s.phase === 'discussion' &&
+    s.discussion?.order[s.discussion.completed.length] === seat
+  )
+    return [{ type: 'finish-discussion' }];
   if (s.phase === 'vote' && !Object.hasOwn(s.votes, seat))
     return [
       { type: 'vote-team', vote: 'approve' },
@@ -144,9 +157,45 @@ function createRules(variant: Variant): GameRules {
     legalActions: (input, seat) => legalActions(input as State, seat),
     isLegalAction: (input, action, seat) =>
       isLegalAction(input as State, action, seat),
-    lifecycleActions: () => [],
-    applyLifecycle() {
-      throw new Error('阿瓦隆没有中局管理动作，请结束后再玩一局。');
+    lifecycleActions: (input) => {
+      const s = input as State;
+      const target = s.discussion?.order[s.discussion.completed.length];
+      return s.phase === 'discussion' && target
+        ? [{ type: 'skip-discussion', target }]
+        : [];
+    },
+    lifecyclePermission: () => 'host',
+    applyLifecycle(input, raw) {
+      const before = input as State,
+        action = validateAction(raw);
+      if (
+        action.type !== 'skip-discussion' ||
+        before.phase !== 'discussion' ||
+        before.discussion?.order[before.discussion.completed.length] !==
+          action.target
+      )
+        throw new Error('当前不能跳过发言。');
+      const state = applyAction(before, action, action.target);
+      return {
+        state: state as JsonValue,
+        decision: {
+          label: `管理员跳过座位 ${before.seats.indexOf(action.target) + 1} 发言之前`,
+          revealedInformation: false,
+        },
+        events: [
+          {
+            kind: 'skip-discussion',
+            text: state.latest!.text,
+            action: {
+              actor: null,
+              verb: 'skip-discussion',
+              cardCategory: null,
+              ability: null,
+              targets: [{ seat: action.target, slots: [] }],
+            },
+          },
+        ],
+      };
     },
     apply(input, raw, seat, context) {
       const before = input as State,

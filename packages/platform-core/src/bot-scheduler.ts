@@ -19,12 +19,36 @@ export interface BotExecutor {
   ): Promise<{ action: JsonValue; memory: JsonValue; random: number }>;
 }
 
-// Production uses an isolated worker executor; the default is for trusted test strategies.
+// Timers may compete; all actions still pass through the room's serial save queue.
+type Task = NonNullable<ReturnType<RoomCoordinator['botTask']>>;
+type Waiting = {
+  task: Task;
+  remaining: number;
+  due: number;
+  timer?: ReturnType<typeof setTimeout> | undefined;
+  controller?: AbortController;
+};
+export function reactionDelayMs(task: Task): number {
+  const timing = task.timing!;
+  const text = JSON.stringify([
+    task.instanceId,
+    task.branch,
+    timing.key,
+    task.decision.seatId,
+    task.data.random,
+  ]);
+  let hash = 2166136261;
+  for (const char of text)
+    hash = Math.imul(hash ^ char.charCodeAt(0), 16777619) >>> 0;
+  return (
+    timing.minMs +
+    Math.floor((hash / 0x100000000) * (timing.maxMs - timing.minMs + 1))
+  );
+}
 export class BotScheduler {
-  private cancel: (() => void) | undefined;
+  private waiting = new Map<string, Waiting>();
   private unsubscribe: () => void;
   private stopped = false;
-  private taskKey: string | null = null;
   constructor(
     private room: RoomCoordinator,
     private delayMs?: number,
@@ -34,106 +58,126 @@ export class BotScheduler {
     this.unsubscribe = room.subscribe(() => this.schedule());
     this.schedule();
   }
+  private key(task: Task) {
+    return JSON.stringify([
+      task.instanceId,
+      task.variantId,
+      task.rulesVersion,
+      task.branch,
+      task.timing?.key ?? task.revision,
+      task.decision.seatId,
+      task.data.id,
+      task.data.version,
+      task.data.difficulty,
+      this.room.playMode,
+    ]);
+  }
+  private discard(key: string, waiting: Waiting) {
+    clearTimeout(waiting.timer);
+    waiting.controller?.abort();
+    this.waiting.delete(key);
+  }
   private schedule() {
     if (this.stopped) return;
-    const task = this.room.botTask();
-    const key = task
-      ? JSON.stringify([
-          task.instanceId,
-          task.variantId,
-          task.rulesVersion,
-          task.revision,
-          task.branch,
-          task.decision.id,
-          task.decision.seatId,
-          task.data.id,
-          task.data.version,
-          task.data.difficulty ?? 'default',
-          this.room.playMode,
-        ])
-      : null;
-    // Presence updates have no authoritative revision. Preserve their already
-    // running delay/calculation so reconnects neither starve nor cancel a bot.
-    if (task && this.taskKey === key) return;
-    this.cancel?.();
-    this.cancel = undefined;
-    this.taskKey = key;
-    if (!task) return;
+    if (this.room.botPaused) {
+      for (const [key, entry] of this.waiting) {
+        if (!entry.task.timing || entry.controller) {
+          this.discard(key, entry);
+          continue;
+        }
+        if (entry.timer) entry.remaining = Math.max(0, entry.due - Date.now());
+        clearTimeout(entry.timer);
+        entry.timer = undefined;
+      }
+      return;
+    }
+    const tasks = this.room.botTasks();
+    const keys = new Set(tasks.map((task) => this.key(task)));
+    for (const [key, entry] of this.waiting)
+      if (!keys.has(key)) this.discard(key, entry);
+    for (const task of tasks) {
+      const key = this.key(task);
+      let entry = this.waiting.get(key);
+      if (!entry) {
+        entry = {
+          task,
+          remaining:
+            this.delayMs ??
+            (this.room.playMode === 'test'
+              ? 40
+              : task.timing
+                ? reactionDelayMs(task)
+                : botDelayMs(this.room.playMode, task.data.difficulty)),
+          due: 0,
+        };
+        this.waiting.set(key, entry);
+      } else entry.task = task;
+      if (entry.timer || entry.controller) continue;
+      entry.due = Date.now() + entry.remaining;
+      const pending = entry;
+      entry.timer = setTimeout(
+        () => void this.run(key, pending),
+        entry.remaining,
+      );
+    }
+  }
+  private async run(key: string, entry: Waiting) {
+    entry.timer = undefined;
+    const task = entry.task;
     const controller = new AbortController();
-    let cancelledByReschedule = false;
+    entry.controller = controller;
     let timeout: ReturnType<typeof setTimeout> | undefined;
-    const timer = setTimeout(
-      () => {
-        const random = new RandomSource(task.data.random);
-        const failure = new Promise<never>((_, reject) => {
-          timeout = setTimeout(() => {
-            controller.abort();
-            reject(new Error('timeout'));
-          }, this.timeoutMs);
-        });
-        void Promise.race([
-          this.executor
-            ? this.executor.execute(task, controller.signal)
-            : Promise.resolve().then(async () => {
-                const result = await this.room.strategy.decide({
-                  view: task.view,
-                  actions: task.actions,
-                  decision: task.decision,
-                  memory: task.data.memory,
-                  difficulty: task.data.difficulty ?? 'default',
-                  random,
-                  signal: controller.signal,
-                });
-                return { ...result, random: random.state };
-              }),
-          failure,
-        ])
-          .then(async (result) => {
-            if (controller.signal.aborted) return;
-            const reply = await this.room.submitBot(
-              task,
-              result.action,
-              result.memory,
-              result.random,
-            );
-            if (
-              !reply.ok &&
-              ![
-                'stale-instance',
-                'stale-branch',
-                'stale-revision',
-                'not-actionable',
-              ].includes(reply.reason)
-            )
-              await this.room.botFailed(task);
-          })
-          .catch(async () => {
-            // The deadline also aborts the Worker, but it remains a genuine
-            // strategy failure. Only explicit replacement/stop cancellation is
-            // silent; revision checks still reject failures from old branches.
-            if (!this.stopped && !cancelledByReschedule)
-              await this.room.botFailed(task);
-          })
-          .catch(() => {
-            /* Failed storage must never produce a success message or a retry loop. */
-          })
-          .finally(() => {
-            if (timeout) clearTimeout(timeout);
+    try {
+      const failure = new Promise<never>((_, reject) => {
+        timeout = setTimeout(() => {
+          controller.abort();
+          reject(new Error('timeout'));
+        }, this.timeoutMs);
+      });
+      const calculate = this.executor
+        ? this.executor.execute(task, controller.signal)
+        : Promise.resolve().then(async () => {
+            const random = new RandomSource(task.data.random);
+            const result = await this.room.strategy.decide({
+              view: task.view,
+              actions: task.actions,
+              decision: task.decision,
+              memory: task.data.memory,
+              difficulty: task.data.difficulty ?? 'default',
+              random,
+              signal: controller.signal,
+            });
+            return { ...result, random: random.state };
           });
-      },
-      this.delayMs ?? botDelayMs(this.room.playMode, task.data.difficulty),
-    );
-    this.cancel = () => {
-      cancelledByReschedule = true;
-      clearTimeout(timer);
-      if (timeout) clearTimeout(timeout);
-      controller.abort();
-    };
+      const result = await Promise.race([calculate, failure]);
+      if (controller.signal.aborted) return;
+      const reply = await this.room.submitBot(
+        task,
+        result.action,
+        result.memory,
+        result.random,
+      );
+      if (
+        !reply.ok &&
+        ![
+          'stale-instance',
+          'stale-branch',
+          'stale-revision',
+          'not-actionable',
+        ].includes(reply.reason)
+      )
+        await this.room.botFailed(task);
+    } catch {
+      if (!this.stopped && this.waiting.get(key) === entry)
+        await this.room.botFailed(task).catch(() => {});
+    } finally {
+      clearTimeout(timeout);
+      if (this.waiting.get(key) === entry) this.waiting.delete(key);
+    }
   }
   stop() {
     this.stopped = true;
-    this.cancel?.();
-    this.taskKey = null;
+    for (const [key, entry] of this.waiting) this.discard(key, entry);
     this.unsubscribe();
   }
 }

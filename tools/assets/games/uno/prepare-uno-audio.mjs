@@ -156,6 +156,14 @@ const definitions = {
     ],
   },
 };
+definitions['catch-uno'] = {
+  duration: 0.58,
+  paper: [[0, 0.12, 0.16]],
+  tones: [
+    [0, 740, 0.17, 0.2],
+    [0.17, 370, 0.28, 0.22],
+  ],
+};
 function render(definition) {
   const frames = Math.ceil(definition.duration * sampleRate);
   const samples = new Float64Array(frames);

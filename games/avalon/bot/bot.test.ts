@@ -1,3 +1,4 @@
+import { discuss } from '../rules/test-fixtures';
 import { describe, expect, it } from 'vitest';
 import {
   botsByVariant,
@@ -27,7 +28,7 @@ describe('阿瓦隆独立三档策略', () => {
             ctx = context(seed, ['a', 'b', 'c', 'd', 'e', 'f']);
           let s = rules.initialize(ctx) as State,
             steps = 0;
-          while (s.phase !== 'ended' && steps < 240) {
+          while (s.phase !== 'ended' && steps < 650) {
             const decision = decisions(s)[0]!;
             const chosen = await bot.decide({
               view: project(s, { role: 'player', seatId: decision.seatId }),
@@ -47,7 +48,7 @@ describe('阿瓦隆独立三档策略', () => {
             steps++;
           }
           expect(s.phase).toBe('ended');
-          expect(steps).toBeLessThan(240);
+          expect(steps).toBeLessThan(650);
         }
   });
   it('授权已知坏人不进梅林队伍，任务成功仍不证明所有人善良', () => {
@@ -59,6 +60,7 @@ describe('阿瓦隆独立三档策略', () => {
         { type: 'propose-team', team: s.seats.slice(0, 2) },
         s.leader,
       );
+      s = discuss(s);
       for (const seat of s.seats)
         s = apply(s, { type: 'vote-team', vote: 'reject' }, seat);
       if (s.phase === 'ended') throw new Error('fixture rotation exceeded');

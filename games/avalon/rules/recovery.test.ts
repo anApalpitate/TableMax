@@ -1,3 +1,4 @@
+import { discuss } from './test-fixtures';
 import { describe, expect, it } from 'vitest';
 import { decisions, rulesByVariant, validateState } from './index';
 import { alignment, type State } from './state';
@@ -16,6 +17,7 @@ describe('阿瓦隆持久化状态与回退边界', () => {
     const stages = [s];
     s = reveal(s);
     s = apply(s, { type: 'propose-team', team: ['a', 'b'] }, s.leader);
+    s = discuss(s);
     s = apply(s, { type: 'vote-team', vote: 'approve' }, 'a');
     stages.push(s);
     for (const seat of s.seats.filter((seat) => seat !== 'a'))

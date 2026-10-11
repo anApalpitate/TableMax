@@ -40,20 +40,20 @@ export function AvalonEffects({
   const [effect, setEffect] = useState<{ key: string; cue: AvalonCue } | null>(
     null,
   );
+  // A repeated projection object must not cancel the saved event's pending frame.
+  const key = avalonFeedbackKey(feedback);
+  const cue = avalonCue(feedback, game);
   useEffect(() => {
-    const fresh = seen.current.accept(feedback);
-    if (disabled || !feedback || document.hidden) {
+    const fresh = seen.current.acceptKey(key);
+    if (disabled || !key || document.hidden) {
       const frame = requestAnimationFrame(() => setEffect(null));
       return () => cancelAnimationFrame(frame);
     }
     if (!fresh) return;
-    const cue = avalonCue(feedback, game);
     if (!cue || !themes[cue]) return;
-    const frame = requestAnimationFrame(() =>
-      setEffect({ key: avalonFeedbackKey(feedback), cue }),
-    );
+    const frame = requestAnimationFrame(() => setEffect({ key, cue }));
     return () => cancelAnimationFrame(frame);
-  }, [feedback, game, disabled]);
+  }, [key, cue, disabled]);
   useEffect(() => {
     if (!effect) return;
     const timer = window.setTimeout(

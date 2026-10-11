@@ -22,6 +22,12 @@ export type State = {
   proposalNumber: number;
   rejectedTeams: number;
   team: string[];
+  discussion: {
+    order: string[];
+    completed: string[];
+    skipped: string[];
+  } | null;
+  discussionActions: number;
   votes: Record<string, Vote>;
   questCards: Record<string, QuestCard>;
   history: ProposalResult[];
@@ -55,6 +61,12 @@ export const questFailThreshold = (
 ): number => (count >= 7 && questNumber === 4 ? 2 : 1);
 export const nextSeat = (state: Pick<State, 'seats'>, seat: string) =>
   state.seats[(state.seats.indexOf(seat) + 1) % state.seats.length]!;
+export function discussionOrder(s: Pick<State, 'seats' | 'leader'>): string[] {
+  const start = s.seats.indexOf(s.leader);
+  return s.seats.map(
+    (_, i) => s.seats[(start - i - 1 + s.seats.length) % s.seats.length]!,
+  );
+}
 export function roleDeck(count: number, variant: Variant): Role[] {
   const evil = evilCount(count);
   return variant === 'court'
@@ -85,6 +97,8 @@ const stateKeys = [
   'proposalNumber',
   'rejectedTeams',
   'team',
+  'discussion',
+  'discussionActions',
   'votes',
   'questCards',
   'history',
@@ -103,6 +117,12 @@ export function validateState(
   const fail = (): never => {
     throw new Error('阿瓦隆存档不变量无效。');
   };
+  if (
+    object(input) &&
+    !Object.hasOwn(input, 'discussion') &&
+    !Object.hasOwn(input, 'discussionActions')
+  )
+    input = { ...input, discussion: null, discussionActions: 0 };
   if (!object(input) || !exact(input, stateKeys)) fail();
   const s = input as unknown as State;
   if (
@@ -117,9 +137,15 @@ export function validateState(
     JSON.stringify(s.seats) !== JSON.stringify(seats) ||
     !['classic', 'court'].includes(s.variant) ||
     (expectedVariant !== undefined && s.variant !== expectedVariant) ||
-    !['reveal', 'team', 'vote', 'quest', 'assassinate', 'ended'].includes(
-      s.phase,
-    ) ||
+    ![
+      'reveal',
+      'team',
+      'discussion',
+      'vote',
+      'quest',
+      'assassinate',
+      'ended',
+    ].includes(s.phase) ||
     !s.seats.includes(s.initialLeader) ||
     !s.seats.includes(s.leader)
   )
@@ -254,7 +280,7 @@ export function validateState(
       ? s.history.at(-1)!.leader
       : leader;
   const expectedQuest = terminalQuest ? s.quests.length : questNumber;
-  const pending = ['reveal', 'team', 'vote'].includes(s.phase);
+  const pending = ['reveal', 'team', 'discussion', 'vote'].includes(s.phase);
   if (
     s.leader !== expectedLeader ||
     s.questNumber !== expectedQuest ||
@@ -275,7 +301,7 @@ export function validateState(
   } else if (s.acknowledged.length !== s.seats.length) fail();
   if (s.phase === 'team' && s.team.length) fail();
   if (
-    ['vote', 'quest'].includes(s.phase) &&
+    ['discussion', 'vote', 'quest'].includes(s.phase) &&
     s.team.length !== questSizes(s.seats.length)[s.questNumber - 1]
   )
     fail();
@@ -339,11 +365,38 @@ export function validateState(
       s.assassinationTarget !== null)
   )
     fail();
+  if (
+    !Number.isInteger(s.discussionActions) ||
+    s.discussionActions < 0 ||
+    s.discussionActions > (s.history.length + 1) * s.seats.length
+  )
+    fail();
+  if (s.phase === 'discussion') {
+    const d = s.discussion;
+    const order = discussionOrder(s);
+    if (
+      !d ||
+      !object(d) ||
+      !exact(d, ['order', 'completed', 'skipped']) ||
+      JSON.stringify(d.order) !== JSON.stringify(order) ||
+      !validSeats(d.completed) ||
+      !validSeats(d.skipped) ||
+      d.completed.length >= order.length ||
+      JSON.stringify(d.completed) !==
+        JSON.stringify(order.slice(0, d.completed.length)) ||
+      d.skipped.some((id) => !d.completed.includes(id)) ||
+      s.discussionActions < d.completed.length
+    )
+      fail();
+  } else if (s.discussion !== null) fail();
   const serial =
+    s.discussionActions +
     s.acknowledged.length +
     s.history.length * (s.seats.length + 1) +
     s.quests.reduce((sum, q) => sum + q.team.length, 0) +
-    (s.phase === 'vote' ? 1 + Object.keys(s.votes).length : 0) +
+    (['discussion', 'vote'].includes(s.phase)
+      ? 1 + Object.keys(s.votes).length
+      : 0) +
     Object.keys(s.questCards).length +
     (s.assassinationTarget ? 1 : 0);
   if (s.actionSerial !== serial) fail();

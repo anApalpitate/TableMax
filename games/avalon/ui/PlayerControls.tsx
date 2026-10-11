@@ -77,6 +77,27 @@ export function PlayerControls({
             提名队伍
           </button>
         </>
+      ) : game.phase === 'discussion' ? (
+        <>
+          <div className="av-action-copy">
+            <strong>{names[game.discussion?.current ?? '']} 正在发言</strong>
+            <span>
+              逆时针发言 · 队长最后 · {game.discussion?.completed.length ?? 0} /{' '}
+              {game.seatOrder.length} 已完成
+            </span>
+          </div>
+          {action('finish-discussion') && (
+            <button
+              type="button"
+              className="av-primary"
+              data-av-action="finish-discussion"
+              disabled={locked}
+              onClick={() => choose(action('finish-discussion')!)}
+            >
+              发言完成
+            </button>
+          )}
+        </>
       ) : game.phase === 'vote' && action('vote-team') ? (
         <>
           <strong className="av-choice-title">是否赞成这支队伍？</strong>
