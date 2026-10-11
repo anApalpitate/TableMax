@@ -4,6 +4,10 @@
 
 用户最新明确授权现在部署Pages并重新发布v1.0.6。本轮沿用已验源码与实际程序，保全历史内容包及旧标签，当前部署、公开文件字节、线上安装与Release附件的结果待主 agent 完成后补写，尚不记为发布通过。
 
+Pages已通过[手动工作流部署](https://github.com/anApalpitate/TableMax/actions/runs/38133974837)（第二次尝试），静态分支提交 `7b9e651387cf32748b65d8f7e05e62811150e974`。站点36文件、25,533,257字节，含一个部署标记；[35个公开文件的真实HTTPS大小与SHA核验](../../artifacts/maintenance/v1.0.6/pages-release-20261011/public-pages.json)全部通过。[联合清单](../../artifacts/pages/v1.0.6/published-history-20261011-2/site-manifest.json)保留当前八玩法、旧阿瓦隆两发行、14个内容包及旧签名目录原字节，原21个代码／资源／离线包均按旧线上摘要保全。同名离线包仅内嵌全目录不同且发行和依赖相同的，继续使用旧已发布字节；不覆盖原引用。首次部署因旧式Pages环境拒绝master，改为workflow后仅重跑部署；回环、网络超时和`.nojekyll`404均不冒称首次通过。
+
+新[实际EXE验收](../../artifacts/maintenance/v1.0.6/github-release-20261005/shipping-executable-checks.json)通过：34,957,824字节，SHA `eb4aa8cc03e384b5ed7de24bf5f95f56c5be02a2f1915f57444be96e05b0924e`；原ZIP未改变，实际提取含标记87,701,411字节。[作者工具包ZIP](../../artifacts/maintenance/v1.0.6/pages-release-20261011/toolkit-zip.json)38成员及全部源文件哈希核对通过；旧EXE、原审计及原生证据完整备份。以上不代替后续Release附件与正文核验。
+
 [已审更新说明](../../artifacts/maintenance/v1.0.6/pages-release-20261011/release-notes.md)比较v1.0.5实际发布source提交 `4943ca5cf89aabc850df3fb566519973913feb3e` 与本次已验实现提交 `1cf25774a0b1ca4d1443f68107e721b4fb183856`，不采用v1.0.5保留旧标签对象作为基线。下方Pages准备与历史发布结论继续保留各自的包和证据边界。
 
 ## 1.0.6：Pages准备、盒子界面与人机发言（2026-10-11）

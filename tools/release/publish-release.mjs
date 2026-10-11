@@ -137,9 +137,51 @@ assert.ok(pages.bytes <= 1_000_000_000 && pages.files.length > 0);
 const publicFiles = pages.files.filter(
   (file) => !(file.path === '.nojekyll' && file.deploymentOnly === true),
 );
-for (let offset = 0; offset < publicFiles.length; offset += 4) {
+const pagesProofPath = process.argv
+  .find((arg) => arg.startsWith('--pages-proof='))
+  ?.slice(14);
+let verifiedPublicFiles = publicFiles;
+if (pagesProofPath) {
+  const checked = JSON.parse(await readFile(resolve(pagesProofPath), 'utf8'));
+  assert.equal(checked.result, 'passed');
+  assert.equal(checked.root, GAME_PAGES_ROOT);
+  assert.equal(checked.tag, tag);
+  const age = Date.now() - Date.parse(checked.verifiedAt);
+  assert.ok(
+    age >= 0 && age < 60 * 60 * 1000,
+    'Pages byte evidence must be under one hour old',
+  );
+  assert.match(checked.staticCommit, /^[a-f0-9]{40}$/);
+  assert.ok(
+    (
+      await run('git', ['ls-remote', 'origin', 'refs/heads/gh-pages'])
+    ).startsWith(checked.staticCommit + '\t'),
+    'Pages source changed since verification',
+  );
+  assert.equal(checked.checks.length, publicFiles.length);
+  assert.equal(
+    new Set(checked.checks.map((item) => item.url)).size,
+    publicFiles.length,
+  );
+  for (const file of publicFiles) {
+    const prior = checked.checks.find(
+      (item) => item.url === new URL(file.path, GAME_PAGES_ROOT).href,
+    );
+    assert.ok(
+      prior && prior.bytes === file.bytes && prior.sha256 === file.sha256,
+      'Pages evidence does not match current manifest',
+    );
+  }
+  // Immutable files were already checked against the unchanged deployment.
+  // Recheck its mutable catalog immediately before publication.
+  verifiedPublicFiles = publicFiles.filter(
+    (file) => file.path === `games/${tag}/catalog.json`,
+  );
+  assert.equal(verifiedPublicFiles.length, 1);
+}
+for (let offset = 0; offset < verifiedPublicFiles.length; offset += 4) {
   const results = await Promise.allSettled(
-    publicFiles.slice(offset, offset + 4).map(async (file) => {
+    verifiedPublicFiles.slice(offset, offset + 4).map(async (file) => {
       const url = new URL(file.path, GAME_PAGES_ROOT);
       assert.equal(url.origin, new URL(GAME_PAGES_ROOT).origin);
       assert.ok(url.pathname.startsWith('/TableMax/'));
@@ -309,6 +351,8 @@ const record = {
   repo,
   mode: replaceDraft ? 'replace-draft' : 'new-release',
   sourceCommit: commit,
+  pagesManifest: resolve(pagesManifest),
+  ...(pagesProofPath ? { pagesByteProof: resolve(pagesProofPath) } : {}),
   tagCommit,
   tagObject,
   ...(backup ? { backup, previousReleaseId: previous.id } : {}),

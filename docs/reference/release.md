@@ -28,6 +28,8 @@ games/v1.0.6/<gameId>/<variantId或default>/index.html
 
 部署后执行 `pnpm release:github -- --publish --replace-draft --notes=<说明> --devkit=<已验工具包> --pages-manifest=<已审站点清单>`；入口默认拒绝发布，且先核对实际 Pages 每个文件的公开字节，再只上传 EXE、source ZIP、作者工具包。`--replace-draft`只用于本次已授权的既有草稿替换，保留的 v1.0.6 标签指向历史提交，须明确核对草稿、标签及实际发布源码映射；不得为了通过旧标签门禁强推标签或隐瞒差异。源码、EXE和实际 Pages 都通过验收后才能恢复发布。
 
+本轮新旧目录通过 `node --import tsx tools/release/prepare-pages-history.mjs --current=<当前包目录> --previous=<原发行目录> --previous-release=<原Release审计> --out=<全新准备目录>` 合并，验证原线上附件摘要并重新签名联合目录；相同发行及依赖的离线包优先保留原已发布字节，当前浏览入口只列每种玩法的首个发行。`.nojekyll`只作为部署标记，由Git树核验，不要求它在Pages提供下载。若本轮已有全部公开文件的真实大小／哈希证明，可加 `--pages-proof=<证明>` 复用：入口要求证明不超过一小时、逐文件匹配当前清单、远端 `gh-pages` 提交不变，并再次读取可更新的签名目录；无证明时最多四个并发请求重新核验，不能用本地回环结果代替。
+
 2026-10-10同版本附件替换授权：用户明确要求重新导出并只替换原v1.0.5的附件，因此本轮保持Release标题、正文、版本与已有标签对象，上传完整EXE及从本次已验证源码提交导出的source ZIP。源码提交与保留的旧标签对象映射记录在本地发布审计，不移动标签、不新增Release，也不上传运行ZIP或JSON。本条是此次明确授权的同版本替换边界；后文新版本发布流程仍适用。
 
 本页统一维护本地交付和GitHub Release的流程、前提与事项。工具链、增量构建、运行和安全清理的具体实现见[开发环境](development.md)，当前实际交付与未验证边界见[验收记录](acceptance.md)。本页是操作规范，不表示某版本已完成或已发布。
