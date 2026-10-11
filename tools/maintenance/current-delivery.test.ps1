@@ -26,7 +26,7 @@ try {
     $null = Json ('artifacts/maintenance/v1.0.6/windows-editions/run/shipping-executable-checks-' + $edition + '.json') @{result='passed';executableSha256=$executable.sha256;payloadSha256=$payloadHash}
     $deliveries += @{edition=$edition;archivePath=$archivePath;manifestPath=$manifestPath;executable=$executable}
   }
-  $null = Json 'artifacts/package-payloads/v1.0.6/current.json' @{version='1.0.6';deliveries=$deliveries}
+  $null = Json 'artifacts/package-payloads/v1.0.6/current.json' @{version='1.0.6';snapshot='run';deliveries=$deliveries}
   $old = File 'artifacts/releases/TableMax-1.0.5-win-x64.zip' 'expired-fixture'
   $cleanup = Join-Path $fixture 'tools/maintenance/cleanup-local.ps1'
   $null = . $cleanup -Kind Releases -ProjectRoot $fixture -Apply -MinimumAgeMinutes 0

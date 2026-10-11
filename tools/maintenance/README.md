@@ -1,5 +1,9 @@
 # 构建与验证自动维护
 
+2026-10-11验收去重：version 2统一计划关闭子检查自动维护，结束后只尝试一次父轮收尾；多阶段同任务使用`TABLEMAX_AUTO_MAINTENANCE=0`并最后统一维护。双EXE的证明直接定位到当前指针snapshot下的shipping报告，缺失或哈希不符即拒绝，不回退历史全树查找。缓存预览`--plan=<精确JSON>`生成SHA绑定候选，Apply必须提供同一路径和`--plan-sha256=<预览SHA>`；保留引用变化即停止，删除前仍复核进程、锁、路径、链接、近期修改和成员哈希。旧无plan命令保留兼容行为。计时分开记录交付证明、缓存库存、成员校验、进程查询和容量／退役；没有旧分类数据时不拆算旧总耗时。
+
+新增内部辅助为[cache-plan.mjs](cache-plan.mjs)，其隔离回归`node --test tools/maintenance/cache-plan.test.mjs`检查清单损坏、引用变化、重复／越界／保留候选拒绝。
+
 2026-10-11新增full／box交付：`current-delivery.ps1`与 `current-delivery.mjs`读取 `artifacts/package-payloads/v<版本>/current.json`，核对每个EXE、内部payload与manifest的路径、大小和SHA。清理额外要求各edition匹配的实际EXE通过证明（`executableSha256`与 `payloadSha256`），缺项即停止。当前内部载荷及指针保护，已有同版旧单EXE／ZIP和发布源码仍保留；没有新指针时兼容下文旧ZIP证明。本轮不发布，工具改变不代表新EXE已通过验收。
 
 2026-10-10 已接入。构建、运行包导出，以及使用公共浏览器／桌面验证助手的检查，在 Node 进入最终空闲阶段时执行一次隐藏收尾任务，同一进程只触发一次。构建、验证和产品工作已结束，协调 Node 等待维护完成再退出，避免执行环境回收脱离的子进程。没有常驻任务、周期轮询或结束用户进程的动作。

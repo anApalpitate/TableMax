@@ -10,6 +10,7 @@ function Get-MaintenanceCoordinatorPids([object[]]$Processes = $null) {
   $record = Get-Content -LiteralPath $path -Raw -Encoding utf8 | ConvertFrom-Json
   $entry = [IO.Path]::GetFullPath($record.entrypoint)
   $entrypoints = @(
+    'tools/test/runner/test-scoped.mjs'
     'tools/build/build.mjs'
     'tools/release/package-release.mjs'
     'tools/release/package.mjs'

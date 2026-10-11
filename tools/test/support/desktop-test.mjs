@@ -40,6 +40,8 @@ async function deadline(promise, timeout, description) {
 }
 export async function launchDesktop(options = {}) {
   scheduleMaintenance();
+  const started = performance.now();
+  const timings = { startupMs: 0, cdpMs: 0, shutdownWaitMs: 0 };
   const timeout = options.timeout ?? 30000;
   const cdpPort = await freePort();
   const executablePath = options.executablePath ?? desktopExecutable;
@@ -135,6 +137,8 @@ export async function launchDesktop(options = {}) {
       timeout,
       'Native desktop readiness timed out: ' + diagnostic,
     );
+    timings.startupMs = performance.now() - started;
+    const cdpStarted = performance.now();
     let lastError;
     const end = Date.now() + timeout;
     while (Date.now() < end) {
@@ -149,6 +153,7 @@ export async function launchDesktop(options = {}) {
       }
     }
     if (!browser) throw lastError ?? new Error('WebView2 CDP unavailable');
+    timings.cdpMs = performance.now() - cdpStarted;
     const contexts = () => browser.contexts();
     const pages = () =>
       contexts()
@@ -264,6 +269,7 @@ export async function launchDesktop(options = {}) {
           })
         : null;
     const desktop = {
+      timings,
       startup,
       request,
       process: () => child,
@@ -367,19 +373,24 @@ export async function launchDesktop(options = {}) {
         return result;
       },
       async close() {
-        await finishBudgetTrace?.();
-        if (!exited) {
-          const closing = request('quit').catch((error) => {
-            if (!exited) throw error;
-          });
-          await deadline(
-            Promise.all([closing, exit]),
-            15000,
-            'Native desktop/service shutdown timed out',
-          );
+        const shutdownStarted = performance.now();
+        try {
+          await finishBudgetTrace?.();
+          if (!exited) {
+            const closing = request('quit').catch((error) => {
+              if (!exited) throw error;
+            });
+            await deadline(
+              Promise.all([closing, exit]),
+              15000,
+              'Native desktop/service shutdown timed out',
+            );
+          }
+          await browser.close();
+          lines.close();
+        } finally {
+          timings.shutdownWaitMs += performance.now() - shutdownStarted;
         }
-        await browser.close();
-        lines.close();
       },
     };
     return desktop;

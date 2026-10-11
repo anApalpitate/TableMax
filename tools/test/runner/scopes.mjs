@@ -120,6 +120,17 @@ const unitScopes = {
 // Unregistered scripts may only run with an explicitly chosen full scope.
 // Mixed matrices cannot be narrowed by adding an option they do not implement.
 const verificationScopes = {
+  'tools/test/runner/evidence.test.mjs': ['tooling'],
+  'tools/test/runner/plan.test.mjs': ['tooling'],
+  'tools/maintenance/cache-plan.test.mjs': ['tooling'],
+  'tools/maintenance/current-delivery.test.mjs': ['tooling'],
+  'tools/maintenance/current-delivery.test.ps1': ['tooling'],
+  'tools/test/platform/verify-download-loopback.mjs': ['tooling', 'shared'],
+  'tools/test/desktop/verify-delivery-session.mjs': [
+    'tooling',
+    'box',
+    'shared',
+  ],
   'tools/release/verify-windows-editions.mjs': ['box', 'shared', 'tooling'],
   'tools/test/platform/verify-game-introduction.mjs': ['box'],
   'packages/game-sdk/src/metadata.test.mjs': ['box', 'shared', 'tooling'],

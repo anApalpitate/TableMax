@@ -8,13 +8,17 @@ $taskWorkspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..')).TrimE
 $taskOutput = [IO.Path]::GetFullPath($OutputDirectory)
 if (-not $taskOutput.StartsWith($taskWorkspace + '\artifacts\maintenance\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Maintenance output outside workspace evidence.' }
 Set-Location -LiteralPath $taskWorkspace
-$taskReport = [ordered]@{startedAtUtc=[DateTime]::UtcNow.ToString('o'); result='started'; stages=@(); errors=@()}
+$taskReport = [ordered]@{startedAtUtc=[DateTime]::UtcNow.ToString('o'); result='started'; stages=@(); errors=@(); timings=[ordered]@{}}
+$taskTotalClock = [Diagnostics.Stopwatch]::StartNew()
 try {
   if ($CoordinatorPath) { $env:TABLEMAX_MAINTENANCE_COORDINATOR = $CoordinatorPath }
   $workspace = $taskWorkspace; $sourceWorkspace = $taskWorkspace
   . (Join-Path $taskWorkspace 'tools/maintenance/cleanup-guard.ps1')
   Write-Host 'Checking engineering idle and verified current package...'
+  $taskClock = [Diagnostics.Stopwatch]::StartNew()
   Assert-Idle
+  $taskReport.timings.idleCheckMs = $taskClock.Elapsed.TotalMilliseconds
+  $taskClock.Restart()
   $taskProject = Get-Content -LiteralPath (Join-Path $taskWorkspace 'package.json') -Raw -Encoding utf8 | ConvertFrom-Json
   $taskArchive = Join-Path $taskWorkspace ('artifacts/releases/TableMax-' + $taskProject.version + '-win-x64.zip')
   . (Join-Path $PSScriptRoot 'current-delivery.ps1')
@@ -23,20 +27,27 @@ try {
   $taskArchiveHash = (Get-FileHash -LiteralPath $taskArchive).Hash.ToLowerInvariant()
   if (-not ('TableMax.WorkspaceSnapshotV2' -as [type])) { Add-Type -Path (Join-Path $taskWorkspace 'tools/maintenance/WorkspaceSnapshot.cs') }
   $taskPortableProof = $null
-  foreach ($taskProofPath in [TableMax.WorkspaceSnapshotV2]::FindReports((Join-Path $taskWorkspace 'artifacts/maintenance'))) {
+  if (-not $taskDeliveries) { foreach ($taskProofPath in [TableMax.WorkspaceSnapshotV2]::FindReports((Join-Path $taskWorkspace 'artifacts/maintenance'))) {
     try { $taskProof = Get-Content -LiteralPath $taskProofPath -Raw -Encoding utf8 | ConvertFrom-Json } catch { continue }
     if ($taskProof.portable -eq $true -and $taskProof.result -eq 'passed' -and $taskProof.archiveSha256 -eq $taskArchiveHash) { $taskPortableProof = $taskProofPath; break }
-  }
+  } }
   if ($taskDeliveries) { $taskPortableProof = $taskDeliveries.deliveries[0].proof }
   if (-not $taskPortableProof) { throw 'No matching passing portable evidence; automatic maintenance preserved all files.' }
   $taskReport.archiveSha256 = $taskArchiveHash; $taskReport.portableProof = $taskPortableProof
+  $taskReport.timings.deliveryEvidenceMs = $taskClock.Elapsed.TotalMilliseconds
+  $taskReport.historicalReportScans = $(if ($taskDeliveries) { 0 } else { 1 })
   $env:TABLEMAX_MAINTENANCE_CHILD = '1'
   Write-Host 'Previewing and pruning expired build cache...'
-  & node (Join-Path $taskWorkspace 'tools/maintenance/clean-build-cache.mjs')
+  $taskClock.Restart()
+  $taskCachePlan = Join-Path $taskOutput 'cache-plan.json'
+  & node (Join-Path $taskWorkspace 'tools/maintenance/clean-build-cache.mjs') ('--plan=' + $taskCachePlan)
   if ($LASTEXITCODE) { throw 'Build-cache preview failed; nothing further removed.' }
-  & node (Join-Path $taskWorkspace 'tools/maintenance/clean-build-cache.mjs') --apply
+  $taskCacheHash = (Get-FileHash -LiteralPath $taskCachePlan -Algorithm SHA256).Hash.ToLowerInvariant()
+  & node (Join-Path $taskWorkspace 'tools/maintenance/clean-build-cache.mjs') --apply ('--plan=' + $taskCachePlan) ('--plan-sha256=' + $taskCacheHash)
   if ($LASTEXITCODE) { throw 'Build-cache cleanup failed.' }
   $taskReport.stages += 'build-cache'
+  $taskReport.timings.buildCacheMs = $taskClock.Elapsed.TotalMilliseconds
+  $taskClock.Restart()
   $taskPlan = Join-Path $taskOutput 'retirement-plan.json'
   & node (Join-Path $PSScriptRoot 'verification-artifacts.mjs') $taskPlan
   if ($LASTEXITCODE) { throw 'Registered-artifact plan failed.' }
@@ -46,12 +57,17 @@ try {
     & (Join-Path $taskWorkspace 'tools/maintenance/cleanup-local.ps1') -Kind Intermediates -RegisteredArtifactsManifest $taskPlan -Apply
   }
   $taskReport.stages += 'registered-artifacts'
+  $taskReport.timings.registeredArtifactsMs = $taskClock.Elapsed.TotalMilliseconds
+  $taskClock.Restart()
   $taskReport.capacity = & (Join-Path $taskWorkspace 'scripts/Maintain-Project.ps1') -Apply
+  $taskReport.timings.capacityAndRetirementMs = $taskClock.Elapsed.TotalMilliseconds
   $taskReport.result = 'completed'
 } catch {
   $taskReport.result = 'blocked'; $taskReport.errors += $_.Exception.Message
   Write-Host ('Automatic maintenance preserved remaining files: ' + $_.Exception.Message)
 } finally {
+  $taskReport.timings.totalMs = $taskTotalClock.Elapsed.TotalMilliseconds
+  if ($taskClock) { $taskReport.timings.lastStageMs = $taskClock.Elapsed.TotalMilliseconds }
   $taskReport.finishedAtUtc = [DateTime]::UtcNow.ToString('o')
   $taskReport | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $taskOutput 'result.json') -Encoding utf8
 }

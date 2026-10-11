@@ -58,7 +58,12 @@ export class HistoryReporter {
   onTestRunStart() {
     this.history = new TestHistory(this.vitest.config.root);
     this.limit = failureLimit(this.vitest.config.bail ?? undefined);
-    this.runId = this.history.start(this.limit);
+    this.ownsRun = !process.env.TABLEMAX_TEST_HISTORY_RUN_ID;
+    this.runId =
+      process.env.TABLEMAX_TEST_HISTORY_RUN_ID ||
+      this.history.start(this.limit);
+    if (this.history.report(this.runId).run?.state !== 'running')
+      throw new Error('Shared test run is missing or no longer running');
     this.vitest.provide('tablemaxTestHistoryRun', this.runId);
     this.failures = 0;
     this.stopped = false;
@@ -142,7 +147,7 @@ export class HistoryReporter {
           : this.failures
             ? 'failed'
             : 'passed';
-      this.history.finish(this.runId, state, this.failures);
+      if (this.ownsRun) this.history.finish(this.runId, state, this.failures);
       const report = {
         ...this.history.report(this.runId),
         errors,

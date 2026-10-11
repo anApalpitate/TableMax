@@ -54,7 +54,7 @@ function integrationConfig(root, limit) {
   );
   return config;
 }
-function runVitest(root, config, label) {
+function runVitest(root, config, label, sharedRun = '') {
   const temporary = resolve(root, 'runtime-temp');
   mkdirSync(temporary, { recursive: true });
   const result = spawnSync(
@@ -72,6 +72,7 @@ function runVitest(root, config, label) {
         TEMP: temporary,
         TMP: temporary,
         TABLEMAX_TEST_HISTORY_DIR: resolve(root, 'history'),
+        TABLEMAX_TEST_HISTORY_RUN_ID: sharedRun,
       },
       encoding: 'utf8',
       windowsHide: true,
@@ -300,6 +301,35 @@ test('verification batch ranks by history, stops exactly at failure limit and ne
     undefined,
   );
   history.close();
+});
+
+test('Vitest joins a parent failure budget without finishing it or dispatching beyond the threshold', () => {
+  const { root, history } = fixture();
+  const config = integrationConfig(root, 2),
+    runId = history.start(2);
+  history.record(
+    runId,
+    'parent-failed-check',
+    testIdentity('verification', 'parent.mjs', ['previous']),
+    'failed',
+  );
+  writeFileSync(
+    resolve(root, 'shared.test.mjs'),
+    `import{test,expect}from${JSON.stringify(testLibUrl)};test('broken',()=>expect(1).toBe(2));test('unstarted',()=>expect(1).toBe(1));`,
+  );
+  history.close();
+  assert.equal(runVitest(root, config, 'shared-budget', runId).status, 1);
+  const after = new TestHistory(root, 'history');
+  const report = after.report(runId);
+  assert.equal(report.run.state, 'running');
+  assert.equal(report.run.failures, 2);
+  assert.equal(report.cases.filter((row) => row.kind === 'vitest').length, 1);
+  assert.equal(
+    report.cases.some((row) => row.name === 'unstarted'),
+    false,
+  );
+  after.finish(runId, 'stopped', 2);
+  after.close();
 });
 
 test('real Vitest runner orders cases from persistent history and bails without deadlock or synthetic passes', () => {

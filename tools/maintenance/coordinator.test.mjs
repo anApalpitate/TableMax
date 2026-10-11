@@ -16,6 +16,11 @@ test(
         join(root, 'tools/build/build.mjs'),
         '// test entrypoint',
       );
+      await mkdir(join(root, 'tools/test/runner'), { recursive: true });
+      await writeFile(
+        join(root, 'tools/test/runner/test-scoped.mjs'),
+        '// test entrypoint',
+      );
       const record = join(
         root,
         'artifacts/maintenance/v1.0.6/automatic-maintenance/test/coordinator.json',
@@ -56,6 +61,12 @@ $blocked=$false;try{Get-MaintenanceCoordinatorPids}catch{$blocked=$true};if(-not
 $owner.CreationDate=$owner.CreationDate.AddMinutes(10)
 $owner.CommandLine='node.exe unrelated.mjs'
 $blocked=$false;try{Get-MaintenanceCoordinatorPids}catch{$blocked=$true};if(-not $blocked){throw 'Unknown command not blocked'}
+$owner.CommandLine='node.exe tools/test/runner/test-scoped.mjs --scope=tooling --plan=round.json'
+$record.entrypoint=(Join-Path $workspace 'tools/test/runner/test-scoped.mjs')
+$record|ConvertTo-Json|Set-Content -LiteralPath $env:TABLEMAX_MAINTENANCE_COORDINATOR
+Assert-Idle
+$testProcesses=@($owner,$parent,$active)
+$blocked=$false;try{Assert-Idle}catch{$blocked=$true};if(-not $blocked){throw 'Scoped round bypassed active sibling protection'}
 Write-Output 'Coordinator identity, ancestry and active-process protection passed'
 `,
       );

@@ -17,7 +17,28 @@ import {
 import { resolve, join } from 'node:path';
 import { assertIdle } from '../build/assemble.mjs';
 import { lock, validateCached } from '../build/module-build.mjs';
+import { cachePlanHash, consumeCachePlan } from './cache-plan.mjs';
+import { localFile } from '../test/runner/evidence.mjs';
 const base = resolve('.cache/build-modules/v1');
+const planArg = process.argv.find((arg) => arg.startsWith('--plan='))?.slice(7);
+const planPath = planArg ? localFile(resolve('.'), planArg) : undefined;
+const applyingPlan = Boolean(planPath && process.argv.includes('--apply'));
+const metrics = {
+  candidateDiscoveries: applyingPlan ? 0 : 1,
+  candidateValidationMs: 0,
+  idleCheckMs: 0,
+  idleChecks: 0,
+  inventoryMs: 0,
+};
+async function checkIdle() {
+  const started = performance.now();
+  try {
+    await assertIdle();
+  } finally {
+    metrics.idleChecks++;
+    metrics.idleCheckMs += performance.now() - started;
+  }
+}
 async function newestWrite(path) {
   const info = await lstat(path);
   if (info.isSymbolicLink()) throw new Error('Linked cache member rejected');
@@ -32,7 +53,8 @@ async function newestWrite(path) {
   return newest;
 }
 await lock('build-cache-maintenance', async () => {
-  await assertIdle();
+  await checkIdle();
+  const inventoryStarted = performance.now();
   for (const entry of await readdir(base))
     if (entry.endsWith('.lock')) {
       const owner = JSON.parse(await readFile(join(base, entry), 'utf8'));
@@ -40,30 +62,41 @@ await lock('build-cache-maintenance', async () => {
         throw new Error('Active or unresolved cache lock: ' + owner.name);
     }
   const retained = new Set();
+  const references = [];
+  async function reference(path) {
+    path = localFile(resolve('.'), path);
+    const bytes = await readFile(path);
+    references.push({ path, sha256: cachePlanHash(bytes) });
+    return JSON.parse(bytes);
+  }
   const retain = (units) => {
     for (const unit of units ?? [])
       retained.add(unit.id + '/' + unit.fingerprint);
   };
-  const latest = JSON.parse(
-    await readFile(resolve('build/snapshots/latest.json'), 'utf8'),
-  );
-  retain(JSON.parse(await readFile(latest.snapshotPath, 'utf8')).units);
-  const project = JSON.parse(await readFile('package.json', 'utf8'));
+  const latest = await reference('build/snapshots/latest.json');
+  retain((await reference(latest.snapshotPath)).units);
+  const project = await reference('package.json');
+  try {
+    const pointer = await reference(
+      `artifacts/package-payloads/v${project.version}/current.json`,
+    );
+    for (const delivery of pointer.deliveries)
+      retain((await reference(delivery.manifestPath)).units);
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
   try {
     retain(
-      JSON.parse(
-        await readFile(
-          resolve(
-            `artifacts/releases/TableMax-${project.version}-win-x64-manifest.json`,
-          ),
-          'utf8',
-        ),
+      (
+        await reference(
+          `artifacts/releases/TableMax-${project.version}-win-x64-manifest.json`,
+        )
       ).units,
     );
   } catch (error) {
     if (error.code !== 'ENOENT') throw error;
   }
-  const candidates = [];
+  let candidates = [];
   for (const unit of await readdir(base, { withFileTypes: true })) {
     if (!unit.isDirectory() || unit.name === 'work') continue;
     const successes = [];
@@ -82,10 +115,16 @@ await lock('build-cache-maintenance', async () => {
     successes.sort((a, b) => b.mtime - a.mtime);
     for (const item of successes.slice(0, 2)) retained.add(item.key);
     for (const item of successes)
-      if (!retained.has(item.key) && Date.now() - item.mtime > 30 * 60000) {
+      if (
+        !applyingPlan &&
+        !retained.has(item.key) &&
+        Date.now() - item.mtime > 30 * 60000
+      ) {
         if ((await lstat(item.path)).isSymbolicLink())
           throw new Error('Linked cache directory rejected');
+        const validationStarted = performance.now();
         const manifest = await validateCached(item.path);
+        metrics.candidateValidationMs += performance.now() - validationStarted;
         const newest = await newestWrite(item.path);
         if (Date.now() - newest <= 30 * 60000) continue;
         candidates.push({
@@ -96,7 +135,32 @@ await lock('build-cache-maintenance', async () => {
         });
       }
   }
+  metrics.inventoryMs = performance.now() - inventoryStarted;
+  if (applyingPlan)
+    candidates = consumeCachePlan(
+      await readFile(planPath),
+      process.argv.find((arg) => arg.startsWith('--plan-sha256='))?.slice(14),
+      { base, retained, references },
+    );
+  else if (planPath) {
+    await mkdir(resolve(planPath, '..'), { recursive: true });
+    await writeFile(
+      planPath,
+      JSON.stringify(
+        {
+          schemaVersion: 1,
+          retained: [...retained].sort(),
+          references,
+          candidates,
+        },
+        null,
+        2,
+      ) + '\n',
+      { flag: 'wx' },
+    );
+  }
   const report = {
+    metrics,
     mode: process.argv.includes('--apply') ? 'apply' : 'preview',
     retention:
       'Current development snapshot, current release units, active locks/work and two latest successful products per unit. 30-minute protection.',
@@ -121,7 +185,10 @@ await lock('build-cache-maintenance', async () => {
   for (const item of candidates) {
     let result = 'preview';
     if (process.argv.includes('--apply')) {
-      await assertIdle();
+      await checkIdle();
+      for (const reference of references)
+        if (cachePlanHash(await readFile(reference.path)) !== reference.sha256)
+          throw new Error('Cache retention reference changed before deletion');
       if (
         !item.path.startsWith(base + '\\') &&
         !item.path.startsWith(base + '/')
@@ -133,7 +200,8 @@ await lock('build-cache-maintenance', async () => {
       if (
         JSON.stringify(current.files) !== JSON.stringify(item.files) ||
         (await newestWrite(item.path)) !== item.newest ||
-        (await stat(join(item.path, 'manifest.json'))).mtimeMs !== item.mtime
+        (await stat(join(item.path, 'manifest.json'))).mtimeMs !== item.mtime ||
+        Date.now() - item.newest <= 30 * 60000
       )
         throw new Error('Cache changed during cleanup');
       await appendFile(

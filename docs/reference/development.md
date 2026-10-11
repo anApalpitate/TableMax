@@ -159,6 +159,27 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 ## 真实命令
 
+### 内容绑定的验收计划（2026-10-11）
+
+统一入口新增version 2计划，version 1和直接Vitest命令保持兼容。先使用`--list`预览；新计划默认复用完整通过证据，`--force`强制执行选中项。`--changes=<文件>`只消费本任务路径及当前SHA-256，不自动读取全部工作区diff；清单为`{"version":1,"files":[{"path":"仓库相对路径","sha256":"当前内容SHA-256"}]}`，已删除路径使用`null`。变化清单过期即停止，不能把其他任务改动记成本任务。
+
+```powershell
+node tools/test/runner/test-scoped.mjs --scope=tooling --plan=<version-2.json> --changes=<owned.json> --list
+node tools/test/runner/test-scoped.mjs --scope=tooling --plan=<version-2.json> --changes=<owned.json>
+```
+
+每项仍明确`id`、`runtime`、`script`和`args`；`runtime`可选node、powershell或vitest。输入用`inputs.files`、`inputs.directories`登记，源码静态依赖自动展开，目录成员增加／删除也改变指纹。动态读取、Worker入口、PowerShell点引入、资源及旧报告必须显式登记；完成依赖审查后才能标记`inputs.complete:true`，缺口项执行但不缓存。`combination`登记游戏、玩法、人数、控制器／难度、种子或局面和验证类别；固定局面、快速自然整局、普通节奏检查点及完整自然整局不能互用。Vitest仅允许准确测试文件及`--testNamePattern=`，保持生命周期和失败统计。Node额外启动参数仅允许`nodeArgs:["--import=tsx"]`或`--test`。
+
+计划先检查范围，再按历史低通过率排序；相同内容、方法、参数与组合合并，报告保留全部选择来源。输出逐项执行／复用／不适用及理由。复用不会增加attempt或通过率分母。Vitest可加入父轮次的累计失败账本；独立脚本仍以命令为一项，不从退出码推算其内部用例统计。达到默认3项失败停止派发，保留未执行项，不自动重试；本轮不启用执行并行。
+
+证据索引在`artifacts/maintenance/test-history/evidence/<内容指纹>.json`，运行计划及原始证据在`test-history/runs/<轮次>/`。绑定输入字节、方法与助手代码、参数、Node／OS／架构、声明的环境变量及运行时文件；`environmentProviders`支持实际PowerShell与WebView2版本查询。EXE项使用`delivery:{"edition":"box"}`或full，自动绑定当前指针、EXE、payload和manifest，并要求WebView2环境绑定。EXE改变必须重新执行其实际验收；游戏整局结论不能替代新基础程序接入检查。
+
+检查执行前后重核输入。复用前核对全部日志、报告、截图等证据哈希，缺失、失败、未完成、损坏或环境不符均拒绝；`resultFile`可要求本项输出目录中的通过JSON，`evidence`可登记其他精确报告路径，旧文件没有刷新不算本次证据。审计导入只接受原始报告已证明的绑定及原文件SHA，不能以当前字段追补旧方法／环境；目前旧整局缺字段时继续保留原历史结论，不导入自动缓存。
+
+同一EXE会话助手顺序执行相关界面，主机／公共屏／玩家采用独立native partition，并核验Cookie隔离。首次、重启、迁移、异常退出与不同edition仍独立。回环下载夹具使用生产PackageStore和人工签名小包，记录真实接收字节、请求头／正文EOF及安装总耗时；模拟故障、已安装缓存命中和真实线上下载分别记录。源码夹具、隐藏窗口、模拟视口及三个事务注入点不能冒称实体设备、真实磁盘满或完整故障验收。
+
+version 2子检查关闭各自自动维护，父轮结束只尝试一次。多阶段属于同一任务时设置`TABLEMAX_AUTO_MAINTENANCE=0`，最后统一一次既有安全收尾；若已删除，不追加第二轮。当前双EXE从指针快照精确读取shipping报告，不扫描历史目录；缓存预览清单由SHA绑定供Apply消费，删除前仍重查进程、路径／链接、锁、引用、近期修改及成员SHA。
+
 ### 按变更范围选择检查
 
 2026-10-08 最新要求：仅改盒子只运行盒子项，仅改游戏只允许对应游戏项；测试、检查、构建与优化都按本次实际变化收敛。共享变化列明依赖后选择受影响项，不能依据工作区其他未提交内容扩大范围。规则改动按需检查规则，UI改动按需检查UI；纯文档／配置／素材记录只做格式、链接、配置、来源或解码等适用检查。

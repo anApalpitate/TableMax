@@ -401,7 +401,7 @@ try {
     }
     $proof = $verificationProofs[0].evidencePath
   }
-  elseif (Test-Path -LiteralPath $maintenance -PathType Container) {
+  elseif (-not $dualDelivery -and (Test-Path -LiteralPath $maintenance -PathType Container)) {
     Read-Snapshot (Join-Path $workspace 'package.json') | Out-Null
     foreach ($proofPath in [TableMax.WorkspaceSnapshotV2]::FindReports($maintenance)) {
       if (-not $proof) {

@@ -59,6 +59,18 @@ const entryOnly = option('entry-only', 'false') === 'true';
 const unoSeats = Number(option('uno-seats', '2'));
 assert.ok(Number.isInteger(unoSeats) && unoSeats >= 2 && unoSeats <= 6);
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
+const methodFiles = [
+  'tools/test/platform/verify-installed-games.mjs',
+  'tools/test/support/desktop-test.mjs',
+  'tools/test/support/player-test.mjs',
+  'tools/test/support/screenshots.mjs',
+];
+const verificationMethod = await Promise.all(
+  methodFiles.map(async (path) => ({
+    path,
+    sha256: hash(await readFile(path)),
+  })),
+);
 const wait = (ms) => new Promise((done) => setTimeout(done, ms));
 const require = createRequire(import.meta.url);
 const { io } = createRequire(resolve('apps/web/package.json'))(
@@ -88,6 +100,14 @@ const report = {
     'no OS-level Node egress-denial claim.',
   ...(onlineRelease ? { onlineRelease } : {}),
   playMode,
+  verificationMethod,
+  verificationParameters: {
+    entryOnly,
+    timingCheckpoint,
+    playMode,
+    maxMs,
+    unoSeats,
+  },
 };
 const save = () =>
   writeFile(
@@ -278,6 +298,29 @@ async function decisionWorker(task, entry) {
 async function verifyRelease(release) {
   const caseName = `${release.gameId}-${release.variantId ?? 'default'}`;
   const result = {
+    kind: entryOnly
+      ? 'entry'
+      : timingCheckpoint
+        ? 'ordinary-checkpoint'
+        : playMode === 'test'
+          ? 'fast-natural'
+          : 'natural',
+    combination: {
+      gameId: release.gameId,
+      variantId: release.variantId ?? null,
+      rulesVersion: release.module.compatibility.rulesVersion,
+      strategyVersion: release.module.compatibility.strategyVersion,
+      controllers: 'one-browser-decision-driver-plus-native-bots',
+      difficulty: 'doubao',
+      ruleSeed: null,
+      driverSeed: '0x51aa3321',
+      parameters: report.verificationParameters,
+    },
+    verificationMethod,
+    immutableClosure: catalog.blobs.filter((blob) =>
+      [release.code, ...release.resources].includes(blob.id),
+    ),
+    baseArchiveSha256: report.archiveSha256,
     gameId: release.gameId,
     variantId: release.variantId ?? null,
     releaseRef: release.releaseId,
@@ -332,6 +375,7 @@ async function verifyRelease(release) {
     await host.goto(origin + '/host/game');
     result.seats =
       release.gameId === 'uno' ? unoSeats : release.module.catalog.min;
+    result.combination.seats = result.seats;
     for (let i = 1; i < result.seats; i++)
       await hostCommand({
         type: 'add-bot',
@@ -634,12 +678,19 @@ async function verifyRelease(release) {
     report.failures++;
     console.error(JSON.stringify({ game: caseName, error: error.message }));
   } finally {
+    result.completedAt = new Date().toISOString();
+    result.durationMs = Date.now() - Date.parse(result.startedAt);
+    result.complete = result.check === 'passed';
     if (observeTiming) hostSocket.off('room:view', observeTiming);
     playerSocket?.disconnect();
     await phone?.close().catch(() => {});
     await publicPage?.close().catch(() => {});
     await host.goto(origin + '/host').catch(() => {});
     await save();
+    await writeFile(
+      join(output, `${caseName}.json`),
+      JSON.stringify(result, null, 2) + '\n',
+    );
   }
 }
 try {

@@ -1,5 +1,7 @@
 # 验证工具
 
+version 2内容绑定计划、`--changes`、`--force`、环境绑定和单轮收尾见[开发入口](../../docs/reference/development.md#内容绑定的验收计划2026-10-11)。新增runner辅助为[evidence.mjs](runner/evidence.mjs)、[plan.mjs](runner/plan.mjs)、[run-plan.mjs](runner/run-plan.mjs)和[round.mjs](runner/round.mjs)；隔离回归为[evidence.test.mjs](runner/evidence.test.mjs)、[plan.test.mjs](runner/plan.test.mjs)。[support/delivery-session.mjs](support/delivery-session.mjs)一次实际EXE启动顺序覆盖相关界面，[desktop/verify-delivery-session.mjs](desktop/verify-delivery-session.mjs)提供box三端代表检查；[support/download-loopback.mjs](support/download-loopback.mjs)与[platform/verify-download-loopback.mjs](platform/verify-download-loopback.mjs)提供生产安装器回环故障夹具（需`node --import=tsx`）。这些入口不等于游戏完整矩阵或真实线上／设备验收。
+
 先按本次修改范围选择检查。统一入口为 `pnpm test -- --scope=<范围>`；用 `--list` 只列清单，用 `--plan=<批次JSON路径>` 执行明确 Node／PowerShell 批次。范围支持 `box`、`shared`、`tooling`、`game:<id>` 或明确组合；不以目录或文件名前缀替代实际范围注册。默认按历史低通过率排序、累计三项失败停止，不自动重试。
 
 验证默认静音、回环监听、隐藏窗口；真实验证可能构建、启动服务并写 `tmp/`、`artifacts/` 和测试历史，不能把执行验证当作只读查询。各入口保留已有 `--game`、`--portable`、`--mode`、`--evidence` 等参数和结果位置，参数不通用，先查对应代码／开发说明。runner 为统计与调度；support 为公共运行助手；fixtures 只生成合法测试状态。混合矩阵保留在平台组，不能伪装成单游戏检查。

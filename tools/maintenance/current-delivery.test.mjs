@@ -59,16 +59,22 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
           },
         },
       );
-      json(join(root, `artifacts/maintenance/v1.0.6/${edition}/results.json`), {
-        result: 'passed',
-        executableSha256: executable.sha256,
-        payloadSha256: payloadHash,
-      });
+      json(
+        join(
+          root,
+          `artifacts/maintenance/v1.0.6/windows-editions/run/shipping-executable-checks-${edition}.json`,
+        ),
+        {
+          result: 'passed',
+          executableSha256: executable.sha256,
+          payloadSha256: payloadHash,
+        },
+      );
       return { edition, archivePath, manifestPath, executable };
     });
     const pointer = json(
       join(root, 'artifacts/package-payloads/v1.0.6/current.json'),
-      { version: '1.0.6', deliveries },
+      { version: '1.0.6', snapshot: 'run', deliveries },
     );
     assert.equal(currentDeliveries(root, '1.0.6').length, 2);
     if (process.platform === 'win32') {
@@ -87,13 +93,19 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
           { stdio: 'pipe' },
         );
       invoke(
-        `$value=Get-VerifiedCurrentDeliveries '${quoteRoot}' '1.0.6'; if($value.deliveries.Count -ne 2){throw 'Expected two verified deliveries'}`,
+        `$value=Get-VerifiedCurrentDeliveries '${quoteRoot}' '1.0.6'; if($value.deliveries.Count -ne 2 -or $value.historicalReportScans -ne 0){throw 'Expected two verified deliveries without historical scans'}`,
       );
-      json(join(root, 'artifacts/maintenance/v1.0.6/box/results.json'), {
-        result: 'passed',
-        executableSha256: deliveries[1].executable.sha256,
-        payloadSha256: '0'.repeat(64),
-      });
+      json(
+        join(
+          root,
+          'artifacts/maintenance/v1.0.6/windows-editions/run/shipping-executable-checks-box.json',
+        ),
+        {
+          result: 'passed',
+          executableSha256: deliveries[1].executable.sha256,
+          payloadSha256: '0'.repeat(64),
+        },
+      );
       assert.throws(() =>
         invoke(`Get-VerifiedCurrentDeliveries '${quoteRoot}' '1.0.6'`),
       );
@@ -102,6 +114,7 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
       try {
         json(pointer, {
           version: '1.0.6',
+          snapshot: 'run',
           deliveries: [
             { ...deliveries[0], archivePath: join(link, 'payload.zip') },
           ],
@@ -112,7 +125,7 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
         );
       } finally {
         unlinkSync(link);
-        json(pointer, { version: '1.0.6', deliveries });
+        json(pointer, { version: '1.0.6', snapshot: 'run', deliveries });
       }
     }
     file(deliveries[1].archivePath, 'tampered');
@@ -125,8 +138,10 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
     });
     assert.throws(() => currentDeliveries(root, '1.0.6'), /escapes/);
   } finally {
-    if (!root.startsWith(parent + '\\') && !root.startsWith(parent + '/'))
-      throw new Error('Fixture escapes test workspace');
+    assert.ok(
+      root.startsWith(parent + '\\') || root.startsWith(parent + '/'),
+      'Fixture escapes test workspace',
+    );
     rmSync(root, { recursive: true, force: true });
   }
 });
