@@ -34,7 +34,7 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 | `tools/test/fixtures/`                                                         | 验证专用合法状态／存档、进程故障与测量入口；不进入正式包或生产调试 API                                                        |
 | `tools/test/runner/`                                                           | 测试范围归属、历史统计、Vitest排序／阈值及工具回归；`test-scoped.mjs`统一范围入口，另提供历史导入与独立批次，不进入产品运行包 |
 | `apps/server/src/save-codec.mjs`                                               | 服务端 SQLite v1／v2存档解码，共用完整Save重建逻辑；工具依赖服务实现，生产不依赖工具；运行JS与类型声明均纳入服务构建输入      |
-| [scripts/](../../scripts/README.md) | 面向日常操作的五个 PowerShell 清理、截图退役、容量维护与透明压缩入口；安全实现及隔离回归在 `tools/maintenance/` |
+| [scripts/](../../scripts/README.md)                                            | 面向日常操作的五个 PowerShell 清理、截图退役、容量维护与透明压缩入口；安全实现及隔离回归在 `tools/maintenance/`               |
 | `apps/desktop/native/`                                                         | C# WinForms／net48／x64 外壳：双窗口、WebView2 桥接、显示／声音、私有服务管道、进程与单实例保障及锁定依赖                     |
 | `apps/desktop/src/`                                                            | 网页使用的桌面显示／声音 TypeScript 契约及独立控制逻辑回归；不启动正式窗口或服务                                              |
 | `apps/desktop/release/`                                                        | 完整EXE发布启动器，内置已核验运行ZIP并解压至稳定应用目录；打包、验收和GitHub白名单入口在 `tools/`                             |
@@ -60,7 +60,7 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 | `build/native/`、`build/native-obj/`、`build/desktop/`                         | 可再生编译与完整运行目录；规则／策略模块和前端分块随本地包收集，不手改生成物                                                  |
 | `.cache/build-modules/v1/`、`build/snapshots/`                                 | 内容寻址的成功单元、隔离任务输出和冻结组装清单；按专用缓存保留规则维护                                                        |
 | `artifacts/releases/`、`artifacts/maintenance/`、`artifacts/phase-*/`          | 最终交付、维护及阶段证据／原始资料；材料是否可再生分别判断                                                                    |
-| `tmp/`                                                                         | 隔离验证数据、解压副本及实验中间物；不存恢复档案，已结束／低频内容按精确清单退役，长期原件与当前证据归正式目录                                                                |
+| `tmp/`                                                                         | 隔离验证数据、解压副本及实验中间物；不存恢复档案，已结束／低频内容按精确清单退役，长期原件与当前证据归正式目录                |
 
 盒子短提示及确认正文集中在 `apps/web/src/content/feedback.zh-CN.json`，同目录维护插值、原因码映射和状态分类。游戏库分类及检索别名分别属于各游戏 `game-module.json` 的 `library` 字段，盒子只消费轻量目录。维护方法见[开发环境](development.md#提示文案与游戏库维护)。
 

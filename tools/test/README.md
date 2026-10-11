@@ -91,6 +91,8 @@ version 2内容绑定计划、`--changes`、`--force`、环境绑定和单轮收
 | [platform/verify-speech-panel.mjs](platform/verify-speech-panel.mjs)                                                                     | `node tools/test/platform/verify-speech-panel.mjs`                                   |
 | [platform/verify-test-silence.mjs](platform/verify-test-silence.mjs)                                                                     | `node tools/test/platform/verify-test-silence.mjs`                                   |
 | [runner/history-runner.mjs](runner/history-runner.mjs)                                                                                   | 内部辅助／声明／夹具；由对应入口调用                                                 |
+| [platform/verify-package-fault-matrix.mjs](platform/verify-package-fault-matrix.mjs)                                                     | 安装写入／下载故障矩阵；独立回环目录、逐项历史及失败阈值，支持精确`--only`           |
+| [platform/package-fault-child.mjs](platform/package-fault-child.mjs)                                                                     | 上述矩阵的私有注入／恢复子进程，不直接启动                                           |
 | [runner/history.mjs](runner/history.mjs)                                                                                                 | `node tools/test/runner/history.mjs`                                                 |
 | [runner/history.test.mjs](runner/history.test.mjs)                                                                                       | 工具隔离回归：`node --test tools/test/runner/history.test.mjs`                       |
 | [runner/scopes.d.mts](runner/scopes.d.mts)                                                                                               | 内部辅助／声明／夹具；由对应入口调用                                                 |
