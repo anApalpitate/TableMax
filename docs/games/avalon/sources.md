@@ -12,7 +12,7 @@ S01 PDF SHA-256：94a34e8d57b1a5f8c0901f0962dac3bd5ffb8a3eb89aaa02b7721b0d012515
 
 ## 逐项核验
 
-- S01第2页与S03[发牌](https://rules.dized.com/game/rZluqS52QmGdpoVxcmVLtg/3blsBDWxT2-DsBsywtDKOg/2-deal-character-cards-and-tokens)：5／6人分别3／4善良、2邪恶；随机初任队长、本人秘密身份及初始知识。
+- S01第2页与S03[发牌](https://rules.dized.com/game/rZluqS52QmGdpoVxcmVLtg/3blsBDWxT2-DsBsywtDKOg/2-deal-character-cards-and-tokens)：5–10人依次3／4／4／5／6／6善良、2／2／3／3／3／4邪恶；随机初任队长、本人秘密身份及初始知识。
 - S01第3页：5人任务数2、3、2、3、3；6人2、3、4、3、4；队长可参加也可不参加，同一人只能一枚队伍标记。
 - S01第4页与S03[投票结果](https://rules.dized.com/game/rZluqS52QmGdpoVxcmVLtg/V3eSkuHJSIi-qfEWDXPTAw/result-of-voting)：全员密投一起翻开，严格多数，平票拒绝，队长轮转，连续五次否决邪恶胜。
 - S01第5页与S03[任务牌](https://rules.dized.com/game/rZluqS52QmGdpoVxcmVLtg/UUQVWxChTdmzBFZGf6cjsw/support-or-sabotage)、[任务结算](https://rules.dized.com/game/rZluqS52QmGdpoVxcmVLtg/_kkXSpYFS2qit8JIEWz-yA/resolve-quest)：善良只能成功，邪恶可成功／失败；牌打乱再揭，无提交者对应关系；仅7人以上第4任务有两败门槛。

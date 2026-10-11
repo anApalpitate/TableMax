@@ -1,6 +1,6 @@
 # 阿瓦隆验证与交付
 
-本页记录经典2012原版、平台5–6人、基础／宫廷两种角色配置的实际检查及边界。操作命令唯一维护在 [开发环境](../../reference/development.md#阿瓦隆专项构建与验证)，规则来源与数字适配见 [游戏主题](README.md)。版本沿用1.0.6，没有发布GitHub Release。
+本页记录经典2012原版、平台5–10人、基础／宫廷两种角色配置的实际检查及边界。操作命令唯一维护在 [开发环境](../../reference/development.md#阿瓦隆专项构建与验证)，规则来源与数字适配见 [游戏主题](README.md)。版本沿用1.0.6，没有发布GitHub Release。
 
 ## 源码与权限
 
@@ -16,7 +16,7 @@
 
 [来源播放审计](../../../artifacts/avalon/validation/source-playback-audit/results.json)用实际按钮完成本人身份确认、提名、表决、任务与刺杀；每个核验的保存结果等待对应cue，实际HTMLMediaElement.play完成，并由单个授权原生窗口播放。减少动态与指针穿透分别检查，刷新不重播历史演出或声音。12条包内FLAC全部经真实WebView2解码，非静音／无削波；原始PCM无损回环见 [资源](assets.md)。测试默认物理静音，不代表真人已试听。
 
-当前 [运行ZIP](../../../artifacts/releases/TableMax-1.0.6-win-x64.zip) **43,563,681字节**，实际解压 **97,352,018字节／313成员**，SHA-256 `48d71a06d3e5ca6f48136b0c67d5c665b874a5a2d90dbc29e4c834b94b887550`；ZIP与解压均低于114MB工程预算及严格120,000,000字节门禁。冻结构建 `dc9e82fe170b49f85f1dea8f9c79b5f70faae065dad3f5db5953899dbd6e96d9`，源码提交 `3a621c6`（首个完整实现为 `e354ea3`）。
+当前 [运行ZIP](../../../artifacts/maintenance/v1.0.6/bug-first-four/delivery-before-change/TableMax-1.0.6-win-x64.zip) **43,563,681字节**，实际解压 **97,352,018字节／313成员**，SHA-256 `48d71a06d3e5ca6f48136b0c67d5c665b874a5a2d90dbc29e4c834b94b887550`；ZIP与解压均低于114MB工程预算及严格120,000,000字节门禁。冻结构建 `dc9e82fe170b49f85f1dea8f9c79b5f70faae065dad3f5db5953899dbd6e96d9`，源码提交 `3a621c6`（首个完整实现为 `e354ea3`）。
 
 完整实际ZIP解压验收分别见 [六人宫廷](../../../artifacts/avalon/validation/portable-six-court/results.json)、[五人基础](../../../artifacts/avalon/validation/portable-five-classic/results.json)：四种自然终局全部通过，各20项操作检查、13项布局、41张截图、16组对应事件特效／播放权，两项共40检查、26布局与82截图，耗时102.94／99.27秒。所绑定的 `bd7d496…` 同版包保存在 [视觉修正前包](../../../artifacts/maintenance/v1.0.6/avalon/delivery-before-visual-fix/TableMax-1.0.6-win-x64.zip)。
 
@@ -35,3 +35,11 @@
 - 首次便携计划由PowerShell拼接成单个长参数，两项在原生程序启动前失败。修正为显式参数数组，仅重跑这两项；历史累计失败不清零，不自动重试，原批日志保留在测试历史。
 
 关键已测耗时：首轮生产构建52.934秒；最终增量构建18.875秒、29／30缓存命中；打包与实际ZIP提取／哈希检查33.560秒；服务／Worker检查79.78秒；来源布局17.22秒，来源播放审计31.31秒。四幅生成总计150.629秒，生成与实现并行，不相加冒充总开发耗时。最终整包耗时与收尾空间结果见交付证明及 [项目瘦身](../../reference/project-slimming.md)。
+
+## 5–10人扩展（2026-10-11）
+
+沿用2012经典版、v1.0.6及两个原规则兼容版本。统一人数表和派生公开字段，无新增持久结构；第四任务7人以上双失败，其余一失败。角色／权限覆盖六个人数与两配置；24组第四任务0／1／2失败边界及篡改历史拒绝恢复通过。规则／策略13项、服务／权限／恢复／表现／Worker56项通过；追加5／6／10人保存失败与重启服务8项通过。36场隔离Worker自然整局保留32MiB／每决策2秒预算，服务10人并发表决、5人匿名任务通过。
+
+实际同版本包通过[7人](../../../artifacts/avalon/validation/bug-four-7-layout/results.json)、[8人](../../../artifacts/avalon/validation/bug-four-8-layout/results.json)、[9人](../../../artifacts/avalon/validation/bug-four-9-layout/results.json)三端320px至4K布局；[10人五次任务／刺杀](../../../artifacts/avalon/validation/bug-four-10-long-isolated/results.json)验证第四任务双失败，[10人第四任务一失败仍成功](../../../artifacts/avalon/validation/bug-four-10-one-failure/results.json)验证结果与成功演出。实际旧程序生成5人基础／6人宫廷SQLite，保存秘密角色及一票后关机，新程序恢复暂停、本人权限、投票并继续任务，[旧存档报告](../../../artifacts/avalon/validation/bug-four-legacy-restore/results.json)通过。
+
+首轮10人验证在WebView2打开主机页面时报告Unknown，服务已启动但尚未进入游戏，保存[原失败](../../../artifacts/avalon/validation/bug-four-10-long/results.json)及日志；隔离其他原生启动后一次定向检查通过，不把该次启动失败写成规则错误。共享菜单夹具补齐UNO／阿瓦隆声音按钮及游戏专属菜单标题后，三端设置烟测通过。实体手机、现场LAN与真人听感未新增认证。最终包及收尾空间记录见[总验收](../../reference/acceptance.md#106手写bug前四条修复2026-10-11)。

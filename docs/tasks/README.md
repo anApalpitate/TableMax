@@ -8,7 +8,7 @@
 
 ## 后续开发接续入口
 
-经典2012 [阿瓦隆](../games/avalon/README.md)已完成独立制作：平台5–6人、两种原版角色组合、秘密表决／任务、刺杀、三档策略和复古桌游声画。实际服务、原生操作、最终包及原失败见 [验证记录](../games/avalon/validation-scenarios.md)，版本沿用1.0.6。
+经典2012 [阿瓦隆](../games/avalon/README.md)已完成独立制作：平台5–10人、两种原版角色组合、秘密表决／任务、刺杀、三档策略和复古桌游声画。实际服务、原生操作、最终包及原失败见 [验证记录](../games/avalon/validation-scenarios.md)，版本沿用1.0.6。
 
 [经典 UNO 完整制作](../archive/uno-2026-10-10.md)已完成：规则／人机、三端桌游美术、离线声画和适用本地交付验证已闭合；当前规格见 [游戏主题](../games/uno/README.md)，实际 ZIP 与设备边界见 [验收](../reference/acceptance.md)。
 
