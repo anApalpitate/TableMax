@@ -1,5 +1,7 @@
 # 资源生成与维护
 
+本机资源搜索、原图与处理候选从 [TableMaxMaterial 工作区](../../../TMP/TableMaxMaterial/AGENTS.md)进入，交接见其 [素材流程](../../../TMP/TableMaxMaterial/docs/reference/material-workflow.md)。该目录不创建 Git；本目录继续维护主项目受控资源工具，运行 cwd、正式输出和覆盖边界沿用各工具要求，不能在外部工作区直接运行依赖项目根目录的入口。
+
 这些工具仅在明确的素材维护任务中执行，不接入构建后的自动维护。生成、导入、转换和 audit 名称的入口都可能改写正式音频、资源 manifest 或源码引用；运行前核对对应资源清单、输入和覆盖范围。输出以既有 `assets/`、游戏资源清单、`artifacts/` 证据路径为准，原素材保留。
 
 规则画面压缩统一使用 `python tools/assets/rules/compress-rule-captures.py --game=modern-art`，也支持已有其他游戏选择；保留原图与报告。旧现代艺术转发入口已移除。Python 工具须具备已有 Pillow 等依赖，Node 工具使用锁定工作区依赖，不自动安装或升级。

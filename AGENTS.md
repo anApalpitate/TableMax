@@ -9,7 +9,7 @@
 3. 当前交付查 [验收](docs/reference/acceptance.md)，发布流程、附件和更新说明查 [Release流程](docs/reference/release.md)，接续工作查 [任务索引](docs/tasks/README.md#后续开发接续入口)，重要选择查 [决策索引](docs/decisions/README.md)；第一至六阶段已完成，仅追溯历史时读 [归档](docs/archive/README.md)。
 4. 游戏规则、来源、权限、策略与验证各自维护：[宝可梦奇遇](docs/games/pokemon-encounters/README.md)、[现代艺术](docs/games/modern-art/README.md)、[电力公司](docs/games/power-grid/README.md)、[拉密](docs/games/rummikub/README.md)、[UNO](docs/games/uno/README.md)、[阿瓦隆](docs/games/avalon/README.md)。电力公司只采用经典德国修正版，42 城／六区／83 边及横向绘图边界见 [地图](docs/games/power-grid/map.md)，不能混入 Recharged 或其他地图。拉密仅采用经典版 2–4 人，不混入 XP／六人版；整回合与百搭边界见该游戏规格。UNO 采用 Mattel G7942 经典 108 牌、平台 2–6 人，不混入自定义或交换手牌版本。阿瓦隆采用2012经典版、平台5–10人，基础与派西维尔／莫甘娜组合，不混Big Box或其他扩展。
 5. 跨游戏交互、计时、恢复与显示查 [平台规格](docs/reference/phase-02-platform-spec.md)，接入新游戏查 [扩展指南](docs/reference/game-development.md)，电脑玩家查 [人机规格](docs/reference/bot-players.md)。游戏 bot 与开发子 agent 是不同角色。
-6. UI、布局、图标、头像、插画、声画与视觉审查先读 [用户美术偏好](docs/reference/art-preferences.md)、[通用视觉](docs/reference/visual-design.md)及对应游戏规格；设计时按用途、端侧与人数适当参考偏好及细节，派工传入这些入口。偏好依据仅取用户历史请求，不能把 agent 回答、既有实现或实施选择写成用户偏好。
+6. UI、布局、图标、头像、插画、声画与视觉审查先读 [用户美术偏好](docs/reference/art-preferences.md)、[通用视觉](docs/reference/visual-design.md)及对应游戏规格；美术资源检索与处理进入外部 [素材工作区](../TMP/TableMaxMaterial/AGENTS.md)，该目录不创建 Git，正式资源核验后仍导入本项目 `assets/`。设计时按用途、端侧与人数适当参考偏好及细节，派工传入这些入口。偏好依据仅取用户历史请求，不能把 agent 回答、既有实现或实施选择写成用户偏好。
 7. 协作先读 [职责索引](docs/subagent/README.md)及对应角色文档；已授权的位图生成、编辑与核验交给 [imagegen 子 agent](docs/subagent/imagegen.md)。
 
 ## 开发边界

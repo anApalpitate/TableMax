@@ -35,6 +35,8 @@
 
 ## imagegen 派工输入
 
+本机后续美术素材任务使用外部 [TableMaxMaterial 工作入口](../../../TMP/TableMaxMaterial/AGENTS.md)，原图、候选、核验与交付位置按其 [素材流程](../../../TMP/TableMaxMaterial/docs/reference/material-workflow.md)和本次派工确定；该目录不创建 Git。主 agent 应同时给出素材工作区与主项目的具体可写路径，以及正式资源清单和 UI 导入的唯一负责人；既有项目资料不迁移。
+
 任务简要写清以下信息即可，不要求额外元数据格式：
 
 - 目标：素材用途、素材清单或稳定 ID，生成新图还是编辑旧图。
