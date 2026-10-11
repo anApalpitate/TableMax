@@ -2,6 +2,7 @@ import { readFile, readdir, realpath, lstat } from 'node:fs/promises';
 import { resolve, relative, extname, sep } from 'node:path';
 import ts from 'typescript';
 import { createHash } from 'node:crypto';
+import { compatibleModule } from '../../packages/game-sdk/src/compatibility.mjs';
 
 const publicImports = new Set([
   '@tablemax/game-sdk',
@@ -53,12 +54,10 @@ export async function checkAuthorProject(directory) {
     manifest.schemaVersion !== 1 ||
     !/^[a-z][a-z0-9-]{0,63}$/.test(manifest.id) ||
     manifest.catalog?.id !== manifest.id ||
-    manifest.compatibility?.sdk !== 1 ||
-    manifest.compatibility?.protocol !== 7 ||
-    manifest.compatibility?.webHost !== 1
+    !compatibleModule(manifest.compatibility)
   )
     throw new Error(
-      'Incompatible author module contract (SDK 1, module 7, web host 1)',
+      'Incompatible author module contract or required platform capabilities',
     );
   const files = [];
   const visit = async (directory) => {

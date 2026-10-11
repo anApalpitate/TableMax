@@ -13,3 +13,5 @@
 | [release-executable.mjs](release-executable.mjs)                 | `node tools/release/release-executable.mjs`         |
 | [verify-release-executable.mjs](verify-release-executable.mjs)   | `node tools/release/verify-release-executable.mjs`  |
 | [verify-shipping-executable.mjs](verify-shipping-executable.mjs) | `node tools/release/verify-shipping-executable.mjs` |
+
+本地修订采用四位 `1.x.x.y`，GitHub版本及附件继续用三位 `1.x.x`，分配与冻结规则见[版本流程](../../docs/reference/release.md#三位公开版本与四位本地构建2026-10-12)。`catalog-history.mjs` 合并签名历史、生成旧协议兼容目录；`verify-version-adaptability.mjs` 使用当前实际box EXE及保全的上轮程序检查新旧包、固定／稳定目录下载和SQLite精确恢复，只监听127.0.0.1，不发布。

@@ -1,4 +1,12 @@
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { gameReleaseAssets } from './game-release-assets.mjs';
+import { mergeCatalogHistory, legacyCatalog } from './catalog-history.mjs';
+import {
+  readFile,
+  writeFile,
+  mkdir,
+  copyFile,
+  readdir,
+} from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import {
   projectGameDetails,
@@ -33,15 +41,19 @@ import {
 } from './game-package-format.mjs';
 export async function packageGames({
   gameId,
-  out = 'artifacts/game-packages/v1.0.6',
+  out,
   keyPath = process.env.TABLEMAX_GAME_SIGNING_KEY,
-  releaseTag = 'v1.0.6',
+  releaseTag,
+  history = [],
 } = {}) {
   if (!keyPath)
     throw new Error(
       'Signing key path required (--key or TABLEMAX_GAME_SIGNING_KEY)',
     );
-  out = resolve(out);
+  releaseTag ??= 'v' + (await json('package.json')).version;
+  if (!/^v1\.\d+\.\d+$/.test(releaseTag))
+    throw new Error('Invalid public game release tag');
+  out = resolve(out ?? `artifacts/game-packages/${releaseTag}/current`);
   await mkdir(out, { recursive: true });
   const modules = (await discover(gameId)).filter(
     (item) => !item.internal && (!gameId || item.id === gameId),
@@ -157,20 +169,118 @@ export async function packageGames({
       );
     }
   }
-  const payload = {
+  const currentPayload = {
     schemaVersion: 1,
     releases,
     blobs: [...new Map(blobs.map((blob) => [blob.id, blob])).values()],
   };
-  const envelope = createSignedCatalog(payload, await readFile(keyPath));
+  const publicKeySource = await readFile(
+    'apps/server/src/game-packages/project-public-key.ts',
+    'utf8',
+  );
+  const publicKey = publicKeySource
+    .match(/'([^']+)'/)[1]
+    .replaceAll('\\n', '\n');
+  const histories = [];
+  const historicalIds = new Set();
+  const historicalOffline = new Map();
+  const duplicateOfflineEvidence = [];
+  for (const directory of history) {
+    const catalogNames = (await readdir(directory)).filter((name) =>
+      /^TableMax-game-catalog-v1\.\d+\.\d+\.json$/.test(name),
+    );
+    if (catalogNames.length !== 1)
+      throw new Error('History requires one signed catalog');
+    const historyTag = catalogNames[0].slice(
+      'TableMax-game-catalog-'.length,
+      -5,
+    );
+    const assets = await gameReleaseAssets(directory, {
+      publicKey,
+      tag: historyTag,
+    });
+    const old = JSON.parse(
+      await readFile(join(directory, catalogNames[0]), 'utf8'),
+    ).payload;
+    histories.push(old);
+    for (const release of old.releases) historicalIds.add(release.releaseId);
+    for (const asset of assets) {
+      const offlineRelease = old.releases.find(
+        (r) => r.offlineAsset === asset.name,
+      );
+      const prior = historicalOffline.get(asset.name);
+      if (prior) {
+        if (canonical(prior.release) !== canonical(offlineRelease))
+          throw new Error('Historical offline release conflict');
+        if (prior.sha256 !== asset.sha256)
+          duplicateOfflineEvidence.push({
+            name: asset.name,
+            selected: prior.path,
+            selectedSha256: prior.sha256,
+            alternate: asset.path,
+            alternateSha256: asset.sha256,
+            reason:
+              'Existing historical offline ZIPs embed different signed catalogs for the identical immutable release; retain first explicitly ordered history source.',
+          });
+        continue;
+      }
+      if (offlineRelease)
+        historicalOffline.set(asset.name, {
+          release: offlineRelease,
+          path: asset.path,
+          sha256: asset.sha256,
+        });
+      if (asset.name.startsWith('TableMax-game-catalog-')) continue;
+      const target = join(out, asset.name);
+      try {
+        if (sha256(await readFile(target)) !== asset.sha256)
+          throw new Error('Immutable history asset conflict: ' + asset.name);
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+        await copyFile(asset.path, target);
+      }
+    }
+  }
+  const payload = mergeCatalogHistory(currentPayload, histories);
+  const signingKey = await readFile(keyPath);
+  const envelope = createSignedCatalog(payload, signingKey);
+  for (const legacyTag of new Set([
+    releaseTag,
+    ...payload.blobs.map((blob) => blob.releaseTag),
+  ]))
+    await writeFile(
+      join(out, `TableMax-game-catalog-${legacyTag}-legacy.json`),
+      JSON.stringify(
+        createSignedCatalog(legacyCatalog(payload), signingKey),
+        null,
+        2,
+      ) + '\n',
+    );
   await writeFile(
-    join(out, 'TableMax-game-catalog-v1.0.6.json'),
+    join(out, `TableMax-game-catalog-${releaseTag}.json`),
     JSON.stringify(envelope, null, 2) + '\n',
   );
   for (const release of releases) {
+    if (historicalIds.has(release.releaseId)) continue;
     const closure = [release.code, ...release.resources];
     const records = [
-      { path: 'catalog.json', data: Buffer.from(JSON.stringify(envelope)) },
+      {
+        path: 'catalog.json',
+        data: Buffer.from(
+          JSON.stringify(
+            createSignedCatalog(
+              {
+                schemaVersion: 1,
+                releases: [release],
+                blobs: payload.blobs.filter((blob) =>
+                  closure.includes(blob.id),
+                ),
+              },
+              signingKey,
+            ),
+          ),
+        ),
+      },
       {
         path: 'release.json',
         data: Buffer.from(JSON.stringify({ releaseId: release.releaseId })),
@@ -194,6 +304,8 @@ export async function packageGames({
       {
         version: (await json('package.json')).version,
         releaseTag,
+        history,
+        duplicateOfflineEvidence,
         units: results.map(({ id, fingerprint, directory }) => ({
           id,
           fingerprint,
@@ -218,7 +330,8 @@ if (isDirectExecution(import.meta.url)) {
       gameId: value('game'),
       out: value('out'),
       keyPath: value('key'),
-      releaseTag: value('tag') ?? 'v1.0.6',
+      releaseTag: value('tag'),
+      history: value('history')?.split(',') ?? [],
     });
   } catch (error) {
     console.error(error.message);

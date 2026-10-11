@@ -7,6 +7,10 @@ import type {
   ResourceStatus,
 } from './resources';
 import type { RoomSession } from '../../session/useRoomSession';
+import {
+  packageErrorMessage,
+  unknownCompatibilityIssue,
+} from './package-errors';
 // The box and its management panel can request the same trusted refresh.
 // Only explicit administrator operations reach the network catalog endpoint.
 const catalogRefreshes = new Map<string, Promise<PublicPackageSnapshot>>();
@@ -71,7 +75,7 @@ export function useInstalledResources(session: RoomSession) {
           reason?: string;
         };
         if (!response.ok || !result.ok) {
-          const reason = result.reason ?? '游戏包操作失败';
+          const reason = packageErrorMessage(result.reason);
           setError(reason);
           throw new Error(reason);
         }
@@ -115,7 +119,10 @@ export function useInstalledResources(session: RoomSession) {
         !snapshot.unavailableReleaseIds.includes(installedRef),
       );
       const state: ResourceStatus = !compatible
-        ? { state: 'incompatible' }
+        ? {
+            state: 'incompatible',
+            error: release.compatibilityIssue ?? unknownCompatibilityIssue,
+          }
         : task &&
             ['queued', 'downloading', 'verifying', 'installing'].includes(
               task.phase,
@@ -133,7 +140,11 @@ export function useInstalledResources(session: RoomSession) {
               available,
             }
           : task?.phase === 'failed'
-            ? { state: 'failed', available, error: task.error }
+            ? {
+                state: 'failed',
+                available,
+                error: packageErrorMessage(task.error),
+              }
             : available
               ? installedRef === release.releaseId
                 ? { state: 'installed' }
@@ -214,7 +225,8 @@ export function useInstalledResources(session: RoomSession) {
           throw new Error(reason);
         }
         if (!release.compatible) {
-          const reason = '此发行包与当前盒子不兼容，请先更新盒子。';
+          const reason =
+            release.compatibilityIssue ?? unknownCompatibilityIssue;
           setError(reason);
           throw new Error(reason);
         }
@@ -249,7 +261,7 @@ export function useInstalledResources(session: RoomSession) {
         reason?: string;
       };
       if (!response.ok || !result.ok) {
-        setError(result.reason ?? '离线包导入失败');
+        setError(packageErrorMessage(result.reason));
         return;
       }
       await refresh();

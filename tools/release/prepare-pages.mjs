@@ -1,4 +1,5 @@
-import { readFile, mkdir, writeFile, lstat } from 'node:fs/promises';
+import { legacyCatalog } from './catalog-history.mjs';
+import { readFile, mkdir, writeFile, lstat, readdir } from 'node:fs/promises';
 import { join, resolve, relative, isAbsolute } from 'node:path';
 import { gameReleaseAssets } from './game-release-assets.mjs';
 import { sha256 } from './game-package-format.mjs';
@@ -29,7 +30,8 @@ const html = (title, content) =>
   `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(title)}</title><style>body{max-width:900px;margin:40px auto;padding:0 20px;font:18px/1.7 system-ui;background:#fffdf3;color:#173b32}a{color:#206948}li{margin:16px 0;overflow-wrap:anywhere}</style><h1>${escape(title)}</h1>${content}</html>\n`;
 
 /** Prepare a static directory only. Never enables Pages or invokes deployment. */
-export async function preparePages({ directory, out, tag = 'v1.0.6' }) {
+export async function preparePages({ directory, out, tag }) {
+  tag ??= 'v' + JSON.parse(await readFile('package.json', 'utf8')).version;
   if (!/^v[0-9]+\.[0-9]+\.[0-9]+$/.test(tag))
     throw new Error('Invalid Pages release directory');
   directory = resolve(directory);
@@ -42,6 +44,7 @@ export async function preparePages({ directory, out, tag = 'v1.0.6' }) {
     throw new Error('Separate Pages output required');
   const assets = await gameReleaseAssets(directory, {
     publicKey: PROJECT_GAME_PUBLIC_KEY,
+    tag,
   });
   const catalog = JSON.parse(
     await readFile(
@@ -78,9 +81,28 @@ export async function preparePages({ directory, out, tag = 'v1.0.6' }) {
         throw new Error('Offline dependency integrity mismatch');
     }
   }
-  for (const blob of catalog.payload.blobs)
-    if (blob.releaseTag !== tag)
-      throw new Error('Prepare each referenced release directory separately');
+  const legacyFiles = (await readdir(directory)).filter((name) =>
+    /^TableMax-game-catalog-v1\.\d+\.\d+-legacy\.json$/.test(name),
+  );
+  const legacyCatalogs = [];
+  for (const name of legacyFiles) {
+    const bytes = await readFile(join(directory, name));
+    const payload = verifyCatalog(JSON.parse(bytes), PROJECT_GAME_PUBLIC_KEY);
+    if (
+      legacyCatalog(payload).releases.length !== payload.releases.length ||
+      payload.releases.some(
+        (r) =>
+          !catalog.payload.releases.some(
+            (current) => current.releaseId === r.releaseId,
+          ),
+      )
+    )
+      throw new Error('Unsafe legacy catalog');
+    legacyCatalogs.push({
+      tag: name.slice('TableMax-game-catalog-'.length, -'-legacy.json'.length),
+      bytes,
+    });
+  }
   // Fail closed: a fresh output avoids deleting or silently overwriting old refs.
   try {
     await lstat(out);
@@ -110,20 +132,52 @@ export async function preparePages({ directory, out, tag = 'v1.0.6' }) {
     if ((await lstat(asset.path)).isSymbolicLink())
       throw new Error('Pages source links forbidden');
     const isCatalog = asset.name === `TableMax-game-catalog-${tag}.json`;
+    const assetTag =
+      catalog.payload.blobs.find((blob) => blob.assetName === asset.name)
+        ?.releaseTag ??
+      catalog.payload.releases.find(
+        (release) => release.offlineAsset === asset.name,
+      )?.releaseTag ??
+      tag;
     const path = isCatalog
-      ? `games/${tag}/catalog.json`
-      : `games/${tag}/packages/${asset.name}`;
+      ? 'games/catalog.json'
+      : `games/${assetTag}/packages/${asset.name}`;
     await put(
       path,
       await readFile(asset.path),
       isCatalog
-        ? gameCatalogUrl(tag)
-        : gameAssetUrl({ releaseTag: tag, assetName: asset.name }),
+        ? gameCatalogUrl()
+        : gameAssetUrl({ releaseTag: assetTag, assetName: asset.name }),
     );
   }
+  if (!legacyCatalogs.length) {
+    if (
+      catalog.payload.releases.some(
+        (r) =>
+          r.module.compatibility.protocol !== 7 ||
+          r.module.compatibility.requiredCapabilities?.length,
+      )
+    )
+      throw new Error('Signed legacy catalog required');
+    legacyCatalogs.push({ tag, bytes: Buffer.from(JSON.stringify(catalog)) });
+  }
+  for (const legacy of legacyCatalogs)
+    await put(
+      `games/${legacy.tag}/catalog.json`,
+      legacy.bytes,
+      gameCatalogUrl(legacy.tag),
+    );
   const links = [];
   const displayed = new Set();
   for (const release of catalog.payload.releases) {
+    if (
+      catalog.payload.releases.some(
+        (r) =>
+          r.gameId === release.gameId &&
+          r.module.retiredVariantIds?.includes(release.variantId),
+      )
+    )
+      continue;
     const game = release.module.id;
     const variant = release.variantId ?? 'default';
     // Catalog order chooses the current version; historical references remain installable.
@@ -138,7 +192,7 @@ export async function preparePages({ directory, out, tag = 'v1.0.6' }) {
       path,
       html(
         title,
-        `<p>发行引用：<code>${escape(release.releaseId)}</code></p><p><a href="../../packages/${escape(release.offlineAsset)}">下载完整离线玩法包</a></p><p>在电脑管理员的游戏包管理中导入；包内含完整依赖。签名与逐文件哈希由主机再次验证。</p>`,
+        `<p>发行引用：<code>${escape(release.releaseId)}</code></p><p><a href="../../../${escape(release.releaseTag)}/packages/${escape(release.offlineAsset)}">下载完整离线玩法包</a></p><p>在电脑管理员的游戏包管理中导入；包内含完整依赖。签名与逐文件哈希由主机再次验证。</p>`,
       ),
     );
     links.push(`<li><a href="${path}">${escape(title)}</a></li>`);
@@ -147,7 +201,7 @@ export async function preparePages({ directory, out, tag = 'v1.0.6' }) {
     'index.html',
     html(
       'TableMax 游戏包目录',
-      `<p>基础程序在 GitHub Release 下载。游戏安装完成后可离线游玩。</p><ul>${links.join('')}</ul><p><a href="games/${tag}/catalog.json">项目签名目录</a></p>`,
+      `<p>基础程序在 GitHub Release 下载。游戏安装完成后可离线游玩。</p><ul>${links.join('')}</ul><p><a href="games/catalog.json">项目签名目录</a></p>`,
     ),
   );
   const bytes = records.reduce((sum, file) => sum + file.bytes, 0);
@@ -183,10 +237,13 @@ if (isDirectExecution(import.meta.url)) {
     process.argv
       .find((arg) => arg.startsWith(`--${name}=`))
       ?.slice(name.length + 3);
+  const tag =
+    option('tag') ??
+    'v' + JSON.parse(await readFile('package.json', 'utf8')).version;
   const report = await preparePages({
-    directory: option('packages') ?? 'artifacts/game-packages/v1.0.6',
-    out: option('out') ?? `artifacts/pages/v1.0.6/prepared-${Date.now()}/site`,
-    tag: option('tag') ?? 'v1.0.6',
+    directory: option('packages') ?? `artifacts/game-packages/${tag}/current`,
+    out: option('out') ?? `artifacts/pages/${tag}/prepared-${Date.now()}/site`,
+    tag,
   });
   console.log(
     JSON.stringify({

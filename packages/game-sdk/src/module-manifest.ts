@@ -20,6 +20,8 @@ export interface ModuleManifest {
     sdk: number;
     protocol: number;
     webHost: number;
+    /** Required platform behavior; nonempty lists require module protocol 8. */
+    requiredCapabilities?: string[];
     rulesVersion: string;
     stateVersion: number;
     gameVersion: string;

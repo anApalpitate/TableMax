@@ -55,7 +55,7 @@ const evidence = resolve(
 );
 const executable = resolve(
   'artifacts/releases',
-  windowsExecutableName(version, edition),
+  windowsExecutableName(payloadIndex.buildVersion ?? version, edition),
 );
 const manifest = JSON.parse(await readFile(delivery.manifestPath, 'utf8'));
 assert.equal(manifest.edition, edition);
@@ -134,6 +134,7 @@ assert.equal(safety.archiveSha256, manifest.archive.sha256);
 const record = {
   result: 'passed',
   version,
+  buildVersion: payloadIndex.buildVersion ?? version + '.0',
   edition,
   snapshot: payloadIndex.snapshot,
   executableSha256: await hash(executable),

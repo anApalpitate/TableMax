@@ -35,6 +35,11 @@ import {
   validateCatalog,
 } from './verification';
 import type { ModuleManifest } from '../../../../packages/game-sdk/src/module-manifest';
+import { releaseCompatible } from './catalog';
+import {
+  compatibleModule,
+  releaseCompatibilityIssue,
+} from '../../../../packages/game-sdk/src/compatibility.mjs';
 
 export interface PackageStoreOptions {
   root: string;
@@ -354,9 +359,12 @@ export class PackageStore {
       catalog.releases.find((r) => r.releaseId === releaseId) ??
       this.index.releases[releaseId];
     if (!release) return Promise.reject(new Error('unknown-release'));
-    const c = release.module.compatibility;
-    if (c.sdk !== 1 || c.protocol !== 7 || c.webHost !== 1)
-      return Promise.reject(new Error('incompatible-game-module'));
+    if (!releaseCompatible(release))
+      return Promise.reject(
+        new Error(
+          releaseCompatibilityIssue(release) ?? 'incompatible-game-module',
+        ),
+      );
     const blobs = [...new Set([release.code, ...release.resources])].map(
       (id) => catalog.blobs.find((b) => b.id === id) ?? this.index.blobs[id]!,
     );
@@ -525,9 +533,7 @@ export class PackageStore {
     for (const original of modules) {
       if (
         !/^[a-z][a-z0-9-]*$/.test(original.id) ||
-        original.compatibility.sdk !== 1 ||
-        original.compatibility.protocol !== 7 ||
-        original.compatibility.webHost !== 1
+        !compatibleModule(original.compatibility)
       )
         throw new Error('invalid-legacy-module');
       const files: { path: string; data: Buffer }[] = [];

@@ -54,8 +54,24 @@ const evidence = resolve(
 const notes = process.argv.find((arg) => arg.startsWith('--notes='))?.slice(8);
 assert.ok(notes, 'Provide reviewed release notes with --notes=<file>');
 await stat(notes);
+const localExes = ['full', 'box'].map((edition) => {
+  const delivery = payloadIndex.deliveries.find(
+    (item) => item.edition === edition,
+  );
+  assert.equal(
+    basename(delivery.executable.path),
+    windowsExecutableName(payloadIndex.buildVersion ?? version, edition),
+  );
+  return resolve(delivery.executable.path);
+});
+const publicDirectory = resolve(
+  'artifacts/maintenance',
+  tag,
+  'public-assets',
+  payloadIndex.snapshot,
+);
 const exes = ['full', 'box'].map((edition) =>
-  resolve('artifacts/releases', windowsExecutableName(version, edition)),
+  join(publicDirectory, windowsExecutableName(version, edition)),
 );
 const source = resolve(`artifacts/releases/TableMax-${version}-source.zip`);
 for (const edition of ['full', 'box']) {
@@ -82,7 +98,7 @@ for (const edition of ['full', 'box']) {
     (await stat(delivery.executable.path)).size,
   );
   assert.equal(
-    await hash(exes.find((path) => path.endsWith(`-${edition}.exe`))),
+    await hash(localExes[['full', 'box'].indexOf(edition)]),
     proof.executableSha256,
     'Shipping EXE changed after validation',
   );
@@ -242,6 +258,8 @@ for (let offset = 0; offset < verifiedPublicFiles.length; offset += 4) {
   for (const result of results)
     if (result.status === 'rejected') throw result.reason;
 }
+await mkdir(publicDirectory, { recursive: true });
+for (let i = 0; i < exes.length; i++) await copyFile(localExes[i], exes[i]);
 const assets = [...exes, source, resolve(devkit)];
 let backup,
   obsolete = [];
@@ -393,6 +411,8 @@ await run('git', [
 ]);
 const record = {
   version,
+  buildVersion: payloadIndex.buildVersion ?? version + '.0',
+  snapshot: payloadIndex.snapshot,
   commit,
   tag,
   repo,

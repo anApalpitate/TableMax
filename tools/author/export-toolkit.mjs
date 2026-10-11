@@ -64,6 +64,13 @@ export async function exportAuthorToolkit(
     recursive: true,
   });
   await writeFile(
+    resolve(output, 'contract.mjs'),
+    (await readFile(resolve(output, 'contract.mjs'), 'utf8')).replaceAll(
+      '../../packages/game-sdk/src/compatibility.mjs',
+      './public/game-sdk/src/compatibility.mjs',
+    ),
+  );
+  await writeFile(
     resolve(output, 'package.json'),
     JSON.stringify(
       {

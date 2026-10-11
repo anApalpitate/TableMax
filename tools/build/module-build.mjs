@@ -12,6 +12,8 @@ import ts from 'typescript';
 import { mediaFile, gameResourcesPlugin } from './game-resources.mjs';
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
+import { applicationVersion } from '../shared/application-version.mjs';
+import { compatibleModule } from '../../packages/game-sdk/src/compatibility.mjs';
 import {
   readFile,
   writeFile,
@@ -179,9 +181,7 @@ export async function discover(gameId) {
       item.id !== entry.name ||
       !/^[a-z][a-z0-9-]*$/.test(item.id) ||
       item.catalog.id !== item.id ||
-      item.compatibility.sdk !== 1 ||
-      item.compatibility.protocol !== 7 ||
-      item.compatibility.webHost !== 1
+      !compatibleModule(item.compatibility)
     )
       throw new Error('Invalid or incompatible module ' + entry.name);
     for (const [part, input] of Object.entries(item.entries))
@@ -636,6 +636,7 @@ async function compile(unit, out) {
     await lock('desktop-tools', async () => {
       await prepareDesktop();
       const intermediate = join(unit.temp, 'obj') + '/';
+      const application = await applicationVersion();
       await execute(
         'dotnet',
         [
@@ -647,6 +648,9 @@ async function compile(unit, out) {
           resolve('.cache/nuget-downloads'),
           '-p:RestoreLockedMode=true',
           '-p:IncludeSourceRevisionInInformationalVersion=false',
+          `-p:Version=${application.releaseVersion}`,
+          `-p:AssemblyVersion=${application.buildVersion}`,
+          `-p:FileVersion=${application.buildVersion}`,
           `-p:OutputPath=${out}/`,
           `-p:BaseIntermediateOutputPath=${intermediate}`,
         ],
@@ -790,7 +794,11 @@ export async function unitsFor(modules) {
     {
       id: 'platform-native',
       kind: 'native',
-      inputs: ['apps/desktop/native/TableMax.csproj'],
+      inputs: [
+        'apps/desktop/native/TableMax.csproj',
+        'build-version.json',
+        'tools/shared/application-version.mjs',
+      ],
     },
   ];
   for (const item of modules) {

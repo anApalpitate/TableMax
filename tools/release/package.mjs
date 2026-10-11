@@ -10,6 +10,11 @@ import {
 } from './package-limits.mjs';
 import { buildProject } from '../build/build.mjs';
 import { windowsExecutableName } from './windows-executable-name.mjs';
+import {
+  allocateBuildVersion,
+  versionIdentity,
+  applicationVersion,
+} from '../shared/application-version.mjs';
 import { scheduleMaintenance } from '../maintenance/lifecycle.mjs';
 scheduleMaintenance();
 import assert from 'node:assert/strict';
@@ -42,6 +47,7 @@ import {
   createReleaseExecutable,
   assertReleaseIdle,
 } from './release-executable.mjs';
+import { preferredCatalogReleases } from '../../packages/game-sdk/src/compatibility.mjs';
 import { gameReleaseAssets } from './game-release-assets.mjs';
 
 const args = process.argv.slice(2).filter((arg) => arg !== '--');
@@ -74,6 +80,9 @@ async function resumeSnapshot(path) {
     .update(
       JSON.stringify({
         version: snapshot.version,
+        ...(snapshot.buildVersion
+          ? { buildVersion: snapshot.buildVersion }
+          : {}),
         assemblerSha256: snapshot.assemblerSha256,
         units: snapshot.units.map(({ id, fingerprint }) => ({
           id,
@@ -98,6 +107,9 @@ async function refreshPlatformSnapshot(path) {
       .update(
         JSON.stringify({
           version: snapshot.version,
+          ...(snapshot.buildVersion
+            ? { buildVersion: snapshot.buildVersion }
+            : {}),
           assemblerSha256: snapshot.assemblerSha256,
           units: snapshot.units.map(({ id, fingerprint }) => ({
             id,
@@ -132,6 +144,7 @@ async function refreshPlatformSnapshot(path) {
   }
   const snapshot = {
     ...previous,
+    buildVersion: (await applicationVersion()).buildVersion,
     units: [
       ...platform,
       ...previous.units.filter((unit) => unit.id.startsWith('game-')),
@@ -156,6 +169,22 @@ await lock('package-win', async () => {
   const platformArgument = args.find((arg) =>
     arg.startsWith('--platform-from='),
   );
+  const frozen = snapshotArgument
+    ? JSON.parse(
+        await readFile(
+          resolve(snapshotArgument.slice('--snapshot='.length)),
+          'utf8',
+        ),
+      )
+    : undefined;
+  const application = frozen
+    ? versionIdentity(
+        frozen.version,
+        Number(
+          (frozen.buildVersion ?? frozen.version + '.0').split('.').at(-1),
+        ),
+      )
+    : await allocateBuildVersion();
   const buildSnapshot = platformArgument
     ? await refreshPlatformSnapshot(platformArgument.slice(16))
     : snapshotArgument
@@ -185,11 +214,11 @@ await lock('package-win', async () => {
   const deliveries = [];
   const gamesDirectory = resolve(
     args.find((arg) => arg.startsWith('--games='))?.slice(8) ??
-      'artifacts/game-packages/v1.0.6/pages-ready-20261011',
+      `artifacts/game-packages/v${project.version}/current`,
   );
   const catalogSource = join(
     gamesDirectory,
-    'TableMax-game-catalog-v1.0.6.json',
+    `TableMax-game-catalog-v${project.version}.json`,
   );
   await execute(process.execPath, [
     '--import',
@@ -254,7 +283,18 @@ await lock('package-win', async () => {
       const pemLiteral = trustSource.match(/'([^']+)'/)[1];
       const publicKey = pemLiteral.replaceAll('\\n', '\n');
       const verified = await gameReleaseAssets(gamesDirectory, { publicKey });
-      const catalog = envelope.payload;
+      const retired = new Set(
+        envelope.payload.releases.flatMap((r) =>
+          (r.module.retiredVariantIds ?? []).map((id) => `${r.gameId}:${id}`),
+        ),
+      );
+      const catalog = {
+        ...envelope.payload,
+        releases: preferredCatalogReleases(envelope.payload.releases).filter(
+          (release) => !retired.has(`${release.gameId}:${release.variantId}`),
+        ),
+      };
+      const selectedCatalogBytes = catalogBytes;
       const expectedVariants = (await discover())
         .filter((module) => !module.internal)
         .flatMap((module) =>
@@ -280,7 +320,7 @@ await lock('package-win', async () => {
       assert.equal(bundles.length, ids.size);
       const bootstrap = join(unpacked, 'preinstalled-games');
       await mkdir(join(bootstrap, 'blobs'), { recursive: true });
-      await writeFile(join(bootstrap, 'catalog.json'), catalogBytes);
+      await writeFile(join(bootstrap, 'catalog.json'), selectedCatalogBytes);
       await writeFile(
         join(bootstrap, 'bootstrap.json'),
         JSON.stringify(
@@ -423,6 +463,7 @@ await lock('package-win', async () => {
         }),
       ),
       version: project.version,
+      buildVersion: application.buildVersion,
       edition: currentEdition,
       ...(preinstalled ? { preinstalled } : {}),
       generatedAt: new Date().toISOString(),
@@ -457,7 +498,7 @@ await lock('package-win', async () => {
     );
     const outputPath = join(
       releases,
-      windowsExecutableName(project.version, currentEdition),
+      windowsExecutableName(application.buildVersion, currentEdition),
     );
     await assertReleaseIdle(outputPath);
     const executable = await createReleaseExecutable({
@@ -499,7 +540,12 @@ await lock('package-win', async () => {
   await writeFile(
     pointer + '.next',
     JSON.stringify(
-      { version: project.version, snapshot: buildSnapshot.id, deliveries },
+      {
+        version: project.version,
+        buildVersion: application.buildVersion,
+        snapshot: buildSnapshot.id,
+        deliveries,
+      },
       null,
       2,
     ) + '\n',

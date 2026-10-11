@@ -3,6 +3,7 @@ import type {} from '../../../../desktop/src/package-types';
 import type { RoomSession } from '../../session/useRoomSession';
 import { useInstalledResources } from './server-resources';
 import './packages.css';
+import { packageErrorMessage } from './package-errors';
 
 export function PackageManagement({ session }: { session: RoomSession }) {
   const library = useInstalledResources(session);
@@ -17,7 +18,7 @@ export function PackageManagement({ session }: { session: RoomSession }) {
     try {
       await work();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : '游戏包操作失败');
+      setError(packageErrorMessage(cause));
     } finally {
       setBusy(false);
     }
@@ -81,7 +82,7 @@ export function PackageManagement({ session }: { session: RoomSession }) {
                 '游戏包'}{' '}
               ·{' '}
               {task.phase === 'failed'
-                ? '失败，可重试'
+                ? `失败：${packageErrorMessage(task.error)}`
                 : task.phase === 'verifying'
                   ? '校验中'
                   : task.phase === 'installing'

@@ -8,6 +8,8 @@ export interface GameReleaseSummary {
   defaultVariantId?: string;
   releaseTag: string;
   compatible: boolean;
+  /** Safe diagnostic from the running box's compatibility policy. */
+  compatibilityIssue?: string;
 }
 
 export type PublicPackageTaskPhase =

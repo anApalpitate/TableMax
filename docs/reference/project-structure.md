@@ -12,6 +12,8 @@
 
 ## 已创建结构
 
+根目录 `build-version.json` 维护所属三位公开版本与本地修订y；分配逻辑和回归在 `tools/shared/application-version.*`。`packages/game-sdk/src/compatibility.*` 维护平台真实能力及兼容选择，历史目录合并与协议7目录生成在 `tools/release/catalog-history.*`；操作和版本规则见[Release流程](release.md#三位公开版本与四位本地构建2026-10-12)。
+
 用户手写待办保存在 `docs/tasks/手写改动单.md`，只保留未完成原文与任务量标记；完成行为与证据分别进入对应规格和验收页。
 
 `tools/build/`维护专属 Node 运行时指纹；`tools/maintenance/`维护构建／验证退出后的单次维护、截图策略与产物登记，安全删除复用同目录清理实现，见[自动维护](../../tools/maintenance/README.md)。其余工具已按用途归入 `tools/`，完整入口见[工具索引](../../tools/README.md)。

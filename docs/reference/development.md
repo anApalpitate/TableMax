@@ -1,5 +1,7 @@
 # 开发环境
 
+2026-10-12本地版本维护：`package:win`原子分配四位 `1.x.x.y`，两种EXE共用y；公开版本及payload目录仍为三位 `1.x.x`。冻结快照／载荷重封复用原y。版本文件、稳定签名目录、历史兼容选择和发布映射见[Release流程](release.md#三位公开版本与四位本地构建2026-10-12)。本地游戏包默认在 `artifacts/game-packages/v<公开版本>/current/`，合并历史包时按该页说明传 `--history=`；只准备和验证，不自动上线。
+
 ## 两种EXE与内部载荷（2026-10-11）
 
 最新导出命名：full完整游戏版为 `TableMax-<版本>-win-x64.exe`，不加类型后缀；box仅盒子版为 `TableMax-<版本>-win-x64-box.exe`。内部edition、载荷目录和CLI选项仍用full／box。生成新本地同名文件前保全被替换包及SHA，线上旧程序按原发布边界理解，最新用户下载说明见[README](../../README.md#下载)。

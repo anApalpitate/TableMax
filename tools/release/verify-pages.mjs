@@ -13,13 +13,20 @@ import { assertWorkspaceRoot } from '../shared/workspace-root.mjs';
 assertWorkspaceRoot();
 await mkdir('artifacts/pages', { recursive: true });
 const evidence = await mkdtemp(resolve('artifacts/pages/verification-'));
+const tag =
+  process.argv.find((arg) => arg.startsWith('--tag='))?.slice(6) ??
+  'v' + JSON.parse(await readFile('package.json', 'utf8')).version;
 const directory = resolve(
   process.argv.find((arg) => arg.startsWith('--packages='))?.slice(11) ??
-    'artifacts/game-packages/v1.0.6',
+    `artifacts/game-packages/${tag}/current`,
 );
-const prepared = await preparePages({ directory, out: join(evidence, 'site') });
+const prepared = await preparePages({
+  directory,
+  out: join(evidence, 'site'),
+  tag,
+});
 await assert.rejects(
-  preparePages({ directory, out: prepared.directory }),
+  preparePages({ directory, out: prepared.directory, tag }),
   /already exists/,
 );
 for (const value of [
@@ -35,17 +42,17 @@ for (const value of [
   assert.throws(() => gameAssetUrl({ releaseTag: 'v1.0.6', assetName: value }));
 }
 const original = JSON.parse(
-  await readFile(join(directory, 'TableMax-game-catalog-v1.0.6.json'), 'utf8'),
+  await readFile(join(directory, `TableMax-game-catalog-${tag}.json`), 'utf8'),
 );
 const bad = join(evidence, 'tampered');
 await mkdir(bad);
 original.payload.releases[0].gameId = 'forged';
 await writeFile(
-  join(bad, 'TableMax-game-catalog-v1.0.6.json'),
+  join(bad, `TableMax-game-catalog-${tag}.json`),
   JSON.stringify(original),
 );
 await assert.rejects(
-  preparePages({ directory: bad, out: join(evidence, 'rejected') }),
+  preparePages({ directory: bad, out: join(evidence, 'rejected'), tag }),
   /signature/,
 );
 const server = createServer(async (request, response) => {

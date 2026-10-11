@@ -1,3 +1,4 @@
+import { versionIdentity } from '../shared/application-version.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -45,8 +46,15 @@ export async function createReleaseExecutable({
   outputPath,
 }) {
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
-  if (!/^\d+\.\d+\.\d+$/.test(manifest.version))
+  if (
+    manifest.buildVersion &&
+    versionIdentity(
+      manifest.version,
+      Number(manifest.buildVersion.split('.').at(-1)),
+    ).buildVersion !== manifest.buildVersion
+  )
     throw new Error('Invalid release version');
+  versionIdentity(manifest.version);
   const payload = await readFile(archivePath);
   if (
     payload.length >= MAXIMUM_PACKAGE_BYTES ||
@@ -60,7 +68,7 @@ export async function createReleaseExecutable({
   const metadata = join(work, 'AssemblyInfo.cs');
   await writeFile(
     metadata,
-    `using System.Reflection;\n[assembly: AssemblyTitle("TableMax")]\n[assembly: AssemblyProduct("TableMax")]\n[assembly: AssemblyVersion("${manifest.version}.0")]\n[assembly: AssemblyFileVersion("${manifest.version}.0")]\n`,
+    `using System.Reflection;\n[assembly: AssemblyTitle("TableMax")]\n[assembly: AssemblyProduct("TableMax")]\n[assembly: AssemblyVersion("${manifest.buildVersion ?? manifest.version + '.0'}")]\n[assembly: AssemblyFileVersion("${manifest.buildVersion ?? manifest.version + '.0'}")]\n`,
   );
   const framework = join(
     process.env.WINDIR,

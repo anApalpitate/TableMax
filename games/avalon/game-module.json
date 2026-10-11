@@ -24,7 +24,12 @@
   },
   "compatibility": {
     "sdk": 1,
-    "protocol": 7,
+    "protocol": 8,
+    "requiredCapabilities": [
+      "concurrent-secret-actions",
+      "saved-release-restore",
+      "retired-variants"
+    ],
     "webHost": 1,
     "rulesVersion": "classic-2012-configured-1",
     "stateVersion": 1,
@@ -85,7 +90,12 @@
       "description": "按人数配置派西维尔、莫甘娜、奥伯伦与莫德雷德。",
       "compatibility": {
         "sdk": 1,
-        "protocol": 7,
+        "protocol": 8,
+        "requiredCapabilities": [
+          "concurrent-secret-actions",
+          "saved-release-restore",
+          "retired-variants"
+        ],
         "webHost": 1,
         "rulesVersion": "classic-2012-configured-1",
         "stateVersion": 1,

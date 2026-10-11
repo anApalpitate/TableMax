@@ -13,10 +13,22 @@ import { PROJECT_GAME_PUBLIC_KEY } from './project-public-key';
 import type { SignedCatalog } from './types';
 import { createService } from '../service';
 
-const assets = resolve('artifacts/game-packages/v1.0.6/pages-ready-20261011');
+import { preferredCatalogReleases, releaseCompatible } from './catalog';
+import { retiredVariant, retiredVariantPolicies } from '../game-variant-policy';
+const assets = resolve(
+  process.env.TABLEMAX_TEST_GAME_PACKAGES ??
+    'artifacts/game-packages/v1.0.6/current',
+);
 const envelope = JSON.parse(
   readFileSync(join(assets, 'TableMax-game-catalog-v1.0.6.json'), 'utf8'),
 ) as SignedCatalog;
+const currentReleases = preferredCatalogReleases(
+  envelope.payload.releases,
+).filter(
+  (r) =>
+    releaseCompatible(r) &&
+    !retiredVariant(r.gameId, r.variantId, retiredVariantPolicies()),
+);
 const roots: string[] = [];
 afterEach(() => {
   for (const root of roots.splice(0))
@@ -37,10 +49,13 @@ function fixture(payload = true) {
       join(source, 'bootstrap.json'),
       JSON.stringify({
         schemaVersion: 1,
-        releaseIds: envelope.payload.releases.map((r) => r.releaseId),
+        releaseIds: currentReleases.map((r) => r.releaseId),
       }),
     );
-    for (const blob of envelope.payload.blobs)
+    const ids = new Set(
+      currentReleases.flatMap((r) => [r.code, ...r.resources]),
+    );
+    for (const blob of envelope.payload.blobs.filter((b) => ids.has(b.id)))
       copyFileSync(
         join(assets, blob.assetName),
         join(source, 'blobs', blob.id + '.zip'),
@@ -69,14 +84,16 @@ function fixture(payload = true) {
   };
 }
 
-it('bootstraps all eight signed gameplays before the full service opens, with no network or restart required', async () => {
+it('bootstraps all current compatible signed gameplays before the full service opens, with no network or restart required', async () => {
   const f = fixture();
   const service = await createService(f.config);
   try {
     const snapshot = (
       await service.app.inject('/api/game-packages')
     ).json() as ReturnType<PackageStore['snapshot']>;
-    expect(Object.keys(snapshot.index.releases)).toHaveLength(8);
+    expect(Object.keys(snapshot.index.releases)).toHaveLength(
+      currentReleases.length,
+    );
     expect(snapshot.unavailableReleaseIds).toEqual([]);
     expect(service.room.view().game?.id).toBe('pokemon-encounters');
     expect(service.room.view().game?.variantId).toBe('original');
@@ -84,7 +101,7 @@ it('bootstraps all eight signed gameplays before the full service opens, with no
     const before = readFileSync(join(f.options.root, 'index.json'));
     await store.importPreinstalled(f.source);
     expect(readFileSync(join(f.options.root, 'index.json'))).toEqual(before);
-    for (const release of envelope.payload.releases)
+    for (const release of currentReleases)
       expect(store.resolveModule(release.releaseId)).toBeDefined();
   } finally {
     await service.close();
@@ -179,10 +196,15 @@ it('rejects a corrupt signed payload before changing an existing index and leave
     join(box.source, 'bootstrap.json'),
     JSON.stringify({
       schemaVersion: 1,
-      releaseIds: envelope.payload.releases.map((r) => r.releaseId),
+      releaseIds: currentReleases.map((r) => r.releaseId),
     }),
   );
-  for (const blob of envelope.payload.blobs)
+  const restoredIds = new Set(
+    currentReleases.flatMap((r) => [r.code, ...r.resources]),
+  );
+  for (const blob of envelope.payload.blobs.filter((b) =>
+    restoredIds.has(b.id),
+  ))
     copyFileSync(
       join(assets, blob.assetName),
       join(box.source, 'blobs', blob.id + '.zip'),
@@ -193,7 +215,9 @@ it('rejects a corrupt signed payload before changing an existing index and leave
     const snapshot = (
       await restored.app.inject('/api/game-packages')
     ).json() as ReturnType<PackageStore['snapshot']>;
-    expect(Object.keys(snapshot.index.releases)).toHaveLength(8);
+    expect(Object.keys(snapshot.index.releases)).toHaveLength(
+      currentReleases.length,
+    );
   } finally {
     await restored.close();
   }

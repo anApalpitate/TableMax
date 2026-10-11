@@ -29,3 +29,7 @@ Thumbs.db
 !.env.example
 !.env.*.example
 /secrets/
+
+# Atomic local build revision allocation
+build-version.lock
+build-version.json.next

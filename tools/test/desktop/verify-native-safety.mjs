@@ -10,7 +10,7 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { createHash } from 'node:crypto';
 import { access, mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { join, resolve, dirname } from 'node:path';
 import { launchDesktop, desktopExecutable } from '../support/desktop-test.mjs';
 import { verificationOutput } from '../support/verification-output.mjs';
 
@@ -166,9 +166,11 @@ try {
   const origin = new URL(host.url()).origin;
   const nativeRuntime = await desktop.request('runtime');
   assert.equal(nativeRuntime.packaged, portable);
-  const expectedVersion = JSON.parse(
-    await readFile('package.json', 'utf8'),
-  ).version;
+  const packagedIdentity = JSON.parse(
+    await readFile(join(dirname(executablePath), 'package.json'), 'utf8'),
+  );
+  const expectedVersion =
+    packagedIdentity.buildVersion ?? packagedIdentity.version + '.0';
   assert.equal(nativeRuntime.appVersion, expectedVersion);
   evidence.appVersion = nativeRuntime.appVersion;
   evidence.webview2Version = nativeRuntime.versions.webview2;

@@ -43,7 +43,7 @@ await lock('package-release', async () => {
   for (const item of selected) {
     const base = resolve(
       'artifacts/releases',
-      windowsExecutableName(version, item.edition),
+      windowsExecutableName(pointer.buildVersion ?? version, item.edition),
     ).replace(/\.exe$/, '');
     await assertReleaseIdle(base + '.exe');
     const manifest = JSON.parse(await readFile(item.manifestPath, 'utf8'));

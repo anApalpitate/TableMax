@@ -40,7 +40,7 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
         join(
           root,
           'artifacts/releases',
-          windowsExecutableName('1.0.6', edition),
+          windowsExecutableName('1.0.6.4', edition),
         ),
         'exe-' + edition,
       );
@@ -57,6 +57,7 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
         ),
         {
           version: '1.0.6',
+          buildVersion: '1.0.6.4',
           edition,
           archive: {
             bytes: Buffer.byteLength('payload-' + edition),
@@ -79,7 +80,12 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
     });
     const pointer = json(
       join(root, 'artifacts/package-payloads/v1.0.6/current.json'),
-      { version: '1.0.6', snapshot: 'run', deliveries },
+      {
+        version: '1.0.6',
+        buildVersion: '1.0.6.4',
+        snapshot: 'run',
+        deliveries,
+      },
     );
     assert.equal(currentDeliveries(root, '1.0.6').length, 2);
     if (process.platform === 'win32') {
@@ -119,6 +125,7 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
       try {
         json(pointer, {
           version: '1.0.6',
+          buildVersion: '1.0.6.4',
           snapshot: 'run',
           deliveries: [
             { ...deliveries[0], archivePath: join(link, 'payload.zip') },
@@ -130,13 +137,19 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
         );
       } finally {
         unlinkSync(link);
-        json(pointer, { version: '1.0.6', snapshot: 'run', deliveries });
+        json(pointer, {
+          version: '1.0.6',
+          buildVersion: '1.0.6.4',
+          snapshot: 'run',
+          deliveries,
+        });
       }
     }
     file(deliveries[1].archivePath, 'tampered');
     assert.throws(() => currentDeliveries(root, '1.0.6'), /hash mismatch/);
     json(pointer, {
       version: '1.0.6',
+      buildVersion: '1.0.6.4',
       deliveries: [
         { ...deliveries[0], archivePath: resolve(root, '../outside.zip') },
       ],

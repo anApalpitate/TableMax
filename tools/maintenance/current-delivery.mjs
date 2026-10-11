@@ -57,13 +57,14 @@ export function currentDeliveries(root, version) {
       resolve(
         root,
         'artifacts/releases',
-        windowsExecutableName(version, delivery.edition),
+        windowsExecutableName(index.buildVersion ?? version, delivery.edition),
       )
     )
       throw new Error('Unexpected EXE path');
     const manifest = JSON.parse(readFileSync(delivery.manifestPath, 'utf8'));
     if (
       manifest.version !== version ||
+      manifest.buildVersion !== index.buildVersion ||
       manifest.edition !== delivery.edition ||
       manifest.archive.sha256 !== hash(delivery.archivePath) ||
       manifest.archive.bytes !== statSync(delivery.archivePath).size ||

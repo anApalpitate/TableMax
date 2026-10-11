@@ -16,11 +16,14 @@ import { gameReleaseAssets } from './game-release-assets.mjs';
 import { PROJECT_GAME_PUBLIC_KEY } from '../../apps/server/src/game-packages/project-public-key.ts';
 import { isDirectExecution } from '../shared/workspace-root.mjs';
 export async function verifyGamePackages({
-  out = 'artifacts/game-packages/v1.0.6',
+  out,
+  tag,
   publicKey = PROJECT_GAME_PUBLIC_KEY,
 } = {}) {
+  tag ??= 'v' + JSON.parse(await readFile('package.json', 'utf8')).version;
+  out ??= `artifacts/game-packages/${tag}/current`;
   const envelope = JSON.parse(
-    await readFile(join(out, 'TableMax-game-catalog-v1.0.6.json'), 'utf8'),
+    await readFile(join(out, `TableMax-game-catalog-${tag}.json`), 'utf8'),
   );
   const catalog = verifyCatalog(envelope, createPublicKey(publicKey));
   const ownSource = resolve('games/uno/ui/probe.ts');
@@ -35,7 +38,7 @@ export async function verifyGamePackages({
     '@tablemax/web-host/platform',
   ])
     assert.throws(() => assertGameImport('uno', ownSource, request));
-  const whitelist = await gameReleaseAssets(out, { publicKey });
+  const whitelist = await gameReleaseAssets(out, { publicKey, tag });
   assert.equal(
     whitelist.length,
     1 + catalog.blobs.length + catalog.releases.length,

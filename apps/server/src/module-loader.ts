@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
+import { compatibleModule } from '../../../packages/game-sdk/src/compatibility.mjs';
 import type {
   GameCatalogEntry,
   ModuleManifest,
@@ -54,9 +55,7 @@ export function installedModules(): ModuleManifest[] {
     if (
       item.schemaVersion !== 1 ||
       !/^[a-z][a-z0-9-]*$/.test(item.id) ||
-      item.compatibility.sdk !== 1 ||
-      item.compatibility.protocol !== 7 ||
-      item.compatibility.webHost !== 1
+      !compatibleModule(item.compatibility)
     )
       throw new Error('incompatible-game-module');
   }

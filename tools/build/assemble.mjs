@@ -19,6 +19,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createRequire } from 'node:module';
 import { json, inventory, lock, validateCached } from './module-build.mjs';
+import { compatibleModule } from '../../packages/game-sdk/src/compatibility.mjs';
 import {
   projectGameCatalog,
   projectGameDetails,
@@ -200,11 +201,7 @@ export async function assemble(
         }
       }
       const modules = snapshot.modules.map((item) => {
-        if (
-          item.compatibility.sdk !== 1 ||
-          item.compatibility.protocol !== 7 ||
-          item.compatibility.webHost !== 1
-        )
+        if (!compatibleModule(item.compatibility))
           throw new Error('Incompatible module ' + item.id);
         const web = snapshot.units.find(
           (unit) => unit.id === `game-${item.id}-web`,
@@ -286,6 +283,7 @@ export async function assemble(
           {
             name: 'tablemax-desktop',
             version: snapshot.version,
+            buildVersion: snapshot.buildVersion ?? snapshot.version + '.0',
             private: true,
             desktopRuntime: 'net48-webview2',
             nodeVersion: '22.14.0',

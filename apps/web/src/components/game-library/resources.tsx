@@ -10,12 +10,13 @@ import {
   type CSSProperties,
 } from 'react';
 import { useNotifications } from '../notifications/context';
+import { packageErrorMessage } from './package-errors';
 
 export type ResourceKey = { gameId: string; variantId?: string };
 export type ResourceStatus =
   | { state: 'installed' }
   | { state: 'update'; available: true }
-  | { state: 'incompatible' }
+  | { state: 'incompatible'; error?: string }
   | {
       state: 'verifying' | 'installing';
       progress?: number;
@@ -152,45 +153,61 @@ export function ResourceButton({
   const progress = 'progress' in status ? status.progress : undefined;
   const pending = useRef(false);
   return (
-    <button
-      type="button"
-      data-resource-state={status.state}
-      style={
-        progress === undefined
-          ? undefined
-          : ({
-              '--download-progress': `${Math.max(0, Math.min(1, progress)) * 100}%`,
-              backgroundImage:
-                'linear-gradient(to right, #8abb6c var(--download-progress), #edf2df var(--download-progress))',
-            } as CSSProperties)
-      }
-      aria-busy={busy}
-      aria-current={sameCurrent ? 'true' : undefined}
-      disabled={
-        available
-          ? disabled || sameCurrent
-          : !canDownload || !download || busy || status.state === 'incompatible'
-      }
-      onClick={() => {
-        if (available) {
-          select();
-          return;
+    <>
+      <button
+        type="button"
+        data-resource-state={status.state}
+        style={
+          progress === undefined
+            ? undefined
+            : ({
+                '--download-progress': `${Math.max(0, Math.min(1, progress)) * 100}%`,
+                backgroundImage:
+                  'linear-gradient(to right, #8abb6c var(--download-progress), #edf2df var(--download-progress))',
+              } as CSSProperties)
         }
-        if (!canDownload || !download || pending.current) return;
-        pending.current = true;
-        void download()
-          .catch(() => notifications?.show('资源下载失败，请重试。', 'error'))
-          .finally(() => {
-            pending.current = false;
-          });
-      }}
-    >
-      {available
-        ? installedLabel +
-          (sameCurrent ? ' · 已选中' : '') +
-          (busy ? ` · ${label}` : '')
-        : (label ?? installedLabel)}
-    </button>
+        aria-busy={busy}
+        aria-current={sameCurrent ? 'true' : undefined}
+        disabled={
+          available
+            ? disabled || sameCurrent
+            : !canDownload ||
+              !download ||
+              busy ||
+              status.state === 'incompatible'
+        }
+        onClick={() => {
+          if (available) {
+            select();
+            return;
+          }
+          if (!canDownload || !download || pending.current) return;
+          pending.current = true;
+          void download()
+            .catch((cause) =>
+              notifications?.show(
+                `资源下载失败：${packageErrorMessage(cause)}`,
+                'error',
+              ),
+            )
+            .finally(() => {
+              pending.current = false;
+            });
+        }}
+      >
+        {available
+          ? installedLabel +
+            (sameCurrent ? ' · 已选中' : '') +
+            (busy ? ` · ${label}` : '')
+          : (label ?? installedLabel)}
+      </button>
+      {(status.state === 'incompatible' || status.state === 'failed') &&
+        status.error && (
+          <p className="game-resource-error" role="status">
+            {packageErrorMessage(status.error)}
+          </p>
+        )}
+    </>
   );
 }
 
@@ -208,6 +225,10 @@ export function ResourceStatusLabel({ resource }: { resource: ResourceKey }) {
     <span role="status" data-resource-state={status.state}>
       {available && status.state !== 'installed' ? '可用 · ' : ''}
       {label}
+      {(status.state === 'incompatible' || status.state === 'failed') &&
+      status.error
+        ? `：${packageErrorMessage(status.error)}`
+        : ''}
     </span>
   );
 }

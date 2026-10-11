@@ -12,6 +12,7 @@ import {
   lock,
   validateInputs,
 } from './module-build.mjs';
+import { applicationVersion } from '../shared/application-version.mjs';
 import { assemble } from './assemble.mjs';
 import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
@@ -74,7 +75,8 @@ export async function buildProject(args = process.argv.slice(2)) {
       ) !== JSON.stringify(modules)
     )
       throw new Error('Module list changed before snapshot');
-    const version = (await json('package.json')).version;
+    const { releaseVersion: version, buildVersion } =
+      await applicationVersion();
     const assemblerSha256 = createHash('sha256')
       .update(await readFile('tools/build/assemble.mjs'))
       .digest('hex');
@@ -82,6 +84,7 @@ export async function buildProject(args = process.argv.slice(2)) {
       .update(
         JSON.stringify({
           version,
+          buildVersion,
           assemblerSha256,
           units: results.map(({ id, fingerprint }) => ({ id, fingerprint })),
         }),
@@ -91,6 +94,7 @@ export async function buildProject(args = process.argv.slice(2)) {
       schemaVersion: 1,
       id,
       version,
+      buildVersion,
       assemblerSha256,
       modules,
       units: results,
@@ -111,7 +115,7 @@ export async function buildProject(args = process.argv.slice(2)) {
         total: results.length,
       }),
     );
-    return { snapshotPath, id, units: results };
+    return { ...snapshot, snapshotPath };
   }).catch(async (error) => {
     const version = (await json('package.json')).version;
     const directory = resolve(

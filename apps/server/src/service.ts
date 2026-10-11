@@ -48,7 +48,12 @@ import { RoomProjectionState } from './room-projections';
 import { SyncDiagnostics } from './sync-diagnostics';
 import { PackageStore } from './game-packages/store';
 import { PROJECT_GAME_PUBLIC_KEY } from './game-packages/project-public-key';
-import { gameAssetUrl, gameCatalogUrl } from './game-packages/distribution';
+import { releaseCompatibilityIssue } from '../../../packages/game-sdk/src/compatibility.mjs';
+import {
+  gameAssetUrl,
+  gameCatalogUrl,
+  GAME_CATALOG_TAG,
+} from './game-packages/distribution';
 import {
   projectPackageSnapshot,
   publicReleaseClient,
@@ -288,9 +293,13 @@ export async function createService(
         const { operation, releaseId } = request.body ?? {};
         try {
           if (operation === 'refresh') {
-            const response = await fetch(gameCatalogUrl(), {
+            let response = await fetch(gameCatalogUrl(), {
               signal: AbortSignal.timeout(30000),
             });
+            if (response.status === 404 || response.status === 410)
+              response = await fetch(gameCatalogUrl(GAME_CATALOG_TAG), {
+                signal: AbortSignal.timeout(30000),
+              });
             if (
               !response.ok ||
               Number(response.headers.get('content-length')) > 2_000_000
@@ -303,9 +312,17 @@ export async function createService(
           } else {
             if (!releaseId || !/^[a-f0-9]{64}$/.test(releaseId))
               return reply.code(400).send({ reason: 'invalid-message' });
-            if (operation === 'install')
+            if (operation === 'install') {
+              const snapshot = packages.snapshot();
+              const release =
+                snapshot.catalog.releases.find(
+                  (r) => r.releaseId === releaseId,
+                ) ?? snapshot.index.releases[releaseId];
+              if (!release) throw new Error('unknown-release');
+              const issue = releaseCompatibilityIssue(release);
+              if (issue) throw new Error(issue);
               void packages.install(releaseId).catch(() => {});
-            else if (operation === 'cancel') packages.cancel(releaseId);
+            } else if (operation === 'cancel') packages.cancel(releaseId);
             else if (operation === 'uninstall') packages.uninstall(releaseId);
             else if (operation === 'rollback') packages.rollback(releaseId);
             else return reply.code(400).send({ reason: 'invalid-message' });

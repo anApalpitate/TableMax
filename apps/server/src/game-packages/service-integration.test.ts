@@ -16,10 +16,23 @@ import { WorkerBotExecutor } from '../bot-executor';
 import type { Command } from '@tablemax/protocol';
 import type { SignedCatalog } from './types';
 
-const artifacts = resolve('artifacts/game-packages/v1.0.6');
+import { preferredCatalogReleases, releaseCompatible } from './catalog';
+import { retiredVariant, retiredVariantPolicies } from '../game-variant-policy';
+import { gameCatalogUrl, GAME_CATALOG_TAG } from './distribution';
+const artifacts = resolve(
+  process.env.TABLEMAX_TEST_GAME_PACKAGES ??
+    'artifacts/game-packages/v1.0.6/current',
+);
 const signedCatalog = JSON.parse(
   readFileSync(join(artifacts, 'TableMax-game-catalog-v1.0.6.json'), 'utf8'),
 ) as SignedCatalog;
+const currentReleases = preferredCatalogReleases(
+  signedCatalog.payload.releases,
+).filter(
+  (r) =>
+    releaseCompatible(r) &&
+    !retiredVariant(r.gameId, r.variantId, retiredVariantPolicies()),
+);
 const unoPack = signedCatalog.payload.releases.find(
   (release) => release.gameId === 'uno',
 )!.offlineAsset!;
@@ -45,6 +58,54 @@ function fixture() {
     port: 0,
   };
 }
+
+it('refreshes the stable catalog, tolerates release lag and preserves verified cache on network or signature failure', async () => {
+  const config = fixture();
+  const service = await createService(config);
+  const originalFetch = globalThis.fetch;
+  const urls: string[] = [];
+  const refresh = () =>
+    service.app.inject({
+      method: 'POST',
+      url: '/api/game-packages/manage',
+      headers: { authorization: `Bearer ${service.hostToken}` },
+      payload: { operation: 'refresh' },
+    });
+  try {
+    globalThis.fetch = (async (url) => {
+      urls.push(String(url));
+      return String(url) === gameCatalogUrl()
+        ? new Response('', { status: 404 })
+        : new Response(JSON.stringify(signedCatalog));
+    }) as typeof fetch;
+    expect((await refresh()).statusCode).toBe(200);
+    expect(urls).toEqual([gameCatalogUrl(), gameCatalogUrl(GAME_CATALOG_TAG)]);
+    const before = (await service.app.inject('/api/game-packages')).json();
+    urls.length = 0;
+    globalThis.fetch = (async (url) => {
+      urls.push(String(url));
+      return new Response(JSON.stringify(signedCatalog));
+    }) as typeof fetch;
+    expect((await refresh()).statusCode).toBe(200);
+    expect(urls).toEqual([gameCatalogUrl()]);
+    const forged = structuredClone(signedCatalog);
+    forged.signature = 'invalid';
+    globalThis.fetch = (async () =>
+      new Response(JSON.stringify(forged))) as typeof fetch;
+    expect((await refresh()).statusCode).toBe(400);
+    globalThis.fetch = (async () => {
+      throw new Error('offline');
+    }) as typeof fetch;
+    expect((await refresh()).statusCode).toBe(400);
+    expect((await service.app.inject('/api/game-packages')).json()).toEqual(
+      before,
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    await service.close();
+    rmSync(config.root, { recursive: true, force: true });
+  }
+}, 30000);
 async function command(
   service: Awaited<ReturnType<typeof createService>>,
   value: Command['command'],
@@ -73,10 +134,10 @@ async function importPack(
   });
 }
 
-it('selects a separately installed nondefault gameplay without installing its default sibling', async () => {
+it('selects separately installed current gameplays without installing sibling variants', async () => {
   for (const [gameId, variantId] of [
     ['pokemon-encounters', 'expansion'],
-    ['avalon', 'court'],
+    ['avalon', 'configured'],
   ]) {
     const config = fixture();
     const service = await createService(config);
@@ -114,9 +175,7 @@ it('starts an empty portable base, imports every signed gameplay pack immediatel
     >;
     expect(Object.keys(initial.index.releases)).toHaveLength(0);
     expect(service.room.view().game).toBeNull();
-    const packs = signedCatalog.payload.releases.map(
-      (release) => release.offlineAsset!,
-    );
+    const packs = currentReleases.map((release) => release.offlineAsset!);
     for (const pack of packs) {
       const response = await importPack(service, pack);
       expect(response.statusCode, response.body).toBe(200);
@@ -131,10 +190,10 @@ it('starts an empty portable base, imports every signed gameplay pack immediatel
       await service.app.inject('/api/game-packages')
     ).json() as ReturnType<PackageStore['snapshot']>;
     expect(Object.keys(snapshot.index.releases).length).toBe(
-      catalog.payload.releases.length,
+      currentReleases.length,
     );
     expect(snapshot.unavailableReleaseIds).toEqual([]);
-    for (const release of catalog.payload.releases) {
+    for (const release of currentReleases) {
       const web = await service.app.inject(
         `/game-packages/${release.releaseId}/${release.module.entries.web}`,
       );

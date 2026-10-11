@@ -26,12 +26,14 @@ function Get-VerifiedCurrentDeliveries([string]$Root, [string]$Version) {
     $payloadPrefix = [IO.Path]::GetFullPath((Join-Path $Root ('artifacts/package-payloads/v' + $Version))).TrimEnd('\') + '\'
     if (-not $delivery.archivePath.StartsWith($payloadPrefix, [StringComparison]::OrdinalIgnoreCase) -or -not $delivery.manifestPath.StartsWith($payloadPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Internal payload outside version directory.' }
     $editionSuffix = if ($delivery.edition -eq 'box') { '-box' } else { '' }
-    $expectedExe = Join-Path $Root ('artifacts/releases/TableMax-' + $Version + '-win-x64' + $editionSuffix + '.exe')
+    $localVersion = if ($index.buildVersion) { $index.buildVersion } else { $Version }
+    if ($index.buildVersion -and $index.buildVersion -notmatch ('^' + [regex]::Escape($Version) + '\.\d+$')) { throw 'Invalid local build version.' }
+    $expectedExe = Join-Path $Root ('artifacts/releases/TableMax-' + $localVersion + '-win-x64' + $editionSuffix + '.exe')
     if ([IO.Path]::GetFullPath($delivery.executable.path) -ne $expectedExe) { throw 'Unexpected EXE delivery path.' }
     $manifest = Get-Content -LiteralPath $delivery.manifestPath -Raw -Encoding utf8 | ConvertFrom-Json
     $payloadHash = (Get-FileHash -LiteralPath $delivery.archivePath -Algorithm SHA256).Hash.ToLowerInvariant()
     $exeHash = (Get-FileHash -LiteralPath $expectedExe -Algorithm SHA256).Hash.ToLowerInvariant()
-    if ($manifest.version -ne $Version -or $manifest.edition -ne $delivery.edition -or $manifest.archive.sha256 -ne $payloadHash -or $manifest.archive.bytes -ne (Get-Item -LiteralPath $delivery.archivePath).Length -or $delivery.executable.sha256 -ne $exeHash -or $delivery.executable.bytes -ne (Get-Item -LiteralPath $expectedExe).Length -or $delivery.executable.payloadSha256 -ne $payloadHash) { throw 'EXE or internal payload hash mismatch.' }
+    if ($manifest.version -ne $Version -or $manifest.buildVersion -ne $index.buildVersion -or $manifest.edition -ne $delivery.edition -or $manifest.archive.sha256 -ne $payloadHash -or $manifest.archive.bytes -ne (Get-Item -LiteralPath $delivery.archivePath).Length -or $delivery.executable.sha256 -ne $exeHash -or $delivery.executable.bytes -ne (Get-Item -LiteralPath $expectedExe).Length -or $delivery.executable.payloadSha256 -ne $payloadHash) { throw 'EXE or internal payload hash mismatch.' }
     $proofPath = Join-Path $Root ('artifacts/maintenance/v' + $Version + '/windows-editions/' + $index.snapshot + '/shipping-executable-checks-' + $delivery.edition + '.json')
     $cursor = $proofPath
     while ($cursor -and $cursor -ne $Root) {

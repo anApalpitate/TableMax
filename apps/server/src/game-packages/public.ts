@@ -7,14 +7,12 @@ import {
   projectGameDetails,
   projectGameWeb,
 } from '@tablemax/game-sdk/metadata';
-import type {
-  GameDetails,
-  ModuleManifest,
-} from '@tablemax/game-sdk/module-manifest';
+import type { GameDetails } from '@tablemax/game-sdk/module-manifest';
 import type { GameRelease } from './types';
 import type { PackageStore } from './store';
 import { safePath } from './verification';
-import { preferredCatalogReleases } from './catalog';
+import { preferredCatalogReleases, releaseCompatible } from './catalog';
+import { releaseCompatibilityIssue } from '../../../../packages/game-sdk/src/compatibility.mjs';
 import { retiredVariant, retiredVariantPolicies } from '../game-variant-policy';
 
 const object = (value: unknown): value is Record<string, unknown> =>
@@ -68,12 +66,7 @@ export function projectReleaseSummary(
   const variant = module.variants?.find(
     (item) => item.id === release.variantId,
   );
-  const compatible = (
-    compatibility: ModuleManifest['compatibility'] | undefined,
-  ) =>
-    compatibility?.sdk === 1 &&
-    compatibility.protocol === 7 &&
-    compatibility.webHost === 1;
+  const compatibilityIssue = releaseCompatibilityIssue(release);
   return {
     releaseId: release.releaseId,
     gameId: release.gameId,
@@ -86,9 +79,8 @@ export function projectReleaseSummary(
       ? {}
       : { defaultVariantId: module.defaultVariantId }),
     releaseTag: release.releaseTag,
-    compatible:
-      compatible(module.compatibility) &&
-      (release.variantId === undefined || compatible(variant?.compatibility)),
+    compatible: releaseCompatible(release),
+    ...(compatibilityIssue === undefined ? {} : { compatibilityIssue }),
   };
 }
 

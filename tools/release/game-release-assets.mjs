@@ -5,11 +5,12 @@ import { canonical, sha256 } from './game-package-format.mjs';
 /** Publish only signed catalog members; old build candidates never enter assets. */
 export async function gameReleaseAssets(
   directory,
-  { publicKey, devkitPath } = {},
+  { publicKey, devkitPath, tag } = {},
 ) {
   if (!publicKey)
     throw new Error('Project public key required for game asset whitelist');
-  const catalogPath = resolve(directory, 'TableMax-game-catalog-v1.0.6.json');
+  tag ??= 'v' + JSON.parse(await readFile('package.json', 'utf8')).version;
+  const catalogPath = resolve(directory, `TableMax-game-catalog-${tag}.json`);
   const envelope = JSON.parse(await readFile(catalogPath, 'utf8'));
   if (
     !verify(

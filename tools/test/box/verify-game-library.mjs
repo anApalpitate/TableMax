@@ -65,8 +65,9 @@ window.fetch=async (input,options)=>{
 let resourceSnapshot=[];
 const resourceListeners=new Set();
 window.resourceDownloads=[];
+window.resourceFailure='';
 window.setResources=(entries)=>{resourceSnapshot=entries;for(const listener of resourceListeners)listener()};
-const resources={getSnapshot:()=>resourceSnapshot,subscribe(listener){resourceListeners.add(listener);return()=>resourceListeners.delete(listener)},async download(key){window.resourceDownloads.push(key);window.setResources([{key,name:'宝可梦奇遇',status:{state:'downloading',progress:0.4}}])}};
+const resources={getSnapshot:()=>resourceSnapshot,subscribe(listener){resourceListeners.add(listener);return()=>resourceListeners.delete(listener)},async download(key){window.resourceDownloads.push(key);if(window.resourceFailure)throw new Error(window.resourceFailure);window.setResources([{key,name:'宝可梦奇遇',status:{state:'downloading',progress:0.4}}])}};
 
 const base={revision:12,instanceId:'fixture',branch:0,status:'lobby',game:catalog.find(g=>g.id==='uno'),catalog,seats:[],ownerSeatId:null,joinOpen:true,gameView:null,history:[],lifecycleActions:[],playMode:'play',decisionClock:null,capabilities:{manage:true}};
 window.baseBox=base;
@@ -571,6 +572,52 @@ try {
       },
     ]),
   );
+  for (const reason of [
+    '游戏包版本落后，请更新游戏包。',
+    '盒子版本落后，请更新盒子。',
+  ]) {
+    await page.evaluate((reason) => {
+      window.resourceFailure = reason;
+    }, reason);
+    await pokemon
+      .getByRole('button', { name: '重试下载', exact: true })
+      .click();
+    await page
+      .locator('.tablemax-notice')
+      .filter({ hasText: `资源下载失败：${reason}` })
+      .waitFor();
+  }
+  await page.evaluate(() => {
+    window.resourceFailure = '';
+    window.setResources([
+      {
+        key: { gameId: 'pokemon-encounters' },
+        name: '宝可梦奇遇',
+        status: {
+          state: 'incompatible',
+          error: '游戏包版本落后，请更新游戏包。',
+        },
+      },
+    ]);
+  });
+  assert.ok(
+    await pokemon
+      .getByRole('button', { name: '不兼容', exact: true })
+      .isDisabled(),
+  );
+  await pokemon
+    .locator('.game-resource-error')
+    .filter({ hasText: '游戏包版本落后' })
+    .waitFor();
+  await page.evaluate(() =>
+    window.setResources([
+      {
+        key: { gameId: 'pokemon-encounters' },
+        name: '宝可梦奇遇',
+        status: { state: 'failed' },
+      },
+    ]),
+  );
   await pokemon.getByRole('button', { name: '重试下载', exact: true }).click();
   await page.evaluate(() =>
     window.setResources([
@@ -1045,7 +1092,37 @@ try {
   assert.equal(await page.evaluate(() => window.packageOperations.length), 5);
   await page.evaluate(() => window.patchBox({ role: 'host', isHost: true }));
   await page.waitForFunction(() => document.querySelector('.box-screen.host'));
+  for (const issue of [
+    '游戏包版本落后，请更新游戏包。',
+    '盒子版本落后，请更新盒子。',
+  ]) {
+    await page.evaluate(async (issue) => {
+      const release = window.packageSnapshot.catalog.releases.find(
+        (r) => r.gameId === 'uno',
+      );
+      release.compatible = false;
+      release.compatibilityIssue = issue;
+      await window.serverResourceRefresh();
+    }, issue);
+    const result = await page.evaluate(async () => {
+      try {
+        await window.serverResourceAdapter.download({ gameId: 'uno' });
+        return '';
+      } catch (cause) {
+        return cause.message;
+      }
+    });
+    assert.equal(result, issue);
+  }
+  assert.equal(await page.evaluate(() => window.packageOperations.length), 5);
+  checked(
+    'Download failures preserve the exact upgrade direction; incompatible resources explain the cause without starting an install.',
+  );
   await page.evaluate(async () => {
+    for (const release of window.trustedReleases) {
+      release.compatible = true;
+      delete release.compatibilityIssue;
+    }
     window.packageSnapshot.catalog = { releases: [] };
     window.packageOperations = [];
     window.refreshFailure = '签名目录不可用';

@@ -8,7 +8,8 @@ function segment(value: string) {
   return encodeURIComponent(value);
 }
 
-export function gameCatalogUrl(tag = GAME_CATALOG_TAG) {
+export function gameCatalogUrl(tag?: string) {
+  if (tag === undefined) return `${GAME_PAGES_ROOT}games/catalog.json`;
   return `${GAME_PAGES_ROOT}games/${segment(tag)}/catalog.json`;
 }
 

@@ -318,6 +318,14 @@ describe('signed immutable package store', () => {
     const first = fixtures[0]!;
     for (let i = 0; i < fixtures.length; i++) {
       fixtures[i]!.release.variantId = `variant-${i}`;
+      fixtures[i]!.release.module.variants = [
+        {
+          id: `variant-${i}`,
+          name: 'fixture',
+          description: 'fixture',
+          compatibility: fixtures[i]!.release.module.compatibility,
+        },
+      ];
       fixtures[i]!.release.releaseId = releaseIdentity(fixtures[i]!.release);
     }
     const catalog: PackageCatalog = {

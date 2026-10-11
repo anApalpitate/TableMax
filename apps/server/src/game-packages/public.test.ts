@@ -40,6 +40,119 @@ const manifest = () =>
     readFileSync('games/uno/game-module.json', 'utf8'),
   ) as ModuleManifest;
 
+it('reports which side has an outdated contract without comparing unrelated release labels', () => {
+  const f = fixture();
+  expect(projectReleaseSummary(f.release).compatibilityIssue).toBeUndefined();
+  for (const key of ['sdk', 'protocol', 'webHost'] as const) {
+    const supported = f.module.compatibility[key];
+    f.module.compatibility[key] = key === 'protocol' ? 6 : 0;
+    expect(projectReleaseSummary(f.release)).toMatchObject({
+      compatible: false,
+      compatibilityIssue: expect.stringContaining('游戏包版本落后'),
+    });
+    f.module.compatibility[key] = key === 'protocol' ? 9 : 2;
+    expect(projectReleaseSummary(f.release)).toMatchObject({
+      compatible: false,
+      compatibilityIssue: expect.stringContaining('盒子版本落后'),
+    });
+    f.module.compatibility[key] = supported;
+  }
+  f.module.compatibility.protocol = 8;
+  f.module.compatibility.requiredCapabilities = ['future-capability'];
+  expect(projectReleaseSummary(f.release).compatibilityIssue).toContain(
+    'future-capability',
+  );
+  expect(projectReleaseSummary(f.release).compatibilityIssue).toContain(
+    '盒子缺少',
+  );
+  f.module.compatibility.protocol = 9;
+  expect(projectReleaseSummary(f.release).compatibilityIssue).toContain(
+    '盒子版本落后',
+  );
+});
+
+it('explains selected variant incompatibility and malformed declarations', () => {
+  const f = fixture();
+  f.module.variants = [
+    {
+      id: 'test',
+      name: '测试',
+      description: '测试兼容性诊断',
+      compatibility: { ...f.module.compatibility, protocol: 6 },
+    },
+  ];
+  f.release.variantId = 'test';
+  expect(projectReleaseSummary(f.release).compatibilityIssue).toContain(
+    '游戏包版本落后',
+  );
+  f.module.variants![0]!.compatibility.protocol = Number.NaN;
+  expect(projectReleaseSummary(f.release).compatibilityIssue).toContain(
+    '声明无效',
+  );
+  f.release.variantId = 'missing';
+  expect(projectReleaseSummary(f.release).compatibilityIssue).toContain(
+    '缺少兼容性声明',
+  );
+});
+
+it('rejects incompatible management installs with the exact reason before queuing a download', async () => {
+  for (const [protocol, direction] of [
+    [6, '游戏包版本落后'],
+    [9, '盒子版本落后'],
+  ] as const) {
+    const f = fixture();
+    f.module.compatibility.protocol = protocol;
+    f.release.releaseId = releaseIdentity(f.release);
+    writeFileSync(
+      join(f.games, 'index.json'),
+      JSON.stringify({
+        schemaVersion: 1,
+        releases: { [f.release.releaseId]: f.release },
+        blobs: { [f.blob.id]: f.blob },
+        selected: {},
+      }),
+    );
+    const webDir = join(f.root, 'web');
+    mkdirSync(webDir);
+    writeFileSync(
+      join(webDir, 'index.html'),
+      '<html>compatibility test</html>',
+    );
+    const service = await createService({
+      host: '127.0.0.1',
+      port: 0,
+      dataDir: join(f.root, 'data'),
+      webDir,
+      gamesDir: f.games,
+      playMode: 'test',
+    });
+    try {
+      const request = {
+        method: 'POST' as const,
+        url: '/api/game-packages/manage',
+        payload: { operation: 'install', releaseId: f.release.releaseId },
+      };
+      expect((await service.app.inject(request)).statusCode).toBe(403);
+      const response = await service.app.inject({
+        ...request,
+        headers: { authorization: `Bearer ${service.hostToken}` },
+      });
+      expect(response.statusCode).toBe(400);
+      expect(response.json()).toMatchObject({
+        ok: false,
+        reason: expect.stringContaining(direction),
+      });
+      expect(
+        (
+          await service.app.inject('/api/game-packages')
+        ).json<PublicPackageSnapshot>().tasks,
+      ).toEqual([]);
+    } finally {
+      await service.close();
+    }
+  }
+}, 30000);
+
 function fixture(document?: unknown) {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp/public-package-'));

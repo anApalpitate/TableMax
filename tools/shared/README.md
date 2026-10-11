@@ -11,3 +11,5 @@
 | [migration.test.mjs](migration.test.mjs)         | 工具隔离回归：`node --test tools/shared/migration.test.mjs`            |
 | [workspace-root.mjs](workspace-root.mjs)         | 内部辅助／声明／夹具；由对应入口调用                                   |
 | [screenshot-preview.mjs](screenshot-preview.mjs) | 内部预览编码桥接；隐藏 Python 子进程、根目录与输出格式核验，不改原素材 |
+
+`application-version.mjs`从 `package.json`及根目录 `build-version.json`读取公开版本和本地修订，使用独占锁原子分配；同目录回归覆盖并发、范围和公开版本切换。版本政策见[Release流程](../../docs/reference/release.md#三位公开版本与四位本地构建2026-10-12)。
