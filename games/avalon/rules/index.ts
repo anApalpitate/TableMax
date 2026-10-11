@@ -28,7 +28,7 @@ export function validateAction(input: unknown): Action {
     exact(input, ['type', 'team']) &&
     Array.isArray(input.team) &&
     input.team.length >= 2 &&
-    input.team.length <= 4 &&
+    input.team.length <= 5 &&
     new Set(input.team).size === input.team.length &&
     input.team.every(
       (seat) =>
@@ -131,7 +131,7 @@ function createRules(variant: Variant): GameRules {
       rulesVersion: variant === 'court' ? COURT_RULES_VERSION : RULES_VERSION,
       sdkVersion: 1,
       stateVersion: 1,
-      players: { min: 5, max: 6 },
+      players: { min: 5, max: 10 },
       assetNamespace: 'avalon',
       decisionTimer: true,
     },

@@ -40,23 +40,37 @@ export const exact = (input: Record<string, unknown>, keys: string[]) =>
 export const alignment = (role: Role): Alignment =>
   ['merlin', 'percival', 'servant'].includes(role) ? 'good' : 'evil';
 export const questSizes = (count: number): number[] =>
-  count === 5 ? [2, 3, 2, 3, 3] : [2, 3, 4, 3, 4];
+  count === 5
+    ? [2, 3, 2, 3, 3]
+    : count === 6
+      ? [2, 3, 4, 3, 4]
+      : count === 7
+        ? [2, 3, 3, 4, 4]
+        : [3, 4, 4, 5, 5];
+export const evilCount = (count: number): number =>
+  count === 10 ? 4 : count >= 7 ? 3 : 2;
+export const questFailThreshold = (
+  count: number,
+  questNumber: number,
+): number => (count >= 7 && questNumber === 4 ? 2 : 1);
 export const nextSeat = (state: Pick<State, 'seats'>, seat: string) =>
   state.seats[(state.seats.indexOf(seat) + 1) % state.seats.length]!;
 export function roleDeck(count: number, variant: Variant): Role[] {
+  const evil = evilCount(count);
   return variant === 'court'
     ? [
         'merlin',
         'percival',
         'assassin',
         'morgana',
-        ...Array<Role>(count - 4).fill('servant'),
+        ...Array<Role>(evil - 2).fill('minion'),
+        ...Array<Role>(count - evil - 2).fill('servant'),
       ]
     : [
         'merlin',
         'assassin',
-        'minion',
-        ...Array<Role>(count - 3).fill('servant'),
+        ...Array<Role>(evil - 1).fill('minion'),
+        ...Array<Role>(count - evil - 1).fill('servant'),
       ];
 }
 const stateKeys = [
@@ -94,7 +108,7 @@ export function validateState(
   if (
     !Array.isArray(s.seats) ||
     s.seats.length < 5 ||
-    s.seats.length > 6 ||
+    s.seats.length > 10 ||
     new Set(s.seats).size !== s.seats.length ||
     !s.seats.every(
       (seat) =>
@@ -207,7 +221,8 @@ export function validateState(
           q.failCount >
             q.team.filter((seat) => alignment(s.roles[seat]!) === 'evil')
               .length ||
-          q.succeeded !== (q.failCount === 0)
+          q.succeeded !==
+            q.failCount < questFailThreshold(s.seats.length, q.questNumber)
         )
           fail();
         completed++;

@@ -58,6 +58,8 @@ export type AvalonView = {
   proposalNumber: number;
   rejectedTeams: number;
   questSizes: number[];
+  evilCount: number;
+  questFailThresholds: number[];
   team: string[];
   submittedSeats: string[];
   history: ProposalResult[];

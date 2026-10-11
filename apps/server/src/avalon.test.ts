@@ -134,7 +134,7 @@ it('discovers both original Avalon role combinations without platform game branc
   const registry = createGameRegistry();
   expect(registry.catalog().find((g) => g.id === 'avalon')).toMatchObject({
     min: 5,
-    max: 6,
+    max: 10,
   });
   for (const variant of ['classic', 'court']) {
     const loaded = await registry.load('avalon', variant);
@@ -143,7 +143,7 @@ it('discovers both original Avalon role combinations without platform game branc
   }
 });
 
-for (const count of [5, 6])
+for (const count of [5, 6, 10])
   it(`Avalon ${count}-seat concurrent sealed votes and quest cards expose only completed public results`, async () => {
     const f = await fixture(count);
     try {
@@ -224,58 +224,64 @@ for (const count of [5, 6])
     }
   }, 60000);
 
-it('Avalon disk failure, rollback and restart retain sealed vote and identity permissions', async () => {
-  const f = await fixture();
-  try {
-    await f.allAck();
-    const leader = f.tokens.findIndex((_, i) => f.own(i).actions.length > 0);
-    expect((await f.act(leader, f.own(leader).actions[0] as Action)).ok).toBe(
-      true,
-    );
-    const before = f.own(0),
-      action: Action = { type: 'vote-team', vote: 'reject' };
-    const command = envelope(before, {
-      type: 'game',
-      decisionId: before.decisionId!,
-      action,
-    });
-    const spy = vi
-      .spyOn(SqliteSaveRepository.prototype, 'save')
-      .mockImplementationOnce(() => {
-        throw new Error('simulated disk-full');
+it.each([5, 6, 10])(
+  'Avalon %i-seat disk failure, rollback and restart retain sealed vote and identity permissions',
+  async (count) => {
+    const f = await fixture(count);
+    try {
+      await f.allAck();
+      const leader = f.tokens.findIndex((_, i) => f.own(i).actions.length > 0);
+      expect((await f.act(leader, f.own(leader).actions[0] as Action)).ok).toBe(
+        true,
+      );
+      const before = f.own(0),
+        action: Action = { type: 'vote-team', vote: 'reject' };
+      const command = envelope(before, {
+        type: 'game',
+        decisionId: before.decisionId!,
+        action,
       });
-    expect((await f.send(f.players[0]!, command)).ok).toBe(false);
-    expect(game(f.own(0))).toEqual(game(before));
-    expect(f.own(0).revision).toBe(before.revision);
-    spy.mockRestore();
-    expect((await f.send(f.players[0]!, command)).ok).toBe(true);
-    const saved = f.own(0);
-    const checkpoint = f.service.room.view(f.service.hostToken).history.at(-1)!;
-    expect(
-      (
-        await f.run(f.host, f.service.hostToken, {
-          type: 'rollback',
-          checkpointId: checkpoint.id,
-        })
-      ).ok,
-    ).toBe(true);
-    expect(game(f.own(0))).toEqual(game(before));
-    expect((await f.send(f.players[0]!, command)).ok).toBe(false);
-    expect(
-      (await f.run(f.host, f.service.hostToken, { type: 'resume' })).ok,
-    ).toBe(true);
-    expect((await f.act(0, action)).ok).toBe(true);
-    expect(game(f.own(0))).toEqual(game(saved));
-    await f.restart();
-    expect(f.own(0).paused).toBe(true);
-    expect(game(f.own(0))).toEqual(game(saved));
-    expect(game(f.service.room.view(f.service.hostToken)).self).toBeNull();
-    expect(game(f.own(1)).self!.vote).toBeNull();
-  } finally {
-    vi.restoreAllMocks();
-    await f.close();
-  }
-}, 60000);
+      const spy = vi
+        .spyOn(SqliteSaveRepository.prototype, 'save')
+        .mockImplementationOnce(() => {
+          throw new Error('simulated disk-full');
+        });
+      expect((await f.send(f.players[0]!, command)).ok).toBe(false);
+      expect(game(f.own(0))).toEqual(game(before));
+      expect(f.own(0).revision).toBe(before.revision);
+      spy.mockRestore();
+      expect((await f.send(f.players[0]!, command)).ok).toBe(true);
+      const saved = f.own(0);
+      const checkpoint = f.service.room
+        .view(f.service.hostToken)
+        .history.at(-1)!;
+      expect(
+        (
+          await f.run(f.host, f.service.hostToken, {
+            type: 'rollback',
+            checkpointId: checkpoint.id,
+          })
+        ).ok,
+      ).toBe(true);
+      expect(game(f.own(0))).toEqual(game(before));
+      expect((await f.send(f.players[0]!, command)).ok).toBe(false);
+      expect(
+        (await f.run(f.host, f.service.hostToken, { type: 'resume' })).ok,
+      ).toBe(true);
+      expect((await f.act(0, action)).ok).toBe(true);
+      expect(game(f.own(0))).toEqual(game(saved));
+      await f.restart();
+      expect(f.own(0).paused).toBe(true);
+      expect(game(f.own(0))).toEqual(game(saved));
+      expect(game(f.service.room.view(f.service.hostToken)).self).toBeNull();
+      expect(game(f.own(1)).self!.vote).toBeNull();
+    } finally {
+      vi.restoreAllMocks();
+      await f.close();
+    }
+  },
+  60000,
+);
 
 it('Avalon administrator-approved device transfer preserves the secret role and revokes old credentials across rollback', async () => {
   const f = await fixture();

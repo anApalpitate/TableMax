@@ -13,7 +13,13 @@ const binomial = (n: number, k: number) => {
   for (let i = 1; i <= k; i++) value = (value * (n - i + 1)) / i;
   return value;
 };
-/** Enumerate at most 15 pairs. Every constraint comes from this seat's projection. */
+function combinations(seats: readonly string[], count: number): string[][] {
+  if (count === 0) return [[]];
+  return seats.flatMap((seat, i) =>
+    combinations(seats.slice(i + 1), count - 1).map((rest) => [seat, ...rest]),
+  );
+}
+/** At most 210 hypotheses, using only this seat's authorized projection. */
 export function hypotheses(
   view: AvalonView,
   difficulty: BotDifficulty,
@@ -23,61 +29,59 @@ export function hypotheses(
   const known = new Set(self.knowledge.evilSeats);
   if (self.alignment === 'evil') known.add(self.seatId);
   const result: Hypothesis[] = [];
-  for (let i = 0; i < view.seatOrder.length; i++)
-    for (let j = i + 1; j < view.seatOrder.length; j++) {
-      const evil = [view.seatOrder[i]!, view.seatOrder[j]!];
-      if (
-        [...known].some((seat) => !evil.includes(seat)) ||
-        (self.alignment === 'good' && evil.includes(self.seatId))
-      )
-        continue;
-      if (self.role === 'merlin' && evil.some((seat) => !known.has(seat)))
-        continue;
-      if (
-        self.role === 'percival' &&
-        self.knowledge.merlinCandidates.filter((seat) => evil.includes(seat))
-          .length !== 1
-      )
-        continue;
-      let weight = 1;
-      const observed =
-        difficulty === 'default'
-          ? view.quests.slice(-1)
-          : difficulty === 'doubao'
-            ? view.quests.slice(-2)
-            : view.quests;
-      for (const q of observed) {
-        const count = q.team.filter((seat) => evil.includes(seat)).length;
-        if (count < q.failCount) {
-          weight = 0;
-          break;
-        }
-        // Success is evidence, never proof of loyalty: evil can play success.
-        const sabotage = q.questNumber === 1 ? 0.4 : 0.7;
-        weight *=
-          binomial(count, q.failCount) *
-          sabotage ** q.failCount *
-          (1 - sabotage) ** (count - q.failCount);
+  for (const evil of combinations(view.seatOrder, view.evilCount)) {
+    if (
+      [...known].some((seat) => !evil.includes(seat)) ||
+      (self.alignment === 'good' && evil.includes(self.seatId))
+    )
+      continue;
+    if (self.role === 'merlin' && evil.some((seat) => !known.has(seat)))
+      continue;
+    if (
+      self.role === 'percival' &&
+      self.knowledge.merlinCandidates.filter((seat) => evil.includes(seat))
+        .length !== 1
+    )
+      continue;
+    let weight = 1;
+    const observed =
+      difficulty === 'default'
+        ? view.quests.slice(-1)
+        : difficulty === 'doubao'
+          ? view.quests.slice(-2)
+          : view.quests;
+    for (const q of observed) {
+      const count = q.team.filter((seat) => evil.includes(seat)).length;
+      if (count < q.failCount) {
+        weight = 0;
+        break;
       }
-      if (difficulty === 'juewu')
-        for (const p of view.history) {
-          const contaminated = p.team.some((seat) => evil.includes(seat));
-          for (const seat of view.seatOrder) {
-            // Social evidence stays deliberately soft; no vote proves a role.
-            const approve = evil.includes(seat)
-              ? contaminated
-                ? 0.74
-                : 0.38
-              : p.team.includes(seat)
-                ? 0.7
-                : 0.48;
-            weight *=
-              (p.votes[seat] === 'approve' ? approve : 1 - approve) ** 0.25;
-          }
-          if (contaminated && evil.includes(p.leader)) weight *= 1.12;
-        }
-      if (weight > 0) result.push({ evil, weight });
+      // Success is evidence, never proof of loyalty: evil can play success.
+      const sabotage = q.questNumber === 1 ? 0.4 : 0.7;
+      weight *=
+        binomial(count, q.failCount) *
+        sabotage ** q.failCount *
+        (1 - sabotage) ** (count - q.failCount);
     }
+    if (difficulty === 'juewu')
+      for (const p of view.history) {
+        const contaminated = p.team.some((seat) => evil.includes(seat));
+        for (const seat of view.seatOrder) {
+          // Social evidence stays deliberately soft; no vote proves a role.
+          const approve = evil.includes(seat)
+            ? contaminated
+              ? 0.74
+              : 0.38
+            : p.team.includes(seat)
+              ? 0.7
+              : 0.48;
+          weight *=
+            (p.votes[seat] === 'approve' ? approve : 1 - approve) ** 0.25;
+        }
+        if (contaminated && evil.includes(p.leader)) weight *= 1.12;
+      }
+    if (weight > 0) result.push({ evil, weight });
+  }
   const sum = result.reduce((value, entry) => value + entry.weight, 0);
   if (!sum) throw new Error('阿瓦隆授权证据没有一致的阵营假设。');
   return result.map((entry) => ({
@@ -88,10 +92,14 @@ export function hypotheses(
 export function cleanProbability(
   team: readonly string[],
   beliefs: Hypothesis[],
+  threshold = 1,
 ): number {
   return beliefs.reduce(
     (sum, h) =>
-      sum + (team.some((seat) => h.evil.includes(seat)) ? 0 : h.weight),
+      sum +
+      (team.filter((seat) => h.evil.includes(seat)).length >= threshold
+        ? 0
+        : h.weight),
     0,
   );
 }
@@ -130,6 +138,7 @@ export function chooseAction(
     throw new Error('阿瓦隆策略没有本人合法选择。');
   if (signal?.aborted) throw new Error('阿瓦隆策略已取消。');
   const self = view.self;
+  const threshold = view.questFailThresholds[view.questNumber - 1]!;
   const acknowledge = actions.find((a) => a.type === 'acknowledge');
   if (acknowledge) return acknowledge;
   const questCards = actions.filter((a) => a.type === 'quest-card');
@@ -142,15 +151,17 @@ export function chooseAction(
     const evil = view.team.filter(
       (seat) => seat === self.seatId || self.knowledge.evilSeats.includes(seat),
     );
-    // Known partners deterministically choose one saboteur, without reading submissions.
-    const saboteur = view.seatOrder.find((seat) => evil.includes(seat));
+    // Select enough known partners without observing any sealed submissions.
+    const saboteurs = view.seatOrder
+      .filter((seat) => evil.includes(seat))
+      .slice(0, threshold);
     const winAtStake = view.successCount === 2 || view.failCount === 2;
     const hide =
       difficulty === 'juewu' &&
       view.questNumber === 1 &&
       !winAtStake &&
       evil.length === 1;
-    return saboteur === self.seatId && !hide
+    return saboteurs.includes(self.seatId) && !hide
       ? fail
       : questCards.find(
           (a) => a.type === 'quest-card' && a.card === 'success',
@@ -183,7 +194,7 @@ export function chooseAction(
           (seat) =>
             seat === self.seatId || self.knowledge.evilSeats.includes(seat),
         ).length;
-        return ownEvil === 1
+        return ownEvil === threshold
           ? 100 +
               cleanProbability(
                 team.filter(
@@ -194,13 +205,13 @@ export function chooseAction(
                 beliefs,
               ) *
                 2
-          : ownEvil === 2
+          : ownEvil > threshold
             ? difficulty === 'default'
               ? 99
               : 65
             : 0;
       }
-      const clean = cleanProbability(team, beliefs);
+      const clean = cleanProbability(team, beliefs, threshold);
       if (difficulty === 'default')
         return (team.includes(self.seatId) ? 2 : 0) + clean;
       const continuity = view.quests
@@ -220,18 +231,21 @@ export function chooseAction(
             : 0)
       );
     }
+    const scores = new Map(proposals.map((a) => [a, score(a.team)]));
     return [...proposals].sort(
-      (a, b) => score(b.team) - score(a.team) || tie.get(b)! - tie.get(a)!,
+      (a, b) => scores.get(b)! - scores.get(a)! || tie.get(b)! - tie.get(a)!,
     )[0]!;
   }
   const votes = actions.filter(
     (a): a is Extract<Action, { type: 'vote-team' }> => a.type === 'vote-team',
   );
   if (votes.length) {
-    const clean = cleanProbability(view.team, beliefs);
-    const evilOnTeam = view.team.some(
-      (seat) => seat === self.seatId || self.knowledge.evilSeats.includes(seat),
-    );
+    const clean = cleanProbability(view.team, beliefs, threshold);
+    const evilOnTeam =
+      view.team.filter(
+        (seat) =>
+          seat === self.seatId || self.knowledge.evilSeats.includes(seat),
+      ).length >= threshold;
     const approve =
       self.alignment === 'evil'
         ? evilOnTeam

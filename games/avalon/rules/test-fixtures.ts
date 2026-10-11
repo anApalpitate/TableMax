@@ -20,7 +20,9 @@ export function context(
   };
 }
 export function fixture(variant: Variant = 'classic', count = 5): State {
-  const seats = ['a', 'b', 'c', 'd', 'e', 'f'].slice(0, count);
+  const seats = Array.from({ length: count }, (_, i) =>
+    String.fromCharCode(97 + i),
+  );
   return rulesByVariant[variant].initialize(context(37, seats)) as State;
 }
 export function apply(s: State, action: Action, seat: string): State {

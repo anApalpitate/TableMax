@@ -6,7 +6,13 @@ import {
   type Knowledge,
   type Role,
 } from '../types';
-import { alignment, questSizes, type State } from './state';
+import {
+  alignment,
+  questSizes,
+  evilCount,
+  questFailThreshold,
+  type State,
+} from './state';
 export function roleKnowledge(
   roles: Record<string, Role>,
   seats: readonly string[],
@@ -58,6 +64,10 @@ export function project(s: State, viewer: Viewer): AvalonView {
     proposalNumber: s.proposalNumber,
     rejectedTeams: s.rejectedTeams,
     questSizes: questSizes(s.seats.length),
+    evilCount: evilCount(s.seats.length),
+    questFailThresholds: Array.from({ length: 5 }, (_, i) =>
+      questFailThreshold(s.seats.length, i + 1),
+    ),
     team: s.team,
     submittedSeats,
     history: s.history,

@@ -1,6 +1,12 @@
 import type { RuleContext } from '@tablemax/game-sdk';
 import type { Action, Alignment, Variant } from '../types';
-import { alignment, nextSeat, roleDeck, type State } from './state';
+import {
+  alignment,
+  nextSeat,
+  roleDeck,
+  questFailThreshold,
+  type State,
+} from './state';
 export function initialize(
   context: RuleContext,
   variant: Variant = 'classic',
@@ -8,10 +14,10 @@ export function initialize(
   const seats = [...context.seats];
   if (
     seats.length < 5 ||
-    seats.length > 6 ||
+    seats.length > 10 ||
     new Set(seats).size !== seats.length
   )
-    throw new Error('阿瓦隆需要 5–6 位玩家。');
+    throw new Error('阿瓦隆需要 5–10 位玩家。');
   const deck = roleDeck(seats.length, variant);
   for (let i = deck.length - 1; i > 0; i--) {
     const j = Math.floor(context.random.next() * (i + 1));
@@ -125,7 +131,8 @@ export function applyAction(
       const failCount = Object.values(s.questCards).filter(
         (card) => card === 'fail',
       ).length;
-      const succeeded = failCount === 0;
+      const succeeded =
+        failCount < questFailThreshold(s.seats.length, s.questNumber);
       s.quests.push({
         questNumber: s.questNumber,
         proposalNumber: s.proposalNumber,

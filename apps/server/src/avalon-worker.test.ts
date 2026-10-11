@@ -92,7 +92,7 @@ async function fixture(
   await host({ type: 'start' });
   return { room, host };
 }
-for (const count of [5, 6])
+for (const count of [5, 6, 7, 8, 9, 10])
   for (const variant of ['classic', 'court'] as const)
     for (const difficulty of ['default', 'doubao', 'juewu'] as const) {
       it(`Avalon ${variant} ${count} seats ${difficulty} completes a natural match in isolated 32MiB Workers`, async () => {
@@ -103,7 +103,7 @@ for (const count of [5, 6])
         const phases = new Set<string>();
         while (
           room.view(room.hostToken).status === 'playing' &&
-          decisions < 200
+          decisions < 400
         ) {
           const g = room.view(room.hostToken).gameView as AvalonView;
           phases.add(g.phase);
