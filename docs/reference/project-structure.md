@@ -6,7 +6,7 @@
 
 运行时的 `games/<gameId>/` 属于便携根目录的安装仓库，与开发源码目录 `games/` 用途不同；基础EXE的仓库位于 `TableMax/games/`，不会放进可替换的 `app/`。签名私钥只留受保护本地 `secrets/`，不进入Git或任何交付包。
 
-阿瓦隆模块在 `games/avalon/`，独立图像与音频在 `assets/games/avalon/`，经典版原始规则册与采用规格在 `docs/games/avalon/`；生成原图留 `artifacts/avalon-art/`，实际游戏验证留 `artifacts/avalon/validation/`，便携交付审计留 `artifacts/maintenance/v1.0.6/avalon/`。
+阿瓦隆模块在 `games/avalon/`，`config.ts` 统一维护现行人数角色表，供初始化、存档校验、策略和规则页读取；独立图像与音频在 `assets/games/avalon/`，经典版原始规则册与采用规格在 `docs/games/avalon/`。生成原图留 `artifacts/avalon-art/`，实际游戏验证留 `artifacts/avalon/validation/`，便携交付审计留 `artifacts/maintenance/v1.0.6/avalon/`。
 
 本页说明当前文件归属与材料边界；运行与构建机制在[开发环境](development.md)，交付及GitHub发布流程在[Release流程](release.md)，代码依赖与封装在[工程结构](architecture.md)维护。
 

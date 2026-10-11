@@ -24,10 +24,14 @@
 - SQLite 从 Electron 内置 Node 24.21.0／SQLite 3.53.4 切到 Node 22.14.0；必须从真实旧文件复制到隔离目录，验证读取、权限身份、继续保存与重启恢复，不用仅新建存档证明兼容。
 - 显示、音频、身份／管道越权、窗口与进程故障、完整便携局及互联网断开场景均按现有要求验证。原包和历史证据保留，新包以实际哈希重新验收。
 
-选择此方案是为了同时满足解压体积与独立桌面体验。更换压缩格式只缩小下载，不满足解压要求；使用系统浏览器难以等价保留桌面窗口／显示／声音控制。多游戏按需安装维持 [未来计划](../reference/acceptance.md#106安装故障矩阵与验收范围调整2026-10-11)，本轮不实施。
+选择此方案是为了同时满足解压体积与独立桌面体验。更换压缩格式只缩小下载，不满足解压要求；使用系统浏览器难以等价保留桌面窗口／显示／声音控制。多游戏按需安装在本决策提出时仍属未来计划，后已于 v1.0.6 实施，当前边界见[决策009](009-independent-game-packages.md)及[安装验收](../reference/acceptance.md#106安装故障矩阵与验收范围调整2026-10-11)。
 
 官方依据：[WebView2 分发](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution)、[.NET Framework 系统要求](https://learn.microsoft.com/en-us/dotnet/framework/get-started/system-requirements)、[WebView2 SDK](https://www.nuget.org/packages/Microsoft.Web.WebView2/1.0.4258.31)。
 
 ## v1.0.5 容量授权（2026-10-08）
 
-用户明确将导出硬上限调整为120,000,000字节：运行ZIP和实际解压交付均严格小于该值，保留5%预留，工程预算为114,000,000字节。当前门禁由`tools/release/package-limits.mjs`统一提供，历史100MB验收不改写。26头像从保留原图按WebP quality80／method6轻度派生，只替换实际变小的文件；40运行WAV派生为无损FLAC并核验PCM相等，原件保留。
+用户当时明确将导出硬上限调整为120,000,000字节：运行ZIP和实际解压交付均严格小于该值，保留5%预留，当时工程预算为114,000,000字节。历史100MB验收不改写。26头像从保留原图按WebP quality80／method6轻度派生，只替换实际变小的文件；40运行WAV派生为无损FLAC并核验PCM相等，原件保留。
+
+## v1.0.6 独立包与两种EXE（2026-10-11）
+
+日常交付改为 full／box 两种 Windows EXE，内部载荷 ZIP 与逐文件清单保留在 `artifacts/package-payloads/`，完整玩法离线 ZIP 继续用于导入。两种 EXE 及各自实际提取内容严格小于120,000,000字节，基础工程预警改为110,000,000字节；单玩法完整依赖的下载量与安装量各严格小于64,000,000字节。现行门禁由[打包限制](../../tools/release/package-limits.mjs)统一提供，不将早期95MB／114MB预算用于当前操作；实际包与验收范围见[验收记录](../reference/acceptance.md)。

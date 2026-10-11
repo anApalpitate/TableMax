@@ -6,7 +6,9 @@
 
 最新要求覆盖下文旧运行ZIP导出惯例：`pnpm package:win`默认导出full／box两种Windows EXE，可加 `--edition=full|box|both`，继续使用 `--snapshot=`与 `--games=`。full携带全部当前游戏的预装内容，box仅携带平台及小目录；完整玩法离线ZIP仍供导入。对外EXE在 `artifacts/releases/`，内部 `payload.zip`及 `release-manifest.json`在 `artifacts/package-payloads/v<版本>/<run>/<edition>/`，版本目录的 `current.json`原子记录载荷路径、EXE路径与哈希。内部ZIP不作为日常下载产物，本轮不生成source ZIP或发布线上附件。
 
-两种EXE及各自实际提取内容均按既有120,000,000字节硬门禁核验，内部载荷和逐文件清单用于绑定验收。当前内部载荷、指针、EXE及匹配的实际EXE通过证明一并保护；先核对全部当前edition哈希与实际EXE证据，再允许维护。旧单EXE、运行ZIP、旧存档及已发布证据继续保留，不因格式调整自动退役。新格式本轮适用验收已通过，结论由[当前验收](acceptance.md)记录。
+两种EXE及各自实际提取内容均按120,000,000字节硬门禁和110,000,000字节工程预警核验，内部载荷和逐文件清单用于绑定验收。当前内部载荷、指针、EXE及匹配的实际EXE通过证明一并保护；先核对全部当前edition哈希与实际EXE证据，再允许维护。旧单EXE、运行ZIP、旧存档及已发布证据继续保留，不因格式调整自动退役。新格式已获适用验收，各次源码更新的实际包仍须单独验证，结论由[当前验收](acceptance.md)记录。
+
+下文保留的旧验证器若默认读取 `artifacts/releases/*-win-x64.zip`，该默认值不再对应现行交付。执行前按验证器实际支持的参数绑定匹配 edition 的 EXE、内部载荷和清单；不把 EXE 当 ZIP 输入，也不借旧报告宣称新包通过。当前 full／box 路径及哈希从 `artifacts/package-payloads/v1.0.6/current.json` 读取；使用旧版本专用验证器时保留其原包边界。
 
 2026-10-11 Pages重新发布收尾已完成：在全部本轮工程退出后按标准入口预览并维护，退役3份已知生成副本214,692,117逻辑字节，标准扫描容量13,554,882,029字节（约12.624GiB），安全候选耗尽，当前交付、新旧发行和存档继续保护。范围、排除及实际审计见[项目瘦身](project-slimming.md#pages部署与重新发布收尾2026-10-11)。
 
@@ -306,7 +308,7 @@ node --test tools/test/runner/scopes.test.mjs
 
 `tools/build/module-build.mjs` 对platform-server与宝可梦人机单元应用该步骤，helper纳入各自指纹，入口和载荷共同进入缓存哈希、冻结和组装；`tools/release/package.mjs` 白名单同时收集两者，游戏载荷预算计入 `bots/pokemon-encounters.cjs.br`。其他游戏人机、规则和媒体保持原构建。相关单测命令为 `node --import tsx --test tools/build/service-brotli.test.mjs tools/build/pokemon-bot-brotli.test.mjs`，覆盖原字节还原、CommonJS路径／exports／require.main、依赖加载、无落盘，以及缺失、载荷损坏、合法压缩但源码哈希错误。宝可梦原版／扩展三档另经实际32MiB生产Worker执行合法决定，保持原2秒取消边界。
 
-2026-10-08研究重设计的第一包实际解压95,035,481字节，超过114MB工程预算35,481字节，未作交付验收。只压缩宝可梦人机144,410字节为715字节入口＋28,397字节载荷，净省115,298字节；该轮压缩包248文件实际解压94,920,183字节，余79,817字节；后续客户端返修后的当前体积以验收记录为准。相关[载荷检查](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/pokemon-bot-brotli.json)及[首包预算失败](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/budget-failure.json)保留；当前实际包验收见[验收记录](acceptance.md)。
+2026-10-08研究重设计的第一包实际解压95,035,481字节，超过当时95MB工程预算35,481字节，未作交付验收。只压缩宝可梦人机144,410字节为715字节入口＋28,397字节载荷，净省115,298字节；该轮压缩包248文件实际解压94,920,183字节，余79,817字节；后续客户端返修后的当前体积以验收记录为准。相关[载荷检查](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/pokemon-bot-brotli.json)及[首包预算失败](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/budget-failure.json)保留；当前实际包验收见[验收记录](acceptance.md)。
 
 隔离[实测](../../artifacts/maintenance/v1.0.2/pokemon-expansion-size-continuation/runtime.json)以历史实际解压程序为输入：1,655,164字节服务变为717字节入口＋354,905字节载荷，净省1,299,542字节。隐藏原生窗口经父子私有管道启动包内Node，真实Socket恢复／保存、bot Worker行动和再次重启通过；故障入口不监听端口、不改存档，正常退出后Job关联服务已停止。原始官方Node字节保持一致。
 
@@ -546,7 +548,7 @@ pnpm package:win
 
 验收至少覆盖：单游戏变更只重建其受影响部分且其他模块哈希不变；共享契约变化使全部相关模块失效；资源变化、删除和重命名无旧文件残留；缓存损坏／缺失、构建失败及并发输出不造成混合包；不兼容模块被拒绝；同一输入的增量组装与干净全量构建的交付文件一致（确定性文件按哈希比较，必要的生成元数据差异明确记录）。
 
-按影响执行源码检查，再对最终同一 ZIP 验证盒子与三游戏加载、跨游戏切换、身份权限、存档续局及资源离线可用。实际解压目录逐文件核对清单，ZIP 与解压交付均严格小于 120,000,000 字节，沿用 114 MB 工程预算。记录各模块构建、缓存命中、组装、压缩和验收的实际耗时，不预先宣称节省比例；模块缓存不替代最终交付检查。日常仍只导出完整运行 ZIP 与逐文件清单，不新增源码包或递增版本。
+按影响执行源码检查，再对同次冻结输入生成的 full／box EXE 验证盒子、受影响游戏加载、跨游戏切换、身份权限、存档续局及资源离线可用。实际提取目录逐文件核对内部载荷清单，两种 EXE 和实际提取内容均严格小于120,000,000字节，工程预警110,000,000字节。记录各模块构建、缓存命中、组装、压缩和验收的实际耗时，不预先宣称节省比例；模块缓存不替代最终交付检查。日常导出两种 EXE，内部载荷留本地，不新增源码包或递增版本。
 
 ## 清理本地中间物
 
@@ -783,7 +785,7 @@ v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`�
 
 所有专项通过后只调用一次 `pnpm package:win`（已包含正式18单元构建，不预先重复全量build）。备份原ZIP／清单，对同一最终ZIP执行 `verify-pokemon-expansion.mjs --portable --evidence=<独立名>` 与普通模式控件验证，再核对冻结输入、离线媒体、退出、实际解压体积及模块预算。共享存储变化扩大三游戏恢复检查；未变规则／原版素材按影响复用既有证据。真人手机／听感／硬件DPI／现场LAN及人类时长单独交接，不重新执行胜率统计门禁。
 
-模块预算警告不能视为交付通过；先优化新增资源或实现，不自动上调。预算失败后的受影响单元修正允许重新冻结组装，保留失败清单、输入与理由，其余缓存单元复用。最终包需同时满足宝可梦4MiB、整包114MB工程预算及ZIP／实际解压双100MB硬门禁；所有最终证据核对同一完整ZIP哈希。
+模块预算警告不能视为交付通过；先优化新增资源或实现，不自动上调。预算失败后的受影响单元修正允许重新冻结组装，保留失败清单、输入与理由，其余缓存单元复用。本节记录 v1.0.3 宝可梦4MiB及当时95MB预算／100MB硬门禁；现行 v1.0.6 交付采用110MB预警／120MB硬上限，完整玩法下载及安装各严格小于64MB，见[当前体积门禁](#便携包体积与共享运行时)。最终证据须绑定同次冻结输入、实际 EXE 和对应内部载荷哈希。
 
 若18单元构建完成后组装被运行中程序门禁阻止，可在程序退出后用 `pnpm package:win --snapshot=build/snapshots/<ID>.json` 恢复组装：重新核对快照ID、生产模块集合、全部源码输入及组装器指纹，继续执行原有进程、输出哈希和体积门禁，避免重复编译。默认命令仍执行正式构建。本轮首次组装因用户日常程序仍运行而中止，用户确认关闭后使用同一冻结快照恢复，未关闭或修改正式用户数据。
 
@@ -799,7 +801,7 @@ SQLite流式扫描须让 `StatementSync` 强引用保持至迭代完成；包内
 
 菜单共性调整使用`--menus-only`，仅验证六游戏（宝可梦两版本）的菜单／设置／声音入口，可加`--game=<id>`收窄；范围登记为shared及实际游戏。`--box-only`包含盒子共享互动，须允许box＋shared；可另加`--preferences-only`只验证射击按钮开关、刷新持久化、接收独立和房间修订不变。菜单、盒子及命中视觉筛选互斥。最终包按钮修复后的共享证据可在逐文件哈希确认全部相关运行依赖未变后复用，并记录前后包边界。
 
-`tools/test/platform/verify-interactions.mjs --run=<唯一名称>`以隐藏原生窗口及静音Edge验证拖动／240ms长按／中心取消、六格选择、单次射击、视频设置内三端屏蔽、三射击叠加／第四淘汰、单发言替换和独立音频桥接，服务仅监听127.0.0.1。盒子修改使用`--box-only`，单游戏修改使用`--game=<id>`，二者互斥；默认矩阵仅用于影响全部入口的共享互动修改，不跑游戏规则或整局。即时派发和真实服务测试在`apps/server/src/interactions.test.ts`、`interaction-service.test.ts`，异步手机解锁／替换与单声源失权测试在`apps/web/src/interactions/audio-player.test.ts`。素材试听通过`artifacts/maintenance/v1.0.5/interaction-refinement/audio-review.html`显式开启；机器解码／ASR不记为人耳试听，旧版试听证据保留在`interaction-assets/`。40游戏WAV原件及FLAC派生和PCM核验保持原样。体积门禁统一查`tools/release/package-limits.mjs`，120MB硬上限和114MB预算不倒改历史报告。
+`tools/test/platform/verify-interactions.mjs --run=<唯一名称>`以隐藏原生窗口及静音Edge验证拖动／240ms长按／中心取消、六格选择、单次射击、视频设置内三端屏蔽、三射击叠加／第四淘汰、单发言替换和独立音频桥接，服务仅监听127.0.0.1。盒子修改使用`--box-only`，单游戏修改使用`--game=<id>`，二者互斥；默认矩阵仅用于影响全部入口的共享互动修改，不跑游戏规则或整局。即时派发和真实服务测试在`apps/server/src/interactions.test.ts`、`interaction-service.test.ts`，异步手机解锁／替换与单声源失权测试在`apps/web/src/interactions/audio-player.test.ts`。素材试听通过`artifacts/maintenance/v1.0.5/interaction-refinement/audio-review.html`显式开启；机器解码／ASR不记为人耳试听，旧版试听证据保留在`interaction-assets/`。40游戏WAV原件及FLAC派生和PCM核验保持原样。现行体积门禁统一查`tools/release/package-limits.mjs`，120MB硬上限和110MB工程预警；历史114MB预算报告保持原版本边界。
 
 ### 玩家互动音效解锁核验（2026-10-09）
 

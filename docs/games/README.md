@@ -11,10 +11,10 @@
 
 宝可梦奇遇、现代艺术、电力公司与 UNO 的已有独立实现与便携验收保持原结论；阿瓦隆实际交付状态见 [当前验收](../reference/acceptance.md)。较早交付见 [历史验收](../archive/acceptance-2026-10-01-to-04.md)，接入过程从 [归档索引](../archive/README.md)进入。
 
-[阿瓦隆](avalon/README.md)：`avalon`，2012 经典版，5–6 人；基础角色与派西维尔／莫甘娜组合，秘密投票、匿名任务与刺杀，复古三端及本地声画。
+[阿瓦隆](avalon/README.md)：`avalon`，2012 经典版，5–10 人；现行源码新局使用唯一 `configured` 人数配置，旧 `classic`／`court` 仅恢复原局。角色知识、秘密投票、匿名任务与刺杀见[规格](avalon/spec.md)，各发行实际交付见[当前验收](../reference/acceptance.md)。
 
-[拉密经典版](rummikub/README.md)采用 `classic-2025-digital-v1`，2–4 人完整本地交付及证据见 [构建归档](../archive/rummikub-2026-10-09.md)；游戏库入口按最新要求标记为开发中并禁用，当前状态以 [验收](../reference/acceptance.md) 为准。
+[拉密经典版](rummikub/README.md)采用 `classic-2025-digital-v1`，2–4 人；游戏库入口已恢复开放，本地牌架整理、稳定操作及 v1.0.6 同包证据见[当前验收](../reference/acceptance.md#106拉密交互完善与恢复开放2026-10-11)，首次完整交付见[构建归档](../archive/rummikub-2026-10-09.md)。
 
-中文互联网的人气线索、跨品类候选、手机／公共屏及人机适配判断见 [候选与接入评估](candidates.md)；现代艺术与电力公司后来已正式接入，其他研究建议不代表接入确认或开发排期。
+中文互联网的人气线索、跨品类候选、手机／公共屏及人机适配判断见[候选与接入评估](candidates.md)；已接入游戏移出候选，其他研究建议不代表接入确认或开发排期。
 
 新游戏只创建已有实际内容的文件，来源事实、用户裁定和项目方案分别标注；原始资料及验证产物在 artifacts 保持文件树可见。返回 [总索引](../README.md)。
