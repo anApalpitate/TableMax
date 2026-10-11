@@ -117,8 +117,9 @@ try {
   New-Item -ItemType Directory -Path (Join-Path $fixture 'tools/maintenance') -Force | Out-Null
   Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'cleanup-local.ps1') -Destination (Join-Path $fixture 'tools/maintenance/cleanup-local.ps1')
   foreach ($support in @('cleanup-guard.ps1','WorkspaceSnapshot.cs')) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $support) -Destination (Join-Path $fixture 'tools/maintenance') }
-  Copy-Item -LiteralPath (Join-Path $workspaceForTest 'Clean-Intermediates.ps1') -Destination $fixture
-  Copy-Item -LiteralPath (Join-Path $workspaceForTest 'Clean-Releases.ps1') -Destination $fixture
+  New-Item -ItemType Directory -Path (Join-Path $fixture 'scripts') -Force | Out-Null
+  Copy-Item -LiteralPath (Join-Path $workspaceForTest 'scripts/Clean-Intermediates.ps1') -Destination (Join-Path $fixture 'scripts')
+  Copy-Item -LiteralPath (Join-Path $workspaceForTest 'scripts/Clean-Releases.ps1') -Destination (Join-Path $fixture 'scripts')
   $currentZip = Join-Path $fixture 'artifacts/releases/TableMax-1.5.0-win-x64.zip'
   $hash = (Get-FileHash -LiteralPath $currentZip -Algorithm SHA256).Hash.ToLowerInvariant()
   Fixture-File 'artifacts/maintenance/portable/results.json' ('{"portable":true,"result":"passed","archiveSha256":"' + $hash + '","note":"中文编码"}')
@@ -283,15 +284,15 @@ try {
   $preservedHashes = @{}
   foreach ($relative in $preservedEvidence) { $preservedHashes[$relative] = (Get-FileHash -LiteralPath (Join-Path $fixture $relative) -Algorithm SHA256).Hash }
   $previewBefore = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Recurse -Force | ForEach-Object { $_.FullName + '|' + $_.LastWriteTimeUtc.Ticks }) -join "`n"
-  $defaultPreview = @(& (Join-Path $fixture 'Clean-Intermediates.ps1') 6>&1)
+  $defaultPreview = @(& (Join-Path $fixture 'scripts/Clean-Intermediates.ps1') 6>&1)
   Check (($defaultPreview -join "`n") -match 'Intermediates: [1-9][0-9]* candidates' -and (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/package-1.5.0-ABC123'))) 'Root intermediate wrapper without VerificationCopies still previews default candidates'
-  & (Join-Path $fixture 'Clean-Intermediates.ps1') -VerificationCopies $verificationCopies
+  & (Join-Path $fixture 'scripts/Clean-Intermediates.ps1') -VerificationCopies $verificationCopies
   $previewAfter = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Recurse -Force | ForEach-Object { $_.FullName + '|' + $_.LastWriteTimeUtc.Ticks }) -join "`n"
   Check ($previewBefore -eq $previewAfter) 'Verification copy preview writes no evidence and changes no paths or timestamps'
   Check (@($verificationCopies | Where-Object { Test-Path -LiteralPath (Join-Path $fixture $_) -PathType Container }).Count -eq 7) 'Verification copy preview preserves all seven selected directories'
   foreach ($emptySelection in @(@(), $null)) {
     $refused = $false
-    try { & (Join-Path $fixture 'Clean-Intermediates.ps1') -Apply -VerificationCopies $emptySelection } catch { $refused = $_.Exception.Message -like '*nonempty list*' }
+    try { & (Join-Path $fixture 'scripts/Clean-Intermediates.ps1') -Apply -VerificationCopies $emptySelection } catch { $refused = $_.Exception.Message -like '*nonempty list*' }
     Check ($refused -and (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/package-1.5.0-ABC123'))) 'Explicit empty or null verification selection never falls back to default scanning'
     $refused = $false
     try { Run-Cleanup -Kind Intermediates -Apply $true -VerificationCopies $emptySelection } catch { $refused = $_.Exception.Message -like '*nonempty list*' }
@@ -379,7 +380,7 @@ try {
     (Get-Item -LiteralPath $mutatedPath).LastWriteTimeUtc = $old
     [IO.File]::WriteAllText($cleanupPath, $cleanupSource, (New-Object Text.UTF8Encoding($false)))
   }
-  & (Join-Path $fixture 'Clean-Intermediates.ps1') -Apply -VerificationCopies $verificationCopies
+  & (Join-Path $fixture 'scripts/Clean-Intermediates.ps1') -Apply -VerificationCopies $verificationCopies
   Check (@($verificationCopies | Where-Object { Test-Path -LiteralPath (Join-Path $fixture $_) }).Count -eq 0) 'Exact verification selection deletes only extraction and six desktop profile copies'
   foreach ($relative in $preservedEvidence) {
     Check ((Test-Path -LiteralPath (Join-Path $fixture $relative) -PathType Leaf) -and (Get-FileHash -LiteralPath (Join-Path $fixture $relative) -Algorithm SHA256).Hash -eq $preservedHashes[$relative]) ('Verification deletion preserves byte-identical SQLite, source, JSON or screenshot evidence: ' + $relative)
@@ -465,7 +466,7 @@ try {
     Check $refused ('KeepLatestOnly refuses combined cleanup mode: ' + $combination)
   }
   $refused = $false
-  try { & (Join-Path $fixture 'Clean-Releases.ps1') -Apply -KeepLatestOnly -RetiredVersions @('1.6.0') } catch { $refused = $_.Exception.Message -like '*KeepLatestOnly is only supported*' }
+  try { & (Join-Path $fixture 'scripts/Clean-Releases.ps1') -Apply -KeepLatestOnly -RetiredVersions @('1.6.0') } catch { $refused = $_.Exception.Message -like '*KeepLatestOnly is only supported*' }
   Check $refused 'The root release wrapper forwards KeepLatestOnly and rejects retirement combinations'
   $latestPreviewAfter = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Recurse -Force | ForEach-Object { $_.FullName + '|' + $_.LastWriteTimeUtc.Ticks }) -join "`n"
   Check ($latestPreviewBefore -eq $latestPreviewAfter) 'Rejected KeepLatestOnly modes write no cleanup evidence'
@@ -483,7 +484,7 @@ try {
   Fixture-File 'artifacts/releases/recent-release.tmp' 'recent-release-content'
   New-Item -ItemType Junction -Path $latestJunction -Value (Join-Path $fixture 'protected') | Out-Null
   $latestPreviewBefore = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Recurse -Force | ForEach-Object { $_.FullName + '|' + $_.LastWriteTimeUtc.Ticks }) -join "`n"
-  $latestPreview = @(& (Join-Path $fixture 'Clean-Releases.ps1') -KeepLatestOnly 6>&1)
+  $latestPreview = @(& (Join-Path $fixture 'scripts/Clean-Releases.ps1') -KeepLatestOnly 6>&1)
   $latestPreviewAfter = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Recurse -Force | ForEach-Object { $_.FullName + '|' + $_.LastWriteTimeUtc.Ticks }) -join "`n"
   Check ($latestPreviewBefore -eq $latestPreviewAfter) 'KeepLatestOnly preview writes no logs, directories or timestamps'
   Check (($latestPreview -join "`n") -match 'Preserving matching release manifest' -and (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.5.0-source.zip')) -and (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/TableMax-1.5.0-win-x64'))) 'KeepLatestOnly preview lists both preserved files and keeps selected source and same-version extraction'
@@ -539,7 +540,7 @@ try {
   }
   $latestProtected = @('TableMax-1.5.0-win-x64.zip', 'TableMax-1.5.0-win-x64-manifest.json', 'TableMax-1.5.0-source.zip', 'package-1.4.0-Linked', 'latest-linked-copy', 'nested-release', 'recent-release.tmp')
   $latestCandidates = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/releases') -Force | Where-Object { $_.Name -notin $latestProtected } | ForEach-Object { $_.FullName })
-  & (Join-Path $fixture 'Clean-Releases.ps1') -Apply -KeepLatestOnly
+  & (Join-Path $fixture 'scripts/Clean-Releases.ps1') -Apply -KeepLatestOnly
   foreach ($path in $latestCandidates) {
     Check (-not (Test-Path -LiteralPath $path)) ('KeepLatestOnly removes safe release child: ' + [IO.Path]::GetFileName($path))
   }

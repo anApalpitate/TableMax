@@ -10,7 +10,7 @@
 | 按范围验证、查询历史       | [test](test/README.md)               | `pnpm test -- --scope=<范围>`；默认静音，按实际范围选择                |
 | 生成、转换与审计资源       | [assets](assets/README.md)           | 按平台／游戏／规则资料分类；可能写正式素材或清单                       |
 | 空间、预算、内存和策略分析 | [analysis](analysis/README.md)       | 各工具分别说明只读报告、模拟或写入参数                                 |
-| 清理、压缩、自动收尾       | [maintenance](maintenance/README.md) | 根目录维护入口不变；预览、精确清单与保护继续生效                       |
+| 清理、压缩、自动收尾       | [maintenance](maintenance/README.md) | PowerShell 入口归入 `scripts/`；预览、精确清单与保护继续生效           |
 | 工作区与迁移辅助           | [shared](shared/README.md)           | 跨分类内部接口；测试历史身份兼容                                       |
 
 Node／Python 工具从项目根目录运行，Node 子进程显式使用项目工作目录。PowerShell 维护默认按脚本位置定位源码根，保留受校验的 `-ProjectRoot`。参数、证据及产物位置沿用现有行为，迁移不扩大执行或删除范围。

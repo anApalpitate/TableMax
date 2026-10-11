@@ -26,8 +26,7 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 | `tools/test/fixtures/`                                                         | 验证专用合法状态／存档、进程故障与测量入口；不进入正式包或生产调试 API                                                        |
 | `tools/test/runner/`                                                           | 测试范围归属、历史统计、Vitest排序／阈值及工具回归；`test-scoped.mjs`统一范围入口，另提供历史导入与独立批次，不进入产品运行包 |
 | `apps/server/src/save-codec.mjs`                                               | 服务端 SQLite v1／v2存档解码，共用完整Save重建逻辑；工具依赖服务实现，生产不依赖工具；运行JS与类型声明均纳入服务构建输入      |
-| `Clean-Releases.ps1`、`Clean-Intermediates.ps1`、`Maintain-Project.ps1`        | 手动分类清理及空闲边界容量维护入口；共用 `tools/maintenance/cleanup-local.ps1` 保护                                           |
-| `Compress-Workspace.ps1`                                                       | NTFS 透明压缩与实际分配审计入口；实现及隔离回归在 `tools/`                                                                    |
+| [scripts/](../../scripts/README.md) | 面向日常操作的五个 PowerShell 清理、截图退役、容量维护与透明压缩入口；安全实现及隔离回归在 `tools/maintenance/` |
 | `apps/desktop/native/`                                                         | C# WinForms／net48／x64 外壳：双窗口、WebView2 桥接、显示／声音、私有服务管道、进程与单实例保障及锁定依赖                     |
 | `apps/desktop/src/`                                                            | 网页使用的桌面显示／声音 TypeScript 契约及独立控制逻辑回归；不启动正式窗口或服务                                              |
 | `apps/desktop/release/`                                                        | 完整EXE发布启动器，内置已核验运行ZIP并解压至稳定应用目录；打包、验收和GitHub白名单入口在 `tools/`                             |

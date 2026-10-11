@@ -25,7 +25,7 @@ function Check([bool]$Condition, [string]$Message) {
 function Run-Compression([bool]$Apply, [string]$Label) {
   $captured = [Collections.Generic.List[string]]::new()
   try {
-    & (Join-Path $project 'Compress-Workspace.ps1') -ProjectRoot $fixture -Apply:$Apply *>&1 | ForEach-Object { $captured.Add([string]$_) }
+    & (Join-Path $project 'scripts/Compress-Workspace.ps1') -ProjectRoot $fixture -Apply:$Apply *>&1 | ForEach-Object { $captured.Add([string]$_) }
   }
   catch { $captured.Add($_.Exception.Message); throw }
   finally { $captured | Set-Content -LiteralPath (Join-Path $evidenceRoot ('compression-isolated-' + $Label + '.log')) -Encoding utf8 }

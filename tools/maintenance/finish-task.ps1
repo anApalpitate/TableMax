@@ -42,7 +42,7 @@ try {
     & (Join-Path $taskWorkspace 'tools/maintenance/cleanup-local.ps1') -Kind Intermediates -RegisteredArtifactsManifest $taskPlan -Apply
   }
   $taskReport.stages += 'registered-artifacts'
-  $taskReport.capacity = & (Join-Path $taskWorkspace 'Maintain-Project.ps1') -Apply
+  $taskReport.capacity = & (Join-Path $taskWorkspace 'scripts/Maintain-Project.ps1') -Apply
   $taskReport.result = 'completed'
 } catch {
   $taskReport.result = 'blocked'; $taskReport.errors += $_.Exception.Message

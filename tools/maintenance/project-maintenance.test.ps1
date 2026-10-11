@@ -24,7 +24,7 @@ function Fixture-File([string]$Relative, [long]$Bytes = 100, [int]$AgeHours = 2)
   return $path
 }
 function Run-Maintenance([bool]$Apply = $false, [double]$High = 0.001, [double]$Low = 0.0005, [string]$ScriptRoot = $primary) {
-  & (Join-Path $ScriptRoot 'Maintain-Project.ps1') -Apply:$Apply -HighWaterGiB $High -LowWaterGiB $Low
+  & (Join-Path $ScriptRoot 'scripts/Maintain-Project.ps1') -Apply:$Apply -HighWaterGiB $High -LowWaterGiB $Low
 }
 function Git-At([string]$Root, [string[]]$Arguments) {
   & git --no-optional-locks -C $Root @Arguments | Out-Null
@@ -34,7 +34,8 @@ function Git-At([string]$Root, [string[]]$Arguments) {
 try {
   New-Item -ItemType Directory -Path (Join-Path $primary 'tools/maintenance') -Force | Out-Null
   [IO.File]::WriteAllText((Join-Path $primary 'package.json'), '{"name":"tablemax","version":"1.6.0"}')
-  Copy-Item -LiteralPath (Join-Path $workspaceForTest 'Maintain-Project.ps1') -Destination $primary
+  New-Item -ItemType Directory -Path (Join-Path $primary 'scripts') -Force | Out-Null
+  Copy-Item -LiteralPath (Join-Path $workspaceForTest 'scripts/Maintain-Project.ps1') -Destination (Join-Path $primary 'scripts')
   Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'cleanup-local.ps1') -Destination (Join-Path $primary 'tools/maintenance')
   foreach ($support in @('cleanup-guard.ps1','WorkspaceSnapshot.cs')) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $support) -Destination (Join-Path $primary 'tools/maintenance') }
   Git-At $primary @('init', '--quiet')
@@ -47,14 +48,14 @@ try {
   Check (-not (Test-Path -LiteralPath (Join-Path $primary 'artifacts'))) 'A no-op creates no logs or directories'
   $fromSecondary = Run-Maintenance $false 0.001 0.0005 $secondary
   Check ($fromSecondary.workspace -eq $primary -and $fromSecondary.bytesBefore -eq $initial.bytesBefore) 'Worktree invocation measures the main workspace once, not both checkouts'
-  $explicit = & (Join-Path $secondary 'Maintain-Project.ps1') -ProjectRoot $secondary
+  $explicit = & (Join-Path $secondary 'scripts/Maintain-Project.ps1') -ProjectRoot $secondary
   Check ($explicit.workspace -eq $secondary -and $explicit.result -eq 'below-threshold') 'Explicit same-repository checkout is supported'
 
   New-Item -ItemType Directory -Path $foreign -Force | Out-Null
   [IO.File]::WriteAllText((Join-Path $foreign 'package.json'), '{"name":"tablemax","version":"1.6.0"}')
   Git-At $foreign @('init', '--quiet')
   $refused = $false
-  try { & (Join-Path $primary 'Maintain-Project.ps1') -ProjectRoot $foreign | Out-Null }
+  try { & (Join-Path $primary 'scripts/Maintain-Project.ps1') -ProjectRoot $foreign | Out-Null }
   catch { $refused = $_.Exception.Message -like '*unrelated projects*' }
   Check $refused 'An unrelated repository is rejected despite the same package name'
 
@@ -134,6 +135,55 @@ try {
   $refused = $false
   try { Run-Maintenance $false 1 1 | Out-Null } catch { $refused = $_.Exception.Message -like '*lower low-water*' }
   Check $refused 'Invalid high/low water marks are rejected'
+
+  # All public entries must resolve their owning checkout from scripts/, even
+  # when the caller's working directory belongs to an unrelated repository.
+  $entryRoot = Join-Path $fixture 'entrypoints'
+  $entryScripts = Join-Path $entryRoot 'scripts'
+  $entryTools = Join-Path $entryRoot 'tools/maintenance'
+  New-Item -ItemType Directory -Path $entryScripts, $entryTools, (Join-Path $entryRoot 'artifacts/releases'), (Join-Path $entryRoot 'artifacts/maintenance/portable'), (Join-Path $entryRoot 'tmp/display-ENT123') -Force | Out-Null
+  [IO.File]::WriteAllText((Join-Path $entryRoot 'package.json'), '{"name":"tablemax","version":"1.6.0"}')
+  Git-At $entryRoot @('init', '--quiet')
+  foreach ($entry in @('Clean-Intermediates.ps1','Clean-Releases.ps1','Clean-ReleaseScreenshots.ps1','Compress-Workspace.ps1','Maintain-Project.ps1')) {
+    Copy-Item -LiteralPath (Join-Path $workspaceForTest ('scripts/' + $entry)) -Destination $entryScripts
+  }
+  foreach ($support in @('cleanup-local.ps1','cleanup-guard.ps1','WorkspaceSnapshot.cs','compress-workspace.ps1')) {
+    Copy-Item -LiteralPath (Join-Path $PSScriptRoot $support) -Destination $entryTools
+  }
+  $entryArchive = Join-Path $entryRoot 'artifacts/releases/TableMax-1.6.0-win-x64.zip'
+  [IO.File]::WriteAllText($entryArchive, 'current archive fixture')
+  $entryHash = (Get-FileHash -LiteralPath $entryArchive).Hash.ToLowerInvariant()
+  [IO.File]::WriteAllText((Join-Path $entryRoot 'artifacts/maintenance/portable/results.json'), ('{"portable":true,"result":"passed","archiveSha256":"' + $entryHash + '"}'))
+  $entryOldArchive = Join-Path $entryRoot 'artifacts/releases/TableMax-1.4.0-win-x64.zip'
+  $entryTemporary = Join-Path $entryRoot 'tmp/display-ENT123/generated.bin'
+  $entryScreenshot = Join-Path $entryRoot 'artifacts/releases/verify-original.png'
+  foreach ($entryPath in @($entryOldArchive,$entryTemporary,$entryScreenshot)) {
+    [IO.File]::WriteAllText($entryPath, 'old generated fixture')
+    (Get-Item -LiteralPath $entryPath).LastWriteTimeUtc = [DateTime]::UtcNow.AddHours(-2)
+  }
+  foreach ($callerRoot in @($entryRoot,$foreign)) {
+    Push-Location -LiteralPath $callerRoot
+    try {
+      $entryMaintenance = & (Join-Path $entryScripts 'Maintain-Project.ps1')
+      Check ($entryMaintenance.workspace -eq $entryRoot -and $entryMaintenance.result -eq 'below-threshold') ('Maintenance resolves owning checkout from caller: ' + [IO.Path]::GetFileName($callerRoot))
+      foreach ($entry in @('Clean-Intermediates.ps1','Clean-Releases.ps1')) {
+        $entryPreview = (@(& (Join-Path $entryScripts $entry) 6>&1) | ForEach-Object { [string]$_ }) -join "`n"
+        Check ($entryPreview.Contains('Preserving current verified ZIP: ' + $entryArchive) -and $entryPreview.Contains('PREVIEW ONLY.')) ($entry + ' previews the owning checkout from caller: ' + [IO.Path]::GetFileName($callerRoot))
+      }
+      $entryCompression = (& (Join-Path $entryScripts 'Compress-Workspace.ps1') | ConvertFrom-Json)
+      Check ($entryCompression.workspace -eq $entryRoot -and -not $entryCompression.apply) ('Compression resolves owning checkout from caller: ' + [IO.Path]::GetFileName($callerRoot))
+      & (Join-Path $entryScripts 'Clean-ReleaseScreenshots.ps1')
+    } finally { Pop-Location }
+  }
+  $entryScreenshotReports = @(Get-ChildItem -LiteralPath (Join-Path $entryRoot 'artifacts/maintenance/v1.6.0/release-screenshots-cleanup') -Filter *.json)
+  Check ($entryScreenshotReports.Count -eq 2) 'Screenshot previews write evidence only inside the owning checkout'
+  foreach ($entryReport in $entryScreenshotReports) {
+    $entryRecord = Get-Content -LiteralPath $entryReport.FullName -Raw -Encoding utf8 | ConvertFrom-Json
+    Check ($entryRecord.mode -eq 'preview' -and $entryRecord.items.Count -eq 1 -and $entryRecord.items[0].path -eq $entryScreenshot -and -not $entryRecord.items[0].deleted) 'Screenshot preview selects only its checkout release screenshot without deletion'
+  }
+  Check ((Get-FileHash -LiteralPath $entryArchive).Hash.ToLowerInvariant() -eq $entryHash -and (Test-Path -LiteralPath $entryOldArchive) -and (Test-Path -LiteralPath $entryTemporary) -and (Test-Path -LiteralPath $entryScreenshot)) 'All public-entry previews preserve current package and generated candidates'
+  Check (-not (Test-Path -LiteralPath (Join-Path $foreign 'artifacts'))) 'Foreign caller receives no generated output or cleanup scope'
+
   $evidenceRoot = if ($EvidenceDirectory) { [IO.Path]::GetFullPath($EvidenceDirectory) } else { Join-Path $workspaceForTest 'artifacts/maintenance/project-maintenance-tools' }
   New-Item -ItemType Directory -Path $evidenceRoot -Force | Out-Null
   [PSCustomObject]@{ verifiedAt = [DateTime]::UtcNow.ToString('o'); result = 'passed'; checks = $checks.ToArray(); runtime = $PSVersionTable.PSVersion.ToString() } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $evidenceRoot 'tool-tests.json') -Encoding utf8

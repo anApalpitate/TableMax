@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([switch]$Apply, [ValidateRange(0,10080)][int]$MinimumAgeMinutes = 30)
 $ErrorActionPreference = 'Stop'
-$workspace = $PSScriptRoot
+$workspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\')
 $sourceWorkspace = $workspace
 . (Join-Path $workspace 'tools/maintenance/cleanup-guard.ps1')
 if (-not ('TableMax.WorkspaceSnapshotV2' -as [type])) { Add-Type -Path (Join-Path $workspace 'tools/maintenance/WorkspaceSnapshot.cs') }

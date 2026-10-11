@@ -1,10 +1,18 @@
 # 项目瘦身方案与执行记录
 
+## PowerShell 入口迁移与项目瘦身（2026-10-11）
+
+根目录五个 PowerShell 入口归入 [scripts/](../../scripts/README.md)，自动收尾、隔离夹具及文档引用同步迁移；参数和安全保护不变。9份修改脚本解析、入口定位及323项隔离检查通过，覆盖根目录和无关工作目录调用。第一轮3项检查因 Windows PowerShell 模块路径失败，修正一次性验证驱动后仅重跑受影响项，原失败记录保留。产品与运行资源未变，当前v1.0.6无需重打包。
+
+工程进程退出后，从已审计的11份可再生运行副本中，预览并按精确名称退役6份到龄副本，[清理记录](../../artifacts/maintenance/local-cleanup-20261011-062746-513-intermediates/cleanup.json)确认回收 **794,746,282逻辑字节（约758MiB）**。其余5份在预览时仍受30分钟保护；未登记的互动／旧存档兼容夹具及旧源码继续保留，不等待到龄或放宽保护。相关96张验收PNG、原结果、当前ZIP／清单、原素材、规则和正式存档均在删除范围之外。过期构建缓存及release预览均为0候选；缓存预览所需子进程在沙箱中遭EPERM，取得只读执行权限后正常通过，未绕过进程保护。
+
+初始实测 **9,227,661,243字节（约8.594GiB）**；最终空闲 `scripts/Maintain-Project.ps1 -Apply` 实测 **8,433,794,472字节（约7.855GiB）**，低于默认10GiB阈值，广域追加删除0。净逻辑下降793,866,771字节，与删除量的差额来自本轮新增记录；1,764链接跳过、无嵌套仓库，不以NTFS物理节省抵扣逻辑容量。当前ZIP实测43,590,592字节，SHA-256仍为`a8cafdf3f06e18c755bbb2f4cc90942f3673f70d6ca617dc2dcf945d7994b3dc`。完整范围、失败边界、保护与容量见[汇总审计](../../artifacts/maintenance/v1.0.6/scripts-slimming-20261011/results.json)。
+
 ## 前四条修复交付收尾（2026-10-11）
 
 全部工程进程退出后，安全预览／删除一个到龄且通过座位验证的临时夹具，退役2,013,769逻辑字节；[删除记录](../../artifacts/maintenance/local-cleanup-20261011-050547-046-intermediates/cleanup.json)绑定当前已验证ZIP。release清理预览0候选／2跳过，两个本轮打包过程目录受30分钟近期保护，未绕过保护移走或强删。当前ZIP／清单、验收与失败截图、原素材、规则和存档保留。
 
-最终 `Maintain-Project.ps1 -Apply` 实测8,744,215,204逻辑字节（8.144GiB），低于10GiB阈值，广域删除0；保留依赖与工具缓存，没有以物理压缩计入空间或包预算。当前运行ZIP 43,567,011字节、313成员／解压97,365,727字节，源码与668份冻结输入已核对，7份原生文本仅换行差异。[实际容量](../../artifacts/maintenance/v1.0.6/bug-first-four/space.json)与[交付证明](../../artifacts/maintenance/v1.0.6/bug-first-four/results.json)保存细节，旧包另存对应历史证据，不覆盖原验收SHA。
+最终 `scripts/Maintain-Project.ps1 -Apply` 实测8,744,215,204逻辑字节（8.144GiB），低于10GiB阈值，广域删除0；保留依赖与工具缓存，没有以物理压缩计入空间或包预算。当前运行ZIP 43,567,011字节、313成员／解压97,365,727字节，源码与668份冻结输入已核对，7份原生文本仅换行差异。[实际容量](../../artifacts/maintenance/v1.0.6/bug-first-four/space.json)与[交付证明](../../artifacts/maintenance/v1.0.6/bug-first-four/results.json)保存细节，旧包另存对应历史证据，不覆盖原验收SHA。
 
 
 ## 检查环境修复与继续瘦身（2026-10-10）
@@ -23,19 +31,19 @@
 
 ## 盒子12席显示兼容收尾（2026-10-10）
 
-本轮93组源码布局检查、结束操作与人数筛选通过，全部构建／浏览器进程已退出。[维护实测](../../artifacts/maintenance/v1.0.6/box-seats/maintenance-final.log)为 **10,331,898,891逻辑字节（9.622GiB）**，低于10GiB，`Maintain-Project.ps1 -Apply`追加删除0，不扩大清理。三份已结束源码夹具约6MB经精确预览核对，仍保留默认30分钟近期保护；首次手动清理因沙箱CIM进程查询限制未执行删除，之后按默认维护入口收尾。当前ZIP／清单、素材、规则资料、存档、失败报告和8张当前源码截图保留，未重新打包。
+本轮93组源码布局检查、结束操作与人数筛选通过，全部构建／浏览器进程已退出。[维护实测](../../artifacts/maintenance/v1.0.6/box-seats/maintenance-final.log)为 **10,331,898,891逻辑字节（9.622GiB）**，低于10GiB，`scripts/Maintain-Project.ps1 -Apply`追加删除0，不扩大清理。三份已结束源码夹具约6MB经精确预览核对，仍保留默认30分钟近期保护；首次手动清理因沙箱CIM进程查询限制未执行删除，之后按默认维护入口收尾。当前ZIP／清单、素材、规则资料、存档、失败报告和8张当前源码截图保留，未重新打包。
 
 ## 阿瓦隆制作收尾（2026-10-10）
 
 最终阿瓦隆ZIP的五人／六人原生验证、单图审查、冻结源码与实际包审计通过，全部本轮构建／验证／审计进程退出后，先沿既有入口预览，再精确退役4个本次打包目录 **953,328,584字节** 和17个已结束浏览器／实际解压副本 **858,501,525字节**，合计 **1,811,830,109字节**。手动精确范围采用已确认结束候选的MinimumAgeMinutes=0，路径、活动进程、链接、目录指纹与当前ZIP保护均保留；自动维护仍采用30分钟保护。实际范围、逐项结果与原清单见 [本轮收尾](../../artifacts/maintenance/v1.0.6/avalon/cleanup-result.json)，[预览记录](../../artifacts/maintenance/v1.0.6/avalon/cleanup-preview-summary.json)、[release清单](../../artifacts/maintenance/local-cleanup-20261010-063202-412-releases/cleanup.json)和 [临时副本清单](../../artifacts/maintenance/local-cleanup-20261010-063231-796-intermediates/cleanup.json)。
 
-随后执行Maintain-Project.ps1 -Apply，实际 **10,322,446,955逻辑字节（9.614GiB）**，结果below-threshold，低于10GiB触发门槛，零追加删除；不为追求8GiB扩大清理。见 [维护实测](../../artifacts/maintenance/v1.0.6/avalon/maintenance-result.json)和 [日志](../../artifacts/maintenance/v1.0.6/avalon/maintenance-final.log)。当前43,563,681字节运行ZIP与清单、完整与定向验收图、13轮原生结果及SQLite证据、原素材／PCM、2012规则资料、源码冻结与24份原日志均保留；release仅当前ZIP／清单。最终ZIP哈希48d71a06…在清理后再次一致，NTFS物理节省不计入逻辑容量或包门禁。
+随后执行scripts/Maintain-Project.ps1 -Apply，实际 **10,322,446,955逻辑字节（9.614GiB）**，结果below-threshold，低于10GiB触发门槛，零追加删除；不为追求8GiB扩大清理。见 [维护实测](../../artifacts/maintenance/v1.0.6/avalon/maintenance-result.json)和 [日志](../../artifacts/maintenance/v1.0.6/avalon/maintenance-final.log)。当前43,563,681字节运行ZIP与清单、完整与定向验收图、13轮原生结果及SQLite证据、原素材／PCM、2012规则资料、源码冻结与24份原日志均保留；release仅当前ZIP／清单。最终ZIP哈希48d71a06…在清理后再次一致，NTFS物理节省不计入逻辑容量或包门禁。
 
 ## UNO v1.0.6 交互优化收尾（2026-10-10）
 
 最终ZIP的2／3／4／6人、手机／桌面、实际触控、特殊动作与旧版恢复通过后，工程进程退出，预览并清理release旧版副本 **41,686,696字节**，见[清单](../../artifacts/maintenance/local-cleanup-20261010-045052-195-releases/cleanup.json)。旧版已按原SHA保存到`artifacts/maintenance/v1.0.6/uno-ui/delivery-v1.0.5/`，原验收与原素材继续保留；本地release目录仅当前ZIP及清单。两份本轮近期生成阶段目录原样移入tmp，零删除／零容量节省，不作长期历史归档，见[移动记录](../../artifacts/maintenance/v1.0.6/uno-ui/stage-relocation.json)。
 
-普通中间物预览没有到龄候选；随后`Maintain-Project.ps1 -Apply`按10GiB→8GiB默认门槛执行，退役1份到龄验证副本 **31,150,337字节**。最终实际 **14,237,283,404逻辑字节（13.260GiB）**，结果`candidates-exhausted`，见[维护清单](../../artifacts/maintenance/local-cleanup-20261010-045424-322-maintenance/cleanup.json)与[日志](../../artifacts/maintenance/v1.0.6/uno-ui/maintenance-final.log)。18个近期候选、310个用途未纳入标准清理的临时项、依赖／构建缓存及其他任务内容继续保护；1,760链接跳过，无嵌套仓库，不扩大删除或以NTFS物理节省代替逻辑容量。
+普通中间物预览没有到龄候选；随后`scripts/Maintain-Project.ps1 -Apply`按10GiB→8GiB默认门槛执行，退役1份到龄验证副本 **31,150,337字节**。最终实际 **14,237,283,404逻辑字节（13.260GiB）**，结果`candidates-exhausted`，见[维护清单](../../artifacts/maintenance/local-cleanup-20261010-045424-322-maintenance/cleanup.json)与[日志](../../artifacts/maintenance/v1.0.6/uno-ui/maintenance-final.log)。18个近期候选、310个用途未纳入标准清理的临时项、依赖／构建缓存及其他任务内容继续保护；1,760链接跳过，无嵌套仓库，不扩大删除或以NTFS物理节省代替逻辑容量。
 
 ## 盒子游戏库与仓库入口收尾（2026-10-10）
 
@@ -43,13 +51,13 @@
 
 [维护预览](../../artifacts/maintenance/v1.0.6/game-library/maintenance-preview.json)实测14,278,077,343逻辑字节（约13.297GiB），超过10GiB；当时当前ZIP正在另一任务验证，预览因没有匹配的便携通过证明而停止。随后自动审批因UNO实际验证仍运行而拒绝清理，所有文件保留，没有结束其他任务进程或绕过保护。
 
-工程进程退出并取得当前ZIP匹配证明后，先按四个精确目录预览，再由 `Clean-Intermediates.ps1` 退役本轮已结束源码验证副本 **6,004,170字节**，见[清理记录](../../artifacts/maintenance/local-cleanup-20261010-045053-580-intermediates/cleanup.json)。随后 `Maintain-Project.ps1 -Apply` [实测](../../artifacts/maintenance/v1.0.6/game-library/maintenance-result.json) **14,231,275,318逻辑字节（约13.254GiB）**，零可用安全候选、328项保护跳过、1,764链接跳过；仍超过10GiB，不扩大删除范围。新的 `tmp/box-repository-fbed1f` 独立原生程序尚未登记进清理白名单，继续保留；当前交付、验收及全部原始内容受保护。容量分别对应当时实测，不把并行任务清理或NTFS物理节省计成本轮退役量。
+工程进程退出并取得当前ZIP匹配证明后，先按四个精确目录预览，再由 `scripts/Clean-Intermediates.ps1` 退役本轮已结束源码验证副本 **6,004,170字节**，见[清理记录](../../artifacts/maintenance/local-cleanup-20261010-045053-580-intermediates/cleanup.json)。随后 `scripts/Maintain-Project.ps1 -Apply` [实测](../../artifacts/maintenance/v1.0.6/game-library/maintenance-result.json) **14,231,275,318逻辑字节（约13.254GiB）**，零可用安全候选、328项保护跳过、1,764链接跳过；仍超过10GiB，不扩大删除范围。新的 `tmp/box-repository-fbed1f` 独立原生程序尚未登记进清理白名单，继续保留；当前交付、验收及全部原始内容受保护。容量分别对应当时实测，不把并行任务清理或NTFS物理节省计成本轮退役量。
 
 ## 盒子通知优化收尾（2026-10-10）
 
 源码通知单测与盒子渲染验证完成、工程进程退出后，精确预览并退役本轮6个 `tmp/box-layout-*` 隔离副本，共11,566,799字节，见[清理清单](../../artifacts/maintenance/local-cleanup-20261010-040729-375-intermediates/cleanup.json)。当前ZIP、原素材、存档、通知截图／报告和逐项测试历史继续保留。
 
-随后执行 `Maintain-Project.ps1 -Apply`，初始11,065,835,202逻辑字节；16个已识别旧验证副本退役1,201,835,930字节，最终实际 **9,864,057,781字节（约9.19GiB）**，结果 `candidates-exhausted`，见[维护清单](../../artifacts/maintenance/local-cleanup-20261010-040825-815-maintenance/cleanup.json)与[日志](../../artifacts/maintenance/v1.0.5/box-notifications/maintenance-final.log)。986链接跳过、零嵌套仓库；安全候选耗尽后停止，不扩大至依赖缓存、素材或用途未知内容。
+随后执行 `scripts/Maintain-Project.ps1 -Apply`，初始11,065,835,202逻辑字节；16个已识别旧验证副本退役1,201,835,930字节，最终实际 **9,864,057,781字节（约9.19GiB）**，结果 `candidates-exhausted`，见[维护清单](../../artifacts/maintenance/local-cleanup-20261010-040825-815-maintenance/cleanup.json)与[日志](../../artifacts/maintenance/v1.0.5/box-notifications/maintenance-final.log)。986链接跳过、零嵌套仓库；安全候选耗尽后停止，不扩大至依赖缓存、素材或用途未知内容。
 
 ## UNO 完整制作收尾（2026-10-10）
 
@@ -59,19 +67,19 @@
 
 [空闲维护](../../artifacts/maintenance/v1.0.5/uno-20261010/maintenance-final.log)初始11,944,020,974逻辑字节（11.124GiB），11个安全候选退役878,945,438字节；最终实际 **11,065,160,003字节（约10.305GiB）**，结果 `candidates-exhausted`，见 [维护清单](../../artifacts/maintenance/local-cleanup-20261009-190041-309-maintenance/cleanup.json)。986链接跳过、零嵌套仓库；近期、用途未知、依赖／工具缓存及原始内容继续保护。仍超过10GiB且安全候选耗尽，只报告，不扩大删除、不常驻轮询、不采用NTFS节省抵扣逻辑水位。手动与自动候选合计退役1,560,336,113字节，容量数字只对应本次实测时点。
 
-此前2026-10-10同版本附件替换收尾：已结束本轮工程进程，按精确清单预览后删除5个验证临时目录（362729549字节）和1个打包目录（230264211字节），合计592993760字节；当时EXE、运行ZIP、source ZIP、逐文件清单及历史验收证据保留。清理明细见[临时目录](../../artifacts/maintenance/local-cleanup-20261009-162153-832-intermediates/cleanup.json)、[打包目录](../../artifacts/maintenance/local-cleanup-20261009-162222-507-releases/cleanup.json)。当时 `Maintain-Project.ps1 -Apply` 实测逻辑空间8857752882字节（8.249GiB），低于10GiB阈值，见[维护记录](../../artifacts/maintenance/v1.0.5/release-replace-20261010/maintenance-final.log)。
+此前2026-10-10同版本附件替换收尾：已结束本轮工程进程，按精确清单预览后删除5个验证临时目录（362729549字节）和1个打包目录（230264211字节），合计592993760字节；当时EXE、运行ZIP、source ZIP、逐文件清单及历史验收证据保留。清理明细见[临时目录](../../artifacts/maintenance/local-cleanup-20261009-162153-832-intermediates/cleanup.json)、[打包目录](../../artifacts/maintenance/local-cleanup-20261009-162222-507-releases/cleanup.json)。当时 `scripts/Maintain-Project.ps1 -Apply` 实测逻辑空间8857752882字节（8.249GiB），低于10GiB阈值，见[维护记录](../../artifacts/maintenance/v1.0.5/release-replace-20261010/maintenance-final.log)。
 
 ## 玩家互动音效验证收尾（2026-10-09）
 
 同包声音核验通过、本工程进程退出后，按精确预览退役本轮实际ZIP解压副本与浏览器临时数据，共112,251,506字节，见[中间物清理](../../artifacts/maintenance/local-cleanup-20261009-132524-021-intermediates/cleanup.json)；再退役一个release打包过程目录230,262,543字节，见[release清理](../../artifacts/maintenance/local-cleanup-20261009-132650-195-releases/cleanup.json)，合计342,514,049字节。当前ZIP／清单、旧包备份、原资料及声音红例／最终验收保留；未识别的早期探针目录继续按工具保护保留，没有转存清理归档。
 
-`Maintain-Project.ps1 -Apply`实测8,479,114,943逻辑字节（约7.897GiB），低于10GiB，自动删除0、跳过983链接，见[最终维护日志](../../artifacts/maintenance/v1.0.5/player-interaction-audio/maintenance-final.log)。外部下载目录的独立TableMax继续运行；它与本工作区的路径／参数均无关，没有结束用户程序。该水位对应维护时点，后续文档和Git写入另增。
+`scripts/Maintain-Project.ps1 -Apply`实测8,479,114,943逻辑字节（约7.897GiB），低于10GiB，自动删除0、跳过983链接，见[最终维护日志](../../artifacts/maintenance/v1.0.5/player-interaction-audio/maintenance-final.log)。外部下载目录的独立TableMax继续运行；它与本工作区的路径／参数均无关，没有结束用户程序。该水位对应维护时点，后续文档和Git写入另增。
 
 2026-10-09，拉密完整交付收尾按精确预览退役两个release打包过程目录，删除460,520,308字节；当前ZIP／清单、原已发布附件与验收证据保护，见[清理记录](../../artifacts/maintenance/local-cleanup-20261009-043721-393-releases/cleanup.json)。空闲安全维护实测8,347,570,674逻辑字节（7.774GiB），低于10GiB，自动删除0、跳过983链接，[实际日志](../../artifacts/maintenance/v1.0.5/rummikub-20261009/maintain-authoritative-final.log)。新拉密临时范围未擅自扩入旧工具白名单，保留存档及来源资料。
 
 ## v1.0.5 同步优化收尾（2026-10-09）
 
-全部本轮服务与验收进程退出后执行`Maintain-Project.ps1 -Apply`，实际逻辑字节6,622,672,315（约6.17GiB），低于10GiB阈值，未删除或采用NTFS压缩抵扣。结果见[维护记录](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/checks/maintenance.json)。`Clean-Releases.ps1 -KeepLatestOnly`预览及Apply均无到龄候选，两个本轮打包过程目录仍受30分钟保护；原样放入`tmp/delivery-stage-package-1.0.5-ShkA7e`及`tmp/delivery-stage-package-1.0.5-28dfGH`，不计为删除或容量节省，不建立历史归档副本。releases仅保留当前运行ZIP及清单；素材、存档和本轮截图／失败证据保持原位。容量对应维护测量时点，后续少量文档／提交记录字节另增。
+全部本轮服务与验收进程退出后执行`scripts/Maintain-Project.ps1 -Apply`，实际逻辑字节6,622,672,315（约6.17GiB），低于10GiB阈值，未删除或采用NTFS压缩抵扣。结果见[维护记录](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/checks/maintenance.json)。`scripts/Clean-Releases.ps1 -KeepLatestOnly`预览及Apply均无到龄候选，两个本轮打包过程目录仍受30分钟保护；原样放入`tmp/delivery-stage-package-1.0.5-ShkA7e`及`tmp/delivery-stage-package-1.0.5-28dfGH`，不计为删除或容量节省，不建立历史归档副本。releases仅保留当前运行ZIP及清单；素材、存档和本轮截图／失败证据保持原位。容量对应维护测量时点，后续少量文档／提交记录字节另增。
 
 ## 历史归档与旧版本退役（2026-10-09）
 
@@ -83,7 +91,7 @@
 
 本轮运行ZIP40,851,905字节、实际解压94,333,009字节，同包原生／浏览器互动检查及精准补拍通过；旧同版ZIP和清单保留在`artifacts/maintenance/v1.0.5/interaction-refinement/delivery-before-refinement/`，原素材、来源、失败及当前验收截图保留。互动媒体195,117字节；没有推送或GitHub Release。
 
-全部工程应用退出后，`Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0`先预览再Apply，退役已完成打包副本229,573,074字节，releases只留当前运行ZIP和清单。随后按默认30分钟保护执行`Maintain-Project.ps1 -Apply`，两项已知隔离验证副本退役227,957,462字节；两者是审计退役量，不冒充工作区净降幅。所有清理记录[原样集中归档](../../artifacts/maintenance/cleanup-history/operations/interaction-refinement-20261009-directory-move.json)，逐文件字节／SHA核验并更新索引，目录移动不计空间节省。
+全部工程应用退出后，`scripts/Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0`先预览再Apply，退役已完成打包副本229,573,074字节，releases只留当前运行ZIP和清单。随后按默认30分钟保护执行`scripts/Maintain-Project.ps1 -Apply`，两项已知隔离验证副本退役227,957,462字节；两者是审计退役量，不冒充工作区净降幅。所有清理记录[原样集中归档](../../artifacts/maintenance/cleanup-history/operations/interaction-refinement-20261009-directory-move.json)，逐文件字节／SHA核验并更新索引，目录移动不计空间节省。
 
 [维护最终实测](../../artifacts/maintenance/v1.0.5/interaction-refinement/checks/maintenance-apply.log)为15,146,704,131逻辑字节（约14.106GiB），219项保护／用途待确认内容跳过、1,370链接跳过，零嵌套仓库，结果candidates-exhausted。仍超过10GiB，已耗尽安全候选，未扩大清理范围或以NTFS物理节省替代逻辑门槛；原资料、正式存档、依赖／工具缓存、当前包及审计原件继续保留。后续文字与Git写入会略增，此值仅对应实测时点。
 
@@ -97,7 +105,7 @@ v1.0.5实际ZIP40,857,197字节／解压94,363,202字节，120MB硬上限与114M
 
 最终运行ZIP `d08c299b…` 的完整显示、盒子、新连接入口、HTTP／HTTPS等价故障与完整EXE核验通过，全部工程进程退出后才执行安全清理，保留默认30分钟近期保护。先预览再Apply：[7份过期打包暂存（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)退役 **1,619,378,488字节**，[16份明确隔离测试副本（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)退役 **1,592,680,400字节**；另按逐文件审计[退役两个旧测试浏览器配置目录（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json) **100,581,893字节**，原同级SQLite、设置、报告及库存证明哈希不变。两份用途不能确定的旧浏览器状态继续保留。
 
-[构建缓存清理](../../artifacts/maintenance/v1.0.4/build-cache-cleanup/1791445362710-apply.json)退役49份过期生成产物，清单输出合计 **88,005,562字节**；当前开发与交付快照、每单元最近两份成功产物、依赖和工具缓存保留。随后 `Maintain-Project.ps1 -Apply` [退役57项已过保护期的生成副本（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json) **6,186,650,654字节**。本轮[审计退役量](../../artifacts/maintenance/v1.0.4/network-adaptation/cleanup-summary.json)合计 **9,587,296,997字节（约8.929GiB）**，其中缓存只统计输出清单，不能把这个量冒充工程净下降或NTFS物理释放。
+[构建缓存清理](../../artifacts/maintenance/v1.0.4/build-cache-cleanup/1791445362710-apply.json)退役49份过期生成产物，清单输出合计 **88,005,562字节**；当前开发与交付快照、每单元最近两份成功产物、依赖和工具缓存保留。随后 `scripts/Maintain-Project.ps1 -Apply` [退役57项已过保护期的生成副本（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json) **6,186,650,654字节**。本轮[审计退役量](../../artifacts/maintenance/v1.0.4/network-adaptation/cleanup-summary.json)合计 **9,587,296,997字节（约8.929GiB）**，其中缓存只统计输出清单，不能把这个量冒充工程净下降或NTFS物理释放。
 
 [自动维护最终实测](../../artifacts/maintenance/v1.0.4/network-adaptation/checks/maintenance-final.log)从20,307,216,695降至 **14,120,624,037逻辑字节（约13.151GiB）**；起点在手动退役和缓存清理之后。10GiB／8GiB规则下结果candidates-exhausted，192项保护／用途待确认内容跳过，1,370链接跳过、零嵌套仓库；仍超门限，不扩大删除范围。与本轮开始前只读水位13,974,399,310字节相比净增146,224,727字节，期间新增并保留实际验收、失败画面和候选原包；退役量与新增证据、实际容量分别记录。后续source ZIP、审计及Git写入会继续略增。
 
@@ -225,7 +233,7 @@ v1.0.5实际ZIP40,857,197字节／解压94,363,202字节，120MB硬上限与114M
 
 先完成全部应用／构建／验证并确认退出，再预览清理，核对后 Apply。按顺序处理当前 releases 的打包残留、已知验证临时目录、显式历史包／可再生副本及重复截图；最后执行自动维护和无损透明压缩。
 
-手动历史退役使用 `Clean-Intermediates.ps1 -RetiredGeneratedManifest <清单>`。清单必须绑定当前通过便携检查的 ZIP 哈希，逐项注明精确路径、类别、理由、完整文件大小／SHA-256 和保留证据路径／SHA-256。工具复核目录边界、链接、嵌套 Git、近期修改、进程、互斥及删除前内容；拒绝整个证据目录、平台存档、源码或不认识的类别。默认预览不写日志、不删除；自动维护不采用这一扩展范围。旧缓存限于无活动依赖的两个 Electron 缓存，不能推广为清空 .cache。
+手动历史退役使用 `scripts/Clean-Intermediates.ps1 -RetiredGeneratedManifest <清单>`。清单必须绑定当前通过便携检查的 ZIP 哈希，逐项注明精确路径、类别、理由、完整文件大小／SHA-256 和保留证据路径／SHA-256。工具复核目录边界、链接、嵌套 Git、近期修改、进程、互斥及删除前内容；拒绝整个证据目录、平台存档、源码或不认识的类别。默认预览不写日志、不删除；自动维护不采用这一扩展范围。旧缓存限于无活动依赖的两个 Electron 缓存，不能推广为清空 .cache。
 
 不通过手写递归删除绕过保护。存在链接、未知临时内容或唯一资料时，保留并记录原因；空间目标不能优先于资料完整性。剩余资料可用 NTFS 逐文件透明压缩，保持语义字节与 SHA-256，跳过范围外硬链接、链接目录、只读或无收益文件。
 
@@ -295,7 +303,7 @@ v1.0.5实际ZIP40,857,197字节／解压94,363,202字节，120MB硬上限与114M
 
 先预览、全量SHA审计再执行，继续核验真实工程进程、路径／链接／嵌套仓库、清单与内容变化、文档引用、30分钟和互斥。Windows PowerShell 5.1隔离回归82条及四项工具检查通过；夹具链接只移除链接本身、保留目标SHA。保护集971个文件在手工退役前后完整SHA一致，自动退役成员与它们不相交，最终存在／大小核验通过。原素材、规则资料、正式存档、当前ZIP／清单和关键验收图保留，旧报告、独有失败与必要代表保持原字节；无法确认与原件相同的179,308,064字节旧资源保留。当前ZIP仍为`48d71a06…7550`，未升级版本、重新打包或发布。
 
-实测清理前8,192,714,083字节（7.630GiB），收尾7,125,155,071字节（6.636GiB），净减1,067,559,012字节；新审计、日志和Git元数据解释净减与总删除的差额。既有隐藏收尾完成，缓存安全候选0，`Maintain-Project.ps1 -Apply`低于10GiB门槛、追加删除0；见[维护结果](../../artifacts/maintenance/v1.0.6/screenshot-storage-implementation-20261010/automatic-final/result.json)。未新增NTFS压缩，逻辑字节与物理分配分别计量。
+实测清理前8,192,714,083字节（7.630GiB），收尾7,125,155,071字节（6.636GiB），净减1,067,559,012字节；新审计、日志和Git元数据解释净减与总删除的差额。既有隐藏收尾完成，缓存安全候选0，`scripts/Maintain-Project.ps1 -Apply`低于10GiB门槛、追加删除0；见[维护结果](../../artifacts/maintenance/v1.0.6/screenshot-storage-implementation-20261010/automatic-final/result.json)。未新增NTFS压缩，逻辑字节与物理分配分别计量。
 
 拉密单场真实验证通过，普通封面394,412→96,756字节，编码实减297,656字节（75.5%）；4张关键PNG保留。盒子3浮窗仍全检查，保存2PNG＋1HTML、跳过1张重复图，483,717字节较旧同模式减少61.5%；该生成比较不计入删除量。未因工具变化运行全游戏矩阵；其余旧验证入口按实际任务逐项接入。
 
@@ -307,4 +315,4 @@ v1.0.5实际ZIP40,857,197字节／解压94,363,202字节，120MB硬上限与114M
 
 旧现代艺术空收藏专项因既有UI导航／选择器失败；探索性适配另触发原有文本裁切断言，临时UI适配已撤回，原失败日志和PNG保留。仅截图捕获契约另经真实原生回归通过，不把旧布局项或完整游戏矩阵标为通过。截图接入不扩大自动删除白名单，未构建／替换当前ZIP、升级版本或发布，当前ZIP仍为48d71a06…7550。
 
-工程退出后执行Maintain-Project.ps1 -Apply，实测7,228,521,444逻辑字节（6.732GiB），低于10GiB门槛，追加删除0；近期原生profile继续保护并交由既有清理入口。原素材、规则、存档、当前交付与关键验收保持。源码提交4e53548已推送，工作区其他任务修改保留。
+工程退出后执行scripts/Maintain-Project.ps1 -Apply，实测7,228,521,444逻辑字节（6.732GiB），低于10GiB门槛，追加删除0；近期原生profile继续保护并交由既有清理入口。原素材、规则、存档、当前交付与关键验收保持。源码提交4e53548已推送，工作区其他任务修改保留。

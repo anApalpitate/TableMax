@@ -10,7 +10,7 @@
 2. 预览并修剪过期模块缓存，保护当前开发／交付引用、每单元最近两份成功产物、活动锁／工作目录，以及全部成员的30分钟近期修改。
 3. 读取成功验证登记的临时目录。近期内容记录跳过，不重复哈希；到期后冻结精确成员／SHA-256，审查文档引用，生成 `retirement-plan.json`。
 4. 通过现有 `cleanup-local.ps1` 先预览、再执行登记产物清理。只支持专用生成目录，保留当前 ZIP 证明、进程、路径／链接／嵌套仓库、清单与结果哈希、内容变化、30分钟及互斥保护。
-5. 执行原有 `Maintain-Project.ps1 -Apply`，超过10GiB才进行更广瘦身，目标8GiB或安全候选耗尽。模块缓存与明确登记的临时产物不等待容量门槛。
+5. 执行原有 `scripts/Maintain-Project.ps1 -Apply`，超过10GiB才进行更广瘦身，目标8GiB或安全候选耗尽。模块缓存与明确登记的临时产物不等待容量门槛。
 
 保护未到期或其他进程正在运行时，等下一次构建／验证或手动收尾，不自动重试。阻塞不会把构建或验证结果改为失败，但维护结果会明确记录 `blocked`。构建异常另保存在 `artifacts/maintenance/v<版本>/build-failures/`，不覆盖当前通过快照。
 
@@ -55,9 +55,9 @@ node --test tools/maintenance/maintenance.test.mjs
 
 ## 手动与专项工具索引
 
-已审查的旧候选包图、重复矩阵和与源资产完全相同的生成副本使用 `Clean-Intermediates.ps1 -ImageCopiesManifest <maintenance内清单>`，先预览后 `-Apply`。清单须绑定当前 ZIP、保护文件和保留报告；源副本须与 `assets/` 原件字节／SHA 一致。仅处理列出的图片，保留目录、报告、源码、存档、独有失败和关键代表，不纳入自动维护。只接受工具内明确核验过的旧 UNO／拉密目录与生成 bundle/assets 子路径；新增类别先审计并补隔离回归。哈希、文档引用、路径／链接／嵌套仓库、30分钟、进程和互斥保护仍有效。详见[开发环境](../../docs/reference/development.md#清理本地中间物)。
+已审查的旧候选包图、重复矩阵和与源资产完全相同的生成副本使用 `scripts/Clean-Intermediates.ps1 -ImageCopiesManifest <maintenance内清单>`，先预览后 `-Apply`。清单须绑定当前 ZIP、保护文件和保留报告；源副本须与 `assets/` 原件字节／SHA 一致。仅处理列出的图片，保留目录、报告、源码、存档、独有失败和关键代表，不纳入自动维护。只接受工具内明确核验过的旧 UNO／拉密目录与生成 bundle/assets 子路径；新增类别先审计并补隔离回归。哈希、文档引用、路径／链接／嵌套仓库、30分钟、进程和互斥保护仍有效。详见[开发环境](../../docs/reference/development.md#清理本地中间物)。
 
-日常清理优先使用根目录 `Clean-Releases.ps1`、`Clean-Intermediates.ps1`、`Maintain-Project.ps1`，压缩使用 `Compress-Workspace.ps1`。根入口参数保持不变；手动先预览，核对后才 `-Apply`。
+日常清理优先使用 `scripts/Clean-Releases.ps1`、`scripts/Clean-Intermediates.ps1`、`scripts/Maintain-Project.ps1`，压缩使用 `scripts/Compress-Workspace.ps1`。入口参数保持不变；手动先预览，核对后才 `-Apply`。
 
 `retire-old-local-runtime.ps1` 只处理有迁移证明的旧用户运行目录，仍为显式专项工具，不纳入自动清理。历史截图／旧清单工具保留精确清单与证据保护；名称带历史不代表可直接删除。`verify-project.mjs` 检查文档、配置和交付清单，写证据报告，不修改交付 ZIP。
 
@@ -76,7 +76,7 @@ node --test tools/maintenance/maintenance.test.mjs
 | [finish-task.ps1](finish-task.ps1)                                               | `powershell -NoProfile -File tools/maintenance/finish-task.ps1 -OutputDirectory <维护证据目录>`      |
 | [historical-screenshots.ps1](historical-screenshots.ps1)                         | 内部辅助；由清理入口加载                                                                             |
 | [historical-screenshots.test.ps1](historical-screenshots.test.ps1)               | 工具隔离回归：`powershell -NoProfile -File tools/maintenance/historical-screenshots.test.ps1`        |
-| [image-copies.ps1](image-copies.ps1)                                             | 内部辅助；由 `Clean-Intermediates.ps1 -ImageCopiesManifest <清单>` 加载                              |
+| [image-copies.ps1](image-copies.ps1)                                             | 内部辅助；由 `scripts/Clean-Intermediates.ps1 -ImageCopiesManifest <清单>` 加载                      |
 | [image-copies.test.ps1](image-copies.test.ps1)                                   | 隔离回归：`powershell -NoProfile -File tools/maintenance/image-copies.test.ps1`                      |
 | [lifecycle.mjs](lifecycle.mjs)                                                   | 内部辅助；由构建／验证入口调用                                                                       |
 | [maintenance.test.mjs](maintenance.test.mjs)                                     | 工具隔离回归：`node --test tools/maintenance/maintenance.test.mjs`                                   |
