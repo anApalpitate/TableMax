@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { OverlayPanel } from '@tablemax/web-host';
 import type { DraftContext, DraftGroup, TurnDraft } from './draft';
 import { NumberTile } from './NumberTile';
+import { ControlIcon } from './ControlIcon';
 import { parseMeld } from '../shared/melds';
 
 export function DraftBoard({
@@ -69,7 +71,7 @@ export function DraftBoard({
                   onClick={() => setTools(tools === group.id ? null : group.id)}
                   disabled={disabled}
                 >
-                  ⋯
+                  <ControlIcon name="more" />
                 </button>
               )}
             </div>
@@ -88,18 +90,21 @@ export function DraftBoard({
                 />
               ))}
             </div>
-            {!readonly && selected.length > 0 && (
-              <div className="rk-meld-drop">
+            {!readonly && (
+              <div
+                className="rk-meld-drop"
+                data-has-selection={selected.length > 0}
+              >
                 <button
                   type="button"
-                  disabled={disabled}
+                  disabled={disabled || !selected.length}
                   onClick={() => move(group.id, 0)}
                 >
                   放到开头
                 </button>
                 <button
                   type="button"
-                  disabled={disabled}
+                  disabled={disabled || !selected.length}
                   onClick={() => move(group.id)}
                 >
                   放到末尾
@@ -107,31 +112,47 @@ export function DraftBoard({
               </div>
             )}
             {tools === group.id && !readonly && (
-              <div className="rk-meld-tools">
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => sort(group.id)}
-                >
-                  按数字排
-                </button>
-                <button
-                  type="button"
-                  disabled={disabled || !canSplit}
-                  onClick={() => selected[0] && split(group.id, selected[0])}
-                >
-                  从选中牌拆分
-                </button>
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() =>
-                    changeKind(group.id, group.kind === 'run' ? 'group' : 'run')
-                  }
-                >
-                  {group.kind === 'run' ? '改为同数组' : '改为顺子'}
-                </button>
-              </div>
+              <OverlayPanel
+                title={`第 ${index + 1} 组操作`}
+                close={() => setTools(null)}
+                className="rk-overlay"
+              >
+                <div className="rk-screen rk-panel rk-selection-actions">
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => {
+                      sort(group.id);
+                      setTools(null);
+                    }}
+                  >
+                    按数字排
+                  </button>
+                  <button
+                    type="button"
+                    disabled={disabled || !canSplit}
+                    onClick={() => {
+                      if (selected[0]) split(group.id, selected[0]);
+                      setTools(null);
+                    }}
+                  >
+                    从选中牌拆分
+                  </button>
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => {
+                      changeKind(
+                        group.id,
+                        group.kind === 'run' ? 'group' : 'run',
+                      );
+                      setTools(null);
+                    }}
+                  >
+                    {group.kind === 'run' ? '改为同数组' : '改为顺子'}
+                  </button>
+                </div>
+              </OverlayPanel>
             )}
           </article>
         );

@@ -1,10 +1,26 @@
 # 首版交付与验收
 
+## 1.0.6：拉密交互完善与恢复开放（2026-10-11）
+
+经典2–4人／106牌拉密恢复游戏库选择。本轮按现有桌游与手机偏好完善本地牌架：颜色／点数／发牌次序、独立整理模式下拖拽及Alt方向键；等待与暂停时可整理，按实例与本人稳定席位缓存授权牌ID，摸牌追加、刷新与横竖屏切换保留次序。撤销／重置和组操作使用可访问SVG按钮，牌组更多操作进入浮层，落牌行预留空间；选择、建组、撤销与打开菜单保持浏览锚点，仅明确桌面／牌架按钮切换工作区。短横屏并排工具栏与回合条，完整牌面与44px可见点击区保持；已保存／连接及未确认反馈共用固定64px区域，手机明确显示“已保存”。详见[交互规格](../games/rummikub/interaction.md)。本轮未改官方规则、持久状态、variant、人机策略或资源音频。
+
+最终[运行ZIP](../../artifacts/releases/TableMax-1.0.6-win-x64.zip) **43,592,908字节**、[314成员清单](../../artifacts/releases/TableMax-1.0.6-win-x64-manifest.json)实际解压 **97,403,455字节**，均严格低于120,000,000字节及114MB工程预算。SHA-256 `feb31ddb2bac2af37dd2d71e5f0e7902ccf015572597b743ab3cf918fb67aff2`，冻结构建 `5fe6b8b59963cb640c982287ae57bd4086f3b42309c709767d660cfedb9546b0`。最终组装29.053秒，构建14.903秒、29／30缓存命中，仅拉密网页重建400ms；[交付证明](../../artifacts/maintenance/v1.0.6/rummikub-continuation/results.json)核验672项冻结输入及实际运行前后314程序成员。沿用版本，仅本地运行ZIP／清单；源码按已授权master推送，没有源码包或Release发布。
+
+本地次序与草稿11项精确测试、入口检查范围保护、定向TypeScript、UI／验证器ESLint与Prettier通过。实际解压WebView2静音隐藏验证合计70布局、88张按共享策略筛选的证据图，覆盖320×568、390×640、650×390、667×375、720×390、844×390，以及720p至4K、主机／公共／玩家、14／30张牌架、首次出牌／重组／小局与终局。最终包[稳定操作](../../artifacts/rummikub/validation/ui-preview/accepted-stability-2-30-20261011/results.json)25.52秒、[完整重组](../../artifacts/rummikub/validation/ui-preview/accepted-reorganization-4-20261011/results.json)26.23秒通过；包含暂停的无动作与本地整理、暂藏第二张牌时首／末Alt边界、完整缓存不变与撤销原位退回、刷新草稿和真实回合转换。入口2／3／4人、五席限制、首次出牌和结算使用前一同版包原通过报告，后续唯一变化为本地键盘边界保护，详见[逐成员等价与原包边界](../../artifacts/maintenance/v1.0.6/rummikub-continuation/final-member-equivalence.json)，没有把旧报告改标新SHA。
+
+[自然整局报告](../../artifacts/rummikub/validation/runtime-continuation-complete-20261011/results.json)在前一同版实际包中完成2／3／4人共九小局，每场一次真实保存／停服／重启／原身份恢复。实际包服务、规则、策略、Worker与Node在最终包逐字节一致，全部313个未改程序成员核验后复用；最终包仅重跑受影响UI，不重复规则与纯策略27场历史矩阵。三场实测16.88／34.60／30.05秒，379次服务Worker启动，真人身份驱动最长受测决定489.81ms，32MiB旧生代／2秒预算不变；600个保存状态、588个checkpoint及1,844次秘密投影核验通过。服务50ms采样heap峰34,264,992／36,406,136／40,604,000字节，相对空盒增量18,426,792／20,604,600／24,790,120字节；采样不代表分配峰值，既有最坏搜索及重载／连续4K压力警告继续保留。
+
+八项原验证器失败原位保留：首批定位未显式滚动且默认游戏已选，第二批等待文案不匹配及开局自动导航，第三批暂停aria-disabled被自动点击阻止和旧内嵌拆分查询。前两批各累计三项失败停止，第三批两项失败后其余适用项通过；明确修正后仅重跑受影响项。实际截图另暴露短横屏牌架被压缩和手机保存标记隐藏，分别修复布局及标记；只读复核发现Alt边界暂藏牌错位，增加有区分度的实际回归后通过。原报告、失败截图与当次验证器源码仍保存，详情见[游戏验证](../games/rummikub/validation-scenarios.md#交互完善与入口恢复2026-10-11)。独立650px单图建议收紧短屏保存条，本轮保留固定高度以容纳持续连接／重试和完整昵称，触控与牌面实际几何通过；部分滚动行正常裁切，不把单图建议写成额外验收。
+
+本轮为回环地址实际程序、模拟触控视窗和静音音频调用检查。实体手机、现场LAN、iOS Safari和真人听感未验，不用模拟或播放事件冒称通过。规则最高来源仍为2025官方经典原件，历史v1.0.5与其他游戏原结论及哈希保留。
+
+收尾[安全维护](../../artifacts/maintenance/v1.0.6/rummikub-continuation/maintenance-final/result.json)退役四个已结束且登记通过的验证临时目录187,008,417字节及四项过期构建缓存439,621字节，共187,448,038字节。第一次引用审计期间文档变化触发保护、保留原中止记录；基于稳定文档重新预览后执行，未放宽保护。四个近期打包目录完整移至tmp，共2,524文件953,861,157字节，逐路径／大小／SHA相同，继续受近期保护，见[迁移清单](../../artifacts/maintenance/v1.0.6/rummikub-continuation/staging-relocation.json)。07:23 UTC实测逻辑空间10,146,001,528字节（9.449GiB），低于10GiB门槛，自动追加删除0；release仅保留当前ZIP／清单，当前验收图、原素材、规则、存档与缓存依赖保留。
+
 ## 1.0.6：手写bug第5–7条修复（2026-10-11）
 
 UNO 改为出牌保存后独立抢按；默认人机随机选择合法实体牌和Wild颜色，三档喊牌／抓漏分别独立计时，暂停冻结、旧窗口取消。手机玩家摘要超过三人固定两行，末牌留白与本地整理保留；保存条和结算内容均进入正常布局，不再互相遮盖。阿瓦隆每次提名后逆时针逐席讨论、队长最后，仅管理员可跳过；5–10人两配置及秘密权限不变，旧投票不倒退补讨论。顶层图文规则、用户原话偏好与资源清单同步更新。第8条下载与公共契约重构未实施。
 
-最终[运行ZIP](../../artifacts/releases/TableMax-1.0.6-win-x64.zip) **43,590,592字节**、[314成员清单](../../artifacts/releases/TableMax-1.0.6-win-x64-manifest.json)实际解压 **97,396,106字节**，两者严格低于120,000,000字节及114MB工程预算。SHA-256 `a8cafdf3f06e18c755bbb2f4cc90942f3673f70d6ca617dc2dcf945d7994b3dc`；冻结构建 `8e0f3d0d8ac424e280c4500d1b30fff31acb1c0d37f3472eb46d68691df05309`。最终组装34.144秒、30／30缓存命中；[交付证明](../../artifacts/maintenance/v1.0.6/bug-five-seven/results.json)绑定实际运行、全部成员哈希与版本。没有导出源码包或发布Release。
+最终[运行ZIP](../../artifacts/maintenance/v1.0.6/rummikub-continuation/delivery-before-change/TableMax-1.0.6-win-x64.zip) **43,590,592字节**、[314成员清单](../../artifacts/maintenance/v1.0.6/rummikub-continuation/delivery-before-change/TableMax-1.0.6-win-x64-manifest.json)实际解压 **97,396,106字节**，两者严格低于120,000,000字节及114MB工程预算。SHA-256 `a8cafdf3f06e18c755bbb2f4cc90942f3673f70d6ca617dc2dcf945d7994b3dc`；冻结构建 `8e0f3d0d8ac424e280c4500d1b30fff31acb1c0d37f3472eb46d68691df05309`。最终组装34.144秒、30／30缓存命中；[交付证明](../../artifacts/maintenance/v1.0.6/bug-five-seven/results.json)绑定实际运行、全部成员哈希与版本。没有导出源码包或发布Release。
 
 [UNO验证](../games/uno/validation-scenarios.md#bug第5条修复2026-10-11)包含真人抢按／抓漏／+4权限、保存失败、三档普通模式真实等待、策略固定局面和自然500分比赛、共享调度／取消及Worker预算；最终包六人尺寸矩阵、长按整理、小局／整场结算通过，实际84.25秒／21截图。[阿瓦隆验证](../games/avalon/validation-scenarios.md#bug第6条修复2026-10-11)包含5–10人两配置、跳过越权、保存／重启／回退、36场32MiB Worker自然整局、十人四类实际终局、终局内容宽度与旧5／6人实际SQLite恢复。未改四款游戏运行成员逐字节一致，复用原证据，见[成员比较](../../artifacts/maintenance/v1.0.6/bug-five-seven/member-equivalence.json)。
 
@@ -225,7 +241,7 @@ release目录仅保留当前ZIP和清单；近期打包过程目录移入tmp继�
 
 ## 当前源码与本地交付
 
-当前本地交付为本页[UNO交互优化](#106uno-交互优化2026-10-10)的[运行ZIP](../../artifacts/releases/TableMax-1.0.6-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.6-win-x64-manifest.json)，SHA-256 `11c4e849f9e04df5320a7d0333c78d973cbe84b36196e124e8ce5ce7e1012990`；历史包与发布附件保留实际哈希、证据及结论，不当作当前包验收。
+当前本地交付为本页[拉密交互完善与恢复开放](#106拉密交互完善与恢复开放2026-10-11)的[运行ZIP](../../artifacts/releases/TableMax-1.0.6-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.6-win-x64-manifest.json)，SHA-256 `feb31ddb2bac2af37dd2d71e5f0e7902ccf015572597b743ab3cf918fb67aff2`；历史包与发布附件保留实际哈希、证据及结论，不当作当前包验收。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
 

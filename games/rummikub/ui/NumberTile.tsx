@@ -1,3 +1,4 @@
+import type { ButtonHTMLAttributes } from 'react';
 import type { Binding } from './draft';
 import type { Color, Tile } from '../types';
 import { COLOR_NAMES } from './labels';
@@ -25,6 +26,8 @@ export function NumberTile({
   onSelect,
   disabled = false,
   placed = false,
+  extraClass = '',
+  buttonProps,
 }: {
   tile: Tile;
   binding?: Binding;
@@ -32,6 +35,17 @@ export function NumberTile({
   onSelect?: () => void;
   disabled?: boolean;
   placed?: boolean;
+  extraClass?: string;
+  buttonProps?: Pick<
+    ButtonHTMLAttributes<HTMLButtonElement>,
+    | 'onPointerDown'
+    | 'onPointerMove'
+    | 'onPointerUp'
+    | 'onPointerCancel'
+    | 'onKeyDown'
+    | 'aria-disabled'
+    | 'title'
+  >;
 }) {
   const color = tile.joker ? binding?.color : tile.color;
   const value = tile.joker ? binding?.value : tile.value;
@@ -86,7 +100,7 @@ export function NumberTile({
       )}
     </>
   );
-  const className = `rk-tile rk-tile--${color ?? 'joker'}${selected ? ' rk-tile--selected' : ''}${placed ? ' rk-tile--placed' : ''}`;
+  const className = `rk-tile rk-tile--${color ?? 'joker'}${selected ? ' rk-tile--selected' : ''}${placed ? ' rk-tile--placed' : ''}${extraClass}`;
   return onSelect ? (
     <button
       type="button"
@@ -97,6 +111,7 @@ export function NumberTile({
       aria-pressed={selected > 0}
       disabled={disabled}
       onClick={onSelect}
+      {...buttonProps}
     >
       {face}
     </button>

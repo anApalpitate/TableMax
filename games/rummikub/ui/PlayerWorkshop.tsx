@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { OverlayPanel } from '@tablemax/web-host';
 import type { Action, Color, PlayAction, RummikubView } from '../types';
 import { COLORS } from '../types';
@@ -6,6 +6,8 @@ import { inspectTurn, prepareTurn } from '../shared/turn';
 import { parseMeld } from '../shared/melds';
 import { DraftBoard } from './Board';
 import { NumberTile } from './NumberTile';
+import { Rack } from './Rack';
+import { ControlIcon } from './ControlIcon';
 import { COLOR_NAMES } from './labels';
 import {
   contextFor,
@@ -112,12 +114,14 @@ function JokerEditor({
 export function PlayerWorkshop({
   game,
   scope,
+  rackScope,
   locked,
   actions,
   choose,
 }: {
   game: RummikubView;
   scope: string;
+  rackScope: string;
   locked: boolean;
   actions: Action[];
   choose(action: Action): void;
@@ -129,11 +133,16 @@ export function PlayerWorkshop({
   }));
   const [selected, setSelected] = useState<string[]>([]);
   const [bindingTarget, setBindingTarget] = useState<string | null>(null);
-  const [sort, setSort] = useState<'color' | 'value' | 'dealt'>('color');
   const [panel, setPanel] = useState<'actions' | 'draw' | null>(null);
   const [section, setSection] = useState<'table' | 'rack'>('table');
   const tableSection = useRef<HTMLElement>(null);
   const rackSection = useRef<HTMLElement>(null);
+  const workspace = useRef<HTMLDivElement>(null);
+  const scrollAnchor = useRef<{
+    top: number;
+    scroll: number;
+    rack: boolean;
+  } | null>(null);
   const draft = editing.draft;
   const original = useMemo(() => initialDraft(game), [game]);
   const changed = JSON.stringify(draft) !== JSON.stringify(original);
@@ -214,8 +223,32 @@ export function PlayerWorkshop({
     }
   }, [draft, context, game]);
 
+  const preserveScroll = () => {
+    const viewport = workspace.current;
+    const rack = rackSection.current;
+    if (!viewport || !rack || getComputedStyle(viewport).overflowY !== 'auto')
+      return;
+    const bounds = viewport.getBoundingClientRect();
+    const rect = rack.getBoundingClientRect();
+    scrollAnchor.current = {
+      top: rect.top,
+      scroll: viewport.scrollTop,
+      rack: rect.bottom > bounds.top && rect.top < bounds.bottom,
+    };
+  };
+  useLayoutEffect(() => {
+    const anchor = scrollAnchor.current;
+    scrollAnchor.current = null;
+    if (!anchor || !workspace.current) return;
+    workspace.current.scrollTop =
+      anchor.scroll +
+      (anchor.rack && rackSection.current
+        ? rackSection.current.getBoundingClientRect().top - anchor.top
+        : 0);
+  }, [draft]);
   const update = (next: TurnDraft) => {
     if (locked || next === draft) return;
+    preserveScroll();
     setEditing({
       draft: next,
       history: [...editing.history.slice(-59), draft],
@@ -228,19 +261,24 @@ export function PlayerWorkshop({
   };
   const scrollTo = (next: 'table' | 'rack') => {
     setSection(next);
-    (next === 'table' ? tableSection : rackSection).current?.scrollIntoView({
-      block: 'start',
-      behavior: 'instant',
-    });
+    const target = (next === 'table' ? tableSection : rackSection).current;
+    const viewport = workspace.current;
+    if (!target || !viewport) return;
+    if (
+      getComputedStyle(viewport).display === 'contents' ||
+      getComputedStyle(viewport).overflowY === 'hidden'
+    ) {
+      target.scrollTo({ top: 0, behavior: 'instant' });
+    } else {
+      viewport.scrollTo({
+        top:
+          viewport.scrollTop +
+          target.getBoundingClientRect().top -
+          viewport.getBoundingClientRect().top,
+        behavior: 'instant',
+      });
+    }
   };
-  const rack = [...draft.rack].sort((a, b) => {
-    if (sort === 'dealt') return 0;
-    const left = context.tiles[a]!;
-    const right = context.tiles[b]!;
-    const byValue = (left.value ?? 99) - (right.value ?? 99);
-    const byColor = (left.color ?? 'z').localeCompare(right.color ?? 'z');
-    return sort === 'value' ? byValue || byColor : byColor || byValue;
-  });
   const tileButton = (id: string) => (
     <NumberTile
       key={id}
@@ -278,10 +316,14 @@ export function PlayerWorkshop({
         </div>
         <button
           type="button"
+          className="rk-icon-button"
+          aria-label="撤销"
+          title="撤销"
           disabled={locked || !editing.history.length}
           onClick={() => {
             const previous = editing.history.at(-1);
             if (previous) {
+              preserveScroll();
               setEditing({
                 draft: previous,
                 history: editing.history.slice(0, -1),
@@ -290,52 +332,58 @@ export function PlayerWorkshop({
             }
           }}
         >
-          撤销
+          <ControlIcon name="undo" />
         </button>
         <button
           type="button"
+          className="rk-icon-button"
+          aria-label="重置"
+          title="重置"
           disabled={locked || !changed}
           onClick={() => {
             update(initialDraft(game));
             setSelected([]);
           }}
         >
-          重置
+          <ControlIcon name="reset" />
         </button>
       </div>
       <div className="rk-selection-bar">
         <strong aria-live="polite">
-          {selected.length ? `已选 ${selected.length} 张` : '点牌选择'}
+          {selected.length ? `已选 ${selected.length} 张` : ''}
         </strong>
         <button
           type="button"
           className="rk-primary"
           disabled={locked || !selected.length}
-          onClick={() => {
-            move('new');
-            scrollTo('table');
-          }}
+          onClick={() => move('new')}
         >
           建立新组
         </button>
         <button
           type="button"
+          className="rk-icon-button"
+          aria-label="更多"
+          title="更多选牌操作"
           disabled={locked || !selected.length}
           onClick={() => setPanel('actions')}
         >
-          更多
+          <ControlIcon name="more" />
         </button>
         <button
           type="button"
+          className="rk-icon-button"
           aria-label="取消选牌"
+          title="取消选牌"
           disabled={!selected.length}
           onClick={() => setSelected([])}
         >
-          取消
+          <ControlIcon name="cancel" />
         </button>
       </div>
       <div
         className="rk-workspace-scroll"
+        ref={workspace}
         onScroll={(event) => {
           const viewport = event.currentTarget;
           if (viewport.scrollHeight <= viewport.clientHeight + 1) return;
@@ -407,25 +455,23 @@ export function PlayerWorkshop({
           className="rk-rack-section"
           aria-labelledby="rk-own-rack-title"
         >
-          <div className="rk-section-heading">
-            <h2 id="rk-own-rack-title">我的牌架</h2>
-            <label className="rk-sort-label">
-              <span className="sr-only">牌架排序</span>
-              <select
-                aria-label="牌架排序"
-                value={sort}
-                onChange={(event) => setSort(event.target.value as typeof sort)}
-              >
-                <option value="color">按颜色</option>
-                <option value="value">按数字</option>
-                <option value="dealt">原顺序</option>
-              </select>
-            </label>
-          </div>
-          <div className="rk-rack" data-own-rack>
-            {rack.map(tileButton)}
-            {!rack.length && <p>牌架已清空</p>}
-          </div>
+          <Rack
+            key={rackScope}
+            scope={rackScope}
+            headingId="rk-own-rack-title"
+            authorized={game.self!.rack}
+            visible={draft.rack}
+            bindings={draft.bindings}
+            selected={selected}
+            disabled={locked}
+            choose={(id) =>
+              setSelected(
+                selected.includes(id)
+                  ? selected.filter((tile) => tile !== id)
+                  : [...selected, id],
+              )
+            }
+          />
           {draft.tray.length > 0 && (
             <section className="rk-tray" aria-label="暂持的牌">
               <div className="rk-section-heading">
@@ -577,18 +623,20 @@ export function PlayerWorkshop({
   );
 }
 
-export function WaitingRack({ game }: { game: RummikubView }) {
+export function WaitingRack({
+  game,
+  rackScope,
+}: {
+  game: RummikubView;
+  rackScope: string;
+}) {
   return (
     <section className="rk-rack-section rk-rack-section--waiting">
-      <div className="rk-section-heading">
-        <h2>我的牌架</h2>
-        <span>{game.self?.rack.length ?? 0} 张</span>
-      </div>
-      <div className="rk-rack" data-own-rack>
-        {game.self?.rack.map((tile) => (
-          <NumberTile key={tile.id} tile={tile} />
-        ))}
-      </div>
+      <Rack
+        key={rackScope}
+        scope={rackScope}
+        authorized={game.self?.rack ?? []}
+      />
     </section>
   );
 }

@@ -72,6 +72,11 @@ function RummikubScreen({ session }: { session: GameHost }) {
   );
   const result = game?.results.at(-1);
   const saved = session.motion.length > 0 && view?.playMode !== 'test';
+  const feedbackVisible = Boolean(
+    (session.message && session.message !== '已保存') ||
+    session.admissionPending ||
+    session.awaitingConfirmation,
+  );
   const seatStrip = game && (
     <div className="rk-seats" aria-label="玩家与牌架张数">
       {game.seatOrder.map((id, index) => {
@@ -139,9 +144,7 @@ function RummikubScreen({ session }: { session: GameHost }) {
           {role !== 'player' && <FullscreenControl />}
         </div>
       </header>
-      {((session.message && session.message !== '已保存') ||
-        session.admissionPending ||
-        session.awaitingConfirmation) && <SessionFeedback session={session} />}
+      {!game && feedbackVisible && <SessionFeedback session={session} />}
       {!game || !view ? (
         <div className="rk-unavailable">
           <h1>等待拉密开局</h1>
@@ -197,6 +200,7 @@ function RummikubScreen({ session }: { session: GameHost }) {
                 key={turnScope(view.instanceId, view.branch, game)}
                 game={game}
                 scope={turnScope(view.instanceId, view.branch, game)}
+                rackScope={`${view.instanceId}:${game.self.seatId}`}
                 locked={locked || !active}
                 actions={view.actions as Action[]}
                 choose={choose}
@@ -221,7 +225,12 @@ function RummikubScreen({ session }: { session: GameHost }) {
                     placed={game.latest?.placedTileIds ?? []}
                   />
                 </section>
-                {role === 'player' && game.self && <WaitingRack game={game} />}
+                {role === 'player' && game.self && (
+                  <WaitingRack
+                    game={game}
+                    rackScope={`${view.instanceId}:${game.self.seatId}`}
+                  />
+                )}
               </div>
             )
           ) : (
@@ -314,19 +323,28 @@ function RummikubScreen({ session }: { session: GameHost }) {
               </div>
             )
           )}
-          {game.latest && (
+          {
             <div
               className="rk-latest"
               aria-live="polite"
-              data-latest-saved-action
+              data-latest-saved-action={game.latest ? true : undefined}
+              data-empty={!game.latest && !feedbackVisible}
             >
-              <strong>
-                {game.latest.actor ? names[game.latest.actor] : '拉密'}
-              </strong>
-              <span>{game.latest.text}</span>
-              <span className="rk-saved-label">已保存</span>
+              {feedbackVisible ? (
+                <SessionFeedback session={session} />
+              ) : (
+                game.latest && (
+                  <>
+                    <strong>
+                      {game.latest.actor ? names[game.latest.actor] : '拉密'}
+                    </strong>
+                    <span>{game.latest.text}</span>
+                    <span className="rk-saved-label">已保存</span>
+                  </>
+                )
+              )}
             </div>
-          )}
+          }
         </>
       )}
       {panel && (

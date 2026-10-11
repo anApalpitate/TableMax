@@ -1,10 +1,18 @@
 # 拉密验证场景
 
-本页记录规则模块、隔离候选和最终同版包的真实服务、Worker与UI证据。当前本地交付见[验收](../../reference/acceptance.md#105拉密经典版本地完整交付2026-10-09)。少数固定fixture不代替完整对局或实机。
+本页记录规则模块、隔离候选和最终同版包的真实服务、Worker与UI证据。当前本地交付见[验收](../../reference/acceptance.md#106拉密交互完善与恢复开放2026-10-11)。少数固定fixture不代替完整对局或实机。
 
-## 本地牌架次序阶段（2026-10-11）
+## 交互完善与入口恢复（2026-10-11）
 
-本地次序与草稿的11项精确测试通过，包含实例／席位隔离、授权牌交集、畸形缓存拒绝、出牌／摸牌后存活次序、新牌追加、隐藏草稿牌与回退恢复；[原始测试记录](../../../artifacts/maintenance/test-history/runs/df4f5d04-4573-49db-b33a-214dc697aafb.json)保留。拉密入口专项的范围声明与越界拒绝回归通过，常规检查仍限定本游戏。此阶段仅提交已验证纯函数与检查范围保护；组件整合、短横屏完善、实际包入口／三端／恢复验收仍在本轮进行中，不能作为完整交付通过。
+v1.0.6恢复经典2–4人游戏库选择，完善本人本地次序、拖拽／Alt整理、等待与暂停整理、短横屏和稳定工作区。授权交集、实例／稳定席位隔离、畸形缓存拒绝、摸牌追加、暂藏草稿牌撤销原位等11项精确测试通过，[原始记录](../../../artifacts/maintenance/test-history/runs/df4f5d04-4573-49db-b33a-214dc697aafb.json)保留。入口范围回归、定向类型与静态检查通过；规则／策略14项输入及四个核心运行文件按原证据SHA复用。
+
+最终包SHA `feb31ddb2bac2af37dd2d71e5f0e7902ccf015572597b743ab3cf918fb67aff2`，43,592,908字节／314成员实际解压97,403,455字节，672项冻结输入及运行前后成员核验通过。[稳定操作](../../../artifacts/rummikub/validation/ui-preview/accepted-stability-2-30-20261011/results.json)与[完整重组](../../../artifacts/rummikub/validation/ui-preview/accepted-reorganization-4-20261011/results.json)在最终包通过，包含暂停时实际无动作点击与本地整理、首／末Alt边界全部cache不变、暂藏牌撤销回位、每张牌真实裁切交集与44px命中、保存标记16px可见及完整最新动作。
+
+[入口2人](../../../artifacts/rummikub/validation/ui-preview/complete-entry-2-20261011/results.json)、[3人](../../../artifacts/rummikub/validation/ui-preview/complete-entry-3-20261011/results.json)、[4人与五席限制](../../../artifacts/rummikub/validation/ui-preview/complete-entry-4-20261011/results.json)、[首次出牌](../../../artifacts/rummikub/validation/ui-preview/complete-opening-4-20261011/results.json)、[小局／整场结算](../../../artifacts/rummikub/validation/ui-preview/complete-finish-4-20261011/results.json)原报告来自同版前包`111edd88…5944`。其后只改键盘无移动边界，全部其他313成员一致，依据[成员审计](../../../artifacts/maintenance/v1.0.6/rummikub-continuation/final-member-equivalence.json)复用，并明确保留原包归属；合计70布局、88张筛选截图，不重复其他游戏。手机六视窗320×568／390×640／650×390／667×375／720×390／844×390及电脑720p至4K，主机和公共私有投影为空、他人仅见本人牌。
+
+[2／3／4人自然实际包整局](../../../artifacts/rummikub/validation/runtime-continuation-complete-20261011/results.json)在`111edd88…5944`完成九小局、每场一次保存／重启，379次服务Worker启动，受测真人身份决定最长489.81ms；SQLite600状态与588checkpoint、1,844秘密投影校验通过。最终包服务／规则／策略／Worker／Node完全一致，复用真实运行证据，不宣称该旧报告使用最终ZIP。原纯策略27场和百搭／空池风险未变，不为UI重复；实际服务heap采样、无解搜索和历史压力边界见[验收](../../reference/acceptance.md#106拉密交互完善与恢复开放2026-10-11)。
+
+原八项脚本失败及源码／失败图保留：首批缺显式定位／错误假设空库，第二批文案和自动导航，第三批暂停aria-disabled自动点击及旧菜单选择器；前两批累计三失败各停止，修正后只续受影响项。实际短横屏裁切与手机保存标记隐藏已修复；Alt首牌越界改变隐藏牌位置由只读审查发现并实际回归封住。[完整交付证明](../../../artifacts/maintenance/v1.0.6/rummikub-continuation/results.json)关联所有原报告，不覆盖失败或改写原SHA。默认静音／回环／隐藏窗口，模拟触控不代表实体手机、LAN、Safari或真人听感；独立单图审查与未测边界分开记录。
 
 ## 最终同包验收（2026-10-09）
 

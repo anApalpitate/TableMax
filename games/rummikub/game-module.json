@@ -3,7 +3,7 @@
   "id": "rummikub",
   "order": 3,
   "internal": false,
-  "development": true,
+  "development": false,
   "library": {
     "tags": ["数字", "组合", "家庭"],
     "searchTerms": ["Rummikub", "拉米"]

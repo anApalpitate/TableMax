@@ -5,11 +5,11 @@ import {
 if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
 import assert from 'node:assert/strict';
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, writeFile, readdir } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { join, relative, resolve, sep } from 'node:path';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import { promisify } from 'node:util';
 import { build } from 'esbuild';
 import {
@@ -45,6 +45,23 @@ const only = process.argv
   .split(',');
 const skipVerified = process.argv.includes('--skip-verified');
 const navigationOnly = process.argv.includes('--navigation-only');
+const stabilityOnly = process.argv.includes('--stability-only');
+const continueStabilityTable = process.argv.includes(
+  '--continue-stability-table',
+);
+const priorStabilityArgument = process.argv
+  .find((value) => value.startsWith('--prior-stability='))
+  ?.slice(18);
+assert.ok(
+  !continueStabilityTable || (stabilityOnly && priorStabilityArgument),
+  'Stability continuation requires --stability-only and --prior-stability=<results.json>',
+);
+const entryOnly = process.argv.includes('--entry-only');
+const playerCount = Number(
+  process.argv.find((value) => value.startsWith('--players='))?.slice(10) ?? 4,
+);
+assert.ok([2, 3, 4].includes(playerCount));
+assert.ok(!entryOnly || (!only && !stabilityOnly && !navigationOnly));
 const audioOnly = process.argv.includes('--audio-only');
 const budgetDiagnostic = process.argv.includes('--budget-diagnostic');
 const budgetHoldMs = Number(
@@ -93,6 +110,8 @@ const started = performance.now();
 const evidence = {
   startedAt: new Date().toISOString(),
   executablePath,
+  playerCount,
+  mode: entryOnly ? 'entry' : stabilityOnly ? 'stability' : 'complete',
   zipPath,
   zipSha256: zipPath
     ? createHash('sha256')
@@ -133,6 +152,102 @@ const evidence = {
   externalRequests: [],
   failures: [],
 };
+if (continueStabilityTable) {
+  const priorPath = resolve(priorStabilityArgument);
+  assert.ok(
+    priorPath.startsWith(resolve('artifacts/rummikub/validation') + sep),
+    'Prior stability evidence must stay in Rummikub validation',
+  );
+  const bytes = await readFile(priorPath);
+  const prior = JSON.parse(bytes);
+  assert.equal(prior.result, 'failed');
+  assert.equal(prior.mode, 'stability');
+  assert.equal(prior.playerCount, playerCount);
+  assert.equal(
+    prior.zipSha256,
+    evidence.zipSha256,
+    'Continuation uses the same ZIP',
+  );
+  assert.equal(
+    prior.executableSha256,
+    evidence.executableSha256,
+    'Continuation uses the same executable',
+  );
+  const priorVerifierPath = join(
+    dirname(priorPath),
+    'verifier-start-source.mjs',
+  );
+  const priorVerifierSha256 = createHash('sha256')
+    .update(await readFile(priorVerifierPath))
+    .digest('hex');
+  assert.equal(
+    priorVerifierSha256,
+    prior.verifierSha256,
+    'Prior report matches its actual execution verifier source',
+  );
+  assert.ok(
+    prior.screenshotSelections.some(
+      (selection) => selection.rackSize === rackSize,
+    ),
+  );
+  const previousCase = prior.cases.find(
+    (entry) => entry.id === 'reorganization',
+  );
+  const labels = [
+    [320, 568],
+    [390, 640],
+    [844, 390],
+  ].flatMap(([width, height]) =>
+    ['select-last', 'more-open', 'more-close', 'cancel-last'].map(
+      (prefix) => `${prefix}-${width}x${height}`,
+    ),
+  );
+  for (const label of labels) {
+    const record = previousCase.scrollStability.find(
+      (entry) => entry.label === label,
+    );
+    assert.ok(record, `Prior completed check exists: ${label}`);
+    assert.ok(Math.abs(record.after.scroll - record.before.scroll) <= 1);
+    assert.ok(
+      Math.abs(record.after.windowScroll - record.before.windowScroll) <= 1,
+    );
+    assert.ok(Math.abs(record.after.rackTop - record.before.rackTop) <= 2);
+    assert.ok(Math.abs(record.after.anchorTop - record.before.anchorTop) <= 2);
+  }
+  const reusedLayouts = [
+    [320, 568],
+    [390, 640],
+    [844, 390],
+  ].map(([width, height]) => `stability-rack-${width}x${height}`);
+  for (const label of reusedLayouts) {
+    const layout = prior.layouts.find(
+      (entry) => entry.scenario === 'reorganization' && entry.label === label,
+    );
+    assert.ok(layout, `Prior completed layout exists: ${label}`);
+    assert.deepEqual(layout.smallText, []);
+    assert.deepEqual(layout.smallTargets, []);
+    assert.ok(layout.scrollWidth <= layout.width + 1);
+    assert.equal(layout.dockVisible, true);
+    assert.equal(layout.submitUnobscured, true);
+  }
+  assert.ok(
+    prior.failures.some((failure) =>
+      failure.message.startsWith('table-selection-reserves-drop-row:'),
+    ),
+    'Continuation resumes the known explicit-positioning failure',
+  );
+  evidence.continuation = {
+    report: priorPath,
+    sha256: createHash('sha256').update(bytes).digest('hex'),
+    verifierSource: priorVerifierPath,
+    verifierSha256: priorVerifierSha256,
+    zipSha256: prior.zipSha256,
+    executableSha256: prior.executableSha256,
+    reused: labels,
+    reusedLayouts,
+    resumedAt: 'table-selection-reserves-drop-row',
+  };
+}
 await writeFile(
   join(output, 'verifier-start-source.mjs'),
   await readFile(new URL(import.meta.url)),
@@ -150,7 +265,7 @@ import { bot } from ${JSON.stringify(resolve('games/rummikub/bot/index.ts'))};
 import { TILES } from ${JSON.stringify(resolve('games/rummikub/data/catalog.ts'))};
 import { parseMeld } from ${JSON.stringify(resolve('games/rummikub/shared/melds.ts'))};
 import { scoreGame } from ${JSON.stringify(resolve('games/rummikub/rules/scoring.ts'))};
-export async function prepare(id,dataDir,rackSize){
+export async function prepare(id,dataDir,rackSize,playerCount){
  const custom={...rules,initialize(context){
   const base=rules.initialize(context),seats=context.seats;
   const table=id==='opening'||id.startsWith('finish')?[parseMeld(['blue-03-a','blue-04-a','blue-05-a'])]:[
@@ -173,12 +288,12 @@ export async function prepare(id,dataDir,rackSize){
   const racks=Object.fromEntries(seats.map((seat,i)=>[seat,i===0?own:rest.splice(0,14)]));
   Object.assign(base,{table,pool:rest,racks,opened:Object.fromEntries(seats.map((seat,i)=>[seat,(id!=='opening'&&!id.startsWith('finish'))||i!==0])),
    turnSeat:seats[0],startSeat:seats[0],turnNumber:17,serial:16,
-   latest:{serial:16,actor:seats[3],verb:'draw',text:'摸牌，结束回合。',placedTileIds:[]}});
+   latest:{serial:16,actor:seats.at(-1),verb:'draw',text:'摸牌，结束回合。',placedTileIds:[]}});
   if(id==='finish-final'){
    const historicRacks={...racks,[seats[0]]:[]};
-   base.gameNumber=4;
-   base.results=[1,2,3].map(number=>scoreGame(seats,historicRacks,'empty-rack',number));
-   base.wins=Object.fromEntries(seats.map(seat=>[seat,seat===seats[0]?3:0]));
+   base.gameNumber=playerCount;
+   base.results=Array.from({length:playerCount-1},(_,index)=>scoreGame(seats,historicRacks,'empty-rack',index+1));
+   base.wins=Object.fromEntries(seats.map(seat=>[seat,seat===seats[0]?playerCount-1:0]));
    base.scores=Object.fromEntries(seats.map(seat=>[seat,base.results.reduce((sum,result)=>sum+result.scores[seat],0)]));
   }
   return rules.validateState(base,seats);
@@ -186,7 +301,7 @@ export async function prepare(id,dataDir,rackSize){
  const repo=new SqliteSaveRepository(dataDir),room=new RoomCoordinator(custom,bot,repo);
  const command=async(token,command)=>{const current=room.view(token);const reply=await room.command(token,{actionId:randomUUID(),instanceId:current.instanceId,revision:current.revision,branch:current.branch,command});assert.equal(reply.ok,true,JSON.stringify(reply));};
  const players=[];
- for(let i=0;i<4;i++){const player=await room.join(i===0?'拉密重组长昵称abcdefghijkl':'朋友 '+(i+1),undefined,'avatar-'+(20+i));players.push({...player,seatId:room.view(player.token).self.seatId});await command(player.token,{type:'ready',ready:true});}
+ for(let i=0;i<playerCount;i++){const player=await room.join(i===0?'拉密重组长昵称abcdefghijkl':'朋友 '+(i+1),undefined,'avatar-'+(20+i));players.push({...player,seatId:room.view(player.token).self.seatId});await command(player.token,{type:'ready',ready:true});}
  await command(room.hostToken,{type:'set-owner',seatId:players[0].seatId});
  await command(room.hostToken,{type:'start'});
  const saved=repo.load();rules.validateState(saved.snapshot.state,saved.seats.map(seat=>seat.id));repo.close();
@@ -216,18 +331,21 @@ async function until(predicate, description, timeout = 20000) {
   throw new Error(description);
 }
 
-const scenarios = [
-  'opening',
-  'reorganization',
-  'finish',
-  'finish-final',
-].filter((id) => !only || only.includes(id));
+const scenarios = (
+  entryOnly
+    ? ['entry']
+    : stabilityOnly
+      ? ['reorganization']
+      : ['opening', 'reorganization', 'finish', 'finish-final']
+).filter((id) => !only || only.includes(id));
 for (const scenario of scenarios) {
   const item = { id: scenario, checks: [], commands: [], layouts: [] };
   evidence.cases.push(item);
   const dataDir = join(work, scenario);
   await mkdir(dataDir);
-  const players = await prepare(scenario, dataDir, rackSize);
+  const players = entryOnly
+    ? []
+    : await prepare(scenario, dataDir, rackSize, playerCount);
   const env = {
     ...process.env,
     TABLEMAX_DATA_DIR: dataDir,
@@ -771,6 +889,1077 @@ for (const scenario of scenarios) {
     item.interactionOrbAvoidance =
       'Shipped user drag moved the draggable interaction orb onto the noninteractive turn avatar, empty result-heading edge or toolbar brand before access checks; the original default-position obstruction is preserved in preview-06.';
   };
+  const auditEntry = async (hostSocket, hostToken) => {
+    const joinPlayer = async (index) => {
+      const joined = await (
+        await fetch(origin + '/api/session/join', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            name:
+              index === 0 ? '拉密入口长昵称abcdefghijkl' : `朋友 ${index + 1}`,
+            requestKey: randomBytes(32).toString('hex'),
+            avatarId: `avatar-${20 + index}`,
+          }),
+        })
+      ).json();
+      assert.equal(joined.ok, true, `Entry join: ${joined.reason ?? ''}`);
+      const player = {
+        token: joined.token,
+        seatId: (await view(joined.token)).self.seatId,
+      };
+      players.push(player);
+      const socket = await connect(player.token);
+      await send(socket, player.token, { type: 'ready', ready: true });
+      return socket;
+    };
+    const library = () =>
+      host.getByRole('region', { name: '游戏库', exact: true });
+    const ensureLibrary = async () => {
+      if (!(await library().count()))
+        await host
+          .getByRole('button', { name: '切换游戏', exact: true })
+          .click();
+      await library().waitFor();
+    };
+    const card = () => library().locator('[data-game-id="rummikub"]');
+    if (playerCount === 4) {
+      // Another catalog entry is used only to establish a five-seat lobby.
+      // No other game's rules, turn, assets or route are exercised.
+      await send(hostSocket, hostToken, { type: 'select-game', gameId: 'uno' });
+      for (let index = 0; index < 5; index++) await joinPlayer(index);
+      await host.getByRole('button', { name: '切换游戏', exact: true }).click();
+      await card().waitFor();
+      assert.equal(await card().locator(':scope > button').isDisabled(), true);
+      assert.match(await card().innerText(), /最多 4 席/);
+      await capture(host, 'entry-five-seat-rummikub-disabled', {
+        mustKeep: true,
+      });
+      await host
+        .getByRole('dialog')
+        .getByRole('button', { name: '关闭面板', exact: true })
+        .click();
+      const removed = players.pop();
+      await send(hostSocket, hostToken, {
+        type: 'remove-seat',
+        seatId: removed.seatId,
+      });
+      await host.getByRole('button', { name: '切换游戏', exact: true }).click();
+    }
+    await ensureLibrary();
+    await card().waitFor();
+    assert.equal(await card().locator(':scope > button').isEnabled(), true);
+    assert.doesNotMatch(await card().innerText(), /开发中/);
+    await card().locator(':scope > button').click();
+    await until(
+      async () => (await view(hostToken)).game?.id === 'rummikub',
+      'real library selects Rummikub',
+    );
+    if (playerCount !== 4)
+      for (let index = 0; index < playerCount; index++) await joinPlayer(index);
+    for (const player of players)
+      await send(await connect(player.token), player.token, {
+        type: 'ready',
+        ready: true,
+      });
+    await send(hostSocket, hostToken, {
+      type: 'set-owner',
+      seatId: players[0].seatId,
+    });
+    const lobby = await view(hostToken);
+    assert.equal(lobby.seats.length, playerCount);
+    assert.equal(lobby.game.min, 2);
+    assert.equal(lobby.game.max, 4);
+    assert.equal(lobby.self.role, 'host');
+    assert.equal(
+      lobby.self.seatId,
+      null,
+      'administrator does not occupy a player seat',
+    );
+    await host.getByRole('button', { name: '开始游戏', exact: true }).click();
+    await until(
+      async () => (await view(hostToken)).status === 'playing',
+      'real host start saves',
+    );
+    const projections = await Promise.all(
+      players.map((player) => view(player.token)),
+    );
+    const privateTiles = projections.flatMap((projection, index) => {
+      assert.equal(projection.gameView.self.seatId, players[index].seatId);
+      assert.equal(projection.gameView.self.rack.length, 14);
+      assert.equal(projection.gameView.poolCount, 106 - 14 * playerCount);
+      return projection.gameView.self.rack.map((tile) => tile.id);
+    });
+    assert.equal(
+      new Set(privateTiles).size,
+      privateTiles.length,
+      'fourteen distinct physical tiles per real player',
+    );
+    assert.equal((await view()).gameView.self, null);
+    assert.equal((await view(hostToken)).gameView.self, null);
+    const activeIndex = players.findIndex(
+      (player) => player.seatId === projections[0].gameView.turnSeat,
+    );
+    assert.ok(activeIndex >= 0);
+    // The platform may automatically navigate all active roles after start.
+    // Let that render settle; use the real box link only if the box remains.
+    await host.evaluate(
+      () =>
+        new Promise((done) =>
+          requestAnimationFrame(() => requestAnimationFrame(done)),
+        ),
+    );
+    item.entryNavigation = 'automatic';
+    if (
+      !(await host.locator('.rk-screen').count()) &&
+      (await host.locator('.box-screen').count())
+    ) {
+      const entry = host.getByRole('link', { name: '进入牌桌', exact: true });
+      if (await entry.count()) {
+        await entry.click();
+        item.entryNavigation = 'box-link';
+      }
+    }
+    await host.locator('.rk-screen').waitFor();
+    publicPage = await open('public');
+    phone = await open('player', activeIndex);
+    for (const [page, role, width, height] of [
+      [host, 'host', 1280, 720],
+      [publicPage, 'public', 1920, 1080],
+      [phone, 'player', 390, 640],
+    ]) {
+      await resize(page, width, height, role === 'player');
+      assert.equal(
+        await surface(page).locator('.rk-seat').count(),
+        role === 'player' ? 0 : playerCount,
+      );
+      assert.equal(
+        await surface(page).locator('[data-own-rack]').count(),
+        role === 'player' ? 1 : 0,
+      );
+      assert.equal(
+        await surface(page).locator('[data-submit-turn]').count(),
+        role === 'player' ? 1 : 0,
+      );
+      await measure(
+        page,
+        `entry-${playerCount}-${role}-${width}x${height}`,
+        role,
+      );
+    }
+    item.checks.push(
+      `Actual box catalog enables Rummikub, ${playerCount} real ready identities start the classic game with fourteen unique private tiles each, host/public have no rack or turn controls.${playerCount === 4 ? ' Five real lobby seats disable the Rummikub library choice before the fifth seat is removed.' : ''}`,
+    );
+  };
+  const auditStability = async (hostSocket, hostToken) => {
+    const ui = () => surface(phone);
+    const rackIds = (page = phone) =>
+      surface(page)
+        .locator('[data-own-rack] [data-tile-id]')
+        .evaluateAll((tiles) => tiles.map((tile) => tile.dataset.tileId));
+    const sort = (page = phone) =>
+      surface(page).getByRole('combobox', { name: '牌架排序', exact: true });
+    const settle = () =>
+      ui().evaluate(
+        () =>
+          new Promise((done) =>
+            requestAnimationFrame(() => requestAnimationFrame(done)),
+          ),
+      );
+    const draft = () =>
+      ui().evaluate(
+        () =>
+          JSON.parse(sessionStorage.getItem('tablemax:rummikub:turn-draft'))
+            .draft,
+      );
+    const rackCache = () =>
+      ui().evaluate(() =>
+        JSON.parse(sessionStorage.getItem('tablemax:rummikub:rack-order')),
+      );
+    const physical = (value) =>
+      [
+        ...value.groups.flatMap((group) => group.tiles),
+        ...value.rack,
+        ...value.tray,
+      ].sort();
+    const originalView = await view(players[0].token);
+    const projections = await Promise.all(
+      players.map((player) => view(player.token)),
+    );
+    for (const [index, projection] of projections.entries()) {
+      assert.equal(projection.gameView.self.seatId, players[index].seatId);
+      const forbidden = projections.flatMap((other, otherIndex) =>
+        otherIndex === index
+          ? []
+          : other.gameView.self.rack.map((tile) => tile.id),
+      );
+      const json = JSON.stringify(projection.gameView);
+      assert.ok(
+        forbidden.every((id) => !json.includes(id)),
+        'each real player projection excludes every other private rack instance',
+      );
+      assert.equal(
+        'pool' in projection.gameView,
+        false,
+        'private pool order is absent',
+      );
+      assert.equal(
+        'racks' in projection.gameView,
+        false,
+        'complete private rack map is absent',
+      );
+    }
+    const expectedPhysical = [
+      ...originalView.gameView.table.flatMap((group) =>
+        group.tiles.map((tile) => tile.tileId),
+      ),
+      ...originalView.gameView.self.rack.map((tile) => tile.id),
+    ].sort();
+    const assertPhysical = async (label) => {
+      const actual = physical(await draft());
+      assert.equal(
+        new Set(actual).size,
+        actual.length,
+        `${label}: no duplicate physical tile`,
+      );
+      assert.deepEqual(
+        actual,
+        expectedPhysical,
+        `${label}: all authorized table/rack instances survive`,
+      );
+      assert.equal(
+        (await view(players[0].token)).revision,
+        originalView.revision,
+        `${label}: presentation does not save a game action`,
+      );
+    };
+    const snapshot = (anchor) =>
+      ui().evaluate((id) => {
+        const viewport = document.querySelector('.rk-workspace-scroll');
+        const rack = document.querySelector('.rk-rack-section');
+        const tile = [
+          ...document.querySelectorAll('[data-own-rack] [data-tile-id]'),
+        ].find((element) => element.dataset.tileId === id);
+        return {
+          scroll: viewport?.scrollTop ?? 0,
+          windowScroll: scrollY,
+          rackTop: rack?.getBoundingClientRect().top ?? 0,
+          anchorTop: tile?.getBoundingClientRect().top ?? null,
+        };
+      }, anchor);
+    const stable = async (
+      label,
+      action,
+      anchor,
+      { structural = false, rackTop = true, target } = {},
+    ) => {
+      if (target) {
+        const geometry = (element) => {
+          const rect = element.getBoundingClientRect();
+          const viewport = element.closest('.rk-workspace-scroll');
+          const bounds = viewport?.getBoundingClientRect();
+          const top = document.elementFromPoint(
+            rect.left + rect.width / 2,
+            rect.top + rect.height / 2,
+          );
+          return {
+            target: {
+              top: rect.top,
+              bottom: rect.bottom,
+              left: rect.left,
+              right: rect.right,
+            },
+            viewport: bounds
+              ? {
+                  top: bounds.top,
+                  bottom: bounds.bottom,
+                  left: bounds.left,
+                  right: bounds.right,
+                }
+              : { top: 0, bottom: innerHeight, left: 0, right: innerWidth },
+            hit: top === element || element.contains(top),
+          };
+        };
+        const beforePosition = await target.evaluate(geometry);
+        // This is explicit test browsing, before the operation baseline. A
+        // click must not first auto-scroll an off-screen target into view.
+        await target.scrollIntoViewIfNeeded();
+        await settle();
+        const positioned = await target.evaluate(geometry);
+        item.explicitPositioning ??= [];
+        item.explicitPositioning.push({
+          label,
+          before: beforePosition,
+          after: positioned,
+        });
+        assert.ok(
+          positioned.target.top >= positioned.viewport.top - 1 &&
+            positioned.target.bottom <= positioned.viewport.bottom + 1 &&
+            positioned.target.left >= positioned.viewport.left - 1 &&
+            positioned.target.right <= positioned.viewport.right + 1,
+          `${label}: target is fully visible before baseline`,
+        );
+        assert.equal(
+          positioned.hit,
+          true,
+          `${label}: target hit-test before baseline`,
+        );
+      }
+      await settle();
+      const before = await snapshot(anchor);
+      await action();
+      await settle();
+      const after = await snapshot(anchor);
+      item.scrollStability ??= [];
+      item.scrollStability.push({ label, before, after, structural });
+      assert.ok(
+        Math.abs(after.windowScroll - before.windowScroll) <= 1,
+        `${label}: document scroll stable`,
+      );
+      if (!structural)
+        assert.ok(
+          Math.abs(after.scroll - before.scroll) <= 1,
+          `${label}: workspace scroll stable`,
+        );
+      if (rackTop && !structural)
+        assert.ok(
+          Math.abs(after.rackTop - before.rackTop) <= 2,
+          `${label}: operation row does not push the rack`,
+        );
+      if (anchor && before.anchorTop !== null && after.anchorTop !== null)
+        assert.ok(
+          Math.abs(after.anchorTop - before.anchorTop) <= 2,
+          `${label}: surviving rack tile retains its viewport anchor`,
+        );
+      await assertPhysical(label);
+    };
+    const expectedSort = (tiles, mode) =>
+      [...tiles]
+        .sort((left, right) => {
+          if (mode === 'dealt') return 0;
+          const value = (left.value ?? 99) - (right.value ?? 99);
+          const color = (left.color ?? 'z').localeCompare(right.color ?? 'z');
+          return mode === 'value' ? value || color : color || value;
+        })
+        .map((tile) => tile.id);
+    const assertTileVisible = async (target, label) => {
+      await settle();
+      const visible = await target.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        const clip = {
+          left: 0,
+          top: 0,
+          right: innerWidth,
+          bottom: innerHeight,
+        };
+        const clippers = [];
+        for (
+          let ancestor = element.parentElement;
+          ancestor;
+          ancestor = ancestor.parentElement
+        ) {
+          const style = getComputedStyle(ancestor);
+          // display: contents has no principal box, so its declared overflow
+          // cannot clip descendants; continue to the actual boxed ancestors.
+          if (style.display === 'contents') continue;
+          const clipX = /auto|scroll|hidden|clip/.test(style.overflowX);
+          const clipY = /auto|scroll|hidden|clip/.test(style.overflowY);
+          if (!clipX && !clipY) continue;
+          const bounds = ancestor.getBoundingClientRect();
+          const scaleX = ancestor.offsetWidth
+            ? bounds.width / ancestor.offsetWidth
+            : 1;
+          const scaleY = ancestor.offsetHeight
+            ? bounds.height / ancestor.offsetHeight
+            : 1;
+          const client = {
+            left: bounds.left + ancestor.clientLeft * scaleX,
+            top: bounds.top + ancestor.clientTop * scaleY,
+            right:
+              bounds.left +
+              (ancestor.clientLeft + ancestor.clientWidth) * scaleX,
+            bottom:
+              bounds.top +
+              (ancestor.clientTop + ancestor.clientHeight) * scaleY,
+          };
+          if (clipX) {
+            clip.left = Math.max(clip.left, client.left);
+            clip.right = Math.min(clip.right, client.right);
+          }
+          if (clipY) {
+            clip.top = Math.max(clip.top, client.top);
+            clip.bottom = Math.min(clip.bottom, client.bottom);
+          }
+          clippers.push({
+            className: ancestor.className,
+            clipX,
+            clipY,
+            client,
+          });
+        }
+        const width = Math.max(
+          0,
+          Math.min(rect.right, clip.right) - Math.max(rect.left, clip.left),
+        );
+        const height = Math.max(
+          0,
+          Math.min(rect.bottom, clip.bottom) - Math.max(rect.top, clip.top),
+        );
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        const hit = (px, py) => {
+          const top = document.elementFromPoint(px, py);
+          return top === element || element.contains(top);
+        };
+        return {
+          tileId: element.dataset.tileId,
+          selected: element.dataset.selected === 'true',
+          rect: {
+            left: rect.left,
+            top: rect.top,
+            right: rect.right,
+            bottom: rect.bottom,
+            width: rect.width,
+            height: rect.height,
+          },
+          clip,
+          visibleWidth: width,
+          visibleHeight: height,
+          centerUnobscured: hit(x, y),
+          touchSquareUnobscured: [
+            [-21.5, -21.5],
+            [21.5, -21.5],
+            [-21.5, 21.5],
+            [21.5, 21.5],
+            [0, 0],
+          ].every(([dx, dy]) => hit(x + dx, y + dy)),
+          clippers,
+        };
+      });
+      item.tileVisibility ??= [];
+      item.tileVisibility.push({ label, ...visible });
+      const topTolerance = visible.selected ? 2 : 0.5;
+      assert.ok(
+        visible.rect.top >= visible.clip.top - topTolerance &&
+          visible.rect.bottom <= visible.clip.bottom + 0.5 &&
+          visible.rect.left >= visible.clip.left - 0.5 &&
+          visible.rect.right <= visible.clip.right + 0.5,
+        `${label}: the whole tile fits its actual overflow viewport (only selected -2px lift may cross the top edge): ${JSON.stringify(visible)}`,
+      );
+      assert.equal(
+        visible.centerUnobscured,
+        true,
+        `${label}: tile center is unobscured`,
+      );
+      assert.ok(
+        visible.visibleWidth >= 44 && visible.visibleHeight >= 44,
+        `${label}: actual visible touch region is at least 44px on each axis`,
+      );
+      assert.equal(
+        visible.touchSquareUnobscured,
+        true,
+        `${label}: centered 44px touch square is unobscured`,
+      );
+    };
+    await resize(phone, 390, 640, true);
+    await moveInteractionOrb();
+    let arranged, conservedDraft;
+    if (continueStabilityTable) {
+      // Restore the same fixture presentation as setup, without re-running
+      // the hash-bound sorting/drag/three-viewport checks completed earlier.
+      await ui()
+        .getByRole('button', { name: `牌架 ${rackSize}`, exact: true })
+        .click();
+      await sort().selectOption('value');
+      arranged = await rackIds();
+      conservedDraft = await draft();
+    } else {
+      for (const mode of ['color', 'value', 'dealt']) {
+        await ui()
+          .getByRole('button', { name: `牌架 ${rackSize}`, exact: true })
+          .click();
+        await sort().selectOption(mode);
+        assert.deepEqual(
+          await rackIds(),
+          expectedSort(originalView.gameView.self.rack, mode),
+          `${mode}: real rack sorting`,
+        );
+        await assertPhysical(`${mode} sorting`);
+      }
+      await sort().selectOption('value');
+      const initialOrder = await rackIds();
+      const movedId = initialOrder[1];
+      const movedTile = ui().locator(
+        `[data-own-rack] button[data-tile-id="${movedId}"]`,
+      );
+      await movedTile.focus();
+      await movedTile.press('Alt+ArrowLeft');
+      const customOrder = [movedId, initialOrder[0], ...initialOrder.slice(2)];
+      assert.deepEqual(
+        await rackIds(),
+        customOrder,
+        'Alt direction moves one local physical tile',
+      );
+      await assertPhysical('custom local ordering');
+      for (const name of ['撤销', '重置', '更多', '取消选牌', '整理牌架']) {
+        const button = ui().getByRole('button', { name, exact: true });
+        assert.equal(
+          await button.locator('svg[aria-hidden="true"]').count(),
+          1,
+          `${name}: visual icon and accessible action name`,
+        );
+      }
+      // Verify drag in explicit arrangement mode with two visible first-row tiles.
+      await ui().getByRole('button', { name: '整理牌架', exact: true }).click();
+      const first = await ui()
+        .locator(`[data-own-rack] button[data-tile-id="${customOrder[0]}"]`)
+        .boundingBox();
+      const second = await ui()
+        .locator(`[data-own-rack] button[data-tile-id="${customOrder[1]}"]`)
+        .boundingBox();
+      assert.ok(first && second);
+      await phone.mouse.move(
+        second.x + second.width / 2,
+        second.y + second.height / 2,
+      );
+      await phone.mouse.down();
+      await phone.mouse.move(first.x + 2, first.y + first.height / 2, {
+        steps: 8,
+      });
+      await phone.mouse.up();
+      await ui().getByRole('button', { name: '整理牌架', exact: true }).click();
+      arranged = await rackIds();
+      assert.deepEqual(
+        arranged,
+        initialOrder,
+        'real pointer drag changes local order without selecting a play tile',
+      );
+      assert.equal(
+        await ui().locator('[data-own-rack] [data-selected="true"]').count(),
+        0,
+      );
+      await assertPhysical('pointer local ordering');
+      conservedDraft = await draft();
+      for (const [width, height] of [
+        [320, 568],
+        [390, 640],
+        [650, 390],
+        [667, 375],
+        [720, 390],
+        [844, 390],
+      ]) {
+        await resize(phone, width, height, true);
+        await moveInteractionOrb();
+        await ui()
+          .getByRole('button', { name: `牌架 ${rackSize}`, exact: true })
+          .click();
+        const lastId = arranged.at(-1);
+        const last = ui().locator(
+          `[data-own-rack] button[data-tile-id="${lastId}"]`,
+        );
+        await last.evaluate((element) =>
+          element.scrollIntoView({
+            block: 'end',
+            inline: 'nearest',
+            behavior: 'instant',
+          }),
+        );
+        await last.scrollIntoViewIfNeeded();
+        await assertTileVisible(last, `last-before-select-${width}x${height}`);
+        await stable(
+          `select-last-${width}x${height}`,
+          () => last.click(),
+          lastId,
+        );
+        assert.equal(await last.getAttribute('aria-pressed'), 'true');
+        await assertTileVisible(last, `last-selected-${width}x${height}`);
+        await stable(
+          `more-open-${width}x${height}`,
+          () => ui().getByRole('button', { name: '更多', exact: true }).click(),
+          lastId,
+        );
+        await stable(
+          `more-close-${width}x${height}`,
+          () =>
+            ui()
+              .getByRole('dialog')
+              .getByRole('button', { name: '继续整理', exact: true })
+              .click(),
+          lastId,
+        );
+        await stable(
+          `cancel-last-${width}x${height}`,
+          () =>
+            ui().getByRole('button', { name: '取消选牌', exact: true }).click(),
+          lastId,
+        );
+        await assertTileVisible(last, `last-after-cancel-${width}x${height}`);
+        await measure(phone, `stability-rack-${width}x${height}`, 'player');
+        assert.deepEqual(
+          await rackIds(),
+          arranged,
+          'viewport resize retains local order',
+        );
+        assert.deepEqual(
+          await draft(),
+          conservedDraft,
+          'viewport resize and selecting retain exact draft',
+        );
+      }
+    }
+    // Reserved drop/tool rows cannot shift the rack when an existing group is selected.
+    await resize(phone, 390, 640, true);
+    await ui().getByRole('button', { name: '桌面', exact: true }).click();
+    await stable(
+      'table-selection-reserves-drop-row',
+      () => select('red-06-a', '[data-draft-table]'),
+      undefined,
+      {
+        target: ui().locator(
+          '[data-draft-table] button[data-tile-id="red-06-a"]',
+        ),
+      },
+    );
+    await stable(
+      'group-menu-reserves-tool-row',
+      () =>
+        ui().getByRole('button', { name: '第 2 组操作', exact: true }).click(),
+      undefined,
+      {
+        target: ui().getByRole('button', { name: '第 2 组操作', exact: true }),
+      },
+    );
+    await stable('group-menu-close', () =>
+      ui()
+        .getByRole('dialog')
+        .getByRole('button', { name: '关闭面板', exact: true })
+        .click(),
+    );
+    await stable('table-selection-cancel', () =>
+      ui().getByRole('button', { name: '取消选牌', exact: true }).click(),
+    );
+    // Creating a group changes table height; a surviving rack tile is the user anchor.
+    await ui()
+      .getByRole('button', { name: `牌架 ${rackSize}`, exact: true })
+      .click();
+    // Hide an interior tile immediately after the first tile. A clamped
+    // AltLeft must not move the first tile across that hidden cache entry.
+    const createId = arranged[1];
+    const survivor = arranged[0];
+    const completeRackCache = await rackCache();
+    assert.deepEqual(
+      completeRackCache.order.ids,
+      arranged,
+      'the cache includes every authorized rack tile before drafting',
+    );
+    await select(createId, '[data-own-rack]');
+    await stable(
+      'new-group-keeps-rack-anchor',
+      () => ui().getByRole('button', { name: '建立新组', exact: true }).click(),
+      survivor,
+      { structural: true },
+    );
+    assert.equal(
+      await ui()
+        .locator(`[data-draft-table] [data-tile-id="${createId}"]`)
+        .count(),
+      1,
+    );
+    assert.deepEqual(
+      await rackIds(),
+      arranged.filter((id) => id !== createId),
+    );
+    const changedDraft = await draft();
+    assert.deepEqual(
+      await rackCache(),
+      completeRackCache,
+      'drafting an interior tile keeps its original complete-cache position',
+    );
+    const visibleOrder = arranged.filter((id) => id !== createId);
+    for (const [id, key] of [
+      [visibleOrder[0], 'Alt+ArrowLeft'],
+      [visibleOrder.at(-1), 'Alt+ArrowRight'],
+    ]) {
+      const edgeTile = ui().locator(
+        `[data-own-rack] button[data-tile-id="${id}"]`,
+      );
+      await edgeTile.scrollIntoViewIfNeeded();
+      await assertTileVisible(edgeTile, `hidden-draft-boundary-${key}`);
+      await edgeTile.press(key);
+      await settle();
+      const afterCache = await rackCache();
+      item.rackBoundaryKeys ??= [];
+      item.rackBoundaryKeys.push({
+        key,
+        tileId: id,
+        hiddenTileId: createId,
+        before: completeRackCache,
+        after: afterCache,
+      });
+      assert.deepEqual(
+        afterCache,
+        completeRackCache,
+        `${key}: clamped boundary preserves all cached IDs, including the hidden draft tile`,
+      );
+      assert.deepEqual(
+        await rackIds(),
+        visibleOrder,
+        `${key}: visible order stays`,
+      );
+      assert.deepEqual(
+        await draft(),
+        changedDraft,
+        `${key}: private draft stays`,
+      );
+      await assertPhysical(`hidden draft ${key}`);
+    }
+    await ui().getByRole('button', { name: '撤销', exact: true }).click();
+    assert.deepEqual(
+      await draft(),
+      conservedDraft,
+      'undo returns the hidden tile',
+    );
+    assert.deepEqual(
+      await rackIds(),
+      arranged,
+      'undo restores the interior tile at its exact original rack position',
+    );
+    assert.deepEqual(await rackCache(), completeRackCache);
+    await assertPhysical('hidden draft boundary undo');
+    // Recreate the same draft so the existing refresh/reset checks continue
+    // from their original scenario, without adding another case.
+    await select(createId, '[data-own-rack]');
+    await ui().getByRole('button', { name: '建立新组', exact: true }).click();
+    assert.deepEqual(
+      await draft(),
+      changedDraft,
+      'the same private draft resumes',
+    );
+    item.checks.push(
+      'With an interior rack tile hidden in the private draft, first-tile AltLeft and last-tile AltRight preserve the entire scoped rack cache, visible order, draft and server revision; undo returns the hidden tile to its original position.',
+    );
+    const iframeBefore = surface(phone);
+    await phone.reload();
+    await phone.locator('iframe[data-player-frame]').waitFor();
+    await until(
+      () => surface(phone) !== phone && surface(phone) !== iframeBefore,
+      'refresh reattaches the actual player document',
+    );
+    await ui().locator('[data-turn-workshop]').waitFor();
+    assert.deepEqual(
+      await draft(),
+      changedDraft,
+      'refresh restores the authorized private draft',
+    );
+    assert.deepEqual(
+      await rackIds(),
+      arranged.filter((id) => id !== createId),
+      'refresh keeps the custom surviving order',
+    );
+    assert.equal(
+      await sort().inputValue(),
+      'value',
+      'refresh preserves sort choice',
+    );
+    await ui().getByRole('button', { name: '重置', exact: true }).click();
+    assert.deepEqual(
+      await draft(),
+      conservedDraft,
+      'reset restores exact original physical draft',
+    );
+    assert.deepEqual(
+      await rackIds(),
+      arranged,
+      'reset retains the presentation order',
+    );
+    await assertPhysical('refresh/reset');
+    // Use the desktop player's real mode switch; it retains the same iframe.
+    await metrics.get(phone).send('Emulation.setUserAgentOverride', {
+      userAgent:
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+      userAgentMetadata: {
+        brands: [{ brand: 'Chromium', version: '130' }],
+        platform: 'Windows',
+        platformVersion: '10.0.0',
+        architecture: 'x86',
+        model: '',
+        mobile: false,
+        bitness: '64',
+        wow64: false,
+      },
+    });
+    await resize(phone, 1280, 720);
+    await phone.reload();
+    await phone.locator('iframe[data-player-frame]').waitFor();
+    await until(
+      () => surface(phone) !== phone,
+      'desktop player iframe attaches',
+    );
+    await ui().locator('[data-turn-workshop]').waitFor();
+    const desktopIframe = surface(phone);
+    await measure(phone, 'stability-desktop-portrait-1280x720', 'player');
+    await phone.locator('.player-frame__display').click();
+    await until(
+      () =>
+        ui().evaluate(
+          () => document.documentElement.dataset.playerDisplay === 'wide',
+        ),
+      'actual wide mode applies',
+    );
+    assert.equal(
+      surface(phone),
+      desktopIframe,
+      'orientation does not recreate the authorized player iframe',
+    );
+    assert.deepEqual(await rackIds(), arranged);
+    assert.deepEqual(await draft(), conservedDraft);
+    await measure(phone, 'stability-desktop-wide-1280x720', 'player');
+    await resize(phone, 3840, 2160);
+    assert.deepEqual(await rackIds(), arranged);
+    await measure(phone, 'stability-desktop-wide-3840x2160', 'player');
+    await resize(phone, 1280, 720);
+    await ui().getByRole('button', { name: '摸牌结束', exact: true }).click();
+    await until(
+      async () =>
+        (await view(players[0].token)).gameView.turnSeat !== players[0].seatId,
+      'real draw saves and changes turn',
+    );
+    await until(
+      async () => (await ui().locator('[data-turn-workshop]').count()) === 0,
+      'saved draw renders waiting rack',
+    );
+    const drawnView = await view(players[0].token);
+    const drawnId = drawnView.gameView.self.rack.find(
+      (tile) => !arranged.includes(tile.id),
+    ).id;
+    assert.deepEqual(
+      await rackIds(),
+      [...arranged, drawnId],
+      'new drawn tile appends without rearranging survivors',
+    );
+    assert.equal(
+      await sort().inputValue(),
+      'value',
+      'waiting rack retains sorting choice',
+    );
+    assert.equal(
+      await ui().locator('[data-submit-turn]').count(),
+      0,
+      'waiting player has no submit action',
+    );
+    assert.equal(
+      await ui().locator('[data-own-rack] button[data-tile-id]').count(),
+      rackSize + 1,
+      'waiting rack retains accessible local arrangement tiles',
+    );
+    await ui().locator('[data-own-rack] button[data-tile-id]').first().click();
+    assert.equal(
+      await ui().locator('[data-own-rack] [data-selected="true"]').count(),
+      0,
+      'waiting tile click cannot select a play action',
+    );
+    const publicLatest = (await view()).gameView.latest;
+    assert.deepEqual(
+      publicLatest,
+      drawnView.gameView.latest,
+      'saved draw has one public latest-action projection',
+    );
+    const latest = ui().locator('[data-latest-saved-action]');
+    assert.equal(
+      await latest.locator(':scope > span:not(.rk-saved-label)').innerText(),
+      publicLatest.text,
+      'visible saved result matches the actual public latest text',
+    );
+    assert.equal(
+      publicLatest.actor,
+      players[0].seatId,
+      'saved draw names the acting seat',
+    );
+    assert.equal(
+      await latest.locator(':scope > strong').innerText(),
+      drawnView.seats.find((seat) => seat.id === publicLatest.actor).name,
+      'visible saved actor matches the acting player',
+    );
+    const savedLabel = latest.locator('.rk-saved-label');
+    assert.equal(
+      await savedLabel.isVisible(),
+      true,
+      'saved-result marker is visible to the player',
+    );
+    assert.equal(await savedLabel.innerText(), '已保存');
+    assert.ok(
+      await savedLabel.evaluate(
+        (element) => parseFloat(getComputedStyle(element).fontSize) >= 16,
+      ),
+      'visible saved-result marker is at least 16px',
+    );
+    const waitingDraftBefore = await draft();
+    await sort().selectOption('dealt');
+    const waitingOrder = await rackIds();
+    assert.deepEqual(
+      waitingOrder,
+      drawnView.gameView.self.rack.map((tile) => tile.id),
+      'waiting player can sort locally',
+    );
+    await ui().getByRole('button', { name: '整理牌架', exact: true }).click();
+    const waitingMoved = waitingOrder[1];
+    await ui()
+      .locator(`[data-own-rack] button[data-tile-id="${waitingMoved}"]`)
+      .press('Alt+ArrowLeft');
+    await ui().getByRole('button', { name: '整理牌架', exact: true }).click();
+    const waitingCustom = [
+      waitingMoved,
+      waitingOrder[0],
+      ...waitingOrder.slice(2),
+    ];
+    assert.deepEqual(
+      await rackIds(),
+      waitingCustom,
+      'waiting player can arrange locally',
+    );
+    assert.deepEqual(
+      await draft(),
+      waitingDraftBefore,
+      'waiting sorting cannot alter prior turn draft',
+    );
+    const afterLocalSort = await view(players[0].token);
+    assert.equal(
+      afterLocalSort.revision,
+      drawnView.revision,
+      'waiting sorting does not submit or save an action',
+    );
+    await phone.reload();
+    await phone.locator('iframe[data-player-frame]').waitFor();
+    await until(() => surface(phone) !== phone, 'waiting refresh reattaches');
+    await ui().locator('[data-own-rack]').waitFor();
+    assert.deepEqual(
+      await rackIds(),
+      waitingCustom,
+      'waiting refresh restores local order',
+    );
+    for (let index = 1; index < playerCount; index++) {
+      const player = players[index];
+      const current = await view(player.token);
+      assert.equal(
+        current.gameView.turnSeat,
+        player.seatId,
+        'actual turn order reaches each real seat',
+      );
+      const socket = await connect(player.token);
+      await send(socket, player.token, {
+        type: 'game',
+        decisionId: current.decisionId,
+        action: { type: 'draw' },
+      });
+    }
+    await ui().locator('[data-turn-workshop]').waitFor();
+    assert.deepEqual(
+      await rackIds(),
+      waitingCustom,
+      'next own turn keeps waiting custom order and new tile',
+    );
+    assert.equal(await sort().inputValue(), 'dealt');
+    const nextTurnDraft = await draft();
+    await send(hostSocket, hostToken, { type: 'pause' });
+    await ui().locator('.rk-notice').waitFor();
+    const pausedView = await view(players[0].token);
+    await sort().selectOption('color');
+    const pausedOrder = await rackIds();
+    assert.deepEqual(
+      pausedOrder,
+      expectedSort(pausedView.gameView.self.rack, 'color'),
+      'paused rack can sort locally',
+    );
+    const pausedTile = ui()
+      .locator('[data-own-rack] button[data-tile-id]')
+      .nth(1);
+    assert.equal(await pausedTile.getAttribute('aria-disabled'), 'true');
+    await pausedTile.scrollIntoViewIfNeeded();
+    await assertTileVisible(pausedTile, 'paused-tile-before-user-click');
+    const pausedBounds = await pausedTile.boundingBox();
+    assert.ok(pausedBounds, 'paused tile has a real page-coordinate target');
+    // aria-disabled deliberately gates play selection while retaining local
+    // keyboard arrangement. Send a real pointer click to verify that gate;
+    // Locator.click would stop at its own enabled check before reaching it.
+    await phone.mouse.click(
+      pausedBounds.x + pausedBounds.width / 2,
+      pausedBounds.y + pausedBounds.height / 2,
+    );
+    await settle();
+    assert.equal(
+      await ui().locator('[data-own-rack] [data-selected="true"]').count(),
+      0,
+      'paused tile cannot select a play action',
+    );
+    assert.deepEqual(
+      await rackIds(),
+      pausedOrder,
+      'paused click keeps local order',
+    );
+    assert.deepEqual(
+      await draft(),
+      nextTurnDraft,
+      'paused pointer click does not alter the private turn draft',
+    );
+    assert.equal(
+      (await view(players[0].token)).revision,
+      pausedView.revision,
+      'paused pointer click does not save an action',
+    );
+    const arrange = ui().getByRole('button', { name: '整理牌架', exact: true });
+    await arrange.click();
+    assert.equal(await arrange.getAttribute('aria-pressed'), 'true');
+    assert.equal(await pausedTile.getAttribute('aria-disabled'), 'false');
+    await pausedTile.press('Alt+ArrowLeft');
+    assert.deepEqual(
+      await rackIds(),
+      [pausedOrder[1], pausedOrder[0], ...pausedOrder.slice(2)],
+      'paused rack can rearrange locally',
+    );
+    await arrange.click();
+    assert.equal(await arrange.getAttribute('aria-pressed'), 'false');
+    assert.deepEqual(
+      await draft(),
+      nextTurnDraft,
+      'pause and local ordering preserve next turn draft',
+    );
+    assert.equal(
+      (await view(players[0].token)).revision,
+      pausedView.revision,
+      'paused presentation does not save an action',
+    );
+    await send(hostSocket, hostToken, { type: 'resume' });
+    await until(
+      async () => (await ui().locator('.rk-notice').count()) === 0,
+      'real host resume unlocks the same turn',
+    );
+    for (const [page, role] of [
+      [host, 'host'],
+      [publicPage, 'public'],
+    ]) {
+      assert.equal(await surface(page).locator('[data-own-rack]').count(), 0);
+      assert.equal(
+        await surface(page).locator('[data-submit-turn]').count(),
+        0,
+      );
+      assert.equal(
+        await surface(page).locator('.rk-seat').count(),
+        playerCount,
+      );
+      for (const [width, height] of [
+        [1280, 720],
+        [3840, 2160],
+      ]) {
+        await resize(page, width, height);
+        await measure(page, `stability-${role}-${width}x${height}`, role);
+      }
+    }
+    item.checks.push(
+      continueStabilityTable
+        ? `Actual ${playerCount}-seat continuation: earlier sorts, Alt/drag and 320/390/short-landscape rack checks are reused from the same ZIP/executable report in continuation. Explicitly positioned table/group controls and new-group anchor, refresh/private draft/desktop mode switch/4K, saved draw/new tile, waiting/next-own-turn ordering and paused local arrangement are exercised in this run; latest actor/result/save and host/public read-only projection are checked.`
+        : `Actual ${playerCount}-seat classic Rummikub: local color/value/dealt sorts, Alt rearrangement and pointer drag preserve physical tiles and server revision; last-tile selection, new group, more and reserved group controls retain the visible rack anchor at 320/390px and short landscape. Refresh/real desktop mode switch/4K retain private draft and local order. Saved draw appends one tile, waiting sorting survives refresh and all other real seats' draws into the next own turn; latest action names the actor/result/save, host/public remain read-only.`,
+    );
+  };
   const auditNavigation = async () => {
     const ui = () => surface(phone);
     const tableButton = () =>
@@ -1066,6 +2255,17 @@ for (const scenario of scenarios) {
     );
     assert.ok(hostToken);
     const hostSocket = await connect(hostToken);
+    if (entryOnly) {
+      await auditEntry(hostSocket, hostToken);
+      assert.deepEqual(evidence.errors, [], 'No production page errors');
+      assert.deepEqual(
+        evidence.externalRequests,
+        [],
+        'All runtime requests stay local',
+      );
+      item.result = 'passed';
+      continue;
+    }
     const privateStart = await view(players[0].token);
     assert.equal(privateStart.game.id, 'rummikub');
     assert.equal(privateStart.paused, true);
@@ -1337,6 +2537,17 @@ for (const scenario of scenarios) {
       continue;
     }
     await moveInteractionOrb();
+    if (stabilityOnly) {
+      await auditStability(hostSocket, hostToken);
+      assert.deepEqual(evidence.errors, [], 'No production page errors');
+      assert.deepEqual(
+        evidence.externalRequests,
+        [],
+        'All runtime requests stay local',
+      );
+      item.result = 'passed';
+      continue;
+    }
     if (
       !scenario.startsWith('finish') &&
       !(continueOpening && scenario === 'opening')
@@ -1377,7 +2588,10 @@ for (const scenario of scenarios) {
       ]) {
         await resize(page, width, height, role === 'player');
         await surface(page).locator('.rk-results').waitFor();
-        assert.equal(await surface(page).locator('.rk-result').count(), 4);
+        assert.equal(
+          await surface(page).locator('.rk-result').count(),
+          playerCount,
+        );
         assert.equal(
           await surface(page)
             .getByRole('button', { name: actionName, exact: true })
@@ -1503,9 +2717,14 @@ for (const scenario of scenarios) {
       await split
         .getByRole('button', { name: '第 2 组操作', exact: true })
         .click();
-      await split
+      const groupMenu = surface(phone).getByRole('dialog', {
+        name: '第 2 组操作',
+        exact: true,
+      });
+      await groupMenu
         .getByRole('button', { name: '从选中牌拆分', exact: true })
         .click();
+      await groupMenu.waitFor({ state: 'hidden' });
       await select('red-09-b', '[data-own-rack]');
       await surface(phone)
         .locator('.rk-meld')
