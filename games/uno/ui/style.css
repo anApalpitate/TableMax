@@ -37,6 +37,11 @@
     url('../../../assets/games/uno/table-v1.webp') center/cover,
     #e8dec5;
 }
+/* The player screen owns vertical scrolling; no second root gutter. */
+:root:has(.uno-screen--player) {
+  scrollbar-gutter: auto;
+  --interaction-orb-initial-y: 1;
+}
 .uno-screen .test-mode-badge {
   font-size: 16px;
 }
@@ -1566,7 +1571,6 @@
   }
   .uno-screen--player .uno-hand-section {
     padding-top: 6px;
-    padding-right: 60px;
   }
   .uno-screen--player .uno-hand-hint {
     display: none;
@@ -1807,12 +1811,6 @@
   }
 }
 
-@media (max-width: 479px) {
-  .uno-screen--player .uno-hand-section {
-    padding-right: 60px;
-  }
-}
-
 /* Keep the last rotated card inside the scrollable content bounds. */
 .uno-screen--player .uno-hand-scroll {
   margin-inline: 0;
@@ -1889,5 +1887,15 @@
   .uno-screen--player > .uno-latest {
     order: 4;
     margin-top: 0;
+  }
+}
+@media (max-width: 959px) and (orientation: portrait) {
+  :root:has(.uno-screen--player) {
+    background: #e8dec5 url('../../../assets/games/uno/table-v1.webp')
+      center/cover;
+  }
+  /* Keep the draggable interaction orb below the full-width scrolling surface. */
+  .uno-screen--player {
+    height: calc(100dvh - 64px);
   }
 }

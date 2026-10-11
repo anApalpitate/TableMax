@@ -39,6 +39,14 @@
 
 随后执行scripts/Maintain-Project.ps1 -Apply，实际 **10,322,446,955逻辑字节（9.614GiB）**，结果below-threshold，低于10GiB触发门槛，零追加删除；不为追求8GiB扩大清理。见 [维护实测](../../artifacts/maintenance/v1.0.6/avalon/maintenance-result.json)和 [日志](../../artifacts/maintenance/v1.0.6/avalon/maintenance-final.log)。当前43,563,681字节运行ZIP与清单、完整与定向验收图、13轮原生结果及SQLite证据、原素材／PCM、2012规则资料、源码冻结与24份原日志均保留；release仅当前ZIP／清单。最终ZIP哈希48d71a06…在清理后再次一致，NTFS物理节省不计入逻辑容量或包门禁。
 
+## 历史版本与生成副本续清理（2026-10-10）
+
+按用户本次明确要求核对旧版交付、打包阶段、已结束验证的程序／Chromium副本与隔离构建输出，保留当前交付、全部验收截图／报告、原素材、规则资料、正式存档及主工作区依赖／工具缓存。先完成[逐文件清单](../../artifacts/maintenance/v1.0.6/space-retirement/plan.json)与预览，再沿用工程空闲、当前ZIP／证据哈希、30分钟近期保护、路径／链接／嵌套仓库、完整目录指纹和共享互斥执行；隔离目录中指向主工作区缓存的四项由[链接保护](../../artifacts/maintenance/v1.0.6/space-retirement/link-exclusions.json)排除，未删除。
+
+[精确清理](../../artifacts/maintenance/v1.0.6/space-retirement/result.json)退役91项，共 **5,141,407,905字节**；两次被新工程进程安全中止，随后在空闲窗口沿未变清单继续。按8GiB目标将本次维护高水位显式设为8.01GiB、低水位8GiB，普通候选预览后再Apply，[维护清单](../../artifacts/maintenance/local-cleanup-20261010-051755-416-maintenance/cleanup.json)另退役7项 **435,066,954字节**。本轮合计 **5,576,474,859字节（约5.19GiB）**，不以同期其他任务的容量变动或NTFS压缩计算回收量。
+
+最终实测 **9,654,496,247逻辑字节（约8.99GiB）**，结果`candidates-exhausted`；323项近期／未知临时内容等保护跳过，1,760链接跳过，无嵌套仓库。未达到8GiB，不放宽近期、资料、存档和证据保护，也不等待近期目录到龄常驻轮询。约567MiB的旧Electron存档仍保留。release目录仅当前v1.0.6 ZIP与清单，当前哈希`6bb7a718…`及其[实际便携检查](../../artifacts/uno/validation/v106-build-update/results.json)保持；此前完整UNO验收所对应的`11c4e849…`同版包另保存在[原包及清单](../../artifacts/maintenance/v1.0.6/uno-ui/delivery-before-build-update/TableMax-1.0.6-win-x64.zip)，原通过结论不改写。旧生成副本的11处文档链接已改指退役结果，原文字结论与清单仍保留，见[链接修复](../../artifacts/maintenance/v1.0.6/space-retirement/link-repairs.json)。
+
 ## UNO v1.0.6 交互优化收尾（2026-10-10）
 
 最终ZIP的2／3／4／6人、手机／桌面、实际触控、特殊动作与旧版恢复通过后，工程进程退出，预览并清理release旧版副本 **41,686,696字节**，见[清单](../../artifacts/maintenance/local-cleanup-20261010-045052-195-releases/cleanup.json)。旧版已按原SHA保存到`artifacts/maintenance/v1.0.6/uno-ui/delivery-v1.0.5/`，原验收与原素材继续保留；本地release目录仅当前ZIP及清单。两份本轮近期生成阶段目录原样移入tmp，零删除／零容量节省，不作长期历史归档，见[移动记录](../../artifacts/maintenance/v1.0.6/uno-ui/stage-relocation.json)。
@@ -324,3 +332,9 @@ v1.0.5实际ZIP40,857,197字节／解压94,363,202字节，120MB硬上限与114M
 工程进程全部退出后，[既有维护入口](../../artifacts/maintenance/v1.0.6/rummikub-continuation/maintenance-final/result.json)预览／核验后退役四个已完成且登记通过的验证临时目录187,008,417字节，另清四项过期构建缓存439,621字节，共187,448,038字节；保留原成功与失败结论。首轮因文档在引用审计期间变化而中止，原记录保留，重新基于稳定文档预览后执行，未绕过任何保护。
 
 四个近期打包目录[完整迁至tmp](../../artifacts/maintenance/v1.0.6/rummikub-continuation/staging-relocation.json)，2,524文件953,861,157字节逐路径／大小／SHA一致，不作为删除量，也不绕过30分钟保护。首目录在完成哈希相等迁移后，报告数值汇总失败；核对已移动精确目标、修正汇总后续其余目录，记录恢复边界。release根目录只留当前运行ZIP与清单。07:23 UTC实测逻辑容量10,146,001,528字节（9.449GiB），低于10GiB高水位，`scripts/Maintain-Project.ps1 -Apply`追加删除0；未新增NTFS压缩，不以物理分配替代逻辑计量。
+
+## UNO右侧边界修复收尾（2026-10-11）
+
+[安全维护](../../artifacts/maintenance/v1.0.6/uno-edge-debug/maintenance-final/result.json)先预览再执行，退役7个已结束验证目录377,153,257字节、5项过期构建缓存2,589,518字节；逻辑体积超过10GiB后，退役5个到龄便携解压副本1,192,309,846字节。本轮合计 **1,572,052,621字节**，维护结束实测 **10,167,602,652逻辑字节（9.469GiB）**；安全候选耗尽，未达到8GiB，509项近期或未知内容继续保护，没有扩大删除。
+
+当前ZIP、逐文件清单、原资料、原素材、存档及新旧验收证据保留。四个近期打包目录经完整路径／大小／SHA-256核验原样移入tmp，零删除、零容量节省，见[移动记录](../../artifacts/maintenance/v1.0.6/uno-edge-debug/staging-relocation.json)。release目录仅保留当前v1.0.6运行ZIP与清单，原拉密验收包按原哈希保存在本轮delivery-before-change。

@@ -43,3 +43,9 @@
 [最终包布局与结算](../../../artifacts/uno/validation/bug-567-uno-final-layout/results.json)覆盖320px、390px、横屏、720p至4K、首末牌可操作、长按整理及小局／整场保存条不重叠，实际84.25秒／21截图。初次短屏保存条被长昵称挤出首屏，改为根布局正常流并在短屏置于摘要上方；后续截图发现结果容器仍压缩溢出，改为内容自然高度并添加不重叠断言后通过。未改变本地整理与稳定DOM。实体手机触控／听感及Safari仍待现场验收。
 
 最终包补齐[两人](../../../artifacts/uno/validation/bug-567-uno-layout-2/results.json)、[三人](../../../artifacts/uno/validation/bug-567-uno-layout-3/results.json)、[五人](../../../artifacts/uno/validation/bug-567-uno-layout-5/results.json)密集手牌与手机／电脑布局，各3截图、约12.2秒；四人两行摘要见上述事件与结算截图，六人覆盖完整尺寸矩阵。
+
+## 手牌右侧白边回归（2026-10-11）
+
+[旧实际包](../../../artifacts/uno/validation/edge-baseline-2-20261011/results.json)复现320px下手牌右端250px、内容右端310px，额外60px空位。检查增加根节点空槽与手牌内容边界断言，并专门启用390×844电脑指针模式，不能以触屏媒体查询代替电脑滚动条验证。最终两人初始手牌及六人密集手牌覆盖320×568、390×844、390×640、844×390，以及主机／公共屏720p至4K和100／125／150%显示比例，验证首末牌命中、排序及长按拖动。报告见[两人](../../../artifacts/uno/validation/edge-verified-2-20261011/results.json)、[六人](../../../artifacts/uno/validation/edge-verified-6-20261011/results.json)。
+
+宽度修复后的两项初验暴露浮球遮牌，已改为底部独立留位与新默认位置；随后两人检查把容器外已裁切的牌误判为可见，实际截图确认后增加真实滚动容器裁切边界。原失败报告保留，仅重跑受影响项。独立TypeScript探针初次缺少Vite与本地音频声明，补齐项目已有声明后通过。测试静音、隐藏、仅回环地址，实体手机与Safari未验。

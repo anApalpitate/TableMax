@@ -579,6 +579,27 @@ async function measure(page, label, role, geometry) {
     const hand = document
       .querySelector('.uno-hand-scroll')
       ?.getBoundingClientRect();
+    const screen = document.querySelector('.uno-screen--player');
+    const screenRect = screen?.getBoundingClientRect();
+    const handEdges =
+      screen && hand
+        ? {
+            rootGutter: getComputedStyle(document.documentElement)
+              .scrollbarGutter,
+            finePointer: matchMedia('(pointer: fine)').matches,
+            unusedRight: innerWidth - screenRect.right,
+            handRight: hand.right,
+            expectedRight:
+              screenRect.left +
+              screen.clientLeft +
+              screen.clientWidth -
+              parseFloat(getComputedStyle(screen).paddingRight),
+            sectionPaddingRight: parseFloat(
+              getComputedStyle(document.querySelector('.uno-hand-section'))
+                .paddingRight,
+            ),
+          }
+        : null;
     const intersect = (a, b) =>
       a &&
       b &&
@@ -597,9 +618,13 @@ async function measure(page, label, role, geometry) {
               el.matches('.uno-hand-card') && hand
                 ? {
                     left: Math.max(r.left, hand.left),
-                    top: Math.max(r.top, hand.top),
+                    top: Math.max(r.top, hand.top, screenRect?.top ?? 0),
                     right: Math.min(r.right, hand.right),
-                    bottom: Math.min(r.bottom, hand.bottom),
+                    bottom: Math.min(
+                      r.bottom,
+                      hand.bottom,
+                      screenRect?.bottom ?? innerHeight,
+                    ),
                   }
                 : r;
             return intersect(orb, target);
@@ -631,6 +656,7 @@ async function measure(page, label, role, geometry) {
         orbObscures,
       },
       handCount: document.querySelectorAll('.uno-hand-card').length,
+      handEdges,
       headings: elements
         .filter((el) => el.matches('h2'))
         .map((el) => ({
@@ -651,6 +677,22 @@ async function measure(page, label, role, geometry) {
     layout.scrollWidth <= layout.width + 1,
     `${label}: no horizontal document overflow`,
   );
+  if (layout.handEdges) {
+    assert.ok(
+      Math.abs(layout.handEdges.unusedRight) <= 1,
+      `${label}: player background reaches the viewport edge without an unused root gutter`,
+    );
+    assert.ok(
+      Math.abs(layout.handEdges.handRight - layout.handEdges.expectedRight) <=
+        1,
+      `${label}: hand viewport reaches the player's inner right edge`,
+    );
+    assert.equal(
+      layout.handEdges.sectionPaddingRight,
+      0,
+      `${label}: no obsolete orb gap beside the hand`,
+    );
+  }
   assert.deepEqual(
     layout.smallText,
     [],
@@ -1419,6 +1461,7 @@ async function uiCase(scenario, prepare) {
         : [
             [320, 568],
             [390, 844],
+            [390, 640],
             [844, 390],
           ];
     for (const [width, height] of phoneSizes) {
@@ -1453,6 +1496,27 @@ async function uiCase(scenario, prepare) {
         );
       }
     }
+    // The reported white strip is a desktop-player native scrollbar gutter;
+    // touch-only media checks cannot verify the fine-pointer path.
+    const pointerGeometry = await resize(phone, 390, 844, true);
+    await (
+      await cdp(phone)
+    ).send('Emulation.setTouchEmulationEnabled', {
+      enabled: false,
+    });
+    assert.equal(
+      await surface(phone).evaluate(
+        () => matchMedia('(pointer: fine)').matches,
+      ),
+      true,
+      'Desktop pointer path is active in the actual player game frame',
+    );
+    await measure(
+      phone,
+      'player-390x844-fine-pointer',
+      'player',
+      pointerGeometry,
+    );
     for (const [role, page] of [
       ['host', host],
       ['public', publicPage],

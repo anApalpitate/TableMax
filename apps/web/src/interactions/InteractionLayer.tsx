@@ -163,7 +163,11 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
   const surface = useInteractionSurface();
   const [blocked] = useInteractionPreference(role);
   const orbKey = `tablemax-interaction-orb-${role}`;
-  const [orb, setOrb] = useState(() => {
+  const [orb, setOrb] = useState<{
+    x: number;
+    y: number;
+    defaultPosition?: boolean;
+  }>(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(orbKey) ?? 'null');
       if (
@@ -179,7 +183,19 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
     } catch {
       // A missing preference uses the initial right-hand position.
     }
-    return { x: 1 - 38 / window.innerWidth, y: 0.67 };
+    const initialY = Number(
+      getComputedStyle(document.documentElement)
+        .getPropertyValue('--interaction-orb-initial-y')
+        .trim() || '0.67',
+    );
+    return {
+      x: 1 - 38 / window.innerWidth,
+      y:
+        Number.isFinite(initialY) && initialY >= 0 && initialY <= 1
+          ? initialY
+          : 0.67,
+      defaultPosition: true,
+    };
   });
   const [viewport, setViewport] = useState({
     width: window.innerWidth,
@@ -308,9 +324,19 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
       setShooting(slot.id);
     }
   }
+  const themedY = Number(
+    getComputedStyle(document.documentElement)
+      .getPropertyValue('--interaction-orb-initial-y')
+      .trim() || '0.67',
+  );
   const resting = clampInteractionOrb(
     orb.x * viewport.width,
-    orb.y * viewport.height,
+    (orb.defaultPosition &&
+    Number.isFinite(themedY) &&
+    themedY >= 0 &&
+    themedY <= 1
+      ? themedY
+      : orb.y) * viewport.height,
     viewport.width,
     viewport.height,
   );

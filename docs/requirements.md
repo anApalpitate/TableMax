@@ -217,7 +217,7 @@ TableMax 是供自己和朋友线下聚会使用的全数字桌游盒子。电�
 - 独立构建与组装须隔离输出、防止混入并发修改或旧产物，并记录模块版本、输入指纹及交付文件哈希。缓存命中不替代最终包的兼容、恢复、运行及压缩／解压双体积验收。
 - 本需求不自动实现游戏下载、安装、用户侧差分更新或外部插件；日常继续交付完整运行 ZIP 与逐文件清单，沿用当前版本规则。
 
-现状和模块边界见 [工程结构](reference/architecture.md#独立构建与模块边界)，增量与组装方法见 [开发环境](reference/development.md#增量构建与分块组装需求)，完成范围见 [任务索引](tasks/README.md#游戏解耦与增量构建打包已实现)，实际同包结果见 [验收](reference/acceptance.md)。
+现状和模块边界见 [工程结构](reference/architecture.md#独立构建与模块边界)，增量与组装方法见 [开发环境](reference/development.md#增量构建与分块组装需求)，完成范围见 [实施归档](archive/completed-tasks-2026-10-10.md#游戏解耦与增量构建打包已实现)，实际同包结果见 [验收](reference/acceptance.md)。
 
 ### 6.3 建议的源码组织
 
