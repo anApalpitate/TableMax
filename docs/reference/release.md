@@ -26,7 +26,7 @@ games/v1.0.6/<gameId>/<variantId或default>/index.html
 
 已准备 `.github/workflows/pages.yml`，仅手动触发，要求输入 `PUBLISH_TABLEMAX`；没有 push、定时或 Release 自动触发器。本次已获明确发布授权：核对本地清单及历史目录，将已验证的纯静态目录提交到 `gh-pages`，配置 Pages 使用 GitHub Actions，再手动部署，完成线上核验前不记为发布成功。整个站点不超过 [Pages 的1GB限制](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)，累计历史文件也计入；部署权限与环境按 [官方工作流说明](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。私钥、存档和本地审计永不上传。
 
-部署后执行 `pnpm release:github -- --publish --replace-draft --notes=<说明> --devkit=<已验工具包> --pages-manifest=<已审站点清单>`；入口默认拒绝发布，且先核对实际 Pages 每个文件的公开字节，再只上传 EXE、source ZIP、作者工具包。`--replace-draft`只用于本次已授权的既有草稿替换，保留的 v1.0.6 标签指向历史提交，须明确核对草稿、标签及实际发布源码映射；不得为了通过旧标签门禁强推标签或隐瞒差异。源码、EXE和实际 Pages 都通过验收后才能恢复发布。
+部署后执行 `pnpm release:github -- --publish --replace-draft --draft-id=409577467 --notes=<说明> --devkit=<已验工具包> --pages-manifest=<已审站点清单>`；入口默认拒绝发布，且先核对实际 Pages 每个文件的公开字节，再只上传 EXE、source ZIP、作者工具包。`--replace-draft`只用于本次已授权的既有草稿替换，保留的 v1.0.6 标签指向历史提交，须明确核对草稿、标签及实际发布源码映射；不得为了通过旧标签门禁强推标签或隐瞒差异。源码、EXE和实际 Pages 都通过验收后才能恢复发布。
 
 本轮新旧目录通过 `node --import tsx tools/release/prepare-pages-history.mjs --current=<当前包目录> --previous=<原发行目录> --previous-release=<原Release审计> --out=<全新准备目录>` 合并，验证原线上附件摘要并重新签名联合目录；相同发行及依赖的离线包优先保留原已发布字节，当前浏览入口只列每种玩法的首个发行。`.nojekyll`只作为部署标记，由Git树核验，不要求它在Pages提供下载。若本轮已有全部公开文件的真实大小／哈希证明，可加 `--pages-proof=<证明>` 复用：入口要求证明不超过一小时、逐文件匹配当前清单、远端 `gh-pages` 提交不变，并再次读取可更新的签名目录；无证明时最多四个并发请求重新核验，不能用本地回环结果代替。
 

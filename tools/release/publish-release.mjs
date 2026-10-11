@@ -69,8 +69,16 @@ assert.ok(
 );
 let previous;
 if (replaceDraft) {
+  const draftId = process.argv
+    .find((arg) => arg.startsWith('--draft-id='))
+    ?.slice(11);
+  assert.match(
+    draftId ?? '',
+    /^[0-9]+$/,
+    'Provide the reviewed existing draft ID with --draft-id=<id>',
+  );
   previous = JSON.parse(
-    await run('gh', ['api', `repos/${repo}/releases/tags/${tag}`]),
+    await run('gh', ['api', `repos/${repo}/releases/${draftId}`]),
   );
   assert.equal(
     previous.draft,
