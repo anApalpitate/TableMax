@@ -26,6 +26,11 @@ const unitScopes = {
     'game:uno',
   ],
   'apps/server/src/game-packages/store.test.ts': ['shared', 'tooling'],
+  'apps/server/src/game-packages/preinstalled.test.ts': [
+    'box',
+    'shared',
+    'tooling',
+  ],
   'apps/server/src/game-packages/service-integration.test.ts': [
     'box',
     'shared',

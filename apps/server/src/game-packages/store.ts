@@ -14,6 +14,7 @@ import {
 } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { randomUUID, type KeyLike } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
 import type {
   GameRelease,
   InstallIndex,
@@ -201,6 +202,103 @@ export class PackageStore {
     );
     return releaseId;
   }
+  /** Local signed full-distribution payload. Never changes an existing selection. */
+  async importPreinstalled(
+    directory: string,
+    progress?: () => void,
+  ): Promise<string[]> {
+    const source = resolve(directory);
+    if (!existsSync(source)) return [];
+    const readLocal = (path: string): Buffer => {
+      let cursor = resolve(path);
+      for (;;) {
+        if (existsSync(cursor) && lstatSync(cursor).isSymbolicLink())
+          throw new Error('preinstalled-link-rejected');
+        const parent = dirname(cursor);
+        if (parent === cursor) break;
+        cursor = parent;
+      }
+      if (!lstatSync(path).isFile())
+        throw new Error('invalid-preinstalled-file');
+      return readFileSync(path);
+    };
+    if (
+      readdirSync(source).sort().join(',') !==
+      'blobs,bootstrap.json,catalog.json'
+    )
+      throw new Error('extra-preinstalled-file');
+    const envelope = JSON.parse(
+      readLocal(join(source, 'catalog.json')).toString(),
+    ) as SignedCatalog;
+    const catalog = verifyCatalog(envelope, this.options.publicKey);
+    const bootstrap = JSON.parse(
+      readLocal(join(source, 'bootstrap.json')).toString(),
+    ) as { schemaVersion: number; releaseIds: string[] };
+    if (
+      Object.keys(bootstrap).sort().join(',') !== 'releaseIds,schemaVersion' ||
+      bootstrap.schemaVersion !== 1 ||
+      !Array.isArray(bootstrap.releaseIds) ||
+      bootstrap.releaseIds.length === 0 ||
+      new Set(bootstrap.releaseIds).size !== bootstrap.releaseIds.length ||
+      bootstrap.releaseIds.some(
+        (id) => typeof id !== 'string' || !/^[a-f0-9]{64}$/.test(id),
+      )
+    )
+      throw new Error('invalid-preinstalled-bootstrap');
+    const releases = bootstrap.releaseIds.map((id) => {
+      const release = catalog.releases.find(
+        (release) => release.releaseId === id,
+      );
+      if (!release) throw new Error('unknown-preinstalled-release');
+      return release;
+    });
+    if (new Set(releases.map(releaseKey)).size !== releases.length)
+      throw new Error('duplicate-preinstalled-variant');
+    const receipt = join(
+      this.root,
+      '.preinstalled',
+      sha256(canonical(bootstrap)) + '.json',
+    );
+    const completed =
+      existsSync(receipt) &&
+      this.readSafe(receipt).toString() === canonical(bootstrap);
+    const closure = new Set(
+      releases.flatMap((release) => [release.code, ...release.resources]),
+    );
+    const expected = [...closure].map((id) => `${id}.zip`).sort();
+    const actual = readdirSync(join(source, 'blobs')).sort();
+    if (actual.join(',') !== expected.join(','))
+      throw new Error('invalid-preinstalled-closure');
+    const archives = new Map<string, Buffer>();
+    for (const id of closure) {
+      const blob = catalog.blobs.find((blob) => blob.id === id)!;
+      const path = join(source, 'blobs', `${id}.zip`);
+      if (lstatSync(path).size !== blob.archiveBytes)
+        throw new Error('archive-hash-mismatch');
+      const bytes = readLocal(path);
+      if (sha256(bytes) !== blob.archiveSha256)
+        throw new Error('archive-hash-mismatch');
+      archives.set(id, bytes);
+      progress?.();
+    }
+    if (this.catalog.releases.length === 0) this.setCatalog(envelope);
+    for (const release of releases) {
+      if (
+        (!completed || this.index.releases[release.releaseId]) &&
+        !this.resolveModule(release.releaseId)
+      )
+        await this.run(
+          release.releaseId,
+          async (blob) => archives.get(blob.id)!,
+          catalog,
+          true,
+        );
+      progress?.();
+    }
+    this.ensureDirectory(dirname(receipt));
+    this.atomicJson(receipt, bootstrap);
+    return releases.map((release) => release.releaseId);
+  }
   install(releaseId: string): Promise<void> {
     return this.run(releaseId, (blob) => this.download(blob));
   }
@@ -248,6 +346,7 @@ export class PackageStore {
     releaseId: string,
     source: (blob: PackageBlob) => Promise<Buffer>,
     catalog = this.catalog,
+    preserveSelection = false,
   ): Promise<void> {
     const current = this.operations.get(releaseId);
     if (current) return current;
@@ -326,7 +425,9 @@ export class PackageStore {
         const next = structuredClone(this.index);
         for (const blob of blobs) next.blobs[blob.id] = blob;
         next.releases[releaseId] = release;
-        next.selected[releaseKey(release)] = releaseId;
+        const key = releaseKey(release);
+        if (!preserveSelection || !next.selected[key])
+          next.selected[key] = releaseId;
         this.options.fault?.('before-journal');
         this.atomicJson(join(this.root, '.transactions', txn + '.json'), {
           gameId: release.gameId,
@@ -349,10 +450,10 @@ export class PackageStore {
                 blob.id + '-' + txn,
               );
               this.ensureDirectory(dirname(quarantine));
-              renameSync(target, quarantine);
-              renameSync(join(stage, blob.id), target);
+              await this.renameInstalled(target, quarantine);
+              await this.renameInstalled(join(stage, blob.id), target);
             }
-          } else renameSync(join(stage, blob.id), target);
+          } else await this.renameInstalled(join(stage, blob.id), target);
         }
         this.options.fault?.('before-index');
         this.commitIndex(next);
@@ -384,6 +485,27 @@ export class PackageStore {
   }
   private checkCancelled(id: string): void {
     if (this.cancelled.has(id)) throw new Error('installation-cancelled');
+  }
+  private async renameInstalled(source: string, target: string): Promise<void> {
+    // Windows scanners may briefly hold newly written files; retain the transaction
+    // and retry only the same bounded, checked rename, never download or installation.
+    for (let attempt = 0; ; attempt++) {
+      this.assertSafe(source);
+      this.assertSafe(target);
+      try {
+        renameSync(source, target);
+        return;
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (
+          process.platform !== 'win32' ||
+          attempt === 10 ||
+          !['EPERM', 'EACCES', 'EBUSY'].includes(code ?? '')
+        )
+          throw error;
+        await delay(100);
+      }
+    }
   }
   /** Native upgrade entry only: unsigned legacy bytes must originate in a preserved local runtime. */
   migrateLegacy(snapshotRoot: string): string[] {

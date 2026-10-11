@@ -186,18 +186,31 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
       </header>
       <section className="hero">
         {cover && game && <img src={cover} alt={`${game.name}游戏封面`} />}
+        {!game && (
+          <div className="box-download-icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48" width="48" height="48" fill="none">
+              <path
+                d="M24 7v23m-9-9 9 9 9-9M9 32v8h30v-8"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+        )}
         <div className="box-game-title">
-          <h1>{game?.name ?? '选个游戏，朋友们上桌'}</h1>
+          <h1>{game?.name ?? '请前往游戏库下载'}</h1>
         </div>
         {moduleFor(game?.id)?.versions && <PokemonVersion session={session} />}
-        {isHost && game && (
+        {(isHost || !game) && (
           <button
             type="button"
-            className="secondary"
+            className={game ? 'secondary' : 'box-library-entry'}
             disabled={locked}
             onClick={() => setPanel('library')}
           >
-            切换游戏
+            {game ? '切换游戏' : '游戏库'}
           </button>
         )}
         {game && (
@@ -224,11 +237,10 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           </button>
         )}
       </section>
-      {!game && <GameLibrary session={session} />}
       <div className="box-feedback" data-submitting={compactProgress}>
         <BoxFeedback session={session} />
       </div>
-      {game && canControl && (
+      {canControl && (
         <div className="box-table-actions">
           <RoomManagement session={session} display="actions" />
           {canManageSeats && (
@@ -435,7 +447,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                   </span>
                 </button>
               )}
-            {canControl && lobby && view && game && (
+            {canControl && lobby && view && (
               <div className="host-lobby">
                 <div className="lobby-toolbar">
                   {isHost && (
@@ -445,7 +457,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                         <select
                           id="bot-difficulty"
                           value={difficulty}
-                          disabled={locked}
+                          disabled={locked || !game}
                           onChange={(event) =>
                             setDifficulty(event.target.value as BotDifficulty)
                           }
@@ -470,7 +482,9 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                       </div>
                       <button
                         className="secondary"
-                        disabled={locked || view.seats.length >= game.max}
+                        disabled={
+                          locked || !game || view.seats.length >= game.max
+                        }
                         onClick={() => {
                           const prefix =
                             difficulty === 'default'
@@ -495,10 +509,15 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                     </div>
                   )}
                   <div className="lobby-start">
-                    <LobbyReadiness seats={view.seats} minimum={game.min} />
+                    {game && (
+                      <LobbyReadiness seats={view.seats} minimum={game.min} />
+                    )}
                     <button
                       disabled={
-                        locked || view.seats.length < game.min || !everyoneReady
+                        locked ||
+                        !game ||
+                        view.seats.length < game.min ||
+                        !everyoneReady
                       }
                       onClick={() => command({ type: 'start' })}
                     >
@@ -544,7 +563,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           </aside>
         )}
       </div>
-      {panel === 'library' && isHost && (
+      {panel === 'library' && (isHost || !game) && (
         <OverlayPanel
           title="游戏库"
           className="game-library-panel"

@@ -14,7 +14,7 @@ import { launchTestBrowser } from '../support/browser-test.mjs';
 import { serveFixture } from '../support/fixture-server.mjs';
 import { verificationOutput } from '../support/verification-output.mjs';
 
-const output = verificationOutput('game-library');
+const output = verificationOutput('game-library', 'run-' + Date.now());
 await mkdir(output, { recursive: true });
 const work = await mkdtemp(resolve('tmp/box-layout-'));
 await writeFile(
@@ -88,6 +88,87 @@ try {
   });
   page.on('pageerror', (error) => report.errors.push(error.message));
   await page.goto(server.url);
+  for (const role of ['host', 'player', 'public']) {
+    await page.evaluate(
+      (role) =>
+        window.patchBox({
+          role,
+          isHost: role === 'host',
+          canControl: role === 'host',
+          canManageSeats: role === 'host',
+          view: { ...window.baseBox, game: null },
+        }),
+      role,
+    );
+    await page
+      .getByRole('heading', { name: '请前往游戏库下载', exact: true })
+      .waitFor();
+    assert.equal(await page.locator('.hero .box-download-icon').count(), 1);
+    assert.equal(await page.locator('.hero img').count(), 0);
+    assert.equal(await page.locator('.box-screen > .game-library').count(), 0);
+    assert.equal(await page.locator('.room-table__seat').count(), 6);
+    if (role === 'host') {
+      for (const [width, height] of [
+        [320, 568],
+        [390, 844],
+        [844, 390],
+        [1280, 720],
+        [3840, 2160],
+      ]) {
+        await page.setViewportSize({ width, height });
+        assert.ok(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth + 1,
+          ),
+          `${width}: empty lobby fits width`,
+        );
+        const bounds = await page
+          .getByRole('button', { name: '游戏库', exact: true })
+          .boundingBox();
+        assert.ok(bounds.width >= 44 && bounds.height >= 44);
+        await captureBrowserScreenshot(page, {
+          path: join(output, `empty-box-${width}x${height}.png`),
+        });
+      }
+      await page.setViewportSize({ width: 1280, height: 720 });
+      assert.ok(
+        await page
+          .getByRole('button', { name: '添加人机', exact: true })
+          .isDisabled(),
+      );
+      assert.ok(
+        await page
+          .getByRole('button', { name: '开始游戏', exact: true })
+          .isDisabled(),
+      );
+      await page
+        .getByRole('button', { name: '管理设置', exact: true })
+        .waitFor();
+    }
+    await page.getByRole('button', { name: '游戏库', exact: true }).click();
+    await page.locator('.game-library-panel .game-library').waitFor();
+    if (role !== 'host') {
+      for (const button of await page
+        .locator('.game-library-panel')
+        .getByRole('button', { name: '下载资源', exact: true })
+        .all()) {
+        assert.ok(await button.isDisabled());
+      }
+    }
+    await page.keyboard.press('Escape');
+  }
+  await page.evaluate(() =>
+    window.patchBox({
+      role: 'host',
+      isHost: true,
+      canControl: true,
+      canManageSeats: true,
+      view: window.baseBox,
+    }),
+  );
+  checked(
+    'Empty installation keeps the box lobby, six seats and download hero; library opens in a modal for all roles, administrator-only downloads and disabled game actions remain enforced.',
+  );
   const repository = page.getByRole('link', {
     name: 'TableMax 的 GitHub 仓库（在新窗口打开）',
     exact: true,
@@ -268,6 +349,7 @@ try {
       canManageSeats: false,
     }),
   );
+  await page.getByRole('button', { name: '游戏库', exact: true }).click();
   await page.waitForFunction(
     () => document.querySelectorAll('.game-library__item').length === 6,
   );
@@ -282,6 +364,10 @@ try {
   checked(
     'Player can browse and filter an unselected catalog without acquiring game selection permission.',
   );
+  await page
+    .locator('.game-library-panel')
+    .getByRole('button', { name: '关闭面板', exact: true })
+    .click();
   await page.evaluate(() =>
     window.patchBox({
       view: {

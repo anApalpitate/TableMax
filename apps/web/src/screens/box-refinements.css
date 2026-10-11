@@ -1,6 +1,25 @@
 .box-screen .hero .box-game-title {
   min-width: 0;
 }
+.box-screen .hero > .box-download-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 66px;
+  min-height: 80px;
+  border-radius: 16px;
+  color: #286b59;
+  background: linear-gradient(145deg, #eaf3df, #d6e8dc);
+}
+.box-screen .box-library-entry {
+  min-height: 48px;
+  font-size: 18px;
+}
+@media (max-width: 600px) {
+  .box-screen .hero > .box-download-icon {
+    flex-basis: 56px;
+    min-height: 64px;
+  }
+}
 .box-screen .box-save-status {
   /* Pending and saved share one slot, so neither wraps the header on arrival. */
   inline-size: 6em;

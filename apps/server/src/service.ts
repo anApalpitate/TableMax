@@ -92,6 +92,17 @@ export async function createService(
       for (const name of readdirSync(legacyRoot))
         if (/^[a-f0-9]{64}$/.test(name))
           packages.migrateLegacy(join(legacyRoot, name));
+    try {
+      await packages.importPreinstalled(
+        join(config.webDir, '..', 'preinstalled-games'),
+        migrationProgress,
+      );
+    } catch (error) {
+      // Retain existing games and missing-reference repair mode if a local payload is damaged.
+      log(
+        `preinstalled-games-failed:${error instanceof Error ? error.message : 'unknown'}`,
+      );
+    }
   }
   const registry =
     game instanceof GameRegistry ? game : createGameRegistry(false, packages);
