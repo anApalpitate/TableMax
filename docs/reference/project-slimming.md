@@ -1,5 +1,11 @@
 # 项目瘦身方案与执行记录
 
+## 唯一完整EXE维护收尾（2026-10-12）
+
+新完整EXE验收通过后，旧1.0.6.1 full／box及清单按[逐文件SHA保全](../../artifacts/maintenance/v1.0.6/full-only-20261012/previous-delivery/preservation.json)原样移入历史证据。release根目录只留1.0.6.2完整EXE和本地清单，旧运行数据目录继续保护；内部payload、冻结快照、模块缓存和历史签名包保留。
+
+本轮工程进程退出后执行一次 `scripts/Maintain-Project.ps1 -Apply`，[维护报告](../../artifacts/maintenance/local-cleanup-20261011-172639-873-maintenance/cleanup.json)退役5个到龄且已结束的隔离验证／提取目录，删除 **141,357,707逻辑字节**。维护后实测 **24,484,061,016字节（22.803GiB）**，安全候选耗尽，617项仍受保护。未扩大范围、追加删除或使用NTFS压缩代替逻辑容量；当前交付、原资料、存档、历史仓库和验收边界保持。日志与最终映射见[收尾证据](../../artifacts/maintenance/v1.0.6/full-only-20261012/completion.json)。
+
 ## 版本适应性维护收尾（2026-10-12）
 
 当前1.0.6.1两种实际EXE、原生安全和新旧盒子下载／恢复通过，全部本轮工程退出后先预览，再唯一一次 `scripts/Maintain-Project.ps1 -Apply`。[实际维护](../../artifacts/maintenance/local-cleanup-20261011-164239-715-maintenance/cleanup.json)退役6个已结束验证目录，删除 **143,214,365逻辑字节**；结束 **23,814,653,748字节（22.179GiB）**，安全候选耗尽，607项内容、1,768链接及1个嵌套仓库继续保护。仍超过10GiB，只报告，不扩大范围或追加第二轮。

@@ -12,7 +12,6 @@ import {
   projectGameDetails,
   projectGameRuntime,
 } from '@tablemax/game-sdk/metadata';
-import type { PublicPackageSnapshot } from '@tablemax/protocol';
 import { PackageStore } from './store';
 import {
   projectPackageSnapshot,
@@ -28,7 +27,6 @@ import {
 } from './verification';
 import type { GameRelease, InstallIndex, PackageBlob } from './types';
 import { PROJECT_GAME_PUBLIC_KEY } from './project-public-key';
-import { createService } from '../service';
 
 const roots: string[] = [];
 afterEach(() => {
@@ -94,64 +92,6 @@ it('explains selected variant incompatibility and malformed declarations', () =>
     '缺少兼容性声明',
   );
 });
-
-it('rejects incompatible management installs with the exact reason before queuing a download', async () => {
-  for (const [protocol, direction] of [
-    [6, '游戏包版本落后'],
-    [9, '盒子版本落后'],
-  ] as const) {
-    const f = fixture();
-    f.module.compatibility.protocol = protocol;
-    f.release.releaseId = releaseIdentity(f.release);
-    writeFileSync(
-      join(f.games, 'index.json'),
-      JSON.stringify({
-        schemaVersion: 1,
-        releases: { [f.release.releaseId]: f.release },
-        blobs: { [f.blob.id]: f.blob },
-        selected: {},
-      }),
-    );
-    const webDir = join(f.root, 'web');
-    mkdirSync(webDir);
-    writeFileSync(
-      join(webDir, 'index.html'),
-      '<html>compatibility test</html>',
-    );
-    const service = await createService({
-      host: '127.0.0.1',
-      port: 0,
-      dataDir: join(f.root, 'data'),
-      webDir,
-      gamesDir: f.games,
-      playMode: 'test',
-    });
-    try {
-      const request = {
-        method: 'POST' as const,
-        url: '/api/game-packages/manage',
-        payload: { operation: 'install', releaseId: f.release.releaseId },
-      };
-      expect((await service.app.inject(request)).statusCode).toBe(403);
-      const response = await service.app.inject({
-        ...request,
-        headers: { authorization: `Bearer ${service.hostToken}` },
-      });
-      expect(response.statusCode).toBe(400);
-      expect(response.json()).toMatchObject({
-        ok: false,
-        reason: expect.stringContaining(direction),
-      });
-      expect(
-        (
-          await service.app.inject('/api/game-packages')
-        ).json<PublicPackageSnapshot>().tasks,
-      ).toEqual([]);
-    } finally {
-      await service.close();
-    }
-  }
-}, 30000);
 
 function fixture(document?: unknown) {
   mkdirSync('tmp', { recursive: true });
@@ -380,56 +320,6 @@ it('rejects escaped, nonpublic, unlisted and resource-aliased detail paths befor
     validateCatalog({ schemaVersion: 1, releases: [aliased], blobs: [f.blob] }),
   ).toThrow('invalid-module-details');
 });
-
-it('serves only lightweight HTTP metadata and immutable installed details, with missing details uncached', async () => {
-  const f = fixture(projectGameDetails(manifest()));
-  const webDir = join(f.root, 'app', 'web');
-  mkdirSync(webDir, { recursive: true });
-  writeFileSync(join(webDir, 'index.html'), '<html>public package test</html>');
-  const service = await createService({
-    host: '127.0.0.1',
-    port: 0,
-    dataDir: join(f.root, 'data'),
-    webDir,
-    gamesDir: f.games,
-    playMode: 'test',
-  });
-  try {
-    const snapshotResponse = await service.app.inject('/api/game-packages');
-    const snapshot = snapshotResponse.json<PublicPackageSnapshot>();
-    expect(snapshot.index.releases[f.release.releaseId]).toMatchObject({
-      name: 'UNO',
-      compatible: true,
-    });
-    expect(snapshotResponse.body).not.toMatch(
-      /introduction|resourceMap|entries|budgets|blobs/,
-    );
-    const client = await service.app.inject(
-      `/api/game-packages/releases/${f.release.releaseId}`,
-    );
-    expect(client.json()).toEqual(
-      publicReleaseClient(f.store, f.release.releaseId),
-    );
-    expect(client.body).not.toMatch(
-      /introduction|rulesVersion|strategyVersion|resourceMap|budgets/,
-    );
-    const details = await service.app.inject(
-      `/api/game-packages/releases/${f.release.releaseId}/details`,
-    );
-    expect(details.statusCode).toBe(200);
-    expect(details.headers['cache-control']).toBe(
-      'public, max-age=31536000, immutable',
-    );
-    expect(details.json()).toEqual(projectGameDetails(f.source));
-    const missing = await service.app.inject(
-      `/api/game-packages/releases/${'a'.repeat(64)}/details`,
-    );
-    expect(missing.statusCode).toBe(404);
-    expect(missing.headers['cache-control']).toBe('no-store');
-  } finally {
-    await service.close();
-  }
-}, 30000);
 
 it('retired Avalon variants are hidden in public copies without modifying historical signed records', () => {
   const module = JSON.parse(

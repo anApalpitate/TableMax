@@ -10,7 +10,6 @@ import { promisify } from 'node:util';
 import { readFile, writeFile, stat, mkdir, copyFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { resolve, join, basename } from 'node:path';
-import { GAME_PAGES_ROOT } from '../../apps/server/src/game-packages/distribution.ts';
 import { PROJECT_GAME_PUBLIC_KEY } from '../../apps/server/src/game-packages/project-public-key.ts';
 import { gameReleaseAssets } from './game-release-assets.mjs';
 import { windowsExecutableName } from './windows-executable-name.mjs';
@@ -42,8 +41,8 @@ const payloadIndex = JSON.parse(
 assert.equal(payloadIndex.version, version);
 assert.deepEqual(
   payloadIndex.deliveries.map((item) => item.edition).sort(),
-  ['box', 'full'],
-  'Publication requires both verified Windows editions',
+  ['full'],
+  'Publication requires the verified complete Windows EXE',
 );
 const evidence = resolve(
   'artifacts/maintenance',
@@ -54,7 +53,7 @@ const evidence = resolve(
 const notes = process.argv.find((arg) => arg.startsWith('--notes='))?.slice(8);
 assert.ok(notes, 'Provide reviewed release notes with --notes=<file>');
 await stat(notes);
-const localExes = ['full', 'box'].map((edition) => {
+const localExes = ['full'].map((edition) => {
   const delivery = payloadIndex.deliveries.find(
     (item) => item.edition === edition,
   );
@@ -70,11 +69,11 @@ const publicDirectory = resolve(
   'public-assets',
   payloadIndex.snapshot,
 );
-const exes = ['full', 'box'].map((edition) =>
+const exes = ['full'].map((edition) =>
   join(publicDirectory, windowsExecutableName(version, edition)),
 );
 const source = resolve(`artifacts/releases/TableMax-${version}-source.zip`);
-for (const edition of ['full', 'box']) {
+for (const edition of ['full']) {
   const proof = JSON.parse(
     await readFile(
       resolve(evidence, `shipping-executable-checks-${edition}.json`),
@@ -98,7 +97,7 @@ for (const edition of ['full', 'box']) {
     (await stat(delivery.executable.path)).size,
   );
   assert.equal(
-    await hash(localExes[['full', 'box'].indexOf(edition)]),
+    await hash(localExes[['full'].indexOf(edition)]),
     proof.executableSha256,
     'Shipping EXE changed after validation',
   );
@@ -165,102 +164,9 @@ assert.equal(
   '',
   'Commit all frozen runtime source inputs before publishing',
 );
-const devkit = process.argv
-  .find((arg) => arg.startsWith('--devkit='))
-  ?.slice(9);
-assert.ok(
-  devkit,
-  'Provide the independently verified developer toolkit with --devkit=<zip>',
-);
-assert.ok(
-  /^TableMax-author-toolkit-[A-Za-z0-9._-]+\.zip$/.test(
-    devkit.split(/[\\/]/).at(-1),
-  ),
-  'Invalid developer toolkit name',
-);
-const pagesManifest = process.argv
-  .find((arg) => arg.startsWith('--pages-manifest='))
-  ?.slice(17);
-assert.ok(
-  pagesManifest,
-  'Provide reviewed Pages manifest with --pages-manifest=<file>',
-);
-const pages = JSON.parse(await readFile(resolve(pagesManifest), 'utf8'));
-assert.equal(pages.tag, tag);
-assert.equal(pages.root, GAME_PAGES_ROOT);
-assert.ok(pages.bytes <= 1_000_000_000 && pages.files.length > 0);
-// A local preparation never proves deployment. Verify exact public bytes first.
-const publicFiles = pages.files.filter(
-  (file) => !(file.path === '.nojekyll' && file.deploymentOnly === true),
-);
-const pagesProofPath = process.argv
-  .find((arg) => arg.startsWith('--pages-proof='))
-  ?.slice(14);
-let verifiedPublicFiles = publicFiles;
-if (pagesProofPath) {
-  const checked = JSON.parse(await readFile(resolve(pagesProofPath), 'utf8'));
-  assert.equal(checked.result, 'passed');
-  assert.equal(checked.root, GAME_PAGES_ROOT);
-  assert.equal(checked.tag, tag);
-  const age = Date.now() - Date.parse(checked.verifiedAt);
-  assert.ok(
-    age >= 0 && age < 60 * 60 * 1000,
-    'Pages byte evidence must be under one hour old',
-  );
-  assert.match(checked.staticCommit, /^[a-f0-9]{40}$/);
-  assert.ok(
-    (
-      await run('git', ['ls-remote', 'origin', 'refs/heads/gh-pages'])
-    ).startsWith(checked.staticCommit + '\t'),
-    'Pages source changed since verification',
-  );
-  assert.equal(checked.checks.length, publicFiles.length);
-  assert.equal(
-    new Set(checked.checks.map((item) => item.url)).size,
-    publicFiles.length,
-  );
-  for (const file of publicFiles) {
-    const prior = checked.checks.find(
-      (item) => item.url === new URL(file.path, GAME_PAGES_ROOT).href,
-    );
-    assert.ok(
-      prior && prior.bytes === file.bytes && prior.sha256 === file.sha256,
-      'Pages evidence does not match current manifest',
-    );
-  }
-  // Immutable files were already checked against the unchanged deployment.
-  // Recheck its mutable catalog immediately before publication.
-  verifiedPublicFiles = publicFiles.filter(
-    (file) => file.path === `games/${tag}/catalog.json`,
-  );
-  assert.equal(verifiedPublicFiles.length, 1);
-}
-for (let offset = 0; offset < verifiedPublicFiles.length; offset += 4) {
-  const results = await Promise.allSettled(
-    verifiedPublicFiles.slice(offset, offset + 4).map(async (file) => {
-      const url = new URL(file.path, GAME_PAGES_ROOT);
-      assert.equal(url.origin, new URL(GAME_PAGES_ROOT).origin);
-      assert.ok(url.pathname.startsWith('/TableMax/'));
-      const response = await fetch(url, {
-        signal: AbortSignal.timeout(120000),
-        cache: 'no-store',
-      });
-      assert.ok(response.ok, 'Pages directory is not published: ' + url);
-      const bytes = Buffer.from(await response.arrayBuffer());
-      assert.equal(bytes.length, file.bytes);
-      assert.equal(
-        createHash('sha256').update(bytes).digest('hex'),
-        file.sha256,
-        'Pages published bytes mismatch: ' + url,
-      );
-    }),
-  );
-  for (const result of results)
-    if (result.status === 'rejected') throw result.reason;
-}
 await mkdir(publicDirectory, { recursive: true });
 for (let i = 0; i < exes.length; i++) await copyFile(localExes[i], exes[i]);
-const assets = [...exes, source, resolve(devkit)];
+const assets = [...exes, source];
 let backup,
   obsolete = [];
 if (replaceDraft) {
@@ -371,27 +277,6 @@ if (replaceDraft) {
     ),
     'Unexpected old attachment: manual review required',
   );
-  for (const asset of gameAssets) {
-    const retained =
-      asset.name === `TableMax-game-catalog-${tag}.json`
-        ? pages.files.find(
-            (file) =>
-              file.path.includes('/history/') &&
-              file.bytes === asset.bytes &&
-              file.sha256 === asset.sha256,
-          )
-        : pages.files.find(
-            (file) =>
-              file.path === `games/${tag}/packages/${asset.name}` &&
-              file.bytes === asset.bytes &&
-              file.sha256 === asset.sha256,
-          );
-    assert.ok(
-      retained,
-      'Pages must preserve exact previous game attachment before removal: ' +
-        asset.name,
-    );
-  }
   obsolete = previous.assets.filter(
     (asset) => gameNames.has(asset.name) || asset.name === previousExe,
   );
@@ -418,8 +303,6 @@ const record = {
   repo,
   mode: replaceDraft ? 'replace-draft' : 'new-release',
   sourceCommit: commit,
-  pagesManifest: resolve(pagesManifest),
-  ...(pagesProofPath ? { pagesByteProof: resolve(pagesProofPath) } : {}),
   tagCommit,
   tagObject,
   ...(backup ? { backup, previousReleaseId: previous.id } : {}),
@@ -504,8 +387,8 @@ if (replaceDraft) {
   assert.equal(ready.draft, true);
   assert.equal(
     ready.assets.length,
-    4,
-    'Draft must have exactly four verified assets before becoming public',
+    2,
+    'Draft must have exactly two verified assets before becoming public',
   );
   for (const file of record.assets) {
     const asset = ready.assets.find(
@@ -585,7 +468,7 @@ assert.equal(
 assert.equal(
   online.assets.length,
   assets.length,
-  'Public release must contain only full/box EXEs, source ZIP and verified author toolkit; game packages are on Pages',
+  'Public release must contain only the complete EXE and source ZIP',
 );
 for (const file of record.assets) {
   const name = file.path.split(/[\\/]/).at(-1);

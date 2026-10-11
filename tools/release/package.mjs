@@ -49,15 +49,19 @@ import {
 } from './release-executable.mjs';
 import { preferredCatalogReleases } from '../../packages/game-sdk/src/compatibility.mjs';
 import { gameReleaseAssets } from './game-release-assets.mjs';
+import { prepareInternalGames } from './prepare-internal-games.mjs';
 
 const args = process.argv.slice(2).filter((arg) => arg !== '--');
+assert.ok(
+  !args.some((arg) => arg.startsWith('--edition')),
+  'Only the complete EXE is supported; --edition has been retired',
+);
 assert.ok(
   args.length <= 4 &&
     args.every(
       (arg) =>
         arg.startsWith('--snapshot=') ||
         arg.startsWith('--games=') ||
-        arg.startsWith('--edition=') ||
         arg.startsWith('--platform-from='),
     ) &&
     new Set(args.map((arg) => arg.split('=')[0])).size === args.length,
@@ -69,10 +73,7 @@ assert.ok(
   ),
   'Choose one frozen-snapshot source',
 );
-const edition =
-  args.find((arg) => arg.startsWith('--edition='))?.slice(10) ?? 'both';
-assert.ok(['full', 'box', 'both'].includes(edition), 'Unknown Windows edition');
-const editions = edition === 'both' ? ['box', 'full'] : [edition];
+const editions = ['full'];
 async function resumeSnapshot(path) {
   const snapshotPath = resolve(path);
   const snapshot = JSON.parse(await readFile(snapshotPath, 'utf8'));
@@ -212,9 +213,13 @@ await lock('package-win', async () => {
     join(payloadRoot, buildSnapshot.id.slice(0, 12) + '-'),
   );
   const deliveries = [];
-  const gamesDirectory = resolve(
-    args.find((arg) => arg.startsWith('--games='))?.slice(8) ??
-      `artifacts/game-packages/v${project.version}/current`,
+  const gamesDirectory = await prepareInternalGames(
+    buildSnapshot,
+    resolve(
+      args.find((arg) => arg.startsWith('--games='))?.slice(8) ??
+        `artifacts/game-packages/v${project.version}/current`,
+    ),
+    payloadRoot,
   );
   const catalogSource = join(
     gamesDirectory,
@@ -282,7 +287,10 @@ await lock('package-win', async () => {
       );
       const pemLiteral = trustSource.match(/'([^']+)'/)[1];
       const publicKey = pemLiteral.replaceAll('\\n', '\n');
-      const verified = await gameReleaseAssets(gamesDirectory, { publicKey });
+      const verified = await gameReleaseAssets(gamesDirectory, {
+        publicKey,
+        includeOffline: false,
+      });
       const retired = new Set(
         envelope.payload.releases.flatMap((r) =>
           (r.module.retiredVariantIds ?? []).map((id) => `${r.gameId}:${id}`),

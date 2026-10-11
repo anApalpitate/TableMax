@@ -7,7 +7,6 @@ import {
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import type { PackageStore } from './game-packages/store';
-import { preferredCatalogReleases } from './game-packages/catalog';
 import type { GameRules, BotStrategy } from '@tablemax/game-sdk';
 import type { Save } from '@tablemax/platform-core';
 import {
@@ -28,43 +27,36 @@ export function createGameRegistry(
   const snapshot = store?.snapshot();
   const seed = store ? availableModules() : installedModules();
   const policies = retiredVariantPolicies(seed);
+  const current = currentCatalogModules(seed, policies);
+  const currentIds = new Set(current.map((item) => item.id));
+  const historical = snapshot
+    ? Object.values(snapshot.index.releases)
+        .filter((release) => !currentIds.has(release.gameId))
+        .map((release) => release.module)
+    : [];
+  const entries = new Map(
+    [...historical, ...current].map((item) => [item.id, item]),
+  );
   return new GameRegistry(
-    [
-      ...currentCatalogModules(
-        [
-          ...seed,
-          ...(snapshot
-            ? [
-                ...Object.values(snapshot.index.releases).map((r) => r.module),
-                ...preferredCatalogReleases(snapshot.catalog.releases).map(
-                  (r) => r.module,
-                ),
-              ]
-            : []),
-        ],
-        policies,
-      ),
-    ]
+    [...entries.values()]
       .filter((item) => includeTemplate || !item.internal)
       .map((item) => {
-        const usable = (variantId: string) => {
-          const release = store?.selected(item.id, variantId);
-          return release && store?.resolveModule(release.releaseId);
-        };
-        const defaultVariantId =
-          store && item.defaultVariantId && !usable(item.defaultVariantId)
-            ? (item.variants?.find((variant) => usable(variant.id))?.id ??
-              item.defaultVariantId)
-            : item.defaultVariantId;
+        const defaultVariantId = item.defaultVariantId;
         const load = async (
           variantId?: string,
           releaseRef?: string,
           saved?: Save,
         ) => {
           const ref =
-            releaseRef ?? store?.selected(item.id, variantId)?.releaseId;
+            releaseRef ?? store?.current(item.id, variantId)?.releaseId;
           const installed = ref ? store?.resolveModule(ref) : undefined;
           if (store && !installed) throw new Error('missing-game-release');
+          if (
+            !saved &&
+            store &&
+            ref !== store.current(item.id, variantId)?.releaseId
+          )
+            throw new Error('incompatible-game-release');
           const descriptor = installed?.release.module ?? item;
           if (!isRuntimeModule(descriptor))
             throw new Error('missing-game-release');
@@ -144,6 +136,11 @@ export function createGameRegistry(
           )
             throw new Error('incompatible-game-module');
           return {
+            ...(saved &&
+            store &&
+            store.current(item.id, variantId)?.releaseId !== ref
+              ? { restoreOnly: true }
+              : {}),
             rules: selected.rules,
             bot: selected.bot,
             ...(variantId ? { variantId } : {}),
@@ -151,6 +148,7 @@ export function createGameRegistry(
           };
         };
         return {
+          ...(!currentIds.has(item.id) ? { restoreOnly: true } : {}),
           catalog: {
             ...item.catalog,
             ...(defaultVariantId === undefined

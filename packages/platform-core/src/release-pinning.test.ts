@@ -195,3 +195,69 @@ it('keeps missing-package database bytes and player credentials until exact repa
   expect(room.view().paused).toBe(true);
   expect(room.view(joined.token).self.seatId).toBe(seatId);
 });
+
+it('marks the same-variant historical release for restoration and replays with current rules', async () => {
+  const repository = new Repository();
+  let room = await RoomCoordinator.open(
+    new GameRegistry([registration(a)]),
+    repository,
+    undefined,
+    'test',
+    rules.manifest.id,
+  );
+  await command(room, { type: 'add-bot', name: '一' });
+  await command(room, { type: 'add-bot', name: '二' });
+  await command(room, { type: 'start' });
+  const current = registration(b);
+  const registry = new GameRegistry([
+    {
+      ...current,
+      loadSaved: async (save) => ({
+        rules,
+        bot,
+        releaseRef: save.releaseRef!,
+        restoreOnly: save.releaseRef !== b,
+      }),
+    },
+  ]);
+  room = await RoomCoordinator.open(registry, repository);
+  expect(room.view().game?.restoreOnly).toBe(true);
+  expect((await command(room, { type: 'resume' })).ok).toBe(true);
+  expect(room.botTask()?.releaseRef).toBe(a);
+  expect((await command(room, { type: 'end' })).ok).toBe(true);
+  expect((await command(room, { type: 'replay' })).ok).toBe(true);
+  expect(room.view().game?.releaseRef).toBe(b);
+  expect(room.view().game?.restoreOnly).toBeUndefined();
+});
+it('keeps unmatched legacy versions and incompatible releases read-only without writing saved data', async () => {
+  const repository = new Repository();
+  const first = await RoomCoordinator.open(
+    new GameRegistry([registration(a)]),
+    repository,
+    undefined,
+    'test',
+    rules.manifest.id,
+  );
+  await command(first, { type: 'add-bot', name: '一' });
+  const before = structuredClone(repository.value),
+    writes = repository.writes;
+  for (const reason of [
+    'ambiguous-legacy-release',
+    'incompatible-game-module',
+    'incompatible-save',
+  ]) {
+    const registry = new GameRegistry([
+      {
+        ...registration(b),
+        loadSaved: async () => {
+          throw new Error(reason);
+        },
+      },
+    ]);
+    const reopened = await RoomCoordinator.open(registry, repository);
+    expect(reopened.missingRelease).toBe(a);
+    expect(reopened.view().botError).toContain('旧完整 EXE');
+    expect(repository.value).toEqual(before);
+    expect(repository.writes).toBe(writes);
+  }
+});

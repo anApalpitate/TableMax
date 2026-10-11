@@ -1,5 +1,11 @@
 # 目录职责
 
+## 唯一完整 EXE 交付（2026-10-12）
+
+游戏源码和资源继续分别维护在 `games/<id>/`与 `assets/`。完整EXE包含 `app/preinstalled-games/`的当前签名目录、预装清单与模块载荷；可替换app目录外的 `TableMax/games/`保留当前与历史内容寻址模块。内部载荷、快照和逐文件清单归 `artifacts/package-payloads/`及原构建缓存；`artifacts/releases/`只留一个当前完整EXE与本地清单。独立游戏包、Pages和安装型作者工具包的现行导出取消，历史证据保留。具体见[Release流程](release.md#唯一完整-exe-交付2026-10-12)。
+
+以下旧安装／分发章节保留其实施与历史边界，涉及独立游戏下载、盒子版及 Pages 的操作已退役，不作为当前使用指南。
+
 2026-10-11交付目录调整：`artifacts/releases/`接收full／box两种Windows EXE；不再导出供用户下载的运行ZIP。`artifacts/package-payloads/v<版本>/<run>/<edition>/`保存内部 `payload.zip`、`release-manifest.json`与组装中间物，版本目录 `current.json`绑定当前edition的路径和哈希。当前载荷及EXE受验收保护；退役先核对证据与用途，不作为通用临时目录清空。旧发布产物和历史验收按原记录保留，游戏离线ZIP仍放游戏分发目录。
 
 2026-10-11新增独立包职责：`tools/author/` 管理可脱离主仓的模板、公共依赖冻结、CLI和真实接入检查；`apps/server/src/game-packages/` 管理签名校验、安全解压、安装事务及引用保护；`tools/release/game-*.mjs` 管理内容寻址发行与附件白名单。公共宿主能力位于 `packages/web-host/`，平台私有适配仍在 `apps/web/`。分发产物分别进入 `artifacts/game-packages/` 与 `artifacts/author-toolkit/`，证据进入对应验收目录。

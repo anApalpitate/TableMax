@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { BoxOverlayPanel } from './BoxOverlayPanel';
 import { moduleFor } from '../catalog';
 import type { RoomSession } from '../session/useRoomSession';
-import { ResourceButton } from './game-library/resources';
+import { SelectionButton } from './game-library/SelectionButton';
 import { feedbackText } from '../content/feedback';
 import './gameplay-selector.css';
 export function GameplaySelector({
@@ -66,13 +66,14 @@ export function GameplaySelector({
                   )}
                 </div>
                 <p>{v.description}</p>
-                <ResourceButton
-                  resource={{ gameId: game.catalog.id, variantId: v.id }}
-                  canDownload={!!session.isHost && !session.locked}
+                <SelectionButton
                   disabled={!editable}
                   installedLabel={v.name}
-                  current={active && v.id === selected}
-                  currentReleaseRef={session.view?.game?.releaseRef}
+                  current={
+                    active &&
+                    v.id === selected &&
+                    !session.view?.game?.restoreOnly
+                  }
                   select={() => {
                     session.command({
                       type: 'select-variant',

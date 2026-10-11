@@ -23,8 +23,6 @@
     "verify:game-ui": "node tools/test/platform/verify-game-ui.mjs",
     "verify:cards": "node tools/test/platform/verify-card-layout.mjs",
     "package:win": "node tools/release/package.mjs",
-    "package:win:full": "node tools/release/package.mjs --edition=full",
-    "package:win:box": "node tools/release/package.mjs --edition=box",
     "package:release": "node tools/release/package-release.mjs",
     "verify:portable": "node tools/test/platform/verify-pokemon.mjs --portable",
     "verify:party": "node tools/test/platform/verify-party.mjs",
@@ -43,11 +41,7 @@
     "verify:power-grid": "node tools/test/platform/verify-power-grid.mjs",
     "verify:power-grid-ui": "node tools/test/games/power-grid/verify-power-grid-ui.mjs",
     "assemble:win": "node tools/build/assemble.mjs",
-    "release:github": "node --import tsx tools/release/publish-release.mjs",
-    "package:games": "node tools/release/game-packages.mjs",
-    "verify:game-packages": "node --import tsx tools/release/verify-game-packages.mjs",
-    "prepare:pages": "node --import tsx tools/release/prepare-pages.mjs",
-    "verify:pages": "node --import tsx tools/release/verify-pages.mjs"
+    "release:github": "node --import tsx tools/release/publish-release.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

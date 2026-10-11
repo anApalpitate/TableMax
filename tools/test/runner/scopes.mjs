@@ -42,7 +42,6 @@ const unitScopes = {
   'packages/platform-core/src/release-pinning.test.ts': ['shared'],
   'packages/web-host/src/resource-url.test.ts': ['shared', 'tooling'],
   'apps/web/src/components/game-library/filter.test.ts': ['box'],
-  'apps/web/src/components/game-library/package-errors.test.ts': ['box'],
   'apps/web/src/content/feedback.test.ts': ['box', 'shared'],
   'apps/web/src/components/notifications/notification-center.test.ts': ['box'],
   'apps/desktop/src/audio-controller.test.ts': ['shared'],

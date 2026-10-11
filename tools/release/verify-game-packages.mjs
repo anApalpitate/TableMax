@@ -38,11 +38,12 @@ export async function verifyGamePackages({
     '@tablemax/web-host/platform',
   ])
     assert.throws(() => assertGameImport('uno', ownSource, request));
-  const whitelist = await gameReleaseAssets(out, { publicKey, tag });
-  assert.equal(
-    whitelist.length,
-    1 + catalog.blobs.length + catalog.releases.length,
-  );
+  const whitelist = await gameReleaseAssets(out, {
+    publicKey,
+    tag,
+    includeOffline: false,
+  });
+  assert.equal(whitelist.length, 1 + catalog.blobs.length);
   let bytes = 0;
   for (const blob of catalog.blobs) {
     assert.equal(blobIdentity(blob), blob.id);
@@ -64,28 +65,8 @@ export async function verifyGamePackages({
         'Code archive contains media',
       );
   }
-  for (const release of catalog.releases) {
+  for (const release of catalog.releases)
     assert.equal(releaseIdentity(release), release.releaseId);
-    const offline = readZip(await readFile(join(out, release.offlineAsset)));
-    const closure = [...new Set([release.code, ...release.resources])];
-    assert.deepEqual(
-      [...offline.keys()].sort(),
-      [
-        'catalog.json',
-        'release.json',
-        ...closure.map((id) => `blobs/${id}.zip`),
-      ].sort(),
-    );
-    assert.equal(
-      JSON.parse(offline.get('release.json')).releaseId,
-      release.releaseId,
-    );
-    for (const id of closure)
-      assert.equal(
-        sha256(offline.get(`blobs/${id}.zip`)),
-        catalog.blobs.find((blob) => blob.id === id).archiveSha256,
-      );
-  }
   const original = catalog.releases.find(
     (release) =>
       release.gameId === 'pokemon-encounters' &&
@@ -172,11 +153,11 @@ export async function verifyGamePackages({
     releases: catalog.releases.length,
     blobs: catalog.blobs.length,
     installedUniqueBytes: bytes,
-    publicationAssetCount: whitelist.length,
+    internalAssetCount: whitelist.length,
     checks: [
       'project-public-key',
       'blob-archive-and-file-hashes',
-      'strict-offline-closure',
+      'signed-module-dependency-closure',
       'media-free-code',
       'variant-resource-isolation',
       'resource-byte-independent-code-fingerprint',

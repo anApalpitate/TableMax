@@ -48,7 +48,7 @@
 
 平台交互与通用视觉分别维护行为和表现；玩法、字段和决策只在游戏主题维护。当前六款游戏的规则说明按用户最新授权分别维护，具体图解、素材和验证范围见对应主题；通用采用要求不代表旧页或全部设备已经验收。原文核验、项目约定与实现状态保持区分，查来源从对应游戏的 sources.md 进入。
 
-游戏解耦、独立增量构建与完整 ZIP 分块组装已实现，从 [实施归档](archive/completed-tasks-2026-10-10.md#游戏解耦与增量构建打包已实现)进入；模块边界与验收分别维护在工程结构和开发环境。
+游戏解耦、独立增量构建与完整 ZIP 分块组装已实现，从 [实施归档](archive/completed-tasks-2026-10-10.md#游戏解耦与增量构建打包已实现)进入；现行交付改为唯一完整EXE，模块边界与验收分别维护在工程结构和开发环境。
 
 ## 定向查询
 
@@ -80,10 +80,10 @@ rg -n '公开竞价|debug' docs/archive/acceptance-2026-10-01-to-04.md
 | 较早版本、AC 对照、哈希与原始验收结论 | [历史验收](archive/acceptance-2026-10-01-to-04.md)           |
 | 阶段、接入过程与旧开发／验证操作      | [归档索引](archive/README.md)                                |
 | 所有美术／声音来源、版本与替换        | [资源入口](../assets/README.md)                              |
-| 待办、多游戏按需安装与候选研究        | [任务索引](tasks/README.md)、[游戏候选](games/candidates.md) |
+| 待办、完整交付与候选研究              | [任务索引](tasks/README.md)、[游戏候选](games/candidates.md) |
 
 新增、迁移或归档主题时同步相关索引和目录职责；旧锚点保留短转链。当前验收页只保留最近交付与必要导航，历史原结论保留在归档，不因新版维护倒改。新包与证据分别位于 `artifacts/releases`、`artifacts/maintenance`；后续计划不写成已实现。
 
-收尾安全维护、手动清理和无损压缩均从[开发环境](reference/development.md#清理本地中间物)进入；按预览和保护范围执行，不按 Git 忽略规则批量删除资料。桌面运行时前提与体积门槛的版本变更见[小体积桌面决策](decisions/008-small-native-desktop.md)；当前 full／box EXE 及实际提取内容严格小于120MB，工程预警110MB，完整玩法下载／安装各严格小于64MB。
+收尾安全维护、手动清理和无损压缩均从[开发环境](reference/development.md#清理本地中间物)进入；按预览和保护范围执行，不按 Git 忽略规则批量删除资料。桌面运行时前提与体积门槛的版本变更见[小体积桌面决策](decisions/008-small-native-desktop.md)；当前完整 EXE 及实际提取内容严格小于120MB，工程预警110MB，内部模块预算继续核验，取消独立玩法下载。
 
 跨游戏互动、覆盖播放和身份边界见[平台规格](reference/phase-02-platform-spec.md#跨游戏互动v1052026-10-08)，本地素材来源见[互动清单](../assets/platform/interaction/manifest.json)。

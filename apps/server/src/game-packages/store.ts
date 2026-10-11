@@ -1,3 +1,4 @@
+import { setTimeout as delay } from 'node:timers/promises';
 import {
   mkdirSync,
   readFileSync,
@@ -14,7 +15,6 @@ import {
 } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { randomUUID, type KeyLike } from 'node:crypto';
-import { setTimeout as delay } from 'node:timers/promises';
 import type {
   GameRelease,
   InstallIndex,
@@ -45,8 +45,6 @@ export interface PackageStoreOptions {
   root: string;
   publicKey: KeyLike;
   protectedReleaseIds: () => Iterable<string>;
-  assetUrl?: (blob: PackageBlob) => string;
-  fetch?: typeof fetch;
   fault?: (phase: 'before-journal' | 'before-index' | 'after-index') => void;
 }
 const emptyIndex = (): InstallIndex => ({
@@ -56,6 +54,7 @@ const emptyIndex = (): InstallIndex => ({
   selected: {},
 });
 export class PackageStore {
+  private bundled = new Map<string, GameRelease>();
   private index: InstallIndex = emptyIndex();
   private catalog: PackageCatalog = {
     schemaVersion: 1,
@@ -66,13 +65,8 @@ export class PackageStore {
   private operations = new Map<string, Promise<void>>();
   private cancelled = new Set<string>();
   private listeners = new Set<() => void>();
-  private downloads = new Map<string, Promise<Buffer>>();
-  private downloadProgress = new Map<string, number>();
-  private activeDownloads = 0;
-  private controllers = new Map<string, AbortController>();
   private verifiedDirectories = new Set<string>();
   private activeReleases = new Map<string, GameRelease>();
-  private slots: (() => void)[] = [];
   readonly root: string;
   constructor(private readonly options: PackageStoreOptions) {
     this.root = resolve(options.root);
@@ -82,11 +76,6 @@ export class PackageStore {
     if (existsSync(join(this.root, 'index.json')))
       this.index = this.readIndex(join(this.root, 'index.json'));
     this.recover();
-    if (existsSync(join(this.root, 'catalog.json')))
-      this.catalog = verifyCatalog(
-        JSON.parse(this.readSafe(join(this.root, 'catalog.json')).toString()),
-        this.options.publicKey,
-      );
   }
   subscribe(listener: () => void): () => void {
     this.listeners.add(listener);
@@ -122,6 +111,16 @@ export class PackageStore {
         releaseKey({ gameId, ...(variantId ? { variantId } : {}) })
       ] ?? ''
     ];
+  }
+  /** Only the verified payload of this executable determines new games. */
+  current(gameId: string, variantId?: string): GameRelease | undefined {
+    const release = this.bundled.get(
+      releaseKey({ gameId, ...(variantId ? { variantId } : {}) }),
+    );
+    return release ? structuredClone(release) : undefined;
+  }
+  currentReleases(): GameRelease[] {
+    return structuredClone([...this.bundled.values()]);
   }
   resolveModule(
     releaseId: string,
@@ -213,7 +212,7 @@ export class PackageStore {
     progress?: () => void,
   ): Promise<string[]> {
     const source = resolve(directory);
-    if (!existsSync(source)) return [];
+    if (!existsSync(source)) throw new Error('missing-preinstalled-games');
     const readLocal = (path: string): Buffer => {
       let cursor = resolve(path);
       for (;;) {
@@ -264,9 +263,6 @@ export class PackageStore {
       '.preinstalled',
       sha256(canonical(bootstrap)) + '.json',
     );
-    const completed =
-      existsSync(receipt) &&
-      this.readSafe(receipt).toString() === canonical(bootstrap);
     const closure = new Set(
       releases.flatMap((release) => [release.code, ...release.resources]),
     );
@@ -288,10 +284,7 @@ export class PackageStore {
     }
     if (this.catalog.releases.length === 0) this.setCatalog(envelope);
     for (const release of releases) {
-      if (
-        (!completed || this.index.releases[release.releaseId]) &&
-        !this.resolveModule(release.releaseId)
-      )
+      if (!this.resolveModule(release.releaseId))
         await this.run(
           release.releaseId,
           async (blob) => archives.get(blob.id)!,
@@ -302,10 +295,10 @@ export class PackageStore {
     }
     this.ensureDirectory(dirname(receipt));
     this.atomicJson(receipt, bootstrap);
+    this.bundled = new Map(
+      releases.map((release) => [releaseKey(release), release]),
+    );
     return releases.map((release) => release.releaseId);
-  }
-  install(releaseId: string): Promise<void> {
-    return this.run(releaseId, (blob) => this.download(blob));
   }
   cancel(releaseId: string): void {
     this.cancelled.add(releaseId);
@@ -314,18 +307,8 @@ export class PackageStore {
       task.phase = 'cancelled';
       this.emit();
     }
-    for (const [blobId, controller] of this.controllers) {
-      const needed = [...this.tasks.values()].some((task) => {
-        if (task.phase !== 'queued' && task.phase !== 'downloading')
-          return false;
-        const release =
-          this.activeReleases.get(task.releaseId) ??
-          this.index.releases[task.releaseId];
-        return release && [release.code, ...release.resources].includes(blobId);
-      });
-      if (!needed) controller.abort();
-    }
   }
+
   rollback(releaseId: string): void {
     const release = this.index.releases[releaseId];
     if (!release) throw new Error('uninstalled-release');
@@ -347,7 +330,7 @@ export class PackageStore {
     this.commitIndex(next);
     this.emit();
   }
-  private run(
+  protected run(
     releaseId: string,
     source: (blob: PackageBlob) => Promise<Buffer>,
     catalog = this.catalog,
@@ -673,7 +656,6 @@ export class PackageStore {
   ): GameRelease | undefined {
     const matches = Object.values(this.index.releases).filter(
       (r) =>
-        r.legacy &&
         r.gameId === gameId &&
         r.variantId === (variantId ?? r.module.defaultVariantId) &&
         Object.entries(tuple).every(
@@ -686,78 +668,6 @@ export class PackageStore {
     );
     if (matches.length > 1) throw new Error('ambiguous-legacy-release');
     return matches[0] ? structuredClone(matches[0]) : undefined;
-  }
-  private async download(blob: PackageBlob): Promise<Buffer> {
-    const existing = this.downloads.get(blob.id);
-    if (existing) return existing;
-    const operation = (async () => {
-      if (this.activeDownloads >= 2)
-        await new Promise<void>((done) => this.slots.push(done));
-      else this.activeDownloads++;
-      try {
-        const needed = [...this.tasks.values()].some((task) => {
-          if (task.phase !== 'queued' && task.phase !== 'downloading')
-            return false;
-          const release =
-            this.activeReleases.get(task.releaseId) ??
-            this.index.releases[task.releaseId];
-          return (
-            release && [release.code, ...release.resources].includes(blob.id)
-          );
-        });
-        if (!needed) throw new Error('installation-cancelled');
-        if (!this.options.assetUrl) throw new Error('download-not-configured');
-        const controller = new AbortController();
-        this.controllers.set(blob.id, controller);
-        const response = await (this.options.fetch ?? fetch)(
-          this.options.assetUrl(blob),
-          { signal: controller.signal },
-        );
-        if (!response.ok || !response.body) throw new Error('download-failed');
-        const reader = response.body.getReader(),
-          chunks: Buffer[] = [];
-        let total = 0;
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          total += value.byteLength;
-          if (total > blob.archiveBytes) {
-            await reader.cancel();
-            throw new Error('download-size-mismatch');
-          }
-          chunks.push(Buffer.from(value));
-          this.downloadProgress.set(blob.id, total);
-          for (const task of this.tasks.values()) {
-            const release =
-              this.activeReleases.get(task.releaseId) ??
-              this.index.releases[task.releaseId];
-            if (task.phase === 'downloading' && release)
-              task.transferredBytes = Math.min(
-                task.totalBytes,
-                [...new Set([release.code, ...release.resources])].reduce(
-                  (n, id) => n + (this.downloadProgress.get(id) ?? 0),
-                  0,
-                ),
-              );
-          }
-          this.emit();
-        }
-        return Buffer.concat(chunks);
-      } finally {
-        this.controllers.delete(blob.id);
-        const next = this.slots.shift();
-        if (next) next();
-        else this.activeDownloads--;
-      }
-    })();
-    this.downloads.set(blob.id, operation);
-    void operation
-      .finally(() => {
-        this.downloads.delete(blob.id);
-        this.downloadProgress.delete(blob.id);
-      })
-      .catch(() => {});
-    return operation;
   }
   private recover(): void {
     const uuid = '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';

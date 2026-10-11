@@ -20,6 +20,8 @@ export interface LoadedGame {
   bot: BotStrategy;
 }
 export interface GameRegistration {
+  /** Available for exact restoration, excluded from new-game browsing. */
+  restoreOnly?: boolean;
   catalog: GameCatalogEntry;
   load(variantId?: string, releaseRef?: string): Promise<LoadedGame>;
   loadSaved?(save: Save, releaseRef?: string): Promise<LoadedGame>;
@@ -49,7 +51,11 @@ export class GameRegistry {
     }
   }
   catalog(): GameCatalogEntry[] {
-    return structuredClone(this.entries.map((entry) => entry.catalog));
+    return structuredClone(
+      this.entries
+        .filter((entry) => !entry.restoreOnly)
+        .map((entry) => entry.catalog),
+    );
   }
   registrations(): readonly GameRegistration[] {
     return this.entries;
@@ -65,6 +71,7 @@ export class GameRegistry {
   ): Promise<LoadedGame> {
     const entry = this.entries.find((candidate) => candidate.catalog.id === id);
     if (!entry) throw new Error('unknown-game');
+    if (entry.restoreOnly) throw new Error('unknown-game');
     const selected = variantId ?? entry.catalog.defaultVariantId;
     if (
       selected !== undefined &&
@@ -98,8 +105,9 @@ export class GameRegistry {
       throw new Error('incompatible-save');
     return {
       ...loaded,
-      ...(selected !== undefined &&
-      !entry.catalog.variants?.some((v) => v.id === selected)
+      ...(entry.restoreOnly ||
+      (selected !== undefined &&
+        !entry.catalog.variants?.some((v) => v.id === selected))
         ? { restoreOnly: true }
         : {}),
     };

@@ -94,6 +94,7 @@ export class RoomCoordinator {
   private registry: GameRegistry;
   restored = false;
   missingRelease: string | null = null;
+  private restorationReason: string | null = null;
   constructor(
     rules: GameRules | null,
     strategy: BotStrategy | null,
@@ -250,12 +251,20 @@ export class RoomCoordinator {
     } catch (error) {
       if (
         !saved?.manifest ||
-        !['missing-game-release', 'uninstalled-game', 'unknown-game'].includes(
-          error instanceof Error ? error.message : '',
-        )
+        ![
+          'missing-game-release',
+          'uninstalled-game',
+          'unknown-game',
+          'ambiguous-legacy-release',
+          'incompatible-save',
+          'incompatible-game',
+          'incompatible-game-module',
+          'incompatible-game-variant',
+          'incompatible-game-capabilities',
+        ].includes(error instanceof Error ? error.message : '')
       )
         throw error;
-      return new RoomCoordinator(
+      const room = new RoomCoordinator(
         null,
         null,
         repository,
@@ -267,6 +276,9 @@ export class RoomCoordinator {
         undefined,
         saved,
       );
+      room.restorationReason =
+        error instanceof Error ? error.message : 'missing-game-release';
+      return room;
     }
     const room = new RoomCoordinator(
       game?.rules ?? null,
@@ -302,6 +314,7 @@ export class RoomCoordinator {
       this.data = next;
       this.game = game;
       this.missingRelease = null;
+      this.restorationReason = null;
       this.restored = true;
       this.listeners.forEach((listener) => listener());
       return true;
@@ -652,6 +665,7 @@ export class RoomCoordinator {
             decisionTimer: this.rules.manifest.decisionTimer !== false,
             ...(d.variantId === undefined ? {} : { variantId: d.variantId }),
             ...(d.releaseRef === undefined ? {} : { releaseRef: d.releaseRef }),
+            ...(this.game.restoreOnly ? { restoreOnly: true } : {}),
           }
         : null,
       catalog: this.registry.catalog(),
@@ -724,7 +738,7 @@ export class RoomCoordinator {
             )
           : [],
       botError: this.missingRelease
-        ? '游戏包缺失，请管理员补装以恢复原对局。'
+        ? `${this.restorationReason === 'ambiguous-legacy-release' ? '旧存档匹配到多个游戏发行，无法确定原版本' : this.restorationReason?.startsWith('incompatible-') ? '旧游戏或存档接口与当前程序不兼容' : '旧对局所需游戏版本缺失或损坏'}（${d.manifest?.id ?? '未知游戏'}，游戏 ${d.manifest?.gameVersion ?? '?'}／规则 ${d.manifest?.rulesVersion ?? '?'}，引用 ${this.missingRelease}）。请使用包含该版本且支持此存档格式的旧完整 EXE；原存档已保留。`
         : (d.botError ?? this.transientBotError),
       endReason: d.endReason,
     };
@@ -1210,6 +1224,12 @@ export class RoomCoordinator {
         lobby();
         requireThat(this.game, 'game-not-selected');
         if (this.game.restoreOnly) {
+          requireThat(
+            this.registry
+              .catalog()
+              .some((item) => item.id === this.rules.manifest.id),
+            'game-not-in-current-executable',
+          );
           committedGame = await this.registry.load(this.rules.manifest.id);
           next.manifest = committedGame.rules.manifest;
           if (committedGame.variantId === undefined) delete next.variantId;
@@ -1283,6 +1303,12 @@ export class RoomCoordinator {
             c.type === 'replay' ? this.lobbyWithSeats() : this.fresh();
           let nextGame = this.game;
           if (nextGame?.restoreOnly) {
+            requireThat(
+              this.registry
+                .catalog()
+                .some((item) => item.id === nextGame!.rules.manifest.id),
+              'game-not-in-current-executable',
+            );
             nextGame = await this.registry.load(nextGame.rules.manifest.id);
             fresh.manifest = nextGame.rules.manifest;
             if (nextGame.variantId === undefined) delete fresh.variantId;

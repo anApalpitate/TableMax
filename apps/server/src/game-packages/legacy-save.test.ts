@@ -5,6 +5,7 @@ import {
   readFileSync,
   rmSync,
   writeFileSync,
+  cpSync,
 } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -66,7 +67,11 @@ async function fixture(
   );
   let service: Service | undefined;
   try {
-    service = await createService(config, { rules, bot });
+    const oldRules = {
+      ...rules,
+      manifest: { ...rules.manifest, gameVersion: 'legacy-fixture-1' },
+    };
+    service = await createService(config, { rules: oldRules, bot });
     const tokens: string[] = [];
     for (const name of ['旧局甲', '旧局乙']) {
       const player = await service.room.join(name);
@@ -123,6 +128,13 @@ async function fixture(
           format: 'cjs',
           target: 'node22',
           logLevel: 'silent',
+          ...(part === 'rules'
+            ? {
+                footer: {
+                  js: 'module.exports = { ...module.exports, rules: { ...module.exports.rules, manifest: { ...module.exports.rules.manifest, gameVersion: "legacy-fixture-1" } } };',
+                },
+              }
+            : {}),
         }),
       ),
     );
@@ -135,6 +147,7 @@ async function fixture(
       web: '/games/uno/web/entry.js',
     };
     module.styles = [];
+    module.compatibility.gameVersion = 'legacy-fixture-1';
     if (mismatch)
       module.compatibility = {
         ...module.compatibility,
@@ -148,6 +161,19 @@ async function fixture(
       join(snapshot, 'web', 'games', 'uno', 'web', 'entry.js'),
       'export const client = {};',
     );
+    // Current complete payload coexists with the preserved, distinctly versioned old module.
+    const pointer = JSON.parse(
+      readFileSync('artifacts/package-payloads/v1.0.6/current.json', 'utf8'),
+    );
+    const payload = join(
+      pointer.deliveries.find(
+        (item: { edition: string }) => item.edition === 'full',
+      ).manifestPath,
+      '..',
+      'win-unpacked',
+      'preinstalled-games',
+    );
+    cpSync(payload, join(root, 'preinstalled-games'), { recursive: true });
     service = await createService({ ...config, gamesDir });
     return { root, config, saved, tokens, service };
   } catch (error) {

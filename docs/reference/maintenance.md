@@ -2,7 +2,7 @@
 
 ## 分类与入口
 
-2026-10-11最新交付保护：本地仅导出full／box两种EXE；内部载荷ZIP、逐文件manifest及哈希指针进入 `artifacts/package-payloads/`，不当作用户运行ZIP。维护先核对当前各edition的EXE与载荷哈希，并要求匹配的实际EXE通过证明；缺证据或不匹配即停止，保全全部文件。当前载荷、现有线上旧单EXE／ZIP、正式存档及游戏离线包不因改名自动退役。未来Release四附件白名单为full EXE、box EXE、发布source ZIP及作者工具包，游戏分发继续Pages；本轮不发布或生成source ZIP，历史三附件事实保持。
+2026-10-12最新交付保护：本地仅导出预装全部正式游戏与玩法的完整EXE；内部载荷ZIP、逐文件manifest及哈希指针进入 `artifacts/package-payloads/`，不当作用户运行ZIP。维护先核对当前完整EXE与载荷哈希，并要求匹配的实际EXE通过证明；缺证据或不匹配即停止，保全全部文件。读取器兼容历史full／box格式，旧交付只有经SHA保全才可退役；现有线上内容、正式存档及旧游戏仓库继续保护。取消盒子版、独立游戏下载／导入、Pages导出和安装型作者工具包；未来明确授权发布时仅完整EXE与发布source ZIP。本轮不发布、不部署、不生成source ZIP，历史发布事实保持。
 
 - [总索引](../README.md)：按任务意图定位最小必要内容。
 - [reference](README.md)：当前参考知识、目录职责与操作方法。

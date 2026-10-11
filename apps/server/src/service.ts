@@ -5,11 +5,8 @@ import QRCode from 'qrcode';
 import {
   appendFileSync,
   mkdirSync,
-  readFileSync,
   readdirSync,
   existsSync,
-  writeFileSync,
-  unlinkSync,
   createReadStream,
 } from 'node:fs';
 import { join } from 'node:path';
@@ -48,14 +45,7 @@ import { RoomProjectionState } from './room-projections';
 import { SyncDiagnostics } from './sync-diagnostics';
 import { PackageStore } from './game-packages/store';
 import { PROJECT_GAME_PUBLIC_KEY } from './game-packages/project-public-key';
-import { releaseCompatibilityIssue } from '../../../packages/game-sdk/src/compatibility.mjs';
 import {
-  gameAssetUrl,
-  gameCatalogUrl,
-  GAME_CATALOG_TAG,
-} from './game-packages/distribution';
-import {
-  projectPackageSnapshot,
   publicReleaseClient,
   publicReleaseDetails,
 } from './game-packages/public';
@@ -87,17 +77,10 @@ export async function createService(
                 .map((r) => r.releaseId)
             : []),
         ],
-        assetUrl: gameAssetUrl,
       })
     : undefined;
   let freshFullInitialGame: string | undefined;
   if (packages) {
-    const catalogPath = join(config.webDir, '..', 'game-catalog.json');
-    if (
-      existsSync(catalogPath) &&
-      !existsSync(join(packages.root, 'catalog.json'))
-    )
-      packages.setCatalog(JSON.parse(readFileSync(catalogPath, 'utf8')));
     const legacyRoot = join(packages.root, '.legacy');
     if (existsSync(legacyRoot))
       for (const name of readdirSync(legacyRoot))
@@ -108,7 +91,7 @@ export async function createService(
         join(config.webDir, '..', 'preinstalled-games'),
         migrationProgress,
       );
-      const original = packages.selected('pokemon-encounters', 'original');
+      const original = packages.current('pokemon-encounters', 'original');
       if (
         original &&
         preinstalled.includes(original.releaseId) &&
@@ -116,9 +99,14 @@ export async function createService(
       )
         freshFullInitialGame = original.gameId;
     } catch (error) {
-      // Retain existing games and missing-reference repair mode if a local payload is damaged.
+      // Never substitute cached games for a damaged current executable payload.
       log(
         `preinstalled-games-failed:${error instanceof Error ? error.message : 'unknown'}`,
+      );
+      storage.close();
+      throw new Error(
+        '完整程序的预装游戏无法初始化，请重新获取完整 EXE；原存档和旧游戏已保留。',
+        { cause: error },
       );
     }
   }
@@ -225,19 +213,7 @@ export async function createService(
     reply.header('Referrer-Policy', 'no-referrer');
   });
   app.get('/api/foundation/health', () => health);
-  const isPackageAdmin = (request: { headers: Record<string, unknown> }) => {
-    const value = request.headers.authorization;
-    if (typeof value !== 'string' || !value.startsWith('Bearer ')) return false;
-    try {
-      return room.identity(value.slice(7)).role === 'host';
-    } catch {
-      return false;
-    }
-  };
   if (packages) {
-    app.get('/api/game-packages', () =>
-      projectPackageSnapshot(packages.snapshot()),
-    );
     app.get<{ Params: { ref: string } }>(
       '/api/game-packages/releases/:ref/details',
       (request, reply) => {
@@ -283,96 +259,6 @@ export async function createService(
         reply.type(mime[ext ?? ''] ?? 'application/octet-stream');
         reply.header('Cache-Control', 'public, max-age=31536000, immutable');
         return reply.send(createReadStream(path));
-      },
-    );
-    app.post<{ Body: { operation?: string; releaseId?: string } }>(
-      '/api/game-packages/manage',
-      async (request, reply) => {
-        if (!isPackageAdmin(request))
-          return reply.code(403).send({ reason: 'unauthorized' });
-        const { operation, releaseId } = request.body ?? {};
-        try {
-          if (operation === 'refresh') {
-            let response = await fetch(gameCatalogUrl(), {
-              signal: AbortSignal.timeout(30000),
-            });
-            if (response.status === 404 || response.status === 410)
-              response = await fetch(gameCatalogUrl(GAME_CATALOG_TAG), {
-                signal: AbortSignal.timeout(30000),
-              });
-            if (
-              !response.ok ||
-              Number(response.headers.get('content-length')) > 2_000_000
-            )
-              throw new Error('catalog-download-failed');
-            const body = await response.text();
-            if (Buffer.byteLength(body) > 2_000_000)
-              throw new Error('catalog-size-limit');
-            packages.setCatalog(JSON.parse(body));
-          } else {
-            if (!releaseId || !/^[a-f0-9]{64}$/.test(releaseId))
-              return reply.code(400).send({ reason: 'invalid-message' });
-            if (operation === 'install') {
-              const snapshot = packages.snapshot();
-              const release =
-                snapshot.catalog.releases.find(
-                  (r) => r.releaseId === releaseId,
-                ) ?? snapshot.index.releases[releaseId];
-              if (!release) throw new Error('unknown-release');
-              const issue = releaseCompatibilityIssue(release);
-              if (issue) throw new Error(issue);
-              void packages.install(releaseId).catch(() => {});
-            } else if (operation === 'cancel') packages.cancel(releaseId);
-            else if (operation === 'uninstall') packages.uninstall(releaseId);
-            else if (operation === 'rollback') packages.rollback(releaseId);
-            else return reply.code(400).send({ reason: 'invalid-message' });
-          }
-          return { ok: true };
-        } catch (error) {
-          return reply.code(400).send({
-            ok: false,
-            reason:
-              error instanceof Error
-                ? error.message
-                : 'package-operation-failed',
-          });
-        }
-      },
-    );
-    app.addContentTypeParser(
-      'application/octet-stream',
-      { parseAs: 'buffer', bodyLimit: 63_999_999 },
-      (_request, body, done) => done(null, body),
-    );
-    app.post(
-      '/api/game-packages/import',
-      {
-        bodyLimit: 63_999_999,
-        onRequest: async (request, reply) => {
-          if (!isPackageAdmin(request))
-            return reply.code(403).send({ reason: 'unauthorized' });
-        },
-      },
-      async (request, reply) => {
-        if (!isPackageAdmin(request) || !Buffer.isBuffer(request.body))
-          return reply.code(403).send({ reason: 'unauthorized' });
-        const path = join(
-          packages.root,
-          '.staging',
-          `import-${randomUUID()}.zip`,
-        );
-        try {
-          writeFileSync(path, request.body, { flag: 'wx' });
-          return { ok: true, releaseId: await packages.importOffline(path) };
-        } catch (error) {
-          return reply.code(400).send({
-            ok: false,
-            reason:
-              error instanceof Error ? error.message : 'package-import-failed',
-          });
-        } finally {
-          if (existsSync(path)) unlinkSync(path);
-        }
       },
     );
   }
@@ -470,7 +356,6 @@ export async function createService(
   const unsubscribePackages = packages?.subscribe(() => {
     registry.refresh(createGameRegistry(false, packages).registrations());
     broadcast();
-    if (room.missingRelease) void room.restoreMissingRelease().catch(() => {});
   });
   app.post('/api/session/transfer/request', async (request, reply) => {
     const parsed = TransferRequestSchema.safeParse(request.body);

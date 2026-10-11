@@ -17,6 +17,7 @@ import {
   writeFile,
   readdir,
   stat,
+  rmdir,
 } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 const run = promisify(execFile);
@@ -25,10 +26,11 @@ const hash = async (path) =>
     .update(await readFile(path))
     .digest('hex');
 const { version } = JSON.parse(await readFile('package.json', 'utf8'));
-const edition =
-  process.argv.find((value) => value.startsWith('--edition='))?.slice(10) ??
-  'box';
-assert.ok(['box', 'full'].includes(edition));
+assert.ok(
+  !process.argv.some((arg) => arg.startsWith('--edition=')),
+  'Edition selection has been retired',
+);
+const edition = 'full';
 const payloadIndex = JSON.parse(
   await readFile(
     resolve('artifacts/package-payloads', `v${version}`, 'current.json'),
@@ -65,6 +67,9 @@ assert.equal(
   'EXE changed after sealing',
 );
 const extracted = await mkdtemp(resolve('tmp/shipping-executable-'));
+// Reserve a unique name, then let the EXE create its own extraction directory.
+// A precreated sandbox-owned directory can prevent the launcher's atomic rename.
+await rmdir(extracted);
 const started = performance.now();
 await run(executable, [`--extract-only=${extracted}`], {
   windowsHide: true,

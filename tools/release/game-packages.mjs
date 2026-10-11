@@ -21,10 +21,7 @@ import {
   inventory,
   json,
 } from '../build/module-build.mjs';
-import {
-  isDirectExecution,
-  assertWorkspaceRoot,
-} from '../shared/workspace-root.mjs';
+import { isDirectExecution } from '../shared/workspace-root.mjs';
 export {
   sha256,
   canonical,
@@ -35,7 +32,6 @@ export {
 import {
   sha256,
   canonical,
-  zipFiles,
   createBlob,
   createSignedCatalog,
 } from './game-package-format.mjs';
@@ -45,6 +41,7 @@ export async function packageGames({
   keyPath = process.env.TABLEMAX_GAME_SIGNING_KEY,
   releaseTag,
   history = [],
+  snapshot,
 } = {}) {
   if (!keyPath)
     throw new Error(
@@ -55,12 +52,16 @@ export async function packageGames({
     throw new Error('Invalid public game release tag');
   out = resolve(out ?? `artifacts/game-packages/${releaseTag}/current`);
   await mkdir(out, { recursive: true });
-  const modules = (await discover(gameId)).filter(
+  const modules = (snapshot?.modules ?? (await discover(gameId))).filter(
     (item) => !item.internal && (!gameId || item.id === gameId),
   );
   if (!modules.length) throw new Error('Unknown game');
-  const units = (await unitsFor(modules)).filter((unit) => unit.module),
-    results = [];
+  const units = snapshot
+      ? []
+      : (await unitsFor(modules)).filter((unit) => unit.module),
+    results = snapshot
+      ? snapshot.units.filter((unit) => unit.id.startsWith('game-'))
+      : [];
   for (const unit of units) {
     const result = await buildUnit(unit);
     results.push(result);
@@ -154,7 +155,6 @@ export async function packageGames({
         resourceMap,
         releaseTag,
       };
-      body.offlineAsset = `TableMax-${module.id}${variant.id ? '-' + variant.id : ''}-${releaseTag}-${sha256(canonical(body))}-offline.zip`;
       const release = { releaseId: sha256(canonical(body)), ...body };
       const closure = [code, ...resources],
         download = closure.reduce((n, blob) => n + blob.archiveBytes, 0),
@@ -198,6 +198,7 @@ export async function packageGames({
     const assets = await gameReleaseAssets(directory, {
       publicKey,
       tag: historyTag,
+      includeOffline: false,
     });
     const old = JSON.parse(
       await readFile(join(directory, catalogNames[0]), 'utf8'),
@@ -260,44 +261,6 @@ export async function packageGames({
     join(out, `TableMax-game-catalog-${releaseTag}.json`),
     JSON.stringify(envelope, null, 2) + '\n',
   );
-  for (const release of releases) {
-    if (historicalIds.has(release.releaseId)) continue;
-    const closure = [release.code, ...release.resources];
-    const records = [
-      {
-        path: 'catalog.json',
-        data: Buffer.from(
-          JSON.stringify(
-            createSignedCatalog(
-              {
-                schemaVersion: 1,
-                releases: [release],
-                blobs: payload.blobs.filter((blob) =>
-                  closure.includes(blob.id),
-                ),
-              },
-              signingKey,
-            ),
-          ),
-        ),
-      },
-      {
-        path: 'release.json',
-        data: Buffer.from(JSON.stringify({ releaseId: release.releaseId })),
-      },
-    ];
-    for (const id of closure) {
-      const blob = payload.blobs.find((blob) => blob.id === id);
-      records.push({
-        path: `blobs/${id}.zip`,
-        data: await readFile(join(out, blob.assetName)),
-      });
-    }
-    const archive = zipFiles(records);
-    if (archive.length >= 64_000_000)
-      throw new Error('Offline package exceeds download gate');
-    await writeFile(join(out, release.offlineAsset), archive);
-  }
   await writeFile(
     join(out, 'build-record.json'),
     JSON.stringify(
@@ -319,22 +282,7 @@ export async function packageGames({
   );
   return envelope;
 }
-if (isDirectExecution(import.meta.url)) {
-  assertWorkspaceRoot();
-  const value = (name) =>
-    process.argv
-      .find((arg) => arg.startsWith(`--${name}=`))
-      ?.slice(name.length + 3);
-  try {
-    await packageGames({
-      gameId: value('game'),
-      out: value('out'),
-      keyPath: value('key'),
-      releaseTag: value('tag'),
-      history: value('history')?.split(',') ?? [],
-    });
-  } catch (error) {
-    console.error(error.message);
-    process.exitCode = 1;
-  }
-}
+if (isDirectExecution(import.meta.url))
+  throw new Error(
+    'Standalone game export is retired; build games as internal inputs of package:win',
+  );

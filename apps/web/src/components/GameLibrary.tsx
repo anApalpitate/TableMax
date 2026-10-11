@@ -3,8 +3,7 @@ import type { RoomSession } from '../session/useRoomSession';
 import { useEffect, useState } from 'react';
 import { gameCover } from '../assets/game-covers';
 import { ConfirmationDialog } from './ConfirmationDialog';
-import { ResourceButton, ResourceStatusLabel } from './game-library/resources';
-import { PackageManagement } from './game-library/PackageManagement';
+import { SelectionButton } from './game-library/SelectionButton';
 import { feedbackText } from '../content/feedback';
 import {
   availableLibraryTags,
@@ -80,7 +79,6 @@ export function GameLibrary({
         </span>
       </div>
       {!isHost && <p>{feedbackText('library.waitingForHost')}</p>}
-      <PackageManagement session={session} />
       {view &&
         games.some(
           (game) => !game.development && view.seats.length > game.max,
@@ -236,16 +234,13 @@ export function GameLibrary({
               )}
             </div>
             {isHost ? (
-              <ResourceButton
-                resource={{ gameId: game.id }}
-                canDownload={isHost && !game.development && !locked}
+              <SelectionButton
                 disabled={
                   game.development ||
                   locked ||
                   (view?.seats.length ?? 0) > game.max
                 }
-                current={view?.game?.id === game.id}
-                currentReleaseRef={view?.game?.releaseRef}
+                current={view?.game?.id === game.id && !view.game.restoreOnly}
                 select={() => {
                   if (game.development || !view) return;
                   if (view.status === 'playing') {
@@ -267,7 +262,7 @@ export function GameLibrary({
                 }
               />
             ) : (
-              <ResourceStatusLabel resource={{ gameId: game.id }} />
+              <span>{view?.game?.id === game.id ? '已选择' : ''}</span>
             )}
           </article>
         ))}

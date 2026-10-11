@@ -12,6 +12,9 @@ import { PackageStore } from './store';
 import { PROJECT_GAME_PUBLIC_KEY } from './project-public-key';
 import type { SignedCatalog } from './types';
 import { createService } from '../service';
+import { createGameRegistry } from '../game-registry';
+import { RoomCoordinator, type Save } from '@tablemax/platform-core';
+import { WorkerBotExecutor } from '../bot-executor';
 
 import { preferredCatalogReleases, releaseCompatible } from './catalog';
 import { retiredVariant, retiredVariantPolicies } from '../game-variant-policy';
@@ -88,13 +91,24 @@ it('bootstraps all current compatible signed gameplays before the full service o
   const f = fixture();
   const service = await createService(f.config);
   try {
-    const snapshot = (
-      await service.app.inject('/api/game-packages')
-    ).json() as ReturnType<PackageStore['snapshot']>;
-    expect(Object.keys(snapshot.index.releases)).toHaveLength(
+    const installed = new PackageStore(f.options).snapshot();
+    expect(Object.keys(installed.index.releases)).toHaveLength(
       currentReleases.length,
     );
-    expect(snapshot.unavailableReleaseIds).toEqual([]);
+    expect(installed.unavailableReleaseIds).toEqual([]);
+    for (const [method, url] of [
+      ['GET', '/api/game-packages'],
+      ['POST', '/api/game-packages/manage'],
+      ['POST', '/api/game-packages/import'],
+    ] as const) {
+      const response = await service.app.inject({
+        method,
+        url,
+        headers: { authorization: 'Bearer ' + service.hostToken },
+        ...(method === 'POST' ? { payload: { operation: 'refresh' } } : {}),
+      });
+      expect(response.statusCode).toBe(404);
+    }
     expect(service.room.view().game?.id).toBe('pokemon-encounters');
     expect(service.room.view().game?.variantId).toBe('original');
     const store = new PackageStore(f.options);
@@ -117,7 +131,88 @@ it('bootstraps all current compatible signed gameplays before the full service o
   }
 }, 30000);
 
-it('preserves existing exact selections and refs, repairs indexed missing files, and does not resurrect an explicit uninstall', async () => {
+it('loads each bundled gameplay and saves an authorized decision from the actual packaged Worker', async () => {
+  const f = fixture();
+  const store = new PackageStore(f.options);
+  await store.importPreinstalled(f.source);
+  const registry = createGameRegistry(false, store);
+  const pointer = JSON.parse(
+    readFileSync('artifacts/package-payloads/v1.0.6/current.json', 'utf8'),
+  );
+  const workerPath = join(
+    pointer.deliveries.find((d: { edition: string }) => d.edition === 'full')
+      .manifestPath,
+    '..',
+    'win-unpacked',
+    'bot-worker.cjs',
+  );
+  const executor = new WorkerBotExecutor(workerPath, (task) => {
+    const installed = store.resolveModule(task.releaseRef!)!;
+    return join(installed.root, installed.release.module.entries.bot);
+  });
+  for (const release of currentReleases) {
+    const loaded = await registry.load(release.gameId, release.variantId);
+    let saved: Save | null = null;
+    const room = new RoomCoordinator(
+      loaded.rules,
+      loaded.bot,
+      {
+        load: () => structuredClone(saved),
+        save: (value: Save) => {
+          saved = structuredClone(value);
+        },
+      },
+      undefined,
+      'test',
+      registry,
+      undefined,
+      release.variantId,
+      release.releaseId,
+    );
+    const host = async (
+      command: import('@tablemax/protocol').Command['command'],
+    ) => {
+      const view = room.view(room.hostToken);
+      expect(
+        (
+          await room.command(room.hostToken, {
+            actionId: crypto.randomUUID(),
+            instanceId: view.instanceId,
+            revision: view.revision,
+            branch: view.branch,
+            command,
+          })
+        ).ok,
+        release.gameId,
+      ).toBe(true);
+    };
+    for (let i = 0; i < loaded.rules.manifest.players.min; i++)
+      await host({ type: 'add-bot', name: 'Bundled ' + i });
+    await host({ type: 'start' });
+    const task = room.botTask()!;
+    expect(task.releaseRef).toBe(release.releaseId);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2000);
+    try {
+      const result = await executor.execute(task, controller.signal);
+      expect(
+        (
+          await room.submitBot(
+            task,
+            result.action,
+            result.memory,
+            result.random,
+          )
+        ).ok,
+        release.gameId,
+      ).toBe(true);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+}, 30000);
+
+it('preserves existing exact selections and refs, repairs indexed missing files, and repairs historical uninstalls from the executable', async () => {
   const f = fixture();
   const store = new PackageStore(f.options);
   const previousAssets = resolve('artifacts/game-packages/v1.0.6');
@@ -148,10 +243,10 @@ it('preserves existing exact selections and refs, repairs indexed missing files,
   await new PackageStore(f.options).importPreinstalled(f.source);
   expect(
     new PackageStore(f.options).resolveModule(uno.releaseId),
-  ).toBeUndefined();
+  ).toBeDefined();
 }, 30000);
 
-it('rejects a corrupt signed payload before changing an existing index and leaves an empty box service usable', async () => {
+it('rejects corrupt or absent complete payloads without changing saved bytes', async () => {
   const f = fixture();
   const store = new PackageStore(f.options);
   await store.importPreinstalled(f.source);
@@ -164,61 +259,66 @@ it('rejects a corrupt signed payload before changing an existing index and leave
     'archive-hash-mismatch',
   );
   expect(readFileSync(join(f.options.root, 'index.json'))).toEqual(before);
-  const box = fixture(false);
-  const service = await createService(box.config);
-  try {
-    expect(service.room.view().game).toBeNull();
-    const snapshot = (
-      await service.app.inject('/api/game-packages')
-    ).json() as ReturnType<PackageStore['snapshot']>;
-    expect(Object.keys(snapshot.index.releases)).toHaveLength(0);
+  const absent = fixture(false);
+  await expect(createService(absent.config)).rejects.toThrow(
+    '完整程序的预装游戏无法初始化',
+  );
+  await expect(
+    new PackageStore(absent.options).importPreinstalled(absent.source),
+  ).rejects.toThrow('missing-preinstalled-games');
+}, 30000);
+
+it('uses only bundled current releases despite cached selections, with old variants restricted to restoration', async () => {
+  const f = fixture();
+  const store = new PackageStore(f.options);
+  const previousAssets = resolve('artifacts/game-packages/v1.0.6');
+  const old = JSON.parse(
+    readFileSync(
+      join(previousAssets, 'TableMax-game-catalog-v1.0.6.json'),
+      'utf8',
+    ),
+  ) as SignedCatalog;
+  const classic = old.payload.releases.find(
+    (r) => r.gameId === 'avalon' && r.variantId === 'classic',
+  )!;
+  await store.importOffline(join(previousAssets, classic.offlineAsset!));
+  await store.importPreinstalled(f.source);
+  const registry = createGameRegistry(false, store);
+  expect(
+    registry
+      .catalog()
+      .find((g) => g.id === 'avalon')
+      ?.variants?.map((v) => v.id),
+  ).toEqual(['configured']);
+  for (const release of currentReleases) {
+    expect(store.current(release.gameId, release.variantId)?.releaseId).toBe(
+      release.releaseId,
+    );
     expect(
-      await new PackageStore(box.options).importPreinstalled(box.source),
-    ).toEqual([]);
-    const view = service.room.view(service.hostToken);
-    expect(
-      (
-        await service.room.command(service.hostToken, {
-          actionId: crypto.randomUUID(),
-          instanceId: view.instanceId,
-          branch: view.branch,
-          revision: view.revision,
-          command: { type: 'join-open', open: false },
-        })
-      ).ok,
-    ).toBe(true);
-  } finally {
-    await service.close();
+      (await registry.load(release.gameId, release.variantId)).releaseRef,
+    ).toBe(release.releaseId);
   }
-  mkdirSync(join(box.source, 'blobs'), { recursive: true });
-  writeFileSync(join(box.source, 'catalog.json'), JSON.stringify(envelope));
+  const saved = {
+    manifest: {
+      id: 'avalon',
+      gameVersion: classic.module.compatibility.gameVersion,
+      rulesVersion: classic.module.compatibility.rulesVersion,
+      stateVersion: classic.module.compatibility.stateVersion,
+    },
+    variantId: 'classic',
+    releaseRef: classic.releaseId,
+  } as import('@tablemax/platform-core').Save;
+  expect((await registry.loadSaved(saved)).restoreOnly).toBe(true);
+  await expect(
+    registry.load('avalon', 'classic', classic.releaseId),
+  ).rejects.toThrow();
   writeFileSync(
-    join(box.source, 'bootstrap.json'),
-    JSON.stringify({
-      schemaVersion: 1,
-      releaseIds: currentReleases.map((r) => r.releaseId),
-    }),
+    join(f.options.root, 'catalog.json'),
+    'invalid old cached directory',
   );
-  const restoredIds = new Set(
-    currentReleases.flatMap((r) => [r.code, ...r.resources]),
+  const restarted = new PackageStore(f.options);
+  await restarted.importPreinstalled(f.source);
+  expect(restarted.current('avalon', 'configured')?.releaseId).toBe(
+    store.current('avalon', 'configured')?.releaseId,
   );
-  for (const blob of envelope.payload.blobs.filter((b) =>
-    restoredIds.has(b.id),
-  ))
-    copyFileSync(
-      join(assets, blob.assetName),
-      join(box.source, 'blobs', blob.id + '.zip'),
-    );
-  const restored = await createService(box.config);
-  try {
-    expect(restored.room.view().game).toBeNull();
-    const snapshot = (
-      await restored.app.inject('/api/game-packages')
-    ).json() as ReturnType<PackageStore['snapshot']>;
-    expect(Object.keys(snapshot.index.releases)).toHaveLength(
-      currentReleases.length,
-    );
-  } finally {
-    await restored.close();
-  }
 }, 30000);

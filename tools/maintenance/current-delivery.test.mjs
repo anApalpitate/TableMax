@@ -88,6 +88,13 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
       },
     );
     assert.equal(currentDeliveries(root, '1.0.6').length, 2);
+    json(pointer, {
+      version: '1.0.6',
+      buildVersion: '1.0.6.4',
+      snapshot: 'run',
+      deliveries: [deliveries[0]],
+    });
+    assert.equal(currentDeliveries(root, '1.0.6').length, 1);
     if (process.platform === 'win32') {
       const helper = resolve(
         'tools/maintenance/current-delivery.ps1',
@@ -103,6 +110,15 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
           ],
           { stdio: 'pipe' },
         );
+      invoke(
+        `$value=Get-VerifiedCurrentDeliveries '${quoteRoot}' '1.0.6'; if($value.deliveries.Count -ne 1){throw 'Expected one complete delivery'}`,
+      );
+      json(pointer, {
+        version: '1.0.6',
+        buildVersion: '1.0.6.4',
+        snapshot: 'run',
+        deliveries,
+      });
       invoke(
         `$value=Get-VerifiedCurrentDeliveries '${quoteRoot}' '1.0.6'; if($value.deliveries.Count -ne 2 -or $value.historicalReportScans -ne 0){throw 'Expected two verified deliveries without historical scans'}`,
       );
@@ -145,6 +161,12 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
         });
       }
     }
+    json(pointer, {
+      version: '1.0.6',
+      buildVersion: '1.0.6.4',
+      snapshot: 'run',
+      deliveries,
+    });
     file(deliveries[1].archivePath, 'tampered');
     assert.throws(() => currentDeliveries(root, '1.0.6'), /hash mismatch/);
     json(pointer, {

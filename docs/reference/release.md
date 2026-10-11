@@ -1,5 +1,15 @@
 # Release流程与发布约定
 
+## 唯一完整 EXE 交付（2026-10-12）
+
+Windows 只导出预装全部正式游戏及玩法的完整 EXE，文件名不加类型后缀。游戏仍独立组织和增量构建；不可变模块仓库仅用于程序内部预装和原局恢复。取消盒子版、游戏下载、游戏 ZIP 导入、独立更新／卸载／回退及安装型作者工具包导出。新局以本 EXE 验证后的预装映射为准，旧安装索引和缓存目录不能覆盖。旧存档固定原发行；本机原版本保留，缺失时保留存档并提示使用包含原版本且支持存档格式的旧完整 EXE。本轮仅本地导出，不发布、不部署 Pages、不生成源码 ZIP。
+
+以下旧安装／分发章节保留其实施与历史边界，涉及独立游戏下载、盒子版及 Pages 的操作已退役，不作为当前使用指南。
+
+当前入口为 `pnpm package:win`，只生成 `TableMax-<四位版本>-win-x64.exe` 与本地清单；`pnpm package:release`只重新封装当前完整载荷。`--edition`明确报错。构建会对比冻结游戏单元与已有签名模块的逐文件清单：字节相同则复用，变化则在内部载荷目录重新生成、签名并验证全部模块。私钥由受保护的 `TABLEMAX_GAME_SIGNING_KEY` 或本地 `secrets/game-release-ed25519.pem`提供，不随程序交付。不存在独立游戏包的现行导出入口。
+
+未来明确授权发布时，附件仅为完整 EXE 与该发布源码 ZIP；Pages和安装型作者工具包不再生成或部署。历史作者工具包、安装目录及已发布附件仅保留原验证边界，SDK、模板和源码接入继续维护。
+
 ## 两种Windows交付与空盒子入口（2026-10-11）
 
 按最新明确要求，继续沿用v1.0.6。日常本地交付为 `TableMax-<版本>-win-x64.exe` 与 `TableMax-<版本>-win-x64-box.exe`：完整游戏版不加类型后缀，包含全部当前游戏；仅盒子版加 `-box`，包含盒子、平台运行时、目录及小封面，游戏按需安装。内部edition仍为full／box，默认 `pnpm package:win`生成两种；可用 `--edition=full|box|both`选择，继续支持 `--snapshot=`和 `--games=`。两种发行独立验收，保持旧游戏与存档；本地同名旧文件先按SHA保全到历史交付证据，再生成新包，已发布线上文件及历史原包不改写。
@@ -139,4 +149,4 @@ TableMax v[版本] 本次更新重点完善[主要变化]，并优化[相关体�
 
 全部工程进程退出后，按[安全清理入口](development.md#清理本地中间物)先预览、核对再应用，退役过期组装、解压及验证副本，检查项目逻辑体积并记录实际结果。超过10GiB时目标8GiB或安全候选耗尽；本轮用户另有明确目标时按该目标审计，保护范围不扩大。
 
-日常 `artifacts/releases/`仅保留当前已验证full／box EXE及对应本地清单；内部payload ZIP、manifest及当前指针保存在 `artifacts/package-payloads/`，不对外导出运行ZIP。仅明确发布时生成source ZIP。当前交付及验收证据、原素材、规则资料和正式存档继续保护，旧已发布EXE／ZIP／source／manifest按已有SHA保全要求退役，修复引用并保留必要结论。执行结果归[项目瘦身](project-slimming.md)，不在本页复制每轮过程。
+日常 `artifacts/releases/`仅保留当前已验证完整EXE及本地清单；内部payload ZIP、manifest及当前指针保存在 `artifacts/package-payloads/`，不对外导出运行ZIP。仅明确发布时生成source ZIP。读取器仍识别历史full／box格式；当前交付及验收证据、原素材、规则资料和正式存档继续保护，旧已发布EXE／ZIP／source／manifest按已有SHA保全要求退役，修复引用并保留必要结论。执行结果归[项目瘦身](project-slimming.md)，不在本页复制每轮过程。

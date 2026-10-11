@@ -5,7 +5,7 @@ import { canonical, sha256 } from './game-package-format.mjs';
 /** Publish only signed catalog members; old build candidates never enter assets. */
 export async function gameReleaseAssets(
   directory,
-  { publicKey, devkitPath, tag } = {},
+  { publicKey, devkitPath, tag, includeOffline = true } = {},
 ) {
   if (!publicKey)
     throw new Error('Project public key required for game asset whitelist');
@@ -48,7 +48,7 @@ export async function gameReleaseAssets(
       sha256: blob.archiveSha256,
     });
   for (const release of catalog.releases)
-    if (release.offlineAsset) add(release.offlineAsset);
+    if (includeOffline && release.offlineAsset) add(release.offlineAsset);
   if (devkitPath) {
     const name = basename(devkitPath);
     if (

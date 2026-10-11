@@ -9,7 +9,10 @@ import {
   existsSync,
 } from 'node:fs';
 import { resolve, join } from 'node:path';
-import { PackageStore } from './store';
+import {
+  PackageStore as LocalModuleStore,
+  type PackageStoreOptions,
+} from './store';
 import {
   canonical,
   sha256,
@@ -26,6 +29,35 @@ import type {
   SignedCatalog,
 } from './types';
 
+// Fixture sources are in-memory bytes; production has no network installer.
+class PackageStore extends LocalModuleStore {
+  constructor(
+    private fixtureOptions: PackageStoreOptions & {
+      fetch?: (
+        url: string | URL | Request,
+        init?: RequestInit,
+      ) => Promise<Response>;
+      assetUrl?: (blob: PackageBlob) => string;
+    },
+  ) {
+    super(fixtureOptions);
+    const path = join(fixtureOptions.root, 'catalog.json');
+    if (existsSync(path))
+      this.setCatalog(JSON.parse(readFileSync(path, 'utf8')));
+  }
+  install(id: string) {
+    return this.run(id, async (blob) => {
+      if (!this.fixtureOptions.fetch) throw new Error('missing-fixture-source');
+      return Buffer.from(
+        await (
+          await this.fixtureOptions.fetch(
+            this.fixtureOptions.assetUrl?.(blob) ?? blob.id,
+          )
+        ).arrayBuffer(),
+      );
+    });
+  }
+}
 const roots: string[] = [];
 afterEach(() => {
   for (const root of roots.splice(0))
@@ -313,57 +345,6 @@ describe('signed immutable package store', () => {
       newer.release.releaseId,
     );
   });
-  it('limits concurrent distinct dependency downloads to two', async () => {
-    const fixtures = [fixture('one'), fixture('two'), fixture('three')];
-    const first = fixtures[0]!;
-    for (let i = 0; i < fixtures.length; i++) {
-      fixtures[i]!.release.variantId = `variant-${i}`;
-      fixtures[i]!.release.module.variants = [
-        {
-          id: `variant-${i}`,
-          name: 'fixture',
-          description: 'fixture',
-          compatibility: fixtures[i]!.release.module.compatibility,
-        },
-      ];
-      fixtures[i]!.release.releaseId = releaseIdentity(fixtures[i]!.release);
-    }
-    const catalog: PackageCatalog = {
-      schemaVersion: 1,
-      releases: fixtures.map((f) => f.release),
-      blobs: fixtures.map((f) => f.blob),
-    };
-    let active = 0,
-      max = 0;
-    const store = new PackageStore({
-      root: join(first.root, 'games'),
-      publicKey: first.publicKey,
-      protectedReleaseIds: () => [],
-      assetUrl: (b) => b.id,
-      fetch: async (url) => {
-        active++;
-        max = Math.max(max, active);
-        await new Promise((done) => setTimeout(done, 10));
-        active--;
-        return new Response(
-          new Uint8Array(
-            fixtures.find((f) => f.blob.id === String(url))!.archive,
-          ),
-        );
-      },
-    });
-    store.setCatalog({
-      payload: catalog,
-      signature: sign(
-        null,
-        Buffer.from(canonical(catalog)),
-        first.privateKey,
-      ).toString('base64'),
-    });
-    await Promise.all(fixtures.map((f) => store.install(f.release.releaseId)));
-    expect(max).toBe(2);
-    expect(Object.keys(store.snapshot().index.releases)).toHaveLength(3);
-  });
   it('binds legacy migration to exact preserved bytes and tuple, and safely retires an unfinished transaction', () => {
     const f = fixture();
     const gameRoot = join(f.root, 'games'),
@@ -472,31 +453,6 @@ describe('signed immutable package store', () => {
     store.rollback(first.release.releaseId);
     expect(store.selected('uno')?.releaseId).toBe(first.release.releaseId);
   });
-  it('cancels a stalled transfer without installing or counting it as a strategy failure', async () => {
-    const f = fixture();
-    let abortObserved = false;
-    const store = new PackageStore({
-      root: join(f.root, 'games'),
-      publicKey: f.publicKey,
-      protectedReleaseIds: () => [],
-      assetUrl: () => 'https://example.invalid/asset',
-      fetch: async (_url, init) =>
-        new Promise<Response>((_done, reject) => {
-          init?.signal?.addEventListener('abort', () => {
-            abortObserved = true;
-            reject(new Error('aborted'));
-          });
-        }),
-    });
-    store.setCatalog(f.envelope);
-    const task = store.install(f.release.releaseId);
-    await new Promise((done) => setTimeout(done, 5));
-    store.cancel(f.release.releaseId);
-    await expect(task).rejects.toThrow('aborted');
-    expect(abortObserved).toBe(true);
-    expect(store.snapshot().tasks[0]?.phase).toBe('cancelled');
-    expect(store.selected('uno')).toBeUndefined();
-  });
   it('imports complete signed dependencies, exposes only public web and protects referenced releases', async () => {
     const f = fixture();
     const store = new PackageStore({
@@ -546,7 +502,7 @@ describe('signed immutable package store', () => {
       readZip(zip([['link', Buffer.from('target')]], 0xa1ff0000)),
     ).toThrow('unsafe-zip-member');
   });
-  it('deduplicates online requests, commits once and reports real byte totals', async () => {
+  it('deduplicates local materialization requests, commits once and reports real byte totals', async () => {
     const f = fixture();
     let calls = 0;
     const store = new PackageStore({

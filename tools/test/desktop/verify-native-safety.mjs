@@ -182,6 +182,43 @@ try {
   evidence.checks.push(
     'Bundled Node and private administrator credential handoff',
   );
+  if (portable) {
+    assert.equal(
+      await host.evaluate(() => typeof window.tablemaxPackages),
+      'undefined',
+    );
+    await assert.rejects(desktop.request('packages.pick'));
+    for (const [path, method] of [
+      ['/api/game-packages', 'GET'],
+      ['/api/game-packages/manage', 'POST'],
+      ['/api/game-packages/import', 'POST'],
+    ]) {
+      const response = await fetch(origin + path, { method });
+      assert.equal(response.status, 404, path);
+    }
+    await host.getByRole('button', { name: /^(游戏库|切换游戏)$/ }).click();
+    const library = host.locator('.game-library');
+    await library.waitFor();
+    for (const id of [
+      'pokemon-encounters',
+      'modern-art',
+      'power-grid',
+      'rummikub',
+      'uno',
+      'avalon',
+    ])
+      await library.locator(`[data-game-id="${id}"]`).waitFor();
+    assert.equal(
+      await library
+        .getByRole('button', { name: /下载|安装|导入|卸载/ })
+        .count(),
+      0,
+    );
+    await host.keyboard.press('Escape');
+    evidence.checks.push(
+      'Actual complete EXE includes six games and rejects retired package APIs and native picker',
+    );
+  }
   assert.equal(
     await host.evaluate(() => !!sessionStorage.getItem('tablemax-host')),
     true,

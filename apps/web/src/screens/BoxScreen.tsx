@@ -34,11 +34,6 @@ import { DeviceTransfer } from '../components/DeviceTransfer';
 import { RepositoryLink } from '../components/RepositoryLink';
 import { feedbackText } from '../content/feedback';
 import { navigate } from '../navigation';
-import {
-  GameResources,
-  type GameResourceAdapter,
-} from '../components/game-library/resources';
-import { useInstalledResources } from '../components/game-library/server-resources';
 import { useSeatRemoval } from '../components/useSeatRemoval';
 import './box-refinements.css';
 
@@ -57,19 +52,10 @@ type BoxPanel =
   | 'transfer'
   | null;
 
-export function BoxScreen({
-  session,
-  resources,
-}: {
-  session: RoomSession;
-  resources?: GameResourceAdapter;
-}) {
-  const installed = useInstalledResources(session);
+export function BoxScreen({ session }: { session: RoomSession }) {
   return (
     <Notifications>
-      <GameResources adapter={resources ?? installed.adapter}>
-        <BoxScreenContent session={session} />
-      </GameResources>
+      <BoxScreenContent session={session} />
     </Notifications>
   );
 }
@@ -187,21 +173,9 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
       </header>
       <section className="hero">
         {cover && game && <img src={cover} alt={`${game.name}游戏封面`} />}
-        {!game && (
-          <div className="box-download-icon" aria-hidden="true">
-            <svg viewBox="0 0 48 48" width="48" height="48" fill="none">
-              <path
-                d="M24 7v23m-9-9 9 9 9-9M9 32v8h30v-8"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-        )}
         <div className="box-game-title">
-          <h1>{game?.name ?? '请前往游戏库下载'}</h1>
+          {game?.restoreOnly && <p role="status">正在继续旧版本对局</p>}
+          <h1>{game?.name ?? '请在游戏库选择游戏'}</h1>
         </div>
         <GameplaySelector session={session} />
         {(isHost || !game) && (

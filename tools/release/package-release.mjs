@@ -16,9 +16,10 @@ import { lock } from '../build/module-build.mjs';
 import { scheduleMaintenance } from '../maintenance/lifecycle.mjs';
 scheduleMaintenance();
 const args = process.argv.slice(2).filter((arg) => arg !== '--');
-assert.ok(
-  args.length <= 1 && args.every((arg) => arg.startsWith('--edition=')),
-  'Only --edition=full|box|both is supported',
+assert.equal(
+  args.length,
+  0,
+  'Only the complete EXE is supported; edition selection has been retired',
 );
 await lock('package-release', async () => {
   const { version } = JSON.parse(await readFile('package.json', 'utf8'));
@@ -29,17 +30,11 @@ await lock('package-release', async () => {
     ),
   );
   assert.equal(pointer.version, version);
-  const edition =
-    args.find((arg) => arg.startsWith('--edition='))?.slice(10) ?? 'both';
-  assert.ok(['full', 'box', 'both'].includes(edition));
-  const selected = pointer.deliveries.filter(
-    (item) => edition === 'both' || item.edition === edition,
+  assert.deepEqual(
+    pointer.deliveries.map((item) => item.edition),
+    ['full'],
   );
-  assert.equal(
-    selected.length,
-    edition === 'both' ? 2 : 1,
-    'Build both internal edition payloads first',
-  );
+  const selected = pointer.deliveries;
   for (const item of selected) {
     const base = resolve(
       'artifacts/releases',

@@ -325,6 +325,7 @@ export interface RoomView {
     decisionTimer?: boolean | undefined;
     variantId?: string | undefined;
     releaseRef?: string | undefined;
+    restoreOnly?: boolean | undefined;
   } | null;
   catalog: {
     id: string;
@@ -398,6 +399,7 @@ export const RoomViewSchema = z
         min: z.number().int().positive(),
         max: z.number().int().positive(),
         decisionTimer: z.boolean().optional(),
+        restoreOnly: z.boolean().optional(),
         variantId: z.string().optional(),
         releaseRef: z
           .string()
