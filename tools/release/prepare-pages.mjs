@@ -104,6 +104,8 @@ export async function preparePages({ directory, out, tag = 'v1.0.6' }) {
     });
   };
   await put('.nojekyll', '');
+  // GitHub Pages consumes this deployment marker and does not serve its dotfile URL.
+  records.at(-1).deploymentOnly = true;
   for (const asset of assets) {
     if ((await lstat(asset.path)).isSymbolicLink())
       throw new Error('Pages source links forbidden');
@@ -120,9 +122,14 @@ export async function preparePages({ directory, out, tag = 'v1.0.6' }) {
     );
   }
   const links = [];
+  const displayed = new Set();
   for (const release of catalog.payload.releases) {
     const game = release.module.id;
     const variant = release.variantId ?? 'default';
+    // Catalog order chooses the current version; historical references remain installable.
+    const key = `${game}/${variant}`;
+    if (displayed.has(key)) continue;
+    displayed.add(key);
     if (![game, variant].every((part) => /^[a-z0-9][a-z0-9-]*$/.test(part)))
       throw new Error('Invalid game directory');
     const path = `games/${tag}/${game}/${variant}/index.html`;

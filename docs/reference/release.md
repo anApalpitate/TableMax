@@ -2,7 +2,9 @@
 
 ## 最新分发决定与暂缓发布（2026-10-11）
 
-用户采用 GitHub Pages 按目录分发游戏包，并要求暂时撤回 v1.0.6；该 Release 已改为草稿（ID `409577467`），保留原标签与25个附件作为历史审计。本轮只准备本地站点、流程和程序，不部署 Pages，不重新发布 Release。只有用户再次明确说“发 release”才执行线上发布；提交、推送和构建不构成发布授权。
+用户此前采用 GitHub Pages 按目录分发游戏包，并暂时撤回 v1.0.6；该 Release 已改为草稿（ID `409577467`），原标签与25个附件留有历史审计。随后用户明确授权“现在部署Pages并重新发布v1.0.6”，本次进入部署与同版本重新发布流程，实际线上字节、下载和附件状态仍待核验。普通提交、推送和构建不自动构成以后发布的授权。
+
+本次[已审更新说明](../../artifacts/maintenance/v1.0.6/pages-release-20261011/release-notes.md)以v1.0.5实际发布source提交 `4943ca5cf89aabc850df3fb566519973913feb3e` 为比较基线，不能以保留的旧标签对象替代。发布源码与v1.0.6保留标签的映射须另记审计，不移动或强推历史标签；主 agent 核对源码、实际EXE、站点和附件后补写最终线上结果。
 
 基础 EXE、发布提交的 source ZIP 和已验证作者工具包继续放 GitHub Release；签名目录、代码／资源包及完整玩法离线包改放 `https://anapalpitate.github.io/TableMax/`。这覆盖下文原 Release 游戏附件方案；旧发布记录保留当时的事实。
 
@@ -18,13 +20,13 @@ games/v1.0.6/<gameId>/<variantId或default>/index.html
 
 `releaseTag` 现在定位版本目录，`assetName` 定位其中的包；内容哈希、发行引用、Ed25519 签名和本机安装事务不变。管理员主动刷新签名目录，所有玩家仍只访问主机。没有在线目录时保留已验证缓存，离线导入和已安装游戏继续可用。
 
-首次Pages部署还须保全已撤回Release签名目录引用的旧内容包与离线包（本地原 `artifacts/game-packages/v1.0.6/` 未覆盖），按原精确包名合并进同一版本的packages目录；旧签名目录另存到历史子目录。不能因为此前没有Pages历史站点而遗漏旧发行。旧档缺包可导入对应原发行离线包；发布前单独核验新旧引用和同名文件字节，不能用最新发行替代。
+首次Pages部署还须保全已撤回Release签名目录引用的旧内容包与离线包（本地原 `artifacts/game-packages/v1.0.6/` 未覆盖），按原精确包名合并进同一版本的packages目录；旧签名目录另存到历史子目录。不能因为此前没有Pages历史站点而遗漏旧发行，同名已发布旧包必须保留原字节，不以新目录重新生成的副本覆盖；新发行另行保全。旧档缺包可导入对应原发行离线包，发布前单独核验新旧引用和依赖，不能用最新发行替代。
 
 执行 `pnpm prepare:pages -- --packages=<已验独立游戏包目录> --out=<全新输出目录>` 生成静态站点及站点外逐文件清单；执行 `pnpm verify:pages -- --packages=<同一目录>` 在127.0.0.1检查目录路径、哈希、离线依赖、篡改拒绝和不覆盖旧输出。工具不调用 GitHub。每次准备使用新目录，部署时合并既有历史目录：内容寻址包不可覆盖或删除，旧对局引用必须仍可下载；当前签名目录和浏览目录可以更新。跨版本依赖须一并保全，不能只上传最新文件。本地 `artifacts/pages/` 当前候选与清单受维护保护，不自动清空。
 
-已准备 `.github/workflows/pages.yml`，仅手动触发，要求输入 `PUBLISH_TABLEMAX`；没有 push、定时或 Release 自动触发器。本轮不创建／推送 `gh-pages`、不启用 Pages 设置、不触发工作流。获明确发布指示后，核对本地清单及历史目录，提交已验证的纯静态目录到 `gh-pages`，配置 Pages 使用 GitHub Actions，再手动部署。整个站点不超过 [Pages 的1GB限制](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)，累计历史文件也计入；部署权限与环境按 [官方工作流说明](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。私钥、存档和本地审计永不上传。
+已准备 `.github/workflows/pages.yml`，仅手动触发，要求输入 `PUBLISH_TABLEMAX`；没有 push、定时或 Release 自动触发器。本次已获明确发布授权：核对本地清单及历史目录，将已验证的纯静态目录提交到 `gh-pages`，配置 Pages 使用 GitHub Actions，再手动部署，完成线上核验前不记为发布成功。整个站点不超过 [Pages 的1GB限制](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)，累计历史文件也计入；部署权限与环境按 [官方工作流说明](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。私钥、存档和本地审计永不上传。
 
-部署后执行 `pnpm release:github -- --publish --notes=<说明> --devkit=<已验工具包> --pages-manifest=<已审站点清单>`；入口默认拒绝发布，且先核对实际 Pages 每个文件的公开字节，再只上传 EXE、source ZIP、作者工具包。保留的 v1.0.6 标签指向历史提交，重新发布同版本前须明确核对草稿、标签及实际发布源码映射；不得为了通过旧标签门禁强推标签或隐瞒差异。源码、EXE和实际 Pages 都通过验收后才能恢复发布。
+部署后执行 `pnpm release:github -- --publish --replace-draft --notes=<说明> --devkit=<已验工具包> --pages-manifest=<已审站点清单>`；入口默认拒绝发布，且先核对实际 Pages 每个文件的公开字节，再只上传 EXE、source ZIP、作者工具包。`--replace-draft`只用于本次已授权的既有草稿替换，保留的 v1.0.6 标签指向历史提交，须明确核对草稿、标签及实际发布源码映射；不得为了通过旧标签门禁强推标签或隐瞒差异。源码、EXE和实际 Pages 都通过验收后才能恢复发布。
 
 2026-10-10同版本附件替换授权：用户明确要求重新导出并只替换原v1.0.5的附件，因此本轮保持Release标题、正文、版本与已有标签对象，上传完整EXE及从本次已验证源码提交导出的source ZIP。源码提交与保留的旧标签对象映射记录在本地发布审计，不移动标签、不新增Release，也不上传运行ZIP或JSON。本条是此次明确授权的同版本替换边界；后文新版本发布流程仍适用。
 
@@ -65,8 +67,8 @@ games/v1.0.6/<gameId>/<variantId或default>/index.html
 
 1. 确认本轮运行ZIP已通过验收，执行 `pnpm package:release`。此入口将已验ZIP封装为 `TableMax-<版本>-win-x64.exe`，不代替运行ZIP验收。
 2. 执行 `node tools/release/verify-shipping-executable.mjs`。验证实际提取发布EXE、逐文件哈希、重复启动复用、实际资源目录体积及提取程序的原生安全行为。EXE验证后发生改变必须重新验收。
-3. 整理本次源码、文档和更新说明，完成适用检查并提交最终发布源码；核对冻结运行输入无未提交差异。推送该提交和对应 `v<版本>` 标签，标签必须指向发布提交。已有同名标签或Release时先核对现状，不强推、不擅自覆盖历史。
-4. 按下节格式准备更新说明，使用本页最新含 `--publish`、工具包及Pages清单的命令。入口核对EXE证据、HEAD与标签一致、远端标签和已提交运行输入，并核对Pages实际字节；由最终提交生成源码ZIP、创建Release并上传白名单附件。当前v1.0.6草稿需先解决历史标签与本次提交的明确映射，不能直接重复创建或强推标签。
+3. 整理本次源码、文档和更新说明，完成适用检查并提交最终发布源码；核对冻结运行输入无未提交差异。新版本推送该提交和对应 `v<版本>` 标签，标签须指向发布提交；本次已授权的v1.0.6重新发布保留历史标签，另记实际发布源码映射。已有同名标签或Release时先核对现状，不强推、不擅自覆盖历史。
+4. 按下节格式准备更新说明，使用本页最新含 `--publish`、工具包及Pages清单的命令。新版本入口核对HEAD与标签一致；本次 `--replace-draft`核对已有草稿、保留标签和实际源码映射。两者都须核对EXE证据、远端标签、已提交运行输入及Pages实际字节，由最终提交生成源码ZIP并上传白名单附件；当前v1.0.6替换原草稿，不重复创建或强推标签。
 5. 发布后核对线上标题、正文、标签、正式／预发布状态及附件名称、数量、大小与SHA-256。保存本地发布记录并更新验收入口；失败记录保留，不把部分上传写成发布成功。
 
 当前 `package:release`、发布入口及默认EXE检查共用 `artifacts/maintenance/v<版本>/github-release-20261005/` 证据目录；该目录名是现有工具路径，不代表新版本的发布日期。EXE检查可用 `--evidence=<独立名称>`，但当前发布入口仍读取默认目录；使用独立证据时不能宣称发布入口已经自动采用。

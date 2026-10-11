@@ -1,6 +1,6 @@
 # 开发环境
 
-2026-10-11游戏包分发入口改为GitHub Pages静态目录，Release暂撤为草稿，本轮不发布。`pnpm prepare:pages`准备全新静态输出，`pnpm verify:pages`做回环逐文件验证；游戏包通过 `--packages=<独立候选目录>` 指定，基础ZIP通过 `node tools/release/package.mjs --games=<同一候选目录>` 读取，不覆盖既有受保护游戏包。手动部署、历史包保全及显式发布门禁见[Release流程](release.md#最新分发决定与暂缓发布2026-10-11)。原Release附件下载记录属于历史验证，不代表当前Pages已可访问。
+2026-10-11游戏包分发入口改为GitHub Pages静态目录；此前Release暂撤为草稿，随后用户明确授权本次部署Pages并重新发布v1.0.6，线上核验待完成。`pnpm prepare:pages`准备全新静态输出，`pnpm verify:pages`做回环逐文件验证；游戏包通过 `--packages=<独立候选目录>` 指定，基础ZIP通过 `node tools/release/package.mjs --games=<同一候选目录>` 读取，不覆盖既有受保护游戏包及同名旧发行离线包的字节。手动部署、历史引用保全及显式发布门禁见[Release流程](release.md#最新分发决定与暂缓发布2026-10-11)。原Release附件下载记录属于历史验证，不代表本次Pages线上下载已通过。
 
 ## 阿瓦隆专项构建与验证
 
@@ -516,7 +516,6 @@ pnpm package:win
 ## 清理本地中间物
 
 2026-10-11前四条修复交付收尾：当前ZIP的实际解压／运行、313成员与源码冻结输入已核验，保留当前交付、旧包历史证据、截图及存档。手动预览后删除一个到龄生成夹具2,013,769字节；release预览0候选／2近期保护，本轮过程目录保持原处，不绕过30分钟保护。最终空闲 `scripts/Maintain-Project.ps1 -Apply` 为8.144GiB，低于10GiB阈值，广域删除0。细节见[项目瘦身](project-slimming.md#前四条修复交付收尾2026-10-11)及[交付证明](../../artifacts/maintenance/v1.0.6/bug-first-four/results.json)。
-
 
 截图存储采用[统一维护策略](../../tools/maintenance/README.md#截图与产物归属)：重复成功尺寸保持全部断言，拍摄前筛选代表；关键 PNG 保留真实 DPI，普通预览与额外 process 图采用 WebP 品质90，盒子联系表仅引用原图。Python 编码依赖与预检见[资源工具](../../tools/assets/README.md)。已核验旧候选／矩阵及同 SHA 派生资源按逐文件清单通过 `scripts/Clean-Intermediates.ps1 -ImageCopiesManifest <maintenance内清单>` 先预览再 `-Apply`；仅删图片，保留报告、失败、必要代表、原素材、规则、存档和当前交付。该人工入口不接入自动维护，继续保护30分钟近期修改、文档链接、内容变化、路径／链接／嵌套仓库、活跃进程和互斥。实际结果见[项目瘦身](project-slimming.md#截图精简与普通预览2026-10-10)。
 
