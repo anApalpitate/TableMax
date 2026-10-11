@@ -32,26 +32,60 @@ const { version } = JSON.parse(await readFile('package.json', 'utf8'));
 const repo = 'anApalpitate/TableMax';
 const tag = `v${version}`;
 const replaceDraft = process.argv.includes('--replace-draft');
+const payloadIndex = JSON.parse(
+  await readFile(
+    resolve('artifacts/package-payloads', tag, 'current.json'),
+    'utf8',
+  ),
+);
+assert.equal(payloadIndex.version, version);
+assert.deepEqual(
+  payloadIndex.deliveries.map((item) => item.edition).sort(),
+  ['box', 'full'],
+  'Publication requires both verified Windows editions',
+);
 const evidence = resolve(
   'artifacts/maintenance',
   tag,
-  'github-release-20261005',
+  'windows-editions',
+  payloadIndex.snapshot,
 );
 const notes = process.argv.find((arg) => arg.startsWith('--notes='))?.slice(8);
 assert.ok(notes, 'Provide reviewed release notes with --notes=<file>');
 await stat(notes);
-const exe = resolve(`artifacts/releases/TableMax-${version}-win-x64.exe`);
+const exes = ['full', 'box'].map((edition) =>
+  resolve(`artifacts/releases/TableMax-${version}-win-x64-${edition}.exe`),
+);
 const source = resolve(`artifacts/releases/TableMax-${version}-source.zip`);
-assert.ok(exe.endsWith('.exe') && source.endsWith('-source.zip'));
-const proof = JSON.parse(
-  await readFile(resolve(evidence, 'shipping-executable-checks.json'), 'utf8'),
-);
-assert.equal(proof.result, 'passed');
-assert.equal(
-  await hash(exe),
-  proof.executableSha256,
-  'Shipping EXE changed after validation',
-);
+for (const edition of ['full', 'box']) {
+  const proof = JSON.parse(
+    await readFile(
+      resolve(evidence, `shipping-executable-checks-${edition}.json`),
+      'utf8',
+    ),
+  );
+  assert.equal(proof.result, 'passed');
+  assert.equal(proof.snapshot, payloadIndex.snapshot);
+  assert.equal(proof.edition, edition);
+  const delivery = payloadIndex.deliveries.find(
+    (item) => item.edition === edition,
+  );
+  const payloadManifest = JSON.parse(
+    await readFile(delivery.manifestPath, 'utf8'),
+  );
+  assert.equal(payloadManifest.edition, edition);
+  assert.equal(payloadManifest.snapshot, payloadIndex.snapshot);
+  assert.equal(proof.payloadSha256, payloadManifest.archive.sha256);
+  assert.equal(
+    proof.executableBytes,
+    (await stat(delivery.executable.path)).size,
+  );
+  assert.equal(
+    await hash(exes.find((path) => path.endsWith(`-${edition}.exe`))),
+    proof.executableSha256,
+    'Shipping EXE changed after validation',
+  );
+}
 const commit = await run('git', ['rev-parse', 'HEAD']);
 const tagCommit = await run('git', ['rev-parse', `${tag}^{commit}`]);
 if (!replaceDraft)
@@ -89,10 +123,7 @@ if (replaceDraft) {
   assert.equal(previous.prerelease, false);
 }
 const manifest = JSON.parse(
-  await readFile(
-    resolve(`artifacts/releases/TableMax-${version}-win-x64-manifest.json`),
-    'utf8',
-  ),
+  await readFile(payloadIndex.deliveries[0].manifestPath, 'utf8'),
 );
 const inputs = new Set([
   'apps/desktop/release/Launcher.cs',
@@ -210,7 +241,7 @@ for (let offset = 0; offset < verifiedPublicFiles.length; offset += 4) {
   for (const result of results)
     if (result.status === 'rejected') throw result.reason;
 }
-const assets = [exe, source, resolve(devkit)];
+const assets = [...exes, source, resolve(devkit)];
 let backup,
   obsolete = [];
 if (replaceDraft) {
@@ -295,24 +326,29 @@ if (replaceDraft) {
       source: matched ?? 'GitHub download',
     });
   }
-  const gameAssets = await gameReleaseAssets(backup, {
-    publicKey: PROJECT_GAME_PUBLIC_KEY,
-  });
-  assert.equal(
-    gameAssets.length,
-    22,
-    'Expected historical signed catalog plus 21 game packages',
+  const hasLegacyCatalog = previous.assets.some(
+    (asset) => asset.name === `TableMax-game-catalog-${tag}.json`,
   );
+  const gameAssets = hasLegacyCatalog
+    ? await gameReleaseAssets(backup, {
+        publicKey: PROJECT_GAME_PUBLIC_KEY,
+      })
+    : [];
+  if (hasLegacyCatalog)
+    assert.equal(
+      gameAssets.length,
+      22,
+      'Expected historical signed catalog plus 21 game packages',
+    );
   const gameNames = new Set(gameAssets.map((asset) => asset.name));
   const newNames = new Set(assets.map((path) => basename(path)));
-  assert.equal(
-    previous.assets.length,
-    25,
-    'Expected three original distribution assets and 22 historical game assets',
-  );
+  const previousExe = `TableMax-${version}-win-x64.exe`;
   assert.ok(
     previous.assets.every(
-      (asset) => gameNames.has(asset.name) || newNames.has(asset.name),
+      (asset) =>
+        gameNames.has(asset.name) ||
+        newNames.has(asset.name) ||
+        asset.name === previousExe,
     ),
     'Unexpected old attachment: manual review required',
   );
@@ -337,7 +373,9 @@ if (replaceDraft) {
         asset.name,
     );
   }
-  obsolete = previous.assets.filter((asset) => gameNames.has(asset.name));
+  obsolete = previous.assets.filter(
+    (asset) => gameNames.has(asset.name) || asset.name === previousExe,
+  );
   await writeFile(
     join(backup, 'asset-backups.json'),
     JSON.stringify(backups, null, 2) + '\n',
@@ -445,8 +483,8 @@ if (replaceDraft) {
   assert.equal(ready.draft, true);
   assert.equal(
     ready.assets.length,
-    3,
-    'Draft must have exactly three verified assets before becoming public',
+    4,
+    'Draft must have exactly four verified assets before becoming public',
   );
   for (const file of record.assets) {
     const asset = ready.assets.find(
@@ -526,7 +564,7 @@ assert.equal(
 assert.equal(
   online.assets.length,
   assets.length,
-  'Public release must contain only base EXE, source ZIP and verified author toolkit; game packages are on Pages',
+  'Public release must contain only full/box EXEs, source ZIP and verified author toolkit; game packages are on Pages',
 );
 for (const file of record.assets) {
   const name = file.path.split(/[\\/]/).at(-1);

@@ -23,6 +23,8 @@
     "verify:game-ui": "node tools/test/platform/verify-game-ui.mjs",
     "verify:cards": "node tools/test/platform/verify-card-layout.mjs",
     "package:win": "node tools/release/package.mjs",
+    "package:win:full": "node tools/release/package.mjs --edition=full",
+    "package:win:box": "node tools/release/package.mjs --edition=box",
     "package:release": "node tools/release/package-release.mjs",
     "verify:portable": "node tools/test/platform/verify-pokemon.mjs --portable",
     "verify:party": "node tools/test/platform/verify-party.mjs",

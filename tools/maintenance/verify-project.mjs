@@ -9,6 +9,7 @@ import {
   PACKAGE_BUDGET_BYTES,
 } from '../release/package-limits.mjs';
 import assert from 'node:assert/strict';
+import { currentDeliveries } from './current-delivery.mjs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
@@ -88,20 +89,33 @@ for (const file of documents) {
     }
   }
 }
-const manifestPath = `artifacts/releases/TableMax-${project.version}-win-x64-manifest.json`;
+const deliveries = currentDeliveries('.', project.version);
+for (const delivery of deliveries) {
+  assert.ok(delivery.executable.bytes < MAXIMUM_PACKAGE_BYTES);
+  assert.ok(delivery.manifest.archive.bytes < MAXIMUM_PACKAGE_BYTES);
+  assert.ok(delivery.manifest.extractedBytes < MAXIMUM_PACKAGE_BYTES);
+  assert.equal(delivery.manifest.fileCount, delivery.manifest.files.length);
+  assert.equal(
+    delivery.manifest.extractedBytes,
+    delivery.manifest.files.reduce((sum, file) => sum + file.bytes, 0),
+  );
+}
+const manifestPath =
+  deliveries[0]?.manifestPath ??
+  `artifacts/releases/TableMax-${project.version}-win-x64-manifest.json`;
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 assert.equal(manifest.version, project.version);
-assert.equal(manifest.archive.name, `TableMax-${project.version}-win-x64.zip`);
-assert.equal(
-  statSync(`artifacts/releases/${manifest.archive.name}`).size,
-  manifest.archive.bytes,
-);
+if (!deliveries.length)
+  assert.equal(
+    manifest.archive.name,
+    `TableMax-${project.version}-win-x64.zip`,
+  );
+const archivePath =
+  deliveries[0]?.archivePath ?? `artifacts/releases/${manifest.archive.name}`;
+assert.equal(statSync(archivePath).size, manifest.archive.bytes);
 const hash = (file) =>
   createHash('sha256').update(readFileSync(file)).digest('hex');
-assert.equal(
-  manifest.archive.sha256,
-  hash(`artifacts/releases/${manifest.archive.name}`),
-);
+assert.equal(manifest.archive.sha256, hash(archivePath));
 assert.ok(
   manifest.archive.bytes < MAXIMUM_PACKAGE_BYTES &&
     manifest.extractedBytes < MAXIMUM_PACKAGE_BYTES,
@@ -118,14 +132,16 @@ assert.ok(
     ),
   ),
 );
-for (const name of [
-  'games/pokemon-encounters.cjs',
-  'games/modern-art.cjs',
-  'games/power-grid.cjs',
-  'bots/pokemon-encounters.cjs',
-  'bots/modern-art.cjs',
-  'bots/power-grid.cjs',
-]) {
+for (const name of deliveries.length
+  ? ['TableMax.exe', 'node.exe']
+  : [
+      'games/pokemon-encounters.cjs',
+      'games/modern-art.cjs',
+      'games/power-grid.cjs',
+      'bots/pokemon-encounters.cjs',
+      'bots/modern-art.cjs',
+      'bots/power-grid.cjs',
+    ]) {
   assert.ok(
     manifest.files.some((file) => file.path === name),
     name,

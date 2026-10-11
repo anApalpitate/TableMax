@@ -17,6 +17,9 @@ try {
   Assert-Idle
   $taskProject = Get-Content -LiteralPath (Join-Path $taskWorkspace 'package.json') -Raw -Encoding utf8 | ConvertFrom-Json
   $taskArchive = Join-Path $taskWorkspace ('artifacts/releases/TableMax-' + $taskProject.version + '-win-x64.zip')
+  . (Join-Path $PSScriptRoot 'current-delivery.ps1')
+  $taskDeliveries = Get-VerifiedCurrentDeliveries $taskWorkspace $taskProject.version
+  if ($taskDeliveries) { $taskArchive = $taskDeliveries.deliveries[0].delivery.archivePath }
   $taskArchiveHash = (Get-FileHash -LiteralPath $taskArchive).Hash.ToLowerInvariant()
   if (-not ('TableMax.WorkspaceSnapshotV2' -as [type])) { Add-Type -Path (Join-Path $taskWorkspace 'tools/maintenance/WorkspaceSnapshot.cs') }
   $taskPortableProof = $null
@@ -24,6 +27,7 @@ try {
     try { $taskProof = Get-Content -LiteralPath $taskProofPath -Raw -Encoding utf8 | ConvertFrom-Json } catch { continue }
     if ($taskProof.portable -eq $true -and $taskProof.result -eq 'passed' -and $taskProof.archiveSha256 -eq $taskArchiveHash) { $taskPortableProof = $taskProofPath; break }
   }
+  if ($taskDeliveries) { $taskPortableProof = $taskDeliveries.deliveries[0].proof }
   if (-not $taskPortableProof) { throw 'No matching passing portable evidence; automatic maintenance preserved all files.' }
   $taskReport.archiveSha256 = $taskArchiveHash; $taskReport.portableProof = $taskPortableProof
   $env:TABLEMAX_MAINTENANCE_CHILD = '1'

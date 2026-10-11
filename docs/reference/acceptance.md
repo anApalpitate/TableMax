@@ -1,5 +1,26 @@
 # 首版交付与验收
 
+## 1.0.6：空盒子大厅与两种Windows EXE（2026-10-11）
+
+本轮本地交付已通过实际包检查，继续沿用v1.0.6；未重新发布GitHub Release、部署Pages或导出source ZIP。无游戏时保留正常牌桌大厅、六个空座位和管理入口，以下载图标、标题“请前往游戏库下载”及高亮“游戏库”按钮打开现有浮窗。其他端可以查看游戏库，下载安装仍仅管理员可操作。
+
+| 本地交付 | EXE字节数 | SHA-256 | 实际提取字节数（含标记） | 首次安装app与games字节数 |
+| --- | ---: | --- | ---: | ---: |
+| `TableMax-1.0.6-win-x64-box.exe` | 34,958,848 | `96b470f22b541cc68aaab7f8d7c651cd461d5aa1d9709a6d46911271cafb04c4` | 87,703,107 | 87,813,603 |
+| `TableMax-1.0.6-win-x64-full.exe` | 43,737,600 | `2c769c24d858d7abdc83b680369eeddef200e42a2dd859c821afbb4ccc0b043f` | 96,621,177 | 106,646,614 |
+
+当前快照为 `5b0ecba02867adfe0e5358e70d6e9fb1de71e950db23b57c86f1760b3dc07b4e`；只重新编译受影响平台单元，游戏沿用 `93f640a3594856a93bb78176e81c966c6ba5a8a96b920066d4431a463e439b4d` 冻结单元及已验Pages八玩法／13内容包，不混入其他任务资源改动。[两版哈希指针](../../artifacts/package-payloads/v1.0.6/current.json)绑定独立内部载荷与逐文件清单；内部ZIP仅供封装和审计，用户运行导出仅为full／box EXE。两种EXE、实际提取及首次安装内容均严格小于120,000,000字节。
+
+[实际EXE启动三组检查](../../artifacts/maintenance/v1.0.6/windows-editions/5b0ecba02867adfe0e5358e70d6e9fb1de71e950db23b57c86f1760b3dc07b4e/actual-install/1791720858647/results.json)通过：box正常空大厅和浮窗；full本地安装八个精确发行，首次及无操作退出后重开默认宝可梦原版，显式切换本地UNO无需浏览器外部请求；同一便携目录替换为box后，八个安装引用、已保存实例、发行及快照保持一致。已有保存的空局保持为空，不因升级到full自动选局；已卸载游戏不被旧预装凭证重新安装。
+
+[box实际提取与原生安全](../../artifacts/maintenance/v1.0.6/windows-editions/5b0ecba02867adfe0e5358e70d6e9fb1de71e950db23b57c86f1760b3dc07b4e/shipping-executable-checks-box.json)和[full同项检查](../../artifacts/maintenance/v1.0.6/windows-editions/5b0ecba02867adfe0e5358e70d6e9fb1de71e950db23b57c86f1760b3dc07b4e/shipping-executable-checks-full.json)通过完整载荷哈希、精确成员、重复提取复用及真实WinForms／WebView2／Node安全矩阵。box首次临时stage清理遇短暂访问拒绝，原失败保留；确认目录及进程已退出后仅重验box，未改Launcher或重新封装。
+
+[源码界面12项](../../artifacts/maintenance/v1.0.6/windows-editions-ui-20261011/report.json)覆盖管理员／玩家／公共屏、320px、390px、手机横屏、720p及4K，空盒子操作权限、文字与触控尺寸通过。预装Store原10项及服务3项通过，受影响3项重验覆盖无动作重启与已有空局保护；双交付保护6项、只读哈希边界、旧清理258项及自动维护47项通过。声音默认关闭，真实本机检查监听127.0.0.1；没有新增实体手机LAN、Safari或八玩法自然整局验收，冻结游戏沿用此前已记录结论。
+
+旧无后缀EXE、运行ZIP、清单和已发布source ZIP已逐文件核对后保存在[格式切换备份](../../artifacts/maintenance/v1.0.6/windows-editions/legacy-before-editions-20261011/)，当前 `artifacts/releases/` 仅保留两份EXE与对应本地清单；线上旧三附件及历史标签保持不变。
+
+全部本轮工程退出后的[安全维护](project-slimming.md#两种windows-exe交付收尾2026-10-11)回收131,353,052逻辑字节，最终16,145,727,094字节；安全候选耗尽后仍超10GiB，保护范围未扩大。双EXE、内部载荷、游戏仓库、旧包、存档与验收保全。
+
 ## 1.0.6：Pages部署与同版本重新发布（2026-10-11）
 
 经用户明确授权，本次Pages部署与[v1.0.6正式重新发布](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.6)已完成。本轮沿用已验源码与实际程序，保全历史内容包及旧标签；[最终发布审计](../../artifacts/maintenance/v1.0.6/pages-release-20261011/github-draft-replacement-1791717345309.json)确认非草稿、非预发行且为latest，九条正文一致、附件恰为以下三份，线上名称、字节数与SHA-256全部一致。
@@ -24,7 +45,7 @@ Pages已通过[手动工作流部署](https://github.com/anApalpitate/TableMax/a
 
 此前v1.0.6 Release 已撤回为草稿，25个历史附件和标签保留；[撤回审计](../../artifacts/maintenance/v1.0.6/pages-box-20261011/withdrawal.json)。本节记录当时仅做准备、未部署Pages或恢复Release的边界；随后获授权的本次发布状态见上节。旧线上下载结论属于历史记录，分发路径、白名单及手动发布门禁见[Release流程](release.md#最新分发决定与暂缓发布2026-10-11)。
 
-当前[本地运行ZIP](../../artifacts/releases/TableMax-1.0.6-win-x64.zip) **34,828,408字节**，SHA-256 `3bc7c2c0853c2fe50f24b6b055d192f4856f3130194743e021081b4de7746850`；[清单](../../artifacts/releases/TableMax-1.0.6-win-x64-manifest.json)实际解压 **87,679,056字节**，快照 `f54efa228907bca87e0ea60074f8dc7c2294c7269f2f9ba958a0ad39d5464e1a`。新签名游戏包独立保存在 `artifacts/game-packages/v1.0.6/pages-ready-20261011/`，不覆盖旧目录；八玩法闭包、逐文件哈希、签名及资源分离验证通过，阿瓦隆传输／安装量为1,704,826／1,811,974字节，其余组合不变，全部门禁通过。
+当时[本地运行ZIP](../../artifacts/maintenance/v1.0.6/windows-editions/legacy-before-editions-20261011/TableMax-1.0.6-win-x64.zip) **34,828,408字节**，SHA-256 `3bc7c2c0853c2fe50f24b6b055d192f4856f3130194743e021081b4de7746850`；[清单](../../artifacts/maintenance/v1.0.6/windows-editions/legacy-before-editions-20261011/TableMax-1.0.6-win-x64-manifest.json)实际解压 **87,679,056字节**，快照 `f54efa228907bca87e0ea60074f8dc7c2294c7269f2f9ba958a0ad39d5464e1a`。新签名游戏包独立保存在 `artifacts/game-packages/v1.0.6/pages-ready-20261011/`，不覆盖旧目录；八玩法闭包、逐文件哈希、签名及资源分离验证通过，阿瓦隆传输／安装量为1,704,826／1,811,974字节，其余组合不变，全部门禁通过。
 
 盒子版本选择、美化、内层滚动及唯一TableMax仓库链接由[实际源码渲染](../../artifacts/maintenance/v1.0.6/game-library/report.json)11项检查覆盖320px、390px、横屏、720p和4K，零页面错误；[同一ZIP解压原生界面](../../artifacts/package-library-FT7dVg/report.json)检查资源状态和权限。F11三模式、真实WebView可信按键、WinForms键处理、菜单及公共窗口独立共11项通过，[同包证据](../../artifacts/results/native-f11/1791714112030/results.json)。显式全屏和Escape保留原返回模式。
 
@@ -125,7 +146,7 @@ UNO 改为出牌保存后独立抢按；默认人机随机选择合法实体牌�
 
 沿用v1.0.6，前四条已落实连接会话代次防护、局部明亮设置卡片、人机／离线真人角叉与共用删除流程、1500ms＋320ms通知、同义按钮对齐、游戏库全目录人数提醒／简称／德式分类／电脑瀑布流，以及基础与版本资源状态接口。当前资源仍全部本地打包；无下载服务、自动选择或新存档字段。阿瓦隆采用2012经典5–10人，两配置及第四任务双失败，原5／6人兼容版本沿用。第5–8条未实施。
 
-最终[运行ZIP](../../artifacts/releases/TableMax-1.0.6-win-x64.zip)与[成员清单](../../artifacts/releases/TableMax-1.0.6-win-x64-manifest.json)由[交付证明](../../artifacts/maintenance/v1.0.6/bug-first-four/results.json)绑定SHA、冻结输入、实际成员与本次源码提交，ZIP及实际解压均低于114MB工程预算和120,000,000字节门禁。首次生产包77.764秒，最终增量构建18.130秒、28／30缓存命中；未导出源码包或发布GitHub Release。
+当时运行ZIP与成员清单由[交付证明](../../artifacts/maintenance/v1.0.6/bug-first-four/results.json)绑定SHA、冻结输入、实际成员与本次源码提交，ZIP及实际解压均低于114MB工程预算和120,000,000字节门禁。首次生产包77.764秒，最终增量构建18.130秒、28／30缓存命中；未导出源码包或发布GitHub Release。
 
 [最终包连接报告](../../artifacts/maintenance/v1.0.6/root-entry/bug-first-four-delivery-20261011/results.json)核验干净浏览器、首次传输失败后恢复、HTTP／HTTPS代理拒绝WebSocket升级但polling正常、断网恢复及真实凭证撤销；[旧包基线](../../artifacts/maintenance/v1.0.6/root-entry/bug-first-four-baseline-20261011/results.json)未复现原手机首扫码误报。真实手机LAN首扫码仍待现场验收，模拟视窗／loopback不作为该结论。
 
@@ -331,7 +352,7 @@ release目录仅保留当前ZIP和清单；近期打包过程目录移入tmp继�
 
 ## 当前源码与本地交付
 
-当前本地交付为本页[手写改动单第1项](#106手写改动单第1项2026-10-11)的[运行ZIP](../../artifacts/releases/TableMax-1.0.6-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.6-win-x64-manifest.json)，SHA-256 `0048f55745f66c289eed918b78efccb058afbd4e2014bbc67655d36cc3be52c5`；包含本页此前UNO与拉密修复，历史包与发布附件保留实际哈希、证据及结论，不当作当前包验收。
+本节当时本地交付为本页[手写改动单第1项](#106手写改动单第1项2026-10-11)的运行ZIP及逐文件清单，SHA-256 `0048f55745f66c289eed918b78efccb058afbd4e2014bbc67655d36cc3be52c5`；包含本页此前UNO与拉密修复，历史包与发布附件保留实际哈希、证据及结论，不当作当前包验收。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
 

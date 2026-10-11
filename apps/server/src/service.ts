@@ -80,6 +80,7 @@ export async function createService(
         assetUrl: gameAssetUrl,
       })
     : undefined;
+  let freshFullInitialGame: string | undefined;
   if (packages) {
     const catalogPath = join(config.webDir, '..', 'game-catalog.json');
     if (
@@ -93,10 +94,17 @@ export async function createService(
         if (/^[a-f0-9]{64}$/.test(name))
           packages.migrateLegacy(join(legacyRoot, name));
     try {
-      await packages.importPreinstalled(
+      const preinstalled = await packages.importPreinstalled(
         join(config.webDir, '..', 'preinstalled-games'),
         migrationProgress,
       );
+      const original = packages.selected('pokemon-encounters', 'original');
+      if (
+        original &&
+        preinstalled.includes(original.releaseId) &&
+        packages.resolveModule(original.releaseId)
+      )
+        freshFullInitialGame = original.gameId;
     } catch (error) {
       // Retain existing games and missing-reference repair mode if a local payload is damaged.
       log(
@@ -140,10 +148,14 @@ export async function createService(
               repository,
               undefined,
               config.playMode,
-              game === undefined && !packages
-                ? process.env.TABLEMAX_AUTHOR_MODE === '1'
-                  ? registry.catalog()[0]?.id
-                  : 'pokemon-encounters'
+              game === undefined
+                ? !packages
+                  ? process.env.TABLEMAX_AUTHOR_MODE === '1'
+                    ? registry.catalog()[0]?.id
+                    : 'pokemon-encounters'
+                  : process.env.TABLEMAX_AUTHOR_MODE === '1'
+                    ? undefined
+                    : freshFullInitialGame
                 : undefined,
             );
     } catch (error) {

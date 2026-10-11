@@ -66,7 +66,13 @@ function Initialize-ImageCopies {
     $parent = [IO.Path]::GetDirectoryName($target)
     while ($parent) { $null = $script:imageProtectedParents.Add($parent); $parent = [IO.Path]::GetDirectoryName($parent) }
   }
-  if (-not $protectedPaths.Contains('artifacts/releases/TableMax-' + $project.version + '-win-x64.zip')) { throw 'Current ZIP must be explicitly protected.' }
+  if ($dualDelivery) {
+    foreach ($deliveryFile in $dualDelivery.files) {
+      $relativeDelivery = $deliveryFile.Substring($workspace.Length).TrimStart('\', '/').Replace('\', '/')
+      if (-not $protectedPaths.Contains($relativeDelivery)) { throw 'Every current EXE and internal payload must be explicitly protected.' }
+    }
+  }
+  elseif (-not $protectedPaths.Contains('artifacts/releases/TableMax-' + $project.version + '-win-x64.zip')) { throw 'Current ZIP must be explicitly protected.' }
   $script:imageDocuments = @()
   $documentText = ''
   $documents = @((Read-Tree (Join-Path $workspace 'docs') | Where-Object { -not $_.PSIsContainer -and $_.Extension -eq '.md' })) + @(Get-Item -LiteralPath (Join-Path $workspace 'README.md'))

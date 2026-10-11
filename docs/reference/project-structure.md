@@ -1,5 +1,7 @@
 # 目录职责
 
+2026-10-11交付目录调整：`artifacts/releases/`接收full／box两种Windows EXE；不再导出供用户下载的运行ZIP。`artifacts/package-payloads/v<版本>/<run>/<edition>/`保存内部 `payload.zip`、`release-manifest.json`与组装中间物，版本目录 `current.json`绑定当前edition的路径和哈希。当前载荷及EXE受验收保护；退役先核对证据与用途，不作为通用临时目录清空。旧发布产物和历史验收按原记录保留，游戏离线ZIP仍放游戏分发目录。
+
 2026-10-11新增独立包职责：`tools/author/` 管理可脱离主仓的模板、公共依赖冻结、CLI和真实接入检查；`apps/server/src/game-packages/` 管理签名校验、安全解压、安装事务及引用保护；`tools/release/game-*.mjs` 管理内容寻址发行与附件白名单。公共宿主能力位于 `packages/web-host/`，平台私有适配仍在 `apps/web/`。分发产物分别进入 `artifacts/game-packages/` 与 `artifacts/author-toolkit/`，证据进入对应验收目录。
 
 运行时的 `games/<gameId>/` 属于便携根目录的安装仓库，与开发源码目录 `games/` 用途不同；基础EXE的仓库位于 `TableMax/games/`，不会放进可替换的 `app/`。签名私钥只留受保护本地 `secrets/`，不进入Git或任何交付包。

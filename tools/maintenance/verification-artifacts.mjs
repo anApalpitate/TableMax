@@ -4,6 +4,7 @@ import { resolve, relative, sep, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { inventory } from '../analysis/storage/space-analysis.mjs';
 import { encodeScreenshotPreview } from '../shared/screenshot-preview.mjs';
+import { currentDeliveries } from './current-delivery.mjs';
 
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const local = (root, path) => {
@@ -225,10 +226,10 @@ export async function retirementPlan(
   const { version } = JSON.parse(
     await readFile(resolve(root, 'package.json'), 'utf8'),
   );
-  const archive = resolve(
-    root,
-    `artifacts/releases/TableMax-${version}-win-x64.zip`,
-  );
+  const deliveries = currentDeliveries(root, version);
+  const archive =
+    deliveries[0]?.archivePath ??
+    resolve(root, `artifacts/releases/TableMax-${version}-win-x64.zip`);
   const archiveHash = hash(await readFile(archive));
   const docs = await docText(root);
   const entries = [],
@@ -257,6 +258,17 @@ export async function retirementPlan(
         if (seen.has(entry.path)) continue;
         seen.add(entry.path);
         const target = resolve(root, entry.path);
+        if (
+          entry.path
+            .replaceAll('\\', '/')
+            .startsWith('artifacts/package-payloads/')
+        ) {
+          skipped.push({
+            path: entry.path,
+            reason: 'Internal delivery payload; retained',
+          });
+          continue;
+        }
         if (docs.includes(entry.path.toLowerCase())) {
           skipped.push({
             path: entry.path,

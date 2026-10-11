@@ -1,5 +1,13 @@
 # 开发环境
 
+## 两种EXE与内部载荷（2026-10-11）
+
+存在无关并行游戏改动时，可用 `pnpm package:win --platform-from=<原已验快照路径> --games=<原已验签名包目录> --edition=both`仅刷新六个平台单元，保留原游戏单元与签名资源，记录 `retainedGameSnapshot`。仍核对冻结输入与全部组装哈希，不能借此混入未经本轮验收的游戏资源；不修改原已验快照或在进行中的组装期间重写其目录。
+
+最新要求覆盖下文旧运行ZIP导出惯例：`pnpm package:win`默认导出full／box两种Windows EXE，可加 `--edition=full|box|both`，继续使用 `--snapshot=`与 `--games=`。full携带全部当前游戏的预装内容，box仅携带平台及小目录；完整玩法离线ZIP仍供导入。对外EXE在 `artifacts/releases/`，内部 `payload.zip`及 `release-manifest.json`在 `artifacts/package-payloads/v<版本>/<run>/<edition>/`，版本目录的 `current.json`原子记录载荷路径、EXE路径与哈希。内部ZIP不作为日常下载产物，本轮不生成source ZIP或发布线上附件。
+
+两种EXE及各自实际提取内容均按既有120,000,000字节硬门禁核验，内部载荷和逐文件清单用于绑定验收。当前内部载荷、指针、EXE及匹配的实际EXE通过证明一并保护；先核对全部当前edition哈希与实际EXE证据，再允许维护。旧单EXE、运行ZIP、旧存档及已发布证据继续保留，不因格式调整自动退役。新格式本轮适用验收已通过，结论由[当前验收](acceptance.md)记录。
+
 2026-10-11 Pages重新发布收尾已完成：在全部本轮工程退出后按标准入口预览并维护，退役3份已知生成副本214,692,117逻辑字节，标准扫描容量13,554,882,029字节（约12.624GiB），安全候选耗尽，当前交付、新旧发行和存档继续保护。范围、排除及实际审计见[项目瘦身](project-slimming.md#pages部署与重新发布收尾2026-10-11)。
 
 2026-10-11游戏包分发入口改为GitHub Pages静态目录；此前Release暂撤为草稿，随后经用户明确授权，本次Pages已部署、v1.0.6已正式重新发布，35个公开文件及Release三附件线上大小／哈希核验通过。`pnpm prepare:pages`准备全新静态输出，`pnpm verify:pages`做回环逐文件验证；游戏包通过 `--packages=<独立候选目录>` 指定，基础ZIP通过 `node tools/release/package.mjs --games=<同一候选目录>` 读取，不覆盖既有受保护游戏包及同名旧发行离线包的字节。手动部署、历史引用保全及显式发布门禁见[Release流程](release.md#最新分发决定与暂缓发布2026-10-11)。原Release附件下载记录属于历史验证，公开字节核验也不代替本次实际安装或实体设备验收。
@@ -545,12 +553,12 @@ v1.0.3新增已知隔离副本 `tmp/portable-storage-<六位随机后缀>`，通
 
 `scripts/Clean-ReleaseScreenshots.ps1` 是窄范围入口，默认预览，显式 `-Apply` 才删除：仅匹配release直属的已命名过程图片或纯图片目录，不扫描maintenance或assets，不处理运行／源码文件；保留30分钟保护、共享清理互斥和删除前复核，不要求对无保留价值的生成截图逐像素／内容哈希验证。
 
-日常本地导出运行 `pnpm package:win`，生成当前运行 ZIP 和逐文件清单。仅在用户明确声明发布到 GitHub 时才准备源码 ZIP；现有本地打包入口不会自动生成源码包，也不执行发布。
+日常本地导出运行 `pnpm package:win`，默认生成full／box两种EXE和本地清单；可选 `--edition=full|box|both`。内部payload ZIP及逐文件manifest留 `artifacts/package-payloads/v<版本>/`，不作为用户运行ZIP。仅在用户明确声明发布到GitHub时才准备source ZIP；现有本地打包入口不会自动生成源码包，也不执行发布。
 
 `scripts/` 提供三个可从任意工作目录运行的 PowerShell 清理与维护入口，共用 [清理实现](../../tools/maintenance/cleanup-local.ps1)：
 
 - [scripts/Clean-Releases.ps1](../../scripts/Clean-Releases.ps1)：清理 `artifacts/releases` 中低于 `package.json` 当前版本的程序／源码 ZIP、配套交付／逐文件清单、解压程序和独立打包目录；当前／未来版本及不认识的名称默认保留。版本重新编号后，可用 `-RetiredVersions 1.6.0` 显式指定已退役标签，仍执行全部安全检查；禁止指定当前版本，自动维护不接受该选项。
-- 用户明确要求本地只留最新导出时，手动 `scripts/Clean-Releases.ps1 -KeepLatestOnly` 先预览，核对后加 `-Apply`。该模式只处理 `artifacts/releases/` 的直属项，保留当前运行 ZIP 与 `win-x64-manifest.json`；明确发布时也保留当前完整 EXE 与源码 ZIP，其余旧版本、源码包、同版旧解压目录、打包目录及诊断均作为候选；不清理其他历史证据目录。先验证当前 ZIP 的实际便携通过记录和清单哈希，再沿用进程、路径、链接、近期修改、指纹及互斥保护；不与其他清理选择模式或自动维护混用。已确认本次打包／验证退出后，可明确使用手动近期参数回收本次打包残留。
+- 用户明确要求本地只留最新导出时，手动 `scripts/Clean-Releases.ps1 -KeepLatestOnly`先预览，核对后加 `-Apply`。该模式只处理 `artifacts/releases/`直属项；新格式读取 `artifacts/package-payloads/v<版本>/current.json`并保护全部当前edition的EXE、payload、manifest及指针，要求各自实际EXE通过证明和哈希一致。已有同版旧已发布EXE／ZIP／source／manifest仍保留，明确逐文件SHA备份后才能退役原位置；不清理其他历史证据目录或内部payload目录。无新格式指针时兼容旧ZIP及匹配清单保护。沿用进程、路径、链接、近期修改、指纹及互斥保护，不与其他清理选择模式或自动维护混用。
 - [scripts/Clean-Intermediates.ps1](../../scripts/Clean-Intermediates.ps1)：清理已知验证脚本生成的 `tmp/<用途>-<六位随机后缀>`、便携解压副本、已完成的打包工作目录及 builder 诊断文件；已识别的一次性脚本直接退役，不建恢复归档。未知及低频内容先审计，再按精确名称或单次文件清单处理，不清空整个 `tmp/`。原始素材、资料与历史截图／JSON 证据不在范围内。
 - [scripts/Maintain-Project.ps1](../../scripts/Maintain-Project.ps1)：工程操作前后空闲时检查主工作区磁盘占用；超过 10 GiB 才按最旧候选优先清理上述两类内容，达到 8 GiB 或合格候选耗尽即停止。容量是逻辑文件字节总量，不是运行内存；流式扫描跳过链接和嵌套仓库，不重复统计主工作区与 worktree，也不跨无关项目。
 

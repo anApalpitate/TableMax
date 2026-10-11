@@ -57,15 +57,29 @@ const evidence = {
 };
 if (portable) {
   const { version } = JSON.parse(await readFile('package.json', 'utf8'));
+  const manifestArgument = process.argv
+    .find((arg) => arg.startsWith('--payload-manifest='))
+    ?.slice(19);
+  const archiveArgument = process.argv
+    .find((arg) => arg.startsWith('--payload-archive='))
+    ?.slice(18);
+  assert.equal(
+    Boolean(manifestArgument),
+    Boolean(archiveArgument),
+    'Internal payload manifest and archive must be supplied together',
+  );
   const manifest = JSON.parse(
     await readFile(
-      `artifacts/releases/TableMax-${version}-win-x64-manifest.json`,
+      manifestArgument ??
+        `artifacts/releases/TableMax-${version}-win-x64-manifest.json`,
       'utf8',
     ),
   );
   const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
   const archiveSha256 = hash(
-    await readFile(join('artifacts/releases', manifest.archive.name)),
+    await readFile(
+      archiveArgument ?? join('artifacts/releases', manifest.archive.name),
+    ),
   );
   assert.equal(archiveSha256, manifest.archive.sha256);
   const executableSha256 = hash(await readFile(executablePath));

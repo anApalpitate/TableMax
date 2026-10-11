@@ -136,6 +136,7 @@ $archive = Join-Path $releases ('TableMax-' + $project.version + '-win-x64.zip')
 $releaseManifest = Join-Path $releases ('TableMax-' + $project.version + '-win-x64-manifest.json')
 $currentExtraction = Join-Path $releases ('TableMax-' + $project.version + '-win-x64')
 $preservedFiles = @()
+$dualDelivery = $null
 $cutoff = [DateTime]::UtcNow.AddMinutes(-$MinimumAgeMinutes)
 $candidates = New-Object 'System.Collections.Generic.List[object]'
 $skipped = New-Object 'System.Collections.Generic.List[object]'
@@ -289,7 +290,7 @@ function Add-Candidate([string]$Path, [string]$Reason, $VerificationProof = $nul
   try {
     $absolute = Assert-LocalPath $Path
     $relativeCandidate = $absolute.Substring($workspace.Length).TrimStart('\', '/').Replace('\', '/')
-    if ($relativeCandidate -match '^(games|secrets|artifacts/game-packages|artifacts/author-toolkit|artifacts/pages)(/|$)') {
+    if ($relativeCandidate -match '^(games|secrets|artifacts/game-packages|artifacts/author-toolkit|artifacts/pages|artifacts/package-payloads)(/|$)') {
       throw 'Installed game repository, signing configuration or current game/toolkit/Pages distribution is protected.'
     }
     $packageFolders = New-Object 'System.Collections.Generic.Stack[string]'
@@ -306,6 +307,7 @@ function Add-Candidate([string]$Path, [string]$Reason, $VerificationProof = $nul
     if ($absolute -eq $archive -or ($KeepLatestOnly -and $absolute -eq $releaseManifest)) {
       throw 'Current verified release file is protected.'
     }
+    if ($absolute -in $preservedFiles.path) { throw 'Hash-bound current or published delivery is protected.' }
     if (-not $KeepLatestOnly -and $absolute -eq $currentExtraction) {
       throw 'Current release extraction is protected outside KeepLatestOnly.'
     }
@@ -379,6 +381,15 @@ if ($TemporaryManifest) {
 
 # Preserve the current archive only after a real portable PASS proves its hash.
 try {
+  if (Test-Path -LiteralPath (Join-Path $workspace ('artifacts/package-payloads/v' + $project.version + '/current.json')) -PathType Leaf) {
+    . (Join-Path $PSScriptRoot 'current-delivery.ps1')
+    $dualDelivery = Get-VerifiedCurrentDeliveries $workspace $project.version
+  }
+  if ($dualDelivery) {
+    $primary = $dualDelivery.deliveries[0]
+    $archive = $primary.delivery.archivePath
+    $releaseManifest = $primary.delivery.manifestPath
+  }
   Assert-LocalPath $archive | Out-Null
   if (-not (Test-Path -LiteralPath $archive -PathType Leaf)) { throw 'Current release ZIP is missing; cleanup stopped.' }
   $archiveBefore = Get-Item -LiteralPath $archive
@@ -401,10 +412,25 @@ try {
       }
     }
   }
+  if ($dualDelivery) { $proof = $primary.proof }
   if (-not $proof) { throw 'No passing portable evidence matches the current ZIP; cleanup stopped.' }
   $preservedFiles = @([PSCustomObject]@{
     path = $archive; bytes = $archiveBefore.Length; lastWriteTimeUtcTicks = $archiveBefore.LastWriteTimeUtc.Ticks; sha256 = $archiveHash
   })
+  if ($dualDelivery) {
+    foreach ($preservedPath in $dualDelivery.files) {
+      $preservedItem = Get-Item -LiteralPath $preservedPath -Force
+      $preservedFiles += [PSCustomObject]@{path=$preservedPath;bytes=$preservedItem.Length;lastWriteTimeUtcTicks=$preservedItem.LastWriteTimeUtc.Ticks;sha256=(Get-FileHash -LiteralPath $preservedPath -Algorithm SHA256).Hash.ToLowerInvariant()}
+    }
+    # Already published legacy delivery remains protected during the format transition.
+    foreach ($legacyName in @('win-x64.exe', 'win-x64.zip', 'win-x64-manifest.json', 'source.zip', 'win-x64-full.exe', 'win-x64-box.exe')) {
+      $legacyPath = Join-Path $releases ('TableMax-' + $project.version + '-' + $legacyName)
+      if (Test-Path -LiteralPath $legacyPath -PathType Leaf) {
+        $legacyItem = Get-Item -LiteralPath $legacyPath -Force
+        $preservedFiles += [PSCustomObject]@{path=$legacyPath;bytes=$legacyItem.Length;lastWriteTimeUtcTicks=$legacyItem.LastWriteTimeUtc.Ticks;sha256=(Get-FileHash -LiteralPath $legacyPath -Algorithm SHA256).Hash.ToLowerInvariant()}
+      }
+    }
+  }
   if ($KeepLatestOnly) {
     Assert-LocalPath $releases | Out-Null
     $cursor = $releases
@@ -634,7 +660,7 @@ try {
       if ((Read-Snapshot $candidate.path).fingerprint -ne $candidate.fingerprint) {
         throw ('Candidate changed before deletion; stopped: ' + $candidate.path)
       }
-      if ($KeepLatestOnly) { Assert-PreservedRelease }
+      if ($KeepLatestOnly -or $dualDelivery) { Assert-PreservedRelease }
       if ($candidate.PSObject.Properties['retiredGenerated']) {
         Assert-RetiredGenerated $candidate.retiredGenerated
       }
@@ -672,7 +698,7 @@ try {
       Save-Report
     }
     if ($ImageCopiesManifest) { foreach ($file in $imageProtected) { Assert-ImageAuditFile $file | Out-Null } }
-    if ($KeepLatestOnly) { Assert-PreservedRelease }
+    if ($KeepLatestOnly -or $dualDelivery) { Assert-PreservedRelease }
     elseif ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $archiveHash) { throw 'Current release hash changed.' }
     $report.result = 'passed'
   }

@@ -24,23 +24,43 @@ const hash = async (path) =>
     .update(await readFile(path))
     .digest('hex');
 const { version } = JSON.parse(await readFile('package.json', 'utf8'));
+const edition =
+  process.argv.find((value) => value.startsWith('--edition='))?.slice(10) ??
+  'box';
+assert.ok(['box', 'full'].includes(edition));
+const payloadIndex = JSON.parse(
+  await readFile(
+    resolve('artifacts/package-payloads', `v${version}`, 'current.json'),
+    'utf8',
+  ),
+);
+const delivery = payloadIndex.deliveries.find(
+  (item) => item.edition === edition,
+);
+assert.ok(delivery, 'Build the requested Windows EXE edition first');
 const evidenceName =
   process.argv.find((value) => value.startsWith('--evidence='))?.slice(11) ??
-  'github-release-20261005';
+  `shipping-${payloadIndex.snapshot.slice(0, 12)}-${edition}`;
 assert.match(evidenceName, /^[a-z0-9-]{1,48}$/);
 const safetyName =
   evidenceName === 'github-release-20261005'
     ? `shipping-v${version.replaceAll('.', '')}`
     : evidenceName;
-const evidence = resolve('artifacts/maintenance', `v${version}`, evidenceName);
-const executable = resolve(
-  `artifacts/releases/TableMax-${version}-win-x64.exe`,
+const evidence = resolve(
+  'artifacts/maintenance',
+  `v${version}`,
+  'windows-editions',
+  payloadIndex.snapshot,
 );
-const manifest = JSON.parse(
-  await readFile(
-    `artifacts/releases/TableMax-${version}-win-x64-manifest.json`,
-    'utf8',
-  ),
+const executable = resolve(
+  `artifacts/releases/TableMax-${version}-win-x64-${edition}.exe`,
+);
+const manifest = JSON.parse(await readFile(delivery.manifestPath, 'utf8'));
+assert.equal(manifest.edition, edition);
+assert.equal(
+  await hash(executable),
+  delivery.executable.sha256,
+  'EXE changed after sealing',
 );
 const extracted = await mkdtemp(resolve('tmp/shipping-executable-'));
 const started = performance.now();
@@ -98,6 +118,8 @@ await run(
     '--portable',
     `--executable=${join(extracted, 'TableMax.exe')}`,
     `--evidence=${safetyName}`,
+    `--payload-manifest=${delivery.manifestPath}`,
+    `--payload-archive=${delivery.archivePath}`,
   ],
   { windowsHide: true, timeout: 180000, maxBuffer: 1024 * 1024 },
 );
@@ -110,6 +132,8 @@ assert.equal(safety.archiveSha256, manifest.archive.sha256);
 const record = {
   result: 'passed',
   version,
+  edition,
+  snapshot: payloadIndex.snapshot,
   executableSha256: await hash(executable),
   executableBytes: (await stat(executable)).size,
   payloadSha256: manifest.archive.sha256,
@@ -122,14 +146,14 @@ const record = {
   checks: [
     'complete payload hashes',
     'exact file set',
-    '100MB actual extraction',
+    '120MB actual extraction',
     'repeat extraction reuses files',
     'real packaged native/WebView2/Node safety',
   ],
 };
 await mkdir(evidence, { recursive: true });
 await writeFile(
-  join(evidence, 'shipping-executable-checks.json'),
+  join(evidence, `shipping-executable-checks-${edition}.json`),
   JSON.stringify(record, null, 2) + '\n',
 );
 console.log(JSON.stringify(record));

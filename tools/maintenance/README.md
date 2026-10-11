@@ -1,5 +1,7 @@
 # 构建与验证自动维护
 
+2026-10-11新增full／box交付：`current-delivery.ps1`与 `current-delivery.mjs`读取 `artifacts/package-payloads/v<版本>/current.json`，核对每个EXE、内部payload与manifest的路径、大小和SHA。清理额外要求各edition匹配的实际EXE通过证明（`executableSha256`与 `payloadSha256`），缺项即停止。当前内部载荷及指针保护，已有同版旧单EXE／ZIP和发布源码仍保留；没有新指针时兼容下文旧ZIP证明。本轮不发布，工具改变不代表新EXE已通过验收。
+
 2026-10-10 已接入。构建、运行包导出，以及使用公共浏览器／桌面验证助手的检查，在 Node 进入最终空闲阶段时执行一次隐藏收尾任务，同一进程只触发一次。构建、验证和产品工作已结束，协调 Node 等待维护完成再退出，避免执行环境回收脱离的子进程。没有常驻任务、周期轮询或结束用户进程的动作。
 
 任务日志与结果在 `artifacts/maintenance/v<当前版本>/automatic-maintenance/<本轮>/`；命令结束会打印具体目录。先检查 `result.json`，阻塞原因及预览见 `task.log`。正常 Windows 环境中生效；沙箱不能查询进程时保留并报告。没有匹配当前 ZIP 哈希的便携通过证明时，不执行自动删除。

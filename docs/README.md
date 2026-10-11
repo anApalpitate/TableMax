@@ -1,5 +1,7 @@
 # 文档索引
 
+2026-10-11最新交付要求：Windows分为full／box两个EXE，不再对外导出运行ZIP；内部载荷与清单留在 `artifacts/package-payloads/`。无游戏初始页保留盒子大厅，通过高亮游戏库打开下载浮窗；本轮实施及待验边界见[发布流程](reference/release.md#两种windows交付与空盒子入口2026-10-11)和[平台规格](reference/phase-02-platform-spec.md#无游戏的盒子大厅2026-10-11)。已有发布与历史证据保持原记录。
+
 经典 [阿瓦隆](games/avalon/README.md)采用2012原版、平台5–6人，提供基础与派西维尔／莫甘娜角色组合、三档本地策略和复古圆桌声画。规则来源、秘密投影和实际交付边界分别进入游戏主题及 [验收](reference/acceptance.md)；本次直接视觉要求见 [用户偏好](reference/art-preferences.md#阿瓦隆最新要求2026-10-10)。
 
 当前程序为 **v1.0.6**，提供宝可梦奇遇、现代艺术、经典德国版电力公司、UNO、阿瓦隆与拉密的独立安装包；拉密经典2–4人入口已恢复开放，本地牌架整理、操作稳定性与同包证据见[当前验收](reference/acceptance.md#106拉密交互完善与恢复开放2026-10-11)。真人通过手机或电脑浏览器操作，电脑主机负责服务、管理与公共展示；电脑浏览器玩家首次保持居中竖屏，可切换并记住横屏选择，见[玩家显示与滚动条](reference/visual-design.md#电脑浏览器玩家的手机区域2026-10-08)。加入支持扫码和二维码下“打开网址”两种方案，使用根网址并兼容旧玩家路由；宝可梦扩展的新研究、单弃牌与缓冲见 [设计基线](games/pokemon-encounters/expansion-design.md)，实施及检查状态见 [本次任务](archive/completed-tasks-2026-10-10.md#研究与玩家操作重设计2026-10-08)。实现概况见 [项目说明](../README.md)，本地运行ZIP及验证边界见 [验收记录](reference/acceptance.md#当前源码与本地交付)。

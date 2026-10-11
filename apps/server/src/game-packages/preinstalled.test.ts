@@ -78,6 +78,8 @@ it('bootstraps all eight signed gameplays before the full service opens, with no
     ).json() as ReturnType<PackageStore['snapshot']>;
     expect(Object.keys(snapshot.index.releases)).toHaveLength(8);
     expect(snapshot.unavailableReleaseIds).toEqual([]);
+    expect(service.room.view().game?.id).toBe('pokemon-encounters');
+    expect(service.room.view().game?.variantId).toBe('original');
     const store = new PackageStore(f.options);
     const before = readFileSync(join(f.options.root, 'index.json'));
     await store.importPreinstalled(f.source);
@@ -86,6 +88,15 @@ it('bootstraps all eight signed gameplays before the full service opens, with no
       expect(store.resolveModule(release.releaseId)).toBeDefined();
   } finally {
     await service.close();
+  }
+  // A default untouched lobby legitimately has no save; the full payload still
+  // provides its default on reopening without changing persistence semantics.
+  const reopened = await createService(f.config);
+  try {
+    expect(reopened.room.view().game?.id).toBe('pokemon-encounters');
+    expect(reopened.room.view().game?.variantId).toBe('original');
+  } finally {
+    await reopened.close();
   }
 }, 30000);
 
@@ -147,7 +158,43 @@ it('rejects a corrupt signed payload before changing an existing index and leave
     expect(
       await new PackageStore(box.options).importPreinstalled(box.source),
     ).toEqual([]);
+    const view = service.room.view(service.hostToken);
+    expect(
+      (
+        await service.room.command(service.hostToken, {
+          actionId: crypto.randomUUID(),
+          instanceId: view.instanceId,
+          branch: view.branch,
+          revision: view.revision,
+          command: { type: 'join-open', open: false },
+        })
+      ).ok,
+    ).toBe(true);
   } finally {
     await service.close();
+  }
+  mkdirSync(join(box.source, 'blobs'), { recursive: true });
+  writeFileSync(join(box.source, 'catalog.json'), JSON.stringify(envelope));
+  writeFileSync(
+    join(box.source, 'bootstrap.json'),
+    JSON.stringify({
+      schemaVersion: 1,
+      releaseIds: envelope.payload.releases.map((r) => r.releaseId),
+    }),
+  );
+  for (const blob of envelope.payload.blobs)
+    copyFileSync(
+      join(assets, blob.assetName),
+      join(box.source, 'blobs', blob.id + '.zip'),
+    );
+  const restored = await createService(box.config);
+  try {
+    expect(restored.room.view().game).toBeNull();
+    const snapshot = (
+      await restored.app.inject('/api/game-packages')
+    ).json() as ReturnType<PackageStore['snapshot']>;
+    expect(Object.keys(snapshot.index.releases)).toHaveLength(8);
+  } finally {
+    await restored.close();
   }
 }, 30000);
