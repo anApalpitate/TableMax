@@ -1,5 +1,11 @@
 # 项目瘦身方案与执行记录
 
+## 安装器修复快速深度瘦身（2026-10-11）
+
+本轮[一次候选发现](../../artifacts/maintenance/v1.0.6/installer-fixes-20261011/slim-inventory.json)耗时15.375秒，初始逻辑容量19,289,363,567字节。精确审计105个已结束测试／EXE提取临时目录，候选4,683,953,521字节；排除30分钟近期变化、链接、嵌套仓库、源码工作树、素材、工具缓存和全部故障矩阵原证据。当前双EXE、内部载荷、正式报告／截图、规则资料及存档保留，未复制待删目录作恢复归档。
+
+预览通过后只执行一次单次清单Apply；[删除记录](../../artifacts/maintenance/tmp-retirements/installer-fixes-deep-slim-20261011.json)确认退役`tmp/windows-editions-zqgHMj`的1,015文件、227,054,889字节。下一项删除前工程PID26088触发保护，剩余104项保留；没有结束该进程、重试、换ID或追加维护删除。[结束容量统计](../../artifacts/maintenance/v1.0.6/installer-fixes-20261011/slim-after.json)耗时12.064秒，实际19,095,463,349逻辑字节（约17.784GiB），仍未达到8GiB目标。同期其他任务继续写入，容量差额不代替本轮实际回收量，NTFS物理节省未计入。
+
 ## 测试流程优化收尾（2026-10-11）
 
 [本任务唯一维护尝试](../../artifacts/maintenance/v1.0.6/test-flow-optimization/implementation-20261011/final-maintenance/result.json)用当前双EXE指针精确定位通过证明，历史报告遍历0次。缓存冻结预览发现一次、Apply不重复发现，候选0；容量预览为17.725GiB，9个安全候选约0.36GiB、542项保护跳过。删除前再次发现工程进程，保护停止，实际删除0字节，没有结束其他任务进程或追加第二轮；容量未达8GiB目标，未以NTFS物理节省替代逻辑容量。详细计时、检查结果与剩余瓶颈见[验收](acceptance.md#106测试选择与证据复用2026-10-11)。

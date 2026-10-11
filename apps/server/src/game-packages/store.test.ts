@@ -6,6 +6,7 @@ import {
   writeFileSync,
   readFileSync,
   mkdirSync,
+  existsSync,
 } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { PackageStore } from './store';
@@ -142,6 +143,83 @@ function fixture(text = 'first') {
   };
 }
 describe('signed immutable package store', () => {
+  it('merges concurrent release commits into the latest durable index', async () => {
+    const first = fixture('first'),
+      second = fixture('second');
+    const payload = {
+      schemaVersion: 1 as const,
+      releases: [first.release, second.release],
+      blobs: [first.blob, second.blob],
+    };
+    const envelope = {
+      payload,
+      signature: sign(
+        null,
+        Buffer.from(canonical(payload)),
+        first.privateKey,
+      ).toString('base64'),
+    };
+    const options = {
+      root: join(first.root, 'games'),
+      publicKey: first.publicKey,
+      protectedReleaseIds: () => [],
+      fetch: async (url: string | URL | Request) =>
+        new Response(
+          new Uint8Array(
+            String(url).endsWith(first.blob.id)
+              ? first.archive
+              : second.archive,
+          ),
+        ),
+      assetUrl: (blob: PackageBlob) => 'https://example.invalid/' + blob.id,
+    };
+    const store = new PackageStore(options);
+    store.setCatalog(envelope);
+    await Promise.all([
+      store.install(first.release.releaseId),
+      store.install(second.release.releaseId),
+    ]);
+    for (const value of [store, new PackageStore(options)]) {
+      expect(Object.keys(value.snapshot().index.releases).sort()).toEqual(
+        [first.release.releaseId, second.release.releaseId].sort(),
+      );
+      expect(Object.keys(value.snapshot().index.blobs)).toHaveLength(2);
+    }
+  });
+
+  it('retires only recognized uncommitted journal temporaries without parsing partial JSON', async () => {
+    const f = fixture(),
+      root = join(f.root, 'games');
+    const options = {
+      root,
+      publicKey: f.publicKey,
+      protectedReleaseIds: () => [],
+      fetch: async () => new Response(new Uint8Array(f.archive)),
+      assetUrl: () => 'https://example.invalid/',
+    };
+    const store = new PackageStore(options);
+    store.setCatalog(f.envelope);
+    await store.install(f.release.releaseId);
+    const txn = '11111111-1111-4111-8111-111111111111',
+      atomic = '22222222-2222-4222-8222-222222222222';
+    const temporary = join(root, '.transactions', `${txn}.json.${atomic}.tmp`),
+      stage = join(root, '.staging', txn);
+    for (const bytes of ['', '{"stage":', '{"uncommitted":true}']) {
+      mkdirSync(stage);
+      writeFileSync(join(stage, 'partial'), 'not installed');
+      writeFileSync(temporary, bytes);
+      expect(
+        new PackageStore(options).snapshot().index.releases[
+          f.release.releaseId
+        ],
+      ).toBeDefined();
+      expect(existsSync(temporary)).toBe(false);
+      expect(existsSync(stage)).toBe(false);
+    }
+    writeFileSync(join(root, '.transactions', 'unexpected.tmp'), '{}');
+    expect(() => new PackageStore(options)).toThrow('invalid-install-journal');
+  });
+
   it('recovers the durable visibility boundary at each installation commit interruption', async () => {
     for (const phase of [
       'before-journal',

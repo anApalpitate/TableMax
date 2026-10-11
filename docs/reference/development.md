@@ -821,6 +821,8 @@ SQLite流式扫描须让 `StatementSync` 强引用保持至迭代完成；包内
 
 ## 游戏包构建与运行隔离（2026-10-11）
 
+2026-10-11安装器修复：异步文件移动结束后的索引合并与原子提交之间不再有await，合并最新索引以保留其他已完成安装和管理动作。`.transactions/<事务UUID>.json.<原子UUID>.tmp`是尚未改名的写入副本，恢复只清除该普通文件及同事务stage，不解析其未完成内容；其他未知名称及链接仍拒绝。故障驱动按准确操作／路径及局部次数注入，全局序号只作诊断；签名坏包重试须恢复合法签名目录及合法正文，不能只切换HTTP响应。限定补验与证据见[验收](acceptance.md#106安装索引并发与临时journal恢复修复2026-10-11)。
+
 运行 `node tools/release/game-packages.mjs --key=<受保护私钥路径>` 生成独立代码／资源 ZIP、签名目录及完整玩法离线 ZIP；单游戏加 `--game=<id>`。私钥默认由 `TABLEMAX_GAME_SIGNING_KEY` 指定，禁止提交、复制进运行目录或输出日志；当前本地配置 `secrets/game-release-ed25519.pem` 受 Git 忽略和当前用户 ACL 保护，程序只内置公钥。`node --import tsx tools/release/verify-game-packages.mjs` 检查签名、闭包、逐文件哈希和资源独立指纹。
 
 单游戏 `node tools/build/build.mjs --only=game:<id>` 只读取目标游戏与公共依赖，输出到独立缓存；同时开发不组装中心运行目录。并发构建检查 `tools/build/verify-concurrent-games.mjs`，作者接入检查 `tools/author/verify-author-platform.mjs <冻结平台目录> <独立证据目录>`。最终组装／便携打包必须等待开发服务与浏览器退出。检查保持历史低通过率排序、累计失败三项停止；修正后只重跑受影响项。

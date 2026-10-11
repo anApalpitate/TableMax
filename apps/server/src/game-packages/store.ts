@@ -422,18 +422,21 @@ export class PackageStore {
         this.checkCancelled(releaseId);
         task.phase = 'installing';
         this.emit();
-        const next = structuredClone(this.index);
-        for (const blob of blobs) next.blobs[blob.id] = blob;
-        next.releases[releaseId] = release;
-        const key = releaseKey(release);
-        if (!preserveSelection || !next.selected[key])
-          next.selected[key] = releaseId;
+        const nextIndex = () => {
+          const next = structuredClone(this.index);
+          for (const blob of blobs) next.blobs[blob.id] = blob;
+          next.releases[releaseId] = release;
+          const key = releaseKey(release);
+          if (!preserveSelection || !next.selected[key])
+            next.selected[key] = releaseId;
+          return next;
+        };
         this.options.fault?.('before-journal');
         this.atomicJson(join(this.root, '.transactions', txn + '.json'), {
           gameId: release.gameId,
           stage: txn,
           blobs: missing.map((b) => b.id),
-          index: next,
+          index: nextIndex(),
         });
         for (const blob of missing) {
           const target = join(this.root, release.gameId, 'blobs', blob.id);
@@ -456,7 +459,9 @@ export class PackageStore {
           } else await this.renameInstalled(join(stage, blob.id), target);
         }
         this.options.fault?.('before-index');
-        this.commitIndex(next);
+        // Renames may yield to another install or management operation. Merge
+        // the latest index with no await between this read and the atomic commit.
+        this.commitIndex(nextIndex());
         this.options.fault?.('after-index');
         rmSync(join(this.root, '.transactions', txn + '.json'));
         task.phase = 'complete';
@@ -749,7 +754,23 @@ export class PackageStore {
     return operation;
   }
   private recover(): void {
+    const uuid = '[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}';
+    const temporaryJournal = new RegExp(`^(${uuid})\\.json\\.${uuid}\\.tmp$`);
     for (const name of readdirSync(join(this.root, '.transactions'))) {
+      const temporary = temporaryJournal.exec(name);
+      if (temporary) {
+        const path = join(this.root, '.transactions', name);
+        this.assertSafe(path);
+        if (!lstatSync(path).isFile())
+          throw new Error('invalid-install-journal');
+        // An atomic temporary has never crossed the journal rename boundary;
+        // its bytes may be empty or partial and cannot be trusted as a journal.
+        rmSync(path);
+        const stage = join(this.root, '.staging', temporary[1]!);
+        this.assertSafe(stage);
+        rmSync(stage, { recursive: true, force: true });
+        continue;
+      }
       if (!/^[a-f0-9-]+\.json$/.test(name))
         throw new Error('invalid-install-journal');
       const path = join(this.root, '.transactions', name);

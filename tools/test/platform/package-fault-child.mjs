@@ -23,6 +23,7 @@ const originals = Object.fromEntries(
 );
 const descriptors = new Map();
 const events = [];
+const occurrences = new Map();
 let armed = false;
 let reached = false;
 let indexCommitted = false;
@@ -76,12 +77,20 @@ for (const [name, original] of Object.entries(originals)) {
         ...(second ? { target: label(second) } : {}),
       };
       events.push(event);
-      if (!reached && event.ordinal === spec.ordinal) {
-        assert.deepEqual(
-          event,
-          spec.event,
-          'The traced operation changed before injection',
-        );
+      const location = JSON.stringify({
+        operation: event.operation,
+        path: event.path,
+        target: event.target,
+      });
+      const occurrence = occurrences.get(location) ?? 0;
+      occurrences.set(location, occurrence + 1);
+      event.matchesFault =
+        spec.event &&
+        event.operation === spec.event.operation &&
+        event.path === spec.event.path &&
+        event.target === spec.event.target &&
+        occurrence === (spec.occurrence ?? 0);
+      if (!reached && event.matchesFault) {
         if (spec.when === 'before') interrupt(event, 'before');
         if (spec.when === 'partial') {
           assert.equal(name, 'writeFileSync');
@@ -102,12 +111,7 @@ for (const [name, original] of Object.entries(originals)) {
       descriptors.set(result, resolve(args[0]));
     if (name === 'renameSync' && second === join(root, 'index.json') && armed)
       indexCommitted = true;
-    if (
-      event &&
-      !reached &&
-      event.ordinal === spec.ordinal &&
-      spec.when === 'after'
-    )
+    if (event && !reached && event.matchesFault && spec.when === 'after')
       interrupt(event, 'after');
     if (name === 'closeSync') descriptors.delete(args[0]);
     return result;
@@ -164,6 +168,9 @@ try {
     assert.deepEqual(fs.readdirSync(join(root, '.transactions')), []);
     if (selectedBefore === fixture.newRef)
       assert.ok(store.resolveModule(fixture.newRef));
+    // Signed-malformed archive cases persisted their deliberately bad descriptor.
+    // Repair retries must refresh the valid signed catalog as well as the bytes.
+    store.setCatalog(fixture.envelope);
     await store.install(fixture.newRef);
     preserved();
     assert.equal(store.selected('uno')?.releaseId, fixture.newRef);
@@ -242,7 +249,11 @@ try {
       if (mode !== 'trace') {
         assert.ok(installError, 'Fault scenario must reject the install');
         if (spec.ordinal !== undefined)
-          assert.equal(reached, true, 'The intended operation was not reached');
+          assert.equal(
+            reached,
+            true,
+            `The intended operation was not reached: ${installError}; observed ${JSON.stringify(events.slice(-5))}`,
+          );
         if (spec.expectedError)
           assert.match(installError, new RegExp(spec.expectedError));
         if (spec.network)

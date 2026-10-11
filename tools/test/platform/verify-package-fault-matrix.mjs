@@ -307,6 +307,7 @@ try {
       ['throw', 'kill'].map((action) => ({
         id: `io-${location}-${occurrence}-${when}-${action}`,
         ordinal: event.ordinal,
+        occurrence,
         event,
         when,
         action,

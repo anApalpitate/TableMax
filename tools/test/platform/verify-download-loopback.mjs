@@ -191,10 +191,8 @@ try {
       await Promise.all([
         value.install(releases[0].releaseId),
         value.install(releases[0].releaseId),
+        value.install(releases[1].releaseId),
       ]);
-      // Distinct targets run sequentially: the preserved first attempt exposed an
-      // existing concurrent index overwrite. Do not mask it by changing Store.
-      await value.install(releases[1].releaseId);
       assert.equal(network.requests.length - startRequests, 2);
       assert.equal(Object.keys(value.snapshot().index.blobs).length, 2);
       assert.equal(Object.keys(value.snapshot().index.releases).length, 2);
