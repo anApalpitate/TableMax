@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, statSync, lstatSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve, relative, dirname, sep, isAbsolute } from 'node:path';
+import { windowsExecutableName } from '../release/windows-executable-name.mjs';
 
 const hash = (path) =>
   createHash('sha256').update(readFileSync(path)).digest('hex');
@@ -55,7 +56,8 @@ export function currentDeliveries(root, version) {
       resolve(delivery.executable.path) !==
       resolve(
         root,
-        `artifacts/releases/TableMax-${version}-win-x64-${delivery.edition}.exe`,
+        'artifacts/releases',
+        windowsExecutableName(version, delivery.edition),
       )
     )
       throw new Error('Unexpected EXE path');

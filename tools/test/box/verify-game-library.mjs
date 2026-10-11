@@ -553,6 +553,15 @@ try {
     await page.evaluate(() => window.commands.length),
     beforeDownload,
   );
+  assert.deepEqual(
+    await pokemon
+      .getByRole('button', { name: '下载中 40%', exact: true })
+      .evaluate((button) => {
+        const style = getComputedStyle(button);
+        return { color: style.color, opacity: style.opacity };
+      }),
+    { color: 'rgb(0, 0, 0)', opacity: '1' },
+  );
   await page.evaluate(() =>
     window.setResources([
       {
@@ -728,6 +737,14 @@ try {
   checked(
     'Game, video and seat settings fit six viewports with readable text; current role functionality remains available.',
   );
+  assert.deepEqual(
+    await page.evaluate(() =>
+      window.moduleCatalog
+        .find((game) => game.id === 'avalon')
+        .variants.map((variant) => variant.id),
+    ),
+    ['configured'],
+  );
   await page.evaluate(() => {
     window.setResources([]);
     window.patchBox({
@@ -738,18 +755,16 @@ try {
       view: {
         ...window.baseBox,
         game: {
-          ...window.catalog.find((game) => game.id === 'avalon'),
-          variantId: 'classic',
+          ...window.catalog.find((game) => game.id === 'pokemon-encounters'),
+          variantId: 'original',
           releaseRef: 'a'.repeat(64),
         },
       },
     });
   });
-  await page
-    .getByRole('button', { name: '版本：经典基础', exact: true })
-    .click();
+  await page.getByRole('button', { name: '版本：原版', exact: true }).click();
   const gameplaySelector = page.getByRole('dialog', {
-    name: '阿瓦隆版本',
+    name: '宝可梦奇遇：皮卡丘和朋友们版本',
     exact: true,
   });
   await gameplaySelector.waitFor();
@@ -759,7 +774,7 @@ try {
   );
   assert.equal(
     await gameplaySelector
-      .getByRole('button', { name: '经典基础 · 已选中', exact: true })
+      .getByRole('button', { name: '原版 · 已选中', exact: true })
       .getAttribute('aria-current'),
     'true',
   );
@@ -787,8 +802,8 @@ try {
           status,
           capabilities: { manage },
           game: {
-            ...window.catalog.find((game) => game.id === 'avalon'),
-            variantId: 'classic',
+            ...window.catalog.find((game) => game.id === 'pokemon-encounters'),
+            variantId: 'original',
             releaseRef: 'a'.repeat(64),
           },
         },
@@ -796,7 +811,7 @@ try {
     }, permission);
     assert.ok(
       await gameplaySelector
-        .getByRole('button', { name: '宫廷迷局', exact: true })
+        .getByRole('button', { name: '扩展版', exact: true })
         .isDisabled(),
       `Gameplay selection respects ${JSON.stringify(permission)}`,
     );
@@ -811,34 +826,34 @@ try {
       view: {
         ...window.baseBox,
         game: {
-          ...window.catalog.find((game) => game.id === 'avalon'),
-          variantId: 'classic',
+          ...window.catalog.find((game) => game.id === 'pokemon-encounters'),
+          variantId: 'original',
           releaseRef: 'a'.repeat(64),
         },
       },
     });
     window.setResources([
       {
-        key: { gameId: 'avalon', variantId: 'classic' },
-        name: '经典基础',
+        key: { gameId: 'pokemon-encounters', variantId: 'original' },
+        name: '原版',
         releaseRef: 'b'.repeat(64),
         status: { state: 'installed' },
       },
     ]);
   });
   const currentReleaseButton = gameplaySelector.getByRole('button', {
-    name: '经典基础',
+    name: '原版',
     exact: true,
   });
   assert.equal(await currentReleaseButton.getAttribute('aria-current'), null);
   assert.ok(await currentReleaseButton.isEnabled());
   const gameplayCommands = await page.evaluate(() => window.commands.length);
   await gameplaySelector
-    .getByRole('button', { name: '宫廷迷局', exact: true })
+    .getByRole('button', { name: '扩展版', exact: true })
     .click();
   assert.deepEqual(await page.evaluate(() => window.commands.at(-1)), {
     type: 'select-variant',
-    variantId: 'court',
+    variantId: 'expansion',
   });
   assert.equal(
     await page.evaluate(() => window.commands.length),
@@ -846,8 +861,9 @@ try {
   );
   await gameplaySelector.waitFor({ state: 'hidden' });
   checked(
-    'The platform gameplay selector supports Avalon without duplicate versions metadata, preserves release identity, and enforces administrator, owner, player, public, playing, locked and pending-confirmation permissions.',
+    'The platform gameplay selector supports the current two-variant Pokemon catalog without duplicate versions metadata, preserves release identity, and enforces administrator, owner, player, public, playing, locked and pending-confirmation permissions.',
   );
+  await page.evaluate(() => window.setResources([]));
   await page.evaluate(() =>
     window.patchBox({
       view: {

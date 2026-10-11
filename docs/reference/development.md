@@ -2,6 +2,8 @@
 
 ## 两种EXE与内部载荷（2026-10-11）
 
+最新导出命名：full完整游戏版为 `TableMax-<版本>-win-x64.exe`，不加类型后缀；box仅盒子版为 `TableMax-<版本>-win-x64-box.exe`。内部edition、载荷目录和CLI选项仍用full／box。生成新本地同名文件前保全被替换包及SHA，线上旧程序按原发布边界理解，最新用户下载说明见[README](../../README.md#下载)。
+
 存在无关并行游戏改动时，可用 `pnpm package:win --platform-from=<原已验快照路径> --games=<原已验签名包目录> --edition=both`仅刷新六个平台单元，保留原游戏单元与签名资源，记录 `retainedGameSnapshot`。仍核对冻结输入与全部组装哈希，不能借此混入未经本轮验收的游戏资源；不修改原已验快照或在进行中的组装期间重写其目录。
 
 最新要求覆盖下文旧运行ZIP导出惯例：`pnpm package:win`默认导出full／box两种Windows EXE，可加 `--edition=full|box|both`，继续使用 `--snapshot=`与 `--games=`。full携带全部当前游戏的预装内容，box仅携带平台及小目录；完整玩法离线ZIP仍供导入。对外EXE在 `artifacts/releases/`，内部 `payload.zip`及 `release-manifest.json`在 `artifacts/package-payloads/v<版本>/<run>/<edition>/`，版本目录的 `current.json`原子记录载荷路径、EXE路径与哈希。内部ZIP不作为日常下载产物，本轮不生成source ZIP或发布线上附件。

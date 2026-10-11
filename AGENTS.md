@@ -14,6 +14,8 @@
 
 ## 开发边界
 
+- 按2026-10-11最新命名要求，完整游戏版导出 `TableMax-<版本>-win-x64.exe`，仅盒子版导出 `TableMax-<版本>-win-x64-box.exe`；内部edition仍为full／box。重新导出仅更新本地包，未明确授权发布时不改线上同名旧文件；本地被替换交付按SHA保全到历史证据，README区分新本地内容与旧线上内容。
+
 - 按2026-10-11最新交付要求，日常 `package:win`默认导出full／box两种Windows EXE，可选 `--edition=full|box|both`；不再对外导出运行ZIP。内部payload ZIP、manifest及哈希指针放 `artifacts/package-payloads/v<版本>/`并受保护，完整玩法离线ZIP继续保留。未来明确授权发布时采用两EXE、source ZIP及作者工具包四附件；本轮不发布、不生成source ZIP，保留现有线上旧单EXE、旧ZIP、存档及验收。此要求覆盖下文历史单EXE／运行ZIP惯例，具体查Release流程。无游戏初始页仍为盒子大厅，下载图标提示“请前往游戏库下载”，高亮游戏库并打开原浮窗，不自动选局。
 
 - 修改前明确范围与完成标准；关键未知项影响目录或实现选择时先询问。保留用户及其他 agent 的已有改动，只改本次授权内容；区分产品要求、已实现行为和技术建议。

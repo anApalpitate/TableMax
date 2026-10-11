@@ -13,6 +13,7 @@ import { resolve, join, basename } from 'node:path';
 import { GAME_PAGES_ROOT } from '../../apps/server/src/game-packages/distribution.ts';
 import { PROJECT_GAME_PUBLIC_KEY } from '../../apps/server/src/game-packages/project-public-key.ts';
 import { gameReleaseAssets } from './game-release-assets.mjs';
+import { windowsExecutableName } from './windows-executable-name.mjs';
 assert.ok(
   process.argv.includes('--publish'),
   'Publication is disabled by default. Explicit user release authorization and --publish are required.',
@@ -54,7 +55,7 @@ const notes = process.argv.find((arg) => arg.startsWith('--notes='))?.slice(8);
 assert.ok(notes, 'Provide reviewed release notes with --notes=<file>');
 await stat(notes);
 const exes = ['full', 'box'].map((edition) =>
-  resolve(`artifacts/releases/TableMax-${version}-win-x64-${edition}.exe`),
+  resolve('artifacts/releases', windowsExecutableName(version, edition)),
 );
 const source = resolve(`artifacts/releases/TableMax-${version}-source.zip`);
 for (const edition of ['full', 'box']) {

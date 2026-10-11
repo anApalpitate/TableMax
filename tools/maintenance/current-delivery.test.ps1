@@ -19,7 +19,8 @@ try {
   $deliveries = @()
   foreach ($edition in @('full','box')) {
     $archivePath = File ('artifacts/package-payloads/v1.0.6/run/' + $edition + '/payload.zip') ('payload-' + $edition)
-    $exePath = File ('artifacts/releases/TableMax-1.0.6-win-x64-' + $edition + '.exe') ('exe-' + $edition)
+    $suffix = if ($edition -eq 'box') { '-box' } else { '' }
+    $exePath = File ('artifacts/releases/TableMax-1.0.6-win-x64' + $suffix + '.exe') ('exe-' + $edition)
     $payloadHash = (Get-FileHash -LiteralPath $archivePath).Hash.ToLowerInvariant()
     $executable = @{path=$exePath;bytes=(Get-Item -LiteralPath $exePath).Length;sha256=(Get-FileHash -LiteralPath $exePath).Hash.ToLowerInvariant();payloadSha256=$payloadHash}
     $manifestPath = Json ('artifacts/package-payloads/v1.0.6/run/' + $edition + '/release-manifest.json') @{version='1.0.6';edition=$edition;archive=@{name='payload.zip';bytes=(Get-Item -LiteralPath $archivePath).Length;sha256=$payloadHash}}

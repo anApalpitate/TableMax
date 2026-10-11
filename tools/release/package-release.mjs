@@ -7,6 +7,7 @@ if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
+import { windowsExecutableName } from './windows-executable-name.mjs';
 import {
   createReleaseExecutable,
   assertReleaseIdle,
@@ -40,7 +41,10 @@ await lock('package-release', async () => {
     'Build both internal edition payloads first',
   );
   for (const item of selected) {
-    const base = `artifacts/releases/TableMax-${version}-win-x64-${item.edition}`;
+    const base = resolve(
+      'artifacts/releases',
+      windowsExecutableName(version, item.edition),
+    ).replace(/\.exe$/, '');
     await assertReleaseIdle(base + '.exe');
     const manifest = JSON.parse(await readFile(item.manifestPath, 'utf8'));
     assert.equal(manifest.version, version);

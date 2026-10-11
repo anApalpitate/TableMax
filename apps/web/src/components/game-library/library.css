@@ -168,6 +168,12 @@
   font-size: 18px;
 }
 
+.game-library [data-resource-state='downloading'],
+.gameplay-selector-panel [data-resource-state='downloading'] {
+  color: #000;
+  opacity: 1;
+}
+
 .game-library__empty {
   padding: 24px;
   text-align: center;

@@ -5,6 +5,7 @@ import {
 if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
 import { MAXIMUM_PACKAGE_BYTES } from './package-limits.mjs';
+import { windowsExecutableName } from './windows-executable-name.mjs';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -53,7 +54,8 @@ const evidence = resolve(
   payloadIndex.snapshot,
 );
 const executable = resolve(
-  `artifacts/releases/TableMax-${version}-win-x64-${edition}.exe`,
+  'artifacts/releases',
+  windowsExecutableName(version, edition),
 );
 const manifest = JSON.parse(await readFile(delivery.manifestPath, 'utf8'));
 assert.equal(manifest.edition, edition);

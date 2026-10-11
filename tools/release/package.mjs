@@ -9,6 +9,7 @@ import {
   PACKAGE_BUDGET_BYTES,
 } from './package-limits.mjs';
 import { buildProject } from '../build/build.mjs';
+import { windowsExecutableName } from './windows-executable-name.mjs';
 import { scheduleMaintenance } from '../maintenance/lifecycle.mjs';
 scheduleMaintenance();
 import assert from 'node:assert/strict';
@@ -456,7 +457,7 @@ await lock('package-win', async () => {
     );
     const outputPath = join(
       releases,
-      `TableMax-${project.version}-win-x64-${currentEdition}.exe`,
+      windowsExecutableName(project.version, currentEdition),
     );
     await assertReleaseIdle(outputPath);
     const executable = await createReleaseExecutable({

@@ -2,7 +2,7 @@
 
 ## 两种Windows交付与空盒子入口（2026-10-11）
 
-按最新明确要求，继续沿用v1.0.6。日常本地交付改为 `TableMax-<版本>-win-x64-full.exe` 与 `TableMax-<版本>-win-x64-box.exe`：full包含全部当前游戏，box仅包含盒子、平台运行时、目录及小封面，游戏按需安装。默认 `pnpm package:win`生成两种；可用 `--edition=full|box|both`选择，继续支持 `--snapshot=`和 `--games=`。两种发行独立验收，保持旧游戏与存档，不覆盖已发布旧单EXE或历史原包。
+按最新明确要求，继续沿用v1.0.6。日常本地交付为 `TableMax-<版本>-win-x64.exe` 与 `TableMax-<版本>-win-x64-box.exe`：完整游戏版不加类型后缀，包含全部当前游戏；仅盒子版加 `-box`，包含盒子、平台运行时、目录及小封面，游戏按需安装。内部edition仍为full／box，默认 `pnpm package:win`生成两种；可用 `--edition=full|box|both`选择，继续支持 `--snapshot=`和 `--games=`。两种发行独立验收，保持旧游戏与存档；本地同名旧文件先按SHA保全到历史交付证据，再生成新包，已发布线上文件及历史原包不改写。
 
 不再对外生成运行ZIP。组装所需内部 `payload.zip`和 `release-manifest.json`放在 `artifacts/package-payloads/v1.0.6/<run>/<edition>/`；run由快照前12位及唯一后缀组成，`current.json`记录本轮载荷与EXE哈希。它们用于封装、逐文件核验及验收绑定，不是用户下载附件。完整玩法离线ZIP继续保留游戏导入用途。未来获明确发布授权时，Release白名单调整为full EXE、box EXE、对应发布source ZIP及已验作者工具包（四附件）；游戏包仍经Pages分发。本轮不发布、不生成source ZIP，当前线上旧三附件及标签映射保持不变。
 
@@ -63,7 +63,7 @@ games/v1.0.6/<gameId>/<variantId或default>/index.html
 4. 核对每种EXE、内部载荷与实际提取内容均严格小于120,000,000字节，工程预警110,000,000字节。每个玩法的完整依赖下载量及安装量分别严格小于64,000,000字节，预警48,000,000字节；组合内共用依赖只计一次，不能拆包绕过门禁。用户存档与浏览器缓存不计入交付大小；full携带的预装内容计入实际交付和提取门禁。
 5. 更新当前验收入口，绑定每种EXE及内部载荷哈希、逐文件清单、证据和未测事项。测试窗口默认静音，包括游玩模式自动验证；专门试听显式开启。
 
-本地运行交付为 `artifacts/releases/TableMax-<版本>-win-x64-full.exe`与 `TableMax-<版本>-win-x64-box.exe`；对应本地清单及内部载荷位置见本页两种Windows交付。组装遇到进程占用时先遵守现有门禁，待占用解除后可用同一有效快照恢复；不得为通过门禁擅自结束用户日常程序。
+本地运行交付为 `artifacts/releases/TableMax-<版本>-win-x64.exe`与 `TableMax-<版本>-win-x64-box.exe`；对应本地清单及内部载荷位置见本页两种Windows交付。组装遇到进程占用时先遵守现有门禁，待占用解除后可用同一有效快照恢复；不得为通过门禁擅自结束用户日常程序。
 
 ## GitHub发布
 
@@ -89,7 +89,7 @@ games/v1.0.6/<gameId>/<variantId或default>/index.html
 
 按2026-10-11最新Pages方案，Release附件白名单如下；已撤回的历史草稿25附件保留供审计，不能作为新发布的白名单：
 
-1. `TableMax-<版本>-win-x64-full.exe`：包含全部当前游戏的完整运行程序。
+1. `TableMax-<版本>-win-x64.exe`：包含全部当前游戏的完整运行程序，无类型后缀。
 2. `TableMax-<版本>-win-x64-box.exe`：盒子基础程序，通过游戏库按需安装。
 3. `TableMax-<版本>-source.zip`：仅明确发布时由该发布提交的 `git archive`导出。
 

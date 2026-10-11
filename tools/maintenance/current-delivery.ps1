@@ -25,7 +25,8 @@ function Get-VerifiedCurrentDeliveries([string]$Root, [string]$Version) {
     }
     $payloadPrefix = [IO.Path]::GetFullPath((Join-Path $Root ('artifacts/package-payloads/v' + $Version))).TrimEnd('\') + '\'
     if (-not $delivery.archivePath.StartsWith($payloadPrefix, [StringComparison]::OrdinalIgnoreCase) -or -not $delivery.manifestPath.StartsWith($payloadPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Internal payload outside version directory.' }
-    $expectedExe = Join-Path $Root ('artifacts/releases/TableMax-' + $Version + '-win-x64-' + $delivery.edition + '.exe')
+    $editionSuffix = if ($delivery.edition -eq 'box') { '-box' } else { '' }
+    $expectedExe = Join-Path $Root ('artifacts/releases/TableMax-' + $Version + '-win-x64' + $editionSuffix + '.exe')
     if ([IO.Path]::GetFullPath($delivery.executable.path) -ne $expectedExe) { throw 'Unexpected EXE delivery path.' }
     $manifest = Get-Content -LiteralPath $delivery.manifestPath -Raw -Encoding utf8 | ConvertFrom-Json
     $payloadHash = (Get-FileHash -LiteralPath $delivery.archivePath -Algorithm SHA256).Hash.ToLowerInvariant()

@@ -10,7 +10,7 @@
 
 ## 下载
 
-当前版本沿用 v1.0.6。本地导出分为 `TableMax-1.0.6-win-x64-full.exe`（预装当前游戏）和 `TableMax-1.0.6-win-x64-box.exe`（盒子与按需安装入口）；各次更新的实际文件和验收范围见[当前验收](docs/reference/acceptance.md#当前源码与本地交付)。本轮暂不发布，下方下载仍指向已发布的单 EXE。
+当前版本沿用 v1.0.6。本地导出分为 `TableMax-1.0.6-win-x64.exe`（完整游戏版，预装全部当前游戏）和 `TableMax-1.0.6-win-x64-box.exe`（仅盒子版，游戏按需下载或离线导入）。完整游戏版不加版本类型后缀，仅盒子版加 `-box`；各次实际文件和验收范围见[当前验收](docs/reference/acceptance.md#当前源码与本地交付)。本轮仅重新导出本地文件，尚未发布；下方线上同名 EXE 仍是此前发布的程序，不包含本轮更新。
 
 **只需在负责开桌的 Windows 电脑上下载程序。朋友的手机和其他玩家电脑使用浏览器加入。**
 
@@ -21,7 +21,7 @@
 3. 建议在桌面新建一个“桌游”文件夹，把下载的文件放进去，再双击打开。第一次启动会自动在程序旁边创建 `TableMax` 文件夹，用来保存游戏资源、存档和设置。
 4. 如果程序提示缺少运行组件，按提示完成安装，再重新打开 TableMax。准备完成后，就可以按下方的“快速开始”和朋友入座。
 
-**想查看其他版本？** 打开 [官方下载页](https://github.com/anApalpitate/TableMax/releases/latest)，找到 **Assets（资源／附件）**，选择 Windows EXE。已发布版本使用 `-win-x64.exe`；未来发布的 `-win-x64-full.exe` 预装游戏，`-win-x64-box.exe` 按需安装游戏。`-source.zip` 和 **Source code** 是供开发者使用的源代码。
+**想查看其他版本？** 打开 [官方下载页](https://github.com/anApalpitate/TableMax/releases/latest)，找到 **Assets（资源／附件）**，选择 Windows EXE。后续发布按 `-win-x64.exe`（完整游戏版）与 `-win-x64-box.exe`（仅盒子版）命名；当前线上旧单 EXE 的内容仍以其发布说明为准。`-source.zip` 和 **Source code** 是供开发者使用的源代码。
 
 **版本说明：** v1.0.6 已正式重新发布。基础程序从 [GitHub Release](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.6) 下载，游戏包及完整玩法离线包从[游戏包目录](https://anapalpitate.github.io/TableMax/)获取；发布核验记录见[Release流程](docs/reference/release.md#最新分发决定与暂缓发布2026-10-11)。
 

@@ -12,6 +12,7 @@ import { createHash } from 'node:crypto';
 import { resolve, join, dirname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { currentDeliveries } from './current-delivery.mjs';
+import { windowsExecutableName } from '../release/windows-executable-name.mjs';
 
 test('dual delivery protects hash-bound payloads and refuses missing actual EXE proof', () => {
   const parent = resolve('tmp');
@@ -36,7 +37,11 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
       );
       const payloadHash = digest('payload-' + edition);
       const path = file(
-        join(root, `artifacts/releases/TableMax-1.0.6-win-x64-${edition}.exe`),
+        join(
+          root,
+          'artifacts/releases',
+          windowsExecutableName('1.0.6', edition),
+        ),
         'exe-' + edition,
       );
       const executable = {
