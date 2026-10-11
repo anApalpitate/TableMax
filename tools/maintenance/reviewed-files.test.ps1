@@ -1,0 +1,321 @@
+param([string[]]$Only = @())
+$ErrorActionPreference = 'Stop'
+$root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..')).TrimEnd('\')
+$fixture = Join-Path $root ('tmp/reviewed-files-test-' + [Guid]::NewGuid().ToString('N'))
+$workspace = $fixture
+$maintenance = Join-Path $workspace 'artifacts/maintenance'
+$project = [PSCustomObject]@{version='1.0.6'}
+$archiveHash = 'a' * 64
+$cutoff = [DateTime]::UtcNow.AddMinutes(-30)
+$Apply = $false
+$busy = $false
+$idleCalls = 0
+$preservedFiles = @()
+$checks = 0
+$passed = @()
+$junctions = @()
+function Assert-LocalPath([string]$Path) {
+  $absolute = [IO.Path]::GetFullPath($Path)
+  if (-not $absolute.StartsWith($workspace + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'outside fixture' }
+  $cursor = $absolute
+  while ($cursor -and $cursor -ne $workspace) {
+    if ((Test-Path -LiteralPath $cursor) -and ((Get-Item -LiteralPath $cursor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'linked fixture' }
+    $cursor = Split-Path $cursor -Parent
+  }
+  return $absolute
+}
+function Assert-Idle { $script:idleCalls++; if ($busy) { throw 'busy fixture' } }
+function Assert-PreservedRelease { }
+function Check([bool]$Condition, [string]$Message) { if (-not $Condition) { throw ('FAILED: ' + $Message) }; $script:checks++ }
+function Refused([scriptblock]$Action, [string]$Message) {
+  $rejected=$false
+  try { & $Action | Out-Null } catch { $rejected=$true }
+  Check $rejected $Message
+}
+function File([string]$Relative, [string]$Content = 'fixture') {
+  $path=Join-Path $workspace $Relative
+  New-Item -ItemType Directory -Path (Split-Path $path -Parent) -Force | Out-Null
+  [IO.File]::WriteAllText($path,$Content)
+  (Get-Item -LiteralPath $path).LastWriteTimeUtc=[DateTime]::UtcNow.AddHours(-2)
+  $item=Get-Item -LiteralPath $path
+  return [PSCustomObject]@{path=$Relative;bytes=$item.Length;lastWriteTimeUtcTicks=$item.LastWriteTimeUtc.Ticks;sha256=(Get-FileHash -LiteralPath $path).Hash.ToLowerInvariant()}
+}
+function Plan([string]$Id, [string]$Path, [object[]]$Files, [string]$Origin='generated-copy') {
+  $script:plan=[PSCustomObject]@{version=1;authorization='retire-reviewed-generated-once';id=$Id;currentVersion='1.0.6';currentArchiveSha256=$archiveHash;protectedPrefixes=@();protectedFiles=@();links=@();references=@();entries=@([PSCustomObject]@{path=$Path;reason='audited fixture';origin=$Origin;files=$Files})}
+  $script:ReviewedFilesManifest=Join-Path $maintenance ($Id+'.json')
+  $script:Apply=$false
+  Save-Plan
+}
+function Save-Plan {
+  $plan | ConvertTo-Json -Depth 9 | Set-Content -LiteralPath $ReviewedFilesManifest -Encoding utf8
+  $script:ReviewedFilesManifestSha256=(Get-FileHash -LiteralPath $ReviewedFilesManifest).Hash.ToLowerInvariant()
+}
+function Journal { return Join-Path $maintenance ('reviewed-retirements/'+$plan.id+'.json') }
+function Scenario([string]$Name, [scriptblock]$Action) {
+  if ($Only.Count -and $Name -notin $Only) { return }
+  & $Action
+  $script:passed += $Name
+}
+try {
+  New-Item -ItemType Directory -Path $maintenance -Force | Out-Null
+  & git init --quiet $workspace
+  if ($LASTEXITCODE -ne 0) { throw 'Cannot initialize isolated tracked-source fixture.' }
+  . (Join-Path $PSScriptRoot 'reviewed-files.ps1')
+  Scenario 'exact-and-once' {
+    $first=File 'tmp/exact/deep/selected.txt'
+    $other=File 'tmp/exact/keep.txt'
+    $artifact=File 'artifacts/maintenance/old-copy/remove.txt'
+    Plan 'exact-and-once' 'tmp/exact' @($first)
+    $plan.entries += [PSCustomObject]@{path='artifacts/maintenance/old-copy';reason='cross-root generated copy';origin='generated-copy';files=@($artifact)}
+    Save-Plan
+    Invoke-ReviewedFilesRetirement
+    Check ((Test-Path -LiteralPath (Join-Path $workspace $first.path)) -and -not (Test-Path -LiteralPath (Journal))) 'preview preserves files and ID'
+    $new=File 'tmp/exact/new-after-preview.txt'
+    $script:Apply=$true
+    Invoke-ReviewedFilesRetirement
+    $record=Get-Content -LiteralPath (Journal) -Raw | ConvertFrom-Json
+    Check ($record.result -eq 'passed' -and $record.deletedFiles -eq 2 -and $record.deletedBytes -eq ($first.bytes+$artifact.bytes) -and $record.recoveryArchive -eq $false) 'precise cross-root bytes and no recovery archive'
+    Check ((Test-Path -LiteralPath (Join-Path $workspace $other.path)) -and -not (Test-Path -LiteralPath (Join-Path $workspace $first.path)) -and -not (Test-Path -LiteralPath (Join-Path $workspace $artifact.path))) 'unlisted file survives'
+    Check (Test-Path -LiteralPath (Join-Path $workspace $new.path)) 'new file after preview survives'
+    Check (-not (Test-Path -LiteralPath (Join-Path $workspace 'tmp/exact/deep'))) 'only empty selected ancestors removed'
+    Refused { Invoke-ReviewedFilesRetirement } 'consumed ID cannot run twice'
+    Check (@(Get-ChildItem -LiteralPath $maintenance -Recurse -Filter selected.txt).Count -eq 0) 'no copied file backup'
+  }
+  Scenario 'path-and-source' {
+    $file=File 'tmp/path/file.txt'
+    Plan 'path-and-source' 'tmp/path' @($file)
+    foreach ($invalid in @('../source.txt','tmp/../source.txt','E:/outside.txt','tmp/path/*','tmp/path\\file.txt','tmp/.git/config','assets/original.png','.cache/tools/file.bin')) {
+      Refused { Resolve-ReviewedPath $invalid } ('invalid scope '+$invalid)
+    }
+    $plan.entries[0].files=@($file,$file);Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'duplicate candidate rejected'
+    $tracked=File 'artifacts/tracked-root/tracked.txt'
+    & git -C $workspace add -- $tracked.path
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot stage isolated source fixture.' }
+    Plan 'tracked-source' 'artifacts/tracked-root' @($tracked)
+    Refused { Invoke-ReviewedFilesRetirement } 'tracked source is protected'
+    foreach ($relative in @('tmp/originals/source.png','tmp/research/rule.pdf','tmp/secrets/key.json','artifacts/game-packages/old/blob.zip','tmp/formal/data/room.sqlite')) {
+      $protected=File $relative
+      Plan ('protected-'+$checks) (Split-Path $relative -Parent).Replace('\','/') @($protected)
+      Refused { Invoke-ReviewedFilesRetirement } ('original secret repository or formal save protected '+$relative)
+    }
+  }
+  Scenario 'delivery-and-prefix' {
+    $file=File 'artifacts/releases/current/current.exe'
+    $script:preservedFiles=@([PSCustomObject]@{path=(Join-Path $workspace $file.path)})
+    Plan 'delivery-protected' 'artifacts/releases/current' @($file)
+    Refused { Invoke-ReviewedFilesRetirement } 'current delivery protected'
+    $script:preservedFiles=@()
+    $candidate=File 'tmp/protected/file.bin'
+    Plan 'prefix-protected' 'tmp/protected' @($candidate)
+    $plan.protectedPrefixes=@('tmp/protected');Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'audit protected prefix enforced'
+    $proof=File 'artifacts/maintenance/proof.txt'
+    Plan 'proof-protected' 'artifacts/maintenance' @($proof)
+    $plan.protectedFiles=@($proof);Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'retained proof protected'
+  }
+  Scenario 'change-and-age' {
+    $file=File 'tmp/change/file.txt' 'firstxx'
+    Plan 'content-change' 'tmp/change' @($file)
+    [IO.File]::WriteAllText((Join-Path $workspace $file.path),'changed')
+    (Get-Item -LiteralPath (Join-Path $workspace $file.path)).LastWriteTimeUtc=[DateTime]::new($file.lastWriteTimeUtcTicks,[DateTimeKind]::Utc)
+    Refused { Invoke-ReviewedFilesRetirement } 'same size and ticks with changed SHA rejected'
+    $recent=File 'tmp/recent/file.txt'
+    (Get-Item -LiteralPath (Join-Path $workspace $recent.path)).LastWriteTimeUtc=[DateTime]::UtcNow
+    $recent.lastWriteTimeUtcTicks=(Get-Item -LiteralPath (Join-Path $workspace $recent.path)).LastWriteTimeUtc.Ticks
+    Plan 'recent-file' 'tmp/recent' @($recent)
+    Refused { Invoke-ReviewedFilesRetirement } '30 minute protection'
+    $valid=File 'tmp/hash-bind/file.txt'
+    Plan 'manifest-hash' 'tmp/hash-bind' @($valid)
+    $script:ReviewedFilesManifestSha256='b'*64
+    Refused { Invoke-ReviewedFilesRetirement } 'preview SHA binds exact manifest'
+  }
+  Scenario 'links-and-repositories' {
+    $target=File 'tmp/link-target/keep.txt'
+    $linkPath=Join-Path $workspace 'tmp/linked'
+    New-Item -ItemType Junction -Path $linkPath -Target (Join-Path $workspace 'tmp/link-target') | Out-Null
+    $script:junctions += $linkPath
+    $actualLink=[PSCustomObject]@{path='tmp/linked';target=(Join-Path $workspace 'tmp/link-target')}
+    Check ((Get-ReviewedLinkTarget $actualLink).Equals($actualLink.target,[StringComparison]::OrdinalIgnoreCase)) 'actual Junction Target resolves correctly as string or string-array'
+    Plan 'target-protected' 'tmp/link-target' @($target)
+    $plan.links=@([PSCustomObject]@{path='tmp/linked';target=(Join-Path $workspace 'tmp/link-target')});Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'inbound link target protected'
+    $plan.links[0].target=Join-Path $workspace 'tmp/wrong-target';Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'changed link record rejected'
+    $throughLink=[PSCustomObject]@{path='tmp/linked/keep.txt';bytes=$target.bytes;lastWriteTimeUtcTicks=$target.lastWriteTimeUtcTicks;sha256=$target.sha256}
+    Plan 'ancestor-link' 'tmp/linked' @($throughLink)
+    Refused { Invoke-ReviewedFilesRetirement } 'linked ancestor protected'
+    $nested=File 'tmp/nested/file.txt'
+    New-Item -ItemType Directory -Path (Join-Path $workspace 'tmp/nested/.git') | Out-Null
+    Plan 'nested-repository' 'tmp/nested' @($nested)
+    Refused { Invoke-ReviewedFilesRetirement } 'nested repository protected'
+    $sibling=File 'tmp/link-sibling/delete.txt'
+    $siblingLink=Join-Path $workspace 'tmp/link-sibling/link'
+    New-Item -ItemType Junction -Path $siblingLink -Target (Join-Path $workspace 'tmp/link-target') | Out-Null
+    $script:junctions += $siblingLink
+    Plan 'link-sibling' 'tmp/link-sibling' @($sibling)
+    $plan.links=@([PSCustomObject]@{path='tmp/link-sibling/link';target=(Join-Path $workspace 'tmp/link-target')});Save-Plan
+    $script:Apply=$true
+    Invoke-ReviewedFilesRetirement
+    Check ((Test-Path -LiteralPath $siblingLink) -and (Test-Path -LiteralPath (Join-Path $workspace $target.path))) 'unlisted sibling link and target survive'
+  }
+  Scenario 'bindings-and-cache' {
+    $file=File '.cache/build-modules/v1/old-unit/expired/file.bin'
+    $reference=File 'artifacts/maintenance/cache-reference.json'
+    Plan 'cache-needs-references' '.cache/build-modules/v1/old-unit/expired' @($file) 'retired-cache'
+    Refused { Invoke-ReviewedFilesRetirement } 'cache requires frozen retention references'
+    $plan.references=@([PSCustomObject]@{path=$reference.path;sha256=$reference.sha256});Save-Plan
+    Invoke-ReviewedFilesRetirement
+    $lock=File '.cache/build-modules/v1/owner.lock'
+    Refused { Invoke-ReviewedFilesRetirement } 'active or unresolved cache lock protected'
+    Remove-Item -LiteralPath (Join-Path $workspace $lock.path) -Force
+    [IO.File]::WriteAllText((Join-Path $workspace $reference.path),'new retention')
+    Refused { Invoke-ReviewedFilesRetirement } 'changed cache retention binding rejected'
+  }
+  Scenario 'busy-before-consumption' {
+    $file=File 'tmp/busy/file.txt'
+    Plan 'busy-before-consumption' 'tmp/busy' @($file)
+    $script:Apply=$true;$script:busy=$true
+    Refused { Invoke-ReviewedFilesRetirement } 'busy project blocks apply'
+    $script:busy=$false
+    Check ((Test-Path -LiteralPath (Join-Path $workspace $file.path)) -and -not (Test-Path -LiteralPath (Journal))) 'busy rejection does not consume ID or files'
+  }
+  Scenario 'partial-and-single-use' {
+    $first=File 'tmp/partial/first.txt'
+    $second=File 'tmp/partial/second.txt'
+    Plan 'partial-and-single-use' 'tmp/partial' @($first,$second)
+    $script:Apply=$true
+    $handle=[IO.File]::Open((Join-Path $workspace $second.path),[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
+    try { Refused { Invoke-ReviewedFilesRetirement } 'locked second file safely stops partial cleanup' } finally { $handle.Dispose() }
+    $record=Get-Content -LiteralPath (Journal) -Raw | ConvertFrom-Json
+    Check ($record.result -eq 'failed' -and $record.deletedFiles -eq 1 -and (Test-Path -LiteralPath (Join-Path $workspace $second.path))) 'partial deletion records exact result and preserves remaining file'
+    Refused { Invoke-ReviewedFilesRetirement } 'partial failure consumes ID permanently'
+  }
+  Scenario 'journal-save-failure' {
+    $file=File 'tmp/save-failure/file.txt'
+    Plan 'journal-save-failure' 'tmp/save-failure' @($file)
+    $script:Apply=$true
+    $originalWriter=(Get-Command Write-ReviewedJournal).ScriptBlock
+    function Write-ReviewedJournal { throw 'injected journal write failure' }
+    try { Refused { Invoke-ReviewedFilesRetirement } 'initial journal save failure stops before deletion' }
+    finally { Set-Item -Path Function:Write-ReviewedJournal -Value $originalWriter }
+    Check ((Test-Path -LiteralPath (Journal)) -and (Test-Path -LiteralPath (Join-Path $workspace $file.path))) 'failed journal creation preserves file and consumes ID'
+    Refused { Invoke-ReviewedFilesRetirement } 'failed journal cannot retry consumed ID'
+  }
+  Scenario 'payload-and-macro' {
+    $payload=File 'artifacts/package-payloads/v1.0.6/retired/full/runtime/node.exe'
+    Plan 'retired-payload' 'artifacts/package-payloads/v1.0.6/retired/full/runtime' @($payload)
+    $script:Apply=$true
+    Invoke-ReviewedFilesRetirement
+    Check (-not (Test-Path -LiteralPath (Join-Path $workspace $payload.path))) 'old payload generated copy permitted'
+    $macro=File 'artifacts/author-toolkit/v1.0.6/macro-old/project-1/.tablemax/data/room.sqlite'
+    Plan 'macro-isolated' 'artifacts/author-toolkit/v1.0.6/macro-old/project-1/.tablemax' @($macro) 'isolated-test'
+    $script:Apply=$true
+    Invoke-ReviewedFilesRetirement
+    Check (-not (Test-Path -LiteralPath (Join-Path $workspace $macro.path))) 'audited macro fixture permitted'
+    $toolkit=File 'artifacts/author-toolkit/v1.0.6/kit/TableMax-toolkit.zip'
+    Plan 'toolkit-protected' 'artifacts/author-toolkit/v1.0.6/kit' @($toolkit) 'isolated-test'
+    Refused { Invoke-ReviewedFilesRetirement } 'author toolkit outside exact macro fixture protected'
+  }
+  Scenario 'pages-retained-copy' {
+    $original=File 'artifacts/game-packages/v1.0.6/TableMax-code-fixture.zip' 'identical retained ZIP'
+    $paths=@(
+      'artifacts/pages/verification-FIX123/site/games/v1.0.6/packages/TableMax-code-fixture.zip',
+      'artifacts/pages/v1.0.6/ready-FIX123/site/games/v1.0.6/packages/TableMax-code-fixture.zip',
+      'artifacts/pages/v1.0.6/published-history-FIX123/site/games/v1.0.6/packages/TableMax-code-fixture.zip',
+      'artifacts/pages/v1.0.6/published-history-FIX123/packages/TableMax-code-fixture.zip'
+    )
+    $copies=@()
+    foreach ($path in $paths) {
+      $copy=File $path 'identical retained ZIP'
+      $copy | Add-Member -NotePropertyName retainedCopy -NotePropertyValue ([PSCustomObject]@{path=$original.path;bytes=$original.bytes;sha256=$original.sha256})
+      $copies += $copy
+    }
+    Plan 'pages-retained-copy' (Split-Path $copies[0].path -Parent).Replace('\','/') @($copies[0])
+    foreach ($copy in $copies[1..3]) { $plan.entries += [PSCustomObject]@{path=(Split-Path $copy.path -Parent).Replace('\','/');reason='audited Pages duplicate ZIP';origin='generated-copy';files=@($copy)} }
+    Save-Plan
+    Invoke-ReviewedFilesRetirement
+    Check ((Test-Path -LiteralPath (Join-Path $workspace $original.path)) -and -not (Test-Path -LiteralPath (Journal))) 'Pages preview preserves original and single-use ID'
+    $savedPlan=$plan
+    $savedManifest=$ReviewedFilesManifest
+    foreach ($invalid in @(
+      'artifacts/pages/verification-FIX123/site/games/v1.0.6/catalog.json',
+      'artifacts/pages/verification-FIX123/site/index.html',
+      'artifacts/pages/verification-FIX123/git-tree.zip',
+      'artifacts/pages/verification-FIX123/site/games/v1.0.6/packages/source.zip',
+      'artifacts/pages/v1.0.6/live-FIX123/site/games/v1.0.6/packages/TableMax-code-fixture.zip'
+    )) {
+      $bad=File $invalid 'identical retained ZIP'
+      $bad | Add-Member -NotePropertyName retainedCopy -NotePropertyValue $copies[0].retainedCopy
+      Plan ('pages-invalid-'+$checks) (Split-Path $bad.path -Parent).Replace('\','/') @($bad)
+      Refused { Invoke-ReviewedFilesRetirement } ('Pages non-package source preserved '+$invalid)
+    }
+    $missing=File 'artifacts/pages/verification-MISS/site/games/v1.0.6/packages/TableMax-code-fixture.zip' 'identical retained ZIP'
+    Plan 'pages-missing-copy' (Split-Path $missing.path -Parent).Replace('\','/') @($missing)
+    Refused { Invoke-ReviewedFilesRetirement } 'Pages ZIP requires retainedCopy proof'
+    foreach ($mutation in @('size','sha','path')) {
+      $bad=File ('artifacts/pages/verification-'+$mutation+'/site/games/v1.0.6/packages/TableMax-code-fixture.zip') 'identical retained ZIP'
+      $proof=[PSCustomObject]@{path=$original.path;bytes=$original.bytes;sha256=$original.sha256}
+      if ($mutation -eq 'size') { $proof.bytes++ }
+      if ($mutation -eq 'sha') { $proof.sha256='b'*64 }
+      if ($mutation -eq 'path') { $proof.path=$copies[0].path }
+      $bad | Add-Member -NotePropertyName retainedCopy -NotePropertyValue $proof
+      Plan ('pages-proof-'+$mutation) (Split-Path $bad.path -Parent).Replace('\','/') @($bad)
+      Refused { Invoke-ReviewedFilesRetirement } ('Pages retained-copy mismatch '+$mutation)
+    }
+    $script:plan=$savedPlan;$script:ReviewedFilesManifest=$savedManifest;Save-Plan
+    [IO.File]::WriteAllText((Join-Path $workspace $original.path),'changed retained ZIP!')
+    Refused { Invoke-ReviewedFilesRetirement } 'retained original SHA checked against actual bytes'
+    $null=File $original.path 'identical retained ZIP'
+    $plan.entries += [PSCustomObject]@{path='artifacts/game-packages/v1.0.6';reason='forbidden original';origin='generated-copy';files=@($original)}
+    Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'retained original cannot be selected in same plan'
+    $plan.entries=$plan.entries[0..3];Save-Plan
+    $script:Apply=$true
+    Invoke-ReviewedFilesRetirement
+    $record=Get-Content -LiteralPath (Journal) -Raw | ConvertFrom-Json
+    Check ($record.result -eq 'passed' -and $record.deletedFiles -eq 4 -and (Test-Path -LiteralPath (Join-Path $workspace $original.path))) 'four exact Pages duplicate shapes removed while formal ZIP survives'
+  }
+  Scenario 'public-entry' {
+    $null=File 'package.json' '{"name":"tablemax","version":"1.0.6"}'
+    New-Item -ItemType Directory -Path (Join-Path $workspace 'tools/maintenance') -Force | Out-Null
+    foreach ($support in @('cleanup-local.ps1','cleanup-guard.ps1','current-delivery.ps1','WorkspaceSnapshot.cs','reviewed-files.ps1')) {
+      Copy-Item -LiteralPath (Join-Path $PSScriptRoot $support) -Destination (Join-Path $workspace 'tools/maintenance')
+    }
+    New-Item -ItemType Directory -Path (Join-Path $workspace 'scripts') -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $root 'scripts/Clean-Intermediates.ps1') -Destination (Join-Path $workspace 'scripts')
+    $payload=File 'artifacts/package-payloads/v1.0.6/integration/full/payload.zip' 'verified full payload'
+    $exe=File 'artifacts/releases/TableMax-1.0.6.2-win-x64.exe' 'verified full executable'
+    $payloadAbsolute=Join-Path $workspace $payload.path
+    $exeAbsolute=Join-Path $workspace $exe.path
+    $manifestAbsolute=Join-Path $workspace 'artifacts/package-payloads/v1.0.6/integration/full/release-manifest.json'
+    $executable=@{path=$exeAbsolute;bytes=$exe.bytes;sha256=$exe.sha256;payloadSha256=$payload.sha256}
+    @{version='1.0.6';buildVersion='1.0.6.2';edition='full';archive=@{name='payload.zip';sha256=$payload.sha256;bytes=$payload.bytes}} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $manifestAbsolute -Encoding utf8
+    @{version='1.0.6';buildVersion='1.0.6.2';snapshot='integration';deliveries=@(@{edition='full';archivePath=$payloadAbsolute;manifestPath=$manifestAbsolute;executable=$executable})} | ConvertTo-Json -Depth 7 | Set-Content -LiteralPath (Join-Path $workspace 'artifacts/package-payloads/v1.0.6/current.json') -Encoding utf8
+    $proofAbsolute=Join-Path $maintenance 'v1.0.6/windows-editions/integration/shipping-executable-checks-full.json'
+    New-Item -ItemType Directory -Path (Split-Path $proofAbsolute -Parent) -Force | Out-Null
+    $proof=@{result='passed';executableSha256=$exe.sha256;payloadSha256=$payload.sha256}
+    $proof | ConvertTo-Json | Set-Content -LiteralPath $proofAbsolute -Encoding utf8
+    $script:archiveHash=$payload.sha256
+    $candidate=File 'tmp/integration/candidate.txt'
+    Plan 'public-entry' 'tmp/integration' @($candidate)
+    $wrapper=Join-Path $workspace 'scripts/Clean-Intermediates.ps1'
+    & $wrapper -ReviewedFilesManifest $ReviewedFilesManifest
+    Check (Test-Path -LiteralPath (Join-Path $workspace $candidate.path)) 'real wrapper preview routes to exact reviewed entry'
+    Refused { & $wrapper -ReviewedFilesManifest $ReviewedFilesManifest -Apply } 'real wrapper requires preview hash before Apply'
+    Refused { & $wrapper -ReviewedFilesManifest $ReviewedFilesManifest -MinimumAgeMinutes 0 } 'real wrapper cannot weaken age protection'
+    Refused { & $wrapper -ReviewedFilesManifest $ReviewedFilesManifest -TemporaryNames @('integration') } 'real wrapper refuses mixed cleanup modes'
+    $proof.result='failed';$proof | ConvertTo-Json | Set-Content -LiteralPath $proofAbsolute -Encoding utf8
+    Refused { & $wrapper -ReviewedFilesManifest $ReviewedFilesManifest -ReviewedFilesManifestSha256 $ReviewedFilesManifestSha256 -Apply } 'real current delivery proof required'
+    Check (-not (Test-Path -LiteralPath (Journal))) 'bad current delivery proof does not consume ID'
+    $proof.result='passed';$proof | ConvertTo-Json | Set-Content -LiteralPath $proofAbsolute -Encoding utf8
+    & $wrapper -ReviewedFilesManifest $ReviewedFilesManifest -ReviewedFilesManifestSha256 $ReviewedFilesManifestSha256 -Apply
+    Check (-not (Test-Path -LiteralPath (Join-Path $workspace $candidate.path))) 'real wrapper performs exact deletion with current full EXE proof'
+  }
+  Write-Host ('Reviewed generated files: ' + $passed.Count + ' scenarios, ' + $checks + ' checks passed: ' + ($passed -join ', '))
+}
+finally {
+  foreach ($link in $junctions) { if (Test-Path -LiteralPath $link) { [IO.Directory]::Delete($link) } }
+  if ($fixture.StartsWith($root+'\tmp\reviewed-files-test-',[StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $fixture)) { Remove-Item -LiteralPath $fixture -Recurse -Force }
+}

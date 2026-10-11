@@ -7,6 +7,8 @@ param(
   [string]$ProjectRoot,
   [string[]]$TemporaryNames = @(),
   [string]$TemporaryManifest,
+  [string]$ReviewedFilesManifest,
+  [string]$ReviewedFilesManifestSha256,
   [string[]]$VerificationCopies = @(),
   [string]$DuplicateScreenshotsManifest,
   [string]$RetiredGeneratedManifest,
@@ -22,6 +24,16 @@ param(
 $ErrorActionPreference = 'Stop'
 $sourceWorkspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..')).TrimEnd('\')
 $automatic = $Kind -eq 'Maintenance'
+if ($PSBoundParameters.ContainsKey('ReviewedFilesManifest') -and
+    ([string]::IsNullOrWhiteSpace($ReviewedFilesManifest) -or $Kind -ne 'Intermediates' -or $IncludeBuild -or $KeepLatestOnly -or $TemporaryNames.Count -or $VerificationCopies.Count -or $RetiredVersions.Count -or $TemporaryManifest -or $DuplicateScreenshotsManifest -or $RetiredGeneratedManifest -or $HistoricalScreenshotsManifest -or $RegisteredArtifactsManifest -or $ImageCopiesManifest -or $MinimumAgeMinutes -lt 30)) {
+  throw 'ReviewedFilesManifest requires exclusive manual intermediate cleanup and at least 30 minutes protection.'
+}
+if ($PSBoundParameters.ContainsKey('ReviewedFilesManifestSha256') -and (-not $ReviewedFilesManifest -or $ReviewedFilesManifestSha256 -notmatch '^[a-f0-9]{64}$')) {
+  throw 'ReviewedFilesManifestSha256 requires a reviewed manifest and its exact preview SHA-256.'
+}
+if ($ReviewedFilesManifest -and $Apply -and $ReviewedFilesManifestSha256 -notmatch '^[a-f0-9]{64}$') {
+  throw 'Reviewed file Apply requires the exact manifest SHA-256 printed by its preview.'
+}
 if ($PSBoundParameters.ContainsKey('TemporaryManifest') -and
     ([string]::IsNullOrWhiteSpace($TemporaryManifest) -or $Kind -ne 'Intermediates' -or $IncludeBuild -or $KeepLatestOnly -or $TemporaryNames.Count -or $VerificationCopies.Count -or $RetiredVersions.Count -or $DuplicateScreenshotsManifest -or $RetiredGeneratedManifest -or $HistoricalScreenshotsManifest -or $RegisteredArtifactsManifest -or $ImageCopiesManifest -or $MinimumAgeMinutes -lt 30)) {
   throw 'TemporaryManifest requires exclusive manual intermediate cleanup and at least 30 minutes protection.'
@@ -470,6 +482,11 @@ catch {
   return $summary
 }
 
+if ($ReviewedFilesManifest) {
+  . (Join-Path $PSScriptRoot 'reviewed-files.ps1')
+  Invoke-ReviewedFilesRetirement
+  return
+}
 if ($KeepLatestOnly) {
   foreach ($entry in Get-ChildItem -LiteralPath $releases -Force) {
     if ($entry.FullName -notin $preservedFiles.path) {

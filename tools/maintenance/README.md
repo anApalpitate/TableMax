@@ -1,5 +1,13 @@
 # 构建与验证自动维护
 
+## 人工深度瘦身
+
+`scripts/Clean-Intermediates.ps1 -ReviewedFilesManifest <maintenance内清单>` 是人工审计后的单次入口，不参与自动维护。预览打印清单SHA，Apply必须另传 `-ReviewedFilesManifestSha256 <相同SHA>`；只删除清单列出的普通生成文件，空目录仅在无未列成员时移除。跨临时、旧载荷、隔离运行和历史图的清单统一绑定当前交付、保护前缀／文件、来源引用和入链目标，每文件核验SHA、字节、修改时间、路径、祖先链接和嵌套仓库，并保留进程、30分钟与互斥门禁。
+
+清单 `version: 1`、`authorization: retire-reviewed-generated-once`、唯一 `id`、`currentVersion`、`currentArchiveSha256`、`protectedPrefixes`、`protectedFiles`、`references`、`links` 及 `entries`。每项为精确生成根 `path`、`origin`（`generated-copy`／`isolated-test`／`retired-cache`）、来源说明 `reason` 和普通 `files`（`path`、`bytes`、`lastWriteTimeUtcTicks`、`sha256`）。测试库仅允许已证实隔离的 `isolated-test`；正式数据、原件、源码、签名模块仓库与当前交付不得列入。记录在 `artifacts/maintenance/reviewed-retirements/<id>.json`，开始即消耗ID，部分失败也不复用、重试或追加第二轮，不创建恢复副本。
+
+内部实现 [reviewed-files.ps1](reviewed-files.ps1)，隔离回归 [reviewed-files.test.ps1](reviewed-files.test.ps1)：`powershell.exe -NoProfile -File tools/maintenance/reviewed-files.test.ps1`。范围和本次容量目标见[开发环境](../../docs/reference/development.md#跨目录精确文件退役2026-10-12)。
+
 2026-10-11验收去重：version 2统一计划关闭子检查自动维护，结束后只尝试一次父轮收尾；多阶段同任务使用`TABLEMAX_AUTO_MAINTENANCE=0`并最后统一维护。双EXE的证明直接定位到当前指针snapshot下的shipping报告，缺失或哈希不符即拒绝，不回退历史全树查找。缓存预览`--plan=<精确JSON>`生成SHA绑定候选，Apply必须提供同一路径和`--plan-sha256=<预览SHA>`；保留引用变化即停止，删除前仍复核进程、锁、路径、链接、近期修改和成员哈希。旧无plan命令保留兼容行为。计时分开记录交付证明、缓存库存、成员校验、进程查询和容量／退役；没有旧分类数据时不拆算旧总耗时。
 
 新增内部辅助为[cache-plan.mjs](cache-plan.mjs)，其隔离回归`node --test tools/maintenance/cache-plan.test.mjs`检查清单损坏、引用变化、重复／越界／保留候选拒绝。
@@ -94,6 +102,8 @@ node --test tools/maintenance/maintenance.test.mjs
 | [retire-old-local-runtime.ps1](retire-old-local-runtime.ps1)                     | `powershell -NoProfile -File tools/maintenance/retire-old-local-runtime.ps1`                         |
 | [retired-generated.ps1](retired-generated.ps1)                                   | 内部辅助；由清理入口加载                                                                             |
 | [retired-generated.test.ps1](retired-generated.test.ps1)                         | 工具隔离回归：`powershell -NoProfile -File tools/maintenance/retired-generated.test.ps1`             |
+| [reviewed-files.ps1](reviewed-files.ps1)                                         | 人工跨目录精确清单内部实现，由 `Clean-Intermediates.ps1` 加载                                        |
+| [reviewed-files.test.ps1](reviewed-files.test.ps1)                               | 隔离回归：`powershell -NoProfile -File tools/maintenance/reviewed-files.test.ps1`                    |
 | [verification-artifacts.mjs](verification-artifacts.mjs)                         | `node tools/maintenance/verification-artifacts.mjs`                                                  |
 | [verify-cleanup-fast.ps1](verify-cleanup-fast.ps1)                               | `powershell -NoProfile -File tools/maintenance/verify-cleanup-fast.ps1`                              |
 | [verify-cleanup-idle.ps1](verify-cleanup-idle.ps1)                               | `powershell -NoProfile -File tools/maintenance/verify-cleanup-idle.ps1`                              |

@@ -19,7 +19,7 @@
 
 保留原创 `cover.svg`，使用隔离临时配置、静音无界面 Microsoft Edge 154.0.4258.62 按 640×400／deviceScaleFactor=1 渲染，字体为 SVG 指定的 Segoe UI／Arial／sans-serif；透明背景 PNG 再用 Pillow 转 WebP lossless RGBA（quality=100、method=6、exact=true）。不修改画面，不使用 imagegen。PNG 与解码后 WebP 的 RGBA 字节完全相同；WebP 69,762 字节、SHA-256 `e2d69c46e147b9594b8566972dc8772dff63a0670b5939dd89fe1559d2c8401a`，源 SVG 与中间 PNG／像素哈希留在资源清单。
 
-实际预览发现构建元数据会把封面原件复制成固定 `cover.webp`，直接使用 SVG 原件导致浏览器解码失败；本次改用正确的 WebP 派生件。失败证据仍保留，实际候选 ZIP 解码与文件／像素校验分开记录。候选 ZIP SHA-256 为 `afa4c170709072017453fc44cfcb36c0b1419d7b857cd4383b5072fc38c08fec`，浏览器解码与声音数据证据在 [candidate-03/results.json](../../../artifacts/rummikub/validation/ui-preview/candidate-03/results.json)，封面实际渲染见 [candidate-01/opening-box-game-cover.png](../../../artifacts/rummikub/validation/ui-preview/candidate-01/opening-box-game-cover.png)。
+实际预览发现构建元数据会把封面原件复制成固定 `cover.webp`，直接使用 SVG 原件导致浏览器解码失败；本次改用正确的 WebP 派生件。失败结论仍保留，实际候选 ZIP 解码与文件／像素校验分开记录。候选 ZIP SHA-256 为 `afa4c170709072017453fc44cfcb36c0b1419d7b857cd4383b5072fc38c08fec`，浏览器解码与声音数据证据在 [candidate-03/results.json](../../../artifacts/rummikub/validation/ui-preview/candidate-03/results.json)。旧封面截图 `candidate-01/opening-box-game-cover.png` 按[深度瘦身清单](../../reference/project-slimming.md)退役，保留逐文件SHA、原结论及版本边界；正式封面与最新视觉证据继续保留。
 
 ## 原创声音生成方法
 

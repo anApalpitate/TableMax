@@ -191,7 +191,7 @@ Pages已通过[手动工作流部署](https://github.com/anApalpitate/TableMax/a
 
 基础程序已拆为盒子、服务、共享运行时、目录与小封面，正式游戏按需安装到便携根 `games/`。八个玩法的不可变发行绑定代码、公共资源与玩法资源；安装和版本选择分开，当前对局及下一小局继续使用原发行。网络协议8、模块契约7和各游戏规则／状态／策略版本保持原边界。
 
-此前[基础运行ZIP备份](../../artifacts/maintenance/v1.0.6/pages-box-20261011/previous-runtime.zip) **34,827,783字节**，SHA-256 `ccd8f613a0d4a682a38089cc2aac664a3ba4cbf08761f13677fb6f47f454116d`；[89成员清单](../../artifacts/maintenance/v1.0.6/pages-box-20261011/previous-runtime-manifest.json)解压 **87,676,016字节**，快照 `d109af44c745cce902516c59d2e85280dbdb321461eaab37115e80ab7cc1d73c`。历史发行EXE **34,957,312字节**，SHA-256 `4f923f099c3f198adf8e8a7656f63d8366916ed78996e6932dac05bb73a8e157`；[实际提取与原生安全](../../artifacts/maintenance/v1.0.6/pages-release-20261011/previous/github-release-20261005/shipping-executable-checks.json)通过，提取后含所有权标记 **87,698,375字节**。这是撤回前构建，不能替代上方新包验收。
+此前[基础运行ZIP备份退役记录](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/retirement-plan.json) **34,827,783字节**，SHA-256 `ccd8f613a0d4a682a38089cc2aac664a3ba4cbf08761f13677fb6f47f454116d`；[89成员清单](../../artifacts/maintenance/v1.0.6/pages-box-20261011/previous-runtime-manifest.json)解压 **87,676,016字节**，快照 `d109af44c745cce902516c59d2e85280dbdb321461eaab37115e80ab7cc1d73c`。历史发行EXE **34,957,312字节**，SHA-256 `4f923f099c3f198adf8e8a7656f63d8366916ed78996e6932dac05bb73a8e157`；[实际提取与原生安全](../../artifacts/maintenance/v1.0.6/pages-release-20261011/previous/github-release-20261005/shipping-executable-checks.json)通过，提取后含所有权标记 **87,698,375字节**。这是撤回前构建，不能替代上方新包验收。
 
 [签名目录](../../artifacts/game-packages/v1.0.6/TableMax-game-catalog-v1.0.6.json)包含8发行、13内容包，去重安装9,801,855字节。单玩法完整依赖（同组合共享资源仅计一次）的传输／安装字节如下，全部低于48MB工程预警及严格64,000,000字节门禁：
 
@@ -236,7 +236,7 @@ Pages已通过[手动工作流部署](https://github.com/anApalpitate/TableMax/a
 
 ## 1.0.6：UNO右侧白边与手牌宽度（2026-10-11）
 
-去掉玩家页重复根滚动条槽和手牌区旧60px右侧预留；竖屏手牌保持满内容宽度，互动浮球默认移至独立64px底部区域，用户已保存位置继续恢复。规则、保存、手牌本地整理和音效未改。当次[运行ZIP](../../artifacts/maintenance/v1.0.6/box-task1/delivery-before-change/TableMax-1.0.6-win-x64.zip) **43,593,078字节**，[314成员清单](../../artifacts/maintenance/v1.0.6/box-task1/delivery-before-change/TableMax-1.0.6-win-x64-manifest.json)实际解压 **97,403,995字节**，满足114MB预算与严格小于120,000,000字节门禁。SHA-256 `1d2347f837b447bbad148523fdad0a3814239da307df147a62ad29994aad5883`，冻结快照 `592b1686453a317380a800561fecc3e5cf8c490f54059ec8a257d3a3d882e1b6`。
+去掉玩家页重复根滚动条槽和手牌区旧60px右侧预留；竖屏手牌保持满内容宽度，互动浮球默认移至独立64px底部区域，用户已保存位置继续恢复。规则、保存、手牌本地整理和音效未改。当次[运行ZIP退役记录](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/retirement-plan.json) **43,593,078字节**，[314成员清单](../../artifacts/maintenance/v1.0.6/box-task1/delivery-before-change/TableMax-1.0.6-win-x64-manifest.json)实际解压 **97,403,995字节**，满足114MB预算与严格小于120,000,000字节门禁。SHA-256 `1d2347f837b447bbad148523fdad0a3814239da307df147a62ad29994aad5883`，冻结快照 `592b1686453a317380a800561fecc3e5cf8c490f54059ec8a257d3a3d882e1b6`。
 
 [实际同包证明](../../artifacts/maintenance/v1.0.6/uno-edge-debug/results.json)核对全部ZIP／实际解压成员哈希：309成员不变，变化限于UNO样式、共享互动入口及其目录引用。服务、全部规则、人机与其他游戏资源逐字节保持。两人初始与六人密集手牌各27布局、49.49／49.90秒，覆盖320px、390px、横屏、电脑竖屏指针及720p至4K多比例；内容右边界误差≤1px，根额外空槽0px，首末牌命中、排序及长按整理通过。定向TypeScript、ESLint、Prettier及变更文档链接检查通过，原失败和修正边界见[验证记录](../games/uno/validation-scenarios.md#手牌右侧白边回归2026-10-11)。旧交付与验收保留，沿用v1.0.6，不发布Release或导出源码包；自动检查静音、隐藏、回环地址，实体手机和Safari未验。
 
@@ -244,7 +244,7 @@ Pages已通过[手动工作流部署](https://github.com/anApalpitate/TableMax/a
 
 经典2–4人／106牌拉密恢复游戏库选择。本轮按现有桌游与手机偏好完善本地牌架：颜色／点数／发牌次序、独立整理模式下拖拽及Alt方向键；等待与暂停时可整理，按实例与本人稳定席位缓存授权牌ID，摸牌追加、刷新与横竖屏切换保留次序。撤销／重置和组操作使用可访问SVG按钮，牌组更多操作进入浮层，落牌行预留空间；选择、建组、撤销与打开菜单保持浏览锚点，仅明确桌面／牌架按钮切换工作区。短横屏并排工具栏与回合条，完整牌面与44px可见点击区保持；已保存／连接及未确认反馈共用固定64px区域，手机明确显示“已保存”。详见[交互规格](../games/rummikub/interaction.md)。本轮未改官方规则、持久状态、variant、人机策略或资源音频。
 
-最终[运行ZIP](../../artifacts/maintenance/v1.0.6/uno-edge-debug/delivery-before-change/TableMax-1.0.6-win-x64.zip) **43,592,908字节**、[314成员清单](../../artifacts/maintenance/v1.0.6/uno-edge-debug/delivery-before-change/TableMax-1.0.6-win-x64-manifest.json)实际解压 **97,403,455字节**，均严格低于120,000,000字节及114MB工程预算。SHA-256 `feb31ddb2bac2af37dd2d71e5f0e7902ccf015572597b743ab3cf918fb67aff2`，冻结构建 `5fe6b8b59963cb640c982287ae57bd4086f3b42309c709767d660cfedb9546b0`。最终组装29.053秒，构建14.903秒、29／30缓存命中，仅拉密网页重建400ms；[交付证明](../../artifacts/maintenance/v1.0.6/rummikub-continuation/results.json)核验672项冻结输入及实际运行前后314程序成员。沿用版本，仅本地运行ZIP／清单；源码按已授权master推送，没有源码包或Release发布。
+最终[运行ZIP退役记录](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/retirement-plan.json) **43,592,908字节**、[314成员清单](../../artifacts/maintenance/v1.0.6/uno-edge-debug/delivery-before-change/TableMax-1.0.6-win-x64-manifest.json)实际解压 **97,403,455字节**，均严格低于120,000,000字节及114MB工程预算。SHA-256 `feb31ddb2bac2af37dd2d71e5f0e7902ccf015572597b743ab3cf918fb67aff2`，冻结构建 `5fe6b8b59963cb640c982287ae57bd4086f3b42309c709767d660cfedb9546b0`。最终组装29.053秒，构建14.903秒、29／30缓存命中，仅拉密网页重建400ms；[交付证明](../../artifacts/maintenance/v1.0.6/rummikub-continuation/results.json)核验672项冻结输入及实际运行前后314程序成员。沿用版本，仅本地运行ZIP／清单；源码按已授权master推送，没有源码包或Release发布。
 
 本地次序与草稿11项精确测试、入口检查范围保护、定向TypeScript、UI／验证器ESLint与Prettier通过。实际解压WebView2静音隐藏验证合计70布局、88张按共享策略筛选的证据图，覆盖320×568、390×640、650×390、667×375、720×390、844×390，以及720p至4K、主机／公共／玩家、14／30张牌架、首次出牌／重组／小局与终局。最终包[稳定操作](../../artifacts/rummikub/validation/ui-preview/accepted-stability-2-30-20261011/results.json)25.52秒、[完整重组](../../artifacts/rummikub/validation/ui-preview/accepted-reorganization-4-20261011/results.json)26.23秒通过；包含暂停的无动作与本地整理、暂藏第二张牌时首／末Alt边界、完整缓存不变与撤销原位退回、刷新草稿和真实回合转换。入口2／3／4人、五席限制、首次出牌和结算使用前一同版包原通过报告，后续唯一变化为本地键盘边界保护，详见[逐成员等价与原包边界](../../artifacts/maintenance/v1.0.6/rummikub-continuation/final-member-equivalence.json)，没有把旧报告改标新SHA。
 
@@ -260,7 +260,7 @@ Pages已通过[手动工作流部署](https://github.com/anApalpitate/TableMax/a
 
 UNO 改为出牌保存后独立抢按；默认人机随机选择合法实体牌和Wild颜色，三档喊牌／抓漏分别独立计时，暂停冻结、旧窗口取消。手机玩家摘要超过三人固定两行，末牌留白与本地整理保留；保存条和结算内容均进入正常布局，不再互相遮盖。阿瓦隆每次提名后逆时针逐席讨论、队长最后，仅管理员可跳过；5–10人两配置及秘密权限不变，旧投票不倒退补讨论。顶层图文规则、用户原话偏好与资源清单同步更新。第8条下载与公共契约重构未实施。
 
-最终[运行ZIP](../../artifacts/maintenance/v1.0.6/rummikub-continuation/delivery-before-change/TableMax-1.0.6-win-x64.zip) **43,590,592字节**、[314成员清单](../../artifacts/maintenance/v1.0.6/rummikub-continuation/delivery-before-change/TableMax-1.0.6-win-x64-manifest.json)实际解压 **97,396,106字节**，两者严格低于120,000,000字节及114MB工程预算。SHA-256 `a8cafdf3f06e18c755bbb2f4cc90942f3673f70d6ca617dc2dcf945d7994b3dc`；冻结构建 `8e0f3d0d8ac424e280c4500d1b30fff31acb1c0d37f3472eb46d68691df05309`。最终组装34.144秒、30／30缓存命中；[交付证明](../../artifacts/maintenance/v1.0.6/bug-five-seven/results.json)绑定实际运行、全部成员哈希与版本。没有导出源码包或发布Release。
+最终[运行ZIP退役记录](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/retirement-plan.json) **43,590,592字节**、[314成员清单](../../artifacts/maintenance/v1.0.6/rummikub-continuation/delivery-before-change/TableMax-1.0.6-win-x64-manifest.json)实际解压 **97,396,106字节**，两者严格低于120,000,000字节及114MB工程预算。SHA-256 `a8cafdf3f06e18c755bbb2f4cc90942f3673f70d6ca617dc2dcf945d7994b3dc`；冻结构建 `8e0f3d0d8ac424e280c4500d1b30fff31acb1c0d37f3472eb46d68691df05309`。最终组装34.144秒、30／30缓存命中；[交付证明](../../artifacts/maintenance/v1.0.6/bug-five-seven/results.json)绑定实际运行、全部成员哈希与版本。没有导出源码包或发布Release。
 
 [UNO验证](../games/uno/validation-scenarios.md#bug第5条修复2026-10-11)包含真人抢按／抓漏／+4权限、保存失败、三档普通模式真实等待、策略固定局面和自然500分比赛、共享调度／取消及Worker预算；最终包六人尺寸矩阵、长按整理、小局／整场结算通过，实际84.25秒／21截图。[阿瓦隆验证](../games/avalon/validation-scenarios.md#bug第6条修复2026-10-11)包含5–10人两配置、跳过越权、保存／重启／回退、36场32MiB Worker自然整局、十人四类实际终局、终局内容宽度与旧5／6人实际SQLite恢复。未改四款游戏运行成员逐字节一致，复用原证据，见[成员比较](../../artifacts/maintenance/v1.0.6/bug-five-seven/member-equivalence.json)。
 
@@ -294,21 +294,21 @@ UNO 改为出牌保存后独立抢按；默认人机随机选择合法实体牌�
 
 按用户自主制作要求完成经典2012阿瓦隆，平台5–6人；基础与派西维尔／莫甘娜两种同版配置、秘密身份与知识、并发秘密表决、匿名任务、五否决、三失败及梅林刺杀均走统一授权／事务／回退。三档独立策略、三端复古圆桌／角色画卷／封蜡牌件、局部反馈与圣杯／暗影／终末剑全屏演出、12条原创离线声音已接入，顶层图文规则按需查看。版本沿用1.0.6，未创建GitHub Release。
 
-2026-10-10验收 [运行ZIP](../../artifacts/maintenance/v1.0.6/bug-first-four/delivery-before-change/TableMax-1.0.6-win-x64.zip) **43,563,681字节**，[逐文件清单](../../artifacts/maintenance/v1.0.6/bug-first-four/delivery-before-change/TableMax-1.0.6-win-x64-manifest.json) **313成员／实际解压97,352,018字节**，SHA-256 `48d71a06d3e5ca6f48136b0c67d5c665b874a5a2d90dbc29e4c834b94b887550`。114MB工程预算和ZIP／实际解压严格小于120,000,000字节通过。[同包证明](../../artifacts/maintenance/v1.0.6/avalon/results.json)绑定实际ZIP、冻结输入与运行前后成员哈希；来源提交 `3a621c6`，其他任务的既有未提交改动另行保留。
+2026-10-10验收 [运行ZIP退役记录](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/retirement-plan.json) **43,563,681字节**，[逐文件清单](../../artifacts/maintenance/v1.0.6/bug-first-four/delivery-before-change/TableMax-1.0.6-win-x64-manifest.json) **313成员／实际解压97,352,018字节**，SHA-256 `48d71a06d3e5ca6f48136b0c67d5c665b874a5a2d90dbc29e4c834b94b887550`。114MB工程预算和ZIP／实际解压严格小于120,000,000字节通过。[同包证明](../../artifacts/maintenance/v1.0.6/avalon/results.json)绑定实际ZIP、冻结输入与运行前后成员哈希；来源提交 `3a621c6`，其他任务的既有未提交改动另行保留。
 
 42项阿瓦隆规则／策略／UI／服务／Worker单测与11项范围工具检查通过；5／6人、两配置、三档策略另有12个实际隔离Worker自然整局。首个完整同版包通过五人基础与六人宫廷四种自然终局、320px至4K三端布局、实际操作、秘密／回退、正确事件演出、减少动态、12音频解码与原生单窗口播放权，刷新不重播，共40项操作检查／26布局／82截图。最终声画排版补丁涉及CSS及标题span的JavaScript，当前实际ZIP通过六人五次任务后梅林遇刺、五人梅林幸存，含320px严格clientWidth、刺杀／终局、12项操作／7布局／27截图及313成员前后哈希。新实例手机暗影终局／公共屏黎明终局单图审查通过。旧完整流程原包和证据另存，不混写包边界，详见 [阿瓦隆验证](../games/avalon/validation-scenarios.md)。此结论不新增实体手机、现场LAN、物理屏幕或真人听感认证。
 
 664冻结输入均核对提交，7项仅既有原生文本换行差异；五款已有游戏217文件逐字节未变。相较构建前包增加21项阿瓦隆成员、更新两个目录JSON；首个完整阿瓦隆验收包至当前的呈现差异分别列入 [包差异](../../artifacts/maintenance/v1.0.6/avalon/package-delta.json)。其他游戏沿用原字节证据，不机械重跑。
 
-前包及清单保存在 [阿瓦隆构建前交付](../../artifacts/maintenance/v1.0.6/avalon/delivery-before-change/TableMax-1.0.6-win-x64.zip)，以下更新构建、UNO与更早验收仍绑定各自原哈希。原环境／音频路径／计划参数失败、预算分配理由、窄屏真实溢出与关键耗时在游戏验证维护；本轮安全收尾见 [项目瘦身](project-slimming.md)。
+前包已按 [阿瓦隆构建前包退役记录](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/retirement-plan.json)退役，原清单保留；以下更新构建、UNO与更早验收仍绑定各自原哈希。原环境／音频路径／计划参数失败、预算分配理由、窄屏真实溢出与关键耗时在游戏验证维护；本轮安全收尾见 [项目瘦身](project-slimming.md)。
 
 ## 1.0.6：更新构建（2026-10-10）
 
-按“更新构建”从已推送提交`414a1bf`重新打包，纳入`7a7824d`的游戏库搜索／筛选、集中通知和仓库图标链接，版本保持1.0.6。[当时运行ZIP](../../artifacts/maintenance/v1.0.6/avalon/delivery-before-change/TableMax-1.0.6-win-x64.zip)41,638,660字节，[逐文件清单](../../artifacts/maintenance/v1.0.6/avalon/delivery-before-change/TableMax-1.0.6-win-x64-manifest.json)292成员／实际解压95,319,481字节，SHA-256 `6bb7a718c4d9ed1488653955460bd6ca2626ba346908f97a8085e92ad4d2b38b`；114MB工程预算及严格120MB门禁通过。
+按“更新构建”从已推送提交`414a1bf`重新打包，纳入`7a7824d`的游戏库搜索／筛选、集中通知和仓库图标链接，版本保持1.0.6。[当时运行ZIP退役记录](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/retirement-plan.json)41,638,660字节，[逐文件清单](../../artifacts/maintenance/v1.0.6/avalon/delivery-before-change/TableMax-1.0.6-win-x64-manifest.json)292成员／实际解压95,319,481字节，SHA-256 `6bb7a718c4d9ed1488653955460bd6ca2626ba346908f97a8085e92ad4d2b38b`；114MB工程预算及严格120MB门禁通过。
 
 [本轮证明](../../artifacts/maintenance/v1.0.6/build-update-20261010/results.json)绑定实际ZIP：隐藏静音原生程序运行版本1.0.6、Node22.14.0、全部成员运行前后哈希、六人密集UNO三端4张截图、游戏库390px／720p／1080p三项浮窗、原生仓库与网址链接权限通过。[输入审计](../../artifacts/maintenance/v1.0.6/build-update-20261010/source-audit.json)核对629个冻结输入，其中7项仅换行差异；其他任务未提交内容未进入运行输入。与前包相比279成员未变，UNO页面、规则、策略与声画资源逐字节一致，沿用下节完整UNO验收。未新增实体手机、现场LAN或听感认证；仅更新本地ZIP和清单，未创建GitHub Release。
 
-安全测试夹具原先错误等待CSP禁止的嵌套主机及手机外层页面，分别按实际保护和iframe结构修正，失败报告保留。静态浮窗探针改为先真实关闭临时通知；额外头像面板检查仍发现互动浮球覆盖部分头像，保留原问题，不将其标为通过。本轮游戏库检查范围通过`--library-only`明确限定。前一1.0.6包和清单保存在[构建前交付](../../artifacts/maintenance/v1.0.6/build-update-20261010/delivery-before-change/TableMax-1.0.6-win-x64.zip)，下节旧证据仍绑定原哈希。
+安全测试夹具原先错误等待CSP禁止的嵌套主机及手机外层页面，分别按实际保护和iframe结构修正，失败报告保留。静态浮窗探针改为先真实关闭临时通知；额外头像面板检查仍发现互动浮球覆盖部分头像，保留原问题，不将其标为通过。本轮游戏库检查范围通过`--library-only`明确限定。前一1.0.6包已按[构建前包退役记录](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/retirement-plan.json)退役，原清单保留；下节旧证据仍绑定原哈希。
 
 release目录仅保留当前ZIP和清单；近期打包过程目录移入tmp继续受默认到龄保护。收尾维护两次均被其他清理任务持有的互斥锁阻止，未删除文件、未绕过保护。维护预览逻辑体积约14.185GiB，清理尚未完成，见[实际状态](../../artifacts/maintenance/v1.0.6/build-update-20261010/cleanup-status.json)。
 
@@ -316,11 +316,11 @@ release目录仅保留当前ZIP和清单；近期打包过程目录移入tmp继�
 
 完成手机长按调位、横滑／出牌隔离、颜色／数字排序、默认可打牌前置、手动顺序与同标签刷新恢复。手牌不按决策ID重建，倾角稳定；去掉重复小字，排行榜改为图标并显示并列名次；玩家最新保存条仅一份且位于手牌上方；桌边座位避让实体牌堆、牌堆标签和中央状态标记，竖屏手牌避让互动浮球。两条用户偏好已写入[偏好页](art-preferences.md#uno-最新要求2026-10-10)，实现参数见[UNO交互](../games/uno/interaction.md#本地手牌整理v106)。产品版本更新1.0.6，UNO规则、策略及存档版本保持不变。
 
-当前[运行ZIP](../../artifacts/maintenance/v1.0.6/build-update-20261010/delivery-before-change/TableMax-1.0.6-win-x64.zip) **41,630,209字节**，[逐文件清单](../../artifacts/maintenance/v1.0.6/build-update-20261010/delivery-before-change/TableMax-1.0.6-win-x64-manifest.json) **292成员／实际解压95,293,378字节**，SHA-256 `11c4e849f9e04df5320a7d0333c78d973cbe84b36196e124e8ce5ce7e1012990`。114MB工程预算及ZIP／解压严格小于120,000,000字节通过；原生实际运行版本1.0.6，每次运行前后292成员哈希一致。
+当时[运行ZIP退役记录](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/retirement-plan.json) **41,630,209字节**，[逐文件清单](../../artifacts/maintenance/v1.0.6/build-update-20261010/delivery-before-change/TableMax-1.0.6-win-x64-manifest.json) **292成员／实际解压95,293,378字节**，SHA-256 `11c4e849f9e04df5320a7d0333c78d973cbe84b36196e124e8ce5ce7e1012990`。114MB工程预算及ZIP／解压严格小于120,000,000字节通过；原生实际运行版本1.0.6，每次运行前后292成员哈希一致。
 
 [同包验收](../../artifacts/maintenance/v1.0.6/uno-ui/portable-final/results.json)覆盖2／3／4／6人，320×568、390×844、844×390及主机／公共屏720p—4K和独立缩放，共96项实际布局、110张截图。可信模拟触摸核验非法牌整理、排序、横滑、边缘滚动与取消、暂停取消、摸牌末尾追加、刷新／回退与DOM保留；整理不发送游戏命令、不产生保存声画。+2、万能、+4、UNO、质疑、小局／整场结算七项实际合法动作及保存后声画、历史不补播、减少动态通过，榜单累计积分降序和同分并列通过。保留v1.0.5真实程序先保存对局与显示设置，再用新包恢复，身份与游戏投影保持。
 
-3项本地排序测试、适用类型／静态／格式检查通过。[源码审计](../../artifacts/maintenance/v1.0.6/uno-ui/source-audit.json)将623个冻结输入与已推送实现提交`bb33799`逐一核对，其中1个原生项目文件仅CRLF／LF差异；独立打包排除其他任务未提交改动。[成员差异](../../artifacts/maintenance/v1.0.6/uno-ui/package-delta.json)只有6成员变化，其他286成员含规则、策略、音频及位图逐字节不变，沿用原规则验收，不机械重跑自然500分比赛。旧版[运行ZIP及清单](../../artifacts/maintenance/v1.0.6/uno-ui/delivery-v1.0.5/TableMax-1.0.5-win-x64.zip)与原证据保留。本轮仅本地ZIP／清单及源码推送，不创建GitHub Release。
+3项本地排序测试、适用类型／静态／格式检查通过。[源码审计](../../artifacts/maintenance/v1.0.6/uno-ui/source-audit.json)将623个冻结输入与已推送实现提交`bb33799`逐一核对，其中1个原生项目文件仅CRLF／LF差异；独立打包排除其他任务未提交改动。[成员差异](../../artifacts/maintenance/v1.0.6/uno-ui/package-delta.json)只有6成员变化，其他286成员含规则、策略、音频及位图逐字节不变，沿用原规则验收，不机械重跑自然500分比赛。旧版[运行ZIP退役记录](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/retirement-plan.json)、原清单与原证据保留。本轮仅本地ZIP／清单及源码推送，不创建GitHub Release。
 
 验证使用隐藏静音WinForms／WebView2及回环监听。手机尺寸、触控、DPI和音频信号是机器模拟，未新增实体手机、现场LAN或人耳听感认证。首次测试的非法牌未滚入视口、夹具没有回退检查点、三人夹具白名单缺口分别修正后只返验对应项；四人跟色标记和390px浮球避让由实际截图复核后补严检查。旧候选报告保留原哈希，不改标为最终包。
 
@@ -330,7 +330,7 @@ release目录仅保留当前ZIP和清单；近期打包过程目录移入tmp继�
 
 新增 Mattel G7942 同版经典 108 牌、2–6 人 UNO：普通回合、两人特别规则、+4 质疑、UNO 抓漏、末张罚牌与 500 分累计，默认／豆包／绝悟独立本地策略，服务端秘密投影与保存恢复。三端采用自然织垫、木边和实体纸牌，包含原创图文规则、保存后的飞牌／功能牌／四色纸屑反馈与十条原创离线音效。规则、出版依据与数字适配从 [游戏主题](../games/uno/README.md) 进入。
 
-当前 [运行 ZIP](../../artifacts/maintenance/v1.0.6/uno-ui/delivery-v1.0.5/TableMax-1.0.5-win-x64.zip) **41,625,580 字节**，[逐文件清单](../../artifacts/maintenance/v1.0.6/uno-ui/delivery-v1.0.5/TableMax-1.0.5-win-x64-manifest.json) **292 成员／实际解压 95,278,471 字节**，SHA-256 `08828727f5c6ce09d1d8283be4d1eec1f262c3f293c7264133e52a9d7923bdad`。114MB 工程预算及 ZIP／实际解压严格小于 120,000,000 字节通过。[独立审计](../../artifacts/maintenance/v1.0.5/uno-20261010/source-audit.json)核验 616 个冻结输入与实际 ZIP，四款旧游戏 200 成员逐字节未变。
+当时 [运行 ZIP退役记录](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/retirement-plan.json) **41,625,580 字节**，[逐文件清单](../../artifacts/maintenance/v1.0.6/uno-ui/delivery-v1.0.5/TableMax-1.0.5-win-x64-manifest.json) **292 成员／实际解压 95,278,471 字节**，SHA-256 `08828727f5c6ce09d1d8283be4d1eec1f262c3f293c7264133e52a9d7923bdad`。114MB 工程预算及 ZIP／实际解压严格小于 120,000,000 字节通过。[独立审计](../../artifacts/maintenance/v1.0.5/uno-20261010/source-audit.json)核验 616 个冻结输入与实际 ZIP，四款旧游戏 200 成员逐字节未变。
 
 规则／策略 39 项、真实服务／32MiB Worker 13 项、范围工具 10 项通过；类型、适用静态及格式检查通过。实际隐藏 WinForms／WebView2 完成 2／4／6 人自然 500 分比赛，共 32 小局，693 个本人权限 Worker 决定最长 304ms；每场真实暂停、回退、退出／重启和原身份恢复。开局、六人 30 牌、9 类特殊／结束状态、320px—4K、独立显示设置、秘密权限、十音轨解码与唯一公共声道、历史不补播和减少动态通过。
 

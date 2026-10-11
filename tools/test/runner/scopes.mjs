@@ -172,6 +172,7 @@ const verificationScopes = {
   'tools/maintenance/image-copies.test.ps1': ['tooling'],
   'tools/maintenance/project-maintenance.test.ps1': ['tooling'],
   'tools/maintenance/retired-generated.test.ps1': ['tooling'],
+  'tools/maintenance/reviewed-files.test.ps1': ['tooling'],
   'tools/maintenance/verify-cleanup-fast.ps1': ['tooling'],
   'tools/maintenance/verify-cleanup-idle.ps1': ['tooling'],
   'tools/test/games/avalon/verify-avalon.mjs': ['game:avalon'],

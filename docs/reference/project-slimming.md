@@ -1,5 +1,19 @@
 # 项目瘦身方案与执行记录
 
+## 深度瘦身至6GB内（2026-10-12）
+
+按用户本次目标完成一次人工深度瘦身。[冻结清单](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/retirement-plan.json) SHA-256 为 `ca9587fd01125094c3c2ef7df5fa3679f0234ef22bd8d2334b59a5f1540a6270`；完整预览后，仅执行一次 `scripts/Clean-Intermediates.ps1 -ReviewedFilesManifest … -ReviewedFilesManifestSha256 … -Apply`。[实际退役记录](../../artifacts/maintenance/reviewed-retirements/deep-slim-20261012-once.json)确认删除 **63,443个文件／18,744,785,106逻辑字节**，未复制内容作恢复归档，未追加第二轮清理。
+
+[最终核验](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/result.json)实测 **5,896,919,854逻辑字节（5.897GB／5.492GiB）**，严格小于本次 **6,000,000,000字节**目标。其中已计入受保护部署嵌套仓库 **50,825,245字节**；按日常跳过嵌套仓库的统计口径为5,846,094,609字节。统计不跟随链接重复计算目标，不以NTFS压缩节省代替逻辑容量。起始日常口径为24,484,553,113字节；统计时已有的审计清单和核验记录自身占用也纳入。
+
+退役范围为已结束的交付／安装／迁移／界面测试副本、作者验证隔离运行目录、旧内部载荷及非当前本地交付、过期历史截图，以及有相同SHA保留原件的资源和Pages ZIP副本。正式源码、依赖与工具缓存、原始图像／音频／规则资料、正式数据库与身份／checkpoint、当前完整EXE与载荷／提取目录、最新验收、唯一已发布原件、签名游戏历史仓库和部署嵌套Git均保留。Pages重复ZIP逐份核对保留原件，已有线上内容未修改。
+
+收尾核验 **2,340个关键文件／1,540,166,560字节**的SHA和修改时间全部一致，43项保护／来源绑定通过，1,768个链接保留，清单文件无残留、扫描无错误。当前完整EXE仍为 `TableMax-1.0.6.2-win-x64.exe`，SHA-256 `c2b7d16d1b0920d75279e6481eb9d3fe59530b76fbf774e990991caf363351a7`；应用版本、产品实现和正式交付不变，无需重打包。
+
+[工具核验](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/tool-audit.json)累计349项适用检查通过，覆盖精确删除、当前交付、源码／原件／存档保护、链接与嵌套仓库、近期修改、变化拒绝、进程／互斥、单次ID和Pages保留副本。首版预览拒绝误列为目录的旧审计文本与脚本，未删除；这些项移出后修正预览通过。修正预览约16分钟，唯一Apply含删除前全量复核约74分钟，最终完整性及容量检查68.849秒。
+
+历史验收继续保留当时版本、构建、失败原因、文字结论和逐文件哈希；旧包与旧图的现行退役状态以本次清单为准，相关文档直接链接已改为退役记录。本次6GB目标为单轮要求，日常10GiB／8GiB维护阈值沿用既有规则。
+
 ## 唯一完整EXE维护收尾（2026-10-12）
 
 新完整EXE验收通过后，旧1.0.6.1 full／box及清单按[逐文件SHA保全](../../artifacts/maintenance/v1.0.6/full-only-20261012/previous-delivery/preservation.json)原样移入历史证据。release根目录只留1.0.6.2完整EXE和本地清单，旧运行数据目录继续保护；内部payload、冻结快照、模块缓存和历史签名包保留。
@@ -132,7 +146,7 @@ Pages逐文件线上核验、旧局固定与重启恢复及v1.0.6正式发布通
 
 [精确清理](../../artifacts/maintenance/v1.0.6/space-retirement/result.json)退役91项，共 **5,141,407,905字节**；两次被新工程进程安全中止，随后在空闲窗口沿未变清单继续。按8GiB目标将本次维护高水位显式设为8.01GiB、低水位8GiB，普通候选预览后再Apply，[维护清单](../../artifacts/maintenance/local-cleanup-20261010-051755-416-maintenance/cleanup.json)另退役7项 **435,066,954字节**。本轮合计 **5,576,474,859字节（约5.19GiB）**，不以同期其他任务的容量变动或NTFS压缩计算回收量。
 
-最终实测 **9,654,496,247逻辑字节（约8.99GiB）**，结果`candidates-exhausted`；323项近期／未知临时内容等保护跳过，1,760链接跳过，无嵌套仓库。未达到8GiB，不放宽近期、资料、存档和证据保护，也不等待近期目录到龄常驻轮询。约567MiB的旧Electron存档仍保留。release目录仅当前v1.0.6 ZIP与清单，当前哈希`6bb7a718…`及其[实际便携检查](../../artifacts/uno/validation/v106-build-update/results.json)保持；此前完整UNO验收所对应的`11c4e849…`同版包另保存在[原包及清单](../../artifacts/maintenance/v1.0.6/uno-ui/delivery-before-build-update/TableMax-1.0.6-win-x64.zip)，原通过结论不改写。旧生成副本的11处文档链接已改指退役结果，原文字结论与清单仍保留，见[链接修复](../../artifacts/maintenance/v1.0.6/space-retirement/link-repairs.json)。
+最终实测 **9,654,496,247逻辑字节（约8.99GiB）**，结果`candidates-exhausted`；323项近期／未知临时内容等保护跳过，1,760链接跳过，无嵌套仓库。未达到8GiB，不放宽近期、资料、存档和证据保护，也不等待近期目录到龄常驻轮询。约567MiB的旧Electron存档仍保留。release目录仅当前v1.0.6 ZIP与清单，当前哈希`6bb7a718…`及其[实际便携检查](../../artifacts/uno/validation/v106-build-update/results.json)保持；此前完整UNO验收所对应的`11c4e849…`同版包已按[原包退役记录](../../artifacts/maintenance/v1.0.6/deep-slim-20261012/retirement-plan.json)退役，原清单与通过结论保留。旧生成副本的11处文档链接已改指退役结果，原文字结论与清单仍保留，见[链接修复](../../artifacts/maintenance/v1.0.6/space-retirement/link-repairs.json)。
 
 ## UNO v1.0.6 交互优化收尾（2026-10-10）
 
