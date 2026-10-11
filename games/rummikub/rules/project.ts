@@ -1,4 +1,4 @@
-import type { Viewer } from '../../../packages/game-sdk/src';
+import type { Viewer } from '@tablemax/game-sdk';
 import { getTile } from '../data/catalog';
 import type { RummikubView } from '../types';
 import type { State } from './state';

@@ -109,6 +109,12 @@ await lock('package-win', async () => {
         throw new Error('Release cannot contain linked files: ' + item.name);
       const input = join(from, item.name),
         target = join(to, item.name);
+      if (
+        /^web\/games\/[^/]+\/(?:web|resources)(?:\/|$)/.test(
+          relative(source, input).split(sep).join('/'),
+        )
+      )
+        continue;
       if (item.isDirectory()) await copyTree(input, target);
       else if (item.isFile()) await copyFile(input, target);
     }
@@ -117,9 +123,23 @@ await lock('package-win', async () => {
     await assertIdle();
     for (const file of files)
       await copyFile(join(source, file), join(unpacked, file));
-    for (const directory of ['games', 'bots', 'web'])
+    for (const directory of ['web'])
       await copyTree(join(source, directory), join(unpacked, directory));
   });
+  const catalogSource = resolve(
+    'artifacts/game-packages/v1.0.6/TableMax-game-catalog-v1.0.6.json',
+  );
+  await execute(process.execPath, [
+    '--import',
+    'tsx',
+    'tools/release/verify-game-packages.mjs',
+  ]);
+  const catalogBytes = await readFile(catalogSource);
+  await copyFile(catalogSource, join(unpacked, 'game-catalog.json'));
+  assert.deepEqual(
+    await readFile(join(unpacked, 'game-catalog.json')),
+    catalogBytes,
+  );
   async function inventory(directory) {
     const records = [];
     async function visit(current) {
@@ -149,8 +169,13 @@ await lock('package-win', async () => {
     ),
   );
   const expected = assembly.files.filter(
-    (file) => !file.path.startsWith('.tablemax-'),
+    (file) =>
+      !file.path.startsWith('.tablemax-') &&
+      !/^(games|bots)\//.test(file.path) &&
+      !/^web\/games\/[^/]+\/(web|resources)\//.test(file.path),
   );
+  expected.push(records.find((file) => file.path === 'game-catalog.json'));
+  expected.sort((a, b) => a.path.localeCompare(b.path));
   if (JSON.stringify(records) !== JSON.stringify(expected))
     throw new Error('Materialized package differs from frozen snapshot');
   const unpackedBytes = records.reduce((total, file) => total + file.bytes, 0);

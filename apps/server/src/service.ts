@@ -2,7 +2,16 @@ import Fastify from 'fastify';
 import staticFiles from '@fastify/static';
 import { Server } from 'socket.io';
 import QRCode from 'qrcode';
-import { appendFileSync, mkdirSync } from 'node:fs';
+import {
+  appendFileSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  existsSync,
+  writeFileSync,
+  unlinkSync,
+  createReadStream,
+} from 'node:fs';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
@@ -37,6 +46,8 @@ import { NetworkSettings, normalizeUrl } from './network-settings';
 import { InteractionDispatcher } from './interactions';
 import { RoomProjectionState } from './room-projections';
 import { SyncDiagnostics } from './sync-diagnostics';
+import { PackageStore } from './game-packages/store';
+import { PROJECT_GAME_PUBLIC_KEY } from './game-packages/project-public-key';
 
 export async function createService(
   input: ServiceConfig,
@@ -53,6 +64,54 @@ export async function createService(
   const storage = openFoundationDatabase(config.dataDir);
   let repository: SqliteSaveRepository;
   let room: RoomCoordinator;
+  const packages: PackageStore | undefined = config.gamesDir
+    ? new PackageStore({
+        root: config.gamesDir,
+        publicKey: PROJECT_GAME_PUBLIC_KEY,
+        protectedReleaseIds: () => [
+          ...(repository?.referencedReleases() ?? []),
+          ...(repository?.hasUnpinnedHistory() && packages
+            ? Object.values(packages.snapshot().index.releases)
+                .filter((r) => r.legacy)
+                .map((r) => r.releaseId)
+            : []),
+        ],
+        assetUrl: (blob) =>
+          `https://github.com/anApalpitate/TableMax/releases/download/${encodeURIComponent(blob.releaseTag)}/${encodeURIComponent(blob.assetName)}`,
+      })
+    : undefined;
+  if (packages) {
+    const catalogPath = join(config.webDir, '..', 'game-catalog.json');
+    if (
+      existsSync(catalogPath) &&
+      !existsSync(join(packages.root, 'catalog.json'))
+    )
+      packages.setCatalog(JSON.parse(readFileSync(catalogPath, 'utf8')));
+    const legacyRoot = join(packages.root, '.legacy');
+    if (existsSync(legacyRoot))
+      for (const name of readdirSync(legacyRoot))
+        if (/^[a-f0-9]{64}$/.test(name))
+          packages.migrateLegacy(join(legacyRoot, name));
+  }
+  const registry =
+    game instanceof GameRegistry ? game : createGameRegistry(false, packages);
+  if (packages)
+    registry.resolveSavedRelease = (saved) => {
+      if (!saved.manifest) return undefined;
+      const module = registry
+        .catalog()
+        .find((item) => item.id === saved.manifest!.id);
+      const selected = saved.variantId ?? module?.defaultVariantId;
+      const bot = Object.values(saved.snapshot?.bots ?? {})[0];
+      const release = packages.findLegacyRelease(saved.manifest.id, selected, {
+        gameVersion: saved.manifest.gameVersion,
+        rulesVersion: saved.manifest.rulesVersion,
+        stateVersion: saved.manifest.stateVersion,
+        ...(bot ? { strategyVersion: bot.version } : {}),
+      });
+      if (!release) throw new Error('missing-game-release');
+      return release.releaseId;
+    };
   try {
     repository = new SqliteSaveRepository(config.dataDir, migrationProgress);
     try {
@@ -66,11 +125,15 @@ export async function createService(
               config.playMode,
             )
           : await RoomCoordinator.open(
-              game ?? createGameRegistry(),
+              registry,
               repository,
               undefined,
               config.playMode,
-              game === undefined ? 'pokemon-encounters' : undefined,
+              game === undefined && !packages
+                ? process.env.TABLEMAX_AUTHOR_MODE === '1'
+                  ? registry.catalog()[0]?.id
+                  : 'pokemon-encounters'
+                : undefined,
             );
     } catch (error) {
       repository.close();
@@ -85,7 +148,12 @@ export async function createService(
     undefined,
     2_000,
     config.botWorkerPath
-      ? new WorkerBotExecutor(config.botWorkerPath)
+      ? new WorkerBotExecutor(config.botWorkerPath, (task) => {
+          if (!task.releaseRef) return undefined;
+          const installed = packages?.resolveModule(task.releaseRef);
+          if (!installed) throw new Error('missing-game-release');
+          return join(installed.root, installed.release.module.entries.bot);
+        })
       : undefined,
   );
   const app = Fastify({
@@ -119,6 +187,134 @@ export async function createService(
     reply.header('Referrer-Policy', 'no-referrer');
   });
   app.get('/api/foundation/health', () => health);
+  const isPackageAdmin = (request: { headers: Record<string, unknown> }) => {
+    const value = request.headers.authorization;
+    if (typeof value !== 'string' || !value.startsWith('Bearer ')) return false;
+    try {
+      return room.identity(value.slice(7)).role === 'host';
+    } catch {
+      return false;
+    }
+  };
+  if (packages) {
+    app.get('/api/game-packages', () => packages.snapshot());
+    app.get<{ Params: { ref: string } }>(
+      '/api/game-packages/releases/:ref',
+      (request, reply) => {
+        const found = packages.resolveModule(request.params.ref);
+        return found
+          ? found.release
+          : reply.code(404).send({ reason: 'missing-game-release' });
+      },
+    );
+    app.get<{ Params: { ref: string; '*': string } }>(
+      '/game-packages/:ref/*',
+      (request, reply) => {
+        const suffix = request.params['*'];
+        const path = packages.resolvePublicFile(
+          request.params.ref,
+          suffix.startsWith('resources/') ? suffix.slice(10) : suffix,
+        );
+        if (!path) return reply.code(404).send();
+        const ext = path.split('.').pop();
+        const mime: Record<string, string> = {
+          js: 'text/javascript',
+          css: 'text/css',
+          webp: 'image/webp',
+          png: 'image/png',
+          jpg: 'image/jpeg',
+          svg: 'image/svg+xml',
+          flac: 'audio/flac',
+          wav: 'audio/wav',
+          mp3: 'audio/mpeg',
+          ogg: 'audio/ogg',
+          json: 'application/json',
+        };
+        reply.type(mime[ext ?? ''] ?? 'application/octet-stream');
+        reply.header('Cache-Control', 'public, max-age=31536000, immutable');
+        return reply.send(createReadStream(path));
+      },
+    );
+    app.post<{ Body: { operation?: string; releaseId?: string } }>(
+      '/api/game-packages/manage',
+      async (request, reply) => {
+        if (!isPackageAdmin(request))
+          return reply.code(403).send({ reason: 'unauthorized' });
+        const { operation, releaseId } = request.body ?? {};
+        try {
+          if (operation === 'refresh') {
+            const response = await fetch(
+              'https://github.com/anApalpitate/TableMax/releases/download/v1.0.6/TableMax-game-catalog-v1.0.6.json',
+              { signal: AbortSignal.timeout(30000) },
+            );
+            if (
+              !response.ok ||
+              Number(response.headers.get('content-length')) > 2_000_000
+            )
+              throw new Error('catalog-download-failed');
+            const body = await response.text();
+            if (Buffer.byteLength(body) > 2_000_000)
+              throw new Error('catalog-size-limit');
+            packages.setCatalog(JSON.parse(body));
+          } else {
+            if (!releaseId || !/^[a-f0-9]{64}$/.test(releaseId))
+              return reply.code(400).send({ reason: 'invalid-message' });
+            if (operation === 'install')
+              void packages.install(releaseId).catch(() => {});
+            else if (operation === 'cancel') packages.cancel(releaseId);
+            else if (operation === 'uninstall') packages.uninstall(releaseId);
+            else if (operation === 'rollback') packages.rollback(releaseId);
+            else return reply.code(400).send({ reason: 'invalid-message' });
+          }
+          return { ok: true };
+        } catch (error) {
+          return reply.code(400).send({
+            ok: false,
+            reason:
+              error instanceof Error
+                ? error.message
+                : 'package-operation-failed',
+          });
+        }
+      },
+    );
+    app.addContentTypeParser(
+      'application/octet-stream',
+      { parseAs: 'buffer', bodyLimit: 63_999_999 },
+      (_request, body, done) => done(null, body),
+    );
+    app.post(
+      '/api/game-packages/import',
+      {
+        bodyLimit: 63_999_999,
+        onRequest: async (request, reply) => {
+          if (!isPackageAdmin(request))
+            return reply.code(403).send({ reason: 'unauthorized' });
+        },
+      },
+      async (request, reply) => {
+        if (!isPackageAdmin(request) || !Buffer.isBuffer(request.body))
+          return reply.code(403).send({ reason: 'unauthorized' });
+        const path = join(
+          packages.root,
+          '.staging',
+          `import-${randomUUID()}.zip`,
+        );
+        try {
+          writeFileSync(path, request.body, { flag: 'wx' });
+          return { ok: true, releaseId: await packages.importOffline(path) };
+        } catch (error) {
+          return reply.code(400).send({
+            ok: false,
+            reason:
+              error instanceof Error ? error.message : 'package-import-failed',
+          });
+        } finally {
+          if (existsSync(path)) unlinkSync(path);
+        }
+      },
+    );
+  }
 
   const network = new NetworkDirectory();
   const networkSettings = new NetworkSettings(config.dataDir);
@@ -210,6 +406,11 @@ export async function createService(
     return true;
   };
   const unsubscribe = room.subscribe(broadcast);
+  const unsubscribePackages = packages?.subscribe(() => {
+    registry.refresh(createGameRegistry(false, packages).registrations());
+    broadcast();
+    if (room.missingRelease) void room.restoreMissingRelease().catch(() => {});
+  });
   app.post('/api/session/transfer/request', async (request, reply) => {
     const parsed = TransferRequestSchema.safeParse(request.body);
     if (!parsed.success)
@@ -508,6 +709,7 @@ export async function createService(
     interactions.dispose();
     scheduler.stop();
     unsubscribe();
+    unsubscribePackages?.();
     // Disconnect clients without calling io.close(), which also closes HTTP.
     sockets.disconnectSockets(true);
     sockets.engine.close();

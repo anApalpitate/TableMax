@@ -1,0 +1,57 @@
+.beginner-guidance-setting {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #c9d9ca;
+  border-radius: 14px;
+  background: #f1f7ef;
+  color: #214f45;
+}
+.beginner-guidance-setting h3 {
+  margin: 0;
+  font-size: 20px;
+}
+.beginner-guidance-setting p {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.beginner-guidance-setting .guidance-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  align-items: center;
+  min-width: 92px;
+  min-height: 44px;
+  padding: 8px 12px;
+  font-size: 18px;
+  border: 1px solid #a9bcb2;
+  border-radius: 24px;
+  color: #365b50;
+  background: #fffef7;
+  white-space: nowrap;
+}
+.guidance-toggle__mark {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+.beginner-guidance-setting .guidance-toggle[aria-checked='true'] {
+  color: #fff;
+  background: #1d5a4e;
+  border-color: #1d5a4e;
+}
+.guidance-toggle[aria-checked='true'] .guidance-toggle__mark {
+  background: currentColor;
+}
+@media (max-width: 400px) {
+  .beginner-guidance-setting {
+    gap: 10px;
+    padding: 12px;
+  }
+}

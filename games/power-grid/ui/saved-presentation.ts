@@ -1,4 +1,4 @@
-import type { RoomFeedback } from '../../../packages/protocol/src';
+import type { RoomFeedback } from '@tablemax/web-host';
 import type { PowerGridView } from '../types';
 
 export type SoundCue = 'bid' | 'fuel' | 'build' | 'plant' | 'run' | 'end';

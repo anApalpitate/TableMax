@@ -9,6 +9,7 @@ export function loadGameStyle(url: URL): Promise<void> {
   link.rel = 'stylesheet';
   link.href = key;
   link.dataset.gameStyle = url.pathname;
+  link.media = 'not all';
   const request = new Promise<void>((resolve, reject) => {
     link.onload = () => resolve();
     link.onerror = () => {
@@ -22,4 +23,12 @@ export function loadGameStyle(url: URL): Promise<void> {
   });
   pendingStyles.set(key, request);
   return request;
+}
+
+/** Only the active instance's immutable stylesheet set participates in rendering. */
+export function activateGameStyles(prefix: string) {
+  for (const link of document.querySelectorAll<HTMLLinkElement>(
+    'link[data-game-style]',
+  ))
+    link.media = link.dataset.gameStyle?.startsWith(prefix) ? 'all' : 'not all';
 }

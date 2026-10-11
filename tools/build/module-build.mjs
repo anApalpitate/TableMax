@@ -9,6 +9,7 @@ import { build as esbuild } from 'esbuild';
 import { build as vite } from 'vite';
 import react from '@vitejs/plugin-react';
 import ts from 'typescript';
+import { mediaFile, gameResourcesPlugin } from './game-resources.mjs';
 import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
 import {
@@ -53,6 +54,7 @@ const external = [
   'react-dom',
   'react-dom/client',
   '@tablemax/web-host',
+  '@tablemax/web-host/platform',
 ];
 const runtimeNames = {
   react: 'react',
@@ -61,10 +63,48 @@ const runtimeNames = {
   'react-dom': 'react-dom',
   'react-dom/client': 'react-dom-client',
   '@tablemax/web-host': 'web-host',
+  '@tablemax/web-host/platform': 'web-host',
 };
 const runtimePaths = Object.fromEntries(
   external.map((id) => [id, `/runtime/v1/${runtimeNames[id]}.js`]),
 );
+export function assertGameImport(gameId, file, request) {
+  const location = posix(relative(root, file));
+  if (
+    !location.startsWith(`games/${gameId}/`) &&
+    !location.startsWith(`assets/games/${gameId}/`)
+  )
+    return;
+  const publicImports = new Set([
+    '@tablemax/game-sdk',
+    '@tablemax/game-sdk/module-manifest',
+    '@tablemax/protocol',
+    '@tablemax/web-host',
+    'react',
+    'react/jsx-runtime',
+    'react/jsx-dev-runtime',
+    'react-dom',
+    'react-dom/client',
+  ]);
+  if (request.startsWith('.')) {
+    const target = posix(
+      relative(root, resolve(dirname(file), request.split('?')[0])),
+    );
+    if (
+      ![
+        `games/${gameId}/`,
+        `assets/games/${gameId}/`,
+        `docs/games/${gameId}/`,
+      ].some((prefix) => target.startsWith(prefix))
+    )
+      throw new Error(
+        `Private or cross-game import rejected: ${location} -> ${request}`,
+      );
+  } else if (!publicImports.has(request))
+    throw new Error(
+      `Non-public game import rejected: ${location} -> ${request}`,
+    );
+}
 export async function json(path) {
   return JSON.parse(await readFile(path, 'utf8'));
 }
@@ -120,9 +160,10 @@ async function renameCache(from, to) {
     }
   }
 }
-export async function discover() {
+export async function discover(gameId) {
   const items = [];
   for (const entry of await readdir('games', { withFileTypes: true })) {
+    if (gameId && entry.name !== gameId) continue;
     const file = resolve('games', entry.name, 'game-module.json');
     if (!entry.isDirectory()) continue;
     try {
@@ -206,7 +247,7 @@ export async function lock(name, operation) {
   }
 }
 // Track source imports, type-only dependencies, CSS and each newly expanded glob.
-async function inputsFor(unit) {
+export async function inputsFor(unit) {
   if (unit.kind === 'runtime')
     return nodeRuntimeInputs({
       version: nodeVersion,
@@ -249,6 +290,10 @@ async function inputsFor(unit) {
       ts.ScriptTarget.Latest,
       true,
     );
+    if (unit.module && ['node', 'web'].includes(unit.kind)) {
+      for (const item of ts.preProcessFile(source, true, true).importedFiles)
+        assertGameImport(unit.module.id, file, item.fileName);
+    }
     const typeOnly = new Set(
       syntax.statements
         .filter(
@@ -348,6 +393,7 @@ async function inputsFor(unit) {
     'tsconfig.json',
     'global.json',
     'tools/build/module-build.mjs',
+    'tools/build/game-resources.mjs',
     'tools/build/Move-BuildCache.ps1',
     'packages/game-sdk/src/index.ts',
     'packages/protocol/src/index.ts',
@@ -365,10 +411,17 @@ async function inputsFor(unit) {
   for (const file of [...files].sort())
     entries.push({
       path: posix(relative(root, file)),
-      sha256: hash(await readFile(file)),
+      sha256:
+        ['web', 'node'].includes(unit.kind) && unit.module && mediaFile(file)
+          ? 'resource-independent'
+          : hash(await readFile(file)),
     });
   return {
     files: entries,
+    mediaPaths: [...files]
+      .filter(mediaFile)
+      .map((file) => posix(relative(root, file)))
+      .sort(),
     globs,
     compatibility: unit.module?.compatibility,
     toolchain: {
@@ -396,7 +449,10 @@ export async function validateCached(directory) {
 }
 export async function validateInputs(record) {
   for (const file of record.inputs.files)
-    if (hash(await readFile(resolve(root, file.path))) !== file.sha256)
+    if (
+      file.sha256 !== 'resource-independent' &&
+      hash(await readFile(resolve(root, file.path))) !== file.sha256
+    )
       throw new Error('Inputs changed before snapshot: ' + record.id);
   for (const item of record.inputs.globs) {
     const matches = globSync(
@@ -420,30 +476,6 @@ const catalogPlugin = {
   name: 'assembled-catalog',
   enforce: 'pre',
   transform(code, id) {
-    if (posix(id).endsWith('/apps/web/src/assets/avatars.ts'))
-      return "export {avatarFor,avatarChoices} from '@tablemax/web-host';";
-    const sharedComponents = {
-      ScreenLink: 'ScreenLink',
-      OverlayPanel: 'OverlayPanel',
-      FullscreenControl: 'FullscreenControl',
-      DisplaySettings: 'DisplaySettings',
-      PlayModeBadge: 'PlayModeBadge',
-      DecisionCountdown: 'DecisionCountdown',
-      RulesGuide: 'RulesGuide',
-      useDecisionClock: 'useDecisionClock',
-      BeginnerGuidanceSetting: 'BeginnerGuidanceSetting',
-      RoomManagement: 'PlatformRoomManagement',
-      SessionFeedback: 'PlatformSessionFeedback',
-      PlayModeControl: 'PlatformPlayModeControl',
-      CountdownSettings: 'PlatformCountdownSettings',
-    };
-    for (const [name, exported] of Object.entries(sharedComponents))
-      if (
-        posix(id).endsWith(
-          `/apps/web/src/components/${name}.${name === 'useDecisionClock' ? 'ts' : 'tsx'}`,
-        )
-      )
-        return `export {${exported} as ${name}} from '@tablemax/web-host';`;
     if (posix(id).endsWith('/apps/web/src/catalog.ts'))
       return `const response=await fetch('/catalog.json');if(!response.ok)throw new Error('Game catalog unavailable');export const moduleCatalog=await response.json();export const moduleFor=id=>moduleCatalog.find(item=>item.id===id);`;
     if (posix(id).endsWith('/apps/web/src/game-clients/registry.ts')) {
@@ -458,7 +490,7 @@ async function webBuild(unit, out) {
   const aliases =
     unit.id === 'platform-runtime'
       ? external
-          .filter((id) => id !== '@tablemax/web-host')
+          .filter((id) => !id.startsWith('@tablemax/web-host'))
           .map((id) => ({
             find: new RegExp('^' + id.replaceAll('/', '\\/') + '$'),
             replacement: webRequire.resolve(id),
@@ -466,7 +498,11 @@ async function webBuild(unit, out) {
       : [];
   const shared = {
     configFile: false,
-    plugins: [react(), ...(unit.id === 'platform-box' ? [catalogPlugin] : [])],
+    plugins: [
+      react(),
+      ...(unit.module ? [gameResourcesPlugin(root)] : []),
+      ...(unit.id === 'platform-box' ? [catalogPlugin] : []),
+    ],
     resolve: { alias: aliases },
     logLevel: 'warn',
     base: './',
@@ -480,7 +516,10 @@ async function webBuild(unit, out) {
       rolldownOptions: {
         external: unit.id === 'platform-runtime' ? [] : external,
         preserveEntrySignatures: 'strict',
-        output: { paths: runtimePaths },
+        output: {
+          paths: runtimePaths,
+          ...(unit.module ? { assetFileNames: '[name]-[hash][extname]' } : {}),
+        },
       },
     },
   };
@@ -489,18 +528,24 @@ async function webBuild(unit, out) {
   const entry =
     unit.id === 'platform-runtime'
       ? Object.fromEntries(
-          Object.entries(runtimeNames).map(([id, name]) => [
-            name,
-            id === '@tablemax/web-host'
-              ? resolve('packages/web-host/src/index.tsx')
-              : join(unit.temp, 'entries', name + '.ts'),
-          ]),
+          Object.entries(runtimeNames)
+            .filter(([id]) => id !== '@tablemax/web-host/platform')
+            .map(([id, name]) => [
+              name,
+              id === '@tablemax/web-host'
+                ? join(unit.temp, 'entries', 'web-host.ts')
+                : join(unit.temp, 'entries', name + '.ts'),
+            ]),
         )
       : unit.entry;
   if (unit.id === 'platform-runtime') {
     await mkdir(join(unit.temp, 'entries'), { recursive: true });
+    await writeFile(
+      join(unit.temp, 'entries', 'web-host.ts'),
+      `export * from ${JSON.stringify(resolve('packages/web-host/src/index.tsx').replaceAll('\\', '/'))};export * from ${JSON.stringify(resolve('packages/web-host/src/platform.ts').replaceAll('\\', '/'))};`,
+    );
     for (const [id, name] of Object.entries(runtimeNames))
-      if (id !== '@tablemax/web-host') {
+      if (!id.startsWith('@tablemax/web-host')) {
         const names = Object.keys(webRequire(id)).filter(
           (key) => /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(key) && key !== 'default',
         );
@@ -516,6 +561,17 @@ async function webBuild(unit, out) {
   return vite({ ...shared, root });
 }
 async function compile(unit, out) {
+  if (unit.kind === 'resources') {
+    for (const file of unit.inputs) {
+      const target = join(
+        out,
+        posix(relative(resolve('assets/games', unit.module.id), resolve(file))),
+      );
+      await mkdir(dirname(target), { recursive: true });
+      await copyFile(resolve(file), target);
+    }
+    return;
+  }
   if (unit.kind === 'web') return webBuild(unit, out);
   if (unit.kind === 'node') {
     const result = await esbuild({
@@ -680,7 +736,10 @@ export async function unitsFor(modules) {
     {
       id: 'platform-runtime',
       kind: 'web',
-      inputs: ['packages/web-host/src/index.tsx'],
+      inputs: [
+        'packages/web-host/src/index.tsx',
+        'packages/web-host/src/platform.ts',
+      ],
     },
     {
       id: 'platform-box',
@@ -735,6 +794,22 @@ export async function unitsFor(modules) {
         ...(item.cover ? [item.cover] : []),
       ],
     });
+  }
+  for (const item of modules) {
+    const web = units.find((unit) => unit.id === `game-${item.id}-web`);
+    const media = (await inputsFor(web)).mediaPaths;
+    for (const part of ['common', 'variant']) {
+      const inputs = media.filter(
+        (path) => path.includes('/expansion/') === (part === 'variant'),
+      );
+      if (inputs.length)
+        units.push({
+          id: `game-${item.id}-resources-${part}`,
+          kind: 'resources',
+          module: item,
+          inputs,
+        });
+    }
   }
   return units;
 }

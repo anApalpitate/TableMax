@@ -1,7 +1,4 @@
-import type {
-  BotDifficulty,
-  BotStrategy,
-} from '../../../packages/game-sdk/src';
+import type { BotDifficulty, BotStrategy } from '@tablemax/game-sdk';
 import {
   emptyStock,
   getPlant,

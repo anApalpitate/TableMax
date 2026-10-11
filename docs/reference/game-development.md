@@ -39,7 +39,7 @@ SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)
 
 盒子的轻量介绍和小封面维护在每款游戏的 `game-module.json`，不能提前加载游戏主界面或规则。设计前必须查询[用户美术偏好](art-preferences.md)。头像通过平台席位的稳定 `avatarId` 传入游戏展示，规则和计分不依赖头像。4. 在游戏内维护逐选择覆盖测试、固定随机输入、权限与规则不变量。修改源码后按 [开发环境](development.md) 检查和重建；独立 Worker 随桌面构建／便携包本地打包。
 
-桌面外壳现由 C# WinForms／.NET Framework 4.8 与共享 WebView2 承载，服务和策略仍使用包内 Node 22.14.0；游戏规则、电脑策略与 UI 不直接依赖原生外壳或桌面桥接。新增游戏应保持当前独立模块、资源归属和版本兼容边界，并检查便携 ZIP／实际解压体积；新增游戏前的交付双门禁为各自严格小于 120,000,000 字节，114 MB 为工程预算。多游戏按需下载、本地安装及离线导入仍为 [未来计划](../tasks/README.md#多游戏按需安装未来计划未实现)，当前模块懒加载继续读取随包本地资源。
+桌面外壳现由 C# WinForms／.NET Framework 4.8 与共享 WebView2 承载，服务和策略仍使用包内 Node 22.14.0；游戏规则、电脑策略与 UI 不直接依赖原生外壳或桌面桥接。新增游戏应保持当前独立模块、资源归属和版本兼容边界，并检查便携 ZIP／实际解压体积；新增游戏前的交付双门禁为各自严格小于 120,000,000 字节，基础工程预警110,000,000字节，单玩法完整依赖各严格小于64,000,000字节。多游戏按需下载、本地安装及离线导入已进入 [实施与实际验收](../tasks/README.md#独立游戏包与按需安装宏伟大计进行中)，新基础交付不含完整游戏，当前实例通过不可变发行引用加载主机已安装资源；源码开发模式仍支持随仓资源。
 
 `BotStrategy` 声明 `id,version,gameId,rulesVersion`，`validateMemory` 校验普通数据；模板和首版默认策略无记忆，使用 `null`。有记忆的策略需定义可恢复版本及初始 `null` 的转换。`decide` 只接收该座位的投影、合法动作、决策、本人记忆、策略随机源、取消信号及 `difficulty`，返回 `{action,memory}`。`difficulties` 可声明实际支持的 `default/doubao/juewu`；未声明时仅支持默认，旧输入／存档缺省等级也为默认。平台将座位等级复制到 bot 快照并传到隔离 Worker，各等级的行为及记忆兼容需有测试，不允许用不支持等级默默降级。不能读取牌库或别人秘密，不能提交管理动作。选择器输出必须经过平台再次校验；调试权限不扩大策略输入。
 
@@ -62,3 +62,11 @@ SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)
 框架例子见 [核心测试](../../packages/platform-core/src/room.test.ts)、[真实通信与 SQLite 测试](../../apps/server/src/platform.test.ts)、[强制终止恢复](../../apps/server/src/crash.test.ts)、[Worker 取消](../../apps/server/src/bot-executor.test.ts)。`pnpm check` 跑全部工程检查，`pnpm build` 构建，`pnpm verify:desktop` 验证真实窗口／手机模拟／人机整局／回退／重启。具体证据与实机限制统一在开发环境维护。
 
 首版的 [规则测试](../../games/pokemon-encounters/rules/rules.test.ts) 和 [恢复测试](../../games/pokemon-encounters/rules/recovery.test.ts) 是完整能力与 D01–D13 的接入例子；[强制退出测试](../../apps/server/src/pokemon-crash.test.ts) 用真实服务／SQLite 检查查看、传递和币面恢复。pnpm verify:game-ui 另运行合法存档 fixture 对应的真实能力 UI。当前交付与模拟边界见 [验收记录](acceptance.md)。
+
+## 独立作者工具包（2026-10-11）
+
+`tools/author/export-toolkit.mjs` 导出冻结的 SDK、公开类型与宿主控件、模板、CLI 和清单，工程无需 `apps/` 私有源码。工具包安装锁定的本地依赖后，运行 `node cli.mjs create <新目录>`；在作者目录安装模板声明的精确依赖，使用 `check`、`build`、`verify`、`package` 命令。`package` 生成供项目审核的候选包，没有生产签名私钥；候选不能直接作为正式安装包。构建和规则／投影／动作／人机契约验证不要求修改中心名单。
+
+`node cli.mjs dev <作者目录> --platform=<冻结运行目录>` 只复制运行时白名单，为每次运行分配独立 runtime、data、browser、evidence 和回环端口。平台源码、正式数据库、其他游戏和凭证不复制；开发服务默认静音。共享 SDK 与锁文件由唯一维护者改动，作者工程验证冻结公共依赖哈希。不同游戏／作者任务可以并行，最终桌面组装与发布仍串行。
+
+媒体按 `gameId/路径` 提供稳定 ID，使用公开 `resourceUrl`，CSS 与 glob 由资源构建插件迁移。代码、公共资源和玩法资源各自有完整逐文件哈希。作者必须声明实际版本、玩家权限、预算和资源来源，审核通过后由项目签名目录分发。游戏规则、状态及人机策略版本不能因拆包机械递增。平台接入验收、实际包与实体设备边界见[当前验收](acceptance.md)。

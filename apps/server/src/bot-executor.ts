@@ -3,7 +3,12 @@ import type { BotExecutor, RoomCoordinator } from '@tablemax/platform-core';
 import type { JsonValue } from '@tablemax/game-sdk';
 
 export class WorkerBotExecutor implements BotExecutor {
-  constructor(private workerPath: string) {}
+  constructor(
+    private workerPath: string,
+    private botEntry?: (
+      task: NonNullable<ReturnType<RoomCoordinator['botTask']>>,
+    ) => string | undefined,
+  ) {}
   execute(
     task: NonNullable<ReturnType<RoomCoordinator['botTask']>>,
     signal: AbortSignal,
@@ -14,7 +19,7 @@ export class WorkerBotExecutor implements BotExecutor {
         return;
       }
       const worker = new Worker(this.workerPath, {
-        workerData: task,
+        workerData: { ...task, botEntry: this.botEntry?.(task) },
         resourceLimits: { maxOldGenerationSizeMb: 32 },
       });
       let settled = false;

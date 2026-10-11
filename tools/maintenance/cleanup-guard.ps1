@@ -128,7 +128,7 @@ function Assert-Idle {
       -not $_.CommandLine -or ($_.Name -eq 'TableMax.exe' -and -not $unrelatedDesktop) -or
       ([string]$_.ExecutablePath).IndexOf($workspace, [StringComparison]::OrdinalIgnoreCase) -ge 0 -or
       ([string]$_.CommandLine).IndexOf($workspace, [StringComparison]::OrdinalIgnoreCase) -ge 0 -or
-      $_.CommandLine -match '(tools[\\/](?:dev|build|release|test|assets|analysis|maintenance)[\\/]|apps[\\/]desktop[\\/]native|electron-builder|vitest|\b(pnpm|npm)\b.*\b(build|dev|test|check|package:win|release:github|verify:\w+)\b)'
+      $_.CommandLine -match '(tools[\\/](?:dev|build|release|test|assets|analysis|maintenance|author)[\\/]|apps[\\/]desktop[\\/]native|electron-builder|vitest|\b(pnpm|npm)\b.*\b(build|dev|test|check|package:win|release:github|verify:\w+)\b)'
     )
   })
   if ($busy.Count -gt 0) {

@@ -1,4 +1,5 @@
 import type { BotStrategy, GameRules } from '@tablemax/game-sdk';
+import type { Save } from './model';
 
 export interface GameCatalogEntry {
   id: string;
@@ -10,18 +11,21 @@ export interface GameCatalogEntry {
   variants?: { id: string; name: string; description: string }[];
 }
 export interface LoadedGame {
+  /** Immutable reviewed package identity; absent only for source development. */
+  releaseRef?: string;
   variantId?: string;
   rules: GameRules;
   bot: BotStrategy;
 }
 export interface GameRegistration {
   catalog: GameCatalogEntry;
-  load(variantId?: string): Promise<LoadedGame>;
+  load(variantId?: string, releaseRef?: string): Promise<LoadedGame>;
 }
 
 /** Metadata is available without importing any game's rules, cards or strategy. */
 export class GameRegistry {
-  constructor(private readonly entries: readonly GameRegistration[]) {
+  resolveSavedRelease?: (save: Save) => string | undefined;
+  constructor(private entries: readonly GameRegistration[]) {
     if (
       new Set(entries.map((entry) => entry.catalog.id)).size !== entries.length
     )
@@ -44,7 +48,18 @@ export class GameRegistry {
   catalog(): GameCatalogEntry[] {
     return structuredClone(this.entries.map((entry) => entry.catalog));
   }
-  async load(id: string, variantId?: string): Promise<LoadedGame> {
+  registrations(): readonly GameRegistration[] {
+    return this.entries;
+  }
+  /** Replace metadata for future selections; loaded instances remain intact. */
+  refresh(entries: readonly GameRegistration[]) {
+    this.entries = new GameRegistry(entries).entries;
+  }
+  async load(
+    id: string,
+    variantId?: string,
+    releaseRef?: string,
+  ): Promise<LoadedGame> {
     const entry = this.entries.find((candidate) => candidate.catalog.id === id);
     if (!entry) throw new Error('unknown-game');
     const selected = variantId ?? entry.catalog.defaultVariantId;
@@ -53,7 +68,9 @@ export class GameRegistry {
       !entry.catalog.variants?.some((v) => v.id === selected)
     )
       throw new Error('unknown-game-variant');
-    const game = await entry.load(selected);
+    const game = await entry.load(selected, releaseRef);
+    if (releaseRef !== undefined && game.releaseRef !== releaseRef)
+      throw new Error('missing-game-release');
     const manifest = game.rules.manifest;
     if (
       manifest.id !== id ||

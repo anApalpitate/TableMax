@@ -1,4 +1,4 @@
-import type { RuleContext } from '../../../packages/game-sdk/src';
+import type { RuleContext } from '@tablemax/game-sdk';
 import { ARTISTS, CARD_IDS, getCard, getArtist } from '../data/catalog';
 import type { Action, ArtistId, ModernArtLog } from '../ui/view';
 import { actingSeats, clockwise, RULES_VERSION, type State } from './state';

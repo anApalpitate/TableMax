@@ -46,9 +46,10 @@ export function PokemonVersion({
               <ResourceButton
                 resource={{ gameId: game.catalog.id, variantId: v.id }}
                 canDownload={!!session.isHost && !session.locked}
-                disabled={!editable || v.id === selected}
-                installedLabel={v.name + (v.id === selected ? ' · 已选中' : '')}
-                current={v.id === selected}
+                disabled={!editable}
+                installedLabel={v.name}
+                current={active && v.id === selected}
+                currentReleaseRef={session.view?.game?.releaseRef}
                 select={() => {
                   session.command({ type: 'select-variant', variantId: v.id });
                   setOpen(false);

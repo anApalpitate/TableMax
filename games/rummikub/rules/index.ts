@@ -1,8 +1,4 @@
-import type {
-  GameRules,
-  JsonValue,
-  PendingDecision,
-} from '../../../packages/game-sdk/src';
+import type { GameRules, JsonValue, PendingDecision } from '@tablemax/game-sdk';
 import { RULES_VERSION } from '../data/catalog';
 import { normalizeTable } from '../shared/melds';
 import { findLegalPlay, inspectTurn } from '../shared/turn';

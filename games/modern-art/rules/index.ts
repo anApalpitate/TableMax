@@ -3,7 +3,7 @@ import type {
   JsonValue,
   PendingDecision,
   RuleContext,
-} from '../../../packages/game-sdk/src';
+} from '@tablemax/game-sdk';
 import { getCard, CARD_IDS } from '../data/catalog';
 import type { Action } from '../ui/view';
 import { initialize, AuctionFlow, MatchFlow } from './engine';

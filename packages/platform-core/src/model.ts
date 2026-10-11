@@ -50,6 +50,7 @@ export interface DeviceTransfer {
 }
 export interface Save {
   formatVersion: 1;
+  releaseRef?: string;
   variantId?: string;
   manifest: {
     id: string;

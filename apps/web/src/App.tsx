@@ -12,6 +12,7 @@ function RoomApp({ role, inGame }: { role: ScreenRole; inGame: boolean }) {
   const gameClient = useGameClient(
     inGame ? session.view?.game?.id : undefined,
     session.view?.game?.variantId,
+    session.view?.game?.releaseRef,
   );
   return (
     <div

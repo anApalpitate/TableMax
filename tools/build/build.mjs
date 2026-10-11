@@ -21,15 +21,25 @@ export async function buildProject(args = process.argv.slice(2)) {
   scheduleMaintenance();
   return lock('build-task-' + process.pid, async () => {
     const started = performance.now();
-    const modules = (await discover()).filter(
-      (item) => !args.includes('--production') || !item.internal,
-    );
-    const units = await unitsFor(modules);
     const only = args.find((v) => v.startsWith('--only='))?.slice(7);
+    const modules = (
+      await discover(only?.startsWith('game:') ? only.slice(5) : undefined)
+    ).filter((item) => !args.includes('--production') || !item.internal);
+    const units = await unitsFor(only === 'platform' ? [] : modules);
     const part = args.find((v) => v.startsWith('--part='))?.slice(7);
     if (part && !only?.startsWith('game:'))
       throw new Error('--part requires --only=game:<id>');
-    if (part && !['rules', 'bot', 'web', 'metadata'].includes(part))
+    if (
+      part &&
+      ![
+        'rules',
+        'bot',
+        'web',
+        'metadata',
+        'resources-common',
+        'resources-variant',
+      ].includes(part)
+    )
       throw new Error('Unknown build part');
     const selected = units.filter(
       (unit) =>

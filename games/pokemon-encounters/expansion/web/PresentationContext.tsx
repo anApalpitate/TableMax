@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { GameHost } from '@tablemax/web-host';
-import type { RoomFeedback } from '../../../../packages/protocol/src';
+import type { RoomFeedback } from '@tablemax/web-host';
 import type { View } from '../project';
 import {
   PresentationQueue,

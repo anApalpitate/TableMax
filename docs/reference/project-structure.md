@@ -1,5 +1,9 @@
 # 目录职责
 
+2026-10-11新增独立包职责：`tools/author/` 管理可脱离主仓的模板、公共依赖冻结、CLI和真实接入检查；`apps/server/src/game-packages/` 管理签名校验、安全解压、安装事务及引用保护；`tools/release/game-*.mjs` 管理内容寻址发行与附件白名单。公共宿主能力位于 `packages/web-host/`，平台私有适配仍在 `apps/web/`。分发产物分别进入 `artifacts/game-packages/` 与 `artifacts/author-toolkit/`，证据进入对应验收目录。
+
+运行时的 `games/<gameId>/` 属于便携根目录的安装仓库，与开发源码目录 `games/` 用途不同；基础EXE的仓库位于 `TableMax/games/`，不会放进可替换的 `app/`。签名私钥只留受保护本地 `secrets/`，不进入Git或任何交付包。
+
 阿瓦隆模块在 `games/avalon/`，独立图像与音频在 `assets/games/avalon/`，经典版原始规则册与采用规格在 `docs/games/avalon/`；生成原图留 `artifacts/avalon-art/`，实际游戏验证留 `artifacts/avalon/validation/`，便携交付审计留 `artifacts/maintenance/v1.0.6/avalon/`。
 
 本页说明当前文件归属与材料边界；运行与构建机制在[开发环境](development.md)，交付及GitHub发布流程在[Release流程](release.md)，代码依赖与封装在[工程结构](architecture.md)维护。

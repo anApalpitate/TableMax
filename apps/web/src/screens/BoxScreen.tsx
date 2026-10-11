@@ -38,6 +38,7 @@ import {
   GameResources,
   type GameResourceAdapter,
 } from '../components/game-library/resources';
+import { useInstalledResources } from '../components/game-library/server-resources';
 import { useSeatRemoval } from '../components/useSeatRemoval';
 import './box-refinements.css';
 
@@ -63,9 +64,10 @@ export function BoxScreen({
   session: RoomSession;
   resources?: GameResourceAdapter;
 }) {
+  const installed = useInstalledResources(session);
   return (
     <Notifications>
-      <GameResources {...(resources ? { adapter: resources } : {})}>
+      <GameResources adapter={resources ?? installed.adapter}>
         <BoxScreenContent session={session} />
       </GameResources>
     </Notifications>

@@ -93,6 +93,7 @@ export class RoomCoordinator {
   private game: LoadedGame | null;
   private registry: GameRegistry;
   restored = false;
+  missingRelease: string | null = null;
   constructor(
     rules: GameRules | null,
     strategy: BotStrategy | null,
@@ -102,6 +103,8 @@ export class RoomCoordinator {
     registry?: GameRegistry,
     loadedSave?: unknown,
     loadedVariantId?: string,
+    loadedReleaseRef?: string,
+    repairSave?: Save,
   ) {
     this.hostToken = hostToken;
     requireThat(
@@ -117,6 +120,9 @@ export class RoomCoordinator {
         ? {
             rules,
             bot: strategy,
+            ...(loadedReleaseRef === undefined
+              ? {}
+              : { releaseRef: loadedReleaseRef }),
             ...(loadedVariantId === undefined
               ? {}
               : { variantId: loadedVariantId }),
@@ -140,11 +146,36 @@ export class RoomCoordinator {
             ]
           : [],
       );
+    if (repairSave) {
+      requireThat(
+        repairSave.formatVersion === 1 &&
+          typeof repairSave.instanceId === 'string' &&
+          Array.isArray(repairSave.seats) &&
+          repairSave.seats.length <= 12 &&
+          repairSave.seats.every(
+            (s) =>
+              typeof s.id === 'string' &&
+              typeof s.name === 'string' &&
+              (s.tokenHash === null || /^[0-9a-f]{64}$/.test(s.tokenHash)),
+          ),
+        'damaged-save',
+      );
+      this.data = structuredClone(repairSave);
+      this.data.paused = true;
+      this.missingRelease = repairSave.releaseRef ?? 'legacy';
+      return;
+    }
     const saved = loadedSave === undefined ? repository.load() : loadedSave;
     this.data =
       saved === null
         ? this.fresh()
-        : validateSave(saved, rules, strategy, this.game?.variantId);
+        : validateSave(
+            saved,
+            rules,
+            strategy,
+            this.game?.variantId,
+            this.game?.releaseRef,
+          );
     for (const seat of this.data.seats) {
       if (!seat.avatarId?.startsWith('custom-')) continue;
       const png = repository.getAvatar?.(seat.avatarId);
@@ -163,7 +194,9 @@ export class RoomCoordinator {
         (saved as Save).countdownSeconds === undefined ||
         (saved as Save).decisionClocks === undefined ||
         ((saved as Save).variantId === undefined &&
-          this.game?.variantId !== undefined));
+          this.game?.variantId !== undefined) ||
+        ((saved as Save).releaseRef === undefined &&
+          this.game?.releaseRef !== undefined));
     // SQLite journal revisions are unique; migrate an old lobby exactly once.
     if (persist && this.data.status !== 'playing') this.data.revision++;
     if (initialPlayMode !== undefined) {
@@ -207,11 +240,38 @@ export class RoomCoordinator {
     initialGameId?: string,
   ) {
     const saved = repository.load() as Save | null;
-    const game = saved?.manifest
-      ? await registry.load(saved.manifest.id, saved.variantId)
-      : saved === null && initialGameId
-        ? await registry.load(initialGameId)
-        : null;
+    let game: LoadedGame | null;
+    try {
+      game = saved?.manifest
+        ? await registry.load(
+            saved.manifest.id,
+            saved.variantId,
+            saved.releaseRef ?? registry.resolveSavedRelease?.(saved),
+          )
+        : saved === null && initialGameId
+          ? await registry.load(initialGameId)
+          : null;
+    } catch (error) {
+      if (
+        !saved?.manifest ||
+        !['missing-game-release', 'uninstalled-game', 'unknown-game'].includes(
+          error instanceof Error ? error.message : '',
+        )
+      )
+        throw error;
+      return new RoomCoordinator(
+        null,
+        null,
+        repository,
+        hostToken,
+        initialPlayMode,
+        registry,
+        null,
+        undefined,
+        undefined,
+        saved,
+      );
+    }
     const room = new RoomCoordinator(
       game?.rules ?? null,
       game?.bot ?? null,
@@ -221,9 +281,39 @@ export class RoomCoordinator {
       registry,
       saved,
       game?.variantId,
+      game?.releaseRef,
     );
     if (game) room.game = game;
     return room;
+  }
+  /** Reopen the exact saved package after repair; never select a newer release. */
+  async restoreMissingRelease() {
+    if (!this.missingRelease || !this.data.manifest) return false;
+    return this.enqueue(async () => {
+      const game = await this.registry.load(
+        this.data.manifest!.id,
+        this.data.variantId,
+        this.data.releaseRef ?? this.registry.resolveSavedRelease?.(this.data),
+      );
+      const next = validateSave(
+        this.repository.load(),
+        game.rules,
+        game.bot,
+        game.variantId,
+        game.releaseRef,
+      );
+      next.paused = true;
+      next.revision++;
+      next.branch++;
+      synchronizeDecisionClocks(next, next, game.rules, Date.now(), true);
+      this.repository.save(next);
+      this.data = next;
+      this.game = game;
+      this.missingRelease = null;
+      this.restored = true;
+      this.listeners.forEach((listener) => listener());
+      return true;
+    });
   }
   get rules(): GameRules {
     requireThat(this.game, 'game-not-selected');
@@ -240,6 +330,9 @@ export class RoomCoordinator {
     const manifest = game?.rules.manifest;
     return {
       formatVersion: 1,
+      ...(game?.releaseRef === undefined
+        ? {}
+        : { releaseRef: game.releaseRef }),
       ...(game?.variantId === undefined ? {} : { variantId: game.variantId }),
       manifest: manifest
         ? {
@@ -345,6 +438,7 @@ export class RoomCoordinator {
     game = this.game,
     extras?: SaveExtras,
   ) {
+    requireThat(!this.missingRelease, 'missing-game-release');
     synchronizeDecisionClocks(next, this.data, game?.rules ?? null, Date.now());
     this.repository.save(next, extras);
     const savedAt = performance.now();
@@ -539,7 +633,7 @@ export class RoomCoordinator {
     const seatId = identity.role === 'player' ? identity.seatId : null;
     const snap = d.snapshot;
     const pending =
-      snap && seatId
+      snap && seatId && this.game
         ? this.rules.decisions(snap.state).find((p) => p.seatId === seatId)
         : undefined;
     return {
@@ -565,6 +659,7 @@ export class RoomCoordinator {
             ...this.rules.manifest.players,
             decisionTimer: this.rules.manifest.decisionTimer !== false,
             ...(d.variantId === undefined ? {} : { variantId: d.variantId }),
+            ...(d.releaseRef === undefined ? {} : { releaseRef: d.releaseRef }),
           }
         : null,
       catalog: this.registry.catalog(),
@@ -590,12 +685,13 @@ export class RoomCoordinator {
         }),
       ),
       self: { role: identity.role, seatId },
-      gameView: snap
-        ? this.rules.project(
-            structuredClone(snap.state),
-            seatId ? { role: 'player', seatId } : { role: 'public' },
-          )
-        : null,
+      gameView:
+        snap && this.game
+          ? this.rules.project(
+              structuredClone(snap.state),
+              seatId ? { role: 'player', seatId } : { role: 'public' },
+            )
+          : null,
       decisionId: pending?.id ?? null,
       selectionToken: pending?.id ?? null,
       actions:
@@ -620,6 +716,7 @@ export class RoomCoordinator {
           : [],
       lifecycleActions:
         this.controls(identity) &&
+        this.game &&
         snap &&
         !d.paused &&
         !['房主结束', '管理员结束'].includes(d.endReason ?? '')
@@ -634,7 +731,9 @@ export class RoomCoordinator {
                 ) !== 'host',
             )
           : [],
-      botError: d.botError ?? this.transientBotError,
+      botError: this.missingRelease
+        ? '游戏包缺失，请管理员补装以恢复原对局。'
+        : (d.botError ?? this.transientBotError),
       endReason: d.endReason,
     };
   }
@@ -945,12 +1044,6 @@ export class RoomCoordinator {
           .find((entry) => entry.id === gameId);
         requireThat(catalog, 'unknown-game');
         requireThat(next.seats.length <= catalog.max, 'too-many-seats');
-        if (
-          this.game?.rules.manifest.id === gameId &&
-          next.status === 'lobby' &&
-          (c.type === 'select-game' || c.variantId === next.variantId)
-        )
-          break;
         let game: LoadedGame;
         try {
           game = await this.registry.load(
@@ -960,6 +1053,13 @@ export class RoomCoordinator {
         } catch {
           throw new Rejection('game-load-failed');
         }
+        if (
+          this.game?.rules.manifest.id === gameId &&
+          next.status === 'lobby' &&
+          game.variantId === next.variantId &&
+          game.releaseRef === next.releaseRef
+        )
+          break;
         requireThat(
           next.seats.every(
             (seat) =>
@@ -1368,6 +1468,7 @@ export class RoomCoordinator {
   botTask(requestedSeat?: string) {
     const d = this.data;
     if (
+      !this.game ||
       d.status !== 'playing' ||
       d.paused ||
       d.botError ||
@@ -1392,6 +1493,7 @@ export class RoomCoordinator {
     return {
       ...(timing ? { timing } : {}),
       gameId: this.rules.manifest.id,
+      ...(d.releaseRef === undefined ? {} : { releaseRef: d.releaseRef }),
       ...(d.variantId === undefined ? {} : { variantId: d.variantId }),
       rulesVersion: this.rules.manifest.rulesVersion,
       instanceId: d.instanceId,

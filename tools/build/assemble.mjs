@@ -56,7 +56,7 @@ export async function assertIdle() {
         $_.ProcessId -ne [int]$env:TABLEMAX_BUILD_PID -and $_.ProcessId -notin $taskIdleCoordinators -and (
           [string]::IsNullOrWhiteSpace($taskCommandLine) -or
           ($_.Name -eq 'TableMax.exe' -and -not $unrelatedDesktop) -or
-          $taskCommandLine -match '(tools[\\/](?:dev|build|release|test|assets|analysis|maintenance)[\\/]|apps[\\/]desktop[\\/]native|vitest)'
+          $taskCommandLine -match '(tools[\\/](?:dev|build|release|test|assets|analysis|maintenance|author)[\\/]|apps[\\/]desktop[\\/]native|vitest)'
         )
     })
     if ($taskBusy.Count) { throw ('Engineering process busy: ' + (($taskBusy.ProcessId) -join ',')) }
@@ -101,9 +101,15 @@ export async function assemble(
     'platform-node',
     'platform-native',
     ...snapshot.modules.flatMap((item) =>
-      ['rules', 'bot', 'web', 'metadata'].map(
-        (part) => `game-${item.id}-${part}`,
-      ),
+      [
+        'rules',
+        'bot',
+        'web',
+        'metadata',
+        ...snapshot.units
+          .filter((unit) => unit.id.startsWith(`game-${item.id}-resources-`))
+          .map((unit) => unit.id.slice(`game-${item.id}-`.length)),
+      ].map((part) => `game-${item.id}-${part}`),
     ),
   ];
   if (
@@ -151,9 +157,14 @@ export async function assemble(
             target = 'web/runtime/v1/' + file.path;
           else if (unit.id.startsWith('game-')) {
             const game = snapshot.modules.find((item) =>
-              ['rules', 'bot', 'web', 'metadata'].some(
-                (part) => unit.id === `game-${item.id}-${part}`,
-              ),
+              [
+                'rules',
+                'bot',
+                'web',
+                'metadata',
+                'resources-common',
+                'resources-variant',
+              ].some((part) => unit.id === `game-${item.id}-${part}`),
             );
             if (!game) throw new Error('Unknown game output');
             const part = unit.id.slice(('game-' + game.id + '-').length);
@@ -161,6 +172,8 @@ export async function assemble(
               target = `web/games/${game.id}/metadata/${file.path}`;
             else if (part === 'web')
               target = `web/games/${game.id}/web/${file.path}`;
+            else if (part.startsWith('resources-'))
+              target = `web/games/${game.id}/resources/${game.id}/${file.path}`;
             else target = `${part === 'rules' ? 'games' : 'bots'}/${file.path}`;
           }
           await copy(join(unit.directory, 'files', file.path), target);

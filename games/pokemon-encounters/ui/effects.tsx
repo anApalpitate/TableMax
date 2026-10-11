@@ -12,10 +12,7 @@ import {
 } from '../../../assets/games/pokemon-encounters/catalog';
 import { drawMotifs, effectScene } from './effect-scene';
 import { SavedMotion } from './motion';
-import type {
-  PublicAction,
-  RoomFeedback,
-} from '../../../packages/protocol/src';
+import type { PublicAction, RoomFeedback } from '@tablemax/web-host';
 import { actionEffects } from './presentation-state';
 import './effects.css';
 import { AbilityEntrance } from './AbilityEntrance';

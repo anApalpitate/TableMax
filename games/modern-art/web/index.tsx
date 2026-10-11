@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- Lazy adapters expose one platform client object. */
 import { useState } from 'react';
-import type { JsonValue } from '../../../packages/game-sdk/src';
+import type { JsonValue } from '@tablemax/game-sdk';
 import type { Action, ModernArtView } from '../ui/view';
 import {
   AuctionStage,

@@ -14,6 +14,7 @@
 | [006：完整游戏与模拟交付](006-complete-game-and-simulated-delivery.md)                  | 已采用完整游戏与授权设备模拟的交付范围；历史结论只对应当时产物                                |
 | [007：游戏目录、手机房主与独立提交](007-library-owner-and-concurrency.md)               | 已采用游戏按需加载、手机房主持久授权、独立并发窗口与安全维护                                  |
 | [008：共享 WebView2 与小体积桌面交付](008-small-native-desktop.md)                      | 已采用原生桌面、共享 WebView2 与包内 Node，替代 Electron 分发；规定运行时前提及双 100 MB 门禁 |
+| [009：独立游戏包与公共作者契约](009-independent-game-packages.md) | 已确定不可变发行、签名目录、按需安装及作者隔离；正在进行实际交付验收 |
 | [平台美术与三端布局](../reference/phase-02-platform-spec.md#已确认的美术方向与三端布局) | 用户确认“明亮的桌游主机”；当前表现要求与游戏例外见 [通用视觉](../reference/visual-design.md)  |
 
 当前交互与权限统一见 [通用平台规格](../reference/phase-02-platform-spec.md)，游戏采用版本与来源从 [游戏索引](../games/README.md)进入；设计确认不代表未完成的后续功能已经实现。较早阶段的范围、关口和证据见 [归档索引](../archive/README.md)。

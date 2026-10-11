@@ -1,0 +1,155 @@
+.game-rulebook-entry {
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 18px;
+}
+html:has(.overlay-panel[open] .rules-guide) {
+  overflow: hidden;
+}
+.overlay-panel:has(.rules-guide) {
+  width: min(94vw, 980px);
+  overflow-x: hidden;
+}
+.overlay-panel:has(.rules-guide) .panel-heading h2,
+.rules-guide h3 {
+  text-wrap: balance;
+}
+.rules-guide__title-part {
+  display: inline-block;
+  white-space: nowrap;
+}
+.rules-guide {
+  --rules-ink: #173b32;
+  --rules-accent: #376451;
+  --rules-paper: #f2f7ed;
+  --rules-line: #b9c9b0;
+  display: grid;
+  gap: 22px;
+  color: var(--rules-ink);
+  font-size: 18px;
+  line-height: 1.65;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.rules-guide p,
+.rules-guide li {
+  font-size: 18px;
+  line-height: 1.65;
+  margin: 0;
+}
+.rules-guide .rules-guide__summary {
+  padding: 14px 16px;
+  border-left: 5px solid var(--rules-accent);
+  background: var(--rules-paper);
+  border-radius: 8px;
+}
+.rules-guide__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.rules-guide__nav button,
+.rules-guide__source button {
+  flex: 1 1 112px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  margin: 0;
+  color: var(--rules-ink);
+  border: 1px solid var(--rules-accent);
+  background: var(--rules-paper);
+  border-radius: 8px;
+  font-size: 18px;
+  line-height: 1.35;
+}
+.rules-guide__nav button:focus-visible,
+.rules-guide__source button:focus-visible,
+.rules-guide h3:focus-visible {
+  outline: 3px solid var(--rules-accent);
+  outline-offset: 3px;
+}
+.rules-guide__chapters {
+  display: grid;
+  gap: 26px;
+}
+.rules-guide__chapters > section {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  border-top: 1px solid var(--rules-line);
+  padding-top: 18px;
+}
+.rules-guide h3 {
+  font-size: 22px;
+  line-height: 1.4;
+  margin: 0;
+  scroll-margin-top: 100px;
+}
+.rules-guide h4 {
+  font-size: 20px;
+  line-height: 1.4;
+  margin: 0 0 8px;
+}
+.rules-guide figure {
+  min-width: 0;
+  padding: 10px;
+  margin: 0;
+  background: var(--rules-paper);
+  border: 1px solid var(--rules-line);
+  border-radius: 12px;
+}
+.rules-guide figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.rules-guide figcaption {
+  font-size: 16px;
+  line-height: 1.5;
+  margin-top: 10px;
+}
+.rules-guide ol,
+.rules-guide ul {
+  margin: 0;
+  padding-left: 1.4em;
+  display: grid;
+  gap: 8px;
+}
+.rules-guide__source {
+  display: grid;
+  gap: 14px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rules-line);
+}
+.rules-guide__source p {
+  font-size: 16px;
+  line-height: 1.6;
+}
+.rules-guide__source button {
+  justify-self: start;
+}
+.rules-guide a {
+  color: var(--rules-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 420px) {
+  .overlay-panel:has(.rules-guide) {
+    padding: 14px;
+  }
+  .overlay-panel:has(.rules-guide) .panel-heading {
+    top: -14px;
+    gap: 8px;
+  }
+  .overlay-panel:has(.rules-guide) .panel-heading h2 {
+    font-size: 22px;
+  }
+  .rules-guide {
+    gap: 16px;
+  }
+  .rules-guide .rules-guide__summary,
+  .rules-guide figure {
+    padding: 10px;
+  }
+}

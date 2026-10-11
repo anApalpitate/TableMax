@@ -1,4 +1,4 @@
-import type { JsonValue } from '../../../packages/game-sdk/src';
+import type { JsonValue } from '@tablemax/game-sdk';
 import { CARD_IDS } from '../data/catalog';
 import type { ModernArtView } from '../ui/view';
 

@@ -1,4 +1,4 @@
-import type { Viewer } from '../../../packages/game-sdk/src';
+import type { Viewer } from '@tablemax/game-sdk';
 import { getPlant, RESOURCES } from '../data/catalog';
 import { price, replenishment, settingsFor } from '../data/economy';
 import type { PowerGridView } from '../types';

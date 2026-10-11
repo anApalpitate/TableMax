@@ -6,11 +6,13 @@
 
 ## 开始开发
 
+独立游戏包、按需安装与公共作者契约正在实施验收，从[任务索引](tasks/README.md#独立游戏包与按需安装宏伟大计进行中)进入；发行选择与理由见[决策009](decisions/009-independent-game-packages.md)。基础包、玩法包和作者工具包分别核验，不沿用旧完整包的通过结论。
+
 用户手写的剩余改动与任务量标记见[手写改动单](tasks/手写改动单.md)。
 
-新增 [UNO 经典版](games/uno/README.md)：采用 Mattel G7942 同版 108 牌、平台 2–6 人；自主制作的规则、策略、三端视觉、离线声画及适用验证已完成，过程与原证据见 [构建归档](archive/uno-2026-10-10.md)。
+新增 [UNO 经典版](games/uno/README.md)：采用 Mattel G7942 同版 108 牌、平台 2–6 人；自主制作的规则、策略、三端视觉、离线声画及适用验证已完成，过程与原证据见 [建建归档](archive/uno-2026-10-10.md)。
 
-新增游戏：[拉密经典版完整构建](archive/rummikub-2026-10-09.md)的本地v1.0.5运行包与同包验收通过，采用经典2–4人；规则与来源从[游戏主题](games/rummikub/README.md)进入。
+新增游戏：[拉密经典版完整建建](archive/rummikub-2026-10-09.md)的本地v1.0.5运行包与同包验收通过，采用经典2–4人；规则与来源从[游戏主题](games/rummikub/README.md)进入。
 
 先读 [AGENTS.md](../AGENTS.md)，检查 Git 状态与当前任务相关 diff，再按下表进入唯一正文。已知主题直接定位章节或使用定向查询，不先通读整个 docs。第一至六阶段已完成，当前为首版维护与后续独立需求；范围和接续见 [任务索引](tasks/README.md#后续开发接续入口)。
 
@@ -30,9 +32,9 @@
 | 电力公司规则／经典地图／经济／秘密／策略／资源         | [电力公司](games/power-grid/README.md)；空间数据与展示查 [地图](games/power-grid/map.md)                                                                                                                                                                                                                     |
 | 电脑玩家配置、输入权限与调度                           | [通用人机规格](reference/bot-players.md) → 对应游戏独立人机页                                                                                                                                                                                                                                                |
 | 宝可梦扩展版开发阶段与接续                             | [扩展版开发阶段](tasks/pokemon-encounters-expansion.md)，实现、同包验证及真人待测项                                                                                                                                                                                                                          |
-| 代码依赖、进程、契约与适度封装                         | [工程结构](reference/architecture.md)                                                                                                                                                                                                                                                                        |
-| 构建、测试、运行、便携、清理、压缩                     | [开发环境](reference/development.md)                                                                                                                                                                                                                                                                         |
-| 本地交付、GitHub Release流程与更新说明                 | [Release流程与发布约定](reference/release.md)：构建验收、EXE与源码附件、提交标签、发布文案和收尾。                                                                                                                                                                                                           |
+| 代码依赖、进程、契约与适度封装                         | [工程结建](reference/architecture.md)                                                                                                                                                                                                                                                                        |
+| 建建、测试、运行、便携、清理、压缩                     | [开发环境](reference/development.md)                                                                                                                                                                                                                                                                         |
+| 本地交付、GitHub Release流程与更新说明                 | [Release流程与发布约定](reference/release.md)：建建验收、EXE与源码附件、提交标签、发布文案和收尾。                                                                                                                                                                                                           |
 | 文件应放哪里、哪些是产物                               | [目录职责](reference/project-structure.md)                                                                                                                                                                                                                                                                   |
 | 新游戏注册、策略替换与模板                             | [游戏开发指南](reference/game-development.md)                                                                                                                                                                                                                                                                |
 | 当前交付包、模拟设备边界和最近证据                     | [验收记录](reference/acceptance.md)                                                                                                                                                                                                                                                                          |
@@ -40,7 +42,7 @@
 
 平台交互与通用视觉分别维护行为和表现；玩法、字段和决策只在游戏主题维护。当前 UI 的规则说明按用户最新授权分别优化；三款游戏均采用各自原创逻辑图解和本地场景素材；通用采用要求不代表旧页或全部设备已经验收。原文核验、项目约定与实现状态保持区分，查来源从对应游戏的 sources.md 进入。
 
-游戏解耦、独立增量构建与完整 ZIP 分块组装已实现，从 [实施归档](archive/completed-tasks-2026-10-10.md#游戏解耦与增量构建打包已实现)进入；模块边界与验收分别维护在工程结构和开发环境。
+游戏解耦、独立增量建建与完整 ZIP 分块组装已实现，从 [实施归档](archive/completed-tasks-2026-10-10.md#游戏解耦与增量建建打包已实现)进入；模块边界与验收分别维护在工程结建和开发环境。
 
 ## 定向查询
 

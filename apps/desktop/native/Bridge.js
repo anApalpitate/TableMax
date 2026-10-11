@@ -17,10 +17,13 @@
   function request(method, params) {
     const id = ++sequence;
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        pending.delete(id);
-        reject(new Error('TableMax 桌面请求超时。'));
-      }, 10000);
+      const timer = setTimeout(
+        () => {
+          pending.delete(id);
+          reject(new Error('TableMax 桌面请求超时。'));
+        },
+        method === 'packages.pick' ? 120000 : 10000,
+      );
       pending.set(id, { resolve, reject, timer });
       window.chrome.webview.postMessage({ id, method, params });
     });
@@ -50,6 +53,9 @@
       update: (...args) => request('display.update', args),
       subscribe: (listener) => subscribe('display', listener),
     }),
+  });
+  Object.defineProperty(window, 'tablemaxPackages', {
+    value: Object.freeze({ pick: () => request('packages.pick', []) }),
   });
   Object.defineProperty(window, 'tablemaxWindow', {
     value: Object.freeze({

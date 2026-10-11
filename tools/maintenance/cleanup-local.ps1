@@ -283,6 +283,21 @@ namespace TableMax {
 function Add-Candidate([string]$Path, [string]$Reason, $VerificationProof = $null) {
   try {
     $absolute = Assert-LocalPath $Path
+    $relativeCandidate = $absolute.Substring($workspace.Length).TrimStart('\', '/').Replace('\', '/')
+    if ($relativeCandidate -match '^(games|secrets|artifacts/game-packages|artifacts/author-toolkit)(/|$)') {
+      throw 'Installed game repository, signing configuration or current game/toolkit distribution is protected.'
+    }
+    $packageFolders = New-Object 'System.Collections.Generic.Stack[string]'
+    if ([IO.Directory]::Exists($absolute)) { $packageFolders.Push($absolute) }
+    while ($packageFolders.Count) {
+      $packageFolder = $packageFolders.Pop()
+      if (Test-Path -LiteralPath (Join-Path $packageFolder 'games/index.json') -PathType Leaf) {
+        throw 'Installed game repository inside the cleanup candidate is protected.'
+      }
+      foreach ($packageChild in [IO.Directory]::EnumerateDirectories($packageFolder)) {
+        if (([IO.File]::GetAttributes($packageChild) -band [IO.FileAttributes]::ReparsePoint) -eq 0) { $packageFolders.Push($packageChild) }
+      }
+    }
     if ($absolute -eq $archive -or ($KeepLatestOnly -and $absolute -eq $releaseManifest)) {
       throw 'Current verified release file is protected.'
     }

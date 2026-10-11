@@ -59,6 +59,27 @@ export class SqliteSaveRepository implements SaveRepository {
   load(): unknown | null {
     return readCurrentSave(this.database);
   }
+  referencedReleases(): string[] {
+    const refs = new Set<string>();
+    for (const row of this.database
+      .prepare('SELECT data FROM saves UNION ALL SELECT data FROM journal')
+      .all()) {
+      const stored = JSON.parse(String(row.data));
+      const ref = (stored._storage === 2 ? stored.value : stored)?.releaseRef;
+      if (typeof ref === 'string' && /^[a-f0-9]{64}$/.test(ref)) refs.add(ref);
+    }
+    return [...refs];
+  }
+  hasUnpinnedHistory(): boolean {
+    return this.database
+      .prepare('SELECT data FROM saves UNION ALL SELECT data FROM journal')
+      .all()
+      .some((row) => {
+        const stored = JSON.parse(String(row.data));
+        const value = stored._storage === 2 ? stored.value : stored;
+        return value?.manifest && typeof value.releaseRef !== 'string';
+      });
+  }
   getAvatar(id: string): Uint8Array | null {
     if (
       !this.database

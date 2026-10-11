@@ -10,6 +10,8 @@ import { promisify } from 'node:util';
 import { readFile, writeFile, stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
+import { gameReleaseAssets } from './game-release-assets.mjs';
+import { PROJECT_GAME_PUBLIC_KEY } from '../../apps/server/src/game-packages/project-public-key.ts';
 const run = async (command, args) =>
   (
     await promisify(execFile)(command, args, {
@@ -63,7 +65,10 @@ const manifest = JSON.parse(
     'utf8',
   ),
 );
-const inputs = new Set(['apps/desktop/release/Launcher.cs']);
+const inputs = new Set([
+  'apps/desktop/release/Launcher.cs',
+  'apps/desktop/native/LegacyGames.cs',
+]);
 for (const unit of manifest.units) {
   const record = JSON.parse(
     await readFile(
@@ -90,7 +95,21 @@ await run('git', [
   `--output=${source}`,
   commit,
 ]);
-const assets = [exe, source];
+const devkit = process.argv
+  .find((arg) => arg.startsWith('--devkit='))
+  ?.slice(9);
+assert.ok(
+  devkit,
+  'Provide the independently verified developer toolkit with --devkit=<zip>',
+);
+const gameAssets = await gameReleaseAssets(
+  resolve('artifacts/game-packages', tag),
+  {
+    publicKey: PROJECT_GAME_PUBLIC_KEY,
+    devkitPath: resolve(devkit),
+  },
+);
+const assets = [exe, source, ...gameAssets.map((file) => file.path)];
 const record = {
   version,
   commit,
@@ -140,8 +159,8 @@ assert.equal(
 );
 assert.equal(
   online.assets.length,
-  2,
-  'Public release must contain only EXE and source ZIP',
+  assets.length,
+  'Public release must match the verified base, source, signed game catalog and toolkit whitelist',
 );
 for (const file of record.assets) {
   const name = file.path.split(/[\\/]/).at(-1);

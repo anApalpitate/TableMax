@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react';
+import type { ComponentType, AnchorHTMLAttributes, ReactNode } from 'react';
 import type { RoomView, RoomFeedback, Command } from '@tablemax/protocol';
 
 export const WEB_HOST_VERSION = 1;
@@ -22,7 +22,26 @@ export interface GameHost {
   feedback: RoomFeedback | null;
   errorId: string;
   motion: string[];
+  resourceUrl?(id: string): string;
   command(value: GameCommand): void;
+}
+export interface GameHostSlots {
+  management(props: { lifecycleLabel?: string }): ReactNode;
+  feedback(): ReactNode;
+  playMode(): ReactNode;
+  countdown(props: { children?: ReactNode }): ReactNode;
+}
+/** Presentation capabilities only; installed by the private platform adapter. */
+export interface HostPresentationServices {
+  ScreenLink: ComponentType<
+    AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }
+  >;
+  FullscreenControl: ComponentType;
+  DisplaySettings: ComponentType<{ role?: GameHost['role'] }>;
+  useAudioOutput(): boolean;
+  claimAudioEvent(key: string): boolean | Promise<boolean>;
+  avatarFor(id: string): string;
+  avatarChoices: readonly { id: string; name: string; src: string }[];
 }
 export interface GameClient {
   Screen: ComponentType<{ session: GameHost }>;

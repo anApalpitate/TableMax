@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import type { RoomFeedback } from '../../../packages/protocol/src';
+import type { RoomFeedback } from '@tablemax/web-host';
 import type { AuctionKind, ModernArtView } from './view';
 import {
   ModernArtSavedFeedback,

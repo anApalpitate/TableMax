@@ -1,6 +1,6 @@
 import { claimAudioEvent } from '@tablemax/web-host';
 import { useEffect, useRef, useState } from 'react';
-import type { RoomFeedback } from '../../../packages/protocol/src';
+import type { RoomFeedback } from '@tablemax/web-host';
 import type { ModernArtView } from './view';
 import {
   modernArtFeedbackKey,

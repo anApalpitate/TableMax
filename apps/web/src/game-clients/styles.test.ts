@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { loadGameStyle } from './styles';
+import { activateGameStyles, loadGameStyle } from './styles';
 afterEach(() => vi.unstubAllGlobals());
 it('both variants wait for shared CSS and both reject its failure; retry creates a new request', async () => {
   const links: {
@@ -32,4 +32,25 @@ it('both variants wait for shared CSS and both reject its failure; retry creates
   await expect(retry).resolves.toBeUndefined();
   await expect(loadGameStyle(url)).resolves.toBeUndefined();
   expect(links).toHaveLength(2);
+});
+it('switching releases disables old CSS and reactivates exactly the saved release', () => {
+  const previous = '/game-packages/' + 'a'.repeat(64) + '/web/';
+  const current = '/game-packages/' + 'b'.repeat(64) + '/web/';
+  const links = [previous, current, '/games/other/web/'].map((prefix) => ({
+    dataset: { gameStyle: prefix + 'style.css' },
+    media: 'all',
+  }));
+  vi.stubGlobal('document', { querySelectorAll: () => links });
+  activateGameStyles(current);
+  expect(links.map((link) => link.media)).toEqual([
+    'not all',
+    'all',
+    'not all',
+  ]);
+  activateGameStyles(previous);
+  expect(links.map((link) => link.media)).toEqual([
+    'all',
+    'not all',
+    'not all',
+  ]);
 });

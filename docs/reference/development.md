@@ -461,7 +461,7 @@ Windows 程序规则按完整可执行文件路径匹配；专用网络和本地
 
 打包计算 ZIP 和目录字节数，实际解压后比对每个文件的字节数及 SHA-256；任一达到上限立即失败，不发布标准 ZIP。清单在 `artifacts/releases/TableMax-<版本>-win-x64-manifest.json`，记录文件列表、包哈希、运行时与双体积。系统共享运行时、用户存档和缓存不计入交付体积，缓存始终写入用户数据目录。缺少共享 WebView2 时提示安装或取消，安装完成后的完整游戏仅用本地资源与局域网服务。
 
-共享运行时方案见 [决策 008](../decisions/008-small-native-desktop.md)，多游戏下载继续作为 [未来计划](../tasks/README.md#多游戏按需安装未来计划未实现)。
+共享运行时方案见 [决策 008](../decisions/008-small-native-desktop.md)，多游戏下载继续作为 [未来计划](../tasks/README.md#独立游戏包与按需安装宏伟大计进行中)。
 
 ### 原生桌面后台验证
 
@@ -772,3 +772,13 @@ SQLite流式扫描须让 `StatementSync` 强引用保持至迭代完成；包内
 ### 受限环境下的类型检查（2026-10-10）
 
 `pnpm typecheck` 通过 `tools/test/runner/typecheck.mjs` 调用锁定的 TypeScript CLI，原编译参数、诊断、失败退出码保持有效。Windows 原生 realpath 遇到可读 pnpm Junction 的 EPERM 时，先回退普通 realpath，再沿用编译器的缺失文件行为。迁移审计中317项错误已定位为受限目录链接解析造成：正常权限的原版编译器和修正入口均为0错误，没有放宽类型、排除测试或修改第三方依赖。若 pnpm 自身在编译前遇到目录访问限制，可直接运行 `node tools/test/runner/typecheck.mjs --noEmit`，或在正常权限环境运行原 pnpm 命令。旧失败报告保持原样；本轮复核及工具回归见[检查与空间审计](../../artifacts/maintenance/v1.0.6/check-errors-space-20261010/results.json)。
+
+## 游戏包构建与运行隔离（2026-10-11）
+
+运行 `node tools/release/game-packages.mjs --key=<受保护私钥路径>` 生成独立代码／资源 ZIP、签名目录及完整玩法离线 ZIP；单游戏加 `--game=<id>`。私钥默认由 `TABLEMAX_GAME_SIGNING_KEY` 指定，禁止提交、复制进运行目录或输出日志；当前本地配置 `secrets/game-release-ed25519.pem` 受 Git 忽略和当前用户 ACL 保护，程序只内置公钥。`node --import tsx tools/release/verify-game-packages.mjs` 检查签名、闭包、逐文件哈希和资源独立指纹。
+
+单游戏 `node tools/build/build.mjs --only=game:<id>` 只读取目标游戏与公共依赖，输出到独立缓存；同时开发不组装中心运行目录。并发构建检查 `tools/build/verify-concurrent-games.mjs`，作者接入检查 `tools/author/verify-author-platform.mjs <冻结平台目录> <独立证据目录>`。最终组装／便携打包必须等待开发服务与浏览器退出。检查保持历史低通过率排序、累计失败三项停止；修正后只重跑受影响项。
+
+安装数据通过私有配置 `gamesDir` 明确指向便携根 `games/`，不依赖当前目录，也不回退 C 盘。管理员使用游戏库的包管理刷新、更新、导入、取消、设为选局版本和卸载；原生导入经受管文件选择器，浏览器管理员可选择离线 ZIP。各端只访问主机网页／资源；资源 URL 含固定发行哈希。缺包时仍启动盒子，数据库原样保留，补齐原包后暂停恢复。
+
+维护保护扩展至安装仓库、签名缓存、当前交付游戏包与开发工具包、`.legacy` 原包和 `.quarantine` 恢复证据。它们不属于可整目录清空的验证副本；只在核对全部当前局、存档／journal 和清单引用后退役。`artifacts/game-packages/v1.0.6/` 按签名目录明确引用的文件交付，旧候选不列入发布白名单。

@@ -1,4 +1,4 @@
-import type { BotStrategy } from '../../../packages/game-sdk/src';
+import type { BotStrategy } from '@tablemax/game-sdk';
 import type { Action, ArtistId, CardFace, ModernArtView } from '../ui/view';
 import { ARTISTS, RULES_VERSION } from '../data/catalog';
 import { observeMemory, validateMemory } from './memory';

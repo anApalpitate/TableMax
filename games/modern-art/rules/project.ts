@@ -1,4 +1,4 @@
-import type { Viewer } from '../../../packages/game-sdk/src';
+import type { Viewer } from '@tablemax/game-sdk';
 import { ARTISTS, getCard } from '../data/catalog';
 import type { ModernArtView } from '../ui/view';
 import { prices } from './scoring';

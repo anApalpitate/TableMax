@@ -1,12 +1,12 @@
 import { useContext, type CSSProperties } from 'react';
-import type { JsonValue } from '../../../packages/game-sdk/src';
+import type { JsonValue } from '@tablemax/game-sdk';
 import type { PokemonView } from '../rules/project';
 import { SeatResult, TableStatus } from './public';
 import { PlayerControls } from './player';
 import { SavedMotion, ActionTargets, EffectTargets } from './motion';
 import { SavedEffects } from './effects';
 import { ActivityFeed } from './ActivityFeed';
-import type { RoomFeedback } from '../../../packages/protocol/src';
+import type { RoomFeedback } from '@tablemax/web-host';
 import { actionEffects } from './presentation-state';
 
 export type TableSeat = {

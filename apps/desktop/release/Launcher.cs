@@ -121,6 +121,7 @@ namespace TableMax.Release {
             }
             File.WriteAllText(Path.Combine(stage, Marker), manifestText, new System.Text.UTF8Encoding(false));
             SafePath(target);
+            TableMax.Portable.LegacyGames.Preserve(target, Path.Combine(parent, "games"));
             if (Directory.Exists(target)) { Directory.Move(target, backup); moved = true; }
             try { Directory.Move(stage, target); } catch { if (moved) Directory.Move(backup, target); throw; }
             if (moved) { try { Directory.Delete(backup, true); } catch (IOException) { } catch (UnauthorizedAccessException) { } }

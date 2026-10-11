@@ -1,11 +1,16 @@
 import { loadInstalledModule } from './module-loader';
 import { parentPort, workerData } from 'node:worker_threads';
+import { createRequire } from 'node:module';
 import { RandomSource } from '@tablemax/platform-core/random';
 import type { RoomCoordinator } from '@tablemax/platform-core';
 
-const task = workerData as NonNullable<ReturnType<RoomCoordinator['botTask']>>;
+const task = workerData as NonNullable<
+  ReturnType<RoomCoordinator['botTask']>
+> & { botEntry?: string };
 async function run() {
-  const module = await loadInstalledModule(task.gameId, 'bot');
+  const module = task.botEntry
+    ? createRequire(task.botEntry)(task.botEntry)
+    : await loadInstalledModule(task.gameId, 'bot');
   const bot =
     task.variantId === undefined
       ? module.bot

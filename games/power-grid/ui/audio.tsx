@@ -1,6 +1,6 @@
 import { claimAudioEvent } from '@tablemax/web-host';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import type { RoomFeedback } from '../../../packages/protocol/src';
+import type { RoomFeedback } from '@tablemax/web-host';
 import type { PowerGridView } from '../types';
 import bid from '../../../assets/games/power-grid/audio/bid-v2.flac';
 import fuel from '../../../assets/games/power-grid/audio/fuel-v2.flac';

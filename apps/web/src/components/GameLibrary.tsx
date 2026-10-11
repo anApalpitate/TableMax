@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { gameCover } from '../assets/game-covers';
 import { gameIntroduction } from '../game-clients/introductions';
 import { ConfirmationDialog } from './ConfirmationDialog';
-import { ResourceButton } from './game-library/resources';
+import { ResourceButton, ResourceStatusLabel } from './game-library/resources';
+import { PackageManagement } from './game-library/PackageManagement';
 import { feedbackText } from '../content/feedback';
 import {
   availableLibraryTags,
@@ -76,6 +77,7 @@ export function GameLibrary({
         </span>
       </div>
       {!isHost && <p>{feedbackText('library.waitingForHost')}</p>}
+      <PackageManagement session={session} />
       {view &&
         games.some(
           (game) => !game.development && view.seats.length > game.max,
@@ -230,16 +232,17 @@ export function GameLibrary({
                 </span>
               )}
             </div>
-            {isHost && (
+            {isHost ? (
               <ResourceButton
                 resource={{ gameId: game.id }}
                 canDownload={isHost && !game.development && !locked}
                 disabled={
                   game.development ||
                   locked ||
-                  (view?.seats.length ?? 0) > game.max ||
-                  view?.game?.id === game.id
+                  (view?.seats.length ?? 0) > game.max
                 }
+                current={view?.game?.id === game.id}
+                currentReleaseRef={view?.game?.releaseRef}
                 select={() => {
                   if (game.development || !view) return;
                   if (view.status === 'playing') {
@@ -255,13 +258,13 @@ export function GameLibrary({
                 installedLabel={
                   game.development
                     ? '开发中'
-                    : view?.game?.id === game.id
-                      ? '已选中'
-                      : (view?.seats.length ?? 0) > game.max
-                        ? `最多 ${game.max} 席`
-                        : '选择游戏'
+                    : (view?.seats.length ?? 0) > game.max
+                      ? `最多 ${game.max} 席`
+                      : '选择游戏'
                 }
               />
+            ) : (
+              <ResourceStatusLabel resource={{ gameId: game.id }} />
             )}
           </article>
         ))}

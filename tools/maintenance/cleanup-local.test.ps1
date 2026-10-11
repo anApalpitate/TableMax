@@ -272,6 +272,11 @@ try {
     Check ((Test-Path -LiteralPath $screenshotPath) -and (Get-FileHash -LiteralPath $screenshotPath -Algorithm SHA256).Hash -eq $screenshotHashes[$name]) ('Explicit temporary selection keeps requested screenshot byte-identical: ' + $name)
   }
   Run-Cleanup -Kind Intermediates -Apply $true -TemporaryNames @('review-young', 'review-linked')
+  Fixture-File 'tmp/review-installed/runtime/games/index.json' '{"schemaVersion":1,"releases":{}}'
+  Get-ChildItem -LiteralPath (Join-Path $fixture 'tmp/review-installed') -Recurse -Force | ForEach-Object { $_.LastWriteTimeUtc = $old }
+  (Get-Item -LiteralPath (Join-Path $fixture 'tmp/review-installed')).LastWriteTimeUtc = $old
+  Run-Cleanup -Kind Intermediates -Apply $true -TemporaryNames @('review-installed')
+  Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/review-installed/runtime/games/index.json')) 'Nested installed package index prevents explicit temporary cleanup from deleting referenced packages'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/review-young/notes.md')) 'Explicit temporary selection still protects recently modified content'
   Check (Test-Path -LiteralPath $temporaryJunction) 'Explicit temporary selection still refuses linked content'
   Check ((Get-Content -LiteralPath (Join-Path $fixture 'protected/marker.txt') -Raw) -eq 'protected-junction-target') 'Selected temporary link target remains untouched'
@@ -532,7 +537,10 @@ try {
     $injected = if ($mutation -eq 'manifest-plan-race') { $hook + "`n" + $mutationCode } else { $mutationCode + "`n" + $hook }
     [IO.File]::WriteAllText($cleanupPath, $cleanupSource.Replace($hook, $injected), (New-Object Text.UTF8Encoding($false)))
     $refused = $false
-    try { Run-Cleanup -Kind Releases -Apply $true -KeepLatestOnly $true } catch { $refused = $_.Exception.Message -like '*changed during cleanup*' }
+    try { Run-Cleanup -Kind Releases -Apply $true -KeepLatestOnly $true } catch {
+      $refused = $_.Exception.Message -like '*changed during cleanup*'
+      if (-not $refused) { throw }
+    }
     Check ($refused -and (Test-Path -LiteralPath $latestCandidate)) ('KeepLatestOnly rechecks planned release files before deletion: ' + $mutation)
     [IO.File]::WriteAllText($mutatedPath, $originalContent, (New-Object Text.UTF8Encoding($false)))
     [IO.File]::SetLastWriteTimeUtc($mutatedPath, $originalTime)

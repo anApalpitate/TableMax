@@ -1,4 +1,4 @@
-import type { RuleContext } from '../../../packages/game-sdk/src';
+import type { RuleContext } from '@tablemax/game-sdk';
 import { RESOURCES } from '../data/catalog';
 import { replenishment, TOTAL_RESOURCES } from '../data/economy';
 import type { State } from './model';

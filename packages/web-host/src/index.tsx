@@ -5,39 +5,27 @@ import {
   useRef,
   useLayoutEffect,
   type ReactNode,
+  type AnchorHTMLAttributes,
 } from 'react';
-import type { RoomSession } from '../../../apps/web/src/session/useRoomSession';
-import type { GameHost, GameClient } from './types';
-import { RoomManagement as Management } from '../../../apps/web/src/components/RoomManagement';
-import { SessionFeedback as Feedback } from '../../../apps/web/src/components/SessionFeedback';
-import { PlayModeControl as Mode } from '../../../apps/web/src/components/PlayModeControl';
-import { CountdownSettings as Settings } from '../../../apps/web/src/components/CountdownSettings';
-export type { GameHost, GameClient } from './types';
+import type { GameHost, GameClient, GameHostSlots } from './types';
+import { presentationServices } from './presentation-services';
+export type { GameHost, GameClient, GameCommand } from './types';
+export type { RoomFeedback, PublicAction } from '@tablemax/protocol';
 export { WEB_HOST_VERSION } from './types';
-export { ScreenLink } from '../../../apps/web/src/components/ScreenLink';
-export { OverlayPanel } from '../../../apps/web/src/components/OverlayPanel';
-export { FullscreenControl } from '../../../apps/web/src/components/FullscreenControl';
-export { DisplaySettings } from '../../../apps/web/src/components/DisplaySettings';
-export { PlayModeBadge } from '../../../apps/web/src/components/PlayModeBadge';
-export { DecisionCountdown } from '../../../apps/web/src/components/DecisionCountdown';
-export { RulesGuide } from '../../../apps/web/src/components/RulesGuide';
-export { useDecisionClock } from '../../../apps/web/src/components/useDecisionClock';
-export { BeginnerGuidanceSetting } from '../../../apps/web/src/components/BeginnerGuidanceSetting';
-export { useGuidancePreference } from '../../../apps/web/src/session/useGuidancePreference';
-export { useAudioOutput } from '../../../apps/web/src/session/useAudioOutput';
-export { avatarFor, avatarChoices } from '../../../apps/web/src/assets/avatars';
-export {
-  Management as PlatformRoomManagement,
-  Feedback as PlatformSessionFeedback,
-  Mode as PlatformPlayModeControl,
-  Settings as PlatformCountdownSettings,
-};
+export { resourceUrl } from './resource-url';
+export { OverlayPanel } from './components/OverlayPanel';
+export { PlayModeBadge } from './components/PlayModeBadge';
+export { DecisionCountdown } from './components/DecisionCountdown';
+export { RulesGuide } from './components/RulesGuide';
+export { useDecisionClock } from './components/useDecisionClock';
+export { BeginnerGuidanceSetting } from './components/BeginnerGuidanceSetting';
+export { useGuidancePreference } from './preferences/useGuidancePreference';
 
-const Context = createContext<RoomSession | null>(null);
-function useSession() {
-  const session = useContext(Context);
-  if (!session) throw new Error('Game host is not mounted');
-  return session;
+const Context = createContext<GameHostSlots | null>(null);
+function useSlots() {
+  const value = useContext(Context);
+  if (!value) throw new Error('Game host presentation is not mounted');
+  return value;
 }
 export function RoomManagement({
   lifecycleLabel,
@@ -45,20 +33,15 @@ export function RoomManagement({
   session?: GameHost;
   lifecycleLabel?: string;
 }) {
-  return (
-    <Management
-      session={useSession()}
-      {...(lifecycleLabel ? { lifecycleLabel } : {})}
-    />
-  );
+  return useSlots().management(lifecycleLabel ? { lifecycleLabel } : {});
 }
-export function SessionFeedback(props: { session?: GameHost }) {
-  void props;
-  return <Feedback session={useSession()} />;
+export function SessionFeedback(_props: { session?: GameHost }) {
+  void _props;
+  return useSlots().feedback();
 }
-export function PlayModeControl(props: { session?: GameHost }) {
-  void props;
-  return <Mode session={useSession()} />;
+export function PlayModeControl(_props: { session?: GameHost }) {
+  void _props;
+  return useSlots().playMode();
 }
 export function CountdownSettings({
   children,
@@ -66,17 +49,44 @@ export function CountdownSettings({
   session?: GameHost;
   children?: ReactNode;
 }) {
-  return <Settings session={useSession()}>{children}</Settings>;
+  return useSlots().countdown(children === undefined ? {} : { children });
+}
+export function ScreenLink(
+  props: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string },
+) {
+  const Component = presentationServices().ScreenLink;
+  return <Component {...props} />;
+}
+export function FullscreenControl() {
+  const Component = presentationServices().FullscreenControl;
+  return <Component />;
+}
+export function DisplaySettings(props: { role?: GameHost['role'] }) {
+  const Component = presentationServices().DisplaySettings;
+  return <Component {...props} />;
+}
+export function useAudioOutput() {
+  return presentationServices().useAudioOutput();
 }
 export function claimAudioEvent(key: string) {
-  return window.tablemaxAudio?.claimEvent(key) ?? true;
+  return presentationServices().claimAudioEvent(key);
 }
+export function avatarFor(id: string) {
+  return presentationServices().avatarFor(id);
+}
+export { avatarChoices } from './presentation-services';
+
+/** Private controls are bound to presentation slots, never passed to games. */
 export function HostedGame({
   session,
   client,
+  presentation,
+  resourceUrl: resolveResource,
 }: {
-  session: RoomSession;
+  session: GameHost;
   client: GameClient;
+  presentation: GameHostSlots;
+  resourceUrl?: (id: string) => string;
 }) {
   const latest = useRef(session);
   useLayoutEffect(() => {
@@ -91,13 +101,18 @@ export function HostedGame({
     locked: session.locked,
     canControl: session.canControl,
     message: session.message,
-    messageKind: session.messageKind,
+    ...(session.messageKind === undefined
+      ? {}
+      : { messageKind: session.messageKind }),
     admissionPending: session.admissionPending,
     awaitingConfirmation: session.awaitingConfirmation,
     feedback: session.feedback,
     errorId: session.errorId,
     motion: session.motion,
+    ...(resolveResource ? { resourceUrl: resolveResource } : {}),
     command(value) {
+      if (!['game', 'lifecycle', 'resume', 'replay'].includes(value.type))
+        return;
       const current = latest.current;
       if (
         !snapshot ||
@@ -117,7 +132,7 @@ export function HostedGame({
   };
   const Screen = client.Screen;
   return (
-    <Context.Provider value={session}>
+    <Context.Provider value={presentation}>
       <Screen session={host} />
     </Context.Provider>
   );

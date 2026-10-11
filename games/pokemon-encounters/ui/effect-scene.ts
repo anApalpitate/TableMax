@@ -1,4 +1,4 @@
-import type { PublicAction } from '../../../packages/protocol/src';
+import type { PublicAction } from '@tablemax/web-host';
 import type { PokemonView } from '../rules/project';
 import type { EffectTheme } from './presentation-state';
 import { creatureMotifs } from '../shared/presentation';

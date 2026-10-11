@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- Lazy adapters expose one platform client object. */
 import type { GameClient, GameHost as RoomSession } from '@tablemax/web-host';
-import type { JsonValue } from '../../../packages/game-sdk/src';
+import type { JsonValue } from '@tablemax/game-sdk';
 import type { TemplateView } from '../ui/view';
 import { PlayerControls } from '../ui/player';
 import { SeatResult } from '../ui/public';

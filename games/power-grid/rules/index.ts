@@ -3,7 +3,7 @@ import type {
   JsonValue,
   PendingDecision,
   RuleContext,
-} from '../../../packages/game-sdk/src';
+} from '@tablemax/game-sdk';
 import {
   accepts,
   getPlant,

@@ -58,6 +58,7 @@ export const ServiceConfigSchema = z.object({
   port: z.number().int().min(0).max(65535),
   dataDir: z.string().min(1),
   webDir: z.string().min(1),
+  gamesDir: z.string().min(1).optional(),
   botWorkerPath: z.string().min(1).optional(),
   playMode: PlayModeSchema.optional(),
 });
@@ -317,6 +318,7 @@ export interface RoomView {
     max: number;
     decisionTimer?: boolean | undefined;
     variantId?: string | undefined;
+    releaseRef?: string | undefined;
   } | null;
   catalog: {
     id: string;
@@ -391,6 +393,10 @@ export const RoomViewSchema = z
         max: z.number().int().positive(),
         decisionTimer: z.boolean().optional(),
         variantId: z.string().optional(),
+        releaseRef: z
+          .string()
+          .regex(/^[0-9a-f]{64}$/)
+          .optional(),
       })
       .strict()
       .nullable(),

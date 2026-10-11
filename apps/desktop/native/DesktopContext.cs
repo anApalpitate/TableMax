@@ -100,12 +100,14 @@ namespace TableMax.Desktop
                     await Quit();
                 });
                 var directory = AppDomain.CurrentDomain.BaseDirectory;
+                TableMax.Portable.LegacyGames.Preserve(directory, Path.Combine(Storage.Root, "games"));
                 System.Environment.SetEnvironmentVariable("NODE_OPTIONS", null);
                 System.Environment.SetEnvironmentVariable("NODE_PATH", null);
                 var ready = await service.Start(directory, new
                 {
                     host = System.Environment.GetEnvironmentVariable("TABLEMAX_HOST") ?? "0.0.0.0",
                     port, dataDir = DataDirectory, webDir = Path.Combine(directory, "web"),
+                    gamesDir = Path.Combine(Storage.Root, "games"),
                     playMode = arguments.Contains("--tablemax-play-mode") ? "play" : Testing || arguments.Contains("--tablemax-test-mode") ? "test" : "play"
                 });
                 EnsureServiceAlive();
@@ -227,6 +229,14 @@ namespace TableMax.Desktop
             if (parameters == null) throw new ArgumentException("桌面请求参数无效。");
             switch (method)
             {
+                case "packages.pick":
+                    if (window.Role != "host" || parameters.Length != 0) throw new UnauthorizedAccessException("仅管理员可导入游戏包。");
+                    using (var picker = new OpenFileDialog { Filter = "TableMax 游戏离线包 (*.zip)|*.zip", CheckFileExists = true, Multiselect = false }) {
+                        if (picker.ShowDialog(window) != DialogResult.OK) return null;
+                        var file = new FileInfo(picker.FileName);
+                        if ((file.Attributes & FileAttributes.ReparsePoint) != 0 || file.Length >= 64000000) throw new IOException("游戏包路径或体积不符合要求。");
+                        return new { name = file.Name, base64 = Convert.ToBase64String(File.ReadAllBytes(file.FullName)) };
+                    }
                 case "window.read":
                     if (parameters.Length != 0) throw new ArgumentException("Invalid window request.");
                     return window.WindowSnapshot();

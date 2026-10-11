@@ -1,4 +1,4 @@
-import type { RuleContext } from '../../../packages/game-sdk/src';
+import type { RuleContext } from '@tablemax/game-sdk';
 import { getTile, RULES_VERSION, TILE_IDS } from '../data/catalog';
 import { normalizeTable } from '../shared/melds';
 import { findLegalPlay, inspectTurn } from '../shared/turn';

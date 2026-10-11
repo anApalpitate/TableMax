@@ -20,6 +20,19 @@ const validScopes = ['box', 'shared', 'tooling', ...gameScopes];
 
 // Classify what a test actually exercises, rather than its containing app.
 const unitScopes = {
+  'apps/server/src/game-packages/legacy-save.test.ts': [
+    'shared',
+    'tooling',
+    'game:uno',
+  ],
+  'apps/server/src/game-packages/store.test.ts': ['shared', 'tooling'],
+  'apps/server/src/game-packages/service-integration.test.ts': [
+    'box',
+    'shared',
+    'tooling',
+  ],
+  'packages/platform-core/src/release-pinning.test.ts': ['shared'],
+  'packages/web-host/src/resource-url.test.ts': ['shared', 'tooling'],
   'apps/web/src/components/game-library/filter.test.ts': ['box'],
   'apps/web/src/content/feedback.test.ts': ['box', 'shared'],
   'apps/web/src/components/notifications/notification-center.test.ts': ['box'],
@@ -100,6 +113,24 @@ const unitScopes = {
 // Unregistered scripts may only run with an explicitly chosen full scope.
 // Mixed matrices cannot be narrowed by adding an option they do not implement.
 const verificationScopes = {
+  'tools/test/platform/verify-legacy-game-migration.mjs': [
+    'box',
+    'shared',
+    'tooling',
+    'game:uno',
+  ],
+  'tools/author/verify-author-platform.mjs': ['box', 'shared', 'tooling'],
+  'tools/test/platform/verify-package-library.mjs': [
+    'box',
+    'shared',
+    'tooling',
+  ],
+  'tools/test/platform/verify-installed-games.mjs': [
+    'box',
+    'shared',
+    'tooling',
+    ...gameScopes,
+  ],
   'tools/analysis/games/pokemon-encounters/pokemon-expansion-flow-observer.test.mjs':
     ['tooling'],
   'tools/assets/games/pokemon-encounters/soften-pokemon-cries.test.mjs': [

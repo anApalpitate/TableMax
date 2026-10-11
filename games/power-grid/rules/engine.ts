@@ -1,4 +1,4 @@
-import type { RuleContext } from '../../../packages/game-sdk/src';
+import type { RuleContext } from '@tablemax/game-sdk';
 import {
   accepts,
   emptyStock,

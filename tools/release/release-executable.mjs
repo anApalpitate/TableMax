@@ -27,7 +27,7 @@ export async function assertReleaseIdle(outputPath) {
     [
       '-NoProfile',
       '-Command',
-      "$taskBusy = @(Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne [int]$env:TABLEMAX_BUILD_PID -and (($_.Name -eq 'TableMax.exe' -and (-not $_.ExecutablePath -or -not $_.CommandLine -or ([string]$_.ExecutablePath).StartsWith($env:TABLEMAX_RELEASE_ROOT + '\\', [StringComparison]::OrdinalIgnoreCase) -or ([string]$_.CommandLine).IndexOf($env:TABLEMAX_RELEASE_ROOT, [StringComparison]::OrdinalIgnoreCase) -ge 0)) -or ($_.Name -match '^(node|dotnet|MSBuild)\\.exe$' -and $_.CommandLine -match '(tools[\\/](?:dev|build|release|test|assets|analysis|maintenance)[\\/]|apps[\\/]desktop[\\/]native|vitest)')) }); if ($taskBusy.Count) { throw ('Release target or engineering verification busy: ' + (($taskBusy.ProcessId) -join ',')) }",
+      "$taskBusy = @(Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne [int]$env:TABLEMAX_BUILD_PID -and (($_.Name -eq 'TableMax.exe' -and (-not $_.ExecutablePath -or -not $_.CommandLine -or ([string]$_.ExecutablePath).StartsWith($env:TABLEMAX_RELEASE_ROOT + '\\', [StringComparison]::OrdinalIgnoreCase) -or ([string]$_.CommandLine).IndexOf($env:TABLEMAX_RELEASE_ROOT, [StringComparison]::OrdinalIgnoreCase) -ge 0)) -or ($_.Name -match '^(node|dotnet|MSBuild)\\.exe$' -and $_.CommandLine -match '(tools[\\/](?:dev|build|release|test|assets|analysis|maintenance|author)[\\/]|apps[\\/]desktop[\\/]native|vitest)')) }); if ($taskBusy.Count) { throw ('Release target or engineering verification busy: ' + (($taskBusy.ProcessId) -join ',')) }",
     ],
     {
       windowsHide: true,
@@ -85,6 +85,7 @@ export async function createReleaseExecutable({
     `/resource:${resolve(archivePath)},payload.zip`,
     `/resource:${resolve(manifestPath)},payload.json`,
     resolve('apps/desktop/release/Launcher.cs'),
+    resolve('apps/desktop/native/LegacyGames.cs'),
     resolve('apps/desktop/native/StorageConfiguration.cs'),
     metadata,
   ]);

@@ -1,4 +1,4 @@
-import type { PublicAction } from '../../../packages/protocol/src';
+import type { PublicAction } from '@tablemax/web-host';
 import { categories } from '../rules/cards';
 
 export function cardName(category: string | null) {

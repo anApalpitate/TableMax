@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "author-example",
+  "order": 100,
+  "internal": false,
+  "library": { "tags": ["作者示例"] },
+  "catalog": {
+    "id": "author-example",
+    "name": "独立作者示例",
+    "min": 2,
+    "max": 2
+  },
+  "compatibility": {
+    "sdk": 1,
+    "protocol": 7,
+    "webHost": 1,
+    "rulesVersion": "example-1",
+    "stateVersion": 1,
+    "gameVersion": "1.0.0",
+    "strategyVersion": "1.0.0"
+  },
+  "entries": {
+    "rules": "games/author-example/rules.ts",
+    "bot": "games/author-example/bot.ts",
+    "web": "games/author-example/web.tsx"
+  },
+  "cover": null,
+  "budgets": {
+    "payloadBytes": 1048576,
+    "serviceHeapBytes": 67108864,
+    "desktopHeapBytes": 33554432,
+    "phoneHeapBytes": 33554432,
+    "privateIncrementBytes": 536870912,
+    "workerOldGenerationMiB": 32,
+    "basis": "Author example allocation; verify actual budgets before review."
+  }
+}
