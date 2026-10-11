@@ -5,7 +5,11 @@ import type {
 } from '../../../desktop/src/display-types';
 import { OverlayPanel } from './OverlayPanel';
 import type { ScreenRole } from '../navigation';
-import { useInteractionPreference } from '../interactions/useInteractionPreference';
+import {
+  useInteractionPreference,
+  useInteractionButtonPreference,
+} from '../interactions/useInteractionPreference';
+import { WindowModeSettings } from './WindowModeSettings';
 import { feedbackText } from '../content/feedback';
 import './display-settings.css';
 import './settings-panel.css';
@@ -29,6 +33,7 @@ export function DisplaySettings({
 }) {
   const bridge = window.tablemaxDisplay;
   const [blocked, setBlocked] = useInteractionPreference(role);
+  const [buttonHidden, setButtonHidden] = useInteractionButtonPreference(role);
   const [open, setOpen] = useState(false);
   const [snapshot, setSnapshot] = useState<DisplaySnapshot | null>(null);
   const [busy, setBusy] = useState(false);
@@ -109,6 +114,7 @@ export function DisplaySettings({
           className="settings-panel"
           close={() => setOpen(false)}
         >
+          <WindowModeSettings />
           <div className="display-settings-choice interaction-video-setting">
             <h3 id="interaction-effects-label">互动特效</h3>
             <button
@@ -131,6 +137,25 @@ export function DisplaySettings({
                 : feedbackText('display.interactionEnabled')}
             </p>
           </div>
+          {role === 'player' && (
+            <div className="display-settings-choice interaction-button-setting">
+              <h3 id="interaction-button-label">射击按钮</h3>
+              <button
+                type="button"
+                className="secondary"
+                role="switch"
+                aria-checked={!buttonHidden}
+                aria-labelledby="interaction-button-label"
+                onClick={() => setButtonHidden(!buttonHidden)}
+              >
+                <span
+                  className={`settings-switch${!buttonHidden ? ' settings-switch--on' : ''}`}
+                  aria-hidden="true"
+                />
+                {buttonHidden ? '已隐藏' : '已显示'}
+              </button>
+            </div>
+          )}
           {error && (
             <p className="display-settings-error" role="alert">
               {error}

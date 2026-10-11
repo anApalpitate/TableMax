@@ -6,6 +6,8 @@
 
 ## 已创建结构
 
+用户手写待办保存在 `docs/tasks/手写改动单.md`，只保留未完成原文与任务量标记；完成行为与证据分别进入对应规格和验收页。
+
 `tools/build/`维护专属 Node 运行时指纹；`tools/maintenance/`维护构建／验证退出后的单次维护、截图策略与产物登记，安全删除复用同目录清理实现，见[自动维护](../../tools/maintenance/README.md)。其余工具已按用途归入 `tools/`，完整入口见[工具索引](../../tools/README.md)。
 
 UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 UI 和声画集中在 `games/uno/`；运行素材在 `assets/games/uno/`，原生成物与规则原件在 `artifacts/uno/`。采用规格见 [UNO 主题](../games/uno/README.md)，真实验证脚本 `tools/test/games/uno/verify-uno.mjs` 仅检查本游戏。

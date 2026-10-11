@@ -20,7 +20,6 @@ import { ScreenLink } from '@tablemax/web-host';
 import { SessionFeedback } from '@tablemax/web-host';
 import { OverlayPanel } from '@tablemax/web-host';
 import { RoomManagement } from '@tablemax/web-host';
-import { FullscreenControl } from '@tablemax/web-host';
 import { DisplaySettings } from '@tablemax/web-host';
 import { CountdownSettings } from '@tablemax/web-host';
 import { PlayModeBadge } from '@tablemax/web-host';
@@ -160,7 +159,7 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
         >
           {connected ? '本地已连接' : '正在连接'}
         </span>
-        <FullscreenControl />
+
         {role !== 'player' && (
           <PaintingSortControl
             value={collectionSort}

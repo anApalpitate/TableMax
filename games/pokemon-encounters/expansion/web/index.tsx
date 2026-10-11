@@ -7,7 +7,6 @@ import {
   OverlayPanel,
   RulesGuide,
   ScreenLink,
-  FullscreenControl,
   DisplaySettings,
   RoomManagement,
   SessionFeedback,
@@ -1294,7 +1293,6 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
         )}
         {session.role !== 'player' && (
           <>
-            <FullscreenControl />
             <PlayModeBadge mode={session.view?.playMode} />
             <SoundControl
               compact

@@ -1,6 +1,18 @@
 .box-screen .hero .box-game-title {
   min-width: 0;
 }
+.box-screen .box-save-status {
+  /* Pending and saved share one slot, so neither wraps the header on arrival. */
+  inline-size: 6em;
+  text-align: right;
+}
+.box-screen .box-save-status[data-visible='false'] {
+  visibility: hidden;
+}
+.box-screen .box-feedback[data-submitting='true'] > .session-feedback {
+  /* Routine save progress belongs in the header; recovery stays in the page. */
+  display: none;
+}
 .box-screen .hero .box-game-title h1 {
   text-wrap: balance;
   overflow-wrap: anywhere;

@@ -26,6 +26,7 @@ namespace TableMax.Desktop
         private Rectangle normalBounds;
         private FormWindowState normalWindowState;
         private bool fullscreen, applyingDisplay;
+        private string windowMode = "windowed", fullscreenReturnMode = "windowed";
         private DisplayGeometry simulated;
         private readonly int initialWidth, initialHeight;
         private string lastMessageSourcePath, lastMessageCurrentPath;
@@ -266,11 +267,16 @@ namespace TableMax.Desktop
         private void BuildMenu()
         {
             var screens = new ToolStripMenuItem("屏幕(&S)");
-            var full = new ToolStripMenuItem("切换全屏") { ShortcutKeys = Keys.F11 }; full.Click += (_, __) => ToggleFullscreen(); screens.DropDownItems.Add(full);
+            var full = new ToolStripMenuItem("全屏") { ShortcutKeys = Keys.F11, ShowShortcutKeys = false }; full.Click += (_, __) => ToggleFullscreen(); screens.DropDownItems.Add(full);
+            var borderless = new ToolStripMenuItem("无边框窗口"); borderless.Click += (_, __) => SetMode("borderless"); screens.DropDownItems.Add(borderless);
+            var windowed = new ToolStripMenuItem("窗口"); windowed.Click += (_, __) => SetMode("windowed"); screens.DropDownItems.Add(windowed);
+            screens.DropDownItems.Add(new ToolStripSeparator());
             screens.DropDownOpening += (_, __) =>
             {
                 full.Checked = fullscreen;
-                while (screens.DropDownItems.Count > 1) screens.DropDownItems.RemoveAt(1);
+                borderless.Checked = windowMode == "borderless";
+                windowed.Checked = windowMode == "windowed";
+                while (screens.DropDownItems.Count > 4) screens.DropDownItems.RemoveAt(4);
                 foreach (var screen in Screen.AllScreens.Select((value, index) => new { value, index }))
                 {
                     var item = new ToolStripMenuItem("移到显示器 " + (screen.index + 1) + "（" + screen.value.Bounds.Width + "×" + screen.value.Bounds.Height + "）");
@@ -348,26 +354,34 @@ namespace TableMax.Desktop
             if (menu.Visible) menu.Focus();
             ApplyDisplay();
         }
-        public object WindowSnapshot() => new { fullscreen };
+        public object WindowSnapshot() => new { fullscreen, mode = windowMode };
         public void ToggleFullscreen() => SetFullscreen(!fullscreen);
-        public object SetFullscreen(bool value)
+        public object SetFullscreen(bool value) => value ? SetMode("fullscreen") : fullscreen ? SetMode(fullscreenReturnMode) : WindowSnapshot();
+        public object SetMode(string value)
         {
-            if (fullscreen == value) return WindowSnapshot();
-            if (value)
+            if (!new[] { "fullscreen", "borderless", "windowed" }.ContainsValue(value)) throw new ArgumentException("显示模式参数无效。");
+            if (windowMode == value) return WindowSnapshot();
+            if (value == "fullscreen")
             {
                 normalWindowState = WindowState;
                 normalBounds = WindowState == FormWindowState.Normal ? Bounds : RestoreBounds;
+                fullscreenReturnMode = windowMode;
                 var target = Screen.FromHandle(Handle).Bounds;
-                fullscreen = true; WindowState = FormWindowState.Normal;
+                windowMode = value; fullscreen = true; WindowState = FormWindowState.Normal;
                 FormBorderStyle = FormBorderStyle.None;
                 if (context.Background) ClientSize = target.Size;
                 else Bounds = target;
             }
             else
             {
-                fullscreen = false; FormBorderStyle = context.Background ? FormBorderStyle.None : FormBorderStyle.Sizable;
-                Bounds = normalBounds;
-                WindowState = normalWindowState;
+                // Changing chrome must not overwrite the window geometry held
+                // for leaving fullscreen, including a previously maximized form.
+                var restoredState = fullscreen ? normalWindowState : WindowState;
+                var restoredBounds = fullscreen ? normalBounds : WindowState == FormWindowState.Normal ? Bounds : RestoreBounds;
+                windowMode = value; fullscreen = false; WindowState = FormWindowState.Normal;
+                FormBorderStyle = context.Background || value == "borderless" ? FormBorderStyle.None : FormBorderStyle.Sizable;
+                Bounds = restoredBounds;
+                WindowState = restoredState;
             }
             ApplyDisplay();
             if (Managed && context.Allowed(Url, Role)) Changed("window", WindowSnapshot());
@@ -383,7 +397,7 @@ namespace TableMax.Desktop
         {
             var ratio = NativeMethods.Scale(Handle);
             var bounds = Bounds;
-            return new { id = Id, role = Role, managed = Managed, url = Url, visible = Visible && !context.Background, rendered = Visible, audioMuted = browser.CoreWebView2.IsMuted, content = new[] { (int)Math.Round(browser.ClientSize.Width / ratio), (int)Math.Round(browser.ClientSize.Height / ratio) }, fullscreen, borderStyle = FormBorderStyle.ToString(), showInTaskbar = ShowInTaskbar, foregroundTest = context.ForegroundTest, windowState = WindowState.ToString(), restoreBounds = DesktopContext.RectangleValue(RestoreBounds), zoom = browser.ZoomFactor, bounds = DesktopContext.RectangleValue(bounds), display = ApplyDisplay(), bridgeSourcePath = lastMessageSourcePath, bridgeCurrentPath = lastMessageCurrentPath, externalJoin = context.Testing ? new { url = capturedJoinUrl, count = capturedJoinCount } : null, externalRepository = context.Testing ? new { url = capturedRepositoryUrl, count = capturedRepositoryCount } : null };
+            return new { id = Id, role = Role, managed = Managed, url = Url, visible = Visible && !context.Background, rendered = Visible, audioMuted = browser.CoreWebView2.IsMuted, content = new[] { (int)Math.Round(browser.ClientSize.Width / ratio), (int)Math.Round(browser.ClientSize.Height / ratio) }, fullscreen, mode = windowMode, borderStyle = FormBorderStyle.ToString(), showInTaskbar = ShowInTaskbar, foregroundTest = context.ForegroundTest, windowState = WindowState.ToString(), restoreBounds = DesktopContext.RectangleValue(RestoreBounds), zoom = browser.ZoomFactor, bounds = DesktopContext.RectangleValue(bounds), display = ApplyDisplay(), bridgeSourcePath = lastMessageSourcePath, bridgeCurrentPath = lastMessageCurrentPath, externalJoin = context.Testing ? new { url = capturedJoinUrl, count = capturedJoinCount } : null, externalRepository = context.Testing ? new { url = capturedRepositoryUrl, count = capturedRepositoryCount } : null };
         }
         public async Task<object> TestOperation(Dictionary<string, object> parameters)
         {
@@ -397,6 +411,7 @@ namespace TableMax.Desktop
                     if (fullscreen) ToggleFullscreen();
                     Bounds = new Rectangle(context.Background ? -20000 : (int)Json.Number(bounds, "x"), context.Background ? -20000 : (int)Json.Number(bounds, "y"), (int)Json.Number(bounds, "width", 1280), (int)Json.Number(bounds, "height", 800)); break;
                 case "fullscreen": SetFullscreen(Json.Bool(parameters, "value", !fullscreen)); break;
+                case "window-mode": SetMode(Json.String(parameters, "value")); break;
                 case "menu-fullscreen": ((ToolStripMenuItem)((ToolStripMenuItem)menu.Items[0]).DropDownItems[0]).PerformClick(); break;
                 case "window-state":
                     WindowState = Json.String(parameters, "value") == "Maximized" ? FormWindowState.Maximized : FormWindowState.Normal; break;

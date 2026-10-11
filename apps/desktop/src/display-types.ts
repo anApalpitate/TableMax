@@ -28,12 +28,16 @@ export const displayChannels = {
   changed: 'tablemax:display:changed',
 } as const;
 
+export type WindowMode = 'fullscreen' | 'borderless' | 'windowed';
+
 export interface WindowSnapshot {
   fullscreen: boolean;
+  mode: WindowMode;
 }
 
 export interface TablemaxWindow {
   read(): Promise<WindowSnapshot>;
+  setMode(mode: WindowMode): Promise<WindowSnapshot>;
   setFullscreen(fullscreen: boolean): Promise<WindowSnapshot>;
   subscribe(listener: (snapshot: WindowSnapshot) => void): () => void;
 }

@@ -6,7 +6,6 @@ import {
   CountdownSettings,
   DecisionCountdown,
   DisplaySettings,
-  FullscreenControl,
   OverlayPanel,
   PlayModeBadge,
   PlayModeControl,
@@ -141,7 +140,6 @@ function RummikubScreen({ session }: { session: GameHost }) {
           <button type="button" onClick={() => setPanel('menu')}>
             菜单
           </button>
-          {role !== 'player' && <FullscreenControl />}
         </div>
       </header>
       {!game && feedbackVisible && <SessionFeedback session={session} />}
@@ -372,7 +370,6 @@ function RummikubScreen({ session }: { session: GameHost }) {
                 seatStrip
               ) : (
                 <>
-                  {role === 'player' && <FullscreenControl />}
                   <div className="dialog-actions game-menu-settings">
                     <CountdownSettings session={session} />
                     <DisplaySettings role={role} />

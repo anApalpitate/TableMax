@@ -6,7 +6,6 @@ import {
   CountdownSettings,
   DecisionCountdown,
   DisplaySettings,
-  FullscreenControl,
   OverlayPanel,
   PlayModeBadge,
   PlayModeControl,
@@ -253,7 +252,6 @@ function UnoScreen({ session }: { session: GameHost }) {
           <button type="button" onClick={() => setPanel('menu')}>
             菜单
           </button>
-          {!player && <FullscreenControl />}
         </div>
       </header>
       {((session.message && session.message !== '已保存') ||
@@ -575,7 +573,6 @@ function UnoScreen({ session }: { session: GameHost }) {
                 )
               ) : (
                 <>
-                  {player && <FullscreenControl />}
                   <div className="dialog-actions game-menu-settings">
                     <CountdownSettings session={session} />
                     <DisplaySettings role={role} />

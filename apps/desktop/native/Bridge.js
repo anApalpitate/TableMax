@@ -54,6 +54,7 @@
   Object.defineProperty(window, 'tablemaxWindow', {
     value: Object.freeze({
       read: (...args) => request('window.read', args),
+      setMode: (...args) => request('window.setMode', args),
       setFullscreen: (...args) => request('window.setFullscreen', args),
       subscribe: (listener) => subscribe('window', listener),
     }),

@@ -12,6 +12,7 @@ import { createRequire } from 'node:module';
 import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { basename, join, relative, resolve, sep } from 'node:path';
 import { promisify } from 'node:util';
+import { DatabaseSync } from 'node:sqlite';
 import { launchDesktop } from '../support/desktop-test.mjs';
 import { launchTestBrowser } from '../support/browser-test.mjs';
 import { playerFrame, playerUi } from '../support/player-test.mjs';
@@ -33,6 +34,12 @@ const argument = (name) =>
     .slice(1)
     .join('=');
 const libraryOnly = process.argv.includes('--library-only');
+const actionsOnly = process.argv.includes('--actions-only');
+assert.ok(
+  !actionsOnly ||
+    (!libraryOnly && !process.argv.includes('--refinements-only')),
+  'Actions-only cannot be combined with library/refinement modes',
+);
 const refinementsOnly =
   libraryOnly || process.argv.includes('--refinements-only');
 const evidence =
@@ -46,7 +53,9 @@ const output = resolve(
   `artifacts/maintenance/v${version}/debug-20261008/box`,
   evidence,
 );
-const archive = resolve(`artifacts/releases/TableMax-${version}-win-x64.zip`);
+const archive = resolve(
+  argument('zip') ?? `artifacts/releases/TableMax-${version}-win-x64.zip`,
+);
 const manifestPath = archive.replace(/\.zip$/i, '-manifest.json');
 const execute = promisify(execFile);
 const { io } = createRequire(resolve('apps/web/package.json'))(
@@ -70,17 +79,21 @@ let desktop,
   lastSurface;
 const report = {
   version,
-  mode: libraryOnly
-    ? 'game-library'
-    : refinementsOnly
-      ? 'affected-dialogs'
-      : 'full-box-matrix',
+  mode: actionsOnly
+    ? 'box-actions'
+    : libraryOnly
+      ? 'game-library'
+      : refinementsOnly
+        ? 'affected-dialogs'
+        : 'full-box-matrix',
   status: 'running',
-  scope: libraryOnly
-    ? 'Actual current-version ZIP and all extracted members; hidden muted WinForms/WebView2 game-library dialog at 390, 720p and 1080p. Does not certify physical devices or unrelated dialogs.'
-    : refinementsOnly
-      ? 'Actual current-version ZIP and all extracted members; muted hidden WinForms/WebView2 host/public and headless Edge player iframe. Authorized lobby joins, owner and bot; affected game-library, avatar and connection-help dialogs at 390, 720p and 1080p. CSS viewport simulation does not certify physical Windows DPI, physical phones or public tunnels.'
-      : 'Actual current-version ZIP and all extracted members; muted hidden WinForms/WebView2 host/public and headless Edge player iframe. Authorized lobby joins, owner, bots and device transfer. CSS viewport and 125/150 percent density simulation do not certify physical Windows DPI, physical phones or public tunnels.',
+  scope: actionsOnly
+    ? "Actual ZIP and every isolated extracted member; real muted hidden WinForms/WebView2 host and headless Edge player admission. Real add-bot/removal saves, command packets temporarily held without forged replies, and a no-write lock on this run's private SQLite cause genuine pending/failed confirmation boundaries. Only action geometry and video settings, no full layout matrix; no physical-device or native foreground certification."
+    : libraryOnly
+      ? 'Actual current-version ZIP and all extracted members; hidden muted WinForms/WebView2 game-library dialog at 390, 720p and 1080p. Does not certify physical devices or unrelated dialogs.'
+      : refinementsOnly
+        ? 'Actual current-version ZIP and all extracted members; muted hidden WinForms/WebView2 host/public and headless Edge player iframe. Authorized lobby joins, owner and bot; affected game-library, avatar and connection-help dialogs at 390, 720p and 1080p. CSS viewport simulation does not certify physical Windows DPI, physical phones or public tunnels.'
+        : 'Actual current-version ZIP and all extracted members; muted hidden WinForms/WebView2 host/public and headless Edge player iframe. Authorized lobby joins, owner, bots and device transfer. CSS viewport and 125/150 percent density simulation do not certify physical Windows DPI, physical phones or public tunnels.',
   layouts: [],
   dialogs: [],
   screenshots: [],
@@ -90,6 +103,7 @@ const report = {
   issues: [],
   pageErrors: [],
   checks: [],
+  actions: [],
   contactSheets: [],
 };
 function redact(value) {
@@ -736,6 +750,383 @@ async function dialogMatrix(
     await panel.getByRole('button', { name: '关闭面板', exact: true }).click();
   }
 }
+async function actionGeometry(surface) {
+  return (await documentFor(surface)).evaluate(() => {
+    const box = (selector) => {
+      const element = document.querySelector(selector);
+      if (!element) return null;
+      const rect = element.getBoundingClientRect();
+      return { top: rect.top + scrollY, height: rect.height };
+    };
+    const feedback = document.querySelector('.session-feedback');
+    return {
+      scrollX,
+      scrollY,
+      width: innerWidth,
+      height: innerHeight,
+      header: box('.box-screen > header'),
+      hero: box('.box-screen > .hero'),
+      stage: box('.box-screen .stage'),
+      table: box('.room-table'),
+      submitting: document.querySelector('.box-save-status')?.textContent,
+      feedbackVisible: Boolean(feedback?.checkVisibility()),
+    };
+  });
+}
+function sameActionGeometry(before, after, label) {
+  for (const field of ['scrollX', 'scrollY', 'width', 'height'])
+    assert.ok(
+      Math.abs(before[field] - after[field]) <= 1,
+      `${label}: ${field} changed (${before[field]} → ${after[field]})`,
+    );
+  for (const selector of ['header', 'hero', 'stage', 'table']) {
+    assert.ok(
+      before[selector] && after[selector],
+      `${label}: missing ${selector}`,
+    );
+    for (const field of ['top', 'height'])
+      assert.ok(
+        Math.abs(before[selector][field] - after[selector][field]) <= 1,
+        `${label}: ${selector}.${field} changed (${before[selector][field]} → ${after[selector][field]})`,
+      );
+  }
+}
+async function installActionGate(surface) {
+  const doc = await documentFor(surface);
+  await doc.evaluate(() => {
+    const original = WebSocket.prototype.send;
+    const probe = {
+      armed: null,
+      held: [],
+      sent: [],
+      arm(type) {
+        if (this.held.length)
+          throw new Error('A previous packet is still held');
+        this.armed = type;
+      },
+      release() {
+        this.armed = null;
+        const held = this.held.splice(0);
+        for (const packet of held)
+          Reflect.apply(original, packet.socket, [packet.data]);
+      },
+      discard() {
+        this.armed = null;
+        this.held.splice(0);
+      },
+      restore() {
+        this.release();
+        WebSocket.prototype.send = original;
+      },
+    };
+    // Delay only this page's actual command wire packet; no ACK, view or
+    // session state is fabricated. All sync/status/heartbeat traffic passes.
+    WebSocket.prototype.send = function (data) {
+      let envelope;
+      if (typeof data === 'string' && /^42\d*\[/.test(data)) {
+        try {
+          const packet = JSON.parse(data.slice(data.indexOf('[')));
+          if (packet[0] === 'room:command') envelope = packet[1];
+        } catch {
+          /* Non-command wire data is unchanged. */
+        }
+      }
+      if (envelope) {
+        probe.sent.push({
+          actionId: envelope.actionId,
+          type: envelope.command?.type,
+        });
+        if (envelope.command?.type === probe.armed) {
+          probe.held.push({ socket: this, data, actionId: envelope.actionId });
+          return;
+        }
+      }
+      return Reflect.apply(original, this, [data]);
+    };
+    window.__boxActionGate = probe;
+  });
+}
+async function heldAction(
+  surface,
+  button,
+  type,
+  expected,
+  label,
+  manualScroll = false,
+) {
+  const doc = await documentFor(surface);
+  await button.scrollIntoViewIfNeeded();
+  await wait(100);
+  const beforeView = await view();
+  const before = await actionGeometry(surface);
+  await doc.evaluate((value) => window.__boxActionGate.arm(value), type);
+  await button.click();
+  await until(
+    () => doc.evaluate(() => window.__boxActionGate.held.length === 1),
+    'Actual UI command did not enter its WebSocket gate (polling-only transport is not covered)',
+    2500,
+  );
+  await ui(surface)
+    .locator('.box-save-status')
+    .filter({ hasText: '正在提交' })
+    .waitFor();
+  const pending = await actionGeometry(surface);
+  const entry = { label, before, pending, beforeRevision: beforeView.revision };
+  report.actions.push(entry);
+  await save();
+  sameActionGeometry(before, pending, `${label}: submitting`);
+  assert.equal(
+    pending.feedbackVisible,
+    false,
+    'Ordinary submission must not insert a flow row',
+  );
+  assert.equal(
+    (await view()).revision,
+    beforeView.revision,
+    'Held command was not saved prematurely',
+  );
+  let last = pending;
+  if (manualScroll) {
+    // A real wheel input changes the viewport while the save is pending.
+    const bounds = await ui(surface).locator('.room-table').boundingBox();
+    await surface.page.mouse.move(
+      Math.max(5, bounds.x + bounds.width / 2),
+      Math.max(5, Math.min(300, bounds.y + 30)),
+    );
+    await surface.page.mouse.wheel(0, pending.scrollY > 40 ? -40 : 40);
+    await wait(120);
+    last = await actionGeometry(surface);
+    assert.ok(
+      Math.abs(last.scrollY - pending.scrollY) >= 10,
+      'Wheel input must actually scroll the box',
+    );
+  }
+  await doc.evaluate(() => window.__boxActionGate.release());
+  await until(
+    async () => expected(await view()),
+    `${label}: actual saved state missing`,
+  );
+  await rendered(surface);
+  await ui(surface)
+    .locator('.box-save-status')
+    .filter({ hasText: '已保存' })
+    .waitFor();
+  const saved = await actionGeometry(surface);
+  sameActionGeometry(last, saved, `${label}: saved`);
+  Object.assign(entry, {
+    ...(manualScroll ? { userScrolled: last } : {}),
+    saved,
+    afterRevision: (await view()).revision,
+  });
+  await screenshot(surface, label);
+  await checked(
+    `${label}: real command pending/saved geometry stayed stable${manualScroll ? '; real wheel scrolling was retained' : ''}`,
+  );
+}
+async function actionChecks(hostSurface, publicSurface) {
+  const owner = await newPlayer('保留的房主');
+  await rendered(hostSurface);
+  await installActionGate(hostSurface);
+  await installActionGate(owner);
+  try {
+    await resize(hostSurface, sizes[0]);
+    await heldAction(
+      hostSurface,
+      host.getByRole('button', { name: '添加人机', exact: true }),
+      'add-bot',
+      (state) => state.seats.length === 2,
+      'host-add-bot-390',
+      true,
+    );
+    const firstBot = (await view()).seats.find(
+      (seat) => seat.controller === 'bot',
+    );
+    assert.ok(firstBot);
+    const neighbor = await newPlayer('人机后邻座');
+    const neighborId = (await view(neighbor.token)).self.seatId;
+    await command({
+      type: 'set-owner',
+      seatId: (await view(owner.token)).self.seatId,
+    });
+    await rendered(owner);
+    const ownerDoc = await documentFor(owner);
+    await ownerDoc.evaluate((id) => {
+      window.__boxNeighbor = document.querySelector(`[data-seat-id="${id}"]`);
+    }, neighborId);
+    await heldAction(
+      owner,
+      ui(owner).getByRole('button', {
+        name: `移除人机${firstBot.name}`,
+        exact: true,
+      }),
+      'remove-seat',
+      (state) => !state.seats.some((seat) => seat.id === firstBot.id),
+      'owner-remove-bot-390',
+      true,
+    );
+    assert.equal(
+      await ownerDoc.evaluate(
+        (id) =>
+          window.__boxNeighbor?.isConnected &&
+          window.__boxNeighbor ===
+            document.querySelector(`[data-seat-id="${id}"]`),
+        neighborId,
+      ),
+      true,
+      'Neighbor seat DOM must survive its index changing',
+    );
+    await checked(
+      'Real following human seat retained its DOM identity and admission after preceding bot removal',
+    );
+    await resize(hostSurface, sizes[1]);
+    await rendered(hostSurface);
+    await heldAction(
+      hostSurface,
+      host.getByRole('button', { name: '添加人机', exact: true }),
+      'add-bot',
+      (state) => state.seats.length === 3,
+      'host-add-bot-720p',
+    );
+    const target = (await view()).seats.find(
+      (seat) => seat.controller === 'bot',
+    );
+    assert.ok(target);
+    const remove = host.getByRole('button', {
+      name: `移除人机${target.name}`,
+      exact: true,
+    });
+    await remove.scrollIntoViewIfNeeded();
+    const beforeFailure = await actionGeometry(hostSurface);
+    const beforeView = await view();
+    const databasePath = resolve(work, 'data/room.sqlite');
+    assert.ok(
+      databasePath.startsWith(resolve(work, 'data') + sep),
+      "Save lock must stay inside this run's private data",
+    );
+    const database = new DatabaseSync(databasePath);
+    let writeLock = false;
+    try {
+      database.exec('BEGIN IMMEDIATE');
+      writeLock = true;
+      await remove.click();
+      await host
+        .locator('.tablemax-notice')
+        .filter({ hasText: '操作未确认保存，请检查本地存储后重试。' })
+        .waitFor();
+      const failedView = await view();
+      assert.equal(failedView.revision, beforeView.revision);
+      assert.deepEqual(failedView.seats, beforeView.seats);
+      sameActionGeometry(
+        beforeFailure,
+        await actionGeometry(hostSurface),
+        'Actual SQLite save failure',
+      );
+    } finally {
+      try {
+        if (writeLock) database.exec('ROLLBACK');
+      } finally {
+        database.close();
+      }
+    }
+    await checked(
+      'Real isolated SQLite write lock rejected save; revision/seats unchanged and storage-failure feedback visible',
+    );
+    const notices = host.locator('.tablemax-notice');
+    for (const close of await notices
+      .getByRole('button', { name: '关闭提示', exact: true })
+      .all())
+      if (await close.isVisible()) await close.click();
+    await host.evaluate(() => window.__boxActionGate.arm('remove-seat'));
+    await remove.click();
+    await until(
+      () => host.evaluate(() => window.__boxActionGate.held.length === 1),
+      'Retry-boundary command did not reach WebSocket gate',
+      2500,
+    );
+    const actionId = await host.evaluate(
+      () => window.__boxActionGate.held[0].actionId,
+    );
+    const retry = host.getByRole('button', { name: '重试确认', exact: true });
+    await retry.waitFor();
+    await host
+      .getByText('尚未收到保存确认，请重试确认。', { exact: true })
+      .first()
+      .waitFor();
+    assert.equal(await retry.isEnabled(), true);
+    assert.equal((await view()).revision, beforeView.revision);
+    await wait(2100);
+    assert.equal(
+      await retry.isVisible(),
+      true,
+      'Unconfirmed save retry must outlive ordinary toast timing',
+    );
+    // Intentionally drop this known-unsent packet, then the real retry sends
+    // the original action ID. No simulated success or duplicate save is used.
+    await host.evaluate(() => window.__boxActionGate.discard());
+    await retry.click();
+    await until(
+      async () => !(await view()).seats.some((seat) => seat.id === target.id),
+      'Explicit original-intent retry did not save removal',
+    );
+    await rendered(hostSurface);
+    assert.equal((await view()).revision, beforeView.revision + 1);
+    const sent = await host.evaluate(() =>
+      window.__boxActionGate.sent.filter(
+        (entry) => entry.type === 'remove-seat',
+      ),
+    );
+    assert.equal(sent.at(-1).actionId, actionId);
+    await checked(
+      'Genuine unknown command confirmation kept an actionable retry beyond toast timing; same action ID saved once after explicit retry',
+    );
+    await dialogMatrix(
+      hostSurface,
+      '视频设置',
+      '视频设置',
+      'host-video-actions',
+      async (panel) => {
+        assert.deepEqual(
+          await panel
+            .getByLabel('显示模式', { exact: true })
+            .locator('option')
+            .evaluateAll((options) => options.map((option) => option.value)),
+          ['fullscreen', 'borderless', 'windowed'],
+        );
+        assert.equal(await panel.getByText(/F11/).count(), 0);
+      },
+    );
+    await resize(publicSurface, sizes[1]);
+    await publicPage
+      .getByRole('button', { name: '视频设置', exact: true })
+      .click();
+    const panel = publicPage.getByRole('dialog', {
+      name: '视频设置',
+      exact: true,
+    });
+    await panel.waitFor();
+    assert.deepEqual(
+      await panel
+        .getByLabel('显示模式', { exact: true })
+        .locator('option')
+        .evaluateAll((options) => options.map((option) => option.value)),
+      ['fullscreen', 'borderless', 'windowed'],
+    );
+    await layout(publicSurface, 'public-video-actions-720p', true);
+    await screenshot(publicSurface, 'public-video-actions-720p');
+    await panel.getByRole('button', { name: '关闭面板', exact: true }).click();
+    assert.deepEqual(report.pageErrors, []);
+    await checked(
+      'Actual host/public video settings contain all three native modes without shortcut hints',
+    );
+  } finally {
+    for (const surface of [hostSurface, owner])
+      await (
+        await documentFor(surface)
+      )
+        .evaluate(() => window.__boxActionGate?.restore())
+        .catch(() => {});
+  }
+}
 async function verifyPackage() {
   const bytes = await readFile(archive),
     manifestBytes = await readFile(manifestPath),
@@ -833,34 +1224,134 @@ try {
       soundEnabled: false,
     });
     await command({ type: 'select-game', gameId: 'modern-art' });
-    const chinese = await newPlayer('蓝天白云与朋友们一起探索奇妙桌游世界');
-    const english = await newPlayer('AlexandraLongPlayerName');
-    const unseated = await newPlayer();
-    await command({
-      type: 'add-bot',
-      name: '默认人机伙伴',
-      difficulty: 'default',
-    });
-    await command({
-      type: 'set-owner',
-      seatId: (await view(chinese.token)).self.seatId,
-    });
-    const publicEvent = desktop.waitForEvent('window');
-    await desktop.request('open-public');
-    publicPage = await publicEvent;
-    observe(publicPage);
-    const hostSurface = { page: host, role: 'host', native: true },
-      publicSurface = { page: publicPage, role: 'public', native: true };
-    const surfaces = [unseated, chinese, hostSurface, publicSurface];
-    if (refinementsOnly) {
-      for (const surface of surfaces) await rendered(surface);
-      await dialogMatrix(hostSurface, '切换游戏', '游戏库', 'host-library');
-      if (!libraryOnly) {
-        const expandTroubleshooting = async (panel) => {
-          await panel.getByText('手机扫码', { exact: true }).waitFor();
-          await panel.getByText('直接打开', { exact: true }).waitFor();
-          await panel.locator('summary').click();
-        };
+    if (actionsOnly) {
+      const publicEvent = desktop.waitForEvent('window');
+      await desktop.request('open-public');
+      publicPage = await publicEvent;
+      observe(publicPage);
+      const hostSurface = { page: host, role: 'host', native: true },
+        publicSurface = { page: publicPage, role: 'public', native: true };
+      await actionChecks(hostSurface, publicSurface);
+      await reviewSheets();
+    } else {
+      const chinese = await newPlayer('蓝天白云与朋友们一起探索奇妙桌游世界');
+      const english = await newPlayer('AlexandraLongPlayerName');
+      const unseated = await newPlayer();
+      await command({
+        type: 'add-bot',
+        name: '默认人机伙伴',
+        difficulty: 'default',
+      });
+      await command({
+        type: 'set-owner',
+        seatId: (await view(chinese.token)).self.seatId,
+      });
+      const publicEvent = desktop.waitForEvent('window');
+      await desktop.request('open-public');
+      publicPage = await publicEvent;
+      observe(publicPage);
+      const hostSurface = { page: host, role: 'host', native: true },
+        publicSurface = { page: publicPage, role: 'public', native: true };
+      const surfaces = [unseated, chinese, hostSurface, publicSurface];
+      if (refinementsOnly) {
+        for (const surface of surfaces) await rendered(surface);
+        await dialogMatrix(hostSurface, '切换游戏', '游戏库', 'host-library');
+        if (!libraryOnly) {
+          const expandTroubleshooting = async (panel) => {
+            await panel.getByText('手机扫码', { exact: true }).waitFor();
+            await panel.getByText('直接打开', { exact: true }).waitFor();
+            await panel.locator('summary').click();
+          };
+          await dialogMatrix(
+            hostSurface,
+            '连接帮助',
+            '连接帮助',
+            'host-connection',
+            async (panel) => {
+              await panel
+                .getByLabel('外部入口网址', { exact: true })
+                .fill(origin + '/player');
+              await panel
+                .getByRole('button', { name: '保存外部入口', exact: true })
+                .click();
+              await panel
+                .getByText('二维码已更新。', { exact: true })
+                .waitFor();
+              await expandTroubleshooting(panel);
+            },
+          );
+          await dialogMatrix(
+            publicSurface,
+            '连接帮助',
+            '连接帮助',
+            'public-connection',
+            async (panel) => {
+              assert.equal(
+                await panel.getByLabel('外部入口网址', { exact: true }).count(),
+                0,
+                'Public screen must not edit the network entry',
+              );
+              await expandTroubleshooting(panel);
+            },
+          );
+          await connectionEntry(hostSurface, origin);
+          await connectionEntry(publicSurface, origin);
+          await dialogMatrix(
+            unseated,
+            '选择头像',
+            '选择头像',
+            'player-avatar-unseated',
+          );
+          await dialogMatrix(
+            chinese,
+            '更换头像',
+            '选择头像',
+            'player-avatar-seated',
+          );
+        }
+        assert.deepEqual(report.pageErrors, []);
+        await checked(
+          libraryOnly
+            ? 'Actual game-library dialog recorded at 390, 720p and 1080p'
+            : 'Affected authorized game-library, avatar and host/public connection-help dialogs recorded at 390, 720p and 1080p',
+        );
+        await reviewSheets();
+      } else {
+        for (const selection of [
+          { id: 'modern-art' },
+          { id: 'power-grid' },
+          { id: 'pokemon-encounters', variant: 'original' },
+          { id: 'pokemon-encounters', variant: 'expansion' },
+        ]) {
+          await command({ type: 'select-game', gameId: selection.id });
+          if (selection.variant)
+            await command({
+              type: 'select-variant',
+              variantId: selection.variant,
+            });
+          const gameLabel =
+            selection.id + (selection.variant ? '-' + selection.variant : '');
+          for (const surface of surfaces) {
+            await rendered(surface);
+            for (const size of sizes) {
+              await resize(surface, size);
+              const label = `${gameLabel}-${surface.role}-${size.label}`;
+              await layout(surface, label);
+              await screenshot(surface, label);
+            }
+          }
+          await checked(
+            `${gameLabel}: four authorized box roles, six viewport/density combinations and reachable controls recorded`,
+          );
+        }
+        await command({ type: 'select-game', gameId: 'modern-art' });
+        for (const surface of surfaces) await rendered(surface);
+        await dialogMatrix(
+          hostSurface,
+          '管理设置',
+          '管理设置',
+          'host-management',
+        );
         await dialogMatrix(
           hostSurface,
           '连接帮助',
@@ -874,7 +1365,7 @@ try {
               .getByRole('button', { name: '保存外部入口', exact: true })
               .click();
             await panel.getByText('二维码已更新。', { exact: true }).waitFor();
-            await expandTroubleshooting(panel);
+            await panel.locator('summary').click();
           },
         );
         await dialogMatrix(
@@ -888,11 +1379,44 @@ try {
               0,
               'Public screen must not edit the network entry',
             );
-            await expandTroubleshooting(panel);
+            await panel.locator('summary').click();
           },
         );
+        await resize(hostSurface, sizes[1]);
+        await host
+          .locator('.qr[src="/api/foundation/qr?external=1"]')
+          .waitFor();
         await connectionEntry(hostSurface, origin);
         await connectionEntry(publicSurface, origin);
+        await screenshot(hostSurface, 'host-external-qr-720p', {
+          preview: true,
+        });
+        await host
+          .getByRole('button', { name: '连接帮助', exact: true })
+          .click();
+        await host
+          .getByRole('button', { name: '使用局域网', exact: true })
+          .click();
+        await host.getByText('已切回局域网二维码。', { exact: true }).waitFor();
+        await host
+          .getByRole('button', { name: '关闭面板', exact: true })
+          .click();
+        await checked(
+          'Real administrator UI saved a loopback external entry and restored LAN; public help remained read-only',
+        );
+        await dialogMatrix(
+          hostSurface,
+          '游戏设置',
+          '游戏设置',
+          'host-game-settings',
+        );
+        await dialogMatrix(
+          hostSurface,
+          '座位设置',
+          '座位设置',
+          'host-seat-settings',
+        );
+        await dialogMatrix(hostSurface, '切换游戏', '游戏库', 'host-library');
         await dialogMatrix(
           unseated,
           '选择头像',
@@ -905,178 +1429,70 @@ try {
           '选择头像',
           'player-avatar-seated',
         );
-      }
-      assert.deepEqual(report.pageErrors, []);
-      await checked(
-        libraryOnly
-          ? 'Actual game-library dialog recorded at 390, 720p and 1080p'
-          : 'Affected authorized game-library, avatar and host/public connection-help dialogs recorded at 390, 720p and 1080p',
-      );
-      await reviewSheets();
-    } else {
-      for (const selection of [
-        { id: 'modern-art' },
-        { id: 'power-grid' },
-        { id: 'pokemon-encounters', variant: 'original' },
-        { id: 'pokemon-encounters', variant: 'expansion' },
-      ]) {
-        await command({ type: 'select-game', gameId: selection.id });
-        if (selection.variant)
-          await command({
-            type: 'select-variant',
-            variantId: selection.variant,
-          });
-        const gameLabel =
-          selection.id + (selection.variant ? '-' + selection.variant : '');
-        for (const surface of surfaces) {
-          await rendered(surface);
-          for (const size of sizes) {
-            await resize(surface, size);
-            const label = `${gameLabel}-${surface.role}-${size.label}`;
-            await layout(surface, label);
-            await screenshot(surface, label);
-          }
-        }
-        await checked(
-          `${gameLabel}: four authorized box roles, six viewport/density combinations and reachable controls recorded`,
+        await dialogMatrix(
+          unseated,
+          '换手机进入',
+          '换手机进入',
+          'player-transfer-empty',
         );
+        await resize(unseated, sizes[0]);
+        await ui(unseated)
+          .getByRole('button', { name: '换手机进入', exact: true })
+          .click();
+        await ui(unseated)
+          .getByLabel('原座位', { exact: true })
+          .selectOption((await view(english.token)).self.seatId);
+        await ui(unseated)
+          .getByRole('button', { name: '申请接续座位', exact: true })
+          .click();
+        await ui(unseated).locator('.device-transfer__code strong').waitFor();
+        await layout(unseated, 'player-transfer-pending-390', true);
+        await screenshot(unseated, 'player-transfer-pending-390');
+        await ui(unseated)
+          .getByRole('button', { name: '关闭面板', exact: true })
+          .click();
+        await until(
+          async () => (await view()).transferRequests?.length === 1,
+          'Transfer request did not reach host',
+        );
+        await resize(hostSurface, sizes[1]);
+        await host
+          .getByRole('button', { name: '管理设置', exact: true })
+          .click();
+        await host.locator('.device-transfer-request').waitFor();
+        await layout(hostSurface, 'host-transfer-request-720p', true);
+        await screenshot(hostSurface, 'host-transfer-request-720p');
+        await host
+          .getByRole('button', { name: '批准换机', exact: true })
+          .click();
+        await host
+          .getByRole('dialog', { name: '批准换机', exact: true })
+          .waitFor();
+        await layout(hostSurface, 'host-transfer-confirmation-720p', true);
+        await screenshot(hostSurface, 'host-transfer-confirmation-720p');
+        await host
+          .getByRole('button', { name: '批准并退出旧设备', exact: true })
+          .click();
+        await ui(unseated)
+          .getByRole('button', { name: '我准备好了', exact: true })
+          .waitFor();
+        const restored = await (
+          await playerFrame(unseated.page)
+        ).evaluate(() => localStorage.getItem('tablemax-player'));
+        assert.ok(restored);
+        secrets.add(restored);
+        assert.equal(
+          (await view(restored)).self.seatId,
+          (await view()).seats.find(
+            (seat) => seat.name === 'AlexandraLongPlayerName',
+          ).id,
+        );
+        await checked(
+          'Real administrator transfer request, verification code and approval confirmation rendered; approval retained original seat',
+        );
+        assert.deepEqual(report.pageErrors, []);
+        await reviewSheets();
       }
-      await command({ type: 'select-game', gameId: 'modern-art' });
-      for (const surface of surfaces) await rendered(surface);
-      await dialogMatrix(
-        hostSurface,
-        '管理设置',
-        '管理设置',
-        'host-management',
-      );
-      await dialogMatrix(
-        hostSurface,
-        '连接帮助',
-        '连接帮助',
-        'host-connection',
-        async (panel) => {
-          await panel
-            .getByLabel('外部入口网址', { exact: true })
-            .fill(origin + '/player');
-          await panel
-            .getByRole('button', { name: '保存外部入口', exact: true })
-            .click();
-          await panel.getByText('二维码已更新。', { exact: true }).waitFor();
-          await panel.locator('summary').click();
-        },
-      );
-      await dialogMatrix(
-        publicSurface,
-        '连接帮助',
-        '连接帮助',
-        'public-connection',
-        async (panel) => {
-          assert.equal(
-            await panel.getByLabel('外部入口网址', { exact: true }).count(),
-            0,
-            'Public screen must not edit the network entry',
-          );
-          await panel.locator('summary').click();
-        },
-      );
-      await resize(hostSurface, sizes[1]);
-      await host.locator('.qr[src="/api/foundation/qr?external=1"]').waitFor();
-      await connectionEntry(hostSurface, origin);
-      await connectionEntry(publicSurface, origin);
-      await screenshot(hostSurface, 'host-external-qr-720p', { preview: true });
-      await host.getByRole('button', { name: '连接帮助', exact: true }).click();
-      await host
-        .getByRole('button', { name: '使用局域网', exact: true })
-        .click();
-      await host.getByText('已切回局域网二维码。', { exact: true }).waitFor();
-      await host.getByRole('button', { name: '关闭面板', exact: true }).click();
-      await checked(
-        'Real administrator UI saved a loopback external entry and restored LAN; public help remained read-only',
-      );
-      await dialogMatrix(
-        hostSurface,
-        '游戏设置',
-        '游戏设置',
-        'host-game-settings',
-      );
-      await dialogMatrix(
-        hostSurface,
-        '座位设置',
-        '座位设置',
-        'host-seat-settings',
-      );
-      await dialogMatrix(hostSurface, '切换游戏', '游戏库', 'host-library');
-      await dialogMatrix(
-        unseated,
-        '选择头像',
-        '选择头像',
-        'player-avatar-unseated',
-      );
-      await dialogMatrix(
-        chinese,
-        '更换头像',
-        '选择头像',
-        'player-avatar-seated',
-      );
-      await dialogMatrix(
-        unseated,
-        '换手机进入',
-        '换手机进入',
-        'player-transfer-empty',
-      );
-      await resize(unseated, sizes[0]);
-      await ui(unseated)
-        .getByRole('button', { name: '换手机进入', exact: true })
-        .click();
-      await ui(unseated)
-        .getByLabel('原座位', { exact: true })
-        .selectOption((await view(english.token)).self.seatId);
-      await ui(unseated)
-        .getByRole('button', { name: '申请接续座位', exact: true })
-        .click();
-      await ui(unseated).locator('.device-transfer__code strong').waitFor();
-      await layout(unseated, 'player-transfer-pending-390', true);
-      await screenshot(unseated, 'player-transfer-pending-390');
-      await ui(unseated)
-        .getByRole('button', { name: '关闭面板', exact: true })
-        .click();
-      await until(
-        async () => (await view()).transferRequests?.length === 1,
-        'Transfer request did not reach host',
-      );
-      await resize(hostSurface, sizes[1]);
-      await host.getByRole('button', { name: '管理设置', exact: true }).click();
-      await host.locator('.device-transfer-request').waitFor();
-      await layout(hostSurface, 'host-transfer-request-720p', true);
-      await screenshot(hostSurface, 'host-transfer-request-720p');
-      await host.getByRole('button', { name: '批准换机', exact: true }).click();
-      await host
-        .getByRole('dialog', { name: '批准换机', exact: true })
-        .waitFor();
-      await layout(hostSurface, 'host-transfer-confirmation-720p', true);
-      await screenshot(hostSurface, 'host-transfer-confirmation-720p');
-      await host
-        .getByRole('button', { name: '批准并退出旧设备', exact: true })
-        .click();
-      await ui(unseated)
-        .getByRole('button', { name: '我准备好了', exact: true })
-        .waitFor();
-      const restored = await (
-        await playerFrame(unseated.page)
-      ).evaluate(() => localStorage.getItem('tablemax-player'));
-      assert.ok(restored);
-      secrets.add(restored);
-      assert.equal(
-        (await view(restored)).self.seatId,
-        (await view()).seats.find(
-          (seat) => seat.name === 'AlexandraLongPlayerName',
-        ).id,
-      );
-      await checked(
-        'Real administrator transfer request, verification code and approval confirmation rendered; approval retained original seat',
-      );
-      assert.deepEqual(report.pageErrors, []);
-      await reviewSheets();
     }
   }
   assert.equal(

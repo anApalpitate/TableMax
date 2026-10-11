@@ -138,6 +138,13 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
         : view.paused || view.botError
           ? '对局已暂停'
           : '对局进行中';
+  const compactProgress =
+    session.messageKind === 'progress' &&
+    session.message === feedbackText('session.submitting') &&
+    connected &&
+    !session.admissionPending &&
+    !session.awaitingConfirmation;
+  const saveStatusVisible = session.messageKind === 'saved' || compactProgress;
   return (
     <main
       className={`shell box-screen ${role}`}
@@ -158,11 +165,15 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           )}
           <DisplaySettings role={role} />
           <PlayModeBadge mode={view?.playMode} />
-          {session.messageKind === 'saved' && (
-            <span className="box-save-status" role="status">
-              {feedbackText('session.saved')}
-            </span>
-          )}
+          <span
+            className="box-save-status"
+            role="status"
+            data-visible={saveStatusVisible}
+          >
+            {feedbackText(
+              compactProgress ? 'session.submitting' : 'session.saved',
+            )}
+          </span>
           <span
             className={`connection ${connected ? 'online' : ''}`}
             role="status"
@@ -212,7 +223,9 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
         )}
       </section>
       {!game && <GameLibrary session={session} />}
-      <BoxFeedback session={session} />
+      <div className="box-feedback" data-submitting={compactProgress}>
+        <BoxFeedback session={session} />
+      </div>
       {game && canControl && (
         <div className="box-table-actions">
           <RoomManagement session={session} display="actions" />

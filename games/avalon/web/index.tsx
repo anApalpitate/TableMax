@@ -5,7 +5,6 @@ import {
   CountdownSettings,
   DecisionCountdown,
   DisplaySettings,
-  FullscreenControl,
   OverlayPanel,
   PlayModeBadge,
   PlayModeControl,
@@ -279,7 +278,6 @@ function AvalonScreen({ session }: { session: GameHost }) {
           <button type="button" onClick={() => setPanel('menu')}>
             菜单
           </button>
-          {!player && <FullscreenControl />}
         </div>
       </header>
       {((session.message && session.message !== '已保存') ||
@@ -487,7 +485,7 @@ function AvalonScreen({ session }: { session: GameHost }) {
                       查看我的秘密身份
                     </button>
                   )}
-                  {player && <FullscreenControl />}
+
                   <div className="dialog-actions game-menu-settings">
                     <CountdownSettings session={session} />
                     <DisplaySettings role={role} />

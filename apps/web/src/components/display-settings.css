@@ -2,10 +2,13 @@
   flex: 0 0 auto;
   font-size: 18px;
 }
-.interaction-video-setting {
+.interaction-video-setting,
+.interaction-button-setting,
+.window-mode-setting {
   margin-bottom: 14px;
 }
-.dialog-surface .interaction-video-setting button {
+.dialog-surface .interaction-video-setting button,
+.dialog-surface .interaction-button-setting button {
   min-height: 48px;
   width: 100%;
   font-size: 18px;
@@ -18,7 +21,8 @@
   display: grid;
   gap: 14px;
 }
-.display-settings-fields select {
+.display-settings-fields select,
+.window-mode-setting select {
   width: 100%;
   min-height: 48px;
 }

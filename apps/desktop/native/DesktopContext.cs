@@ -233,6 +233,9 @@ namespace TableMax.Desktop
                 case "window.setFullscreen":
                     if (parameters.Length != 1 || !(parameters[0] is bool requestedFullscreen)) throw new ArgumentException("Invalid fullscreen state.");
                     return window.SetFullscreen(requestedFullscreen);
+                case "window.setMode":
+                    if (parameters.Length != 1 || !(parameters[0] is string requestedMode)) throw new ArgumentException("显示模式参数无效。");
+                    return window.SetMode(requestedMode);
                 case "window.menu":
                     if (parameters.Length != 0) throw new ArgumentException("Invalid window request.");
                     window.ToggleMenu(); return null;

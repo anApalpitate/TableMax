@@ -9,6 +9,7 @@ import assert from 'node:assert/strict';
 import { readFile, mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import vm from 'node:vm';
+import { createHash } from 'node:crypto';
 import { build } from 'esbuild';
 import { createRequire } from 'node:module';
 import { launchDesktop, desktopExecutable } from '../support/desktop-test.mjs';
@@ -41,30 +42,47 @@ const reply = (value) => {
 };
 const read = fakeWindow.tablemaxWindow.read();
 assert.equal(calls.at(-1).method, 'window.read');
-reply({ fullscreen: false });
-assert.equal((await read).fullscreen, false);
+reply({ fullscreen: false, mode: 'windowed' });
+assert.deepEqual(await read, { fullscreen: false, mode: 'windowed' });
 const set = fakeWindow.tablemaxWindow.setFullscreen(true);
 assert.deepEqual(Array.from(calls.at(-1).params), [true]);
-reply({ fullscreen: true });
-assert.equal((await set).fullscreen, true);
+reply({ fullscreen: true, mode: 'fullscreen' });
+assert.deepEqual(await set, { fullscreen: true, mode: 'fullscreen' });
+for (const mode of ['windowed', 'borderless', 'fullscreen']) {
+  const changed = fakeWindow.tablemaxWindow.setMode(mode);
+  assert.equal(calls.at(-1).method, 'window.setMode');
+  assert.deepEqual(Array.from(calls.at(-1).params), [mode]);
+  reply({ fullscreen: mode === 'fullscreen', mode });
+  assert.equal((await changed).mode, mode);
+}
 let seen;
 const unsubscribe = fakeWindow.tablemaxWindow.subscribe((value) => {
   seen = value;
 });
 handlers.get('message')({
-  data: { type: 'changed', channel: 'window', value: { fullscreen: false } },
+  data: {
+    type: 'changed',
+    channel: 'window',
+    value: { fullscreen: false, mode: 'borderless' },
+  },
 });
 assert.equal(seen.fullscreen, false);
+assert.equal(seen.mode, 'borderless');
 unsubscribe();
 handlers.get('message')({
-  data: { type: 'changed', channel: 'window', value: { fullscreen: true } },
+  data: {
+    type: 'changed',
+    channel: 'window',
+    value: { fullscreen: true, mode: 'fullscreen' },
+  },
 });
 assert.equal(seen.fullscreen, false);
+assert.equal(seen.mode, 'borderless');
 const child = { top: fakeWindow };
 vm.runInNewContext(bridgeSource, { window: child });
 assert.equal(child.tablemaxWindow, undefined);
 console.log(
-  'Window bridge VM: read, set, notification, unsubscribe and frame exclusion passed',
+  'Window bridge VM: read, legacy fullscreen, all three modes, notification, unsubscribe and frame exclusion passed',
 );
 if (process.argv.includes('--bridge-only')) process.exit(0);
 
@@ -72,10 +90,8 @@ const run =
   process.argv.find((value) => value.startsWith('--run='))?.slice(6) ??
   `fullscreen-${Date.now()}`;
 assert.match(run, /^[a-z0-9-]+$/i);
-const output = resolve(
-  'artifacts/maintenance/v1.0.2/modern-art-polish-20261005',
-  run,
-);
+const version = JSON.parse(await readFile('package.json', 'utf8')).version;
+const output = resolve(`artifacts/maintenance/v${version}/window-modes`, run);
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/desktop-fullscreen-'));
@@ -90,24 +106,46 @@ await build({
 const { prepare } = createRequire(import.meta.url)(join(work, 'prepare.cjs'));
 const fixture = await prepare(work, 5);
 const dataDir = fixture.cases.find((entry) => entry.id === 'offer').dataDir;
-const executablePath =
+const executablePath = resolve(
   process.argv.find((value) => value.startsWith('--executable='))?.slice(13) ??
-  desktopExecutable;
+    desktopExecutable,
+);
+const archivePath = process.argv
+  .find((value) => value.startsWith('--zip='))
+  ?.slice(6);
 const foreground = process.argv.includes('--foreground');
+const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const evidence = {
   result: 'started',
   executablePath,
+  executableSha256: hash(await readFile(executablePath)),
   dataDir,
   checks: [],
+  transitions: [],
+  errors: [],
   foreground,
+  portable: Boolean(archivePath),
   scope: foreground
-    ? 'Actual normally framed foreground test window, nonactivating, briefly visible on the current monitor; actual native bounds/style restore, React button, keys and menu. Hardware DPI and multi-monitor require separate acceptance.'
-    : 'Actual hidden WebView2 native window checks; foreground, hardware DPI and multi-monitor behavior require separate acceptance.',
+    ? 'Actual normally framed foreground test window, nonactivating, briefly visible on the current monitor; three native window modes, video settings, trusted keys and menu, plus a saved Modern Art menu fixture. Hardware DPI and multi-monitor require separate acceptance.'
+    : 'Actual hidden WebView2 native windows; three native window modes, video settings, trusted keys and menu, plus a saved Modern Art menu fixture. Hidden verification keeps native chrome off; foreground border rendering, hardware DPI and multi-monitor behavior require separate acceptance.',
 };
+if (archivePath) {
+  const manifest = JSON.parse(
+    await readFile(archivePath.replace(/\.zip$/i, '-manifest.json'), 'utf8'),
+  );
+  evidence.archiveSha256 = hash(await readFile(archivePath));
+  assert.equal(evidence.archiveSha256, manifest.archive.sha256);
+  assert.equal(
+    evidence.executableSha256,
+    manifest.files.find((file) => file.path === 'TableMax.exe').sha256,
+  );
+  evidence.packageSnapshot = manifest.snapshot;
+}
 let desktop;
 try {
   desktop = await launchDesktop({
     executablePath,
+    soundEnabled: false,
     args: foreground
       ? ['--foundation-test', '--tablemax-test-foreground']
       : ['--foundation-test'],
@@ -119,27 +157,108 @@ try {
     },
   });
   const host = await desktop.firstWindow();
-  await host.locator('.connection.online').waitFor();
+  host.on('pageerror', (error) => evidence.errors.push(error.message));
+  await host.locator('[data-room-revision]').waitFor();
   const state = async (page) => {
     const id = await page.evaluate(() => window.__tablemaxWindowId);
     return (await desktop.request('windows')).find((entry) => entry.id === id);
   };
-  const until = async (page, value) => {
+  const until = async (page, mode) => {
     await page.waitForFunction(
       (expected) =>
-        window.tablemaxWindow.read().then((s) => s.fullscreen === expected),
-      value,
+        window.tablemaxWindow
+          .read()
+          .then(
+            (s) =>
+              s.mode === expected &&
+              s.fullscreen === (expected === 'fullscreen'),
+          ),
+      mode,
     );
-    assert.equal((await state(page)).fullscreen, value);
+    const current = await state(page);
+    assert.equal(current.mode, mode);
+    assert.equal(current.fullscreen, mode === 'fullscreen');
+    assert.equal(
+      current.borderStyle,
+      foreground && mode === 'windowed' ? 'Sizable' : 'None',
+    );
+    evidence.transitions.push({
+      mode,
+      id: current.id,
+      bounds: current.bounds,
+      windowState: current.windowState,
+      restoreBounds: current.restoreBounds,
+      borderStyle: current.borderStyle,
+    });
+    return current;
+  };
+  const setMode = async (page, mode) => {
+    assert.equal(
+      (
+        await page.evaluate(
+          (value) => window.tablemaxWindow.setMode(value),
+          mode,
+        )
+      ).mode,
+      mode,
+    );
+    return until(page, mode);
+  };
+  const openVideo = async (page) => {
+    const entry = page.getByRole('button', { name: '视频设置', exact: true });
+    if (!(await entry.count()) || !(await entry.isVisible()))
+      await page.getByRole('button', { name: '菜单', exact: true }).click();
+    await entry.click();
+    const dialog = page.getByRole('dialog', { name: '视频设置', exact: true });
+    await dialog.waitFor();
+    const select = dialog.getByRole('combobox', {
+      name: '显示模式',
+      exact: true,
+    });
+    await select.waitFor();
+    assert.deepEqual(
+      await select.locator('option').evaluateAll((options) =>
+        options.map((option) => ({
+          value: option.value,
+          label: option.textContent,
+        })),
+      ),
+      [
+        { value: 'fullscreen', label: '全屏' },
+        { value: 'borderless', label: '无边框窗口' },
+        { value: 'windowed', label: '窗口' },
+      ],
+    );
+    assert.equal(await dialog.getByText(/F11/i).count(), 0);
+    await page.waitForFunction(() => {
+      const select = document.querySelector('#window-mode');
+      return select && !select.disabled;
+    });
+    return { dialog, select };
+  };
+  const selectMode = async (page, select, mode) => {
+    await select.selectOption(mode);
+    const current = await until(page, mode);
+    await page.waitForFunction((expected) => {
+      const control = document.querySelector('#window-mode');
+      return control && !control.disabled && control.value === expected;
+    }, mode);
+    assert.equal(await select.inputValue(), mode);
+    return current;
+  };
+  const closeVideo = async (dialog) => {
+    await dialog.getByRole('button', { name: '关闭面板', exact: true }).click();
+    await dialog.waitFor({ state: 'detached' });
   };
   await host.evaluate(() => {
     window.fullscreenSnapshots = [];
     window.tablemaxWindow.subscribe((s) =>
-      window.fullscreenSnapshots.push(s.fullscreen),
+      window.fullscreenSnapshots.push(s.mode),
     );
   });
   const initial = await state(host);
   assert.equal(initial.fullscreen, false);
+  assert.equal(initial.mode, 'windowed');
   assert.equal(initial.foregroundTest, foreground);
   assert.equal(initial.visible, foreground);
   assert.equal(initial.borderStyle, foreground ? 'Sizable' : 'None');
@@ -152,6 +271,7 @@ try {
   );
   const full = await state(host);
   assert.equal(full.fullscreen, true);
+  assert.equal(full.mode, 'fullscreen');
   assert.equal(full.borderStyle, 'None');
   evidence.fullscreenWindow = full;
   if (foreground) {
@@ -172,47 +292,74 @@ try {
   assert.deepEqual((await state(host)).bounds, initial.bounds);
   assert.equal((await state(host)).borderStyle, initial.borderStyle);
   assert.deepEqual(await host.evaluate(() => window.fullscreenSnapshots), [
-    true,
-    false,
+    'fullscreen',
+    'windowed',
   ]);
   evidence.checks.push(
-    'Set is idempotent; native bounds change and return exactly; subscribers receive real transitions',
+    'Legacy fullscreen remains idempotent; native bounds change and return exactly; subscribers receive actual mode transitions',
   );
 
+  const boxVideo = await openVideo(host);
+  assert.equal(await boxVideo.select.inputValue(), 'windowed');
+  const borderless = await selectMode(host, boxVideo.select, 'borderless');
+  assert.deepEqual(borderless.bounds, initial.bounds);
+  const notificationCount = await host.evaluate(
+    () => window.fullscreenSnapshots.length,
+  );
+  await setMode(host, 'borderless');
+  assert.equal(
+    await host.evaluate(() => window.fullscreenSnapshots.length),
+    notificationCount,
+  );
+  assert.deepEqual((await state(host)).bounds, borderless.bounds);
+  await captureBrowserScreenshot(host, {
+    path: join(output, 'box-video-borderless.png'),
+  });
+  await closeVideo(boxVideo.dialog);
   await host.keyboard.press('F11');
-  await until(host, true);
+  await until(host, 'fullscreen');
   await host.keyboard.press('F11');
-  await until(host, false);
+  await until(host, 'borderless');
+  assert.deepEqual((await state(host)).bounds, borderless.bounds);
   await desktop.request('window', {
     id: initial.id,
     operation: 'menu-fullscreen',
   });
-  await until(host, true);
-  await host
-    .getByRole('button', { name: /^(?:视频|显示)设置$/, exact: true })
-    .click();
+  await until(host, 'fullscreen');
+  const fullVideo = await openVideo(host);
+  assert.equal(await fullVideo.select.inputValue(), 'fullscreen');
   await host.keyboard.press('Escape');
-  await host.locator('dialog[open]').waitFor({ state: 'hidden' });
-  await until(host, true);
+  await fullVideo.dialog.waitFor({ state: 'detached' });
+  await until(host, 'fullscreen');
   await host.keyboard.press('Escape');
-  await until(host, false);
+  await until(host, 'borderless');
+  assert.deepEqual((await state(host)).bounds, borderless.bounds);
+  const restoredVideo = await openVideo(host);
+  await selectMode(host, restoredVideo.select, 'windowed');
+  assert.deepEqual((await state(host)).bounds, initial.bounds);
+  await closeVideo(restoredVideo.dialog);
   evidence.checks.push(
-    'Trusted F11 and native menu synchronize state; Escape closes dialog before exiting fullscreen',
+    'Box video settings expose all three modes; borderless is idempotent; F11 and native menu restore borderless geometry; Escape closes video before returning from fullscreen',
   );
 
   if (!foreground) {
     const next = desktop.waitForEvent('window');
     await desktop.request('open-public');
     const publicPage = await next;
-    await publicPage.locator('.connection.online').waitFor();
-    await publicPage.evaluate(() => window.tablemaxWindow.setFullscreen(true));
-    assert.equal((await state(host)).fullscreen, false);
-    await host.evaluate(() => window.tablemaxWindow.setFullscreen(true));
-    await publicPage.evaluate(() => window.tablemaxWindow.setFullscreen(false));
-    assert.equal((await state(host)).fullscreen, true);
-    await host.evaluate(() => window.tablemaxWindow.setFullscreen(false));
+    publicPage.on('pageerror', (error) => evidence.errors.push(error.message));
+    await publicPage.locator('[data-room-revision]').waitFor();
+    const publicVideo = await openVideo(publicPage);
+    await selectMode(publicPage, publicVideo.select, 'borderless');
+    assert.equal((await state(host)).mode, 'windowed');
+    await selectMode(publicPage, publicVideo.select, 'fullscreen');
+    assert.equal((await state(host)).mode, 'windowed');
+    await setMode(host, 'borderless');
+    await selectMode(publicPage, publicVideo.select, 'windowed');
+    assert.equal((await state(host)).mode, 'borderless');
+    await closeVideo(publicVideo.dialog);
+    await setMode(host, 'windowed');
     evidence.checks.push(
-      'Host and public native window fullscreen states are independent',
+      'Host and public windows expose three video-setting modes and change independently',
     );
   }
 
@@ -223,8 +370,10 @@ try {
   });
   const maximized = await state(host);
   assert.equal(maximized.windowState, 'Maximized');
-  await host.evaluate(() => window.tablemaxWindow.setFullscreen(true));
-  await host.evaluate(() => window.tablemaxWindow.setFullscreen(false));
+  await host.keyboard.press('F11');
+  await until(host, 'fullscreen');
+  await host.keyboard.press('F11');
+  await until(host, 'windowed');
   const restored = await state(host);
   assert.equal(restored.windowState, 'Maximized');
   assert.deepEqual(restored.restoreBounds, maximized.restoreBounds);
@@ -237,47 +386,75 @@ try {
     path: join(output, 'restored-host.png'),
   });
   evidence.checks.push(
-    'Fullscreen exit restores original maximized state and restore geometry',
+    'F11 fullscreen exit restores windowed maximized state and original restore geometry',
   );
   // Legal rules-generated fixture supplies an actual saved Modern Art game.
   const origin = new URL(host.url()).origin;
   await host.goto(origin + '/host/game');
-  const fullscreenButton = host.getByRole('button', {
-    name: '全屏',
-    exact: true,
-  });
-  await fullscreenButton.waitFor();
-  const beforeButton = await state(host);
-  await fullscreenButton.click();
-  await until(host, true);
-  await host.getByRole('button', { name: '退出全屏', exact: true }).waitFor();
-  assert.notDeepEqual((await state(host)).bounds, beforeButton.bounds);
+  await host.getByRole('button', { name: '菜单', exact: true }).waitFor();
+  assert.equal(
+    await host
+      .getByRole('button', { name: /^(全屏|退出全屏)$/, exact: true })
+      .count(),
+    0,
+  );
+  const beforeGame = await state(host);
+  const gameVideo = await openVideo(host);
+  await selectMode(host, gameVideo.select, 'borderless');
+  const beforeGameFullscreen = await state(host);
+  await selectMode(host, gameVideo.select, 'fullscreen');
+  assert.notDeepEqual((await state(host)).bounds, beforeGameFullscreen.bounds);
   assert.equal(
     await host.evaluate(() => Boolean(document.fullscreenElement)),
     false,
   );
   await captureBrowserScreenshot(host, {
-    path: join(output, 'actual-game-button-fullscreen.png'),
+    path: join(output, 'actual-game-video-fullscreen.png'),
   });
   await host.keyboard.press('F11');
-  await until(host, false);
-  await fullscreenButton.waitFor();
-  assert.deepEqual((await state(host)).bounds, beforeButton.bounds);
-  await fullscreenButton.click();
-  await until(host, true);
-  await host.getByRole('button', { name: '退出全屏', exact: true }).click();
-  await until(host, false);
-  await fullscreenButton.waitFor();
-  evidence.checks.push(
-    'Actual Modern Art React button changes native bounds; F11 synchronizes its label; exit restores bounds without DOM fullscreen',
+  await until(host, 'borderless');
+  await host.waitForFunction(
+    () => document.querySelector('#window-mode')?.value === 'borderless',
   );
+  assert.equal(await gameVideo.select.inputValue(), 'borderless');
+  assert.deepEqual((await state(host)).bounds, beforeGameFullscreen.bounds);
+  await host.keyboard.press('F11');
+  await until(host, 'fullscreen');
+  await host.waitForFunction(
+    () => document.querySelector('#window-mode')?.value === 'fullscreen',
+  );
+  await closeVideo(gameVideo.dialog);
+  const menu = host.getByRole('dialog', { name: /菜单$/ });
+  await menu.getByRole('button', { name: '关闭面板', exact: true }).click();
+  await menu.waitFor({ state: 'detached' });
+  await host.keyboard.press('Escape');
+  await until(host, 'borderless');
+  assert.deepEqual((await state(host)).bounds, beforeGameFullscreen.bounds);
+  const finalVideo = await openVideo(host);
+  await selectMode(host, finalVideo.select, 'windowed');
+  assert.deepEqual((await state(host)).bounds, beforeGame.bounds);
+  await captureBrowserScreenshot(host, {
+    path: join(output, 'actual-game-video-windowed.png'),
+  });
+  await closeVideo(finalVideo.dialog);
+  evidence.checks.push(
+    'Actual saved Modern Art moves fullscreen into video settings; all three select modes change native bounds without DOM fullscreen; F11 updates the open select and Escape restores borderless geometry',
+  );
+  assert.deepEqual(evidence.errors, []);
   evidence.result = 'passed';
 } catch (error) {
   evidence.result = 'failed';
   evidence.error = error.stack;
   throw error;
 } finally {
-  await desktop?.close().catch(() => undefined);
+  try {
+    await desktop?.close();
+  } catch (error) {
+    evidence.result = 'failed';
+    evidence.cleanupError = String(error);
+    process.exitCode = 1;
+  }
+  evidence.finishedAt = new Date().toISOString();
   await writeFile(
     join(output, 'results.json'),
     JSON.stringify(evidence, null, 2) + '\n',

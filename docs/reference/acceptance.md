@@ -1,8 +1,22 @@
 # 首版交付与验收
 
+## 1.0.6：手写改动单第1项（2026-10-11）
+
+手写文件更名为 `手写改动单.md`，第1项完成并删除，剩余原文与任务量标记保留。盒子普通提交／保存采用固定页头状态，删除人机不再因临时反馈插入而跳动；未确认及失败继续明确提示。盒子与六款游戏（宝可梦两版）全屏入口归入视频设置，原生提供全屏／无边框窗口／窗口，固定F11且不展示快捷键提示。真人“射击按钮”可独立关闭／恢复并保留本地选择，不影响接收特效或服务权限；普通电脑浏览器只提供实际支持的全屏／窗口，手机不提供电脑显示模式。
+
+当前[运行ZIP](../../artifacts/releases/TableMax-1.0.6-win-x64.zip) **43,594,443字节**，[314成员清单](../../artifacts/releases/TableMax-1.0.6-win-x64-manifest.json)实际解压 **97,408,673字节**，满足114MB预算及严格小于120,000,000字节门禁。SHA-256 `0048f55745f66c289eed918b78efccb058afbd4e2014bbc67655d36cc3be52c5`，冻结快照 `98e2fffb0655749faf354b34f28b789a26ba69643b76f3cc62691cf57386466c`。[同包证明](../../artifacts/maintenance/v1.0.6/box-task1/results.json)核验673源码输入、全部ZIP与实际运行后成员哈希；302运行成员不变，服务、规则、人机、Worker、Node及全部音效／图像逐字节一致，复用原玩法证据。
+
+[真实盒子操作](../../artifacts/maintenance/v1.0.6/debug-20261008/box/box-task1-actions-20261011/results.json)8检查／6截图通过：390px管理员添加和房主删除、720p添加提交／保存位移0px，真实滚轮位置及删除后邻座DOM保留；私有SQLite写锁导致真实保存拒绝，修订／座位不变；结果未确认时重试入口超通知时长仍可用，同动作ID只保存一次。源码生产组件夹具另覆盖320px、390px、横屏、720p／1080p／4K，普通提交／保存均0px位移，见[源码证据](../../artifacts/maintenance/v1.0.6/box-task1/scroll-source/fixed-final/report.json)，不当作真实设备验证。
+
+实际包[后台窗口](../../artifacts/maintenance/v1.0.6/window-modes/box-task1-window-modes-20261011/results.json)与[正常前台窗口](../../artifacts/maintenance/v1.0.6/window-modes/box-task1-window-modes-foreground-20261011/results.json)均通过三模式、幂等、F11／菜单／Escape、无边框返回与最大化恢复、主机／公共独立和现代艺术菜单；[射击按钮](../../artifacts/maintenance/v1.0.5/mobile-sync-optimization/ui/box-task1-preferences-fixed-20261011/results.json)证明刷新保留、关闭仍接收真实合法广播、管理员／公共无发送开关及修订不变。六游戏菜单专项均通过，逐项路径见同包证明；仅测共享菜单，没有重跑未变规则或整局。
+
+按历史低通过率排序运行10项实际检查：首批115.57秒，射击测试因误用旧消息形状失败，修正为现有point对象，仅重跑该项并执行新盒子项32.37秒，产品字节未变，原失败保留。构建21.93秒、完整打包35.01秒，原生0警告／0错误；TypeScript、ESLint、格式、范围机制及改动文档链接检查通过。自动检查静音、服务仅127.0.0.1；实体手机、Safari、实际LAN、多显示器与DPI组合未验。本轮沿用1.0.6，未发布Release或导出源码包。
+
+空闲后按预览与保护规则退役过期缓存及8份隔离副本，共回收885,631,422逻辑字节；08:09 UTC实测9,926,552,563字节（9.245GiB），安全候选耗尽，未放宽保护追求8GiB。打包临时目录完整迁入tmp，release仅留当前ZIP／清单；原包、素材、存档与必要证据保留，首次报告目录缺失导致的收尾停止另有记录，见[瘦身结果](project-slimming.md#手写改动单第1项收尾2026-10-11)。
+
 ## 1.0.6：UNO右侧白边与手牌宽度（2026-10-11）
 
-去掉玩家页重复根滚动条槽和手牌区旧60px右侧预留；竖屏手牌保持满内容宽度，互动浮球默认移至独立64px底部区域，用户已保存位置继续恢复。规则、保存、手牌本地整理和音效未改。当前[运行ZIP](../../artifacts/releases/TableMax-1.0.6-win-x64.zip) **43,593,078字节**，[314成员清单](../../artifacts/releases/TableMax-1.0.6-win-x64-manifest.json)实际解压 **97,403,995字节**，满足114MB预算与严格小于120,000,000字节门禁。SHA-256 `1d2347f837b447bbad148523fdad0a3814239da307df147a62ad29994aad5883`，冻结快照 `592b1686453a317380a800561fecc3e5cf8c490f54059ec8a257d3a3d882e1b6`。
+去掉玩家页重复根滚动条槽和手牌区旧60px右侧预留；竖屏手牌保持满内容宽度，互动浮球默认移至独立64px底部区域，用户已保存位置继续恢复。规则、保存、手牌本地整理和音效未改。当次[运行ZIP](../../artifacts/maintenance/v1.0.6/box-task1/delivery-before-change/TableMax-1.0.6-win-x64.zip) **43,593,078字节**，[314成员清单](../../artifacts/maintenance/v1.0.6/box-task1/delivery-before-change/TableMax-1.0.6-win-x64-manifest.json)实际解压 **97,403,995字节**，满足114MB预算与严格小于120,000,000字节门禁。SHA-256 `1d2347f837b447bbad148523fdad0a3814239da307df147a62ad29994aad5883`，冻结快照 `592b1686453a317380a800561fecc3e5cf8c490f54059ec8a257d3a3d882e1b6`。
 
 [实际同包证明](../../artifacts/maintenance/v1.0.6/uno-edge-debug/results.json)核对全部ZIP／实际解压成员哈希：309成员不变，变化限于UNO样式、共享互动入口及其目录引用。服务、全部规则、人机与其他游戏资源逐字节保持。两人初始与六人密集手牌各27布局、49.49／49.90秒，覆盖320px、390px、横屏、电脑竖屏指针及720p至4K多比例；内容右边界误差≤1px，根额外空槽0px，首末牌命中、排序及长按整理通过。定向TypeScript、ESLint、Prettier及变更文档链接检查通过，原失败和修正边界见[验证记录](../games/uno/validation-scenarios.md#手牌右侧白边回归2026-10-11)。旧交付与验收保留，沿用v1.0.6，不发布Release或导出源码包；自动检查静音、隐藏、回环地址，实体手机和Safari未验。
 
@@ -247,7 +261,7 @@ release目录仅保留当前ZIP和清单；近期打包过程目录移入tmp继�
 
 ## 当前源码与本地交付
 
-当前本地交付为本页[拉密交互完善与恢复开放](#106拉密交互完善与恢复开放2026-10-11)的[运行ZIP](../../artifacts/releases/TableMax-1.0.6-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.6-win-x64-manifest.json)，SHA-256 `feb31ddb2bac2af37dd2d71e5f0e7902ccf015572597b743ab3cf918fb67aff2`；历史包与发布附件保留实际哈希、证据及结论，不当作当前包验收。
+当前本地交付为本页[手写改动单第1项](#106手写改动单第1项2026-10-11)的[运行ZIP](../../artifacts/releases/TableMax-1.0.6-win-x64.zip)及[逐文件清单](../../artifacts/releases/TableMax-1.0.6-win-x64-manifest.json)，SHA-256 `0048f55745f66c289eed918b78efccb058afbd4e2014bbc67655d36cc3be52c5`；包含本页此前UNO与拉密修复，历史包与发布附件保留实际哈希、证据及结论，不当作当前包验收。
 
 运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
 

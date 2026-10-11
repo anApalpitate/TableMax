@@ -5,8 +5,11 @@ const changed = 'tablemax-interaction-preference';
 const preferenceKey = (role: ScreenRole) =>
   `tablemax-interaction-blocked-${role}`;
 
-export function useInteractionPreference(role: ScreenRole) {
-  const key = preferenceKey(role);
+function useInteractionBoolean(
+  role: ScreenRole,
+  key: string,
+  eventName: string,
+) {
   const [blocked, setBlocked] = useState(() => {
     try {
       return localStorage.getItem(key) === 'true';
@@ -25,12 +28,12 @@ export function useInteractionPreference(role: ScreenRole) {
       if (detail?.role === role) setBlocked(detail.blocked);
     };
     window.addEventListener('storage', storage);
-    window.addEventListener(changed, local);
+    window.addEventListener(eventName, local);
     return () => {
       window.removeEventListener('storage', storage);
-      window.removeEventListener(changed, local);
+      window.removeEventListener(eventName, local);
     };
-  }, [role, key]);
+  }, [role, key, eventName]);
   const update = useCallback(
     (next: boolean) => {
       setBlocked(next);
@@ -40,10 +43,22 @@ export function useInteractionPreference(role: ScreenRole) {
         // The current window still remembers the choice when storage is unavailable.
       }
       window.dispatchEvent(
-        new CustomEvent(changed, { detail: { role, blocked: next } }),
+        new CustomEvent(eventName, { detail: { role, blocked: next } }),
       );
     },
-    [role, key],
+    [role, key, eventName],
   );
   return [blocked, update] as const;
+}
+
+export function useInteractionPreference(role: ScreenRole) {
+  return useInteractionBoolean(role, preferenceKey(role), changed);
+}
+
+export function useInteractionButtonPreference(role: ScreenRole) {
+  return useInteractionBoolean(
+    role,
+    `tablemax-interaction-button-hidden-${role}`,
+    'tablemax-interaction-button-preference',
+  );
 }

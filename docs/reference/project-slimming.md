@@ -1,5 +1,11 @@
 # 项目瘦身方案与执行记录
 
+## 手写改动单第1项收尾（2026-10-11）
+
+本轮当前ZIP及全部实际检查通过后结束工程进程，将631成员／238,477,682字节的打包过程目录完整迁入 `tmp/portable-extracted-v27WoA`，逐文件路径、大小及SHA-256一致；近期副本继续保护，release仅留当前ZIP／清单，见[迁移清单](../../artifacts/maintenance/v1.0.6/box-task1/staging-relocation.json)。首次收尾因调用方未预建报告目录而停止，过期缓存已清理9项12,523,531字节，未进入其他退役；补目录继续后另清理1项643,624字节，停止原因保留在[首次记录](../../artifacts/maintenance/v1.0.6/box-task1/maintenance-final/initial-failure.json)。
+
+08:09 UTC安全维护实测从 **10,798,886,497字节（10.057GiB）** 降至 **9,926,552,563字节（9.245GiB）**，按预览退役8份到龄隔离副本 **872,464,267字节**；连同上述缓存共回收885,631,422逻辑字节。安全候选耗尽，未达到8GiB目标，保留525项保护结果，不扩大删除；1,764链接跳过，无嵌套仓库。当前及上一轮ZIP、验收与失败记录、原素材、规则、正式存档、依赖与工具缓存保留。容量、范围和逐项理由见[实际删除记录](../../artifacts/maintenance/local-cleanup-20261011-080910-002-maintenance/cleanup.json)及[收尾结果](../../artifacts/maintenance/v1.0.6/box-task1/maintenance-final/result.json)。当前ZIP SHA-256仍为 `0048f55745f66c289eed918b78efccb058afbd4e2014bbc67655d36cc3be52c5`，不以物理压缩计入空间或便携体积。
+
 ## PowerShell 入口迁移与项目瘦身（2026-10-11）
 
 根目录五个 PowerShell 入口归入 [scripts/](../../scripts/README.md)，自动收尾、隔离夹具及文档引用同步迁移；参数和安全保护不变。9份修改脚本解析、入口定位及323项隔离检查通过，覆盖根目录和无关工作目录调用。第一轮3项检查因 Windows PowerShell 模块路径失败，修正一次性验证驱动后仅重跑受影响项，原失败记录保留。产品与运行资源未变，当前v1.0.6无需重打包。

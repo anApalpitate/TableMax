@@ -23,7 +23,10 @@ import {
 import { useInteractionAudio } from './useInteractionAudio';
 import { useInteractionPlayback } from './useInteractionPlayback';
 import { PhraseIcon } from './PhraseIcon';
-import { useInteractionPreference } from './useInteractionPreference';
+import {
+  useInteractionPreference,
+  useInteractionButtonPreference,
+} from './useInteractionPreference';
 import './interaction.css';
 
 function useInteractionSurface() {
@@ -162,6 +165,7 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
   const canSend = role === 'player' && Boolean(self) && connected;
   const surface = useInteractionSurface();
   const [blocked] = useInteractionPreference(role);
+  const [buttonHidden] = useInteractionButtonPreference(role);
   const orbKey = `tablemax-interaction-orb-${role}`;
   const [orb, setOrb] = useState<{
     x: number;
@@ -254,7 +258,7 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
     return () => {
       active = false;
     };
-  }, [contextKey, connected, session.interactionResetKey]);
+  }, [contextKey, connected, session.interactionResetKey, buttonHidden]);
   useEffect(() => {
     const resize = () => {
       setViewport({ width: window.innerWidth, height: window.innerHeight });
@@ -361,7 +365,7 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
                 }
               />
             ))}
-          {canSend && (
+          {canSend && !buttonHidden && (
             <button
               type="button"
               className="interaction-orb"
@@ -542,7 +546,7 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
               {wheel && <span className="interaction-orb__cancel">取消</span>}
             </button>
           )}
-          {wheel && (
+          {wheel && !buttonHidden && (
             <div
               className="interaction-wheel"
               role="group"
@@ -599,7 +603,7 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
               })}
             </div>
           )}
-          {shooting && (
+          {shooting && !buttonHidden && (
             <div
               className="interaction-aim"
               onPointerDown={(event) => {
@@ -666,7 +670,7 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
         </div>,
         surface,
       )}
-      {speech && (
+      {speech && !buttonHidden && (
         <OverlayPanel
           title="发言"
           close={() => setSpeech(false)}

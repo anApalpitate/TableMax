@@ -174,6 +174,8 @@ SDK `PublicEvent.action` 及首版历史可选记录真实行动者、动词、�
 
 `DisplaySettings` 为盒子／游戏提供同一浮窗；`apps/desktop/native/NativeWindow.cs` 负责原生窗口与缩放，`DisplaySettings.cs` 负责几何与独立配置，TypeScript `display-types.ts` 保留网页契约。WebView2 桥接仅公开固定的读取／更新／订阅接口；原生端核验受管理窗口、本源、对应 host／public 路径及顶层，拒绝手机路径、子 frame 和无效配置。显示控制不经过游戏命令或数据库，`display-settings.json` 保留版本 1 及 host／public 偏好，与玩家存档分开；原子写入失败不会声明配置已保存。
 
+`WindowModeSettings` 仅在视频面板组装原生 `tablemaxWindow.read／setMode／subscribe`，快照为 `{fullscreen, mode}`，模式限定 `fullscreen／borderless／windowed`；兼容保留 `setFullscreen(boolean)`。原生每窗口保存当前模式与全屏前模式、边界及正常／最大化状态，F11和Escape退全屏时恢复；模式为运行期状态，不新增配置或存档字段。普通电脑浏览器走顶层标准Fullscreen API，只提供全屏／窗口，无原生桥接或无边框权限；手机不提供电脑模式选择。
+
 当前使用独立 WebView2 控件的 `ZoomFactor` 与 PerMonitorV2 DPI，管理和公共窗口分别应用缩放。自动比例来自原生内容窗口的 DIP 宽高与 1920×1080 基准，不能读取已缩放的 `innerWidth` 再反馈计算。分辨率预设先按当前显示器 DPI 转为 DIP；界面大小叠加用户倍率，限制到窗口可用空间与三倍上限。resize／全屏／显示器变化重新计算，页面导航和刷新应用当前窗口偏好；房主管理与公共屏分别持久化最近选择，作为新开窗口／重启的默认值，不覆盖其他已打开窗口。关闭与迟到事件先判断窗口／浏览器存活，避免阻断退出。
 
 此前 Electron 44 的 isolated zoom、utilityProcess 与 preload 属于旧实现；原交付证据保留，不作为新原生壳通过依据。迁移采用理由与重新验收责任见 [决策 008](../decisions/008-small-native-desktop.md)。

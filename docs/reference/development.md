@@ -157,6 +157,8 @@ VS Code 工作区启用保存时格式化，使用 `esbenp.prettier-vscode`；�
 
 盒子通知专项：`node tools/test/runner/test-scoped.mjs --scope=box apps/web/src/components/notifications/notification-center.test.ts` 检查限额、重复续时、淡出、独立暂停和清理；`tools/test/box/verify-box-notifications.mjs` 登记为box，可纳入独立批次计划。后者使用当前源码构建的盒子与真实入座hook、模拟HTTP拒绝响应，隐藏静音Edge仅监听127.0.0.1；覆盖320px、390px、横屏、桌面与4K、重试入口、原生浮窗、触控尺寸、自动退出及减少动态。证据在 `artifacts/maintenance/v1.0.5/box-notifications/`，不代表实物手机、局域网或便携包验收，隔离副本沿用 `tmp/box-layout-<六位后缀>` 清理边界。
 
+盒子操作稳定专项：`tools/test/box/verify-box-layout.mjs --actions-only --zip=<实际ZIP> --sha256=<包SHA256> --evidence=<唯一名称>`只运行真实入座、添加／删除人机前后几何、提交时手动滚动、存续座位DOM、隔离SQLite保存失败与同动作ID重试，以及主机／公共视频面板。登记为box，不跑全量布局或游戏玩法矩阵；先核验实际解压每个成员，结果沿用 `artifacts/maintenance/v1.0.6/debug-20261008/box/`。仅暂缓测试页真实命令包，未伪造ACK；数据库写锁仅用于当次私有 `tmp/box-layout-*`，finally解除。
+
 独立验证使用 `node tools/test/runner/test-scoped.mjs --scope=<范围> --plan=<计划.json>`；先校验整份计划，再交给独立批次统计，运行后保存 `scope.json`。`verify-rules-guides.mjs --game=<id>` 为对应游戏；`verify-player-display.mjs` 须同时指定 `--game=<id> --visual-audit` 才为单游戏，默认及`--quick`仍包含盒子检查，且不支持`--game=all`。工具机制回归用 `node --test tools/test/runner/scopes.test.mjs`，不启动产品。
 
 ```powershell
@@ -307,7 +309,7 @@ Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 
 
 `node tools/test/games/modern-art/verify-modern-art-polish-v2.mjs --evidence=<独立名>` 核验三／四／五人的市场拆分、五种拍卖、密集收藏、合法双拍描边、减少动态、三端字号／滚动／规则图和桌面密度；`--representative` 先查三人短屏及短手机，`--diagnostic` 仅取短屏密集收藏几何信息。加 `--portable` 检查实际当前 ZIP、逐文件清单和包内运行时。证据留在 `artifacts/maintenance/v1.0.2/modern-art-polish-20261005/ui-v2/`。
 
-`node tools/test/games/modern-art/verify-modern-art-audio.mjs --timer-only --evidence=<独立名>` 检查时间到只响一次、暂停冻结、静音消费、刷新不补播及到时后合法报价，沿用真实媒体观察和原生声音归属；加 `--portable` 验最终运行包。`node tools/test/desktop/verify-fullscreen.mjs --run=<独立名>` 检查真实原生按钮、F11／菜单／Escape、窗口恢复及两窗口独立；`--foreground` 补充普通前台边框／任务栏，仍只在隔离测试模式运行。`--executable=<绝对路径>` 可指定实际解压程序。测试服务仅监听 `127.0.0.1`，媒体观察与密度模拟不等于实体手机、人耳试听或物理多显示器认证。
+`node tools/test/games/modern-art/verify-modern-art-audio.mjs --timer-only --evidence=<独立名>` 检查时间到只响一次、暂停冻结、静音消费、刷新不补播及到时后合法报价，沿用真实媒体观察和原生声音归属；加 `--portable` 验最终运行包。`node tools/test/desktop/verify-fullscreen.mjs --run=<独立名>` 检查盒子／现代艺术视频设置三种模式、桥接校验、F11／菜单／Escape、窗口与无边框恢复及两窗口独立，登记范围box＋shared＋game:modern-art；`--foreground` 补充正常前台边框／任务栏，仍只在隔离测试模式运行。`--executable=<绝对路径> --zip=<实际ZIP>` 指定实际解压程序及包哈希，结果进入 `artifacts/maintenance/v1.0.6/window-modes/`。测试服务仅监听 `127.0.0.1`，媒体观察与密度模拟不等于实体手机、人耳试听或物理多显示器认证。
 
 三款游戏均可按需打开规则顶层卡片，教学不自动触发；设计、截图权限与维护要求见 [通用视觉](visual-design.md#顶层图文规则说明)，具体规则依据和区域说明分别维护在游戏主题。本节列运行方法，命令存在不表示已通过，实际源／便携结论与包哈希从验收记录查询。
 
@@ -747,7 +749,7 @@ SQLite流式扫描须让 `StatementSync` 强引用保持至迭代完成；包内
 
 ## v1.0.5 互动与资源验证
 
-菜单共性调整使用`--menus-only`，仅验证四游戏版本的菜单／设置／声音入口，可加`--game=<id>`收窄；范围登记为shared及实际游戏。`--box-only`包含盒子共享互动，须允许box＋shared；不以界面所在目录假定只覆盖盒子。菜单、盒子及命中视觉筛选互斥。最终包按钮修复后的共享证据可在逐文件哈希确认全部相关运行依赖未变后复用，并记录前后包边界。
+菜单共性调整使用`--menus-only`，仅验证六游戏（宝可梦两版本）的菜单／设置／声音入口，可加`--game=<id>`收窄；范围登记为shared及实际游戏。`--box-only`包含盒子共享互动，须允许box＋shared；可另加`--preferences-only`只验证射击按钮开关、刷新持久化、接收独立和房间修订不变。菜单、盒子及命中视觉筛选互斥。最终包按钮修复后的共享证据可在逐文件哈希确认全部相关运行依赖未变后复用，并记录前后包边界。
 
 `tools/test/platform/verify-interactions.mjs --run=<唯一名称>`以隐藏原生窗口及静音Edge验证拖动／240ms长按／中心取消、六格选择、单次射击、视频设置内三端屏蔽、三射击叠加／第四淘汰、单发言替换和独立音频桥接，服务仅监听127.0.0.1。盒子修改使用`--box-only`，单游戏修改使用`--game=<id>`，二者互斥；默认矩阵仅用于影响全部入口的共享互动修改，不跑游戏规则或整局。即时派发和真实服务测试在`apps/server/src/interactions.test.ts`、`interaction-service.test.ts`，异步手机解锁／替换与单声源失权测试在`apps/web/src/interactions/audio-player.test.ts`。素材试听通过`artifacts/maintenance/v1.0.5/interaction-refinement/audio-review.html`显式开启；机器解码／ASR不记为人耳试听，旧版试听证据保留在`interaction-assets/`。40游戏WAV原件及FLAC派生和PCM核验保持原样。体积门禁统一查`tools/release/package-limits.mjs`，120MB硬上限和114MB预算不倒改历史报告。
 

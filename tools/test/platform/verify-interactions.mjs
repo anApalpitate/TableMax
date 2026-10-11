@@ -47,6 +47,11 @@ const packageManifest = executableOptions.length
 const gameOptions = args.filter((arg) => arg.startsWith('--game='));
 const boxOnly = args.includes('--box-only');
 const menusOnly = args.includes('--menus-only');
+const preferencesOnly = args.includes('--preferences-only');
+assert.ok(
+  !preferencesOnly || boxOnly,
+  '--preferences-only requires --box-only',
+);
 const shotVisuals = args.includes('--shot-visuals');
 const effectOptions = args.filter((arg) => arg.startsWith('--effect='));
 assert.ok(effectOptions.length <= 1, 'Only one --effect option is supported');
@@ -69,7 +74,7 @@ const gameIds = [
   'modern-art',
   'power-grid',
   'pokemon-encounters',
-  ...(menusOnly ? ['uno', 'avalon'] : []),
+  ...(menusOnly ? ['uno', 'avalon', 'rummikub'] : []),
 ];
 assert.ok(!selectedGame || gameIds.includes(selectedGame), 'Unknown --game');
 const choices =
@@ -80,7 +85,9 @@ const choices =
         { gameId: 'power-grid' },
         { gameId: 'pokemon-encounters', variantId: 'original' },
         { gameId: 'pokemon-encounters', variantId: 'expansion' },
-        ...(menusOnly ? [{ gameId: 'uno' }, { gameId: 'avalon' }] : []),
+        ...(menusOnly
+          ? [{ gameId: 'uno' }, { gameId: 'avalon' }, { gameId: 'rummikub' }]
+          : []),
       ].filter((choice) => !selectedGame || choice.gameId === selectedGame);
 const run =
   args.find((arg) => arg.startsWith('--run='))?.slice(6) ??
@@ -482,7 +489,7 @@ async function video(surface) {
   const dialog = surface.getByRole('dialog', { name: '视频设置', exact: true });
   await dialog.waitFor();
   assert.equal(
-    await dialog.locator('.interaction-video-setting button').count(),
+    await dialog.getByRole('switch', { name: '互动特效', exact: true }).count(),
     1,
   );
   return dialog;
@@ -918,11 +925,11 @@ async function verifyMenuRole(choice, role, surface) {
     `${role}: video entry is absent from toolbar`,
   );
   const sounds = surface.locator(
-    '.sound-control,.ma-sound-control,[data-power-grid-sound],.uno-icon-button[aria-pressed],[data-avalon-sound]',
+    '.sound-control,.ma-sound-control,[data-power-grid-sound],.uno-icon-button[aria-pressed],[data-avalon-sound],.rk-sound-control',
   );
   const soundExpected =
     role !== 'player' ||
-    ['modern-art', 'uno', 'avalon'].includes(choice.gameId);
+    ['modern-art', 'uno', 'avalon', 'rummikub'].includes(choice.gameId);
   assert.equal(await sounds.count(), soundExpected ? 1 : 0);
   if (soundExpected) {
     const metrics = await sounds.evaluate((button) => {
@@ -998,7 +1005,7 @@ async function verifyMenuRole(choice, role, surface) {
         .then((count) => count === (role === 'player' ? 0 : 1)),
     `${role}: correct display bridge fields`,
   );
-  const toggle = dialog.locator('.interaction-video-setting button');
+  const toggle = dialog.getByRole('switch', { name: '互动特效', exact: true });
   const original = await toggle.getAttribute('aria-checked');
   await toggle.click();
   const expected = original === 'true' ? 'false' : 'true';
@@ -1013,6 +1020,15 @@ async function verifyMenuRole(choice, role, surface) {
   await toggle.click();
   assert.equal(await toggle.getAttribute('aria-checked'), original);
   if (role === 'player') {
+    const buttonToggle = dialog.getByRole('switch', {
+      name: '射击按钮',
+      exact: true,
+    });
+    assert.equal(await buttonToggle.getAttribute('aria-checked'), 'true');
+    await buttonToggle.click();
+    await surface.locator('.interaction-orb').waitFor({ state: 'detached' });
+    assert.equal(await toggle.getAttribute('aria-checked'), original);
+    await buttonToggle.click();
     await until(
       () =>
         dialog
@@ -1031,6 +1047,11 @@ async function verifyMenuRole(choice, role, surface) {
       true,
     );
   }
+  assert.equal(
+    await surface.getByRole('button', { name: /^(全屏|退出全屏)$/ }).count(),
+    0,
+    'Fullscreen actions are grouped inside video settings, not standalone buttons',
+  );
   await closePanel(dialog);
   assert.equal(
     await entry.evaluate((element) => document.activeElement === element),
@@ -1416,6 +1437,65 @@ async function verifyMobileAndModal() {
   await player.setViewportSize({ width: 390, height: 844 });
   await checked(
     'Short portrait, landscape and browser-player viewport: complete wheel and central cancel stay visible/hittable in the real modal top layer; aim consumes clicks without toggling the underlying settings',
+  );
+}
+async function verifyButtonPreference() {
+  const before = await view();
+  for (const surface of [host, publicPage]) {
+    const dialog = await video(surface);
+    assert.equal(
+      await dialog
+        .getByRole('switch', { name: '射击按钮', exact: true })
+        .count(),
+      0,
+    );
+    await closePanel(dialog);
+  }
+  let frame = await playerFrame(player);
+  let dialog = await video(frame);
+  const receiveToggle = dialog.getByRole('switch', {
+    name: '互动特效',
+    exact: true,
+  });
+  const original = await receiveToggle.getAttribute('aria-checked');
+  await dialog.getByRole('switch', { name: '射击按钮', exact: true }).click();
+  await frame.locator('.interaction-orb').waitFor({ state: 'detached' });
+  assert.equal(await receiveToggle.getAttribute('aria-checked'), original);
+  await closePanel(dialog);
+  await player.reload();
+  frame = await playerFrame(player);
+  await frame.getByRole('button', { name: '视频设置', exact: true }).waitFor();
+  dialog = await video(frame);
+  assert.equal(
+    await dialog
+      .getByRole('switch', { name: '射击按钮', exact: true })
+      .getAttribute('aria-checked'),
+    'false',
+  );
+  assert.equal(
+    await dialog
+      .getByRole('switch', { name: '互动特效', exact: true })
+      .getAttribute('aria-checked'),
+    original,
+  );
+  const eventIndex = report.events.length;
+  await sendInteraction({
+    type: 'shot',
+    effectId: catalog.shots[0].id,
+    point: { x: 0.5, y: 0.5 },
+  });
+  const observed = await until(
+    () => report.events[eventIndex],
+    'hidden button still receives saved interaction',
+  );
+  await assertVisibleEvent(catalog.shots[0], frame, observed.event);
+  assert.equal(await frame.locator('.interaction-orb').count(), 0);
+  await dialog.getByRole('switch', { name: '射击按钮', exact: true }).click();
+  await frame.locator('.interaction-orb').waitFor();
+  await closePanel(dialog);
+  assert.equal((await view()).revision, before.revision);
+  await checked(
+    'Player button visibility survives refresh; receiving effects stay independent; host/public have no sender switch; restoring remains possible through video settings; room revision is unchanged',
   );
 }
 async function verifyGameEntries() {
@@ -1825,7 +1905,9 @@ try {
     ]);
     await playerUi(player).locator('.interaction-orb').waitFor();
   }
-  if (menusOnly) {
+  if (preferencesOnly) {
+    await verifyButtonPreference();
+  } else if (menusOnly) {
     await verifyMenusOnly();
   } else if (shotVisuals) {
     await verifyShotVisuals();
