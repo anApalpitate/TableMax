@@ -1,6 +1,6 @@
 # 006：首版完整游戏与模拟交付
 
-2026-10-01，已落地。范围是第五、六阶段，当前交付版本 1.0.0。规则采用 `tablemax-cn-s19-v1`，官方原文／印次认证仍按 [来源页](../games/pokemon-encounters/sources.md) 分开记录。
+2026-10-01，已落地。范围是第五、六阶段，当轮交付版本 1.0.0。规则采用 `tablemax-cn-s19-v1`，官方原文／印次认证仍按 [来源页](../games/pokemon-encounters/sources.md) 分开记录。本页Electron、房主参赛及ZIP验证保持当时边界；当前原生完整EXE、管理员不参赛及三端验证见[工程结构](../reference/architecture.md)、[平台规格](../reference/phase-02-platform-spec.md)和[当前验收](../reference/acceptance.md#当前源码与本地交付)。
 
 ## 设备校验范围
 

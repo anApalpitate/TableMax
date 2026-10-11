@@ -6,25 +6,21 @@
 
 当前导出：`pnpm package:win`；重新封装已验证载荷：`pnpm package:release`。不再接受 `--edition`，`--games`仅接受完整的内部构建输入目录。内部载荷、冻结快照、模块缓存和逐文件清单保留；旧 full／box 交付格式继续可由维护工具读取并受保护。
 
-以下旧安装／分发章节保留其实施与历史边界，涉及独立游戏下载、盒子版及 Pages 的操作已退役，不作为当前使用指南。
+本页现行构建与验证按实际载荷参数使用；标为旧双版本、Pages和独立安装的章节仅追溯原实施，不执行退役命令。
 
-2026-10-12本地版本维护：`package:win`原子分配四位 `1.x.x.y`，两种EXE共用y；公开版本及payload目录仍为三位 `1.x.x`。冻结快照／载荷重封复用原y。版本文件、稳定签名目录、历史兼容选择和发布映射见[Release流程](release.md#三位公开版本与四位本地构建2026-10-12)。本地游戏包默认在 `artifacts/game-packages/v<公开版本>/current/`，合并历史包时按该页说明传 `--history=`；只准备和验证，不自动上线。
+2026-10-12本地版本维护：`package:win`原子分配四位 `1.x.x.y`，每次新完整EXE导出消耗一个y；公开版本及payload目录仍为三位 `1.x.x`。冻结快照／载荷重封复用原y。版本文件和发布映射见[Release流程](release.md#三位公开版本与四位本地构建2026-10-12)。内部签名模块由完整打包入口检查或生成，历史模块仓库只供精确原局恢复，不再提供独立导出、目录更新或导入。
 
 ## 两种EXE与内部载荷（2026-10-11）
 
-最新导出命名：full完整游戏版为 `TableMax-<版本>-win-x64.exe`，不加类型后缀；box仅盒子版为 `TableMax-<版本>-win-x64-box.exe`。内部edition、载荷目录和CLI选项仍用full／box。生成新本地同名文件前保全被替换包及SHA，线上旧程序按原发布边界理解，最新用户下载说明见[README](../../README.md#下载)。
+本节保留双版本与Pages分发的历史边界。2026-10-11曾导出无后缀full完整游戏版和 `-box`盒子版，默认双交付并接受 `--edition=full|box|both`；离线玩法ZIP曾供导入。2026-10-12已取消这些选项和用途，仅导出完整EXE。
 
-存在无关并行游戏改动时，可用 `pnpm package:win --platform-from=<原已验快照路径> --games=<原已验签名包目录> --edition=both`仅刷新六个平台单元，保留原游戏单元与签名资源，记录 `retainedGameSnapshot`。仍核对冻结输入与全部组装哈希，不能借此混入未经本轮验收的游戏资源；不修改原已验快照或在进行中的组装期间重写其目录。
+现行 `pnpm package:win`支持 `--snapshot=<冻结清单>`；有无关并行游戏改动时，可用 `--platform-from=<已验快照> --games=<完整内部签名模块目录>`只刷新平台单元并保留原游戏输入，仍核验全部冻结字节。旧 `--edition`明确拒绝，部分游戏目录不能交付。线上内容未改，最新下载说明见[README](../../README.md#下载)。
 
-最新要求覆盖下文旧运行ZIP导出惯例：`pnpm package:win`默认导出full／box两种Windows EXE，可加 `--edition=full|box|both`，继续使用 `--snapshot=`与 `--games=`。full携带全部当前游戏的预装内容，box仅携带平台及小目录；完整玩法离线ZIP仍供导入。对外EXE在 `artifacts/releases/`，内部 `payload.zip`及 `release-manifest.json`在 `artifacts/package-payloads/v<版本>/<run>/<edition>/`，版本目录的 `current.json`原子记录载荷路径、EXE路径与哈希。内部ZIP不作为日常下载产物，本轮不生成source ZIP或发布线上附件。
+唯一EXE和本地清单在 `artifacts/releases/`，内部 `payload.zip`与 `release-manifest.json`在 `artifacts/package-payloads/v<三位版本>/<run>/full/`。`current.json`只绑定一个完整程序，保留内部 `full`键用于旧格式兼容；每次实际EXE验收独立绑定SHA，不以旧双版本报告替代。当前载荷、指针、EXE、匹配实际证明及正式数据均受保护。
 
-两种EXE及各自实际提取内容均按120,000,000字节硬门禁和110,000,000字节工程预警核验，内部载荷和逐文件清单用于绑定验收。当前内部载荷、指针、EXE及匹配的实际EXE通过证明一并保护；先核对全部当前edition哈希与实际EXE证据，再允许维护。旧单EXE、运行ZIP、旧存档及已发布证据继续保留，不因格式调整自动退役。新格式已获适用验收，各次源码更新的实际包仍须单独验证，结论由[当前验收](acceptance.md)记录。
+下文旧验证器的 `--portable`／`--zip`若默认读取 `artifacts/releases/*-win-x64.zip`，该默认值仅适用于旧交付。当前验证必须按入口实际参数绑定本EXE的内部payload ZIP、manifest与实际提取的 `TableMax.exe`，不把EXE当ZIP输入；没有这些参数的旧验证器只能按原版本执行。现行完整交付先用 `node tools/release/verify-shipping-executable.mjs`核验提取及原生安全，专项和完整交付证据分别记录。
 
-下文保留的旧验证器若默认读取 `artifacts/releases/*-win-x64.zip`，该默认值不再对应现行交付。执行前按验证器实际支持的参数绑定匹配 edition 的 EXE、内部载荷和清单；不把 EXE 当 ZIP 输入，也不借旧报告宣称新包通过。当前 full／box 路径及哈希从 `artifacts/package-payloads/v1.0.6/current.json` 读取；使用旧版本专用验证器时保留其原包边界。
-
-2026-10-11 Pages重新发布收尾已完成：在全部本轮工程退出后按标准入口预览并维护，退役3份已知生成副本214,692,117逻辑字节，标准扫描容量13,554,882,029字节（约12.624GiB），安全候选耗尽，当前交付、新旧发行和存档继续保护。范围、排除及实际审计见[项目瘦身](project-slimming.md#pages部署与重新发布收尾2026-10-11)。
-
-2026-10-11游戏包分发入口改为GitHub Pages静态目录；此前Release暂撤为草稿，随后经用户明确授权，本次Pages已部署、v1.0.6已正式重新发布，35个公开文件及Release三附件线上大小／哈希核验通过。`pnpm prepare:pages`准备全新静态输出，`pnpm verify:pages`做回环逐文件验证；游戏包通过 `--packages=<独立候选目录>`指定，full／box EXE通过 `node tools/release/package.mjs --games=<同一候选目录>`读取，不覆盖既有受保护游戏包及同名旧发行离线包的字节。手动部署、历史引用保全及显式发布门禁见[Release流程](release.md#最新分发决定与暂缓发布2026-10-11)。原Release附件下载记录属于历史验证，公开字节核验也不代替本次实际安装或实体设备验收。
+历史Pages部署、三附件重新发布和旧安装检查见[Release历史](release.md#最新分发决定与暂缓发布2026-10-11)及[验收](acceptance.md)。原发布事实、签名历史及旧存档引用保持，不执行已撤除的 `prepare:pages`／`verify:pages`别名或旧独立游戏导出命令。
 
 ## 阿瓦隆专项构建与验证
 
@@ -34,13 +30,13 @@
 
 人数与阶段计划通过 `node tools/test/runner/test-scoped.mjs --scope=game:avalon --plan=<计划JSON>` 排序运行，沿用累计3失败停止与不自动重试。`artifacts/avalon/validation/portable-plan.json` 和 `grid-final-plan.json` 是历史参数记录；重新执行时先核对实际 EXE、匹配载荷及当前配置，复制计划到新名称并更新路径、玩法和证据名，不能直接沿用旧 `court` 参数，历史临时目录可能已安全退役。验证包括实际提取成员前后哈希、公开秘密边界、保存／暂停／回退、320px—4K与横屏、图文规则、正确事件全屏特效／减少动态、12条本地音频解码、真实播放调用和原生单窗口播放权、刷新不重播。最窄玩家画面以实际 `documentElement.clientWidth` 断言横向溢出，并检查终局；不以包含滚动条的 `innerWidth` 放宽边界。原生物理输出始终静音，隔离数据中的音频偏好只用于观察调用，不修改日常设置；不把模拟手机、DPI或解码／播放调用作为实体手机、LAN或真人听感认证。实际证据与原失败见[阿瓦隆验证](../games/avalon/validation-scenarios.md)。
 
-现行独立安装程序验证使用 `node tools/test/games/avalon/verify-configured-delivery.mjs --edition=full|box --packages=<本地已验签名包目录> --out=<新证据目录>`，每次选择一个 edition，从当前载荷指针绑定实际EXE提取、逐成员验哈希、隐藏静音启动并检查三端规则。full检查预装新包；box先导入原宫廷包再导入新包，注册与公开目录始终只选现行配置，新包通过离线导入后可重新加载，不依赖线上已发布新包。`--work=tmp/delivery-session-<六位后缀>`仅允许复用没有data目录的提取专用会话，仍重验实际EXE与全部成员，不复用已有对局或浏览器profile。当前源码、候选包、失败与通过分别记证据，旧版原生流程报告保留原路径及版本边界。
+历史双版本安装程序验证曾使用 `node tools/test/games/avalon/verify-configured-delivery.mjs --edition=full|box --packages=<本地已验签名包目录> --out=<新证据目录>`，每次选择一个 edition，从当前载荷指针绑定实际EXE提取、逐成员验哈希、隐藏静音启动并检查三端规则。full检查预装新包；box先导入原宫廷包再导入新包，注册与公开目录始终只选现行配置，新包通过离线导入后可重新加载，不依赖线上已发布新包。`--work=tmp/delivery-session-<六位后缀>`仅允许复用没有data目录的提取专用会话，仍重验实际EXE与全部成员，不复用已有对局或浏览器profile。该入口仅供对应历史程序和原包验证；现行完整EXE不提供离线导入，不以此旧安装流程作为新交付要求。旧版候选、失败与通过分别保留其版本边界。
 
 ## UNO 专项构建与验证
 
 新增游戏通过模块清单发现，独立构建 `node tools/build/build.mjs --only=game:uno`；单测入口 `node tools/test/runner/test-scoped.mjs --scope=game:uno`，只选择 UNO 规则、策略、UI 与 UNO 服务／Worker 测试。范围隔离工具变化另运行 `node --test tools/test/runner/scopes.test.mjs`，不启动其他游戏。实际结果与设备边界见 [UNO 验证](../games/uno/validation-scenarios.md)。
 
-`node tools/test/games/uno/verify-uno.mjs --mode=ui --seats=6 --executable=<实际解压的TableMax.exe> --zip=artifacts/releases/TableMax-1.0.6-win-x64.zip --evidence=<安全独立名称>` 在实际隐藏 WinForms／WebView2 核验三端、秘密、完整108牌场景、图文规则、触控和保存声画；`--only=opening,dense,reverse,skip,draw-two,wild,draw-four,uno,challenge,round-finish,match-finish` 选择受影响项。`--compact` 只做320px／720p，`--landscape` 定向844×390；`--sample` 只取初始样本，不能代替完整 UI。普通节奏和减少动态分别核验，原生物理静音。
+`node tools/test/games/uno/verify-uno.mjs --mode=ui --seats=6 --executable=<实际解压的TableMax.exe> --zip=<匹配EXE的内部payload.zip> --evidence=<安全独立名称>` 在实际隐藏 WinForms／WebView2 核验三端、秘密、完整108牌场景、图文规则、触控和保存声画；`--only=opening,dense,reverse,skip,draw-two,wild,draw-four,uno,challenge,round-finish,match-finish` 选择受影响项。`--compact` 只做320px／720p，`--landscape` 定向844×390；`--sample` 只取初始样本，不能代替完整 UI。普通节奏和减少动态分别核验，原生物理静音。
 
 v1.0.6 交互专项：`--layout-only --only=dense` 保留三种手机尺寸及720p—4K主机／公共屏矩阵，支持 `--seats=2|3|4|6`，核验叠牌暴露宽度、浮球与整个中央状态区的避让。`--hand-interactions` 增加可信触摸长按、非法牌调位、横滑隔离、边缘滚动／取消、摸牌追加、稳定DOM、排行榜同分、刷新和回退；整理期间核验无游戏命令及声画。`--legacy-executable=<保留的v1.0.5程序>` 先由旧程序加载并保存对局与显示设置，再由当前程序恢复，不能将新夹具单独冒称旧版自然对局。仅游戏UI改变时不重跑规则或自然完整比赛；模拟手机、缩放及机器音频不等同实体设备／人耳验收。
 
@@ -278,41 +274,43 @@ node --test tools/test/runner/scopes.test.mjs
 
 宝可梦 2026-10-05 声画／手机专项：`node tools/test/games/pokemon-encounters/verify-pokemon-polish.mjs --evidence=名称` 用真实 PokemonScreen 与合法规则状态检查 320–430px、横屏、顶栏及选位栏；`node tools/test/games/pokemon-encounters/verify-pokemon-audio.mjs --evidence=名称` 在隐藏 WebView2 检查八音源解码、固定双槽、保存事件映射和硬币落定同步。后者 fixture 的播放权限桥接只证明表现层，实际公共屏优先与交接由 `pnpm verify:experience --portable` 核验。既有 `pnpm verify:effects --evidence=名称` 已扩展能力短全屏、局部路径、共同赢家、减少动态及私看边界。三种专项都不能代替最终 ZIP、真实网络或人耳试听。
 
-| 命令                                                                   | 行为                                                                                                                                                      |
-| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                                                             | 先构建，启动 Vite、原生壳与包内 Node 独立服务；前端热更新，服务与桌面源码修改后重启该命令                                                                 |
-| `pnpm start`                                                           | 运行已有 `build/desktop`；先执行 `pnpm build`                                                                                                             |
-| `pnpm typecheck`                                                       | 严格 TypeScript 检查，不生成文件                                                                                                                          |
-| `pnpm lint`                                                            | ESLint 与 React Hooks 规则检查                                                                                                                            |
-| `pnpm format:check` / `pnpm format`                                    | 检查格式／按项目配置格式化                                                                                                                                |
-| `pnpm test -- --scope=<范围>`                                          | 先按盒子／对应游戏／实际共享依赖筛选，再执行所选Vitest测试；可追加准确文件或`--list`                                                                      |
-| `pnpm check`                                                           | 全工程聚合入口，仅适合明确全工程核验；测试范围须通过`TABLEMAX_TEST_SCOPE`设置，局部改动分别执行适用检查                                                   |
-| `pnpm build`                                                           | 构建网页、独立服务、游戏模块与 net48 原生壳，收集到 `build/desktop`                                                                                       |
-| `pnpm verify:desktop`                                                  | 隐藏窗口验证开发构建，包括真实大厅、宝可梦六人混合整局、回退、两次启动恢复、独立进程与退出协调                                                            |
-| `pnpm verify:modern-art`                                               | 隐藏原生窗口执行现代艺术五席四轮、五类拍卖与真实手机控件，验证保密、回退／重启及两游戏切换；加 `--portable` 验证最终 ZIP                                  |
-| `pnpm verify:power-grid --seats=3 --evidence=source-3`                 | 隐藏原生桌面与各自手机、真实 Worker 的电力公司混合整局；`--seats=6` 覆盖六席，`--portable` 验最终同一 ZIP                                                 |
-| `pnpm verify:power-grid-ui --evidence=fixture`                         | 独立实际 React 授权 fixture 的短屏至 4K、320–390 手机、地图操作与保存声音；不替代原生 DPI 或真实整局                                                      |
-| `pnpm verify:party`                                                    | 隐藏窗口验证加入丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证当前 ZIP                                   |
-| `pnpm verify:room-levels`                                              | 隐藏窗口验证手机各自入座、电脑仅管理／展示、六席围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证当前 ZIP                          |
-| `node tools/test/box/verify-box-avatars.mjs`                           | 隐藏窗口核验 26 个本地头像、占用／并发／身份恢复与游戏介绍尺寸；先用 `--compact-only` 检查 360×640 首屏，`--portable` 对应最终 ZIP，`--run=名称` 分开证据 |
-| `pnpm verify:presentation`                                             | 隐藏窗口验证六真人、游玩／测试时序、浮窗焦点／结束、公开行动及星标；可加 `--portable` 验证当前 ZIP                                                        |
-| `pnpm verify:display`                                                  | 隐藏窗口验证电脑 720p／1080p／1440p／4K、独立缩放、显示浮窗、设置恢复与 DPI；可加 `--portable` 验证最终 ZIP，`--box-debug` 独立保存本次盒子证据           |
-| `node tools/test/box/verify-box-debug.mjs`                             | 回环服务、隐藏真实 WebView2 检查上传裁剪、房主座位操作、原子切换、三游戏头像、320–390px 手机与电脑设置；`--run=名称` 分开证据，`--portable` 检查最终 ZIP  |
-| `pnpm verify:experience`                                               | 隐藏窗口验证游戏库按需加载、管理员指定手机房主、并发初始翻牌和准备、连接／显示控件及声音归属；可加 `--portable` 验证当前 ZIP                              |
-| `pnpm verify:effects`                                                  | 后台 WebView2 用实际游戏组件和授权投影 fixture 验证主题、同币面、暗牌交换、零分列、共同赢家和减少动态；不冒充自然对局                                     |
-| `pnpm verify:memory`                                                   | 独立 Node 比较存档复制开销，再用后台 WebView2 执行 20 轮游戏切换的 heap／DOM 回归；可加 `--copy-only` 或 `--desktop-only`                                 |
-| `node tools/test/desktop/verify-native-safety.mjs --evidence=<独立名>` | 检查桥接拒绝、重复启动、缺运行时、生产 CDP 关闭及服务／父进程崩溃清理                                                                                     |
-| `pnpm verify:game-ui`                                                  | 正式能力／2–6 人保存 fixture 的十五组 UI、多尺寸触控／隐私、已保存动效和声音                                                                              |
-| `pnpm verify:cards`                                                    | 正式六人保存状态的全部 16 类卡面及公共／手机十三种布局、图像／文字／分区几何                                                                              |
-| `pnpm package:win`                                                     | 构建 Windows x64 运行 ZIP 和逐文件清单；解压目录只作打包验证，本地不导出源码包                                                                            |
-| `pnpm verify:portable`                                                 | 将最终 ZIP 解压到新的项目临时目录，对其中的 `TableMax.exe` 运行同一跨层验证，子进程 PATH 不含 Node／开发工具目录                                          |
-| `pnpm prototype:dev`                                                   | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                                                               |
-| `pnpm prototype:build`                                                 | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/`                                                                                              |
-| `pnpm prototype:preview`                                               | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建                                                                             |
-| `pnpm prototype:verify:game`                                           | 对游戏原型执行 Playwright／后台 WebView2 能力、角色、恢复、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/`                                 |
-| `pnpm prototype:verify`                                                | 对已有原型构建运行 Playwright／后台 WebView2 走查，生成 JSON 和截图；先执行原型与桌面构建                                                                 |
+| 命令                                                                   | 行为                                                                                                                                                                        |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                                                             | 先构建，启动 Vite、原生壳与包内 Node 独立服务；前端热更新，服务与桌面源码修改后重启该命令                                                                                   |
+| `pnpm start`                                                           | 运行已有 `build/desktop`；先执行 `pnpm build`                                                                                                                               |
+| `pnpm typecheck`                                                       | 严格 TypeScript 检查，不生成文件                                                                                                                                            |
+| `pnpm lint`                                                            | ESLint 与 React Hooks 规则检查                                                                                                                                              |
+| `pnpm format:check` / `pnpm format`                                    | 检查格式／按项目配置格式化                                                                                                                                                  |
+| `pnpm test -- --scope=<范围>`                                          | 先按盒子／对应游戏／实际共享依赖筛选，再执行所选Vitest测试；可追加准确文件或`--list`                                                                                        |
+| `pnpm check`                                                           | 全工程聚合入口，仅适合明确全工程核验；测试范围须通过`TABLEMAX_TEST_SCOPE`设置，局部改动分别执行适用检查                                                                     |
+| `pnpm build`                                                           | 构建网页、独立服务、游戏模块与 net48 原生壳，收集到 `build/desktop`                                                                                                         |
+| `pnpm verify:desktop`                                                  | 隐藏窗口验证开发构建，包括真实大厅、宝可梦六人混合整局、回退、两次启动恢复、独立进程与退出协调                                                                              |
+| `pnpm verify:modern-art`                                               | 隐藏原生窗口执行现代艺术五席四轮、五类拍卖与真实手机控件，验证保密、回退／重启及两游戏切换；加 `--portable` 验证匹配的内部payload／历史ZIP                                  |
+| `pnpm verify:power-grid --seats=3 --evidence=source-3`                 | 隐藏原生桌面与各自手机、真实 Worker 的电力公司混合整局；`--seats=6` 覆盖六席，`--portable` 验最终同一 ZIP                                                                   |
+| `pnpm verify:power-grid-ui --evidence=fixture`                         | 独立实际 React 授权 fixture 的短屏至 4K、320–390 手机、地图操作与保存声音；不替代原生 DPI 或真实整局                                                                        |
+| `pnpm verify:party`                                                    | 隐藏窗口验证加入丢回复、真实重启、网卡 IPv4、弱网恢复、原班续局、回退定位和桌面运行保障；可加 `--portable` 验证历史ZIP档案输入                                              |
+| `pnpm verify:room-levels`                                              | 隐藏窗口验证手机各自入座、电脑仅管理／展示、六席围桌尺寸与三档人机配置、实际混合小局／续局／重启；可加 `--portable` 验证历史ZIP档案输入                                     |
+| `node tools/test/box/verify-box-avatars.mjs`                           | 隐藏窗口核验 26 个本地头像、占用／并发／身份恢复与游戏介绍尺寸；先用 `--compact-only` 检查 360×640 首屏，`--portable` 对应匹配的内部payload／历史ZIP，`--run=名称` 分开证据 |
+| `pnpm verify:presentation`                                             | 隐藏窗口验证六真人、游玩／测试时序、浮窗焦点／结束、公开行动及星标；可加 `--portable` 验证历史ZIP档案输入                                                                   |
+| `pnpm verify:display`                                                  | 隐藏窗口验证电脑 720p／1080p／1440p／4K、独立缩放、显示浮窗、设置恢复与 DPI；可加 `--portable` 验证匹配的内部payload／历史ZIP，`--box-debug` 独立保存本次盒子证据           |
+| `node tools/test/box/verify-box-debug.mjs`                             | 回环服务、隐藏真实 WebView2 检查上传裁剪、房主座位操作、原子切换、三游戏头像、320–390px 手机与电脑设置；`--run=名称` 分开证据，`--portable` 检查匹配的内部payload／历史ZIP  |
+| `pnpm verify:experience`                                               | 隐藏窗口验证游戏库按需加载、管理员指定手机房主、并发初始翻牌和准备、连接／显示控件及声音归属；可加 `--portable` 验证历史ZIP档案输入                                         |
+| `pnpm verify:effects`                                                  | 后台 WebView2 用实际游戏组件和授权投影 fixture 验证主题、同币面、暗牌交换、零分列、共同赢家和减少动态；不冒充自然对局                                                       |
+| `pnpm verify:memory`                                                   | 独立 Node 比较存档复制开销，再用后台 WebView2 执行 20 轮游戏切换的 heap／DOM 回归；可加 `--copy-only` 或 `--desktop-only`                                                   |
+| `node tools/test/desktop/verify-native-safety.mjs --evidence=<独立名>` | 检查桥接拒绝、重复启动、缺运行时、生产 CDP 关闭及服务／父进程崩溃清理                                                                                                       |
+| `pnpm verify:game-ui`                                                  | 正式能力／2–6 人保存 fixture 的十五组 UI、多尺寸触控／隐私、已保存动效和声音                                                                                                |
+| `pnpm verify:cards`                                                    | 正式六人保存状态的全部 16 类卡面及公共／手机十三种布局、图像／文字／分区几何                                                                                                |
+| `pnpm package:win`                                                     | 构建预装全部正式游戏与玩法的Windows x64完整EXE和本地清单；内部payload ZIP只供封装／验收，本地不导出源码包                                                                   |
+| `pnpm verify:portable`                                                 | 历史运行ZIP专用跨层验证，默认读取旧release ZIP；现行完整EXE先运行 `node tools/release/verify-shipping-executable.mjs`，专项按实际支持的载荷参数绑定                         |
+| `pnpm prototype:dev`                                                   | 启动独立原型开发服务，入口 `http://127.0.0.1:5174/prototype.html`，不启动正式桌面或本地服务                                                                                 |
+| `pnpm prototype:build`                                                 | 使用独立 Vite 配置构建原型到 `artifacts/phase-02/prototype/`                                                                                                                |
+| `pnpm prototype:preview`                                               | 预览已有原型构建，入口 `http://127.0.0.1:4174/prototype.html`；先执行原型构建                                                                                               |
+| `pnpm prototype:verify:game`                                           | 对游戏原型执行 Playwright／后台 WebView2 能力、角色、恢复、尺寸和动效走查，证据在 `artifacts/phase-02/verification/game/`                                                   |
+| `pnpm prototype:verify`                                                | 对已有原型构建运行 Playwright／后台 WebView2 走查，生成 JSON 和截图；先执行原型与桌面构建                                                                                   |
 
-服务 CJS 构建使用 esbuild `minify`，随后执行[服务载荷无损压缩](#服务载荷无损压缩2026-10-06)；规则和策略 CJS 使用 `minifyWhitespace`，源码及规则／状态／策略版本保留，`bot-worker.cjs` 保持原构建选项。该构建配置不改变游戏规则，也不以源码或预估字节代替最终 ZIP／实际解压双体积核验；当前包与清理结果见验收记录。
+表中保留的旧 `--portable`验证方式须遵守[实际载荷绑定](#两种exe与内部载荷2026-10-11)，表内“匹配的内部payload／历史ZIP”指验证器的档案输入，不是现行用户下载。重新封装当前完整载荷使用 `pnpm package:release`，不传任何edition参数。
+
+服务 CJS 构建使用 esbuild `minify`，随后执行[服务载荷无损压缩](#服务载荷无损压缩2026-10-06)；规则和策略 CJS 使用 `minifyWhitespace`，源码及规则／状态／策略版本保留，`bot-worker.cjs` 保持原构建选项。该构建配置不改变游戏规则，也不以源码或预估字节代替匹配的内部payload／历史ZIP／实际解压双体积核验；当前包与清理结果见验收记录。
 
 ### 服务载荷无损压缩（2026-10-06）
 
@@ -346,7 +344,7 @@ Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 
 
 [`apps/web/src/content/feedback.zh-CN.json`](../../apps/web/src/content/feedback.zh-CN.json) 集中盒子入座、保存、连接、上传、换机、显示、准备、计时、座位管理及操作确认的短文案。手动维护只改字符串值，保留组名、键名和 `{game}`、`{player}`、`{code}`、`{seconds}`、`{count}`、`{step}` 等占位符；源码修改后重新构建运行包生效。`feedbackText` 插值按普通文字渲染，`feedbackReason` 映射服务原因码，`feedbackKind` 分类保证改中文文字不改变状态行为。完整帮助、游戏规则与纯控件名称不在此文件范围。
 
-游戏分类和搜索别名分别放在各 `games/<id>/game-module.json`的 `library.tags`、`library.searchTerms`，不需要改盒子名单；名称、分类、别名、玩法名称／摘要和ID可检索，多个词按共同匹配处理，支持全角及大小写归一。未安装时不携带完整图文规则、新手引导或人机说明，搜索不依赖这些详情。玩法选择共用 `apps/web/src/components/GameplaySelector.tsx`，按照 `variants`显示各玩法资源状态；权限和切换条件不因组件名称改变。精确单测入口：`node tools/test/runner/test-scoped.mjs --scope=box apps/web/src/components/game-library/filter.test.ts`；文案分类测试使用 `--scope=box,shared apps/web/src/content/feedback.test.ts`。
+游戏分类和搜索别名分别放在各 `games/<id>/game-module.json`的 `library.tags`、`library.searchTerms`，不需要改盒子名单；名称、分类、别名、玩法名称／摘要和ID可检索，多个词按共同匹配处理，支持全角及大小写归一。浏览目录只携带检索字段和小封面，完整说明按精确发行读取，搜索不依赖详情。玩法选择共用 `apps/web/src/components/GameplaySelector.tsx`，按照 `variants`显示可选玩法；下载进度和安装状态已移除，权限和切换条件不因组件名称改变。精确单测入口：`node tools/test/runner/test-scoped.mjs --scope=box apps/web/src/components/game-library/filter.test.ts`；文案分类测试使用 `--scope=box,shared apps/web/src/content/feedback.test.ts`。
 
 `tools/test/box/verify-box-seats.mjs` 登记为box，使用实际源码 BoxScreen 的合成目录和座位输入，核验1／6席原布局及7／9／12席网格、长昵称、真人与三档人机、本人第12席、各端状态和320px至4K的滚动／字号／重叠。结束动作只检查“恢复加入”发出既有 `replay`；人数筛选随目录最高人数生成至最多12。隐藏静音Edge与夹具仅监听127.0.0.1，证据保存于 `artifacts/maintenance/v1.0.6/box-seats/`，隔离构建使用现有 `tmp/box-layout-<六位后缀>`。合成12人输入仅验证盒子显示兼容，现有游戏仍按原人数限制；不代表实物设备、游戏规则或便携包验收。
 
@@ -508,11 +506,11 @@ Windows 程序规则按完整可执行文件路径匹配；专用网络和本地
 
 ## 便携包体积与共享运行时
 
-Windows x64 full／box EXE及各自实际提取内容均严格小于120,000,000字节，基础工程预警110,000,000字节；单玩法完整依赖的传输／安装量分别严格小于64,000,000字节。`tools/release/package.mjs`收集原生壳、x64 WebView2 DLL、官方Node、许可证、服务、共享网页运行时、浏览目录和小封面，full另携带已验证当前游戏预装包；生成服务代码使用生产压缩，保留可读源码及原素材。不分发Electron、现代.NET自包含运行时、WebView2 Fixed Version、其他架构库、引用程序集、PDB或SDK文档。
+Windows x64完整EXE、内部payload ZIP及实际提取内容均严格小于120,000,000字节，工程预警110,000,000字节；全部正式游戏和玩法资源计入。`tools/release/package.mjs`收集原生壳、x64 WebView2 DLL、官方Node、许可证、服务、共享网页运行时、轻量目录及所有当前签名模块；内部模板不计入正式游戏。不分发Electron、现代.NET自包含运行时、WebView2 Fixed Version、其他架构库、引用程序集、PDB或SDK文档。
 
-打包记录两种EXE与内部payload的字节数和SHA-256，实际提取后逐文件比对大小及哈希；任一交付硬门禁达到上限立即失败。内部清单保存在 `artifacts/package-payloads/v<版本>/<run>/<edition>/release-manifest.json`，当前 `current.json`绑定各edition的载荷、EXE和本地清单。对外只导出Windows EXE，不生成用户运行ZIP。系统共享运行时、用户存档和缓存不计入交付体积，缓存始终写入用户数据目录。缺少共享WebView2时提示安装或取消，安装完成后的完整游戏仅用本地资源与局域网服务。
+打包记录唯一EXE与内部payload的字节数和SHA，实际提取后逐文件比对；任一硬门禁达到上限立即失败。manifest在 `artifacts/package-payloads/v<公开版本>/<run>/full/release-manifest.json`，`current.json`绑定载荷、EXE及本地清单。内部 `full`保留为兼容键，不代表还有盒子版。系统共享运行时、用户存档和浏览器缓存不计入交付，缓存写入所选数据目录。缺WebView2时提示安装或取消；程序提取及预装验证完成后，游戏使用本地资源与局域网服务。
 
-共享运行时方案见[决策008](../decisions/008-small-native-desktop.md)，多游戏下载、本机安装及旧包固定已实现，任务已按用户决定关闭，实际设备／故障验收边界见[验收记录](acceptance.md#106安装故障矩阵与验收范围调整2026-10-11)。
+内部模块自身预算和依赖闭包继续校验；历史单玩法64,000,000字节传输／安装门禁只说明原独立包体系，不再提供用户游戏下载或安装。原局固定发行仓库保持，当前完整交付与旧版本故障边界见[验收](acceptance.md#106唯一完整-exe2026-10-12)，共享运行时理由见[决策008](../decisions/008-small-native-desktop.md)。
 
 ### 原生桌面后台验证
 
@@ -533,11 +531,11 @@ pnpm assemble:win -- --snapshot=build/snapshots/<哈希>.json
 pnpm package:win
 ```
 
-默认 build 增量补齐全部开发单元并物化唯一 `build/desktop`；only 只构建指定单元，不替换完整运行目录。full 强制重新编译。assemble 只读取已验证快照，不触发构建；缺少产物或版本不兼容即失败。package 显式编排正式三游戏增量构建、冻结、组装、压缩与实际解压哈希检查，发行清单记录单元指纹和耗时。
+默认 build 增量补齐全部开发单元并物化唯一 `build/desktop`；only 只构建指定单元，不替换完整运行目录。full 强制重新编译。assemble 只读取已验证快照，不触发构建；缺少产物或版本不兼容即失败。package显式编排所有正式游戏／玩法的增量构建、冻结、内部签名模块核验、完整组装、压缩与实际提取哈希检查，发行清单记录单元指纹和耗时。
 
 缓存位于 `.cache/build-modules/v1/<单元>/<内容指纹>/`，输入按内容哈希，包含传递导入、跨目录 JSON、每次重新展开的素材 glob、契约、工具配置和锁文件。输出记录文件字节／SHA-256；每次命中核验完整性，构建前后复核输入。临时输出与原生中间目录按任务隔离，成功后发布；失败不覆盖有效产物。原生信息版本不再包含隐式 Git 修订号，避免提交后改变同输入的程序字节，程序集产品版本及开发身份校验保持不变。
 
-组装、发行和每个单元分别互斥；程序占用时拒绝替换。暂存目录完整验证后替换开发目录，失败回滚；发行 ZIP 与清单成对回滚。缓存中的有效单元可独立重用，不复用 ZIP 压缩条目，也不提供用户侧差分更新。
+组装、发行和每个单元分别互斥；程序占用时拒绝替换。暂存目录完整验证后替换开发目录，失败回滚；完整EXE与清单／内部载荷按事务保护发布，失败保留旧当前交付。缓存中的有效单元可独立重用，不复用 ZIP 压缩条目，也不提供用户侧差分更新。
 
 缓存维护先运行 `node tools/maintenance/clean-build-cache.mjs` 预览，再 `--apply`。仅处理专用构建缓存：保留当前开发快照、当前发行引用、活动锁／任务及每单元最近两份成功产物，另保留最近30分钟。删除前再次核验绝对路径、链接、单元清单哈希和空闲状态；不涉及依赖缓存、素材、存档及验收证据。
 
@@ -556,11 +554,11 @@ pnpm package:win
 
 ### 组装与验收要求
 
-优先复用模块产物目录，汇总成一个完整运行目录后生成 ZIP；压缩条目复用仅在测量表明确有收益后另行实现，并正确生成 ZIP 目录结构。构建缓存、压缩缓存和用户侧差分更新分别处理，后者不属于本次需求。Node、共享网页运行时和通用组件不重复装入各游戏块。
+优先复用模块产物目录，汇总全部正式游戏为完整运行目录后生成内部payload ZIP并封装唯一EXE；压缩条目复用仅在测量表明确有收益后另行实现，并正确生成 ZIP 目录结构。构建缓存、压缩缓存和用户侧差分更新分别处理，后者不属于本次需求。Node、共享网页运行时和通用组件不重复装入各游戏块。
 
 验收至少覆盖：单游戏变更只重建其受影响部分且其他模块哈希不变；共享契约变化使全部相关模块失效；资源变化、删除和重命名无旧文件残留；缓存损坏／缺失、构建失败及并发输出不造成混合包；不兼容模块被拒绝；同一输入的增量组装与干净全量构建的交付文件一致（确定性文件按哈希比较，必要的生成元数据差异明确记录）。
 
-按影响执行源码检查，再对同次冻结输入生成的 full／box EXE 验证盒子、受影响游戏加载、跨游戏切换、身份权限、存档续局及资源离线可用。实际提取目录逐文件核对内部载荷清单，两种 EXE 和实际提取内容均严格小于120,000,000字节，工程预警110,000,000字节。记录各模块构建、缓存命中、组装、压缩和验收的实际耗时，不预先宣称节省比例；模块缓存不替代最终交付检查。日常导出两种 EXE，内部载荷留本地，不新增源码包或递增版本。
+按影响执行源码检查，再对同次冻结输入的完整EXE验证盒子、全部正式游戏／玩法可用、受影响游戏行为、跨游戏切换、身份权限、旧局精确恢复和本地资源。实际提取逐文件核对内部清单；EXE、payload和提取内容均严格小于120,000,000字节，工程预警110,000,000字节。记录构建、命中、组装、压缩和验收耗时，模块缓存不替代交付验收。日常只导出完整EXE，新导出分配本地修订号，公开版本不自行递增。
 
 ## 清理本地中间物
 
@@ -598,12 +596,12 @@ v1.0.3新增已知隔离副本 `tmp/portable-storage-<六位随机后缀>`，通
 
 `scripts/Clean-ReleaseScreenshots.ps1` 是窄范围入口，默认预览，显式 `-Apply` 才删除：仅匹配release直属的已命名过程图片或纯图片目录，不扫描maintenance或assets，不处理运行／源码文件；保留30分钟保护、共享清理互斥和删除前复核，不要求对无保留价值的生成截图逐像素／内容哈希验证。
 
-日常本地导出运行 `pnpm package:win`，默认生成full／box两种EXE和本地清单；可选 `--edition=full|box|both`。内部payload ZIP及逐文件manifest留 `artifacts/package-payloads/v<版本>/`，不作为用户运行ZIP。仅在用户明确声明发布到GitHub时才准备source ZIP；现有本地打包入口不会自动生成源码包，也不执行发布。
+日常本地运行 `pnpm package:win`，只生成唯一完整EXE和本地清单；`--edition`已明确拒绝。内部payload ZIP及逐文件manifest留 `artifacts/package-payloads/v<版本>/`，不作为用户运行ZIP。仅在用户明确声明发布到GitHub时才准备source ZIP；现有本地打包入口不会自动生成源码包，也不执行发布。
 
 `scripts/` 提供三个可从任意工作目录运行的 PowerShell 清理与维护入口，共用 [清理实现](../../tools/maintenance/cleanup-local.ps1)：
 
 - [scripts/Clean-Releases.ps1](../../scripts/Clean-Releases.ps1)：清理 `artifacts/releases` 中低于 `package.json` 当前版本的程序／源码 ZIP、配套交付／逐文件清单、解压程序和独立打包目录；当前／未来版本及不认识的名称默认保留。版本重新编号后，可用 `-RetiredVersions 1.6.0` 显式指定已退役标签，仍执行全部安全检查；禁止指定当前版本，自动维护不接受该选项。
-- 用户明确要求本地只留最新导出时，手动 `scripts/Clean-Releases.ps1 -KeepLatestOnly`先预览，核对后加 `-Apply`。该模式只处理 `artifacts/releases/`直属项；新格式读取 `artifacts/package-payloads/v<版本>/current.json`并保护全部当前edition的EXE、payload、manifest及指针，要求各自实际EXE通过证明和哈希一致。已有同版旧已发布EXE／ZIP／source／manifest仍保留，明确逐文件SHA备份后才能退役原位置；不清理其他历史证据目录或内部payload目录。无新格式指针时兼容旧ZIP及匹配清单保护。沿用进程、路径、链接、近期修改、指纹及互斥保护，不与其他清理选择模式或自动维护混用。
+- 用户明确要求本地只留最新导出时，手动 `scripts/Clean-Releases.ps1 -KeepLatestOnly`先预览，核对后加 `-Apply`。该模式只处理 `artifacts/releases/`直属项；新格式读取 `artifacts/package-payloads/v<版本>/current.json`并保护唯一完整EXE、payload、manifest及指针，要求实际EXE通过证明和双哈希一致；读取历史双格式时仍逐项保护原edition。已有同版旧已发布EXE／ZIP／source／manifest仍保留，明确逐文件SHA备份后才能退役原位置；不清理其他历史证据目录或内部payload目录。无新格式指针时兼容旧ZIP及匹配清单保护。沿用进程、路径、链接、近期修改、指纹及互斥保护，不与其他清理选择模式或自动维护混用。
 - [scripts/Clean-Intermediates.ps1](../../scripts/Clean-Intermediates.ps1)：清理已知验证脚本生成的 `tmp/<用途>-<六位随机后缀>`、便携解压副本、已完成的打包工作目录及 builder 诊断文件；已识别的一次性脚本直接退役，不建恢复归档。未知及低频内容先审计，再按精确名称或单次文件清单处理，不清空整个 `tmp/`。原始素材、资料与历史截图／JSON 证据不在范围内。
 - [scripts/Maintain-Project.ps1](../../scripts/Maintain-Project.ps1)：工程操作前后空闲时检查主工作区磁盘占用；超过 10 GiB 才按最旧候选优先清理上述两类内容，达到 8 GiB 或合格候选耗尽即停止。容量是逻辑文件字节总量，不是运行内存；流式扫描跳过链接和嵌套仓库，不重复统计主工作区与 worktree，也不跨无关项目。
 
@@ -611,7 +609,7 @@ v1.0.3新增已知隔离副本 `tmp/portable-storage-<六位随机后缀>`，通
 
 三个入口默认只预览，保留最近 30 分钟修改过的候选，不删除也不写清理日志。两个手动清理入口默认处理脚本所在 checkout；维护入口默认从同一 Git 仓库发现主工作区，三个入口均支持 `-ProjectRoot <绝对路径>` 显式选择同仓库 checkout，拒绝无关项目。先退出 TableMax，并完成开发／测试／打包；手动核对后加 `-Apply`，日常维护按已授权规则在空闲边界自动调用维护入口的 `-Apply`，不创建常驻或定时任务，不在仍运行的 package／verify 父进程里绕过空闲检查。
 
-删除前必须找到与目标工作区当前 ZIP 哈希相符的便携 `portable: true`／`result: passed` 验证记录；缺包、未验证、ZIP 变化或容量超标但无候选时安全保留并报告。执行前及逐项删除前检查进程，解析绝对路径并核对仓库边界，拒绝 junction／符号链接和嵌套仓库；同目录清理互斥，候选的逐项路径／字节／修改时间指纹在删除前复核。不能读进程、候选变化或检查失败时停止，不结束用户进程。部分失败保留已执行清单供复查。
+删除前核对当前完整EXE和内部payload的SHA，要求相同snapshot的实际EXE通过证明；只有历史ZIP格式才使用匹配档案哈希的 `portable: true`／`result: passed`记录。缺包、未验证、字节变化或容量超标但无候选时安全保留并报告。执行前及逐项删除前检查进程，解析绝对路径并核对仓库边界，拒绝 junction／符号链接和嵌套仓库；同目录清理互斥，候选的逐项路径／字节／修改时间指纹在删除前复核。不能读进程、候选变化或检查失败时停止，不结束用户进程。部分失败保留已执行清单供复查。
 
 ```powershell
 # 在 TableMax 根目录预览
@@ -803,7 +801,7 @@ v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`�
 
 所有专项通过后只调用一次 `pnpm package:win`（已包含正式18单元构建，不预先重复全量build）。备份原ZIP／清单，对同一最终ZIP执行 `verify-pokemon-expansion.mjs --portable --evidence=<独立名>` 与普通模式控件验证，再核对冻结输入、离线媒体、退出、实际解压体积及模块预算。共享存储变化扩大三游戏恢复检查；未变规则／原版素材按影响复用既有证据。真人手机／听感／硬件DPI／现场LAN及人类时长单独交接，不重新执行胜率统计门禁。
 
-模块预算警告不能视为交付通过；先优化新增资源或实现，不自动上调。预算失败后的受影响单元修正允许重新冻结组装，保留失败清单、输入与理由，其余缓存单元复用。本节记录 v1.0.3 宝可梦4MiB及当时95MB预算／100MB硬门禁；现行 v1.0.6 交付采用110MB预警／120MB硬上限，完整玩法下载及安装各严格小于64MB，见[当前体积门禁](#便携包体积与共享运行时)。最终证据须绑定同次冻结输入、实际 EXE 和对应内部载荷哈希。
+模块预算警告不能视为交付通过；先优化新增资源或实现，不自动上调。预算失败后的受影响单元修正允许重新冻结组装，保留失败清单、输入与理由，其余缓存单元复用。本节记录 v1.0.3 宝可梦4MiB及当时95MB预算／100MB硬门禁；现行v1.0.6完整EXE、内部payload及实际提取采用110MB预警／120MB硬上限；单玩法下载／安装是旧体系边界，见[当前体积门禁](#便携包体积与共享运行时)。最终证据须绑定同次冻结输入、实际 EXE 和对应内部载荷哈希。
 
 若18单元构建完成后组装被运行中程序门禁阻止，可在程序退出后用 `pnpm package:win --snapshot=build/snapshots/<ID>.json` 恢复组装：重新核对快照ID、生产模块集合、全部源码输入及组装器指纹，继续执行原有进程、输出哈希和体积门禁，避免重复编译。默认命令仍执行正式构建。本轮首次组装因用户日常程序仍运行而中止，用户确认关闭后使用同一冻结快照恢复，未关闭或修改正式用户数据。
 
@@ -842,6 +840,8 @@ SQLite流式扫描须让 `StatementSync` 强引用保持至迭代完成；包内
 `pnpm typecheck` 通过 `tools/test/runner/typecheck.mjs` 调用锁定的 TypeScript CLI，原编译参数、诊断、失败退出码保持有效。Windows 原生 realpath 遇到可读 pnpm Junction 的 EPERM 时，先回退普通 realpath，再沿用编译器的缺失文件行为。迁移审计中317项错误已定位为受限目录链接解析造成：正常权限的原版编译器和修正入口均为0错误，没有放宽类型、排除测试或修改第三方依赖。若 pnpm 自身在编译前遇到目录访问限制，可直接运行 `node tools/test/runner/typecheck.mjs --noEmit`，或在正常权限环境运行原 pnpm 命令。旧失败报告保持原样；本轮复核及工具回归见[检查与空间审计](../../artifacts/maintenance/v1.0.6/check-errors-space-20261010/results.json)。
 
 ## 游戏包构建与运行隔离（2026-10-11）
+
+本节保留原独立安装体系的构建与故障验证方法，已于2026-10-12退役产品入口。当前游戏随完整EXE交付；下述独立导出、管理员包管理和原生选包桥接不能调用。签名、内部模块加载、事务与历史仓库仍用于本地预装修复和原局恢复，历史安装故障报告保留原方法／包边界。
 
 2026-10-11安装器修复：异步文件移动结束后的索引合并与原子提交之间不再有await，合并最新索引以保留其他已完成安装和管理动作。`.transactions/<事务UUID>.json.<原子UUID>.tmp`是尚未改名的写入副本，恢复只清除该普通文件及同事务stage，不解析其未完成内容；其他未知名称及链接仍拒绝。故障驱动按准确操作／路径及局部次数注入，全局序号只作诊断；签名坏包重试须恢复合法签名目录及合法正文，不能只切换HTTP响应。限定补验与证据见[验收](acceptance.md#106安装索引并发与临时journal恢复修复2026-10-11)。
 

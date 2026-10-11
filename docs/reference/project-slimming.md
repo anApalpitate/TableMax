@@ -16,6 +16,8 @@
 
 ## 唯一完整EXE维护收尾（2026-10-12）
 
+以下历次记录中的“当前交付／原包保留／当前容量”均指该轮结束时点；现行保留与退役状态以上方6GB深度瘦身清单为准。历史SHA、统计时间、失败和保护结论保持，不将旧包保存描述作为今日文件仍存在的保证。
+
 新完整EXE验收通过后，旧1.0.6.1 full／box及清单按[逐文件SHA保全](../../artifacts/maintenance/v1.0.6/full-only-20261012/previous-delivery/preservation.json)原样移入历史证据。release根目录只留1.0.6.2完整EXE和本地清单，旧运行数据目录继续保护；内部payload、冻结快照、模块缓存和历史签名包保留。
 
 本轮工程进程退出后执行一次 `scripts/Maintain-Project.ps1 -Apply`，[维护报告](../../artifacts/maintenance/local-cleanup-20261011-172639-873-maintenance/cleanup.json)退役5个到龄且已结束的隔离验证／提取目录，删除 **141,357,707逻辑字节**。维护后实测 **24,484,061,016字节（22.803GiB）**，安全候选耗尽，617项仍受保护。未扩大范围、追加删除或使用NTFS压缩代替逻辑容量；当前交付、原资料、存档、历史仓库和验收边界保持。日志与最终映射见[收尾证据](../../artifacts/maintenance/v1.0.6/full-only-20261012/completion.json)。

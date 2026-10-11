@@ -4,16 +4,20 @@
 
 | 游戏                                                       | 规格与状态                                                                                                                                                                    |
 | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [宝可梦奇遇：皮卡丘和朋友们](pokemon-encounters/README.md) | `pokemon-encounters`，采用 `tablemax-cn-s19-v1`；完整规则／计分／投影／bot／两端 UI 已实现；当前 Windows 与设备模拟交付验证见 [验收记录](../reference/acceptance.md)          |
+| [宝可梦奇遇：皮卡丘和朋友们](pokemon-encounters/README.md) | `pokemon-encounters`，原版 `tablemax-cn-s19-v1`、扩展 `tablemax-cn-expansion-v1`，2–6 人；两种玩法独立维护规则、授权投影、三档策略与界面                                      |
 | [现代艺术](modern-art/README.md)                           | `modern-art`，采用 `tablemax-modern-art-classic-v1`；经典 3–5 人、70 卡、五种拍卖、四轮与三档独立策略；出版规则与项目采用缺口见 [来源](modern-art/sources.md)                 |
 | [电力公司](power-grid/README.md)                           | `power-grid`，采用 `classic-germany-2009-project-1`；经典德国修正版 42 城／六区／83 边、42 张电厂、2–6 人与三档独立策略；出版依据与项目采用项见 [来源](power-grid/sources.md) |
 | [UNO](uno/README.md)                                       | `uno`，采用 `classic-108-g7942-1`；经典 108 牌、2–6 人、+4 质疑、UNO 抓漏与 500 分；完整本地交付与实际验证见 [构建归档](../archive/uno-2026-10-10.md)                         |
+| [拉密](rummikub/README.md)                                 | `rummikub`，采用 `classic-2025-digital-v1`，经典 2–4 人／106 张牌；游戏库已开放，本地牌架整理与完整回合校验见[交互](rummikub/interaction.md)                                  |
+| [阿瓦隆](avalon/README.md)                                 | `avalon`，采用 `classic-2012-configured-1`，2012 经典版、5–10 人；新局唯一 `configured` 配置、角色秘密与并发密投见[规格](avalon/spec.md)                                      |
 
-宝可梦奇遇、现代艺术、电力公司与 UNO 的已有独立实现与便携验收保持原结论；阿瓦隆实际交付状态见 [当前验收](../reference/acceptance.md)。较早交付见 [历史验收](../archive/acceptance-2026-10-01-to-04.md)，接入过程从 [归档索引](../archive/README.md)进入。
+## 模块交付与旧局恢复
 
-[阿瓦隆](avalon/README.md)：`avalon`，2012 经典版，5–10 人；现行源码新局使用唯一 `configured` 人数配置，旧 `classic`／`court` 仅恢复原局。角色知识、秘密投票、匿名任务与刺杀见[规格](avalon/spec.md)，各发行实际交付见[当前验收](../reference/acceptance.md)。
+当前应用公开版本为 **1.0.6**，Windows 只交付预装全部正式游戏的完整 EXE；本次已验证本地构建为 **1.0.6.2**，包含上述六款游戏、七个玩法，内部 template 不计入。游戏库与玩法浮窗只负责筛选和选择，游戏下载、离线 ZIP 导入、单游戏更新／卸载／回退入口已退役。规则、策略、网页、样式和资源继续按游戏独立维护、增量构建，签名／哈希及内部模块仓库继续保留。
 
-[拉密经典版](rummikub/README.md)采用 `classic-2025-digital-v1`，2–4 人；游戏库入口已恢复开放，本地牌架整理、稳定操作及 v1.0.6 同包证据见[当前验收](../reference/acceptance.md#106拉密交互完善与恢复开放2026-10-11)，首次完整交付见[构建归档](../archive/rummikub-2026-10-09.md)。
+新局只使用本 EXE 经验证的预装映射，旧安装索引及缓存目录不能覆盖它。旧局按原 `releaseRef` 恢复规则、策略、网页和资源；无引用旧档按精确版本匹配，不替换为最新规则。非当前发行显示“正在继续旧版本对局”，原局内下一轮／小局继续原发行，旧大厅开局或终局“再玩一局”切换当前发行。阿瓦隆退役 `classic`／`court` 仅供恢复原局。
+
+原版本缺失、匹配不唯一或接口不兼容时保留存档、身份、checkpoint 和历史，并提示所需版本及包含它且支持存档格式的旧完整 EXE；不重新下载或导入游戏包。当前模块损坏只从本地载荷修复。实际程序、兼容及验证边界见[当前完整 EXE 验收](../reference/acceptance.md#106唯一完整-exe2026-10-12)，较早交付保留[历史验收](../archive/acceptance-2026-10-01-to-04.md)的原日期、构建与哈希边界。
 
 中文互联网的人气线索、跨品类候选、手机／公共屏及人机适配判断见[候选与接入评估](candidates.md)；已接入游戏移出候选，其他研究建议不代表接入确认或开发排期。
 

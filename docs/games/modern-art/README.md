@@ -8,7 +8,7 @@ TableMax 的第二款独立游戏，采用经典 3–5 人拍卖玩法；画家�
 
 ## 模块边界
 
-规则、数据、投影、计分、电脑策略和界面集中在 [games/modern-art](../../../games/modern-art/index.ts)。它们不导入其他游戏的规则、类型、声音、素材或 UI；运行规则只使用游戏 SDK 的座位和可恢复随机源。普通数据存档与短生命周期 `AuctionFlow`／`MatchFlow` 分开，纯计分放在 [scoring.ts](../../../games/modern-art/rules/scoring.ts)。平台注册、通信、身份、保存、回退、暂停和游戏切换继续由平台负责。
+规则、数据、投影、计分、电脑策略和界面集中在 [games/modern-art](../../../games/modern-art/index.ts)。它们不导入其他游戏的规则、类型、声音、素材或 UI；运行规则只使用游戏 SDK 的座位和可恢复随机源。普通数据存档与短生命周期 `AuctionFlow`／`MatchFlow` 分开，纯计分放在 [scoring.ts](../../../games/modern-art/rules/scoring.ts)。当前随完整 EXE 预装，新局和历史发行恢复遵循[统一模块边界](../README.md#模块交付与旧局恢复)。平台注册、通信、身份、保存、回退、暂停和游戏切换继续由平台负责。
 
 UI 与策略只读 [view.ts](../../../games/modern-art/ui/view.ts) 投影契约及 [catalog.ts](../../../games/modern-art/data/catalog.ts) 公开目录。美术资源使用 `assets/games/modern-art/`；生成原图、替换资源、提示词和实际核验由资源清单维护。卡牌 `artIndex` 为画家内 1-based 序号，标题“作品 01”等为项目演绎。原创插画不能标为出版卡面或真实画家作品。
 

@@ -6,7 +6,7 @@
 
 [位图清单](../../../assets/games/uno/visual-manifest.json)记录完整提示词、原图、转换、尺寸、字节与 SHA-256。桌面背景 `table-v1.webp` 为 1672×941／153,662 字节，封面 `cover-v1.webp` 为 800×600／93,080 字节；共 246,742 字节。两张均由内置 imagegen 原创生成，非 Mattel 官方美术，正式资源本地打包。
 
-原图、缩小封面及转换核验保留在 `artifacts/uno/imagegen/`。中央桌面留白用于真实卡牌，边缘四色缝线只是装饰；封面无规则数据与文字，游戏介绍由代码排版。生成、解码、实际三端 UI 与当前便携包已核验，具体包哈希和运行边界见 [当前证明](../../../artifacts/maintenance/v1.0.5/uno-20261010/portable-final/results.json)。
+原图、缩小封面及转换核验保留在 `artifacts/uno/imagegen/`。中央桌面留白用于真实卡牌，边缘四色缝线只是装饰；封面无规则数据与文字，游戏介绍由代码排版。生成、解码、实际三端 UI 与2026-10-10便携包已核验，具体旧包哈希和运行边界见 [当时证明](../../../artifacts/maintenance/v1.0.5/uno-20261010/portable-final/results.json)。
 
 ## 声画
 

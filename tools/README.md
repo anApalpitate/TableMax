@@ -6,7 +6,7 @@
 | -------------------------- | ------------------------------------ | ---------------------------------------------------------------------- |
 | 开发、启动                 | [dev](dev/README.md)                 | `pnpm dev`／`pnpm start`；构建或启动进程                               |
 | 准备运行时、构建、组装     | [build](build/README.md)             | `pnpm setup:desktop`／`pnpm build`／`pnpm assemble:win`；写缓存与构建  |
-| 导包、交付验证、发布       | [release](release/README.md)         | `pnpm package:win`／`pnpm package:release`；写交付产物，发布需明确授权 |
+| 完整EXE、交付验证、发布    | [release](release/README.md)         | `pnpm package:win`／`pnpm package:release`；写交付产物，发布需明确授权 |
 | 按范围验证、查询历史       | [test](test/README.md)               | `pnpm test -- --scope=<范围>`；默认静音，按实际范围选择                |
 | 生成、转换与审计资源       | [assets](assets/README.md)           | 按平台／游戏／规则资料分类；可能写正式素材或清单                       |
 | 空间、预算、内存和策略分析 | [analysis](analysis/README.md)       | 各工具分别说明只读报告、模拟或写入参数                                 |

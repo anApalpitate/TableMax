@@ -1,17 +1,18 @@
 # 游戏模块
 
-[UNO](uno/index.ts) 使用经典 108 牌 G7942 同版，平台 2–6 人；独立规则、秘密投影、三档本地策略、三端实体卡牌 UI 和本地声画分别维护。采用版次见 [游戏主题](../docs/games/uno/README.md)，已完成制作与验证见 [构建归档](../docs/archive/uno-2026-10-10.md)。
+当前完整 Windows EXE 预装六款正式游戏及全部现行玩法。每款游戏的规则、策略、网页、样式与资源独立维护，由模块清单参与增量构建；`games/template/` 是内部验证模板，不进入正式游戏库。游戏采用版本与来源从[游戏文档索引](../docs/games/README.md)进入，当前本地交付与设备边界见[验收记录](../docs/reference/acceptance.md#当前源码与本地交付)。
 
-每款游戏独立使用 games/<id>/，规则／计分／投影、bot/index.ts、ui/public、ui/player 与测试分别维护；全部资源在根目录 assets/games/<id> 及来源清单管理。规则只依赖 SDK 和纯数据，不依赖 React、通信、数据库或 Electron；存档保持普通 JSON。平台负责身份、动作、事务、随机及恢复，策略只返回合法意图，不能直接写状态或代真人。
+| 模块                                      | 采用范围与文档                                                                                        |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| [宝可梦奇遇](pokemon-encounters/index.ts) | 2–6人，原版六格与九宫格扩展分别维护规则和存档；[游戏主题](../docs/games/pokemon-encounters/README.md) |
+| [现代艺术](modern-art/index.ts)           | 3–5人，70卡、五种拍卖、四轮估值与隐藏现金；[游戏主题](../docs/games/modern-art/README.md)             |
+| [电力公司](power-grid/index.ts)           | 2–6人，仅经典德国修正版，42城／六区／83边；[游戏主题](../docs/games/power-grid/README.md)             |
+| [拉密](rummikub/index.ts)                 | 经典2–4人，106张牌、私有牌架、整回合桌面重组与百搭释放；[游戏主题](../docs/games/rummikub/README.md)  |
+| [UNO](uno/index.ts)                       | Mattel G7942经典108牌，平台2–6人；[游戏主题](../docs/games/uno/README.md)                             |
+| [阿瓦隆](avalon/index.ts)                 | 2012经典原版角色，平台5–10人，新局只用`configured`人数表；[游戏主题](../docs/games/avalon/README.md)  |
 
-当前正式游戏为 [宝可梦奇遇](pokemon-encounters/index.ts)，已实现全部采用规则、三胜大局、独立基础 bot、本地资源与授权两端 UI；采用 tablemax-cn-s19-v1，官方原文认证和项目约定分开记录。规格入口见 [游戏主题](../docs/games/pokemon-encounters/README.md)，当前交付证据与模拟边界见 [验收记录](../docs/reference/acceptance.md)。
+规则只依赖SDK和纯数据，不依赖React、通信或数据库；状态保持普通JSON。平台负责身份、授权、动作校验、串行保存、随机及checkpoint恢复，三档本地策略只使用本人授权信息并返回合法意图，不直接修改状态或代真人行动。网页和策略分别通过版本化入口加载，运行资源在`assets/games/<id>/`，来源与替换记录从[资源入口](../assets/README.md)进入。
 
-[幸运骰子](template/index.ts) 保留为开发验证模板，包含独立规则、纯计分、投影、两端 UI、原创 SVG 资源、独立策略与恢复测试，不作为另一款首版面向用户游戏。注册、资源、生命周期、策略替换／兼容和验证方法见 [扩展指南](../docs/reference/game-development.md)。
+新局使用本EXE经验证的当前发行映射。历史模块仓库保留于可替换`app/`目录之外，供旧存档按精确`releaseRef`或规则版本恢复；非当前发行标记`restoreOnly`，不能成为新局默认选择。旧局内下一轮继续原发行，旧大厅开局及结束后再玩切至当前发行。用户侧游戏下载、离线包导入和独立更新已经取消，内部签名载荷与缓存继续服务于预装、修复和兼容。
 
-[现代艺术](modern-art/index.ts) 是独立第二款游戏，70 卡、五种拍卖、四轮估值与三档本地策略集中于自己的目录；其规则、bot、界面和资源不依赖宝可梦，规格和来源见 [游戏入口](../docs/games/modern-art/README.md)。
-
-[电力公司](power-grid/index.ts) 是独立第三款游戏，经典德国地图、五阶段／三步、42 张电厂、公开市场、隐藏现金、三档本地策略及地图界面集中于自己的目录；规则、UI、声音和资源不依赖其他游戏。采用边界和当前验收见 [游戏入口](../docs/games/power-grid/README.md)。
-
-[拉密](rummikub/index.ts) 采用经典版 2–4 人，106 张实例牌、私有牌架、公开桌面、整回合重组与百搭释放证据独立维护；规则、三档策略、界面及本地资源见 [游戏入口](../docs/games/rummikub/README.md)。完整构建及验收进度见 [当前任务](../docs/archive/rummikub-2026-10-09.md)。
-
-具有生命周期或依赖的服务适度对象封装、组合优先；纯规则与计分不强制改成类。新模块必须提供覆盖全部选择的基础 bot，声明策略版本、授权输入和可恢复记忆；避免未来插件／难度／多房间空层级。第二阶段独立原型仍在 apps/web/src/prototype，不注册为正式游戏。
+[幸运骰子模板](template/index.ts)用于规则、策略、切换与恢复契约验证，不作为正式游戏。源码接入、模块清单、SDK、策略替换和适用验证见[游戏开发指南](../docs/reference/game-development.md)。采用职责内聚、组合优先的封装；纯规则和计分不强制改成类，不为尚未实施的插件、多房间或新难度建立空层级。

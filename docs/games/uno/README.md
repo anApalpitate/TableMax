@@ -10,4 +10,4 @@
 | 本地人机         | [策略](bot.md)                                                                   |
 | 验证与设备边界   | [验证场景](validation-scenarios.md)、[构建归档](../../archive/uno-2026-10-10.md) |
 
-独立代码在 `games/uno/`，本地资源在 `assets/games/uno/`，通过模块清单加载。完整本地制作与适用验证已完成，游戏库开放 UNO；实际当前 ZIP、复用证据和设备边界以 [当前验收](../../reference/acceptance.md#当前源码与本地交付) 为准。
+独立代码在 `games/uno/`，本地资源在 `assets/games/uno/`，通过模块清单加载。完整本地制作与适用验证已完成，游戏库开放 UNO；当前随完整 EXE 预装，原局内下一小局固定原发行，再玩一局切当前发行，见[统一交付与恢复边界](../README.md#模块交付与旧局恢复)。实际程序、复用证据和设备边界以 [当前验收](../../reference/acceptance.md#106唯一完整-exe2026-10-12) 为准。

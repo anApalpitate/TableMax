@@ -4,13 +4,9 @@
 
 游戏源码和资源继续分别维护在 `games/<id>/`与 `assets/`。完整EXE包含 `app/preinstalled-games/`的当前签名目录、预装清单与模块载荷；可替换app目录外的 `TableMax/games/`保留当前与历史内容寻址模块。内部载荷、快照和逐文件清单归 `artifacts/package-payloads/`及原构建缓存；`artifacts/releases/`只留一个当前完整EXE与本地清单。独立游戏包、Pages和安装型作者工具包的现行导出取消，历史证据保留。具体见[Release流程](release.md#唯一完整-exe-交付2026-10-12)。
 
-以下旧安装／分发章节保留其实施与历史边界，涉及独立游戏下载、盒子版及 Pages 的操作已退役，不作为当前使用指南。
+预装和恢复层位于 `apps/server/src/game-packages/`，负责内部签名校验、安全解压、本地事务、当前映射和精确发行加载；运行仓库 `TableMax/games/`位于可替换app目录外，与源码 `games/`用途不同。`tools/release/prepare-internal-games.mjs`核对冻结单元，按需复用或生成内部签名模块；`packages/web-host/`维护公共宿主契约，平台私有适配留在 `apps/web/`。
 
-2026-10-11交付目录调整：`artifacts/releases/`接收full／box两种Windows EXE；不再导出供用户下载的运行ZIP。`artifacts/package-payloads/v<版本>/<run>/<edition>/`保存内部 `payload.zip`、`release-manifest.json`与组装中间物，版本目录 `current.json`绑定当前edition的路径和哈希。当前载荷及EXE受验收保护；退役先核对证据与用途，不作为通用临时目录清空。旧发布产物和历史验收按原记录保留，游戏离线ZIP仍放游戏分发目录。
-
-2026-10-11新增独立包职责：`tools/author/` 管理可脱离主仓的模板、公共依赖冻结、CLI和真实接入检查；`apps/server/src/game-packages/` 管理签名校验、安全解压、安装事务及引用保护；`tools/release/game-*.mjs` 管理内容寻址发行与附件白名单。公共宿主能力位于 `packages/web-host/`，平台私有适配仍在 `apps/web/`。分发产物分别进入 `artifacts/game-packages/` 与 `artifacts/author-toolkit/`，证据进入对应验收目录。
-
-运行时的 `games/<gameId>/` 属于便携根目录的安装仓库，与开发源码目录 `games/` 用途不同；基础EXE的仓库位于 `TableMax/games/`，不会放进可替换的 `app/`。签名私钥只留受保护本地 `secrets/`，不进入Git或任何交付包。
+2026-10-11曾以 `artifacts/game-packages/`和 `artifacts/author-toolkit/`导出安装包／作者工具，并双EXE交付。上述公开导出已退役；历史原包、目录和证据按原版本保留或审计退役。`tools/author/`的SDK／模板／源码验证能力保留，导出入口明确拒绝执行；私钥只留受保护本地 `secrets/`，不进Git或程序。
 
 阿瓦隆模块在 `games/avalon/`，`config.ts` 统一维护现行人数角色表，供初始化、存档校验、策略和规则页读取；独立图像与音频在 `assets/games/avalon/`，经典版原始规则册与采用规格在 `docs/games/avalon/`。生成原图留 `artifacts/avalon-art/`，实际游戏验证留 `artifacts/avalon/validation/`，便携交付审计留 `artifacts/maintenance/v1.0.6/avalon/`。
 
@@ -45,7 +41,7 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 | [scripts/](../../scripts/README.md)                                            | 面向日常操作的五个 PowerShell 清理、截图退役、容量维护与透明压缩入口；安全实现及隔离回归在 `tools/maintenance/`               |
 | `apps/desktop/native/`                                                         | C# WinForms／net48／x64 外壳：双窗口、WebView2 桥接、显示／声音、私有服务管道、进程与单实例保障及锁定依赖                     |
 | `apps/desktop/src/`                                                            | 网页使用的桌面显示／声音 TypeScript 契约及独立控制逻辑回归；不启动正式窗口或服务                                              |
-| `apps/desktop/release/`                                                        | 完整EXE发布启动器，内置已核验运行ZIP并解压至稳定应用目录；打包、验收和GitHub白名单入口在 `tools/`                             |
+| `apps/desktop/release/`                                                        | 完整EXE发布启动器，内置已核验内部payload并解压至稳定应用目录；打包、验收和GitHub白名单入口在 `tools/`                         |
 | `apps/server/`                                                                 | HTTP／Socket.IO、构建后网页、二维码、SQLite 存档仓储、独立 bot Worker 与游戏注册／加载                                        |
 | `apps/web/`                                                                    | 平台盒子、会话／导航与网页宿主实现；游戏网页独立构建，另保留隔离原型                                                          |
 | `apps/web/src/session/`、`screens/`、`components/`                             | 权威同步、可靠提交、换机、盒子和通用控件；PlayerFrame 为电脑浏览器玩家保留同源手机界面，具体牌桌留在游戏 UI                   |
@@ -76,7 +72,7 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 
 [macOS服务端运行包适配](../tasks/macos-adaptation.md)处于执行草案阶段，导出辅助逻辑归 `tools/release/`，不预建Mac原生宿主目录、不改造构建流程；实际输出及平台清理保护在落地时补充。
 
-四款注册游戏分别使用 `games/pokemon-encounters/`、`games/modern-art/`、`games/power-grid/` 和 `games/rummikub/`，资源与规格使用同名命名空间。各游戏的 data／rules／bot／ui／types 按实际职责组织，布局 CSS 限定自身根节点；共享平台只按通用契约组装，盒子缩略图由 `apps/web/src/assets/game-covers.ts` 提供。服务与 Worker 注册入口分别加载独立规则和策略，网页适配器加载对应 UI。拉密使用 `shared/` 纯函数共享组合与整回合证明，`ui/` 与 bot 只消费本人授权投影；完整交付状态见 [构建归档](../archive/rummikub-2026-10-09.md)。
+六款正式游戏分别使用 `games/pokemon-encounters/`、`games/modern-art/`、`games/power-grid/`、`games/rummikub/`、`games/uno/`和 `games/avalon/`，资源与规格使用同名命名空间。各游戏的 data／rules／bot／ui／types 按实际职责组织，布局 CSS 限定自身根节点；共享平台只按通用契约组装，盒子缩略图由 `apps/web/src/assets/game-covers.ts` 提供。服务与 Worker 注册入口分别加载独立规则和策略，网页适配器加载对应 UI。拉密使用 `shared/` 纯函数共享组合与整回合证明，`ui/` 与 bot 只消费本人授权投影；完整交付状态见 [构建归档](../archive/rummikub-2026-10-09.md)。
 
 跨游戏身份、座位、手机房主、回退／恢复与显示行为见 [平台规格](phase-02-platform-spec.md)，共性表现见 [通用视觉](visual-design.md)，工程依赖见 [工程结构](architecture.md)。候选研究集中在 [游戏候选](../games/candidates.md)，研究记录不代表已创建游戏规格或实现。
 
@@ -86,19 +82,19 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 
 宝可梦扩展版的开发阶段、完成标准与当前接续统一维护在[扩展任务](../tasks/pokemon-encounters-expansion.md)；候选规则仍归游戏目录的[设计草案](../games/pokemon-encounters/expansion-design.md)，不将阶段规划写成已实现玩法。
 
-长期需求、规则规格、来源清单和必要资源进入对应主题；本地实验和可再生中间物可进入 `tmp/`、`build/`，不作为长期资料入口。v1.0.3单EXE旁新建 `TableMax/` 专属目录，配置与数据默认在其中，`TableMax/app` 存放运行资源；ZIP解压版直接使用解压目录。对应根目录内 `TableMax.config.json` 指定数据目录；测试覆盖为隔离目录；正式存档含秘密，不能公开或纳入程序包。
+长期需求、规则规格、来源清单和必要资源进入对应主题；本地实验和可再生中间物可进入 `tmp/`、`build/`，不作为长期资料入口。完整EXE旁新建 `TableMax/`专属目录，配置与数据默认在其中，`TableMax/app`存放运行资源；历史运行ZIP才直接使用解压目录。对应根目录内 `TableMax.config.json` 指定数据目录；测试覆盖为隔离目录；正式存档含秘密，不能公开或纳入程序包。
 
 `artifacts/` 同时包含必须保留的原始资料／文字验收记录、可退役的历史运行截图和可再生的构建／解压副本，不能按上级目录或 Git 忽略规则一起删除。阶段、旧版本、Electron 与 WebView2 证据保留原归属；当前证据及哈希从 [验收记录](acceptance.md) 查询，历史开发方法与路径从 [开发归档](../archive/development-2026-10-01-to-04.md) 查询。
 
-| 材料                                                        | 归属与保护                                                                                                     |
-| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| 最终 ZIP、逐文件清单与独立打包目录                          | `artifacts/releases/`；当前已验证 ZIP 保留，旧程序只走 [安全清理入口](development.md#清理本地中间物)           |
-| 当前截图／历史 JSON、失败及返修文字记录、历史包核验         | 对应 `artifacts/phase-*/` 或 `artifacts/maintenance/`；保留实际版本、构建及运行时边界                          |
-| 逐项累计测试通过率与运行明细                                | `artifacts/maintenance/test-history/`；跨版本统计与失败证据，不能当作可再生缓存或随历史版本清空                |
-| 规则研究响应、PDF、用户原始截图、转录及哈希                 | 对应游戏研究证据目录；不是运行资源，也不因研究完成丢弃，采用依据见对应 sources.md                              |
-| imagegen 原图、未采用候选、透明度／尺寸／哈希检查、前后对比 | 对应素材证据目录与资源清单；已导入运行资源和原始输入分别维护                                                   |
-| 原型构建／走查／研究                                        | `artifacts/phase-02/prototype/` 为可再生构建，`verification/` 为走查证据，`research/` 为原始资料；不能互相覆盖 |
-| 本地临时数据与便携解压                                      | `tmp/<用途>-<六位随机后缀>` 等脚本专属目录；确认相关进程结束并通过保护检查后才清理                             |
+| 材料                                                        | 归属与保护                                                                                                                                                   |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 当前完整EXE与本地清单、内部payload及逐文件manifest          | EXE和本地清单在 `artifacts/releases/`，内部载荷／指针在 `artifacts/package-payloads/`；当前交付保留，旧程序只走[安全清理入口](development.md#清理本地中间物) |
+| 当前截图／历史 JSON、失败及返修文字记录、历史包核验         | 对应 `artifacts/phase-*/` 或 `artifacts/maintenance/`；保留实际版本、构建及运行时边界                                                                        |
+| 逐项累计测试通过率与运行明细                                | `artifacts/maintenance/test-history/`；跨版本统计与失败证据，不能当作可再生缓存或随历史版本清空                                                              |
+| 规则研究响应、PDF、用户原始截图、转录及哈希                 | 对应游戏研究证据目录；不是运行资源，也不因研究完成丢弃，采用依据见对应 sources.md                                                                            |
+| imagegen 原图、未采用候选、透明度／尺寸／哈希检查、前后对比 | 对应素材证据目录与资源清单；已导入运行资源和原始输入分别维护                                                                                                 |
+| 原型构建／走查／研究                                        | `artifacts/phase-02/prototype/` 为可再生构建，`verification/` 为走查证据，`research/` 为原始资料；不能互相覆盖                                               |
+| 本地临时数据与便携解压                                      | `tmp/<用途>-<六位随机后缀>` 等脚本专属目录；确认相关进程结束并通过保护检查后才清理                                                                           |
 
 宝可梦原始中文截图与转录保留于 `artifacts/phase-02/research/chinese-reference/s14/`，叠图数量由 S17 核对为 56；完整采用表在 `docs/games/pokemon-encounters/cards.json`，原图不直接导入运行时。原型美术重置的原图、检查和前后对比保留于 `artifacts/phase-02/art-reset/`，重置前走查另在 `verification/before-art-reset/`。这些资料的适用边界见 [规则来源](../games/pokemon-encounters/sources.md#规则来源与核验缺口)。
 
@@ -118,7 +114,7 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 
 工作区分别维护 `files.exclude`、`search.exclude` 与 `files.watcherExclude`：文件树隐藏依赖、缓存、日志及可再生临时／构建目录，`artifacts/` 仅排除搜索和监听。`explorer.excludeGitIgnore: false` 保持 Git 忽略与文件树显示独立，不隐藏全部原始资料、正式资源或最终交付物。
 
-Git 远程 `origin` 为 GitHub 的 `anApalpitate/TableMax`，尚未配置仓库 CI。提交与推送遵循 [维护约定](maintenance.md#更新与归档)，默认仅提交；入口变化同步项目说明、Agent 入口及所属文档索引。
+Git 远程 `origin` 为 GitHub 的 `anApalpitate/TableMax`，现有Pages工作流仅保留历史手动部署边界，不由普通推送触发。提交与推送遵循[周期提交与推送](maintenance.md#周期提交与推送)，按用户授权在阶段完成和收尾执行；入口变化同步项目说明、Agent 入口及所属文档索引。
 
 工作区与交付的瘦身依据、历史包退役及执行报告统一维护在 [项目瘦身](project-slimming.md)，不按文件目录名推断资料是否可删除。
 

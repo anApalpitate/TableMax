@@ -8,22 +8,22 @@
 
 内部实现 [reviewed-files.ps1](reviewed-files.ps1)，隔离回归 [reviewed-files.test.ps1](reviewed-files.test.ps1)：`powershell.exe -NoProfile -File tools/maintenance/reviewed-files.test.ps1`。范围和本次容量目标见[开发环境](../../docs/reference/development.md#跨目录精确文件退役2026-10-12)。
 
-2026-10-11验收去重：version 2统一计划关闭子检查自动维护，结束后只尝试一次父轮收尾；多阶段同任务使用`TABLEMAX_AUTO_MAINTENANCE=0`并最后统一维护。双EXE的证明直接定位到当前指针snapshot下的shipping报告，缺失或哈希不符即拒绝，不回退历史全树查找。缓存预览`--plan=<精确JSON>`生成SHA绑定候选，Apply必须提供同一路径和`--plan-sha256=<预览SHA>`；保留引用变化即停止，删除前仍复核进程、锁、路径、链接、近期修改和成员哈希。旧无plan命令保留兼容行为。计时分开记录交付证明、缓存库存、成员校验、进程查询和容量／退役；没有旧分类数据时不拆算旧总耗时。
+2026-10-11验收去重：version 2统一计划关闭子检查自动维护，结束后只尝试一次父轮收尾；多阶段同任务使用`TABLEMAX_AUTO_MAINTENANCE=0`并最后统一维护。当前完整EXE的证明直接定位到指针snapshot下的shipping报告，读取历史双格式时仍逐项匹配，缺失或哈希不符即拒绝，不回退历史全树查找。缓存预览`--plan=<精确JSON>`生成SHA绑定候选，Apply必须提供同一路径和`--plan-sha256=<预览SHA>`；保留引用变化即停止，删除前仍复核进程、锁、路径、链接、近期修改和成员哈希。旧无plan命令保留兼容行为。计时分开记录交付证明、缓存库存、成员校验、进程查询和容量／退役；没有旧分类数据时不拆算旧总耗时。
 
 新增内部辅助为[cache-plan.mjs](cache-plan.mjs)，其隔离回归`node --test tools/maintenance/cache-plan.test.mjs`检查清单损坏、引用变化、重复／越界／保留候选拒绝。
 
-2026-10-11新增full／box交付：`current-delivery.ps1`与 `current-delivery.mjs`读取 `artifacts/package-payloads/v<版本>/current.json`，核对每个EXE、内部payload与manifest的路径、大小和SHA。清理额外要求各edition匹配的实际EXE通过证明（`executableSha256`与 `payloadSha256`），缺项即停止。当前内部载荷及指针保护，已有同版旧单EXE／ZIP和发布源码仍保留；没有新指针时兼容下文旧ZIP证明。本轮不发布，工具改变不代表新EXE已通过验收。
+当前交付读取（兼容2026-10-11的full／box历史格式）：`current-delivery.ps1`与 `current-delivery.mjs`读取 `artifacts/package-payloads/v<版本>/current.json`，核对当前唯一完整EXE、内部payload与manifest的路径、大小和SHA。历史双指针仍逐项核对；清理额外要求匹配实际EXE通过证明（`executableSha256`与 `payloadSha256`），缺项即停止。当前内部载荷及指针保护，已有同版旧单EXE／ZIP和发布源码仍保留；没有新指针时兼容下文旧ZIP证明。本轮不发布，工具改变不代表新EXE已通过验收。
 
 2026-10-10 已接入。构建、运行包导出，以及使用公共浏览器／桌面验证助手的检查，在 Node 进入最终空闲阶段时执行一次隐藏收尾任务，同一进程只触发一次。构建、验证和产品工作已结束，协调 Node 等待维护完成再退出，避免执行环境回收脱离的子进程。没有常驻任务、周期轮询或结束用户进程的动作。
 
-任务日志与结果在 `artifacts/maintenance/v<当前版本>/automatic-maintenance/<本轮>/`；命令结束会打印具体目录。先检查 `result.json`，阻塞原因及预览见 `task.log`。正常 Windows 环境中生效；沙箱不能查询进程时保留并报告。没有匹配当前 ZIP 哈希的便携通过证明时，不执行自动删除。
+任务日志与结果在 `artifacts/maintenance/v<当前版本>/automatic-maintenance/<本轮>/`；命令结束会打印具体目录。先检查 `result.json`，阻塞原因及预览见 `task.log`。正常 Windows 环境中生效；沙箱不能查询进程时保留并报告。没有匹配当前完整EXE和payload双哈希的实际通过证明时，不执行自动删除；旧ZIP证明仅用于历史格式。
 
 ## 执行顺序
 
-1. 检查工程进程。仅豁免通过命令、创建时间、实际父子关系和空闲记录核验的收尾协调者及其等待中的 npm／pnpm 父进程，其他构建／验证／产品进程继续阻止清理。核对当前运行 ZIP 与既有便携通过证明。
+1. 检查工程进程。仅豁免通过命令、创建时间、实际父子关系和空闲记录核验的收尾协调者及其等待中的 npm／pnpm 父进程，其他构建／验证／产品进程继续阻止清理。核对当前完整EXE、内部payload与同snapshot实际通过证明；历史ZIP按原格式核验。
 2. 预览并修剪过期模块缓存，保护当前开发／交付引用、每单元最近两份成功产物、活动锁／工作目录，以及全部成员的30分钟近期修改。
 3. 读取成功验证登记的临时目录。近期内容记录跳过，不重复哈希；到期后冻结精确成员／SHA-256，审查文档引用，生成 `retirement-plan.json`。
-4. 通过现有 `cleanup-local.ps1` 先预览、再执行登记产物清理。只支持专用生成目录，保留当前 ZIP 证明、进程、路径／链接／嵌套仓库、清单与结果哈希、内容变化、30分钟及互斥保护。
+4. 通过现有 `cleanup-local.ps1` 先预览、再执行登记产物清理。只支持专用生成目录，保留当前交付证明、进程、路径／链接／嵌套仓库、清单与结果哈希、内容变化、30分钟及互斥保护。
 5. 执行原有 `scripts/Maintain-Project.ps1 -Apply`，超过10GiB才进行更广瘦身，目标8GiB或安全候选耗尽。模块缓存与明确登记的临时产物不等待容量门槛。
 
 保护未到期或其他进程正在运行时，等下一次构建／验证或手动收尾，不自动重试。阻塞不会把构建或验证结果改为失败，但维护结果会明确记录 `blocked`。构建异常另保存在 `artifacts/maintenance/v<版本>/build-failures/`，不覆盖当前通过快照。
@@ -71,11 +71,11 @@ node --test tools/maintenance/maintenance.test.mjs
 
 `tmp/` 不保存恢复归档；已结束的一次性脚本、源码快照、旧包、日志、测试数据及低频候选经审计可删除。`-TemporaryNames` 仍只选择精确直属项，但不再复制待删内容。含链接或混合内容时，`scripts/Clean-Intermediates.ps1 -TemporaryManifest <maintenance内清单>` 先预览，再 `-Apply`，只删列出的普通文件并清除空目录；链接、链接目标和新增文件原位保留。同一清单ID一旦开始执行即永久消耗，失败或部分删除也不自动重试。当前交付证明、30分钟、进程、路径、嵌套仓库、文件变化和共享互斥继续生效；只留简明结果，不归档文件字节。格式与单次范围见[开发环境](../../docs/reference/development.md#tmp-临时内容的生命周期2026-10-11)。
 
-已审查的旧候选包图、重复矩阵和与源资产完全相同的生成副本使用 `scripts/Clean-Intermediates.ps1 -ImageCopiesManifest <maintenance内清单>`，先预览后 `-Apply`。清单须绑定当前 ZIP、保护文件和保留报告；源副本须与 `assets/` 原件字节／SHA 一致。仅处理列出的图片，保留目录、报告、源码、存档、独有失败和关键代表，不纳入自动维护。只接受工具内明确核验过的旧 UNO／拉密目录与生成 bundle/assets 子路径；新增类别先审计并补隔离回归。哈希、文档引用、路径／链接／嵌套仓库、30分钟、进程和互斥保护仍有效。详见[开发环境](../../docs/reference/development.md#清理本地中间物)。
+已审查的旧候选包图、重复矩阵和与源资产完全相同的生成副本使用 `scripts/Clean-Intermediates.ps1 -ImageCopiesManifest <maintenance内清单>`，先预览后 `-Apply`。清单须绑定当前内部载荷SHA、保护文件和保留报告；源副本须与 `assets/` 原件字节／SHA 一致。仅处理列出的图片，保留目录、报告、源码、存档、独有失败和关键代表，不纳入自动维护。只接受工具内明确核验过的旧 UNO／拉密目录与生成 bundle/assets 子路径；新增类别先审计并补隔离回归。哈希、文档引用、路径／链接／嵌套仓库、30分钟、进程和互斥保护仍有效。详见[开发环境](../../docs/reference/development.md#清理本地中间物)。
 
 日常清理优先使用 `scripts/Clean-Releases.ps1`、`scripts/Clean-Intermediates.ps1`、`scripts/Maintain-Project.ps1`，压缩使用 `scripts/Compress-Workspace.ps1`。入口参数保持不变；手动先预览，核对后才 `-Apply`。
 
-`retire-old-local-runtime.ps1` 只处理有迁移证明的旧用户运行目录，仍为显式专项工具，不纳入自动清理。历史截图／旧清单工具保留精确清单与证据保护；名称带历史不代表可直接删除。`verify-project.mjs` 检查文档、配置和交付清单，写证据报告，不修改交付 ZIP。
+`retire-old-local-runtime.ps1` 只处理有迁移证明的旧用户运行目录，仍为显式专项工具，不纳入自动清理。历史截图／旧清单工具保留精确清单与证据保护；名称带历史不代表可直接删除。`verify-project.mjs` 检查文档、配置和交付清单，写证据报告，不修改EXE或内部载荷。
 
 | 工具                                                                             | 入口／用途                                                                                           |
 | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |

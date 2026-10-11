@@ -12,19 +12,19 @@ Windows 只导出预装全部正式游戏及玩法的完整 EXE，文件名不�
 
 ## 两种Windows交付与空盒子入口（2026-10-11）
 
-按最新明确要求，继续沿用v1.0.6。日常本地交付为 `TableMax-<版本>-win-x64.exe` 与 `TableMax-<版本>-win-x64-box.exe`：完整游戏版不加类型后缀，包含全部当前游戏；仅盒子版加 `-box`，包含盒子、平台运行时、目录及小封面，游戏按需安装。内部edition仍为full／box，默认 `pnpm package:win`生成两种；可用 `--edition=full|box|both`选择，继续支持 `--snapshot=`和 `--games=`。两种发行独立验收，保持旧游戏与存档；本地同名旧文件先按SHA保全到历史交付证据，再生成新包，已发布线上文件及历史原包不改写。
+本节是2026-10-11双版本的历史记录，已于2026-10-12退役。该阶段沿用v1.0.6，完整游戏版不加类型后缀，仅盒子版加 `-box`；内部edition为full／box，曾支持 `--edition=full|box|both`。两版实际提取、预装／导入及原生安全的原验收保留，不能作为现行完整EXE的证明。
 
-不再对外生成运行ZIP。组装所需内部 `payload.zip`和 `release-manifest.json`放在 `artifacts/package-payloads/v1.0.6/<run>/<edition>/`；run由快照前12位及唯一后缀组成，`current.json`记录本轮载荷与EXE哈希。它们用于封装、逐文件核验及验收绑定，不是用户下载附件。完整玩法离线ZIP继续保留游戏导入用途。未来获明确发布授权时，Release白名单调整为full EXE、box EXE、对应发布source ZIP及已验作者工具包（四附件）；游戏包仍经Pages分发。本轮不发布、不生成source ZIP，当前线上旧三附件及标签映射保持不变。
-
-无游戏时保持盒子大厅，装饰下载图标搭配标题“请前往游戏库下载”；高亮按钮的可访问名称为“游戏库”，点击打开现有游戏库浮窗。空盒子不跳转到独立下载页面，不自动选择刚安装的游戏。两种新交付已通过实际提取、预装及原生安全检查，见[当前验收](acceptance.md)；下方已发布记录保持各自历史范围。
+当时内部payload和manifest放在 `artifacts/package-payloads/v1.0.6/<run>/<edition>/`，`current.json`记录双交付；完整玩法离线ZIP用于导入，未来发布曾规划双EXE、source ZIP和作者工具包四附件。空盒子曾显示“请前往游戏库下载”并打开下载浮窗。上述导出选项、导入用途、附件规划和提示均已取消，现行提示为“请在游戏库选择游戏”。历史原包及已发布线上内容保持原记录，旧文件按SHA保全和清理规则处理。
 
 ## 最新分发决定与暂缓发布（2026-10-11）
+
+本节只追溯2026-10-11的Pages与v1.0.6重新发布，全部独立游戏分发／Pages准备和部署命令已退役。线上旧内容本轮未修改，以下操作不能作为现行命令执行；新的Release边界见[GitHub发布](#github发布)。
 
 用户此前采用 GitHub Pages 按目录分发游戏包，并暂时撤回 v1.0.6；该 Release 曾改为草稿（ID `409577467`），原标签与25个附件留有历史审计。随后用户明确授权“现在部署Pages并重新发布v1.0.6”，本次已完成[游戏包目录部署](https://anapalpitate.github.io/TableMax/)及[v1.0.6正式重新发布](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.6)。35个公开文件的大小／SHA、正式及latest状态、九条正文和严格三附件核验全部通过，见[最终发布审计](../../artifacts/maintenance/v1.0.6/pages-release-20261011/github-draft-replacement-1791717345309.json)与[验收记录](acceptance.md)。普通提交、推送和构建不自动构成以后发布的授权。
 
 本次[已审更新说明](../../artifacts/maintenance/v1.0.6/pages-release-20261011/release-notes.md)以v1.0.5实际发布source提交 `4943ca5cf89aabc850df3fb566519973913feb3e` 为比较基线，不能以保留的旧标签对象替代。本次source ZIP对应 `a7d13f7388442bbc3083913c0786ca43278214ef`，v1.0.6原标签继续指向 `1f8267a4bdf4d8172719a3e71be1f7445f88c3bc`；两者映射已记录在最终发布审计，未移动或强推历史标签。
 
-full／box两种Windows EXE、发布提交的source ZIP和已验证作者工具包放GitHub Release；签名目录、代码／资源包及完整玩法离线包放 `https://anapalpitate.github.io/TableMax/`。当前线上旧三附件保留原发布事实，下一次明确获授权发布才采用四附件；普通推送不触发重新发布。
+当时后续方案为full／box两种Windows EXE、发布提交的source ZIP和已验证作者工具包放GitHub Release；签名目录、代码／资源包及完整玩法离线包放 `https://anapalpitate.github.io/TableMax/`。当时线上旧三附件保留原发布事实，四附件方案后来取消；普通推送不触发重新发布。
 
 目录固定为：
 
@@ -36,17 +36,17 @@ games/v1.0.6/packages/<目录中的精确附件名>
 games/v1.0.6/<gameId>/<variantId或default>/index.html
 ```
 
-`releaseTag` 现在定位版本目录，`assetName` 定位其中的包；内容哈希、发行引用、Ed25519 签名和本机安装事务不变。管理员主动刷新签名目录，所有玩家仍只访问主机。没有在线目录时保留已验证缓存，离线导入和已安装游戏继续可用。
+原Pages体系的 `releaseTag`定位版本目录，`assetName` 定位其中的包；内容哈希、发行引用、Ed25519 签名和本机安装事务不变。管理员主动刷新签名目录，所有玩家仍只访问主机。没有在线目录时保留已验证缓存，离线导入和已安装游戏继续可用。
 
-首次Pages部署还须保全已撤回Release签名目录引用的旧内容包与离线包（本地原 `artifacts/game-packages/v1.0.6/` 未覆盖），按原精确包名合并进同一版本的packages目录；旧签名目录另存到历史子目录。不能因为此前没有Pages历史站点而遗漏旧发行，同名已发布旧包必须保留原字节，不以新目录重新生成的副本覆盖；新发行另行保全。旧档缺包可导入对应原发行离线包，发布前单独核验新旧引用和依赖，不能用最新发行替代。
+首次Pages部署还须保全已撤回Release签名目录引用的旧内容包与离线包（本地原 `artifacts/game-packages/v1.0.6/` 未覆盖），按原精确包名合并进同一版本的packages目录；旧签名目录另存到历史子目录。不能因为此前没有Pages历史站点而遗漏旧发行，同名已发布旧包必须保留原字节，不以新目录重新生成的副本覆盖；新发行另行保全。旧安装版当时可导入对应原发行离线包；当前程序已撤除导入，缺失原版本按所需旧完整EXE处理，仍禁止用最新发行替代。
 
-执行 `pnpm prepare:pages -- --packages=<已验独立游戏包目录> --out=<全新输出目录>` 生成静态站点及站点外逐文件清单；执行 `pnpm verify:pages -- --packages=<同一目录>` 在127.0.0.1检查目录路径、哈希、离线依赖、篡改拒绝和不覆盖旧输出。工具不调用 GitHub。每次准备使用新目录，部署时合并既有历史目录：内容寻址包不可覆盖或删除，旧对局引用必须仍可下载；当前签名目录和浏览目录可以更新。跨版本依赖须一并保全，不能只上传最新文件。本地 `artifacts/pages/` 当前候选与清单受维护保护，不自动清空。
+当时执行 `pnpm prepare:pages -- --packages=<已验独立游戏包目录> --out=<全新输出目录>` 生成静态站点及站点外逐文件清单；当时执行 `pnpm verify:pages -- --packages=<同一目录>` 在127.0.0.1检查目录路径、哈希、离线依赖、篡改拒绝和不覆盖旧输出。工具不调用 GitHub。每次准备使用新目录，部署时合并既有历史目录：内容寻址包不可覆盖或删除，旧对局引用必须仍可下载；当前签名目录和浏览目录可以更新。跨版本依赖须一并保全，不能只上传最新文件。本地 `artifacts/pages/` 当前候选与清单受维护保护，不自动清空。
 
-`.github/workflows/pages.yml`仅手动触发，要求输入 `PUBLISH_TABLEMAX`；没有 push、定时或 Release 自动触发器。本次已核对本地清单及历史目录，将已验证的纯静态目录提交到 `gh-pages`，配置 Pages 使用 GitHub Actions并手动部署；[部署工作流](https://github.com/anApalpitate/TableMax/actions/runs/38133974837)及[公开字节核验](../../artifacts/maintenance/v1.0.6/pages-release-20261011/public-pages.json)通过。后续部署仍须获授权，并在完成线上核验后才记为成功。整个站点不超过 [Pages 的1GB限制](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)，累计历史文件也计入；部署权限与环境按 [官方工作流说明](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。私钥、存档和本地审计永不上传。
+`.github/workflows/pages.yml`仅手动触发，要求输入 `PUBLISH_TABLEMAX`；没有 push、定时或 Release 自动触发器。本次已核对本地清单及历史目录，将已验证的纯静态目录提交到 `gh-pages`，配置 Pages 使用 GitHub Actions并手动部署；[部署工作流](https://github.com/anApalpitate/TableMax/actions/runs/38133974837)及[公开字节核验](../../artifacts/maintenance/v1.0.6/pages-release-20261011/public-pages.json)通过。该历史工作流不再作为当前交付入口，普通push和本轮维护均不部署。整个站点不超过 [Pages 的1GB限制](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)，累计历史文件也计入；部署权限与环境按 [官方工作流说明](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。私钥、存档和本地审计永不上传。
 
-此前已授权草稿替换使用 `pnpm release:github -- --publish --replace-draft --draft-id=409577467 --notes=<说明> --devkit=<已验工具包> --pages-manifest=<已审站点清单>`完成，三附件及实际源码映射见发布审计。未来发布须重新获得明确授权，入口先核对Pages公开字节，再采用下文full／box EXE、source ZIP、作者工具包四附件白名单；`--replace-draft`只适用于明确指定的既有草稿，不能将当前正式Release当作旧草稿再次操作。保留历史标签，不强推或隐瞒实际发布源码映射。
+此前已授权草稿替换使用 `pnpm release:github -- --publish --replace-draft --draft-id=409577467 --notes=<说明> --devkit=<已验工具包> --pages-manifest=<已审站点清单>`完成，三附件及实际源码映射见发布审计。该旧入口曾核对Pages公开字节；双EXE与作者工具包的后续四附件方案已取消，未来发布采用现行完整EXE与source ZIP；`--replace-draft`只适用于明确指定的既有草稿，不能将当前正式Release当作旧草稿再次操作。保留历史标签，不强推或隐瞒实际发布源码映射。
 
-本轮新旧目录通过 `node --import tsx tools/release/prepare-pages-history.mjs --current=<当前包目录> --previous=<原发行目录> --previous-release=<原Release审计> --out=<全新准备目录>` 合并，验证原线上附件摘要并重新签名联合目录；相同发行及依赖的离线包优先保留原已发布字节，当前浏览入口只列每种玩法的首个发行。`.nojekyll`只作为部署标记，由Git树核验，不要求它在Pages提供下载。若本轮已有全部公开文件的真实大小／哈希证明，可加 `--pages-proof=<证明>` 复用：入口要求证明不超过一小时、逐文件匹配当前清单、远端 `gh-pages` 提交不变，并再次读取可更新的签名目录；无证明时最多四个并发请求重新核验，不能用本地回环结果代替。
+当时新旧目录通过 `node --import tsx tools/release/prepare-pages-history.mjs --current=<当前包目录> --previous=<原发行目录> --previous-release=<原Release审计> --out=<全新准备目录>` 合并，验证原线上附件摘要并重新签名联合目录；相同发行及依赖的离线包优先保留原已发布字节，当前浏览入口只列每种玩法的首个发行。`.nojekyll`只作为部署标记，由Git树核验，不要求它在Pages提供下载。若本轮已有全部公开文件的真实大小／哈希证明，可加 `--pages-proof=<证明>` 复用：入口要求证明不超过一小时、逐文件匹配当前清单、远端 `gh-pages` 提交不变，并再次读取可更新的签名目录；无证明时最多四个并发请求重新核验，不能用本地回环结果代替。
 
 2026-10-10同版本附件替换授权：用户明确要求重新导出并只替换原v1.0.5的附件，因此本轮保持Release标题、正文、版本与已有标签对象，上传完整EXE及从本次已验证源码提交导出的source ZIP。源码提交与保留的旧标签对象映射记录在本地发布审计，不移动标签、不新增Release，也不上传运行ZIP或JSON。本条是此次明确授权的同版本替换边界；后文新版本发布流程仍适用。
 
@@ -54,23 +54,21 @@ games/v1.0.6/<gameId>/<variantId或default>/index.html
 
 ## 三位公开版本与四位本地构建（2026-10-12）
 
-公开版本保持 `1.x.x`，用于 `package.json`、GitHub 标签／Release、游戏分发目录和公开附件名。本地维护版本为 `1.x.x.y`；根目录 `build-version.json` 记录所属公开版本与修订计数，`tools/shared/application-version.mjs` 使用独占锁原子分配。新一次 `package:win` 分配一个 y，两种edition共用；失败构建消耗的编号不回收。仅构建单元不增加 y；重封已有载荷及恢复同一冻结快照保持原 y。明确切换公开版本后，本地计数从1重新分配。Windows各段限定0–65534，公开主版本按用户要求保持1。
+公开版本保持 `1.x.x`，用于 `package.json`、GitHub标签／Release和公开附件名；本地维护版本为 `1.x.x.y`。根目录 `build-version.json`记录所属公开版本与修订计数，`tools/shared/application-version.mjs`使用独占锁原子分配。新一次 `package:win`分配一个y；失败构建消耗的编号不回收。仅构建单元不增加y，重封已有载荷及恢复同一冻结快照保持原y。明确切换公开版本后，本地计数从1重新分配；Windows各段限定0–65534。
 
-本地文件采用 `TableMax-1.0.6.<y>-win-x64.exe` 和 `TableMax-1.0.6.<y>-win-x64-box.exe`，内部程序与包装器文件版本、运行时身份、冻结快照和本地清单均绑定四位版本。内部payload目录仍按三位公开版本归类，具体快照隔离。未来获得发布授权时，发布入口校验两种本地EXE的实际证明与哈希，再复制为三位公开附件名；审计保留本地四位版本、实际源码提交和字节映射。标签、公开基础版本和已发布附件不会因本地导出自动变化。本轮不发布、不部署Pages、不生成源码ZIP。
+本地唯一程序为 `TableMax-1.0.6.<y>-win-x64.exe`。包装器、内部程序文件版本、运行时身份、冻结快照和本地清单均绑定四位版本；内部payload目录按三位公开版本归类，具体快照隔离。未来获发布授权时，入口校验本地完整EXE的实际证明与哈希，再复制为三位公开附件名；审计保留本地四位版本、实际源码提交和字节映射。标签、公开基础版本和已发布附件不会因本地导出自动变化。
 
 ## 盒子与游戏的兼容目录（2026-10-12）
 
-游戏声明的SDK、协议、页面接口及 `requiredCapabilities` 共同决定能否安装；界面按运行盒子的真实支持范围提供兼容原因。新增能力包必须采用协议8，使只认识协议7的历史盒子明确拒绝，不能依赖它忽略的可选字段。当前盒子支持SDK1、协议7／8、页面接口1，能力表在游戏SDK的 `compatibility.mjs`；阿瓦隆现行包声明并发密投、精确存档恢复和退役玩法能力。能力标识只有实际实现后才能加入表，不用应用版本号推测能力。
+当前程序按游戏声明的SDK、模块协议、页面接口及 `requiredCapabilities`核验内部模块，兼容不依赖版本号大小。能力包使用模块协议8，原协议7包继续按其原能力边界恢复；当前支持SDK1、模块协议7／8、页面接口1，能力表见SDK的 `compatibility.mjs`。阿瓦隆声明并发密投、精确存档恢复和退役玩法能力，能力仅在实际实现后加入。
 
-稳定入口为 `games/catalog.json`，签名目录按当前到历史的顺序列出发行。新盒子选择每个玩法的最新兼容发行；没有兼容发行时保留不可安装提示，不自动改成退役玩法。旧存档仍固定原发行及规则／状态版本。原 `games/v1.x.x/catalog.json` 路径由打包器生成单独签名的协议7兼容目录，并过滤退役玩法，历史盒子可继续刷新。稳定入口返回404／410时，新盒子回退既有v1.0.6目录；网络或签名错误保留本机已验证缓存。
+新局目录只来自本EXE验证后的预装映射，旧安装默认选择、在线签名目录和缓存不能覆盖。当前模块缺失／损坏只从本地签名载荷修复，失败保留数据并明确报错，不能回退旧包。历史签名目录、发行ID、内容寻址依赖和本机原版本仓库保持不可变，仅供按精确引用继续原局。
 
-使用 `package:games -- --history=<按权威顺序排列的旧包目录,其他目录> --key=<本地私钥路径>` 合并历史签名发行。现行发行排序优先；历史内容包、发行ID和原离线ZIP保持，跨版本资源仍使用其原版本URL。新离线包只内嵌自身发行及依赖的签名目录，使无关目录更新不改变同名离线包。既有两份同发行离线ZIP若只因内嵌总目录而字节不同，保留首个明确指定历史来源，其他原文件原位保留并在build-record记录双方路径、SHA和选择原因；发行描述或内容包冲突仍拒绝，不覆盖线上文件。
-
-未来发布先上传／保全所有目录依赖并核验字节，再更新稳定与历史兼容签名目录，最后发布EXE。Release滞后时，旧盒子只推荐兼容包；游戏尚未上传、网络失败或签名失败时，安装事务保留原已安装选择和存档。新盒子配旧包、旧盒子配新包以及跨版本恢复必须分别验收。静态准备和回环验证不代表真实Pages/CDN已发布或所有历史客户端已认证。
+2026-10-12早期曾采用稳定 `games/catalog.json`及旧版本协议7兼容目录选择最新可安装发行；独立下载、目录刷新、`package:games --history=...`和Pages分发随后随完整EXE统一交付而退役。旧公开文件维持原发布事实，当前程序不访问它们选择新局。历史版本缺失、匹配不唯一或接口不兼容时保留存档并提示所需版本及相应旧完整EXE，不用最新规则或离线ZIP替代。
 
 ## 发布范围与版本
 
-- 日常本地导出full／box两种EXE及本地清单，内部payload ZIP用于封装与验收；明确发布到GitHub时才导出源码ZIP并执行Release发布。
+- 日常本地只导出预装全部正式游戏与玩法的完整EXE及本地清单；内部payload ZIP用于封装与验收。明确发布到GitHub时才导出源码ZIP并执行Release发布。
 - 未获用户明确新版本指示时沿用当前版本号。同版本重新导出保留旧文字结论、实际包哈希和构建边界，新包单独验收。
 - 本地打包、提交或推送均不等同GitHub发布授权。用户只要求更新流程或文案时，不执行线上发布、改标签或替换附件。
 - 保护其他任务未提交／暂存内容。发布源码与运行输入必须一致，不能把未完成工作混入发布提交；共享工作区的隔离构建办法见[开发环境](development.md)。
@@ -85,45 +83,40 @@ games/v1.0.6/<gameId>/<variantId或default>/index.html
    node tools/release/package.mjs --snapshot=<本轮冻结清单绝对路径>
    ```
 
-3. 对full／box两种EXE分别核验实际提取、内部载荷逐文件字节与SHA-256、包内Node、本地资源、适用游戏加载／安装／恢复、离线外部请求及进程退出。实际界面和动态验收应来自对应EXE；源码样板、旧包结论不可代替。
-4. 核对每种EXE、内部载荷与实际提取内容均严格小于120,000,000字节，工程预警110,000,000字节。每个玩法的完整依赖下载量及安装量分别严格小于64,000,000字节，预警48,000,000字节；组合内共用依赖只计一次，不能拆包绕过门禁。用户存档与浏览器缓存不计入交付大小；full携带的预装内容计入实际交付和提取门禁。
-5. 更新当前验收入口，绑定每种EXE及内部载荷哈希、逐文件清单、证据和未测事项。测试窗口默认静音，包括游玩模式自动验证；专门试听显式开启。
+3. 对唯一完整EXE核验实际提取、内部载荷逐文件字节与SHA-256、包内Node、本地资源、全部正式游戏／玩法可用、旧发行恢复、断网首次启动及进程退出。实际界面和动态验收须来自该EXE；源码样板、旧包结论不可代替。
+4. 核对完整EXE、内部载荷与实际提取内容均严格小于120,000,000字节，工程预警110,000,000字节；全部预装游戏和资源计入。内部模块仍执行自身预算与依赖闭包校验，不能以拆分载荷绕过完整交付门禁。用户存档与浏览器缓存不计入交付大小。
+5. 更新当前验收入口，绑定完整EXE及内部载荷哈希、逐文件清单、证据和未测事项。测试窗口默认静音，包括游玩模式自动验证；专门试听显式开启。
 
-本地运行交付为 `artifacts/releases/TableMax-<版本>-win-x64.exe`与 `TableMax-<版本>-win-x64-box.exe`；对应本地清单及内部载荷位置见本页两种Windows交付。组装遇到进程占用时先遵守现有门禁，待占用解除后可用同一有效快照恢复；不得为通过门禁擅自结束用户日常程序。
+本地运行交付为 `artifacts/releases/TableMax-<四位版本>-win-x64.exe`，对应本地清单及内部载荷位置由 `artifacts/package-payloads/v<三位版本>/current.json`绑定。组装遇进程占用时遵守门禁，占用解除后可用同一有效快照恢复；不得擅自结束用户日常程序。
 
 ## GitHub发布
 
 ### 游戏包发行（2026-10-11）
 
-代码、公共资源和玩法资源分别形成内容寻址ZIP；每个 `gameId/variantId` 的发行记录精确绑定依赖与资源逻辑ID。执行 `pnpm package:games` 时从冻结构建按当前目录推导玩法集合并生成项目签名目录，执行 `pnpm verify:game-packages` 验证完整依赖、签名、逐文件哈希、资源与代码分离和门禁。签名私钥保存在受保护本地 `secrets/`，不随源码或作者工具包分发。
+2026-10-11曾将代码、公共资源和玩法资源分别导出为内容寻址ZIP，通过签名目录、Pages下载和完整离线包安装；`package:games`、`verify:game-packages`等独立发行别名已撤除。该历史记录保留原签名发行、包哈希和当时验收，不提供现行操作指令。
 
-新发行的运行描述不重复携带完整介绍、新手引导或人机说明，详情由作者完整清单生成到代码包 `web/details.json`。基础程序与盒子UI只保留浏览摘要和小封面；安装器私有签名目录继续绑定兼容、入口、依赖、资源映射和哈希。字段职责见[工程结构](architecture.md#独立发行与公共契约2026-10-11)。旧签名发行ID、目录原字节及旧包保持不可变，旧内嵌详情兼容读取，不在准备Pages时为精简重写历史内容。
+当前 `package:win`内部仍按 `gameId/variantId`生成精确发行及依赖闭包，校验Ed25519签名、逐文件SHA和预算，收录进完整EXE的本地载荷。`web/details.json`由作者完整清单生成；浏览摘要、运行描述、网页清单与详情的职责见[工程结构](architecture.md#独立发行与公共契约2026-10-11)。签名私钥留在受保护的本地配置，不进程序或源码附件，历史签名发行ID和原包不重写。
 
-主机按Pages版本目录与精确包名下载并验证SHA-256；更新目录由管理员主动触发，已验证缓存及离线包支持不联网安装与运行。首次Pages分发先完成本页最新手动部署步骤；本地生成签名包不代表线上已存在。
+以下是未来获得明确GitHub发布授权后的步骤，本轮不执行。
 
-仅在用户明确授权GitHub发布后执行以下步骤。
+1. 确认 `pnpm package:win`生成的唯一完整EXE和内部载荷通过本地验收；`package:release`只重封当前载荷，不分配新修订号，也不代替同一EXE验收。
+2. 执行 `node tools/release/verify-shipping-executable.mjs`，验证实际提取、逐文件哈希、重复启动复用、实际资源体积及原生安全；不传 `--edition`。EXE字节改变后重新验收受影响项。
+3. 整理源码、文档和更新说明，提交最终发布源码，核对冻结运行输入与已提交字节一致。新版本标签须指向发布提交并推送；已有同名标签或Release先核对现状，不强推或擅自替换历史。历史同版本发布保留实际源码／标签映射。
+4. 使用 `pnpm release:github -- --publish --notes=<已审说明文件>`。入口核对当前完整EXE证明、远端标签和已提交运行输入，由最终提交生成source ZIP，并复制完整EXE为三位公开附件名；不传 `--devkit`或 `--pages-manifest`。`--replace-draft --draft-id=<已授权草稿ID>`仅用于明确指定且仍为草稿的Release，不能据旧授权操作当前正式Release。
+5. 发布后核对线上标题、正文、标签、正式／预发布状态及两附件名称、数量、大小和SHA，保存本地发布记录并更新验收；保留失败，不把部分上传写成发布成功。
 
-1. 确认 `pnpm package:win`生成的full／box两种EXE及各自内部载荷已通过本地交付验收；`package:release`仅用于从当前指针重新封装指定edition，不代替同一EXE验收，不生成用户运行ZIP。
-2. 对full／box分别执行 `node tools/release/verify-shipping-executable.mjs --edition=<full或box>`。验证实际提取发布EXE、逐文件哈希、重复启动复用、实际资源目录体积及提取程序的原生安全行为。EXE验证后发生改变必须重新验收。
-3. 整理本次源码、文档和更新说明，完成适用检查并提交最终发布源码；核对冻结运行输入无未提交差异。新版本推送该提交和对应 `v<版本>` 标签，标签须指向发布提交；本次已授权的v1.0.6重新发布保留历史标签，另记实际发布源码映射。已有同名标签或Release时先核对现状，不强推、不擅自覆盖历史。
-4. 按下节格式准备更新说明，使用本页最新含 `--publish`、工具包及Pages清单的命令。新版本入口核对HEAD与标签一致；本次 `--replace-draft`核对已有草稿、保留标签和实际源码映射。两者都须核对EXE证据、远端标签、已提交运行输入及Pages实际字节，由最终提交生成源码ZIP并上传白名单附件；当前v1.0.6替换原草稿，不重复创建或强推标签。
-5. 发布后核对线上标题、正文、标签、正式／预发布状态及附件名称、数量、大小与SHA-256。保存本地发布记录并更新验收入口；失败记录保留，不把部分上传写成发布成功。
-
-新格式EXE检查按edition分别记录证据，默认进入 `artifacts/maintenance/v<版本>/windows-editions/<snapshot>/shipping-executable-checks-<edition>.json`。维护读取当前内部指针并要求EXE及载荷双哈希匹配。旧 `github-release-20261005/`证据属于旧单EXE发布记录，不代替新两种EXE；其目录名不代表新版本发布日期。使用独立证据时先确认发布入口实际采用的路径，不能凭命令输出宣称已发布。
+当前实际EXE证明位于 `artifacts/maintenance/v<公开版本>/windows-editions/<snapshot>/shipping-executable-checks-full.json`；路径中的历史名称和内部 `full`标识继续兼容。维护读取当前载荷指针，要求EXE及payload双哈希匹配。旧box及ZIP报告只证明各自原构建，不能替代当前完整EXE。
 
 ### 附件与运行事项
 
-按2026-10-11最新Pages方案，Release附件白名单如下；已撤回的历史草稿25附件保留供审计，不能作为新发布的白名单：
+未来授权Release的手动附件仅有：
 
-1. `TableMax-<版本>-win-x64.exe`：包含全部当前游戏的完整运行程序，无类型后缀。
-2. `TableMax-<版本>-win-x64-box.exe`：盒子基础程序，通过游戏库按需安装。
-3. `TableMax-<版本>-source.zip`：仅明确发布时由该发布提交的 `git archive`导出。
+1. `TableMax-<三位版本>-win-x64.exe`：预装构建时全部正式游戏与玩法的完整程序，无类型后缀。
+2. `TableMax-<三位版本>-source.zip`：仅明确发布时从该发布提交通过 `git archive`导出。
 
-4. `TableMax-author-toolkit-*.zip`：实际独立作者接入验证通过的开发工具包。
+不新增盒子版、独立游戏包、Pages目录或作者安装工具包。审计JSON、内部payload ZIP、逐文件manifest、截图与过程报告仅留本地；GitHub自动源码下载不计入手动附件。历史已发布附件保留其原数量、名称、字节与源码映射，不因当前白名单变化而自动修改。
 
-签名游戏目录、内容寻址代码／资源及完整离线ZIP只进Pages目录。`tools/release/game-release-assets.mjs`继续核验用于Pages的精确文件集合；发布入口使用 `--devkit` 和 `--pages-manifest`。先完成游戏包签名、逐文件验证以及同一基础包和安装组合验收；源码、标签与EXE遵守上节门禁。审计JSON、基础运行ZIP、截图及过程报告只留本地，GitHub自动源码下载不属手动附件。
-
-v1.0.3单EXE默认在旁边新建 `TableMax/`，运行资源位于 `TableMax/app/`；ZIP解压版直接使用解压目录。配置、存档、设置、日志和浏览器缓存由对应根目录内 `TableMax.config.json` 指定，不可写时不回退C盘。启动器只更新带有效标记的资源目录，未知文件或占用时拒绝替换，暂存失败回滚；旧数据保留，目录更换需重启。平台条件和迁移细节见[便携存储与启动迁移](development.md#v103-便携存储与启动迁移2026-10-06)。这些运行说明属于项目文档，不重复放进更新正文。
+完整EXE默认在旁边新建 `TableMax/`，运行资源位于 `TableMax/app/`，配置与数据根由 `TableMax.config.json`指定。存档、设置、日志和浏览器缓存不写入包内，目录不可写时不回退C盘。启动器只更新有有效标记的资源目录，未知文件或占用时拒绝替换，暂存失败回滚；旧数据和应用目录外的历史模块仓库保留，目录更换需重启。历史运行ZIP的解压目录规则仅供旧版本兼容，迁移细节见[便携存储与启动迁移](development.md#v103-便携存储与启动迁移2026-10-06)。运行说明维护在项目文档，不重复放进更新正文。
 
 ## Release标题与更新正文
 

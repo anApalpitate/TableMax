@@ -6,11 +6,13 @@ Windows交付统一为 **TableMax-1.0.6.2-win-x64.exe**，公开版本仍为1.0.
 
 受影响的预装、事务、目录、恢复、筛选及资源URL回归共62项通过；新增实际SQLite恢复、无引用旧档和版本不匹配保全、七玩法包内32MiB Worker合法动作保存均通过。三端游戏库[18布局验证](../../artifacts/maintenance/v1.0.6/game-library/run-1791738769976/report.json)覆盖320px至4K，无安装入口或安装API请求。单完整交付与历史双版本的JavaScript／PowerShell保护检查通过；类型、定向ESLint及适用格式检查通过。早期夹具、定位及提取预创建目录问题保留原失败边界，修复后仅重跑受影响项；没有扩大游戏规则整局认证。
 
-[实际EXE验收](../../artifacts/maintenance/v1.0.6/windows-editions/11be1ba79646467406052a6ba03ff2823ce6d176fe5dc6734386a9dce4503f47/shipping-executable-checks-full.json)绑定冻结快照 `11be1ba79646…3f47`。EXE **43,700,736字节**，内部载荷ZIP **43,568,635字节**，实际提取（含归属标记）**96,519,082字节**，均严格小于120,000,000字节；完整成员和哈希、重复提取复用、实际原生首次及再次启动、撤除API／桥接、包内Node22.14.0和异常进程清理通过。EXE SHA-256为 `c2b7d16d1b0920d75279e6481eb9d3fe59530b76fbf774e990991caf363351a7`，[当前指针](../../artifacts/package-payloads/v1.0.6/current.json)只记录一个完整程序。构建复用字节相同的当前7个签名模块，不额外预装历史发行；历史目录和原包保持完整。
+[实际EXE验收](../../artifacts/maintenance/v1.0.6/windows-editions/11be1ba79646467406052a6ba03ff2823ce6d176fe5dc6734386a9dce4503f47/shipping-executable-checks-full.json)绑定冻结快照 `11be1ba79646…3f47`。EXE **43,700,736字节**，内部载荷ZIP **43,568,635字节**，载荷成员逻辑总量 **96,494,022字节**，实际提取（含归属标记）**96,519,082字节**，均严格小于120,000,000字节；完整成员和哈希、重复提取复用、实际原生首次及再次启动、撤除API／桥接、包内Node22.14.0和异常进程清理通过。EXE SHA-256为 `c2b7d16d1b0920d75279e6481eb9d3fe59530b76fbf774e990991caf363351a7`，[当前指针](../../artifacts/package-payloads/v1.0.6/current.json)只记录一个完整程序。构建复用字节相同的当前7个签名模块，不额外预装历史发行；历史目录和原包保持完整。
 
 旧1.0.6.1 full／box与两份清单按SHA核对后移至[历史交付保全](../../artifacts/maintenance/v1.0.6/full-only-20261012/previous-delivery/preservation.json)，当前release目录仅保留新完整EXE和本地清单，原运行数据目录继续保护。本轮不发布GitHub Release、不部署Pages、不生成源码ZIP，既有线上字节和历史验收保持原构建边界。最终维护及提交映射见[收尾证据](../../artifacts/maintenance/v1.0.6/full-only-20261012/completion.json)。
 
 ## 1.0.6：版本适应性与本地四位版本（2026-10-12）
+
+本节及后续旧轮次是各自实际构建的历史验收。双EXE、游戏下载／导入和Pages的当时通过范围保持；现行产品已统一完整EXE，不沿用旧入口或把旧SHA当作当前交付。历史段落中的“当前”指当次时间点；当前交付和容量分别见[唯一完整EXE](#106唯一完整-exe2026-10-12)与[最新瘦身](project-slimming.md)。
 
 公开版本保持1.0.6，本地交付为 **1.0.6.1**。修订号原子分配，full／box共用；冻结快照、载荷清单、包装器与原生文件版本一致。新盒子按SDK、协议、页面接口与实际能力选最新兼容发行，阿瓦隆新包采用协议8；旧协议7发行和历史精确引用保留。稳定签名目录、旧协议兼容目录、退役配置过滤及失败保留缓存已实现，规则见[Release流程](release.md#盒子与游戏的兼容目录2026-10-12)。本轮未发布、未部署Pages、未生成源码ZIP。
 
@@ -18,7 +20,7 @@ Windows交付统一为 **TableMax-1.0.6.2-win-x64.exe**，公开版本仍为1.0.
 
 [实际跨版本验证](../../artifacts/maintenance/v1.0.6/version-adaptability-20261012/actual-compatibility.json)使用旧、新盒子实际EXE提取出的包内Node服务：旧盒子安装协议7原包并拒绝协议8新阿瓦隆包；补充[实际目录与下载验证](../../artifacts/maintenance/v1.0.6/version-adaptability-20261012/actual-compatibility-online.json)确认旧盒子通过原固定URL推荐旧兼容阿瓦隆并下载当前兼容的现代艺术代码／资源，新盒子通过稳定URL推荐新能力包，分发请求只重定向至127.0.0.1签名夹具；新盒子恢复旧盒子生成的SQLite对局，保留原UNO发行及对局身份，再导入新旧包不替换原存档引用。两次提取夹具在嵌套新目录遇访问限制，改用已通过交付检查的tmp直接独立目录后通过，未修改权限或历史EXE。
 
-两种[实际EXE证明](../../artifacts/maintenance/v1.0.6/windows-editions/7731b4230e052468c53ef652ad4b4040f93d130e1ca55e5f8742089077ce576a/shipping-executable-checks-full.json)均绑定快照 `7731b4230e05…576a`，盒子[证明](../../artifacts/maintenance/v1.0.6/windows-editions/7731b4230e052468c53ef652ad4b4040f93d130e1ca55e5f8742089077ce576a/shipping-executable-checks-box.json)同目录。full／box EXE分别 **43,706,368／34,910,208字节**，实际验收提取 **96,533,614／87,494,954字节**，均低于120MB；完整成员、重复提取和静音隐藏原生安全通过，运行时身份实测为1.0.6.1。full仅预装当前7个玩法，签名目录另保留历史引用。当前[指针](../../artifacts/package-payloads/v1.0.6/current.json)绑定两种EXE及内部payload。
+两种[实际EXE证明](../../artifacts/maintenance/v1.0.6/windows-editions/7731b4230e052468c53ef652ad4b4040f93d130e1ca55e5f8742089077ce576a/shipping-executable-checks-full.json)均绑定快照 `7731b4230e05…576a`，盒子[证明](../../artifacts/maintenance/v1.0.6/windows-editions/7731b4230e052468c53ef652ad4b4040f93d130e1ca55e5f8742089077ce576a/shipping-executable-checks-box.json)同目录。full／box EXE分别 **43,706,368／34,910,208字节**，实际验收提取 **96,533,614／87,494,954字节**，均低于120MB；完整成员、重复提取和静音隐藏原生安全通过，运行时身份实测为1.0.6.1。full仅预装当前7个玩法，签名目录另保留历史引用。原双交付的SHA和内部payload绑定保留在上述两份实际证明；现行current.json仅绑定1.0.6.2完整EXE。
 
 历史公开字节未修改。上一轮两种EXE与本地清单逐文件SHA保全到[历史证据](../../artifacts/maintenance/v1.0.6/version-adaptability-20261012/before/preservation.json)。当前候选目录包含18个发行／20个内容包；历史离线包中同名不同内嵌总目录的两份字节按显式历史来源优先，双方路径与SHA留[构建记录](../../artifacts/game-packages/v1.0.6/current/build-record.json)。新离线包只签自身闭包，后续无关目录更新不会改变它。[49文件静态目录回环检查](../../artifacts/pages/verification-pYQ92w/results.json)覆盖逐文件URL、哈希、离线闭包和篡改／覆盖拒绝；不代表真实CDN、所有历史盒子、实体手机或现场LAN已认证。
 
@@ -36,7 +38,7 @@ Windows交付统一为 **TableMax-1.0.6.2-win-x64.exe**，公开版本仍为1.0.
 
 [游戏库源码实渲](../../artifacts/maintenance/v1.0.6/game-library/run-1791733471999/report.json)15项／11布局通过，检查下载按钮实际计算色 `rgb(0, 0, 0)`、透明度1、进度、权限与触控。首次夹具仍选择已退役阿瓦隆两配置，随后改用当前两玩法目录；第二次暴露同游戏测试资源未重置，清空该夹具状态后通过。两份原失败保留，不改产品配置以适配旧夹具。JavaScript交付保护1项与PowerShell隔离清理6项通过，覆盖新路径、缺报告、篡改及越界拒绝；定向ESLint、适用Prettier和diff检查通过，未扩大游戏规则回归。
 
-冻结输入 `8963cb45590d3d948dd60be487a29619cb65512f0b464dbddfbea5a3f5778b48` 仅更新盒子页面，五个平台单元命中缓存；沿用已验7个签名玩法包，未改变游戏规则、资源和版本。新[完整游戏版验收](../../artifacts/maintenance/v1.0.6/windows-editions/8963cb45590d3d948dd60be487a29619cb65512f0b464dbddfbea5a3f5778b48/shipping-executable-checks-full.json)和[盒子版验收](../../artifacts/maintenance/v1.0.6/windows-editions/8963cb45590d3d948dd60be487a29619cb65512f0b464dbddfbea5a3f5778b48/shipping-executable-checks-box.json)均通过真实EXE提取、完整成员哈希、复用、静音隐藏原生安全及120MB门槛。EXE分别 **43,691,008／34,908,672字节**，实际验收提取目录 **96,393,363／87,490,868字节**。SHA、载荷及文件清单由[当前指针](../../artifacts/package-payloads/v1.0.6/current.json)绑定。
+冻结输入 `8963cb45590d3d948dd60be487a29619cb65512f0b464dbddfbea5a3f5778b48` 仅更新盒子页面，五个平台单元命中缓存；沿用已验7个签名玩法包，未改变游戏规则、资源和版本。新[完整游戏版验收](../../artifacts/maintenance/v1.0.6/windows-editions/8963cb45590d3d948dd60be487a29619cb65512f0b464dbddfbea5a3f5778b48/shipping-executable-checks-full.json)和[盒子版验收](../../artifacts/maintenance/v1.0.6/windows-editions/8963cb45590d3d948dd60be487a29619cb65512f0b464dbddfbea5a3f5778b48/shipping-executable-checks-box.json)均通过真实EXE提取、完整成员哈希、复用、静音隐藏原生安全及120MB门槛。EXE分别 **43,691,008／34,908,672字节**，实际验收提取目录 **96,393,363／87,490,868字节**。当次SHA、载荷及文件清单由上述两份实际EXE证明绑定；当前指针已切到1.0.6.2完整程序。
 
 上一轮两种EXE及清单先逐文件SHA保全，旧 `-full` 文件移入[历史交付证据](../../artifacts/maintenance/v1.0.6/exe-naming-20261011/delivery-before-change/preservation.json)，旧box原字节另行保留；当前 `artifacts/releases/` 只有两种新命名EXE及各自本地清单。早期交付报告继续绑定旧字节，不因新包沿用版本号而扩大其通过范围。
 
@@ -46,7 +48,7 @@ Windows交付统一为 **TableMax-1.0.6.2-win-x64.exe**，公开版本仍为1.0.
 
 新局采用用户图片的5–10人角色表，基础／宫廷只恢复原局；测试密投微任务直接派发，实战同组各席同时等待后独立提交，保存仍串行。莫德雷德／奥伯伦权限、刺杀候选、历史精确包恢复与退役目录过滤已更新，三端详细规则共用配置表。源码、18场真实Worker整局、十席并发、故障取消和两种实际EXE证据见[阿瓦隆验证](../games/avalon/validation-scenarios.md#唯一配置并发密投与两种exe2026-10-11)。
 
-冻结输入 `4ca00fc292b7…679aa75` 的full／box分别43,690,496／34,908,672字节；full预装当前7个玩法，box旧包／新包离线导入后仍只提供现行阿瓦隆新局。实际三端规则页320px–4K各7布局通过，当前载荷和EXE哈希由[指针](../../artifacts/package-payloads/v1.0.6/current.json)绑定。应用版本未变，本轮未发布、未部署Pages、未生成source ZIP。实体手机、现场LAN与真人听感不在新增认证范围。
+冻结输入 `4ca00fc292b7…679aa75` 的full／box分别43,690,496／34,908,672字节；full预装当前7个玩法，box旧包／新包离线导入后仍只提供现行阿瓦隆新局。实际三端规则页320px–4K各7布局通过，当次载荷和EXE哈希保留在该轮实际证明，当前指针不再代表这份旧双版本。应用版本未变，本轮未发布、未部署Pages、未生成source ZIP。实体手机、现场LAN与真人听感不在新增认证范围。
 
 ## 1.0.6：安装索引并发与临时journal恢复修复（2026-10-11）
 
@@ -480,13 +482,13 @@ release目录仅保留当前ZIP和清单；近期打包过程目录移入tmp继�
 
 ## 当前源码与本地交付
 
-本节当时本地交付为本页[手写改动单第1项](#106手写改动单第1项2026-10-11)的运行ZIP及逐文件清单，SHA-256 `0048f55745f66c289eed918b78efccb058afbd4e2014bbc67655d36cc3be52c5`；包含本页此前UNO与拉密修复，历史包与发布附件保留实际哈希、证据及结论，不当作当前包验收。
+当前本地交付为本页[唯一完整EXE](#106唯一完整-exe2026-10-12)的 `TableMax-1.0.6.2-win-x64.exe`与本地清单；内部payload、manifest及 `current.json`位于 `artifacts/package-payloads/v1.0.6/`。预装6款正式游戏／7个玩法，新局固定本EXE的验证映射；旧局按原精确发行继续。当前交付与实际证明保留，历史构建只按各自哈希和原结果认定。
 
-运行ZIP、逐文件清单、原图和实际验收证据均为本地文件，不随源码push上传。源码提交／推送不等于发布新程序；公开下载与附件以GitHub Releases为准。项目逻辑空间以[最新瘦身记录](project-slimming.md)为准，历次数字保留其统计时间与保护范围。
+EXE、内部载荷、原图、签名仓库和本地验收不随源码push上传。公开版本仍为1.0.6，线上已发布附件保持2026-10-11的原字节，本地1.0.6.2尚未发布。提交／推送不授权Release或Pages部署，不生成源码ZIP。
 
-下文旧轮次的“原包保留”描述其当时状态；本轮已按授权退役23份更早运行ZIP，链接改指原清单或退役哈希记录，历史大小、版本及通过／失败结论不改写。当前包、前一份整合包和宝可梦独立旧验收包继续保留。
+最新深度瘦身实测 **5,896,919,854逻辑字节**（含受保护嵌套仓库），达到本次6GB目标，见[瘦身记录](project-slimming.md#深度瘦身至6gb内2026-10-12)。历次“原包保留”和容量数字仅表示当时状态；已按审计退役的历史包／截图由当前精确清单说明，不修改原失败、文字结论或逐文件哈希。
 
-前一轮电力公司包 `201de235…` 未包含当时正在修改的宝可梦界面。当前包已整合这些修订，并分别核验实际包内画面、完整对局与恢复；未变化游戏采用下述逐文件等价证明复用既有检查。
+本页[手写改动单第1项](#106手写改动单第1项2026-10-11)曾交付运行ZIP，SHA `0048f55745f66c289eed918b78efccb058afbd4e2014bbc67655d36cc3be52c5`；该真实旧包作为明确迁移／验证输入保留在独立历史目录。下方更早的电力公司及宝可梦整合结论仍限定原版本，不表示当前需下载ZIP或重复其完整整局检查。
 
 ## 1.0.3：宝可梦扩展深度界面与整合交付（2026-10-06）
 
