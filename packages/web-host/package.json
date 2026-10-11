@@ -8,8 +8,9 @@
     "./platform": "./src/platform.ts"
   },
   "dependencies": {
-    "react": "19.3.0",
+    "@tablemax/game-sdk": "workspace:*",
     "@tablemax/protocol": "workspace:*",
-    "@tablemax/game-sdk": "workspace:*"
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   }
 }

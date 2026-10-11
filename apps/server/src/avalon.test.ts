@@ -4,6 +4,15 @@ import { join, resolve } from 'node:path';
 import { io, type Socket } from 'socket.io-client';
 import type { Command, CommandReply, RoomView } from '@tablemax/protocol';
 import type { JsonValue } from '@tablemax/game-sdk';
+import { RoomCoordinator } from '@tablemax/platform-core';
+import type { Save, SaveRepository } from '@tablemax/platform-core';
+import { rulesByVariant } from '../../../games/avalon/rules';
+import { botsByVariant } from '../../../games/avalon/bot';
+import {
+  currentCatalogModules,
+  retiredVariantPolicies,
+} from './game-variant-policy';
+import { availableModules } from './module-loader';
 import { rules, bot } from '../../../games/avalon';
 import type { AvalonView, Action } from '../../../games/avalon/types';
 import { createService } from './service';
@@ -130,13 +139,23 @@ async function fixture(count = 5) {
   };
 }
 
-it('discovers both original Avalon role combinations without platform game branches', async () => {
+it('only offers the configured role combination and refuses retired new-game selection', async () => {
   const registry = createGameRegistry();
   expect(registry.catalog().find((g) => g.id === 'avalon')).toMatchObject({
     min: 5,
     max: 10,
   });
-  for (const variant of ['classic', 'court']) {
+  expect(
+    registry
+      .catalog()
+      .find((g) => g.id === 'avalon')!
+      .variants!.map((v) => v.id),
+  ).toEqual(['configured']);
+  for (const variant of ['classic', 'court'])
+    await expect(registry.load('avalon', variant)).rejects.toThrow(
+      'unknown-game-variant',
+    );
+  for (const variant of ['configured']) {
     const loaded = await registry.load('avalon', variant);
     expect(loaded.bot.rulesVersion).toBe(loaded.rules.manifest.rulesVersion);
     expect(loaded.bot.difficulties).toEqual(['default', 'doubao', 'juewu']);
@@ -415,3 +434,75 @@ it('discussion skip is admin-only and failed saves do not advance; restart and r
     await f.close();
   }
 }, 60000);
+
+class LegacyRepository implements SaveRepository {
+  value: Save | null = null;
+  load() {
+    return structuredClone(this.value);
+  }
+  save(value: Save) {
+    this.value = structuredClone(value);
+  }
+}
+it('legacy exact versions restore roles/checkpoints, while lobby start and replay migrate to configured', async () => {
+  for (const variant of ['classic', 'court'] as const) {
+    const repository = new LegacyRepository();
+    const registry = createGameRegistry();
+    let room = new RoomCoordinator(
+      rulesByVariant[variant],
+      botsByVariant[variant],
+      repository,
+      undefined,
+      'test',
+      registry,
+      undefined,
+      variant,
+    );
+    const host = async (command: Command['command']) =>
+      room.command(
+        room.hostToken,
+        envelope(room.view(room.hostToken), command),
+      );
+    for (let i = 0; i < 7; i++)
+      expect((await host({ type: 'add-bot', name: `旧席${i}` })).ok).toBe(true);
+    const lobby = structuredClone(repository.value);
+    expect((await host({ type: 'start' })).ok).toBe(true);
+    const task = room.botTask()!;
+    expect(
+      (await room.submitBot(task, task.actions[0]!, null, task.data.random)).ok,
+    ).toBe(true);
+    const saved = structuredClone(repository.value!);
+    room = await RoomCoordinator.open(registry, repository);
+    expect(repository.value!.snapshot).toEqual(saved.snapshot);
+    expect(repository.value!.history).toEqual(saved.history);
+    expect(room.view().game?.variantId).toBe(variant);
+    expect((await host({ type: 'end' })).ok).toBe(true);
+    expect((await host({ type: 'replay' })).ok).toBe(true);
+    expect(room.view().game?.variantId).toBe('configured');
+    expect(room.view().seats).toHaveLength(7);
+    repository.value = lobby;
+    room = await RoomCoordinator.open(registry, repository);
+    expect((await host({ type: 'start' })).ok).toBe(true);
+    expect(room.view().game?.variantId).toBe('configured');
+  }
+});
+it('retired historical catalog entries never overwrite the current seed', () => {
+  const seed = availableModules();
+  const current = seed.find((item) => item.id === 'avalon')!;
+  const historical = {
+    ...current,
+    defaultVariantId: 'court',
+    variants: [
+      { ...current.variants![0]!, id: 'classic' },
+      { ...current.variants![0]!, id: 'court' },
+    ],
+  };
+  expect(
+    currentCatalogModules(
+      [...seed, historical, historical],
+      retiredVariantPolicies(seed),
+    )
+      .find((item) => item.id === 'avalon')!
+      .variants!.map((v) => v.id),
+  ).toEqual(['configured']);
+});

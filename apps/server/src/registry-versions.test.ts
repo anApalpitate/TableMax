@@ -11,6 +11,7 @@ import type { ModuleManifest } from '@tablemax/game-sdk/module-manifest';
 import type { GameRelease } from './game-packages/types';
 import type { PackageStore } from './game-packages/store';
 import { createGameRegistry } from './game-registry';
+import type { Save } from '@tablemax/platform-core';
 
 const roots: string[] = [];
 afterEach(() => {
@@ -26,8 +27,25 @@ function fixture() {
     readFileSync('games/avalon/game-module.json', 'utf8'),
   ) as ModuleManifest;
   const releases = new Map<string, { release: GameRelease; root: string }>();
-  const add = (ref: string, limit: number, actualLimit = limit) => {
+  const add = (
+    ref: string,
+    limit: number,
+    actualLimit = limit,
+    variantId = 'configured',
+  ) => {
     const module = structuredClone(source);
+    if (variantId === 'classic') {
+      delete module.retiredVariantIds;
+      module.defaultVariantId = 'classic';
+      module.compatibility.rulesVersion = 'classic-2012-1';
+      module.variants = [
+        {
+          ...module.variants![0]!,
+          id: 'classic',
+          compatibility: { ...module.compatibility },
+        },
+      ];
+    }
     module.catalog.max = limit;
     module.entries = {
       rules: 'rules.cjs',
@@ -53,16 +71,16 @@ function fixture() {
     };
     writeFileSync(
       join(folder, 'rules.cjs'),
-      `const rules={manifest:${JSON.stringify(manifest)}};module.exports={rules,rulesByVariant:{classic:rules}};`,
+      `const rules={manifest:${JSON.stringify(manifest)}};module.exports={rules,rulesByVariant:{${variantId}:rules}};`,
     );
     writeFileSync(
       join(folder, 'bot.cjs'),
-      `const bot=${JSON.stringify(bot)};module.exports={bot,botsByVariant:{classic:bot}};`,
+      `const bot=${JSON.stringify(bot)};module.exports={bot,botsByVariant:{${variantId}:bot}};`,
     );
     const release: GameRelease = {
       releaseId: ref,
       gameId: 'avalon',
-      variantId: 'classic',
+      variantId,
       module,
       code: ref,
       resources: [],
@@ -72,7 +90,7 @@ function fixture() {
     releases.set(ref, { release, root: folder });
     return release;
   };
-  const old = add('a'.repeat(64), 6);
+  const old = add('a'.repeat(64), 6, 6, 'classic');
   const current = add('b'.repeat(64), 10);
   const mismatch = add('c'.repeat(64), 10, 6);
   const store = {
@@ -83,7 +101,7 @@ function fixture() {
       },
     }),
     selected: (_gameId: string, variantId?: string) =>
-      variantId === 'classic' ? current : undefined,
+      variantId === 'configured' ? current : undefined,
     resolveModule: (ref: string) => releases.get(ref),
   } as unknown as PackageStore;
   return { old, current, mismatch, registry: createGameRegistry(false, store) };
@@ -93,18 +111,27 @@ it('uses current browsing limits while explicit historical refs load their own p
   const { registry, old, current } = fixture();
   expect(registry.catalog().find((game) => game.id === 'avalon')?.max).toBe(10);
   expect(
-    (await registry.load('avalon', 'classic', old.releaseId)).rules.manifest
-      .players.max,
+    (
+      await registry.loadSaved({
+        manifest: {
+          ...old.module.catalog,
+          ...old.module.compatibility,
+          players: { min: 5, max: 6 },
+        },
+        variantId: 'classic',
+        releaseRef: old.releaseId,
+      } as unknown as Save)
+    ).rules.manifest.players.max,
   ).toBe(6);
   expect(
-    (await registry.load('avalon', 'classic', current.releaseId)).rules.manifest
-      .players.max,
+    (await registry.load('avalon', 'configured', current.releaseId)).rules
+      .manifest.players.max,
   ).toBe(10);
 });
 
 it('rejects compiled limits that disagree with their pinned descriptor', async () => {
   const { registry, mismatch } = fixture();
   await expect(
-    registry.load('avalon', 'classic', mismatch.releaseId),
+    registry.load('avalon', 'configured', mismatch.releaseId),
   ).rejects.toThrow('incompatible-game-module');
 });

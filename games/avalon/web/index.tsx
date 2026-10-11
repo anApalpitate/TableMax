@@ -28,7 +28,7 @@ import { RoleCard, PrivateKnowledge } from '../ui/RoleCard';
 import { PlayerControls } from '../ui/PlayerControls';
 import { AvalonEffects } from '../ui/Effects';
 import { AvalonSoundControl } from '../ui/audio';
-import { avalonRulebook } from '../ui/RulesGuide';
+import { avalonRulebookFor } from '../ui/RulesGuide';
 import '../ui/style.css';
 
 function SavedAction({
@@ -234,7 +234,12 @@ function AvalonScreen({ session }: { session: GameHost }) {
         </ScreenLink>
         <strong className="av-brand">阿瓦隆</strong>
         <span className="av-edition">
-          {game?.variant === 'court' ? '宫廷迷局' : '经典圆桌'}
+          {(game?.variant ?? view?.game?.variantId ?? 'configured') ===
+          'configured'
+            ? '经典配置'
+            : (game?.variant ?? view?.game?.variantId) === 'court'
+              ? '旧局 · 宫廷迷局'
+              : '旧局 · 经典圆桌'}
         </span>
         <div className="av-toolbar-tools">
           <PlayModeBadge mode={view?.playMode} />
@@ -415,7 +420,7 @@ function AvalonScreen({ session }: { session: GameHost }) {
           className={`av-overlay${panel === 'identity' ? ' av-overlay--secret' : ''}`}
         >
           {panel === 'rules' ? (
-            <RulesGuide {...avalonRulebook} />
+            <RulesGuide {...avalonRulebookFor(game)} />
           ) : (
             <div className="av-panel">
               {panel === 'identity' ? (
@@ -541,4 +546,8 @@ export const client: GameClient = {
         : 500;
   },
 };
-export const clientsByVariant = { classic: client, court: client };
+export const clientsByVariant = {
+  configured: client,
+  classic: client,
+  court: client,
+};

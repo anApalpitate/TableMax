@@ -1,4 +1,5 @@
 import type { BotDifficulty, BotStrategy, JsonValue } from '@tablemax/game-sdk';
+import { CONFIGURED_RULES_VERSION } from '../config';
 import {
   COURT_RULES_VERSION,
   RULES_VERSION,
@@ -35,7 +36,11 @@ export function hypotheses(
       (self.alignment === 'good' && evil.includes(self.seatId))
     )
       continue;
-    if (self.role === 'merlin' && evil.some((seat) => !known.has(seat)))
+    if (
+      view.variant !== 'configured' &&
+      self.role === 'merlin' &&
+      evil.some((seat) => !known.has(seat))
+    )
       continue;
     if (
       self.role === 'percival' &&
@@ -196,6 +201,11 @@ export function chooseAction(
           (seat) =>
             seat === self.seatId || self.knowledge.evilSeats.includes(seat),
         ).length;
+        if (view.variant === 'configured')
+          return (
+            (1 - cleanProbability(team, beliefs, threshold)) * 100 +
+            (ownEvil === threshold ? 2 : 0)
+          );
         return ownEvil === threshold
           ? 100 +
               cleanProbability(
@@ -244,10 +254,12 @@ export function chooseAction(
   if (votes.length) {
     const clean = cleanProbability(view.team, beliefs, threshold);
     const evilOnTeam =
-      view.team.filter(
-        (seat) =>
-          seat === self.seatId || self.knowledge.evilSeats.includes(seat),
-      ).length >= threshold;
+      view.variant === 'configured'
+        ? 1 - clean >= 0.5
+        : view.team.filter(
+            (seat) =>
+              seat === self.seatId || self.knowledge.evilSeats.includes(seat),
+          ).length >= threshold;
     const approve =
       self.alignment === 'evil'
         ? evilOnTeam
@@ -272,6 +284,12 @@ function createBot(rulesVersion: string): BotStrategy {
     rulesVersion,
     difficulties: ['default', 'doubao', 'juewu'],
     immediateActions: ['finish-discussion'],
+    ...(rulesVersion === CONFIGURED_RULES_VERSION
+      ? {
+          testImmediateActions: ['vote-team', 'quest-card'],
+          concurrentActions: ['vote-team', 'quest-card'],
+        }
+      : {}),
     validateMemory(input) {
       if (input !== null) throw new Error('阿瓦隆策略记忆格式无效。');
       return null;
@@ -307,8 +325,9 @@ function createBot(rulesVersion: string): BotStrategy {
     },
   };
 }
-export const bot = createBot(RULES_VERSION);
+export const bot = createBot(CONFIGURED_RULES_VERSION);
 export const botsByVariant = {
-  classic: bot,
+  configured: bot,
+  classic: createBot(RULES_VERSION),
   court: createBot(COURT_RULES_VERSION),
 };

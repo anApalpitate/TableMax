@@ -27,6 +27,7 @@ type Waiting = {
   due: number;
   timer?: ReturnType<typeof setTimeout> | undefined;
   controller?: AbortController;
+  dispatchQueued?: boolean;
 };
 export function reactionDelayMs(task: Task): number {
   const timing = task.timing!;
@@ -64,11 +65,13 @@ export class BotScheduler {
       task.variantId,
       task.rulesVersion,
       task.branch,
-      task.timing?.key ?? task.revision,
+      task.concurrent ?? task.timing?.key ?? task.revision,
+      task.decision.id,
       task.decision.seatId,
       task.data.id,
       task.data.version,
       task.data.difficulty,
+      ...(task.concurrent ? [task.data] : []),
       this.room.playMode,
     ]);
   }
@@ -113,7 +116,22 @@ export class BotScheduler {
         };
         this.waiting.set(key, entry);
       } else entry.task = task;
-      if (entry.timer || entry.controller) continue;
+      if (entry.timer || entry.controller || entry.dispatchQueued) continue;
+      if (task.immediate) {
+        entry.dispatchQueued = true;
+        const pending = entry;
+        queueMicrotask(() => {
+          if (
+            this.stopped ||
+            this.room.botPaused ||
+            this.waiting.get(key) !== pending
+          )
+            return;
+          pending.dispatchQueued = false;
+          void this.run(key, pending);
+        });
+        continue;
+      }
       entry.due = Date.now() + entry.remaining;
       const pending = entry;
       entry.timer = setTimeout(

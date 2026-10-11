@@ -1,14 +1,11 @@
 import type { GameRules, JsonValue, PendingDecision } from '@tablemax/game-sdk';
-import {
-  COURT_RULES_VERSION,
-  RULES_VERSION,
-  type Action,
-  type Variant,
-} from '../types';
+import { rulesVersionFor } from '../config';
+import { type Action, type Variant } from '../types';
 import { applyAction, assassinSeat, goodSeats, initialize } from './engine';
 import { project } from './project';
 import {
   alignment,
+  assassinationTargets,
   exact,
   object,
   questSizes,
@@ -106,7 +103,9 @@ export function legalActions(s: State, seat: string): Action[] {
         : []),
     ];
   if (s.phase === 'assassinate' && assassinSeat(s) === seat)
-    return goodSeats(s).map((target) => ({ type: 'assassinate', target }));
+    return (
+      s.variant === 'configured' ? assassinationTargets(s) : goodSeats(s)
+    ).map((target) => ({ type: 'assassinate', target }));
   return [];
 }
 export function isLegalAction(s: State, raw: unknown, seat: string): boolean {
@@ -141,7 +140,7 @@ function createRules(variant: Variant): GameRules {
       id: 'avalon',
       name: '阿瓦隆',
       gameVersion: '1.0.0',
-      rulesVersion: variant === 'court' ? COURT_RULES_VERSION : RULES_VERSION,
+      rulesVersion: rulesVersionFor(variant),
       sdkVersion: 1,
       stateVersion: 1,
       players: { min: 5, max: 10 },
@@ -250,5 +249,10 @@ function createRules(variant: Variant): GameRules {
     project: (input, viewer) => project(input as State, viewer) as JsonValue,
   };
 }
-export const rules = createRules('classic');
-export const rulesByVariant = { classic: rules, court: createRules('court') };
+export const rules = createRules('configured');
+// Legacy identities are restoration exports, never selectable catalog entries.
+export const rulesByVariant = {
+  configured: rules,
+  classic: createRules('classic'),
+  court: createRules('court'),
+};

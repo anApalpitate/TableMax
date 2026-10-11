@@ -1,11 +1,15 @@
 import { createElement, type ReactNode } from 'react';
 import { createRequire } from 'node:module';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { initialize } from '../rules/engine';
 import { project } from '../rules/project';
 import { PlayerControls } from './PlayerControls';
 import { Council } from './Board';
 import type { GameHost } from '@tablemax/web-host';
+vi.mock('@tablemax/web-host', async (original) => ({
+  ...(await original<typeof import('@tablemax/web-host')>()),
+  avatarFor: (id: string) => ({ id, name: id, src: '/fixture-avatar.svg' }),
+}));
 
 const { renderToStaticMarkup } = createRequire(
   new URL('../../../apps/web/package.json', import.meta.url),

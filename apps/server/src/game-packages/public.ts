@@ -15,6 +15,7 @@ import type { GameRelease } from './types';
 import type { PackageStore } from './store';
 import { safePath } from './verification';
 import { preferredCatalogReleases } from './catalog';
+import { retiredVariant, retiredVariantPolicies } from '../game-variant-policy';
 
 const object = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -93,21 +94,33 @@ export function projectReleaseSummary(
 
 export function projectPackageSnapshot(
   snapshot: ReturnType<PackageStore['snapshot']>,
+  policies = retiredVariantPolicies(),
 ): PublicPackageSnapshot {
+  const current = (release: GameRelease) =>
+    !retiredVariant(
+      release.gameId,
+      release.variantId ?? release.module.defaultVariantId,
+      policies,
+    );
+  const releases = Object.entries(snapshot.index.releases).filter(
+    ([, release]) => current(release),
+  );
+  const visible = new Set(releases.map(([id]) => id));
   return {
     catalog: {
-      releases: preferredCatalogReleases(snapshot.catalog.releases).map(
-        projectReleaseSummary,
-      ),
+      releases: preferredCatalogReleases(snapshot.catalog.releases)
+        .filter(current)
+        .map(projectReleaseSummary),
     },
     index: {
       releases: Object.fromEntries(
-        Object.entries(snapshot.index.releases).map(([id, release]) => [
-          id,
-          projectReleaseSummary(release),
-        ]),
+        releases.map(([id, release]) => [id, projectReleaseSummary(release)]),
       ),
-      selected: { ...snapshot.index.selected },
+      selected: Object.fromEntries(
+        Object.entries(snapshot.index.selected).filter(([, id]) =>
+          visible.has(id),
+        ),
+      ),
     },
     tasks: snapshot.tasks.map(
       ({ releaseId, phase, transferredBytes, totalBytes, error }) => ({

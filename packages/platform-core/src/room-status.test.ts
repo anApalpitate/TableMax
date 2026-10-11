@@ -43,6 +43,23 @@ async function fixture() {
 }
 afterEach(() => vi.restoreAllMocks());
 
+it('an empty box keeps game-first seating and accepts settings without loading rules, including restart', async () => {
+  const repository = new MemoryRepository();
+  let room = new RoomCoordinator(null, null, repository);
+  await expect(room.join('先入座')).rejects.toThrow('game-not-selected');
+  expect(
+    (
+      await room.command(
+        room.hostToken,
+        envelope(room, room.hostToken, { type: 'set-play-mode', mode: 'test' }),
+      )
+    ).ok,
+  ).toBe(true);
+  room = new RoomCoordinator(null, null, repository, undefined, 'play');
+  expect(room.view().seats).toEqual([]);
+  expect(room.view().game).toBeNull();
+});
+
 it('queries queued commands without executing them and coalesces concurrent exact retries', async () => {
   const { repository, room, a } = await fixture();
   const input = envelope(room, a.token, { type: 'ready', ready: true });

@@ -93,7 +93,7 @@ async function fixture(
   return { room, host };
 }
 for (const count of [5, 6, 7, 8, 9, 10])
-  for (const variant of ['classic', 'court'] as const)
+  for (const variant of ['configured'] as const)
     for (const difficulty of ['default', 'doubao', 'juewu'] as const) {
       it(`Avalon ${variant} ${count} seats ${difficulty} completes a natural match in isolated 32MiB Workers`, async () => {
         const { room, host } = await fixture(count, difficulty, variant);
@@ -159,4 +159,48 @@ it('Avalon cancels an obsolete Worker without committing its result', async () =
   controller.abort();
   await expect(result).rejects.toThrow('cancelled');
   expect(room.view(room.hostToken).history).toHaveLength(0);
+});
+
+it('10 sealed ballots calculate simultaneously in real Workers and survive serial commits', async () => {
+  const { room } = await fixture(10, 'juewu', 'configured');
+  while ((room.view().gameView as AvalonView).phase !== 'vote') {
+    const task = room.botTask()!;
+    expect(
+      (await room.submitBot(task, task.actions[0]!, null, task.data.random)).ok,
+    ).toBe(true);
+  }
+  const tasks = room.botTasks();
+  expect(tasks).toHaveLength(10);
+  const executor = new WorkerBotExecutor(workerPath);
+  let active = 0,
+    peak = 0;
+  const started = performance.now();
+  await Promise.all(
+    tasks.map(async (task) => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 2000);
+      active++;
+      peak = Math.max(peak, active);
+      try {
+        const result = await executor.execute(task, controller.signal);
+        expect(
+          (
+            await room.submitBot(
+              task,
+              result.action,
+              result.memory,
+              result.random,
+            )
+          ).ok,
+        ).toBe(true);
+      } finally {
+        active--;
+        clearTimeout(timer);
+      }
+    }),
+  );
+  expect(peak).toBe(10);
+  expect(active).toBe(0);
+  expect(performance.now() - started).toBeLessThan(2000);
+  expect(room.view().botError).toBeNull();
 });

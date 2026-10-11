@@ -243,11 +243,7 @@ export class RoomCoordinator {
     let game: LoadedGame | null;
     try {
       game = saved?.manifest
-        ? await registry.load(
-            saved.manifest.id,
-            saved.variantId,
-            saved.releaseRef ?? registry.resolveSavedRelease?.(saved),
-          )
+        ? await registry.loadSaved(saved)
         : saved === null && initialGameId
           ? await registry.load(initialGameId)
           : null;
@@ -290,11 +286,7 @@ export class RoomCoordinator {
   async restoreMissingRelease() {
     if (!this.missingRelease || !this.data.manifest) return false;
     return this.enqueue(async () => {
-      const game = await this.registry.load(
-        this.data.manifest!.id,
-        this.data.variantId,
-        this.data.releaseRef ?? this.registry.resolveSavedRelease?.(this.data),
-      );
+      const game = await this.registry.loadSaved(this.data);
       const next = validateSave(
         this.repository.load(),
         game.rules,
@@ -785,6 +777,7 @@ export class RoomCoordinator {
     next: Save,
     command?: Command['command'],
     identity?: Identity,
+    rules: GameRules | null = this.game?.rules ?? null,
   ) {
     const ready = command?.type === 'ready' && identity?.role === 'player';
     next.readyWindow =
@@ -799,7 +792,7 @@ export class RoomCoordinator {
         : { floor: next.revision, seats: {} };
     const group =
       next.snapshot && !next.paused && next.status === 'playing'
-        ? this.rules.decisions(next.snapshot.state)[0]?.concurrencyGroup
+        ? rules?.decisions(next.snapshot.state)[0]?.concurrencyGroup
         : undefined;
     const submittedGroup =
       command?.type === 'game' &&
@@ -973,7 +966,11 @@ export class RoomCoordinator {
   private async execute(
     identity: Identity,
     envelope: Command,
-    botUpdate?: { memory: JsonValue; random: number },
+    botUpdate?: {
+      memory: JsonValue;
+      random: number;
+      source: NonNullable<ReturnType<RoomCoordinator['botTask']>>;
+    },
     image?: AvatarImage,
   ): Promise<CommandReply> {
     requireThat(identity.role !== 'public', 'unauthorized');
@@ -1000,8 +997,9 @@ export class RoomCoordinator {
     }
     requireThat(this.acceptsRevision(identity, envelope), 'stale-revision');
     if (botUpdate)
-      requireThat(envelope.revision === this.data.revision, 'stale-revision');
+      requireThat(this.botTaskCurrent(botUpdate.source), 'stale-revision');
     let next = copySave(this.data);
+    let committedGame = this.game;
     const c = envelope.command;
     const host = () => requireThat(identity.role === 'host', 'unauthorized');
     const control = () => requireThat(this.controls(identity), 'unauthorized');
@@ -1211,14 +1209,24 @@ export class RoomCoordinator {
         control();
         lobby();
         requireThat(this.game, 'game-not-selected');
+        if (this.game.restoreOnly) {
+          committedGame = await this.registry.load(this.rules.manifest.id);
+          next.manifest = committedGame.rules.manifest;
+          if (committedGame.variantId === undefined) delete next.variantId;
+          else next.variantId = committedGame.variantId;
+          if (committedGame.releaseRef === undefined) delete next.releaseRef;
+          else next.releaseRef = committedGame.releaseRef;
+        }
+        const activeRules = committedGame!.rules,
+          activeStrategy = committedGame!.bot;
         requireThat(
-          next.seats.length >= this.rules.manifest.players.min &&
+          next.seats.length >= activeRules.manifest.players.min &&
             next.seats.every((s) => s.ready),
           'not-ready',
         );
         const random = new RandomSource(randomBytes(4).readUInt32LE() || 1);
-        const state = this.rules.validateState(
-          this.rules.initialize({
+        const state = activeRules.validateState(
+          activeRules.initialize({
             seats: next.seats.map((s) => s.id),
             random,
           }),
@@ -1233,16 +1241,16 @@ export class RoomCoordinator {
               .map((s) => [
                 s.id,
                 {
-                  id: this.strategy.id,
-                  version: this.strategy.version,
-                  memory: this.strategy.validateMemory(null),
+                  id: activeStrategy.id,
+                  version: activeStrategy.version,
+                  memory: activeStrategy.validateMemory(null),
                   random: randomBytes(4).readUInt32LE() || 1,
                   difficulty: s.botDifficulty ?? 'default',
                 },
               ]),
           ),
         };
-        next.status = this.rules.ended(state) ? 'ended' : 'playing';
+        next.status = activeRules.ended(state) ? 'ended' : 'playing';
         next.joinOpen = false;
         break;
       }
@@ -1273,6 +1281,15 @@ export class RoomCoordinator {
         {
           const fresh =
             c.type === 'replay' ? this.lobbyWithSeats() : this.fresh();
+          let nextGame = this.game;
+          if (nextGame?.restoreOnly) {
+            nextGame = await this.registry.load(nextGame.rules.manifest.id);
+            fresh.manifest = nextGame.rules.manifest;
+            if (nextGame.variantId === undefined) delete fresh.variantId;
+            else fresh.variantId = nextGame.variantId;
+            if (nextGame.releaseRef === undefined) delete fresh.releaseRef;
+            else fresh.releaseRef = nextGame.releaseRef;
+          }
           fresh.playMode = next.playMode ?? 'play';
           fresh.countdownSeconds =
             next.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS;
@@ -1282,7 +1299,7 @@ export class RoomCoordinator {
             branch: fresh.branch,
           };
           fresh.receipts[key] = { fingerprint, reply };
-          this.commit(fresh, true);
+          this.commit(fresh, true, undefined, nextGame);
           this.restored = false;
           return reply;
         }
@@ -1437,7 +1454,7 @@ export class RoomCoordinator {
       }
     }
     next.revision++;
-    this.updateWindows(next, c, identity);
+    this.updateWindows(next, c, identity, committedGame?.rules ?? null);
     const reply: CommandReply = {
       ok: true,
       revision: next.revision,
@@ -1449,7 +1466,7 @@ export class RoomCoordinator {
       next,
       changedInstance || c.type === 'resume' || c.type === 'rollback',
       events,
-      this.game,
+      committedGame,
       image ? { avatars: [image] } : undefined,
     );
     if (changedInstance || c.type === 'resume') this.restored = false;
@@ -1461,12 +1478,18 @@ export class RoomCoordinator {
   botTasks() {
     const first = this.botTask();
     if (!first) return [];
-    if (!first.timing) return [first];
+    if (!first.timing && !first.concurrent) return [first];
     return this.data.seats
       .filter((s) => s.controller === 'bot')
       .flatMap((s) => {
         const task = this.botTask(s.id);
-        return task?.timing ? [task] : [];
+        return task &&
+          (first.concurrent
+            ? task.concurrent?.group === first.concurrent.group &&
+              task.concurrent.floor === first.concurrent.floor
+            : task.timing)
+          ? [task]
+          : [];
       });
   }
   botTask(requestedSeat?: string) {
@@ -1497,7 +1520,7 @@ export class RoomCoordinator {
     const actions = structuredClone(
       this.rules.legalActions(d.snapshot.state, decision.seatId),
     );
-    const immediate =
+    const matches = (types: readonly string[] | undefined) =>
       actions.length > 0 &&
       actions.every(
         (action) =>
@@ -1505,9 +1528,19 @@ export class RoomCoordinator {
           typeof action === 'object' &&
           !Array.isArray(action) &&
           typeof action.type === 'string' &&
-          this.strategy.immediateActions?.includes(action.type),
+          !!types?.includes(action.type),
       );
+    const immediate =
+      matches(this.strategy.immediateActions) ||
+      (d.playMode === 'test' && matches(this.strategy.testImmediateActions));
+    const concurrent =
+      matches(this.strategy.concurrentActions) &&
+      decision.concurrencyGroup &&
+      d.gameWindow?.group === decision.concurrencyGroup
+        ? { group: d.gameWindow.group, floor: d.gameWindow.floor }
+        : undefined;
     return {
+      ...(concurrent ? { concurrent } : {}),
       ...(timing ? { timing } : {}),
       ...(immediate ? { immediate: true } : {}),
       gameId: this.rules.manifest.id,
@@ -1517,6 +1550,7 @@ export class RoomCoordinator {
       instanceId: d.instanceId,
       revision: d.revision,
       branch: d.branch,
+      ...(d.playMode ? { playMode: d.playMode } : {}),
       decision: structuredClone(decision),
       view: structuredClone(
         this.rules.project(d.snapshot.state, {
@@ -1527,6 +1561,28 @@ export class RoomCoordinator {
       actions,
       data: structuredClone(data),
     };
+  }
+  private botTaskCurrent(
+    task: NonNullable<ReturnType<RoomCoordinator['botTask']>>,
+  ) {
+    const current = this.botTask(task.decision.seatId);
+    if (
+      !current ||
+      task.instanceId !== current.instanceId ||
+      task.branch !== current.branch ||
+      task.rulesVersion !== current.rulesVersion ||
+      task.variantId !== current.variantId ||
+      task.releaseRef !== current.releaseRef ||
+      task.playMode !== current.playMode ||
+      task.decision.id !== current.decision.id ||
+      JSON.stringify(task.data) !== JSON.stringify(current.data)
+    )
+      return false;
+    return task.concurrent
+      ? current.concurrent?.group === task.concurrent.group &&
+          current.concurrent.floor === task.concurrent.floor &&
+          task.revision >= task.concurrent.floor
+      : task.revision === current.revision;
   }
   submitBot(
     task: NonNullable<ReturnType<RoomCoordinator['botTask']>>,
@@ -1545,7 +1601,7 @@ export class RoomCoordinator {
             branch: task.branch,
             command: { type: 'game', decisionId: task.decision.id, action },
           },
-          { memory, random },
+          { memory, random, source: task },
         );
       } catch (error) {
         return {
@@ -1560,12 +1616,7 @@ export class RoomCoordinator {
   }
   botFailed(task: NonNullable<ReturnType<RoomCoordinator['botTask']>>) {
     return this.enqueue(() => {
-      if (
-        task.instanceId !== this.data.instanceId ||
-        task.revision !== this.data.revision ||
-        task.branch !== this.data.branch
-      )
-        return;
+      if (!this.botTaskCurrent(task)) return;
       const next = copySave(this.data);
       next.botError = '人机行动失败，请检查策略后恢复';
       next.paused = true;

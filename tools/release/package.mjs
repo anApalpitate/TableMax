@@ -254,10 +254,20 @@ await lock('package-win', async () => {
       const publicKey = pemLiteral.replaceAll('\\n', '\n');
       const verified = await gameReleaseAssets(gamesDirectory, { publicKey });
       const catalog = envelope.payload;
-      assert.equal(
-        catalog.releases.length,
-        8,
-        'Full edition requires all eight current variants',
+      const expectedVariants = (await discover())
+        .filter((module) => !module.internal)
+        .flatMap((module) =>
+          (module.variants?.length ? module.variants : [{ id: undefined }]).map(
+            (variant) => `${module.id}:${variant.id ?? ''}`,
+          ),
+        )
+        .sort();
+      assert.deepEqual(
+        catalog.releases
+          .map((release) => `${release.gameId}:${release.variantId ?? ''}`)
+          .sort(),
+        expectedVariants,
+        'Full edition requires exactly the current catalog variants',
       );
       const ids = new Set(
         catalog.releases.flatMap((release) => [

@@ -26,7 +26,7 @@
     "sdk": 1,
     "protocol": 7,
     "webHost": 1,
-    "rulesVersion": "classic-2012-1",
+    "rulesVersion": "classic-2012-configured-1",
     "stateVersion": 1,
     "gameVersion": "1.0.0",
     "strategyVersion": "1.0.0"
@@ -44,7 +44,7 @@
       {
         "icon": "cards",
         "title": "查看身份，守住秘密",
-        "text": "每人获得一张秘密角色牌。梅林知道邪恶是谁，邪恶互相知晓；忠臣只能从讨论与公开记录推理。"
+        "text": "每人获得一张秘密角色牌。梅林看见除莫德雷德外的邪恶；奥伯伦与其他邪恶互不认识；派西维尔辨认两位梅林候选。"
       },
       {
         "icon": "table",
@@ -57,7 +57,7 @@
         "text": "三次任务失败或连续五次组队被否决，邪恶获胜。三次任务成功后，刺客仍可指认梅林逆转胜负。"
       }
     ],
-    "goal": "2012经典原版，平台支持5–10人；基础角色及派西维尔／莫甘娜宫廷组合。"
+    "goal": "2012经典原版角色，平台5–10人；按人数采用固定角色配置。"
   },
   "botIntroduction": {
     "default": {
@@ -77,31 +77,17 @@
       ]
     }
   },
-  "defaultVariantId": "classic",
+  "defaultVariantId": "configured",
   "variants": [
     {
-      "id": "classic",
-      "name": "经典基础",
-      "description": "梅林、刺客、忠臣与爪牙；5–6人。",
+      "id": "configured",
+      "name": "经典配置",
+      "description": "按人数配置派西维尔、莫甘娜、奥伯伦与莫德雷德。",
       "compatibility": {
         "sdk": 1,
         "protocol": 7,
         "webHost": 1,
-        "rulesVersion": "classic-2012-1",
-        "stateVersion": 1,
-        "gameVersion": "1.0.0",
-        "strategyVersion": "1.0.0"
-      }
-    },
-    {
-      "id": "court",
-      "name": "宫廷迷局",
-      "description": "加入原版派西维尔与莫甘娜；派西维尔看见两位梅林候选。",
-      "compatibility": {
-        "sdk": 1,
-        "protocol": 7,
-        "webHost": 1,
-        "rulesVersion": "classic-2012-court-1",
+        "rulesVersion": "classic-2012-configured-1",
         "stateVersion": 1,
         "gameVersion": "1.0.0",
         "strategyVersion": "1.0.0"
@@ -116,5 +102,6 @@
     "privateIncrementBytes": 536870912,
     "workerOldGenerationMiB": 32,
     "basis": "Initial reviewed resource allocation: 4MiB complete module payload includes up to 3MiB original WebP illustrations, twelve local FLAC cues and code. This disk metric is distinct from RoomView JSON; the earlier 1MiB JSON placeholder was corrected before delivery. Six seats, at most 25 proposals, five quest records and 15 authorized faction hypotheses; service/renderer/32MiB Worker allocations stay fixed pending measurement, not worst-case claims."
-  }
+  },
+  "retiredVariantIds": ["classic", "court"]
 }

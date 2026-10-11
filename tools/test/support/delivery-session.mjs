@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { mkdir, mkdtemp, readFile, readdir, stat } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { digest, localFile } from '../runner/evidence.mjs';
 import { launchDesktop } from './desktop-test.mjs';
 
@@ -11,6 +11,7 @@ export async function withDeliverySession({
   edition = 'box',
   report,
   checks,
+  workDirectory,
 }) {
   assert.ok(['box', 'full'].includes(edition));
   assert.ok(Array.isArray(checks) && checks.length);
@@ -55,8 +56,19 @@ export async function withDeliverySession({
     checksMs: 0,
   };
   await mkdir(join(root, 'tmp'), { recursive: true });
-  const work = await mkdtemp(join(root, 'tmp/delivery-session-')),
-    app = join(work, 'app');
+  const work = workDirectory
+    ? localFile(root, workDirectory)
+    : await mkdtemp(join(root, 'tmp/delivery-session-'));
+  assert.equal(dirname(work), join(root, 'tmp'));
+  assert.match(basename(work), /^delivery-session-[A-Za-z0-9]{6}$/);
+  if (workDirectory) {
+    assert.ok(
+      !(await readdir(work)).includes('data'),
+      'Reuse only extraction-only sessions, never an existing game or profile',
+    );
+    report.reusedExtractionDirectory = true;
+  }
+  const app = join(work, 'app');
   report.work = work;
   report.startups = 0;
   report.checks = [];

@@ -14,11 +14,13 @@
 
 ## 阿瓦隆专项构建与验证
 
-经典2012原版接入平台5–10人，规则与两种角色配置见[游戏主题](../games/avalon/README.md)。独立构建 `node tools/build/build.mjs --only=game:avalon`；单测 `node tools/test/runner/test-scoped.mjs --scope=game:avalon`仅选本游戏规则、策略、UI与实际服务／Worker项。范围隔离工具单独运行 `node --test tools/test/runner/scopes.test.mjs`，不增加其他游戏检查。
+经典2012原版接入平台5–10人，现行新局只用 `configured` 人数配置，旧 `classic`／`court` 仅恢复原局，见[游戏主题](../games/avalon/README.md)。独立构建 `node tools/build/build.mjs --only=game:avalon`；单测 `node tools/test/runner/test-scoped.mjs --scope=game:avalon`仅选本游戏规则、策略、UI与实际服务／Worker项。涉及共享调度、目录或恢复时按实际依赖增加 `shared` 范围，不因其他未提交改动增加游戏项。范围隔离工具单独运行 `node --test tools/test/runner/scopes.test.mjs`。
 
-`node tools/test/games/avalon/verify-avalon.mjs --executable=<实际解压的TableMax.exe> --zip=<匹配EXE的内部payload.zip> --seats=6 --variant=court --only=all --evidence=<安全独立名称>` 启动实际隐藏WinForms／WebView2及包内Socket／SQLite服务，显式监听127.0.0.1，使用隔离 `tmp/game-review-<六位随机后缀>`。`--seats=5|6|7|8|9|10`、`--variant=classic|court`；`--only=layout|success|failure|rejections|assassination|long-quest|all` 定向选择三端布局、三成功梅林幸存、三失败、五否决及梅林遇刺流程。`long-quest` 额外按成功／失败交替推进五次任务后刺杀，检查五张已结算任务牌；`all` 保留原四种终局。终局通过真实合法动作进入，不改写秘密存档；首项身份确认、表决、任务及刺杀用实际UI按钮核验，`success` 另含提名及暂停／回退。
+`node tools/test/games/avalon/verify-avalon.mjs --executable=<实际解压的TableMax.exe> --zip=<匹配EXE的内部payload.zip> --seats=6 --variant=configured --only=all --evidence=<安全独立名称>` 启动实际隐藏WinForms／WebView2及包内Socket／SQLite服务，显式监听127.0.0.1，使用隔离 `tmp/game-review-<六位随机后缀>`。`--seats=5|6|7|8|9|10`，现行新局使用 `--variant=configured`；`classic`／`court` 仅用于对应历史实际程序；`--only=layout|success|failure|rejections|assassination|long-quest|all` 定向选择三端布局、三成功梅林幸存、三失败、五否决及梅林遇刺流程。`long-quest` 额外按成功／失败交替推进五次任务后刺杀，检查五张已结算任务牌；`all` 保留原四种终局。终局通过真实合法动作进入，不改写秘密存档；首项身份确认、表决、任务及刺杀用实际UI按钮核验，`success` 另含提名及暂停／回退。
 
-人数与阶段计划通过 `node tools/test/runner/test-scoped.mjs --scope=game:avalon --plan=<计划JSON>` 排序运行，沿用累计3失败停止与不自动重试。`artifacts/avalon/validation/portable-plan.json` 和 `grid-final-plan.json` 是当次参数记录；重新执行时先解压当前ZIP，复制计划到新名称并更新实际EXE路径及证据名，历史临时目录可能已安全退役。验证包括实际ZIP解压成员前后哈希、公开秘密边界、保存／暂停／回退、320px—4K与横屏、图文规则、正确事件全屏特效／减少动态、12条本地音频解码、真实播放调用和原生单窗口播放权、刷新不重播。最窄玩家画面以实际 `documentElement.clientWidth` 断言横向溢出，并检查终局；不以包含滚动条的 `innerWidth` 放宽边界。原生物理输出始终静音，隔离数据中的音频偏好只用于观察调用，不修改日常设置；不把模拟手机、DPI或解码／播放调用作为实体手机、LAN或真人听感认证。实际证据与原失败见 [阿瓦隆验证](../games/avalon/validation-scenarios.md)。
+人数与阶段计划通过 `node tools/test/runner/test-scoped.mjs --scope=game:avalon --plan=<计划JSON>` 排序运行，沿用累计3失败停止与不自动重试。`artifacts/avalon/validation/portable-plan.json` 和 `grid-final-plan.json` 是历史参数记录；重新执行时先核对实际 EXE、匹配载荷及当前配置，复制计划到新名称并更新路径、玩法和证据名，不能直接沿用旧 `court` 参数，历史临时目录可能已安全退役。验证包括实际提取成员前后哈希、公开秘密边界、保存／暂停／回退、320px—4K与横屏、图文规则、正确事件全屏特效／减少动态、12条本地音频解码、真实播放调用和原生单窗口播放权、刷新不重播。最窄玩家画面以实际 `documentElement.clientWidth` 断言横向溢出，并检查终局；不以包含滚动条的 `innerWidth` 放宽边界。原生物理输出始终静音，隔离数据中的音频偏好只用于观察调用，不修改日常设置；不把模拟手机、DPI或解码／播放调用作为实体手机、LAN或真人听感认证。实际证据与原失败见[阿瓦隆验证](../games/avalon/validation-scenarios.md)。
+
+现行独立安装程序验证使用 `node tools/test/games/avalon/verify-configured-delivery.mjs --edition=full|box --packages=<本地已验签名包目录> --out=<新证据目录>`，每次选择一个 edition，从当前载荷指针绑定实际EXE提取、逐成员验哈希、隐藏静音启动并检查三端规则。full检查预装新包；box先导入原宫廷包再导入新包，注册与公开目录始终只选现行配置，新包通过离线导入后可重新加载，不依赖线上已发布新包。`--work=tmp/delivery-session-<六位后缀>`仅允许复用没有data目录的提取专用会话，仍重验实际EXE与全部成员，不复用已有对局或浏览器profile。当前源码、候选包、失败与通过分别记证据，旧版原生流程报告保留原路径及版本边界。
 
 ## UNO 专项构建与验证
 

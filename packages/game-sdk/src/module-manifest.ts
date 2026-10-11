@@ -33,6 +33,8 @@ export interface ModuleManifest {
   /** Legacy reader compatibility only; variants are the source of new summaries. */
   versions?: { name: string; selected: boolean; description: string }[];
   defaultVariantId?: string;
+  /** Retired IDs remain recoverable but cannot start a new game. */
+  retiredVariantIds?: string[];
   variants?: {
     id: string;
     name: string;
@@ -76,6 +78,7 @@ export interface GameCatalogEntry {
   catalog: Pick<ModuleManifest['catalog'], 'id' | 'name' | 'min' | 'max'>;
   cover: string | null;
   defaultVariantId?: string;
+  retiredVariantIds?: string[];
   variants?: { id: string; name: string; description: string }[];
 }
 

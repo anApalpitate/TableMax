@@ -1,16 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { Role, AvalonView } from '../types';
+import { ROLE_NAMES } from '../config';
 
-const roleNames: Record<Role, string> = {
-  merlin: '梅林',
-  percival: '派西维尔',
-  servant: '亚瑟的忠臣',
-  morgana: '莫甘娜',
-  assassin: '刺客',
-  minion: '莫德雷德的爪牙',
-  mordred: '莫德雷德',
-  oberon: '奥伯伦',
-};
 const positions: Record<Role, string> = {
   merlin: '0% 0%',
   percival: '100% 0%',
@@ -42,7 +33,7 @@ export function RoleCard({
       />
       <div className="av-role-caption">
         <span>{alignmentFor(role) === 'good' ? '忠诚阵营' : '邪恶阵营'}</span>
-        <strong>{roleNames[role]}</strong>
+        <strong>{ROLE_NAMES[role]}</strong>
       </div>
     </div>
   );
@@ -62,15 +53,24 @@ export function PrivateKnowledge({
       <h3>仅你可见</h3>
       {self.role === 'merlin' ? (
         <p>
-          你知晓邪恶势力，但要避免暴露自己。三次任务成功后，刺客仍有机会刺杀梅林。
+          你看见除莫德雷德外的邪恶势力，奥伯伦也会显现。要避免暴露自己；三次任务成功后，刺客仍有机会刺杀梅林。
         </p>
       ) : self.role === 'percival' ? (
         <p>
           这两人分别是梅林与莫甘娜；你无法直接分辨。保护梅林，同时观察他们的选择。
         </p>
+      ) : self.role === 'oberon' ? (
+        <p>
+          你属于邪恶，但你与其他邪恶互不认识；梅林能看见你。通过讨论与公开任务记录推理同伴，任务可以提交成功或失败。
+        </p>
+      ) : self.role === 'mordred' ? (
+        <p>
+          你属于邪恶，梅林看不到你。你认识除奥伯伦外的邪恶同伴；任务可以提交成功或失败。
+        </p>
       ) : self.alignment === 'evil' ? (
         <p>
           让三次任务失败，或连续否决五支队伍。若忠诚阵营完成三次任务，刺客可刺杀梅林逆转胜负。
+          你看到的同伴不包括奥伯伦，也不知道他们的具体角色。
         </p>
       ) : (
         <p>

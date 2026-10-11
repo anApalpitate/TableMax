@@ -317,3 +317,45 @@ it('serves only lightweight HTTP metadata and immutable installed details, with 
     await service.close();
   }
 }, 30000);
+
+it('retired Avalon variants are hidden in public copies without modifying historical signed records', () => {
+  const module = JSON.parse(
+    readFileSync('games/avalon/game-module.json', 'utf8'),
+  ) as ModuleManifest;
+  const releases = ['classic', 'court', 'configured'].map((variantId, i) => ({
+    releaseId: String(i).repeat(64),
+    gameId: 'avalon',
+    variantId,
+    module,
+    code: 'a'.repeat(64),
+    resources: [],
+    resourceMap: {},
+    releaseTag: 'v1.0.6',
+  }));
+  const snapshot = {
+    catalog: { schemaVersion: 1 as const, releases, blobs: [] },
+    index: {
+      schemaVersion: 1 as const,
+      releases: Object.fromEntries(releases.map((r) => [r.releaseId, r])),
+      blobs: {},
+      selected: {
+        'avalon:court': releases[1]!.releaseId,
+        'avalon:configured': releases[2]!.releaseId,
+      },
+    },
+    tasks: [],
+    unavailableReleaseIds: [],
+  };
+  const before = structuredClone(snapshot);
+  const projected = projectPackageSnapshot(snapshot);
+  expect(projected.catalog.releases.map((r) => r.variantId)).toEqual([
+    'configured',
+  ]);
+  expect(
+    Object.values(projected.index.releases).map((r) => r.variantId),
+  ).toEqual(['configured']);
+  expect(projected.index.selected).toEqual({
+    'avalon:configured': releases[2]!.releaseId,
+  });
+  expect(snapshot).toEqual(before);
+});

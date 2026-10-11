@@ -11,6 +11,8 @@ export interface GameCatalogEntry {
   variants?: { id: string; name: string; description: string }[];
 }
 export interface LoadedGame {
+  /** Historical configuration may continue its saved match, never initialize again. */
+  restoreOnly?: boolean;
   /** Immutable reviewed package identity; absent only for source development. */
   releaseRef?: string;
   variantId?: string;
@@ -20,6 +22,7 @@ export interface LoadedGame {
 export interface GameRegistration {
   catalog: GameCatalogEntry;
   load(variantId?: string, releaseRef?: string): Promise<LoadedGame>;
+  loadSaved?(save: Save, releaseRef?: string): Promise<LoadedGame>;
 }
 
 /** Metadata is available without importing any game's rules, cards or strategy. */
@@ -69,6 +72,45 @@ export class GameRegistry {
     )
       throw new Error('unknown-game-variant');
     const game = await entry.load(selected, releaseRef);
+    if (releaseRef !== undefined && game.releaseRef !== releaseRef)
+      throw new Error('missing-game-release');
+    return this.validateLoaded(entry, game, selected, releaseRef);
+  }
+  async loadSaved(save: Save): Promise<LoadedGame> {
+    if (!save.manifest) throw new Error('unknown-game');
+    const entry = this.entries.find(
+      (candidate) => candidate.catalog.id === save.manifest!.id,
+    );
+    if (!entry) throw new Error('unknown-game');
+    const ref = save.releaseRef ?? this.resolveSavedRelease?.(save);
+    if (!entry.loadSaved)
+      return this.load(save.manifest.id, save.variantId, ref);
+    const game = await entry.loadSaved(save, ref);
+    const selected = game.variantId ?? save.variantId;
+    const loaded = this.validateLoaded(entry, game, selected, ref);
+    if (
+      ['id', 'gameVersion', 'rulesVersion', 'stateVersion'].some(
+        (key) =>
+          save.manifest![key as keyof typeof save.manifest] !==
+          loaded.rules.manifest[key as keyof typeof loaded.rules.manifest],
+      )
+    )
+      throw new Error('incompatible-save');
+    return {
+      ...loaded,
+      ...(selected !== undefined &&
+      !entry.catalog.variants?.some((v) => v.id === selected)
+        ? { restoreOnly: true }
+        : {}),
+    };
+  }
+  private validateLoaded(
+    entry: GameRegistration,
+    game: LoadedGame,
+    selected?: string,
+    releaseRef?: string,
+  ): LoadedGame {
+    const id = entry.catalog.id;
     if (releaseRef !== undefined && game.releaseRef !== releaseRef)
       throw new Error('missing-game-release');
     const manifest = game.rules.manifest;

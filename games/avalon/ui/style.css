@@ -974,10 +974,12 @@
 :where(.avalon-screen, .av-overlay) .av-rule-roles {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 18px;
   margin-bottom: 20px;
 }
 :where(.avalon-screen, .av-overlay) .av-rule-roles > .av-role-card {
+  width: 160px;
   max-width: 185px;
 }
 :where(.avalon-screen, .av-overlay) .av-rule-flow {
@@ -2315,4 +2317,38 @@
   place-items: center;
   line-height: 1;
   padding-bottom: 2px;
+}
+
+:where(.avalon-screen, .av-overlay) .av-rule-configurations {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+:where(.avalon-screen, .av-overlay) .av-rule-configurations section {
+  display: grid;
+  grid-template-columns: 85px 1fr 1fr;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #b49b63;
+  border-radius: 12px;
+  background: #fff4d9;
+  font-size: 18px;
+}
+:where(.avalon-screen, .av-overlay)
+  .av-rule-configurations
+  section[data-current='true'] {
+  border: 3px solid #876823;
+}
+:where(.avalon-screen, .av-overlay) .av-rule-configurations section div {
+  display: grid;
+  gap: 6px;
+}
+@media (max-width: 600px) {
+  :where(.avalon-screen, .av-overlay) .av-rule-configurations section {
+    grid-template-columns: 1fr;
+    font-size: 16px;
+  }
+  :where(.avalon-screen, .av-overlay) .av-rule-roles > .av-role-card {
+    width: 120px;
+  }
 }

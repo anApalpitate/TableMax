@@ -103,6 +103,10 @@ export interface BotStrategy {
    * apply; this declaration never acts for a human seat.
    */
   immediateActions?: readonly string[];
+  /** No preparation timer in test mode; execution and saving still apply. */
+  testImmediateActions?: readonly string[];
+  /** Opt in only for commuting decisions with a rules concurrencyGroup. */
+  concurrentActions?: readonly string[];
   validateMemory(input: unknown): JsonValue;
   /** Pure, authorized observation committed atomically with a successful action. */
   observe?(input: {

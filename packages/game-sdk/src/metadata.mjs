@@ -2,6 +2,18 @@ const clone = (value) => structuredClone(value);
 
 /** Explicit allowlist: detail or private/runtime fields cannot leak by spread. */
 export function projectGameCatalog(module, cover = module.cover) {
+  const retired = module.retiredVariantIds;
+  if (
+    retired !== undefined &&
+    (!Array.isArray(retired) ||
+      new Set(retired).size !== retired.length ||
+      retired.some(
+        (id) => typeof id !== 'string' || !/^[a-z][a-z0-9-]*$/.test(id),
+      ) ||
+      retired.includes(module.defaultVariantId) ||
+      module.variants?.some((v) => retired.includes(v.id)))
+  )
+    throw new Error('invalid-retired-variants');
   const { id, name, min, max } = module.catalog;
   return {
     id: module.id,
@@ -25,6 +37,7 @@ export function projectGameCatalog(module, cover = module.cover) {
       : {}),
     catalog: { id, name, min, max },
     cover,
+    ...(retired === undefined ? {} : { retiredVariantIds: [...retired] }),
     ...(module.defaultVariantId === undefined
       ? {}
       : { defaultVariantId: module.defaultVariantId }),

@@ -25,6 +25,20 @@ const forbidden = [
   'versions',
 ];
 
+test('retirement is optional, copied, and cannot overlap current variants or the default', async () => {
+  const module = await pokemon();
+  assert.equal('retiredVariantIds' in projectGameCatalog(module), false);
+  module.retiredVariantIds = ['retired-role-table'];
+  const catalog = projectGameCatalog(module);
+  assert.deepEqual(catalog.retiredVariantIds, module.retiredVariantIds);
+  catalog.retiredVariantIds.push('another-old-table');
+  assert.equal(module.retiredVariantIds.length, 1);
+  for (const invalid of [['original'], ['old', 'old'], ['bad id'], [null]]) {
+    module.retiredVariantIds = invalid;
+    assert.throws(() => projectGameCatalog(module), /invalid-retired-variants/);
+  }
+});
+
 test('uninstalled catalog keeps only browsing fields and canonical variant summaries', async () => {
   const manifest = await pokemon();
   manifest.library.extra = 'must not leak';

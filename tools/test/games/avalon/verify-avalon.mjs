@@ -49,11 +49,11 @@ assert.ok(
 const executablePath = resolve(option('executable', desktopExecutable));
 const zipPath = option('zip') ? resolve(option('zip')) : null;
 const seats = Number(option('seats', '6'));
-const variant = option('variant', 'court');
+const variant = option('variant', 'configured');
 const only = option('only', 'all');
 const evidenceName = option('evidence', `native-${seats}-${Date.now()}`);
 assert.ok([5, 6, 7, 8, 9, 10].includes(seats));
-assert.ok(['classic', 'court'].includes(variant));
+assert.ok(['configured', 'classic', 'court'].includes(variant));
 assert.ok(
   [
     'all',
@@ -116,7 +116,9 @@ async function until(predicate, label, timeout = 12000) {
 async function auditPackage(stage) {
   if (!zipPath) return;
   const manifest = JSON.parse(
-    await readFile(zipPath.replace(/\.zip$/i, '-manifest.json'), 'utf8'),
+    await readFile(zipPath.replace(/\.zip$/i, '-manifest.json'), 'utf8').catch(
+      () => readFile(join(dirname(zipPath), 'release-manifest.json'), 'utf8'),
+    ),
   );
   assert.equal(hash(await readFile(zipPath)), manifest.archive.sha256);
   assert.equal(manifest.archive.sha256, evidence.zipSha256);
@@ -431,18 +433,26 @@ async function privacy() {
   }
 }
 async function audioDecode() {
-  const files = (
-    await readdir(
-      resolve(dirname(executablePath), 'web/games/avalon/web/assets'),
-    )
-  ).filter((name) => /\.(wav|flac|ogg|mp3)$/.test(name));
-  assert.ok(files.length >= 8, 'Thematic local sound cues exist');
+  const releaseRef = (await view(hostToken)).game?.releaseRef;
+  const files = releaseRef
+    ? (await readdir(resolve('assets/games/avalon/audio'))).map((name) => ({
+        name,
+        url: `/game-packages/${releaseRef}/resources/avalon/audio/${name}`,
+      }))
+    : (
+        await readdir(
+          resolve(dirname(executablePath), 'web/games/avalon/web/assets'),
+        )
+      ).map((name) => ({ name, url: '/games/avalon/web/assets/' + name }));
+  const audioFiles = files.filter(({ name }) =>
+    /\.(wav|flac|ogg|mp3)$/.test(name),
+  );
+  assert.ok(audioFiles.length >= 8, 'Thematic local sound cues exist');
   evidence.audio = await publicPage.evaluate(async (names) => {
     const context = new AudioContext();
     const records = [];
     try {
-      for (const name of names) {
-        const url = '/games/avalon/web/assets/' + name;
+      for (const { name, url } of names) {
         const response = await fetch(url);
         if (!response.ok) throw new Error('Missing offline audio ' + name);
         const decoded = await context.decodeAudioData(
@@ -468,7 +478,7 @@ async function audioDecode() {
       await context.close();
     }
     return records;
-  }, files);
+  }, audioFiles);
   assert.ok(
     evidence.audio.every(
       (record) =>

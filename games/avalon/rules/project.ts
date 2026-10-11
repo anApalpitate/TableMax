@@ -1,11 +1,6 @@
 import type { Viewer } from '@tablemax/game-sdk';
-import {
-  COURT_RULES_VERSION,
-  RULES_VERSION,
-  type AvalonView,
-  type Knowledge,
-  type Role,
-} from '../types';
+import { rulesVersionFor } from '../config';
+import { type AvalonView, type Knowledge, type Role } from '../types';
 import {
   alignment,
   questSizes,
@@ -55,7 +50,7 @@ export function project(s: State, viewer: Viewer): AvalonView {
   const winner = s.winner;
   return structuredClone({
     gameId: 'avalon',
-    rulesVersion: s.variant === 'court' ? COURT_RULES_VERSION : RULES_VERSION,
+    rulesVersion: rulesVersionFor(s.variant),
     variant: s.variant,
     phase: s.phase,
     seatOrder: s.seats,

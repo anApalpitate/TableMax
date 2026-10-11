@@ -1,3 +1,4 @@
+import { configuredRoles, playerSetup } from '../config';
 import type {
   Alignment,
   LatestAction,
@@ -45,16 +46,11 @@ export const exact = (input: Record<string, unknown>, keys: string[]) =>
   keys.every((key) => Object.hasOwn(input, key));
 export const alignment = (role: Role): Alignment =>
   ['merlin', 'percival', 'servant'].includes(role) ? 'good' : 'evil';
-export const questSizes = (count: number): number[] =>
-  count === 5
-    ? [2, 3, 2, 3, 3]
-    : count === 6
-      ? [2, 3, 4, 3, 4]
-      : count === 7
-        ? [2, 3, 3, 4, 4]
-        : [3, 4, 4, 5, 5];
+export const questSizes = (count: number): number[] => [
+  ...playerSetup(count).quests,
+];
 export const evilCount = (count: number): number =>
-  count === 10 ? 4 : count >= 7 ? 3 : 2;
+  playerSetup(count).evil.length;
 export const questFailThreshold = (
   count: number,
   questNumber: number,
@@ -68,6 +64,7 @@ export function discussionOrder(s: Pick<State, 'seats' | 'leader'>): string[] {
   );
 }
 export function roleDeck(count: number, variant: Variant): Role[] {
+  if (variant === 'configured') return configuredRoles(count);
   const evil = evilCount(count);
   return variant === 'court'
     ? [
@@ -135,7 +132,7 @@ export function validateState(
         typeof seat === 'string' && seat.length > 0 && seat.length <= 128,
     ) ||
     JSON.stringify(s.seats) !== JSON.stringify(seats) ||
-    !['classic', 'court'].includes(s.variant) ||
+    !['configured', 'classic', 'court'].includes(s.variant) ||
     (expectedVariant !== undefined && s.variant !== expectedVariant) ||
     ![
       'reveal',
@@ -341,7 +338,9 @@ export function validateState(
       if (
         !s.assassinationTarget ||
         !s.seats.includes(s.assassinationTarget) ||
-        alignment(s.roles[s.assassinationTarget]!) !== 'good'
+        (s.variant === 'configured'
+          ? !assassinationTargets(s).includes(s.assassinationTarget)
+          : alignment(s.roles[s.assassinationTarget]!) !== 'good')
       )
         fail();
       const hit = s.roles[s.assassinationTarget!] === 'merlin';
@@ -414,4 +413,11 @@ export function validateState(
   )
     fail();
   return structuredClone(s);
+}
+/** Only exclude identities already known to the Assassin, never unknown Oberon. */
+export function assassinationTargets(s: State): string[] {
+  return s.seats.filter(
+    (seat) =>
+      alignment(s.roles[seat]!) === 'good' || s.roles[seat] === 'oberon',
+  );
 }

@@ -12,7 +12,7 @@ export const ROLES = [
 ] as const;
 export type Role = (typeof ROLES)[number];
 export type Alignment = 'good' | 'evil';
-export type Variant = 'classic' | 'court';
+export type Variant = 'configured' | 'classic' | 'court';
 export type Phase =
   'reveal' | 'team' | 'discussion' | 'vote' | 'quest' | 'assassinate' | 'ended';
 export type Vote = 'approve' | 'reject';

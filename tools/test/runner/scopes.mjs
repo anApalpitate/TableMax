@@ -174,6 +174,12 @@ const verificationScopes = {
   'tools/maintenance/verify-cleanup-fast.ps1': ['tooling'],
   'tools/maintenance/verify-cleanup-idle.ps1': ['tooling'],
   'tools/test/games/avalon/verify-avalon.mjs': ['game:avalon'],
+  'tools/test/games/avalon/verify-configured-delivery.mjs': [
+    'game:avalon',
+    'box',
+    'shared',
+    'tooling',
+  ],
   'tools/test/games/avalon/verify-avalon-compat.mjs': ['game:avalon'],
   'tools/test/games/modern-art/verify-modern-art-empty-gallery.mjs': [
     'game:modern-art',

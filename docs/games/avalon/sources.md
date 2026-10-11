@@ -17,10 +17,12 @@ S01 PDF SHA-256：94a34e8d57b1a5f8c0901f0962dac3bd5ffb8a3eb89aaa02b7721b0d012515
 - S01第4页与S03[投票结果](https://rules.dized.com/game/rZluqS52QmGdpoVxcmVLtg/V3eSkuHJSIi-qfEWDXPTAw/result-of-voting)：全员密投一起翻开，严格多数，平票拒绝，队长轮转，连续五次否决邪恶胜。
 - S01第5页与S03[任务牌](https://rules.dized.com/game/rZluqS52QmGdpoVxcmVLtg/UUQVWxChTdmzBFZGf6cjsw/support-or-sabotage)、[任务结算](https://rules.dized.com/game/rZluqS52QmGdpoVxcmVLtg/_kkXSpYFS2qit8JIEWz-yA/resolve-quest)：善良只能成功，邪恶可成功／失败；牌打乱再揭，无提交者对应关系；仅7人以上第4任务有两败门槛。
 - S01第6页与S03[终局及刺杀](https://rules.dized.com/game/rZluqS52QmGdpoVxcmVLtg/ZXYBfRlqRC2sEzECCLLmHA/ending-the-game-and-assassinating-merlin)：三失败邪恶胜；三成功后刺客指认善良一人，梅林是否被刺中决定最终阵营胜负。
-- S01第7页：派西维尔／莫甘娜、莫德雷德／奥伯伦的知识差异。本次宫廷组合只启用前两者；原书允许可选角色组合，五人带派西维尔时建议加莫德雷德或莫甘娜。
+- S01第7页：派西维尔／莫甘娜、莫德雷德／奥伯伦的知识差异。现行用户配置按人数使用全部四种原版可选角色；原书允许可选角色组合，五人带派西维尔时建议加莫德雷德或莫甘娜。
 
 ## 固定版取舍与数字适配
 
 S01第6页要求刺杀讨论时不揭任何角色牌；S03当前在线文字说刺客先揭本人角色牌再指认。本次以2012固定版S01的秘密边界为准，不将在线改写写成原书明文。
 
 平台公开刺客当前决策席位，使各端明确谁执行最后指认；其他角色直到最终结果才公开。浏览器私密角色页与逐人确认代替闭眼主持；密投提交锁定本人选择，最后一位提交后同步揭示；任务只发布匿名失败张数。上述属于数字实施适配，在[规格](spec.md)与[权限](secrets.md)分别记录。
+
+2026-10-11角色人数组合采用用户提供图片；它是项目配置，不标作出版方固定推荐表。刺杀按钮排除本人已确知邪恶的同伴，保留未知奥伯伦，属于避免数字动作列表泄密的实施适配；指认非梅林仍按原文梅林生还结算。
