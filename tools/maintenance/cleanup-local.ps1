@@ -6,6 +6,7 @@ param(
   [switch]$KeepLatestOnly,
   [string]$ProjectRoot,
   [string[]]$TemporaryNames = @(),
+  [string]$TemporaryManifest,
   [string[]]$VerificationCopies = @(),
   [string]$DuplicateScreenshotsManifest,
   [string]$RetiredGeneratedManifest,
@@ -21,6 +22,10 @@ param(
 $ErrorActionPreference = 'Stop'
 $sourceWorkspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..')).TrimEnd('\')
 $automatic = $Kind -eq 'Maintenance'
+if ($PSBoundParameters.ContainsKey('TemporaryManifest') -and
+    ([string]::IsNullOrWhiteSpace($TemporaryManifest) -or $Kind -ne 'Intermediates' -or $IncludeBuild -or $KeepLatestOnly -or $TemporaryNames.Count -or $VerificationCopies.Count -or $RetiredVersions.Count -or $DuplicateScreenshotsManifest -or $RetiredGeneratedManifest -or $HistoricalScreenshotsManifest -or $RegisteredArtifactsManifest -or $ImageCopiesManifest -or $MinimumAgeMinutes -lt 30)) {
+  throw 'TemporaryManifest requires exclusive manual intermediate cleanup and at least 30 minutes protection.'
+}
 if ($PSBoundParameters.ContainsKey('ImageCopiesManifest') -and
     ([string]::IsNullOrWhiteSpace($ImageCopiesManifest) -or $Kind -ne 'Intermediates' -or $IncludeBuild -or $KeepLatestOnly -or $TemporaryNames.Count -or $VerificationCopies.Count -or $RetiredVersions.Count -or $DuplicateScreenshotsManifest -or $RetiredGeneratedManifest -or $HistoricalScreenshotsManifest -or $RegisteredArtifactsManifest -or $MinimumAgeMinutes -lt 30)) {
   throw 'ImageCopiesManifest requires exclusive manual cleanup and at least 30 minutes protection.'
@@ -362,6 +367,16 @@ if ($automatic) {
   }
 }
 
+if ($TemporaryManifest) {
+  . (Join-Path $PSScriptRoot 'temporary-retirement.ps1')
+  $temporaryProof = Read-TmpRetirementProof
+  $archive = $temporaryProof.archive
+  $archiveHash = $temporaryProof.archiveSha256
+  $preservedFiles = $temporaryProof.files
+  Invoke-TemporaryRetirement
+  return
+}
+
 # Preserve the current archive only after a real portable PASS proves its hash.
 try {
   Assert-LocalPath $archive | Out-Null
@@ -531,10 +546,10 @@ elseif ($Kind -eq 'Intermediates' -or $automatic) {
         Add-Candidate $entry.FullName 'Known isolated verification data or portable extraction'
       }
       elseif (-not $entry.PSIsContainer -and $entry.Name -match '^(check-(display|party|phone-table|presentation|release-cleanup)-docs\.mjs|cleanup-display-staging\.ps1|display-(dialog|dpi)-probe\.mjs|finalize-presentation-evidence\.mjs|inspect-six-result\.mjs|update-presentation-docs\.mjs)$') {
-        Add-Candidate $entry.FullName 'Known one-off script; archived in cleanup evidence before deletion'
+        Add-Candidate $entry.FullName 'Known one-off script; delete without recovery archive'
       }
       elseif ($TemporaryNames.Count) {
-        Add-Candidate $entry.FullName 'Explicitly reviewed temporary content; archived before deletion'
+        Add-Candidate $entry.FullName 'Explicitly reviewed temporary content; delete without recovery archive'
       }
       else { $skipped.Add([PSCustomObject]@{ path = $entry.FullName; reason = 'Unrecognized temporary content; preserved for manual review.' }) }
     }
@@ -613,30 +628,6 @@ try {
       }
       if ($candidate.PSObject.Properties['retiredGenerated']) {
         Assert-RetiredGenerated $candidate.retiredGenerated
-      }
-      if ($candidate.reason -like 'Known one-off script*') {
-        $scriptArchive = Join-Path $logRoot 'temporary-scripts'
-        New-Item -ItemType Directory -Path $scriptArchive -Force | Out-Null
-        Copy-Item -LiteralPath $candidate.path -Destination $scriptArchive
-      }
-      if ($candidate.reason -like 'Explicitly reviewed temporary content*') {
-        $temporaryArchive = Join-Path $logRoot 'reviewed-temporary-content'
-        New-Item -ItemType Directory -Path $temporaryArchive -Force | Out-Null
-        Copy-Item -LiteralPath $candidate.path -Destination $temporaryArchive -Recurse -Force
-        $archivedPath = Join-Path $temporaryArchive ([IO.Path]::GetFileName($candidate.path))
-        $archivedSnapshot = Read-Snapshot $archivedPath
-        if ($archivedSnapshot.bytes -ne $snapshot.bytes -or $archivedSnapshot.entries -ne $snapshot.entries) {
-          throw ('Temporary archive does not match the selected entry: ' + $candidate.path)
-        }
-        Read-Tree $candidate.path | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
-          $copyPath = if ($_.FullName -eq $candidate.path) { $archivedPath } else { Join-Path $archivedPath $_.FullName.Substring($candidate.path.Length + 1) }
-          if ((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $copyPath -Algorithm SHA256).Hash) {
-            throw ('Temporary archive hash mismatch: ' + $_.FullName)
-          }
-        }
-        if ((Read-Snapshot $candidate.path).fingerprint -ne $candidate.fingerprint) {
-          throw ('Candidate changed while archiving; stopped: ' + $candidate.path)
-        }
       }
       Assert-Idle
       if ($candidate.PSObject.Properties['registeredArtifact']) { Assert-RegisteredArtifact $candidate.registeredArtifact }

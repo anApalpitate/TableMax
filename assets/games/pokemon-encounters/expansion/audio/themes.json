@@ -6,7 +6,7 @@
     "package": "imageio-ffmpeg",
     "version": "0.6.0",
     "binarySha256": "2ce797a0f88d7f067180338fb227f7b1928ea727bd9a4d7a1d022f7c52af71a3",
-    "toolRecord": "tmp/pokemon-expansion-materials/tools/ffmpeg-tool.json"
+    "toolRecord": "tools/assets/ffmpeg-tool.json"
   },
   "purpose": "Original procedural ability and research themes complement existing character cries; they do not replace the 27 imported cries.",
   "assets": [

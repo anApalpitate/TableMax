@@ -23,10 +23,7 @@ const originals = fileURLToPath(
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const tool = JSON.parse(
   await readFile(
-    new URL(
-      '../../../../tmp/pokemon-expansion-materials/tools/ffmpeg-tool.json',
-      import.meta.url,
-    ),
+    new URL('../../../../tools/assets/ffmpeg-tool.json', import.meta.url),
     'utf8',
   ),
 );

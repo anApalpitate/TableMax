@@ -71,10 +71,7 @@ for (const path of sources) {
     direct.add(resolve(dirname(path), match[1]));
 }
 const tool = JSON.parse(
-  await readFile(
-    'tmp/pokemon-expansion-materials/tools/ffmpeg-tool.json',
-    'utf8',
-  ),
+  await readFile('tools/assets/ffmpeg-tool.json', 'utf8'),
 );
 assert.equal(hash(await readFile(tool.binary)), tool.binarySha256);
 const decode = (path) => {

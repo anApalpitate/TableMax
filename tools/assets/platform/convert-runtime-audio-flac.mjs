@@ -11,10 +11,7 @@ import { resolve, dirname } from 'node:path';
 import assert from 'node:assert/strict';
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const tool = JSON.parse(
-  await readFile(
-    'tmp/pokemon-expansion-materials/tools/ffmpeg-tool.json',
-    'utf8',
-  ),
+  await readFile('tools/assets/ffmpeg-tool.json', 'utf8'),
 );
 assert.equal(hash(await readFile(tool.binary)), tool.binarySha256);
 const evidence = resolve(

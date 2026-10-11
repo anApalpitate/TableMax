@@ -37,7 +37,10 @@ try {
   New-Item -ItemType Directory -Path (Join-Path $primary 'scripts') -Force | Out-Null
   Copy-Item -LiteralPath (Join-Path $workspaceForTest 'scripts/Maintain-Project.ps1') -Destination (Join-Path $primary 'scripts')
   Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'cleanup-local.ps1') -Destination (Join-Path $primary 'tools/maintenance')
-  foreach ($support in @('cleanup-guard.ps1','WorkspaceSnapshot.cs')) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $support) -Destination (Join-Path $primary 'tools/maintenance') }
+  foreach ($support in @('cleanup-guard.ps1','WorkspaceSnapshot.cs','current-delivery.ps1')) {
+    if ($support -eq 'current-delivery.ps1' -and -not (Test-Path -LiteralPath (Join-Path $PSScriptRoot $support))) { continue }
+    Copy-Item -LiteralPath (Join-Path $PSScriptRoot $support) -Destination (Join-Path $primary 'tools/maintenance')
+  }
   Git-At $primary @('init', '--quiet')
   Git-At $primary @('add', '.')
   Git-At $primary @('-c', 'user.name=TableMax test', '-c', 'user.email=test@localhost', '-c', 'commit.gpgsign=false', 'commit', '--quiet', '-m', 'Fixture only')
@@ -147,7 +150,8 @@ try {
   foreach ($entry in @('Clean-Intermediates.ps1','Clean-Releases.ps1','Clean-ReleaseScreenshots.ps1','Compress-Workspace.ps1','Maintain-Project.ps1')) {
     Copy-Item -LiteralPath (Join-Path $workspaceForTest ('scripts/' + $entry)) -Destination $entryScripts
   }
-  foreach ($support in @('cleanup-local.ps1','cleanup-guard.ps1','WorkspaceSnapshot.cs','compress-workspace.ps1')) {
+  foreach ($support in @('cleanup-local.ps1','cleanup-guard.ps1','WorkspaceSnapshot.cs','compress-workspace.ps1','current-delivery.ps1')) {
+    if ($support -eq 'current-delivery.ps1' -and -not (Test-Path -LiteralPath (Join-Path $PSScriptRoot $support))) { continue }
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot $support) -Destination $entryTools
   }
   $entryArchive = Join-Path $entryRoot 'artifacts/releases/TableMax-1.6.0-win-x64.zip'

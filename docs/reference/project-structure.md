@@ -58,7 +58,7 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 | `build/native/`、`build/native-obj/`、`build/desktop/`                         | 可再生编译与完整运行目录；规则／策略模块和前端分块随本地包收集，不手改生成物                                                  |
 | `.cache/build-modules/v1/`、`build/snapshots/`                                 | 内容寻址的成功单元、隔离任务输出和冻结组装清单；按专用缓存保留规则维护                                                        |
 | `artifacts/releases/`、`artifacts/maintenance/`、`artifacts/phase-*/`          | 最终交付、维护及阶段证据／原始资料；材料是否可再生分别判断                                                                    |
-| `tmp/`                                                                         | 隔离验证数据、解压副本及实验中间物；长期资料不能只留在临时目录                                                                |
+| `tmp/`                                                                         | 隔离验证数据、解压副本及实验中间物；不存恢复档案，已结束／低频内容按精确清单退役，长期原件与当前证据归正式目录                                                                |
 
 盒子短提示及确认正文集中在 `apps/web/src/content/feedback.zh-CN.json`，同目录维护插值、原因码映射和状态分类。游戏库分类及检索别名分别属于各游戏 `game-module.json` 的 `library` 字段，盒子只消费轻量目录。维护方法见[开发环境](development.md#提示文案与游戏库维护)。
 

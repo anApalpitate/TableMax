@@ -517,6 +517,18 @@ pnpm package:win
 
 ## 清理本地中间物
 
+### tmp 临时内容的生命周期（2026-10-11）
+
+`tmp/` 只保存尚在使用的临时输入、隔离测试与可再生输出，不保存可恢复档案。已结束且后续不再需要或仅低频回看的源码副本、旧包、基线、暂存索引、日志、一次性脚本、测试库和未采用候选均可经人工审计退役；可重新取得的低频工具也列为候选，先明确删除后受影响入口。已采用唯一原素材、规则原件、正式存档与当前交付／验收证据放在所属正式目录，不以整份临时目录备份代替分类。实际使用的FFmpeg已移至 `.cache/tools/ffmpeg-7.1/`，锁定记录为 [ffmpeg-tool.json](../../tools/assets/ffmpeg-tool.json)，正式音频脚本不再依赖临时目录。
+
+`-TemporaryNames` 仍仅选择精确直属项，默认预览；已核验内容直接删除，不创建 `temporary-scripts`、`reviewed-temporary-content`、ZIP或其他恢复副本。未知名称先审计，不自动扩大清理范围。含链接或混合内容时，使用 `scripts/Clean-Intermediates.ps1 -TemporaryManifest <清单>` 预览，核对后只调用一次 `-Apply`：清单只列待删普通文件，链接及链接目标、新增或未列文件原位保留，目录仅在为空时移除，不递归删除混合根目录。
+
+单次清单位于 `artifacts/maintenance/`，字段为 `version: 1`、`authorization: retire-reviewed-tmp-once`、唯一 `id`、`currentVersion`、当前版本已验证载荷的 `archivePath`／`archiveSha256`、实际通过证据 `proofPath` 与 `entries`。仅清理tmp时允许绑定同版本已通过的载荷，而后继候选仍在验收；工具同时冻结并核验原载荷、证据、当前EXE、载荷及目录索引的哈希，任何正式交付均不进入删除范围，不把旧通过升级为新候选通过。每项包含精确直属 `name`、用途核验 `reason` 和 `files`；每个文件为项目相对 `path`（必须在该 `tmp/<name>` 内）、`bytes`、`lastWriteTimeUtcTicks`。清单不支持通配符、路径跳转、反斜线或重复文件，沿用当前交付证明、30分钟近期修改、活动进程、祖先链接、嵌套仓库、文件元数据变化及共享清理互斥保护。执行前复核清单SHA-256，逐项删除前复核文件；任何新增文件不扩展删除集合。
+
+开始删除时在 `artifacts/maintenance/tmp-retirements/<id>.json` 登记已消耗状态，记录清单SHA-256、范围、跳过理由、实际文件数／字节和结果，不复制内容。部分失败也不自动重试或复用该ID；预览不会消耗ID。该入口只供明确人工授权，不接入自动维护、定时任务或后台轮询。本轮限定一次清理，收尾仅统计容量，不再追加 `Maintain-Project.ps1 -Apply` 等第二轮删除。隔离回归为 `powershell.exe -NoProfile -File tools/maintenance/temporary-retirement.test.ps1`，并按共享入口影响执行既有清理与维护回归。
+
+以下旧清理过程按当时规则追溯；与本节冲突的tmp归档说明不再适用。
+
 2026-10-11前四条修复交付收尾：当前ZIP的实际解压／运行、313成员与源码冻结输入已核验，保留当前交付、旧包历史证据、截图及存档。手动预览后删除一个到龄生成夹具2,013,769字节；release预览0候选／2近期保护，本轮过程目录保持原处，不绕过30分钟保护。最终空闲 `scripts/Maintain-Project.ps1 -Apply` 为8.144GiB，低于10GiB阈值，广域删除0。细节见[项目瘦身](project-slimming.md#前四条修复交付收尾2026-10-11)及[交付证明](../../artifacts/maintenance/v1.0.6/bug-first-four/results.json)。
 
 截图存储采用[统一维护策略](../../tools/maintenance/README.md#截图与产物归属)：重复成功尺寸保持全部断言，拍摄前筛选代表；关键 PNG 保留真实 DPI，普通预览与额外 process 图采用 WebP 品质90，盒子联系表仅引用原图。Python 编码依赖与预检见[资源工具](../../tools/assets/README.md)。已核验旧候选／矩阵及同 SHA 派生资源按逐文件清单通过 `scripts/Clean-Intermediates.ps1 -ImageCopiesManifest <maintenance内清单>` 先预览再 `-Apply`；仅删图片，保留报告、失败、必要代表、原素材、规则、存档和当前交付。该人工入口不接入自动维护，继续保护30分钟近期修改、文档链接、内容变化、路径／链接／嵌套仓库、活跃进程和互斥。实际结果见[项目瘦身](project-slimming.md#截图精简与普通预览2026-10-10)。
@@ -539,7 +551,7 @@ v1.0.3新增已知隔离副本 `tmp/portable-storage-<六位随机后缀>`，通
 
 - [scripts/Clean-Releases.ps1](../../scripts/Clean-Releases.ps1)：清理 `artifacts/releases` 中低于 `package.json` 当前版本的程序／源码 ZIP、配套交付／逐文件清单、解压程序和独立打包目录；当前／未来版本及不认识的名称默认保留。版本重新编号后，可用 `-RetiredVersions 1.6.0` 显式指定已退役标签，仍执行全部安全检查；禁止指定当前版本，自动维护不接受该选项。
 - 用户明确要求本地只留最新导出时，手动 `scripts/Clean-Releases.ps1 -KeepLatestOnly` 先预览，核对后加 `-Apply`。该模式只处理 `artifacts/releases/` 的直属项，保留当前运行 ZIP 与 `win-x64-manifest.json`；明确发布时也保留当前完整 EXE 与源码 ZIP，其余旧版本、源码包、同版旧解压目录、打包目录及诊断均作为候选；不清理其他历史证据目录。先验证当前 ZIP 的实际便携通过记录和清单哈希，再沿用进程、路径、链接、近期修改、指纹及互斥保护；不与其他清理选择模式或自动维护混用。已确认本次打包／验证退出后，可明确使用手动近期参数回收本次打包残留。
-- [scripts/Clean-Intermediates.ps1](../../scripts/Clean-Intermediates.ps1)：清理已知验证脚本生成的 `tmp/<用途>-<六位随机后缀>`、便携解压副本、已完成的打包工作目录及 builder 诊断文件；已识别的一次性脚本先归档。未知临时内容保留，不清空整个 `tmp/`。原始素材、资料与历史截图／JSON 证据不在范围内。
+- [scripts/Clean-Intermediates.ps1](../../scripts/Clean-Intermediates.ps1)：清理已知验证脚本生成的 `tmp/<用途>-<六位随机后缀>`、便携解压副本、已完成的打包工作目录及 builder 诊断文件；已识别的一次性脚本直接退役，不建恢复归档。未知及低频内容先审计，再按精确名称或单次文件清单处理，不清空整个 `tmp/`。原始素材、资料与历史截图／JSON 证据不在范围内。
 - [scripts/Maintain-Project.ps1](../../scripts/Maintain-Project.ps1)：工程操作前后空闲时检查主工作区磁盘占用；超过 10 GiB 才按最旧候选优先清理上述两类内容，达到 8 GiB 或合格候选耗尽即停止。容量是逻辑文件字节总量，不是运行内存；流式扫描跳过链接和嵌套仓库，不重复统计主工作区与 worktree，也不跨无关项目。
 
 全库计量使用 .NET 流式枚举，包含隐藏和系统文件；待扫描目录出栈后刷新属性，再判断链接和嵌套仓库。开始和结束各真实计量一次工作区；逐项删除按已核验候选字节估算停止点，结束时以实际计量记录水位。编译的计量类型只在当前 PowerShell 进程复用，不安装工具或创建后台服务。
@@ -564,17 +576,17 @@ v1.0.3新增已知隔离副本 `tmp/portable-storage-<六位随机后缀>`，通
 
 `build/` 供 `pnpm start` 使用，默认保留；手动 `scripts/Clean-Intermediates.ps1` 明确要删除时可加 `-IncludeBuild`，之后先执行 `pnpm build` 再启动。已确认最近候选停止使用时，手动入口可显式设置 `-MinimumAgeMinutes 0`，它不跳过其他安全检查。自动维护禁止这两种放宽；阈值可用 `-HighWaterGiB`、`-LowWaterGiB` 调整，低水位必须小于高水位。`.pnpm-store/`、`node_modules/`、工具缓存、正式存档、原始素材和历史证据继续保留；保护内容占用过大时只报告，不为达到阈值扩大删除范围。脚本不更改 PowerShell 执行策略、正式用户数据或其他项目环境。
 
-只清理已核对的特定临时项时，使用 `scripts/Clean-Intermediates.ps1 -TemporaryNames @('game-ui-ABC123', 'review-tools')` 预览，核对后追加 `-Apply`。名称必须是 `tmp/` 直属项的精确名称，不允许路径、重复或不存在的项；此模式不扫描打包目录，不与 `-IncludeBuild` 或自动维护结合，未列出的内容保持原位。显式选择的未知临时内容先整体复制到清理记录的 `reviewed-temporary-content/`，核验文件数量、字节及逐文件 SHA-256 后才删除原目录；路径、进程、近期修改、链接、嵌套仓库和当前已验证 ZIP 保护仍生效。原始资料与历史证据应先核对其归档，不能因为放在 `tmp/` 就视为可丢弃。
+只清理已核对的特定临时项时，使用 `scripts/Clean-Intermediates.ps1 -TemporaryNames @('game-ui-ABC123', 'review-tools')` 预览，核对后追加 `-Apply`。名称必须是 `tmp/` 直属项的精确名称，不允许路径、重复或不存在的项；此模式不扫描打包目录，不与 `-IncludeBuild` 或自动维护结合，未列出的内容保持原位。显式选择的未知临时内容经人工用途核验后直接删除，不建立 `reviewed-temporary-content/` 或其他恢复备份；路径、进程、近期修改、链接、嵌套仓库和当前已验证 ZIP 保护仍生效。原始资料与历史证据应先核对其归档，不能因为放在 `tmp/` 就视为可丢弃。
 
 电力公司旧音频验证将解压程序与浏览器 profile 混放在历史证据中。手动 `scripts/Clean-Intermediates.ps1 -VerificationCopies <相对路径数组>` 只接受 `artifacts/maintenance/v1.0.2/<维护名>/native-audio/<run>/work-<六位后缀>/extracted` 或该 work 内六类 `checkpoint-<cue>/desktop` 的精确目录；拒绝空清单、通配符、文件、整个 work／checkpoint、其他证据路径或重复项。每个 run 的 `results.json` 必须是与当前 ZIP 哈希一致的便携通过结果，其中 `work` 必须与所选目录所属的实际工作目录一致，并保留在原位；SQLite、源码、JSON、截图及当前程序包也保留。先预览再 `-Apply`，仍执行全部近期／路径／进程／链接／指纹保护，此模式只处理列出的副本，不与其他手动模式或自动维护混用。清理记录关联具体目录和父级通过证据，不能将它推广为清空 `artifacts/`。
 
-实际执行记录写入 `artifacts/maintenance/local-cleanup-<UTC时间>-<类别>/cleanup.json`，逐项记录路径、字节、删除状态、跳过原因及保留的当前 ZIP 哈希；维护模式另记目标工作区、水位和前后字节。一次性脚本在同目录 `temporary-scripts` 归档。记录保持文件树可见、Git 忽略。`tmp/modern-art-verify-*` 仅对应已核验的旧现代艺术整局隔离数据（六位随机后缀），不包含 UI 工具、研究或截图证据目录；`tmp/experience-*` 仅用于新版操作验证的隔离数据和便携解压，`tmp/runtime-memory-*` 仅用于内存测量；均按已知前缀清理，正式证据按版本保留在 `artifacts/maintenance/v<版本>/`，不参与临时文件清理。
+实际执行记录写入 `artifacts/maintenance/local-cleanup-<UTC时间>-<类别>/cleanup.json`，逐项记录路径、字节、删除状态、跳过原因及保留的当前 ZIP 哈希；维护模式另记目标工作区、水位和前后字节。一次性脚本不再归档；报告仅记录精确路径、理由、字节与结果。记录保持文件树可见、Git 忽略。`tmp/modern-art-verify-*` 仅对应已核验的旧现代艺术整局隔离数据（六位随机后缀），不包含 UI 工具、研究或截图证据目录；`tmp/experience-*` 仅用于新版操作验证的隔离数据和便携解压，`tmp/runtime-memory-*` 仅用于内存测量；均按已知前缀清理，正式证据按版本保留在 `artifacts/maintenance/v<版本>/`，不参与临时文件清理。
 
 `tmp/app-icon-verify-*` 与 `tmp/tablemax-sqlite-migration-*` 的六位随机后缀目录分别是图标验证／便携解压及服务迁移验证的隔离副本，归入已知中间物；图标原素材和迁移原始存档仍保留在资源及历史证据目录。
 
 v1.0.4 将 `tmp/box-layout-*`、`tmp/debug-portable-*`、`tmp/debug-recovery-*`、`tmp/debug-remote-*`、`tmp/game-review-*` 和 `tmp/root-entry-*` 纳入已知隔离副本，只匹配六位字母数字后缀；分别用于盒子、游戏与连接、恢复、远程双向验证、只读游戏视图补拍及根入口检查。实际图和报告保留在 `artifacts/maintenance/v1.0.4/`，当前截图和报告不参与临时目录清理。使用 `tools/maintenance/cleanup-local.test.ps1 -VerificationPrefixesOnly` 复核精确匹配及类似名称／近期／链接保护；本次 51 项隔离夹具检查通过，证据在 `research-redesign-20261008/implementation/cleanup-prefix-tests/`，新增前缀不扩大至未知临时内容。
 
-修改工具后运行 `powershell.exe -NoProfile -File tools/maintenance/cleanup-local.test.ps1` 与 `powershell.exe -NoProfile -File tools/maintenance/project-maintenance.test.ps1`。前者检查手动预览、ZIP／进程／链接／白名单／近期保护、脚本归档及显式构建清理；后者用隔离 Git 主仓库和 worktree 检查目录发现、不重复计量、高低水位、最旧优先、互斥及候选耗尽。测试不清理真实 release，结果分别保存在 `artifacts/maintenance/cleanup-history/tool-checks/current/tool-tests.json` 和 `artifacts/maintenance/project-maintenance-tools/tool-tests.json`。
+修改工具后运行 `powershell.exe -NoProfile -File tools/maintenance/cleanup-local.test.ps1` 与 `powershell.exe -NoProfile -File tools/maintenance/project-maintenance.test.ps1`。前者检查手动预览、ZIP／进程／链接／白名单／近期保护、脚本无恢复备份退役及显式构建清理；后者用隔离 Git 主仓库和 worktree 检查目录发现、不重复计量、高低水位、最旧优先、互斥及候选耗尽。测试不清理真实 release，结果分别保存在 `artifacts/maintenance/cleanup-history/tool-checks/current/tool-tests.json` 和 `artifacts/maintenance/project-maintenance-tools/tool-tests.json`。
 
 ### 手动历史截图去重
 

@@ -16,10 +16,7 @@ const originalDirectory =
   'artifacts/pokemon-expansion/continuation-audio/originals';
 await mkdir(originalDirectory, { recursive: true });
 const ffmpegRecord = JSON.parse(
-  await readFile(
-    'tmp/pokemon-expansion-materials/tools/ffmpeg-tool.json',
-    'utf8',
-  ),
+  await readFile('tools/assets/ffmpeg-tool.json', 'utf8'),
 );
 const ffmpeg = ffmpegRecord.binary;
 const ffmpegSha256 = createHash('sha256')
@@ -202,7 +199,7 @@ await writeFile(
         package: ffmpegRecord.package,
         version: ffmpegRecord.version,
         binarySha256: ffmpegSha256,
-        toolRecord: 'tmp/pokemon-expansion-materials/tools/ffmpeg-tool.json',
+        toolRecord: 'tools/assets/ffmpeg-tool.json',
       },
       purpose:
         'Original ability/research theme feedback while official voice gap remains',

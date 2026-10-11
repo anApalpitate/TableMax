@@ -55,6 +55,8 @@ node --test tools/maintenance/maintenance.test.mjs
 
 ## 手动与专项工具索引
 
+`tmp/` 不保存恢复归档；已结束的一次性脚本、源码快照、旧包、日志、测试数据及低频候选经审计可删除。`-TemporaryNames` 仍只选择精确直属项，但不再复制待删内容。含链接或混合内容时，`scripts/Clean-Intermediates.ps1 -TemporaryManifest <maintenance内清单>` 先预览，再 `-Apply`，只删列出的普通文件并清除空目录；链接、链接目标和新增文件原位保留。同一清单ID一旦开始执行即永久消耗，失败或部分删除也不自动重试。当前交付证明、30分钟、进程、路径、嵌套仓库、文件变化和共享互斥继续生效；只留简明结果，不归档文件字节。格式与单次范围见[开发环境](../../docs/reference/development.md#tmp-临时内容的生命周期2026-10-11)。
+
 已审查的旧候选包图、重复矩阵和与源资产完全相同的生成副本使用 `scripts/Clean-Intermediates.ps1 -ImageCopiesManifest <maintenance内清单>`，先预览后 `-Apply`。清单须绑定当前 ZIP、保护文件和保留报告；源副本须与 `assets/` 原件字节／SHA 一致。仅处理列出的图片，保留目录、报告、源码、存档、独有失败和关键代表，不纳入自动维护。只接受工具内明确核验过的旧 UNO／拉密目录与生成 bundle/assets 子路径；新增类别先审计并补隔离回归。哈希、文档引用、路径／链接／嵌套仓库、30分钟、进程和互斥保护仍有效。详见[开发环境](../../docs/reference/development.md#清理本地中间物)。
 
 日常清理优先使用 `scripts/Clean-Releases.ps1`、`scripts/Clean-Intermediates.ps1`、`scripts/Maintain-Project.ps1`，压缩使用 `scripts/Compress-Workspace.ps1`。入口参数保持不变；手动先预览，核对后才 `-Apply`。
@@ -91,3 +93,5 @@ node --test tools/maintenance/maintenance.test.mjs
 | [verify-cleanup-idle.ps1](verify-cleanup-idle.ps1)                               | `powershell -NoProfile -File tools/maintenance/verify-cleanup-idle.ps1`                              |
 | [verify-project.mjs](verify-project.mjs)                                         | `node tools/maintenance/verify-project.mjs`                                                          |
 | [WorkspaceSnapshot.cs](WorkspaceSnapshot.cs)                                     | 内部辅助／声明／夹具；由对应入口调用                                                                 |
+
+[temporary-retirement.ps1](temporary-retirement.ps1) 为单次tmp清单内部实现；[temporary-retirement.test.ps1](temporary-retirement.test.ps1) 为路径、变化、链接、无备份与防重复执行隔离回归。

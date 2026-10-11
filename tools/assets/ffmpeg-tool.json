@@ -1,0 +1,12 @@
+{
+  "package": "imageio-ffmpeg",
+  "version": "0.6.0",
+  "platform": "win_amd64",
+  "metadataUrl": "https://pypi.org/pypi/imageio-ffmpeg/0.6.0/json",
+  "url": "https://files.pythonhosted.org/packages/2c/c6/fa760e12a2483469e2bf5058c5faff664acf66cadb4df2ad6205b016a73d/imageio_ffmpeg-0.6.0-py3-none-win_amd64.whl",
+  "wheelSha256": "02fa47c83703c37df6bfe4896aab339013f62bf02c5ebf2dce6da56af04ffc0a",
+  "wheelBytes": 31246824,
+  "binary": ".cache/tools/ffmpeg-7.1/ffmpeg-win-x86_64-v7.1.exe",
+  "binarySha256": "2ce797a0f88d7f067180338fb227f7b1928ea727bd9a4d7a1d022f7c52af71a3",
+  "scope": "Pinned project-local asset development tool; not included in runtime packages"
+}

@@ -253,10 +253,7 @@ export async function softenCries({
   }
   const manifest = structuredClone(baseline.manifest);
   const tool = JSON.parse(
-    await readFile(
-      repoPath('tmp/pokemon-expansion-materials/tools/ffmpeg-tool.json'),
-      'utf8',
-    ),
+    await readFile(repoPath('tools/assets/ffmpeg-tool.json'), 'utf8'),
   );
   const ffmpeg = repoPath(tool.binary);
   assert.equal(

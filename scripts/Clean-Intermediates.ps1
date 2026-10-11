@@ -4,6 +4,7 @@ param(
   [switch]$IncludeBuild,
   [string]$ProjectRoot,
   [string[]]$TemporaryNames = @(),
+  [string]$TemporaryManifest,
   [string[]]$VerificationCopies = @(),
   [string]$DuplicateScreenshotsManifest,
   [string]$RetiredGeneratedManifest,
@@ -16,6 +17,7 @@ $cleanupOptions = @{
   Kind = 'Intermediates'; Apply = $Apply; ProjectRoot = $ProjectRoot
   IncludeBuild = $IncludeBuild; TemporaryNames = $TemporaryNames; MinimumAgeMinutes = $MinimumAgeMinutes
 }
+if ($PSBoundParameters.ContainsKey('TemporaryManifest')) { $cleanupOptions.TemporaryManifest = $TemporaryManifest }
 if ($PSBoundParameters.ContainsKey('VerificationCopies')) { $cleanupOptions.VerificationCopies = $VerificationCopies }
 if ($PSBoundParameters.ContainsKey('DuplicateScreenshotsManifest')) { $cleanupOptions.DuplicateScreenshotsManifest = $DuplicateScreenshotsManifest }
 if ($PSBoundParameters.ContainsKey('RetiredGeneratedManifest')) { $cleanupOptions.RetiredGeneratedManifest = $RetiredGeneratedManifest }

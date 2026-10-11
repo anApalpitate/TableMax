@@ -20,10 +20,7 @@ const output = join(root, 'assets/platform/interaction');
 for (const dir of [audit, originals, output])
   mkdirSync(dir, { recursive: true });
 const ffmpeg = JSON.parse(
-  readFileSync(
-    join(root, 'tmp/pokemon-expansion-materials/tools/ffmpeg-tool.json'),
-    'utf8',
-  ),
+  readFileSync(join(root, 'tools/assets/ffmpeg-tool.json'), 'utf8'),
 ).binary;
 const sourcesFile = join(audit, 'sources.json');
 const records = existsSync(sourcesFile)

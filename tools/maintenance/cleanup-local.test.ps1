@@ -116,7 +116,10 @@ try {
   New-Item -ItemType Junction -Path $temporaryJunction -Value (Join-Path $fixture 'protected') | Out-Null
   New-Item -ItemType Directory -Path (Join-Path $fixture 'tools/maintenance') -Force | Out-Null
   Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'cleanup-local.ps1') -Destination (Join-Path $fixture 'tools/maintenance/cleanup-local.ps1')
-  foreach ($support in @('cleanup-guard.ps1','WorkspaceSnapshot.cs')) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $support) -Destination (Join-Path $fixture 'tools/maintenance') }
+  foreach ($support in @('cleanup-guard.ps1','WorkspaceSnapshot.cs','current-delivery.ps1','temporary-retirement.ps1')) {
+    if ($support -eq 'current-delivery.ps1' -and -not (Test-Path -LiteralPath (Join-Path $PSScriptRoot $support))) { continue }
+    Copy-Item -LiteralPath (Join-Path $PSScriptRoot $support) -Destination (Join-Path $fixture 'tools/maintenance')
+  }
   New-Item -ItemType Directory -Path (Join-Path $fixture 'scripts') -Force | Out-Null
   Copy-Item -LiteralPath (Join-Path $workspaceForTest 'scripts/Clean-Intermediates.ps1') -Destination (Join-Path $fixture 'scripts')
   Copy-Item -LiteralPath (Join-Path $workspaceForTest 'scripts/Clean-Releases.ps1') -Destination (Join-Path $fixture 'scripts')
@@ -261,12 +264,7 @@ try {
   Check ((Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/package-1.5.0-ABC123'))) 'Explicit temporary selection never scans regenerable release stages'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'artifacts/releases/builder-debug.yml')) 'Explicit temporary selection preserves release diagnostics'
   $reviewArchives = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Directory -Filter reviewed-temporary-content -Recurse)
-  Check ($reviewArchives.Count -eq 1) 'Selected unknown temporary content is archived in one reviewed-content evidence directory'
-  foreach ($relative in $selectedArchiveHashes.Keys) {
-    $archivedPath = Join-Path $reviewArchives[0].FullName $relative
-    Check ((Test-Path -LiteralPath $archivedPath -PathType Leaf) -and (Get-FileHash -LiteralPath $archivedPath -Algorithm SHA256).Hash -eq $selectedArchiveHashes[$relative]) ('Reviewed temporary archive preserves original path and SHA256: ' + $relative)
-  }
-  Check (Test-Path -LiteralPath (Join-Path $reviewArchives[0].FullName 'reviewed-content/empty') -PathType Container) 'Reviewed temporary archive preserves empty directories'
+  Check ($reviewArchives.Count -eq 0) 'Reviewed temporary content is deleted without a recovery archive'
   foreach ($name in $screenshotNames) {
     $screenshotPath = Join-Path $fixture ('tmp/pokemon-screenshots-5a6f7893/' + $name)
     Check ((Test-Path -LiteralPath $screenshotPath) -and (Get-FileHash -LiteralPath $screenshotPath -Algorithm SHA256).Hash -eq $screenshotHashes[$name]) ('Explicit temporary selection keeps requested screenshot byte-identical: ' + $name)
@@ -423,7 +421,7 @@ try {
   Check (Test-Path -LiteralPath (Join-Path $fixture 'tmp/preserve-me/notes.md')) 'Unknown temporary research is preserved'
   Check (Test-Path -LiteralPath (Join-Path $fixture 'build/desktop/main.cjs')) 'Current build is retained by default'
   $archivedScripts = @(Get-ChildItem -LiteralPath (Join-Path $fixture 'artifacts/maintenance') -Filter check-display-docs.mjs -Recurse -File)
-  Check ($archivedScripts.Count -eq 1 -and (Get-Content -LiteralPath $archivedScripts[0].FullName -Raw) -eq 'temporary-script-to-archive') 'One-off script is archived before deletion'
+  Check ($archivedScripts.Count -eq 0) 'One-off script is deleted without a recovery archive'
   Run-Cleanup Intermediates $true 0 $true
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'build'))) 'Build is removed only with explicit IncludeBuild'
   Check (-not (Test-Path -LiteralPath (Join-Path $fixture 'tmp/game-ui-Young1'))) 'Explicit zero age removes stopped young verification data'
