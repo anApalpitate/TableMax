@@ -96,9 +96,7 @@ export function RoomManagement({
       )}
       {showActions && view.status === 'ended' && (
         <button disabled={locked} onClick={() => command({ type: 'replay' })}>
-          {display === 'full'
-            ? '原班人马再开一局'
-            : feedbackText('management.resumeJoining')}
+          {feedbackText('management.resumeJoining')}
         </button>
       )}
       {showActions &&

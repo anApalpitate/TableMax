@@ -34,6 +34,11 @@ import { DeviceTransfer } from '../components/DeviceTransfer';
 import { RepositoryLink } from '../components/RepositoryLink';
 import { feedbackText } from '../content/feedback';
 import { navigate } from '../navigation';
+import {
+  GameResources,
+  type GameResourceAdapter,
+} from '../components/game-library/resources';
+import { useSeatRemoval } from '../components/useSeatRemoval';
 import './box-refinements.css';
 
 const difficultyNames: Record<BotDifficulty, string> = {
@@ -51,15 +56,24 @@ type BoxPanel =
   | 'transfer'
   | null;
 
-export function BoxScreen({ session }: { session: RoomSession }) {
+export function BoxScreen({
+  session,
+  resources,
+}: {
+  session: RoomSession;
+  resources?: GameResourceAdapter;
+}) {
   return (
     <Notifications>
-      <BoxScreenContent session={session} />
+      <GameResources {...(resources ? { adapter: resources } : {})}>
+        <BoxScreenContent session={session} />
+      </GameResources>
     </Notifications>
   );
 }
 
 function BoxScreenContent({ session }: { session: RoomSession }) {
+  const removal = useSeatRemoval(session);
   const [difficulty, setDifficulty] = useState<BotDifficulty>('default');
   const [panel, setPanel] = useState<BoxPanel>(null);
   const [draftAvatar, setDraftAvatar] = useState<AvatarId | null>(null);
@@ -487,6 +501,21 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
             lobby={lobby}
             status={roomStatus}
             everyoneReady={everyoneReady}
+            removableIds={
+              canManageSeats
+                ? (view?.seats ?? [])
+                    .filter(
+                      (seat) =>
+                        (seat.controller === 'bot' || !seat.online) &&
+                        (isHost || seat.id !== self?.id),
+                    )
+                    .map((seat) => seat.id)
+                : []
+            }
+            removalLocked={
+              locked || session.busy || session.awaitingConfirmation
+            }
+            removeSeat={(id) => removal.request(id, true)}
           />
         </section>
         {role !== 'player' && (
@@ -565,8 +594,15 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
         </OverlayPanel>
       )}
       {panel === 'seats' && canManageSeats && (
-        <OverlayPanel title="座位设置" close={() => setPanel(null)}>
-          <SeatSettings session={session} />
+        <OverlayPanel
+          title="座位设置"
+          className="settings-panel"
+          close={() => setPanel(null)}
+        >
+          <SeatSettings
+            session={session}
+            removeSeat={(id) => removal.request(id)}
+          />
         </OverlayPanel>
       )}
       {panel === 'management' && isHost && (
@@ -579,6 +615,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           <BotInformation game={game} />
         </OverlayPanel>
       )}
+      {removal.confirmation}
       <RepositoryLink />
     </main>
   );

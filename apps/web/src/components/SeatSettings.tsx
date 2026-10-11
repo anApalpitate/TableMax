@@ -2,8 +2,8 @@ import type { BotDifficulty } from '@tablemax/protocol';
 import { useRef, useState } from 'react';
 import type { RoomSession } from '../session/useRoomSession';
 import { OverlayPanel } from './OverlayPanel';
-import { ConfirmationDialog } from './ConfirmationDialog';
 import { feedbackText } from '../content/feedback';
+import { avatarFor } from '../assets/avatars';
 import './seat-settings.css';
 
 const difficultyNames: Record<BotDifficulty, string> = {
@@ -12,12 +12,16 @@ const difficultyNames: Record<BotDifficulty, string> = {
   juewu: '绝悟',
 };
 
-export function SeatSettings({ session }: { session: RoomSession }) {
+export function SeatSettings({
+  session,
+  removeSeat,
+}: {
+  session: RoomSession;
+  removeSeat(id: string): void;
+}) {
   const { view, isHost, canManageSeats, locked, command } = session;
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [operation, setOperation] = useState<'menu' | 'rename' | 'remove'>(
-    'menu',
-  );
+  const [operation, setOperation] = useState<'menu' | 'rename'>('menu');
   const [draftName, setDraftName] = useState('');
   const [hint, setHint] = useState('');
   const nameInput = useRef<HTMLInputElement>(null);
@@ -39,6 +43,11 @@ export function SeatSettings({ session }: { session: RoomSession }) {
             data-seat-id={seat.id}
           >
             <span className="seat-manager__number">{index + 1}</span>
+            <img
+              className="seat-settings-avatar"
+              src={avatarFor(seat.avatarId)}
+              alt=""
+            />
             <div className="seat-settings-identity">
               <strong>{seat.name}</strong>
               <span>
@@ -139,7 +148,11 @@ export function SeatSettings({ session }: { session: RoomSession }) {
               disabled={locked || (!isHost && selected.id === view.self.seatId)}
               onClick={() => {
                 if (playing) setHint(feedbackText('seats.removeWhilePlaying'));
-                else setOperation('remove');
+                else {
+                  const id = selected.id;
+                  close();
+                  removeSeat(id);
+                }
               }}
             >
               移除{selected.controller === 'bot' ? '人机' : '玩家'}
@@ -208,27 +221,6 @@ export function SeatSettings({ session }: { session: RoomSession }) {
             </div>
           </form>
         </OverlayPanel>
-      )}
-      {selected && operation === 'remove' && (
-        <ConfirmationDialog
-          title="移除座位"
-          confirmLabel="确认移除"
-          cancel={close}
-          disabled={locked || playing}
-          confirm={() => {
-            command({ type: 'remove-seat', seatId: selected.id });
-            close();
-          }}
-        >
-          <p>
-            {feedbackText(
-              selected.controller === 'human'
-                ? 'seats.confirmRemoveHuman'
-                : 'seats.confirmRemoveBot',
-              { player: selected.name },
-            )}
-          </p>
-        </ConfirmationDialog>
       )}
     </>
   );

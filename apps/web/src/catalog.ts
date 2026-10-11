@@ -3,10 +3,11 @@ const definitions = import.meta.glob<ModuleManifest>(
   '../../../games/*/game-module.json',
   { eager: true, import: 'default' },
 );
-const covers = import.meta.glob<string>(
-  '../../../assets/games/*/cover-*.webp',
-  { eager: true, query: '?url', import: 'default' },
-);
+const covers = import.meta.glob<string>('../../../assets/games/*/cover*.webp', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
 export const moduleCatalog: ModuleManifest[] = Object.values(definitions)
   .sort((a, b) => a.order - b.order)
   .map((item) => ({

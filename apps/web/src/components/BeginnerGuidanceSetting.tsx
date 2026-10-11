@@ -7,7 +7,7 @@ export function BeginnerGuidanceSetting({ gameId }: { gameId: string }) {
   const labelId = useId();
   return (
     <section className="beginner-guidance-setting">
-      <h3 id={labelId}>新手引导</h3>
+      <h3 id={labelId}>本机新手引导</h3>
       <button
         type="button"
         className="guidance-toggle"

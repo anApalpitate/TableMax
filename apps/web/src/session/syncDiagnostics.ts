@@ -1,5 +1,12 @@
 type Phase =
-  'request' | 'reply' | 'wire' | 'receive' | 'validate' | 'apply' | 'frame';
+  | 'request'
+  | 'reply'
+  | 'wire'
+  | 'receive'
+  | 'validate'
+  | 'apply'
+  | 'frame'
+  | 'connection';
 type Diagnostic = {
   phase: Phase;
   at: number;

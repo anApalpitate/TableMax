@@ -111,9 +111,9 @@ function App(){
  const game=options.normalCatalog?uno:{...uno,min:Math.min(2,capacity),max:capacity};
  const catalog=options.normalCatalog?normalCatalog:options.wideCatalog?[...normalCatalog.map(item=>item.id==='uno'?{...item,max:12}:item),{...uno,id:'fixture-twelve',name:'仅用于布局验证的十二席目录项',min:7,max:12}]:normalCatalog;
  const isHost=role==='host',canControl=isHost||Boolean(options.owner);
- const view={revision:12,instanceId:'seat-fixture',branch:0,status:options.status??'lobby',game,catalog,seats,ownerSeatId:options.owner?self?.id:null,joinOpen:options.status==='ended'?false:true,gameView:null,history:[],lifecycleActions:[],playMode:'play',decisionClock:null,capabilities:{manage:isHost}};
+ const view={revision:12,instanceId:'seat-fixture',branch:0,status:options.status??'lobby',game,catalog,seats,ownerSeatId:options.owner?self?.id:null,joinOpen:options.status==='ended'?false:true,gameView:null,history:[],lifecycleActions:[],playMode:'play',decisionClock:null,self:{role:isHost?'host':role==='public'?'public':'player',seatId:self?.id??null},capabilities:{manage:isHost,manageSeats:canControl,control:canControl}};
  window.fixtureCase={role,capacity,occupied,seats,selfId:self?.id??null};
- const session={role,view,self,isHost,canControl,canManageSeats:isHost,locked:false,busy:false,connected:true,credential:'fixture',name,setName,message:'',messageKind:'saved',errorId:'',admissionPending:false,admissionAvatarId:null,admissionAvatarImage:null,awaitingConfirmation:false,join(){},retry(){},retryAdmission(){},setPlayerCredential(){},command(command){window.commands.push(command)},addresses:[],adapters:[],address:'',port:38473,networkMessage:'',externalJoinUrl:null,setAddress(){},refreshNetwork(){},async saveExternalJoinUrl(){return true}};
+ const session={role,view,self,isHost,canControl,canManageSeats:canControl,locked:false,busy:false,connected:true,credential:'fixture',name,setName,message:'',messageKind:'saved',errorId:'',admissionPending:false,admissionAvatarId:null,admissionAvatarImage:null,awaitingConfirmation:false,join(){},retry(){},retryAdmission(){},setPlayerCredential(){},command(command){window.commands.push(command)},addresses:[],adapters:[],address:'',port:38473,networkMessage:'',externalJoinUrl:null,setAddress(){},refreshNetwork(){},async saveExternalJoinUrl(){return true}};
  return <BoxScreen session={session}/>;
 }
 createRoot(document.getElementById('root')).render(<App/>);
@@ -513,6 +513,48 @@ try {
     assert.deepEqual(await page.evaluate(() => window.commands), [
       { type: 'replay' },
     ]);
+    for (const [role, owner] of [
+      ['host', false],
+      ['player', true],
+      ['player', false],
+      ['public', false],
+    ]) {
+      await configure(
+        { role, owner, capacity: 6, occupied: 6, status: 'lobby' },
+        [390, 844],
+      );
+      const quick = page.locator('.room-table__remove');
+      assert.equal(await quick.count(), role === 'host' || owner ? 5 : 0);
+      if (role !== 'host' && !owner) continue;
+      await page.locator('[data-seat-id="seat-3"] .room-table__remove').click();
+      assert.deepEqual(await page.evaluate(() => window.commands), [
+        { type: 'remove-seat', seatId: 'seat-3' },
+      ]);
+      await page.locator('[data-seat-id="seat-3"] .room-table__remove').click();
+      assert.equal(await page.evaluate(() => window.commands.length), 1);
+      await page.locator('[data-seat-id="seat-2"] .room-table__remove').click();
+      const dialog = page.getByRole('dialog', {
+        name: '移除座位',
+        exact: true,
+      });
+      await dialog.waitFor();
+      await dialog.getByRole('button', { name: '取消', exact: true }).click();
+      assert.equal(await page.evaluate(() => window.commands.length), 1);
+      await page.locator('[data-seat-id="seat-2"] .room-table__remove').click();
+      await dialog
+        .getByRole('button', { name: '确认移除', exact: true })
+        .click();
+      assert.equal(await page.evaluate(() => window.commands.length), 2);
+      await configure(
+        { role, owner, capacity: 6, occupied: 6, status: 'playing' },
+        [390, 844],
+      );
+      await page.locator('[data-seat-id="seat-4"] .room-table__remove').click();
+      assert.deepEqual(await page.evaluate(() => window.commands), []);
+    }
+    checked(
+      'Quick removal is restricted to administrator/owner and bot/offline seats; bot submits once, human confirms, playing refuses.',
+    );
     checked(
       'Ended action is 恢复加入 and emits one existing replay intent for host/authorized human owner; public and ordinary player have no control',
     );
@@ -525,17 +567,13 @@ try {
     const actualMax = await page.evaluate(() =>
       Math.max(...window.normalCatalog.map((game) => game.max)),
     );
-    assert.equal(
-      actualMax,
-      6,
-      'Current released catalog remains at most six players',
-    );
+    assert.equal(actualMax, 10, 'Classic Avalon supports up to ten players');
     assert.deepEqual(
       await library
         .getByRole('combobox', { name: '按人数筛选' })
         .locator('option')
         .evaluateAll((options) => options.map((option) => option.value)),
-      ['', '2', '3', '4', '5', '6'],
+      ['', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
     );
     await page
       .getByRole('dialog', { name: '游戏库', exact: true })

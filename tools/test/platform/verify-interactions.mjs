@@ -65,7 +65,12 @@ assert.ok(
   '--shot-visuals excludes --box-only and --game',
 );
 const selectedGame = gameOptions[0]?.slice(7);
-const gameIds = ['modern-art', 'power-grid', 'pokemon-encounters'];
+const gameIds = [
+  'modern-art',
+  'power-grid',
+  'pokemon-encounters',
+  ...(menusOnly ? ['uno', 'avalon'] : []),
+];
 assert.ok(!selectedGame || gameIds.includes(selectedGame), 'Unknown --game');
 const choices =
   boxOnly || shotVisuals
@@ -75,6 +80,7 @@ const choices =
         { gameId: 'power-grid' },
         { gameId: 'pokemon-encounters', variantId: 'original' },
         { gameId: 'pokemon-encounters', variantId: 'expansion' },
+        ...(menusOnly ? [{ gameId: 'uno' }, { gameId: 'avalon' }] : []),
       ].filter((choice) => !selectedGame || choice.gameId === selectedGame);
 const run =
   args.find((arg) => arg.startsWith('--run='))?.slice(6) ??
@@ -483,7 +489,7 @@ async function video(surface) {
 }
 async function openMenu(surface) {
   const menu = surface.getByRole('dialog', {
-    name: /^(牌桌菜单|拍卖行菜单|电网菜单)$/,
+    name: /菜单$/,
   });
   if (!(await menu.count()))
     await surface.getByRole('button', { name: '菜单', exact: true }).click();
@@ -492,7 +498,7 @@ async function openMenu(surface) {
 }
 async function closeMenu(surface) {
   const menu = surface.getByRole('dialog', {
-    name: /^(牌桌菜单|拍卖行菜单|电网菜单)$/,
+    name: /菜单$/,
   });
   if (await menu.count()) await closePanel(menu);
 }
@@ -502,17 +508,10 @@ async function closePanel(dialog) {
 }
 async function setBlocked(surface, blocked) {
   const dialog = await video(surface);
-  await dialog
-    .getByRole('button', {
-      name: blocked ? '禁用互动特效' : '恢复互动特效',
-      exact: true,
-    })
-    .click();
-  const next = dialog.getByRole('button', {
-    name: blocked ? '恢复互动特效' : '禁用互动特效',
-    exact: true,
-  });
-  assert.equal(await next.getAttribute('aria-pressed'), String(blocked));
+  const toggle = dialog.getByRole('switch', { name: '互动特效', exact: true });
+  if ((await toggle.getAttribute('aria-checked')) !== String(!blocked))
+    await toggle.click();
+  assert.equal(await toggle.getAttribute('aria-checked'), String(!blocked));
   await closePanel(dialog);
 }
 async function assertVisibleEvent(entry, surface, event) {
@@ -882,8 +881,9 @@ async function prepareGameFixture(choice) {
   await command({ type: 'select-game', gameId: choice.gameId });
   if (choice.variantId)
     await command({ type: 'select-variant', variantId: choice.variantId });
-  if (!fixturePlayers.length) {
-    for (let index = 0; index < 2; index++) {
+  {
+    const additional = choice.gameId === 'avalon' ? 4 : 2;
+    for (let index = fixturePlayers.length; index < additional; index++) {
       const joined = await post('/api/session/join', {
         name: `菜单夹具${index + 1}`,
         avatarId: `avatar-${18 + index}`,
@@ -918,9 +918,11 @@ async function verifyMenuRole(choice, role, surface) {
     `${role}: video entry is absent from toolbar`,
   );
   const sounds = surface.locator(
-    '.sound-control,.ma-sound-control,[data-power-grid-sound]',
+    '.sound-control,.ma-sound-control,[data-power-grid-sound],.uno-icon-button[aria-pressed],[data-avalon-sound]',
   );
-  const soundExpected = role !== 'player' || choice.gameId === 'modern-art';
+  const soundExpected =
+    role !== 'player' ||
+    ['modern-art', 'uno', 'avalon'].includes(choice.gameId);
   assert.equal(await sounds.count(), soundExpected ? 1 : 0);
   if (soundExpected) {
     const metrics = await sounds.evaluate((button) => {
@@ -997,19 +999,19 @@ async function verifyMenuRole(choice, role, surface) {
     `${role}: correct display bridge fields`,
   );
   const toggle = dialog.locator('.interaction-video-setting button');
-  const original = await toggle.getAttribute('aria-pressed');
+  const original = await toggle.getAttribute('aria-checked');
   await toggle.click();
   const expected = original === 'true' ? 'false' : 'true';
-  assert.equal(await toggle.getAttribute('aria-pressed'), expected);
+  assert.equal(await toggle.getAttribute('aria-checked'), expected);
   assert.equal(
     await surface.evaluate(
       (key) => localStorage.getItem(key),
       `tablemax-interaction-blocked-${role}`,
     ),
-    expected,
+    String(expected === 'false'),
   );
   await toggle.click();
-  assert.equal(await toggle.getAttribute('aria-pressed'), original);
+  assert.equal(await toggle.getAttribute('aria-checked'), original);
   if (role === 'player') {
     await until(
       () =>
@@ -1403,7 +1405,7 @@ async function verifyMobileAndModal() {
     await shot(catalog.shots[0], 0);
     assert.equal(
       await dialog
-        .getByRole('button', { name: '禁用互动特效', exact: true })
+        .getByRole('switch', { name: '互动特效', exact: true })
         .count(),
       1,
     );
@@ -1425,7 +1427,7 @@ async function verifyGameEntries() {
       const dialog = await video(surface);
       assert.equal(
         await dialog
-          .getByRole('button', { name: '禁用互动特效', exact: true })
+          .getByRole('switch', { name: '互动特效', exact: true })
           .count(),
         1,
       );

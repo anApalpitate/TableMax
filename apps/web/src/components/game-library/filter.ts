@@ -1,6 +1,7 @@
 export type LibraryGame = {
   id: string;
   name: string;
+  displayName?: string;
   min: number;
   max: number;
   tags: string[];
@@ -32,6 +33,7 @@ export function filterLibraryGames(
     const text = normalize(
       [
         game.name,
+        game.displayName ?? '',
         game.id,
         game.tagline,
         ...game.tags,

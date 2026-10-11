@@ -5,7 +5,8 @@
   "internal": false,
   "library": {
     "tags": ["卡牌", "家庭", "运气"],
-    "searchTerms": ["Pokemon", "皮卡丘", "原版", "九宫格", "扩展版"]
+    "searchTerms": ["Pokemon", "皮卡丘", "原版", "九宫格", "扩展版"],
+    "displayName": "宝可梦奇遇"
   },
   "catalog": {
     "id": "pokemon-encounters",

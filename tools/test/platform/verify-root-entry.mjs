@@ -24,9 +24,14 @@ import { playerFrame, playerUi } from '../support/player-test.mjs';
 
 // Actual frozen package and UI admission, never a source-side game fixture.
 const args = process.argv.slice(2);
+const connectionOnly = args.includes('--connection-only');
+const connectionFaults = args.includes('--connection-faults');
 assert.ok(
-  args.every((arg) =>
-    /^--(?:evidence=[A-Za-z0-9_-]+|sha256=[a-f0-9]{64})$/i.test(arg),
+  args.every(
+    (arg) =>
+      arg === '--connection-only' ||
+      arg === '--connection-faults' ||
+      /^--(?:evidence=[A-Za-z0-9_-]+|sha256=[a-f0-9]{64})$/i.test(arg),
   ),
 );
 const argument = (name) =>
@@ -308,6 +313,12 @@ async function rootPlayer(url, label, viewport) {
       : route.abort(),
   );
   const page = await context.newPage();
+  let failedAttempts = 0;
+  if (connectionFaults && label === 'direct-root')
+    await context.route('**/socket.io/**', (route) => {
+      if (failedAttempts++ === 0) return route.abort('connectionfailed');
+      return route.continue();
+    });
   page.setDefaultTimeout(20000);
   page.on('pageerror', (error) =>
     report.pageErrors.push(redact(error.message)),
@@ -320,6 +331,16 @@ async function rootPlayer(url, label, viewport) {
   assert.equal(response.status(), 200);
   assert.equal(new URL(page.url()).pathname, '/');
   await assertPlayer(page);
+  const beforeAdmission = await playerUi(page)
+    .locator('.tablemax-notice')
+    .allTextContents();
+  report.checks.push(
+    `${label}: before admission notices=${JSON.stringify(beforeAdmission)}`,
+  );
+  assert.ok(
+    !beforeAdmission.some((text) => /无法连接|连接失败/.test(text)),
+    'First opening must not show a stale connection popup',
+  );
   await playerUi(page).getByLabel('你的昵称', { exact: true }).fill(label);
   await playerUi(page)
     .getByRole('button', { name: '加入', exact: true })
@@ -327,6 +348,19 @@ async function rootPlayer(url, label, viewport) {
   await playerUi(page)
     .getByRole('button', { name: '我准备好了', exact: true })
     .waitFor();
+  if (connectionFaults && label === 'direct-root') {
+    assert.ok(failedAttempts > 1, 'Failed first attempt must reconnect');
+    await context.setOffline(true);
+    await new Promise((done) => setTimeout(done, 1200));
+    await context.setOffline(false);
+    await playerUi(page)
+      .getByRole('button', { name: '我准备好了', exact: true })
+      .waitFor();
+    await page.waitForFunction(() => true);
+    await checked(
+      'Injected first transport failure and offline recovery retain the admitted identity',
+    );
+  }
   const token = await (
     await playerFrame(page)
   ).evaluate(() => localStorage.getItem('tablemax-player'));
@@ -444,7 +478,8 @@ try {
     hostSocket.once('connect', done);
     hostSocket.once('connect_error', reject);
   });
-  await command({ type: 'select-game', gameId: 'modern-art' });
+  if (!connectionOnly)
+    await command({ type: 'select-game', gameId: 'modern-art' });
   browser = await launchTestBrowser({
     channel: 'msedge',
     headless: true,
@@ -465,29 +500,46 @@ try {
   assert.equal(beforeStart.seats.length, players.length);
   for (const player of players)
     await rendered(player.page, await view(player.token));
-  await command({ type: 'start' });
-  for (const player of players) {
-    await player.page.goto(player.url + '/player/game');
-    const state = await view(player.token);
-    await rendered(player.page, state);
-    assert.equal(state.self.role, 'player');
-    assert.equal(state.capabilities.control, false);
-    assert.ok(state.gameView);
-    assert.equal(
-      await (
-        await playerFrame(player.page)
-      ).evaluate(() => localStorage.getItem('tablemax-player')),
-      player.token,
+  if (connectionFaults) {
+    const player = players[0];
+    const own = await view(player.token);
+    await command({ type: 'remove-seat', seatId: own.self.seatId });
+    await playerUi(player.page)
+      .getByLabel('你的昵称', { exact: true })
+      .waitFor();
+    const denied = await post('/api/session/view', { token: player.token });
+    assert.equal(denied.reply.ok, false);
+    await checked(
+      'Actual seat removal revokes credentials and restores the admission screen',
     );
-    assert.equal(new URL(player.page.url()).pathname, '/player/game');
-    await capture(
-      player.page,
-      report.entries[players.indexOf(player)].label + '-legacy-game',
-    );
-    await player.page.reload();
-    await rendered(player.page, await view(player.token));
   }
-  for (const path of ['/host', '/public', '/host/game', '/public/game']) {
+  if (!connectionOnly) {
+    await command({ type: 'start' });
+    for (const player of players) {
+      await player.page.goto(player.url + '/player/game');
+      const state = await view(player.token);
+      await rendered(player.page, state);
+      assert.equal(state.self.role, 'player');
+      assert.equal(state.capabilities.control, false);
+      assert.ok(state.gameView);
+      assert.equal(
+        await (
+          await playerFrame(player.page)
+        ).evaluate(() => localStorage.getItem('tablemax-player')),
+        player.token,
+      );
+      assert.equal(new URL(player.page.url()).pathname, '/player/game');
+      await capture(
+        player.page,
+        report.entries[players.indexOf(player)].label + '-legacy-game',
+      );
+      await player.page.reload();
+      await rendered(player.page, await view(player.token));
+    }
+  }
+  for (const path of connectionOnly
+    ? ['/host', '/public']
+    : ['/host', '/public', '/host/game', '/public/game']) {
     const page = await browser.newPage();
     await page.goto(origin + path);
     await page.locator('[data-room-revision]').waitFor();
@@ -497,7 +549,9 @@ try {
   assert.deepEqual(report.pageErrors, []);
   assert.deepEqual(report.externalRequests, []);
   await checked(
-    'Legacy /player/game refresh and standalone host/public routes verified',
+    connectionOnly
+      ? 'Standalone host/public box routes verified'
+      : 'Legacy /player/game refresh and standalone host/public routes verified',
   );
   assert.equal(hash(await readFile(archive)), report.archiveSha256);
   report.status = 'passed';

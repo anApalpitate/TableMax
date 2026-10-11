@@ -15,6 +15,9 @@ interface RoomTableProps {
   lobby: boolean;
   status: string;
   everyoneReady: boolean;
+  removableIds?: string[];
+  removalLocked?: boolean;
+  removeSeat?(id: string): void;
 }
 
 export function RoomTable({
@@ -24,6 +27,9 @@ export function RoomTable({
   lobby,
   status,
   everyoneReady,
+  removableIds = [],
+  removalLocked = false,
+  removeSeat,
 }: RoomTableProps) {
   const visibleCapacity = Math.max(Math.min(12, capacity), seats.length);
   const expanded = visibleCapacity > 6;
@@ -46,6 +52,18 @@ export function RoomTable({
         <span className="room-table__seat-number">{index + 1}</span>
         {seat ? (
           <>
+            {removeSeat && removableIds.includes(seat.id) && (
+              <button
+                type="button"
+                className="room-table__remove"
+                aria-label={`移除${seat.controller === 'bot' ? '人机' : '离线玩家'}${seat.name}`}
+                title="移除座位"
+                disabled={removalLocked}
+                onClick={() => removeSeat(seat.id)}
+              >
+                ×
+              </button>
+            )}
             <img
               className="room-table__avatar"
               src={avatarFor(seat.avatarId)}

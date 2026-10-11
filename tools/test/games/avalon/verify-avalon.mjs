@@ -52,7 +52,7 @@ const seats = Number(option('seats', '6'));
 const variant = option('variant', 'court');
 const only = option('only', 'all');
 const evidenceName = option('evidence', `native-${seats}-${Date.now()}`);
-assert.ok([5, 6].includes(seats));
+assert.ok([5, 6, 7, 8, 9, 10].includes(seats));
 assert.ok(['classic', 'court'].includes(variant));
 assert.ok(
   [
@@ -63,6 +63,7 @@ assert.ok(
     'rejections',
     'assassination',
     'long-quest',
+    'single-fail-fourth',
   ].includes(only),
 );
 assert.match(evidenceName, /^[a-z0-9-]{1,65}$/);
@@ -609,7 +610,8 @@ async function round(path) {
       let action = own.actions.find((a) => a.type === 'propose-team');
       if (
         path === 'failure' ||
-        (path === 'long-quest' && g.questNumber % 2 === 0)
+        (['long-quest', 'single-fail-fourth'].includes(path) &&
+          g.questNumber % 2 === 0)
       ) {
         const alignments = await Promise.all(
           players.map(async (p) => ({
@@ -684,21 +686,29 @@ async function round(path) {
       actions += pending.length;
     } else if (g.phase === 'quest') {
       const pending = [];
+      let singleFailureUsed = false;
       for (let i = 0; i < players.length; i++) {
         const own = await view(players[i].token);
-        if (own.actions.length)
+        if (own.actions.length) {
+          const fail =
+            (path === 'failure' ||
+              (['long-quest', 'single-fail-fourth'].includes(path) &&
+                g.questNumber % 2 === 0)) &&
+            own.gameView.self.alignment === 'evil' &&
+            !(
+              path === 'single-fail-fourth' &&
+              g.questNumber === 4 &&
+              singleFailureUsed
+            );
+          if (fail) singleFailureUsed = true;
           pending.push({
             index: i,
             action: {
               type: 'quest-card',
-              card:
-                (path === 'failure' ||
-                  (path === 'long-quest' && g.questNumber % 2 === 0)) &&
-                own.gameView.self.alignment === 'evil'
-                  ? 'fail'
-                  : 'success',
+              card: fail ? 'fail' : 'success',
             },
           });
+        }
       }
       if (g.questNumber === 1) {
         await phoneFor(pending[0].index);
@@ -717,6 +727,17 @@ async function round(path) {
         path === 'success' && g.questNumber === 2,
       );
       actions += pending.length;
+      if (path === 'single-fail-fourth' && g.questNumber === 4) {
+        const result = (await view()).gameView.quests.at(-1);
+        assert.equal(result.failCount, 1);
+        assert.equal(result.succeeded, true);
+        await capture(host, 'fourth-one-failure-success-host');
+        evidence.checks.push({
+          check:
+            'Fourth quest succeeds with one failure card and saved successful presentation',
+          result: 'passed',
+        });
+      }
     } else if (g.phase === 'assassinate') {
       const index = players.findIndex((p) => p.seatId === g.assassin);
       const own = await view(players[index].token);
@@ -746,7 +767,10 @@ async function round(path) {
   }
   const final = await view();
   assert.equal(final.status, 'ended');
-  assert.equal(final.gameView.winner, path === 'success' ? 'good' : 'evil');
+  assert.equal(
+    final.gameView.winner,
+    ['success', 'single-fail-fourth'].includes(path) ? 'good' : 'evil',
+  );
   assert.ok(final.gameView.revealedRoles);
   await layout(phone, `${path}-final-player`, true);
   await capture(host, `${path}-final-host`);
@@ -798,7 +822,7 @@ try {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           name: `圆桌朋友${i + 1}`,
-          avatarId: `avatar-${20 + i}`,
+          avatarId: `avatar-${1 + i}`,
         }),
       })
     ).json();

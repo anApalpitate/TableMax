@@ -1,4 +1,16 @@
 import type { CSSProperties } from 'react';
+const ringCells = [
+  [1, 1],
+  [1, 2],
+  [1, 3],
+  [2, 3],
+  [3, 3],
+  [4, 3],
+  [4, 2],
+  [4, 1],
+  [3, 1],
+  [2, 1],
+];
 import { avatarFor, type GameHost } from '@tablemax/web-host';
 import type { AvalonView, ProposalResult } from '../types';
 import { Crown, Relic, BallotMark } from './Relic';
@@ -36,6 +48,9 @@ export function QuestTrack({ game }: { game: AvalonView }) {
             <strong>
               {result ? (result.succeeded ? '成功' : '失败') : `${size} 人`}
             </strong>
+            {game.questFailThresholds[index] === 2 && (
+              <span className="av-quest-card-count">双失败</span>
+            )}
             {result && (
               <span className="av-quest-card-count">
                 失败牌 {result.failCount}
@@ -85,7 +100,8 @@ export function Council({
   const showBallots = proposal?.proposalNumber === game.proposalNumber;
   return (
     <section
-      className={`av-council${compact ? ' av-council--compact' : ''}`}
+      className={`av-council${compact ? ' av-council--compact' : ''}${game.seatOrder.length > 6 ? ' av-council--expanded' : ''}`}
+      data-seat-count={game.seatOrder.length}
       aria-label="圆桌议会"
     >
       <div className="av-table-wood" />
@@ -136,7 +152,7 @@ export function Council({
                   [76, 78],
                   [24, 78],
                 ][index]!
-              : coordinates[index]!;
+              : (coordinates[index] ?? [50, 50]);
           return (
             <button
               type="button"
@@ -153,6 +169,8 @@ export function Council({
                 {
                   '--seat-x': `${coordinate[0]}%`,
                   '--seat-y': `${coordinate[1]}%`,
+                  '--av-row': ringCells[index]?.[0],
+                  '--av-column': ringCells[index]?.[1],
                 } as CSSProperties
               }
               disabled={!choice}

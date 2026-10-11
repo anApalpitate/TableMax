@@ -128,8 +128,9 @@ export function useRoomSession(role: ScreenRole) {
   const cancelAdmission = admission.cancel;
   useEffect(() => {
     const identity = identityEpoch.current;
-    identity.value++;
+    const epoch = ++identity.value;
     let disposed = false;
+    const currentSession = () => !disposed && identity.value === epoch;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let managedReconnect = false;
     let statusAttempt = 0;
@@ -150,6 +151,7 @@ export function useRoomSession(role: ScreenRole) {
       source: 'broadcast' | 'sync',
       restoring: boolean,
     ) => {
+      if (!currentSession()) return;
       const appliedAt = performance.now();
       const previous = synced.current;
       if (synchronization.stamp)
@@ -287,6 +289,8 @@ export function useRoomSession(role: ScreenRole) {
       },
       apply: applyView,
       phase: (phase) => {
+        if (!currentSession()) return;
+        recordRoomSyncDiagnostic({ phase: 'connection', kind: phase });
         const ready = phase === 'ready' || phase === 'degraded';
         setConnected(ready);
         if (!ready) {
@@ -300,17 +304,18 @@ export function useRoomSession(role: ScreenRole) {
           setMessage(feedbackText('session.reconnecting'));
       },
       reconnect: (delay) => {
-        if (disposed) return;
+        if (!currentSession()) return;
         if (reconnectTimer) clearTimeout(reconnectTimer);
         reconnectTimer = setTimeout(() => {
           reconnectTimer = null;
-          if (disposed) return;
+          if (!currentSession()) return;
           managedReconnect = true;
           socket.disconnect().connect();
           managedReconnect = false;
         }, delay);
       },
       rejected: (reason) => {
+        if (!currentSession()) return;
         if (reason === 'invalid-identity') revoked();
         else {
           setMessage(feedbackReason(reason, 'session.syncFailed'));
@@ -319,6 +324,7 @@ export function useRoomSession(role: ScreenRole) {
       },
       hasCommand: () => Boolean(pending.current && !pendingImage.current),
       commandReply: (input) => {
+        if (!currentSession()) return;
         const parsed = RoomCommandStatusReplySchema.safeParse(input);
         const envelope = pending.current;
         if (
@@ -356,6 +362,8 @@ export function useRoomSession(role: ScreenRole) {
         }
       },
       confirmed: (projection, restoring) => {
+        if (!currentSession()) return;
+        recordRoomSyncDiagnostic({ phase: 'connection', kind: 'confirmed' });
         const next = projection.view;
         setMessage((current) =>
           feedbackKind(current) === 'connection' ? '' : current,
@@ -452,6 +460,11 @@ export function useRoomSession(role: ScreenRole) {
       setInteraction(event);
     });
     socket.on('connect', () => {
+      if (!currentSession()) return;
+      recordRoomSyncDiagnostic({
+        phase: 'connection',
+        kind: socket.io.engine.transport.name,
+      });
       if (reconnectTimer) clearTimeout(reconnectTimer);
       reconnectTimer = null;
       const engine = socket.io.engine;
@@ -468,11 +481,12 @@ export function useRoomSession(role: ScreenRole) {
       });
       synchronization.transportConnected();
     });
-    socket.on('connect_error', () => synchronization.transportDisconnected());
     socket.on('disconnect', () => {
+      if (!currentSession()) return;
       if (!managedReconnect) synchronization.transportDisconnected();
     });
     socket.on('room:view', (input: unknown) => {
+      if (!currentSession()) return;
       const receivedAt = performance.now();
       recordRoomSyncDiagnostic({ phase: 'receive' });
       const parsed = RoomProjectionSchema.safeParse(input);
@@ -488,6 +502,7 @@ export function useRoomSession(role: ScreenRole) {
       }
     });
     socket.on('room:feedback', (input: unknown) => {
+      if (!currentSession()) return;
       const parsed = RoomFeedbackSchema.safeParse(input);
       const current = synced.current;
       if (!parsed.success || !current) return;
@@ -515,6 +530,7 @@ export function useRoomSession(role: ScreenRole) {
       }
     });
     const revoked = () => {
+      if (!currentSession()) return;
       resetInteractions();
       synchronization.dispose();
       if (reconnectTimer) clearTimeout(reconnectTimer);
@@ -540,8 +556,14 @@ export function useRoomSession(role: ScreenRole) {
     };
     socket.on('room:revoked', revoked);
     socket.on('connect_error', (error: Error) => {
-      if (error.message === 'invalid-identity') revoked();
-      else setMessage(feedbackText('session.connectionFailed'));
+      if (!currentSession()) return;
+      const invalidIdentity = error.message === 'invalid-identity';
+      recordRoomSyncDiagnostic({
+        phase: 'connection',
+        kind: invalidIdentity ? 'invalid-identity' : 'transport-error',
+      });
+      if (invalidIdentity) revoked();
+      else synchronization.transportDisconnected();
     });
     let networkRequest: AbortController | null = null;
     let networkSequence = 0;

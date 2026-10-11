@@ -637,3 +637,26 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+.box-screen .room-table__remove {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  font-size: 26px;
+  line-height: 1;
+  border: 1px solid #f2c8ba;
+  border-radius: 50%;
+  color: #8e4435;
+  background: #fff8f0f2;
+  box-shadow: 0 2px 8px #603b2520;
+}
+.room-table__seat:has(.room-table__remove) .room-table__name {
+  padding-inline: 12px;
+}

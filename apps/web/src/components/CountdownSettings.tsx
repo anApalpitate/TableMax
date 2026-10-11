@@ -4,6 +4,7 @@ import type { RoomSession } from '../session/useRoomSession';
 import { OverlayPanel } from './OverlayPanel';
 import { feedbackText } from '../content/feedback';
 import './countdown.css';
+import './settings-panel.css';
 
 export function CountdownSettings({
   session,
@@ -60,7 +61,11 @@ export function CountdownSettings({
         <span>游戏设置</span>
       </button>
       {open && (
-        <OverlayPanel title="游戏设置" close={() => setOpen(false)}>
+        <OverlayPanel
+          title="游戏设置"
+          className="settings-panel"
+          close={() => setOpen(false)}
+        >
           {children}
           {canSetTimer && (
             <div className="countdown-settings">

@@ -2196,3 +2196,42 @@
     opacity: 1;
   }
 }
+
+@media (min-width: 721px) {
+  .avalon-screen .av-council--expanded {
+    min-height: 560px;
+  }
+  .avalon-screen .av-council--expanded .av-council-seats {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(4, minmax(120px, auto));
+    gap: 12px;
+    padding: 16px;
+  }
+  .avalon-screen .av-council--expanded .av-seat {
+    position: relative;
+    grid-row: var(--av-row);
+    grid-column: var(--av-column);
+    left: auto;
+    top: auto;
+    width: 100%;
+    transform: none;
+    min-height: 120px;
+  }
+  .avalon-screen .av-council--expanded .av-seat:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+  .avalon-screen .av-council--expanded .av-seat > strong {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 18px;
+  }
+  .avalon-screen .av-council--expanded .av-council-center {
+    width: 28%;
+  }
+  .avalon-screen .av-council--expanded .av-council-center > .av-relic {
+    width: 68px;
+    height: 68px;
+  }
+}

@@ -34,13 +34,20 @@ import ${JSON.stringify(resolve('apps/web/src/screens/box-screen.css'))};
 const catalog=moduleCatalog.filter(m=>!m.internal).map(m=>m.catalog);
 window.commands=[];
 window.catalog=catalog;
+let resourceSnapshot=[];
+const resourceListeners=new Set();
+window.resourceDownloads=[];
+window.setResources=(entries)=>{resourceSnapshot=entries;for(const listener of resourceListeners)listener()};
+const resources={getSnapshot:()=>resourceSnapshot,subscribe(listener){resourceListeners.add(listener);return()=>resourceListeners.delete(listener)},async download(key){window.resourceDownloads.push(key);window.setResources([{key,name:'宝可梦奇遇',status:{state:'downloading',progress:0.4}}])}};
+
 const base={revision:12,instanceId:'fixture',branch:0,status:'lobby',game:catalog.find(g=>g.id==='uno'),catalog,seats:[],ownerSeatId:null,joinOpen:true,gameView:null,history:[],lifecycleActions:[],playMode:'play',decisionClock:null,capabilities:{manage:true}};
+window.baseBox=base;
 function App(){
  const [patch,setPatch]=useState({}),[name,setName]=useState('朋友');
  window.patchBox=(next)=>setPatch(previous=>({...previous,...next}));
  const message=patch.message??'';
  const session={role:'host',view:base,self:null,isHost:true,canControl:true,canManageSeats:true,locked:false,busy:false,connected:true,credential:'fixture',name,setName,message,messageKind:feedbackKind(message),errorId:'',admissionPending:false,admissionAvatarId:null,admissionAvatarImage:null,awaitingConfirmation:false,join(){},retry(){},retryAdmission(){},setPlayerCredential(){},command(command){window.commands.push(command)},addresses:[],adapters:[],address:'',port:38473,networkMessage:'',externalJoinUrl:null,setAddress(){},refreshNetwork(){},async saveExternalJoinUrl(){return true},...patch};
- return <BoxScreen session={session}/>;
+ return <BoxScreen session={session} resources={resources}/>;
 }
 createRoot(document.getElementById('root')).render(<App/>);
 `,
@@ -127,9 +134,9 @@ try {
   const library = page.getByRole('region', { name: '游戏库', exact: true });
   const cards = library.locator('.game-library__item');
   await cards.first().waitFor();
-  assert.equal(await cards.count(), 5);
-  assert.equal(await cards.locator('.game-library__tags').count(), 5);
-  assert.equal(await cards.locator(':scope > img').count(), 5);
+  assert.equal(await cards.count(), 6);
+  assert.equal(await cards.locator('.game-library__tags').count(), 6);
+  assert.equal(await cards.locator(':scope > img').count(), 6);
   assert.ok(
     await library.locator('[data-game-id="rummikub"] button').isDisabled(),
   );
@@ -137,7 +144,7 @@ try {
     await library.locator('[data-game-id="uno"] > button').isDisabled(),
   );
   checked(
-    'All five catalog games show local category tags; current and development games retain selection guards.',
+    'All six catalog games show local category tags; current and development games retain selection guards.',
   );
   const search = library.getByRole('searchbox', { name: '搜索游戏' });
   const categories = library.getByRole('group', { name: '游戏分类' });
@@ -153,7 +160,7 @@ try {
   await categories.getByRole('button', { name: '卡牌', exact: true }).click();
   await library.getByRole('combobox', { name: '按人数筛选' }).selectOption('6');
   await page.waitForFunction(
-    () => document.querySelectorAll('.game-library__item').length === 2,
+    () => document.querySelectorAll('.game-library__item').length === 3,
   );
   assert.equal(
     await categories
@@ -174,7 +181,7 @@ try {
     .first()
     .click();
   await page.waitForFunction(
-    () => document.querySelectorAll('.game-library__item').length === 5,
+    () => document.querySelectorAll('.game-library__item').length === 6,
   );
   assert.equal(await search.inputValue(), '');
   assert.equal(
@@ -250,7 +257,7 @@ try {
     }),
   );
   await page.waitForFunction(
-    () => document.querySelectorAll('.game-library__item').length === 5,
+    () => document.querySelectorAll('.game-library__item').length === 6,
   );
   assert.equal(await cards.locator(':scope > button').count(), 0);
   await search.fill('art');
@@ -325,6 +332,87 @@ try {
   checked(
     'Six-seat catalog disables games with lower capacity and retains the seat-adjustment path.',
   );
+  await page.getByRole('button', { name: '切换游戏', exact: true }).click();
+  await cards.first().waitFor();
+  assert.equal(
+    await library.locator('[data-game-id="pokemon-encounters"] h3').innerText(),
+    '宝可梦奇遇',
+  );
+  assert.equal(
+    await library.getByRole('button', { name: /^版本：/ }).count(),
+    0,
+  );
+  await categories.getByRole('button', { name: '德式', exact: true }).click();
+  assert.equal(await cards.count(), 1);
+  assert.equal(await cards.first().getAttribute('data-game-id'), 'power-grid');
+  await categories.getByRole('button', { name: '全部', exact: true }).click();
+  await page.evaluate(() =>
+    window.setResources([
+      {
+        key: { gameId: 'pokemon-encounters' },
+        name: '宝可梦奇遇',
+        status: { state: 'missing' },
+      },
+    ]),
+  );
+  const pokemon = library.locator('[data-game-id="pokemon-encounters"]');
+  const beforeDownload = await page.evaluate(() => window.commands.length);
+  await pokemon.getByRole('button', { name: '下载资源', exact: true }).click();
+  await pokemon
+    .getByRole('button', { name: '下载中 40%', exact: true })
+    .waitFor();
+  assert.ok(
+    await pokemon
+      .getByRole('button', { name: '下载中 40%', exact: true })
+      .isDisabled(),
+  );
+  assert.equal(
+    await page.evaluate(() => window.commands.length),
+    beforeDownload,
+  );
+  await page.evaluate(() =>
+    window.setResources([
+      {
+        key: { gameId: 'pokemon-encounters' },
+        name: '宝可梦奇遇',
+        status: { state: 'failed' },
+      },
+    ]),
+  );
+  await pokemon.getByRole('button', { name: '重试下载', exact: true }).click();
+  await page.evaluate(() =>
+    window.setResources([
+      {
+        key: { gameId: 'pokemon-encounters' },
+        name: '宝可梦奇遇',
+        status: { state: 'installed' },
+      },
+    ]),
+  );
+  await page
+    .locator('.tablemax-notice')
+    .filter({ hasText: '资源下载完成' })
+    .waitFor();
+  await page.evaluate(() =>
+    window.setResources([
+      {
+        key: { gameId: 'pokemon-encounters' },
+        name: '宝可梦奇遇',
+        status: { state: 'installed' },
+      },
+    ]),
+  );
+  assert.equal(
+    await page
+      .locator('.tablemax-notice')
+      .filter({ hasText: '资源下载完成' })
+      .count(),
+    1,
+  );
+  await page.keyboard.press('Escape');
+  checked(
+    'Short title, version separation, German-style tag, download/retry/progress and single completion notification preserve room actions.',
+  );
   for (const [width, height] of [
     [320, 568],
     [390, 844],
@@ -395,9 +483,137 @@ try {
     'Source-rendered modal fits 320–3840 pixel widths, landscape short screens, readable text and 44 pixel controls.',
   );
   await page.evaluate(() =>
+    window.patchBox({
+      view: {
+        ...window.baseBox,
+        seats: Array.from({ length: 3 }, (_, index) => ({
+          id: `settings-${index}`,
+          position: index + 1,
+          name: `完整昵称朋友${index + 1}`,
+          avatarId: `avatar-${index + 1}`,
+          controller: index === 0 ? 'human' : 'bot',
+          online: false,
+          ready: false,
+          botDifficulty: ['default', 'doubao', 'juewu'][index],
+        })),
+      },
+    }),
+  );
+  for (const [width, height] of [
+    [320, 568],
+    [390, 844],
+    [844, 390],
+    [1280, 720],
+    [1920, 1080],
+    [3840, 2160],
+  ]) {
+    await page.setViewportSize({ width, height });
+    for (const title of ['游戏设置', '视频设置', '座位设置']) {
+      await page.getByRole('button', { name: title, exact: true }).click();
+      const panel = page.locator('.settings-panel');
+      await panel.waitFor();
+      const geometry = await panel.evaluate((element) => ({
+        width: element.getBoundingClientRect().width,
+        scroll: element.scrollWidth,
+        client: element.clientWidth,
+        fonts: [...element.querySelectorAll('p,label,h3,strong')]
+          .filter((e) => e.getBoundingClientRect().height > 0)
+          .map((e) => parseFloat(getComputedStyle(e).fontSize)),
+      }));
+      if (geometry.width > width || geometry.scroll > geometry.client + 1)
+        await captureBrowserScreenshot(page, {
+          path: join(output, `failure-settings-${width}.png`),
+        });
+      assert.ok(
+        geometry.width <= width && geometry.scroll <= geometry.client + 1,
+        `${title} ${width}: horizontal fit ${JSON.stringify(geometry)}`,
+      );
+      assert.ok(
+        geometry.fonts.every((size) => size >= 16),
+        `${title} ${width}: readable text`,
+      );
+      if (width === 390 || width === 1280)
+        await captureBrowserScreenshot(page, {
+          path: join(
+            output,
+            `settings-${['游戏设置', '视频设置', '座位设置'].indexOf(title)}-${width}.png`,
+          ),
+        });
+      await page.keyboard.press('Escape');
+    }
+  }
+  checked(
+    'Game, video and seat settings fit six viewports with readable text; current role functionality remains available.',
+  );
+  await page.evaluate(() =>
+    window.patchBox({
+      view: {
+        ...window.baseBox,
+        game: {
+          ...window.catalog.find((game) => game.id === 'pokemon-encounters'),
+          variantId: 'original',
+        },
+      },
+    }),
+  );
+  await page.getByRole('button', { name: '版本：原版', exact: true }).click();
+  const versions = page.getByRole('dialog', {
+    name: '宝可梦奇遇：皮卡丘和朋友们版本',
+    exact: true,
+  });
+  await versions.waitFor();
+  assert.equal(
+    await versions
+      .getByRole('button', { name: '原版 · 已选中', exact: true })
+      .getAttribute('aria-current'),
+    'true',
+  );
+  await page.evaluate(() =>
+    window.setResources([
+      {
+        key: { gameId: 'pokemon-encounters', variantId: 'expansion' },
+        name: '扩展版',
+        status: { state: 'missing' },
+      },
+    ]),
+  );
+  const versionCommands = await page.evaluate(() => window.commands.length);
+  await versions.getByRole('button', { name: '下载资源', exact: true }).click();
+  assert.deepEqual(await page.evaluate(() => window.resourceDownloads.at(-1)), {
+    gameId: 'pokemon-encounters',
+    variantId: 'expansion',
+  });
+  assert.equal(
+    await page.evaluate(() => window.commands.length),
+    versionCommands,
+  );
+  await page.evaluate(() => {
+    window.setResources([
+      {
+        key: { gameId: 'pokemon-encounters', variantId: 'expansion' },
+        name: '扩展版',
+        status: { state: 'failed' },
+      },
+    ]);
+    window.patchBox({ role: 'player', isHost: false });
+  });
+  assert.ok(
+    await versions
+      .getByRole('button', { name: '重试下载', exact: true })
+      .isDisabled(),
+  );
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => window.patchBox({ role: 'host', isHost: true }));
+  checked(
+    'Variant resource downloads address gameId/variantId, preserve selection and remain administrator-only; current variant exposes aria-current.',
+  );
+  await page.evaluate(() =>
     window.dispatchEvent(new Event('tablemax:repository-open-error')),
   );
-  await page.locator('.tablemax-notice').waitFor();
+  await page
+    .locator('.tablemax-notice')
+    .filter({ hasText: '无法打开 GitHub' })
+    .waitFor();
   checked(
     'Native repository-open failure is presented through the universal popup.',
   );

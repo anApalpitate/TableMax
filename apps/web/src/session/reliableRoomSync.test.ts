@@ -162,18 +162,22 @@ describe('authorized room synchronization', () => {
   it('keeps a saved update newer than the sync snapshot without replaying presentation', () => {
     const s = setup();
     s.sync.transportConnected();
+    s.reply(0);
+    s.sync.request();
     s.sync.observe(projection(4));
-    s.reply(0, projection(3));
+    s.reply(1, projection(3));
     expect(s.sync.ready).toBe(true);
-    expect(s.applied.map((item) => item.view.revision)).toEqual([4]);
+    expect(s.applied.map((item) => item.view.revision)).toEqual([1, 4]);
     s.sync.observe(projection(5));
     expect(s.applied.at(-1)?.restoring).toBe(false);
   });
   it('keeps connection and management changes streamed at the same game revision', () => {
     const s = setup();
     s.sync.transportConnected();
-    s.sync.observe(projection(2, 'seat offline', 1));
     s.reply(0, projection(1, 'seat online', 1));
+    s.sync.request();
+    s.sync.observe(projection(2, 'seat offline', 1));
+    s.reply(1, projection(1, 'seat online', 1));
     expect(s.sync.ready).toBe(true);
     expect(s.applied.at(-1)?.view.visible).toBe('seat offline');
     s.sync.observe(projection(3, 'replacement waiting', 1));

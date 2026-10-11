@@ -5,6 +5,7 @@ export interface ModuleManifest {
   internal: boolean;
   development?: boolean;
   library?: {
+    displayName?: string;
     tags: string[];
     searchTerms?: string[];
   };

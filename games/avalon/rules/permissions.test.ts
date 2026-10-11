@@ -5,43 +5,44 @@ import { alignment } from './state';
 import { apply, approve, fixture, quest, reveal } from './test-fixtures';
 describe('阿瓦隆秘密投影与保存反馈', () => {
   it('public和陌生玩家零秘密；本人角色/知识精确，court派西维尔候选无真假标记', () => {
-    for (const variant of ['classic', 'court'] as const) {
-      const s = fixture(variant);
-      const publicView = project(s, { role: 'public' });
-      expect(publicView.self).toBeNull();
-      expect(publicView.revealedRoles).toBeNull();
-      expect(publicView.assassin).toBeNull();
-      expect(
-        /"roles"|"evilSeats"|"merlinCandidates"/.test(
-          JSON.stringify(publicView),
-        ),
-      ).toBe(false);
-      expect(project(s, { role: 'player', seatId: 'outsider' })).toEqual(
-        publicView,
-      );
-      for (const seat of s.seats) {
-        const self = project(s, { role: 'player', seatId: seat }).self!;
-        expect(self.role).toBe(s.roles[seat]);
-        if (self.role === 'merlin')
-          expect(self.knowledge.evilSeats).toEqual(
-            s.seats.filter((id) => alignment(s.roles[id]!) === 'evil'),
-          );
-        else if (self.role === 'percival') {
-          expect(self.knowledge.merlinCandidates).toHaveLength(2);
-          expect(self.knowledge.evilSeats).toEqual([]);
-        } else if (self.alignment === 'evil')
-          expect(self.knowledge.evilSeats).toEqual(
-            s.seats.filter(
-              (id) => id !== seat && alignment(s.roles[id]!) === 'evil',
-            ),
-          );
-        else
-          expect(self.knowledge).toEqual({
-            evilSeats: [],
-            merlinCandidates: [],
-          });
+    for (const count of [5, 6, 7, 8, 9, 10])
+      for (const variant of ['classic', 'court'] as const) {
+        const s = fixture(variant, count);
+        const publicView = project(s, { role: 'public' });
+        expect(publicView.self).toBeNull();
+        expect(publicView.revealedRoles).toBeNull();
+        expect(publicView.assassin).toBeNull();
+        expect(
+          /"roles"|"evilSeats"|"merlinCandidates"/.test(
+            JSON.stringify(publicView),
+          ),
+        ).toBe(false);
+        expect(project(s, { role: 'player', seatId: 'outsider' })).toEqual(
+          publicView,
+        );
+        for (const seat of s.seats) {
+          const self = project(s, { role: 'player', seatId: seat }).self!;
+          expect(self.role).toBe(s.roles[seat]);
+          if (self.role === 'merlin')
+            expect(self.knowledge.evilSeats).toEqual(
+              s.seats.filter((id) => alignment(s.roles[id]!) === 'evil'),
+            );
+          else if (self.role === 'percival') {
+            expect(self.knowledge.merlinCandidates).toHaveLength(2);
+            expect(self.knowledge.evilSeats).toEqual([]);
+          } else if (self.alignment === 'evil')
+            expect(self.knowledge.evilSeats).toEqual(
+              s.seats.filter(
+                (id) => id !== seat && alignment(s.roles[id]!) === 'evil',
+              ),
+            );
+          else
+            expect(self.knowledge).toEqual({
+              evilSeats: [],
+              merlinCandidates: [],
+            });
+        }
       }
-    }
   });
   it('原版可选角色知识工具排除Mordred及Oberon，不能把参考角色混入当前牌组', () => {
     const roles = {

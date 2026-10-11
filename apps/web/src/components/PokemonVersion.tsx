@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { OverlayPanel } from './OverlayPanel';
 import { moduleFor } from '../catalog';
 import type { RoomSession } from '../session/useRoomSession';
+import { ResourceButton } from './game-library/resources';
 import { feedbackText } from '../content/feedback';
 export function PokemonVersion({
   session,
@@ -42,18 +43,17 @@ export function PokemonVersion({
           </p>
           {choices.map((v) => (
             <section key={v.id}>
-              <button
-                type="button"
+              <ResourceButton
+                resource={{ gameId: game.catalog.id, variantId: v.id }}
+                canDownload={!!session.isHost && !session.locked}
                 disabled={!editable || v.id === selected}
-                aria-current={v.id === selected}
-                onClick={() => {
+                installedLabel={v.name + (v.id === selected ? ' · 已选中' : '')}
+                current={v.id === selected}
+                select={() => {
                   session.command({ type: 'select-variant', variantId: v.id });
                   setOpen(false);
                 }}
-              >
-                {v.name}
-                {v.id === selected ? ' · 已选中' : ''}
-              </button>
+              />
               <p>{v.description}</p>
             </section>
           ))}

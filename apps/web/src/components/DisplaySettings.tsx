@@ -8,6 +8,7 @@ import type { ScreenRole } from '../navigation';
 import { useInteractionPreference } from '../interactions/useInteractionPreference';
 import { feedbackText } from '../content/feedback';
 import './display-settings.css';
+import './settings-panel.css';
 
 const resolutions = [
   ['auto', '自动适配（推荐）'],
@@ -103,15 +104,26 @@ export function DisplaySettings({
         <span>视频设置</span>
       </button>
       {open && (
-        <OverlayPanel title="视频设置" close={() => setOpen(false)}>
+        <OverlayPanel
+          title="视频设置"
+          className="settings-panel"
+          close={() => setOpen(false)}
+        >
           <div className="display-settings-choice interaction-video-setting">
+            <h3 id="interaction-effects-label">互动特效</h3>
             <button
               type="button"
               className="secondary"
-              aria-pressed={blocked}
+              role="switch"
+              aria-checked={!blocked}
+              aria-labelledby="interaction-effects-label"
               onClick={() => setBlocked(!blocked)}
             >
-              {blocked ? '恢复互动特效' : '禁用互动特效'}
+              <span
+                className={`settings-switch${!blocked ? ' settings-switch--on' : ''}`}
+                aria-hidden="true"
+              />
+              {blocked ? '已关闭' : '已开启'}
             </button>
             <p className="display-settings-hint">
               {blocked

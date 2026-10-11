@@ -36,23 +36,14 @@ it('counts fading notices toward the limit and retires only the oldest when a fo
   ]);
 });
 
-it('gives errors longer reading time and removes each notice only after its fade', () => {
+it('all default notices leave within two seconds including the fade', () => {
   const center = new NotificationCenter();
-  const info = center.show('已入座')!;
-  const error = center.show('牌桌已满，请联系管理员。', 'error')!;
-  vi.advanceTimersByTime(5499);
+  center.show('已入座');
+  center.show('牌桌已满，请联系管理员。', 'error');
+  vi.advanceTimersByTime(1499);
   expect(center.snapshot().every((item) => !item.leaving)).toBe(true);
   vi.advanceTimersByTime(1);
-  expect(center.snapshot().find((item) => item.id === info)?.leaving).toBe(
-    true,
-  );
-  expect(center.snapshot().find((item) => item.id === error)?.leaving).toBe(
-    false,
-  );
-  vi.advanceTimersByTime(NOTIFICATION_FADE_MS);
-  expect(center.snapshot().map((item) => item.id)).toEqual([error]);
-  vi.advanceTimersByTime(8500 - 5500 - NOTIFICATION_FADE_MS);
-  expect(center.snapshot()[0]?.leaving).toBe(true);
+  expect(center.snapshot().every((item) => item.leaving)).toBe(true);
   vi.advanceTimersByTime(NOTIFICATION_FADE_MS);
   expect(center.snapshot()).toEqual([]);
 });

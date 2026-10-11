@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { gameCover } from '../assets/game-covers';
 import { gameIntroduction } from '../game-clients/introductions';
 import { ConfirmationDialog } from './ConfirmationDialog';
-import { PokemonVersion } from './PokemonVersion';
+import { ResourceButton } from './game-library/resources';
 import { feedbackText } from '../content/feedback';
 import {
   availableLibraryTags,
@@ -36,6 +36,7 @@ export function GameLibrary({
     const module = moduleFor(game.id);
     return {
       ...game,
+      displayName: module?.library?.displayName ?? game.name,
       tags: module?.library?.tags ?? ['未分类'],
       searchTerms: [
         ...(module?.library?.searchTerms ?? []),
@@ -75,6 +76,23 @@ export function GameLibrary({
         </span>
       </div>
       {!isHost && <p>{feedbackText('library.waitingForHost')}</p>}
+      {view &&
+        games.some(
+          (game) => !game.development && view.seats.length > game.max,
+        ) && (
+          <div className="game-library__conflict" role="status">
+            <strong>
+              {view.status === 'playing'
+                ? feedbackText('library.seatLimitConflict')
+                : '当前人数超过部分游戏上限，请先调整座位。'}
+            </strong>
+            {openSeats && view.status !== 'playing' && (
+              <button type="button" className="secondary" onClick={openSeats}>
+                调整座位
+              </button>
+            )}
+          </div>
+        )}
       <div
         className="game-library__filters"
         role="search"
@@ -174,10 +192,7 @@ export function GameLibrary({
               </span>
             )}
             <div className="game-library__details">
-              <h3>{game.name}</h3>
-              {moduleFor(game.id)?.versions && (
-                <PokemonVersion session={session} gameId={game.id} />
-              )}
+              <h3>{game.displayName}</h3>
               <div className="game-library__tags" aria-label="分类标签">
                 {game.tags.map((value) => (
                   <span key={value}>{value}</span>
@@ -209,16 +224,23 @@ export function GameLibrary({
                 </svg>
                 {game.min}–{game.max} 人
               </span>
+              {(view?.seats.length ?? 0) > game.max && (
+                <span className="game-library__capacity-warning">
+                  最多 {game.max} 席
+                </span>
+              )}
             </div>
             {isHost && (
-              <button
+              <ResourceButton
+                resource={{ gameId: game.id }}
+                canDownload={isHost && !game.development && !locked}
                 disabled={
                   game.development ||
                   locked ||
                   (view?.seats.length ?? 0) > game.max ||
                   view?.game?.id === game.id
                 }
-                onClick={() => {
+                select={() => {
                   if (game.development || !view) return;
                   if (view.status === 'playing') {
                     setTargetId(game.id);
@@ -230,15 +252,16 @@ export function GameLibrary({
                     instanceId: view.instanceId,
                   });
                 }}
-              >
-                {game.development
-                  ? '开发中'
-                  : view?.game?.id === game.id
-                    ? '已选中'
-                    : (view?.seats.length ?? 0) > game.max
-                      ? `最多 ${game.max} 席`
-                      : '选择游戏'}
-              </button>
+                installedLabel={
+                  game.development
+                    ? '开发中'
+                    : view?.game?.id === game.id
+                      ? '已选中'
+                      : (view?.seats.length ?? 0) > game.max
+                        ? `最多 ${game.max} 席`
+                        : '选择游戏'
+                }
+              />
             )}
           </article>
         ))}
@@ -253,16 +276,6 @@ export function GameLibrary({
           {filtered && (
             <button type="button" className="secondary" onClick={resetFilters}>
               重置筛选
-            </button>
-          )}
-        </div>
-      )}
-      {view && view.catalog.some((game) => view.seats.length > game.max) && (
-        <div className="game-library__conflict">
-          <p>{feedbackText('library.seatLimitConflict')}</p>
-          {openSeats && (
-            <button type="button" className="secondary" onClick={openSeats}>
-              调整座位
             </button>
           )}
         </div>

@@ -120,6 +120,7 @@ const verificationScopes = {
   'tools/maintenance/verify-cleanup-fast.ps1': ['tooling'],
   'tools/maintenance/verify-cleanup-idle.ps1': ['tooling'],
   'tools/test/games/avalon/verify-avalon.mjs': ['game:avalon'],
+  'tools/test/games/avalon/verify-avalon-compat.mjs': ['game:avalon'],
   'tools/test/games/modern-art/verify-modern-art-empty-gallery.mjs': [
     'game:modern-art',
   ],
@@ -271,6 +272,11 @@ export function verificationTestScopes(item) {
     item.args.includes('--box-only')
   )
     return ['box'];
+  if (
+    script === 'tools/test/platform/verify-root-entry.mjs' &&
+    item.args.includes('--connection-only')
+  )
+    return ['box', 'shared'];
   const selectors = item.args.filter(
     (arg) => arg === '--game' || arg.startsWith('--game='),
   );

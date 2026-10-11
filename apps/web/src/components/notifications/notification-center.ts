@@ -50,7 +50,7 @@ export class NotificationCenter {
     this.items = [...remaining, item];
     this.timers.set(id, {
       handle: undefined,
-      remaining: Math.max(0, duration ?? (tone === 'error' ? 8500 : 5500)),
+      remaining: Math.max(0, duration ?? 1500),
       started: Date.now(),
       holds,
     });
