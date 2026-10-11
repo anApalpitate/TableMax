@@ -268,6 +268,11 @@ export function scopedVitestIncludes(root, value, args = []) {
 export function verificationTestScopes(item) {
   const script = item.script.replaceAll('\\', '/');
   if (
+    script === 'tools/test/games/rummikub/verify-rummikub-ui.mjs' &&
+    item.args.includes('--entry-only')
+  )
+    return ['box', 'game:rummikub'];
+  if (
     script === 'tools/test/platform/verify-connection-entry.mjs' &&
     item.args.includes('--box-only')
   )

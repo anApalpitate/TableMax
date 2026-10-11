@@ -2,6 +2,10 @@
 
 本页记录规则模块、隔离候选和最终同版包的真实服务、Worker与UI证据。当前本地交付见[验收](../../reference/acceptance.md#105拉密经典版本地完整交付2026-10-09)。少数固定fixture不代替完整对局或实机。
 
+## 本地牌架次序阶段（2026-10-11）
+
+本地次序与草稿的11项精确测试通过，包含实例／席位隔离、授权牌交集、畸形缓存拒绝、出牌／摸牌后存活次序、新牌追加、隐藏草稿牌与回退恢复；[原始测试记录](../../../artifacts/maintenance/test-history/runs/df4f5d04-4573-49db-b33a-214dc697aafb.json)保留。拉密入口专项的范围声明与越界拒绝回归通过，常规检查仍限定本游戏。此阶段仅提交已验证纯函数与检查范围保护；组件整合、短横屏完善、实际包入口／三端／恢复验收仍在本轮进行中，不能作为完整交付通过。
+
 ## 最终同包验收（2026-10-09）
 
 最终ZIP SHA-256 `2c5474f86a1b2282d1fd21bde1fd26868e1c055649e9c11ebd4d3ccfecdecf5f`，41,015,328字节、275成员／实际解压94,594,942字节。22冻结单元与当前生产输入、实际运行前后文件清单一致，[完整便携证明](../../../artifacts/maintenance/v1.0.5/rummikub-20261009/portable-final.json)绑定[三端UI四组](../../../artifacts/rummikub/validation/ui-preview/final-authoritative-20261009/results.json)及[2／3／4人自然完整大局](../../../artifacts/rummikub/validation/runtime-final-authoritative-fresh-20261009/results.json)。UI实际77.12秒；三场服务30.54／67.14／42.10秒、共九小局，每场一次停服／重启恢复，439次服务Worker启动，最长受测真人身份决定1162.18ms。此前81源码自然小局及未变规则／策略／保存路径的风险证明按源哈希复用，没有将固定UI状态写成自然对局。

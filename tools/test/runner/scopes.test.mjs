@@ -54,6 +54,17 @@ test('rummikub has its own scope without opening another game matrix', () => {
       ]),
     /outside/,
   );
+  const entry = plan(
+    item('tools/test/games/rummikub/verify-rummikub-ui.mjs', ['--entry-only']),
+  );
+  assert.throws(() => validateBatchScope(entry, 'game:rummikub'), /outside/);
+  assert.doesNotThrow(() => validateBatchScope(entry, 'box,game:rummikub'));
+  assert.doesNotThrow(() =>
+    validateBatchScope(
+      plan(item('tools/test/games/rummikub/verify-rummikub-ui.mjs')),
+      'game:rummikub',
+    ),
+  );
 });
 
 test('uno checks are isolated from other games and mixed verification matrices', () => {
