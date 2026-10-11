@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@tablemax/game-sdk": "workspace:*",
     "@tablemax/protocol": "workspace:*",
     "react": "19.3.0",
     "react-dom": "19.3.0",

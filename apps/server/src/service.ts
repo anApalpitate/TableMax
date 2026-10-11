@@ -49,6 +49,11 @@ import { SyncDiagnostics } from './sync-diagnostics';
 import { PackageStore } from './game-packages/store';
 import { PROJECT_GAME_PUBLIC_KEY } from './game-packages/project-public-key';
 import { gameAssetUrl, gameCatalogUrl } from './game-packages/distribution';
+import {
+  projectPackageSnapshot,
+  publicReleaseClient,
+  publicReleaseDetails,
+} from './game-packages/public';
 
 export async function createService(
   input: ServiceConfig,
@@ -200,7 +205,12 @@ export async function createService(
   });
 
   app.addHook('onSend', async (request, reply) => {
-    if (request.url.startsWith('/api/'))
+    if (
+      request.url.startsWith('/api/') &&
+      (request.routeOptions.url !==
+        '/api/game-packages/releases/:ref/details' ||
+        !reply.hasHeader('Cache-Control'))
+    )
       reply.header('Cache-Control', 'no-store');
     reply.header(
       'Content-Security-Policy',
@@ -220,13 +230,25 @@ export async function createService(
     }
   };
   if (packages) {
-    app.get('/api/game-packages', () => packages.snapshot());
+    app.get('/api/game-packages', () =>
+      projectPackageSnapshot(packages.snapshot()),
+    );
+    app.get<{ Params: { ref: string } }>(
+      '/api/game-packages/releases/:ref/details',
+      (request, reply) => {
+        const details = publicReleaseDetails(packages, request.params.ref);
+        if (!details)
+          return reply.code(404).send({ reason: 'missing-game-details' });
+        reply.header('Cache-Control', 'public, max-age=31536000, immutable');
+        return details;
+      },
+    );
     app.get<{ Params: { ref: string } }>(
       '/api/game-packages/releases/:ref',
       (request, reply) => {
-        const found = packages.resolveModule(request.params.ref);
+        const found = publicReleaseClient(packages, request.params.ref);
         return found
-          ? found.release
+          ? found
           : reply.code(404).send({ reason: 'missing-game-release' });
       },
     );

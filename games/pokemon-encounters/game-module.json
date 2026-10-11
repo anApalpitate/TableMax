@@ -125,18 +125,6 @@
       }
     }
   ],
-  "versions": [
-    {
-      "name": "原版",
-      "selected": true,
-      "description": "2×3 场地，16 类／56 张牌，三胜。"
-    },
-    {
-      "name": "扩展版",
-      "selected": false,
-      "description": "3×3场地，34类112／144张，研究投票、丰缘齐聚与新增能力。"
-    }
-  ],
   "budgets": {
     "payloadBytes": 4194304,
     "serviceHeapBytes": 83886080,

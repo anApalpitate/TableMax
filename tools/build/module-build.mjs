@@ -34,6 +34,7 @@ import {
 } from './setup-desktop.mjs';
 import { nodeRuntimeInputs } from './node-runtime-inputs.mjs';
 import { packService } from './service-brotli.mjs';
+import { projectGameDetails } from '../../packages/game-sdk/src/metadata.mjs';
 
 export const root = workspaceRoot;
 const cache = resolve('.cache/build-modules/v1');
@@ -78,6 +79,7 @@ export function assertGameImport(gameId, file, request) {
   const publicImports = new Set([
     '@tablemax/game-sdk',
     '@tablemax/game-sdk/module-manifest',
+    '@tablemax/game-sdk/metadata',
     '@tablemax/protocol',
     '@tablemax/web-host',
     'react',
@@ -280,6 +282,11 @@ export async function inputsFor(unit) {
       );
     if (
       unit.id === 'platform-box' &&
+      file.endsWith('game-clients' + require('node:path').sep + 'details.ts')
+    )
+      source = removeDevelopmentDetails(source);
+    if (
+      unit.id === 'platform-box' &&
       file.endsWith('catalog.ts') &&
       file.includes('apps' + require('node:path').sep + 'web')
     )
@@ -387,6 +394,8 @@ export async function inputsFor(unit) {
   for (const file of unit.inputs) await visit(file);
   if (compressedNodeUnits.has(unit.id))
     await visit('tools/build/service-brotli.mjs');
+  if (unit.kind === 'metadata')
+    await visit('packages/game-sdk/src/metadata.mjs');
   for (const file of [
     'pnpm-lock.yaml',
     'package.json',
@@ -483,8 +492,17 @@ const catalogPlugin = {
       const end = code.indexOf('const loaded');
       return code.slice(0, first) + 'const development={};\n' + code.slice(end);
     }
+    if (posix(id).endsWith('/apps/web/src/game-clients/details.ts'))
+      return removeDevelopmentDetails(code);
   },
 };
+export function removeDevelopmentDetails(code) {
+  const first = code.indexOf('const development');
+  const end = code.indexOf('const cached', first);
+  if (first === -1 || end === -1 || end <= first)
+    throw new Error('Missing development details boundary');
+  return code.slice(0, first) + 'const development={};\n' + code.slice(end);
+}
 async function webBuild(unit, out) {
   const webRequire = createRequire(resolve('apps/web/package.json'));
   const aliases =
@@ -598,8 +616,8 @@ async function compile(unit, out) {
     )
       throw new Error('Module descriptor changed during build: ' + item.id);
     await writeFile(
-      join(out, 'module.json'),
-      JSON.stringify(item, null, 2) + '\n',
+      join(out, 'details.json'),
+      JSON.stringify(projectGameDetails(item), null, 2) + '\n',
     );
     if (item.cover)
       await copyFile(resolve(item.cover), join(out, 'cover.webp'));

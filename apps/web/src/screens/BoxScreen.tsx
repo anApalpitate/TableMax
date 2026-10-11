@@ -1,4 +1,4 @@
-import { moduleFor } from '../catalog';
+import { useGameDetails } from '../game-clients/details';
 import { useState } from 'react';
 import {
   AVATAR_PRESETS,
@@ -27,7 +27,7 @@ import { CountdownSettings } from '../components/CountdownSettings';
 import { BeginnerGuidanceSetting } from '../components/BeginnerGuidanceSetting';
 import { LobbyReadiness } from '../components/LobbyReadiness';
 import { BotInformation } from '../components/BotInformation';
-import { PokemonVersion } from '../components/PokemonVersion';
+import { GameplaySelector } from '../components/GameplaySelector';
 import type { RoomSession } from '../session/useRoomSession';
 import { useDeviceTransfer } from '../session/useDeviceTransfer';
 import { DeviceTransfer } from '../components/DeviceTransfer';
@@ -97,6 +97,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
     connected,
   } = session;
   const game = view?.game;
+  const { details } = useGameDetails(game?.id, game?.releaseRef);
   const transfer = useDeviceTransfer(
     role === 'player' && !credential,
     (token) => {
@@ -158,9 +159,9 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           TableMax
         </RepositoryLink>
         <div className="header-status">
-          {(isHost || moduleFor(game?.id)?.guidance) && (
+          {(isHost || details?.guidance) && (
             <CountdownSettings session={session}>
-              {moduleFor(game?.id)?.guidance && (
+              {details?.guidance && (
                 <BeginnerGuidanceSetting gameId={game!.id} />
               )}
             </CountdownSettings>
@@ -202,7 +203,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
         <div className="box-game-title">
           <h1>{game?.name ?? '请前往游戏库下载'}</h1>
         </div>
-        {moduleFor(game?.id)?.versions && <PokemonVersion session={session} />}
+        <GameplaySelector session={session} />
         {(isHost || !game) && (
           <button
             type="button"

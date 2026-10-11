@@ -2,10 +2,38 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
-import type { ModuleManifest } from '../../../packages/game-sdk/src/module-manifest';
+import type {
+  GameCatalogEntry,
+  ModuleManifest,
+} from '@tablemax/game-sdk/module-manifest';
 import type { LoadedGame } from '@tablemax/platform-core';
 const compiled = typeof __filename === 'string' && __filename.endsWith('.cjs');
 const root = compiled ? __dirname : resolve('.');
+/** Package-managed hosts browse the lightweight seed and load code from installed refs. */
+export function availableModules(): (GameCatalogEntry | ModuleManifest)[] {
+  const catalogPath = join(root, 'web', 'catalog.json');
+  if (!compiled || !existsSync(catalogPath)) return installedModules();
+  const items = JSON.parse(
+    readFileSync(catalogPath, 'utf8'),
+  ) as GameCatalogEntry[];
+  if (
+    !Array.isArray(items) ||
+    items.some(
+      (item) =>
+        !/^[a-z][a-z0-9-]*$/.test(item.id) ||
+        item.catalog.id !== item.id ||
+        typeof item.catalog.name !== 'string' ||
+        !Number.isInteger(item.catalog.min) ||
+        !Number.isInteger(item.catalog.max) ||
+        item.catalog.min < 1 ||
+        item.catalog.max < item.catalog.min ||
+        !Number.isFinite(item.order),
+    ) ||
+    new Set(items.map((item) => item.id)).size !== items.length
+  )
+    throw new Error('invalid-game-catalog');
+  return items.sort((a, b) => a.order - b.order);
+}
 export function installedModules(): ModuleManifest[] {
   let items: ModuleManifest[];
   if (compiled)

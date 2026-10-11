@@ -1,4 +1,8 @@
 import type { ModuleManifest } from '../../../../packages/game-sdk/src/module-manifest';
+import type {
+  PublicPackageTask,
+  PublicPackageTaskPhase,
+} from '@tablemax/protocol';
 
 export interface PackageFile {
   path: string;
@@ -42,21 +46,8 @@ export interface InstallIndex {
   blobs: Record<string, PackageBlob>;
   selected: Record<string, string>;
 }
-export type PackageTaskPhase =
-  | 'queued'
-  | 'downloading'
-  | 'verifying'
-  | 'installing'
-  | 'complete'
-  | 'cancelled'
-  | 'failed';
-export interface PackageTask {
-  releaseId: string;
-  phase: PackageTaskPhase;
-  transferredBytes: number;
-  totalBytes: number;
-  error?: string;
-}
+export type PackageTaskPhase = PublicPackageTaskPhase;
+export type PackageTask = PublicPackageTask;
 export function releaseKey(
   release: Pick<GameRelease, 'gameId' | 'variantId'>,
 ): string {

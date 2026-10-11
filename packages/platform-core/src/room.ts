@@ -1053,6 +1053,10 @@ export class RoomCoordinator {
         } catch {
           throw new Rejection('game-load-failed');
         }
+        requireThat(
+          next.seats.length <= game.rules.manifest.players.max,
+          'too-many-seats',
+        );
         if (
           this.game?.rules.manifest.id === gameId &&
           next.status === 'lobby' &&

@@ -1,7 +1,7 @@
-.dialog-surface.pokemon-version-panel {
+.dialog-surface.gameplay-selector-panel {
   width: min(94vw, 760px);
 }
-.pokemon-version-panel__notice {
+.gameplay-selector-panel__notice {
   margin: 0 0 18px;
   padding: 14px 16px;
   border-radius: 14px;
@@ -10,29 +10,29 @@
   font-size: 16px;
   line-height: 1.6;
 }
-.pokemon-version-panel__choices {
+.gameplay-selector-panel__choices {
   display: grid;
   gap: 16px;
 }
-.pokemon-version-card {
+.gameplay-selector-card {
   padding: 20px;
   border: 1px solid #c7d2ba;
   border-radius: 20px;
   background: #fffef8;
   box-shadow: 0 5px 14px #365c3710;
 }
-.pokemon-version-card[data-selected='true'] {
+.gameplay-selector-card[data-selected='true'] {
   border: 2px solid #688d59;
   background: linear-gradient(135deg, #f8fbe9, #fffdf2);
   padding: 19px;
 }
-.pokemon-version-card__heading {
+.gameplay-selector-card__heading {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
 }
-.pokemon-version-card__heading h3 {
+.gameplay-selector-card__heading h3 {
   flex: 1;
   min-width: 0;
   margin: 0;
@@ -40,7 +40,7 @@
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
-.pokemon-version-card__number {
+.gameplay-selector-card__number {
   display: grid;
   place-items: center;
   width: 40px;
@@ -52,7 +52,7 @@
   font-weight: 700;
   flex: 0 0 auto;
 }
-.pokemon-version-card__current {
+.gameplay-selector-card__current {
   padding: 5px 10px;
   border-radius: 99px;
   background: #dce9ce;
@@ -60,26 +60,26 @@
   font-size: 16px;
   font-weight: 700;
 }
-.pokemon-version-card > p {
+.gameplay-selector-card > p {
   margin: 16px 0;
   font-size: 16px;
   line-height: 1.65;
   color: #486050;
 }
-.dialog-surface .pokemon-version-card > button {
+.dialog-surface .gameplay-selector-card > button {
   width: 100%;
   min-height: 48px;
   margin: 0;
   font-size: 18px;
 }
 @media (max-width: 600px) {
-  .pokemon-version-card {
+  .gameplay-selector-card {
     padding: 16px;
   }
-  .pokemon-version-card[data-selected='true'] {
+  .gameplay-selector-card[data-selected='true'] {
     padding: 15px;
   }
-  .pokemon-version-card__current {
+  .gameplay-selector-card__current {
     margin-inline-start: 52px;
   }
 }

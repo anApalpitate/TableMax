@@ -10,6 +10,10 @@ import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { buildAuthorProject } from './build.mjs';
+import {
+  projectGameCatalog,
+  projectGameWeb,
+} from '../../packages/game-sdk/src/metadata.mjs';
 
 export async function runIsolatedDevelopment(
   project,
@@ -52,6 +56,7 @@ export async function runIsolatedDevelopment(
   const runtime = resolve(run, 'runtime');
   const manifest = {
     ...built.manifest,
+    details: `/games/${built.manifest.id}/web/details.json`,
     entries: {
       rules: `games/${built.manifest.id}.cjs`,
       bot: `bots/${built.manifest.id}.cjs`,
@@ -76,6 +81,10 @@ export async function runIsolatedDevelopment(
     resolve(runtime, 'web/games', manifest.id, 'web'),
     { recursive: true },
   );
+  await writeFile(
+    resolve(runtime, 'web/games', manifest.id, 'web/module.json'),
+    JSON.stringify(projectGameWeb(manifest)),
+  );
   if (built.files.some((item) => item.path.startsWith('resources/'))) {
     await cp(
       resolve(built.output, 'resources'),
@@ -95,7 +104,9 @@ export async function runIsolatedDevelopment(
   await writeFile(
     resolve(runtime, 'web/catalog.json'),
     JSON.stringify(
-      Array.isArray(catalog) ? [manifest] : { ...catalog, modules: [manifest] },
+      Array.isArray(catalog)
+        ? [projectGameCatalog(manifest)]
+        : { ...catalog, modules: [projectGameCatalog(manifest)] },
     ),
   );
   const node =

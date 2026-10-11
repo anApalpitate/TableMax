@@ -19,6 +19,12 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createRequire } from 'node:module';
 import { json, inventory, lock, validateCached } from './module-build.mjs';
+import {
+  projectGameCatalog,
+  projectGameDetails,
+  projectGameRuntime,
+  projectGameWeb,
+} from '../../packages/game-sdk/src/metadata.mjs';
 const run = promisify(execFile);
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 export async function assertIdle() {
@@ -124,6 +130,18 @@ export async function assemble(
       resolve('.cache/build-modules/v1', unit.id, unit.fingerprint)
     )
       throw new Error('Invalid snapshot cache path');
+  const metadataHelper = 'packages/game-sdk/src/metadata.mjs';
+  const metadataHelperSha256 = hash(await readFile(metadataHelper));
+  for (const module of snapshot.modules) {
+    const metadataUnit = snapshot.units.find(
+      (unit) => unit.id === `game-${module.id}-metadata`,
+    );
+    if (
+      metadataUnit?.inputs.files.find((file) => file.path === metadataHelper)
+        ?.sha256 !== metadataHelperSha256
+    )
+      throw new Error('Snapshot metadata projector changed');
+  }
   return lock('assemble-' + output, async () => {
     await assertIdle();
     const staging = output + '.staging-' + process.pid,
@@ -168,9 +186,11 @@ export async function assemble(
             );
             if (!game) throw new Error('Unknown game output');
             const part = unit.id.slice(('game-' + game.id + '-').length);
-            if (part === 'metadata')
-              target = `web/games/${game.id}/metadata/${file.path}`;
-            else if (part === 'web')
+            if (part === 'metadata') {
+              if (!['details.json', 'cover.webp'].includes(file.path))
+                throw new Error('Unexpected game metadata output');
+              target = `web/games/${game.id}/${file.path === 'details.json' ? 'web' : 'metadata'}/${file.path}`;
+            } else if (part === 'web')
               target = `web/games/${game.id}/web/${file.path}`;
             else if (part.startsWith('resources-'))
               target = `web/games/${game.id}/resources/${game.id}/${file.path}`;
@@ -190,8 +210,7 @@ export async function assemble(
           (unit) => unit.id === `game-${item.id}-web`,
         );
         if (!web) throw new Error('Missing web unit');
-        return {
-          ...item,
+        return projectGameRuntime(item, {
           cover: item.cover ? `/games/${item.id}/metadata/cover.webp` : null,
           entries: {
             rules: `games/${item.id}.cjs`,
@@ -201,13 +220,16 @@ export async function assemble(
           styles: web.files
             .filter((file) => file.path.endsWith('.css'))
             .map((file) => `/games/${item.id}/web/${file.path}`),
-        };
+          details: `/games/${item.id}/web/details.json`,
+        });
       });
       for (const item of snapshot.modules) {
         const metadata = await json(
-          join(staging, `web/games/${item.id}/metadata/module.json`),
+          join(staging, `web/games/${item.id}/web/details.json`),
         );
-        if (JSON.stringify(metadata) !== JSON.stringify(item))
+        if (
+          JSON.stringify(metadata) !== JSON.stringify(projectGameDetails(item))
+        )
           throw new Error('Snapshot metadata changed');
         const require = createRequire(import.meta.url);
         const rulesPath = join(staging, 'games', item.id + '.cjs'),
@@ -230,14 +252,16 @@ export async function assemble(
         )
           throw new Error('Incompatible compiled module ' + item.id);
       }
+      for (const module of modules)
+        await writeFile(
+          join(staging, `web/games/${module.id}/web/module.json`),
+          JSON.stringify(projectGameWeb(module)) + '\n',
+        );
       await writeFile(
         join(staging, 'modules.json'),
         JSON.stringify(modules, null, 2) + '\n',
       );
-      const catalog = modules.map(({ entries, ...item }) => ({
-        ...item,
-        entries: { web: entries.web },
-      }));
+      const catalog = modules.map((module) => projectGameCatalog(module));
       await writeFile(
         join(staging, 'web/catalog.json'),
         JSON.stringify(catalog) + '\n',

@@ -1,5 +1,6 @@
 import type { RoomView } from '@tablemax/protocol';
 import { gameCover } from '../assets/game-covers';
+import { useGameDetails } from '../game-clients/details';
 import {
   gameIntroduction,
   type IntroductionIcon,
@@ -176,7 +177,8 @@ export function GameIntroduction({
 }: {
   game: NonNullable<RoomView['game']>;
 }) {
-  const content = gameIntroduction(game.id, game.variantId);
+  const { details, error, retry } = useGameDetails(game.id, game.releaseRef);
+  const content = gameIntroduction(details, game.variantId);
   const [title, ...subtitle] = game.name.split('：');
   return (
     <section className="game-introduction game-overview">
@@ -199,6 +201,12 @@ export function GameIntroduction({
           </span>
         </div>
       </div>
+      {!details && <p role="status">{error ?? '正在加载玩法说明…'}</p>}
+      {error && (
+        <button type="button" onClick={retry}>
+          重试
+        </button>
+      )}
       {content && (
         <>
           <p className="game-overview__lead">{content.lead}</p>

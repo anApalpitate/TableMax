@@ -1,5 +1,11 @@
 import { z } from 'zod';
 export * from './interactions';
+export type {
+  GameReleaseSummary,
+  PublicPackageTaskPhase,
+  PublicPackageTask,
+  PublicPackageSnapshot,
+} from './game-package-public';
 import {
   AvatarIdSchema,
   PresetAvatarIdSchema,

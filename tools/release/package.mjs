@@ -217,7 +217,6 @@ await lock('package-win', async () => {
       'server.cjs.br',
       'bot-worker.cjs',
       'package.json',
-      'modules.json',
     ];
     async function copyTree(from, to) {
       await mkdir(to, { recursive: true });
@@ -243,11 +242,6 @@ await lock('package-win', async () => {
       for (const directory of ['web'])
         await copyTree(join(source, directory), join(unpacked, directory));
     });
-    await copyFile(catalogSource, join(unpacked, 'game-catalog.json'));
-    assert.deepEqual(
-      await readFile(join(unpacked, 'game-catalog.json')),
-      catalogBytes,
-    );
     let preinstalled;
     if (currentEdition === 'full') {
       const envelope = JSON.parse(catalogBytes.toString('utf8'));
@@ -341,10 +335,10 @@ await lock('package-win', async () => {
     const expected = assembly.files.filter(
       (file) =>
         !file.path.startsWith('.tablemax-') &&
+        file.path !== 'modules.json' &&
         !/^(games|bots)\//.test(file.path) &&
         !/^web\/games\/[^/]+\/(web|resources)\//.test(file.path),
     );
-    expected.push(records.find((file) => file.path === 'game-catalog.json'));
     expected.push(
       ...records.filter((file) => file.path.startsWith('preinstalled-games/')),
     );

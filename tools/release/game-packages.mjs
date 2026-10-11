@@ -1,6 +1,11 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import {
+  projectGameDetails,
+  projectGameRuntime,
+  projectGameWeb,
+} from '../../packages/game-sdk/src/metadata.mjs';
+import {
   discover,
   unitsFor,
   buildUnit,
@@ -58,14 +63,14 @@ export async function packageGames({
     releases = [];
   for (const module of modules) {
     const codeRecords = [];
-    const builtModule = {
-      ...module,
+    const builtModule = projectGameRuntime(module, {
       entries: {
         rules: `rules/${module.id}.cjs`,
         bot: `bots/${module.id}.cjs`,
         web: 'web/entry.js',
       },
-    };
+      details: 'web/details.json',
+    });
     for (const part of ['rules', 'bot', 'web']) {
       const result = results.find(
         (item) => item.id === `game-${module.id}-${part}`,
@@ -79,6 +84,16 @@ export async function packageGames({
     builtModule.styles = codeRecords
       .filter((file) => file.path.endsWith('.css'))
       .map((file) => file.path);
+    codeRecords.push(
+      {
+        path: 'web/details.json',
+        data: Buffer.from(JSON.stringify(projectGameDetails(module))),
+      },
+      {
+        path: 'web/module.json',
+        data: Buffer.from(JSON.stringify(projectGameWeb(builtModule))),
+      },
+    );
     const code = await createBlob('code', codeRecords, out, releaseTag);
     blobs.push(code);
     const resourceUnits = {};

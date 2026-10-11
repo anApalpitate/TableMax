@@ -6,13 +6,15 @@ import {
 if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
 import assert from 'node:assert/strict';
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
 import { launchTestBrowser } from '../support/browser-test.mjs';
 import { serveFixture } from '../support/fixture-server.mjs';
 import { verificationOutput } from '../support/verification-output.mjs';
+import { leanCatalogPlugin } from '../../build/lean-catalog.mjs';
+import { projectGameDetails } from '../../../packages/game-sdk/src/metadata.mjs';
 
 const output = verificationOutput('game-library', 'run-' + Date.now());
 await mkdir(output, { recursive: true });
@@ -29,12 +31,37 @@ import {createRoot} from 'react-dom/client';
 import {BoxScreen} from ${JSON.stringify(resolve('apps/web/src/screens/BoxScreen.tsx'))};
 import {moduleCatalog} from ${JSON.stringify(resolve('apps/web/src/catalog.ts'))};
 import {feedbackKind} from ${JSON.stringify(resolve('apps/web/src/content/feedback.ts'))};
+import {useInstalledResources} from ${JSON.stringify(resolve('apps/web/src/components/game-library/server-resources.ts'))};
 import ${JSON.stringify(resolve('apps/web/src/styles.css'))};
 import ${JSON.stringify(resolve('apps/web/src/screens/box-screen.css'))};
-const catalog=moduleCatalog.filter(m=>!m.internal).map(m=>m.catalog);
+// The authority supplies runtime capabilities after installation; browsing entries omit them.
+const catalog=moduleCatalog.filter(m=>!m.internal).map(m=>({...m.catalog,decisionTimer:true}));
 window.commands=[];
 window.catalog=catalog;
+window.moduleCatalog=moduleCatalog;
 window.developmentIds=moduleCatalog.filter(m=>m.development).map(m=>m.id);
+window.packageSnapshot=null;
+window.trustedReleases=[];
+window.packageOperations=[];
+window.refreshFailure='';
+window.holdCatalogRefresh=false;
+const originalFetch=window.fetch.bind(window);
+window.fetch=async (input,options)=>{
+ const url=typeof input==='string'?input:input.url;
+ if(!window.packageSnapshot)return originalFetch(input,options);
+ if(url==='/api/game-packages')return new Response(JSON.stringify(window.packageSnapshot),{status:200,headers:{'Content-Type':'application/json'}});
+ if(url==='/api/game-packages/manage'){
+  const operation=JSON.parse(options.body);
+  window.packageOperations.push(operation);
+  if(operation.operation==='refresh'){
+   await new Promise(resolve=>{window.finishCatalogRefresh=resolve;if(!window.holdCatalogRefresh)setTimeout(resolve,120)});
+   if(window.refreshFailure)return new Response(JSON.stringify({ok:false,reason:window.refreshFailure}),{status:503,headers:{'Content-Type':'application/json'}});
+   window.packageSnapshot={...window.packageSnapshot,catalog:{releases:window.trustedReleases}};
+  }
+  return new Response(JSON.stringify({ok:true}),{status:200,headers:{'Content-Type':'application/json'}});
+ }
+ return originalFetch(input,options);
+};
 let resourceSnapshot=[];
 const resourceListeners=new Set();
 window.resourceDownloads=[];
@@ -47,7 +74,12 @@ function App(){
  const [patch,setPatch]=useState({}),[name,setName]=useState('朋友');
  window.patchBox=(next)=>setPatch(previous=>({...previous,...next}));
  const message=patch.message??'';
- const session={role:'host',view:base,self:null,isHost:true,canControl:true,canManageSeats:true,locked:false,busy:false,connected:true,credential:'fixture',name,setName,message,messageKind:feedbackKind(message),errorId:'',admissionPending:false,admissionAvatarId:null,admissionAvatarImage:null,awaitingConfirmation:false,join(){},retry(){},retryAdmission(){},setPlayerCredential(){},command(command){window.commands.push(command)},addresses:[],adapters:[],address:'',port:38473,networkMessage:'',externalJoinUrl:null,setAddress(){},refreshNetwork(){},async saveExternalJoinUrl(){return true},...patch};
+ const session={role:'host',view:{...base,game:null},self:null,isHost:true,canControl:true,canManageSeats:true,locked:false,busy:false,connected:true,credential:'fixture',name,setName,message,messageKind:feedbackKind(message),errorId:'',admissionPending:false,admissionAvatarId:null,admissionAvatarImage:null,awaitingConfirmation:false,join(){},retry(){},retryAdmission(){},setPlayerCredential(){},command(command){window.commands.push(command)},addresses:[],adapters:[],address:'',port:38473,networkMessage:'',externalJoinUrl:null,setAddress(){},refreshNetwork(){},async saveExternalJoinUrl(){return true},...patch};
+ const serverResources=useInstalledResources(session);
+ window.serverResourceAdapter=serverResources.adapter;
+ window.serverResourceManage=serverResources.manage;
+ window.serverResourceRefresh=serverResources.refresh;
+ window.serverResourceError=serverResources.error;
  return <BoxScreen session={session} resources={resources}/>;
 }
 createRoot(document.getElementById('root')).render(<App/>);
@@ -57,7 +89,7 @@ console.log('Building source box library fixture (about 10 seconds)…');
 await build({
   configFile: false,
   root: work,
-  plugins: [react()],
+  plugins: [leanCatalogPlugin(resolve('.')), react()],
   resolve: {
     alias: {
       react: resolve('apps/web/node_modules/react'),
@@ -80,6 +112,7 @@ const report = {
   checks: [],
   errors: [],
   layouts: [],
+  detailRequests: [],
 };
 const checked = (message) => report.checks.push(message);
 try {
@@ -87,7 +120,55 @@ try {
     viewport: { width: 1280, height: 720 },
   });
   page.on('pageerror', (error) => report.errors.push(error.message));
+  await page.route('**/games/*/web/details.json', async (route) => {
+    const id = new URL(route.request().url()).pathname.split('/')[2];
+    assert.match(id, /^[a-z][a-z0-9-]*$/);
+    const module = JSON.parse(
+      await readFile(resolve('games', id, 'game-module.json'), 'utf8'),
+    );
+    report.detailRequests.push(id);
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify(projectGameDetails(module)),
+    });
+  });
+  await page.route('**/api/game-packages/releases/*/details', async (route) => {
+    const module = JSON.parse(
+      await readFile(resolve('games/avalon/game-module.json'), 'utf8'),
+    );
+    report.detailRequests.push('avalon-pinned');
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify(projectGameDetails(module)),
+    });
+  });
   await page.goto(server.url);
+  const leanCatalog = await page.evaluate(() => window.moduleCatalog);
+  for (const game of leanCatalog) {
+    for (const field of [
+      'introduction',
+      'botIntroduction',
+      'guidance',
+      'budgets',
+      'entries',
+      'compatibility',
+      'styles',
+      'versions',
+    ])
+      assert.ok(!(field in game), `Catalog excludes ${field}`);
+    assert.deepEqual(Object.keys(game.catalog).sort(), [
+      'id',
+      'max',
+      'min',
+      'name',
+    ]);
+    for (const variant of game.variants ?? [])
+      assert.deepEqual(Object.keys(variant).sort(), [
+        'description',
+        'id',
+        'name',
+      ]);
+  }
   for (const role of ['host', 'player', 'public']) {
     await page.evaluate(
       (role) =>
@@ -157,6 +238,10 @@ try {
     }
     await page.keyboard.press('Escape');
   }
+  assert.deepEqual(report.detailRequests, []);
+  checked(
+    'Uninstalled catalog contains only browsing metadata and variant summaries; an empty box and its library request no game details.',
+  );
   await page.evaluate(() =>
     window.patchBox({
       role: 'host',
@@ -643,6 +728,126 @@ try {
   checked(
     'Game, video and seat settings fit six viewports with readable text; current role functionality remains available.',
   );
+  await page.evaluate(() => {
+    window.setResources([]);
+    window.patchBox({
+      role: 'host',
+      isHost: true,
+      locked: false,
+      awaitingConfirmation: false,
+      view: {
+        ...window.baseBox,
+        game: {
+          ...window.catalog.find((game) => game.id === 'avalon'),
+          variantId: 'classic',
+          releaseRef: 'a'.repeat(64),
+        },
+      },
+    });
+  });
+  await page
+    .getByRole('button', { name: '版本：经典基础', exact: true })
+    .click();
+  const gameplaySelector = page.getByRole('dialog', {
+    name: '阿瓦隆版本',
+    exact: true,
+  });
+  await gameplaySelector.waitFor();
+  assert.equal(
+    await gameplaySelector.locator('.gameplay-selector-card').count(),
+    2,
+  );
+  assert.equal(
+    await gameplaySelector
+      .getByRole('button', { name: '经典基础 · 已选中', exact: true })
+      .getAttribute('aria-current'),
+    'true',
+  );
+  for (const permission of [
+    { role: 'player', isHost: false, canControl: false, manage: false },
+    { role: 'player', isHost: false, canControl: true, manage: false },
+    { role: 'public', isHost: false, canControl: false, manage: false },
+    { role: 'host', isHost: true, manage: true, locked: true },
+    {
+      role: 'host',
+      isHost: true,
+      manage: true,
+      awaitingConfirmation: true,
+    },
+    { role: 'host', isHost: true, manage: true, status: 'playing' },
+  ]) {
+    await page.evaluate((permission) => {
+      const { manage, status = 'lobby', ...session } = permission;
+      window.patchBox({
+        locked: false,
+        awaitingConfirmation: false,
+        ...session,
+        view: {
+          ...window.baseBox,
+          status,
+          capabilities: { manage },
+          game: {
+            ...window.catalog.find((game) => game.id === 'avalon'),
+            variantId: 'classic',
+            releaseRef: 'a'.repeat(64),
+          },
+        },
+      });
+    }, permission);
+    assert.ok(
+      await gameplaySelector
+        .getByRole('button', { name: '宫廷迷局', exact: true })
+        .isDisabled(),
+      `Gameplay selection respects ${JSON.stringify(permission)}`,
+    );
+  }
+  await page.evaluate(() => {
+    window.patchBox({
+      role: 'host',
+      isHost: true,
+      canControl: true,
+      locked: false,
+      awaitingConfirmation: false,
+      view: {
+        ...window.baseBox,
+        game: {
+          ...window.catalog.find((game) => game.id === 'avalon'),
+          variantId: 'classic',
+          releaseRef: 'a'.repeat(64),
+        },
+      },
+    });
+    window.setResources([
+      {
+        key: { gameId: 'avalon', variantId: 'classic' },
+        name: '经典基础',
+        releaseRef: 'b'.repeat(64),
+        status: { state: 'installed' },
+      },
+    ]);
+  });
+  const currentReleaseButton = gameplaySelector.getByRole('button', {
+    name: '经典基础',
+    exact: true,
+  });
+  assert.equal(await currentReleaseButton.getAttribute('aria-current'), null);
+  assert.ok(await currentReleaseButton.isEnabled());
+  const gameplayCommands = await page.evaluate(() => window.commands.length);
+  await gameplaySelector
+    .getByRole('button', { name: '宫廷迷局', exact: true })
+    .click();
+  assert.deepEqual(await page.evaluate(() => window.commands.at(-1)), {
+    type: 'select-variant',
+    variantId: 'court',
+  });
+  assert.equal(
+    await page.evaluate(() => window.commands.length),
+    gameplayCommands + 1,
+  );
+  await gameplaySelector.waitFor({ state: 'hidden' });
+  checked(
+    'The platform gameplay selector supports Avalon without duplicate versions metadata, preserves release identity, and enforces administrator, owner, player, public, playing, locked and pending-confirmation permissions.',
+  );
   await page.evaluate(() =>
     window.patchBox({
       view: {
@@ -750,6 +955,131 @@ try {
   await page.evaluate(() => window.patchBox({ role: 'host', isHost: true }));
   checked(
     'Variant resource downloads address gameId/variantId, preserve selection and remain administrator-only; current variant exposes aria-current.',
+  );
+  const serverResourceCommands = await page.evaluate(() => {
+    const release = (gameId, variantId, releaseId, defaultVariantId) => ({
+      releaseId,
+      gameId,
+      ...(variantId ? { variantId, variantName: variantId } : {}),
+      name: gameId,
+      ...(defaultVariantId ? { defaultVariantId } : {}),
+      releaseTag: 'v1.0.6',
+      compatible: true,
+    });
+    window.trustedReleases = [
+      release('uno', undefined, 'c'.repeat(64)),
+      release('modern-art', undefined, 'd'.repeat(64)),
+      release('pokemon-encounters', 'original', 'e'.repeat(64), 'original'),
+      release('pokemon-encounters', 'expansion', 'f'.repeat(64), 'original'),
+    ];
+    window.packageSnapshot = {
+      catalog: { releases: [] },
+      index: { releases: {}, selected: {} },
+      tasks: [],
+      unavailableReleaseIds: [],
+    };
+    return window.commands.length;
+  });
+  await page.evaluate(() => window.serverResourceRefresh());
+  assert.deepEqual(await page.evaluate(() => window.packageOperations), []);
+  await page.evaluate(() =>
+    Promise.all([
+      window.serverResourceAdapter.download({ gameId: 'uno' }),
+      window.serverResourceAdapter.download({ gameId: 'modern-art' }),
+    ]),
+  );
+  assert.deepEqual(await page.evaluate(() => window.packageOperations), [
+    { operation: 'refresh' },
+    { operation: 'install', releaseId: 'c'.repeat(64) },
+    { operation: 'install', releaseId: 'd'.repeat(64) },
+  ]);
+  await page.evaluate(async () => {
+    await window.serverResourceAdapter.download({
+      gameId: 'pokemon-encounters',
+    });
+    await window.serverResourceAdapter.download({
+      gameId: 'pokemon-encounters',
+      variantId: 'expansion',
+    });
+  });
+  assert.deepEqual(
+    await page.evaluate(() => window.packageOperations.slice(-2)),
+    [
+      { operation: 'install', releaseId: 'e'.repeat(64) },
+      { operation: 'install', releaseId: 'f'.repeat(64) },
+    ],
+  );
+  assert.equal(
+    await page.evaluate(() => window.commands.length),
+    serverResourceCommands,
+  );
+  await page.evaluate(() => window.patchBox({ role: 'player', isHost: false }));
+  await page.waitForFunction(() =>
+    document.querySelector('.box-screen.player'),
+  );
+  const unauthorized = await page.evaluate(async () => {
+    try {
+      await window.serverResourceAdapter.download({ gameId: 'uno' });
+      return '';
+    } catch (cause) {
+      return cause.message;
+    }
+  });
+  assert.match(unauthorized, /仅电脑管理员/);
+  assert.equal(await page.evaluate(() => window.packageOperations.length), 5);
+  await page.evaluate(() => window.patchBox({ role: 'host', isHost: true }));
+  await page.waitForFunction(() => document.querySelector('.box-screen.host'));
+  await page.evaluate(async () => {
+    window.packageSnapshot.catalog = { releases: [] };
+    window.packageOperations = [];
+    window.refreshFailure = '签名目录不可用';
+    await window.serverResourceRefresh();
+  });
+  const failedRefresh = await page.evaluate(async () => {
+    try {
+      await window.serverResourceAdapter.download({ gameId: 'uno' });
+      return '';
+    } catch (cause) {
+      return cause.message;
+    }
+  });
+  assert.match(failedRefresh, /无法刷新可信发行目录：签名目录不可用/);
+  assert.deepEqual(await page.evaluate(() => window.packageOperations), [
+    { operation: 'refresh' },
+  ]);
+  await page.evaluate(async () => {
+    window.refreshFailure = '';
+    window.packageOperations = [];
+    window.holdCatalogRefresh = true;
+    await window.serverResourceRefresh();
+    window.pendingDownload = window.serverResourceAdapter
+      .download({ gameId: 'uno' })
+      .then(
+        () => '',
+        (cause) => cause.message,
+      );
+  });
+  await page.waitForFunction(
+    () => window.packageOperations[0]?.operation === 'refresh',
+  );
+  await page.evaluate(() => window.patchBox({ role: 'player', isHost: false }));
+  await page.waitForFunction(() =>
+    document.querySelector('.box-screen.player'),
+  );
+  const changedIdentity = await page.evaluate(async () => {
+    window.finishCatalogRefresh();
+    return window.pendingDownload;
+  });
+  assert.match(changedIdentity, /管理员身份已变化/);
+  assert.deepEqual(await page.evaluate(() => window.packageOperations), [
+    { operation: 'refresh' },
+  ]);
+  await page.evaluate(() => {
+    window.holdCatalogRefresh = false;
+    window.patchBox({ role: 'host', isHost: true });
+  });
+  checked(
+    'Lightweight installation summaries preserve resource keys; downloads explicitly refresh an empty trusted catalog once across concurrent requests, match default or named variants, never select a game, and reject refresh failures or a changed administrator identity.',
   );
   await page.evaluate(() =>
     window.dispatchEvent(new Event('tablemax:repository-open-error')),

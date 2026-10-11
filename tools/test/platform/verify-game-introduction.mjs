@@ -10,6 +10,8 @@ import { mkdir, mkdtemp, writeFile, readFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
+import { leanCatalogPlugin } from '../../build/lean-catalog.mjs';
+import { projectGameDetails } from '../../../packages/game-sdk/src/metadata.mjs';
 import { launchTestBrowser } from '../support/browser-test.mjs';
 import { serveFixture } from '../support/fixture-server.mjs';
 import { verificationOutput } from '../support/verification-output.mjs';
@@ -20,7 +22,7 @@ const evidence =
 assert.match(evidence, /^[a-z0-9-]{1,40}$/);
 const output = verificationOutput('game-introduction', evidence);
 await mkdir(output, { recursive: true });
-const work = await mkdtemp(resolve('tmp/pokemon-version-'));
+const work = await mkdtemp(resolve('tmp/gameplay-introduction-'));
 await writeFile(
   join(work, 'index.html'),
   '<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><div id="root"></div><script type="module" src="./entry.tsx"></script></html>',
@@ -45,7 +47,7 @@ window.renderBox=(index,role)=>{
 await build({
   configFile: false,
   root: work,
-  plugins: [react()],
+  plugins: [leanCatalogPlugin(), react()],
   resolve: {
     alias: {
       react: resolve('apps/web/node_modules/react'),
@@ -63,9 +65,18 @@ const server = await serveFixture(join(work, 'bundle'));
 const browser = await launchTestBrowser({ channel: 'msedge', headless: true });
 const errors = [],
   layouts = [];
+const detailsRequests = [];
 let passed = false;
 try {
   const page = await browser.newPage();
+  await page.route('**/games/*/web/details.json', async (route) => {
+    const id = new URL(route.request().url()).pathname.split('/')[2];
+    detailsRequests.push(id);
+    const module = JSON.parse(
+      await readFile(resolve('games', id, 'game-module.json'), 'utf8'),
+    );
+    await route.fulfill({ json: projectGameDetails(module) });
+  });
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(server.url);
   // Shared runtime CSS can arrive after the independently bundled box CSS.
@@ -104,6 +115,7 @@ try {
           name: '游戏介绍',
           exact: true,
         });
+        await dialog.locator('.game-overview__goal').waitFor();
         const geometry = await dialog.evaluate((element) => {
           const intro = element.querySelector('.game-overview');
           const heading = intro.querySelector('.game-overview__heading');
@@ -209,6 +221,11 @@ try {
     }
   }
   assert.deepEqual(errors, []);
+  assert.deepEqual([...new Set(detailsRequests)].sort(), [
+    'modern-art',
+    'pokemon-encounters',
+    'power-grid',
+  ]);
   passed = true;
   console.info(
     'Game introduction: ' + layouts.length + ' layouts passed: ' + output,
@@ -222,6 +239,7 @@ try {
         scope:
           'Actual BoxScreen, GameIntroduction and OverlayPanel rendered in hidden muted Edge; simulated viewports, not physical-device or complete-game acceptance.',
         layouts,
+        detailsRequests,
         errors,
       },
       null,

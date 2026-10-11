@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 const publicImports = new Set([
   '@tablemax/game-sdk',
   '@tablemax/game-sdk/module-manifest',
+  '@tablemax/game-sdk/metadata',
   '@tablemax/web-host',
   '@tablemax/protocol',
   'react',

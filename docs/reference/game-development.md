@@ -8,18 +8,18 @@
 
 复制模板的职责布局到 `games/<id>/`，增加 `game-module.json`，填写稳定ID、目录、各部分入口、兼容版本和预算依据；正式游戏设 internal=false。开发初期由人工或agent设置文件与内存预算，超限仅警告，不自动增加。规则依赖 `@tablemax/game-sdk`，UI 依赖 React、授权投影及 `@tablemax/web-host`。清单由开发／组装加载器自动发现，不能逐项修改服务、Worker或盒子名单。规则、计分、投影、策略和界面独立维护：
 
-| 入口                       | 责任                                                                                  |
-| -------------------------- | ------------------------------------------------------------------------------------- |
-| `index.ts`                 | 导出规则和策略，由应用注册入口组合                                                    |
-| `game-module.json`         | 版本化目录、入口、SDK／协议／宿主兼容范围与固定资源预算；轻量介绍和封面由盒子JSON加载 |
-| `web/index.tsx`            | 独立 GameClient，组合授权 GameHost 与本游戏UI；无凭证、Socket和完整平台会话           |
-| `rules/index.ts`           | manifest、初始化、合法动作、决策列表、原子执行、生命周期与结束判断                    |
-| `rules/state.ts`           | 普通 JSON 状态与存档不变量校验，核对平台传入的稳定座位及顺序                          |
-| `rules/scoring.ts`         | 独立纯计分与共同赢家解析                                                              |
-| `rules/project.ts`         | public／本人投影，不能默认给本人全部暗牌；管理员使用 public，手机房主仍使用本人投影   |
-| `../../assets/games/<id>/` | 游戏独立本地资源与来源清单；模板的 die.svg 是原创装饰，不编码秘密骰子结果             |
-| `bot/index.ts`             | 独立版本的简单策略，只用本人授权输入选择合法意图                                      |
-| `ui/public/`、`ui/player/` | 根据投影渲染两端；禁止导入完整规则状态或网络／数据库实现                              |
+| 入口                       | 责任                                                                                |
+| -------------------------- | ----------------------------------------------------------------------------------- |
+| `index.ts`                 | 导出规则和策略，由应用注册入口组合                                                  |
+| `game-module.json`         | 作者唯一完整清单；浏览目录、运行描述和包内详情均由该来源生成，盒子不加载完整清单    |
+| `web/index.tsx`            | 独立 GameClient，组合授权 GameHost 与本游戏UI；无凭证、Socket和完整平台会话         |
+| `rules/index.ts`           | manifest、初始化、合法动作、决策列表、原子执行、生命周期与结束判断                  |
+| `rules/state.ts`           | 普通 JSON 状态与存档不变量校验，核对平台传入的稳定座位及顺序                        |
+| `rules/scoring.ts`         | 独立纯计分与共同赢家解析                                                            |
+| `rules/project.ts`         | public／本人投影，不能默认给本人全部暗牌；管理员使用 public，手机房主仍使用本人投影 |
+| `../../assets/games/<id>/` | 游戏独立本地资源与来源清单；模板的 die.svg 是原创装饰，不编码秘密骰子结果           |
+| `bot/index.ts`             | 独立版本的简单策略，只用本人授权输入选择合法意图                                    |
+| `ui/public/`、`ui/player/` | 根据投影渲染两端；禁止导入完整规则状态或网络／数据库实现                            |
 
 SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)` 返回 `{id,seatId,concurrencyGroup?}[]`，支持多个初始选择和被动接牌者；平台不把正常回合者当作唯一行动者。独立决策使用稳定 id，并明确同一 concurrencyGroup；不要给相互冲突的选择声明并发。初始翻牌可按小局／座位稳定编号，别人的翻牌不能改写尚未提交者的 id。`legalActions(state,seatId)` 列举完整合法动作及参数，`validateAction` 验证并规范化意图。`apply` 必须原子完成本选择引发的确定性自动步骤，返回新状态和安全的 **before** 边界标签／揭示提醒。规则自动结算不等待 UI 动效。apply／applyLifecycle 可返回安全 PublicEvent；平台保存成功后另发 room:feedback，UI 按实例／分支／修订去重，完整同步不播放。
 
@@ -29,17 +29,19 @@ SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)
 
 `validateState(input,seats)` 校验读档、初始化与动作后的状态。保存分别校验平台格式、游戏／规则／状态版本和策略版本。随机通过 `RuleContext.random.next()` 提供；不要调用 `Math.random()` 或时钟。电脑管理员只管理、不占玩家座位，手机房主是正常真人座位；规则上下文只有玩家座位与随机源，不从昵称或客户端参数推断管理权。平台保存规则与策略两个独立 xorshift32 状态，回退后相同边界和相同意图重演相同随机结果。
 
-盒子目录分类在 `game-module.json` 的 `library.tags` 维护，例如卡牌、家庭、策略；可选 `library.searchTerms` 补充英文名、常用别名或玩法关键词。名称、简介、分类、版本名与 ID 自动参与检索，人数筛选使用已有 `catalog.min/max`。这些字段随轻量目录打包，不加载完整游戏客户端；缺少分类时显示“未分类”，正式游戏应填写适用 tag。
+盒子目录分类在 `game-module.json` 的 `library.tags`维护，例如卡牌、家庭、策略；可选 `library.searchTerms`补充英文名、常用别名或玩法关键词。名称、分类、别名、玩法名称／摘要与ID参与检索，人数筛选使用 `catalog.min/max`。未安装时只保留这些浏览字段和小封面，完整图文规则、新手引导及人机说明不进入浏览目录或搜索数据；缺少分类时显示“未分类”，正式游戏应填写适用tag。
+
+元数据由[公共投影入口](../../packages/game-sdk/src/metadata.mjs)按用途生成：`GameCatalogEntry`是盒子浏览白名单，`RuntimeModuleManifest`供服务／Worker核验入口、兼容版本和预算，`GameWebManifest`只供浏览器加载网页入口及样式，`GameDetails`承载完整介绍、人机说明与引导能力。新发行将详情放在代码包 `web/details.json`，作者不维护第二份重复正文；安装后按实际发行读取。签名目录由安装器验证和保存，浏览器不读取整份安装索引或签名发行描述。具体四类职责见[工程结构](architecture.md#独立发行与公共契约2026-10-11)。
 
 ## 注册与策略替换
 
 1. 给游戏建立 pnpm 工作区包和 `workspace:*` SDK 依赖，保持版本与锁文件在项目内。
-2. 由 `game-module.json` 声明规则、策略和网页入口；[构建发现器](../../tools/build/module-build.mjs)扫描 `games/*/game-module.json`，生成供[服务目录](../../apps/server/src/game-registry.ts)、Worker与盒子共用的模块清单。稳定ID、导出契约和兼容版本必须一致，不逐项修改服务、Worker或构建名单；正式目录不列内部模板，测试可用 `createGameRegistry(true)`。
+2. 由 `game-module.json`声明规则、策略和网页入口；[构建发现器](../../tools/build/module-build.mjs)扫描 `games/*/game-module.json`，从同一作者来源生成[服务目录](../../apps/server/src/game-registry.ts)、Worker运行描述、盒子浏览摘要及包内详情。稳定ID、导出契约和兼容版本必须一致，不逐项修改服务、Worker或构建名单；正式目录不列内部模板，测试可用 `createGameRegistry(true)`。
 3. 网页入口导出 `client`，有变体时另导出 `clientsByVariant`；[游戏客户端加载器](../../apps/web/src/game-clients/registry.ts)按模块清单懒加载对应入口。游戏CSS／资源由所属网页模块引入，规则／策略不进入网页；通用GameScreen与会话保持游戏无关。[便携打包脚本](../../tools/release/package.mjs)收集冻结后的规则、策略、网页与完整本地资源。
 
-盒子的轻量介绍和小封面维护在每款游戏的 `game-module.json`，不能提前加载游戏主界面或规则。设计前必须查询[用户美术偏好](art-preferences.md)。头像通过平台席位的稳定 `avatarId` 传入游戏展示，规则和计分不依赖头像。4. 在游戏内维护逐选择覆盖测试、固定随机输入、权限与规则不变量。修改源码后按 [开发环境](development.md) 检查和重建；独立 Worker 随桌面构建／便携包本地打包。
+盒子的名称、玩法摘要、分类与小封面维护在每款游戏的 `game-module.json`，不能提前加载完整介绍、游戏主界面或规则。多玩法通过 `variants`及 `defaultVariantId`声明，平台统一 `GameplaySelector`展示摘要、安装状态与玩法选择；不新增按游戏命名的版本控件。设计前必须查询[用户美术偏好](art-preferences.md)。头像通过平台席位的稳定 `avatarId`传入游戏展示，规则和计分不依赖头像。在游戏内维护逐选择覆盖测试、固定随机输入、权限与规则不变量。修改源码后按[开发环境](development.md)检查和重建；独立Worker及游戏资源通过对应发行包本地提供。
 
-桌面外壳现由 C# WinForms／.NET Framework 4.8 与共享 WebView2 承载，服务和策略仍使用包内 Node 22.14.0；游戏规则、电脑策略与 UI 不直接依赖原生外壳或桌面桥接。新增游戏应保持当前独立模块、资源归属和版本兼容边界，并检查便携 ZIP／实际解压体积；新增游戏前的交付双门禁为各自严格小于 120,000,000 字节，基础工程预警110,000,000字节，单玩法完整依赖各严格小于64,000,000字节。多游戏按需下载、本地安装及离线导入已进入 [实施与实际验收](../tasks/README.md#独立游戏包与按需安装宏伟大计进行中)，新基础交付不含完整游戏，当前实例通过不可变发行引用加载主机已安装资源；源码开发模式仍支持随仓资源。
+桌面外壳现由C# WinForms／.NET Framework 4.8与共享WebView2承载，服务和策略仍使用包内Node 22.14.0；游戏规则、电脑策略与UI不直接依赖原生外壳或桌面桥接。新增游戏保持独立模块、资源归属和版本兼容边界；full／box EXE及实际提取各严格小于120,000,000字节，基础工程预警110,000,000字节，单玩法完整依赖传输／安装各严格小于64,000,000字节。按需下载、本机安装及离线导入已实现，剩余验收见[任务索引](../tasks/README.md#独立游戏包与按需安装宏伟大计进行中)；box不含完整游戏，full携带当前游戏预装包，当前实例通过不可变发行引用加载主机已安装资源，源码开发模式仍支持随仓资源。
 
 `BotStrategy` 声明 `id,version,gameId,rulesVersion`，`validateMemory` 校验普通数据；模板和首版默认策略无记忆，使用 `null`。有记忆的策略需定义可恢复版本及初始 `null` 的转换。`decide` 只接收该座位的投影、合法动作、决策、本人记忆、策略随机源、取消信号及 `difficulty`，返回 `{action,memory}`。`difficulties` 可声明实际支持的 `default/doubao/juewu`；未声明时仅支持默认，旧输入／存档缺省等级也为默认。平台将座位等级复制到 bot 快照并传到隔离 Worker，各等级的行为及记忆兼容需有测试，不允许用不支持等级默默降级。不能读取牌库或别人秘密，不能提交管理动作。选择器输出必须经过平台再次校验；调试权限不扩大策略输入。
 
@@ -70,3 +72,5 @@ SDK 正文见 [源码](../../packages/game-sdk/src/index.ts)。`decisions(state)
 `node cli.mjs dev <作者目录> --platform=<冻结运行目录>` 只复制运行时白名单，为每次运行分配独立 runtime、data、browser、evidence 和回环端口。平台源码、正式数据库、其他游戏和凭证不复制；开发服务默认静音。共享 SDK 与锁文件由唯一维护者改动，作者工程验证冻结公共依赖哈希。不同游戏／作者任务可以并行，最终桌面组装与发布仍串行。
 
 媒体按 `gameId/路径` 提供稳定 ID，使用公开 `resourceUrl`，CSS 与 glob 由资源构建插件迁移。代码、公共资源和玩法资源各自有完整逐文件哈希。作者必须声明实际版本、玩家权限、预算和资源来源，审核通过后由项目签名目录分发。游戏规则、状态及人机策略版本不能因拆包机械递增。平台接入验收、实际包与实体设备边界见[当前验收](acceptance.md)。
+
+目录字段精简只影响新生成的投影与发行。旧签名目录、发行ID及原包不重写，旧包内嵌 `introduction`、`botIntroduction`或 `guidance`继续兼容读取；新包从 `web/details.json`加载相同用途内容。网络协议8与模块契约7继续独立，不因元数据拆分修改游戏规则／状态／策略版本。

@@ -1,4 +1,4 @@
-import { moduleFor } from '../catalog';
+import { useGameDetails } from '../game-clients/details';
 import type { BotDifficulty, RoomView } from '@tablemax/protocol';
 import './box-overlays.css';
 
@@ -12,10 +12,17 @@ export function BotInformation({
 }: {
   game: NonNullable<RoomView['game']>;
 }) {
-  const introduction = moduleFor(game.id)?.botIntroduction;
+  const { details, error, retry } = useGameDetails(game.id, game.releaseRef);
+  const introduction = details?.botIntroduction;
   return (
     <div className="bot-information">
       <p className="bot-information__game">{game.name}</p>
+      {!details && <p role="status">{error ?? '正在加载人机说明…'}</p>}
+      {error && (
+        <button type="button" onClick={retry}>
+          重试
+        </button>
+      )}
       {introduction &&
         (Object.keys(names) as BotDifficulty[]).map((level, index) => (
           <section className="bot-information__level" key={level}>

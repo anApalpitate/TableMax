@@ -14,7 +14,7 @@
 
 本次[已审更新说明](../../artifacts/maintenance/v1.0.6/pages-release-20261011/release-notes.md)以v1.0.5实际发布source提交 `4943ca5cf89aabc850df3fb566519973913feb3e` 为比较基线，不能以保留的旧标签对象替代。本次source ZIP对应 `a7d13f7388442bbc3083913c0786ca43278214ef`，v1.0.6原标签继续指向 `1f8267a4bdf4d8172719a3e71be1f7445f88c3bc`；两者映射已记录在最终发布审计，未移动或强推历史标签。
 
-基础 EXE、发布提交的 source ZIP 和已验证作者工具包继续放 GitHub Release；签名目录、代码／资源包及完整玩法离线包改放 `https://anapalpitate.github.io/TableMax/`。这覆盖下文原 Release 游戏附件方案；旧发布记录保留当时的事实。
+full／box两种Windows EXE、发布提交的source ZIP和已验证作者工具包放GitHub Release；签名目录、代码／资源包及完整玩法离线包放 `https://anapalpitate.github.io/TableMax/`。当前线上旧三附件保留原发布事实，下一次明确获授权发布才采用四附件；普通推送不触发重新发布。
 
 目录固定为：
 
@@ -34,7 +34,7 @@ games/v1.0.6/<gameId>/<variantId或default>/index.html
 
 `.github/workflows/pages.yml`仅手动触发，要求输入 `PUBLISH_TABLEMAX`；没有 push、定时或 Release 自动触发器。本次已核对本地清单及历史目录，将已验证的纯静态目录提交到 `gh-pages`，配置 Pages 使用 GitHub Actions并手动部署；[部署工作流](https://github.com/anApalpitate/TableMax/actions/runs/38133974837)及[公开字节核验](../../artifacts/maintenance/v1.0.6/pages-release-20261011/public-pages.json)通过。后续部署仍须获授权，并在完成线上核验后才记为成功。整个站点不超过 [Pages 的1GB限制](https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits)，累计历史文件也计入；部署权限与环境按 [官方工作流说明](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。私钥、存档和本地审计永不上传。
 
-部署后执行 `pnpm release:github -- --publish --replace-draft --draft-id=409577467 --notes=<说明> --devkit=<已验工具包> --pages-manifest=<已审站点清单>`；入口默认拒绝发布，且先核对实际 Pages 每个文件的公开字节，再只上传 EXE、source ZIP、作者工具包。`--replace-draft`只用于本次已授权的既有草稿替换，保留的 v1.0.6 标签指向历史提交，须明确核对草稿、标签及实际发布源码映射；不得为了通过旧标签门禁强推标签或隐瞒差异。源码、EXE和实际 Pages 都通过验收后才能恢复发布。
+此前已授权草稿替换使用 `pnpm release:github -- --publish --replace-draft --draft-id=409577467 --notes=<说明> --devkit=<已验工具包> --pages-manifest=<已审站点清单>`完成，三附件及实际源码映射见发布审计。未来发布须重新获得明确授权，入口先核对Pages公开字节，再采用下文full／box EXE、source ZIP、作者工具包四附件白名单；`--replace-draft`只适用于明确指定的既有草稿，不能将当前正式Release当作旧草稿再次操作。保留历史标签，不强推或隐瞒实际发布源码映射。
 
 本轮新旧目录通过 `node --import tsx tools/release/prepare-pages-history.mjs --current=<当前包目录> --previous=<原发行目录> --previous-release=<原Release审计> --out=<全新准备目录>` 合并，验证原线上附件摘要并重新签名联合目录；相同发行及依赖的离线包优先保留原已发布字节，当前浏览入口只列每种玩法的首个发行。`.nojekyll`只作为部署标记，由Git树核验，不要求它在Pages提供下载。若本轮已有全部公开文件的真实大小／哈希证明，可加 `--pages-proof=<证明>` 复用：入口要求证明不超过一小时、逐文件匹配当前清单、远端 `gh-pages` 提交不变，并再次读取可更新的签名目录；无证明时最多四个并发请求重新核验，不能用本地回环结果代替。
 
@@ -70,6 +70,8 @@ games/v1.0.6/<gameId>/<variantId或default>/index.html
 ### 游戏包发行（2026-10-11）
 
 代码、公共资源和玩法资源分别形成内容寻址ZIP；每个 `gameId/variantId` 的发行记录精确绑定依赖与资源逻辑ID。执行 `pnpm package:games` 时从冻结构建生成八个当前玩法及项目签名目录，执行 `pnpm verify:game-packages` 验证完整依赖、签名、逐文件哈希、资源与代码分离和门禁。签名私钥保存在受保护本地 `secrets/`，不随源码或作者工具包分发。
+
+新发行的运行描述不重复携带完整介绍、新手引导或人机说明，详情由作者完整清单生成到代码包 `web/details.json`。基础程序与盒子UI只保留浏览摘要和小封面；安装器私有签名目录继续绑定兼容、入口、依赖、资源映射和哈希。字段职责见[工程结构](architecture.md#独立发行与公共契约2026-10-11)。旧签名发行ID、目录原字节及旧包保持不可变，旧内嵌详情兼容读取，不在准备Pages时为精简重写历史内容。
 
 主机按Pages版本目录与精确包名下载并验证SHA-256；更新目录由管理员主动触发，已验证缓存及离线包支持不联网安装与运行。首次Pages分发先完成本页最新手动部署步骤；本地生成签名包不代表线上已存在。
 
@@ -121,4 +123,4 @@ TableMax v[版本] 本次更新重点完善[主要变化]，并优化[相关体�
 
 全部工程进程退出后，按[安全清理入口](development.md#清理本地中间物)先预览、核对再应用，退役过期组装、解压及验证副本，检查项目逻辑体积并记录实际结果。超过10GiB时目标8GiB或安全候选耗尽；本轮用户另有明确目标时按该目标审计，保护范围不扩大。
 
-日常release目录仅保留当前已验证运行ZIP与逐文件清单；明确发布时另保留当前完整EXE与source ZIP。当前交付及验收证据、原素材、规则资料和正式存档继续保护，历史退役保留结论、失败原因、哈希和删除记录并修复文档引用。已结束清理记录原样集中归档，执行结果归[项目瘦身](project-slimming.md)，不在本页复制每轮过程。
+日常 `artifacts/releases/`仅保留当前已验证full／box EXE及对应本地清单；内部payload ZIP、manifest及当前指针保存在 `artifacts/package-payloads/`，不对外导出运行ZIP。仅明确发布时生成source ZIP。当前交付及验收证据、原素材、规则资料和正式存档继续保护，旧已发布EXE／ZIP／source／manifest按已有SHA保全要求退役，修复引用并保留必要结论。执行结果归[项目瘦身](project-slimming.md)，不在本页复制每轮过程。

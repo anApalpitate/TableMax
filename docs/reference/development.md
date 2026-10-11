@@ -10,13 +10,13 @@
 
 2026-10-11 Pages重新发布收尾已完成：在全部本轮工程退出后按标准入口预览并维护，退役3份已知生成副本214,692,117逻辑字节，标准扫描容量13,554,882,029字节（约12.624GiB），安全候选耗尽，当前交付、新旧发行和存档继续保护。范围、排除及实际审计见[项目瘦身](project-slimming.md#pages部署与重新发布收尾2026-10-11)。
 
-2026-10-11游戏包分发入口改为GitHub Pages静态目录；此前Release暂撤为草稿，随后经用户明确授权，本次Pages已部署、v1.0.6已正式重新发布，35个公开文件及Release三附件线上大小／哈希核验通过。`pnpm prepare:pages`准备全新静态输出，`pnpm verify:pages`做回环逐文件验证；游戏包通过 `--packages=<独立候选目录>` 指定，基础ZIP通过 `node tools/release/package.mjs --games=<同一候选目录>` 读取，不覆盖既有受保护游戏包及同名旧发行离线包的字节。手动部署、历史引用保全及显式发布门禁见[Release流程](release.md#最新分发决定与暂缓发布2026-10-11)。原Release附件下载记录属于历史验证，公开字节核验也不代替本次实际安装或实体设备验收。
+2026-10-11游戏包分发入口改为GitHub Pages静态目录；此前Release暂撤为草稿，随后经用户明确授权，本次Pages已部署、v1.0.6已正式重新发布，35个公开文件及Release三附件线上大小／哈希核验通过。`pnpm prepare:pages`准备全新静态输出，`pnpm verify:pages`做回环逐文件验证；游戏包通过 `--packages=<独立候选目录>`指定，full／box EXE通过 `node tools/release/package.mjs --games=<同一候选目录>`读取，不覆盖既有受保护游戏包及同名旧发行离线包的字节。手动部署、历史引用保全及显式发布门禁见[Release流程](release.md#最新分发决定与暂缓发布2026-10-11)。原Release附件下载记录属于历史验证，公开字节核验也不代替本次实际安装或实体设备验收。
 
 ## 阿瓦隆专项构建与验证
 
-经典2012原版只接入平台5–6人，规则与两种角色配置见 [游戏主题](../games/avalon/README.md)。独立构建 `node tools/build/build.mjs --only=game:avalon`；单测 `node tools/test/runner/test-scoped.mjs --scope=game:avalon` 仅选本游戏规则、策略、UI与实际服务／Worker项。范围隔离工具单独运行 `node --test tools/test/runner/scopes.test.mjs`，不增加其他游戏检查。
+经典2012原版接入平台5–10人，规则与两种角色配置见[游戏主题](../games/avalon/README.md)。独立构建 `node tools/build/build.mjs --only=game:avalon`；单测 `node tools/test/runner/test-scoped.mjs --scope=game:avalon`仅选本游戏规则、策略、UI与实际服务／Worker项。范围隔离工具单独运行 `node --test tools/test/runner/scopes.test.mjs`，不增加其他游戏检查。
 
-`node tools/test/games/avalon/verify-avalon.mjs --executable=<实际解压的TableMax.exe> --zip=artifacts/releases/TableMax-1.0.6-win-x64.zip --seats=6 --variant=court --only=all --evidence=<安全独立名称>` 启动实际隐藏WinForms／WebView2及包内Socket／SQLite服务，显式监听127.0.0.1，使用隔离 `tmp/game-review-<六位随机后缀>`。`--seats=5|6`、`--variant=classic|court`；`--only=layout|success|failure|rejections|assassination|long-quest|all` 定向选择三端布局、三成功梅林幸存、三失败、五否决及梅林遇刺流程。`long-quest` 额外按成功／失败交替推进五次任务后刺杀，检查五张已结算任务牌；`all` 保留原四种终局。终局通过真实合法动作进入，不改写秘密存档；首项身份确认、表决、任务及刺杀用实际UI按钮核验，`success` 另含提名及暂停／回退。
+`node tools/test/games/avalon/verify-avalon.mjs --executable=<实际解压的TableMax.exe> --zip=<匹配EXE的内部payload.zip> --seats=6 --variant=court --only=all --evidence=<安全独立名称>` 启动实际隐藏WinForms／WebView2及包内Socket／SQLite服务，显式监听127.0.0.1，使用隔离 `tmp/game-review-<六位随机后缀>`。`--seats=5|6|7|8|9|10`、`--variant=classic|court`；`--only=layout|success|failure|rejections|assassination|long-quest|all` 定向选择三端布局、三成功梅林幸存、三失败、五否决及梅林遇刺流程。`long-quest` 额外按成功／失败交替推进五次任务后刺杀，检查五张已结算任务牌；`all` 保留原四种终局。终局通过真实合法动作进入，不改写秘密存档；首项身份确认、表决、任务及刺杀用实际UI按钮核验，`success` 另含提名及暂停／回退。
 
 人数与阶段计划通过 `node tools/test/runner/test-scoped.mjs --scope=game:avalon --plan=<计划JSON>` 排序运行，沿用累计3失败停止与不自动重试。`artifacts/avalon/validation/portable-plan.json` 和 `grid-final-plan.json` 是当次参数记录；重新执行时先解压当前ZIP，复制计划到新名称并更新实际EXE路径及证据名，历史临时目录可能已安全退役。验证包括实际ZIP解压成员前后哈希、公开秘密边界、保存／暂停／回退、320px—4K与横屏、图文规则、正确事件全屏特效／减少动态、12条本地音频解码、真实播放调用和原生单窗口播放权、刷新不重播。最窄玩家画面以实际 `documentElement.clientWidth` 断言横向溢出，并检查终局；不以包含滚动条的 `innerWidth` 放宽边界。原生物理输出始终静音，隔离数据中的音频偏好只用于观察调用，不修改日常设置；不把模拟手机、DPI或解码／播放调用作为实体手机、LAN或真人听感认证。实际证据与原失败见 [阿瓦隆验证](../games/avalon/validation-scenarios.md)。
 
@@ -309,7 +309,7 @@ Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 
 
 [`apps/web/src/content/feedback.zh-CN.json`](../../apps/web/src/content/feedback.zh-CN.json) 集中盒子入座、保存、连接、上传、换机、显示、准备、计时、座位管理及操作确认的短文案。手动维护只改字符串值，保留组名、键名和 `{game}`、`{player}`、`{code}`、`{seconds}`、`{count}`、`{step}` 等占位符；源码修改后重新构建运行包生效。`feedbackText` 插值按普通文字渲染，`feedbackReason` 映射服务原因码，`feedbackKind` 分类保证改中文文字不改变状态行为。完整帮助、游戏规则与纯控件名称不在此文件范围。
 
-游戏分类和搜索别名分别放在各 `games/<id>/game-module.json` 的 `library.tags`、`library.searchTerms`，不需要改盒子名单；名称、简介、分类、别名、版本名和 ID 都可检索，多个词按共同匹配处理，支持全角及大小写归一。精确单测入口：`node tools/test/runner/test-scoped.mjs --scope=box apps/web/src/components/game-library/filter.test.ts`（22项）；文案分类测试使用 `--scope=box,shared apps/web/src/content/feedback.test.ts`（8项）。
+游戏分类和搜索别名分别放在各 `games/<id>/game-module.json`的 `library.tags`、`library.searchTerms`，不需要改盒子名单；名称、分类、别名、玩法名称／摘要和ID可检索，多个词按共同匹配处理，支持全角及大小写归一。未安装时不携带完整图文规则、新手引导或人机说明，搜索不依赖这些详情。玩法选择共用 `apps/web/src/components/GameplaySelector.tsx`，按照 `variants`显示各玩法资源状态；权限和切换条件不因组件名称改变。精确单测入口：`node tools/test/runner/test-scoped.mjs --scope=box apps/web/src/components/game-library/filter.test.ts`；文案分类测试使用 `--scope=box,shared apps/web/src/content/feedback.test.ts`。
 
 `tools/test/box/verify-box-seats.mjs` 登记为box，使用实际源码 BoxScreen 的合成目录和座位输入，核验1／6席原布局及7／9／12席网格、长昵称、真人与三档人机、本人第12席、各端状态和320px至4K的滚动／字号／重叠。结束动作只检查“恢复加入”发出既有 `replay`；人数筛选随目录最高人数生成至最多12。隐藏静音Edge与夹具仅监听127.0.0.1，证据保存于 `artifacts/maintenance/v1.0.6/box-seats/`，隔离构建使用现有 `tmp/box-layout-<六位后缀>`。合成12人输入仅验证盒子显示兼容，现有游戏仍按原人数限制；不代表实物设备、游戏规则或便携包验收。
 
@@ -397,7 +397,9 @@ pnpm prototype:verify:game
 
 ### 游戏库、并发与内存
 
-游戏元数据与加载器分别维护在服务注册表和 `apps/web/src/game-clients/registry.ts`；`pnpm verify:experience` 覆盖按需加载、手机房主与并发操作。盒子只需要目录信息与缩略图，进入 `/game` 后加载对应客户端、样式和资源。服务按选择或存档 manifest 加载规则，Worker 按任务加载策略；规则／策略 CJS 与前端分块一起本地打包。已加载模块可在进程内复用，回盒子卸载游戏界面不等于清除 JavaScript 模块缓存。内部 `template` 用于切换、容量及策略兼容验证，不作为正式产品游戏。
+作者完整清单由 `packages/game-sdk/src/metadata.mjs`按白名单生成浏览目录、运行描述和详情，各用途字段见[工程结构](architecture.md#独立发行与公共契约2026-10-11)。盒子只需要名称、分类、人数、玩法摘要和小封面；完整介绍、引导能力及人机说明从已安装发行的 `web/details.json`加载，旧包内嵌详情保留兼容读取。服务注册表与 `apps/web/src/game-clients/registry.ts`分别使用运行描述及最小网页加载描述；安装器签名目录不整份发给UI。
+
+`pnpm verify:experience`覆盖按需加载、手机房主与并发操作。进入 `/game`后按实际发行加载对应客户端、样式和资源，服务按选择或存档manifest加载规则，Worker按任务加载策略；已加载模块可在进程内复用，回盒子卸载游戏界面不等于清除JavaScript模块缓存。当前局更新期间继续固定原包，旧签名发行ID与原字节不因元数据精简改变。内部 `template`用于切换、容量及策略兼容验证，不作为正式产品游戏。
 
 `pnpm verify:memory` 从当前源码提取 `copySave`，与脚本指定历史 Git 基线的整份 `structuredClone` 在独立 `--expose-gc` Node 进程比较；可用 `--baseline-ref=<Git修订>` 指定另一份确实包含旧复制方式的基线。六席／1,200 checkpoint／1,200 receipt fixture 由合法六席快照扩展并经生产存档校验，不宣称实际游玩了 1,200 步。随后用实际后台 WebView2 连续执行 20 轮开始、结束、回盒子及重新选择同游戏，记录 GC 后 renderer heap、DOM、监听器和本应用进程内存。结果在对应版本的 `memory/results.json`，临时数据在 `tmp/runtime-memory-*`。`--copy-only` 不启动桌面，`--desktop-only` 保留已有复制测量并追加桌面结果，后者需先构建；不同运行时的绝对工作集不能直接比较为游戏优化收益。
 
@@ -469,11 +471,11 @@ Windows 程序规则按完整可执行文件路径匹配；专用网络和本地
 
 ## 便携包体积与共享运行时
 
-新增游戏前，Windows x64 ZIP 与实际解压后的全部程序文件均严格小于 120,000,000 字节，工程预算为 114,000,000 字节。`tools/release/package.mjs` 只收集原生壳、x64 WebView2 DLL、官方 Node、许可证、服务、游戏模块、网页与完整本地资源；生成服务代码使用生产压缩，保留可读源码及原素材；不分发 Electron、现代 .NET 自包含运行时、WebView2 Fixed Version、其他架构库、引用程序集、PDB 或 SDK 文档。
+Windows x64 full／box EXE及各自实际提取内容均严格小于120,000,000字节，基础工程预警110,000,000字节；单玩法完整依赖的传输／安装量分别严格小于64,000,000字节。`tools/release/package.mjs`收集原生壳、x64 WebView2 DLL、官方Node、许可证、服务、共享网页运行时、浏览目录和小封面，full另携带已验证当前游戏预装包；生成服务代码使用生产压缩，保留可读源码及原素材。不分发Electron、现代.NET自包含运行时、WebView2 Fixed Version、其他架构库、引用程序集、PDB或SDK文档。
 
-打包计算 ZIP 和目录字节数，实际解压后比对每个文件的字节数及 SHA-256；任一达到上限立即失败，不发布标准 ZIP。清单在 `artifacts/releases/TableMax-<版本>-win-x64-manifest.json`，记录文件列表、包哈希、运行时与双体积。系统共享运行时、用户存档和缓存不计入交付体积，缓存始终写入用户数据目录。缺少共享 WebView2 时提示安装或取消，安装完成后的完整游戏仅用本地资源与局域网服务。
+打包记录两种EXE与内部payload的字节数和SHA-256，实际提取后逐文件比对大小及哈希；任一交付硬门禁达到上限立即失败。内部清单保存在 `artifacts/package-payloads/v<版本>/<run>/<edition>/release-manifest.json`，当前 `current.json`绑定各edition的载荷、EXE和本地清单。对外只导出Windows EXE，不生成用户运行ZIP。系统共享运行时、用户存档和缓存不计入交付体积，缓存始终写入用户数据目录。缺少共享WebView2时提示安装或取消，安装完成后的完整游戏仅用本地资源与局域网服务。
 
-共享运行时方案见 [决策 008](../decisions/008-small-native-desktop.md)，多游戏下载继续作为 [未来计划](../tasks/README.md#独立游戏包与按需安装宏伟大计进行中)。
+共享运行时方案见[决策008](../decisions/008-small-native-desktop.md)，多游戏下载、本机安装及旧包固定已实现，剩余设备／故障验收见[任务索引](../tasks/README.md#独立游戏包与按需安装宏伟大计进行中)。
 
 ### 原生桌面后台验证
 

@@ -76,7 +76,9 @@ export function PackageManagement({ session }: { session: RoomSession }) {
             <span>
               {library.snapshot!.catalog.releases.find(
                 (r) => r.releaseId === task.releaseId,
-              )?.module.catalog.name ?? '游戏包'}{' '}
+              )?.name ??
+                library.snapshot!.index.releases[task.releaseId]?.name ??
+                '游戏包'}{' '}
               ·{' '}
               {task.phase === 'failed'
                 ? '失败，可重试'
@@ -112,12 +114,7 @@ export function PackageManagement({ session }: { session: RoomSession }) {
         .map((release) => (
           <div className="package-management__row" key={release.releaseId}>
             <span>
-              {release.module.catalog.name}{' '}
-              {
-                release.module.variants?.find((v) => v.id === release.variantId)
-                  ?.name
-              }{' '}
-              · 可更新
+              {release.name} {release.variantName} · 可更新
             </span>
             <button
               disabled={busy}
@@ -132,12 +129,7 @@ export function PackageManagement({ session }: { session: RoomSession }) {
       {Object.values(library.snapshot.index.releases).map((release) => (
         <div className="package-management__row" key={release.releaseId}>
           <span>
-            {release.module.catalog.name}{' '}
-            {
-              release.module.variants?.find((v) => v.id === release.variantId)
-                ?.name
-            }{' '}
-            ·{' '}
+            {release.name} {release.variantName} ·{' '}
             {release.releaseTag === 'legacy' ? '保留原包' : release.releaseTag}
           </span>
           <div>

@@ -72,12 +72,21 @@ export class GameRegistry {
     if (releaseRef !== undefined && game.releaseRef !== releaseRef)
       throw new Error('missing-game-release');
     const manifest = game.rules.manifest;
+    // A reviewed package keeps its own capabilities when browsing metadata updates.
+    const versioned = game.releaseRef !== undefined;
     if (
+      (versioned && !/^[a-f0-9]{64}$/.test(game.releaseRef!)) ||
       manifest.id !== id ||
       manifest.sdkVersion !== 1 ||
-      manifest.name !== entry.catalog.name ||
-      manifest.players.min !== entry.catalog.min ||
-      manifest.players.max !== entry.catalog.max ||
+      !manifest.name ||
+      !Number.isSafeInteger(manifest.players.min) ||
+      !Number.isSafeInteger(manifest.players.max) ||
+      manifest.players.min < 1 ||
+      manifest.players.max < manifest.players.min ||
+      (!versioned &&
+        (manifest.name !== entry.catalog.name ||
+          manifest.players.min !== entry.catalog.min ||
+          manifest.players.max !== entry.catalog.max)) ||
       game.bot.gameId !== id ||
       game.bot.rulesVersion !== manifest.rulesVersion
     )

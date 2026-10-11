@@ -16,6 +16,13 @@ import type { Save } from '@tablemax/platform-core';
 import type { Command } from '@tablemax/protocol';
 import type { JsonValue } from '@tablemax/game-sdk';
 import type { ModuleManifest } from '@tablemax/game-sdk/module-manifest';
+import {
+  projectGameDetails,
+  projectGameRuntime,
+} from '@tablemax/game-sdk/metadata';
+import { PackageStore } from './store';
+import { publicReleaseDetails } from './public';
+import { PROJECT_GAME_PUBLIC_KEY } from './project-public-key';
 import { rules, bot } from '../../../../games/uno';
 type Service = Awaited<ReturnType<typeof createService>>;
 async function command(
@@ -196,3 +203,69 @@ it.each(['gameVersion', 'rulesVersion', 'stateVersion'] as const)(
   },
   30000,
 );
+
+it('normalizes separate details during legacy migration and preserves old embedded details', () => {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/legacy-details-'));
+  try {
+    const sourceModule = JSON.parse(
+      readFileSync('games/uno/game-module.json', 'utf8'),
+    ) as ModuleManifest;
+    const document = projectGameDetails(sourceModule);
+    for (const separate of [false, true]) {
+      const gamesDir = join(root, separate ? 'new-details' : 'old-inline');
+      const snapshot = join(gamesDir, '.legacy', 'a'.repeat(64));
+      for (const directory of ['games', 'bots', 'web/games/uno/web'])
+        mkdirSync(join(snapshot, directory), { recursive: true });
+      const module = separate
+        ? projectGameRuntime(sourceModule, {
+            details: '/games/uno/web/details.json',
+          })
+        : structuredClone(sourceModule);
+      module.entries = {
+        rules: 'games/uno.cjs',
+        bot: 'bots/uno.cjs',
+        web: '/games/uno/web/entry.js',
+      };
+      module.styles = [];
+      writeFileSync(join(snapshot, 'modules.json'), JSON.stringify([module]));
+      writeFileSync(join(snapshot, 'games/uno.cjs'), 'preserved rules bytes');
+      writeFileSync(join(snapshot, 'bots/uno.cjs'), 'preserved bot bytes');
+      writeFileSync(
+        join(snapshot, 'web/games/uno/web/entry.js'),
+        'preserved web bytes',
+      );
+      if (separate)
+        writeFileSync(
+          join(snapshot, 'web/games/uno/web/details.json'),
+          JSON.stringify(document),
+        );
+      const options = {
+        root: gamesDir,
+        publicKey: PROJECT_GAME_PUBLIC_KEY,
+        protectedReleaseIds: () => [],
+      };
+      const store = new PackageStore(options);
+      const [ref] = store.migrateLegacy(snapshot);
+      expect(ref).toBeDefined();
+      const installed = store.resolveModule(ref!)!;
+      expect(installed.release.module.entries.web).toBe('web/web/entry.js');
+      expect(installed.release.module.details).toBe(
+        separate ? 'web/web/details.json' : undefined,
+      );
+      expect(
+        readFileSync(
+          join(installed.root, installed.release.module.entries.rules),
+          'utf8',
+        ),
+      ).toBe('preserved rules bytes');
+      expect(publicReleaseDetails(store, ref!)).toEqual(document);
+      const reopened = new PackageStore(options);
+      expect(reopened.selected('uno')?.releaseId).toBe(ref);
+      expect(publicReleaseDetails(reopened, ref!)).toEqual(document);
+      expect(reopened.snapshot().index).toEqual(store.snapshot().index);
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

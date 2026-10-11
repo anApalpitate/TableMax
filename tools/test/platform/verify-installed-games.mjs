@@ -729,7 +729,10 @@ try {
     };
     await manage('refresh');
     const refreshed = await (await fetch(origin + '/api/game-packages')).json();
-    assert.deepEqual(refreshed.catalog, catalog);
+    assert.deepEqual(
+      refreshed.catalog.releases.map(({ releaseId }) => releaseId),
+      catalog.releases.map(({ releaseId }) => releaseId),
+    );
     report.onlineProgress = [];
     // Same-target requests merge while the two Pokémon variants share blobs.
     await Promise.all(
@@ -800,8 +803,11 @@ try {
     const closure = new Set(
       releases.flatMap((release) => [release.code, ...release.resources]),
     );
+    const installedIndex = JSON.parse(
+      await readFile(join(extracted, 'games', 'index.json'), 'utf8'),
+    );
     assert.deepEqual(
-      Object.keys(installed.index.blobs).sort(),
+      Object.keys(installedIndex.blobs).sort(),
       [...closure].sort(),
     );
     const beforeIndex = installed.index;
@@ -827,6 +833,13 @@ try {
       'installed repeat started another download',
     );
     assert.deepEqual(repeated.index, beforeIndex);
+    assert.deepEqual(
+      JSON.parse(
+        await readFile(join(extracted, 'games', 'index.json'), 'utf8'),
+      ),
+      installedIndex,
+      'installed repeat changed the real local installation index',
+    );
     report.onlineTasks = installed.tasks;
     report.checks.push(
       'real signed Release refresh, actual-byte download progress, same-target merge, shared immutable dependencies, installed repeat, no automatic game selection',

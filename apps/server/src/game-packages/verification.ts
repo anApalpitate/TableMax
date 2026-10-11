@@ -163,6 +163,15 @@ export function validateCatalog(catalog: PackageCatalog): void {
     ])
       if (!safePath(entry) || !code.files.some((f) => f.path === entry))
         throw new Error('invalid-module-entry');
+    if (
+      release.module.details !== undefined &&
+      (!safePath(release.module.details) ||
+        !release.module.details.startsWith('web/') ||
+        !release.module.details.endsWith('.json') ||
+        release.resourceMap[release.module.details] !== undefined ||
+        !code.files.some((file) => file.path === release.module.details))
+    )
+      throw new Error('invalid-module-details');
     for (const [logical, target] of Object.entries(release.resourceMap))
       if (
         !safePath(logical) ||

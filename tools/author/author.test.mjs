@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, cp, writeFile, readFile, rm, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { exportAuthorToolkit } from './export-toolkit.mjs';
 import { checkAuthorProject } from './contract.mjs';
 import { buildAuthorProject } from './build.mjs';
@@ -24,8 +25,33 @@ test('independent author builds and finishes a contract game without private wor
       );
     const project = resolve(root, 'project');
     await cp(resolve(toolkit, 'template'), project, { recursive: true });
-    const built = await buildAuthorProject(project);
+    const sourceManifestPath = resolve(project, 'game-module.json');
+    const sourceManifest = JSON.parse(
+      await readFile(sourceManifestPath, 'utf8'),
+    );
+    sourceManifest.guidance = true;
+    sourceManifest.introduction = {
+      tagline: 'Author details',
+      lead: 'Only installed',
+      steps: [],
+      goal: 'Finish',
+    };
+    await writeFile(sourceManifestPath, JSON.stringify(sourceManifest));
+    const independentBuild = await import(
+      pathToFileURL(resolve(toolkit, 'build.mjs')).href
+    );
+    const built = await independentBuild.buildAuthorProject(project);
     assert.equal(built.manifest.compatibility.protocol, 7);
+    assert.equal('introduction' in built.manifest, false);
+    assert.equal('guidance' in built.manifest, false);
+    assert.equal(built.manifest.details, 'web/details.json');
+    const details = JSON.parse(
+      await readFile(resolve(built.output, 'web/details.json'), 'utf8'),
+    );
+    assert.equal(details.guidance, true);
+    assert.deepEqual(details.introduction, sourceManifest.introduction);
+    assert.ok(built.files.some((file) => file.path === 'web/details.json'));
+    assert.ok(built.files.some((file) => file.path === 'web/module.json'));
     assert.match(
       await readFile(resolve(built.output, 'web/entry.js'), 'utf8'),
       /\/runtime\/v1\/web-host\.js/,

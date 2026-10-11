@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { GameClient } from '@tablemax/web-host';
+import type { GameWebManifest } from '@tablemax/game-sdk/metadata';
 import { moduleFor } from '../catalog';
 import { activateGameStyles, loadGameStyle } from './styles';
 export type { GameClient } from '@tablemax/web-host';
@@ -104,15 +105,18 @@ export function useGameClient(
 async function loadProduction(
   item: NonNullable<ReturnType<typeof moduleFor>>,
 ): Promise<ClientExports> {
-  if (item.compatibility.webHost !== 1)
+  const response = await fetch(`/games/${item.id}/web/module.json`);
+  if (!response.ok) throw new Error('missing-game-web-module');
+  const descriptor = (await response.json()) as GameWebManifest;
+  if (descriptor.id !== item.id || descriptor.compatibility.webHost !== 1)
     throw new Error('incompatible-web-host');
-  const entry = new URL(item.entries.web, location.origin);
+  const entry = new URL(descriptor.entries.web, location.origin);
   if (
     entry.origin !== location.origin ||
     !entry.pathname.startsWith('/games/' + item.id + '/web/')
   )
     throw new Error('invalid-web-entry');
-  for (const style of item.styles ?? []) {
+  for (const style of descriptor.styles ?? []) {
     const url = new URL(style, location.origin);
     if (
       url.origin !== location.origin ||
@@ -133,9 +137,13 @@ async function loadRelease(
   if (!response.ok) throw new Error('missing-game-release');
   const item = (await response.json()) as {
     gameId: string;
-    module: NonNullable<ReturnType<typeof moduleFor>>;
+    module: GameWebManifest;
   };
-  if (item.gameId !== gameId || item.module.compatibility.webHost !== 1)
+  if (
+    item.gameId !== gameId ||
+    item.module.id !== gameId ||
+    item.module.compatibility.webHost !== 1
+  )
     throw new Error('incompatible-web-host');
   const prefix = `/game-packages/${ref}/`;
   const local = (path: string) => {

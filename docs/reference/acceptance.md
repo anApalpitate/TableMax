@@ -1,15 +1,49 @@
 # 首版交付与验收
 
+## 1.0.6：轻量目录与统一玩法控件（2026-10-11）
+
+未安装游戏的浏览目录仅保留名称、分类、人数、玩法摘要、小封面和必要索引字段；实际目录从17,471降至2,240字节，减少87.18%。作者完整清单、运行描述、浏览摘要与安装器签名数据采用显式投影。新游戏包的图文介绍、人机说明和引导能力进入 `web/details.json`，当前发行按引用加载；旧签名包继续读取内嵌说明。空box不携带重复 `modules.json`、根签名目录或逐游戏完整清单，管理员明确下载时才刷新可信目录。平台 `GameplaySelector`统一宝可梦和阿瓦隆玩法选择，保留资源状态、权限及当前发行固定。
+
+[实际字节审计](../../artifacts/maintenance/v1.0.6/catalog-slim-20261011/metadata-audit.json)证明候选八玩法的规则、人机代码及资源字节与旧发行一致；新详情入包、运行描述不再重复携带介绍。候选包[签名／闭包核验](../../artifacts/game-packages/v1.0.6/catalog-slim-20261011/verification.json)通过。本地full继续预装原Pages八个精确发行，旧ID、旧包和线上发布字节不改；新版格式候选尚未部署或发布。
+
+首轮候选交付如下，后续历史目录及旧包人数校验修正的最终交付另列于本节。
+
+| 首轮本地候选                      |  EXE字节数 | SHA-256                                                            | 实际提取字节数（含标记） |
+| --------------------------------- | ---------: | ------------------------------------------------------------------ | -----------------------: |
+| `TableMax-1.0.6-win-x64-box.exe`  | 34,907,648 | `e245a86064e3a9e35be1dc6d678320eff6d616100876486ee84a4baec8cda5a3` |               87,489,605 |
+| `TableMax-1.0.6-win-x64-full.exe` | 43,686,400 | `e83eb1fc10bc015db179baa309fcf9cd57551364d83042abf586caf917611654` |               96,407,674 |
+
+快照为 `e5740f75c7af517934dcedac06c6774a2e1795bf5dcfdb9c79468c5a8291f9ba`，37单元正式构建35.681秒；双EXE各减少51,200字节、内部解压各减少212,061字节。[box](../../artifacts/maintenance/v1.0.6/windows-editions/e5740f75c7af517934dcedac06c6774a2e1795bf5dcfdb9c79468c5a8291f9ba/shipping-executable-checks-box.json)与[full](../../artifacts/maintenance/v1.0.6/windows-editions/e5740f75c7af517934dcedac06c6774a2e1795bf5dcfdb9c79468c5a8291f9ba/shipping-executable-checks-full.json)实际提取、逐文件哈希、重复提取及原生安全通过，均满足严格120MB门禁。旧本地EXE与清单保全在[本轮备份](../../artifacts/maintenance/v1.0.6/catalog-slim-20261011/before/)。
+
+[实际安装首轮](../../artifacts/maintenance/v1.0.6/windows-editions/e5740f75c7af517934dcedac06c6774a2e1795bf5dcfdb9c79468c5a8291f9ba/actual-install/1791723209925/results.json)中的box空大厅通过；full提取曾因临时stage目录访问拒绝停止，原失败保留。确认目录清空、相关进程退出后，[仅full补验](../../artifacts/maintenance/v1.0.6/windows-editions/e5740f75c7af517934dcedac06c6774a2e1795bf5dcfdb9c79468c5a8291f9ba/actual-install/1791723360303/results.json)通过八包预装、旧包详情实际渲染、重启及full换box时原安装索引／保存实例／发行引用／快照不变。实际app与games分别87,489,605／106,433,111字节。
+
+[游戏库15项](../../artifacts/maintenance/v1.0.6/game-library/run-1791722940530/report.json)覆盖轻量白名单、空盒子零详情请求、管理员显式刷新及并发合并、身份切换、玩法权限与320px至4K布局。[图文说明108布局](../../artifacts/maintenance/v1.0.6/game-introduction/lazy-details-final-20261011/results.json)通过异步加载、字号、触控、焦点和只读行为。首轮报告作用域错误及游戏库夹具遗漏运行计时能力均修正后限定重验，未将失败记为通过。元数据／开发插件5项、独立作者3项、公开API6项及新增详情迁移1项通过；详情字段校验加强后仅重跑受影响3项。类型、适用静态／格式检查通过。测试静音、监听127.0.0.1；模拟视口、隐藏Edge／WebView2不代表实体手机或Safari。
+
+最终复核修正历史发行覆盖当前目录的问题：每个游戏／玩法只公开签名目录首条当前发行，内部安装索引保留历史引用。规则人数按精确发行描述校验，旧6人阿瓦隆与当前10人浏览目录并存；选局／换玩法载入后再按实际规则人数检查，超员拒绝且不改变原保存。公开目录新增1项、实际CJS发行加载2项及版本固定／恢复／超员选局6场景通过。两项测试观测假设（无效 `endCurrent:false`及随时钟变化的倒计时）修正后只重跑受影响场景，原失败保留。
+
+中间快照 `9294313d0e7f132446a81cb8c8b23b0441b5860978d558393c234e0060534ac0`的实际安装及box原生安全通过，full原生检查在临时stage访问拒绝时停止；[原批次记录](../../artifacts/maintenance/test-history/runs/3e967e1d-9bc7-41c7-b59e-309f1496eb7a/results.json)保留，确认目录及进程退出后仅以最终人数补丁包重验受影响交付。中间EXE与清单保全在[候选备份](../../artifacts/maintenance/v1.0.6/catalog-slim-20261011/before-capacity-guard/)。
+
+| 最终本地交付                      |  EXE字节数 | SHA-256                                                            |
+| --------------------------------- | ---------: | ------------------------------------------------------------------ |
+| `TableMax-1.0.6-win-x64-box.exe`  | 34,907,648 | `00991ab0196fb2df4ae4848063bad315f7534d3abbcdbfb5a31123d843ff6ccb` |
+| `TableMax-1.0.6-win-x64-full.exe` | 43,686,400 | `8f7ed15e95fdd7857597910bf5ed0fdbbcaf236eb6a46f52e245992d553f4553` |
+
+最终快照 `dc39fbac05ef3c1449e9a23165fd4478a1d819cdcbeb3be6d1e71b8b4b52d575`只重编平台，游戏冻结单元保留。[最终字节审计](../../artifacts/maintenance/v1.0.6/catalog-slim-20261011/metadata-audit-complete.json)仍证明八玩法规则、人机与资源未改，双EXE各减少51,200字节、实际载荷各减少211,976字节。[最终实际安装](../../artifacts/maintenance/v1.0.6/windows-editions/dc39fbac05ef3c1449e9a23165fd4478a1d819cdcbeb3be6d1e71b8b4b52d575/actual-install/1791724638419/results.json)通过四组断言，box／full的app与games总量87,489,780／106,433,286字节；本轮没有重新发布线上附件、目录或标签。
+
+最终[box提取与原生安全](../../artifacts/maintenance/v1.0.6/windows-editions/dc39fbac05ef3c1449e9a23165fd4478a1d819cdcbeb3be6d1e71b8b4b52d575/shipping-executable-checks-box.json)、[full同项检查](../../artifacts/maintenance/v1.0.6/windows-editions/dc39fbac05ef3c1449e9a23165fd4478a1d819cdcbeb3be6d1e71b8b4b52d575/shipping-executable-checks-full.json)通过实际逐文件哈希、完整成员、重复提取和静音原生安全矩阵；full实际提取含标记96,407,849字节，两个EXE与实际内容均严格小于120,000,000字节。最终类型检查通过，保留本轮各候选与失败的实际证据边界。
+
+“宏伟大计”核心功能已实现，仍缺实体手机LAN／Safari、默认可见作者启动、真实磁盘满及全下载／解压写入点故障矩阵，因此保留[手写条目](../tasks/手写改动单.md)；详细接续见[任务索引](../tasks/README.md#独立游戏包与按需安装宏伟大计进行中)。安全维护与最终容量归入[瘦身记录](project-slimming.md#轻量目录与玩法控件收尾2026-10-11)。
+
 ## 1.0.6：空盒子大厅与两种Windows EXE（2026-10-11）
 
 本轮本地交付已通过实际包检查，继续沿用v1.0.6；未重新发布GitHub Release、部署Pages或导出source ZIP。无游戏时保留正常牌桌大厅、六个空座位和管理入口，以下载图标、标题“请前往游戏库下载”及高亮“游戏库”按钮打开现有浮窗。其他端可以查看游戏库，下载安装仍仅管理员可操作。
 
-| 本地交付 | EXE字节数 | SHA-256 | 实际提取字节数（含标记） | 首次安装app与games字节数 |
-| --- | ---: | --- | ---: | ---: |
-| `TableMax-1.0.6-win-x64-box.exe` | 34,958,848 | `96b470f22b541cc68aaab7f8d7c651cd461d5aa1d9709a6d46911271cafb04c4` | 87,703,107 | 87,813,603 |
-| `TableMax-1.0.6-win-x64-full.exe` | 43,737,600 | `2c769c24d858d7abdc83b680369eeddef200e42a2dd859c821afbb4ccc0b043f` | 96,621,177 | 106,646,614 |
+| 本地交付                          |  EXE字节数 | SHA-256                                                            | 实际提取字节数（含标记） | 首次安装app与games字节数 |
+| --------------------------------- | ---------: | ------------------------------------------------------------------ | -----------------------: | -----------------------: |
+| `TableMax-1.0.6-win-x64-box.exe`  | 34,958,848 | `96b470f22b541cc68aaab7f8d7c651cd461d5aa1d9709a6d46911271cafb04c4` |               87,703,107 |               87,813,603 |
+| `TableMax-1.0.6-win-x64-full.exe` | 43,737,600 | `2c769c24d858d7abdc83b680369eeddef200e42a2dd859c821afbb4ccc0b043f` |               96,621,177 |              106,646,614 |
 
-当前快照为 `5b0ecba02867adfe0e5358e70d6e9fb1de71e950db23b57c86f1760b3dc07b4e`；只重新编译受影响平台单元，游戏沿用 `93f640a3594856a93bb78176e81c966c6ba5a8a96b920066d4431a463e439b4d` 冻结单元及已验Pages八玩法／13内容包，不混入其他任务资源改动。[两版哈希指针](../../artifacts/package-payloads/v1.0.6/current.json)绑定独立内部载荷与逐文件清单；内部ZIP仅供封装和审计，用户运行导出仅为full／box EXE。两种EXE、实际提取及首次安装内容均严格小于120,000,000字节。
+该轮快照为 `5b0ecba02867adfe0e5358e70d6e9fb1de71e950db23b57c86f1760b3dc07b4e`；只重新编译受影响平台单元，游戏沿用 `93f640a3594856a93bb78176e81c966c6ba5a8a96b920066d4431a463e439b4d` 冻结单元及已验Pages八玩法／13内容包，不混入其他任务资源改动。[该轮两版哈希指针](../../artifacts/maintenance/v1.0.6/catalog-slim-20261011/before/payload-index.json)绑定独立内部载荷与逐文件清单；内部ZIP仅供封装和审计，用户运行导出仅为full／box EXE。两种EXE、实际提取及首次安装内容均严格小于120,000,000字节。
 
 [实际EXE启动三组检查](../../artifacts/maintenance/v1.0.6/windows-editions/5b0ecba02867adfe0e5358e70d6e9fb1de71e950db23b57c86f1760b3dc07b4e/actual-install/1791720858647/results.json)通过：box正常空大厅和浮窗；full本地安装八个精确发行，首次及无操作退出后重开默认宝可梦原版，显式切换本地UNO无需浏览器外部请求；同一便携目录替换为box后，八个安装引用、已保存实例、发行及快照保持一致。已有保存的空局保持为空，不因升级到full自动选局；已卸载游戏不被旧预装凭证重新安装。
 

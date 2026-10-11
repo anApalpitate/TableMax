@@ -622,6 +622,10 @@ export class PackageStore {
         module.styles = (original.styles ?? []).map(
           (path) => 'web/' + path.replace(/^\/?(?:web\/)?games\/[^/]+\//, ''),
         );
+        if (original.details !== undefined)
+          module.details =
+            'web/' +
+            original.details.replace(/^\/?(?:web\/)?games\/[^/]+\//, '');
         const release: GameRelease = {
           releaseId: '',
           legacy: true,

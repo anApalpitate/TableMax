@@ -1,21 +1,34 @@
 import { GameRegistry } from '@tablemax/platform-core';
-import { installedModules, loadInstalledModule } from './module-loader';
+import {
+  availableModules,
+  installedModules,
+  loadInstalledModule,
+} from './module-loader';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import type { PackageStore } from './game-packages/store';
+import { preferredCatalogReleases } from './game-packages/catalog';
+import type {
+  GameCatalogEntry,
+  ModuleManifest,
+} from '@tablemax/game-sdk/module-manifest';
+const isRuntimeModule = (
+  item: GameCatalogEntry | ModuleManifest,
+): item is ModuleManifest => 'entries' in item && 'compatibility' in item;
 export function createGameRegistry(
   includeTemplate = false,
   store?: PackageStore,
 ) {
+  const snapshot = store?.snapshot();
   return new GameRegistry(
     [
       ...new Map(
         [
-          ...installedModules(),
-          ...(store
+          ...(store ? availableModules() : installedModules()),
+          ...(snapshot
             ? [
-                ...store.snapshot().catalog.releases.map((r) => r.module),
-                ...Object.values(store.snapshot().index.releases).map(
+                ...Object.values(snapshot.index.releases).map((r) => r.module),
+                ...preferredCatalogReleases(snapshot.catalog.releases).map(
                   (r) => r.module,
                 ),
               ]
@@ -58,6 +71,8 @@ export function createGameRegistry(
             )
               throw new Error('incompatible-game-variant');
             const descriptor = installed?.release.module ?? item;
+            if (!isRuntimeModule(descriptor))
+              throw new Error('missing-game-release');
             const module = installed
               ? {
                   ...createRequire(join(installed.root, 'loader.cjs'))(
@@ -93,8 +108,8 @@ export function createGameRegistry(
             const actual = selected.rules.manifest;
             if (
               actual.id !== item.id ||
-              actual.players.min !== item.catalog.min ||
-              actual.players.max !== item.catalog.max ||
+              actual.players.min !== descriptor.catalog.min ||
+              actual.players.max !== descriptor.catalog.max ||
               actual.rulesVersion !== expected.rulesVersion ||
               actual.stateVersion !== expected.stateVersion ||
               actual.sdkVersion !== expected.sdk ||

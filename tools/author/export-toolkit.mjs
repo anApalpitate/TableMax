@@ -52,6 +52,14 @@ export async function exportAuthorToolkit(
     resolve(output, 'cli.mjs'),
     cli.replace('../release/game-package-format.mjs', './package-format.mjs'),
   );
+  for (const file of ['build.mjs', 'isolated-dev.mjs'])
+    await writeFile(
+      resolve(output, file),
+      (await readFile(resolve(output, file), 'utf8')).replaceAll(
+        '../../packages/game-sdk/src/metadata.mjs',
+        './public/game-sdk/src/metadata.mjs',
+      ),
+    );
   await cp(resolve(here, 'template'), resolve(output, 'template'), {
     recursive: true,
   });

@@ -1,13 +1,17 @@
-import { moduleFor } from '../catalog';
-import type { ModuleManifest } from '../../../../packages/game-sdk/src/module-manifest';
+import type {
+  GameDetails,
+  ModuleManifest,
+} from '@tablemax/game-sdk/module-manifest';
 export type GameIntroductionContent = NonNullable<
   ModuleManifest['introduction']
 >;
 export type IntroductionIcon = GameIntroductionContent['steps'][number]['icon'];
-export const gameIntroduction = (id: string, variantId?: string) => {
-  const module = moduleFor(id);
+export const gameIntroduction = (
+  details: GameDetails | undefined,
+  variantId?: string,
+) => {
   return (
-    module?.variants?.find((variant) => variant.id === variantId)
-      ?.introduction ?? module?.introduction
+    details?.variants?.find((variant) => variant.id === variantId)
+      ?.introduction ?? details?.introduction
   );
 };

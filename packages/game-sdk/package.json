@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./module-manifest": "./src/module-manifest.ts"
+    "./module-manifest": "./src/module-manifest.ts",
+    "./metadata": "./src/metadata.mjs"
   }
 }

@@ -492,7 +492,7 @@
 
 ## 1.0.0：便携包语言精简（2026-10-03）
 
-用户授权先精简语言包，沿用 1.0.0。`electron-builder.yml` 只保留 `zh-CN` 和 `en-US`；游戏代码、美术、声音和 Chromium 其他运行组件不变。多个游戏后的按需安装已列入 [未来计划](../tasks/README.md#多游戏按需安装未来计划未实现)，本轮没有实现下载或更换桌面运行时。
+用户授权先精简语言包，沿用 1.0.0。`electron-builder.yml` 只保留 `zh-CN` 和 `en-US`；游戏代码、美术、声音和 Chromium 其他运行组件不变。多个游戏后的按需安装当时列入未来计划，当前接续见[独立游戏包任务](../tasks/README.md#独立游戏包与按需安装宏伟大计进行中)，该轮没有实现下载或更换桌面运行时。
 
 - [ZIP 内容与体积核验](../../artifacts/maintenance/v1.0.0/before-webview2/language-pruning/results.json)：删除 53 个语言文件，保留的 21 个文件逐项解压 SHA-256 与旧包一致，包括程序、app.asar 和其他运行组件。ZIP 从 156,162,408 字节降至 144,416,191 字节（148.9 → 137.7 MiB），减少 11.2 MiB／7.52%。
 - [实际便携整局](../../artifacts/maintenance/v1.0.0/before-webview2/portable/results.json)：当轮 ZIP 独立解压、仅系统 PATH、隐藏 Electron 与独立服务，通过六席三胜、全部 14 阶段、回退、两次启动恢复及原班续局，页面错误和外部请求为空。设备范围仍为本机 Windows／手机 Chromium 模拟，不新增实机或听音结论。

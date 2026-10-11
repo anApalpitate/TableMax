@@ -12,6 +12,11 @@ import { createHash, randomUUID } from 'node:crypto';
 import { resolve, relative, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkAuthorProject, inside } from './contract.mjs';
+import {
+  projectGameDetails,
+  projectGameRuntime,
+  projectGameWeb,
+} from '../../packages/game-sdk/src/metadata.mjs';
 
 const media =
   /\.(png|jpg|jpeg|webp|svg|gif|avif|mp3|wav|flac|ogg|m4a|woff2?)$/i;
@@ -155,11 +160,15 @@ export async function buildAuthorProject(directory) {
     for (const [name, expected] of Object.entries(sourceHashes))
       if (hash(await readFile(resolve(root, name))) !== expected)
         throw new Error('Author input changed during build');
-    const compiled = {
-      ...manifest,
+    const compiled = projectGameRuntime(manifest, {
       entries: { rules: 'rules.cjs', bot: 'bot.cjs', web: 'web/entry.js' },
       styles: [],
-    };
+      details: 'web/details.json',
+    });
+    await writeFile(
+      resolve(stage, 'web/details.json'),
+      JSON.stringify(projectGameDetails(manifest)),
+    );
     const inventory = [];
     const collect = async (path) => {
       for (const item of await readdir(path, { withFileTypes: true })) {
@@ -179,6 +188,19 @@ export async function buildAuthorProject(directory) {
       }
     };
     await collect(stage);
+    const webManifest = Buffer.from(JSON.stringify(projectGameWeb(compiled)));
+    await writeFile(resolve(stage, 'web/module.json'), webManifest);
+    // A reused web tree has its old loader document. The current descriptor
+    // replaces that member rather than claiming it twice.
+    const previousWebManifest = inventory.findIndex(
+      (file) => file.path === 'web/module.json',
+    );
+    if (previousWebManifest !== -1) inventory.splice(previousWebManifest, 1);
+    inventory.push({
+      path: 'web/module.json',
+      bytes: webManifest.length,
+      sha256: hash(webManifest),
+    });
     inventory.sort((a, b) => a.path.localeCompare(b.path));
     await writeFile(
       resolve(stage, 'module.json'),

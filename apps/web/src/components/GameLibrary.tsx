@@ -2,7 +2,6 @@ import { moduleFor } from '../catalog';
 import type { RoomSession } from '../session/useRoomSession';
 import { useEffect, useState } from 'react';
 import { gameCover } from '../assets/game-covers';
-import { gameIntroduction } from '../game-clients/introductions';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import { ResourceButton, ResourceStatusLabel } from './game-library/resources';
 import { PackageManagement } from './game-library/PackageManagement';
@@ -41,9 +40,13 @@ export function GameLibrary({
       tags: module?.library?.tags ?? ['未分类'],
       searchTerms: [
         ...(module?.library?.searchTerms ?? []),
-        ...(module?.variants?.map((variant) => variant.name) ?? []),
+        ...(module?.variants?.flatMap((variant) => [
+          variant.name,
+          variant.description,
+        ]) ?? []),
       ],
-      tagline: gameIntroduction(game.id)?.tagline ?? '',
+      tagline:
+        module?.variants?.map((variant) => variant.name).join(' / ') ?? '',
       development: module?.development ?? false,
     };
   });

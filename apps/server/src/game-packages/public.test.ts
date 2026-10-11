@@ -1,0 +1,319 @@
+import { afterEach, expect, it } from 'vitest';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import type { ModuleManifest } from '@tablemax/game-sdk/module-manifest';
+import {
+  projectGameDetails,
+  projectGameRuntime,
+} from '@tablemax/game-sdk/metadata';
+import type { PublicPackageSnapshot } from '@tablemax/protocol';
+import { PackageStore } from './store';
+import {
+  projectPackageSnapshot,
+  projectReleaseSummary,
+  publicReleaseClient,
+  publicReleaseDetails,
+} from './public';
+import {
+  blobIdentity,
+  releaseIdentity,
+  sha256,
+  validateCatalog,
+} from './verification';
+import type { GameRelease, InstallIndex, PackageBlob } from './types';
+import { PROJECT_GAME_PUBLIC_KEY } from './project-public-key';
+import { createService } from '../service';
+
+const roots: string[] = [];
+afterEach(() => {
+  for (const root of roots.splice(0))
+    rmSync(root, { recursive: true, force: true });
+});
+const manifest = () =>
+  JSON.parse(
+    readFileSync('games/uno/game-module.json', 'utf8'),
+  ) as ModuleManifest;
+
+function fixture(document?: unknown) {
+  mkdirSync('tmp', { recursive: true });
+  const root = mkdtempSync(resolve('tmp/public-package-'));
+  roots.push(root);
+  const source = manifest();
+  const module =
+    document === undefined
+      ? source
+      : projectGameRuntime(source, { details: 'web/details.json' });
+  module.entries = { rules: 'rules.cjs', bot: 'bot.cjs', web: 'web/entry.js' };
+  module.styles = [];
+  const records = [
+    { path: 'rules.cjs', data: Buffer.from('rules') },
+    { path: 'bot.cjs', data: Buffer.from('bot') },
+    { path: 'web/entry.js', data: Buffer.from('export const client={};') },
+    ...(document === undefined
+      ? []
+      : [
+          {
+            path: 'web/details.json',
+            data: Buffer.from(JSON.stringify(document)),
+          },
+        ]),
+  ];
+  const blob: PackageBlob = {
+    id: '',
+    kind: 'code',
+    files: records.map(({ path, data }) => ({
+      path,
+      size: data.length,
+      sha256: sha256(data),
+    })),
+    archiveBytes: 1,
+    archiveSha256: sha256('fixture'),
+    installedBytes: records.reduce(
+      (sum, record) => sum + record.data.length,
+      0,
+    ),
+    assetName: 'fixture.zip',
+    releaseTag: 'v1.0.6',
+  };
+  blob.id = blobIdentity(blob);
+  const release: GameRelease = {
+    releaseId: '',
+    gameId: 'uno',
+    module,
+    code: blob.id,
+    resources: [],
+    resourceMap: {},
+    releaseTag: 'v1.0.6',
+  };
+  release.releaseId = releaseIdentity(release);
+  const games = join(root, 'games');
+  for (const record of records) {
+    const path = join(games, 'uno', 'blobs', blob.id, record.path);
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, record.data);
+  }
+  const index: InstallIndex = {
+    schemaVersion: 1,
+    releases: { [release.releaseId]: release },
+    blobs: { [blob.id]: blob },
+    selected: { 'uno:': release.releaseId },
+  };
+  writeFileSync(join(games, 'index.json'), JSON.stringify(index));
+  const store = new PackageStore({
+    root: games,
+    publicKey: PROJECT_GAME_PUBLIC_KEY,
+    protectedReleaseIds: () => [],
+  });
+  return { root, games, source, module, blob, release, store };
+}
+
+it('projects only installation summaries while retaining full immutable store metadata', () => {
+  const f = fixture();
+  const internal = f.store.snapshot();
+  internal.catalog.releases.push(f.release);
+  internal.catalog.blobs.push(f.blob);
+  internal.tasks.push({
+    releaseId: f.release.releaseId,
+    phase: 'downloading',
+    transferredBytes: 3,
+    totalBytes: 7,
+  });
+  const before = JSON.stringify(internal);
+  const value = projectPackageSnapshot(internal);
+  const summary = value.catalog.releases[0]!;
+  expect(Object.keys(summary).sort()).toEqual([
+    'compatible',
+    'gameId',
+    'name',
+    'releaseId',
+    'releaseTag',
+  ]);
+  expect(summary.compatible).toBe(true);
+  expect(summary.name).toBe('UNO');
+  expect(value.index.releases[f.release.releaseId]).toEqual(summary);
+  expect(JSON.stringify(value)).not.toMatch(
+    /introduction|budgets|resourceMap|entries|archiveBytes|blobs|rulesVersion/,
+  );
+  expect(JSON.stringify(internal)).toBe(before);
+  value.index.selected['uno:'] = 'changed';
+  value.tasks[0]!.transferredBytes = 999;
+  expect(internal.index.selected['uno:']).toBe(f.release.releaseId);
+  expect(internal.tasks[0]!.transferredBytes).toBe(3);
+});
+
+it('reports compatibility and canonical variant names without exposing module compatibility records', () => {
+  const f = fixture();
+  const pokemon = JSON.parse(
+    readFileSync('games/pokemon-encounters/game-module.json', 'utf8'),
+  ) as ModuleManifest;
+  const release = {
+    ...f.release,
+    gameId: pokemon.id,
+    variantId: 'expansion',
+    module: pokemon,
+  };
+  const summary = projectReleaseSummary(release);
+  expect(summary).toMatchObject({
+    variantName: '扩展版',
+    defaultVariantId: 'original',
+    compatible: true,
+  });
+  pokemon.variants![1]!.compatibility.webHost = 2;
+  expect(projectReleaseSummary(release).compatible).toBe(false);
+  expect(
+    projectReleaseSummary({ ...release, variantId: 'unknown' }).compatible,
+  ).toBe(false);
+});
+
+it('keeps the first current gameplay in the public catalog while retaining every installed historical reference', () => {
+  const f = fixture();
+  const old = structuredClone(f.release);
+  old.releaseId = 'b'.repeat(64);
+  old.module.catalog.name = 'Historical UNO';
+  const variant = {
+    ...structuredClone(f.release),
+    releaseId: 'c'.repeat(64),
+    variantId: 'other',
+  };
+  const snapshot = f.store.snapshot();
+  snapshot.catalog.releases = [f.release, variant, old];
+  snapshot.index.releases[old.releaseId] = old;
+  const before = JSON.stringify(snapshot);
+  const projected = projectPackageSnapshot(snapshot);
+  expect(
+    projected.catalog.releases.map((release) => release.releaseId),
+  ).toEqual([f.release.releaseId, variant.releaseId]);
+  expect(projected.catalog.releases[0]!.name).toBe('UNO');
+  expect(Object.keys(projected.index.releases)).toContain(old.releaseId);
+  expect(JSON.stringify(snapshot)).toBe(before);
+});
+
+it('loads new detail documents from installed inventory and falls back to old inline documents', () => {
+  const source = manifest();
+  const document = projectGameDetails(source);
+  const modern = fixture({ ...document, runtimeOnlyExtra: 'excluded' });
+  expect(publicReleaseDetails(modern.store, modern.release.releaseId)).toEqual(
+    document,
+  );
+  expect(publicReleaseDetails(modern.store, 'a'.repeat(64))).toBeUndefined();
+  expect(publicReleaseClient(modern.store, modern.release.releaseId)).toEqual({
+    gameId: 'uno',
+    module: {
+      id: 'uno',
+      compatibility: { webHost: 1 },
+      entries: { web: 'web/entry.js' },
+      styles: [],
+    },
+  });
+  const legacy = fixture();
+  expect(publicReleaseDetails(legacy.store, legacy.release.releaseId)).toEqual(
+    document,
+  );
+  expect(
+    legacy.store.snapshot().index.releases[legacy.release.releaseId]!.module
+      .introduction,
+  ).toEqual(source.introduction);
+});
+
+it('rejects detail documents with the wrong schema, game identity or field shape', () => {
+  for (const document of [
+    { schemaVersion: 2, id: 'uno' },
+    { schemaVersion: 1, id: 'avalon' },
+    { schemaVersion: 1, id: 'uno', introduction: 'invalid' },
+    { schemaVersion: 1, id: 'uno', guidance: 'invalid' },
+    {
+      schemaVersion: 1,
+      id: 'uno',
+      variants: [{ id: 'expansion', introduction: {} }],
+    },
+  ]) {
+    const f = fixture(document);
+    expect(publicReleaseDetails(f.store, f.release.releaseId)).toBeUndefined();
+  }
+});
+
+it('rejects escaped, nonpublic, unlisted and resource-aliased detail paths before installation', () => {
+  const f = fixture(projectGameDetails(manifest()));
+  for (const path of [
+    '../details.json',
+    'rules.cjs',
+    'web/not-listed.json',
+    'web/entry.js',
+  ]) {
+    const release = structuredClone(f.release);
+    release.module.details = path;
+    release.releaseId = releaseIdentity(release);
+    expect(() =>
+      validateCatalog({
+        schemaVersion: 1,
+        releases: [release],
+        blobs: [f.blob],
+      }),
+    ).toThrow('invalid-module-details');
+  }
+  const aliased = structuredClone(f.release);
+  aliased.resourceMap['web/details.json'] = {
+    blobId: f.blob.id,
+    path: 'web/details.json',
+  };
+  aliased.releaseId = releaseIdentity(aliased);
+  expect(() =>
+    validateCatalog({ schemaVersion: 1, releases: [aliased], blobs: [f.blob] }),
+  ).toThrow('invalid-module-details');
+});
+
+it('serves only lightweight HTTP metadata and immutable installed details, with missing details uncached', async () => {
+  const f = fixture(projectGameDetails(manifest()));
+  const webDir = join(f.root, 'app', 'web');
+  mkdirSync(webDir, { recursive: true });
+  writeFileSync(join(webDir, 'index.html'), '<html>public package test</html>');
+  const service = await createService({
+    host: '127.0.0.1',
+    port: 0,
+    dataDir: join(f.root, 'data'),
+    webDir,
+    gamesDir: f.games,
+    playMode: 'test',
+  });
+  try {
+    const snapshotResponse = await service.app.inject('/api/game-packages');
+    const snapshot = snapshotResponse.json<PublicPackageSnapshot>();
+    expect(snapshot.index.releases[f.release.releaseId]).toMatchObject({
+      name: 'UNO',
+      compatible: true,
+    });
+    expect(snapshotResponse.body).not.toMatch(
+      /introduction|resourceMap|entries|budgets|blobs/,
+    );
+    const client = await service.app.inject(
+      `/api/game-packages/releases/${f.release.releaseId}`,
+    );
+    expect(client.json()).toEqual(
+      publicReleaseClient(f.store, f.release.releaseId),
+    );
+    expect(client.body).not.toMatch(
+      /introduction|rulesVersion|strategyVersion|resourceMap|budgets/,
+    );
+    const details = await service.app.inject(
+      `/api/game-packages/releases/${f.release.releaseId}/details`,
+    );
+    expect(details.statusCode).toBe(200);
+    expect(details.headers['cache-control']).toBe(
+      'public, max-age=31536000, immutable',
+    );
+    expect(details.json()).toEqual(projectGameDetails(f.source));
+    const missing = await service.app.inject(
+      `/api/game-packages/releases/${'a'.repeat(64)}/details`,
+    );
+    expect(missing.statusCode).toBe(404);
+    expect(missing.headers['cache-control']).toBe('no-store');
+  } finally {
+    await service.close();
+  }
+}, 30000);

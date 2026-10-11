@@ -20,6 +20,8 @@ const validScopes = ['box', 'shared', 'tooling', ...gameScopes];
 
 // Classify what a test actually exercises, rather than its containing app.
 const unitScopes = {
+  'apps/server/src/registry-versions.test.ts': ['shared', 'tooling'],
+  'apps/server/src/game-packages/public.test.ts': ['box', 'shared', 'tooling'],
   'apps/server/src/game-packages/legacy-save.test.ts': [
     'shared',
     'tooling',
@@ -118,6 +120,10 @@ const unitScopes = {
 // Unregistered scripts may only run with an explicitly chosen full scope.
 // Mixed matrices cannot be narrowed by adding an option they do not implement.
 const verificationScopes = {
+  'tools/release/verify-windows-editions.mjs': ['box', 'shared', 'tooling'],
+  'tools/test/platform/verify-game-introduction.mjs': ['box'],
+  'packages/game-sdk/src/metadata.test.mjs': ['box', 'shared', 'tooling'],
+  'tools/build/lean-catalog.test.mjs': ['box', 'shared', 'tooling'],
   'tools/test/platform/verify-package-crash.mjs': ['shared', 'tooling'],
   'tools/test/platform/verify-legacy-game-migration.mjs': [
     'box',

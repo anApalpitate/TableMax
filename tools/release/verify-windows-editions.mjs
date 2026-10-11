@@ -9,6 +9,7 @@ import {
   readdir,
   stat,
   writeFile,
+  access,
 } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
@@ -102,6 +103,16 @@ try {
       [`--extract-only=${join(root, 'app')}`],
       { windowsHide: true, timeout: 120000 },
     );
+    for (const file of ['modules.json', 'game-catalog.json'])
+      await assert.rejects(access(join(root, 'app', file)));
+    const browsing = JSON.parse(
+      await readFile(join(root, 'app/web/catalog.json'), 'utf8'),
+    );
+    assert.equal(browsing.length, 6);
+    assert.doesNotMatch(
+      JSON.stringify(browsing),
+      /introduction|guidance|budgets|entries|compatibility|decisionTimer/,
+    );
     desktop = await launch(root);
     let host = await desktop.firstWindow();
     await host.locator('[data-room-revision]').waitFor();
@@ -115,11 +126,16 @@ try {
       } else await route.continue();
     });
     const packages = await (await fetch(origin + '/api/game-packages')).json();
+    assert.doesNotMatch(
+      JSON.stringify(packages),
+      /introduction|resourceMap|budgets|entries|blobs|rulesVersion/,
+    );
     assert.equal(
       Object.keys(packages.index.releases).length,
       edition === 'box' ? 0 : 8,
     );
     if (edition === 'box') {
+      assert.equal(packages.catalog.releases.length, 0);
       assert.equal(await host.locator('h1').innerText(), '请前往游戏库下载');
       assert.equal(await host.locator('.box-download-icon').count(), 1);
       const icon = await host.locator('.box-download-icon').boundingBox();
@@ -210,12 +226,45 @@ try {
         .getByRole('button', { name: '选择游戏', exact: true })
         .click();
       await host.getByRole('heading', { name: 'UNO', exact: true }).waitFor();
+      const selected = packages.catalog.releases.find(
+        (release) => release.gameId === 'uno',
+      );
+      assert.ok(selected);
+      const client = await (
+        await fetch(
+          `${origin}/api/game-packages/releases/${selected.releaseId}`,
+        )
+      ).json();
+      assert.deepEqual(Object.keys(client.module).sort(), [
+        'compatibility',
+        'entries',
+        'id',
+        'styles',
+      ]);
+      assert.deepEqual(Object.keys(client.module.entries), ['web']);
+      const details = await (
+        await fetch(
+          `${origin}/api/game-packages/releases/${selected.releaseId}/details`,
+        )
+      ).json();
+      assert.equal(details.id, 'uno');
+      assert.ok(details.introduction.steps.length > 0);
+      await modal.waitFor({ state: 'hidden' });
+      await host.getByRole('button', { name: '游戏介绍', exact: true }).click();
+      await host.locator('.game-overview__goal').waitFor();
+      await host
+        .getByRole('dialog', { name: '游戏介绍', exact: true })
+        .getByRole('button', { name: '关闭面板', exact: true })
+        .click();
       assert.deepEqual(external, []);
       await captureBrowserScreenshot(host, {
         path: join(output, 'full-installed-uno.png'),
       });
       evidence.checks.push(
         'Actual full EXE installs eight exact signed releases, defaults to Pokemon original with normal cover/title across an unsaved restart, and switches to local UNO without browser external requests',
+      );
+      evidence.checks.push(
+        'Actual packaged host exposes lightweight summaries/web loader, loads old immutable package details, and renders the installed introduction',
       );
     }
     const installedBytes = await footprint(root);

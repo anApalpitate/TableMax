@@ -105,6 +105,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@tablemax/game-sdk':
+        specifier: workspace:*
+        version: link:../../packages/game-sdk
       '@tablemax/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
