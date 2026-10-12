@@ -1,12 +1,24 @@
 import research from './research.json';
 import legacyResearch from './legacy-research.json';
-import { cardDefinitions, deckProfiles, legacyDeckProfiles } from './card-data';
+import eventsResearch from './events-research.json';
+import {
+  cardDefinitions,
+  deckProfiles,
+  legacyDeckProfiles,
+  eventsCardDefinitions,
+  eventsDeckProfiles,
+} from './card-data';
 import { validateResearch } from './validation';
 
 export const researchDefinitions = validateResearch(
   research,
   cardDefinitions,
   deckProfiles.find((p) => p.id === 'small')!,
+);
+export const eventsResearchDefinitions = validateResearch(
+  eventsResearch,
+  eventsCardDefinitions,
+  eventsDeckProfiles[0]!,
 );
 /** Only the old predicates, metadata and genuine sample are retained. Art is shared. */
 export const legacyResearchDefinitions = validateResearch(

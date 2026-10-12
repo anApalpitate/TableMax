@@ -5,7 +5,8 @@ import type {
   ResearchTask,
   VictoryPolicy,
 } from './config/types';
-import type { Score } from './scoring';
+import type { Score, ResolvedCardDefinitions } from './scoring';
+import type { RulesProfile } from './config/types';
 export type ScoreEffect = {
   kind: string;
   label: string;
@@ -22,9 +23,33 @@ function effectResult(
   effect: ResearchEffect,
   board: readonly string[],
   score: Score,
+  preReveal: readonly boolean[],
+  profile: RulesProfile,
+  resolvedDefinitions?: ResolvedCardDefinitions,
 ): ScoreEffect {
   const zero = new Set(score.zeroSlots);
   switch (effect.kind) {
+    case 'base-half':
+      return {
+        kind: effect.kind,
+        label: '基础分直接折半',
+        adjustment: score.base / 2 - score.base,
+      };
+    case 'hidden-row-half': {
+      const slots = lines
+        .slice(0, 3)
+        .filter((row) => row.every((slot) => !preReveal[slot]))
+        .flat();
+      return {
+        kind: effect.kind,
+        label: '全暗行逐牌折半并向下取整',
+        slots,
+        adjustment: slots.reduce((sum, slot) => {
+          const contribution = zero.has(slot) ? 0 : score.values[slot]!;
+          return sum + Math.floor(contribution / 2) - contribution;
+        }, 0),
+      };
+    }
     case 'flat':
       return {
         kind: effect.kind,
@@ -82,7 +107,13 @@ function effectResult(
           score.values[lines[line]![0]!]! >= effect.minimumValue &&
           copies.length >= effect.minimumCopies &&
           new Set(
-            copies.map((copy) => card(board[copy.path.at(-1)!]!).categoryId),
+            copies.map(
+              (copy) =>
+                (
+                  resolvedDefinitions?.[board[copy.path.at(-1)!]!] ??
+                  card(board[copy.path.at(-1)!]!, profile)
+                ).categoryId,
+            ),
           ).size >= effect.minimumRoles
         );
       });
@@ -102,7 +133,11 @@ function effectResult(
       let slots = effect.slots.filter(
         (i) =>
           !zero.has(i) &&
-          categoryMatches(card(board[i]!).categoryId, effect.category) &&
+          categoryMatches(
+            (resolvedDefinitions?.[board[i]!] ?? card(board[i]!, profile))
+              .categoryId,
+            effect.category,
+          ) &&
           (effect.minimum === null || score.values[i]! >= effect.minimum),
       );
       if (effect.highestOnly && slots.length)
@@ -129,9 +164,21 @@ export function researchReward(
   achieved: boolean,
   board: readonly string[],
   score: Score,
+  preReveal: readonly boolean[] = Array(9).fill(true),
+  profile: RulesProfile = 'research-buffer-v2',
+  resolvedDefinitions?: ResolvedCardDefinitions,
 ) {
   const effects = achieved
-    ? task.rewardEffects!.map((effect) => effectResult(effect, board, score))
+    ? task.rewardEffects!.map((effect) =>
+        effectResult(
+          effect,
+          board,
+          score,
+          preReveal,
+          profile,
+          resolvedDefinitions,
+        ),
+      )
     : [
         {
           kind: 'failure',

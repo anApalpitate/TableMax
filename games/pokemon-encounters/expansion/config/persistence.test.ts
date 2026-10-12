@@ -10,7 +10,12 @@ import {
 } from '../../../../packages/platform-core/src';
 import type { Command } from '../../../../packages/protocol/src';
 import { SqliteSaveRepository } from '../../../../apps/server/src/save-repository';
-import { pokemonExpansion as rules } from '../index';
+import { pokemonExpansion, createInitialState } from '../index';
+const rules = {
+  ...pokemonExpansion,
+  initialize: (context: Parameters<typeof pokemonExpansion.initialize>[0]) =>
+    createInitialState(context, 'research-buffer-v2'),
+};
 import { legacyRules } from '../legacy-test';
 import { bot } from '../bot';
 import type { State } from '../state';

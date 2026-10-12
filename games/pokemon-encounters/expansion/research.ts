@@ -4,6 +4,7 @@ import type { Score } from './scoring';
 import {
   researchDefinitions,
   legacyResearchDefinitions,
+  eventsResearchDefinitions,
 } from './config/research-data';
 import type {
   ResearchCondition,
@@ -11,6 +12,7 @@ import type {
   ResearchTask,
   RulesProfile,
 } from './config/types';
+import type { ResolvedCardDefinitions } from './scoring';
 export type {
   ResearchCondition,
   ResearchDefinition,
@@ -21,7 +23,7 @@ export type {
 
 export const grid = topology({ rows: 3, columns: 3 });
 export const lines = [...grid.rows, ...grid.columns, ...grid.diagonals];
-export const tasks: ResearchTask[] = researchDefinitions.map((t) => ({
+const projectedTask = (t: ResearchDefinition): ResearchTask => ({
   id: t.id,
   name: t.name,
   description: t.description,
@@ -33,7 +35,10 @@ export const tasks: ResearchTask[] = researchDefinitions.map((t) => ({
   failurePenalty: t.failurePenalty!,
   successVictory: t.successVictory!,
   failureVictory: t.failureVictory!,
-}));
+});
+export const tasks: ResearchTask[] = researchDefinitions.map(projectedTask);
+const eventsTasks: ResearchTask[] =
+  eventsResearchDefinitions.map(projectedTask);
 const legacyTasks: ResearchTask[] = legacyResearchDefinitions.map(
   ({ id, name, description, reward, pool }) => ({
     id,
@@ -44,7 +49,11 @@ const legacyTasks: ResearchTask[] = legacyResearchDefinitions.map(
   }),
 );
 export const tasksForProfile = (profile: RulesProfile) =>
-  profile === 'legacy' ? legacyTasks : tasks;
+  profile === 'events-research-v3'
+    ? eventsTasks
+    : profile === 'legacy'
+      ? legacyTasks
+      : tasks;
 export const task = (
   id: string,
   profile: RulesProfile = 'research-buffer-v2',
@@ -58,7 +67,11 @@ export function researchDefinition(
   profile: RulesProfile = 'research-buffer-v2',
 ): ResearchDefinition {
   const found = (
-    profile === 'legacy' ? legacyResearchDefinitions : researchDefinitions
+    profile === 'events-research-v3'
+      ? eventsResearchDefinitions
+      : profile === 'legacy'
+        ? legacyResearchDefinitions
+        : researchDefinitions
   ).find((t) => t.id === id);
   if (!found) throw new Error('Invalid research task');
   return found;
@@ -103,6 +116,13 @@ function evaluateCondition(
 /** Predicates use typed data parameters, never task IDs or executable config. */
 const evaluators: Evaluators = {
   all: (c, x) => c.conditions.every((child) => evaluateCondition(child, x)),
+  any: (c, x) => c.conditions.some((child) => evaluateCondition(child, x)),
+  'attribute-count': (c, x) =>
+    x.categories.filter((card) =>
+      c.attributes.some((attribute) => card.types.includes(attribute)),
+    ).length >= c.atLeast,
+  'hidden-row': (_c, x) =>
+    grid.rows.some((row) => row.every((slot) => !x.preReveal[slot])),
   count: (c, x) => {
     const total = c.slots.filter(
       (i) =>
@@ -253,12 +273,13 @@ export function matchesTask(
   score: Score,
   preReveal: readonly boolean[] = Array(9).fill(true),
   profile: RulesProfile = 'research-buffer-v2',
+  resolvedDefinitions?: ResolvedCardDefinitions,
 ): boolean {
   const { condition } = researchDefinition(id, profile);
   return evaluateCondition(condition, {
     values: score.values,
     matched: score.matchedLines,
-    categories: board.map((i) => card(i)),
+    categories: board.map((i) => resolvedDefinitions?.[i] ?? card(i, profile)),
     score,
     preReveal,
   });

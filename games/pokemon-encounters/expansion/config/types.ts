@@ -34,11 +34,35 @@ export type DeckProfile = {
   total: number;
   counts: Record<string, number>;
 };
-export type RulesProfile = 'legacy' | 'research-buffer-v2';
+export type RulesProfile =
+  'legacy' | 'research-buffer-v2' | 'events-research-v3';
+export const pokemonTypes = [
+  'normal',
+  'fire',
+  'water',
+  'electric',
+  'grass',
+  'ice',
+  'fighting',
+  'poison',
+  'ground',
+  'flying',
+  'psychic',
+  'bug',
+  'rock',
+  'ghost',
+  'dragon',
+  'dark',
+  'steel',
+  'fairy',
+] as const;
+export type PokemonType = (typeof pokemonTypes)[number];
 export type VictoryPolicy = { bonus: 0 | 1; eligible: boolean; cap: 2 | 3 };
 export type ResearchEffect =
   | { kind: 'flat'; amount: number }
   | { kind: 'base-scale'; denominator: 2 | 3 }
+  | { kind: 'base-half' }
+  | { kind: 'hidden-row-half' }
   | { kind: 'base-credit'; factor: number; cap: number }
   | { kind: 'negative-scale'; factor: number }
   | { kind: 'zero-bounty'; amount: number; cap: number }
@@ -74,6 +98,9 @@ export type ResearchTask = {
 };
 export type ResearchCondition =
   | { type: 'all'; conditions: ResearchCondition[] }
+  | { type: 'any'; conditions: ResearchCondition[] }
+  | { type: 'attribute-count'; attributes: PokemonType[]; atLeast: number }
+  | { type: 'hidden-row' }
   | {
       type: 'count';
       slots: number[];

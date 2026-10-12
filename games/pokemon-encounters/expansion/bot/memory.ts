@@ -1,6 +1,7 @@
 import type { BotDifficulty, JsonValue } from '@tablemax/game-sdk';
 import { categories } from '../cards';
 import type { View } from '../project';
+import { trickRoomMap } from '../events';
 
 export const profiles = {
   default: { privateCards: 2, lifetime: 3, history: 8, rounds: 1 },
@@ -14,6 +15,7 @@ export const profiles = {
 } as const;
 type Knowledge = {
   category: string;
+  originalCategory?: string;
   abilityUsed?: boolean;
   source: 'public' | 'private';
   turn: number;
@@ -74,10 +76,18 @@ export function validateMemory(input: unknown): JsonValue {
           (k) =>
             k !== null &&
             (!k ||
-              ![
-                'category,source,turn',
-                'abilityUsed,category,source,turn',
-              ].includes(Object.keys(k).sort().join(',')) ||
+              Object.keys(k).some(
+                (key) =>
+                  ![
+                    'category',
+                    'originalCategory',
+                    'abilityUsed',
+                    'source',
+                    'turn',
+                  ].includes(key),
+              ) ||
+              (k.originalCategory !== undefined &&
+                !categoryIds.has(k.originalCategory)) ||
               (k.abilityUsed !== undefined &&
                 typeof k.abilityUsed !== 'boolean') ||
               !categoryIds.has(k.category) ||
@@ -135,7 +145,10 @@ export function observeMemory(
           round: view.roundNumber,
           seat,
           turn: 0,
-          lastEvent: -1,
+          // A new round or restored observer has no slot trajectory to replay.
+          // Retained events may belong to the previous round; current visible
+          // faces and the authorized peek below establish the new knowledge.
+          lastEvent: view.events.at(-1)?.id ?? -1,
           turnSeat: view.turnSeat,
           phase: view.phase,
           known: Object.fromEntries(
@@ -149,7 +162,33 @@ export function observeMemory(
         };
   if (m.turnSeat === seat && view.turnSeat !== seat && view.phase === 'draw')
     m.turn++;
+  // A missing public trajectory cannot leave a remembered identity attached to
+  // its old slot. Current authorized faces below repopulate what is still known.
+  const firstEvent = view.events[0];
+  if (
+    old &&
+    old.round === view.roundNumber &&
+    firstEvent &&
+    firstEvent.id > m.lastEvent + 1
+  )
+    for (const board of Object.values(m.known)) board.fill(null);
+  let rocketCoin: 'meowth' | 'pikachu' | null =
+    m.phase === 'rocket-pikachu'
+      ? 'pikachu'
+      : m.phase === 'rocket-meowth'
+        ? 'meowth'
+        : null;
+  const trickEvent = view.events.find(
+    (event) => event.effect?.eventKind === 'trick-room',
+  );
   for (const e of view.events.filter((e) => e.id > m.lastEvent)) {
+    if (e.kind === 'special-event' && e.effect?.eventKind === 'trick-room')
+      for (const board of Object.values(m.known))
+        for (const known of board)
+          if (known) {
+            known.originalCategory ??= known.category;
+            known.category = trickRoomMap[known.category] ?? known.category;
+          }
     // The public effect identifies the previously visible source slot before
     // a cover/swap, never the real instance ID or any hidden card identity.
     const source = e.effect?.source;
@@ -160,6 +199,43 @@ export function observeMemory(
     const a = e.action;
     if (a) {
       const target = a.targets[0];
+      if (a.verb === 'draw' || a.verb === 'draw-buffer')
+        rocketCoin = e.effect?.coin ?? null;
+      if (
+        target &&
+        ['replace', 'mew-target', 'mewtwo-exchange'].includes(a.verb)
+      ) {
+        const rocketReplacement =
+          a.verb === 'replace' &&
+          a.ability === 'team-rocket' &&
+          a.cardCategory === 'special-team-rocket';
+        if (rocketReplacement && rocketCoin !== 'meowth') {
+          // Pikachu replaces this column for everyone; the action does not
+          // identify each supplement. Unknown old faces are no longer valid.
+          for (const board of Object.values(m.known))
+            for (const slot of target.slots) board[slot] = null;
+        } else {
+          const role = a.cardCategory;
+          const originalCertain =
+            view.rulesProfile !== 'events-research-v3' ||
+            view.currentEvent?.kind !== 'trick-room' ||
+            (trickEvent !== undefined && trickEvent.id > e.id) ||
+            (role !== null && trickRoomMap[role] === undefined);
+          for (const slot of target.slots)
+            m.known[target.seat]![slot] =
+              role === null
+                ? null
+                : {
+                    category: role,
+                    ...(view.rulesProfile === 'events-research-v3' &&
+                    originalCertain
+                      ? { originalCategory: role }
+                      : {}),
+                    source: 'public',
+                    turn: m.turn,
+                  };
+        }
+      }
       if (target && ['swap', 'reposition', 'ninja-swap'].includes(a.verb)) {
         const board = m.known[target.seat];
         const [x, y] = target.slots;
@@ -187,6 +263,12 @@ export function observeMemory(
       if (c.card)
         m.known[id]![i] = {
           category: c.card.categoryId,
+          ...(view.rulesProfile === 'events-research-v3'
+            ? {
+                originalCategory:
+                  c.card.originalCategoryId ?? c.card.categoryId,
+              }
+            : {}),
           abilityUsed: c.card.abilityUsed ?? false,
           source: 'public',
           turn: m.turn,
@@ -195,6 +277,9 @@ export function observeMemory(
     for (const c of view.peek.cards)
       m.known[view.peek.seat]![c.slot] = {
         category: c.card.categoryId,
+        ...(view.rulesProfile === 'events-research-v3'
+          ? { originalCategory: c.card.originalCategoryId ?? c.card.categoryId }
+          : {}),
         abilityUsed: c.card.abilityUsed ?? false,
         source: view.boards[view.peek.seat]?.[c.slot]?.faceUp
           ? 'public'

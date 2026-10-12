@@ -4,6 +4,13 @@ import { scoreBoard, type Score } from './scoring';
 import { task } from './research';
 import type { RulesProfile } from './config/types';
 import { victoryAward } from './research-rewards';
+import {
+  eventKinds,
+  trickRoomMap,
+  resolveCardDefinitions,
+  type RandomEvent,
+  type BondPlaceholder,
+} from './events';
 export const phases = [
   'research-vote',
   'initial-flip',
@@ -43,6 +50,7 @@ export type Action =
   | { type: 'store-buffer' }
   | { type: 'swap' | 'reposition'; a: number; b: number }
   | { type: 'mewtwo-target'; seat: string; a: number; b: number }
+  | { type: 'mewtwo-target'; seat: string; slot: number }
   | { type: 'ninja-target'; seat: string; a: number; b: number; swap: boolean }
   | { type: 'row-target'; seat: string }
   | { type: 'pass-direction'; direction: 'clockwise' | 'counterclockwise' }
@@ -66,14 +74,20 @@ export type EventEffect = {
   coin?: 'meowth' | 'pikachu';
   discardIndex?: 0 | 1;
   source?: { seat: string; slot: number };
+  eventKind?: (typeof eventKinds)[number];
+  placeholder?: boolean;
 };
 export type State = {
   gameId: 'pokemon-encounters';
   variantId: 'expansion';
   rulesVersion: 'tablemax-cn-expansion-v1';
   stateVersion: 1;
-  rulesProfile?: 'research-buffer-v2';
+  rulesProfile?: Exclude<RulesProfile, 'legacy'>;
   buffersBySeat?: Record<string, string | null>;
+  randomEvent?: RandomEvent;
+  normalTurnsBySeat?: Record<string, number>;
+  cardOverrides?: Record<string, string>;
+  bondPlaceholders?: BondPlaceholder[];
   roundNumber: number;
   seatOrder: string[];
   winsBySeat: Record<string, number>;
@@ -283,6 +297,14 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     Object.hasOwn(s, 'rulesProfile') && Object.hasOwn(s, 'buffersBySeat');
   const profile = stateRulesProfile(s);
   if (modern) keys.push('rulesProfile', 'buffersBySeat');
+  const eventsProfile = profile === 'events-research-v3';
+  if (eventsProfile)
+    keys.push(
+      'randomEvent',
+      'normalTurnsBySeat',
+      'cardOverrides',
+      'bondPlaceholders',
+    );
   if (
     Object.keys(s).sort().join(',') !== keys.sort().join(',') ||
     (modern && !hasUsage) ||
@@ -307,12 +329,79 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     !record(s.winsBySeat) ||
     !record(s.votesBySeat) ||
     (modern &&
-      (s.rulesProfile !== 'research-buffer-v2' || !record(s.buffersBySeat)))
+      (!['research-buffer-v2', 'events-research-v3'].includes(
+        s.rulesProfile!,
+      ) ||
+        !record(s.buffersBySeat)))
   )
     return fail();
   const sameKeys = (v: Record<string, unknown>) =>
     Object.keys(v).sort().join(',') === [...seats].sort().join(',');
   if (!sameKeys(s.boards) || !sameKeys(s.winsBySeat)) return fail();
+  if (eventsProfile) {
+    const event = s.randomEvent;
+    if (
+      !modern ||
+      !record(event) ||
+      Object.keys(event).sort().join(',') !==
+        'kind,markerInstanceId,protected,triggered' ||
+      !(
+        event.markerInstanceId === null ||
+        typeof event.markerInstanceId === 'string'
+      ) ||
+      !(event.kind === null || eventKinds.includes(event.kind)) ||
+      typeof event.triggered !== 'boolean' ||
+      typeof event.protected !== 'boolean' ||
+      event.triggered !== (event.kind !== null) ||
+      !record(s.normalTurnsBySeat) ||
+      !sameKeys(s.normalTurnsBySeat) ||
+      Object.values(s.normalTurnsBySeat).some(
+        (count) => !Number.isInteger(count) || count < 0 || count > 1000000,
+      ) ||
+      !record(s.cardOverrides) ||
+      !Array.isArray(s.bondPlaceholders)
+    )
+      return fail();
+    const ready = seats.every((seat) => s.normalTurnsBySeat![seat]! >= 2);
+    if (event.protected === ready || (event.triggered && event.protected))
+      return fail();
+    if (
+      Object.entries(s.cardOverrides).some(
+        ([instance, role]) =>
+          typeof role !== 'string' ||
+          trickRoomMap[card(instance, profile).categoryId] !== role,
+      ) ||
+      (Object.keys(s.cardOverrides).length > 0 && event.kind !== 'trick-room')
+    )
+      return fail();
+    const bondIds = new Set<string>();
+    if (
+      s.bondPlaceholders.some((bond) => {
+        if (
+          !record(bond) ||
+          Object.keys(bond).sort().join(',') !== 'id,name,placeholder,seats' ||
+          typeof bond.id !== 'string' ||
+          typeof bond.name !== 'string' ||
+          bond.placeholder !== true ||
+          !Array.isArray(bond.seats) ||
+          !bond.seats.length ||
+          bond.seats.some((seat) => !seats.includes(seat)) ||
+          new Set(bond.seats).size !== bond.seats.length ||
+          bondIds.has(bond.id)
+        )
+          return true;
+        bondIds.add(bond.id);
+        return false;
+      })
+    )
+      return fail();
+    if (
+      s.hoennTriggered ||
+      s.hoennPending !== null ||
+      s.usedHoennResearch.length
+    )
+      return fail();
+  }
   if (
     modern &&
     (!sameKeys(s.buffersBySeat!) ||
@@ -386,6 +475,22 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     all.some((id) => !expected.includes(id))
   )
     return fail();
+  if (
+    eventsProfile &&
+    ((voting
+      ? s.randomEvent!.markerInstanceId !== null
+      : !expected.includes(s.randomEvent!.markerInstanceId!)) ||
+      (!s.randomEvent!.triggered &&
+        !voting &&
+        !s.deck.includes(s.randomEvent!.markerInstanceId!)) ||
+      Object.keys(s.cardOverrides!).some((id) => !expected.includes(id)) ||
+      (voting &&
+        (s.randomEvent!.triggered ||
+          Object.values(s.normalTurnsBySeat!).some((count) => count !== 0) ||
+          Object.keys(s.cardOverrides!).length ||
+          s.bondPlaceholders!.length)))
+  )
+    return fail();
   if (hasUsage) {
     if (
       !stringArray(s.usedAbilityIds) ||
@@ -443,19 +548,23 @@ export function validateState(input: unknown, seats: readonly string[]): State {
   if (
     s.researchCandidates.length !== 3 ||
     new Set(s.researchCandidates).size !== 3 ||
-    s.researchCandidates.some((id) => task(id).pool !== 'opening') ||
+    s.researchCandidates.some((id) => task(id, profile).pool !== 'opening') ||
     Object.entries(s.votesBySeat).some(
       ([id, v]) => !seats.includes(id) || !s.researchCandidates.includes(v),
     ) ||
     [s.usedOpeningResearch, s.usedHoennResearch, s.activeResearch].some(
       (ids) => new Set(ids).size !== ids.length,
     ) ||
-    s.usedOpeningResearch.some((id) => task(id).pool !== 'opening') ||
-    s.usedHoennResearch.some((id) => task(id).pool !== 'hoenn') ||
+    s.usedOpeningResearch.some((id) => task(id, profile).pool !== 'opening') ||
+    s.usedHoennResearch.some((id) => task(id, profile).pool !== 'hoenn') ||
     s.activeResearch.length !==
-      (voting ? 0 : s.hoennTriggered && s.hoennPending === null ? 2 : 1) ||
+      (voting
+        ? 0
+        : !eventsProfile && s.hoennTriggered && s.hoennPending === null
+          ? 2
+          : 1) ||
     s.activeResearch.some(
-      (id, i) => task(id).pool !== (i === 0 ? 'opening' : 'hoenn'),
+      (id, i) => task(id, profile).pool !== (i === 0 ? 'opening' : 'hoenn'),
     )
   )
     return fail();
@@ -545,7 +654,7 @@ export function validateState(input: unknown, seats: readonly string[]): State {
       return fail();
   } else if (s.phase === 'mewtwo-choice') {
     if (
-      s.peekSlots.length !== 2 ||
+      s.peekSlots.length !== (eventsProfile ? 1 : 2) ||
       s.targetSeat === null ||
       s.targetSeat === s.turnSeat
     )
@@ -601,7 +710,7 @@ export function validateState(input: unknown, seats: readonly string[]): State {
   if (
     s.hoennPending !== null &&
     (!s.hoennTriggered ||
-      task(s.hoennPending).pool !== 'hoenn' ||
+      task(s.hoennPending, profile).pool !== 'hoenn' ||
       !s.usedHoennResearch.includes(s.hoennPending))
   )
     return fail();
@@ -632,6 +741,7 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     ),
   );
   if (
+    !eventsProfile &&
     !result &&
     !s.hoennTriggered &&
     ['groudon', 'kyogre', 'rayquaza'].every((id) =>
@@ -664,6 +774,7 @@ export function validateState(input: unknown, seats: readonly string[]): State {
           s.activeResearch,
           s.preReveal![id]!,
           profile,
+          eventsProfile ? resolveCardDefinitions(s) : undefined,
         ),
       ]),
     );
@@ -714,18 +825,25 @@ export function validateState(input: unknown, seats: readonly string[]): State {
         e.id > s.eventCounter ||
         (i > 0 && e.id <= s.events[i - 1]!.id) ||
         typeof e.kind !== 'string' ||
-        !['vote', 'research', 'draw', 'action', 'round-result'].includes(
-          e.kind,
-        ) ||
+        ![
+          'vote',
+          'research',
+          'draw',
+          'action',
+          'round-result',
+          ...(eventsProfile ? ['special-event', 'bond-placeholder'] : []),
+        ].includes(e.kind) ||
         typeof e.text !== 'string' ||
         e.text.length > 500 ||
         ![
           'id,kind,text',
           'action,id,kind,text',
           'action,effect,id,kind,text',
+          ...(eventsProfile ? ['effect,id,kind,text'] : []),
         ].includes(Object.keys(e).sort().join(',')) ||
         (e.action !== undefined && !validActionEvent(e.action, seats)) ||
-        (e.effect !== undefined && !validEffect(e.effect, e.action, seats)),
+        (e.effect !== undefined &&
+          !validEffect(e.effect, e.action, seats, e.kind)),
     )
   )
     return fail();
@@ -736,7 +854,21 @@ function validEffect(
   effect: unknown,
   action: PublicAction | undefined,
   seats: readonly string[],
+  kind?: string,
 ): boolean {
+  if (record(effect) && kind === 'special-event')
+    return (
+      !action &&
+      Object.keys(effect).sort().join(',') === 'eventKind,placeholder' &&
+      eventKinds.includes(effect.eventKind as (typeof eventKinds)[number]) &&
+      effect.placeholder === (effect.eventKind === 'mega')
+    );
+  if (record(effect) && kind === 'bond-placeholder')
+    return (
+      !action &&
+      Object.keys(effect).join(',') === 'placeholder' &&
+      effect.placeholder === true
+    );
   if (
     !record(effect) ||
     !action ||

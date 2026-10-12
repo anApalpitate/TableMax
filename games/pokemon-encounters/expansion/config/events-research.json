@@ -1,0 +1,1097 @@
+{
+  "schemaVersion": 1,
+  "tasks": [
+    {
+      "id": "R01",
+      "name": "对战高塔挑战计划",
+      "description": "中列数值从下到上严格递增。",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "ordered-values",
+        "groups": [[7, 4, 1]],
+        "require": "any",
+        "minimumStep": 1,
+        "equalStep": false,
+        "exactStep": null,
+        "minimumSpan": 2
+      },
+      "illustrationId": "R01",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary--2#01",
+            "ordinary-9#01",
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-4#01",
+            "ordinary-3#01",
+            "ordinary-5#01",
+            "ordinary-1#02",
+            "ordinary-6#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "中列数值从下到上严格递增。"
+      },
+      "presentation": {
+        "flavor": "站好一排，烦恼归零！",
+        "subjects": ["ordinary-4", "ordinary-4", "ordinary-4"]
+      },
+      "rewardText": "达成减3分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -3
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R02",
+      "name": "极巨巢穴对战",
+      "description": "本人场地九张牌的有效值均至少为8。",
+      "reward": 5,
+      "pool": "opening",
+      "condition": {
+        "type": "count",
+        "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "minimum": 8,
+        "maximum": null,
+        "category": null,
+        "ability": null,
+        "copy": null,
+        "outsideZero": false,
+        "atLeast": 9,
+        "atMost": 9
+      },
+      "illustrationId": "R02",
+      "diagram": {
+        "kind": "roles",
+        "sample": {
+          "instances": [
+            "ordinary-8#01",
+            "special-charizard#01",
+            "ordinary-9#01",
+            "special-snorlax#01",
+            "ordinary-dragonite#01",
+            "ordinary-gardevoir#01",
+            "ordinary-9#02",
+            "special-mewtwo#01",
+            "special-zapdos#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "本人场地九张牌的有效值均至少为8。"
+      },
+      "presentation": {
+        "flavor": "一层一层，叠到归零。",
+        "subjects": ["ordinary-9"]
+      },
+      "rewardText": "达成减5分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -5
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R03",
+      "name": "精灵联盟四大天王挑战",
+      "description": "四角是四种不同数值。",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "distinct-exact",
+        "slots": [0, 2, 6, 8],
+        "count": 4
+      },
+      "illustrationId": "R03",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-5#01",
+            "ordinary--2#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "四角是四种不同数值。"
+      },
+      "presentation": {
+        "flavor": "抄条斜线，电光到站！",
+        "subjects": ["special-zapdos"]
+      },
+      "rewardText": "达成减3分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -3
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R05",
+      "name": "你需要观测镜！",
+      "description": "中央比它上下左右的四张牌都大。",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "center-extreme",
+        "center": 4,
+        "slots": [1, 3, 5, 7],
+        "extreme": "maximum"
+      },
+      "illustrationId": "R05",
+      "diagram": {
+        "kind": "roles",
+        "sample": {
+          "instances": [
+            "ordinary--2#01",
+            "ordinary-piplup#01",
+            "ordinary-0#01",
+            "ordinary-3#01",
+            "special-charizard#01",
+            "ordinary-5#01",
+            "ordinary-1#01",
+            "ordinary-7#01",
+            "ordinary-6#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "中央比它上下左右的四张牌都大。"
+      },
+      "presentation": {
+        "flavor": "两条星路，刚好在这里相遇。",
+        "subjects": ["special-mew"]
+      },
+      "rewardText": "达成减3分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -3
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R06",
+      "name": "天空之柱",
+      "description": "中列从上到下依次为8、9、10。",
+      "reward": 8,
+      "pool": "opening",
+      "condition": {
+        "type": "value-bands",
+        "bands": [
+          {
+            "slots": [1],
+            "minimum": 8,
+            "maximum": 8
+          },
+          {
+            "slots": [4],
+            "minimum": 9,
+            "maximum": 9
+          },
+          {
+            "slots": [7],
+            "minimum": 10,
+            "maximum": 10
+          }
+        ]
+      },
+      "illustrationId": "R06",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary--2#01",
+            "ordinary-8#01",
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-9#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "special-zapdos#01",
+            "ordinary-5#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "中列从上到下依次为8、9、10。"
+      },
+      "presentation": {
+        "flavor": "重装出场，账单归零。",
+        "subjects": ["ordinary-metagross"]
+      },
+      "rewardText": "达成减8分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -8
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R08",
+      "name": "皮卡丘负电荷派对",
+      "description": "场地中至少有三张负分牌。",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "count",
+        "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "minimum": null,
+        "maximum": -1,
+        "category": null,
+        "ability": null,
+        "copy": null,
+        "outsideZero": false,
+        "atLeast": 3,
+        "atMost": 9
+      },
+      "illustrationId": "R08",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary--2#01",
+            "ordinary-0#01",
+            "ordinary-togepi#01",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary--2#02",
+            "ordinary-6#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "场地中至少有三张负分牌。"
+      },
+      "presentation": {
+        "flavor": "这边一个我，那边还是我？",
+        "subjects": ["ordinary-psyduck", "ordinary-psyduck"]
+      },
+      "rewardText": "达成减3分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -3
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R11",
+      "name": "伊布，今天零元购",
+      "description": "场地中至少有三张0分牌。",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "count",
+        "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "minimum": 0,
+        "maximum": 0,
+        "category": null,
+        "ability": null,
+        "copy": null,
+        "outsideZero": false,
+        "atLeast": 3,
+        "atMost": 9
+      },
+      "illustrationId": "R11",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-magikarp#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-0#02"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "场地中至少有三张0分牌。"
+      },
+      "presentation": {
+        "flavor": "个头不抢镜，分数才是绝招。",
+        "subjects": ["ordinary--2"]
+      },
+      "rewardText": "达成减3分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -3
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R13",
+      "name": "是时候展示我们的羁绊了！",
+      "description": "任意一行的三张都是主动能力牌。",
+      "reward": 5,
+      "pool": "opening",
+      "condition": {
+        "type": "any",
+        "conditions": [
+          {
+            "type": "count",
+            "slots": [0, 1, 2],
+            "minimum": null,
+            "maximum": null,
+            "category": null,
+            "ability": true,
+            "copy": null,
+            "outsideZero": false,
+            "atLeast": 3,
+            "atMost": 3
+          },
+          {
+            "type": "count",
+            "slots": [3, 4, 5],
+            "minimum": null,
+            "maximum": null,
+            "category": null,
+            "ability": true,
+            "copy": null,
+            "outsideZero": false,
+            "atLeast": 3,
+            "atMost": 3
+          },
+          {
+            "type": "count",
+            "slots": [6, 7, 8],
+            "minimum": null,
+            "maximum": null,
+            "category": null,
+            "ability": true,
+            "copy": null,
+            "outsideZero": false,
+            "atLeast": 3,
+            "atMost": 3
+          }
+        ]
+      },
+      "illustrationId": "R13",
+      "diagram": {
+        "kind": "roles",
+        "sample": {
+          "instances": [
+            "ordinary--2#01",
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "special-mew#01",
+            "special-charizard#01",
+            "special-snorlax#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "任意一行的三张都是主动能力牌。"
+      },
+      "presentation": {
+        "flavor": "小伙伴们，今天不拼大数字。",
+        "subjects": ["ordinary-togepi", "ordinary-piplup", "ordinary-rowlet"]
+      },
+      "rewardText": "达成减5分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -5
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R14",
+      "name": "今天神兽休假",
+      "description": "九张牌全是普通牌。",
+      "reward": 5,
+      "pool": "opening",
+      "condition": {
+        "type": "ordinary-only",
+        "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8]
+      },
+      "illustrationId": "R14",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary--2#01",
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "九张牌全是普通牌。"
+      },
+      "presentation": {
+        "flavor": "有加有减，刚好抵消！",
+        "subjects": ["ordinary--2", "ordinary-togepi", "ordinary-3"]
+      },
+      "rewardText": "达成减5分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -5
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R15",
+      "name": "图鉴收集大师",
+      "description": "九张牌是九种不同角色。",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "distinct-roles",
+        "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "minimum": 9
+      },
+      "illustrationId": "R15",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary--2#01",
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "九张牌是九种不同角色。"
+      },
+      "presentation": {
+        "flavor": "一级一级来，训练不能跳级！",
+        "subjects": ["ordinary-1"]
+      },
+      "rewardText": "达成减3分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -3
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R16",
+      "name": "六尾的森林暖场",
+      "description": "场地中至少有三张火系或草系牌。",
+      "reward": 5,
+      "pool": "opening",
+      "condition": {
+        "type": "attribute-count",
+        "attributes": ["fire", "grass"],
+        "atLeast": 3
+      },
+      "illustrationId": "R16",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary-5#01",
+            "ordinary-0#01",
+            "ordinary-rowlet#01",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "场地中至少有三张火系或草系牌。"
+      },
+      "presentation": {
+        "flavor": "快龙：步子大，也要迈得整齐。",
+        "subjects": ["ordinary-dragonite"]
+      },
+      "rewardText": "达成减5分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -5
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R17",
+      "name": "小霞的水族馆开张",
+      "description": "场地中至少有三张水系牌。",
+      "reward": 3,
+      "pool": "opening",
+      "condition": {
+        "type": "attribute-count",
+        "attributes": ["water"],
+        "atLeast": 3
+      },
+      "illustrationId": "R17",
+      "diagram": {
+        "kind": "positions",
+        "sample": {
+          "instances": [
+            "ordinary-4#01",
+            "ordinary-0#01",
+            "ordinary-piplup#01",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-5#01",
+            "ordinary-7#01",
+            "ordinary-psyduck#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "场地中至少有三张水系牌。"
+      },
+      "presentation": {
+        "flavor": "三份一样重，谁也别少吃！",
+        "subjects": ["special-snorlax"]
+      },
+      "rewardText": "达成减3分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -3
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R18",
+      "name": "小刚的岩石系道馆",
+      "description": "场地中至少有三张岩石、地面或钢系牌。",
+      "reward": 5,
+      "pool": "opening",
+      "condition": {
+        "type": "attribute-count",
+        "attributes": ["rock", "ground", "steel"],
+        "atLeast": 3
+      },
+      "illustrationId": "R18",
+      "diagram": {
+        "kind": "roles",
+        "sample": {
+          "instances": [
+            "ordinary-9#01",
+            "ordinary-0#01",
+            "ordinary-metagross#01",
+            "ordinary-1#01",
+            "ordinary-garchomp#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01",
+            "ordinary-6#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "场地中至少有三张岩石、地面或钢系牌。"
+      },
+      "presentation": {
+        "flavor": "不是一个颜色，是整道彩虹。",
+        "subjects": ["ordinary-1"]
+      },
+      "rewardText": "达成减5分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -5
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R19",
+      "name": "真新镇，老伙伴集合",
+      "description": "场地中同时有妙蛙种子、杰尼龟和喷火龙。",
+      "reward": 8,
+      "pool": "opening",
+      "condition": {
+        "type": "all",
+        "conditions": [
+          {
+            "type": "count",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": null,
+            "maximum": null,
+            "category": "ordinary-3",
+            "ability": null,
+            "copy": null,
+            "outsideZero": false,
+            "atLeast": 1,
+            "atMost": 9
+          },
+          {
+            "type": "count",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": null,
+            "maximum": null,
+            "category": "ordinary-4",
+            "ability": null,
+            "copy": null,
+            "outsideZero": false,
+            "atLeast": 1,
+            "atMost": 9
+          },
+          {
+            "type": "count",
+            "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+            "minimum": null,
+            "maximum": null,
+            "category": "special-charizard",
+            "ability": null,
+            "copy": null,
+            "outsideZero": false,
+            "atLeast": 1,
+            "atMost": 9
+          }
+        ]
+      },
+      "illustrationId": "R19",
+      "diagram": {
+        "kind": "roles",
+        "sample": {
+          "instances": [
+            "ordinary-3#01",
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-5#01",
+            "ordinary-4#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01",
+            "special-charizard#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "场地中同时有妙蛙种子、杰尼龟和喷火龙。"
+      },
+      "presentation": {
+        "flavor": "点名完毕，一个重复的都没有！",
+        "subjects": ["ordinary-rowlet", "ordinary-piplup", "ordinary-psyduck"]
+      },
+      "rewardText": "达成减8分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -8
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R22",
+      "name": "模仿大会",
+      "description": "至少一张复制牌（百变怪或索罗亚）参与了归零线。",
+      "reward": 5,
+      "pool": "opening",
+      "condition": {
+        "type": "copy-in-zero-line"
+      },
+      "illustrationId": "R22",
+      "diagram": {
+        "kind": "roles",
+        "sample": {
+          "instances": [
+            "ordinary-8#01",
+            "special-ditto#01",
+            "ordinary-8#02",
+            "ordinary--2#01",
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-4#01",
+            "ordinary-5#01"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "至少一张复制牌（百变怪或索罗亚）参与了归零线。"
+      },
+      "presentation": {
+        "flavor": "地面、海里、天上，这次坐一桌。",
+        "subjects": ["special-groudon", "special-kyogre", "special-rayquaza"]
+      },
+      "rewardText": "达成减5分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "flat",
+          "amount": -5
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R23",
+      "name": "双打冠军",
+      "description": "场地中至少有两条归零线。",
+      "reward": 1,
+      "pool": "opening",
+      "condition": {
+        "type": "zero-count",
+        "minimum": 2,
+        "maximum": 8
+      },
+      "illustrationId": "R23",
+      "diagram": {
+        "kind": "copy",
+        "sample": {
+          "instances": [
+            "ordinary-5#01",
+            "ordinary-5#02",
+            "ordinary-5#03",
+            "ordinary--2#01",
+            "ordinary-1#01",
+            "ordinary-3#01",
+            "ordinary-8#01",
+            "ordinary-8#02",
+            "ordinary-8#03"
+          ],
+          "preReveal": [true, true, true, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "场地中至少有两条归零线。"
+      },
+      "presentation": {
+        "flavor": "这个队友，好像哪里不对。",
+        "subjects": ["ordinary-4", "special-ditto", "ordinary-4"]
+      },
+      "rewardText": "归零后的基础分直接除以2，保留半分",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "base-half"
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    },
+    {
+      "id": "R24",
+      "name": "隐匿者协会",
+      "description": "强制揭牌前有一整行的三张牌都保持暗置。",
+      "reward": 1,
+      "pool": "opening",
+      "condition": {
+        "type": "hidden-row"
+      },
+      "illustrationId": "R24",
+      "diagram": {
+        "kind": "visibility",
+        "sample": {
+          "instances": [
+            "ordinary-5#01",
+            "ordinary-togepi#01",
+            "ordinary-3#01",
+            "ordinary-0#01",
+            "ordinary-1#01",
+            "ordinary-4#01",
+            "ordinary-6#01",
+            "ordinary-7#01",
+            "ordinary-8#01"
+          ],
+          "preReveal": [false, false, false, true, true, true, true, true, true]
+        },
+        "highlightSlots": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        "highlightLines": [],
+        "arrows": [],
+        "annotations": [],
+        "caption": "强制揭牌前有一整行的三张牌都保持暗置。"
+      },
+      "presentation": {
+        "flavor": "忍术的妙处，最后才揭晓。",
+        "subjects": ["special-greninja"]
+      },
+      "rewardText": "所有全暗行逐牌贡献除以2并向下取整",
+      "riskText": "未达成不调整分数或胜局",
+      "rewardEffects": [
+        {
+          "kind": "hidden-row-half"
+        }
+      ],
+      "failurePenalty": 0,
+      "successVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      },
+      "failureVictory": {
+        "bonus": 0,
+        "eligible": true,
+        "cap": 3
+      }
+    }
+  ]
+}

@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { pokemonExpansion as rules } from '../index';
+import { pokemonExpansion, createInitialState } from '../index';
+const rules = {
+  ...pokemonExpansion,
+  initialize: (context: Parameters<typeof pokemonExpansion.initialize>[0]) =>
+    createInitialState(context, 'research-buffer-v2'),
+};
 import { card } from '../cards';
 import type { Action } from '../state';
 import { RandomSource } from '../../../../packages/platform-core/src/random';

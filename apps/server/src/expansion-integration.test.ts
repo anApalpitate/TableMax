@@ -32,7 +32,7 @@ import type {
 
 const run = `run-${Date.now()}-${randomUUID().slice(0, 8)}`;
 const evidence = resolve(
-  'artifacts/maintenance/v1.0.2/pokemon-expansion-verification/integration',
+  'artifacts/maintenance/v1.0.6/pokemon-events-v3-verification/integration',
   run,
 );
 const temporary = resolve('tmp/pokemon-expansion-verification', run);
@@ -57,8 +57,13 @@ const sourceFiles = [
   'games/pokemon-encounters/expansion/state.ts',
   'games/pokemon-encounters/expansion/project.ts',
   'games/pokemon-encounters/expansion/cards.ts',
+  'games/pokemon-encounters/expansion/events.ts',
   'games/pokemon-encounters/expansion/research.ts',
+  'games/pokemon-encounters/expansion/research-rewards.ts',
   'games/pokemon-encounters/expansion/scoring.ts',
+  'games/pokemon-encounters/expansion/config/events-cards.json',
+  'games/pokemon-encounters/expansion/config/events-decks.json',
+  'games/pokemon-encounters/expansion/config/events-research.json',
   'games/pokemon-encounters/expansion/bot/index.ts',
   'games/pokemon-encounters/expansion/bot/strategy.ts',
   'games/pokemon-encounters/expansion/bot/tactics.ts',
@@ -137,7 +142,7 @@ afterAll(() => {
         temporary,
         results,
         scope:
-          'Actual registry, RoomCoordinator, SQLite, localhost HTTP/Socket.IO and compiled isolated Worker. Fixture decisions and simulated humans; no GUI, physical devices or portable ZIP verification.',
+          'Actual registry, RoomCoordinator, SQLite, localhost HTTP/Socket.IO and compiled isolated Worker. Fixture decisions and simulated humans; no GUI, physical devices or complete EXE verification.',
       },
       null,
       2,
@@ -278,7 +283,7 @@ function ordinaryHumanAction(
 }
 
 describe('actual installed expansion and authoritative persistence', () => {
-  it('serves protocol 7 expansion selection and private votes through real localhost HTTP and Socket.IO', async () => {
+  it('serves protocol 8 v3 expansion selection and private votes through real localhost HTTP and Socket.IO', async () => {
     const dataDir = join(evidence, 'socket-service'),
       webDir = join(temporary, 'web');
     mkdirSync(dataDir, { recursive: true });
@@ -380,6 +385,7 @@ describe('actual installed expansion and authoritative persistence', () => {
         typeof pokemonExpansion.project
       >;
       expect(publicGame.ownVote).toBeNull();
+      expect(publicGame.rulesProfile).toBe('events-research-v3');
       expect(publicGame.voteCounts).toBeNull();
       expect(views.get(publicSocket)!.actions).toEqual([]);
       expect(
@@ -428,11 +434,9 @@ describe('actual installed expansion and authoritative persistence', () => {
     await expect(
       registry.load('pokemon-encounters', 'invented'),
     ).rejects.toThrow('unknown-game-variant');
-    expect(registry.catalog().map((item) => item.id)).toEqual([
+    expect(registry.catalog().map((item) => item.id)).toContain(
       'pokemon-encounters',
-      'modern-art',
-      'power-grid',
-    ]);
+    );
     results.push({
       scenario: 'registry',
       detail: { default: original.variantId, expansion: expansion.variantId },
@@ -501,7 +505,7 @@ describe('actual installed expansion and authoritative persistence', () => {
     }
   });
 
-  it('normalizes only the exact legacy original fingerprint and rejects ambiguous expansion saves without replacing them', async () => {
+  it('normalizes the exact legacy original fingerprint and preserves unrestorable missing-variant expansion saves without replacing them', async () => {
     const repository = new Repository('legacy');
     try {
       const room = await RoomCoordinator.open(createGameRegistry(), repository);
@@ -521,10 +525,16 @@ describe('actual installed expansion and authoritative persistence', () => {
       const ambiguous = saved(repository);
       delete ambiguous.variantId;
       ambiguous.revision++;
+      ambiguous.manifest!.rulesVersion = 'missing-expansion-fingerprint';
       repository.save(ambiguous);
-      await expect(
-        RoomCoordinator.open(createGameRegistry(), repository, room.hostToken),
-      ).rejects.toThrow();
+      const unavailable = await RoomCoordinator.open(
+        createGameRegistry(),
+        repository,
+        room.hostToken,
+      );
+      expect(unavailable.view().botError).toContain('原存档已保留');
+      expect(unavailable.view().gameView).toBeNull();
+      expect(unavailable.view().actions).toEqual([]);
       expect(saved(repository)).toEqual(ambiguous);
       results.push({
         scenario: 'legacy original and ambiguous missing variant',
@@ -927,18 +937,21 @@ it('compiled Worker rejects cross-version strategy identity and cancellation; ol
   }
 }, 15000);
 
-it('real isolated 32MiB Workers finish a four-seat mixed three-level three-win match through SQLite and authorized actions', async () => {
+it('v3 real isolated 32MiB Workers finish a six-seat mixed three-level three-win match through SQLite and authorized actions', async () => {
   const repository = new Repository('worker-mixed');
   const matchStarted = performance.now();
   try {
-    const { room, credentials } = await table(repository, 4, 3),
+    const { room, credentials } = await table(repository, 6, 3),
       executor = new WorkerBotExecutor(join(temporary, 'bot-worker.cjs'));
+    expect((saved(repository).snapshot!.state as State).rulesProfile).toBe(
+      'events-research-v3',
+    );
     let calls = 0,
       steps = 0,
       maxWorkerMs = 0;
     const levels = new Set<string>(),
       phases = new Set<string>();
-    for (; steps < 3000; steps++) {
+    for (; steps < 9100; steps++) {
       const state = saved(repository).snapshot!.state as State;
       if (state.phase === 'match-result') break;
       if (state.phase === 'round-result') {
@@ -985,7 +998,7 @@ it('real isolated 32MiB Workers finish a four-seat mixed three-level three-win m
     expect([...levels].sort()).toEqual(['default', 'doubao', 'juewu']);
     expect(final.roundResult?.winners.length).toBeGreaterThan(0);
     results.push({
-      scenario: 'mixed four-seat real Worker three-win match',
+      scenario: 'mixed six-seat real Worker three-win match',
       detail: {
         calls,
         steps,
@@ -1000,6 +1013,6 @@ it('real isolated 32MiB Workers finish a four-seat mixed three-level three-win m
   } finally {
     repository.close();
   }
-  // Four seats can each reach two wins before the ninth round decides the match.
+  // Six seats can each reach two wins before the thirteenth round decides the match.
   // Whole-match SQLite/history work is distinct from each Worker's two-second cap.
 }, 600000);

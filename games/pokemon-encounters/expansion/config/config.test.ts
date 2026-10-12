@@ -29,6 +29,7 @@ describe('independent expansion configuration', () => {
         'name',
         'small',
         'standard',
+        'types',
         'value',
       ]);
       const p = categoryPresentation(c.categoryId);

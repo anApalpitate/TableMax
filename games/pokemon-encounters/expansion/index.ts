@@ -16,6 +16,14 @@ import {
   type Phase,
 } from './state';
 import { project, type View } from './project';
+import {
+  eventKinds,
+  eventNames,
+  applyEventEffect,
+  newlyVisibleBonds,
+  effectiveCard,
+  resolveCardDefinitions,
+} from './events';
 export type { State, Action, Phase, View };
 
 export function shuffle<T>(
@@ -53,7 +61,7 @@ function round(
   wins: Record<string, number>,
   number: number,
   previous?: State,
-  profile: RulesProfile = 'research-buffer-v2',
+  profile: RulesProfile = 'events-research-v3',
 ): State {
   const sameProfile = previous && stateRulesProfile(previous) === profile;
   const usedOpeningResearch = sameProfile
@@ -65,12 +73,27 @@ function round(
     variantId: 'expansion',
     rulesVersion: 'tablemax-cn-expansion-v1',
     stateVersion: 1,
-    ...(profile === 'research-buffer-v2'
+    ...(profile !== 'legacy'
       ? {
           rulesProfile: profile,
           buffersBySeat: Object.fromEntries(
             context.seats.map((id) => [id, null]),
           ),
+        }
+      : {}),
+    ...(profile === 'events-research-v3'
+      ? {
+          randomEvent: {
+            markerInstanceId: null,
+            kind: null,
+            triggered: false,
+            protected: true,
+          },
+          normalTurnsBySeat: Object.fromEntries(
+            context.seats.map((id) => [id, 0]),
+          ),
+          cardOverrides: {},
+          bondPlaceholders: [],
         }
       : {}),
     roundNumber: number,
@@ -131,6 +154,9 @@ function deal(s: State, context: RuleContext) {
   s.deck = shuffle([...s.deck, ...excluded], context.random);
   s.discard.push(s.deck.pop()!);
   if (stateRulesProfile(s) === 'legacy') s.discard.push(s.deck.pop()!);
+  if (s.rulesProfile === 'events-research-v3')
+    s.randomEvent!.markerInstanceId =
+      s.deck[Math.floor(context.random.next() * s.deck.length)]!;
   s.phase = 'initial-flip';
 }
 function orderFrom(seats: readonly string[], start: string, direction = 1) {
@@ -160,6 +186,19 @@ function event(
   s.events = s.events.slice(-60);
 }
 function checkHoenn(s: State, context: RuleContext) {
+  if (s.rulesProfile === 'events-research-v3') {
+    for (const bond of newlyVisibleBonds(s)) {
+      s.bondPlaceholders!.push(bond);
+      event(
+        s,
+        'bond-placeholder',
+        `${bond.name}：组合已登场，独立效果待设计。`,
+        undefined,
+        { placeholder: true },
+      );
+    }
+    return;
+  }
   if (s.hoennTriggered) return;
   const visible = s.seatOrder.flatMap((seat) =>
     s.boards[seat]!.filter((c) => c.faceUp).map(
@@ -183,6 +222,7 @@ function checkHoenn(s: State, context: RuleContext) {
   }
 }
 function publishHoenn(s: State) {
+  if (s.rulesProfile === 'events-research-v3') return;
   if (s.hoennPending !== null) {
     s.activeResearch.push(s.hoennPending);
     event(
@@ -194,8 +234,12 @@ function publishHoenn(s: State) {
   }
 }
 const discardWindow = (s: State) => (stateRulesProfile(s) === 'legacy' ? 2 : 1);
+const availableDeck = (s: State) =>
+  s.rulesProfile === 'events-research-v3' && s.randomEvent!.protected
+    ? s.deck.filter((id) => id !== s.randomEvent!.markerInstanceId)
+    : s.deck;
 const canDrawDeck = (s: State) =>
-  s.deck.length > 0 || s.discard.length > discardWindow(s);
+  availableDeck(s).length > 0 || s.discard.length > discardWindow(s);
 const canDiscardHeld = (s: State) => s.drawSource === 'deck';
 function beginAbility(s: State, sourceInstanceId: string, ability: Ability) {
   s.pendingAbility = { kind: 'current', ability, sourceInstanceId };
@@ -231,16 +275,44 @@ function coveredAbilitySource(
   }
   return undefined;
 }
+function announceRandomEvent(s: State) {
+  const kind = s.randomEvent?.kind;
+  if (!kind) return;
+  applyEventEffect(s);
+  event(
+    s,
+    'special-event',
+    `${eventNames[kind]}开始生效${kind === 'mega' ? '：玩法效果待设计，本次仅展示主题' : ''}。`,
+    undefined,
+    { eventKind: kind, placeholder: kind === 'mega' },
+  );
+}
 function drawDeck(s: State, context: RuleContext) {
-  if (!s.deck.length) {
+  if (!availableDeck(s).length) {
     const keep = Math.min(discardWindow(s), s.discard.length),
       recycled = s.discard.slice(0, s.discard.length - keep);
     s.usedAbilityIds = s.usedAbilityIds!.filter((id) => !recycled.includes(id));
-    s.deck = shuffle(recycled, context.random);
+    s.deck = shuffle([...s.deck, ...recycled], context.random);
     s.discard = s.discard.slice(-keep);
   }
-  const id = s.deck.pop();
+  const protectedId =
+    s.rulesProfile === 'events-research-v3' && s.randomEvent!.protected
+      ? s.randomEvent!.markerInstanceId
+      : null;
+  let at = s.deck.length - 1;
+  while (at >= 0 && s.deck[at] === protectedId) at--;
+  const id = at >= 0 ? s.deck.splice(at, 1)[0] : undefined;
   if (!id) throw new Error('No available expansion deck card');
+  if (
+    s.rulesProfile === 'events-research-v3' &&
+    !s.randomEvent!.triggered &&
+    id === s.randomEvent!.markerInstanceId
+  ) {
+    s.randomEvent!.triggered = true;
+    s.randomEvent!.kind =
+      eventKinds[Math.floor(context.random.next() * eventKinds.length)]!;
+    announceRandomEvent(s);
+  }
   return id;
 }
 function replace(s: State, seat: string, slot: number) {
@@ -262,10 +334,23 @@ function finish(s: State, context: RuleContext) {
   s.rowAbility = null;
   s.suppressedAbility = false;
   s.pendingAbility = null;
+  if (s.rulesProfile === 'events-research-v3') {
+    s.normalTurnsBySeat![s.turnSeat] = s.normalTurnsBySeat![s.turnSeat]! + 1;
+    if (
+      s.randomEvent!.protected &&
+      s.seatOrder.every((id) => s.normalTurnsBySeat![id]! >= 2)
+    ) {
+      s.randomEvent!.protected = false;
+      s.deck = shuffle(s.deck, context.random);
+    }
+  }
   if (s.seatOrder.some((id) => s.boards[id]!.every((c) => c.faceUp))) {
     s.preReveal = Object.fromEntries(
       s.seatOrder.map((id) => [id, s.boards[id]!.map((c) => c.faceUp)]),
     );
+    if (s.rulesProfile === 'events-research-v3')
+      for (const id of s.seatOrder)
+        for (const slot of s.boards[id]!) slot.faceUp = true;
     const scores = Object.fromEntries(
       s.seatOrder.map((id) => [
         id,
@@ -274,12 +359,15 @@ function finish(s: State, context: RuleContext) {
           s.activeResearch,
           s.preReveal![id]!,
           stateRulesProfile(s),
+          s.rulesProfile === 'events-research-v3'
+            ? resolveCardDefinitions(s)
+            : undefined,
         ),
       ]),
     );
     const min = Math.min(...Object.values(scores).map((v) => v.total)),
       winners = s.seatOrder.filter((id) => scores[id]!.total === min);
-    if (stateRulesProfile(s) === 'research-buffer-v2') {
+    if (stateRulesProfile(s) !== 'legacy') {
       const awardsBySeat = Object.fromEntries(
         s.seatOrder.map((id) => [
           id,
@@ -392,6 +480,13 @@ export function validateAction(input: unknown): Action {
     return { type: a.type, a: a.a, b: a.b } as Action;
   if (
     a.type === 'mew-target' &&
+    keys(['type', 'seat', 'slot']) &&
+    typeof a.seat === 'string' &&
+    slot(a.slot)
+  )
+    return { type: a.type, seat: a.seat, slot: a.slot };
+  if (
+    a.type === 'mewtwo-target' &&
     keys(['type', 'seat', 'slot']) &&
     typeof a.seat === 'string' &&
     slot(a.slot)
@@ -512,8 +607,18 @@ export function legalActions(s: State, seat: string): Action[] {
     case 'charizard-view':
       return [{ type: 'close-peek' }];
     case 'mewtwo-target':
-      return opponents.flatMap((id) =>
-        pairs.map((p) => ({ type: 'mewtwo-target' as const, seat: id, ...p })),
+      return opponents.flatMap<Action>((id) =>
+        s.rulesProfile === 'events-research-v3'
+          ? grid.slots.map((slot) => ({
+              type: 'mewtwo-target' as const,
+              seat: id,
+              slot,
+            }))
+          : pairs.map((p) => ({
+              type: 'mewtwo-target' as const,
+              seat: id,
+              ...p,
+            })),
       );
     case 'mewtwo-choice':
       return [
@@ -595,7 +700,13 @@ function announcement(
             : a.type === 'activate-arceus'
               ? s.seatOrder.map((id) => ({ seat: id, slots: [...grid.slots] }))
               : [];
-  const incoming = before.held ? card(before.held).categoryId : null;
+  const incoming = before.held
+    ? effectiveCard(
+        before.held,
+        stateRulesProfile(before),
+        before.cardOverrides,
+      ).categoryId
+    : null;
   const ability =
     before.phase === 'charizard-choice' || before.phase === 'charizard-view'
       ? 'charizard'
@@ -624,7 +735,8 @@ function announcement(
         : a.type,
     cardCategory:
       (a.type === 'draw' || a.type === 'draw-buffer') && s.held
-        ? card(s.held).categoryId
+        ? effectiveCard(s.held, stateRulesProfile(s), s.cardOverrides)
+            .categoryId
         : incoming,
     ability,
     ...(a.type === 'draw' ? { source: a.source } : {}),
@@ -724,7 +836,7 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
     useAbility(s);
     effect = { entrance: 'mewtwo' };
     s.targetSeat = a.seat;
-    s.peekSlots = [a.a, a.b];
+    s.peekSlots = 'slot' in a ? [a.slot] : [a.a, a.b];
     s.phase = 'mewtwo-choice';
   } else if (a.type === 'mewtwo-exchange') {
     s.held = replace(s, s.targetSeat!, a.slot);
@@ -853,11 +965,17 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
     action,
     effect,
   );
-  // Saved visual order follows the action result, then task publication, then settlement.
+  // A marked draw publishes its event before that card's native ability entrance.
+  // Other saved results retain action, task publication, then settlement order.
   // Numbering is finalized atomically; restoring this state never synthesizes events.
   const currentEvents = s.events.filter((e) => e.id > input.eventCounter);
   const actionEvent = currentEvents.pop()!;
-  const orderedEvents = [actionEvent, ...currentEvents];
+  const specialEvents = currentEvents.filter((e) => e.kind === 'special-event');
+  const orderedEvents = [
+    ...specialEvents,
+    actionEvent,
+    ...currentEvents.filter((e) => e.kind !== 'special-event'),
+  ];
   orderedEvents.forEach((e, i) => {
     e.id = input.eventCounter + i + 1;
   });
@@ -979,12 +1097,9 @@ export const pokemonExpansion: GameRules<State, Action, View> = {
         { ...s.winsBySeat },
         s.roundNumber + 1,
         s,
+        stateRulesProfile(s),
       );
-    event(
-      next,
-      'research',
-      `第${next.roundNumber}小局：${s.rulesProfile ? '' : '启用新版研究、单弃顶与公开缓冲区；'}投票选择研究任务。`,
-    );
+    event(next, 'research', `第${next.roundNumber}小局：投票选择研究任务。`);
     return {
       state: next,
       decision: {

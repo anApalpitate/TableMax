@@ -7,6 +7,7 @@ import { victoryAward } from '../research-rewards';
 import {
   abilityAvailable,
   copyTableFields,
+  modelCardDefinitions,
   type AbilityKnowledge,
   type TableFields,
 } from './table';
@@ -319,9 +320,13 @@ export function createTactics(
         targets.find((id) => view.winsBySeat[id]! >= 2) ?? targets[0]!;
       const slots = grid.slots
         .filter((i) => !view.boards[target]![i]!.faceUp)
-        .slice(0, 2);
+        .slice(0, view.rulesProfile === 'events-research-v3' ? 1 : 2);
       for (const i of grid.slots)
-        if (slots.length < 2 && !slots.includes(i)) slots.push(i);
+        if (
+          slots.length < (view.rulesProfile === 'events-research-v3' ? 1 : 2) &&
+          !slots.includes(i)
+        )
+          slots.push(i);
       return (
         Math.min(
           mew(model, incoming, { seat: target, slots }),
@@ -398,7 +403,7 @@ export function createTactics(
         ? Math.min(
             mew(model, model.held, {
               seat: target.seat,
-              slots: [target.a, target.b],
+              slots: 'slot' in target ? [target.slot] : [target.a, target.b],
             }),
             replacement(model, model.held, view.drawSource === 'deck', false),
           )
@@ -448,6 +453,12 @@ export function nextActorRisk(
           taskIds,
           trial.up[next]!,
           view.rulesProfile,
+          modelCardDefinitions(
+            trial.boards[next]!,
+            view.rulesProfile,
+            model.cardDefinitions,
+            model.weather,
+          ),
         ).victory!,
       );
       const ownAward =
@@ -459,6 +470,12 @@ export function nextActorRisk(
                 taskIds,
                 trial.up[seat]!,
                 view.rulesProfile,
+                modelCardDefinitions(
+                  trial.boards[seat]!,
+                  view.rulesProfile,
+                  model.cardDefinitions,
+                  model.weather,
+                ),
               ).victory!,
             )
           : 0;

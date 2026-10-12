@@ -1,8 +1,9 @@
 import type { BotDifficulty } from '@tablemax/game-sdk';
-import { card, instancesForSeats } from '../cards';
+import { card, category, instancesForSeats } from '../cards';
+import { trickRoomMap, type Weather } from '../events';
 import type { View } from '../project';
 import type { Action } from '../state';
-import { scoreBoard } from '../scoring';
+import { scoreBoard, type ResolvedCardDefinitions } from '../scoring';
 import { grid, lines } from '../research';
 import type { RulesProfile, VictoryPolicy } from '../config/types';
 import { victoryAward } from '../research-rewards';
@@ -12,6 +13,7 @@ import { previewRocketPikachu } from './rocket';
 import {
   abilityAvailable,
   copyTableFields,
+  modelCardDefinitions,
   type AbilityKnowledge,
   type TableFields,
 } from './table';
@@ -31,55 +33,105 @@ function sample(view: View, memory: Memory, random: Random): Model {
     view.rulesProfile ?? 'legacy',
   );
   const usedAbilityIds: string[] = [];
+  const cardDefinitions: Record<string, ReturnType<typeof card>> = {};
+  const profile = view.rulesProfile ?? 'legacy';
   const take = (category: string, used = false) => {
-    const i = pool.findIndex((id) => card(id).categoryId === category);
+    const i = pool.findIndex((id) => card(id, profile).categoryId === category);
     if (i < 0) throw new Error('Inconsistent authorized memory');
     const id = pool.splice(i, 1)[0]!;
     if (used) usedAbilityIds.push(id);
     return id;
   };
+  const takeFace = (face: NonNullable<View['held']>) => {
+    const id = take(
+      face.originalCategoryId ?? face.categoryId,
+      face.abilityUsed,
+    );
+    cardDefinitions[id] = category(face.categoryId, profile);
+    return id;
+  };
   const boards: Record<string, string[]> = Object.fromEntries(
     view.seatOrder.map((id) => [id, Array<string>(9).fill('')]),
   );
+  const ambiguous: {
+    seat: string;
+    slot: number;
+    role: string;
+    used: boolean;
+  }[] = [];
   for (const seat of view.seatOrder)
     for (let i = 0; i < 9; i++) {
-      const category =
-        view.boards[seat]?.[i]?.card?.categoryId ??
-        memory.known[seat]?.[i]?.category;
-      if (category)
-        boards[seat]![i] = take(
-          category,
+      const face = view.boards[seat]?.[i]?.card;
+      const knowledge = memory.known[seat]?.[i];
+      const knownCategory = face?.categoryId ?? knowledge?.category;
+      if (knownCategory) {
+        if (
+          !face &&
+          !knowledge?.originalCategory &&
+          profile === 'events-research-v3' &&
+          view.currentEvent?.kind === 'trick-room' &&
+          trickRoomMap[knownCategory]
+        ) {
+          // A saved public placement can disclose the effective role without
+          // disclosing whether this physical card was mapped earlier. Reserve
+          // precise identities first, then sample either permitted original.
+          ambiguous.push({
+            seat,
+            slot: i,
+            role: knownCategory,
+            used: knowledge?.abilityUsed ?? false,
+          });
+          continue;
+        }
+        const id = take(
+          face?.originalCategoryId ??
+            knowledge?.originalCategory ??
+            knownCategory,
           view.boards[seat]?.[i]?.card?.abilityUsed ??
             memory.known[seat]?.[i]?.abilityUsed ??
             false,
         );
+        boards[seat]![i] = id;
+        cardDefinitions[id] = category(knownCategory, profile);
+      }
     }
-  const held = view.held
-    ? take(view.held.categoryId, view.held.abilityUsed)
-    : null;
-  const discards = view.discardOptions.map((c) =>
-    take(c.categoryId, c.abilityUsed),
-  );
+  const held = view.held ? takeFace(view.held) : null;
+  const discards = view.discardOptions.map(takeFace);
   const buffers = view.buffersBySeat
     ? Object.fromEntries(
         view.seatOrder.map((id) => [
           id,
-          view.buffersBySeat![id]
-            ? take(
-                view.buffersBySeat![id]!.categoryId,
-                view.buffersBySeat![id]!.abilityUsed,
-              )
-            : null,
+          view.buffersBySeat![id] ? takeFace(view.buffersBySeat![id]!) : null,
         ]),
       )
     : undefined;
+  for (const entry of ambiguous) {
+    const original = pool.some(
+      (id) => card(id, profile).categoryId === entry.role,
+    )
+      ? entry.role
+      : trickRoomMap[entry.role]!;
+    const id = take(original, entry.used);
+    boards[entry.seat]![entry.slot] = id;
+    cardDefinitions[id] = category(entry.role, profile);
+  }
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(random.next() * (i + 1));
     [pool[i], pool[j]] = [pool[j]!, pool[i]!];
   }
   for (const seat of view.seatOrder)
     for (let i = 0; i < 9; i++)
-      if (!boards[seat]![i]) boards[seat]![i] = pool.pop()!;
+      if (!boards[seat]![i]) {
+        const id = pool.pop()!;
+        boards[seat]![i] = id;
+        const original = card(id, profile);
+        // Hidden event outcomes stay hypotheses. Unknown slots never enter memory.
+        const transformed =
+          view.currentEvent?.kind === 'trick-room'
+            ? trickRoomMap[original.categoryId]
+            : undefined;
+        if (transformed) cardDefinitions[id] = category(transformed, profile);
+      }
   return {
     boards,
     up: Object.fromEntries(
@@ -92,6 +144,12 @@ function sample(view: View, memory: Memory, random: Random): Model {
     held,
     discards,
     usedAbilityIds,
+    cardDefinitions,
+    rulesProfile: profile,
+    weather: (view.currentEvent &&
+    ['rain', 'sun', 'sandstorm', 'snow'].includes(view.currentEvent.kind)
+      ? view.currentEvent.kind
+      : null) as Weather | null,
     ...(buffers ? { buffers } : {}),
     discardLimit: view.rulesProfile ? 1 : 2,
   };
@@ -177,6 +235,12 @@ export function refineForecast(
         tasks,
         up,
         hypothesis.rulesProfile ?? 'legacy',
+        modelCardDefinitions(
+          board,
+          hypothesis.rulesProfile ?? 'legacy',
+          hypothesis.cardDefinitions,
+          hypothesis.weather,
+        ),
       );
       const total = result.total;
       const context = hypothesis.matchContext;
@@ -193,7 +257,7 @@ export function refineForecast(
           context.seat,
           winners,
           context.winsBySeat,
-          hypothesis.rulesProfile === 'research-buffer-v2'
+          hypothesis.rulesProfile && hypothesis.rulesProfile !== 'legacy'
             ? Object.fromEntries(
                 winners.map((id) => [
                   id,
@@ -335,7 +399,7 @@ export function choose(
     return [...actions].sort((a, b) => {
       const rank = (x: Action) =>
         x.type === 'mewtwo-target'
-          ? [x.a, x.b].reduce(
+          ? ('slot' in x ? [x.slot] : [x.a, x.b]).reduce(
               (n, i) => n + (memory.known[x.seat]?.[i] ? 0 : 1),
               0,
             )
@@ -375,13 +439,26 @@ export function choose(
   }
   const scoreCache = new Map<string, number>();
   const resolvedCache = new Map<string, number[]>();
+  let sampledDefinitions: ResolvedCardDefinitions | undefined;
+  const weather = (
+    view.currentEvent &&
+    ['rain', 'sun', 'sandstorm', 'snow'].includes(view.currentEvent.kind)
+      ? view.currentEvent.kind
+      : null
+  ) as Weather | null;
+  const resolveDefinitions = (board: readonly string[]) =>
+    modelCardDefinitions(board, profile, sampledDefinitions, weather);
+  const resolvedScore = (
+    board: readonly string[],
+    active: readonly string[],
+    up: readonly boolean[],
+  ) => scoreBoard(board, active, up, profile, resolveDefinitions(board));
   const score = (board: string[], up: boolean[]) => {
-    if (difficulty !== 'juewu')
-      return scoreBoard(board, tasks, up, profile).total;
+    if (difficulty !== 'juewu') return resolvedScore(board, tasks, up).total;
     const key = `${board.join(',')}/${up.map(Boolean).map(Number).join('')}`;
     const cached = scoreCache.get(key);
     if (cached !== undefined) return cached;
-    const value = scoreBoard(board, tasks, up, profile).total;
+    const value = resolvedScore(board, tasks, up).total;
     if (scoreCache.size < 768) scoreCache.set(key, value);
     return value;
   };
@@ -407,13 +484,13 @@ export function choose(
         (id) => score(model.boards[id]!, model.up[id]!) === minimum,
       );
       const awards =
-        profile === 'research-buffer-v2'
+        profile !== 'legacy'
           ? Object.fromEntries(
               winners.map((id) => [
                 id,
                 victoryAward(
                   view.winsBySeat[id]!,
-                  scoreBoard(model.boards[id]!, tasks, model.up[id]!, profile)
+                  resolvedScore(model.boards[id]!, tasks, model.up[id]!)
                     .victory!,
                 ),
               ]),
@@ -443,12 +520,7 @@ export function choose(
     let resolved =
       difficulty === 'juewu' ? resolvedCache.get(boardKey) : undefined;
     if (!resolved) {
-      resolved = scoreBoard(
-        model.boards[seat]!,
-        [],
-        model.up[seat]!,
-        profile,
-      ).values;
+      resolved = resolvedScore(model.boards[seat]!, [], model.up[seat]!).values;
       if (difficulty === 'juewu' && resolvedCache.size < 768)
         resolvedCache.set(boardKey, resolved);
     }
@@ -736,6 +808,7 @@ export function choose(
     if (signal.aborted) throw new Error('Aborted');
     if (n > 0 && performance.now() > deadline) break;
     const model = sample(view, memory, random);
+    sampledDefinitions = model.cardDefinitions;
     scoreCache.clear();
     resolvedCache.clear();
     tactics =
@@ -762,8 +835,13 @@ export function choose(
             return;
           const rows = information.get(index) ?? [];
           rows.push({
-            observable: card(incoming).categoryId,
-            revealed: card(model.boards[seat]![action.slot]!).categoryId,
+            observable: (
+              model.cardDefinitions?.[incoming] ?? card(incoming, profile)
+            ).categoryId,
+            revealed: (
+              model.cardDefinitions?.[model.boards[seat]![action.slot]!] ??
+              card(model.boards[seat]![action.slot]!, profile)
+            ).categoryId,
             values,
           });
           information.set(index, rows);
@@ -777,6 +855,8 @@ export function choose(
         pool: model.pool,
         discards: model.discards,
         rulesProfile: profile,
+        cardDefinitions: model.cardDefinitions ?? {},
+        weather: model.weather ?? null,
         buffer: model.buffers?.[seat] ?? null,
         usedAbilityIds: model.usedAbilityIds ?? [],
         matchContext: {
@@ -787,19 +867,15 @@ export function choose(
               .filter((id) => id !== seat)
               .map((id) => [id, score(model.boards[id]!, model.up[id]!)]),
           ),
-          ...(profile === 'research-buffer-v2'
+          ...(profile !== 'legacy'
             ? {
                 opponentVictories: Object.fromEntries(
                   view.seatOrder
                     .filter((id) => id !== seat)
                     .map((id) => [
                       id,
-                      scoreBoard(
-                        model.boards[id]!,
-                        tasks,
-                        model.up[id]!,
-                        profile,
-                      ).victory!,
+                      resolvedScore(model.boards[id]!, tasks, model.up[id]!)
+                        .victory!,
                     ]),
                 ),
               }

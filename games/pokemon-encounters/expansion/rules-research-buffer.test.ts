@@ -36,7 +36,7 @@ describe('research and buffer rules profile', () => {
 
   it('creates only the explicitly versioned profile with one empty buffer per seat', () => {
     const context = contextFor(2);
-    const state = rules.initialize(context);
+    const state = createInitialState(context, 'research-buffer-v2');
     expect(state).toMatchObject({
       rulesProfile: 'research-buffer-v2',
       buffersBySeat: { s0: null, s1: null },
@@ -540,7 +540,7 @@ describe('actual authoritative round settlement and legacy transition', () => {
     expect(result.roundResult!.awardsBySeat).toEqual({ s0: 0, s1: 1 });
     expect(rules.validateState(result, context.seats)).toEqual(result);
   });
-  it('keeps a missing-profile old round unchanged and switches only on the next round', () => {
+  it('keeps a missing-profile old match on its original rules through the next round', () => {
     const own = researchDefinition('R01', 'legacy').diagram.sample.instances;
     const other = [
       'ordinary-8',
@@ -578,12 +578,15 @@ describe('actual authoritative round settlement and legacy transition', () => {
     expect(result.rulesProfile).toBeUndefined();
     const next = rules.applyLifecycle!(result, { type: 'next-round' }, context)
       .state as State;
-    expect(next.rulesProfile).toBe('research-buffer-v2');
+    expect(next.rulesProfile).toBeUndefined();
     expect(next.winsBySeat).toEqual(result.winsBySeat);
-    expect(next.usedOpeningResearch).toEqual([]);
-    expect(next.usedHoennResearch).toEqual([]);
-    expect(next.buffersBySeat).toEqual({ s0: null, s1: null });
-    expect(next.events.at(-1)!.text).toContain('启用新版');
+    expect(next.usedOpeningResearch).toEqual(result.usedOpeningResearch);
+    expect(next.usedHoennResearch).toEqual(result.usedHoennResearch);
+    expect(next.buffersBySeat).toBeUndefined();
+    expect(next.deck).toEqual(instancesForSeats(2, 'legacy'));
+    expect(next.events.at(-1)!.text).toBe(
+      `第${next.roundNumber}小局：投票选择研究任务。`,
+    );
     expect(rules.validateState(next, context.seats)).toEqual(next);
   });
 });

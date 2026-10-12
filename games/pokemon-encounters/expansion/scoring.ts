@@ -1,4 +1,4 @@
-import { card, validProfileInstance } from './cards';
+import { card, validProfileInstance, type Card } from './cards';
 import { grid, lines, matchesTask, task } from './research';
 import type { RulesProfile, VictoryPolicy } from './config/types';
 import {
@@ -29,11 +29,13 @@ export type Score = {
     value: number;
   }[];
 };
+export type ResolvedCardDefinitions = Readonly<Record<string, Card>>;
 export function scoreBoard(
   board: readonly string[],
   taskIds: readonly string[] = [],
   preReveal: readonly boolean[] = Array(9).fill(true),
   profile: RulesProfile = 'research-buffer-v2',
+  resolvedDefinitions?: ResolvedCardDefinitions,
 ): Score {
   if (
     board.length !== 9 ||
@@ -43,7 +45,9 @@ export function scoreBoard(
     board.some((id) => !validProfileInstance(id, profile))
   )
     throw new Error('Invalid expansion scoring board');
-  const cards = board.map(card),
+  const cards = board.map(
+      (id) => resolvedDefinitions?.[id] ?? card(id, profile),
+    ),
     fixed = cards.map((c) => c.value),
     copySlots = grid.slots.filter((i) => fixed[i] === null);
   if (copySlots.length > 4) throw new Error('Too many expansion copies');
@@ -102,12 +106,27 @@ export function scoreBoard(
       })),
     };
     score.research = taskIds.map((taskId) => {
-      const achieved = matchesTask(taskId, board, score, preReveal, profile);
-      if (profile === 'research-buffer-v2')
+      const achieved = matchesTask(
+        taskId,
+        board,
+        score,
+        preReveal,
+        profile,
+        resolvedDefinitions,
+      );
+      if (profile !== 'legacy')
         return {
           taskId,
           achieved,
-          ...researchReward(task(taskId, profile), achieved, board, score),
+          ...researchReward(
+            task(taskId, profile),
+            achieved,
+            board,
+            score,
+            preReveal,
+            profile,
+            resolvedDefinitions,
+          ),
         };
       return {
         taskId,
@@ -117,7 +136,7 @@ export function scoreBoard(
     });
     score.deduction = score.research.reduce((n, r) => n + r.deduction, 0);
     score.total = base - score.deduction;
-    if (profile === 'research-buffer-v2')
+    if (profile !== 'legacy')
       score.victory = mergeVictory(score.research.map((r) => r.victory!));
     candidates.push(score);
   }

@@ -1,5 +1,6 @@
 import {
   abilities,
+  pokemonTypes,
   type CardDefinition,
   type DeckProfile,
   type ResearchCondition,
@@ -138,6 +139,7 @@ export function validateCondition(
   let valid = false;
   switch (c.type) {
     case 'all':
+    case 'any':
       valid =
         conditionKeys(c, ['conditions']) &&
         Array.isArray(c.conditions) &&
@@ -146,6 +148,18 @@ export function validateCondition(
       if (valid)
         for (const child of c.conditions as unknown[])
           validateCondition(child, depth + 1);
+      break;
+    case 'attribute-count':
+      valid =
+        conditionKeys(c, ['attributes', 'atLeast']) &&
+        Array.isArray(c.attributes) &&
+        c.attributes.length > 0 &&
+        new Set(c.attributes).size === c.attributes.length &&
+        c.attributes.every((a) => pokemonTypes.some((t) => t === a)) &&
+        integer(c.atLeast, 1, 9);
+      break;
+    case 'hidden-row':
+      valid = conditionKeys(c, []);
       break;
     case 'count':
       valid =
@@ -366,6 +380,10 @@ export function validateEffects(input: unknown): ResearchEffect[] {
     if (!object(e)) return fail();
     let valid = false;
     switch (e.kind) {
+      case 'base-half':
+      case 'hidden-row-half':
+        valid = keys(e, ['kind']);
+        break;
       case 'flat':
         valid = keys(e, ['kind', 'amount']) && integer(e.amount, -100, 100);
         break;
@@ -494,7 +512,7 @@ export function validateResearch(
       if (
         !text(t.rewardText) ||
         !text(t.riskText) ||
-        !integer(t.failurePenalty, 1, 30)
+        !integer(t.failurePenalty, 0, 30)
       )
         return fail();
       validateEffects(t.rewardEffects);
