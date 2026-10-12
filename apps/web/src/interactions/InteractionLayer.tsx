@@ -18,6 +18,7 @@ import {
   interactionSector,
   interactionWheel,
   clampInteractionOrb,
+  restingInteractionOrb,
   normalizedInteractionPoint,
 } from './model';
 import { useInteractionAudio } from './useInteractionAudio';
@@ -206,6 +207,12 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
     height: window.innerHeight,
   });
   const [dragging, setDragging] = useState(false);
+  const [pageScroll, setPageScroll] = useState(window.scrollY);
+  useEffect(() => {
+    const update = () => setPageScroll(window.scrollY);
+    window.addEventListener('scroll', update, { passive: true });
+    return () => window.removeEventListener('scroll', update);
+  }, []);
   const pointer = useRef<{
     id: number;
     x: number;
@@ -333,16 +340,15 @@ export function InteractionLayer({ session }: { session: RoomSession }) {
       .getPropertyValue('--interaction-orb-initial-y')
       .trim() || '0.67',
   );
-  const resting = clampInteractionOrb(
-    orb.x * viewport.width,
-    (orb.defaultPosition &&
-    Number.isFinite(themedY) &&
-    themedY >= 0 &&
-    themedY <= 1
-      ? themedY
-      : orb.y) * viewport.height,
+  const resting = restingInteractionOrb(
+    orb,
     viewport.width,
     viewport.height,
+    themedY,
+    pageScroll,
+    getComputedStyle(document.documentElement)
+      .getPropertyValue('--interaction-orb-scroll-with-page')
+      .trim() === '1',
   );
   const displayed = wheel ?? resting;
   return (

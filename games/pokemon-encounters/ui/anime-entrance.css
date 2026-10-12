@@ -27,6 +27,32 @@
   --scene-light: #ffd6e4;
   --scene-deep: #512b60;
 }
+.pokemon-screen .anime-entrance.motif-flame {
+  --scene-color: #ee7433;
+  --scene-light: #fff0ba;
+  --scene-deep: #74332a;
+}
+.pokemon-screen .anime-entrance.motif-impact {
+  --scene-color: #79beb4;
+  --scene-light: #e2f6d8;
+  --scene-deep: #294d51;
+}
+.pokemon-screen .motif-flame .entrance-energy {
+  fill: #f4974822;
+  stroke-width: 7;
+}
+.pokemon-screen .motif-flame .entrance-particle {
+  clip-path: polygon(50% 0, 100% 65%, 75% 100%, 20% 90%, 0 60%);
+  width: 16px;
+  height: 34px;
+}
+.pokemon-screen .motif-impact .entrance-impact {
+  width: 48vmin;
+  height: 14vmin;
+  aspect-ratio: auto;
+  top: 65%;
+  border-width: 5px;
+}
 .pokemon-screen .entrance-energy-field {
   position: absolute;
   top: var(--entrance-top);

@@ -10,7 +10,7 @@ import {
   creatureArt,
   coinArt,
 } from '../../../assets/games/pokemon-encounters/catalog';
-import { drawMotifs, effectScene } from './effect-scene';
+import { drawMotifs, effectScene, additionalEntrances } from './effect-scene';
 import { SavedMotion } from './motion';
 import type { PublicAction, RoomFeedback } from '@tablemax/web-host';
 import { actionEffects } from './presentation-state';
@@ -348,6 +348,12 @@ export function SavedEffects({
             image={creatureArt(abilityEntrances[scene.theme].resource).image}
           />
         )}
+      {scene && (scene.theme === 'charizard' || scene.theme === 'snorlax') && (
+        <AbilityEntrance
+          definition={additionalEntrances[scene.theme]}
+          image={creatureArt(additionalEntrances[scene.theme].resource).image}
+        />
+      )}
       {(saved || result) && (
         <SavedActionTrails game={game} action={action} result={result} />
       )}

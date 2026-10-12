@@ -6,6 +6,7 @@ import { portraitFor } from './card-art';
 import { portraitBoundsFor } from './portrait-bounds';
 import { researchRiskText } from './research-presentation';
 import { ResearchReward } from './ResearchReward';
+import { runtimePicture } from './event-presentation';
 
 const illustrations = import.meta.glob<string>(
   '../../../../assets/games/pokemon-encounters/expansion/research-illustrations/*.webp',
@@ -22,47 +23,55 @@ export function ResearchPicture({
     id,
     profile,
   );
-  const source =
-    illustrations[
-      `../../../../assets/games/pokemon-encounters/expansion/research-illustrations/${illustrationId}.webp`
-    ];
-  return source ? (
+  const latest = profile === 'events-research-v3';
+  const source = latest
+    ? runtimePicture(`research-${id}`)
+    : illustrations[
+        `../../../../assets/games/pokemon-encounters/expansion/research-illustrations/${illustrationId}.webp`
+      ];
+  return (
     <figure
-      className="ex-research-art"
+      className={`ex-research-art ${!source ? 'ex-research-placeholder' : ''}`}
       role="img"
       aria-label={`${name}主题插画`}
     >
-      <img
-        className="ex-research-picture ex-research-backdrop"
-        src={source}
-        alt=""
-        width={320}
-        height={180}
-      />
-      <span className="ex-research-subjects" aria-hidden="true">
-        {presentation.subjects.map((categoryId, index, subjects) => {
-          const bounds = portraitBoundsFor(categoryId);
-          return (
-            <svg
-              key={`${categoryId}-${index}`}
-              className="ex-research-subject"
-              viewBox={bounds.viewBox.join(' ')}
-              style={{
-                left: `${subjects.length === 1 ? 25 : subjects.length === 2 ? 15 + index * 37 : 7 + index * 30}%`,
-                width: `${subjects.length === 1 ? 50 : subjects.length === 2 ? 33 : 28}%`,
-              }}
-            >
-              <image
-                href={portraitFor(categoryId)}
-                width={bounds.size[0]}
-                height={bounds.size[1]}
-              />
-            </svg>
-          );
-        })}
-      </span>
+      {source && (
+        <img
+          className="ex-research-picture ex-research-backdrop"
+          src={source}
+          alt=""
+          width={320}
+          height={180}
+          loading="lazy"
+          decoding="async"
+        />
+      )}
+      {(!latest || !source) && (
+        <span className="ex-research-subjects" aria-hidden="true">
+          {presentation.subjects.map((categoryId, index, subjects) => {
+            const bounds = portraitBoundsFor(categoryId);
+            return (
+              <svg
+                key={`${categoryId}-${index}`}
+                className="ex-research-subject"
+                viewBox={bounds.viewBox.join(' ')}
+                style={{
+                  left: `${subjects.length === 1 ? 25 : subjects.length === 2 ? 15 + index * 37 : 7 + index * 30}%`,
+                  width: `${subjects.length === 1 ? 50 : subjects.length === 2 ? 33 : 28}%`,
+                }}
+              >
+                <image
+                  href={portraitFor(categoryId)}
+                  width={bounds.size[0]}
+                  height={bounds.size[1]}
+                />
+              </svg>
+            );
+          })}
+        </span>
+      )}
     </figure>
-  ) : null;
+  );
 }
 export function ResearchDiagram({
   id,
@@ -104,7 +113,7 @@ export function ResearchDiagram({
         {diagram.sample.instances.map((instance, slot) => {
           const point = center(slot),
             selected = diagram.highlightSlots.includes(slot),
-            face = card(instance),
+            face = card(instance, profile),
             bounds = portraitBoundsFor(face.categoryId);
           return (
             <g key={slot}>
@@ -274,7 +283,7 @@ export function ResearchDiagram({
                 ? diagram.highlightSlots.includes(slot)
                 : diagram.arrows.some((a) => a.to === slot),
             )
-            .map((instance) => card(instance).name)
+            .map((instance) => card(instance, profile).name)
             .filter((name, index, names) => names.indexOf(name) === index)
             .map((name, i, names) => (
               <span className="ex-role-name" key={name}>

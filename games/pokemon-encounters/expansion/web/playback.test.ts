@@ -115,3 +115,48 @@ it('orders terminal action, research and result and captures no private cards or
   expect(JSON.stringify(steps)).not.toContain('do-not-copy');
   expect(JSON.stringify(steps)).not.toContain('hidden');
 });
+it('presents an event before its card ability and keeps theme placeholders out of mechanical effects', () => {
+  const steps = presentationSteps(
+    game,
+    [
+      {
+        id: 7,
+        kind: 'special-event',
+        text: '雨天',
+        effect: { eventKind: 'rain' },
+      },
+      {
+        id: 8,
+        kind: 'draw',
+        text: '',
+        action,
+        effect: { entrance: 'team-rocket', coin: 'meowth' },
+      },
+      {
+        id: 9,
+        kind: 'bond-placeholder',
+        text: '伙伴齐聚，效果待设计',
+        effect: { placeholder: true },
+      },
+    ],
+    5,
+    false,
+  );
+  expect(steps.map((s) => s.kind)).toEqual([
+    'event',
+    'ability',
+    'board',
+    'bond',
+  ]);
+  expect(steps[0]?.event.effect?.eventKind).toBe('rain');
+  expect(steps[3]?.effects).toEqual({
+    moves: [],
+    cover: [],
+    reveal: [],
+    pulse: [],
+  });
+  const queue = new PresentationQueue();
+  queue.reset('loaded', [7, 8, 9]);
+  queue.append('loaded', steps);
+  expect(queue.next()).toBeNull();
+});

@@ -13,7 +13,7 @@ export type PresentationStep = {
   key: string;
   revision: number;
   event: SavedEvent;
-  kind: 'ability' | 'board' | 'research' | 'result';
+  kind: 'ability' | 'board' | 'research' | 'event' | 'bond' | 'result';
   durationMs: number;
   creature: string | null;
   effects: BoardEffects;
@@ -76,14 +76,18 @@ export function presentationSteps(
       match: game.matchWinners.length > 0,
     });
   };
-  // A terminal action may append research/result before its action summary.
+  // Events precede their card's ability; terminal summaries follow the action.
   const ordered = [
-    ...events.filter((e) => e.action),
-    ...events.filter((e) => !e.action),
+    ...events.filter((e) => !['research', 'round-result'].includes(e.kind)),
+    ...events.filter((e) => ['research', 'round-result'].includes(e.kind)),
   ];
   for (const event of ordered) {
     const creature = presentationCreature(event.action, event.effect ?? {});
     const effects = savedBoardEffects(event.action, game.boards, event.effect);
+    if (event.kind === 'special-event')
+      add(event, 'event', reduced ? 450 : 1500, null, effects);
+    if (event.kind === 'bond-placeholder')
+      add(event, 'bond', reduced ? 450 : 1100, null, effects);
     if (creature && poseSequences[creature])
       add(
         event,

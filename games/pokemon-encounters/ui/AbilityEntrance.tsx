@@ -8,7 +8,7 @@ import './anime-entrance.css';
 
 export type EntranceDefinition = {
   id: string;
-  motif: 'psychic' | 'electric' | 'comic';
+  motif: 'psychic' | 'electric' | 'comic' | 'flame' | 'impact';
   side: 'left' | 'right';
   duration: number;
   title: string;
@@ -85,6 +85,19 @@ export function AbilityEntrance({
               <path d="M0 60L180 100 140 170 310 120 280 250 460 190" />
               <path d="M1000 560L840 460 890 390 700 450 740 330 550 370" />
               <path d="M90 600L130 460 45 490 190 300M950 0L850 140 930 110 810 280" />
+            </>
+          ) : definition.motif === 'flame' ? (
+            Array.from({ length: 9 }, (_, i) => (
+              <path
+                key={i}
+                d={`M${i * 125 - 20} 620 Q${i * 125 - 70} 390 ${i * 125 + 35} 300 Q${i * 125 + 110} 230 ${i * 125 + 75} 90 Q${i * 125 + 180} 280 ${i * 125 + 135} 460 L${i * 125 + 170} 620`}
+              />
+            ))
+          ) : definition.motif === 'impact' ? (
+            <>
+              <ellipse cx="500" cy="400" rx="390" ry="110" />
+              <ellipse cx="500" cy="400" rx="210" ry="60" />
+              <path d="M0 440L160 420 180 490 340 410 400 470 500 400 650 450 700 400 920 460 1000 430" />
             </>
           ) : definition.motif === 'comic' ? (
             Array.from({ length: 20 }, (_, i) => (

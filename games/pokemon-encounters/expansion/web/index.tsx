@@ -17,7 +17,11 @@ import type { JsonValue } from '@tablemax/game-sdk';
 import type { View, Face } from '../project';
 import type { Action } from '../state';
 import { task, tasksForProfile, type RulesProfile } from '../research';
-import { categories, categoryPresentation } from '../cards';
+import {
+  categories,
+  categoriesForProfile,
+  categoryPresentation,
+} from '../cards';
 import { BoardGrid } from '../../ui/BoardGrid';
 import { CardSkin } from '../../ui/CardSkin';
 import { WinTrack } from '../../ui/WinTrack';
@@ -36,6 +40,8 @@ import { SavedEffects } from './SavedEffects';
 import { poseSequences } from './poses/timeline';
 import { GuideScene } from '../../ui/RuleDiagrams';
 import { CircularBadge } from './CircularBadge';
+import { EventEnvironment, EventStatus } from './EventEnvironment';
+import { faceEffectText, eventLabels } from './event-presentation';
 import { presentedWins } from './playback';
 import {
   researchAdjustmentText,
@@ -100,12 +106,14 @@ const labels: Partial<Record<Action['type'], string>> = {
 };
 const namesOf = (session: GameHost) =>
   Object.fromEntries(session.view?.seats.map((s) => [s.id, s.name]) ?? []);
-const summaryOf = (face: Face) =>
+const summaryOf = (face: Face, profile?: RulesProfile) =>
   face.abilityUsed && face.ability
     ? '能力已使用'
-    : categoryPresentation(face.categoryId).abilitySummary ||
+    : categoryPresentation(face.categoryId, profile).abilitySummary ||
       `${face.value ?? '复制'} 分`;
 const pairTypes = ['swap', 'reposition', 'mewtwo-target', 'ninja-target'];
+const bufferedProfile = (profile: RulesProfile | undefined) =>
+  profile === 'research-buffer-v2' || profile === 'events-research-v3';
 function eventText(
   event: View['events'][number],
   names: Record<string, string>,
@@ -213,22 +221,56 @@ function Card({
   face,
   compact = false,
   effective,
+  profile,
 }: {
   face: Face | null;
   compact?: boolean;
   effective?: number | undefined;
+  profile?: RulesProfile | undefined;
 }) {
   const art = face ? cardArt(face.categoryId) : null;
-  const presentation = face ? categoryPresentation(face.categoryId) : null;
+  const presentation = face
+    ? categoryPresentation(face.categoryId, profile)
+    : null;
+  const source = face ? faceEffectText(face) : null;
+  const value =
+    effective ??
+    face?.effectiveValue ??
+    face?.value ??
+    (face?.copy === 'vertical' ? '↕' : '↔');
   return (
     <CardSkin
       face={face}
       image={face ? (portraitFor(face.categoryId) ?? art?.image) : undefined}
       frame={presentation?.frame}
       bounds={face ? portraitBoundsFor(face.categoryId) : undefined}
-      className={`ex-card ${compact ? 'compact' : ''}`}
+      className={`ex-card ${compact ? 'compact' : ''} ${face?.scoreEffect ? `weather-${face.scoreEffect.kind}` : ''}`}
       value={
-        effective ?? face?.value ?? (face?.copy === 'vertical' ? '↕' : '↔')
+        source && face ? (
+          <span
+            className="ex-value-stack"
+            data-score-effect={face.scoreEffect?.kind ?? 'trick-room'}
+            data-effective-value={value}
+            title={source}
+            aria-label={`${value}分，${source}`}
+          >
+            <span>{value}</span>
+            <span className="ex-score-source" aria-hidden="true">
+              {face.scoreEffect ? (
+                <>
+                  {face.scoreEffect.inherited ? '↳' : ''}
+                  {eventLabels[face.scoreEffect.kind].replace('天', '')}
+                  {face.scoreEffect.delta >= 0 ? '+' : '−'}
+                  {Math.abs(face.scoreEffect.delta)}
+                </>
+              ) : (
+                '戏法互换'
+              )}
+            </span>
+          </span>
+        ) : (
+          value
+        )
       }
     />
   );
@@ -265,11 +307,12 @@ function Board({
       renderIndex={(index) => <CircularBadge value={index + 1} />}
       slots={board.map((slot, i) => ({
         id: slot.slotId,
-        label: `位置${i + 1}：${slot.card ? `${slot.card.name}，${slot.card.value ?? '复制'}` : '暗牌'}`,
+        label: `位置${i + 1}：${slot.card ? `${slot.card.name}，${slot.card.effectiveValue ?? slot.card.value ?? '复制'}${faceEffectText(slot.card) ? `，${faceEffectText(slot.card)}` : ''}` : '暗牌'}`,
         className: `${motion.includes(slot.slotId) ? 'ex-saved' : ''} ${zero.includes(i) ? 'ex-zero' : ''}`,
         content: (
           <Card
             face={slot.card}
+            profile={game.rulesProfile}
             effective={game.roundResult?.scores[seat]?.values[i]}
           />
         ),
@@ -352,26 +395,28 @@ function PublicSupply({
             <strong>摸牌堆</strong>
             <span>{game.deckCount} 张</span>
           </header>
-          <Card face={null} compact />
+          <Card profile={game.rulesProfile} face={null} compact />
         </section>
-        {(game.rulesProfile === 'research-buffer-v2' ? [0] : [0, 1]).map(
-          (i) => (
-            <section key={i} data-pile={i === 0 ? 'discard' : 'discard-second'}>
-              <header>
-                <strong>
-                  {game.rulesProfile === 'research-buffer-v2'
-                    ? '弃牌顶部'
-                    : `可选弃牌${i + 1}`}
-                </strong>
-              </header>
-              {game.discardOptions[i] ? (
-                <Card face={game.discardOptions[i]} compact />
-              ) : (
-                <div className="ex-empty-pile">暂无</div>
-              )}
-            </section>
-          ),
-        )}
+        {(bufferedProfile(game.rulesProfile) ? [0] : [0, 1]).map((i) => (
+          <section key={i} data-pile={i === 0 ? 'discard' : 'discard-second'}>
+            <header>
+              <strong>
+                {bufferedProfile(game.rulesProfile)
+                  ? '弃牌顶部'
+                  : `可选弃牌${i + 1}`}
+              </strong>
+            </header>
+            {game.discardOptions[i] ? (
+              <Card
+                profile={game.rulesProfile}
+                face={game.discardOptions[i]}
+                compact
+              />
+            ) : (
+              <div className="ex-empty-pile">暂无</div>
+            )}
+          </section>
+        ))}
       </div>
       <section
         className={`ex-public-held ${game.held ? 'has-held' : ''} ${moved && ['draw', 'draw-buffer'].includes(moved.verb) ? 'ex-saved' : ''}`}
@@ -380,15 +425,17 @@ function PublicSupply({
       >
         {game.held ? (
           <>
-            <Card face={game.held} />
+            <Card profile={game.rulesProfile} face={game.held} />
             <div>
               <span>当前取牌</span>
               <strong>{game.held.name}</strong>
               <p>
                 {game.held.abilityUsed && game.held.ability
                   ? '能力已使用，选择一格放入场地'
-                  : categoryPresentation(game.held.categoryId).abilitySummary ||
-                    '选一格放入场地'}
+                  : categoryPresentation(
+                      game.held.categoryId,
+                      game.rulesProfile,
+                    ).abilitySummary || '选一格放入场地'}
               </p>
             </div>
           </>
@@ -413,22 +460,6 @@ function PublicSupply({
         <span>最近行动</span>
         <p>{game.events.at(-1) && eventText(game.events.at(-1)!, names)}</p>
       </div>
-      {game.buffersBySeat && (
-        <section className="ex-public-buffers" aria-label="公开缓冲区">
-          <h3>玩家缓冲</h3>
-          <div>
-            {game.seatOrder.map((seat) => (
-              <BufferCard
-                key={seat}
-                game={game}
-                seat={seat}
-                label={names[seat] ?? '玩家'}
-                publicCard
-              />
-            ))}
-          </div>
-        </section>
-      )}
       {research}
     </aside>
   );
@@ -509,7 +540,9 @@ function Actions({
         : selectedType === 'mew-target'
           ? '换入对手此格'
           : selectedType === 'mewtwo-target'
-            ? '查看这两张牌'
+            ? game.rulesProfile === 'events-research-v3'
+              ? '查看这一张牌'
+              : '查看这两张牌'
             : selectedType === 'ninja-target'
               ? exchange
                 ? '盖回并交换这两格'
@@ -637,7 +670,7 @@ function Actions({
       )}
       {game.held && (
         <div className="ex-held" data-pile="held">
-          <Card face={game.held} />
+          <Card profile={game.rulesProfile} face={game.held} />
           <div>
             <span className="ex-held-label">当前取牌</span>
             <strong>{game.held.name}</strong>
@@ -666,8 +699,8 @@ function Actions({
                   <span className="ex-placement-reminder">，选择位置换入</span>
                 </>
               ) : (
-                categoryPresentation(game.held.categoryId).abilitySummary ||
-                '选择位置换入'
+                categoryPresentation(game.held.categoryId, game.rulesProfile)
+                  .abilitySummary || '选择位置换入'
               )}
             </p>
             {game.held.abilityText && !game.held.abilityUsed && (
@@ -688,6 +721,8 @@ function Actions({
           <button
             className="ex-source"
             data-pile="deck"
+            data-action="draw"
+            data-source="deck"
             disabled={
               locked ||
               !actions.some((a) => a.type === 'draw' && a.source === 'deck')
@@ -696,14 +731,14 @@ function Actions({
           >
             <strong>摸牌堆</strong>
             <div className="ex-source-face">
-              <Card face={null} compact />
+              <Card profile={game.rulesProfile} face={null} compact />
               <span>
                 取一张牌<b>{game.deckCount} 张</b>
               </span>
             </div>
           </button>
           {(game.phase === 'draw'
-            ? game.rulesProfile === 'research-buffer-v2'
+            ? bufferedProfile(game.rulesProfile)
               ? [0]
               : [0, 1]
             : []
@@ -715,6 +750,9 @@ function Actions({
                 key={i}
                 className="ex-source"
                 data-pile={i === 0 ? 'discard' : 'discard-second'}
+                data-action="draw"
+                data-source="discard"
+                data-discard-index={i}
                 disabled={
                   locked ||
                   !actions.some(
@@ -729,19 +767,21 @@ function Actions({
                 }
               >
                 <strong>
-                  {game.rulesProfile === 'research-buffer-v2'
+                  {bufferedProfile(game.rulesProfile)
                     ? '弃牌顶部'
                     : `可选弃牌${i + 1}`}
                 </strong>
                 <div className="ex-source-face">
                   {face ? (
-                    <Card face={face} compact />
+                    <Card profile={game.rulesProfile} face={face} compact />
                   ) : (
                     <span className="ex-empty-source">—</span>
                   )}
                   <span>
                     {face?.name ?? '暂无卡牌'}
-                    <b>{face ? summaryOf(face) : '不可选择'}</b>
+                    <b>
+                      {face ? summaryOf(face, game.rulesProfile) : '不可选择'}
+                    </b>
                   </span>
                 </div>
               </button>
@@ -761,7 +801,11 @@ function Actions({
               <strong>本人缓冲</strong>
               <div className="ex-source-face">
                 {game.buffersBySeat[self] ? (
-                  <Card face={game.buffersBySeat[self]!} compact />
+                  <Card
+                    profile={game.rulesProfile}
+                    face={game.buffersBySeat[self]!}
+                    compact
+                  />
                 ) : (
                   <span className="ex-buffer-empty" aria-hidden="true">
                     ＋
@@ -807,6 +851,7 @@ function Actions({
           {targets.map((id) => (
             <button
               key={id}
+              data-target-seat={id}
               className={chosenSeat === id ? 'selected' : ''}
               disabled={locked}
               onClick={() => {
@@ -832,6 +877,7 @@ function Actions({
           </p>
           <Board game={game} seat={chosenSeat} />
           <button
+            data-action="row-target"
             disabled={locked}
             onClick={() => {
               const a = candidates.find((v) => v.type === 'row-target');
@@ -877,6 +923,7 @@ function Actions({
           )}
           <div className="ex-submit">
             <button
+              data-action={selectedType}
               disabled={locked || !chosen}
               onClick={() => {
                 if (chosen) choose(chosen);
@@ -918,12 +965,14 @@ function Actions({
           <div>
             {game.peek.cards.map((p) => (
               <section key={p.slot}>
-                <Card face={p.card} />
+                <Card profile={game.rulesProfile} face={p.card} />
                 <span>{p.slot + 1}号位</span>
                 {actions.some(
                   (a) => a.type === 'mewtwo-exchange' && a.slot === p.slot,
                 ) && (
                   <button
+                    data-action="mewtwo-exchange"
+                    data-slot-index={p.slot}
                     disabled={locked}
                     onClick={() =>
                       choose({ type: 'mewtwo-exchange', slot: p.slot })
@@ -951,6 +1000,8 @@ function Actions({
           .map((a) => (
             <button
               key={'direction' in a ? a.direction : a.type}
+              data-action={a.type}
+              data-direction={'direction' in a ? a.direction : undefined}
               disabled={locked}
               className={a.type === 'decline-ability' ? 'secondary' : ''}
               onClick={() => choose(a)}
@@ -968,13 +1019,16 @@ function Actions({
   );
 }
 function Rulebook({ profile }: { profile: RulesProfile }) {
-  const buffered = profile === 'research-buffer-v2';
+  const buffered = bufferedProfile(profile);
+  const latest = profile === 'events-research-v3';
   return (
     <RulesGuide
       className="expansion-rules"
       summary={
         buffered
-          ? '经营九格，用三张同值连线归零。最低最终分获胜，研究会改变分数和授胜，先到三胜结束。'
+          ? latest
+            ? '经营九格，用三张同值连线归零。研究改变分数，特殊事件影响局面，最低分得一胜，先到三胜。'
+            : '经营九格，用三张同值连线归零。最低最终分获胜，研究会改变分数和授胜，先到三胜结束。'
           : '经营九格，用三张同值连线归零。结算最低分得一胜，先到三胜。'
       }
       source="TableMax自制扩展；数值与任务为项目方案，原版出版来源缺口保持记录。"
@@ -1054,7 +1108,7 @@ function Rulebook({ profile }: { profile: RulesProfile }) {
                 都保留已使用状态，取回不会恢复。只有该牌实际洗回牌库，或开始下一小局，才恢复能力。复制牌的被动计分规则不受影响。
               </p>
               <ul>
-                {categories
+                {categoriesForProfile(profile)
                   .filter((c) => c.ability || c.copy)
                   .map((c) => (
                     <li key={c.categoryId}>
@@ -1065,7 +1119,9 @@ function Rulebook({ profile }: { profile: RulesProfile }) {
                         : c.ability === 'charizard'
                           ? '可私看本人一张暗牌，牌留原位朝下。'
                           : c.ability === 'mewtwo'
-                            ? '看同一对手两格后，可交换一张或放弃；确认后完成本人换入。'
+                            ? latest
+                              ? '私看一名对手一格，可交换该张牌或放弃；确认后完成本人换入。'
+                              : '看同一对手两格后，可交换一张或放弃；确认后完成本人换入。'
                             : c.ability === 'arceus'
                               ? '全桌含自身盖回，每人随机一明，每小局全桌一次，不洗牌重发。'
                               : c.ability === 'greninja'
@@ -1112,12 +1168,16 @@ function Rulebook({ profile }: { profile: RulesProfile }) {
               </div>
               <p>
                 示例：两条对角线归零，余牌合计13分。最低最终分可共同获胜。
-                {buffered
-                  ? '每位赢家按本人的研究条件授胜：通常一胜，奖励最多再加一胜；失败代价可能限制本局授胜或累计上限，已有胜场不撤回。累计达到三胜即可成为大局赢家。'
-                  : '先到三胜。'}
-                {buffered
-                  ? '计分明细显示本局实际增减分与授胜；最低分但未获胜星时，仍是下一小局起手候选。'
-                  : '计分明细显示基础分与研究减分。'}
+                {latest
+                  ? '每位最低分玩家各得一胜；研究只调整分数，不增加胜局。先累计三胜结束大局。'
+                  : buffered
+                    ? '每位赢家按本人的研究条件授胜：通常一胜，奖励最多再加一胜；失败代价可能限制本局授胜或累计上限，已有胜场不撤回。累计达到三胜即可成为大局赢家。'
+                    : '先到三胜。'}
+                {latest
+                  ? '计分明细区分有效值、归零后的计分贡献与研究调整；总分折半保留半分，暗置整行按逐牌折半向下取整。'
+                  : buffered
+                    ? '计分明细显示本局实际增减分与授胜；最低分但未获胜星时，仍是下一小局起手候选。'
+                    : '计分明细显示基础分与研究减分。'}
               </p>
             </>
           ),
@@ -1125,16 +1185,22 @@ function Rulebook({ profile }: { profile: RulesProfile }) {
         {
           id: 'research',
           label: '研究任务',
-          title: '24项开局＋6项丰缘任务',
+          title: latest ? '17项开局共同研究' : '24项开局＋6项丰缘任务',
           content: (
             <>
               <p>
-                三种丰缘神兽首次同时在玩家场地明置，追加专属任务；弃牌、暂持
-                {buffered ? '、缓冲' : ''}
-                和结算强制揭牌不计，最后合法行动仍可触发。两项只在结算判定。
-                {buffered
-                  ? '奖励可能改变牌分、扩大负分收益或增加授胜；归零判定保持不变。高收益任务也可能有未达成代价，逐项查看下方条件与风险。'
-                  : '各减分一次。'}
+                {latest ? (
+                  '开局从17项抽三个不同候选，全员暗投共同选择。任务只检查本人九格，未达成不处罚；组合羁绊不再追加专属研究。'
+                ) : (
+                  <>
+                    三种丰缘神兽首次同时在玩家场地明置，追加专属任务；弃牌、暂持
+                    {buffered ? '、缓冲' : ''}
+                    和结算强制揭牌不计，最后合法行动仍可触发。两项只在结算判定。
+                    {buffered
+                      ? '奖励可能改变牌分、扩大负分收益或增加授胜；归零判定保持不变。高收益任务也可能有未达成代价，逐项查看下方条件与风险。'
+                      : '各减分一次。'}
+                  </>
+                )}
                 数字使用复制后、归零前值，不展示局中暗牌进度。
               </p>
               <div className="expansion-screen ex-research-reference ex-rule-tasks">
@@ -1145,6 +1211,28 @@ function Rulebook({ profile }: { profile: RulesProfile }) {
             </>
           ),
         },
+        ...(latest
+          ? [
+              {
+                id: 'events',
+                label: '局内事件',
+                title: '一小局一次随机特殊事件',
+                content: (
+                  <>
+                    <p>
+                      全桌各完成两个正常回合后，标记牌混入剩余牌库。首次从牌库取得标记牌时公布事件，先于该牌的能力生效；额外摸牌也可能触发。六种事件等概率，每小局至多一次。
+                    </p>
+                    <p>
+                      雨、晴、沙、雪只调整场地当前明置牌；翻明或换入继续生效，盖回或离场停止。数值从印刷值重新计算，复制继承邻牌有效值，不再次加减。分数角标标出天气与来源，暗牌不显示变化。
+                    </p>
+                    <p>
+                      戏法空间只替换触发时场地的普通角色，含暗牌，保持实例、位置和明暗；之后换入不替换。Mega与羁绊暂只展示主题及“效果待设计”，没有额外分数或胜局效果。
+                    </p>
+                  </>
+                ),
+              },
+            ]
+          : []),
       ]}
     />
   );
@@ -1279,6 +1367,7 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
       data-play-mode={session.view?.playMode}
       data-rules-profile={profile}
     >
+      <EventEnvironment game={game} />
       <header className="ex-toolbar">
         <ScreenLink href={`/${session.role}`} className="secondary">
           ‹ 盒子
@@ -1343,7 +1432,11 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
       </header>
       <div className="ex-round-banner">
         <span>第 {game.roundNumber} 小局</span>
-        <strong>{phaseText[game.phase]}</strong>
+        <strong>
+          {game.phase === 'mewtwo-target' && profile === 'events-research-v3'
+            ? '超梦：私看对手一张'
+            : phaseText[game.phase]}
+        </strong>
         <span
           className="ex-current-actor"
           title={game.actorSeat ? names[game.actorSeat] : undefined}
@@ -1358,6 +1451,7 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
         </span>
         <TurnProgress game={game} />
       </div>
+      <EventStatus game={game} />
       {((session.message && session.message !== '已保存') ||
         !session.connected ||
         session.admissionPending ||

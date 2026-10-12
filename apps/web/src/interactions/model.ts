@@ -41,3 +41,25 @@ export function clampInteractionOrb(
     y: Math.max(vertical, Math.min(height - vertical, y)),
   };
 }
+
+/** Default controls stay at the right edge; user-dragged positions stay proportional. */
+export function restingInteractionOrb(
+  orb: { x: number; y: number; defaultPosition?: boolean },
+  width: number,
+  height: number,
+  themedY: number,
+  scrollY = 0,
+  followPage = false,
+) {
+  const themed = Number.isFinite(themedY) && themedY >= 0 && themedY <= 1;
+  const point = clampInteractionOrb(
+    orb.defaultPosition ? width - 38 : orb.x * width,
+    (orb.defaultPosition && themed ? themedY : orb.y) * height,
+    width,
+    height,
+  );
+  return {
+    ...point,
+    y: point.y - (orb.defaultPosition && followPage ? scrollY : 0),
+  };
+}

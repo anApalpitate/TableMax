@@ -4,6 +4,25 @@
   --tm-scroll-thumb: #52776c;
   --tm-scroll-hover: #215c51;
 }
+/* Reserve the title's right edge for the default movable interaction control. */
+:root:has(.expansion-screen.player) {
+  --interaction-orb-initial-y: 0;
+  --interaction-orb-scroll-with-page: 1;
+}
+@media (max-width: 799px) {
+  .expansion-screen.player .ex-toolbar > h1 {
+    padding-right: 64px;
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+@media (min-width: 800px) {
+  .expansion-screen.player .ex-toolbar {
+    padding-right: 64px;
+  }
+}
 /* Players never have the public supply sidebar, even below the wide breakpoint. */
 [data-player-display='wide'] .expansion-screen.player {
   max-width: none;
@@ -19,6 +38,8 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: start;
+    align-content: start;
+    grid-auto-rows: min-content;
     gap: 12px 24px;
     width: 100%;
     max-width: 1280px;
@@ -29,6 +50,7 @@
     min-width: 0;
     margin-top: 0;
     margin-bottom: 0;
+    align-self: start;
   }
   [data-player-display='wide']
     .expansion-screen.player
@@ -59,6 +81,7 @@
   }
   [data-player-display='wide'] .expansion-screen.player .ex-draw-options {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
   }
   [data-player-display='wide']
     .expansion-screen.player
@@ -77,11 +100,66 @@
     flex-direction: column;
   }
   [data-player-display='wide'] .expansion-screen.player .ex-vote-choice {
-    flex: 1;
+    flex: 0 0 auto;
   }
   [data-player-display='wide'] .expansion-screen.player .ex-research-strip {
     max-width: 1280px;
     margin: 12px auto;
+  }
+}
+
+/* Content-height operation controls must not inherit a tall board/grid track.
+   Board-slot buttons retain their card-sized hit area. */
+.expansion-screen.player
+  :is(.ex-simple-actions, .ex-held-options, .ex-target-list, .ex-branch) {
+  align-items: flex-start;
+  align-content: start;
+}
+.expansion-screen.player
+  :is(
+    .ex-simple-actions,
+    .ex-held-options,
+    .ex-target-list,
+    .ex-branch,
+    .ex-submit,
+    .ex-row-choice
+  )
+  > button {
+  align-self: start;
+  height: auto;
+  min-height: 48px;
+  max-height: none;
+}
+.expansion-screen.player .ex-simple-actions {
+  flex-direction: row;
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .expansion-screen.player .ex-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    align-content: start;
+    grid-auto-rows: min-content;
+    gap: 8px 12px;
+  }
+  .expansion-screen.player .ex-actions > * {
+    grid-column: 1;
+    min-width: 0;
+    margin-block: 0;
+  }
+  .expansion-screen.player .ex-actions > :is(.ex-target-board, .ex-row-choice) {
+    grid-column: 2;
+    grid-row: 1 / span 10;
+  }
+  .expansion-screen.player .ex-actions .ex-card {
+    height: 100px;
+    min-height: 100px;
+  }
+  .expansion-screen.player .ex-actions.ex-observing {
+    display: block;
+  }
+  .expansion-screen.player .ex-draw-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (min-width: 960px) and (max-height: 760px) {

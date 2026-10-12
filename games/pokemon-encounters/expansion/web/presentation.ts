@@ -5,6 +5,8 @@ type VisibleAction = Omit<PublicAction, 'source'> & {
   source?: 'deck' | 'discard' | undefined;
 };
 export type EventEffect = {
+  eventKind?: 'mega' | 'rain' | 'sandstorm' | 'sun' | 'snow' | 'trick-room';
+  placeholder?: boolean;
   entrance?: string;
   coin?: 'meowth' | 'pikachu';
   discardIndex?: 0 | 1;
@@ -189,7 +191,8 @@ export function expansionThemeFor(
   effect?: EventEffect,
 ): string | null {
   if (cue !== 'effect-complete') return null;
-  if (kind === 'research') return 'research';
+  if (['research', 'special-event', 'bond-placeholder'].includes(kind))
+    return 'research';
   const ability = startedAbility(action, effect);
   return ability &&
     [
@@ -228,7 +231,8 @@ export function expansionSoundRecipe(
         priority: 3,
       },
     ];
-  if (kind === 'research') return [cue('effect-complete')];
+  if (['research', 'special-event', 'bond-placeholder'].includes(kind))
+    return [cue('effect-complete')];
   const ability = startedAbility(action, effect);
   if (ability === 'team-rocket')
     return [

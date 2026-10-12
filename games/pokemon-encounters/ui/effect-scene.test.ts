@@ -51,8 +51,16 @@ describe('committed scene boundaries', () => {
       effectScene(action('swap', 'special-snorlax'), game, true)?.theme,
     ).toBe('result');
   });
-  it('expresses a public peek without a target, position or private card', () => {
+  it('adds public Charizard and Snorlax entrances only when their saved ability executes', () => {
     const scene = effectScene(action('peek', 'special-charizard'), game, false);
-    expect(scene).toBeNull();
+    expect(scene).toEqual({ theme: 'charizard', duration: 1650 });
+    expect(effectScene(action('swap', 'special-snorlax'), game, false)).toEqual(
+      { theme: 'snorlax', duration: 1550 },
+    );
+    expect(Object.keys(scene!)).toEqual(['theme', 'duration']);
+    for (const category of ['special-charizard', 'special-snorlax']) {
+      expect(effectScene(action('draw', category), game, false)).toBeNull();
+      expect(effectScene(action('decline', category), game, false)).toBeNull();
+    }
   });
 });

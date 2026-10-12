@@ -546,18 +546,20 @@
 
 /* Six-seat short displays share one supply row before the public buffers. */
 @media (min-width: 761px) and (max-height: 800px) {
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-supply {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     align-content: start;
     gap: 6px;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-supply
     > :is(
       .ex-supply-heading,
@@ -569,42 +571,48 @@
     grid-column: 1 / -1;
     margin: 0;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-supply-heading {
     grid-row: 1;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-piles {
     display: contents;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-piles
     > section {
     grid-row: 2;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-piles
     > [data-pile='deck'] {
     grid-column: 1;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-piles
     > [data-pile='discard'] {
     grid-column: 2;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-held {
     grid-column: 3;
     grid-row: 2;
@@ -615,24 +623,27 @@
     padding: 4px;
     min-height: 0;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-held
     > .ex-card {
     width: 100%;
     height: 120px;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-held.has-held
     > div {
     display: contents;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-held.has-held
     > div
     > span {
@@ -642,17 +653,19 @@
     min-height: 32px;
     margin: 0;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-held.has-held
     > div
     > strong {
     display: none; /* The adjacent card already names the held Pokémon. */
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-held
     p {
     margin: 0;
@@ -660,9 +673,10 @@
     line-height: 1.3;
     text-wrap: balance;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-held:not(.has-held)
     > div
     > strong {
@@ -670,29 +684,33 @@
     line-height: 1.3;
     text-wrap: balance;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-buffers {
     grid-row: 3;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-buffers
     h3 {
     margin: 0 0 4px;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-buffers
     > div {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-buffers
     .ex-buffer-card {
     display: grid;
@@ -703,17 +721,19 @@
     min-height: 0;
     padding: 4px;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-buffers
     .ex-buffer-card
     > div {
     display: contents;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-buffers
     .ex-buffer-label {
     grid-column: 1 / -1;
@@ -725,9 +745,10 @@
     font-size: 16px;
     line-height: 1.3;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-buffers
     :is(.ex-buffer-portrait, .ex-buffer-empty) {
     grid-column: 1 / -1;
@@ -736,9 +757,10 @@
     width: 40px;
     height: 44px;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-buffers
     .ex-buffer-card
     strong {
@@ -750,9 +772,10 @@
     white-space: nowrap;
     text-align: center;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-public-buffers
     .ex-buffer-state {
     grid-column: 1 / -1;
@@ -761,17 +784,19 @@
     line-height: 1.3;
     text-align: center;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-supply
     .ex-research-strip {
     grid-row: 4;
     padding-top: 6px;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-supply
     .ex-research-summary {
     grid-template-columns: 40px minmax(0, 1fr) auto;
@@ -779,9 +804,10 @@
     gap: 6px;
     padding: 6px;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-supply
     .ex-research-art {
     grid-column: 1;
@@ -789,17 +815,19 @@
     height: 28px;
     margin: 0;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-supply
     .ex-research-summary
     > span:nth-child(2) {
     grid-column: 2;
   }
-  .expansion-screen[data-players='6'][data-rules-profile='research-buffer-v2']:not(
-      .player
-    ):not([data-narrow-table='true'])
+  .expansion-screen[data-players='6']:is(
+      [data-rules-profile='research-buffer-v2'],
+      [data-rules-profile='events-research-v3']
+    ):not(.player):not([data-narrow-table='true'])
     .ex-supply
     .ex-research-summary
     > span:nth-child(2)

@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { GameHost } from '@tablemax/web-host';
-import { categories, abilityText, categoryPresentation } from '../cards';
+import {
+  categoriesForProfile,
+  abilityTextForProfile,
+  categoryPresentation,
+} from '../cards';
 import { AbilityEntrance } from '../../ui/AbilityEntrance';
 import { coinArt } from '../../../../assets/games/pokemon-encounters/catalog';
 import { useExpansionPresentation } from './PresentationContext';
@@ -10,6 +14,7 @@ import { poseSequences } from './poses/timeline';
 import { BoardEffects } from './BoardEffects';
 import { ordinaryTheme, type OrdinaryTheme } from './presentation';
 import { ResearchReward } from './ResearchReward';
+import { EventEntrance } from './EventEnvironment';
 
 /** The parent is keyed by saved event and branch. A cancelled clock never resumes. */
 function MotionPose({
@@ -218,6 +223,7 @@ function OrdinaryBurst({ theme }: { theme: OrdinaryTheme }) {
 
 export function SavedEffects({
   portraitFor,
+  game,
 }: {
   game: View;
   session: GameHost;
@@ -228,7 +234,9 @@ export function SavedEffects({
   const creature = current.kind === 'ability' ? current.creature : null;
   const sequence = creature ? poseSequences[creature] : undefined;
   const category = creature
-    ? categories.find((c) => c.categoryId === 'special-' + creature)
+    ? categoriesForProfile(game.rulesProfile).find(
+        (c) => c.categoryId === 'special-' + creature,
+      )
     : undefined;
   const draw =
     current.kind === 'board' ? ordinaryTheme(current.event.action) : null;
@@ -236,6 +244,9 @@ export function SavedEffects({
   const key = current.key;
   return (
     <>
+      {(current.kind === 'event' || current.kind === 'bond') && (
+        <EventEntrance event={current.event} durationMs={current.durationMs} />
+      )}
       {draw && <OrdinaryBurst key={'draw:' + key} theme={draw} />}
       {current.kind === 'board' && (
         <BoardEffects
@@ -272,8 +283,10 @@ export function SavedEffects({
                   side: 'left',
                   duration: current.durationMs,
                   title: category.name,
-                  subtitle: categoryPresentation(category.categoryId)
-                    .abilitySummary,
+                  subtitle: categoryPresentation(
+                    category.categoryId,
+                    game.rulesProfile,
+                  ).abilitySummary,
                 }}
               />
             </div>
@@ -287,15 +300,32 @@ export function SavedEffects({
               }
               aria-hidden="true"
             >
-              <div className="ex-cinematic-creature">
-                <MotionPose
-                  creatureId={creature}
-                  durationMs={current.durationMs}
-                />
+              <div
+                className={`ex-cinematic-creature ${creature === 'lucario' ? 'ex-lucario-wave' : ''}`}
+              >
+                {creature === 'lucario' ? (
+                  <>
+                    <i className="ex-aura-ring" />
+                    <img
+                      className="ex-aura-portrait"
+                      src={portraitFor(category.categoryId)}
+                      alt=""
+                    />
+                    <i className="ex-aura-pulse" />
+                  </>
+                ) : (
+                  <MotionPose
+                    creatureId={creature}
+                    durationMs={current.durationMs}
+                  />
+                )}
               </div>
               <strong>{category.name}</strong>
               <span>
-                {categoryPresentation(category.categoryId).abilitySummary}
+                {
+                  categoryPresentation(category.categoryId, game.rulesProfile)
+                    .abilitySummary
+                }
               </span>
             </div>
           )}
@@ -307,7 +337,9 @@ export function SavedEffects({
               <strong>{category.name}</strong>
               <p>
                 {category.ability
-                  ? abilityText[category.ability]
+                  ? abilityTextForProfile(
+                      game.rulesProfile ?? 'research-buffer-v2',
+                    )[category.ability]
                   : '复制相邻有效值'}
               </p>
             </div>
