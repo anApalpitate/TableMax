@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="850" viewBox="0 0 1000 850" role="img" aria-labelledby="title desc">
+<title id="title">雪天事件影响图示</title>
+<desc id="desc">天气调整前数值 ≥8 的牌 −2；≤3 的牌 ＋1；4–7 不变</desc>
+<rect width="1000" height="850" rx="36" fill="#fffaf0"/>
+<g font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif">
+<text x="46" y="76" font-size="42" fill="#27463b" text-anchor="start" font-weight="700">雪天事件</text>
+<text x="46" y="123" font-size="27" fill="#27463b" text-anchor="start" font-weight="500">公开场地影响 · 已确定规则</text>
+<rect x="40" y="152" width="920" height="333" rx="24" fill="#eaf2e3"/>
+<text x="72" y="198" font-size="26" fill="#27463b" text-anchor="start" font-weight="700">判定对象／条件</text>
+<text x="744" y="198" font-size="26" fill="#27463b" text-anchor="middle" font-weight="700">公开变化</text>
+<text x="72" y="259" font-size="32" fill="#27463b" text-anchor="start" font-weight="600">天气调整前数值 ≥8</text>
+<text x="550" y="259" font-size="32" fill="#27463b" text-anchor="start" font-weight="500">→</text>
+<text x="744" y="259" font-size="34" fill="#27463b" text-anchor="middle" font-weight="700">−2</text>
+<text x="72" y="347" font-size="32" fill="#27463b" text-anchor="start" font-weight="600">天气调整前数值 ≤3</text>
+<text x="550" y="347" font-size="32" fill="#27463b" text-anchor="start" font-weight="500">→</text>
+<text x="744" y="347" font-size="34" fill="#27463b" text-anchor="middle" font-weight="700">＋1</text>
+<text x="72" y="435" font-size="32" fill="#27463b" text-anchor="start" font-weight="600">天气调整前数值 4–7</text>
+<text x="550" y="435" font-size="32" fill="#27463b" text-anchor="start" font-weight="500">→</text>
+<text x="744" y="435" font-size="34" fill="#27463b" text-anchor="middle" font-weight="700">不变</text>
+<text x="48" y="542" font-size="28" fill="#27463b" text-anchor="start" font-weight="500">按原始或 Mega 后、尚未加天气的数值分档。</text>
+<text x="48" y="593" font-size="28" fill="#27463b" text-anchor="start" font-weight="500">调整后不再次判断档位，避免循环加减。</text>
+<text x="48" y="644" font-size="28" fill="#27463b" text-anchor="start" font-weight="500">持续至下一次天气事件或小局结束。</text>
+<text x="48" y="695" font-size="28" fill="#27463b" text-anchor="start" font-weight="500">只作用当前明置场地牌；盖回／离场即停止。</text>
+<text x="48" y="746" font-size="28" fill="#27463b" text-anchor="start" font-weight="500">复制牌复制天气调整后值，自身不再额外加减。</text>
+<text x="48" y="825" font-size="26" fill="#567260" text-anchor="start" font-weight="500">候选图示；按已保存的公开事件展示，未导入游戏。</text>
+</g>
+</svg>

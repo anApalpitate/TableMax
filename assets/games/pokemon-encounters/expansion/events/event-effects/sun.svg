@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="850" viewBox="0 0 1000 850" role="img" aria-labelledby="title desc">
+<title id="title">晴天事件影响图示</title>
+<desc id="desc">火系或草系牌 −2；水系牌 ＋2</desc>
+<rect width="1000" height="850" rx="36" fill="#fffaf0"/>
+<g font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif">
+<text x="46" y="76" font-size="42" fill="#27463b" text-anchor="start" font-weight="700">晴天事件</text>
+<text x="46" y="123" font-size="27" fill="#27463b" text-anchor="start" font-weight="500">公开场地影响 · 已确定规则</text>
+<rect x="40" y="152" width="920" height="333" rx="24" fill="#eaf2e3"/>
+<text x="72" y="198" font-size="26" fill="#27463b" text-anchor="start" font-weight="700">判定对象／条件</text>
+<text x="744" y="198" font-size="26" fill="#27463b" text-anchor="middle" font-weight="700">公开变化</text>
+<text x="72" y="259" font-size="32" fill="#27463b" text-anchor="start" font-weight="600">火系或草系</text>
+<text x="550" y="259" font-size="32" fill="#27463b" text-anchor="start" font-weight="500">→</text>
+<text x="744" y="259" font-size="34" fill="#27463b" text-anchor="middle" font-weight="700">−2</text>
+<text x="72" y="347" font-size="32" fill="#27463b" text-anchor="start" font-weight="600">水系</text>
+<text x="550" y="347" font-size="32" fill="#27463b" text-anchor="start" font-weight="500">→</text>
+<text x="744" y="347" font-size="34" fill="#27463b" text-anchor="middle" font-weight="700">＋2</text>
+<text x="72" y="435" font-size="32" fill="#27463b" text-anchor="start" font-weight="600">其余牌</text>
+<text x="550" y="435" font-size="32" fill="#27463b" text-anchor="start" font-weight="500">→</text>
+<text x="744" y="435" font-size="34" fill="#27463b" text-anchor="middle" font-weight="700">不作晴天调整</text>
+<text x="48" y="542" font-size="28" fill="#27463b" text-anchor="start" font-weight="500">只影响本人及全桌场地中的明置牌。</text>
+<text x="48" y="593" font-size="28" fill="#27463b" text-anchor="start" font-weight="500">天气持续至下一次天气事件或小局结束。</text>
+<text x="48" y="644" font-size="28" fill="#27463b" text-anchor="start" font-weight="500">翻明／换入即生效，盖回／离开场地即停止。</text>
+<text x="48" y="695" font-size="28" fill="#27463b" text-anchor="start" font-weight="500">以原始或 Mega 值计算；不累计上一天气。</text>
+<text x="48" y="746" font-size="28" fill="#27463b" text-anchor="start" font-weight="500">双属性只调整一次；复制牌复制调整后值。</text>
+<text x="48" y="825" font-size="26" fill="#567260" text-anchor="start" font-weight="500">候选图示；按已保存的公开事件展示，未导入游戏。</text>
+</g>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="850" viewBox="0 0 1000 850" role="img" aria-labelledby="title desc">
+<title id="title">Mega 事件影响图示</title>
+<desc id="desc">每张受影响牌的数值随机变为 **−5 至 12（含两端）的一个整数**</desc>
+<rect width="1000" height="850" rx="36" fill="#fffaf0"/>
+<g font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif">
+<text x="46" y="76" font-size="42" fill="#27463b" text-anchor="start" font-weight="700">Mega 事件</text>
+<text x="46" y="123" font-size="27" fill="#27463b" text-anchor="start" font-weight="500">公开场地影响 · 已确定规则</text>
+<rect x="40" y="152" width="920" height="333" rx="24" fill="#eaf2e3"/>
+<text x="72" y="198" font-size="26" fill="#27463b" text-anchor="start" font-weight="700">判定对象／条件</text>
+<text x="744" y="198" font-size="26" fill="#27463b" text-anchor="middle" font-weight="700">公开变化</text>
+<text x="72" y="259" font-size="32" fill="#27463b" text-anchor="start" font-weight="600">明置且能 Mega 的牌</text>
+<text x="550" y="259" font-size="32" fill="#27463b" text-anchor="start" font-weight="500">→</text>
+<text x="744" y="259" font-size="34" fill="#27463b" text-anchor="middle" font-weight="700">换为 Mega 形态</text>
+<text x="72" y="347" font-size="32" fill="#27463b" text-anchor="start" font-weight="600">数值范围</text>
+<text x="550" y="347" font-size="32" fill="#27463b" text-anchor="start" font-weight="500">→</text>
+<text x="744" y="347" font-size="34" fill="#27463b" text-anchor="middle" font-weight="700">−5 至 12</text>
+<text x="72" y="435" font-size="32" fill="#27463b" text-anchor="start" font-weight="600">每个整数概率</text>
+<text x="550" y="435" font-size="32" fill="#27463b" text-anchor="start" font-weight="500">→</text>
+<text x="744" y="435" font-size="34" fill="#27463b" text-anchor="middle" font-weight="700">1／18</text>
+<text x="48" y="542" font-size="28" fill="#27463b" text-anchor="start" font-weight="500">事件触发时，影响当时全桌场地的合资格明置牌。</text>
+<text x="48" y="593" font-size="28" fill="#27463b" text-anchor="start" font-weight="500">多形态角色：每张牌随机选取一个 Mega 形态。</text>
+<text x="48" y="644" font-size="28" fill="#27463b" text-anchor="start" font-weight="500">共 18 个整数，等概率；形态名单实施前核对。</text>
+<text x="48" y="695" font-size="28" fill="#27463b" text-anchor="start" font-weight="500">暗牌、牌库、缓冲、弃牌及暂持牌不受影响。</text>
+<text x="48" y="746" font-size="28" fill="#27463b" text-anchor="start" font-weight="500">持续／盖回／离场／重复触发边界仍待补充。</text>
+<text x="48" y="825" font-size="26" fill="#567260" text-anchor="start" font-weight="500">候选图示；按已保存的公开事件展示，未导入游戏。</text>
+</g>
+</svg>
