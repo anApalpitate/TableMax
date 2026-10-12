@@ -1,2 +1,2 @@
 # Preserve accepted SVG source bytes and their recorded SHA-256 on checkout.
-*.svg -text
+*.svg -text whitespace=cr-at-eol
