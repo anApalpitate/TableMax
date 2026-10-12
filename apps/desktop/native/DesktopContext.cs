@@ -36,6 +36,8 @@ namespace TableMax.Desktop
         private bool quitting, booting = true, powerActive;
         private int nextId = 1;
         private readonly object outputLock = new object();
+        private readonly Dictionary<int, Process> browserProcesses = new Dictionary<int, Process>();
+        private TaskCompletionSource<bool> browserReleased = new TaskCompletionSource<bool>();
         public string DataDirectory { get; }
         public TableMax.Portable.StorageConfiguration Storage { get; }
         public bool Testing { get; }
@@ -133,6 +135,7 @@ namespace TableMax.Desktop
             }
             options.AdditionalBrowserArguments = browserArguments;
             Environment = await CoreWebView2Environment.CreateAsync(null, Path.Combine(DataDirectory, "desktop", "webview2"), options);
+            Environment.BrowserProcessExited += (_, __) => browserReleased.TrySetResult(true);
             EnsureServiceAlive();
             await ShowHost();
             EnsureServiceAlive();
@@ -311,9 +314,71 @@ namespace TableMax.Desktop
         {
             if (quitting) return;
             quitting = true; UpdatePower();
-            foreach (var window in windows.ToArray()) window.Close();
-            if (service != null) { await service.Stop(); service.Dispose(); service = null; }
-            ExitThread();
+            try
+            {
+                CaptureBrowserProcesses();
+                foreach (var window in windows.ToArray())
+                    try { window.Close(); }
+                    catch (Exception cause) { Log("Window shutdown: " + cause.Message); try { window.Dispose(); } catch (Exception cleanup) { Log("Window dispose: " + cleanup.Message); } }
+                if (service != null)
+                    try { await service.Stop(); }
+                    catch (Exception cause) { Log("Service shutdown: " + cause.Message); Program.ExitCode = 1; }
+                    finally { service.Dispose(); service = null; }
+            }
+            finally
+            {
+                try { await StopBrowserProcesses(); }
+                finally { ExitThread(); }
+            }
+        }
+        // Retain OS handles before disposing the last controller. A captured
+        // handle refers to the original process even if Windows reuses its PID.
+        public void CaptureBrowserProcesses()
+        {
+            if (Environment == null) return;
+            try
+            {
+                foreach (var entry in browserProcesses.Where(entry => entry.Value.HasExited).ToArray())
+                { entry.Value.Dispose(); browserProcesses.Remove(entry.Key); }
+                foreach (var info in Environment.GetProcessInfos())
+                {
+                    if (browserReleased.Task.IsCompleted) browserReleased = new TaskCompletionSource<bool>();
+                    if (browserProcesses.ContainsKey(info.ProcessId)) continue;
+                    Process process = null;
+                    try
+                    {
+                        process = Process.GetProcessById(info.ProcessId);
+                        var handle = process.Handle;
+                        browserProcesses.Add(info.ProcessId, process); process = null;
+                    }
+                    catch (ArgumentException) { }
+                    catch (InvalidOperationException) { }
+                    finally { process?.Dispose(); }
+                }
+            }
+            catch (Exception cause) { Log("WebView2 process capture: " + cause.Message); }
+        }
+        private async Task StopBrowserProcesses()
+        {
+            try
+            {
+                var waiting = Stopwatch.StartNew();
+                // This event also confirms resource/user-data-folder release;
+                // GetProcessInfos alone excludes the runtime crash reporter.
+                if (browserProcesses.Count > 0) await Task.WhenAny(browserReleased.Task, Task.Delay(5000));
+                while (browserProcesses.Values.Any(process => !process.HasExited) && waiting.ElapsedMilliseconds < 5000) await Task.Delay(50);
+                foreach (var process in browserProcesses.Values)
+                    if (!process.HasExited)
+                    {
+                        Log("WebView2 shutdown timeout; stopping owned process " + process.Id + ".");
+                        try { process.Kill(); }
+                        catch (InvalidOperationException) { }
+                        catch (Exception cause) { Log("WebView2 terminate: " + cause.Message); Program.ExitCode = 1; }
+                    }
+                await Task.Run(() => { foreach (var process in browserProcesses.Values) if (!process.WaitForExit(1000)) throw new IOException("WebView2 process did not stop: " + process.Id); });
+            }
+            catch (Exception cause) { Log("WebView2 shutdown: " + cause.Message); Program.ExitCode = 1; }
+            finally { foreach (var process in browserProcesses.Values) process.Dispose(); browserProcesses.Clear(); }
         }
         public void Write(object value) { lock (outputLock) Console.WriteLine(Json.Encode(value)); }
         private async Task ReadTestCommands()

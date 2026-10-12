@@ -74,6 +74,7 @@ namespace TableMax.Desktop
             Move += (_, __) => ApplyDisplay();
             DpiChanged += (_, __) => ApplyDisplay();
             VisibleChanged += (_, __) => context.UpdatePower();
+            FormClosing += (_, __) => context.CaptureBrowserProcesses();
             FormClosed += (_, __) => { AudioReady = false; InteractionAudioReady = false; browser.Dispose(); };
         }
         protected override void Dispose(bool disposing)

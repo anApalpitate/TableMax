@@ -297,6 +297,7 @@ node --test tools/test/runner/scopes.test.mjs
 | `pnpm verify:experience`                                               | 隐藏窗口验证游戏库按需加载、管理员指定手机房主、并发初始翻牌和准备、连接／显示控件及声音归属；可加 `--portable` 验证历史ZIP档案输入                                         |
 | `pnpm verify:effects`                                                  | 后台 WebView2 用实际游戏组件和授权投影 fixture 验证主题、同币面、暗牌交换、零分列、共同赢家和减少动态；不冒充自然对局                                                       |
 | `pnpm verify:memory`                                                   | 独立 Node 比较存档复制开销，再用后台 WebView2 执行 20 轮游戏切换的 heap／DOM 回归；可加 `--copy-only` 或 `--desktop-only`                                                   |
+| `node tools/test/desktop/verify-shutdown.mjs`                          | 检查关闭窗口、后台进程、DLL占用与删除生成目录后重建；`--native=<隔离编译目录>`仅用于候选壳                                                                                  |
 | `node tools/test/desktop/verify-native-safety.mjs --evidence=<独立名>` | 检查桥接拒绝、重复启动、缺运行时、生产 CDP 关闭及服务／父进程崩溃清理                                                                                                       |
 | `pnpm verify:game-ui`                                                  | 正式能力／2–6 人保存 fixture 的十五组 UI、多尺寸触控／隐私、已保存动效和声音                                                                                                |
 | `pnpm verify:cards`                                                    | 正式六人保存状态的全部 16 类卡面及公共／手机十三种布局、图像／文字／分区几何                                                                                                |

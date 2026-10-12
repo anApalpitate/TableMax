@@ -1,5 +1,15 @@
 # 首版交付与验收
 
+## 1.0.6.3：关闭与WebView2资源释放（2026-10-12）
+
+当前本地交付为 **TableMax-1.0.6.3-win-x64.exe**，公开版本仍为1.0.6。关闭前持有专属环境进程句柄，释放控件后等待WebView2资源释放，超时仅清理本程序已捕获的进程；窗口异常也继续服务清理。此前已有Node Job Object保护继续保留。用户报告首次游玩后删除生成目录、再次打开时出现WinForms DLL问题；缺少报错全文，不能把此报告确定为唯一根因。
+
+[实际交付退出检查](../../artifacts/maintenance/v1.0.6/desktop-shutdown-1.0.6.3/run-1791777310010/results.json)通过最后窗口关闭、双窗口退出、删除整个隔离TableMax目录后重新生成和启动：各次桌面、Node及CDP记录的WebView2进程均已退出，WinForms DLL可独占读写打开。[完整EXE证明](../../artifacts/maintenance/v1.0.6/windows-editions/6476a96f7447e27636b8943e1cf68e137a1a57c55cfef75d7102c7a229ad3624/shipping-executable-checks-full.json)通过完整载荷哈希、文件集合、重复提取及原生桥接／异常退出安全。EXE为43,702,784字节，内部ZIP为43,570,526字节，实际提取为96,523,779字节，均低于120,000,000字节；EXE SHA-256为45eff9712c56019c1a87c2d0f9df674c5e606cb9ef4f14e8128ccab94fd7364f。
+
+候选壳验证先遇到隔离启动权限及预装模块夹具缺失；实际包的首次重建在测试用Node递归删除后遇到临时目录访问拒绝，[失败记录](../../artifacts/maintenance/v1.0.6/desktop-shutdown-1.0.6.3/results.json)保留。夹具改为单一PowerShell原生删除后受影响检查通过，不将夹具失败认定为用户报错复现。游戏构建复用上一冻结快照，仅更新平台；没有重跑未变游戏整局。当前包仅本地导出，不发布GitHub／Pages或源码ZIP。
+
+旧1.0.6.2本地EXE和清单经预览与现行证明核对后退役，[清理记录](../../artifacts/maintenance/local-cleanup-20261012-035702-471-releases/cleanup.json)保留删除依据及哈希；旧内部payload与验收仍保留。工程退出后安全维护实测6,673,566,554逻辑字节（6.215GiB，工具口径排除链接和嵌套仓库），低于10GiB阈值，追加删除0；近期测试副本继续保护。下文旧轮次保持各自构建边界。
+
 ## 1.0.6：唯一完整 EXE（2026-10-12）
 
 Windows交付统一为 **TableMax-1.0.6.2-win-x64.exe**，公开版本仍为1.0.6。预装6款正式游戏、7个玩法；取消盒子版、游戏单独下载／导入／更新／卸载／回退及对应API和原生选包桥接。游戏库保留搜索、分类、人数筛选和选择，旧局显示“正在继续旧版本对局”。新局使用本EXE的验证预装映射；原局固定发行引用和资源，无引用旧档按精确版本匹配，缺失、模糊或接口不兼容时保留原档并说明所需旧完整EXE。原局下一轮不换版本，再玩一局切当前发行。
@@ -20,7 +30,7 @@ Windows交付统一为 **TableMax-1.0.6.2-win-x64.exe**，公开版本仍为1.0.
 
 [实际跨版本验证](../../artifacts/maintenance/v1.0.6/version-adaptability-20261012/actual-compatibility.json)使用旧、新盒子实际EXE提取出的包内Node服务：旧盒子安装协议7原包并拒绝协议8新阿瓦隆包；补充[实际目录与下载验证](../../artifacts/maintenance/v1.0.6/version-adaptability-20261012/actual-compatibility-online.json)确认旧盒子通过原固定URL推荐旧兼容阿瓦隆并下载当前兼容的现代艺术代码／资源，新盒子通过稳定URL推荐新能力包，分发请求只重定向至127.0.0.1签名夹具；新盒子恢复旧盒子生成的SQLite对局，保留原UNO发行及对局身份，再导入新旧包不替换原存档引用。两次提取夹具在嵌套新目录遇访问限制，改用已通过交付检查的tmp直接独立目录后通过，未修改权限或历史EXE。
 
-两种[实际EXE证明](../../artifacts/maintenance/v1.0.6/windows-editions/7731b4230e052468c53ef652ad4b4040f93d130e1ca55e5f8742089077ce576a/shipping-executable-checks-full.json)均绑定快照 `7731b4230e05…576a`，盒子[证明](../../artifacts/maintenance/v1.0.6/windows-editions/7731b4230e052468c53ef652ad4b4040f93d130e1ca55e5f8742089077ce576a/shipping-executable-checks-box.json)同目录。full／box EXE分别 **43,706,368／34,910,208字节**，实际验收提取 **96,533,614／87,494,954字节**，均低于120MB；完整成员、重复提取和静音隐藏原生安全通过，运行时身份实测为1.0.6.1。full仅预装当前7个玩法，签名目录另保留历史引用。原双交付的SHA和内部payload绑定保留在上述两份实际证明；现行current.json仅绑定1.0.6.2完整EXE。
+两种[实际EXE证明](../../artifacts/maintenance/v1.0.6/windows-editions/7731b4230e052468c53ef652ad4b4040f93d130e1ca55e5f8742089077ce576a/shipping-executable-checks-full.json)均绑定快照 `7731b4230e05…576a`，盒子[证明](../../artifacts/maintenance/v1.0.6/windows-editions/7731b4230e052468c53ef652ad4b4040f93d130e1ca55e5f8742089077ce576a/shipping-executable-checks-box.json)同目录。full／box EXE分别 **43,706,368／34,910,208字节**，实际验收提取 **96,533,614／87,494,954字节**，均低于120MB；完整成员、重复提取和静音隐藏原生安全通过，运行时身份实测为1.0.6.1。full仅预装当前7个玩法，签名目录另保留历史引用。原双交付的SHA和内部payload绑定保留在上述两份实际证明；现行current.json仅绑定1.0.6.3完整EXE。
 
 历史公开字节未修改。上一轮两种EXE与本地清单逐文件SHA保全到[历史证据](../../artifacts/maintenance/v1.0.6/version-adaptability-20261012/before/preservation.json)。当前候选目录包含18个发行／20个内容包；历史离线包中同名不同内嵌总目录的两份字节按显式历史来源优先，双方路径与SHA留[构建记录](../../artifacts/game-packages/v1.0.6/current/build-record.json)。新离线包只签自身闭包，后续无关目录更新不会改变它。[49文件静态目录回环检查](../../artifacts/pages/verification-pYQ92w/results.json)覆盖逐文件URL、哈希、离线闭包和篡改／覆盖拒绝；不代表真实CDN、所有历史盒子、实体手机或现场LAN已认证。
 
@@ -482,11 +492,11 @@ release目录仅保留当前ZIP和清单；近期打包过程目录移入tmp继�
 
 ## 当前源码与本地交付
 
-当前本地交付为本页[唯一完整EXE](#106唯一完整-exe2026-10-12)的 `TableMax-1.0.6.2-win-x64.exe`与本地清单；内部payload、manifest及 `current.json`位于 `artifacts/package-payloads/v1.0.6/`。预装6款正式游戏／7个玩法，新局固定本EXE的验证映射；旧局按原精确发行继续。当前交付与实际证明保留，历史构建只按各自哈希和原结果认定。
+当前本地交付为本页[关闭与资源释放](#1063关闭与webview2资源释放2026-10-12)的 `TableMax-1.0.6.3-win-x64.exe`与本地清单；内部payload、manifest及 `current.json`位于 `artifacts/package-payloads/v1.0.6/`。预装6款正式游戏／7个玩法，新局固定本EXE的验证映射；旧局按原精确发行继续。当前交付与实际证明保留，历史构建只按各自哈希和原结果认定。
 
-EXE、内部载荷、原图、签名仓库和本地验收不随源码push上传。公开版本仍为1.0.6，线上已发布附件保持2026-10-11的原字节，本地1.0.6.2尚未发布。提交／推送不授权Release或Pages部署，不生成源码ZIP。
+EXE、内部载荷、原图、签名仓库和本地验收不随源码push上传。公开版本仍为1.0.6，线上已发布附件保持2026-10-11的原字节，本地1.0.6.3尚未发布。提交／推送不授权Release或Pages部署，不生成源码ZIP。
 
-最新深度瘦身实测 **5,896,919,854逻辑字节**（含受保护嵌套仓库），达到本次6GB目标，见[瘦身记录](project-slimming.md#深度瘦身至6gb内2026-10-12)。历次“原包保留”和容量数字仅表示当时状态；已按审计退役的历史包／截图由当前精确清单说明，不修改原失败、文字结论或逐文件哈希。
+此前深度瘦身实测 **5,896,919,854逻辑字节**（含受保护嵌套仓库），达到当次6GB目标；本次构建与验证后维护实测6.215GiB（排除链接与嵌套仓库），低于默认10GiB阈值，见[瘦身记录](project-slimming.md#深度瘦身至6gb内2026-10-12)。历次“原包保留”和容量数字仅表示当时状态；已按审计退役的历史包／截图由当前精确清单说明，不修改原失败、文字结论或逐文件哈希。
 
 本页[手写改动单第1项](#106手写改动单第1项2026-10-11)曾交付运行ZIP，SHA `0048f55745f66c289eed918b78efccb058afbd4e2014bbc67655d36cc3be52c5`；该真实旧包作为明确迁移／验证输入保留在独立历史目录。下方更早的电力公司及宝可梦整合结论仍限定原版本，不表示当前需下载ZIP或重复其完整整局检查。
 
