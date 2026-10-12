@@ -62,9 +62,6 @@ export function PlayerControls({
             <span>
               已选 {selected.length} / {game.questSizes[game.questNumber - 1]}{' '}
               人
-              {selected.length
-                ? ` · ${selected.map((id) => names[id]).join('、')}`
-                : ''}
             </span>
           </div>
           <button

@@ -42,12 +42,12 @@
     box-shadow 160ms,
     background 160ms;
 }
-.avalon-screen button:hover:not(:disabled),
+.avalon-screen button:hover:not(:disabled):not(.av-seat),
 .av-overlay .av-panel button:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 5px 12px #67532b24;
 }
-.avalon-screen button:active:not(:disabled),
+.avalon-screen button:active:not(:disabled):not(.av-seat),
 .av-overlay .av-panel button:active:not(:disabled) {
   transform: translateY(1px);
 }
@@ -412,7 +412,6 @@
   opacity: 1;
 }
 .avalon-screen .av-seat:hover:not(:disabled) {
-  transform: translate(-50%, -53%);
   box-shadow:
     0 8px 20px #604d3940,
     inset 0 0 0 2px #2d7a6880;
@@ -793,6 +792,18 @@
   inset: 0 0 22%;
   background: url('../../../assets/games/avalon/roles.webp')
     var(--role-position) / 200% 300% no-repeat;
+}
+:where(.avalon-screen, .av-overlay)
+  .av-role-card[data-role='mordred']
+  .av-role-portrait {
+  background: url('../../../assets/games/avalon/mordred.webp') center / cover
+    no-repeat;
+}
+:where(.avalon-screen, .av-overlay)
+  .av-role-card[data-role='oberon']
+  .av-role-portrait {
+  background: url('../../../assets/games/avalon/oberon.webp') center / cover
+    no-repeat;
 }
 :where(.avalon-screen, .av-overlay) .av-role-caption {
   position: absolute;
@@ -1822,9 +1833,6 @@
     border-radius: 14px;
     gap: 2px;
   }
-  .avalon-screen .av-seat:hover:not(:disabled) {
-    transform: translateY(-2px);
-  }
   :where(.avalon-screen, .av-overlay) .av-seat-portrait {
     width: 54px;
     height: 54px;
@@ -2220,9 +2228,6 @@
     width: 100%;
     transform: none;
     min-height: 120px;
-  }
-  .avalon-screen .av-council--expanded .av-seat:hover:not(:disabled) {
-    transform: translateY(-2px);
   }
   .avalon-screen .av-council--expanded .av-seat > strong {
     white-space: normal;

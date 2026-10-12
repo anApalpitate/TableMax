@@ -9,8 +9,8 @@ const positions: Record<Role, string> = {
   morgana: '100% 50%',
   assassin: '0% 100%',
   minion: '100% 100%',
-  mordred: '100% 100%',
-  oberon: '100% 100%',
+  mordred: '50% 50%',
+  oberon: '50% 50%',
 };
 function alignmentFor(role: Role) {
   return ['merlin', 'percival', 'servant'].includes(role) ? 'good' : 'evil';

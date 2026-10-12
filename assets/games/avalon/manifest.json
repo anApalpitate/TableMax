@@ -15,7 +15,7 @@
   ],
   "postprocessing": "Original PNG retained. Atlas object extraction and centered portrait square crops, proportional Lanczos resizing, exact equal-grid reassembly and WebP compression only; no painted content redrawn, no alpha removal or inferred roles/secret data.",
   "derivationScript": "artifacts/avalon-art/derive-assets-v1.py",
-  "runtimeBytes": 1245020,
+  "runtimeBytes": 1440702,
   "assets": [
     {
       "id": "council",
@@ -226,6 +226,92 @@
           "artifacts/avalon/validation/source-success-first/010-effect-success-assassination.png"
         ],
         "verification": "Actual hidden WinForms/WebView2 rendering shows decorative council seals, quest chalice and full-screen final sword with alpha retained. Dynamic animation telemetry is maintained in the cited successful native rendering results."
+      }
+    },
+    {
+      "id": "mordred",
+      "file": "mordred.webp",
+      "version": 1,
+      "transparent": false,
+      "source": "built-in imagegen",
+      "attribution": "TableMax original interpretive artwork, built-in imagegen; not official Avalon artwork.",
+      "sourceFile": "../TMP/TableMaxMaterial/originals/avalon/mordred-source-v1.png",
+      "promptFile": "../TMP/TableMaxMaterial/work/avalon/mordred-prompt-v1.txt",
+      "prompt": "Use case: stylized-concept\nAsset type: ONE square bust character portrait for TableMax Avalon, original artwork.\nInput image: existing six-portrait atlas is STYLE REFERENCE ONLY; make a single new portrait, not an atlas, do not copy any existing character.\nPrimary request: Mordred, a secretive aristocratic knight of Arthurian legend. A refined adult man around 40, pale olive skin, long dark hair swept back, narrow calculating eyes, a neatly trimmed dark pointed beard. Cold composed self-assurance, face completely readable. Ornately engraved blackened steel armor with aged bronze detailing, rich burgundy velvet mantle and discreet noble clasp; one gauntleted hand rests on a sword hilt low at the edge. No hood, no crown; distinguish him from the existing hooded assassin and broad rough minion.\nScene: subdued stone castle arch and soft peacock-teal mist, parchment-gold light across his face.\nStyle: match reference mature premium tabletop illustration, fine copperplate engraving linework and hand-painted watercolor/gouache, weathered parchment print grain, antique bronze, peacock teal and burgundy. Natural anatomy; elegant tactile richness. Not photo, cartoon, anime, neon or 3D.\nComposition: ONE full bleed square portrait 1024x1024, head and shoulders, face centered in upper half with clear silhouette. Room for square cropping, keep entire head in canvas.\nConstraints: original character design, no official Avalon card reproduction. Absolutely no words, letters, numbers, symbols with rule meaning, labels, signatures, logos, watermarks, UI or borders. Fully clothed, no blood. A single person only.",
+      "width": 512,
+      "height": 512,
+      "originalWidth": 1254,
+      "originalHeight": 1254,
+      "bytes": 99424,
+      "sha256": "00964cd3df0a2fc3493d54cdc1c9b760d68e8ece5a397b4d85a9a44e5a6cd681",
+      "originalSha256": "ddccb245a2c744e8b581b7e45b21621eac8c0b993fe3af69d3f47f1e0b058463",
+      "alphaExtrema": null,
+      "webpQuality": 86,
+      "toolElapsedMs": 52183,
+      "status": {
+        "generated": true,
+        "visuallyVerified": true,
+        "importedInUi": true,
+        "candidate": false
+      },
+      "visualVerification": "Distinct secretive aristocratic knight with blackened engraved armor and burgundy mantle; readable face, full head, original mature engraving/watercolor style, no text or borders.",
+      "referenceImage": {
+        "file": "assets/games/avalon/roles.webp",
+        "role": "style reference only"
+      },
+      "postprocessing": "Proportional Lanczos reduction to 512x512 and WebP quality 86, method 6. No crop, no content editing.",
+      "uiVerification": {
+        "referenceFile": "games/avalon/ui/RoleCard.tsx",
+        "styleFile": "games/avalon/ui/style.css",
+        "resultFile": "artifacts/avalon/validation/selection-20261012/final/results.json",
+        "screenshots": [
+          "artifacts/avalon/validation/selection-20261012/final/6-1920.png",
+          "artifacts/avalon/validation/selection-20261012/final/10-390.png"
+        ],
+        "verification": "Hidden muted Edge rendering of production Council, PlayerControls and RoleCard, using legal configured-game projection. Distinct portraits decoded and inspected; component fixture, not a new EXE or native end-to-end acceptance."
+      }
+    },
+    {
+      "id": "oberon",
+      "file": "oberon.webp",
+      "version": 1,
+      "transparent": false,
+      "source": "built-in imagegen",
+      "attribution": "TableMax original interpretive artwork, built-in imagegen; not official Avalon artwork.",
+      "sourceFile": "../TMP/TableMaxMaterial/originals/avalon/oberon-source-v1.png",
+      "promptFile": "../TMP/TableMaxMaterial/work/avalon/oberon-prompt-v1.txt",
+      "prompt": "Use case: stylized-concept\nAsset type: ONE square bust character portrait for TableMax Avalon, original artwork.\nInput image: existing six-portrait atlas is STYLE REFERENCE ONLY; make one new portrait, not an atlas, do not copy any existing character.\nPrimary request: Oberon, a solitary sinister Arthurian figure estranged from fellow conspirators. A lean adult man about 55 with a long narrow weathered face, severe pale gray-green eyes, tangled ash-gray and dark hair to the shoulders, irregular short gray beard. Gaunt and calculating, fully human, eerie reserve. Distinct from the existing noble knights, hooded assassin and elderly white-bearded Merlin. Worn forest-green cloak with frayed edges over dark burgundy rough cloth, a small old bronze clasp; slender bare hand holds a gnarled wooden staff at the lower side. No armor, no crown, no horns.\nScene: solitary in an ancient twisted woodland, mossy trees and muted jade mist, warm parchment light makes his face easy to read. No castle, companions or animals.\nStyle: match reference mature premium tabletop illustration, fine copperplate engraving linework and hand-painted watercolor/gouache, weathered parchment print grain, antique bronze, peacock teal and burgundy. Natural expressive anatomy; tactile fabric and wood. Not photo, cartoon, anime, neon or 3D.\nComposition: ONE full bleed square portrait 1024x1024, head and shoulders, face centered in upper half, entire head in canvas, clear asymmetrical silhouette. Dramatic but not horror; avoid excessive darkness.\nConstraints: original character design, no official Avalon card reproduction. Absolutely no words, letters, numbers, symbols with rule meaning, labels, signatures, logos, watermarks, UI or borders. Fully clothed, no blood. A single person only.",
+      "width": 512,
+      "height": 512,
+      "originalWidth": 1254,
+      "originalHeight": 1254,
+      "bytes": 96258,
+      "sha256": "8a33d3fa410d1abe8284143d8fc8839be13b9f960ad4d2ec83489fc86be20876",
+      "originalSha256": "95163da03407955fe68a15f80a774b348c85f50835e95047b3aaec52a336820d",
+      "alphaExtrema": null,
+      "webpQuality": 86,
+      "toolElapsedMs": 29368,
+      "status": {
+        "generated": true,
+        "visuallyVerified": true,
+        "importedInUi": true,
+        "candidate": false
+      },
+      "visualVerification": "Distinct solitary woodland figure, weathered face, ragged green cloak and wooden staff; readable face, full head, original mature engraving/watercolor style, no text or borders.",
+      "referenceImage": {
+        "file": "assets/games/avalon/roles.webp",
+        "role": "style reference only"
+      },
+      "postprocessing": "Proportional Lanczos reduction to 512x512 and WebP quality 86, method 6. No crop, no content editing.",
+      "uiVerification": {
+        "referenceFile": "games/avalon/ui/RoleCard.tsx",
+        "styleFile": "games/avalon/ui/style.css",
+        "resultFile": "artifacts/avalon/validation/selection-20261012/final/results.json",
+        "screenshots": [
+          "artifacts/avalon/validation/selection-20261012/final/6-1920.png",
+          "artifacts/avalon/validation/selection-20261012/final/10-390.png"
+        ],
+        "verification": "Hidden muted Edge rendering of production Council, PlayerControls and RoleCard, using legal configured-game projection. Distinct portraits decoded and inspected; component fixture, not a new EXE or native end-to-end acceptance."
       }
     }
   ],
