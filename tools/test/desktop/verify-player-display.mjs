@@ -8,20 +8,18 @@ import {
 } from '../../shared/workspace-root.mjs';
 if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
-import {
-  MAXIMUM_PACKAGE_BYTES,
-  PACKAGE_BUDGET_BYTES,
-} from '../../release/package-limits.mjs';
 import assert from 'node:assert/strict';
-import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { launchDesktop } from '../support/desktop-test.mjs';
 import { launchTestBrowser } from '../support/browser-test.mjs';
 import { playerFrame, playerUi } from '../support/player-test.mjs';
+import {
+  extractCurrentDelivery,
+  materializePokemonClients,
+} from '../support/shipping-input.mjs';
 
 const argument = (name) =>
   process.argv
@@ -53,9 +51,8 @@ await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 // Existing audited temporary prefix: no new cleanup exclusion or deletion path.
 const work = await mkdtemp(resolve('tmp/debug-portable-'));
-const execute = promisify(execFile);
-const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 let portable = resolve('build/desktop');
+let delivery, packagedPokemon;
 const report = {
   version,
   status: 'running',
@@ -77,52 +74,23 @@ const report = {
   errors: [],
 };
 if (!source) {
-  const archive = resolve(
-    argument('archive') ?? `artifacts/releases/TableMax-${version}-win-x64.zip`,
-  );
-  const manifest = JSON.parse(
-    await readFile(archive.replace('.zip', '-manifest.json'), 'utf8'),
-  );
-  const bytes = await readFile(archive);
-  report.archiveSha256 = hash(bytes);
-  assert.equal(
-    report.archiveSha256,
-    argument('sha256'),
-    'Frozen ZIP hash required',
-  );
-  assert.equal(report.archiveSha256, manifest.archive.sha256);
-  assert.equal(bytes.length, manifest.archive.bytes);
-  assert.ok(
-    bytes.length < MAXIMUM_PACKAGE_BYTES &&
-      manifest.extractedBytes < MAXIMUM_PACKAGE_BYTES,
-  );
-  portable = join(work, 'portable');
-  await execute(
-    'powershell.exe',
-    [
-      '-NoProfile',
-      '-Command',
-      'Expand-Archive -LiteralPath $env:DISPLAY_ARCHIVE -DestinationPath $env:DISPLAY_EXTRACT',
-    ],
-    {
-      windowsHide: true,
-      env: {
-        ...process.env,
-        DISPLAY_ARCHIVE: archive,
-        DISPLAY_EXTRACT: portable,
-      },
-    },
-  );
-  let total = 0;
-  for (const entry of manifest.files) {
-    const bytes = await readFile(join(portable, entry.path));
-    assert.equal(bytes.length, entry.bytes, entry.path);
-    assert.equal(hash(bytes), entry.sha256, entry.path);
-    total += bytes.length;
-  }
-  assert.equal(total, manifest.extractedBytes);
-  assert.ok(total <= PACKAGE_BUDGET_BYTES);
-  report.packageBytes = { archive: bytes.length, extracted: total };
+  delivery = await extractCurrentDelivery({
+    work,
+    expectedSha256: argument('sha256'),
+  });
+  portable = delivery.extracted;
+  if (onlyGame === 'pokemon-encounters')
+    packagedPokemon = await materializePokemonClients(
+      delivery,
+      work,
+      join(work, 'module-probe'),
+    );
+  report.binding = delivery.binding;
+  report.packageBytes = {
+    executable: delivery.binding.executableBytes,
+    payload: delivery.binding.payloadBytes,
+    extracted: delivery.binding.extractedBytes,
+  };
 }
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
@@ -212,6 +180,7 @@ async function open(token, contextOptions = {}) {
   await page.goto(origin + (state.gameView ? '/player/game' : ''));
   page.__displayToken = token;
   pages.push(page);
+  page.__displayMobile = contextOptions.isMobile === true;
   await rendered(page, state);
   return page;
 }
@@ -412,7 +381,7 @@ async function resultGeometry(frame, name) {
 }
 async function geometry(page, name, size, next) {
   await page.setViewportSize({ width: size[0], height: size[1] });
-  if (size[0] >= 800) await mode(page, next);
+  if (size[0] >= 800 && !page.__displayMobile) await mode(page, next);
   else {
     await page
       .locator('main.player-frame[data-player-display="mobile"]')
@@ -429,6 +398,7 @@ async function geometry(page, name, size, next) {
     );
   });
   await markerGeometry(child, name);
+  await operationGeometry(page, child, name);
   const resultHero = await resultGeometry(child, name);
   const metrics = await child.evaluate(() => ({
     width: innerWidth,
@@ -532,7 +502,7 @@ async function geometry(page, name, size, next) {
     }
   const frame = await page.locator('iframe[data-player-frame]').boundingBox();
   assert.ok(frame.width <= size[0] && frame.height <= size[1]);
-  if (size[0] >= 800) {
+  if (size[0] >= 800 && !page.__displayMobile) {
     const control = await page.locator('.player-frame__display').boundingBox();
     assert.equal(control.width, 48);
     assert.equal(control.height, 48);
@@ -797,6 +767,7 @@ async function layouts(page, name, token, full) {
     for (const size of full
       ? [
           [1280, 720],
+          [1366, 768],
           [1920, 1080],
           [3840, 2160],
           [1055, 768],
@@ -834,6 +805,337 @@ async function layouts(page, name, token, full) {
   }
   assert.equal((await view(token)).revision, before.revision);
   await stableDraft(page, token, name);
+  if (before.gameView?.rulesProfile === 'events-research-v3') {
+    const phone = await phonePage(token);
+    for (const [orientation, size] of [
+      ['portrait', [390, 844]],
+      ['landscape', [844, 390]],
+    ])
+      await geometry(phone, `${name}-phone-${orientation}`, size, 'mobile');
+    assert.equal((await view(token)).revision, before.revision);
+  }
+}
+async function phonePage(token) {
+  return (
+    pages.find(
+      (page) => page.__displayToken === token && page.__displayMobile,
+    ) ??
+    open(token, {
+      viewport: { width: 390, height: 844 },
+      isMobile: true,
+      hasTouch: true,
+      userAgent:
+        'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36',
+    })
+  );
+}
+/** Record actual rendered operation heights and unobstructed touch points. */
+async function operationGeometry(page, frame, name) {
+  const buttons = frame.locator(
+    '.expansion-screen.player .ex-actions button:enabled:visible',
+  );
+  const records = [];
+  for (const button of await buttons.all()) {
+    await button.scrollIntoViewIfNeeded();
+    const record = await button.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      const card =
+        element.classList.contains('card-slot') ||
+        element.classList.contains('ex-source');
+      let naturalHeight = null;
+      if (!card) {
+        const probe = element.cloneNode(true);
+        Object.assign(probe.style, {
+          position: 'fixed',
+          visibility: 'hidden',
+          pointerEvents: 'none',
+          width: `${rect.width}px`,
+          flex: 'none',
+          alignSelf: 'start',
+        });
+        probe.style.setProperty('height', 'auto', 'important');
+        probe.style.setProperty('min-height', '0', 'important');
+        probe.style.setProperty('max-height', 'none', 'important');
+        element.parentElement.append(probe);
+        naturalHeight = probe.getBoundingClientRect().height;
+        probe.remove();
+      }
+      const hitDetails = [];
+      const points = [
+        [0.5, 0.5],
+        [0.25, 0.25],
+        [0.75, 0.25],
+        [0.25, 0.75],
+        [0.75, 0.75],
+      ].map(([x, y]) => {
+        const hit = document.elementFromPoint(
+          rect.x + rect.width * x,
+          rect.y + rect.height * y,
+        );
+        hitDetails.push(
+          hit
+            ? {
+                tag: hit.tagName,
+                className: hit.className,
+                label: hit.getAttribute('aria-label'),
+              }
+            : null,
+        );
+        return hit === element || element.contains(hit);
+      });
+      return {
+        action: element.dataset.action ?? null,
+        name: element.getAttribute('aria-label') ?? element.textContent?.trim(),
+        rect: [rect.x, rect.y, rect.width, rect.height],
+        naturalHeight,
+        font: parseFloat(style.fontSize),
+        points,
+        hitDetails,
+      };
+    });
+    records.push(record);
+  }
+  (report.buttonGeometry ??= []).push({
+    name,
+    mobile: page.__displayMobile === true,
+    records,
+  });
+  await save();
+  for (const record of records) {
+    assert.ok(
+      record.font >= 18,
+      `${name}: ${record.name} primary operation text is below 18px`,
+    );
+    assert.ok(
+      record.rect[2] >= 44 && record.rect[3] >= 44,
+      `${name}: ${record.name} touch target is below 44px`,
+    );
+    assert.ok(
+      record.points.every(Boolean),
+      `${name}: ${record.name} has an obscured touch point`,
+    );
+    if (record.naturalHeight !== null)
+      assert.ok(
+        record.rect[3] <= Math.max(48, record.naturalHeight) + 2,
+        `${name}: ${record.name} stretched from natural ${record.naturalHeight}px to ${record.rect[3]}px`,
+      );
+  }
+  return records;
+}
+async function prepareExpansionAction(page, state, action) {
+  const ui = playerUi(page);
+  const type = action.type;
+  if (type === 'vote-research')
+    return ui.locator(
+      `[data-action="vote-research"][data-research="${action.taskId}"]`,
+    );
+  if (type === 'draw')
+    return ui.locator(
+      `[data-action="draw"][data-source="${action.source}"]${action.source === 'discard' ? `[data-discard-index="${action.discardIndex}"]` : ''}`,
+    );
+  if (type === 'mewtwo-exchange')
+    return ui.locator(
+      `[data-action="mewtwo-exchange"][data-slot-index="${action.slot}"]`,
+    );
+  if (
+    type === 'reposition' &&
+    !(await ui.locator('.ex-reposition-source').getAttribute('class')).includes(
+      'selected',
+    )
+  )
+    await ui.locator('.ex-reposition-source').click();
+  if (action.seat)
+    await ui.locator(`[data-target-seat="${action.seat}"]`).click();
+  const slotIndexes =
+    'a' in action
+      ? [action.a, action.b]
+      : 'slot' in action
+        ? [action.slot]
+        : [];
+  if (slotIndexes.length) {
+    const board = ui.locator('.ex-target-board .pokemon-board');
+    const selectedSlots = await board
+      .locator('button[aria-pressed="true"]')
+      .evaluateAll((buttons) =>
+        buttons.map((button) => button.getAttribute('data-slot')),
+      );
+    for (const slot of selectedSlots)
+      await board.locator(`button[data-slot="${slot}"]`).click();
+    for (const index of slotIndexes) {
+      const slotId =
+        state.gameView.boards[action.seat ?? state.self.seatId][index].slotId;
+      await board.locator(`button[data-slot="${slotId}"]`).click();
+    }
+    if (type === 'ninja-target')
+      await ui
+        .locator('.ex-branch button')
+        .nth(action.swap ? 1 : 0)
+        .click();
+  }
+  const button = ui
+    .locator(
+      `[data-action="${type}"]${action.direction ? `[data-direction="${action.direction}"]` : ''}`,
+    )
+    .filter({ visible: true });
+  return (await button.count()) === 1 ? button : null;
+}
+async function clickExpansionAction(page, state, action, label) {
+  const type = action.type;
+  const button = await prepareExpansionAction(page, state, action);
+  if (!button) return false;
+  await operationGeometry(page, await playerFrame(page), label);
+  const before = state.revision;
+  await button.click();
+  const deadline = Date.now() + 10000;
+  let after;
+  do {
+    after = await view(page.__displayToken);
+    if (after.revision > before) break;
+    await page.waitForTimeout(50);
+  } while (Date.now() < deadline);
+  assert.ok(
+    after.revision > before,
+    `${label}: a real click must save the authorized action`,
+  );
+  await rendered(page, after);
+  const saved = after.gameView.events.findLast((event) => event.action);
+  const verb =
+    type === 'ninja-target'
+      ? action.swap
+        ? 'ninja-swap'
+        : 'ninja-cover'
+      : type;
+  assert.equal(
+    saved?.action?.verb,
+    verb,
+    `${label}: clicked action did not match its saved public record`,
+  );
+  if (type === 'mewtwo-target') {
+    assert.ok(
+      'slot' in action && !('a' in action),
+      'v3 Mewtwo target must have a single slot',
+    );
+    assert.equal(
+      after.gameView.peek?.cards.length,
+      1,
+      'v3 Mewtwo must reveal exactly one authorized card',
+    );
+  }
+  (report.actionsClicked ??= []).push({
+    label,
+    type,
+    mobile: page.__displayMobile === true,
+    viewport: page.viewportSize(),
+    revision: after.revision,
+  });
+  await save();
+  return true;
+}
+async function expansionDraftMatrix(page, state, action, name) {
+  const phone = await phonePage(page.__displayToken);
+  await rendered(phone, state);
+  const records = [];
+  for (const [client, display, width, height] of [
+    [page, 'portrait', 1280, 720],
+    [page, 'wide', 1280, 720],
+    [phone, 'mobile', 390, 844],
+    [phone, 'mobile', 844, 390],
+  ]) {
+    await client.setViewportSize({ width, height });
+    if (client === page) await mode(client, display);
+    const button = await prepareExpansionAction(client, state, action);
+    if (!button) return;
+    await button.scrollIntoViewIfNeeded();
+    await operationGeometry(
+      client,
+      await playerFrame(client),
+      `${name}-${display}-${width}-draft`,
+    );
+    assert.equal(
+      (await view(page.__displayToken)).revision,
+      state.revision,
+      `${name}: selecting a target must stay local until confirmation`,
+    );
+    if (action.type === 'mewtwo-target') {
+      assert.equal(
+        await playerUi(client)
+          .locator('.ex-target-board button[aria-pressed="true"]')
+          .count(),
+        1,
+      );
+      assert.match(await button.innerText(), /查看这一张牌/);
+    }
+    records.push({
+      display,
+      width,
+      height,
+      mobile: client.__displayMobile === true,
+    });
+    await capture(client, `${name}-${display}-${width}-draft`);
+  }
+  (report.actionDrafts ??= []).push({
+    name,
+    type: action.type,
+    matrix: records,
+  });
+  await save();
+}
+async function expansionWeatherGeometry(page, state, name) {
+  if (state.gameView.rulesProfile !== 'events-research-v3') return;
+  const ui = playerUi(page);
+  const expected = Object.values(state.gameView.boards)
+    .flat()
+    .filter((slot) => slot.card?.scoreEffect);
+  const faces = [];
+  for (const slot of expected) {
+    const stack = ui
+      .locator(`[data-slot="${slot.slotId}"] .ex-value-stack`)
+      .filter({ visible: true })
+      .first();
+    if (!(await stack.count())) continue;
+    const renderedValue = await stack.getAttribute('data-effective-value');
+    assert.equal(Number(renderedValue), slot.card.effectiveValue);
+    assert.equal(
+      await stack.getAttribute('data-score-effect'),
+      slot.card.scoreEffect.kind,
+    );
+    const card = stack
+      .locator(
+        'xpath=ancestor::*[contains(concat(" ",normalize-space(@class)," ")," ex-card ")]',
+      )
+      .first();
+    const background = await card
+      .locator('.card-value')
+      .evaluate((element) => getComputedStyle(element).backgroundColor);
+    if (slot.card.scoreEffect.kind === 'rain')
+      assert.equal(
+        background,
+        'rgb(215, 237, 249)',
+        'Rain score badge must use the pale blue effect background',
+      );
+    if (slot.card.scoreEffect.inherited)
+      assert.match(await stack.getAttribute('aria-label'), /复制继承/);
+    faces.push({
+      slot: slot.slotId,
+      effectiveValue: slot.card.effectiveValue,
+      source: await stack.getAttribute('aria-label'),
+      background,
+      inherited: slot.card.scoreEffect.inherited === true,
+    });
+  }
+  assert.equal(
+    await ui.locator('.ex-public-buffers').count(),
+    0,
+    'Public supply must not list player buffers',
+  );
+  (report.weatherGeometry ??= []).push({
+    name,
+    kind: state.gameView.currentEvent?.kind ?? null,
+    faces,
+    authorizedWeatherFaces: expected.length,
+    renderedWeatherFaces: faces.length,
+  });
 }
 async function pageControls(page, name, token) {
   await mode(page, 'wide');
@@ -960,6 +1262,7 @@ async function auditSnapshot(page, ui, frame, name) {
     );
   });
   const resultHero = await resultGeometry(frame, name);
+  await operationGeometry(page, frame, name);
   const metrics = await frame.evaluate(() => {
     const visible = (element) => {
       const rect = element.getBoundingClientRect();
@@ -1146,17 +1449,62 @@ async function auditPhase(current, humans, index, state, name, first) {
     first ||
     ['round-result', 'match-result', 'ended'].includes(state.gameView.phase);
   const incomeDialogs = state.gameView.phase === 'powering';
-  const player = playerUi(current);
-  const frame = await playerFrame(current);
+  const desktopPage = current;
+  const mobilePage =
+    onlyGame === 'pokemon-encounters'
+      ? await phonePage(current.__displayToken)
+      : current;
+  if (first && onlyGame === 'pokemon-encounters') {
+    await mode(current, 'wide');
+    const cdp = await current.context().newCDPSession(current);
+    try {
+      for (const scale of [1.25, 1.5]) {
+        const size = [Math.round(1920 / scale), Math.round(1080 / scale)];
+        await cdp.send('Emulation.setDeviceMetricsOverride', {
+          width: size[0],
+          height: size[1],
+          deviceScaleFactor: scale,
+          mobile: false,
+        });
+        await geometry(current, `${name}-scale-${scale}`, size, 'wide');
+      }
+    } finally {
+      await cdp.send('Emulation.clearDeviceMetricsOverride');
+      await cdp.detach();
+    }
+  }
   for (const [width, height, display] of [
     [320, 568, 'mobile'],
     [360, 640, 'mobile'],
     [390, 844, 'mobile'],
+    ...(onlyGame === 'pokemon-encounters'
+      ? [
+          [430, 932, 'mobile'],
+          [568, 320, 'mobile'],
+          [844, 390, 'mobile'],
+          [932, 430, 'mobile'],
+        ]
+      : []),
+    [799, 390, 'mobile'],
     [1280, 720, 'portrait'],
     [1280, 720, 'wide'],
+    ...(onlyGame === 'pokemon-encounters'
+      ? [
+          [1366, 768, 'portrait'],
+          [1366, 768, 'wide'],
+          [1920, 1080, 'portrait'],
+          [1920, 1080, 'wide'],
+          [3840, 2160, 'portrait'],
+          [3840, 2160, 'wide'],
+          [1280, 480, 'wide'],
+        ]
+      : []),
   ]) {
+    const current = display === 'mobile' ? mobilePage : desktopPage;
+    const player = playerUi(current);
+    const frame = await playerFrame(current);
     await current.setViewportSize({ width, height });
-    if (width >= 800) await mode(current, display);
+    if (display !== 'mobile') await mode(current, display);
     await current.waitForTimeout(80);
     await frame.evaluate(() => {
       window.scrollTo(0, 0);
@@ -1279,6 +1627,7 @@ async function auditPhase(current, humans, index, state, name, first) {
       for (const [width, height] of [
         [1280, 720],
         [1920, 1080],
+        ...(onlyGame === 'pokemon-encounters' ? [[3840, 2160]] : []),
       ]) {
         await cdp.send('Emulation.setDeviceMetricsOverride', {
           width,
@@ -1341,9 +1690,13 @@ try {
           ? ['original']
           : ['original', 'expansion']
       : [null])
-      for (const count of quick || scrollOnly || visualAudit
-        ? [scrollOnly || auditMin ? game.min : game.max]
-        : [...new Set([game.min, game.max])]) {
+      for (const count of visualAudit &&
+      onlyGame === 'pokemon-encounters' &&
+      !auditMin
+        ? [2, 4, 6]
+        : quick || scrollOnly || visualAudit
+          ? [scrollOnly || auditMin ? game.min : game.max]
+          : [...new Set([game.min, game.max])]) {
         if ((await view()).status === 'playing') await command({ type: 'end' });
         await command({ type: 'new-room' });
         await command({ type: 'select-game', gameId: game.id });
@@ -1404,12 +1757,16 @@ try {
           .first()
           .waitFor();
         const module = createRequire(import.meta.url)(
-          join(portable, `bots/${game.id}.cjs`),
+          game.id === 'pokemon-encounters' && packagedPokemon
+            ? packagedPokemon.botPath
+            : join(portable, `bots/${game.id}.cjs`),
         );
         const bot = module.botsByVariant?.[variant] ?? module.bot;
         const memories = new Map(),
           seen = new Set(),
-          bufferActions = new Set();
+          bufferActions = new Set(),
+          clickedTypes = new Set(),
+          eventKinds = new Set();
         const wanted =
           game.id === 'power-grid'
             ? ['regions', 'auction', 'resources', 'building', 'powering']
@@ -1438,10 +1795,22 @@ try {
             index = Math.max(0, actor),
             state = views[index],
             phase = state.gameView.phase;
-          const label =
+          let label =
             phase === 'auction' && state.gameView.auction
               ? `auction-${state.gameView.auction.kind ?? 'plants'}`
               : phase;
+          if (variant === 'expansion') {
+            assert.equal(
+              state.gameView.rulesProfile,
+              'events-research-v3',
+              'Current expansion new game must use v3; restored legacy fixtures have separate validation',
+            );
+            const kind = state.gameView.currentEvent?.kind;
+            if (kind && !eventKinds.has(kind)) {
+              eventKinds.add(kind);
+              label += `-event-${kind}`;
+            }
+          }
           const current =
             pages.find((p) => p.__displayToken === humans[index].token) ??
             (await open(humans[index].token));
@@ -1453,6 +1822,8 @@ try {
             )
             .first()
             .waitFor();
+          if (variant === 'expansion')
+            await expansionWeatherGeometry(current, state, `${name}-${label}`);
           if (!seen.has(label)) {
             seen.add(label);
             if (visualAudit && (!onlyAuditPhase || label === onlyAuditPhase))
@@ -1529,6 +1900,20 @@ try {
             if (missing) chosen.action = missing;
           }
           if (variant === 'expansion') {
+            if (
+              ![
+                'research-vote',
+                'initial-flip',
+                'draw',
+                'place',
+                'round-result',
+              ].includes(phase)
+            ) {
+              const ability = state.actions.find(
+                (action) => action.type !== 'decline-ability',
+              );
+              if (ability) chosen.action = ability;
+            }
             const buffer = state.actions.find(
               (action) =>
                 ['store-buffer', 'draw-buffer'].includes(action.type) &&
@@ -1547,21 +1932,111 @@ try {
           }
           // Safely dispose any UI-only draft before advancing with an authorized action.
           memories.set(human.token, chosen.memory);
-          await command(
-            {
-              type: 'game',
-              decisionId: state.decisionId,
-              action: chosen.action,
-            },
-            human.token,
-            human.client,
-          );
+          let clicked = false;
+          if (variant === 'expansion') {
+            if (!clickedTypes.has(chosen.action.type))
+              await expansionDraftMatrix(
+                current,
+                state,
+                chosen.action,
+                `${name}-${phase}-${chosen.action.type}`,
+              );
+            const phone = await phonePage(human.token);
+            const [clickPage, display, width, height] = [
+              [current, 'portrait', 1280, 720],
+              [current, 'wide', 1280, 720],
+              [phone, 'mobile', 390, 844],
+              [phone, 'mobile', 844, 390],
+            ][step % 4];
+            await clickPage.setViewportSize({ width, height });
+            if (clickPage === current) await mode(clickPage, display);
+            await rendered(clickPage, state);
+            clicked = await clickExpansionAction(
+              clickPage,
+              state,
+              chosen.action,
+              `${name}-${phase}-${display}-${width}`,
+            );
+            if (clicked) clickedTypes.add(chosen.action.type);
+          }
+          if (!clicked)
+            await command(
+              {
+                type: 'game',
+                decisionId: state.decisionId,
+                action: chosen.action,
+              },
+              human.token,
+              human.client,
+            );
         }
         await checked(`${name}: authorized phases ${[...seen].join(', ')}`);
         if (variant === 'expansion')
           await checked(
             `${name}: authorized buffer operations ${[...bufferActions].join(', ') || 'not offered before this scenario ended'}`,
           );
+        if (variant === 'expansion') {
+          const requiredPhases = [
+            'research-vote',
+            'initial-flip',
+            'draw',
+            'place',
+            'charizard-choice',
+            'charizard-view',
+            'snorlax-choice',
+            'mewtwo-target',
+            'mewtwo-choice',
+            'lucario-choice',
+            'lucario-draw',
+            'greninja-choice',
+            'row-choice',
+            'round-result',
+          ];
+          const requiredActions = [
+            'vote-research',
+            'initial-flip',
+            'draw',
+            'replace',
+            'store-buffer',
+            'draw-buffer',
+            'peek',
+            'swap',
+            'mewtwo-target',
+            'mewtwo-exchange',
+            'extra-draw',
+            'ninja-target',
+            'row-target',
+          ];
+          const requiredEvents = [
+            'mega',
+            'rain',
+            'sandstorm',
+            'sun',
+            'snow',
+            'trick-room',
+          ];
+          (report.v3Coverage ??= []).push({
+            name,
+            observedPhases: [...seen],
+            clickedActions: [...clickedTypes],
+            observedEvents: [...eventKinds],
+            uncoveredPhases: requiredPhases.filter(
+              (phase) =>
+                ![...seen].some(
+                  (label) =>
+                    label === phase || label.startsWith(phase + '-event-'),
+                ),
+            ),
+            unclickedActions: requiredActions.filter(
+              (action) => !clickedTypes.has(action),
+            ),
+            uncoveredEvents: requiredEvents.filter(
+              (kind) => !eventKinds.has(kind),
+            ),
+            scope:
+              'Only observed authorized scenarios count. Natural random draws do not establish coverage of missing scenarios; deterministic rule/fixture validation remains separate.',
+          });
+        }
         for (const page of pages.splice(0)) await page.context().close();
         for (const human of humans) human.client.disconnect();
       }
@@ -1579,5 +2054,6 @@ try {
   for (const socket of sockets) socket.disconnect();
   await browser?.close();
   await desktop?.close();
+  await delivery?.assertUnchanged();
   await save();
 }

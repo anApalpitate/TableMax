@@ -447,3 +447,11 @@ v1.0.5实际ZIP40,857,197字节／解压94,363,202字节，120MB硬上限与114M
 ## WebView2退出修复收尾（2026-10-12）
 
 1.0.6.3实际完整EXE与退出／目录重建验收通过后，退役旧1.0.6.2本地EXE及清单，当前载荷、旧内部载荷、验收、素材与存档保留；依据及哈希见[一次清理记录](../../artifacts/maintenance/local-cleanup-20261012-035702-471-releases/cleanup.json)。工程退出后执行一次 `scripts/Maintain-Project.ps1 -Apply`，工具实测6,673,566,554逻辑字节（6.215GiB，排除链接和嵌套仓库），低于10GiB，追加删除0；近期验证副本继续保护。本值不与此前包含嵌套仓库的5.897GB口径直接比较，不新增第二轮删除。
+
+## 宝可梦新版交付收尾（2026-10-12）
+
+1.0.6.10实际完整EXE及适用服务、手机／电脑横竖、显示、演出、结算与自然游玩专项通过后，工程进程退出，再集中执行唯一一次逐文件清理。经预览与SHA绑定审计，71个过期生成范围共26,441文件、**6,526,191,088字节**退役；包括旧隔离运行／原生提取副本、失败候选截图及1.0.6.4／5／7／8／9候选EXE与内部载荷副本。保留每个删除文件的路径、字节、SHA和失败JSON／文字结论，不另存待删备份。范围见[最终审计清单](../../artifacts/maintenance/v1.0.6/pokemon-events-v3-verification/cleanup-20261012/retirement-plan.json)，实际结果见[单次退役日志](../../artifacts/maintenance/reviewed-retirements/pokemon-v3-20261012-once.json)。
+
+当前1.0.6.10 EXE、内部ZIP、manifest、实际提取、全部通过验收及当前截图继续保护；92份正式原素材、规则原件、真实旧存档、模块仓库、依赖／工具缓存、链接与嵌套仓库保持。唯一旧1.0.6.3 EXE及清单逐文件SHA核验后原样移动到真实恢复夹具的[正式旧交付证据](../../artifacts/maintenance/v1.0.6/pokemon-events-v3-verification/legacy-v2-1063-20261012-a/original-delivery/preservation.json)，未删除或复制原件；历史路径由该映射说明。release目录仅保留当前完整EXE与本地清单，旧候选manifest文字证据另保留。
+
+收尾 `scripts/Maintain-Project.ps1 -Apply` 实测 **10,340,767,910逻辑字节（9.631GiB）**，排除1,768链接及1个嵌套仓库；低于默认10GiB阈值，追加删除0，[维护结果](../../artifacts/maintenance/v1.0.6/pokemon-events-v3-verification/cleanup-20261012/maintenance-final.json)保留。预览时为16,143,062,543字节，最终容量也包含随后新增的当前复验与审计，因此不能简单用前后差值代替实际删除量。当前验证闭包和近期副本继续保护，未达到8GiB，不扩大范围或追加第二轮删除；不与此前包含嵌套仓库的6GB一次性目标混用口径。

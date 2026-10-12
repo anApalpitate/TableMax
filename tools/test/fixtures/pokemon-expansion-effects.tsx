@@ -1,8 +1,18 @@
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { HostedGame } from '../../../packages/web-host/src';
+import { configureGameHost } from '../../../packages/web-host/src/platform';
 import type { RoomSession } from '../../../apps/web/src/session/useRoomSession';
 import { client } from '../../../games/pokemon-encounters/expansion/web';
+import { client as originalClient } from '../../../games/pokemon-encounters/web';
+import {
+  rules as originalRules,
+  type Action as OriginalAction,
+} from '../../../games/pokemon-encounters/rules';
+import {
+  validateState as validateOriginalState,
+  type State as OriginalState,
+} from '../../../games/pokemon-encounters/rules/state';
 import { PoseArt } from '../../../games/pokemon-encounters/expansion/web/poses';
 import { poseSequences } from '../../../games/pokemon-encounters/expansion/web/poses/timeline';
 import { pokemonExpansion as rules } from '../../../games/pokemon-encounters/expansion';
@@ -13,8 +23,31 @@ import {
   type Action,
 } from '../../../games/pokemon-encounters/expansion/state';
 import { RandomSource } from '../../../packages/platform-core/src/random';
+import {
+  eventKinds,
+  type EventKind,
+} from '../../../games/pokemon-encounters/expansion/events';
 import '../../../apps/web/src/styles.css';
 
+const avatarImages: Record<string, string> = await fetch('/avatars.json').then(
+  (response) => response.json(),
+);
+configureGameHost({
+  ScreenLink: (props) => <a {...props} />,
+  FullscreenControl: () => null,
+  DisplaySettings: () => null,
+  useAudioOutput: () => false,
+  claimAudioEvent: () => false,
+  avatarFor: (id) => avatarImages[id] ?? '',
+  avatarChoices: [],
+});
+const presentation = {
+  management: () => null,
+  feedback: () => null,
+  playMode: () => null,
+  countdown: ({ children }: { children?: import('react').ReactNode }) =>
+    children ?? null,
+};
 type Settings = {
   creature?: string;
   ordinary?: string;
@@ -24,6 +57,7 @@ type Settings = {
   connected?: boolean;
   branch?: number;
   terminal?: boolean;
+  event?: EventKind;
 };
 declare global {
   interface Window {
@@ -31,20 +65,73 @@ declare global {
       phase: string;
       events: State['events'];
       privateCards: string[];
+      boards: ReturnType<typeof rules.project>['boards'];
+      beforeBoards: ReturnType<typeof rules.project>['boards'];
+      currentEvent: ReturnType<typeof rules.project>['currentEvent'];
+      overrideCount: number;
     };
     expansionGallery(creature: string): void;
     expansionReenter(): void;
     expansionTimelines: typeof poseSequences;
     expansionCommands: { action: string; before: string; after: string }[];
+    expansionSceneTrace: { kind: string; name: string; at: number }[];
+    originalShow(
+      creature: 'charizard' | 'snorlax',
+      animate?: boolean,
+    ): {
+      phase: string;
+      events: OriginalState['events'];
+      actions: OriginalAction[];
+    };
+    originalClear(): void;
   }
 }
 const root = createRoot(document.getElementById('root')!);
 const seats = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
 let serial = 0;
 let currentSession: RoomSession;
+let observedNodes = new WeakSet<Element>();
+window.expansionSceneTrace = [];
+new MutationObserver((records) => {
+  for (const record of records)
+    for (const node of record.addedNodes) {
+      if (!(node instanceof Element)) continue;
+      const scenes = [
+        node,
+        ...node.querySelectorAll(
+          '[data-event-entrance],[data-sequence],.anime-entrance[data-scene]',
+        ),
+      ];
+      for (const scene of scenes) {
+        if (observedNodes.has(scene)) continue;
+        const kind = scene.hasAttribute('data-event-entrance')
+          ? 'event'
+          : scene.hasAttribute('data-sequence')
+            ? 'ability'
+            : scene.matches('.anime-entrance[data-scene]')
+              ? 'original'
+              : null;
+        if (!kind) continue;
+        observedNodes.add(scene);
+        window.expansionSceneTrace.push({
+          kind,
+          name:
+            scene.getAttribute('data-event-entrance') ??
+            scene.getAttribute('data-sequence') ??
+            scene.getAttribute('data-scene')!,
+          at: performance.now(),
+        });
+      }
+    }
+}).observe(document.getElementById('root')!, {
+  childList: true,
+  subtree: true,
+});
 function fixture(settings: Settings) {
   window.expansionCommands = [];
-  const ctx = { seats, random: new RandomSource(1060651) };
+  const random = new RandomSource(1060651);
+  let eventRandom: number | undefined;
+  const ctx = { seats, random: { next: () => eventRandom ?? random.next() } };
   let state = rules.initialize(ctx);
   const apply = (action: Action) => {
     const actor =
@@ -94,11 +181,37 @@ function fixture(settings: Settings) {
   }
   const category = settings.ordinary
     ? `ordinary-${settings.ordinary}`
-    : `special-${settings.creature ?? 'mewtwo'}`;
+    : settings.event && !settings.creature
+      ? 'ordinary-4'
+      : `special-${settings.creature ?? 'mewtwo'}`;
   const wanted = `${category}#01`,
     top = state.deck.at(-1)!;
   if (wanted !== top) swapInstance(wanted, top);
   state.deck[state.deck.length - 1] = wanted;
+  if (settings.event) {
+    // A constructed, validated boundary input; the draw itself uses the real rule transaction.
+    placeReference(actor, 0, 'special-zorua');
+    placeReference(actor, 3, 'ordinary-magikarp');
+    placeReference(actor, 1, 'ordinary-3');
+    placeReference(actor, 2, 'ordinary-garchomp');
+    placeReference(actor, 4, 'ordinary-rowlet');
+    placeReference(actor, 5, 'ordinary-psyduck');
+    placeReference(actor, 6, 'ordinary-dragonite');
+    state.normalTurnsBySeat = Object.fromEntries(
+      seats.map((seat) => [seat, 2]),
+    );
+    state.randomEvent = {
+      markerInstanceId: wanted,
+      kind: null,
+      triggered: false,
+      protected: false,
+    };
+    eventRandom =
+      (eventKinds.indexOf(settings.event) + 0.5) / eventKinds.length;
+  } else {
+    // Reordering a visual fixture must leave its still-protected marker in the deck.
+    state.randomEvent!.markerInstanceId = state.deck[0]!;
+  }
   validateState(state, seats);
   const before = rules.project(state, { role: 'public' });
   apply({ type: 'draw', source: 'deck' });
@@ -110,7 +223,7 @@ function fixture(settings: Settings) {
       throw new Error(`Missing legal fixture ${type}/${state.phase}`);
     apply(selected);
   };
-  if (!settings.ordinary) {
+  if (!settings.ordinary && (!settings.event || settings.creature)) {
     const creature = settings.creature ?? 'mewtwo';
     if (creature === 'mew') take('mew-target');
     else if (creature === 'mewtwo') {
@@ -151,7 +264,7 @@ function fixture(settings: Settings) {
   const currentSeats = seats.map((id, i) => ({
     id,
     name: `玩家${i + 1}`,
-    avatarId: `builtin-${i + 1}`,
+    avatarId: `avatar-${i + 1}`,
     controller: 'human' as const,
     ready: true,
     online: true,
@@ -243,7 +356,9 @@ function fixture(settings: Settings) {
   return { session, state, game, events, before };
 }
 window.expansionShow = (settings) => {
-  const { session, game, events, before } = fixture(settings);
+  window.expansionSceneTrace = [];
+  observedNodes = new WeakSet();
+  const { session, state, game, events, before } = fixture(settings);
   currentSession = session;
   document.body.className = '';
   if (settings.animate !== false) {
@@ -255,23 +370,141 @@ window.expansionShow = (settings) => {
     } as RoomSession;
     flushSync(() =>
       root.render(
-        <HostedGame key={serial} session={baseline} client={client} />,
+        <HostedGame
+          presentation={presentation}
+          key={serial}
+          session={baseline}
+          client={client}
+        />,
       ),
     );
   }
   flushSync(() =>
-    root.render(<HostedGame key={serial} session={session} client={client} />),
+    root.render(
+      <HostedGame
+        presentation={presentation}
+        key={serial}
+        session={session}
+        client={client}
+      />,
+    ),
   );
   return {
     phase: game.phase,
     events,
     privateCards: game.peek?.cards.map((card) => card.card.categoryId) ?? [],
+    boards: game.boards,
+    beforeBoards: before.boards,
+    currentEvent: game.currentEvent,
+    overrideCount: Object.keys(state.cardOverrides ?? {}).length,
   };
 };
 window.expansionReenter = () => {
   flushSync(() =>
     root.render(
-      <HostedGame key={++serial} session={currentSession} client={client} />,
+      <HostedGame
+        presentation={presentation}
+        key={++serial}
+        session={currentSession}
+        client={client}
+      />,
+    ),
+  );
+};
+window.originalShow = (creature, animate = true) => {
+  window.expansionSceneTrace = [];
+  observedNodes = new WeakSet();
+  const ctx = { seats, random: new RandomSource(1060651) };
+  let state = originalRules.initialize(ctx) as OriginalState;
+  const applied: OriginalAction[] = [];
+  const apply = (action: OriginalAction, seat = state.turnSeat) => {
+    state = originalRules.apply(state, action, seat, ctx)
+      .state as OriginalState;
+    validateOriginalState(state, seats);
+    applied.push(action);
+  };
+  for (const seat of seats) {
+    const initial = originalRules.legalActions(
+      state,
+      seat,
+    )[0] as OriginalAction;
+    apply(initial, seat);
+  }
+  const actor = state.turnSeat;
+  const wanted = `special-${creature}#01`,
+    top = state.deck.at(-1)!;
+  for (const board of Object.values(state.boards))
+    for (const slot of board)
+      if (slot.instanceId === wanted) slot.instanceId = top;
+  state.deck = state.deck.map((id) => (id === wanted ? top : id));
+  state.deck[state.deck.length - 1] = wanted;
+  validateOriginalState(state, seats);
+  apply({ type: 'draw', source: 'deck' });
+  apply({ type: 'replace', slot: 1 });
+  const before = originalRules.project(state, { role: 'public' });
+  const ability = originalRules
+    .legalActions(state, actor)
+    .find(
+      (action) => action.type === (creature === 'charizard' ? 'peek' : 'swap'),
+    ) as OriginalAction | undefined;
+  if (!ability)
+    throw new Error(
+      `Missing legal original fixture ${creature}/${state.phase}`,
+    );
+  apply(ability, actor);
+  const game = originalRules.project(state, { role: 'public' });
+  const base = fixture({
+    ordinary: 'magikarp',
+    animate: false,
+    role: 'host',
+  }).session;
+  const events = game.events.filter(
+    (event) => event.id > (before.events.at(-1)?.id ?? 0),
+  );
+  currentSession = {
+    ...base,
+    view: {
+      ...base.view!,
+      game: { ...base.view!.game!, variantId: 'original' },
+      gameView: game,
+    },
+    motion: animate ? originalClient.savedChanges(before, game) : [],
+    feedback: animate
+      ? {
+          ...base.feedback!,
+          instanceId: base.view!.instanceId,
+          branch: base.view!.branch,
+          revision: base.view!.revision,
+          events: events.map(({ kind, text, action }) => ({
+            kind,
+            text,
+            ...(action ? { action } : {}),
+          })),
+        }
+      : null,
+  } as unknown as RoomSession;
+  flushSync(() =>
+    root.render(
+      <HostedGame
+        presentation={presentation}
+        key={serial}
+        session={currentSession}
+        client={originalClient}
+      />,
+    ),
+  );
+  return { phase: game.phase, events, actions: applied };
+};
+window.originalClear = () => {
+  currentSession = { ...currentSession, motion: [], feedback: null };
+  flushSync(() =>
+    root.render(
+      <HostedGame
+        presentation={presentation}
+        key={serial}
+        session={currentSession}
+        client={originalClient}
+      />,
     ),
   );
 };

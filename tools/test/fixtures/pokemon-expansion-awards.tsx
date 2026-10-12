@@ -1,10 +1,30 @@
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { HostedGame } from '../../../packages/web-host/src';
+import { configureGameHost } from '../../../packages/web-host/src/platform';
 import type { RoomSession } from '../../../apps/web/src/session/useRoomSession';
 import { client } from '../../../games/pokemon-encounters/expansion/web';
 import '../../../apps/web/src/styles.css';
 
+const avatarImages: Record<string, string> = await fetch('/avatars.json').then(
+  (response) => response.json(),
+);
+configureGameHost({
+  ScreenLink: (props) => <a {...props} />,
+  FullscreenControl: () => null,
+  DisplaySettings: () => null,
+  useAudioOutput: () => false,
+  claimAudioEvent: () => false,
+  avatarFor: (id) => avatarImages[id] ?? '',
+  avatarChoices: [],
+});
+const presentation = {
+  management: () => null,
+  feedback: () => null,
+  playMode: () => null,
+  countdown: ({ children }: { children?: import('react').ReactNode }) =>
+    children ?? null,
+};
 type Role = 'host' | 'public' | 'player';
 type Fixture = { views: Record<Role, RoomSession['view']> };
 declare global {
@@ -51,7 +71,12 @@ window.awardsShow = (name, role) => {
   document.body.className = role === 'player' ? 'player-page' : '';
   flushSync(() =>
     root.render(
-      <HostedGame key={`${name}-${role}`} session={session} client={client} />,
+      <HostedGame
+        presentation={presentation}
+        key={`${name}-${role}`}
+        session={session}
+        client={client}
+      />,
     ),
   );
 };

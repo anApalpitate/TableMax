@@ -1,3 +1,7 @@
+import {
+  extractCurrentDelivery,
+  materializePokemonClients,
+} from '../../support/shipping-input.mjs';
 import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
@@ -5,24 +9,11 @@ import {
 } from '../../../shared/workspace-root.mjs';
 if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
-import {
-  MAXIMUM_PACKAGE_BYTES,
-  PACKAGE_BUDGET_BYTES,
-} from '../../../release/package-limits.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { execFile } from 'node:child_process';
 import { createRequire } from 'node:module';
-import {
-  cp,
-  mkdir,
-  mkdtemp,
-  readFile,
-  readdir,
-  writeFile,
-} from 'node:fs/promises';
-import { join, relative, resolve } from 'node:path';
-import { promisify } from 'node:util';
+import { cp, mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
 import { launchTestBrowser } from '../../support/browser-test.mjs';
@@ -40,12 +31,12 @@ assert.ok(
 );
 assert.ok(
   args.includes('--portable'),
-  'Only the actual frozen ZIP client is supported',
+  'Only the actual frozen EXE client is supported',
 );
 const argument = (key) =>
   args.find((arg) => arg.startsWith(`--${key}=`))?.slice(key.length + 3);
 const expectedSha = argument('sha256');
-assert.ok(expectedSha, 'Explicit frozen ZIP SHA256 is required');
+assert.ok(expectedSha, 'Explicit frozen EXE SHA256 is required');
 const { version } = JSON.parse(await readFile('package.json', 'utf8'));
 const output = resolve(
   `artifacts/maintenance/v${version}/pokemon-expansion-awards`,
@@ -61,7 +52,7 @@ const report = {
   status: 'running',
   startedAt: new Date().toISOString(),
   scope:
-    'Actual hash-audited ZIP rules, client, shared React/WebHost runtime and CSS in hidden muted Edge. Two rule-validated settlement component fixtures derived from rules-research-buffer.test.ts endingFixture. No live service, saved authority, ordinary full round, physical-phone or listening claim.',
+    'Actual hash-audited EXE rules, client, shared React/WebHost runtime and CSS in hidden muted Edge. New-profile rule-validated settlement fixtures: R23 base halving and R24 hidden rows, one victory per winner. No live service, saved authority, ordinary full round, physical-phone or listening claim.',
   screenshots: [],
   checks: [],
   pageErrors: [],
@@ -69,74 +60,22 @@ const report = {
 };
 let browser, server;
 try {
-  const manifest = JSON.parse(
-    await readFile(
-      `artifacts/releases/TableMax-${version}-win-x64-manifest.json`,
-      'utf8',
-    ),
-  );
-  const zip = resolve('artifacts/releases', manifest.archive.name);
-  const bytes = await readFile(zip);
-  report.archiveSha256 = hash(bytes);
-  assert.equal(report.archiveSha256, expectedSha);
-  assert.equal(report.archiveSha256, manifest.archive.sha256);
-  assert.ok(bytes.length < MAXIMUM_PACKAGE_BYTES);
-  assert.equal(manifest.files.length, manifest.fileCount);
-  const extracted = join(work, 'portable');
-  await promisify(execFile)(
-    'powershell.exe',
-    [
-      '-NoProfile',
-      '-Command',
-      'Expand-Archive -LiteralPath $env:TABLEMAX_AWARDS_ZIP -DestinationPath $env:TABLEMAX_AWARDS_EXTRACT',
-    ],
-    {
-      windowsHide: true,
-      env: {
-        ...process.env,
-        TABLEMAX_AWARDS_ZIP: zip,
-        TABLEMAX_AWARDS_EXTRACT: extracted,
-      },
-    },
-  );
-  const actualMembers = [];
-  async function audit(directory) {
-    for (const entry of await readdir(directory, { withFileTypes: true })) {
-      assert.ok(!entry.isSymbolicLink());
-      const path = join(directory, entry.name);
-      if (entry.isDirectory()) await audit(path);
-      else {
-        assert.ok(entry.isFile());
-        actualMembers.push(relative(extracted, path).replaceAll('\\', '/'));
-      }
-    }
-  }
-  await audit(extracted);
-  assert.deepEqual(
-    actualMembers.sort(),
-    manifest.files.map((file) => file.path).sort(),
-  );
-  let extractedBytes = 0;
-  for (const file of manifest.files) {
-    assert.ok(
-      !file.path.split('/').includes('..') &&
-        !file.path.includes('\\') &&
-        !file.path.startsWith('/'),
-    );
-    const data = await readFile(join(extracted, file.path));
-    assert.equal(hash(data), file.sha256, file.path);
-    extractedBytes += data.length;
-  }
-  assert.ok(
-    extractedBytes < MAXIMUM_PACKAGE_BYTES &&
-      extractedBytes <= PACKAGE_BUDGET_BYTES,
-  );
-  assert.equal(extractedBytes, manifest.extractedBytes);
-  report.extractedBytes = extractedBytes;
-  report.extractedFiles = actualMembers.length;
+  const shipping = await extractCurrentDelivery({
+    work,
+    expectedSha256: expectedSha,
+  });
+  const { manifest, extracted } = shipping;
+  report.binding = shipping.binding;
+  report.extractedBytes = shipping.binding.extractedBytes;
+  report.extractedFiles = shipping.binding.extractedFiles;
   const require = createRequire(import.meta.url);
-  const rules = require(join(extracted, 'games/pokemon-encounters.cjs'))
-    .rulesByVariant.expansion;
+  const game = await materializePokemonClients(
+    shipping,
+    work,
+    join(work, 'bundle'),
+  );
+  report.releaseIds = game.releaseIds;
+  const rules = require(game.rulesPath).rulesByVariant.expansion;
   const seats = ['s0', 's1'];
   function playing() {
     let seed = 17;
@@ -219,7 +158,7 @@ try {
       usedAbilityIds: [],
       researchCandidates: [
         opening,
-        ...['R01', 'R02', 'R03', 'R04']
+        ...['R01', 'R02', 'R03', 'R05']
           .filter((id) => id !== opening)
           .slice(0, 2),
       ],
@@ -239,6 +178,7 @@ try {
     state.voteCounts = Object.fromEntries(
       state.researchCandidates.map((id) => [id, id === opening ? 2 : 0]),
     );
+    state.randomEvent.markerInstanceId = state.deck[0];
     rules.validateState(state, seats);
     const action = { type: 'replace', slot: 8 };
     assert.ok(
@@ -286,19 +226,28 @@ try {
     'ordinary-9',
   ];
   // Exact value sequence of the existing R03 endingFixture, resolved by package card data.
-  const two = endingFixture(diagonal, null, 'R03', null, 1);
-  const bonus = endingFixture(diagonal, null, 'R03', null, 0);
-  const zero = endingFixture(zeroOwn, zeroOther, 'R01', 'H05', 0);
+  const two = endingFixture(diagonal, null, 'R23', null, 2);
+  const bonus = endingFixture(diagonal, null, 'R23', null, 0);
+  const zero = endingFixture(zeroOwn, zeroOther, 'R24', null, 0);
   assert.deepEqual(two.roundResult.winners, seats);
-  assert.deepEqual(two.roundResult.awardsBySeat, { s0: 2, s1: 2 });
+  assert.deepEqual(two.roundResult.awardsBySeat, { s0: 1, s1: 1 });
   assert.deepEqual(two.winsBySeat, { s0: 3, s1: 3 });
   assert.deepEqual(two.matchWinners, seats);
-  assert.deepEqual(bonus.roundResult.awardsBySeat, { s0: 2, s1: 2 });
-  assert.deepEqual(bonus.winsBySeat, { s0: 2, s1: 2 });
+  assert.deepEqual(bonus.roundResult.awardsBySeat, { s0: 1, s1: 1 });
+  assert.deepEqual(bonus.winsBySeat, { s0: 1, s1: 1 });
+  assert.equal(
+    bonus.roundResult.scores.s0.total,
+    bonus.roundResult.scores.s0.base / 2,
+  );
+  assert.ok(
+    zero.roundResult.scores.s1.research.some(
+      (e) => e.taskId === 'R24' && e.achieved,
+    ),
+  );
   assert.deepEqual(bonus.matchWinners, []);
   assert.deepEqual(zero.roundResult.winners, ['s0']);
-  assert.deepEqual(zero.roundResult.awardsBySeat, { s0: 0, s1: 0 });
-  assert.deepEqual(zero.winsBySeat, { s0: 0, s1: 0 });
+  assert.deepEqual(zero.roundResult.awardsBySeat, { s0: 1, s1: 0 });
+  assert.deepEqual(zero.winsBySeat, { s0: 1, s1: 0 });
   assert.equal(zero.phase, 'round-result');
   const fixtureViews = {};
   for (const [name, state] of Object.entries({ bonus, two, zero })) {
@@ -391,11 +340,14 @@ try {
               .endsWith('/tools/test/fixtures/pokemon-expansion-awards.tsx')
           )
             return;
-          if (source === '../../games/pokemon-encounters/expansion/web')
+          if (source === '../../../games/pokemon-encounters/expansion/web')
             return '\0packaged-awards-client';
-          if (source === '../../packages/web-host/src')
+          if (
+            source === '../../../packages/web-host/src' ||
+            source === '../../../packages/web-host/src/platform'
+          )
             return { id: '/runtime/v1/web-host.js', external: true };
-          if (source === '../../apps/web/src/styles.css')
+          if (source === '../../../apps/web/src/styles.css')
             return '\0packaged-awards-css';
         },
         load(id) {
@@ -439,16 +391,31 @@ try {
     join(work, 'bundle/fixtures.json'),
     JSON.stringify(fixtureViews),
   );
-  const styles = manifest.files
-    .filter(
-      (file) =>
-        file.path.endsWith('.css') &&
-        (file.path.startsWith('web/assets/') ||
-          file.path.startsWith('web/runtime/v1/') ||
-          file.path.startsWith('web/games/pokemon-encounters/')),
-    )
-    .map((file) => `<link rel="stylesheet" href="/${file.path.slice(4)}">`)
-    .join('');
+  await writeFile(
+    join(work, 'bundle/avatars.json'),
+    JSON.stringify(
+      Object.fromEntries(
+        manifest.files.flatMap((file) => {
+          const match = file.path.match(/^web\/assets\/(avatar-\d+)-.+\.webp$/);
+          return match ? [[match[1], '/' + file.path.slice(4)]] : [];
+        }),
+      ),
+    ),
+  );
+  const styles =
+    manifest.files
+      .filter(
+        (file) =>
+          file.path.endsWith('.css') &&
+          (file.path.startsWith('web/assets/') ||
+            file.path.startsWith('web/runtime/v1/') ||
+            file.path.startsWith('web/games/pokemon-encounters/')),
+      )
+      .map((file) => `<link rel="stylesheet" href="/${file.path.slice(4)}">`)
+      .join('') +
+    game.styles
+      .map((href) => `<link rel="stylesheet" href="${href}">`)
+      .join('');
   const html = join(work, 'bundle/index.html');
   await writeFile(
     html,
@@ -519,8 +486,8 @@ try {
             true,
             'Fixture must use a packaged preset avatar',
           );
-          const award = name === 'zero' ? 0 : 2,
-            wins = name === 'zero' ? 0 : name === 'bonus' ? 2 : 3;
+          const award = name === 'zero' && seat === 's1' ? 0 : 1,
+            wins = name === 'two' ? 3 : award;
           assert.equal(await panel.locator('.win-pips i.earned').count(), wins);
           assert.ok(
             (
@@ -556,10 +523,7 @@ try {
           .click();
         const dialog = page.getByRole('dialog');
         await dialog.waitFor();
-        assert.match(
-          await dialog.innerText(),
-          new RegExp(`本局实际获\\s*${name === 'zero' ? 0 : 2}\\s*胜`),
-        );
+        assert.match(await dialog.innerText(), /本局实际获\s*1\s*胜/);
         const expectedScore =
           name === 'zero'
             ? zero.roundResult.scores.s0
@@ -605,11 +569,7 @@ try {
     assert.deepEqual(report.pageErrors, []);
     assert.deepEqual(report.externalRequests, []);
     assert.equal(hash(await readFile(fixturePath)), report.fixtureSourceSha256);
-    assert.equal(
-      hash(await readFile(zip)),
-      expectedSha,
-      'Frozen ZIP must stay unchanged',
-    );
+    await shipping.assertUnchanged();
     report.status = 'passed';
   }
 } catch (error) {

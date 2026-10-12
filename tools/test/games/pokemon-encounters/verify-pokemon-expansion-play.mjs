@@ -1,3 +1,4 @@
+import { extractCurrentDelivery } from '../../support/shipping-input.mjs';
 import { saveVerificationScreenshot } from '../../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
@@ -5,17 +6,11 @@ import {
 } from '../../../shared/workspace-root.mjs';
 if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
-import {
-  MAXIMUM_PACKAGE_BYTES,
-  PACKAGE_BUDGET_BYTES,
-} from '../../../release/package-limits.mjs';
 import assert from 'node:assert/strict';
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
-import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
-import { join, relative, resolve, sep } from 'node:path';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
 import { launchDesktop } from '../../support/desktop-test.mjs';
 import { playerFrame, playerUi } from '../../support/player-test.mjs';
 
@@ -41,82 +36,12 @@ await mkdir(resolve(output, '..'), { recursive: true });
 await mkdir(output, { recursive: false });
 await mkdir(resolve('tmp'), { recursive: true });
 const work = await mkdtemp(resolve('tmp/pokemon-expansion-normal-play-'));
-const manifest = JSON.parse(
-  await readFile(
-    `artifacts/releases/TableMax-${version}-win-x64-manifest.json`,
-    'utf8',
-  ),
-);
-const archive = resolve('artifacts/releases', manifest.archive.name);
-const hash = async (path) =>
-  createHash('sha256')
-    .update(await readFile(path))
-    .digest('hex');
-assert.equal(await hash(archive), manifest.archive.sha256);
-assert.equal((await readFile(archive)).length, manifest.archive.bytes);
-if (expectedSha)
-  assert.equal(manifest.archive.sha256, expectedSha.toLowerCase());
 const portable = args.includes('--portable');
-let executablePath = resolve('build/desktop/TableMax.exe');
-if (portable) {
-  await promisify(execFile)(
-    'powershell.exe',
-    [
-      '-NoProfile',
-      '-Command',
-      'Expand-Archive -LiteralPath $env:TABLEMAX_PLAY_ARCHIVE -DestinationPath $env:TABLEMAX_PLAY_EXTRACT',
-    ],
-    {
-      windowsHide: true,
-      env: {
-        ...process.env,
-        TABLEMAX_PLAY_ARCHIVE: archive,
-        TABLEMAX_PLAY_EXTRACT: join(work, 'portable'),
-      },
-    },
-  );
-  executablePath = join(work, 'portable/TableMax.exe');
-  assert.ok(
-    manifest.archive.bytes < MAXIMUM_PACKAGE_BYTES &&
-      manifest.extractedBytes < MAXIMUM_PACKAGE_BYTES,
-  );
-  assert.equal(manifest.fileCount, manifest.files.length);
-  const expected = new Set(),
-    actual = new Set();
-  let total = 0;
-  for (const file of manifest.files) {
-    const path = resolve(work, 'portable', file.path);
-    assert.ok(path.startsWith(resolve(work, 'portable') + sep));
-    const bytes = await readFile(path);
-    assert.equal(bytes.length, file.bytes, file.path);
-    assert.equal(
-      createHash('sha256').update(bytes).digest('hex'),
-      file.sha256,
-      file.path,
-    );
-    total += bytes.length;
-    expected.add(file.path.replaceAll('\\', '/'));
-  }
-  async function inventory(directory) {
-    for (const file of await readdir(directory, { withFileTypes: true })) {
-      assert.equal(file.isSymbolicLink(), false);
-      const path = join(directory, file.name);
-      if (file.isDirectory()) await inventory(path);
-      else
-        actual.add(
-          relative(join(work, 'portable'), path).replaceAll('\\', '/'),
-        );
-    }
-  }
-  await inventory(join(work, 'portable'));
-  assert.deepEqual(actual, expected);
-  assert.equal(total, manifest.extractedBytes);
-  assert.ok(
-    total <= PACKAGE_BUDGET_BYTES,
-    'Runtime exceeds the 114 MB engineering budget',
-  );
-  assert.equal(actual.size, manifest.fileCount);
-}
+const shipping = portable
+  ? await extractCurrentDelivery({ work, expectedSha256: expectedSha })
+  : undefined;
+const executablePath =
+  shipping?.executablePath ?? resolve('build/desktop/TableMax.exe');
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
 );
@@ -124,9 +49,9 @@ const report = {
   status: 'running',
   startedAt: new Date().toISOString(),
   portable,
-  archiveSha256: portable ? manifest.archive.sha256 : null,
-  extractedFiles: portable ? manifest.fileCount : null,
-  extractedBytes: portable ? manifest.extractedBytes : null,
+  binding: shipping?.binding,
+  extractedFiles: shipping?.binding.extractedFiles,
+  extractedBytes: shipping?.binding.extractedBytes,
   muted: true,
   scope:
     'Actual normal play mode, production UI clicks by two automated phone identities and one real default Worker. No test mode, injected game state or game commands outside UI. Administrative setup uses authority Socket actions. Automated wall time is not human round duration, physical phone or human listening evidence.',
@@ -305,11 +230,7 @@ async function clickAction(page, player, action) {
   ) {
     await ui.locator(`[data-action="${action.type}"]`).click();
   } else if (action.type === 'row-target') {
-    const target = player.seats.find((seat) => seat.id === action.seat);
-    await ui
-      .locator('.ex-target-list')
-      .getByRole('button', { name: target.name, exact: true })
-      .click();
+    await ui.locator(`[data-target-seat="${action.seat}"]`).click();
     await ui
       .getByRole('button', { name: '确认交换这一整行', exact: true })
       .click();
@@ -323,11 +244,7 @@ async function clickAction(page, player, action) {
       .click();
   } else if ('slot' in action || 'a' in action) {
     if ('seat' in action) {
-      const target = player.seats.find((seat) => seat.id === action.seat);
-      await ui
-        .locator('.ex-target-list')
-        .getByRole('button', { name: target.name, exact: true })
-        .click();
+      await ui.locator(`[data-target-seat="${action.seat}"]`).click();
     }
     const seat = action.seat ?? player.self.seatId;
     for (const slot of 'a' in action ? [action.a, action.b] : [action.slot])
@@ -541,7 +458,7 @@ try {
   await command(hostToken, { type: 'start' });
   for (const page of phones) await playerUi(page).locator('.ex-vote').waitFor();
   const detailBefore = await view(tokens[0]);
-  assert.equal(detailBefore.gameView.rulesProfile, 'research-buffer-v2');
+  assert.equal(detailBefore.gameView.rulesProfile, 'events-research-v3');
   for (const task of detailBefore.gameView.researchCandidates) {
     const choice = playerUi(phones[0]).locator(
       `button[data-action="vote-research"][data-research="${task.id}"]`,
@@ -588,7 +505,7 @@ try {
     await rulebook
       .locator('.expansion-rules .ex-rule-tasks [data-research]')
       .count(),
-    30,
+    17,
   );
   await screenshot(phones[0], 'short-phone-all-research');
   await rulebook.getByRole('button', { name: '关闭面板', exact: true }).click();
@@ -596,7 +513,7 @@ try {
     (await view(tokens[0])).gameView.ownVote,
     detailBefore.gameView.ownVote,
   );
-  report.researchReferenceCount = 30;
+  report.researchReferenceCount = 17;
   await screenshot(phones[0], 'short-phone-vote');
   const start = Date.now();
   const captured = new Set();
@@ -885,7 +802,7 @@ try {
   report.hostMedia = await host.evaluate(() => window.__pokemonMedia);
   report.expansionCriesPlayed = report.hostMedia.filter(
     (entry) =>
-      entry.source.includes('-encyclopedia-cry-v1-') &&
+      entry.source.includes('-encyclopedia-cry-v1.ogg') &&
       entry.playing &&
       !entry.rejected,
   );
@@ -895,7 +812,7 @@ try {
   );
   assert.deepEqual(report.pageErrors, []);
   assert.deepEqual(report.externalRequests, []);
-  if (portable) assert.equal(await hash(archive), manifest.archive.sha256);
+  if (shipping) await shipping.assertUnchanged();
   report.status = 'passed';
 } catch (error) {
   report.status = 'failed';

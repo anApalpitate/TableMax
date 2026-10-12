@@ -20,6 +20,7 @@ const validScopes = ['box', 'shared', 'tooling', ...gameScopes];
 
 // Classify what a test actually exercises, rather than its containing app.
 const unitScopes = {
+  'apps/server/src/events-integration.test.ts': ['game:pokemon-encounters'],
   'apps/server/src/game-packages/catalog.test.ts': ['box', 'shared', 'tooling'],
   'apps/server/src/registry-versions.test.ts': ['shared', 'tooling'],
   'apps/server/src/game-packages/public.test.ts': ['box', 'shared', 'tooling'],
@@ -238,6 +239,18 @@ const verificationScopes = {
   'tools/test/games/rummikub/verify-rummikub-ui.mjs': ['game:rummikub'],
   'tools/test/games/rummikub/verify-rummikub-runtime.mjs': ['game:rummikub'],
   'tools/test/games/uno/verify-uno.mjs': ['game:uno'],
+  'tools/test/games/pokemon-encounters/verify-pokemon-expansion.mjs': [
+    'game:pokemon-encounters',
+  ],
+  'tools/test/games/pokemon-encounters/verify-pokemon-expansion-effects.mjs': [
+    'game:pokemon-encounters',
+  ],
+  'tools/test/games/pokemon-encounters/verify-pokemon-expansion-awards.mjs': [
+    'game:pokemon-encounters',
+  ],
+  'tools/test/games/pokemon-encounters/verify-pokemon-expansion-play.mjs': [
+    'game:pokemon-encounters',
+  ],
 };
 const gameFilteredVerifiers = new Set([
   'tools/test/desktop/verify-player-display.mjs',

@@ -1,3 +1,7 @@
+import {
+  extractCurrentDelivery,
+  materializePokemonClients,
+} from '../../support/shipping-input.mjs';
 import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
 import {
   assertWorkspaceRoot,
@@ -8,8 +12,6 @@ if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { cp, mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import { join, resolve } from 'node:path';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -40,51 +42,16 @@ await mkdir(resolve(output, '..'), { recursive: true });
 await mkdir(output, { recursive: false });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/pokemon-expansion-effects-'));
-let manifest, extracted;
+let manifest, extracted, shipping;
 if (portable) {
-  manifest = JSON.parse(
-    await readFile(
-      `artifacts/releases/TableMax-${version}-win-x64-manifest.json`,
-      'utf8',
-    ),
-  );
-  const archive = resolve('artifacts/releases', manifest.archive.name);
-  assert.equal(
-    createHash('sha256')
-      .update(await readFile(archive))
-      .digest('hex'),
-    manifest.archive.sha256,
-  );
-  extracted = join(work, 'portable');
-  await promisify(execFile)(
-    'powershell.exe',
-    [
-      '-NoProfile',
-      '-Command',
-      'Expand-Archive -LiteralPath $env:TABLEMAX_EFFECTS_ZIP -DestinationPath $env:TABLEMAX_EFFECTS_EXTRACT',
-    ],
-    {
-      windowsHide: true,
-      env: {
-        ...process.env,
-        TABLEMAX_EFFECTS_ZIP: archive,
-        TABLEMAX_EFFECTS_EXTRACT: extracted,
-      },
-    },
-  );
-  for (const file of manifest.files)
-    assert.equal(
-      createHash('sha256')
-        .update(await readFile(join(extracted, file.path)))
-        .digest('hex'),
-      file.sha256,
-    );
+  shipping = await extractCurrentDelivery({ work });
+  ({ manifest, extracted } = shipping);
 }
 const started = performance.now();
 const report = {
   result: 'running',
   scope:
-    'Headless real Edge renders the production expansion Screen, rule-validated state and actual legal rule transitions; 14 vector skeleton timelines and ordinary themes. Component fixture is separately bound to frozen source; final ZIP runtime/authority is verified by the portable and normal-play checks. No physical phone, human listening or hardware DPI claim.',
+    'Hidden real Edge renders rule-validated constructed inputs and actual legal rule transitions: 13 skeleton timelines (59 poses), one simplified Lucario portrait/aura sequence, six event themes and original Charizard/Snorlax entrances. Component playback evidence is separate from saved server authority and artistic approval. No physical phone, human listening or hardware DPI claim.',
   sample,
   portable,
   usesFinalPackagedClient: portable,
@@ -96,6 +63,9 @@ const report = {
   screenshots: [],
   pageErrors: [],
   externalRequests: [],
+  simplifiedSequences: [],
+  events: [],
+  originalEntrances: [],
 };
 await writeFile(
   join(work, 'entry.tsx'),
@@ -126,16 +96,23 @@ const compilation = await build({
                   )
               )
                 return;
-              if (source === '../../games/pokemon-encounters/expansion/web')
+              if (source === '../../../games/pokemon-encounters/expansion/web')
                 return '\0actual-packaged-expansion';
-              if (source === '../../packages/web-host/src')
+              if (source === '../../../games/pokemon-encounters/web')
+                return '\0actual-packaged-original';
+              if (
+                source === '../../../packages/web-host/src' ||
+                source === '../../../packages/web-host/src/platform'
+              )
                 return { id: '/runtime/v1/web-host.js', external: true };
-              if (source === '../../apps/web/src/styles.css')
+              if (source === '../../../apps/web/src/styles.css')
                 return '\0actual-packaged-css';
             },
             load(id) {
               if (id === '\0actual-packaged-expansion')
                 return "import { clientsByVariant } from '/games/pokemon-encounters/web/entry.js'; export const client = clientsByVariant.expansion;";
+              if (id === '\0actual-packaged-original')
+                return "import { clientsByVariant } from '/games/pokemon-encounters/web/entry.js'; export const client = clientsByVariant.original;";
               if (id === '\0actual-packaged-css') return '';
             },
           },
@@ -211,34 +188,51 @@ const inputHashes = async () =>
   );
 report.sourceBefore = await inputHashes();
 if (portable) {
-  report.archiveSha256 = createHash('sha256')
-    .update(
-      await readFile(resolve('artifacts/releases', manifest.archive.name)),
-    )
-    .digest('hex');
-  assert.equal(report.archiveSha256, manifest.archive.sha256);
+  report.binding = shipping.binding;
+  await shipping.assertUnchanged();
   await cp(join(extracted, 'web'), join(work, 'bundle'), {
     recursive: true,
     filter: (path) => path !== join(extracted, 'web/index.html'),
   });
-  const styles = manifest.files
-    .filter(
-      (file) =>
-        file.path.endsWith('.css') &&
-        (file.path.startsWith('web/assets/') ||
-          file.path.startsWith('web/runtime/v1/') ||
-          file.path.startsWith('web/games/pokemon-encounters/')),
-    )
-    .map((file) => `<link rel="stylesheet" href="/${file.path.slice(4)}">`)
-    .join('');
+  const game = await materializePokemonClients(
+    shipping,
+    work,
+    join(work, 'bundle'),
+  );
+  report.releaseIds = game.releaseIds;
+  const styles =
+    manifest.files
+      .filter(
+        (file) =>
+          file.path.endsWith('.css') &&
+          (file.path.startsWith('web/assets/') ||
+            file.path.startsWith('web/runtime/v1/') ||
+            file.path.startsWith('web/games/pokemon-encounters/')),
+      )
+      .map((file) => `<link rel="stylesheet" href="/${file.path.slice(4)}">`)
+      .join('') +
+    game.styles
+      .map((href) => `<link rel="stylesheet" href="${href}">`)
+      .join('');
   const html = join(work, 'bundle/index.html');
   await writeFile(
     html,
     (await readFile(html, 'utf8')).replace('</head>', `${styles}</head>`),
   );
   report.scope =
-    'Actual final ZIP client, shared React/WebHost runtime, CSS and media are extracted and hash-checked, then rendered in real hidden Edge using rule-valid component fixtures. All 63 poses are observed from the packaged Screen. Native service, saved authority and ordinary production controls are separately tested on this same ZIP. No physical-phone, listening or hardware-DPI claim.';
+    'Actual final EXE clients, shared React/WebHost runtime, CSS and media are extracted and hash-checked, then rendered in hidden real Edge with rule-validated constructed fixtures. Current requirements cover 59 skeleton poses plus one Lucario portrait/aura sequence, six saved event playback themes and original Charizard/Snorlax entrances. Native service, save/recovery authority and production controls are tested separately on this same EXE. Technical playback is not artistic approval; no physical-phone, listening or hardware-DPI claim.';
 }
+await writeFile(
+  join(work, 'bundle/avatars.json'),
+  JSON.stringify(
+    Object.fromEntries(
+      (manifest?.files ?? []).flatMap((file) => {
+        const match = file.path.match(/^web\/assets\/(avatar-\d+)-.+\.webp$/);
+        return match ? [[match[1], '/' + file.path.slice(4)]] : [];
+      }),
+    ),
+  ),
+);
 const server = await serveFixture(join(work, 'bundle'));
 let browser;
 try {
@@ -268,7 +262,9 @@ try {
   await page.goto(server.url);
   await page.waitForFunction(() => typeof window.expansionShow === 'function');
   const timelines = await page.evaluate(() => window.expansionTimelines);
-  const creatures = sample ? ['mewtwo'] : Object.keys(timelines);
+  const creatures = sample
+    ? ['mewtwo']
+    : Object.keys(timelines).filter((creature) => creature !== 'lucario');
   const screenshot = async (label) => {
     const path = join(output, `${label}.png`);
     await captureBrowserScreenshot(page, { path, fullPage: false });
@@ -370,8 +366,313 @@ try {
     });
   }
   if (!sample) {
-    assert.equal(report.poseFrames.length, 63);
-    assert.equal(report.sequences.length, 14);
+    assert.equal(report.poseFrames.length, 59);
+    assert.equal(report.sequences.length, 13);
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.evaluate(() =>
+      window.expansionShow({ creature: 'lucario', role: 'host' }),
+    );
+    const lucario = page.locator('[data-sequence="lucario"]');
+    await lucario.waitFor({ state: 'attached' });
+    const portrait = lucario.locator('.ex-aura-portrait');
+    await portrait.evaluate((image) => image.decode());
+    assert.equal(
+      await lucario.locator('svg[data-creature]').count(),
+      0,
+      'Lucario uses the adopted portrait and code aura rather than the retired skeleton',
+    );
+    assert.equal(
+      await lucario.locator('.ex-aura-ring,.ex-aura-pulse').count(),
+      2,
+    );
+    const simplified = await portrait.evaluate((image) => ({
+      src: image.currentSrc,
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+    }));
+    assert.ok(simplified.width > 0 && simplified.height > 0);
+    await screenshot('playing-lucario-portrait-aura');
+    await lucario.waitFor({ state: 'detached' });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.evaluate(() =>
+      window.expansionShow({ creature: 'lucario', role: 'host' }),
+    );
+    await page.waitForFunction(
+      () => {
+        const hero = document.querySelector('.ex-static-hero');
+        return hero && getComputedStyle(hero).display !== 'none';
+      },
+      undefined,
+      { polling: 'raf' },
+    );
+    assert.equal(await page.locator('.ex-static-hero').isVisible(), true);
+    assert.equal(
+      await page.locator('[data-sequence="lucario"]').isVisible(),
+      false,
+    );
+    await screenshot('lucario-reduced-static-portrait');
+    await page.locator('.ex-static-hero').waitFor({ state: 'detached' });
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.evaluate(() =>
+      window.expansionShow({ creature: 'lucario', role: 'host' }),
+    );
+    await page.locator('[data-sequence="lucario"]').waitFor();
+    await page.evaluate(() => window.expansionReenter());
+    assert.equal(await page.locator('[data-sequence="lucario"]').count(), 0);
+    report.simplifiedSequences.push({
+      creature: 'lucario',
+      representation: 'existing portrait + code aura',
+      oldSkeletonPoses: 0,
+      ...simplified,
+      reducedMotion: 'static portrait',
+      cleanup: true,
+      reentryDoesNotReplay: true,
+    });
+    assert.equal(report.simplifiedSequences.length, 1);
+    const environmentBackgrounds = new Map();
+    for (const kind of [
+      'mega',
+      'rain',
+      'sandstorm',
+      'sun',
+      'snow',
+      'trick-room',
+    ]) {
+      for (const role of ['host', 'public', 'player']) {
+        await page.setViewportSize(
+          role === 'player'
+            ? { width: 390, height: 844 }
+            : { width: 1280, height: 720 },
+        );
+        const saved = await page.evaluate(
+          ({ event, role }) => window.expansionShow({ event, role }),
+          { event: kind, role },
+        );
+        assert.equal(saved.currentEvent.kind, kind);
+        const announced = saved.events.filter(
+          (event) => event.kind === 'special-event',
+        );
+        assert.equal(
+          announced.length,
+          1,
+          'A rule transaction announces the event once',
+        );
+        assert.equal(announced[0].effect.eventKind, kind);
+        assert.equal(announced[0].effect.placeholder, kind === 'mega');
+        assert.ok(
+          saved.events.findIndex((event) => event.kind === 'special-event') <
+            saved.events.findIndex((event) => event.action?.verb === 'draw'),
+        );
+        const entrance = page.locator(`[data-event-entrance="${kind}"]`);
+        await entrance.waitFor({ state: 'attached' });
+        const geometry = await entrance.evaluate((element) => {
+          const bounds = element.getBoundingClientRect();
+          return {
+            rect: [bounds.x, bounds.y, bounds.width, bounds.height],
+            viewport: [
+              document.documentElement.getBoundingClientRect().width,
+              innerHeight,
+            ],
+            pointerEvents: getComputedStyle(element).pointerEvents,
+          };
+        });
+        assert.deepEqual(geometry.rect, [0, 0, ...geometry.viewport]);
+        assert.equal(geometry.pointerEvents, 'none');
+        const environment = page.locator(`[data-event-environment="${kind}"]`);
+        assert.equal(await environment.count(), 1);
+        const background = await environment
+          .locator('.ex-environment-wallpaper')
+          .evaluate((element) => getComputedStyle(element).backgroundImage);
+        const drift = await environment
+          .locator('.ex-environment-drift')
+          .evaluate((element) => ({
+            animation: getComputedStyle(element).animationName,
+            pointerEvents: getComputedStyle(element).pointerEvents,
+          }));
+        assert.equal(drift.pointerEvents, 'none');
+        if (role === 'host') environmentBackgrounds.set(kind, background);
+        const badges = await page
+          .locator('[data-score-effect]')
+          .evaluateAll((elements) =>
+            elements.map((element) => ({
+              kind: element.dataset.scoreEffect,
+              value: Number(element.dataset.effectiveValue),
+              source: element.getAttribute('aria-label'),
+              background: getComputedStyle(element.closest('.card-value'))
+                .backgroundColor,
+              slot: element.closest('[data-slot]')?.getAttribute('data-slot'),
+            })),
+          );
+        for (const badge of badges) {
+          const authoritative = Object.values(saved.boards)
+            .flat()
+            .find((slot) => slot.slotId === badge.slot)?.card;
+          if (badge.kind === 'trick-room') {
+            assert.notEqual(
+              authoritative.originalCategoryId,
+              authoritative.categoryId,
+            );
+            assert.ok(badge.source.includes('戏法空间'));
+          } else assert.equal(badge.kind, authoritative.scoreEffect.kind);
+          assert.equal(badge.value, authoritative.effectiveValue);
+          if (kind === 'rain')
+            assert.equal(badge.background, 'rgb(215, 237, 249)');
+        }
+        if (['rain', 'sandstorm', 'sun', 'snow'].includes(kind)) {
+          assert.ok(badges.length > 0);
+          assert.ok(
+            badges.some((badge) => badge.source.includes('复制继承')),
+            'A fully authorized copy inherits the weather source',
+          );
+        }
+        if (kind === 'mega') {
+          assert.equal(saved.currentEvent.placeholder, true);
+          assert.deepEqual(
+            saved.boards,
+            saved.beforeBoards,
+            'Mega theme placeholder cannot change card effects or values',
+          );
+          assert.equal(saved.overrideCount, 0);
+          assert.equal(badges.length, 0);
+          assert.match(await entrance.innerText(), /效果待设计/);
+        }
+        if (kind === 'trick-room') assert.ok(saved.overrideCount > 0);
+        await screenshot(`event-${kind}-${role}`);
+        await entrance.waitFor({ state: 'detached' });
+        const trace = await page.evaluate(() =>
+          window.expansionSceneTrace.filter((scene) => scene.kind === 'event'),
+        );
+        assert.equal(trace.length, 1, 'Actual event playback starts once');
+        await page.evaluate(() => window.expansionReenter());
+        assert.equal(
+          await page.locator('[data-event-entrance]').count(),
+          0,
+          'Reentry never replays a committed event',
+        );
+        assert.equal(
+          await page.locator(`[data-event-environment="${kind}"]`).count(),
+          1,
+          'Environment survives reentry',
+        );
+        report.events.push({
+          kind,
+          role,
+          input: 'validated constructed post-protection boundary',
+          savedEvent: announced[0],
+          geometry,
+          background,
+          drift,
+          badges,
+          starts: trace.length,
+          reentryDoesNotReplay: true,
+        });
+      }
+    }
+    assert.equal(environmentBackgrounds.size, 6);
+    assert.equal(
+      new Set(environmentBackgrounds.values()).size,
+      6,
+      'Each event has a distinct persistent background',
+    );
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.evaluate(() =>
+      window.expansionShow({ event: 'rain', role: 'host' }),
+    );
+    await page.locator('[data-event-entrance="rain"]').waitFor();
+    assert.equal(
+      await page
+        .locator('.ex-environment-drift')
+        .evaluate((element) => getComputedStyle(element).display),
+      'none',
+    );
+    assert.equal(
+      await page
+        .locator('.ex-event-announcement')
+        .evaluate((element) => getComputedStyle(element).animationName),
+      'none',
+    );
+    await screenshot('event-rain-reduced-static');
+    await page.locator('[data-event-entrance]').waitFor({ state: 'detached' });
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.evaluate(() =>
+      window.expansionShow({ event: 'rain', creature: 'mewtwo', role: 'host' }),
+    );
+    await page.locator('[data-event-entrance="rain"]').waitFor();
+    assert.equal(
+      await page.locator('[data-sequence="mewtwo"]').count(),
+      0,
+      "The event starts before the same draw's native ability",
+    );
+    await page.locator('[data-sequence="mewtwo"]').waitFor();
+    const following = await page.evaluate(() =>
+      window.expansionSceneTrace.filter(
+        (scene) => scene.kind === 'event' || scene.kind === 'ability',
+      ),
+    );
+    assert.equal(following[0].kind, 'event');
+    assert.equal(following[1].kind, 'ability');
+    assert.ok(following[1].at - following[0].at >= 1400);
+    report.events.push({
+      kind: 'rain',
+      nativeAbility: 'mewtwo',
+      order: following,
+    });
+    for (const creature of ['charizard', 'snorlax']) {
+      await page.setViewportSize({ width: 1280, height: 720 });
+      const saved = await page.evaluate(
+        (creature) => window.originalShow(creature),
+        creature,
+      );
+      assert.ok(
+        saved.actions.some(
+          (action) =>
+            action.type === (creature === 'charizard' ? 'peek' : 'swap'),
+        ),
+      );
+      assert.equal(saved.events.at(-1).action.ability, `special-${creature}`);
+      const entrance = page.locator(
+        `.anime-entrance[data-scene="${creature}"]`,
+      );
+      await entrance.waitFor();
+      assert.equal(
+        await entrance.evaluate(
+          (element) => getComputedStyle(element).pointerEvents,
+        ),
+        'none',
+      );
+      const fullscreen = await entrance.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          rect: [rect.x, rect.y, rect.width, rect.height],
+          viewport: [
+            document.documentElement.getBoundingClientRect().width,
+            innerHeight,
+          ],
+        };
+      });
+      assert.deepEqual(fullscreen.rect, [0, 0, ...fullscreen.viewport]);
+      assert.ok(await entrance.locator('.cut-in-character').count());
+      await screenshot(`original-${creature}-fullscreen`);
+      assert.equal(
+        await page.locator('.saved-action-trails').count(),
+        1,
+        'Original local action feedback remains mounted alongside the entrance',
+      );
+      await page.evaluate(() => window.originalClear());
+      assert.equal(
+        await page.locator(`.anime-entrance[data-scene="${creature}"]`).count(),
+        0,
+      );
+      report.originalEntrances.push({
+        creature,
+        ruleSource: 'games/pokemon-encounters/rules',
+        actions: saved.actions,
+        event: saved.events.at(-1),
+        fullscreen,
+        cleared: true,
+        localFeedbackPreserved: true,
+      });
+    }
     for (const theme of [
       'togepi',
       'magikarp',
@@ -434,7 +735,14 @@ try {
     assert.equal(await page.locator('[data-sequence]').count(), 0);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.evaluate(() => window.expansionShow({ creature: 'mewtwo' }));
-    await page.locator('.ex-static-hero').waitFor();
+    await page.waitForFunction(
+      () => {
+        const hero = document.querySelector('.ex-static-hero');
+        return hero && getComputedStyle(hero).display !== 'none';
+      },
+      undefined,
+      { polling: 'raf' },
+    );
     assert.equal(await page.locator('.anime-entrance').isVisible(), false);
     assert.equal(await page.locator('.ex-static-hero').isVisible(), true);
     report.cancellation.push(
@@ -454,7 +762,13 @@ try {
       window.expansionShow({ creature: 'groudon', terminal: true }),
     );
     assert.ok(['round-result', 'match-result'].includes(terminal.phase));
-    assert.ok(terminal.events.some((event) => event.kind === 'research'));
+    assert.equal(
+      terminal.events.some((event) => event.kind === 'research'),
+      false,
+    );
+    assert.ok(
+      terminal.events.some((event) => event.kind === 'bond-placeholder'),
+    );
     const began = Date.now();
     await page.locator('[data-sequence="groudon"]').waitFor();
     const starsBeforeResult = await page
@@ -465,13 +779,15 @@ try {
       0,
     );
     assert.equal(await page.locator('.ex-victory').isVisible(), false);
-    await page.locator('.ex-research-reveal').waitFor({ state: 'attached' });
-    const researchAt = Date.now() - began;
-    assert.equal(await page.locator('.ex-victory').isVisible(), false);
-    await screenshot('last-ability-research-before-settlement');
+    await page
+      .locator('[data-sequence="groudon"]')
+      .waitFor({ state: 'hidden' });
+    const abilityEndedAt = Date.now() - began;
     await page.locator('.ex-victory').waitFor();
     const resultAt = Date.now() - began;
-    assert.ok(resultAt >= researchAt + 2300);
+    assert.ok(resultAt >= abilityEndedAt - 100);
+    assert.equal(await page.locator('.ex-research-reveal').count(), 0);
+    await screenshot('last-ability-bond-before-settlement');
     assert.ok(await page.locator('.ex-victory h2').isVisible());
     const winnerCount = await page.locator('.ex-player.winner').count();
     assert.ok(winnerCount > 0);
@@ -482,7 +798,7 @@ try {
     report.cancellation.push({
       terminal: terminal.phase,
       order: terminal.events.map((event) => event.kind),
-      researchAt,
+      abilityEndedAt,
       resultAt,
       starsBeforeResult,
       winnerCount,
@@ -654,6 +970,7 @@ try {
 } finally {
   await browser?.close();
   await server.close();
+  await shipping?.assertUnchanged();
   report.elapsedMs = performance.now() - started;
   await writeFile(
     join(output, 'results.json'),
@@ -666,6 +983,9 @@ try {
       sample,
       frames: report.poseFrames.length,
       sequences: report.sequences.length,
+      simplifiedSequences: report.simplifiedSequences.length,
+      events: report.events.length,
+      originalEntrances: report.originalEntrances.length,
       elapsedMs: report.elapsedMs,
     }),
   );

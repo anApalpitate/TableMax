@@ -107,5 +107,13 @@
       "reason": "Cannot meet per-image cap at quality >=52; existing portrait/default background + code scene"
     }
   ],
-  "pending": "Actual module budget and UI visual QA; no new character poses or Mega mechanics"
+  "pending": "Seven new research illustrations, richer character poses, Mega/bond mechanics and human visual/audio acceptance",
+  "validation": {
+    "buildVersion": "1.0.6.10",
+    "executableSha256": "93207df18d568e808ea903ce5d538fe1835323f80a523af95a09241eeb6364bc",
+    "runtimeBytes": 167594,
+    "moduleBytes": 3717195,
+    "result": "passed",
+    "evidence": "artifacts/maintenance/v1.0.6/pokemon-expansion-runtime/events-v3-10610-d/results.json"
+  }
 }

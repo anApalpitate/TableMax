@@ -10,6 +10,8 @@
 
 2026-10-12本地版本维护：`package:win`原子分配四位 `1.x.x.y`，每次新完整EXE导出消耗一个y；公开版本及payload目录仍为三位 `1.x.x`。冻结快照／载荷重封复用原y。版本文件和发布映射见[Release流程](release.md#三位公开版本与四位本地构建2026-10-12)。内部签名模块由完整打包入口检查或生成，历史模块仓库只供精确原局恢复，不再提供独立导出、目录更新或导入。
 
+专项可复用同一EXE已通过实际提取检查的目录，但只复制冻结manifest列出的载荷成员和归属标记到新的隔离目录，重新核对每个哈希及完整文件集合；原生启动后产生的配置、模块索引和数据不能混入该集合。宝可梦同包夹具从预装签名blob的代码／资源闭包取得规则、人机、客户端、样式及媒体，逐归档和逐成员核验后渲染；不以工作树客户端替代包内客户端。实现见[同包输入与模块物化](../../tools/test/support/shipping-input.mjs)，实际证明和受控场景分别记录。
+
 ## 两种EXE与内部载荷（2026-10-11）
 
 本节保留双版本与Pages分发的历史边界。2026-10-11曾导出无后缀full完整游戏版和 `-box`盒子版，默认双交付并接受 `--edition=full|box|both`；离线玩法ZIP曾供导入。2026-10-12已取消这些选项和用途，仅导出完整EXE。
@@ -76,7 +78,7 @@ Node 与 pnpm 沿用锁定版本。沙箱默认 Corepack 缓存落在不可用�
 
 `node tools/test/games/pokemon-encounters/verify-pokemon-expansion-play.mjs --portable --sha256=<同一包SHA256> --evidence=<独立名>` 通过实际生产玩家子文档控件与真实默认 Worker，检查研究详情不提交投票、单弃顶、本人缓冲存入／取出／强制换入、保存确认与最新渲染版本；普通模式仍默认静音。根入口的 HTTPS 丢推送、丢同步／动作确认、WSS、执行暂停和换机另由 `verify-debug-remote.mjs --sha256=<同一包SHA256> --evidence=<独立名>` 检查。隐藏浏览器与代理等价情形不能代表实体手机、真实樱花隧道、公网证书、物理 Windows DPI、真人听感或新任务平衡测量。
 
-`node tools/test/games/pokemon-encounters/verify-pokemon-expansion-awards.mjs --portable --sha256=<同一包SHA256> --evidence=<独立名>` 补查高风险研究的稀有结算：同一实际包规则执行最后一笔合法动作并验证状态，实际包客户端与共享运行时展示 0／1／2 新增胜局、共同赢家、计分明细及 320／390px 和主机／公共屏。此为受控结算组件夹具，不是服务端完整对局，也不代替普通模式、真实存档或平衡测量。截图与报告保存在 `artifacts/maintenance/v1.0.4/pokemon-expansion-awards/`；本地头像／角色图片必须实际解码，不能把占位或错误夹具元数据当作美术验收。
+`node tools/test/games/pokemon-encounters/verify-pokemon-expansion-awards.mjs --portable --sha256=<实际EXE的SHA256> --evidence=<独立名>` 补查v3稀有结算：实际包规则执行最后一笔合法动作并验证状态，实际包客户端与共享运行时展示R23折半、R24暗行逐牌折半、共同赢家及每位赢家一胜，在320／390px和主机／公共屏检查明细。这是受控结算组件夹具，不是服务端完整对局，也不代替普通模式、真实存档或平衡测量；报告按当前版本保存在 `artifacts/maintenance/v<版本>/pokemon-expansion-awards/`。本地头像／角色图片须实际解码。
 
 ## 10.7 浏览器玩家与穿透恢复验证（v1.0.3）
 
@@ -268,7 +270,9 @@ node --test tools/test/runner/scopes.test.mjs
 
 便携验收器遇到真实人机保存造成的 `stale-revision` 暂停请求时，只对同实例／同分支的暂停意图最多重取版本8次；其他命令不重试，异常原因继续失败。逐次重试计数进入报告，不放宽服务校验或修改规则，首次冲突证据单独保留为 `portable-676f9e75fb19-pause-race`。
 
-宝可梦扩展版普通模式验证：`node tools/test/games/pokemon-encounters/verify-pokemon-expansion-play.mjs --portable --evidence=<独立名>` 将当前ZIP解压到新目录，启动隐藏原生WebView2；开局前通过房主隐藏快捷键切到 `play` 并逐次核验运行模式。两台独立手机身份只点击真实生产控件，第三席采用真实默认Worker；管理设置使用权威Socket动作，不注入游戏状态。每次手机动作须收到保存成功回执，私看只在本人页面显示，其他手机、公共屏及管理员均无私看投影；记录实际阶段、公开人机动作、截图、页面错误、外部请求及进程退出。自动点击间隔不是真人思考时间，隐藏窗口和触控视口不是实体手机验证。
+宝可梦扩展版普通模式验证：`node tools/test/games/pokemon-encounters/verify-pokemon-expansion-play.mjs --portable --sha256=<实际EXE的SHA256> --evidence=<独立名>` 从当前完整EXE提取载荷到隔离目录，绑定EXE、内部ZIP、manifest与冻结快照的哈希，启动隐藏原生WebView2。开局前通过房主隐藏快捷键切到 `play` 并核验模式；两台独立手机身份点击真实生产控件，第三席采用真实默认Worker。管理设置使用权威Socket动作，不注入游戏状态。手机动作须收到保存成功回执，私看只在本人页面显示，其他手机、公共屏及管理员均无私看投影；记录实际阶段、公开人机动作、截图、页面错误、外部请求及进程退出。自动点击间隔不是真人思考时间，隐藏窗口和触控视口不是实体手机验证。
+
+2026-10-12 v3专项入口均使用 `tools/test/support/shipping-input.mjs` 绑定同一实际完整EXE，不再猜测旧三位ZIP文件名。`verify-pokemon-expansion.mjs --portable --evidence=<独立名>` 检查新局、六事件、单张超梦及真实旧发行恢复；可用 `--legacy-fixture=<实际旧EXE生成的夹具目录>` 指定旧SQLite、checkpoint与不可变发行。受控六事件场景和自然对局分别记录，不能据一次自然事件声称覆盖全部六种。`verify-player-display.mjs --portable --game=pokemon-encounters --variant=expansion --visual-audit --evidence=<独立名>` 仅检查本玩法手机及电脑竖横屏、真实按钮几何和点击命中；模拟缩放与DPI不替代物理设备。`verify-pokemon-expansion-effects.mjs --portable --evidence=<独立名>` 使用同包规则和客户端检查六事件、原版喷火龙／卡比兽入场、路卡利欧画像波导及减少动态；组件夹具技术通过不代表真人美术认可。单游戏构建用 `node tools/build/build.mjs --only=game:pokemon-encounters`，最终完整EXE仍预装全部正式游戏。长任务中设置仅本进程的 `TABLEMAX_AUTO_MAINTENANCE=0`，集中结束后按既有保护入口执行一次维护，避免追加清理。
 
 扩展三档对照用 `node tools/analysis/games/pokemon-encounters/measure-pokemon-expansion-continuation.mjs --natural-seeds=24 --strength-seeds=48 --original-seeds=3 --seed-base=616200 --evidence=<独立名>`，保留源码前后哈希、完整合法动作、研究与能力自然频率、座位轮换及封顶。随后 `node tools/analysis/games/pokemon-encounters/analyze-pokemon-expansion-strength.mjs <report.json路径>` 审计结算算术和每个种子三次座位轮换，按完整种子块进行10,000次确定性bootstrap，保留块内相关性；输出同目录 `strength-analysis.json`。95%区间为单项描述区间，未作多重比较调整，只适用这组三人混合对手；不能据模拟CPU或三人样本认证真人时长、所有人数或整场三胜强度。
 
@@ -857,3 +861,5 @@ SQLite流式扫描须让 `StatementSync` 强引用保持至迭代完成；包内
 安装故障矩阵入口为`node tools/test/platform/verify-package-fault-matrix.mjs`。测试在独立`tmp/package-fault-matrix-*`目录中，用签名小型代码／资源夹具跟踪生产安装器的文件系统写入、同步及原子改名，在调用前后注入EIO异常或终止本测试自己的子进程；写入还覆盖部分写入。每场景由新进程核对恢复、旧包字节及重试。回环HTTP覆盖断流、短包、超长、篡改、503、取消及下载中进程终止，签名小型异常包覆盖ZIP／路径／成员校验。默认静音、监听127.0.0.1，子检查不自动清理，不访问正式数据。
 
 内部按历史低通过率排序、累计3项失败停止、不自动重试；修复后用`--only=<精确场景ID,...>`只运行受影响及未执行项，ID取自本轮`plan.json`。历史库沿用现有入口，计划、逐项结果、生产／方法输入哈希及环境写入`artifacts/maintenance/v1.0.6/package-fault-matrix/<独立名>/`。需要创建并终止隔离子进程的执行权限；权限失败不算故障场景通过。源码检查不代表实际EXE、断电、硬件fsync或真实磁盘满。用户已豁免真实磁盘满和作者工具可见启动，实体手机LAN／Safari留待用户现场验收，当前失败与剩余范围见[验收](acceptance.md#106安装故障矩阵与验收范围调整2026-10-11)。
+
+2026-10-12宝可梦新版本地交付收尾采用现有逐文件审计入口，唯一一次退役清单、旧交付原样移动与实际逻辑容量见[本轮瘦身记录](project-slimming.md#宝可梦新版交付收尾2026-10-12)。当前验证输入仍绑定1.0.6.10完整EXE及冻结载荷；不要用已退役的候选副本或旧三位ZIP重验当前包。
