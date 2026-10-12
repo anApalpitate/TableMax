@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="960" viewBox="0 0 1000 960" role="img">
+<title>戏法空间 · 十组双向互换</title>
+<rect width="1000" height="960" rx="28" fill="#fffaf0"/>
+<g font-family="Microsoft YaHei, sans-serif" fill="#243e39">
+<text x="40" y="65" font-size="38" font-weight="700">戏法空间 · 十组双向互换</text>
+<rect x="30" y="89" width="940" height="56" rx="12" fill="#e5f0e5"/>
+<text x="50" y="125" font-size="27">皮卡丘 −2</text>
+<text x="550" y="125" font-size="27">↔ 烈咬陆鲨 11</text>
+<rect x="30" y="154" width="940" height="56" rx="12" fill="#e5f0e5"/>
+<text x="50" y="190" font-size="27">谜拟丘 −2</text>
+<text x="550" y="190" font-size="27">↔ 快龙 9</text>
+<rect x="30" y="219" width="940" height="56" rx="12" fill="#e5f0e5"/>
+<text x="50" y="255" font-size="27">波克比 −1</text>
+<text x="550" y="255" font-size="27">↔ 大岩蛇 9</text>
+<rect x="30" y="284" width="940" height="56" rx="12" fill="#e5f0e5"/>
+<text x="50" y="320" font-size="27">胖丁 0</text>
+<text x="550" y="320" font-size="27">↔ 魔墙人偶 8</text>
+<rect x="30" y="349" width="940" height="56" rx="12" fill="#e5f0e5"/>
+<text x="50" y="385" font-size="27">鲤鱼王 0</text>
+<text x="550" y="385" font-size="27">↔ 沙奈朵 8</text>
+<rect x="30" y="414" width="940" height="56" rx="12" fill="#e5f0e5"/>
+<text x="50" y="450" font-size="27">伊布 1</text>
+<text x="550" y="450" font-size="27">↔ 耿鬼 7</text>
+<rect x="30" y="479" width="940" height="56" rx="12" fill="#e5f0e5"/>
+<text x="50" y="515" font-size="27">波加曼 2</text>
+<text x="550" y="515" font-size="27">↔ 可达鸭 6</text>
+<rect x="30" y="544" width="940" height="56" rx="12" fill="#e5f0e5"/>
+<text x="50" y="580" font-size="27">妙蛙种子 3</text>
+<text x="550" y="580" font-size="27">↔ 呆呆兽 6</text>
+<rect x="30" y="609" width="940" height="56" rx="12" fill="#e5f0e5"/>
+<text x="50" y="645" font-size="27">木木枭 3</text>
+<text x="550" y="645" font-size="27">↔ 巨金怪 5</text>
+<rect x="30" y="674" width="940" height="56" rx="12" fill="#e5f0e5"/>
+<text x="50" y="710" font-size="27">杰尼龟 4</text>
+<text x="550" y="710" font-size="27">↔ 六尾 5</text>
+<text x="40" y="800" font-size="26">仅触发时全桌场地牌（含暗牌），不翻明。</text>
+<text x="40" y="840" font-size="26">实例、位置和明暗不变；离场后身份不恢复。</text>
+<text x="40" y="880" font-size="26">特殊角色不变；下一小局重置。</text>
+</g>
+</svg>

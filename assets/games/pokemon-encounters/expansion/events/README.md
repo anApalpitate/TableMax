@@ -19,3 +19,5 @@
 本目录的局部`.gitattributes`对SVG禁用文本换行转换，使Git提交与后续检出的字节保持源清单SHA-256；其他文档仍沿用项目格式规则。
 
 7项待重生成插图、11项待更新条件／标题／奖励图示及具体画面要求见[扩展设计](../../../../../docs/games/pokemon-encounters/expansion-design.md#研究插图更新清单2026-10-12待制作)。已删除研究及过时插图／图示均未迁入；原图与历史核验证据保持原位置。
+
+本轮新增v3派生与图示：`runtime/manifest.json`明确4项运行白名单167,594字节及降级理由，原92项统计保持归档口径；`research-diagrams/v3/`为17项最新准确图示，`event-effects/v3/`替代过时天气替换／Mega改值说明。默认运行不导入审计SVG／manifest／原图，真实EXE验收状态以游戏文档为准。

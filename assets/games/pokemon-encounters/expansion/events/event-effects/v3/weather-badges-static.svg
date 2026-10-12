@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620" role="img">
+<title>天气角标 · 减少动态静态示例</title>
+<rect width="1000" height="620" rx="28" fill="#fffaf0"/>
+<g font-family="Microsoft YaHei, sans-serif" fill="#243e39">
+<text x="40" y="65" font-size="38" font-weight="700">天气角标 · 减少动态静态示例</text>
+<rect x="30" y="89" width="940" height="56" rx="12" fill="#d5eaf5"/>
+<text x="50" y="125" font-size="27">杰尼龟：印刷 4 → 有效 2</text>
+<text x="550" y="125" font-size="27">雨天 −2 · 淡蓝底</text>
+<rect x="30" y="154" width="940" height="56" rx="12" fill="#ffe5bd"/>
+<text x="50" y="190" font-size="27">喷火龙：10 → 12</text>
+<text x="550" y="190" font-size="27">雨天 ＋2 · 暖色底</text>
+<rect x="30" y="219" width="940" height="56" rx="12" fill="#e5f0e5"/>
+<text x="50" y="255" font-size="27">耿鬼：7 → 7</text>
+<text x="550" y="255" font-size="27">雨天未调整</text>
+<text x="40" y="345" font-size="26">雨天减分淡蓝底；增分暖色底；未受影响保留常规底。</text>
+<text x="40" y="385" font-size="26">角标有效值由服务端授权；暗牌无数值或来源提示。</text>
+<text x="40" y="425" font-size="26">无动画时仍显示事件名称、有效值和调整来源。</text>
+</g>
+</svg>

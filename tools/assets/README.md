@@ -29,3 +29,5 @@ FFmpeg版本、下载来源和SHA-256由 [ffmpeg-tool.json](ffmpeg-tool.json) �
 | [rules/compress-rule-captures.py](rules/compress-rule-captures.py)                                                             | `python tools/assets/rules/compress-rule-captures.py`                                           |
 | [images/encode-preview.py](images/encode-preview.py)                                                                           | 内部二进制管道编码器；由共享 writer 调用，仅用于普通 WebP90 预览                                |
 | [images/requirements.txt](images/requirements.txt)                                                                             | 预览编码依赖锁定：Pillow 11.1.0；不自动安装                                                     |
+
+宝可梦新事件派生：`python tools/assets/games/pokemon-encounters/prepare-expansion-events.py --workspace E:/Proj/TMP/TableMaxMaterial`。只缩放／裁切／编码既有采用图，逐张配额与哈希解码，超额切代码场景；运行白名单与外部v3联系表／事件图示独立输出，不改原素材。

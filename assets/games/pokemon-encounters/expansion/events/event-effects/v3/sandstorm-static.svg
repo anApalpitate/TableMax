@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620" role="img">
+<title>沙暴 · 静态替代</title>
+<rect width="1000" height="620" rx="28" fill="#dfd2b0"/>
+<g font-family="Microsoft YaHei, sans-serif" fill="#243e39">
+<text x="40" y="65" font-size="38" font-weight="700">沙暴 · 静态替代</text>
+<text x="40" y="150" font-size="26">减少动态：使用运行背景和明确事件标签；不循环移动。</text>
+</g>
+</svg>

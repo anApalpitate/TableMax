@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1000" viewBox="0 0 900 1000" role="img" aria-labelledby="title desc">
+<title id="title">R11 伊布，今天零元购</title>
+<desc id="desc">场地中至少有三张 0 分牌。减 3 分。 九宫格为示例，点表示不限位置。</desc>
+<rect width="900" height="1000" rx="32" fill="#fffaf0"/>
+<g font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif">
+<rect x="36" y="30" width="94" height="48" rx="16" fill="#1d6250"/>
+<text x="83" y="63" font-size="27" fill="#ffffff" text-anchor="middle" font-weight="700">R11</text>
+<text x="154" y="63" font-size="31" fill="#243e39" text-anchor="start" font-weight="700">伊布，今天零元购</text>
+<rect x="36" y="99" width="828" height="107" rx="20" fill="#edf4e7"/>
+<text x="58" y="137" font-size="27" fill="#243e39" text-anchor="start" font-weight="500">场地中至少有三张 0 分牌。</text>
+<text x="48" y="247" font-size="26" fill="#243e39" text-anchor="start" font-weight="700">九宫格示例</text>
+<rect x="460" y="216" width="394" height="47" rx="16" fill="#ffe4a7"/>
+<text x="657" y="249" font-size="26" fill="#243e39" text-anchor="middle" font-weight="700">达成减 3 分</text>
+<g data-cell="1" data-value="0"><rect x="120" y="286" width="212" height="176" rx="20" fill="#e2f0e1" stroke="#548571" stroke-width="3"/>
+<text x="226" y="390" font-size="54" fill="#254e3a" text-anchor="middle" font-weight="700">0</text>
+</g>
+<g data-cell="2" data-value="·"><rect x="344" y="286" width="212" height="176" rx="20" fill="#f2f1e9" stroke="#cbd3c6" stroke-width="3"/>
+<text x="450" y="390" font-size="54" fill="#788477" text-anchor="middle" font-weight="400">·</text>
+</g>
+<g data-cell="3" data-value="·"><rect x="568" y="286" width="212" height="176" rx="20" fill="#f2f1e9" stroke="#cbd3c6" stroke-width="3"/>
+<text x="674" y="390" font-size="54" fill="#788477" text-anchor="middle" font-weight="400">·</text>
+</g>
+<g data-cell="4" data-value="·"><rect x="120" y="474" width="212" height="176" rx="20" fill="#f2f1e9" stroke="#cbd3c6" stroke-width="3"/>
+<text x="226" y="578" font-size="54" fill="#788477" text-anchor="middle" font-weight="400">·</text>
+</g>
+<g data-cell="5" data-value="0"><rect x="344" y="474" width="212" height="176" rx="20" fill="#e2f0e1" stroke="#548571" stroke-width="3"/>
+<text x="450" y="578" font-size="54" fill="#254e3a" text-anchor="middle" font-weight="700">0</text>
+</g>
+<g data-cell="6" data-value="·"><rect x="568" y="474" width="212" height="176" rx="20" fill="#f2f1e9" stroke="#cbd3c6" stroke-width="3"/>
+<text x="674" y="578" font-size="54" fill="#788477" text-anchor="middle" font-weight="400">·</text>
+</g>
+<g data-cell="7" data-value="·"><rect x="120" y="662" width="212" height="176" rx="20" fill="#f2f1e9" stroke="#cbd3c6" stroke-width="3"/>
+<text x="226" y="766" font-size="54" fill="#788477" text-anchor="middle" font-weight="400">·</text>
+</g>
+<g data-cell="8" data-value="·"><rect x="344" y="662" width="212" height="176" rx="20" fill="#f2f1e9" stroke="#cbd3c6" stroke-width="3"/>
+<text x="450" y="766" font-size="54" fill="#788477" text-anchor="middle" font-weight="400">·</text>
+</g>
+<g data-cell="9" data-value="0"><rect x="568" y="662" width="212" height="176" rx="20" fill="#e2f0e1" stroke="#548571" stroke-width="3"/>
+<text x="674" y="766" font-size="54" fill="#254e3a" text-anchor="middle" font-weight="700">0</text>
+</g>
+<text x="48" y="895" font-size="26" fill="#243e39" text-anchor="start" font-weight="500">· 表示不限位置；示例数字不构成额外条件。</text>
+<text x="48" y="936" font-size="24" fill="#243e39" text-anchor="start" font-weight="500">数字使用最终有效值，归零不会改变有效值。</text>
+<text x="48" y="978" font-size="23" fill="#4d6659" text-anchor="start" font-weight="500">本人场地判定；条件正文与奖励以设计基线为准。</text>
+</g>
+</svg>

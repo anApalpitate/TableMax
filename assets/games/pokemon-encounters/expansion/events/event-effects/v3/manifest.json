@@ -1,0 +1,74 @@
+{
+  "profile": "events-research-v3",
+  "assets": [
+    {
+      "file": "rain.svg",
+      "bytes": 1167,
+      "sha256": "fd39bb0380cdd2d74dc6637b96600ecf757d0502051586372d6b4127510bedcb",
+      "status": "v3 code diagram"
+    },
+    {
+      "file": "sun.svg",
+      "bytes": 1176,
+      "sha256": "52792b6de1dd15dab1fd35fd97366512deeb895ab0c8aa78bfac22e59013d8bf",
+      "status": "v3 code diagram"
+    },
+    {
+      "file": "sandstorm.svg",
+      "bytes": 1215,
+      "sha256": "a1587fafbe949422b402a6f9ae757cd7c0f17d2d2da22bdfdbba333ebe9f11a3",
+      "status": "v3 code diagram"
+    },
+    {
+      "file": "snow.svg",
+      "bytes": 1278,
+      "sha256": "5d24fb97f6727e318d8f7144a4f44f258da7f27868b62d7ff7b7a6c421743596",
+      "status": "v3 code diagram"
+    },
+    {
+      "file": "mega.svg",
+      "bytes": 717,
+      "sha256": "108c1dd7705c8f7577a1d740387f4898d258351fea880ec22b6634b14f48ef88",
+      "status": "v3 code diagram"
+    },
+    {
+      "file": "trick-room.svg",
+      "bytes": 2520,
+      "sha256": "d937071e691981091888603824e470517fdb4d641d8ce1f4f59f7de0f3c2c6f3",
+      "status": "v3 code diagram"
+    }
+  ],
+  "old_v1": "preserved as archived design reference; superseded descriptions are not runtime rules",
+  "static_assets": [
+    {
+      "file": "rain-static.svg",
+      "bytes": 471,
+      "sha256": "2283bfb94d852910a85e933df48942d9cbffa5bfe0f87453ea415c8ae7a2d4b9"
+    },
+    {
+      "file": "sandstorm-static.svg",
+      "bytes": 471,
+      "sha256": "e889c1623ad3c51b4c4ccddc976c7f179d2638992cba244eaebb21292bec1a77"
+    },
+    {
+      "file": "snow-static.svg",
+      "bytes": 471,
+      "sha256": "b72acffe8212d1a8f416b68e58bc17d73d393324d64efdc029ae078d585bc6a5"
+    },
+    {
+      "file": "sun-static.svg",
+      "bytes": 471,
+      "sha256": "fe9322ce75e5461d902f6702eb081be92fcf56d80f9707a3ca8a1a3275b78f98"
+    },
+    {
+      "file": "trick-room-static.svg",
+      "bytes": 527,
+      "sha256": "ffe9f19550846888b2d4093df5c91259dc8796253fa1feda45ee8af7b1a88cb5"
+    },
+    {
+      "file": "weather-badges-static.svg",
+      "bytes": 1333,
+      "sha256": "d39b63ae657a0754eb9094dd5119a0bac70d1dbac83ff82851fce17c6670f3bb"
+    }
+  ]
+}

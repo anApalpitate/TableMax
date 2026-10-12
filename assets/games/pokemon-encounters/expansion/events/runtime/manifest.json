@@ -1,0 +1,111 @@
+{
+  "profile": "events-research-v3",
+  "generation": "resize/crop/re-encode only; existing adopted illustration",
+  "pillow_version": "11.1.0",
+  "total_bytes": 167594,
+  "runtime_allowlist": [
+    "event-sandstorm.webp",
+    "event-snow.webp",
+    "event-trick-room.webp",
+    "research-R01.webp"
+  ],
+  "assets": [
+    {
+      "file": "event-sandstorm.webp",
+      "source": "event-art/sandstorm-v1.webp",
+      "source_sha256": "6ea7f9d0100cfa1f0e2b8fdb48869163487ce22f081125a47d2fe9755e253d55",
+      "sha256": "c49fcf2b3dc3ce5ce9770f69252b6b66f856c885d19561e95e75211c3bbd13b9",
+      "bytes": 48494,
+      "width": 768,
+      "height": 432,
+      "quality": 82,
+      "cap_bytes": 49152,
+      "status": "derived and decoded; runtime QA pending"
+    },
+    {
+      "file": "event-snow.webp",
+      "source": "event-art/snow-v1.webp",
+      "source_sha256": "2683a262e01bf926e1a2bb4964d598b9f004922ed4d98fd20020e45253cacbcf",
+      "sha256": "fd75e3d22ab63c1254b5d2de0872488b972983b9d425ca508111806467895ccd",
+      "bytes": 48804,
+      "width": 768,
+      "height": 432,
+      "quality": 52,
+      "cap_bytes": 49152,
+      "status": "derived and decoded; runtime QA pending"
+    },
+    {
+      "file": "event-trick-room.webp",
+      "source": "event-art/trick-room-v1.webp",
+      "source_sha256": "1ea904573f9e526d93a450768ebad0607b0a101559e544610e82492956ca39fa",
+      "sha256": "12575d991997a346801990e0b26724c513f2344060d8cc39dd1c612513410970",
+      "bytes": 46458,
+      "width": 768,
+      "height": 432,
+      "quality": 52,
+      "cap_bytes": 49152,
+      "status": "derived and decoded; runtime QA pending"
+    },
+    {
+      "file": "research-R01.webp",
+      "source": "research-art/R01-candidate-v1.webp",
+      "source_sha256": "7e6ee28a592f1a42ca980ebb6c6c7e19369bc24ec2cfbcbcb77d29bfe69a52d0",
+      "sha256": "497c551b18a8b4ff69841b2da458446837a97edbc27c26fc4189d65c4300f45d",
+      "bytes": 23838,
+      "width": 512,
+      "height": 288,
+      "quality": 52,
+      "cap_bytes": 24576,
+      "status": "derived and decoded; runtime QA pending"
+    }
+  ],
+  "budget_bytes": 524288,
+  "placeholders": ["R02", "R03", "R05", "R13", "R18", "R22", "R24"],
+  "budget_fallbacks": [
+    {
+      "file": "event-rain.webp",
+      "reason": "Cannot meet per-image cap at quality >=52; existing portrait/default background + code scene"
+    },
+    {
+      "file": "event-sun.webp",
+      "reason": "Cannot meet per-image cap at quality >=52; existing portrait/default background + code scene"
+    },
+    {
+      "file": "research-R06.webp",
+      "reason": "Cannot meet per-image cap at quality >=52; existing portrait/default background + code scene"
+    },
+    {
+      "file": "research-R08.webp",
+      "reason": "Cannot meet per-image cap at quality >=52; existing portrait/default background + code scene"
+    },
+    {
+      "file": "research-R11.webp",
+      "reason": "Cannot meet per-image cap at quality >=52; existing portrait/default background + code scene"
+    },
+    {
+      "file": "research-R14.webp",
+      "reason": "Cannot meet per-image cap at quality >=52; existing portrait/default background + code scene"
+    },
+    {
+      "file": "research-R15.webp",
+      "reason": "Cannot meet per-image cap at quality >=52; existing portrait/default background + code scene"
+    },
+    {
+      "file": "research-R16.webp",
+      "reason": "Cannot meet per-image cap at quality >=52; existing portrait/default background + code scene"
+    },
+    {
+      "file": "research-R17.webp",
+      "reason": "Cannot meet per-image cap at quality >=52; existing portrait/default background + code scene"
+    },
+    {
+      "file": "research-R19.webp",
+      "reason": "Cannot meet per-image cap at quality >=52; existing portrait/default background + code scene"
+    },
+    {
+      "file": "research-R23.webp",
+      "reason": "Cannot meet per-image cap at quality >=52; existing portrait/default background + code scene"
+    }
+  ],
+  "pending": "Actual module budget and UI visual QA; no new character poses or Mega mechanics"
+}

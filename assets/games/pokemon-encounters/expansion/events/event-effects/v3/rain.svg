@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620" role="img">
+<title>雨天</title>
+<rect width="1000" height="620" rx="28" fill="#fffaf0"/>
+<g font-family="Microsoft YaHei, sans-serif" fill="#243e39">
+<text x="40" y="65" font-size="38" font-weight="700">雨天</text>
+<rect x="30" y="89" width="940" height="56" rx="12" fill="#e5f0e5"/>
+<text x="50" y="125" font-size="27">水系</text>
+<text x="550" y="125" font-size="27">−2</text>
+<rect x="30" y="154" width="940" height="56" rx="12" fill="#e5f0e5"/>
+<text x="50" y="190" font-size="27">火系</text>
+<text x="550" y="190" font-size="27">＋2</text>
+<rect x="30" y="219" width="940" height="56" rx="12" fill="#e5f0e5"/>
+<text x="50" y="255" font-size="27">其他</text>
+<text x="550" y="255" font-size="27">不变</text>
+<text x="40" y="345" font-size="26">每小局仅触发一次随机事件；持续到小局结束。</text>
+<text x="40" y="385" font-size="26">仅当前明置场地牌受天气影响；盖回／离场即停止。</text>
+<text x="40" y="425" font-size="26">双属性仅调整一次；复制继承来源有效值，不重复加减。</text>
+</g>
+</svg>
