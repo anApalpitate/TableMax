@@ -36,7 +36,7 @@ namespace TableMax {
 function Resolve-ReviewedPath([string]$Relative, [switch]$AnyRoot, [switch]$SyntaxOnly) {
   if ([string]::IsNullOrWhiteSpace($Relative) -or $Relative -match '[\\:*?]' -or
       @($Relative.Split('/') | Where-Object { $_ -in @('', '.', '..', '.git') }).Count -or
-      (-not $AnyRoot -and $Relative -notmatch '^(tmp/|artifacts/|\.cache/build-modules/v1/|build/(?:desktop|native|native-obj)(?:/|$))')) { throw ('Invalid reviewed path: ' + $Relative) }
+      (-not $AnyRoot -and $Relative -notmatch '^(tmp/|artifacts/|\.cache/build-modules/v1/|build/(?:desktop|native|native-obj|snapshots)(?:/|$))')) { throw ('Invalid reviewed path: ' + $Relative) }
   # The per-file compiled guard below checks every existing ancestor. Avoid
   # repeating PowerShell Get-Item calls for the same ancestors on large lists.
   if ($SyntaxOnly) {
@@ -69,9 +69,50 @@ function Assert-ReviewedRetainedCopy($File) {
   [TableMax.ReviewedFileGuardV1]::Check($workspace, $copy.path, [long]$copy.bytes, $item.LastWriteTimeUtc.Ticks, $copy.sha256, [DateTime]::MaxValue.Ticks) | Out-Null
 }
 
+function Assert-ReviewedArchivedFile($File) {
+  $copy = $File.preservedArchive
+  if (-not $copy -or $copy.path -notmatch '^artifacts/maintenance/.+\.zip$' -or
+      -not [string]::Equals([string]$copy.entryPath, [string]$File.path, [StringComparison]::Ordinal) -or $copy.sha256 -notmatch '^[a-f0-9]{64}$' -or
+      -not @($reviewedPlan.references | Where-Object { $_.path -eq $copy.path -and $_.sha256 -eq $copy.sha256 }).Count) {
+    throw 'Archived content requires a permanent hash-bound ZIP and exact original member path.'
+  }
+  $archivePath = Resolve-ReviewedPath $copy.path -AnyRoot
+  $key = $archivePath + '|' + $copy.sha256
+  if (-not $reviewedArchivedMembers.ContainsKey($key)) {
+    if ((Get-FileHash -LiteralPath $archivePath).Hash.ToLowerInvariant() -ne $copy.sha256) { throw 'Preservation archive changed.' }
+    Add-Type -AssemblyName System.IO.Compression
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $members = New-Object 'System.Collections.Generic.Dictionary[string,object]' ([StringComparer]::Ordinal)
+    $zip = [IO.Compression.ZipFile]::OpenRead($archivePath)
+    try {
+      foreach ($member in $zip.Entries) {
+        if ($member.FullName.EndsWith('/')) { continue }
+        if ($member.FullName -match '[\\:]|(^|/)\.\.?(?:/|$)' -or $members.ContainsKey($member.FullName)) { throw 'Invalid or duplicate preserved archive member.' }
+        $stream = $member.Open(); $digest = [Security.Cryptography.SHA256]::Create()
+        try { $hash = [BitConverter]::ToString($digest.ComputeHash($stream)).Replace('-', '').ToLowerInvariant() }
+        finally { $digest.Dispose(); $stream.Dispose() }
+        $members.Add($member.FullName, [PSCustomObject]@{bytes=$member.Length;sha256=$hash})
+      }
+    }
+    finally { $zip.Dispose() }
+    $reviewedArchivedMembers[$key] = $members
+  }
+  $members = $reviewedArchivedMembers[$key]
+  if (-not $members.ContainsKey($File.path) -or $members[$File.path].bytes -ne $File.bytes -or $members[$File.path].sha256 -ne $File.sha256) {
+    throw ('Archive does not retain complete original bytes: ' + $File.path)
+  }
+}
+
 function Assert-ReviewedAllowed($File, $Entry) {
   $absolute = Resolve-ReviewedPath $File.path -SyntaxOnly
   if (-not (Test-ReviewedPrefix $File.path $Entry.path) -or $File.path -eq $Entry.path) { throw 'Reviewed file escapes its exact generated root.' }
+  if ($File.path.StartsWith('build/snapshots/', [StringComparison]::OrdinalIgnoreCase)) {
+    if ($File.path -notmatch '^build/snapshots/[a-f0-9]{64}(?:-assembly)?\.json$' -or -not $File.preservedArchive) { throw 'Frozen snapshots require full lossless preservation; pointers and unknown names stay protected.' }
+  }
+  if ($File.preservedArchive) {
+    if ($Entry.origin -ne 'generated-copy') { throw 'Only reviewed generated records may use archival preservation.' }
+    Assert-ReviewedArchivedFile $File
+  }
   if ($File.path.StartsWith('artifacts/pages/', [StringComparison]::OrdinalIgnoreCase)) {
     $pagesCopy = '^artifacts/pages/(?:(?:verification-[A-Za-z0-9_-]+|v\d+\.\d+\.\d+/(?:ready|published-history)-[A-Za-z0-9_-]+)/site/games/v\d+\.\d+\.\d+/packages/|v\d+\.\d+\.\d+/published-history-[A-Za-z0-9_-]+/packages/)TableMax-[A-Za-z0-9_.-]+\.zip$'
     if ($Entry.origin -ne 'generated-copy' -or $File.path -notmatch $pagesCopy) { throw 'Only audited duplicate Pages package ZIPs may be retired.' }
@@ -138,6 +179,7 @@ function Invoke-ReviewedFilesRetirement {
   $script:reviewedManifestHash = (Get-FileHash -LiteralPath $reviewedManifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
   if (($ReviewedFilesManifestSha256 -and $ReviewedFilesManifestSha256 -ne $reviewedManifestHash) -or ($Apply -and -not $ReviewedFilesManifestSha256)) { throw 'Reviewed manifest must match its exact preview SHA-256.' }
   $script:reviewedPlan = Get-Content -LiteralPath $reviewedManifestPath -Raw -Encoding utf8 | ConvertFrom-Json
+  $script:reviewedArchivedMembers = @{}
   if ($reviewedPlan.version -ne 1 -or $reviewedPlan.authorization -ne 'retire-reviewed-generated-once' -or
       $reviewedPlan.id -notmatch '^[a-z0-9][a-z0-9-]{0,80}$' -or $reviewedPlan.currentVersion -ne $project.version -or
       $reviewedPlan.currentArchiveSha256 -ne $archiveHash -or -not $reviewedPlan.entries.Count -or
@@ -193,8 +235,8 @@ function Invoke-ReviewedFilesRetirement {
     Resolve-ReviewedPath $entry.path | Out-Null
     foreach ($root in $roots) { if ((Test-ReviewedPrefix $root $entry.path) -or (Test-ReviewedPrefix $entry.path $root)) { throw 'Reviewed roots overlap.' } }
     $roots.Add($entry.path)
-    if ($entry.path.StartsWith('.cache/build-modules/', [StringComparison]::Ordinal) -and ($entry.origin -ne 'retired-cache' -or -not $reviewedPlan.references.Count)) { throw 'Retired module cache requires frozen retention references.' }
-    if ($entry.path.StartsWith('build/', [StringComparison]::Ordinal) -and $entry.origin -ne 'generated-copy') { throw 'Only generated build outputs may be retired.' }
+    if ($entry.path.StartsWith('.cache/build-modules/', [StringComparison]::OrdinalIgnoreCase) -and ($entry.origin -ne 'retired-cache' -or -not $reviewedPlan.references.Count)) { throw 'Retired module cache requires frozen retention references.' }
+    if ($entry.path.StartsWith('build/', [StringComparison]::OrdinalIgnoreCase) -and $entry.origin -ne 'generated-copy') { throw 'Only generated build outputs may be retired.' }
     foreach ($file in $entry.files) {
       if (-not $seen.Add($file.path)) { throw 'Duplicate reviewed file.' }
       Assert-ReviewedAllowed $file $entry | Out-Null

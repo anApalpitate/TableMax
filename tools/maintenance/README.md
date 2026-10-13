@@ -8,6 +8,8 @@
 
 经独立核验的编译／组装输出可在同一精确清单中选择 `build/desktop`、`build/native`、`build/native-obj`，仅接受 `generated-copy`。必须在 `references` 绑定未变的 `build/snapshots/latest.json` 和完整64位SHA命名的冻结快照；冻结快照、未知build目录、依赖／工具缓存及未列成员不进入清理。仍逐文件核验来源、SHA、近期修改、进程与路径，不能仅凭目录名选择所有成员。
 
+历史机器报告或冻结快照需要保留完整内容时，文件可带 `preservedArchive`（永久maintenance ZIP的`path`／`sha256`，与原文件路径完全相同的`entryPath`）。ZIP必须同时登记为 `references`，工具逐成员解压核验原字节及SHA，删除期间持续绑定归档哈希。`build/snapshots`只接受64位SHA命名的历史JSON及assembly JSON，且必须提供此完整归档证明；latest、当前引用快照、未知名称及未列文件保留。历史ID复查前按原路径还原相应归档成员，当前启动和旧局恢复无需还原；临时副本仍直接退役，不为待删文件创建备份。
+
 内部实现 [reviewed-files.ps1](reviewed-files.ps1)，隔离回归 [reviewed-files.test.ps1](reviewed-files.test.ps1)：`powershell.exe -NoProfile -File tools/maintenance/reviewed-files.test.ps1`。范围和本次容量目标见[开发环境](../../docs/reference/development.md#跨目录精确文件退役2026-10-12)。
 
 2026-10-11验收去重：version 2统一计划关闭子检查自动维护，结束后只尝试一次父轮收尾；多阶段同任务使用`TABLEMAX_AUTO_MAINTENANCE=0`并最后统一维护。当前完整EXE的证明直接定位到指针snapshot下的shipping报告，读取历史双格式时仍逐项匹配，缺失或哈希不符即拒绝，不回退历史全树查找。缓存预览`--plan=<精确JSON>`生成SHA绑定候选，Apply必须提供同一路径和`--plan-sha256=<预览SHA>`；保留引用变化即停止，删除前仍复核进程、锁、路径、链接、近期修改和成员哈希。旧无plan命令保留兼容行为。计时分开记录交付证明、缓存库存、成员校验、进程查询和容量／退役；没有旧分类数据时不拆算旧总耗时。

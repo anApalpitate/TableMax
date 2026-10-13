@@ -112,7 +112,13 @@ try {
     Refused { Invoke-ReviewedFilesRetirement } 'build cleanup rejects non-generated origin'
     $plan.entries[0].origin='generated-copy';Save-Plan
     foreach ($invalid in @('build/snapshots/latest.json','build/unknown/output.js','build/desktop-old/file.js')) {
-      Refused { Resolve-ReviewedPath $invalid } ('unapproved build scope '+$invalid)
+      if ($invalid -eq 'build/snapshots/latest.json') {
+        Plan 'protected-build-pointer' 'build/snapshots' @($latest)
+        $plan.references=@($latest,$snapshot);Save-Plan
+        Refused { Invoke-ReviewedFilesRetirement } 'snapshot pointer stays protected'
+        Plan 'build-generated' 'build/desktop' @($generated)
+        $plan.references=@($latest,$snapshot);Save-Plan
+      } else { Refused { Resolve-ReviewedPath $invalid } ('unapproved build scope '+$invalid) }
     }
     $savedHash=$plan.references[1].sha256
     $plan.references[1].sha256='d'*64;Save-Plan
@@ -123,6 +129,71 @@ try {
     Invoke-ReviewedFilesRetirement
     Check (-not (Test-Path -LiteralPath (Join-Path $workspace $generated.path))) 'exact generated build output retired'
     Check ((Test-Path -LiteralPath (Join-Path $workspace $unlisted.path)) -and (Test-Path -LiteralPath (Join-Path $workspace $latest.path)) -and (Test-Path -LiteralPath (Join-Path $workspace $snapshot.path))) 'unlisted outputs and frozen snapshots preserved'
+  }
+  Scenario 'archived-snapshot' {
+    $latest=File 'build/snapshots/latest.json'
+    $current=File ('build/snapshots/'+('e'*64)+'.json')
+    $old=File ('build/snapshots/'+('f'*64)+'.json') 'complete historical frozen inputs'
+    Plan 'archived-snapshot' 'build/snapshots' @($old)
+    $plan.references=@($latest,$current);Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'historical snapshots cannot be discarded without archival proof'
+    $mixed=[PSCustomObject]@{path=$old.path.Replace('build/snapshots/','Build/Snapshots/');bytes=$old.bytes;lastWriteTimeUtcTicks=$old.lastWriteTimeUtcTicks;sha256=$old.sha256}
+    $plan.entries[0].path='Build/Snapshots';$plan.entries[0].files=@($mixed);Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'Windows mixed-case snapshots require archival proof'
+    $plan.entries[0].path='build/snapshots';$plan.entries[0].files=@($old);Save-Plan
+    Add-Type -AssemblyName System.IO.Compression
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $archiveRelative='artifacts/maintenance/preserved/history.zip'
+    $archivePath=Join-Path $workspace $archiveRelative
+    [IO.Directory]::CreateDirectory((Split-Path $archivePath -Parent)) | Out-Null
+    $zip=[IO.Compression.ZipFile]::Open($archivePath,[IO.Compression.ZipArchiveMode]::Create)
+    try {
+      $member=$zip.CreateEntry($old.path);$output=$member.Open();$input=[IO.File]::OpenRead((Join-Path $workspace $old.path))
+      try { $input.CopyTo($output) } finally { $input.Dispose();$output.Dispose() }
+    } finally { $zip.Dispose() }
+    $archiveRef=[PSCustomObject]@{path=$archiveRelative;bytes=(Get-Item -LiteralPath $archivePath).Length;sha256=(Get-FileHash -LiteralPath $archivePath).Hash.ToLowerInvariant()}
+    $old | Add-Member -NotePropertyName preservedArchive -NotePropertyValue ([PSCustomObject]@{path=$archiveRelative;sha256=$archiveRef.sha256;entryPath=$old.path})
+    Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'preservation archive must be a frozen reference'
+    $plan.references=@($latest,$current,$archiveRef)
+    $old.preservedArchive.entryPath='build/snapshots/missing.json';Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'archive member path must equal original path'
+    $old.preservedArchive.entryPath=$old.path.ToUpperInvariant();Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'ZIP entry names require exact case for restoration'
+    $old.preservedArchive.entryPath=$old.path
+    $old.preservedArchive.sha256='0'*64;Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'changed archive SHA is rejected'
+    $old.preservedArchive.sha256=$archiveRef.sha256
+    foreach ($extra in @(0,1)) {
+      $badRelative='artifacts/maintenance/preserved/wrong-member-'+$extra+'.zip'
+      $badPath=Join-Path $workspace $badRelative
+      $zip=[IO.Compression.ZipFile]::Open($badPath,[IO.Compression.ZipArchiveMode]::Create)
+      try {
+        $member=$zip.CreateEntry($old.path);$output=$member.Open()
+        try { $wrongBytes=[byte[]]::new(([int]$old.bytes+$extra));$output.Write($wrongBytes,0,$wrongBytes.Length) } finally { $output.Dispose() }
+      } finally { $zip.Dispose() }
+      $badRef=[PSCustomObject]@{path=$badRelative;bytes=(Get-Item -LiteralPath $badPath).Length;sha256=(Get-FileHash -LiteralPath $badPath).Hash.ToLowerInvariant()}
+      $old.preservedArchive=[PSCustomObject]@{path=$badRelative;sha256=$badRef.sha256;entryPath=$old.path}
+      $plan.references=@($latest,$current,$badRef);Save-Plan
+      Refused { Invoke-ReviewedFilesRetirement } ('correct source metadata with wrong same-named ZIP member '+$extra)
+    }
+    $old.preservedArchive=[PSCustomObject]@{path=$archiveRelative;sha256=$archiveRef.sha256;entryPath=$old.path}
+    $plan.references=@($latest,$current,$archiveRef)
+    [IO.File]::AppendAllText($archivePath,'actual ZIP bytes changed');Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'actual preservation ZIP mutation blocks retirement'
+    $stream=[IO.File]::OpenWrite($archivePath)
+    try { $stream.SetLength($archiveRef.bytes) } finally { $stream.Dispose() }
+    $missing=File ('build/snapshots/'+('a'*64)+'-assembly.json')
+    $missing | Add-Member -NotePropertyName preservedArchive -NotePropertyValue $old.preservedArchive
+    $missing.preservedArchive=[PSCustomObject]@{path=$archiveRelative;sha256=$archiveRef.sha256;entryPath=$missing.path}
+    $plan.entries[0].files=@($missing);Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'missing ZIP member preserves original snapshot'
+    $plan.entries[0].files=@($old);Save-Plan
+    Invoke-ReviewedFilesRetirement
+    $script:Apply=$true
+    Invoke-ReviewedFilesRetirement
+    Check (-not (Test-Path -LiteralPath (Join-Path $workspace $old.path))) 'archived snapshot ordinary copy retired'
+    Check ((Test-Path -LiteralPath $archivePath) -and (Test-Path -LiteralPath (Join-Path $workspace $current.path)) -and (Test-Path -LiteralPath (Join-Path $workspace $latest.path))) 'complete archive and current pointers retained'
   }
   Scenario 'delivery-and-prefix' {
     $file=File 'artifacts/releases/current/current.exe'
