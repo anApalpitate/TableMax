@@ -121,3 +121,7 @@ Git 远程 `origin` 为 GitHub 的 `anApalpitate/TableMax`，现有Pages工作�
 工作区与交付的瘦身依据、历史包退役及执行报告统一维护在 [项目瘦身](project-slimming.md)，不按文件目录名推断资料是否可删除。
 
 共享互动归属：`apps/web/src/interactions/`负责真人手势、顶层显示与本端音频；`apps/server/src/interactions.ts`负责即时派发与有界去重；`packages/protocol/src/interactions.ts`与`interaction-catalog.json`负责稳定ID／配置与严格校验；`assets/platform/interaction/manifest.json`维护资源来源、派生、哈希与核验边界。`tools/assets/platform/prepare-platform-interaction-assets.mjs`及`convert-runtime-audio-flac.mjs`为受控离线派生入口。
+
+## 开发文档与定向读取
+
+开发环境只做路由／旧锚点；当前正文在build-and-run.md、validation.md、workspace-maintenance.md，操作命令在对应tools/README。历史长记录归docs/archive对应主题，当前交付／最近瘦身仅留有效状态。tools/maintenance/read-doc.mjs提供8KiB按章节／cursor读取；审计报告进入artifacts/maintenance/development-efficiency/docs，不进入运行载荷。

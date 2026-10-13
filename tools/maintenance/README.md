@@ -111,3 +111,52 @@ node --test tools/maintenance/maintenance.test.mjs
 | [WorkspaceSnapshot.cs](WorkspaceSnapshot.cs)                                     | 内部辅助／声明／夹具；由对应入口调用                                                                 |
 
 [temporary-retirement.ps1](temporary-retirement.ps1) 为单次tmp清单内部实现；[temporary-retirement.test.ps1](temporary-retirement.test.ps1) 为路径、变化、链接、无备份与防重复执行隔离回归。
+
+## 定向Markdown读取与迁移审计
+
+`read-doc.mjs`只读取仓库内Markdown源码，拒绝越界／生成物路径，默认8KiB输出（含行号和续读提示）。标题需精确且唯一；同名标题只列候选，不猜测。cursor是1起始行号与0起始Unicode码点列号，续读保留原文件行号；MORE不表示省略内容不存在。工具本身不修改文件。
+
+```powershell
+pnpm docs:read docs/reference/validation.md --outline
+pnpm docs:read docs/reference/validation.md --heading="按变更范围选择检查"
+# 仅使用上一结果给出的cursor；有heading时续读保留同一heading
+pnpm docs:read docs/reference/validation.md --cursor=40:0
+node --test tools/maintenance/read-doc.test.mjs
+node --test tools/maintenance/audit-efficiency-docs.test.mjs
+```
+
+`audit-efficiency-docs.mjs`只检查源文档链接／真实标题、8KiB根入口和可选迁移对照，不启动产品、不执行容量／交付扫描或清理。全量入链读取用于正文迁移，既有失败与新增失败分别记录；已有缺口不能替新增失败通过。报告仅写指定仓库内证据路径。
+
+```powershell
+node tools/maintenance/audit-efficiency-docs.mjs --baseline=artifacts/maintenance/development-efficiency/docs/link-baseline.json --migration=artifacts/maintenance/development-efficiency/docs/migration.json --report=artifacts/maintenance/development-efficiency/docs/link-final.json
+```
+
+普通文档检查不必指定本轮migration；无baseline时所有坏链接都算失败。工具／验证日志回传默认结论约2KiB、失败约8KiB，完整日志留现有证据；预算之外明确截断，不重跑同一检查来获取相同输出。
+
+## 开发环境操作：tmp 临时内容的生命周期（2026-10-11）
+
+原开发环境的操作全文迁入，规范和保护见[工作区维护](../../docs/reference/workspace-maintenance.md)。
+
+```powershell
+# 在 TableMax 根目录预览
+.\scripts\Clean-Releases.ps1
+.\scripts\Clean-Intermediates.ps1
+# 核对后分别执行
+.\scripts\Clean-Releases.ps1 -Apply
+.\scripts\Clean-Intermediates.ps1 -Apply
+# 日常维护：默认发现本仓库主工作区，超过 10 GiB 才执行
+.\scripts\Maintain-Project.ps1
+.\scripts\Maintain-Project.ps1 -Apply
+# 或明确指定同仓库 checkout；路径替换为实际主工作区
+.\scripts\Maintain-Project.ps1 -Apply -ProjectRoot C:\Projects\TableMax
+```
+
+## 开发环境操作：工作目录透明压缩
+
+原开发环境的操作全文迁入，规范和保护见[工作区维护](../../docs/reference/workspace-maintenance.md)。
+
+```powershell
+.\scripts\Compress-Workspace.ps1
+.\scripts\Compress-Workspace.ps1 -Apply
+.\scripts\Compress-Workspace.ps1 -Apply -MinimumBytes 4096
+```

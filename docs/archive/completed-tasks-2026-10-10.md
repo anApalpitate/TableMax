@@ -2,6 +2,22 @@
 
 2026-10-10从tasks迁出已结束的实施和本机验证记录。以下保留原版本、日期、完成标准、失败及证据；不把技术通过提升为真人设备验收。当前待测范围见[任务索引](../tasks/README.md)，实际交付见[当前验收](../reference/acceptance.md)。拉密完整实施已在[2026-10-09构建归档](rummikub-2026-10-09.md)维护，不另复制。
 
+## 渐进开发提效（2026-10-13）
+
+按用户确认的渐进方案完成入口精简、主题迁移、定向读取、构建和验收工具改造及显式运行基线。公开版本仍1.0.6，当前实际完整EXE仍1.0.6.10，本轮没有新导出、发布、部署或源码ZIP；新增最终EXE计时字段仅经源码／语法核对，不冒充新包验收。剩余实测目标见[提效接续](../tasks/development-efficiency.md)。
+
+根AGENTS由19,171字节降至7,712字节，减少59.8%；44项原约束和112个正文节逐项绑定原文本及目标路径，开发环境按构建运行／验证／维护分责，旧标题保留转链，验收与瘦身历史归已有档案体系。迁移对照和全源文档入链结果留[迁移清单](../../artifacts/maintenance/development-efficiency/docs/migration.json)、[链接审计](../../artifacts/maintenance/development-efficiency/docs/link-final.json)。原有一处美术偏好失效入链仅修正目标，原话与偏好未改。章节工具默认8KiB、真实行号、标题歧义拒绝及Unicode长行续读；新工具7项回归通过。
+
+构建支持jobs=1／2／4，共享准备串行、独立单元有界并行，冻结／组装独占；失败排空后拒绝冻结。内容读取仅在同一核验阶段去重，跨阶段重新SHA。内部code/resource逐blob核验签名／闭包／归档／成员后复用原字节，损坏、缺失、链接及资产重名拒绝；缓存历史编译与本次核验分别记录，完整包装总耗时包含最终EXE。11项不同工具回归通过。初期签名夹具与沙箱realpath失败保留，达到3失败停止，修正后仅重跑受影响项，详见[构建交接](../../artifacts/maintenance/development-efficiency/build/build-handoff.json)。
+
+最终两游戏实际esbuild／Vite夹具中jobs2相对jobs1：冷构建慢17.92%、暖构建慢28.46%、单游戏变化快16.60%；产物逐文件一致，暖6／6命中、变化3／6命中。每路径单样本且RSS只覆盖父Node，默认继续1，未达到稳定提速／全进程内存门槛；[基准](../../artifacts/maintenance/development-efficiency/build/2026-10-13T03-04-27-638Z/results.json)不证明全项目25%打包收益。测量后仅调整CLI报告摘要，不变测量执行与编译依赖。
+
+验证预设复用现有scopes与version 2计划，按任务SHA、范围与rules／ui／resources／tooling分类选择；依赖未审查完整时照常执行且禁止复用。旧version 1／直接入口保留兼容，子项关闭自动维护、父轮一次收尾，仍串行按低通过率排序、累计默认3失败停派、不自动重试。锁定TypeScript的incremental仅显式选用，不改变程序覆盖、诊断或编译器失败退出语义。工具回归、最终预设轮及阶段指纹基准见[验证证据目录](../../artifacts/maintenance/development-efficiency/verification/)；夹具收益与真实项目收益分开记录。
+
+运行基线显式启用、有界样本且不记录凭证／动作秘密／投影内容，默认回环、静音、隐藏Edge。24次提交、六独立玩家iframe与DOM修订确认无失败；另有六同凭证Node观察连接和管理员，共13连接。保存P95为1.91ms，保存→广播3.14ms，页面收到→frame5.40ms；Worker启动22.07ms、online→结果6.85ms、直接策略1.02ms、取消→退出1.55ms。服务采样RSS峰138.85MB，源码首次／再次进程就绪2.171／1.959s。Worker6项与有界统计2项通过，迟到事件不覆盖取消结果。原始3次夹具失败及停止／修复边界见[运行尝试](../../artifacts/maintenance/development-efficiency/runtime/attempts.json)，最终[同步基线](../../artifacts/maintenance/development-efficiency/runtime/runtime.json)与[Worker基线](../../artifacts/maintenance/development-efficiency/runtime/workers.json)保留各自输入SHA。
+
+页面跨时钟估计误差最高5.67ms，144项提交→frame中2个负估计排除；frame不等于像素呈现。以上为UNO六席大厅准备切换和种子策略、本机源码服务，未验真实手机、LAN／弱网、公共竞价、完整EXE冷启动或物理DPI。后续5个可比任务的token／往返与25%暖／单游戏打包目标仍待实测，不把日志token直接换算额度。
+
 ## 宝可梦新设计应用（2026-10-12）
 
 新局贯通 `events-research-v3`：144张、巨金怪5分、17项研究、单格超梦、保护期标记牌及六类等概率事件。R23保留正负半分，R24按强制揭牌前暗行逐牌折半向下取整；有效牌面统一规则、投影、计分与人机，暗牌不返回可反推的信息。天气随明置场地，戏法空间保持实体ID及十组互换；Mega与羁绊仅主题占位，旧发行不迁移。保留用户手写的新事件设计。
