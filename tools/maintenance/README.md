@@ -6,6 +6,8 @@
 
 清单 `version: 1`、`authorization: retire-reviewed-generated-once`、唯一 `id`、`currentVersion`、`currentArchiveSha256`、`protectedPrefixes`、`protectedFiles`、`references`、`links` 及 `entries`。每项为精确生成根 `path`、`origin`（`generated-copy`／`isolated-test`／`retired-cache`）、来源说明 `reason` 和普通 `files`（`path`、`bytes`、`lastWriteTimeUtcTicks`、`sha256`）。测试库仅允许已证实隔离的 `isolated-test`；正式数据、原件、源码、签名模块仓库与当前交付不得列入。记录在 `artifacts/maintenance/reviewed-retirements/<id>.json`，开始即消耗ID，部分失败也不复用、重试或追加第二轮，不创建恢复副本。
 
+经独立核验的编译／组装输出可在同一精确清单中选择 `build/desktop`、`build/native`、`build/native-obj`，仅接受 `generated-copy`。必须在 `references` 绑定未变的 `build/snapshots/latest.json` 和完整64位SHA命名的冻结快照；冻结快照、未知build目录、依赖／工具缓存及未列成员不进入清理。仍逐文件核验来源、SHA、近期修改、进程与路径，不能仅凭目录名选择所有成员。
+
 内部实现 [reviewed-files.ps1](reviewed-files.ps1)，隔离回归 [reviewed-files.test.ps1](reviewed-files.test.ps1)：`powershell.exe -NoProfile -File tools/maintenance/reviewed-files.test.ps1`。范围和本次容量目标见[开发环境](../../docs/reference/development.md#跨目录精确文件退役2026-10-12)。
 
 2026-10-11验收去重：version 2统一计划关闭子检查自动维护，结束后只尝试一次父轮收尾；多阶段同任务使用`TABLEMAX_AUTO_MAINTENANCE=0`并最后统一维护。当前完整EXE的证明直接定位到指针snapshot下的shipping报告，读取历史双格式时仍逐项匹配，缺失或哈希不符即拒绝，不回退历史全树查找。缓存预览`--plan=<精确JSON>`生成SHA绑定候选，Apply必须提供同一路径和`--plan-sha256=<预览SHA>`；保留引用变化即停止，删除前仍复核进程、锁、路径、链接、近期修改和成员哈希。旧无plan命令保留兼容行为。计时分开记录交付证明、缓存库存、成员校验、进程查询和容量／退役；没有旧分类数据时不拆算旧总耗时。

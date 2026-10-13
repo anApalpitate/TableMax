@@ -100,6 +100,30 @@ try {
       Refused { Invoke-ReviewedFilesRetirement } ('original secret repository or formal save protected '+$relative)
     }
   }
+  Scenario 'build-generated-and-snapshot' {
+    $generated=File 'build/desktop/generated.js'
+    $unlisted=File 'build/desktop/keep.js'
+    $latest=File 'build/snapshots/latest.json'
+    $snapshot=File ('build/snapshots/'+('c'*64)+'.json')
+    Plan 'build-generated' 'build/desktop' @($generated)
+    Refused { Invoke-ReviewedFilesRetirement } 'build cleanup requires frozen references'
+    $plan.references=@($latest,$snapshot);Save-Plan
+    $plan.entries[0].origin='isolated-test';Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'build cleanup rejects non-generated origin'
+    $plan.entries[0].origin='generated-copy';Save-Plan
+    foreach ($invalid in @('build/snapshots/latest.json','build/unknown/output.js','build/desktop-old/file.js')) {
+      Refused { Resolve-ReviewedPath $invalid } ('unapproved build scope '+$invalid)
+    }
+    $savedHash=$plan.references[1].sha256
+    $plan.references[1].sha256='d'*64;Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'changed frozen build reference blocks cleanup'
+    $plan.references[1].sha256=$savedHash;Save-Plan
+    Invoke-ReviewedFilesRetirement
+    $script:Apply=$true
+    Invoke-ReviewedFilesRetirement
+    Check (-not (Test-Path -LiteralPath (Join-Path $workspace $generated.path))) 'exact generated build output retired'
+    Check ((Test-Path -LiteralPath (Join-Path $workspace $unlisted.path)) -and (Test-Path -LiteralPath (Join-Path $workspace $latest.path)) -and (Test-Path -LiteralPath (Join-Path $workspace $snapshot.path))) 'unlisted outputs and frozen snapshots preserved'
+  }
   Scenario 'delivery-and-prefix' {
     $file=File 'artifacts/releases/current/current.exe'
     $script:preservedFiles=@([PSCustomObject]@{path=(Join-Path $workspace $file.path)})

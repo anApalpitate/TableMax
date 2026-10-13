@@ -36,7 +36,7 @@ namespace TableMax {
 function Resolve-ReviewedPath([string]$Relative, [switch]$AnyRoot, [switch]$SyntaxOnly) {
   if ([string]::IsNullOrWhiteSpace($Relative) -or $Relative -match '[\\:*?]' -or
       @($Relative.Split('/') | Where-Object { $_ -in @('', '.', '..', '.git') }).Count -or
-      (-not $AnyRoot -and $Relative -notmatch '^(tmp/|artifacts/|\.cache/build-modules/v1/)')) { throw ('Invalid reviewed path: ' + $Relative) }
+      (-not $AnyRoot -and $Relative -notmatch '^(tmp/|artifacts/|\.cache/build-modules/v1/|build/(?:desktop|native|native-obj)(?:/|$))')) { throw ('Invalid reviewed path: ' + $Relative) }
   # The per-file compiled guard below checks every existing ancestor. Avoid
   # repeating PowerShell Get-Item calls for the same ancestors on large lists.
   if ($SyntaxOnly) {
@@ -144,6 +144,12 @@ function Invoke-ReviewedFilesRetirement {
       -not $reviewedPlan.PSObject.Properties['protectedPrefixes'] -or -not $reviewedPlan.PSObject.Properties['protectedFiles'] -or
       -not $reviewedPlan.PSObject.Properties['links'] -or -not $reviewedPlan.PSObject.Properties['references']) { throw 'Invalid reviewed generated-file retirement manifest.' }
   $script:reviewedHasCache = @($reviewedPlan.entries | Where-Object { $_.path -like '.cache/build-modules/v1/*' }).Count -gt 0
+  $script:reviewedHasBuild = @($reviewedPlan.entries | Where-Object { $_.path -like 'build/*' }).Count -gt 0
+  if ($reviewedHasBuild -and
+      (-not @($reviewedPlan.references | Where-Object { $_.path -eq 'build/snapshots/latest.json' }).Count -or
+       -not @($reviewedPlan.references | Where-Object { $_.path -match '^build/snapshots/[a-f0-9]{64}\.json$' }).Count)) {
+    throw 'Reviewed build outputs require unchanged latest and frozen snapshot references.'
+  }
   $journal = Assert-LocalPath (Join-Path $maintenance ('reviewed-retirements/' + $reviewedPlan.id + '.json'))
   if (Test-Path -LiteralPath $journal) { throw 'Reviewed retirement was already consumed; a second cleanup is forbidden.' }
   $script:reviewedProtected = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
@@ -188,6 +194,7 @@ function Invoke-ReviewedFilesRetirement {
     foreach ($root in $roots) { if ((Test-ReviewedPrefix $root $entry.path) -or (Test-ReviewedPrefix $entry.path $root)) { throw 'Reviewed roots overlap.' } }
     $roots.Add($entry.path)
     if ($entry.path.StartsWith('.cache/build-modules/', [StringComparison]::Ordinal) -and ($entry.origin -ne 'retired-cache' -or -not $reviewedPlan.references.Count)) { throw 'Retired module cache requires frozen retention references.' }
+    if ($entry.path.StartsWith('build/', [StringComparison]::Ordinal) -and $entry.origin -ne 'generated-copy') { throw 'Only generated build outputs may be retired.' }
     foreach ($file in $entry.files) {
       if (-not $seen.Add($file.path)) { throw 'Duplicate reviewed file.' }
       Assert-ReviewedAllowed $file $entry | Out-Null
