@@ -2,6 +2,8 @@
 
 ## 人工深度瘦身
 
+精确生成根也可为单个普通文件；仍逐文件执行全部保护。目录不能冒充文件，未列兄弟成员不受影响。
+
 `scripts/Clean-Intermediates.ps1 -ReviewedFilesManifest <maintenance内清单>` 是人工审计后的单次入口，不参与自动维护。预览打印清单SHA，Apply必须另传 `-ReviewedFilesManifestSha256 <相同SHA>`；只删除清单列出的普通生成文件，空目录仅在无未列成员时移除。跨临时、旧载荷、隔离运行和历史图的清单统一绑定当前交付、保护前缀／文件、来源引用和入链目标，每文件核验SHA、字节、修改时间、路径、祖先链接和嵌套仓库，并保留进程、30分钟与互斥门禁。
 
 清单 `version: 1`、`authorization: retire-reviewed-generated-once`、唯一 `id`、`currentVersion`、`currentArchiveSha256`、`protectedPrefixes`、`protectedFiles`、`references`、`links` 及 `entries`。每项为精确生成根 `path`、`origin`（`generated-copy`／`isolated-test`／`retired-cache`）、来源说明 `reason` 和普通 `files`（`path`、`bytes`、`lastWriteTimeUtcTicks`、`sha256`）。测试库仅允许已证实隔离的 `isolated-test`；正式数据、原件、源码、签名模块仓库与当前交付不得列入。记录在 `artifacts/maintenance/reviewed-retirements/<id>.json`，开始即消耗ID，部分失败也不复用、重试或追加第二轮，不创建恢复副本。

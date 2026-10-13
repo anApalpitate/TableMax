@@ -105,7 +105,9 @@ function Assert-ReviewedArchivedFile($File) {
 
 function Assert-ReviewedAllowed($File, $Entry) {
   $absolute = Resolve-ReviewedPath $File.path -SyntaxOnly
-  if (-not (Test-ReviewedPrefix $File.path $Entry.path) -or $File.path -eq $Entry.path) { throw 'Reviewed file escapes its exact generated root.' }
+  # A root may itself be one exact ordinary file. The compiled guard still
+  # rejects directories, links, changed metadata and changed content.
+  if (-not (Test-ReviewedPrefix $File.path $Entry.path)) { throw 'Reviewed file escapes its exact generated root.' }
   if ($File.path.StartsWith('build/snapshots/', [StringComparison]::OrdinalIgnoreCase)) {
     if ($File.path -notmatch '^build/snapshots/[a-f0-9]{64}(?:-assembly)?\.json$' -or -not $File.preservedArchive) { throw 'Frozen snapshots require full lossless preservation; pointers and unknown names stay protected.' }
   }

@@ -81,6 +81,26 @@ try {
     Refused { Invoke-ReviewedFilesRetirement } 'consumed ID cannot run twice'
     Check (@(Get-ChildItem -LiteralPath $maintenance -Recurse -Filter selected.txt).Count -eq 0) 'no copied file backup'
   }
+  Scenario 'single-file-root' {
+    $one=File 'tmp/one-generated.tar' 'exact duplicate generated archive'
+    $neighbor=File 'tmp/keep-generated.tar' 'canonical retained archive'
+    Plan 'single-file-root' $one.path @($one)
+    $outside=File 'tmp/outside.txt'
+    $plan.entries[0].files=@($outside);Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'single-file root refuses an outside sibling'
+    $plan.entries[0].files=@($one);Save-Plan
+    Invoke-ReviewedFilesRetirement
+    Check (Test-Path -LiteralPath (Join-Path $workspace $one.path)) 'single-file preview preserves source'
+    $script:Apply=$true
+    Invoke-ReviewedFilesRetirement
+    Check ((Test-Path -LiteralPath (Join-Path $workspace $neighbor.path)) -and (Test-Path -LiteralPath (Join-Path $workspace $outside.path)) -and -not (Test-Path -LiteralPath (Join-Path $workspace $one.path))) 'single-file Apply preserves every unlisted sibling'
+    $directory=Join-Path $workspace 'tmp/directory-impostor'
+    New-Item -ItemType Directory -Path $directory -Force | Out-Null
+    (Get-Item -LiteralPath $directory).LastWriteTimeUtc=[DateTime]::UtcNow.AddHours(-2)
+    $fake=[PSCustomObject]@{path='tmp/directory-impostor';bytes=0;lastWriteTimeUtcTicks=(Get-Item -LiteralPath $directory).LastWriteTimeUtc.Ticks;sha256='0'*64}
+    Plan 'directory-impostor' $fake.path @($fake)
+    Refused { Invoke-ReviewedFilesRetirement } 'directory cannot impersonate exact ordinary file root'
+  }
   Scenario 'path-and-source' {
     $file=File 'tmp/path/file.txt'
     Plan 'path-and-source' 'tmp/path' @($file)
