@@ -2,6 +2,12 @@
 
 现行阈值为逻辑体积超过10GiB时清至8GiB或安全候选耗尽；一次性6GB目标不改变默认阈值。先结束工程进程，只执行一轮既有安全维护，保留依赖／工具缓存、原资料、正式存档、当前交付与证据。操作及保护见[工作区维护](workspace-maintenance.md#清理本地中间物)。
 
+## 安全瘦身至6GB内（2026-10-13）
+
+按本轮用户要求，总逻辑体积严格小于6,000,000,000字节，包含主仓库及嵌套Pages Git仓库。唯一一次SHA绑定清理退役 **18,887个文件、4,573,066,538字节**；最终实测约 **5.973GB**，精确字节、文件数和采样时间见[最终容量](../../artifacts/maintenance/v1.0.6/slim-20261013/capacity-final.json)。[冻结逐文件清单](../../artifacts/maintenance/v1.0.6/slim-20261013/retirement-plan.json)与[单次执行日志](../../artifacts/maintenance/reviewed-retirements/slim-6gb-20261013-once.json)保留来源、路径、SHA、时间戳和实际退役结果，未追加第二轮删除。
+
+保留原资料／素材、正式旧存档、当前1.0.6.10 EXE／内部ZIP／实际提取及有效证据、历史恢复模块、依赖／工具缓存、1,768个链接及其目标与嵌套仓库。944份历史机器记录和冻结JSON全文无损归档；[可读结论与原路径索引](../../artifacts/maintenance/v1.0.6/slim-20261013/archive-records.md)连接归档成员，显式复查历史构建ID前按原路径恢复对应成员。当前截图仅按完整字节SHA去重334个副本，保留每组原图及修改前完整报告；迁移图片路径后[1,372处当前图片引用复验](../../artifacts/maintenance/v1.0.6/slim-20261013/current-images-after.json)通过。[保护复验](../../artifacts/maintenance/v1.0.6/slim-20261013/protection-after.json)核对2,577个保留文件及302项冻结引用，差异0；文档入链修复后检查通过。公开版本仍为1.0.6，三项120,000,000字节交付门禁保持，未发布、部署或生成新EXE／源码包。
+
 ## 渐进开发提效收尾（2026-10-13）
 
 全部本轮自启动构建、验证、TypeScript、Worker与浏览器子进程退出后，现有维护入口先预览，再唯一一次 `scripts/Maintain-Project.ps1 -Apply`。进程保护通过，实测 **10,404,324,733逻辑字节（9.690GiB）**，排除1,768链接和1个嵌套仓库；低于默认10GiB阈值，候选0、删除0，未追加第二轮删除。证据见[预览](../../artifacts/maintenance/development-efficiency/maintenance/preview.json)与[实际维护结果](../../artifacts/maintenance/development-efficiency/maintenance/final.json)。
@@ -10,7 +16,7 @@
 
 ## 宝可梦新版交付收尾（2026-10-12）
 
-1.0.6.10实际完整EXE及适用服务、手机／电脑横竖、显示、演出、结算与自然游玩专项通过后，工程进程退出，再集中执行唯一一次逐文件清理。经预览与SHA绑定审计，71个过期生成范围共26,441文件、**6,526,191,088字节**退役；包括旧隔离运行／原生提取副本、失败候选截图及1.0.6.4／5／7／8／9候选EXE与内部载荷副本。保留每个删除文件的路径、字节、SHA和失败JSON／文字结论，不另存待删备份。范围见[最终审计清单](../../artifacts/maintenance/v1.0.6/pokemon-events-v3-verification/cleanup-20261012/retirement-plan.json)，实际结果见[单次退役日志](../../artifacts/maintenance/reviewed-retirements/pokemon-v3-20261012-once.json)。
+1.0.6.10实际完整EXE及适用服务、手机／电脑横竖、显示、演出、结算与自然游玩专项通过后，工程进程退出，再集中执行唯一一次逐文件清理。经预览与SHA绑定审计，71个过期生成范围共26,441文件、**6,526,191,088字节**退役；包括旧隔离运行／原生提取副本、失败候选截图及1.0.6.4／5／7／8／9候选EXE与内部载荷副本。保留每个删除文件的路径、字节、SHA和失败JSON／文字结论，不另存待删备份。范围见[最终审计清单](../../artifacts/maintenance/v1.0.6/slim-20261013/archive-records.md#r-edab321125a58071)，实际结果见[单次退役日志](../../artifacts/maintenance/reviewed-retirements/pokemon-v3-20261012-once.json)。
 
 当前1.0.6.10 EXE、内部ZIP、manifest、实际提取、全部通过验收及当前截图继续保护；92份正式原素材、规则原件、真实旧存档、模块仓库、依赖／工具缓存、链接与嵌套仓库保持。唯一旧1.0.6.3 EXE及清单逐文件SHA核验后原样移动到真实恢复夹具的[正式旧交付证据](../../artifacts/maintenance/v1.0.6/pokemon-events-v3-verification/legacy-v2-1063-20261012-a/original-delivery/preservation.json)，未删除或复制原件；历史路径由该映射说明。release目录仅保留当前完整EXE与本地清单，旧候选manifest文字证据另保留。
 

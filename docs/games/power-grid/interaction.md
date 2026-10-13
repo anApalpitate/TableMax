@@ -89,7 +89,7 @@
 
 `node tools/test/games/power-grid/verify-power-grid-ui.mjs --evidence=<名称>` 在当前源码生成合法规则投影，将实际 React 客户端独立构建到 `artifacts/maintenance/v<根版本>/shared-visual-20261004/power-grid/<名称>`；可用 `--maintenance=<名称>` 指定专项目录，以已安装的 Edge 后台渲染。只监听 `127.0.0.1`，不改共享 `build`、正式数据库或全局工具。`--amount-only` 仅检查手输非法报价与整数步进恢复，`--map-only` 仅检查地图数据节点、实际字号、短手机标注与局部缩放。`--capture-rules-only` 定向裁取真实市场、公司厂牌与建设地图／费用三张区域图，保留原 PNG 到 `assets/games/power-grid/rules/`；说明图片不来自正式玩家存档，不含其他人的秘密现金。
 
-本轮 [最终视觉矩阵](../../../artifacts/maintenance/v1.0.2/shared-visual-20261004/power-grid/source-controls-fit/results.json) 通过 96 布局、6 交互和原有声音检查，覆盖六人短屏至 4K、320／360／390 宽手机、三厂纵向列表、完整燃料按钮和展开混燃配方，同时获取当前规则区域图。地图标注先前发现窄屏全图价格挤压，按实际渲染尺度修复并通过 [定向地图检查](../../../artifacts/maintenance/v1.0.2/shared-visual-20261004/power-grid/map-readable-passed/results.json)。整合规则浮层、实际服务与最终 ZIP 的验证统一见验收页，组件结果不扩大为实机或整包验收。
+本轮 [最终视觉矩阵](../../../artifacts/maintenance/v1.0.6/slim-20261013/archive-records.md#r-455f8dffa49c269e) 通过 96 布局、6 交互和原有声音检查，覆盖六人短屏至 4K、320／360／390 宽手机、三厂纵向列表、完整燃料按钮和展开混燃配方，同时获取当前规则区域图。地图标注先前发现窄屏全图价格挤压，按实际渲染尺度修复并通过 [定向地图检查](../../../artifacts/maintenance/v1.0.2/shared-visual-20261004/power-grid/map-readable-passed/results.json)。整合规则浮层、实际服务与最终 ZIP 的验证统一见验收页，组件结果不扩大为实机或整包验收。
 
 2026-10-04 的 [根范围矩阵](../../../artifacts/maintenance/v1.0.1/power-grid/ui/scoped-fixture/results.json) 通过 80 场景：六人 854×480、720p／1080p／1440p／4K CSS 尺寸及 320／360／390 宽手机，覆盖全部游戏阶段、换厂剩余资源与后期密集电网。检查信息字号、文档横向溢出、地图节点、城市建造意图、金额步进、拖拽／缩放、Portal／Escape、保存反馈去重、暂停和手机静音。六个 WAV 通过浏览器真实解码；播放调用在组件测试中由可观察媒体适配器记录，不冒充真人听音或原生单声源验收。
 

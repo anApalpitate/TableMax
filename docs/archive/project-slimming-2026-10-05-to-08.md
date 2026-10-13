@@ -20,7 +20,7 @@ releases只保留当前运行ZIP与逐文件清单，SHA-256未变，未导出EX
 
 ## 用户指定旧版本资料清理（2026-10-08）
 
-用户明确要求清理此次只读审计发现的旧版本文件。按[精确逐文件清单](../../artifacts/maintenance/v1.0.4/old-version-cleanup-20261008/retirement-plan.json)先预览，再沿用当前ZIP便携通过证明、共享空闲保护器、30分钟近期保护、路径／链接／嵌套仓库、内容指纹、SHA-256及互斥保护执行；未扩大自动清理白名单，也未修改生产清理工具。
+用户明确要求清理此次只读审计发现的旧版本文件。按[精确逐文件清单](../../artifacts/maintenance/v1.0.6/slim-20261013/archive-records.md#r-f259bfd7465df2ad)先预览，再沿用当前ZIP便携通过证明、共享空闲保护器、30分钟近期保护、路径／链接／嵌套仓库、内容指纹、SHA-256及互斥保护执行；未扩大自动清理白名单，也未修改生产清理工具。
 
 共退役 **8,716个文件、4,391,335,537逻辑字节（4.090GiB）**：99份旧构建输出434,000,892字节，旧版本及第一至六阶段验证图片3,468,375,656字节，5个旧ZIP 203,595,255字节，3份旧运行副本284,199,701字节，早期原型构建1,164,033字节。构建缓存保留当前开发快照、当前交付单元及每单元最近两份成功产物；`phase-*`中的规则原图、中文转录、美术原素材和文字验证记录继续保留。两个旧源码副本只删已审计的内层程序副本／ZIP，其源码、依赖junction与原清单不变；宝可梦体积验证的独立`data/`保持原位。
 
@@ -30,7 +30,7 @@ releases只保留当前运行ZIP与逐文件清单，SHA-256未变，未导出EX
 
 [开始容量](../../artifacts/maintenance/v1.0.4/old-version-cleanup-20261008/space-start.json)14,786,286,935字节，[结束实测](../../artifacts/maintenance/v1.0.4/old-version-cleanup-20261008/space-final.json) **10,398,636,452字节（9.684GiB）**，跳过1,370链接、零嵌套仓库。逻辑净下降4,387,650,483字节，与删除量的差额包括新增审计及并行开发写入；未测NTFS物理释放，不折抵便携包门禁。已低于10GiB，仍高于8GiB；本轮已确认候选全部处理，不扩展至用途待确认内容，后续工程写入可能改变水位。
 
-用户随后要求仅清理不影响主对话运行的非缓存项。按[精确清单](../../artifacts/maintenance/v1.0.4/noncache-cleanup-20261008/plan.json)和[执行记录](../../artifacts/maintenance/v1.0.4/noncache-cleanup-20261008/cleanup.json)，追加退役11个历史运行ZIP、旧v1.0.3的246个清单内运行文件及1份与保留原件SHA完全相同的源码ZIP，共258文件／561,707,232字节（约0.523GiB）。当前`2b3439ec…`运行ZIP、`player-display`全部当前资料／备份、原素材、存档、配置、日志、清理历史原文件及全部缓存继续保留；12份保留绑定复核通过。6个较早临时目录已由主会话清理，本轮跳过、不重复计数。开始10.328GiB、结束9.802GiB，实际逻辑字节为10,525,210,267；[收尾及链接修复](../../artifacts/maintenance/v1.0.4/noncache-cleanup-20261008/summary.json)保留容量、原失败边界和退役记录，未结束进程或修改Git状态。
+用户随后要求仅清理不影响主对话运行的非缓存项。按[精确清单](../../artifacts/maintenance/v1.0.6/slim-20261013/archive-records.md#r-9ea39144c421a265)和[执行记录](../../artifacts/maintenance/v1.0.4/noncache-cleanup-20261008/cleanup.json)，追加退役11个历史运行ZIP、旧v1.0.3的246个清单内运行文件及1份与保留原件SHA完全相同的源码ZIP，共258文件／561,707,232字节（约0.523GiB）。当前`2b3439ec…`运行ZIP、`player-display`全部当前资料／备份、原素材、存档、配置、日志、清理历史原文件及全部缓存继续保留；12份保留绑定复核通过。6个较早临时目录已由主会话清理，本轮跳过、不重复计数。开始10.328GiB、结束9.802GiB，实际逻辑字节为10,525,210,267；[收尾及链接修复](../../artifacts/maintenance/v1.0.4/noncache-cleanup-20261008/summary.json)保留容量、原失败边界和退役记录，未结束进程或修改Git状态。
 
 ## v1.0.4 研究重设计与根入口收尾（2026-10-08）
 
@@ -54,7 +54,7 @@ releases只保留当前运行ZIP与逐文件清单，SHA-256未变，未导出EX
 
 ## 10.7 浏览器恢复与换机验证的前轮清理（2026-10-08）
 
-前轮 v1.0.3 `6761ef78…` 同包检查结束后，已退出的[两个打包暂存（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)退役 **462,351,034 字节**。当时未知的隔离验证前缀采用清理入口的原样保留模式：先保存原内容，再退役临时原路径，共约 1.89 GB；这些字节仍在审计目录中，不能计作净空间回收。中断、进程保护失败及恢复后的原报告均保留，四份结束目录[原样集中归档](../../artifacts/maintenance/v1.0.3/debug-20261007/implementation/cleanup-record-archive.json)，9,853 文件的大小与哈希不变。本轮新增精确前缀后，只清理新的可再生副本，不删除原样归档的旧记录内容。
+前轮 v1.0.3 `6761ef78…` 同包检查结束后，已退出的[两个打包暂存（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)退役 **462,351,034 字节**。当时未知的隔离验证前缀采用清理入口的原样保留模式：先保存原内容，再退役临时原路径，共约 1.89 GB；这些字节仍在审计目录中，不能计作净空间回收。中断、进程保护失败及恢复后的原报告均保留，四份结束目录[原样集中归档](../../artifacts/maintenance/v1.0.6/slim-20261013/archive-records.md#r-dca234a02c3a0bc4)，9,853 文件的大小与哈希不变。本轮新增精确前缀后，只清理新的可再生副本，不删除原样归档的旧记录内容。
 
 ## v1.0.3全量构建发布后的维护（2026-10-07）
 
@@ -86,7 +86,7 @@ releases只保留当前运行ZIP与逐文件清单，SHA-256未变，未导出EX
 
 ## v1.0.3 电力公司数量采购与进度收尾（2026-10-06）
 
-最终ZIP `15a0dd45…` 的六人／两人布局、原生显示和完整采购／回退／恢复验收通过，自有工程进程正常退出。先把最终两个原生验收的数据库、审计源码及逐文件SHA[另存](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/quantity-final-match/saved-audit-inventory.json)，此前完整交付ZIP与清单也在[previous-delivery](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/previous-delivery/TableMax-1.0.3-win-x64.zip.retired.json)保留；当前ZIP、原素材、规则资料、正式存档、截图及成功／失败JSON继续保留。
+最终ZIP `15a0dd45…` 的六人／两人布局、原生显示和完整采购／回退／恢复验收通过，自有工程进程正常退出。先把最终两个原生验收的数据库、审计源码及逐文件SHA[另存](../../artifacts/maintenance/v1.0.6/slim-20261013/archive-records.md#r-a353b3f705b088c8)，此前完整交付ZIP与清单也在[previous-delivery](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/previous-delivery/TableMax-1.0.3-win-x64.zip.retired.json)保留；当前ZIP、原素材、规则资料、正式存档、截图及成功／失败JSON继续保留。
 
 沿用已知副本的路径、进程、链接和内容变化保护，精确预览后按既有手动近期参数Apply：[release两组装目录（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)退役462,062,602字节；[15个已退出隔离副本（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)退役1,418,900,135字节，另161项保护／未知用途跳过。合计1,880,962,737字节，见[汇总](../../artifacts/maintenance/v1.0.3/power-grid-purchase-progress-20261006/cleanup-summary.json)。未清空artifacts／tmp，release仅当前运行ZIP与清单；未删除当前验收、缓存依赖或原资源。
 
@@ -130,7 +130,7 @@ releases只保留当前运行ZIP与逐文件清单，SHA-256未变，未导出EX
 
 ## v1.0.3 电力公司地图优化收尾（2026-10-06）
 
-最终ZIP与[原生通过记录](../../artifacts/maintenance/v1.0.3/power-grid/runtime/portable/polish-shipping-match/results.json)哈希一致；原完整交付另存于 `power-grid-ui-polish-20261006/previous-delivery/`。工程验证进程退出后，`scripts/Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0`先预览再Apply，删除两个已结束打包中间目录460,094,396字节；[清单（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)保留。最新ZIP／清单与既有受保护EXE保留，无发布或源码导出。
+最终ZIP与[原生通过记录](../../artifacts/maintenance/v1.0.6/slim-20261013/archive-records.md#r-fef2ecfcfdac3443)哈希一致；原完整交付另存于 `power-grid-ui-polish-20261006/previous-delivery/`。工程验证进程退出后，`scripts/Clean-Releases.ps1 -KeepLatestOnly -MinimumAgeMinutes 0`先预览再Apply，删除两个已结束打包中间目录460,094,396字节；[清单（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)保留。最新ZIP／清单与既有受保护EXE保留，无发布或源码导出。
 
 `scripts/Maintain-Project.ps1 -Apply`实际逻辑水位由14,767,674,848降至13,238,941,929字节（约12.33GiB），删除27个已核验隔离副本1,528,884,893字节；两次合计1,988,979,289字节。[维护记录（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)关联当前ZIP SHA-256 `7946907f4423f6e0c399d14c083dabb7faa2164a25377d523ccfa92cff277963`。安全候选耗尽、仍高于10GiB，169项保护／未知用途内容及1370链接跳过；未扩大清理范围，依赖、缓存、原素材、正式存档、当前及历史证据保留。逻辑字节不以NTFS物理压缩量替代。
 
@@ -154,7 +154,7 @@ v1.0.3实际EXE／默认与自定义数据路径／3GB存档副本迁移验证�
 
 按用户最新指示完成测试默认静音、非必要生成资源清理，并将长任务完成后检查体积／安全瘦身纳入AGENTS与维护规则。初始一次实际盘点44,582,597,297逻辑字节（约41.52GiB），相关工程进程结束后[最终维护](../../artifacts/maintenance/v1.0.2/slimming-test-silence-20261006/final-maintenance.json)实测10,441,893,057字节（约9.725GiB），低于10GiB；后续文字、审计与Git写入会小幅增加，不把此数值当作恒定水位。统计跳过1,346链接、零嵌套仓库，NTFS物理节省未测量。
 
-已核验删除四组：18个旧自动混合Worker主库28,302,213,120字节，见[退役清单](../../artifacts/maintenance/v1.0.2/slimming-test-silence-20261006/retired-test-databases.json)与[执行审计（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)；44个旧隔离验证目录5,745,138,266字节，见[目录清理（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)；两份旧打包解压副本188,741,298字节，见[副本审计（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)；140份旧成功构建产物687,371,269字节，见[缓存审计](../../artifacts/maintenance/v1.0.2/build-cache-cleanup/1791262316963-apply.json)。删除量与容量净降分开计量，期间新增验证、构建及旧包备份计入最终容量。
+已核验删除四组：18个旧自动混合Worker主库28,302,213,120字节，见[退役清单](../../artifacts/maintenance/v1.0.2/slimming-test-silence-20261006/retired-test-databases.json)与[执行审计（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)；44个旧隔离验证目录5,745,138,266字节，见[目录清理（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)；两份旧打包解压副本188,741,298字节，见[副本审计（已退役）](../../artifacts/maintenance/v1.0.5/history-retirement-20261009/result.json)；140份旧成功构建产物687,371,269字节，见[缓存审计](../../artifacts/maintenance/v1.0.6/slim-20261013/archive-records.md#r-60f76ad39b0c3a74)。删除量与容量净降分开计量，期间新增验证、构建及旧包备份计入最终容量。
 
 旧库限 `expansion-integration.test.ts Repository(worker-mixed)` 生成的模拟资料，先保留来源、原结果／源码哈希、只读SQLite版本／journal行数／当前Save摘要和完整文件SHA，再按精确路径预览／Apply。整段旧模拟journal已退役，旧通过／失败结论不改写；近期只读审计生成的WAL／SHM作为单独保留证据，哈希变化阻止删除主库。正式存档、原素材、规则资料及当前截图保留，旧迁移存档前后SHA一致；未按忽略规则删除，也未降低30分钟保护。
 
@@ -221,7 +221,7 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 
 删包前保留 **423 份独有源码／素材、7,108,112 字节**，按内容哈希归档；与当前素材相同的内容引用现有素材，旧文档和源码引用不可变的保留副本，不依赖后续会修改的主题文档。[最终保留核验](../../artifacts/maintenance/v1.0.2/full-audit-20261005/original-preservation-final.json)逐项检查 **4,688 个成员引用**。旧全屏夹具的窗口探测源码已另存；两个一次性文档／测试脚本通过手动入口逐字节归档后移出 tmp，归档量不计入释放量。正式玩家存档与两段指定 WAV 未被改动。
 
-[无损压缩](../../artifacts/maintenance/workspace-compression-20261004-200436-604/compression.json)检查 **4,659 个文件**，其中 **4,656 个**减少占用，耗时 **163.29 秒**；物理节省 **296,372,524 字节（282.643 MiB）**，逐文件内容哈希未变，零失败／未确认项。该值对应压缩时的审计范围，随后退役了上述四个额外全屏副本；不与逻辑删除量相加，也不作为便携包体积减免。
+[无损压缩](../../artifacts/maintenance/v1.0.6/slim-20261013/archive-records.md#r-e9ae97a307153eff)检查 **4,659 个文件**，其中 **4,656 个**减少占用，耗时 **163.29 秒**；物理节省 **296,372,524 字节（282.643 MiB）**，逐文件内容哈希未变，零失败／未确认项。该值对应压缩时的审计范围，随后退役了上述四个额外全屏副本；不与逻辑删除量相加，也不作为便携包体积减免。
 
 [最终自动维护](../../artifacts/maintenance/v1.0.2/full-audit-20261005/maintenance-final-after-cleanup.log)再次确认空闲，工作区按路径统计 **14,674,360,355 字节（13.667 GiB）**，无安全候选；统计跳过 **1,338 个链接**，后续报告／文档写入会使数值小幅变化。剩余原始资料、独有截图、历史迁移数据库、依赖及活动缓存继续保留；唯一的隔离源码快照 `tmp/modern-art-isolated-build-BQZ0BZ` 含依赖链接，未递归删除。不为达到 4 GiB 扩大范围，也不把已保护的迁移样本或源码归为废弃内容。
 
@@ -254,7 +254,7 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 | v1.0.2   | 1,406 张         | 1,117,471,791                 |
 | 合计     | 1,479 张         | 1,160,770,760（约 1.081 GiB） |
 
-[专项审计结果](../../artifacts/maintenance/v1.0.3/maintenance-residual-cleanup-20261005/results.json)链接四份实际删除报告；[原始 PNG 盘点](../../artifacts/maintenance/v1.0.3/maintenance-residual-cleanup-20261005/png-inventory.json)和[清理计划索引](../../artifacts/maintenance/v1.0.3/maintenance-residual-cleanup-20261005/plan-summary.json)保留每文件哈希及同字节保留位置。删除后重新核验 **749 个保留副本的 SHA-256**，另 **11,029 张 PNG**大小与修改时间未变，**10,425 种独有 PNG 字节内容**均有保留。当前 v1.0.3 ZIP 大小及哈希与交付清单一致，本轮未重新导出运行包。
+[专项审计结果](../../artifacts/maintenance/v1.0.3/maintenance-residual-cleanup-20261005/results.json)链接四份实际删除报告；[原始 PNG 盘点](../../artifacts/maintenance/v1.0.6/slim-20261013/archive-records.md#r-afff5215fbe95e33)和[清理计划索引](../../artifacts/maintenance/v1.0.3/maintenance-residual-cleanup-20261005/plan-summary.json)保留每文件哈希及同字节保留位置。删除后重新核验 **749 个保留副本的 SHA-256**，另 **11,029 张 PNG**大小与修改时间未变，**10,425 种独有 PNG 字节内容**均有保留。当前 v1.0.3 ZIP 大小及哈希与交付清单一致，本轮未重新导出运行包。
 
 截图保护 **23 项**、共用手动清理 **200 项**和自动维护 **34 项**隔离检查通过；PowerShell 语法及文档／本地链接检查采用本轮证据。收尾维护仍无安全候选，唯一跳过项含依赖链接的旧隔离源码继续保留。工作区测量约 **12.861 GiB**，剩余历史存档、独有证据、原素材及依赖不因容量目标继续删除；本轮逻辑删除字节不计作运行 ZIP 或 NTFS 物理压缩的节省。
 
@@ -262,7 +262,7 @@ v1.0.2 最终实际解压 **145 文件／94,941,528 字节**，减少 **641,001 
 
 用户随后明确要求修改截图保留要求并直接清理历史内容。当前策略允许历史版本的验收、试玩、界面截图及截图联系表全部退役，包括独有画面与失败截图；保留文字结论、失败原因、版本／构建边界、逐文件哈希与删除记录，保留当前版本验收截图、原素材、规则参考资料、源码和存档。上节同字节去重及更早报告中的保留图片位置属于当次状态，本轮清单明确其后续已删除，不回写旧验收通过／失败结果。
 
-范围限定为 `artifacts/maintenance` 中已核验的 **14 个历史根目录**，包含 v1.0.0、v1.0.1、v1.0.2，以及版本重编号前的 v1.6.0 和旧未编号验证／归档副本。[显式清单](../../artifacts/maintenance/v1.0.3/historical-screenshot-retirement-20261005/manifest.json)绑定当前通过 ZIP 哈希，记录全部待退役图片的准确路径、大小和 SHA-256；[用户授权与范围](../../artifacts/maintenance/v1.0.3/historical-screenshot-retirement-20261005/authorization.json)作为保留文字证据。原素材和编译素材目录均排除，不能把历史版本目录整体删除。
+范围限定为 `artifacts/maintenance` 中已核验的 **14 个历史根目录**，包含 v1.0.0、v1.0.1、v1.0.2，以及版本重编号前的 v1.6.0 和旧未编号验证／归档副本。[显式清单](../../artifacts/maintenance/v1.0.6/slim-20261013/archive-records.md#r-3c3d8e893ff0f6b3)绑定当前通过 ZIP 哈希，记录全部待退役图片的准确路径、大小和 SHA-256；[用户授权与范围](../../artifacts/maintenance/v1.0.3/historical-screenshot-retirement-20261005/authorization.json)作为保留文字证据。原素材和编译素材目录均排除，不能把历史版本目录整体删除。
 
 [默认预览](../../artifacts/maintenance/v1.0.3/historical-screenshot-retirement-20261005/preview.log)因上一轮刚完成去重而保护了三个版本目录；确认工程进程退出后，仅对这份清单显式采用 `-MinimumAgeMinutes 0`。[就绪预览](../../artifacts/maintenance/v1.0.3/historical-screenshot-retirement-20261005/preview-ready.log)为 14 项、零跳过，再执行 `scripts/Clean-Intermediates.ps1 -HistoricalScreenshotsManifest <清单> -Apply`。路径、进程、当前便携证明、链接、嵌套 Git、互斥、目录指纹与删除前内容哈希保护继续执行，自动维护不使用这一范围。
 
