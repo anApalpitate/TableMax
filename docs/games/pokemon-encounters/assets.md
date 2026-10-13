@@ -211,6 +211,16 @@ EX-A11 通过站点正式访客流程取得，额度检查为 `allowed=1`、下�
 
 ## 扩展事件候选搜集（2026-10-11）
 
+2026-10-13继续外部候选准备，当前按新版17项非连续研究池整理：[研究插图v3](../../../../TMP/TableMaxMaterial/exports/pokemon-expansion-events/research-art/v3/index.html)有10张适用旧图加R03／R13／R18／R24四张新候选，覆盖14／17。新四图为1672×941 PNG及无损WebP，RGBA逐像素全等；R02／R05／R22各一次生成均遭输出审核`moderation_blocked`／`other`拦截，累计3次失败后本轮已停止，不自动重试，也不沿用不符新主题的旧图填补缺口。逐项提示词、来源、版本、原件与哈希从[当前工作记录](../../../../TMP/TableMaxMaterial/work/pokemon-expansion-events/README.md)进入。
+
+[17项研究条件v4](../../../../TMP/TableMaxMaterial/exports/pokemon-expansion-events/research-diagrams/v4/index.html)和[六类事件图示v4](../../../../TMP/TableMaxMaterial/exports/pokemon-expansion-events/event-effects/v4/index.html)已独立生成，保留旧v3与历史图示。23份SVG的[真实渲染／独立视查](../../../../TMP/TableMaxMaterial/work/pokemon-expansion-events/diagram-review-v4/qa.json)、原件／导出SHA与设计快照核对通过，未发现字体缺失或截断。R19按戏法后的有效角色判定；Mega仅主题及“效果待设计”，取消旧随机数值方案；四天气持续至小局结束不再切换；戏法空间十组普通角色互换包含暗牌，公开只展示明牌变化，不暴露暗牌原／新身份。
+
+[18份事件图层](../../../../TMP/TableMaxMaterial/exports/pokemon-expansion-events/event-layers/index.html)已准备完成，每主题包括1.8秒有限入场、8秒闭环环境层和独立静态替代；均为1600×900透明SVG，共195,264字节。18份源／导出SHA一致、Sharp解码／alpha、无文字角色外链与六张背景SHA不变均已核对，浅深底及背景组合实际联系表视查通过；静态QA不替代实际浏览器动画、游戏接入或真人美术验收。制作参数不定义规则持续时间，预览默认静态且显式播放／停止／减少动态，无声音。
+
+外部当前101项候选记录包含6背景、8羁绊、15声音、17图标、14研究插图、17条件图示、六类事件图示与18图层；14种Mega形态、旧随机数值相关3段声音与2枚图标、旧6短图层及3环境层继续保留历史参考，不算本版完整对齐。2026-10-12正式归档92份及已有运行派生保持原边界，本轮新四图、17条件、六类规则图示与18图层未自动导入或替换游戏资源，未构建新EXE、发布或部署。声音仍待真人试听，Mega／羁绊独立效果仍待设计；戏法空间已明确，不再记为玩法未定。
+
+### 2026-10-11至12候选与归档记录（历史）
+
 2026-10-12新增声画素材责任：按[视觉补充](expansion-design.md#原版能力与事件视觉补充2026-10-12)核对原版缺失能力全屏招式素材、事件开始全屏特效、事件微动态壁纸与减少动态静态替代。天气角标有效值、雨天淡蓝背景及效果来源由代码呈现；已有事件背景／短矢量图层可复用，但不代表新循环壁纸与全屏演出已经完成。逐项制作范围、版本、提示词及核验仍须记录，不将设计参数反写为用户原话。
 2026-10-12已按用户授权迁入92份已核验且仍适用的素材，共61,100,820字节，见[正式资源目录](../../../assets/games/pokemon-encounters/expansion/events/README.md)与[逐项来源／SHA清单](../../../assets/games/pokemon-encounters/expansion/events/manifest.json)。源导出、清单SHA与目标SHA逐项一致；通过复制保留原件、当前预览及核验证据。采用范围包括6张事件背景、14种Mega形态、8张羁绊插图、18段音频、19枚图标、6个矢量图层、10张研究插图、6张研究条件图示及5张事件影响图示。正式归档已完成，游戏资源表、UI与当前EXE未替换；真人听感、实际离线播放及最终包体积仍待接入时验收，不因机器核验通过写成完整产品验收。
 
