@@ -16,6 +16,8 @@ import {
   localFile,
 } from './evidence.mjs';
 import { testIdentity, compareRates, failureLimit } from './history.mjs';
+import { validateOwnedChanges } from './plan.mjs';
+import { createOutputBudget } from './log-output.mjs';
 
 export async function runPlan(
   prepared,
@@ -39,12 +41,21 @@ export async function runPlan(
     unexecuted: [],
     failures: 0,
     timings: {
+      planningMs: prepared.timings?.planningMs ?? 0,
+      selectionFingerprintMs: prepared.timings?.selectionFingerprintMs ?? 0,
       fingerprintMs: prepared.tests.reduce(
         (sum, item) => sum + item.binding.durationMs,
         0,
       ),
       executionMs: 0,
       finishMs: 0,
+      beforeFingerprintMs: 0,
+      afterFingerprintMs: 0,
+      evidenceCheckMs: prepared.timings?.evidenceCheckMs ?? 0,
+      environmentMs: prepared.timings?.environmentMs ?? 0,
+      environmentQueries: prepared.timings?.environmentQueries ?? 0,
+      inputReads: prepared.timings?.reads ?? 0,
+      inputBytesRead: prepared.timings?.bytesRead ?? 0,
     },
     executed: 0,
     reused: 0,
@@ -57,7 +68,9 @@ export async function runPlan(
     compareRates(history.get(a.identity.id), history.get(b.identity.id)),
   );
   let state = 'interrupted';
+  const terminal = createOutputBudget();
   try {
+    if (prepared.changes) validateOwnedChanges(history.root, prepared.changes);
     for (const [sequence, item] of tests.entries()) {
       const selection = {
         id: item.id,
@@ -77,10 +90,20 @@ export async function runPlan(
         continue;
       }
       const current = fingerprint(history.root, item);
+      result.timings.beforeFingerprintMs += current.durationMs;
+      for (const [field, metric] of [
+        ['environmentMs', 'environmentMs'],
+        ['environmentQueries', 'environmentQueries'],
+        ['inputReads', 'reads'],
+        ['inputBytesRead', 'bytesRead'],
+      ])
+        result.timings[field] += current.metrics[metric];
       if (current.key !== item.binding.key)
         throw new Error('Inputs changed after planning: ' + item.id);
       if (item.decision === 'reuse') {
+        const evidenceStarted = performance.now();
         const verified = index.find(current);
+        result.timings.evidenceCheckMs += performance.now() - evidenceStarted;
         if (!verified.proof)
           throw new Error('Evidence changed after planning: ' + item.id);
         result.reused++;
@@ -160,7 +183,16 @@ export async function runPlan(
       result.timings.executionMs += durationMs;
       result.executed++;
       let error;
-      if (fingerprint(history.root, item).key !== item.binding.key)
+      const after = fingerprint(history.root, item);
+      result.timings.afterFingerprintMs += after.durationMs;
+      for (const [field, metric] of [
+        ['environmentMs', 'environmentMs'],
+        ['environmentQueries', 'environmentQueries'],
+        ['inputReads', 'reads'],
+        ['inputBytesRead', 'bytesRead'],
+      ])
+        result.timings[field] += after.metrics[metric];
+      if (after.key !== item.binding.key)
         error = 'Inputs changed during execution';
       const artifacts = [...logs];
       let complete = true;
@@ -245,7 +277,8 @@ export async function runPlan(
         evidencePath: recordPath,
       });
       atomicJson(history.root, resolve(output, 'selection.json'), result);
-      console.log(`${item.id}: ${status} (${Math.round(durationMs)}ms)`);
+      terminal.line(`${item.id}: ${status} (${Math.round(durationMs)}ms)`);
+      if (status === 'failed') terminal.failure(logs);
     }
     result.failures = history.failures(runId);
     state =
@@ -270,6 +303,11 @@ export async function runPlan(
       result.timings.finishMs = performance.now() - started;
     }
     result.finishedAt = new Date().toISOString();
+    result.timings.totalFingerprintMs =
+      result.timings.fingerprintMs +
+      result.timings.selectionFingerprintMs +
+      result.timings.beforeFingerprintMs +
+      result.timings.afterFingerprintMs;
     const report = { ...result, ...history.report(runId) };
     atomicJson(history.root, resolve(output, 'results.json'), report);
   }

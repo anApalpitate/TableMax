@@ -19,6 +19,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createRequire } from 'node:module';
 import { json, inventory, lock, validateCached } from './module-build.mjs';
+import { createReadPhase } from './read-phase.mjs';
 import { compatibleModule } from '../../packages/game-sdk/src/compatibility.mjs';
 import {
   projectGameCatalog,
@@ -92,6 +93,14 @@ export async function assemble(
   if (output !== resolve('build/desktop'))
     throw new Error('Assembly output must be the fixed development directory');
   const started = performance.now();
+  const timings = {
+    cacheVerificationMs: 0,
+    copyMs: 0,
+    metadataMs: 0,
+    finalVerificationMs: 0,
+    inventoryMs: 0,
+  };
+  const beforeCopy = createReadPhase('assembly-before-copy');
   const snapshot = await json(snapshotPath);
   if (
     snapshot.schemaVersion !== 1 ||
@@ -163,12 +172,15 @@ export async function assemble(
     };
     try {
       for (const unit of snapshot.units) {
-        const validated = await validateCached(unit.directory);
+        const validationStarted = performance.now();
+        const validated = await validateCached(unit.directory, beforeCopy);
+        timings.cacheVerificationMs += performance.now() - validationStarted;
         if (
           validated.fingerprint !== unit.fingerprint ||
           JSON.stringify(validated.files) !== JSON.stringify(unit.files)
         )
           throw new Error('Snapshot changed: ' + unit.id);
+        const copyStarted = performance.now();
         for (const file of unit.files) {
           let target = file.path;
           if (unit.id === 'platform-box') target = 'web/' + file.path;
@@ -199,7 +211,9 @@ export async function assemble(
           }
           await copy(join(unit.directory, 'files', file.path), target);
         }
+        timings.copyMs += performance.now() - copyStarted;
       }
+      const metadataStarted = performance.now();
       const modules = snapshot.modules.map((item) => {
         if (!compatibleModule(item.compatibility))
           throw new Error('Incompatible module ' + item.id);
@@ -301,8 +315,16 @@ export async function assemble(
             outputDirectory: output,
           }) + '\n',
         );
-      for (const unit of snapshot.units) await validateCached(unit.directory);
+      timings.metadataMs = performance.now() - metadataStarted;
+      const afterCopy = createReadPhase('assembly-after-copy');
+      const finalVerificationStarted = performance.now();
+      for (const unit of snapshot.units)
+        await validateCached(unit.directory, afterCopy);
+      timings.finalVerificationMs =
+        performance.now() - finalVerificationStarted;
+      const inventoryStarted = performance.now();
       const payload = await inventory(staging);
+      timings.inventoryMs = performance.now() - inventoryStarted;
       const warnings = [];
       for (const game of modules) {
         const bytes = payload
@@ -330,6 +352,8 @@ export async function assemble(
           {
             snapshot: snapshot.id,
             durationMs: Math.round(performance.now() - started),
+            timings,
+            readPhases: [beforeCopy.stats, afterCopy.stats],
             files: payload,
             sha256: hash(JSON.stringify(payload)),
             warnings,

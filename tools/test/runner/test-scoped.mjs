@@ -4,7 +4,6 @@ import {
 } from '../../shared/workspace-root.mjs';
 if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
-import { spawn } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { selectUnitTests, validateBatchScope } from './scopes.mjs';
@@ -17,6 +16,7 @@ function option(name) {
 }
 const scope = option('scope') ?? process.env.TABLEMAX_TEST_SCOPE;
 const planPath = option('plan');
+const preset = option('preset');
 const listOnly = args.includes('--list');
 const changesPath = option('changes');
 const force = args.includes('--force');
@@ -28,49 +28,60 @@ if (
       !arg.startsWith('--scope=') &&
       !arg.startsWith('--plan=') &&
       !arg.startsWith('--changes=') &&
+      !arg.startsWith('--preset=') &&
       !['--list', '--force'].includes(arg),
   )
 )
   throw new Error(
-    'Usage: node tools/test/runner/test-scoped.mjs --scope=<scope> [exact.test.ts ... | --plan=<plan.json>] [--list] [--changes=<owned.json> --force (version 2 only)]',
+    'Usage: node tools/test/runner/test-scoped.mjs --scope=<scope> [exact.test.ts ... | --plan=<plan.json> | --preset=<rules,ui,resources,tooling> --changes=<owned.json>] [--list] [--force (version 2 only)]',
   );
 
-if (planPath) {
+if (planPath || preset) {
+  if (preset && (planPath || !changesPath))
+    throw new Error('Presets require --changes and cannot include --plan');
   if (filters.length)
     throw new Error('Batch plans cannot include Vitest file filters');
-  const raw = JSON.parse(readFileSync(planPath, 'utf8'));
+  const raw = preset
+    ? { version: 2 }
+    : JSON.parse(readFileSync(planPath, 'utf8'));
   if (raw.version === 2) {
     const { preparePlan } = await import('./plan.mjs');
     const { runPlan } = await import('./run-plan.mjs');
-    const plan = preparePlan(
-      process.cwd(),
-      raw,
-      changesPath ? JSON.parse(readFileSync(changesPath, 'utf8')) : undefined,
-      scope,
-      { force },
-    );
-    if (listOnly)
-      console.log(
-        JSON.stringify(
-          {
-            version: 2,
-            scope: plan.scope,
-            tests: plan.tests.map((item) => ({
-              id: item.id,
-              selectedBy: item.selectedBy,
-              decision: item.decision,
-              reason: item.reason,
-              fingerprint: item.binding.key,
-              combination: item.combination,
-              evidencePath: item.evidencePath,
-              gaps: item.binding.value.gaps,
-            })),
-          },
-          null,
-          2,
-        ),
-      );
-    else {
+    const changes = changesPath
+      ? JSON.parse(readFileSync(changesPath, 'utf8'))
+      : undefined;
+    const plan = preset
+      ? (await import('./presets.mjs')).preparePreset(
+          process.cwd(),
+          preset,
+          changes,
+          scope,
+          { force },
+        )
+      : preparePlan(process.cwd(), raw, changes, scope, { force });
+    if (listOnly) {
+      const selection = {
+        version: 2,
+        scope: plan.scope,
+        preset: plan.preset,
+        excluded: plan.excluded ?? [],
+        timings: plan.timings,
+        tests: plan.tests.map((item) => ({
+          id: item.id,
+          selectedBy: item.selectedBy,
+          decision: item.decision,
+          reason: item.reason,
+          fingerprint: item.binding.key,
+          combination: item.combination,
+          evidencePath: item.evidencePath,
+          gaps: item.binding.value.gaps,
+        })),
+      };
+      if (preset) {
+        const { selectionListOutput } = await import('./log-output.mjs');
+        console.log((await selectionListOutput(process.cwd(), selection)).text);
+      } else console.log(JSON.stringify(selection, null, 2));
+    } else {
       const { TestHistory } = await import('./history.mjs');
       const { finishVerificationRound } = await import('./round.mjs');
       const history = new TestHistory(process.cwd());
@@ -120,27 +131,14 @@ if (planPath) {
       'No applicable Vitest tests; choose the required Node/document checks instead',
     );
   else {
-    const child = spawn(
-      process.execPath,
-      [resolve('node_modules/vitest/vitest.mjs'), 'run', ...selection.selected],
-      {
-        cwd: process.cwd(),
-        windowsHide: true,
-        shell: false,
-        stdio: 'inherit',
-        env: {
-          ...process.env,
-          TABLEMAX_TEST_SCOPE: scope,
-          TABLEMAX_TEST_SOUND: 'off',
-        },
-      },
-    );
-    child.once('error', (error) => {
-      console.error(error.message);
-      process.exitCode = 1;
-    });
-    child.once('exit', (code) => {
-      process.exitCode = code ?? 1;
-    });
+    const { TestHistory } = await import('./history.mjs');
+    const { runUnitTests } = await import('./run-unit.mjs');
+    const history = new TestHistory(process.cwd());
+    try {
+      const report = await runUnitTests(selection.selected, scope, history);
+      if (report.run.state !== 'passed') process.exitCode = 1;
+    } finally {
+      history.close();
+    }
   }
 }

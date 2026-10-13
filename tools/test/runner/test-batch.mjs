@@ -22,8 +22,17 @@ import {
   testFile,
   testIdentity,
 } from './history.mjs';
+import { finishVerificationRound } from './round.mjs';
+import { createOutputBudget } from './log-output.mjs';
 
-export async function runBatch(plan, history, { limit = failureLimit() } = {}) {
+export async function runBatch(
+  plan,
+  history,
+  {
+    limit = failureLimit(),
+    finish = (context) => finishVerificationRound(history.root, context),
+  } = {},
+) {
   failureLimit(limit);
   if (plan.version !== 1 || !Array.isArray(plan.tests) || !plan.tests.length)
     throw new Error('A version 1 plan requires explicit tests');
@@ -57,7 +66,9 @@ export async function runBatch(plan, history, { limit = failureLimit() } = {}) {
   const output = resolve(history.directory, 'runs', runId);
   mkdirSync(output, { recursive: true });
   let failures = 0;
+  let finishAttempted = false;
   const executed = [];
+  const terminal = createOutputBudget();
   try {
     for (const item of tests) {
       const stdout = createWriteStream(
@@ -84,7 +95,12 @@ export async function runBatch(plan, history, { limit = failureLimit() } = {}) {
           cwd: history.root,
           windowsHide: true,
           shell: false,
-          env: { ...process.env, TABLEMAX_TEST_SOUND: 'off' },
+          env: {
+            ...process.env,
+            ...(plan.scope ? { TABLEMAX_TEST_SCOPE: plan.scope } : {}),
+            TABLEMAX_TEST_SOUND: 'off',
+            TABLEMAX_AUTO_MAINTENANCE: '0',
+          },
         });
         child.stdout.pipe(stdout);
         child.stderr.pipe(stderr);
@@ -117,9 +133,14 @@ export async function runBatch(plan, history, { limit = failureLimit() } = {}) {
         total: stat.total,
       });
       if (status === 'failed') failures++;
-      console.log(
+      terminal.line(
         `${item.id}: ${status}, 历史通过 ${stat.passed}/${stat.total} (${((100 * stat.passed) / stat.total).toFixed(1)}%)`,
       );
+      if (status === 'failed')
+        terminal.failure([
+          resolve(output, `${executed.length - 1}-stdout.log`),
+          resolve(output, `${executed.length - 1}-stderr.log`),
+        ]);
       if (failures >= limit) break;
     }
     const stopped = failures >= limit;
@@ -144,9 +165,28 @@ export async function runBatch(plan, history, { limit = failureLimit() } = {}) {
       console.error(
         `达到出错阈值 ${failures}/${limit}，停止后续测试，先修复。`,
       );
+    if (finish) {
+      finishAttempted = true;
+      try {
+        report.maintenance = await finish({ runId, output });
+      } catch (error) {
+        report.maintenance = { result: 'blocked', error: error.message };
+      }
+      writeFileSync(
+        resolve(output, 'results.json'),
+        JSON.stringify(report, null, 2) + '\n',
+      );
+    }
     return report;
   } catch (error) {
     history.finish(runId, 'interrupted', failures);
+    if (finish && !finishAttempted) {
+      try {
+        await finish({ runId, output });
+      } catch {
+        /* Preserve the original verification error. */
+      }
+    }
     throw error;
   }
 }

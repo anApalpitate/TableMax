@@ -45,6 +45,8 @@ export async function createReleaseExecutable({
   manifestPath,
   outputPath,
 }) {
+  const started = performance.now();
+  const timings = {};
   const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
   if (
     manifest.buildVersion &&
@@ -62,6 +64,7 @@ export async function createReleaseExecutable({
       manifest.archive.sha256
   )
     throw new Error('Payload does not match frozen manifest');
+  timings.payloadVerificationMs = performance.now() - started;
   await mkdir(resolve('tmp'), { recursive: true });
   const work = await mkdtemp(resolve('tmp/release-executable-'));
   const output = join(work, 'TableMax.exe');
@@ -74,6 +77,7 @@ export async function createReleaseExecutable({
     process.env.WINDIR,
     'Microsoft.NET/Framework64/v4.0.30319',
   );
+  const compilationStarted = performance.now();
   await execute(join(framework, 'csc.exe'), [
     '/nologo',
     '/target:winexe',
@@ -97,17 +101,22 @@ export async function createReleaseExecutable({
     resolve('apps/desktop/native/StorageConfiguration.cs'),
     metadata,
   ]);
+  timings.compilationMs = performance.now() - compilationStarted;
   const bytes = (await stat(output)).size;
   if (bytes >= MAXIMUM_PACKAGE_BYTES)
     throw new Error('Single EXE must be strictly below 120,000,000 bytes');
   await mkdir(resolve(outputPath, '..'), { recursive: true });
   await rename(output, resolve(outputPath));
+  const sha256 = createHash('sha256')
+    .update(await readFile(outputPath))
+    .digest('hex');
+  timings.totalMs = performance.now() - started;
   return {
     path: resolve(outputPath),
     bytes,
-    sha256: createHash('sha256')
-      .update(await readFile(outputPath))
-      .digest('hex'),
+    sha256,
+    durationMs: Math.round(timings.totalMs),
+    timings,
     payloadSha256: manifest.archive.sha256,
   };
 }

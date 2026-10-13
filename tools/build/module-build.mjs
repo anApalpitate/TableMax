@@ -20,6 +20,7 @@ import {
   readdir,
   mkdir,
   stat,
+  lstat,
   copyFile,
   rename,
   rm,
@@ -37,6 +38,7 @@ import {
 import { nodeRuntimeInputs } from './node-runtime-inputs.mjs';
 import { packService } from './service-brotli.mjs';
 import { projectGameDetails } from '../../packages/game-sdk/src/metadata.mjs';
+import { createReadPhase } from './read-phase.mjs';
 
 export const root = workspaceRoot;
 const cache = resolve('.cache/build-modules/v1');
@@ -112,7 +114,10 @@ export function assertGameImport(gameId, file, request) {
 export async function json(path) {
   return JSON.parse(await readFile(path, 'utf8'));
 }
-export async function inventory(directory) {
+export async function inventory(
+  directory,
+  phase = createReadPhase('inventory'),
+) {
   const records = [];
   async function visit(folder) {
     for (const entry of await readdir(folder, { withFileTypes: true })) {
@@ -124,7 +129,7 @@ export async function inventory(directory) {
         records.push({
           path: posix(relative(directory, file)),
           bytes: (await stat(file)).size,
-          sha256: hash(await readFile(file)),
+          sha256: await phase.sha(file),
         });
     }
   }
@@ -132,7 +137,7 @@ export async function inventory(directory) {
   return records.sort((a, b) => a.path.localeCompare(b.path, 'en'));
 }
 // Node can reject a Windows cache-directory rename that the native move accepts.
-async function renameCache(from, to) {
+async function renameCache(from, to, taskCache = cache) {
   for (let attempt = 0; ; attempt += 1) {
     try {
       await rename(from, to);
@@ -153,6 +158,8 @@ async function renameCache(from, to) {
             resolve(from),
             '-Destination',
             resolve(to),
+            '-CacheRoot',
+            taskCache,
           ]);
           return;
         }
@@ -249,17 +256,18 @@ export async function lock(name, operation) {
   }
 }
 // Track source imports, type-only dependencies, CSS and each newly expanded glob.
-export async function inputsFor(unit) {
+export async function inputsFor(unit, phase = createReadPhase('inputs')) {
   if (unit.kind === 'runtime')
     return nodeRuntimeInputs({
       version: nodeVersion,
       archiveSha256: nodeArchiveSha256,
+      read: (path) => phase.read(path),
     });
   const files = new Set(),
     globs = [];
   const options = {
     ...ts.convertCompilerOptionsFromJson(
-      (await json('tsconfig.json')).compilerOptions,
+      (await phase.json('tsconfig.json')).compilerOptions,
       root,
     ).options,
     moduleResolution: ts.ModuleResolutionKind.Bundler,
@@ -271,7 +279,7 @@ export async function inputsFor(unit) {
     await access(file);
     files.add(file);
     if (!/\.(tsx?|jsx?|mjs|css)$/.test(file)) return;
-    let source = await readFile(file, 'utf8');
+    let source = (await phase.read(file)).toString('utf8');
     if (
       unit.id === 'platform-box' &&
       file.endsWith('game-clients' + require('node:path').sep + 'registry.ts')
@@ -291,14 +299,12 @@ export async function inputsFor(unit) {
       file.includes('apps' + require('node:path').sep + 'web')
     )
       return;
-    const syntax = ts.createSourceFile(
-      file,
-      source,
-      ts.ScriptTarget.Latest,
-      true,
-    );
+    const { syntax, importedFiles } = phase.parse(file, source, () => ({
+      syntax: ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true),
+      importedFiles: ts.preProcessFile(source, true, true).importedFiles,
+    }));
     if (unit.module && ['node', 'web'].includes(unit.kind)) {
-      for (const item of ts.preProcessFile(source, true, true).importedFiles)
+      for (const item of importedFiles)
         assertGameImport(unit.module.id, file, item.fileName);
     }
     const typeOnly = new Set(
@@ -309,9 +315,8 @@ export async function inputsFor(unit) {
         )
         .map((node) => node.moduleSpecifier.text),
     );
-    const requests = ts
-      .preProcessFile(source, true, true)
-      .importedFiles.map((item) => item.fileName)
+    const requests = importedFiles
+      .map((item) => item.fileName)
       .filter((item) => !typeOnly.has(item));
     for (const match of source.matchAll(
       /(?:@import\s+|url\()\s*['"]?([^'"\s)]+)['"]?/g,
@@ -423,7 +428,7 @@ export async function inputsFor(unit) {
       sha256:
         ['web', 'node'].includes(unit.kind) && unit.module && mediaFile(file)
           ? 'resource-independent'
-          : hash(await readFile(file)),
+          : await phase.sha(file),
     });
   return {
     files: entries,
@@ -441,8 +446,11 @@ export async function inputsFor(unit) {
     },
   };
 }
-export async function validateCached(directory) {
-  const manifest = await json(join(directory, 'manifest.json'));
+export async function validateCached(
+  directory,
+  phase = createReadPhase('cache-verification'),
+) {
+  const manifest = await phase.json(join(directory, 'manifest.json'));
   if (
     manifest.schemaVersion !== 1 ||
     hash(JSON.stringify(manifest.inputs)) !== manifest.fingerprint ||
@@ -450,17 +458,20 @@ export async function validateCached(directory) {
   )
     throw new Error('Invalid cache manifest: ' + directory);
   if (
-    JSON.stringify(await inventory(join(directory, 'files'))) !==
+    JSON.stringify(await inventory(join(directory, 'files'), phase)) !==
     JSON.stringify(manifest.files)
   )
     throw new Error('Corrupt build cache: ' + directory);
   return manifest;
 }
-export async function validateInputs(record) {
+export async function validateInputs(
+  record,
+  phase = createReadPhase('input-verification'),
+) {
   for (const file of record.inputs.files)
     if (
       file.sha256 !== 'resource-independent' &&
-      hash(await readFile(resolve(root, file.path))) !== file.sha256
+      (await phase.sha(resolve(root, file.path))) !== file.sha256
     )
       throw new Error('Inputs changed before snapshot: ' + record.id);
   for (const item of record.inputs.globs) {
@@ -685,44 +696,98 @@ async function compile(unit, out) {
     });
   }
 }
-export async function buildUnit(unit, full = false) {
+export async function buildUnit(
+  unit,
+  full = false,
+  { inputPhase = createReadPhase('build-inputs'), cacheRoot = cache } = {},
+) {
   if (!/^[a-z][a-z0-9-]*$/.test(unit.id))
     throw new Error('Invalid build unit id');
-  const inputs = await inputsFor(unit),
+  const taskCache = resolve(cacheRoot);
+  if (
+    taskCache !== cache &&
+    !/^efficiency-build-[A-Za-z0-9]{6}(?:\/|$)/.test(
+      posix(relative(resolve('tmp'), taskCache)),
+    )
+  )
+    throw new Error(
+      'Isolated cache must remain inside an efficiency-build fixture',
+    );
+  if (taskCache !== cache) {
+    for (let ancestor = taskCache; ; ancestor = dirname(ancestor)) {
+      try {
+        const item = await lstat(ancestor);
+        if (!item.isDirectory() || item.isSymbolicLink())
+          throw new Error('Linked isolated cache ancestor rejected');
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+      }
+      if (ancestor === resolve('tmp')) break;
+    }
+  }
+  const totalStarted = performance.now();
+  const inputs = await inputsFor(unit, inputPhase),
     fingerprint = hash(JSON.stringify(inputs)),
-    directory = join(cache, unit.id, fingerprint);
+    directory = join(taskCache, unit.id, fingerprint);
+  const timings = {
+    inputMs: performance.now() - totalStarted,
+    cacheVerificationMs: 0,
+    compileMs: 0,
+    postInputVerificationMs: 0,
+    outputInventoryMs: 0,
+    publishMs: 0,
+  };
+  const complete = (manifest, cached) => ({
+    ...manifest,
+    directory,
+    cached,
+    originalBuildDurationMs: manifest.durationMs,
+    currentDurationMs: performance.now() - totalStarted,
+    timings,
+  });
   return lock(unit.id, async () => {
+    const cacheStarted = performance.now();
     if (!full)
       try {
         const manifest = await validateCached(directory);
-        return { ...manifest, directory, cached: true };
+        timings.cacheVerificationMs = performance.now() - cacheStarted;
+        return complete(manifest, true);
       } catch {
         /* Continue independently. */
       }
+    timings.cacheVerificationMs = performance.now() - cacheStarted;
     const temp = join(
-      cache,
+      taskCache,
       'work',
       unit.id + '-' + process.pid + '-' + Date.now(),
     );
-    if (!resolve(temp).startsWith(cache + require('node:path').sep))
+    if (!resolve(temp).startsWith(taskCache + require('node:path').sep))
       throw new Error('Temporary output outside build cache');
     await mkdir(join(temp, 'files'), { recursive: true });
     unit.temp = temp;
     const started = performance.now();
     try {
+      const compileStarted = performance.now();
       await compile(unit, join(temp, 'files'));
+      timings.compileMs = performance.now() - compileStarted;
       await rm(join(temp, 'files', '.vite'), { recursive: true, force: true });
+      const verificationStarted = performance.now();
       if (hash(JSON.stringify(await inputsFor(unit))) !== fingerprint)
         throw new Error('Inputs changed during build: ' + unit.id);
+      timings.postInputVerificationMs = performance.now() - verificationStarted;
+      const inventoryStarted = performance.now();
+      const files = await inventory(join(temp, 'files'));
+      timings.outputInventoryMs = performance.now() - inventoryStarted;
       const manifest = {
         schemaVersion: 1,
         id: unit.id,
         compatibility: unit.module?.compatibility,
         fingerprint,
         inputs,
-        files: await inventory(join(temp, 'files')),
+        files,
         durationMs: Math.round(performance.now() - started),
       };
+      const publishStarted = performance.now();
       await writeFile(
         join(temp, 'manifest.json'),
         JSON.stringify(manifest, null, 2) + '\n',
@@ -731,29 +796,33 @@ export async function buildUnit(unit, full = false) {
       // A successful forced rebuild replaces the same key only after validation.
       const previous = directory + '.previous-' + process.pid;
       try {
-        await renameCache(directory, previous);
+        await renameCache(directory, previous, taskCache);
       } catch (error) {
         if (error.code !== 'ENOENT') throw error;
       }
       try {
-        await renameCache(temp, directory);
+        await renameCache(temp, directory, taskCache);
       } catch (error) {
         try {
-          await renameCache(previous, directory);
+          await renameCache(previous, directory, taskCache);
         } catch {
           /* No previous cache. */
         }
         throw error;
       }
       await rm(previous, { recursive: true, force: true });
-      return { ...manifest, directory, cached: false };
+      timings.publishMs = performance.now() - publishStarted;
+      return complete(manifest, false);
     } catch (error) {
       await rm(temp, { recursive: true, force: true });
       throw error;
     }
   });
 }
-export async function unitsFor(modules) {
+export async function unitsFor(
+  modules,
+  phase = createReadPhase('unit-discovery'),
+) {
   const units = [
     {
       id: 'platform-runtime',
@@ -823,7 +892,7 @@ export async function unitsFor(modules) {
   }
   for (const item of modules) {
     const web = units.find((unit) => unit.id === `game-${item.id}-web`);
-    const media = (await inputsFor(web)).mediaPaths;
+    const media = (await inputsFor(web, phase)).mediaPaths;
     for (const part of ['common', 'variant']) {
       const inputs = media.filter(
         (path) => path.includes('/expansion/') === (part === 'variant'),

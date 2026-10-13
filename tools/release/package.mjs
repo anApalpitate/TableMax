@@ -166,6 +166,7 @@ async function refreshPlatformSnapshot(path) {
 
 await lock('package-win', async () => {
   const started = performance.now();
+  const timings = {};
   const snapshotArgument = args.find((arg) => arg.startsWith('--snapshot='));
   const platformArgument = args.find((arg) =>
     arg.startsWith('--platform-from='),
@@ -191,6 +192,7 @@ await lock('package-win', async () => {
     : snapshotArgument
       ? await resumeSnapshot(snapshotArgument.slice('--snapshot='.length))
       : await buildProject(['--production']);
+  timings.buildAndAssemblyMs = performance.now() - started;
   for (const game of await discover())
     if (
       !game.internal &&
@@ -213,6 +215,7 @@ await lock('package-win', async () => {
     join(payloadRoot, buildSnapshot.id.slice(0, 12) + '-'),
   );
   const deliveries = [];
+  const internalStarted = performance.now();
   const gamesDirectory = await prepareInternalGames(
     buildSnapshot,
     resolve(
@@ -221,18 +224,23 @@ await lock('package-win', async () => {
     ),
     payloadRoot,
   );
+  timings.internalPackagePreparationMs = performance.now() - internalStarted;
   const catalogSource = join(
     gamesDirectory,
     `TableMax-game-catalog-v${project.version}.json`,
   );
+  const internalVerificationStarted = performance.now();
   await execute(process.execPath, [
     '--import',
     'tsx',
     'tools/release/verify-game-packages.mjs',
     '--out=' + gamesDirectory,
   ]);
+  timings.internalPackageVerificationMs =
+    performance.now() - internalVerificationStarted;
   const catalogBytes = await readFile(catalogSource);
   for (const currentEdition of editions) {
+    const materializationStarted = performance.now();
     const output = join(runOutput, currentEdition);
     await mkdir(output);
     const unpacked = join(output, 'win-unpacked');
@@ -384,7 +392,10 @@ await lock('package-win', async () => {
       await visit(directory);
       return records.sort((a, b) => a.path.localeCompare(b.path));
     }
+    timings.materializationMs = performance.now() - materializationStarted;
+    const stagedInventoryStarted = performance.now();
     const records = await inventory(unpacked);
+    timings.stagedInventoryMs = performance.now() - stagedInventoryStarted;
     const assembly = JSON.parse(
       await readFile(
         resolve('build/snapshots', buildSnapshot.id + '-assembly.json'),
@@ -414,6 +425,7 @@ await lock('package-win', async () => {
       );
     const name = 'payload.zip';
     const archive = join(output, name);
+    const compressionStarted = performance.now();
     await execute(
       'powershell.exe',
       [
@@ -429,6 +441,7 @@ await lock('package-win', async () => {
         },
       },
     );
+    timings.compressionMs = performance.now() - compressionStarted;
     const archiveBytes = (await stat(archive)).size;
     if (archiveBytes >= maximumBytes)
       throw new Error(
@@ -436,6 +449,7 @@ await lock('package-win', async () => {
       );
     // Inspect actual extraction, rather than relying only on the pre-compression staging folder.
     const extracted = join(output, 'size-verification');
+    const extractionStarted = performance.now();
     await execute(
       'powershell.exe',
       [
@@ -451,23 +465,39 @@ await lock('package-win', async () => {
         },
       },
     );
+    timings.extractionMs = performance.now() - extractionStarted;
+    const extractedInventoryStarted = performance.now();
     const actualRecords = await inventory(extracted);
+    timings.extractedInventoryMs =
+      performance.now() - extractedInventoryStarted;
     if (JSON.stringify(actualRecords) !== JSON.stringify(records))
       throw new Error(
         'Actual ZIP extraction does not match the staged file/hash manifest',
       );
     const manifest = {
       durationMs: Math.round(performance.now() - started),
+      timings: { ...timings, payloadTotalMs: performance.now() - started },
       snapshot: buildSnapshot.id,
       ...(buildSnapshot.retainedGameSnapshot
         ? { retainedGameSnapshot: buildSnapshot.retainedGameSnapshot }
         : {}),
       units: buildSnapshot.units.map(
-        ({ id, fingerprint, cached, durationMs }) => ({
+        ({
           id,
           fingerprint,
           cached,
           durationMs,
+          currentDurationMs,
+          originalBuildDurationMs,
+          timings,
+        }) => ({
+          id,
+          fingerprint,
+          cached,
+          durationMs,
+          currentDurationMs,
+          originalBuildDurationMs,
+          timings,
         }),
       ),
       version: project.version,
@@ -509,15 +539,24 @@ await lock('package-win', async () => {
       windowsExecutableName(application.buildVersion, currentEdition),
     );
     await assertReleaseIdle(outputPath);
+    const executableStarted = performance.now();
     const executable = await createReleaseExecutable({
       archivePath: archive,
       manifestPath: join(output, 'release-manifest.json'),
       outputPath,
     });
+    timings.executableMs = performance.now() - executableStarted;
+    timings.totalMs = performance.now() - started;
     await writeFile(
       outputPath.replace(/\.exe$/, '-manifest.json'),
       JSON.stringify(
-        { ...manifest, executable, internalPayloadPath: archive },
+        {
+          ...manifest,
+          durationMs: Math.round(timings.totalMs),
+          timings: { ...timings },
+          executable,
+          internalPayloadPath: archive,
+        },
         null,
         2,
       ) + '\n',
@@ -527,6 +566,8 @@ await lock('package-win', async () => {
       archivePath: archive,
       manifestPath: join(output, 'release-manifest.json'),
       executable,
+      durationMs: Math.round(timings.totalMs),
+      timings: { ...timings },
     });
     if (unpackedBytes >= budgetBytes)
       console.warn(
@@ -559,5 +600,11 @@ await lock('package-win', async () => {
     ) + '\n',
   );
   await rename(pointer + '.next', pointer);
-  console.log(JSON.stringify({ deliveries, internalPayloadIndex: pointer }));
+  console.log(
+    JSON.stringify({
+      deliveries,
+      internalPayloadIndex: pointer,
+      durationMs: Math.round(performance.now() - started),
+    }),
+  );
 });

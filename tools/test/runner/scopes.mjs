@@ -4,7 +4,7 @@ import {
 } from '../../shared/workspace-root.mjs';
 if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
-import { readdirSync } from 'node:fs';
+import { readdirSync, existsSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 
 export const gameIds = [
@@ -122,8 +122,14 @@ const unitScopes = {
 // Unregistered scripts may only run with an explicitly chosen full scope.
 // Mixed matrices cannot be narrowed by adding an option they do not implement.
 const verificationScopes = {
-  'tools/test/runner/evidence.test.mjs': ['tooling'],
-  'tools/test/runner/plan.test.mjs': ['tooling'],
+  'tools/test/runner/evidence.test.mjs': {
+    scopes: ['tooling'],
+    preset: { complete: true },
+  },
+  'tools/test/runner/plan.test.mjs': {
+    scopes: ['tooling'],
+    preset: { complete: true },
+  },
   'tools/maintenance/cache-plan.test.mjs': ['tooling'],
   'tools/maintenance/current-delivery.test.mjs': ['tooling'],
   'tools/maintenance/current-delivery.test.ps1': ['tooling'],
@@ -201,9 +207,36 @@ const verificationScopes = {
   'tools/maintenance/coordinator.test.mjs': ['tooling'],
   'tools/analysis/storage/space-analysis.test.mjs': ['tooling'],
   'tools/shared/migration.test.mjs': ['tooling'],
-  'tools/test/runner/scopes.test.mjs': ['tooling'],
-  'tools/test/runner/history.test.mjs': ['tooling'],
-  'tools/test/runner/typecheck.test.mjs': ['tooling'],
+  'tools/test/runner/scopes.test.mjs': {
+    scopes: ['tooling'],
+    preset: { complete: false, files: ['tools/test/runner/test-scoped.mjs'] },
+  },
+  'tools/test/runner/history.test.mjs': {
+    scopes: ['tooling'],
+    preset: { complete: false },
+  },
+  'tools/test/runner/typecheck.test.mjs': {
+    scopes: ['tooling'],
+    preset: { complete: true, files: ['tools/test/runner/typecheck.mjs'] },
+  },
+  'tools/test/runner/presets.test.mjs': {
+    scopes: ['tooling'],
+    preset: { complete: true },
+  },
+  'tools/test/runner/round.test.mjs': {
+    scopes: ['tooling'],
+    preset: { complete: true },
+  },
+  'tools/maintenance/read-doc.test.mjs': {
+    scopes: ['tooling'],
+    preset: { complete: false },
+  },
+  'tools/maintenance/audit-efficiency-docs.mjs': ['tooling'],
+  'tools/test/runner/log-output.test.mjs': {
+    scopes: ['tooling'],
+    preset: { complete: true },
+  },
+  'tools/test/runner/benchmark-efficiency.mjs': ['tooling'],
   'tools/test/box/verify-box-layout.mjs': ['box'],
   'tools/test/desktop/verify-fullscreen.mjs': [
     'box',
@@ -471,7 +504,52 @@ export function verificationTestScopes(item) {
       ];
     return games;
   }
-  return verificationScopes[script];
+  const registration = verificationScopes[script];
+  return registration?.scopes ?? registration;
+}
+
+// Preset metadata shares the existing scope authority. Product verifiers with
+// package/device arguments remain explicit plans, never guessed invocations.
+export function checkCategories(file) {
+  const normalized = file.replaceAll('\\', '/');
+  if (normalized.startsWith('tools/')) return ['tooling'];
+  const resources =
+    /(?:resource-url|sound-player|audio-(?:player|controller)|card-catalog|voice-resources|avatar(?:-upload)?\.test)/.test(
+      normalized,
+    );
+  const ui =
+    /(?:\/ui\/|\/web\/|^apps\/web\/|^apps\/desktop\/.*(?:audio|display))/.test(
+      normalized,
+    );
+  return [...(ui ? ['ui'] : ['rules']), ...(resources ? ['resources'] : [])];
+}
+
+export function presetCandidates(root) {
+  const units = selectUnitTests(root, 'full').selected.map((script) => ({
+    id: 'preset/' + script,
+    runtime: 'vitest',
+    script,
+    args: [],
+    scopes: unitTestScopes(script),
+    categories: checkCategories(script),
+    inputs: { complete: false },
+  }));
+  const checks = Object.entries(verificationScopes)
+    .filter(
+      ([script, registration]) =>
+        registration.preset && existsSync(resolve(root, script)),
+    )
+    .map(([script, registration]) => ({
+      id: 'preset/' + script,
+      runtime: 'node',
+      script,
+      nodeArgs: ['--test'],
+      args: [],
+      scopes: registration.scopes,
+      categories: checkCategories(script),
+      inputs: registration.preset,
+    }));
+  return [...units, ...checks].sort((a, b) => a.script.localeCompare(b.script));
 }
 
 export function validateBatchScope(plan, value) {

@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
-import { compilerRealpath } from './typecheck.mjs';
+import { compilerRealpath, compilerArguments } from './typecheck.mjs';
 import { workspaceRoot } from '../../shared/workspace-root.mjs';
 
 test('readable junctions fall back after a native access error', () => {
@@ -26,6 +26,24 @@ test('unreadable paths retain the compiler missing-file behavior', () => {
   assert.equal(compilerRealpath('missing', resolver), 'missing');
 });
 
+test('incremental cache is explicit, workspace confined and cannot override compiler options', () => {
+  const args = ['--noEmit'];
+  assert.equal(compilerArguments(workspaceRoot, args), args);
+  assert.throws(
+    () =>
+      compilerArguments(workspaceRoot, [
+        '--incremental-cache',
+        '--incremental',
+        'false',
+      ]),
+    /duplicate/,
+  );
+  assert.throws(
+    () => compilerArguments(workspaceRoot, ['--incremental-cache=../outside']),
+    /workspace/,
+  );
+});
+
 test('the compiler resolves Vitest declarations and still rejects real errors', () => {
   mkdirSync(join(workspaceRoot, 'tmp'), { recursive: true });
   const directory = mkdtempSync(join(workspaceRoot, 'tmp/typecheck-'));
@@ -39,7 +57,7 @@ test('the compiler resolves Vitest declarations and still rejects real errors', 
       include: ['fixture.ts'],
     }),
   );
-  const run = () =>
+  const run = (extra = []) =>
     spawnSync(
       process.execPath,
       [
@@ -49,6 +67,7 @@ test('the compiler resolves Vitest declarations and still rejects real errors', 
         '--noEmit',
         '--pretty',
         'false',
+        ...extra,
       ],
       { cwd: workspaceRoot, encoding: 'utf8' },
     );
@@ -63,6 +82,15 @@ test('the compiler resolves Vitest declarations and still rejects real errors', 
     const invalid = run();
     assert.notEqual(invalid.status, 0);
     assert.match(invalid.stdout, /TS2322/);
+    const cacheFlag = '--incremental-cache=' + directory;
+    const cold = run([cacheFlag]),
+      warm = run([cacheFlag]);
+    assert.notEqual(cold.status, 0);
+    assert.equal(cold.stdout, invalid.stdout);
+    assert.equal(warm.stdout, invalid.stdout);
+    assert.notEqual(warm.status, 0);
+    writeFileSync(input, 'export const value: number = 1;');
+    assert.equal(run([cacheFlag]).status, 0);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }

@@ -103,7 +103,13 @@ export function zipFiles(records) {
   end.writeUInt32LE(offset, 16);
   return Buffer.concat([...local, centralBytes, end]);
 }
-export async function createBlob(kind, records, out, releaseTag) {
+export async function createBlob(
+  kind,
+  records,
+  out,
+  releaseTag,
+  { reuse } = {},
+) {
   const files = records
     .map(({ path, data }) => ({
       path,
@@ -111,10 +117,17 @@ export async function createBlob(kind, records, out, releaseTag) {
       sha256: sha256(data),
     }))
     .sort((a, b) => a.path.localeCompare(b.path, 'en'));
-  const id = sha256(canonical({ kind, files })),
-    archive = zipFiles(records),
+  const id = sha256(canonical({ kind, files }));
+  const reused = await reuse?.materialize(kind, files, id, out);
+  if (reused) return reused;
+  const compressionStarted = performance.now();
+  const archive = zipFiles(records),
     assetName = `TableMax-${kind}-${id}.zip`;
   await writeFile(join(out, assetName), archive);
+  if (reuse) {
+    reuse.metrics.compressedBlobs += 1;
+    reuse.metrics.compressionMs += performance.now() - compressionStarted;
+  }
   return {
     id,
     kind,

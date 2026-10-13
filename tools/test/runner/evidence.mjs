@@ -28,27 +28,47 @@ export function canonical(value) {
   return value;
 }
 export const keyOf = (value) => digest(JSON.stringify(canonical(value)));
-function environmentFacts(providers) {
+export function createFingerprintStage() {
+  return {
+    cache: new Map(),
+    environmentCache: new Map(),
+    metrics: {
+      reads: 0,
+      bytesRead: 0,
+      environmentQueries: 0,
+      environmentMs: 0,
+    },
+  };
+}
+function environmentFacts(providers, stage) {
   const facts = {};
   for (const provider of providers ?? []) {
     if (!['webview2', 'powershell'].includes(provider))
       throw new Error('Unknown environment provider');
     if (process.platform !== 'win32')
       throw new Error('Windows environment required');
+    if (stage.environmentCache.has(provider)) {
+      facts[provider] = stage.environmentCache.get(provider);
+      continue;
+    }
     const command =
       provider === 'powershell'
         ? '$PSVersionTable.PSVersion.ToString()'
         : "Get-ItemProperty 'HKCU:\\Software\\Microsoft\\EdgeUpdate\\Clients\\*','HKLM:\\Software\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients\\*','HKLM:\\Software\\Microsoft\\EdgeUpdate\\Clients\\*' -ErrorAction SilentlyContinue | Where-Object { $_.name -match 'WebView2' } | Select-Object -ExpandProperty pv -Unique; exit 0";
+    const started = performance.now();
     const value = execFileSync(
       'powershell.exe',
       ['-NoProfile', '-NonInteractive', '-Command', command],
       { encoding: 'utf8', windowsHide: true, timeout: 15000 },
     ).trim();
+    stage.metrics.environmentQueries++;
+    stage.metrics.environmentMs += performance.now() - started;
     if (!value)
       throw new Error(
         'Necessary environment condition unavailable: ' + provider,
       );
     facts[provider] = value.split(/\r?\n/).sort();
+    stage.environmentCache.set(provider, facts[provider]);
   }
   return facts;
 }
@@ -86,29 +106,46 @@ export function fileRecord(root, path) {
 }
 
 // One inventory per planning pass; imports are expanded, runtime-loaded data is declared explicitly.
-export function fingerprint(root, item, { cache = new Map() } = {}) {
+export function fingerprint(root, item, options = {}) {
+  const stage = options.stage ?? createFingerprintStage();
+  if (options.cache) stage.cache = options.cache;
+  const { cache } = stage;
   const started = performance.now(),
     files = new Map(),
     gaps = [];
-  const options = existsSync(resolve(root, 'tsconfig.json'))
+  const metricsBefore = { ...stage.metrics };
+  function read(path) {
+    const absolute = localFile(root, path);
+    if (!cache.has(absolute)) {
+      if (!lstatSync(absolute).isFile())
+        throw new Error('Expected regular file: ' + path);
+      const bytes = readFileSync(absolute);
+      stage.metrics.reads++;
+      stage.metrics.bytesRead += bytes.length;
+      cache.set(absolute, {
+        record: {
+          path: relative(root, absolute).replaceAll('\\', '/'),
+          bytes: bytes.length,
+          sha256: digest(bytes),
+        },
+        source: /\.(?:[cm]?js|tsx?|json)$/.test(absolute)
+          ? bytes.toString('utf8')
+          : undefined,
+      });
+    }
+    return cache.get(absolute);
+  }
+  const compilerOptions = existsSync(resolve(root, 'tsconfig.json'))
     ? ts.convertCompilerOptionsFromJson(
-        JSON.parse(readFileSync(resolve(root, 'tsconfig.json'), 'utf8'))
-          .compilerOptions,
+        JSON.parse(read('tsconfig.json').source).compilerOptions,
         root,
       ).options
     : {};
-  options.moduleResolution = ts.ModuleResolutionKind.Bundler;
+  compilerOptions.moduleResolution = ts.ModuleResolutionKind.Bundler;
   function visit(path) {
     const absolute = localFile(root, path);
     if (files.has(absolute)) return;
-    if (!cache.has(absolute))
-      cache.set(absolute, {
-        record: fileRecord(root, absolute),
-        source: /\.(?:[cm]?js|tsx?)$/.test(absolute)
-          ? readFileSync(absolute, 'utf8')
-          : undefined,
-      });
-    const { record, source } = cache.get(absolute);
+    const { record, source } = read(absolute);
     files.set(absolute, record);
     if (!/\.(?:[cm]?js|tsx?)$/.test(absolute)) return;
     const requests = new Set(
@@ -120,8 +157,12 @@ export function fingerprint(root, item, { cache = new Map() } = {}) {
       requests.add(match[1]);
     for (const request of requests) {
       if (request.startsWith('node:')) continue;
-      const found = ts.resolveModuleName(request, absolute, options, ts.sys)
-        .resolvedModule?.resolvedFileName;
+      const found = ts.resolveModuleName(
+        request,
+        absolute,
+        compilerOptions,
+        ts.sys,
+      ).resolvedModule?.resolvedFileName;
       if (found && !found.includes('node_modules')) visit(found);
       if (request.startsWith('.')) {
         const literal = resolve(dirname(absolute), request.split('?')[0]);
@@ -155,11 +196,10 @@ export function fingerprint(root, item, { cache = new Map() } = {}) {
     const pointer =
       item.delivery.pointer ??
       'artifacts/package-payloads/v' +
-        JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'))
-          .version +
+        JSON.parse(read('package.json').source).version +
         '/current.json';
     visit(pointer);
-    const index = JSON.parse(readFileSync(localFile(root, pointer), 'utf8'));
+    const index = JSON.parse(read(pointer).source);
     const delivery = index.deliveries.find(
       (value) => value.edition === item.delivery.edition,
     );
@@ -171,9 +211,9 @@ export function fingerprint(root, item, { cache = new Map() } = {}) {
     ])
       visit(path);
     if (
-      fileRecord(root, delivery.executable.path).sha256 !==
+      read(delivery.executable.path).record.sha256 !==
         delivery.executable.sha256 ||
-      fileRecord(root, delivery.archivePath).sha256 !==
+      read(delivery.archivePath).record.sha256 !==
         delivery.executable.payloadSha256
     )
       throw new Error('Current delivery bytes do not match pointer');
@@ -203,7 +243,20 @@ export function fingerprint(root, item, { cache = new Map() } = {}) {
     format: 1,
     method: ['evidence.mjs', 'plan.mjs', 'run-plan.mjs'].map((name) => {
       const path = fileURLToPath(new URL(name, import.meta.url));
-      return { name, sha256: digest(readFileSync(path)) };
+      const within = relative(root, path);
+      if (!within.startsWith('..' + sep) && !isAbsolute(within))
+        return { name, sha256: read(path).record.sha256 };
+      const methodKey = 'method:' + path;
+      if (!cache.has(path) && !cache.has(methodKey)) {
+        const bytes = readFileSync(path);
+        stage.metrics.reads++;
+        stage.metrics.bytesRead += bytes.length;
+        cache.set(methodKey, { record: { sha256: digest(bytes) } });
+      }
+      return {
+        name,
+        sha256: (cache.get(path) ?? cache.get(methodKey)).record.sha256,
+      };
     }),
     command: {
       runtime: item.runtime,
@@ -219,7 +272,7 @@ export function fingerprint(root, item, { cache = new Map() } = {}) {
     files: [...files.values()].sort((a, b) => a.path.localeCompare(b.path)),
     environment: {
       declared: item.environment ?? {},
-      providers: environmentFacts(item.environmentProviders),
+      providers: environmentFacts(item.environmentProviders, stage),
       node: process.versions.node,
       platform: process.platform,
       architecture: process.arch,
@@ -239,6 +292,12 @@ export function fingerprint(root, item, { cache = new Map() } = {}) {
     key: keyOf(value),
     value,
     durationMs: performance.now() - started,
+    metrics: Object.fromEntries(
+      Object.keys(stage.metrics).map((key) => [
+        key,
+        stage.metrics[key] - metricsBefore[key],
+      ]),
+    ),
     reusable: gaps.length === 0,
   };
 }

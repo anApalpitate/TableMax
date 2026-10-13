@@ -14,6 +14,7 @@ import {
   fileRecord,
   localFile,
   atomicJson,
+  createFingerprintStage,
 } from './evidence.mjs';
 
 function fixture(t) {
@@ -38,6 +39,27 @@ function fixture(t) {
   };
   return { root, item, index: new EvidenceIndex(root, 'evidence') };
 }
+
+test('one phase shares byte reads and environment queries; fresh phases rehash same-length changed inputs', (t) => {
+  const { root, item } = fixture(t),
+    stage = createFingerprintStage();
+  const configured =
+    process.platform === 'win32'
+      ? { ...item, environmentProviders: ['powershell'] }
+      : item;
+  const first = fingerprint(root, configured, { stage });
+  const second = fingerprint(root, configured, { stage });
+  assert.equal(second.key, first.key);
+  assert.equal(second.metrics.reads, 0);
+  assert.equal(second.metrics.environmentQueries, 0);
+  assert.ok(first.metrics.reads > 0);
+  if (process.platform === 'win32')
+    assert.equal(first.metrics.environmentQueries, 1);
+  writeFileSync(join(root, 'subject.mjs'), 'export const value = 2;\n');
+  const next = fingerprint(root, configured);
+  assert.notEqual(next.key, first.key);
+  assert.ok(next.metrics.reads > 0);
+});
 test('reuse binds transitive source, resources, parameters, combinations, environment and actual runtime bytes', (t) => {
   const { root, item, index } = fixture(t);
   const first = fingerprint(root, item);

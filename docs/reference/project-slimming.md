@@ -2,6 +2,12 @@
 
 现行阈值为逻辑体积超过10GiB时清至8GiB或安全候选耗尽；一次性6GB目标不改变默认阈值。先结束工程进程，只执行一轮既有安全维护，保留依赖／工具缓存、原资料、正式存档、当前交付与证据。操作及保护见[工作区维护](workspace-maintenance.md#清理本地中间物)。
 
+## 渐进开发提效收尾（2026-10-13）
+
+全部本轮自启动构建、验证、TypeScript、Worker与浏览器子进程退出后，现有维护入口先预览，再唯一一次 `scripts/Maintain-Project.ps1 -Apply`。进程保护通过，实测 **10,404,324,733逻辑字节（9.690GiB）**，排除1,768链接和1个嵌套仓库；低于默认10GiB阈值，候选0、删除0，未追加第二轮删除。证据见[预览](../../artifacts/maintenance/development-efficiency/maintenance/preview.json)与[实际维护结果](../../artifacts/maintenance/development-efficiency/maintenance/final.json)。
+
+原资料、正式存档、当前1.0.6.10交付／验收、历史恢复模块、依赖与工具缓存继续保留。近期夹具及当前计时证据按现有保护留下，容量为当次维护采样，不与包含嵌套仓库的6GB目标或NTFS物理节省混用，也不为达到8GiB扩大删除范围。
+
 ## 宝可梦新版交付收尾（2026-10-12）
 
 1.0.6.10实际完整EXE及适用服务、手机／电脑横竖、显示、演出、结算与自然游玩专项通过后，工程进程退出，再集中执行唯一一次逐文件清理。经预览与SHA绑定审计，71个过期生成范围共26,441文件、**6,526,191,088字节**退役；包括旧隔离运行／原生提取副本、失败候选截图及1.0.6.4／5／7／8／9候选EXE与内部载荷副本。保留每个删除文件的路径、字节、SHA和失败JSON／文字结论，不另存待删备份。范围见[最终审计清单](../../artifacts/maintenance/v1.0.6/pokemon-events-v3-verification/cleanup-20261012/retirement-plan.json)，实际结果见[单次退役日志](../../artifacts/maintenance/reviewed-retirements/pokemon-v3-20261012-once.json)。

@@ -2,6 +2,17 @@
 
 version 2内容绑定计划、`--changes`、`--force`、环境绑定和单轮收尾见[开发入口](../../docs/reference/development.md#内容绑定的验收计划2026-10-11)。新增runner辅助为[evidence.mjs](runner/evidence.mjs)、[plan.mjs](runner/plan.mjs)、[run-plan.mjs](runner/run-plan.mjs)和[round.mjs](runner/round.mjs)；隔离回归为[evidence.test.mjs](runner/evidence.test.mjs)、[plan.test.mjs](runner/plan.test.mjs)。[support/delivery-session.mjs](support/delivery-session.mjs)一次实际EXE启动顺序覆盖相关界面，[desktop/verify-delivery-session.mjs](desktop/verify-delivery-session.mjs)保留原空box三端代表检查，只适用于对应历史包；[support/download-loopback.mjs](support/download-loopback.mjs)与[platform/verify-download-loopback.mjs](platform/verify-download-loopback.mjs)提供生产安装器回环故障夹具（需`node --import=tsx`）。下载回环入口只检查内部事务／原安装行为，不表示现行仍有游戏下载入口；这些检查不等于游戏完整矩阵、当前完整EXE或真实线上／设备验收。
 
+`--preset=rules|ui|resources|tooling` 可用逗号选择实际受影响类别，必须同时给出 `--scope` 和本任务 `--changes` SHA 清单；不能混用 `--plan` 或准确文件筛选。预设从 [scopes.mjs](runner/scopes.mjs) 的现有范围登记选择准确测试文件和已登记的工具回归，产品包／设备矩阵仍用显式计划。`--list` 显示执行、复用和排除及其理由；变化清单过期直接拒绝。游戏及动态输入尚未审完的项保守选择受影响范围，执行但不缓存，不能把预设输出当作完整产品验收。
+
+```powershell
+node tools/test/runner/test-scoped.mjs --scope=game:modern-art --preset=ui --changes=<owned.json> --list
+node tools/test/runner/test-scoped.mjs --scope=tooling --preset=tooling --changes=<owned.json>
+```
+
+version 1、version 2 和准确文件 Vitest 入口均关闭子项自动维护，由父轮至多尝试一次。多阶段任务设置 `TABLEMAX_AUTO_MAINTENANCE=0`，最终统一安全收尾；不改变低通过率排序、串行、累计默认三失败停止或历史统计规则。阶段读缓存只共享本阶段真实读取的字节和环境查询；执行前后另建阶段重新 SHA 核验，不使用 mtime 放行。结果附加规划／执行前／执行后指纹、证据复验、环境查询、读取次数和字节、执行与收尾耗时。
+
+运行入口不继承子进程大输出：stdout／stderr 原文完整保存在本轮日志文件，终端结论预算 2KiB，失败详情预算 8KiB。达到预算显示截断提示及完整日志／结果入口；仅截断显示，不修改原始证据、检查结果、退出码或统计。预设 `--list` 将完整选择及排除理由写入固定 `artifacts/maintenance/test-history/preset-list.json`（或 `TABLEMAX_TEST_HISTORY_DIR` 下同名文件），小于预算仍显示完整 JSON；超限显示执行／复用／排除数量、明确截断提示和证据路径。旧 direct／显式 plan 的 `--list` 返回形式保持兼容。
+
 先按本次修改范围选择检查。统一入口为 `pnpm test -- --scope=<范围>`；用 `--list` 只列清单，用 `--plan=<批次JSON路径>` 执行明确 Node／PowerShell 批次。范围支持 `box`、`shared`、`tooling`、`game:<id>` 或明确组合；不以目录或文件名前缀替代实际范围注册。默认按历史低通过率排序、累计三项失败停止，不自动重试。
 
 验证默认静音、回环监听、隐藏窗口；真实验证可能构建、启动服务并写 `tmp/`、`artifacts/` 和测试历史，不能把执行验证当作只读查询。各入口保留已有 `--game`、`--portable`、`--mode`、`--evidence` 等参数和结果位置，参数不通用，先查对应代码／开发说明。runner 为统计与调度；support 为公共运行助手；fixtures 只生成合法测试状态。混合矩阵保留在平台组，不能伪装成单游戏检查。
@@ -104,6 +115,13 @@ version 2内容绑定计划、`--changes`、`--force`、环境绑定和单轮收
 | [runner/test-scoped.mjs](runner/test-scoped.mjs)                                                                                         | `pnpm test`                                                                          |
 | [runner/typecheck.mjs](runner/typecheck.mjs)                                                                                             | `pnpm typecheck`；完整 TypeScript CLI 与目录链接回退                                 |
 | [runner/typecheck.test.mjs](runner/typecheck.test.mjs)                                                                                   | 工具回归：目录链接、缺失路径、真实类型错误拒绝                                       |
+| [runner/presets.mjs](runner/presets.mjs)                                                                                                 | 内部预设选择；沿用既有范围权威与 owned SHA 清单                                      |
+| [runner/presets.test.mjs](runner/presets.test.mjs)                                                                                       | 工具回归：类别／范围／变化选择、动态缺口、复用及不重复计次                           |
+| [runner/run-unit.mjs](runner/run-unit.mjs)                                                                                               | 准确 Vitest 文件入口的父轮统计与一次收尾                                             |
+| [runner/round.test.mjs](runner/round.test.mjs)                                                                                           | 工具回归：旧批次／准确文件父轮、关闭子项维护及异常收尾                               |
+| [runner/log-output.mjs](runner/log-output.mjs)                                                                                           | 父轮结论／失败详情字节预算；完整日志保留与 UTF-8 尾部摘要                            |
+| [runner/log-output.test.mjs](runner/log-output.test.mjs)                                                                                 | 工具回归：预算／截断／原文哈希及真实子进程大输出                                     |
+| [runner/benchmark-efficiency.mjs](runner/benchmark-efficiency.mjs)                                                                       | 固定工具夹具：指定提交的指纹基线与当前阶段缓存、锁定 TS 普通／增量冷暖诊断比较       |
 | [runner/vitest-history.d.mts](runner/vitest-history.d.mts)                                                                               | 内部辅助／声明／夹具；由对应入口调用                                                 |
 | [runner/vitest-history.mjs](runner/vitest-history.mjs)                                                                                   | `node tools/test/runner/vitest-history.mjs`                                          |
 | [support/browser-test.mjs](support/browser-test.mjs)                                                                                     | 内部辅助／声明／夹具；由对应入口调用                                                 |
@@ -114,3 +132,82 @@ version 2内容绑定计划、`--changes`、`--force`、环境绑定和单轮收
 | [support/verification-output.mjs](support/verification-output.mjs)                                                                       | 内部辅助／声明／夹具；由对应入口调用                                                 |
 
 `pnpm typecheck` 使用 [typecheck.mjs](runner/typecheck.mjs) 调用锁定的 TypeScript CLI，保留原参数、诊断和退出码。Windows 原生 realpath 无法读取 pnpm 目录链接时，回退到普通 realpath；都失败时保留编译器原有缺失文件行为，不跳过测试或放宽类型。机制回归：`node --test tools/test/runner/typecheck.test.mjs`。
+
+显式 `--incremental-cache` 在 `.cache/typecheck/` 使用锁定 TypeScript 的增量信息，或用 `--incremental-cache=<仓库内目录>` 指定隔离目录；不裁减原 tsconfig 文件范围。参数、编译器版本和工作区构成缓存身份，编译器仍读取源码并检查内容版本；不能与 `--build`、显式 `--incremental`／`--tsBuildInfoFile` 混用。诊断正文与成功／失败保持一致，TypeScript 自身的非零退出码可能因增量信息输出为 1 或 2，入口原样保留，不将其视为通过。该参数默认关闭，首次构建不保证加速。
+
+```powershell
+node tools/test/runner/typecheck.mjs --noEmit --incremental-cache
+node tools/test/runner/benchmark-efficiency.mjs
+```
+
+基准仅检查固定 Node／TypeScript 工具夹具；输出 `artifacts/maintenance/development-efficiency/verification/benchmark-<名称>.json`，临时输入在 `tmp/efficiency-verification-<名称>/`，不自动清理，不启动游戏或导出包。单次本机冷暖数据不能作为产品运行性能结论。
+
+## 开发环境操作：内容绑定的验收计划（2026-10-11）
+
+version 2 明确内容、方法、环境与输入边界；清单和方案先预览。
+
+```powershell
+node tools/test/runner/test-scoped.mjs --scope=tooling --plan=<version-2.json> --changes=<owned.json> --list
+node tools/test/runner/test-scoped.mjs --scope=tooling --plan=<version-2.json> --changes=<owned.json>
+```
+
+## 开发环境操作：按变更范围选择检查
+
+准确文件或实际受影响范围；不运行其他游戏。
+
+```powershell
+node tools/test/runner/test-scoped.mjs --scope=box --list
+node tools/test/runner/test-scoped.mjs --scope=box apps/server/src/avatar.test.ts
+node tools/test/runner/test-scoped.mjs --scope=game:modern-art games/modern-art/ui/sorting.test.ts
+```
+
+## 开发环境操作：历史通过率与失败阈值
+
+范围入口见上一节。version 1 批次保持兼容，不提供自动证据复用；下方包哈希和证据名须换为实际输入。
+
+```powershell
+
+# 可选：本轮只容许1项失败；不设置时为3，合法范围1–1000
+$env:TABLEMAX_TEST_MAX_FAILURES = '1'
+node tools/test/runner/test-scoped.mjs --scope=shared apps/server/src/countdown.test.ts
+Remove-Item Env:TABLEMAX_TEST_MAX_FAILURES
+
+# 查看累计通过次数、完成次数、百分比及通过次数/完成次数
+node tools/test/runner/test-history.mjs
+
+# 仅导入有逐项结果和startTime的完整Vitest JSON，重复导入不重复计数
+node tools/test/runner/test-history.mjs --import artifacts/<已有逐项报告>.json
+
+# 测试工具本身的隔离回归，不启动正式桌面或服务
+node --test tools/test/runner/history.test.mjs
+node --test tools/test/runner/scopes.test.mjs
+```
+
+```json
+{
+  "version": 1,
+  "tests": [
+    {
+      "id": "box/layout",
+      "runtime": "node",
+      "script": "tools/test/box/verify-box-layout.mjs",
+      "args": ["--sha256=<当前包SHA256>", "--evidence=<本轮独立名>"]
+    }
+  ]
+}
+```
+
+## 开发环境操作：图文规则维护与验证
+
+下列为原专项工具参数示例，运行前选择本次受影响游戏和新证据名；旧目录不能作为当前完整 EXE 验收。
+
+```powershell
+# 宝可梦三个实际区域；capture-rules 不允许同时使用 --portable
+node tools/test/platform/verify-rules-guides.mjs --capture-rules --evidence=capture-regions
+
+# 电力公司五个实际区域的独立组件渲染；每轮采用新证据名
+node tools/test/games/power-grid/verify-power-grid-ui.mjs --maintenance=power-grid-debug-20261004 --capture-rules-only --evidence=rule-capture-run
+
+# 三游戏 PNG→WebP，无损并逐像素核验；按需加 --game=power-grid 等限定
+python tools/assets/rules/compress-rule-captures.py --report=artifacts/maintenance/v1.0.2/shared-visual-20261004/rules-compression.json
+```

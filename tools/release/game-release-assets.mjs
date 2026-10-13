@@ -63,16 +63,17 @@ export async function gameReleaseAssets(
     const stats = await stat(item.path);
     if (!stats.isFile()) throw new Error('Non-file release asset');
     const bytes = await readFile(item.path);
+    const digest = sha256(bytes);
     if (
       (item.bytes !== undefined && item.bytes !== bytes.length) ||
-      (item.sha256 && item.sha256 !== sha256(bytes))
+      (item.sha256 && item.sha256 !== digest)
     )
       throw new Error('Release asset integrity mismatch');
     assets.push({
       path: item.path,
       name: basename(item.path),
       bytes: bytes.length,
-      sha256: sha256(bytes),
+      sha256: digest,
     });
   }
   return assets.sort((a, b) => a.name.localeCompare(b.name, 'en'));

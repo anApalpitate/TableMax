@@ -10,13 +10,17 @@
 
 构建支持jobs=1／2／4，共享准备串行、独立单元有界并行，冻结／组装独占；失败排空后拒绝冻结。内容读取仅在同一核验阶段去重，跨阶段重新SHA。内部code/resource逐blob核验签名／闭包／归档／成员后复用原字节，损坏、缺失、链接及资产重名拒绝；缓存历史编译与本次核验分别记录，完整包装总耗时包含最终EXE。11项不同工具回归通过。初期签名夹具与沙箱realpath失败保留，达到3失败停止，修正后仅重跑受影响项，详见[构建交接](../../artifacts/maintenance/development-efficiency/build/build-handoff.json)。
 
-最终两游戏实际esbuild／Vite夹具中jobs2相对jobs1：冷构建慢17.92%、暖构建慢28.46%、单游戏变化快16.60%；产物逐文件一致，暖6／6命中、变化3／6命中。每路径单样本且RSS只覆盖父Node，默认继续1，未达到稳定提速／全进程内存门槛；[基准](../../artifacts/maintenance/development-efficiency/build/2026-10-13T03-04-27-638Z/results.json)不证明全项目25%打包收益。测量后仅调整CLI报告摘要，不变测量执行与编译依赖。
+最终两游戏实际esbuild／Vite夹具中jobs2相对jobs1：冷构建1504.84→1354.35ms（快10.00%）、暖构建658.13→626.93ms（快4.74%）、单游戏变化1159.74→1069.35ms（快7.79%）；产物逐文件一致，暖6／6命中、变化3／6命中。重复测量曾出现反向收益，且每路径单样本、RSS只覆盖父Node，默认继续1，未达到稳定提速／全进程内存门槛；[最终输入基准](../../artifacts/maintenance/development-efficiency/build/2026-10-13T03-16-09-412Z/results.json)不证明全项目25%打包收益。read／hash／parse分段明确为累计活动时间，不作为并行阶段墙钟之和。
 
-验证预设复用现有scopes与version 2计划，按任务SHA、范围与rules／ui／resources／tooling分类选择；依赖未审查完整时照常执行且禁止复用。旧version 1／直接入口保留兼容，子项关闭自动维护、父轮一次收尾，仍串行按低通过率排序、累计默认3失败停派、不自动重试。锁定TypeScript的incremental仅显式选用，不改变程序覆盖、诊断或编译器失败退出语义。工具回归、最终预设轮及阶段指纹基准见[验证证据目录](../../artifacts/maintenance/development-efficiency/verification/)；夹具收益与真实项目收益分开记录。
+验证预设复用现有scopes与version 2计划，按任务SHA、范围与rules／ui／resources／tooling分类选择；依赖未审查完整时照常执行且禁止复用。旧version 1／直接入口保留兼容，子项关闭自动维护、父轮一次收尾，仍串行按低通过率排序、累计默认3失败停派、不自动重试。锁定TypeScript的incremental仅显式选用，不改变程序覆盖、诊断或编译器失败退出语义。完整子项日志留文件，父轮结论2KiB／失败8KiB预算并显式提示截断；preset列表也保留完整理由的证据文件。工具回归及实际预设轮见[验证证据目录](../../artifacts/maintenance/development-efficiency/verification/)；最终[固定夹具基准](../../artifacts/maintenance/development-efficiency/verification/benchmark-kMouF4.json)指纹阶段1162.94→589.15ms（快49.34%）、读取62→28次、环境查询4→1次，类型检查普通1064.22ms／incremental暖1049.94ms且诊断一致。这些夹具收益不能推广为全项目收益。
+
+验证工具48个不同回归通过，完整预设轮9文件／46项，随后仅重跑修改所影响的项；新列表预算夹具完整保留7项执行、161项排除理由，终端摘要394字节。指纹基准早于最后列表摘要补丁，实际调用的指纹／类型计算未变，列表另做定向回归，不补测无关性能。主agent整合检查采用本任务文件的Prettier／ESLint及真实项目TypeScript incremental；均通过。ESLint初次发现blob测试unused变量，保留原失败日志，修正后只重跑该文件lint与对应1项信任回归；最终结果分开留证据，不把初次失败改写为成功。
 
 运行基线显式启用、有界样本且不记录凭证／动作秘密／投影内容，默认回环、静音、隐藏Edge。24次提交、六独立玩家iframe与DOM修订确认无失败；另有六同凭证Node观察连接和管理员，共13连接。保存P95为1.91ms，保存→广播3.14ms，页面收到→frame5.40ms；Worker启动22.07ms、online→结果6.85ms、直接策略1.02ms、取消→退出1.55ms。服务采样RSS峰138.85MB，源码首次／再次进程就绪2.171／1.959s。Worker6项与有界统计2项通过，迟到事件不覆盖取消结果。原始3次夹具失败及停止／修复边界见[运行尝试](../../artifacts/maintenance/development-efficiency/runtime/attempts.json)，最终[同步基线](../../artifacts/maintenance/development-efficiency/runtime/runtime.json)与[Worker基线](../../artifacts/maintenance/development-efficiency/runtime/workers.json)保留各自输入SHA。
 
 页面跨时钟估计误差最高5.67ms，144项提交→frame中2个负估计排除；frame不等于像素呈现。以上为UNO六席大厅准备切换和种子策略、本机源码服务，未验真实手机、LAN／弱网、公共竞价、完整EXE冷启动或物理DPI。后续5个可比任务的token／往返与25%暖／单游戏打包目标仍待实测，不把日志token直接换算额度。
+
+全部本轮工程子进程退出后，现有维护先预览、再唯一一次Apply，进程保护通过，实测10,404,324,733逻辑字节（9.690GiB，排除链接与嵌套仓库），低于10GiB，删除0；具体保护、采样口径及证据见[本轮瘦身结果](../reference/project-slimming.md#渐进开发提效收尾2026-10-13)。本轮未追加第二轮删除，当前交付与近期计时证据完整保留。
 
 ## 宝可梦新设计应用（2026-10-12）
 

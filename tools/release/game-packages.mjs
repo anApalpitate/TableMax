@@ -1,12 +1,7 @@
-import { gameReleaseAssets } from './game-release-assets.mjs';
+import { loadTrustedBlobReuse } from './blob-reuse.mjs';
+import { createReadPhase } from '../build/read-phase.mjs';
 import { mergeCatalogHistory, legacyCatalog } from './catalog-history.mjs';
-import {
-  readFile,
-  writeFile,
-  mkdir,
-  copyFile,
-  readdir,
-} from 'node:fs/promises';
+import { readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import {
   projectGameDetails,
@@ -52,6 +47,14 @@ export async function packageGames({
     throw new Error('Invalid public game release tag');
   out = resolve(out ?? `artifacts/game-packages/${releaseTag}/current`);
   await mkdir(out, { recursive: true });
+  const publicKeySource = await readFile(
+    'apps/server/src/game-packages/project-public-key.ts',
+    'utf8',
+  );
+  const publicKey = publicKeySource
+    .match(/'([^']+)'/)[1]
+    .replaceAll('\\n', '\n');
+  const reuse = await loadTrustedBlobReuse(history, { publicKey });
   const modules = (snapshot?.modules ?? (await discover(gameId))).filter(
     (item) => !item.internal && (!gameId || item.id === gameId),
   );
@@ -71,7 +74,10 @@ export async function packageGames({
         (result.cached ? 'cache hit' : result.durationMs + 'ms'),
     );
   }
-  for (const result of results) await validateInputs(result);
+  const inputVerification = createReadPhase(
+    'internal-package-input-verification',
+  );
+  for (const result of results) await validateInputs(result, inputVerification);
   const blobs = [],
     releases = [];
   for (const module of modules) {
@@ -107,7 +113,9 @@ export async function packageGames({
         data: Buffer.from(JSON.stringify(projectGameWeb(builtModule))),
       },
     );
-    const code = await createBlob('code', codeRecords, out, releaseTag);
+    const code = await createBlob('code', codeRecords, out, releaseTag, {
+      reuse,
+    });
     blobs.push(code);
     const resourceUnits = {};
     for (const part of ['common', 'variant']) {
@@ -126,6 +134,7 @@ export async function packageGames({
         records,
         out,
         releaseTag,
+        { reuse },
       );
       blobs.push(resourceUnits[part]);
     }
@@ -174,35 +183,11 @@ export async function packageGames({
     releases,
     blobs: [...new Map(blobs.map((blob) => [blob.id, blob])).values()],
   };
-  const publicKeySource = await readFile(
-    'apps/server/src/game-packages/project-public-key.ts',
-    'utf8',
-  );
-  const publicKey = publicKeySource
-    .match(/'([^']+)'/)[1]
-    .replaceAll('\\n', '\n');
   const histories = [];
   const historicalIds = new Set();
   const historicalOffline = new Map();
   const duplicateOfflineEvidence = [];
-  for (const directory of history) {
-    const catalogNames = (await readdir(directory)).filter((name) =>
-      /^TableMax-game-catalog-v1\.\d+\.\d+\.json$/.test(name),
-    );
-    if (catalogNames.length !== 1)
-      throw new Error('History requires one signed catalog');
-    const historyTag = catalogNames[0].slice(
-      'TableMax-game-catalog-'.length,
-      -5,
-    );
-    const assets = await gameReleaseAssets(directory, {
-      publicKey,
-      tag: historyTag,
-      includeOffline: false,
-    });
-    const old = JSON.parse(
-      await readFile(join(directory, catalogNames[0]), 'utf8'),
-    ).payload;
+  for (const { catalog: old, assets } of reuse.histories) {
     histories.push(old);
     for (const release of old.releases) historicalIds.add(release.releaseId);
     for (const asset of assets) {
@@ -269,6 +254,13 @@ export async function packageGames({
         releaseTag,
         history,
         duplicateOfflineEvidence,
+        blobReuse: {
+          ...reuse.metrics,
+          recipe: reuse.recipe,
+          trustKeySha256: reuse.trustKeySha256,
+          evidence: reuse.evidence,
+        },
+        readPhases: [inputVerification.stats],
         units: results.map(({ id, fingerprint, directory }) => ({
           id,
           fingerprint,
