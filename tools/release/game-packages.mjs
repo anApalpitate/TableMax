@@ -1,8 +1,9 @@
 import { loadTrustedBlobReuse } from './blob-reuse.mjs';
+import assert from 'node:assert/strict';
 import { createReadPhase } from '../build/read-phase.mjs';
 import { mergeCatalogHistory, legacyCatalog } from './catalog-history.mjs';
-import { readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
-import { resolve, join } from 'node:path';
+import { readFile, writeFile, mkdir, copyFile, lstat } from 'node:fs/promises';
+import { resolve, join, dirname } from 'node:path';
 import {
   projectGameDetails,
   projectGameRuntime,
@@ -13,6 +14,7 @@ import {
   unitsFor,
   buildUnit,
   validateInputs,
+  validateCached,
   inventory,
   json,
 } from '../build/module-build.mjs';
@@ -30,6 +32,118 @@ import {
   createBlob,
   createSignedCatalog,
 } from './game-package-format.mjs';
+
+function snapshotIdentity(snapshot) {
+  return sha256(
+    JSON.stringify({
+      version: snapshot.version,
+      ...(snapshot.buildVersion ? { buildVersion: snapshot.buildVersion } : {}),
+      assemblerSha256: snapshot.assemblerSha256,
+      units: snapshot.units.map(({ id, fingerprint }) => ({ id, fingerprint })),
+    }),
+  );
+}
+
+/** Retained records describe original frozen inputs, never current mutable source. */
+export function verifyRetainedGameRecords(snapshot, original) {
+  assert.equal(snapshot.schemaVersion, 1);
+  assert.equal(original.schemaVersion, 1);
+  assert.match(snapshot.retainedGameSnapshot, /^[a-f0-9]{64}$/);
+  assert.match(snapshot.retainedGameSnapshotSha256, /^[a-f0-9]{64}$/);
+  assert.equal(original.id, snapshot.retainedGameSnapshot);
+  assert.equal(original.id, snapshotIdentity(original));
+  assert.equal(snapshot.id, snapshotIdentity(snapshot));
+  assert.equal(snapshot.version, original.version);
+  assert.equal(snapshot.retainedGameAssemblerSha256, original.assemblerSha256);
+  assert.deepEqual(snapshot.modules, original.modules);
+  const games = snapshot.units.filter((unit) => unit.id.startsWith('game-'));
+  const originals = original.units.filter((unit) =>
+    unit.id.startsWith('game-'),
+  );
+  assert.ok(originals.length > 0);
+  assert.equal(
+    new Set(originals.map((unit) => unit.id)).size,
+    originals.length,
+  );
+  assert.deepEqual(
+    games,
+    originals,
+    'Retained game records differ from the original snapshot',
+  );
+  for (const unit of games) {
+    assert.equal(sha256(JSON.stringify(unit.inputs)), unit.fingerprint);
+    assert.equal(
+      resolve(unit.directory),
+      resolve('.cache/build-modules/v1', unit.id, unit.fingerprint),
+      'Retained game cache must use its original fixed path',
+    );
+  }
+  return games;
+}
+
+async function unlinked(path) {
+  for (let cursor = resolve(path); ; cursor = dirname(cursor)) {
+    assert.ok(
+      !(await lstat(cursor)).isSymbolicLink(),
+      'Retained input contains a link',
+    );
+    if (dirname(cursor) === cursor) break;
+  }
+}
+
+export async function verifyRetainedGameSnapshot(
+  snapshot,
+  phase = createReadPhase('retained-game-verification'),
+) {
+  assert.match(snapshot.retainedGameSnapshot, /^[a-f0-9]{64}$/);
+  const path = resolve(
+    'build/snapshots',
+    snapshot.retainedGameSnapshot + '.json',
+  );
+  await unlinked(path);
+  const raw = await phase.read(path);
+  assert.equal(
+    sha256(raw),
+    snapshot.retainedGameSnapshotSha256,
+    'Original game snapshot changed',
+  );
+  const original = JSON.parse(raw.toString('utf8'));
+  const games = verifyRetainedGameRecords(snapshot, original);
+  for (const unit of games) {
+    await unlinked(unit.directory);
+    const cached = await validateCached(unit.directory, phase);
+    assert.equal(cached.id, unit.id);
+    assert.equal(cached.fingerprint, unit.fingerprint);
+    assert.deepEqual(cached.inputs, unit.inputs);
+    assert.deepEqual(cached.files, unit.files);
+  }
+  const projector = 'packages/game-sdk/src/metadata.mjs';
+  const projectorSha256 = await phase.sha(projector);
+  for (const module of original.modules) {
+    const metadata = games.find(
+      (unit) => unit.id === `game-${module.id}-metadata`,
+    );
+    assert.ok(metadata, 'Original game metadata is missing');
+    assert.equal(
+      metadata.inputs.files.find((file) => file.path === projector)?.sha256,
+      projectorSha256,
+    );
+    assert.deepEqual(
+      await phase.json(join(metadata.directory, 'files/details.json')),
+      projectGameDetails(module),
+      'Original game metadata does not match its verified cache',
+    );
+  }
+  return {
+    snapshot: original.id,
+    snapshotPath: path,
+    snapshotSha256: sha256(raw),
+    assemblerSha256: original.assemblerSha256,
+    verification: 'original-input-fingerprints-and-complete-cache-sha256',
+    unitCount: games.length,
+  };
+}
+
 export async function packageGames({
   gameId,
   out,
@@ -77,7 +191,12 @@ export async function packageGames({
   const inputVerification = createReadPhase(
     'internal-package-input-verification',
   );
-  for (const result of results) await validateInputs(result, inputVerification);
+  const retainedGames = snapshot?.retainedGameSnapshot
+    ? await verifyRetainedGameSnapshot(snapshot, inputVerification)
+    : undefined;
+  if (!retainedGames)
+    for (const result of results)
+      await validateInputs(result, inputVerification);
   const blobs = [],
     releases = [];
   for (const module of modules) {
@@ -97,7 +216,9 @@ export async function packageGames({
       for (const file of result.files)
         codeRecords.push({
           path: `${part === 'bot' ? 'bots' : part}/${file.path}`,
-          data: await readFile(join(result.directory, 'files', file.path)),
+          data: await inputVerification.read(
+            join(result.directory, 'files', file.path),
+          ),
         });
     }
     builtModule.styles = codeRecords
@@ -126,7 +247,9 @@ export async function packageGames({
       const records = await Promise.all(
         result.files.map(async (file) => ({
           path: file.path,
-          data: await readFile(join(result.directory, 'files', file.path)),
+          data: await inputVerification.read(
+            join(result.directory, 'files', file.path),
+          ),
         })),
       );
       resourceUnits[part] = await createBlob(
@@ -246,6 +369,14 @@ export async function packageGames({
     join(out, `TableMax-game-catalog-${releaseTag}.json`),
     JSON.stringify(envelope, null, 2) + '\n',
   );
+  const finalVerification = createReadPhase(
+    'internal-package-final-verification',
+  );
+  if (retainedGames)
+    await verifyRetainedGameSnapshot(snapshot, finalVerification);
+  else
+    for (const result of results)
+      await validateInputs(result, finalVerification);
   await writeFile(
     join(out, 'build-record.json'),
     JSON.stringify(
@@ -260,7 +391,8 @@ export async function packageGames({
           trustKeySha256: reuse.trustKeySha256,
           evidence: reuse.evidence,
         },
-        readPhases: [inputVerification.stats],
+        ...(retainedGames ? { retainedGames } : {}),
+        readPhases: [inputVerification.stats, finalVerification.stats],
         units: results.map(({ id, fingerprint, directory }) => ({
           id,
           fingerprint,

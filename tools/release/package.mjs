@@ -43,10 +43,8 @@ import {
   buildUnit,
 } from '../build/module-build.mjs';
 import { assemble, assertIdle } from '../build/assemble.mjs';
-import {
-  createReleaseExecutable,
-  assertReleaseIdle,
-} from './release-executable.mjs';
+import { assertReleaseIdle } from './release-executable.mjs';
+import { createInstallationExecutable } from './installation-package.mjs';
 import { preferredCatalogReleases } from '../../packages/game-sdk/src/compatibility.mjs';
 import { gameReleaseAssets } from './game-release-assets.mjs';
 import { prepareInternalGames } from './prepare-internal-games.mjs';
@@ -62,6 +60,7 @@ assert.ok(
       (arg) =>
         arg.startsWith('--snapshot=') ||
         arg.startsWith('--games=') ||
+        arg === '--candidate' ||
         arg.startsWith('--platform-from='),
     ) &&
     new Set(args.map((arg) => arg.split('=')[0])).size === args.length,
@@ -74,6 +73,7 @@ assert.ok(
   'Choose one frozen-snapshot source',
 );
 const editions = ['full'];
+const candidateMode = args.includes('--candidate');
 async function resumeSnapshot(path) {
   const snapshotPath = resolve(path);
   const snapshot = JSON.parse(await readFile(snapshotPath, 'utf8'));
@@ -102,7 +102,8 @@ async function resumeSnapshot(path) {
   return { ...snapshot, snapshotPath };
 }
 async function refreshPlatformSnapshot(path) {
-  const previous = JSON.parse(await readFile(resolve(path), 'utf8'));
+  const previousRaw = await readFile(resolve(path));
+  const previous = JSON.parse(previousRaw.toString('utf8'));
   const identity = (snapshot) =>
     createHash('sha256')
       .update(
@@ -123,11 +124,6 @@ async function refreshPlatformSnapshot(path) {
   const assemblerSha256 = createHash('sha256')
     .update(await readFile('tools/build/assemble.mjs'))
     .digest('hex');
-  assert.equal(
-    previous.assemblerSha256,
-    assemblerSha256,
-    'Frozen assembler changed',
-  );
   assert.deepEqual(
     previous.modules,
     (await discover()).filter((module) => !module.internal),
@@ -145,12 +141,17 @@ async function refreshPlatformSnapshot(path) {
   }
   const snapshot = {
     ...previous,
+    assemblerSha256,
     buildVersion: (await applicationVersion()).buildVersion,
     units: [
       ...platform,
       ...previous.units.filter((unit) => unit.id.startsWith('game-')),
     ],
     retainedGameSnapshot: previous.id,
+    retainedGameSnapshotSha256: createHash('sha256')
+      .update(previousRaw)
+      .digest('hex'),
+    retainedGameAssemblerSha256: previous.assemblerSha256,
   };
   snapshot.id = identity(snapshot);
   const snapshotPath = resolve('build/snapshots', snapshot.id + '.json');
@@ -167,6 +168,24 @@ async function refreshPlatformSnapshot(path) {
 await lock('package-win', async () => {
   const started = performance.now();
   const timings = {};
+  const initialVersion = JSON.parse(
+    await readFile('package.json', 'utf8'),
+  ).version;
+  const initialPointer = resolve(
+    'artifacts/package-payloads',
+    'v' + initialVersion,
+    'current.json',
+  );
+  let baseCurrentSha256 = null;
+  if (candidateMode) {
+    try {
+      baseCurrentSha256 = createHash('sha256')
+        .update(await readFile(initialPointer))
+        .digest('hex');
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+    }
+  }
   const snapshotArgument = args.find((arg) => arg.startsWith('--snapshot='));
   const platformArgument = args.find((arg) =>
     arg.startsWith('--platform-from='),
@@ -540,7 +559,7 @@ await lock('package-win', async () => {
     );
     await assertReleaseIdle(outputPath);
     const executableStarted = performance.now();
-    const executable = await createReleaseExecutable({
+    const executable = await createInstallationExecutable({
       archivePath: archive,
       manifestPath: join(output, 'release-manifest.json'),
       outputPath,
@@ -562,6 +581,7 @@ await lock('package-win', async () => {
       ) + '\n',
     );
     deliveries.push({
+      deliveryType: 'installer',
       edition: currentEdition,
       archivePath: archive,
       manifestPath: join(output, 'release-manifest.json'),
@@ -586,18 +606,64 @@ await lock('package-win', async () => {
     );
   }
   const pointer = join(payloadRoot, 'current.json');
+  const pointerValue = {
+    version: project.version,
+    buildVersion: application.buildVersion,
+    snapshot: buildSnapshot.id,
+    deliveries,
+  };
+  if (candidateMode) {
+    assert.equal(
+      project.version,
+      initialVersion,
+      'Public version changed while freezing the candidate',
+    );
+    const candidatePath = join(runOutput, 'candidate.json');
+    const candidate = {
+      schemaVersion: 1,
+      kind: 'installation-candidate',
+      createdAtUtc: new Date().toISOString(),
+      baseCurrentSha256,
+      pointer: pointerValue,
+    };
+    const raw = JSON.stringify(candidate, null, 2) + '\n';
+    await writeFile(candidatePath, raw, { flag: 'wx' });
+    const candidateSha256 = createHash('sha256').update(raw).digest('hex');
+    const candidateRelativePath = relative(resolve('.'), candidatePath)
+      .split(sep)
+      .join('/');
+    for (const delivery of deliveries)
+      await writeFile(
+        join(runOutput, delivery.edition, 'installer-delivery.json'),
+        JSON.stringify(
+          {
+            ...delivery,
+            version: project.version,
+            buildVersion: application.buildVersion,
+            snapshot: buildSnapshot.id,
+            candidatePath: candidateRelativePath,
+            candidateSha256,
+          },
+          null,
+          2,
+        ) + '\n',
+        { flag: 'wx' },
+      );
+    console.log(
+      JSON.stringify({
+        deliveries,
+        candidatePath,
+        candidateSha256,
+        currentPreserved: pointer,
+        baseCurrentSha256,
+        durationMs: Math.round(performance.now() - started),
+      }),
+    );
+    return;
+  }
   await writeFile(
     pointer + '.next',
-    JSON.stringify(
-      {
-        version: project.version,
-        buildVersion: application.buildVersion,
-        snapshot: buildSnapshot.id,
-        deliveries,
-      },
-      null,
-      2,
-    ) + '\n',
+    JSON.stringify(pointerValue, null, 2) + '\n',
   );
   await rename(pointer + '.next', pointer);
   console.log(

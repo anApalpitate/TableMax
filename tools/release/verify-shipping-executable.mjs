@@ -6,6 +6,7 @@ if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
 import { MAXIMUM_PACKAGE_BYTES } from './package-limits.mjs';
 import { windowsExecutableName } from './windows-executable-name.mjs';
+import { verifyInstallationDelivery } from './installation-verifier.mjs';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -66,102 +67,127 @@ assert.equal(
   delivery.executable.sha256,
   'EXE changed after sealing',
 );
-const extracted = await mkdtemp(resolve('tmp/shipping-executable-'));
-// Reserve a unique name, then let the EXE create its own extraction directory.
-// A precreated sandbox-owned directory can prevent the launcher's atomic rename.
-await rmdir(extracted);
-const started = performance.now();
-await run(executable, [`--extract-only=${extracted}`], {
-  windowsHide: true,
-  timeout: 120000,
-});
-let bytes = 0,
-  count = 0;
-async function countFiles(directory) {
-  for (const item of await readdir(directory, { withFileTypes: true })) {
-    assert.ok(!item.isSymbolicLink());
-    const path = join(directory, item.name);
-    if (item.isDirectory()) await countFiles(path);
-    else {
-      bytes += (await stat(path)).size;
-      count++;
+if (
+  delivery.deliveryType === 'installer' ||
+  delivery.executable.type === 'installer'
+) {
+  assert.ok(
+    !process.argv.some((arg) => arg.startsWith('--extract-only')),
+    'Installer acceptance cannot use portable extraction',
+  );
+  assert.ok(
+    process.argv.includes('--isolated-windows') &&
+      process.env.TABLEMAX_ISOLATED_WINDOWS_ACCEPTANCE === '1',
+    'Installer acceptance requires the actual clean standard Windows account workflow: tools/test/installation/verify-production-user.ps1; do not use portable --extract-only or merely set the isolation flag.',
+  );
+  const record = await verifyInstallationDelivery({
+    delivery: {
+      ...delivery,
+      deliveryType: 'installer',
+      snapshot: payloadIndex.snapshot,
+    },
+    evidencePath: join(evidence, `shipping-executable-checks-${edition}.json`),
+    isolatedWindows: true,
+  });
+  console.log(JSON.stringify(record));
+} else {
+  const extracted = await mkdtemp(resolve('tmp/shipping-executable-'));
+  // Reserve a unique name, then let the EXE create its own extraction directory.
+  // A precreated sandbox-owned directory can prevent the launcher's atomic rename.
+  await rmdir(extracted);
+  const started = performance.now();
+  await run(executable, [`--extract-only=${extracted}`], {
+    windowsHide: true,
+    timeout: 120000,
+  });
+  let bytes = 0,
+    count = 0;
+  async function countFiles(directory) {
+    for (const item of await readdir(directory, { withFileTypes: true })) {
+      assert.ok(!item.isSymbolicLink());
+      const path = join(directory, item.name);
+      if (item.isDirectory()) await countFiles(path);
+      else {
+        bytes += (await stat(path)).size;
+        count++;
+      }
     }
   }
+  await countFiles(extracted);
+  assert.equal(
+    count,
+    manifest.files.length + 1,
+    'Only frozen payload plus ownership marker',
+  );
+  for (const file of manifest.files) {
+    const path = join(extracted, file.path);
+    assert.equal((await stat(path)).size, file.bytes);
+    assert.equal(await hash(path), file.sha256, file.path);
+  }
+  const marker = JSON.parse(
+    await readFile(join(extracted, '.tablemax-release.json'), 'utf8'),
+  );
+  assert.equal(marker.version, version);
+  assert.equal(marker.archive.sha256, manifest.archive.sha256);
+  assert.ok(
+    bytes < MAXIMUM_PACKAGE_BYTES,
+    'Actual extraction including ownership marker',
+  );
+  const firstWrite = (await stat(join(extracted, 'TableMax.exe'))).mtimeMs;
+  await run(executable, [`--extract-only=${extracted}`], {
+    windowsHide: true,
+    timeout: 120000,
+  });
+  assert.equal(
+    (await stat(join(extracted, 'TableMax.exe'))).mtimeMs,
+    firstWrite,
+    'Valid extraction is reused',
+  );
+  await run(
+    process.execPath,
+    [
+      'tools/test/desktop/verify-native-safety.mjs',
+      '--portable',
+      `--executable=${join(extracted, 'TableMax.exe')}`,
+      `--evidence=${safetyName}`,
+      `--payload-manifest=${delivery.manifestPath}`,
+      `--payload-archive=${delivery.archivePath}`,
+    ],
+    { windowsHide: true, timeout: 180000, maxBuffer: 1024 * 1024 },
+  );
+  const safetyPath = resolve(
+    `artifacts/maintenance/v${version}/webview2/${safetyName}/results.json`,
+  );
+  const safety = JSON.parse(await readFile(safetyPath, 'utf8'));
+  assert.equal(safety.result, 'passed');
+  assert.equal(safety.archiveSha256, manifest.archive.sha256);
+  const record = {
+    result: 'passed',
+    version,
+    buildVersion: payloadIndex.buildVersion ?? version + '.0',
+    edition,
+    snapshot: payloadIndex.snapshot,
+    executableSha256: await hash(executable),
+    executableBytes: (await stat(executable)).size,
+    payloadSha256: manifest.archive.sha256,
+    extracted,
+    extractedBytes: bytes,
+    payloadBytes: manifest.files.reduce((sum, file) => sum + file.bytes, 0),
+    fileCount: count,
+    durationMs: Math.round(performance.now() - started),
+    nativeSafety: safetyPath,
+    checks: [
+      'complete payload hashes',
+      'exact file set',
+      '120MB actual extraction',
+      'repeat extraction reuses files',
+      'real packaged native/WebView2/Node safety',
+    ],
+  };
+  await mkdir(evidence, { recursive: true });
+  await writeFile(
+    join(evidence, `shipping-executable-checks-${edition}.json`),
+    JSON.stringify(record, null, 2) + '\n',
+  );
+  console.log(JSON.stringify(record));
 }
-await countFiles(extracted);
-assert.equal(
-  count,
-  manifest.files.length + 1,
-  'Only frozen payload plus ownership marker',
-);
-for (const file of manifest.files) {
-  const path = join(extracted, file.path);
-  assert.equal((await stat(path)).size, file.bytes);
-  assert.equal(await hash(path), file.sha256, file.path);
-}
-const marker = JSON.parse(
-  await readFile(join(extracted, '.tablemax-release.json'), 'utf8'),
-);
-assert.equal(marker.version, version);
-assert.equal(marker.archive.sha256, manifest.archive.sha256);
-assert.ok(
-  bytes < MAXIMUM_PACKAGE_BYTES,
-  'Actual extraction including ownership marker',
-);
-const firstWrite = (await stat(join(extracted, 'TableMax.exe'))).mtimeMs;
-await run(executable, [`--extract-only=${extracted}`], {
-  windowsHide: true,
-  timeout: 120000,
-});
-assert.equal(
-  (await stat(join(extracted, 'TableMax.exe'))).mtimeMs,
-  firstWrite,
-  'Valid extraction is reused',
-);
-await run(
-  process.execPath,
-  [
-    'tools/test/desktop/verify-native-safety.mjs',
-    '--portable',
-    `--executable=${join(extracted, 'TableMax.exe')}`,
-    `--evidence=${safetyName}`,
-    `--payload-manifest=${delivery.manifestPath}`,
-    `--payload-archive=${delivery.archivePath}`,
-  ],
-  { windowsHide: true, timeout: 180000, maxBuffer: 1024 * 1024 },
-);
-const safetyPath = resolve(
-  `artifacts/maintenance/v${version}/webview2/${safetyName}/results.json`,
-);
-const safety = JSON.parse(await readFile(safetyPath, 'utf8'));
-assert.equal(safety.result, 'passed');
-assert.equal(safety.archiveSha256, manifest.archive.sha256);
-const record = {
-  result: 'passed',
-  version,
-  buildVersion: payloadIndex.buildVersion ?? version + '.0',
-  edition,
-  snapshot: payloadIndex.snapshot,
-  executableSha256: await hash(executable),
-  executableBytes: (await stat(executable)).size,
-  payloadSha256: manifest.archive.sha256,
-  extracted,
-  extractedBytes: bytes,
-  payloadBytes: manifest.files.reduce((sum, file) => sum + file.bytes, 0),
-  fileCount: count,
-  durationMs: Math.round(performance.now() - started),
-  nativeSafety: safetyPath,
-  checks: [
-    'complete payload hashes',
-    'exact file set',
-    '120MB actual extraction',
-    'repeat extraction reuses files',
-    'real packaged native/WebView2/Node safety',
-  ],
-};
-await mkdir(evidence, { recursive: true });
-await writeFile(
-  join(evidence, `shipping-executable-checks-${edition}.json`),
-  JSON.stringify(record, null, 2) + '\n',
-);
-console.log(JSON.stringify(record));

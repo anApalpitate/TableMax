@@ -24,6 +24,7 @@ namespace TableMax.NativeUpdateHarness
         private sealed class Result { public string name; public bool passed; public string phase; public int apiRequests; public int downloadRequests; public string error; }
         private static int Main(string[] args)
         {
+            InstallationCore.InitializeRuntime();
             try
             {
                 if (args.Length != 2) throw new IOException("Expected isolated root and public fixture JSON.");

@@ -12,6 +12,7 @@ import {
   createReleaseExecutable,
   assertReleaseIdle,
 } from './release-executable.mjs';
+import { createInstallationExecutable } from './installation-package.mjs';
 import { lock } from '../build/module-build.mjs';
 import { scheduleMaintenance } from '../maintenance/lifecycle.mjs';
 scheduleMaintenance();
@@ -21,7 +22,7 @@ assert.equal(
   0,
   'Only the complete EXE is supported; edition selection has been retired',
 );
-await lock('package-release', async () => {
+await lock('package-win', async () => {
   const { version } = JSON.parse(await readFile('package.json', 'utf8'));
   const pointer = JSON.parse(
     await readFile(
@@ -44,10 +45,17 @@ await lock('package-release', async () => {
     const manifest = JSON.parse(await readFile(item.manifestPath, 'utf8'));
     assert.equal(manifest.version, version);
     assert.equal(manifest.edition, item.edition);
-    const result = await createReleaseExecutable({
+    const createExecutable =
+      item.deliveryType === 'installer'
+        ? createInstallationExecutable
+        : createReleaseExecutable;
+    const result = await createExecutable({
       archivePath: item.archivePath,
       manifestPath: item.manifestPath,
       outputPath: base + '.exe',
+      ...(item.deliveryType === 'installer'
+        ? { frozenInstallation: item.executable.installation }
+        : {}),
     });
     await writeFile(
       base + '-manifest.json',

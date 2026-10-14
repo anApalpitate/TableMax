@@ -66,6 +66,7 @@ const unitScopes = {
   'apps/server/src/countdown.test.ts': ['shared'],
   'apps/server/src/crash.test.ts': ['shared'],
   'apps/server/src/database.test.ts': ['shared'],
+  'apps/server/src/database-lock.test.ts': ['shared'],
   'apps/server/src/debug-connections.test.ts': ['box'],
   'apps/server/src/entry.test.ts': ['shared', 'game:pokemon-encounters'],
   'apps/server/src/desktop-update-pipe.test.ts': ['shared'],
@@ -126,6 +127,46 @@ const unitScopes = {
 // Mixed matrices cannot be narrowed by adding an option they do not implement.
 const verificationScopes = {
   'tools/shared/application-update.test.mjs': ['tooling', 'shared'],
+  'tools/release/installation-promote.test.mjs': ['tooling'],
+  'tools/release/installation-publication.test.mjs': ['tooling'],
+  'tools/release/installation-verifier.test.mjs': ['tooling'],
+  'tools/release/prepare-internal-games.test.mjs': ['tooling'],
+  'tools/release/installation-verifier.mjs': ['box', 'shared', 'tooling'],
+  'tools/test/installation/native-confirm-harness.cs': ['shared', 'tooling'],
+  'tools/test/installation/native-confirm-harness.mjs': ['shared', 'tooling'],
+  'tools/test/installation/native-update-harness.mjs': ['shared', 'tooling'],
+  'tools/test/installation/native-long-path-harness.mjs': ['shared', 'tooling'],
+  'tools/test/installation/native-migration-lease-harness.mjs': [
+    'shared',
+    'tooling',
+  ],
+  'tools/test/installation/native-recovery-harness.mjs': ['shared', 'tooling'],
+  'tools/test/installation/verify-application-handoff.mjs': [
+    'box',
+    'shared',
+    'tooling',
+  ],
+  'tools/test/installation/verify-installed-legacy-save.mjs': [
+    'box',
+    'shared',
+    'tooling',
+    'game:pokemon-encounters',
+  ],
+  'tools/test/installation/verify-update-ui.mjs': ['box', 'shared', 'tooling'],
+  'tools/test/installation/verify-save-barrier.mjs': [
+    'box',
+    'shared',
+    'tooling',
+  ],
+  'tools/test/installation/verify-update-transaction.mjs': [
+    'shared',
+    'tooling',
+  ],
+  'tools/test/installation/verify-production-user.ps1': [
+    'box',
+    'shared',
+    'tooling',
+  ],
   'tools/test/runner/evidence.test.mjs': {
     scopes: ['tooling'],
     preset: { complete: true },

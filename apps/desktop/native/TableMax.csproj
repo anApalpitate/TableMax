@@ -14,6 +14,8 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <OutputPath>../../../build/native/</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <!-- Keep prior local SDK output excluded when the module builder relocates intermediates. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);obj/**;bin/**</DefaultItemExcludes>
     <DebugType>none</DebugType>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <Deterministic>true</Deterministic>

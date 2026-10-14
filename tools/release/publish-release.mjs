@@ -13,6 +13,12 @@ import { resolve, join, basename } from 'node:path';
 import { PROJECT_GAME_PUBLIC_KEY } from '../../apps/server/src/game-packages/project-public-key.ts';
 import { gameReleaseAssets } from './game-release-assets.mjs';
 import { windowsExecutableName } from './windows-executable-name.mjs';
+import {
+  loadIsolationEvidence,
+  verifyInstallationPublication,
+} from './installation-publication.mjs';
+import { verifyPreservedRuntime } from './installation-verifier.mjs';
+import { verifyGitHubRelease } from '../shared/application-update.mjs';
 assert.ok(
   process.argv.includes('--publish'),
   'Publication is disabled by default. Explicit user release authorization and --publish are required.',
@@ -73,6 +79,7 @@ const exes = ['full'].map((edition) =>
   join(publicDirectory, windowsExecutableName(version, edition)),
 );
 const source = resolve(`artifacts/releases/TableMax-${version}-source.zip`);
+let applicationUpdate;
 for (const edition of ['full']) {
   const proof = JSON.parse(
     await readFile(
@@ -92,6 +99,33 @@ for (const edition of ['full']) {
   assert.equal(payloadManifest.edition, edition);
   assert.equal(payloadManifest.snapshot, payloadIndex.snapshot);
   assert.equal(proof.payloadSha256, payloadManifest.archive.sha256);
+  if (delivery.deliveryType === 'installer') {
+    applicationUpdate = verifyInstallationPublication({
+      delivery,
+      proof,
+      payloadManifest,
+      payloadManifestSha256: await hash(delivery.manifestPath),
+      payloadManifestByteLength: (await stat(delivery.manifestPath)).size,
+      ...(await loadIsolationEvidence(proof)),
+      installationManifest: JSON.parse(
+        await readFile(delivery.executable.installation.manifestPath, 'utf8'),
+      ),
+      installationManifestSha256: await hash(
+        delivery.executable.installation.manifestPath,
+      ),
+      snapshot: payloadIndex.snapshot,
+      notes: await readFile(notes, 'utf8'),
+      releaseVersion: version,
+      buildVersion: payloadIndex.buildVersion,
+    });
+    await verifyPreservedRuntime({
+      copy: proof.verifiedRuntime,
+      delivery,
+      payloadBytes: await readFile(delivery.manifestPath),
+      sourceRuntimeRoot: proof.runtimeRoot,
+      installationId: proof.installationId,
+    });
+  }
   assert.equal(
     proof.executableBytes,
     (await stat(delivery.executable.path)).size,
@@ -145,6 +179,18 @@ const inputs = new Set([
   'apps/desktop/release/Launcher.cs',
   'apps/desktop/native/LegacyGames.cs',
 ]);
+for (const item of payloadIndex.deliveries) {
+  if (item.deliveryType !== 'installer') continue;
+  for (const file of item.executable.installation.recipe.inputs) {
+    assert.equal(
+      await hash(file.path),
+      file.sha256,
+      'Installer recipe changed after freezing: ' + file.path,
+    );
+    await run('git', ['ls-files', '--error-unmatch', '--', file.path]);
+    inputs.add(file.path);
+  }
+}
 for (const unit of manifest.units) {
   const record = JSON.parse(
     await readFile(
@@ -428,6 +474,53 @@ if (replaceDraft) {
     '--notes-file',
     resolve(notes),
   ]);
+} else if (applicationUpdate) {
+  await run('gh', [
+    'release',
+    'create',
+    tag,
+    ...assets,
+    '--repo',
+    repo,
+    '--verify-tag',
+    '--draft',
+    '--title',
+    `TableMax ${tag}`,
+    '--notes-file',
+    resolve(notes),
+  ]);
+  const ready = JSON.parse(
+    await run('gh', ['api', `repos/${repo}/releases/tags/${tag}`]),
+  );
+  assert.equal(ready.draft, true);
+  assert.equal(ready.prerelease, false);
+  assert.equal(
+    ready.assets.length,
+    2,
+    'Installer release requires exactly two attachments',
+  );
+  assert.equal(ready.body.trim(), (await readFile(notes, 'utf8')).trim());
+  for (const file of record.assets) {
+    const asset = ready.assets.find(
+      (item) => item.name === basename(file.path),
+    );
+    assert.ok(
+      asset &&
+        asset.size === file.bytes &&
+        asset.digest === `sha256:${file.sha256}`,
+      'Draft attachment differs from reviewed bytes',
+    );
+  }
+  await run('gh', [
+    'release',
+    'edit',
+    tag,
+    '--repo',
+    repo,
+    '--draft=false',
+    '--prerelease=false',
+    '--latest',
+  ]);
 } else
   await run('gh', [
     'release',
@@ -493,6 +586,46 @@ assert.equal(
 const latest = JSON.parse(
   await run('gh', ['api', `repos/${repo}/releases/latest`]),
 );
+if (applicationUpdate) {
+  const published = JSON.parse(
+    await run('gh', ['api', `repos/${repo}/releases/tags/${tag}`]),
+  );
+  verifyGitHubRelease(published, applicationUpdate.description);
+  const finalProof = JSON.parse(
+    await readFile(
+      resolve(evidence, 'shipping-executable-checks-full.json'),
+      'utf8',
+    ),
+  );
+  const finalDescription = verifyInstallationPublication({
+    delivery: payloadIndex.deliveries[0],
+    proof: finalProof,
+    payloadManifest: manifest,
+    payloadManifestSha256: await hash(payloadIndex.deliveries[0].manifestPath),
+    payloadManifestByteLength: (
+      await stat(payloadIndex.deliveries[0].manifestPath)
+    ).size,
+    ...(await loadIsolationEvidence(finalProof)),
+    installationManifest: JSON.parse(
+      await readFile(
+        payloadIndex.deliveries[0].executable.installation.manifestPath,
+        'utf8',
+      ),
+    ),
+    installationManifestSha256: await hash(
+      payloadIndex.deliveries[0].executable.installation.manifestPath,
+    ),
+    snapshot: payloadIndex.snapshot,
+    notes: published.body,
+    releaseVersion: version,
+    buildVersion: payloadIndex.buildVersion,
+  });
+  assert.equal(
+    finalDescription.descriptionSha256,
+    applicationUpdate.descriptionSha256,
+    'Published authenticated body changed',
+  );
+}
 assert.equal(latest.tag_name, tag, 'Published release must be latest');
 await writeFile(
   audit,

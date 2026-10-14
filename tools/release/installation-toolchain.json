@@ -1,0 +1,250 @@
+{
+  "extractor": {
+    "url": "https://raw.githubusercontent.com/jrathlev/InnoUnpacker-Windows-GUI/b94b34935ff4b1019359462c154509de9fd951b9/innounp-2/bin/innounp-267.zip",
+    "executableSha256": "1c8453c198dd3fe7947f3705e59d2294ddce3dfa9f96a737e94449b119f44181",
+    "sha256": "ac1d98bba6588072ade06163781938df274f444bec7318069668608d1e5faae8",
+    "version": "2.67.11"
+  },
+  "files": [
+    {
+      "path": "def01.ispublickey",
+      "bytes": 248,
+      "sha256": "3b0b7e1e478c9ab327746a990512e2b245c9231e88a7fdd60d7874dd439db562"
+    },
+    {
+      "path": "def02.ispublickey",
+      "bytes": 248,
+      "sha256": "32bea6bceb4ac7c4e6b3becdf3fb38de77378c5e76d494ab907d87cfab9e597b"
+    },
+    {
+      "path": "Default.isl",
+      "bytes": 21993,
+      "sha256": "42a5f6f7dbbddf26cc278f67db5d894235ce1d126a6856702e31bd02023a1316"
+    },
+    {
+      "path": "is7z.dll",
+      "bytes": 994960,
+      "sha256": "f97cda058bfe97a7e9ced5cde7018bbc26e35155c3c7405c6146808f8d06806d"
+    },
+    {
+      "path": "is7z.dll.issig",
+      "bytes": 363,
+      "sha256": "42ac47dfccae85596984b121f5fad33faee6b56d6c50bfc89f31ea96bff7c1b4"
+    },
+    {
+      "path": "is7zxa.dll",
+      "bytes": 260240,
+      "sha256": "e3cef67858843c554100126f04932be327097777865e4eb82951dd97cdb28942"
+    },
+    {
+      "path": "is7zxa.dll.issig",
+      "bytes": 365,
+      "sha256": "8a94c3247cf5e99143377c37adbe1d58798c44ada89871707aab7902a3287838"
+    },
+    {
+      "path": "is7zxr.dll",
+      "bytes": 212112,
+      "sha256": "728b368dc4f2831cc4d13291f46eeaf9f89b7e3a91356cf793c330e953b8e17b"
+    },
+    {
+      "path": "is7zxr.dll.issig",
+      "bytes": 365,
+      "sha256": "209264d479698ea7e9aa375fa1f692cae01d79a6b023b75716c625a5b821c413"
+    },
+    {
+      "path": "isbunzip.dll",
+      "bytes": 35616,
+      "sha256": "31d04c1e4bfdfa34704c142fa98f80c0a3076e4b312d6ada57c4be9d9c7dcf26"
+    },
+    {
+      "path": "isbunzip.dll.issig",
+      "bytes": 366,
+      "sha256": "d446db9995621893741d721434297311576269f1622f0bb103ba48b94b2fa744"
+    },
+    {
+      "path": "isbzip.dll",
+      "bytes": 39200,
+      "sha256": "8072e83385afc4a84006271a87a11fc0a22b149cbd77322669ca56c470d28ced"
+    },
+    {
+      "path": "isbzip.dll.issig",
+      "bytes": 364,
+      "sha256": "145612af36209f29ec96669550e5eebca3d2b0240f2e888c35bd599559be9a4a"
+    },
+    {
+      "path": "ISCC.exe",
+      "bytes": 1456272,
+      "sha256": "0a8757031b33777e4c9cbffee40f11a5062b36d25cbe144c1db73b6102b80ad7"
+    },
+    {
+      "path": "ISCmplr.dll",
+      "bytes": 1524880,
+      "sha256": "85a1e3090d3a5b85319f001b7c8f9ecfad45f37eff030a67bbe29ef58b7aa2c3"
+    },
+    {
+      "path": "ISCmplr.dll.issig",
+      "bytes": 367,
+      "sha256": "5c4b4b0fc6958934918c611eb509ecf63827a2bb36ce61fcb538fc5897b3a7ea"
+    },
+    {
+      "path": "islzma.dll",
+      "bytes": 139408,
+      "sha256": "8af307ce3738ab1d37cc7e76b2f76615e2045597d4367c3e40d52b5f2fbd353d"
+    },
+    {
+      "path": "islzma.dll.issig",
+      "bytes": 365,
+      "sha256": "c49d4b2cc6499846118dc376c9c66081744531edc932ffa979698d68ec0662b2"
+    },
+    {
+      "path": "islzma32.exe",
+      "bytes": 203408,
+      "sha256": "fd977c3ac44c56997d2b4fd6647e97e2457c43991a6ae26a4b2252c0eabdfebb"
+    },
+    {
+      "path": "islzma32.exe.issig",
+      "bytes": 367,
+      "sha256": "81039bd05963f8b02e1396a6fb5f3f7df7fd1ce1655f7a960f6c0b549489c562"
+    },
+    {
+      "path": "islzma64.exe",
+      "bytes": 226448,
+      "sha256": "87a50495aff580b78cad57906a765d3cf28ca508cfa95c24c1247c286ddf71b2"
+    },
+    {
+      "path": "islzma64.exe.issig",
+      "bytes": 367,
+      "sha256": "e74ea022afb90bbff710d9952a1069767c970484b1be596771ae7d109932f716"
+    },
+    {
+      "path": "ISPP.dll",
+      "bytes": 1006736,
+      "sha256": "bde04be7f4a55ca56afb6b06600d7cbe8326fac468ac3f2885b80eefb3ed2a7a"
+    },
+    {
+      "path": "ISPP.dll.issig",
+      "bytes": 364,
+      "sha256": "5f66c7d86af3be12522f044541b747f293c8131268e16d27c622bfc14f7250c9"
+    },
+    {
+      "path": "ISPPBuiltins.iss",
+      "bytes": 11302,
+      "sha256": "bc765e1121a95dc602ca1248b484418cecc6db9d4b6f4dae58e9a2c35262527c"
+    },
+    {
+      "path": "isscint.dll",
+      "bytes": 809616,
+      "sha256": "ddd2748bc79122a67eed77f6039f6508245e0aa7f0fdbbfca99d1e922a1e8ce4"
+    },
+    {
+      "path": "isscint.dll.issig",
+      "bytes": 366,
+      "sha256": "c54c30c27c503e86c70116ca9db840b0b799a0610fd8644dd53194a96afe7207"
+    },
+    {
+      "path": "ISSigTool.exe",
+      "bytes": 919184,
+      "sha256": "aea490d45665a88c0c832d25647d21c1b87962efedb25668caec05678e0fd7c6"
+    },
+    {
+      "path": "isunzlib.dll",
+      "bytes": 29472,
+      "sha256": "8287d0e287a66ee78537c8d1d98e426562b95c50f569b92cea9ce36a9fa57e64"
+    },
+    {
+      "path": "isunzlib.dll.issig",
+      "bytes": 366,
+      "sha256": "0a26dffaa4b47edc9cf6c730bb0cb38dc12a3de94742256aa1c22603e1be9309"
+    },
+    {
+      "path": "iszlib.dll",
+      "bytes": 34592,
+      "sha256": "14c0d4a2a41572384f8309cdf03de5c6e7ed46bef64cce70d989b2665eff1a47"
+    },
+    {
+      "path": "iszlib.dll.issig",
+      "bytes": 364,
+      "sha256": "f41ea7cc5f9604bfebba8d101bef7c3f28b9d7e8f4c5c99e71030a28682113f9"
+    },
+    {
+      "path": "license.txt",
+      "bytes": 1521,
+      "sha256": "2e5346868c2a18434489824e11d65c3031620f792fefc415d05f19cd441abf5c"
+    },
+    {
+      "path": "Setup.e32",
+      "bytes": 4427264,
+      "sha256": "a80d75ba8d8c336050c37f7707de8bb017cc93597329e0ea18d474156b3e0da5"
+    },
+    {
+      "path": "Setup.e32.issig",
+      "bytes": 365,
+      "sha256": "09dbd2458c48a249eeda5ae2705a4315192cc96ecd1b233136f11799d5dff175"
+    },
+    {
+      "path": "SetupClassicIcon.ico",
+      "bytes": 4710,
+      "sha256": "fa07ed17dff186a5b46c16861158bf3a36b67d84ff7a7bf9a58eaad28143d827"
+    },
+    {
+      "path": "SetupCustomStyle.e32",
+      "bytes": 5810688,
+      "sha256": "9675a2a5c78c66b691cc80270031da42bebad5725fbf60853cb4e5f90251bd5e"
+    },
+    {
+      "path": "SetupCustomStyle.e32.issig",
+      "bytes": 376,
+      "sha256": "cb513ff3e47a9c52341620ebd787e968f9c71fd012c6836e78fb039013e8256f"
+    },
+    {
+      "path": "SetupLdr.e32",
+      "bytes": 950272,
+      "sha256": "5475964893adbb33ccc420ad4d88bbdff27dfaaca7580cd6058ea2798893490d"
+    },
+    {
+      "path": "SetupLdr.e32.issig",
+      "bytes": 367,
+      "sha256": "12441b9477b0363993f06e325767f8b925a20e895e364fa8460754ee39ca6c08"
+    },
+    {
+      "path": "SetupLdr.e64",
+      "bytes": 1422336,
+      "sha256": "e38f2140e6bfd86c6ddc69c98f46475080c75fd5ee4be701ceff9c842c6c5019"
+    },
+    {
+      "path": "SetupLdr.e64.issig",
+      "bytes": 368,
+      "sha256": "c1bf1b83271edbcb28117fd012edef89be710bfd8ad32c1edee057d664b989be"
+    },
+    {
+      "path": "WizClassicImage-IS.bmp",
+      "bytes": 52574,
+      "sha256": "1b73df0b89a2943f34582cf81c2d8ed7b1ce4cfb54d86ce58ebd6dd0e1e05f5d"
+    },
+    {
+      "path": "WizClassicImage.bmp",
+      "bytes": 26494,
+      "sha256": "d148dc2569e9abc4b4da650b1920ef1ffdc10bbd6bc2e20a97ce44b1f9f78aea"
+    },
+    {
+      "path": "WizClassicSmallImage-IS.bmp",
+      "bytes": 4158,
+      "sha256": "ae94cd61179bc1869d0082b1fa8c189f8487d106712b48a2a6c6a035d370bfb4"
+    },
+    {
+      "path": "WizClassicSmallImage.bmp",
+      "bytes": 1658,
+      "sha256": "a7e560d419e85daf80cce980baa124ef7c73197d0f51a59a19f1866ee8edfe8c"
+    }
+  ],
+  "schemaVersion": 1,
+  "version": "6.7.3",
+  "compiler": {
+    "url": "https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe",
+    "archiveName": "innosetup-6.7.3.exe",
+    "bytes": 10592232,
+    "sha256": "9c73c3bae7ed48d44112a0f48e66742c00090bdb5bef71d9d3c056c66e97b732",
+    "verification": "Official signed installer + Authenticode Valid + ISSigTool def01/def02 member signatures",
+    "verifiedPublisher": "Pyrsys B.V."
+  }
+}

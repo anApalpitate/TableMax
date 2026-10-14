@@ -1,6 +1,6 @@
 import { readFile, mkdtemp } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { packageGames } from './game-packages.mjs';
+import { packageGames, verifyRetainedGameSnapshot } from './game-packages.mjs';
 
 /** Reuse signed bytes only when every game unit equals the frozen build. */
 export async function prepareInternalGames(
@@ -8,6 +8,7 @@ export async function prepareInternalGames(
   priorDirectory,
   payloadRoot,
 ) {
+  if (snapshot.retainedGameSnapshot) await verifyRetainedGameSnapshot(snapshot);
   const units = snapshot.units.filter((unit) => unit.id.startsWith('game-'));
   let prior;
   try {

@@ -227,3 +227,18 @@ node tools/test/desktop/verify-shutdown.mjs --native=<已编译原生目录> --s
 ```
 
 批次沿用version2计划，Node／Vitest文件逐项登记与筛选；中文空格及Junction拒绝在受管临时根验证。系统临时目录权限或缓存不可靠时，只给该隔离测试进程设置工程内TEMP／TMP，不改用户全局环境。源码、实际进程与安装／上线边界见[验证规格](../../docs/reference/validation.md#保存关闭与安装隔离底座2026-10-15)。
+
+## 完整安装与程序更新验证
+
+- [native-update-harness.mjs](installation/native-update-harness.mjs)：编译实际 .NET 更新管理，临时RSA仅在Node进程内，受管理HTTP模拟检查／下载／取消。登记 shared,tooling，动态输入不可缓存；不代表真实GitHub附件或installer执行。
+- [native-long-path-harness.mjs](installation/native-long-path-harness.mjs)、[native-migration-lease-harness.mjs](installation/native-migration-lease-harness.mjs)、[native-recovery-harness.mjs](installation/native-recovery-harness.mjs)：实际内部长路径、持续文件租约、完整数据库指纹与恢复门禁；后者可 `--playing-only` 定向复验。原生私有pipe跨进程验证须在普通用户token中执行，AppContainer连接超时不通过弱化ACL解决；登记 shared,tooling。
+- [native-confirm-harness.mjs](installation/native-confirm-harness.mjs)：实际helper选择新Native启动方式的4项专项。生产路径持续运行新主机；只有隔离验收显式设置 `TABLEMAX_INSTALLATION_HEALTH_CHECK=1` 时使用已有静音、后台、loopback健康检查出口。测试分支不替代真实持续新主机的Apply链；登记 shared,tooling。
+- [verify-installed-legacy-save.mjs](installation/verify-installed-legacy-save.mjs)：`--delivery=<fixture冻结JSON> --helper=<实际fixture helper>`；复制真实1063旧档，核验原玩家／checkpoint／发行恢复、actual playing拒绝pending恢复及新局当前映射。固定隔离D、清继承注入环境并保留原件；登记 box,shared,tooling,game:pokemon-encounters。组合输入／helper证明不代替外层installer系统验收。
+- [verify-application-handoff.mjs](installation/verify-application-handoff.mjs)：先 `--prepare-only --evidence=<新目录>` 生成不同四位PE和进程内RSA签名的完整双fixture；实际隔离账户通过 `--prepared-report=<原准备报告> --evidence=<新目录>` 精确复验后执行旧Native检查／下载／Apply→正常关闭→同Inno升级→新helper／持续Native健康。`--verify-prepared-only` 只核哈希，不执行安装；登记 box,shared,tooling。未执行报告不可写成升级通过。
+- [verify-update-transaction.mjs](installation/verify-update-transaction.mjs)：`--candidate=<目录> --manifest=<JSON> --helper=<EXE> --installer-source=<EXE> --evidence=<新JSON> [--only=<场景列表>]`，`--list`列场景；仅独立fixture产品ID和工程临时根，实际helper保存／切换／健康／迁移／保全。登记 shared,tooling；持久日志构造用于恢复入口，不冒称断电实测。
+- [verify-update-ui.mjs](installation/verify-update-ui.mjs)：`--root=<真实已安装fixture默认数据根> [--browser-channel=msedge] [--only=permissions|layout]`；实际隐藏WinForms／WebView2主机、公共屏、frame和普通浏览器权限及短屏截图。已有Edge可用于独立headless普通浏览器；不下载或升级全局浏览器。登记 box,shared,tooling；真实GitHub仅主动检查，未授权发布的新附件不模拟成在线下载通过。
+- [verify-save-barrier.mjs](installation/verify-save-barrier.mjs)：`--root=<真实已安装fixture默认数据根>`；仅fixture SQLite本轮trigger拒绝保存，经实际私有安装管道请求更新，核对Native失败退出、原状态和进程保全。只清除本轮成功创建的trigger；登记 box,shared,tooling。
+- [verify-production-user.ps1](installation/verify-production-user.ps1)：`-DeliveryPath <正式冻结交付JSON> -HandoffPreparedReport <双fixture准备报告> -OutputDirectory <全新证据目录> -AllowTemporaryAccount`；必须先获用户明确授权，且由管理员启动。只创建随机标准测试账户、当前测试SID及其新建profile，凭据仅进程内；先验证完整Apply链，再实际运行正式产品ID，核对快捷方式／卸载登记及保留运行副本，验后卸载和清理。只有账户及profile清理成功才把隔离报告SHA绑定正式证明；工具不自我提升，fixture或环境变量不能替代实际干净用户。
+- 实际Inno交付和签名工具参数集中于[发布工具](../release/README.md)。installer不能再使用便携 `--extract-only`：通过实际安装后保存核验成员副本，后续组件测试只复用逐成员哈希绑定的副本；系统安装／升级必须另有实际证明。
+
+中间检查设置进程环境 `TABLEMAX_AUTO_MAINTENANCE=0`／`TABLEMAX_TEST_MAINTENANCE=0`，结束工程进程后统一收尾一次；保存失败、权限失败或静音不充分继续留作失败，不把隐藏窗口等同静音。最终证明绑定installer、payload、安装manifest、当前映射、安装实例、B／D和实际Native／Node身份；完整首次启动计量包含当前G、helper及框架卸载文件。

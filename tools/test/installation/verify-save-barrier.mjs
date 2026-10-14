@@ -43,6 +43,22 @@ assert.equal(
 );
 assert.equal(resolve(identity.root), root);
 const box = join(root, 'TableMax');
+const environment = { ...process.env };
+for (const key of Object.keys(environment))
+  if (
+    key.startsWith('TABLEMAX_') ||
+    key.startsWith('WEBVIEW2_') ||
+    ['NODE_OPTIONS', 'NODE_PATH'].includes(key)
+  )
+    environment[key] = undefined;
+Object.assign(environment, {
+  TABLEMAX_BOX_DIRECTORY: box,
+  TABLEMAX_DATA_DIR: box,
+  TABLEMAX_HOST: '127.0.0.1',
+  TABLEMAX_PORT: '0',
+  TABLEMAX_AUTO_MAINTENANCE: '0',
+  TABLEMAX_TEST_MAINTENANCE: '0',
+});
 const configuration = JSON.parse(
   await readFile(localFile(root, 'TableMax/TableMax.config.json'), 'utf8'),
 );
@@ -135,14 +151,7 @@ async function privateUpdate() {
 try {
   desktop = await launchDesktop({
     executablePath: join(box, 'app/TableMax.exe'),
-    env: {
-      TABLEMAX_BOX_DIRECTORY: box,
-      TABLEMAX_DATA_DIR: box,
-      TABLEMAX_HOST: '127.0.0.1',
-      TABLEMAX_PORT: '0',
-      TABLEMAX_AUTO_MAINTENANCE: '0',
-      TABLEMAX_TEST_MAINTENANCE: '0',
-    },
+    env: environment,
     timeout: 45000,
   });
   desktop.process().stderr.on('data', (chunk) => {

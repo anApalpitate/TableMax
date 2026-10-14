@@ -121,6 +121,8 @@ pnpm start
 
 环境准备、锁定工具版本与验证方法见 [开发说明](docs/reference/development.md)；接入游戏从 [游戏开发指南](docs/reference/game-development.md) 开始。盒子短提示文案集中在 [feedback.zh-CN.json](apps/web/src/content/feedback.zh-CN.json)，方便维护。
 
+完整安装器、默认保留数据卸载与盒子内可信更新已进入安装验收，进度见[安装任务](docs/tasks/windows-installation-update.md)。新候选使用 `package.mjs --candidate` 封包，正式系统链及精确字节证明通过后才推广到当前交付；[发布工具](tools/release/README.md)维护唯一命令说明。上方下载与使用步骤继续对应现有线上便携程序，本轮没有发布新附件。
+
 本机美术资源检索与处理使用 [TableMaxMaterial 素材工作区](../TMP/TableMaxMaterial/README.md)（`E:\Proj\TMP\TableMaxMaterial`，不创建 Git）；该外部目录独立维护原始资料、处理过程和交付候选，核验后将正式资源及来源记录导入本项目，详见 [资源入口](assets/README.md)。此链接依赖本机目录布局，GitHub 源码与运行包仍使用项目内资源。
 
 </details>

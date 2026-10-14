@@ -4,10 +4,10 @@
 
 - 创建日期：2026-10-14（Asia/Shanghai）。状态：阶段 0／1 已完成；2026-10-15用户授权继续全部剩余事项，阶段 2–6 正在实现与隔离验收，未验收部分继续保留未完成标记。
 - 目标：首次下载完整安装器，可选择安装位置和快捷方式；安装后具备启动、卸载与更新能力，盒子内可更新整个 TableMax。
-- 规划归属：[手写改动单](手写改动单.md)的 v1.0.7「盒子内更新支持」。这只是候选版本规划，不切换当前公开版本或分配新构建号。
+- 规划归属：[手写改动单](手写改动单.md)的 v1.0.7「盒子内更新支持」。本轮按用户后续授权实现；公开版本仍为1.0.6，新安装候选正常分配四位本地修订，失败编号不复用。
 - 本轮范围：实现完整安装、卸载／原目录升级、可信检查下载、明确重启更新及恢复，并冻结与验收完整 installer。用户另已明确允许创建正式应用更新密钥；私钥仅在受保护、Git忽略的本机 secrets/application-update，公钥入程序。不操作正式玩家数据，不发布／部署或生成发布源码ZIP。
 - 当前交付仍为便携完整 EXE，公开 v1.0.6／本地 1.0.6.10；实际证明见[当前验收](../reference/acceptance.md#当前源码与本地交付)。
-- 当前范围：原生与helper、Inno安装打包、更新签名工具并行实现；盒子更新面板与服务私有 inspect／prepare-update 已集成。新完整 installer 尚待最终冻结；旧交付结论不改标为新安装通过。
+- 当前范围：安装布局、卸载迁移、原生helper事务、可信检查下载及盒子更新面板已实现并完成对应专项；服务私有 inspect／prepare-update 已集成。正式候选构建及干净Windows账户全链尚待闭合，旧交付结论不改标为新安装通过。
 - 有效前置证据：[更新原子准备及私有协议](../../artifacts/maintenance/test-history/runs/296b71b5-0832-4025-a389-089c5ec59971/results.json)、[入口／预装映射／反馈](../../artifacts/maintenance/test-history/runs/40206f62-1d5e-4389-a697-439288980337/results.json)、[包内Worker缺失输入修复](../../artifacts/maintenance/test-history/runs/0c897011-fdde-4c92-ab67-0585c3e03aeb/results.json)。第二轮有一项旧win-unpacked路径缺失，准确返验通过；未把失败轮整体写成通过。
 - 后续已通过：[JavaScript 数值与签名专项](../../artifacts/maintenance/v1.0.6/application-update-signature/20261015-js-numeric-01/results.json)、[真实 .NET 更新管理19场景](../../artifacts/maintenance/v1.0.6/installation-remaining/native-update-controller-19/report.json)、[安装交付维护门禁](../../artifacts/maintenance/test-history/runs/dacb98cb-aae5-4ad9-abac-d41d45c08f6a/results.json)。.NET 网络由受管理测试构造器模拟，覆盖真实检查／下载／取消逻辑，不代表未来 GitHub 新附件已经发布或真实安装升级通过。
 
@@ -181,7 +181,7 @@ installer 与 updater 共用一套安装／替换规则，明确框架文件操�
 | 首先：服务关闭    | 动作排队、异步模块加载、bot 正在决策、保存拒绝、stop 重复、超时和强制退出            | 已提交数据保留；正常关闭结果可判断；失败不进入升级提交                   |
 | 首先：文件归属    | 未知文件、目录链接、路径越界、错误安装身份、外部／共享数据、跨会话占用               | 不覆盖未知内容，不扩大删除范围，不误杀其他实例                           |
 | 基础安装          | 默认／自选盘、中文空格、不可写根、取消、重复安装、缺运行组件、断网安装并运行         | 安装完整、登记／快捷方式正确；无依赖时明确提示，不宣称完全离线无条件可用 |
-| 卸载／重装        | 运行中卸载、取消、默认保留、显式数据删除、未知文件、外置数据、重新安装后恢复         | 程序登记清理正确，保留范围逐文件核对；额外删除只发生在授权范围           |
+| 卸载／重装        | 运行中卸载、取消、默认保留、未知文件、外置数据、重新安装后恢复                       | 程序登记清理正确，保留范围逐文件核对；首版不提供额外删除数据选项         |
 | 升级／迁移        | 旧安装到新安装、旧便携导入、同版本修订、降级拒绝、迁移后实例冲突、旧局继续           | 路径和偏好不重置，旧局精确发行不变化，新局采用新核验映射                 |
 | 在线更新          | GitHub 描述解析、固定资产、重定向限制、断流、超量、摘要／签名错误、取消、重启交接    | 使用真实 updater 路径；回环仅证明协议／故障，线上可达另测                |
 | 最终完整交付      | 全部正式游戏／玩法的映射与闭包、离线可用、旧局恢复、受影响原生／盒子场景、退出无残留 | 实际 installer 安装后的文件与本轮唯一交付绑定；开发目录或旧包不能代替    |
@@ -195,15 +195,15 @@ installer 与 updater 共用一套安装／替换规则，明确框架文件操�
 
 阶段 0／1 已完成；2026-10-15新一轮按用户明确指示推进全部剩余事项。阶段 1 的完成边界仍为关闭与隔离底座，真实安装身份、安装器和更新功能在本轮阶段 2–6 实现并验收。每阶段经适用检查通过后独立提交，完整验收不因阶段提交而省略。
 
-| 阶段                        | 工作与职责                                                                                                                                   | 阶段完成标准／交接物                                                                                                                 | 难度 |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---- |
-| [x] 0. 冻结产品与安装契约   | 主 agent 收敛安装范围、路径、默认数据、技术路线、签名、资产描述及版本判断；明确旧便携迁移与数据删除范围                                      | 决策表闭合；目录／文件归属、安装身份、升级状态、证据类型和实际文件边界可评审；把确定需求合并基线                                     | 中   |
-| [x] 1. 高风险前置与验证底座 | 平台服务负责保存关闭屏障；原生负责明确关闭结果；入口／安装身份契约冻结，真实登记留到阶段 2；交付验证建立文件系统隔离夹具、范围登记和证据适配 | 延迟动作／保存失败／强制退出不误报升级就绪；夹具核对文件状态、路径边界和保全 SHA；候选与原包证明分开；系统写入／回收留待真实安装验收 | 高   |
-| 2. 完整首次安装             | 构建负责人锁定框架并从冻结载荷生成唯一完整 installer；原生适配稳定入口；实现路径与快捷方式选择、登记和依赖提示                               | 同一 installer 实际安装、普通启动、断网预装内容可用；体积／逐文件身份核对；没有双重载荷替换机制                                      | 中   |
-| 3. 卸载、原目录升级与迁移   | 原生／构建共用停止与替换规则，实现安装互斥、卸载、旧安装升级、便携迁移、持久事务、新版确认和数据库兼容恢复边界                               | 手动升级已具备完整恢复闭环；默认卸载保留数据及历史模块；重装可恢复；旧局引用不变；取消／占用／权限失败可诊断                         | 高   |
-| 4. 盒子内检查与下载         | 盒子负责操作及文案；原生负责可信更新描述、下载／验签、可取消进度、仅本地主机权限；升级调用阶段 3 installer                                   | 无网、超时、断流、篡改、资产变化、签名拒绝有真实路径证据；下载可与运行并存，不自动应用                                               | 中高 |
-| 5. 重启升级与恢复闭环       | 将盒子更新接入阶段 3 同一事务与恢复机制，集成独立协调器、保存屏障、安装互斥、结果回传和辅助程序自身更新                                      | 用户点击后原目录升级并启动；各交接故障点终止后状态可判定；未确认成功不退役必要恢复文件；不自动降级                                   | 高   |
-| 6. 最终交付与文档切换       | 交付负责人冻结唯一完整 installer，做实际安装／卸载／升级、全内容与受影响专项；主 agent 更新操作主题及索引                                    | 唯一安装器、清单、证明及未测环境绑定；README 等准确描述安装体系；历史字节／标签不变；发布仍需另行明确授权                            | 中高 |
+| 阶段                                    | 工作与职责                                                                                                                                   | 阶段完成标准／交接物                                                                                                                 | 难度 |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---- |
+| [x] 0. 冻结产品与安装契约               | 主 agent 收敛安装范围、路径、默认数据、技术路线、签名、资产描述及版本判断；明确旧便携迁移与数据删除范围                                      | 决策表闭合；目录／文件归属、安装身份、升级状态、证据类型和实际文件边界可评审；把确定需求合并基线                                     | 中   |
+| [x] 1. 高风险前置与验证底座             | 平台服务负责保存关闭屏障；原生负责明确关闭结果；入口／安装身份契约冻结，真实登记留到阶段 2；交付验证建立文件系统隔离夹具、范围登记和证据适配 | 延迟动作／保存失败／强制退出不误报升级就绪；夹具核对文件状态、路径边界和保全 SHA；候选与原包证明分开；系统写入／回收留待真实安装验收 | 高   |
+| 2. 完整首次安装（待系统验收）           | 构建负责人锁定框架并从冻结载荷生成唯一完整 installer；原生适配稳定入口；实现路径与快捷方式选择、登记和依赖提示                               | 同一 installer 实际安装、普通启动、断网预装内容可用；体积／逐文件身份核对；没有双重载荷替换机制                                      | 中   |
+| 3. 卸载、原目录升级与迁移（待系统验收） | 原生／构建共用停止与替换规则，实现安装互斥、卸载、旧安装升级、便携迁移、持久事务、新版确认和数据库兼容恢复边界                               | 手动升级已具备完整恢复闭环；默认卸载保留数据及历史模块；重装可恢复；旧局引用不变；取消／占用／权限失败可诊断                         | 高   |
+| [x] 4. 盒子内检查与下载                 | 盒子负责操作及文案；原生负责可信更新描述、下载／验签、可取消进度、仅本地主机权限；升级调用阶段 3 installer                                   | 实际控制器与面板适用专项已通过；检查真实GitHub安全失败；正向HTTP由受管理fixture提供，完整Apply→installer待阶段5                      | 中高 |
+| 5. 重启升级与恢复闭环                   | 将盒子更新接入阶段 3 同一事务与恢复机制，集成独立协调器、保存屏障、安装互斥、结果回传和辅助程序自身更新                                      | 用户点击后原目录升级并启动；各交接故障点终止后状态可判定；未确认成功不退役必要恢复文件；不自动降级                                   | 高   |
+| 6. 最终交付与文档切换                   | 交付负责人冻结唯一完整 installer，做实际安装／卸载／升级、全内容与受影响专项；主 agent 更新操作主题及索引                                    | 唯一安装器、清单、证明及未测环境绑定；README 等准确描述安装体系；历史字节／标签不变；发布仍需另行明确授权                            | 中高 |
 
 建议先完成阶段 0–3，形成可手动安装、升级和卸载的稳定底座，再接阶段 4–5。阶段 1 保存屏障与验证夹具可在明确文件边界后分工；同一文件单一负责人，最终交付输出目录由一名负责人独占。
 
@@ -315,7 +315,7 @@ Inno Setup 的 `PrivilegesRequired=lowest` 不主动请求提升、采用非管�
 
 RSA 方案推荐 RSA-3072、SHA-256 和固定 PKCS#1 v1.5 **签名填充**，不涉及 RSA 加密。它利用 .NET Framework 的现成 RSA API，避免为 net48 引入 Ed25519 验签库，也不引入不同提供者的 PSS 支持差异；具体公钥导入方式和 Node／C# 互操作留到阶段 4 的签名验证工作，以固定向量核验，不能从文档支持推定已通过。[Node 22.14.0 crypto](https://nodejs.org/download/release/v22.14.0/docs/api/crypto.html#cryptosignalgorithm-data-key-callback)、[.NET RSA API](https://learn.microsoft.com/en-us/dotnet/api/system.security.cryptography.rsa.verifydata)
 
-应用私钥与现有游戏私钥分离，只存在受保护签名环境／本地 secrets，并通过私有管道或受保护文件提供给签名工具；不进 Git、installer、命令行输出或测试日志。本轮不生成密钥。程序只内置应用公钥及 keyId；正常轮换先用旧根签署包含后继公钥的可信更新，再在后续发行切换签名。密钥丢失／泄露不能靠网络提供一把新钥直接恢复信任，需设计受审手动安装恢复路径。
+应用私钥与现有游戏私钥分离，只存在受保护签名环境／本地 secrets，并通过私有管道或受保护文件提供给签名工具；不进 Git、installer、命令行输出或测试日志。阶段0当时未生成密钥；2026-10-15已取得单独明确授权并生成，保管与恢复操作见[免费应用签名](../reference/release.md#完整安装器与免费应用签名2026-10-15)。程序只内置应用公钥及 keyId；正常轮换先用旧根签署包含后继公钥的可信完整程序，再在后续发行切换签名。首版不提供网络换根接口，未实测的轮换发行不标为已通过。密钥丢失／泄露不能靠网络提供一把新钥直接恢复信任。
 
 用户明确选择现在及未来始终采用免费开发方案，不购买 Authenticode 证书或付费签名服务；应用更新使用独立项目公钥验证，绝不降为只校验未签名摘要。这不是 Windows 系统信任或安全策略兼容保证。Smart App Control 的可信证书要求、自签证书和 SmartScreen 信誉是不同问题；即使有可信证书也不能保证新 EXE 从不出现信誉提示，不建议关闭保护功能。[代码签名选择](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/code-signing-options)、[SmartScreen 信誉](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation)、[Smart App Control 签名](https://learn.microsoft.com/en-us/windows/apps/develop/smart-app-control/code-signing-for-smart-app-control)
 
@@ -388,12 +388,18 @@ RSA 方案推荐 RSA-3072、SHA-256 和固定 PKCS#1 v1.5 **签名填充**，不
 - [x] 19项 .NET 检查／下载／取消专项通过：合法下载与受控跳转、取消、超量、短流、断流、错误SHA、危险跳转、附件数量／状态／摘要、错误Release来源、重复机器块、回放与本地状态损坏。测试密钥仅在进程内生成，不持久保存。
 - [x] 更新内部长路径与临时文件归属修复：[7项真实长路径记录](../../artifacts/maintenance/v1.0.6/installation-remaining/native-long-path-20261015-032822/report.json)覆盖420字符受管成员及361字符日志。只在内部IO边界转换，身份保留普通本机路径；设备／UNC安装根拒绝，过深原生／浏览器启动路径在切换前拒绝，不修改机器长路径策略。实际controller入口补初始化后[19项受影响复验](../../artifacts/maintenance/v1.0.6/installation-remaining/native-update-controller-19-longpaths/report.json)通过；前轮3失败报告保留。
 - [x] 工具维护门禁区分便携与安装交付，拒绝用旧提取报告、测试产品ID或未隔离证明授权正式安装器维护；完整首次启动体积保持严格120,000,000字节门禁。首次检查遇到当前进程脚本策略和sandbox Junction限制，限定子进程策略及隔离夹具权限后受影响项通过，保留两次失败记录。
-- [ ] Inno 首装／重复安装／默认卸载的实际链；已锁定6.7.3工具链。可空迁移页的内建路径校验已修复；[下一次实际失败](../../artifacts/maintenance/v1.0.6/installation-remaining/delivery/fixture-qwPCp2-failed/report.json)明确记录health未确认及当前token的HKCU登记拒绝。fixture覆层删除整个web而丢失catalog／runtime闭包的根因已定位并修复，待新输入受影响复验。失败I只供诊断，不替代完整安装证明。
-- [x] 真实主机／公共屏／浏览器／子frame权限与短屏实际更新界面：fixture安装文件中的Native／Node已运行，[实际面板与GitHub检查](../../artifacts/maintenance/v1.0.6/installation-remaining/helper-host-ui-02/results.json)记录当前身份、短屏字号及安全失败；该轮后续frame测试失败，不能称整轮通过。[权限受影响复验](../../artifacts/maintenance/v1.0.6/installation-remaining/helper-host-ui-05-edge-permissions/results.json)通过。使用现有Edge独立隐藏配置；sandbox浏览器启动失败与缺缓存记录保留。GitHub当前未发布可信新installer，正向下载／应用仍需其他证据。
-- [x] 实际 SQLite 保存失败后，Native停止更新、安全退出、程序与最后成功存档保全：[真实fixture保存失败屏障](../../artifacts/maintenance/v1.0.6/installation-remaining/helper-save-barrier-03/results.json)通过。只在新建隔离存档注入专属触发器，实际失败动作保留最后成功保存；私有更新请求不确认、Native退出1、服务与WebView2退出、安装身份不变，触发器已移除。前两次工具依赖入口／未持久化初始房间错误保留，不作为产品失败或正式安装证明。
-- [ ] 原目录更高构建升级、helper自身更新、旧便携默认／外置数据迁移与失败事务恢复。
+- [ ] Inno 首装／重复安装／默认卸载的实际系统链；已锁定6.7.3工具链。可空迁移页与fixture网页闭包已修复，[helper实际提交及健康确认](../../artifacts/maintenance/v1.0.6/installation-remaining/delivery/fixture-EovwuK-helper-health/report.json)通过。此前[实际失败](../../artifacts/maintenance/v1.0.6/installation-remaining/delivery/fixture-qwPCp2-failed/report.json)保留health和HKCU拒绝诊断；当前受限账户无法完整登记。helper证明不包含框架卸载器、真实快捷方式／系统登记及完整首次启动框架体积，不替代正式installer证明。
+- [x] 真实主机／公共屏／浏览器／子frame权限与短屏实际更新界面：[清除继承注入环境后的完整专项](../../artifacts/maintenance/v1.0.6/installation-remaining/helper-host-ui-06-clean-env/results.json)6项通过；[共享截图入口复验](../../artifacts/maintenance/v1.0.6/installation-remaining/helper-host-ui-07-capture/results.json)2项通过，并已查看实际WebView2短屏画面。使用现有Edge独立隐藏配置；旧frame、sandbox启动及缺缓存失败保留。截图通用套件此前5通过／3失败，另有非本任务源文件原始调用未整改，不称全套通过。GitHub当前未发布可信新installer，正向下载／应用仍需其他证据。
+- [x] 实际 SQLite 保存失败后，Native停止更新、安全退出、程序与最后成功存档保全：[清除继承注入环境后的真实屏障](../../artifacts/maintenance/v1.0.6/installation-remaining/helper-save-barrier-04-clean-env/results.json)2项通过。只在新建隔离存档注入专属触发器，实际失败动作保留最后成功保存；私有更新请求不确认、Native退出1、服务与WebView2退出、安装身份不变，触发器已移除。前两次工具依赖入口／未持久化初始房间错误保留，不作为产品失败或正式安装证明。
+- [x] 同构建helper事务、受管修复／未知文件／链接拒绝、操作与运行占用、SQLite占用，以及准备／切换／健康失败恢复；[原专项](../../artifacts/maintenance/v1.0.6/installation-remaining/transaction-positive-04/report.json)保留21通过和1个无效迁移夹具失败。完整10数据库成员指纹已冻结，[受影响复验7项](../../artifacts/maintenance/v1.0.6/installation-remaining/transaction-affected-05/report.json)全部通过，包括默认／外置D保全、卸载重装和数据库变化后同目标确认；这些构造事务不能写为断电实测或不同PE完整升级。
+- [x] 持续迁移租约、foundation-only及room-journal变化恢复判据、commit/recover的playing门禁：[冻结交接](../../artifacts/maintenance/v1.0.6/installation-remaining/recovery-fingerprint-20261014-203339/handoff.json)记录6项租约、2项指纹分支及2项真实管道协议门禁。前3次工具失败保留，AppContainer连接限制通过限定普通用户token复验解决，ACL未放宽。
+- [x] 数据库已变且当前受管程序损坏／缺失时，恢复明确返回40并指导默认保留数据卸载、同版或新版完整重装；卸载仍拒绝未知额外程序文件和超预算内容。[实际pending损坏专项](../../artifacts/maintenance/v1.0.6/installation-remaining/transaction-pending-damage-06/report.json)2项通过，保留坏字节隔离、缺失不伪造及真实新Native健康；未自动启动旧程序打开变化后的数据库。
+- [x] helper工程健康验收模式与生产持续主机路径分别绑定：[启动模式专项](../../artifacts/maintenance/v1.0.6/installation-remaining/native-confirm-final-20261014-211319/handoff.json)4项通过。只有显式工程环境开启已有静音、后台健康检查，生产默认仍启动持续新主机。
+- [x] 真实1.0.6.3旧局迁移／身份／checkpoint／旧发行及新局映射：[完整旧档专项](../../artifacts/maintenance/v1.0.6/installation-remaining/real-old-1063-03-clean-env/results.json)4项通过；还以真正playing Native核验pending恢复拒绝20、当前实例与事务身份不变。原资料SHA保全、隔离D明确、继承注入环境清除；同版Native与新helper来自已封fixture，非Inno系统验收。
+- [ ] 原目录更高不同PE构建升级与helper自身更新：[最终双PE准备](../../artifacts/maintenance/v1.0.6/installation-remaining/handoff-prepare-final-07/report.json)与[逐字节复验](../../artifacts/maintenance/v1.0.6/installation-remaining/handoff-reverify-final-08/report.json)通过，仅准备构建60000／60001并签名，不算执行。必须经真实Native Apply／正常退出握手→真正Inno→新持续主机健康并保全设置、D/G，待同干净账户系统验收。
 - [x] 跨会话D互斥前置：服务先对 `foundation.sqlite` 获取全生命周期独占，冻结旧服务的普通WAL连接尚在时拒绝新启动；新服务已启动后外部只读／写入客户端被拒绝，关闭后可重开。存档repository的只读兼容与迁移逻辑保持原范围；[两进程与原数据库完整性](../../artifacts/maintenance/test-history/runs/828787df-12cd-4f5a-adf1-eba29d1c8634/results.json)、[服务保存关闭及私有入口回归](../../artifacts/maintenance/test-history/runs/91f4022b-6ddd-4e5f-a9b2-4d6c647a0c5d/results.json)通过。迁移文件租约仍需与此门禁集成验收，单纯探测后关闭文件不能证明持续复制安全。
 - [ ] 最终正式产品ID的干净标准Windows用户安装／卸载／快捷方式与精确字节证明；临时测试账户及UAC操作须等用户授权。不能只设置隔离环境变量替代真实账户。
+- [ ] 实际安装向导的默认 `{src}`、指定提示、目录／快捷方式选择与取消核验；静默安装证明不替代向导与系统安全提示体验。
 - [ ] 冻结唯一新installer，切换长期主题和进度，收尾一次安全维护；不发布、部署或生成发布source ZIP。
 
 ## 参考与接续维护

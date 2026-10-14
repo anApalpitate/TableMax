@@ -416,7 +416,11 @@ export async function inputsFor(unit, phase = createReadPhase('inputs')) {
     await visit(file);
   if (unit.id === 'platform-native') {
     for (const file of globSync(
-      ['apps/desktop/native/**/*', 'assets/platform/app-icon.ico'],
+      [
+        'apps/desktop/native/**/*',
+        'apps/desktop/installation-runtime/**/*.cs',
+        'assets/platform/app-icon.ico',
+      ],
       { onlyFiles: true, ignore: ['**/bin/**', '**/obj/**'] },
     ))
       await visit(file);
