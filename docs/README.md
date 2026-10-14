@@ -10,6 +10,8 @@
 
 ## 开始开发
 
+2026-10-14建立[Windows安装、卸载与盒子内更新任务](tasks/windows-installation-update.md)：已调研现有载荷、目录、保存退出与实际包验证，明确前期调整和阶段验收；安装器与更新功能尚未实施，当前完整便携EXE及线上发布保持原状态。
+
 2026-10-12建立[macOS服务端运行包适配任务](tasks/macos-adaptation.md)：目标与执行草案已建立，导出未开始；沿用仅服务端运行包的范围，现行Windows交付事实保持，Mac权限与验证边界从任务页接续。
 
 游戏规则、策略、网页与资源继续按模块独立维护和增量构建，源码入口见[游戏模块索引](../games/README.md)，公共 SDK、模板及源码接入能力保留。签名模块与历史仓库供内部预装、修复及旧局恢复使用，独立安装与分发产品入口已退役；理由见[决策009](decisions/009-independent-game-packages.md)，接入从[游戏开发指南](reference/game-development.md)开始。所有多玩法入口共用平台 `GameplaySelector`。

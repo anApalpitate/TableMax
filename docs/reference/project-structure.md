@@ -72,6 +72,8 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 
 ## 已采用与计划结构
 
+[Windows安装、卸载与盒子内更新](../tasks/windows-installation-update.md)已建立调研与阶段草案，实施未开始；计划复用 `tools/release/`、`apps/desktop/`及现有验证职责，安装根、配置根、数据根与历史仓库的契约需先定案，不预建目录或改变现行便携布局。
+
 [macOS服务端运行包适配](../tasks/macos-adaptation.md)处于执行草案阶段，导出辅助逻辑归 `tools/release/`，不预建Mac原生宿主目录、不改造构建流程；实际输出及平台清理保护在落地时补充。
 
 六款正式游戏分别使用 `games/pokemon-encounters/`、`games/modern-art/`、`games/power-grid/`、`games/rummikub/`、`games/uno/`和 `games/avalon/`，资源与规格使用同名命名空间。各游戏的 data／rules／bot／ui／types 按实际职责组织，布局 CSS 限定自身根节点；共享平台只按通用契约组装，盒子缩略图由 `apps/web/src/assets/game-covers.ts` 提供。服务与 Worker 注册入口分别加载独立规则和策略，网页适配器加载对应 UI。拉密使用 `shared/` 纯函数共享组合与整回合证明，`ui/` 与 bot 只消费本人授权投影；完整交付状态见 [构建归档](../archive/rummikub-2026-10-09.md)。
