@@ -7,6 +7,7 @@
 - 规划归属：[手写改动单](手写改动单.md)的 v1.0.7「盒子内更新支持」。本轮按用户后续授权实现；公开版本仍为1.0.6，新安装候选正常分配四位本地修订，失败编号不复用。
 - 本轮范围：实现完整安装、卸载／原目录升级、可信检查下载、明确重启更新及恢复，并冻结与验收完整 installer。用户另已明确允许创建正式应用更新密钥；私钥仅在受保护、Git忽略的本机 secrets/application-update，公钥入程序。不操作正式玩家数据，不发布／部署或生成发布源码ZIP。
 - 当前交付仍为便携完整 EXE，公开 v1.0.6／本地 1.0.6.10；实际证明见[当前验收](../reference/acceptance.md#当前源码与本地交付)。
+- 待验唯一安装候选为1.0.6.13：[冻结交付](../../artifacts/package-payloads/v1.0.6/4e4f4f05f0a9-GUFTiZ/full/installer-delivery.json)，EXE SHA `c45d0055d2f68e469dd432a56ec44cc373cdd7e48ff04c525bfce85c7a42b6df`。`--candidate`保持原current；正式完整安装证明通过后才推广。生产应用签名仅留本地，未发布。
 - 当前范围：安装布局、卸载迁移、原生helper事务、可信检查下载及盒子更新面板已实现并完成对应专项；服务私有 inspect／prepare-update 已集成。正式候选构建及干净Windows账户全链尚待闭合，旧交付结论不改标为新安装通过。
 - 有效前置证据：[更新原子准备及私有协议](../../artifacts/maintenance/test-history/runs/296b71b5-0832-4025-a389-089c5ec59971/results.json)、[入口／预装映射／反馈](../../artifacts/maintenance/test-history/runs/40206f62-1d5e-4389-a697-439288980337/results.json)、[包内Worker缺失输入修复](../../artifacts/maintenance/test-history/runs/0c897011-fdde-4c92-ab67-0585c3e03aeb/results.json)。第二轮有一项旧win-unpacked路径缺失，准确返验通过；未把失败轮整体写成通过。
 - 后续已通过：[JavaScript 数值与签名专项](../../artifacts/maintenance/v1.0.6/application-update-signature/20261015-js-numeric-01/results.json)、[真实 .NET 更新管理19场景](../../artifacts/maintenance/v1.0.6/installation-remaining/native-update-controller-19/report.json)、[安装交付维护门禁](../../artifacts/maintenance/test-history/runs/dacb98cb-aae5-4ad9-abac-d41d45c08f6a/results.json)。.NET 网络由受管理测试构造器模拟，覆盖真实检查／下载／取消逻辑，不代表未来 GitHub 新附件已经发布或真实安装升级通过。
@@ -399,8 +400,14 @@ RSA 方案推荐 RSA-3072、SHA-256 和固定 PKCS#1 v1.5 **签名填充**，不
 - [ ] 原目录更高不同PE构建升级与helper自身更新：[最终双PE准备](../../artifacts/maintenance/v1.0.6/installation-remaining/handoff-prepare-final-07/report.json)与[逐字节复验](../../artifacts/maintenance/v1.0.6/installation-remaining/handoff-reverify-final-08/report.json)通过，仅准备构建60000／60001并签名，不算执行。必须经真实Native Apply／正常退出握手→真正Inno→新持续主机健康并保全设置、D/G，待同干净账户系统验收。
 - [x] 跨会话D互斥前置：服务先对 `foundation.sqlite` 获取全生命周期独占，冻结旧服务的普通WAL连接尚在时拒绝新启动；新服务已启动后外部只读／写入客户端被拒绝，关闭后可重开。存档repository的只读兼容与迁移逻辑保持原范围；[两进程与原数据库完整性](../../artifacts/maintenance/test-history/runs/828787df-12cd-4f5a-adf1-eba29d1c8634/results.json)、[服务保存关闭及私有入口回归](../../artifacts/maintenance/test-history/runs/91f4022b-6ddd-4e5f-a9b2-4d6c647a0c5d/results.json)通过。迁移文件租约仍需与此门禁集成验收，单纯探测后关闭文件不能证明持续复制安全。
 - [ ] 最终正式产品ID的干净标准Windows用户安装／卸载／快捷方式与精确字节证明；临时测试账户及UAC操作须等用户授权。不能只设置隔离环境变量替代真实账户。
-- [ ] 实际安装向导的默认 `{src}`、指定提示、目录／快捷方式选择与取消核验；静默安装证明不替代向导与系统安全提示体验。
-- [ ] 冻结唯一新installer，切换长期主题和进度，收尾一次安全维护；不发布、部署或生成发布source ZIP。
+- [x] [候选13实际向导](../../artifacts/maintenance/v1.0.6/installation-remaining/wizard-production13-r3-03-final/report.json)核验默认 `{src}`、精确中文提示、中文空格路径、桌面快捷方式关／开／关、准备页与返回保持、正常取消；同普通SID四登记视图前后为空，目标和受管文件未产生，未知资料及原EXE SHA保全，自有进程自然退出、私有桌面恢复关闭。已查看DPI144的实际完整窗口截图；初始选中文本未被PrintWindow绘制，默认目录由原生控件值证明。此前API／sandbox／线程桌面、空窗口等待、后台UIA输入、取消同步调用和裁切捕获缺陷均保留。测试没有点击Install，不替代实际登记／卸载、UAC与系统安全提示体验。
+- [x] 冻结唯一正式产品ID安装候选1.0.6.13与配方／清单；[构建日志](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-build-03/build.log)成功，用正式应用根签署本地更新描述并自验。EXE35,521,681字节、payload ZIP43,995,554字节、程序暂存97,354,419字节；后者不含实际框架卸载文件与首次启动G物化，不代替完整首次启动体积门禁。
+- [x] [正式候选只读闭包9项](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-13-repair-03/results.json)通过：实际三PE文件版本13、所有暂存／ZIP成员、生产配方、31原游戏单元和当前平台输入、6正式游戏／7玩法的13依赖blob、内置生产RSA对原始描述及正文自验、原current与1.0.6.10 EXE SHA保全。[当前映射说明](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-13-repair-03/current-game-mapping.json)区分历史目录25条与实际预装7条；工具最初的PS参数／执行策略、三位产品版本误当四位文件版本、历史目录误当当前映射失败均保留，未修改正式候选字节。
+- [x] [实际生产程序集.NET互操作](../../artifacts/maintenance/v1.0.6/installation-remaining/production-signature-dotnet-13/report.json)通过：Native／helper各22项，以实际内置根验证正式envelope及正文机器块，描述13与EXE、原始清单、bootstrap完全一致；launcher12项仅证明字节／GUID／版本，其本身不承担验签。三个独立普通非管理员probe只加载SHA核验后的实际程序集字节、不调用产品Main、不读私钥、不联网；首轮LoadFrom的CLR限制保留，未解除文件标记或更改系统策略。
+- [x] 新安装构建明确保留原31游戏单元：原快照raw SHA、输入指纹、固定缓存路径、全部真实成员及元数据核验后再签名；普通构建继续校验当前源码。新专项4项、blob复用4项通过。失败修订11（旧obj进入编译）／12（保留快照误用当前输入验证）不复用；[受影响Native编译](../../artifacts/maintenance/v1.0.6/installation-remaining/native-build-excludes-20261014-212922/handoff.json)及修订13最终构建通过，未删除旧obj或重编全部游戏。
+- [x] 长期安装运行、签名／发布门禁、验证入口和README开发说明已同步；源码检查点 `c3ae7fc` 已推送。用户／其他任务的手写改动单及维护文档未纳入本任务提交。
+- [ ] 干净用户全链通过后，以精确候选和正式证明原子推广current；复验原current基准SHA，保留原1.0.6.10和历史原字节。当前仍未推广。
+- [x] 全部工程进程退出、预览核对后，仅执行[一次现有安全维护](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/result.json)：退役7项过期缓存4,185,200字节和67项白名单隔离副本86,289,239字节，安全候选耗尽，未达到8GiB目标且不追加第二轮。候选13、原current、双PE待验EXE及准备报告维护后SHA未变，原资料、旧档、密钥和工具／依赖缓存保留。最终[全量逻辑体积12,596,402,720字节](../../artifacts/maintenance/v1.0.6/installation-remaining/workspace-capacity-after.json)包含根Git与嵌套仓库、不跟随链接、零读取错误；前次[12,150,682,613字节](../../artifacts/maintenance/v1.0.6/installation-remaining/workspace-capacity-before.json)测于新增向导副本等材料之前，不能直接相减当回收量。不发布、部署或生成发布source ZIP。
 
 ## 参考与接续维护
 

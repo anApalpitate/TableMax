@@ -4,6 +4,12 @@
 
 2026-10-15安装／卸载／盒子更新正在实现与隔离验收，进度和缺口见[安装任务](../tasks/windows-installation-update.md)。下述1.0.6.10证明继续对应原便携完整EXE；新原生管理的签名下载专项和fixture事务检查不改写原包证明，也不能替代最终正式安装器精确字节验收。本轮未发布GitHub附件。
 
+待验安装候选为 [TableMax-1.0.6.13-win-x64.exe](../../artifacts/releases/TableMax-1.0.6.13-win-x64.exe)，对应[冻结交付](../../artifacts/package-payloads/v1.0.6/4e4f4f05f0a9-GUFTiZ/full/installer-delivery.json)与[成功封包日志](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-build-03/build.log)。EXE35,521,681字节，SHA `c45d0055d2f68e469dd432a56ec44cc373cdd7e48ff04c525bfce85c7a42b6df`；payload43,995,554字节、程序暂存97,354,419字节。后者尚未加入实际框架文件与首次启动模块物化计量，不能宣称完整首次启动门禁已通过。正式密钥的本地更新描述已签署并自验；尚待干净标准Windows用户的实际安装、升级、快捷方式及默认卸载证明，不推广current或发布。
+
+[封包闭包9项](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-13-repair-03/results.json)通过全部成员、实际PE文件版本、配方输入、6款正式游戏／7个玩法的当前映射和13个完整依赖blob、生产RSA签名及原交付保全。程序保留已签历史目录元数据，[映射说明](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-13-repair-03/current-game-mapping.json)区分25条历史目录与7条实际预装发行；静态闭包不替代实际安装后物化、系统登记或默认卸载验收。
+
+[实际内置生产根.NET验签](../../artifacts/maintenance/v1.0.6/installation-remaining/production-signature-dotnet-13/report.json)以候选原生壳／helper各22项通过正式envelope及正文机器块，绑定相同EXE／manifest／bootstrap；入口12项只核字节与身份，不宣称入口包含验签模块。探针不运行产品Main，不能抵扣真实安装启动与Apply链。
+
 ## 1.0.6.10：宝可梦新设计应用（2026-10-12）
 
 当前本地完整程序为 [TableMax-1.0.6.10-win-x64.exe](../../artifacts/releases/TableMax-1.0.6.10-win-x64.exe)，公开版本仍为1.0.6。新局使用 `events-research-v3`，统一144张、17项研究、单格超梦及六类随机事件；旧存档、checkpoint及原局下一小局固定原发行。Mega与羁绊仅展示主题占位，7项缺失研究插图采用符合新条件的代码场景。主机／公共隐藏玩家缓冲，本人端保留操作；天气角标、环境层、全屏能力与路卡利欧画像波导已接入。

@@ -239,6 +239,7 @@ node tools/test/desktop/verify-shutdown.mjs --native=<已编译原生目录> --s
 - [verify-update-ui.mjs](installation/verify-update-ui.mjs)：`--root=<真实已安装fixture默认数据根> [--browser-channel=msedge] [--only=permissions|layout]`；实际隐藏WinForms／WebView2主机、公共屏、frame和普通浏览器权限及短屏截图。已有Edge可用于独立headless普通浏览器；不下载或升级全局浏览器。登记 box,shared,tooling；真实GitHub仅主动检查，未授权发布的新附件不模拟成在线下载通过。
 - [verify-save-barrier.mjs](installation/verify-save-barrier.mjs)：`--root=<真实已安装fixture默认数据根>`；仅fixture SQLite本轮trigger拒绝保存，经实际私有安装管道请求更新，核对Native失败退出、原状态和进程保全。只清除本轮成功创建的trigger；登记 box,shared,tooling。
 - [verify-production-user.ps1](installation/verify-production-user.ps1)：`-DeliveryPath <正式冻结交付JSON> -HandoffPreparedReport <双fixture准备报告> -OutputDirectory <全新证据目录> -AllowTemporaryAccount`；必须先获用户明确授权，且由管理员启动。只创建随机标准测试账户、当前测试SID及其新建profile，凭据仅进程内；先验证完整Apply链，再实际运行正式产品ID，核对快捷方式／卸载登记及保留运行副本，验后卸载和清理。只有账户及profile清理成功才把隔离报告SHA绑定正式证明；工具不自我提升，fixture或环境变量不能替代实际干净用户。
+- [verify-installer-wizard.mjs](installation/verify-installer-wizard.mjs)：`--delivery=<冻结交付JSON> --evidence=<新目录> [--compile-only|--probe-only]`；实际同SHA安装器副本在私有后台桌面验证默认目录、指定提示、中文路径、快捷方式关／开／关、返回和取消。自有Job限制窗口及清理PID，明确禁止点击Install；实际截图记录窗口DPI和物理尺寸。编译／自有窗口probe不算Inno通过；登记 shared,tooling。行为核验不替代正式安装登记、卸载、UAC或系统安全提示。
 - 实际Inno交付和签名工具参数集中于[发布工具](../release/README.md)。installer不能再使用便携 `--extract-only`：通过实际安装后保存核验成员副本，后续组件测试只复用逐成员哈希绑定的副本；系统安装／升级必须另有实际证明。
 
 中间检查设置进程环境 `TABLEMAX_AUTO_MAINTENANCE=0`／`TABLEMAX_TEST_MAINTENANCE=0`，结束工程进程后统一收尾一次；保存失败、权限失败或静音不充分继续留作失败，不把隐藏窗口等同静音。最终证明绑定installer、payload、安装manifest、当前映射、安装实例、B／D和实际Native／Node身份；完整首次启动计量包含当前G、helper及框架卸载文件。
