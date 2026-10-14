@@ -29,5 +29,9 @@
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net48" Version="1.0.3" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" GeneratePathProperty="true" />
     <EmbeddedResource Include="Bridge.js" />
+    <EmbeddedResource Include="ApplicationUpdateKeys.json" />
+    <Compile Include="../installation-runtime/InstallationCore.cs" Link="InstallationCore.cs" />
+    <Compile Include="../installation-runtime/UpdateProtocol.cs" Link="UpdateProtocol.cs" />
+    <Compile Include="../installation-runtime/TrustRoots.cs" Link="TrustRoots.cs" />
   </ItemGroup>
 </Project>

@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using TableMax.Installation;
 
 namespace TableMax.Desktop
 {
@@ -29,16 +30,35 @@ namespace TableMax.Desktop
                 var storage = new TableMax.Portable.StorageConfiguration(boxDirectory);
                 dataDirectory = Path.GetFullPath(Environment.GetEnvironmentVariable("TABLEMAX_DATA_DIR") ?? storage.DataDirectory);
                 Directory.CreateDirectory(dataDirectory);
+                InstallationManifest installation = null;
+                var installedRoot = Path.GetDirectoryName(storage.Root);
+                if (File.Exists(Path.Combine(storage.Root, ".install.json")))
+                {
+                    installation = InstallationManifest.Load(installedRoot);
+                    if (!InstallationCore.Equal(AppDomain.CurrentDomain.BaseDirectory, Path.Combine(storage.Root, "app"))) throw new IOException("已安装程序入口与安装身份不匹配。");
+                    installation.Verify(installedRoot);
+                }
                 string key;
                 using (var hash = SHA256.Create()) key = BitConverter.ToString(hash.ComputeHash(Encoding.UTF8.GetBytes(dataDirectory.ToUpperInvariant()))).Replace("-", "").Substring(0, 32);
                 using (var mutex = new Mutex(true, "Local\\TableMax-" + key, out var first))
                 using (var reopen = new EventWaitHandle(false, EventResetMode.AutoReset, "Local\\TableMax-reopen-" + key))
+                using (var installedRun = installation == null ? null : InstallationCore.Mutex("Run", installation.root))
                 {
                     if (!first) { reopen.Set(); return 0; }
+                    bool runAcquired;
+                    using (var operation = installation == null || Environment.GetEnvironmentVariable("TABLEMAX_INSTALLATION_HEALTH_PIPE") != null ? null : InstallationCore.Mutex("Operation", installation.root))
+                    {
+                        var operationAcquired = operation == null || InstallationCore.Acquire(operation, 30000);
+                        if (!operationAcquired) throw new IOException("安装或更新正在进行，请稍后启动。");
+                        try { installation?.Verify(installation.root); runAcquired = installedRun == null || InstallationCore.Acquire(installedRun, 0); }
+                        finally { operation?.ReleaseMutex(); }
+                    }
+                    if (!runAcquired) throw new IOException("这个安装实例已在其他窗口或 Windows 会话运行，请先退出。");
                     try { NativeMethods.SetProcessDpiAwarenessContext(new IntPtr(-4)); } catch (EntryPointNotFoundException) { }
                     Application.EnableVisualStyles();
                     Application.SetCompatibleTextRenderingDefault(false);
-                    using (var context = new DesktopContext(dataDirectory, arguments, testing, checking, reopen, storage)) Application.Run(context);
+                    try { using (var context = new DesktopContext(dataDirectory, arguments, testing, checking, reopen, storage, installation)) Application.Run(context); }
+                    finally { installedRun?.ReleaseMutex(); }
                     mutex.ReleaseMutex();
                 }
             }

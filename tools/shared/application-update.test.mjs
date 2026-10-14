@@ -33,6 +33,15 @@ const vectors = JSON.parse(
   ),
 );
 const trustedKeys = { [vectors.keyId]: vectors.publicKeyXml };
+const numberVectors = JSON.parse(
+  await readFile(
+    new URL(
+      '../test/installation/application-update-number-vectors.json',
+      import.meta.url,
+    ),
+    'utf8',
+  ),
+);
 const original = vectors.description;
 let failures = 0;
 function check(name, callback) {
@@ -70,6 +79,68 @@ check(
         assert.deepEqual(operation().description, original);
       else rejects(operation, vector.expected);
     }
+  },
+);
+
+check(
+  'signed numeric tokens reject rounding, exponent, negative zero and unsafe integers without restricting generic JSON',
+  () => {
+    const numericTrust = { [numberVectors.keyId]: numberVectors.publicKeyXml };
+    for (const vector of numberVectors.vectors) {
+      const paths = [];
+      if (vector.envelopeJson)
+        paths.push(() =>
+          verifyApplicationUpdate(vector.envelopeJson, {
+            trustedKeys: numericTrust,
+          }),
+        );
+      if (vector.body)
+        paths.push(() =>
+          verifyApplicationUpdate(
+            extractApplicationUpdate(vector.body).envelope,
+            { trustedKeys: numericTrust },
+          ),
+        );
+      for (const operation of paths) {
+        if (vector.expected === 'valid')
+          assert.deepEqual(operation().description, numberVectors.description);
+        else rejects(operation, vector.expected);
+      }
+    }
+    const general = parseStrictJson(
+      '{"unrelated":0.5,"exponent":1e0,"negativeZero":-0}',
+    );
+    assert.equal(general.unrelated, 0.5);
+    assert.equal(general.exponent, 1);
+    assert.equal(Object.is(general.negativeZero, -0), true);
+    for (const token of ['0.99999999999999999', '1e0', '-0', '1.0']) {
+      rejects(
+        () =>
+          parseStrictJson('{"schemaVersion":' + token + '}', 8192, {
+            canonicalIntegers: true,
+          }),
+        'noncanonical-json-number',
+      );
+      rejects(
+        () =>
+          signApplicationUpdate(
+            JSON.stringify(original).replace(
+              '"schemaVersion":1',
+              '"schemaVersion":' + token,
+            ),
+            null,
+            { keyId: 'number-test' },
+          ),
+        'noncanonical-json-number',
+      );
+    }
+    rejects(
+      () =>
+        parseStrictJson('{"bytes":9007199254740993}', 8192, {
+          canonicalIntegers: true,
+        }),
+      'unsafe-json-number',
+    );
   },
 );
 

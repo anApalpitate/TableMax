@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace TableMax.Desktop
 {
@@ -30,6 +31,9 @@ namespace TableMax.Desktop
         private bool responseFailed;
         private long migrationProgressTicks;
         private int exitReported;
+        private int requestSequence;
+        private readonly Dictionary<int, TaskCompletionSource<Dictionary<string, object>>> requests = new Dictionary<int, TaskCompletionSource<Dictionary<string, object>>>();
+        public string CurrentMappingSha256 { get; private set; }
         public event Action<int> UnexpectedExit;
         public int Id => process?.Id ?? 0;
         public bool HasExited => exited.Task.IsCompleted || (process != null && process.HasExited);
@@ -68,6 +72,8 @@ namespace TableMax.Desktop
                         {
                             if (!(Json.Value(message, "port") is int port) || port < 1 || port > 65535 || string.IsNullOrEmpty(Json.String(message, "hostToken")) || !(Json.Value(message, "health") is Dictionary<string, object>))
                                 throw new IOException("Invalid service ready response.");
+                            var installation = Json.Value(message, "installation") as Dictionary<string, object>;
+                            CurrentMappingSha256 = installation == null ? null : Json.String(installation, "currentMappingSha256");
                             ready.TrySetResult(message);
                         }
                         else if (Json.String(message, "type") == "startup-progress")
@@ -89,6 +95,13 @@ namespace TableMax.Desktop
                                 throw new IOException("Invalid service stop confirmation.");
                             stoppedStatus = status;
                         }
+                        else if (Json.String(message, "type") == "inspection" || Json.String(message, "type") == "update-prepared")
+                        {
+                            if (!(Json.Value(message, "id") is int id)) throw new IOException("Invalid installation response.");
+                            TaskCompletionSource<Dictionary<string, object>> request;
+                            lock (requests) { if (!requests.TryGetValue(id, out request)) throw new IOException("Unknown installation response."); requests.Remove(id); }
+                            request.TrySetResult(message);
+                        }
                         else throw new IOException("Unexpected service response.");
                     }
                     // The process can exit before its already-written error
@@ -97,6 +110,7 @@ namespace TableMax.Desktop
                     ready.TrySetException(new IOException("Local service exited before reporting readiness."));
                 }
                 catch (Exception cause) { responseFailed = true; ready.TrySetException(cause); }
+                finally { lock (requests) { foreach (var request in requests.Values) request.TrySetException(new IOException("Service installation channel closed.")); requests.Clear(); } }
             });
             _ = Task.Run(async () =>
             {
@@ -121,6 +135,22 @@ namespace TableMax.Desktop
         public Task<ServiceStopResult> Stop()
         {
             lock (stopLock) return stopTask ?? (stopTask = StopCore());
+        }
+        public async Task<Dictionary<string, object>> InstallationRequest(bool prepare)
+        {
+            if (stopping || process == null || HasExited) throw new IOException("本地服务已停止。");
+            var id = Interlocked.Increment(ref requestSequence);
+            var completion = new TaskCompletionSource<Dictionary<string, object>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            lock (requests) requests.Add(id, completion);
+            try
+            {
+                lock (stopLock) { if (stopping) throw new IOException("本地服务正在停止。"); input.WriteLine(Json.Encode(new { type = prepare ? "prepare-update" : "inspect", id })); }
+                if (await Task.WhenAny(completion.Task, Task.Delay(5000)) != completion.Task) throw new TimeoutException("更新保存检查超时。");
+                var response = await completion.Task;
+                if (Json.String(response, "type") != (prepare ? "update-prepared" : "inspection") || Json.String(response, "currentMappingSha256") != CurrentMappingSha256) throw new IOException("更新保存检查身份不匹配。");
+                return response;
+            }
+            finally { lock (requests) requests.Remove(id); }
         }
         private async Task<ServiceStopResult> StopCore()
         {

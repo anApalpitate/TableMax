@@ -57,6 +57,7 @@ function utf8(input, limit) {
 export function parseStrictJson(
   input,
   limit = APPLICATION_UPDATE.maxPayloadBytes,
+  { canonicalIntegers = false } = {},
 ) {
   const text = utf8(input, limit);
   let cursor = 0;
@@ -140,8 +141,12 @@ export function parseStrictJson(
       );
       if (number) {
         cursor += number[0].length;
+        if (canonicalIntegers && !/^(0|[1-9]\d*)$/.test(number[0]))
+          reject('noncanonical-json-number');
         const parsed = Number(number[0]);
         if (!Number.isFinite(parsed)) reject('invalid-json-number');
+        if (canonicalIntegers && !Number.isSafeInteger(parsed))
+          reject('unsafe-json-number');
         return parsed;
       }
     }
@@ -302,7 +307,11 @@ export function signApplicationUpdate(description, privateKey, { keyId }) {
     typeof description === 'string' || Buffer.isBuffer(description)
       ? Buffer.from(description)
       : Buffer.from(JSON.stringify(description), 'utf8');
-  validateApplicationUpdateDescription(parseStrictJson(payload));
+  validateApplicationUpdateDescription(
+    parseStrictJson(payload, APPLICATION_UPDATE.maxPayloadBytes, {
+      canonicalIntegers: true,
+    }),
+  );
   let key;
   try {
     key =
@@ -331,7 +340,9 @@ export function verifyApplicationUpdate(
 ) {
   const envelope =
     typeof envelopeInput === 'string' || Buffer.isBuffer(envelopeInput)
-      ? parseStrictJson(envelopeInput, APPLICATION_UPDATE.maxEnvelopeBytes)
+      ? parseStrictJson(envelopeInput, APPLICATION_UPDATE.maxEnvelopeBytes, {
+          canonicalIntegers: true,
+        })
       : envelopeInput;
   fields(
     envelope,
@@ -371,7 +382,9 @@ export function verifyApplicationUpdate(
     reject('invalid-signature');
   // Parse only authenticated original bytes; never serialize before VerifyData.
   const description = validateApplicationUpdateDescription(
-    parseStrictJson(payload),
+    parseStrictJson(payload, APPLICATION_UPDATE.maxPayloadBytes, {
+      canonicalIntegers: true,
+    }),
   );
   return {
     description,
@@ -425,7 +438,9 @@ export function extractApplicationUpdate(body) {
     'invalid-envelope-base64',
   );
   return {
-    envelope: parseStrictJson(bytes, APPLICATION_UPDATE.maxEnvelopeBytes),
+    envelope: parseStrictJson(bytes, APPLICATION_UPDATE.maxEnvelopeBytes, {
+      canonicalIntegers: true,
+    }),
     notes: (
       text.slice(0, match.index) + text.slice(match.index + match[0].length)
     ).trim(),

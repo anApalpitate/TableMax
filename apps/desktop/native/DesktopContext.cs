@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
 using Microsoft.Web.WebView2.Core;
+using TableMax.Installation;
 
 namespace TableMax.Desktop
 {
@@ -38,6 +39,9 @@ namespace TableMax.Desktop
         private readonly object outputLock = new object();
         private readonly Dictionary<int, Process> browserProcesses = new Dictionary<int, Process>();
         private TaskCompletionSource<bool> browserReleased = new TaskCompletionSource<bool>();
+        private readonly InstallationManifest installation;
+        private InstallationSession installationSession;
+        private ApplicationUpdate updates;
         public string DataDirectory { get; }
         public TableMax.Portable.StorageConfiguration Storage { get; }
         public bool Testing { get; }
@@ -49,9 +53,10 @@ namespace TableMax.Desktop
         public CoreWebView2Environment Environment { get; private set; }
         public DisplaySettingsStore Displays { get; }
 
-        public DesktopContext(string dataDirectory, string[] arguments, bool testing, bool checking, EventWaitHandle reopenEvent, TableMax.Portable.StorageConfiguration storage)
+        public DesktopContext(string dataDirectory, string[] arguments, bool testing, bool checking, EventWaitHandle reopenEvent, TableMax.Portable.StorageConfiguration storage, InstallationManifest installation = null)
         {
             Storage = storage; DataDirectory = dataDirectory; this.arguments = arguments; Testing = testing; Checking = checking;
+            this.installation = installation;
             Displays = new DisplaySettingsStore(dataDirectory);
             dispatch.CreateControl();
             reopen = ThreadPool.RegisterWaitForSingleObject(reopenEvent, (_, __) => Post(async () => { await ShowHost(); }), null, Timeout.Infinite, false);
@@ -65,6 +70,11 @@ namespace TableMax.Desktop
         }
         private async Task Start()
         {
+            var healthPipe = System.Environment.GetEnvironmentVariable("TABLEMAX_INSTALLATION_HEALTH_PIPE");
+            var healthToken = System.Environment.GetEnvironmentVariable("TABLEMAX_INSTALLATION_HEALTH_TOKEN");
+            System.Environment.SetEnvironmentVariable("TABLEMAX_INSTALLATION_HEALTH_PIPE", null);
+            System.Environment.SetEnvironmentVariable("TABLEMAX_INSTALLATION_HEALTH_TOKEN", null);
+            updates = new ApplicationUpdate(installation, Testing, PrepareUpdate, () => Post(async () => await Quit()), UpdateStopped, value => Post(() => { foreach (var window in windows.ToArray()) if (!window.IsDisposed && window.Managed && window.Role == "host") window.Changed("update", value); }));
             // Shared runtime, cache location and production debug policy belong to
             // the application; inherited development overrides must not change them.
             foreach (string name in System.Environment.GetEnvironmentVariables().Keys)
@@ -141,6 +151,12 @@ namespace TableMax.Desktop
             EnsureServiceAlive();
             booting = false;
             UpdatePower();
+            if (installation != null)
+            {
+                if (service == null || service.CurrentMappingSha256 != installation.currentMappingSha256) throw new IOException("安装游戏映射与本地服务不匹配。");
+                await InstallationSession.ConfirmHealth(installation, DataDirectory, service.CurrentMappingSha256, health, service.Id, healthPipe, healthToken);
+                installationSession = new InstallationSession(installation, InstallationControl, () => Post(async () => await Quit()));
+            }
             if (Checking)
             {
                 File.WriteAllText(Path.Combine(DataDirectory, "desktop-check.json"), Json.Encode(new { health, servicePid = service?.Id ?? 0, desktopPid = Process.GetCurrentProcess().Id, packaged = IsPackaged, cdpPort = CdpPort }));
@@ -232,6 +248,13 @@ namespace TableMax.Desktop
             if (parameters == null) throw new ArgumentException("桌面请求参数无效。");
             switch (method)
             {
+                case "update.read": case "update.check": case "update.download": case "update.cancel": case "update.apply":
+                    if (window.Role != "host" || parameters.Length != 0 || updates == null) throw new UnauthorizedAccessException("仅本机 TableMax 主机可以管理程序更新。");
+                    if (method == "update.read") return updates.Read();
+                    if (method == "update.check") return updates.Check();
+                    if (method == "update.download") return updates.Download();
+                    if (method == "update.cancel") return updates.Cancel();
+                    return updates.Apply();
                 case "window.read":
                     if (parameters.Length != 0) throw new ArgumentException("Invalid window request.");
                     return window.WindowSnapshot();
@@ -310,10 +333,60 @@ namespace TableMax.Desktop
             if (!Background && !(cause is MissingRuntimeException)) MessageBox.Show(detail, "TableMax 启动失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
             await Quit();
         }
+        private async Task<bool> PrepareUpdate()
+        {
+            if (quitting || service == null) return false;
+            Dictionary<string, object> result;
+            try { result = await service.InstallationRequest(true); }
+            catch (Exception)
+            {
+                UpdateStopped("更新已停止：保存关闭结果未获确认。请检查日志后重新打开 TableMax；未启动安装器，原数据和更新候选已保留。");
+                throw;
+            }
+            if (!Json.Bool(result, "allowed")) return false;
+            if (Json.String(result, "status") != "drained" || Json.String(result, "currentMappingSha256") != installation?.currentMappingSha256)
+            {
+                const string message = "更新已停止：保存关闭失败。请检查数据目录权限和剩余空间，再重新打开 TableMax；原存档与更新候选已保留。";
+                UpdateStopped(message); throw new IOException(message);
+            }
+            var stopped = await service.Stop();
+            if (!stopped.Confirmed)
+            {
+                const string message = "更新已停止：本地服务没有确认正常退出。请检查日志后重新打开 TableMax；未运行新版安装器。";
+                UpdateStopped(message); throw new IOException(message);
+            }
+            return true;
+        }
+        private void UpdateStopped(string message)
+        {
+            Program.ExitCode = 1; Log(message);
+            if (!Background) MessageBox.Show(message, "TableMax 程序操作已停止", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Post(async () => await Quit());
+        }
+        private Task<object> InstallationControl(string operation)
+        {
+            var result = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
+            Post(async () =>
+            {
+                try
+                {
+                    var confirmed = false;
+                    if (operation == "update") confirmed = await PrepareUpdate();
+                    else if (operation == "uninstall")
+                    {
+                        confirmed = service != null && (await service.Stop()).Confirmed;
+                        if (!confirmed) UpdateStopped("卸载已停止：本地服务没有确认正常保存退出。请检查日志后重新打开 TableMax；程序和原存档已保留。");
+                    }
+                    result.TrySetResult(new Dictionary<string, object> { ["schemaVersion"] = 1, ["installationId"] = installation.installationId, ["root"] = installation.root, ["desktopPid"] = Process.GetCurrentProcess().Id, ["confirmed"] = confirmed, ["running"] = !quitting });
+                }
+                catch (Exception) { result.TrySetResult(new Dictionary<string, object> { ["schemaVersion"] = 1, ["installationId"] = installation.installationId, ["root"] = installation.root, ["desktopPid"] = Process.GetCurrentProcess().Id, ["confirmed"] = false, ["running"] = !quitting }); }
+            });
+            return result.Task;
+        }
         public async Task Quit()
         {
             if (quitting) return;
-            quitting = true; UpdatePower();
+            quitting = true; updates?.Dispose(); UpdatePower();
             try
             {
                 CaptureBrowserProcesses();
@@ -376,6 +449,7 @@ namespace TableMax.Desktop
                     if (!process.HasExited)
                     {
                         Log("WebView2 shutdown timeout; stopping owned process " + process.Id + ".");
+                        Program.ExitCode = 1;
                         try { process.Kill(); }
                         catch (InvalidOperationException) { }
                         catch (Exception cause) { Log("WebView2 terminate: " + cause.Message); Program.ExitCode = 1; }
@@ -444,7 +518,7 @@ namespace TableMax.Desktop
         public static object RectangleValue(System.Drawing.Rectangle rectangle) => new { x = rectangle.X, y = rectangle.Y, width = rectangle.Width, height = rectangle.Height };
         protected override void Dispose(bool disposing)
         {
-            if (disposing) { reopen.Unregister(null); SystemEvents.PowerModeChanged -= OnPowerModeChanged; SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged; service?.Dispose(); dispatch.Dispose(); }
+            if (disposing) { installationSession?.Dispose(); updates?.Dispose(); reopen.Unregister(null); SystemEvents.PowerModeChanged -= OnPowerModeChanged; SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged; service?.Dispose(); dispatch.Dispose(); }
             base.Dispose(disposing);
         }
     }

@@ -12,15 +12,19 @@
     audio: new Set(),
     window: new Set(),
     'interaction-audio': new Set(),
+    update: new Set(),
   };
   let sequence = 0;
   function request(method, params) {
     const id = ++sequence;
     return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        pending.delete(id);
-        reject(new Error('TableMax 桌面请求超时。'));
-      }, 10000);
+      const timer = setTimeout(
+        () => {
+          pending.delete(id);
+          reject(new Error('TableMax 桌面请求超时。'));
+        },
+        method.startsWith('update.') ? 30000 : 10000,
+      );
       pending.set(id, { resolve, reject, timer });
       window.chrome.webview.postMessage({ id, method, params });
     });
@@ -51,6 +55,17 @@
       subscribe: (listener) => subscribe('display', listener),
     }),
   });
+  if (__UPDATE_ALLOWED__)
+    Object.defineProperty(window, 'tablemaxUpdate', {
+      value: Object.freeze({
+        read: (...args) => request('update.read', args),
+        check: (...args) => request('update.check', args),
+        download: (...args) => request('update.download', args),
+        cancel: (...args) => request('update.cancel', args),
+        apply: (...args) => request('update.apply', args),
+        subscribe: (listener) => subscribe('update', listener),
+      }),
+    });
   Object.defineProperty(window, 'tablemaxWindow', {
     value: Object.freeze({
       read: (...args) => request('window.read', args),

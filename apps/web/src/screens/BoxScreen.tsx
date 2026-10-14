@@ -32,6 +32,7 @@ import type { RoomSession } from '../session/useRoomSession';
 import { useDeviceTransfer } from '../session/useDeviceTransfer';
 import { DeviceTransfer } from '../components/DeviceTransfer';
 import { RepositoryLink } from '../components/RepositoryLink';
+import { ApplicationUpdate } from '../components/ApplicationUpdate';
 import { feedbackText } from '../content/feedback';
 import { navigate } from '../navigation';
 import { useSeatRemoval } from '../components/useSeatRemoval';
@@ -145,6 +146,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           TableMax
         </RepositoryLink>
         <div className="header-status">
+          {isHost && <ApplicationUpdate playing={view?.status === 'playing'} />}
           {(isHost || details?.guidance) && (
             <CountdownSettings session={session}>
               {details?.guidance && (

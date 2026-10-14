@@ -129,7 +129,7 @@ namespace TableMax.Desktop
             browser.ZoomFactorChanged += (_, __) => { if (!applyingDisplay && Managed) ApplyDisplay(); };
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("TableMax.Desktop.Bridge.js"))
             using (var reader = new StreamReader(stream))
-                await core.AddScriptToExecuteOnDocumentCreatedAsync(reader.ReadToEnd().Replace("__WINDOW_ID__", Id.ToString()).Replace("__MANAGED__", Managed ? "true" : "false").Replace("__TESTING__", context.Testing ? "true" : "false"));
+                await core.AddScriptToExecuteOnDocumentCreatedAsync(reader.ReadToEnd().Replace("__WINDOW_ID__", Id.ToString()).Replace("__MANAGED__", Managed ? "true" : "false").Replace("__TESTING__", context.Testing ? "true" : "false").Replace("__UPDATE_ALLOWED__", Managed && Role == "host" ? "true" : "false"));
             var loaded = new TaskCompletionSource<bool>();
             EventHandler<CoreWebView2NavigationCompletedEventArgs> load = null;
             load = (_, args) =>
@@ -152,7 +152,7 @@ namespace TableMax.Desktop
             if (Role == "public" && Managed && !context.Background && Screen.AllScreens.Length > 1) ToggleFullscreen();
             ApplyDisplay();
         }
-        private void OnWebMessage(object sender, CoreWebView2WebMessageReceivedEventArgs args)
+        private async void OnWebMessage(object sender, CoreWebView2WebMessageReceivedEventArgs args)
         {
             if (!Managed || IsDisposed) return;
             if (context.Testing)
@@ -168,6 +168,8 @@ namespace TableMax.Desktop
                 id = Json.Value(message, "id");
                 if (!(id is int sequence) || sequence < 1 || message.Count != 3) throw new ArgumentException("桌面请求无效。");
                 var result = context.Bridge(this, message, args.Source);
+                if (result is Task<object> asynchronous) result = await asynchronous;
+                if (IsDisposed || browser.CoreWebView2 == null) return;
                 browser.CoreWebView2.PostWebMessageAsJson(Json.Encode(new { id, result }));
             }
             catch (Exception cause)
