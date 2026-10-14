@@ -321,7 +321,12 @@ namespace TableMax.Desktop
                     try { window.Close(); }
                     catch (Exception cause) { Log("Window shutdown: " + cause.Message); try { window.Dispose(); } catch (Exception cleanup) { Log("Window dispose: " + cleanup.Message); } }
                 if (service != null)
-                    try { await service.Stop(); }
+                    try
+                    {
+                        var stopped = await service.Stop();
+                        Log("Service shutdown: " + stopped.Status);
+                        if (!stopped.Confirmed && stopped.Status != "not-started") Program.ExitCode = 1;
+                    }
                     catch (Exception cause) { Log("Service shutdown: " + cause.Message); Program.ExitCode = 1; }
                     finally { service.Dispose(); service = null; }
             }

@@ -211,3 +211,19 @@ node tools/test/games/power-grid/verify-power-grid-ui.mjs --maintenance=power-gr
 # 三游戏 PNG→WebP，无损并逐像素核验；按需加 --game=power-grid 等限定
 python tools/assets/rules/compress-rule-captures.py --report=artifacts/maintenance/v1.0.2/shared-visual-20261004/rules-compression.json
 ```
+
+## 保存关闭屏障与隔离底座
+
+- [installation-fixture.mjs](support/installation-fixture.mjs)：仅文件系统形状、路径边界及前后SHA状态，绝不安装程序或登记系统入口。其[回归](support/installation-fixture.test.mjs)用 Node --test，登记 tooling。
+- [verify-service-stop.mjs](desktop/verify-service-stop.mjs)：使用[原生C#夹具](support/service-stop-harness.cs)和[私有子服务夹具](support/service-stop-child.mjs)，编译实际ServiceProcess、验证8种关闭状态并接入当前源码服务＋SQLite；登记 shared,tooling。固定SDK／net48引用与Node缓存，不生成发布密钥或完整EXE。动态夹具不缓存。
+- [verify-shutdown.mjs](desktop/verify-shutdown.mjs)支持 --native 与 --server 两份相互匹配的候选目录；报告分别绑定原完整EXE来源和候选哈希，不能把候选覆盖视为新完整EXE通过。
+
+```powershell
+node tools/test/runner/test-scoped.mjs --scope=shared packages/platform-core/src/room-shutdown.test.ts
+node tools/test/runner/test-scoped.mjs --scope=shared apps/server/src/service-shutdown.test.ts
+node --test tools/test/support/installation-fixture.test.mjs
+node tools/test/desktop/verify-service-stop.mjs
+node tools/test/desktop/verify-shutdown.mjs --native=<已编译原生目录> --server=<同源服务目录>
+```
+
+批次沿用version2计划，Node／Vitest文件逐项登记与筛选；中文空格及Junction拒绝在受管临时根验证。系统临时目录权限或缓存不可靠时，只给该隔离测试进程设置工程内TEMP／TMP，不改用户全局环境。源码、实际进程与安装／上线边界见[验证规格](../../docs/reference/validation.md#保存关闭与安装隔离底座2026-10-15)。

@@ -1,4 +1,5 @@
 export { RoomCoordinator, token, hash } from './room';
+export type { RoomShutdownStatus } from './room';
 export { BotScheduler } from './bot-scheduler';
 export type { BotExecutor } from './bot-scheduler';
 export { RandomSource } from './random';

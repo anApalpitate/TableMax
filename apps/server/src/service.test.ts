@@ -4,17 +4,21 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createService } from './service';
 import { createConnection } from 'node:net';
+import { GameRegistry } from '@tablemax/platform-core';
 
 it('serves role routes, rejects unknown APIs, and keeps data paths private', async () => {
   const webDir = mkdtempSync(join(tmpdir(), 'tablemax-web-'));
   const dataDir = mkdtempSync(join(tmpdir(), 'tablemax-service-'));
   writeFileSync(join(webDir, 'index.html'), '<html>local fixture</html>');
-  const service = await createService({
-    host: '127.0.0.1',
-    port: 0,
-    webDir,
-    dataDir,
-  });
+  const service = await createService(
+    {
+      host: '127.0.0.1',
+      port: 0,
+      webDir,
+      dataDir,
+    },
+    new GameRegistry([]),
+  );
   try {
     const health = await service.app.inject('/api/foundation/health');
     expect(health.statusCode).toBe(200);
@@ -77,12 +81,15 @@ it('closes the service with an unfinished offline phone request and records clea
   const webDir = mkdtempSync(join(tmpdir(), 'tablemax-web-'));
   const dataDir = mkdtempSync(join(tmpdir(), 'tablemax-service-'));
   writeFileSync(join(webDir, 'index.html'), '<html>local fixture</html>');
-  const service = await createService({
-    host: '127.0.0.1',
-    port: 0,
-    webDir,
-    dataDir,
-  });
+  const service = await createService(
+    {
+      host: '127.0.0.1',
+      port: 0,
+      webDir,
+      dataDir,
+    },
+    new GameRegistry([]),
+  );
   const port = await service.listen();
   const socket = createConnection({ host: '127.0.0.1', port });
   let timer: ReturnType<typeof setTimeout> | undefined;

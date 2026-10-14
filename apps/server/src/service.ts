@@ -306,6 +306,8 @@ export async function createService(
   );
   let connectedSeats = online();
   let closing = false;
+  let shutdown: ReturnType<RoomCoordinator['beginShutdown']> | undefined;
+  let closed: ReturnType<RoomCoordinator['beginShutdown']> | undefined;
   const broadcast = (feedback?: RoomFeedback, savedAt?: number) => {
     if (closing) return;
     const startedAt = performance.now();
@@ -356,6 +358,22 @@ export async function createService(
   const unsubscribePackages = packages?.subscribe(() => {
     registry.refresh(createGameRegistry(false, packages).registrations());
     broadcast();
+  });
+  const beginShutdown = () => {
+    if (!shutdown) {
+      closing = true;
+      shutdown = room.beginShutdown();
+      scheduler.stop();
+      projections.dispose();
+      interactions.dispose();
+      unsubscribe();
+      unsubscribePackages?.();
+    }
+    return shutdown;
+  };
+  app.addHook('preHandler', async (request, reply) => {
+    if (closing && !['GET', 'HEAD', 'OPTIONS'].includes(request.method))
+      return reply.code(503).send({ ok: false, reason: 'service-closing' });
   });
   app.post('/api/session/transfer/request', async (request, reply) => {
     const parsed = TransferRequestSchema.safeParse(request.body);
@@ -650,19 +668,18 @@ export async function createService(
   });
 
   app.addHook('preClose', async () => {
-    closing = true;
-    projections.dispose();
-    interactions.dispose();
-    scheduler.stop();
-    unsubscribe();
-    unsubscribePackages?.();
+    await beginShutdown();
     // Disconnect clients without calling io.close(), which also closes HTTP.
     sockets.disconnectSockets(true);
     sockets.engine.close();
   });
   app.addHook('onClose', async () => {
-    repository.close();
-    storage.close();
+    await beginShutdown();
+    try {
+      repository.close();
+    } finally {
+      storage.close();
+    }
     log('service-stopped');
   });
 
@@ -698,6 +715,12 @@ export async function createService(
       log('service-ready');
       return (app.server.address() as { port: number }).port;
     },
-    close: () => app.close(),
+    close() {
+      if (!closed) {
+        const draining = beginShutdown();
+        closed = app.close().then(() => draining);
+      }
+      return closed;
+    },
   };
 }

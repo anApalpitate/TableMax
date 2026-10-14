@@ -29,6 +29,7 @@
     "stale-instance": "新的大局已经准备好，请按当前牌桌重新操作。",
     "unsupported-bot-difficulty": "当前游戏不支持这个人机等级。",
     "save-or-action-failed": "操作未确认保存，请检查本地存储后重试。",
+    "service-closing": "服务正在关闭，请稍后重新连接。",
     "illegal-action": "选择无效，请重新同步。",
     "game-not-in-current-executable": "此游戏仅可继续旧对局，请在游戏库选择当前完整程序提供的游戏。",
     "missing-game-release": "旧对局所需原游戏版本缺失，请使用包含原版本的旧完整 EXE。"

@@ -4,6 +4,7 @@ import type { ServiceConfig } from '@tablemax/protocol';
 import { join } from 'node:path';
 import { writeSync } from 'node:fs';
 import { DesktopPipe, DesktopPipeError } from './desktop-pipe';
+import type { RoomShutdownStatus } from '@tablemax/platform-core';
 
 interface ParentPort {
   on(event: 'message', callback: (event: { data: unknown }) => void): void;
@@ -15,7 +16,7 @@ const privatePipe = process.argv.includes('--desktop-pipe');
 let pipe: DesktopPipe | undefined;
 let service: Awaited<ReturnType<typeof createService>> | undefined;
 let startup: Promise<void> | undefined;
-let closing: Promise<void> | undefined;
+let closing: Promise<RoomShutdownStatus> | undefined;
 let stopping = false;
 let failing = false;
 
@@ -59,15 +60,20 @@ function begin(config: ServiceConfig) {
 
 async function close() {
   await startup?.catch(() => undefined);
-  closing ??= service?.close() ?? Promise.resolve();
-  await closing;
+  closing ??= service?.close() ?? Promise.resolve('drained');
+  return closing;
 }
 
 async function stop() {
   if (stopping) return;
   stopping = true;
-  await close();
-  if (!failing) process.exit(0);
+  const status = await close();
+  if (!failing) {
+    const confirmation = { type: 'stopped', status };
+    if (startup && pipe) await pipe.send(confirmation);
+    else if (startup) parentPort?.postMessage(confirmation);
+    process.exit(status === 'drained' ? 0 : 1);
+  }
 }
 
 function safeError(error: unknown) {

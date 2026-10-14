@@ -2,13 +2,17 @@ import { build } from 'esbuild';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 /** Real independent rules/strategies for a standalone service test directory. */
-export async function prepareModuleFixture(directory: string) {
+export async function prepareModuleFixture(
+  directory: string,
+  gameIds?: readonly string[],
+) {
   const modules = [];
   const entryPoints: Record<string, string> = {};
   for (const entry of await readdir(resolve('games'), {
     withFileTypes: true,
   })) {
     if (!entry.isDirectory()) continue;
+    if (gameIds && !gameIds.includes(entry.name)) continue;
     let item;
     try {
       item = JSON.parse(

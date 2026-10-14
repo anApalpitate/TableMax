@@ -9,8 +9,7 @@ import {
   rmSync,
   writeFileSync,
 } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join, resolve, dirname, basename } from 'node:path';
 import { createInterface } from 'node:readline';
 import { createServer } from 'node:net';
 import { DatabaseSync } from 'node:sqlite';
@@ -23,13 +22,14 @@ import {
   type RoomView,
 } from '@tablemax/protocol';
 
-const directory = mkdtempSync(join(tmpdir(), 'tablemax-entry-'));
+mkdirSync(resolve('tmp'), { recursive: true });
+const directory = mkdtempSync(resolve('tmp/entry-verify-'));
 const bundle = join(directory, 'server.cjs');
 const children: ChildProcessWithoutNullStreams[] = [];
 let fixtureCount = 0;
 
 beforeAll(async () => {
-  await prepareModuleFixture(directory);
+  await prepareModuleFixture(directory, ['pokemon-encounters']);
   await build({
     entryPoints: [resolve('apps/server/src/entry.ts')],
     outfile: bundle,
@@ -54,7 +54,14 @@ afterEach(async () => {
   );
 });
 
-afterAll(() => rmSync(directory, { recursive: true, force: true }));
+afterAll(() => {
+  if (
+    dirname(resolve(directory)) !== resolve('tmp') ||
+    !basename(directory).startsWith('entry-verify-')
+  )
+    throw new Error('Unsafe entry fixture cleanup');
+  rmSync(directory, { recursive: true, force: true });
+});
 
 function configuration(): ServiceConfig {
   const dataDir = join(directory, `data-${fixtureCount++}`);
@@ -219,9 +226,22 @@ it.each(['stop', 'eof'] as const)(
     if (method === 'stop') running.send({ type: 'stop' });
     else running.child.stdin.end();
     expect(await running.exited).toBe(0);
-    // Windows can deliver pipe EOF after the ready write has already flushed.
-    expect(running.messages.length).toBeLessThanOrEqual(1);
-    for (const message of running.messages) ServiceReadySchema.parse(message);
+    // Windows can deliver pipe EOF after ready has flushed. A configured
+    // service must then confirm its drained database close exactly once.
+    const confirmations: unknown[] = running.messages.filter(
+      (message) =>
+        typeof message === 'object' &&
+        message !== null &&
+        'type' in message &&
+        message.type === 'stopped',
+    );
+    expect(confirmations).toEqual([{ type: 'stopped', status: 'drained' }]);
+    expect(running.messages.at(-1)).toEqual(confirmations[0]);
+    const readiness = running.messages.filter(
+      (message) => !confirmations.includes(message),
+    );
+    expect(readiness.length).toBeLessThanOrEqual(1);
+    for (const message of readiness) ServiceReadySchema.parse(message);
     expect(
       readFileSync(join(config.dataDir, 'logs/service.log'), 'utf8'),
     ).toContain('service-stopped');
@@ -401,14 +421,18 @@ it('reports synchronous legacy migration progress over the private pipe before r
   await expect
     .poll(
       () =>
-        running.messages.some(
-          (value) => (value as { type?: string }).type === 'ready',
+        running.messages.some((value) =>
+          ['ready', 'error'].includes((value as { type?: string }).type ?? ''),
         ),
       { timeout: 5000 },
     )
     .toBe(true);
+  const failure = running.messages.find(
+    (value) => (value as { type?: string }).type === 'error',
+  );
+  if (failure) throw new Error('Migration startup: ' + JSON.stringify(failure));
   const ready = ServiceReadySchema.parse(running.messages.at(-1));
   expect(running.output().stderr).not.toContain(ready.hostToken);
   running.send({ type: 'stop' });
   expect(await running.exited).toBe(0);
-});
+}, 15000);

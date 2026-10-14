@@ -42,6 +42,7 @@ export const hash = (value: string) =>
 export type Identity =
   { role: 'public' } | { role: 'host' } | { role: 'player'; seatId: string };
 type AvatarImage = { id: AvatarId; png: Uint8Array };
+export type RoomShutdownStatus = 'drained' | 'save-failed';
 type TrackedCommand = {
   fingerprint: string;
   promise: Promise<CommandReply>;
@@ -83,6 +84,9 @@ function copySave(data: Save): Save {
 export class RoomCoordinator {
   private data: Save;
   private queue: Promise<unknown> = Promise.resolve();
+  private closing = false;
+  private shutdown?: Promise<RoomShutdownStatus>;
+  private persistenceFailed = false;
   private listeners = new Set<
     (feedback?: RoomFeedback, savedAt?: number) => void
   >();
@@ -310,7 +314,7 @@ export class RoomCoordinator {
       next.revision++;
       next.branch++;
       synchronizeDecisionClocks(next, next, game.rules, Date.now(), true);
-      this.repository.save(next);
+      this.persist(next);
       this.data = next;
       this.game = game;
       this.missingRelease = null;
@@ -432,9 +436,31 @@ export class RoomCoordinator {
     }
   }
   private enqueue<T>(operation: () => T | Promise<T>): Promise<T> {
+    if (this.closing) return Promise.reject(new Rejection('service-closing'));
     const pending = this.queue.then(operation);
     this.queue = pending.catch(() => undefined);
     return pending;
+  }
+  /** Close admission synchronously; admitted operations retain their queue order. */
+  beginShutdown(): Promise<RoomShutdownStatus> {
+    if (!this.shutdown) {
+      this.closing = true;
+      this.shutdown = this.queue.then(() =>
+        this.persistenceFailed ? 'save-failed' : 'drained',
+      );
+    }
+    return this.shutdown;
+  }
+  private persist(value: Save, extras?: SaveExtras) {
+    try {
+      this.repository.save(value, extras);
+      // A successful later action can recover a prior storage failure while open.
+      // During shutdown, any failed admitted write prevents a clean handoff.
+      if (!this.closing) this.persistenceFailed = false;
+    } catch (error) {
+      this.persistenceFailed = true;
+      throw error;
+    }
   }
   private commit(
     next: Save,
@@ -445,7 +471,7 @@ export class RoomCoordinator {
   ) {
     requireThat(!this.missingRelease, 'missing-game-release');
     synchronizeDecisionClocks(next, this.data, game?.rules ?? null, Date.now());
-    this.repository.save(next, extras);
+    this.persist(next, extras);
     const savedAt = performance.now();
     this.data = next;
     this.game = game;
@@ -875,6 +901,7 @@ export class RoomCoordinator {
     image?: AvatarImage,
   ): Promise<CommandReply> {
     try {
+      requireThat(!this.closing, 'service-closing');
       const parsed = CommandSchema.safeParse(input);
       requireThat(parsed.success, 'invalid-message');
       const envelope = parsed.data;
@@ -1499,7 +1526,7 @@ export class RoomCoordinator {
     return reply;
   }
   get botPaused() {
-    return this.data.paused;
+    return this.closing || this.data.paused;
   }
   botTasks() {
     const first = this.botTask();

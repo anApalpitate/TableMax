@@ -4,10 +4,14 @@ import { join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { launchDesktop } from '../support/desktop-test.mjs';
 import { assertWorkspaceRoot } from '../../shared/workspace-root.mjs';
+import { createHash } from 'node:crypto';
 
 assertWorkspaceRoot();
 const native = process.argv
   .find((arg) => arg.startsWith('--native='))
+  ?.slice(9);
+const server = process.argv
+  .find((arg) => arg.startsWith('--server='))
   ?.slice(9);
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/desktop-verify-'));
@@ -48,6 +52,9 @@ async function prepare() {
       'Microsoft.Web.WebView2.WinForms.dll',
     ])
       await cp(join(resolve(native), name), join(app, name));
+  if (server)
+    for (const name of ['server.cjs', 'server.cjs.br'])
+      await cp(join(resolve(server), name), join(app, name));
 }
 try {
   await prepare();
@@ -137,6 +144,22 @@ try {
         result: failure ? 'failed' : 'passed',
         work,
         native: native ? resolve(native) : null,
+        server: server ? resolve(server) : null,
+        candidateFiles: await Promise.all(
+          [
+            ...(native ? [join(resolve(native), 'TableMax.exe')] : []),
+            ...(server
+              ? ['server.cjs', 'server.cjs.br'].map((name) =>
+                  join(resolve(server), name),
+                )
+              : []),
+          ].map(async (path) => ({
+            path,
+            sha256: createHash('sha256')
+              .update(await readFile(path))
+              .digest('hex'),
+          })),
+        ),
         source,
         checks,
         failure,
