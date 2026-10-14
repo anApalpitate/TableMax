@@ -6,6 +6,8 @@
 | 按任务范围检查、内容证据复用与测试历史 | [验证](validation.md)                  | [test](../../tools/test/README.md)                                                                               |
 | 产物生命周期、安全清理与透明压缩       | [工作区维护](workspace-maintenance.md) | [maintenance](../../tools/maintenance/README.md)                                                                 |
 
+完整程序安装改造的运行目录与事务契约见[构建与运行](build-and-run.md#windows-安装与整个程序更新)，生产签名、候选封包与正式推广门禁见[Release流程](release.md#完整安装器与免费应用签名2026-10-15)，真实系统链与静态／fixture证据的区别见[验证](validation.md)。当前便携1.0.6.10与待验候选1.0.6.13分别记录在[验收](acceptance.md)，旧入口不能直接当作installer命令。
+
 先读相关章节；`pnpm docs:read docs/reference/validation.md --outline`列标题，再用`--heading=原标题`定向读取。默认8KiB，MORE提示提供续读cursor。旧锚点如下，只做兼容导航。
 
 ## 唯一完整 EXE 交付（2026-10-12）

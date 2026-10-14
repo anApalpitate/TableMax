@@ -2,6 +2,8 @@
 
 `pnpm package:win`增量构建并导出预装全部正式游戏与玩法的唯一完整EXE和本地清单；`pnpm package:release`只重新封装当前已验证内部载荷，不分配新修订号。`--edition`已退役并明确拒绝，部分游戏载荷不能交付。EXE在 `artifacts/releases/`，内部payload ZIP、manifest和当前指针在 `artifacts/package-payloads/`；内部ZIP不是用户下载包。
 
+截至2026-10-15，current仍为原便携完整1.0.6.10；安装候选1.0.6.13已封，EXE SHA `c45d0055d2f68e469dd432a56ec44cc373cdd7e48ff04c525bfce85c7a42b6df`，使用[独立冻结delivery](../../artifacts/package-payloads/v1.0.6/4e4f4f05f0a9-GUFTiZ/full/installer-delivery.json)。源码检查点 `3c01d0b`、候选闭包9项、实际内置生产根.NET互操作和向导取消的精确范围见[验收记录](../../docs/reference/acceptance.md#10613安装候选与专项证据2026-10-15)。实际干净标准用户首装／复装／快捷方式／默认卸载／完整首启动体积，以及不同PE Apply／helper升级仍待验；未推广current或发布。本页命令为接续说明，文档更新不执行封包、安装或推广。
+
 新安装器先用 `--candidate` 封包：正常新构建原子分配四位修订，失败编号不复用，但保留已有 `current.json`。stdout 返回 `candidatePath`；该记录冻结候选交付和原 current 的原始 SHA，同目录 `full/installer-delivery.json` 供描述生成及实际安装验收。`--platform-from` 按原快照身份及游戏缓存逐成员 SHA 保留正式游戏，只刷新当前平台和组装器并生成新快照、新修订；`--snapshot` 则恢复原冻结快照，不分配新修订。
 
 从原正式 `1.0.6.10` 游戏快照构建平台更新候选的命令如下。任务期间关闭逐项自动维护，结束后由主任务统一运行安全维护。
@@ -21,13 +23,13 @@ $env:TABLEMAX_APPLICATION_UPDATE_PRIVATE_KEY_FILE = 'secrets/application-update/
 node tools/release/sign-application-update.mjs "--description=<新描述.json>" "--notes=<已审人类说明.md>" "--out=<新完整正文.md>" "--envelope-out=<新签名JSON>"
 ```
 
-`installation-promote` 只接受同一候选的正式产品 GUID 完整证明：真实干净标准 Windows 账户的首装、同包重复安装、登记与快捷方式、完整首启动体积、默认卸载、卸载后保留 runtime 精确副本，以及新账户／profile 清理成功的原始报告。隔离标志、测试 GUID、仅 helper 健康或 `--keep-installed` 诊断均不能替代此证明。候选冻结后原 current 的 SHA 必须仍匹配；通过通用验收门禁后才原子切换，不再分配修订。
+`installation-promote` 只接受同一候选的正式产品 GUID 完整证明：真实干净标准 Windows 账户的首装、同包重复安装、登记与快捷方式、完整首启动体积、默认卸载、卸载后保留 runtime 精确副本，以及新账户／profile 清理成功的原始报告。容量须包含当前必需G物化、helper及框架卸载文件，不能用程序暂存替代。隔离标志、测试 GUID、仅 helper 健康、只读闭包、向导取消或 `--keep-installed` 诊断均不能替代此证明；不同PE实际更新另须真实Apply链。候选冻结后原 current 的 SHA 必须仍匹配；完整验收通过后，按已授权完整交付范围原子切换，不再分配修订。
 
 ```powershell
 node tools/release/installation-promote.mjs "--candidate=<封包输出candidatePath>" "--proof=<最终正式proof.json>"
 ```
 
-签名、切换 current 和本地验收不代表发布授权；任何最终 EXE 字节变化都需重新计算 SHA、重做对应验收与签名描述。正式账户验证权限及发布条件见[完整交付验收](../../docs/reference/acceptance.md)与[Release 流程](../../docs/reference/release.md)。
+签名、切换 current 和本地验收不代表发布授权；任何最终 EXE 字节变化都需重新计算 SHA、重做对应验收与签名描述。正式账户操作尚待用户单独授权，不能仅声明环境隔离。正式账户验证权限及发布条件见[完整交付验收](../../docs/reference/acceptance.md)与[Release 流程](../../docs/reference/release.md)。本轮[一次安全维护](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/result.json)已经结束，后续文档操作不追加维护。
 
 前置条件是锁定工具链、有效预算、冻结输入和全部正式模块完整性。游戏仍独立组织、增量构建，内部签名模块按字节变化复用或生成；正式模板不计入当前游戏库。独立游戏导出、Pages准备／部署和安装型作者工具包导出已停止，保留文件仅说明内部实现或历史验证边界。
 

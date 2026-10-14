@@ -2,13 +2,27 @@
 
 ## 唯一完整 EXE 交付（2026-10-12）
 
-Windows以完整EXE交付全部正式游戏，模块职责与增量构建继续独立。服务在打开房间前验证本地预装载荷，建立当前发行映射；旧索引仅供精确原局恢复，不参与新局默认选择。安装管理API与原生选包桥接撤除，按精确引用读取网页、详情、样式和媒体的只读接口保留。`game.restoreOnly`由运行状态计算，不进入存档或改变身份权限。交付和恢复边界见[Release流程](release.md#唯一完整-exe-交付2026-10-12)。
+Windows以完整EXE交付全部正式游戏，模块职责与增量构建继续独立。服务在打开房间前验证本地预装载荷，建立当前发行映射；旧索引仅供精确原局恢复，不参与新局默认选择。独立游戏安装管理API与原生选包桥接撤除，按精确引用读取网页、详情、样式和媒体的只读接口保留；整个程序的安装、卸载与更新见下文。`game.restoreOnly`由运行状态计算，不进入存档或改变身份权限。交付和恢复边界见[Release流程](release.md#唯一完整-exe-交付2026-10-12)。
 
 当前内部模块仓库继续使用签名、内容寻址、逐文件哈希及本地事务。`PackageStore.importPreinstalled`核验本EXE的 `bootstrap.json`、签名目录和完整依赖闭包，缺失或损坏的当前模块只从本地载荷修复，全部通过后才建立 `current`／`currentReleases` 映射。已安装历史仓库与缓存签名目录不能成为新局默认值；升级前保全旧内置字节，仓库留在可替换的 `app/` 外。历史 full／box 交付读取兼容仍保留，独立下载、导入、更新和 Pages 分发入口已退役。
 
 阿瓦隆由独立 `game-module.json` 自动接入，新局只使用 `configured`，旧 `classic`／`court` 保留精确发行的原局恢复路径。`games/avalon/config.ts` 统一人数角色表，规则、秘密投影、三档策略、声画和样式均在游戏与独立资源目录，平台无阿瓦隆决策分支。身份确认、投票与任务牌通过稳定并发决策保存，只有全组结束后的公开结果进入演出；来源和刺杀权限见[阿瓦隆主题](../games/avalon/README.md)。
 
 UNO 通过自身 `game-module.json` 被模块发现器组装，规则／计分／投影、三档本地 bot 与网页客户端独立维护，不向平台会话增加游戏特例。+4 证据只进入挑战者本人投影，UNO 抓漏与当前回合冲突且不声明并发；版本与决策定义见 [UNO 信息与决策](../games/uno/information-and-decisions.md)。
+
+## 安装身份与整个程序更新
+
+安装框架在 `apps/desktop/installation/`，稳定入口为安装根 `I/TableMax.exe`；`apps/desktop/installation-runtime/`维护共享身份、严格路径／清单校验、应用更新签名及 `I/UpdateHelper.exe` 的持久事务。配置根 `B=I/TableMax`，程序载荷 `A=B/app`，当前及历史模块仓库 `G=B/games`；配置指定的数据根 `D` 默认等于B，可继续使用外置目录。安装身份绑定产品GUID、协议、安装实例、所属用户SID、I/B、四位版本、程序清单和当前映射，启动器、原生壳及helper共同核对；运行互斥与操作互斥不能替代持久身份校验。
+
+Inno只提取候选，最终程序切换及helper自身替换由同一事务协调。已归属但缺失／损坏的程序文件按实际摘要保全；待替换程序树中的未知成员或链接拒绝处理，不能按父目录删文件。默认卸载只清受管理程序和框架登记，保留D、G、配置及额外内容。旧便携迁移明确选取原配置根，默认数据和G复制到新B，外置D保留原指针，原件不删除；路径更换不自动搬移存档。
+
+原生 `ApplicationUpdate` 经 `window.tablemaxUpdate` 只接受本源顶层主机调用，管理GitHub stable检查、发布说明、可信完整installer下载及取消。RSA-3072／SHA-256／PKCS#1 v1.5应用签名独立于游戏Ed25519签名，.NET直接验证原UTF-8描述；固定仓库、资产URL、四位版本、长度、EXE／载荷清单／当前映射摘要均受签名约束。持久最高接受身份拒绝回放、降级和同版本换字节；没有自动应用或手动在线降级入口。密钥与发布边界见[Release流程](release.md#完整安装器与免费应用签名2026-10-15)。
+
+应用更新先走私有管道 `prepare-update`：房间在串行队列位置确认没有playing对局，同步拒收新动作，再排空先前动作、保存并关闭数据库。只有真实关闭回复及旧Native退出码0都确认后才交给helper；保存失败、超时或失联均停止更新并退出失效旧盒子，不启动installer。只读 `inspect` 不关闭服务，不能替代这个保存屏障。
+
+迁移／替换持有数据库组持续文件租约，复制读取同一已持有流；服务首先打开 `foundation.sqlite` 并保持SQLite独占至关闭，跨会话同D的合作入口冲突时拒绝启动。`room.sqlite` 的v1只读兼容与v2保存迁移语义保持。helper使用两库及WAL／SHM／journal和迁移标记共10成员指纹判定数据是否变化；变化后只重确认目标，不自动用旧程序打开新数据。pending目标载荷缺失／损坏时保留事务并拒绝commit/recover；安装身份与卸载协调器仍可核验时，可默认卸载保留数据后重新安装同一或更高完整包。未知程序成员与大小边界仍须先通过卸载预检，协调器自身受损不能套用载荷文件修复结论。
+
+健康确认来自实际Native和服务实例、I/B/D、四位版本、当前映射与目标SHA身份。正式更新确认后保持新主机运行；显式工程检查可静音后台确认后退出，不能替代真实干净Windows账户验收。当前交付指针仍为便携1.0.6.10，封闭候选1.0.6.13尚未推广；各层实测和未测边界见[验收](acceptance.md#当前源码与本地交付)。
 
 ## 宝可梦原版适配与稳定复用边界（2026-10-05）
 
@@ -30,18 +44,20 @@ UNO 通过自身 `game-module.json` 被模块发现器组装，规则／计分�
 
 ## 已建立的工程
 
-| 路径                       | 当前职责                                                                   | 依赖方向                                                           |
-| -------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `apps/desktop/native`      | C# WinForms／net48／x64 窗口、私有服务管道、主机凭证、显示／声音与生命周期 | .NET Framework、WebView2；按桌面／服务协议通信，不访问数据库或规则 |
-| `apps/desktop/src`         | 网页使用的桌面显示／声音 TypeScript 契约与独立控制逻辑回归                 | 不作为正式窗口入口；保留网页接口与已有控制逻辑测试                 |
-| `apps/server`              | HTTP／Socket.IO、身份绑定、资源／二维码、SQLite 仓储与 bot Worker 适配     | protocol、platform-core、注册游戏；组合具体适配器                  |
-| `apps/web`                 | 公共主机兼管理、只读公共屏、手机本人界面；独立合成原型                     | protocol、注册游戏 UI；不导入规则服务或完整状态                    |
-| `packages/protocol`        | 平台信封、角色投影及确认、桌面／服务消息的类型与 Zod 校验                  | Zod；不依赖应用、游戏或数据库                                      |
-| `packages/game-sdk`        | JSON、规则／投影／多人决策、管理生命周期、受限策略纯类型契约               | 不依赖 UI、网络、数据库、桌面运行时或具体游戏                      |
-| `packages/platform-core`   | 单房间、凭证摘要授权、串行动作、checkpoint／分支、兼容校验和 bot 调度      | SDK、protocol、Node 随机凭证；不依赖具体游戏、Socket.IO 或 SQLite  |
-| `games/template`           | 可玩验证游戏，独立规则、状态校验、计分、投影、策略和两端 UI                | 规则／策略仅 SDK，UI 仅 React 与投影类型                           |
-| `games/pokemon-encounters` | 首版完整规则、独立计分、授权投影、基础策略、两端 UI 与本地资源             | 规则／策略仅 SDK 与纯数据，UI 仅 React 与投影类型                  |
-| `tools`                    | 构建、开发、桌面／便携／原型验证及隔离强制退出 fixture                     | 开发工具；不进入游戏规则                                           |
+| 路径                                | 当前职责                                                                                 | 依赖方向                                                                           |
+| ----------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `apps/desktop/native`               | C# WinForms／net48／x64 窗口、私有服务管道、主机凭证、显示／声音、应用更新控制与生命周期 | .NET Framework、WebView2及安装共享核验；按私有协议协调服务，不实现数据库或游戏规则 |
+| `apps/desktop/installation`         | Inno框架脚本与稳定安装入口                                                               | 共享安装身份核验及helper；不另写文件切换事务                                       |
+| `apps/desktop/installation-runtime` | 程序身份、路径／清单、应用签名、互斥及UpdateHelper事务／恢复                             | net48；不依赖Node完成应用验签，不进入游戏规则                                      |
+| `apps/desktop/src`                  | 网页使用的桌面显示／声音／更新 TypeScript 契约与独立控制逻辑回归                         | 不作为正式窗口入口；保留网页接口与已有控制逻辑测试                                 |
+| `apps/server`                       | HTTP／Socket.IO、身份绑定、资源／二维码、SQLite 仓储与 bot Worker 适配                   | protocol、platform-core、注册游戏；组合具体适配器                                  |
+| `apps/web`                          | 公共主机兼管理、只读公共屏、手机本人界面；独立合成原型                                   | protocol、注册游戏 UI；不导入规则服务或完整状态                                    |
+| `packages/protocol`                 | 平台信封、角色投影及确认、桌面／服务消息的类型与 Zod 校验                                | Zod；不依赖应用、游戏或数据库                                                      |
+| `packages/game-sdk`                 | JSON、规则／投影／多人决策、管理生命周期、受限策略纯类型契约                             | 不依赖 UI、网络、数据库、桌面运行时或具体游戏                                      |
+| `packages/platform-core`            | 单房间、凭证摘要授权、串行动作、checkpoint／分支、兼容校验和 bot 调度                    | SDK、protocol、Node 随机凭证；不依赖具体游戏、Socket.IO 或 SQLite                  |
+| `games/template`                    | 可玩验证游戏，独立规则、状态校验、计分、投影、策略和两端 UI                              | 规则／策略仅 SDK，UI 仅 React 与投影类型                                           |
+| `games/pokemon-encounters`          | 首版完整规则、独立计分、授权投影、基础策略、两端 UI 与本地资源                           | 规则／策略仅 SDK 与纯数据，UI 仅 React 与投影类型                                  |
+| `tools`                             | 构建、开发、桌面／便携／原型验证及隔离强制退出 fixture                                   | 开发工具；不进入游戏规则                                                           |
 
 应用组装具体规则、策略和适配器，核心只依赖抽象契约。共享包使用 `workspace:*`，开发导出 TS 源码，Vite／esbuild 消费；严格类型检查统一覆盖 apps、packages 和 games 的 TypeScript。服务、bot Worker 和游戏输出独立 CJS，生成服务 CJS 使用生产压缩，源码继续保持可读；网页输出本地静态资源；原生桌面单独编译为 `TableMax.exe`。`global.json` 固定 .NET SDK 9.0.102，原生锁文件固定 WebView2 SDK 1.0.4258.31 和编译用 net48 引用程序集。
 
@@ -103,15 +119,15 @@ C# WinForms / .NET Framework 4.8 / 共享 WebView2（窗口、主机身份与生
 /player/game                 独立玩家凭证 + 本人合法投影与意图
 ```
 
-服务通过显式 `--desktop-pipe` 模式接收私有 JSON 行：第一条为 `{type:"start",config:ServiceConfig}`，就绪返回 `{type:"ready",port,health,hostToken}`；停止使用 `{type:"stop"}`，stdin EOF 也会正常关闭。配置、信封与每行 16 KiB 上限在服务端核验，错误安全输出，诊断走 stderr；普通独立启动的 stdout 只含无凭证就绪信息，不新增管理 HTTP 接口或改变网络协议。
+服务通过显式 `--desktop-pipe` 模式接收私有 JSON 行：第一条为 `{type:"start",config:ServiceConfig}`，就绪返回 `{type:"ready",port,health,hostToken,installation}`，其中 `installation.currentMappingSha256` 来自完整核验后的预装输入；普通无预装测试可为null。`inspect`／`prepare-update`使用请求ID关联回复；停止使用 `{type:"stop"}`，stdin EOF 也会正常关闭。停止确认区分drained、save-failed与强制退出，不能仅凭进程已经退出允许替换。配置、信封与每行 16 KiB 上限在服务端核验，诊断走stderr；普通独立启动的stdout只含无凭证就绪信息，不新增管理HTTP接口或改变玩家网络协议。
 
 服务就绪后打开主机窗口；普通启动20s超时；旧存档迁移收到实际进度后允许120s无进展、总计最多30分钟。端口占用、数据库损坏或版本不兼容时停止并提示。主机可打开另一只读公共屏，关闭它保留服务；关闭全部窗口或退出程序发送停止消息，等待保存和服务关闭，5s 后才兜底终止。原生壳先以暂停状态创建 Node 进程，加入带 `KILL_ON_JOB_CLOSE` 的 Windows Job Object 后再恢复执行；桌面异常退出也清理服务及后代。服务异常退出会停止桌面，避免保留失效管理界面。F11 切换全屏，Alt 打开“屏幕”菜单，可把当前窗口移到任一显示器；公共屏默认优先外接屏。实际外接屏和 DPI 验证范围见验收记录。
 
-WebView2 不暴露 Node 或原生 host objects；`Bridge.js` 只保持 `window.tablemaxDisplay`／`window.tablemaxAudio` 的固定接口。原生端仅处理顶层 WebMessageReceived，核验受管理窗口、本源、当前文档 URL、host／public 对应路径和参数；拒绝手机路径、子 frame、其他源导航、任意新窗口和网页下载。主机随机凭证只由服务通过私有管道交给桌面，再通过 fragment 初始化 sessionStorage 并清理可见 URL；不进入命令行、公共输出或日志，重启后重新生成。网页路由不授予管理权限，普通浏览器直接打开 `/host` 仍只有公共授权。二维码只包含普通手机入口。
+WebView2 不暴露 Node 或原生 host objects；`Bridge.js` 保持 `window.tablemaxDisplay`／`window.tablemaxAudio`，并提供受管理主机专用的 `window.tablemaxUpdate` 固定接口。原生端仅订阅顶层WebMessageReceived，核验受管理窗口、本源、当前文档URL、角色对应路径和参数；公共屏可使用自身显示／声音权限，不能调用程序更新，手机路径、子frame和普通浏览器同样无更新权限。其他源导航、任意新窗口和网页下载受原白名单限制。主机随机凭证只由服务通过私有管道交给桌面，再通过fragment初始化sessionStorage并清理可见URL；不进入命令行、公共输出或日志，重启后重新生成。网页路由不授予管理权限，普通浏览器直接打开 `/host` 仍只有公共授权。二维码只包含普通手机入口。
 
 2026-10-12补强正常退出：关闭窗口前从专属 WebView2 环境记录进程并持有系统句柄，释放全部控件后等待 `BrowserProcessExited` 资源释放通知；浏览器退出预算5秒，超时仅终止已捕获的本程序进程，逐项核验退出并记录失败。窗口关闭异常仍继续释放窗口、关闭服务并退出消息循环。DLL由桌面进程退出后解除映射，不能把控件已Dispose等同于后台进程已结束。Node异常退出保护继续使用既有Job Object。
 
-当前完整EXE沿用v1.0.3便携布局，在旁边新建 `TableMax/` 专属目录，配置、数据和其中的 `app/` 运行资源均集中于此；旧ZIP目录版的直接使用解压目录行为仅用于历史兼容。数据目录由对应根目录内配置指定；保留手机身份和 SQLite／JSON 存档格式，迁移不改协议版本或数据版本。WebView2 缓存写入用户数据目录的 `desktop/webview2/`，独立显示设置仍为 `display-settings.json`。旧 Electron 写出的 SQLite 需在隔离副本上验证读取、继续保存和恢复；不以新建数据库代替兼容性验证。原生测试驱动及 CDP 仅由显式测试标志启用，正式启动不开放调试端口；验证使用后台不激活窗口与更新后的真实 WebView2 截图。
+当前交付指针仍沿用v1.0.3便携布局；受管理安装候选使用同样的B/app、B/games与可外置D分工，由稳定入口和安装身份核验，不在每次启动时再提取另一份自解压包。旧ZIP目录版的直接使用解压目录行为仅用于历史兼容。数据目录由对应配置根内配置指定；保留手机身份和SQLite／JSON存档格式，安装迁移不自行更改存档格式，数据版本变化仍由已验证的服务迁移处理。WebView2缓存写入D下的 `desktop/webview2/`，独立显示设置仍为 `display-settings.json`。旧Electron写出的SQLite需在隔离副本上验证读取、继续保存和恢复；不以新建数据库代替兼容性验证。原生测试驱动及CDP仅由显式测试标志启用，正式启动不开放调试端口；验证使用后台不激活窗口与更新后的真实WebView2截图。
 
 玩家身份用服务生成的随机凭证，服务器仅保存摘要；本人手机或电脑浏览器在同源 localStorage 保存凭证，排序不改变座位 ID，刷新／断线沿用身份。电脑管理员不参赛，电脑浏览器真人从网站根地址加入，旧 `/player` 保留兼容。2026-10-07 授权的换机由管理员批准，候选凭证加密与申请收据独立于 checkpoint，原子激活新凭证并撤销旧连接；跨源需申请接续。首局先手仍由游戏规则决定，旧 hostSeat 只兼容读取。主机管理权不扩展游戏秘密，线上状态来自当前有效连接，不入 checkpoint。具体接口与边界见[平台规格](phase-02-platform-spec.md#浏览器入座换机与外部连接2026-10-07)。
 

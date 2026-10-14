@@ -1,5 +1,7 @@
 # 归档索引
 
+[Windows安装准备：阶段0／1（2026-10-15）](windows-installation-preparation-2026-10-15.md)：保留安装决策采用理由、冻结契约与保存关闭底座的完成记录；整个安装任务仍待系统验收，继续从[任务接续](../tasks/windows-installation-update.md)进入，不将准备归档写成全功能完成。
+
 [UNO 完整构建（2026-10-10）](uno-2026-10-10.md)：经典 108 牌、2–6 人、三档人机、三端桌游美术与离线声画、实际比赛和定向返验；当前规格从 [游戏主题](../games/uno/README.md) 进入，当前交付见 [验收](../reference/acceptance.md)。
 
 [拉密完整构建（2026-10-09）](rummikub-2026-10-09.md)：经典2–4人完整本地交付、原失败与最终同包证据；当前规则从[游戏主题](../games/rummikub/README.md)进入。

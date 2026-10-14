@@ -2,7 +2,7 @@
 
 ## 唯一完整 EXE 交付（2026-10-12）
 
-游戏源码和资源继续分别维护在 `games/<id>/`与 `assets/`。完整EXE包含 `app/preinstalled-games/`的当前签名目录、预装清单与模块载荷；可替换app目录外的 `TableMax/games/`保留当前与历史内容寻址模块。内部载荷、快照和逐文件清单归 `artifacts/package-payloads/`及原构建缓存；`artifacts/releases/`只留一个当前完整EXE与本地清单。独立游戏包、Pages和安装型作者工具包的现行导出取消，历史证据保留。具体见[Release流程](release.md#唯一完整-exe-交付2026-10-12)。
+游戏源码和资源继续分别维护在 `games/<id>/`与 `assets/`。完整EXE包含 `app/preinstalled-games/`的当前签名目录、预装清单与模块载荷；可替换app目录外的 `TableMax/games/`保留当前与历史内容寻址模块。内部载荷、快照和逐文件清单归 `artifacts/package-payloads/`及原构建缓存；`artifacts/releases/`保存当前完整EXE、本地清单及明确绑定的待验候选。独立游戏包、Pages和安装型作者工具包的现行导出取消，不限制整个程序的installer／uninstaller／更新。历史证据保留，具体见[Release流程](release.md#完整安装器与免费应用签名2026-10-15)。
 
 预装和恢复层位于 `apps/server/src/game-packages/`，负责内部签名校验、安全解压、本地事务、当前映射和精确发行加载；运行仓库 `TableMax/games/`位于可替换app目录外，与源码 `games/`用途不同。`tools/release/prepare-internal-games.mjs`核对冻结单元，按需复用或生成内部签名模块；`packages/web-host/`维护公共宿主契约，平台私有适配留在 `apps/web/`。
 
@@ -10,7 +10,9 @@
 
 阿瓦隆模块在 `games/avalon/`，`config.ts` 统一维护现行人数角色表，供初始化、存档校验、策略和规则页读取；独立图像与音频在 `assets/games/avalon/`，经典版原始规则册与采用规格在 `docs/games/avalon/`。生成原图留 `artifacts/avalon-art/`，实际游戏验证留 `artifacts/avalon/validation/`，便携交付审计留 `artifacts/maintenance/v1.0.6/avalon/`。
 
-本页说明当前文件归属与材料边界；运行与构建机制在[开发环境](development.md)，交付及GitHub发布流程在[Release流程](release.md)，代码依赖与封装在[工程结构](architecture.md)维护。
+受管理安装采用安装根I、配置根B=I/TableMax、程序载荷B/app、模块仓库G=B/games及配置指定的数据根D（默认B）。I下 `TableMax.exe` 是稳定入口，`UpdateHelper.exe` 是事务协调器，框架另生成卸载文件；Native、Node、服务、网页及预装输入在B/app。B内 `.install.json` 与 `.installer-receipt.json` 绑定安装身份和实际外层字节，`updates/` 与 `.installation-transactions/`保存更新输入、交接及恢复记录；它们是保护对象，不是可以整目录清空的缓存。旧便携源、外置D和未知文件保留，详细行为见[构建与运行](build-and-run.md#windows-安装与整个程序更新)。
+
+本页说明当前文件归属与材料边界；运行与构建机制在[构建与运行](build-and-run.md)，交付及GitHub发布流程在[Release流程](release.md)，代码依赖与封装在[工程结构](architecture.md)维护。当前指针仍是便携1.0.6.10，已封安装候选1.0.6.13及其证明独立保留，不能把候选目录当作已推广交付。
 
 ## 已创建结构
 
@@ -41,9 +43,13 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 | `tools/test/runner/`                                                           | 测试范围归属、历史统计、Vitest排序／阈值及工具回归；`test-scoped.mjs`统一范围入口，另提供历史导入与独立批次，不进入产品运行包 |
 | `apps/server/src/save-codec.mjs`                                               | 服务端 SQLite v1／v2存档解码，共用完整Save重建逻辑；工具依赖服务实现，生产不依赖工具；运行JS与类型声明均纳入服务构建输入      |
 | [scripts/](../../scripts/README.md)                                            | 面向日常操作的五个 PowerShell 清理、截图退役、容量维护与透明压缩入口；安全实现及隔离回归在 `tools/maintenance/`               |
-| `apps/desktop/native/`                                                         | C# WinForms／net48／x64 外壳：双窗口、WebView2 桥接、显示／声音、私有服务管道、进程与单实例保障及锁定依赖                     |
-| `apps/desktop/src/`                                                            | 网页使用的桌面显示／声音 TypeScript 契约及独立控制逻辑回归；不启动正式窗口或服务                                              |
-| `apps/desktop/release/`                                                        | 完整EXE发布启动器，内置已核验内部payload并解压至稳定应用目录；打包、验收和GitHub白名单入口在 `tools/`                         |
+| `apps/desktop/native/`                                                         | C# WinForms／net48／x64外壳：窗口、WebView2角色桥接、显示／声音、私有服务管道、原生应用更新控制、安装健康与锁定依赖           |
+| `apps/desktop/installation/`                                                   | Inno脚本、当前用户登记与卸载框架、稳定入口InstalledLauncher；只提取候选并调用共享helper事务                                   |
+| `apps/desktop/installation-runtime/`                                           | 安装身份／路径／清单／互斥、应用RSA验签和信任根读取、UpdateHelper切换／恢复／精确保全；net48独立于Node验签                    |
+| `apps/desktop/src/`                                                            | 网页使用的桌面显示／声音／程序更新TypeScript契约及控制逻辑回归；不启动正式窗口或服务                                          |
+| `apps/desktop/release/`                                                        | 旧完整便携EXE的内嵌payload与提取启动器；保留旧current兼容，不再作为新installer的外层                                          |
+| `tools/release/installation-*`、`tools/release/sign-application-update.mjs`    | 锁定安装工具链、封包／实际验收／候选推广门禁、更新描述与独立应用签名；只在明确授权时发布                                      |
+| `tools/test/installation/`                                                     | 原生更新控制器、事务／保存屏障、双PE交接、向导及隔离标准账户验证；夹具与生产证据分层                                          |
 | `apps/server/`                                                                 | HTTP／Socket.IO、构建后网页、二维码、SQLite 存档仓储、独立 bot Worker 与游戏注册／加载                                        |
 | `apps/web/`                                                                    | 平台盒子、会话／导航与网页宿主实现；游戏网页独立构建，另保留隔离原型                                                          |
 | `apps/web/src/session/`、`screens/`、`components/`                             | 权威同步、可靠提交、换机、盒子和通用控件；PlayerFrame 为电脑浏览器玩家保留同源手机界面，具体牌桌留在游戏 UI                   |
@@ -86,19 +92,21 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 
 宝可梦扩展版的开发阶段、完成标准与当前接续统一维护在[扩展任务](../tasks/pokemon-encounters-expansion.md)；候选规则仍归游戏目录的[设计草案](../games/pokemon-encounters/expansion-design.md)，不将阶段规划写成已实现玩法。
 
-长期需求、规则规格、来源清单和必要资源进入对应主题；本地实验和可再生中间物可进入 `tmp/`、`build/`，不作为长期资料入口。完整EXE旁新建 `TableMax/`专属目录，配置与数据默认在其中，`TableMax/app`存放运行资源；历史运行ZIP才直接使用解压目录。对应根目录内 `TableMax.config.json` 指定数据目录；测试覆盖为隔离目录；正式存档含秘密，不能公开或纳入程序包。
+长期需求、规则规格、来源清单和必要资源进入对应主题；本地实验和可再生中间物可进入 `tmp/`、`build/`，不作为长期资料入口。旧便携EXE在旁边新建TableMax，受管理安装在明确选择的I内采用同样的B/app与默认D=B布局；历史运行ZIP才直接使用解压目录。B下 `TableMax.config.json` 指定D，G保持在B/app外，不随外置D重解释；正式存档含秘密，不能公开或纳入程序包。工程生成的长事务路径由安装层预检与内部IO处理，不能据此宣称任意超长I/D及所有WebView2／Node依赖都支持。
 
 `artifacts/` 同时包含必须保留的原始资料／文字验收记录、可退役的历史运行截图和可再生的构建／解压副本，不能按上级目录或 Git 忽略规则一起删除。阶段、旧版本、Electron 与 WebView2 证据保留原归属；当前证据及哈希从 [验收记录](acceptance.md) 查询，历史开发方法与路径从 [开发归档](../archive/development-2026-10-01-to-04.md) 查询。
 
-| 材料                                                        | 归属与保护                                                                                                                                                   |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 当前完整EXE与本地清单、内部payload及逐文件manifest          | EXE和本地清单在 `artifacts/releases/`，内部载荷／指针在 `artifacts/package-payloads/`；当前交付保留，旧程序只走[安全清理入口](development.md#清理本地中间物) |
-| 当前截图／历史 JSON、失败及返修文字记录、历史包核验         | 对应 `artifacts/phase-*/` 或 `artifacts/maintenance/`；保留实际版本、构建及运行时边界                                                                        |
-| 逐项累计测试通过率与运行明细                                | `artifacts/maintenance/test-history/`；跨版本统计与失败证据，不能当作可再生缓存或随历史版本清空                                                              |
-| 规则研究响应、PDF、用户原始截图、转录及哈希                 | 对应游戏研究证据目录；不是运行资源，也不因研究完成丢弃，采用依据见对应 sources.md                                                                            |
-| imagegen 原图、未采用候选、透明度／尺寸／哈希检查、前后对比 | 对应素材证据目录与资源清单；已导入运行资源和原始输入分别维护                                                                                                 |
-| 原型构建／走查／研究                                        | `artifacts/phase-02/prototype/` 为可再生构建，`verification/` 为走查证据，`research/` 为原始资料；不能互相覆盖                                               |
-| 本地临时数据与便携解压                                      | `tmp/<用途>-<六位随机后缀>` 等脚本专属目录；确认相关进程结束并通过保护检查后才清理                                                                           |
+| 材料                                                         | 归属与保护                                                                                                                                                                                               |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 当前完整EXE、待验候选与本地清单、内部payload及逐文件manifest | EXE和本地清单在 `artifacts/releases/`，载荷／current／candidate记录在 `artifacts/package-payloads/`；保护当前交付与待验候选，推广须实际安装证明，旧程序只走[安全清理入口](development.md#清理本地中间物) |
+| 安装身份、更新事务、原数据／模块、损坏隔离及旧便携源         | 属于真实安装I/B/D/G或明确隔离夹具；默认卸载保留数据，不按未知文件或父目录推定删除权，未完成恢复记录持续保护                                                                                              |
+| 应用与游戏签名私钥                                           | 仅受保护本地 `secrets/`，Git／程序／source ZIP／日志均排除；应用公钥在 `apps/desktop/native/ApplicationUpdateKeys.json`，与游戏根分离                                                                    |
+| 当前截图／历史 JSON、失败及返修文字记录、历史包核验          | 对应 `artifacts/phase-*/` 或 `artifacts/maintenance/`；保留实际版本、构建及运行时边界                                                                                                                    |
+| 逐项累计测试通过率与运行明细                                 | `artifacts/maintenance/test-history/`；跨版本统计与失败证据，不能当作可再生缓存或随历史版本清空                                                                                                          |
+| 规则研究响应、PDF、用户原始截图、转录及哈希                  | 对应游戏研究证据目录；不是运行资源，也不因研究完成丢弃，采用依据见对应 sources.md                                                                                                                        |
+| imagegen 原图、未采用候选、透明度／尺寸／哈希检查、前后对比  | 对应素材证据目录与资源清单；已导入运行资源和原始输入分别维护                                                                                                                                             |
+| 原型构建／走查／研究                                         | `artifacts/phase-02/prototype/` 为可再生构建，`verification/` 为走查证据，`research/` 为原始资料；不能互相覆盖                                                                                           |
+| 本地临时数据与便携解压                                       | `tmp/<用途>-<六位随机后缀>` 等脚本专属目录；确认相关进程结束并通过保护检查后才清理                                                                                                                       |
 
 宝可梦原始中文截图与转录保留于 `artifacts/phase-02/research/chinese-reference/s14/`，叠图数量由 S17 核对为 56；完整采用表在 `docs/games/pokemon-encounters/cards.json`，原图不直接导入运行时。原型美术重置的原图、检查和前后对比保留于 `artifacts/phase-02/art-reset/`，重置前走查另在 `verification/before-art-reset/`。这些资料的适用边界见 [规则来源](../games/pokemon-encounters/sources.md#规则来源与核验缺口)。
 

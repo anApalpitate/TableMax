@@ -10,7 +10,7 @@
 
 ## 下载
 
-公开版本沿用 **v1.0.6**；本地维护构建使用四位版本，当前为 **1.0.6.10**。当前源码仅提供 **预装全部游戏的完整 Windows EXE**，不加类型后缀。取消仅盒子版及独立游戏下载／导入，更新程序即可获得新游戏与版本。本轮尚未发布，下面下载链接仍指向此前线上程序，内容以原发布说明为准。实际本地文件与验证见[当前验收](docs/reference/acceptance.md)。
+公开版本沿用 **v1.0.6**；已验证本地交付为 **1.0.6.10**，新的完整安装候选 **1.0.6.13** 正在最终安装验收。Windows 仅交付 **预装全部游戏的完整 EXE**，不加类型后缀；取消仅盒子版及独立游戏下载／导入，更新整个程序即可获得新游戏与版本。下面下载与使用步骤仍对应此前线上便携程序，新安装候选尚未发布或推广。实际本地文件与验证见[当前验收](docs/reference/acceptance.md)。
 
 **只需在负责开桌的 Windows 电脑上下载程序。朋友的手机和其他玩家电脑使用浏览器加入。**
 
@@ -121,7 +121,7 @@ pnpm start
 
 环境准备、锁定工具版本与验证方法见 [开发说明](docs/reference/development.md)；接入游戏从 [游戏开发指南](docs/reference/game-development.md) 开始。盒子短提示文案集中在 [feedback.zh-CN.json](apps/web/src/content/feedback.zh-CN.json)，方便维护。
 
-完整安装器、默认保留数据卸载与盒子内可信更新已进入安装验收，进度见[安装任务](docs/tasks/windows-installation-update.md)。新候选使用 `package.mjs --candidate` 封包，正式系统链及精确字节证明通过后才推广到当前交付；[发布工具](tools/release/README.md)维护唯一命令说明。上方下载与使用步骤继续对应现有线上便携程序，本轮没有发布新附件。
+完整安装器、默认保留数据卸载与盒子内可信更新已实现，候选1.0.6.13通过配方／全成员闭包、实际生产根验签、向导取消及保存恢复专项；真实干净用户安装、完整Apply和卸载链尚待验收，进度见[安装任务](docs/tasks/windows-installation-update.md)。新候选使用 `package.mjs --candidate` 封包，正式系统链及精确字节证明通过后才推广到当前交付；[发布工具](tools/release/README.md)维护唯一命令说明。上方下载与使用步骤继续对应现有线上便携程序，本轮没有发布新附件。
 
 本机美术资源检索与处理使用 [TableMaxMaterial 素材工作区](../TMP/TableMaxMaterial/README.md)（`E:\Proj\TMP\TableMaxMaterial`，不创建 Git）；该外部目录独立维护原始资料、处理过程和交付候选，核验后将正式资源及来源记录导入本项目，详见 [资源入口](assets/README.md)。此链接依赖本机目录布局，GitHub 源码与运行包仍使用项目内资源。
 

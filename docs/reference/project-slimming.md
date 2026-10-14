@@ -1,6 +1,16 @@
 # 项目瘦身与最近结果
 
-现行阈值为逻辑体积超过10GiB时清至8GiB或安全候选耗尽；一次性6GB目标不改变默认阈值。先结束工程进程，只执行一轮既有安全维护，保留依赖／工具缓存、原资料、正式存档、当前交付与证据。操作及保护见[工作区维护](workspace-maintenance.md#清理本地中间物)。
+现行分层规则：完整逻辑体积超过15GB时优先启动[深度瘦身方法论](deep-slimming-methodology.md)，目标严格低于6GB；未触发深度分支时，日常超过10GiB清至8GiB或安全候选耗尽。只执行一轮已审安全清理，保留依赖／工具缓存、原资料、正式存档、当前交付与证据；口径与停止条件见[工作区维护](workspace-maintenance.md#容量触发与深度瘦身2026-10-15)。下文历史数字仅对应当时采样，不代表当前容量。
+
+## Windows安装交付任务单次维护（2026-10-15）
+
+本轮Windows安装任务的本机工作收尾后，在工程空闲边界执行唯一一次父轮安全维护；公开版本仍为1.0.6，未进行正式账户安装或线上发布。既有缓存阶段退役 **7份过期构建缓存、4,185,200字节**，容量阶段退役 **67项白名单生成副本、86,289,239字节**；分别见[缓存预览与执行日志](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/task.log)、[冻结缓存计划](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/cache-plan.json)及[逐项清理记录](../../artifacts/maintenance/local-cleanup-20261014-221625-488-maintenance/cleanup.json)。未扩大到未登记临时目录、依赖／工具缓存、原资料或正式存档。
+
+[维护结果](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/result.json)为流程 `completed`，容量阶段为 `candidates-exhausted`，**没有达到8GiB目标**。该阶段日常口径从12,631,623,653字节到12,545,566,521字节，跳过1,768个链接及1个嵌套仓库。另一次[完整最终采样](../../artifacts/maintenance/v1.0.6/installation-remaining/workspace-capacity-after.json)在2026-10-15北京时间06:19记录 **12,596,402,720逻辑字节**，包含根Git与实际嵌套仓库，不跟随链接；这是当次完整终值，不能与维护阶段不同口径相减。[较早完整采样](../../artifacts/maintenance/v1.0.6/installation-remaining/workspace-capacity-before.json)跨越后续封包、证据和文档增长，也不能用其前后差值替代实际删除量。
+
+清理记录的 `preservedFiles` 绑定并保留原 `current.json`、1.0.6.10便携EXE、内部ZIP／manifest及实际完整EXE通过证明。维护后终端复验还确认候选1.0.6.13最终EXE、原current以及双PE交接素材的原SHA未变；此复验没有另写独立保护报告，接续边界见[安装任务](../tasks/windows-installation-update.md)。[候选13的九项封包证明](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-13-repair-03/results.json)发生在维护前，只证明 `sealed-not-installed-not-published` 范围，不能充当维护后复验或正式安装通过证明。
+
+current仍保留已验的1.0.6.10便携交付；正式GUID干净账户完整安装／卸载及双PE实际应用交接尚未执行，候选13未promote、未发布。本轮一次维护已经用完，后续完成这些验收也不追加第二轮清理；容量未达目标如实保留，不为文档更新重新计量或删除。
 
 ## 安全瘦身至6GB内（2026-10-13）
 
