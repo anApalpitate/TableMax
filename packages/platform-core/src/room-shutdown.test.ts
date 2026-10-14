@@ -30,6 +30,58 @@ function intent(room: RoomCoordinator, command: unknown) {
   };
 }
 
+it('reserves an idle update in queue order and prevents an already queued later start', async () => {
+  const repository = new Repository();
+  const room = new RoomCoordinator(rules, bot, repository);
+  for (const name of ['阿明', '小红']) {
+    const player = await room.join(name);
+    expect(
+      (
+        await room.command(
+          player.token,
+          intent(room, { type: 'ready', ready: true }),
+        )
+      ).ok,
+    ).toBe(true);
+  }
+  const reservation = room.reserveUpdateShutdown();
+  const laterStart = room.command(
+    room.hostToken,
+    intent(room, { type: 'start' }),
+  );
+  expect(await reservation).toBe(true);
+  // Reservation closes new admission synchronously while earlier actions drain.
+  expect(await laterStart).toEqual({ ok: false, reason: 'service-closing' });
+  expect(await room.beginShutdown()).toBe('drained');
+  expect(repository.value!.status).toBe('lobby');
+});
+
+it('refuses an update when an earlier admitted start becomes active and keeps the room usable', async () => {
+  const repository = new Repository();
+  const room = new RoomCoordinator(rules, bot, repository);
+  for (const name of ['阿明', '小红']) {
+    const player = await room.join(name);
+    expect(
+      (
+        await room.command(
+          player.token,
+          intent(room, { type: 'ready', ready: true }),
+        )
+      ).ok,
+    ).toBe(true);
+  }
+  const start = room.command(room.hostToken, intent(room, { type: 'start' }));
+  const reservation = room.reserveUpdateShutdown();
+  expect((await start).ok).toBe(true);
+  expect(await reservation).toBe(false);
+  expect(room.view(room.hostToken).status).toBe('playing');
+  expect(
+    (await room.command(room.hostToken, intent(room, { type: 'end' }))).ok,
+  ).toBe(true);
+  expect(await room.reserveUpdateShutdown()).toBe(true);
+  expect(await room.beginShutdown()).toBe('drained');
+});
+
 it('drains admitted joins and rejects new actions, joins and transfer mutations immediately', async () => {
   const repository = new Repository();
   const room = new RoomCoordinator(rules, bot, repository);

@@ -2,7 +2,10 @@ import type { Readable, Writable } from 'node:stream';
 import { ServiceConfigSchema, type ServiceConfig } from '@tablemax/protocol';
 
 export type DesktopMessage =
-  { type: 'start'; config: ServiceConfig } | { type: 'stop' };
+  | { type: 'start'; config: ServiceConfig }
+  | { type: 'stop' }
+  | { type: 'inspect'; id: number }
+  | { type: 'prepare-update'; id: number };
 
 export class DesktopPipeError extends Error {
   constructor(public readonly code: string) {
@@ -49,6 +52,14 @@ export class DesktopPipe {
       const keys = Object.keys(envelope);
       if (envelope.type === 'stop' && keys.length === 1) {
         receive({ type: 'stop' });
+      } else if (
+        (envelope.type === 'inspect' || envelope.type === 'prepare-update') &&
+        keys.length === 2 &&
+        keys.includes('id') &&
+        Number.isSafeInteger(envelope.id) &&
+        (envelope.id as number) > 0
+      ) {
+        receive({ type: envelope.type, id: envelope.id as number });
       } else if (
         envelope.type === 'start' &&
         keys.length === 2 &&

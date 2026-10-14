@@ -68,6 +68,7 @@ const unitScopes = {
   'apps/server/src/database.test.ts': ['shared'],
   'apps/server/src/debug-connections.test.ts': ['box'],
   'apps/server/src/entry.test.ts': ['shared', 'game:pokemon-encounters'],
+  'apps/server/src/desktop-update-pipe.test.ts': ['shared'],
   'apps/server/src/expansion-integration.test.ts': ['game:pokemon-encounters'],
   'apps/server/src/game-registry.test.ts': ['shared', ...gameScopes],
   'apps/server/src/interaction-service.test.ts': ['shared'],
@@ -124,6 +125,7 @@ const unitScopes = {
 // Unregistered scripts may only run with an explicitly chosen full scope.
 // Mixed matrices cannot be narrowed by adding an option they do not implement.
 const verificationScopes = {
+  'tools/shared/application-update.test.mjs': ['tooling', 'shared'],
   'tools/test/runner/evidence.test.mjs': {
     scopes: ['tooling'],
     preset: { complete: true },

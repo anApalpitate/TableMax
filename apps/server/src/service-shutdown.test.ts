@@ -9,6 +9,35 @@ import { SqliteSaveRepository } from './save-repository';
 import { io } from 'socket.io-client';
 import type { Save } from '@tablemax/platform-core';
 
+it('prepares an idle application update only after closing SQLite and refuses further mutations', async () => {
+  mkdirSync('tmp', { recursive: true });
+  const work = mkdtempSync(resolve('tmp/shutdown-service-'));
+  const webDir = join(work, 'web');
+  mkdirSync(webDir);
+  writeFileSync(join(webDir, 'index.html'), '<html>update fixture</html>');
+  const dataDir = join(work, 'data');
+  const service = await createService(
+    { host: '127.0.0.1', port: 0, webDir, dataDir },
+    { rules, bot },
+  );
+  await service.room.join('保留座位');
+  expect(service.inspectUpdate().updateAllowed).toBe(true);
+  expect(service.installation.currentMappingSha256).toBeNull();
+  expect(await service.prepareUpdateShutdown()).toEqual({
+    allowed: true,
+    status: 'drained',
+  });
+  expect(service.inspectUpdate().updateAllowed).toBe(false);
+  await expect(service.room.join('迟到')).rejects.toThrow('service-closing');
+  const reopened = new SqliteSaveRepository(dataDir);
+  try {
+    expect((reopened.load() as Save).seats[0]!.name).toBe('保留座位');
+  } finally {
+    reopened.close();
+    await service.close();
+  }
+});
+
 it('keeps SQLite open until an admitted asynchronous game selection has saved', async () => {
   mkdirSync('tmp', { recursive: true });
   const work = mkdtempSync(resolve('tmp/shutdown-service-'));

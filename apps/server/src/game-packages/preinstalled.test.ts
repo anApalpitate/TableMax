@@ -1,6 +1,7 @@
 import { afterEach, expect, it } from 'vitest';
 import {
   copyFileSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -8,6 +9,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { createHash } from 'node:crypto';
 import { PackageStore } from './store';
 import { PROJECT_GAME_PUBLIC_KEY } from './project-public-key';
 import type { SignedCatalog } from './types';
@@ -91,6 +93,11 @@ it('bootstraps all current compatible signed gameplays before the full service o
   const f = fixture();
   const service = await createService(f.config);
   try {
+    expect(service.installation.currentMappingSha256).toBe(
+      createHash('sha256')
+        .update(readFileSync(join(f.source, 'bootstrap.json')))
+        .digest('hex'),
+    );
     const installed = new PackageStore(f.options).snapshot();
     expect(Object.keys(installed.index.releases)).toHaveLength(
       currentReleases.length,
@@ -114,6 +121,9 @@ it('bootstraps all current compatible signed gameplays before the full service o
     const store = new PackageStore(f.options);
     const before = readFileSync(join(f.options.root, 'index.json'));
     await store.importPreinstalled(f.source);
+    expect(store.currentMappingSha256).toBe(
+      service.installation.currentMappingSha256,
+    );
     expect(readFileSync(join(f.options.root, 'index.json'))).toEqual(before);
     for (const release of currentReleases)
       expect(store.resolveModule(release.releaseId)).toBeDefined();
@@ -139,13 +149,39 @@ it('loads each bundled gameplay and saves an authorized decision from the actual
   const pointer = JSON.parse(
     readFileSync('artifacts/package-payloads/v1.0.6/current.json', 'utf8'),
   );
-  const workerPath = join(
-    pointer.deliveries.find((d: { edition: string }) => d.edition === 'full')
-      .manifestPath,
+  const delivery = pointer.deliveries.find(
+    (d: { edition: string }) => d.edition === 'full',
+  );
+  const manifest = JSON.parse(readFileSync(delivery.manifestPath, 'utf8'));
+  const workerRecord = manifest.files.find(
+    (file: { path: string }) => file.path === 'bot-worker.cjs',
+  );
+  let workerPath = join(
+    delivery.manifestPath,
     '..',
     'win-unpacked',
     'bot-worker.cjs',
   );
+  if (!existsSync(workerPath)) {
+    const proof = JSON.parse(
+      readFileSync(
+        `artifacts/maintenance/v${pointer.version}/windows-editions/${pointer.snapshot}/shipping-executable-checks-full.json`,
+        'utf8',
+      ),
+    );
+    expect(proof.result).toBe('passed');
+    expect(proof.executableSha256).toBe(delivery.executable.sha256);
+    expect(
+      createHash('sha256')
+        .update(readFileSync(delivery.executable.path))
+        .digest('hex'),
+    ).toBe(delivery.executable.sha256);
+    workerPath = join(proof.extracted, 'bot-worker.cjs');
+  }
+  expect(workerRecord).toBeDefined();
+  expect(
+    createHash('sha256').update(readFileSync(workerPath)).digest('hex'),
+  ).toBe(workerRecord.sha256);
   const executor = new WorkerBotExecutor(workerPath, (task) => {
     const installed = store.resolveModule(task.releaseRef!)!;
     return join(installed.root, installed.release.module.entries.bot);

@@ -384,6 +384,39 @@ it('keeps ordinary standalone stdout sanitized and ignores private stdin command
   expect(running.output().stdout).not.toContain('hostToken');
 });
 
+it('correlates private update inspection and confirms preparation only after service shutdown', async () => {
+  const running = launch();
+  running.send({ type: 'start', config: configuration() });
+  expect(await running.first()).toMatchObject({
+    type: 'ready',
+    installation: { currentMappingSha256: null },
+  });
+  running.send({ type: 'inspect', id: 101 });
+  await expect.poll(() => running.messages.length, { timeout: 5000 }).toBe(2);
+  expect(running.messages[1]).toMatchObject({
+    type: 'inspection',
+    id: 101,
+    updateAllowed: true,
+    currentMappingSha256: null,
+  });
+  expect(running.messages[1]).not.toHaveProperty('hostToken');
+  running.send({ type: 'prepare-update', id: 102 });
+  await expect.poll(() => running.messages.length, { timeout: 5000 }).toBe(3);
+  expect(running.messages[2]).toEqual({
+    type: 'update-prepared',
+    id: 102,
+    allowed: true,
+    status: 'drained',
+    currentMappingSha256: null,
+  });
+  running.send({ type: 'stop' });
+  expect(await running.exited).toBe(0);
+  expect(running.messages.at(-1)).toEqual({
+    type: 'stopped',
+    status: 'drained',
+  });
+});
+
 it('reports synchronous legacy migration progress over the private pipe before readiness', async () => {
   const config = configuration();
   const database = new DatabaseSync(join(config.dataDir, 'room.sqlite'));

@@ -451,6 +451,20 @@ export class RoomCoordinator {
     }
     return this.shutdown;
   }
+  /** Drain admitted actions before deciding whether an idle update can proceed. */
+  reserveUpdateShutdown(): Promise<boolean> {
+    if (this.closing) return Promise.resolve(false);
+    this.closing = true;
+    const reservation = this.queue.then(() => {
+      if (this.data.status === 'playing') {
+        if (!this.shutdown) this.closing = false;
+        return false;
+      }
+      return true;
+    });
+    this.queue = reservation.catch(() => undefined);
+    return reservation;
+  }
   private persist(value: Save, extras?: SaveExtras) {
     try {
       this.repository.save(value, extras);

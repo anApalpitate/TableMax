@@ -709,6 +709,24 @@ export async function createService(
     health,
     room,
     hostToken: room.hostToken,
+    installation: {
+      currentMappingSha256: packages?.currentMappingSha256 ?? null,
+    },
+    inspectUpdate() {
+      const projection = room.view(room.hostToken);
+      return {
+        updateAllowed: !closing && projection.status !== 'playing',
+        roomInstanceId: projection.instanceId,
+        currentMappingSha256: packages?.currentMappingSha256 ?? null,
+      };
+    },
+    async prepareUpdateShutdown() {
+      if (closing || !(await room.reserveUpdateShutdown()))
+        return { allowed: false, status: null };
+      const draining = beginShutdown();
+      closed ??= app.close().then(() => draining);
+      return { allowed: true, status: await closed };
+    },
     syncDiagnostics: () => syncDiagnostics.snapshot(),
     async listen() {
       await app.listen({ host: config.host, port: config.port });

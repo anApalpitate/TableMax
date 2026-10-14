@@ -54,6 +54,10 @@ const emptyIndex = (): InstallIndex => ({
   selected: {},
 });
 export class PackageStore {
+  private verifiedMappingSha256: string | null = null;
+  get currentMappingSha256() {
+    return this.verifiedMappingSha256;
+  }
   private bundled = new Map<string, GameRelease>();
   private index: InstallIndex = emptyIndex();
   private catalog: PackageCatalog = {
@@ -235,9 +239,11 @@ export class PackageStore {
       readLocal(join(source, 'catalog.json')).toString(),
     ) as SignedCatalog;
     const catalog = verifyCatalog(envelope, this.options.publicKey);
-    const bootstrap = JSON.parse(
-      readLocal(join(source, 'bootstrap.json')).toString(),
-    ) as { schemaVersion: number; releaseIds: string[] };
+    const bootstrapBytes = readLocal(join(source, 'bootstrap.json'));
+    const bootstrap = JSON.parse(bootstrapBytes.toString()) as {
+      schemaVersion: number;
+      releaseIds: string[];
+    };
     if (
       Object.keys(bootstrap).sort().join(',') !== 'releaseIds,schemaVersion' ||
       bootstrap.schemaVersion !== 1 ||
@@ -298,6 +304,7 @@ export class PackageStore {
     this.bundled = new Map(
       releases.map((release) => [releaseKey(release), release]),
     );
+    this.verifiedMappingSha256 = sha256(bootstrapBytes);
     return releases.map((release) => release.releaseId);
   }
   cancel(releaseId: string): void {

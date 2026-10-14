@@ -44,6 +44,7 @@ async function start(config: ServiceConfig) {
     port,
     health: service.health,
     hostToken: service.hostToken,
+    installation: service.installation,
   };
   if (pipe) await pipe.send(ready);
   else if (parentPort) parentPort.postMessage(ready);
@@ -124,6 +125,34 @@ if (privatePipe) {
         if (!startup)
           void fail(new DesktopPipeError('INVALID_DESKTOP_MESSAGE'));
         else void stop().catch(fail);
+      } else if (
+        message.type === 'inspect' ||
+        message.type === 'prepare-update'
+      ) {
+        if (!startup || stopping)
+          void fail(new DesktopPipeError('INVALID_DESKTOP_MESSAGE'));
+        else
+          void startup
+            .then(async () => {
+              if (!service || stopping)
+                throw new DesktopPipeError('INVALID_DESKTOP_MESSAGE');
+              const response =
+                message.type === 'inspect'
+                  ? {
+                      type: 'inspection',
+                      id: message.id,
+                      ...service.inspectUpdate(),
+                    }
+                  : {
+                      type: 'update-prepared',
+                      id: message.id,
+                      ...(await service.prepareUpdateShutdown()),
+                      currentMappingSha256:
+                        service.installation.currentMappingSha256,
+                    };
+              await pipe!.send(response);
+            })
+            .catch(fail);
       } else if (startup || stopping) {
         void fail(new DesktopPipeError('INVALID_DESKTOP_MESSAGE'));
       } else {
