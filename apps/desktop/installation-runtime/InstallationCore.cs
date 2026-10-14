@@ -9,6 +9,8 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Web.Script.Serialization;
+using File = TableMax.Installation.InstallationFile;
+using Directory = TableMax.Installation.InstallationDirectory;
 
 namespace TableMax.Installation
 {
@@ -22,7 +24,32 @@ namespace TableMax.Installation
 #endif
         public const int Protocol = 1;
         public static readonly UTF8Encoding Utf8 = new UTF8Encoding(false, true);
-        public static string Full(string path) => Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        // Run before the first System.IO call in every executable entry point.
+        // Standalone csc-built helpers have no targeting config. The switches
+        // enable extended syntax; InstallationFile/Directory add the IO prefix.
+        public static void InitializeRuntime()
+        {
+            AppContext.SetSwitch("Switch.System.IO.UseLegacyPathHandling", false);
+            AppContext.SetSwitch("Switch.System.IO.BlockLongPaths", false);
+        }
+        public static string TemporaryPath(string destination) => Path.Combine(Path.GetDirectoryName(destination), ".tm-" + Guid.NewGuid().ToString("N").Substring(0, 16) + ".tmp");
+        private static string Ordinary(string path) => path.StartsWith(@"\\?\UNC\", StringComparison.OrdinalIgnoreCase) ? @"\\" + path.Substring(8) : path.StartsWith(@"\\?\", StringComparison.Ordinal) ? path.Substring(4) : path;
+        public static string Full(string path) => Path.GetFullPath(Ordinary(path)).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        // Internal IO only: identities and comparisons always retain ordinary
+        // canonical paths; callers never gain acceptance for device root input.
+        public static string IO(string path)
+        {
+            var full = Path.GetFullPath(Ordinary(path));
+            return full.StartsWith(@"\\", StringComparison.Ordinal) ? @"\\?\UNC\" + full.Substring(2) : @"\\?\" + full;
+        }
+        public static void ValidateStartupPaths(string root, string dataDirectory)
+        {
+            var box = Box(root);
+            foreach (var file in new[] { Path.Combine(root, "TableMax.exe"), Path.Combine(box, "app", "TableMax.exe"), Path.Combine(box, "app", "node.exe"), Path.Combine(box, "TableMax.config.json") })
+                if (Full(file).Length >= 260) throw new IOException("安装位置太深，原生入口无法在此路径启动。请选择较短的安装位置；尚未替换程序。");
+            if (dataDirectory != null && new[] { Path.Combine(dataDirectory, "desktop", "webview2"), Path.Combine(dataDirectory, "logs") }.Any(path => Full(path).Length >= 248))
+                throw new IOException("配置的数据目录太深，原生浏览器无法在此路径启动。请选择较短的数据目录；尚未替换程序。");
+        }
         public static bool Equal(string a, string b) => String.Equals(Full(a), Full(b), StringComparison.OrdinalIgnoreCase);
         public static string Hash(byte[] bytes) { using (var sha = SHA256.Create()) return Hex(sha.ComputeHash(bytes)); }
         public static string HashFile(string path) { Safe(path); using (var sha = SHA256.Create()) using (var stream = File.OpenRead(path)) return Hex(sha.ComputeHash(stream)); }
@@ -40,6 +67,10 @@ namespace TableMax.Installation
         }
         public static string Root(string path)
         {
+            // Keep installation identities in one ordinary local-drive syntax.
+            // Device/UNC aliases must not bypass protected-directory checks.
+            if (String.IsNullOrEmpty(path) || path.Length < 3 || !((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z')) || path[1] != ':' || !(path[2] == '\\' || path[2] == '/'))
+                throw new IOException("安装根必须使用本机磁盘的标准绝对路径，不能使用 UNC 或设备路径。");
             var root = Full(path); Safe(root);
             if (String.IsNullOrEmpty(root) || Equal(root, Path.GetPathRoot(root))) throw new IOException("不能安装到磁盘根目录。");
             foreach (var special in new[] { Environment.GetFolderPath(Environment.SpecialFolder.Windows), Environment.GetFolderPath(Environment.SpecialFolder.System), Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86) })
@@ -58,16 +89,17 @@ namespace TableMax.Installation
         public static void Atomic(string path, object value)
         {
             Safe(path); Directory.CreateDirectory(Path.GetDirectoryName(path));
-            var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            var temporary = TemporaryPath(path); var created = false;
             try
             {
-                using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                using (var stream = new FileStream(IO(temporary), FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 {
+                    created = true;
                     var bytes = Utf8.GetBytes(Encode(value)); stream.Write(bytes, 0, bytes.Length); stream.Flush(true);
                 }
                 if (File.Exists(path)) File.Replace(temporary, path, null); else File.Move(temporary, path);
             }
-            finally { if (File.Exists(temporary)) File.Delete(temporary); }
+            finally { if (created && File.Exists(temporary)) { Safe(temporary); File.Delete(temporary); } }
         }
         public static string Encode(object value) => new JavaScriptSerializer { MaxJsonLength = 1024 * 1024, RecursionLimit = 32 }.Serialize(value);
         public static Dictionary<string, object> Object(object value) => value as Dictionary<string, object> ?? throw new IOException("安装描述不是对象。");
@@ -82,6 +114,29 @@ namespace TableMax.Installation
             return new Mutex(false, "Global\\TableMax-Installation-" + kind + "-" + Key(root), out _, security);
         }
         public static bool Acquire(Mutex mutex, int timeout) { try { return mutex.WaitOne(timeout); } catch (AbandonedMutexException) { return true; } }
+    }
+
+    // The Framework path switches remove managed MAX_PATH checks, but plain
+    // Win32 paths still require machine policy. These internal adapters use
+    // Unicode extended paths directly, independent of that global policy.
+    internal static class InstallationFile
+    {
+        public static bool Exists(string path) => System.IO.File.Exists(InstallationCore.IO(path));
+        public static FileAttributes GetAttributes(string path) => System.IO.File.GetAttributes(InstallationCore.IO(path));
+        public static FileStream OpenRead(string path) => System.IO.File.OpenRead(InstallationCore.IO(path));
+        public static string ReadAllText(string path, Encoding encoding) => System.IO.File.ReadAllText(InstallationCore.IO(path), encoding);
+        public static void Copy(string source, string target, bool overwrite) => System.IO.File.Copy(InstallationCore.IO(source), InstallationCore.IO(target), overwrite);
+        public static void Delete(string path) => System.IO.File.Delete(InstallationCore.IO(path));
+        public static void Move(string source, string target) => System.IO.File.Move(InstallationCore.IO(source), InstallationCore.IO(target));
+        public static void Replace(string source, string target, string backup) => System.IO.File.Replace(InstallationCore.IO(source), InstallationCore.IO(target), backup == null ? null : InstallationCore.IO(backup));
+    }
+    internal static class InstallationDirectory
+    {
+        public static bool Exists(string path) => System.IO.Directory.Exists(InstallationCore.IO(path));
+        public static DirectoryInfo CreateDirectory(string path) => System.IO.Directory.CreateDirectory(InstallationCore.IO(path));
+        public static void Delete(string path) => System.IO.Directory.Delete(InstallationCore.IO(path));
+        public static string[] GetDirectories(string path) => System.IO.Directory.GetDirectories(InstallationCore.IO(path)).Select(InstallationCore.Full).ToArray();
+        public static string[] GetFileSystemEntries(string path) => System.IO.Directory.GetFileSystemEntries(InstallationCore.IO(path)).Select(InstallationCore.Full).ToArray();
     }
 
     // JavaScriptSerializer accepts duplicate object keys. Signed and destructive
@@ -137,7 +192,7 @@ namespace TableMax.Installation
         public string installationId { get; set; } public string root { get; set; } public string boxRoot { get; set; } public string ownerSid { get; set; }
         public static InstallationManifest Read(string path, bool installed)
         {
-            InstallationCore.Safe(path); if (new FileInfo(path).Length > 1024 * 1024) throw new IOException("安装清单过长。");
+            InstallationCore.Safe(path); if (new FileInfo(InstallationCore.IO(path)).Length > 1024 * 1024) throw new IOException("安装清单过长。");
             var map = InstallationCore.Object(StrictJson.Parse(File.ReadAllText(path, InstallationCore.Utf8), true));
             var required = new[] { "schemaVersion", "productId", "arch", "installProtocol", "releaseVersion", "buildVersion", "payloadManifestSha256", "currentMappingSha256", "files" };
             InstallationCore.Keys(map, installed ? required.Concat(new[] { "installationId", "root", "boxRoot", "ownerSid" }).ToArray() : required);
@@ -154,7 +209,7 @@ namespace TableMax.Installation
         public static InstallationManifest Load(string root) { var result = Read(InstallationCore.IdentityPath(root), true); if (!InstallationCore.Equal(result.root, root)) throw new IOException("安装根不匹配。"); return result; }
         public void Verify(string directory)
         {
-            foreach (var file in files) { var path = InstallationCore.Member(directory, file.path); if (!File.Exists(path) || new FileInfo(path).Length != file.bytes || InstallationCore.HashFile(path) != file.sha256) throw new IOException("安装文件校验失败：" + file.path); }
+            foreach (var file in files) { var path = InstallationCore.Member(directory, file.path); if (!File.Exists(path) || new FileInfo(InstallationCore.IO(path)).Length != file.bytes || InstallationCore.HashFile(path) != file.sha256) throw new IOException("安装文件校验失败：" + file.path); }
             if (InstallationCore.HashFile(InstallationCore.Member(directory, "TableMax/app/.tablemax-release.json")) != payloadManifestSha256 || InstallationCore.HashFile(InstallationCore.Member(directory, "TableMax/app/preinstalled-games/bootstrap.json")) != currentMappingSha256) throw new IOException("完整载荷或当前游戏映射身份不匹配。");
         }
     }

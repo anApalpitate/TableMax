@@ -42,6 +42,20 @@ function Get-VerifiedCurrentDeliveries([string]$Root, [string]$Version) {
     }
     try { $report = Get-Content -LiteralPath $proofPath -Raw -Encoding utf8 | ConvertFrom-Json } catch { throw ('No passing actual EXE evidence for ' + $delivery.edition + '; exact report missing or damaged.') }
     if ($report.result -ne 'passed' -or $report.executableSha256 -ne $exeHash -or $report.payloadSha256 -ne $payloadHash) { throw ('No passing actual EXE evidence for ' + $delivery.edition + '; exact report mismatches current bytes.') }
+    if ($delivery.deliveryType -eq 'installer' -or $delivery.executable.type -eq 'installer') {
+      $installation = $delivery.executable.installation
+      $installationPath = [IO.Path]::GetFullPath($installation.manifestPath)
+      if ($delivery.edition -ne 'full' -or $installation.productId -ne '{DB749B9D-7D43-4F50-9FBD-551C9E8EF48D}' -or -not $installationPath.StartsWith($payloadPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid production installer identity or manifest path.' }
+      for ($cursor = $installationPath; $cursor -and $cursor -ne $Root; $cursor = [IO.Path]::GetDirectoryName($cursor)) {
+        if ((Get-Item -LiteralPath $cursor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Installation manifest contains a link.' }
+      }
+      $installationHash = (Get-FileHash -LiteralPath $installationPath -Algorithm SHA256).Hash.ToLowerInvariant()
+      $installationManifest = Get-Content -LiteralPath $installationPath -Raw -Encoding utf8 | ConvertFrom-Json
+      $payloadManifestHash = (Get-FileHash -LiteralPath $delivery.manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+      if ($installationHash -ne $installation.manifestSha256 -or $installationManifest.productId -ne $installation.productId -or $installationManifest.buildVersion -ne $index.buildVersion -or $installationManifest.releaseVersion -ne $Version -or $installationManifest.payloadManifestSha256 -ne $payloadManifestHash) { throw 'Installation manifest hash or identity mismatch.' }
+      if ($report.deliveryType -ne 'installer' -or $report.fixture -ne $false -or $report.isolatedWindows -ne $true -or $report.productId -ne $installation.productId -or $report.installationManifestSha256 -ne $installationHash -or -not $report.installationId -or $report.firstStartupBytes -le 0 -or $report.firstStartupBytes -ge 120000000) { throw 'No passing isolated production installer evidence for current bytes.' }
+      $deliveryFiles += $installationPath
+    }
     $deliveryFiles += $proofPath
     $verified += [PSCustomObject]@{ delivery=$delivery; manifest=$manifest; proof=$proofPath; payloadHash=$payloadHash }
   }

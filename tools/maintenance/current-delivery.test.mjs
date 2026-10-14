@@ -4,6 +4,7 @@ import {
   mkdtempSync,
   mkdirSync,
   writeFileSync,
+  readFileSync,
   rmSync,
   symlinkSync,
   unlinkSync,
@@ -105,6 +106,8 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
           'powershell.exe',
           [
             '-NoProfile',
+            '-ExecutionPolicy',
+            'Bypass',
             '-Command',
             `$ErrorActionPreference='Stop'; $env:PSModulePath=(Join-Path $PSHOME 'Modules')+';'+$env:PSModulePath; . '${helper}'; ${expected}`,
           ],
@@ -160,6 +163,80 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
           deliveries,
         });
       }
+      const full = deliveries[0];
+      const installationPath = json(
+        join(
+          root,
+          'artifacts/package-payloads/v1.0.6/run/full/installation-manifest.json',
+        ),
+        {
+          productId: '{DB749B9D-7D43-4F50-9FBD-551C9E8EF48D}',
+          releaseVersion: '1.0.6',
+          buildVersion: '1.0.6.4',
+          payloadManifestSha256: digest(readFileSync(full.manifestPath)),
+        },
+      );
+      const installed = {
+        ...full,
+        deliveryType: 'installer',
+        executable: {
+          ...full.executable,
+          type: 'installer',
+          installation: {
+            productId: '{DB749B9D-7D43-4F50-9FBD-551C9E8EF48D}',
+            manifestPath: installationPath,
+            manifestSha256: digest(readFileSync(installationPath)),
+          },
+        },
+      };
+      json(pointer, {
+        version: '1.0.6',
+        buildVersion: '1.0.6.4',
+        snapshot: 'run',
+        deliveries: [installed],
+      });
+      assert.equal(currentDeliveries(root, '1.0.6').length, 1);
+      // A legacy payload-only report cannot authorize installer retirement.
+      assert.throws(() =>
+        invoke(`Get-VerifiedCurrentDeliveries '${quoteRoot}' '1.0.6'`),
+      );
+      const installerProof = {
+        result: 'passed',
+        executableSha256: installed.executable.sha256,
+        payloadSha256: installed.executable.payloadSha256,
+        deliveryType: 'installer',
+        fixture: false,
+        isolatedWindows: true,
+        installationId: 'metadata-fixture-id',
+        productId: installed.executable.installation.productId,
+        installationManifestSha256:
+          installed.executable.installation.manifestSha256,
+        firstStartupBytes: 119999999,
+      };
+      const installerProofPath = join(
+        root,
+        'artifacts/maintenance/v1.0.6/windows-editions/run/shipping-executable-checks-full.json',
+      );
+      json(installerProofPath, installerProof);
+      invoke(
+        `$value=Get-VerifiedCurrentDeliveries '${quoteRoot}' '1.0.6'; if($value.deliveries.Count -ne 1){throw 'Expected installer metadata'}`,
+      );
+      for (const changed of [
+        { fixture: true },
+        { isolatedWindows: false },
+        { firstStartupBytes: 120000000 },
+      ]) {
+        json(installerProofPath, { ...installerProof, ...changed });
+        assert.throws(() =>
+          invoke(`Get-VerifiedCurrentDeliveries '${quoteRoot}' '1.0.6'`),
+        );
+      }
+      json(installerProofPath, installerProof);
+      file(installationPath, 'tampered installation identity');
+      assert.throws(() => currentDeliveries(root, '1.0.6'), /manifest hash/);
+      assert.throws(() =>
+        invoke(`Get-VerifiedCurrentDeliveries '${quoteRoot}' '1.0.6'`),
+      );
     }
     json(pointer, {
       version: '1.0.6',

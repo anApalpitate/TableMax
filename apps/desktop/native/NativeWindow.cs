@@ -97,7 +97,7 @@ namespace TableMax.Desktop
             await browser.EnsureCoreWebView2Async(context.Environment, options);
             var core = browser.CoreWebView2;
             // Automated verification remains silent even when it exercises play mode.
-            core.IsMuted = context.Testing && System.Environment.GetEnvironmentVariable("TABLEMAX_TEST_AUDIO") != "1";
+            core.IsMuted = context.Checking || (context.Testing && System.Environment.GetEnvironmentVariable("TABLEMAX_TEST_AUDIO") != "1");
             core.Settings.AreDevToolsEnabled = context.Testing;
             core.Settings.AreDefaultContextMenusEnabled = context.Testing;
             core.Settings.AreHostObjectsAllowed = false;

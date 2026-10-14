@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { launchDesktop } from '../support/desktop-test.mjs';
 import { assertWorkspaceRoot } from '../../shared/workspace-root.mjs';
 import { createHash } from 'node:crypto';
+import { extractCurrentDelivery } from '../support/shipping-input.mjs';
 
 assertWorkspaceRoot();
 const native = process.argv
@@ -33,6 +34,7 @@ await mkdir(output, { recursive: true });
 const checks = [];
 let desktop;
 let failure;
+let shipping;
 const alive = (pid) => {
   try {
     process.kill(pid, 0);
@@ -43,7 +45,10 @@ const alive = (pid) => {
   }
 };
 async function prepare() {
-  execFileSync(source, ['--extract-only=' + app], { windowsHide: true });
+  const input = join(work, 'input');
+  await mkdir(input, { recursive: true });
+  shipping = await extractCurrentDelivery({ work: input });
+  await cp(shipping.extracted, app, { recursive: true });
   if (native)
     for (const name of [
       'TableMax.exe',
@@ -71,6 +76,8 @@ try {
         TABLEMAX_PORT: '0',
         TABLEMAX_DATA_DIR: join(box, 'data'),
         TABLEMAX_BOX_DIRECTORY: box,
+        TABLEMAX_AUTO_MAINTENANCE: '0',
+        TABLEMAX_TEST_MAINTENANCE: '0',
       },
       timeout: 45000,
     });
@@ -132,6 +139,7 @@ try {
       await prepare();
     }
   }
+  await shipping.assertUnchanged();
 } catch (error) {
   failure = error.stack;
   throw error;
@@ -161,6 +169,7 @@ try {
           })),
         ),
         source,
+        shipping: shipping?.binding ?? null,
         checks,
         failure,
       },

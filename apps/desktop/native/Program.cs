@@ -16,6 +16,7 @@ namespace TableMax.Desktop
         [STAThread]
         private static int Main(string[] arguments)
         {
+            InstallationCore.InitializeRuntime();
             // WinExe has no console code page. Redirected Node test pipes still
             // have real handles, so bind explicit UTF-8 readers/writers directly.
             Console.SetOut(new StreamWriter(Console.OpenStandardOutput(), new UTF8Encoding(false)) { AutoFlush = true });
@@ -81,6 +82,7 @@ namespace TableMax.Desktop
             var reason = "本地服务无法启动。";
             var remedy = "请查看日志中的具体原因，然后重新启动。";
             if (message.Contains("EADDRINUSE")) { reason = "端口 " + (Environment.GetEnvironmentVariable("TABLEMAX_PORT") ?? "38473") + " 已被其他程序占用。"; remedy = "请关闭重复运行的 TableMax 或占用该端口的程序，再启动；不要删除存档。"; }
+            else if (message.Contains("data-directory-in-use")) { reason = "数据目录正被另一个 TableMax 使用。"; remedy = "请关闭使用同一数据目录的原程序（包括其他 Windows 会话中的程序），再重新启动；原存档已保留。"; }
             else if (message.Contains("incompatible")) { reason = "存档版本与当前程序或电脑策略不兼容。"; remedy = "请使用兼容版本打开，或先备份完整数据目录后排查；原存档已保留。"; }
             else if (new[] { "damaged", "SQLITE_CORRUPT", "malformed", "not a database" }.Any(message.Contains)) { reason = "存档损坏或无法通过校验。"; remedy = "请备份整个数据目录（包括 WAL／SHM）后检查；不要删除原存档。"; }
             else if (new[] { "EEXIST", "ENOTDIR" }.Any(message.Contains)) { reason = "数据目录路径不是可用的文件夹。"; remedy = "请检查该路径是否被同名文件占用；保留原文件，改用可写的数据目录。"; }

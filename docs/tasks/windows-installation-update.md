@@ -386,11 +386,13 @@ RSA 方案推荐 RSA-3072、SHA-256 和固定 PKCS#1 v1.5 **签名填充**，不
 - [x] 应用更新独立 RSA-3072 密钥按用户明确授权生成；私钥仅在受保护、Git忽略的 `secrets/application-update/release-rsa3072.pem`，ACL限当前用户及SYSTEM。程序与签名工具只提交公钥；不购买 Authenticode 证书。密钥丢失后须手动恢复信任，不能通过未经旧信任确认的在线描述偷偷换根。
 - [x] 严格更新描述、原始UTF-8签名、三位／四位数值判断、最高已接受构建与同构建换摘要拒绝，以及 GitHub 正文唯一机器块／固定两附件校验已接入实际 .NET 更新管理。
 - [x] 19项 .NET 检查／下载／取消专项通过：合法下载与受控跳转、取消、超量、短流、断流、错误SHA、危险跳转、附件数量／状态／摘要、错误Release来源、重复机器块、回放与本地状态损坏。测试密钥仅在进程内生成，不持久保存。
+- [x] 更新内部长路径与临时文件归属修复：[7项真实长路径记录](../../artifacts/maintenance/v1.0.6/installation-remaining/native-long-path-20261015-032822/report.json)覆盖420字符受管成员及361字符日志。只在内部IO边界转换，身份保留普通本机路径；设备／UNC安装根拒绝，过深原生／浏览器启动路径在切换前拒绝，不修改机器长路径策略。实际controller入口补初始化后[19项受影响复验](../../artifacts/maintenance/v1.0.6/installation-remaining/native-update-controller-19-longpaths/report.json)通过；前轮3失败报告保留。
 - [x] 工具维护门禁区分便携与安装交付，拒绝用旧提取报告、测试产品ID或未隔离证明授权正式安装器维护；完整首次启动体积保持严格120,000,000字节门禁。首次检查遇到当前进程脚本策略和sandbox Junction限制，限定子进程策略及隔离夹具权限后受影响项通过，保留两次失败记录。
-- [ ] Inno 首装／重复安装／默认卸载的实际链；已锁定6.7.3编译器来源、ISSigTool校验、公钥与逐文件SHA，已构建完整fixture，初始化退出原因正在定位。
-- [ ] 真实主机／公共屏／浏览器／子frame权限与短屏实际更新界面。
-- [ ] 实际 SQLite 保存失败后，Native停止更新、安全退出、程序与最后成功存档保全。
+- [ ] Inno 首装／重复安装／默认卸载的实际链；已锁定6.7.3工具链。可空迁移页的内建路径校验已修复；[下一次实际失败](../../artifacts/maintenance/v1.0.6/installation-remaining/delivery/fixture-qwPCp2-failed/report.json)明确记录health未确认及当前token的HKCU登记拒绝。fixture覆层删除整个web而丢失catalog／runtime闭包的根因已定位并修复，待新输入受影响复验。失败I只供诊断，不替代完整安装证明。
+- [x] 真实主机／公共屏／浏览器／子frame权限与短屏实际更新界面：fixture安装文件中的Native／Node已运行，[实际面板与GitHub检查](../../artifacts/maintenance/v1.0.6/installation-remaining/helper-host-ui-02/results.json)记录当前身份、短屏字号及安全失败；该轮后续frame测试失败，不能称整轮通过。[权限受影响复验](../../artifacts/maintenance/v1.0.6/installation-remaining/helper-host-ui-05-edge-permissions/results.json)通过。使用现有Edge独立隐藏配置；sandbox浏览器启动失败与缺缓存记录保留。GitHub当前未发布可信新installer，正向下载／应用仍需其他证据。
+- [x] 实际 SQLite 保存失败后，Native停止更新、安全退出、程序与最后成功存档保全：[真实fixture保存失败屏障](../../artifacts/maintenance/v1.0.6/installation-remaining/helper-save-barrier-03/results.json)通过。只在新建隔离存档注入专属触发器，实际失败动作保留最后成功保存；私有更新请求不确认、Native退出1、服务与WebView2退出、安装身份不变，触发器已移除。前两次工具依赖入口／未持久化初始房间错误保留，不作为产品失败或正式安装证明。
 - [ ] 原目录更高构建升级、helper自身更新、旧便携默认／外置数据迁移与失败事务恢复。
+- [x] 跨会话D互斥前置：服务先对 `foundation.sqlite` 获取全生命周期独占，冻结旧服务的普通WAL连接尚在时拒绝新启动；新服务已启动后外部只读／写入客户端被拒绝，关闭后可重开。存档repository的只读兼容与迁移逻辑保持原范围；[两进程与原数据库完整性](../../artifacts/maintenance/test-history/runs/828787df-12cd-4f5a-adf1-eba29d1c8634/results.json)、[服务保存关闭及私有入口回归](../../artifacts/maintenance/test-history/runs/91f4022b-6ddd-4e5f-a9b2-4d6c647a0c5d/results.json)通过。迁移文件租约仍需与此门禁集成验收，单纯探测后关闭文件不能证明持续复制安全。
 - [ ] 最终正式产品ID的干净标准Windows用户安装／卸载／快捷方式与精确字节证明；临时测试账户及UAC操作须等用户授权。不能只设置隔离环境变量替代真实账户。
 - [ ] 冻结唯一新installer，切换长期主题和进度，收尾一次安全维护；不发布、部署或生成发布source ZIP。
 

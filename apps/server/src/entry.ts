@@ -88,7 +88,8 @@ function safeError(error: unknown) {
   const code = /^[A-Z][A-Z0-9_]{0,63}$/.test(rawCode) ? rawCode : null;
   // Keep actionable categories without echoing config, paths, JSON, or secrets.
   let message = 'Service startup failed';
-  if (/incompatible|Unsupported foundation database version/.test(detail))
+  if (detail === 'data-directory-in-use') message = 'data-directory-in-use';
+  else if (/incompatible|Unsupported foundation database version/.test(detail))
     message = 'incompatible-save-database';
   else if (/damaged|SQLITE_CORRUPT|malformed|not a database/.test(detail))
     message = 'damaged-save-database';

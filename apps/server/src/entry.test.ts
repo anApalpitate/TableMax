@@ -339,6 +339,32 @@ it('rejects a second start and gracefully closes the already running service', a
   ).toContain('service-stopped');
 });
 
+it('reports a shared data directory safely and leaves its first private service healthy', async () => {
+  const config = configuration();
+  const first = launch();
+  first.send({ type: 'start', config });
+  const ready = ServiceReadySchema.parse(await first.first());
+  const second = launch();
+  try {
+    second.send({ type: 'start', config });
+    expect(await second.first()).toEqual({
+      type: 'error',
+      message: 'data-directory-in-use',
+      code: null,
+    });
+    expect(await second.exited).toBe(1);
+    expect(second.output().stderr).not.toContain(ready.hostToken);
+    expect(second.output().stderr).not.toContain(config.dataDir);
+    expect(
+      (await post(ready.port, '/api/session/view', { token: ready.hostToken }))
+        .view.self.role,
+    ).toBe('host');
+  } finally {
+    first.send({ type: 'stop' });
+    expect(await first.exited).toBe(0);
+  }
+});
+
 it('reports a port conflict safely and preserves a damaged save file', async () => {
   const listener = createServer();
   await new Promise<void>((done) => listener.listen(0, '127.0.0.1', done));

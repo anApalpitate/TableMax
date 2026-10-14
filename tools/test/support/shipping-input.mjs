@@ -79,20 +79,80 @@ export async function extractCurrentDelivery({
     assert.equal(proof.result, 'passed');
     assert.equal(proof.snapshot, index.snapshot);
     assert.equal(proof.executableSha256, exeSha);
-    const verified = localFile(root, proof.extracted);
+    let verifiedPath = proof.extracted;
+    if (
+      delivery.deliveryType === 'installer' ||
+      delivery.executable.type === 'installer'
+    ) {
+      assert.equal(
+        proof.deliveryType,
+        'installer',
+        'An actual installation proof is required',
+      );
+      assert.equal(proof.payloadSha256, digest(payloadBytes));
+      assert.equal(proof.runtimeRoot, proof.extracted);
+      assert.equal(
+        proof.installationManifestSha256,
+        delivery.executable.installation.manifestSha256,
+      );
+      assert.equal(
+        digest(
+          await readFile(
+            localFile(root, delivery.executable.installation.manifestPath),
+          ),
+        ),
+        proof.installationManifestSha256,
+      );
+      assert.ok(proof.installRoot && proof.boxRoot);
+      if (proof.uninstalled) {
+        const copy = proof.verifiedRuntime;
+        assert.ok(copy && proof.verifiedRuntimeRoot);
+        assert.equal(copy.path, proof.verifiedRuntimeRoot);
+        assert.equal(copy.sourceRuntimeRoot, proof.runtimeRoot);
+        assert.equal(copy.installationId, proof.installationId);
+        assert.equal(copy.executableSha256, exeSha);
+        assert.equal(copy.payloadSha256, digest(payloadBytes));
+        assert.equal(copy.payloadManifestSha256, digest(manifestBytes));
+        const members = [
+          ...manifest.files,
+          {
+            path: '.tablemax-release.json',
+            bytes: manifestBytes.length,
+            sha256: digest(manifestBytes),
+          },
+        ].sort((a, b) => a.path.localeCompare(b.path));
+        assert.equal(copy.fileCount, members.length);
+        assert.deepEqual(copy.files, members);
+        verifiedPath = copy.path;
+      }
+    }
+    const verified = localFile(root, verifiedPath);
     extracted = join(work, 'portable');
     await mkdir(extracted, { recursive: true });
     // Native safety creates managed runtime files after the exact-file audit.
     // Copy only the frozen payload and marker to isolate each subsequent run.
     for (const file of [
       ...manifest.files,
-      { path: '.tablemax-release.json' },
+      {
+        path: '.tablemax-release.json',
+        bytes: manifestBytes.length,
+        sha256: digest(manifestBytes),
+      },
     ]) {
+      const input = localFile(verified, file.path);
+      const inputBytes = await readFile(input);
+      assert.equal(inputBytes.length, file.bytes, file.path);
+      assert.equal(digest(inputBytes), file.sha256, file.path);
       const target = localFile(extracted, file.path);
       await mkdir(dirname(target), { recursive: true });
-      await copyFile(localFile(verified, file.path), target);
+      await copyFile(input, target);
     }
   } else {
+    assert.ok(
+      delivery.deliveryType !== 'installer' &&
+        delivery.executable.type !== 'installer',
+      'Run the actual installer verifier first; an installer cannot use portable extraction',
+    );
     extracted = work + '-portable';
     await promisify(execFile)(executable, [`--extract-only=${extracted}`], {
       windowsHide: true,
@@ -124,6 +184,10 @@ export async function extractCurrentDelivery({
   const binding = {
     version,
     edition: 'full',
+    deliveryType:
+      delivery.deliveryType ?? delivery.executable.type ?? 'portable',
+    componentScope:
+      'verified app payload copy; installer system changes require their own proof',
     snapshot: index.snapshot,
     snapshotPath,
     snapshotSha256: digest(snapshotBytes),

@@ -73,6 +73,33 @@ export function currentDeliveries(root, version) {
       delivery.executable.bytes !== statSync(delivery.executable.path).size
     )
       throw new Error('Delivery hash mismatch');
+    if (
+      delivery.deliveryType === 'installer' ||
+      delivery.executable.type === 'installer'
+    ) {
+      const installation = delivery.executable.installation;
+      if (
+        delivery.edition !== 'full' ||
+        installation?.productId !== '{DB749B9D-7D43-4F50-9FBD-551C9E8EF48D}'
+      )
+        throw new Error('Invalid production installer identity');
+      const path = resolve(installation.manifestPath);
+      if (!relative(root, path).split(sep).join('/').startsWith(prefix))
+        throw new Error('Installation manifest outside payload directory');
+      for (let cursor = path; cursor !== root; cursor = dirname(cursor))
+        if (lstatSync(cursor).isSymbolicLink())
+          throw new Error('Installation manifest contains a link');
+      if (hash(path) !== installation.manifestSha256)
+        throw new Error('Installation manifest hash mismatch');
+      const installed = JSON.parse(readFileSync(path, 'utf8'));
+      if (
+        installed.productId !== installation.productId ||
+        installed.buildVersion !== index.buildVersion ||
+        installed.releaseVersion !== version ||
+        installed.payloadManifestSha256 !== hash(delivery.manifestPath)
+      )
+        throw new Error('Installation manifest identity mismatch');
+    }
     return { ...delivery, manifest, pointer };
   });
 }
