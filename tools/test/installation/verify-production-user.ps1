@@ -484,7 +484,7 @@ exit $taskNodeExit
     foreach ($taskCaseId in @('defaultD','externalD')) {
       $taskCases = @($taskMigrationProof.cases | Where-Object { $_.id -eq $taskCaseId })
       if ($taskCases.Count -ne 1 -or $taskCases[0].result -ne 'passed' -or $taskCases[0].actualInstaller -ne $true -or $taskCases[0].defaultUninstall -ne $true -or $taskCases[0].ownerSid -ne $taskCreatedSid.Value) { throw 'A required actual installer/default-uninstaller migration case did not pass.' }
-      foreach ($taskCheck in @('portable10-native-generated-saved-player','portable10-source-idle-complete-inventory','actual-inno-migration','installed16-managed-members-and-receipt','saved-player-and-storage-restored','old-source-and-games-preserved','actual-default-uninstall','data-games-config-and-source-preserved-after-uninstall')) {
+      foreach ($taskCheck in @('portable10-native-generated-saved-player','portable10-source-idle-complete-inventory','actual-inno-migration','installed18-managed-members-and-receipt','saved-player-and-storage-restored','old-source-and-games-preserved','actual-default-uninstall','data-games-config-and-source-preserved-after-uninstall')) {
         if (@($taskCases[0].checks | Where-Object { $_ -eq $taskCheck }).Count -ne 1) { throw 'The migration case lacks a required unique completed check.' }
       }
       foreach ($taskCasePath in @($taskCases[0].root, $taskCases[0].oldBox, $taskCases[0].dataDirectory)) {

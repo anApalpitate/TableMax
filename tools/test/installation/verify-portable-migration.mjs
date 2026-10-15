@@ -40,7 +40,7 @@ const portablePointerSha256 =
 const portableExecutableSha256 =
   '93207df18d568e808ea903ce5d538fe1835323f80a523af95a09241eeb6364bc';
 const installerSha256 =
-  '48cb4a6e2bc80ee409e41afd68356b684e0a949e17735b0d05c4f4be27bf4396';
+  '323eb595b2160fdf6c75bf65d8a8c22bc5fb9bf6cc85aa2ce179eb26f1c16a19';
 const caseIds = ['defaultD', 'externalD'];
 const databaseMembers = [
   'foundation.sqlite',
@@ -227,7 +227,7 @@ async function registrationAt(root, environment) {
       samePath(record.root, root),
       'Registered installation root differs',
     );
-    assert.equal(record.version, '1.0.6.14');
+    assert.equal(record.version, '1.0.6.18');
     assert.equal(record.uninstall, '"' + join(root, 'unins000.exe') + '"');
   }
   return records;
@@ -398,7 +398,7 @@ async function verifyIdentity(root, manifest, delivery, ownerSid) {
   assert.equal(identity.ownerSid, ownerSid);
   assert.ok(samePath(identity.root, root));
   assert.ok(samePath(identity.boxRoot, join(root, 'TableMax')));
-  assert.equal(identity.buildVersion, '1.0.6.14');
+  assert.equal(identity.buildVersion, '1.0.6.18');
   assert.equal(identity.payloadManifestSha256, manifest.payloadManifestSha256);
   assert.equal(identity.currentMappingSha256, manifest.currentMappingSha256);
   assert.deepEqual(identity.files, manifest.files);
@@ -464,7 +464,7 @@ export async function verifyPortableMigration({
     executionCopies: [],
     cleanupErrors: [],
     scope:
-      'Actual frozen portable 1.0.6.10 generated idle saves and two production 1.0.6.14 Inno migrations/default uninstalls in one fresh authorized standard profile; no older-format save, public release, SmartScreen or full fresh-install capacity claim.',
+      'Actual frozen portable 1.0.6.10 generated idle saves and two production 1.0.6.18 Inno migrations/default uninstalls in one fresh authorized standard profile; no older-format save, public release, SmartScreen or full fresh-install capacity claim.',
   };
   let desktop, active;
   const environment = childEnvironment(work);
@@ -538,6 +538,20 @@ export async function verifyPortableMigration({
         entry.id + '-uninstall',
         entry.temporary,
       );
+      // Inno's first process can exit before its final log writer closes.
+      // Observe that exact log before archiving; do not retry the uninstall.
+      const closure = await inspectWindows(
+        `$deadline=[DateTime]::UtcNow.AddSeconds(10);while($true){try{$stream=[IO.File]::Open($env:TABLEMAX_MIGRATION_UNINSTALL_LOG,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::None);$stream.Dispose();break}catch [IO.IOException]{$code=$_.Exception.GetBaseException().HResult -band 65535;if(($code -ne 32 -and $code -ne 33) -or [DateTime]::UtcNow -ge $deadline){throw};Start-Sleep -Milliseconds 100}};@{closed=$true}|ConvertTo-Json -Compress;exit 0`,
+        childEnvironment(entry.temporary),
+        { TABLEMAX_MIGRATION_UNINSTALL_LOG: log },
+        15000,
+      );
+      assert.equal(
+        closure.closed,
+        true,
+        'Actual Inno log writer did not close',
+      );
+      entry.uninstallLogClosure = closure;
     } finally {
       entry.logs.push(await preserveLog(log, entry.id + '-uninstall.log'));
     }
@@ -597,7 +611,7 @@ export async function verifyPortableMigration({
     assert.equal(
       delivery.executable.sha256,
       installerSha256,
-      'Only the sealed candidate14 is authorized',
+      'Only the sealed candidate18 is authorized',
     );
     const installer = await workspaceInput(delivery.executable.path);
     assert.equal(installer.sha256, installerSha256);
@@ -611,7 +625,7 @@ export async function verifyPortableMigration({
     );
     const manifest = JSON.parse(await readFile(manifestRecord.path, 'utf8'));
     assert.equal(manifest.productId, productId);
-    assert.equal(manifest.buildVersion, '1.0.6.14');
+    assert.equal(manifest.buildVersion, '1.0.6.18');
     assert.equal(manifest.installProtocol, 1);
     assert.equal(
       manifest.currentMappingSha256,
@@ -646,7 +660,7 @@ export async function verifyPortableMigration({
       'A fresh user must have no existing production registration',
     );
     report.checks.push(
-      'frozen-portable10-and-candidate14-inputs',
+      'frozen-portable10-and-candidate18-inputs',
       'actual-medium-standard-profile-and-empty-registration',
     );
     for (const id of caseIds) {
@@ -661,16 +675,48 @@ export async function verifyPortableMigration({
         defaultUninstall: false,
       };
       report.cases.push(active);
-      const caseWork = join(work, id);
+      // The frozen portable launcher stages beside B with a 32-character GUID.
+      // Keep its actual source beneath the fresh authorized profile, without
+      // spending its legacy MAX_PATH budget on the verifier's report grouping.
+      const caseWork = join(
+        profile.workParent,
+        id === 'defaultD' ? '迁 甲' : '迁 乙',
+      );
       await mkdir(caseWork);
-      active.temporary = join(caseWork, 'private-temp');
-      await mkdir(active.temporary);
-      const portableDirectory = join(caseWork, '旧便携 程序');
+      await noLinks(caseWork);
+      active.temporary = await mkdtemp(join(profile.workParent, 'mt-'));
+      const portableDirectory = caseWork;
       active.root = join(caseWork, '新安装 程序');
       active.oldBox = join(portableDirectory, 'TableMax');
       active.boxRoot = join(active.root, 'TableMax');
       active.dataDirectory =
         id === 'defaultD' ? active.boxRoot : join(caseWork, '外置 数据');
+      const portablePaths = [
+        join(active.oldBox, 'app'),
+        join(active.oldBox, '.tablemax-stage-' + '0'.repeat(32)),
+        join(active.oldBox, '.tablemax-previous-' + '0'.repeat(32)),
+      ].flatMap((tree) =>
+        [
+          ...oldManifest.files.map((file) => file.path),
+          '.tablemax-release.json',
+        ].map((path) => member(tree, path)),
+      );
+      active.portablePathBudget = {
+        maximumFileChars: Math.max(...portablePaths.map((path) => path.length)),
+        maximumDirectoryChars: Math.max(
+          ...portablePaths.map((path) => dirname(path).length),
+        ),
+        boundary:
+          'UTF-16 pathname arithmetic from the frozen portable10 manifest, actual B, and Launcher.cs fixed stage/previous prefix plus 32 GUID characters. Synthetic names are not executed or created.',
+      };
+      assert.ok(
+        active.portablePathBudget.maximumFileChars <= 259,
+        'The frozen portable10 file paths exceed its legacy Windows budget',
+      );
+      assert.ok(
+        active.portablePathBudget.maximumDirectoryChars <= 247,
+        'The frozen portable10 directory paths exceed its legacy Windows budget',
+      );
       await mkdir(active.root);
       const unknownPath = join(active.root, '安装目录额外资料.txt');
       await writeFile(unknownPath, '安装和卸载都须保留的未知文件\n', {
@@ -804,7 +850,7 @@ export async function verifyPortableMigration({
       assert.ok(active.framework.some((file) => file.path.endsWith('.dat')));
       active.checks.push(
         'actual-inno-migration',
-        'installed14-managed-members-and-receipt',
+        'installed18-managed-members-and-receipt',
       );
       const config = JSON.parse(
         await readFile(join(active.boxRoot, 'TableMax.config.json'), 'utf8'),
@@ -816,7 +862,7 @@ export async function verifyPortableMigration({
       const restoredStorage = await desktop.request('storage.info');
       assert.ok(samePath(restoredStorage.active, active.dataDirectory));
       const runtime = await desktop.request('runtime');
-      assert.equal(runtime.appVersion, '1.0.6.14');
+      assert.equal(runtime.appVersion, '1.0.6.18');
       const restored = (
         await post(runtime.origin, '/api/session/view', { token: saved.token })
       ).view;

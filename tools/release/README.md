@@ -2,11 +2,11 @@
 
 `pnpm package:win`增量构建并导出预装全部正式游戏与玩法的唯一完整EXE和本地清单；`pnpm package:release`只重新封装当前已验证内部载荷，不分配新修订号。`--edition`已退役并明确拒绝，部分游戏载荷不能交付。EXE在 `artifacts/releases/`，内部payload ZIP、manifest和当前指针在 `artifacts/package-payloads/`；内部ZIP不是用户下载包。
 
-截至2026-10-15，current为便携1.0.6.10；安装候选1.0.6.14原字节保留、尚未推广或发布。[冻结delivery](../../artifacts/package-payloads/v1.0.6/ff8eb35cb3f0-9mGOFX/full/installer-delivery.json)的EXE SHA为 `48cb4a6e2bc80ee409e41afd68356b684e0a949e17735b0d05c4f4be27bf4396`。后续源码已通过下载／清理组件和真实活跃卸载；I198默认深D的控制器超时与同I短外D成功分别保留。新的完整Apply／框架／正式系统链和修复后新候选尚待闭合；[验收](../../docs/reference/acceptance.md)记录精确来源及失败，账户／profile均已清理。达到三失败停止原run，实质修复后按原验证规则定向复验，不另设用户审批门槛。
+截至2026-10-15，本地current已推广为已验收完整安装器1.0.6.18，线上未发布该附件。[冻结delivery](../../artifacts/package-payloads/v1.0.6/170327301894-Iw3W34/full/installer-delivery.json)的EXE为35,711,499字节，SHA `323eb595b2160fdf6c75bf65d8a8c22bc5fb9bf6cc85aa2ce179eb26f1c16a19`。闭包与实际生产根验签通过；默认D、I198／短外D和旧框架失败恢复三条fixture链已各8步实际通过，正式GUID全生命周期、完整容量及账户／profile清理已通过，[共享门禁与保留runtime复算](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-11/formal18-crosscheck.json)通过；便携1.0.6.10默认D／外置D两项真实迁移各8项通过，独立账户／profile清理成功；[最终汇总](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-11/final18-evidence.json)和[正式安装证明](../../artifacts/maintenance/v1.0.6/windows-editions/1703273018946f4de0c96b98cdc207f86bc4316848889b09a529f0a4e36aa4e9/shipping-executable-checks-full.json)绑定各自范围，current推广完成。13／14／15／16原交付、17失败修订及原失败保留历史范围，精确来源与接续见[验收](../../docs/reference/acceptance.md)。累计3失败停止原run，实质修复后只定向复验受影响项，不另设用户审批门槛。
 
 新安装器先用 `--candidate` 封包：正常新构建原子分配四位修订，失败编号不复用，但保留已有 `current.json`。stdout 返回 `candidatePath`；该记录冻结候选交付和原 current 的原始 SHA，同目录 `full/installer-delivery.json` 供描述生成及实际安装验收。`--platform-from` 按原快照身份及游戏缓存逐成员 SHA 保留正式游戏，只刷新当前平台和组装器并生成新快照、新修订；`--snapshot` 则恢复原冻结快照，不分配新修订。
 
-候选14已按下列命令从候选13保留同一31个游戏单元，显式使用原内部签名游戏源，避免误用另一份game-packages/current。后续新代码封包仍先candidate，以下保留该轮输入说明，不自动重复构建。任务期间关闭逐项维护，已有一次安全维护不追加第二轮。
+现行18按下列方式从候选13保留同一31个游戏单元，显式使用原内部签名游戏源，避免误用另一份game-packages/current。后续新代码封包仍先candidate，以下保留该轮输入说明，不自动重复构建。任务期间关闭逐项维护，已有一次安全维护不追加第二轮。
 
 ```powershell
 $env:TABLEMAX_AUTO_MAINTENANCE = '0'
@@ -31,7 +31,7 @@ node tools/release/sign-application-update.mjs "--description=<新描述.json>" 
 node tools/release/installation-promote.mjs "--candidate=<封包输出candidatePath>" "--proof=<最终正式proof.json>"
 ```
 
-签名、切换current和本地验收不代表发布授权；最终EXE字节变化须重新计算SHA、验收与签名。临时标准账户及UAC已授权，真实profile、登记和完整系统证明仍必需；当前新候选包含恢复和内嵌解码修复，标准用户首装的工程Low标签问题改用经授权的普通测试目录验收，不通过环境变量、改DACL或取消系统登记绕过。发布边界见[验收](../../docs/reference/acceptance.md)与[Release流程](../../docs/reference/release.md)。[一次安全维护](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/result.json)已结束，不追加第二轮。
+签名、切换current和本地验收不代表发布授权；最终EXE字节变化须重新计算SHA、验收与签名。临时标准账户及UAC已授权，真实profile、登记和完整系统证明仍必需；当前安装器包含恢复和内嵌解码修复，标准用户首装的工程Low标签问题改用经授权的普通测试目录验收，不通过环境变量、改DACL或取消系统登记绕过。发布边界见[验收](../../docs/reference/acceptance.md)与[Release流程](../../docs/reference/release.md)。[一次安全维护](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/result.json)已结束，不追加第二轮。
 
 前置条件是锁定工具链、有效预算、冻结输入和全部正式模块完整性。游戏仍独立组织、增量构建，内部签名模块按字节变化复用或生成；正式模板不计入当前游戏库。独立游戏导出、Pages准备／部署和安装型作者工具包导出已停止，保留文件仅说明内部实现或历史验证边界。
 
@@ -63,8 +63,8 @@ node tools/release/installation-promote.mjs "--candidate=<封包输出candidateP
 | [installation-package.mjs](installation-package.mjs)                                              | 冻结完整载荷的Inno安装器、稳定入口和helper；正式产品ID固定，测试ID独立                                                                                                                                                                   |
 | [installation-toolchain.mjs](installation-toolchain.mjs)、[锁定清单](installation-toolchain.json) | 项目缓存内准备6.7.3编译器，核对官方安装包、ISSigTool及逐文件SHA；不全局安装                                                                                                                                                              |
 | [installation-fixture.mjs](installation-fixture.mjs)                                              | `--native=<目录> --server=<目录> --web=<目录>`；精确旧正式游戏＋显式新候选单元，生成独立测试产品完整安装器                                                                                                                               |
-| [installation-verifier.mjs](installation-verifier.mjs)                                            | `--delivery=<交付JSON> --evidence=<新证明JSON>`；实际fixture首装／复装／默认卸载与完整首次启动计量；正式ID只在真实隔离账户下使用 `--isolated-windows`                                                                                    |
-| [installation-verifier.test.mjs](installation-verifier.test.mjs)                                  | `node --test tools/release/installation-verifier.test.mjs`；隐藏回环健康检查环境、卸载后保留 runtime 副本及篡改拒绝                                                                                                                      |
+| [installation-verifier.mjs](installation-verifier.mjs)                                            | `--delivery=<交付JSON> --evidence=<新证明JSON>`；实际首装／同包复装／保存后默认卸载／同根重装读回／再次卸载与完整首次启动计量；卸载首段0后另核原EXE消失及日志独占可读；正式ID只在真实隔离账户下使用 `--isolated-windows`                 |
+| [installation-verifier.test.mjs](installation-verifier.test.mjs)                                  | `node --test tools/release/installation-verifier.test.mjs`；隐藏回环健康检查环境、卸载日志独占等待、保留 runtime 副本及篡改拒绝                                                                                                          |
 | [installation-description.mjs](installation-description.mjs)                                      | `--out=<新JSON> [--delivery=<冻结交付JSON>]`；绑定实际installer和安装清单生成待签名描述                                                                                                                                                  |
 | [sign-application-update.mjs](sign-application-update.mjs)                                        | `--description=<JSON> --notes=<更新说明MD> --out=<新发布正文MD> [--envelope-out=<新JSON>]`；私钥文件及keyId由进程环境 `TABLEMAX_APPLICATION_UPDATE_PRIVATE_KEY_FILE`／`TABLEMAX_APPLICATION_UPDATE_KEY_ID`传入，内置公钥自验；不上传私钥 |
 | [installation-publication.mjs](installation-publication.mjs)                                      | current 切换与发布共用正式安装验收门禁；核验隔离账户清理报告、精确 installer／manifest／映射及发布正文 RSA；正式发布仍需授权                                                                                                             |

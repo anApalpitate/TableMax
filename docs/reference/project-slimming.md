@@ -8,7 +8,7 @@
 
 [维护结果](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/result.json)为流程 `completed`，容量阶段为 `candidates-exhausted`，**没有达到8GiB目标**。该阶段日常口径从12,631,623,653字节到12,545,566,521字节，跳过1,768个链接及1个嵌套仓库。另一次[完整最终采样](../../artifacts/maintenance/v1.0.6/installation-remaining/workspace-capacity-after.json)在2026-10-15北京时间06:19记录 **12,596,402,720逻辑字节**，包含根Git与实际嵌套仓库，不跟随链接；这是当次完整终值，不能与维护阶段不同口径相减。[较早完整采样](../../artifacts/maintenance/v1.0.6/installation-remaining/workspace-capacity-before.json)跨越后续封包、证据和文档增长，也不能用其前后差值替代实际删除量。
 
-清理记录的 `preservedFiles` 绑定并保留原 `current.json`、1.0.6.10便携EXE、内部ZIP／manifest及实际完整EXE通过证明。维护后终端复验还确认候选1.0.6.13最终EXE、原current以及双PE交接素材的原SHA未变；此复验没有另写独立保护报告，接续边界见[安装任务](../tasks/windows-installation-update.md)。[候选13的九项封包证明](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-13-repair-03/results.json)发生在维护前，只证明 `sealed-not-installed-not-published` 范围，不能充当维护后复验或正式安装通过证明。
+清理记录的 `preservedFiles` 绑定并保留原 `current.json`、1.0.6.10便携EXE、内部ZIP／manifest及实际完整EXE通过证明。维护后终端复验还确认候选1.0.6.13最终EXE、原current以及双PE交接素材的原SHA未变；此复验没有另写独立保护报告，接续边界见[安装任务](../archive/windows-installation-update-2026-10-15.md)。[候选13的九项封包证明](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-13-repair-03/results.json)发生在维护前，只证明 `sealed-not-installed-not-published` 范围，不能充当维护后复验或正式安装通过证明。
 
 current仍保留已验的1.0.6.10便携交付；正式GUID干净账户完整安装／卸载及双PE实际应用交接尚未执行，候选13未promote、未发布。本轮一次维护已经用完，后续完成这些验收也不追加第二轮清理；容量未达目标如实保留，不为文档更新重新计量或删除。
 

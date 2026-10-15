@@ -10,7 +10,7 @@
 
 ## 下载
 
-公开版本沿用 **v1.0.6**；current仍为已验证便携 **1.0.6.10**。完整安装候选 **1.0.6.14** 在真实系统验收中发现更新下载长路径缺口，修复源码待新候选验证，尚未推广或发布。Windows仅交付 **预装全部游戏的完整EXE**，不加类型后缀；取消盒子版及独立游戏下载／导入，更新整个程序即可获得新游戏与版本。下面下载与使用步骤仍对应此前线上便携程序，实际文件与验证见[当前验收](docs/reference/acceptance.md)。
+公开版本沿用 **v1.0.6**；本地current已推广为通过干净Windows用户验收的完整安装器 **1.0.6.18**。Windows仅交付 **预装全部游戏的完整EXE**，不加类型后缀；更新整个程序即可获得新游戏与版本。该安装器尚未发布，下面的GitHub下载与初次使用步骤仍对应此前线上便携程序；本地文件、安装迁移及验收边界见[当前验收](docs/reference/acceptance.md#当前源码与本地交付)。
 
 **只需在负责开桌的 Windows 电脑上下载程序。朋友的手机和其他玩家电脑使用浏览器加入。**
 
@@ -82,7 +82,9 @@
 
 **更新时怎样保留存档？**
 
-先退出 TableMax，备份程序旁边的 `TableMax` 文件夹，再把新版本 EXE 放回原来的位置启动。默认存档、设置与缓存保存在该文件夹中，请保留它。已自行更改存储位置的用户应同时备份自己选择的目录，详细方法见 [存储与运行说明](docs/reference/development.md#v103-便携存储与启动迁移2026-10-06)。
+安装版在盒子的“程序更新”中检查、下载新版，结束对局后明确确认，程序保存并关闭后安装整个新版。默认卸载保留存档、设置和游戏资源；在原目录重装可继续使用保留的数据。安装目录、外置数据和失败恢复见[安装与更新说明](docs/reference/build-and-run.md#windows-安装与整个程序更新)。
+
+线上仍是此前发布的便携版，请保留程序旁边的 `TableMax` 文件夹及自行选择的外置数据目录。从便携版转用安装版前先退出并备份，选择新的安装目录，再在安装器中指定旧 `TableMax` 目录进行复制迁移，保留旧程序和原数据。安装版的本地验收与发布状态见[当前交付](docs/reference/acceptance.md#当前源码与本地交付)。
 
 **如何远程联机？**
 
@@ -121,7 +123,7 @@ pnpm start
 
 环境准备、锁定工具版本与验证方法见 [开发说明](docs/reference/development.md)；接入游戏从 [游戏开发指南](docs/reference/game-development.md) 开始。盒子短提示文案集中在 [feedback.zh-CN.json](apps/web/src/content/feedback.zh-CN.json)，方便维护。
 
-完整安装器、默认保留数据卸载与盒子内可信更新已有实现。真实标准用户已通过fixture首装、中文登记、主机与签名检查；下载长路径失败及一次实际卸载失败仍待闭合，完整Apply、正式GUID及迁移未验收。长路径源码修复与诊断已推进，状态见[安装任务](docs/tasks/windows-installation-update.md)和[验收](docs/reference/acceptance.md)。新源码须重新封包并通过系统证明后推广；[发布工具](tools/release/README.md)维护命令，本轮未发布附件。
+完整安装器、默认保留数据卸载、保存关闭屏障、便携复制迁移与盒子内可信更新已完成本地实现和适用系统验收，current为1.0.6.18。实际更新、健康失败恢复、正式产品卸载重装和两种便携迁移的范围见[验收](docs/reference/acceptance.md#当前源码与本地交付)，阶段完成及原失败记录见[安装归档](docs/archive/windows-installation-update-2026-10-15.md)。运行契约见[构建与运行](docs/reference/build-and-run.md#windows-安装与整个程序更新)，命令见[发布工具](tools/release/README.md)；本轮未发布附件或部署站点。
 
 本机美术资源检索与处理使用 [TableMaxMaterial 素材工作区](../TMP/TableMaxMaterial/README.md)（`E:\Proj\TMP\TableMaxMaterial`，不创建 Git）；该外部目录独立维护原始资料、处理过程和交付候选，核验后将正式资源及来源记录导入本项目，详见 [资源入口](assets/README.md)。此链接依赖本机目录布局，GitHub 源码与运行包仍使用项目内资源。
 

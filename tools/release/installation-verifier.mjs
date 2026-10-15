@@ -12,6 +12,9 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { basename, dirname, join, resolve, sep } from 'node:path';
+import { createRequire } from 'node:module';
+import { randomUUID } from 'node:crypto';
+import { launchDesktop } from '../test/support/desktop-test.mjs';
 import {
   INSTALLATION_FIXTURE_ID,
   INSTALLATION_PRODUCT_ID,
@@ -183,7 +186,10 @@ async function noLinks(path) {
 }
 
 export async function archiveInstallationLog({ source, directory, name }) {
-  assert.match(name, /^(install|reinstall|uninstall)\.log$/);
+  assert.match(
+    name,
+    /^(install|reinstall|uninstall|restore-install|restore-uninstall)\.log$/,
+  );
   let entry;
   try {
     entry = await lstat(source);
@@ -366,6 +372,368 @@ export async function installedProgramFootprint(root, manifest) {
   };
 }
 
+const databaseMembers = [
+  'foundation.sqlite',
+  'foundation.sqlite-wal',
+  'foundation.sqlite-shm',
+  'foundation.sqlite-journal',
+  'room.sqlite',
+  'room.sqlite-wal',
+  'room.sqlite-shm',
+  'room.sqlite-journal',
+  'room.sqlite.migration.json',
+  'room.sqlite.migration.lock',
+];
+const samePath = (left, right) =>
+  resolve(left).toLowerCase() === resolve(right).toLowerCase();
+
+async function protectedDatabases(boxRoot) {
+  const files = [];
+  for (const path of databaseMembers) {
+    const absolute = join(boxRoot, path);
+    const entry = await lstat(absolute).catch((error) => {
+      if (error.code === 'ENOENT') return null;
+      throw error;
+    });
+    if (!entry) continue;
+    await noLinks(absolute);
+    assert.ok(entry.isFile(), 'A protected database member is not a file');
+    const bytes = await readFile(absolute);
+    files.push({ path, bytes: bytes.length, sha256: hash(bytes) });
+  }
+  for (const path of ['foundation.sqlite', 'room.sqlite'])
+    assert.ok(files.some((file) => file.path === path));
+  return files;
+}
+
+async function waitForInstalledIdle(root, environment) {
+  const windows = process.env.SystemRoot ?? process.env.WINDIR;
+  assert.match(windows ?? '', /^[a-z]:[\\/]/i);
+  const key = hash(Buffer.from(resolve(root).toLowerCase(), 'utf8'));
+  await run(
+    join(windows, 'System32/WindowsPowerShell/v1.0/powershell.exe'),
+    [
+      '-NoProfile',
+      '-NonInteractive',
+      '-Command',
+      powershellUtf8 +
+        '$ErrorActionPreference="Stop";$mutex=$null;$held=$false;try{try{$mutex=[Threading.Mutex]::OpenExisting("Global\\TableMax-Installation-Run-"+$env:TABLEMAX_VERIFIER_RUN_KEY)}catch [Threading.WaitHandleCannotBeOpenedException]{};if($mutex){try{$held=$mutex.WaitOne(30000)}catch [Threading.AbandonedMutexException]{$held=$true};if(-not $held){throw "The exact installed run lock did not become idle"}}}finally{if($held){$mutex.ReleaseMutex()};if($mutex){$mutex.Dispose()}}; exit 0',
+    ],
+    {
+      windowsHide: true,
+      timeout: 35000,
+      env: {
+        ...environment,
+        TABLEMAX_VERIFIER_RUN_KEY: key,
+        PSModulePath: join(windows, 'System32/WindowsPowerShell/v1.0/Modules'),
+      },
+    },
+  );
+}
+
+async function waitForUninstallerCleanup(executable, log, environment) {
+  const started = Date.now();
+  const deadline = started + 10000;
+  while (true) {
+    const entry = await lstat(executable).catch((error) => {
+      if (error.code === 'ENOENT') return null;
+      throw error;
+    });
+    if (!entry) break;
+    assert.ok(entry.isFile() && !entry.isSymbolicLink());
+    assert.ok(
+      Date.now() < deadline,
+      'Inno original uninstaller was not removed within its cleanup budget',
+    );
+    await new Promise((done) => setTimeout(done, 100));
+  }
+  const windows = process.env.SystemRoot ?? process.env.WINDIR;
+  assert.match(windows ?? '', /^[a-z]:[\\/]/i);
+  await run(
+    join(windows, 'System32/WindowsPowerShell/v1.0/powershell.exe'),
+    [
+      '-NoProfile',
+      '-NonInteractive',
+      '-Command',
+      powershellUtf8 +
+        '$ErrorActionPreference="Stop";$deadline=[DateTime]::UtcNow.AddSeconds(10);while($true){try{$stream=[IO.File]::Open($env:TABLEMAX_VERIFIER_UNINSTALL_LOG,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::None);$stream.Dispose();break}catch [IO.IOException]{$code=$_.Exception.GetBaseException().HResult -band 65535;if(($code -ne 32 -and $code -ne 33) -or [DateTime]::UtcNow -ge $deadline){throw};Start-Sleep -Milliseconds 100}};exit 0',
+    ],
+    {
+      windowsHide: true,
+      timeout: 15000,
+      env: {
+        ...environment,
+        TABLEMAX_VERIFIER_UNINSTALL_LOG: log,
+        PSModulePath: join(windows, 'System32/WindowsPowerShell/v1.0/Modules'),
+      },
+    },
+  );
+  return {
+    result: 'passed',
+    originalExecutableAbsent: true,
+    logClosedObserved: true,
+    durationMs: Date.now() - started,
+    boundary:
+      'Observed exact original uninstaller removal and exclusive log readability after the outer first phase exited; no uninstall retry or file deletion by the verifier.',
+  };
+}
+
+async function servicePost(origin, route, body) {
+  const address = new URL(origin);
+  assert.equal(address.protocol, 'http:');
+  assert.equal(address.hostname, '127.0.0.1');
+  const response = await fetch(origin + route, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(15000),
+  });
+  const value = await response.json();
+  assert.equal(
+    response.ok,
+    true,
+    'The actual saved-data HTTP operation failed',
+  );
+  assert.equal(value.ok, true, 'The actual saved-data operation was rejected');
+  return value;
+}
+
+async function observeSavedPlayer({ root, environment, buildVersion, saved }) {
+  await waitForInstalledIdle(root, environment);
+  const boxRoot = join(root, 'TableMax');
+  const desktop = await launchDesktop({
+    executablePath: join(boxRoot, 'app/TableMax.exe'),
+    timeout: 180000,
+    env: {
+      ...environment,
+      TABLEMAX_BOX_DIRECTORY: boxRoot,
+      TABLEMAX_AUTO_MAINTENANCE: '0',
+      TABLEMAX_TEST_MAINTENANCE: '0',
+    },
+  });
+  let result;
+  try {
+    const runtime = await desktop.request('runtime');
+    assert.equal(runtime.appVersion, buildVersion);
+    const storage = await desktop.request('storage.info');
+    assert.ok(samePath(storage.active, boxRoot));
+    if (!saved) {
+      const page = await desktop.firstWindow();
+      await page.waitForFunction(
+        () => Boolean(sessionStorage.getItem('tablemax-host')),
+        null,
+        { timeout: 15000 },
+      );
+      const hostToken = await page.evaluate(() =>
+        sessionStorage.getItem('tablemax-host'),
+      );
+      assert.ok(hostToken, 'The actual installed host must authenticate');
+      let view = (
+        await servicePost(runtime.origin, '/api/session/view', {
+          token: hostToken,
+        })
+      ).view;
+      if (!view.game) {
+        const { io } = createRequire(resolve('apps/web/package.json'))(
+          'socket.io-client',
+        );
+        const socket = io(runtime.origin, {
+          auth: { token: hostToken },
+          transports: ['websocket'],
+          forceNew: true,
+        });
+        try {
+          await new Promise((done, reject) => {
+            const timer = setTimeout(
+              () => reject(new Error('Saved-data host socket timed out')),
+              15000,
+            );
+            socket.once('room:view', () => {
+              clearTimeout(timer);
+              done();
+            });
+            socket.once('connect_error', (error) => {
+              clearTimeout(timer);
+              reject(error);
+            });
+          });
+          const reply = await new Promise((done, reject) =>
+            socket.timeout(15000).emit(
+              'room:command',
+              {
+                actionId: randomUUID(),
+                instanceId: view.instanceId,
+                revision: view.revision,
+                branch: view.branch,
+                command: { type: 'select-game', gameId: 'rummikub' },
+              },
+              (error, value) => (error ? reject(error) : done(value)),
+            ),
+          );
+          assert.equal(reply.ok, true);
+        } finally {
+          socket.disconnect();
+        }
+      }
+      const joined = await servicePost(runtime.origin, '/api/session/join', {
+        name: '卸载重装保留的隔离玩家',
+      });
+      assert.equal(typeof joined.token, 'string');
+      view = (
+        await servicePost(runtime.origin, '/api/session/view', {
+          token: joined.token,
+        })
+      ).view;
+      assert.equal(view.status, 'lobby');
+      assert.ok(view.self?.seatId && view.game?.releaseRef);
+      saved = {
+        token: joined.token,
+        public: {
+          instanceId: view.instanceId,
+          seatId: view.self.seatId,
+          releaseRef: view.game.releaseRef,
+          status: view.status,
+        },
+      };
+    } else {
+      const view = (
+        await servicePost(runtime.origin, '/api/session/view', {
+          token: saved.token,
+        })
+      ).view;
+      assert.deepEqual(
+        {
+          instanceId: view.instanceId,
+          seatId: view.self?.seatId,
+          releaseRef: view.game?.releaseRef,
+          status: view.status,
+        },
+        saved.public,
+        'The real reinstalled service must reopen the original saved identity',
+      );
+    }
+    result = {
+      saved,
+      observation: {
+        desktopPid: runtime.desktopPid,
+        servicePid: runtime.servicePid,
+        appVersion: runtime.appVersion,
+        dataDirectory: storage.active,
+        publicState: saved.public,
+      },
+    };
+  } finally {
+    const child = desktop.process();
+    await desktop.close();
+    assert.equal(child.exitCode, 0, 'Saved-data Native must close normally');
+    assert.equal(child.signalCode, null);
+    if (result) result.observation.exitCode = child.exitCode;
+  }
+  return result;
+}
+
+async function sizeInventory(root) {
+  await noLinks(root);
+  const files = [];
+  const walk = async (directory, prefix = '') => {
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      assert.ok(!entry.isSymbolicLink(), 'Storage measurement contains a link');
+      const path = join(directory, entry.name),
+        name = prefix + entry.name;
+      if (entry.isDirectory()) await walk(path, name + '/');
+      else {
+        assert.ok(entry.isFile(), 'Unexpected storage measurement member');
+        files.push({ path: name, bytes: (await stat(path)).size });
+      }
+    }
+  };
+  await walk(root);
+  return files.sort((left, right) => left.path.localeCompare(right.path));
+}
+
+async function storageObservation({
+  root,
+  temporary,
+  executablePath,
+  manifest,
+  currentGames,
+  phase,
+}) {
+  const managed = new Set(manifest.files.map((file) => file.path));
+  const games = new Set(
+    currentGames.map((file) => 'TableMax/games/' + file.path),
+  );
+  const categories = Object.fromEntries(
+    [
+      'program',
+      'framework',
+      'metadata',
+      'currentGames',
+      'historicalGames',
+      'savedData',
+      'browserCache',
+      'logs',
+      'updates',
+      'transactions',
+      'otherRetainedData',
+      'unknownUserFiles',
+    ].map((name) => [name, { bytes: 0, files: [] }]),
+  );
+  const files = await sizeInventory(root);
+  for (const file of files) {
+    const path = file.path;
+    const category = managed.has(path)
+      ? 'program'
+      : /^unins\d+\.(exe|dat|msg)$/i.test(path)
+        ? 'framework'
+        : /^TableMax\/(\.install\.json|\.installer-receipt\.json|\.uninstalled\.json|TableMax\.config\.json)$/.test(
+              path,
+            )
+          ? 'metadata'
+          : games.has(path)
+            ? 'currentGames'
+            : path.startsWith('TableMax/games/')
+              ? 'historicalGames'
+              : path.startsWith('TableMax/.installation-transactions/')
+                ? 'transactions'
+                : path.startsWith('TableMax/updates/')
+                  ? 'updates'
+                  : path.startsWith('TableMax/desktop/')
+                    ? 'browserCache'
+                    : path.startsWith('TableMax/logs/')
+                      ? 'logs'
+                      : databaseMembers.some(
+                            (name) => path === 'TableMax/' + name,
+                          )
+                        ? 'savedData'
+                        : path.startsWith('TableMax/')
+                          ? 'otherRetainedData'
+                          : 'unknownUserFiles';
+    categories[category].files.push(file);
+    categories[category].bytes += file.bytes;
+  }
+  const temporaryFiles = await sizeInventory(temporary);
+  const rootBytes = files.reduce((sum, file) => sum + file.bytes, 0);
+  const temporaryBytes = temporaryFiles.reduce(
+    (sum, file) => sum + file.bytes,
+    0,
+  );
+  const executionCopyBytes = (await stat(executablePath)).size;
+  return {
+    phase,
+    observedAtUtc: new Date().toISOString(),
+    rootBytes,
+    categories,
+    installerTemporary: {
+      path: temporary,
+      bytes: temporaryBytes,
+      files: temporaryFiles,
+    },
+    executionCopyBytes,
+    totalObservedBytes: rootBytes + temporaryBytes + executionCopyBytes,
+  };
+}
+
 /** Mutating installer verification only uses an isolated test product by default. */
 export async function verifyInstallationDelivery({
   delivery,
@@ -374,6 +742,8 @@ export async function verifyInstallationDelivery({
   keepInstalled = false,
 }) {
   assertWorkspaceRoot();
+  process.env.TABLEMAX_AUTO_MAINTENANCE = '0';
+  process.env.TABLEMAX_TEST_MAINTENANCE = '0';
   assert.equal(delivery.deliveryType, 'installer');
   const installation = delivery.executable.installation;
   const environment = await executionIdentity();
@@ -481,8 +851,13 @@ export async function verifyInstallationDelivery({
   const executablePath = executionCopy?.path ?? delivery.executable.path;
   const root = join(work, '程序 目录');
   await mkdir(root);
-  const installerTemporary = join(work, 'installer-temporary');
-  await mkdir(installerTemporary);
+  // Inno extracts 64-character blob names through ordinary Win32 paths.
+  // Keep this owned TEMP beside the private work directory's other cases,
+  // rather than nesting it inside this verifier's longer case path.
+  const installerTemporary = profile
+    ? await mkdtemp(join(profile.workParent, 'it-'))
+    : join(work, 'installer-temporary');
+  if (!profile) await mkdir(installerTemporary);
   const childEnvironment =
     installationVerificationEnvironment(installerTemporary);
   const unknown = join(root, '朋友资料.txt');
@@ -492,6 +867,8 @@ export async function verifyInstallationDelivery({
     install: join(work, 'install.log'),
     reinstall: join(work, 'reinstall.log'),
     uninstall: join(work, 'uninstall.log'),
+    'restore-install': join(work, 'restore-install.log'),
+    'restore-uninstall': join(work, 'restore-uninstall.log'),
   };
   const writeLogIndex = async () =>
     writeFile(
@@ -513,10 +890,24 @@ export async function verifyInstallationDelivery({
   const runPhase = async (phase, executable, args, options) => {
     let failure;
     let result;
+    let completionObservation;
+    let observationFailure;
     try {
       result = await run(executable, args, options);
     } catch (cause) {
       failure = cause;
+    }
+    if (!failure && ['uninstall', 'restore-uninstall'].includes(phase)) {
+      try {
+        completionObservation = await waitForUninstallerCleanup(
+          executable,
+          logs[phase],
+          options.env,
+        );
+      } catch (cause) {
+        observationFailure = cause;
+        completionObservation = { result: 'failed', message: cause.message };
+      }
     }
     try {
       logEvidence[phase] = {
@@ -533,6 +924,7 @@ export async function verifyInstallationDelivery({
               message: failure.message,
             }
           : { result: 'exited', code: 0 },
+        ...(completionObservation ? { completionObservation } : {}),
       };
       await writeLogIndex();
     } catch (cause) {
@@ -540,10 +932,12 @@ export async function verifyInstallationDelivery({
         throw new AggregateError(
           [failure, cause],
           'Installer phase failed and its log could not be preserved',
+          { cause },
         );
       throw cause;
     }
     if (failure) throw failure;
+    if (observationFailure) throw observationFailure;
     assert.ok(
       !logEvidence[phase].missing,
       'Successful installer log is missing',
@@ -564,6 +958,7 @@ export async function verifyInstallationDelivery({
     maxBuffer: 1024 * 1024,
     env: childEnvironment,
   });
+  await waitForInstalledIdle(root, childEnvironment);
   const firstRegistration = await registration(manifest.productId);
   verifyRegistration(firstRegistration, root, manifest, fixture);
   const identity = await installedIdentity(
@@ -576,6 +971,21 @@ export async function verifyInstallationDelivery({
   const footprint = await installedProgramFootprint(root, manifest);
   const links = await shortcuts(root, fixture);
   verifyShortcuts(links, root);
+  const capacityObservedAtUtc = new Date().toISOString();
+  const storageObservations = [];
+  const observeStorage = async (phase) => {
+    storageObservations.push(
+      await storageObservation({
+        root,
+        temporary: installerTemporary,
+        executablePath,
+        manifest,
+        currentGames: footprint.games,
+        phase,
+      }),
+    );
+  };
+  await observeStorage('after-install');
   const preserved = join(root, 'TableMax', '用户资料.txt');
   await writeFile(preserved, 'Preserved user data\n');
   const preservedHash = hash(await readFile(preserved));
@@ -585,6 +995,7 @@ export async function verifyInstallationDelivery({
     maxBuffer: 1024 * 1024,
     env: childEnvironment,
   });
+  await waitForInstalledIdle(root, childEnvironment);
   const restarted = await installedIdentity(
     root,
     manifest,
@@ -607,9 +1018,25 @@ export async function verifyInstallationDelivery({
   assert.deepEqual(repeatLinks, links);
   assert.equal(hash(await readFile(preserved)), preservedHash);
   assert.equal(hash(await readFile(unknown)), originalHash);
+  await observeStorage('after-repeat-install');
   let uninstalled = false;
   let verifiedRuntime;
+  let postUninstallReinstall;
   if (!keepInstalled) {
+    const savedPlayer = await observeSavedPlayer({
+      root,
+      environment: childEnvironment,
+      buildVersion: manifest.buildVersion,
+    });
+    assert.deepEqual(
+      await installationInventory(join(root, 'TableMax/games')),
+      footprint.games,
+      'The first-start current game repository must already include the saved game',
+    );
+    const firstDatabasesBefore = await protectedDatabases(
+      join(root, 'TableMax'),
+    );
+    await observeStorage('before-first-uninstall');
     await mkdir(dirnameFor(evidencePath), { recursive: true });
     verifiedRuntime = await preserveVerifiedRuntime({
       root,
@@ -655,6 +1082,10 @@ export async function verifyInstallationDelivery({
       footprint.games,
       'Default uninstall preserves every current/original game repository byte',
     );
+    const firstDatabasesAfter = await protectedDatabases(
+      join(root, 'TableMax'),
+    );
+    assert.deepEqual(firstDatabasesAfter, firstDatabasesBefore);
     await verifyPreservedRuntime({
       copy: verifiedRuntime,
       delivery,
@@ -662,6 +1093,136 @@ export async function verifyInstallationDelivery({
       sourceRuntimeRoot: join(root, 'TableMax/app'),
       installationId: identity.installationId,
     });
+    await observeStorage('after-first-uninstall');
+    await runPhase(
+      'restore-install',
+      executablePath,
+      argumentsFor(logs['restore-install']),
+      {
+        windowsHide: true,
+        timeout: 180000,
+        maxBuffer: 1024 * 1024,
+        env: childEnvironment,
+      },
+    );
+    await waitForInstalledIdle(root, childEnvironment);
+    const restored = await installedIdentity(
+      root,
+      manifest,
+      delivery,
+      environment.ownerSid,
+    );
+    const restoredRegistration = await registration(manifest.productId);
+    verifyRegistration(restoredRegistration, root, manifest, fixture);
+    const restoredFootprint = await installedProgramFootprint(root, manifest);
+    assert.deepEqual(restoredFootprint.games, footprint.games);
+    const restoredLinks = await shortcuts(root, fixture);
+    verifyShortcuts(restoredLinks, root);
+    assert.deepEqual(restoredLinks, links);
+    assert.equal(hash(await readFile(preserved)), preservedHash);
+    assert.equal(hash(await readFile(unknown)), originalHash);
+    assert.equal(
+      hash(await readFile(join(root, 'TableMax/TableMax.config.json'))),
+      footprint.metadata.find(
+        (file) => file.path === 'TableMax/TableMax.config.json',
+      ).sha256,
+    );
+    await observeStorage('after-restored-install');
+    const restoredPlayer = await observeSavedPlayer({
+      root,
+      environment: childEnvironment,
+      buildVersion: manifest.buildVersion,
+      saved: savedPlayer.saved,
+    });
+    assert.deepEqual(
+      restoredPlayer.observation.publicState,
+      savedPlayer.observation.publicState,
+    );
+    const finalDatabasesBefore = await protectedDatabases(
+      join(root, 'TableMax'),
+    );
+    await observeStorage('before-final-uninstall');
+    await runPhase(
+      'restore-uninstall',
+      join(root, 'unins000.exe'),
+      [
+        '/VERYSILENT',
+        '/SUPPRESSMSGBOXES',
+        '/NORESTART',
+        '/LOG=' + logs['restore-uninstall'],
+      ],
+      {
+        windowsHide: true,
+        timeout: 120000,
+        maxBuffer: 1024 * 1024,
+        env: childEnvironment,
+      },
+    );
+    assert.equal(await registration(manifest.productId), null);
+    for (const link of restoredLinks)
+      await assert.rejects(stat(link.path), { code: 'ENOENT' });
+    for (const file of [
+      ...manifest.files,
+      ...restoredFootprint.framework,
+      { path: 'TableMax/.install.json' },
+    ])
+      await assert.rejects(stat(join(root, file.path)), { code: 'ENOENT' });
+    assert.equal(hash(await readFile(preserved)), preservedHash);
+    assert.equal(hash(await readFile(unknown)), originalHash);
+    assert.equal(
+      hash(await readFile(join(root, 'TableMax/TableMax.config.json'))),
+      footprint.metadata.find(
+        (file) => file.path === 'TableMax/TableMax.config.json',
+      ).sha256,
+    );
+    assert.deepEqual(
+      await installationInventory(join(root, 'TableMax/games')),
+      footprint.games,
+    );
+    const finalDatabasesAfter = await protectedDatabases(
+      join(root, 'TableMax'),
+    );
+    assert.deepEqual(finalDatabasesAfter, finalDatabasesBefore);
+    await verifyPreservedRuntime({
+      copy: verifiedRuntime,
+      delivery,
+      payloadBytes,
+      sourceRuntimeRoot: join(root, 'TableMax/app'),
+      installationId: identity.installationId,
+    });
+    await observeStorage('after-final-uninstall');
+    postUninstallReinstall = {
+      result: 'passed',
+      actualInstaller: true,
+      sameRoot: true,
+      sameInstaller: true,
+      firstUninstalled: true,
+      finalUninstalled: true,
+      defaultUninstall: true,
+      root,
+      ownerSid: identity.ownerSid,
+      installerSha256: delivery.executable.sha256,
+      buildVersion: manifest.buildVersion,
+      originalInstallationId: identity.installationId,
+      installationId: restored.installationId,
+      initialNative: savedPlayer.observation,
+      restoredNative: restoredPlayer.observation,
+      databases: {
+        firstUninstall: {
+          before: firstDatabasesBefore,
+          after: firstDatabasesAfter,
+        },
+        finalUninstall: {
+          before: finalDatabasesBefore,
+          after: finalDatabasesAfter,
+        },
+      },
+      registration: restoredRegistration,
+      shortcuts: restoredLinks,
+      footprint: restoredFootprint,
+      boundary:
+        'Real same-installer reinstall after default uninstall, actual local saved player restored by Native/Node, then default uninstall again. Tokens remain only in memory. Installation identity may change; saved room/player/release identity must not. The one retained runtime remains bound to the first actual installation.',
+    };
     uninstalled = true;
   }
   const record = {
@@ -692,6 +1253,31 @@ export async function verifyInstallationDelivery({
     productId: manifest.productId,
     firstStartupBytes: footprint.total,
     footprint,
+    capacityAccounting: {
+      schemaVersion: 1,
+      observation: 'installer-returned-after-health-startup',
+      observedAtUtc: capacityObservedAtUtc,
+      preStartupSampled: false,
+      sameSample: true,
+      firstInstallationProgramBytes:
+        footprint.programBytes +
+        footprint.frameworkBytes +
+        footprint.identityBytes,
+      firstStartupMaterializedGamesBytes: footprint.currentGamesBytes,
+      firstStartupTotalBytes: footprint.total,
+      boundary:
+        'Inno commit starts and confirms Native before the installer returns. Installation members/framework/metadata and current materialized games are separate measured subtotals from the same first completed-installer sample, not separate pre-start and post-start time samples.',
+    },
+    observedStorage: {
+      schemaVersion: 1,
+      samples: storageObservations,
+      maxObservedBytes: Math.max(
+        ...storageObservations.map((sample) => sample.totalObservedBytes),
+      ),
+      isAbsolutePeak: false,
+      boundary:
+        'Logical byte inventories of this private installation root, dedicated installer TEMP and exact outer execution copy at the recorded completed phases only. The maximum is an observed lower bound, not an absolute or continuously sampled staging peak. No unrelated profile or external user directory is traversed.',
+    },
     registration: firstRegistration,
     reinstall: {
       result: 'passed',
@@ -701,6 +1287,7 @@ export async function verifyInstallationDelivery({
     },
     shortcuts: links,
     uninstalled,
+    ...(postUninstallReinstall ? { postUninstallReinstall } : {}),
     ...(verifiedRuntime
       ? { verifiedRuntimeRoot: verifiedRuntime.path, verifiedRuntime }
       : {}),
@@ -722,6 +1309,8 @@ export async function verifyInstallationDelivery({
             'registry and exact shortcuts removed',
             'config/current games/unknown bytes retained',
             'exact preserved runtime verified after uninstall',
+            'actual same-root reinstall reopens the real retained saved player and release',
+            'second default uninstall preserves exact idle database groups and final data',
           ]
         : []),
     ],
