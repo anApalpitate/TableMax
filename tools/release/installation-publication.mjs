@@ -9,6 +9,7 @@ import {
 } from '../shared/application-update.mjs';
 import { INSTALLATION_PRODUCT_ID } from './installation-package.mjs';
 import { MAXIMUM_PACKAGE_BYTES } from './package-limits.mjs';
+import { windowsExecutableName } from './windows-executable-name.mjs';
 
 export function installationUpdateDescription(delivery, releaseVersion) {
   assert.equal(delivery.deliveryType, 'installer');
@@ -24,7 +25,7 @@ export function installationUpdateDescription(delivery, releaseVersion) {
   );
   const installation = delivery.executable.installation;
   assert.equal(installation.productId, INSTALLATION_PRODUCT_ID);
-  const assetName = `TableMax-${releaseVersion}-win-x64.exe`;
+  const assetName = windowsExecutableName(releaseVersion, 'full');
   return validateApplicationUpdateDescription({
     schemaVersion: 1,
     productId: INSTALLATION_PRODUCT_ID,

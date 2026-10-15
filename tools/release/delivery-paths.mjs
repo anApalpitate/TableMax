@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import { existsSync, lstatSync, readdirSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
-import { windowsExecutableName } from './windows-executable-name.mjs';
+import {
+  windowsExecutableName,
+  legacyWindowsExecutableName,
+} from './windows-executable-name.mjs';
 import { isDirectExecution } from '../shared/workspace-root.mjs';
 
 function identity(version, buildVersion, edition) {
@@ -13,7 +16,12 @@ function identity(version, buildVersion, edition) {
       ),
     'Build must belong to the public version',
   );
-  return windowsExecutableName(buildVersion, edition);
+  const legacy = legacyWindowsExecutableName(buildVersion, edition);
+  return {
+    current:
+      edition === 'full' ? windowsExecutableName(buildVersion, edition) : null,
+    legacy,
+  };
 }
 
 /** Both layouts have exact identities; arbitrary descendants are never accepted. */
@@ -24,17 +32,15 @@ export function assertDeliveryPath({
   edition = 'full',
   path,
 }) {
-  const name = identity(version, buildVersion, edition);
+  const names = identity(version, buildVersion, edition);
   const absolute = resolve(root, path);
-  const legacy = resolve(root, 'artifacts/releases', name);
-  const grouped = resolve(
-    root,
-    'artifacts/releases',
-    'v' + version,
-    buildVersion,
-    name,
-  );
-  assert.ok(absolute === legacy || absolute === grouped, 'Unexpected EXE path');
+  const allowed = [names.current, names.legacy]
+    .filter(Boolean)
+    .flatMap((name) => [
+      resolve(root, 'artifacts/releases', name),
+      resolve(root, 'artifacts/releases', 'v' + version, buildVersion, name),
+    ]);
+  assert.ok(allowed.includes(absolute), 'Unexpected EXE path');
   assertNoDeliveryLinks(absolute);
   return absolute;
 }
@@ -92,8 +98,39 @@ export function deliveryPaths({
   existingPath,
   restoreSnapshot = false,
 }) {
-  const name = identity(version, buildVersion, edition);
-  const legacy = resolve(root, 'artifacts/releases', name);
+  const names = identity(version, buildVersion, edition);
+  assert.ok(
+    names.current || existingPath || restoreSnapshot,
+    'Historical box output requires a frozen path or snapshot',
+  );
+  const frozen =
+    restoreSnapshot && !existingPath
+      ? [names.legacy, names.current]
+          .filter(Boolean)
+          .flatMap((name) => [
+            resolve(root, 'artifacts/releases', name),
+            resolve(
+              root,
+              'artifacts/releases',
+              'v' + version,
+              buildVersion,
+              name,
+            ),
+          ])
+          .filter(existsSync)
+      : [];
+  assert.ok(
+    frozen.length <= 1,
+    'Ambiguous frozen EXE paths; provide the recorded existingPath',
+  );
+  assert.ok(
+    !restoreSnapshot || existingPath || frozen.length === 1,
+    'Missing frozen EXE; provide its recorded existingPath before rewrapping',
+  );
+  assert.ok(
+    names.current || existingPath || frozen.length === 1,
+    'Historical box output requires an existing frozen EXE',
+  );
   const executable = assertDeliveryPath({
     root,
     version,
@@ -101,9 +138,13 @@ export function deliveryPaths({
     edition,
     path:
       existingPath ??
-      (restoreSnapshot && existsSync(legacy)
-        ? legacy
-        : join('artifacts/releases', 'v' + version, buildVersion, name)),
+      frozen[0] ??
+      join(
+        'artifacts/releases',
+        'v' + version,
+        buildVersion,
+        names.current ?? names.legacy,
+      ),
   });
   return {
     directory: dirname(executable),

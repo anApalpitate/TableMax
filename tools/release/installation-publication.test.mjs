@@ -203,10 +203,18 @@ function fixture(newLayout = false) {
 
 test('production proof and approved RSA machine block bind final installer, payload and mapping', () => {
   const input = fixture();
+  input.delivery.executable.path =
+    'artifacts/releases/TableMax-1.0.6.11-win-x64.exe';
+  const originalPath = input.delivery.executable.path;
+  assert.equal(
+    installationUpdateDescription(input.delivery, '1.0.6').assetName,
+    'TableMax-1.0.6-installer-win-x64.exe',
+  );
   assert.equal(
     verifyInstallationPublication(input).description.sha256,
     input.delivery.executable.sha256,
   );
+  assert.equal(input.delivery.executable.path, originalPath);
 });
 test('test identity, changed final bytes and changed frozen mapping cannot authorize publication', () => {
   for (const mutate of [

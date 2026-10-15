@@ -111,9 +111,9 @@ const current = {
   buildVersion: '1.0.7.10',
   releaseTag: 'v1.0.7',
   repo: 'anApalpitate/TableMax',
-  assetName: 'TableMax-1.0.7-win-x64.exe',
+  assetName: 'TableMax-1.0.7-installer-win-x64.exe',
   assetUrl:
-    'https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-win-x64.exe',
+    'https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-installer-win-x64.exe',
   bytes: 4096,
   sha256: hash(Buffer.from('synthetic current installer; never executed')),
   payloadManifestSha256: 'a'.repeat(64),

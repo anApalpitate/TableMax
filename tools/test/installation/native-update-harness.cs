@@ -36,7 +36,7 @@ namespace TableMax.NativeUpdateHarness
                     if (separator < 0 || (argument.Substring(0, separator) != "--only" && argument.Substring(0, separator) != "--prior-failures") || options.ContainsKey(argument.Substring(0, separator))) throw new IOException("Unexpected or duplicate harness option.");
                     options.Add(argument.Substring(0, separator), argument.Substring(separator + 1));
                 }
-                var failureLimit = 5; var configuredLimit = Environment.GetEnvironmentVariable("TABLEMAX_TEST_MAX_FAILURES"); if (configuredLimit != null && (!Int32.TryParse(configuredLimit, out failureLimit) || failureLimit < 1 || failureLimit > 1000)) throw new IOException("Failure limit must be an integer from 1 to 1000.");
+                var failureLimit = 10; var configuredLimit = Environment.GetEnvironmentVariable("TABLEMAX_TEST_MAX_FAILURES"); if (configuredLimit != null && (!Int32.TryParse(configuredLimit, out failureLimit) || failureLimit < 1 || failureLimit > 1000)) throw new IOException("Failure limit must be an integer from 1 to 1000.");
                 var priorFailures = 0;
                 if (options.TryGetValue("--prior-failures", out var prior) && (!Int32.TryParse(prior, out priorFailures) || priorFailures < 0 || priorFailures >= failureLimit || prior != priorFailures.ToString(System.Globalization.CultureInfo.InvariantCulture))) throw new IOException("Prior failures must be an integer from 0 to " + (failureLimit - 1) + ".");
                 var selected = CaseNames;

@@ -226,7 +226,7 @@ export function validateApplicationUpdateDescription(description) {
     description.releaseTag !== 'v' + description.releaseVersion ||
     description.repo !== APPLICATION_UPDATE.repo ||
     description.assetName !==
-      `TableMax-${description.releaseVersion}-win-x64.exe` ||
+      `TableMax-${description.releaseVersion}-installer-win-x64.exe` ||
     description.assetUrl !==
       `https://github.com/${APPLICATION_UPDATE.repo}/releases/download/${description.releaseTag}/${description.assetName}`
   )

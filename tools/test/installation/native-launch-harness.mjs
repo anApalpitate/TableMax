@@ -91,9 +91,9 @@ const payload = Buffer.from(
     buildVersion: '1.0.6.11',
     releaseTag: 'v1.0.6',
     repo: 'anApalpitate/TableMax',
-    assetName: 'TableMax-1.0.6-win-x64.exe',
+    assetName: 'TableMax-1.0.6-installer-win-x64.exe',
     assetUrl:
-      'https://github.com/anApalpitate/TableMax/releases/download/v1.0.6/TableMax-1.0.6-win-x64.exe',
+      'https://github.com/anApalpitate/TableMax/releases/download/v1.0.6/TableMax-1.0.6-installer-win-x64.exe',
     bytes: installerBytes.length,
     sha256: digest(installerBytes),
     payloadManifestSha256: digest(Buffer.from('synthetic-next-payload')),

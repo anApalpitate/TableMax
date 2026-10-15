@@ -68,6 +68,33 @@ const rejects = (operation, code) =>
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 
 check(
+  'only the exact public installer asset name and matching URL are accepted',
+  () => {
+    assert.equal(
+      validateApplicationUpdateDescription(original).assetName,
+      `TableMax-${original.releaseVersion}-installer-win-x64.exe`,
+    );
+    for (const assetName of [
+      `TableMax-${original.releaseVersion}-win-x64.exe`,
+      `TableMax-${original.releaseVersion}-win-x64-box.exe`,
+      `TableMax-${original.buildVersion}-installer-win-x64.exe`,
+      `TableMax-${original.releaseVersion}-installer-win-x64-copy.exe`,
+      `../TableMax-${original.releaseVersion}-installer-win-x64.exe`,
+    ]) {
+      rejects(
+        () =>
+          validateApplicationUpdateDescription({
+            ...original,
+            assetName,
+            assetUrl: `https://github.com/${original.repo}/releases/download/${original.releaseTag}/${assetName}`,
+          }),
+        'asset-identity',
+      );
+    }
+  },
+);
+
+check(
   'fixed public RSA3072 vectors accept authenticated original bytes and reject signed malformed payloads',
   () => {
     for (const vector of vectors.vectors) {

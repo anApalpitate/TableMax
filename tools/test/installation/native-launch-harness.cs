@@ -211,7 +211,7 @@ internal static class NativeLaunchHarness
         Directory.CreateDirectory(fixture.temp);
         var handoff = Path.Combine(InstallationCore.Box(fixture.root), "updates", "handoff-" + Guid.NewGuid().ToString("N"));
         fixture.helper = Path.Combine(handoff, "UpdateHelper.exe"); fixture.target = Path.Combine(handoff, "envelope.json"); fixture.audit = Path.Combine(handoff, "launch.json");
-        fixture.installer = Path.Combine(InstallationCore.Box(fixture.root), "updates", "downloads", InstallationCore.Hash(fixture.installerBytes), "TableMax-1.0.6-win-x64.exe");
+        fixture.installer = Path.Combine(InstallationCore.Box(fixture.root), "updates", "downloads", InstallationCore.Hash(fixture.installerBytes), "TableMax-1.0.6-installer-win-x64.exe");
         Write(fixture.helper, fixture.helperBytes, true); Write(fixture.installer, fixture.installerBytes, true); Write(fixture.target, fixture.targetBytes, true); Write(Path.Combine(fixture.root, "UpdateHelper.exe"), fixture.helperBytes, true);
         var updaterBytes = InstallationCore.Utf8.GetBytes("synthetic updater bytes; never executed"); Write(Path.Combine(fixture.root, "Updater.exe"), updaterBytes, true);
         using (var user = WindowsIdentity.GetCurrent()) fixture.identity = new InstallationManifest { schemaVersion = 1, productId = InstallationCore.ProductId, arch = "x64", installProtocol = 1, releaseVersion = "1.0.6", buildVersion = "1.0.6.10", installationId = Guid.NewGuid().ToString(), ownerSid = user.User.Value, root = fixture.root, boxRoot = InstallationCore.Box(fixture.root), payloadManifestSha256 = InstallationCore.Hash(new byte[] { 1 }), currentMappingSha256 = InstallationCore.Hash(new byte[] { 2 }), files = new[] { new ManagedFile { path = "UpdateHelper.exe", bytes = fixture.helperBytes.Length, sha256 = InstallationCore.Hash(fixture.helperBytes) }, new ManagedFile { path = "Updater.exe", bytes = updaterBytes.Length, sha256 = InstallationCore.Hash(updaterBytes) } } };
@@ -312,7 +312,7 @@ internal static class NativeLaunchHarness
         Console.SetOut(new StreamWriter(Console.OpenStandardOutput(), InstallationCore.Utf8) { AutoFlush = true });
         var previousTemp = Environment.GetEnvironmentVariable("TEMP"); var previousTmp = Environment.GetEnvironmentVariable("TMP");
         var results = new List<Result>(); var selected = CaseIds; var priorFailures = 0; var failures = 0;
-        var failureLimit = 5;
+        var failureLimit = 10;
         try
         {
             var configuredLimit = Environment.GetEnvironmentVariable("TABLEMAX_TEST_MAX_FAILURES"); Require(configuredLimit == null || (Int32.TryParse(configuredLimit, out failureLimit) && failureLimit >= 1 && failureLimit <= 1000), "Failure limit must be an integer from 1 to 1000.");

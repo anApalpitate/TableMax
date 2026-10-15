@@ -81,9 +81,9 @@ const base = {
   buildVersion: '1.0.6.12',
   releaseTag: 'v1.0.6',
   repo: 'anApalpitate/TableMax',
-  assetName: 'TableMax-1.0.6-win-x64.exe',
+  assetName: 'TableMax-1.0.6-installer-win-x64.exe',
   assetUrl:
-    'https://github.com/anApalpitate/TableMax/releases/download/v1.0.6/TableMax-1.0.6-win-x64.exe',
+    'https://github.com/anApalpitate/TableMax/releases/download/v1.0.6/TableMax-1.0.6-installer-win-x64.exe',
   bytes: bytes.length,
   sha256: hash(bytes),
   payloadManifestSha256: hash(Buffer.from('fixture-next-payload')),

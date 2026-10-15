@@ -65,9 +65,11 @@ const localExes = ['full'].map((edition) => {
     (item) => item.edition === edition,
   );
   assert.equal(
-    basename(delivery.executable.path),
-    windowsExecutableName(payloadIndex.buildVersion ?? version, edition),
+    delivery.deliveryType,
+    'installer',
+    'Release requires a complete installer',
   );
+  assert.equal(delivery.executable.type, 'installer');
   return assertDeliveryPath({
     version,
     buildVersion: payloadIndex.buildVersion ?? version,

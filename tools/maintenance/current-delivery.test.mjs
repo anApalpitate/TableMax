@@ -13,7 +13,7 @@ import { createHash } from 'node:crypto';
 import { resolve, join, dirname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { currentDeliveries } from './current-delivery.mjs';
-import { windowsExecutableName } from '../release/windows-executable-name.mjs';
+import { legacyWindowsExecutableName } from '../release/windows-executable-name.mjs';
 
 function withFixtureCleanup(action, cleanup) {
   let result;
@@ -64,7 +64,7 @@ test('dual delivery protects hash-bound payloads and refuses missing actual EXE 
           join(
             root,
             'artifacts/releases',
-            windowsExecutableName('1.0.6.4', edition),
+            legacyWindowsExecutableName('1.0.6.4', edition),
           ),
           'exe-' + edition,
         );
