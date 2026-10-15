@@ -18,7 +18,7 @@
 
 用户手写的剩余改动与任务量标记见[手写改动单](tasks/手写改动单.md)。
 
-历史深度瘦身曾实测 **5.897 GB**（含嵌套仓库），后续安全瘦身采样为 **5.973 GB**，均低于当次6GB目标；这些不是当前容量。高收益做法见[深度瘦身方法论](reference/deep-slimming-methodology.md)，原结果见[瘦身记录](reference/project-slimming.md)。2026-10-15新增[分层维护规则](reference/workspace-maintenance.md#容量触发与深度瘦身2026-10-15)：完整逻辑体积超过15GB优先深度瘦身至严格低于6GB，未触发时保留日常10GiB／8GiB分支及全部保护。
+2026-10-15晚间[深度瘦身](reference/project-slimming.md#深度瘦身与剩余空间2026-10-15)经唯一一次逐文件Apply，完整逻辑采样由23.762GB降至约 **6.374GB**，随后统计报告另有少量增长；严格低于6GB目标未达，剩余仅接续来源核实，不追加删除。当前交付／验收、原素材、旧档、依赖与工具缓存继续保护。历史5.897GB／5.973GB只表示当时结果；方法与门槛见[深度瘦身方法论](reference/deep-slimming-methodology.md)和[分层维护规则](reference/workspace-maintenance.md#容量触发与深度瘦身2026-10-15)。
 
 先读 [AGENTS.md](../AGENTS.md)，检查 Git 状态与当前任务相关 diff，再按下表进入唯一正文。已知主题直接定位章节或使用定向查询，不先通读整个 docs。原首版与Windows安装改造均已完成，历史范围从[归档索引](archive/README.md)追溯，未完成需求从[任务索引](tasks/README.md#后续开发接续入口)接续。
 

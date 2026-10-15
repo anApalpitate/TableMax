@@ -1,5 +1,7 @@
 # Windows 安装、卸载与盒子内更新：完成归档
 
+2026-10-15晚间独立深度维护已退役未发布、未采用的13–16候选EXE／内部ZIP及其派生副本，保留完整原报告和逐文件原SHA；下文对应旧EXE链接改指[退役清单](../../artifacts/maintenance/v1.0.6/deep-slim-20261015-2040/retirement-plan.json)，实际删除见[执行记录](../../artifacts/maintenance/reviewed-retirements/deep-slim-20261015-2040-once.json)。历史安装／失败／签名结论仍按原时点和原SHA认定，不能据旧记录声称原二进制仍在原位。当前18、旧10恢复原件、最新fixture原EXE及最终原始证明继续保留；范围与未达6GB原因见[最新瘦身记录](../reference/project-slimming.md#深度瘦身与剩余空间2026-10-15)。
+
 ## 完成结论与最终证据（2026-10-15）
 
 本任务阶段0–6已完成并归档：完整离线installer、默认保留数据卸载、盒子内可信检查／下载／明确重启更新、旧便携两种数据布局迁移、故障恢复及本地交付推广均已按范围验收。公开版本仍为1.0.6，本地current已由原便携1.0.6.10原子推广为安装器1.0.6.18；未发布GitHub、部署Pages或生成发布source ZIP。
@@ -233,7 +235,7 @@ typed catch空白已修正，改用系统PS的`-Command`只调用`Parser.ParseIn
 
 [续行08](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/round.json)按实质时序修复从0失败开始：唯一生产变更ISS，以dontcopy内嵌candidate，在PrepareToInstall原权限／root检查后显式提取，同步完成helper提交／健康确认；错误返回非空，成功后才允许Inno写框架／登记。ISS源码SHA `a2383deefb359cc27e92ba61d20d3df8ddf5f5b4ca01ea682e88cbf276254813`，其余生产源与15相同，原15和全部失败保留。
 
-[候选16冻结交付](../../artifacts/package-payloads/v1.0.6/b97714007d0e-KYZUyd/full/installer-delivery.json)对应[完整EXE](../../artifacts/releases/TableMax-1.0.6.16-win-x64.exe)，35,708,409字节、SHA `34abe1e75925630da7c8c4905671c44b3c5562833c37b2168a0abf98c017714f`；candidate SHA `a1a1cdd2206909965867065e2a6b0145c9e6fdc5d3e73c34f9113d42402e308f`，snapshot `b97714007d0e85edc4a27200d2da37d1da183aec416e4d31e4548088c32719d3`。原31游戏单元未重建，current仍为便携10。[闭包9项](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/production-seal-16/results.json)通过，报告SHA `dc3d406f117319ba303f1fd2fea9a4c322074c024c3f533af2f1fd85f4169c23`；[实际程序集生产根验签](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/production-signature-16/report.json)Native／helper各22项、launcher12项通过，报告SHA `7cababffffc68234253e67594d3a2180fced7debe7875f98c1d391afd3afc9f2`，不运行产品Main。
+[候选16冻结交付](../../artifacts/package-payloads/v1.0.6/b97714007d0e-KYZUyd/full/installer-delivery.json)对应[完整EXE（已退役）](../../artifacts/maintenance/v1.0.6/deep-slim-20261015-2040/retirement-plan.json)，35,708,409字节、SHA `34abe1e75925630da7c8c4905671c44b3c5562833c37b2168a0abf98c017714f`；candidate SHA `a1a1cdd2206909965867065e2a6b0145c9e6fdc5d3e73c34f9113d42402e308f`，snapshot `b97714007d0e85edc4a27200d2da37d1da183aec416e4d31e4548088c32719d3`。原31游戏单元未重建，current仍为便携10。[闭包9项](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/production-seal-16/results.json)通过，报告SHA `dc3d406f117319ba303f1fd2fea9a4c322074c024c3f533af2f1fd85f4169c23`；[实际程序集生产根验签](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/production-signature-16/report.json)Native／helper各22项、launcher12项通过，报告SHA `7cababffffc68234253e67594d3a2180fced7debe7875f98c1d391afd3afc9f2`，不运行产品Main。
 
 本轮[普通I／默认D](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/production-account-16-01/application-handoff/report.json)与[长I／短外D](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/production-account-16-01/application-handoff-long-root-external-data/report.json)各8步实际通过、0失败，报告SHA分别为`2d212e754e0ecf5299d69bd6fc8f567137e5347202b3ae2715758323952b9545`、`4535c5ce0a1ee03a0c5299e1b664627ddc8a0a1d81df2d8f86387923e2a52b43`，覆盖检查下载、不同PE Apply、父退出0、新持续主机、独立下一启动清理及精确默认卸载。[旧框架恢复](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/production-account-16-01/application-framework-recovery/report.json)亦8步通过、0失败，SHA `fbfc2adbd1a57bc6776ee3b409afd45edb55aa399bcb5bb64e30b9a6f256d942`；实际确认B健康40／Inno准备拒绝7，A框架EXE／dat／登记／快捷方式原字节保全，live helper缺失后由A内嵌协调器完成默认卸载，D/G/config保全。三链使用独立fixtureGUID和受管HTTP输入，不冒称正式GUID或真实GitHub新版下载。
 
@@ -245,7 +247,7 @@ typed catch空白已修正，改用系统PS的`-Command`只调用`Parser.ParseIn
 
 ## 1.0.6.15：候选冻结与续行07（2026-10-15）
 
-[候选15冻结交付](../../artifacts/package-payloads/v1.0.6/29c81e29c4a3-1H6Xye/full/installer-delivery.json)对应[完整EXE](../../artifacts/releases/TableMax-1.0.6.15-win-x64.exe)，35,713,286字节、SHA `fcf3627c873558d8e551bdf5b73019a83b156d41bfebd08a4a8a66375f872df2`；candidate SHA `5a767509273ed1ee392cc3df24c00100b8be38fe38b17c5696d1cfcda7cdb23e`，snapshot `29c81e29c4a385e747133a116f5ea154aa6b53f00540e8064395a25fca6cc829`。原31游戏单元未重建，current原SHA仍保留便携10；程序暂存97,491,605字节尚不含实际框架和首次启动G，完整容量仍须系统测量。
+[候选15冻结交付](../../artifacts/package-payloads/v1.0.6/29c81e29c4a3-1H6Xye/full/installer-delivery.json)对应[完整EXE（已退役）](../../artifacts/maintenance/v1.0.6/deep-slim-20261015-2040/retirement-plan.json)，35,713,286字节、SHA `fcf3627c873558d8e551bdf5b73019a83b156d41bfebd08a4a8a66375f872df2`；candidate SHA `5a767509273ed1ee392cc3df24c00100b8be38fe38b17c5696d1cfcda7cdb23e`，snapshot `29c81e29c4a385e747133a116f5ea154aa6b53f00540e8064395a25fca6cc829`。原31游戏单元未重建，current原SHA仍保留便携10；程序暂存97,491,605字节尚不含实际框架和首次启动G，完整容量仍须系统测量。
 
 [封包闭包9项](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/production-seal-15-repair-01/results.json)实际通过，包含逐文件／ZIP／三PE、配方、生产签名、原游戏单元及current保全。[实际程序集生产根验签](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/production-signature-15/report.json)Native／helper各22项通过，launcher12项只核原字节、GUID和版本；反射核验不运行产品Main。[本地交付上下文](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/production15/local-delivery-context.json)记录NotSigned、无ZoneIdentifier、未观察浏览器下载，不证明SmartScreen体验或发布。
 
@@ -307,7 +309,7 @@ Inno增加实际helper退出码日志，验证工具补关闭诊断保全。[诊
 
 ## 1.0.6.14：安装候选与标准账户诊断（2026-10-15）
 
-[冻结交付](../../artifacts/package-payloads/v1.0.6/ff8eb35cb3f0-9mGOFX/full/installer-delivery.json)对应[完整EXE](../../artifacts/releases/TableMax-1.0.6.14-win-x64.exe)，35,663,121字节，SHA `48cb4a6e2bc80ee409e41afd68356b684e0a949e17735b0d05c4f4be27bf4396`；payload43,995,554字节，程序暂存97,360,020字节。暂存不含实际框架与首次启动G，完整安装容量仍待测。源码保留候选13的31个游戏单元，显式复用原签名模块源，公开版本不变；[封包日志](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-candidate-build.log)与[本地已签正文](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/candidate14-body.md)均不表示发布。
+[冻结交付](../../artifacts/package-payloads/v1.0.6/ff8eb35cb3f0-9mGOFX/full/installer-delivery.json)对应[完整EXE（已退役）](../../artifacts/maintenance/v1.0.6/deep-slim-20261015-2040/retirement-plan.json)，35,663,121字节，SHA `48cb4a6e2bc80ee409e41afd68356b684e0a949e17735b0d05c4f4be27bf4396`；payload43,995,554字节，程序暂存97,360,020字节。暂存不含实际框架与首次启动G，完整安装容量仍待测。源码保留候选13的31个游戏单元，显式复用原签名模块源，公开版本不变；[封包日志](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-candidate-build.log)与[本地已签正文](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/candidate14-body.md)均不表示发布。
 
 内嵌卸载helper采用锁定Pascal Script原始八位Chr，严格Base64和长度／内存SHA／落盘SHA核验后只执行自身固定身份。[探针02](../../artifacts/maintenance/v1.0.6/installation-remaining/embedded-uninstaller-probe-02/results.json)通过全部0–255字节、填充、真实helper及10个拒绝向量；[新双PE准备03](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/handoff-prepare-profile-03/report.json)60000／60001实际编译封包通过，含严格profile范围校核，仍不是实际Apply或框架卸载证明。旧框架A在B失败后自行解码A helper的七步系统专项仍待执行。
 
@@ -333,7 +335,7 @@ resume-02停止时，UTF8输出和逐流解码修复只完成静态审阅／格�
 
 候选13仍存在协调器复合恢复边界；后续源码的底层补丁只按上节组件证据认定，不反写进旧候选。框架bootstrap及真实不同PE失败恢复尚未闭合，接续见[任务缺口](windows-installation-update-2026-10-15.md#剩余验收与授权边界)，不将组件通过写成完整默认卸载重装保证。
 
-待验安装候选为 [TableMax-1.0.6.13-win-x64.exe](../../artifacts/releases/TableMax-1.0.6.13-win-x64.exe)，对应[冻结交付](../../artifacts/package-payloads/v1.0.6/4e4f4f05f0a9-GUFTiZ/full/installer-delivery.json)与[成功封包日志](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-build-03/build.log)。EXE35,521,681字节，SHA `c45d0055d2f68e469dd432a56ec44cc373cdd7e48ff04c525bfce85c7a42b6df`；payload43,995,554字节、程序暂存97,354,419字节。后者尚未加入实际框架文件与首次启动模块物化计量，不能宣称完整首次启动门禁已通过。正式密钥的本地更新描述已签署并自验；尚待干净标准Windows用户的实际安装、升级、快捷方式及默认卸载证明，不推广current或发布。
+待验安装候选为 [TableMax-1.0.6.13-win-x64.exe（已退役）](../../artifacts/maintenance/v1.0.6/deep-slim-20261015-2040/retirement-plan.json)，对应[冻结交付](../../artifacts/package-payloads/v1.0.6/4e4f4f05f0a9-GUFTiZ/full/installer-delivery.json)与[成功封包日志](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-build-03/build.log)。EXE35,521,681字节，SHA `c45d0055d2f68e469dd432a56ec44cc373cdd7e48ff04c525bfce85c7a42b6df`；payload43,995,554字节、程序暂存97,354,419字节。后者尚未加入实际框架文件与首次启动模块物化计量，不能宣称完整首次启动门禁已通过。正式密钥的本地更新描述已签署并自验；尚待干净标准Windows用户的实际安装、升级、快捷方式及默认卸载证明，不推广current或发布。
 
 [封包闭包9项](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-13-repair-03/results.json)通过全部成员、实际PE文件版本、配方输入、6款正式游戏／7个玩法的当前映射和13个完整依赖blob、生产RSA签名及原交付保全。程序保留已签历史目录元数据，[映射说明](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-13-repair-03/current-game-mapping.json)区分25条历史目录与7条实际预装发行；静态闭包不替代实际安装后物化、系统登记或默认卸载验收。
 
