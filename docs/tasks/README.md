@@ -12,7 +12,7 @@
 
 ## 后续开发接续入口
 
-[Windows 安装、卸载与盒子内更新](windows-installation-update.md)：阶段0／1完成；候选1.0.6.14已封入恢复与内嵌解码修复，全字节探针和新双PE准备通过。真实标准账户首个fixture安装在HKCU卸载登记code5失败，账户及profile删除成功；Low标签根因已明确，普通profile目录已获授权，实际验收进行中。不同PE Apply、失败升级框架卸载、正式GUID系统链、完整首次启动容量及推广仍未闭合；用户已授权临时账户与UAC，原便携1.0.6.10及线上字节保留。
+[Windows 安装、卸载与盒子内更新](windows-installation-update.md)：候选1.0.6.14的解码／恢复修复、封包9项及生产根验签通过。真实Medium fixture Inno返回0，中文登记JSON读取及保护性卸载校核失败；账户与profile已清理，达到阈值停止，UTF8源码修复尚待动态复验。下一轮先编码专项与新双PE准备，再完整Apply、失败框架恢复、正式GUID、完整容量及推广。账户／UAC／profile授权持续有效，current和线上原字节保留。
 
 [macOS 服务端运行包适配](macos-adaptation.md)：2026-10-12建立专门任务文档，导出实施未开始；沿用仅服务端运行包的范围，目标、执行草案、权限与验证边界统一维护在任务页。
 

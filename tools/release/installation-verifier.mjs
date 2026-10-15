@@ -32,6 +32,8 @@ import {
 } from '../shared/windows-acceptance-profile.mjs';
 
 const run = promisify(execFile);
+const powershellUtf8 =
+  '[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); ';
 export function installationVerificationEnvironment(
   temporary,
   base = process.env,
@@ -52,7 +54,8 @@ async function executionIdentity() {
     [
       '-NoProfile',
       '-Command',
-      '$user=[Security.Principal.WindowsIdentity]::GetCurrent(); $principal=[Security.Principal.WindowsPrincipal]::new($user); @{ownerSid=$user.User.Value;profile=[Environment]::GetFolderPath("UserProfile");elevated=$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)} | ConvertTo-Json -Compress',
+      powershellUtf8 +
+        '$user=[Security.Principal.WindowsIdentity]::GetCurrent(); $principal=[Security.Principal.WindowsPrincipal]::new($user); @{ownerSid=$user.User.Value;profile=[Environment]::GetFolderPath("UserProfile");elevated=$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)} | ConvertTo-Json -Compress',
     ],
     { windowsHide: true, timeout: 15000 },
   );
@@ -259,7 +262,8 @@ async function registration(productId) {
     [
       '-NoProfile',
       '-Command',
-      '$ErrorActionPreference="Stop"; $key="HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\"+$env:TABLEMAX_VERIFIER_PRODUCT+"_is1"; if(Test-Path -LiteralPath $key){Get-ItemProperty -LiteralPath $key | Select-Object DisplayName,DisplayVersion,InstallLocation,UninstallString | ConvertTo-Json -Compress}else{"null"}',
+      powershellUtf8 +
+        '$ErrorActionPreference="Stop"; $key="HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\"+$env:TABLEMAX_VERIFIER_PRODUCT+"_is1"; if(Test-Path -LiteralPath $key){Get-ItemProperty -LiteralPath $key | Select-Object DisplayName,DisplayVersion,InstallLocation,UninstallString | ConvertTo-Json -Compress}else{"null"}',
     ],
     {
       windowsHide: true,
@@ -275,7 +279,8 @@ async function shortcuts(root, fixture) {
     [
       '-NoProfile',
       '-Command',
-      '$ErrorActionPreference="Stop"; if($env:TABLEMAX_VERIFIER_FIXTURE -eq "1"){$name="TableMax Installation Fixture";$programs=Join-Path $env:TABLEMAX_VERIFIER_ROOT "fixture-shortcuts\\Start";$desktop=Join-Path $env:TABLEMAX_VERIFIER_ROOT "fixture-shortcuts\\Desktop"}else{$name="TableMax";$programs=Join-Path ([Environment]::GetFolderPath("Programs")) $name;$desktop=[Environment]::GetFolderPath("DesktopDirectory")}; $paths=@((Join-Path $programs ($name+".lnk")),(Join-Path $programs ("卸载 "+$name+".lnk")),(Join-Path $desktop ($name+".lnk"))); $shell=New-Object -ComObject WScript.Shell; @($paths | ForEach-Object { if(-not(Test-Path -LiteralPath $_ -PathType Leaf)){throw "Expected exact shortcut missing"}; $link=$shell.CreateShortcut($_); @{path=$_;target=$link.TargetPath;arguments=$link.Arguments;workingDirectory=$link.WorkingDirectory} }) | ConvertTo-Json -Compress',
+      powershellUtf8 +
+        '$ErrorActionPreference="Stop"; if($env:TABLEMAX_VERIFIER_FIXTURE -eq "1"){$name="TableMax Installation Fixture";$programs=Join-Path $env:TABLEMAX_VERIFIER_ROOT "fixture-shortcuts\\Start";$desktop=Join-Path $env:TABLEMAX_VERIFIER_ROOT "fixture-shortcuts\\Desktop"}else{$name="TableMax";$programs=Join-Path ([Environment]::GetFolderPath("Programs")) $name;$desktop=[Environment]::GetFolderPath("DesktopDirectory")}; $paths=@((Join-Path $programs ($name+".lnk")),(Join-Path $programs ("卸载 "+$name+".lnk")),(Join-Path $desktop ($name+".lnk"))); $shell=New-Object -ComObject WScript.Shell; @($paths | ForEach-Object { if(-not(Test-Path -LiteralPath $_ -PathType Leaf)){throw "Expected exact shortcut missing"}; $link=$shell.CreateShortcut($_); @{path=$_;target=$link.TargetPath;arguments=$link.Arguments;workingDirectory=$link.WorkingDirectory} }) | ConvertTo-Json -Compress',
     ],
     {
       windowsHide: true,

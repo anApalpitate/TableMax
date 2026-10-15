@@ -2,7 +2,7 @@
 
 `pnpm package:win`增量构建并导出预装全部正式游戏与玩法的唯一完整EXE和本地清单；`pnpm package:release`只重新封装当前已验证内部载荷，不分配新修订号。`--edition`已退役并明确拒绝，部分游戏载荷不能交付。EXE在 `artifacts/releases/`，内部payload ZIP、manifest和当前指针在 `artifacts/package-payloads/`；内部ZIP不是用户下载包。
 
-截至2026-10-15，current仍为已验证便携1.0.6.10；新安装候选1.0.6.14已封包，尚未推广或发布。候选14 EXE SHA `48cb4a6e2bc80ee409e41afd68356b684e0a949e17735b0d05c4f4be27bf4396`，使用[冻结delivery](../../artifacts/package-payloads/v1.0.6/ff8eb35cb3f0-9mGOFX/full/installer-delivery.json)。内嵌解码和双PE准备通过，真实标准用户首个fixture安装在HKCU卸载登记code5失败，账户及profile已删除；工程Low标签根因已明确，普通profile测试目录已获授权，实际验收进行中；完整系统链及容量未通过前不推广。精确证据及历史专项见[验收](../../docs/reference/acceptance.md#10614安装候选与标准账户诊断2026-10-15)。
+截至2026-10-15，current为便携1.0.6.10；候选1.0.6.14已冻结、未推广或发布。[冻结delivery](../../artifacts/package-payloads/v1.0.6/ff8eb35cb3f0-9mGOFX/full/installer-delivery.json)的EXE SHA为 `48cb4a6e2bc80ee409e41afd68356b684e0a949e17735b0d05c4f4be27bf4396`。封包9项、实际生产根验签与解码探针通过；Medium fixture Inno返回0，后续中文JSON工具校核失败，本轮达到阈值停止且账户／profile清理成功。UTF8修复尚待动态复验，完整系统链及容量仍待完成；[验收](../../docs/reference/acceptance.md#10614安装候选与标准账户诊断2026-10-15)记录精确范围。
 
 新安装器先用 `--candidate` 封包：正常新构建原子分配四位修订，失败编号不复用，但保留已有 `current.json`。stdout 返回 `candidatePath`；该记录冻结候选交付和原 current 的原始 SHA，同目录 `full/installer-delivery.json` 供描述生成及实际安装验收。`--platform-from` 按原快照身份及游戏缓存逐成员 SHA 保留正式游戏，只刷新当前平台和组装器并生成新快照、新修订；`--snapshot` 则恢复原冻结快照，不分配新修订。
 

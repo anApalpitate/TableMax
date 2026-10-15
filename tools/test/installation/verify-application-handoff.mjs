@@ -36,6 +36,8 @@ const powershell = join(
   process.env.WINDIR ?? 'C:/Windows',
   'System32/WindowsPowerShell/v1.0/powershell.exe',
 );
+const powershellUtf8 =
+  '$ErrorActionPreference="Stop"; [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); ';
 function inside(root, path) {
   const name = relative(resolve(root), resolve(path));
   assert.ok(
@@ -310,12 +312,14 @@ export async function verifyApplicationHandoff({
       windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
+    child.stdout.setEncoding('utf8');
+    child.stderr.setEncoding('utf8');
     let output = '',
       timedOut = false,
       outputTruncated = false,
       outputBytesObserved = 0;
     const save = (chunk) => {
-      outputBytesObserved += chunk.length;
+      outputBytesObserved += Buffer.byteLength(chunk, 'utf8');
       const text = chunk.toString();
       const remaining = 2 * 1024 * 1024 - output.length;
       if (remaining > 0) output += text.slice(0, remaining);
@@ -362,7 +366,8 @@ export async function verifyApplicationHandoff({
         '-NoProfile',
         '-NonInteractive',
         '-Command',
-        `$key='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${fixtureId}_is1'; if(Test-Path -LiteralPath $key){Get-ItemProperty -LiteralPath $key | Select-Object InstallLocation,DisplayVersion | ConvertTo-Json -Compress}else{'null'}`,
+        powershellUtf8 +
+          `$key='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${fixtureId}_is1'; if(Test-Path -LiteralPath $key){Get-ItemProperty -LiteralPath $key | Select-Object InstallLocation,DisplayVersion | ConvertTo-Json -Compress}else{'null'}`,
       ],
       'fixture-registration',
     );
@@ -817,7 +822,8 @@ export async function verifyApplicationHandoff({
           '-NoProfile',
           '-NonInteractive',
           '-Command',
-          '$ErrorActionPreference="Stop"; $assembly=[Reflection.Assembly]::ReflectionOnlyLoadFrom($env:TABLEMAX_FIXTURE_ASSEMBLY); $name=@($assembly.GetManifestResourceNames() | Where-Object { $_.EndsWith("ApplicationUpdateKeys.json") }); if($name.Count -ne 1){throw "Fixture trust resource missing"}; $stream=$assembly.GetManifestResourceStream($name[0]); try { $sha=[Security.Cryptography.SHA256]::Create(); try { [BitConverter]::ToString($sha.ComputeHash($stream)).Replace("-", "").ToLowerInvariant() } finally { $sha.Dispose() } } finally { $stream.Dispose() }',
+          powershellUtf8 +
+            '$assembly=[Reflection.Assembly]::ReflectionOnlyLoadFrom($env:TABLEMAX_FIXTURE_ASSEMBLY); $name=@($assembly.GetManifestResourceNames() | Where-Object { $_.EndsWith("ApplicationUpdateKeys.json") }); if($name.Count -ne 1){throw "Fixture trust resource missing"}; $stream=$assembly.GetManifestResourceStream($name[0]); try { $sha=[Security.Cryptography.SHA256]::Create(); try { [BitConverter]::ToString($sha.ComputeHash($stream)).Replace("-", "").ToLowerInvariant() } finally { $sha.Dispose() } } finally { $stream.Dispose() }',
         ],
         'verify-embedded-trust-' + buildVersion,
         180000,
