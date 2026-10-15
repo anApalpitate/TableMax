@@ -6,12 +6,12 @@
 
 新安装器先用 `--candidate` 封包：正常新构建原子分配四位修订，失败编号不复用，但保留已有 `current.json`。stdout 返回 `candidatePath`；该记录冻结候选交付和原 current 的原始 SHA，同目录 `full/installer-delivery.json` 供描述生成及实际安装验收。`--platform-from` 按原快照身份及游戏缓存逐成员 SHA 保留正式游戏，只刷新当前平台和组装器并生成新快照、新修订；`--snapshot` 则恢复原冻结快照，不分配新修订。
 
-从原正式 `1.0.6.10` 游戏快照构建平台更新候选的命令如下。任务期间关闭逐项自动维护，结束后由主任务统一运行安全维护。
+后续修复通过后，从已封 `1.0.6.13` 快照保留同一31个游戏单元，并显式使用该候选的内部签名游戏源；不能误用另一份 `game-packages/current`。以下仅为接续命令，本轮三失败后不执行。任务期间关闭逐项自动维护，原一次安全维护记录继续保留，不追加第二轮。
 
 ```powershell
 $env:TABLEMAX_AUTO_MAINTENANCE = '0'
 $env:TABLEMAX_TEST_MAINTENANCE = '0'
-pnpm package:win -- --candidate --platform-from=build/snapshots/63b12c9af279f4a374a51d80dfa4e9251ac1f9f1c54b6b467c3cd62d1336c41a.json
+pnpm package:win -- --candidate --platform-from=build/snapshots/4e4f4f05f0a938f831d5f5da406b76c88e6f0f8d7db25d29077d743aa7cb1ade.json --games=artifacts/package-payloads/v1.0.6/internal-games-MdGykg
 ```
 
 封好最终 EXE 后，将下列占位符替换为实际新路径，显式读取候选的交付 JSON，避免读取仍保留旧交付的 current。描述绑定最终 EXE 大小／SHA、安装清单及 current 映射；签名工具从受保护文件读取独立应用 RSA 私钥，用仓库公开根自验，输出不覆盖既有审阅文件。
@@ -29,9 +29,11 @@ node tools/release/sign-application-update.mjs "--description=<新描述.json>" 
 node tools/release/installation-promote.mjs "--candidate=<封包输出candidatePath>" "--proof=<最终正式proof.json>"
 ```
 
-签名、切换 current 和本地验收不代表发布授权；任何最终 EXE 字节变化都需重新计算 SHA、重做对应验收与签名描述。正式账户操作尚待用户单独授权，不能仅声明环境隔离。正式账户验证权限及发布条件见[完整交付验收](../../docs/reference/acceptance.md)与[Release 流程](../../docs/reference/release.md)。本轮[一次安全维护](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/result.json)已经结束，后续文档操作不追加维护。
+签名、切换 current 和本地验收不代表发布授权；任何最终 EXE 字节变化都需重新计算 SHA、重做对应验收与签名描述。临时标准账户及所需UAC已获明确授权，仍须真实profile与系统证明；本轮三失败停止，账户未创建，底层协调器修复尚未封新候选，框架草稿已撤出当前构建路径。正式账户验证权限及发布条件见[完整交付验收](../../docs/reference/acceptance.md)与[Release 流程](../../docs/reference/release.md)。本轮[一次安全维护](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/result.json)已经结束，后续文档操作不追加维护。
 
 前置条件是锁定工具链、有效预算、冻结输入和全部正式模块完整性。游戏仍独立组织、增量构建，内部签名模块按字节变化复用或生成；正式模板不计入当前游戏库。独立游戏导出、Pages准备／部署和安装型作者工具包导出已停止，保留文件仅说明内部实现或历史验证边界。
+
+重封内部fixture时先把release manifest按原字节复制到本轮独立工作目录，再传给 `createInstallationExecutable`；该工厂会在输入manifest旁写出固定名称的installation manifest，不能复用旧冻结目录作为可写输出。2026-10-15一次旧tmp sidecar覆盖已按原SHA恢复，原ZIP／release manifest／EXE未变，原失败保留于[轮次记录](../../artifacts/maintenance/v1.0.6/installation-remaining/account-round-20261015.json)。
 
 本地程序使用四位 `1.x.x.y`，公开版本／附件使用三位 `1.x.x`，分配、冻结与发布映射见[版本流程](../../docs/reference/release.md#三位公开版本与四位本地构建2026-10-12)。只有获明确发布授权后才执行 `pnpm release:github -- --publish --notes=<已审文件>`，创建完整EXE与发布提交source ZIP两附件；本地导出和普通push不发布。
 

@@ -2,11 +2,19 @@
 
 本页仅保留当前完整EXE、仍有效的证据和待验边界。下方旧标题为导航，不能把原版本通过升级为当前包通过。
 
-2026-10-15安装／卸载／盒子更新源码与专项已具备，源码检查点为 `3c01d0b`；实际系统安装／升级全链仍待验，接续见[安装任务](../tasks/windows-installation-update.md)。current仍为原便携完整1.0.6.10，下述原包证明不变；本轮未推广current或发布GitHub附件，文档提交不代替产品验收。
+2026-10-15安装／卸载／盒子更新已有基础实现，候选13的源码检查点为 `3c01d0b`；后续协调器源码修复与未完成框架边界见下节，实际系统全链仍待验，接续见[安装任务](../tasks/windows-installation-update.md)。current仍为原便携完整1.0.6.10，下述原包证明不变；本轮未推广current或发布GitHub附件，文档提交不代替产品验收。
+
+## 协调器修复与三失败停止（2026-10-15）
+
+[底层恢复专项](../../artifacts/maintenance/v1.0.6/installation-remaining/recovery-coordinator-fixed-03/report.json)3/3通过，新增失败0、源码输入未变、收尾无错误且遗留进程0。完整候选精确匹配pending目标后只恢复协调器，保全原坏字节、配置、D／G及既有事务记录；同版本其他载荷不符、源安装器不符或无效签名目标均拒绝。新增修复子日志单独记录，不宣称pending整树零变化；数据库不回退。源码与完整输入SHA归[交接](../../artifacts/maintenance/v1.0.6/installation-remaining/recovery-coordinator-fixed-03/handoff.json)，测试是1.0.6.10独立产品GUID的组合fixture及直接helper卸载重装，不是候选13或实际Inno证明；已封候选13未包含此补丁。
+
+[本轮记录](../../artifacts/maintenance/v1.0.6/installation-remaining/account-round-20261015.json)累计3失败后停止：账户描述超过48字符、fixture封包覆盖旧tmp sidecar、内嵌卸载探针编译类型不匹配。描述已修正，旧sidecar已精确恢复；第三项尚未通过编译，未生成／执行setup。实际账户创建与正式安装均为0，用户已授权临时标准账户及UAC，不能继续写成待授权。
+
+不同PE失败升级后，旧卸载框架固定SHA与新版live helper可能不一致；精确恢复新版helper不能替代旧框架实际卸载证明。[内嵌框架和测试草稿](../../artifacts/maintenance/v1.0.6/installation-remaining/unverified-bootstrap-drafts-01/drafts.json)已按原始字节／SHA保全并撤出当前构建路径，不包含于已验证源码提交。正式候选14未分配，counter仍13，current与候选13原SHA未变；原双PE材料因helper源码变化需要重新prepare。后续继续沿既有账户授权闭合框架、系统链及完整体积，当前不推广或发布。
 
 ## 1.0.6.13：安装候选与专项证据（2026-10-15）
 
-只读源码核对另发现待验组合：数据库已变化的pending事务同时丢失／损坏当前更新协调器时，框架卸载先验证该helper而拒绝继续；既有载荷成员损坏专项不覆盖协调器自身。当前没有该组合的完整修复证明，接续见[任务缺口](../tasks/windows-installation-update.md#剩余验收与授权边界)，不将源码推断写成实测失败或默认卸载重装保证。
+候选13仍存在协调器复合恢复边界；后续源码的底层补丁只按上节组件证据认定，不反写进旧候选。框架bootstrap及真实不同PE失败恢复尚未闭合，接续见[任务缺口](../tasks/windows-installation-update.md#剩余验收与授权边界)，不将组件通过写成完整默认卸载重装保证。
 
 待验安装候选为 [TableMax-1.0.6.13-win-x64.exe](../../artifacts/releases/TableMax-1.0.6.13-win-x64.exe)，对应[冻结交付](../../artifacts/package-payloads/v1.0.6/4e4f4f05f0a9-GUFTiZ/full/installer-delivery.json)与[成功封包日志](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-build-03/build.log)。EXE35,521,681字节，SHA `c45d0055d2f68e469dd432a56ec44cc373cdd7e48ff04c525bfce85c7a42b6df`；payload43,995,554字节、程序暂存97,354,419字节。后者尚未加入实际框架文件与首次启动模块物化计量，不能宣称完整首次启动门禁已通过。正式密钥的本地更新描述已签署并自验；尚待干净标准Windows用户的实际安装、升级、快捷方式及默认卸载证明，不推广current或发布。
 
@@ -34,7 +42,7 @@
 
 [旧事务报告](../../artifacts/maintenance/v1.0.6/installation-remaining/transaction-positive-04/report.json)保持21通过与无效迁移夹具失败；[旧Inno失败诊断](../../artifacts/maintenance/v1.0.6/installation-remaining/delivery/fixture-qwPCp2-failed/report.json)和[helper-only健康](../../artifacts/maintenance/v1.0.6/installation-remaining/delivery/fixture-EovwuK-helper-health/report.json)均不升级为系统安装证明。失败修订11／12保留，修订13不复用其编号或结果。
 
-仍未执行：真实干净标准用户的正式GUID首装、同根重装、实际快捷方式／卸载登记、默认卸载、完整首次启动容量，以及不同PE实际Apply／helper自身升级。临时账户及管理员操作等待用户单独授权；current推广另待精确完整证明和授权。临时RSA、测试GUID、隔离环境变量、静态提取或向导取消均不能替代这些系统门禁。运行与发布契约分别归[构建与运行](build-and-run.md#windows-安装与整个程序更新)、[Release流程](release.md#完整安装器与免费应用签名2026-10-15)，实际入口见[验证工具](../../tools/test/README.md#完整安装与程序更新验证)。
+仍未执行：真实干净标准用户的正式GUID首装、同根重装、实际快捷方式／卸载登记、默认卸载、完整首次启动容量，以及不同PE实际Apply／helper自身升级。临时账户及所需UAC已获用户授权，本轮因三失败停止；current推广另待精确完整证明，发布仍须明确授权。临时RSA、测试GUID、隔离环境变量、静态提取或向导取消均不能替代系统门禁。运行与发布契约分别归[构建与运行](build-and-run.md#windows-安装与整个程序更新)、[Release流程](release.md#完整安装器与免费应用签名2026-10-15)，实际入口见[验证工具](../../tools/test/README.md#完整安装与程序更新验证)。
 
 工程进程退出后已完成[一次安全维护](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/result.json)，回收7项缓存4,185,200字节及67项白名单副本86,289,239字节，安全候选耗尽后停止；[全量逻辑体积](../../artifacts/maintenance/v1.0.6/installation-remaining/workspace-capacity-after.json)12,596,402,720字节，未达8GiB。原current、候选13、双PE素材／准备报告SHA仍匹配；维护前后测量时点不同，不按差值推算回收量。只读文档收尾不追加cleanup。
 

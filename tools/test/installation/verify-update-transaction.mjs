@@ -171,6 +171,16 @@ const cases = [
     true,
     'Changed DB and damaged/missing owned files retain diagnostics and permit safe data-preserving uninstall/reinstall',
   ],
+  [
+    'pending-coordinator-repro',
+    true,
+    'Expected refusal reproduces missing/damaged coordinator with changed pending database',
+  ],
+  [
+    'pending-coordinator-recovery',
+    true,
+    'Exact complete candidate restores only pending coordinator before existing recovery/uninstall',
+  ],
   ['portable-lock', true, 'Original portable data mutex blocks migration'],
   [
     'portable-default',
@@ -293,9 +303,13 @@ export async function verifyUpdateTransactions({
   installerSource,
   evidence,
   only,
+  priorFailures = 0,
 }) {
   assertWorkspaceRoot();
   assert.equal(process.platform, 'win32');
+  assert.ok(
+    Number.isInteger(priorFailures) && priorFailures >= 0 && priorFailures < 3,
+  );
   const repository = resolve('.');
   candidate = within(repository, candidate);
   manifestPath = within(candidate, manifestPath);
@@ -425,6 +439,7 @@ export async function verifyUpdateTransactions({
     },
     results: [],
     failureLimit: 3,
+    priorFailures,
     failures: 0,
     databaseFingerprintNames: databaseNames,
     boundary:
@@ -755,7 +770,314 @@ export async function verifyUpdateTransactions({
       externalBefore: external ? await inventory(data) : null,
     };
   }
+  async function pendingCoordinator(repair) {
+    const results = [];
+    const altered = join(work, 'coordinator-other-target');
+    if (repair) {
+      await copyTree(candidate, altered);
+      const wrong = structuredClone(manifest);
+      const changed = wrong.files.find((file) => file.path === small.path);
+      await writeFile(
+        member(altered, small.path),
+        'Own same-build same-helper different payload bytes\n',
+      );
+      Object.assign(changed, await fileRecord(member(altered, small.path)));
+      await writeJson(join(altered, 'installation-manifest.json'), wrong);
+    }
+    const commitWith = (extra, expected, label) => {
+      const names = new Set(extra.map((arg) => arg.slice(0, arg.indexOf('='))));
+      return invoke(
+        'commit',
+        installRoot,
+        [
+          ...commitArguments.filter(
+            (arg) => !names.has(arg.slice(0, arg.indexOf('='))),
+          ),
+          ...extra,
+        ],
+        expected,
+        label,
+      );
+    };
+    const coordinator = member(installRoot, 'UpdateHelper.exe');
+    const expectedHelper = {
+      bytes: helperRecord.bytes,
+      sha256: helperRecord.sha256,
+    };
+    for (const fault of ['missing', 'damaged']) {
+      const desktop = join(box, 'desktop');
+      const preservedDesktop = join(work, `coordinator-${fault}-desktop`);
+      await rename(desktop, preservedDesktop);
+      await writeFile(desktop, `Own coordinator ${fault} health blocker\n`);
+      const blocker = await fileRecord(desktop);
+      let desktopRestored = false;
+      try {
+        const before = await transactions();
+        await commit(
+          installRoot,
+          [],
+          40,
+          `coordinator-${fault}-health-failure`,
+        );
+        const directory = await latestTransaction(before);
+        const statePath = join(directory, 'state.json');
+        assert.equal((await json(statePath)).phase, 'health-failed');
+        const changed = await execute(
+          member(candidate, 'TableMax/app/node.exe'),
+          [
+            '-e',
+            "const {DatabaseSync}=require('node:sqlite'); const db=new DatabaseSync(process.argv[1]); db.exec('CREATE TABLE IF NOT EXISTS coordinator_recovery_fixture(value TEXT NOT NULL)'); db.prepare('INSERT INTO coordinator_recovery_fixture VALUES (?)').run(process.argv[2]); db.close(); console.log('valid-coordinator-database-changed');",
+            join(box, 'room.sqlite'),
+            fault,
+          ],
+          `coordinator-${fault}-database-change`,
+        );
+        assert.equal(changed.code, 0, changed.log);
+        assert.notEqual(
+          await fingerprint(box),
+          (await json(statePath)).databaseFingerprint,
+        );
+        const databaseRecords = [];
+        for (const name of databaseNames) {
+          const path = join(box, name);
+          if (await exists(path))
+            databaseRecords.push({ path, ...(await fileRecord(path)) });
+        }
+        const history = await inventory(join(box, 'games'));
+        const pending = await inventory(directory);
+        const identityRecord = await fileRecord(join(box, '.install.json'));
+        const receiptRecord = await fileRecord(
+          join(box, '.installer-receipt.json'),
+        );
+        const unchanged = async (pendingExact = true) => {
+          for (const { path, ...record } of databaseRecords)
+            assert.deepEqual(await fileRecord(path), record);
+          assert.deepEqual(await inventory(join(box, 'games')), history);
+          await protectedUnchanged();
+          assert.deepEqual(
+            await fileRecord(join(box, '.install.json')),
+            identityRecord,
+          );
+          assert.deepEqual(
+            await fileRecord(join(box, '.installer-receipt.json')),
+            receiptRecord,
+          );
+          for (const file of pending)
+            assert.deepEqual(await fileRecord(member(directory, file.path)), {
+              bytes: file.bytes,
+              sha256: file.sha256,
+            });
+          if (pendingExact)
+            assert.deepEqual(await inventory(directory), pending);
+        };
+        if (fault === 'missing') await unlink(coordinator);
+        else
+          await writeFile(
+            coordinator,
+            'Own known installed coordinator damaged bytes\n',
+          );
+        const observed =
+          fault === 'missing' ? null : await fileRecord(coordinator);
+        const assertFault = async () => {
+          if (observed)
+            assert.deepEqual(await fileRecord(coordinator), observed);
+          else assert.ok(!(await exists(coordinator)));
+        };
+        if (!repair) {
+          for (const mode of ['recover', 'commit']) {
+            const output =
+              mode === 'commit'
+                ? await commit(
+                    installRoot,
+                    [],
+                    40,
+                    `coordinator-${fault}-expected-commit-refusal`,
+                  )
+                : await invoke(
+                    'recover',
+                    installRoot,
+                    [],
+                    40,
+                    `coordinator-${fault}-expected-recover-refusal`,
+                  );
+            assert.match(output.output, /默认卸载/);
+            await unchanged();
+            await assertFault();
+          }
+          const frameworkHashGate =
+            (await exists(coordinator)) &&
+            (await fileRecord(coordinator)).sha256 === helperRecord.sha256;
+          assert.equal(frameworkHashGate, false);
+          results.push({
+            fault,
+            observed,
+            frameworkHashGate,
+            expectedCommitExit: 40,
+            expectedRecoverExit: 40,
+            directory,
+            databaseRecords,
+            pendingPreserved: true,
+          });
+          // Restore only this driver's exact injected fault, not a product recovery.
+          await copyFile(member(candidate, 'UpdateHelper.exe'), coordinator);
+          assert.deepEqual(await fileRecord(coordinator), expectedHelper);
+        } else {
+          const payload = member(installRoot, small.path);
+          await writeFile(
+            payload,
+            'Own other payload damage must still prevent health\n',
+          );
+          const damagedPayload = await fileRecord(payload);
+          const alteredManifest = join(altered, 'installation-manifest.json');
+          const mismatch = await commitWith(
+            [`--candidate=${altered}`, `--manifest=${alteredManifest}`],
+            10,
+            `coordinator-${fault}-mismatched-candidate-refused`,
+          );
+          assert.match(mismatch.output, /不完全相同/);
+          await unchanged();
+          await assertFault();
+          const wrongSource = join(
+            work,
+            `coordinator-${fault}-wrong-source.exe`,
+          );
+          await writeFile(wrongSource, 'Own wrong full installer bytes\n');
+          const wrongBytes = await commitWith(
+            [`--installer-source=${wrongSource}`],
+            10,
+            `coordinator-${fault}-mismatched-source-refused`,
+          );
+          assert.match(wrongBytes.output, /字节身份不匹配/);
+          await unchanged();
+          await assertFault();
+          const invalidTarget = join(
+            work,
+            `coordinator-${fault}-invalid-target.json`,
+          );
+          const publicRoots = await json(
+            'apps/desktop/native/ApplicationUpdateKeys.json',
+          );
+          await writeJson(invalidTarget, {
+            schemaVersion: 1,
+            algorithm: 'RSA3072-SHA256-PKCS1v15',
+            keyId: Object.keys(publicRoots.keys)[0],
+            payload: Buffer.from('{}').toString('base64'),
+            signature: Buffer.alloc(384).toString('base64'),
+          });
+          const invalidSignature = await commitWith(
+            [`--target=${invalidTarget}`],
+            10,
+            `coordinator-${fault}-invalid-signature-refused`,
+          );
+          assert.match(invalidSignature.output, /更新签名验证失败/);
+          await unchanged();
+          await assertFault();
+          await commit(
+            installRoot,
+            [],
+            40,
+            `coordinator-${fault}-exact-coordinator-restored`,
+          );
+          assert.deepEqual(await fileRecord(coordinator), expectedHelper);
+          assert.deepEqual(await fileRecord(payload), damagedPayload);
+          await unchanged(false);
+          const repairEntries = (await readdir(directory)).filter((name) =>
+            name.startsWith('coordinator-repair-'),
+          );
+          assert.equal(repairEntries.length, 1);
+          const repairDirectory = join(directory, repairEntries[0]);
+          const record = await json(join(repairDirectory, 'record.json'));
+          assert.equal(record.status, 'restored');
+          assert.equal(record.previousMissing, fault === 'missing');
+          if (observed)
+            assert.deepEqual(
+              await fileRecord(join(repairDirectory, 'original-helper')),
+              observed,
+            );
+          else
+            assert.ok(
+              !(await exists(join(repairDirectory, 'original-helper'))),
+            );
+          const restoredHelper = join(work, `restored-${fault}-helper.exe`);
+          await copyFile(coordinator, restoredHelper);
+          assert.deepEqual(await fileRecord(restoredHelper), expectedHelper);
+          const uninstalled = await execute(
+            restoredHelper,
+            ['--uninstall', `--root=${installRoot}`],
+            `coordinator-${fault}-restored-helper-uninstall`,
+          );
+          assert.equal(uninstalled.code, 0, uninstalled.log);
+          for (const { path, ...record } of databaseRecords)
+            assert.deepEqual(await fileRecord(path), record);
+          assert.deepEqual(await inventory(join(box, 'games')), history);
+          await protectedUnchanged();
+          assert.ok(!(await exists(join(box, '.install.json'))));
+          await unlink(desktop);
+          await rename(preservedDesktop, desktop);
+          desktopRestored = true;
+          await commit(
+            installRoot,
+            [],
+            0,
+            `coordinator-${fault}-retained-data-reinstall`,
+          );
+          await programUnchanged();
+          await protectedUnchanged();
+          const savedRows = await execute(
+            member(candidate, 'TableMax/app/node.exe'),
+            [
+              '-e',
+              "const {DatabaseSync}=require('node:sqlite'); const db=new DatabaseSync(process.argv[1],{readOnly:true}); const row=db.prepare('SELECT count(*) AS count FROM coordinator_recovery_fixture WHERE value=?').get(process.argv[2]); db.close(); if(!row.count)process.exit(1); console.log('coordinator-saved-row-preserved');",
+              join(box, 'room.sqlite'),
+              fault,
+            ],
+            `coordinator-${fault}-saved-row-after-reinstall`,
+          );
+          assert.equal(savedRows.code, 0, savedRows.log);
+          results.push({
+            fault,
+            observed,
+            directory,
+            repairDirectory,
+            otherPayloadPreserved: damagedPayload,
+            actualRestoredHelperUninstall: true,
+            rejectedWithoutRepairWrites: [
+              'same-build-same-helper-other-payload',
+              'different-installer-source',
+              'invalid-signed-target',
+            ],
+            actualReinstallHealth: await json(join(box, 'desktop-check.json')),
+            databaseRecords,
+          });
+        }
+      } finally {
+        if (!desktopRestored) {
+          assert.deepEqual(await fileRecord(desktop), blocker);
+          await unlink(desktop);
+          await rename(preservedDesktop, desktop);
+        }
+      }
+      if (!repair) {
+        await invoke(
+          'recover',
+          installRoot,
+          ['--health-timeout=90000'],
+          0,
+          `coordinator-${fault}-driver-fault-restored-reconfirm`,
+        );
+        await programUnchanged();
+      }
+    }
+    return {
+      faults: results,
+      boundary: repair
+        ? 'Actual temporary fixture helper restores matching coordinator; restored verified bytes execute data-preserving helper uninstall with other payload still damaged. No Inno/framework/registration acceptance.'
+        : 'Expected old-helper rejections and the exact framework hash precondition are asserted. Driver restores only its own helper/cache faults afterward; no Inno/framework operation or product self-repair claim.',
+    };
+  }
   const implementations = {
+    'pending-coordinator-repro': () => pendingCoordinator(false),
+    'pending-coordinator-recovery': () => pendingCoordinator(true),
     async 'root-junction'() {
       const target = join(work, 'junction-victim');
       await mkdir(target);
@@ -1501,7 +1823,7 @@ export async function verifyUpdateTransactions({
   try {
     for (const [id, needsBaseline, purpose] of cases) {
       if (!selected.has(id)) continue;
-      if (report.failures >= 3) {
+      if (report.priorFailures + report.failures >= 3) {
         report.results.push({
           id,
           status: 'not-run',
@@ -1620,6 +1942,7 @@ if (resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
       'installer-source',
       'evidence',
       'only',
+      'prior-failures',
     ];
     for (const arg of args)
       assert.ok(
@@ -1635,6 +1958,7 @@ if (resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
       installerSource: value('installer-source'),
       evidence: value('evidence'),
       only: value('only')?.split(','),
+      priorFailures: Number(value('prior-failures') ?? 0),
     });
     console.log(
       JSON.stringify({

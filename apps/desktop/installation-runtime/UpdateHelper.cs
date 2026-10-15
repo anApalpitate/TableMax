@@ -334,6 +334,55 @@ namespace TableMax.Installation
         }
         private static void State(string transaction, string phase, string root, string dataDirectory = null, string databaseFingerprint = null) => InstallationCore.Atomic(Path.Combine(transaction, "state.json"), new { schemaVersion = 1, root, phase, dataDirectory, databaseFingerprint });
         private static Dictionary<string, object> ReadState(string transaction) { var result = InstallationCore.Object(StrictJson.Parse(File.ReadAllText(Path.Combine(transaction, "state.json"), InstallationCore.Utf8))); InstallationCore.Keys(result, "schemaVersion", "root", "phase", "dataDirectory", "databaseFingerprint"); if (InstallationCore.Number(result, "schemaVersion") != 1) throw new HelperError(10, "事务格式无效。"); return result; }
+        private static bool SamePayload(InstallationManifest left, InstallationManifest right)
+        {
+            return left.schemaVersion == right.schemaVersion && left.productId == right.productId && left.arch == right.arch && left.installProtocol == right.installProtocol && left.releaseVersion == right.releaseVersion && left.buildVersion == right.buildVersion && left.payloadManifestSha256 == right.payloadManifestSha256 && left.currentMappingSha256 == right.currentMappingSha256 && left.files.Length == right.files.Length && left.files.All(file => right.files.Any(other => other.path == file.path && other.bytes == file.bytes && other.sha256 == file.sha256));
+        }
+        private static void RepairPendingCoordinator(string root, string transaction, InstallationManifest target, InstallationManifest current, string data)
+        {
+            // Only a complete installer commit may bootstrap this one owned file.
+            // A standalone recover/uninstall never trusts an arbitrary replacement.
+            if (!options.ContainsKey("commit")) return;
+            var coordinator = target.files.Single(file => file.path == "UpdateHelper.exe"); var live = InstallationCore.Member(root, coordinator.path);
+            if (File.Exists(live) && new FileInfo(InstallationCore.IO(live)).Length == coordinator.bytes && InstallationCore.HashFile(live) == coordinator.sha256) return;
+            if (!SamePayload(current, target) || current.installationId != target.installationId || !InstallationCore.Equal(target.root, root) || !InstallationCore.Equal(current.boxRoot, target.boxRoot) || current.ownerSid != target.ownerSid) throw new HelperError(10, "协调器修复的当前身份与恢复目标不匹配，已保留原内容。");
+            var candidate = InstallationCore.Full(Get("candidate")); InstallationCore.Safe(candidate);
+            if (InstallationCore.Equal(candidate, root) || candidate.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new HelperError(10, "协调器修复候选必须位于独立暂存目录。");
+            var manifest = InstallationCore.Full(Get("manifest")); InstallationCore.Safe(manifest);
+            if (!manifest.StartsWith(candidate + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new HelperError(10, "协调器修复候选清单越界。");
+            var supplied = InstallationManifest.Read(manifest, false);
+            if (!SamePayload(supplied, target)) throw new HelperError(10, "完整安装包与待恢复目标不完全相同，未修复协调器。");
+            supplied.Verify(candidate);
+            var receipt = InstallerReceipt.Read(Path.Combine(transaction, "target-receipt.json"), target); var installedReceipt = InstallerReceipt.Read(InstallationCore.ReceiptPath(root), current);
+            var installer = InstallationCore.Full(Get("installer-source")); InstallationCore.Safe(installer);
+            if (receipt.bytes != installedReceipt.bytes || receipt.sha256 != installedReceipt.sha256 || !File.Exists(installer) || new FileInfo(InstallationCore.IO(installer)).Length != receipt.bytes || InstallationCore.HashFile(installer) != receipt.sha256 || InstallationCore.HashFile(Assembly.GetExecutingAssembly().Location) != coordinator.sha256) throw new HelperError(10, "完整安装包、恢复协调器或原安装器字节身份不匹配，已保留原内容。");
+            var descriptorPath = Get("target", false);
+            if (descriptorPath != null) { var descriptor = Target(descriptorPath); if (descriptor.buildVersion != target.buildVersion || descriptor.bytes != receipt.bytes || descriptor.sha256 != receipt.sha256 || descriptor.payloadManifestSha256 != target.payloadManifestSha256 || descriptor.currentMappingSha256 != target.currentMappingSha256) throw new HelperError(10, "协调器修复与已签名更新目标不匹配。"); }
+            CheckUnknownApp(root, current);
+            foreach (var file in current.files) { var path = InstallationCore.Member(root, file.path); if (Directory.Exists(path) || (File.Exists(path) && new FileInfo(InstallationCore.IO(path)).Length >= 120000000)) throw new HelperError(10, "协调器修复遇到异常受管文件，原内容已保留。"); }
+            using (var run = InstallationCore.Mutex("Run", root))
+            {
+                if (!InstallationCore.Acquire(run, 0)) throw new HelperError(20, "安装实例在协调器修复前再次运行，未替换程序。");
+                try
+                {
+                    using (var lease = new MigrationLease(root, null))
+                    {
+                        if (!InstallationCore.Equal(lease.DestinationDataDirectory, data)) throw new HelperError(20, "协调器修复期间数据目录已变化，原内容已保留。");
+                        lease.Verify(); var before = lease.Fingerprint(data);
+                        var prior = File.Exists(live) ? new ManagedFile { path = coordinator.path, bytes = (int)new FileInfo(InstallationCore.IO(live)).Length, sha256 = InstallationCore.HashFile(live) } : null;
+                        var repair = Path.Combine(transaction, "coordinator-repair-" + Guid.NewGuid().ToString("N")); InstallationCore.Safe(repair); Directory.CreateDirectory(repair);
+                        var record = Path.Combine(repair, "record.json");
+                        Action<string> journal = status => InstallationCore.Atomic(record, new { schemaVersion = 1, root, installationId = target.installationId, buildVersion = target.buildVersion, status, file = coordinator, previousMissing = prior == null, previous = prior, databaseFingerprint = before });
+                        journal("preparing");
+                        if (prior != null) CopyVerified(live, Path.Combine(repair, "original-helper"), prior);
+                        var verified = Path.Combine(repair, "verified-helper"); CopyVerified(InstallationCore.Member(candidate, coordinator.path), verified, coordinator);
+                        lease.Verify(); if (lease.Fingerprint(data) != before) throw new HelperError(20, "协调器修复期间数据库已有变化，已保留原内容。");
+                        journal("prepared"); ReplaceVerified(verified, live, coordinator, prior); journal("restored");
+                    }
+                }
+                finally { run.ReleaseMutex(); }
+            }
+        }
         private static void Recover(string root)
         {
             var transactions = TransactionRoot(root); InstallationCore.Safe(transactions); if (!Directory.Exists(transactions)) return;
@@ -387,6 +436,7 @@ namespace TableMax.Installation
                         }
                         else
                         {
+                            RepairPendingCoordinator(root, path, next, current, data);
                             try { next.Verify(root); }
                             catch (Exception) { throw new HelperError(40, "数据库已有变化，当前新版程序文件未通过核验；数据与事务已保留。请默认卸载以保留数据，再运行同一或更高版本的完整安装器；未启动旧版。"); }
                             try { Confirm(next, data); }
