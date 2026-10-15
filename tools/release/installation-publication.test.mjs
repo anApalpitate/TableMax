@@ -6,6 +6,7 @@ import {
   applicationUpdateMachineBlock,
   signApplicationUpdate,
 } from '../shared/application-update.mjs';
+import { hash } from './installation-toolchain.mjs';
 import { INSTALLATION_PRODUCT_ID } from './installation-package.mjs';
 import {
   installationUpdateDescription,
@@ -16,7 +17,7 @@ const { privateKey, publicKey } = generateKeyPairSync('rsa', {
   modulusLength: 3072,
 });
 const verification = { trustedKeys: { 'fixture-publication': publicKey } };
-function fixture() {
+function fixture(newLayout = false) {
   const installation = {
     productId: INSTALLATION_PRODUCT_ID,
     installProtocol: 1,
@@ -80,7 +81,53 @@ function fixture() {
       'artifacts/maintenance/v1.0.6/isolation/isolated-account.json',
     isolationEvidenceSha256: '1'.repeat(64),
   };
+  if (newLayout) {
+    proof.footprint.programBytes += 2;
+    proof.footprint.total += 2;
+    proof.firstStartupBytes += 2;
+    proof.boxRoot = 'I/data';
+    proof.runtimeRoot = 'I/data/app';
+    proof.extracted = proof.runtimeRoot;
+    proof.footprint.games = [
+      { path: 'fixture.bin', bytes: 1, sha256: 'a'.repeat(64) },
+    ];
+  }
   Object.assign(proof, createInstallationLifecycleProof(proof));
+  if (newLayout) {
+    proof.postUninstallReinstall.gameResourceCleanup = Object.fromEntries(
+      ['firstUninstall', 'finalUninstall'].map((group) => {
+        const receipt = {
+          schemaVersion: 1,
+          productId: proof.productId,
+          installationId:
+            group === 'firstUninstall'
+              ? proof.installationId
+              : proof.postUninstallReinstall.installationId,
+          ownerSid: proof.ownerSid,
+          buildVersion: proof.buildVersion,
+          root: proof.installRoot,
+          boxRoot: proof.boxRoot,
+          result: 'completed',
+          deleted: [],
+          retained: proof.footprint.games.map((file) => ({
+            ...file,
+            path: 'games/' + file.path,
+          })),
+          deferred: [],
+        };
+        const raw = JSON.stringify(receipt);
+        return [
+          group,
+          {
+            raw,
+            receipt,
+            bytes: Buffer.byteLength(raw),
+            sha256: hash(Buffer.from(raw)),
+          },
+        ];
+      }),
+    );
+  }
   const payloadFiles = [{ path: 'node.exe', bytes: 1, sha256: '2'.repeat(64) }];
   proof.verifiedRuntimeRoot = 'verified-runtime';
   proof.verifiedRuntime = {
@@ -118,7 +165,15 @@ function fixture() {
       buildVersion: delivery.buildVersion,
       payloadManifestSha256: installation.payloadManifestSha256,
       currentMappingSha256: installation.currentMappingSha256,
-      files: [{ path: 'TableMax.exe', bytes: 1, sha256: '2'.repeat(64) }],
+      files: [
+        { path: 'TableMax.exe', bytes: 1, sha256: '2'.repeat(64) },
+        ...(newLayout
+          ? [
+              { path: 'Updater.exe', bytes: 1, sha256: '3'.repeat(64) },
+              { path: 'data/app/node.exe', bytes: 1, sha256: '2'.repeat(64) },
+            ]
+          : []),
+      ],
     },
     installationManifestSha256: installation.manifestSha256,
     snapshot: 'snapshot',
@@ -224,5 +279,34 @@ test('publication rejects changed capacity subtotals and observation claims', ()
     const input = fixture();
     mutate(input.proof);
     assert.throws(() => verifyInstallationPublication(input));
+  }
+});
+
+test('new-layout publication binds both uninstall resource receipts and rejects missing or tampered decisions', () => {
+  const input = fixture(true);
+  assert.equal(
+    verifyInstallationPublication(input).description.sha256,
+    input.delivery.executable.sha256,
+  );
+  for (const mutate of [
+    (proof) => {
+      delete proof.postUninstallReinstall.gameResourceCleanup;
+    },
+    (proof) => {
+      proof.postUninstallReinstall.gameResourceCleanup.firstUninstall.raw +=
+        ' ';
+    },
+    (proof) => {
+      const evidence =
+        proof.postUninstallReinstall.gameResourceCleanup.finalUninstall;
+      evidence.receipt.retained = [];
+      evidence.raw = JSON.stringify(evidence.receipt);
+      evidence.bytes = Buffer.byteLength(evidence.raw);
+      evidence.sha256 = hash(Buffer.from(evidence.raw));
+    },
+  ]) {
+    const changed = fixture(true);
+    mutate(changed.proof);
+    assert.throws(() => verifyInstallationPublication(changed));
   }
 });

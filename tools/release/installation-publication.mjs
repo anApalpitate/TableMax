@@ -170,6 +170,45 @@ export function verifyLifecycleAndCapacity(proof) {
     }
     assert.deepEqual(databases.after, databases.before);
   }
+  if (resolve(proof.runtimeRoot) === resolve(proof.installRoot, 'data/app')) {
+    for (const [group, installationId] of [
+      ['firstUninstall', proof.installationId],
+      ['finalUninstall', restored.installationId],
+    ]) {
+      const evidence = restored.gameResourceCleanup?.[group];
+      assert.ok(
+        evidence,
+        'New-layout uninstall requires exact resource cleanup evidence',
+      );
+      const raw = Buffer.from(evidence.raw, 'utf8');
+      assert.equal(raw.length, evidence.bytes);
+      assert.equal(hash(raw), evidence.sha256);
+      assert.deepEqual(JSON.parse(evidence.raw), evidence.receipt);
+      const receipt = evidence.receipt;
+      assert.equal(receipt.schemaVersion, 1);
+      assert.equal(receipt.installationId, installationId);
+      assert.equal(receipt.productId, proof.productId);
+      assert.equal(receipt.ownerSid, proof.ownerSid);
+      assert.equal(receipt.buildVersion, proof.buildVersion);
+      assert.equal(resolve(receipt.root), resolve(proof.installRoot));
+      assert.equal(resolve(receipt.boxRoot), resolve(proof.boxRoot));
+      assert.ok(['completed', 'retained'].includes(receipt.result));
+      assert.equal(receipt.deferred?.length ?? 0, 0);
+      const decisions = [...receipt.deleted, ...receipt.retained];
+      assert.equal(
+        new Set(decisions.map((file) => file.path)).size,
+        decisions.length,
+      );
+      for (const file of proof.footprint.games) {
+        const entry = decisions.find(
+          (item) => item.path === 'games/' + file.path,
+        );
+        assert.ok(entry, 'Uninstall receipt omitted a current game file');
+        assert.equal(entry.bytes, file.bytes);
+        assert.equal(entry.sha256, file.sha256);
+      }
+    }
+  }
   verifyLinks(restored.shortcuts);
   verifyRegistration(restored.registration);
   assert.deepEqual(restored.shortcuts, proof.shortcuts);
@@ -422,7 +461,19 @@ export function verifyInstallationAcceptance({
     'Diagnostic keep-installed proof cannot authorize promotion or publication',
   );
   assert.equal(proof.runtimeRoot, proof.extracted);
-  assert.equal(resolve(proof.boxRoot), resolve(proof.installRoot, 'TableMax'));
+  const newLayout = installationManifest.files.some(
+    (file) => file.path === 'Updater.exe',
+  );
+  assert.equal(
+    resolve(proof.boxRoot),
+    resolve(proof.installRoot, newLayout ? 'data' : 'TableMax'),
+  );
+  if (newLayout)
+    assert.ok(
+      installationManifest.files.some((file) =>
+        file.path.startsWith('data/app/'),
+      ),
+    );
   assert.equal(resolve(proof.runtimeRoot), resolve(proof.boxRoot, 'app'));
   const copy = proof.verifiedRuntime;
   assert.ok(copy && proof.verifiedRuntimeRoot);
