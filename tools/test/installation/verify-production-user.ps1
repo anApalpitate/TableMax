@@ -8,7 +8,7 @@ param(
   [switch]$PortableMigrationOnly,
   [string]$PortablePointer,
   [ValidateSet('active-uninstall', 'startup-external-data', 'long-root-external-data', 'chains')][string]$FixtureScenario,
-  [ValidateRange(0, 4)][int]$PriorFailures = 0
+  [int]$PriorFailures = 0
 )
 $ErrorActionPreference = 'Stop'
 $taskRepository = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..')).TrimEnd('\')
@@ -119,6 +119,41 @@ function Get-TaskExecutionMethod([string]$NodePath, [string]$EntrypointPath, [st
     if (-not $taskMethodPaths.ContainsKey($taskRequiredMethodPath.ToLowerInvariant())) { throw 'Execution-method sources must include the parent and isolated child.' }
   }
   return $taskSources
+}
+function Get-TaskFailureBudget([string]$NodePath, [string]$PolicyPath, [string]$Repository, [int]$PriorFailures) {
+  if ($PolicyPath.Contains('"')) { throw 'Unsafe failure-policy entrypoint.' }
+  $taskPolicySource = Get-TaskSourceRecord $PolicyPath
+  $taskPolicyStart = [Diagnostics.ProcessStartInfo]::new($NodePath)
+  $taskPolicyStart.Arguments = '"' + $PolicyPath + '"'
+  $taskPolicyStart.WorkingDirectory = $Repository
+  $taskPolicyStart.UseShellExecute = $false
+  $taskPolicyStart.CreateNoWindow = $true
+  $taskPolicyStart.RedirectStandardOutput = $true
+  $taskPolicyStart.RedirectStandardError = $true
+  $taskPolicyStart.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
+  $taskPolicyStart.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
+  $taskPolicyProcess = $null
+  try {
+    $taskPolicyProcess = [Diagnostics.Process]::Start($taskPolicyStart)
+    if (-not $taskPolicyProcess) { throw 'The failure-policy reader did not start.' }
+    $null = $taskPolicyProcess.Handle
+    $taskPolicyOutput = $taskPolicyProcess.StandardOutput.ReadToEndAsync()
+    $taskPolicyError = $taskPolicyProcess.StandardError.ReadToEndAsync()
+    if (-not $taskPolicyProcess.WaitForExit(60000)) { throw 'The failure-policy reader exceeded its bounded budget.' }
+    if (-not [Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($taskPolicyOutput, $taskPolicyError), 5000)) { throw 'The failure-policy reader output did not drain.' }
+    $taskPolicyProcess.Refresh()
+    if ($taskPolicyProcess.ExitCode -ne 0) { throw ('Failure-policy preflight failed: ' + $taskPolicyError.Result) }
+    $taskPolicy = ConvertFrom-Json -InputObject $taskPolicyOutput.Result
+    if ($taskPolicy -isnot [PSCustomObject] -or (@($taskPolicy.PSObject.Properties.Name | Sort-Object) -join ',') -ne 'failureLimit,schemaVersion' -or $taskPolicy.schemaVersion -ne 1 -or ($taskPolicy.failureLimit -isnot [int] -and $taskPolicy.failureLimit -isnot [long]) -or $taskPolicy.failureLimit -lt 1 -or $taskPolicy.failureLimit -gt 1000) { throw 'The shared failure-policy result is invalid.' }
+    if ($PriorFailures -lt 0 -or $PriorFailures -ge $taskPolicy.failureLimit) { throw 'The current cumulative failures already exhaust the shared execution budget.' }
+    Assert-TaskSourceRecords @($taskPolicySource)
+    return [int]$taskPolicy.failureLimit
+  } finally {
+    if ($taskPolicyProcess) {
+      if (-not $taskPolicyProcess.HasExited) { $taskPolicyProcess.Kill(); $null = $taskPolicyProcess.WaitForExit(5000) }
+      $taskPolicyProcess.Dispose()
+    }
+  }
 }
 function Copy-TaskSourceFile([string]$SourcePath, [string]$TargetPath, $Expected) {
   if ([IO.Path]::GetFullPath($SourcePath) -ne [IO.Path]::GetFullPath($Expected.path)) { throw 'The acceptance execution copy source path changed.' }
@@ -411,7 +446,10 @@ $taskEntrypoints = @(if ($PortableMigrationOnly) { Join-Path $taskRepository 'to
 $taskEntrypoints += $taskMethodEntrypoint
 if (-not $PortableMigrationOnly -and -not $FixtureScenario) { $taskEntrypoints += Join-Path $taskRepository 'tools/release/installation-verifier.mjs' }
 $taskEnvironment = Assert-TaskAcceptanceEnvironment $taskSystemPowerShell $taskSourceNode $taskTrackedChild $taskEntrypoints
+$taskFailurePolicyPath = Join-Path $taskRepository 'tools/test/runner/failure-policy.mjs'
+$taskFailureLimit = Get-TaskFailureBudget $taskSourceNode $taskFailurePolicyPath $taskRepository $PriorFailures
 $taskMethodSources = @(Get-TaskExecutionMethod $taskSourceNode $taskMethodEntrypoint $taskRepository)
+if (@($taskMethodSources | Where-Object { $_.path -eq $taskFailurePolicyPath }).Count -ne 1) { throw 'The complete acceptance method must bind the shared failure policy.' }
 $taskMethodSha256 = Get-TaskMethodFingerprint $taskMethodSources
 $taskUsername = 'TMVerify_' + [Guid]::NewGuid().ToString('N').Substring(0, 8)
 $taskWork = Join-Path $taskRepository ('tmp\installation-user-' + [Guid]::NewGuid().ToString('N'))
@@ -423,6 +461,7 @@ Assert-TaskPathNoLinks $taskOutput
 $taskReport = [ordered]@{ schemaVersion = 1; kind = $(if ($PortableMigrationOnly) { 'temporary-standard-user-portable-migration' } else { 'temporary-standard-user' }); startedAtUtc = [DateTime]::UtcNow.ToString('o'); result = 'started'; account = $taskUsername; ownerSid = $null; freshAccount = $false; standardAccount = $false; profileLoaded = $false; installerSha256 = $taskDeliveryData.executable.sha256; accountRemoved = $false; profileRemoved = $false; errors = @() }
 $taskReport.methodSources = $taskMethodSources
 $taskReport.methodSha256 = $taskMethodSha256
+$taskReport.failureLimit = $taskFailureLimit
 $taskReport.environmentPreflight = $taskEnvironment
 $taskRunnerPath = Join-Path $taskWork 'run.ps1'
 $taskChildExecution = Copy-TaskSourceFile $taskTrackedChild $taskRunnerPath $taskEnvironment.child
@@ -456,7 +495,7 @@ try {
     Set-Acl -LiteralPath $taskDirectory -AclObject $taskAcl
   }
   $taskPlan = Join-Path $taskWork 'plan.json'
-  @{ repository = $taskRepository; delivery = $taskDelivery; handoffPreparedReport = $taskHandoffPreparedReport; handoffEvidence = (Join-Path $taskOutput 'application-handoff'); frameworkRecoveryEvidence = (Join-Path $taskOutput 'application-framework-recovery'); activeUninstallEvidence = (Join-Path $taskOutput 'application-active-uninstall'); fixtureScenario = $FixtureScenario; fixturePreparedSha256 = $taskFixturePreparedSha256; evidence = (Join-Path $taskOutput 'shipping-executable-checks-full.json'); portableMigrationOnly = [bool]$PortableMigrationOnly; portablePointer = $taskPortablePointer; portablePointerBytes = $taskPortablePointerBytes; portablePointerSha256 = $taskPortablePointerSha256; portableMigrationEvidence = (Join-Path $taskOutput 'portable-migration'); priorFailures = $PriorFailures; accountSid = $taskCreatedSid.Value; work = $taskWork; useProfileAcceptance = [bool]$UseProfileAcceptance; sourceNode = $taskSourceNode; sourceNodeBytes = $taskEnvironment.node.bytes; sourceNodeSha256 = $taskEnvironment.node.sha256; childExecution = $taskChildExecution; methodSha256 = $taskMethodSha256 } | ConvertTo-Json | Set-Content -LiteralPath $taskPlan -Encoding utf8
+  @{ repository = $taskRepository; delivery = $taskDelivery; handoffPreparedReport = $taskHandoffPreparedReport; handoffEvidence = (Join-Path $taskOutput 'application-handoff'); frameworkRecoveryEvidence = (Join-Path $taskOutput 'application-framework-recovery'); activeUninstallEvidence = (Join-Path $taskOutput 'application-active-uninstall'); fixtureScenario = $FixtureScenario; fixturePreparedSha256 = $taskFixturePreparedSha256; evidence = (Join-Path $taskOutput 'shipping-executable-checks-full.json'); portableMigrationOnly = [bool]$PortableMigrationOnly; portablePointer = $taskPortablePointer; portablePointerBytes = $taskPortablePointerBytes; portablePointerSha256 = $taskPortablePointerSha256; portableMigrationEvidence = (Join-Path $taskOutput 'portable-migration'); priorFailures = $PriorFailures; failureLimit = $taskFailureLimit; accountSid = $taskCreatedSid.Value; work = $taskWork; useProfileAcceptance = [bool]$UseProfileAcceptance; sourceNode = $taskSourceNode; sourceNodeBytes = $taskEnvironment.node.bytes; sourceNodeSha256 = $taskEnvironment.node.sha256; childExecution = $taskChildExecution; methodSha256 = $taskMethodSha256 } | ConvertTo-Json | Set-Content -LiteralPath $taskPlan -Encoding utf8
 
   $taskCredentials = [Management.Automation.PSCredential]::new($env:COMPUTERNAME + '\' + $taskUsername, $taskPassword)
   $taskRunner = Start-Process -FilePath $taskSystemPowerShell -ArgumentList @('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',('"' + $taskRunnerPath + '"'),'-Plan',('"' + $taskPlan + '"')) -Credential $taskCredentials -LoadUserProfile -WorkingDirectory $taskWork -WindowStyle Hidden -RedirectStandardOutput (Join-Path $taskOutput 'account-runner.stdout.log') -RedirectStandardError (Join-Path $taskOutput 'account-runner.stderr.log') -PassThru

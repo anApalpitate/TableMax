@@ -16,6 +16,10 @@ const childPath = path.join(
   'tools/test/installation/verify-production-user-child.ps1',
 );
 const nodePath = path.join(repository, '.cache/node/22.14.0/runtime/node.exe');
+const failurePolicyPath = path.join(
+  repository,
+  'tools/test/runner/failure-policy.mjs',
+);
 const systemPowerShell = path.join(
   process.env.WINDIR ?? 'C:/Windows',
   'System32/WindowsPowerShell/v1.0/powershell.exe',
@@ -108,6 +112,53 @@ const parentFunctions = [
   'Get-TaskMethodFingerprint',
   'Copy-TaskSourceFile',
 ];
+
+test(
+  'shared failure budget rejects exhausted prior counts before accounts and survives child environment clearing',
+  { skip: !windows },
+  async () => {
+    const source = await readFile(parentPath, 'utf8');
+    const budgetPreflight = source.indexOf(
+      '$taskFailureLimit = Get-TaskFailureBudget',
+    );
+    const accountCreation = source.indexOf('$taskUser = New-LocalUser');
+    assert.ok(budgetPreflight >= 0 && accountCreation > budgetPreflight);
+    assert.match(source, /failureLimit = \$taskFailureLimit; accountSid/);
+    const childSource = await readFile(childPath, 'utf8');
+    assert.ok(
+      childSource.indexOf('Set-TaskFailureBudget $taskPlan') >
+        childSource.indexOf(
+          "Remove-Item -LiteralPath ('Env:\\' + $taskVariable.Name)",
+        ),
+    );
+    const output = runPowerShell(
+      importFunctions(parentPath, [
+        ...parentFunctions,
+        'Get-TaskFailureBudget',
+      ]) +
+        importFunctions(childPath, ['Set-TaskFailureBudget']) +
+        `
+Remove-Item -LiteralPath 'Env:\\TABLEMAX_TEST_MAX_FAILURES' -ErrorAction SilentlyContinue
+if ((Get-TaskFailureBudget ${quote(nodePath)} ${quote(failurePolicyPath)} ${quote(repository)} 9) -ne 10) { throw 'Default budget must accept prior 9.' }
+Assert-TaskRejected { Get-TaskFailureBudget ${quote(nodePath)} ${quote(failurePolicyPath)} ${quote(repository)} 10 }
+Assert-TaskRejected { Get-TaskFailureBudget ${quote(nodePath)} ${quote(failurePolicyPath)} ${quote(repository)} -1 }
+$env:TABLEMAX_TEST_MAX_FAILURES = '2'
+if ((Get-TaskFailureBudget ${quote(nodePath)} ${quote(failurePolicyPath)} ${quote(repository)} 1) -ne 2) { throw 'The environment budget was lost.' }
+Assert-TaskRejected { Get-TaskFailureBudget ${quote(nodePath)} ${quote(failurePolicyPath)} ${quote(repository)} 2 }
+Remove-Item -LiteralPath 'Env:\\TABLEMAX_TEST_MAX_FAILURES'
+Set-TaskFailureBudget ([pscustomobject]@{ failureLimit = 10; priorFailures = 9 })
+if ($env:TABLEMAX_TEST_MAX_FAILURES -cne '10') { throw 'The child did not restore the frozen exact budget.' }
+Set-TaskFailureBudget ([pscustomobject]@{ failureLimit = 2; priorFailures = 1 })
+if ($env:TABLEMAX_TEST_MAX_FAILURES -cne '2') { throw 'The child changed the environment override.' }
+Assert-TaskRejected { Set-TaskFailureBudget ([pscustomobject]@{ failureLimit = 10; priorFailures = 10 }) }
+Assert-TaskRejected { Set-TaskFailureBudget ([pscustomobject]@{ failureLimit = '10'; priorFailures = 9 }) }
+Assert-TaskRejected { Set-TaskFailureBudget ([pscustomobject]@{ failureLimit = 10; priorFailures = '9' }) }
+'passed'
+`,
+    );
+    assert.equal(output, 'passed');
+  },
+);
 
 for (const scenario of [
   {

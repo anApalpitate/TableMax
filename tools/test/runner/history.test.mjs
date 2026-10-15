@@ -10,6 +10,7 @@ import { mkdtempSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import {
   TestHistory,
   testIdentity,
@@ -92,18 +93,53 @@ function latestReport(history) {
   );
 }
 
-test('failure budget defaults to five while explicit limits override the environment', () => {
+test('failure budget defaults to ten while explicit limits override the environment', () => {
   const previous = process.env.TABLEMAX_TEST_MAX_FAILURES;
   try {
     delete process.env.TABLEMAX_TEST_MAX_FAILURES;
-    assert.equal(failureLimit(), 5);
+    assert.equal(failureLimit(), 10);
     process.env.TABLEMAX_TEST_MAX_FAILURES = '2';
     assert.equal(failureLimit(), 2);
     assert.equal(failureLimit(3), 3);
     assert.equal(failureLimit(5), 5);
+    assert.equal(failureLimit(10), 10);
   } finally {
     if (previous === undefined) delete process.env.TABLEMAX_TEST_MAX_FAILURES;
     else process.env.TABLEMAX_TEST_MAX_FAILURES = previous;
+  }
+});
+
+test('failure policy read-only CLI preserves environment and explicit precedence', () => {
+  const environment = { ...process.env };
+  delete environment.TABLEMAX_TEST_MAX_FAILURES;
+  for (const [args, value, expected] of [
+    [[], undefined, 10],
+    [[], '2', 2],
+    [['--limit=10'], '2', 10],
+    [['--limit=3'], '2', 3],
+  ]) {
+    const result = spawnSync(
+      process.execPath,
+      [
+        fileURLToPath(new URL('./failure-policy.mjs', import.meta.url)),
+        ...args,
+      ],
+      {
+        encoding: 'utf8',
+        windowsHide: true,
+        timeout: 10000,
+        env:
+          value === undefined
+            ? environment
+            : { ...environment, TABLEMAX_TEST_MAX_FAILURES: value },
+      },
+    );
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), {
+      schemaVersion: 1,
+      failureLimit: expected,
+    });
   }
 });
 

@@ -44,12 +44,17 @@ function Invoke-TaskNode([string]$ScriptPath, [string[]]$NodeArguments, [string]
   }
   return $taskNativeExit
 }
+function Set-TaskFailureBudget($Plan) {
+  if (($Plan.failureLimit -isnot [int] -and $Plan.failureLimit -isnot [long]) -or $Plan.failureLimit -lt 1 -or $Plan.failureLimit -gt 1000 -or ($Plan.priorFailures -isnot [int] -and $Plan.priorFailures -isnot [long]) -or $Plan.priorFailures -lt 0 -or $Plan.priorFailures -ge $Plan.failureLimit) { throw 'The frozen child execution budget is invalid or exhausted.' }
+  $env:TABLEMAX_TEST_MAX_FAILURES = $Plan.failureLimit.ToString([Globalization.CultureInfo]::InvariantCulture)
+}
 if ([Security.Principal.WindowsIdentity]::GetCurrent().User.Value -ne $taskPlan.accountSid) { throw 'Wrong test account.' }
 if (([Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw 'Installer acceptance must use a standard account.' }
 Set-Location -LiteralPath $taskPlan.repository
 foreach ($taskVariable in @(Get-ChildItem Env: | Where-Object { $_.Name -like 'TABLEMAX_*' -or $_.Name -like 'WEBVIEW2_*' -or $_.Name -in @('NODE_OPTIONS','NODE_PATH') })) {
   Remove-Item -LiteralPath ('Env:\' + $taskVariable.Name)
 }
+Set-TaskFailureBudget $taskPlan
 $env:TABLEMAX_ISOLATED_WINDOWS_ACCEPTANCE = '1'
 $env:TABLEMAX_AUTO_MAINTENANCE = '0'
 $env:TABLEMAX_TEST_MAINTENANCE = '0'
