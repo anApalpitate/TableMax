@@ -62,15 +62,52 @@ try {
     Set-Acl -LiteralPath $taskDirectory -AclObject $taskAcl
   }
   $taskPlan = Join-Path $taskWork 'plan.json'
-  @{ repository = $taskRepository; delivery = $taskDelivery; handoffPreparedReport = $taskHandoffPreparedReport; handoffEvidence = (Join-Path $taskOutput 'application-handoff'); evidence = (Join-Path $taskOutput 'shipping-executable-checks-full.json'); accountSid = $taskCreatedSid.Value; work = $taskWork } | ConvertTo-Json | Set-Content -LiteralPath $taskPlan -Encoding utf8
+  @{ repository = $taskRepository; delivery = $taskDelivery; handoffPreparedReport = $taskHandoffPreparedReport; handoffEvidence = (Join-Path $taskOutput 'application-handoff'); frameworkRecoveryEvidence = (Join-Path $taskOutput 'application-framework-recovery'); evidence = (Join-Path $taskOutput 'shipping-executable-checks-full.json'); accountSid = $taskCreatedSid.Value; work = $taskWork } | ConvertTo-Json | Set-Content -LiteralPath $taskPlan -Encoding utf8
   $taskChildSource = @'
 param([string]$Plan)
 $ErrorActionPreference = 'Stop'
 $taskPlan = Get-Content -LiteralPath $Plan -Raw -Encoding utf8 | ConvertFrom-Json
+function Invoke-TaskNode([string]$ScriptPath, [string[]]$NodeArguments, [string]$LogPath) {
+  $taskArguments = @($ScriptPath) + @($NodeArguments)
+  foreach ($taskArgument in $taskArguments) {
+    if ($taskArgument.Contains('"') -or $taskArgument.EndsWith('\')) { throw 'Unsafe Node argument.' }
+  }
+  $taskStart = [Diagnostics.ProcessStartInfo]::new((Join-Path $taskPlan.repository '.cache/node/22.14.0/runtime/node.exe'))
+  $taskStart.Arguments = [string]::Join(' ', [string[]]@($taskArguments | ForEach-Object { '"' + $_ + '"' }))
+  $taskStart.WorkingDirectory = $taskPlan.repository
+  $taskStart.UseShellExecute = $false
+  $taskStart.CreateNoWindow = $true
+  $taskStart.RedirectStandardOutput = $true
+  $taskStart.RedirectStandardError = $true
+  $taskStart.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
+  $taskStart.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
+  $taskNative = $null
+  $taskStdout = $null
+  $taskStderr = $null
+  try {
+    $taskNative = [Diagnostics.Process]::Start($taskStart)
+    if (-not $taskNative) { throw 'The verifier Node process did not start.' }
+    $taskStdout = $taskNative.StandardOutput.ReadToEndAsync()
+    $taskStderr = $taskNative.StandardError.ReadToEndAsync()
+    if (-not $taskNative.WaitForExit(1860000)) { throw 'The verifier Node process exceeded its bounded budget.' }
+    if (-not [Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($taskStdout, $taskStderr), 5000)) { throw 'The verifier Node output did not drain.' }
+    $taskNative.Refresh()
+    $taskNativeExit = $taskNative.ExitCode
+  } finally {
+    if ($taskNative) {
+      if (-not $taskNative.HasExited) { $taskNative.Kill(); $null = $taskNative.WaitForExit(5000) }
+      $taskNative.Dispose()
+    }
+    $taskOut = if ($taskStdout -and $taskStdout.Status -eq [Threading.Tasks.TaskStatus]::RanToCompletion) { $taskStdout.Result } else { '[stdout did not drain]' }
+    $taskErr = if ($taskStderr -and $taskStderr.Status -eq [Threading.Tasks.TaskStatus]::RanToCompletion) { $taskStderr.Result } else { '[stderr did not drain]' }
+    [IO.File]::WriteAllText($LogPath, $taskOut + "`n[stderr]`n" + $taskErr, [Text.UTF8Encoding]::new($false))
+  }
+  return $taskNativeExit
+}
 if ([Security.Principal.WindowsIdentity]::GetCurrent().User.Value -ne $taskPlan.accountSid) { throw 'Wrong test account.' }
 if (([Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw 'Installer acceptance must use a standard account.' }
 Set-Location -LiteralPath $taskPlan.repository
-foreach ($taskVariable in @(Get-ChildItem Env: | Where-Object { $_.Name -like 'TABLEMAX_*' -or $_.Name -in @('NODE_OPTIONS','NODE_PATH') })) {
+foreach ($taskVariable in @(Get-ChildItem Env: | Where-Object { $_.Name -like 'TABLEMAX_*' -or $_.Name -like 'WEBVIEW2_*' -or $_.Name -in @('NODE_OPTIONS','NODE_PATH') })) {
   Remove-Item -LiteralPath ('Env:\' + $taskVariable.Name)
 }
 $env:TABLEMAX_ISOLATED_WINDOWS_ACCEPTANCE = '1'
@@ -84,22 +121,39 @@ $env:TABLEMAX_HOST = '127.0.0.1'
 $env:TABLEMAX_PORT = '0'
 $taskProfilePath = [Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
 if ([IO.Path]::GetFileName($taskProfilePath) -notlike 'TMVerify_*') { throw 'The isolated user profile was not loaded.' }
-$taskIdentityJson = @{ sid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value; profile = $taskProfilePath; hkcu = (Get-Item -LiteralPath 'HKCU:\').Name; standardAccount = $true; inheritedApplicationEnvironmentCleared = $true } | ConvertTo-Json
+$env:USERPROFILE = $taskProfilePath
+$taskLocalAppData = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData, [Environment+SpecialFolderOption]::DoNotVerify)
+$taskRoamingAppData = [Environment]::GetFolderPath([Environment+SpecialFolder]::ApplicationData, [Environment+SpecialFolderOption]::DoNotVerify)
+foreach ($taskProfileMember in @($taskLocalAppData, $taskRoamingAppData)) {
+  if (-not $taskProfileMember -or -not [IO.Path]::GetFullPath($taskProfileMember).StartsWith($taskProfilePath.TrimEnd('\') + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'The child application-data directory does not belong to the isolated profile.' }
+}
+$env:LOCALAPPDATA = $taskLocalAppData
+$env:APPDATA = $taskRoamingAppData
+$env:HOMEDRIVE = [IO.Path]::GetPathRoot($taskProfilePath).TrimEnd('\')
+$env:HOMEPATH = $taskProfilePath.Substring($env:HOMEDRIVE.Length)
+$taskActualIdentity = [Security.Principal.WindowsIdentity]::GetCurrent().Name.Split('\')
+$env:USERNAME = $taskActualIdentity[$taskActualIdentity.Length - 1]
+$env:USERDOMAIN = $taskActualIdentity[0]
+$taskIdentityJson = @{ sid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value; profile = $taskProfilePath; localAppData = $taskLocalAppData; roamingAppData = $taskRoamingAppData; hkcu = (Get-Item -LiteralPath 'HKCU:\').Name; standardAccount = $true; inheritedApplicationEnvironmentCleared = $true; isolatedProfileEnvironmentNormalized = $true } | ConvertTo-Json
 [IO.File]::WriteAllText((Join-Path (Split-Path -Parent $taskPlan.evidence) 'user-identity.json'), $taskIdentityJson + "`n", [Text.UTF8Encoding]::new($false))
 foreach ($taskInput in @('tools/release/installation-verifier.mjs','.cache/node/22.14.0/runtime/node.exe')) {
   $taskStream = [IO.File]::OpenRead((Join-Path $taskPlan.repository $taskInput)); $taskStream.Dispose()
 }
 $taskStream = [IO.File]::OpenRead($taskPlan.delivery); $taskStream.Dispose()
-& (Join-Path $taskPlan.repository '.cache/node/22.14.0/runtime/node.exe') (Join-Path $taskPlan.repository 'tools/test/installation/verify-application-handoff.mjs') ('--prepared-report=' + $taskPlan.handoffPreparedReport) ('--evidence=' + $taskPlan.handoffEvidence) *> (Join-Path (Split-Path -Parent $taskPlan.evidence) 'application-handoff.log')
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-& (Join-Path $taskPlan.repository '.cache/node/22.14.0/runtime/node.exe') (Join-Path $taskPlan.repository 'tools/release/installation-verifier.mjs') ('--delivery=' + $taskPlan.delivery) ('--evidence=' + $taskPlan.evidence) --isolated-windows *> (Join-Path (Split-Path -Parent $taskPlan.evidence) 'production-account.log')
-exit $LASTEXITCODE
+$taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-application-handoff.mjs') -NodeArguments @(('--prepared-report=' + $taskPlan.handoffPreparedReport), ('--evidence=' + $taskPlan.handoffEvidence)) -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'application-handoff.log')
+if ($taskNodeExit -ne 0) { exit $taskNodeExit }
+$taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-application-handoff.mjs') -NodeArguments @('--framework-recovery-only', ('--prepared-report=' + $taskPlan.handoffPreparedReport), ('--evidence=' + $taskPlan.frameworkRecoveryEvidence)) -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'application-framework-recovery.log')
+if ($taskNodeExit -ne 0) { exit $taskNodeExit }
+$taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/release/installation-verifier.mjs') -NodeArguments @(('--delivery=' + $taskPlan.delivery), ('--evidence=' + $taskPlan.evidence), '--isolated-windows') -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'production-account.log')
+exit $taskNodeExit
 '@
   $taskRunnerPath = Join-Path $taskWork 'run.ps1'
   Set-Content -LiteralPath $taskRunnerPath -Value $taskChildSource -Encoding utf8
   $taskCredentials = [Management.Automation.PSCredential]::new($env:COMPUTERNAME + '\' + $taskUsername, $taskPassword)
-  $taskRunner = Start-Process -FilePath (Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe') -ArgumentList @('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',('"' + $taskRunnerPath + '"'),'-Plan',('"' + $taskPlan + '"')) -Credential $taskCredentials -LoadUserProfile -WorkingDirectory $taskWork -WindowStyle Hidden -PassThru
+  $taskRunner = Start-Process -FilePath (Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe') -ArgumentList @('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',('"' + $taskRunnerPath + '"'),'-Plan',('"' + $taskPlan + '"')) -Credential $taskCredentials -LoadUserProfile -WorkingDirectory $taskWork -WindowStyle Hidden -RedirectStandardOutput (Join-Path $taskOutput 'account-runner.stdout.log') -RedirectStandardError (Join-Path $taskOutput 'account-runner.stderr.log') -PassThru
+  $null = $taskRunner.Handle
   if (-not $taskRunner.WaitForExit(1860000)) { throw 'Isolated installer verification exceeded its bounded budget.' }
+  $taskRunner.Refresh()
   $taskReport.exitCode = $taskRunner.ExitCode
   if ($taskRunner.ExitCode -ne 0) { throw 'Isolated installer verification failed; inspect its saved evidence.' }
   $taskUserIdentity = Get-Content -LiteralPath (Join-Path $taskOutput 'user-identity.json') -Raw -Encoding utf8 | ConvertFrom-Json
@@ -115,6 +169,16 @@ exit $LASTEXITCODE
   $taskReport.handoffEvidenceSha256 = (Get-FileHash -LiteralPath $taskHandoffProofPath -Algorithm SHA256).Hash.ToLowerInvariant()
   $taskReport.handoffPreparedSha256 = (Get-FileHash -LiteralPath $taskHandoffPreparedReport -Algorithm SHA256).Hash.ToLowerInvariant()
   if ([IO.Path]::GetFullPath($taskHandoffProof.preparedInput.path) -ne $taskHandoffPreparedReport -or $taskHandoffProof.preparedInput.sha256 -ne $taskReport.handoffPreparedSha256) { throw 'The actual Apply proof does not bind the exact prepared input.' }
+  $taskFrameworkProofPath = Join-Path $taskOutput 'application-framework-recovery/report.json'
+  Assert-TaskPathNoLinks $taskFrameworkProofPath
+  $taskFrameworkProof = Get-Content -LiteralPath $taskFrameworkProofPath -Raw -Encoding utf8 | ConvertFrom-Json
+  if ($taskFrameworkProof.result -ne 'passed' -or $taskFrameworkProof.failures -ne 0 -or $taskFrameworkProof.scenario -ne 'framework-recovery' -or @($taskFrameworkProof.steps | Where-Object { $_.result -ne 'passed' }).Count -ne 0) { throw 'The actual failed-upgrade framework recovery did not pass.' }
+  foreach ($taskRequiredStep in @('framework-old-inno-install','framework-old-bootstrap-baseline','framework-new-inno-expected-health-failure','framework-old-uninstaller-retained','framework-missing-live-helper','framework-actual-old-default-uninstall','framework-preserved-data-and-registration')) {
+    if (@($taskFrameworkProof.steps | Where-Object { $_.id -eq $taskRequiredStep -and $_.result -eq 'passed' }).Count -ne 1) { throw 'The actual framework recovery proof is missing a required unique step.' }
+  }
+  if ([IO.Path]::GetFullPath($taskFrameworkProof.preparedInput.path) -ne $taskHandoffPreparedReport -or $taskFrameworkProof.preparedInput.sha256 -ne $taskReport.handoffPreparedSha256) { throw 'The framework recovery proof does not bind the exact prepared input.' }
+  $taskReport.frameworkRecoveryEvidencePath = $taskFrameworkProofPath.Substring($taskRepository.Length + 1).Replace('\', '/')
+  $taskReport.frameworkRecoveryEvidenceSha256 = (Get-FileHash -LiteralPath $taskFrameworkProofPath -Algorithm SHA256).Hash.ToLowerInvariant()
   $taskReport.standardAccount = $true
   $taskReport.profileLoaded = $true
   $taskReport.result = 'passed'
@@ -126,15 +190,24 @@ exit $LASTEXITCODE
     # This account was freshly created here, its random password never leaves this process.
     # Stop only processes owned by its exact SID, never by an executable name.
     try {
+      if ($taskRunner -and -not $taskRunner.HasExited) {
+        $taskRunner.Kill()
+        if (-not $taskRunner.WaitForExit(5000)) { throw 'The owned isolated-account runner did not exit before process cleanup.' }
+      }
+      $taskProcessCleanupDeadline = [DateTime]::UtcNow.AddSeconds(30)
+      do {
+      $taskOwnedProcessesSeen = 0
       foreach ($taskProcess in Get-CimInstance Win32_Process) {
         $taskHandle = $null
         try { $taskOwner = Invoke-CimMethod -InputObject $taskProcess -MethodName GetOwnerSid }
         catch { continue }
         if ($taskOwner.ReturnValue -ne 0 -or $taskOwner.Sid -ne $taskCreatedSid.Value) { continue }
+        $taskOwnedProcessesSeen++
         try {
           $taskHandle = [Diagnostics.Process]::GetProcessById($taskProcess.ProcessId)
           $null = $taskHandle.Handle
-          if ([Math]::Floor($taskHandle.StartTime.ToUniversalTime().Ticks / 10) -ne [Math]::Floor($taskProcess.CreationDate.ToUniversalTime().Ticks / 10)) { continue }
+          $taskCreationDelta = [long]$taskHandle.StartTime.ToUniversalTime().Ticks - [long]$taskProcess.CreationDate.ToUniversalTime().Ticks
+          if ([Math]::Abs($taskCreationDelta) -gt 9) { continue }
           $taskOwner = Invoke-CimMethod -InputObject $taskProcess -MethodName GetOwnerSid
           if ($taskOwner.Sid -eq $taskCreatedSid.Value) {
             $taskHandle.Kill()
@@ -144,6 +217,10 @@ exit $LASTEXITCODE
         catch { $taskReport.errors += ('Isolated process cleanup: ' + $_.Exception.Message) }
         finally { if ($taskHandle) { $taskHandle.Dispose() } }
       }
+      if ($taskOwnedProcessesSeen -eq 0) { break }
+      if ([DateTime]::UtcNow -ge $taskProcessCleanupDeadline) { throw 'The bounded isolated-account process sweep did not reach zero.' }
+      Start-Sleep -Milliseconds 200
+      } while ($true)
     } catch { $taskReport.errors += ('Process cleanup: ' + $_.Exception.Message) }
     try {
       $taskCurrentUser = Get-LocalUser -SID $taskCreatedSid

@@ -2,15 +2,25 @@
 
 本页仅保留当前完整EXE、仍有效的证据和待验边界。下方旧标题为导航，不能把原版本通过升级为当前包通过。
 
-2026-10-15安装／卸载／盒子更新已有基础实现，候选13的源码检查点为 `3c01d0b`；后续协调器源码修复与未完成框架边界见下节，实际系统全链仍待验，接续见[安装任务](../tasks/windows-installation-update.md)。current仍为原便携完整1.0.6.10，下述原包证明不变；本轮未推广current或发布GitHub附件，文档提交不代替产品验收。
+2026-10-15安装／卸载／盒子更新基础实现与Inno内嵌解码修复已封入候选14；current仍为已验证便携1.0.6.10；新安装候选1.0.6.14已封包，尚未推广或发布。真实标准账户首个fixture安装在HKCU卸载登记被系统拒绝，已清理新账户及profile；完整系统链仍待完成，接续见[安装任务](../tasks/windows-installation-update.md)。
+
+## 1.0.6.14：安装候选与标准账户诊断（2026-10-15）
+
+[冻结交付](../../artifacts/package-payloads/v1.0.6/ff8eb35cb3f0-9mGOFX/full/installer-delivery.json)对应[完整EXE](../../artifacts/releases/TableMax-1.0.6.14-win-x64.exe)，35,663,121字节，SHA `48cb4a6e2bc80ee409e41afd68356b684e0a949e17735b0d05c4f4be27bf4396`；payload43,995,554字节，程序暂存97,360,020字节。暂存不含实际框架与首次启动G，完整安装容量仍待测。源码保留候选13的31个游戏单元，显式复用原签名模块源，公开版本不变；[封包日志](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-candidate-build.log)与[本地已签正文](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/candidate14-body.md)均不表示发布。
+
+内嵌卸载helper采用锁定Pascal Script原始八位Chr，严格Base64和长度／内存SHA／落盘SHA核验后只执行自身固定身份。[探针02](../../artifacts/maintenance/v1.0.6/installation-remaining/embedded-uninstaller-probe-02/results.json)通过全部0–255字节、填充、真实helper及10个拒绝向量；[新双PE准备](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/handoff-prepare/report.json)60000／60001实际编译封包通过，仍不是实际Apply或框架卸载证明。旧框架A在B失败后自行解码A helper的七步系统专项仍待执行。
+
+真实临时标准账户已运行首个fixture Inno：文件、helper健康与快捷方式步骤后，在HKCU卸载登记RegCreateKeyEx code5失败并回滚；[原报告](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-account/application-handoff/report.json)不改写为安装通过。[账户清理](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-account/isolated-account.json)已确认账户及profile删除成功；[独立身份](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-account/user-identity.json)包含真实SID／profile／AppData。正式GUID、Apply、失败升级恢复及完整首次启动容量尚未执行。
+
+[候选14闭包首轮](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-14/results.json)前4项通过，附加安全上下文读取因WindowsPowerShell5.1模块加载失败停止；后续.NET探针未运行。新轮合计2／3失败，先只读诊断，不自动重复产品测试；[轮次记录](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/round.json)保留上轮历史与本轮结果。current原SHA `f9fe7e68f267067856b84cb01680ec0658ff4b5a8e398fb997f4879dacb17bba`及候选13原字节继续保护。
 
 ## 协调器修复与三失败停止（2026-10-15）
 
 [底层恢复专项](../../artifacts/maintenance/v1.0.6/installation-remaining/recovery-coordinator-fixed-03/report.json)3/3通过，新增失败0、源码输入未变、收尾无错误且遗留进程0。完整候选精确匹配pending目标后只恢复协调器，保全原坏字节、配置、D／G及既有事务记录；同版本其他载荷不符、源安装器不符或无效签名目标均拒绝。新增修复子日志单独记录，不宣称pending整树零变化；数据库不回退。源码与完整输入SHA归[交接](../../artifacts/maintenance/v1.0.6/installation-remaining/recovery-coordinator-fixed-03/handoff.json)，测试是1.0.6.10独立产品GUID的组合fixture及直接helper卸载重装，不是候选13或实际Inno证明；已封候选13未包含此补丁。
 
-[本轮记录](../../artifacts/maintenance/v1.0.6/installation-remaining/account-round-20261015.json)累计3失败后停止：账户描述超过48字符、fixture封包覆盖旧tmp sidecar、内嵌卸载探针编译类型不匹配。描述已修正，旧sidecar已精确恢复；第三项尚未通过编译，未生成／执行setup。实际账户创建与正式安装均为0，用户已授权临时标准账户及UAC，不能继续写成待授权。
+[上轮记录](../../artifacts/maintenance/v1.0.6/installation-remaining/account-round-20261015.json)累计3失败后停止：账户描述超过48字符、fixture封包覆盖旧tmp sidecar、内嵌卸载探针编译类型不匹配。描述已修正，旧sidecar已精确恢复；当轮未创建账户或生成第三项setup。用户随后明确继续，解码修复和新候选状态见上节，不清零旧失败。
 
-不同PE失败升级后，旧卸载框架固定SHA与新版live helper可能不一致；精确恢复新版helper不能替代旧框架实际卸载证明。[内嵌框架和测试草稿](../../artifacts/maintenance/v1.0.6/installation-remaining/unverified-bootstrap-drafts-01/drafts.json)已按原始字节／SHA保全并撤出当前构建路径，不包含于已验证源码提交。正式候选14未分配，counter仍13，current与候选13原SHA未变；原双PE材料因helper源码变化需要重新prepare。后续继续沿既有账户授权闭合框架、系统链及完整体积，当前不推广或发布。
+不同PE失败升级后，旧卸载框架固定SHA与新版live helper可能不一致；精确恢复新版helper不能替代旧框架实际卸载证明。[上轮草稿保全](../../artifacts/maintenance/v1.0.6/installation-remaining/unverified-bootstrap-drafts-01/drafts.json)及撤回按当时源码认定；本轮已恢复、修正并封入候选14，真实跨PE框架链仍待完成。原双PE材料仅历史证据，当前准备材料见上节。
 
 ## 1.0.6.13：安装候选与专项证据（2026-10-15）
 

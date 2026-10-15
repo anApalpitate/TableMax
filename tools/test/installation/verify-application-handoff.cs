@@ -40,8 +40,9 @@ namespace TableMax.InstallationTesting
             var programArguments = arguments.Where(value => value != "--application-handoff-persistent").ToArray();
             var entry = typeof(TableMax.Desktop.Program).GetMethod("Main", BindingFlags.NonPublic | BindingFlags.Static);
             if (entry == null) throw new IOException("Actual Native entry is unavailable.");
-            if (checking) return (int)entry.Invoke(null, new object[] { programArguments });
-            if (!programArguments.Contains("--foundation-test")) throw new IOException("Fixture entry requires hidden test mode.");
+            var failureRequest = Environment.GetEnvironmentVariable("TABLEMAX_HANDOFF_FRAMEWORK_FAILURE");
+            if (checking && failureRequest == null) return (int)entry.Invoke(null, new object[] { programArguments });
+            if (!checking && !programArguments.Contains("--foundation-test")) throw new IOException("Fixture entry requires hidden test mode.");
             var pathname = Environment.GetEnvironmentVariable("TABLEMAX_HANDOFF_TEST_PLAN");
             if (String.IsNullOrEmpty(pathname)) throw new IOException("Missing isolated handoff plan.");
             InstallationCore.Safe(pathname);
@@ -53,6 +54,7 @@ namespace TableMax.InstallationTesting
             if (!InstallationCore.Equal(AppDomain.CurrentDomain.BaseDirectory, Path.Combine(identity.boxRoot, "app"))) throw new IOException("Fixture process is outside its actual installed Native root.");
             evidence = InstallationCore.Full(InstallationCore.Text(plan, "evidence")); InstallationCore.Safe(evidence);
             if (!Directory.Exists(evidence)) throw new IOException("Fixture evidence directory must already exist.");
+            if (failureRequest != null) return FailFrameworkHealth(identity, root, failureRequest);
             role = persistent ? "new" : "old";
             using (var input = persistent ? new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.None) : null)
             using (var timer = new System.Windows.Forms.Timer { Interval = 100 })
@@ -64,6 +66,53 @@ namespace TableMax.InstallationTesting
                 catch (TargetInvocationException cause) { throw cause.InnerException ?? cause; }
                 finally { timer.Stop(); }
             }
+        }
+
+        private static int FailFrameworkHealth(InstallationManifest identity, string root, string request)
+        {
+            // This test Main is linked only into explicitly compiled fixture Native PEs.
+            // Production Program/bridges do not read this request or contain this writer.
+            var version = typeof(DesktopContext).Assembly.GetName().Version;
+            if (request != "foundation-write-and-fail-v1" || identity.productId != FixtureId || version.Revision != 60001 || identity.buildVersion != version.ToString(4)) throw new IOException("Framework failure request is outside the new fixture identity.");
+            var repository = typeof(DesktopContext).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().Single(value => value.Key == "TableMaxRepositoryRoot").Value;
+            if (!root.StartsWith(InstallationCore.Full(repository) + Path.DirectorySeparatorChar + "tmp" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new IOException("Framework failure root is outside workspace tmp.");
+            identity.Verify(root);
+            var receipt = InstallerReceipt.Read(InstallationCore.ReceiptPath(root), identity);
+            if (receipt.bytes != InstallationCore.Number(plan, "newBytes") || receipt.sha256 != InstallationCore.Text(plan, "newSha256")) throw new IOException("Framework failure request did not match the actual new installer receipt.");
+            var config = InstallationCore.Object(StrictJson.Parse(File.ReadAllText(Path.Combine(identity.boxRoot, "TableMax.config.json"), InstallationCore.Utf8)));
+            if (!config.TryGetValue("dataDirectory", out var directory) || !(directory is string relative) || relative != ".") throw new IOException("Framework failure injection requires this fixture's default isolated data directory.");
+            var database = InstallationCore.Member(identity.boxRoot, "foundation.sqlite");
+            if (!File.Exists(database)) throw new IOException("Old fixture foundation database must already exist.");
+            var witness = Path.Combine(evidence, "framework-health-failure.json"); InstallationCore.Safe(witness);
+            if (File.Exists(witness) || Directory.Exists(witness)) throw new IOException("Framework failure witness must be new.");
+            var node = InstallationCore.Member(root, "TableMax/app/node.exe");
+            var expectedNode = identity.files.Single(value => value.path == "TableMax/app/node.exe");
+            if (new FileInfo(node).Length != expectedNode.bytes || InstallationCore.HashFile(node) != expectedNode.sha256) throw new IOException("Framework failure Node bytes do not match the installed package.");
+            var before = InstallationCore.HashFile(database);
+            var script = "if(process.version!=='v22.14.0')throw Error('Expected packaged Node22.14.0');const {DatabaseSync}=require('node:sqlite');const db=new DatabaseSync(process.env.TABLEMAX_FRAMEWORK_WITNESS_DATABASE);try{db.exec('CREATE TABLE IF NOT EXISTS tablemax_framework_recovery_witness(id INTEGER PRIMARY KEY CHECK(id=1), marker TEXT NOT NULL)');db.prepare('INSERT INTO tablemax_framework_recovery_witness VALUES(1,?)').run('fixture-framework-health-failure-v1');}finally{db.close();}console.log('fixture-foundation-write-complete');";
+            var start = new System.Diagnostics.ProcessStartInfo(node, "-e \"" + script + "\"") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true, WorkingDirectory = identity.boxRoot };
+            start.EnvironmentVariables["TABLEMAX_FRAMEWORK_WITNESS_DATABASE"] = database;
+            start.EnvironmentVariables.Remove("NODE_OPTIONS"); start.EnvironmentVariables.Remove("NODE_PATH");
+            int pid, exit;
+            string output;
+            using (var child = System.Diagnostics.Process.Start(start))
+            {
+                if (child == null) throw new IOException("Packaged SQLite witness process did not start.");
+                pid = child.Id;
+                try
+                {
+                    var stdout = child.StandardOutput.ReadToEndAsync(); var stderr = child.StandardError.ReadToEndAsync();
+                    if (!child.WaitForExit(15000)) throw new TimeoutException("Packaged SQLite witness exceeded its bounded budget.");
+                    if (!Task.WaitAll(new Task[] { stdout, stderr }, 5000)) throw new TimeoutException("Packaged SQLite witness output did not drain.");
+                    exit = child.ExitCode; output = stdout.Result.Trim();
+                    if (exit != 0 || output != "fixture-foundation-write-complete") throw new IOException("Packaged SQLite witness failed before the expected Native health refusal.");
+                }
+                finally { if (!child.HasExited) { child.Kill(); child.WaitForExit(5000); } }
+            }
+            var after = InstallationCore.HashFile(database);
+            if (after == before) throw new IOException("Fixture foundation database did not change.");
+            InstallationCore.Atomic(witness, new { schemaVersion = 1, scenario = "framework-recovery", request, productId = identity.productId, root, boxRoot = identity.boxRoot, dataDirectory = identity.boxRoot, buildVersion = identity.buildVersion, installationId = identity.installationId, nodePath = node, nodeSha256 = expectedNode.sha256, nodePid = pid, nodeExitCode = exit, database, beforeSha256 = before, afterSha256 = after, expectedNativeExitCode = 42, productionEntryInvoked = false, sqliteWriteCompleted = true });
+            return 42;
         }
 
         private static object Field(object target, string name)

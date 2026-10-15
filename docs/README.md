@@ -10,7 +10,7 @@
 
 ## 开始开发
 
-2026-10-15[Windows安装、卸载与盒子内更新](tasks/windows-installation-update.md)已实现安装布局、默认保留卸载、可信检查下载、保存关闭与恢复事务；安装候选 **1.0.6.13** 已封包并通过静态闭包、生产根验签、向导取消及相关隔离专项。真实干净Windows用户的完整安装／升级／卸载与首次启动体积尚待验收，未推广current；已验证便携交付仍为1.0.6.10。运行契约见[构建与运行](reference/build-and-run.md#windows-安装与整个程序更新)，签名与推广门禁见[Release流程](reference/release.md#完整安装器与免费应用签名2026-10-15)。
+2026-10-15[Windows安装、卸载与盒子内更新](tasks/windows-installation-update.md)已实现，候选 **1.0.6.14** 包含协调器恢复与内嵌解码修复。真实标准账户首个fixture安装在卸载登记被系统拒绝，账户／profile已清理，正做只读诊断；完整升级／卸载及首次启动容量仍待完成，current仍为已验证便携1.0.6.10；新安装候选1.0.6.14已封包，尚未推广或发布。运行契约见[构建与运行](reference/build-and-run.md#windows-安装与整个程序更新)，签名与推广门禁见[Release流程](reference/release.md#完整安装器与免费应用签名2026-10-15)。
 
 2026-10-12建立[macOS服务端运行包适配任务](tasks/macos-adaptation.md)：目标与执行草案已建立，导出未开始；沿用仅服务端运行包的范围，现行Windows交付事实保持，Mac权限与验证边界从任务页接续。
 

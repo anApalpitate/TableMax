@@ -350,19 +350,25 @@ Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 
 
 ### 完整安装与程序更新的证据分层
 
-当前current仍是便携1.0.6.10；候选1.0.6.13已封闭并完成9项静态闭包、实际内置生产根.NET验签及实际向导浏览／取消。保存失败、旧档、角色权限、完整数据库指纹与pending损坏恢复等专项按各自输入SHA通过；它们不自动成为候选13正式安装证明。证据入口及原失败保存在[任务记录](../tasks/windows-installation-update.md)，长期命令只在[完整安装验证工具](../../tools/test/README.md#完整安装与程序更新验证)维护。
+安装验证按下表分层，方法、候选、源码和实际成员SHA分别绑定；组件、解码探针、准备素材及向导取消不能升级为正式系统证明。各轮结果、当前交付与剩余事项统一见[验收](acceptance.md#当前源码与本地交付)和[任务记录](../tasks/windows-installation-update.md)，长期命令只在[完整安装验证工具](../../tools/test/README.md#完整安装与程序更新验证)维护。
 
-| 层次           | 可证明范围                                                                                                                                                         | 必须保留的限制                                                                                                                 |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| 静态闭包与签名 | actual三PE版本／产品ID、配方与全部payload成员、预算；实际Native／helper读取生产根并Verify envelope及Extract→Verify机器块，EXE／manifest／bootstrap原字节SHA相等    | 不调用Main、不证明系统安装或Apply；launcher不含更新验签模块，不能将其身份检查写成验签通过                                      |
-| 原生更新控制器 | 同一ApplicationUpdate代码，经仅managed注入的HTTP handler测试检查、下载、取消、长度／SHA、回放及资产边界；跨语言公开向量核对严格JSON与RSA                           | 不开放网页／CLI任意URL钩子；模拟HTTP不等于真实GitHub正例下载，实际线上主动检查单独记录                                         |
-| 保存与恢复     | 实际Native／服务、SQLite失败与原状态保全，playing拒绝、prepare后真实Stop及退出码门禁；helper持续租约、10成员指纹、精确quarantine／默认保留D/G/config、同包重装健康 | 持久日志构造不等于真实断电；fixtureGUID、组合载荷及sourceSHA保留原身份，不能冒称正式Inno系统链                                 |
-| 向导浏览／取消 | 同SHA副本的src默认目录、原中文提示、中文路径、桌面任务关／开／关、返回及正常取消、实际截图和取消保全                                                               | 明确不点击Install，不证明登记、卸载、UAC或SmartScreen；截图缺失部分与原控件值证据分别说明                                      |
-| 双PE准备／复验 | 不同四位PE、同临时根、实际配方／公钥／完整installer材料及工具sourceSHA一致                                                                                         | prepared／reverified只说明材料就绪；60000／60001未实际执行Apply／Inno前不能写更新成功，csproj排除改动不影响直接csc的已冻结输入 |
-| 正式隔离系统链 | 新标准账户与真实profile先实际运行检查／下载／Apply、旧父正常退出、新PE持续健康及fixture卸载，再执行正式GUID的安装／复装／快捷方式／首次物化计量／默认卸载          | 必须先获账户及管理员操作授权；尚未运行。工程checking、隔离环境标志、helper-only及只看driver exit0均不足                        |
+| 层次              | 可证明范围                                                                                                                                                         | 必须保留的限制                                                                                                                 |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| 静态闭包与签名    | actual三PE版本／产品ID、配方与全部payload成员、预算；实际Native／helper读取生产根并Verify envelope及Extract→Verify机器块，EXE／manifest／bootstrap原字节SHA相等    | 不调用Main、不证明系统安装或Apply；launcher不含更新验签模块，不能将其身份检查写成验签通过                                      |
+| 原生更新控制器    | 同一ApplicationUpdate代码，经仅managed注入的HTTP handler测试检查、下载、取消、长度／SHA、回放及资产边界；跨语言公开向量核对严格JSON与RSA                           | 不开放网页／CLI任意URL钩子；模拟HTTP不等于真实GitHub正例下载，实际线上主动检查单独记录                                         |
+| 保存与恢复        | 实际Native／服务、SQLite失败与原状态保全，playing拒绝、prepare后真实Stop及退出码门禁；helper持续租约、10成员指纹、精确quarantine／默认保留D/G/config、同包重装健康 | 持久日志构造不等于真实断电；fixtureGUID、组合载荷及sourceSHA保留原身份，不能冒称正式Inno系统链                                 |
+| 向导浏览／取消    | 同SHA副本的src默认目录、原中文提示、中文路径、桌面任务关／开／关、返回及正常取消、实际截图和取消保全                                                               | 明确不点击Install，不证明登记、卸载、UAC或SmartScreen；截图缺失部分与原控件值证据分别说明                                      |
+| 双PE准备／复验    | 不同四位PE、同临时根、实际配方／公钥／完整installer材料及工具sourceSHA一致                                                                                         | prepared／reverified只说明材料就绪；60000／60001未实际执行Apply／Inno前不能写更新成功，csproj排除改动不影响直接csc的已冻结输入 |
+| 卸载bootstrap探针 | 全0–255字节、真实helper、三种尾组及非法编码拒绝；内存与落盘SHA一致，配方绑定helper和生成include                                                                    | 不执行helper或安装登记，不证明旧框架卸载可达，也不替代实际unins EXE/dat容量                                                    |
+| 框架失败恢复      | 实际A安装，B切换后合法SQLite写入使10成员指纹变化并拒绝健康；A框架EXE/dat原字节保留，live helper缺失时由A框架默认卸载                                               | 必须执行独立七步专项并核对D/G/config与未知资料保全；预期故障成功触发不是产品失败，仍不称真实断电                               |
+| 正式隔离系统链    | 新标准账户与真实profile先执行实际Apply和框架失败恢复两链，再执行正式GUID的安装／复装／快捷方式／首次物化计量／默认卸载                                             | 账户及管理员操作须有明确授权；工程checking、隔离标志、helper-only及只看driver exit0均不足，结果按实际报告认定                  |
 
-隔离账户驱动必须核对实际handoff报告passed、failures0、所有步骤通过，并逐一要求七个唯一通过步骤（旧安装、旧主机、检查下载、真实父交接、新主机、helper／数据、精确卸载清理）。实际报告绑定原prepared规范路径及rawSHA；driver另核验旧／新不同高位PE与实际身份。只终止新建测试SID的精确进程句柄，账户与profile清理失败使全链失败；最终原始清理报告SHA绑定正式安装证明。临时账户及所需UAC已于2026-10-15获明确授权；本轮创建账户前工具失败，后续框架探针失败达到三失败停止，实际系统链尚未运行。底层协调器修复专项通过不抵扣框架；未验证草稿和轮次记录见安装任务。current推广须完整系统证明。
+隔离账户驱动核对实际Apply和框架恢复两份报告的 `passed`、`failures:0`、所有步骤通过及各自七个唯一必需步骤，不能只看driver退出码。两份实际报告均须绑定同一原prepared报告的规范路径及raw SHA，驱动再记录两份报告自身的路径与raw SHA；prepared复验包括旧／新不同高位PE、完整材料、公钥及源码输入。框架恢复的七个步骤ID与操作参数只在[测试工具](../../tools/test/README.md#完整安装与程序更新验证)维护。
 
-框架恢复另需实际A完整安装、不同PE的B切换后健康失败且10成员数据库指纹变化、A框架EXE／dat原字节保留，以及live helper缺失时由实际A框架默认卸载并保全D／G／配置／未知资料。直接复制已恢复helper再执行 `--uninstall` 只证明组件路径，不能证明框架自己的固定SHA可达。2026-10-15底层精确协调器恢复3项通过，内嵌框架探针编译失败；候选13尚未包含底层补丁，也没有完整框架恢复证明，详见[组件证据及停止范围](acceptance.md#协调器修复与三失败停止2026-10-15)。
+账户子进程必须加载真实标准用户profile，按Windows实际文件夹和身份归一 `USERPROFILE`、`LOCALAPPDATA`、`APPDATA`、`HOMEDRIVE`、`HOMEPATH`、`USERNAME`、`USERDOMAIN`，并核对应用数据路径属于本次profile；临时根与输出只授予新SID所需权限。PowerShell 5.1通过 `ProcessStartInfo` 调用Node，显式UTF-8并行读取stdout/stderr、有界等待排空后按实际ExitCode判定，避免原生命令stderr被 `ErrorActionPreference=Stop`误判；异常和双流日志保留。
+
+收尾先停止自有runner，再按新SID、固定进程句柄和精确创建时间复核并有界扫至零，不按进程名杀程序。仅删除本轮创建的账户和精确SID／路径且已卸载的非特殊profile；账户或profile清理失败使全链失败，最终原始清理报告SHA绑定正式安装证明。授权、当前执行结果和失败预算见[任务记录](../tasks/windows-installation-update.md)，current推广仍须完整系统证明。
+
+框架恢复的故障注入仅存在于显式编译的fixture alternate Main：严格限定测试GUID、60001、请求、隔离根、默认D、实际安装身份／receipt及包内Node摘要。包内Node对隔离foundation库合法写入并关闭，产生字节变化见证后Native返回42，发生在checking／persistent入口之前；生产Program和桥接不含该注入入口。直接复制已恢复helper再执行 `--uninstall` 只证明组件路径，不能证明框架自己的固定SHA可达；双PE材料已准备或全字节解码通过也不抵扣实际A框架卸载。
 
 `TABLEMAX_INSTALLATION_HEALTH_CHECK=1`仅使helper的健康启动显式静音后台checking后退出；正式默认更新仍启动并保持普通新版主机。持久在线交接fixture分支优先，不以checking代替新主机持续运行证据。该工程标志不替代正式GUID、fresh SID或完整安装验收；不同来源、旧sourceSHA的通过报告按未变化方法复用，不增加新统计或清零原失败。

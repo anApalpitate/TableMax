@@ -230,7 +230,7 @@ node tools/test/desktop/verify-shutdown.mjs --native=<已编译原生目录> --s
 
 ## 完整安装与程序更新验证
 
-截至2026-10-15，源码检查点 `3c01d0b` 的专项与候选13静态闭包／实际向导取消已具备；current仍为原便携1.0.6.10。候选13正式内置根.NET验签、旧档／保存关闭／恢复及各工具的原范围见[安装候选与专项证据](../../docs/reference/acceptance.md#10613安装候选与专项证据2026-10-15)。真实干净标准用户的Inno首装／同根重装／快捷方式／卸载／完整首启动计量，以及不同PE实际Apply和helper自身升级尚未运行；双PE已准备不等于执行通过。下面是接续操作入口，当前文档维护不执行它们。
+以下入口按实际候选、方法源码和成员SHA绑定证据；当前候选、账户执行结果及剩余接续统一见[验收](../../docs/reference/acceptance.md#当前源码与本地交付)和[安装任务](../../docs/tasks/windows-installation-update.md)。组件、向导取消、解码探针或双PE准备不等于实际安装、Apply或框架卸载通过。
 
 - [native-update-harness.mjs](installation/native-update-harness.mjs)：编译实际 .NET 更新管理，临时RSA仅在Node进程内，受管理HTTP模拟检查／下载／取消。登记 shared,tooling，动态输入不可缓存；不代表真实GitHub附件或installer执行。
 - [native-long-path-harness.mjs](installation/native-long-path-harness.mjs)、[native-migration-lease-harness.mjs](installation/native-migration-lease-harness.mjs)、[native-recovery-harness.mjs](installation/native-recovery-harness.mjs)：实际内部长路径、持续文件租约、完整数据库指纹与恢复门禁；后者可 `--playing-only` 定向复验。原生私有pipe跨进程验证须在普通用户token中执行，AppContainer连接超时不通过弱化ACL解决；登记 shared,tooling。
@@ -239,12 +239,24 @@ node tools/test/desktop/verify-shutdown.mjs --native=<已编译原生目录> --s
 - [verify-application-handoff.mjs](installation/verify-application-handoff.mjs)：先 `--prepare-only --evidence=<新目录>` 生成不同四位PE和进程内RSA签名的完整双fixture；实际隔离账户通过 `--prepared-report=<原准备报告> --evidence=<新目录>` 精确复验后执行旧Native检查／下载／Apply→正常关闭→同Inno升级→新helper／持续Native健康。`--verify-prepared-only` 只核哈希，不执行安装；登记 box,shared,tooling。未执行报告不可写成升级通过。
 - [verify-update-transaction.mjs](installation/verify-update-transaction.mjs)：`--candidate=<目录> --manifest=<JSON> --helper=<EXE> --installer-source=<EXE> --evidence=<新JSON> [--only=<场景列表>]`，`--list`列场景；仅独立fixture产品ID和工程临时根，实际helper保存／切换／健康／迁移／保全。登记 shared,tooling；持久日志构造用于恢复入口，不冒称断电实测。
 
-协调器复合场景为 `pending-coordinator-repro`（旧fixture预期拒绝）与 `pending-coordinator-recovery`（新helper精确恢复、两种故障、候选／源安装器不符、无效签名目标拒绝及保全）；`--prior-failures=<0–2>`接收本轮此前已发生的失败数，编排方串行汇总，累计3停止。组件报告的新增失败0不清零本轮失败；真实框架卸载和不同PE失败恢复另验。2026-10-15已达三失败停止，未验证框架／handoff草稿已隔离，不提供其未生效CLI；原账户／UAC授权及接续见[安装任务](../../docs/tasks/windows-installation-update.md)。
+协调器复合场景为 `pending-coordinator-repro`（旧fixture预期拒绝）与 `pending-coordinator-recovery`（完整目标精确匹配后恢复协调器、两种故障、候选／源安装器不符、无效签名目标拒绝及保全）；`--prior-failures=<0–2>`接收本轮此前已发生的失败数，编排方串行汇总，累计3停止。组件报告的新增失败0不清零本轮失败；真实框架卸载和不同PE失败恢复另验，历史轮次及授权见[安装任务](../../docs/tasks/windows-installation-update.md)。
+
+同一handoff入口以 `--framework-recovery-only --prepared-report=<原准备报告> --evidence=<新目录>` 单独验证旧框架恢复，不混入正向Apply七步。报告固定为 `<evidence>/report.json`，要求 `scenario:framework-recovery`、`result:passed`、`failures:0`，并保留 `preparedInput.path/sha256`。以下步骤必须各有且仅有一次passed：
+
+1. `framework-old-inno-install`：实际A完整Inno安装及登记。
+2. `framework-old-bootstrap-baseline`：记录A的unins EXE/dat、旧helper、配置与10成员指纹。
+3. `framework-new-inno-expected-health-failure`：实际B切换后，fixture专用入口用包内Node合法写隔离foundation库并返回42；核对B失败、health-failed事务和数据库指纹变化。
+4. `framework-old-uninstaller-retained`：A框架EXE/dat原字节和A登记保留，live helper已为B。
+5. `framework-missing-live-helper`：只移走本轮live helper并保全原字节／SHA。
+6. `framework-actual-old-default-uninstall`：执行实际A框架，由其内嵌固定SHA的A helper默认卸载。
+7. `framework-preserved-data-and-registration`：受管程序、框架及精确登记移除，D/G/config与未知资料原字节保全。
+
+故障请求仅被fixture alternate Main在检查／持续启动分支前接受，限定fixtureGUID、60001、隔离根、默认D、安装身份／receipt与包内NodeSHA；生产入口不可达。B健康失败是预期断言，成功触发不计产品失败；实际框架链仍须执行，Base64全字节／真实helper探针只证明解码保真，不证明系统安装或实际unins.dat体积。
 
 - [verify-update-ui.mjs](installation/verify-update-ui.mjs)：`--root=<真实已安装fixture默认数据根> [--browser-channel=msedge] [--only=permissions|layout]`；实际隐藏WinForms／WebView2主机、公共屏、frame和普通浏览器权限及短屏截图。已有Edge可用于独立headless普通浏览器；不下载或升级全局浏览器。登记 box,shared,tooling；真实GitHub仅主动检查，未授权发布的新附件不模拟成在线下载通过。
 - [verify-save-barrier.mjs](installation/verify-save-barrier.mjs)：`--root=<真实已安装fixture默认数据根>`；仅fixture SQLite本轮trigger拒绝保存，经实际私有安装管道请求更新，核对Native失败退出、原状态和进程保全。只清除本轮成功创建的trigger；登记 box,shared,tooling。
-- [verify-production-user.ps1](installation/verify-production-user.ps1)：`-DeliveryPath <正式冻结交付JSON> -HandoffPreparedReport <双fixture准备报告> -OutputDirectory <全新证据目录> -AllowTemporaryAccount`；必须先获用户明确授权，且由管理员启动。只创建随机标准测试账户、当前测试SID及其新建profile，凭据仅进程内；先验证完整Apply链，再实际运行正式产品ID，核对快捷方式／卸载登记及保留运行副本，验后卸载和清理。只有账户及profile清理成功才把隔离报告SHA绑定正式证明；工具不自我提升，fixture或环境变量不能替代实际干净用户。
+- [verify-production-user.ps1](installation/verify-production-user.ps1)：`-DeliveryPath <正式冻结交付JSON> -HandoffPreparedReport <双fixture准备报告> -OutputDirectory <全新证据目录> -AllowTemporaryAccount`；必须先获用户明确授权，且由管理员启动。只创建随机标准测试账户及新profile，凭据仅进程内；依次验证正向Apply、旧框架失败恢复，再运行正式产品ID首装／复装／快捷方式／默认卸载与首次启动计量。子进程核对实际SID和profile，归一实际profile环境；PS5.1用raw `ProcessStartInfo`、UTF-8双流并行排空和真实ExitCode判定，日志独立保存。两份fixture报告须各自七步全部通过，绑定同一prepared规范路径／rawSHA，驱动另记录两份报告自身路径／rawSHA。收尾按精确SID、固定句柄和创建时间有界清理进程，只移除本次账户与精确闲置profile；清理成功后才把隔离报告SHA绑定正式证明。工具不自我提升，fixture或环境变量不能替代实际干净用户。
 - [verify-installer-wizard.mjs](installation/verify-installer-wizard.mjs)／[C#夹具](installation/verify-installer-wizard.cs)：`--delivery=<冻结交付JSON> --evidence=<全新maintenance目录>`；`--compile-only`／`--probe-only`可独立使用且不需delivery，分别只编译／运行自有窗口API探针。实际模式把同SHA installer复制到工程tmp中文空格目录，在未切换的私有桌面核对默认src、精确提示、中文目标、快捷方式关／开／关、准备页、返回及取消。仅自有Job PID／SID／路径的HWND可操作，明确禁止Install，正常退出后核对登记前后为空、目标和受管文件未生成、未知资料和原EXE SHA保全。PrintWindow实际截图经共享入口保存，记录DPI、物理WinRect和PNG尺寸；初始选中文本未绘出时目录由原生控件值证明。编译／probe不算Inno通过；两文件登记 shared,tooling，无独立preset。普通用户token的私有桌面所需权限不能以关闭保护或用户桌面fallback解决；实际取消不替代安装登记、卸载、UAC／SmartScreen。
 - 实际Inno交付和签名工具参数集中于[发布工具](../release/README.md)。installer不能再使用便携 `--extract-only`：通过实际安装后保存核验成员副本，后续组件测试只复用逐成员哈希绑定的副本；系统安装／升级必须另有实际证明。
 
-中间检查设置进程环境 `TABLEMAX_AUTO_MAINTENANCE=0`／`TABLEMAX_TEST_MAINTENANCE=0`，结束工程进程后统一收尾一次；本轮这次维护已完成，不因文档收尾再执行。保存失败、权限失败或静音不充分继续留作失败，并区分工具／环境错误与产品结果，不把隐藏窗口等同静音。最终证明绑定installer、payload、安装manifest、当前映射、安装实例、B／D和实际Native／Node身份；完整首次启动计量包含当前G、helper及框架卸载文件。动态系统状态不可缓存，卸载后精确runtime副本只能供组件验证；正式系统证明仍需当前实际账户与登记边界。
+中间检查设置进程环境 `TABLEMAX_AUTO_MAINTENANCE=0`／`TABLEMAX_TEST_MAINTENANCE=0`，结束工程进程后由主agent按任务记录统一安全维护一次，不因文档收尾追加。保存失败、权限失败或静音不充分继续留作失败，并区分工具／环境错误与产品结果，不把隐藏窗口等同静音。最终证明绑定installer、payload、安装manifest、当前映射、安装实例、B／D和实际Native／Node身份；完整首次启动计量包含当前G、helper及框架卸载文件。动态系统状态不可缓存，卸载后精确runtime副本只能供组件验证；正式系统证明仍需当前实际账户与登记边界。

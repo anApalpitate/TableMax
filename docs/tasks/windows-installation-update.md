@@ -2,39 +2,39 @@
 
 ## 任务接续速查
 
-- 创建日期：2026-10-14（Asia/Shanghai）；最新接续：2026-10-15。阶段0／1已完成，阶段2–6已有基础实现和专项，恢复边界与实际系统安装／升级全链仍未闭合，本任务继续开放。
-- 用户已授权实现完整离线安装器、整个程序默认保留数据卸载、盒子内可信检查／下载及明确重启更新。公开版本仍为1.0.6，候选13源码检查点为 `3c01d0b`；后续组件修复另按源码SHA与专项报告绑定。
-- `current.json` 仍绑定原便携完整 **1.0.6.10**；[原包与证明](../reference/acceptance.md#当前源码与本地交付)继续按原字节认定。
-- 已冻结安装候选为 **1.0.6.13**：[冻结交付](../../artifacts/package-payloads/v1.0.6/4e4f4f05f0a9-GUFTiZ/full/installer-delivery.json)，EXE SHA `c45d0055d2f68e469dd432a56ec44cc373cdd7e48ff04c525bfce85c7a42b6df`。协调器复合恢复缺口确认后暂缓推广；原字节保留，修复后另分配新候选。不发布GitHub／Pages或生成发布source ZIP。
-- 已完成事项及历史范围统一见[安装候选与专项证据](../reference/acceptance.md#10613安装候选与专项证据2026-10-15)。本页只保留剩余接续和必要证据入口，完整系统验收通过前不归档全任务。
+- 创建日期：2026-10-14（Asia/Shanghai）；最新接续：2026-10-15。阶段0／1完成，其余阶段已有基础实现与专项；真实系统链和最终容量尚未闭合，本任务继续开放。
+- 用户已授权完整离线安装器、默认保留数据卸载、盒子内可信检查／下载及明确重启更新。公开版本仍为1.0.6；current仍为已验证便携1.0.6.10；新安装候选1.0.6.14已封包，尚未推广或发布。
+- 候选14为[冻结交付](../../artifacts/package-payloads/v1.0.6/ff8eb35cb3f0-9mGOFX/full/installer-delivery.json)，EXE35,663,121字节，SHA `48cb4a6e2bc80ee409e41afd68356b684e0a949e17735b0d05c4f4be27bf4396`。已包含精确协调器恢复与框架内嵌helper；原候选13及current原字节保留。不发布GitHub／Pages或生成发布source ZIP。
+- 精确证据及历史范围统一进入[当前安装候选](../reference/acceptance.md#10614安装候选与标准账户诊断2026-10-15)；本页保留剩余安排，完整系统链通过前不归档全任务。
 
-- [x] 阶段0／1：安装契约冻结、保存关闭与隔离底座；[详细准备记录](../archive/windows-installation-preparation-2026-10-15.md)保留原结论和证据边界。
-- [x] 阶段4及候选前置：可信检查下载、候选13封包、生产根验签、真实向导取消与适用隔离专项。
-- [x] 底层协调器精确恢复：完整候选／目标／receipt／源安装器／运行helper核验、坏字节保全和拒绝专项；只通过组件验证，尚未进入正式候选。
-- [ ] 阶段2／3／5／6剩余：框架协调器bootstrap、真实系统链、完整首次启动容量及验收后推广。
+- [x] 阶段0／1：安装契约冻结、保存关闭与隔离底座；[准备归档](../archive/windows-installation-preparation-2026-10-15.md)保留原决策。
+- [x] 阶段4及原候选前置：可信检查下载、候选13原SHA的生产根验签、真实向导取消和适用专项。
+- [x] 底层协调器精确恢复与拒绝专项；源码已进入新候选14。
+- [x] Inno内嵌解码类型修复：全部0–255字节、1／2／3字节填充、真实helper内存／落盘SHA和10项非法编码拒绝通过；新旧不同PE安装副本已重新编译封包。
+- [ ] 候选14完整静态闭包及实际内置生产根.NET验签。
+- [ ] 阶段2／3／5／6剩余：真实不同PE Apply、失败升级旧框架卸载、正式GUID系统链、完整首次启动容量与验后推广。
 
 ## 剩余验收与授权边界
 
-用户已于2026-10-15明确授权一次性标准测试账户及Windows UAC，验后删除该账户与新建profile；凭据仅内存，测试限工程临时副本，不修改防火墙或发布。该授权继续有效，后续接续不重新询问同一授权。本轮实际创建账户0、正式Inno安装0；未推广current、未分配候选14或发布。
+临时标准账户及所需Windows UAC已于2026-10-15多次明确授权，并在本次继续指示中重申；验后删除该账户及新建profile，凭据仅内存，测试限工程临时副本，不改防火墙或发布。无需重复询问相同授权。
 
-本轮累计3失败后已按AGENTS第11条停止，不自动重试：[轮次记录](../../artifacts/maintenance/v1.0.6/installation-remaining/account-round-20261015.json)分别保留账户Description过长（创建前拒绝，已修正并提交 `fc81049`）、fixture输出覆盖旧tmp清单（按原SHA恢复，旧EXE／ZIP／release manifest未变），以及内嵌卸载探针的 `AnsiChar(Integer)` 编译类型不匹配（未生成或运行setup）。不清零历史结果，不为文档收尾继续产品验证或追加安全维护。
+用户明确继续后建立[新轮记录](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/round.json)，保留[上轮3失败](../../artifacts/maintenance/v1.0.6/installation-remaining/account-round-20261015.json)，不覆盖或清零历史。新轮当前2／3：真实标准账户首个fixture Inno在HKCU卸载登记RegCreateKeyEx code5拒绝；候选闭包附加的Windows签名上下文读取遇到PowerShell5.1安全模块加载错误。后者是工具环境问题，不是RSA或EXE字节不符。先只读诊断原因，不盲目重跑。
 
-数据库已变的pending事务同时丢失／损坏协调器时，候选13存在恢复循环；[底层修复3项](../../artifacts/maintenance/v1.0.6/installation-remaining/recovery-coordinator-fixed-03/report.json)已通过baseline、既有pending载荷损坏和新协调器复合场景，涵盖两种故障、同版本其他载荷不符／源安装器不符／无效签名目标拒绝、坏字节保全及恢复后helper直接卸载重装。仅可恢复与pending目标完全一致的可信完整包内协调器，不回退数据库；新增修复日志与坏字节副本不被误写为pending整树不变。输入与边界见[交接](../../artifacts/maintenance/v1.0.6/installation-remaining/recovery-coordinator-fixed-03/handoff.json)，不抵扣实际Inno证明。
+[实际账户报告](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-account/isolated-account.json)确认新账户及profile均已删除；[真实身份](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-account/user-identity.json)证明独立标准SID、profile及AppData归一。首个Inno已执行文件、helper健康和快捷方式步骤，但在保存登记时失败并回滚框架；不把它写成首装通过。Apply、失败升级专项和正式GUID链尚未执行。
 
-尚未闭合的是框架bootstrap：不同PE升级失败时，旧框架仍可能固定A版helper SHA，而live／pending已是B版；补回B不能证明旧框架可卸载。内嵌固定SHA协调器及真实跨PE失败专项目前只是[未验证草稿](../../artifacts/maintenance/v1.0.6/installation-remaining/unverified-bootstrap-drafts-01/drafts.json)，已逐文件保全10份源／探针输入并[撤出当前构建路径](../../artifacts/maintenance/v1.0.6/installation-remaining/unverified-bootstrap-drafts-01/restoration.json)，不纳入已验证提交。下一步先修正二进制写出方式并完成全字节／真实helper无登记探针，再冻结两版新素材；实际B健康失败且DB变化、A框架原字节保留、live helper缺失后A框架默认卸载与数据保全均须真实验证。
+当前只读诊断核对HKCU实际native对象、显式新SID hive、逐层ACL和restricted token；不开新注册表键、不修改DACL、不关闭保护。只有原因明确并修复相应工具／环境后，才使用原授权继续受影响测试；累计3失败即停止本轮产品验证。
 
-| 剩余事项                                     | 完成条件                                                                                                                                                                    | 当前状态／前置材料                                                                                                                                                                                                                                                                  |
-| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 框架bootstrap与跨PE失败恢复                  | 框架自带协调器严格解码／SHA通过，实际A安装、B健康失败且数据库变化后，A框架默认卸载可达；D／G／配置／未知资料保全                                                            | 当前探针编译失败，源码草稿已隔离保全；禁止仅凭底层helper专项冻结或放行                                                                                                                                                                                                              |
-| 正式产品ID首装、同根重装、快捷方式和默认卸载 | 在真实干净标准Windows用户中执行修复后最终候选的同一完整Inno；核对当前用户登记、启动／卸载快捷方式、身份、receipt、未知资料及配置／D／G保全，最终卸载和账户／profile清理成功 | 已获临时账户及UAC授权；首轮驱动在创建账户前失败，描述长度已修正。恢复修复与新候选冻结后继续，不能靠隔离环境变量绕过登记                                                                                                                                                             |
-| 完整首次启动容量                             | 实际安装后计入app、稳定入口、helper、框架卸载文件、归属清单及当前必需G物化，逻辑字节严格小于120,000,000；历史模块、存档、缓存及暂存峰值另列                                 | 暂存97,354,419字节不含实际框架文件与首次启动G，不能替代最终门禁                                                                                                                                                                                                                     |
-| 更高不同PE构建原目录升级及helper自身升级     | 实际旧Native检查／下载／Apply，经保存关闭及父进程正常退出握手，调用真实Inno，由新helper确认新持续Native／Node身份和健康，保全设置、D／G和原资料                             | 原[双PE准备](../../artifacts/maintenance/v1.0.6/installation-remaining/handoff-prepare-final-07/report.json)及[复验](../../artifacts/maintenance/v1.0.6/installation-remaining/handoff-reverify-final-08/report.json)仍仅历史材料；helper源码已变，须重新prepare，未执行Apply／Inno |
-| 推广唯一安装交付                             | 系统证明精确绑定最终候选的EXE／payload／manifest／映射、真实隔离账户及成功清理；复验原current SHA后，由授权推广入口原子切换                                                 | 等待完整系统证明，推广沿已授权完整交付范围，推广不另分配已验候选修订，不以helper或向导取消证明放行                                                                                                                                                                                  |
-| 系统安全提示与发布                           | 真实记录Windows安全提示／SmartScreen；后续获发布授权后只上传完整installer EXE与发布提交source ZIP，正文含唯一可信机器块                                                     | 尚未验收／发布；免费项目RSA不等同Authenticode，不关闭系统保护                                                                                                                                                                                                                       |
+| 剩余事项                   | 完成条件                                                                                                | 当前接续                                                                                                                                                     |
+| -------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 新候选完整闭包与生产根验签 | 精确三PE、完整成员、配方／内嵌helper、原31游戏单元及current保全，实际程序集验签                         | [首轮闭包](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-14/results.json)前4项通过，工具环境错误后停止，未自动重试     |
+| 注册表环境与真实首装       | 真实新标准用户可创建自己的卸载登记；不能更改保护或跳过登记                                              | [首次真实链](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-account/application-handoff/report.json)因HKCU code5失败，先诊断 |
+| 不同PE Apply及helper升级   | 旧Native真实检查／下载／Apply、保存关闭与父退出、同Inno升级及新持续主机健康                             | [新双PE准备](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/handoff-prepare/report.json)通过，仅准备不等于执行                          |
+| 框架bootstrap失败恢复      | 实际A安装、B健康失败且DB变化，A框架原字节保留、live helper缺失后实际A卸载成功，D／G／配置／未知资料保全 | [解码探针](../../artifacts/maintenance/v1.0.6/installation-remaining/embedded-uninstaller-probe-02/results.json)通过；真实七步专项待执行                     |
+| 正式GUID安装／重装／卸载   | 精确最终候选的当前用户登记、快捷方式、身份、receipt及默认卸载，保全数据，账户／profile成功清理          | fixture首装登记未通，正式GUID尚未运行                                                                                                                        |
+| 完整首次启动容量           | app、稳定入口、helper、框架卸载文件、归属清单和当前必需G物化严格小于120,000,000字节                     | 候选14暂存97,360,020字节不含实际框架及首次G，不能替代门禁                                                                                                    |
+| current推广与安全体验      | 最终系统证明绑定精确字节与清理报告，核对原current SHA后授权入口原子切换；诚实记录安全上下文             | current仍10；本地无MOTW／静默运行不能冒称浏览器下载SmartScreen通过。发布另须明确授权                                                                         |
 
-后续接续先闭合框架bootstrap，再以新候选／新prepared材料闭合实际不同PE Apply与正式Inno系统链，复核完整首次启动容量和保全后按既有授权及推广门禁切换current。入口见[完整安装与程序更新验证](../../tools/test/README.md#完整安装与程序更新验证)；临时账户与所需UAC已明确授权。向导浏览／取消按原SHA复用，不扩大游戏整局矩阵；本轮三失败后不继续上述验证。
-
-候选、helper、源码或输入发生字节变化时，记录新身份和失败原因，只重跑实际受影响项；已有专项保持原SHA及范围。未执行的双PE素材须全部哈希／签名复验后使用，不把管理HTTP夹具写成真实线上附件下载。
+候选13的恢复缺口和三失败历史保留于[历史小节](../reference/acceptance.md#协调器修复与三失败停止2026-10-15)。新源码、输入或候选字节改变后只复验受影响范围；管理HTTP传输夹具不等于真实线上附件发布。
 
 ## 已有证据入口与复用限制
 

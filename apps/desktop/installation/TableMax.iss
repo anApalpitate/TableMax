@@ -88,6 +88,8 @@ var
   MigrationEdit: TNewEdit;
   MigrationBrowse: TNewButton;
 
+#include "uninstall-helper.iss"
+
 function InstallConfirmed: Boolean;
 begin
   Result := Confirmed;
@@ -199,22 +201,96 @@ begin
   if Confirmed then Result := 0 else Result := 40;
 end;
 
+{ In locked Inno 6.7.3, Chr is the compiler's raw btChar intrinsic.
+  Keep its output in AnsiString; never pass binary through Unicode String. }
+function UninstallBase64Value(Value: AnsiChar): Integer;
+begin
+  if (Value >= 'A') and (Value <= 'Z') then Result := Ord(Value) - Ord('A')
+  else if (Value >= 'a') and (Value <= 'z') then Result := Ord(Value) - Ord('a') + 26
+  else if (Value >= '0') and (Value <= '9') then Result := Ord(Value) - Ord('0') + 52
+  else if Value = '+' then Result := 62
+  else if Value = '/' then Result := 63
+  else Result := -1;
+end;
+
+function DecodeUninstallHelper(const Encoded: AnsiString; ExpectedBytes: Integer): AnsiString;
+var
+  InputIndex, OutputIndex, Count, A, B, C, D: Integer;
+begin
+  if (ExpectedBytes <= 0) or (ExpectedBytes >= 120000000) then
+    RaiseException('卸载协调程序内嵌长度无效，已保留程序和数据。');
+  if Length(Encoded) <> ((ExpectedBytes + 2) div 3) * 4 then
+    RaiseException('卸载协调程序内嵌编码长度无效，已保留程序和数据。');
+  SetLength(Result, ExpectedBytes);
+  InputIndex := 1;
+  OutputIndex := 1;
+  while InputIndex <= Length(Encoded) do begin
+    A := UninstallBase64Value(Encoded[InputIndex]);
+    B := UninstallBase64Value(Encoded[InputIndex + 1]);
+    C := 0;
+    D := 0;
+    Count := 3;
+    if (A < 0) or (B < 0) then
+      RaiseException('卸载协调程序内嵌编码无效，已保留程序和数据。');
+    if Encoded[InputIndex + 2] = '=' then begin
+      if (InputIndex + 3 <> Length(Encoded)) or (Encoded[InputIndex + 3] <> '=') or ((B and 15) <> 0) then
+        RaiseException('卸载协调程序内嵌填充无效，已保留程序和数据。');
+      Count := 1;
+    end else begin
+      C := UninstallBase64Value(Encoded[InputIndex + 2]);
+      if C < 0 then RaiseException('卸载协调程序内嵌编码无效，已保留程序和数据。');
+      if Encoded[InputIndex + 3] = '=' then begin
+        if (InputIndex + 3 <> Length(Encoded)) or ((C and 3) <> 0) then
+          RaiseException('卸载协调程序内嵌填充无效，已保留程序和数据。');
+        Count := 2;
+      end else begin
+        D := UninstallBase64Value(Encoded[InputIndex + 3]);
+        if D < 0 then RaiseException('卸载协调程序内嵌编码无效，已保留程序和数据。');
+      end;
+    end;
+    if OutputIndex + Count - 1 > ExpectedBytes then
+      RaiseException('卸载协调程序解码长度超出范围，已保留程序和数据。');
+    Result[OutputIndex] := Chr((A shl 2) or (B shr 4));
+    if Count >= 2 then Result[OutputIndex + 1] := Chr(((B and 15) shl 4) or (C shr 2));
+    if Count = 3 then Result[OutputIndex + 2] := Chr(((C and 3) shl 6) or D);
+    OutputIndex := OutputIndex + Count;
+    InputIndex := InputIndex + 4;
+  end;
+  if OutputIndex <> ExpectedBytes + 1 then
+    RaiseException('卸载协调程序解码长度不符，已保留程序和数据。');
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
-  Helper, Temporary, Arguments: String;
+  Directory, Temporary, Arguments: String;
+  Data: AnsiString;
+  OwnDirectory, OwnFile: Boolean;
 begin
   if CurUninstallStep <> usUninstall then Exit;
-  Helper := ExpandConstant('{app}\UpdateHelper.exe');
-  Temporary := ExpandConstant('{tmp}\TableMax-uninstall-helper.exe');
-  if not FileExists(Helper) or (GetSHA256OfFile(Helper) <> '{#HelperSHA256}') then
-    RaiseException('卸载协调程序校验失败，已保留程序和数据。请先运行完整安装包修复。');
-  if not FileExists(Helper) or not FileCopy(Helper, Temporary, False) then begin
-    RaiseException('卸载协调程序缺失，已保留程序和数据。请先运行完整安装包修复。');
-  end;
-  if GetSHA256OfFile(Temporary) <> '{#HelperSHA256}' then
-    RaiseException('临时卸载协调程序校验失败，已保留程序和数据。');
-  Arguments := '--uninstall --root=' + Quoted(ExpandConstant('{app}'));
-  if not Exec(Temporary, Arguments, ExpandConstant('{tmp}'), SW_HIDE, ewWaitUntilTerminated, ResultCode) or (ResultCode <> 0) then begin
-    RaiseException('卸载未完成，程序登记与数据已保留。请关闭 TableMax 并检查恢复记录。');
+  Data := DecodeUninstallHelper(EmbeddedUninstallHelperBase64, EmbeddedUninstallHelperBytes);
+  if GetSHA256OfString(Data) <> EmbeddedUninstallHelperSHA256 then
+    RaiseException('内嵌卸载协调程序校验失败，已保留程序和数据。');
+  Directory := GenerateUniqueName(ExpandConstant('{tmp}'), '');
+  OwnDirectory := False;
+  OwnFile := False;
+  try
+    if FileOrDirExists(Directory) or not CreateDir(Directory) then
+      RaiseException('无法创建私有卸载临时目录，已保留程序和数据。');
+    OwnDirectory := True;
+    Temporary := AddBackslash(Directory) + 'UpdateHelper.exe';
+    if FileOrDirExists(Temporary) then
+      RaiseException('卸载临时路径已存在，已保留程序和数据。');
+    OwnFile := True;
+    if not SaveStringToFile(Temporary, Data, False) then
+      RaiseException('无法写入卸载协调程序，已保留程序和数据。');
+    if GetSHA256OfFile(Temporary) <> EmbeddedUninstallHelperSHA256 then
+      RaiseException('临时卸载协调程序校验失败，已保留程序和数据。');
+    Arguments := '--uninstall --root=' + Quoted(ExpandConstant('{app}'));
+    if not Exec(Temporary, Arguments, Directory, SW_HIDE, ewWaitUntilTerminated, ResultCode) or (ResultCode <> 0) then
+      RaiseException('卸载未完成，程序登记与数据已保留。请关闭 TableMax 并检查恢复记录。');
+  finally
+    { Only these paths inside the new private directory are cleanup candidates. }
+    if OwnFile then if not DeleteFile(Temporary) then Log('无法移除本次卸载临时程序：' + Temporary);
+    if OwnDirectory then if not RemoveDir(Directory) then Log('无法移除本次卸载临时目录：' + Directory);
   end;
 end;

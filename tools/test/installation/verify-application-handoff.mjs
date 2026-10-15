@@ -8,6 +8,7 @@ import {
   mkdtemp,
   readFile,
   readdir,
+  rename,
   stat,
   writeFile,
 } from 'node:fs/promises';
@@ -59,6 +60,69 @@ async function record(path) {
   const bytes = await readFile(path);
   return { path: resolve(path), bytes: bytes.length, sha256: hash(bytes) };
 }
+const databaseNames = [
+  'foundation.sqlite',
+  'foundation.sqlite-wal',
+  'foundation.sqlite-shm',
+  'foundation.sqlite-journal',
+  'room.sqlite',
+  'room.sqlite-wal',
+  'room.sqlite-shm',
+  'room.sqlite-journal',
+  'room.sqlite.migration.json',
+  'room.sqlite.migration.lock',
+];
+async function exists(path) {
+  try {
+    await lstat(path);
+    return true;
+  } catch (error) {
+    if (error.code === 'ENOENT') return false;
+    throw error;
+  }
+}
+async function databaseFingerprint(directory) {
+  const lines = [];
+  for (const name of databaseNames) {
+    const path = join(directory, name);
+    lines.push(
+      name +
+        ':' +
+        ((await exists(path)) ? (await record(path)).sha256 : 'missing'),
+    );
+  }
+  return hash(Buffer.from(lines.join('\n'), 'utf8'));
+}
+async function preservedData(directory) {
+  const files = [];
+  async function visit(path, prefix = '') {
+    for (const entry of await readdir(path, { withFileTypes: true })) {
+      const name = prefix + entry.name;
+      if (
+        !prefix &&
+        [
+          'app',
+          'updates',
+          '.installation-transactions',
+          '.install.json',
+          '.installer-receipt.json',
+          '.uninstalled.json',
+        ].includes(entry.name)
+      )
+        continue;
+      const full = join(path, entry.name);
+      await noLinks(full);
+      if (entry.isDirectory()) await visit(full, name + '/');
+      else {
+        assert.ok(entry.isFile(), 'Unexpected preserved-data member');
+        const value = await record(full);
+        files.push({ name, bytes: value.bytes, sha256: value.sha256 });
+      }
+    }
+  }
+  await visit(directory);
+  return files.sort((a, b) => a.name.localeCompare(b.name));
+}
 async function waitUntil(callback, label, timeout = 120000) {
   const end = Date.now() + timeout;
   while (Date.now() < end) {
@@ -93,9 +157,15 @@ export async function verifyApplicationHandoff({
   compileOnly = false,
   preparedReport,
   verifyPreparedOnly = false,
+  frameworkRecoveryOnly = false,
 }) {
   assertWorkspaceRoot();
   assert.equal(process.platform, 'win32');
+  assert.ok(
+    !frameworkRecoveryOnly ||
+      (preparedReport && !compileOnly && !prepareOnly && !verifyPreparedOnly),
+    'Framework recovery requires execution of an exact prepared pair',
+  );
   const repository = resolve('.');
   let prepared;
   if (preparedReport) {
@@ -187,6 +257,9 @@ export async function verifyApplicationHandoff({
   const report = {
     format: 1,
     result: 'running',
+    scenario: frameworkRecoveryOnly
+      ? 'framework-recovery'
+      : 'application-handoff',
     cacheable: false,
     startedAtUtc: new Date().toISOString(),
     work,
@@ -300,6 +373,278 @@ export async function verifyApplicationHandoff({
       });
       throw error;
     }
+  }
+  async function frameworkRecovery() {
+    const box = join(root, 'TableMax');
+    const oldHelper = report.old.manifest.files.find(
+      (file) => file.path === 'UpdateHelper.exe',
+    );
+    const newHelper = report.new.manifest.files.find(
+      (file) => file.path === 'UpdateHelper.exe',
+    );
+    for (const [value, helper] of [
+      [report.old, oldHelper],
+      [report.new, newHelper],
+    ]) {
+      const embedded =
+        value.delivery.executable.installation.recipe.compiler
+          .embeddedUninstallHelper;
+      assert.equal(
+        embedded.encoding,
+        'base64',
+        'Framework must contain its own embedded coordinator',
+      );
+      assert.equal(embedded.sha256, helper.sha256);
+      assert.equal(embedded.bytes, helper.bytes);
+    }
+    assert.notEqual(
+      oldHelper.sha256,
+      newHelper.sha256,
+      'The two fixture helpers must have different actual bytes',
+    );
+    const outside = join(root, '朋友资料.txt');
+    await writeFile(outside, 'Preserved by actual old-framework recovery\n', {
+      flag: 'wx',
+    });
+    const outsideBefore = await record(outside);
+    report.frameworkRecovery = {
+      productId: fixtureId,
+      root,
+      oldBuild,
+      newBuild,
+      expectedNativeExitCode: 42,
+      failureRequest: 'foundation-write-and-fail-v1',
+      boundary:
+        'Actual fixture Inno failure and the previously installed framework uninstaller. No production identity, external data directory, real internet, genuine power-loss or successful B update claim.',
+    };
+    await step('framework-old-inno-install', async () => {
+      assert.equal(await registration(), null);
+      const result = await execute(
+        report.old.delivery.executable.path,
+        [
+          '/VERYSILENT',
+          '/SUPPRESSMSGBOXES',
+          '/NORESTART',
+          '/DIR=' + root,
+          '/LOG=' + join(evidence, 'framework-old-inno.log'),
+        ],
+        'framework-old-inno',
+      );
+      assert.equal(result.code, 0, result.log);
+      installed = true;
+      const current = await registration();
+      assert.equal(resolve(current.InstallLocation), root);
+      assert.equal(current.DisplayVersion, oldBuild);
+      assert.equal(
+        (await json(join(box, 'TableMax.config.json'))).dataDirectory,
+        '.',
+      );
+      return { registration: current };
+    });
+    let frameworkBefore, configBefore, fingerprintBefore;
+    await step('framework-old-bootstrap-baseline', async () => {
+      frameworkBefore = await Promise.all(
+        ['unins000.exe', 'unins000.dat'].map((name) =>
+          record(join(root, name)),
+        ),
+      );
+      configBefore = await record(join(box, 'TableMax.config.json'));
+      fingerprintBefore = await databaseFingerprint(box);
+      assert.equal(
+        (await record(join(root, 'UpdateHelper.exe'))).sha256,
+        oldHelper.sha256,
+      );
+      report.frameworkRecovery.oldFramework = frameworkBefore;
+      report.frameworkRecovery.beforeDatabaseFingerprint = fingerprintBefore;
+      return {
+        framework: frameworkBefore,
+        oldHelperSha256: oldHelper.sha256,
+        config: configBefore,
+        databaseFingerprint: fingerprintBefore,
+      };
+    });
+    let witness, pending, dataBeforeUninstall;
+    await step('framework-new-inno-expected-health-failure', async () => {
+      const result = await execute(
+        report.new.delivery.executable.path,
+        [
+          '/VERYSILENT',
+          '/SUPPRESSMSGBOXES',
+          '/NORESTART',
+          '/DIR=' + root,
+          '/LOG=' + join(evidence, 'framework-new-failed-inno.log'),
+        ],
+        'framework-new-expected-failure',
+        180000,
+        { TABLEMAX_HANDOFF_FRAMEWORK_FAILURE: 'foundation-write-and-fail-v1' },
+      );
+      assert.ok(
+        Number.isInteger(result.code) && result.code !== 0,
+        'Expected B Inno health failure must exit nonzero',
+      );
+      witness = await json(join(evidence, 'framework-health-failure.json'));
+      assert.equal(witness.productId, fixtureId);
+      assert.equal(resolve(witness.root), root);
+      assert.equal(resolve(witness.dataDirectory), box);
+      assert.equal(witness.buildVersion, newBuild);
+      assert.equal(witness.nodeExitCode, 0);
+      assert.equal(witness.expectedNativeExitCode, 42);
+      assert.equal(witness.productionEntryInvoked, false);
+      assert.equal(witness.sqliteWriteCompleted, true);
+      assert.notEqual(witness.beforeSha256, witness.afterSha256);
+      const candidates = [];
+      for (const name of await readdir(
+        join(box, '.installation-transactions'),
+      )) {
+        const directory = join(box, '.installation-transactions', name);
+        const state = await maybeJson(join(directory, 'state.json'));
+        if (state?.phase === 'health-failed') {
+          const targetIdentity = await json(join(directory, 'target.json'));
+          if (targetIdentity.buildVersion === newBuild)
+            candidates.push({ directory, state, target: targetIdentity });
+        }
+      }
+      assert.equal(
+        candidates.length,
+        1,
+        'Exactly one failed B transaction required',
+      );
+      pending = candidates[0];
+      assert.equal(resolve(pending.state.dataDirectory), box);
+      assert.equal(pending.state.databaseFingerprint, fingerprintBefore);
+      const fingerprintAfter = await databaseFingerprint(box);
+      assert.notEqual(fingerprintAfter, pending.state.databaseFingerprint);
+      const current = await json(join(box, '.install.json'));
+      assert.equal(current.buildVersion, newBuild);
+      assert.equal(current.installationId, witness.installationId);
+      assert.equal(
+        current.payloadManifestSha256,
+        report.new.manifest.payloadManifestSha256,
+      );
+      const receipt = await json(join(box, '.installer-receipt.json'));
+      assert.equal(receipt.sha256, report.new.delivery.executable.sha256);
+      assert.equal(
+        (await record(join(root, 'UpdateHelper.exe'))).sha256,
+        newHelper.sha256,
+      );
+      assert.deepEqual(
+        await record(join(box, 'TableMax.config.json')),
+        configBefore,
+      );
+      dataBeforeUninstall = await preservedData(box);
+      report.frameworkRecovery.failedBExitCode = result.code;
+      report.frameworkRecovery.witness = witness;
+      report.frameworkRecovery.failedTransaction = pending;
+      report.frameworkRecovery.afterFailureDatabaseFingerprint =
+        fingerprintAfter;
+      report.frameworkRecovery.dataBeforeUninstall = dataBeforeUninstall;
+      return {
+        expectedFailure: true,
+        installerExitCode: result.code,
+        nativeWitness: witness,
+        pending,
+        databaseFingerprint: fingerprintAfter,
+        actualBHelperSha256: newHelper.sha256,
+      };
+    });
+    await step('framework-old-uninstaller-retained', async () => {
+      const after = await Promise.all(
+        frameworkBefore.map((file) => record(file.path)),
+      );
+      assert.deepEqual(
+        after,
+        frameworkBefore,
+        'Failed B must retain the actual A framework bytes',
+      );
+      const current = await registration();
+      assert.equal(resolve(current.InstallLocation), root);
+      assert.equal(current.DisplayVersion, oldBuild);
+      report.frameworkRecovery.registrationAfterBFailure = current;
+      return {
+        framework: after,
+        registration: current,
+        oldFrameworkRetained: true,
+      };
+    });
+    await step('framework-missing-live-helper', async () => {
+      const path = join(root, 'UpdateHelper.exe'),
+        before = await record(path);
+      assert.equal(before.sha256, newHelper.sha256);
+      const backup = join(work, 'fixture-missing-helper-original.exe');
+      assert.equal(await exists(backup), false);
+      await rename(path, backup);
+      const retained = await record(backup);
+      assert.equal(retained.sha256, before.sha256);
+      assert.equal(retained.bytes, before.bytes);
+      assert.equal(await exists(path), false);
+      report.frameworkRecovery.helperFault = {
+        mode: 'missing',
+        original: before,
+        preserved: retained,
+      };
+      return report.frameworkRecovery.helperFault;
+    });
+    await step('framework-actual-old-default-uninstall', async () => {
+      assert.deepEqual(
+        await record(frameworkBefore[0].path),
+        frameworkBefore[0],
+      );
+      assert.deepEqual(
+        await record(frameworkBefore[1].path),
+        frameworkBefore[1],
+      );
+      assert.equal(await exists(join(root, 'UpdateHelper.exe')), false);
+      const result = await execute(
+        frameworkBefore[0].path,
+        [
+          '/VERYSILENT',
+          '/SUPPRESSMSGBOXES',
+          '/NORESTART',
+          '/LOG=' + join(evidence, 'framework-actual-old-uninstall.log'),
+        ],
+        'framework-actual-old-default-uninstall',
+      );
+      assert.equal(result.code, 0, result.log);
+      report.frameworkRecovery.uninstallerExitCode = result.code;
+      return {
+        exitCode: result.code,
+        executedActualOldFramework: frameworkBefore[0],
+        liveHelperWasMissing: true,
+      };
+    });
+    await step('framework-preserved-data-and-registration', async () => {
+      assert.equal(await registration(), null);
+      assert.deepEqual(await record(outside), outsideBefore);
+      assert.deepEqual(await preservedData(box), dataBeforeUninstall);
+      assert.deepEqual(
+        await record(join(box, 'TableMax.config.json')),
+        configBefore,
+      );
+      for (const file of report.new.manifest.files)
+        assert.equal(
+          await exists(join(root, file.path)),
+          false,
+          'Managed file remains after default framework uninstall: ' +
+            file.path,
+        );
+      await waitUntil(
+        async () =>
+          !(await exists(frameworkBefore[0].path)) &&
+          !(await exists(frameworkBefore[1].path)),
+        'Old framework self-removal',
+        15000,
+      );
+      installed = false;
+      report.frameworkRecovery.registrationRemoved = true;
+      report.frameworkRecovery.preservedData = true;
+      return {
+        registrationRemoved: true,
+        dataAndGamesAndConfigPreserved: true,
+        unknown: outsideBefore,
+        managedFilesRemoved: true,
+        frameworkFilesRemoved: true,
+      };
+    });
   }
   const nativeFiles = (await readdir(resolve('apps/desktop/native')))
     .filter((name) => name.endsWith('.cs'))
@@ -669,7 +1014,9 @@ export async function verifyApplicationHandoff({
     environment.TABLEMAX_HANDOFF_TEST_PLAN = plan;
     report.plan = await record(plan);
     report.description = target;
-    if (!prepareOnly && !verifyPreparedOnly) {
+    if (frameworkRecoveryOnly) {
+      await frameworkRecovery();
+    } else if (!prepareOnly && !verifyPreparedOnly) {
       const outside = join(root, '朋友资料.txt');
       await writeFile(outside, 'Preserved by actual installer and update\n');
       const outsideBefore = await record(outside);
@@ -944,6 +1291,7 @@ if (resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
     compileOnly: args.includes('--compile-only'),
     preparedReport: value('prepared-report'),
     verifyPreparedOnly: args.includes('--verify-prepared-only'),
+    frameworkRecoveryOnly: args.includes('--framework-recovery-only'),
   });
   console.log(
     JSON.stringify({

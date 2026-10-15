@@ -2,11 +2,11 @@
 
 `pnpm package:win`增量构建并导出预装全部正式游戏与玩法的唯一完整EXE和本地清单；`pnpm package:release`只重新封装当前已验证内部载荷，不分配新修订号。`--edition`已退役并明确拒绝，部分游戏载荷不能交付。EXE在 `artifacts/releases/`，内部payload ZIP、manifest和当前指针在 `artifacts/package-payloads/`；内部ZIP不是用户下载包。
 
-截至2026-10-15，current仍为原便携完整1.0.6.10；安装候选1.0.6.13已封，EXE SHA `c45d0055d2f68e469dd432a56ec44cc373cdd7e48ff04c525bfce85c7a42b6df`，使用[独立冻结delivery](../../artifacts/package-payloads/v1.0.6/4e4f4f05f0a9-GUFTiZ/full/installer-delivery.json)。源码检查点 `3c01d0b`、候选闭包9项、实际内置生产根.NET互操作和向导取消的精确范围见[验收记录](../../docs/reference/acceptance.md#10613安装候选与专项证据2026-10-15)。实际干净标准用户首装／复装／快捷方式／默认卸载／完整首启动体积，以及不同PE Apply／helper升级仍待验；未推广current或发布。本页命令为接续说明，文档更新不执行封包、安装或推广。
+截至2026-10-15，current仍为已验证便携1.0.6.10；新安装候选1.0.6.14已封包，尚未推广或发布。候选14 EXE SHA `48cb4a6e2bc80ee409e41afd68356b684e0a949e17735b0d05c4f4be27bf4396`，使用[冻结delivery](../../artifacts/package-payloads/v1.0.6/ff8eb35cb3f0-9mGOFX/full/installer-delivery.json)。内嵌解码和双PE准备通过，真实标准用户首个fixture安装在HKCU卸载登记code5失败，账户及profile已删除；完整系统链及容量未通过前不推广。精确证据及历史专项见[验收](../../docs/reference/acceptance.md#10614安装候选与标准账户诊断2026-10-15)。
 
 新安装器先用 `--candidate` 封包：正常新构建原子分配四位修订，失败编号不复用，但保留已有 `current.json`。stdout 返回 `candidatePath`；该记录冻结候选交付和原 current 的原始 SHA，同目录 `full/installer-delivery.json` 供描述生成及实际安装验收。`--platform-from` 按原快照身份及游戏缓存逐成员 SHA 保留正式游戏，只刷新当前平台和组装器并生成新快照、新修订；`--snapshot` 则恢复原冻结快照，不分配新修订。
 
-后续修复通过后，从已封 `1.0.6.13` 快照保留同一31个游戏单元，并显式使用该候选的内部签名游戏源；不能误用另一份 `game-packages/current`。以下仅为接续命令，本轮三失败后不执行。任务期间关闭逐项自动维护，原一次安全维护记录继续保留，不追加第二轮。
+候选14已按下列命令从候选13保留同一31个游戏单元，显式使用原内部签名游戏源，避免误用另一份game-packages/current。后续新代码封包仍先candidate，以下保留该轮输入说明，不自动重复构建。任务期间关闭逐项维护，已有一次安全维护不追加第二轮。
 
 ```powershell
 $env:TABLEMAX_AUTO_MAINTENANCE = '0'
@@ -29,7 +29,7 @@ node tools/release/sign-application-update.mjs "--description=<新描述.json>" 
 node tools/release/installation-promote.mjs "--candidate=<封包输出candidatePath>" "--proof=<最终正式proof.json>"
 ```
 
-签名、切换 current 和本地验收不代表发布授权；任何最终 EXE 字节变化都需重新计算 SHA、重做对应验收与签名描述。临时标准账户及所需UAC已获明确授权，仍须真实profile与系统证明；本轮三失败停止，账户未创建，底层协调器修复尚未封新候选，框架草稿已撤出当前构建路径。正式账户验证权限及发布条件见[完整交付验收](../../docs/reference/acceptance.md)与[Release 流程](../../docs/reference/release.md)。本轮[一次安全维护](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/result.json)已经结束，后续文档操作不追加维护。
+签名、切换current和本地验收不代表发布授权；最终EXE字节变化须重新计算SHA、验收与签名。临时标准账户及UAC已授权，真实profile、登记和完整系统证明仍必需；当前新候选包含恢复和内嵌解码修复，标准用户首装权限问题先诊断，不通过环境变量、改DACL或取消系统登记绕过。发布边界见[验收](../../docs/reference/acceptance.md)与[Release流程](../../docs/reference/release.md)。[一次安全维护](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/result.json)已结束，不追加第二轮。
 
 前置条件是锁定工具链、有效预算、冻结输入和全部正式模块完整性。游戏仍独立组织、增量构建，内部签名模块按字节变化复用或生成；正式模板不计入当前游戏库。独立游戏导出、Pages准备／部署和安装型作者工具包导出已停止，保留文件仅说明内部实现或历史验证边界。
 

@@ -189,6 +189,38 @@ function issString(value) {
   return '"' + value + '"';
 }
 
+/** ASCII-only source; binary output must remain AnsiString/AnsiChar in Pascal. */
+export function embeddedUninstallHelperInclude(helper) {
+  assert.ok(Buffer.isBuffer(helper));
+  assert.ok(helper.length > 0 && helper.length < MAXIMUM_PACKAGE_BYTES);
+  const encoded = helper.toString('base64');
+  const chunks = encoded.match(/.{1,120}/g);
+  const source =
+    'const\n' +
+    '  EmbeddedUninstallHelperBytes = ' +
+    helper.length +
+    ';\n' +
+    "  EmbeddedUninstallHelperSHA256 = '" +
+    hash(helper) +
+    "';\n\n" +
+    'function EmbeddedUninstallHelperBase64: AnsiString;\n' +
+    'begin\n' +
+    "  Result := '';\n" +
+    chunks.map((chunk) => "  Result := Result + '" + chunk + "';\n").join('') +
+    'end;\n';
+  return {
+    source,
+    record: {
+      encoding: 'base64',
+      bytes: helper.length,
+      sha256: hash(helper),
+      encodedBytes: encoded.length,
+      includeBytes: Buffer.byteLength(source),
+      includeSha256: hash(Buffer.from(source)),
+    },
+  };
+}
+
 export async function compileInstallationScript({
   candidateDirectory,
   outputPath,
@@ -202,6 +234,12 @@ export async function compileInstallationScript({
     'apps/desktop/installation/TableMax.iss',
     join(recipeDirectory, 'TableMax.iss'),
   );
+  const helperBytes = await readFile(
+    join(candidateDirectory, 'UpdateHelper.exe'),
+  );
+  const embedded = embeddedUninstallHelperInclude(helperBytes);
+  const embeddedIncludePath = join(recipeDirectory, 'uninstall-helper.iss');
+  await writeFile(embeddedIncludePath, embedded.source);
   const productId = fixture ? INSTALLATION_FIXTURE_ID : INSTALLATION_PRODUCT_ID;
   const definitions = {
     InnoAppId: '{' + productId,
@@ -213,9 +251,6 @@ export async function compileInstallationScript({
     OutputName: basename(outputPath, '.exe'),
     IconPath: resolve('assets/platform/app-icon.ico'),
     DesktopTaskFlags: 'checkedonce',
-    HelperSHA256: hash(
-      await readFile(join(candidateDirectory, 'UpdateHelper.exe')),
-    ),
   };
   await writeFile(
     join(recipeDirectory, 'build-config.iss'),
@@ -247,7 +282,26 @@ export async function compileInstallationScript({
     bytes < MAXIMUM_PACKAGE_BYTES,
     'Complete installer must be strictly below 120,000,000 bytes',
   );
-  return { ...toolchain, log, bytes, sha256: hash(await readFile(outputPath)) };
+  assert.equal(
+    hash(await readFile(join(candidateDirectory, 'UpdateHelper.exe'))),
+    embedded.record.sha256,
+    'Embedded uninstall helper changed during compilation',
+  );
+  assert.equal(
+    hash(await readFile(embeddedIncludePath)),
+    embedded.record.includeSha256,
+    'Embedded uninstall source changed during compilation',
+  );
+  return {
+    ...toolchain,
+    log,
+    bytes,
+    sha256: hash(await readFile(outputPath)),
+    embeddedUninstallHelper: {
+      ...embedded.record,
+      includePath: embeddedIncludePath,
+    },
+  };
 }
 
 export async function createInstallationExecutable({
