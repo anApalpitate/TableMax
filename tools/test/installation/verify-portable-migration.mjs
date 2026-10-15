@@ -1,4 +1,6 @@
+import { failureLimit } from '../runner/failure-policy.mjs';
 import assert from 'node:assert/strict';
+import { verifyResourceCleanup } from '../../release/installation-evidence.mjs';
 import { execFile } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import {
@@ -40,7 +42,7 @@ const portablePointerSha256 =
 const portableExecutableSha256 =
   '93207df18d568e808ea903ce5d538fe1835323f80a523af95a09241eeb6364bc';
 const installerSha256 =
-  '323eb595b2160fdf6c75bf65d8a8c22bc5fb9bf6cc85aa2ce179eb26f1c16a19';
+  'aca93f5fc8f434ed9d9fb02c6a56bcff75214d09a30fb8e6d1a57a80a9641a69';
 const caseIds = ['defaultD', 'externalD'];
 const databaseMembers = [
   'foundation.sqlite',
@@ -227,7 +229,7 @@ async function registrationAt(root, environment) {
       samePath(record.root, root),
       'Registered installation root differs',
     );
-    assert.equal(record.version, '1.0.6.18');
+    assert.equal(record.version, '1.0.6.19');
     assert.equal(record.uninstall, '"' + join(root, 'unins000.exe') + '"');
   }
   return records;
@@ -235,7 +237,7 @@ async function registrationAt(root, environment) {
 
 async function waitForHealthExit(root, started, environment) {
   return inspectWindows(
-    `$expected=@((Join-Path $env:TABLEMAX_MIGRATION_ROOT 'TableMax.exe'),(Join-Path $env:TABLEMAX_MIGRATION_ROOT 'TableMax\\app\\TableMax.exe'),(Join-Path $env:TABLEMAX_MIGRATION_ROOT 'TableMax\\app\\node.exe')); $start=[DateTime]::Parse($env:TABLEMAX_MIGRATION_STARTED).ToUniversalTime().AddSeconds(-2); $seen=@(); foreach($process in [Diagnostics.Process]::GetProcesses()){try{$path=$process.MainModule.FileName;if($expected -contains $path){$handle=$process.Handle;$created=$process.StartTime.ToUniversalTime();if($created -lt $start){throw 'Unexpected pre-existing process in the private installation root'};if(-not $process.WaitForExit(15000)){throw 'Exact checking process did not exit within the bounded budget'};if($process.ExitCode -ne 0){throw 'Exact checking process returned a nonzero exit code'};$seen+=@{pid=$process.Id;path=$path;createdAtUtc=$created.ToString('o');exitCode=$process.ExitCode}}}catch [ComponentModel.Win32Exception]{}catch [InvalidOperationException]{}finally{$process.Dispose()}}; ConvertTo-Json -InputObject @($seen) -Compress`,
+    `$expected=@((Join-Path $env:TABLEMAX_MIGRATION_ROOT 'TableMax.exe'),(Join-Path $env:TABLEMAX_MIGRATION_ROOT 'data\\app\\TableMax.exe'),(Join-Path $env:TABLEMAX_MIGRATION_ROOT 'data\\app\\node.exe')); $start=[DateTime]::Parse($env:TABLEMAX_MIGRATION_STARTED).ToUniversalTime().AddSeconds(-2); $seen=@(); foreach($process in [Diagnostics.Process]::GetProcesses()){try{$path=$process.MainModule.FileName;if($expected -contains $path){$handle=$process.Handle;$created=$process.StartTime.ToUniversalTime();if($created -lt $start){throw 'Unexpected pre-existing process in the private installation root'};if(-not $process.WaitForExit(15000)){throw 'Exact checking process did not exit within the bounded budget'};if($process.ExitCode -ne 0){throw 'Exact checking process returned a nonzero exit code'};$seen+=@{pid=$process.Id;path=$path;createdAtUtc=$created.ToString('o');exitCode=$process.ExitCode}}}catch [ComponentModel.Win32Exception]{}catch [InvalidOperationException]{}finally{$process.Dispose()}}; ConvertTo-Json -InputObject @($seen) -Compress`,
     environment,
     { TABLEMAX_MIGRATION_ROOT: root, TABLEMAX_MIGRATION_STARTED: started },
     60000,
@@ -392,18 +394,18 @@ async function closeDesktop(desktop) {
 async function verifyIdentity(root, manifest, delivery, ownerSid) {
   await verifyMembers(root, manifest.files);
   const identity = JSON.parse(
-    await readFile(join(root, 'TableMax/.install.json'), 'utf8'),
+    await readFile(join(root, 'data/.install.json'), 'utf8'),
   );
   assert.equal(identity.productId, productId);
   assert.equal(identity.ownerSid, ownerSid);
   assert.ok(samePath(identity.root, root));
-  assert.ok(samePath(identity.boxRoot, join(root, 'TableMax')));
-  assert.equal(identity.buildVersion, '1.0.6.18');
+  assert.ok(samePath(identity.boxRoot, join(root, 'data')));
+  assert.equal(identity.buildVersion, '1.0.6.19');
   assert.equal(identity.payloadManifestSha256, manifest.payloadManifestSha256);
   assert.equal(identity.currentMappingSha256, manifest.currentMappingSha256);
   assert.deepEqual(identity.files, manifest.files);
   const receipt = JSON.parse(
-    await readFile(join(root, 'TableMax/.installer-receipt.json'), 'utf8'),
+    await readFile(join(root, 'data/.installer-receipt.json'), 'utf8'),
   );
   assert.equal(receipt.productId, productId);
   assert.equal(receipt.schemaVersion, 1);
@@ -412,8 +414,9 @@ async function verifyIdentity(root, manifest, delivery, ownerSid) {
   assert.equal(receipt.bytes, delivery.executable.bytes);
   assert.equal(receipt.sha256, delivery.executable.sha256);
   return {
+    productId: identity.productId,
     installationId: identity.installationId,
-    ownerSid,
+    ownerSid: identity.ownerSid,
     buildVersion: identity.buildVersion,
   };
 }
@@ -426,10 +429,13 @@ export async function verifyPortableMigration({
 }) {
   assertWorkspaceRoot();
   assert.equal(process.platform, 'win32');
+  const limit = failureLimit();
   assert.equal(process.env.TABLEMAX_AUTO_MAINTENANCE, '0');
   assert.equal(process.env.TABLEMAX_TEST_MAINTENANCE, '0');
   assert.ok(
-    Number.isInteger(priorFailures) && priorFailures >= 0 && priorFailures < 3,
+    Number.isInteger(priorFailures) &&
+      priorFailures >= 0 &&
+      priorFailures < limit,
   );
   const configuredParent =
     process.env.TABLEMAX_INSTALLATION_MIGRATION_TMP ??
@@ -455,6 +461,7 @@ export async function verifyPortableMigration({
     result: 'running',
     startedAtUtc: new Date().toISOString(),
     priorFailures,
+    failureLimit: limit,
     failures: 0,
     executionProfile: profile,
     work,
@@ -464,7 +471,7 @@ export async function verifyPortableMigration({
     executionCopies: [],
     cleanupErrors: [],
     scope:
-      'Actual frozen portable 1.0.6.10 generated idle saves and two production 1.0.6.18 Inno migrations/default uninstalls in one fresh authorized standard profile; no older-format save, public release, SmartScreen or full fresh-install capacity claim.',
+      'Actual frozen portable 1.0.6.10 generated idle saves and two production 1.0.6.19 Inno migrations/default uninstalls in one fresh authorized standard profile; no older-format save, public release, SmartScreen or full fresh-install capacity claim.',
   };
   let desktop, active;
   const environment = childEnvironment(work);
@@ -625,7 +632,7 @@ export async function verifyPortableMigration({
     );
     const manifest = JSON.parse(await readFile(manifestRecord.path, 'utf8'));
     assert.equal(manifest.productId, productId);
-    assert.equal(manifest.buildVersion, '1.0.6.18');
+    assert.equal(manifest.buildVersion, '1.0.6.19');
     assert.equal(manifest.installProtocol, 1);
     assert.equal(
       manifest.currentMappingSha256,
@@ -688,7 +695,7 @@ export async function verifyPortableMigration({
       const portableDirectory = caseWork;
       active.root = join(caseWork, '新安装 程序');
       active.oldBox = join(portableDirectory, 'TableMax');
-      active.boxRoot = join(active.root, 'TableMax');
+      active.boxRoot = join(active.root, 'data');
       active.dataDirectory =
         id === 'defaultD' ? active.boxRoot : join(caseWork, '外置 数据');
       const portablePaths = [
@@ -850,6 +857,7 @@ export async function verifyPortableMigration({
       assert.ok(active.framework.some((file) => file.path.endsWith('.dat')));
       active.checks.push(
         'actual-inno-migration',
+        // Stable legacy case ID; the version/SHA assertions bind the current frozen candidate above.
         'installed18-managed-members-and-receipt',
       );
       const config = JSON.parse(
@@ -862,7 +870,7 @@ export async function verifyPortableMigration({
       const restoredStorage = await desktop.request('storage.info');
       assert.ok(samePath(restoredStorage.active, active.dataDirectory));
       const runtime = await desktop.request('runtime');
-      assert.equal(runtime.appVersion, '1.0.6.18');
+      assert.equal(runtime.appVersion, '1.0.6.19');
       const restored = (
         await post(runtime.origin, '/api/session/view', { token: saved.token })
       ).view;
@@ -888,6 +896,13 @@ export async function verifyPortableMigration({
       assert.equal((await fileRecord(targetFriend)).sha256, friend.sha256);
       active.checks.push('old-source-and-games-preserved');
       assert.deepEqual(await fileRecord(unknownPath), active.unknownFile);
+      const unknownGamePath = join(active.boxRoot, 'games', '朋友保留资料.txt');
+      await writeFile(
+        unknownGamePath,
+        'Unknown migrated game-directory file is user data.\n',
+        { flag: 'wx' },
+      );
+      active.unknownGameFile = await fileRecord(unknownGamePath);
       const retainedGames = await inventory(join(active.boxRoot, 'games'));
       const retainedConfig = await fileRecord(
         join(active.boxRoot, 'TableMax.config.json'),
@@ -895,9 +910,17 @@ export async function verifyPortableMigration({
       active.retainedDatabases = await protectedData(active.dataDirectory);
       await uninstall(active, manifest);
       assert.deepEqual(await inventory(active.oldBox), sourceInventory);
+      active.resourceCleanup = await verifyResourceCleanup({
+        root: active.root,
+        identity: active.identity,
+        before: retainedGames,
+        directory: join(output, id + '-resource-cleanup'),
+        name: 'final-uninstall-resources.json',
+      });
       assert.deepEqual(
-        await inventory(join(active.boxRoot, 'games')),
-        retainedGames,
+        await fileRecord(unknownGamePath),
+        active.unknownGameFile,
+        'Unknown game-directory file must survive migration uninstall',
       );
       assert.deepEqual(await fileRecord(retainedConfig.path), retainedConfig);
       assert.deepEqual(await fileRecord(unknownPath), active.unknownFile);

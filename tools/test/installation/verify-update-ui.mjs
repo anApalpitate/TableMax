@@ -32,7 +32,7 @@ assert.ok(
   'Use an isolated workspace installation',
 );
 const identityBytes = await readFile(
-  localFile(installRoot, 'TableMax/.install.json'),
+  localFile(installRoot, 'data/.install.json'),
 );
 const identity = JSON.parse(identityBytes);
 assert.ok(
@@ -42,13 +42,10 @@ assert.ok(
   ].includes(identity.productId),
 );
 assert.equal(resolve(identity.root), installRoot);
-assert.equal(resolve(identity.boxRoot), join(installRoot, 'TableMax'));
+assert.equal(resolve(identity.boxRoot), join(installRoot, 'data'));
 assert.equal(
   JSON.parse(
-    await readFile(
-      localFile(installRoot, 'TableMax/TableMax.config.json'),
-      'utf8',
-    ),
+    await readFile(localFile(installRoot, 'data/TableMax.config.json'), 'utf8'),
   ).dataDirectory,
   '.',
   'Use the isolated default-data installation',
@@ -85,7 +82,7 @@ const record = (name, detail = {}) =>
 try {
   validation: {
     desktop = await launchDesktop({
-      executablePath: join(installRoot, 'TableMax/app/TableMax.exe'),
+      executablePath: join(installRoot, 'data/app/TableMax.exe'),
       timeout: 45000,
       env: environment,
     });
@@ -158,7 +155,9 @@ try {
           }),
       );
       assert.ok(
-        ['idle', 'available', 'unsupported', 'error'].includes(checked.phase),
+        ['up-to-date', 'ahead', 'available', 'unsupported', 'error'].includes(
+          checked.phase,
+        ),
       );
       record('actual-github-check-without-automatic-download', {
         phase: checked.phase,
@@ -262,7 +261,7 @@ try {
     assert.equal(rejected, true);
     record('public-native-window-cannot-call-update');
     assert.equal(
-      digest(await readFile(join(installRoot, 'TableMax/.install.json'))),
+      digest(await readFile(join(installRoot, 'data/.install.json'))),
       digest(identityBytes),
     );
   }
@@ -285,7 +284,7 @@ try {
         buildVersion: identity.buildVersion,
         installationIdentitySha256: digest(identityBytes),
         nativeSha256: digest(
-          await readFile(localFile(installRoot, 'TableMax/app/TableMax.exe')),
+          await readFile(localFile(installRoot, 'data/app/TableMax.exe')),
         ),
         browserChannel: browserChannel ?? 'bundled-chromium',
         sourceSha256: digest(
