@@ -19,6 +19,7 @@ import {
   lstat,
   mkdir,
   mkdtemp,
+  open,
   readFile,
   readdir,
   stat,
@@ -27,6 +28,7 @@ import {
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Transform } from 'node:stream';
+import { chromium } from 'playwright';
 
 import { parseStrictJson } from '../../shared/application-update.mjs';
 import { verifyFixtureApplicationUpdate } from '../support/fixture-application-update.mjs';
@@ -381,7 +383,7 @@ export async function verifyApplicationHandoff({
         ? 'Complete eight-step fixture handoff with I198 and a fixed private short external D. Real signed download, parent exit0, actual short launch copies, installer, persistent new host and default uninstall; this does not claim arbitrary-depth default-D support or real internet.'
         : activeUninstallOnly
           ? 'Actual old-build fixture Inno installation, ready Native/Node and default framework uninstall while that host is active. No update check, download, Apply, production GUID installation, public version/current pointer or internet request is executed. Both prepared inputs retain their original source/SHA bindings.'
-          : 'Actual two-build fixture Inno/Native/Node and real ApplicationUpdate.Apply/prepare/parent handoff. Only GitHub HTTP is a managed signed-fixture transport. No production GUID installation/system mutation, public version/current pointer, actual internet availability or old-version saved-game compatibility claim. Original fixture-GUID payload bytes are authenticated by a test-only RSA wrapper; Windows registration uses that same fixture GUID. The production JS product contract is unchanged.',
+          : 'Actual two-build fixture Inno/Native/Node and real ApplicationUpdate.Apply/prepare/parent handoff. Signed check/download/Apply use managed HTTP; the ordinary-root cold Updater check uses default HTTP and may contact GitHub before any transport replacement. No production GUID installation, public version/current pointer, online-download availability or old-version saved-game compatibility claim. Original fixture-GUID payload bytes are authenticated by a test-only RSA wrapper; Windows registration uses that same fixture GUID. The production JS product contract is unchanged.',
     releaseMetadataBoundary:
       'The source ZIP asset is metadata-only (one-byte placeholder), never built, downloaded or published. Installer bytes and their signed identity are real fixture materials.',
   };
@@ -677,14 +679,14 @@ export async function verifyApplicationHandoff({
         'Fixture redirected filesystem existence and raw-file identity only; no user-shell shortcut or COM target parsing.',
     };
   }
-  async function stopPersistentHost(ready) {
+  async function stopPersistentHost(ready, directory = evidence) {
     assert.ok(Number.isSafeInteger(ready.desktopPid) && ready.desktopPid > 0);
     const image = join(root, 'data/app/TableMax.exe');
-    const marker = join(evidence, 'persistent-host-handle-held.json');
-    const observation = join(evidence, 'persistent-host-exit.json');
-    const request = join(evidence, 'quit.request');
+    const marker = join(directory, 'persistent-host-handle-held.json');
+    const observation = join(directory, 'persistent-host-exit.json');
+    const request = join(directory, 'quit.request');
     for (const path of [marker, observation, request]) {
-      inside(evidence, path);
+      inside(directory, path);
       await noLinks(path);
       assert.equal(await exists(path), false);
     }
@@ -700,7 +702,9 @@ export async function verifyApplicationHandoff({
     const pending = execute(
       powershell,
       ['-NoProfile', '-NonInteractive', '-Command', script],
-      'persistent-host-exit-observer',
+      directory === evidence
+        ? 'persistent-host-exit-observer'
+        : 'cold-updater-native-exit-observer',
       120000,
       {
         TABLEMAX_HANDOFF_EXIT_PID: String(ready.desktopPid),
@@ -774,6 +778,302 @@ export async function verifyApplicationHandoff({
       };
     } finally {
       await pending.catch(() => {});
+    }
+  }
+  async function executeUpdaterObserver(args, label, extraEnvironment) {
+    const log = join(
+      evidence,
+      `${String(++sequence).padStart(3, '0')}-${label}.log`,
+    );
+    const stdoutPath = log + '.stdout.bin',
+      stderrPath = log + '.stderr.bin';
+    for (const path of [log, log + '.json', stdoutPath, stderrPath]) {
+      await noLinks(path);
+      assert.equal(await exists(path), false);
+    }
+    let stdout, stderr, child, timeout, grace;
+    let timedOut = false,
+      terminationUnconfirmed = false,
+      killError = null;
+    let result;
+    try {
+      stdout = await open(stdoutPath, 'wx');
+      stderr = await open(stderrPath, 'wx');
+      child = spawn(powershell, args, {
+        cwd: repository,
+        env: { ...environment, ...extraEnvironment },
+        windowsHide: true,
+        stdio: ['ignore', stdout.fd, stderr.fd],
+      });
+      result = await new Promise((done) => {
+        let settled = false;
+        const finish = (value) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timeout);
+          clearTimeout(grace);
+          done(value);
+        };
+        child.once('error', (error) =>
+          finish({
+            code: null,
+            signal: null,
+            exitObserved: false,
+            spawnError: error.message,
+          }),
+        );
+        child.once('exit', (code, signal) =>
+          finish({ code, signal, exitObserved: true }),
+        );
+        timeout = setTimeout(() => {
+          timedOut = true;
+          try {
+            if (!child.kill())
+              killError = 'Observer termination request returned false';
+          } catch (error) {
+            killError = error.message;
+          }
+          grace = setTimeout(() => {
+            terminationUnconfirmed = true;
+            child.unref();
+            finish({ code: null, signal: null, exitObserved: false });
+          }, 5000);
+        }, 60000);
+      });
+      await stdout.sync();
+      await stderr.sync();
+    } finally {
+      clearTimeout(timeout);
+      clearTimeout(grace);
+      await stdout?.close();
+      await stderr?.close();
+    }
+    const snapshots = [];
+    for (const path of [stdoutPath, stderrPath]) {
+      // The observer's real exit is authoritative. Descendants may still hold
+      // inherited file handles; this bounded raw snapshot never claims EOF.
+      const input = await open(path, 'r');
+      try {
+        const buffer = Buffer.alloc(2 * 1024 * 1024 + 1);
+        const { bytesRead } = await input.read(buffer, 0, buffer.length, 0);
+        const bytes = buffer.subarray(0, bytesRead);
+        snapshots.push({
+          path,
+          bytes: bytesRead,
+          sha256: hash(bytes),
+          truncated: bytesRead === buffer.length,
+          text: bytes.toString('utf8'),
+        });
+      } finally {
+        await input.close();
+      }
+    }
+    const outputTruncated = snapshots.some((value) => value.truncated);
+    const output = snapshots.map((value) => value.text).join('');
+    await writeFile(log, output, { flag: 'wx' });
+    await writeJson(log + '.json', {
+      executable: powershell,
+      args,
+      pid: child.pid,
+      ...result,
+      timedOut,
+      terminationUnconfirmed,
+      killError,
+      outputTruncated,
+      stdin: 'ignored',
+      outputMode: 'independent-files',
+      outputSnapshots: snapshots.map((value) => ({
+        path: value.path,
+        bytes: value.bytes,
+        sha256: value.sha256,
+        truncated: value.truncated,
+      })),
+      descendantExitObserved: false,
+      streamEofClaimed: false,
+    });
+    assert.equal(result.spawnError, undefined, result.spawnError);
+    assert.ok(!timedOut, label + ' exceeded its bounded observer budget');
+    assert.ok(
+      !terminationUnconfirmed,
+      label + ' observer termination was not confirmed',
+    );
+    assert.equal(result.exitObserved, true);
+    assert.equal(result.signal, null);
+    assert.ok(!outputTruncated, label + ' exceeded its bounded log budget');
+    return { ...result, output, log };
+  }
+  async function invokeActualUpdater(directory, label, testPlan) {
+    await mkdir(directory, { recursive: true });
+    const source = join(root, 'Updater.exe');
+    const expected = report.old.manifest.files.find(
+      (file) => file.path === 'Updater.exe',
+    );
+    const original = await record(source);
+    assert.equal(original.bytes, expected.bytes);
+    assert.equal(original.sha256, expected.sha256);
+    const observation = join(directory, label + '-process.json');
+    const stdout = join(directory, label + '-stdout.log'),
+      stderr = join(directory, label + '-stderr.log');
+    for (const path of [observation, stdout, stderr]) {
+      await noLinks(path);
+      assert.equal(await exists(path), false);
+    }
+    const peerSource = String.raw`using System;using System.Text;using System.Runtime.InteropServices;using System.Security.Principal;public static class TableMaxUpdaterPeer{[DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)]static extern bool QueryFullProcessImageName(IntPtr p,int f,StringBuilder b,ref int n);[DllImport("advapi32.dll",SetLastError=true)]static extern bool OpenProcessToken(IntPtr p,uint a,out IntPtr t);[DllImport("advapi32.dll",SetLastError=true)]static extern bool GetTokenInformation(IntPtr t,int c,IntPtr b,uint n,out uint z);[DllImport("kernel32.dll")]static extern bool CloseHandle(IntPtr h);public static string Image(IntPtr p){var b=new StringBuilder(32768);int n=b.Capacity;if(!QueryFullProcessImageName(p,0,b,ref n))throw new System.ComponentModel.Win32Exception();return b.ToString();}public static string Sid(IntPtr p){IntPtr t;if(!OpenProcessToken(p,8,out t))throw new System.ComponentModel.Win32Exception();try{uint n;GetTokenInformation(t,1,IntPtr.Zero,0,out n);var b=Marshal.AllocHGlobal((int)n);try{if(!GetTokenInformation(t,1,b,n,out n))throw new System.ComponentModel.Win32Exception();return new SecurityIdentifier(Marshal.ReadIntPtr(b)).Value;}finally{Marshal.FreeHGlobal(b);}}finally{CloseHandle(t);}}}`;
+    const script =
+      powershellUtf8 +
+      `$ErrorActionPreference='Stop';Add-Type -TypeDefinition $env:TABLEMAX_UPDATER_PEER_SOURCE;` +
+      `$p=Start-Process -FilePath $env:TABLEMAX_UPDATER_PATH -WorkingDirectory $env:TABLEMAX_UPDATER_ROOT -WindowStyle Hidden -RedirectStandardOutput $env:TABLEMAX_UPDATER_STDOUT -RedirectStandardError $env:TABLEMAX_UPDATER_STDERR -PassThru;try{$handle=$p.Handle;$image=[TableMaxUpdaterPeer]::Image($handle);$sid=[TableMaxUpdaterPeer]::Sid($handle);$created=$p.StartTime.ToUniversalTime();if([IO.Path]::GetFullPath($image) -ne [IO.Path]::GetFullPath($env:TABLEMAX_UPDATER_PATH) -or $sid -ne $env:TABLEMAX_UPDATER_SID){throw 'Actual Updater peer differs'};if(-not $p.WaitForExit(30000)){throw 'Actual Updater did not exit'};$p.Refresh();if($p.ExitCode -ne 0){throw ('Actual Updater returned '+$p.ExitCode)};$v=@{schemaVersion=1;pid=$p.Id;modulePath=$image;ownerSid=$sid;startedAtUtc=$created.ToString('o');handleHeld=$true;exitCode=$p.ExitCode;arguments=@();queriedFromProcessHandle=$true};$raw=[Text.UTF8Encoding]::new($false).GetBytes(($v|ConvertTo-Json -Depth 8 -Compress));$staged=$env:TABLEMAX_UPDATER_OBSERVATION+'.pending';$s=[IO.File]::Open($staged,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None);try{$s.Write($raw,0,$raw.Length);$s.Flush($true)}finally{$s.Dispose()};[IO.File]::Move($staged,$env:TABLEMAX_UPDATER_OBSERVATION);$v|ConvertTo-Json -Depth 8 -Compress}finally{$p.Dispose()}`;
+    const result = await executeUpdaterObserver(
+      ['-NoProfile', '-NonInteractive', '-Command', script],
+      label,
+      {
+        TABLEMAX_HANDOFF_TEST_PLAN: testPlan,
+        TABLEMAX_UPDATER_PEER_SOURCE: peerSource,
+        TABLEMAX_UPDATER_PATH: source,
+        TABLEMAX_UPDATER_ROOT: root,
+        TABLEMAX_UPDATER_SID: oldInstallationIdentity.ownerSid,
+        TABLEMAX_UPDATER_STDOUT: stdout,
+        TABLEMAX_UPDATER_STDERR: stderr,
+        TABLEMAX_UPDATER_OBSERVATION: observation,
+      },
+    );
+    assert.equal(result.code, 0, result.log);
+    const actual = await json(observation);
+    assert.equal(resolve(actual.modulePath), source);
+    assert.equal(actual.ownerSid, oldInstallationIdentity.ownerSid);
+    assert.equal(actual.exitCode, 0);
+    assert.deepEqual(actual.arguments, []);
+    assert.equal(actual.queriedFromProcessHandle, true);
+    return {
+      ...actual,
+      processRecord: await record(observation),
+      source: original,
+      stdout,
+      stderr,
+      boundary:
+        'Actual no-argument Updater, retained original process handle and TOKEN_QUERY owner; indirect Native has separate entry/ready observations.',
+    };
+  }
+  async function verifyColdUpdater(planPath) {
+    const directory = join(evidence, 'updater-cold');
+    await mkdir(directory);
+    const coldPlan = join(work, 'cold-updater-plan.json');
+    await writeJson(coldPlan, {
+      ...(await json(planPath)),
+      evidence: directory,
+    });
+    const updater = await invokeActualUpdater(
+      directory,
+      'cold-updater',
+      coldPlan,
+    );
+    let browser;
+    try {
+      const ready = await waitUntil(
+        async () => {
+          const failure = await maybeJson(
+            join(directory, 'cold-fixture-error.json'),
+          );
+          if (failure) throw new Error(failure.error);
+          return await maybeJson(join(directory, 'cold-native-ready.json'));
+        },
+        'Actual Updater cold Native readiness',
+        180000,
+      );
+      assert.equal(ready.buildVersion, oldBuild);
+      assert.equal(ready.updaterRequest, true);
+      assert.equal(resolve(ready.root), root);
+      assert.equal(resolve(ready.boxRoot), join(root, 'data'));
+      assert.equal(resolve(ready.dataDirectory), dataDirectory);
+      assert.deepEqual(ready.receivedArguments, ['--check-updates']);
+      assert.deepEqual(ready.forwardedArguments, [
+        '--check-updates',
+        '--foundation-test',
+      ]);
+      const entryPath = join(
+        directory,
+        'updater-native-entry-' + ready.desktopPid + '.json',
+      );
+      const entry = await json(entryPath);
+      assert.equal(entry.productId, fixtureId);
+      assert.equal(
+        entry.installationId,
+        oldInstallationIdentity.installationId,
+      );
+      assert.equal(entry.ownerSid, oldInstallationIdentity.ownerSid);
+      assert.equal(entry.desktopPid, ready.desktopPid);
+      assert.equal(entry.buildVersion, oldBuild);
+      assert.deepEqual(entry.receivedArguments, ['--check-updates']);
+      assert.deepEqual(entry.forwardedArguments, [
+        '--check-updates',
+        '--foundation-test',
+      ]);
+      assert.equal(
+        resolve(entry.modulePath),
+        join(root, 'data/app/TableMax.exe'),
+      );
+      browser = await chromium.connectOverCDP(
+        'http://127.0.0.1:' + ready.cdpPort,
+      );
+      const page = await waitUntil(
+        () =>
+          browser
+            .contexts()
+            .flatMap((ctx) => ctx.pages())
+            .find((page) => page.url().includes('/host')),
+        'Actual cold updater host page',
+      );
+      const dialog = page.getByRole('dialog', {
+        name: '程序更新',
+        exact: true,
+      });
+      await dialog.waitFor({ state: 'visible' });
+      const state = await waitUntil(
+        async () => {
+          const value = await page.evaluate(() => window.tablemaxUpdate.read());
+          return value.phase !== 'checking' && value.phase !== 'idle'
+            ? value
+            : null;
+        },
+        'Actual cold update check terminal state',
+        90000,
+      );
+      assert(
+        ['up-to-date', 'ahead', 'available', 'unsupported', 'error'].includes(
+          state.phase,
+        ),
+      );
+      assert(state.panelRequestId >= 1);
+      assert.equal(state.downloadedBytes, 0);
+      const status = await dialog.getByRole('status').innerText();
+      assert.match(status, /[\u4e00-\u9fff]/);
+      const text = await dialog.innerText();
+      assert(/[\u4e00-\u9fff]/.test(text));
+      const screenshot = join(directory, 'cold-update-panel.png');
+      await page.screenshot({ path: screenshot });
+      const exit = await stopPersistentHost(ready, directory);
+      await browser.close();
+      browser = null;
+      return {
+        updater: {
+          ...updater,
+          stdout: await record(updater.stdout),
+          stderr: await record(updater.stderr),
+        },
+        ready,
+        readyRecord: await record(join(directory, 'cold-native-ready.json')),
+        entry,
+        entryRecord: await record(entryPath),
+        state,
+        status,
+        text,
+        screenshot: await record(screenshot),
+        exit,
+        boundary:
+          'Real Updater cold-started actual Program/DesktopContext and opened rendered update dialog. Default HTTP may contact GitHub; this is not a managed-only or positive online-download claim. No download/Apply requested.',
+      };
+    } finally {
+      await browser?.close().catch(() => {});
     }
   }
   async function verifyNextStartupCleanup({
@@ -1557,6 +1857,8 @@ export async function verifyApplicationHandoff({
         verifyShortLaunch,
         trust,
         verifyNextStartupCleanup,
+        invokeActualUpdater,
+        verifyColdUpdater,
         plan,
       });
     }

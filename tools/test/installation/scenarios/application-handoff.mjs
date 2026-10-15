@@ -43,8 +43,37 @@ export async function runApplicationHandoffScenario(context) {
     verifyShortLaunch,
     trust,
     verifyNextStartupCleanup,
+    invokeActualUpdater,
+    verifyColdUpdater,
     plan,
   } = context;
+  const exerciseUpdater =
+    !activeUninstallOnly && !usesExternalData && !longRootExternalData;
+  async function updateEffects() {
+    const updates = join(root, 'data/updates');
+    const inventory = [];
+    async function visit(path, relative) {
+      await noLinks(path);
+      if (!(await exists(path))) return;
+      if ((await stat(path)).isDirectory()) {
+        inventory.push({ path: relative, directory: true });
+        for (const name of (await readdir(path)).sort())
+          await visit(join(path, name), relative + '/' + name);
+      } else {
+        const value = await record(path);
+        inventory.push({
+          path: relative,
+          bytes: value.bytes,
+          sha256: value.sha256,
+        });
+      }
+    }
+    await visit(join(updates, 'downloads'), 'downloads');
+    if (await exists(updates))
+      for (const name of (await readdir(updates)).sort())
+        if (name.startsWith('handoff-')) await visit(join(updates, name), name);
+    return inventory;
+  }
   const outside = join(root, '朋友资料.txt');
   await writeFile(outside, 'Preserved by actual installer and update\n');
   const outsideBefore = await record(outside);
@@ -120,6 +149,18 @@ export async function runApplicationHandoffScenario(context) {
     };
   });
   await step('actual-old-host-transport', async () => {
+    let updaterEntry;
+    if (exerciseUpdater) {
+      const effectsBefore = await updateEffects();
+      updaterEntry = {
+        cold: await verifyColdUpdater(plan),
+        warm: [],
+        effectsBefore,
+        boundary:
+          'Actual Updater no-argument cold/hot entry with rendered Chinese update panel. No game is started in this entry check; unchanged Native/service PIDs do not claim an active-game preservation test.',
+      };
+      assert.deepEqual(await updateEffects(), effectsBefore);
+    }
     try {
       lifecycle.desktop = await launchDesktop({
         executablePath: join(root, 'data/app/TableMax.exe'),
@@ -169,7 +210,108 @@ export async function runApplicationHandoffScenario(context) {
       report.startupExternalData.gameEntries = gameEntries;
       report.startupExternalData.externalGamesPresent = false;
     }
-    return ready;
+    if (exerciseUpdater) {
+      const page = await lifecycle.desktop.firstWindow();
+      const runtimeBefore = await lifecycle.desktop.request('runtime');
+      assert.equal(runtimeBefore.desktopPid, ready.desktopPid);
+      assert.equal(runtimeBefore.servicePid, ready.servicePid);
+      const directory = join(evidence, 'updater-warm');
+      await mkdir(directory);
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        const before = await page.evaluate(() => window.tablemaxUpdate.read());
+        const previousEntries = new Set(await readdir(evidence));
+        const updater = await invokeActualUpdater(
+          directory,
+          'warm-updater-' + attempt,
+          plan,
+        );
+        const state = await waitUntil(
+          async () => {
+            const value = await page.evaluate(() =>
+              window.tablemaxUpdate.read(),
+            );
+            if (value.phase === 'error')
+              throw new Error(
+                value.error || 'Actual warm Updater check failed',
+              );
+            return value.panelRequestId === before.panelRequestId + 1 &&
+              value.phase === 'available'
+              ? value
+              : null;
+          },
+          'Actual warm Updater activation ' + attempt,
+          90000,
+        );
+        assert.equal(state.targetVersion, newBuild);
+        assert.equal(state.downloadedBytes, 0);
+        const dialog = page.getByRole('dialog', {
+          name: '程序更新',
+          exact: true,
+        });
+        await dialog.waitFor({ state: 'visible' });
+        const status = await dialog.getByRole('status').innerText();
+        assert.match(status, /[\u4e00-\u9fff]/);
+        const text = await dialog.innerText();
+        assert.match(text, /[\u4e00-\u9fff]/);
+        assert.ok(text.includes(newBuild));
+        const runtime = await lifecycle.desktop.request('runtime');
+        assert.equal(runtime.desktopPid, runtimeBefore.desktopPid);
+        assert.equal(runtime.servicePid, runtimeBefore.servicePid);
+        const entries = (await readdir(evidence)).filter(
+          (name) =>
+            /^updater-native-entry-\d+\.json$/.test(name) &&
+            !previousEntries.has(name),
+        );
+        assert.equal(entries.length, 1);
+        const entryPath = join(evidence, entries[0]);
+        const entry = await json(entryPath);
+        assert.deepEqual(entry.receivedArguments, ['--check-updates']);
+        assert.deepEqual(entry.forwardedArguments, [
+          '--check-updates',
+          '--foundation-test',
+        ]);
+        assert.equal(entry.productId, fixtureId);
+        assert.equal(
+          entry.installationId,
+          lifecycle.oldInstallationIdentity.installationId,
+        );
+        assert.equal(
+          entry.ownerSid,
+          lifecycle.oldInstallationIdentity.ownerSid,
+        );
+        assert.equal(entry.buildVersion, oldBuild);
+        assert.equal(
+          resolve(entry.modulePath),
+          join(root, 'data/app/TableMax.exe'),
+        );
+        assert.notEqual(entry.desktopPid, ready.desktopPid);
+        const screenshot = join(
+          directory,
+          'warm-update-panel-' + attempt + '.png',
+        );
+        await page.screenshot({ path: screenshot });
+        assert.deepEqual(await updateEffects(), updaterEntry.effectsBefore);
+        updaterEntry.warm.push({
+          updater: {
+            ...updater,
+            stdout: await record(updater.stdout),
+            stderr: await record(updater.stderr),
+          },
+          nativeEntry: entry,
+          nativeEntryRecord: await record(entryPath),
+          before,
+          state,
+          runtime,
+          status,
+          text,
+          screenshot: await record(screenshot),
+          boundary:
+            'The actual Updater exit0 is observed through its held OS process handle. The separate transient Native writes its own original argv/PID/module/SID entry; its OS exit status is not inferred from the Updater. Redirected logs are snapshots, not an indirect-Native EOF claim.',
+        });
+      }
+      updaterEntry.effectsAfter = await updateEffects();
+    }
+    return { ...ready, ...(updaterEntry ? { updaterEntry } : {}) };
   });
   if (!activeUninstallOnly) {
     const host = await lifecycle.desktop.firstWindow();

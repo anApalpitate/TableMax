@@ -17,7 +17,8 @@ using TableMax.Installation;
 namespace TableMax.InstallationTesting
 {
     // Compiled only into two isolated fixture Native executables. The production
-    // Program/bridge are unmodified; only update HTTP transport is replaced.
+    // Program/bridge are unmodified. The original chain replaces update HTTP;
+    // the exact cold Updater entry retains actual default HTTP and records it.
     internal static class ApplicationHandoffFixture
     {
         private const string FixtureId = "{ABFDE9A8-48D2-48D5-BC51-2A2D03F0D4F5}";
@@ -25,7 +26,8 @@ namespace TableMax.InstallationTesting
         private static readonly BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
         private static bool attached, finishing;
         private static DesktopContext context;
-        private static bool persistent;
+        private static bool persistent, updaterRequest;
+        private static string[] originalArguments, forwardedArguments;
         private static string evidence, role;
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool SetStdHandle(int kind, IntPtr handle);
@@ -35,14 +37,16 @@ namespace TableMax.InstallationTesting
         {
             InstallationCore.InitializeRuntime();
             if (!String.Equals(InstallationCore.ProductId, FixtureId, StringComparison.Ordinal)) throw new IOException("Handoff entry requires the fixture product.");
+            originalArguments = arguments.ToArray();
+            updaterRequest = arguments.Length == 1 && arguments[0] == "--check-updates";
             var checking = arguments.Contains("--foundation-check");
-            persistent = arguments.Contains("--application-handoff-persistent");
+            persistent = arguments.Contains("--application-handoff-persistent") || updaterRequest;
             var programArguments = arguments.Where(value => value != "--application-handoff-persistent").ToArray();
             var entry = typeof(TableMax.Desktop.Program).GetMethod("Main", BindingFlags.NonPublic | BindingFlags.Static);
             if (entry == null) throw new IOException("Actual Native entry is unavailable.");
             var failureRequest = Environment.GetEnvironmentVariable("TABLEMAX_HANDOFF_FRAMEWORK_FAILURE");
             if (checking && failureRequest == null) return (int)entry.Invoke(null, new object[] { programArguments });
-            if (!checking && !programArguments.Contains("--foundation-test")) throw new IOException("Fixture entry requires hidden test mode.");
+            if (!checking && !updaterRequest && !programArguments.Contains("--foundation-test")) throw new IOException("Fixture entry requires hidden test mode.");
             var pathname = Environment.GetEnvironmentVariable("TABLEMAX_HANDOFF_TEST_PLAN");
             if (String.IsNullOrEmpty(pathname)) throw new IOException("Missing isolated handoff plan.");
             InstallationCore.Safe(pathname);
@@ -55,7 +59,16 @@ namespace TableMax.InstallationTesting
             evidence = InstallationCore.Full(InstallationCore.Text(plan, "evidence")); InstallationCore.Safe(evidence);
             if (!Directory.Exists(evidence)) throw new IOException("Fixture evidence directory must already exist.");
             if (failureRequest != null) return FailFrameworkHealth(identity, root, failureRequest);
-            role = persistent ? "new" : "old";
+            if (updaterRequest)
+            {
+                AssertUpdaterScope(identity, root);
+                programArguments = programArguments.Concat(new[] { "--foundation-test" }).ToArray();
+                using (var process = System.Diagnostics.Process.GetCurrentProcess())
+                using (var user = System.Security.Principal.WindowsIdentity.GetCurrent())
+                    InstallationCore.Atomic(Path.Combine(evidence, "updater-native-entry-" + process.Id + ".json"), new { schemaVersion = 1, kind = "actual-fixture-updater-native-entry", productId = identity.productId, installationId = identity.installationId, root, ownerSid = user.User.Value, buildVersion = identity.buildVersion, desktopPid = process.Id, modulePath = process.MainModule.FileName, receivedArguments = originalArguments, forwardedArguments = programArguments, fixtureOnlyHiddenModeAdded = true, defaultTransportMayRequestInternet = true });
+            }
+            forwardedArguments = programArguments;
+            role = updaterRequest ? "cold" : persistent ? "new" : "old";
             using (var input = persistent ? new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.None) : null)
             using (var timer = new System.Windows.Forms.Timer { Interval = 100 })
             {
@@ -68,6 +81,26 @@ namespace TableMax.InstallationTesting
                 catch (TargetInvocationException cause) { throw cause.InnerException ?? cause; }
                 finally { Application.Idle -= startTimer; timer.Stop(); }
             }
+        }
+
+        private static void AssertUpdaterScope(InstallationManifest identity, string root)
+        {
+            var scope = InstallationCore.Full(InstallationCore.Text(plan, "scopeRoot")); InstallationCore.Safe(scope);
+            var repository = typeof(DesktopContext).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().Single(value => value.Key == "TableMaxRepositoryRoot").Value;
+            using (var user = System.Security.Principal.WindowsIdentity.GetCurrent())
+            {
+                if (identity.ownerSid != user.User.Value || identity.buildVersion != typeof(DesktopContext).Assembly.GetName().Version.ToString(4)) throw new IOException("Updater fixture instance, owner or PE differs.");
+                if (InstallationCore.Equal(scope, Path.Combine(repository, "tmp")))
+                {
+                    if (!root.StartsWith(scope + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new IOException("Updater fixture escaped workspace tmp.");
+                }
+                else
+                {
+                    var parent = InstallationCore.Full(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TableMaxAcceptance"));
+                    if (!System.Text.RegularExpressions.Regex.IsMatch(user.Name.Split('\\').Last(), "^TMVerify_[0-9a-fA-F]{8}$") || new System.Security.Principal.WindowsPrincipal(user).IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator) || !InstallationCore.Equal(Path.GetDirectoryName(scope), parent) || !System.Text.RegularExpressions.Regex.IsMatch(Path.GetFileName(scope), "^[0-9a-fA-F]{32}$") || !root.StartsWith(Path.Combine(scope, "work") + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new IOException("Updater fixture requires the exact isolated standard profile work root.");
+                }
+            }
+            identity.Verify(root);
         }
 
         private static int FailFrameworkHealth(InstallationManifest identity, string root, string request)
@@ -172,7 +205,8 @@ namespace TableMax.InstallationTesting
                         dataDirectory = context.DataDirectory, buildVersion = typeof(DesktopContext).Assembly.GetName().Version.ToString(4),
                         currentMappingSha256 = service.CurrentMappingSha256, health = Field(context, "health"),
                         cdpPort = context.CdpPort, persistent, realShutdownDelegates = true,
-                        transport = persistent ? "Default transport; no network requested" : "Managed signed-fixture transport; no internet request"
+                        receivedArguments = originalArguments, forwardedArguments, updaterRequest,
+                        transport = updaterRequest ? "Actual default HTTP transport; initial check may contact GitHub, no download or Apply requested" : persistent ? "Default transport; no network requested" : "Managed signed-fixture transport; no internet request"
                     });
                     attached = true;
                 }
