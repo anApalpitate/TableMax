@@ -1,17 +1,15 @@
 # 打包与交付
 
-`pnpm package:win`增量构建并导出预装全部正式游戏与玩法的唯一完整EXE和本地清单；`pnpm package:release`只重新封装当前已验证内部载荷，不分配新修订号。`--edition`已退役并明确拒绝，部分游戏载荷不能交付。EXE在 `artifacts/releases/`，内部payload ZIP、manifest和当前指针在 `artifacts/package-payloads/`；内部ZIP不是用户下载包。
+`pnpm package:win`增量构建并导出预装全部正式游戏与玩法的唯一完整EXE和本地清单；`pnpm package:release`只重新封装当前已验证内部载荷，不分配新修订号。`--edition`已退役并明确拒绝，部分游戏载荷不能交付。新构建EXE／sidecar按构建分组，历史交付按记录的精确路径读取，布局与旧路径边界见[目录职责](../../docs/reference/project-structure.md#交付文件布局与历史元数据)；内部payload／manifest／指针不随之移动，内部ZIP不是用户下载包。
 
-截至2026-10-15，本地current已推广为已验收完整安装器1.0.6.18，线上未发布该附件。[冻结delivery](../../artifacts/package-payloads/v1.0.6/170327301894-Iw3W34/full/installer-delivery.json)的EXE为35,711,499字节，SHA `323eb595b2160fdf6c75bf65d8a8c22bc5fb9bf6cc85aa2ce179eb26f1c16a19`。闭包与实际生产根验签通过；默认D、I198／短外D和旧框架失败恢复三条fixture链已各8步实际通过，正式GUID全生命周期、完整容量及账户／profile清理已通过，[共享门禁与保留runtime复算](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-11/formal18-crosscheck.json)通过；便携1.0.6.10默认D／外置D两项真实迁移各8项通过，独立账户／profile清理成功；[最终汇总](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-11/final18-evidence.json)和[正式安装证明](../../artifacts/maintenance/v1.0.6/windows-editions/1703273018946f4de0c96b98cdc207f86bc4316848889b09a529f0a4e36aa4e9/shipping-executable-checks-full.json)绑定各自范围，current推广完成。13／14／15／16原交付、17失败修订及原失败保留历史范围，精确来源与接续见[验收](../../docs/reference/acceptance.md)。累计3失败停止原run，实质修复后只定向复验受影响项，不另设用户审批门槛。
+本页维护打包、签名和推广的精确操作参数；当前已验交付及线上边界统一见[验收](../../docs/reference/acceptance.md#当前源码与本地交付)，产品发布规则见[Release流程](../../docs/reference/release.md)。
 
 新安装器先用 `--candidate` 封包：正常新构建原子分配四位修订，失败编号不复用，但保留已有 `current.json`。stdout 返回 `candidatePath`；该记录冻结候选交付和原 current 的原始 SHA，同目录 `full/installer-delivery.json` 供描述生成及实际安装验收。`--platform-from` 按原快照身份及游戏缓存逐成员 SHA 保留正式游戏，只刷新当前平台和组装器并生成新快照、新修订；`--snapshot` 则恢复原冻结快照，不分配新修订。
 
-现行18按下列方式从候选13保留同一31个游戏单元，显式使用原内部签名游戏源，避免误用另一份game-packages/current。后续新代码封包仍先candidate，以下保留该轮输入说明，不自动重复构建。任务期间关闭逐项维护，已有一次安全维护不追加第二轮。
+平台变更而游戏未变时，使用下列占位参数保留原游戏单元；先核对实际冻结快照和内部游戏源，不能直接复制历史候选路径。完整冻结恢复使用 --snapshot，与生成新平台候选区分。
 
 ```powershell
-$env:TABLEMAX_AUTO_MAINTENANCE = '0'
-$env:TABLEMAX_TEST_MAINTENANCE = '0'
-pnpm package:win -- --candidate --platform-from=build/snapshots/4e4f4f05f0a938f831d5f5da406b76c88e6f0f8d7db25d29077d743aa7cb1ade.json --games=artifacts/package-payloads/v1.0.6/internal-games-MdGykg
+node tools/release/package.mjs --candidate "--platform-from=<已核验冻结快照.json>" "--games=<该快照对应的完整内部游戏目录>"
 ```
 
 封好最终 EXE 后，将下列占位符替换为实际新路径，显式读取候选的交付 JSON，避免读取仍保留旧交付的 current。描述绑定最终 EXE 大小／SHA、安装清单及 current 映射；签名工具从受保护文件读取独立应用 RSA 私钥，用仓库公开根自验，输出不覆盖既有审阅文件。
@@ -23,19 +21,21 @@ $env:TABLEMAX_APPLICATION_UPDATE_PRIVATE_KEY_FILE = 'secrets/application-update/
 node tools/release/sign-application-update.mjs "--description=<新描述.json>" "--notes=<已审人类说明.md>" "--out=<新完整正文.md>" "--envelope-out=<新签名JSON>"
 ```
 
-`installation-promote` 只接受同一候选的正式产品 GUID 完整证明：真实干净标准 Windows 账户的首装、同包重复安装、登记与快捷方式、完整首启动体积、默认卸载、卸载后保留 runtime 精确副本，以及新账户／profile 清理成功的原始报告。容量须包含当前必需G物化、helper及框架卸载文件，不能用程序暂存替代。隔离标志、测试 GUID、仅 helper 健康、只读闭包、向导取消或 `--keep-installed` 诊断均不能替代此证明；不同PE实际更新另须真实Apply链。候选冻结后原 current 的 SHA 必须仍匹配；完整验收通过后，按已授权完整交付范围原子切换，不再分配修订。
+installation-promote只接受同一候选的正式GUID证明，核对候选冻结时的原current SHA并原子切换，不重新分配修订。必需系统范围、隔离与容量要求统一见[验证规格](../../docs/reference/validation.md#完整安装与程序更新的证据分层)；fixture、helper-only及keep-installed诊断不能进入正式证明。
 
-推广和未来发布共用 `verifyInstallationAcceptance`：还要求真实保存数据→默认卸载→同根重装读回→再次默认卸载，不能用卸载前的同包重装替代。容量分列实际安装文件／框架／清单与当前G的同次测量；installer返回前已完成健康启动，不能把该采样写成prestart。历史模块、存档、缓存、事务及临时目录另记录观测值，`maxObserved`只表示采样下界，不称绝对峰值。门禁纯测试不等于系统验收已通过。
+推广与未来发布共用 verifyInstallationAcceptance。实际保存／卸载后重装、容量口径及退出完成观察以[证明要求](../../docs/reference/validation.md#完整安装与程序更新的证据分层)为准；门禁纯测试不是系统验收。
 
 ```powershell
 node tools/release/installation-promote.mjs "--candidate=<封包输出candidatePath>" "--proof=<最终正式proof.json>"
 ```
 
-签名、切换current和本地验收不代表发布授权；最终EXE字节变化须重新计算SHA、验收与签名。临时标准账户及UAC已授权，真实profile、登记和完整系统证明仍必需；当前安装器包含恢复和内嵌解码修复，标准用户首装的工程Low标签问题改用经授权的普通测试目录验收，不通过环境变量、改DACL或取消系统登记绕过。发布边界见[验收](../../docs/reference/acceptance.md)与[Release流程](../../docs/reference/release.md)。[一次安全维护](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/result.json)已结束，不追加第二轮。
+正式执行结束并成功清理账户／profile后，由[finalize-evidence](../test/README.md#正式执行记录与证明封存)只读核验execution receipt绑定的原始proof、隔离报告及完整方法源，并创建新proof。它不执行installer，不替代实际verifier CLI，也不授权推广；实际通过范围只在[验收](../../docs/reference/acceptance.md#当前源码与本地交付)维护。
+
+签名、切换current与本地验收不代表发布授权；最终EXE字节变化须重新绑定SHA、验收与签名。账户与profile操作须另有明确授权，不能通过环境变量、改DACL或取消登记绕过系统证明。
 
 前置条件是锁定工具链、有效预算、冻结输入和全部正式模块完整性。游戏仍独立组织、增量构建，内部签名模块按字节变化复用或生成；正式模板不计入当前游戏库。独立游戏导出、Pages准备／部署和安装型作者工具包导出已停止，保留文件仅说明内部实现或历史验证边界。
 
-重封内部fixture时先把release manifest按原字节复制到本轮独立工作目录，再传给 `createInstallationExecutable`；该工厂会在输入manifest旁写出固定名称的installation manifest，不能复用旧冻结目录作为可写输出。2026-10-15一次旧tmp sidecar覆盖已按原SHA恢复，原ZIP／release manifest／EXE未变，原失败保留于[轮次记录](../../artifacts/maintenance/v1.0.6/installation-remaining/account-round-20261015.json)。
+重封内部fixture时，先把release manifest原字节复制到本轮独立工作目录，再传给 createInstallationExecutable；工厂会在输入manifest旁写固定名installation manifest，不能把旧冻结目录作为可写输出。原sidecar覆盖事件与恢复摘要见[整理归档](../../docs/archive/tooling-delivery-organization-2026-10-15.md#fixture-sidecar覆盖与恢复)。
 
 本地程序使用四位 `1.x.x.y`，公开版本／附件使用三位 `1.x.x`，分配、冻结与发布映射见[版本流程](../../docs/reference/release.md#三位公开版本与四位本地构建2026-10-12)。只有获明确发布授权后才执行 `pnpm release:github -- --publish --notes=<已审文件>`，创建完整EXE与发布提交source ZIP两附件；本地导出和普通push不发布。
 
@@ -64,6 +64,8 @@ node tools/release/installation-promote.mjs "--candidate=<封包输出candidateP
 | [installation-toolchain.mjs](installation-toolchain.mjs)、[锁定清单](installation-toolchain.json) | 项目缓存内准备6.7.3编译器，核对官方安装包、ISSigTool及逐文件SHA；不全局安装                                                                                                                                                              |
 | [installation-fixture.mjs](installation-fixture.mjs)                                              | `--native=<目录> --server=<目录> --web=<目录>`；精确旧正式游戏＋显式新候选单元，生成独立测试产品完整安装器                                                                                                                               |
 | [installation-verifier.mjs](installation-verifier.mjs)                                            | `--delivery=<交付JSON> --evidence=<新证明JSON>`；实际首装／同包复装／保存后默认卸载／同根重装读回／再次卸载与完整首次启动计量；卸载首段0后另核原EXE消失及日志独占可读；正式ID只在真实隔离账户下使用 `--isolated-windows`                 |
+| [delivery-paths.mjs](delivery-paths.mjs)                                                          | 构建分组输出、历史精确路径及SHA校验，拒绝越界与链接；不递归猜测EXE                                                                                                                                                                       |
+| [installation-evidence.mjs](installation-evidence.mjs)                                            | 保留runtime成员核验、容量清单与日志归档；实际产品执行由installation-verifier CLI编排                                                                                                                                                     |
 | [installation-verifier.test.mjs](installation-verifier.test.mjs)                                  | `node --test tools/release/installation-verifier.test.mjs`；隐藏回环健康检查环境、卸载日志独占等待、保留 runtime 副本及篡改拒绝                                                                                                          |
 | [installation-description.mjs](installation-description.mjs)                                      | `--out=<新JSON> [--delivery=<冻结交付JSON>]`；绑定实际installer和安装清单生成待签名描述                                                                                                                                                  |
 | [sign-application-update.mjs](sign-application-update.mjs)                                        | `--description=<JSON> --notes=<更新说明MD> --out=<新发布正文MD> [--envelope-out=<新JSON>]`；私钥文件及keyId由进程环境 `TABLEMAX_APPLICATION_UPDATE_PRIVATE_KEY_FILE`／`TABLEMAX_APPLICATION_UPDATE_KEY_ID`传入，内置公钥自验；不上传私钥 |

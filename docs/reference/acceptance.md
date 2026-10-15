@@ -2,7 +2,25 @@
 
 本页维护当前本地完整EXE、仍有效的证明及历史导航；旧候选只按原字节、方法和范围认定。
 
-2026-10-15已完成Windows安装、默认保留数据卸载、盒子内可信更新和旧便携两种数据布局迁移；本地current已原子推广为1.0.6.18，公开版本仍为1.0.6。线上原Release及Pages未改变，本地18未发布。完整过程、失败与旧候选见[完成归档](../archive/windows-installation-update-2026-10-15.md)。
+当前结论统一见[当前源码与本地交付](#当前源码与本地交付)，本页各版本章节只说明对应原字节与证明范围。
+
+## 1.0.6.19：新布局正式验收（2026-10-16）
+
+[候选完整EXE](../../artifacts/releases/v1.0.6/1.0.6.19/TableMax-1.0.6.19-win-x64.exe)35,754,061字节，SHA `aca93f5fc8f434ed9d9fb02c6a56bcff75214d09a30fb8e6d1a57a80a9641a69`，绑定[冻结交付](../../artifacts/package-payloads/v1.0.6/73a3e367a1df-oc82Xk/full/installer-delivery.json)。snapshot `73a3e367a1df6efcf1539cc7575c99530b4854b805b4f050f4b9dbc893146dbb`，candidate SHA `ca033d009f85f566d7715e514dd9a34c3c465334308c180615ef21e5a24dd67a`，安装清单SHA `05b98d958e3f2da50d9011ca9ac0cf2aa3ec5db47eab541279b93fc5fc5cf09e`，当前映射SHA `ac917e6a9dd36a7b3dd6f084944b9e2528309eace79a294d11a39539fb844bf9`。该候选使用`I/data/app`新布局和独立Updater入口；公开版本仍为1.0.6。
+
+round-03的[普通I／默认D](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02/application-handoff/report.json)、[I198／短外D](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02/application-handoff-long-root-external-data/report.json)和[旧框架失败恢复](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02/application-framework-recovery/report.json)各8步实际通过、0失败。覆盖新布局双fixture的检查／下载／Apply、原父退出0、新持续主机、下一启动清理，以及健康失败时原A框架／登记／快捷方式保全和默认卸载。管理HTTP与临时签名fixture只证明对应交接；线上GitHub附件下载及原布局18直接升级19均不在此证明范围。
+
+[正式GUID原始证明](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02/shipping-executable-checks-full.json)4,272,152字节，SHA `bac36ae72ccd6acc71a9084d91a6e8dcafaa5c5ff88c4e444b56651b1c570bef`，通过真实首装、同包同根重复安装、玩家保存、两次默认卸载及保留数据后的同根重装读回。[driver终态](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02-completion.json)退出0；[账户隔离报告](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02/isolated-account.json)SHA `efb622233ad1ac2b6db9b580019116ea96af7635aeff02f21331a5eb6ce1e7b8`确认SID1032、标准账户和真实profile、账户／profile删除且errors为空。
+
+两次卸载分别归档[第一次资源receipt](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02/first-uninstall-resources.json)（SHA `e5a4016706d005aa8a81e392b09295c77ee0be28a8bd9bd2e9e6ac21b6899dcb`）与[最终资源receipt](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02/final-uninstall-resources.json)（SHA `36e28ac9183114c42718e606228324b1c456e469a152fd23a50e82b3bff24d53`）：两者均为`completed`、deferred为空，各删除192文件／7,381,690字节，保留56文件／3,252,538字节；存档引用发行`d7afeeed323c22c5bb077f8e03eae4720e7571f65441224f06a19f8bef98727f`及其依赖保留，配置、数据库、未知资料和重装读回均通过实际核验。私有分析TEMP审计仍记`retained`，测试profile随后由账户收尾删除。
+
+首次安装健康启动后的同次完整采样113,623,963字节＝程序97,707,858＋框架5,266,061＋身份／receipt／配置15,816＋当前G10,634,228，低于120,000,000硬限并触发110,000,000工程预警。`preStartupSampled:false`；7阶段占用最大176,375,885字节、`isAbsolutePeak:false`，保存、缓存与暂存计量不冒充连续绝对峰值。
+
+[独立封存证明](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/finalized-installation-19.json)1,762,709字节，SHA `34f7583ede9c4404ede1fbb1b16645bf022ad136de4784d695865a7a7f94b0d9`，已通过[封存执行](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/finalize-evidence-19.log)，精确绑定CreateNew保留的[执行proof](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02/execution-proof.json)、[执行receipt](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02/execution-receipt.json)、原交付与成功隔离结果。封存是只读核验原执行证据，未再次运行产品。
+
+[便携10→19真实迁移](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-04/portable-migration-19-01/portable-migration/report.json)2,058,192字节，SHA `9492fa3786d67fa0a3133e66bec9fe534896f4fc6cc428662bbade2f32c3ae12`：默认D／外置D两case各8项通过，均实际运行19安装器与默认卸载，failures0／priorFailures0／totalFailures0。默认D复制、外置D保指针、原玩家／存档／发行恢复及旧来源、配置、未知资料和受引用游戏依赖保全均按报告核验。[driver终态](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-04/portable-migration-19-01-completion.json)退出0；[迁移隔离报告](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-04/portable-migration-19-01/isolated-account.json)31,940字节，SHA `1cb645d8c24141367eacf44e3508f71b025cbdb40d4ebfcec617f99b17e0c7bd`确认SID1034、账户／profile删除且errors为空。隔离报告记录绑定前迁移SHA `da24b2d05a8737e85747c0d633c500174795ca788edfbeaa12d520f874d5da4d`；最终报告SHA对应追加隔离绑定后的原字节。
+
+round-04仅修复迁移验证器，冻结19产品未变；上述正式系统证明继续绑定其原执行方法与SHA，迁移证明按本次方法单独认定。19未推广current、未发布。此前失败与修复按[专项任务](../archive/windows-installer-flow-2026-10-16.md)和原轮次证据保留，组件通过不增加系统证明的范围。
 
 ## 1.0.6.18：正式系统验收（2026-10-15）
 
@@ -19,6 +37,10 @@
 [最终证据汇总](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-11/final18-evidence.json)96,575字节，SHA `a25e9aff672de1a1b8cf2bff5bb9d276a404e8b5caca93acd0a27d8d725406a8`，绑定76文件；该汇总形成于推广前，原`promoted:false`保留。[随后推广回执](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-11/promotion18-receipt.json)SHA `12598b0b894b25f766c1e1c190f353aca14593d356c6f41411c8918c19969cf9`确认current原子切换18，current SHA `3101f207916e60c21b1232c08ce99811820140a98c1a38a9fcd9ffb5f2eea4b9`。11累计2项历史方法失败未清零；16桌面卸载记录缺陷、17构建失败无候选及03–10各轮原SHA均见归档。
 
 仅本地交付完成，未创建新线上Release、发布source ZIP或部署Pages。项目RSA签名与Windows代码签名分开；NotSigned／无ZoneIdentifier不证明浏览器下载、SmartScreen信誉或系统信任。密钥轮换、异地备份及未来发布不写成已执行。
+
+## 工具接口重组边界
+
+版本／构建分组已用于19候选的实际产物路径；执行proof／receipt保留及独立封存已由[19正式隔离证明](#10619新布局正式验收2026-10-16)验证。路径／链接检查与初轮失败分别保留于整理归档，不把单项证明外推到未覆盖条件。18原证明与current保持原字节及原范围，不能替代新方法的证据。接口和其余接续见[验证要求](validation.md#正式执行记录与证明封存)和[整理任务](../archive/tooling-delivery-organization-2026-10-15.md)。
 
 ## 续行09–11：候选16重装缺陷与候选18冻结（2026-10-15）
 
@@ -62,27 +84,19 @@
 
 ## 1.0.6.10：宝可梦新设计应用（2026-10-12）
 
-当前本地完整程序为 [TableMax-1.0.6.10-win-x64.exe](../../artifacts/releases/TableMax-1.0.6.10-win-x64.exe)，公开版本仍为1.0.6。新局使用 `events-research-v3`，统一144张、17项研究、单格超梦及六类随机事件；旧存档、checkpoint及原局下一小局固定原发行。Mega与羁绊仅展示主题占位，7项缺失研究插图采用符合新条件的代码场景。主机／公共隐藏玩家缓冲，本人端保留操作；天气角标、环境层、全屏能力与路卡利欧画像波导已接入。
-
-[实际完整EXE证明](../../artifacts/maintenance/v1.0.6/windows-editions/63b12c9af279f4a374a51d80dfa4e9251ac1f9f1c54b6b467c3cd62d1336c41a/shipping-executable-checks-full.json)通过载荷全部哈希、96成员集合、重复提取及隐藏原生WebView2／包内Node安全。EXE **44,096,512字节**，内部ZIP **43,964,478字节**，实际提取 **97,009,047字节**，均严格小于120,000,000字节。宝可梦扩展模块 **3,717,195字节**（[同包严格预算证明](../../artifacts/maintenance/v1.0.6/pokemon-events-v3-verification/module-budget-10610.json)），本轮仍按4,194,304字节门禁，新增4份运行图片共167,594字节。EXE SHA-256为 `93207df18d568e808ea903ce5d538fe1835323f80a523af95a09241eeb6364bc`，冻结快照与内部载荷按该原始证明绑定；current已于2026-10-15推广18，见[当前源码与本地交付](acceptance.md#当前源码与本地交付)。
-
-源码适用检查已通过：新配置、半分／负分及多暗行计分、144张守恒、单格秘密权限、事件原子保存与恢复、三档2–6人完整三胜矩阵、6席32MiB真实Worker混合大局、原版差分与旧profile回归。人机矩阵及138,392ms混合Worker结果见[人机验证边界](../games/pokemon-encounters/bot.md#当前验证边界)。默认浮钮已修正横竖切换的右缘位置及滚动避让，5项模型检查和类型检查通过。
-
-同一个EXE的适用专项已全部通过：[真实服务与旧发行恢复](../../artifacts/maintenance/v1.0.6/pokemon-expansion-runtime/events-v3-10610-d/results.json)、[显示矩阵](../../artifacts/maintenance/v1.0.6/network-adaptation/game-audit/events-v3-10610-a/results.json)、[演出](../../artifacts/maintenance/v1.0.6/pokemon-expansion-effects/events-v3-10610-b/results.json)、[结算与授胜](../../artifacts/maintenance/v1.0.6/pokemon-expansion-awards/events-v3-10610-a/results.json)和[自然游玩](../../artifacts/maintenance/v1.0.6/pokemon-expansion-normal-play/events-v3-10610-b/results.json)。服务专项6个受控合法事件场景经真实Socket与SQLite保存，对照实际包内规则、单张私看、随机状态及暗牌投影；真实1.0.6.3旧局的恢复、回退、重启和下一小局仍保持原发行。18张肖像、16张无损卡面、8个主题音频、27个叫声及4张新增运行图的离线哈希／解码通过。
-
-显示矩阵含2／4／6人、手机320–430px竖屏及568–932px横屏、电脑720p至4K横竖与短屏／长昵称／浮窗／100／125／150%模拟缩放；1,674次布局审计、422次真实点击、37次草稿保留、425组天气角标几何记录及54格结算通过。记录自然按钮高度、18px主要动作、44px触区及多点点击命中。自然随机对局没有遇到所有能力和事件，未遇阶段单列，固定合法场景补验独立记录；不以随机游玩代替全覆盖。
-
-演出专项106,490ms通过59帧既有姿态、13条序列、路卡利欧画像波导、六类事件三身份、减少动态／取消／恢复不重播，以及原版喷火龙／卡比兽真实规则触发。自然游玩使用实际服务和本人UI，记录15次叫声成功播放；技术播放不表示真人听感已认可。独立查看六人结算、手机雨天角标和能力入场，布局与角色辨识清晰；简化演出仍需真人美术认可。失败达到3项停止后定向复验，原失败与修复过程见[归档](../archive/completed-tasks-2026-10-10.md#宝可梦新设计应用2026-10-12)。实体手机、现场LAN、物理DPI、真人听感、美术认可、7项插图、Mega／羁绊独立效果与时长平衡继续[待验收](../tasks/pokemon-encounters-expansion.md)。本轮仅本地交付，不发布Release／Pages或源码ZIP。
+该旧便携EXE、源码与同包专项、原失败和未测边界见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#10610宝可梦新设计应用2026-10-12)。不将旧包通过改写为当前包新增验证；当前待测游戏事项从[扩展任务](../tasks/pokemon-encounters-expansion.md)接续。
 
 ## 当前源码与本地交付
 
-当前本地交付为[完整安装器1.0.6.18](acceptance.md#10618正式系统验收2026-10-15)，公开版本1.0.6；EXE、内部payload／manifest、current及规范证明按上节精确字节绑定。预装6款正式游戏／7个玩法，新局固定本EXE核验映射，旧局按原精确发行继续。旧便携1.0.6.10及各历史构建只按自身SHA和原结果认定。
+新data布局与安装流程的[19候选正式隔离验收及便携10→19两种迁移](#10619新布局正式验收2026-10-16)均已通过。19尚未推广；18证明对应原布局，只按原字节与范围保留。剩余接续见[专项任务](../archive/windows-installer-flow-2026-10-16.md)。
+
+当前本地交付为[完整安装器1.0.6.18](#10618正式系统验收2026-10-15)，公开版本1.0.6，已原子推广current。完整安装／更新恢复、正式保存卸载重装及便携两种布局迁移的实际证明见该版本章节；预装6款正式游戏／7个玩法，新局固定本EXE核验映射，旧局按原精确发行继续。旧便携及其他历史构建只按各自SHA、方法和原结果认定。
 
 EXE、内部载荷、原图、签名仓库和本地验收不随源码push上传。线上已发布附件仍保持2026-10-11原字节，本地1.0.6.18未发布。提交／推送不授权Release或Pages部署，不生成发布source ZIP。
 
-此前深度瘦身实测 **5,896,919,854逻辑字节**（含受保护嵌套仓库），达到当次6GB目标；1.0.6.10交付收尾实际退役6,526,191,088字节，维护实测10,340,767,910逻辑字节（9.631GiB，排除链接与嵌套仓库），低于默认10GiB阈值，追加删除0，见[本轮瘦身记录](project-slimming.md#宝可梦新版交付收尾2026-10-12)。历次“原包保留”和容量数字仅表示当时状态；已按审计退役的历史包／截图由当前精确清单说明，不修改原失败、文字结论或逐文件哈希。
+工作区占用、原包保留及逐文件退役以[项目瘦身](project-slimming.md)的对应批次记录为准，不改变历史包的原SHA和验证结论。
 
-本页[手写改动单第1项](acceptance.md#106手写改动单第1项2026-10-11)曾交付运行ZIP，SHA `0048f55745f66c289eed918b78efccb058afbd4e2014bbc67655d36cc3be52c5`；该真实旧包作为明确迁移／验证输入保留在独立历史目录。下方更早的电力公司及宝可梦整合结论仍限定原版本，不表示当前需下载ZIP或重复其完整整局检查。
+历史运行ZIP的唯一迁移输入及原SHA见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#旧运行zip的迁移输入)；下方旧标题仅保留历史导航，不提供当前下载或重复验证指令。
 
 ## 1.0.6.3：关闭与WebView2资源释放（2026-10-12）
 

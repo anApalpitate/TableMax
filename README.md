@@ -10,7 +10,7 @@
 
 ## 下载
 
-公开版本沿用 **v1.0.6**；本地current已推广为通过干净Windows用户验收的完整安装器 **1.0.6.18**。Windows仅交付 **预装全部游戏的完整EXE**，不加类型后缀；更新整个程序即可获得新游戏与版本。该安装器尚未发布，下面的GitHub下载与初次使用步骤仍对应此前线上便携程序；本地文件、安装迁移及验收边界见[当前验收](docs/reference/acceptance.md#当前源码与本地交付)。
+Windows仅交付 **预装全部游戏的完整EXE**，不加类型后缀；更新整个程序即可获得新游戏与版本。公开附件、本地交付及对应验证边界统一见[当前验收](docs/reference/acceptance.md#当前源码与本地交付)，安装与便携使用方法见[构建与运行](docs/reference/build-and-run.md)。下载时按实际附件类型选择对应步骤。
 
 **只需在负责开桌的 Windows 电脑上下载程序。朋友的手机和其他玩家电脑使用浏览器加入。**
 
@@ -123,7 +123,7 @@ pnpm start
 
 环境准备、锁定工具版本与验证方法见 [开发说明](docs/reference/development.md)；接入游戏从 [游戏开发指南](docs/reference/game-development.md) 开始。盒子短提示文案集中在 [feedback.zh-CN.json](apps/web/src/content/feedback.zh-CN.json)，方便维护。
 
-完整安装器、默认保留数据卸载、保存关闭屏障、便携复制迁移与盒子内可信更新已完成本地实现和适用系统验收，current为1.0.6.18。实际更新、健康失败恢复、正式产品卸载重装和两种便携迁移的范围见[验收](docs/reference/acceptance.md#当前源码与本地交付)，阶段完成及原失败记录见[安装归档](docs/archive/windows-installation-update-2026-10-15.md)。运行契约见[构建与运行](docs/reference/build-and-run.md#windows-安装与整个程序更新)，命令见[发布工具](tools/release/README.md)；本轮未发布附件或部署站点。
+安装、保留数据卸载、保存关闭、便携迁移与可信更新的运行契约见[构建与运行](docs/reference/build-and-run.md#windows-安装与整个程序更新)，命令见[发布工具](tools/release/README.md)。实际验证及未测边界统一见[验收](docs/reference/acceptance.md#当前源码与本地交付)，阶段过程和原失败记录见[安装归档](docs/archive/windows-installation-update-2026-10-15.md)。
 
 本机美术资源检索与处理使用 [TableMaxMaterial 素材工作区](../TMP/TableMaxMaterial/README.md)（`E:\Proj\TMP\TableMaxMaterial`，不创建 Git）；该外部目录独立维护原始资料、处理过程和交付候选，核验后将正式资源及来源记录导入本项目，详见 [资源入口](assets/README.md)。此链接依赖本机目录布局，GitHub 源码与运行包仍使用项目内资源。
 

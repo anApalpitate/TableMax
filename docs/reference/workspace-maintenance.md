@@ -65,6 +65,8 @@ v1.0.3新增已知隔离副本 `tmp/portable-storage-<六位随机后缀>`，通
 
 `scripts/` 提供三个可从任意工作目录运行的 PowerShell 清理与维护入口，共用 [清理实现](../../tools/maintenance/cleanup-local.ps1)：
 
+交付目录分组后，当前指针仍为唯一身份入口；Node与PowerShell维护读取共用交付路径校验。旧清理模式仍只处理releases直属项，不递归处理版本分组或retired目录，不能将其能力外推为新目录的退役授权。目录整理的迁移与验证记录见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md)。
+
 - [scripts/Clean-Releases.ps1](../../scripts/Clean-Releases.ps1)：清理 `artifacts/releases` 中低于 `package.json` 当前版本的程序／源码 ZIP、配套交付／逐文件清单、解压程序和独立打包目录；当前／未来版本及不认识的名称默认保留。版本重新编号后，可用 `-RetiredVersions 1.6.0` 显式指定已退役标签，仍执行全部安全检查；禁止指定当前版本，自动维护不接受该选项。
 - 用户明确要求本地只留最新导出时，手动 `scripts/Clean-Releases.ps1 -KeepLatestOnly`先预览，核对后加 `-Apply`。该模式只处理 `artifacts/releases/`直属项；新格式读取 `artifacts/package-payloads/v<版本>/current.json`并保护唯一完整EXE、payload、manifest及指针，要求实际EXE通过证明和双哈希一致；读取历史双格式时仍逐项保护原edition。已有同版旧已发布EXE／ZIP／source／manifest仍保留，明确逐文件SHA备份后才能退役原位置；不清理其他历史证据目录或内部payload目录。无新格式指针时兼容旧ZIP及匹配清单保护。沿用进程、路径、链接、近期修改、指纹及互斥保护，不与其他清理选择模式或自动维护混用。
 - [scripts/Clean-Intermediates.ps1](../../scripts/Clean-Intermediates.ps1)：清理已知验证脚本生成的 `tmp/<用途>-<六位随机后缀>`、便携解压副本、已完成的打包工作目录及 builder 诊断文件；已识别的一次性脚本直接退役，不建恢复归档。未知及低频内容先审计，再按精确名称或单次文件清单处理，不清空整个 `tmp/`。原始素材、资料与历史截图／JSON 证据不在范围内。

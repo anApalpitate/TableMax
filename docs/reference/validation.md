@@ -1,6 +1,6 @@
 # 验证范围与证据
 
-本页替代[开发环境](development.md)中同职责章节，保留原规范；命令全文只在对应[工具索引](../../tools/README.md)入口维护。默认先列标题，再按章节读取。历史版本描述仅表示当时边界，当前交付以唯一完整EXE与[Release流程](release.md)为准。
+本页维护检查范围、证明要求、失败阈值和证据复用；具体脚本参数见[测试工具](../../tools/test/README.md)，实际交付和未测边界只在[验收](acceptance.md#当前源码与本地交付)维护。历史标题保留为导航，不据旧命令中的版本词推定当前产物。
 
 ## 阿瓦隆专项构建与验证
 
@@ -8,9 +8,9 @@
 
 `node tools/test/games/avalon/verify-avalon.mjs --executable=<实际解压的TableMax.exe> --zip=<匹配EXE的内部payload.zip> --seats=6 --variant=configured --only=all --evidence=<安全独立名称>` 启动实际隐藏WinForms／WebView2及包内Socket／SQLite服务，显式监听127.0.0.1，使用隔离 `tmp/game-review-<六位随机后缀>`。`--seats=5|6|7|8|9|10`，现行新局使用 `--variant=configured`；`classic`／`court` 仅用于对应历史实际程序；`--only=layout|success|failure|rejections|assassination|long-quest|all` 定向选择三端布局、三成功梅林幸存、三失败、五否决及梅林遇刺流程。`long-quest` 额外按成功／失败交替推进五次任务后刺杀，检查五张已结算任务牌；`all` 保留原四种终局。终局通过真实合法动作进入，不改写秘密存档；首项身份确认、表决、任务及刺杀用实际UI按钮核验，`success` 另含提名及暂停／回退。
 
-人数与阶段计划通过 `node tools/test/runner/test-scoped.mjs --scope=game:avalon --plan=<计划JSON>` 排序运行，沿用累计3失败停止与不自动重试。`artifacts/avalon/validation/portable-plan.json` 和 `grid-final-plan.json` 是历史参数记录；重新执行时先核对实际 EXE、匹配载荷及当前配置，复制计划到新名称并更新路径、玩法和证据名，不能直接沿用旧 `court` 参数，历史临时目录可能已安全退役。验证包括实际提取成员前后哈希、公开秘密边界、保存／暂停／回退、320px—4K与横屏、图文规则、正确事件全屏特效／减少动态、12条本地音频解码、真实播放调用和原生单窗口播放权、刷新不重播。最窄玩家画面以实际 `documentElement.clientWidth` 断言横向溢出，并检查终局；不以包含滚动条的 `innerWidth` 放宽边界。原生物理输出始终静音，隔离数据中的音频偏好只用于观察调用，不修改日常设置；不把模拟手机、DPI或解码／播放调用作为实体手机、LAN或真人听感认证。实际证据与原失败见[阿瓦隆验证](../games/avalon/validation-scenarios.md)。
+人数与阶段计划通过 `node tools/test/runner/test-scoped.mjs --scope=game:avalon --plan=<计划JSON>` 排序运行，沿用[统一失败阈值](#历史通过率与失败阈值)与不自动重试。`artifacts/avalon/validation/portable-plan.json` 和 `grid-final-plan.json` 是历史参数记录；重新执行时先核对实际 EXE、匹配载荷及当前配置，复制计划到新名称并更新路径、玩法和证据名，不能直接沿用旧 `court` 参数，历史临时目录可能已安全退役。验证包括实际提取成员前后哈希、公开秘密边界、保存／暂停／回退、320px—4K与横屏、图文规则、正确事件全屏特效／减少动态、12条本地音频解码、真实播放调用和原生单窗口播放权、刷新不重播。最窄玩家画面以实际 `documentElement.clientWidth` 断言横向溢出，并检查终局；不以包含滚动条的 `innerWidth` 放宽边界。原生物理输出始终静音，隔离数据中的音频偏好只用于观察调用，不修改日常设置；不把模拟手机、DPI或解码／播放调用作为实体手机、LAN或真人听感认证。实际证据与原失败见[阿瓦隆验证](../games/avalon/validation-scenarios.md)。
 
-历史双版本安装程序验证曾使用 `node tools/test/games/avalon/verify-configured-delivery.mjs --edition=full|box --packages=<本地已验签名包目录> --out=<新证据目录>`，每次选择一个 edition，从当前载荷指针绑定实际EXE提取、逐成员验哈希、隐藏静音启动并检查三端规则。full检查预装新包；box先导入原宫廷包再导入新包，注册与公开目录始终只选现行配置，新包通过离线导入后可重新加载，不依赖线上已发布新包。`--work=tmp/delivery-session-<六位后缀>`仅允许复用没有data目录的提取专用会话，仍重验实际EXE与全部成员，不复用已有对局或浏览器profile。该入口仅供对应历史程序和原包验证；现行完整EXE不提供离线导入，不以此旧安装流程作为新交付要求。旧版候选、失败与通过分别保留其版本边界。
+原双版本／离线导入的阿瓦隆验证方法见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#阿瓦隆旧双版本验证)，不作为当前完整安装器要求。
 
 ## UNO 专项构建与验证
 
@@ -22,7 +22,7 @@ v1.0.6 交互专项：`--layout-only --only=dense` 保留三种手机尺寸及72
 
 同一入口 `--mode=runtime --seats=2|4|6` 推进自然500分比赛、下一小局与真正退出／重启 Native；包内32MiB Worker只收到本人授权信息，服务端bot走原统一动作流程。每次选择新证据名，保留原失败和包哈希。首次完整检查后只返验实际变化；若最终仅条件 CSS 改变，使用实际成员等价证明复用未受影响组件，旧报告仍对应旧 ZIP。运行前后核验全部程序成员，监听固定为127.0.0.1，不改玩家声音偏好、系统 DPI 或防火墙。
 
-Node 与 pnpm 沿用锁定版本。沙箱默认 Corepack 缓存落在不可用的用户临时位置时，仅对本进程设置 `COREPACK_HOME=E:\Proj\TableMax\.cache\corepack` 和 `COREPACK_ENABLE_DOWNLOAD_PROMPT=0`；使用仓库内缓存及 `pnpm install --offline --ignore-scripts` 链接新增工作区，不升级包、不修改全局环境。运行必须遵守下文回环监听与测试静音规则。
+运行与依赖按[锁定环境](build-and-run.md#环境与依赖)准备；旧Corepack缓存处理仅保留为[历史方法](../archive/tooling-delivery-organization-2026-10-15.md#旧corepack环境处理)，不能据旧成功改变全局环境。
 
 ## 拉密专项构建与验证
 
@@ -60,7 +60,7 @@ Node 与 pnpm 沿用锁定版本。沙箱默认 Corepack 缓存落在不可用�
 
 ## 10.7 浏览器玩家与穿透恢复验证（v1.0.3）
 
-当前按 2026-10-08 用户纠正交付 v1.0.4；本标题保留旧锚点。电脑浏览器真人保持中央手机区域，三游戏原手机布局不做宽屏重排。验证器从根 `package.json` 读取版本并核验对应 ZIP／清单的全部解压成员；当前证据位于 `artifacts/maintenance/v1.0.4/debug-20261008/`。玩家 DOM 断言在稳定同源子文档中进行，外层仅用于窗口尺寸与实际截图。
+本标题保留历史锚点。旧版本与当时输出位置见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#浏览器玩家验证的旧版本口径)。现行验证核对实际冻结输入与逐成员清单；DOM断言来自稳定同源子文档，外层只用于窗口尺寸与实际截图。
 
 运行 `node tools/test/platform/verify-debug-20261007.mjs` 检查当前实际运行 ZIP：隐藏原生 WebView2、静音 Edge、真人授权投影及仅监听 `127.0.0.1` 的 HTTP／HTTPS 代理。默认检查各版本最少／最多人数、1023／1024px、720p、1080p、4K、125%／150%模拟像素密度和手机视口；`--phases-only` 通过合法动作推进关键阶段／结算，`--drafts-only` 检查数量、选城和卡槽草稿，`--mixed-only` 用真实 Worker 人机并以管理员暂停固定验收版本，`--connection-only` 单独检查丢推送、断线、换机批准及二维码配置。当前证据在 `artifacts/maintenance/v1.0.4/debug-20261008/portable/`，凭证不输出到报告。网页根节点仅提供公开的 instance／branch／revision 属性，断言实际渲染版本，不以连接标记替代。
 
@@ -96,7 +96,7 @@ Node 与 pnpm 沿用锁定版本。沙箱默认 Corepack 缓存落在不可用�
 
 2026-10-05 宝可梦人机／复用专项：`node tools/test/games/pokemon-encounters/verify-pokemon-original-compatibility.mjs --reference=1b3930cae9ffa66c480a26b69e4cbf6f6ac59827` 在固定随机源下比较重构前后的真实规则模块，覆盖 2–6 人完整小局／大局、合法动作、状态、计分及全部授权投影。未传 reference 时使用当前 HEAD，提交后复查本轮应显式传上述基线；只读取本地 Git，不联网。`node tools/test/games/pokemon-encounters/verify-pokemon-version.mjs` 用实际 BoxScreen 及样式检查三个端的只读版本面板和资源懒加载。源码策略固定种子统计、真实 Worker、最终 ZIP 与显示证据见当前验收；整局测试总时限与单次 Worker 两秒硬截止分开。原生 fixture 退出后再构建，避免占用 `build/desktop/TableMax.exe`。
 
-当前 Windows x64 桌面为 C# WinForms／.NET Framework 4.8、共享 WebView2 与包内 Node；正式入口选择宝可梦奇遇、现代艺术或经典德国版电力公司，已有对局按存档恢复对应游戏。第一至六阶段已完成，独立原型仍用于合成状态审阅。使用流程见 [项目说明](../../README.md#快速开始)，最近交付包、实际验证范围和设备模拟边界见 [验收记录](acceptance.md)。
+当前桌面依赖与游戏组装边界见[架构](architecture.md)，实际产品、游戏覆盖和设备未测范围见[验收](acceptance.md#当前源码与本地交付)。
 
 本页只维护当前运行、检查和本地维护方法；阶段结果、旧版本命令及 Electron 证据集中在 [开发与验证历史](../archive/development-2026-10-01-to-04.md)。工程依赖见 [工程结构](architecture.md)，文件归属见 [目录职责](project-structure.md)。
 
@@ -225,7 +225,7 @@ version 2子检查关闭各自自动维护，父轮结束只尝试一次。多�
 
 `tools/build/module-build.mjs` 对platform-server与宝可梦人机单元应用该步骤，helper纳入各自指纹，入口和载荷共同进入缓存哈希、冻结和组装；`tools/release/package.mjs` 白名单同时收集两者，游戏载荷预算计入 `bots/pokemon-encounters.cjs.br`。其他游戏人机、规则和媒体保持原构建。相关单测命令为 `node --import tsx --test tools/build/service-brotli.test.mjs tools/build/pokemon-bot-brotli.test.mjs`，覆盖原字节还原、CommonJS路径／exports／require.main、依赖加载、无落盘，以及缺失、载荷损坏、合法压缩但源码哈希错误。宝可梦原版／扩展三档另经实际32MiB生产Worker执行合法决定，保持原2秒取消边界。
 
-2026-10-08研究重设计的第一包实际解压95,035,481字节，超过当时95MB工程预算35,481字节，未作交付验收。只压缩宝可梦人机144,410字节为715字节入口＋28,397字节载荷，净省115,298字节；该轮压缩包248文件实际解压94,920,183字节，余79,817字节；后续客户端返修后的当前体积以验收记录为准。相关[载荷检查](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/pokemon-bot-brotli.json)及[首包预算失败](../../artifacts/maintenance/v1.0.4/research-redesign-20261008/implementation/budget-failure.json)保留；当前实际包验收见[验收记录](acceptance.md)。
+早期预算超限与定向压缩过程见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#早期预算超限与定向压缩)，当前容量结论见[验收](acceptance.md#当前源码与本地交付)。
 
 隔离[实测](../../artifacts/maintenance/v1.0.2/pokemon-expansion-size-continuation/runtime.json)以历史实际解压程序为输入：1,655,164字节服务变为717字节入口＋354,905字节载荷，净省1,299,542字节。隐藏原生窗口经父子私有管道启动包内Node，真实Socket恢复／保存、bot Worker行动和再次重启通过；故障入口不监听端口、不改存档，正常退出后Job关联服务已停止。原始官方Node字节保持一致。
 
@@ -255,7 +255,7 @@ Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 
 
 `tools/test/box/verify-box-seats.mjs` 登记为box，使用实际源码 BoxScreen 的合成目录和座位输入，核验1／6席原布局及7／9／12席网格、长昵称、真人与三档人机、本人第12席、各端状态和320px至4K的滚动／字号／重叠。结束动作只检查“恢复加入”发出既有 `replay`；人数筛选随目录最高人数生成至最多12。隐藏静音Edge与夹具仅监听127.0.0.1，证据保存于 `artifacts/maintenance/v1.0.6/box-seats/`，隔离构建使用现有 `tmp/box-layout-<六位后缀>`。合成12人输入仅验证盒子显示兼容，现有游戏仍按原人数限制；不代表实物设备、游戏规则或便携包验收。
 
-`tools/test/box/verify-game-library.mjs` 登记为box，通过源代码 BoxScreen、模拟会话及隐藏静音 Edge 检查组合筛选、无结果重置、权限／容量限制、进行中切换确认、GitHub 新窗口与320px至4K布局。本轮证据在 `artifacts/maintenance/v1.0.6/game-library/`；盒子通知的文案分类回归在同版本 `box-notifications/`。它们是源码渲染与模拟回复验证，不代表物理设备、局域网或便携包验收。原生 GitHub 精确白名单、可信顶层点击及失败回执由 `tools/test/box/verify-box-repository.mjs --native-fixture` 单独检查；独立编译不覆盖共享桌面构建输出。
+`tools/test/box/verify-game-library.mjs` 登记为box，通过源代码 BoxScreen、模拟会话及隐藏静音 Edge 检查组合筛选、无结果重置、权限／容量限制、进行中切换确认、GitHub 新窗口与320px至4K布局。证据使用独立名称并绑定实际源码与输入。它们是源码渲染与模拟回复验证，不代表物理设备、局域网或便携包验收。原生 GitHub 精确白名单、可信顶层点击及失败回执由 `tools/test/box/verify-box-repository.mjs --native-fixture` 单独检查；独立编译不覆盖共享桌面构建输出。
 
 ## 图文规则维护与验证
 
@@ -340,15 +340,15 @@ Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 
 
 - 测试默认关闭声音，包括以游玩模式核验节奏的自动窗口；专门试听显式开启，保持日常游玩声音偏好。入口和选项见开发环境。
 
-- 测试、检查与优化按本次实际变更范围执行：仅改盒子只运行盒子项，仅改游戏只允许对应游戏项；共享层按实际依赖选择受影响项，纯文档／配置仅做适用检查，不因其他未提交改动扩大范围。先筛选再按累计通过次数／历史完成次数的低通过率排序；默认本轮累计失败3项即停止，修复后只重跑受影响项，跳过或未开始不计次数，不自动重试。范围入口、统计与阈值见 [开发环境](development.md#按变更范围选择检查)。
+- 测试、检查与优化按本次实际变更范围执行：仅改盒子只运行盒子项，仅改游戏只允许对应游戏项；共享层按实际依赖选择受影响项，纯文档／配置仅做适用检查，不因其他未提交改动扩大范围。先筛选再按累计通过次数／历史完成次数的低通过率排序；达到[统一失败阈值](#历史通过率与失败阈值)即停止，修复后只重跑受影响项，跳过或未开始不计次数，不自动重试。范围入口、统计与阈值见 [开发环境](development.md#按变更范围选择检查)。
 
 ## 保存关闭与安装隔离底座（2026-10-15）
 
-阶段1新增共享房间／服务关闭专项、文件系统安装形状夹具和真实原生私有管道验证；原轮只核验动作排空、保存失败、幂等关闭、stdout确认、强制终止、文件保全与路径拒绝。后续已完成安装框架、原生更新控制与helper事务实现；适用源码／夹具及原失败见[安装归档](../archive/windows-installation-update-2026-10-15.md)，实际通过边界见[验收](acceptance.md#当前源码与本地交付)。底座结果不能代替实际installer验收。
+保存关闭底座验证动作排空、保存失败、幂等关闭、stdout确认、强制终止、文件保全与路径拒绝。文件系统形状、真实私有管道和实际installer属于不同层次；阶段1原范围与失败见[安装归档](../archive/windows-installation-update-2026-10-15.md#阶段-1-完成记录2026-10-15)。
 
 动态安装状态未完整绑定时强制执行、不复用缓存；静态输入及原始冻结载荷依然分别按SHA核对。证据分清原完整EXE与覆盖后的原生／服务候选，绑定候选文件哈希、方法源码、工具链与夹具前后状态。普通服务回归使用明确的空游戏目录，私有入口fixture只构建所需游戏；逐文件隔离避免Vitest临时SSR缓存跨worker丢失，工程tmp保留原权限与正式数据边界。
 
-运行命令见[工具操作入口](../../tools/test/README.md#保存关闭屏障与隔离底座)，通过／失败证据见[安装归档](../archive/windows-installation-update-2026-10-15.md#阶段-1-完成记录2026-10-15)。现有静音、隐藏窗口、127.0.0.1、先筛范围、3失败停止和修复只重跑受影响项的约束保持。
+运行命令见[工具操作入口](../../tools/test/README.md#保存关闭屏障与隔离底座)，通过／失败证据见[安装归档](../archive/windows-installation-update-2026-10-15.md#阶段-1-完成记录2026-10-15)。现有静音、隐藏窗口、127.0.0.1、先筛范围、[统一失败阈值](#历史通过率与失败阈值)和修复只重跑受影响项的约束保持。
 
 ### 完整安装与程序更新的证据分层
 
@@ -366,15 +366,15 @@ Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 
 | 正式隔离系统链    | 新标准账户与真实profile先执行默认D、I198／短外D正向及旧框架失败恢复三条8步链，再执行正式GUID首装／同包复装／快捷方式／首次物化分项计量／保存后默认卸载／同根重装读回／再次默认卸载 | 账户及管理员操作须有明确授权；工程checking、隔离标志、helper-only及只看driver exit0均不足，结果按实际报告认定                  |
 | 旧便携实际迁移    | 冻结便携程序真实启动、服务API保存及正常关闭；同一完整Inno迁移默认D与外置D两个case，新版恢复原身份／发行，默认卸载保全数据库、配置、G与未知资料                                     | 独立fresh profile逐case实际安装／卸载；保全-only夹具、旧档读取或模块租约专项不能替代，具体版本与SHA白名单不外推到其他候选      |
 
-隔离账户驱动核对默认D正向、I198／短外D正向和旧框架失败恢复三份报告的 `passed`、`failures:0`、所有步骤通过及各自8个唯一必需步骤，不能只看driver退出码。三份实际报告均须绑定同一原prepared报告的规范路径及raw SHA，驱动再记录各报告自身的路径与raw SHA；prepared复验包括旧／新不同高位PE、完整材料、公钥及源码输入。这三条fixture链已实际通过，不能替代随后正式GUID的保存／卸载重装、完整容量及账户清理证明。固定步骤ID与操作参数只在[测试工具](../../tools/test/README.md#完整安装与程序更新验证)维护。
+隔离账户驱动核对默认D正向、I198／短外D正向和旧框架失败恢复三份报告的 `passed`、`failures:0`、所有步骤通过及各自8个唯一必需步骤，不能只看driver退出码。三份实际报告均须绑定同一原prepared报告的规范路径及raw SHA，驱动再记录各报告自身的路径与raw SHA；prepared复验包括旧／新不同高位PE、完整材料、公钥及源码输入。三条fixture链不能替代随后正式GUID的保存／卸载重装、完整容量及账户清理证明。固定步骤ID与操作参数只在[测试工具](../../tools/test/README.md#完整安装与程序更新验证)维护。
 
-1.0.6.18的[正式系统证明](../../artifacts/maintenance/v1.0.6/windows-editions/1703273018946f4de0c96b98cdc207f86bc4316848889b09a529f0a4e36aa4e9/shipping-executable-checks-full.json)已完整通过，包含真实保存、默认卸载、同根重装读回及再次默认卸载；[隔离报告](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-11/production-account-18-01/isolated-account.json)确认账户／profile清理成功。[共享门禁与保留runtime复算](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-11/formal18-crosscheck.json)亦通过；[最终证据汇总](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-11/final18-evidence.json)另绑定便携1.0.6.10→安装器1.0.6.18默认D／外置D两项真实迁移各8项通过及独立账户／profile清理；本地current随后按精确候选和原指针SHA原子推广为18，线上未发布。容量采样口径与实测小计见[构建与运行](build-and-run.md#便携包体积与共享运行时)。
+当前版本的实际系统结果、完整容量、迁移及推广证明只在[验收](acceptance.md#当前源码与本地交付)维护。容量报告须分开程序／框架／元数据／当前G与存档／缓存／事务；阶段最大观测值不能称绝对峰值。
 
 正式安装验证器在卸载外层首段退出0后，独立有界等待原卸载EXE消失，再观察卸载日志能以 `FileShare.None` 独占打开读取；成功后才归档原日志字节和SHA。`completionObservation`与首段进程结果分别保留，观察失败仍是失败，不执行卸载重试或代删原EXE。日志仍由后续Inno进程持写锁时，不能仅凭首段0或文件存在就立即归档，也不能声称全部清理已完成。
 
 测试更新签名与生产信任分离。双PE夹具用独立测试GUID、进程内RSA私钥及fixture-only公钥资源，对测试描述原始字节签名和验签；测试与生产描述相互拒绝，不为夹具修改生产产品ID、签名器或内置根。夹具WinForms计时器经一次性 `Application.Idle` 在生产入口完成初始化后启动，退出时解除回调并停止，避免提前创建隐藏窗口；修复夹具时点不等于实际交接通过。具体实现和回归入口见[完整安装验证工具](../../tools/test/README.md#完整安装与程序更新验证)。
 
-旧便携迁移与完整Apply／正式安装链分开编排，仍使用已授权的新标准用户及真实Medium profile能力。验收输入必须是被冻结的旧便携完整EXE、原始指针副本和新完整installer；先由旧程序生成合法闲置数据和完整G，再经真实installer迁移，不制造数据库或模块形状来规避入口。默认D核复制与原B逐文件保全；外置D核原指针及G保全。每case完成精确默认卸载并清除登记后才能进入下一case，报告绑定原输入、执行副本、源码、SID及两个case的实际结果，账户／profile清理报告SHA另行绑定。该工具目前只覆盖明确的便携1.0.6.10／安装器1.0.6.18字节，更换候选需重审；具体命令、稳定报告字段及当前结果分别见[工具](../../tools/test/README.md#完整安装与程序更新验证)和[安装归档](../archive/windows-installation-update-2026-10-15.md)，不能把工具准备写成迁移通过。
+旧便携迁移与完整Apply／正式安装链分开编排，须先取得标准测试用户与profile范围授权，并使用真实Medium profile能力。验收输入必须是被冻结的旧便携完整EXE、原始指针副本和新完整installer；先由旧程序生成合法闲置数据和完整G，再经真实installer迁移，不制造数据库或模块形状来规避入口。默认D核复制与原B逐文件保全；外置D核原指针及G保全。每case完成精确默认卸载并清除登记后才能进入下一case，报告绑定原输入、执行副本、源码、SID及两个case的实际结果，账户／profile清理报告SHA另行绑定。工具的固定版本白名单、命令及报告字段见[工具README](../../tools/test/README.md#完整安装与程序更新验证)，更换输入须重审，不能把工具准备写成迁移通过。
 
 账户子进程必须加载真实标准用户profile，按Windows实际文件夹和身份归一 `USERPROFILE`、`LOCALAPPDATA`、`APPDATA`、`HOMEDRIVE`、`HOMEPATH`、`USERNAME`、`USERDOMAIN`，并核对应用数据路径属于本次profile；临时根与输出只授予新SID所需权限。PowerShell 5.1通过 `ProcessStartInfo` 调用Node，显式UTF-8并行读取stdout/stderr、有界等待排空后按实际ExitCode判定，避免原生命令stderr被 `ErrorActionPreference=Stop`误判；异常和双流日志保留。
 
@@ -383,6 +383,18 @@ Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 
 框架恢复的故障注入仅存在于显式编译的fixture alternate Main：严格限定测试GUID、60001、请求、隔离根、默认D、实际安装身份／receipt及包内Node摘要。包内Node对隔离foundation库合法写入并关闭，产生字节变化见证后Native返回42，发生在checking／persistent入口之前；生产Program和桥接不含该注入入口。直接复制已恢复helper再执行 `--uninstall` 只证明组件路径，不能证明框架自己的固定SHA可达；双PE材料已准备或全字节解码通过也不抵扣实际A框架卸载。
 
 `TABLEMAX_INSTALLATION_HEALTH_CHECK=1`仅使helper的健康启动显式静音后台checking后退出；正式默认更新仍启动并保持普通新版主机。持久在线交接fixture分支优先，不以checking代替新主机持续运行证据。该工程标志不替代正式GUID、fresh SID或完整安装验收；不同来源、旧sourceSHA的通过报告按未变化方法复用，不增加新统计或清零原失败。
+
+### 正式执行记录与证明封存
+
+实际执行与最终proof封存分开。正式执行和账户／profile清理均成功后，驱动先按原字节保存 execution-proof.json，再生成绑定delivery、proof、isolation及方法源的 execution-receipt.json；封存核验原件、日志、三链与保留runtime，不再次运行产品。fixture-only或迁移报告不能冒充正式proof。
+
+后续绑定／封存失败时，保留成功清理的原isolation与两份execution原件，另写 acceptance-binding-error.json 并退出1；不能倒写账户执行失败，也不能仅凭receipt宣称正式验收通过。修复封存后可只读复验并CreateNew输出新proof，仍须核对全部原件及方法源SHA。命令见[测试工具](../../tools/test/README.md#正式执行记录与证明封存)，具体通过结果与方法源范围只在[验收](acceptance.md#当前源码与本地交付)维护，既有产品证明保持原范围。
+
+方法源由 execution-method.mjs 复用runner version2指纹收集，显式声明PowerShell父／子与动态C#依赖，不因拆文件遗漏执行方法，也不新增另一套范围注册表或统计。一次性工具盘点只是整理依据。
+
+### 正式执行记录与证明封存（接口待验证）
+
+旧标题入口，正文见[正式执行记录与证明封存](#正式执行记录与证明封存)。
 
 ## Windows完整性与隔离验收
 

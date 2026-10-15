@@ -1,24 +1,18 @@
 # 文档索引
 
-当前公开版本为 **v1.0.6**，本地已验证并推广的完整安装器为 **1.0.6.18**。Windows 仅交付预装全部正式游戏及玩法的完整 EXE；取消盒子版、独立游戏下载、离线导入与独立游戏更新。当前游戏库来自本 EXE 验证后的预装映射，旧安装索引或缓存目录不能改变新局使用的发行。旧存档按原发行精确恢复，非当前发行只用于继续原局。实现与设备验证边界见[当前验收](reference/acceptance.md#当前源码与本地交付)。
-
-公开版本使用三位 `1.x.x`，本地构建使用四位 `1.x.x.y`；兼容校验依据协议与能力声明。内部模块载荷、冻结快照、签名和逐文件清单继续保留。本轮尚未发布，线上 v1.0.6 与 Pages 内容保持原发布状态；新交付流程见[Release流程](reference/release.md#唯一完整-exe-交付2026-10-12)，版本规则见[版本与构建](reference/release.md#三位公开版本与四位本地构建2026-10-12)。
-
-经典 [阿瓦隆](games/avalon/README.md)采用2012原版、平台5–10人，新局使用用户指定的唯一人数角色表，支持莫德雷德／奥伯伦知识边界、三档本地策略及并发密投；旧配置仅恢复原局。规则来源、秘密投影和实际交付边界分别进入游戏主题及 [验收](reference/acceptance.md)；本次直接视觉要求见 [用户偏好](reference/art-preferences.md#阿瓦隆最新要求2026-10-10)。
-
-完整程序预装宝可梦奇遇、现代艺术、经典德国版电力公司、UNO、阿瓦隆与经典2–4人拉密；宝可梦包含原版与九宫格扩展。真人通过手机或电脑浏览器操作，电脑主机负责服务、管理与公共展示。电脑浏览器玩家首次保持居中竖屏，可切换并记住横屏选择，见[玩家显示与滚动条](reference/visual-design.md#电脑浏览器玩家的手机区域2026-10-08)。加入支持扫码和二维码下“打开网址”，使用根网址并兼容旧玩家路由；实现概况与游玩流程见[项目说明](../README.md)。
+按问题选择下表中的唯一正文；产品范围见[需求基线](requirements.md)，实现概况与使用入口见[项目说明](../README.md)，当前完整EXE及实际验证边界见[验收](reference/acceptance.md#当前源码与本地交付)。
 
 ## 开始开发
 
-2026-10-15[Windows安装、卸载与盒子内更新](archive/windows-installation-update-2026-10-15.md)已完成并归档：三条真实更新／恢复链、正式产品保存与卸载重装、便携默认／外置数据迁移及完整容量验收通过，current已推广为 **1.0.6.18**。线上附件与Pages未变。运行契约见[构建与运行](reference/build-and-run.md#windows-安装与整个程序更新)，签名及推广规则见[Release流程](reference/release.md#完整安装器与免费应用签名2026-10-15)，精确证明见[验收](reference/acceptance.md#当前源码与本地交付)。
+Windows安装、卸载与盒子内更新的操作方法见[构建与运行](reference/build-and-run.md#windows-安装与整个程序更新)，签名与推广流程见[Release流程](reference/release.md)，历史过程见[安装归档](archive/windows-installation-update-2026-10-15.md)。
 
-2026-10-12建立[macOS服务端运行包适配任务](tasks/macos-adaptation.md)：目标与执行草案已建立，导出未开始；沿用仅服务端运行包的范围，现行Windows交付事实保持，Mac权限与验证边界从任务页接续。
+macOS服务端运行包的剩余工作从[专门任务](tasks/macos-adaptation.md)接续。
 
-游戏规则、策略、网页与资源继续按模块独立维护和增量构建，源码入口见[游戏模块索引](../games/README.md)，公共 SDK、模板及源码接入能力保留。签名模块与历史仓库供内部预装、修复及旧局恢复使用，独立安装与分发产品入口已退役；理由见[决策009](decisions/009-independent-game-packages.md)，接入从[游戏开发指南](reference/game-development.md)开始。所有多玩法入口共用平台 `GameplaySelector`。
+游戏开发从[模块索引](../games/README.md)和[接入指南](reference/game-development.md)进入；依赖边界与采用理由分别见[架构](reference/architecture.md)和[决策009](decisions/009-independent-game-packages.md)。
 
 用户手写的剩余改动与任务量标记见[手写改动单](tasks/手写改动单.md)。
 
-2026-10-15晚间[深度瘦身](reference/project-slimming.md#深度瘦身与剩余空间2026-10-15)经唯一一次逐文件Apply，完整逻辑采样由23.762GB降至约 **6.374GB**，随后统计报告另有少量增长；严格低于6GB目标未达，剩余仅接续来源核实，不追加删除。当前交付／验收、原素材、旧档、依赖与工具缓存继续保护。历史5.897GB／5.973GB只表示当时结果；方法与门槛见[深度瘦身方法论](reference/deep-slimming-methodology.md)和[分层维护规则](reference/workspace-maintenance.md#容量触发与深度瘦身2026-10-15)。
+清理方法见[深度瘦身方法论](reference/deep-slimming-methodology.md)及[维护规则](reference/workspace-maintenance.md)；实际占用、退役记录与未完成来源核实统一见[项目瘦身](reference/project-slimming.md)。
 
 先读 [AGENTS.md](../AGENTS.md)，检查 Git 状态与当前任务相关 diff，再按下表进入唯一正文。已知主题直接定位章节或使用定向查询，不先通读整个 docs。原首版与Windows安装改造均已完成，历史范围从[归档索引](archive/README.md)追溯，未完成需求从[任务索引](tasks/README.md#后续开发接续入口)接续。
 
@@ -40,7 +34,7 @@
 | 宝可梦扩展版开发阶段与接续                             | [扩展版开发阶段](tasks/pokemon-encounters-expansion.md)，实现、同包验证及真人待测项                                                                                                                                                                                                                          |
 | 代码依赖、进程、契约与适度封装                         | [工程结构](reference/architecture.md)                                                                                                                                                                                                                                                                        |
 | 构建、测试、运行、便携、清理、压缩                     | [开发环境](reference/development.md)                                                                                                                                                                                                                                                                         |
-| 本地交付、GitHub Release流程与更新说明                 | [Release流程与发布约定](reference/release.md)：构建验收、EXE与源码附件、提交标签、发布文案和收尾。                                                                                                                                                                                                           |
+| 本地交付、GitHub Release流程与更新说明                 | [当前交付及边界](reference/acceptance.md#当前源码与本地交付)；[Release流程](reference/release.md)维护签名、推广和发布。                                                                                                                                                                                      |
 | 文件应放哪里、哪些是产物                               | [目录职责](reference/project-structure.md)                                                                                                                                                                                                                                                                   |
 | 新游戏注册、策略替换与模板                             | [游戏开发指南](reference/game-development.md)                                                                                                                                                                                                                                                                |
 | 当前交付包、模拟设备边界和最近证据                     | [验收记录](reference/acceptance.md)                                                                                                                                                                                                                                                                          |
@@ -84,7 +78,7 @@ rg -n '公开竞价|debug' docs/archive/acceptance-2026-10-01-to-04.md
 
 新增、迁移或归档主题时同步相关索引和目录职责；旧锚点保留短转链。当前验收页只保留最近交付与必要导航，历史原结论保留在归档，不因新版维护倒改。新包与证据分别位于 `artifacts/releases`、`artifacts/maintenance`；后续计划不写成已实现。
 
-收尾安全维护、手动清理和无损压缩均从[开发环境](reference/development.md#清理本地中间物)进入；按预览和保护范围执行，不按 Git 忽略规则批量删除资料。桌面运行时前提及体积门槛见[小体积桌面决策](decisions/008-small-native-desktop.md)：完整 EXE、内部载荷 ZIP 及实际提取内容分别严格小于 120,000,000 字节，工程预警 110,000,000 字节；内部模块预算另行核验。
+收尾安全维护、手动清理和无损压缩从[维护规则](reference/workspace-maintenance.md)进入；运行时与容量方法见[构建与运行](reference/build-and-run.md#便携包体积与共享运行时)，实际交付容量见[验收](reference/acceptance.md#当前源码与本地交付)。
 
 跨游戏互动、覆盖播放和身份边界见[平台规格](reference/phase-02-platform-spec.md#跨游戏互动v1052026-10-08)，本地素材来源见[互动清单](../assets/platform/interaction/manifest.json)。
 

@@ -2,17 +2,23 @@
 
 ## 唯一完整 EXE 交付（2026-10-12）
 
-游戏源码和资源继续分别维护在 `games/<id>/`与 `assets/`。完整EXE包含 `app/preinstalled-games/`的当前签名目录、预装清单与模块载荷；可替换app目录外的 `TableMax/games/`保留当前与历史内容寻址模块。内部载荷、快照和逐文件清单归 `artifacts/package-payloads/`及原构建缓存；`artifacts/releases/`保存当前完整EXE、本地清单及明确绑定的待验候选。独立游戏包、Pages和安装型作者工具包的现行导出取消，不限制整个程序的installer／uninstaller／更新。历史证据保留，具体见[Release流程](release.md#完整安装器与免费应用签名2026-10-15)。
+游戏源码与资源分别归 games/<id>/ 和 assets/。完整载荷的 app/preinstalled-games/ 保存签名目录、预装清单与模块；运行仓库 TableMax/games/ 位于可替换app之外。内部payload、快照及逐文件清单归 artifacts/package-payloads/ 和构建缓存，完整EXE及本地清单归 artifacts/releases/。分发及恢复规则见[Release流程](release.md)。
 
-预装和恢复层位于 `apps/server/src/game-packages/`，负责内部签名校验、安全解压、本地事务、当前映射和精确发行加载；运行仓库 `TableMax/games/`位于可替换app目录外，与源码 `games/`用途不同。`tools/release/prepare-internal-games.mjs`核对冻结单元，按需复用或生成内部签名模块；`packages/web-host/`维护公共宿主契约，平台私有适配留在 `apps/web/`。
+预装和恢复实现归 apps/server/src/game-packages/；冻结单元转内部载荷的构建工具为 tools/release/prepare-internal-games.mjs。packages/web-host/ 归公共宿主契约，平台私有适配归 apps/web/。组件调用与依赖见[架构](architecture.md)。
 
-2026-10-11曾以 `artifacts/game-packages/`和 `artifacts/author-toolkit/`导出安装包／作者工具，并双EXE交付。上述公开导出已退役；历史原包、目录和证据按原版本保留或审计退役。`tools/author/`的SDK／模板／源码验证能力保留，导出入口明确拒绝执行；私钥只留受保护本地 `secrets/`，不进Git或程序。
+退役的独立分发目录及其历史用途见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#目录职责中的旧分发目录)。tools/author/ 保留SDK、模板与源码验证能力；本地受保护的 secrets/ 不进Git或程序。
 
 阿瓦隆模块在 `games/avalon/`，`config.ts` 统一维护现行人数角色表，供初始化、存档校验、策略和规则页读取；独立图像与音频在 `assets/games/avalon/`，经典版原始规则册与采用规格在 `docs/games/avalon/`。生成原图留 `artifacts/avalon-art/`，实际游戏验证留 `artifacts/avalon/validation/`，便携交付审计留 `artifacts/maintenance/v1.0.6/avalon/`。
 
-受管理安装采用安装根I、配置根B=I/TableMax、程序载荷B/app、模块仓库G=B/games及配置指定的数据根D（默认B）。I下 `TableMax.exe` 是稳定入口，`UpdateHelper.exe` 是事务协调器，框架另生成卸载文件；Native、Node、服务、网页及预装输入在B/app。B内 `.install.json` 与 `.installer-receipt.json` 绑定安装身份和实际外层字节，`updates/` 与 `.installation-transactions/`保存更新输入、交接及恢复记录；它们是保护对象，不是可以整目录清空的缓存。旧便携源、外置D和未知文件保留，详细行为见[构建与运行](build-and-run.md#windows-安装与整个程序更新)。
+受管理安装采用安装根I、配置根B=I/data、程序载荷B/app、模块仓库G=B/games及配置指定的数据根D（默认B）。I下 `TableMax.exe` 是稳定入口，`Updater.exe` 是可见更新入口，`UpdateHelper.exe` 是事务协调器，框架另生成卸载文件；Native、Node、服务、网页及预装输入在B/app。B内 `.install.json` 与 `.installer-receipt.json` 绑定安装身份和实际外层字节，`updates/` 与 `.installation-transactions/`保存更新输入、交接及恢复记录；它们是保护对象，不是可以整目录清空的缓存。配置、数据和历史模块的操作规则见[构建与运行](build-and-run.md#windows-安装与整个程序更新)。
 
 本页说明当前文件归属与材料边界；运行与构建机制在[构建与运行](build-and-run.md)，交付及GitHub发布流程在[Release流程](release.md)，代码依赖与封装在[工程结构](architecture.md)维护。实际交付由current绑定的原始字节及[安装证明](acceptance.md#当前源码与本地交付)确定，不能把候选目录当作已推广交付。
+
+## 交付文件布局与历史元数据
+
+新构建的交付归属：完整EXE及同名-manifest.json sidecar写入 artifacts/releases/v<公开版本>/<四位构建>/。读取必须以冻结记录中的精确路径为准，不从目录名称推定身份，也不递归挑选“最新EXE”。delivery-paths.mjs 负责新布局与旧精确路径的共同边界；验证结果见[验收](acceptance.md#当前源码与本地交付)。
+
+既有平铺交付保持冻结记录中的原位置与原字节；当前交付身份见[验收](acceptance.md#当前源码与本地交付)。13–16的四份原manifest已按[归组记录](../archive/tooling-delivery-organization-2026-10-15.md#历史候选manifest归组)迁入 artifacts/releases/retired/v1.0.6/<四位构建>/，原SHA通过迁移回执追溯；retired表示历史元数据归属，不生成新的可运行候选。内部payload、current／candidate及正式proof仍在原目录，不能随EXE归组一起移动。
 
 ## 已创建结构
 
