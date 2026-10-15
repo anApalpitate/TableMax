@@ -1,6 +1,8 @@
 export type ApplicationUpdatePhase =
   | 'idle'
   | 'checking'
+  | 'up-to-date'
+  | 'ahead'
   | 'available'
   | 'downloading'
   | 'ready'
@@ -11,6 +13,7 @@ export type ApplicationUpdatePhase =
 export interface ApplicationUpdateSnapshot {
   supported: boolean;
   phase: ApplicationUpdatePhase;
+  panelRequestId?: number;
   currentVersion: string;
   targetVersion?: string;
   notes?: string;

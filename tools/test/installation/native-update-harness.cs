@@ -36,8 +36,9 @@ namespace TableMax.NativeUpdateHarness
                     if (separator < 0 || (argument.Substring(0, separator) != "--only" && argument.Substring(0, separator) != "--prior-failures") || options.ContainsKey(argument.Substring(0, separator))) throw new IOException("Unexpected or duplicate harness option.");
                     options.Add(argument.Substring(0, separator), argument.Substring(separator + 1));
                 }
+                var failureLimit = 5; var configuredLimit = Environment.GetEnvironmentVariable("TABLEMAX_TEST_MAX_FAILURES"); if (configuredLimit != null && (!Int32.TryParse(configuredLimit, out failureLimit) || failureLimit < 1 || failureLimit > 1000)) throw new IOException("Failure limit must be an integer from 1 to 1000.");
                 var priorFailures = 0;
-                if (options.TryGetValue("--prior-failures", out var prior) && (prior.Length != 1 || prior[0] < '0' || prior[0] > '2' || !Int32.TryParse(prior, out priorFailures))) throw new IOException("Prior failures must be 0, 1 or 2.");
+                if (options.TryGetValue("--prior-failures", out var prior) && (!Int32.TryParse(prior, out priorFailures) || priorFailures < 0 || priorFailures >= failureLimit || prior != priorFailures.ToString(System.Globalization.CultureInfo.InvariantCulture))) throw new IOException("Prior failures must be an integer from 0 to " + (failureLimit - 1) + ".");
                 var selected = CaseNames;
                 if (options.TryGetValue("--only", out var only))
                 {
@@ -53,10 +54,10 @@ namespace TableMax.NativeUpdateHarness
                 {
                     try { tests.Add(Run(name).GetAwaiter().GetResult()); }
                     catch (Exception error) { tests.Add(new Result { name = name, passed = false, error = error.Message }); }
-                    if (priorFailures + tests.Count(test => !test.passed) >= 3) break;
+                    if (priorFailures + tests.Count(test => !test.passed) >= failureLimit) break;
                 }
                 var failures = tests.Count(test => !test.passed);
-                Console.WriteLine(InstallationCore.Encode(new { passed = tests.All(test => test.passed), boundary = "Actual net48 ApplicationUpdate controller and filesystem with synthetic installation members; injected managed HTTP transport; no Native/server startup, live GitHub download, installer, registry or Windows policy change", selectedCases = selected, priorFailures, failures, totalFailures = priorFailures + failures, failureLimit = 3, stoppedEarly = tests.Count < selected.Length, results = tests }));
+                Console.WriteLine(InstallationCore.Encode(new { passed = tests.All(test => test.passed), boundary = "Actual net48 ApplicationUpdate controller and filesystem with synthetic installation members; injected managed HTTP transport; no Native/server startup, live GitHub download, installer, registry or Windows policy change", selectedCases = selected, priorFailures, failures, totalFailures = priorFailures + failures, failureLimit, stoppedEarly = tests.Count < selected.Length, results = tests }));
                 return tests.All(test => test.passed) ? 0 : 1;
             }
             catch (Exception error) { Console.Error.WriteLine(error.Message); return 2; }
@@ -76,11 +77,12 @@ namespace TableMax.NativeUpdateHarness
             var paths = new Dictionary<string, string> {
                 ["TableMax.exe"] = "fixture-launcher",
                 ["UpdateHelper.exe"] = "fixture-helper",
-                ["TableMax/app/TableMax.exe"] = "fixture-native",
-                ["TableMax/app/node.exe"] = "fixture-node",
-                ["TableMax/app/server.cjs"] = "fixture-server",
-                ["TableMax/app/.tablemax-release.json"] = "fixture-payload-manifest",
-                ["TableMax/app/preinstalled-games/bootstrap.json"] = "fixture-bootstrap-mapping"
+                ["Updater.exe"] = "fixture-updater",
+                ["data/app/TableMax.exe"] = "fixture-native",
+                ["data/app/node.exe"] = "fixture-node",
+                ["data/app/server.cjs"] = "fixture-server",
+                ["data/app/.tablemax-release.json"] = "fixture-payload-manifest",
+                ["data/app/preinstalled-games/bootstrap.json"] = "fixture-bootstrap-mapping"
             };
             var files = new List<ManagedFile>();
             foreach (var entry in paths) { var file = InstallationCore.Member(directory, entry.Key); Directory.CreateDirectory(InstallationCore.IO(Path.GetDirectoryName(file))); var bytes = InstallationCore.Utf8.GetBytes(entry.Value); File.WriteAllBytes(InstallationCore.IO(file), bytes); files.Add(new ManagedFile { path = entry.Key, bytes = bytes.Length, sha256 = InstallationCore.Hash(bytes) }); }
@@ -125,7 +127,7 @@ namespace TableMax.NativeUpdateHarness
                 else
                 {
                     controller.Check(); await Until(() => Phase(controller) != "checking", "Check did not finish.");
-                    if (name == "current-is-idle") Assert(Phase(controller) == "idle", "An exact current installer must remain idle.");
+                    if (name == "current-is-idle") Assert(Phase(controller) == "up-to-date", "An exact current installer must explicitly report up-to-date.");
                     else if (new[] { "exact-two-assets", "source-asset-state", "asset-digest", "foreign-release", "multiple-machine-blocks", "same-current-different-sha" }.Contains(name)) Assert(Phase(controller) == "error" && transport.DownloadCount == 0, "Invalid release must fail before download.");
                     else
                     {

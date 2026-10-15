@@ -34,6 +34,7 @@ namespace TableMax.Desktop
         private UpdateDescriptor target;
         private long received;
         private long releaseId, assetId;
+        private int panelRequestId;
         private bool disposed;
         public const string ManualUrl = "https://github.com/" + UpdateDescriptor.Repository + "/releases";
         public ApplicationUpdate(InstallationManifest installation, bool testing, Func<Task<bool>> prepare, Action quit, Action<string> shutdownFailure, Action<object> changed, Func<HttpMessageHandler> handlerFactory = null)
@@ -53,7 +54,19 @@ namespace TableMax.Desktop
         }
         public object Read()
         {
-            lock (gate) return new { supported = installation != null && keys.Count > 0, phase, currentVersion = installation?.buildVersion ?? typeof(DesktopContext).Assembly.GetName().Version.ToString(4), targetVersion = target?.buildVersion, notes, downloadedBytes = received, totalBytes = target?.bytes ?? 0, error, manualUrl = ManualUrl };
+            lock (gate) return new { supported = installation != null && keys.Count > 0, phase, panelRequestId, currentVersion = installation?.buildVersion ?? typeof(DesktopContext).Assembly.GetName().Version.ToString(4), targetVersion = target?.buildVersion, notes, downloadedBytes = received, totalBytes = target?.bytes ?? 0, error, manualUrl = ManualUrl };
+        }
+        public object OpenPanel()
+        {
+            bool check;
+            lock (gate)
+            {
+                if (disposed) throw new IOException("程序正在关闭，请稍后检查更新。");
+                panelRequestId = checked(panelRequestId + 1);
+                check = phase == "idle" || phase == "up-to-date" || phase == "ahead" || phase == "error";
+            }
+            Publish();
+            return check ? Check() : Read();
         }
         private void Publish() { if (!disposed) changed(Read()); }
         private bool Begin(string next)
@@ -88,12 +101,11 @@ namespace TableMax.Desktop
                     if (sources.Length != 1 || InstallationCore.Text(sources[0], "browser_download_url") != "https://github.com/" + UpdateDescriptor.Repository + "/releases/download/" + candidate.releaseTag + "/" + sourceName || InstallationCore.Number(sources[0], "size") < 1 || InstallationCore.Text(sources[0], "state") != "uploaded" || InstallationCore.Text(matches[0], "state") != "uploaded" || GitHubId(sources[0]) == GitHubId(matches[0])) throw new IOException("正式发布源码或安装器附件状态无效。");
                     if (matches[0].TryGetValue("digest", out var digest) && digest != null && (!(digest is string digestText) || digestText != "sha256:" + candidate.sha256)) throw new IOException("GitHub摘要与签名不匹配。");
                     var selectedRelease = GitHubId(release); var selectedAsset = GitHubId(matches[0]);
-                    VerifyMonotonic(candidate);
+                    VerifyMonotonic(candidate, allowOlderInstalled: true);
                     var comparison = InstallationCore.Version4(candidate.buildVersion).CompareTo(InstallationCore.Version4(installation.buildVersion));
-                    if (comparison < 0) throw new IOException("已拒绝降级更新。");
                     if (comparison == 0 && (candidate.sha256 != installedReceipt.sha256 || candidate.bytes != installedReceipt.bytes || candidate.payloadManifestSha256 != installation.payloadManifestSha256 || candidate.currentMappingSha256 != installation.currentMappingSha256)) throw new IOException("相同构建的内容身份不同，已拒绝更新。");
-                    InstallationCore.Atomic(Path.Combine(installation.boxRoot, "updates", "highest-envelope.json"), StrictJson.Parse(signed));
-                    lock (gate) { target = comparison > 0 ? candidate : null; envelope = signed; notes = humanNotes; releaseId = selectedRelease; assetId = selectedAsset; phase = comparison > 0 ? "available" : "idle"; }
+                    if (comparison >= 0) InstallationCore.Atomic(Path.Combine(installation.boxRoot, "updates", "highest-envelope.json"), StrictJson.Parse(signed));
+                    lock (gate) { target = comparison > 0 ? candidate : null; envelope = signed; notes = humanNotes; releaseId = selectedRelease; assetId = selectedAsset; phase = comparison > 0 ? "available" : comparison == 0 ? "up-to-date" : "ahead"; }
                     Publish();
                 }
                 catch (Exception cause) { Failure(cause); }
@@ -216,7 +228,26 @@ namespace TableMax.Desktop
         }
         private void Failure(Exception cause)
         {
-            lock (gate) { if (disposed) return; var cancelled = cause is OperationCanceledException; phase = cancelled && target != null ? "available" : "error"; error = cancelled ? "更新操作已取消。" : cause is IOException ? cause.Message : "更新操作失败，请重试或手动获取完整安装器。"; }
+            lock (gate)
+            {
+                if (disposed) return;
+                var cancelled = cause is OperationCanceledException;
+                phase = cancelled && target != null ? "available" : "error";
+                var reason = cause is HttpRequestException ? "无法连接更新服务或读取发布信息。请检查网络连接后重试。"
+                    : cause is TimeoutException ? "更新请求超时。请检查网络连接后重试。"
+                    : "更新操作失败。请检查网络、磁盘空间和安装目录权限，再重试；也可打开发布页获取完整安装器。";
+                var message = cause.Message;
+                if (cause is IOException && !String.IsNullOrWhiteSpace(message) && message.Length <= 240 && !message.Any(Char.IsControl) && message.Any(character => character >= '\u4e00' && character <= '\u9fff')) reason = message;
+                error = cancelled ? "更新操作已取消。" : reason;
+                try
+                {
+                    var directory = Path.Combine(installation.boxRoot, "logs"); InstallationCore.Safe(directory); Directory.CreateDirectory(directory);
+                    var path = Path.Combine(directory, "application-update.log"); InstallationCore.Safe(path);
+                    System.IO.File.AppendAllText(InstallationCore.IO(path), DateTime.UtcNow.ToString("o") + " " + cause + "\n", InstallationCore.Utf8);
+                    if (!cancelled) error += "\n诊断日志：" + path;
+                }
+                catch { error += "\n诊断日志无法写入。请检查安装目录的写入权限和磁盘剩余空间；不要删除原数据。"; }
+            }
             Publish();
         }
         private async Task<string> GetText(Uri url, int limit, CancellationToken token)
@@ -236,10 +267,10 @@ namespace TableMax.Desktop
         {
             if (!value.TryGetValue("id", out var id) || !(id is decimal number) || number <= 0 || number != Decimal.Truncate(number) || number > 9007199254740991M) throw new IOException("GitHub 发布或附件标识无效。"); return (long)number;
         }
-        private void VerifyMonotonic(UpdateDescriptor candidate)
+        private void VerifyMonotonic(UpdateDescriptor candidate, bool allowOlderInstalled = false)
         {
             var comparison = InstallationCore.Version4(candidate.buildVersion).CompareTo(InstallationCore.Version4(installedReceipt.buildVersion));
-            if (comparison < 0 || (comparison == 0 && (candidate.sha256 != installedReceipt.sha256 || candidate.bytes != installedReceipt.bytes))) throw new IOException("降级或相同构建不同安装器字节已被拒绝。");
+            if ((!allowOlderInstalled && comparison < 0) || (comparison == 0 && (candidate.sha256 != installedReceipt.sha256 || candidate.bytes != installedReceipt.bytes))) throw new IOException("降级或相同构建不同安装器字节已被拒绝。");
             var path = Path.Combine(installation.boxRoot, "updates", "highest-envelope.json"); InstallationCore.Safe(path);
             if (!File.Exists(path)) return;
             if (new FileInfo(InstallationCore.IO(path)).Length > 16384) throw new IOException("已接受更新描述损坏，未重置信任水位。");

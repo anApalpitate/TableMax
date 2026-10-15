@@ -24,10 +24,19 @@ namespace TableMax.Desktop
             Console.SetIn(new StreamReader(Console.OpenStandardInput(), new UTF8Encoding(false)));
             var testing = arguments.Contains("--foundation-test");
             var checking = arguments.Contains("--foundation-check");
+            var updateRequest = arguments.Contains("--check-updates");
             var boxDirectory = Environment.GetEnvironmentVariable("TABLEMAX_BOX_DIRECTORY") ?? AppDomain.CurrentDomain.BaseDirectory;
             var dataDirectory = boxDirectory;
+            StartupFeedback startupFeedback = null;
             try
             {
+                try { NativeMethods.SetProcessDpiAwarenessContext(new IntPtr(-4)); } catch (EntryPointNotFoundException) { }
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                if (!testing && !checking)
+                {
+                    startupFeedback = new StartupFeedback(updateRequest); startupFeedback.Show(); startupFeedback.Refresh(); Application.DoEvents();
+                }
                 var storage = new TableMax.Portable.StorageConfiguration(boxDirectory);
                 dataDirectory = Path.GetFullPath(Environment.GetEnvironmentVariable("TABLEMAX_DATA_DIR") ?? storage.DataDirectory);
                 Directory.CreateDirectory(dataDirectory);
@@ -45,7 +54,15 @@ namespace TableMax.Desktop
                 using (var reopen = new EventWaitHandle(false, EventResetMode.AutoReset, "Local\\TableMax-reopen-" + key))
                 using (var installedRun = installation == null ? null : InstallationCore.Mutex("Run", installation.root))
                 {
-                    if (!first) { reopen.Set(); return 0; }
+                    if (!first)
+                    {
+                        if (updateRequest && installation != null)
+                        {
+                            if (!UpdateActivation.TryActivate(installation)) throw new IOException("正在运行的 TableMax 尚未接受更新请求，请稍后再试；当前对局保持运行。");
+                        }
+                        else reopen.Set();
+                        return 0;
+                    }
                     bool runAcquired;
                     using (var operation = installation == null || Environment.GetEnvironmentVariable("TABLEMAX_INSTALLATION_HEALTH_PIPE") != null ? null : InstallationCore.Mutex("Operation", installation.root))
                     {
@@ -54,11 +71,12 @@ namespace TableMax.Desktop
                         try { installation?.Verify(installation.root); runAcquired = installedRun == null || InstallationCore.Acquire(installedRun, 0); }
                         finally { operation?.ReleaseMutex(); }
                     }
-                    if (!runAcquired) throw new IOException("这个安装实例已在其他窗口或 Windows 会话运行，请先退出。");
-                    try { NativeMethods.SetProcessDpiAwarenessContext(new IntPtr(-4)); } catch (EntryPointNotFoundException) { }
-                    Application.EnableVisualStyles();
-                    Application.SetCompatibleTextRenderingDefault(false);
-                    try { using (var context = new DesktopContext(dataDirectory, arguments, testing, checking, reopen, storage, installation)) Application.Run(context); }
+                    if (!runAcquired)
+                    {
+                        if (updateRequest && installation != null && UpdateActivation.TryActivate(installation)) { mutex.ReleaseMutex(); return 0; }
+                        throw new IOException("这个安装实例已在其他窗口或 Windows 会话运行，请先退出。");
+                    }
+                    try { using (var context = new DesktopContext(dataDirectory, arguments, testing, checking, reopen, storage, installation, startupFeedback)) Application.Run(context); }
                     finally { installedRun?.ReleaseMutex(); }
                     mutex.ReleaseMutex();
                 }
@@ -66,11 +84,17 @@ namespace TableMax.Desktop
             catch (Exception cause)
             {
                 ExitCode = 1;
-                var detail = StartupError.Describe(cause, dataDirectory);
-                try { Directory.CreateDirectory(Path.Combine(dataDirectory, "logs")); File.AppendAllText(Path.Combine(dataDirectory, "logs", "desktop.log"), DateTime.UtcNow.ToString("o") + " " + detail + "\n"); } catch { }
-                Console.Error.WriteLine(detail);
-                if (!testing && !checking) MessageBox.Show(detail, "TableMax 启动失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                startupFeedback?.Close();
+                var detail = updateRequest
+                    ? "无法打开程序更新。\n已经运行的 TableMax 和对局不会因此关闭，请查看诊断日志后重试。"
+                    : StartupError.Describe(cause, dataDirectory);
+                var diagnostic = cause.GetType().FullName + " HResult=0x" + cause.HResult.ToString("X8", System.Globalization.CultureInfo.InvariantCulture) + "\n" + cause.StackTrace;
+                try { Directory.CreateDirectory(Path.Combine(dataDirectory, "logs")); File.AppendAllText(Path.Combine(dataDirectory, "logs", "desktop.log"), DateTime.UtcNow.ToString("o") + " " + detail + "\n" + diagnostic + "\n"); }
+                catch { detail += "\n\n诊断日志无法写入。请检查数据目录的写入权限和磁盘剩余空间，再重新启动。"; }
+                Console.Error.WriteLine(detail + "\n" + diagnostic);
+                if (!testing && !checking) MessageBox.Show(detail, updateRequest ? "TableMax 更新入口" : "TableMax 启动失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            finally { startupFeedback?.Dispose(); }
             return ExitCode;
         }
     }
@@ -89,7 +113,7 @@ namespace TableMax.Desktop
             else if (cause is UnauthorizedAccessException || new[] { "EACCES", "EPERM", "ENOSPC", "read-only", "unable to open database" }.Any(message.Contains)) { reason = "数据目录不可写，或磁盘空间不足。"; remedy = "请检查目录权限和磁盘剩余空间，再重新启动。"; }
             else if (cause is TimeoutException && cause.Message == "Save migration startup timed out.") { reason = "旧存档迁移长时间没有进展，启动已停止。"; remedy = "原存档及迁移备份保留。请检查磁盘空间和日志，然后重新启动。"; }
             else if (cause is TimeoutException) { reason = "本地服务在 20 秒内没有完成启动。"; remedy = "请检查磁盘、安全软件和日志，然后重新启动。"; }
-            return reason + "\n" + remedy + "\n\n数据目录：" + dataDirectory + "\n日志目录：" + Path.Combine(dataDirectory, "logs") + "\n\n具体原因：" + message.Substring(0, Math.Min(1500, message.Length));
+            return reason + "\n" + remedy + "\n\n数据目录：" + dataDirectory + "\n日志目录：" + Path.Combine(dataDirectory, "logs");
         }
     }
 }

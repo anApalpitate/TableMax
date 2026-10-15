@@ -1,3 +1,4 @@
+import { failureLimit } from '../test/runner/failure-policy.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { constants, createHash, generateKeyPairSync, sign } from 'node:crypto';
@@ -43,11 +44,12 @@ const numberVectors = JSON.parse(
   ),
 );
 const original = vectors.description;
+const limit = failureLimit();
 let failures = 0;
 function check(name, callback) {
   test(name, { concurrency: false }, async (context) => {
-    if (failures >= 3) {
-      context.skip('Round stopped after three failures; no automatic retry');
+    if (failures >= limit) {
+      context.skip(`Round stopped after ${limit} failures; no automatic retry`);
       return;
     }
     try {

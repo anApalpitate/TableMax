@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type {
   ApplicationUpdateSnapshot,
   TablemaxUpdate,
@@ -16,16 +16,25 @@ export function ApplicationUpdate({ playing }: { playing: boolean }) {
   );
   const [requesting, setRequesting] = useState(false);
   const [error, setError] = useState('');
-  const [checked, setChecked] = useState(false);
+  const panelRequest = useRef(0);
   useEffect(() => {
     if (!bridge) return;
     let active = true;
+    const receive = (value: ApplicationUpdateSnapshot) => {
+      if (!active) return;
+      setSnapshot(value);
+      const request = value.panelRequestId ?? 0;
+      if (Number.isSafeInteger(request) && request > panelRequest.current) {
+        panelRequest.current = request;
+        setOpen(true);
+      }
+    };
     const unsubscribe = bridge.subscribe((value) => {
-      if (active) setSnapshot(value);
+      receive(value);
     });
     void bridge.read().then(
       (value) => {
-        if (active) setSnapshot(value);
+        receive(value);
       },
       () => {
         if (active) setError(feedbackText('applicationUpdate.readFailed'));
@@ -42,7 +51,6 @@ export function ApplicationUpdate({ playing }: { playing: boolean }) {
     setError('');
     try {
       setSnapshot(await (bridge[method] as TablemaxUpdate['check'])());
-      if (method === 'check') setChecked(true);
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -60,10 +68,7 @@ export function ApplicationUpdate({ playing }: { playing: boolean }) {
   const downloaded = snapshot?.downloadedBytes ?? 0;
   const percent =
     total > 0 ? Math.min(100, Math.floor((downloaded / total) * 100)) : 0;
-  const status =
-    phase === 'idle' && checked
-      ? feedbackText('applicationUpdate.current')
-      : feedbackText(`applicationUpdate.${phase}`);
+  const status = feedbackText(`applicationUpdate.${phase}`);
   return (
     <>
       <button

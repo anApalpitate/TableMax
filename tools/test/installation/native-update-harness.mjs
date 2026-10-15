@@ -1,3 +1,4 @@
+import { failureLimit } from '../runner/failure-policy.mjs';
 import { createHash, generateKeyPairSync, sign, constants } from 'node:crypto';
 import { mkdtemp, mkdir, writeFile, readFile, readdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
@@ -40,9 +41,13 @@ if (
 )
   throw new Error('Select unique known controller case IDs.');
 const selectedCases = caseIds.filter((name) => selected.includes(name));
+const limit = failureLimit();
 const priorFailuresText = options.get('prior-failures') ?? '0';
-if (!/^[0-2]$/.test(priorFailuresText))
-  throw new Error('Prior failures must be 0, 1 or 2.');
+if (
+  !/^(0|[1-9]\d*)$/.test(priorFailuresText) ||
+  Number(priorFailuresText) >= limit
+)
+  throw new Error(`Prior failures must be an integer from 0 to ${limit - 1}.`);
 const priorFailures = Number(priorFailuresText);
 const workspace = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
@@ -142,6 +147,7 @@ async function execute(executable, arguments_, label, timeout = 90000) {
         DOTNET_CLI_HOME: join(workspace, '.cache', 'dotnet-home'),
         DOTNET_NOLOGO: '1',
         DOTNET_CLI_TELEMETRY_OPTOUT: '1',
+        TABLEMAX_TEST_MAX_FAILURES: String(limit),
         TABLEMAX_AUTO_MAINTENANCE: '0',
         TABLEMAX_TEST_MAINTENANCE: '0',
       },
@@ -236,7 +242,7 @@ try {
 }
 if (
   report.priorFailures !== priorFailures ||
-  report.failureLimit !== 3 ||
+  report.failureLimit !== limit ||
   report.totalFailures !== priorFailures + report.failures ||
   JSON.stringify(report.selectedCases) !== JSON.stringify(selectedCases)
 )
@@ -252,6 +258,7 @@ const sources = [
   'apps/desktop/native/InstallationSession.cs',
   'tools/test/installation/native-update-harness.cs',
   'tools/test/installation/native-update-harness.mjs',
+  'tools/test/runner/failure-policy.mjs',
 ];
 report.sourceHashes = Object.fromEntries(
   await Promise.all(

@@ -43,6 +43,9 @@ namespace TableMax.Desktop
         private readonly InstallationManifest installation;
         private InstallationSession installationSession;
         private ApplicationUpdate updates;
+        private UpdateActivation updateActivation;
+        private readonly StartupFeedback startupFeedback;
+        private bool updateRequested;
         public string DataDirectory { get; }
         public TableMax.Portable.StorageConfiguration Storage { get; }
         public bool Testing { get; }
@@ -54,12 +57,14 @@ namespace TableMax.Desktop
         public CoreWebView2Environment Environment { get; private set; }
         public DisplaySettingsStore Displays { get; }
 
-        public DesktopContext(string dataDirectory, string[] arguments, bool testing, bool checking, EventWaitHandle reopenEvent, TableMax.Portable.StorageConfiguration storage, InstallationManifest installation = null)
+        public DesktopContext(string dataDirectory, string[] arguments, bool testing, bool checking, EventWaitHandle reopenEvent, TableMax.Portable.StorageConfiguration storage, InstallationManifest installation = null, StartupFeedback startupFeedback = null)
         {
             Storage = storage; DataDirectory = dataDirectory; this.arguments = arguments; Testing = testing; Checking = checking;
             this.installation = installation;
+            this.startupFeedback = startupFeedback; updateRequested = arguments.Contains("--check-updates");
             Displays = new DisplaySettingsStore(dataDirectory);
             dispatch.CreateControl();
+            if (installation != null && !checking) updateActivation = new UpdateActivation(installation, RequestUpdatePanel, Log);
             reopen = ThreadPool.RegisterWaitForSingleObject(reopenEvent, (_, __) => Post(async () => { await ShowHost(); }), null, Timeout.Infinite, false);
             dispatch.BeginInvoke(new Action(async () =>
             {
@@ -183,6 +188,28 @@ namespace TableMax.Desktop
                 Write(new { type = "desktop-ready", origin = Origin, servicePid = service?.Id ?? 0, desktopPid = Process.GetCurrentProcess().Id, packaged = IsPackaged, cdpPort = CdpPort });
                 _ = Task.Run(ReadTestCommands);
             }
+            startupFeedback?.Close();
+            if (!Checking && updateRequested) await OpenUpdatePanel();
+        }
+        private async Task OpenUpdatePanel()
+        {
+            await ShowHost(); updates.OpenPanel();
+        }
+        private Task RequestUpdatePanel()
+        {
+            var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            Post(async () =>
+            {
+                try
+                {
+                    if (quitting) throw new IOException("TableMax 正在保存关闭，请稍后检查更新。");
+                    updateRequested = true;
+                    if (!booting) await OpenUpdatePanel();
+                    completion.TrySetResult(true);
+                }
+                catch (Exception error) { completion.TrySetException(error); }
+            });
+            return completion.Task;
         }
         private void EnsureServiceAlive()
         {
@@ -338,8 +365,14 @@ namespace TableMax.Desktop
         public void Post(Action action) { if (!dispatch.IsDisposed && dispatch.IsHandleCreated) try { dispatch.BeginInvoke(action); } catch (InvalidOperationException) { } }
         public void Log(string text)
         {
-            try { var directory = Path.Combine(DataDirectory, "logs"); Directory.CreateDirectory(directory); File.AppendAllText(Path.Combine(directory, "desktop.log"), DateTime.UtcNow.ToString("o") + " " + text + "\n"); } catch { }
+            TryLog(text);
+        }
+        private bool TryLog(string text)
+        {
+            var saved = false;
+            try { var directory = Path.Combine(DataDirectory, "logs"); Directory.CreateDirectory(directory); File.AppendAllText(Path.Combine(directory, "desktop.log"), DateTime.UtcNow.ToString("o") + " " + text + "\n"); saved = true; } catch { }
             Console.Error.WriteLine(text);
+            return saved;
         }
         private void StartupStage(string stage)
         {
@@ -349,9 +382,11 @@ namespace TableMax.Desktop
         private async Task Failure(Exception cause)
         {
             Program.ExitCode = 1;
-            if (Testing) Log(cause.ToString());
-            else if (Checking) Log("Startup exception: stage=" + startupStage + " type=" + cause.GetType().FullName + " HResult=0x" + cause.HResult.ToString("X8", System.Globalization.CultureInfo.InvariantCulture) + "\n" + cause.StackTrace);
-            var detail = StartupError.Describe(cause, DataDirectory); Log(detail);
+            startupFeedback?.Close();
+            var diagnostic = Testing ? cause.ToString() : "Startup exception: stage=" + startupStage + " type=" + cause.GetType().FullName + " HResult=0x" + cause.HResult.ToString("X8", System.Globalization.CultureInfo.InvariantCulture) + "\n" + cause.StackTrace;
+            var saved = TryLog(diagnostic);
+            var detail = StartupError.Describe(cause, DataDirectory);
+            if (!TryLog(detail) || !saved) detail += "\n\n诊断日志无法写入。请检查数据目录的写入权限和磁盘剩余空间，再重新启动。";
             if (!Background && !(cause is MissingRuntimeException)) MessageBox.Show(detail, "TableMax 启动失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
             await Quit();
         }
@@ -408,7 +443,7 @@ namespace TableMax.Desktop
         public async Task Quit()
         {
             if (quitting) return;
-            quitting = true; updates?.Dispose(); UpdatePower();
+            quitting = true; updateActivation?.Dispose(); startupFeedback?.Close(); updates?.Dispose(); UpdatePower();
             try
             {
                 CaptureBrowserProcesses();
@@ -540,7 +575,7 @@ namespace TableMax.Desktop
         public static object RectangleValue(System.Drawing.Rectangle rectangle) => new { x = rectangle.X, y = rectangle.Y, width = rectangle.Width, height = rectangle.Height };
         protected override void Dispose(bool disposing)
         {
-            if (disposing) { installationSession?.Dispose(); updates?.Dispose(); reopen.Unregister(null); SystemEvents.PowerModeChanged -= OnPowerModeChanged; SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged; service?.Dispose(); dispatch.Dispose(); }
+            if (disposing) { updateActivation?.Dispose(); startupFeedback?.Close(); installationSession?.Dispose(); updates?.Dispose(); reopen.Unregister(null); SystemEvents.PowerModeChanged -= OnPowerModeChanged; SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged; service?.Dispose(); dispatch.Dispose(); }
             base.Dispose(disposing);
         }
     }
