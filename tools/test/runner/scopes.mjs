@@ -127,6 +127,7 @@ const unitScopes = {
 // Mixed matrices cannot be narrowed by adding an option they do not implement.
 const verificationScopes = {
   'tools/shared/application-update.test.mjs': ['tooling', 'shared'],
+  'tools/shared/windows-acceptance-profile.test.mjs': ['tooling'],
   'tools/release/installation-package.test.mjs': ['tooling'],
   'tools/release/installation-promote.test.mjs': ['tooling'],
   'tools/release/installation-publication.test.mjs': ['tooling'],

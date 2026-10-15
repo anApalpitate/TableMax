@@ -372,3 +372,7 @@ Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 
 框架恢复的故障注入仅存在于显式编译的fixture alternate Main：严格限定测试GUID、60001、请求、隔离根、默认D、实际安装身份／receipt及包内Node摘要。包内Node对隔离foundation库合法写入并关闭，产生字节变化见证后Native返回42，发生在checking／persistent入口之前；生产Program和桥接不含该注入入口。直接复制已恢复helper再执行 `--uninstall` 只证明组件路径，不能证明框架自己的固定SHA可达；双PE材料已准备或全字节解码通过也不抵扣实际A框架卸载。
 
 `TABLEMAX_INSTALLATION_HEALTH_CHECK=1`仅使helper的健康启动显式静音后台checking后退出；正式默认更新仍启动并保持普通新版主机。持久在线交接fixture分支优先，不以checking代替新主机持续运行证据。该工程标志不替代正式GUID、fresh SID或完整安装验收；不同来源、旧sourceSHA的通过报告按未变化方法复用，不增加新统计或清零原失败。
+
+## Windows完整性与隔离验收
+
+工程继承Low标签会使生成EXE与Node降为Low，写正常HKCU被拒绝。profile测试模式须先获明确授权，核实际新标准SID／真实目录／两个Medium token，仅物化同SHA副本，不修改原标签、token或DACL；日志及清理证明留工程，具体入口见[完整安装验证](../../tools/test/README.md#完整安装与程序更新验证)。

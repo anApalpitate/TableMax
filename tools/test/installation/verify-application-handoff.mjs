@@ -23,6 +23,10 @@ import {
   signApplicationUpdate,
   verifyApplicationUpdate,
 } from '../../shared/application-update.mjs';
+import {
+  materializeAcceptanceExecutable,
+  resolveWindowsAcceptanceProfile,
+} from '../../shared/windows-acceptance-profile.mjs';
 import { assertWorkspaceRoot } from '../../shared/workspace-root.mjs';
 import { launchDesktop } from '../support/desktop-test.mjs';
 
@@ -216,12 +220,24 @@ export async function verifyApplicationHandoff({
   );
   await mkdir(dirname(evidence), { recursive: true });
   await mkdir(evidence, { recursive: false });
-  await mkdir(resolve('tmp'), { recursive: true });
   const configuredParent = process.env.TABLEMAX_INSTALLATION_HANDOFF_TMP;
-  const workParent = configuredParent
-    ? inside(resolve('tmp'), configuredParent)
-    : resolve('tmp');
-  if (configuredParent) {
+  const profile = await resolveWindowsAcceptanceProfile(configuredParent);
+  assert.ok(
+    !profile || prepared,
+    'Profile execution requires exact prepared materials',
+  );
+  if (!profile) await mkdir(resolve('tmp'), { recursive: true });
+  const workParent = profile
+    ? profile.workParent
+    : configuredParent
+      ? inside(resolve('tmp'), configuredParent)
+      : resolve('tmp');
+  const scopeRoot = profile ? profile.root : resolve('tmp');
+  if (profile) {
+    assert.equal(resolve(configuredParent), resolve(profile.workParent));
+    assert.equal(dirname(resolve(profile.workParent)), resolve(profile.root));
+    assert.equal(profile.ownerSid.length > 0, true);
+  } else if (configuredParent) {
     assert.equal(dirname(workParent), resolve('tmp'));
     await noLinks(workParent);
     assert.ok(
@@ -264,6 +280,8 @@ export async function verifyApplicationHandoff({
     startedAtUtc: new Date().toISOString(),
     work,
     root,
+    scopeRoot,
+    executionProfile: profile,
     fixtureId,
     steps: [],
     failures: 0,
@@ -277,7 +295,8 @@ export async function verifyApplicationHandoff({
   let sequence = 0,
     installed = false,
     desktop,
-    newBrowser;
+    newBrowser,
+    actualExecutionInputs;
   async function execute(
     executable,
     args,
@@ -420,7 +439,7 @@ export async function verifyApplicationHandoff({
     await step('framework-old-inno-install', async () => {
       assert.equal(await registration(), null);
       const result = await execute(
-        report.old.delivery.executable.path,
+        actualExecutionInputs.old.path,
         [
           '/VERYSILENT',
           '/SUPPRESSMSGBOXES',
@@ -466,7 +485,7 @@ export async function verifyApplicationHandoff({
     let witness, pending, dataBeforeUninstall;
     await step('framework-new-inno-expected-health-failure', async () => {
       const result = await execute(
-        report.new.delivery.executable.path,
+        actualExecutionInputs.new.path,
         [
           '/VERYSILENT',
           '/SUPPRESSMSGBOXES',
@@ -652,7 +671,9 @@ export async function verifyApplicationHandoff({
   const sources = [...nativeFiles, ...sourcePaths];
   report.sourceHashes = Object.fromEntries(
     await Promise.all(
-      sources.map(async (path) => [path, hash(await readFile(path))]),
+      [...sources, 'tools/shared/windows-acceptance-profile.mjs'].map(
+        async (path) => [path, hash(await readFile(path))],
+      ),
     ),
   );
   const keyId = 'fixture-rsa-handoff';
@@ -907,6 +928,7 @@ export async function verifyApplicationHandoff({
         assert.deepEqual(await record(planPath), prepared.plan);
         const previousPlan = await json(planPath);
         assert.equal(previousPlan.schemaVersion, 1);
+        assert.equal(resolve(previousPlan.scopeRoot), resolve('tmp'));
         assert.equal(
           previousPlan.newInstaller,
           report.new.delivery.executable.path,
@@ -1001,12 +1023,29 @@ export async function verifyApplicationHandoff({
         ],
       };
     }
+    const executionDirectory = join(work, 'inputs');
+    if (profile) await mkdir(executionDirectory, { recursive: false });
+    actualExecutionInputs = {};
+    for (const role of ['old', 'new']) {
+      const source = report[role].delivery.executable;
+      actualExecutionInputs[role] = await materializeAcceptanceExecutable({
+        source: source.path,
+        expected: { bytes: source.bytes, sha256: source.sha256 },
+        profile,
+        directory: executionDirectory,
+        name: 'TableMax-' + role + '-fixture.exe',
+      });
+      assert.equal(actualExecutionInputs[role].bytes, source.bytes);
+      assert.equal(actualExecutionInputs[role].sha256, source.sha256);
+    }
+    report.actualExecutionInputs = actualExecutionInputs;
     const plan = join(work, 'handoff-plan.json');
     await writeJson(plan, {
       schemaVersion: 1,
+      scopeRoot,
       root,
       evidence,
-      newInstaller: report.new.delivery.executable.path,
+      newInstaller: actualExecutionInputs.new.path,
       newBytes: target.bytes,
       newSha256: target.sha256,
       apiJson: JSON.stringify(api),
@@ -1023,7 +1062,7 @@ export async function verifyApplicationHandoff({
       await step('actual-old-inno-install', async () => {
         assert.equal(await registration(), null);
         const run = await execute(
-          report.old.delivery.executable.path,
+          actualExecutionInputs.old.path,
           [
             '/VERYSILENT',
             '/SUPPRESSMSGBOXES',

@@ -11,9 +11,57 @@ import { join, resolve } from 'node:path';
 import test from 'node:test';
 import { hash } from './installation-toolchain.mjs';
 import {
+  archiveInstallationLog,
   installationVerificationEnvironment,
   verifyPreservedRuntime,
 } from './installation-verifier.mjs';
+
+test('installer log evidence retains exact raw bytes after the temporary source is removed', async () => {
+  await mkdir(resolve('tmp'), { recursive: true });
+  const work = await mkdtemp(resolve('tmp/installation-log-test-'));
+  const directory = join(work, 'evidence');
+  await mkdir(directory);
+  const source = join(work, 'install.log');
+  const bytes = Buffer.concat([
+    Buffer.from('中文日志\r\n', 'utf8'),
+    Buffer.from([0, 255]),
+  ]);
+  await writeFile(source, bytes);
+  const record = await archiveInstallationLog({
+    source,
+    directory,
+    name: 'install.log',
+  });
+  await unlink(source);
+  assert.equal(record.sourcePath, resolve(source));
+  assert.equal(record.path, join(directory, 'install.log'));
+  assert.equal(record.bytes, bytes.length);
+  assert.equal(record.sha256, hash(bytes));
+  assert.deepEqual(await readFile(record.path), bytes);
+});
+
+test('installer log capture records absence and refuses to overwrite previous evidence', async () => {
+  await mkdir(resolve('tmp'), { recursive: true });
+  const work = await mkdtemp(resolve('tmp/installation-log-test-'));
+  const directory = join(work, 'evidence');
+  await mkdir(directory);
+  const source = join(work, 'reinstall.log');
+  assert.deepEqual(
+    await archiveInstallationLog({ source, directory, name: 'reinstall.log' }),
+    {
+      sourcePath: resolve(source),
+      missing: true,
+    },
+  );
+  await writeFile(source, 'new log');
+  const preserved = join(directory, 'reinstall.log');
+  await writeFile(preserved, 'existing evidence');
+  await assert.rejects(
+    archiveInstallationLog({ source, directory, name: 'reinstall.log' }),
+    { code: 'EEXIST' },
+  );
+  assert.equal(await readFile(preserved, 'utf8'), 'existing evidence');
+});
 
 test('installer checking uses private temp and loopback without asserting Windows isolation', () => {
   const base = {

@@ -2,7 +2,7 @@
 
 `pnpm package:win`增量构建并导出预装全部正式游戏与玩法的唯一完整EXE和本地清单；`pnpm package:release`只重新封装当前已验证内部载荷，不分配新修订号。`--edition`已退役并明确拒绝，部分游戏载荷不能交付。EXE在 `artifacts/releases/`，内部payload ZIP、manifest和当前指针在 `artifacts/package-payloads/`；内部ZIP不是用户下载包。
 
-截至2026-10-15，current仍为已验证便携1.0.6.10；新安装候选1.0.6.14已封包，尚未推广或发布。候选14 EXE SHA `48cb4a6e2bc80ee409e41afd68356b684e0a949e17735b0d05c4f4be27bf4396`，使用[冻结delivery](../../artifacts/package-payloads/v1.0.6/ff8eb35cb3f0-9mGOFX/full/installer-delivery.json)。内嵌解码和双PE准备通过，真实标准用户首个fixture安装在HKCU卸载登记code5失败，账户及profile已删除；完整系统链及容量未通过前不推广。精确证据及历史专项见[验收](../../docs/reference/acceptance.md#10614安装候选与标准账户诊断2026-10-15)。
+截至2026-10-15，current仍为已验证便携1.0.6.10；新安装候选1.0.6.14已封包，尚未推广或发布。候选14 EXE SHA `48cb4a6e2bc80ee409e41afd68356b684e0a949e17735b0d05c4f4be27bf4396`，使用[冻结delivery](../../artifacts/package-payloads/v1.0.6/ff8eb35cb3f0-9mGOFX/full/installer-delivery.json)。内嵌解码和双PE准备通过，真实标准用户首个fixture安装在HKCU卸载登记code5失败，账户及profile已删除；工程Low标签根因已明确，普通profile测试目录已获授权，实际验收进行中；完整系统链及容量未通过前不推广。精确证据及历史专项见[验收](../../docs/reference/acceptance.md#10614安装候选与标准账户诊断2026-10-15)。
 
 新安装器先用 `--candidate` 封包：正常新构建原子分配四位修订，失败编号不复用，但保留已有 `current.json`。stdout 返回 `candidatePath`；该记录冻结候选交付和原 current 的原始 SHA，同目录 `full/installer-delivery.json` 供描述生成及实际安装验收。`--platform-from` 按原快照身份及游戏缓存逐成员 SHA 保留正式游戏，只刷新当前平台和组装器并生成新快照、新修订；`--snapshot` 则恢复原冻结快照，不分配新修订。
 
@@ -29,7 +29,7 @@ node tools/release/sign-application-update.mjs "--description=<新描述.json>" 
 node tools/release/installation-promote.mjs "--candidate=<封包输出candidatePath>" "--proof=<最终正式proof.json>"
 ```
 
-签名、切换current和本地验收不代表发布授权；最终EXE字节变化须重新计算SHA、验收与签名。临时标准账户及UAC已授权，真实profile、登记和完整系统证明仍必需；当前新候选包含恢复和内嵌解码修复，标准用户首装权限问题先诊断，不通过环境变量、改DACL或取消系统登记绕过。发布边界见[验收](../../docs/reference/acceptance.md)与[Release流程](../../docs/reference/release.md)。[一次安全维护](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/result.json)已结束，不追加第二轮。
+签名、切换current和本地验收不代表发布授权；最终EXE字节变化须重新计算SHA、验收与签名。临时标准账户及UAC已授权，真实profile、登记和完整系统证明仍必需；当前新候选包含恢复和内嵌解码修复，标准用户首装的工程Low标签问题改用经授权的普通测试目录验收，不通过环境变量、改DACL或取消系统登记绕过。发布边界见[验收](../../docs/reference/acceptance.md)与[Release流程](../../docs/reference/release.md)。[一次安全维护](../../artifacts/maintenance/v1.0.6/installation-remaining/maintenance-once/result.json)已结束，不追加第二轮。
 
 前置条件是锁定工具链、有效预算、冻结输入和全部正式模块完整性。游戏仍独立组织、增量构建，内部签名模块按字节变化复用或生成；正式模板不计入当前游戏库。独立游戏导出、Pages准备／部署和安装型作者工具包导出已停止，保留文件仅说明内部实现或历史验证边界。
 

@@ -47,7 +47,7 @@ namespace TableMax.InstallationTesting
             if (String.IsNullOrEmpty(pathname)) throw new IOException("Missing isolated handoff plan.");
             InstallationCore.Safe(pathname);
             plan = InstallationCore.Object(StrictJson.Parse(File.ReadAllText(pathname, InstallationCore.Utf8)));
-            InstallationCore.Keys(plan, "schemaVersion", "root", "evidence", "newInstaller", "newBytes", "newSha256", "apiJson");
+            InstallationCore.Keys(plan, "schemaVersion", "scopeRoot", "root", "evidence", "newInstaller", "newBytes", "newSha256", "apiJson");
             if (InstallationCore.Number(plan, "schemaVersion") != 1) throw new IOException("Fixture plan version invalid.");
             var root = InstallationCore.Root(InstallationCore.Text(plan, "root"));
             var identity = InstallationManifest.Load(root);
@@ -75,7 +75,26 @@ namespace TableMax.InstallationTesting
             var version = typeof(DesktopContext).Assembly.GetName().Version;
             if (request != "foundation-write-and-fail-v1" || identity.productId != FixtureId || version.Revision != 60001 || identity.buildVersion != version.ToString(4)) throw new IOException("Framework failure request is outside the new fixture identity.");
             var repository = typeof(DesktopContext).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>().Single(value => value.Key == "TableMaxRepositoryRoot").Value;
-            if (!root.StartsWith(InstallationCore.Full(repository) + Path.DirectorySeparatorChar + "tmp" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new IOException("Framework failure root is outside workspace tmp.");
+            var scope = InstallationCore.Full(InstallationCore.Text(plan, "scopeRoot")); InstallationCore.Safe(scope); InstallationCore.Safe(root);
+            using (var user = System.Security.Principal.WindowsIdentity.GetCurrent())
+            {
+                if (identity.ownerSid != user.User.Value) throw new IOException("Framework failure identity does not belong to this Windows user.");
+                var workspace = InstallationCore.Full(Path.Combine(repository, "tmp"));
+                if (InstallationCore.Equal(scope, workspace))
+                {
+                    if (!root.StartsWith(workspace + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new IOException("Framework failure root is outside workspace tmp.");
+                }
+                else
+                {
+                    var account = user.Name.Split('\\').Last();
+                    if (!System.Text.RegularExpressions.Regex.IsMatch(account, "^TMVerify_[0-9a-fA-F]{8}$") || new System.Security.Principal.WindowsPrincipal(user).IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator)) throw new IOException("Profile framework failure requires the isolated standard account.");
+                    var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    var parent = InstallationCore.Full(Path.Combine(local, "TableMaxAcceptance")); InstallationCore.Safe(parent);
+                    if (String.IsNullOrEmpty(local) || !InstallationCore.Equal(Path.GetDirectoryName(scope), parent) || !System.Text.RegularExpressions.Regex.IsMatch(Path.GetFileName(scope), "^[0-9a-fA-F]{32}$")) throw new IOException("Framework failure scope is not this user's actual application-data acceptance root.");
+                    var work = InstallationCore.Full(Path.Combine(scope, "work")); InstallationCore.Safe(work);
+                    if (!root.StartsWith(work + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new IOException("Framework failure root is outside the isolated profile work directory.");
+                }
+            }
             identity.Verify(root);
             var receipt = InstallerReceipt.Read(InstallationCore.ReceiptPath(root), identity);
             if (receipt.bytes != InstallationCore.Number(plan, "newBytes") || receipt.sha256 != InstallationCore.Text(plan, "newSha256")) throw new IOException("Framework failure request did not match the actual new installer receipt.");
@@ -111,7 +130,7 @@ namespace TableMax.InstallationTesting
             }
             var after = InstallationCore.HashFile(database);
             if (after == before) throw new IOException("Fixture foundation database did not change.");
-            InstallationCore.Atomic(witness, new { schemaVersion = 1, scenario = "framework-recovery", request, productId = identity.productId, root, boxRoot = identity.boxRoot, dataDirectory = identity.boxRoot, buildVersion = identity.buildVersion, installationId = identity.installationId, nodePath = node, nodeSha256 = expectedNode.sha256, nodePid = pid, nodeExitCode = exit, database, beforeSha256 = before, afterSha256 = after, expectedNativeExitCode = 42, productionEntryInvoked = false, sqliteWriteCompleted = true });
+            InstallationCore.Atomic(witness, new { schemaVersion = 1, scenario = "framework-recovery", request, productId = identity.productId, scopeRoot = scope, root, boxRoot = identity.boxRoot, dataDirectory = identity.boxRoot, buildVersion = identity.buildVersion, installationId = identity.installationId, nodePath = node, nodeSha256 = expectedNode.sha256, nodePid = pid, nodeExitCode = exit, database, beforeSha256 = before, afterSha256 = after, expectedNativeExitCode = 42, productionEntryInvoked = false, sqliteWriteCompleted = true });
             return 42;
         }
 

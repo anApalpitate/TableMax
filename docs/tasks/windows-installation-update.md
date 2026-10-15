@@ -11,28 +11,32 @@
 - [x] 阶段4及原候选前置：可信检查下载、候选13原SHA的生产根验签、真实向导取消和适用专项。
 - [x] 底层协调器精确恢复与拒绝专项；源码已进入新候选14。
 - [x] Inno内嵌解码类型修复：全部0–255字节、1／2／3字节填充、真实helper内存／落盘SHA和10项非法编码拒绝通过；新旧不同PE安装副本已重新编译封包。
-- [ ] 候选14完整静态闭包及实际内置生产根.NET验签。
+- [x] 候选14完整静态闭包9项、实际Native／helper各22项验签及稳定入口12项身份检查；原SHA和失败保留。
 - [ ] 阶段2／3／5／6剩余：真实不同PE Apply、失败升级旧框架卸载、正式GUID系统链、完整首次启动容量与验后推广。
 
 ## 剩余验收与授权边界
 
 临时标准账户及所需Windows UAC已于2026-10-15多次明确授权，并在本次继续指示中重申；验后删除该账户及新建profile，凭据仅内存，测试限工程临时副本，不改防火墙或发布。无需重复询问相同授权。
 
-用户明确继续后建立[新轮记录](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/round.json)，保留[上轮3失败](../../artifacts/maintenance/v1.0.6/installation-remaining/account-round-20261015.json)，不覆盖或清零历史。新轮当前2／3：真实标准账户首个fixture Inno在HKCU卸载登记RegCreateKeyEx code5拒绝；候选闭包附加的Windows签名上下文读取遇到PowerShell5.1安全模块加载错误。后者是工具环境问题，不是RSA或EXE字节不符。先只读诊断原因，不盲目重跑。
+用户明确继续后建立[新轮记录](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/round.json)，保留[上轮3失败](../../artifacts/maintenance/v1.0.6/installation-remaining/account-round-20261015.json)。新轮累计2／3：首个真实fixture Inno卸载登记code5，以及闭包安全上下文的PowerShell5.1模块加载错误。后者已定位为Node继承Core7模块路径，在独立子进程固定系统Desktop模块路径／UTF8后，[闭包9项](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-14-repair-01/results.json)及[实际.NET验签](../../artifacts/maintenance/v1.0.6/installation-remaining/production-signature-dotnet-14/report.json)通过；修复不清零原失败。
 
 [实际账户报告](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-account/isolated-account.json)确认新账户及profile均已删除；[真实身份](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-account/user-identity.json)证明独立标准SID、profile及AppData归一。首个Inno已执行文件、helper健康和快捷方式步骤，但在保存登记时失败并回滚框架；不把它写成首装通过。Apply、失败升级专项和正式GUID链尚未执行。
 
-当前只读诊断核对HKCU实际native对象、显式新SID hive、逐层ACL和restricted token；不开新注册表键、不修改DACL、不关闭保护。只有原因明确并修复相应工具／环境后，才使用原授权继续受影响测试；累计3失败即停止本轮产品验证。
+[只读账户诊断](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/registry-diagnostic/account-read-01/registry-account.json)已完成，两版probe均为Low token，新SID的HKCU映射及FullControl DACL正确；[标签证据](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/registry-diagnostic/mic-root-cause.json)确认工程、Node和installer继承Low mandatory label，Windows因此拒绝向正常HKCU写入。符合[Microsoft MIC规则](https://learn.microsoft.com/en-us/windows/win32/secauthz/mandatory-integrity-control)。诊断账户及profile已删除；没有写注册表或修改标签、token、DACL、系统保护。
 
-| 剩余事项                   | 完成条件                                                                                                | 当前接续                                                                                                                                                     |
-| -------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 新候选完整闭包与生产根验签 | 精确三PE、完整成员、配方／内嵌helper、原31游戏单元及current保全，实际程序集验签                         | [首轮闭包](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-14/results.json)前4项通过，工具环境错误后停止，未自动重试     |
-| 注册表环境与真实首装       | 真实新标准用户可创建自己的卸载登记；不能更改保护或跳过登记                                              | [首次真实链](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-account/application-handoff/report.json)因HKCU code5失败，先诊断 |
-| 不同PE Apply及helper升级   | 旧Native真实检查／下载／Apply、保存关闭与父退出、同Inno升级及新持续主机健康                             | [新双PE准备](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/handoff-prepare/report.json)通过，仅准备不等于执行                          |
-| 框架bootstrap失败恢复      | 实际A安装、B健康失败且DB变化，A框架原字节保留、live helper缺失后实际A卸载成功，D／G／配置／未知资料保全 | [解码探针](../../artifacts/maintenance/v1.0.6/installation-remaining/embedded-uninstaller-probe-02/results.json)通过；真实七步专项待执行                     |
-| 正式GUID安装／重装／卸载   | 精确最终候选的当前用户登记、快捷方式、身份、receipt及默认卸载，保全数据，账户／profile成功清理          | fixture首装登记未通，正式GUID尚未运行                                                                                                                        |
-| 完整首次启动容量           | app、稳定入口、helper、框架卸载文件、归属清单和当前必需G物化严格小于120,000,000字节                     | 候选14暂存97,360,020字节不含实际框架及首次G，不能替代门禁                                                                                                    |
-| current推广与安全体验      | 最终系统证明绑定精确字节与清理报告，核对原current SHA后授权入口原子切换；诚实记录安全上下文             | current仍10；本地无MOTW／静默运行不能冒称浏览器下载SmartScreen通过。发布另须明确授权                                                                         |
+后续方案是在实际新标准用户LocalAppData/TableMaxAcceptance的随机私有目录中，仅按原始字节物化同SHA执行副本，核实Medium token后执行；证据仍回存工程目录。该范围扩展此前“测试限工程临时目录”，用户已明确允许该profile目录范围。新标准账户和仅按原字节写出的Node副本已创建，真实Node／系统PS均为Medium；实际完整系统链正在执行，尚未以退出码替代最终报告。工程内验收工具调整已准备，纯身份／路径拒绝6项、日志保留2项、实际PS5.1 stdio与解析4项及双PE编译封包已通过，须保持真实SID／系统profile、路径／链接和来源SHA门禁；源候选字节保持。累计3失败即停止本轮产品验证。
+
+新工具仅在显式 `-UseProfileAcceptance` 下使用真实用户LocalAppData随机根，分别核对Node和系统PowerShell的实际Medium token；源输入与执行副本的路径、字节和SHA写入报告。成功／失败Inno日志先原字节回存工程证据，清理后不依赖已删除profile中的日志。工具实现及准备通过不代替实际安装验收。
+
+| 剩余事项                   | 完成条件                                                                                                | 当前接续                                                                                                                                                                              |
+| -------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 新候选完整闭包与生产根验签 | 精确三PE、完整成员、配方／内嵌helper、原31游戏单元及current保全，实际程序集验签                         | 已通过修正版9项及Native／helper各22项；首轮工具失败保留                                                                                                                               |
+| 注册表环境与真实首装       | 正常Medium标准用户实际创建卸载登记，不修改原Low标记或跳过登记                                           | Low根因已明确；profile目录范围已获明确授权，真实新标准用户及Medium token已核验，首装正在执行                                                                                          |
+| 不同PE Apply及helper升级   | 旧Native真实检查／下载／Apply、保存关闭与父退出、同Inno升级及新持续主机健康                             | [新双PE准备03](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/handoff-prepare-profile-03/report.json)已重新编译封包，含严格profile scopeRoot；仍仅准备不等于执行 |
+| 框架bootstrap失败恢复      | 实际A安装、B健康失败且DB变化，A框架原字节保留、live helper缺失后实际A卸载成功，D／G／配置／未知资料保全 | [解码探针](../../artifacts/maintenance/v1.0.6/installation-remaining/embedded-uninstaller-probe-02/results.json)通过；真实七步专项待执行                                              |
+| 正式GUID安装／重装／卸载   | 精确最终候选的当前用户登记、快捷方式、身份、receipt及默认卸载，保全数据，账户／profile成功清理          | fixture首装登记未通，正式GUID尚未运行                                                                                                                                                 |
+| 完整首次启动容量           | app、稳定入口、helper、框架卸载文件、归属清单和当前必需G物化严格小于120,000,000字节                     | 候选14暂存97,360,020字节不含实际框架及首次G，不能替代门禁                                                                                                                             |
+| current推广与安全体验      | 最终系统证明绑定精确字节与清理报告，核对原current SHA后授权入口原子切换；诚实记录安全上下文             | current仍10；本地无MOTW／静默运行不能冒称浏览器下载SmartScreen通过。发布另须明确授权                                                                                                  |
 
 候选13的恢复缺口和三失败历史保留于[历史小节](../reference/acceptance.md#协调器修复与三失败停止2026-10-15)。新源码、输入或候选字节改变后只复验受影响范围；管理HTTP传输夹具不等于真实线上附件发布。
 

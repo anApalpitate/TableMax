@@ -11,7 +11,7 @@ import {
   stat,
   writeFile,
 } from 'node:fs/promises';
-import { dirname, join, resolve, sep } from 'node:path';
+import { basename, dirname, join, resolve, sep } from 'node:path';
 import {
   INSTALLATION_FIXTURE_ID,
   INSTALLATION_PRODUCT_ID,
@@ -26,6 +26,10 @@ import {
   assertWorkspaceRoot,
   isDirectExecution,
 } from '../shared/workspace-root.mjs';
+import {
+  materializeAcceptanceExecutable,
+  resolveWindowsAcceptanceProfile,
+} from '../shared/windows-acceptance-profile.mjs';
 
 const run = promisify(execFile);
 export function installationVerificationEnvironment(
@@ -141,6 +145,8 @@ function verifyShortcuts(links, root) {
 }
 async function verificationParent() {
   const configured = process.env.TABLEMAX_INSTALLATION_VERIFY_TMP;
+  const profile = await resolveWindowsAcceptanceProfile(configured);
+  if (profile) return { parent: profile.workParent, profile };
   const parent = configured ? resolve(configured) : resolve('tmp');
   if (configured) {
     assert.equal(dirname(parent), resolve('tmp'));
@@ -156,7 +162,49 @@ async function verificationParent() {
       if (dirname(path) === path) break;
     }
   } else await mkdir(parent, { recursive: true });
-  return parent;
+  return { parent, profile: null };
+}
+
+async function noLinks(path) {
+  for (let cursor = resolve(path); ; cursor = dirname(cursor)) {
+    try {
+      assert.ok(
+        !(await lstat(cursor)).isSymbolicLink(),
+        'Evidence contains a link',
+      );
+    } catch (cause) {
+      if (cause.code !== 'ENOENT') throw cause;
+    }
+    if (dirname(cursor) === cursor) break;
+  }
+}
+
+export async function archiveInstallationLog({ source, directory, name }) {
+  assert.match(name, /^(install|reinstall|uninstall)\.log$/);
+  let entry;
+  try {
+    entry = await lstat(source);
+  } catch (cause) {
+    if (cause.code === 'ENOENT')
+      return { sourcePath: resolve(source), missing: true };
+    throw cause;
+  }
+  assert.ok(
+    entry.isFile() && !entry.isSymbolicLink(),
+    'Installer log is not a regular file',
+  );
+  await noLinks(source);
+  await noLinks(directory);
+  const bytes = await readFile(source);
+  const path = join(directory, name);
+  await writeFile(path, bytes, { flag: 'wx' });
+  assert.equal(hash(await readFile(path)), hash(bytes));
+  return {
+    sourcePath: resolve(source),
+    path,
+    bytes: bytes.length,
+    sha256: hash(bytes),
+  };
 }
 async function preserveVerifiedRuntime({
   root,
@@ -382,9 +430,50 @@ export async function verifyInstallationDelivery({
     assert.equal(manifest.releaseVersion, delivery.version);
   if (delivery.buildVersion !== undefined)
     assert.equal(manifest.buildVersion, delivery.buildVersion);
-  const work = await mkdtemp(
-    join(await verificationParent(), 'installation-verify-'),
+  const { parent, profile } = await verificationParent();
+  if (profile) {
+    assert.equal(profile.ownerSid, environment.ownerSid);
+    assert.equal(resolve(profile.profile), resolve(environment.profile));
+    assert.ok(
+      !keepInstalled,
+      'Profile acceptance must complete default uninstall',
+    );
+  }
+  evidencePath = resolve(evidencePath);
+  assert.ok(
+    evidencePath.startsWith(resolve('artifacts/maintenance') + sep),
+    'Installation evidence must remain in workspace maintenance',
   );
+  await noLinks(evidencePath);
+  await assert.rejects(lstat(evidencePath), { code: 'ENOENT' });
+  await mkdir(dirname(evidencePath), { recursive: true });
+  const logDirectory = join(dirname(evidencePath), 'installer-logs');
+  await mkdir(logDirectory, { recursive: false });
+  const logEvidencePath = join(logDirectory, 'index.json');
+  const logEvidence = {};
+  const work = await mkdtemp(join(parent, 'installation-verify-'));
+  let executionCopy = null;
+  if (profile) {
+    const inputDirectory = join(work, 'input');
+    await mkdir(inputDirectory);
+    executionCopy = await materializeAcceptanceExecutable({
+      source: delivery.executable.path,
+      expected: {
+        bytes: delivery.executable.bytes,
+        sha256: delivery.executable.sha256,
+      },
+      profile,
+      directory: inputDirectory,
+      name: basename(delivery.executable.path),
+    });
+    assert.equal(
+      resolve(executionCopy.sourcePath),
+      resolve(delivery.executable.path),
+    );
+    assert.equal(executionCopy.bytes, delivery.executable.bytes);
+    assert.equal(executionCopy.sha256, delivery.executable.sha256);
+  }
+  const executablePath = executionCopy?.path ?? delivery.executable.path;
   const root = join(work, '程序 目录');
   await mkdir(root);
   const installerTemporary = join(work, 'installer-temporary');
@@ -399,6 +488,63 @@ export async function verifyInstallationDelivery({
     reinstall: join(work, 'reinstall.log'),
     uninstall: join(work, 'uninstall.log'),
   };
+  const writeLogIndex = async () =>
+    writeFile(
+      logEvidencePath,
+      JSON.stringify(
+        {
+          schemaVersion: 1,
+          installerSha256: delivery.executable.sha256,
+          sourceExecutable: delivery.executable.path,
+          executionCopy,
+          ...(profile ? { executionProfile: profile } : {}),
+          logs: logEvidence,
+        },
+        null,
+        2,
+      ) + '\n',
+    );
+  await writeLogIndex();
+  const runPhase = async (phase, executable, args, options) => {
+    let failure;
+    let result;
+    try {
+      result = await run(executable, args, options);
+    } catch (cause) {
+      failure = cause;
+    }
+    try {
+      logEvidence[phase] = {
+        ...(await archiveInstallationLog({
+          source: logs[phase],
+          directory: logDirectory,
+          name: phase + '.log',
+        })),
+        process: failure
+          ? {
+              result: 'failed',
+              code: failure.code ?? null,
+              signal: failure.signal ?? null,
+              message: failure.message,
+            }
+          : { result: 'exited', code: 0 },
+      };
+      await writeLogIndex();
+    } catch (cause) {
+      if (failure)
+        throw new AggregateError(
+          [failure, cause],
+          'Installer phase failed and its log could not be preserved',
+        );
+      throw cause;
+    }
+    if (failure) throw failure;
+    assert.ok(
+      !logEvidence[phase].missing,
+      'Successful installer log is missing',
+    );
+    return result;
+  };
   const started = performance.now();
   const argumentsFor = (log) => [
     '/VERYSILENT',
@@ -407,7 +553,7 @@ export async function verifyInstallationDelivery({
     '/DIR=' + root,
     '/LOG=' + log,
   ];
-  await run(delivery.executable.path, argumentsFor(logs.install), {
+  await runPhase('install', executablePath, argumentsFor(logs.install), {
     windowsHide: true,
     timeout: 180000,
     maxBuffer: 1024 * 1024,
@@ -428,7 +574,7 @@ export async function verifyInstallationDelivery({
   const preserved = join(root, 'TableMax', '用户资料.txt');
   await writeFile(preserved, 'Preserved user data\n');
   const preservedHash = hash(await readFile(preserved));
-  await run(delivery.executable.path, argumentsFor(logs.reinstall), {
+  await runPhase('reinstall', executablePath, argumentsFor(logs.reinstall), {
     windowsHide: true,
     timeout: 180000,
     maxBuffer: 1024 * 1024,
@@ -466,7 +612,8 @@ export async function verifyInstallationDelivery({
       evidencePath,
       installationId: identity.installationId,
     });
-    await run(
+    await runPhase(
+      'uninstall',
       join(root, 'unins000.exe'),
       [
         '/VERYSILENT',
@@ -524,6 +671,7 @@ export async function verifyInstallationDelivery({
     executableSha256: delivery.executable.sha256,
     executableBytes: delivery.executable.bytes,
     installerSha256: delivery.executable.sha256,
+    ...(executionCopy ? { executionCopy, executionProfile: profile } : {}),
     payloadSha256: delivery.executable.payloadSha256,
     installationManifestSha256: installation.manifestSha256,
     ...(delivery.candidateSha256
@@ -551,7 +699,11 @@ export async function verifyInstallationDelivery({
     ...(verifiedRuntime
       ? { verifiedRuntimeRoot: verifiedRuntime.path, verifiedRuntime }
       : {}),
-    logs,
+    logs: Object.fromEntries(
+      Object.entries(logEvidence).map(([phase, log]) => [phase, log.path]),
+    ),
+    logEvidence,
+    logEvidencePath,
     checks: [
       'actual installer healthy commit',
       'all managed bytes and exact app file set',

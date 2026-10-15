@@ -3,7 +3,8 @@ param(
   [Parameter(Mandatory)][string]$DeliveryPath,
   [Parameter(Mandatory)][string]$OutputDirectory,
   [Parameter(Mandatory)][string]$HandoffPreparedReport,
-  [switch]$AllowTemporaryAccount
+  [switch]$AllowTemporaryAccount,
+  [switch]$UseProfileAcceptance
 )
 $ErrorActionPreference = 'Stop'
 $taskRepository = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..')).TrimEnd('\')
@@ -62,7 +63,8 @@ try {
     Set-Acl -LiteralPath $taskDirectory -AclObject $taskAcl
   }
   $taskPlan = Join-Path $taskWork 'plan.json'
-  @{ repository = $taskRepository; delivery = $taskDelivery; handoffPreparedReport = $taskHandoffPreparedReport; handoffEvidence = (Join-Path $taskOutput 'application-handoff'); frameworkRecoveryEvidence = (Join-Path $taskOutput 'application-framework-recovery'); evidence = (Join-Path $taskOutput 'shipping-executable-checks-full.json'); accountSid = $taskCreatedSid.Value; work = $taskWork } | ConvertTo-Json | Set-Content -LiteralPath $taskPlan -Encoding utf8
+  $taskSourceNode = Join-Path $taskRepository '.cache/node/22.14.0/runtime/node.exe'
+  @{ repository = $taskRepository; delivery = $taskDelivery; handoffPreparedReport = $taskHandoffPreparedReport; handoffEvidence = (Join-Path $taskOutput 'application-handoff'); frameworkRecoveryEvidence = (Join-Path $taskOutput 'application-framework-recovery'); evidence = (Join-Path $taskOutput 'shipping-executable-checks-full.json'); accountSid = $taskCreatedSid.Value; work = $taskWork; useProfileAcceptance = [bool]$UseProfileAcceptance; sourceNode = $taskSourceNode; sourceNodeBytes = (Get-Item -LiteralPath $taskSourceNode).Length; sourceNodeSha256 = (Get-FileHash -LiteralPath $taskSourceNode -Algorithm SHA256).Hash.ToLowerInvariant() } | ConvertTo-Json | Set-Content -LiteralPath $taskPlan -Encoding utf8
   $taskChildSource = @'
 param([string]$Plan)
 $ErrorActionPreference = 'Stop'
@@ -72,7 +74,8 @@ function Invoke-TaskNode([string]$ScriptPath, [string[]]$NodeArguments, [string]
   foreach ($taskArgument in $taskArguments) {
     if ($taskArgument.Contains('"') -or $taskArgument.EndsWith('\')) { throw 'Unsafe Node argument.' }
   }
-  $taskStart = [Diagnostics.ProcessStartInfo]::new((Join-Path $taskPlan.repository '.cache/node/22.14.0/runtime/node.exe'))
+  $taskExecutable = if ([string]::IsNullOrEmpty($taskNodeExecutable)) { Join-Path $taskPlan.repository '.cache/node/22.14.0/runtime/node.exe' } else { $taskNodeExecutable }
+  $taskStart = [Diagnostics.ProcessStartInfo]::new($taskExecutable)
   $taskStart.Arguments = [string]::Join(' ', [string[]]@($taskArguments | ForEach-Object { '"' + $_ + '"' }))
   $taskStart.WorkingDirectory = $taskPlan.repository
   $taskStart.UseShellExecute = $false
@@ -134,7 +137,41 @@ $env:HOMEPATH = $taskProfilePath.Substring($env:HOMEDRIVE.Length)
 $taskActualIdentity = [Security.Principal.WindowsIdentity]::GetCurrent().Name.Split('\')
 $env:USERNAME = $taskActualIdentity[$taskActualIdentity.Length - 1]
 $env:USERDOMAIN = $taskActualIdentity[0]
-$taskIdentityJson = @{ sid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value; profile = $taskProfilePath; localAppData = $taskLocalAppData; roamingAppData = $taskRoamingAppData; hkcu = (Get-Item -LiteralPath 'HKCU:\').Name; standardAccount = $true; inheritedApplicationEnvironmentCleared = $true; isolatedProfileEnvironmentNormalized = $true } | ConvertTo-Json
+$taskNodeExecutable = $taskPlan.sourceNode
+$taskProfileAcceptanceRoot = $null
+if ($taskPlan.useProfileAcceptance) {
+  function Assert-TaskProfilePathNoLinks([string]$Path) {
+    for ($taskCursor = [IO.Path]::GetFullPath($Path); $taskCursor; $taskCursor = [IO.Path]::GetDirectoryName($taskCursor)) {
+      if ((Test-Path -LiteralPath $taskCursor) -and ((Get-Item -LiteralPath $taskCursor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'The isolated profile path contains a link.' }
+    }
+  }
+  $taskProfileAcceptanceParent = Join-Path $taskLocalAppData 'TableMaxAcceptance'
+  Assert-TaskProfilePathNoLinks $taskProfileAcceptanceParent
+  if (-not (Test-Path -LiteralPath $taskProfileAcceptanceParent)) { New-Item -ItemType Directory -Path $taskProfileAcceptanceParent | Out-Null }
+  $taskProfileAcceptanceRoot = Join-Path $taskProfileAcceptanceParent ([Guid]::NewGuid().ToString('N'))
+  if (Test-Path -LiteralPath $taskProfileAcceptanceRoot) { throw 'The private profile acceptance root already exists.' }
+  New-Item -ItemType Directory -Path $taskProfileAcceptanceRoot | Out-Null
+  $taskProfileWork = Join-Path $taskProfileAcceptanceRoot 'work'
+  New-Item -ItemType Directory -Path $taskProfileWork | Out-Null
+  $taskProfileTools = Join-Path $taskProfileAcceptanceRoot 'tools'
+  New-Item -ItemType Directory -Path $taskProfileTools | Out-Null
+  Assert-TaskProfilePathNoLinks $taskProfileTools
+  $taskNodeExecutable = Join-Path $taskProfileTools 'node.exe'
+  if ((Get-Item -LiteralPath $taskPlan.sourceNode).Length -ne $taskPlan.sourceNodeBytes -or (Get-FileHash -LiteralPath $taskPlan.sourceNode -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskPlan.sourceNodeSha256) { throw 'The pinned source Node changed before profile materialization.' }
+  $taskNodeInput = [IO.File]::OpenRead($taskPlan.sourceNode)
+  try {
+    $taskNodeOutput = [IO.FileStream]::new($taskNodeExecutable, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+    try { $taskNodeInput.CopyTo($taskNodeOutput) } finally { $taskNodeOutput.Dispose() }
+  } finally { $taskNodeInput.Dispose() }
+  if ((Get-Item -LiteralPath $taskNodeExecutable).Length -ne $taskPlan.sourceNodeBytes -or (Get-FileHash -LiteralPath $taskNodeExecutable -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskPlan.sourceNodeSha256 -or (Get-FileHash -LiteralPath $taskPlan.sourceNode -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskPlan.sourceNodeSha256) { throw 'The profile Node must contain the exact pinned source bytes.' }
+  $env:TABLEMAX_WINDOWS_ACCEPTANCE_PROFILE_ROOT = $taskProfileAcceptanceRoot
+  $env:TABLEMAX_WINDOWS_ACCEPTANCE_PROFILE_SID = $taskPlan.accountSid
+  $env:TABLEMAX_INSTALLATION_VERIFY_TMP = $taskProfileWork
+  $env:TABLEMAX_INSTALLATION_HANDOFF_TMP = $taskProfileWork
+  $env:TEMP = $taskProfileWork
+  $env:TMP = $taskProfileWork
+}
+$taskIdentityJson = @{ sid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value; profile = $taskProfilePath; localAppData = $taskLocalAppData; roamingAppData = $taskRoamingAppData; hkcu = (Get-Item -LiteralPath 'HKCU:\').Name; standardAccount = $true; inheritedApplicationEnvironmentCleared = $true; isolatedProfileEnvironmentNormalized = $true; profileAcceptanceRoot = $taskProfileAcceptanceRoot; nodeExecutable = $taskNodeExecutable; nodeSha256 = $taskPlan.sourceNodeSha256; nodeBytes = $taskPlan.sourceNodeBytes; executableSecurityMetadataCopied = $false } | ConvertTo-Json
 [IO.File]::WriteAllText((Join-Path (Split-Path -Parent $taskPlan.evidence) 'user-identity.json'), $taskIdentityJson + "`n", [Text.UTF8Encoding]::new($false))
 foreach ($taskInput in @('tools/release/installation-verifier.mjs','.cache/node/22.14.0/runtime/node.exe')) {
   $taskStream = [IO.File]::OpenRead((Join-Path $taskPlan.repository $taskInput)); $taskStream.Dispose()
@@ -158,6 +195,13 @@ exit $taskNodeExit
   if ($taskRunner.ExitCode -ne 0) { throw 'Isolated installer verification failed; inspect its saved evidence.' }
   $taskUserIdentity = Get-Content -LiteralPath (Join-Path $taskOutput 'user-identity.json') -Raw -Encoding utf8 | ConvertFrom-Json
   if ($taskUserIdentity.sid -ne $taskCreatedSid.Value -or -not $taskUserIdentity.standardAccount -or [IO.Path]::GetFileName($taskUserIdentity.profile) -ne $taskUsername) { throw 'Actual loaded standard-account identity did not match the new account.' }
+  if ($UseProfileAcceptance) {
+    $taskExpectedAcceptanceParent = [IO.Path]::GetFullPath((Join-Path $taskUserIdentity.localAppData 'TableMaxAcceptance'))
+    if ([IO.Path]::GetDirectoryName($taskUserIdentity.profileAcceptanceRoot) -ne $taskExpectedAcceptanceParent -or [IO.Path]::GetFileName($taskUserIdentity.profileAcceptanceRoot) -notmatch '^[a-f0-9]{32}$' -or $taskUserIdentity.executableSecurityMetadataCopied -ne $false -or $taskUserIdentity.nodeSha256 -ne (Get-FileHash -LiteralPath $taskSourceNode -Algorithm SHA256).Hash.ToLowerInvariant()) { throw 'The profile acceptance scope or materialized Node identity did not match.' }
+    $taskReport.profileAcceptanceRoot = $taskUserIdentity.profileAcceptanceRoot
+    $taskReport.profileAcceptanceNode = $taskUserIdentity.nodeExecutable
+    $taskReport.profileAcceptanceNodeSha256 = $taskUserIdentity.nodeSha256
+  }
   $taskHandoffProofPath = Join-Path $taskOutput 'application-handoff/report.json'
   Assert-TaskPathNoLinks $taskHandoffProofPath
   $taskHandoffProof = Get-Content -LiteralPath $taskHandoffProofPath -Raw -Encoding utf8 | ConvertFrom-Json
@@ -177,6 +221,16 @@ exit $taskNodeExit
     if (@($taskFrameworkProof.steps | Where-Object { $_.id -eq $taskRequiredStep -and $_.result -eq 'passed' }).Count -ne 1) { throw 'The actual framework recovery proof is missing a required unique step.' }
   }
   if ([IO.Path]::GetFullPath($taskFrameworkProof.preparedInput.path) -ne $taskHandoffPreparedReport -or $taskFrameworkProof.preparedInput.sha256 -ne $taskReport.handoffPreparedSha256) { throw 'The framework recovery proof does not bind the exact prepared input.' }
+  if ($UseProfileAcceptance) {
+    foreach ($taskChain in @($taskHandoffProof, $taskFrameworkProof)) {
+      if ($taskChain.executionProfile.root -ne $taskReport.profileAcceptanceRoot -or $taskChain.executionProfile.ownerSid -ne $taskCreatedSid.Value -or $taskChain.executionProfile.integritySid -ne 'S-1-16-8192') { throw 'The actual chain did not prove the isolated standard Medium profile scope.' }
+      foreach ($taskRole in @('old','new')) {
+        $taskSourceExecutable = $taskChain.$taskRole.delivery.executable
+        $taskActualExecutable = $taskChain.actualExecutionInputs.$taskRole
+        if ([IO.Path]::GetFullPath($taskActualExecutable.sourcePath) -ne [IO.Path]::GetFullPath($taskSourceExecutable.path) -or $taskActualExecutable.sha256 -ne $taskSourceExecutable.sha256 -or $taskActualExecutable.bytes -ne $taskSourceExecutable.bytes -or -not [IO.Path]::GetFullPath($taskActualExecutable.path).StartsWith($taskReport.profileAcceptanceRoot + '\work\', [StringComparison]::OrdinalIgnoreCase)) { throw 'The actual chain execution copy did not bind the exact frozen installer.' }
+      }
+    }
+  }
   $taskReport.frameworkRecoveryEvidencePath = $taskFrameworkProofPath.Substring($taskRepository.Length + 1).Replace('\', '/')
   $taskReport.frameworkRecoveryEvidenceSha256 = (Get-FileHash -LiteralPath $taskFrameworkProofPath -Algorithm SHA256).Hash.ToLowerInvariant()
   $taskReport.standardAccount = $true
@@ -256,6 +310,10 @@ try {
   Assert-TaskPathNoLinks $taskProofPath
   $taskProof = Get-Content -LiteralPath $taskProofPath -Raw -Encoding utf8 | ConvertFrom-Json
   if ($taskProof.result -ne 'passed' -or $taskProof.fixture -or -not $taskProof.isolatedWindows -or -not $taskProof.uninstalled -or $taskProof.ownerSid -ne $taskCreatedSid.Value -or $taskProof.executableSha256 -ne $taskReport.installerSha256) { throw 'Final installed proof did not match the successfully cleaned isolated account.' }
+  if ($UseProfileAcceptance) {
+    if ($taskProof.executionProfile.root -ne $taskReport.profileAcceptanceRoot -or $taskProof.executionProfile.ownerSid -ne $taskCreatedSid.Value -or $taskProof.executionProfile.integritySid -ne 'S-1-16-8192' -or [IO.Path]::GetFullPath($taskProof.executionCopy.sourcePath) -ne [IO.Path]::GetFullPath($taskDeliveryData.executable.path) -or $taskProof.executionCopy.sha256 -ne $taskReport.installerSha256 -or $taskProof.executionCopy.bytes -ne $taskDeliveryData.executable.bytes -or -not [IO.Path]::GetFullPath($taskProof.executionCopy.path).StartsWith($taskReport.profileAcceptanceRoot + '\work\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Final formal proof did not bind the exact Medium profile execution copy.' }
+    if (Test-Path -LiteralPath $taskReport.profileAcceptanceRoot) { throw 'The temporary acceptance root survived isolated profile cleanup.' }
+  }
   $taskIsolationPath = Join-Path $taskOutput 'isolated-account.json'
   $taskRelativeIsolationPath = $taskIsolationPath.Substring($taskRepository.Length + 1).Replace('\', '/')
   $taskIsolationHash = (Get-FileHash -LiteralPath $taskIsolationPath -Algorithm SHA256).Hash.ToLowerInvariant()
