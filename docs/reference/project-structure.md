@@ -12,7 +12,7 @@
 
 受管理安装采用安装根I、配置根B=I/TableMax、程序载荷B/app、模块仓库G=B/games及配置指定的数据根D（默认B）。I下 `TableMax.exe` 是稳定入口，`UpdateHelper.exe` 是事务协调器，框架另生成卸载文件；Native、Node、服务、网页及预装输入在B/app。B内 `.install.json` 与 `.installer-receipt.json` 绑定安装身份和实际外层字节，`updates/` 与 `.installation-transactions/`保存更新输入、交接及恢复记录；它们是保护对象，不是可以整目录清空的缓存。旧便携源、外置D和未知文件保留，详细行为见[构建与运行](build-and-run.md#windows-安装与整个程序更新)。
 
-本页说明当前文件归属与材料边界；运行与构建机制在[构建与运行](build-and-run.md)，交付及GitHub发布流程在[Release流程](release.md)，代码依赖与封装在[工程结构](architecture.md)维护。当前指针仍是便携1.0.6.10，已封安装候选1.0.6.13及其证明独立保留，不能把候选目录当作已推广交付。
+本页说明当前文件归属与材料边界；运行与构建机制在[构建与运行](build-and-run.md)，交付及GitHub发布流程在[Release流程](release.md)，代码依赖与封装在[工程结构](architecture.md)维护。实际交付由current绑定的原始字节及[安装证明](acceptance.md#当前源码与本地交付)确定，不能把候选目录当作已推广交付。
 
 ## 已创建结构
 
@@ -47,7 +47,7 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 | `apps/desktop/installation/`                                                   | Inno脚本、当前用户登记与卸载框架、稳定入口InstalledLauncher；只提取候选并调用共享helper事务                                   |
 | `apps/desktop/installation-runtime/`                                           | 安装身份／路径／清单／互斥、应用RSA验签和信任根读取、UpdateHelper切换／恢复／精确保全；net48独立于Node验签                    |
 | `apps/desktop/src/`                                                            | 网页使用的桌面显示／声音／程序更新TypeScript契约及控制逻辑回归；不启动正式窗口或服务                                          |
-| `apps/desktop/release/`                                                        | 旧完整便携EXE的内嵌payload与提取启动器；保留旧current兼容，不再作为新installer的外层                                          |
+| `apps/desktop/release/`                                                        | 旧完整便携EXE的内嵌payload与提取启动器；保留旧便携程序兼容，不再作为新installer的外层                                         |
 | `tools/release/installation-*`、`tools/release/sign-application-update.mjs`    | 锁定安装工具链、封包／实际验收／候选推广门禁、更新描述与独立应用签名；只在明确授权时发布                                      |
 | `tools/test/installation/`                                                     | 原生更新控制器、事务／保存屏障、双PE交接、向导及隔离标准账户验证；夹具与生产证据分层                                          |
 | `apps/server/`                                                                 | HTTP／Socket.IO、构建后网页、二维码、SQLite 存档仓储、独立 bot Worker 与游戏注册／加载                                        |
@@ -78,7 +78,7 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 
 ## 已采用与计划结构
 
-[Windows安装、卸载与盒子内更新](../tasks/windows-installation-update.md)已有源码实现：安装框架与稳定入口归 `apps/desktop/installation/`，共享身份校验和事务协调归 `apps/desktop/installation-runtime/`，原生更新控制在 `apps/desktop/native/`，封包与验证复用 `tools/release/`、`tools/test/installation/`。I/B/D/G及保留边界见[构建与运行](build-and-run.md#windows-安装与整个程序更新)；真实Windows系统验收仍按任务接续，候选尚未推广。
+[Windows安装、卸载与盒子内更新](build-and-run.md#windows-安装与整个程序更新)的安装框架与稳定入口归 `apps/desktop/installation/`，共享身份校验和事务协调归 `apps/desktop/installation-runtime/`，原生更新控制在 `apps/desktop/native/`，封包与验证复用 `tools/release/`、`tools/test/installation/`。I/B/D/G及保留边界见运行契约，真实Windows系统证明与候选推广结果见[验收](acceptance.md#当前源码与本地交付)。
 
 [macOS服务端运行包适配](../tasks/macos-adaptation.md)处于执行草案阶段，导出辅助逻辑归 `tools/release/`，不预建Mac原生宿主目录、不改造构建流程；实际输出及平台清理保护在落地时补充。
 
