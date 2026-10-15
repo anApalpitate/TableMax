@@ -26,7 +26,13 @@
 
 主机原生盒子的「程序更新」面板提供主动检查、发布页、下载进度／取消及明确重启更新，不自动应用、不提供手动在线降级。普通浏览器、公共屏和子frame没有原生更新权限。下载期间可以继续使用，未验签或失败的文件不执行；应用更新在服务串行队列确认无playing对局后同步拒收、排空、保存并关闭，再取得实际Stop确认与原Native退出码0，才调用同一个完整installer升级原目录。保存失败、超时或失联时明确停止更新并安全退出旧盒子，不能留作“可更新”或启动helper提交。稳定入口无需再次解压另一份自解压载荷，健康确认核对实际新Native／Node、I/B/D、安装实例、四位版本及当前映射。正式成功后保持新版普通主机运行。
 
-长路径兼容补充正在定向验收：内部IO使用既有扩展路径封装，实际.NET下载与partial清理组件已通过；完整交接和新正式候选尚待验证。更新执行在保存关闭前，把已核验helper和完整installer原字节复制到当前用户实际TEMP中新建的私有短目录，绑定安装身份、原签名目标及双副本SHA后再交接。该临时副本不改变I／B／D／G，也不把数据移入TEMP；原下载和B内审计记录保留。原因是.NET Framework使用的[CreateProcessW空applicationName形式](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw)仍限制命令行中的模块路径长度，内部文件IO支持长路径不代表可以从同一路径启动EXE。TEMP本身过深或为磁盘根时须在关闭服务前报错，不改系统长路径策略或已有目录权限。停止与更新交接还必须在发出关闭请求前持有原进程句柄，直到核验正常退出码后才释放，避免进程退出后只凭PID无法取得退出状态。当前交付状态仍以[验收](acceptance.md#当前源码与本地交付)为准。
+更新执行在保存关闭前，把已核验helper和完整installer原字节复制到当前用户实际TEMP中新建的私有短目录，绑定安装身份、原签名目标及双副本SHA后再交接。该临时副本不改变I／B／D／G，也不把数据移入TEMP；原下载和B内审计记录保留。原因是.NET Framework使用的[CreateProcessW空applicationName形式](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw)仍限制命令行中的模块路径长度，内部文件IO支持长路径不代表可以从同一路径启动EXE。TEMP本身过深或为磁盘根时须在关闭服务前报错，不改系统长路径策略或已有目录权限。停止与更新交接还必须在发出关闭请求前持有原进程句柄，直到核验正常退出码后才释放，避免进程退出后只凭PID无法取得退出状态。证据须记录实际进程句柄查询的短helper／installer模块路径、PID、原件／副本及元数据／审计rawSHA，不能把计划路径当实际启动证明。下载与partial清理4项、短目录与副本绑定8项组件已通过，完整交接和正式交付仍分别认定，见[验收](acceptance.md#当前源码与本地交付)。
+
+后续本地启动在`ApplicationUpdate`构造读取真实信任根与安装receipt后同步调用`InstallationLaunch.CleanupFinished`，不联网、不等待或终止helper。只由本安装B的`handoff-UUID`记录索引私有TEMP，要求同安装实例／SID／根、全部安装事务终态、原RSA目标与各自已完成事务清单／receipt及旧helper／元数据／审计SHA匹配。历史成功目标不高于当前版本也可清理；目标就是当前版本时，另核清单全字段及receipt原字节一致。运行中、pending、链接、未知、篡改及已有清理记录（包括中断的prepared）保留。清理前先取得全部已知文件的独占原句柄并核SHA，再按原句柄删除TEMP的h／存在的i／元数据和B旧helper，最后删除已空私有目录；B公共审计、签名描述及handoff保留，`cleanup.json`记录阶段与精确元组。canonical大下载保留并单独计缓存，不冒称已回收；不遍历整TEMP、G或D，不修改既有ACL或系统策略。组件证明及真实下一启动验收分别记录，见[当前证据](acceptance.md#续行06数据路径分类与共用门禁2026-10-15)。
+
+完整fixture验收有两条正向路径：默认使用私有工作目录下普通长度的 `安装 根`，数据仍为默认D=B；`long-root-external-data`把I固定为198字符，并通过合法配置将D指向同一私有工作目录内全新短 `D`，G仍在B。两条都必须完成准备复验、真实旧安装／主机、检查下载、Apply父进程退出0、新版持续主机、helper与数据核验及实际卸载共8步；长根链还核对原helper与下载路径超过260、实际短模块路径小于260。账户driver的 `chains` 模式要求这两条正向链及独立旧框架失败恢复链全部完成；省略模式时也必须先完成三链，再做正式GUID验收，不能只运行其中一条。单独 `startup-external-data` 仅用同I198、短外D完成首装／旧主机／活动卸载4步，已实际通过，只用于启动分类，不抵扣完整Apply链。入口与固定步骤见[安装验证工具](../../tools/test/README.md#完整安装与程序更新验证)。
+
+已测两次I198／默认D在服务与WebView2环境ready后发生controller COM超时，而同I／同PE、短外D的启动专项通过。这只缩小了排查范围，尚不能据此认定UDF长度是唯一原因，也不构成任意深I／D均可用的承诺。完整三链及正式候选的当前结果统一见[安装任务](../tasks/windows-installation-update.md)与[验收](acceptance.md#当前源码与本地交付)，局部成功不能推定整链通过。
 
 手动升级、盒子升级和卸载共用安装互斥与准确实例停止；更新／恢复不能用卸载停止语义绕过进行中对局。迁移和程序暂存期间持有数据库组文件租约，从已持有流复制并核验；服务先取得foundation库全生命周期SQLite独占，合作旧入口或其他会话抢先占用同D时拒绝启动，不能只凭旧Local互斥保证跨会话安全。事务记录preparing等阶段与两库、sidecar、journal及迁移标记共10成员指纹；数据库已经变化时保留目标程序和原数据，重新确认同一目标，不自动启动旧程序读取新数据。
 

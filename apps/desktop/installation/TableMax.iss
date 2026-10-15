@@ -190,7 +190,7 @@ begin
     Migration := ExpandConstant('{param:TABLEMAXMIGRATION|}');
     if Migration = '' then Migration := MigrationEdit.Text;
     if Migration <> '' then Arguments := Arguments + ' --migration-root=' + Quoted(Migration);
-    if not Exec(ExpandConstant('{tmp}\candidate\UpdateHelper.exe'), Arguments, ExpandConstant('{tmp}'), SW_HIDE, ewWaitUntilTerminated, ResultCode) then RaiseException('无法启动安装协调程序，原数据已保留。');
+    if not ExecAndLogOutput(ExpandConstant('{tmp}\candidate\UpdateHelper.exe'), Arguments, ExpandConstant('{tmp}'), SW_HIDE, ewWaitUntilTerminated, ResultCode, nil) then RaiseException('无法启动安装协调程序，原数据已保留。');
     if ResultCode <> 0 then RaiseException('安装未确认完成（' + IntToStr(ResultCode) + '）。原数据与恢复记录已保留，请检查 TableMax 目录。');
     Confirmed := True;
   end;
@@ -286,7 +286,12 @@ begin
     if GetSHA256OfFile(Temporary) <> EmbeddedUninstallHelperSHA256 then
       RaiseException('临时卸载协调程序校验失败，已保留程序和数据。');
     Arguments := '--uninstall --root=' + Quoted(ExpandConstant('{app}'));
-    if not Exec(Temporary, Arguments, Directory, SW_HIDE, ewWaitUntilTerminated, ResultCode) or (ResultCode <> 0) then
+    if not ExecAndLogOutput(Temporary, Arguments, Directory, SW_HIDE, ewWaitUntilTerminated, ResultCode, nil) then begin
+      Log('卸载协调程序启动失败，系统代码：' + IntToStr(ResultCode));
+      RaiseException('卸载未完成，程序登记与数据已保留。请关闭 TableMax 并检查恢复记录。');
+    end;
+    Log('卸载协调程序退出代码：' + IntToStr(ResultCode));
+    if ResultCode <> 0 then
       RaiseException('卸载未完成，程序登记与数据已保留。请关闭 TableMax 并检查恢复记录。');
   finally
     { Only these paths inside the new private directory are cleanup candidates. }

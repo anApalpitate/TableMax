@@ -13,6 +13,8 @@ using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using TableMax.Installation;
+using File = TableMax.Installation.InstallationFile;
+using Directory = TableMax.Installation.InstallationDirectory;
 
 namespace TableMax.Desktop
 {
@@ -42,6 +44,11 @@ namespace TableMax.Desktop
             if (installation != null) installedReceipt = InstallerReceipt.Read(InstallationCore.ReceiptPath(installation.root), installation);
             var overridePath = testing ? Environment.GetEnvironmentVariable("TABLEMAX_TEST_APPLICATION_KEYS") : null;
             if (overridePath != null) keys = TrustRoots.Parse(File.ReadAllText(overridePath, InstallationCore.Utf8));
+            if (installation != null && keys.Count > 0) InstallationLaunch.CleanupFinished(installation, installedReceipt, (signed, completedTarget, completedReceipt) =>
+            {
+                var completed = UpdateDescriptor.Verify(signed, keys);
+                if (completed.buildVersion != completedTarget.buildVersion || completed.payloadManifestSha256 != completedTarget.payloadManifestSha256 || completed.currentMappingSha256 != completedTarget.currentMappingSha256 || completed.bytes != completedReceipt.bytes || completed.sha256 != completedReceipt.sha256) throw new IOException("已完成更新签名与安装事务不匹配，未清理。");
+            });
             if (installation == null || keys.Count == 0) { phase = "unsupported"; error = installation == null ? "便携程序请手动运行完整安装器。" : "当前程序尚未配置应用更新信任根，请手动获取完整安装器。"; }
         }
         public object Read()
@@ -99,7 +106,7 @@ namespace TableMax.Desktop
             if (!Begin("downloading")) return Read();
             _ = Task.Run(async () =>
             {
-                string temporary = null;
+                string temporary = null; var temporaryCreated = false;
                 try
                 {
                     var directory = Path.Combine(installation.boxRoot, "updates", "downloads", target.sha256); InstallationCore.Safe(directory); Directory.CreateDirectory(directory);
@@ -117,20 +124,24 @@ namespace TableMax.Desktop
                                 if ((int)response.StatusCode >= 300 && (int)response.StatusCode < 400) { if (++hop > 3 || response.Headers.Location == null) throw new IOException("更新下载重定向过多。"); url = new Uri(url, response.Headers.Location); continue; }
                                 if (!response.IsSuccessStatusCode || (response.Content.Headers.ContentLength.HasValue && response.Content.Headers.ContentLength != target.bytes)) throw new IOException("更新下载长度或状态错误。");
                                 using (var input = await response.Content.ReadAsStreamAsync())
-                                using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None, 65536, true))
-                                using (var hash = SHA256.Create())
+                                using (var output = new FileStream(InstallationCore.IO(temporary), FileMode.CreateNew, FileAccess.Write, FileShare.None, 65536, true))
                                 {
-                                    var buffer = new byte[65536]; long length = 0; var previous = Stopwatch.StartNew();
-                                    while (true) { var count = await input.ReadAsync(buffer, 0, buffer.Length, cancellation.Token); if (count == 0) break; length += count; if (length > target.bytes) throw new IOException("更新下载超出已签名长度。"); hash.TransformBlock(buffer, 0, count, null, 0); await output.WriteAsync(buffer, 0, count, cancellation.Token); lock (gate) received = length; if (previous.ElapsedMilliseconds >= 200) { Publish(); previous.Restart(); } }
-                                    hash.TransformFinalBlock(new byte[0], 0, 0); output.Flush(true);
-                                    if (length != target.bytes || BitConverter.ToString(hash.Hash).Replace("-", "").ToLowerInvariant() != target.sha256) throw new IOException("更新下载摘要不匹配。");
+                                    temporaryCreated = true;
+                                    using (var hash = SHA256.Create())
+                                    {
+                                        var buffer = new byte[65536]; long length = 0; var previous = Stopwatch.StartNew();
+                                        while (true) { var count = await input.ReadAsync(buffer, 0, buffer.Length, cancellation.Token); if (count == 0) break; length += count; if (length > target.bytes) throw new IOException("更新下载超出已签名长度。"); hash.TransformBlock(buffer, 0, count, null, 0); await output.WriteAsync(buffer, 0, count, cancellation.Token); lock (gate) received = length; if (previous.ElapsedMilliseconds >= 200) { Publish(); previous.Restart(); } }
+                                        hash.TransformFinalBlock(new byte[0], 0, 0); output.Flush(true);
+                                        if (length != target.bytes || BitConverter.ToString(hash.Hash).Replace("-", "").ToLowerInvariant() != target.sha256) throw new IOException("更新下载摘要不匹配。");
+                                    }
                                 }
                                 break;
                             }
                         }
                     }
                     InstallationCore.Safe(path);
-                    if (File.Exists(path)) { if (InstallationCore.HashFile(path) != target.sha256) throw new IOException("更新暂存目录已有未知文件，已保留。"); File.Delete(temporary); } else File.Move(temporary, path);
+                    if (File.Exists(path)) { if (InstallationCore.HashFile(path) != target.sha256) throw new IOException("更新暂存目录已有未知文件，已保留。"); var cleanup = RetirePartial(temporary, ref temporaryCreated); if (cleanup != null) throw new IOException(cleanup); }
+                    else { File.Move(temporary, path); temporaryCreated = false; }
                     temporary = null;
                     InstallationCore.Atomic(Path.Combine(directory, "envelope.json"), StrictJson.Parse(envelope));
                     InstallationCore.Atomic(Path.Combine(directory, "receipt.json"), new { schemaVersion = 1, repo = target.repo, releaseTag = target.releaseTag, releaseId, assetId, target.assetName, target.sha256, target.bytes });
@@ -138,7 +149,7 @@ namespace TableMax.Desktop
                     Publish();
                 }
                 catch (Exception cause) { Failure(cause); }
-                finally { if (temporary != null && File.Exists(temporary)) File.Delete(temporary); }
+                finally { var cleanup = RetirePartial(temporary, ref temporaryCreated); if (cleanup != null) Failure(new IOException(cleanup)); }
             });
             return Read();
         }
@@ -147,33 +158,49 @@ namespace TableMax.Desktop
             lock (gate) { if (phase == "applying") throw new IOException("更新已进入关闭交接，不能取消。"); cancellation?.Cancel(); }
             return Read();
         }
+        private static string RetirePartial(string path, ref bool created)
+        {
+            if (!created || path == null) return null;
+            created = false;
+            try
+            {
+                InstallationCore.Safe(path);
+                if ((File.GetAttributes(path) & FileAttributes.Directory) != 0) throw new IOException("临时下载路径已变成文件夹。");
+                File.Delete(path); return null;
+            }
+            catch (FileNotFoundException) { return null; }
+            catch (DirectoryNotFoundException) { return null; }
+            catch (Exception) { return "更新临时下载文件未能安全清理，已保留：" + path; }
+        }
         public async Task<object> Apply()
         {
             lock (gate) if (phase != "ready" || target == null || downloaded == null) throw new IOException("完整更新尚未就绪。");
             if (!Begin("applying")) return Read();
-            var shutdownTaken = false;
+            var shutdownTaken = false; var helperStarted = false; InstallationLaunch launch = null;
             try
             {
                 var verified = UpdateDescriptor.Verify(envelope, keys); VerifyMonotonic(verified); installation.Verify(installation.root);
-                if (verified.buildVersion != target.buildVersion || InstallationCore.Version4(verified.buildVersion) <= InstallationCore.Version4(installation.buildVersion) || new FileInfo(downloaded).Length != verified.bytes || InstallationCore.HashFile(downloaded) != verified.sha256) throw new IOException("更新候选已改变，已停止应用。");
+                if (verified.buildVersion != target.buildVersion || InstallationCore.Version4(verified.buildVersion) <= InstallationCore.Version4(installation.buildVersion) || new FileInfo(InstallationCore.IO(downloaded)).Length != verified.bytes || InstallationCore.HashFile(downloaded) != verified.sha256) throw new IOException("更新候选已改变，已停止应用。");
                 // Prepare the already-verified helper before taking the irreversible
                 // service shutdown barrier. It runs outside the service Job.
                 var helperFile = installation.files.Single(file => file.path == "UpdateHelper.exe");
                 var directory = Path.Combine(installation.boxRoot, "updates", "handoff-" + Guid.NewGuid().ToString("N")); InstallationCore.Safe(directory); Directory.CreateDirectory(directory);
-                var helper = Path.Combine(directory, "UpdateHelper.exe"); File.Copy(Path.Combine(installation.root, helperFile.path), helper);
+                var helper = Path.Combine(directory, "UpdateHelper.exe"); File.Copy(Path.Combine(installation.root, helperFile.path), helper, false);
                 if (InstallationCore.HashFile(helper) != helperFile.sha256) throw new IOException("更新协调器校验失败。");
                 var envelopePath = Path.Combine(directory, "envelope.json"); InstallationCore.Atomic(envelopePath, StrictJson.Parse(envelope));
+                launch = InstallationLaunch.Create(installation, helper, downloaded, envelopePath, verified.buildVersion, verified.bytes, verified.sha256, verified.payloadManifestSha256, verified.currentMappingSha256);
                 if (!await prepare()) { lock (gate) { phase = "ready"; error = "请先结束当前对局；保存失败时不能应用更新。"; } Publish(); return Read(); }
                 shutdownTaken = true;
                 var handoff = "TableMax.Handoff." + Guid.NewGuid().ToString("N"); var tokenBytes = new byte[32]; using (var rng = RandomNumberGenerator.Create()) rng.GetBytes(tokenBytes); var token = BitConverter.ToString(tokenBytes).Replace("-", "").ToLowerInvariant();
                 var security = new PipeSecurity(); security.SetAccessRuleProtection(true, false); security.AddAccessRule(new PipeAccessRule(WindowsIdentity.GetCurrent().User, PipeAccessRights.FullControl, AccessControlType.Allow));
                 using (var pipe = new NamedPipeServerStream(handoff, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, 4096, 4096, security))
                 {
-                    var start = new ProcessStartInfo(helper, "--apply-installer --root=" + Quote(installation.root) + " --installer=" + Quote(downloaded) + " --target=" + Quote(envelopePath) + " --parent-pid=" + Process.GetCurrentProcess().Id) { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = directory };
+                    var start = new ProcessStartInfo(launch.HelperPath, "--apply-installer --root=" + Quote(installation.root) + " --installer=" + Quote(downloaded) + " --target=" + Quote(envelopePath) + " --parent-pid=" + Process.GetCurrentProcess().Id) { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = launch.DirectoryPath };
                     start.EnvironmentVariables["TABLEMAX_PARENT_HANDOFF_PIPE"] = handoff; start.EnvironmentVariables["TABLEMAX_PARENT_HANDOFF_TOKEN"] = token;
                     using (var process = Process.Start(start))
                     {
                         if (process == null) throw new IOException("无法启动更新协调器。");
+                        helperStarted = true;
                         var connected = pipe.WaitForConnectionAsync(); if (await Task.WhenAny(connected, Task.Delay(10000)) != connected) throw new IOException("更新协调器未确认持有原进程句柄。"); await connected;
                         using (var reader = new StreamReader(pipe, InstallationCore.Utf8, false, 4096, true))
                         {
@@ -185,6 +212,7 @@ namespace TableMax.Desktop
                 quit(); return Read();
             }
             catch (Exception cause) { Failure(cause); if (shutdownTaken) shutdownFailure("更新已停止：程序已安全关闭，但无法启动安装器。请重新打开 TableMax；原存档和完整更新候选已保留。"); throw; }
+            finally { if (launch != null && !helperStarted) { var cleanup = launch.CleanupUnstarted(); if (cleanup != null) Failure(new IOException(cleanup)); } }
         }
         private void Failure(Exception cause)
         {
@@ -214,7 +242,7 @@ namespace TableMax.Desktop
             if (comparison < 0 || (comparison == 0 && (candidate.sha256 != installedReceipt.sha256 || candidate.bytes != installedReceipt.bytes))) throw new IOException("降级或相同构建不同安装器字节已被拒绝。");
             var path = Path.Combine(installation.boxRoot, "updates", "highest-envelope.json"); InstallationCore.Safe(path);
             if (!File.Exists(path)) return;
-            if (new FileInfo(path).Length > 16384) throw new IOException("已接受更新描述损坏，未重置信任水位。");
+            if (new FileInfo(InstallationCore.IO(path)).Length > 16384) throw new IOException("已接受更新描述损坏，未重置信任水位。");
             var highest = UpdateDescriptor.Verify(File.ReadAllText(path, InstallationCore.Utf8), keys);
             comparison = InstallationCore.Version4(candidate.buildVersion).CompareTo(InstallationCore.Version4(highest.buildVersion));
             if (comparison < 0 || (comparison == 0 && (candidate.sha256 != highest.sha256 || candidate.bytes != highest.bytes || candidate.payloadManifestSha256 != highest.payloadManifestSha256 || candidate.currentMappingSha256 != highest.currentMappingSha256))) throw new IOException("更新低于已接受版本，或相同版本字节已改变。");

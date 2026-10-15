@@ -33,6 +33,7 @@ namespace TableMax.Desktop
         private string hostUrl;
         private int servicePort;
         private int? startupServiceExitCode;
+        private string startupStage = "start.initializing";
         private Dictionary<string, object> health;
         private bool quitting, booting = true, powerActive;
         private int nextId = 1;
@@ -115,6 +116,7 @@ namespace TableMax.Desktop
                 TableMax.Portable.LegacyGames.Preserve(directory, Path.Combine(Storage.Root, "games"));
                 System.Environment.SetEnvironmentVariable("NODE_OPTIONS", null);
                 System.Environment.SetEnvironmentVariable("NODE_PATH", null);
+                StartupStage("service.start.await");
                 var ready = await service.Start(directory, new
                 {
                     host = System.Environment.GetEnvironmentVariable("TABLEMAX_HOST") ?? "0.0.0.0",
@@ -122,6 +124,7 @@ namespace TableMax.Desktop
                     gamesDir = Path.Combine(Storage.Root, "games"),
                     playMode = arguments.Contains("--tablemax-play-mode") ? "play" : Testing || arguments.Contains("--tablemax-test-mode") ? "test" : "play"
                 });
+                StartupStage("service.start.ready");
                 EnsureServiceAlive();
                 servicePort = (int)Json.Number(ready, "port");
                 Origin = "http://127.0.0.1:" + servicePort;
@@ -144,17 +147,30 @@ namespace TableMax.Desktop
                 browserArguments += " --remote-debugging-port=" + CdpPort + " --remote-debugging-address=127.0.0.1 --disable-background-timer-throttling --disable-renderer-backgrounding --disable-backgrounding-occluded-windows";
             }
             options.AdditionalBrowserArguments = browserArguments;
+            StartupStage("webview.environment.await");
             Environment = await CoreWebView2Environment.CreateAsync(null, Path.Combine(DataDirectory, "desktop", "webview2"), options);
+            StartupStage("webview.environment.ready");
+            if (Checking)
+            {
+                try { var actualFolder = Environment.UserDataFolder; Log("WebView2 environment: userDataFolder=" + actualFolder + " utf16Length=" + actualFolder.Length + " browserVersion=" + Environment.BrowserVersionString); }
+                catch (Exception diagnostic) { Log("WebView2 environment diagnostic unavailable: type=" + diagnostic.GetType().FullName + " HResult=0x" + diagnostic.HResult.ToString("X8", System.Globalization.CultureInfo.InvariantCulture)); }
+            }
             Environment.BrowserProcessExited += (_, __) => browserReleased.TrySetResult(true);
             EnsureServiceAlive();
+            // ShowHost awaits NativeWindow.Initialize, including controller creation
+            // (EnsureCoreWebView2Async) and the initial page navigation.
+            StartupStage("webview.host.await");
             await ShowHost();
+            StartupStage("webview.host.ready");
             EnsureServiceAlive();
             booting = false;
             UpdatePower();
             if (installation != null)
             {
                 if (service == null || service.CurrentMappingSha256 != installation.currentMappingSha256) throw new IOException("安装游戏映射与本地服务不匹配。");
+                StartupStage("installation.health.await");
                 await InstallationSession.ConfirmHealth(installation, DataDirectory, service.CurrentMappingSha256, health, service.Id, healthPipe, healthToken);
+                StartupStage("installation.health.confirmed");
                 installationSession = new InstallationSession(installation, InstallationControl, () => Post(async () => await Quit()));
             }
             if (Checking)
@@ -325,10 +341,16 @@ namespace TableMax.Desktop
             try { var directory = Path.Combine(DataDirectory, "logs"); Directory.CreateDirectory(directory); File.AppendAllText(Path.Combine(directory, "desktop.log"), DateTime.UtcNow.ToString("o") + " " + text + "\n"); } catch { }
             Console.Error.WriteLine(text);
         }
+        private void StartupStage(string stage)
+        {
+            startupStage = stage;
+            if (Checking) Log("Startup stage: " + stage);
+        }
         private async Task Failure(Exception cause)
         {
             Program.ExitCode = 1;
             if (Testing) Log(cause.ToString());
+            else if (Checking) Log("Startup exception: stage=" + startupStage + " type=" + cause.GetType().FullName + " HResult=0x" + cause.HResult.ToString("X8", System.Globalization.CultureInfo.InvariantCulture) + "\n" + cause.StackTrace);
             var detail = StartupError.Describe(cause, DataDirectory); Log(detail);
             if (!Background && !(cause is MissingRuntimeException)) MessageBox.Show(detail, "TableMax 启动失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
             await Quit();

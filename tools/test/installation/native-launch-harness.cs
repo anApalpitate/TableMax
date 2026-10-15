@@ -8,8 +8,10 @@ using TableMax.Installation;
 
 internal static class NativeLaunchHarness
 {
-    private static readonly string[] CaseIds = { "private-copy-bindings", "temp-drive-root", "nonprivate-directory", "metadata-tamper", "target-source-tamper", "unknown-member", "unstarted-owned-cleanup", "installer-cleanup" };
+    private static readonly string[] CaseIds = { "private-copy-bindings", "temp-drive-root", "nonprivate-directory", "metadata-tamper", "target-source-tamper", "unknown-member", "unstarted-owned-cleanup", "installer-cleanup", "completed-cleanup", "completed-cleanup-pending", "completed-cleanup-unknown", "completed-cleanup-tamper", "completed-cleanup-in-use" };
     private static string work;
+    private static string signedEnvelope;
+    private static Dictionary<string, string> trustedKeys;
     private sealed class Result { public string id; public bool passed; public object details; public string error; }
     private sealed class Fixture
     {
@@ -30,6 +32,20 @@ internal static class NativeLaunchHarness
             return result;
         }
     }
+    private sealed class CompletedFixture
+    {
+        public Fixture source;
+        public InstallationLaunch stage;
+        public InstallationManifest current;
+        public InstallerReceipt receipt;
+        public string transaction;
+        public string[] protectedPaths;
+        public object Cleanup() => InstallationLaunch.CleanupFinished(current, receipt, (envelope, completedTarget, completedReceipt) =>
+        {
+            var target = UpdateDescriptor.Verify(envelope, trustedKeys);
+            Require(target.releaseVersion == completedTarget.releaseVersion && target.buildVersion == completedTarget.buildVersion && target.bytes == completedReceipt.bytes && target.sha256 == completedReceipt.sha256 && target.payloadManifestSha256 == completedTarget.payloadManifestSha256 && target.currentMappingSha256 == completedTarget.currentMappingSha256, "Signed cleanup target differs from completed installation or receipt.");
+        });
+    }
     private static void Require(bool condition, string message) { if (!condition) throw new IOException(message); }
     private static string Fingerprint(string path)
     {
@@ -47,6 +63,140 @@ internal static class NativeLaunchHarness
     private static void Same(Dictionary<string, string> before, Dictionary<string, string> after)
     {
         Require(before.Count == after.Count && before.All(entry => after.TryGetValue(entry.Key, out var value) && value == entry.Value), "A rejected operation changed the synthetic source or stage inventory.");
+    }
+    private static Dictionary<string, string> Inventory(string directory)
+    {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        Action<string> visit = null;
+        visit = parent =>
+        {
+            InstallationCore.Safe(parent); result.Add(parent, "directory");
+            foreach (var path in Directory.GetFileSystemEntries(InstallationCore.IO(parent)))
+            {
+                var ordinary = Path.Combine(parent, Path.GetFileName(path)); InstallationCore.Safe(ordinary);
+                if (Directory.Exists(InstallationCore.IO(ordinary))) visit(ordinary); else result.Add(ordinary, Fingerprint(ordinary));
+            }
+        };
+        visit(directory); return result;
+    }
+    private static ManagedFile[] ManagedMembers(Fixture fixture, bool next)
+    {
+        var paths = new[] { "TableMax.exe", "UpdateHelper.exe", "TableMax/app/TableMax.exe", "TableMax/app/node.exe", "TableMax/app/server.cjs", "TableMax/app/.tablemax-release.json", "TableMax/app/preinstalled-games/bootstrap.json" };
+        return paths.Select(path =>
+        {
+            var bytes = path == "UpdateHelper.exe" ? (next ? InstallationCore.Utf8.GetBytes("synthetic current helper bytes; never executed") : fixture.helperBytes) : path == "TableMax/app/.tablemax-release.json" ? (next ? InstallationCore.Utf8.GetBytes("synthetic-next-payload") : new byte[] { 1 }) : path == "TableMax/app/preinstalled-games/bootstrap.json" ? (next ? InstallationCore.Utf8.GetBytes("synthetic-next-mapping") : new byte[] { 2 }) : InstallationCore.Utf8.GetBytes((next ? "current " : "previous ") + path + "; never executed");
+            Write(InstallationCore.Member(fixture.root, path), bytes);
+            return new ManagedFile { path = path, bytes = bytes.Length, sha256 = InstallationCore.Hash(bytes) };
+        }).ToArray();
+    }
+    private static CompletedFixture CompletedInputs(string name, bool invalidSignature = false)
+    {
+        var fixture = Inputs(name); fixture.identity.files = ManagedMembers(fixture, false);
+        var envelope = signedEnvelope;
+        if (invalidSignature) { var invalid = InstallationCore.Object(StrictJson.Parse(envelope, true)); invalid["signature"] = Convert.ToBase64String(new byte[384]); envelope = InstallationCore.Encode(invalid); }
+        fixture.targetBytes = InstallationCore.Utf8.GetBytes(envelope); Write(fixture.target, fixture.targetBytes);
+        var stage = fixture.Create();
+        var current = new InstallationManifest { schemaVersion = 1, productId = InstallationCore.ProductId, arch = "x64", installProtocol = 1, releaseVersion = "1.0.6", buildVersion = "1.0.6.11", installationId = fixture.identity.installationId, ownerSid = fixture.identity.ownerSid, root = fixture.root, boxRoot = fixture.identity.boxRoot, payloadManifestSha256 = fixture.payload, currentMappingSha256 = fixture.mapping, files = ManagedMembers(fixture, true) };
+        current.Verify(current.root); WriteJson(InstallationCore.IdentityPath(current.root), current);
+        var receipt = new InstallerReceipt { schemaVersion = 1, productId = InstallationCore.ProductId, installationId = current.installationId, buildVersion = current.buildVersion, bytes = fixture.installerBytes.Length, sha256 = InstallationCore.Hash(fixture.installerBytes) };
+        WriteJson(InstallationCore.ReceiptPath(current.root), receipt);
+        var transaction = Path.Combine(current.boxRoot, ".installation-transactions", Guid.NewGuid().ToString("D"));
+        WriteJson(Path.Combine(transaction, "previous.json"), fixture.identity); WriteJson(Path.Combine(transaction, "target.json"), current); WriteJson(Path.Combine(transaction, "target-receipt.json"), receipt);
+        WriteJson(Path.Combine(transaction, "state.json"), new { schemaVersion = 1, root = current.root, phase = "completed", dataDirectory = (string)null, databaseFingerprint = (string)null });
+        var protectedPaths = new[] { Path.Combine(current.boxRoot, "games", "unrelated.keep"), Path.Combine(Path.GetDirectoryName(fixture.root), "external-data", "saved.keep"), Path.Combine(fixture.temp, "unrelated-temp", "unknown.keep") };
+        foreach (var path in protectedPaths) Write(path, InstallationCore.Utf8.GetBytes("unrelated original bytes"), true);
+        WriteJson(Path.Combine(Path.GetDirectoryName(fixture.target), "handoff.json"), new { schemaVersion = 1, root = current.root, buildVersion = current.buildVersion, status = "installer-finished", exitCode = 0, actualHelper = SyntheticObservation(stage.HelperTuple, true), actualInstaller = SyntheticObservation(stage.InstallerTuple, false), sourceInstaller = stage.InstallerTuple, launchMetadataPath = stage.MetadataPath, launchMetadataSha256 = stage.MetadataSha256, cleanup = new { installerDeleted = false, selfHelperRetained = true, reason = "Synthetic completed record; no executable was started." } });
+        return new CompletedFixture { source = fixture, stage = stage, current = current, receipt = receipt, transaction = transaction, protectedPaths = protectedPaths };
+    }
+    private static object SyntheticObservation(object tuple, bool helper)
+    {
+        var value = InstallationCore.Object(StrictJson.Parse(InstallationCore.Encode(tuple), true));
+        var path = InstallationCore.Text(value, "path"); var pid = Int32.MaxValue;
+        try { using (System.Diagnostics.Process.GetProcessById(pid)) throw new IOException("Synthetic absent PID unexpectedly exists; fixture creation stopped."); }
+        catch (ArgumentException) { }
+        value.Add("expectedPath", path); value.Add("pid", pid); value.Add("modulePath", path); value.Add("pathObserved", true); value.Add("processStarted", true); value.Add("queriedFromProcessHandle", true);
+        if (helper) value.Add("assemblyLocation", path);
+        return value;
+    }
+    private static Dictionary<string, object> CleanupResult(object value, string status)
+    {
+        var report = InstallationCore.Object(StrictJson.Parse(InstallationCore.Encode(value), true)); InstallationCore.Keys(report, "schemaVersion", "results");
+        Require(InstallationCore.Number(report, "schemaVersion") == 1, "Unexpected cleanup report version.");
+        var results = report["results"] as object[]; Require(results != null && results.Length == 1, "Exactly one completed fixture handoff must be considered.");
+        var result = InstallationCore.Object(results[0]); InstallationCore.Keys(result, "handoff", "status", "reason");
+        Require(InstallationCore.Text(result, "status") == status && !String.IsNullOrEmpty(InstallationCore.Text(result, "reason")), "Cleanup had an unexpected result.");
+        return result;
+    }
+    private static object RetainedCompleted(CompletedFixture fixture, string reasonPart)
+    {
+        var directory = Path.GetDirectoryName(fixture.source.root); var before = Inventory(directory);
+        var result = CleanupResult(fixture.Cleanup(), "retained"); Same(before, Inventory(directory));
+        Require(InstallationCore.Text(result, "reason").Contains(reasonPart), "Cleanup retained the fixture at an unexpected boundary: " + InstallationCore.Text(result, "reason"));
+        Require(!File.Exists(InstallationCore.IO(Path.Combine(Path.GetDirectoryName(fixture.source.target), "cleanup.json"))), "Rejected cleanup created a completion audit.");
+        return new { result, allSyntheticFilesAndDirectoriesUnchanged = true, fileCount = before.Count(entry => entry.Value != "directory") };
+    }
+    private static object RunCompleted(string id, int index)
+    {
+        var name = "c" + index.ToString("00");
+        if (id == "completed-cleanup-tamper")
+        {
+            var helper = CompletedInputs(name + "h"); var changed = Bytes(helper.stage.HelperPath); changed[0] ^= 1; Write(helper.stage.HelperPath, changed);
+            var helperResult = RetainedCompleted(helper, "清理成员已变化");
+            var metadata = CompletedInputs(name + "m"); Write(metadata.stage.MetadataPath, Bytes(metadata.stage.MetadataPath).Concat(new byte[] { 32 }).ToArray());
+            var metadataResult = RetainedCompleted(metadata, "清理元数据");
+            var signature = CompletedInputs(name + "s", true); var signatureResult = RetainedCompleted(signature, "更新签名验证失败");
+            return new { helperResult, metadataResult, signatureResult, realRsaRejectionRequired = true };
+        }
+        var fixture = CompletedInputs(name);
+        if (id == "completed-cleanup-pending")
+        {
+            WriteJson(Path.Combine(fixture.transaction, "state.json"), new { schemaVersion = 1, root = fixture.current.root, phase = "health-failed", dataDirectory = (string)null, databaseFingerprint = (string)null });
+            return RetainedCompleted(fixture, "安装事务尚未完成");
+        }
+        if (id == "completed-cleanup-unknown")
+        {
+            Write(Path.Combine(fixture.stage.DirectoryPath, "unknown.keep"), InstallationCore.Utf8.GetBytes("unknown launch member must survive"), true);
+            return RetainedCompleted(fixture, "临时目录含未知成员");
+        }
+        if (id == "completed-cleanup-in-use")
+        {
+            using (var held = new FileStream(InstallationCore.IO(fixture.stage.HelperPath), FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                Require(held.Length > 0, "The synthetic helper lease is empty.");
+                return RetainedCompleted(fixture, "清理成员被占用");
+            }
+        }
+        Require(id == "completed-cleanup", "Unknown completed cleanup case.");
+        var currentResult = CleanedCompleted(fixture);
+        var historical = CompletedInputs(name + "history");
+        historical.current = InstallationManifest.Read(Path.Combine(historical.transaction, "target.json"), true); historical.current.buildVersion = "1.0.6.12";
+        var historicalTarget = InstallationManifest.Read(Path.Combine(historical.transaction, "target.json"), true);
+        historical.receipt = InstallerReceipt.Read(Path.Combine(historical.transaction, "target-receipt.json"), historicalTarget); historical.receipt.buildVersion = historical.current.buildVersion;
+        var latestInstaller = InstallationCore.Utf8.GetBytes("synthetic current version 12 installer; never executed"); historical.receipt.bytes = latestInstaller.Length; historical.receipt.sha256 = InstallationCore.Hash(latestInstaller);
+        historical.current.Verify(historical.current.root); WriteJson(InstallationCore.IdentityPath(historical.current.root), historical.current); WriteJson(InstallationCore.ReceiptPath(historical.current.root), historical.receipt);
+        return new { sameCurrentTarget = currentResult, historicalTarget = CleanedCompleted(historical), historicalTargetBuildVersion = "1.0.6.11", installedBuildVersion = "1.0.6.12" };
+    }
+    private static object CleanedCompleted(CompletedFixture fixture)
+    {
+        var preserved = fixture.protectedPaths.Concat(new[] { fixture.source.installer, fixture.source.target, fixture.source.audit, Path.Combine(Path.GetDirectoryName(fixture.source.target), "handoff.json"), InstallationCore.IdentityPath(fixture.current.root), InstallationCore.ReceiptPath(fixture.current.root) }).ToDictionary(path => path, Fingerprint, StringComparer.OrdinalIgnoreCase);
+        var removed = new[] { fixture.stage.HelperPath, fixture.stage.InstallerPath, fixture.stage.MetadataPath, fixture.source.helper }.ToDictionary(path => path, Fingerprint, StringComparer.OrdinalIgnoreCase);
+        var result = CleanupResult(fixture.Cleanup(), "cleaned");
+        Require(!Directory.Exists(InstallationCore.IO(fixture.stage.DirectoryPath)) && removed.Keys.All(path => !File.Exists(InstallationCore.IO(path))), "Completed cleanup left an exact owned launch file.");
+        Same(preserved, preserved.Keys.ToDictionary(path => path, Fingerprint, StringComparer.OrdinalIgnoreCase));
+        var cleanupPath = Path.Combine(Path.GetDirectoryName(fixture.source.target), "cleanup.json"); var audit = ReadJson(cleanupPath);
+        InstallationCore.Keys(audit, "schemaVersion", "kind", "status", "root", "boxRoot", "installationId", "ownerSid", "buildVersion", "currentBuildVersion", "payloadManifestSha256", "currentMappingSha256", "receiptSha256", "launchAuditSha256", "handoffSha256", "launchMetadataPath", "launchMetadataSha256", "targetEnvelopeSha256", "temporaryDirectory", "removed", "retainedSourceInstaller");
+        Require(InstallationCore.Text(audit, "kind") == "TableMax.ApplicationUpdate.Cleanup" && InstallationCore.Text(audit, "status") == "completed", "Cleanup audit lacks the completed public terminal state.");
+        Require(InstallationCore.Text(audit, "buildVersion") == "1.0.6.11" && InstallationCore.Text(audit, "currentBuildVersion") == fixture.current.buildVersion && InstallationCore.Digest(audit, "receiptSha256") == InstallationCore.HashFile(Path.Combine(fixture.transaction, "target-receipt.json")), "Cleanup audit confused the completed signed target with the later installed identity.");
+        var tuples = audit["removed"] as object[]; Require(tuples != null && tuples.Length == removed.Count, "Cleanup audit removed inventory differs.");
+        foreach (var tuple in tuples)
+        {
+            var file = InstallationCore.Object(tuple); InstallationCore.Keys(file, "sourcePath", "path", "bytes", "sha256"); var path = InstallationCore.Text(file, "path");
+            Require(removed.TryGetValue(path, out var fingerprint) && fingerprint == InstallationCore.Number(file, "bytes") + ":" + InstallationCore.Digest(file, "sha256"), "Cleanup audit did not bind exact removed raw bytes.");
+        }
+        var retained = InstallationCore.Object(audit["retainedSourceInstaller"]); InstallationCore.Keys(retained, "sourcePath", "path", "bytes", "sha256");
+        Require(InstallationCore.Equal(InstallationCore.Text(retained, "sourcePath"), fixture.source.installer) && InstallationCore.Equal(InstallationCore.Text(retained, "path"), fixture.source.installer) && InstallationCore.Number(retained, "bytes") == fixture.source.installerBytes.Length && InstallationCore.Digest(retained, "sha256") == InstallationCore.Hash(fixture.source.installerBytes), "Canonical signed download retention tuple differs.");
+        var beforeSecond = Inventory(Path.GetDirectoryName(fixture.source.root)); var again = CleanupResult(fixture.Cleanup(), "retained"); Same(beforeSecond, Inventory(Path.GetDirectoryName(fixture.source.root)));
+        return new { result, repeated = again, cleanupPath, removed = removed.Keys.ToArray(), canonicalDownloadRetained = true, unrelatedGamesDataAndTemporaryFilesRetained = true, idempotentInventoryUnchanged = true, rsaVerifiedWithInMemoryTestKey = true, observationsAreSyntheticRecordsOnly = true, executableStarted = false };
     }
     private static string Reject(Action action, string messagePart = null)
     {
@@ -81,6 +231,7 @@ internal static class NativeLaunchHarness
     }
     private static object Run(string id, int index)
     {
+        if (id.StartsWith("completed-cleanup", StringComparison.Ordinal)) return RunCompleted(id, index);
         var fixture = Inputs("c" + index.ToString("00"));
         if (id == "temp-drive-root")
         {
@@ -162,12 +313,20 @@ internal static class NativeLaunchHarness
         var results = new List<Result>(); var selected = CaseIds; var priorFailures = 0; var failures = 0;
         try
         {
-            Require(args.Length >= 1 && args.Length <= 3, "Use isolated work directory and unique --only/--prior-failures.");
+            Require(args.Length >= 1 && args.Length <= 4, "Use isolated work directory and unique --only/--prior-failures/--signed-fixture.");
             work = InstallationCore.Root(args[0]); Require(Directory.Exists(InstallationCore.IO(work)) && Directory.GetFileSystemEntries(InstallationCore.IO(work)).Length == 0, "The fixture work directory must already exist and be empty.");
             var options = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach (var argument in args.Skip(1)) { var split = argument.IndexOf('='); Require(split > 0, "Missing option value."); var key = argument.Substring(0, split); Require((key == "--only" || key == "--prior-failures") && !options.ContainsKey(key), "Unknown or duplicate option."); options.Add(key, argument.Substring(split + 1)); }
+            foreach (var argument in args.Skip(1)) { var split = argument.IndexOf('='); Require(split > 0, "Missing option value."); var key = argument.Substring(0, split); Require((key == "--only" || key == "--prior-failures" || key == "--signed-fixture") && !options.ContainsKey(key), "Unknown or duplicate option."); options.Add(key, argument.Substring(split + 1)); }
             if (options.TryGetValue("--only", out var only)) { var names = only.Split(','); Require(names.Length > 0 && names.All(name => CaseIds.Contains(name)) && names.Distinct(StringComparer.Ordinal).Count() == names.Length, "Select unique known case IDs."); selected = CaseIds.Where(names.Contains).ToArray(); }
             if (options.TryGetValue("--prior-failures", out var prior)) { Require(prior == "0" || prior == "1" || prior == "2", "Prior failures must be 0..2."); priorFailures = Int32.Parse(prior); }
+            if (selected.Any(id => id.StartsWith("completed-cleanup", StringComparison.Ordinal)))
+            {
+                Require(options.TryGetValue("--signed-fixture", out var signedFixture), "Completed cleanup cases require the public in-memory-key fixture.");
+                Require(InstallationCore.Equal(Path.GetDirectoryName(signedFixture), Path.GetDirectoryName(work)) && Path.GetFileName(signedFixture) == "public-signature-fixture.json", "Signed fixture must belong to this new harness work parent.");
+                InstallationCore.Safe(signedFixture); var signed = ReadJson(signedFixture); InstallationCore.Keys(signed, "trust", "envelope");
+                trustedKeys = TrustRoots.Parse(InstallationCore.Encode(signed["trust"])); signedEnvelope = InstallationCore.Encode(signed["envelope"]);
+                UpdateDescriptor.Verify(signedEnvelope, trustedKeys);
+            }
             foreach (var id in selected)
             {
                 if (priorFailures + failures >= 3) break;
@@ -179,7 +338,7 @@ internal static class NativeLaunchHarness
         catch (Exception cause) { failures++; results.Add(new Result { id = "harness-input", passed = false, error = cause.ToString() }); }
         finally { Environment.SetEnvironmentVariable("TEMP", previousTemp); Environment.SetEnvironmentVariable("TMP", previousTmp); }
         var passed = failures == 0 && results.Count == selected.Length;
-        Console.WriteLine(InstallationCore.Encode(new { schemaVersion = 1, passed, boundary = "Actual net48 InstallationCore/InstallationLaunch and new engineering-temp objects with synthetic non-PE files. No Native/helper/installer execution, RSA verification, parent pipe, service, registry, account, existing-object ACL changes or global policy changes.", selectedCases = selected, priorFailures, failures, totalFailures = priorFailures + failures, failureLimit = 3, stoppedEarly = results.Count < selected.Length, processEnvironmentRestored = Environment.GetEnvironmentVariable("TEMP") == previousTemp && Environment.GetEnvironmentVariable("TMP") == previousTmp, results }));
+        Console.WriteLine(InstallationCore.Encode(new { schemaVersion = 1, passed, boundary = "Actual net48 InstallationCore/InstallationLaunch, fixture RSA verification and new engineering-temp objects with synthetic non-PE files and synthetic absent-PID completed records. No Native/helper/installer execution, actual module observation, parent pipe, service, registry, account, existing-object ACL changes or global policy changes. Canonical signed downloads remain as measured cache; only exact completed launch copies are cleanup candidates.", selectedCases = selected, priorFailures, failures, totalFailures = priorFailures + failures, failureLimit = 3, stoppedEarly = results.Count < selected.Length, processEnvironmentRestored = Environment.GetEnvironmentVariable("TEMP") == previousTemp && Environment.GetEnvironmentVariable("TMP") == previousTmp, results }));
         return passed ? 0 : 1;
     }
 }

@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Web.Script.Serialization;
+using Microsoft.Win32.SafeHandles;
 using File = TableMax.Installation.InstallationFile;
 using Directory = TableMax.Installation.InstallationDirectory;
 
@@ -137,6 +140,385 @@ namespace TableMax.Installation
         public static void Delete(string path) => System.IO.Directory.Delete(InstallationCore.IO(path));
         public static string[] GetDirectories(string path) => System.IO.Directory.GetDirectories(InstallationCore.IO(path)).Select(InstallationCore.Full).ToArray();
         public static string[] GetFileSystemEntries(string path) => System.IO.Directory.GetFileSystemEntries(InstallationCore.IO(path)).Select(InstallationCore.Full).ToArray();
+    }
+
+    // IO paths may be long; executable module paths used by Framework's
+    // CreateProcess(null, commandLine, ...) still must fit MAX_PATH.
+    internal sealed class InstallationLaunch
+    {
+        [StructLayout(LayoutKind.Sequential)]
+        private struct SecurityAttributes { public int Length; public IntPtr Descriptor; [MarshalAs(UnmanagedType.Bool)] public bool InheritHandle; }
+        [DllImport("kernel32.dll", EntryPoint = "CreateDirectoryW", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool CreatePrivateDirectory(string path, ref SecurityAttributes security);
+        [DllImport("kernel32.dll", EntryPoint = "CreateFileW", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
+        private static extern SafeFileHandle OpenCleanupFile(string path, uint access, uint share, IntPtr security, uint creation, uint flags, IntPtr template);
+        [StructLayout(LayoutKind.Sequential)]
+        private struct CleanupAttributes { public uint Attributes, ReparseTag; }
+        [StructLayout(LayoutKind.Sequential)]
+        private struct CleanupDisposition { [MarshalAs(UnmanagedType.U1)] public bool Delete; }
+        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetFileInformationByHandleEx(SafeFileHandle file, int kind, out CleanupAttributes attributes, uint size);
+        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SetFileInformationByHandle(SafeFileHandle file, int kind, ref CleanupDisposition disposition, uint size);
+        private sealed class Record { public string sourcePath, path; public int bytes; public string sha256; public object Public => new { sourcePath, path, bytes, sha256 }; }
+        private sealed class CleanupLease : IDisposable
+        {
+            private readonly FileStream stream;
+            public CleanupLease(Record file)
+            {
+                InstallationCore.Safe(file.path);
+                // DELETE + GENERIC_READ, no sharing and OPEN_REPARSE_POINT:
+                // retain the very object hashed here through handle deletion.
+                var handle = OpenCleanupFile(InstallationCore.IO(file.path), 0x80010000, 0, IntPtr.Zero, 3, 0x00200000, IntPtr.Zero);
+                if (handle.IsInvalid) { var code = Marshal.GetLastWin32Error(); handle.Dispose(); throw new IOException("清理成员被占用或无法取得独占句柄，已保留。", new System.ComponentModel.Win32Exception(code)); }
+                try
+                {
+                    if (!GetFileInformationByHandleEx(handle, 9, out var attributes, (uint)Marshal.SizeOf(typeof(CleanupAttributes))) || (attributes.Attributes & (uint)(FileAttributes.ReparsePoint | FileAttributes.Directory | FileAttributes.ReadOnly)) != 0) throw new IOException("清理成员不是可删除的普通文件，已保留。");
+                    stream = new FileStream(handle, FileAccess.Read);
+                    using (var sha = SHA256.Create()) if (stream.Length != file.bytes || BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "").ToLowerInvariant() != file.sha256) throw new IOException("清理成员已变化，已保留。");
+                }
+                catch { if (stream != null) stream.Dispose(); else handle.Dispose(); throw; }
+            }
+            public void Delete()
+            {
+                DeleteCleanupHandle(stream.SafeFileHandle);
+            }
+            public void Dispose() => stream.Dispose();
+        }
+        private static void DeleteCleanupHandle(SafeFileHandle handle)
+        {
+            var disposition = new CleanupDisposition { Delete = true };
+            if (!SetFileInformationByHandle(handle, 4, ref disposition, (uint)Marshal.SizeOf(typeof(CleanupDisposition)))) throw new IOException("清理原文件句柄未获确认，已保留审计。", new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error()));
+        }
+        private SafeFileHandle OpenCleanupDirectory()
+        {
+            // Allow child IO, but deny renaming this directory while its known
+            // members are verified and removed. Delete the same empty object.
+            var handle = OpenCleanupFile(InstallationCore.IO(DirectoryPath), 0x00010080, 3, IntPtr.Zero, 3, 0x02200000, IntPtr.Zero);
+            if (handle.IsInvalid) { var code = Marshal.GetLastWin32Error(); handle.Dispose(); throw new IOException("临时目录正在使用，已保留。", new System.ComponentModel.Win32Exception(code)); }
+            try
+            {
+                if (!GetFileInformationByHandleEx(handle, 9, out var attributes, (uint)Marshal.SizeOf(typeof(CleanupAttributes))) || (attributes.Attributes & (uint)(FileAttributes.ReparsePoint | FileAttributes.Directory)) != (uint)FileAttributes.Directory) throw new IOException("临时目录身份未获确认，已保留。");
+                VerifyDirectory(); return handle;
+            }
+            catch { handle.Dispose(); throw; }
+        }
+        private readonly Dictionary<string, Record> owned = new Dictionary<string, Record>(StringComparer.OrdinalIgnoreCase);
+        private InstallationManifest sourceIdentity;
+        private Record helper, installer, target;
+        private string ownerSid, parent, auditPath, metadataSha256;
+        private bool directoryCreated;
+        public string DirectoryPath { get; private set; }
+        public string HelperPath => Path.Combine(DirectoryPath, "h.exe");
+        public string InstallerPath => Path.Combine(DirectoryPath, "i.exe");
+        public string MetadataPath => Path.Combine(DirectoryPath, "launch.json");
+        public string MetadataSha256 => metadataSha256;
+        public object HelperTuple => helper.Public;
+        public object InstallerTuple => installer.Public;
+        private static string CurrentSid() { using (var identity = WindowsIdentity.GetCurrent()) return identity.User.Value; }
+        private static string TemporaryParent()
+        {
+            var value = Path.GetTempPath();
+            if (String.IsNullOrEmpty(value) || value.Length < 3 || !Char.IsLetter(value[0]) || value[1] != ':' || (value[2] != '\\' && value[2] != '/')) throw new IOException("当前用户的 TEMP 必须是本机磁盘的标准绝对路径。");
+            var absolute = Path.GetFullPath(value);
+            if (String.Equals(absolute.TrimEnd('\\', '/'), Path.GetPathRoot(absolute).TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase)) throw new IOException("当前用户的 TEMP 不能是磁盘根目录。请设置专用临时目录后重试；未关闭程序。");
+            value = InstallationCore.Full(value); InstallationCore.Safe(value);
+            if (!Directory.Exists(value)) throw new IOException("当前用户的 TEMP 目录不存在，未关闭程序。");
+            return value;
+        }
+        private static void LaunchPath(string path)
+        {
+            if (InstallationCore.Full(path).Length >= 260) throw new IOException("当前用户的 TEMP 路径太深，无法安全启动更新。请缩短 TEMP 路径后重试；未关闭程序。");
+        }
+        private static string HandoffDirectory(InstallationManifest identity, string targetPath)
+        {
+            targetPath = InstallationCore.Full(targetPath); var directory = Path.GetDirectoryName(targetPath); var name = Path.GetFileName(directory);
+            if (Path.GetFileName(targetPath) != "envelope.json" || !InstallationCore.Equal(Path.GetDirectoryName(directory), Path.Combine(identity.boxRoot, "updates")) || !name.StartsWith("handoff-", StringComparison.Ordinal) || !Guid.TryParseExact(name.Substring(8), "N", out _)) throw new IOException("更新启动记录不属于当前安装的交接事务。");
+            InstallationCore.Safe(directory); return directory;
+        }
+        private void VerifyDirectory()
+        {
+            InstallationCore.Safe(DirectoryPath);
+            if (!InstallationCore.Equal(Path.GetDirectoryName(DirectoryPath), parent) || !Directory.Exists(DirectoryPath) || !Path.GetFileName(DirectoryPath).StartsWith("TableMax-update-", StringComparison.Ordinal) || !Guid.TryParseExact(Path.GetFileName(DirectoryPath).Substring(16), "N", out _)) throw new IOException("更新临时目录身份无效。");
+            var security = System.IO.Directory.GetAccessControl(InstallationCore.IO(DirectoryPath), AccessControlSections.Owner | AccessControlSections.Access);
+            if (!security.AreAccessRulesProtected || security.GetOwner(typeof(SecurityIdentifier)).Value != ownerSid) throw new IOException("更新临时目录未保持当前用户的私有权限。");
+            var expected = new HashSet<string>(new[] { ownerSid, "S-1-5-18" }, StringComparer.Ordinal);
+            foreach (FileSystemAccessRule rule in security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
+            {
+                if (rule.IsInherited || rule.AccessControlType != AccessControlType.Allow || rule.FileSystemRights != FileSystemRights.FullControl || rule.InheritanceFlags != (InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit) || rule.PropagationFlags != PropagationFlags.None || !expected.Remove(rule.IdentityReference.Value)) throw new IOException("更新临时目录权限包含未知规则，已保留原内容。");
+            }
+            if (expected.Count != 0) throw new IOException("更新临时目录权限缺少当前用户或 SYSTEM。");
+            LaunchPath(DirectoryPath); LaunchPath(HelperPath); LaunchPath(InstallerPath);
+        }
+        private void CreateDirectory()
+        {
+            var security = new DirectorySecurity(); security.SetOwner(new SecurityIdentifier(ownerSid)); security.SetAccessRuleProtection(true, false);
+            foreach (var sid in new[] { ownerSid, "S-1-5-18" }.Distinct(StringComparer.Ordinal)) security.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(sid), FileSystemRights.FullControl, InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
+            var bytes = security.GetSecurityDescriptorBinaryForm(); var pinned = GCHandle.Alloc(bytes, GCHandleType.Pinned);
+            try
+            {
+                var attributes = new SecurityAttributes { Length = Marshal.SizeOf(typeof(SecurityAttributes)), Descriptor = pinned.AddrOfPinnedObject(), InheritHandle = false };
+                if (!CreatePrivateDirectory(InstallationCore.IO(DirectoryPath), ref attributes)) throw new IOException("无法独占创建私有更新临时目录；未使用或覆盖已有目录。", new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error()));
+                directoryCreated = true;
+            }
+            finally { pinned.Free(); }
+            VerifyDirectory();
+            if (Directory.GetFileSystemEntries(DirectoryPath).Length != 0) throw new IOException("新建更新临时目录含有未知内容，未继续。");
+        }
+        private static void VerifyFile(Record file)
+        {
+            InstallationCore.Safe(file.path);
+            if (Directory.Exists(file.path) || !File.Exists(file.path) || new FileInfo(InstallationCore.IO(file.path)).Length != file.bytes || InstallationCore.HashFile(file.path) != file.sha256) throw new IOException("更新启动文件的字节身份不匹配，已保留原内容。");
+        }
+        private void Copy(Record file)
+        {
+            VerifyDirectory(); InstallationCore.Safe(file.sourcePath); InstallationCore.Safe(file.path);
+            using (var input = new FileStream(InstallationCore.IO(file.sourcePath), FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                if (input.Length != file.bytes) throw new IOException("更新启动副本来源长度已变化。");
+                using (var output = new FileStream(InstallationCore.IO(file.path), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+                {
+                    owned.Add(file.path, file); input.CopyTo(output); output.Flush(true); output.Position = 0;
+                    if (output.Length != file.bytes) throw new IOException("更新启动副本长度无效。");
+                    using (var sha = SHA256.Create())
+                        if (BitConverter.ToString(sha.ComputeHash(output)).Replace("-", "").ToLowerInvariant() != file.sha256) throw new IOException("更新启动副本摘要不匹配。");
+                }
+            }
+            VerifyFile(file);
+        }
+        private void VerifyMembers()
+        {
+            VerifyDirectory();
+            var expected = new HashSet<string>(new[] { HelperPath, InstallerPath, MetadataPath }, StringComparer.OrdinalIgnoreCase);
+            foreach (var path in Directory.GetFileSystemEntries(DirectoryPath)) if (!expected.Remove(path)) throw new IOException("更新临时目录包含未知成员，已保留原内容。");
+            if (expected.Count != 0) throw new IOException("更新临时目录缺少已登记成员。");
+        }
+        private static Record ReadRecord(object value)
+        {
+            var map = InstallationCore.Object(value); InstallationCore.Keys(map, "sourcePath", "path", "bytes", "sha256");
+            var result = new Record { sourcePath = InstallationCore.Full(InstallationCore.Text(map, "sourcePath")), path = InstallationCore.Full(InstallationCore.Text(map, "path")), bytes = InstallationCore.Number(map, "bytes"), sha256 = InstallationCore.Digest(map, "sha256") };
+            if (result.bytes < 1 || result.bytes >= 120000000) throw new IOException("更新启动记录长度无效。");
+            return result;
+        }
+        public static InstallationLaunch Create(InstallationManifest identity, string helperSource, string installerSource, string targetPath, string targetBuildVersion, int installerBytes, string installerSha256, string payloadManifestSha256, string currentMappingSha256)
+        {
+            var stage = new InstallationLaunch { ownerSid = CurrentSid(), parent = TemporaryParent(), sourceIdentity = identity };
+            if (stage.ownerSid != identity.ownerSid) throw new IOException("更新临时目录用户与安装用户不匹配。");
+            var handoff = HandoffDirectory(identity, targetPath);
+            if (!InstallationCore.Equal(helperSource, Path.Combine(handoff, "UpdateHelper.exe")) || !InstallationCore.Equal(installerSource, Path.Combine(identity.boxRoot, "updates", "downloads", installerSha256, Path.GetFileName(installerSource)))) throw new IOException("更新启动来源不属于当前交接事务。");
+            stage.DirectoryPath = Path.Combine(stage.parent, "TableMax-update-" + Guid.NewGuid().ToString("N")); stage.auditPath = Path.Combine(handoff, "launch.json");
+            LaunchPath(stage.DirectoryPath); LaunchPath(stage.HelperPath); LaunchPath(stage.InstallerPath);
+            var helper = identity.files.Single(file => file.path == "UpdateHelper.exe");
+            stage.helper = new Record { sourcePath = InstallationCore.Full(helperSource), path = stage.HelperPath, bytes = helper.bytes, sha256 = helper.sha256 };
+            stage.installer = new Record { sourcePath = InstallationCore.Full(installerSource), path = stage.InstallerPath, bytes = installerBytes, sha256 = installerSha256 };
+            InstallationCore.Safe(targetPath); var targetBytes = new FileInfo(InstallationCore.IO(targetPath)).Length;
+            if (targetBytes < 1 || targetBytes > 16384) throw new IOException("更新启动目标签名长度无效。");
+            stage.target = new Record { sourcePath = InstallationCore.Full(targetPath), path = InstallationCore.Full(targetPath), bytes = (int)targetBytes, sha256 = InstallationCore.HashFile(targetPath) };
+            try
+            {
+                stage.CreateDirectory(); stage.Copy(stage.helper); stage.Copy(stage.installer);
+                var metadata = new { schemaVersion = 1, kind = "TableMax.ApplicationUpdate.Launch", productId = InstallationCore.ProductId, installationId = identity.installationId, ownerSid = stage.ownerSid, root = identity.root, boxRoot = identity.boxRoot, installedBuildVersion = identity.buildVersion, targetBuildVersion, payloadManifestSha256, currentMappingSha256, temporaryParent = stage.parent, temporaryDirectory = stage.DirectoryPath, auditPath = stage.auditPath, helper = stage.helper.Public, installer = stage.installer.Public, target = stage.target.Public };
+                InstallationCore.Atomic(stage.MetadataPath, metadata); stage.metadataSha256 = InstallationCore.HashFile(stage.MetadataPath);
+                stage.owned.Add(stage.MetadataPath, new Record { sourcePath = stage.MetadataPath, path = stage.MetadataPath, bytes = (int)new FileInfo(InstallationCore.IO(stage.MetadataPath)).Length, sha256 = stage.metadataSha256 });
+                InstallationCore.Safe(stage.auditPath); if (File.Exists(stage.auditPath) || Directory.Exists(stage.auditPath)) throw new IOException("更新交接审计记录已存在，未覆盖。");
+                InstallationCore.Atomic(stage.auditPath, new { schemaVersion = 1, root = identity.root, installationId = identity.installationId, ownerSid = identity.ownerSid, temporaryDirectory = stage.DirectoryPath, metadataPath = stage.MetadataPath, metadataSha256 = stage.metadataSha256, actualHelper = stage.helper.Public, sourceInstaller = stage.installer.Public, target = stage.target.Public });
+                stage.VerifyMembers(); return stage;
+            }
+            catch (Exception cause)
+            {
+                var cleanup = stage.CleanupUnstarted();
+                if (cleanup != null) throw new IOException(cause.Message + " " + cleanup, cause);
+                throw;
+            }
+        }
+        public static InstallationLaunch Read(string runningHelper, InstallationManifest identity, string installerSource, string targetPath, string targetBuildVersion, int installerBytes, string installerSha256, string payloadManifestSha256, string currentMappingSha256)
+        {
+            var stage = new InstallationLaunch { ownerSid = CurrentSid(), parent = TemporaryParent(), sourceIdentity = identity, DirectoryPath = Path.GetDirectoryName(InstallationCore.Full(runningHelper)) };
+            stage.VerifyDirectory(); if (!InstallationCore.Equal(runningHelper, stage.HelperPath) || stage.ownerSid != identity.ownerSid) throw new IOException("更新执行副本与当前安装用户不匹配。");
+            InstallationCore.Safe(stage.MetadataPath); if (new FileInfo(InstallationCore.IO(stage.MetadataPath)).Length > 32768) throw new IOException("更新启动元数据过长。");
+            var map = InstallationCore.Object(StrictJson.Parse(File.ReadAllText(stage.MetadataPath, InstallationCore.Utf8), true));
+            InstallationCore.Keys(map, "schemaVersion", "kind", "productId", "installationId", "ownerSid", "root", "boxRoot", "installedBuildVersion", "targetBuildVersion", "payloadManifestSha256", "currentMappingSha256", "temporaryParent", "temporaryDirectory", "auditPath", "helper", "installer", "target");
+            if (InstallationCore.Number(map, "schemaVersion") != 1 || InstallationCore.Text(map, "kind") != "TableMax.ApplicationUpdate.Launch" || InstallationCore.Text(map, "productId") != InstallationCore.ProductId || InstallationCore.Text(map, "installationId") != identity.installationId || InstallationCore.Text(map, "ownerSid") != stage.ownerSid || !InstallationCore.Equal(InstallationCore.Text(map, "root"), identity.root) || !InstallationCore.Equal(InstallationCore.Text(map, "boxRoot"), identity.boxRoot) || InstallationCore.Text(map, "installedBuildVersion") != identity.buildVersion || InstallationCore.Text(map, "targetBuildVersion") != targetBuildVersion || InstallationCore.Digest(map, "payloadManifestSha256") != payloadManifestSha256 || InstallationCore.Digest(map, "currentMappingSha256") != currentMappingSha256 || !InstallationCore.Equal(InstallationCore.Text(map, "temporaryParent"), stage.parent) || !InstallationCore.Equal(InstallationCore.Text(map, "temporaryDirectory"), stage.DirectoryPath)) throw new IOException("更新启动元数据与实际安装或签名目标不匹配。");
+            stage.auditPath = Path.Combine(HandoffDirectory(identity, targetPath), "launch.json"); if (!InstallationCore.Equal(InstallationCore.Text(map, "auditPath"), stage.auditPath)) throw new IOException("更新启动审计位置不匹配。");
+            stage.helper = ReadRecord(map["helper"]); stage.installer = ReadRecord(map["installer"]); stage.target = ReadRecord(map["target"]);
+            var helper = identity.files.Single(file => file.path == "UpdateHelper.exe");
+            if (!InstallationCore.Equal(stage.helper.path, stage.HelperPath) || !InstallationCore.Equal(stage.helper.sourcePath, Path.Combine(Path.GetDirectoryName(targetPath), "UpdateHelper.exe")) || stage.helper.bytes != helper.bytes || stage.helper.sha256 != helper.sha256 || !InstallationCore.Equal(stage.installer.path, stage.InstallerPath) || !InstallationCore.Equal(stage.installer.sourcePath, installerSource) || stage.installer.bytes != installerBytes || stage.installer.sha256 != installerSha256 || !InstallationCore.Equal(stage.target.path, targetPath) || !InstallationCore.Equal(stage.target.sourcePath, targetPath) || stage.target.bytes > 16384) throw new IOException("更新启动文件元组与受管协调器或签名安装器不匹配。");
+            stage.metadataSha256 = InstallationCore.HashFile(stage.MetadataPath); stage.VerifyMembers(); stage.VerifyAudit(identity);
+            foreach (var file in new[] { stage.helper, stage.installer, stage.target }) { VerifyFile(file); VerifyFile(new Record { path = file.sourcePath, bytes = file.bytes, sha256 = file.sha256 }); }
+            return stage;
+        }
+        private void VerifyAudit(InstallationManifest identity)
+        {
+            InstallationCore.Safe(auditPath); if (new FileInfo(InstallationCore.IO(auditPath)).Length > 32768) throw new IOException("更新启动审计记录过长。");
+            var map = InstallationCore.Object(StrictJson.Parse(File.ReadAllText(auditPath, InstallationCore.Utf8), true));
+            InstallationCore.Keys(map, "schemaVersion", "root", "installationId", "ownerSid", "temporaryDirectory", "metadataPath", "metadataSha256", "actualHelper", "sourceInstaller", "target");
+            if (InstallationCore.Number(map, "schemaVersion") != 1 || !InstallationCore.Equal(InstallationCore.Text(map, "root"), identity.root) || InstallationCore.Text(map, "installationId") != identity.installationId || InstallationCore.Text(map, "ownerSid") != ownerSid || !InstallationCore.Equal(InstallationCore.Text(map, "temporaryDirectory"), DirectoryPath) || !InstallationCore.Equal(InstallationCore.Text(map, "metadataPath"), MetadataPath) || InstallationCore.Digest(map, "metadataSha256") != metadataSha256) throw new IOException("更新启动审计与私有临时目录不匹配。");
+            foreach (var item in new[] { new { Key = "actualHelper", File = helper }, new { Key = "sourceInstaller", File = installer }, new { Key = "target", File = target } })
+            {
+                var actual = ReadRecord(map[item.Key]); if (!InstallationCore.Equal(actual.sourcePath, item.File.sourcePath) || !InstallationCore.Equal(actual.path, item.File.path) || actual.bytes != item.File.bytes || actual.sha256 != item.File.sha256) throw new IOException("更新启动审计文件元组不匹配。");
+            }
+        }
+        public string CleanupUnstarted()
+        {
+            if (!directoryCreated) return null;
+            try
+            {
+                VerifyDirectory();
+                foreach (var file in owned.Values) { if (!File.Exists(file.path) && !Directory.Exists(file.path)) continue; VerifyFile(file); File.Delete(file.path); }
+                if (Directory.GetFileSystemEntries(DirectoryPath).Length != 0) return "私有更新临时目录含有未确认内容，已保留：" + DirectoryPath;
+                Directory.Delete(DirectoryPath); return null;
+            }
+            catch (Exception) { return "未能确认清理私有更新临时文件，已保留：" + DirectoryPath; }
+        }
+        public object CleanupInstaller(bool safeToDelete)
+        {
+            if (!safeToDelete) return new { installerDeleted = false, selfHelperRetained = true, reason = "Pending or unrecognized installation transaction; launch copies retained." };
+            try { VerifyMembers(); if (InstallationCore.HashFile(MetadataPath) != metadataSha256) throw new IOException("Launch metadata changed."); VerifyAudit(sourceIdentity); VerifyFile(installer); File.Delete(installer.path); return new { installerDeleted = true, selfHelperRetained = true, reason = "Only the same-SHA installer copy was removed; the executing helper and public metadata remain." }; }
+            catch (Exception) { return new { installerDeleted = false, selfHelperRetained = true, reason = "Launch-copy cleanup was not confirmed; all unconfirmed content retained." }; }
+        }
+        public void VerifyForLaunch(InstallationManifest identity)
+        {
+            VerifyMembers();
+            if (InstallationCore.HashFile(MetadataPath) != metadataSha256) throw new IOException("更新启动元数据已变化，未启动安装器。");
+            VerifyAudit(identity);
+            foreach (var file in new[] { helper, installer, target }) { VerifyFile(file); VerifyFile(new Record { path = file.sourcePath, bytes = file.bytes, sha256 = file.sha256 }); }
+        }
+        private static Dictionary<string, object> CleanupJson(string path)
+        {
+            InstallationCore.Safe(path);
+            if (!File.Exists(path) || new FileInfo(InstallationCore.IO(path)).Length > 32768) throw new IOException("清理记录缺失或过长，已保留。");
+            return InstallationCore.Object(StrictJson.Parse(File.ReadAllText(path, InstallationCore.Utf8), true));
+        }
+        private static bool SameManifest(InstallationManifest left, InstallationManifest right) => InstallationCore.Encode(left) == InstallationCore.Encode(right);
+        private static List<string> TerminalTransactions(InstallationManifest current)
+        {
+            var directory = Path.Combine(current.boxRoot, ".installation-transactions"); InstallationCore.Safe(directory);
+            if (!Directory.Exists(directory)) throw new IOException("缺少已完成安装事务，已保留。");
+            var completed = new List<string>();
+            foreach (var path in Directory.GetFileSystemEntries(directory))
+            {
+                InstallationCore.Safe(path);
+                if (!Directory.Exists(path) || !Guid.TryParseExact(Path.GetFileName(path), "D", out _)) throw new IOException("安装事务含未知成员，已保留。");
+                var state = CleanupJson(Path.Combine(path, "state.json")); InstallationCore.Keys(state, "schemaVersion", "root", "phase", "dataDirectory", "databaseFingerprint");
+                var phase = InstallationCore.Text(state, "phase");
+                if (InstallationCore.Number(state, "schemaVersion") != 1 || !InstallationCore.Equal(InstallationCore.Text(state, "root"), current.root) || (phase != "completed" && phase != "rolled-back" && phase != "preparation-aborted")) throw new IOException("安装事务尚未完成，已保留更新副本。");
+                if (phase == "completed") completed.Add(path);
+            }
+            return completed;
+        }
+        private static void Observation(Dictionary<string, object> value, Record file, bool isHelper)
+        {
+            InstallationCore.Keys(value, isHelper ? new[] { "sourcePath", "path", "bytes", "sha256", "expectedPath", "pid", "modulePath", "pathObserved", "processStarted", "queriedFromProcessHandle", "assemblyLocation" } : new[] { "sourcePath", "path", "bytes", "sha256", "expectedPath", "pid", "modulePath", "pathObserved", "processStarted", "queriedFromProcessHandle" });
+            if (!InstallationCore.Equal(InstallationCore.Text(value, "sourcePath"), file.sourcePath) || !InstallationCore.Equal(InstallationCore.Text(value, "path"), file.path) || !InstallationCore.Equal(InstallationCore.Text(value, "expectedPath"), file.path) || !InstallationCore.Equal(InstallationCore.Text(value, "modulePath"), file.path) || InstallationCore.Number(value, "bytes") != file.bytes || InstallationCore.Digest(value, "sha256") != file.sha256 || InstallationCore.Number(value, "pid") < 1 || !Object.Equals(value["pathObserved"], true) || !Object.Equals(value["processStarted"], true) || !Object.Equals(value["queriedFromProcessHandle"], true) || (isHelper && !InstallationCore.Equal(InstallationCore.Text(value, "assemblyLocation"), file.path))) throw new IOException("已完成交接缺少实际进程身份，已保留。");
+            // PID reuse is deliberately conservative: any still-live recorded
+            // process prevents cleanup, without waiting for or terminating it.
+            try { using (var process = Process.GetProcessById(InstallationCore.Number(value, "pid"))) { _ = process.Handle; if (!process.HasExited) throw new IOException("更新进程仍在运行，稍后启动再清理。"); } }
+            catch (ArgumentException) { }
+            foreach (var process in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(file.path))) using (process)
+                if (!process.HasExited && InstallationCore.Equal(process.MainModule.FileName, file.path)) throw new IOException("更新执行副本仍在运行，已保留。");
+        }
+        // Called only locally on a later installed-host startup. The verifier is
+        // the caller's existing RSA verifier; Core remains usable by the small
+        // launcher without adding update-protocol or network dependencies.
+        public static object CleanupFinished(InstallationManifest current, InstallerReceipt receipt, Action<string, InstallationManifest, InstallerReceipt> verifySignedTarget)
+        {
+            var results = new List<object>();
+            if (current == null || receipt == null || verifySignedTarget == null) return new { schemaVersion = 1, results };
+            try
+            {
+                using (var operation = InstallationCore.Mutex("Operation", current.root))
+                {
+                    if (!InstallationCore.Acquire(operation, 0)) return new { schemaVersion = 1, results };
+                    try
+                    {
+                        if (current.ownerSid != CurrentSid() || !SameManifest(current, InstallationManifest.Load(current.root))) throw new IOException("当前安装身份已变化，未清理。");
+                        var receiptPath = InstallationCore.ReceiptPath(current.root); var receiptHash = InstallationCore.HashFile(receiptPath);
+                        if (InstallationCore.Encode(receipt) != InstallationCore.Encode(InstallerReceipt.Read(receiptPath, current))) throw new IOException("当前安装器身份已变化，未清理。");
+                        var completed = TerminalTransactions(current); var updates = Path.Combine(current.boxRoot, "updates"); InstallationCore.Safe(updates);
+                        if (!Directory.Exists(updates)) return new { schemaVersion = 1, results };
+                        foreach (var directory in Directory.GetDirectories(updates))
+                        {
+                            var name = Path.GetFileName(directory);
+                            if (!name.StartsWith("handoff-", StringComparison.Ordinal) || !Guid.TryParseExact(name.Substring(8), "N", out _)) continue;
+                            try { CleanupFinishedHandoff(current, receipt, receiptHash, completed, directory, verifySignedTarget); results.Add(new { handoff = directory, status = "cleaned", reason = "Only completed same-SHA launch copies were removed." }); }
+                            catch (Exception cause) { results.Add(new { handoff = directory, status = "retained", reason = cause.Message }); }
+                        }
+                    }
+                    finally { operation.ReleaseMutex(); }
+                }
+            }
+            catch (Exception cause) { results.Add(new { handoff = (string)null, status = "retained", reason = cause.Message }); }
+            return new { schemaVersion = 1, results };
+        }
+        private static void CleanupFinishedHandoff(InstallationManifest current, InstallerReceipt receipt, string receiptHash, List<string> completed, string directory, Action<string, InstallationManifest, InstallerReceipt> verifySignedTarget)
+        {
+            InstallationCore.Safe(directory); var cleanupPath = Path.Combine(directory, "cleanup.json"); InstallationCore.Safe(cleanupPath);
+            if (File.Exists(cleanupPath) || Directory.Exists(cleanupPath)) throw new IOException("已有清理审计，未重复删除任何内容。");
+            var expected = new HashSet<string>(new[] { "UpdateHelper.exe", "envelope.json", "launch.json", "handoff.json" }, StringComparer.Ordinal);
+            foreach (var file in Directory.GetFileSystemEntries(directory)) { InstallationCore.Safe(file); if (!expected.Remove(Path.GetFileName(file)) || Directory.Exists(file)) throw new IOException("交接目录含未知成员，已保留。"); }
+            if (expected.Count != 0) throw new IOException("交接目录缺少已登记成员，已保留。");
+            var audit = Path.Combine(directory, "launch.json"); var recordPath = Path.Combine(directory, "handoff.json"); var targetPath = Path.Combine(directory, "envelope.json");
+            var finished = CleanupJson(recordPath); InstallationCore.Keys(finished, "schemaVersion", "root", "buildVersion", "status", "exitCode", "actualHelper", "actualInstaller", "sourceInstaller", "launchMetadataPath", "launchMetadataSha256", "cleanup");
+            if (InstallationCore.Number(finished, "schemaVersion") != 1 || !InstallationCore.Equal(InstallationCore.Text(finished, "root"), current.root) || InstallationCore.Version4(InstallationCore.Text(finished, "buildVersion")) > InstallationCore.Version4(current.buildVersion) || InstallationCore.Text(finished, "status") != "installer-finished" || InstallationCore.Number(finished, "exitCode") != 0) throw new IOException("交接不是已安装目标的成功终态，已保留。");
+            var launchAudit = CleanupJson(audit);
+            var stage = new InstallationLaunch { ownerSid = CurrentSid(), parent = TemporaryParent(), DirectoryPath = InstallationCore.Full(InstallationCore.Text(launchAudit, "temporaryDirectory")), auditPath = audit, metadataSha256 = InstallationCore.Digest(launchAudit, "metadataSha256") };
+            stage.VerifyDirectory(); var metadata = CleanupJson(stage.MetadataPath);
+            InstallationCore.Keys(metadata, "schemaVersion", "kind", "productId", "installationId", "ownerSid", "root", "boxRoot", "installedBuildVersion", "targetBuildVersion", "payloadManifestSha256", "currentMappingSha256", "temporaryParent", "temporaryDirectory", "auditPath", "helper", "installer", "target");
+            if (InstallationCore.Number(metadata, "schemaVersion") != 1 || InstallationCore.Text(metadata, "kind") != "TableMax.ApplicationUpdate.Launch" || InstallationCore.Text(metadata, "productId") != InstallationCore.ProductId || InstallationCore.Text(metadata, "installationId") != current.installationId || InstallationCore.Text(metadata, "ownerSid") != current.ownerSid || !InstallationCore.Equal(InstallationCore.Text(metadata, "root"), current.root) || !InstallationCore.Equal(InstallationCore.Text(metadata, "boxRoot"), current.boxRoot) || InstallationCore.Text(metadata, "targetBuildVersion") != InstallationCore.Text(finished, "buildVersion") || !InstallationCore.Equal(InstallationCore.Text(metadata, "temporaryParent"), stage.parent) || !InstallationCore.Equal(InstallationCore.Text(metadata, "temporaryDirectory"), stage.DirectoryPath) || !InstallationCore.Equal(InstallationCore.Text(metadata, "auditPath"), audit) || InstallationCore.HashFile(stage.MetadataPath) != stage.metadataSha256 || !InstallationCore.Equal(InstallationCore.Text(finished, "launchMetadataPath"), stage.MetadataPath) || InstallationCore.Digest(finished, "launchMetadataSha256") != stage.metadataSha256) throw new IOException("清理元数据与当前安装或原审计不匹配，已保留。");
+            InstallationManifest previous = null, completedTarget = null; InstallerReceipt completedReceipt = null; string completedReceiptHash = null;
+            foreach (var transaction in completed)
+            {
+                var next = InstallationManifest.Read(Path.Combine(transaction, "target.json"), true);
+                if (next.installationId != current.installationId || next.ownerSid != current.ownerSid || !InstallationCore.Equal(next.root, current.root) || !InstallationCore.Equal(next.boxRoot, current.boxRoot) || next.buildVersion != InstallationCore.Text(metadata, "targetBuildVersion") || next.payloadManifestSha256 != InstallationCore.Digest(metadata, "payloadManifestSha256") || next.currentMappingSha256 != InstallationCore.Digest(metadata, "currentMappingSha256") || InstallationCore.Version4(next.buildVersion) > InstallationCore.Version4(current.buildVersion)) continue;
+                var nextReceiptPath = Path.Combine(transaction, "target-receipt.json"); var nextReceipt = InstallerReceipt.Read(nextReceiptPath, next); var nextReceiptHash = InstallationCore.HashFile(nextReceiptPath);
+                if (next.buildVersion == current.buildVersion && (!SameManifest(next, current) || nextReceiptHash != receiptHash || InstallationCore.Encode(nextReceipt) != InstallationCore.Encode(receipt))) continue;
+                var priorPath = Path.Combine(transaction, "previous.json"); if (!File.Exists(priorPath)) continue;
+                var prior = InstallationManifest.Read(priorPath, true);
+                if (prior.installationId == current.installationId && prior.ownerSid == current.ownerSid && InstallationCore.Equal(prior.root, current.root) && InstallationCore.Equal(prior.boxRoot, current.boxRoot) && prior.buildVersion == InstallationCore.Text(metadata, "installedBuildVersion") && InstallationCore.Version4(prior.buildVersion) < InstallationCore.Version4(next.buildVersion)) { previous = prior; completedTarget = next; completedReceipt = nextReceipt; completedReceiptHash = nextReceiptHash; break; }
+            }
+            if (previous == null) throw new IOException("没有匹配原安装身份的已完成事务，已保留。");
+            stage.sourceIdentity = previous; stage.helper = ReadRecord(metadata["helper"]); stage.installer = ReadRecord(metadata["installer"]); stage.target = ReadRecord(metadata["target"]);
+            var oldHelper = previous.files.Single(file => file.path == "UpdateHelper.exe");
+            if (!InstallationCore.Equal(stage.helper.path, stage.HelperPath) || !InstallationCore.Equal(stage.helper.sourcePath, Path.Combine(directory, "UpdateHelper.exe")) || stage.helper.bytes != oldHelper.bytes || stage.helper.sha256 != oldHelper.sha256 || !InstallationCore.Equal(stage.installer.path, stage.InstallerPath) || !InstallationCore.Equal(stage.installer.sourcePath, Path.Combine(current.boxRoot, "updates", "downloads", completedReceipt.sha256, "TableMax-" + completedTarget.releaseVersion + "-win-x64.exe")) || stage.installer.bytes != completedReceipt.bytes || stage.installer.sha256 != completedReceipt.sha256 || !InstallationCore.Equal(stage.target.path, targetPath) || !InstallationCore.Equal(stage.target.sourcePath, targetPath) || stage.target.bytes > 16384) throw new IOException("清理文件元组不匹配原协调器或已完成签名目标，已保留。");
+            stage.VerifyAudit(previous); VerifyFile(stage.target); verifySignedTarget(File.ReadAllText(targetPath, InstallationCore.Utf8), completedTarget, completedReceipt);
+            var sourceInstaller = ReadRecord(finished["sourceInstaller"]);
+            if (InstallationCore.Encode(sourceInstaller.Public) != InstallationCore.Encode(stage.installer.Public)) throw new IOException("已完成安装器元组与原审计不同，已保留。");
+            var priorCleanup = InstallationCore.Object(finished["cleanup"]); InstallationCore.Keys(priorCleanup, "installerDeleted", "selfHelperRetained", "reason");
+            if (!(priorCleanup["installerDeleted"] is bool) || !Object.Equals(priorCleanup["selfHelperRetained"], true) || !(priorCleanup["reason"] is string)) throw new IOException("原清理结果格式无效，已保留。");
+            Observation(InstallationCore.Object(finished["actualHelper"]), stage.helper, true); Observation(InstallationCore.Object(finished["actualInstaller"]), stage.installer, false);
+            var allowed = new HashSet<string>(new[] { stage.HelperPath, stage.InstallerPath, stage.MetadataPath }, StringComparer.OrdinalIgnoreCase);
+            foreach (var path in Directory.GetFileSystemEntries(stage.DirectoryPath)) if (!allowed.Remove(path) || Directory.Exists(path)) throw new IOException("临时目录含未知成员，已保留。");
+            if (allowed.Contains(stage.HelperPath) || allowed.Contains(stage.MetadataPath)) throw new IOException("临时目录缺少原helper或元数据，已保留。");
+            if ((bool)priorCleanup["installerDeleted"] != !File.Exists(stage.InstallerPath)) throw new IOException("安装器副本与原清理结果不匹配，已保留。");
+            var retainedInstaller = new Record { sourcePath = stage.installer.sourcePath, path = stage.installer.sourcePath, bytes = stage.installer.bytes, sha256 = stage.installer.sha256 }; VerifyFile(retainedInstaller);
+            var files = new List<Record> { stage.helper };
+            if (File.Exists(stage.InstallerPath)) files.Add(stage.installer);
+            files.Add(new Record { sourcePath = stage.MetadataPath, path = stage.MetadataPath, bytes = (int)new FileInfo(InstallationCore.IO(stage.MetadataPath)).Length, sha256 = stage.metadataSha256 });
+            files.Add(new Record { sourcePath = stage.helper.sourcePath, path = stage.helper.sourcePath, bytes = stage.helper.bytes, sha256 = stage.helper.sha256 });
+            using (var directoryLease = stage.OpenCleanupDirectory())
+            {
+            var leases = new List<CleanupLease>();
+            try
+            {
+                foreach (var file in files)
+                {
+                    leases.Add(new CleanupLease(file));
+                }
+                var auditHash = InstallationCore.HashFile(audit); var handoffHash = InstallationCore.HashFile(recordPath);
+                Action<string> journal = status => InstallationCore.Atomic(cleanupPath, new { schemaVersion = 1, kind = "TableMax.ApplicationUpdate.Cleanup", status, root = current.root, boxRoot = current.boxRoot, installationId = current.installationId, ownerSid = current.ownerSid, currentBuildVersion = current.buildVersion, buildVersion = completedTarget.buildVersion, payloadManifestSha256 = completedTarget.payloadManifestSha256, currentMappingSha256 = completedTarget.currentMappingSha256, receiptSha256 = completedReceiptHash, launchAuditSha256 = auditHash, handoffSha256 = handoffHash, launchMetadataPath = stage.MetadataPath, launchMetadataSha256 = stage.metadataSha256, targetEnvelopeSha256 = stage.target.sha256, temporaryDirectory = stage.DirectoryPath, removed = files.Select(file => file.Public).ToArray(), retainedSourceInstaller = retainedInstaller.Public });
+                journal("prepared");
+                foreach (var lease in leases) lease.Delete();
+                foreach (var stream in leases) stream.Dispose(); leases.Clear();
+                stage.VerifyDirectory(); if (Directory.GetFileSystemEntries(stage.DirectoryPath).Length != 0) throw new IOException("临时目录出现未确认内容，已保留。");
+                DeleteCleanupHandle(directoryLease);
+                journal("completed");
+            }
+            finally { foreach (var stream in leases) stream.Dispose(); }
+            }
+        }
     }
 
     // JavaScriptSerializer accepts duplicate object keys. Signed and destructive

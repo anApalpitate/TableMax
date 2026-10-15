@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Security.Principal;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using File = TableMax.Installation.InstallationFile;
@@ -24,7 +25,13 @@ namespace TableMax.Installation
     {
         private sealed class HelperError : IOException { public int Code { get; } public HelperError(int code, string message) : base(message) { Code = code; } }
         private static Dictionary<string, string> options;
+        private static string diagnosticStage = "main.initialize", diagnosticMember;
+        private static void Stage(string value, string relativePath = null) { diagnosticStage = value; diagnosticMember = relativePath; }
+        private static void Diagnostic(Exception cause) => Console.Error.WriteLine("TableMax.Helper stage=" + diagnosticStage + " exceptionType=" + cause.GetType().FullName + " HResult=0x" + cause.HResult.ToString("X8", System.Globalization.CultureInfo.InvariantCulture) + (diagnosticMember == null ? "" : " relativePath=" + diagnosticMember));
         [DllImport("kernel32.dll", SetLastError = true)] private static extern bool GetNamedPipeServerProcessId(Microsoft.Win32.SafeHandles.SafePipeHandle pipe, out uint processId);
+        [DllImport("kernel32.dll", EntryPoint = "QueryFullProcessImageNameW", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool QueryFullProcessImageName(IntPtr process, int flags, StringBuilder path, ref int size);
         private static string Get(string key, bool required = true) => options.TryGetValue(key, out var value) && !String.IsNullOrEmpty(value) ? value : required ? throw new HelperError(10, "安装参数缺少 " + key + "。") : null;
         private static string Quote(string value) { if (value.Contains("\"") || value.EndsWith("\\", StringComparison.Ordinal)) throw new HelperError(10, "安装路径不能安全传递。"); return "\"" + value + "\""; }
         private static string TransactionRoot(string root) => Path.Combine(InstallationCore.Box(root), ".installation-transactions");
@@ -116,29 +123,31 @@ namespace TableMax.Installation
             Console.SetError(new StreamWriter(Console.OpenStandardError(), InstallationCore.Utf8) { AutoFlush = true });
             try
             {
+                Stage("main.arguments");
                 options = new Dictionary<string, string>(StringComparer.Ordinal);
                 foreach (var arg in arguments) { if (!arg.StartsWith("--", StringComparison.Ordinal)) throw new HelperError(10, "安装参数无效。"); var separator = arg.IndexOf('='); var key = separator < 0 ? arg.Substring(2) : arg.Substring(2, separator - 2); if (options.ContainsKey(key)) throw new HelperError(10, "安装参数重复。"); options.Add(key, separator < 0 ? "true" : arg.Substring(separator + 1)); }
                 var modes = new[] { "commit", "uninstall", "recover", "inspect-install", "apply-installer", "verify-vectors" }.Where(options.ContainsKey).ToArray();
                 if (modes.Length != 1 || options.Keys.Any(key => !new[] { "commit", "uninstall", "recover", "inspect-install", "apply-installer", "verify-vectors", "root", "candidate", "manifest", "target", "installer", "installer-source", "parent-pid", "migration-root", "health-timeout", "vectors" }.Contains(key))) throw new HelperError(10, "安装操作或参数无效。");
                 if (modes[0] == "verify-vectors") return VerifyVectors();
-                var root = InstallationCore.Root(Get("root"));
+                Stage("main.root"); var root = InstallationCore.Root(Get("root"));
                 if (modes[0] == "inspect-install") { Console.WriteLine(InstallationCore.Encode(InstallationManifest.Load(root))); return 0; }
                 if (modes[0] == "apply-installer") return ApplyInstaller(root);
+                Stage("main.operation-lock");
                 using (var operation = InstallationCore.Mutex("Operation", root))
                 {
                     if (!InstallationCore.Acquire(operation, 30000)) throw new HelperError(20, "另一安装、更新或卸载正在进行。");
                     try
                     {
-                        Recover(root);
+                        Stage("main.recover"); Recover(root);
                         if (modes[0] == "recover") { Console.WriteLine("{\"status\":\"recovered\"}"); return 0; }
                         if (modes[0] == "uninstall") { Uninstall(root); Console.WriteLine("{\"status\":\"uninstalled-data-retained\"}"); return 0; }
-                        Commit(root); Console.WriteLine("{\"status\":\"confirmed\"}"); return 0;
+                        Stage("main.commit"); Commit(root); Console.WriteLine("{\"status\":\"confirmed\"}"); return 0;
                     }
                     finally { operation.ReleaseMutex(); }
                 }
             }
-            catch (HelperError cause) { Console.Error.WriteLine(cause.Message); return cause.Code; }
-            catch (Exception cause) { Console.Error.WriteLine(cause is IOException || cause is UnauthorizedAccessException ? cause.Message : "安装协调失败；原数据及事务记录已保留。"); return 10; }
+            catch (HelperError cause) { Diagnostic(cause); Console.Error.WriteLine(cause.Message); return cause.Code; }
+            catch (Exception cause) { Diagnostic(cause); Console.Error.WriteLine(cause is IOException || cause is UnauthorizedAccessException ? cause.Message : "安装协调失败；原数据及事务记录已保留。"); return 10; }
         }
         private static int VerifyVectors()
         {
@@ -172,14 +181,23 @@ namespace TableMax.Installation
         private static int ApplyInstaller(string root)
         {
             var identity = InstallationManifest.Load(root); identity.Verify(root);
-            var descriptor = Target(Get("target")); var installer = InstallationCore.Full(Get("installer")); InstallationCore.Safe(installer);
+            var target = InstallationCore.Full(Get("target")); var descriptor = Target(target); var installer = InstallationCore.Full(Get("installer")); InstallationCore.Safe(installer);
             var expected = Path.Combine(identity.boxRoot, "updates", "downloads", descriptor.sha256, descriptor.assetName);
             if (!InstallationCore.Equal(installer, expected) || new FileInfo(InstallationCore.IO(installer)).Length != descriptor.bytes || InstallationCore.HashFile(installer) != descriptor.sha256 || InstallationCore.Version4(descriptor.buildVersion) <= InstallationCore.Version4(identity.buildVersion)) throw new HelperError(10, "更新候选、位置或版本不匹配。");
+            var launch = InstallationLaunch.Read(Assembly.GetExecutingAssembly().Location, identity, installer, target, descriptor.buildVersion, descriptor.bytes, descriptor.sha256, descriptor.payloadManifestSha256, descriptor.currentMappingSha256);
+            Dictionary<string, object> actualHelper;
+            using (var self = Process.GetCurrentProcess())
+            {
+                var path = ProcessImage(self);
+                if (!InstallationCore.Equal(path, launch.HelperPath) || !InstallationCore.Equal(Assembly.GetExecutingAssembly().Location, path)) throw new HelperError(10, "实际协调器模块与私有启动副本不匹配。");
+                actualHelper = LaunchEvidence(launch.HelperTuple, self.Id, path, null, Assembly.GetExecutingAssembly().Location);
+            }
             if (!Int32.TryParse(Get("parent-pid"), out var pid) || pid < 1) throw new HelperError(10, "更新父进程无效。");
             try
             {
                 using (var parent = Process.GetProcessById(pid))
                 {
+                    _ = parent.Handle;
                     if (!InstallationCore.Equal(parent.MainModule.FileName, Path.Combine(identity.boxRoot, "app", "TableMax.exe"))) throw new HelperError(10, "更新父进程不属于此安装。");
                     var name = Environment.GetEnvironmentVariable("TABLEMAX_PARENT_HANDOFF_PIPE"); var token = Environment.GetEnvironmentVariable("TABLEMAX_PARENT_HANDOFF_TOKEN");
                     Environment.SetEnvironmentVariable("TABLEMAX_PARENT_HANDOFF_PIPE", null); Environment.SetEnvironmentVariable("TABLEMAX_PARENT_HANDOFF_TOKEN", null);
@@ -189,37 +207,118 @@ namespace TableMax.Installation
                 }
             }
             catch (ArgumentException) { throw new HelperError(20, "原进程已退出但未取得可信关闭结果，未启动安装器。"); }
-            var target = InstallationCore.Full(Get("target"));
-            var record = Path.Combine(Path.GetDirectoryName(target), "handoff.json"); InstallationCore.Atomic(record, new { schemaVersion = 1, root, buildVersion = descriptor.buildVersion, status = "installer-starting" });
-            var start = new ProcessStartInfo(installer, "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR=" + Quote(root) + " /TABLEMAXTARGET=" + Quote(target)) { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = Path.GetDirectoryName(installer) };
-            using (var child = Process.Start(start)) { if (child == null || !child.WaitForExit(1860000)) throw new HelperError(40, "安装器未在时间预算内完成；请查看保留事务。"); InstallationCore.Atomic(record, new { schemaVersion = 1, root, buildVersion = descriptor.buildVersion, status = child.ExitCode == 0 ? "installer-finished" : "installer-failed", exitCode = child.ExitCode }); return child.ExitCode == 0 ? 0 : 40; }
+            launch.VerifyForLaunch(identity);
+            var record = Path.Combine(Path.GetDirectoryName(target), "handoff.json");
+            var actualInstaller = LaunchEvidence(launch.InstallerTuple, 0, null, null, null);
+            int? installerExitCode = null;
+            InstallationCore.Atomic(record, new { schemaVersion = 1, root, buildVersion = descriptor.buildVersion, status = "installer-starting", actualHelper, actualInstaller, sourceInstaller = launch.InstallerTuple, launchMetadataPath = launch.MetadataPath, launchMetadataSha256 = launch.MetadataSha256 });
+            var start = new ProcessStartInfo(launch.InstallerPath, "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /DIR=" + Quote(root) + " /TABLEMAXTARGET=" + Quote(target)) { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = launch.DirectoryPath };
+            try
+            {
+                using (var child = Process.Start(start))
+                {
+                    if (child == null) throw new HelperError(40, "安装器未返回实际进程句柄。");
+                    actualInstaller = LaunchEvidence(launch.InstallerTuple, child.Id, null, null, null);
+                    Exception observationError = null;
+                    try
+                    {
+                        var path = ProcessImage(child); actualInstaller = LaunchEvidence(launch.InstallerTuple, child.Id, path, null, null);
+                        if (!InstallationCore.Equal(path, launch.InstallerPath)) throw new IOException("实际安装器模块与已核验的私有副本不匹配。");
+                    }
+                    catch (Exception cause) { observationError = cause; actualInstaller["observationError"] = cause.Message; }
+                    InstallationCore.Atomic(record, new { schemaVersion = 1, root, buildVersion = descriptor.buildVersion, status = "installer-running", actualHelper, actualInstaller, sourceInstaller = launch.InstallerTuple, launchMetadataPath = launch.MetadataPath, launchMetadataSha256 = launch.MetadataSha256 });
+                    if (!child.WaitForExit(1860000)) throw new HelperError(40, "已创建安装器进程，但它未在时间预算内完成；副本与事务已保留。");
+                    installerExitCode = child.ExitCode;
+                    if (observationError != null) throw new IOException("已创建安装器进程，但实际模块路径未获确认；已等待其退出并保留副本。", observationError);
+                    var cleanup = launch.CleanupInstaller(child.ExitCode == 0 && LaunchCleanupAllowed(root, identity, descriptor));
+                    InstallationCore.Atomic(record, new { schemaVersion = 1, root, buildVersion = descriptor.buildVersion, status = child.ExitCode == 0 ? "installer-finished" : "installer-failed", exitCode = child.ExitCode, actualHelper, actualInstaller, sourceInstaller = launch.InstallerTuple, launchMetadataPath = launch.MetadataPath, launchMetadataSha256 = launch.MetadataSha256, cleanup });
+                    return child.ExitCode == 0 ? 0 : 40;
+                }
+            }
+            catch (Exception cause)
+            {
+                InstallationCore.Atomic(record, new { schemaVersion = 1, root, buildVersion = descriptor.buildVersion, status = "installer-failed", exitCode = installerExitCode, error = cause.Message, actualHelper, actualInstaller, sourceInstaller = launch.InstallerTuple, launchMetadataPath = launch.MetadataPath, launchMetadataSha256 = launch.MetadataSha256, cleanup = launch.CleanupInstaller(false) });
+                throw new HelperError(40, "安装器启动或完成未获确认；完整更新副本与事务记录已保留。");
+            }
+        }
+        private static string ProcessImage(Process process)
+        {
+            var path = new StringBuilder(32768); var size = path.Capacity;
+            if (!QueryFullProcessImageName(process.Handle, 0, path, ref size)) { var code = Marshal.GetLastWin32Error(); throw new IOException("实际进程模块路径查询失败（代码 " + code + "）。", new System.ComponentModel.Win32Exception(code)); }
+            var result = InstallationCore.Full(path.ToString()); InstallationCore.Safe(result);
+            if (result.Length >= 260) throw new IOException("实际启动模块路径超过支持的进程边界。");
+            return result;
+        }
+        private static Dictionary<string, object> LaunchEvidence(object tuple, int pid, string modulePath, string observationError, string assemblyLocation)
+        {
+            var result = InstallationCore.Object(StrictJson.Parse(InstallationCore.Encode(tuple), true));
+            result["expectedPath"] = result["path"]; result["path"] = modulePath; result["pid"] = pid; result["modulePath"] = modulePath; result["pathObserved"] = modulePath != null; result["processStarted"] = pid > 0; result["queriedFromProcessHandle"] = modulePath != null;
+            if (observationError != null) result["observationError"] = observationError;
+            if (assemblyLocation != null) result["assemblyLocation"] = InstallationCore.Full(assemblyLocation);
+            return result;
+        }
+        private static bool LaunchCleanupAllowed(string root, InstallationManifest previous, UpdateDescriptor target)
+        {
+            try
+            {
+                var current = InstallationManifest.Load(root); var receipt = InstallerReceipt.Read(InstallationCore.ReceiptPath(root), current);
+                if (current.installationId != previous.installationId || current.ownerSid != previous.ownerSid || current.buildVersion != target.buildVersion || current.payloadManifestSha256 != target.payloadManifestSha256 || current.currentMappingSha256 != target.currentMappingSha256 || receipt.bytes != target.bytes || receipt.sha256 != target.sha256) return false;
+                var transactions = TransactionRoot(root); InstallationCore.Safe(transactions); if (!Directory.Exists(transactions)) return false;
+                foreach (var path in Directory.GetFileSystemEntries(transactions))
+                {
+                    if (!Directory.Exists(path) || !Guid.TryParse(Path.GetFileName(path), out _) || !File.Exists(Path.Combine(path, "state.json"))) return false;
+                    var state = ReadState(path); var phase = InstallationCore.Text(state, "phase");
+                    if (!InstallationCore.Equal(InstallationCore.Text(state, "root"), root) || (phase != "completed" && phase != "rolled-back" && phase != "preparation-aborted")) return false;
+                }
+                return true;
+            }
+            catch (Exception) { return false; }
         }
         private static bool Stop(string root, bool update)
         {
+            Stage("stop.probe-run-open");
             using (var run = InstallationCore.Mutex("Run", root))
             {
-                if (InstallationCore.Acquire(run, 0)) { run.ReleaseMutex(); return true; }
+                Stage("stop.probe-run-acquire");
+                if (InstallationCore.Acquire(run, 0)) { Stage("stop.probe-run-release"); run.ReleaseMutex(); Stage("stop.probe-run-dispose"); return true; }
+                Stage("stop.probe-run-dispose");
             }
-            var identity = InstallationManifest.Load(root);
+            Stage("stop.identity"); var identity = InstallationManifest.Load(root);
+            Stage("stop.pipe-open");
             using (var pipe = new NamedPipeClientStream(".", InstallationCore.ControlPipe(root), PipeDirection.InOut, PipeOptions.Asynchronous))
             {
+                Stage("stop.pipe-connect");
                 try { pipe.Connect(3000); } catch (TimeoutException) { throw new HelperError(20, "安装实例正在其他会话运行，或尚未能安全关闭。"); }
+                Stage("stop.pipe-owner");
                 if (!GetNamedPipeServerProcessId(pipe.SafePipeHandle, out var owner)) throw new HelperError(20, "无法取得原生安装实例句柄。");
                 using (var desktop = Process.GetProcessById((int)owner))
                 {
-                if (!InstallationCore.Equal(desktop.MainModule.FileName, Path.Combine(identity.boxRoot, "app", "TableMax.exe"))) throw new HelperError(20, "控制管道不属于此安装实例。");
-                using (var writer = new StreamWriter(pipe, InstallationCore.Utf8, 4096, true) { AutoFlush = true })
-                using (var reader = new StreamReader(pipe, InstallationCore.Utf8, false, 4096, true))
-                {
-                    writer.WriteLine(InstallationCore.Encode(new { schemaVersion = 1, root, operation = update ? "update" : "uninstall" }));
-                    var answer = InstallationCore.Object(StrictJson.Parse(ReadLine(reader, 16384, 10000)));
-                    InstallationCore.Keys(answer, "schemaVersion", "installationId", "root", "desktopPid", "confirmed", "running");
-                    if (InstallationCore.Number(answer, "schemaVersion") != 1 || InstallationCore.Text(answer, "installationId") != identity.installationId || !InstallationCore.Equal(InstallationCore.Text(answer, "root"), root) || !(answer["confirmed"] is bool confirmed) || !confirmed) throw new HelperError(20, "对局未结束，或保存关闭未获确认；未替换程序。");
-                    if (InstallationCore.Number(answer, "desktopPid") != desktop.Id || !desktop.WaitForExit(15000) || desktop.ExitCode != 0) throw new HelperError(20, "原程序或浏览器没有确认正常退出；未替换程序。");
+                    _ = desktop.Handle;
+                    Stage("stop.desktop-image");
+                    if (!InstallationCore.Equal(desktop.MainModule.FileName, Path.Combine(identity.boxRoot, "app", "TableMax.exe"))) throw new HelperError(20, "控制管道不属于此安装实例。");
+                    Stage("stop.writer-open");
+                    using (var writer = new StreamWriter(pipe, InstallationCore.Utf8, 4096, true) { AutoFlush = true })
+                    {
+                        Stage("stop.reader-open");
+                        using (var reader = new StreamReader(pipe, InstallationCore.Utf8, false, 4096, true))
+                        {
+                            Stage("stop.request-write"); writer.WriteLine(InstallationCore.Encode(new { schemaVersion = 1, root, operation = update ? "update" : "uninstall" }));
+                            Stage("stop.ack-read"); var answer = InstallationCore.Object(StrictJson.Parse(ReadLine(reader, 16384, 10000)));
+                            Stage("stop.ack-validate"); InstallationCore.Keys(answer, "schemaVersion", "installationId", "root", "desktopPid", "confirmed", "running");
+                            if (InstallationCore.Number(answer, "schemaVersion") != 1 || InstallationCore.Text(answer, "installationId") != identity.installationId || !InstallationCore.Equal(InstallationCore.Text(answer, "root"), root) || !(answer["confirmed"] is bool confirmed) || !confirmed) throw new HelperError(20, "对局未结束，或保存关闭未获确认；未替换程序。");
+                            Stage("stop.native-exit");
+                            if (InstallationCore.Number(answer, "desktopPid") != desktop.Id || !desktop.WaitForExit(15000) || desktop.ExitCode != 0) throw new HelperError(20, "原程序或浏览器没有确认正常退出；未替换程序。");
+                            Stage("stop.reader-dispose-after-exit0");
+                        }
+                        Stage("stop.writer-dispose-after-exit0");
+                    }
+                    Stage("stop.desktop-dispose-after-exit0");
                 }
-                }
+                Stage("stop.pipe-dispose-after-exit0");
             }
-            using (var run = InstallationCore.Mutex("Run", root)) { if (!InstallationCore.Acquire(run, 5000)) throw new HelperError(20, "安装运行锁尚未释放。"); run.ReleaseMutex(); }
+            Stage("stop.final-run-open");
+            using (var run = InstallationCore.Mutex("Run", root)) { Stage("stop.final-run-acquire"); if (!InstallationCore.Acquire(run, 5000)) throw new HelperError(20, "安装运行锁尚未释放。"); Stage("stop.final-run-release"); run.ReleaseMutex(); Stage("stop.final-run-dispose"); }
+            Stage("stop.completed");
             return true;
         }
         private static void CheckUnknownApp(string root, InstallationManifest identity)
@@ -532,9 +631,14 @@ namespace TableMax.Installation
         }
         private static void Uninstall(string root)
         {
-            var identity = InstallationManifest.Load(root); InstallerReceipt.Read(InstallationCore.ReceiptPath(root), identity); CheckUnknownApp(root, identity); Stop(root, false);
+            Stage("uninstall.identity"); var identity = InstallationManifest.Load(root);
+            Stage("uninstall.receipt"); InstallerReceipt.Read(InstallationCore.ReceiptPath(root), identity);
+            Stage("uninstall.unknown-app"); CheckUnknownApp(root, identity);
+            Stage("uninstall.stop"); Stop(root, false);
+            Stage("uninstall.reacquire-run-open");
             using (var run = InstallationCore.Mutex("Run", root))
             {
+                Stage("uninstall.reacquire-run-acquire");
                 if (!InstallationCore.Acquire(run, 0)) throw new HelperError(20, "卸载实例仍在运行。");
                 try
                 {
@@ -542,18 +646,23 @@ namespace TableMax.Installation
                     var actual = new List<ManagedFile>();
                     foreach (var file in identity.files)
                     {
+                        Stage("uninstall.scan", file.path);
                         var path = InstallationCore.Member(root, file.path); if (!File.Exists(path)) continue;
                         var length = new FileInfo(InstallationCore.IO(path)).Length; if (length >= 120000000) throw new HelperError(10, "异常程序文件过大，已保留并停止卸载。");
                         var observed = new ManagedFile { path = file.path, bytes = (int)length, sha256 = InstallationCore.HashFile(path) };
-                        if (observed.bytes != file.bytes || observed.sha256 != file.sha256) CopyVerified(path, InstallationCore.Member(quarantine, file.path), observed);
+                        if (observed.bytes != file.bytes || observed.sha256 != file.sha256) { Stage("uninstall.quarantine", file.path); CopyVerified(path, InstallationCore.Member(quarantine, file.path), observed); }
                         actual.Add(observed);
                     }
+                    Stage("uninstall.quarantine-inventory");
                     if (Directory.Exists(quarantine)) InstallationCore.Atomic(Path.Combine(quarantine, "inventory.json"), new { schemaVersion = 1, installationId = identity.installationId, root, files = actual.Where(file => identity.files.Any(original => original.path == file.path && (original.bytes != file.bytes || original.sha256 != file.sha256))).ToArray() });
-                    foreach (var file in actual.OrderBy(file => file.path == "UpdateHelper.exe" ? 1 : 0)) DeleteVerified(InstallationCore.Member(root, file.path), file);
-                    InstallationCore.Atomic(Path.Combine(identity.boxRoot, ".uninstalled.json"), identity); File.Delete(InstallationCore.IdentityPath(root));
+                    foreach (var file in actual.OrderBy(file => file.path == "UpdateHelper.exe" ? 1 : 0)) { Stage("uninstall.delete", file.path); DeleteVerified(InstallationCore.Member(root, file.path), file); }
+                    Stage("uninstall.finalize-marker"); InstallationCore.Atomic(Path.Combine(identity.boxRoot, ".uninstalled.json"), identity);
+                    Stage("uninstall.finalize-identity"); File.Delete(InstallationCore.IdentityPath(root));
+                    Stage("uninstall.release-run");
                 }
                 finally { run.ReleaseMutex(); }
             }
+            Stage("uninstall.completed");
         }
         private static void Migrate(string root, string source, MigrationLease lease)
         {

@@ -170,9 +170,26 @@ export async function verifyApplicationHandoff({
   verifyPreparedOnly = false,
   frameworkRecoveryOnly = false,
   activeUninstallOnly = false,
+  shortExternalData = false,
+  longRootExternalData = false,
 }) {
   assertWorkspaceRoot();
   assert.equal(process.platform, 'win32');
+  const usesExternalData = shortExternalData || longRootExternalData;
+  assert.ok(
+    !longRootExternalData ||
+      (preparedReport &&
+        !activeUninstallOnly &&
+        !frameworkRecoveryOnly &&
+        !compileOnly &&
+        !prepareOnly &&
+        !verifyPreparedOnly),
+    'Long-root external data requires execution of the complete prepared handoff pair',
+  );
+  assert.ok(
+    !shortExternalData || (activeUninstallOnly && preparedReport),
+    'Short external data requires the isolated prepared active-uninstall mode',
+  );
   assert.ok(
     !activeUninstallOnly ||
       (preparedReport &&
@@ -240,6 +257,10 @@ export async function verifyApplicationHandoff({
   const configuredParent = process.env.TABLEMAX_INSTALLATION_HANDOFF_TMP;
   const profile = await resolveWindowsAcceptanceProfile(configuredParent);
   assert.ok(
+    !usesExternalData || profile,
+    'Short external data requires the verified standard profile',
+  );
+  assert.ok(
     !profile || prepared,
     'Profile execution requires exact prepared materials',
   );
@@ -264,7 +285,7 @@ export async function verifyApplicationHandoff({
   }
   const work = await mkdtemp(join(workParent, 'application-handoff-'));
   await noLinks(work);
-  const longInstallationRoot = !activeUninstallOnly && !frameworkRecoveryOnly;
+  const longInstallationRoot = usesExternalData;
   const rootBase = join(work, '安装 根');
   // Keep the redirected fixture uninstall shortcut below MAX_PATH while the
   // canonical update helper and installer sources still exceed it.
@@ -277,6 +298,9 @@ export async function verifyApplicationHandoff({
     : rootBase;
   const nativeWorkingDirectory = join(root, 'TableMax/app');
   const configurationPath = join(root, 'TableMax/TableMax.config.json');
+  const externalDataDirectory = usesExternalData ? join(work, 'D') : null;
+  const dataDirectory = externalDataDirectory ?? join(root, 'TableMax');
+  const gamesDirectory = join(root, 'TableMax/games');
   const longestFixtureShortcut = join(
     root,
     'fixture-shortcuts/Start/卸载 TableMax Installation Fixture.lnk',
@@ -319,8 +343,8 @@ export async function verifyApplicationHandoff({
       path: configurationPath,
       length: configurationPath.length,
     },
-    dataPaths: ['TableMax/desktop/webview2', 'TableMax/logs'].map((name) => {
-      const path = join(root, name);
+    dataPaths: ['desktop/webview2', 'logs'].map((name) => {
+      const path = join(dataDirectory, name);
       assert.ok(
         path.length < 248,
         'A fixture data path exceeds the production startup limit',
@@ -353,11 +377,15 @@ export async function verifyApplicationHandoff({
   const report = {
     format: 1,
     result: 'running',
-    scenario: activeUninstallOnly
-      ? 'active-uninstall'
-      : frameworkRecoveryOnly
-        ? 'framework-recovery'
-        : 'application-handoff',
+    scenario: shortExternalData
+      ? 'startup-external-data'
+      : longRootExternalData
+        ? 'long-root-external-data'
+        : activeUninstallOnly
+          ? 'active-uninstall'
+          : frameworkRecoveryOnly
+            ? 'framework-recovery'
+            : 'application-handoff',
     cacheable: false,
     startedAtUtc: new Date().toISOString(),
     work,
@@ -373,11 +401,28 @@ export async function verifyApplicationHandoff({
       desktopLogs: [],
       errors: [],
       logBoundary:
-        'Raw snapshots of the private default B/logs/desktop.log may include either fixture Native generation. They do not attribute a record to a PID or recover the exit status of the indirectly launched persistent host.',
+        'Raw snapshots of the selected private D/logs/desktop.log may include either fixture Native generation. They do not attribute a record to a PID or recover the exit status of the indirectly launched persistent host.',
     },
-    boundary: activeUninstallOnly
-      ? 'Actual old-build fixture Inno installation, ready Native/Node and default framework uninstall while that host is active. No update check, download, Apply, production GUID installation, public version/current pointer or internet request is executed. Both prepared inputs retain their original source/SHA bindings.'
-      : 'Actual two-build fixture Inno/Native/Node and real ApplicationUpdate.Apply/prepare/parent handoff. Only GitHub HTTP is a managed signed-fixture transport. No production GUID installation/system mutation, public version/current pointer, actual internet availability or old-version saved-game compatibility claim. Original fixture-GUID payload bytes are authenticated by a test-only RSA wrapper; Windows registration uses that same fixture GUID. The production JS product contract is unchanged.',
+    ...(usesExternalData
+      ? {
+          startupExternalData: {
+            boundary: shortExternalData
+              ? 'Independent startup classification with I198 and a fresh short external D. This is not default-D, update check/download/Apply or production acceptance evidence.'
+              : 'Complete actual fixture handoff with I198 and a fresh short external D, independently recorded from the ordinary-root default-D handoff.',
+            rootLength: root.length,
+            dataDirectory,
+            gamesDirectory,
+            configurationPath,
+          },
+        }
+      : {}),
+    boundary: shortExternalData
+      ? 'Independent fixture startup classification only: unchanged I198 and prepared PE bytes with a fresh short external data directory. Four actual install/host/active-uninstall steps; no default-D full chain or Apply claim.'
+      : longRootExternalData
+        ? 'Complete eight-step fixture handoff with I198 and a fixed private short external D. Real signed download, parent exit0, actual short launch copies, installer, persistent new host and default uninstall; this does not claim arbitrary-depth default-D support or real internet.'
+        : activeUninstallOnly
+          ? 'Actual old-build fixture Inno installation, ready Native/Node and default framework uninstall while that host is active. No update check, download, Apply, production GUID installation, public version/current pointer or internet request is executed. Both prepared inputs retain their original source/SHA bindings.'
+          : 'Actual two-build fixture Inno/Native/Node and real ApplicationUpdate.Apply/prepare/parent handoff. Only GitHub HTTP is a managed signed-fixture transport. No production GUID installation/system mutation, public version/current pointer, actual internet availability or old-version saved-game compatibility claim. Original fixture-GUID payload bytes are authenticated by a test-only RSA wrapper; Windows registration uses that same fixture GUID. The production JS product contract is unchanged.',
     releaseMetadataBoundary:
       'The source ZIP asset is metadata-only (one-byte placeholder), never built, downloaded or published. Installer bytes and their signed identity are real fixture materials.',
   };
@@ -387,18 +432,22 @@ export async function verifyApplicationHandoff({
     desktop,
     newBrowser,
     oldNativeCapture,
+    restartedDesktop,
+    restartNativeCapture,
     oldInstallationIdentity,
     actualExecutionInputs;
-  function observeOldNative(child) {
+  function observeOldNative(child, role = 'old') {
+    assert.ok(['old', 'restart'].includes(role));
     const observed = {
       pid: child.pid,
       attachedAtUtc: new Date().toISOString(),
       exitCode: child.exitCode,
       signalCode: child.signalCode,
       boundary:
-        'Raw streams begin after launchDesktop returns. Earlier startup bytes cannot be replayed by this caller; launchDesktop errors retain only its existing bounded startup diagnostic. The persistent new Native is not this child; its available B/logs/desktop.log is archived separately.',
+        'Raw streams begin after launchDesktop returns. Earlier startup bytes cannot be replayed by this caller; launchDesktop errors retain only its existing bounded startup diagnostic. The original persistent new Native is not this directly observed child; its selected D/logs/desktop.log is archived separately.',
     };
-    report.nativeDiagnostics.oldNative = observed;
+    report.nativeDiagnostics[role === 'old' ? 'oldNative' : 'restartNative'] =
+      observed;
     const updateExit = (code, signal) => {
       observed.exitCode = code;
       observed.signalCode = signal;
@@ -413,11 +462,11 @@ export async function verifyApplicationHandoff({
       observed.processError = error.message;
     });
     const streams = ['stdout', 'stderr'].map((name) => {
-      const path = join(evidence, 'old-native-' + name + '.bin');
+      const path = join(evidence, role + '-native-' + name + '.bin');
       assert.equal(
         child[name].readableEncoding,
         null,
-        'Old Native raw stream was already decoded',
+        'Native raw stream was already decoded',
       );
       const output = createWriteStream(path, { flags: 'wx' });
       const stream = {
@@ -563,27 +612,27 @@ export async function verifyApplicationHandoff({
           ...(stream.error ? { error: stream.error } : {}),
         });
       }
-      assert.ok(complete, 'Old Native raw stream archive did not close');
+      assert.ok(complete, 'Native raw stream archive did not close');
       assert.ok(
         streams.every((stream) => !stream.error),
-        'Old Native raw stream archive failed',
+        'Native raw stream archive failed',
       );
       assert.ok(
         streams.every((stream) => !stream.truncated),
-        'Old Native raw stream exceeded its per-stream 2 MiB archive budget',
+        'Native raw stream exceeded its per-stream 2 MiB archive budget',
       );
       assert.ok(
         streams.every((stream) => !stream.archiveDetachedBeforeEof),
-        'Old Native raw archive detached before source EOF',
+        'Native raw archive detached before source EOF',
       );
       assert.ok(
         streams.every((stream) => stream.source.readableEnded),
-        'Old Native raw stream archive stopped before source EOF',
+        'Native raw stream archive stopped before source EOF',
       );
     };
   }
   async function archiveDesktopLog(stage) {
-    const sourcePath = join(root, 'TableMax/logs/desktop.log');
+    const sourcePath = join(dataDirectory, 'logs/desktop.log');
     await noLinks(sourcePath);
     if (!(await exists(sourcePath))) {
       report.nativeDiagnostics.desktopLogs.push({
@@ -637,6 +686,366 @@ export async function verifyApplicationHandoff({
         'Fixture redirected filesystem existence and raw-file identity only; no user-shell shortcut or COM target parsing.',
     };
   }
+  async function stopPersistentHost(ready) {
+    assert.ok(Number.isSafeInteger(ready.desktopPid) && ready.desktopPid > 0);
+    const image = join(root, 'TableMax/app/TableMax.exe');
+    const marker = join(evidence, 'persistent-host-handle-held.json');
+    const observation = join(evidence, 'persistent-host-exit.json');
+    const request = join(evidence, 'quit.request');
+    for (const path of [marker, observation, request]) {
+      inside(evidence, path);
+      await noLinks(path);
+      assert.equal(await exists(path), false);
+    }
+    const script =
+      powershellUtf8 +
+      `function Write-NewJson([string]$path,$value){$raw=[Text.UTF8Encoding]::new($false).GetBytes(($value|ConvertTo-Json -Depth 8 -Compress));$stream=[IO.File]::Open($path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None);try{$stream.Write($raw,0,$raw.Length);$stream.Flush($true)}finally{$stream.Dispose()}}; ` +
+      `$expectedSid=$env:TABLEMAX_HANDOFF_EXIT_SID;if([Security.Principal.WindowsIdentity]::GetCurrent().User.Value -ne $expectedSid){throw 'Native exit observer SID differs'}; ` +
+      `$p=[Diagnostics.Process]::GetProcessById([int]$env:TABLEMAX_HANDOFF_EXIT_PID);try{$held=$p.Handle;$actual=[IO.Path]::GetFullPath($p.MainModule.FileName);$created=$p.StartTime.ToUniversalTime();if($actual -ne [IO.Path]::GetFullPath($env:TABLEMAX_HANDOFF_EXIT_IMAGE) -or $created -lt [DateTime]::Parse($env:TABLEMAX_HANDOFF_EXIT_NOT_BEFORE).ToUniversalTime().AddSeconds(-2)){throw 'Native exit observer image or start time differs'}; ` +
+      `$peer=Get-CimInstance -ClassName Win32_Process -Filter ('ProcessId = '+$p.Id);if($null -eq $peer){throw 'Native exit observer process is unavailable'};$owner=Invoke-CimMethod -InputObject $peer -MethodName GetOwnerSid;$cimCreated=([DateTime]$peer.CreationDate).ToUniversalTime();if($owner.ReturnValue -ne 0 -or $owner.Sid -ne $expectedSid -or [Math]::Abs([long]$created.Ticks-[long]$cimCreated.Ticks) -gt 9){throw 'Native exit observer owner or creation time differs'}; ` +
+      `$before=@{schemaVersion=1;kind='fixture-native-exit-observation';stage='handle-held';pid=$p.Id;image=$actual;ownerSid=$owner.Sid;startedAtUtc=$created.ToString('o');observedAtUtc=[DateTime]::UtcNow.ToString('o');handleHeld=$true};Write-NewJson $env:TABLEMAX_HANDOFF_EXIT_MARKER $before; ` +
+      `if(-not $p.WaitForExit(90000)){throw 'Pinned actual Native did not exit within its bounded budget'};if($p.ExitCode -ne 0){throw ('Pinned actual Native returned '+$p.ExitCode)};$after=@{};foreach($key in $before.Keys){$after[$key]=$before[$key]};$after.stage='exited';$after.exitCode=$p.ExitCode;$after.processHasExited=$p.HasExited;$after.exitedAtUtc=[DateTime]::UtcNow.ToString('o');$after.quitRequestPath=$env:TABLEMAX_HANDOFF_EXIT_REQUEST;Write-NewJson $env:TABLEMAX_HANDOFF_EXIT_OBSERVATION $after;$after|ConvertTo-Json -Depth 8 -Compress}finally{$p.Dispose()}`;
+    let settled, observerError;
+    const pending = execute(
+      powershell,
+      ['-NoProfile', '-NonInteractive', '-Command', script],
+      'persistent-host-exit-observer',
+      120000,
+      {
+        TABLEMAX_HANDOFF_EXIT_PID: String(ready.desktopPid),
+        TABLEMAX_HANDOFF_EXIT_IMAGE: image,
+        TABLEMAX_HANDOFF_EXIT_SID: oldInstallationIdentity.ownerSid,
+        TABLEMAX_HANDOFF_EXIT_NOT_BEFORE: report.startedAtUtc,
+        TABLEMAX_HANDOFF_EXIT_MARKER: marker,
+        TABLEMAX_HANDOFF_EXIT_OBSERVATION: observation,
+        TABLEMAX_HANDOFF_EXIT_REQUEST: request,
+      },
+    );
+    pending.then(
+      (value) => {
+        settled = value;
+      },
+      (error) => {
+        observerError = error;
+      },
+    );
+    try {
+      const held = await waitUntil(
+        async () => {
+          if (observerError) throw observerError;
+          const value = await maybeJson(marker);
+          if (value) return value;
+          if (settled)
+            throw new Error(
+              'Native handle observer exited before pinning: ' + settled.log,
+            );
+          return null;
+        },
+        'Actual persistent Native process handle',
+        15000,
+      );
+      assert.equal(held.schemaVersion, 1);
+      assert.equal(held.kind, 'fixture-native-exit-observation');
+      assert.equal(held.stage, 'handle-held');
+      assert.equal(held.pid, ready.desktopPid);
+      assert.equal(resolve(held.image), image);
+      assert.equal(held.ownerSid, oldInstallationIdentity.ownerSid);
+      assert.equal(held.handleHeld, true);
+      assert.ok(Number.isFinite(Date.parse(held.startedAtUtc)));
+      await writeFile(request, 'Actual fixture context.Quit request\n', {
+        flag: 'wx',
+      });
+      const result = await pending;
+      assert.equal(result.code, 0, result.log);
+      const exited = await json(observation);
+      for (const name of [
+        'schemaVersion',
+        'kind',
+        'pid',
+        'image',
+        'ownerSid',
+        'startedAtUtc',
+        'observedAtUtc',
+        'handleHeld',
+      ])
+        assert.equal(exited[name], held[name]);
+      assert.equal(exited.stage, 'exited');
+      assert.equal(exited.exitCode, 0);
+      assert.equal(exited.processHasExited, true);
+      assert.equal(resolve(exited.quitRequestPath), request);
+      return {
+        held,
+        heldFile: await record(marker),
+        exited,
+        exitedFile: await record(observation),
+        request: await record(request),
+        checker: { code: result.code, log: result.log },
+      };
+    } finally {
+      await pending.catch(() => {});
+    }
+  }
+  async function verifyNextStartupCleanup({
+    directory,
+    shortLaunch,
+    target,
+    plan,
+    outside,
+    outsideBefore,
+  }) {
+    const persistent = report.steps.find(
+      (entry) => entry.id === 'actual-new-persistent-host',
+    );
+    assert.equal(persistent?.result, 'passed');
+    const persistentHostExit = await stopPersistentHost(persistent);
+    await newBrowser?.close().catch(() => {});
+    newBrowser = undefined;
+    await archiveDesktopLog('before-next-startup');
+    const box = join(root, 'TableMax');
+    const before = {
+      configuration: await record(configurationPath),
+      identity: await record(join(box, '.install.json')),
+      receipt: await record(join(box, '.installer-receipt.json')),
+      unknown: await record(outside),
+    };
+    assert.deepEqual(before.unknown, outsideBefore);
+    const sentinel = join(dataDirectory, 'next-startup-preserved.txt');
+    await noLinks(sentinel);
+    await writeFile(
+      sentinel,
+      'Preserve this private D file across actual startup cleanup.\n',
+      {
+        flag: 'wx',
+      },
+    );
+    before.dataSentinel = await record(sentinel);
+    const gamesBefore = await preservedData(gamesDirectory);
+    assert.ok(gamesBefore.length > 0);
+    const gamesSnapshot = join(evidence, 'next-startup-games-before.json');
+    await writeFile(
+      gamesSnapshot,
+      JSON.stringify(gamesBefore, null, 2) + '\n',
+      {
+        flag: 'wx',
+      },
+    );
+    const restartEvidence = join(evidence, 'next-startup');
+    await mkdir(restartEvidence);
+    const restartPlan = join(work, 'next-startup-plan.json');
+    await writeJson(restartPlan, {
+      ...(await json(plan)),
+      evidence: restartEvidence,
+    });
+    try {
+      restartedDesktop = await launchDesktop({
+        executablePath: join(box, 'app/TableMax.exe'),
+        timeout: 90000,
+        env: {
+          ...environment,
+          TABLEMAX_BOX_DIRECTORY: box,
+          TABLEMAX_HANDOFF_TEST_PLAN: restartPlan,
+        },
+      });
+    } catch (error) {
+      report.nativeDiagnostics.restartLaunchError = {
+        error: error.message,
+        boundary:
+          'launchDesktop did not return the independent child handle; only its existing bounded startup diagnostic is available.',
+      };
+      throw error;
+    }
+    restartNativeCapture = observeOldNative(
+      restartedDesktop.process(),
+      'restart',
+    );
+    const ready = await waitUntil(async () => {
+      const error = await maybeJson(
+        join(restartEvidence, 'old-fixture-error.json'),
+      );
+      if (error) throw new Error(error.error);
+      return await maybeJson(join(restartEvidence, 'old-native-ready.json'));
+    }, 'Independent same-version Native readiness');
+    assert.equal(ready.buildVersion, newBuild);
+    assert.equal(ready.desktopPid, restartedDesktop.process().pid);
+    assert.notEqual(ready.desktopPid, persistent.desktopPid);
+    assert.equal(ready.currentMappingSha256, target.currentMappingSha256);
+    assert.equal(resolve(ready.root), root);
+    assert.equal(resolve(ready.boxRoot), box);
+    assert.equal(resolve(ready.dataDirectory), dataDirectory);
+    assert.equal(ready.realShutdownDelegates, true);
+    const runtime = await restartedDesktop.request('runtime');
+    assert.equal(runtime.appVersion, newBuild);
+    assert.equal(runtime.desktopPid, ready.desktopPid);
+    assert.equal(runtime.servicePid, ready.servicePid);
+    const restartHost = await restartedDesktop.firstWindow();
+    const state = await restartHost.evaluate(() =>
+      window.tablemaxUpdate.read(),
+    );
+    assert.equal(state.currentVersion, newBuild);
+    const cleanupSource = join(directory, 'cleanup.json');
+    await noLinks(cleanupSource);
+    const raw = await readFile(cleanupSource);
+    const cleanup = parseStrictJson(raw, 32768, { canonicalIntegers: true });
+    const cleanupPath = join(evidence, 'next-startup-cleanup.json');
+    await writeFile(cleanupPath, raw, { flag: 'wx' });
+    assert.deepEqual(
+      Object.keys(cleanup).sort(),
+      [
+        'schemaVersion',
+        'kind',
+        'status',
+        'root',
+        'boxRoot',
+        'installationId',
+        'ownerSid',
+        'buildVersion',
+        'currentBuildVersion',
+        'payloadManifestSha256',
+        'currentMappingSha256',
+        'receiptSha256',
+        'launchAuditSha256',
+        'handoffSha256',
+        'launchMetadataPath',
+        'launchMetadataSha256',
+        'targetEnvelopeSha256',
+        'temporaryDirectory',
+        'removed',
+        'retainedSourceInstaller',
+      ].sort(),
+    );
+    assert.equal(cleanup.schemaVersion, 1);
+    assert.equal(cleanup.kind, 'TableMax.ApplicationUpdate.Cleanup');
+    assert.equal(cleanup.status, 'completed');
+    assert.equal(resolve(cleanup.root), root);
+    assert.equal(resolve(cleanup.boxRoot), box);
+    assert.equal(
+      cleanup.installationId,
+      oldInstallationIdentity.installationId,
+    );
+    assert.equal(cleanup.ownerSid, oldInstallationIdentity.ownerSid);
+    assert.equal(cleanup.buildVersion, newBuild);
+    assert.equal(cleanup.currentBuildVersion, newBuild);
+    assert.equal(cleanup.payloadManifestSha256, target.payloadManifestSha256);
+    assert.equal(cleanup.currentMappingSha256, target.currentMappingSha256);
+    assert.equal(cleanup.receiptSha256, before.receipt.sha256);
+    assert.equal(cleanup.launchAuditSha256, shortLaunch.audit.sha256);
+    assert.equal(cleanup.handoffSha256, shortLaunch.handoffRecord.sha256);
+    assert.equal(
+      resolve(cleanup.launchMetadataPath),
+      shortLaunch.metadata.sourcePath,
+    );
+    assert.equal(cleanup.launchMetadataSha256, shortLaunch.metadata.sha256);
+    assert.equal(
+      cleanup.targetEnvelopeSha256,
+      shortLaunch.targetEnvelope.sha256,
+    );
+    assert.equal(
+      resolve(cleanup.temporaryDirectory),
+      shortLaunch.temporaryDirectory,
+    );
+    const plainTuple = (value) => {
+      assert.deepEqual(
+        Object.keys(value).sort(),
+        ['sourcePath', 'path', 'bytes', 'sha256'].sort(),
+      );
+      const { sourcePath, path, bytes, sha256 } = value;
+      return { sourcePath, path, bytes, sha256 };
+    };
+    const expectedRemoved = [
+      {
+        sourcePath: shortLaunch.canonicalHelperSource.path,
+        ...shortLaunch.retainedHelper,
+      },
+      ...(shortLaunch.retainedInstaller
+        ? [
+            {
+              sourcePath: shortLaunch.canonicalInstallerSource.path,
+              ...shortLaunch.retainedInstaller,
+            },
+          ]
+        : []),
+      {
+        sourcePath: shortLaunch.metadata.sourcePath,
+        path: shortLaunch.metadata.sourcePath,
+        bytes: shortLaunch.metadata.bytes,
+        sha256: shortLaunch.metadata.sha256,
+      },
+      {
+        sourcePath: shortLaunch.canonicalHelperSource.path,
+        ...shortLaunch.canonicalHelperSource,
+      },
+    ];
+    assert.deepEqual(cleanup.removed.map(plainTuple), expectedRemoved);
+    for (const file of expectedRemoved) {
+      await noLinks(file.path);
+      assert.equal(await exists(file.path), false);
+    }
+    assert.equal(await exists(shortLaunch.temporaryDirectory), false);
+    const retainedSourceInstaller = await record(
+      shortLaunch.canonicalInstallerSource.path,
+    );
+    assert.deepEqual(
+      retainedSourceInstaller,
+      shortLaunch.canonicalInstallerSource,
+    );
+    assert.deepEqual(plainTuple(cleanup.retainedSourceInstaller), {
+      sourcePath: retainedSourceInstaller.path,
+      ...retainedSourceInstaller,
+    });
+    const retainedAudits = [];
+    for (const file of [
+      shortLaunch.audit,
+      shortLaunch.handoffRecord,
+      shortLaunch.targetEnvelope,
+    ]) {
+      await noLinks(file.sourcePath);
+      const actual = await record(file.sourcePath);
+      assert.deepEqual(actual, {
+        path: file.sourcePath,
+        bytes: file.bytes,
+        sha256: file.sha256,
+      });
+      retainedAudits.push(actual);
+    }
+    const after = {
+      configuration: await record(configurationPath),
+      identity: await record(join(box, '.install.json')),
+      receipt: await record(join(box, '.installer-receipt.json')),
+      unknown: await record(outside),
+      dataSentinel: await record(sentinel),
+    };
+    assert.deepEqual(after, before);
+    assert.deepEqual(await preservedData(gamesDirectory), gamesBefore);
+    return {
+      result: 'passed',
+      persistentHostExit,
+      restart: {
+        ready,
+        readyFile: await record(join(restartEvidence, 'old-native-ready.json')),
+        plan: await record(restartPlan),
+        evidenceDirectory: restartEvidence,
+        appVersion: runtime.appVersion,
+        actualHostState: state,
+      },
+      cleanup: {
+        value: cleanup,
+        file: { sourcePath: cleanupSource, ...(await record(cleanupPath)) },
+      },
+      removed: expectedRemoved,
+      retainedSourceInstaller,
+      retainedAudits,
+      preservation: {
+        before,
+        after,
+        games: {
+          files: gamesBefore.length,
+          snapshot: await record(gamesSnapshot),
+        },
+      },
+      boundary:
+        'Actual healthy post-Apply host exited 0 through the existing fixture request and real context.Quit while its exact process handle was held. A separate same-version installed Native then ran local cleanup; this direct child remains active for the final real default uninstall. Original download and public signed audit bytes are retained. G/config/identity/receipt/unknown files and a private D sentinel are byte-bound; normal SQLite startup bookkeeping is not claimed unchanged.',
+    };
+  }
   async function verifyShortLaunch(
     directory,
     outcome,
@@ -673,6 +1082,11 @@ export async function verifyApplicationHandoff({
       samePath(value.path, path);
       assert.equal(value.bytes, expected.bytes);
       assert.equal(value.sha256, expected.sha256);
+    };
+    const tupleRepresentation = (value) => {
+      keys(value, ['sourcePath', 'path', 'bytes', 'sha256']);
+      const { sourcePath, path, bytes, sha256 } = value;
+      return { sourcePath, path, bytes, sha256 };
     };
     samePath(dirname(directory), join(root, 'TableMax/updates'));
     assert.match(
@@ -807,10 +1221,16 @@ export async function verifyApplicationHandoff({
     samePath(audit.value.temporaryDirectory, temporaryDirectory);
     samePath(audit.value.metadataPath, metadataPath);
     assert.equal(audit.value.metadataSha256, metadata.file.sha256);
-    assert.deepEqual(audit.value.actualHelper, launch.helper);
-    assert.deepEqual(audit.value.sourceInstaller, launch.installer);
-    assert.deepEqual(audit.value.target, launch.target);
-    assert.deepEqual(outcome.sourceInstaller, launch.installer);
+    for (const [actual, expected] of [
+      [audit.value.actualHelper, launch.helper],
+      [audit.value.sourceInstaller, launch.installer],
+      [audit.value.target, launch.target],
+      [outcome.sourceInstaller, launch.installer],
+    ])
+      assert.deepEqual(
+        tupleRepresentation(actual),
+        tupleRepresentation(expected),
+      );
     const observations = [];
     for (const [name, expected, helper] of [
       ['actualHelper', launch.helper, true],
@@ -886,7 +1306,12 @@ export async function verifyApplicationHandoff({
       join(directory, 'handoff.json'),
       'handoff-record.json',
     );
-    assert.deepEqual(handoffRecord.value, outcome);
+    assert.deepEqual(
+      handoffRecord.value,
+      parseStrictJson(JSON.stringify(outcome), 32768, {
+        canonicalIntegers: true,
+      }),
+    );
     if (startupPathPlan.requiredRootLength === 198) {
       assert.ok(canonicalHelper.path.length >= 260);
       assert.ok(canonicalInstaller.path.length >= 260);
@@ -1680,6 +2105,17 @@ export async function verifyApplicationHandoff({
       const outsideBefore = await record(outside);
       await step('actual-old-inno-install', async () => {
         assert.equal(await registration(), null);
+        if (usesExternalData) {
+          await noLinks(externalDataDirectory);
+          assert.equal(await exists(externalDataDirectory), false);
+          await mkdir(externalDataDirectory);
+          await mkdir(join(root, 'TableMax'));
+          await writeJson(configurationPath, {
+            dataDirectory: externalDataDirectory,
+          });
+          report.startupExternalData.configurationBefore =
+            await record(configurationPath);
+        }
         const run = await execute(
           actualExecutionInputs.old.path,
           [
@@ -1712,6 +2148,16 @@ export async function verifyApplicationHandoff({
         );
         if (profile)
           assert.equal(oldInstallationIdentity.ownerSid, profile.ownerSid);
+        if (usesExternalData) {
+          assert.equal(
+            (await json(configurationPath)).dataDirectory,
+            externalDataDirectory,
+          );
+          assert.deepEqual(
+            await record(configurationPath),
+            report.startupExternalData.configurationBefore,
+          );
+        }
         return {
           registration: value,
           installationIdentity: {
@@ -1753,6 +2199,33 @@ export async function verifyApplicationHandoff({
         }, 'Actual old Native transport attachment');
         assert.equal(ready.buildVersion, oldBuild);
         assert.equal(ready.desktopPid, desktop.process().pid);
+        assert.equal(resolve(ready.dataDirectory), dataDirectory);
+        assert.equal(resolve(ready.boxRoot), join(root, 'TableMax'));
+        if (usesExternalData) {
+          assert.equal(resolve(ready.dataDirectory), externalDataDirectory);
+          assert.equal(resolve(ready.boxRoot), join(root, 'TableMax'));
+          assert.ok((await stat(gamesDirectory)).isDirectory());
+          const gameEntries = (await readdir(gamesDirectory)).sort();
+          assert.ok(
+            gameEntries.length > 0,
+            'Actual preinstalled G must remain under B',
+          );
+          assert.equal(
+            await exists(join(externalDataDirectory, 'games')),
+            false,
+          );
+          assert.equal(
+            (await json(configurationPath)).dataDirectory,
+            externalDataDirectory,
+          );
+          report.startupExternalData.actualReady = {
+            dataDirectory: ready.dataDirectory,
+            boxRoot: ready.boxRoot,
+            servicePid: ready.servicePid,
+          };
+          report.startupExternalData.gameEntries = gameEntries;
+          report.startupExternalData.externalGamesPresent = false;
+        }
         return ready;
       });
       if (!activeUninstallOnly) {
@@ -1786,8 +2259,31 @@ export async function verifyApplicationHandoff({
             90000,
           );
           assert.equal(state.targetVersion, newBuild);
+          const downloaded = await record(
+            join(
+              root,
+              'TableMax/updates/downloads',
+              target.sha256,
+              target.assetName,
+            ),
+          );
+          assert.equal(downloaded.bytes, target.bytes);
+          assert.equal(downloaded.sha256, target.sha256);
+          const partialPathLength =
+            downloaded.path.length + 1 + 32 + '.partial'.length;
+          if (profile && !longRootExternalData)
+            assert.ok(
+              partialPathLength >= 260,
+              'The default-D profile chain must exercise the long partial IO path',
+            );
           return {
             state,
+            downloaded,
+            partialPathPlan: {
+              length: partialPathLength,
+              boundary:
+                'Computed from the actual downloaded path and the frozen production .32hex.partial naming rule; the transient GUID path was not independently observed.',
+            },
             transport:
               'Managed response and actual new installer stream; no real internet',
           };
@@ -1838,6 +2334,23 @@ export async function verifyApplicationHandoff({
           assert.equal(ready.buildVersion, newBuild);
           assert.equal(ready.persistent, true);
           assert.equal(ready.currentMappingSha256, target.currentMappingSha256);
+          assert.equal(resolve(ready.dataDirectory), dataDirectory);
+          assert.equal(resolve(ready.boxRoot), join(root, 'TableMax'));
+          if (usesExternalData) {
+            assert.equal(
+              (await json(configurationPath)).dataDirectory,
+              externalDataDirectory,
+            );
+            assert.deepEqual(
+              await record(configurationPath),
+              report.startupExternalData.configurationBefore,
+            );
+            report.startupExternalData.newActualReady = {
+              dataDirectory: ready.dataDirectory,
+              boxRoot: ready.boxRoot,
+              servicePid: ready.servicePid,
+            };
+          }
           const installerFinished = await waitUntil(
             async () => {
               const directories = (
@@ -1940,9 +2453,18 @@ export async function verifyApplicationHandoff({
               },
               { bytes: file.bytes, sha256: file.sha256 },
             );
+          const nextStartupCleanup = await verifyNextStartupCleanup({
+            directory,
+            shortLaunch,
+            target,
+            plan,
+            outside,
+            outsideBefore,
+          });
           return {
             outcome,
             shortLaunch,
+            nextStartupCleanup,
             temporaryHelperSha256: oldHelper.sha256,
             newOwnedHelperSha256: newHelper.sha256,
           };
@@ -2012,6 +2534,37 @@ export async function verifyApplicationHandoff({
           );
           assert.equal(result.code, 0, result.log);
           assert.equal(await registration(), null);
+          const nextStartupCleanup = report.steps.find(
+            (entry) => entry.id === 'handoff-helper-and-data',
+          )?.nextStartupCleanup;
+          if (nextStartupCleanup) {
+            const retained = {};
+            for (const name of ['configuration', 'unknown', 'dataSentinel']) {
+              const expected = nextStartupCleanup.preservation.before[name];
+              retained[name] = await record(expected.path);
+              assert.deepEqual(retained[name], expected);
+            }
+            assert.deepEqual(
+              await preservedData(gamesDirectory),
+              await json(nextStartupCleanup.preservation.games.snapshot.path),
+            );
+            nextStartupCleanup.uninstallPreservation = retained;
+          }
+          if (usesExternalData) {
+            assert.equal(
+              (await json(configurationPath)).dataDirectory,
+              externalDataDirectory,
+            );
+            assert.deepEqual(
+              await record(configurationPath),
+              report.startupExternalData.configurationBefore,
+            );
+            assert.ok((await stat(externalDataDirectory)).isDirectory());
+            assert.ok((await stat(gamesDirectory)).isDirectory());
+            report.startupExternalData.configurationAfterUninstall =
+              await record(configurationPath);
+            report.startupExternalData.dataAndGamesRetained = true;
+          }
           return {
             registrationRemoved: true,
             scope: root,
@@ -2044,6 +2597,27 @@ export async function verifyApplicationHandoff({
     }
     await oldNativeCapture?.().catch((error) =>
       diagnosticFailure('old-native-raw-streams', error),
+    );
+    if (restartedDesktop) {
+      const child = restartedDesktop.process();
+      try {
+        await restartedDesktop.close();
+        assert.equal(
+          child.exitCode,
+          0,
+          'Independent same-version Native normal shutdown returned a nonzero exit code',
+        );
+      } catch (error) {
+        report.restartDesktopCleanupError = error.message;
+        diagnosticFailure('restart-native-normal-shutdown', error);
+      } finally {
+        report.nativeDiagnostics.restartNative.exitCode = child.exitCode;
+        report.nativeDiagnostics.restartNative.signalCode = child.signalCode;
+        report.nativeDiagnostics.restartNative.normalShutdownExpected = true;
+      }
+    }
+    await restartNativeCapture?.().catch((error) =>
+      diagnosticFailure('restart-native-raw-streams', error),
     );
     if (actualExecution)
       await archiveDesktopLog('final').catch((error) =>
@@ -2082,6 +2656,8 @@ if (resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
     verifyPreparedOnly: args.includes('--verify-prepared-only'),
     frameworkRecoveryOnly: args.includes('--framework-recovery-only'),
     activeUninstallOnly: args.includes('--active-uninstall-only'),
+    shortExternalData: args.includes('--short-external-data'),
+    longRootExternalData: args.includes('--long-root-external-data'),
   });
   console.log(
     JSON.stringify({

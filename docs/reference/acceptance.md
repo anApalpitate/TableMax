@@ -2,7 +2,15 @@
 
 本页仅保留当前完整EXE、仍有效的证据和待验边界。下方旧标题为导航，不能把原版本通过升级为当前包通过。
 
-2026-10-15安装／卸载／盒子更新继续验收，current仍为已验证便携1.0.6.10，候选14未推广或发布。续行03／04／05各累计3失败，原run均已停止。句柄修复已通过实际活跃卸载，短目录组件8项通过；续行06同I198配短外D的独立诊断4步及共用验收门禁10项纯测试通过。实际Apply、框架恢复、最终正式候选与完整容量仍待闭合。涉及的新账户及profile均已清理，接续见[安装任务](../tasks/windows-installation-update.md)。
+2026-10-15安装／卸载／盒子更新继续验收，current仍为已验证便携1.0.6.10；候选15已封包、闭包及实际生产根验签通过，未推广或发布，候选14原SHA保留。续行03／04／05／06各累计3失败，原run均已停止；续行07保留2项包装器预检失败，修正后标准账户验收进行中。普通I／默认D的fixture实际7步及后续启动清理新增5项组件分别保留证明，完整三链、真实下一启动、正式GUID与完整容量仍待验，接续见[安装任务](../tasks/windows-installation-update.md)。
+
+## 1.0.6.15：候选冻结与续行07（2026-10-15）
+
+[候选15冻结交付](../../artifacts/package-payloads/v1.0.6/29c81e29c4a3-1H6Xye/full/installer-delivery.json)对应[完整EXE](../../artifacts/releases/TableMax-1.0.6.15-win-x64.exe)，35,713,286字节、SHA `fcf3627c873558d8e551bdf5b73019a83b156d41bfebd08a4a8a66375f872df2`；candidate SHA `5a767509273ed1ee392cc3df24c00100b8be38fe38b17c5696d1cfcda7cdb23e`，snapshot `29c81e29c4a385e747133a116f5ea154aa6b53f00540e8064395a25fca6cc829`。原31游戏单元未重建，current原SHA仍保留便携10；程序暂存97,491,605字节尚不含实际框架和首次启动G，完整容量仍须系统测量。
+
+[封包闭包9项](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/production-seal-15-repair-01/results.json)实际通过，包含逐文件／ZIP／三PE、配方、生产签名、原游戏单元及current保全。[实际程序集生产根验签](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/production-signature-15/report.json)Native／helper各22项通过，launcher12项只核原字节、GUID和版本；反射核验不运行产品Main。[本地交付上下文](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/production15/local-delivery-context.json)记录NotSigned、无ZoneIdentifier、未观察浏览器下载，不证明SmartScreen体验或发布。
+
+[续行06账本](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/round.json)最终3失败保留：prototype比较、临时seal工具参数正则错误、PS7父进程误用Desktop模块路径后的只读元数据autoload失败。工具正则修正未改变候选字节；环境修复使Desktop路径仅用于PS5子进程并在finally恢复，PS7父进程使用自身模块。[续行07](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-07/round.json)开始后又记录2项包装器预检失败：Inno版本字符串尾部空白、fixture Native四位ProductVersion被误按生产版三位比较；两处已修正，候选及夹具字节不变，复用已过组件／闭包／验签与[准备13](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/handoff-prepare-13/report.json)原报告，不重复执行或计数。准备13保留原prepared-not-executed状态；正式driver已启动，真实旧首装与宿主就绪已通过，整套结果尚未形成，不把准备或局部通过认定为完整系统证明。
 
 ## 续行06：数据路径分类与共用门禁（2026-10-15）
 
@@ -12,7 +20,13 @@
 
 后续完整链分别使用普通I／默认D，以及I198／显式短外D；长链仍要求原helper273／下载317与实际短副本身份。任意深度I／D不在冻结承诺内，原默认深D失败作为限制保留，不移动缓存或改系统保护。
 
-[共用门禁10项纯测试](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/publication-gates/results.json)通过，Node原TAP为两文件各5／5，历史库仍按各文件原验证身份统计。推广及未来发布复用唯一生命周期／容量校验；新系统工具要求真实卸载后重装读回玩家、两次默认卸载，以及安装文件和当前G的同次实测分项。占用观察只报maxObserved下界，不声称绝对峰值或未执行的prestart采样。实际新系统链尚未运行，不能用上述纯测试替代。
+[普通I／默认D首轮](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/three-chains-account-01/application-handoff/report.json)实际通过7步：准备材料、旧Inno首装、旧主机、检查下载、Apply父交接、新持续主机健康及精确默认卸载。交接审计`handoff-helper-and-data`因相同元组的普通对象与null-prototype对象比较失败，报告仍failed、1失败，SHA `94db1b804fb9d37d691dbffe21fca560b1005b81615d85aff4cb9c4552e9852e`；表示差异修复不放宽字段或原字节摘要。[收尾](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/three-chains-account-01/isolated-account.json)SHA `b785e5d2da64260df5eca317d4645b6b43eaa629f46736304a1975c4a6b893ac`确认账户／profile删除。该失败计入续行06最终3失败；长I与旧框架恢复当轮未执行，不能认定三链通过。
+
+后续启动清理生产实现为`ApplicationUpdate`读取信任根／receipt后同步调用`InstallationLaunch.CleanupFinished`，仅本地按本安装B审计索引TEMP，无联网或等待helper。它以同实例／SID／根、所有安装事务终态、历史或当前成功目标的RSA／清单／receipt及原helper／审计SHA授权；运行中、pending、未知和篡改均保留。只按原文件句柄删除TEMP的h／存在的i／元数据和B旧helper，再删除已空私有目录；B公共审计／签名描述／handoff保留，canonical大下载真实保留，其元组写入`cleanup.json`并另计缓存。
+
+[新增清理组件5项](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/completed-cleanup-component/report.json)通过、0新增失败，原报告SHA `1137be8d24e3163df7b5197ae10df605e6e85f8ecb1171ccb326e96a318a1403`，历史run为`ff26634b-c069-428a-a944-cca98c4bebad`。实际net48 Core与RSA覆盖同版／历史成功目标、幂等及pending／未知／篡改／占用保全；成员是合成不可执行字节，进程观察是合成记录，未运行Native、helper或installer，不代替真实新版正常退出后的独立下一启动清理。原短目录8项和共用门禁10项继续按各自证据复用，不重复增加统计。
+
+[共用门禁10项纯测试](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/publication-gates/results.json)通过，Node原TAP为两文件各5／5，历史库仍按各文件原验证身份统计。推广及未来发布复用唯一生命周期／容量校验；新系统工具要求真实卸载后重装读回玩家、两次默认卸载，以及安装文件和当前G的同次实测分项。占用观察只报maxObserved下界，不声称绝对峰值或未执行的prestart采样。正式GUID卸载后重装与容量系统链尚未运行，不能用上述纯测试替代。
 
 ## 续行05：活跃卸载通过与长路径启动诊断（2026-10-15）
 
@@ -50,7 +64,7 @@ Native退出0和服务drained不证明Stop已成功返回，也不能记为卸�
 
 生产ApplicationUpdate已接入既有扩展路径IO封装，覆盖下载、partial清理、候选长度、helper复制及信任水位读取。[静态集成审查](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/static-io-integration-audit.json)另发现合法深度安装根的helper／安装器模块路径仍可能超过.NET Framework启动限制；该轮实际I长129，只观察到partial失败，没有实际执行Apply，不能将静态风险改写为已发生的进程启动失败。当前补充当前用户私有短路径字节副本及交接绑定，I／B／D／G和保存／退出门槛不变。
 
-Inno增加实际helper退出码日志，验证工具补关闭诊断保全。[诊断静态审查](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/diagnostic-static-integration-audit.json)发现双流在readline关闭后可能暂停，工具已修复EOF归档边界；活动卸载专用模式及桌面快捷方式取消选择的升级保留检查也已准备。组件IO已有上节限定证据，短副本启动及完整系统链仍待验，须新候选与新准备材料，不能套用14原字节证明。真实便携默认／外置迁移工具和独立账户模式已形成源码，尚未执行；当前白名单仍限定便携10及候选14，下一候选改变后先审输入再更新。完整首次启动容量、实际Apply、正式GUID、迁移与推广继续待验。
+Inno增加实际helper退出码日志，验证工具补关闭诊断保全。[诊断静态审查](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/diagnostic-static-integration-audit.json)发现双流在readline关闭后可能暂停，工具已修复EOF归档边界；活动卸载专用模式及桌面快捷方式取消选择的升级保留检查随后进入定向验证。当时要求新候选与新准备材料，现已由候选15及准备13承接，不能套用14原字节证明。真实便携默认／外置迁移工具和独立账户模式已按便携10／候选15精确SHA绑定，尚未执行；完整首次启动容量、正式GUID、完整三链、迁移与推广仍待验。
 
 ## 1.0.6.14：安装候选与标准账户诊断（2026-10-15）
 
