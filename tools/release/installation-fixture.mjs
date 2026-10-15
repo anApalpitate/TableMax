@@ -36,7 +36,15 @@ export async function createInstallationFixturePackage({
     nativeDirectory && serverDirectory && webDirectory,
     'Explicit latest fixture units required',
   );
-  const version = JSON.parse(await readFile('package.json', 'utf8')).version;
+  const sourceVersion = JSON.parse(
+    await readFile('package.json', 'utf8'),
+  ).version;
+  // Test-only application identities may exercise the future layout baseline;
+  // signed game bytes still come from the unchanged current source release.
+  const version = buildVersion
+    ? buildVersion.split('.').slice(0, 3).join('.')
+    : sourceVersion;
+  assert.match(version, /^1\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/);
   if (buildVersion)
     assert.match(
       buildVersion,
@@ -44,7 +52,11 @@ export async function createInstallationFixturePackage({
     );
   const pointer = JSON.parse(
     await readFile(
-      resolve('artifacts/package-payloads', 'v' + version, 'current.json'),
+      resolve(
+        'artifacts/package-payloads',
+        'v' + sourceVersion,
+        'current.json',
+      ),
       'utf8',
     ),
   );
@@ -110,6 +122,7 @@ export async function createInstallationFixturePackage({
   if (buildVersion) {
     const applicationPackage = join(payload, 'package.json');
     const metadata = JSON.parse(await readFile(applicationPackage, 'utf8'));
+    metadata.version = version;
     metadata.buildVersion = buildVersion;
     await writeFile(
       applicationPackage,
@@ -253,6 +266,7 @@ export async function createInstallationFixturePackage({
   );
   const manifest = {
     ...previous,
+    version,
     ...(buildVersion ? { buildVersion } : {}),
     snapshot,
     generatedAt: new Date().toISOString(),
@@ -265,6 +279,7 @@ export async function createInstallationFixturePackage({
     fileCount: records.length,
     unpackedBytes: records.reduce((sum, file) => sum + file.bytes, 0),
     fixture: {
+      originalReleaseVersion: sourceVersion,
       originalPayloadSha256: previous.archive.sha256,
       nativeDirectory: resolve(nativeDirectory),
       serverDirectory: resolve(serverDirectory),

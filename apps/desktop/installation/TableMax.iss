@@ -6,7 +6,7 @@ AppName={#ProductName}
 AppVersion={#BuildVersion}
 VersionInfoVersion={#BuildVersion}
 AppPublisher=TableMax
-DefaultDirName={src}
+DefaultDirName={src}\TableMax
 DisableDirPage=no
 AppendDefaultDirName=no
 UsePreviousAppDir=yes
@@ -35,7 +35,7 @@ WizardStyle=modern
 WizardSizePercent=120
 
 [Languages]
-Name: "chinese"; MessagesFile: "compiler:Default.isl"
+Name: "chinese"; MessagesFile: "languages\ChineseSimplified.isl"
 
 [LangOptions]
 chinese.LanguageName=简体中文
@@ -53,9 +53,9 @@ chinese.WelcomeLabel2=安装完整的 TableMax，包括全部正式游戏和玩�
 chinese.WizardSelectDir=选择安装位置
 chinese.SelectDirDesc=TableMax 应安装在哪里？
 chinese.SelectDirLabel3=选择安装位置，然后点击下一步。安装目录中的其他资料会保留。
-chinese.WizardSelectTasks=选择快捷方式
-chinese.SelectTasksDesc=选择需要创建的快捷方式。
-chinese.SelectTasksLabel2=请选择是否创建桌面快捷方式。
+chinese.WizardSelectTasks=选择安装选项
+chinese.SelectTasksDesc=选择快捷方式及版本迁移选项。
+chinese.SelectTasksLabel2=请选择是否创建桌面快捷方式，以及是否迁移旧版本数据。
 chinese.WizardReady=准备安装
 chinese.ReadyLabel1=已准备在所选位置安装完整 TableMax。
 chinese.ButtonNext=下一步(&N) >
@@ -64,9 +64,11 @@ chinese.ButtonInstall=安装(&I)
 chinese.ButtonCancel=取消
 chinese.ButtonFinish=完成(&F)
 chinese.FinishedHeadingLabel=TableMax 安装完成
-chinese.FinishedLabelNoIcons=已安装完整 TableMax。存档、设置和历史游戏模块将在以后升级或默认卸载时保留。
-chinese.ConfirmUninstall=确定卸载 TableMax 程序？存档、设置、历史模块和其他资料将保留。
-chinese.UninstalledAll=TableMax 程序已卸载。数据与历史模块保留在原 TableMax 目录。
+chinese.FinishedLabelNoIcons=已安装完整 TableMax。默认卸载会移除程序和已确认可重建的当前游戏资源，保留存档、设置、旧局依赖及其他资料。
+chinese.FinishedLabel=已安装完整 TableMax，可通过快捷方式启动。默认卸载会移除程序和已确认可重建的当前游戏资源，保留存档、设置、旧局依赖及其他资料。
+chinese.ConfirmUninstall=确定卸载 TableMax 程序和已确认可重建的当前游戏资源？%n%n存档、设置、旧局依赖及其他资料将保留。
+chinese.UninstalledAll=TableMax 程序及已确认可重建的当前游戏资源已卸载。存档、设置、旧局依赖及其他资料保留在原位置。
+chinese.UninstalledMost=部分程序文件未能删除。存档、设置、旧局依赖及其他资料按约定保留，请勿将这些保留资料当作卸载残留删除。
 
 [Tasks]
 Name: "desktopicon"; Description: "创建桌面快捷方式"; GroupDescription: "快捷方式："; Flags: {#DesktopTaskFlags}
@@ -85,6 +87,7 @@ var
   Confirmed: Boolean;
   ResultCode: Integer;
   MigrationPage: TWizardPage;
+  MigrationCheck: TNewCheckBox;
   MigrationEdit: TNewEdit;
   MigrationBrowse: TNewButton;
 
@@ -122,18 +125,66 @@ begin
     MigrationEdit.Text := Directory;
 end;
 
+function MigrationRequested: Boolean;
+begin
+  { An explicit path is an opt-in only for silent automation. Interactive
+    installation always requires the visible, initially unchecked control. }
+  if WizardSilent then
+    Result := Trim(ExpandConstant('{param:TABLEMAXMIGRATION|}')) <> ''
+  else Result := MigrationCheck.Checked;
+end;
+
+function SelectedMigrationRoot: String;
+begin
+  Result := '';
+  if WizardSilent then
+    Result := Trim(ExpandConstant('{param:TABLEMAXMIGRATION|}'))
+  else if MigrationCheck.Checked then
+    Result := Trim(MigrationEdit.Text);
+end;
+
+function MigrationSelectionError: String;
+var
+  Migration: String;
+begin
+  Result := '';
+  if not MigrationRequested then begin
+    if (not WizardSilent) and (Trim(ExpandConstant('{param:TABLEMAXMIGRATION|}')) <> '') then
+      Result := '命令行指定了迁移目录。请先勾选“是否进行版本迁移”，并在迁移页确认目录；不迁移时请移除该参数。';
+    Exit;
+  end;
+  Migration := SelectedMigrationRoot;
+  if Migration = '' then
+    Result := '请选择原 TableMax 配置目录；不迁移时请返回上一页取消勾选“是否进行版本迁移”。'
+  else if not FileExists(AddBackslash(Migration) + 'TableMax.config.json') then
+    Result := '所选原配置目录必须包含有效的 TableMax.config.json。请选择原目录，或返回上一页取消版本迁移。';
+end;
+
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  Result := (PageID = MigrationPage.ID) and (not MigrationRequested);
+end;
+
 function NextButtonClick(CurPageID: Integer): Boolean;
+var
+  Error: String;
 begin
   Result := True;
-  if (CurPageID = MigrationPage.ID) and (MigrationEdit.Text <> '') then begin
-    Result := FileExists(AddBackslash(MigrationEdit.Text) + 'TableMax.config.json');
-    if not Result then MsgBox('所选原配置目录应包含 TableMax.config.json；不迁移时请保持空白。', mbError, MB_OK);
+  Error := '';
+  if CurPageID = MigrationPage.ID then Error := MigrationSelectionError
+  else if (CurPageID = wpSelectTasks) and (not MigrationRequested) then
+    Error := MigrationSelectionError;
+  if Error <> '' then begin
+    Result := False;
+    Log('版本迁移选择未通过：' + Error);
+    if not WizardSilent then MsgBox(Error, mbError, MB_OK);
   end;
 end;
 
 procedure InitializeWizard;
 var
   Notice: TNewStaticText;
+  DefaultMigration: String;
 begin
   WizardForm.NextButton.Font.Size := 14;
   WizardForm.BackButton.Font.Size := 14;
@@ -147,11 +198,22 @@ begin
   Notice.AutoSize := False;
   Notice.WordWrap := True;
   Notice.Caption := '不推荐安装在C盘，因为这是一个有良心的安装包';
-  MigrationPage := CreateCustomPage(wpSelectTasks, '继续使用旧便携数据', '可选：选择原 TableMax 配置目录；不迁移时保持空白。');
+  MigrationCheck := TNewCheckBox.Create(WizardForm);
+  MigrationCheck.Parent := WizardForm.SelectTasksPage;
+  MigrationCheck.Left := WizardForm.TasksList.Left;
+  MigrationCheck.Top := WizardForm.TasksList.Top + WizardForm.TasksList.Height - ScaleY(40);
+  MigrationCheck.Width := WizardForm.TasksList.Width;
+  MigrationCheck.Height := ScaleY(30);
+  MigrationCheck.Caption := '是否进行版本迁移';
+  MigrationCheck.Checked := False;
+  WizardForm.TasksList.Height := MigrationCheck.Top - WizardForm.TasksList.Top - ScaleY(10);
+  MigrationPage := CreateCustomPage(wpSelectTasks, '继续使用旧版本数据', '选择原 TableMax 配置目录。原目录保留；取消迁移请返回上一页取消勾选。');
   MigrationEdit := TNewEdit.Create(WizardForm);
   MigrationEdit.Parent := MigrationPage.Surface;
   MigrationEdit.Top := ScaleY(32);
   MigrationEdit.Width := MigrationPage.SurfaceWidth - ScaleX(100);
+  DefaultMigration := ExpandConstant('{src}\TableMax');
+  if DirExists(DefaultMigration) then MigrationEdit.Text := DefaultMigration;
   MigrationBrowse := TNewButton.Create(WizardForm);
   MigrationBrowse.Parent := MigrationPage.Surface;
   MigrationBrowse.Left := MigrationEdit.Width + ScaleX(8);
@@ -169,8 +231,7 @@ begin
     Arguments := '--commit --root=' + Quoted(ExpandConstant('{app}')) + ' --candidate=' + Quoted(ExpandConstant('{tmp}\candidate')) + ' --manifest=' + Quoted(ExpandConstant('{tmp}\candidate\installation-manifest.json')) + ' --installer-source=' + Quoted(ExpandConstant('{srcexe}'));
     Target := ExpandConstant('{param:TABLEMAXTARGET|}');
     if Target <> '' then Arguments := Arguments + ' --target=' + Quoted(Target);
-    Migration := ExpandConstant('{param:TABLEMAXMIGRATION|}');
-    if Migration = '' then Migration := MigrationEdit.Text;
+    Migration := SelectedMigrationRoot;
     if Migration <> '' then Arguments := Arguments + ' --migration-root=' + Quoted(Migration);
     if not ExecAndLogOutput(ExpandConstant('{tmp}\candidate\UpdateHelper.exe'), Arguments, ExpandConstant('{tmp}'), SW_HIDE, ewWaitUntilTerminated, ResultCode, nil) then RaiseException('无法启动安装协调程序，原数据已保留。');
     Log('TableMax coordinator finished with exit code: ' + IntToStr(ResultCode));
@@ -196,6 +257,8 @@ begin
     else if CompareText(RemoveBackslashUnlessRoot(ExpandFileName(RegisteredRoot)), RemoveBackslashUnlessRoot(ExpandFileName(ExpandConstant('{app}')))) <> 0 then
       Result := '当前用户已有 TableMax 安装。升级和修复请使用原安装位置；本版本不提供安装目录搬迁。';
   end;
+  if Result <> '' then Exit;
+  Result := MigrationSelectionError;
   if Result <> '' then Exit;
   try
     { Before/AfterInstall exceptions do not abort Inno. Confirm the managed

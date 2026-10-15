@@ -48,7 +48,7 @@ namespace TableMax.Installation
         public static void ValidateStartupPaths(string root, string dataDirectory)
         {
             var box = Box(root);
-            foreach (var file in new[] { Path.Combine(root, "TableMax.exe"), Path.Combine(box, "app", "TableMax.exe"), Path.Combine(box, "app", "node.exe"), Path.Combine(box, "TableMax.config.json") })
+            foreach (var file in new[] { Path.Combine(root, "TableMax.exe"), Path.Combine(root, "Updater.exe"), Path.Combine(box, "app", "TableMax.exe"), Path.Combine(box, "app", "node.exe"), Path.Combine(box, "TableMax.config.json") })
                 if (Full(file).Length >= 260) throw new IOException("安装位置太深，原生入口无法在此路径启动。请选择较短的安装位置；尚未替换程序。");
             if (dataDirectory != null && new[] { Path.Combine(dataDirectory, "desktop", "webview2"), Path.Combine(dataDirectory, "logs") }.Any(path => Full(path).Length >= 248))
                 throw new IOException("配置的数据目录太深，原生浏览器无法在此路径启动。请选择较短的数据目录；尚未替换程序。");
@@ -58,7 +58,9 @@ namespace TableMax.Installation
         public static string HashFile(string path) { Safe(path); using (var sha = SHA256.Create()) using (var stream = File.OpenRead(path)) return Hex(sha.ComputeHash(stream)); }
         private static string Hex(byte[] bytes) => BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
         public static string Key(string root) => Hash(Utf8.GetBytes(Full(root).ToLowerInvariant()));
-        public static string Box(string root) => Path.Combine(Full(root), "TableMax");
+        // The next published installer baseline uses data. Unpublished old
+        // installations are rejected by the required managed-file layout.
+        public static string Box(string root) => Path.Combine(Full(root), "data");
         public static string IdentityPath(string root) => Path.Combine(Box(root), ".install.json");
         public static string ReceiptPath(string root) => Path.Combine(Box(root), ".installer-receipt.json");
         public static string ControlPipe(string root) => "TableMax.Installation." + Key(root);
@@ -89,7 +91,7 @@ namespace TableMax.Installation
             if (!path.StartsWith(Full(root) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new IOException("安装文件越出目标目录。");
             Safe(path); return path;
         }
-        public static void Atomic(string path, object value)
+        public static void Atomic(string path, object value, int maximumJsonLength = 1024 * 1024)
         {
             Safe(path); Directory.CreateDirectory(Path.GetDirectoryName(path));
             var temporary = TemporaryPath(path); var created = false;
@@ -98,7 +100,7 @@ namespace TableMax.Installation
                 using (var stream = new FileStream(IO(temporary), FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 {
                     created = true;
-                    var bytes = Utf8.GetBytes(Encode(value)); stream.Write(bytes, 0, bytes.Length); stream.Flush(true);
+                    var bytes = Utf8.GetBytes(new JavaScriptSerializer { MaxJsonLength = maximumJsonLength, RecursionLimit = 32 }.Serialize(value)); stream.Write(bytes, 0, bytes.Length); stream.Flush(true);
                 }
                 if (File.Exists(path)) File.Replace(temporary, path, null); else File.Move(temporary, path);
             }
@@ -164,21 +166,21 @@ namespace TableMax.Installation
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool SetFileInformationByHandle(SafeFileHandle file, int kind, ref CleanupDisposition disposition, uint size);
         private sealed class Record { public string sourcePath, path; public int bytes; public string sha256; public object Public => new { sourcePath, path, bytes, sha256 }; }
-        private sealed class CleanupLease : IDisposable
+        internal sealed class CleanupLease : IDisposable
         {
             private readonly FileStream stream;
-            public CleanupLease(Record file)
+            public CleanupLease(string path, long bytes, string sha256)
             {
-                InstallationCore.Safe(file.path);
+                InstallationCore.Safe(path);
                 // DELETE + GENERIC_READ, no sharing and OPEN_REPARSE_POINT:
                 // retain the very object hashed here through handle deletion.
-                var handle = OpenCleanupFile(InstallationCore.IO(file.path), 0x80010000, 0, IntPtr.Zero, 3, 0x00200000, IntPtr.Zero);
+                var handle = OpenCleanupFile(InstallationCore.IO(path), 0x80010000, 0, IntPtr.Zero, 3, 0x00200000, IntPtr.Zero);
                 if (handle.IsInvalid) { var code = Marshal.GetLastWin32Error(); handle.Dispose(); throw new IOException("清理成员被占用或无法取得独占句柄，已保留。", new System.ComponentModel.Win32Exception(code)); }
                 try
                 {
                     if (!GetFileInformationByHandleEx(handle, 9, out var attributes, (uint)Marshal.SizeOf(typeof(CleanupAttributes))) || (attributes.Attributes & (uint)(FileAttributes.ReparsePoint | FileAttributes.Directory | FileAttributes.ReadOnly)) != 0) throw new IOException("清理成员不是可删除的普通文件，已保留。");
                     stream = new FileStream(handle, FileAccess.Read);
-                    using (var sha = SHA256.Create()) if (stream.Length != file.bytes || BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "").ToLowerInvariant() != file.sha256) throw new IOException("清理成员已变化，已保留。");
+                    using (var sha = SHA256.Create()) if (stream.Length != bytes || BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "").ToLowerInvariant() != sha256) throw new IOException("清理成员已变化，已保留。");
                 }
                 catch { if (stream != null) stream.Dispose(); else handle.Dispose(); throw; }
             }
@@ -267,6 +269,14 @@ namespace TableMax.Installation
             finally { pinned.Free(); }
             VerifyDirectory();
             if (Directory.GetFileSystemEntries(DirectoryPath).Length != 0) throw new IOException("新建更新临时目录含有未知内容，未继续。");
+        }
+        // Helper-only analysis uses the same atomic private creation boundary.
+        // It is never discovered by scanning TEMP or mistaken for a handoff.
+        internal static string CreatePrivateWorkDirectory()
+        {
+            var work = new InstallationLaunch { ownerSid = CurrentSid(), parent = TemporaryParent() };
+            work.DirectoryPath = Path.Combine(work.parent, "TableMax-update-" + Guid.NewGuid().ToString("N"));
+            LaunchPath(work.DirectoryPath); work.CreateDirectory(); return work.DirectoryPath;
         }
         private static void VerifyFile(Record file)
         {
@@ -505,7 +515,7 @@ namespace TableMax.Installation
             {
                 foreach (var file in files)
                 {
-                    leases.Add(new CleanupLease(file));
+                    leases.Add(new CleanupLease(file.path, file.bytes, file.sha256));
                 }
                 var auditHash = InstallationCore.HashFile(audit); var handoffHash = InstallationCore.HashFile(recordPath);
                 Action<string> journal = status => InstallationCore.Atomic(cleanupPath, new { schemaVersion = 1, kind = "TableMax.ApplicationUpdate.Cleanup", status, root = current.root, boxRoot = current.boxRoot, installationId = current.installationId, ownerSid = current.ownerSid, currentBuildVersion = current.buildVersion, buildVersion = completedTarget.buildVersion, payloadManifestSha256 = completedTarget.payloadManifestSha256, currentMappingSha256 = completedTarget.currentMappingSha256, receiptSha256 = completedReceiptHash, launchAuditSha256 = auditHash, handoffSha256 = handoffHash, launchMetadataPath = stage.MetadataPath, launchMetadataSha256 = stage.metadataSha256, targetEnvelopeSha256 = stage.target.sha256, temporaryDirectory = stage.DirectoryPath, removed = files.Select(file => file.Public).ToArray(), retainedSourceInstaller = retainedInstaller.Public });
@@ -526,8 +536,8 @@ namespace TableMax.Installation
     internal sealed class StrictJson
     {
         private readonly string source; private readonly bool canonicalIntegers; private int cursor;
-        private StrictJson(string source, bool canonicalIntegers) { if (source.Length > 1024 * 1024) throw new IOException("JSON 描述过长。"); this.source = source; this.canonicalIntegers = canonicalIntegers; }
-        public static object Parse(string source, bool canonicalIntegers = false) { var parser = new StrictJson(source, canonicalIntegers); var value = parser.Value(0); parser.Space(); if (parser.cursor != source.Length) throw new IOException("JSON 尾部无效。"); return value; }
+        private StrictJson(string source, bool canonicalIntegers, int maximumLength) { if (source.Length > maximumLength) throw new IOException("JSON 描述过长。"); this.source = source; this.canonicalIntegers = canonicalIntegers; }
+        public static object Parse(string source, bool canonicalIntegers = false, int maximumLength = 1024 * 1024) { var parser = new StrictJson(source, canonicalIntegers, maximumLength); var value = parser.Value(0); parser.Space(); if (parser.cursor != source.Length) throw new IOException("JSON 尾部无效。"); return value; }
         private void Space() { while (cursor < source.Length && " \r\n\t".IndexOf(source[cursor]) >= 0) cursor++; }
         private char Take() { if (cursor >= source.Length) throw new IOException("JSON 意外结束。"); return source[cursor++]; }
         private bool At(char c) { Space(); return cursor < source.Length && source[cursor] == c; }
@@ -582,8 +592,8 @@ namespace TableMax.Installation
             var version = InstallationCore.Text(map, "buildVersion"); var release = InstallationCore.Text(map, "releaseVersion"); if (InstallationCore.Version4(version).ToString(3) != release) throw new IOException("公开版本与构建不匹配。");
             var list = map["files"] as object[]; if (list == null || list.Length == 0 || list.Length > 20000) throw new IOException("安装文件集合无效。");
             var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase); var files = new List<ManagedFile>(); long total = 0;
-            foreach (var entry in list) { var file = InstallationCore.Object(entry); InstallationCore.Keys(file, "path", "bytes", "sha256"); var relative = InstallationCore.Text(file, "path"); InstallationCore.Member(Path.GetTempPath(), relative); if (!(relative == "TableMax.exe" || relative == "UpdateHelper.exe" || relative.StartsWith("TableMax/app/", StringComparison.Ordinal)) || !names.Add(relative)) throw new IOException("安装文件归属或重复路径无效。"); var length = InstallationCore.Number(file, "bytes"); total += length; files.Add(new ManagedFile { path = relative, bytes = length, sha256 = InstallationCore.Digest(file, "sha256") }); }
-            if (new[] { "TableMax.exe", "UpdateHelper.exe", "TableMax/app/TableMax.exe", "TableMax/app/node.exe", "TableMax/app/server.cjs", "TableMax/app/.tablemax-release.json", "TableMax/app/preinstalled-games/bootstrap.json" }.Any(name => !names.Contains(name)) || total >= 120000000) throw new IOException("安装文件不完整或超过体积限制。");
+            foreach (var entry in list) { var file = InstallationCore.Object(entry); InstallationCore.Keys(file, "path", "bytes", "sha256"); var relative = InstallationCore.Text(file, "path"); InstallationCore.Member(Path.GetTempPath(), relative); if (!(relative == "TableMax.exe" || relative == "UpdateHelper.exe" || relative == "Updater.exe" || relative.StartsWith("data/app/", StringComparison.Ordinal)) || !names.Add(relative)) throw new IOException("安装文件归属或重复路径无效。"); var length = InstallationCore.Number(file, "bytes"); total += length; files.Add(new ManagedFile { path = relative, bytes = length, sha256 = InstallationCore.Digest(file, "sha256") }); }
+            if (new[] { "TableMax.exe", "UpdateHelper.exe", "Updater.exe", "data/app/TableMax.exe", "data/app/node.exe", "data/app/server.cjs", "data/app/.tablemax-release.json", "data/app/preinstalled-games/bootstrap.json" }.Any(name => !names.Contains(name)) || total >= 120000000) throw new IOException("安装文件不完整或超过体积限制。");
             var result = new InstallationManifest { schemaVersion = 1, productId = InstallationCore.ProductId, arch = "x64", installProtocol = 1, releaseVersion = release, buildVersion = version, payloadManifestSha256 = InstallationCore.Digest(map, "payloadManifestSha256"), currentMappingSha256 = InstallationCore.Digest(map, "currentMappingSha256"), files = files.ToArray() };
             if (installed) { result.installationId = InstallationCore.Text(map, "installationId"); if (!Guid.TryParse(result.installationId, out _)) throw new IOException("安装实例无效。"); result.root = InstallationCore.Root(InstallationCore.Text(map, "root")); result.boxRoot = InstallationCore.Full(InstallationCore.Text(map, "boxRoot")); if (!InstallationCore.Equal(result.boxRoot, InstallationCore.Box(result.root))) throw new IOException("安装配置根不匹配。"); result.ownerSid = InstallationCore.Text(map, "ownerSid"); if (result.ownerSid != WindowsIdentity.GetCurrent().User.Value) throw new IOException("此安装属于另一 Windows 用户，请在原用户账户运行。"); }
             return result;
@@ -592,7 +602,7 @@ namespace TableMax.Installation
         public void Verify(string directory)
         {
             foreach (var file in files) { var path = InstallationCore.Member(directory, file.path); if (!File.Exists(path) || new FileInfo(InstallationCore.IO(path)).Length != file.bytes || InstallationCore.HashFile(path) != file.sha256) throw new IOException("安装文件校验失败：" + file.path); }
-            if (InstallationCore.HashFile(InstallationCore.Member(directory, "TableMax/app/.tablemax-release.json")) != payloadManifestSha256 || InstallationCore.HashFile(InstallationCore.Member(directory, "TableMax/app/preinstalled-games/bootstrap.json")) != currentMappingSha256) throw new IOException("完整载荷或当前游戏映射身份不匹配。");
+            if (InstallationCore.HashFile(InstallationCore.Member(directory, "data/app/.tablemax-release.json")) != payloadManifestSha256 || InstallationCore.HashFile(InstallationCore.Member(directory, "data/app/preinstalled-games/bootstrap.json")) != currentMappingSha256) throw new IOException("完整载荷或当前游戏映射身份不匹配。");
         }
     }
 }

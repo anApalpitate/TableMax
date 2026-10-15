@@ -19,6 +19,7 @@ import {
 } from '../shared/workspace-root.mjs';
 import { versionIdentity } from '../shared/application-version.mjs';
 import { MAXIMUM_PACKAGE_BYTES } from './package-limits.mjs';
+import { build as bundle } from 'esbuild';
 import {
   hash,
   prepareInstallationToolchain,
@@ -43,6 +44,7 @@ const recipeSources = [
   ...new Set([
     ...helperSources,
     ...launcherSources,
+    'apps/desktop/installation/Updater.cs',
     'apps/desktop/native/ApplicationUpdateKeys.json',
     'apps/desktop/native/app.manifest',
     'assets/platform/app-icon.ico',
@@ -51,18 +53,38 @@ const recipeSources = [
     'tools/release/installation-toolchain.mjs',
     'tools/release/installation-toolchain.json',
     'apps/desktop/installation/TableMax.iss',
+    'apps/desktop/installation/languages/ChineseSimplified.isl',
+    'pnpm-lock.yaml',
+    'package.json',
   ]),
 ];
+
+async function cleanupPlanResource() {
+  return bundle({
+    entryPoints: ['apps/desktop/installation-runtime/cleanup-plan.mjs'],
+    bundle: true,
+    platform: 'node',
+    target: 'node22',
+    format: 'esm',
+    write: false,
+    metafile: true,
+    logLevel: 'silent',
+  });
+}
 
 export async function installationRecipeInputs({
   applicationTrustRootsPath,
 } = {}) {
+  const cleanup = await cleanupPlanResource();
   return Promise.all(
     [
-      ...recipeSources,
-      ...(applicationTrustRootsPath
-        ? [resolve(applicationTrustRootsPath)]
-        : []),
+      ...new Set([
+        ...recipeSources,
+        ...Object.keys(cleanup.metafile.inputs),
+        ...(applicationTrustRootsPath
+          ? [resolve(applicationTrustRootsPath)]
+          : []),
+      ]),
     ].map(async (path) => ({
       path,
       bytes: (await stat(path)).size,
@@ -234,6 +256,11 @@ export async function compileInstallationScript({
     'apps/desktop/installation/TableMax.iss',
     join(recipeDirectory, 'TableMax.iss'),
   );
+  await mkdir(join(recipeDirectory, 'languages'), { recursive: true });
+  await copyFile(
+    'apps/desktop/installation/languages/ChineseSimplified.isl',
+    join(recipeDirectory, 'languages/ChineseSimplified.isl'),
+  );
   const helperBytes = await readFile(
     join(candidateDirectory, 'UpdateHelper.exe'),
   );
@@ -360,7 +387,7 @@ export async function createInstallationExecutable({
   await mkdir(resolve('tmp'), { recursive: true });
   const work = await mkdtemp(resolve('tmp/installation-package-'));
   const candidate = join(work, 'candidate');
-  const app = join(candidate, 'TableMax/app');
+  const app = join(candidate, 'data/app');
   await mkdir(app, { recursive: true });
   // Validate every ZIP destination against the frozen manifest before extraction.
   await run(
@@ -394,6 +421,16 @@ export async function createInstallationExecutable({
     buildVersion,
     fixture,
   });
+  const updater = await compileInstallationProgram({
+    outputPath: join(candidate, 'Updater.exe'),
+    sources: [...launcherSources, 'apps/desktop/installation/Updater.cs'],
+    main: 'TableMax.Installation.Updater',
+    buildVersion,
+    fixture,
+  });
+  const cleanupResource = await cleanupPlanResource();
+  const cleanupResourcePath = join(work, 'cleanup-plan.mjs');
+  await writeFile(cleanupResourcePath, cleanupResource.outputFiles[0].contents);
   const helper = await compileInstallationProgram({
     outputPath: join(candidate, 'UpdateHelper.exe'),
     sources: helperSources,
@@ -402,6 +439,10 @@ export async function createInstallationExecutable({
     fixture,
     handoffTest,
     resources: [
+      {
+        path: cleanupResourcePath,
+        name: 'TableMax.InstallationCleanupPlan.mjs',
+      },
       {
         path:
           applicationTrustRootsPath ??
@@ -483,6 +524,7 @@ export async function createInstallationExecutable({
       inputs,
       compiler: inno,
       launcher,
+      updater,
       helper,
       fixtureOptions: fixture
         ? {

@@ -32,6 +32,8 @@ namespace TableMax.Installation
         [DllImport("kernel32.dll", EntryPoint = "QueryFullProcessImageNameW", CharSet = CharSet.Unicode, ExactSpelling = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool QueryFullProcessImageName(IntPtr process, int flags, StringBuilder path, ref int size);
+        [DllImport("user32.dll", EntryPoint = "MessageBoxW", CharSet = CharSet.Unicode, ExactSpelling = true)]
+        private static extern int Information(IntPtr owner, string text, string caption, uint kind);
         private static string Get(string key, bool required = true) => options.TryGetValue(key, out var value) && !String.IsNullOrEmpty(value) ? value : required ? throw new HelperError(10, "安装参数缺少 " + key + "。") : null;
         private static string Quote(string value) { if (value.Contains("\"") || value.EndsWith("\\", StringComparison.Ordinal)) throw new HelperError(10, "安装路径不能安全传递。"); return "\"" + value + "\""; }
         private static string TransactionRoot(string root) => Path.Combine(InstallationCore.Box(root), ".installation-transactions");
@@ -40,20 +42,31 @@ namespace TableMax.Installation
         private sealed class MigrationLease : IDisposable
         {
             private sealed class Held { public string Path; public FileStream Stream; public long Bytes; public string Sha256; }
+            internal sealed class SourceFile { public string path; public long bytes; public string sha256; }
             private readonly Dictionary<string, Held> held = new Dictionary<string, Held>(StringComparer.OrdinalIgnoreCase);
             private readonly List<string> paths = new List<string>();
+            private readonly List<string> databasePaths = new List<string>();
+            private readonly List<SourceFile> sourceFiles = new List<SourceFile>();
+            private readonly string installationRoot;
+            private string[] recoveryShape;
             private Mutex mutex; private bool acquired, disposed;
             public string SourceRoot { get; }
             public string SourceDataDirectory { get; }
             public string DestinationDataDirectory { get; }
+            public IReadOnlyList<SourceFile> SourceFiles => sourceFiles;
+            public bool RecoveryUncertain { get; private set; }
             public MigrationLease(string root, string migration)
             {
+                installationRoot = InstallationCore.Full(root);
                 SourceRoot = migration == null ? null : InstallationCore.Full(migration);
                 if (SourceRoot != null)
                 {
                     InstallationCore.Safe(SourceRoot); var box = InstallationCore.Box(root);
-                    if (InstallationCore.Equal(SourceRoot, box) || SourceRoot.StartsWith(box + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) || box.StartsWith(SourceRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new HelperError(10, "便携迁移根与安装目标重叠。");
+                    var sameRoot = InstallationCore.Equal(SourceRoot, root);
+                    if (!sameRoot && (InstallationCore.Equal(SourceRoot, box) || SourceRoot.StartsWith(box + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) || box.StartsWith(SourceRoot + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))) throw new HelperError(10, "便携迁移根与安装目标重叠。");
+                    if (Directory.Exists(box) && Directory.GetFileSystemEntries(box).Length != 0) throw new HelperError(10, "迁移目标 data 已有内容，未覆盖。");
                     SourceDataDirectory = ReadDataDirectory(SourceRoot, true);
+                    if (InstallationCore.Equal(SourceDataDirectory, box) || SourceDataDirectory.StartsWith(box + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new HelperError(10, "原数据指针位于迁移目标内，已保留并停止。");
                     DestinationDataDirectory = InstallationCore.Equal(SourceDataDirectory, SourceRoot) ? box : SourceDataDirectory;
                 }
                 else { SourceDataDirectory = ReadDataDirectory(InstallationCore.Box(root), false); DestinationDataDirectory = SourceDataDirectory; }
@@ -62,8 +75,19 @@ namespace TableMax.Installation
                 try
                 {
                     if (!(acquired = InstallationCore.Acquire(mutex, 0))) throw new HelperError(20, "原数据目录仍被 TableMax 使用；未写入迁移目标。");
-                    paths.AddRange(DatabaseMembers.Select(name => Path.Combine(SourceDataDirectory, name)));
-                    if (SourceRoot != null) paths.Add(Path.Combine(SourceRoot, "TableMax.config.json"));
+                    databasePaths.AddRange(DatabaseMembers.Select(name => Path.Combine(SourceDataDirectory, name)));
+                    recoveryShape = RecoveryShape();
+                    if (Directory.Exists(SourceDataDirectory))
+                        foreach (var backup in Directory.GetDirectories(SourceDataDirectory).Where(path => System.Text.RegularExpressions.Regex.IsMatch(Path.GetFileName(path), @"^room-v1-backup-[a-f0-9-]{36}$")))
+                        {
+                            InstallationCore.Safe(backup);
+                            databasePaths.AddRange(new[] { "room.sqlite", "room.sqlite-wal", "room.sqlite-shm", "room.sqlite-journal" }.Select(name => Path.Combine(backup, name)));
+                            if (!File.Exists(Path.Combine(backup, "room.sqlite"))) RecoveryUncertain = true;
+                        }
+                    RecoveryUncertain = RecoveryUncertain || File.Exists(Path.Combine(SourceDataDirectory, "room.sqlite.migration.json")) || File.Exists(Path.Combine(SourceDataDirectory, "room.sqlite.migration.lock")) || recoveryShape.Any(name => !DatabaseMembers.Contains(name) && !System.Text.RegularExpressions.Regex.IsMatch(name, @"^room-v1-backup-[a-f0-9-]{36}(/(room\.sqlite(-wal|-shm|-journal)?|migration-completed\.json|migration-rolled-back\.json))?$"));
+                    paths.AddRange(databasePaths);
+                    var configurationRoot = SourceRoot ?? InstallationCore.Box(root);
+                    if (SourceRoot != null || File.Exists(Path.Combine(configurationRoot, "TableMax.config.json"))) paths.Add(Path.Combine(configurationRoot, "TableMax.config.json"));
                     foreach (var path in paths)
                     {
                         InstallationCore.Safe(path); if (Directory.Exists(path)) throw new HelperError(20, "数据库成员被文件夹占用；原内容已保留。");
@@ -71,11 +95,18 @@ namespace TableMax.Installation
                         var stream = new FileStream(InstallationCore.IO(path), FileMode.Open, FileAccess.Read, FileShare.None);
                         var record = new Held { Path = path, Stream = stream }; held.Add(path, record); record.Bytes = stream.Length; record.Sha256 = Hash(stream);
                     }
+                    if (held.TryGetValue(Path.Combine(configurationRoot, "TableMax.config.json"), out var config))
+                    {
+                        config.Stream.Position = 0;
+                        using (var reader = new StreamReader(config.Stream, InstallationCore.Utf8, false, 4096, true))
+                            if (!InstallationCore.Equal(ParseDataDirectory(configurationRoot, reader.ReadToEnd()), SourceDataDirectory)) throw new HelperError(20, "原数据目录配置在租约建立前变化；未迁移。");
+                    }
                     if (SourceRoot != null)
                     {
-                        var config = held[Path.Combine(SourceRoot, "TableMax.config.json")]; config.Stream.Position = 0;
-                        using (var reader = new StreamReader(config.Stream, InstallationCore.Utf8, false, 4096, true))
-                            if (!InstallationCore.Equal(ParseDataDirectory(SourceRoot, reader.ReadToEnd()), SourceDataDirectory)) throw new HelperError(20, "原数据目录配置在租约建立前变化；未迁移。");
+                        // Freeze before creating data: the one parent/child
+                        // exception must never recursively discover its copies.
+                        foreach (var path in MigrationFiles(SourceRoot, installationRoot))
+                            sourceFiles.Add(new SourceFile { path = path.Substring(SourceRoot.Length + 1).Replace('\\', '/'), bytes = new FileInfo(InstallationCore.IO(path)).Length, sha256 = held.TryGetValue(path, out var item) ? item.Sha256 : InstallationCore.HashFile(path) });
                     }
                     Verify();
                 }
@@ -86,20 +117,59 @@ namespace TableMax.Installation
             public void Verify()
             {
                 if (disposed) throw new HelperError(20, "数据租约已释放，未继续复制。");
+                if (!recoveryShape.SequenceEqual(RecoveryShape(), StringComparer.OrdinalIgnoreCase)) throw new HelperError(20, "可恢复数据库集合已变化，未继续安装或清理。");
                 foreach (var path in paths)
                 {
                     InstallationCore.Safe(path); var exists = File.Exists(path);
                     if (Directory.Exists(path) || exists != held.ContainsKey(path)) throw new HelperError(20, "原数据文件集合已变化，未继续安装；原档已保留。");
                     if (exists) { var record = held[path]; if (record.Stream.Length != record.Bytes || Hash(record.Stream) != record.Sha256) throw new HelperError(20, "原数据文件在租约期间变化，未继续安装。"); }
                 }
+                if (SourceRoot != null && !sourceFiles.Select(file => file.path).SequenceEqual(MigrationFiles(SourceRoot, installationRoot).Select(path => path.Substring(SourceRoot.Length + 1).Replace('\\', '/')), StringComparer.OrdinalIgnoreCase)) throw new HelperError(20, "原迁移文件清单已变化；原件已保留。");
             }
-            public bool CopyHeld(string source, string target)
+            private string[] RecoveryShape()
+            {
+                var names = new List<string>();
+                if (Directory.Exists(SourceDataDirectory)) foreach (var path in Directory.GetFileSystemEntries(SourceDataDirectory))
+                {
+                    var name = Path.GetFileName(path); if (!name.StartsWith("room", StringComparison.OrdinalIgnoreCase) && !name.StartsWith("foundation", StringComparison.OrdinalIgnoreCase)) continue;
+                    InstallationCore.Safe(path); names.Add(name);
+                    if (Directory.Exists(path)) foreach (var child in Directory.GetFileSystemEntries(path)) { InstallationCore.Safe(child); names.Add(name + "/" + Path.GetFileName(child)); }
+                }
+                return names.OrderBy(name => name, StringComparer.OrdinalIgnoreCase).ToArray();
+            }
+            public object[] CopyDatabaseInputs(string destination, Action<string, long, string> ownCopy)
+            {
+                Verify(); var result = new List<object>();
+                foreach (var source in databasePaths.Where(path => Path.GetFileName(path) == "room.sqlite" && held.ContainsKey(path)))
+                {
+                    var relative = source.Substring(SourceDataDirectory.Length + 1).Replace('\\', '/');
+                    var target = InstallationCore.Member(destination, relative);
+                    foreach (var suffix in new[] { "", "-wal", "-journal" }) if (held.ContainsKey(source + suffix)) CopyHeld(source + suffix, target + suffix, ownCopy);
+                    var record = held[source]; result.Add(new { path = target, sourcePath = source, bytes = record.Bytes, sha256 = record.Sha256 });
+                }
+                return result.ToArray();
+            }
+            public string BindDestinationConfiguration(string box)
+            {
+                var path = Path.Combine(box, "TableMax.config.json");
+                if (!File.Exists(path)) InstallationCore.Atomic(path, new { dataDirectory = "." });
+                if (!held.TryGetValue(path, out var record))
+                {
+                    InstallationCore.Safe(path); var stream = new FileStream(InstallationCore.IO(path), FileMode.Open, FileAccess.Read, FileShare.None);
+                    record = new Held { Path = path, Stream = stream }; held.Add(path, record); paths.Add(path); record.Bytes = stream.Length; record.Sha256 = Hash(stream);
+                }
+                record.Stream.Position = 0;
+                using (var reader = new StreamReader(record.Stream, InstallationCore.Utf8, false, 4096, true))
+                    if (!InstallationCore.Equal(ParseDataDirectory(box, reader.ReadToEnd()), DestinationDataDirectory)) throw new HelperError(20, "目标配置指针与迁移租约不符，未替换程序。");
+                return DestinationDataDirectory;
+            }
+            public bool CopyHeld(string source, string target, Action<string, long, string> ownCopy = null)
             {
                 if (disposed) throw new HelperError(20, "数据租约已释放，未继续复制。");
                 if (!held.TryGetValue(InstallationCore.Full(source), out var record)) return false;
                 InstallationCore.Safe(target); Directory.CreateDirectory(Path.GetDirectoryName(target));
                 record.Stream.Position = 0;
-                using (var output = new FileStream(InstallationCore.IO(target), FileMode.CreateNew, FileAccess.Write, FileShare.None)) { record.Stream.CopyTo(output); output.Flush(true); }
+                using (var output = new FileStream(InstallationCore.IO(target), FileMode.CreateNew, FileAccess.Write, FileShare.None)) { ownCopy?.Invoke(target, record.Bytes, record.Sha256); record.Stream.CopyTo(output); output.Flush(true); }
                 if (new FileInfo(InstallationCore.IO(target)).Length != record.Bytes || InstallationCore.HashFile(target) != record.Sha256 || Hash(record.Stream) != record.Sha256) throw new HelperError(30, "持有的数据流复制校验失败；原件已保留。");
                 return true;
             }
@@ -119,6 +189,11 @@ namespace TableMax.Installation
         private static int Main(string[] arguments)
         {
             InstallationCore.InitializeRuntime();
+            if (arguments.Length == 0)
+            {
+                Information(IntPtr.Zero, "这是 TableMax 的内部安装与卸载协调程序，不是日常更新入口。\n\n请打开同一安装目录中的 Updater.exe（程序更新），或从主机盒子的“程序更新”面板检查更新。存档和配置不会因此改变。", "TableMax 程序更新", 0x40);
+                return 0;
+            }
             Console.SetOut(new StreamWriter(Console.OpenStandardOutput(), InstallationCore.Utf8) { AutoFlush = true });
             Console.SetError(new StreamWriter(Console.OpenStandardError(), InstallationCore.Utf8) { AutoFlush = true });
             try
@@ -360,7 +435,7 @@ namespace TableMax.Installation
             TableMax.Portable.LegacyGames.Preserve(Path.Combine(InstallationCore.Box(root), "app"), Path.Combine(InstallationCore.Box(root), "games"));
             if (migration != null) Migrate(root, migration, lease);
             Directory.CreateDirectory(InstallationCore.Box(root));
-            var activeData = DataDirectory(root); if (!InstallationCore.Equal(activeData, lease.DestinationDataDirectory)) throw new HelperError(20, "数据目录配置在安装准备期间变化；未替换程序。"); InstallationCore.ValidateStartupPaths(root, activeData); lease.Verify();
+            var activeData = lease.BindDestinationConfiguration(InstallationCore.Box(root)); InstallationCore.ValidateStartupPaths(root, activeData); lease.Verify();
             var transaction = Path.Combine(TransactionRoot(root), Guid.NewGuid().ToString("D")); InstallationCore.Safe(transaction); Directory.CreateDirectory(transaction);
             next.installationId = previous?.installationId ?? Guid.NewGuid().ToString("D"); next.root = root; next.boxRoot = InstallationCore.Box(root); next.ownerSid = WindowsIdentity.GetCurrent().User.Value;
             newReceipt.installationId = next.installationId;
@@ -389,7 +464,7 @@ namespace TableMax.Installation
                     }
                     finally { run.ReleaseMutex(); }
                 }
-                var dataDirectory = DataDirectory(root); var before = lease.Fingerprint(dataDirectory);
+                var dataDirectory = activeData; var before = lease.Fingerprint(dataDirectory);
                 State(transaction, "launching", root, dataDirectory, before);
                 // A service must open the same files itself. The target's
                 // foundation exclusive lock decides this bounded handoff; a
@@ -642,6 +717,8 @@ namespace TableMax.Installation
                 if (!InstallationCore.Acquire(run, 0)) throw new HelperError(20, "卸载实例仍在运行。");
                 try
                 {
+                    using (var dataLease = new MigrationLease(root, null))
+                    {
                     var quarantine = Path.Combine(identity.boxRoot, "updates", "uninstall-quarantine-" + Guid.NewGuid().ToString("N"));
                     var actual = new List<ManagedFile>();
                     foreach (var file in identity.files)
@@ -655,27 +732,276 @@ namespace TableMax.Installation
                     }
                     Stage("uninstall.quarantine-inventory");
                     if (Directory.Exists(quarantine)) InstallationCore.Atomic(Path.Combine(quarantine, "inventory.json"), new { schemaVersion = 1, installationId = identity.installationId, root, files = actual.Where(file => identity.files.Any(original => original.path == file.path && (original.bytes != file.bytes || original.sha256 != file.sha256))).ToArray() });
+                    Stage("uninstall.resource-plan"); CleanupResources(identity, dataLease);
                     foreach (var file in actual.OrderBy(file => file.path == "UpdateHelper.exe" ? 1 : 0)) { Stage("uninstall.delete", file.path); DeleteVerified(InstallationCore.Member(root, file.path), file); }
+                    RemoveEmptyDirectories(Path.Combine(identity.boxRoot, "app"), actual.Where(file => file.path.StartsWith("data/app/", StringComparison.Ordinal)).Select(file => InstallationCore.Member(root, file.path)));
                     Stage("uninstall.finalize-marker"); InstallationCore.Atomic(Path.Combine(identity.boxRoot, ".uninstalled.json"), identity);
                     Stage("uninstall.finalize-identity"); File.Delete(InstallationCore.IdentityPath(root));
+                    }
                     Stage("uninstall.release-run");
                 }
                 finally { run.ReleaseMutex(); }
             }
             Stage("uninstall.completed");
         }
+        private const int ResourceAuditLimit = 16 * 1024 * 1024;
+        private sealed class AnalysisSource : IDisposable
+        {
+            private readonly FileStream stream;
+            public readonly string SourcePath, CopyPath, Sha256;
+            public readonly long Bytes;
+            public object Record => new { path = CopyPath, sourcePath = SourcePath, bytes = Bytes, sha256 = Sha256 };
+            public AnalysisSource(string source, string copy, ManagedFile expected, Action<string, long, string> ownCopy)
+            {
+                InstallationCore.Safe(source); InstallationCore.Safe(copy);
+                SourcePath = source; CopyPath = copy;
+                stream = new FileStream(InstallationCore.IO(source), FileMode.Open, FileAccess.Read, FileShare.None);
+                try
+                {
+                    Bytes = stream.Length; if (Bytes > 8 * 1024 * 1024) throw new IOException("资源索引过大，已保留资源。");
+                    Sha256 = StreamHash(stream);
+                    if (expected != null && (Bytes != expected.bytes || Sha256 != expected.sha256)) throw new IOException("当前资源目录身份不符，已保留资源。");
+                    stream.Position = 0;
+                    using (var output = new FileStream(InstallationCore.IO(copy), FileMode.CreateNew, FileAccess.Write, FileShare.None)) { ownCopy(copy, Bytes, Sha256); stream.CopyTo(output); output.Flush(true); }
+                    if (InstallationCore.HashFile(copy) != Sha256) throw new IOException("分析副本不一致，已保留资源。");
+                }
+                catch { stream.Dispose(); throw; }
+            }
+            public void Dispose() => stream.Dispose();
+        }
+        private static string ReadBoundedText(StreamReader reader, int limit)
+        {
+            var value = new StringBuilder(); var block = new char[4096]; int count;
+            while ((count = reader.Read(block, 0, block.Length)) != 0) { if (value.Length + count > limit) throw new IOException("资源分析输出过长，已保留资源。"); value.Append(block, 0, count); }
+            return value.ToString();
+        }
+        private static Dictionary<string, object> RunResourcePlanner(InstallationManifest identity, object input, string work)
+        {
+            var node = identity.files.Single(file => file.path == "data/app/node.exe"); var path = InstallationCore.Member(identity.root, node.path);
+            if (!File.Exists(path) || new FileInfo(InstallationCore.IO(path)).Length != node.bytes || InstallationCore.HashFile(path) != node.sha256) throw new IOException("受管分析运行时不可用，已保留游戏资源。");
+            string script;
+            using (var resource = typeof(UpdateHelper).Assembly.GetManifestResourceStream("TableMax.InstallationCleanupPlan.mjs"))
+            {
+                if (resource == null) throw new IOException("缺少只读资源分析器，已保留游戏资源。");
+                using (var reader = new StreamReader(resource, InstallationCore.Utf8)) script = ReadBoundedText(reader, 1024 * 1024);
+            }
+            var start = new ProcessStartInfo(path, "--input-type=module") { UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = work, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true, StandardOutputEncoding = InstallationCore.Utf8, StandardErrorEncoding = InstallationCore.Utf8 };
+            start.EnvironmentVariables.Remove("NODE_OPTIONS"); start.EnvironmentVariables.Remove("NODE_PATH"); start.EnvironmentVariables["TEMP"] = work; start.EnvironmentVariables["TMP"] = work;
+            using (var process = Process.Start(start))
+            {
+                if (process == null) throw new IOException("资源分析器未启动，已保留游戏资源。");
+                _ = process.Handle;
+                var output = Task.Run(() => ReadBoundedText(process.StandardOutput, ResourceAuditLimit));
+                var error = Task.Run(() => ReadBoundedText(process.StandardError, 32768));
+                try
+                {
+                    if (!InstallationCore.Equal(ProcessImage(process), path)) throw new IOException("资源分析进程身份不符，已保留游戏资源。");
+                    var code = InstallationCore.Utf8.GetBytes("globalThis.TABLEMAX_UNINSTALL_ANALYSIS_INPUT=" + InstallationCore.Encode(input) + ";\n" + script);
+                    process.StandardInput.BaseStream.Write(code, 0, code.Length); process.StandardInput.BaseStream.Flush(); process.StandardInput.Close();
+                    if (!process.WaitForExit(120000) || !Task.WaitAll(new Task[] { output, error }, 5000)) throw new IOException("只读资源分析超时，已保留游戏资源。");
+                    if (process.ExitCode != 0) throw new IOException("只读资源分析未完成，已保留游戏资源。");
+                    return InstallationCore.Object(StrictJson.Parse(output.Result, false, ResourceAuditLimit));
+                }
+                finally
+                {
+                    if (!process.HasExited) { process.Kill(); if (!process.WaitForExit(5000)) throw new IOException("自有资源分析进程未退出，已保留临时副本与资源。"); }
+                }
+            }
+        }
+        private static Dictionary<string, object> ResourceFile(string relative, long bytes, string sha256, string reason) => new Dictionary<string, object> { ["path"] = relative, ["bytes"] = bytes, ["sha256"] = sha256, ["reason"] = reason };
+        private static void RetainedInventory(string box, List<object> retained, List<object> entries, string reason)
+        {
+            var games = Path.Combine(box, "games"); if (!Directory.Exists(games)) return;
+            Action<string> visit = null; visit = directory =>
+            {
+                InstallationCore.Safe(directory);
+                foreach (var path in Directory.GetFileSystemEntries(directory))
+                {
+                    var relative = path.Substring(box.Length + 1).Replace('\\', '/');
+                    try
+                    {
+                        InstallationCore.Safe(path);
+                        if (Directory.Exists(path)) visit(path);
+                        else retained.Add(ResourceFile(relative, new FileInfo(InstallationCore.IO(path)).Length, InstallationCore.HashFile(path), reason));
+                    }
+                    catch (IOException) { entries.Add(new { path = relative, kind = "unreadable-or-link", bytes = (long?)null, sha256 = (string)null, reason = "此成员无法可靠读取，原位保留且不跟随链接。" }); }
+                    catch (UnauthorizedAccessException) { entries.Add(new { path = relative, kind = "unreadable", bytes = (long?)null, sha256 = (string)null, reason = "此成员无读取权限，原位保留。" }); }
+                }
+            };
+            try { visit(games); }
+            catch (IOException) { entries.Add(new { path = "games/", kind = "unreadable-or-link", bytes = (long?)null, sha256 = (string)null, reason }); }
+            catch (UnauthorizedAccessException) { entries.Add(new { path = "games/", kind = "unreadable", bytes = (long?)null, sha256 = (string)null, reason }); }
+        }
+        private static void WriteResourceReceipt(InstallationManifest identity, string audit, Dictionary<string, object> value)
+        {
+            var stable = Path.Combine(identity.boxRoot, ".uninstall-resources.json");
+            if (File.Exists(stable))
+            {
+                var raw = File.ReadAllText(stable, InstallationCore.Utf8); var prior = InstallationCore.Object(StrictJson.Parse(raw, false, ResourceAuditLimit));
+                if (InstallationCore.Number(prior, "schemaVersion") != 1 || InstallationCore.Text(prior, "productId") != identity.productId || InstallationCore.Text(prior, "ownerSid") != identity.ownerSid || !InstallationCore.Equal(InstallationCore.Text(prior, "root"), identity.root) || !InstallationCore.Equal(InstallationCore.Text(prior, "boxRoot"), identity.boxRoot)) throw new IOException("卸载资源审计位置包含未知内容，未覆盖。");
+                if (!InstallationCore.Equal(InstallationCore.Text(prior, "auditPath"), audit))
+                {
+                    var history = Path.Combine(Path.GetDirectoryName(audit), "previous-resource-receipt.json");
+                    if (File.Exists(history)) throw new IOException("卸载资源审计历史位置已有内容，未覆盖。");
+                    var bytes = InstallationCore.Utf8.GetBytes(raw); var file = new ManagedFile { bytes = bytes.Length, sha256 = InstallationCore.Hash(bytes) };
+                    CopyVerified(stable, history, file);
+                }
+            }
+            InstallationCore.Atomic(audit, value, ResourceAuditLimit); InstallationCore.Atomic(stable, value, ResourceAuditLimit);
+        }
+        private static void CleanupResources(InstallationManifest identity, MigrationLease lease)
+        {
+            const string conservative = "无法可靠确认全部存档与发行依赖，游戏资源已保留。";
+            var auditDirectory = Path.Combine(identity.boxRoot, "updates", "uninstall-cleanup-" + Guid.NewGuid().ToString("N")); var audit = Path.Combine(auditDirectory, "receipt.json");
+            Directory.CreateDirectory(auditDirectory);
+            var deleted = new List<object>(); var retained = new List<object>(); var deferred = new List<object>(); var entries = new List<object>();
+            var receipt = new Dictionary<string, object> { ["schemaVersion"] = 1, ["productId"] = identity.productId, ["installationId"] = identity.installationId, ["ownerSid"] = identity.ownerSid, ["root"] = identity.root, ["boxRoot"] = identity.boxRoot, ["dataDirectory"] = lease.SourceDataDirectory, ["buildVersion"] = identity.buildVersion, ["databaseFingerprint"] = lease.Fingerprint(lease.SourceDataDirectory), ["auditPath"] = audit, ["result"] = "retained", ["reason"] = conservative, ["deleted"] = deleted, ["retained"] = retained, ["deferred"] = deferred, ["entries"] = entries, ["referencedReleaseIds"] = new string[0], ["retainedBlobIds"] = new string[0] };
+            string work = null; var sources = new List<AnalysisSource>(); var privateCopies = new List<Dictionary<string, object>>();
+            var privateDeleted = new List<object>(); var privateRetained = new List<object>();
+            var analysisWork = new Dictionary<string, object> { ["path"] = null, ["copies"] = privateCopies, ["deleted"] = privateDeleted, ["retained"] = privateRetained, ["result"] = "not-created" };
+            receipt["analysisWork"] = analysisWork;
+            // Register ownership immediately after CreateNew. A partial copy
+            // retains its expected identity; it is never reported as verified.
+            Action<string, long, string> ownCopy = (path, bytes, sha256) => privateCopies.Add(new Dictionary<string, object> { ["path"] = path, ["expectedBytes"] = bytes, ["expectedSha256"] = sha256 });
+            try
+            {
+                work = InstallationLaunch.CreatePrivateWorkDirectory();
+                analysisWork["path"] = work; analysisWork["result"] = "prepared";
+                var catalogFile = identity.files.Single(file => file.path == "data/app/preinstalled-games/catalog.json");
+                var catalog = new AnalysisSource(InstallationCore.Member(identity.root, catalogFile.path), Path.Combine(work, "catalog.json"), catalogFile, ownCopy); sources.Add(catalog);
+                var mappingFile = identity.files.Single(file => file.path == "data/app/preinstalled-games/bootstrap.json");
+                if (mappingFile.sha256 != identity.currentMappingSha256) throw new IOException("当前映射与安装身份不符，已保留资源。");
+                var mapping = new AnalysisSource(InstallationCore.Member(identity.root, mappingFile.path), Path.Combine(work, "bootstrap.json"), mappingFile, ownCopy); sources.Add(mapping);
+                var indexPath = Path.Combine(identity.boxRoot, "games", "index.json"); AnalysisSource index = null;
+                if (File.Exists(indexPath)) { index = new AnalysisSource(indexPath, Path.Combine(work, "index.json"), null, ownCopy); sources.Add(index); }
+                var databases = lease.CopyDatabaseInputs(work, ownCopy);
+                receipt["sources"] = new { catalog = catalog.Record, mapping = mapping.Record, index = index?.Record, databases };
+                var plan = RunResourcePlanner(identity, new { schemaVersion = 1, productId = identity.productId, installationId = identity.installationId, root = identity.root, boxRoot = identity.boxRoot, dataDirectory = lease.SourceDataDirectory, databaseFingerprint = receipt["databaseFingerprint"], databases, catalog = catalog.Record, mapping = mapping.Record, index = index?.Record, recoveryUncertain = lease.RecoveryUncertain }, work);
+                foreach (var key in new[] { "productId", "installationId", "root", "boxRoot", "dataDirectory", "databaseFingerprint" }) if (InstallationCore.Text(plan, key) != (string)receipt[key]) throw new IOException("资源分析身份不匹配，已保留资源。");
+                var files = plan["files"] as object[] ?? throw new IOException("资源分析成员无效。"); var pending = new List<Tuple<string, Dictionary<string, object>>>();
+                foreach (var value in files)
+                {
+                    var file = InstallationCore.Object(value); var name = InstallationCore.Text(file, "path");
+                    if (!name.StartsWith("games/", StringComparison.Ordinal)) throw new IOException("资源分析越出游戏仓库，已保留。");
+                    if (InstallationCore.Text(file, "kind") != "file") { entries.Add(file); continue; }
+                    var target = InstallationCore.Member(identity.boxRoot, name);
+                    var tuple = ResourceFile(name, Convert.ToInt64(file["bytes"]), InstallationCore.Digest(file, "sha256"), InstallationCore.Text(file, "reason"));
+                    if (InstallationCore.Text(file, "action") == "delete") pending.Add(Tuple.Create(target, tuple)); else retained.Add(tuple);
+                }
+                receipt["referencedReleaseIds"] = plan["referencedReleaseIds"]; receipt["retainedBlobIds"] = plan["retainedBlobIds"];
+                if (InstallationCore.Text(plan, "status") != "complete") throw new IOException(conservative);
+                var leases = new List<InstallationLaunch.CleanupLease>();
+                try
+                {
+                    lease.Verify();
+                    foreach (var item in pending) leases.Add(new InstallationLaunch.CleanupLease(item.Item1, Convert.ToInt64(item.Item2["bytes"]), (string)item.Item2["sha256"]));
+                    receipt["result"] = "prepared"; receipt["planned"] = pending.Select(item => item.Item2).ToArray(); receipt["reason"] = "已确认存档依赖与全部原文件句柄，仅删除无引用的当前受管资源。"; WriteResourceReceipt(identity, audit, receipt);
+                    for (var n = 0; n < leases.Count; n++) { leases[n].Delete(); deleted.Add(pending[n].Item2); }
+                }
+                catch
+                {
+                    foreach (var item in pending.Where(item => !deleted.Contains(item.Item2))) { var tuple = item.Item2; tuple["reason"] = "成员被占用、变化或删除未获确认，原位保留。"; deferred.Add(tuple); }
+                    receipt["result"] = deleted.Count == 0 ? "retained" : "partial"; throw;
+                }
+                finally { foreach (var held in leases) held.Dispose(); }
+                RemoveEmptyDirectories(Path.Combine(identity.boxRoot, "games"), pending.Select(item => item.Item1));
+                receipt["result"] = "completed"; receipt["reason"] = "已删除无引用的当前受管资源；存档、外置数据、历史与未知资料均保留。"; WriteResourceReceipt(identity, audit, receipt);
+            }
+            catch (Exception cause) when (cause is IOException || cause is UnauthorizedAccessException || cause is InvalidOperationException || cause is ArgumentException || cause is AggregateException)
+            {
+                if (deleted.Count != 0) { receipt["result"] = "partial"; receipt["reason"] = "资源清理部分完成，未确认成员已保留；请查看精确审计。"; WriteResourceReceipt(identity, audit, receipt); throw new HelperError(10, (string)receipt["reason"]); }
+                foreach (var source in sources) source.Dispose(); sources.Clear();
+                retained.Clear(); entries.Clear(); deferred.Clear(); RetainedInventory(identity.boxRoot, retained, entries, conservative);
+                receipt["result"] = "retained"; receipt["reason"] = conservative; WriteResourceReceipt(identity, audit, receipt); Console.Error.WriteLine(conservative);
+            }
+            finally
+            {
+                foreach (var source in sources) source.Dispose();
+                if (work != null)
+                {
+                    try
+                    {
+                        // SQLite may create only its volatile SHM in this new
+                        // private copy directory; original D remains leased.
+                        foreach (var path in privateCopies.Select(file => (string)file["path"]).Where(path => path.EndsWith("room.sqlite", StringComparison.Ordinal)).ToArray())
+                        {
+                            var shm = path + "-shm"; if (!File.Exists(shm) || privateCopies.Any(file => (string)file["path"] == shm)) continue;
+                            InstallationCore.Safe(shm); ownCopy(shm, new FileInfo(InstallationCore.IO(shm)).Length, InstallationCore.HashFile(shm));
+                        }
+                        foreach (var copy in privateCopies)
+                        {
+                            try
+                            {
+                                var path = (string)copy["path"]; if (!File.Exists(path)) continue;
+                                using (var file = new InstallationLaunch.CleanupLease(path, (long)copy["expectedBytes"], (string)copy["expectedSha256"])) file.Delete();
+                                privateDeleted.Add(copy);
+                            }
+                            catch (IOException) { privateRetained.Add(copy); }
+                            catch (UnauthorizedAccessException) { privateRetained.Add(copy); }
+                        }
+                        RemoveEmptyDirectories(work, privateCopies.Select(file => (string)file["path"]));
+                        analysisWork["result"] = Directory.Exists(work) ? "retained" : "completed";
+                    }
+                    catch (IOException) { analysisWork["result"] = "retained"; }
+                    catch (UnauthorizedAccessException) { analysisWork["result"] = "retained"; }
+                    analysisWork["reason"] = (string)analysisWork["result"] == "completed" ? "自建只读分析副本已按原句柄与精确 SHA 清理。" : "只读分析副本或未知成员未完全释放，按所记工作目录保留；未修改原存档。";
+                    if ((string)analysisWork["result"] == "retained") Console.Error.WriteLine((string)analysisWork["reason"]);
+                    WriteResourceReceipt(identity, audit, receipt);
+                }
+            }
+        }
+        private static void RemoveEmptyDirectories(string boundary, IEnumerable<string> files)
+        {
+            var roots = new HashSet<string>(StringComparer.OrdinalIgnoreCase); boundary = InstallationCore.Full(boundary);
+            foreach (var file in files) for (var directory = Path.GetDirectoryName(file); directory != null && (InstallationCore.Equal(directory, boundary) || directory.StartsWith(boundary + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)); directory = Path.GetDirectoryName(directory)) roots.Add(directory);
+            roots.Add(boundary);
+            foreach (var directory in roots.OrderByDescending(path => path.Length)) { InstallationCore.Safe(directory); if (Directory.Exists(directory) && Directory.GetFileSystemEntries(directory).Length == 0) Directory.Delete(directory); }
+        }
         private static void Migrate(string root, string source, MigrationLease lease)
         {
             source = InstallationCore.Full(source); InstallationCore.Safe(source);
-            var box = InstallationCore.Box(root); if (InstallationCore.Equal(source, box) || source.StartsWith(box + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) || box.StartsWith(source + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new HelperError(10, "便携迁移根与安装目标重叠。");
+            var box = InstallationCore.Box(root); if (!InstallationCore.Equal(source, root) && (InstallationCore.Equal(source, box) || source.StartsWith(box + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) || box.StartsWith(source + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))) throw new HelperError(10, "便携迁移根与安装目标重叠。");
             if (!InstallationCore.Equal(source, lease.SourceRoot)) throw new HelperError(20, "迁移源与持续租约不匹配。"); var data = lease.SourceDataDirectory; lease.Verify();
-                    foreach (var process in Process.GetProcesses()) using (process) { try { var executable = process.MainModule.FileName; if (executable.StartsWith(source + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new HelperError(20, "原便携程序仍在运行，未迁移。"); } catch (System.ComponentModel.Win32Exception) { } catch (InvalidOperationException) { } }
-                    if (Directory.Exists(box) && Directory.GetFileSystemEntries(box).Length != 0) throw new HelperError(10, "迁移目标已有内容，未覆盖。"); Directory.CreateDirectory(box);
-                    Walk(source, path => { var relative = path.Substring(source.Length + 1).Replace('\\', '/'); if (relative == "TableMax.config.json" || relative.StartsWith("app/", StringComparison.Ordinal) || relative.StartsWith("updates/", StringComparison.Ordinal) || relative.StartsWith(".installation-transactions/", StringComparison.Ordinal) || relative == ".install.json") return; if (!InstallationCore.Equal(data, source) && !relative.StartsWith("games/", StringComparison.Ordinal)) return; var target = InstallationCore.Member(box, relative); if (lease.CopyHeld(path, target)) return; Directory.CreateDirectory(Path.GetDirectoryName(target)); File.Copy(path, target, false); if (InstallationCore.HashFile(path) != InstallationCore.HashFile(target)) throw new HelperError(30, "便携复制校验失败，原件已保留。"); });
-                    lease.Verify();
-                    TableMax.Portable.LegacyGames.Preserve(source, Path.Combine(box, "games"));
-                    TableMax.Portable.LegacyGames.Preserve(Path.Combine(source, "app"), Path.Combine(box, "games"));
-                    InstallationCore.Atomic(Path.Combine(box, "TableMax.config.json"), new { dataDirectory = InstallationCore.Equal(data, source) ? "." : data });
+            int selfPid; using (var self = Process.GetCurrentProcess()) selfPid = self.Id;
+            foreach (var process in Process.GetProcesses()) using (process) { try { var executable = process.MainModule.FileName; if (process.Id == selfPid || InstallationCore.Equal(executable, Get("installer-source"))) continue; if (executable.StartsWith(source + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new HelperError(20, "原便携程序仍在运行，未迁移。"); } catch (System.ComponentModel.Win32Exception) { } catch (InvalidOperationException) { } }
+            if (Directory.Exists(box) && Directory.GetFileSystemEntries(box).Length != 0) throw new HelperError(10, "迁移目标已有内容，未覆盖。"); Directory.CreateDirectory(box);
+            foreach (var file in lease.SourceFiles)
+            {
+                if (!InstallationCore.Equal(data, source) && !file.path.StartsWith("games/", StringComparison.OrdinalIgnoreCase)) continue;
+                var path = InstallationCore.Member(source, file.path); var target = InstallationCore.Member(box, file.path);
+                if (lease.CopyHeld(path, target)) continue;
+                using (var input = new FileStream(InstallationCore.IO(path), FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    if (input.Length != file.bytes || StreamHash(input) != file.sha256) throw new HelperError(30, "原迁移成员已变化，未复制；原件已保留。");
+                    Directory.CreateDirectory(Path.GetDirectoryName(target)); input.Position = 0;
+                    using (var output = new FileStream(InstallationCore.IO(target), FileMode.CreateNew, FileAccess.Write, FileShare.None)) { input.CopyTo(output); output.Flush(true); }
+                    if (InstallationCore.HashFile(target) != file.sha256 || StreamHash(input) != file.sha256) throw new HelperError(30, "便携复制校验失败，原件已保留。");
+                }
+            }
+            lease.Verify();
+            TableMax.Portable.LegacyGames.Preserve(source, Path.Combine(box, "games"));
+            TableMax.Portable.LegacyGames.Preserve(Path.Combine(source, "app"), Path.Combine(box, "games"));
+            InstallationCore.Atomic(Path.Combine(box, "TableMax.config.json"), new { dataDirectory = InstallationCore.Equal(data, source) ? "." : data });
+        }
+        private static string StreamHash(FileStream stream)
+        {
+            stream.Position = 0; using (var hash = SHA256.Create()) return BitConverter.ToString(hash.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
+        }
+        private static string[] MigrationFiles(string source, string installationRoot)
+        {
+            var files = new List<string>(); var nestedTarget = InstallationCore.Equal(source, installationRoot);
+            var excluded = new HashSet<string>(new[] { "app", "updates", ".installation-transactions", ".install.json", ".installer-receipt.json", ".uninstalled.json", ".uninstall-resources.json", "TableMax.config.json", "TableMax.exe", "UpdateHelper.exe", "Updater.exe" }, StringComparer.OrdinalIgnoreCase);
+            Action<string> visit = null; visit = directory =>
+            {
+                InstallationCore.Safe(directory);
+                foreach (var path in Directory.GetFileSystemEntries(directory).OrderBy(value => value, StringComparer.OrdinalIgnoreCase))
+                {
+                    var relative = path.Substring(source.Length + 1).Replace('\\', '/'); var first = relative.Split('/')[0];
+                    if (excluded.Contains(first) || (nestedTarget && String.Equals(first, "data", StringComparison.OrdinalIgnoreCase)) || (Get("installer-source", false) is string installer && InstallationCore.Equal(path, installer))) continue;
+                    InstallationCore.Safe(path); if (Directory.Exists(path)) visit(path); else files.Add(InstallationCore.Full(path));
+                }
+            };
+            visit(source); return files.OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
         }
         private static void Confirm(InstallationManifest target, string dataDirectory)
         {
