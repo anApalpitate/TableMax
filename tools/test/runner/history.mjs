@@ -10,16 +10,8 @@ import { existsSync, mkdirSync, realpathSync } from 'node:fs';
 import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
-export function failureLimit(
-  value = process.env.TABLEMAX_TEST_MAX_FAILURES ?? 3,
-) {
-  const limit = Number(value);
-  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1000)
-    throw new Error(
-      'TABLEMAX_TEST_MAX_FAILURES must be an integer from 1 to 1000',
-    );
-  return limit;
-}
+import { failureLimit } from './failure-policy.mjs';
+export { failureLimit } from './failure-policy.mjs';
 
 export function testFile(root, file) {
   const path = relative(root, resolve(root, file)).replaceAll('\\', '/');

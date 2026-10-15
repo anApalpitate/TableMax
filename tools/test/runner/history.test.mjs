@@ -92,6 +92,21 @@ function latestReport(history) {
   );
 }
 
+test('failure budget defaults to five while explicit limits override the environment', () => {
+  const previous = process.env.TABLEMAX_TEST_MAX_FAILURES;
+  try {
+    delete process.env.TABLEMAX_TEST_MAX_FAILURES;
+    assert.equal(failureLimit(), 5);
+    process.env.TABLEMAX_TEST_MAX_FAILURES = '2';
+    assert.equal(failureLimit(), 2);
+    assert.equal(failureLimit(3), 3);
+    assert.equal(failureLimit(5), 5);
+  } finally {
+    if (previous === undefined) delete process.env.TABLEMAX_TEST_MAX_FAILURES;
+    else process.env.TABLEMAX_TEST_MAX_FAILURES = previous;
+  }
+});
+
 test('persistent counters retain failures and deduplicate exact result delivery across writers', () => {
   const { root, history } = fixture();
   const other = new TestHistory(root, 'history');
