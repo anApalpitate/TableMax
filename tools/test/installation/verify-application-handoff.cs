@@ -61,10 +61,12 @@ namespace TableMax.InstallationTesting
             {
                 if (input != null && !SetStdHandle(-10, new IntPtr(Int64.Parse(input.GetClientHandleAsString())))) throw new IOException("Fixture input could not be held.");
                 timer.Tick += async (_, __) => await Tick();
-                timer.Start();
+                EventHandler startTimer = null;
+                startTimer = (_, __) => { Application.Idle -= startTimer; timer.Start(); };
+                Application.Idle += startTimer;
                 try { return (int)entry.Invoke(null, new object[] { programArguments }); }
                 catch (TargetInvocationException cause) { throw cause.InnerException ?? cause; }
-                finally { timer.Stop(); }
+                finally { Application.Idle -= startTimer; timer.Stop(); }
             }
         }
 
@@ -177,7 +179,7 @@ namespace TableMax.InstallationTesting
                 if (persistent && File.Exists(Path.Combine(evidence, "quit.request")))
                 {
                     finishing = true;
-                    await (Task)context.GetType().GetMethod("Quit", Private).Invoke(context, null);
+                    await context.Quit();
                 }
             }
             catch (Exception cause)
@@ -185,7 +187,7 @@ namespace TableMax.InstallationTesting
                 finishing = true;
                 InstallationCore.Atomic(Path.Combine(evidence, role + "-fixture-error.json"), new { error = cause.Message });
                 TableMax.Desktop.Program.ExitCode = 1;
-                if (context != null) await (Task)context.GetType().GetMethod("Quit", Private).Invoke(context, null);
+                if (context != null) await context.Quit();
             }
         }
 

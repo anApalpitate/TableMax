@@ -10,7 +10,7 @@
 
 ## 开始开发
 
-2026-10-15[Windows安装、卸载与盒子内更新](tasks/windows-installation-update.md)已实现，候选 **1.0.6.14** 含恢复与内嵌解码修复。实际Medium fixture Inno返回0并写登记，随后中文JSON工具校核失败；账户及profile已清理，本轮按阈值停测。UTF8修复待下一轮动态复验，完整升级／卸载、正式GUID与首次容量仍未完成，current为便携1.0.6.10。运行契约见[构建与运行](reference/build-and-run.md#windows-安装与整个程序更新)，签名及推广见[Release流程](reference/release.md#完整安装器与免费应用签名2026-10-15)。
+2026-10-15[Windows安装、卸载与盒子内更新](tasks/windows-installation-update.md)继续验收中。候选 **1.0.6.14** 已通过实际fixture首装、中文登记及主机签名检查，但更新下载长路径失败、一次默认卸载失败尚未闭合；源码修复待新候选验证，本轮3失败后停止新增动态，账户及profile已清理。current仍为便携1.0.6.10。运行契约见[构建与运行](reference/build-and-run.md#windows-安装与整个程序更新)，签名及推广见[Release流程](reference/release.md#完整安装器与免费应用签名2026-10-15)。
 
 2026-10-12建立[macOS服务端运行包适配任务](tasks/macos-adaptation.md)：目标与执行草案已建立，导出未开始；沿用仅服务端运行包的范围，现行Windows交付事实保持，Mac权限与验证边界从任务页接续。
 

@@ -4,6 +4,46 @@ import { resolve, join } from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
+const caseIds = [
+  'valid-download',
+  'valid-redirect',
+  'cancel',
+  'oversized-stream',
+  'truncated-stream',
+  'broken-stream',
+  'wrong-sha',
+  'unsafe-redirect',
+  'exact-two-assets',
+  'source-asset-state',
+  'asset-digest',
+  'foreign-release',
+  'multiple-machine-blocks',
+  'highest-version',
+  'same-build-different-sha',
+  'same-current-different-sha',
+  'current-is-idle',
+  'highest-tamper-refused',
+  'parameters-not-network',
+  'long-path-download',
+];
+const options = new Map();
+for (const argument of process.argv.slice(2)) {
+  const match = /^--(only|prior-failures)=(.*)$/.exec(argument);
+  if (!match || options.has(match[1]))
+    throw new Error('Use unique --only/--prior-failures options.');
+  options.set(match[1], match[2]);
+}
+const selected = options.has('only') ? options.get('only').split(',') : caseIds;
+if (
+  selected.some((name) => !caseIds.includes(name)) ||
+  new Set(selected).size !== selected.length
+)
+  throw new Error('Select unique known controller case IDs.');
+const selectedCases = caseIds.filter((name) => selected.includes(name));
+const priorFailuresText = options.get('prior-failures') ?? '0';
+if (!/^[0-2]$/.test(priorFailuresText))
+  throw new Error('Prior failures must be 0, 1 or 2.');
+const priorFailures = Number(priorFailuresText);
 const workspace = resolve(fileURLToPath(new URL('../../..', import.meta.url)));
 const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const started = performance.now();
@@ -177,7 +217,12 @@ if (compile.code !== 0)
   );
 const run = await execute(
   executable,
-  [installationRoot, fixture],
+  [
+    installationRoot,
+    fixture,
+    '--only=' + selectedCases.join(','),
+    '--prior-failures=' + priorFailures,
+  ],
   'Native update controller cases',
 );
 await writeFile(join(work, 'run.log'), run.output);
@@ -189,11 +234,24 @@ try {
     `Native harness returned invalid report; ${join(work, 'run.log')}`,
   );
 }
+if (
+  report.priorFailures !== priorFailures ||
+  report.failureLimit !== 3 ||
+  report.totalFailures !== priorFailures + report.failures ||
+  JSON.stringify(report.selectedCases) !== JSON.stringify(selectedCases)
+)
+  throw new Error(
+    'The controller harness scope or shared failure budget changed.',
+  );
 const sources = [
   'apps/desktop/native/ApplicationUpdate.cs',
   'apps/desktop/installation-runtime/InstallationCore.cs',
   'apps/desktop/installation-runtime/UpdateProtocol.cs',
+  'apps/desktop/installation-runtime/TrustRoots.cs',
+  'apps/desktop/native/Json.cs',
+  'apps/desktop/native/InstallationSession.cs',
   'tools/test/installation/native-update-harness.cs',
+  'tools/test/installation/native-update-harness.mjs',
 ];
 report.sourceHashes = Object.fromEntries(
   await Promise.all(
@@ -214,7 +272,10 @@ await writeFile(
 console.log(
   JSON.stringify({
     passed: report.passed,
+    selectedCases: report.selectedCases,
     cases: report.results.length,
+    priorFailures: report.priorFailures,
+    totalFailures: report.totalFailures,
     failures: report.results.filter((test) => !test.passed),
     report: join(work, 'report.json'),
     durationMs: report.durationMs,

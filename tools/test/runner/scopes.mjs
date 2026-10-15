@@ -139,6 +139,11 @@ const verificationScopes = {
   'tools/test/installation/verify-installer-wizard.cs': ['shared', 'tooling'],
   'tools/test/installation/verify-installer-wizard.mjs': ['shared', 'tooling'],
   'tools/test/installation/native-update-harness.mjs': ['shared', 'tooling'],
+  'tools/test/installation/fixture-application-update.test.mjs': [
+    'shared',
+    'tooling',
+  ],
+  'tools/test/support/fixture-application-update.mjs': ['shared', 'tooling'],
   'tools/test/installation/native-long-path-harness.mjs': ['shared', 'tooling'],
   'tools/test/installation/native-migration-lease-harness.mjs': [
     'shared',
@@ -167,6 +172,11 @@ const verificationScopes = {
     'tooling',
   ],
   'tools/test/installation/verify-production-user.ps1': [
+    'box',
+    'shared',
+    'tooling',
+  ],
+  'tools/test/installation/verify-portable-migration.mjs': [
     'box',
     'shared',
     'tooling',

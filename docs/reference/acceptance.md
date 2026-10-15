@@ -2,7 +2,17 @@
 
 本页仅保留当前完整EXE、仍有效的证据和待验边界。下方旧标题为导航，不能把原版本通过升级为当前包通过。
 
-2026-10-15安装／卸载／盒子更新及Inno内嵌解码修复已封入候选14；current仍为已验证便携1.0.6.10，候选未推广或发布。实际Medium fixture Inno已返回0并写登记，但中文JSON解码及保护性清理校核失败，本轮达到阈值停测；临时账户及profile均已清理。完整系统链仍待完成，接续见[安装任务](../tasks/windows-installation-update.md)。
+2026-10-15安装／卸载／盒子更新继续验收，current仍为已验证便携1.0.6.10，候选14未推广或发布。最新真实标准用户已通过fixture首装、中文登记、主机及签名检查，但下载长路径和一次实际默认卸载失败尚未闭合；修复源码须新候选验证。续行03累计3失败后停止新增动态，两个账户及profile均已清理，接续见[安装任务](../tasks/windows-installation-update.md)。
+
+## 续行03：真实首装与剩余故障（2026-10-15）
+
+[轮次记录](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/round.json)保留本轮3项失败及前轮记录。[编码专项](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/encoding-probe/report.json)7项、[fixture签名及范围检查](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/fixture-tooling/report.json)13项通过；后者原始输出仅终端，报告明确没有另存原始日志。测试产品GUID签原始ABF描述，生产协议未改。[UTF8静态复用审查](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/fixture-tooling/utf8-reuse-06.json)只证明方法未变，不增加产品通过数。
+
+[第一次系统链](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/production-account-01/application-handoff/report.json)通过fixture真实首装、中文登记及默认卸载，旧主机被夹具在生产WinForms初始化前启动Timer阻断，记1失败。[收尾](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/production-account-01/isolated-account.json)确认SID1014及profile删除。Timer已改首次Application.Idle后启动，[准备06](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/handoff-prepare-06/report.json)重新封包两版60000／60001，0失败；准备材料不是Apply成功证明。
+
+[第二次系统链](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/production-account-02/application-handoff/report.json)通过真实首装、精确中文登记、旧Native／Node主机及可信检查。下载阶段在获授权正常profile内的长路径partial失败，随后finally执行的真实Inno默认卸载返回1，两项均计失败；没有执行Apply、失败升级框架专项或正式GUID。原[卸载日志](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/production-account-02/application-handoff/uninstall-inno.log)缺helper返回码及Native关闭日志，无法判定是服务保存还是浏览器退出异常，不按耗时推断。SID1015及profile已[清理](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/production-account-02/isolated-account.json)，删除profile不替代产品卸载。
+
+生产ApplicationUpdate已接入既有扩展路径IO封装，覆盖下载、partial清理、候选长度、helper复制及信任水位读取；身份比较、URL、进程启动普通路径及保存／退出门槛不变。Inno增加实际helper退出码日志，验证工具补关闭诊断保全；这些新增修复尚未经编译或动态验证，须新候选与新准备材料，不能套用14原字节证明。真实便携默认／外置迁移工具和独立账户模式已形成源码，尚未执行；当前白名单仍限定便携10及候选14，下一候选改变后先审输入再更新。完整首次启动容量、实际Apply、正式GUID、迁移与推广继续待验。
 
 ## 1.0.6.14：安装候选与标准账户诊断（2026-10-15）
 
@@ -12,13 +22,13 @@
 
 真实临时标准账户已运行首个fixture Inno：文件、helper健康与快捷方式步骤后，在HKCU卸载登记RegCreateKeyEx code5失败并回滚；[原报告](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-account/application-handoff/report.json)不改写为安装通过。[账户清理](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-account/isolated-account.json)已确认账户及profile删除成功；[独立身份](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-account/user-identity.json)包含真实SID／profile／AppData。正式GUID、Apply、失败升级恢复及完整首次启动容量尚未执行。
 
-[候选14闭包首轮](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-14/results.json)的安全上下文读取因WindowsPowerShell5.1加载Core7模块失败；仅隔离子进程Desktop模块路径／UTF8后，[新闭包9项](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-14-repair-01/results.json)及[实际程序集验签](../../artifacts/maintenance/v1.0.6/installation-remaining/production-signature-dotnet-14/report.json)通过：Native22、helper22、稳定入口12项，源码／EXE字节未变。候选本地Authenticode为NotSigned、无MOTW，不能当作浏览器下载SmartScreen证明。新轮现累计4个失败条目，达到阈值停止新增动态验证，原失败仍保留，current原SHA及候选13原字节继续保护。
+[候选14闭包首轮](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-14/results.json)的安全上下文读取因WindowsPowerShell5.1加载Core7模块失败；仅隔离子进程Desktop模块路径／UTF8后，[新闭包9项](../../artifacts/maintenance/v1.0.6/installation-remaining/production-candidate-seal-14-repair-01/results.json)及[实际程序集验签](../../artifacts/maintenance/v1.0.6/installation-remaining/production-signature-dotnet-14/report.json)通过：Native22、helper22、稳定入口12项，源码／EXE字节未变。候选本地Authenticode为NotSigned、无MOTW，不能当作浏览器下载SmartScreen证明。此前resume-02累计4个失败条目，达到阈值停止新增动态验证，原失败仍保留，current原SHA及候选13原字节继续保护。
 
 [两版只读账户诊断](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/registry-diagnostic/account-read-01/registry-account.json)确认真实新SID／profile和HKCU映射正确，DACL允许该用户FullControl，但probe为Low完整性、现存CurrentVersion写权限打开code5。工程根、Node和EXE继承Low mandatory label，根因及原字节见[只读证据](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/registry-diagnostic/mic-root-cause.json)；[Microsoft规则](https://learn.microsoft.com/en-us/windows/win32/secauthz/mandatory-integrity-control)说明Low进程即使DACL允许也不能写Medium对象。诊断不改注册表、标签或token，第二个临时账户及profile同样删除成功。用户已明确允许扩展此前工程tmp限制，在新标准用户正常profile验收；真实Medium token已核验，但随后中文登记校核失败，完整系统链仍未完成；不能把诊断完成当作安装／升级／卸载通过。
 
 [Medium实际轮](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-account-profile-02/application-handoff/report.json)保留Inno退出0及写登记成功日志；其后WindowsPS5.1默认码页的中文InstallLocation被Node按UTF8解码，两个失败步骤分别为首装目录断言及同因保护性卸载拒绝。原profile内fixture未走完默认卸载；[外层账户收尾](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-02/production-account-profile-02/isolated-account.json)通过删除本次账户及profile完成授权清理，不作为产品卸载通过。正式GUID、实际Apply、失败升级框架链、完整容量及推广仍未完成。
 
-UTF8输出和逐流解码修复已写入测试工具，仅完成静态审阅／格式化，本轮阈值后未动态复验。准备03保留旧工具SHA及原编译范围；下一轮先验证中文JSON，再按新工具重新prepare。已有账户／UAC／profile授权持续有效，源候选14及current原字节保留。
+resume-02停止时，UTF8输出和逐流解码修复只完成静态审阅／格式化；其准备03保留旧工具SHA及原编译范围。随后续行03已完成编码专项、新准备与真实首装，最新失败及未验范围见本页上节，原失败不覆盖。已有账户／UAC／profile授权持续有效，源候选14及current原字节保留。
 
 ## 协调器修复与三失败停止（2026-10-15）
 

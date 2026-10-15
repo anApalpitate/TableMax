@@ -10,7 +10,7 @@
 
 ## 下载
 
-公开版本沿用 **v1.0.6**；已验证本地交付为 **1.0.6.10**，新完整安装候选 **1.0.6.14** 已封包，真实系统链仍待完成。Windows仅交付 **预装全部游戏的完整EXE**，不加类型后缀；取消盒子版及独立游戏下载／导入，更新整个程序即可获得新游戏与版本。下面下载与使用步骤仍对应此前线上便携程序，新候选尚未推广或发布。实际文件与验证见[当前验收](docs/reference/acceptance.md)。
+公开版本沿用 **v1.0.6**；current仍为已验证便携 **1.0.6.10**。完整安装候选 **1.0.6.14** 在真实系统验收中发现更新下载长路径缺口，修复源码待新候选验证，尚未推广或发布。Windows仅交付 **预装全部游戏的完整EXE**，不加类型后缀；取消盒子版及独立游戏下载／导入，更新整个程序即可获得新游戏与版本。下面下载与使用步骤仍对应此前线上便携程序，实际文件与验证见[当前验收](docs/reference/acceptance.md)。
 
 **只需在负责开桌的 Windows 电脑上下载程序。朋友的手机和其他玩家电脑使用浏览器加入。**
 
@@ -121,7 +121,7 @@ pnpm start
 
 环境准备、锁定工具版本与验证方法见 [开发说明](docs/reference/development.md)；接入游戏从 [游戏开发指南](docs/reference/game-development.md) 开始。盒子短提示文案集中在 [feedback.zh-CN.json](apps/web/src/content/feedback.zh-CN.json)，方便维护。
 
-完整安装器、默认保留数据卸载与盒子内可信更新已实现；候选1.0.6.14包含恢复与内嵌解码修复。真实Medium fixture Inno已返回0并写登记，后续中文JSON工具校核失败，当前按阈值停测，账户及profile已清理。完整系统验收仍未完成，进度见[安装任务](docs/tasks/windows-installation-update.md)和[验收](docs/reference/acceptance.md)。新候选先冻结，通过系统证明后才推广；[发布工具](tools/release/README.md)维护命令。上方下载仍对应线上便携程序，本轮未发布附件。
+完整安装器、默认保留数据卸载与盒子内可信更新已有实现。真实标准用户已通过fixture首装、中文登记、主机与签名检查；下载长路径失败及一次实际卸载失败仍待闭合，完整Apply、正式GUID及迁移未验收。长路径源码修复与诊断已推进，状态见[安装任务](docs/tasks/windows-installation-update.md)和[验收](docs/reference/acceptance.md)。新源码须重新封包并通过系统证明后推广；[发布工具](tools/release/README.md)维护命令，本轮未发布附件。
 
 本机美术资源检索与处理使用 [TableMaxMaterial 素材工作区](../TMP/TableMaxMaterial/README.md)（`E:\Proj\TMP\TableMaxMaterial`，不创建 Git）；该外部目录独立维护原始资料、处理过程和交付候选，核验后将正式资源及来源记录导入本项目，详见 [资源入口](assets/README.md)。此链接依赖本机目录布局，GitHub 源码与运行包仍使用项目内资源。
 

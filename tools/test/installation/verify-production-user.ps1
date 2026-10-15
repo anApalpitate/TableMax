@@ -2,15 +2,28 @@
 param(
   [Parameter(Mandatory)][string]$DeliveryPath,
   [Parameter(Mandatory)][string]$OutputDirectory,
-  [Parameter(Mandatory)][string]$HandoffPreparedReport,
+  [string]$HandoffPreparedReport,
   [switch]$AllowTemporaryAccount,
-  [switch]$UseProfileAcceptance
+  [switch]$UseProfileAcceptance,
+  [switch]$PortableMigrationOnly,
+  [string]$PortablePointer,
+  [ValidateRange(0, 2)][int]$PriorFailures = 0
 )
 $ErrorActionPreference = 'Stop'
 $taskRepository = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..')).TrimEnd('\')
 $taskOutput = [IO.Path]::GetFullPath($OutputDirectory).TrimEnd('\')
 $taskDelivery = [IO.Path]::GetFullPath($DeliveryPath)
-$taskHandoffPreparedReport = [IO.Path]::GetFullPath($HandoffPreparedReport)
+$taskHandoffPreparedReport = $null
+$taskPortablePointer = $null
+if ($PortableMigrationOnly) {
+  if (-not $UseProfileAcceptance -or [string]::IsNullOrWhiteSpace($PortablePointer)) { throw 'Portable migration requires UseProfileAcceptance and a frozen PortablePointer copy.' }
+  if (-not [string]::IsNullOrWhiteSpace($HandoffPreparedReport)) { throw 'Portable migration is independent of the application handoff prepared report.' }
+  $taskPortablePointer = [IO.Path]::GetFullPath($PortablePointer)
+} else {
+  if ([string]::IsNullOrWhiteSpace($HandoffPreparedReport)) { throw 'The complete application chain requires HandoffPreparedReport.' }
+  if (-not [string]::IsNullOrWhiteSpace($PortablePointer)) { throw 'PortablePointer is only valid with PortableMigrationOnly.' }
+  $taskHandoffPreparedReport = [IO.Path]::GetFullPath($HandoffPreparedReport)
+}
 function Write-TaskJson([string]$Path, $Value, [int]$Depth = 100) {
   [IO.File]::WriteAllText($Path, ($Value | ConvertTo-Json -Depth $Depth) + "`n", [Text.UTF8Encoding]::new($false))
 }
@@ -23,9 +36,15 @@ function Assert-TaskPathNoLinks([string]$Path) {
 }
 if (-not $taskOutput.StartsWith($taskRepository + '\artifacts\maintenance\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Evidence must remain inside workspace maintenance.' }
 if (-not $taskDelivery.StartsWith($taskRepository + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Delivery must be a workspace file.' }
-if (-not $taskHandoffPreparedReport.StartsWith($taskRepository + '\artifacts\maintenance\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Prepared handoff evidence must be a workspace maintenance file.' }
 Assert-TaskPathNoLinks $taskDelivery
-Assert-TaskPathNoLinks $taskHandoffPreparedReport
+if ($taskHandoffPreparedReport) {
+  if (-not $taskHandoffPreparedReport.StartsWith($taskRepository + '\artifacts\maintenance\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Prepared handoff evidence must be a workspace maintenance file.' }
+  Assert-TaskPathNoLinks $taskHandoffPreparedReport
+}
+if ($taskPortablePointer) {
+  if (-not $taskPortablePointer.StartsWith($taskRepository + '\artifacts\maintenance\', [StringComparison]::OrdinalIgnoreCase)) { throw 'PortablePointer must be a frozen workspace maintenance copy.' }
+  Assert-TaskPathNoLinks $taskPortablePointer
+}
 Assert-TaskPathNoLinks $taskOutput
 if (Test-Path -LiteralPath $taskOutput) { throw 'Use a new evidence directory; old results are preserved.' }
 if (-not $AllowTemporaryAccount) { throw 'Explicit authorization for a temporary standard Windows account is required.' }
@@ -36,6 +55,23 @@ if ($taskDeliveryData.deliveryType -ne 'installer' -or $taskDeliveryData.executa
 if (-not ([IO.Path]::GetFullPath($taskDeliveryData.executable.path)).StartsWith($taskRepository + '\artifacts\releases\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Production installer must be the sealed workspace release artifact.' }
 Assert-TaskPathNoLinks $taskDeliveryData.executable.path
 if ((Get-FileHash -LiteralPath $taskDeliveryData.executable.path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskDeliveryData.executable.sha256) { throw 'Installer bytes changed.' }
+$taskDeliveryBytes = (Get-Item -LiteralPath $taskDelivery).Length
+$taskDeliverySha256 = (Get-FileHash -LiteralPath $taskDelivery -Algorithm SHA256).Hash.ToLowerInvariant()
+$taskPortablePointerBytes = $null
+$taskPortablePointerSha256 = $null
+$taskPortableExecutable = $null
+if ($PortableMigrationOnly) {
+  $taskPortablePointerBytes = (Get-Item -LiteralPath $taskPortablePointer).Length
+  $taskPortablePointerSha256 = (Get-FileHash -LiteralPath $taskPortablePointer -Algorithm SHA256).Hash.ToLowerInvariant()
+  $taskPortableData = Get-Content -LiteralPath $taskPortablePointer -Raw -Encoding utf8 | ConvertFrom-Json
+  $taskPortableDeliveries = @($taskPortableData.deliveries | Where-Object { $_.edition -eq 'full' })
+  if ($taskPortableDeliveries.Count -ne 1 -or $taskPortableDeliveries[0].deliveryType -eq 'installer' -or $taskPortableDeliveries[0].executable.type -eq 'installer' -or $taskPortableDeliveries[0].executable.installation) { throw 'The frozen pointer must contain one full portable executable.' }
+  $taskPortableExecutable = $taskPortableDeliveries[0].executable
+  $taskPortableExecutablePath = [IO.Path]::GetFullPath($taskPortableExecutable.path)
+  if (-not $taskPortableExecutablePath.StartsWith($taskRepository + '\artifacts\releases\', [StringComparison]::OrdinalIgnoreCase) -or $taskPortableExecutable.sha256 -notmatch '^[a-f0-9]{64}$' -or $taskPortableExecutable.bytes -lt 1 -or $taskPortableExecutable.bytes -ge 120000000) { throw 'The frozen portable executable identity is invalid.' }
+  Assert-TaskPathNoLinks $taskPortableExecutablePath
+  if ((Get-Item -LiteralPath $taskPortableExecutablePath).Length -ne $taskPortableExecutable.bytes -or (Get-FileHash -LiteralPath $taskPortableExecutablePath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskPortableExecutable.sha256) { throw 'The frozen portable executable bytes changed.' }
+}
 $taskUsername = 'TMVerify_' + [Guid]::NewGuid().ToString('N').Substring(0, 8)
 $taskWork = Join-Path $taskRepository ('tmp\installation-user-' + [Guid]::NewGuid().ToString('N'))
 Assert-TaskPathNoLinks $taskWork
@@ -43,7 +79,11 @@ New-Item -ItemType Directory -Path $taskWork | Out-Null
 Assert-TaskPathNoLinks $taskWork
 New-Item -ItemType Directory -Path $taskOutput | Out-Null
 Assert-TaskPathNoLinks $taskOutput
-$taskReport = [ordered]@{ schemaVersion = 1; kind = 'temporary-standard-user'; startedAtUtc = [DateTime]::UtcNow.ToString('o'); result = 'started'; account = $taskUsername; ownerSid = $null; freshAccount = $false; standardAccount = $false; profileLoaded = $false; installerSha256 = $taskDeliveryData.executable.sha256; accountRemoved = $false; profileRemoved = $false; errors = @() }
+$taskReport = [ordered]@{ schemaVersion = 1; kind = $(if ($PortableMigrationOnly) { 'temporary-standard-user-portable-migration' } else { 'temporary-standard-user' }); startedAtUtc = [DateTime]::UtcNow.ToString('o'); result = 'started'; account = $taskUsername; ownerSid = $null; freshAccount = $false; standardAccount = $false; profileLoaded = $false; installerSha256 = $taskDeliveryData.executable.sha256; accountRemoved = $false; profileRemoved = $false; errors = @() }
+if ($PortableMigrationOnly) {
+  $taskReport.priorFailures = $PriorFailures
+  $taskReport.portablePointer = @{ path = $taskPortablePointer; bytes = $taskPortablePointerBytes; sha256 = $taskPortablePointerSha256 }
+}
 $taskCreatedSid = $null
 $taskRunner = $null
 try {
@@ -64,7 +104,7 @@ try {
   }
   $taskPlan = Join-Path $taskWork 'plan.json'
   $taskSourceNode = Join-Path $taskRepository '.cache/node/22.14.0/runtime/node.exe'
-  @{ repository = $taskRepository; delivery = $taskDelivery; handoffPreparedReport = $taskHandoffPreparedReport; handoffEvidence = (Join-Path $taskOutput 'application-handoff'); frameworkRecoveryEvidence = (Join-Path $taskOutput 'application-framework-recovery'); evidence = (Join-Path $taskOutput 'shipping-executable-checks-full.json'); accountSid = $taskCreatedSid.Value; work = $taskWork; useProfileAcceptance = [bool]$UseProfileAcceptance; sourceNode = $taskSourceNode; sourceNodeBytes = (Get-Item -LiteralPath $taskSourceNode).Length; sourceNodeSha256 = (Get-FileHash -LiteralPath $taskSourceNode -Algorithm SHA256).Hash.ToLowerInvariant() } | ConvertTo-Json | Set-Content -LiteralPath $taskPlan -Encoding utf8
+  @{ repository = $taskRepository; delivery = $taskDelivery; handoffPreparedReport = $taskHandoffPreparedReport; handoffEvidence = (Join-Path $taskOutput 'application-handoff'); frameworkRecoveryEvidence = (Join-Path $taskOutput 'application-framework-recovery'); evidence = (Join-Path $taskOutput 'shipping-executable-checks-full.json'); portableMigrationOnly = [bool]$PortableMigrationOnly; portablePointer = $taskPortablePointer; portablePointerBytes = $taskPortablePointerBytes; portablePointerSha256 = $taskPortablePointerSha256; portableMigrationEvidence = (Join-Path $taskOutput 'portable-migration'); priorFailures = $PriorFailures; accountSid = $taskCreatedSid.Value; work = $taskWork; useProfileAcceptance = [bool]$UseProfileAcceptance; sourceNode = $taskSourceNode; sourceNodeBytes = (Get-Item -LiteralPath $taskSourceNode).Length; sourceNodeSha256 = (Get-FileHash -LiteralPath $taskSourceNode -Algorithm SHA256).Hash.ToLowerInvariant() } | ConvertTo-Json | Set-Content -LiteralPath $taskPlan -Encoding utf8
   $taskChildSource = @'
 param([string]$Plan)
 $ErrorActionPreference = 'Stop'
@@ -168,6 +208,7 @@ if ($taskPlan.useProfileAcceptance) {
   $env:TABLEMAX_WINDOWS_ACCEPTANCE_PROFILE_SID = $taskPlan.accountSid
   $env:TABLEMAX_INSTALLATION_VERIFY_TMP = $taskProfileWork
   $env:TABLEMAX_INSTALLATION_HANDOFF_TMP = $taskProfileWork
+  if ($taskPlan.portableMigrationOnly) { $env:TABLEMAX_INSTALLATION_MIGRATION_TMP = $taskProfileWork }
   $env:TEMP = $taskProfileWork
   $env:TMP = $taskProfileWork
 }
@@ -177,6 +218,11 @@ foreach ($taskInput in @('tools/release/installation-verifier.mjs','.cache/node/
   $taskStream = [IO.File]::OpenRead((Join-Path $taskPlan.repository $taskInput)); $taskStream.Dispose()
 }
 $taskStream = [IO.File]::OpenRead($taskPlan.delivery); $taskStream.Dispose()
+if ($taskPlan.portableMigrationOnly) {
+  if (-not $taskPlan.useProfileAcceptance -or (Get-Item -LiteralPath $taskPlan.portablePointer).Length -ne $taskPlan.portablePointerBytes -or (Get-FileHash -LiteralPath $taskPlan.portablePointer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskPlan.portablePointerSha256) { throw 'The frozen portable pointer or isolated profile mode changed.' }
+  $taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-portable-migration.mjs') -NodeArguments @(('--delivery=' + $taskPlan.delivery), ('--portable-pointer=' + $taskPlan.portablePointer), ('--evidence=' + $taskPlan.portableMigrationEvidence), ('--prior-failures=' + $taskPlan.priorFailures)) -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'portable-migration.log')
+  exit $taskNodeExit
+}
 $taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-application-handoff.mjs') -NodeArguments @(('--prepared-report=' + $taskPlan.handoffPreparedReport), ('--evidence=' + $taskPlan.handoffEvidence)) -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'application-handoff.log')
 if ($taskNodeExit -ne 0) { exit $taskNodeExit }
 $taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-application-handoff.mjs') -NodeArguments @('--framework-recovery-only', ('--prepared-report=' + $taskPlan.handoffPreparedReport), ('--evidence=' + $taskPlan.frameworkRecoveryEvidence)) -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'application-framework-recovery.log')
@@ -202,6 +248,35 @@ exit $taskNodeExit
     $taskReport.profileAcceptanceNode = $taskUserIdentity.nodeExecutable
     $taskReport.profileAcceptanceNodeSha256 = $taskUserIdentity.nodeSha256
   }
+  if ($PortableMigrationOnly) {
+    $taskMigrationProofPath = Join-Path $taskOutput 'portable-migration/report.json'
+    Assert-TaskPathNoLinks $taskMigrationProofPath
+    $taskMigrationProof = Get-Content -LiteralPath $taskMigrationProofPath -Raw -Encoding utf8 | ConvertFrom-Json
+    if ($taskMigrationProof.schemaVersion -ne 1 -or $taskMigrationProof.scenario -ne 'portable-migration' -or $taskMigrationProof.result -ne 'passed' -or $taskMigrationProof.failures -ne 0 -or $taskMigrationProof.priorFailures -ne $PriorFailures -or @($taskMigrationProof.cases).Count -ne 2) { throw 'The actual portable migration report did not complete both cases.' }
+    if ($taskMigrationProof.executionProfile.root -ne $taskReport.profileAcceptanceRoot -or $taskMigrationProof.executionProfile.ownerSid -ne $taskCreatedSid.Value -or $taskMigrationProof.executionProfile.integritySid -ne 'S-1-16-8192') { throw 'Portable migration did not prove the actual isolated standard Medium profile.' }
+    if ([IO.Path]::GetFullPath($taskMigrationProof.portable.pointer.path) -ne $taskPortablePointer -or $taskMigrationProof.portable.pointer.bytes -ne $taskPortablePointerBytes -or $taskMigrationProof.portable.pointer.sha256 -ne $taskPortablePointerSha256 -or (Get-FileHash -LiteralPath $taskPortablePointer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskPortablePointerSha256) { throw 'The actual migration did not bind the exact frozen portable pointer.' }
+    if ([IO.Path]::GetFullPath($taskMigrationProof.portable.executable.path) -ne $taskPortableExecutablePath -or [IO.Path]::GetFullPath($taskMigrationProof.portable.executable.sourcePath) -ne $taskPortableExecutablePath -or $taskMigrationProof.portable.executable.bytes -ne $taskPortableExecutable.bytes -or $taskMigrationProof.portable.executable.sha256 -ne $taskPortableExecutable.sha256 -or $taskMigrationProof.portable.buildVersion -ne $taskPortableData.buildVersion) { throw 'The migration portable executable identity differs from its frozen pointer.' }
+    if ([IO.Path]::GetFullPath($taskMigrationProof.currentDelivery.path) -ne $taskDelivery -or $taskMigrationProof.currentDelivery.bytes -ne $taskDeliveryBytes -or $taskMigrationProof.currentDelivery.sha256 -ne $taskDeliverySha256 -or (Get-FileHash -LiteralPath $taskDelivery -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskDeliverySha256 -or $taskMigrationProof.currentDelivery.executable.bytes -ne $taskDeliveryData.executable.bytes -or $taskMigrationProof.currentDelivery.executable.sha256 -ne $taskReport.installerSha256 -or [IO.Path]::GetFullPath($taskMigrationProof.currentDelivery.executable.sourcePath) -ne [IO.Path]::GetFullPath($taskDeliveryData.executable.path) -or [IO.Path]::GetFullPath($taskMigrationProof.currentDelivery.executable.path) -ne [IO.Path]::GetFullPath($taskDeliveryData.executable.path) -or $taskMigrationProof.currentDelivery.installationManifestSha256 -ne $taskDeliveryData.executable.installation.manifestSha256) { throw 'The actual migration did not bind the exact sealed current installer delivery.' }
+    if (@($taskMigrationProof.executionCopies).Count -ne 4) { throw 'Both migration cases require exact portable and installer execution copies.' }
+    foreach ($taskCaseId in @('defaultD','externalD')) {
+      $taskCases = @($taskMigrationProof.cases | Where-Object { $_.id -eq $taskCaseId })
+      if ($taskCases.Count -ne 1 -or $taskCases[0].result -ne 'passed' -or $taskCases[0].actualInstaller -ne $true -or $taskCases[0].defaultUninstall -ne $true -or $taskCases[0].ownerSid -ne $taskCreatedSid.Value) { throw 'A required actual installer/default-uninstaller migration case did not pass.' }
+      foreach ($taskCheck in @('portable10-native-generated-saved-player','portable10-source-idle-complete-inventory','actual-inno-migration','installed14-managed-members-and-receipt','saved-player-and-storage-restored','old-source-and-games-preserved','actual-default-uninstall','data-games-config-and-source-preserved-after-uninstall')) {
+        if (@($taskCases[0].checks | Where-Object { $_ -eq $taskCheck }).Count -ne 1) { throw 'The migration case lacks a required unique completed check.' }
+      }
+      foreach ($taskCasePath in @($taskCases[0].root, $taskCases[0].oldBox, $taskCases[0].dataDirectory)) {
+        if (-not [IO.Path]::GetFullPath($taskCasePath).StartsWith($taskReport.profileAcceptanceRoot + '\work\', [StringComparison]::OrdinalIgnoreCase)) { throw 'A migration case escaped the isolated profile work root.' }
+        Assert-TaskPathNoLinks $taskCasePath
+      }
+      foreach ($taskRole in @('portable','installer')) {
+        $taskCopies = @($taskMigrationProof.executionCopies | Where-Object { $_.caseId -eq $taskCaseId -and $_.role -eq $taskRole })
+        $taskExpectedSource = if ($taskRole -eq 'portable') { $taskPortableExecutable } else { $taskDeliveryData.executable }
+        if ($taskCopies.Count -ne 1 -or [IO.Path]::GetFullPath($taskCopies[0].sourcePath) -ne [IO.Path]::GetFullPath($taskExpectedSource.path) -or $taskCopies[0].bytes -ne $taskExpectedSource.bytes -or $taskCopies[0].sha256 -ne $taskExpectedSource.sha256 -or -not [IO.Path]::GetFullPath($taskCopies[0].path).StartsWith($taskReport.profileAcceptanceRoot + '\work\', [StringComparison]::OrdinalIgnoreCase)) { throw 'A migration execution copy differs from its exact frozen source or scope.' }
+      }
+    }
+    $taskReport.portableMigrationEvidencePath = $taskMigrationProofPath.Substring($taskRepository.Length + 1).Replace('\', '/')
+    $taskReport.portableMigrationBeforeIsolationSha256 = (Get-FileHash -LiteralPath $taskMigrationProofPath -Algorithm SHA256).Hash.ToLowerInvariant()
+  } else {
   $taskHandoffProofPath = Join-Path $taskOutput 'application-handoff/report.json'
   Assert-TaskPathNoLinks $taskHandoffProofPath
   $taskHandoffProof = Get-Content -LiteralPath $taskHandoffProofPath -Raw -Encoding utf8 | ConvertFrom-Json
@@ -233,6 +308,7 @@ exit $taskNodeExit
   }
   $taskReport.frameworkRecoveryEvidencePath = $taskFrameworkProofPath.Substring($taskRepository.Length + 1).Replace('\', '/')
   $taskReport.frameworkRecoveryEvidenceSha256 = (Get-FileHash -LiteralPath $taskFrameworkProofPath -Algorithm SHA256).Hash.ToLowerInvariant()
+  }
   $taskReport.standardAccount = $true
   $taskReport.profileLoaded = $true
   $taskReport.result = 'passed'
@@ -306,14 +382,18 @@ exit $taskNodeExit
 }
 if ($taskReport.result -ne 'passed' -or -not $taskReport.accountRemoved -or -not $taskReport.profileRemoved) { exit 1 }
 try {
-  $taskProofPath = Join-Path $taskOutput 'shipping-executable-checks-full.json'
+  $taskProofPath = if ($PortableMigrationOnly) { Join-Path $taskOutput 'portable-migration/report.json' } else { Join-Path $taskOutput 'shipping-executable-checks-full.json' }
   Assert-TaskPathNoLinks $taskProofPath
   $taskProof = Get-Content -LiteralPath $taskProofPath -Raw -Encoding utf8 | ConvertFrom-Json
+  if ($PortableMigrationOnly) {
+    if ($taskProof.schemaVersion -ne 1 -or $taskProof.scenario -ne 'portable-migration' -or $taskProof.result -ne 'passed' -or $taskProof.failures -ne 0 -or (Get-FileHash -LiteralPath $taskProofPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskReport.portableMigrationBeforeIsolationSha256 -or $taskProof.executionProfile.root -ne $taskReport.profileAcceptanceRoot -or $taskProof.executionProfile.ownerSid -ne $taskCreatedSid.Value -or $taskProof.executionProfile.integritySid -ne 'S-1-16-8192') { throw 'Final migration proof changed or did not match the successfully cleaned isolated account.' }
+  } else {
   if ($taskProof.result -ne 'passed' -or $taskProof.fixture -or -not $taskProof.isolatedWindows -or -not $taskProof.uninstalled -or $taskProof.ownerSid -ne $taskCreatedSid.Value -or $taskProof.executableSha256 -ne $taskReport.installerSha256) { throw 'Final installed proof did not match the successfully cleaned isolated account.' }
   if ($UseProfileAcceptance) {
     if ($taskProof.executionProfile.root -ne $taskReport.profileAcceptanceRoot -or $taskProof.executionProfile.ownerSid -ne $taskCreatedSid.Value -or $taskProof.executionProfile.integritySid -ne 'S-1-16-8192' -or [IO.Path]::GetFullPath($taskProof.executionCopy.sourcePath) -ne [IO.Path]::GetFullPath($taskDeliveryData.executable.path) -or $taskProof.executionCopy.sha256 -ne $taskReport.installerSha256 -or $taskProof.executionCopy.bytes -ne $taskDeliveryData.executable.bytes -or -not [IO.Path]::GetFullPath($taskProof.executionCopy.path).StartsWith($taskReport.profileAcceptanceRoot + '\work\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Final formal proof did not bind the exact Medium profile execution copy.' }
-    if (Test-Path -LiteralPath $taskReport.profileAcceptanceRoot) { throw 'The temporary acceptance root survived isolated profile cleanup.' }
   }
+  }
+  if ($UseProfileAcceptance -and (Test-Path -LiteralPath $taskReport.profileAcceptanceRoot)) { throw 'The temporary acceptance root survived isolated profile cleanup.' }
   $taskIsolationPath = Join-Path $taskOutput 'isolated-account.json'
   $taskRelativeIsolationPath = $taskIsolationPath.Substring($taskRepository.Length + 1).Replace('\', '/')
   $taskIsolationHash = (Get-FileHash -LiteralPath $taskIsolationPath -Algorithm SHA256).Hash.ToLowerInvariant()

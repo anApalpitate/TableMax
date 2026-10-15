@@ -362,8 +362,13 @@ Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 
 | 卸载bootstrap探针 | 全0–255字节、真实helper、三种尾组及非法编码拒绝；内存与落盘SHA一致，配方绑定helper和生成include                                                                    | 不执行helper或安装登记，不证明旧框架卸载可达，也不替代实际unins EXE/dat容量                                                    |
 | 框架失败恢复      | 实际A安装，B切换后合法SQLite写入使10成员指纹变化并拒绝健康；A框架EXE/dat原字节保留，live helper缺失时由A框架默认卸载                                               | 必须执行独立七步专项并核对D/G/config与未知资料保全；预期故障成功触发不是产品失败，仍不称真实断电                               |
 | 正式隔离系统链    | 新标准账户与真实profile先执行实际Apply和框架失败恢复两链，再执行正式GUID的安装／复装／快捷方式／首次物化计量／默认卸载                                             | 账户及管理员操作须有明确授权；工程checking、隔离标志、helper-only及只看driver exit0均不足，结果按实际报告认定                  |
+| 旧便携实际迁移    | 冻结便携程序真实启动、服务API保存及正常关闭；同一完整Inno迁移默认D与外置D两个case，新版恢复原身份／发行，默认卸载保全数据库、配置、G与未知资料                     | 独立fresh profile逐case实际安装／卸载；保全-only夹具、旧档读取或模块租约专项不能替代，具体版本与SHA白名单不外推到其他候选      |
 
 隔离账户驱动核对实际Apply和框架恢复两份报告的 `passed`、`failures:0`、所有步骤通过及各自七个唯一必需步骤，不能只看driver退出码。两份实际报告均须绑定同一原prepared报告的规范路径及raw SHA，驱动再记录两份报告自身的路径与raw SHA；prepared复验包括旧／新不同高位PE、完整材料、公钥及源码输入。框架恢复的七个步骤ID与操作参数只在[测试工具](../../tools/test/README.md#完整安装与程序更新验证)维护。
+
+测试更新签名与生产信任分离。双PE夹具用独立测试GUID、进程内RSA私钥及fixture-only公钥资源，对测试描述原始字节签名和验签；测试与生产描述相互拒绝，不为夹具修改生产产品ID、签名器或内置根。夹具WinForms计时器经一次性 `Application.Idle` 在生产入口完成初始化后启动，退出时解除回调并停止，避免提前创建隐藏窗口；修复夹具时点不等于实际交接通过。具体实现和回归入口见[完整安装验证工具](../../tools/test/README.md#完整安装与程序更新验证)。
+
+旧便携迁移与完整Apply／正式安装链分开编排，仍使用已授权的新标准用户及真实Medium profile能力。验收输入必须是被冻结的旧便携完整EXE、原始指针副本和新完整installer；先由旧程序生成合法闲置数据和完整G，再经真实installer迁移，不制造数据库或模块形状来规避入口。默认D核复制与原B逐文件保全；外置D核原指针及G保全。每case完成精确默认卸载并清除登记后才能进入下一case，报告绑定原输入、执行副本、源码、SID及两个case的实际结果，账户／profile清理报告SHA另行绑定。该工具目前只覆盖明确的便携10／候选14字节，更换候选需重审；具体命令、稳定报告字段及当前结果分别见[工具](../../tools/test/README.md#完整安装与程序更新验证)和[任务](../tasks/windows-installation-update.md)，不能把工具准备写成迁移通过。
 
 账户子进程必须加载真实标准用户profile，按Windows实际文件夹和身份归一 `USERPROFILE`、`LOCALAPPDATA`、`APPDATA`、`HOMEDRIVE`、`HOMEPATH`、`USERNAME`、`USERDOMAIN`，并核对应用数据路径属于本次profile；临时根与输出只授予新SID所需权限。PowerShell 5.1通过 `ProcessStartInfo` 调用Node，显式UTF-8并行读取stdout/stderr、有界等待排空后按实际ExitCode判定，避免原生命令stderr被 `ErrorActionPreference=Stop`误判；异常和双流日志保留。
 

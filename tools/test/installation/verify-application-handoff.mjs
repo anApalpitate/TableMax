@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createHash, generateKeyPairSync } from 'node:crypto';
+import { createWriteStream } from 'node:fs';
 import {
   copyFile,
   lstat,
@@ -14,15 +15,18 @@ import {
 } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { Transform } from 'node:stream';
 import { chromium } from 'playwright';
 import { createInstallationFixturePackage } from '../../release/installation-fixture.mjs';
 import {
   applicationPublicKeyXml,
   applicationUpdateMachineBlock,
   extractApplicationUpdate,
-  signApplicationUpdate,
-  verifyApplicationUpdate,
 } from '../../shared/application-update.mjs';
+import {
+  signFixtureApplicationUpdate,
+  verifyFixtureApplicationUpdate,
+} from '../support/fixture-application-update.mjs';
 import {
   materializeAcceptanceExecutable,
   resolveWindowsAcceptanceProfile,
@@ -288,8 +292,14 @@ export async function verifyApplicationHandoff({
     steps: [],
     failures: 0,
     failureLimit: 3,
+    nativeDiagnostics: {
+      desktopLogs: [],
+      errors: [],
+      logBoundary:
+        'Raw snapshots of the private default B/logs/desktop.log may include either fixture Native generation. They do not attribute a record to a PID or recover the exit status of the indirectly launched persistent host.',
+    },
     boundary:
-      'Actual two-build fixture Inno/Native/Node and real ApplicationUpdate.Apply/prepare/parent handoff. Only GitHub HTTP is a managed signed-fixture transport. No production GUID installation/system mutation, public version/current pointer, actual internet availability or old-version saved-game compatibility claim. Signed descriptions retain the protocol product GUID; Windows registration uses the distinct fixture GUID.',
+      'Actual two-build fixture Inno/Native/Node and real ApplicationUpdate.Apply/prepare/parent handoff. Only GitHub HTTP is a managed signed-fixture transport. No production GUID installation/system mutation, public version/current pointer, actual internet availability or old-version saved-game compatibility claim. Original fixture-GUID payload bytes are authenticated by a test-only RSA wrapper; Windows registration uses that same fixture GUID. The production JS product contract is unchanged.',
     releaseMetadataBoundary:
       'The source ZIP asset is metadata-only (one-byte placeholder), never built, downloaded or published. Installer bytes and their signed identity are real fixture materials.',
   };
@@ -298,7 +308,184 @@ export async function verifyApplicationHandoff({
     installed = false,
     desktop,
     newBrowser,
+    oldNativeCapture,
     actualExecutionInputs;
+  function observeOldNative(child) {
+    const observed = {
+      pid: child.pid,
+      attachedAtUtc: new Date().toISOString(),
+      exitCode: child.exitCode,
+      signalCode: child.signalCode,
+      boundary:
+        'Raw streams begin after launchDesktop returns. Earlier startup bytes cannot be replayed by this caller; launchDesktop errors retain only its existing bounded startup diagnostic. The persistent new Native is not this child; its available B/logs/desktop.log is archived separately.',
+    };
+    report.nativeDiagnostics.oldNative = observed;
+    const updateExit = (code, signal) => {
+      observed.exitCode = code;
+      observed.signalCode = signal;
+      observed.exitObservedAtUtc = new Date().toISOString();
+    };
+    child.once('exit', updateExit);
+    child.once('close', (code, signal) => {
+      updateExit(code, signal);
+      observed.closeObservedAtUtc = new Date().toISOString();
+    });
+    child.once('error', (error) => {
+      observed.processError = error.message;
+    });
+    const streams = ['stdout', 'stderr'].map((name) => {
+      const path = join(evidence, 'old-native-' + name + '.bin');
+      assert.equal(
+        child[name].readableEncoding,
+        null,
+        'Old Native raw stream was already decoded',
+      );
+      const output = createWriteStream(path, { flags: 'wx' });
+      const stream = {
+        name,
+        path,
+        source: child[name],
+        output,
+        maximumBytes: 2 * 1024 * 1024,
+        observedBytes: 0,
+        archivedBytes: 0,
+        truncated: false,
+      };
+      stream.count = (chunk) => {
+        stream.observedBytes += chunk.length;
+      };
+      const archive = new Transform({
+        transform(chunk, encoding, done) {
+          const bytes = Buffer.isBuffer(chunk)
+            ? chunk
+            : Buffer.from(chunk, encoding);
+          const remaining = stream.maximumBytes - stream.archivedBytes;
+          const stored = bytes.subarray(0, remaining);
+          stream.archivedBytes += stored.length;
+          if (stored.length !== bytes.length) {
+            stream.truncated = true;
+            stream.source.unpipe(archive);
+            stream.source.resume();
+          }
+          done(null, stored);
+          if (stream.truncated) archive.end();
+        },
+      });
+      stream.archive = archive;
+      stream.closed = new Promise((done) => output.once('close', done));
+      output.once('error', (error) => {
+        stream.error = error.message;
+        stream.source.unpipe(archive);
+        stream.source.resume();
+        archive.destroy();
+      });
+      stream.source.on('data', stream.count);
+      stream.source.pipe(archive).pipe(output);
+      return stream;
+    });
+    return async () => {
+      let timer;
+      let complete;
+      try {
+        complete = await Promise.race([
+          Promise.all(streams.map((stream) => stream.closed)).then(() => true),
+          new Promise((done) => {
+            timer = setTimeout(() => done(false), 5000);
+          }),
+        ]);
+      } finally {
+        clearTimeout(timer);
+      }
+      if (!complete) {
+        observed.captureStoppedBeforeStreamClose = true;
+        for (const stream of streams) {
+          stream.source.unpipe(stream.archive);
+          stream.source.resume();
+          stream.archive.end();
+        }
+        try {
+          complete = await Promise.race([
+            Promise.all(streams.map((stream) => stream.closed)).then(
+              () => true,
+            ),
+            new Promise((done) => {
+              timer = setTimeout(() => done(false), 5000);
+            }),
+          ]);
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+      observed.exitCode = child.exitCode;
+      observed.signalCode = child.signalCode;
+      observed.processStillRunning =
+        child.exitCode === null && child.signalCode === null;
+      observed.streams = [];
+      for (const stream of streams) {
+        stream.source.off('data', stream.count);
+        if (!complete) {
+          stream.output.destroy();
+          observed.streams.push({
+            name: stream.name,
+            path: stream.path,
+            maximumBytes: stream.maximumBytes,
+            observedBytes: stream.observedBytes,
+            truncated: stream.truncated,
+            status: 'archive-close-timeout',
+          });
+          continue;
+        }
+        observed.streams.push({
+          name: stream.name,
+          ...(await record(stream.path)),
+          maximumBytes: stream.maximumBytes,
+          observedBytes: stream.observedBytes,
+          truncated: stream.truncated,
+          sourceReachedEof: stream.source.readableEnded,
+          ...(stream.error ? { error: stream.error } : {}),
+        });
+      }
+      assert.ok(complete, 'Old Native raw stream archive did not close');
+      assert.ok(
+        streams.every((stream) => !stream.error),
+        'Old Native raw stream archive failed',
+      );
+      assert.ok(
+        streams.every((stream) => !stream.truncated),
+        'Old Native raw stream exceeded its per-stream 2 MiB archive budget',
+      );
+      assert.ok(
+        streams.every((stream) => stream.source.readableEnded),
+        'Old Native raw stream archive stopped before source EOF',
+      );
+    };
+  }
+  async function archiveDesktopLog(stage) {
+    const sourcePath = join(root, 'TableMax/logs/desktop.log');
+    await noLinks(sourcePath);
+    if (!(await exists(sourcePath))) {
+      report.nativeDiagnostics.desktopLogs.push({
+        stage,
+        sourcePath,
+        status: 'absent',
+      });
+      return;
+    }
+    const bytes = await readFile(sourcePath);
+    const path = join(evidence, 'native-' + stage + '-desktop.log');
+    await writeFile(path, bytes, { flag: 'wx' });
+    report.nativeDiagnostics.desktopLogs.push({
+      stage,
+      sourcePath,
+      capturedAtUtc: new Date().toISOString(),
+      ...(await record(path)),
+    });
+  }
+  function diagnosticFailure(name, error) {
+    report.result = 'failed';
+    report.failures++;
+    report.nativeDiagnostics.errors.push({ name, error: error.message });
+  }
   async function execute(
     executable,
     args,
@@ -676,9 +863,11 @@ export async function verifyApplicationHandoff({
   const sources = [...nativeFiles, ...sourcePaths];
   report.sourceHashes = Object.fromEntries(
     await Promise.all(
-      [...sources, 'tools/shared/windows-acceptance-profile.mjs'].map(
-        async (path) => [path, hash(await readFile(path))],
-      ),
+      [
+        ...sources,
+        'tools/shared/windows-acceptance-profile.mjs',
+        'tools/test/support/fixture-application-update.mjs',
+      ].map(async (path) => [path, hash(await readFile(path))]),
     ),
   );
   const keyId = 'fixture-rsa-handoff';
@@ -941,7 +1130,7 @@ export async function verifyApplicationHandoff({
         );
         api = JSON.parse(previousPlan.apiJson);
         const signed = extractApplicationUpdate(api.body).envelope;
-        target = verifyApplicationUpdate(signed, {
+        target = verifyFixtureApplicationUpdate(signed, {
           trustedKeys: (await json(trust)).keys,
         }).description;
         assert.deepEqual(target, prepared.description);
@@ -980,7 +1169,7 @@ export async function verifyApplicationHandoff({
       });
       target = {
         schemaVersion: 1,
-        productId: '{DB749B9D-7D43-4F50-9FBD-551C9E8EF48D}',
+        productId: fixtureId,
         channel: 'stable',
         os: 'windows',
         arch: 'x64',
@@ -996,8 +1185,10 @@ export async function verifyApplicationHandoff({
         payloadManifestSha256: report.new.manifest.payloadManifestSha256,
         currentMappingSha256: report.new.manifest.currentMappingSha256,
       };
-      const envelope = signApplicationUpdate(target, privateKey, { keyId });
-      verifyApplicationUpdate(envelope, {
+      const envelope = signFixtureApplicationUpdate(target, privateKey, {
+        keyId,
+      });
+      verifyFixtureApplicationUpdate(envelope, {
         trustedKeys: { [keyId]: publicKey },
       });
       privateKey = undefined;
@@ -1086,14 +1277,24 @@ export async function verifyApplicationHandoff({
         return { registration: value };
       });
       await step('actual-old-host-transport', async () => {
-        desktop = await launchDesktop({
-          executablePath: join(root, 'TableMax/app/TableMax.exe'),
-          timeout: 90000,
-          env: {
-            ...environment,
-            TABLEMAX_BOX_DIRECTORY: join(root, 'TableMax'),
-          },
-        });
+        try {
+          desktop = await launchDesktop({
+            executablePath: join(root, 'TableMax/app/TableMax.exe'),
+            timeout: 90000,
+            env: {
+              ...environment,
+              TABLEMAX_BOX_DIRECTORY: join(root, 'TableMax'),
+            },
+          });
+        } catch (error) {
+          report.nativeDiagnostics.oldLaunchError = {
+            error: error.message,
+            boundary:
+              'launchDesktop did not return its child handle. Raw startup streams and the final child exit status are unavailable to this caller; this is the existing bounded support diagnostic.',
+          };
+          throw error;
+        }
+        oldNativeCapture = observeOldNative(desktop.process());
         const ready = await waitUntil(async () => {
           const error = await maybeJson(
             join(evidence, 'old-fixture-error.json'),
@@ -1187,6 +1388,31 @@ export async function verifyApplicationHandoff({
         assert.equal(ready.buildVersion, newBuild);
         assert.equal(ready.persistent, true);
         assert.equal(ready.currentMappingSha256, target.currentMappingSha256);
+        const installerFinished = await waitUntil(
+          async () => {
+            const directories = (
+              await readdir(join(root, 'TableMax/updates'))
+            ).filter((name) => name.startsWith('handoff-'));
+            assert.ok(
+              directories.length <= 1,
+              'Unexpected additional handoff transaction',
+            );
+            if (directories.length === 0) return null;
+            const value = await maybeJson(
+              join(root, 'TableMax/updates', directories[0], 'handoff.json'),
+            );
+            if (value?.status === 'installer-failed')
+              throw new Error(
+                'Actual handoff installer failed: ' + value.exitCode,
+              );
+            return value?.status === 'installer-finished' ? value : null;
+          },
+          'Actual handoff installer before registration',
+          180000,
+        );
+        assert.equal(installerFinished.exitCode, 0);
+        assert.equal(resolve(installerFinished.root), root);
+        assert.equal(installerFinished.buildVersion, newBuild);
         const identity = await json(join(root, 'TableMax/.install.json'));
         assert.equal(identity.buildVersion, newBuild);
         assert.equal(
@@ -1211,6 +1437,7 @@ export async function verifyApplicationHandoff({
         assert.deepEqual(await record(outside), outsideBefore);
         return {
           ...ready,
+          installerFinished,
           identity,
           registration: reg,
           actualHostState: state,
@@ -1273,6 +1500,11 @@ export async function verifyApplicationHandoff({
     report.result = 'failed';
     report.error = error.message;
   } finally {
+    const actualExecution = !prepareOnly && !verifyPreparedOnly && !compileOnly;
+    if (actualExecution)
+      await archiveDesktopLog('before-uninstall').catch((error) =>
+        diagnosticFailure('desktop-log-before-uninstall', error),
+      );
     if (installed) {
       try {
         await step('exact-fixture-uninstall-cleanup', async () => {
@@ -1301,10 +1533,31 @@ export async function verifyApplicationHandoff({
       }
     }
     await newBrowser?.close().catch(() => {});
-    await desktop?.close().catch((error) => {
-      report.result = 'failed';
-      report.desktopCleanupError = error.message;
-    });
+    if (desktop) {
+      const child = desktop.process();
+      try {
+        await desktop.close();
+        assert.equal(
+          child.exitCode,
+          0,
+          'Actual old Native normal shutdown returned a nonzero exit code',
+        );
+      } catch (error) {
+        report.desktopCleanupError = error.message;
+        diagnosticFailure('old-native-normal-shutdown', error);
+      } finally {
+        report.nativeDiagnostics.oldNative.exitCode = child.exitCode;
+        report.nativeDiagnostics.oldNative.signalCode = child.signalCode;
+        report.nativeDiagnostics.oldNative.normalShutdownExpected = true;
+      }
+    }
+    await oldNativeCapture?.().catch((error) =>
+      diagnosticFailure('old-native-raw-streams', error),
+    );
+    if (actualExecution)
+      await archiveDesktopLog('final').catch((error) =>
+        diagnosticFailure('desktop-log-final', error),
+      );
     for (const [path, sha256] of Object.entries(report.sourceHashes))
       if (hash(await readFile(path)) !== sha256) {
         report.result = 'failed';
