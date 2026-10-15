@@ -29,14 +29,14 @@ internal static class NativeRecoveryHarness
     private static InstallationManifest InstallFixture(string root)
     {
         Directory.CreateDirectory(root);
-        var names = new[] { "TableMax.exe", "UpdateHelper.exe", "TableMax/app/TableMax.exe", "TableMax/app/node.exe", "TableMax/app/server.cjs", "TableMax/app/.tablemax-release.json", "TableMax/app/preinstalled-games/bootstrap.json" };
+        var names = new[] { "TableMax.exe", "UpdateHelper.exe", "Updater.exe", "data/app/TableMax.exe", "data/app/node.exe", "data/app/server.cjs", "data/app/.tablemax-release.json", "data/app/preinstalled-games/bootstrap.json" };
         foreach (var name in names)
         {
             var path = InstallationCore.Member(root, name); Directory.CreateDirectory(Path.GetDirectoryName(path));
-            if (name == "TableMax.exe" || name == "TableMax/app/TableMax.exe") File.Copy(typeof(NativeRecoveryHarness).Assembly.Location, path);
+            if (name == "TableMax.exe" || name == "data/app/TableMax.exe") File.Copy(typeof(NativeRecoveryHarness).Assembly.Location, path);
             else File.WriteAllText(path, "Private recovery program fixture " + name, InstallationCore.Utf8);
         }
-        var identity = new InstallationManifest { schemaVersion = 1, productId = InstallationCore.ProductId, arch = "x64", installProtocol = 1, releaseVersion = "1.0.6", buildVersion = "1.0.6.60001", installationId = Guid.NewGuid().ToString("D"), root = root, boxRoot = InstallationCore.Box(root), ownerSid = WindowsIdentity.GetCurrent().User.Value, payloadManifestSha256 = InstallationCore.HashFile(InstallationCore.Member(root, "TableMax/app/.tablemax-release.json")), currentMappingSha256 = InstallationCore.HashFile(InstallationCore.Member(root, "TableMax/app/preinstalled-games/bootstrap.json")), files = names.Select(name => { var path = InstallationCore.Member(root, name); return new ManagedFile { path = name, bytes = (int)new FileInfo(path).Length, sha256 = InstallationCore.HashFile(path) }; }).ToArray() };
+        var identity = new InstallationManifest { schemaVersion = 1, productId = InstallationCore.ProductId, arch = "x64", installProtocol = 1, releaseVersion = "1.0.6", buildVersion = "1.0.6.60001", installationId = Guid.NewGuid().ToString("D"), root = root, boxRoot = InstallationCore.Box(root), ownerSid = WindowsIdentity.GetCurrent().User.Value, payloadManifestSha256 = InstallationCore.HashFile(InstallationCore.Member(root, "data/app/.tablemax-release.json")), currentMappingSha256 = InstallationCore.HashFile(InstallationCore.Member(root, "data/app/preinstalled-games/bootstrap.json")), files = names.Select(name => { var path = InstallationCore.Member(root, name); return new ManagedFile { path = name, bytes = (int)new FileInfo(path).Length, sha256 = InstallationCore.HashFile(path) }; }).ToArray() };
         InstallationCore.Atomic(InstallationCore.IdentityPath(root), identity); identity.Verify(root); return identity;
     }
     private static string Journal(InstallationManifest identity, string phase, string fingerprint = null)

@@ -1,3 +1,4 @@
+import { failureLimit } from '../runner/failure-policy.mjs';
 import assert from 'node:assert/strict';
 import {
   mkdirSync,
@@ -146,8 +147,9 @@ function store(fault) {
   value.setCatalog(envelope);
   return value;
 }
+const limit = failureLimit();
 async function check(name, operation) {
-  if (report.failures >= 3) {
+  if (report.failures >= limit) {
     report.checks.push({ name, status: 'unstarted' });
     return;
   }

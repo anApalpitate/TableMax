@@ -1,76 +1,50 @@
+import { failureLimit } from '../runner/failure-policy.mjs';
+import {
+  prepareHandoffFixture,
+  hash,
+  inside,
+  noLinks,
+  json,
+  writeJson,
+  record,
+  exists,
+} from './prepare/handoff-fixture.mjs';
+import { runFrameworkRecoveryScenario } from './scenarios/framework-recovery.mjs';
+import { runApplicationHandoffScenario } from './scenarios/application-handoff.mjs';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { createHash, generateKeyPairSync } from 'node:crypto';
+
 import { createWriteStream } from 'node:fs';
 import {
-  copyFile,
   lstat,
   mkdir,
   mkdtemp,
   readFile,
   readdir,
-  rename,
   stat,
   writeFile,
 } from 'node:fs/promises';
-import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Transform } from 'node:stream';
-import { chromium } from 'playwright';
-import { createInstallationFixturePackage } from '../../release/installation-fixture.mjs';
-import {
-  applicationPublicKeyXml,
-  applicationUpdateMachineBlock,
-  extractApplicationUpdate,
-  parseStrictJson,
-} from '../../shared/application-update.mjs';
-import {
-  signFixtureApplicationUpdate,
-  verifyFixtureApplicationUpdate,
-} from '../support/fixture-application-update.mjs';
+
+import { parseStrictJson } from '../../shared/application-update.mjs';
+import { verifyFixtureApplicationUpdate } from '../support/fixture-application-update.mjs';
 import {
   materializeAcceptanceExecutable,
   resolveWindowsAcceptanceProfile,
 } from '../../shared/windows-acceptance-profile.mjs';
 import { assertWorkspaceRoot } from '../../shared/workspace-root.mjs';
 import { launchDesktop } from '../support/desktop-test.mjs';
+import { verifyResourceCleanup } from '../../release/installation-evidence.mjs';
 
 const fixtureId = '{ABFDE9A8-48D2-48D5-BC51-2A2D03F0D4F5}';
-const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const powershell = join(
   process.env.WINDIR ?? 'C:/Windows',
   'System32/WindowsPowerShell/v1.0/powershell.exe',
 );
 const powershellUtf8 =
   '$ErrorActionPreference="Stop"; [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); ';
-function inside(root, path) {
-  const name = relative(resolve(root), resolve(path));
-  assert.ok(
-    name && !isAbsolute(name) && name !== '..' && !name.startsWith('..' + sep),
-    'Path escapes fixture scope',
-  );
-  return resolve(path);
-}
-async function noLinks(path) {
-  for (let cursor = resolve(path); ; cursor = dirname(cursor)) {
-    try {
-      assert.ok(!(await lstat(cursor)).isSymbolicLink(), 'Linked fixture path');
-    } catch (error) {
-      if (error.code !== 'ENOENT') throw error;
-    }
-    if (dirname(cursor) === cursor) break;
-  }
-}
-async function json(path) {
-  return JSON.parse(await readFile(path, 'utf8'));
-}
-async function writeJson(path, value) {
-  await writeFile(path, JSON.stringify(value, null, 2) + '\n');
-}
-async function record(path) {
-  const bytes = await readFile(path);
-  return { path: resolve(path), bytes: bytes.length, sha256: hash(bytes) };
-}
 const databaseNames = [
   'foundation.sqlite',
   'foundation.sqlite-wal',
@@ -83,15 +57,6 @@ const databaseNames = [
   'room.sqlite.migration.json',
   'room.sqlite.migration.lock',
 ];
-async function exists(path) {
-  try {
-    await lstat(path);
-    return true;
-  } catch (error) {
-    if (error.code === 'ENOENT') return false;
-    throw error;
-  }
-}
 async function databaseFingerprint(directory) {
   const lines = [];
   for (const name of databaseNames) {
@@ -118,6 +83,7 @@ async function preservedData(directory) {
           '.install.json',
           '.installer-receipt.json',
           '.uninstalled.json',
+          '.uninstall-resources.json',
         ].includes(entry.name)
       )
         continue;
@@ -151,13 +117,6 @@ async function maybeJson(path) {
     throw error;
   }
 }
-const sourcePaths = [
-  'apps/desktop/installation-runtime/InstallationCore.cs',
-  'apps/desktop/installation-runtime/UpdateProtocol.cs',
-  'apps/desktop/installation-runtime/TrustRoots.cs',
-  'tools/test/installation/verify-application-handoff.cs',
-];
-
 /** Builds and runs only explicitly isolated fixture Native/installer chains. */
 export async function verifyApplicationHandoff({
   nativeTemplate,
@@ -296,11 +255,11 @@ export async function verifyApplicationHandoff({
   const root = longInstallationRoot
     ? rootBase + '测'.repeat(198 - rootBase.length)
     : rootBase;
-  const nativeWorkingDirectory = join(root, 'TableMax/app');
-  const configurationPath = join(root, 'TableMax/TableMax.config.json');
+  const nativeWorkingDirectory = join(root, 'data/app');
+  const configurationPath = join(root, 'data/TableMax.config.json');
   const externalDataDirectory = usesExternalData ? join(work, 'D') : null;
-  const dataDirectory = externalDataDirectory ?? join(root, 'TableMax');
-  const gamesDirectory = join(root, 'TableMax/games');
+  const dataDirectory = externalDataDirectory ?? join(root, 'data');
+  const gamesDirectory = join(root, 'data/games');
   const longestFixtureShortcut = join(
     root,
     'fixture-shortcuts/Start/卸载 TableMax Installation Fixture.lnk',
@@ -325,8 +284,8 @@ export async function verifyApplicationHandoff({
     images: [
       'TableMax.exe',
       'UpdateHelper.exe',
-      'TableMax/app/TableMax.exe',
-      'TableMax/app/node.exe',
+      'data/app/TableMax.exe',
+      'data/app/node.exe',
     ].map((name) => {
       const path = join(root, name);
       assert.ok(
@@ -396,7 +355,7 @@ export async function verifyApplicationHandoff({
     fixtureId,
     steps: [],
     failures: 0,
-    failureLimit: 3,
+    failureLimit: failureLimit(),
     nativeDiagnostics: {
       desktopLogs: [],
       errors: [],
@@ -436,6 +395,38 @@ export async function verifyApplicationHandoff({
     restartNativeCapture,
     oldInstallationIdentity,
     actualExecutionInputs;
+  const lifecycle = {
+    get installed() {
+      return installed;
+    },
+    set installed(value) {
+      installed = value;
+    },
+    get desktop() {
+      return desktop;
+    },
+    set desktop(value) {
+      desktop = value;
+    },
+    get newBrowser() {
+      return newBrowser;
+    },
+    set newBrowser(value) {
+      newBrowser = value;
+    },
+    get oldNativeCapture() {
+      return oldNativeCapture;
+    },
+    set oldNativeCapture(value) {
+      oldNativeCapture = value;
+    },
+    get oldInstallationIdentity() {
+      return oldInstallationIdentity;
+    },
+    set oldInstallationIdentity(value) {
+      oldInstallationIdentity = value;
+    },
+  };
   function observeOldNative(child, role = 'old') {
     assert.ok(['old', 'restart'].includes(role));
     const observed = {
@@ -688,7 +679,7 @@ export async function verifyApplicationHandoff({
   }
   async function stopPersistentHost(ready) {
     assert.ok(Number.isSafeInteger(ready.desktopPid) && ready.desktopPid > 0);
-    const image = join(root, 'TableMax/app/TableMax.exe');
+    const image = join(root, 'data/app/TableMax.exe');
     const marker = join(evidence, 'persistent-host-handle-held.json');
     const observation = join(evidence, 'persistent-host-exit.json');
     const request = join(evidence, 'quit.request');
@@ -801,7 +792,7 @@ export async function verifyApplicationHandoff({
     await newBrowser?.close().catch(() => {});
     newBrowser = undefined;
     await archiveDesktopLog('before-next-startup');
-    const box = join(root, 'TableMax');
+    const box = join(root, 'data');
     const before = {
       configuration: await record(configurationPath),
       identity: await record(join(box, '.install.json')),
@@ -1088,7 +1079,7 @@ export async function verifyApplicationHandoff({
       const { sourcePath, path, bytes, sha256 } = value;
       return { sourcePath, path, bytes, sha256 };
     };
-    samePath(dirname(directory), join(root, 'TableMax/updates'));
+    samePath(dirname(directory), join(root, 'data/updates'));
     assert.match(
       directory.slice(dirname(directory).length + 1),
       /^handoff-[a-f0-9]{32}$/,
@@ -1155,7 +1146,7 @@ export async function verifyApplicationHandoff({
     assert.equal(launch.installationId, oldInstallationIdentity.installationId);
     assert.equal(launch.ownerSid, oldInstallationIdentity.ownerSid);
     samePath(launch.root, root);
-    samePath(launch.boxRoot, join(root, 'TableMax'));
+    samePath(launch.boxRoot, join(root, 'data'));
     assert.equal(launch.installedBuildVersion, oldBuild);
     assert.equal(launch.targetBuildVersion, target.buildVersion);
     assert.equal(launch.payloadManifestSha256, target.payloadManifestSha256);
@@ -1173,7 +1164,7 @@ export async function verifyApplicationHandoff({
     assert.equal(canonicalHelper.sha256, oldHelper.sha256);
     const installerSource = join(
       root,
-      'TableMax/updates/downloads',
+      'data/updates/downloads',
       target.sha256,
       target.assetName,
     );
@@ -1428,537 +1419,18 @@ export async function verifyApplicationHandoff({
       throw error;
     }
   }
-  async function frameworkRecovery() {
-    const box = join(root, 'TableMax');
-    const oldHelper = report.old.manifest.files.find(
-      (file) => file.path === 'UpdateHelper.exe',
-    );
-    const newHelper = report.new.manifest.files.find(
-      (file) => file.path === 'UpdateHelper.exe',
-    );
-    for (const [value, helper] of [
-      [report.old, oldHelper],
-      [report.new, newHelper],
-    ]) {
-      const embedded =
-        value.delivery.executable.installation.recipe.compiler
-          .embeddedUninstallHelper;
-      assert.equal(
-        embedded.encoding,
-        'base64',
-        'Framework must contain its own embedded coordinator',
-      );
-      assert.equal(embedded.sha256, helper.sha256);
-      assert.equal(embedded.bytes, helper.bytes);
-    }
-    assert.notEqual(
-      oldHelper.sha256,
-      newHelper.sha256,
-      'The two fixture helpers must have different actual bytes',
-    );
-    const outside = join(root, '朋友资料.txt');
-    await writeFile(outside, 'Preserved by actual old-framework recovery\n', {
-      flag: 'wx',
-    });
-    const outsideBefore = await record(outside);
-    report.frameworkRecovery = {
-      productId: fixtureId,
-      root,
-      oldBuild,
-      newBuild,
-      expectedNativeExitCode: 42,
-      failureRequest: 'foundation-write-and-fail-v1',
-      boundary:
-        'Actual fixture Inno failure and the previously installed framework uninstaller. No production identity, external data directory, real internet, genuine power-loss or successful B update claim.',
-    };
-    await step('framework-old-inno-install', async () => {
-      assert.equal(await registration(), null);
-      const result = await execute(
-        actualExecutionInputs.old.path,
-        [
-          '/VERYSILENT',
-          '/SUPPRESSMSGBOXES',
-          '/NORESTART',
-          '/DIR=' + root,
-          '/LOG=' + join(evidence, 'framework-old-inno.log'),
-        ],
-        'framework-old-inno',
-      );
-      assert.equal(result.code, 0, result.log);
-      installed = true;
-      const current = await registration();
-      assert.equal(resolve(current.InstallLocation), root);
-      assert.equal(current.DisplayVersion, oldBuild);
-      assert.equal(
-        (await json(join(box, 'TableMax.config.json'))).dataDirectory,
-        '.',
-      );
-      return { registration: current };
-    });
-    const shortcutSnapshot = async () => {
-      const name = 'TableMax Installation Fixture';
-      const paths = [
-        ['desktop', join(root, 'fixture-shortcuts/Desktop', name + '.lnk')],
-        ['launch', join(root, 'fixture-shortcuts/Start', name + '.lnk')],
-        [
-          'uninstall',
-          join(root, 'fixture-shortcuts/Start', '卸载 ' + name + '.lnk'),
-        ],
-      ];
-      const files = [];
-      for (const [role, path] of paths) {
-        await noLinks(path);
-        const present = await exists(path);
-        if (role !== 'desktop') assert.equal(present, true);
-        if (present) assert.ok((await lstat(path)).isFile());
-        files.push({
-          role,
-          path,
-          present,
-          file: present ? await record(path) : null,
-        });
-      }
-      return files;
-    };
-    let frameworkBefore,
-      configBefore,
-      fingerprintBefore,
-      registrationBefore,
-      shortcutsBefore;
-    await step('framework-old-bootstrap-baseline', async () => {
-      frameworkBefore = await Promise.all(
-        ['unins000.exe', 'unins000.dat'].map((name) =>
-          record(join(root, name)),
-        ),
-      );
-      configBefore = await record(join(box, 'TableMax.config.json'));
-      fingerprintBefore = await databaseFingerprint(box);
-      registrationBefore = await registration(true);
-      assert.equal(resolve(registrationBefore.InstallLocation), root);
-      assert.equal(registrationBefore.DisplayVersion, oldBuild);
-      assert.ok(registrationBefore.values.length > 0);
-      shortcutsBefore = await shortcutSnapshot();
-      assert.equal(
-        (await record(join(root, 'UpdateHelper.exe'))).sha256,
-        oldHelper.sha256,
-      );
-      report.frameworkRecovery.oldFramework = frameworkBefore;
-      report.frameworkRecovery.beforeDatabaseFingerprint = fingerprintBefore;
-      report.frameworkRecovery.beforeRegistration = registrationBefore;
-      report.frameworkRecovery.beforeShortcuts = shortcutsBefore;
-      return {
-        framework: frameworkBefore,
-        registration: registrationBefore,
-        shortcuts: shortcutsBefore,
-        oldHelperSha256: oldHelper.sha256,
-        config: configBefore,
-        databaseFingerprint: fingerprintBefore,
-      };
-    });
-    let witness, pending, dataBeforeUninstall;
-    await step('framework-new-inno-expected-health-failure', async () => {
-      const innoLogPath = join(evidence, 'framework-new-failed-inno.log');
-      const result = await execute(
-        actualExecutionInputs.new.path,
-        [
-          '/VERYSILENT',
-          '/SUPPRESSMSGBOXES',
-          '/NORESTART',
-          '/DIR=' + root,
-          '/LOG=' + innoLogPath,
-        ],
-        'framework-new-expected-failure',
-        180000,
-        { TABLEMAX_HANDOFF_FRAMEWORK_FAILURE: 'foundation-write-and-fail-v1' },
-      );
-      assert.equal(
-        result.code,
-        7,
-        'B must reject preparation before PerformInstall',
-      );
-      const innoLog = await record(innoLogPath);
-      const text = await readFile(innoLogPath, 'utf8');
-      const coordinator = [
-        ...text.matchAll(
-          /TableMax coordinator finished with exit code: ([0-9]+)\b/g,
-        ),
-      ];
-      assert.equal(
-        coordinator.length,
-        1,
-        'Exactly one actual coordinator exit marker is required',
-      );
-      const helperExitCode = Number(coordinator[0][1]);
-      assert.equal(helperExitCode, 40);
-      for (const marker of [
-        'Starting the installation process.',
-        'Saving uninstall information.',
-        'Renaming uninstaller.',
-        'Creating new uninstall log:',
-        'Will overwrite existing uninstall log:',
-        'Creating new uninstall key:',
-        'Writing uninstall key values.',
-        'Deleting uninstall key left over',
-      ])
-        assert.equal(
-          text.includes(marker),
-          false,
-          'Rejected B reached framework writes: ' + marker,
-        );
-      witness = await json(join(evidence, 'framework-health-failure.json'));
-      assert.equal(witness.productId, fixtureId);
-      assert.equal(resolve(witness.root), root);
-      assert.equal(resolve(witness.dataDirectory), box);
-      assert.equal(witness.buildVersion, newBuild);
-      assert.equal(witness.nodeExitCode, 0);
-      assert.equal(witness.expectedNativeExitCode, 42);
-      assert.equal(witness.productionEntryInvoked, false);
-      assert.equal(witness.sqliteWriteCompleted, true);
-      assert.notEqual(witness.beforeSha256, witness.afterSha256);
-      const candidates = [];
-      for (const name of await readdir(
-        join(box, '.installation-transactions'),
-      )) {
-        const directory = join(box, '.installation-transactions', name);
-        const state = await maybeJson(join(directory, 'state.json'));
-        if (state?.phase === 'health-failed') {
-          const targetIdentity = await json(join(directory, 'target.json'));
-          if (targetIdentity.buildVersion === newBuild)
-            candidates.push({ directory, state, target: targetIdentity });
-        }
-      }
-      assert.equal(
-        candidates.length,
-        1,
-        'Exactly one failed B transaction required',
-      );
-      pending = candidates[0];
-      assert.equal(resolve(pending.state.dataDirectory), box);
-      assert.equal(pending.state.databaseFingerprint, fingerprintBefore);
-      const fingerprintAfter = await databaseFingerprint(box);
-      assert.notEqual(fingerprintAfter, pending.state.databaseFingerprint);
-      const current = await json(join(box, '.install.json'));
-      assert.equal(current.buildVersion, newBuild);
-      assert.equal(current.installationId, witness.installationId);
-      assert.equal(
-        current.payloadManifestSha256,
-        report.new.manifest.payloadManifestSha256,
-      );
-      const receipt = await json(join(box, '.installer-receipt.json'));
-      assert.equal(receipt.sha256, report.new.delivery.executable.sha256);
-      assert.equal(
-        (await record(join(root, 'UpdateHelper.exe'))).sha256,
-        newHelper.sha256,
-      );
-      assert.deepEqual(
-        await record(join(box, 'TableMax.config.json')),
-        configBefore,
-      );
-      dataBeforeUninstall = await preservedData(box);
-      report.frameworkRecovery.failedBExitCode = result.code;
-      report.frameworkRecovery.witness = witness;
-      report.frameworkRecovery.failedTransaction = pending;
-      report.frameworkRecovery.afterFailureDatabaseFingerprint =
-        fingerprintAfter;
-      report.frameworkRecovery.dataBeforeUninstall = dataBeforeUninstall;
-      return {
-        expectedFailure: true,
-        installerExitCode: result.code,
-        helperExitCode,
-        innoLog,
-        preparationRejectedBeforePerformInstall: true,
-        frameworkWritesAbsent: true,
-        nativeWitness: witness,
-        pending,
-        databaseFingerprint: fingerprintAfter,
-        actualBHelperSha256: newHelper.sha256,
-      };
-    });
-    await step('framework-old-uninstaller-retained', async () => {
-      const after = await Promise.all(
-        frameworkBefore.map((file) => record(file.path)),
-      );
-      assert.deepEqual(
-        after,
-        frameworkBefore,
-        'Failed B must retain the actual A framework bytes',
-      );
-      const current = await registration(true);
-      assert.equal(resolve(current.InstallLocation), root);
-      assert.equal(current.DisplayVersion, oldBuild);
-      assert.deepEqual(
-        current,
-        registrationBefore,
-        'Rejected B must retain every original A registry name/kind/data value',
-      );
-      const shortcuts = await shortcutSnapshot();
-      assert.deepEqual(
-        shortcuts,
-        shortcutsBefore,
-        'Rejected B must retain every original A shortcut state and raw bytes',
-      );
-      report.frameworkRecovery.registrationAfterBFailure = current;
-      report.frameworkRecovery.shortcutsAfterBFailure = shortcuts;
-      return {
-        framework: after,
-        registration: current,
-        shortcuts,
-        oldFrameworkRetained: true,
-        registrationRetained: true,
-        shortcutsRetained: true,
-      };
-    });
-    await step('framework-missing-live-helper', async () => {
-      const path = join(root, 'UpdateHelper.exe'),
-        before = await record(path);
-      assert.equal(before.sha256, newHelper.sha256);
-      const backup = join(work, 'fixture-missing-helper-original.exe');
-      assert.equal(await exists(backup), false);
-      await rename(path, backup);
-      const retained = await record(backup);
-      assert.equal(retained.sha256, before.sha256);
-      assert.equal(retained.bytes, before.bytes);
-      assert.equal(await exists(path), false);
-      report.frameworkRecovery.helperFault = {
-        mode: 'missing',
-        original: before,
-        preserved: retained,
-      };
-      return report.frameworkRecovery.helperFault;
-    });
-    await step('framework-actual-old-default-uninstall', async () => {
-      assert.deepEqual(
-        await record(frameworkBefore[0].path),
-        frameworkBefore[0],
-      );
-      assert.deepEqual(
-        await record(frameworkBefore[1].path),
-        frameworkBefore[1],
-      );
-      assert.equal(await exists(join(root, 'UpdateHelper.exe')), false);
-      const result = await execute(
-        frameworkBefore[0].path,
-        [
-          '/VERYSILENT',
-          '/SUPPRESSMSGBOXES',
-          '/NORESTART',
-          '/LOG=' + join(evidence, 'framework-actual-old-uninstall.log'),
-        ],
-        'framework-actual-old-default-uninstall',
-      );
-      assert.equal(result.code, 0, result.log);
-      report.frameworkRecovery.uninstallerExitCode = result.code;
-      return {
-        exitCode: result.code,
-        executedActualOldFramework: frameworkBefore[0],
-        liveHelperWasMissing: true,
-      };
-    });
-    await step('framework-preserved-data-and-registration', async () => {
-      assert.equal(await registration(), null);
-      assert.deepEqual(await record(outside), outsideBefore);
-      assert.deepEqual(await preservedData(box), dataBeforeUninstall);
-      assert.deepEqual(
-        await record(join(box, 'TableMax.config.json')),
-        configBefore,
-      );
-      for (const file of report.new.manifest.files)
-        assert.equal(
-          await exists(join(root, file.path)),
-          false,
-          'Managed file remains after default framework uninstall: ' +
-            file.path,
-        );
-      await waitUntil(
-        async () =>
-          !(await exists(frameworkBefore[0].path)) &&
-          !(await exists(frameworkBefore[1].path)),
-        'Old framework self-removal',
-        15000,
-      );
-      installed = false;
-      report.frameworkRecovery.registrationRemoved = true;
-      report.frameworkRecovery.preservedData = true;
-      return {
-        registrationRemoved: true,
-        dataAndGamesAndConfigPreserved: true,
-        unknown: outsideBefore,
-        managedFilesRemoved: true,
-        frameworkFilesRemoved: true,
-      };
-    });
-  }
-  const nativeFiles = (await readdir(resolve('apps/desktop/native')))
-    .filter((name) => name.endsWith('.cs'))
-    .map((name) => 'apps/desktop/native/' + name);
-  const sources = [...nativeFiles, ...sourcePaths];
-  report.sourceHashes = Object.fromEntries(
-    await Promise.all(
-      [
-        ...sources,
-        'tools/shared/application-update.mjs',
-        'tools/shared/windows-acceptance-profile.mjs',
-        'tools/test/support/fixture-application-update.mjs',
-      ].map(async (path) => [path, hash(await readFile(path))]),
-    ),
-  );
-  const keyId = 'fixture-rsa-handoff';
-  let privateKey, publicKey;
-  const trust = join(work, 'fixture-public-trust.json');
-  if (prepared) {
-    const source = inside(repository, prepared.fixturePublicKey.path);
-    await noLinks(source);
-    assert.deepEqual(await record(source), prepared.fixturePublicKey);
-    await copyFile(source, trust);
-  } else {
-    ({ privateKey, publicKey } = generateKeyPairSync('rsa', {
-      modulusLength: 3072,
-      publicExponent: 65537,
-    }));
-    const publicXml = applicationPublicKeyXml(publicKey);
-    await writeJson(trust, { schemaVersion: 1, keys: { [keyId]: publicXml } });
-  }
-  report.fixturePublicKey = await record(trust);
-  report.privateKey = prepared
-    ? 'No private key used; reverified public signed prepared materials'
-    : 'Generated only in Node memory; never serialized, logged or exported';
-  const version = (await json('package.json')).version;
-  const oldBuild = version + '.60000',
-    newBuild = version + '.60001';
-  const refs = resolve(
-    '.cache/nuget/microsoft.netframework.referenceassemblies.net48/1.0.3/build/.NETFramework/v4.8',
-  );
-  const sdk = (await json('global.json')).sdk.version;
-  const compiler = join(
-    process.env.ProgramFiles ?? 'C:/Program Files',
-    'dotnet/sdk',
-    sdk,
-    'Roslyn/bincore/csc.dll',
-  );
-  async function native(buildVersion) {
-    const directory = join(work, 'native-' + buildVersion);
-    await mkdir(directory);
-    for (const name of [
-      'TableMax.exe.config',
-      'Microsoft.Web.WebView2.Core.dll',
-      'Microsoft.Web.WebView2.WinForms.dll',
-      'WebView2Loader.dll',
-    ])
-      await copyFile(join(nativeTemplate, name), join(directory, name));
-    const metadata = join(directory, 'Fixture.AssemblyInfo.cs');
-    await writeFile(
-      metadata,
-      `using System.Reflection;\n[assembly:AssemblyVersion("${buildVersion}")]\n[assembly:AssemblyFileVersion("${buildVersion}")]\n[assembly:AssemblyMetadata("TableMaxRepositoryRoot", @"${repository.replaceAll('"', '""')}")]\n`,
-    );
-    const compile = await execute(
-      'dotnet',
-      [
-        compiler,
-        '/nologo',
-        '/target:winexe',
-        '/platform:x64',
-        '/langversion:12',
-        '/optimize+',
-        '/deterministic+',
-        '/warnaserror+',
-        '/nostdlib+',
-        '/define:TABLEMAX_INSTALLATION_TEST',
-        '/main:TableMax.InstallationTesting.ApplicationHandoffFixture',
-        '/out:' + join(directory, 'TableMax.exe'),
-        '/win32icon:' + resolve('assets/platform/app-icon.ico'),
-        '/win32manifest:' + resolve('apps/desktop/native/app.manifest'),
-        ...[
-          'mscorlib',
-          'System',
-          'System.Core',
-          'System.Drawing',
-          'System.Windows.Forms',
-          'System.Security',
-          'System.Xml',
-          'System.Configuration',
-          'System.Net.Http',
-          'System.Web.Extensions',
-          'Microsoft.CSharp',
-        ].map((name) => '/reference:' + join(refs, name + '.dll')),
-        ...[
-          'Microsoft.Web.WebView2.Core.dll',
-          'Microsoft.Web.WebView2.WinForms.dll',
-        ].map((name) => '/reference:' + join(directory, name)),
-        '/resource:' +
-          resolve('apps/desktop/native/Bridge.js') +
-          ',TableMax.Desktop.Bridge.js',
-        '/resource:' + trust + ',TableMax.Desktop.ApplicationUpdateKeys.json',
-        ...sources.map((path) => resolve(path)),
-        metadata,
-      ],
-      'compile-native-' + buildVersion,
-    );
-    assert.equal(
-      compile.code,
-      0,
-      'Fixture Native compilation failed: ' + compile.log,
-    );
-    return directory;
-  }
-  async function fixture(buildVersion, handoffTest) {
-    const directory = await native(buildVersion);
-    const delivery = await createInstallationFixturePackage({
-      nativeDirectory: directory,
-      serverDirectory,
-      webDirectory,
-      buildVersion,
-      applicationTrustRootsPath: trust,
-      handoffTest,
-    });
-    const manifest = await json(delivery.executable.installation.manifestPath);
-    assert.equal(
-      delivery.buildVersion,
-      buildVersion,
-      'Builder did not honor explicit fixture build',
-    );
-    assert.equal(manifest.buildVersion, buildVersion);
-    assert.equal(manifest.productId, fixtureId);
-    assert.equal(
-      (
-        await json(
-          join(
-            delivery.executable.installation.candidateDirectory,
-            'TableMax/app/package.json',
-          ),
-        )
-      ).buildVersion,
-      buildVersion,
-      'Fixture runtime package build must match PE and manifest',
-    );
-    for (const executable of [
-      join(directory, 'TableMax.exe'),
-      join(
-        delivery.executable.installation.candidateDirectory,
-        'UpdateHelper.exe',
-      ),
-    ]) {
-      const resource = await execute(
-        powershell,
-        [
-          '-NoProfile',
-          '-NonInteractive',
-          '-Command',
-          powershellUtf8 +
-            '$assembly=[Reflection.Assembly]::ReflectionOnlyLoadFrom($env:TABLEMAX_FIXTURE_ASSEMBLY); $name=@($assembly.GetManifestResourceNames() | Where-Object { $_.EndsWith("ApplicationUpdateKeys.json") }); if($name.Count -ne 1){throw "Fixture trust resource missing"}; $stream=$assembly.GetManifestResourceStream($name[0]); try { $sha=[Security.Cryptography.SHA256]::Create(); try { [BitConverter]::ToString($sha.ComputeHash($stream)).Replace("-", "").ToLowerInvariant() } finally { $sha.Dispose() } } finally { $stream.Dispose() }',
-        ],
-        'verify-embedded-trust-' + buildVersion,
-        180000,
-        { TABLEMAX_FIXTURE_ASSEMBLY: executable },
-      );
-      assert.equal(resource.code, 0, resource.log);
-      assert.equal(
-        resource.output.trim(),
-        report.fixturePublicKey.sha256,
-        'Fixture public trust root was not embedded',
-      );
-    }
-    return { delivery, manifest };
-  }
+  const preparedFixture = await prepareHandoffFixture({
+    repository,
+    work,
+    prepared,
+    preparedReport,
+    report,
+    nativeTemplate,
+    serverDirectory,
+    webDirectory,
+    execute,
+  });
+  const { oldBuild, newBuild, trust, native, fixture } = preparedFixture;
   try {
     if (compileOnly) {
       report.nativeOnly = [];
@@ -1983,104 +1455,9 @@ export async function verifyApplicationHandoff({
     let target, api;
     if (prepared) {
       await step('verify-prepared-materials', async () => {
-        for (const [path, sha256] of Object.entries(prepared.sourceHashes)) {
-          assert.equal(
-            hash(await readFile(inside(repository, path))),
-            sha256,
-            'Prepared Native source changed: ' + path,
-          );
-        }
-        for (const [role, buildVersion, handoffTest] of [
-          ['old', oldBuild, false],
-          ['new', newBuild, true],
-        ]) {
-          const value = prepared[role];
-          const delivery = value.delivery;
-          assert.equal(delivery.deliveryType, 'installer');
-          assert.equal(delivery.buildVersion, buildVersion);
-          assert.equal(delivery.executable.installation.productId, fixtureId);
-          const executable = inside(repository, delivery.executable.path);
-          await noLinks(executable);
-          assert.deepEqual(await record(executable), {
-            path: executable,
-            bytes: delivery.executable.bytes,
-            sha256: delivery.executable.sha256,
-          });
-          const installation = delivery.executable.installation;
-          assert.equal(
-            installation.recipe.fixtureOptions.handoffTest,
-            handoffTest,
-          );
-          assert.equal(
-            installation.recipe.fixtureOptions.buildVersion,
-            buildVersion,
-          );
-          for (const input of installation.recipe.inputs) {
-            const path = inside(repository, input.path);
-            await noLinks(path);
-            const actual = await record(path);
-            assert.equal(
-              actual.bytes,
-              input.bytes,
-              'Prepared recipe bytes changed',
-            );
-            assert.equal(
-              actual.sha256,
-              input.sha256,
-              'Prepared recipe SHA changed',
-            );
-          }
-          const path = inside(repository, installation.manifestPath);
-          await noLinks(path);
-          assert.equal(
-            (await record(path)).sha256,
-            installation.manifestSha256,
-          );
-          const manifest = await json(path);
-          assert.deepEqual(manifest, value.manifest);
-          assert.equal(manifest.productId, fixtureId);
-          assert.equal(manifest.buildVersion, buildVersion);
-          const candidate = inside(repository, installation.candidateDirectory);
-          for (const file of manifest.files) {
-            const path = inside(candidate, join(candidate, file.path));
-            await noLinks(path);
-            const actual = await record(path);
-            assert.equal(actual.bytes, file.bytes);
-            assert.equal(actual.sha256, file.sha256);
-          }
-          report[role] = value;
-        }
-        const planPath = inside(repository, prepared.plan.path);
-        await noLinks(planPath);
-        assert.deepEqual(await record(planPath), prepared.plan);
-        const previousPlan = await json(planPath);
-        assert.equal(previousPlan.schemaVersion, 1);
-        assert.equal(resolve(previousPlan.scopeRoot), resolve('tmp'));
-        assert.equal(
-          previousPlan.newInstaller,
-          report.new.delivery.executable.path,
-        );
-        api = JSON.parse(previousPlan.apiJson);
-        const signed = extractApplicationUpdate(api.body).envelope;
-        target = verifyFixtureApplicationUpdate(signed, {
-          trustedKeys: (await json(trust)).keys,
-        }).description;
-        assert.deepEqual(target, prepared.description);
-        assert.equal(target.bytes, report.new.delivery.executable.bytes);
-        assert.equal(target.sha256, report.new.delivery.executable.sha256);
-        assert.equal(
-          target.payloadManifestSha256,
-          report.new.manifest.payloadManifestSha256,
-        );
-        assert.equal(
-          target.currentMappingSha256,
-          report.new.manifest.currentMappingSha256,
-        );
-        report.preparedInput = await record(preparedReport);
-        return {
-          actualExeAndManifestSHAReverified: true,
-          privateKeyUsed: false,
-        };
+        const verified = await preparedFixture.verifyPrepared();
+        ({ target, api } = verified);
+        return verified.verification;
       });
     } else {
       await step('build-old-actual-fixture', async () => {
@@ -2099,58 +1476,7 @@ export async function verifyApplicationHandoff({
           buildVersion: newBuild,
         };
       });
-      target = {
-        schemaVersion: 1,
-        productId: fixtureId,
-        channel: 'stable',
-        os: 'windows',
-        arch: 'x64',
-        installProtocol: 1,
-        releaseVersion: version,
-        buildVersion: newBuild,
-        releaseTag: 'v' + version,
-        repo: 'anApalpitate/TableMax',
-        assetName: `TableMax-${version}-win-x64.exe`,
-        assetUrl: `https://github.com/anApalpitate/TableMax/releases/download/v${version}/TableMax-${version}-win-x64.exe`,
-        bytes: report.new.delivery.executable.bytes,
-        sha256: report.new.delivery.executable.sha256,
-        payloadManifestSha256: report.new.manifest.payloadManifestSha256,
-        currentMappingSha256: report.new.manifest.currentMappingSha256,
-      };
-      const envelope = signFixtureApplicationUpdate(target, privateKey, {
-        keyId,
-      });
-      verifyFixtureApplicationUpdate(envelope, {
-        trustedKeys: { [keyId]: publicKey },
-      });
-      privateKey = undefined;
-      api = {
-        id: 60001,
-        draft: false,
-        prerelease: false,
-        tag_name: target.releaseTag,
-        html_url: `https://github.com/${target.repo}/releases/tag/${target.releaseTag}`,
-        body:
-          'Offline handoff fixture release notes.\n' +
-          applicationUpdateMachineBlock(envelope),
-        assets: [
-          {
-            id: 60002,
-            name: target.assetName,
-            size: target.bytes,
-            state: 'uploaded',
-            browser_download_url: target.assetUrl,
-            digest: 'sha256:' + target.sha256,
-          },
-          {
-            id: 60003,
-            name: `TableMax-${version}-source.zip`,
-            size: 1,
-            state: 'uploaded',
-            browser_download_url: `https://github.com/${target.repo}/releases/download/${target.releaseTag}/TableMax-${version}-source.zip`,
-          },
-        ],
-      };
+      ({ target, api } = preparedFixture.createDescription());
     }
     const executionDirectory = join(work, 'inputs');
     if (profile) await mkdir(executionDirectory, { recursive: false });
@@ -2183,378 +1509,56 @@ export async function verifyApplicationHandoff({
     report.plan = await record(plan);
     report.description = target;
     if (frameworkRecoveryOnly) {
-      await frameworkRecovery();
+      await runFrameworkRecoveryScenario({
+        root,
+        report,
+        fixtureId,
+        oldBuild,
+        newBuild,
+        step,
+        registration,
+        execute,
+        actualExecutionInputs,
+        evidence,
+        lifecycle,
+        databaseFingerprint,
+        maybeJson,
+        preservedData,
+        work,
+        waitUntil,
+      });
     } else if (!prepareOnly && !verifyPreparedOnly) {
-      const outside = join(root, '朋友资料.txt');
-      await writeFile(outside, 'Preserved by actual installer and update\n');
-      const outsideBefore = await record(outside);
-      await step('actual-old-inno-install', async () => {
-        assert.equal(await registration(), null);
-        if (usesExternalData) {
-          await noLinks(externalDataDirectory);
-          assert.equal(await exists(externalDataDirectory), false);
-          await mkdir(externalDataDirectory);
-          await mkdir(join(root, 'TableMax'));
-          await writeJson(configurationPath, {
-            dataDirectory: externalDataDirectory,
-          });
-          report.startupExternalData.configurationBefore =
-            await record(configurationPath);
-        }
-        const run = await execute(
-          actualExecutionInputs.old.path,
-          [
-            '/VERYSILENT',
-            '/SUPPRESSMSGBOXES',
-            '/NORESTART',
-            '/DIR=' + root,
-            ...(!activeUninstallOnly ? ['/TASKS=!desktopicon'] : []),
-            '/LOG=' + join(evidence, 'old-inno.log'),
-          ],
-          'old-inno',
-        );
-        assert.equal(run.code, 0, run.log);
-        installed = true;
-        const value = await registration();
-        assert.equal(resolve(value.InstallLocation), root);
-        assert.equal(value.DisplayVersion, oldBuild);
-        const identityPath = join(root, 'TableMax/.install.json');
-        oldInstallationIdentity = await json(identityPath);
-        assert.equal(oldInstallationIdentity.productId, fixtureId);
-        assert.equal(oldInstallationIdentity.buildVersion, oldBuild);
-        assert.equal(resolve(oldInstallationIdentity.root), root);
-        assert.equal(
-          resolve(oldInstallationIdentity.boxRoot),
-          join(root, 'TableMax'),
-        );
-        assert.match(
-          oldInstallationIdentity.installationId,
-          /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i,
-        );
-        if (profile)
-          assert.equal(oldInstallationIdentity.ownerSid, profile.ownerSid);
-        if (usesExternalData) {
-          assert.equal(
-            (await json(configurationPath)).dataDirectory,
-            externalDataDirectory,
-          );
-          assert.deepEqual(
-            await record(configurationPath),
-            report.startupExternalData.configurationBefore,
-          );
-        }
-        return {
-          registration: value,
-          installationIdentity: {
-            installationId: oldInstallationIdentity.installationId,
-            ownerSid: oldInstallationIdentity.ownerSid,
-            buildVersion: oldInstallationIdentity.buildVersion,
-            file: await record(identityPath),
-          },
-          ...(!activeUninstallOnly
-            ? { shortcutSelection: await cancelledFixtureShortcuts() }
-            : {}),
-        };
+      await runApplicationHandoffScenario({
+        root,
+        step,
+        registration,
+        usesExternalData,
+        externalDataDirectory,
+        configurationPath,
+        report,
+        execute,
+        actualExecutionInputs,
+        activeUninstallOnly,
+        evidence,
+        lifecycle,
+        oldBuild,
+        fixtureId,
+        profile,
+        cancelledFixtureShortcuts,
+        environment,
+        observeOldNative,
+        waitUntil,
+        maybeJson,
+        dataDirectory,
+        gamesDirectory,
+        newBuild,
+        target,
+        longRootExternalData,
+        verifyShortLaunch,
+        trust,
+        verifyNextStartupCleanup,
+        plan,
       });
-      await step('actual-old-host-transport', async () => {
-        try {
-          desktop = await launchDesktop({
-            executablePath: join(root, 'TableMax/app/TableMax.exe'),
-            timeout: 90000,
-            env: {
-              ...environment,
-              TABLEMAX_BOX_DIRECTORY: join(root, 'TableMax'),
-            },
-          });
-        } catch (error) {
-          report.nativeDiagnostics.oldLaunchError = {
-            error: error.message,
-            boundary:
-              'launchDesktop did not return its child handle. Raw startup streams and the final child exit status are unavailable to this caller; this is the existing bounded support diagnostic.',
-          };
-          throw error;
-        }
-        oldNativeCapture = observeOldNative(desktop.process());
-        const ready = await waitUntil(async () => {
-          const error = await maybeJson(
-            join(evidence, 'old-fixture-error.json'),
-          );
-          if (error) throw new Error(error.error);
-          return maybeJson(join(evidence, 'old-native-ready.json'));
-        }, 'Actual old Native transport attachment');
-        assert.equal(ready.buildVersion, oldBuild);
-        assert.equal(ready.desktopPid, desktop.process().pid);
-        assert.equal(resolve(ready.dataDirectory), dataDirectory);
-        assert.equal(resolve(ready.boxRoot), join(root, 'TableMax'));
-        if (usesExternalData) {
-          assert.equal(resolve(ready.dataDirectory), externalDataDirectory);
-          assert.equal(resolve(ready.boxRoot), join(root, 'TableMax'));
-          assert.ok((await stat(gamesDirectory)).isDirectory());
-          const gameEntries = (await readdir(gamesDirectory)).sort();
-          assert.ok(
-            gameEntries.length > 0,
-            'Actual preinstalled G must remain under B',
-          );
-          assert.equal(
-            await exists(join(externalDataDirectory, 'games')),
-            false,
-          );
-          assert.equal(
-            (await json(configurationPath)).dataDirectory,
-            externalDataDirectory,
-          );
-          report.startupExternalData.actualReady = {
-            dataDirectory: ready.dataDirectory,
-            boxRoot: ready.boxRoot,
-            servicePid: ready.servicePid,
-          };
-          report.startupExternalData.gameEntries = gameEntries;
-          report.startupExternalData.externalGamesPresent = false;
-        }
-        return ready;
-      });
-      if (!activeUninstallOnly) {
-        const host = await desktop.firstWindow();
-        await step('actual-check-download', async () => {
-          await host.evaluate(() => window.tablemaxUpdate.check());
-          const available = await waitUntil(
-            async () => {
-              const state = await host.evaluate(() =>
-                window.tablemaxUpdate.read(),
-              );
-              if (state.phase === 'error')
-                throw new Error(state.error || 'Actual check failed');
-              return state.phase === 'available' ? state : null;
-            },
-            'Actual available update',
-            90000,
-          );
-          assert.equal(available.targetVersion, newBuild);
-          await host.evaluate(() => window.tablemaxUpdate.download());
-          const state = await waitUntil(
-            async () => {
-              const state = await host.evaluate(() =>
-                window.tablemaxUpdate.read(),
-              );
-              if (state.phase === 'error')
-                throw new Error(state.error || 'Actual download failed');
-              return state.phase === 'ready' ? state : null;
-            },
-            'Actual complete download',
-            90000,
-          );
-          assert.equal(state.targetVersion, newBuild);
-          const downloaded = await record(
-            join(
-              root,
-              'TableMax/updates/downloads',
-              target.sha256,
-              target.assetName,
-            ),
-          );
-          assert.equal(downloaded.bytes, target.bytes);
-          assert.equal(downloaded.sha256, target.sha256);
-          const partialPathLength =
-            downloaded.path.length + 1 + 32 + '.partial'.length;
-          if (profile && !longRootExternalData)
-            assert.ok(
-              partialPathLength >= 260,
-              'The default-D profile chain must exercise the long partial IO path',
-            );
-          return {
-            state,
-            downloaded,
-            partialPathPlan: {
-              length: partialPathLength,
-              boundary:
-                'Computed from the actual downloaded path and the frozen production .32hex.partial naming rule; the transient GUID path was not independently observed.',
-            },
-            transport:
-              'Managed response and actual new installer stream; no real internet',
-          };
-        });
-        await step('real-apply-parent-handoff', async () => {
-          const parent = desktop.process();
-          const ended =
-            parent.exitCode !== null
-              ? Promise.resolve(parent.exitCode)
-              : new Promise((done) => parent.once('exit', done));
-          await host.evaluate(() => {
-            void window.tablemaxUpdate.apply().catch(() => {});
-          });
-          let exitTimer;
-          let code;
-          try {
-            code = await Promise.race([
-              ended,
-              new Promise((_, reject) => {
-                exitTimer = setTimeout(
-                  () => reject(new Error('Actual parent did not exit')),
-                  90000,
-                );
-              }),
-            ]);
-          } finally {
-            clearTimeout(exitTimer);
-          }
-          assert.equal(code, 0);
-          return {
-            parentPid: parent.pid,
-            parentExitCode: code,
-            realPrepareAndQuit: true,
-          };
-        });
-        await step('actual-new-persistent-host', async () => {
-          const ready = await waitUntil(
-            async () => {
-              const error = await maybeJson(
-                join(evidence, 'new-fixture-error.json'),
-              );
-              if (error) throw new Error(error.error);
-              return await maybeJson(join(evidence, 'new-native-ready.json'));
-            },
-            'Actual new host',
-            180000,
-          );
-          assert.equal(ready.buildVersion, newBuild);
-          assert.equal(ready.persistent, true);
-          assert.equal(ready.currentMappingSha256, target.currentMappingSha256);
-          assert.equal(resolve(ready.dataDirectory), dataDirectory);
-          assert.equal(resolve(ready.boxRoot), join(root, 'TableMax'));
-          if (usesExternalData) {
-            assert.equal(
-              (await json(configurationPath)).dataDirectory,
-              externalDataDirectory,
-            );
-            assert.deepEqual(
-              await record(configurationPath),
-              report.startupExternalData.configurationBefore,
-            );
-            report.startupExternalData.newActualReady = {
-              dataDirectory: ready.dataDirectory,
-              boxRoot: ready.boxRoot,
-              servicePid: ready.servicePid,
-            };
-          }
-          const installerFinished = await waitUntil(
-            async () => {
-              const directories = (
-                await readdir(join(root, 'TableMax/updates'))
-              ).filter((name) => name.startsWith('handoff-'));
-              assert.ok(
-                directories.length <= 1,
-                'Unexpected additional handoff transaction',
-              );
-              if (directories.length === 0) return null;
-              const value = await maybeJson(
-                join(root, 'TableMax/updates', directories[0], 'handoff.json'),
-              );
-              if (value?.status === 'installer-failed')
-                throw new Error(
-                  'Actual handoff installer failed: ' + value.exitCode,
-                );
-              return value?.status === 'installer-finished' ? value : null;
-            },
-            'Actual handoff installer before registration',
-            180000,
-          );
-          assert.equal(installerFinished.exitCode, 0);
-          assert.equal(resolve(installerFinished.root), root);
-          assert.equal(installerFinished.buildVersion, newBuild);
-          const identity = await json(join(root, 'TableMax/.install.json'));
-          assert.equal(identity.buildVersion, newBuild);
-          assert.equal(
-            identity.installationId,
-            oldInstallationIdentity.installationId,
-          );
-          assert.equal(identity.ownerSid, oldInstallationIdentity.ownerSid);
-          assert.equal(
-            identity.payloadManifestSha256,
-            target.payloadManifestSha256,
-          );
-          const reg = await registration();
-          assert.equal(reg.DisplayVersion, newBuild);
-          const shortcutSelection = await cancelledFixtureShortcuts();
-          newBrowser = await chromium.connectOverCDP(
-            'http://127.0.0.1:' + ready.cdpPort,
-          );
-          const page = await waitUntil(
-            () =>
-              newBrowser
-                .contexts()
-                .flatMap((ctx) => ctx.pages())
-                .find((page) => page.url().includes('/host')),
-            'New host page',
-          );
-          const state = await page.evaluate(() => window.tablemaxUpdate.read());
-          assert.equal(state.currentVersion, newBuild);
-          assert.deepEqual(await record(outside), outsideBefore);
-          return {
-            ...ready,
-            installerFinished,
-            shortcutSelection,
-            identity,
-            registration: reg,
-            actualHostState: state,
-          };
-        });
-        await step('handoff-helper-and-data', async () => {
-          const directories = (
-            await readdir(join(root, 'TableMax/updates'))
-          ).filter((name) => name.startsWith('handoff-'));
-          assert.equal(directories.length, 1);
-          const directory = join(root, 'TableMax/updates', directories[0]);
-          const outcome = await waitUntil(async () => {
-            const value = await maybeJson(join(directory, 'handoff.json'));
-            return value?.status === 'installer-finished' ? value : null;
-          }, 'Actual handoff completion');
-          assert.equal(outcome.exitCode, 0);
-          const oldHelper = report.old.manifest.files.find(
-            (file) => file.path === 'UpdateHelper.exe',
-          );
-          assert.equal(
-            (await record(join(directory, 'UpdateHelper.exe'))).sha256,
-            oldHelper.sha256,
-          );
-          const shortLaunch = await verifyShortLaunch(
-            directory,
-            outcome,
-            oldHelper,
-            target,
-            trust,
-          );
-          const newHelper = report.new.manifest.files.find(
-            (file) => file.path === 'UpdateHelper.exe',
-          );
-          assert.equal(
-            (await record(join(root, 'UpdateHelper.exe'))).sha256,
-            newHelper.sha256,
-          );
-          for (const file of report.new.manifest.files)
-            assert.deepEqual(
-              {
-                bytes: (await stat(join(root, file.path))).size,
-                sha256: hash(await readFile(join(root, file.path))),
-              },
-              { bytes: file.bytes, sha256: file.sha256 },
-            );
-          const nextStartupCleanup = await verifyNextStartupCleanup({
-            directory,
-            shortLaunch,
-            target,
-            plan,
-            outside,
-            outsideBefore,
-          });
-          return {
-            outcome,
-            shortLaunch,
-            nextStartupCleanup,
-            temporaryHelperSha256: oldHelper.sha256,
-            newOwnedHelperSha256: newHelper.sha256,
-          };
-        });
-      }
     }
     report.result = verifyPreparedOnly
       ? 'prepared-reverified-not-executed'
@@ -2587,6 +1591,17 @@ export async function verifyApplicationHandoff({
             'Fixture registration changed; preserve it',
           );
           let activeNativeBeforeUninstall;
+          const resourceIdentity = await json(join(root, 'data/.install.json'));
+          const unknownGamePath = join(gamesDirectory, '朋友保留资料.txt');
+          await writeFile(
+            unknownGamePath,
+            'Unknown user game-directory bytes must survive uninstall.\n',
+            { flag: 'wx' },
+          );
+          const unknownGameBefore = await record(unknownGamePath);
+          const resourceBefore = (await preservedData(gamesDirectory)).map(
+            ({ name: path, ...file }) => ({ path, ...file }),
+          );
           if (activeUninstallOnly) {
             assert.ok(desktop, 'Active uninstall requires the actual old host');
             const child = desktop.process();
@@ -2619,6 +1634,22 @@ export async function verifyApplicationHandoff({
           );
           assert.equal(result.code, 0, result.log);
           assert.equal(await registration(), null);
+          const resourceCleanup = await verifyResourceCleanup({
+            root,
+            identity: resourceIdentity,
+            before: resourceBefore,
+            directory: join(evidence, 'resource-cleanup'),
+            name: 'final-uninstall-resources.json',
+          });
+          assert.deepEqual(
+            await record(unknownGamePath),
+            unknownGameBefore,
+            'Unknown game-directory file must be retained',
+          );
+          report.resourceCleanup = {
+            ...resourceCleanup,
+            unknownPreserved: unknownGameBefore,
+          };
           const nextStartupCleanup = report.steps.find(
             (entry) => entry.id === 'handoff-helper-and-data',
           )?.nextStartupCleanup;
@@ -2629,10 +1660,8 @@ export async function verifyApplicationHandoff({
               retained[name] = await record(expected.path);
               assert.deepEqual(retained[name], expected);
             }
-            assert.deepEqual(
-              await preservedData(gamesDirectory),
-              await json(nextStartupCleanup.preservation.games.snapshot.path),
-            );
+            nextStartupCleanup.uninstallResourceCleanup =
+              report.resourceCleanup;
             nextStartupCleanup.uninstallPreservation = retained;
           }
           if (usesExternalData) {
@@ -2653,6 +1682,7 @@ export async function verifyApplicationHandoff({
           return {
             registrationRemoved: true,
             scope: root,
+            resourceCleanup: report.resourceCleanup,
             ...(activeUninstallOnly ? { activeNativeBeforeUninstall } : {}),
           };
         });

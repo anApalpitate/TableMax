@@ -126,6 +126,19 @@ const unitScopes = {
 // Unregistered scripts may only run with an explicitly chosen full scope.
 // Mixed matrices cannot be narrowed by adding an option they do not implement.
 const verificationScopes = {
+  'tools/release/installation-evidence.test.mjs': ['tooling'],
+  'tools/test/installation/verify-update-activation.mjs': ['shared', 'tooling'],
+  'tools/test/installation/verify-update-activation.cs': ['shared', 'tooling'],
+  'tools/test/installation/verify-resource-cleanup.mjs': ['shared', 'tooling'],
+  'tools/test/installation/resource-cleanup-harness.cs': ['shared', 'tooling'],
+  'tools/release/delivery-paths.test.mjs': ['tooling'],
+  'tools/test/installation/finalize-evidence.test.mjs': ['tooling'],
+  'tools/test/installation/verify-production-user.test.mjs': ['tooling'],
+  'tools/test/installation/finalize-evidence.mjs': ['tooling'],
+  'tools/test/installation/prepare/handoff-fixture.test.mjs': ['tooling'],
+  'tools/test/installation/prepare/transaction-fixture.test.mjs': ['tooling'],
+  'tools/test/installation/scenarios/framework-recovery.test.mjs': ['tooling'],
+  'tools/test/installation/scenarios/update-transaction.test.mjs': ['tooling'],
   'tools/shared/application-update.test.mjs': ['tooling', 'shared'],
   'tools/shared/windows-acceptance-profile.test.mjs': ['tooling'],
   'tools/release/installation-package.test.mjs': ['tooling'],

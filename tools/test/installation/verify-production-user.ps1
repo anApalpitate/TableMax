@@ -8,7 +8,7 @@ param(
   [switch]$PortableMigrationOnly,
   [string]$PortablePointer,
   [ValidateSet('active-uninstall', 'startup-external-data', 'long-root-external-data', 'chains')][string]$FixtureScenario,
-  [ValidateRange(0, 2)][int]$PriorFailures = 0
+  [ValidateRange(0, 4)][int]$PriorFailures = 0
 )
 $ErrorActionPreference = 'Stop'
 $taskRepository = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..')).TrimEnd('\')
@@ -42,6 +42,140 @@ function Assert-TaskPathNoLinks([string]$Path) {
       if ((Get-Item -LiteralPath $taskCursor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Verification path contains a link.' }
     }
   }
+}
+function Get-TaskSourceRecord([string]$Path) {
+  $taskSourcePath = [IO.Path]::GetFullPath($Path)
+  Assert-TaskPathNoLinks $taskSourcePath
+  if (-not [IO.File]::Exists($taskSourcePath)) { throw ('Required acceptance source is not a file: ' + $taskSourcePath) }
+  $taskSourceStream = [IO.File]::Open($taskSourcePath, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+  $taskSourceHash = [Security.Cryptography.SHA256]::Create()
+  try {
+    $taskSourceBytes = $taskSourceStream.Length
+    $taskSourceDigest = [BitConverter]::ToString($taskSourceHash.ComputeHash($taskSourceStream)).Replace('-', '').ToLowerInvariant()
+    if ($taskSourceBytes -lt 1 -or $taskSourceStream.Length -ne $taskSourceBytes) { throw 'Required acceptance source is empty or changed while reading.' }
+    return [ordered]@{ path = $taskSourcePath; bytes = $taskSourceBytes; sha256 = $taskSourceDigest }
+  } finally { $taskSourceHash.Dispose(); $taskSourceStream.Dispose() }
+}
+function Assert-TaskSourceRecords($Sources) {
+  foreach ($taskExpectedSource in @($Sources)) {
+    $taskActualSource = Get-TaskSourceRecord $taskExpectedSource.path
+    if ($taskActualSource.bytes -ne $taskExpectedSource.bytes -or $taskActualSource.sha256 -ne $taskExpectedSource.sha256) { throw ('Acceptance method source changed: ' + $taskExpectedSource.path) }
+  }
+}
+function Get-TaskMethodFingerprint($Sources) {
+  $taskMethodSources = @($Sources | ForEach-Object { [ordered]@{ path = $_.path; bytes = $_.bytes; sha256 = $_.sha256 } })
+  $taskMethodJson = [ordered]@{ schemaVersion = 1; sources = $taskMethodSources } | ConvertTo-Json -Depth 6 -Compress
+  $taskMethodHash = [Security.Cryptography.SHA256]::Create()
+  try { return [BitConverter]::ToString($taskMethodHash.ComputeHash([Text.UTF8Encoding]::new($false).GetBytes($taskMethodJson))).Replace('-', '').ToLowerInvariant() }
+  finally { $taskMethodHash.Dispose() }
+}
+function Get-TaskExecutionMethod([string]$NodePath, [string]$EntrypointPath, [string]$Repository) {
+  if ($EntrypointPath.Contains('"')) { throw 'Unsafe execution-method entrypoint.' }
+  $taskMethodStart = [Diagnostics.ProcessStartInfo]::new($NodePath)
+  $taskMethodStart.Arguments = '"' + $EntrypointPath + '"'
+  $taskMethodStart.WorkingDirectory = $Repository
+  $taskMethodStart.UseShellExecute = $false
+  $taskMethodStart.CreateNoWindow = $true
+  $taskMethodStart.RedirectStandardOutput = $true
+  $taskMethodStart.RedirectStandardError = $true
+  $taskMethodStart.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
+  $taskMethodStart.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
+  $taskMethodProcess = $null
+  try {
+    $taskMethodProcess = [Diagnostics.Process]::Start($taskMethodStart)
+    if (-not $taskMethodProcess) { throw 'The execution-method reader did not start.' }
+    $null = $taskMethodProcess.Handle
+    $taskMethodOutput = $taskMethodProcess.StandardOutput.ReadToEndAsync()
+    $taskMethodError = $taskMethodProcess.StandardError.ReadToEndAsync()
+    if (-not $taskMethodProcess.WaitForExit(60000)) { throw 'The execution-method reader exceeded its bounded budget.' }
+    if (-not [Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($taskMethodOutput, $taskMethodError), 5000)) { throw 'The execution-method reader output did not drain.' }
+    $taskMethodProcess.Refresh()
+    if ($taskMethodProcess.ExitCode -ne 0) { throw ('Execution-method preflight failed: ' + $taskMethodError.Result) }
+    # PS 5.1 returns a JSON array as one pipeline object. Do not wrap that
+    # pipeline in @(...), which adds another array level and reports Count=1.
+    $taskMethodRootArray = ConvertFrom-Json -InputObject $taskMethodOutput.Result
+    if ($taskMethodRootArray -isnot [Array]) { throw 'The execution-method reader must return a root JSON array.' }
+    $taskDeclaredSources = $taskMethodRootArray
+  } finally {
+    if ($taskMethodProcess) {
+      if (-not $taskMethodProcess.HasExited) { $taskMethodProcess.Kill(); $null = $taskMethodProcess.WaitForExit(5000) }
+      $taskMethodProcess.Dispose()
+    }
+  }
+  if ($taskDeclaredSources.Count -lt 2) { throw 'The execution-method reader returned incomplete source records.' }
+  $taskMethodPaths = @{}
+  $taskSources = @()
+  foreach ($taskDeclaredSource in $taskDeclaredSources) {
+    if ($taskDeclaredSource -isnot [PSCustomObject]) { throw 'Execution-method source entries must be JSON objects.' }
+    $taskMethodPath = [IO.Path]::GetFullPath((Join-Path $Repository $taskDeclaredSource.path))
+    if (-not $taskMethodPath.StartsWith($Repository + '\', [StringComparison]::OrdinalIgnoreCase) -or $taskDeclaredSource.sha256 -notmatch '^[a-f0-9]{64}$' -or $taskDeclaredSource.bytes -lt 1 -or $taskMethodPaths.ContainsKey($taskMethodPath.ToLowerInvariant())) { throw 'Execution-method source scope, identity or uniqueness is invalid.' }
+    $taskMethodPaths[$taskMethodPath.ToLowerInvariant()] = $true
+    $taskActualMethod = Get-TaskSourceRecord $taskMethodPath
+    if ($taskActualMethod.bytes -ne $taskDeclaredSource.bytes -or $taskActualMethod.sha256 -ne $taskDeclaredSource.sha256) { throw 'Execution-method source changed during preflight.' }
+    $taskSources += $taskActualMethod
+  }
+  foreach ($taskRequiredMethod in @('verify-production-user.ps1', 'verify-production-user-child.ps1')) {
+    $taskRequiredMethodPath = [IO.Path]::GetFullPath((Join-Path $Repository ('tools/test/installation/' + $taskRequiredMethod)))
+    if (-not $taskMethodPaths.ContainsKey($taskRequiredMethodPath.ToLowerInvariant())) { throw 'Execution-method sources must include the parent and isolated child.' }
+  }
+  return $taskSources
+}
+function Copy-TaskSourceFile([string]$SourcePath, [string]$TargetPath, $Expected) {
+  if ([IO.Path]::GetFullPath($SourcePath) -ne [IO.Path]::GetFullPath($Expected.path)) { throw 'The acceptance execution copy source path changed.' }
+  Assert-TaskSourceRecords @($Expected)
+  Assert-TaskPathNoLinks $TargetPath
+  $taskChildInput = [IO.File]::Open($SourcePath, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
+  try {
+    $taskChildOutput = [IO.FileStream]::new($TargetPath, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+    try { $taskChildInput.CopyTo($taskChildOutput); $taskChildOutput.Flush($true) }
+    finally { $taskChildOutput.Dispose() }
+  } finally { $taskChildInput.Dispose() }
+  $taskCopiedChild = Get-TaskSourceRecord $TargetPath
+  if ($taskCopiedChild.bytes -ne $Expected.bytes -or $taskCopiedChild.sha256 -ne $Expected.sha256) { throw 'The acceptance execution copy differs from the frozen source.' }
+  Assert-TaskSourceRecords @($Expected)
+  return [ordered]@{ sourcePath = $Expected.path; path = $taskCopiedChild.path; bytes = $taskCopiedChild.bytes; sha256 = $taskCopiedChild.sha256 }
+}
+function Write-TaskExecutionReceipt([string]$OutputDirectory, $Delivery, [string]$ProofPath, [string]$IsolationPath, $MethodSources) {
+  $taskReceiptIsolation = Get-Content -LiteralPath $IsolationPath -Raw -Encoding utf8 | ConvertFrom-Json
+  if ($taskReceiptIsolation.result -ne 'passed' -or $taskReceiptIsolation.exitCode -ne 0 -or $taskReceiptIsolation.accountRemoved -ne $true -or $taskReceiptIsolation.profileRemoved -ne $true -or @($taskReceiptIsolation.errors).Count -ne 0) { throw 'Execution receipt requires successful actual exit and account/profile cleanup.' }
+  Assert-TaskSourceRecords $MethodSources
+  Assert-TaskSourceRecords @($Delivery)
+  $taskRawProof = Get-TaskSourceRecord $ProofPath
+  $taskPreservedProofPath = Join-Path $OutputDirectory 'execution-proof.json'
+  $taskPreservedProof = Copy-TaskSourceFile $ProofPath $taskPreservedProofPath $taskRawProof
+  $taskIsolationRecord = Get-TaskSourceRecord $IsolationPath
+  $taskReceipt = [ordered]@{
+    schemaVersion = 1
+    kind = 'installation-execution-receipt'
+    delivery = $Delivery
+    proof = [ordered]@{ path = $taskPreservedProof.path; bytes = $taskPreservedProof.bytes; sha256 = $taskPreservedProof.sha256 }
+    isolation = $taskIsolationRecord
+    methodSources = @($MethodSources)
+    methodSha256 = (Get-TaskMethodFingerprint $MethodSources)
+    exitCode = $taskReceiptIsolation.exitCode
+    accountRemoved = $taskReceiptIsolation.accountRemoved
+    profileRemoved = $taskReceiptIsolation.profileRemoved
+    ownerSid = $taskReceiptIsolation.ownerSid
+  }
+  $taskReceiptPath = Join-Path $OutputDirectory 'execution-receipt.json'
+  Assert-TaskPathNoLinks $taskReceiptPath
+  Write-TaskNewJson $taskReceiptPath $taskReceipt
+  return Get-TaskSourceRecord $taskReceiptPath
+}
+function Assert-TaskAcceptanceEnvironment([string]$PowerShellPath, [string]$NodePath, [string]$ChildPath, [string[]]$Entrypoints, [scriptblock]$ResolveCommand = { param($Name) Get-Command -Name $Name -CommandType Cmdlet -ErrorAction Stop }) {
+  $taskPowerShellSource = Get-TaskSourceRecord $PowerShellPath
+  $taskNodeSource = Get-TaskSourceRecord $NodePath
+  $taskChildSource = Get-TaskSourceRecord $ChildPath
+  $taskChildTokens = $null
+  $taskChildErrors = $null
+  $null = [Management.Automation.Language.Parser]::ParseFile($ChildPath, [ref]$taskChildTokens, [ref]$taskChildErrors)
+  if (@($taskChildErrors).Count -ne 0) { throw 'The isolated child source has PowerShell syntax errors.' }
+  $taskEntrypointSources = @($Entrypoints | ForEach-Object { Get-TaskSourceRecord $_ })
+  $taskRequiredCommands = @('New-LocalUser', 'Get-LocalUser', 'Remove-LocalUser', 'Add-LocalGroupMember', 'Get-CimInstance', 'Invoke-CimMethod', 'Remove-CimInstance', 'Get-Acl', 'Set-Acl', 'Start-Process')
+  foreach ($taskRequiredCommand in $taskRequiredCommands) {
+    if (-not (& $ResolveCommand $taskRequiredCommand)) { throw ('Required acceptance command is unavailable: ' + $taskRequiredCommand) }
+  }
+  return [ordered]@{ powershell = $taskPowerShellSource; node = $taskNodeSource; child = $taskChildSource; entrypoints = $taskEntrypointSources; commands = $taskRequiredCommands }
 }
 if (-not $taskOutput.StartsWith($taskRepository + '\artifacts\maintenance\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Evidence must remain inside workspace maintenance.' }
 if (-not $taskDelivery.StartsWith($taskRepository + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Delivery must be a workspace file.' }
@@ -110,8 +244,8 @@ function Read-TaskFixtureEvidence([string]$Path, [string]$Scenario, [string[]]$R
   if ($Scenario -in @('application-handoff', 'long-root-external-data')) {
     $taskFullOldHost = @($taskFixtureProof.steps | Where-Object { $_.id -eq 'actual-old-host-transport' })[0]
     $taskFullNewHost = @($taskFixtureProof.steps | Where-Object { $_.id -eq 'actual-new-persistent-host' })[0]
-    $taskFullExpectedData = if ($Scenario -eq 'long-root-external-data') { Join-Path ([IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($taskFixtureProof.root))) 'D' } else { Join-Path $taskFixtureProof.root 'TableMax' }
-    if ([IO.Path]::GetFullPath($taskFullOldHost.dataDirectory) -ne $taskFullExpectedData -or [IO.Path]::GetFullPath($taskFullNewHost.dataDirectory) -ne $taskFullExpectedData -or [IO.Path]::GetFullPath($taskFullOldHost.boxRoot) -ne (Join-Path $taskFixtureProof.root 'TableMax') -or [IO.Path]::GetFullPath($taskFullNewHost.boxRoot) -ne (Join-Path $taskFixtureProof.root 'TableMax')) { throw 'Both actual Native generations must retain the selected D and original B.' }
+    $taskFullExpectedData = if ($Scenario -eq 'long-root-external-data') { Join-Path ([IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($taskFixtureProof.root))) 'D' } else { Join-Path $taskFixtureProof.root 'data' }
+    if ([IO.Path]::GetFullPath($taskFullOldHost.dataDirectory) -ne $taskFullExpectedData -or [IO.Path]::GetFullPath($taskFullNewHost.dataDirectory) -ne $taskFullExpectedData -or [IO.Path]::GetFullPath($taskFullOldHost.boxRoot) -ne (Join-Path $taskFixtureProof.root 'data') -or [IO.Path]::GetFullPath($taskFullNewHost.boxRoot) -ne (Join-Path $taskFixtureProof.root 'data')) { throw 'Both actual Native generations must retain the selected D and original B.' }
     if ($Scenario -eq 'application-handoff' -and [IO.Path]::GetFullPath($taskFixtureProof.root) -ne (Join-Path ([IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($taskFixtureProof.root))) '安装 根')) { throw 'The default-D full chain must use its ordinary private root.' }
     foreach ($taskShortcutStep in @('actual-old-inno-install', 'actual-new-persistent-host')) {
       $taskSelection = @($taskFixtureProof.steps | Where-Object { $_.id -eq $taskShortcutStep })[0].shortcutSelection
@@ -130,9 +264,9 @@ function Read-TaskFixtureEvidence([string]$Path, [string]$Scenario, [string[]]$R
     $taskNextReady = $taskNextStartup.restart.ready
     $taskNextCleanup = $taskNextStartup.cleanup.value
     $taskNextEvidenceDirectory = [IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($Path))
-    $taskExpectedNativeImage = Join-Path $taskFixtureProof.root 'TableMax\app\TableMax.exe'
+    $taskExpectedNativeImage = Join-Path $taskFixtureProof.root 'data\app\TableMax.exe'
     if ($taskNextStartup.result -ne 'passed' -or $taskPinnedHost.held.kind -ne 'fixture-native-exit-observation' -or $taskPinnedHost.held.stage -ne 'handle-held' -or $taskPinnedHost.held.pid -ne $taskFullNewHost.desktopPid -or $taskPinnedHost.held.ownerSid -ne $taskCreatedSid.Value -or [IO.Path]::GetFullPath($taskPinnedHost.held.image) -ne $taskExpectedNativeImage -or $taskPinnedHost.held.handleHeld -ne $true -or [string]::IsNullOrWhiteSpace($taskPinnedHost.held.startedAtUtc) -or $taskPinnedHost.exited.stage -ne 'exited' -or $taskPinnedHost.exited.pid -ne $taskPinnedHost.held.pid -or $taskPinnedHost.exited.image -ne $taskPinnedHost.held.image -or $taskPinnedHost.exited.ownerSid -ne $taskPinnedHost.held.ownerSid -or $taskPinnedHost.exited.startedAtUtc -ne $taskPinnedHost.held.startedAtUtc -or $taskPinnedHost.exited.handleHeld -ne $true -or $taskPinnedHost.exited.exitCode -ne 0 -or $taskPinnedHost.exited.processHasExited -ne $true -or $taskPinnedHost.checker.code -ne 0) { throw 'The actual post-Apply Native did not exit 0 through its pinned exact process handle.' }
-    if ($taskNextReady.desktopPid -lt 1 -or $taskNextReady.desktopPid -eq $taskFullNewHost.desktopPid -or $taskNextReady.buildVersion -ne $taskFixturePrepared.new.manifest.buildVersion -or $taskNextStartup.restart.appVersion -ne $taskNextReady.buildVersion -or $taskNextStartup.restart.actualHostState.currentVersion -ne $taskNextReady.buildVersion -or [IO.Path]::GetFullPath($taskNextReady.root) -ne [IO.Path]::GetFullPath($taskFixtureProof.root) -or [IO.Path]::GetFullPath($taskNextReady.boxRoot) -ne (Join-Path $taskFixtureProof.root 'TableMax') -or [IO.Path]::GetFullPath($taskNextReady.dataDirectory) -ne $taskFullExpectedData -or $taskNextReady.currentMappingSha256 -ne $taskFixturePrepared.new.manifest.currentMappingSha256 -or $taskNextReady.realShutdownDelegates -ne $true) { throw 'The next-startup cleanup was not observed in a separate healthy same-version Native at the original B/D.' }
+    if ($taskNextReady.desktopPid -lt 1 -or $taskNextReady.desktopPid -eq $taskFullNewHost.desktopPid -or $taskNextReady.buildVersion -ne $taskFixturePrepared.new.manifest.buildVersion -or $taskNextStartup.restart.appVersion -ne $taskNextReady.buildVersion -or $taskNextStartup.restart.actualHostState.currentVersion -ne $taskNextReady.buildVersion -or [IO.Path]::GetFullPath($taskNextReady.root) -ne [IO.Path]::GetFullPath($taskFixtureProof.root) -or [IO.Path]::GetFullPath($taskNextReady.boxRoot) -ne (Join-Path $taskFixtureProof.root 'data') -or [IO.Path]::GetFullPath($taskNextReady.dataDirectory) -ne $taskFullExpectedData -or $taskNextReady.currentMappingSha256 -ne $taskFixturePrepared.new.manifest.currentMappingSha256 -or $taskNextReady.realShutdownDelegates -ne $true) { throw 'The next-startup cleanup was not observed in a separate healthy same-version Native at the original B/D.' }
     if ($taskNextCleanup.schemaVersion -ne 1 -or $taskNextCleanup.kind -ne 'TableMax.ApplicationUpdate.Cleanup' -or $taskNextCleanup.status -ne 'completed' -or $taskNextCleanup.ownerSid -ne $taskCreatedSid.Value -or $taskNextCleanup.installationId -ne $taskFullNewHost.identity.installationId -or [IO.Path]::GetFullPath($taskNextCleanup.root) -ne [IO.Path]::GetFullPath($taskFixtureProof.root) -or $taskNextCleanup.buildVersion -ne $taskNextReady.buildVersion -or $taskNextCleanup.currentBuildVersion -ne $taskNextReady.buildVersion -or $taskNextCleanup.payloadManifestSha256 -ne $taskFixturePrepared.new.manifest.payloadManifestSha256 -or $taskNextCleanup.currentMappingSha256 -ne $taskFixturePrepared.new.manifest.currentMappingSha256 -or $taskNextCleanup.launchAuditSha256 -ne $taskDataStep.shortLaunch.audit.sha256 -or $taskNextCleanup.handoffSha256 -ne $taskDataStep.shortLaunch.handoffRecord.sha256 -or $taskNextCleanup.launchMetadataSha256 -ne $taskDataStep.shortLaunch.metadata.sha256 -or $taskNextCleanup.targetEnvelopeSha256 -ne $taskDataStep.shortLaunch.targetEnvelope.sha256 -or $taskNextCleanup.receiptSha256 -ne $taskNextStartup.preservation.before.receipt.sha256) { throw 'The next-startup cleanup audit did not bind the actual installation, target or original public raw records.' }
     $taskNextArtifacts = @(
       @{ record = $taskPinnedHost.heldFile; path = (Join-Path $taskNextEvidenceDirectory 'persistent-host-handle-held.json') },
@@ -242,7 +376,7 @@ function Read-TaskFixtureEvidence([string]$Path, [string]$Scenario, [string[]]$R
     $taskExternal = $taskFixtureProof.startupExternalData
     $taskExternalOldHost = @($taskFixtureProof.steps | Where-Object { $_.id -eq 'actual-old-host-transport' })[0]
     $taskExpectedData = Join-Path ([IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($taskFixtureProof.root))) 'D'
-    $taskExpectedBox = Join-Path $taskFixtureProof.root 'TableMax'
+    $taskExpectedBox = Join-Path $taskFixtureProof.root 'data'
     $taskExpectedConfig = Join-Path $taskExpectedBox 'TableMax.config.json'
     if ($taskFixtureProof.root.Length -ne 198 -or $taskExternal.rootLength -ne 198 -or [IO.Path]::GetFullPath($taskExternal.dataDirectory) -ne $taskExpectedData -or [IO.Path]::GetFullPath($taskExternal.gamesDirectory) -ne (Join-Path $taskExpectedBox 'games') -or [IO.Path]::GetFullPath($taskExternal.actualReady.dataDirectory) -ne $taskExpectedData -or [IO.Path]::GetFullPath($taskExternal.actualReady.boxRoot) -ne $taskExpectedBox -or [IO.Path]::GetFullPath($taskExternalOldHost.dataDirectory) -ne $taskExpectedData -or $taskExternal.externalGamesPresent -ne $false -or @($taskExternal.gameEntries).Count -lt 1 -or $taskExternal.dataAndGamesRetained -ne $true) { throw 'The short external data scenario lost its I198, actual D or retained B/G binding.' }
     if ($Scenario -eq 'long-root-external-data' -and ([IO.Path]::GetFullPath($taskExternal.newActualReady.dataDirectory) -ne $taskExpectedData -or [IO.Path]::GetFullPath($taskExternal.newActualReady.boxRoot) -ne $taskExpectedBox)) { throw 'The actual upgraded Native lost its explicit external D or original B.' }
@@ -269,6 +403,16 @@ if ($PortableMigrationOnly) {
   Assert-TaskPathNoLinks $taskPortableExecutablePath
   if ((Get-Item -LiteralPath $taskPortableExecutablePath).Length -ne $taskPortableExecutable.bytes -or (Get-FileHash -LiteralPath $taskPortableExecutablePath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskPortableExecutable.sha256) { throw 'The frozen portable executable bytes changed.' }
 }
+$taskSystemPowerShell = Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
+$taskSourceNode = Join-Path $taskRepository '.cache/node/22.14.0/runtime/node.exe'
+$taskTrackedChild = Join-Path $PSScriptRoot 'verify-production-user-child.ps1'
+$taskMethodEntrypoint = Join-Path $PSScriptRoot 'execution-method.mjs'
+$taskEntrypoints = @(if ($PortableMigrationOnly) { Join-Path $taskRepository 'tools/test/installation/verify-portable-migration.mjs' } else { Join-Path $taskRepository 'tools/test/installation/verify-application-handoff.mjs' })
+$taskEntrypoints += $taskMethodEntrypoint
+if (-not $PortableMigrationOnly -and -not $FixtureScenario) { $taskEntrypoints += Join-Path $taskRepository 'tools/release/installation-verifier.mjs' }
+$taskEnvironment = Assert-TaskAcceptanceEnvironment $taskSystemPowerShell $taskSourceNode $taskTrackedChild $taskEntrypoints
+$taskMethodSources = @(Get-TaskExecutionMethod $taskSourceNode $taskMethodEntrypoint $taskRepository)
+$taskMethodSha256 = Get-TaskMethodFingerprint $taskMethodSources
 $taskUsername = 'TMVerify_' + [Guid]::NewGuid().ToString('N').Substring(0, 8)
 $taskWork = Join-Path $taskRepository ('tmp\installation-user-' + [Guid]::NewGuid().ToString('N'))
 Assert-TaskPathNoLinks $taskWork
@@ -277,6 +421,12 @@ Assert-TaskPathNoLinks $taskWork
 New-Item -ItemType Directory -Path $taskOutput | Out-Null
 Assert-TaskPathNoLinks $taskOutput
 $taskReport = [ordered]@{ schemaVersion = 1; kind = $(if ($PortableMigrationOnly) { 'temporary-standard-user-portable-migration' } else { 'temporary-standard-user' }); startedAtUtc = [DateTime]::UtcNow.ToString('o'); result = 'started'; account = $taskUsername; ownerSid = $null; freshAccount = $false; standardAccount = $false; profileLoaded = $false; installerSha256 = $taskDeliveryData.executable.sha256; accountRemoved = $false; profileRemoved = $false; errors = @() }
+$taskReport.methodSources = $taskMethodSources
+$taskReport.methodSha256 = $taskMethodSha256
+$taskReport.environmentPreflight = $taskEnvironment
+$taskRunnerPath = Join-Path $taskWork 'run.ps1'
+$taskChildExecution = Copy-TaskSourceFile $taskTrackedChild $taskRunnerPath $taskEnvironment.child
+$taskReport.childExecution = $taskChildExecution
 if ($FixtureScenario) {
   $taskReport.scenario = 'fixture-only'
   $taskReport.fixtureScenario = $FixtureScenario
@@ -306,157 +456,10 @@ try {
     Set-Acl -LiteralPath $taskDirectory -AclObject $taskAcl
   }
   $taskPlan = Join-Path $taskWork 'plan.json'
-  $taskSourceNode = Join-Path $taskRepository '.cache/node/22.14.0/runtime/node.exe'
-  @{ repository = $taskRepository; delivery = $taskDelivery; handoffPreparedReport = $taskHandoffPreparedReport; handoffEvidence = (Join-Path $taskOutput 'application-handoff'); frameworkRecoveryEvidence = (Join-Path $taskOutput 'application-framework-recovery'); activeUninstallEvidence = (Join-Path $taskOutput 'application-active-uninstall'); fixtureScenario = $FixtureScenario; fixturePreparedSha256 = $taskFixturePreparedSha256; evidence = (Join-Path $taskOutput 'shipping-executable-checks-full.json'); portableMigrationOnly = [bool]$PortableMigrationOnly; portablePointer = $taskPortablePointer; portablePointerBytes = $taskPortablePointerBytes; portablePointerSha256 = $taskPortablePointerSha256; portableMigrationEvidence = (Join-Path $taskOutput 'portable-migration'); priorFailures = $PriorFailures; accountSid = $taskCreatedSid.Value; work = $taskWork; useProfileAcceptance = [bool]$UseProfileAcceptance; sourceNode = $taskSourceNode; sourceNodeBytes = (Get-Item -LiteralPath $taskSourceNode).Length; sourceNodeSha256 = (Get-FileHash -LiteralPath $taskSourceNode -Algorithm SHA256).Hash.ToLowerInvariant() } | ConvertTo-Json | Set-Content -LiteralPath $taskPlan -Encoding utf8
-  $taskChildSource = @'
-param([string]$Plan)
-$ErrorActionPreference = 'Stop'
-$taskPlan = Get-Content -LiteralPath $Plan -Raw -Encoding utf8 | ConvertFrom-Json
-function Invoke-TaskNode([string]$ScriptPath, [string[]]$NodeArguments, [string]$LogPath) {
-  $taskArguments = @($ScriptPath) + @($NodeArguments)
-  foreach ($taskArgument in $taskArguments) {
-    if ($taskArgument.Contains('"') -or $taskArgument.EndsWith('\')) { throw 'Unsafe Node argument.' }
-  }
-  $taskExecutable = if ([string]::IsNullOrEmpty($taskNodeExecutable)) { Join-Path $taskPlan.repository '.cache/node/22.14.0/runtime/node.exe' } else { $taskNodeExecutable }
-  $taskStart = [Diagnostics.ProcessStartInfo]::new($taskExecutable)
-  $taskStart.Arguments = [string]::Join(' ', [string[]]@($taskArguments | ForEach-Object { '"' + $_ + '"' }))
-  $taskStart.WorkingDirectory = $taskPlan.repository
-  $taskStart.UseShellExecute = $false
-  $taskStart.CreateNoWindow = $true
-  $taskStart.RedirectStandardOutput = $true
-  $taskStart.RedirectStandardError = $true
-  $taskStart.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
-  $taskStart.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
-  $taskNative = $null
-  $taskStdout = $null
-  $taskStderr = $null
-  try {
-    $taskNative = [Diagnostics.Process]::Start($taskStart)
-    if (-not $taskNative) { throw 'The verifier Node process did not start.' }
-    $taskStdout = $taskNative.StandardOutput.ReadToEndAsync()
-    $taskStderr = $taskNative.StandardError.ReadToEndAsync()
-    if (-not $taskNative.WaitForExit(1860000)) { throw 'The verifier Node process exceeded its bounded budget.' }
-    if (-not [Threading.Tasks.Task]::WaitAll([Threading.Tasks.Task[]]@($taskStdout, $taskStderr), 5000)) { throw 'The verifier Node output did not drain.' }
-    $taskNative.Refresh()
-    $taskNativeExit = $taskNative.ExitCode
-  } finally {
-    if ($taskNative) {
-      if (-not $taskNative.HasExited) { $taskNative.Kill(); $null = $taskNative.WaitForExit(5000) }
-      $taskNative.Dispose()
-    }
-    $taskOut = if ($taskStdout -and $taskStdout.Status -eq [Threading.Tasks.TaskStatus]::RanToCompletion) { $taskStdout.Result } else { '[stdout did not drain]' }
-    $taskErr = if ($taskStderr -and $taskStderr.Status -eq [Threading.Tasks.TaskStatus]::RanToCompletion) { $taskStderr.Result } else { '[stderr did not drain]' }
-    [IO.File]::WriteAllText($LogPath, $taskOut + "`n[stderr]`n" + $taskErr, [Text.UTF8Encoding]::new($false))
-  }
-  return $taskNativeExit
-}
-if ([Security.Principal.WindowsIdentity]::GetCurrent().User.Value -ne $taskPlan.accountSid) { throw 'Wrong test account.' }
-if (([Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw 'Installer acceptance must use a standard account.' }
-Set-Location -LiteralPath $taskPlan.repository
-foreach ($taskVariable in @(Get-ChildItem Env: | Where-Object { $_.Name -like 'TABLEMAX_*' -or $_.Name -like 'WEBVIEW2_*' -or $_.Name -in @('NODE_OPTIONS','NODE_PATH') })) {
-  Remove-Item -LiteralPath ('Env:\' + $taskVariable.Name)
-}
-$env:TABLEMAX_ISOLATED_WINDOWS_ACCEPTANCE = '1'
-$env:TABLEMAX_AUTO_MAINTENANCE = '0'
-$env:TABLEMAX_TEST_MAINTENANCE = '0'
-$env:TABLEMAX_INSTALLATION_VERIFY_TMP = $taskPlan.work
-$env:TABLEMAX_INSTALLATION_HANDOFF_TMP = $taskPlan.work
-$env:TEMP = $taskPlan.work
-$env:TMP = $taskPlan.work
-$env:TABLEMAX_HOST = '127.0.0.1'
-$env:TABLEMAX_PORT = '0'
-$taskProfilePath = [Environment]::GetFolderPath([Environment+SpecialFolder]::UserProfile)
-if ([IO.Path]::GetFileName($taskProfilePath) -notlike 'TMVerify_*') { throw 'The isolated user profile was not loaded.' }
-$env:USERPROFILE = $taskProfilePath
-$taskLocalAppData = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData, [Environment+SpecialFolderOption]::DoNotVerify)
-$taskRoamingAppData = [Environment]::GetFolderPath([Environment+SpecialFolder]::ApplicationData, [Environment+SpecialFolderOption]::DoNotVerify)
-foreach ($taskProfileMember in @($taskLocalAppData, $taskRoamingAppData)) {
-  if (-not $taskProfileMember -or -not [IO.Path]::GetFullPath($taskProfileMember).StartsWith($taskProfilePath.TrimEnd('\') + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'The child application-data directory does not belong to the isolated profile.' }
-}
-$env:LOCALAPPDATA = $taskLocalAppData
-$env:APPDATA = $taskRoamingAppData
-$env:HOMEDRIVE = [IO.Path]::GetPathRoot($taskProfilePath).TrimEnd('\')
-$env:HOMEPATH = $taskProfilePath.Substring($env:HOMEDRIVE.Length)
-$taskActualIdentity = [Security.Principal.WindowsIdentity]::GetCurrent().Name.Split('\')
-$env:USERNAME = $taskActualIdentity[$taskActualIdentity.Length - 1]
-$env:USERDOMAIN = $taskActualIdentity[0]
-$taskNodeExecutable = $taskPlan.sourceNode
-$taskProfileAcceptanceRoot = $null
-if ($taskPlan.useProfileAcceptance) {
-  function Assert-TaskProfilePathNoLinks([string]$Path) {
-    for ($taskCursor = [IO.Path]::GetFullPath($Path); $taskCursor; $taskCursor = [IO.Path]::GetDirectoryName($taskCursor)) {
-      if ((Test-Path -LiteralPath $taskCursor) -and ((Get-Item -LiteralPath $taskCursor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'The isolated profile path contains a link.' }
-    }
-  }
-  $taskProfileAcceptanceParent = Join-Path $taskLocalAppData 'TableMaxAcceptance'
-  Assert-TaskProfilePathNoLinks $taskProfileAcceptanceParent
-  if (-not (Test-Path -LiteralPath $taskProfileAcceptanceParent)) { New-Item -ItemType Directory -Path $taskProfileAcceptanceParent | Out-Null }
-  $taskProfileAcceptanceRoot = Join-Path $taskProfileAcceptanceParent ([Guid]::NewGuid().ToString('N'))
-  if (Test-Path -LiteralPath $taskProfileAcceptanceRoot) { throw 'The private profile acceptance root already exists.' }
-  New-Item -ItemType Directory -Path $taskProfileAcceptanceRoot | Out-Null
-  $taskProfileWork = Join-Path $taskProfileAcceptanceRoot 'work'
-  New-Item -ItemType Directory -Path $taskProfileWork | Out-Null
-  $taskProfileTools = Join-Path $taskProfileAcceptanceRoot 'tools'
-  New-Item -ItemType Directory -Path $taskProfileTools | Out-Null
-  Assert-TaskProfilePathNoLinks $taskProfileTools
-  $taskNodeExecutable = Join-Path $taskProfileTools 'node.exe'
-  if ((Get-Item -LiteralPath $taskPlan.sourceNode).Length -ne $taskPlan.sourceNodeBytes -or (Get-FileHash -LiteralPath $taskPlan.sourceNode -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskPlan.sourceNodeSha256) { throw 'The pinned source Node changed before profile materialization.' }
-  $taskNodeInput = [IO.File]::OpenRead($taskPlan.sourceNode)
-  try {
-    $taskNodeOutput = [IO.FileStream]::new($taskNodeExecutable, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
-    try { $taskNodeInput.CopyTo($taskNodeOutput) } finally { $taskNodeOutput.Dispose() }
-  } finally { $taskNodeInput.Dispose() }
-  if ((Get-Item -LiteralPath $taskNodeExecutable).Length -ne $taskPlan.sourceNodeBytes -or (Get-FileHash -LiteralPath $taskNodeExecutable -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskPlan.sourceNodeSha256 -or (Get-FileHash -LiteralPath $taskPlan.sourceNode -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskPlan.sourceNodeSha256) { throw 'The profile Node must contain the exact pinned source bytes.' }
-  $env:TABLEMAX_WINDOWS_ACCEPTANCE_PROFILE_ROOT = $taskProfileAcceptanceRoot
-  $env:TABLEMAX_WINDOWS_ACCEPTANCE_PROFILE_SID = $taskPlan.accountSid
-  $env:TABLEMAX_INSTALLATION_VERIFY_TMP = $taskProfileWork
-  $env:TABLEMAX_INSTALLATION_HANDOFF_TMP = $taskProfileWork
-  if ($taskPlan.portableMigrationOnly) { $env:TABLEMAX_INSTALLATION_MIGRATION_TMP = $taskProfileWork }
-  $env:TEMP = $taskProfileWork
-  $env:TMP = $taskProfileWork
-}
-$taskIdentityJson = @{ sid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value; profile = $taskProfilePath; localAppData = $taskLocalAppData; roamingAppData = $taskRoamingAppData; hkcu = (Get-Item -LiteralPath 'HKCU:\').Name; standardAccount = $true; inheritedApplicationEnvironmentCleared = $true; isolatedProfileEnvironmentNormalized = $true; profileAcceptanceRoot = $taskProfileAcceptanceRoot; nodeExecutable = $taskNodeExecutable; nodeSha256 = $taskPlan.sourceNodeSha256; nodeBytes = $taskPlan.sourceNodeBytes; executableSecurityMetadataCopied = $false } | ConvertTo-Json
-[IO.File]::WriteAllText((Join-Path (Split-Path -Parent $taskPlan.evidence) 'user-identity.json'), $taskIdentityJson + "`n", [Text.UTF8Encoding]::new($false))
-foreach ($taskInput in @('tools/release/installation-verifier.mjs','.cache/node/22.14.0/runtime/node.exe')) {
-  $taskStream = [IO.File]::OpenRead((Join-Path $taskPlan.repository $taskInput)); $taskStream.Dispose()
-}
-$taskStream = [IO.File]::OpenRead($taskPlan.delivery); $taskStream.Dispose()
-if ($taskPlan.portableMigrationOnly) {
-  if (-not $taskPlan.useProfileAcceptance -or (Get-Item -LiteralPath $taskPlan.portablePointer).Length -ne $taskPlan.portablePointerBytes -or (Get-FileHash -LiteralPath $taskPlan.portablePointer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskPlan.portablePointerSha256) { throw 'The frozen portable pointer or isolated profile mode changed.' }
-  $taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-portable-migration.mjs') -NodeArguments @(('--delivery=' + $taskPlan.delivery), ('--portable-pointer=' + $taskPlan.portablePointer), ('--evidence=' + $taskPlan.portableMigrationEvidence), ('--prior-failures=' + $taskPlan.priorFailures)) -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'portable-migration.log')
-  exit $taskNodeExit
-}
-if ($taskPlan.fixtureScenario) {
-  if (-not $taskPlan.useProfileAcceptance -or $taskPlan.fixtureScenario -notin @('active-uninstall', 'startup-external-data', 'long-root-external-data', 'chains') -or (Get-FileHash -LiteralPath $taskPlan.handoffPreparedReport -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskPlan.fixturePreparedSha256) { throw 'The fixture-only mode or exact prepared input changed.' }
-  if ($taskPlan.fixtureScenario -in @('active-uninstall', 'startup-external-data')) {
-    $taskActiveEvidence = $taskPlan.activeUninstallEvidence
-    $taskActiveArguments = @('--active-uninstall-only', ('--prepared-report=' + $taskPlan.handoffPreparedReport))
-    if ($taskPlan.fixtureScenario -eq 'startup-external-data') { $taskActiveEvidence = Join-Path (Split-Path -Parent $taskPlan.evidence) 'application-startup-external-data'; $taskActiveArguments += '--short-external-data' }
-    $taskActiveArguments += '--evidence=' + $taskActiveEvidence
-    $taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-application-handoff.mjs') -NodeArguments $taskActiveArguments -LogPath ($taskActiveEvidence + '.log')
-    exit $taskNodeExit
-  }
-  if ($taskPlan.fixtureScenario -eq 'long-root-external-data') {
-    $taskLongEvidence = Join-Path (Split-Path -Parent $taskPlan.evidence) 'application-handoff-long-root-external-data'
-    $taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-application-handoff.mjs') -NodeArguments @('--long-root-external-data', ('--prepared-report=' + $taskPlan.handoffPreparedReport), ('--evidence=' + $taskLongEvidence)) -LogPath ($taskLongEvidence + '.log')
-    exit $taskNodeExit
-  }
-}
-$taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-application-handoff.mjs') -NodeArguments @(('--prepared-report=' + $taskPlan.handoffPreparedReport), ('--evidence=' + $taskPlan.handoffEvidence)) -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'application-handoff.log')
-if ($taskNodeExit -ne 0) { exit $taskNodeExit }
-$taskLongEvidence = Join-Path (Split-Path -Parent $taskPlan.evidence) 'application-handoff-long-root-external-data'
-$taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-application-handoff.mjs') -NodeArguments @('--long-root-external-data', ('--prepared-report=' + $taskPlan.handoffPreparedReport), ('--evidence=' + $taskLongEvidence)) -LogPath ($taskLongEvidence + '.log')
-if ($taskNodeExit -ne 0) { exit $taskNodeExit }
-$taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-application-handoff.mjs') -NodeArguments @('--framework-recovery-only', ('--prepared-report=' + $taskPlan.handoffPreparedReport), ('--evidence=' + $taskPlan.frameworkRecoveryEvidence)) -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'application-framework-recovery.log')
-if ($taskNodeExit -ne 0) { exit $taskNodeExit }
-if ($taskPlan.fixtureScenario -eq 'chains') { exit 0 }
-$taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/release/installation-verifier.mjs') -NodeArguments @(('--delivery=' + $taskPlan.delivery), ('--evidence=' + $taskPlan.evidence), '--isolated-windows') -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'production-account.log')
-exit $taskNodeExit
-'@
-  $taskRunnerPath = Join-Path $taskWork 'run.ps1'
-  Set-Content -LiteralPath $taskRunnerPath -Value $taskChildSource -Encoding utf8
+  @{ repository = $taskRepository; delivery = $taskDelivery; handoffPreparedReport = $taskHandoffPreparedReport; handoffEvidence = (Join-Path $taskOutput 'application-handoff'); frameworkRecoveryEvidence = (Join-Path $taskOutput 'application-framework-recovery'); activeUninstallEvidence = (Join-Path $taskOutput 'application-active-uninstall'); fixtureScenario = $FixtureScenario; fixturePreparedSha256 = $taskFixturePreparedSha256; evidence = (Join-Path $taskOutput 'shipping-executable-checks-full.json'); portableMigrationOnly = [bool]$PortableMigrationOnly; portablePointer = $taskPortablePointer; portablePointerBytes = $taskPortablePointerBytes; portablePointerSha256 = $taskPortablePointerSha256; portableMigrationEvidence = (Join-Path $taskOutput 'portable-migration'); priorFailures = $PriorFailures; accountSid = $taskCreatedSid.Value; work = $taskWork; useProfileAcceptance = [bool]$UseProfileAcceptance; sourceNode = $taskSourceNode; sourceNodeBytes = $taskEnvironment.node.bytes; sourceNodeSha256 = $taskEnvironment.node.sha256; childExecution = $taskChildExecution; methodSha256 = $taskMethodSha256 } | ConvertTo-Json | Set-Content -LiteralPath $taskPlan -Encoding utf8
+
   $taskCredentials = [Management.Automation.PSCredential]::new($env:COMPUTERNAME + '\' + $taskUsername, $taskPassword)
-  $taskRunner = Start-Process -FilePath (Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe') -ArgumentList @('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',('"' + $taskRunnerPath + '"'),'-Plan',('"' + $taskPlan + '"')) -Credential $taskCredentials -LoadUserProfile -WorkingDirectory $taskWork -WindowStyle Hidden -RedirectStandardOutput (Join-Path $taskOutput 'account-runner.stdout.log') -RedirectStandardError (Join-Path $taskOutput 'account-runner.stderr.log') -PassThru
+  $taskRunner = Start-Process -FilePath $taskSystemPowerShell -ArgumentList @('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',('"' + $taskRunnerPath + '"'),'-Plan',('"' + $taskPlan + '"')) -Credential $taskCredentials -LoadUserProfile -WorkingDirectory $taskWork -WindowStyle Hidden -RedirectStandardOutput (Join-Path $taskOutput 'account-runner.stdout.log') -RedirectStandardError (Join-Path $taskOutput 'account-runner.stderr.log') -PassThru
   $null = $taskRunner.Handle
   if (-not $taskRunner.WaitForExit(1860000)) { throw 'Isolated installer verification exceeded its bounded budget.' }
   $taskRunner.Refresh()
@@ -619,6 +622,11 @@ exit $taskNodeExit
       $taskReport.profileRemoved = $true
     } catch { $taskReport.errors += $_.Exception.Message }
   }
+  try {
+    Assert-TaskSourceRecords $taskMethodSources
+    Assert-TaskSourceRecords @($taskChildExecution)
+    if ((Get-TaskMethodFingerprint $taskMethodSources) -ne $taskMethodSha256) { throw 'Acceptance method fingerprint changed.' }
+  } catch { $taskReport.errors += ('Acceptance method binding: ' + $_.Exception.Message) }
   if ($taskReport.errors.Count -gt 0) { $taskReport.result = 'failed' }
   $taskReport.finishedAtUtc = [DateTime]::UtcNow.ToString('o')
   Write-TaskJson (Join-Path $taskOutput 'isolated-account.json') $taskReport
@@ -670,6 +678,7 @@ if ($FixtureScenario) {
   }
   exit 0
 }
+$taskExecutionReceipt = $null
 try {
   $taskProofPath = if ($PortableMigrationOnly) { Join-Path $taskOutput 'portable-migration/report.json' } else { Join-Path $taskOutput 'shipping-executable-checks-full.json' }
   Assert-TaskPathNoLinks $taskProofPath
@@ -692,12 +701,20 @@ try {
   $taskIsolationPath = Join-Path $taskOutput 'isolated-account.json'
   $taskRelativeIsolationPath = $taskIsolationPath.Substring($taskRepository.Length + 1).Replace('\', '/')
   $taskIsolationHash = (Get-FileHash -LiteralPath $taskIsolationPath -Algorithm SHA256).Hash.ToLowerInvariant()
+  if (-not $PortableMigrationOnly) {
+    $taskReceiptDelivery = [ordered]@{ path = $taskDelivery; bytes = $taskDeliveryBytes; sha256 = $taskDeliverySha256 }
+    $taskExecutionReceipt = Write-TaskExecutionReceipt $taskOutput $taskReceiptDelivery $taskProofPath $taskIsolationPath $taskMethodSources
+  }
   $taskProof | Add-Member -NotePropertyName isolationEvidencePath -NotePropertyValue $taskRelativeIsolationPath -Force
   $taskProof | Add-Member -NotePropertyName isolationEvidenceSha256 -NotePropertyValue $taskIsolationHash -Force
   $taskTemporaryProofPath = Join-Path $taskOutput ('proof-' + [Guid]::NewGuid().ToString('N') + '.tmp')
   Write-TaskJson $taskTemporaryProofPath $taskProof
   Move-Item -LiteralPath $taskTemporaryProofPath -Destination $taskProofPath -Force
 } catch {
+  if ($taskExecutionReceipt) {
+    Write-TaskNewJson (Join-Path $taskOutput 'acceptance-binding-error.json') ([ordered]@{ schemaVersion = 1; kind = 'installation-acceptance-binding-error'; result = 'failed'; message = $_.Exception.Message; executionReceipt = $taskExecutionReceipt; isolationPreserved = $true; finishedAtUtc = [DateTime]::UtcNow.ToString('o') })
+    exit 1
+  }
   $taskReport.result = 'failed'
   $taskReport.errors += ('Acceptance binding: ' + $_.Exception.Message)
   Write-TaskJson (Join-Path $taskOutput 'isolated-account.json') $taskReport

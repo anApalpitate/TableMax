@@ -1,3 +1,4 @@
+import { failureLimit } from '../runner/failure-policy.mjs';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { constants, createHash, generateKeyPairSync, sign } from 'node:crypto';
@@ -35,8 +36,12 @@ assert(
   'Select unique known launch case IDs.',
 );
 const selectedCases = caseIds.filter((id) => selected.includes(id));
+const limit = failureLimit();
 const prior = options.get('prior-failures') ?? '0';
-assert(/^[0-2]$/.test(prior), 'Prior failures must be 0, 1 or 2.');
+assert(
+  /^(0|[1-9]\d*)$/.test(prior) && Number(prior) < limit,
+  `Prior failures must be an integer from 0 to ${limit - 1}.`,
+);
 const priorFailures = Number(prior);
 assert.equal(process.platform, 'win32', 'This harness requires Windows net48.');
 const workspace = resolve('.');
@@ -46,6 +51,7 @@ const sources = [
   'apps/desktop/installation-runtime/TrustRoots.cs',
   'tools/test/installation/native-launch-harness.cs',
   'tools/test/installation/native-launch-harness.mjs',
+  'tools/test/runner/failure-policy.mjs',
 ];
 const hashes = async () =>
   Object.fromEntries(
@@ -128,6 +134,7 @@ async function execute(program, args, label) {
         DOTNET_CLI_HOME: join(workspace, '.cache/dotnet-home'),
         DOTNET_NOLOGO: '1',
         DOTNET_CLI_TELEMETRY_OPTOUT: '1',
+        TABLEMAX_TEST_MAX_FAILURES: String(limit),
         TABLEMAX_AUTO_MAINTENANCE: '0',
         TABLEMAX_TEST_MAINTENANCE: '0',
       },
@@ -203,7 +210,7 @@ try {
   report = JSON.parse(run.stdout.trim());
   assert.deepEqual(report.selectedCases, selectedCases);
   assert.equal(report.priorFailures, priorFailures);
-  assert.equal(report.failureLimit, 3);
+  assert.equal(report.failureLimit, limit);
   assert.equal(report.totalFailures, priorFailures + report.failures);
   assert.equal(
     report.failures,
@@ -228,7 +235,7 @@ try {
     priorFailures,
     failures: observedFailures + 1,
     totalFailures: priorFailures + observedFailures + 1,
-    failureLimit: 3,
+    failureLimit: limit,
     results: report?.results ?? [],
     toolFailure: cause.stack,
     preservedWork: work,
@@ -240,7 +247,7 @@ report.sourcesUnchanged =
 if (!report.sourcesUnchanged) {
   report.passed = false;
   report.sourceChangeError = 'A compiled or harness source changed during run.';
-  if (report.totalFailures < 3) {
+  if (report.totalFailures < limit) {
     report.failures++;
     report.totalFailures++;
   }

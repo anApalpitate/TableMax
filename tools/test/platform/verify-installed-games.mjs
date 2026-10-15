@@ -1,3 +1,7 @@
+import {
+  DEFAULT_FAILURE_LIMIT,
+  failureLimit,
+} from '../runner/failure-policy.mjs';
 import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, readFile, writeFile, stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
@@ -45,9 +49,11 @@ const playMode = option('play-mode', 'test');
 assert.ok(['play', 'test'].includes(playMode));
 const timingCheckpoint = option('timing-checkpoint', 'false') === 'true';
 assert.ok(!timingCheckpoint || playMode === 'play');
-const maxFailures = Number(option('max-failures', '3'));
+const maxFailures = failureLimit(option('max-failures'));
 assert.ok(
-  Number.isInteger(maxFailures) && maxFailures >= 1 && maxFailures <= 3,
+  Number.isInteger(maxFailures) &&
+    maxFailures >= 1 &&
+    maxFailures <= DEFAULT_FAILURE_LIMIT,
 );
 const onlineRelease = option('online-release', '');
 if (onlineRelease)

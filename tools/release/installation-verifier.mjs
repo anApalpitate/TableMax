@@ -1,13 +1,26 @@
+import {
+  verifyPreservedRuntime,
+  verifyResourceCleanup,
+  noLinks,
+  archiveInstallationLog,
+  preserveVerifiedRuntime,
+  installedProgramFootprint,
+  storageObservation,
+  databaseMembers,
+} from './installation-evidence.mjs';
+export {
+  verifyPreservedRuntime,
+  archiveInstallationLog,
+  installedProgramFootprint,
+} from './installation-evidence.mjs';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import {
-  copyFile,
   lstat,
   mkdir,
   mkdtemp,
   readFile,
-  readdir,
   stat,
   writeFile,
 } from 'node:fs/promises';
@@ -21,10 +34,6 @@ import {
   installationInventory,
 } from './installation-package.mjs';
 import { hash } from './installation-toolchain.mjs';
-import {
-  MAXIMUM_PACKAGE_BYTES,
-  PACKAGE_BUDGET_BYTES,
-} from './package-limits.mjs';
 import {
   assertWorkspaceRoot,
   isDirectExecution,
@@ -65,50 +74,20 @@ async function executionIdentity() {
   return JSON.parse(result.stdout.trim());
 }
 
-export async function verifyPreservedRuntime({
-  copy,
-  delivery,
-  payloadBytes,
-  sourceRuntimeRoot,
-  installationId,
-}) {
-  const payload = JSON.parse(payloadBytes.toString('utf8'));
-  const members = [
-    ...payload.files,
-    {
-      path: '.tablemax-release.json',
-      bytes: payloadBytes.length,
-      sha256: hash(payloadBytes),
-    },
-  ].sort((a, b) => a.path.localeCompare(b.path));
-  assert.equal(copy.sourceRuntimeRoot, sourceRuntimeRoot);
-  assert.equal(copy.installationId, installationId);
-  assert.equal(copy.executableSha256, delivery.executable.sha256);
-  assert.equal(copy.payloadSha256, delivery.executable.payloadSha256);
-  assert.equal(copy.payloadManifestSha256, hash(payloadBytes));
-  assert.equal(copy.fileCount, members.length);
-  assert.deepEqual(copy.files, members);
-  assert.deepEqual(
-    await installationInventory(copy.path),
-    members,
-    'Retained runtime must remain the exact frozen payload plus marker after uninstall',
-  );
-}
-
 async function installedIdentity(root, manifest, delivery, ownerSid) {
   const identity = JSON.parse(
-    await readFile(join(root, 'TableMax/.install.json'), 'utf8'),
+    await readFile(join(root, 'data/.install.json'), 'utf8'),
   );
   assert.equal(identity.productId, manifest.productId);
   assert.equal(identity.ownerSid, ownerSid);
   assert.equal(resolve(identity.root), resolve(root));
-  assert.equal(resolve(identity.boxRoot), resolve(root, 'TableMax'));
+  assert.equal(resolve(identity.boxRoot), resolve(root, 'data'));
   assert.equal(identity.buildVersion, manifest.buildVersion);
   assert.equal(identity.payloadManifestSha256, manifest.payloadManifestSha256);
   assert.equal(identity.currentMappingSha256, manifest.currentMappingSha256);
   assert.deepEqual(identity.files, manifest.files);
   const receipt = JSON.parse(
-    await readFile(join(root, 'TableMax/.installer-receipt.json'), 'utf8'),
+    await readFile(join(root, 'data/.installer-receipt.json'), 'utf8'),
   );
   assert.equal(receipt.schemaVersion, 1);
   assert.equal(receipt.productId, manifest.productId);
@@ -171,97 +150,6 @@ async function verificationParent() {
   return { parent, profile: null };
 }
 
-async function noLinks(path) {
-  for (let cursor = resolve(path); ; cursor = dirname(cursor)) {
-    try {
-      assert.ok(
-        !(await lstat(cursor)).isSymbolicLink(),
-        'Evidence contains a link',
-      );
-    } catch (cause) {
-      if (cause.code !== 'ENOENT') throw cause;
-    }
-    if (dirname(cursor) === cursor) break;
-  }
-}
-
-export async function archiveInstallationLog({ source, directory, name }) {
-  assert.match(
-    name,
-    /^(install|reinstall|uninstall|restore-install|restore-uninstall)\.log$/,
-  );
-  let entry;
-  try {
-    entry = await lstat(source);
-  } catch (cause) {
-    if (cause.code === 'ENOENT')
-      return { sourcePath: resolve(source), missing: true };
-    throw cause;
-  }
-  assert.ok(
-    entry.isFile() && !entry.isSymbolicLink(),
-    'Installer log is not a regular file',
-  );
-  await noLinks(source);
-  await noLinks(directory);
-  const bytes = await readFile(source);
-  const path = join(directory, name);
-  await writeFile(path, bytes, { flag: 'wx' });
-  assert.equal(hash(await readFile(path)), hash(bytes));
-  return {
-    sourcePath: resolve(source),
-    path,
-    bytes: bytes.length,
-    sha256: hash(bytes),
-  };
-}
-async function preserveVerifiedRuntime({
-  root,
-  delivery,
-  evidencePath,
-  installationId,
-}) {
-  const payloadBytes = await readFile(delivery.manifestPath),
-    payload = JSON.parse(payloadBytes.toString('utf8'));
-  const source = join(root, 'TableMax/app');
-  const destination = resolve(dirname(evidencePath), 'verified-runtime');
-  assert.ok(destination.startsWith(resolve(dirname(evidencePath)) + sep));
-  await mkdir(destination, { recursive: false });
-  const records = [];
-  for (const file of [
-    ...payload.files,
-    {
-      path: '.tablemax-release.json',
-      bytes: payloadBytes.length,
-      sha256: hash(payloadBytes),
-    },
-  ]) {
-    const input = join(source, file.path),
-      output = join(destination, file.path);
-    assert.equal((await stat(input)).size, file.bytes);
-    assert.equal(hash(await readFile(input)), file.sha256);
-    await mkdir(dirname(output), { recursive: true });
-    await copyFile(input, output);
-    assert.equal(hash(await readFile(output)), file.sha256);
-    records.push(file);
-  }
-  assert.deepEqual(
-    await installationInventory(destination),
-    records.sort((a, b) => a.path.localeCompare(b.path)),
-  );
-  return {
-    path: destination,
-    files: records,
-    fileCount: records.length,
-    executableSha256: delivery.executable.sha256,
-    payloadSha256: payload.archive.sha256,
-    payloadManifestSha256: hash(await readFile(delivery.manifestPath)),
-    installationId,
-    sourceRuntimeRoot: source,
-    boundary:
-      'Exact payload members and ownership marker copied from the real verified installation before uninstall; component input only, does not repeat installer/registry/updater acceptance.',
-  };
-}
 async function registration(productId) {
   const result = await run(
     'powershell.exe',
@@ -301,89 +189,7 @@ async function shortcuts(root, fixture) {
   const text = result.stdout.trim();
   return text ? JSON.parse(text) : [];
 }
-export async function installedProgramFootprint(root, manifest) {
-  const declared = [];
-  for (const file of manifest.files) {
-    const path = join(root, file.path);
-    assert.equal((await stat(path)).size, file.bytes);
-    assert.equal(hash(await readFile(path)), file.sha256, file.path);
-    declared.push(file);
-  }
-  assert.deepEqual(
-    await installationInventory(join(root, 'TableMax/app')),
-    manifest.files
-      .filter((file) => file.path.startsWith('TableMax/app/'))
-      .map((file) => ({
-        ...file,
-        path: file.path.slice('TableMax/app/'.length),
-      })),
-    'Fresh app must contain exactly the managed payload and marker',
-  );
-  const framework = [];
-  for (const name of await readdir(root))
-    if (/^unins\d+\.(exe|dat|msg)$/i.test(name)) {
-      const path = join(root, name);
-      framework.push({
-        path: name,
-        bytes: (await stat(path)).size,
-        sha256: hash(await readFile(path)),
-      });
-    }
-  assert.ok(
-    framework.some((file) => file.path.endsWith('.exe')) &&
-      framework.some((file) => file.path.endsWith('.dat')),
-    'Framework uninstaller and registration log required',
-  );
-  const metadata = await Promise.all(
-    [
-      'TableMax/.install.json',
-      'TableMax/.installer-receipt.json',
-      'TableMax/TableMax.config.json',
-    ].map(async (path) => ({
-      path,
-      bytes: (await stat(join(root, path))).size,
-      sha256: hash(await readFile(join(root, path))),
-    })),
-  );
-  const identityBytes = metadata.reduce((sum, file) => sum + file.bytes, 0);
-  const games = await installationInventory(join(root, 'TableMax/games'));
-  const programBytes = declared.reduce((sum, file) => sum + file.bytes, 0),
-    frameworkBytes = framework.reduce((sum, file) => sum + file.bytes, 0),
-    currentGamesBytes = games.reduce((sum, file) => sum + file.bytes, 0);
-  const total =
-    programBytes + frameworkBytes + identityBytes + currentGamesBytes;
-  assert.ok(
-    total < MAXIMUM_PACKAGE_BYTES,
-    'First startup complete program must be strictly below 120,000,000 bytes',
-  );
-  return {
-    programBytes,
-    frameworkBytes,
-    identityBytes,
-    metadata,
-    currentGamesBytes,
-    total,
-    engineeringBudgetBytes: PACKAGE_BUDGET_BYTES,
-    engineeringWarning: total >= PACKAGE_BUDGET_BYTES,
-    framework,
-    games,
-    measurement:
-      'Fresh installation: exact managed app/entry/helper, framework uninstaller/log, identity/receipt/config, all current materialized games. User saves/browser caches/transaction copies are excluded from the program footprint; preservation is checked separately.',
-  };
-}
 
-const databaseMembers = [
-  'foundation.sqlite',
-  'foundation.sqlite-wal',
-  'foundation.sqlite-shm',
-  'foundation.sqlite-journal',
-  'room.sqlite',
-  'room.sqlite-wal',
-  'room.sqlite-shm',
-  'room.sqlite-journal',
-  'room.sqlite.migration.json',
-  'room.sqlite.migration.lock',
-];
 const samePath = (left, right) =>
   resolve(left).toLowerCase() === resolve(right).toLowerCase();
 
@@ -500,7 +306,7 @@ async function servicePost(origin, route, body) {
 
 async function observeSavedPlayer({ root, environment, buildVersion, saved }) {
   await waitForInstalledIdle(root, environment);
-  const boxRoot = join(root, 'TableMax');
+  const boxRoot = join(root, 'data');
   const desktop = await launchDesktop({
     executablePath: join(boxRoot, 'app/TableMax.exe'),
     timeout: 180000,
@@ -630,108 +436,6 @@ async function observeSavedPlayer({ root, environment, buildVersion, saved }) {
     if (result) result.observation.exitCode = child.exitCode;
   }
   return result;
-}
-
-async function sizeInventory(root) {
-  await noLinks(root);
-  const files = [];
-  const walk = async (directory, prefix = '') => {
-    for (const entry of await readdir(directory, { withFileTypes: true })) {
-      assert.ok(!entry.isSymbolicLink(), 'Storage measurement contains a link');
-      const path = join(directory, entry.name),
-        name = prefix + entry.name;
-      if (entry.isDirectory()) await walk(path, name + '/');
-      else {
-        assert.ok(entry.isFile(), 'Unexpected storage measurement member');
-        files.push({ path: name, bytes: (await stat(path)).size });
-      }
-    }
-  };
-  await walk(root);
-  return files.sort((left, right) => left.path.localeCompare(right.path));
-}
-
-async function storageObservation({
-  root,
-  temporary,
-  executablePath,
-  manifest,
-  currentGames,
-  phase,
-}) {
-  const managed = new Set(manifest.files.map((file) => file.path));
-  const games = new Set(
-    currentGames.map((file) => 'TableMax/games/' + file.path),
-  );
-  const categories = Object.fromEntries(
-    [
-      'program',
-      'framework',
-      'metadata',
-      'currentGames',
-      'historicalGames',
-      'savedData',
-      'browserCache',
-      'logs',
-      'updates',
-      'transactions',
-      'otherRetainedData',
-      'unknownUserFiles',
-    ].map((name) => [name, { bytes: 0, files: [] }]),
-  );
-  const files = await sizeInventory(root);
-  for (const file of files) {
-    const path = file.path;
-    const category = managed.has(path)
-      ? 'program'
-      : /^unins\d+\.(exe|dat|msg)$/i.test(path)
-        ? 'framework'
-        : /^TableMax\/(\.install\.json|\.installer-receipt\.json|\.uninstalled\.json|TableMax\.config\.json)$/.test(
-              path,
-            )
-          ? 'metadata'
-          : games.has(path)
-            ? 'currentGames'
-            : path.startsWith('TableMax/games/')
-              ? 'historicalGames'
-              : path.startsWith('TableMax/.installation-transactions/')
-                ? 'transactions'
-                : path.startsWith('TableMax/updates/')
-                  ? 'updates'
-                  : path.startsWith('TableMax/desktop/')
-                    ? 'browserCache'
-                    : path.startsWith('TableMax/logs/')
-                      ? 'logs'
-                      : databaseMembers.some(
-                            (name) => path === 'TableMax/' + name,
-                          )
-                        ? 'savedData'
-                        : path.startsWith('TableMax/')
-                          ? 'otherRetainedData'
-                          : 'unknownUserFiles';
-    categories[category].files.push(file);
-    categories[category].bytes += file.bytes;
-  }
-  const temporaryFiles = await sizeInventory(temporary);
-  const rootBytes = files.reduce((sum, file) => sum + file.bytes, 0);
-  const temporaryBytes = temporaryFiles.reduce(
-    (sum, file) => sum + file.bytes,
-    0,
-  );
-  const executionCopyBytes = (await stat(executablePath)).size;
-  return {
-    phase,
-    observedAtUtc: new Date().toISOString(),
-    rootBytes,
-    categories,
-    installerTemporary: {
-      path: temporary,
-      bytes: temporaryBytes,
-      files: temporaryFiles,
-    },
-    executionCopyBytes,
-    totalObservedBytes: rootBytes + temporaryBytes + executionCopyBytes,
-  };
 }
 
 /** Mutating installer verification only uses an isolated test product by default. */
@@ -986,7 +690,7 @@ export async function verifyInstallationDelivery({
     );
   };
   await observeStorage('after-install');
-  const preserved = join(root, 'TableMax', '用户资料.txt');
+  const preserved = join(root, 'data', '用户资料.txt');
   await writeFile(preserved, 'Preserved user data\n');
   const preservedHash = hash(await readFile(preserved));
   await runPhase('reinstall', executablePath, argumentsFor(logs.reinstall), {
@@ -1006,10 +710,9 @@ export async function verifyInstallationDelivery({
   const repeatFootprint = await installedProgramFootprint(root, manifest);
   assert.deepEqual(repeatFootprint.games, footprint.games);
   assert.equal(
-    hash(await readFile(join(root, 'TableMax/TableMax.config.json'))),
-    footprint.metadata.find(
-      (file) => file.path === 'TableMax/TableMax.config.json',
-    ).sha256,
+    hash(await readFile(join(root, 'data/TableMax.config.json'))),
+    footprint.metadata.find((file) => file.path === 'data/TableMax.config.json')
+      .sha256,
   );
   const repeatRegistration = await registration(manifest.productId);
   verifyRegistration(repeatRegistration, root, manifest, fixture);
@@ -1029,13 +732,11 @@ export async function verifyInstallationDelivery({
       buildVersion: manifest.buildVersion,
     });
     assert.deepEqual(
-      await installationInventory(join(root, 'TableMax/games')),
+      await installationInventory(join(root, 'data/games')),
       footprint.games,
       'The first-start current game repository must already include the saved game',
     );
-    const firstDatabasesBefore = await protectedDatabases(
-      join(root, 'TableMax'),
-    );
+    const firstDatabasesBefore = await protectedDatabases(join(root, 'data'));
     await observeStorage('before-first-uninstall');
     await mkdir(dirnameFor(evidencePath), { recursive: true });
     verifiedRuntime = await preserveVerifiedRuntime({
@@ -1068,29 +769,29 @@ export async function verifyInstallationDelivery({
     for (const file of [
       ...manifest.files,
       ...repeatFootprint.framework,
-      { path: 'TableMax/.install.json' },
+      { path: 'data/.install.json' },
     ])
       await assert.rejects(stat(join(root, file.path)), { code: 'ENOENT' });
     assert.equal(
-      hash(await readFile(join(root, 'TableMax/TableMax.config.json'))),
+      hash(await readFile(join(root, 'data/TableMax.config.json'))),
       footprint.metadata.find(
-        (file) => file.path === 'TableMax/TableMax.config.json',
+        (file) => file.path === 'data/TableMax.config.json',
       ).sha256,
     );
-    assert.deepEqual(
-      await installationInventory(join(root, 'TableMax/games')),
-      footprint.games,
-      'Default uninstall preserves every current/original game repository byte',
-    );
-    const firstDatabasesAfter = await protectedDatabases(
-      join(root, 'TableMax'),
-    );
+    const firstResourceCleanup = await verifyResourceCleanup({
+      root,
+      identity,
+      before: footprint.games,
+      directory: dirnameFor(evidencePath),
+      name: 'first-uninstall-resources.json',
+    });
+    const firstDatabasesAfter = await protectedDatabases(join(root, 'data'));
     assert.deepEqual(firstDatabasesAfter, firstDatabasesBefore);
     await verifyPreservedRuntime({
       copy: verifiedRuntime,
       delivery,
       payloadBytes,
-      sourceRuntimeRoot: join(root, 'TableMax/app'),
+      sourceRuntimeRoot: join(root, 'data/app'),
       installationId: identity.installationId,
     });
     await observeStorage('after-first-uninstall');
@@ -1122,9 +823,9 @@ export async function verifyInstallationDelivery({
     assert.equal(hash(await readFile(preserved)), preservedHash);
     assert.equal(hash(await readFile(unknown)), originalHash);
     assert.equal(
-      hash(await readFile(join(root, 'TableMax/TableMax.config.json'))),
+      hash(await readFile(join(root, 'data/TableMax.config.json'))),
       footprint.metadata.find(
-        (file) => file.path === 'TableMax/TableMax.config.json',
+        (file) => file.path === 'data/TableMax.config.json',
       ).sha256,
     );
     await observeStorage('after-restored-install');
@@ -1138,9 +839,7 @@ export async function verifyInstallationDelivery({
       restoredPlayer.observation.publicState,
       savedPlayer.observation.publicState,
     );
-    const finalDatabasesBefore = await protectedDatabases(
-      join(root, 'TableMax'),
-    );
+    const finalDatabasesBefore = await protectedDatabases(join(root, 'data'));
     await observeStorage('before-final-uninstall');
     await runPhase(
       'restore-uninstall',
@@ -1164,30 +863,31 @@ export async function verifyInstallationDelivery({
     for (const file of [
       ...manifest.files,
       ...restoredFootprint.framework,
-      { path: 'TableMax/.install.json' },
+      { path: 'data/.install.json' },
     ])
       await assert.rejects(stat(join(root, file.path)), { code: 'ENOENT' });
     assert.equal(hash(await readFile(preserved)), preservedHash);
     assert.equal(hash(await readFile(unknown)), originalHash);
     assert.equal(
-      hash(await readFile(join(root, 'TableMax/TableMax.config.json'))),
+      hash(await readFile(join(root, 'data/TableMax.config.json'))),
       footprint.metadata.find(
-        (file) => file.path === 'TableMax/TableMax.config.json',
+        (file) => file.path === 'data/TableMax.config.json',
       ).sha256,
     );
-    assert.deepEqual(
-      await installationInventory(join(root, 'TableMax/games')),
-      footprint.games,
-    );
-    const finalDatabasesAfter = await protectedDatabases(
-      join(root, 'TableMax'),
-    );
+    const finalResourceCleanup = await verifyResourceCleanup({
+      root,
+      identity: restored,
+      before: restoredFootprint.games,
+      directory: dirnameFor(evidencePath),
+      name: 'final-uninstall-resources.json',
+    });
+    const finalDatabasesAfter = await protectedDatabases(join(root, 'data'));
     assert.deepEqual(finalDatabasesAfter, finalDatabasesBefore);
     await verifyPreservedRuntime({
       copy: verifiedRuntime,
       delivery,
       payloadBytes,
-      sourceRuntimeRoot: join(root, 'TableMax/app'),
+      sourceRuntimeRoot: join(root, 'data/app'),
       installationId: identity.installationId,
     });
     await observeStorage('after-final-uninstall');
@@ -1207,6 +907,10 @@ export async function verifyInstallationDelivery({
       installationId: restored.installationId,
       initialNative: savedPlayer.observation,
       restoredNative: restoredPlayer.observation,
+      gameResourceCleanup: {
+        firstUninstall: firstResourceCleanup,
+        finalUninstall: finalResourceCleanup,
+      },
       databases: {
         firstUninstall: {
           before: firstDatabasesBefore,
@@ -1244,9 +948,9 @@ export async function verifyInstallationDelivery({
       ? { candidateSha256: delivery.candidateSha256 }
       : {}),
     installRoot: root,
-    boxRoot: join(root, 'TableMax'),
-    runtimeRoot: join(root, 'TableMax/app'),
-    extracted: join(root, 'TableMax/app'),
+    boxRoot: join(root, 'data'),
+    runtimeRoot: join(root, 'data/app'),
+    extracted: join(root, 'data/app'),
     installationId: identity.installationId,
     ownerSid: identity.ownerSid,
     environment,

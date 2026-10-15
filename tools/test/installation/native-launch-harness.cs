@@ -81,10 +81,10 @@ internal static class NativeLaunchHarness
     }
     private static ManagedFile[] ManagedMembers(Fixture fixture, bool next)
     {
-        var paths = new[] { "TableMax.exe", "UpdateHelper.exe", "TableMax/app/TableMax.exe", "TableMax/app/node.exe", "TableMax/app/server.cjs", "TableMax/app/.tablemax-release.json", "TableMax/app/preinstalled-games/bootstrap.json" };
+        var paths = new[] { "TableMax.exe", "UpdateHelper.exe", "Updater.exe", "data/app/TableMax.exe", "data/app/node.exe", "data/app/server.cjs", "data/app/.tablemax-release.json", "data/app/preinstalled-games/bootstrap.json" };
         return paths.Select(path =>
         {
-            var bytes = path == "UpdateHelper.exe" ? (next ? InstallationCore.Utf8.GetBytes("synthetic current helper bytes; never executed") : fixture.helperBytes) : path == "TableMax/app/.tablemax-release.json" ? (next ? InstallationCore.Utf8.GetBytes("synthetic-next-payload") : new byte[] { 1 }) : path == "TableMax/app/preinstalled-games/bootstrap.json" ? (next ? InstallationCore.Utf8.GetBytes("synthetic-next-mapping") : new byte[] { 2 }) : InstallationCore.Utf8.GetBytes((next ? "current " : "previous ") + path + "; never executed");
+            var bytes = path == "UpdateHelper.exe" ? (next ? InstallationCore.Utf8.GetBytes("synthetic current helper bytes; never executed") : fixture.helperBytes) : path == "data/app/.tablemax-release.json" ? (next ? InstallationCore.Utf8.GetBytes("synthetic-next-payload") : new byte[] { 1 }) : path == "data/app/preinstalled-games/bootstrap.json" ? (next ? InstallationCore.Utf8.GetBytes("synthetic-next-mapping") : new byte[] { 2 }) : InstallationCore.Utf8.GetBytes((next ? "current " : "previous ") + path + "; never executed");
             Write(InstallationCore.Member(fixture.root, path), bytes);
             return new ManagedFile { path = path, bytes = bytes.Length, sha256 = InstallationCore.Hash(bytes) };
         }).ToArray();
@@ -213,7 +213,8 @@ internal static class NativeLaunchHarness
         fixture.helper = Path.Combine(handoff, "UpdateHelper.exe"); fixture.target = Path.Combine(handoff, "envelope.json"); fixture.audit = Path.Combine(handoff, "launch.json");
         fixture.installer = Path.Combine(InstallationCore.Box(fixture.root), "updates", "downloads", InstallationCore.Hash(fixture.installerBytes), "TableMax-1.0.6-win-x64.exe");
         Write(fixture.helper, fixture.helperBytes, true); Write(fixture.installer, fixture.installerBytes, true); Write(fixture.target, fixture.targetBytes, true); Write(Path.Combine(fixture.root, "UpdateHelper.exe"), fixture.helperBytes, true);
-        using (var user = WindowsIdentity.GetCurrent()) fixture.identity = new InstallationManifest { schemaVersion = 1, productId = InstallationCore.ProductId, arch = "x64", installProtocol = 1, releaseVersion = "1.0.6", buildVersion = "1.0.6.10", installationId = Guid.NewGuid().ToString(), ownerSid = user.User.Value, root = fixture.root, boxRoot = InstallationCore.Box(fixture.root), payloadManifestSha256 = InstallationCore.Hash(new byte[] { 1 }), currentMappingSha256 = InstallationCore.Hash(new byte[] { 2 }), files = new[] { new ManagedFile { path = "UpdateHelper.exe", bytes = fixture.helperBytes.Length, sha256 = InstallationCore.Hash(fixture.helperBytes) } } };
+        var updaterBytes = InstallationCore.Utf8.GetBytes("synthetic updater bytes; never executed"); Write(Path.Combine(fixture.root, "Updater.exe"), updaterBytes, true);
+        using (var user = WindowsIdentity.GetCurrent()) fixture.identity = new InstallationManifest { schemaVersion = 1, productId = InstallationCore.ProductId, arch = "x64", installProtocol = 1, releaseVersion = "1.0.6", buildVersion = "1.0.6.10", installationId = Guid.NewGuid().ToString(), ownerSid = user.User.Value, root = fixture.root, boxRoot = InstallationCore.Box(fixture.root), payloadManifestSha256 = InstallationCore.Hash(new byte[] { 1 }), currentMappingSha256 = InstallationCore.Hash(new byte[] { 2 }), files = new[] { new ManagedFile { path = "UpdateHelper.exe", bytes = fixture.helperBytes.Length, sha256 = InstallationCore.Hash(fixture.helperBytes) }, new ManagedFile { path = "Updater.exe", bytes = updaterBytes.Length, sha256 = InstallationCore.Hash(updaterBytes) } } };
         Environment.SetEnvironmentVariable("TEMP", fixture.temp); Environment.SetEnvironmentVariable("TMP", fixture.temp);
         Require(InstallationCore.Equal(Path.GetTempPath(), fixture.temp), "The process TEMP override was not observed.");
         return fixture;
@@ -311,14 +312,16 @@ internal static class NativeLaunchHarness
         Console.SetOut(new StreamWriter(Console.OpenStandardOutput(), InstallationCore.Utf8) { AutoFlush = true });
         var previousTemp = Environment.GetEnvironmentVariable("TEMP"); var previousTmp = Environment.GetEnvironmentVariable("TMP");
         var results = new List<Result>(); var selected = CaseIds; var priorFailures = 0; var failures = 0;
+        var failureLimit = 5;
         try
         {
+            var configuredLimit = Environment.GetEnvironmentVariable("TABLEMAX_TEST_MAX_FAILURES"); Require(configuredLimit == null || (Int32.TryParse(configuredLimit, out failureLimit) && failureLimit >= 1 && failureLimit <= 1000), "Failure limit must be an integer from 1 to 1000.");
             Require(args.Length >= 1 && args.Length <= 4, "Use isolated work directory and unique --only/--prior-failures/--signed-fixture.");
             work = InstallationCore.Root(args[0]); Require(Directory.Exists(InstallationCore.IO(work)) && Directory.GetFileSystemEntries(InstallationCore.IO(work)).Length == 0, "The fixture work directory must already exist and be empty.");
             var options = new Dictionary<string, string>(StringComparer.Ordinal);
             foreach (var argument in args.Skip(1)) { var split = argument.IndexOf('='); Require(split > 0, "Missing option value."); var key = argument.Substring(0, split); Require((key == "--only" || key == "--prior-failures" || key == "--signed-fixture") && !options.ContainsKey(key), "Unknown or duplicate option."); options.Add(key, argument.Substring(split + 1)); }
             if (options.TryGetValue("--only", out var only)) { var names = only.Split(','); Require(names.Length > 0 && names.All(name => CaseIds.Contains(name)) && names.Distinct(StringComparer.Ordinal).Count() == names.Length, "Select unique known case IDs."); selected = CaseIds.Where(names.Contains).ToArray(); }
-            if (options.TryGetValue("--prior-failures", out var prior)) { Require(prior == "0" || prior == "1" || prior == "2", "Prior failures must be 0..2."); priorFailures = Int32.Parse(prior); }
+            if (options.TryGetValue("--prior-failures", out var prior)) { Require(Int32.TryParse(prior, out priorFailures) && priorFailures >= 0 && priorFailures < failureLimit && prior == priorFailures.ToString(System.Globalization.CultureInfo.InvariantCulture), "Prior failures must be an integer from 0 to " + (failureLimit - 1) + "."); }
             if (selected.Any(id => id.StartsWith("completed-cleanup", StringComparison.Ordinal)))
             {
                 Require(options.TryGetValue("--signed-fixture", out var signedFixture), "Completed cleanup cases require the public in-memory-key fixture.");
@@ -329,7 +332,7 @@ internal static class NativeLaunchHarness
             }
             foreach (var id in selected)
             {
-                if (priorFailures + failures >= 3) break;
+                if (priorFailures + failures >= failureLimit) break;
                 try { results.Add(new Result { id = id, passed = true, details = Run(id, Array.IndexOf(CaseIds, id)) }); }
                 catch (Exception cause) { failures++; results.Add(new Result { id = id, passed = false, error = cause.ToString() }); }
                 finally { Environment.SetEnvironmentVariable("TEMP", previousTemp); Environment.SetEnvironmentVariable("TMP", previousTmp); }
@@ -338,7 +341,7 @@ internal static class NativeLaunchHarness
         catch (Exception cause) { failures++; results.Add(new Result { id = "harness-input", passed = false, error = cause.ToString() }); }
         finally { Environment.SetEnvironmentVariable("TEMP", previousTemp); Environment.SetEnvironmentVariable("TMP", previousTmp); }
         var passed = failures == 0 && results.Count == selected.Length;
-        Console.WriteLine(InstallationCore.Encode(new { schemaVersion = 1, passed, boundary = "Actual net48 InstallationCore/InstallationLaunch, fixture RSA verification and new engineering-temp objects with synthetic non-PE files and synthetic absent-PID completed records. No Native/helper/installer execution, actual module observation, parent pipe, service, registry, account, existing-object ACL changes or global policy changes. Canonical signed downloads remain as measured cache; only exact completed launch copies are cleanup candidates.", selectedCases = selected, priorFailures, failures, totalFailures = priorFailures + failures, failureLimit = 3, stoppedEarly = results.Count < selected.Length, processEnvironmentRestored = Environment.GetEnvironmentVariable("TEMP") == previousTemp && Environment.GetEnvironmentVariable("TMP") == previousTmp, results }));
+        Console.WriteLine(InstallationCore.Encode(new { schemaVersion = 1, passed, boundary = "Actual net48 InstallationCore/InstallationLaunch, fixture RSA verification and new engineering-temp objects with synthetic non-PE files and synthetic absent-PID completed records. No Native/helper/installer execution, actual module observation, parent pipe, service, registry, account, existing-object ACL changes or global policy changes. Canonical signed downloads remain as measured cache; only exact completed launch copies are cleanup candidates.", selectedCases = selected, priorFailures, failures, totalFailures = priorFailures + failures, failureLimit, stoppedEarly = results.Count < selected.Length, processEnvironmentRestored = Environment.GetEnvironmentVariable("TEMP") == previousTemp && Environment.GetEnvironmentVariable("TMP") == previousTmp, results }));
         return passed ? 0 : 1;
     }
 }

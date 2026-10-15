@@ -113,7 +113,7 @@ const work = await mkdtemp(resolve('tmp/installation-real-legacy-'));
 await noLinks(work);
 const source = join(work, '旧便携 TableMax');
 const installRoot = join(work, '新版程序 目录');
-const box = join(installRoot, 'TableMax');
+const box = join(installRoot, 'data');
 const output = resolve(
   process.env.TABLEMAX_TEST_OUTPUT_DIR ??
     join(
@@ -158,7 +158,7 @@ const report = {
   oldExecutableSha256: fixture.binding.executableSha256,
   installerSha256: delivery.executable.sha256,
   nativeSha256: digest(
-    await readFile(localFile(candidate, 'TableMax/app/TableMax.exe')),
+    await readFile(localFile(candidate, 'data/app/TableMax.exe')),
   ),
   helperSha256: digest(await readFile(helper)),
   helperSourceSha256: digest(

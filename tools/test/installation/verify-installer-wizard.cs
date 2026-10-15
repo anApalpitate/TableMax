@@ -21,6 +21,7 @@ internal static class InstallerWizardHarness
 {
     private const string Notice = "不推荐安装在C盘，因为这是一个有良心的安装包";
     private const string DesktopTask = "创建桌面快捷方式";
+    private const string MigrationTask = "是否进行版本迁移";
     private static readonly JavaScriptSerializer Json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024 };
     private static readonly List<object> Checks = new List<object>();
     private static readonly List<object> Captures = new List<object>();
@@ -33,6 +34,7 @@ internal static class InstallerWizardHarness
     [MTAThread]
     private static int Main(string[] args)
     {
+        if (args.Length == 1 && args[0] == "--check-updates" && Environment.GetEnvironmentVariable("TABLEMAX_ENTRY_COMPONENT") == "1") return UpdaterNativeChild(args);
         // Process-local capture coordinates must be physical pixels at the actual window DPI.
         Require(SetProcessDpiAwarenessContext(new IntPtr(-4)), "Harness PerMonitorV2 initialization failed: " + Marshal.GetLastWin32Error());
         if (args.Length == 1 && args[0] == "--probe-child") return ProbeChild();
@@ -42,50 +44,68 @@ internal static class InstallerWizardHarness
         {
             Require(args.Length == 2 && args[0] == "--plan", "Only a scoped plan is accepted");
             Plan = Json.Deserialize<Dictionary<string, object>>(File.ReadAllText(args[1], Encoding.UTF8));
-            string[] keys = { "schemaVersion", "mode", "work", "temporary", "captures", "target", "installer", "installerSha256", "productId" };
-            Require(Plan.Count == keys.Length && keys.All(Plan.ContainsKey), "Unknown plan field");
-            Require(Convert.ToInt32(Plan["schemaVersion"]) == 1, "Unknown plan version");
-            Require(Text("mode") == "api-probe" || Text("mode") == "installer-wizard", "Unknown plan mode");
-            Work = Path.GetFullPath(Text("work"));
-            Require(Directory.Exists(Work) && Path.GetFileName(Work).StartsWith("installer-wizard-", StringComparison.Ordinal), "Fresh wizard work required");
-            Safe(Work);
-            foreach (string key in new[] { "temporary", "captures", "target", "installer" }) Scoped(Text(key));
-            Require(!Directory.Exists(Text("target")) && !File.Exists(Text("target")), "Target must not exist");
-            Require(Hash(Text("installer")) == Text("installerSha256"), "Installer bytes changed");
-            Require(Text("productId") == "{DB749B9D-7D43-4F50-9FBD-551C9E8EF48D}" || Text("productId") == "{ABFDE9A8-48D2-48D5-BC51-2A2D03F0D4F5}", "Unknown product identity");
-            var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
-            Require(!principal.IsInRole(WindowsBuiltInRole.Administrator), "Standard token required; no elevation is attempted");
-            Sid = WindowsIdentity.GetCurrent().User.Value;
-            result["ownerSid"] = Sid;
-            result["mode"] = Text("mode");
-            result["failureDomain"] = "tool-or-environment-not-product-installation";
-            result["sourceDirectory"] = Path.GetDirectoryName(Text("installer"));
-            object registrationBefore = Registrations();
-            result["registrationBefore"] = registrationBefore;
-            Require(((List<object>)registrationBefore).Count == 0, "Existing product registration must be preserved; use a clean SID");
-            string desktopName = "TMVerify_" + Guid.NewGuid().ToString("N");
-            OriginalDesktop = GetThreadDesktop(GetCurrentThreadId());
-            // Never SwitchDesktop: all controls and captures stay off the user's active desktop.
-            Desktop = CreateDesktop(desktopName, null, IntPtr.Zero, 0, 0x01FF, IntPtr.Zero);
-            Require(Desktop != IntPtr.Zero, "CreateDesktop failed: " + Marshal.GetLastWin32Error());
-            Require(SetThreadDesktop(Desktop), "SetThreadDesktop failed: " + Marshal.GetLastWin32Error());
-            Job = CreateJobObject(IntPtr.Zero, null);
-            Require(Job != IntPtr.Zero, "CreateJobObject failed");
-            var limits = new JobExtendedLimits();
-            limits.Basic.LimitFlags = 0x2000; // JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
-            Require(SetInformationJobObject(Job, 9, ref limits, (uint)Marshal.SizeOf(typeof(JobExtendedLimits))), "Job cleanup policy failed");
-            Start(Text("installer"), Text("mode") == "api-probe" ? "--probe-child" : "/SP- /NORESTART /LOG=\"" + Scoped(Path.Combine(Work, "installer.log")) + "\"", desktopName);
-            if (Text("mode") == "api-probe") Probe(); else Wizard();
-            Wait(() => OwnProcesses().Length == 0, "Own process exit", 15000);
-            object registrationAfter = Registrations();
-            result["registrationAfter"] = registrationAfter;
-            Require(((List<object>)registrationAfter).Count == 0, "Browsing changed product registration");
-            Require(!Directory.Exists(Text("target")) && !File.Exists(Text("target")), "Browsing created target files");
-            Check("no-registration-or-target-after-cancel", new { registrationCount = 0, targetExists = false });
-            Require(Hash(Text("installer")) == Text("installerSha256"), "Launch copy changed");
-            result["passed"] = true;
-            result["failureDomain"] = null;
-            exit = 0;
+            if (Text("mode") == "updater-entry")
+            {
+                EntryWindows(result);
+                result["passed"] = true; result["failureDomain"] = null; exit = 0;
+            }
+            else
+            {
+                string[] keys = { "schemaVersion", "mode", "work", "temporary", "captures", "target", "installer", "installerSha256", "productId", "migrationSource", "migrationSourceState" };
+                Require(Plan.Count == keys.Length && keys.All(Plan.ContainsKey), "Unknown plan field");
+                Require(Convert.ToInt32(Plan["schemaVersion"]) == 1, "Unknown plan version");
+                Require(Text("mode") == "api-probe" || Text("mode") == "installer-wizard", "Unknown plan mode");
+                Work = Path.GetFullPath(Text("work"));
+                Require(Directory.Exists(Work) && Path.GetFileName(Work).StartsWith("installer-wizard-", StringComparison.Ordinal), "Fresh wizard work required");
+                Safe(Work);
+                foreach (string key in new[] { "temporary", "captures", "target", "installer", "migrationSource" }) Scoped(Text(key));
+                Require(Text("migrationSourceState") == "absent" || Text("migrationSourceState") == "present", "Unknown migration source state");
+                Require(!Directory.Exists(Text("target")) && !File.Exists(Text("target")), "Target must not exist");
+                Require(Hash(Text("installer")) == Text("installerSha256"), "Installer bytes changed");
+                Require(Text("productId") == "{DB749B9D-7D43-4F50-9FBD-551C9E8EF48D}" || Text("productId") == "{ABFDE9A8-48D2-48D5-BC51-2A2D03F0D4F5}", "Unknown product identity");
+                var principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
+                Require(!principal.IsInRole(WindowsBuiltInRole.Administrator), "Standard token required; no elevation is attempted");
+                Sid = WindowsIdentity.GetCurrent().User.Value;
+                result["ownerSid"] = Sid;
+                result["mode"] = Text("mode");
+                result["failureDomain"] = "tool-or-environment-not-product-installation";
+                result["sourceDirectory"] = Path.GetDirectoryName(Text("installer"));
+                result["migrationSourceState"] = Text("migrationSourceState");
+                if (Text("mode") == "installer-wizard")
+                {
+                    string automatic = Scoped(Path.Combine(Path.GetDirectoryName(Text("installer")), "TableMax"));
+                    Require(Directory.Exists(automatic) == (Text("migrationSourceState") == "present"), "Automatic migration source fixture state changed");
+                    Require(File.Exists(Path.Combine(Text("migrationSource"), "TableMax.config.json")), "Manual migration fixture config is required");
+                    Require(SamePath(Text("migrationSource"), automatic) == false, "Manual fixture must differ from automatic migration source");
+                }
+                object registrationBefore = Registrations();
+                result["registrationBefore"] = registrationBefore;
+                Require(((List<object>)registrationBefore).Count == 0, "Existing product registration must be preserved; use a clean SID");
+                string desktopName = "TMVerify_" + Guid.NewGuid().ToString("N");
+                OriginalDesktop = GetThreadDesktop(GetCurrentThreadId());
+                // Never SwitchDesktop: all controls and captures stay off the user's active desktop.
+                Desktop = CreateDesktop(desktopName, null, IntPtr.Zero, 0, 0x01FF, IntPtr.Zero);
+                Require(Desktop != IntPtr.Zero, "CreateDesktop failed: " + Marshal.GetLastWin32Error());
+                Require(SetThreadDesktop(Desktop), "SetThreadDesktop failed: " + Marshal.GetLastWin32Error());
+                Job = CreateJobObject(IntPtr.Zero, null);
+                Require(Job != IntPtr.Zero, "CreateJobObject failed");
+                var limits = new JobExtendedLimits();
+                limits.Basic.LimitFlags = 0x2000; // JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+                Require(SetInformationJobObject(Job, 9, ref limits, (uint)Marshal.SizeOf(typeof(JobExtendedLimits))), "Job cleanup policy failed");
+                Start(Text("installer"), Text("mode") == "api-probe" ? "--probe-child" : "/SP- /NORESTART /LOG=\"" + Scoped(Path.Combine(Work, "installer.log")) + "\"", desktopName);
+                if (Text("mode") == "api-probe") Probe(); else Wizard();
+                Wait(() => OwnProcesses().Length == 0, "Own process exit", 15000);
+                object registrationAfter = Registrations();
+                result["registrationAfter"] = registrationAfter;
+                Require(((List<object>)registrationAfter).Count == 0, "Browsing changed product registration");
+                Require(!Directory.Exists(Text("target")) && !File.Exists(Text("target")), "Browsing created target files");
+                Require(!Directory.Exists(Path.Combine(Text("target"), "data")), "Browsing created internal data files");
+                Check("no-registration-or-target-after-cancel", new { registrationCount = 0, targetExists = false, boxRoot = Path.Combine(Text("target"), "data"), boxRootExists = false, applicationRoot = Path.Combine(Text("target"), "data", "app"), installed = false });
+                Require(Hash(Text("installer")) == Text("installerSha256"), "Launch copy changed");
+                result["passed"] = true;
+                result["failureDomain"] = null;
+                exit = 0;
+            }
         }
         catch (Exception error)
         {
@@ -129,14 +149,153 @@ internal static class InstallerWizardHarness
         return exit;
     }
 
+    private static int UpdaterNativeChild(string[] args)
+    {
+        string root = Environment.GetEnvironmentVariable("TABLEMAX_INSTALL_ROOT"), nonce = Environment.GetEnvironmentVariable("TABLEMAX_ENTRY_NONCE");
+        string receipt = Environment.GetEnvironmentVariable("TABLEMAX_ENTRY_RECEIPT"), release = Environment.GetEnvironmentVariable("TABLEMAX_ENTRY_RELEASE");
+        Require(!String.IsNullOrEmpty(root) && !String.IsNullOrEmpty(nonce), "Private entry fixture context required");
+        root = Path.GetFullPath(root); Safe(root);
+        Require(SamePath(AppDomain.CurrentDomain.BaseDirectory, Path.Combine(root, "data", "app")), "Only the private synthetic Native may run");
+        Require(SamePath(Path.GetDirectoryName(receipt), root) && SamePath(Path.GetDirectoryName(release), root), "Receipt escaped the synthetic root");
+        Require(File.ReadAllText(Path.Combine(root, ".entry-component-nonce"), Encoding.UTF8) == nonce, "Synthetic Native marker mismatch");
+        using (var self = Process.GetCurrentProcess())
+        {
+            string module = self.MainModule.FileName;
+            var bytes = new UTF8Encoding(false).GetBytes(Json.Serialize(new { schemaVersion = 1, nonce, arguments = args, processId = self.Id, modulePath = module, moduleSha256 = Hash(module), ownerSid = WindowsIdentity.GetCurrent().User.Value, root, boxRoot = Environment.GetEnvironmentVariable("TABLEMAX_BOX_DIRECTORY"), installationId = Environment.GetEnvironmentVariable("TABLEMAX_INSTALLATION_ID"), scope = "Synthetic argv receipt only; no Native, service, pipe, registry or network implementation." }));
+            string pending = receipt + ".writing";
+            using (var output = new FileStream(pending, FileMode.CreateNew, FileAccess.Write, FileShare.None)) { output.Write(bytes, 0, bytes.Length); output.Flush(true); }
+            File.Move(pending, receipt);
+        }
+        var budget = Stopwatch.StartNew();
+        while (budget.ElapsedMilliseconds < 20000)
+        {
+            if (File.Exists(release)) { Require(File.ReadAllText(release, Encoding.UTF8) == nonce, "Synthetic Native release mismatch"); return 0; }
+            Thread.Sleep(25);
+        }
+        return 94;
+    }
+
+    private static void EntryWindows(Dictionary<string, object> result)
+    {
+        string[] keys = { "schemaVersion", "mode", "work", "temporary", "captures", "root", "updater", "updaterSha256", "helper", "helperSha256", "native", "nativeSha256", "manifest", "manifestSha256", "receipt", "release", "nonce", "unknown", "unknownSha256" };
+        Require(Plan.Count == keys.Length && keys.All(Plan.ContainsKey) && Convert.ToInt32(Plan["schemaVersion"]) == 1, "Unknown entry component plan");
+        Work = Path.GetFullPath(Text("work")); Safe(Work);
+        Require(Directory.Exists(Work) && Path.GetFileName(Work).StartsWith("installer-wizard-", StringComparison.Ordinal), "Fresh entry work required");
+        foreach (string key in new[] { "temporary", "captures", "root", "updater", "helper", "native", "manifest", "receipt", "release", "unknown" }) Scoped(Text(key));
+        foreach (string key in new[] { "updater", "helper", "native", "manifest", "unknown" }) Require(Hash(Text(key)) == Text(key + "Sha256"), "Entry component input changed: " + key);
+        Require(!File.Exists(Text("receipt")) && !File.Exists(Text("release")), "Entry coordination files must be new");
+        var identity = Json.Deserialize<Dictionary<string, object>>(File.ReadAllText(Text("manifest"), Encoding.UTF8));
+        Sid = WindowsIdentity.GetCurrent().User.Value;
+        Require(!new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator), "Standard token required");
+        Require((string)identity["ownerSid"] == Sid && (string)identity["productId"] == "{ABFDE9A8-48D2-48D5-BC51-2A2D03F0D4F5}" && SamePath((string)identity["root"], Text("root")), "Only the owned fixture identity is accepted");
+        result["ownerSid"] = Sid; result["mode"] = "updater-entry"; result["failureDomain"] = "entry-component-not-system-installation";
+        string desktopName = "TMVerify_" + Guid.NewGuid().ToString("N");
+        OriginalDesktop = GetThreadDesktop(GetCurrentThreadId());
+        Desktop = CreateDesktop(desktopName, null, IntPtr.Zero, 0, 0x01FF, IntPtr.Zero);
+        Require(Desktop != IntPtr.Zero && SetThreadDesktop(Desktop), "Private entry desktop initialization failed");
+        Job = CreateJobObject(IntPtr.Zero, null); Require(Job != IntPtr.Zero, "Own entry Job failed");
+        var limits = new JobExtendedLimits(); limits.Basic.LimitFlags = 0x2000;
+        Require(SetInformationJobObject(Job, 9, ref limits, (uint)Marshal.SizeOf(typeof(JobExtendedLimits))), "Own entry Job cleanup policy failed");
+        string operationKey;
+        using (var sha = SHA256.Create()) operationKey = BitConverter.ToString(sha.ComputeHash(new UTF8Encoding(false).GetBytes(Path.GetFullPath(Text("root")).TrimEnd('\\', '/').ToLowerInvariant()))).Replace("-", "").ToLowerInvariant();
+        using (var operation = new Mutex(false, "Global\\TableMax-Installation-Operation-" + operationKey))
+        {
+            Require(operation.WaitOne(0), "Own fixture operation mutex is unexpectedly busy");
+            bool held = true;
+            try
+            {
+                using (var updater = StartTracked(Text("updater"), desktopName))
+                {
+                    IntPtr feedback = Wait(() => Windows().FirstOrDefault(handle => ProcessId(handle) == updater.Id && Caption(handle) == "TableMax"), "First real Updater feedback", 10000);
+                    LastWindow = feedback;
+                    string[] texts = Children(feedback).Select(Caption).Where(value => value.Length != 0).ToArray();
+                    Require(texts.Any(value => value.Contains("正在打开程序更新") && value.Contains("已有 TableMax 窗口将直接显示更新面板")), "First Updater feedback is not the expected Chinese text");
+                    Require(!File.Exists(Text("receipt")), "Native started before initial feedback and mutex release");
+                    Require(OwnProcesses().SequenceEqual(new[] { updater.Id }), "Another Native started before operation release");
+                    Capture(feedback, "updater-first-chinese-feedback");
+                    Check("updater-first-chinese-feedback-before-native", new { processId = updater.Id, modulePath = Text("updater"), sha256 = Hash(Text("updater")), texts, nativeReceiptPresent = false, operationHeld = true, capturedBeforeRelease = true });
+                    operation.ReleaseMutex(); held = false;
+                    Wait(() => File.Exists(Text("receipt")), "Synthetic Native argv receipt", 10000);
+                    var receipt = Json.Deserialize<Dictionary<string, object>>(File.ReadAllText(Text("receipt"), Encoding.UTF8));
+                    Require((string)receipt["nonce"] == Text("nonce") && (string)receipt["ownerSid"] == Sid && SamePath((string)receipt["modulePath"], Text("native")) && (string)receipt["moduleSha256"] == Text("nativeSha256"), "Synthetic Native receipt identity mismatch");
+                    var arguments = ((System.Collections.IEnumerable)receipt["arguments"]).Cast<object>().Select(value => (string)value).ToArray();
+                    Require(arguments.SequenceEqual(new[] { "--check-updates" }), "Updater must forward exactly one check-updates argument");
+                    Require(SamePath((string)receipt["boxRoot"], Path.Combine(Text("root"), "data")) && (string)receipt["installationId"] == (string)identity["installationId"], "Installed launch context mismatch");
+                    int nativePid = Convert.ToInt32(receipt["processId"]); OwnProcess(nativePid);
+                    using (var native = Process.GetProcessById(nativePid))
+                    {
+                        _ = native.Handle;
+                        Require(SamePath(native.MainModule.FileName, Text("native")), "Actual synthetic Native module differs");
+                        Require(updater.WaitForExit(5000) && updater.ExitCode == 0, "Updater did not exit normally after handoff");
+                        Require(!File.Exists(Text("release")), "Synthetic Native release already exists");
+                        string pending = Text("release") + ".writing";
+                        using (var output = new FileStream(pending, FileMode.CreateNew, FileAccess.Write, FileShare.None)) { var bytes = new UTF8Encoding(false).GetBytes(Text("nonce")); output.Write(bytes, 0, bytes.Length); output.Flush(true); }
+                        File.Move(pending, Text("release"));
+                        Require(native.WaitForExit(5000) && native.ExitCode == 0, "Synthetic Native did not exit normally");
+                        Check("updater-managed-native-argv-and-exits", new { updaterPid = updater.Id, updaterExitCode = updater.ExitCode, nativePid, nativeExitCode = native.ExitCode, receipt, existingNativeIpcProved = false });
+                    }
+                }
+            }
+            finally { if (held) operation.ReleaseMutex(); }
+        }
+        Wait(() => OwnProcesses().Length == 0, "Own Updater and synthetic Native exit", 5000);
+        using (var helper = StartTracked(Text("helper"), desktopName))
+        {
+            IntPtr dialog = Wait(() => Windows().FirstOrDefault(handle => ProcessId(handle) == helper.Id && Caption(handle) == "TableMax 程序更新"), "Real no-argument helper Chinese guidance", 10000);
+            LastWindow = dialog;
+            string[] texts = Children(dialog).Select(Caption).Where(value => value.Length != 0).ToArray();
+            Require(texts.Any(value => value.Contains("内部安装与卸载协调程序") && value.Contains("Updater.exe") && value.Contains("存档和配置不会因此改变")), "Helper guidance text missing");
+            IntPtr ok = Wait(() =>
+            {
+                var controls = Children(dialog);
+                result["helperConfirmationControls"] = new { observedAtUtc = DateTime.UtcNow.ToString("o"), dialogHandle = dialog.ToInt64().ToString("X"), processId = Owner(dialog), controls = controls.Select(handle => new { controlId = GetDlgCtrlID(handle), className = Class(handle), caption = Caption(handle), enabled = IsWindowEnabled(handle) }).ToArray() };
+                // MessageBoxW's documented return value is distinct from the
+                // concrete child HWND ID. This Windows MB_OK dialog exposes
+                // its sole Chinese confirmation as control 2; keep both the
+                // observed ID and exact caption, class, ownership and count.
+                var matches = controls.Where(handle => (GetDlgCtrlID(handle) == 1 || GetDlgCtrlID(handle) == 2) && Class(handle).IndexOf("Button", StringComparison.OrdinalIgnoreCase) >= 0 && Caption(handle).Replace("&", "").Trim() == "确定" && IsWindowEnabled(handle)).ToArray();
+                Require(matches.Length <= 1, "Ambiguous own Chinese helper confirmation buttons");
+                return matches.SingleOrDefault();
+            }, "Unique own enabled Chinese helper confirmation button (ID 1 or 2)", 5000);
+            string buttonText = Caption(ok), buttonClass = Class(ok); int buttonId = GetDlgCtrlID(ok);
+            Capture(dialog, "helper-no-argument-chinese-guidance");
+            Require(PostMessage(ok, 0x00F5, IntPtr.Zero, IntPtr.Zero), "Own helper confirmation click failed");
+            Require(helper.WaitForExit(5000) && helper.ExitCode == 0, "Helper guidance did not exit normally");
+            Check("helper-no-argument-chinese-guidance-and-exit", new { processId = helper.Id, modulePath = Text("helper"), sha256 = Hash(Text("helper")), texts, buttonId, buttonClass, buttonText, exitCode = helper.ExitCode, uninstallInvoked = false });
+        }
+        Wait(() => OwnProcesses().Length == 0, "Own entry process exit", 5000);
+        foreach (string input in new[] { "updater", "helper", "native", "manifest", "unknown" }) Require(Hash(Text(input)) == Text(input + "Sha256"), "Entry source or unknown file changed: " + input);
+        Check("entry-inputs-and-unknown-preserved", new { unknownPath = Text("unknown"), sha256 = Text("unknownSha256"), manifestPath = Text("manifest"), manifestSha256 = Text("manifestSha256"), registrationInvoked = false, serviceStarted = false });
+    }
+
+    private static Process StartTracked(string executable, string desktopName)
+    {
+        var startup = new StartupInfo { Size = (uint)Marshal.SizeOf(typeof(StartupInfo)), Desktop = desktopName };
+        ProcessInformation process;
+        Require(CreateProcess(executable, new StringBuilder("\"" + executable + "\""), IntPtr.Zero, IntPtr.Zero, false, 0x00000004, IntPtr.Zero, Work, ref startup, out process), "Own entry CreateProcess failed: " + Marshal.GetLastWin32Error());
+        bool assigned = false; Process tracked = null;
+        try
+        {
+            Require(AssignProcessToJobObject(Job, process.Process), "Own entry Job assignment failed"); assigned = true;
+            OwnProcess((int)process.ProcessId); tracked = Process.GetProcessById((int)process.ProcessId); _ = tracked.Handle;
+            var image = new StringBuilder(32768); int length = image.Capacity;
+            Require(QueryFullProcessImageName(tracked.Handle, 0, image, ref length) && SamePath(image.ToString(), executable), "Own entry image path differs");
+            Require(ResumeThread(process.Thread) != 0xFFFFFFFF, "Own entry process resume failed");
+            return tracked;
+        }
+        catch { tracked?.Dispose(); if (!assigned) TerminateProcess(process.Process, 92); throw; }
+        finally { CloseHandle(process.Thread); CloseHandle(process.Process); }
+    }
+
     private static void Wizard()
     {
         IntPtr window = WaitWindow("installer wizard");
         LastWindow = window;
+        string expectedDefault = Scoped(Path.Combine(Path.GetDirectoryName(Text("installer")), "TableMax"));
         IntPtr edit = IntPtr.Zero;
         for (int attempt = 0; attempt < 3 && edit == IntPtr.Zero; attempt++)
         {
-            edit = Children(window).FirstOrDefault(handle => Class(handle).IndexOf("Edit", StringComparison.OrdinalIgnoreCase) >= 0 && SamePath(Caption(handle), Path.GetDirectoryName(Text("installer"))));
+            edit = Children(window).FirstOrDefault(handle => Class(handle).IndexOf("Edit", StringComparison.OrdinalIgnoreCase) >= 0 && SamePath(Caption(handle), expectedDefault));
             if (edit == IntPtr.Zero)
             {
                 Click(window, "next");
@@ -144,16 +303,18 @@ internal static class InstallerWizardHarness
                 window = WaitWindow("directory page");
             }
         }
-        Require(edit != IntPtr.Zero, "Initial directory edit must equal the actual installer parent");
+        Require(edit != IntPtr.Zero, "Initial directory edit must equal the actual installer parent plus TableMax");
         Require(Children(window).Any(handle => Caption(handle) == Notice), "Exact Chinese C-drive notice missing");
         string initial = Caption(edit);
-        Check("actual-initial-directory-and-exact-notice", new { directory = initial, expected = Path.GetDirectoryName(Text("installer")), notice = Notice, processId = Owner(window) });
+        Check("actual-initial-directory-and-exact-notice", new { directory = initial, expected = expectedDefault, sourceDirectory = Path.GetDirectoryName(Text("installer")), notice = Notice, processId = Owner(window) });
         Capture(window, "directory-initial");
         SendText(edit, Text("target"));
-        Require(SamePath(Caption(edit), Text("target")), "Directory edit did not retain Chinese-space target");
+        Require(SamePath(Caption(edit), Text("target")), "Directory edit must retain the exact final target without appending TableMax");
         Capture(window, "directory-changed");
         Click(window, "next");
         TaskControl task = Wait(() => FindTask(window), "Accessible desktop shortcut task", 10000);
+        IntPtr migration = Wait(() => FindMigrationCheck(window), "Visible Chinese migration option", 5000);
+        Require(!MigrationState(migration), "Version migration must initially be unchecked");
         bool initialTask = TaskState(task);
         SetTask(task, false);
         SetTask(task, true);
@@ -161,14 +322,41 @@ internal static class InstallerWizardHarness
         SetTask(task, false);
         Capture(window, "desktop-task-off");
         Check("desktop-task-on-off", new { initial = initialTask, transitions = new[] { "off", "on", "off" }, checkedObserved = true, uncheckedObserved = true });
-        // From Tasks advance through the optional migration page, stopping at Ready.
-        for (int page = 0; page < 4 && FindButton(window, "install") == IntPtr.Zero; page++)
-        {
-            Click(window, "next");
-            Thread.Sleep(200);
-        }
-        Require(FindButton(window, "install") != IntPtr.Zero, "Ready page was not observed");
-        Require(Children(window).Any(handle => Caption(handle).Contains("已准备在所选位置安装完整 TableMax")), "Expected Chinese Ready text missing");
+        Click(window, "next");
+        WaitReady(window);
+        Check("migration-default-unchecked-and-skip", new { selected = false, readyObserved = true, migrationPageObserved = false, installInvoked = false });
+        Capture(window, "ready-migration-unselected");
+        Click(window, "back");
+        migration = Wait(() => FindMigrationCheck(window), "Migration option after Back", 5000);
+        Require(!MigrationState(migration), "Back must retain the unchecked migration option");
+        SetMigration(migration, true);
+        Click(window, "next");
+        IntPtr migrationEdit = WaitMigrationEdit(window);
+        string automaticValue = Caption(migrationEdit);
+        if (Text("migrationSourceState") == "present") Require(SamePath(automaticValue, expectedDefault), "Existing src/TableMax must prefill the migration directory");
+        else Require(automaticValue == "", "Absent src/TableMax must leave migration directory empty");
+        Check("migration-auto-source-" + Text("migrationSourceState"), new { sourceExists = Text("migrationSourceState") == "present", value = automaticValue, expected = Text("migrationSourceState") == "present" ? expectedDefault : "", selected = true });
+        Capture(window, "migration-automatic-" + Text("migrationSourceState"));
+        SendText(migrationEdit, Text("migrationSource"));
+        Require(SamePath(Caption(migrationEdit), Text("migrationSource")), "Manual migration path must be retained");
+        Click(window, "back");
+        migration = Wait(() => FindMigrationCheck(window), "Migration option before deselection", 5000);
+        Require(MigrationState(migration), "Migration selection disappeared after Back");
+        SetMigration(migration, false);
+        Click(window, "next");
+        WaitReady(window);
+        Capture(window, "ready-migration-deselected");
+        Click(window, "back");
+        migration = Wait(() => FindMigrationCheck(window), "Migration option before reselection", 5000);
+        Require(!MigrationState(migration), "Deselected migration must stay deselected");
+        SetMigration(migration, true);
+        Click(window, "next");
+        migrationEdit = WaitMigrationEdit(window);
+        Require(SamePath(Caption(migrationEdit), Text("migrationSource")), "Toggling migration must preserve the manually entered directory");
+        Check("migration-manual-source-preserved-and-controlled", new { selected = true, manualSource = Caption(migrationEdit), unselectedSkipped = true, reselectedRetainedManual = true, commitInvoked = false });
+        Capture(window, "migration-manual-retained");
+        Click(window, "next");
+        WaitReady(window);
         Check("ready-observed-without-install-invocation", new { installButtonObserved = true, installInvoked = false });
         Capture(window, "ready-no-install");
         Click(window, "back");
@@ -182,6 +370,7 @@ internal static class InstallerWizardHarness
         Check("back-retains-target-and-shortcut-choice", new { target = Caption(edit), desktopTask = false, notice = Notice });
         Capture(window, "back-directory");
         Click(window, "cancel");
+        bool confirmationObserved = false;
         var end = Stopwatch.StartNew();
         while (OwnProcesses().Length != 0 && end.ElapsedMilliseconds < 10000)
         {
@@ -191,15 +380,53 @@ internal static class InstallerWizardHarness
                 if (yes != IntPtr.Zero)
                 {
                     string[] message = Children(dialog).Where(handle => Class(handle).IndexOf("Static", StringComparison.OrdinalIgnoreCase) >= 0).Select(Caption).ToArray();
-                    Require(message.Any(value => value.Contains("Setup is not complete.") && value.Contains("Exit Setup?")), "Unexpected own cancel confirmation text");
+                    Require(Caption(dialog) == "退出安装程序", "Cancel confirmation title must be Simplified Chinese");
+                    Require(message.Any(value => value.Contains("安装程序尚未完成。") && value.Contains("现在退出安装程序吗？")), "Expected full Simplified Chinese cancel confirmation text missing");
+                    IntPtr no = Children(dialog).FirstOrDefault(handle => Class(handle).IndexOf("Button", StringComparison.OrdinalIgnoreCase) >= 0 && GetDlgCtrlID(handle) == 7);
+                    Require(Caption(yes).Replace("&", "").StartsWith("是", StringComparison.Ordinal) && no != IntPtr.Zero && Caption(no).Replace("&", "").StartsWith("否", StringComparison.Ordinal), "Cancel confirmation buttons must be Simplified Chinese");
                     int processId = Owner(dialog);
                     Capture(dialog, "cancel-confirmation");
                     ClickHandle(yes, "cancel-confirm-yes");
-                    Check("owned-cancel-confirmation", new { processId, buttonId = 6, message });
+                    confirmationObserved = true;
+                    Check("owned-cancel-confirmation", new { processId, buttonId = 6, message, title = "退出安装程序", language = "zh-CN", confirmed = true });
                 }
             }
             Thread.Sleep(100);
         }
+        Require(confirmationObserved, "The actual Chinese exit confirmation must be observed before accepting cancellation");
+    }
+
+    private static IntPtr FindMigrationCheck(IntPtr window)
+    {
+        return Children(window).FirstOrDefault(handle => Caption(handle) == MigrationTask && (Class(handle).IndexOf("CheckBox", StringComparison.OrdinalIgnoreCase) >= 0 || Class(handle).IndexOf("Button", StringComparison.OrdinalIgnoreCase) >= 0));
+    }
+
+    private static bool MigrationState(IntPtr checkbox)
+    {
+        OwnWindow(checkbox);
+        Require(Caption(checkbox) == MigrationTask, "Only the exact migration checkbox may be read");
+        long state = Send(checkbox, 0x00F0, IntPtr.Zero, IntPtr.Zero).ToInt64(); // BM_GETCHECK
+        Require(state == 0 || state == 1, "Migration checkbox state must be determinate");
+        return state == 1;
+    }
+
+    private static void SetMigration(IntPtr checkbox, bool expected)
+    {
+        Require(IsWindowEnabled(checkbox), "The exact migration checkbox must be enabled");
+        if (MigrationState(checkbox) != expected) Send(checkbox, 0x00F5, IntPtr.Zero, IntPtr.Zero); // Own HWND BM_CLICK only
+        Wait(() => MigrationState(checkbox) == expected, "Migration checked state", 5000);
+    }
+
+    private static IntPtr WaitMigrationEdit(IntPtr window)
+    {
+        return Wait(() => Children(window).Any(handle => Caption(handle) == "继续使用旧版本数据") ? Children(window).FirstOrDefault(handle => Class(handle).IndexOf("Edit", StringComparison.OrdinalIgnoreCase) >= 0) : IntPtr.Zero, "Selected migration page", 5000);
+    }
+
+    private static void WaitReady(IntPtr window)
+    {
+        Wait(() => FindButton(window, "install") != IntPtr.Zero && Children(window).Any(handle => Caption(handle).Contains("已准备在所选位置安装完整 TableMax")), "Chinese Ready page without invoking Install", 5000);
+        Require(FindMigrationCheck(window) == IntPtr.Zero, "Migration option must not be exposed on Ready");
+        Require(Children(window).Where(handle => Class(handle).IndexOf("Memo", StringComparison.OrdinalIgnoreCase) >= 0).Any(handle => Caption(handle).IndexOf(Text("target"), StringComparison.OrdinalIgnoreCase) >= 0 && Caption(handle).IndexOf(Path.Combine(Text("target"), "TableMax"), StringComparison.OrdinalIgnoreCase) < 0), "Ready must retain the exact chosen final root without adding a product directory");
     }
 
     private static void Probe()

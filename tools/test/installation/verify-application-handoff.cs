@@ -106,8 +106,8 @@ namespace TableMax.InstallationTesting
             if (!File.Exists(database)) throw new IOException("Old fixture foundation database must already exist.");
             var witness = Path.Combine(evidence, "framework-health-failure.json"); InstallationCore.Safe(witness);
             if (File.Exists(witness) || Directory.Exists(witness)) throw new IOException("Framework failure witness must be new.");
-            var node = InstallationCore.Member(root, "TableMax/app/node.exe");
-            var expectedNode = identity.files.Single(value => value.path == "TableMax/app/node.exe");
+            var node = InstallationCore.Member(root, "data/app/node.exe");
+            var expectedNode = identity.files.Single(value => value.path == "data/app/node.exe");
             if (new FileInfo(node).Length != expectedNode.bytes || InstallationCore.HashFile(node) != expectedNode.sha256) throw new IOException("Framework failure Node bytes do not match the installed package.");
             var before = InstallationCore.HashFile(database);
             var script = "if(process.version!=='v22.14.0')throw Error('Expected packaged Node22.14.0');const {DatabaseSync}=require('node:sqlite');const db=new DatabaseSync(process.env.TABLEMAX_FRAMEWORK_WITNESS_DATABASE);try{db.exec('CREATE TABLE IF NOT EXISTS tablemax_framework_recovery_witness(id INTEGER PRIMARY KEY CHECK(id=1), marker TEXT NOT NULL)');db.prepare('INSERT INTO tablemax_framework_recovery_witness VALUES(1,?)').run('fixture-framework-health-failure-v1');}finally{db.close();}console.log('fixture-foundation-write-complete');";

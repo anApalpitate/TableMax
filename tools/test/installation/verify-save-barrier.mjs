@@ -33,7 +33,7 @@ for (let path = root; ; path = dirname(path)) {
   );
   if (dirname(path) === path) break;
 }
-const identityPath = localFile(root, 'TableMax/.install.json');
+const identityPath = localFile(root, 'data/.install.json');
 const identityBytes = await readFile(identityPath);
 const identity = JSON.parse(identityBytes);
 assert.equal(
@@ -42,7 +42,7 @@ assert.equal(
   'This failure injection requires a distinct fixture installation',
 );
 assert.equal(resolve(identity.root), root);
-const box = join(root, 'TableMax');
+const box = join(root, 'data');
 const environment = { ...process.env };
 for (const key of Object.keys(environment))
   if (
@@ -60,7 +60,7 @@ Object.assign(environment, {
   TABLEMAX_TEST_MAINTENANCE: '0',
 });
 const configuration = JSON.parse(
-  await readFile(localFile(root, 'TableMax/TableMax.config.json'), 'utf8'),
+  await readFile(localFile(root, 'data/TableMax.config.json'), 'utf8'),
 );
 assert.equal(
   configuration.dataDirectory,
@@ -95,7 +95,7 @@ report.sourceHashes = Object.fromEntries(
   ),
 );
 report.nativeSha256 = digest(
-  await readFile(localFile(root, 'TableMax/app/TableMax.exe')),
+  await readFile(localFile(root, 'data/app/TableMax.exe')),
 );
 let desktop, socket, database, failure, hostToken;
 let diagnostic = '';
@@ -223,7 +223,7 @@ try {
     true,
     'Create a real saved room before failure injection',
   );
-  database = new DatabaseSync(localFile(root, 'TableMax/room.sqlite'));
+  database = new DatabaseSync(localFile(root, 'data/room.sqlite'));
   const before = database
     .prepare('SELECT data FROM saves WHERE id=1')
     .get().data;

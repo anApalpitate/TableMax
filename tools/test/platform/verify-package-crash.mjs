@@ -1,3 +1,4 @@
+import { failureLimit } from '../runner/failure-policy.mjs';
 import assert from 'node:assert/strict';
 import { fork } from 'node:child_process';
 import { generateKeyPairSync } from 'node:crypto';
@@ -12,6 +13,7 @@ import {
 import { assertWorkspaceRoot } from '../../shared/workspace-root.mjs';
 
 assertWorkspaceRoot();
+const limit = failureLimit();
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/package-crash-'));
 const evidence = resolve('artifacts/results/package-crash', String(Date.now()));
@@ -149,7 +151,7 @@ try {
         passed: false,
         error: String(error.stack ?? error),
       });
-      if (++failures >= 3) break;
+      if (++failures >= limit) break;
     }
   }
 } finally {
