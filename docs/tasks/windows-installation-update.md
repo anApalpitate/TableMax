@@ -15,6 +15,7 @@
 - [x] UTF8修复专项：实际WindowsPS5.1五出口中文／空格／emoji JSON及真实逐字节双流解码，共7项通过；不代替安装业务验收。
 - [x] 修复后控制器定向复验：长路径下载1项及partial取消／流中断／错误SHA清理3项通过，均为组件证据，不抵扣短副本启动或系统安装链。
 - [x] 句柄修复后实际活跃卸载4步通过；临时标准账户／profile已清理。私有短目录安全与精确清理组件8项通过，仍不抵扣Apply。
+- [x] 同I198／同PE的短外D诊断4步通过且账户清理成功；统一生命周期／容量门禁10项纯测试通过，不抵扣实际重装恢复或容量测量。
 - [ ] 阶段2–6剩余：长路径首次健康启动、真实不同PE Apply、失败升级旧框架卸载、新候选封包／验签、正式GUID系统链、旧便携默认／外置数据迁移、卸载后重装恢复、完整首次启动容量与验后推广。
 
 ## 剩余验收与授权边界
@@ -23,13 +24,23 @@
 
 原规则要求达到三失败后停止原run、依据证据修复，并仅复验受影响项；[验证规则](../reference/validation.md#历史通过率与失败阈值)没有要求实质修复后另获用户许可。此前“是否另开一轮”的额外审批问题已撤回，不把未答复视为新同意。原续行03累计3失败和全部证据保留，既有账户／UAC／profile授权继续适用；不会只因换goal、turn或目录而清零或重试未修复输入。
 
+### 续行06：短外D分类与最终验收门禁
+
+[续行05](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-05/round.json)最终累计3失败：两次I198默认D首次健康确认失败，以及新增验收工具的1项ESLint错误。第二次启动诊断证实Node与WebView2环境均ready，COM `0x800705B4`发生于`CreateCoreWebView2ControllerAsync`；未到Apply。两次临时账户／profile均已清理。工具遗漏的显式异常cause已修复并定向复验，不清除原失败。
+
+[续行06](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/round.json)的[短外D独立诊断](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/startup-external-account-01/application-startup-external-data/report.json)在同I198及同PE下通过实际首装、宿主就绪和活跃卸载，共4步、0失败；新账户／profile清理成功。D固定为本次私有work/D，G仍在B，配置rawSHA未变，日志取自实际D。该对照说明问题与数据目录有关，不能单独断言UDF长度是唯一原因，也不能代替默认D或Apply证明。
+
+完整正向验证据此拆为普通I／默认D和I198／显式短外D两条；后者保留长helper273／下载317与实际短副本模块观察。冻结契约不承诺任意深度I／D；原I198默认D失败保留为已测限制，不通过搬缓存、目录别名或系统策略绕过。旧框架恢复仍用原短I／默认D。
+
+正式验收工具已补实际保存玩家→默认卸载→同根重装读回→再次默认卸载，以及同一真实采样的安装文件／当前G分项和其他数据占用观察，尚待系统运行。推广与未来发布共用唯一严格验收门禁；[10项纯测试](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/publication-gates/results.json)全部通过，只证明缺失恢复证据、容量口径篡改及既有身份／签名门槛的拒绝逻辑。
+
 ### 当前修复：进程句柄保全与续行05
 
 续行04已累计3失败并停止原run。实际日志定位到helper的`stop.native-exit`阶段抛出`System.InvalidOperationException`、`HResult=0x80131509`：Framework通过`GetProcessById`取得的对象未持久保留句柄，`WaitForExit`释放临时句柄后读取`ExitCode`可能因`NoProcessHandle`失败。源码已在Stop及Apply两处于请求／握手前持有`.Handle`；保存确认、精确PID／路径及退出0门槛保持。
 
 [续行05](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-05/round.json)保留前轮失败，按新来源复验。[活跃卸载03](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-05/active-uninstall-account-03/application-active-uninstall/report.json)四步实际通过、0失败，报告SHA `d270a8786476320d8a8674bc59a6f06a09e0461afe44c82ea31502518e7d054c`；driver退出0且新账户／profile清理成功。[短目录组件](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-05/native-launch-component/report.json)8项通过，覆盖创建时ACL、原字节绑定、篡改／未知成员拒绝和仅清理自建同SHA文件，不运行任何安装器或helper。
 
-默认完整fixture的I已改为198，使最长重定向快捷方式259，helper原路径273、下载原路径317仍超过260。[完整链01](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-05/chains-account-01/application-handoff/report.json)在初次旧Inno健康确认失败、返回40，计本轮1项失败；Native记录COM `0x800705B4`超时，尚无具体await阶段／堆栈，不据通用“服务无法启动”文案断言Node启动失败。未到Apply，新账户／profile已清理。下一步补充检查模式启动阶段诊断，再按原I定向定位；不缩短根绕过或放宽保存／健康门槛。
+该轮完整fixture的I改为198，使最长重定向快捷方式259，helper原路径273、下载原路径317仍超过260。[完整链01](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-05/chains-account-01/application-handoff/report.json)初次旧Inno健康确认失败、返回40，计1项失败；当时仅记录COM `0x800705B4`超时，未取得具体await阶段／堆栈。随后诊断、最终三失败及续行06的独立分类见上节，不把该首次失败改写为Node启动故障或Apply结果。
 
 ### 续行04：组件通过与活动卸载失败
 

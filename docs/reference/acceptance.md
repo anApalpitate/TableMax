@@ -2,7 +2,17 @@
 
 本页仅保留当前完整EXE、仍有效的证据和待验边界。下方旧标题为导航，不能把原版本通过升级为当前包通过。
 
-2026-10-15安装／卸载／盒子更新继续验收，current仍为已验证便携1.0.6.10，候选14未推广或发布。续行03及04各累计3失败，原run均已停止。续行05的句柄修复已通过实际活跃卸载，短目录安全组件8项通过；完整链在I198初次启动出现COM超时，本轮1失败，未进入Apply。涉及的新账户及profile均已清理，接续见[安装任务](../tasks/windows-installation-update.md)。
+2026-10-15安装／卸载／盒子更新继续验收，current仍为已验证便携1.0.6.10，候选14未推广或发布。续行03／04／05各累计3失败，原run均已停止。句柄修复已通过实际活跃卸载，短目录组件8项通过；续行06同I198配短外D的独立诊断4步及共用验收门禁10项纯测试通过。实际Apply、框架恢复、最终正式候选与完整容量仍待闭合。涉及的新账户及profile均已清理，接续见[安装任务](../tasks/windows-installation-update.md)。
+
+## 续行06：数据路径分类与共用门禁（2026-10-15）
+
+[续行05账本](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-05/round.json)保留两次I198默认D的首次启动失败和1项工具ESLint错误，累计3后停止。第二次日志已证实service与WebView2 environment ready，控制器创建抛COM `0x800705B4`；不能再称Node未启动。工具显式cause遗漏修复后的静态检查通过。
+
+[短外D独立诊断](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/startup-external-account-01/application-startup-external-data/report.json)在同I198／同PE下通过4步、0失败；G仍B、固定私有work/D、配置原字节不变，真实日志从D归档。[隔离收尾](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/startup-external-account-01/isolated-account.json)确认新账户和profile删除，driver退出0。该对照仅把问题收敛到数据目录相关因素；不证明UDF长度是唯一根因，不冒称默认D或实际Apply通过。
+
+后续完整链分别使用普通I／默认D，以及I198／显式短外D；长链仍要求原helper273／下载317与实际短副本身份。任意深度I／D不在冻结承诺内，原默认深D失败作为限制保留，不移动缓存或改系统保护。
+
+[共用门禁10项纯测试](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/publication-gates/results.json)通过，Node原TAP为两文件各5／5，历史库仍按各文件原验证身份统计。推广及未来发布复用唯一生命周期／容量校验；新系统工具要求真实卸载后重装读回玩家、两次默认卸载，以及安装文件和当前G的同次实测分项。占用观察只报maxObserved下界，不声称绝对峰值或未执行的prestart采样。实际新系统链尚未运行，不能用上述纯测试替代。
 
 ## 续行05：活跃卸载通过与长路径启动诊断（2026-10-15）
 

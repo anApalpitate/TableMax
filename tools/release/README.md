@@ -2,7 +2,7 @@
 
 `pnpm package:win`增量构建并导出预装全部正式游戏与玩法的唯一完整EXE和本地清单；`pnpm package:release`只重新封装当前已验证内部载荷，不分配新修订号。`--edition`已退役并明确拒绝，部分游戏载荷不能交付。EXE在 `artifacts/releases/`，内部payload ZIP、manifest和当前指针在 `artifacts/package-payloads/`；内部ZIP不是用户下载包。
 
-截至2026-10-15，current为便携1.0.6.10；安装候选1.0.6.14原字节保留、尚未推广或发布。[冻结delivery](../../artifacts/package-payloads/v1.0.6/ff8eb35cb3f0-9mGOFX/full/installer-delivery.json)的EXE SHA为 `48cb4a6e2bc80ee409e41afd68356b684e0a949e17735b0d05c4f4be27bf4396`。真实fixture首装、中文登记与主机签名检查通过，但下载长路径和一次实际卸载失败仍待闭合，修复源码须新封包再验。本轮3失败后停止新增动态，账户／profile已清理；[验收](../../docs/reference/acceptance.md#10614安装候选与标准账户诊断2026-10-15)记录精确范围。
+截至2026-10-15，current为便携1.0.6.10；安装候选1.0.6.14原字节保留、尚未推广或发布。[冻结delivery](../../artifacts/package-payloads/v1.0.6/ff8eb35cb3f0-9mGOFX/full/installer-delivery.json)的EXE SHA为 `48cb4a6e2bc80ee409e41afd68356b684e0a949e17735b0d05c4f4be27bf4396`。后续源码已通过下载／清理组件和真实活跃卸载；I198默认深D的控制器超时与同I短外D成功分别保留。新的完整Apply／框架／正式系统链和修复后新候选尚待闭合；[验收](../../docs/reference/acceptance.md)记录精确来源及失败，账户／profile均已清理。达到三失败停止原run，实质修复后按原验证规则定向复验，不另设用户审批门槛。
 
 新安装器先用 `--candidate` 封包：正常新构建原子分配四位修订，失败编号不复用，但保留已有 `current.json`。stdout 返回 `candidatePath`；该记录冻结候选交付和原 current 的原始 SHA，同目录 `full/installer-delivery.json` 供描述生成及实际安装验收。`--platform-from` 按原快照身份及游戏缓存逐成员 SHA 保留正式游戏，只刷新当前平台和组装器并生成新快照、新修订；`--snapshot` 则恢复原冻结快照，不分配新修订。
 
@@ -24,6 +24,8 @@ node tools/release/sign-application-update.mjs "--description=<新描述.json>" 
 ```
 
 `installation-promote` 只接受同一候选的正式产品 GUID 完整证明：真实干净标准 Windows 账户的首装、同包重复安装、登记与快捷方式、完整首启动体积、默认卸载、卸载后保留 runtime 精确副本，以及新账户／profile 清理成功的原始报告。容量须包含当前必需G物化、helper及框架卸载文件，不能用程序暂存替代。隔离标志、测试 GUID、仅 helper 健康、只读闭包、向导取消或 `--keep-installed` 诊断均不能替代此证明；不同PE实际更新另须真实Apply链。候选冻结后原 current 的 SHA 必须仍匹配；完整验收通过后，按已授权完整交付范围原子切换，不再分配修订。
+
+推广和未来发布共用 `verifyInstallationAcceptance`：还要求真实保存数据→默认卸载→同根重装读回→再次默认卸载，不能用卸载前的同包重装替代。容量分列实际安装文件／框架／清单与当前G的同次测量；installer返回前已完成健康启动，不能把该采样写成prestart。历史模块、存档、缓存、事务及临时目录另记录观测值，`maxObserved`只表示采样下界，不称绝对峰值。门禁纯测试不等于系统验收已通过。
 
 ```powershell
 node tools/release/installation-promote.mjs "--candidate=<封包输出candidatePath>" "--proof=<最终正式proof.json>"

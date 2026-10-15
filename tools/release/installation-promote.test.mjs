@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createInstallationLifecycleProof } from '../test/support/installation-fixture.mjs';
 import { hash } from './installation-toolchain.mjs';
 import { INSTALLATION_PRODUCT_ID } from './installation-package.mjs';
 import { verifyCandidatePromotion } from './installation-promote.mjs';
@@ -91,6 +92,7 @@ function fixture() {
       'artifacts/maintenance/v1.0.6/isolation/isolated-account.json',
     isolationEvidenceSha256: '3'.repeat(64),
   };
+  Object.assign(proof, createInstallationLifecycleProof(proof));
   const acceptance = {
     delivery,
     proof,
@@ -197,6 +199,30 @@ test('capacity, fixture identity, diagnostics and incomplete isolation reject pr
   ]) {
     const input = fixture();
     mutate(input);
+    assert.throws(() => verifyCandidatePromotion(input));
+  }
+});
+
+test('missing actual post-uninstall reinstall evidence rejects promotion', () => {
+  const input = fixture();
+  delete input.acceptance.proof.postUninstallReinstall;
+  assert.throws(() => verifyCandidatePromotion(input));
+});
+
+test('capacity subtotals cannot claim a pre-start sample or absolute peak', () => {
+  for (const mutate of [
+    (proof) => {
+      proof.capacityAccounting.firstInstallationProgramBytes++;
+    },
+    (proof) => {
+      proof.capacityAccounting.preStartupSampled = true;
+    },
+    (proof) => {
+      proof.observedStorage.isAbsolutePeak = true;
+    },
+  ]) {
+    const input = fixture();
+    mutate(input.acceptance.proof);
     assert.throws(() => verifyCandidatePromotion(input));
   }
 });

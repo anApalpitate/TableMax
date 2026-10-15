@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
 import test from 'node:test';
+import { createInstallationLifecycleProof } from '../test/support/installation-fixture.mjs';
 import {
   applicationUpdateMachineBlock,
   signApplicationUpdate,
@@ -79,6 +80,7 @@ function fixture() {
       'artifacts/maintenance/v1.0.6/isolation/isolated-account.json',
     isolationEvidenceSha256: '1'.repeat(64),
   };
+  Object.assign(proof, createInstallationLifecycleProof(proof));
   const payloadFiles = [{ path: 'node.exe', bytes: 1, sha256: '2'.repeat(64) }];
   proof.verifiedRuntimeRoot = 'verified-runtime';
   proof.verifiedRuntime = {
@@ -199,4 +201,28 @@ test('production preflight never trusts a test RSA key by default', () => {
   const input = fixture();
   delete input.verification;
   assert.throws(() => verifyInstallationPublication(input), /untrusted-key/);
+});
+
+test('publication requires actual post-uninstall reinstall evidence', () => {
+  const input = fixture();
+  delete input.proof.postUninstallReinstall;
+  assert.throws(() => verifyInstallationPublication(input));
+});
+
+test('publication rejects changed capacity subtotals and observation claims', () => {
+  for (const mutate of [
+    (proof) => {
+      proof.capacityAccounting.firstInstallationProgramBytes++;
+    },
+    (proof) => {
+      proof.capacityAccounting.preStartupSampled = true;
+    },
+    (proof) => {
+      proof.observedStorage.isAbsolutePeak = true;
+    },
+  ]) {
+    const input = fixture();
+    mutate(input.proof);
+    assert.throws(() => verifyInstallationPublication(input));
+  }
 });

@@ -121,3 +121,154 @@ export function protectedFixtureHashes(fixture) {
     sha256: digest(readFileSync(path)),
   }));
 }
+
+/** Pure test data only; this never installs, launches, or creates any files. */
+export function createInstallationLifecycleProof(proof) {
+  const registration = {
+    DisplayName: 'TableMax',
+    DisplayVersion: proof.buildVersion,
+    InstallLocation: proof.installRoot,
+    UninstallString: '"' + resolve(proof.installRoot, 'unins000.exe') + '"',
+  };
+  const shortcuts = ['launch', 'uninstall', 'desktop'].map((name) => ({
+    path: name + '.lnk',
+    target: resolve(
+      proof.installRoot,
+      name === 'uninstall' ? 'unins000.exe' : 'TableMax.exe',
+    ),
+    workingDirectory: resolve(proof.installRoot),
+    arguments: '',
+  }));
+  const native = {
+    desktopPid: 1,
+    servicePid: 2,
+    appVersion: proof.buildVersion,
+    dataDirectory: proof.boxRoot,
+    exitCode: 0,
+    publicState: {
+      instanceId: 'saved-room',
+      seatId: 'saved-seat',
+      releaseRef: { gameId: 'rummikub' },
+      status: 'lobby',
+    },
+  };
+  const databases = ['foundation.sqlite', 'room.sqlite'].map((path) => ({
+    path,
+    bytes: 1,
+    sha256: 'a'.repeat(64),
+  }));
+  const footprint = proof.footprint;
+  const phases = [
+    'after-install',
+    'after-repeat-install',
+    'before-first-uninstall',
+    'after-first-uninstall',
+    'after-restored-install',
+    'before-final-uninstall',
+    'after-final-uninstall',
+  ];
+  const samples = phases.map((phase) => {
+    const removed =
+      phase === 'after-first-uninstall' || phase === 'after-final-uninstall';
+    const entries = {
+      program: removed
+        ? []
+        : [{ path: 'TableMax.exe', bytes: footprint.programBytes }],
+      framework: removed
+        ? []
+        : [{ path: 'unins000.exe', bytes: footprint.frameworkBytes }],
+      metadata: [
+        {
+          path: 'TableMax/TableMax.config.json',
+          bytes: footprint.identityBytes,
+        },
+      ],
+      currentGames: [
+        {
+          path: 'TableMax/games/current.json',
+          bytes: footprint.currentGamesBytes,
+        },
+      ],
+      historicalGames: [],
+      savedData: databases.map((file) => ({
+        path: 'TableMax/' + file.path,
+        bytes: file.bytes,
+      })),
+      browserCache: [],
+      logs: [],
+      updates: [],
+      transactions: [],
+      otherRetainedData: [],
+      unknownUserFiles: [],
+    };
+    const categories = Object.fromEntries(
+      Object.entries(entries).map(([name, files]) => [
+        name,
+        { files, bytes: files.reduce((sum, file) => sum + file.bytes, 0) },
+      ]),
+    );
+    const rootBytes = Object.values(categories).reduce(
+      (sum, category) => sum + category.bytes,
+      0,
+    );
+    return {
+      phase,
+      observedAtUtc: '2026-10-15T00:00:00.000Z',
+      categories,
+      rootBytes,
+      installerTemporary: { path: 'T', bytes: 0, files: [] },
+      executionCopyBytes: proof.executableBytes,
+      totalObservedBytes: rootBytes + proof.executableBytes,
+    };
+  });
+  return {
+    registration,
+    shortcuts,
+    reinstall: { result: 'passed', registration, shortcuts },
+    postUninstallReinstall: {
+      result: 'passed',
+      actualInstaller: true,
+      sameRoot: true,
+      sameInstaller: true,
+      firstUninstalled: true,
+      finalUninstalled: true,
+      defaultUninstall: true,
+      root: proof.installRoot,
+      ownerSid: proof.ownerSid,
+      installerSha256: proof.installerSha256,
+      buildVersion: proof.buildVersion,
+      originalInstallationId: proof.installationId,
+      installationId: 'restored-install',
+      initialNative: native,
+      restoredNative: native,
+      databases: {
+        firstUninstall: { before: databases, after: databases },
+        finalUninstall: { before: databases, after: databases },
+      },
+      registration,
+      shortcuts,
+      footprint,
+    },
+    capacityAccounting: {
+      schemaVersion: 1,
+      observation: 'installer-returned-after-health-startup',
+      observedAtUtc: '2026-10-15T00:00:00.000Z',
+      preStartupSampled: false,
+      sameSample: true,
+      firstInstallationProgramBytes:
+        footprint.programBytes +
+        footprint.frameworkBytes +
+        footprint.identityBytes,
+      firstStartupMaterializedGamesBytes: footprint.currentGamesBytes,
+      firstStartupTotalBytes: footprint.total,
+    },
+    observedStorage: {
+      schemaVersion: 1,
+      isAbsolutePeak: false,
+      samples,
+      maxObservedBytes: Math.max(
+        ...samples.map((sample) => sample.totalObservedBytes),
+      ),
+    },
+  };
+}

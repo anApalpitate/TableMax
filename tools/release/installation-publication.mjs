@@ -71,6 +71,255 @@ export async function loadIsolationEvidence(proof) {
   };
 }
 
+export function verifyLifecycleAndCapacity(proof) {
+  const verifyRegistration = (registration) => {
+    assert.equal(registration.DisplayName, 'TableMax');
+    assert.equal(registration.DisplayVersion, proof.buildVersion);
+    assert.equal(
+      resolve(registration.InstallLocation),
+      resolve(proof.installRoot),
+    );
+    assert.equal(
+      registration.UninstallString,
+      '"' + resolve(proof.installRoot, 'unins000.exe') + '"',
+    );
+  };
+  const verifyLinks = (links) => {
+    assert.equal(links.length, 3);
+    assert.equal(
+      links.filter(
+        (link) =>
+          resolve(link.target) === resolve(proof.installRoot, 'TableMax.exe'),
+      ).length,
+      2,
+    );
+    assert.equal(
+      links.filter(
+        (link) =>
+          resolve(link.target) === resolve(proof.installRoot, 'unins000.exe'),
+      ).length,
+      1,
+    );
+    for (const link of links) {
+      assert.equal(resolve(link.workingDirectory), resolve(proof.installRoot));
+      assert.equal(link.arguments, '');
+    }
+  };
+  assert.equal(proof.reinstall.result, 'passed');
+  verifyRegistration(proof.registration);
+  verifyRegistration(proof.reinstall.registration);
+  verifyLinks(proof.shortcuts);
+  verifyLinks(proof.reinstall.shortcuts);
+  assert.deepEqual(proof.reinstall.shortcuts, proof.shortcuts);
+  const restored = proof.postUninstallReinstall;
+  assert.equal(restored.result, 'passed');
+  for (const flag of [
+    'actualInstaller',
+    'sameRoot',
+    'sameInstaller',
+    'firstUninstalled',
+    'finalUninstalled',
+    'defaultUninstall',
+  ])
+    assert.equal(restored[flag], true);
+  assert.equal(resolve(restored.root), resolve(proof.installRoot));
+  assert.equal(restored.ownerSid, proof.ownerSid);
+  assert.equal(restored.installerSha256, proof.installerSha256);
+  assert.equal(restored.buildVersion, proof.buildVersion);
+  assert.equal(restored.originalInstallationId, proof.installationId);
+  assert.ok(
+    typeof restored.installationId === 'string' && restored.installationId,
+  );
+  for (const native of [restored.initialNative, restored.restoredNative]) {
+    assert.ok(Number.isInteger(native.desktopPid) && native.desktopPid > 0);
+    assert.ok(Number.isInteger(native.servicePid) && native.servicePid > 0);
+    assert.equal(native.appVersion, proof.buildVersion);
+    assert.equal(resolve(native.dataDirectory), resolve(proof.boxRoot));
+    assert.equal(native.exitCode, 0);
+    assert.ok(
+      typeof native.publicState.instanceId === 'string' &&
+        native.publicState.instanceId,
+    );
+    assert.ok(
+      typeof native.publicState.seatId === 'string' &&
+        native.publicState.seatId,
+    );
+    assert.ok(native.publicState.releaseRef);
+    assert.equal(native.publicState.status, 'lobby');
+  }
+  assert.deepEqual(
+    restored.restoredNative.publicState,
+    restored.initialNative.publicState,
+  );
+  for (const group of ['firstUninstall', 'finalUninstall']) {
+    const databases = restored.databases[group];
+    assert.ok(Array.isArray(databases.before));
+    assert.equal(
+      new Set(databases.before.map((file) => file.path)).size,
+      databases.before.length,
+    );
+    for (const name of ['foundation.sqlite', 'room.sqlite'])
+      assert.ok(databases.before.some((file) => file.path === name));
+    for (const file of databases.before) {
+      assert.match(
+        file.path,
+        /^(foundation\.sqlite(?:-(?:wal|shm|journal))?|room\.sqlite(?:-(?:wal|shm|journal)|\.migration\.(?:json|lock))?)$/,
+      );
+      assert.ok(Number.isSafeInteger(file.bytes) && file.bytes >= 0);
+      assert.match(file.sha256, /^[a-f0-9]{64}$/);
+    }
+    assert.deepEqual(databases.after, databases.before);
+  }
+  verifyLinks(restored.shortcuts);
+  verifyRegistration(restored.registration);
+  assert.deepEqual(restored.shortcuts, proof.shortcuts);
+  assert.equal(restored.footprint.programBytes, proof.footprint.programBytes);
+  assert.equal(
+    restored.footprint.currentGamesBytes,
+    proof.footprint.currentGamesBytes,
+  );
+  assert.ok(
+    restored.footprint.frameworkBytes > 0 &&
+      restored.footprint.identityBytes > 0,
+  );
+  assert.equal(
+    restored.footprint.total,
+    restored.footprint.programBytes +
+      restored.footprint.frameworkBytes +
+      restored.footprint.identityBytes +
+      restored.footprint.currentGamesBytes,
+  );
+  assert.ok(restored.footprint.total < MAXIMUM_PACKAGE_BYTES);
+  const accounting = proof.capacityAccounting;
+  assert.equal(accounting.schemaVersion, 1);
+  assert.equal(
+    accounting.observation,
+    'installer-returned-after-health-startup',
+  );
+  assert.equal(accounting.preStartupSampled, false);
+  assert.equal(accounting.sameSample, true);
+  assert.ok(Number.isFinite(Date.parse(accounting.observedAtUtc)));
+  assert.equal(
+    accounting.firstInstallationProgramBytes,
+    proof.footprint.programBytes +
+      proof.footprint.frameworkBytes +
+      proof.footprint.identityBytes,
+  );
+  assert.equal(
+    accounting.firstStartupMaterializedGamesBytes,
+    proof.footprint.currentGamesBytes,
+  );
+  assert.equal(accounting.firstStartupTotalBytes, proof.firstStartupBytes);
+  const observed = proof.observedStorage;
+  assert.equal(observed.schemaVersion, 1);
+  assert.equal(observed.isAbsolutePeak, false);
+  assert.deepEqual(
+    observed.samples.map((sample) => sample.phase),
+    [
+      'after-install',
+      'after-repeat-install',
+      'before-first-uninstall',
+      'after-first-uninstall',
+      'after-restored-install',
+      'before-final-uninstall',
+      'after-final-uninstall',
+    ],
+  );
+  const categories = [
+    'program',
+    'framework',
+    'metadata',
+    'currentGames',
+    'historicalGames',
+    'savedData',
+    'browserCache',
+    'logs',
+    'updates',
+    'transactions',
+    'otherRetainedData',
+    'unknownUserFiles',
+  ];
+  for (const sample of observed.samples) {
+    assert.ok(Number.isFinite(Date.parse(sample.observedAtUtc)));
+    assert.deepEqual(
+      Object.keys(sample.categories).sort(),
+      [...categories].sort(),
+    );
+    const paths = [];
+    for (const name of categories) {
+      const category = sample.categories[name];
+      assert.ok(Number.isSafeInteger(category.bytes) && category.bytes >= 0);
+      assert.equal(
+        category.bytes,
+        category.files.reduce((sum, file) => {
+          assert.ok(
+            typeof file.path === 'string' &&
+              file.path &&
+              !file.path.includes('\\') &&
+              !file.path.includes(':') &&
+              file.path
+                .split('/')
+                .every((part) => part && part !== '.' && part !== '..'),
+          );
+          assert.ok(Number.isSafeInteger(file.bytes) && file.bytes >= 0);
+          paths.push(file.path);
+          return sum + file.bytes;
+        }, 0),
+      );
+    }
+    assert.equal(new Set(paths).size, paths.length);
+    assert.equal(
+      sample.rootBytes,
+      categories.reduce((sum, name) => sum + sample.categories[name].bytes, 0),
+    );
+    assert.equal(
+      sample.installerTemporary.bytes,
+      sample.installerTemporary.files.reduce((sum, file) => {
+        assert.ok(Number.isSafeInteger(file.bytes) && file.bytes >= 0);
+        return sum + file.bytes;
+      }, 0),
+    );
+    assert.ok(
+      Number.isSafeInteger(sample.executionCopyBytes) &&
+        sample.executionCopyBytes > 0,
+    );
+    assert.equal(
+      sample.totalObservedBytes,
+      sample.rootBytes +
+        sample.installerTemporary.bytes +
+        sample.executionCopyBytes,
+    );
+    if (sample.phase.includes('after-') && sample.phase.endsWith('uninstall')) {
+      assert.equal(sample.categories.program.bytes, 0);
+      assert.equal(sample.categories.framework.bytes, 0);
+    }
+  }
+  const first = observed.samples[0].categories;
+  assert.equal(first.program.bytes, proof.footprint.programBytes);
+  assert.equal(first.framework.bytes, proof.footprint.frameworkBytes);
+  assert.equal(first.metadata.bytes, proof.footprint.identityBytes);
+  assert.equal(first.currentGames.bytes, proof.footprint.currentGamesBytes);
+  for (const [phase, group] of [
+    ['before-first-uninstall', 'firstUninstall'],
+    ['after-first-uninstall', 'firstUninstall'],
+    ['before-final-uninstall', 'finalUninstall'],
+    ['after-final-uninstall', 'finalUninstall'],
+  ]) {
+    const sample = observed.samples.find((item) => item.phase === phase);
+    assert.equal(
+      sample.categories.savedData.bytes,
+      restored.databases[group].before.reduce(
+        (sum, file) => sum + file.bytes,
+        0,
+      ),
+    );
+  }
+  assert.equal(
+    observed.maxObservedBytes,
+    Math.max(...observed.samples.map((sample) => sample.totalObservedBytes)),
+  );
+}
+
 /** Pure acceptance gate shared by local promotion and publication. */
 export function verifyInstallationAcceptance({
   delivery,
@@ -215,6 +464,7 @@ export function verifyInstallationAcceptance({
   );
   assert.match(proof.isolationEvidenceSha256, /^[a-f0-9]{64}$/);
   assert.equal(proof.isolationEvidenceSha256, isolationEvidenceSha256);
+  verifyLifecycleAndCapacity(proof);
   return { delivery, proof };
 }
 
