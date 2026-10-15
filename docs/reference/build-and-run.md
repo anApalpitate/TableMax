@@ -26,7 +26,7 @@
 
 主机原生盒子的「程序更新」面板提供主动检查、发布页、下载进度／取消及明确重启更新，不自动应用、不提供手动在线降级。普通浏览器、公共屏和子frame没有原生更新权限。下载期间可以继续使用，未验签或失败的文件不执行；应用更新在服务串行队列确认无playing对局后同步拒收、排空、保存并关闭，再取得实际Stop确认与原Native退出码0，才调用同一个完整installer升级原目录。保存失败、超时或失联时明确停止更新并安全退出旧盒子，不能留作“可更新”或启动helper提交。稳定入口无需再次解压另一份自解压载荷，健康确认核对实际新Native／Node、I/B/D、安装实例、四位版本及当前映射。正式成功后保持新版普通主机运行。
 
-长路径兼容补充正在修复源码，尚未封包／动态验证：内部IO使用既有扩展路径封装；更新执行在保存关闭前，把已核验helper和完整installer原字节复制到当前用户实际TEMP中新建的私有短目录，绑定安装身份、原签名目标及双副本SHA后再交接。该临时副本不改变I／B／D／G，也不把数据移入TEMP；原下载和B内审计记录保留。原因是.NET Framework使用的[CreateProcessW空applicationName形式](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw)仍限制命令行中的模块路径长度，内部文件IO支持长路径不代表可以从同一路径启动EXE。TEMP本身过深或为磁盘根时须在关闭服务前报错，不改系统长路径策略或已有目录权限。当前交付状态仍以[验收](acceptance.md#当前源码与本地交付)为准。
+长路径兼容补充正在定向验收：内部IO使用既有扩展路径封装，实际.NET下载与partial清理组件已通过；完整交接和新正式候选尚待验证。更新执行在保存关闭前，把已核验helper和完整installer原字节复制到当前用户实际TEMP中新建的私有短目录，绑定安装身份、原签名目标及双副本SHA后再交接。该临时副本不改变I／B／D／G，也不把数据移入TEMP；原下载和B内审计记录保留。原因是.NET Framework使用的[CreateProcessW空applicationName形式](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw)仍限制命令行中的模块路径长度，内部文件IO支持长路径不代表可以从同一路径启动EXE。TEMP本身过深或为磁盘根时须在关闭服务前报错，不改系统长路径策略或已有目录权限。停止与更新交接还必须在发出关闭请求前持有原进程句柄，直到核验正常退出码后才释放，避免进程退出后只凭PID无法取得退出状态。当前交付状态仍以[验收](acceptance.md#当前源码与本地交付)为准。
 
 手动升级、盒子升级和卸载共用安装互斥与准确实例停止；更新／恢复不能用卸载停止语义绕过进行中对局。迁移和程序暂存期间持有数据库组文件租约，从已持有流复制并核验；服务先取得foundation库全生命周期SQLite独占，合作旧入口或其他会话抢先占用同D时拒绝启动，不能只凭旧Local互斥保证跨会话安全。事务记录preparing等阶段与两库、sidecar、journal及迁移标记共10成员指纹；数据库已经变化时保留目标程序和原数据，重新确认同一目标，不自动启动旧程序读取新数据。
 

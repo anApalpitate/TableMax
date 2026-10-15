@@ -8,16 +8,42 @@
 - 精确证据及历史范围统一进入[当前安装候选](../reference/acceptance.md#10614安装候选与标准账户诊断2026-10-15)；本页保留剩余安排，完整系统链通过前不归档全任务。
 
 - [x] 阶段0／1：安装契约冻结、保存关闭与隔离底座；[准备归档](../archive/windows-installation-preparation-2026-10-15.md)保留原决策。
-- [x] 原候选前置：可信协议与控制器组件专项、候选13原SHA的生产根验签、真实向导取消和适用专项；不抵扣本轮发现的下载长路径故障。
+- [x] 原候选前置：可信协议与控制器组件专项、候选13原SHA的生产根验签、真实向导取消和适用专项；不抵扣续行03发现的下载长路径故障。
 - [x] 底层协调器精确恢复与拒绝专项；源码已进入新候选14。
 - [x] Inno内嵌解码类型修复：全部0–255字节、1／2／3字节填充、真实helper内存／落盘SHA和10项非法编码拒绝通过；新旧不同PE安装副本已重新编译封包。
 - [x] 候选14完整静态闭包9项、实际Native／helper各22项验签及稳定入口12项身份检查；原SHA和失败保留。
 - [x] UTF8修复专项：实际WindowsPS5.1五出口中文／空格／emoji JSON及真实逐字节双流解码，共7项通过；不代替安装业务验收。
-- [ ] 阶段2–6剩余：下载长路径与实际卸载失败闭合、新候选封包／验签、真实不同PE Apply、失败升级旧框架卸载、正式GUID系统链、旧便携默认／外置数据迁移、完整首次启动容量与验后推广。
+- [x] 修复后控制器定向复验：长路径下载1项及partial取消／流中断／错误SHA清理3项通过，均为组件证据，不抵扣短副本启动或系统安装链。
+- [x] 句柄修复后实际活跃卸载4步通过；临时标准账户／profile已清理。私有短目录安全与精确清理组件8项通过，仍不抵扣Apply。
+- [ ] 阶段2–6剩余：长路径首次健康启动、真实不同PE Apply、失败升级旧框架卸载、新候选封包／验签、正式GUID系统链、旧便携默认／外置数据迁移、卸载后重装恢复、完整首次启动容量与验后推广。
 
 ## 剩余验收与授权边界
 
 临时标准账户、Windows UAC及新标准用户profile普通目录均已于2026-10-15明确授权。测试只使用本项目同SHA临时副本，验后删除账户及新建profile，凭据仅内存；不修改原工程Low标记、token、DACL、系统保护、防火墙或发布。授权继续有效，无需重复询问。
+
+原规则要求达到三失败后停止原run、依据证据修复，并仅复验受影响项；[验证规则](../reference/validation.md#历史通过率与失败阈值)没有要求实质修复后另获用户许可。此前“是否另开一轮”的额外审批问题已撤回，不把未答复视为新同意。原续行03累计3失败和全部证据保留，既有账户／UAC／profile授权继续适用；不会只因换goal、turn或目录而清零或重试未修复输入。
+
+### 当前修复：进程句柄保全与续行05
+
+续行04已累计3失败并停止原run。实际日志定位到helper的`stop.native-exit`阶段抛出`System.InvalidOperationException`、`HResult=0x80131509`：Framework通过`GetProcessById`取得的对象未持久保留句柄，`WaitForExit`释放临时句柄后读取`ExitCode`可能因`NoProcessHandle`失败。源码已在Stop及Apply两处于请求／握手前持有`.Handle`；保存确认、精确PID／路径及退出0门槛保持。
+
+[续行05](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-05/round.json)保留前轮失败，按新来源复验。[活跃卸载03](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-05/active-uninstall-account-03/application-active-uninstall/report.json)四步实际通过、0失败，报告SHA `d270a8786476320d8a8674bc59a6f06a09e0461afe44c82ea31502518e7d054c`；driver退出0且新账户／profile清理成功。[短目录组件](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-05/native-launch-component/report.json)8项通过，覆盖创建时ACL、原字节绑定、篡改／未知成员拒绝和仅清理自建同SHA文件，不运行任何安装器或helper。
+
+默认完整fixture的I已改为198，使最长重定向快捷方式259，helper原路径273、下载原路径317仍超过260。[完整链01](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-05/chains-account-01/application-handoff/report.json)在初次旧Inno健康确认失败、返回40，计本轮1项失败；Native记录COM `0x800705B4`超时，尚无具体await阶段／堆栈，不据通用“服务无法启动”文案断言Node启动失败。未到Apply，新账户／profile已清理。下一步补充检查模式启动阶段诊断，再按原I定向定位；不缩短根绕过或放宽保存／健康门槛。
+
+### 续行04：组件通过与活动卸载失败
+
+[修复轮记录](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-04/round.json)绑定实质修复后的生产源码和工具SHA。已通过[长路径控制器](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-04/controller-long-path/report.json)1项、0失败，1851ms；[partial清理控制器](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-04/controller-partial-cleanup/report.json)的cancel／broken-stream／wrong-sha共3项、0失败。它们使用实际net48控制器与文件系统、合成安装成员及管理HTTP传输，不启动Native／Node，不证明真实GitHub下载、私有短TEMP的ACL／进程启动、Apply或正式安装。
+
+另有[新harness格式调用误入Corepack](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-04/launch-harness-tooling-failure-01.json)、exit1，计1项环境失败；不改变上述4项组件各自0失败。其后两次实际活动卸载各失败1项，续行04累计3后停止。
+
+[准备07](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-04/handoff-prepare-07/report.json)按当时源码真实编译封包60000／60001，结果为`prepared-not-executed`、0失败；[只读材料复核](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-04/handoff-prepare-07/static-review.json)绑定18源、原MJS及两份recipe／实际EXE字节。后续句柄修复和I198改变后必须重新准备，不能直接复用原材料。
+
+[活动卸载07](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-04/active-uninstall-account-01/application-active-uninstall/report.json)通过材料、真实首装与旧主机三步，默认卸载失败；Native退出0、双流完整到EOF、desktop.log记录`Service shutdown: drained`，但helper10／Inno1，原证据不足以唯一归因。[收尾](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-04/active-uninstall-account-01/isolated-account.json)确认SID1016账户及profile已删除。
+
+[活动卸载08](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-04/active-uninstall-account-02/application-active-uninstall/report.json)同样前三步通过、卸载失败；[实际Inno日志](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-04/active-uninstall-account-02/application-active-uninstall/uninstall-inno.log)记录`stage=stop.native-exit`、上述异常类型及HResult，Native正常退出0，helper10／Inno1。[收尾](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-04/active-uninstall-account-02/isolated-account.json)确认SID1017账户及profile已删除。Native退出0和服务drained不证明Stop已成功返回，更不证明产品卸载；两次均未执行正式候选，current10及候选14保留。
+
+### 原续行03失败与修复边界
 
 用户明确持续完成全任务后，建立[续行03](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/round.json)，保留前轮全部失败。[UTF8专项](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/encoding-probe/report.json)7项实际通过，范围仅为编码、分流和字节计数。静态审查另发现fixture签名产品ID与TEST程序集不一致、public Quit误用私有反射，以及新版ready早于Inno登记完成的时序风险；先修正验证底座再重新准备双PE，不放宽生产签名协议。阶段0的真实旧便携默认／外置数据迁移仍须验收，不能因旧表遗漏而视为完成。
 
@@ -25,26 +51,26 @@
 
 [准备06](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/handoff-prepare-06/report.json)编译封包通过后，[第二次系统链](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/production-account-02/application-handoff/report.json)通过真实首装、精确登记、旧Native／Node主机及签名检查；下载partial长路径失败，随后真实默认卸载返回1，共新增2失败。本轮累计3后停止新增动态，不自动重试。SID1015及profile已[清理](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/production-account-02/isolated-account.json)，不把删除profile写成产品卸载通过。
 
-下载控制器已补既有扩展路径IO。[静态集成审查](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/static-io-integration-audit.json)另确认：合法安装根深度仍可能令交接helper及下载EXE的模块路径超过.NET Framework进程启动限制；这与本轮实际发生的partial写入失败分别记录，不能把尚未执行的Apply写成已观察失败。当前补充当前用户私有短路径启动副本、严格元数据绑定与原始字节核验，尚未编译／动态验证；I／B／D／G及保存关闭契约不变。
+下载控制器已补既有扩展路径IO。[静态集成审查](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/static-io-integration-audit.json)另确认：合法安装根深度仍可能令交接helper及下载EXE的模块路径超过.NET Framework进程启动限制；这与该轮实际发生的partial写入失败分别记录，不能把尚未执行的Apply写成已观察失败。当前补充当前用户私有短路径启动副本、严格元数据绑定与原始字节核验；组件IO已进入上节定向复验，短副本启动及完整系统链仍待验。I／B／D／G及保存关闭契约不变。
 
-卸载缺少helper返回码与Native日志，根因尚未分类，已补诊断以便下一获准轮定位，不放宽exit0或保存确认。[诊断静态审查](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/diagnostic-static-integration-audit.json)发现readline关闭可能暂停原双流并漏掉尾部字节；工具已补EOF及提前脱离锁存，晚到EOF不能覆盖归档不完整。另增加活动卸载专用入口与升级保留“取消桌面快捷方式”选择的断言；均为源码准备，不能替代真实系统证明。
+卸载缺少helper返回码与Native日志，根因尚未分类，已补诊断供定向复验定位，不放宽exit0或保存确认。[诊断静态审查](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/diagnostic-static-integration-audit.json)发现readline关闭可能暂停原双流并漏掉尾部字节；工具已补EOF及提前脱离锁存，晚到EOF不能覆盖归档不完整。另增加活动卸载专用入口与升级保留“取消桌面快捷方式”选择的断言；均为源码准备，不能替代真实系统证明。
 
-新源码须新候选及重新prepare；候选14不能推广。已询问用户是否在保留原3失败后另开验收轮，账户／UAC／profile原授权不变。真实便携迁移底座已完成源码和静态检查，尚未执行，须按下一精确候选更新当前14白名单。[完整范围静态审计](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/completion-scope-audit.md)逐项列出阶段2–6的43项要求及证据缺口，不作为新增通过数。
+新源码须新候选及重新prepare；候选14不能推广。续行04原run已停止，进一步复验须按句柄修复后的新来源冻结。真实便携迁移底座已完成源码和静态检查，尚未执行，须按下一精确候选更新当前14白名单。[完整范围静态审计](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/completion-scope-audit.md)逐项列出阶段2–6的43项要求及当时证据缺口，不作为新增通过数；其中“待另开轮用户批准”是后来已撤回的人为门槛，原字节作为历史快照保留，不用于当前授权判断。
 
-本次接续另完成[生产修复静态交接](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/short-launch-static-01.json)、[handoff工具静态检查](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/handoff-static-followup-01.json)和[账户驱动PS5.1解析](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/fixture-driver-static-01/windows-powershell-ast.json)。独立审查发现的TEMP盘根会被裁成盘符相对路径，已在归一化及关闭前明确拒绝；没有改全局路径规则。完整链固定合法I长200，新增实际模块路径／元数据绑定断言，尚未执行该链。
+本次接续另完成[生产修复静态交接](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/short-launch-static-01.json)、[handoff工具静态检查](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/handoff-static-followup-01.json)和[账户驱动PS5.1解析](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/fixture-driver-static-01/windows-powershell-ast.json)。独立审查发现的TEMP盘根会被裁成盘符相对路径，已在归一化及关闭前明确拒绝；没有改全局路径规则。当时完整链计划I长200及实际模块路径／元数据绑定断言按原源码认定，后续I198夹具仍待重新准备及实际验证。
 
-已推送阶段提交 `babc3d3` 保存当时的验证底座及文档；后续阶段仅保存已通过静态检查的诊断工具准备和文档。生产长路径修复、私有启动副本和Inno helper退出码日志保留在工作区，待下一获准轮编译及适用验证后提交。新增controller场景、退出诊断、活动卸载及迁移模式均按“源码准备／静态检查”认定，不作为动态通过；公开版本、current及候选14原字节不改。
+已推送阶段提交 `babc3d3` 保存当时的验证底座及文档，`2515729` 保存后续静态检查通过的诊断工具准备和文档。生产长路径修复、私有启动副本和Inno helper退出码日志保留在工作区，待受影响编译及适用验证后提交。controller已按续行04范围取得组件证据；退出诊断、活动卸载及迁移模式仍按“源码准备／静态检查”认定，不作为动态通过。公开版本、current及候选14原字节不改。
 
 此前resume-02累计4项失败及Low标签、profile物化、UTF8修复的完整边界保留于[候选14诊断](../reference/acceptance.md#10614安装候选与标准账户诊断2026-10-15)。续行03的准备04／05／06各按原sourceSHA认定；最新生产IO及日志改动后均不能直接作为下轮新工具准备材料。旧证据不覆盖，不把局部通过升级为正式系统链。
 
 | 剩余事项                 | 完成条件                                                                            | 当前接续                                                                     |
 | ------------------------ | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| 下载IO与卸载失败闭合     | 长路径真实下载／Apply可达；取得真实卸载helper及Native退出原因并保持保存、exit0门槛  | IO与短路径启动副本修复、诊断和独立活动卸载入口准备；待获准新轮               |
+| 下载IO与卸载失败闭合     | 长路径真实下载／Apply可达；取得真实卸载helper及Native退出原因并保持保存、exit0门槛  | IO／partial清理4项组件通过；活动卸载定位句柄异常，Stop／Apply修复待复验      |
 | 新候选闭包与生产根验签   | 按新源码封包，精确三PE／全部成员／配方及原31游戏单元保全，实际程序集验签            | 14原闭包9项与验签按原字节保留；新源码须新候选，尚未封包                      |
 | 注册表环境与真实首装     | 正常Medium标准用户首装及精确中文登记；正式GUID另验                                  | 两次fixture首装与精确中文登记已通过；不能代替正式GUID                        |
 | 不同PE Apply及helper升级 | 旧Native检查／下载／Apply、保存关闭与父退出、同Inno升级及新持续主机健康             | 真实旧主机与检查已过，下载长路径失败；Apply尚未执行                          |
 | 框架bootstrap失败恢复    | A实际安装、B健康失败且DB变化、A框架保全、live helper缺失后实际A卸载，D/G/config保全 | 尚未执行，解码与组件恢复证据不代替七步系统专项                               |
-| 正式GUID安装／重装／卸载 | 精确最终候选登记、快捷方式、identity／receipt及默认卸载，保全数据并清理账户/profile | 尚未执行；本轮第二次fixture卸载失败未闭合                                    |
+| 正式GUID安装／重装／卸载 | 精确最终候选登记、快捷方式、identity／receipt及默认卸载，保全数据并清理账户/profile | 尚未执行；续行04活动卸载两次失败，句柄修复未验                               |
 | 旧便携默认／外置数据迁移 | 真实便携生成合法保存与G；实际Inno迁移，默认D复制／外置D保指针，旧根与默认卸载保全   | 源码、独立driver模式及静态检查完成；当前14白名单须按下一精确候选更新，未执行 |
 | 完整首次启动容量         | app、稳定入口、helper、框架卸载文件、归属清单和当前G严格小于120,000,000字节         | 未测；候选14暂存97,360,020字节不能替代完整门禁                               |
 | current推广与安全体验    | 最终系统证明绑定精确候选与账户清理rawSHA，核原current后原子切换并诚实记录安全上下文 | current仍10，候选14不推广；浏览器下载SmartScreen与发布另有明确门禁           |
@@ -77,4 +103,4 @@
 
 退役逐项记录见[维护清单](../../artifacts/maintenance/local-cleanup-20261014-221625-488-maintenance/cleanup.json)。封包闭包9项发生在维护前；维护后关键SHA由本轮终端补核，未另建独立保护报告，不能把维护前的封包记录标成维护后证明。
 
-全部剩余验收完成后，由主agent汇总精确证明、按已授权完整交付范围更新current并归档本任务。账户／profile范围授权持续有效，动态验收待新轮确认后继续；推广仍须完整证明，发布须另行明确授权。
+全部剩余验收完成后，由主agent汇总精确证明、按已授权完整交付范围更新current并归档本任务。账户／UAC／profile范围授权持续有效，实质修复后仅定向复验受影响项并保留原失败；推广仍须完整证明，发布须另行明确授权。

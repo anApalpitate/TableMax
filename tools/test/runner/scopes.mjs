@@ -136,6 +136,8 @@ const verificationScopes = {
   'tools/release/installation-verifier.mjs': ['box', 'shared', 'tooling'],
   'tools/test/installation/native-confirm-harness.cs': ['shared', 'tooling'],
   'tools/test/installation/native-confirm-harness.mjs': ['shared', 'tooling'],
+  'tools/test/installation/native-launch-harness.cs': ['shared', 'tooling'],
+  'tools/test/installation/native-launch-harness.mjs': ['shared', 'tooling'],
   'tools/test/installation/verify-installer-wizard.cs': ['shared', 'tooling'],
   'tools/test/installation/verify-installer-wizard.mjs': ['shared', 'tooling'],
   'tools/test/installation/native-update-harness.mjs': ['shared', 'tooling'],

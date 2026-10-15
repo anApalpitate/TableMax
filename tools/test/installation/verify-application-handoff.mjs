@@ -266,15 +266,25 @@ export async function verifyApplicationHandoff({
   await noLinks(work);
   const longInstallationRoot = !activeUninstallOnly && !frameworkRecoveryOnly;
   const rootBase = join(work, '安装 根');
+  // Keep the redirected fixture uninstall shortcut below MAX_PATH while the
+  // canonical update helper and installer sources still exceed it.
   assert.ok(
-    !longInstallationRoot || rootBase.length <= 200,
-    'The private work parent cannot produce the required 200-character installation root',
+    !longInstallationRoot || rootBase.length <= 198,
+    'The private work parent cannot produce the required 198-character installation root',
   );
   const root = longInstallationRoot
-    ? rootBase + '测'.repeat(200 - rootBase.length)
+    ? rootBase + '测'.repeat(198 - rootBase.length)
     : rootBase;
   const nativeWorkingDirectory = join(root, 'TableMax/app');
   const configurationPath = join(root, 'TableMax/TableMax.config.json');
+  const longestFixtureShortcut = join(
+    root,
+    'fixture-shortcuts/Start/卸载 TableMax Installation Fixture.lnk',
+  );
+  assert.ok(
+    longestFixtureShortcut.length < 260,
+    'The redirected fixture shortcut exceeds the ordinary Shell path limit',
+  );
   assert.ok(
     configurationPath.length < 260,
     'The fixture configuration exceeds the production startup path limit',
@@ -283,7 +293,11 @@ export async function verifyApplicationHandoff({
     boundary:
       'Computed startup-path preflight only; actual launched module paths require their own runtime evidence.',
     rootLength: root.length,
-    requiredRootLength: longInstallationRoot ? 200 : null,
+    requiredRootLength: longInstallationRoot ? 198 : null,
+    longestFixtureShortcut: {
+      path: longestFixtureShortcut,
+      length: longestFixtureShortcut.length,
+    },
     images: [
       'TableMax.exe',
       'UpdateHelper.exe',
@@ -873,7 +887,7 @@ export async function verifyApplicationHandoff({
       'handoff-record.json',
     );
     assert.deepEqual(handoffRecord.value, outcome);
-    if (startupPathPlan.requiredRootLength === 200) {
+    if (startupPathPlan.requiredRootLength === 198) {
       assert.ok(canonicalHelper.path.length >= 260);
       assert.ok(canonicalInstaller.path.length >= 260);
     }
