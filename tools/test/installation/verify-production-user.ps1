@@ -49,7 +49,7 @@ try {
   $taskRandom = New-Object byte[] 32
   [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($taskRandom)
   $taskPassword = ConvertTo-SecureString ('aA1!' + [Convert]::ToBase64String($taskRandom)) -AsPlainText -Force
-  $taskUser = New-LocalUser -Name $taskUsername -Password $taskPassword -Description 'Temporary TableMax installer acceptance; remove after this run.' -AccountNeverExpires -UserMayNotChangePassword
+  $taskUser = New-LocalUser -Name $taskUsername -Password $taskPassword -Description 'Temporary TableMax installation acceptance' -AccountNeverExpires -UserMayNotChangePassword
   $taskCreatedSid = $taskUser.SID
   $taskReport.accountSid = $taskCreatedSid.Value
   $taskReport.ownerSid = $taskCreatedSid.Value
