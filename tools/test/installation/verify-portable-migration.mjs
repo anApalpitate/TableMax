@@ -42,7 +42,7 @@ const portablePointerSha256 =
 const portableExecutableSha256 =
   '93207df18d568e808ea903ce5d538fe1835323f80a523af95a09241eeb6364bc';
 const installerSha256 =
-  'aca93f5fc8f434ed9d9fb02c6a56bcff75214d09a30fb8e6d1a57a80a9641a69';
+  '1313f7af6390382968431211a8e86cef1523c850950acc5fe59ef9b34926e122';
 const caseIds = ['defaultD', 'externalD'];
 const databaseMembers = [
   'foundation.sqlite',
@@ -229,7 +229,7 @@ async function registrationAt(root, environment) {
       samePath(record.root, root),
       'Registered installation root differs',
     );
-    assert.equal(record.version, '1.0.6.19');
+    assert.equal(record.version, '1.0.6.21');
     assert.equal(record.uninstall, '"' + join(root, 'unins000.exe') + '"');
   }
   return records;
@@ -400,7 +400,7 @@ async function verifyIdentity(root, manifest, delivery, ownerSid) {
   assert.equal(identity.ownerSid, ownerSid);
   assert.ok(samePath(identity.root, root));
   assert.ok(samePath(identity.boxRoot, join(root, 'data')));
-  assert.equal(identity.buildVersion, '1.0.6.19');
+  assert.equal(identity.buildVersion, '1.0.6.21');
   assert.equal(identity.payloadManifestSha256, manifest.payloadManifestSha256);
   assert.equal(identity.currentMappingSha256, manifest.currentMappingSha256);
   assert.deepEqual(identity.files, manifest.files);
@@ -471,7 +471,7 @@ export async function verifyPortableMigration({
     executionCopies: [],
     cleanupErrors: [],
     scope:
-      'Actual frozen portable 1.0.6.10 generated idle saves and two production 1.0.6.19 Inno migrations/default uninstalls in one fresh authorized standard profile; no older-format save, public release, SmartScreen or full fresh-install capacity claim.',
+      'Actual frozen portable 1.0.6.10 generated idle saves and two same-root production 1.0.6.21 Inno migrations/default uninstalls, with I equal to the original portable B and new B at I/data, in one fresh authorized standard profile; no older-format save, public release, SmartScreen or full fresh-install capacity claim.',
   };
   let desktop, active;
   const environment = childEnvironment(work);
@@ -632,7 +632,7 @@ export async function verifyPortableMigration({
     );
     const manifest = JSON.parse(await readFile(manifestRecord.path, 'utf8'));
     assert.equal(manifest.productId, productId);
-    assert.equal(manifest.buildVersion, '1.0.6.19');
+    assert.equal(manifest.buildVersion, '1.0.6.21');
     assert.equal(manifest.installProtocol, 1);
     assert.equal(
       manifest.currentMappingSha256,
@@ -693,9 +693,12 @@ export async function verifyPortableMigration({
       await noLinks(caseWork);
       active.temporary = await mkdtemp(join(profile.workParent, 'mt-'));
       const portableDirectory = caseWork;
-      active.root = join(caseWork, '新安装 程序');
       active.oldBox = join(portableDirectory, 'TableMax');
+      active.root = active.oldBox;
       active.boxRoot = join(active.root, 'data');
+      active.sourceIsInstallRoot = true;
+      assert.ok(samePath(active.oldBox, active.root));
+      assert.ok(samePath(active.boxRoot, join(active.oldBox, 'data')));
       active.dataDirectory =
         id === 'defaultD' ? active.boxRoot : join(caseWork, '外置 数据');
       const portablePaths = [
@@ -801,13 +804,24 @@ export async function verifyPortableMigration({
         { flag: 'wx' },
       );
       const friend = await fileRecord(friendPath);
+      await assert.rejects(lstat(active.boxRoot), { code: 'ENOENT' });
       const sourceInventory = await inventory(active.oldBox);
+      assert.ok(
+        sourceInventory.every(
+          (file) => file.path.split('/')[0].toLowerCase() !== 'data',
+        ),
+        'Freeze only original portable files before the nested new B exists',
+      );
       const oldGames = await inventory(join(active.oldBox, 'games'));
       assert.ok(
         oldGames.length > 0,
         'The real portable must have materialized signed games',
       );
       active.sourceSnapshot = {
+        root: active.oldBox,
+        sourceIsInstallRoot: true,
+        newBox: active.boxRoot,
+        newBoxAbsentWhenFrozen: true,
         files: sourceInventory,
         currentGames: oldGames,
         dataFile: friend,
@@ -870,7 +884,7 @@ export async function verifyPortableMigration({
       const restoredStorage = await desktop.request('storage.info');
       assert.ok(samePath(restoredStorage.active, active.dataDirectory));
       const runtime = await desktop.request('runtime');
-      assert.equal(runtime.appVersion, '1.0.6.19');
+      assert.equal(runtime.appVersion, '1.0.6.21');
       const restored = (
         await post(runtime.origin, '/api/session/view', { token: saved.token })
       ).view;
@@ -886,11 +900,10 @@ export async function verifyPortableMigration({
       await closeDesktop(desktop);
       desktop = null;
       active.checks.push('saved-player-and-storage-restored');
-      assert.deepEqual(
-        await inventory(active.oldBox),
-        sourceInventory,
-        'Original portable B must remain byte-for-byte unchanged',
-      );
+      // The same-root install adds managed files and data/. Every frozen
+      // original file must retain its bytes; the original games tree is exact.
+      await verifyMembers(active.oldBox, sourceInventory);
+      await verifyMembers(join(active.oldBox, 'games'), oldGames, true);
       await verifyMembers(join(active.boxRoot, 'games'), oldGames);
       const targetFriend = join(active.dataDirectory, '朋友保留资料.txt');
       assert.equal((await fileRecord(targetFriend)).sha256, friend.sha256);
@@ -909,7 +922,8 @@ export async function verifyPortableMigration({
       );
       active.retainedDatabases = await protectedData(active.dataDirectory);
       await uninstall(active, manifest);
-      assert.deepEqual(await inventory(active.oldBox), sourceInventory);
+      await verifyMembers(active.oldBox, sourceInventory);
+      await verifyMembers(join(active.oldBox, 'games'), oldGames, true);
       active.resourceCleanup = await verifyResourceCleanup({
         root: active.root,
         identity: active.identity,
