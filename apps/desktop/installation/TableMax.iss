@@ -72,8 +72,8 @@ chinese.UninstalledAll=TableMax 程序已卸载。数据与历史模块保留在
 Name: "desktopicon"; Description: "创建桌面快捷方式"; GroupDescription: "快捷方式："; Flags: {#DesktopTaskFlags}
 
 [Files]
-Source: "{#CandidateDirectory}\*"; DestDir: "{tmp}\candidate"; Excludes: "installation-manifest.json,*.AssemblyInfo.cs"; Flags: ignoreversion recursesubdirs createallsubdirs deleteafterinstall notimestamp
-Source: "{#CandidateDirectory}\installation-manifest.json"; DestDir: "{tmp}\candidate"; Flags: ignoreversion deleteafterinstall notimestamp; AfterInstall: CommitCandidate
+Source: "{#CandidateDirectory}\*"; DestDir: "{tmp}\candidate"; Excludes: "installation-manifest.json,*.AssemblyInfo.cs"; Flags: dontcopy ignoreversion recursesubdirs createallsubdirs noencryption notimestamp
+Source: "{#CandidateDirectory}\installation-manifest.json"; DestDir: "{tmp}\candidate"; Flags: dontcopy ignoreversion noencryption notimestamp
 
 [Icons]
 Name: "{code:ProgramShortcutRoot}\{#ProductName}"; Filename: "{app}\TableMax.exe"; WorkingDir: "{app}"; Check: InstallConfirmed
@@ -161,24 +161,6 @@ begin
   MigrationBrowse.OnClick := @BrowseMigration;
 end;
 
-function PrepareToInstall(var NeedsRestart: Boolean): String;
-var
-  RegisteredRoot: String;
-begin
-  Result := '';
-  if IsAdminInstallMode or IsAdminLoggedOn then begin
-    Result := '请以当前普通用户运行安装包，不使用管理员身份。';
-    Exit;
-  end;
-  if Length(ExpandConstant('{app}')) <= 3 then Result := '请选择有效的可写目录，不能安装到磁盘根。';
-  if RegKeyExists(HKCU64, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#ProductId}_is1') then begin
-    if not RegQueryStringValue(HKCU64, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#ProductId}_is1', 'InstallLocation', RegisteredRoot) then
-      Result := '已有安装登记缺少原位置，请先修复或卸载原安装，不创建第二份安装。'
-    else if CompareText(RemoveBackslashUnlessRoot(ExpandFileName(RegisteredRoot)), RemoveBackslashUnlessRoot(ExpandFileName(ExpandConstant('{app}')))) <> 0 then
-      Result := '当前用户已有 TableMax 安装。升级和修复请使用原安装位置；本版本不提供安装目录搬迁。';
-  end;
-end;
-
 procedure CommitCandidate;
 var
   Arguments, Target, Migration: String;
@@ -191,8 +173,39 @@ begin
     if Migration = '' then Migration := MigrationEdit.Text;
     if Migration <> '' then Arguments := Arguments + ' --migration-root=' + Quoted(Migration);
     if not ExecAndLogOutput(ExpandConstant('{tmp}\candidate\UpdateHelper.exe'), Arguments, ExpandConstant('{tmp}'), SW_HIDE, ewWaitUntilTerminated, ResultCode, nil) then RaiseException('无法启动安装协调程序，原数据已保留。');
+    Log('TableMax coordinator finished with exit code: ' + IntToStr(ResultCode));
     if ResultCode <> 0 then RaiseException('安装未确认完成（' + IntToStr(ResultCode) + '）。原数据与恢复记录已保留，请检查 TableMax 目录。');
     Confirmed := True;
+  end;
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  RegisteredRoot: String;
+begin
+  Result := '';
+  Confirmed := False;
+  if IsAdminInstallMode or IsAdminLoggedOn then begin
+    Result := '请以当前普通用户运行安装包，不使用管理员身份。';
+    Exit;
+  end;
+  if Length(ExpandConstant('{app}')) <= 3 then Result := '请选择有效的可写目录，不能安装到磁盘根。';
+  if RegKeyExists(HKCU64, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#ProductId}_is1') then begin
+    if not RegQueryStringValue(HKCU64, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#ProductId}_is1', 'InstallLocation', RegisteredRoot) then
+      Result := '已有安装登记缺少原位置，请先修复或卸载原安装，不创建第二份安装。'
+    else if CompareText(RemoveBackslashUnlessRoot(ExpandFileName(RegisteredRoot)), RemoveBackslashUnlessRoot(ExpandFileName(ExpandConstant('{app}')))) <> 0 then
+      Result := '当前用户已有 TableMax 安装。升级和修复请使用原安装位置；本版本不提供安装目录搬迁。';
+  end;
+  if Result <> '' then Exit;
+  try
+    { Before/AfterInstall exceptions do not abort Inno. Confirm the managed
+      transaction before Inno can replace the previous uninstall framework. }
+    if ExtractTemporaryFiles('{tmp}\candidate\*') <= 0 then
+      RaiseException('安装载荷未能提取，原程序与数据已保留。');
+    CommitCandidate;
+  except
+    Confirmed := False;
+    Result := GetExceptionMessage;
   end;
 end;
 

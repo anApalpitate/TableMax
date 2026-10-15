@@ -181,6 +181,43 @@ function Read-TaskFixtureEvidence([string]$Path, [string]$Scenario, [string[]]$R
       if ((Get-Item -LiteralPath $taskExpectedStreamPath).Length -ne $taskStream.bytes -or (Get-FileHash -LiteralPath $taskExpectedStreamPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskStream.sha256) { throw 'A restarted Native raw stream changed after capture.' }
     }
   }
+  if ($Scenario -eq 'framework-recovery') {
+    $taskFrameworkBaseline = @($taskFixtureProof.steps | Where-Object { $_.id -eq 'framework-old-bootstrap-baseline' })[0]
+    $taskFrameworkFailure = @($taskFixtureProof.steps | Where-Object { $_.id -eq 'framework-new-inno-expected-health-failure' })[0]
+    $taskFrameworkRetained = @($taskFixtureProof.steps | Where-Object { $_.id -eq 'framework-old-uninstaller-retained' })[0]
+    if ($taskFrameworkFailure.expectedFailure -ne $true -or $taskFrameworkFailure.installerExitCode -ne 7 -or $taskFrameworkFailure.helperExitCode -ne 40 -or $taskFrameworkFailure.preparationRejectedBeforePerformInstall -ne $true -or $taskFrameworkFailure.frameworkWritesAbsent -ne $true -or $taskFrameworkFailure.nativeWitness.nodeExitCode -ne 0 -or $taskFrameworkFailure.nativeWitness.expectedNativeExitCode -ne 42 -or $taskFrameworkFailure.nativeWitness.productionEntryInvoked -ne $false -or $taskFrameworkFailure.nativeWitness.sqliteWriteCompleted -ne $true -or $taskFrameworkRetained.oldFrameworkRetained -ne $true -or $taskFrameworkRetained.registrationRetained -ne $true -or $taskFrameworkRetained.shortcutsRetained -ne $true) { throw 'The failed upgrade did not prove exact preparation rejection and original A framework preservation.' }
+    $taskFrameworkLog = Join-Path ([IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($Path))) 'framework-new-failed-inno.log'
+    if ([IO.Path]::GetFullPath($taskFrameworkFailure.innoLog.path) -ne $taskFrameworkLog -or $taskFrameworkFailure.innoLog.bytes -lt 1 -or $taskFrameworkFailure.innoLog.sha256 -notmatch '^[a-f0-9]{64}$') { throw 'The preparation failure did not bind its exact original Inno log.' }
+    Assert-TaskPathNoLinks $taskFrameworkLog
+    if ((Get-Item -LiteralPath $taskFrameworkLog).Length -ne $taskFrameworkFailure.innoLog.bytes -or (Get-FileHash -LiteralPath $taskFrameworkLog -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskFrameworkFailure.innoLog.sha256) { throw 'The original rejected-upgrade Inno log changed.' }
+    $taskFrameworkLogText = Get-Content -LiteralPath $taskFrameworkLog -Raw -Encoding utf8
+    $taskCoordinatorMarkers = [regex]::Matches($taskFrameworkLogText, 'TableMax coordinator finished with exit code: ([0-9]+)\b')
+    if ($taskCoordinatorMarkers.Count -ne 1 -or $taskCoordinatorMarkers[0].Groups[1].Value -ne '40') { throw 'The rejected installer lacks the unique actual helper health-failure exit 40 marker.' }
+    foreach ($taskForbiddenMarker in @('Starting the installation process.','Saving uninstall information.','Renaming uninstaller.','Creating new uninstall log:','Will overwrite existing uninstall log:','Creating new uninstall key:','Writing uninstall key values.','Deleting uninstall key left over')) {
+      if ($taskFrameworkLogText.Contains($taskForbiddenMarker)) { throw 'The rejected installer reached an actual framework-writing stage.' }
+    }
+    if (@($taskFrameworkBaseline.framework).Count -ne 2 -or @($taskFrameworkRetained.framework).Count -ne 2) { throw 'The original A framework requires its exact EXE and DAT baseline.' }
+    foreach ($taskFrameworkName in @('unins000.exe','unins000.dat')) {
+      $taskFrameworkPath = Join-Path $taskFixtureProof.root $taskFrameworkName
+      $taskBeforeFramework = @($taskFrameworkBaseline.framework | Where-Object { [IO.Path]::GetFullPath($_.path) -eq $taskFrameworkPath })
+      $taskAfterFramework = @($taskFrameworkRetained.framework | Where-Object { [IO.Path]::GetFullPath($_.path) -eq $taskFrameworkPath })
+      if ($taskBeforeFramework.Count -ne 1 -or $taskAfterFramework.Count -ne 1 -or $taskBeforeFramework[0].bytes -lt 1 -or $taskBeforeFramework[0].sha256 -notmatch '^[a-f0-9]{64}$' -or $taskBeforeFramework[0].bytes -ne $taskAfterFramework[0].bytes -or $taskBeforeFramework[0].sha256 -ne $taskAfterFramework[0].sha256) { throw 'A failed upgrade changed the original A framework raw bytes.' }
+    }
+    $taskBeforeRegistry = $taskFrameworkBaseline.registration
+    $taskAfterRegistry = $taskFrameworkRetained.registration
+    $taskRegistryKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{ABFDE9A8-48D2-48D5-BC51-2A2D03F0D4F5}_is1'
+    if ($taskBeforeRegistry.hive -ne 'CurrentUser' -or $taskBeforeRegistry.view -ne 'Registry64' -or $taskBeforeRegistry.key -ne $taskRegistryKey -or [IO.Path]::GetFullPath($taskBeforeRegistry.InstallLocation).TrimEnd('\') -ne [IO.Path]::GetFullPath($taskFixtureProof.root).TrimEnd('\') -or $taskBeforeRegistry.DisplayVersion -ne $taskFixturePrepared.old.manifest.buildVersion -or @($taskBeforeRegistry.values).Count -lt 1 -or (ConvertTo-Json -InputObject $taskBeforeRegistry -Depth 100 -Compress) -cne (ConvertTo-Json -InputObject $taskAfterRegistry -Depth 100 -Compress)) { throw 'The rejected upgrade changed the complete original A registry name/kind/data snapshot.' }
+    if (@($taskFrameworkBaseline.shortcuts).Count -ne 3 -or @($taskFrameworkRetained.shortcuts).Count -ne 3 -or (ConvertTo-Json -InputObject $taskFrameworkBaseline.shortcuts -Depth 100 -Compress) -cne (ConvertTo-Json -InputObject $taskFrameworkRetained.shortcuts -Depth 100 -Compress)) { throw 'The rejected upgrade changed an original A shortcut state or raw record.' }
+    foreach ($taskShortcutRole in @('desktop','launch','uninstall')) {
+      $taskShortcutEntries = @($taskFrameworkBaseline.shortcuts | Where-Object { $_.role -eq $taskShortcutRole })
+      $taskShortcutRelative = if ($taskShortcutRole -eq 'desktop') { 'Desktop\TableMax Installation Fixture.lnk' } elseif ($taskShortcutRole -eq 'launch') { 'Start\TableMax Installation Fixture.lnk' } else { 'Start\卸载 TableMax Installation Fixture.lnk' }
+      $taskShortcutPath = Join-Path $taskFixtureProof.root ('fixture-shortcuts\' + $taskShortcutRelative)
+      if ($taskShortcutEntries.Count -ne 1 -or [IO.Path]::GetFullPath($taskShortcutEntries[0].path) -ne $taskShortcutPath -or ($taskShortcutRole -ne 'desktop' -and $taskShortcutEntries[0].present -ne $true)) { throw 'The original A shortcut baseline lost an exact redirected role or path.' }
+      if ($taskShortcutEntries[0].present) {
+        if ([IO.Path]::GetFullPath($taskShortcutEntries[0].file.path) -ne $taskShortcutPath -or $taskShortcutEntries[0].file.bytes -lt 1 -or $taskShortcutEntries[0].file.sha256 -notmatch '^[a-f0-9]{64}$') { throw 'The original A shortcut baseline is not raw-SHA bound.' }
+      } elseif ($null -ne $taskShortcutEntries[0].file) { throw 'An absent original shortcut cannot have invented raw bytes.' }
+    }
+  }
   if ($Scenario -in @('active-uninstall', 'startup-external-data')) {
     $taskActiveCleanup = @($taskFixtureProof.steps | Where-Object { $_.id -eq 'exact-fixture-uninstall-cleanup' })[0]
     $taskActiveHost = @($taskFixtureProof.steps | Where-Object { $_.id -eq 'actual-old-host-transport' })[0]
@@ -447,7 +484,7 @@ exit $taskNodeExit
     foreach ($taskCaseId in @('defaultD','externalD')) {
       $taskCases = @($taskMigrationProof.cases | Where-Object { $_.id -eq $taskCaseId })
       if ($taskCases.Count -ne 1 -or $taskCases[0].result -ne 'passed' -or $taskCases[0].actualInstaller -ne $true -or $taskCases[0].defaultUninstall -ne $true -or $taskCases[0].ownerSid -ne $taskCreatedSid.Value) { throw 'A required actual installer/default-uninstaller migration case did not pass.' }
-      foreach ($taskCheck in @('portable10-native-generated-saved-player','portable10-source-idle-complete-inventory','actual-inno-migration','installed15-managed-members-and-receipt','saved-player-and-storage-restored','old-source-and-games-preserved','actual-default-uninstall','data-games-config-and-source-preserved-after-uninstall')) {
+      foreach ($taskCheck in @('portable10-native-generated-saved-player','portable10-source-idle-complete-inventory','actual-inno-migration','installed16-managed-members-and-receipt','saved-player-and-storage-restored','old-source-and-games-preserved','actual-default-uninstall','data-games-config-and-source-preserved-after-uninstall')) {
         if (@($taskCases[0].checks | Where-Object { $_ -eq $taskCheck }).Count -ne 1) { throw 'The migration case lacks a required unique completed check.' }
       }
       foreach ($taskCasePath in @($taskCases[0].root, $taskCases[0].oldBox, $taskCases[0].dataDirectory)) {

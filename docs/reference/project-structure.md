@@ -78,7 +78,7 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 
 ## 已采用与计划结构
 
-[Windows安装、卸载与盒子内更新](../tasks/windows-installation-update.md)已建立调研与阶段草案，实施未开始；计划复用 `tools/release/`、`apps/desktop/`及现有验证职责，安装根、配置根、数据根与历史仓库的契约需先定案，不预建目录或改变现行便携布局。
+[Windows安装、卸载与盒子内更新](../tasks/windows-installation-update.md)已有源码实现：安装框架与稳定入口归 `apps/desktop/installation/`，共享身份校验和事务协调归 `apps/desktop/installation-runtime/`，原生更新控制在 `apps/desktop/native/`，封包与验证复用 `tools/release/`、`tools/test/installation/`。I/B/D/G及保留边界见[构建与运行](build-and-run.md#windows-安装与整个程序更新)；真实Windows系统验收仍按任务接续，候选尚未推广。
 
 [macOS服务端运行包适配](../tasks/macos-adaptation.md)处于执行草案阶段，导出辅助逻辑归 `tools/release/`，不预建Mac原生宿主目录、不改造构建流程；实际输出及平台清理保护在落地时补充。
 

@@ -3,9 +3,9 @@
 ## 任务接续速查
 
 - 创建日期：2026-10-14（Asia/Shanghai）；最新接续：2026-10-15。阶段0／1完成，其余阶段已有基础实现与专项；真实系统链和最终容量尚未闭合，本任务继续开放。
-- 用户已授权完整离线安装器、默认保留数据卸载、盒子内可信检查／下载及明确重启更新。公开版本仍为1.0.6；current仍为已验证便携1.0.6.10；IO、诊断及清理修复已封入候选1.0.6.15，全部待验完成前不推广或发布。
-- 候选15为[冻结交付](../../artifacts/package-payloads/v1.0.6/29c81e29c4a3-1H6Xye/full/installer-delivery.json)，EXE35,713,286字节，SHA `fcf3627c873558d8e551bdf5b73019a83b156d41bfebd08a4a8a66375f872df2`。保留原31游戏单元而未重建游戏；原候选14的[冻结交付](../../artifacts/package-payloads/v1.0.6/ff8eb35cb3f0-9mGOFX/full/installer-delivery.json)、EXE35,663,121字节及SHA `48cb4a6e2bc80ee409e41afd68356b684e0a949e17735b0d05c4f4be27bf4396`作为历史保留。不发布GitHub／Pages或生成发布source ZIP。
-- 精确证据及历史范围统一进入[当前安装候选15](../reference/acceptance.md#10615候选冻结与续行072026-10-15)；本页保留剩余安排，完整系统链通过前不归档全任务。
+- 用户已授权完整离线安装器、默认保留数据卸载、盒子内可信检查／下载及明确重启更新。公开版本仍为1.0.6；current仍为已验证便携1.0.6.10。候选16已封包，三条fixture系统链各8步通过；随后正式GUID首装受验证器临时路径布局阻断，新增1失败，全部待验完成前不推广或发布。候选15及原失败独立保留。
+- 候选16为[冻结交付](../../artifacts/package-payloads/v1.0.6/b97714007d0e-KYZUyd/full/installer-delivery.json)，EXE35,708,409字节，SHA `34abe1e75925630da7c8c4905671c44b3c5562833c37b2168a0abf98c017714f`。保留原31游戏单元而未重建游戏；原候选15的[冻结交付](../../artifacts/package-payloads/v1.0.6/29c81e29c4a3-1H6Xye/full/installer-delivery.json)、EXE35,713,286字节及SHA `fcf3627c873558d8e551bdf5b73019a83b156d41bfebd08a4a8a66375f872df2`，原候选14的[冻结交付](../../artifacts/package-payloads/v1.0.6/ff8eb35cb3f0-9mGOFX/full/installer-delivery.json)、EXE35,663,121字节及SHA `48cb4a6e2bc80ee409e41afd68356b684e0a949e17735b0d05c4f4be27bf4396`作为历史保留。不发布GitHub／Pages或生成发布source ZIP。
+- 精确证据及历史范围统一进入[当前候选16与续行08](../reference/acceptance.md#续行08旧框架保全时序修复2026-10-15)；本页保留剩余安排，完整系统链通过前不归档全任务。
 
 - [x] 阶段0／1：安装契约冻结、保存关闭与隔离底座；[准备归档](../archive/windows-installation-preparation-2026-10-15.md)保留原决策。
 - [x] 原候选前置：可信协议与控制器组件专项、候选13原SHA的生产根验签、真实向导取消和适用专项；不抵扣续行03发现的下载长路径故障。
@@ -18,8 +18,10 @@
 - [x] 同I198／同PE的短外D诊断4步通过且账户清理成功；统一生命周期／容量门禁10项纯测试通过，不抵扣实际重装恢复或容量测量。
 - [x] 普通I／默认D的fixture真实首装、检查下载、不同PE Apply、父退出、新持续主机健康及默认卸载等7步通过；交接审计因对象prototype比较失败1项，不能认定完整链通过。
 - [x] 后续启动精确清理组件新增5项通过，包含历史成功目标；使用合成不可执行成员，不抵扣实际Native下一启动清理。
-- [x] 候选15真实封包、静态闭包9项及实际Native／helper各22项生产根验签、launcher12项身份检查通过；准备13完成但未执行，不抵扣系统链。
-- [ ] 阶段2–6剩余：交接审计与真实下一启动清理、长路径完整Apply、失败升级旧框架卸载、正式GUID系统链、旧便携默认／外置数据迁移、卸载后重装恢复、完整首次启动容量与验后推广。
+- [x] 候选15真实封包、静态闭包9项及实际Native／helper各22项生产根验签、launcher12项身份检查通过；准备13原报告独立保存，不抵扣系统链。
+- [x] 续行07双fixture普通I／默认D和长I／短外D各完整8步通过，含真实Apply、新持续主机、独立下一启动清理及默认卸载；不抵扣正式GUID或修复后新包。
+- [x] 候选16封包、闭包9项及实际Native／helper各22项验签、launcher12项身份检查通过；Prepare提交时序修复后的普通I／默认D、长I／短外D、旧框架失败恢复各完整8步通过，含旧框架／登记／快捷方式原字节保全。
+- [ ] 阶段2–6剩余：修正正式验证器TEMP布局后继续正式GUID系统链、旧便携默认／外置数据迁移、卸载后重装恢复、完整首次启动容量与验后推广。
 
 ## 剩余验收与授权边界
 
@@ -27,11 +29,23 @@
 
 原规则要求达到三失败后停止原run、依据证据修复，并仅复验受影响项；[验证规则](../reference/validation.md#历史通过率与失败阈值)没有要求实质修复后另获用户许可。此前“是否另开一轮”的额外审批问题已撤回，不把未答复视为新同意。原续行03累计3失败和全部证据保留，既有账户／UAC／profile授权继续适用；不会只因换goal、turn或目录而清零或重试未修复输入。
 
-### 当前候选15与续行07
+### 历史候选15与续行07
 
 候选15的candidate SHA为`5a767509273ed1ee392cc3df24c00100b8be38fe38b17c5696d1cfcda7cdb23e`，snapshot为`29c81e29c4a385e747133a116f5ea154aa6b53f00540e8064395a25fca6cc829`。[闭包9项](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/production-seal-15-repair-01/results.json)及[实际程序集验签](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/production-signature-15/report.json)通过，后者Native／helper各22项，launcher12项只核身份和字节，不执行产品Main。原31游戏单元及current原SHA保留；97,491,605字节程序暂存尚不含真实框架／首次启动G，不能替代完整容量。[本地交付上下文](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/production15/local-delivery-context.json)为NotSigned、无ZoneIdentifier，未观察浏览器下载，不证明SmartScreen体验。
 
-[续行06账本](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/round.json)最终3失败原样保留：交接对象prototype比较、临时seal工具的参数正则错误，以及PS7父进程误设Desktop模块路径后的只读元数据autoload失败。seal工具只修参数解析，候选字节未变；PS7父环境已修复，Desktop模块路径只作用于PS5子进程并在finally恢复。[续行07](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-07/round.json)在环境修复后保留2项包装器预检失败：Inno版本字符串尾部空白、fixture Native的四位ProductVersion被误按生产版三位比较；两处均已修正，候选及夹具原字节不变，复用[准备13](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/handoff-prepare-13/report.json)原报告及已过组件／闭包／验签，不重复统计或重跑。准备13保留原prepared-not-executed状态；正式driver已启动，真实旧首装与宿主就绪已通过，整套结果尚未形成，不能认定正式GUID或三链已通过。
+[续行06账本](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/round.json)最终3失败保留：prototype比较、seal参数正则、PS7父进程误用Desktop模块路径的autoload失败。[续行07](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-07/round.json)先有Inno版本字符串空白及fixture四位ProductVersion比较两项包装器预检失败，修正后实际框架保全又失败，累计3后停止；不改候选15或原[准备13](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/handoff-prepare-13/report.json)字节。组件／闭包／验签继续按原输入复用，两条正向通过和框架失败分别记录如下，不能认定正式GUID或三链通过。
+
+### 续行08：框架保全时序修复
+
+续行07的[普通I／默认D](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-07/production-account-15-03/application-handoff/report.json)与[长I／短外D](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-07/production-account-15-03/application-handoff-long-root-external-data/report.json)各8步实际通过、0失败，含父退出0、新持续主机、独立下一启动清理及精确默认卸载。原报告SHA分别为`28bf9b4122513894936a76013a7abfa25106579a92da5b0bab7ea76e770d8482`、`2d6d83a3b7acec0221424e7aa5b35b5f75b0a18868f919ee0970be6e47b375ac`，只证明对应双fixture输入。
+
+[框架链](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-07/production-account-15-03/application-framework-recovery/report.json)前4步通过，B已按预期健康失败并改变数据库；随后`framework-old-uninstaller-retained`发现A的unins EXE／dat被改写，报告failed、1失败，SHA `dd52524222afbac9f74d058ace5a2aa38a248268b3caf5326c28d9940d858645`。Inno捕获AfterInstall异常后继续写框架及登记，最后才自定义返回40；该40不证明安装已在健康失败处中止。finally实际默认卸载通过，只证明收尾，不补证原A框架保全或缺live helper恢复。[隔离收尾](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-07/production-account-15-03/isolated-account.json)SHA `59a566823493d04b611be16da19788844f50eab9979f12eaab6f0ce692b85ad7`确认账户／profile均已删除，driver退出1；正式GUID、重装容量与迁移未执行。
+
+[续行08](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/round.json)按实质时序修复从0失败开始：唯一生产变更ISS，以dontcopy内嵌candidate，在PrepareToInstall原权限／root检查后显式提取，同步完成helper提交／健康确认；错误返回非空，成功后才允许Inno写框架／登记。ISS源码SHA `a2383deefb359cc27e92ba61d20d3df8ddf5f5b4ca01ea682e88cbf276254813`，其余生产源与15相同。候选16已封包，[闭包9项](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/production-seal-16/results.json)及[实际程序集验签](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/production-signature-16/report.json)通过；原15和全部失败保留。
+
+本轮[普通I／默认D](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/production-account-16-01/application-handoff/report.json)、[长I／短外D](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/production-account-16-01/application-handoff-long-root-external-data/report.json)及[旧框架恢复](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/production-account-16-01/application-framework-recovery/report.json)各8步实际通过、0失败。框架链实际证明B健康40／外层准备拒绝7、A框架EXE／dat／登记／快捷方式原字节保全，且live helper缺失后由A内嵌协调器实际默认卸载，D/G/config保全；对应fixture的检查下载、不同PE Apply、父退出0、新持续主机、真实下一启动清理亦通过，不扩为正式GUID证明。
+
+随后正式GUID首装outer7，新增1失败。[保全的install.log](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/production-account-16-01/installer-logs/install.log)SHA `6e8394373c711301cbce08e67df7c62170f165273833190c5c46046ab5511091`显示首个64hex blob提取路径279字符即失败，尚未启动helper或写安装框架；属于验证器将TEMP嵌在本次work／验证子目录下的布局问题。下一步只缩短同一已授权profile/work内的验证器TEMP，不改候选16／ISS或游戏载荷，不分配17。[隔离收尾](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-08/production-account-16-01/isolated-account.json)SHA `b9333d82bd550121b86e39b4dc2e5289ad7d69a80211e32e2f3fd46e936b3aa0`确认SID1024账户及profile均已删除，driver退出1；正式保存／卸载重装、完整容量及两项旧便携迁移尚待。
 
 ### 续行06：短外D分类与最终验收门禁
 
@@ -43,7 +57,7 @@
 
 [普通I／默认D首轮](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/three-chains-account-01/application-handoff/report.json)中7步实际通过：材料核验、旧Inno首装、旧主机、检查下载、真实Apply父交接、新持续主机健康及精确默认卸载；`handoff-helper-and-data`在原值相同的普通对象与null-prototype对象比较处失败，原报告仍为failed、1失败，SHA `94db1b804fb9d37d691dbffe21fca560b1005b81615d85aff4cb9c4552e9852e`。仅修复验证工具的表示差异，字节摘要和字段门槛不放宽。[隔离收尾](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/three-chains-account-01/isolated-account.json)SHA `b785e5d2da64260df5eca317d4645b6b43eaa629f46736304a1975c4a6b893ac`确认账户及profile均删除；该报告失败计入续行06最终3失败。长I完整链和旧框架恢复当轮未执行，不把七步通过写成三链通过。
 
-`ApplicationUpdate`构造读取实际信任根和安装receipt后，仅本地同步调用`InstallationLaunch.CleanupFinished`。只从本安装B的`handoff-UUID`审计索引私有TEMP，要求同实例／SID／根、全部安装事务终态、已完成目标不高于当前版本，且原RSA描述、目标清单／receipt、旧helper和原始审计摘要精确匹配；运行中或未知、篡改、pending均保留。成功时按已核验的原句柄删除TEMP的h／存在的i／元数据及B旧helper，再删除已空私有目录；B公共审计／envelope／handoff和canonical大下载保留，后者原字节元组写入`cleanup.json`并另计缓存。[新增5项组件](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/completed-cleanup-component/report.json)通过、0新增失败，原报告SHA `1137be8d24e3163df7b5197ae10df605e6e85f8ecb1171ccb326e96a318a1403`，覆盖成功／历史目标及幂等、pending、未知成员、篡改和占用保全。它们实际编译调用Core和RSA校验，但成员不可执行、进程观察为合成记录；真实新版正常退出后独立下一启动清理仍待验。
+`ApplicationUpdate`构造读取实际信任根和安装receipt后，仅本地同步调用`InstallationLaunch.CleanupFinished`。只从本安装B的`handoff-UUID`审计索引私有TEMP，要求同实例／SID／根、全部安装事务终态、已完成目标不高于当前版本，且原RSA描述、目标清单／receipt、旧helper和原始审计摘要精确匹配；运行中或未知、篡改、pending均保留。成功时按已核验的原句柄删除TEMP的h／存在的i／元数据及B旧helper，再删除已空私有目录；B公共审计／envelope／handoff和canonical大下载保留，后者原字节元组写入`cleanup.json`并另计缓存。[新增5项组件](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/completed-cleanup-component/report.json)通过、0新增失败，原报告SHA `1137be8d24e3163df7b5197ae10df605e6e85f8ecb1171ccb326e96a318a1403`，覆盖成功／历史目标及幂等、pending、未知成员、篡改和占用保全。它们实际编译调用Core和RSA校验，但成员不可执行、进程观察为合成记录；真实下一启动现由续行07两条正向链分别证明，组件原报告范围不变。
 
 正式验收工具已补实际保存玩家→默认卸载→同根重装读回→再次默认卸载，以及同一真实采样的安装文件／当前G分项和其他数据占用观察，尚待系统运行。推广与未来发布共用唯一严格验收门禁；[10项纯测试](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-06/publication-gates/results.json)全部通过，只证明缺失恢复证据、容量口径篡改及既有身份／签名门槛的拒绝逻辑。
 
@@ -87,17 +101,17 @@
 
 此前resume-02累计4项失败及Low标签、profile物化、UTF8修复的完整边界保留于[候选14诊断](../reference/acceptance.md#10614安装候选与标准账户诊断2026-10-15)。续行03的准备04／05／06各按原sourceSHA认定；最新生产IO及日志改动后均不能直接作为下轮新工具准备材料。旧证据不覆盖，不把局部通过升级为正式系统链。
 
-| 剩余事项                 | 完成条件                                                                            | 当前接续                                                                  |
-| ------------------------ | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| 下载IO与卸载失败闭合     | 长路径真实下载／Apply可达；取得真实卸载helper及Native退出原因并保持保存、exit0门槛  | IO／partial清理4项组件、修复后活动卸载及普通I真实Apply已过；长I完整链待验 |
-| 候选15证明绑定           | 精确三PE／全部成员／配方及原31游戏单元保全，实际程序集验签后绑定后续系统验收        | 15封包、闭包9项与Native／helper各22及launcher12项通过，系统链待验         |
-| 注册表环境与真实首装     | 正常Medium标准用户首装及精确中文登记；正式GUID另验                                  | 两次fixture首装与精确中文登记已通过；不能代替正式GUID                     |
-| 不同PE Apply及helper升级 | 旧Native检查／下载／Apply、保存关闭与父退出、同Inno升级及新持续主机健康             | 普通I七步已过但交接审计工具失败1项；真实下一启动清理及长I完整链待验       |
-| 框架bootstrap失败恢复    | A实际安装、B健康失败且DB变化、A框架保全、live helper缺失后实际A卸载，D/G/config保全 | 尚未执行，解码与组件恢复证据不代替七步系统专项                            |
-| 正式GUID安装／重装／卸载 | 精确最终候选登记、快捷方式、identity／receipt及默认卸载，保全数据并清理账户/profile | 尚未执行；fixture句柄修复后实际卸载通过，不代替正式候选                   |
-| 旧便携默认／外置数据迁移 | 真实便携生成合法保存与G；实际Inno迁移，默认D复制／外置D保指针，旧根与默认卸载保全   | 源码及独立driver模式已按15精确SHA更新，实际迁移尚未执行                   |
-| 完整首次启动容量         | app、稳定入口、helper、框架卸载文件、归属清单和当前G严格小于120,000,000字节         | 未测；候选15暂存97,491,605字节不能替代完整门禁                            |
-| current推广与安全体验    | 最终系统证明绑定精确候选与账户清理rawSHA，核原current后原子切换并诚实记录安全上下文 | current仍10，候选15待验不推广；NotSigned／无Zone不证明SmartScreen         |
+| 剩余事项                 | 完成条件                                                                            | 当前接续                                                        |
+| ------------------------ | ----------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| 下载IO与卸载失败闭合     | 长路径真实下载／Apply可达；取得真实卸载helper及Native退出原因并保持保存、exit0门槛  | 16对应双fixture正向各8步通过；不扩为正式GUID证明                |
+| 候选16证明绑定           | 精确三PE／全部成员／配方及原31游戏单元保全，实际程序集验签后绑定后续系统验收        | 16封包、闭包9项与Native／helper各22及launcher12项通过，正式待验 |
+| 注册表环境与真实首装     | 正常Medium标准用户首装及精确中文登记；正式GUID另验                                  | fixture已通过；正式首装TEMP布局失败1项，helper前拒绝            |
+| 不同PE Apply及helper升级 | 旧Native检查／下载／Apply、保存关闭与父退出、同Inno升级及新持续主机健康             | 08两条正向各8步通过，含真实下一启动清理                         |
+| 框架bootstrap失败恢复    | A实际安装、B健康失败且DB变化、A框架保全、live helper缺失后实际A卸载，D/G/config保全 | 08实际8步通过，原A框架／登记／快捷方式保全及7／40分别确认       |
+| 正式GUID安装／重装／卸载 | 精确最终候选登记、快捷方式、identity／receipt及默认卸载，保全数据并清理账户/profile | 修正验证器TEMP布局后继续；SID1024账户／profile已清理            |
+| 旧便携默认／外置数据迁移 | 真实便携生成合法保存与G；实际Inno迁移，默认D复制／外置D保指针，旧根与默认卸载保全   | 源码及独立driver模式已按16精确SHA更新，实际迁移尚未执行         |
+| 完整首次启动容量         | app、稳定入口、helper、框架卸载文件、归属清单和当前G严格小于120,000,000字节         | 尚待正式首装完成后测量；静态程序暂存不替代完整门禁              |
+| current推广与安全体验    | 最终系统证明绑定精确候选与账户清理rawSHA，核原current后原子切换并诚实记录安全上下文 | current仍10，16尚待正式证明；NotSigned／无Zone不证明SmartScreen |
 
 候选13的恢复缺口和三失败历史保留于[历史小节](../reference/acceptance.md#协调器修复与三失败停止2026-10-15)。新源码、输入或候选字节改变后只复验受影响范围；管理HTTP传输夹具不等于真实线上附件发布。
 

@@ -20,6 +20,8 @@
 
 安装实现采用锁定的Inno Setup 6.7.3，从冻结完整载荷生成一份离线installer；下述实现与实际系统验收分别认定，当前候选、账户流程及推广状态统一见[安装任务](../tasks/windows-installation-update.md)和[验收](acceptance.md#当前源码与本地交付)。共享WebView2和.NET Framework 4.8沿用既有运行前提，包内带固定Node 22.14.0，不另下载游戏。
 
+candidate以dontcopy内嵌，在`PrepareToInstall`显式提取并同步完成helper提交与健康确认，成功后才允许Inno写框架／登记；错误非空返回的标准外层7与helper健康40分别记录，不用会被Inno捕获的AfterInstall异常充当原框架保全门禁，新时序尚待定向验收。
+
 首版仅当前用户安装。默认位置为Inno的 `{src}`，即installer所在原目录本身，不追加产品子目录；安装页显示「不推荐安装在C盘，因为这是一个有良心的安装包」。可另选可写目录，也可在可写的C盘目录安装，不自动搬到其他位置。安装根 `I` 内的稳定入口为 `TableMax.exe`，辅助程序为 `UpdateHelper.exe`，卸载器由框架生成；桌面快捷方式可选，开始菜单含启动与卸载入口。首版只支持同一用户一份受管理安装，持久身份绑定安装用户SID，不能只靠HKCU或当次互斥认领原安装。
 
 配置根 `B=I/TableMax`，运行资源为 `B/app`，当前及历史模块为 `B/games`。配置 `TableMax.config.json` 默认 `dataDirectory:"."`，数据根 `D=B`；外置 D 保持原指针，更换配置仍在重启后生效。目录不可写直接报错，不回退 C 盘。受管理身份 `.install.json`、实际外层摘要 `.installer-receipt.json`、更新暂存和事务只用于程序核验，不能作为删除任意同目录文件的依据。

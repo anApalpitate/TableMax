@@ -1392,17 +1392,14 @@ export async function verifyApplicationHandoff({
     assert.ok(!outputTruncated, label + ' exceeded its bounded log budget');
     return { ...result, output, log };
   }
-  async function registration() {
+  async function registration(complete = false) {
+    const script = complete
+      ? `$base=[Microsoft.Win32.RegistryKey]::OpenBaseKey([Microsoft.Win32.RegistryHive]::CurrentUser,[Microsoft.Win32.RegistryView]::Registry64);try{$key=$base.OpenSubKey('Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${fixtureId}_is1');if($null -eq $key){'null'}else{try{$values=@(foreach($name in @($key.GetValueNames()|Sort-Object)){$kind=$key.GetValueKind($name).ToString();$raw=$key.GetValue($name,$null,[Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames);$data=$null;switch($kind){'String'{$data=[string]$raw};'ExpandString'{$data=[string]$raw};'Binary'{$data=[Convert]::ToBase64String([byte[]]$raw)};'None'{$data=[Convert]::ToBase64String([byte[]]$raw)};'DWord'{$data=([int]$raw).ToString([Globalization.CultureInfo]::InvariantCulture)};'QWord'{$data=([long]$raw).ToString([Globalization.CultureInfo]::InvariantCulture)};'MultiString'{$data=[string[]]$raw};default{throw 'Unsupported uninstall registry value kind'}};[ordered]@{name=$name;kind=$kind;data=$data}});[ordered]@{InstallLocation=$key.GetValue('InstallLocation');DisplayVersion=$key.GetValue('DisplayVersion');hive='CurrentUser';view='Registry64';key='Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${fixtureId}_is1';values=$values;subKeys=@($key.GetSubKeyNames()|Sort-Object)}|ConvertTo-Json -Depth 8 -Compress}finally{$key.Dispose()}}}finally{$base.Dispose()}`
+      : `$key='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${fixtureId}_is1'; if(Test-Path -LiteralPath $key){Get-ItemProperty -LiteralPath $key | Select-Object InstallLocation,DisplayVersion | ConvertTo-Json -Compress}else{'null'}`;
     const result = await execute(
       powershell,
-      [
-        '-NoProfile',
-        '-NonInteractive',
-        '-Command',
-        powershellUtf8 +
-          `$key='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\${fixtureId}_is1'; if(Test-Path -LiteralPath $key){Get-ItemProperty -LiteralPath $key | Select-Object InstallLocation,DisplayVersion | ConvertTo-Json -Compress}else{'null'}`,
-      ],
-      'fixture-registration',
+      ['-NoProfile', '-NonInteractive', '-Command', powershellUtf8 + script],
+      complete ? 'fixture-registration-values' : 'fixture-registration',
     );
     assert.equal(result.code, 0);
     return JSON.parse(result.output.trim());
@@ -1498,7 +1495,36 @@ export async function verifyApplicationHandoff({
       );
       return { registration: current };
     });
-    let frameworkBefore, configBefore, fingerprintBefore;
+    const shortcutSnapshot = async () => {
+      const name = 'TableMax Installation Fixture';
+      const paths = [
+        ['desktop', join(root, 'fixture-shortcuts/Desktop', name + '.lnk')],
+        ['launch', join(root, 'fixture-shortcuts/Start', name + '.lnk')],
+        [
+          'uninstall',
+          join(root, 'fixture-shortcuts/Start', '卸载 ' + name + '.lnk'),
+        ],
+      ];
+      const files = [];
+      for (const [role, path] of paths) {
+        await noLinks(path);
+        const present = await exists(path);
+        if (role !== 'desktop') assert.equal(present, true);
+        if (present) assert.ok((await lstat(path)).isFile());
+        files.push({
+          role,
+          path,
+          present,
+          file: present ? await record(path) : null,
+        });
+      }
+      return files;
+    };
+    let frameworkBefore,
+      configBefore,
+      fingerprintBefore,
+      registrationBefore,
+      shortcutsBefore;
     await step('framework-old-bootstrap-baseline', async () => {
       frameworkBefore = await Promise.all(
         ['unins000.exe', 'unins000.dat'].map((name) =>
@@ -1507,14 +1533,23 @@ export async function verifyApplicationHandoff({
       );
       configBefore = await record(join(box, 'TableMax.config.json'));
       fingerprintBefore = await databaseFingerprint(box);
+      registrationBefore = await registration(true);
+      assert.equal(resolve(registrationBefore.InstallLocation), root);
+      assert.equal(registrationBefore.DisplayVersion, oldBuild);
+      assert.ok(registrationBefore.values.length > 0);
+      shortcutsBefore = await shortcutSnapshot();
       assert.equal(
         (await record(join(root, 'UpdateHelper.exe'))).sha256,
         oldHelper.sha256,
       );
       report.frameworkRecovery.oldFramework = frameworkBefore;
       report.frameworkRecovery.beforeDatabaseFingerprint = fingerprintBefore;
+      report.frameworkRecovery.beforeRegistration = registrationBefore;
+      report.frameworkRecovery.beforeShortcuts = shortcutsBefore;
       return {
         framework: frameworkBefore,
+        registration: registrationBefore,
+        shortcuts: shortcutsBefore,
         oldHelperSha256: oldHelper.sha256,
         config: configBefore,
         databaseFingerprint: fingerprintBefore,
@@ -1522,6 +1557,7 @@ export async function verifyApplicationHandoff({
     });
     let witness, pending, dataBeforeUninstall;
     await step('framework-new-inno-expected-health-failure', async () => {
+      const innoLogPath = join(evidence, 'framework-new-failed-inno.log');
       const result = await execute(
         actualExecutionInputs.new.path,
         [
@@ -1529,16 +1565,46 @@ export async function verifyApplicationHandoff({
           '/SUPPRESSMSGBOXES',
           '/NORESTART',
           '/DIR=' + root,
-          '/LOG=' + join(evidence, 'framework-new-failed-inno.log'),
+          '/LOG=' + innoLogPath,
         ],
         'framework-new-expected-failure',
         180000,
         { TABLEMAX_HANDOFF_FRAMEWORK_FAILURE: 'foundation-write-and-fail-v1' },
       );
-      assert.ok(
-        Number.isInteger(result.code) && result.code !== 0,
-        'Expected B Inno health failure must exit nonzero',
+      assert.equal(
+        result.code,
+        7,
+        'B must reject preparation before PerformInstall',
       );
+      const innoLog = await record(innoLogPath);
+      const text = await readFile(innoLogPath, 'utf8');
+      const coordinator = [
+        ...text.matchAll(
+          /TableMax coordinator finished with exit code: ([0-9]+)\b/g,
+        ),
+      ];
+      assert.equal(
+        coordinator.length,
+        1,
+        'Exactly one actual coordinator exit marker is required',
+      );
+      const helperExitCode = Number(coordinator[0][1]);
+      assert.equal(helperExitCode, 40);
+      for (const marker of [
+        'Starting the installation process.',
+        'Saving uninstall information.',
+        'Renaming uninstaller.',
+        'Creating new uninstall log:',
+        'Will overwrite existing uninstall log:',
+        'Creating new uninstall key:',
+        'Writing uninstall key values.',
+        'Deleting uninstall key left over',
+      ])
+        assert.equal(
+          text.includes(marker),
+          false,
+          'Rejected B reached framework writes: ' + marker,
+        );
       witness = await json(join(evidence, 'framework-health-failure.json'));
       assert.equal(witness.productId, fixtureId);
       assert.equal(resolve(witness.root), root);
@@ -1598,6 +1664,10 @@ export async function verifyApplicationHandoff({
       return {
         expectedFailure: true,
         installerExitCode: result.code,
+        helperExitCode,
+        innoLog,
+        preparationRejectedBeforePerformInstall: true,
+        frameworkWritesAbsent: true,
         nativeWitness: witness,
         pending,
         databaseFingerprint: fingerprintAfter,
@@ -1613,14 +1683,29 @@ export async function verifyApplicationHandoff({
         frameworkBefore,
         'Failed B must retain the actual A framework bytes',
       );
-      const current = await registration();
+      const current = await registration(true);
       assert.equal(resolve(current.InstallLocation), root);
       assert.equal(current.DisplayVersion, oldBuild);
+      assert.deepEqual(
+        current,
+        registrationBefore,
+        'Rejected B must retain every original A registry name/kind/data value',
+      );
+      const shortcuts = await shortcutSnapshot();
+      assert.deepEqual(
+        shortcuts,
+        shortcutsBefore,
+        'Rejected B must retain every original A shortcut state and raw bytes',
+      );
       report.frameworkRecovery.registrationAfterBFailure = current;
+      report.frameworkRecovery.shortcutsAfterBFailure = shortcuts;
       return {
         framework: after,
         registration: current,
+        shortcuts,
         oldFrameworkRetained: true,
+        registrationRetained: true,
+        shortcutsRetained: true,
       };
     });
     await step('framework-missing-live-helper', async () => {
