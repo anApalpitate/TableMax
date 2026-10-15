@@ -1,6 +1,6 @@
 # 归档索引
 
-[安装与更新流程优化（2026-10-16）](windows-installer-flow-2026-10-16.md)：保留实现、全部失败与修复、实际系统验收和迁移证据；当前身份与边界见[验收](../reference/acceptance.md#当前源码与本地交付)。
+[安装与更新流程优化（2026-10-16）](windows-installer-flow-2026-10-16.md)：保留布局、installer命名、预算、全部失败与修复、真实入口及同根迁移证据；当前身份与边界见[验收](../reference/acceptance.md#当前源码与本地交付)。
 
 [交付目录、工程工具与文档整理（2026-10-15至16）](tooling-delivery-organization-2026-10-15.md)：保留职责盘点、无损归组、方法拆分、历史正文与失败；现行操作从[工具索引](../../tools/README.md)进入。
 

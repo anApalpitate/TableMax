@@ -2,7 +2,7 @@
 
 ## 唯一完整 EXE 交付（2026-10-12）
 
-游戏源码与资源分别归 games/<id>/ 和 assets/。完整载荷的 app/preinstalled-games/ 保存签名目录、预装清单与模块；运行仓库 TableMax/games/ 位于可替换app之外。内部payload、快照及逐文件清单归 artifacts/package-payloads/ 和构建缓存，完整EXE及本地清单归 artifacts/releases/。分发及恢复规则见[Release流程](release.md)。
+游戏源码与资源分别归 games/<id>/ 和 assets/。完整载荷的 app/preinstalled-games/ 保存签名目录、预装清单与模块；运行仓库为配置根下的 games/，受管理安装位于安装根 data/games/，旧便携位于旁边 TableMax/games/，均在可替换app之外。内部payload、快照及逐文件清单归 artifacts/package-payloads/ 和构建缓存，完整EXE及本地清单归 artifacts/releases/。分发及恢复规则见[Release流程](release.md)。
 
 预装和恢复实现归 apps/server/src/game-packages/；冻结单元转内部载荷的构建工具为 tools/release/prepare-internal-games.mjs。packages/web-host/ 归公共宿主契约，平台私有适配归 apps/web/。组件调用与依赖见[架构](architecture.md)。
 
@@ -16,7 +16,7 @@
 
 ## 交付文件布局与历史元数据
 
-新构建的交付归属：完整EXE及同名-manifest.json sidecar写入 artifacts/releases/v<公开版本>/<四位构建>/。读取必须以冻结记录中的精确路径为准，不从目录名称推定身份，也不递归挑选“最新EXE”。delivery-paths.mjs 负责新布局与旧精确路径的共同边界；验证结果见[验收](acceptance.md#当前源码与本地交付)。
+新构建的交付归属：完整安装器 TableMax-<四位构建>-installer-win-x64.exe 及同名-manifest.json sidecar写入 artifacts/releases/v<公开版本>/<四位构建>/。读取必须以冻结记录中的精确路径为准，不从目录名称推定身份，也不递归挑选“最新EXE”。delivery-paths.mjs 负责新布局与旧精确路径的共同边界；验证结果见[验收](acceptance.md#当前源码与本地交付)。
 
 既有平铺交付保持冻结记录中的原位置与原字节；当前交付身份见[验收](acceptance.md#当前源码与本地交付)。13–16的四份原manifest已按[归组记录](../archive/tooling-delivery-organization-2026-10-15.md#历史候选manifest归组)迁入 artifacts/releases/retired/v1.0.6/<四位构建>/，原SHA通过迁移回执追溯；retired表示历史元数据归属，不生成新的可运行候选。内部payload、current／candidate及正式proof仍在原目录，不能随EXE归组一起移动。
 
