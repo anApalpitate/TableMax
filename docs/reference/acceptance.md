@@ -12,7 +12,9 @@
 
 [第二次系统链](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/production-account-02/application-handoff/report.json)通过真实首装、精确中文登记、旧Native／Node主机及可信检查。下载阶段在获授权正常profile内的长路径partial失败，随后finally执行的真实Inno默认卸载返回1，两项均计失败；没有执行Apply、失败升级框架专项或正式GUID。原[卸载日志](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/production-account-02/application-handoff/uninstall-inno.log)缺helper返回码及Native关闭日志，无法判定是服务保存还是浏览器退出异常，不按耗时推断。SID1015及profile已[清理](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/production-account-02/isolated-account.json)，删除profile不替代产品卸载。
 
-生产ApplicationUpdate已接入既有扩展路径IO封装，覆盖下载、partial清理、候选长度、helper复制及信任水位读取；身份比较、URL、进程启动普通路径及保存／退出门槛不变。Inno增加实际helper退出码日志，验证工具补关闭诊断保全；这些新增修复尚未经编译或动态验证，须新候选与新准备材料，不能套用14原字节证明。真实便携默认／外置迁移工具和独立账户模式已形成源码，尚未执行；当前白名单仍限定便携10及候选14，下一候选改变后先审输入再更新。完整首次启动容量、实际Apply、正式GUID、迁移与推广继续待验。
+生产ApplicationUpdate已接入既有扩展路径IO封装，覆盖下载、partial清理、候选长度、helper复制及信任水位读取。[静态集成审查](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/static-io-integration-audit.json)另发现合法深度安装根的helper／安装器模块路径仍可能超过.NET Framework启动限制；本轮实际I长129，只观察到partial失败，没有实际执行Apply，不能将静态风险改写为已发生的进程启动失败。当前补充当前用户私有短路径字节副本及交接绑定，I／B／D／G和保存／退出门槛不变。
+
+Inno增加实际helper退出码日志，验证工具补关闭诊断保全。[诊断静态审查](../../artifacts/maintenance/v1.0.6/installation-remaining/resume-03/diagnostic-static-integration-audit.json)发现双流在readline关闭后可能暂停，工具已修复EOF归档边界；活动卸载专用模式及桌面快捷方式取消选择的升级保留检查也已准备。以上修复尚未经编译或动态验证，须新候选与新准备材料，不能套用14原字节证明。真实便携默认／外置迁移工具和独立账户模式已形成源码，尚未执行；当前白名单仍限定便携10及候选14，下一候选改变后先审输入再更新。完整首次启动容量、实际Apply、正式GUID、迁移与推广继续待验。
 
 ## 1.0.6.14：安装候选与标准账户诊断（2026-10-15）
 

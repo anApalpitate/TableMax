@@ -7,6 +7,7 @@ param(
   [switch]$UseProfileAcceptance,
   [switch]$PortableMigrationOnly,
   [string]$PortablePointer,
+  [ValidateSet('active-uninstall', 'chains')][string]$FixtureScenario,
   [ValidateRange(0, 2)][int]$PriorFailures = 0
 )
 $ErrorActionPreference = 'Stop'
@@ -15,6 +16,7 @@ $taskOutput = [IO.Path]::GetFullPath($OutputDirectory).TrimEnd('\')
 $taskDelivery = [IO.Path]::GetFullPath($DeliveryPath)
 $taskHandoffPreparedReport = $null
 $taskPortablePointer = $null
+if ($FixtureScenario -and ($PortableMigrationOnly -or -not $UseProfileAcceptance)) { throw 'Fixture-only acceptance requires UseProfileAcceptance and excludes portable migration.' }
 if ($PortableMigrationOnly) {
   if (-not $UseProfileAcceptance -or [string]::IsNullOrWhiteSpace($PortablePointer)) { throw 'Portable migration requires UseProfileAcceptance and a frozen PortablePointer copy.' }
   if (-not [string]::IsNullOrWhiteSpace($HandoffPreparedReport)) { throw 'Portable migration is independent of the application handoff prepared report.' }
@@ -26,6 +28,12 @@ if ($PortableMigrationOnly) {
 }
 function Write-TaskJson([string]$Path, $Value, [int]$Depth = 100) {
   [IO.File]::WriteAllText($Path, ($Value | ConvertTo-Json -Depth $Depth) + "`n", [Text.UTF8Encoding]::new($false))
+}
+function Write-TaskNewJson([string]$Path, $Value) {
+  $taskJsonBytes = [Text.UTF8Encoding]::new($false).GetBytes(($Value | ConvertTo-Json -Depth 100) + "`n")
+  $taskNewJson = [IO.FileStream]::new($Path, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+  try { $taskNewJson.Write($taskJsonBytes, 0, $taskJsonBytes.Length); $taskNewJson.Flush($true) }
+  finally { $taskNewJson.Dispose() }
 }
 function Assert-TaskPathNoLinks([string]$Path) {
   for ($taskCursor = [IO.Path]::GetFullPath($Path); $taskCursor; $taskCursor = [IO.Path]::GetDirectoryName($taskCursor)) {
@@ -57,6 +65,77 @@ Assert-TaskPathNoLinks $taskDeliveryData.executable.path
 if ((Get-FileHash -LiteralPath $taskDeliveryData.executable.path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskDeliveryData.executable.sha256) { throw 'Installer bytes changed.' }
 $taskDeliveryBytes = (Get-Item -LiteralPath $taskDelivery).Length
 $taskDeliverySha256 = (Get-FileHash -LiteralPath $taskDelivery -Algorithm SHA256).Hash.ToLowerInvariant()
+$taskFixturePrepared = $null
+$taskFixturePreparedSha256 = $null
+$taskFixtureEvidenceRecords = @()
+if ($FixtureScenario) {
+  $taskFixturePreparedSha256 = (Get-FileHash -LiteralPath $taskHandoffPreparedReport -Algorithm SHA256).Hash.ToLowerInvariant()
+  $taskFixturePrepared = Get-Content -LiteralPath $taskHandoffPreparedReport -Raw -Encoding utf8 | ConvertFrom-Json
+  if ($taskFixturePrepared.result -ne 'prepared-not-executed' -or $taskFixturePrepared.failures -ne 0 -or $taskFixturePrepared.fixtureId -ne '{ABFDE9A8-48D2-48D5-BC51-2A2D03F0D4F5}') { throw 'Fixture-only acceptance requires an exact unexecuted prepared fixture pair.' }
+  foreach ($taskRole in @('old', 'new')) {
+    $taskFixtureSource = $taskFixturePrepared.$taskRole.delivery.executable
+    $taskFixtureSourcePath = [IO.Path]::GetFullPath($taskFixtureSource.path)
+    if (-not $taskFixtureSourcePath.StartsWith($taskRepository + '\', [StringComparison]::OrdinalIgnoreCase) -or $taskFixtureSource.installation.productId -ne $taskFixturePrepared.fixtureId -or $taskFixtureSource.bytes -lt 1 -or $taskFixtureSource.bytes -ge 120000000 -or $taskFixtureSource.sha256 -notmatch '^[a-f0-9]{64}$') { throw 'Prepared fixture source identity or workspace scope is invalid.' }
+    Assert-TaskPathNoLinks $taskFixtureSourcePath
+    if ((Get-Item -LiteralPath $taskFixtureSourcePath).Length -ne $taskFixtureSource.bytes -or (Get-FileHash -LiteralPath $taskFixtureSourcePath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskFixtureSource.sha256) { throw 'Prepared fixture source bytes changed.' }
+  }
+  $taskFixtureDriverSha256 = (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant()
+}
+function Read-TaskFixtureEvidence([string]$Path, [string]$Scenario, [string[]]$RequiredSteps) {
+  Assert-TaskPathNoLinks $Path
+  $taskFixtureProof = Get-Content -LiteralPath $Path -Raw -Encoding utf8 | ConvertFrom-Json
+  if ($taskFixtureProof.format -ne 1 -or $taskFixtureProof.fixtureId -ne '{ABFDE9A8-48D2-48D5-BC51-2A2D03F0D4F5}' -or $taskFixtureProof.scenario -ne $Scenario -or $taskFixtureProof.result -ne 'passed' -or $taskFixtureProof.failures -ne 0 -or @($taskFixtureProof.steps).Count -eq 0 -or @($taskFixtureProof.steps | Where-Object { $_.result -ne 'passed' -or [string]::IsNullOrWhiteSpace($_.id) }).Count -ne 0) { throw 'The actual fixture scenario did not pass every recorded step.' }
+  if (@($taskFixtureProof.steps | Group-Object id | Where-Object { $_.Count -ne 1 }).Count -ne 0) { throw 'Fixture step IDs must be unique.' }
+  foreach ($taskRequiredStep in $RequiredSteps) {
+    if (@($taskFixtureProof.steps | Where-Object { $_.id -eq $taskRequiredStep -and $_.result -eq 'passed' }).Count -ne 1) { throw 'The fixture scenario is missing a required unique completed step.' }
+  }
+  if ($Scenario -eq 'active-uninstall' -and @($taskFixtureProof.steps).Count -ne $RequiredSteps.Count) { throw 'Active-uninstall evidence must not contain update or framework steps.' }
+  if ([IO.Path]::GetFullPath($taskFixtureProof.preparedInput.path) -ne $taskHandoffPreparedReport -or $taskFixtureProof.preparedInput.sha256 -ne $taskFixturePreparedSha256 -or (Get-FileHash -LiteralPath $taskHandoffPreparedReport -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskFixturePreparedSha256) { throw 'The actual fixture scenario does not bind the original prepared report raw bytes.' }
+  $taskExecutionProfile = $taskFixtureProof.executionProfile
+  if ($taskExecutionProfile.root -ne $taskReport.profileAcceptanceRoot -or $taskExecutionProfile.ownerSid -ne $taskCreatedSid.Value -or $taskExecutionProfile.integritySid -ne 'S-1-16-8192' -or [IO.Path]::GetFullPath($taskExecutionProfile.workParent) -ne (Join-Path $taskReport.profileAcceptanceRoot 'work') -or [IO.Path]::GetFullPath($taskExecutionProfile.profile) -ne [IO.Path]::GetFullPath($taskUserIdentity.profile) -or [IO.Path]::GetFullPath($taskExecutionProfile.localAppData) -ne [IO.Path]::GetFullPath($taskUserIdentity.localAppData)) { throw 'The actual fixture scenario did not prove this isolated standard Medium profile.' }
+  if ([IO.Path]::GetFullPath($taskFixtureProof.scopeRoot) -ne $taskReport.profileAcceptanceRoot -or -not [IO.Path]::GetFullPath($taskFixtureProof.root).StartsWith($taskReport.profileAcceptanceRoot + '\work\', [StringComparison]::OrdinalIgnoreCase)) { throw 'The actual fixture root escaped the private profile work scope.' }
+  Assert-TaskPathNoLinks $taskFixtureProof.root
+  foreach ($taskRole in @('old', 'new')) {
+    $taskFrozenExecutable = $taskFixturePrepared.$taskRole.delivery.executable
+    $taskReportedExecutable = $taskFixtureProof.$taskRole.delivery.executable
+    $taskActualExecutable = $taskFixtureProof.actualExecutionInputs.$taskRole
+    if ([IO.Path]::GetFullPath($taskReportedExecutable.path) -ne [IO.Path]::GetFullPath($taskFrozenExecutable.path) -or $taskReportedExecutable.bytes -ne $taskFrozenExecutable.bytes -or $taskReportedExecutable.sha256 -ne $taskFrozenExecutable.sha256 -or $taskReportedExecutable.installation.productId -ne $taskFixturePrepared.fixtureId) { throw 'The fixture report changed the prepared installer source identity.' }
+    if ([IO.Path]::GetFullPath($taskActualExecutable.sourcePath) -ne [IO.Path]::GetFullPath($taskFrozenExecutable.path) -or $taskActualExecutable.bytes -ne $taskFrozenExecutable.bytes -or $taskActualExecutable.sha256 -ne $taskFrozenExecutable.sha256 -or -not [IO.Path]::GetFullPath($taskActualExecutable.path).StartsWith($taskReport.profileAcceptanceRoot + '\work\', [StringComparison]::OrdinalIgnoreCase)) { throw 'The actual fixture execution copy differs from the exact prepared source or profile scope.' }
+    foreach ($taskInputPath in @($taskFrozenExecutable.path, $taskActualExecutable.path)) {
+      Assert-TaskPathNoLinks $taskInputPath
+      if ((Get-Item -LiteralPath $taskInputPath).Length -ne $taskFrozenExecutable.bytes -or (Get-FileHash -LiteralPath $taskInputPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskFrozenExecutable.sha256) { throw 'Actual fixture execution/source bytes changed after the scenario.' }
+    }
+  }
+  if ($Scenario -eq 'application-handoff') {
+    foreach ($taskShortcutStep in @('actual-old-inno-install', 'actual-new-persistent-host')) {
+      $taskSelection = @($taskFixtureProof.steps | Where-Object { $_.id -eq $taskShortcutStep })[0].shortcutSelection
+      if ($taskSelection.task -ne 'desktopicon' -or $taskSelection.selected -ne $false -or $taskSelection.desktop.present -ne $false -or [IO.Path]::GetFullPath($taskSelection.desktop.path) -ne (Join-Path $taskFixtureProof.root 'fixture-shortcuts\Desktop\TableMax Installation Fixture.lnk')) { throw 'The actual fixture upgrade did not preserve the unselected desktop task.' }
+      foreach ($taskShortcutRole in @('launch', 'uninstall')) {
+        $taskShortcut = $taskSelection.startMenu.$taskShortcutRole
+        $taskShortcutName = if ($taskShortcutRole -eq 'launch') { 'TableMax Installation Fixture.lnk' } else { '卸载 TableMax Installation Fixture.lnk' }
+        if ([IO.Path]::GetFullPath($taskShortcut.path) -ne (Join-Path $taskFixtureProof.root ('fixture-shortcuts\Start\' + $taskShortcutName)) -or $taskShortcut.bytes -lt 1 -or $taskShortcut.sha256 -notmatch '^[a-f0-9]{64}$') { throw 'The fixture task-selection proof lost an exact Start shortcut record.' }
+      }
+    }
+  }
+  if ($Scenario -eq 'active-uninstall') {
+    $taskActiveCleanup = @($taskFixtureProof.steps | Where-Object { $_.id -eq 'exact-fixture-uninstall-cleanup' })[0]
+    $taskActiveHost = @($taskFixtureProof.steps | Where-Object { $_.id -eq 'actual-old-host-transport' })[0]
+    $taskBeforeUninstall = $taskActiveCleanup.activeNativeBeforeUninstall
+    $taskOldNative = $taskFixtureProof.nativeDiagnostics.oldNative
+    if ($taskActiveCleanup.registrationRemoved -ne $true -or [IO.Path]::GetFullPath($taskActiveCleanup.scope) -ne [IO.Path]::GetFullPath($taskFixtureProof.root) -or $taskBeforeUninstall.pid -lt 1 -or $taskBeforeUninstall.pid -ne $taskActiveHost.desktopPid -or $null -ne $taskBeforeUninstall.exitCode -or $null -ne $taskBeforeUninstall.signalCode -or [string]::IsNullOrWhiteSpace($taskBeforeUninstall.observedAtUtc)) { throw 'The actual default uninstall did not begin with the exact old Native still running.' }
+    if ($taskOldNative.pid -ne $taskBeforeUninstall.pid -or $taskOldNative.exitCode -ne 0 -or $null -ne $taskOldNative.signalCode -or $taskOldNative.processStillRunning -ne $false -or $taskOldNative.normalShutdownExpected -ne $true -or @($taskFixtureProof.nativeDiagnostics.errors).Count -ne 0 -or @($taskOldNative.streams).Count -ne 2) { throw 'The active default uninstall did not prove normal old Native exit and complete diagnostics.' }
+    foreach ($taskStreamName in @('stdout', 'stderr')) {
+      $taskStreams = @($taskOldNative.streams | Where-Object { $_.name -eq $taskStreamName })
+      if ($taskStreams.Count -ne 1) { throw 'The active uninstall requires each raw old Native stream exactly once.' }
+      $taskStream = $taskStreams[0]
+      $taskExpectedStreamPath = Join-Path ([IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($Path))) ('old-native-' + $taskStreamName + '.bin')
+      if ([IO.Path]::GetFullPath($taskStream.path) -ne $taskExpectedStreamPath -or $taskStream.bytes -lt 0 -or $taskStream.bytes -gt 2097152 -or $taskStream.sha256 -notmatch '^[a-f0-9]{64}$' -or $taskStream.sourceReachedEof -ne $true -or $taskStream.truncated -ne $false -or $taskStream.archiveDetachedBeforeEof -ne $false -or $taskStream.error -or $taskStream.status) { throw 'An old Native raw stream was incomplete, truncated or unbound.' }
+      Assert-TaskPathNoLinks $taskExpectedStreamPath
+      if ((Get-Item -LiteralPath $taskExpectedStreamPath).Length -ne $taskStream.bytes -or (Get-FileHash -LiteralPath $taskExpectedStreamPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskStream.sha256) { throw 'An active-uninstall raw diagnostic changed after capture.' }
+    }
+  }
+  return [pscustomobject]@{ scenario = $Scenario; path = [IO.Path]::GetFullPath($Path); bytes = (Get-Item -LiteralPath $Path).Length; sha256 = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant(); preparedInput = @{ path = $taskHandoffPreparedReport; sha256 = $taskFixturePreparedSha256 }; ownerSid = $taskCreatedSid.Value; root = $taskFixtureProof.root; executionProfile = $taskExecutionProfile; actualExecutionInputs = $taskFixtureProof.actualExecutionInputs; completedStepIds = @($taskFixtureProof.steps | ForEach-Object { $_.id }) }
+}
 $taskPortablePointerBytes = $null
 $taskPortablePointerSha256 = $null
 $taskPortableExecutable = $null
@@ -80,6 +159,12 @@ Assert-TaskPathNoLinks $taskWork
 New-Item -ItemType Directory -Path $taskOutput | Out-Null
 Assert-TaskPathNoLinks $taskOutput
 $taskReport = [ordered]@{ schemaVersion = 1; kind = $(if ($PortableMigrationOnly) { 'temporary-standard-user-portable-migration' } else { 'temporary-standard-user' }); startedAtUtc = [DateTime]::UtcNow.ToString('o'); result = 'started'; account = $taskUsername; ownerSid = $null; freshAccount = $false; standardAccount = $false; profileLoaded = $false; installerSha256 = $taskDeliveryData.executable.sha256; accountRemoved = $false; profileRemoved = $false; errors = @() }
+if ($FixtureScenario) {
+  $taskReport.scenario = 'fixture-only'
+  $taskReport.fixtureScenario = $FixtureScenario
+  $taskReport.formalInstallerExecuted = $false
+  $taskReport.handoffPreparedSha256 = $taskFixturePreparedSha256
+}
 if ($PortableMigrationOnly) {
   $taskReport.priorFailures = $PriorFailures
   $taskReport.portablePointer = @{ path = $taskPortablePointer; bytes = $taskPortablePointerBytes; sha256 = $taskPortablePointerSha256 }
@@ -104,7 +189,7 @@ try {
   }
   $taskPlan = Join-Path $taskWork 'plan.json'
   $taskSourceNode = Join-Path $taskRepository '.cache/node/22.14.0/runtime/node.exe'
-  @{ repository = $taskRepository; delivery = $taskDelivery; handoffPreparedReport = $taskHandoffPreparedReport; handoffEvidence = (Join-Path $taskOutput 'application-handoff'); frameworkRecoveryEvidence = (Join-Path $taskOutput 'application-framework-recovery'); evidence = (Join-Path $taskOutput 'shipping-executable-checks-full.json'); portableMigrationOnly = [bool]$PortableMigrationOnly; portablePointer = $taskPortablePointer; portablePointerBytes = $taskPortablePointerBytes; portablePointerSha256 = $taskPortablePointerSha256; portableMigrationEvidence = (Join-Path $taskOutput 'portable-migration'); priorFailures = $PriorFailures; accountSid = $taskCreatedSid.Value; work = $taskWork; useProfileAcceptance = [bool]$UseProfileAcceptance; sourceNode = $taskSourceNode; sourceNodeBytes = (Get-Item -LiteralPath $taskSourceNode).Length; sourceNodeSha256 = (Get-FileHash -LiteralPath $taskSourceNode -Algorithm SHA256).Hash.ToLowerInvariant() } | ConvertTo-Json | Set-Content -LiteralPath $taskPlan -Encoding utf8
+  @{ repository = $taskRepository; delivery = $taskDelivery; handoffPreparedReport = $taskHandoffPreparedReport; handoffEvidence = (Join-Path $taskOutput 'application-handoff'); frameworkRecoveryEvidence = (Join-Path $taskOutput 'application-framework-recovery'); activeUninstallEvidence = (Join-Path $taskOutput 'application-active-uninstall'); fixtureScenario = $FixtureScenario; fixturePreparedSha256 = $taskFixturePreparedSha256; evidence = (Join-Path $taskOutput 'shipping-executable-checks-full.json'); portableMigrationOnly = [bool]$PortableMigrationOnly; portablePointer = $taskPortablePointer; portablePointerBytes = $taskPortablePointerBytes; portablePointerSha256 = $taskPortablePointerSha256; portableMigrationEvidence = (Join-Path $taskOutput 'portable-migration'); priorFailures = $PriorFailures; accountSid = $taskCreatedSid.Value; work = $taskWork; useProfileAcceptance = [bool]$UseProfileAcceptance; sourceNode = $taskSourceNode; sourceNodeBytes = (Get-Item -LiteralPath $taskSourceNode).Length; sourceNodeSha256 = (Get-FileHash -LiteralPath $taskSourceNode -Algorithm SHA256).Hash.ToLowerInvariant() } | ConvertTo-Json | Set-Content -LiteralPath $taskPlan -Encoding utf8
   $taskChildSource = @'
 param([string]$Plan)
 $ErrorActionPreference = 'Stop'
@@ -223,10 +308,18 @@ if ($taskPlan.portableMigrationOnly) {
   $taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-portable-migration.mjs') -NodeArguments @(('--delivery=' + $taskPlan.delivery), ('--portable-pointer=' + $taskPlan.portablePointer), ('--evidence=' + $taskPlan.portableMigrationEvidence), ('--prior-failures=' + $taskPlan.priorFailures)) -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'portable-migration.log')
   exit $taskNodeExit
 }
+if ($taskPlan.fixtureScenario) {
+  if (-not $taskPlan.useProfileAcceptance -or $taskPlan.fixtureScenario -notin @('active-uninstall', 'chains') -or (Get-FileHash -LiteralPath $taskPlan.handoffPreparedReport -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskPlan.fixturePreparedSha256) { throw 'The fixture-only mode or exact prepared input changed.' }
+  if ($taskPlan.fixtureScenario -eq 'active-uninstall') {
+    $taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-application-handoff.mjs') -NodeArguments @('--active-uninstall-only', ('--prepared-report=' + $taskPlan.handoffPreparedReport), ('--evidence=' + $taskPlan.activeUninstallEvidence)) -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'application-active-uninstall.log')
+    exit $taskNodeExit
+  }
+}
 $taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-application-handoff.mjs') -NodeArguments @(('--prepared-report=' + $taskPlan.handoffPreparedReport), ('--evidence=' + $taskPlan.handoffEvidence)) -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'application-handoff.log')
 if ($taskNodeExit -ne 0) { exit $taskNodeExit }
 $taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-application-handoff.mjs') -NodeArguments @('--framework-recovery-only', ('--prepared-report=' + $taskPlan.handoffPreparedReport), ('--evidence=' + $taskPlan.frameworkRecoveryEvidence)) -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'application-framework-recovery.log')
 if ($taskNodeExit -ne 0) { exit $taskNodeExit }
+if ($taskPlan.fixtureScenario -eq 'chains') { exit 0 }
 $taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/release/installation-verifier.mjs') -NodeArguments @(('--delivery=' + $taskPlan.delivery), ('--evidence=' + $taskPlan.evidence), '--isolated-windows') -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'production-account.log')
 exit $taskNodeExit
 '@
@@ -276,6 +369,17 @@ exit $taskNodeExit
     }
     $taskReport.portableMigrationEvidencePath = $taskMigrationProofPath.Substring($taskRepository.Length + 1).Replace('\', '/')
     $taskReport.portableMigrationBeforeIsolationSha256 = (Get-FileHash -LiteralPath $taskMigrationProofPath -Algorithm SHA256).Hash.ToLowerInvariant()
+  } elseif ($FixtureScenario) {
+    if ($FixtureScenario -eq 'active-uninstall') {
+      $taskFixtureEvidenceRecords = @(Read-TaskFixtureEvidence -Path (Join-Path $taskOutput 'application-active-uninstall/report.json') -Scenario 'active-uninstall' -RequiredSteps @('verify-prepared-materials', 'actual-old-inno-install', 'actual-old-host-transport', 'exact-fixture-uninstall-cleanup'))
+    } else {
+      $taskFixtureEvidenceRecords = @(
+        Read-TaskFixtureEvidence -Path (Join-Path $taskOutput 'application-handoff/report.json') -Scenario 'application-handoff' -RequiredSteps @('verify-prepared-materials', 'actual-old-inno-install', 'actual-old-host-transport', 'actual-check-download', 'real-apply-parent-handoff', 'actual-new-persistent-host', 'handoff-helper-and-data', 'exact-fixture-uninstall-cleanup')
+        Read-TaskFixtureEvidence -Path (Join-Path $taskOutput 'application-framework-recovery/report.json') -Scenario 'framework-recovery' -RequiredSteps @('verify-prepared-materials', 'framework-old-inno-install', 'framework-old-bootstrap-baseline', 'framework-new-inno-expected-health-failure', 'framework-old-uninstaller-retained', 'framework-missing-live-helper', 'framework-actual-old-default-uninstall', 'framework-preserved-data-and-registration')
+      )
+    }
+    if (Test-Path -LiteralPath (Join-Path $taskOutput 'shipping-executable-checks-full.json')) { throw 'Fixture-only acceptance must not create a formal installed proof.' }
+    $taskReport.fixtureEvidence = @($taskFixtureEvidenceRecords)
   } else {
   $taskHandoffProofPath = Join-Path $taskOutput 'application-handoff/report.json'
   Assert-TaskPathNoLinks $taskHandoffProofPath
@@ -381,6 +485,52 @@ exit $taskNodeExit
   Write-TaskJson (Join-Path $taskOutput 'isolated-account.json') $taskReport
 }
 if ($taskReport.result -ne 'passed' -or -not $taskReport.accountRemoved -or -not $taskReport.profileRemoved) { exit 1 }
+if ($FixtureScenario) {
+  try {
+    if (Test-Path -LiteralPath (Join-Path $taskOutput 'shipping-executable-checks-full.json')) { throw 'Fixture-only acceptance must never create or bind a formal installed proof.' }
+    if (Test-Path -LiteralPath $taskReport.profileAcceptanceRoot) { throw 'The temporary fixture acceptance root survived profile cleanup.' }
+    if ((Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskFixtureDriverSha256 -or (Get-FileHash -LiteralPath $taskHandoffPreparedReport -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskFixturePreparedSha256) { throw 'The driver or exact prepared input changed during fixture acceptance.' }
+    if ((Get-Item -LiteralPath $taskDelivery).Length -ne $taskDeliveryBytes -or (Get-FileHash -LiteralPath $taskDelivery -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskDeliverySha256 -or (Get-Item -LiteralPath $taskDeliveryData.executable.path).Length -ne $taskDeliveryData.executable.bytes -or (Get-FileHash -LiteralPath $taskDeliveryData.executable.path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskDeliveryData.executable.sha256) { throw 'The static production baseline changed; it was not executed by this fixture-only mode.' }
+    $taskExpectedFixtureReports = if ($FixtureScenario -eq 'active-uninstall') { 1 } else { 2 }
+    if (@($taskFixtureEvidenceRecords).Count -ne $taskExpectedFixtureReports) { throw 'The fixture-only mode lost a required actual scenario report.' }
+    foreach ($taskFixtureRecord in $taskFixtureEvidenceRecords) {
+      Assert-TaskPathNoLinks $taskFixtureRecord.path
+      if ((Get-Item -LiteralPath $taskFixtureRecord.path).Length -ne $taskFixtureRecord.bytes -or (Get-FileHash -LiteralPath $taskFixtureRecord.path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskFixtureRecord.sha256) { throw 'An actual fixture report changed during account/profile cleanup.' }
+    }
+    $taskIsolationPath = Join-Path $taskOutput 'isolated-account.json'
+    Assert-TaskPathNoLinks $taskIsolationPath
+    $taskIsolation = Get-Content -LiteralPath $taskIsolationPath -Raw -Encoding utf8 | ConvertFrom-Json
+    if ($taskIsolation.schemaVersion -ne 1 -or $taskIsolation.kind -ne 'temporary-standard-user' -or $taskIsolation.scenario -ne 'fixture-only' -or $taskIsolation.fixtureScenario -ne $FixtureScenario -or $taskIsolation.formalInstallerExecuted -ne $false -or $taskIsolation.result -ne 'passed' -or $taskIsolation.ownerSid -ne $taskCreatedSid.Value -or $taskIsolation.account -ne $taskUsername -or $taskIsolation.freshAccount -ne $true -or $taskIsolation.standardAccount -ne $true -or $taskIsolation.profileLoaded -ne $true -or $taskIsolation.accountRemoved -ne $true -or $taskIsolation.profileRemoved -ne $true -or $taskIsolation.exitCode -ne 0 -or @($taskIsolation.errors).Count -ne 0) { throw 'Fixture-only acceptance requires successful exact isolated-account and profile cleanup.' }
+    $taskFixtureWrapper = [ordered]@{
+      schemaVersion = 1
+      kind = 'fixture-only-acceptance'
+      scenario = $FixtureScenario
+      result = 'passed'
+      fixtureId = '{ABFDE9A8-48D2-48D5-BC51-2A2D03F0D4F5}'
+      ownerSid = $taskCreatedSid.Value
+      account = $taskUsername
+      formalInstallerExecuted = $false
+      baselineDelivery = @{ path = $taskDelivery; bytes = $taskDeliveryBytes; sha256 = $taskDeliverySha256; executable = @{ sourcePath = [IO.Path]::GetFullPath($taskDeliveryData.executable.path); path = [IO.Path]::GetFullPath($taskDeliveryData.executable.path); bytes = $taskDeliveryData.executable.bytes; sha256 = $taskDeliveryData.executable.sha256; executed = $false } }
+      preparedInput = @{ path = $taskHandoffPreparedReport; sha256 = $taskFixturePreparedSha256 }
+      reports = @($taskFixtureEvidenceRecords)
+      executionProfileRoot = $taskReport.profileAcceptanceRoot
+      accountRemoved = $true
+      profileRemoved = $true
+      isolationEvidencePath = $taskIsolationPath.Substring($taskRepository.Length + 1).Replace('\', '/')
+      isolationEvidenceSha256 = (Get-FileHash -LiteralPath $taskIsolationPath -Algorithm SHA256).Hash.ToLowerInvariant()
+      driverSource = @{ path = [IO.Path]::GetFullPath($PSCommandPath); sha256 = $taskFixtureDriverSha256 }
+      finishedAtUtc = [DateTime]::UtcNow.ToString('o')
+      boundary = 'Fixture GUID scenarios only. The production delivery is a read-only baseline and was not executed. Actual reports retain their original bytes and bind exact prepared sources, Medium profile copies and successful account/profile cleanup. This wrapper is not a formal shipping proof, promotion approval, publication or browser SmartScreen result.'
+    }
+    Write-TaskNewJson (Join-Path $taskOutput 'fixture-only-evidence.json') $taskFixtureWrapper
+  } catch {
+    $taskReport.result = 'failed'
+    $taskReport.errors += ('Fixture-only binding: ' + $_.Exception.Message)
+    Write-TaskJson (Join-Path $taskOutput 'isolated-account.json') $taskReport
+    exit 1
+  }
+  exit 0
+}
 try {
   $taskProofPath = if ($PortableMigrationOnly) { Join-Path $taskOutput 'portable-migration/report.json' } else { Join-Path $taskOutput 'shipping-executable-checks-full.json' }
   Assert-TaskPathNoLinks $taskProofPath

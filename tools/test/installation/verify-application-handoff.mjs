@@ -22,6 +22,7 @@ import {
   applicationPublicKeyXml,
   applicationUpdateMachineBlock,
   extractApplicationUpdate,
+  parseStrictJson,
 } from '../../shared/application-update.mjs';
 import {
   signFixtureApplicationUpdate,
@@ -168,9 +169,19 @@ export async function verifyApplicationHandoff({
   preparedReport,
   verifyPreparedOnly = false,
   frameworkRecoveryOnly = false,
+  activeUninstallOnly = false,
 }) {
   assertWorkspaceRoot();
   assert.equal(process.platform, 'win32');
+  assert.ok(
+    !activeUninstallOnly ||
+      (preparedReport &&
+        !frameworkRecoveryOnly &&
+        !compileOnly &&
+        !prepareOnly &&
+        !verifyPreparedOnly),
+    'Active uninstall requires an exact prepared pair and excludes all other modes',
+  );
   assert.ok(
     !frameworkRecoveryOnly ||
       (preparedReport && !compileOnly && !prepareOnly && !verifyPreparedOnly),
@@ -253,7 +264,56 @@ export async function verifyApplicationHandoff({
   }
   const work = await mkdtemp(join(workParent, 'application-handoff-'));
   await noLinks(work);
-  const root = join(work, '安装 根');
+  const longInstallationRoot = !activeUninstallOnly && !frameworkRecoveryOnly;
+  const rootBase = join(work, '安装 根');
+  assert.ok(
+    !longInstallationRoot || rootBase.length <= 200,
+    'The private work parent cannot produce the required 200-character installation root',
+  );
+  const root = longInstallationRoot
+    ? rootBase + '测'.repeat(200 - rootBase.length)
+    : rootBase;
+  const nativeWorkingDirectory = join(root, 'TableMax/app');
+  const configurationPath = join(root, 'TableMax/TableMax.config.json');
+  assert.ok(
+    configurationPath.length < 260,
+    'The fixture configuration exceeds the production startup path limit',
+  );
+  const startupPathPlan = {
+    boundary:
+      'Computed startup-path preflight only; actual launched module paths require their own runtime evidence.',
+    rootLength: root.length,
+    requiredRootLength: longInstallationRoot ? 200 : null,
+    images: [
+      'TableMax.exe',
+      'UpdateHelper.exe',
+      'TableMax/app/TableMax.exe',
+      'TableMax/app/node.exe',
+    ].map((name) => {
+      const path = join(root, name);
+      assert.ok(
+        path.length < 260,
+        'A fixture startup image exceeds the production path limit',
+      );
+      return { path, length: path.length };
+    }),
+    nativeWorkingDirectory: {
+      path: nativeWorkingDirectory,
+      length: nativeWorkingDirectory.length,
+    },
+    configuration: {
+      path: configurationPath,
+      length: configurationPath.length,
+    },
+    dataPaths: ['TableMax/desktop/webview2', 'TableMax/logs'].map((name) => {
+      const path = join(root, name);
+      assert.ok(
+        path.length < 248,
+        'A fixture data path exceeds the production startup limit',
+      );
+      return { path, length: path.length };
+    }),
+  };
   await mkdir(root);
   const environment = Object.fromEntries(
     Object.entries(process.env).filter(
@@ -279,13 +339,16 @@ export async function verifyApplicationHandoff({
   const report = {
     format: 1,
     result: 'running',
-    scenario: frameworkRecoveryOnly
-      ? 'framework-recovery'
-      : 'application-handoff',
+    scenario: activeUninstallOnly
+      ? 'active-uninstall'
+      : frameworkRecoveryOnly
+        ? 'framework-recovery'
+        : 'application-handoff',
     cacheable: false,
     startedAtUtc: new Date().toISOString(),
     work,
     root,
+    startupPathPlan,
     scopeRoot,
     executionProfile: profile,
     fixtureId,
@@ -298,8 +361,9 @@ export async function verifyApplicationHandoff({
       logBoundary:
         'Raw snapshots of the private default B/logs/desktop.log may include either fixture Native generation. They do not attribute a record to a PID or recover the exit status of the indirectly launched persistent host.',
     },
-    boundary:
-      'Actual two-build fixture Inno/Native/Node and real ApplicationUpdate.Apply/prepare/parent handoff. Only GitHub HTTP is a managed signed-fixture transport. No production GUID installation/system mutation, public version/current pointer, actual internet availability or old-version saved-game compatibility claim. Original fixture-GUID payload bytes are authenticated by a test-only RSA wrapper; Windows registration uses that same fixture GUID. The production JS product contract is unchanged.',
+    boundary: activeUninstallOnly
+      ? 'Actual old-build fixture Inno installation, ready Native/Node and default framework uninstall while that host is active. No update check, download, Apply, production GUID installation, public version/current pointer or internet request is executed. Both prepared inputs retain their original source/SHA bindings.'
+      : 'Actual two-build fixture Inno/Native/Node and real ApplicationUpdate.Apply/prepare/parent handoff. Only GitHub HTTP is a managed signed-fixture transport. No production GUID installation/system mutation, public version/current pointer, actual internet availability or old-version saved-game compatibility claim. Original fixture-GUID payload bytes are authenticated by a test-only RSA wrapper; Windows registration uses that same fixture GUID. The production JS product contract is unchanged.',
     releaseMetadataBoundary:
       'The source ZIP asset is metadata-only (one-byte placeholder), never built, downloaded or published. Installer bytes and their signed identity are real fixture materials.',
   };
@@ -309,6 +373,7 @@ export async function verifyApplicationHandoff({
     desktop,
     newBrowser,
     oldNativeCapture,
+    oldInstallationIdentity,
     actualExecutionInputs;
   function observeOldNative(child) {
     const observed = {
@@ -350,10 +415,20 @@ export async function verifyApplicationHandoff({
         observedBytes: 0,
         archivedBytes: 0,
         truncated: false,
+        archiveConnected: false,
+        archiveDetachedBeforeEof: false,
+        detachObservations: [],
+        sourceEofObservedAtUtc: child[name].readableEnded
+          ? new Date().toISOString()
+          : null,
       };
       stream.count = (chunk) => {
         stream.observedBytes += chunk.length;
       };
+      stream.observeEof = () => {
+        stream.sourceEofObservedAtUtc = new Date().toISOString();
+      };
+      stream.source.once('end', stream.observeEof);
       const archive = new Transform({
         transform(chunk, encoding, done) {
           const bytes = Buffer.isBuffer(chunk)
@@ -364,19 +439,39 @@ export async function verifyApplicationHandoff({
           stream.archivedBytes += stored.length;
           if (stored.length !== bytes.length) {
             stream.truncated = true;
-            stream.source.unpipe(archive);
-            stream.source.resume();
+            stream.detachArchive('stream-budget-exceeded');
           }
           done(null, stored);
           if (stream.truncated) archive.end();
         },
       });
       stream.archive = archive;
+      archive.on('pipe', (source) => {
+        if (source === stream.source) stream.archiveConnected = true;
+      });
+      archive.on('unpipe', (source) => {
+        if (source !== stream.source) return;
+        const sourceReachedEof = source.readableEnded;
+        stream.archiveConnected = false;
+        stream.archiveDetachedBeforeEof ||= !sourceReachedEof;
+        stream.detachObservations.push({
+          reason: stream.detachReason ?? 'pipe-lifecycle',
+          observedAtUtc: new Date().toISOString(),
+          sourceReachedEof,
+          observedBytes: stream.observedBytes,
+          archivedBytes: stream.archivedBytes,
+        });
+      });
+      stream.detachArchive = (reason) => {
+        stream.detachReason = reason;
+        stream.source.unpipe(archive);
+        stream.detachReason = null;
+        stream.source.resume();
+      };
       stream.closed = new Promise((done) => output.once('close', done));
       output.once('error', (error) => {
         stream.error = error.message;
-        stream.source.unpipe(archive);
-        stream.source.resume();
+        stream.detachArchive('archive-write-error');
         archive.destroy();
       });
       stream.source.on('data', stream.count);
@@ -386,6 +481,8 @@ export async function verifyApplicationHandoff({
     return async () => {
       let timer;
       let complete;
+      for (const stream of streams)
+        if (stream.archiveConnected) stream.source.resume();
       try {
         complete = await Promise.race([
           Promise.all(streams.map((stream) => stream.closed)).then(() => true),
@@ -399,8 +496,7 @@ export async function verifyApplicationHandoff({
       if (!complete) {
         observed.captureStoppedBeforeStreamClose = true;
         for (const stream of streams) {
-          stream.source.unpipe(stream.archive);
-          stream.source.resume();
+          stream.detachArchive('archive-close-timeout');
           stream.archive.end();
         }
         try {
@@ -423,6 +519,12 @@ export async function verifyApplicationHandoff({
       observed.streams = [];
       for (const stream of streams) {
         stream.source.off('data', stream.count);
+        stream.source.off('end', stream.observeEof);
+        const lifecycle = {
+          sourceEofObservedAtUtc: stream.sourceEofObservedAtUtc,
+          archiveDetachedBeforeEof: stream.archiveDetachedBeforeEof,
+          detachObservations: stream.detachObservations,
+        };
         if (!complete) {
           stream.output.destroy();
           observed.streams.push({
@@ -431,6 +533,7 @@ export async function verifyApplicationHandoff({
             maximumBytes: stream.maximumBytes,
             observedBytes: stream.observedBytes,
             truncated: stream.truncated,
+            ...lifecycle,
             status: 'archive-close-timeout',
           });
           continue;
@@ -441,6 +544,7 @@ export async function verifyApplicationHandoff({
           maximumBytes: stream.maximumBytes,
           observedBytes: stream.observedBytes,
           truncated: stream.truncated,
+          ...lifecycle,
           sourceReachedEof: stream.source.readableEnded,
           ...(stream.error ? { error: stream.error } : {}),
         });
@@ -453,6 +557,10 @@ export async function verifyApplicationHandoff({
       assert.ok(
         streams.every((stream) => !stream.truncated),
         'Old Native raw stream exceeded its per-stream 2 MiB archive budget',
+      );
+      assert.ok(
+        streams.every((stream) => !stream.archiveDetachedBeforeEof),
+        'Old Native raw archive detached before source EOF',
       );
       assert.ok(
         streams.every((stream) => stream.source.readableEnded),
@@ -485,6 +593,305 @@ export async function verifyApplicationHandoff({
     report.result = 'failed';
     report.failures++;
     report.nativeDiagnostics.errors.push({ name, error: error.message });
+  }
+  async function cancelledFixtureShortcuts() {
+    const name = 'TableMax Installation Fixture';
+    const directory = join(root, 'fixture-shortcuts');
+    const desktop = join(directory, 'Desktop', name + '.lnk');
+    const launch = join(directory, 'Start', name + '.lnk');
+    const uninstall = join(directory, 'Start', '卸载 ' + name + '.lnk');
+    for (const path of [desktop, launch, uninstall]) await noLinks(path);
+    assert.equal(
+      await exists(desktop),
+      false,
+      'The cancelled fixture desktop shortcut was recreated',
+    );
+    for (const path of [launch, uninstall])
+      assert.ok(
+        (await lstat(path)).isFile(),
+        'Expected redirected fixture Start-menu shortcut is missing',
+      );
+    return {
+      task: 'desktopicon',
+      selected: false,
+      desktop: { path: desktop, present: false },
+      startMenu: {
+        launch: await record(launch),
+        uninstall: await record(uninstall),
+      },
+      scope:
+        'Fixture redirected filesystem existence and raw-file identity only; no user-shell shortcut or COM target parsing.',
+    };
+  }
+  async function verifyShortLaunch(
+    directory,
+    outcome,
+    oldHelper,
+    target,
+    trust,
+  ) {
+    const samePath = (actual, expected) => {
+      assert.ok(typeof actual === 'string' && isAbsolute(actual));
+      assert.equal(
+        resolve(actual).toLowerCase(),
+        resolve(expected).toLowerCase(),
+      );
+    };
+    const keys = (value, expected) => {
+      assert.ok(value && typeof value === 'object' && !Array.isArray(value));
+      assert.deepEqual(Object.keys(value).sort(), [...expected].sort());
+    };
+    const archiveJson = async (sourcePath, name, maximum = 32768) => {
+      sourcePath = inside(work, sourcePath);
+      await noLinks(sourcePath);
+      const raw = await readFile(sourcePath);
+      const value = parseStrictJson(raw, maximum, { canonicalIntegers: true });
+      const path = join(evidence, name);
+      await writeFile(path, raw, { flag: 'wx' });
+      return {
+        value,
+        file: { sourcePath, path, bytes: raw.length, sha256: hash(raw) },
+      };
+    };
+    const tuple = (value, sourcePath, path, expected) => {
+      keys(value, ['sourcePath', 'path', 'bytes', 'sha256']);
+      samePath(value.sourcePath, sourcePath);
+      samePath(value.path, path);
+      assert.equal(value.bytes, expected.bytes);
+      assert.equal(value.sha256, expected.sha256);
+    };
+    samePath(dirname(directory), join(root, 'TableMax/updates'));
+    assert.match(
+      directory.slice(dirname(directory).length + 1),
+      /^handoff-[a-f0-9]{32}$/,
+    );
+    keys(outcome, [
+      'schemaVersion',
+      'root',
+      'buildVersion',
+      'status',
+      'exitCode',
+      'actualHelper',
+      'actualInstaller',
+      'sourceInstaller',
+      'launchMetadataPath',
+      'launchMetadataSha256',
+      'cleanup',
+    ]);
+    assert.equal(outcome.schemaVersion, 1);
+    samePath(outcome.root, root);
+    assert.equal(outcome.buildVersion, target.buildVersion);
+    assert.equal(outcome.status, 'installer-finished');
+    assert.equal(outcome.exitCode, 0);
+    const observedHelper = outcome.actualHelper;
+    assert.equal(observedHelper?.queriedFromProcessHandle, true);
+    assert.equal(observedHelper.pathObserved, true);
+    samePath(observedHelper.path, observedHelper.modulePath);
+    const temporaryDirectory = inside(work, dirname(observedHelper.modulePath));
+    samePath(dirname(temporaryDirectory), work);
+    assert.match(
+      temporaryDirectory.slice(dirname(temporaryDirectory).length + 1),
+      /^TableMax-update-[a-f0-9]{32}$/,
+    );
+    await noLinks(temporaryDirectory);
+    const metadataPath = join(temporaryDirectory, 'launch.json');
+    samePath(outcome.launchMetadataPath, metadataPath);
+    const metadata = await archiveJson(
+      metadataPath,
+      'handoff-launch-metadata.json',
+    );
+    assert.equal(metadata.file.sha256, outcome.launchMetadataSha256);
+    const launch = metadata.value;
+    keys(launch, [
+      'schemaVersion',
+      'kind',
+      'productId',
+      'installationId',
+      'ownerSid',
+      'root',
+      'boxRoot',
+      'installedBuildVersion',
+      'targetBuildVersion',
+      'payloadManifestSha256',
+      'currentMappingSha256',
+      'temporaryParent',
+      'temporaryDirectory',
+      'auditPath',
+      'helper',
+      'installer',
+      'target',
+    ]);
+    assert.equal(launch.schemaVersion, 1);
+    assert.equal(launch.kind, 'TableMax.ApplicationUpdate.Launch');
+    assert.equal(launch.productId, fixtureId);
+    assert.equal(launch.installationId, oldInstallationIdentity.installationId);
+    assert.equal(launch.ownerSid, oldInstallationIdentity.ownerSid);
+    samePath(launch.root, root);
+    samePath(launch.boxRoot, join(root, 'TableMax'));
+    assert.equal(launch.installedBuildVersion, oldBuild);
+    assert.equal(launch.targetBuildVersion, target.buildVersion);
+    assert.equal(launch.payloadManifestSha256, target.payloadManifestSha256);
+    assert.equal(launch.currentMappingSha256, target.currentMappingSha256);
+    samePath(launch.temporaryParent, work);
+    samePath(launch.temporaryDirectory, temporaryDirectory);
+    samePath(launch.auditPath, join(directory, 'launch.json'));
+    const helperPath = join(temporaryDirectory, 'h.exe');
+    const installerPath = join(temporaryDirectory, 'i.exe');
+    const helperSource = join(directory, 'UpdateHelper.exe');
+    for (const path of [helperPath, installerPath, helperSource])
+      await noLinks(path);
+    const canonicalHelper = await record(helperSource);
+    assert.equal(canonicalHelper.bytes, oldHelper.bytes);
+    assert.equal(canonicalHelper.sha256, oldHelper.sha256);
+    const installerSource = join(
+      root,
+      'TableMax/updates/downloads',
+      target.sha256,
+      target.assetName,
+    );
+    await noLinks(installerSource);
+    const canonicalInstaller = await record(installerSource);
+    assert.equal(canonicalInstaller.bytes, target.bytes);
+    assert.equal(canonicalInstaller.sha256, target.sha256);
+    const targetEnvelope = await archiveJson(
+      join(directory, 'envelope.json'),
+      'handoff-envelope.json',
+      16384,
+    );
+    const verified = verifyFixtureApplicationUpdate(targetEnvelope.value, {
+      trustedKeys: (await json(trust)).keys,
+    });
+    assert.deepEqual(verified.description, target);
+    tuple(launch.helper, canonicalHelper.path, helperPath, oldHelper);
+    tuple(launch.installer, canonicalInstaller.path, installerPath, target);
+    tuple(
+      launch.target,
+      targetEnvelope.file.sourcePath,
+      targetEnvelope.file.sourcePath,
+      targetEnvelope.file,
+    );
+    const audit = await archiveJson(
+      join(directory, 'launch.json'),
+      'handoff-launch-audit.json',
+    );
+    keys(audit.value, [
+      'schemaVersion',
+      'root',
+      'installationId',
+      'ownerSid',
+      'temporaryDirectory',
+      'metadataPath',
+      'metadataSha256',
+      'actualHelper',
+      'sourceInstaller',
+      'target',
+    ]);
+    assert.equal(audit.value.schemaVersion, 1);
+    samePath(audit.value.root, root);
+    assert.equal(audit.value.installationId, launch.installationId);
+    assert.equal(audit.value.ownerSid, launch.ownerSid);
+    samePath(audit.value.temporaryDirectory, temporaryDirectory);
+    samePath(audit.value.metadataPath, metadataPath);
+    assert.equal(audit.value.metadataSha256, metadata.file.sha256);
+    assert.deepEqual(audit.value.actualHelper, launch.helper);
+    assert.deepEqual(audit.value.sourceInstaller, launch.installer);
+    assert.deepEqual(audit.value.target, launch.target);
+    assert.deepEqual(outcome.sourceInstaller, launch.installer);
+    const observations = [];
+    for (const [name, expected, helper] of [
+      ['actualHelper', launch.helper, true],
+      ['actualInstaller', launch.installer, false],
+    ]) {
+      const value = outcome[name];
+      keys(value, [
+        'sourcePath',
+        'path',
+        'bytes',
+        'sha256',
+        'expectedPath',
+        'pid',
+        'modulePath',
+        'pathObserved',
+        'processStarted',
+        'queriedFromProcessHandle',
+        ...(helper ? ['assemblyLocation'] : []),
+      ]);
+      samePath(value.sourcePath, expected.sourcePath);
+      samePath(value.expectedPath, expected.path);
+      samePath(value.path, expected.path);
+      samePath(value.modulePath, expected.path);
+      if (helper) samePath(value.assemblyLocation, expected.path);
+      assert.ok(value.modulePath.length < 260);
+      assert.ok(Number.isSafeInteger(value.pid) && value.pid > 0);
+      assert.equal(value.bytes, expected.bytes);
+      assert.equal(value.sha256, expected.sha256);
+      for (const flag of [
+        'pathObserved',
+        'processStarted',
+        'queriedFromProcessHandle',
+      ])
+        assert.equal(value[flag], true);
+      observations.push({
+        name,
+        ...value,
+        modulePathLength: value.modulePath.length,
+      });
+    }
+    assert.notEqual(observations[0].pid, observations[1].pid);
+    const retainedHelper = await record(helperPath);
+    assert.equal(retainedHelper.bytes, oldHelper.bytes);
+    assert.equal(retainedHelper.sha256, oldHelper.sha256);
+    keys(outcome.cleanup, ['installerDeleted', 'selfHelperRetained', 'reason']);
+    assert.equal(typeof outcome.cleanup.installerDeleted, 'boolean');
+    assert.equal(outcome.cleanup.selfHelperRetained, true);
+    assert.ok(
+      typeof outcome.cleanup.reason === 'string' &&
+        outcome.cleanup.reason.length > 0,
+    );
+    let retainedInstaller = null;
+    if (outcome.cleanup.installerDeleted)
+      assert.equal(await exists(installerPath), false);
+    else {
+      retainedInstaller = await record(installerPath);
+      assert.equal(retainedInstaller.bytes, target.bytes);
+      assert.equal(retainedInstaller.sha256, target.sha256);
+    }
+    const entries = await readdir(temporaryDirectory, { withFileTypes: true });
+    assert.ok(
+      entries.every((entry) => entry.isFile() && !entry.isSymbolicLink()),
+    );
+    assert.deepEqual(
+      entries.map((entry) => entry.name).sort(),
+      [
+        'h.exe',
+        'launch.json',
+        ...(!outcome.cleanup.installerDeleted ? ['i.exe'] : []),
+      ].sort(),
+    );
+    const handoffRecord = await archiveJson(
+      join(directory, 'handoff.json'),
+      'handoff-record.json',
+    );
+    assert.deepEqual(handoffRecord.value, outcome);
+    if (startupPathPlan.requiredRootLength === 200) {
+      assert.ok(canonicalHelper.path.length >= 260);
+      assert.ok(canonicalInstaller.path.length >= 260);
+    }
+    return {
+      canonicalHelperSource: canonicalHelper,
+      canonicalInstallerSource: canonicalInstaller,
+      temporaryDirectory,
+      metadata: metadata.file,
+      audit: audit.file,
+      targetEnvelope: targetEnvelope.file,
+      handoffRecord: handoffRecord.file,
+      actualModuleObservations: observations,
+      retainedHelper,
+      retainedInstaller,
+      cleanup: outcome.cleanup,
+      boundary:
+        'Actual process-handle module observations come from the same-SHA fixture helper record. Node independently verifies original files, retained copies and public metadata/audit raw bytes; it does not query Windows ACLs or recover an exit status for the indirect processes.',
+    };
   }
   async function execute(
     executable,
@@ -865,6 +1272,7 @@ export async function verifyApplicationHandoff({
     await Promise.all(
       [
         ...sources,
+        'tools/shared/application-update.mjs',
         'tools/shared/windows-acceptance-profile.mjs',
         'tools/test/support/fixture-application-update.mjs',
       ].map(async (path) => [path, hash(await readFile(path))]),
@@ -1265,6 +1673,7 @@ export async function verifyApplicationHandoff({
             '/SUPPRESSMSGBOXES',
             '/NORESTART',
             '/DIR=' + root,
+            ...(!activeUninstallOnly ? ['/TASKS=!desktopicon'] : []),
             '/LOG=' + join(evidence, 'old-inno.log'),
           ],
           'old-inno',
@@ -1274,7 +1683,33 @@ export async function verifyApplicationHandoff({
         const value = await registration();
         assert.equal(resolve(value.InstallLocation), root);
         assert.equal(value.DisplayVersion, oldBuild);
-        return { registration: value };
+        const identityPath = join(root, 'TableMax/.install.json');
+        oldInstallationIdentity = await json(identityPath);
+        assert.equal(oldInstallationIdentity.productId, fixtureId);
+        assert.equal(oldInstallationIdentity.buildVersion, oldBuild);
+        assert.equal(resolve(oldInstallationIdentity.root), root);
+        assert.equal(
+          resolve(oldInstallationIdentity.boxRoot),
+          join(root, 'TableMax'),
+        );
+        assert.match(
+          oldInstallationIdentity.installationId,
+          /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i,
+        );
+        if (profile)
+          assert.equal(oldInstallationIdentity.ownerSid, profile.ownerSid);
+        return {
+          registration: value,
+          installationIdentity: {
+            installationId: oldInstallationIdentity.installationId,
+            ownerSid: oldInstallationIdentity.ownerSid,
+            buildVersion: oldInstallationIdentity.buildVersion,
+            file: await record(identityPath),
+          },
+          ...(!activeUninstallOnly
+            ? { shortcutSelection: await cancelledFixtureShortcuts() }
+            : {}),
+        };
       });
       await step('actual-old-host-transport', async () => {
         try {
@@ -1306,182 +1741,199 @@ export async function verifyApplicationHandoff({
         assert.equal(ready.desktopPid, desktop.process().pid);
         return ready;
       });
-      const host = await desktop.firstWindow();
-      await step('actual-check-download', async () => {
-        await host.evaluate(() => window.tablemaxUpdate.check());
-        const available = await waitUntil(
-          async () => {
-            const state = await host.evaluate(() =>
-              window.tablemaxUpdate.read(),
-            );
-            if (state.phase === 'error')
-              throw new Error(state.error || 'Actual check failed');
-            return state.phase === 'available' ? state : null;
-          },
-          'Actual available update',
-          90000,
-        );
-        assert.equal(available.targetVersion, newBuild);
-        await host.evaluate(() => window.tablemaxUpdate.download());
-        const state = await waitUntil(
-          async () => {
-            const state = await host.evaluate(() =>
-              window.tablemaxUpdate.read(),
-            );
-            if (state.phase === 'error')
-              throw new Error(state.error || 'Actual download failed');
-            return state.phase === 'ready' ? state : null;
-          },
-          'Actual complete download',
-          90000,
-        );
-        assert.equal(state.targetVersion, newBuild);
-        return {
-          state,
-          transport:
-            'Managed response and actual new installer stream; no real internet',
-        };
-      });
-      await step('real-apply-parent-handoff', async () => {
-        const parent = desktop.process();
-        const ended =
-          parent.exitCode !== null
-            ? Promise.resolve(parent.exitCode)
-            : new Promise((done) => parent.once('exit', done));
-        await host.evaluate(() => {
-          void window.tablemaxUpdate.apply().catch(() => {});
-        });
-        let exitTimer;
-        let code;
-        try {
-          code = await Promise.race([
-            ended,
-            new Promise((_, reject) => {
-              exitTimer = setTimeout(
-                () => reject(new Error('Actual parent did not exit')),
-                90000,
+      if (!activeUninstallOnly) {
+        const host = await desktop.firstWindow();
+        await step('actual-check-download', async () => {
+          await host.evaluate(() => window.tablemaxUpdate.check());
+          const available = await waitUntil(
+            async () => {
+              const state = await host.evaluate(() =>
+                window.tablemaxUpdate.read(),
               );
-            }),
-          ]);
-        } finally {
-          clearTimeout(exitTimer);
-        }
-        assert.equal(code, 0);
-        return {
-          parentPid: parent.pid,
-          parentExitCode: code,
-          realPrepareAndQuit: true,
-        };
-      });
-      await step('actual-new-persistent-host', async () => {
-        const ready = await waitUntil(
-          async () => {
-            const error = await maybeJson(
-              join(evidence, 'new-fixture-error.json'),
-            );
-            if (error) throw new Error(error.error);
-            return await maybeJson(join(evidence, 'new-native-ready.json'));
-          },
-          'Actual new host',
-          180000,
-        );
-        assert.equal(ready.buildVersion, newBuild);
-        assert.equal(ready.persistent, true);
-        assert.equal(ready.currentMappingSha256, target.currentMappingSha256);
-        const installerFinished = await waitUntil(
-          async () => {
-            const directories = (
-              await readdir(join(root, 'TableMax/updates'))
-            ).filter((name) => name.startsWith('handoff-'));
-            assert.ok(
-              directories.length <= 1,
-              'Unexpected additional handoff transaction',
-            );
-            if (directories.length === 0) return null;
-            const value = await maybeJson(
-              join(root, 'TableMax/updates', directories[0], 'handoff.json'),
-            );
-            if (value?.status === 'installer-failed')
-              throw new Error(
-                'Actual handoff installer failed: ' + value.exitCode,
-              );
-            return value?.status === 'installer-finished' ? value : null;
-          },
-          'Actual handoff installer before registration',
-          180000,
-        );
-        assert.equal(installerFinished.exitCode, 0);
-        assert.equal(resolve(installerFinished.root), root);
-        assert.equal(installerFinished.buildVersion, newBuild);
-        const identity = await json(join(root, 'TableMax/.install.json'));
-        assert.equal(identity.buildVersion, newBuild);
-        assert.equal(
-          identity.payloadManifestSha256,
-          target.payloadManifestSha256,
-        );
-        const reg = await registration();
-        assert.equal(reg.DisplayVersion, newBuild);
-        newBrowser = await chromium.connectOverCDP(
-          'http://127.0.0.1:' + ready.cdpPort,
-        );
-        const page = await waitUntil(
-          () =>
-            newBrowser
-              .contexts()
-              .flatMap((ctx) => ctx.pages())
-              .find((page) => page.url().includes('/host')),
-          'New host page',
-        );
-        const state = await page.evaluate(() => window.tablemaxUpdate.read());
-        assert.equal(state.currentVersion, newBuild);
-        assert.deepEqual(await record(outside), outsideBefore);
-        return {
-          ...ready,
-          installerFinished,
-          identity,
-          registration: reg,
-          actualHostState: state,
-        };
-      });
-      await step('handoff-helper-and-data', async () => {
-        const directories = (
-          await readdir(join(root, 'TableMax/updates'))
-        ).filter((name) => name.startsWith('handoff-'));
-        assert.equal(directories.length, 1);
-        const directory = join(root, 'TableMax/updates', directories[0]);
-        const outcome = await waitUntil(async () => {
-          const value = await maybeJson(join(directory, 'handoff.json'));
-          return value?.status === 'installer-finished' ? value : null;
-        }, 'Actual handoff completion');
-        assert.equal(outcome.exitCode, 0);
-        const oldHelper = report.old.manifest.files.find(
-          (file) => file.path === 'UpdateHelper.exe',
-        );
-        assert.equal(
-          (await record(join(directory, 'UpdateHelper.exe'))).sha256,
-          oldHelper.sha256,
-        );
-        const newHelper = report.new.manifest.files.find(
-          (file) => file.path === 'UpdateHelper.exe',
-        );
-        assert.equal(
-          (await record(join(root, 'UpdateHelper.exe'))).sha256,
-          newHelper.sha256,
-        );
-        for (const file of report.new.manifest.files)
-          assert.deepEqual(
-            {
-              bytes: (await stat(join(root, file.path))).size,
-              sha256: hash(await readFile(join(root, file.path))),
+              if (state.phase === 'error')
+                throw new Error(state.error || 'Actual check failed');
+              return state.phase === 'available' ? state : null;
             },
-            { bytes: file.bytes, sha256: file.sha256 },
+            'Actual available update',
+            90000,
           );
-        return {
-          outcome,
-          temporaryHelperSha256: oldHelper.sha256,
-          newOwnedHelperSha256: newHelper.sha256,
-        };
-      });
+          assert.equal(available.targetVersion, newBuild);
+          await host.evaluate(() => window.tablemaxUpdate.download());
+          const state = await waitUntil(
+            async () => {
+              const state = await host.evaluate(() =>
+                window.tablemaxUpdate.read(),
+              );
+              if (state.phase === 'error')
+                throw new Error(state.error || 'Actual download failed');
+              return state.phase === 'ready' ? state : null;
+            },
+            'Actual complete download',
+            90000,
+          );
+          assert.equal(state.targetVersion, newBuild);
+          return {
+            state,
+            transport:
+              'Managed response and actual new installer stream; no real internet',
+          };
+        });
+        await step('real-apply-parent-handoff', async () => {
+          const parent = desktop.process();
+          const ended =
+            parent.exitCode !== null
+              ? Promise.resolve(parent.exitCode)
+              : new Promise((done) => parent.once('exit', done));
+          await host.evaluate(() => {
+            void window.tablemaxUpdate.apply().catch(() => {});
+          });
+          let exitTimer;
+          let code;
+          try {
+            code = await Promise.race([
+              ended,
+              new Promise((_, reject) => {
+                exitTimer = setTimeout(
+                  () => reject(new Error('Actual parent did not exit')),
+                  90000,
+                );
+              }),
+            ]);
+          } finally {
+            clearTimeout(exitTimer);
+          }
+          assert.equal(code, 0);
+          return {
+            parentPid: parent.pid,
+            parentExitCode: code,
+            realPrepareAndQuit: true,
+          };
+        });
+        await step('actual-new-persistent-host', async () => {
+          const ready = await waitUntil(
+            async () => {
+              const error = await maybeJson(
+                join(evidence, 'new-fixture-error.json'),
+              );
+              if (error) throw new Error(error.error);
+              return await maybeJson(join(evidence, 'new-native-ready.json'));
+            },
+            'Actual new host',
+            180000,
+          );
+          assert.equal(ready.buildVersion, newBuild);
+          assert.equal(ready.persistent, true);
+          assert.equal(ready.currentMappingSha256, target.currentMappingSha256);
+          const installerFinished = await waitUntil(
+            async () => {
+              const directories = (
+                await readdir(join(root, 'TableMax/updates'))
+              ).filter((name) => name.startsWith('handoff-'));
+              assert.ok(
+                directories.length <= 1,
+                'Unexpected additional handoff transaction',
+              );
+              if (directories.length === 0) return null;
+              const value = await maybeJson(
+                join(root, 'TableMax/updates', directories[0], 'handoff.json'),
+              );
+              if (value?.status === 'installer-failed')
+                throw new Error(
+                  'Actual handoff installer failed: ' + value.exitCode,
+                );
+              return value?.status === 'installer-finished' ? value : null;
+            },
+            'Actual handoff installer before registration',
+            180000,
+          );
+          assert.equal(installerFinished.exitCode, 0);
+          assert.equal(resolve(installerFinished.root), root);
+          assert.equal(installerFinished.buildVersion, newBuild);
+          const identity = await json(join(root, 'TableMax/.install.json'));
+          assert.equal(identity.buildVersion, newBuild);
+          assert.equal(
+            identity.installationId,
+            oldInstallationIdentity.installationId,
+          );
+          assert.equal(identity.ownerSid, oldInstallationIdentity.ownerSid);
+          assert.equal(
+            identity.payloadManifestSha256,
+            target.payloadManifestSha256,
+          );
+          const reg = await registration();
+          assert.equal(reg.DisplayVersion, newBuild);
+          const shortcutSelection = await cancelledFixtureShortcuts();
+          newBrowser = await chromium.connectOverCDP(
+            'http://127.0.0.1:' + ready.cdpPort,
+          );
+          const page = await waitUntil(
+            () =>
+              newBrowser
+                .contexts()
+                .flatMap((ctx) => ctx.pages())
+                .find((page) => page.url().includes('/host')),
+            'New host page',
+          );
+          const state = await page.evaluate(() => window.tablemaxUpdate.read());
+          assert.equal(state.currentVersion, newBuild);
+          assert.deepEqual(await record(outside), outsideBefore);
+          return {
+            ...ready,
+            installerFinished,
+            shortcutSelection,
+            identity,
+            registration: reg,
+            actualHostState: state,
+          };
+        });
+        await step('handoff-helper-and-data', async () => {
+          const directories = (
+            await readdir(join(root, 'TableMax/updates'))
+          ).filter((name) => name.startsWith('handoff-'));
+          assert.equal(directories.length, 1);
+          const directory = join(root, 'TableMax/updates', directories[0]);
+          const outcome = await waitUntil(async () => {
+            const value = await maybeJson(join(directory, 'handoff.json'));
+            return value?.status === 'installer-finished' ? value : null;
+          }, 'Actual handoff completion');
+          assert.equal(outcome.exitCode, 0);
+          const oldHelper = report.old.manifest.files.find(
+            (file) => file.path === 'UpdateHelper.exe',
+          );
+          assert.equal(
+            (await record(join(directory, 'UpdateHelper.exe'))).sha256,
+            oldHelper.sha256,
+          );
+          const shortLaunch = await verifyShortLaunch(
+            directory,
+            outcome,
+            oldHelper,
+            target,
+            trust,
+          );
+          const newHelper = report.new.manifest.files.find(
+            (file) => file.path === 'UpdateHelper.exe',
+          );
+          assert.equal(
+            (await record(join(root, 'UpdateHelper.exe'))).sha256,
+            newHelper.sha256,
+          );
+          for (const file of report.new.manifest.files)
+            assert.deepEqual(
+              {
+                bytes: (await stat(join(root, file.path))).size,
+                sha256: hash(await readFile(join(root, file.path))),
+              },
+              { bytes: file.bytes, sha256: file.sha256 },
+            );
+          return {
+            outcome,
+            shortLaunch,
+            temporaryHelperSha256: oldHelper.sha256,
+            newOwnedHelperSha256: newHelper.sha256,
+          };
+        });
+      }
     }
     report.result = verifyPreparedOnly
       ? 'prepared-reverified-not-executed'
@@ -1513,6 +1965,27 @@ export async function verifyApplicationHandoff({
             current && resolve(current.InstallLocation) === root,
             'Fixture registration changed; preserve it',
           );
+          let activeNativeBeforeUninstall;
+          if (activeUninstallOnly) {
+            assert.ok(desktop, 'Active uninstall requires the actual old host');
+            const child = desktop.process();
+            assert.equal(
+              child.exitCode,
+              null,
+              'Old host exited before uninstall',
+            );
+            assert.equal(
+              child.signalCode,
+              null,
+              'Old host was terminated before uninstall',
+            );
+            activeNativeBeforeUninstall = {
+              pid: child.pid,
+              exitCode: child.exitCode,
+              signalCode: child.signalCode,
+              observedAtUtc: new Date().toISOString(),
+            };
+          }
           const result = await execute(
             join(root, 'unins000.exe'),
             [
@@ -1525,7 +1998,11 @@ export async function verifyApplicationHandoff({
           );
           assert.equal(result.code, 0, result.log);
           assert.equal(await registration(), null);
-          return { registrationRemoved: true, scope: root };
+          return {
+            registrationRemoved: true,
+            scope: root,
+            ...(activeUninstallOnly ? { activeNativeBeforeUninstall } : {}),
+          };
         });
       } catch (error) {
         report.result = 'failed';
@@ -1590,6 +2067,7 @@ if (resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
     preparedReport: value('prepared-report'),
     verifyPreparedOnly: args.includes('--verify-prepared-only'),
     frameworkRecoveryOnly: args.includes('--framework-recovery-only'),
+    activeUninstallOnly: args.includes('--active-uninstall-only'),
   });
   console.log(
     JSON.stringify({
