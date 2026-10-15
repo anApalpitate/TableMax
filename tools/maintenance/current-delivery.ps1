@@ -28,8 +28,11 @@ function Get-VerifiedCurrentDeliveries([string]$Root, [string]$Version) {
     $editionSuffix = if ($delivery.edition -eq 'box') { '-box' } else { '' }
     $localVersion = if ($index.buildVersion) { $index.buildVersion } else { $Version }
     if ($index.buildVersion -and $index.buildVersion -notmatch ('^' + [regex]::Escape($Version) + '\.\d+$')) { throw 'Invalid local build version.' }
-    $expectedExe = Join-Path $Root ('artifacts/releases/TableMax-' + $localVersion + '-win-x64' + $editionSuffix + '.exe')
-    if ([IO.Path]::GetFullPath($delivery.executable.path) -ne $expectedExe) { throw 'Unexpected EXE delivery path.' }
+    $taskPathNode = Join-Path $PSScriptRoot '../../.cache/node/22.14.0/runtime/node.exe'
+    $taskPathModule = Join-Path $PSScriptRoot '../release/delivery-paths.mjs'
+    $taskPathResult = & $taskPathNode $taskPathModule "--root=$Root" "--version=$Version" "--build-version=$localVersion" "--edition=$($delivery.edition)" "--path=$($delivery.executable.path)"
+    if ($LASTEXITCODE -ne 0) { throw 'Unexpected EXE delivery path.' }
+    $expectedExe = $taskPathResult | ConvertFrom-Json
     $manifest = Get-Content -LiteralPath $delivery.manifestPath -Raw -Encoding utf8 | ConvertFrom-Json
     $payloadHash = (Get-FileHash -LiteralPath $delivery.archivePath -Algorithm SHA256).Hash.ToLowerInvariant()
     $exeHash = (Get-FileHash -LiteralPath $expectedExe -Algorithm SHA256).Hash.ToLowerInvariant()

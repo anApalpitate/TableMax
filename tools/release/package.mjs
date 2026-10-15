@@ -9,7 +9,7 @@ import {
   PACKAGE_BUDGET_BYTES,
 } from './package-limits.mjs';
 import { buildProject } from '../build/build.mjs';
-import { windowsExecutableName } from './windows-executable-name.mjs';
+import { deliveryPaths } from './delivery-paths.mjs';
 import {
   allocateBuildVersion,
   versionIdentity,
@@ -223,7 +223,11 @@ await lock('package-win', async () => {
   const maximumBytes = MAXIMUM_PACKAGE_BYTES;
   const budgetBytes = PACKAGE_BUDGET_BYTES;
   const project = JSON.parse(await readFile('package.json', 'utf8'));
-  const releases = resolve('artifacts/releases');
+  const releases = deliveryPaths({
+    version: project.version,
+    buildVersion: application.buildVersion,
+    restoreSnapshot: Boolean(snapshotArgument),
+  }).directory;
   await mkdir(releases, { recursive: true });
   const payloadRoot = resolve(
     'artifacts/package-payloads',
@@ -553,10 +557,12 @@ await lock('package-win', async () => {
       join(output, 'release-manifest.json'),
       JSON.stringify(manifest, null, 2) + '\n',
     );
-    const outputPath = join(
-      releases,
-      windowsExecutableName(application.buildVersion, currentEdition),
-    );
+    const outputPath = deliveryPaths({
+      version: project.version,
+      buildVersion: application.buildVersion,
+      edition: currentEdition,
+      restoreSnapshot: Boolean(snapshotArgument),
+    }).executable;
     await assertReleaseIdle(outputPath);
     const executableStarted = performance.now();
     const executable = await createInstallationExecutable({

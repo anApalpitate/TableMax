@@ -1,7 +1,10 @@
 import { existsSync, readFileSync, statSync, lstatSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve, relative, dirname, sep, isAbsolute } from 'node:path';
-import { windowsExecutableName } from '../release/windows-executable-name.mjs';
+import {
+  assertDeliveryPath,
+  assertNoDeliveryLinks,
+} from '../release/delivery-paths.mjs';
 
 const hash = (path) =>
   createHash('sha256').update(readFileSync(path)).digest('hex');
@@ -38,29 +41,20 @@ export function currentDeliveries(root, version) {
         resolve(path) === root
       )
         throw new Error('Delivery escapes workspace');
-      for (
-        let cursor = resolve(path);
-        cursor !== root;
-        cursor = dirname(cursor)
-      ) {
-        if (lstatSync(cursor).isSymbolicLink())
-          throw new Error('Delivery contains a link');
-      }
+      assertNoDeliveryLinks(path);
     }
     const prefix = `artifacts/package-payloads/v${version}/`;
     for (const path of [delivery.archivePath, delivery.manifestPath]) {
       if (!relative(root, path).split(sep).join('/').startsWith(prefix))
         throw new Error('Payload outside version directory');
     }
-    if (
-      resolve(delivery.executable.path) !==
-      resolve(
-        root,
-        'artifacts/releases',
-        windowsExecutableName(index.buildVersion ?? version, delivery.edition),
-      )
-    )
-      throw new Error('Unexpected EXE path');
+    assertDeliveryPath({
+      root,
+      version,
+      buildVersion: index.buildVersion ?? version,
+      edition: delivery.edition,
+      path: delivery.executable.path,
+    });
     const manifest = JSON.parse(readFileSync(delivery.manifestPath, 'utf8'));
     if (
       manifest.version !== version ||

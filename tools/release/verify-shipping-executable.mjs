@@ -5,7 +5,7 @@ import {
 if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
 import { MAXIMUM_PACKAGE_BYTES } from './package-limits.mjs';
-import { windowsExecutableName } from './windows-executable-name.mjs';
+import { assertDeliveryPath } from './delivery-paths.mjs';
 import { verifyInstallationDelivery } from './installation-verifier.mjs';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
@@ -56,10 +56,12 @@ const evidence = resolve(
   'windows-editions',
   payloadIndex.snapshot,
 );
-const executable = resolve(
-  'artifacts/releases',
-  windowsExecutableName(payloadIndex.buildVersion ?? version, edition),
-);
+const executable = assertDeliveryPath({
+  version,
+  buildVersion: payloadIndex.buildVersion ?? version,
+  edition,
+  path: delivery.executable.path,
+});
 const manifest = JSON.parse(await readFile(delivery.manifestPath, 'utf8'));
 assert.equal(manifest.edition, edition);
 assert.equal(

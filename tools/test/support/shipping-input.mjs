@@ -13,6 +13,7 @@ import { join, resolve, dirname } from 'node:path';
 import { createRequire } from 'node:module';
 import { build } from 'esbuild';
 import { digest, localFile } from '../runner/evidence.mjs';
+import { assertDeliveryPath } from '../../release/delivery-paths.mjs';
 
 /** Bind every portable verifier to the currently frozen full EXE and payload. */
 export async function extractCurrentDelivery({
@@ -32,6 +33,13 @@ export async function extractCurrentDelivery({
   const delivery = index.deliveries.find((item) => item.edition === 'full');
   assert.ok(delivery, 'Current verified full EXE is required');
   const executable = localFile(root, delivery.executable.path);
+  assertDeliveryPath({
+    root,
+    version,
+    buildVersion: index.buildVersion ?? version,
+    edition: delivery.edition,
+    path: executable,
+  });
   const payload = localFile(root, delivery.archivePath);
   const manifestPath = localFile(root, delivery.manifestPath);
   const executableBytes = await readFile(executable);

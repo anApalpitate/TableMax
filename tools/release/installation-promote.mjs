@@ -13,6 +13,7 @@ import {
   verifyInstallationAcceptance,
 } from './installation-publication.mjs';
 import { verifyPreservedRuntime } from './installation-verifier.mjs';
+import { assertDeliveryPath } from './delivery-paths.mjs';
 
 export function verifyCandidatePromotion({
   candidate,
@@ -114,6 +115,12 @@ export async function promoteInstallationCandidate({
       delivery.executable.path,
       'artifacts/releases',
     );
+    assertDeliveryPath({
+      version,
+      buildVersion: pointer.buildVersion ?? version,
+      edition: delivery.edition,
+      path: executablePath,
+    });
     const payloadPath = await artifactPath(
       delivery.archivePath,
       'artifacts/package-payloads',

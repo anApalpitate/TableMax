@@ -7,7 +7,7 @@ if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
-import { windowsExecutableName } from './windows-executable-name.mjs';
+import { deliveryPaths } from './delivery-paths.mjs';
 import {
   createReleaseExecutable,
   assertReleaseIdle,
@@ -37,10 +37,12 @@ await lock('package-win', async () => {
   );
   const selected = pointer.deliveries;
   for (const item of selected) {
-    const base = resolve(
-      'artifacts/releases',
-      windowsExecutableName(pointer.buildVersion ?? version, item.edition),
-    ).replace(/\.exe$/, '');
+    const base = deliveryPaths({
+      version,
+      buildVersion: pointer.buildVersion ?? version,
+      edition: item.edition,
+      existingPath: item.executable.path,
+    }).executable.replace(/\.exe$/, '');
     await assertReleaseIdle(base + '.exe');
     const manifest = JSON.parse(await readFile(item.manifestPath, 'utf8'));
     assert.equal(manifest.version, version);

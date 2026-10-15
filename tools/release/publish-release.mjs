@@ -13,6 +13,7 @@ import { resolve, join, basename } from 'node:path';
 import { PROJECT_GAME_PUBLIC_KEY } from '../../apps/server/src/game-packages/project-public-key.ts';
 import { gameReleaseAssets } from './game-release-assets.mjs';
 import { windowsExecutableName } from './windows-executable-name.mjs';
+import { assertDeliveryPath } from './delivery-paths.mjs';
 import {
   loadIsolationEvidence,
   verifyInstallationPublication,
@@ -67,7 +68,12 @@ const localExes = ['full'].map((edition) => {
     basename(delivery.executable.path),
     windowsExecutableName(payloadIndex.buildVersion ?? version, edition),
   );
-  return resolve(delivery.executable.path);
+  return assertDeliveryPath({
+    version,
+    buildVersion: payloadIndex.buildVersion ?? version,
+    edition,
+    path: delivery.executable.path,
+  });
 });
 const publicDirectory = resolve(
   'artifacts/maintenance',
