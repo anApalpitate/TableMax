@@ -206,9 +206,12 @@ internal static class InstallerWizardHarness
         Require(SetInformationJobObject(Job, 9, ref limits, (uint)Marshal.SizeOf(typeof(JobExtendedLimits))), "Progress Job cleanup policy failed");
         var samples = new List<object>(); var seen = new HashSet<string>(); bool marquee = false, counted = false;
         var crossProcess = new List<object>(); var crossProcessSeen = new HashSet<string>();
+        var captionFailures = new List<object>();
         IntPtr progressWindow = IntPtr.Zero; int progressPid = 0;
         result["progressSamples"] = samples;
         result["skippedCrossProcessWindows"] = crossProcess;
+        result["skippedCaptionSamples"] = captionFailures;
+        result["captionDiagnosticLimit"] = 128;
         string arguments = "/SP- /SILENT /SUPPRESSMSGBOXES /NORESTART /TASKS=!desktopicon /DIR=" + ProgressQuote(Text("target")) + " /LOG=" + ProgressQuote(Text("log"));
         using (var installer = StartTracked(Text("installer"), desktopName, arguments))
         {
@@ -224,7 +227,10 @@ internal static class InstallerWizardHarness
                     {
                         if (progressPid != 0) Require(ProcessId(window) == progressPid, "Pinned installer progress HWND changed owner");
                         controls = ProgressChildren(window, ProcessId(window), crossProcess, crossProcessSeen);
-                        string[] texts = controls.Select(Caption).Where(text => text.Length != 0).ToArray();
+                        int samplePid = ProcessId(window);
+                        var captions = new Dictionary<IntPtr, string>();
+                        foreach (IntPtr control in controls) { string caption; if (TryProgressCaption(control, samplePid, captionFailures, out caption)) captions[control] = caption; }
+                        string[] texts = captions.Values.Where(text => text.Length != 0).ToArray();
                         if (!texts.Any(text => text.Contains("请稍候，安装完成后会自动进入下一步。"))) continue;
                         if (progressWindow == IntPtr.Zero)
                         {
@@ -236,12 +242,13 @@ internal static class InstallerWizardHarness
                         {
                             uint style = unchecked((uint)GetWindowLong(bar, -16));
                             bool rolling = (style & 8) != 0;
-                            IntPtr countControl = controls.FirstOrDefault(handle => System.Text.RegularExpressions.Regex.IsMatch(Caption(handle), @"文件 ([0-9]+) / ([0-9]+)"));
-                            string countBefore = countControl == IntPtr.Zero ? "" : Caption(countControl);
+                            IntPtr countControl = controls.FirstOrDefault(handle => captions.ContainsKey(handle) && System.Text.RegularExpressions.Regex.IsMatch(captions[handle], @"文件 ([0-9]+) / ([0-9]+)"));
+                            string countBefore = "", countAfter = "";
+                            if (countControl != IntPtr.Zero && !TryProgressCaption(countControl, samplePid, captionFailures, out countBefore)) continue;
                             int position = checked((int)Send(bar, 0x0408, IntPtr.Zero, IntPtr.Zero).ToInt64());
                             int maximum = checked((int)Send(bar, 0x0407, IntPtr.Zero, IntPtr.Zero).ToInt64());
                             int minimum = checked((int)Send(bar, 0x0407, new IntPtr(1), IntPtr.Zero).ToInt64());
-                            string countAfter = countControl == IntPtr.Zero ? "" : Caption(countControl);
+                            if (countControl != IntPtr.Zero && !TryProgressCaption(countControl, samplePid, captionFailures, out countAfter)) continue;
                             var count = System.Text.RegularExpressions.Regex.Match(countBefore, @"文件 ([0-9]+) / ([0-9]+)");
                             int completed = count.Success ? Int32.Parse(count.Groups[1].Value) : 0, total = count.Success ? Int32.Parse(count.Groups[2].Value) : 0;
                             // Locked Inno 6.7.3 NewProgressBar.pas uses a native
@@ -272,6 +279,56 @@ internal static class InstallerWizardHarness
         Require(Hash(Path.Combine(Text("target"), "朋友资料.txt")) == Text("unknownSha256"), "Friend file changed");
         Require(Hash(Text("installer")) == Text("installerSha256"), "Installer copy changed");
         Check("actual-fixture-progress-and-install-exit", new { marqueeObserved = marquee, matchingNativeFileCountObserved = counted, switchedDesktop = false, registrationAndSavedDataChecks = "Original handoff scenario continues after this observer" });
+    }
+
+    // Progress captions are observational only. A vanished/replaced or temporarily
+    // busy HWND loses this sample, never the required eventual progress evidence.
+    // Navigation/editing and native progress-value reads retain strict Send/Caption.
+    private static bool TryProgressCaption(IntPtr handle, int expectedPid, List<object> failures, out string caption)
+    {
+        caption = ""; IntPtr length;
+        if (!TryProgressCaptionMessage(handle, expectedPid, 0x000E, IntPtr.Zero, IntPtr.Zero, failures, out length)) return false;
+        int count = checked((int)length.ToInt64());
+        Require(count >= 0 && count < 65536, "Unexpected progress caption length");
+        IntPtr buffer = Marshal.AllocHGlobal((count + 1) * 2);
+        try
+        {
+            Marshal.WriteInt16(buffer, 0); IntPtr copied;
+            if (!TryProgressCaptionMessage(handle, expectedPid, 0x000D, new IntPtr(count + 1), buffer, failures, out copied)) return false;
+            caption = Marshal.PtrToStringUni(buffer) ?? ""; return true;
+        }
+        finally { Marshal.FreeHGlobal(buffer); }
+    }
+
+    private static bool TryProgressCaptionMessage(IntPtr handle, int expectedPid, uint message, IntPtr wParam, IntPtr lParam, List<object> failures, out IntPtr value)
+    {
+        Require(message == 0x000E || message == 0x000D, "Only read-only progress caption samples may be skipped");
+        value = IntPtr.Zero;
+        bool alive = IsWindow(handle); int pid = ProcessId(handle);
+        if (alive && pid == expectedPid)
+        {
+            try
+            {
+                OwnWindow(handle);
+                if (SendMessageTimeout(handle, message, wParam, lParam, 0x0002, 2000, out value) != IntPtr.Zero)
+                {
+                    if (IsWindow(handle) && ProcessId(handle) == expectedPid) return true;
+                    RecordProgressCaptionFailure(failures, handle, expectedPid, message, 0, "HWND disappeared or changed owner during caption read"); return false;
+                }
+                int error = Marshal.GetLastWin32Error();
+                RecordProgressCaptionFailure(failures, handle, expectedPid, message, error, "Read-only caption did not respond within the existing 2000ms budget"); return false;
+            }
+            catch (InvalidOperationException) when (!IsWindow(handle))
+            {
+                RecordProgressCaptionFailure(failures, handle, expectedPid, message, 0, "HWND disappeared before caption ownership verification"); return false;
+            }
+        }
+        RecordProgressCaptionFailure(failures, handle, expectedPid, message, 0, "Stale or replaced child HWND; no control message sent"); return false;
+    }
+
+    private static void RecordProgressCaptionFailure(List<object> failures, IntPtr handle, int expectedPid, uint message, int error, string reason)
+    {
+        if (failures.Count < 128) failures.Add(new { observedAtUtc = DateTime.UtcNow.ToString("o"), window = handle.ToInt64().ToString("X"), expectedPid, observedPid = ProcessId(handle), isWindow = IsWindow(handle), message, win32Error = error, reason, sampleSkipped = true, actionInvoked = false });
     }
 
     private static List<IntPtr> ProgressChildren(IntPtr window, int expectedPid, List<object> skipped, HashSet<string> seen)
@@ -592,6 +649,16 @@ internal static class InstallerWizardHarness
         Require(edit != IntPtr.Zero, "Probe edit missing");
         SendText(edit, Text("target"));
         Require(Caption(edit) == Text("target"), "Private desktop edit read/write failed");
+        IntPtr observed = Children(window).FirstOrDefault(handle => Caption(handle) == "caption observation probe");
+        Require(observed != IntPtr.Zero, "Caption observation probe missing");
+        var skipped = new List<object>(); string sampled; int owner = Owner(window);
+        Require(TryProgressCaption(observed, owner, skipped, out sampled) && sampled == "caption observation probe" && skipped.Count == 0, "Readable own caption sample failed");
+        Send(observed, 0x8001, IntPtr.Zero, IntPtr.Zero);
+        Require(!TryProgressCaption(observed, owner, skipped, out sampled) && skipped.Count == 1, "Busy own caption must lose only its observational sample");
+        Require(Caption(observed) == "caption observation probe", "Strict caption must remain usable after the one-shot probe delay");
+        Send(observed, 0x8002, IntPtr.Zero, IntPtr.Zero);
+        Require(!IsWindow(observed) && !TryProgressCaption(observed, owner, skipped, out sampled) && skipped.Count == 2, "Destroyed own caption must be skipped without a control message");
+        Check("api-probe-caption-sampling-busy-and-destroyed", new { actualOwnControls = true, installerProof = false, skippedCaptionSamples = skipped });
         TaskControl task = Wait(() => FindTask(window), "Probe accessible checkbox", 5000);
         SetTask(task, true);
         SetTask(task, false);
@@ -619,10 +686,23 @@ internal static class InstallerWizardHarness
             form.Controls.Add(new Label { Text = Notice, AutoSize = true, Left = 24, Top = 32 });
             form.Controls.Add(new TextBox { Text = "probe", Left = 24, Top = 90, Width = 620 });
             form.Controls.Add(new CheckBox { Text = DesktopTask, AccessibleName = DesktopTask, Left = 24, Top = 150, Width = 420 });
+            form.Controls.Add(new CaptionProbeLabel { Text = "caption observation probe", Left = 24, Top = 210, Width = 500, Height = 32 });
             var cancel = new Button { Text = "取消", Left = 550, Top = 300, Width = 110 };
             cancel.Click += (sender, e) => form.Close();
             form.Controls.Add(cancel);
             Application.Run(form);
+        }
+    }
+
+    private sealed class CaptionProbeLabel : Label
+    {
+        private bool pauseNextRead;
+        protected override void WndProc(ref Message message)
+        {
+            if (message.Msg == 0x8001) { pauseNextRead = true; message.Result = new IntPtr(1); return; }
+            if (message.Msg == 0x8002) { Dispose(); message.Result = new IntPtr(1); return; }
+            if (message.Msg == 0x000E && pauseNextRead) { pauseNextRead = false; Thread.Sleep(2300); }
+            base.WndProc(ref message);
         }
     }
 
