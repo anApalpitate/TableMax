@@ -80,11 +80,13 @@ export function SeatResult({
 export function TableStatus({
   view,
   names,
+  portraits = {},
   drawActions = [],
   onDraw,
 }: {
   view: PokemonView;
   names: Record<string, string>;
+  portraits?: Record<string, string>;
   drawActions?: readonly JsonValue[];
   onDraw?: ((action: JsonValue) => void) | undefined;
 }) {
@@ -92,6 +94,10 @@ export function TableStatus({
   const galleryTitle = useId();
   const motion = useContext(SavedMotion);
   const progress = decisionProgress(view);
+  const actingSeats =
+    view.phase === 'initial-flip'
+      ? view.seatOrder.filter((seat) => !view.initialDone.includes(seat))
+      : [view.actorSeat ?? view.turnSeat];
   const draws = (drawActions as readonly Action[]).filter(
     (action) => action.type === 'draw',
   );
@@ -160,9 +166,24 @@ export function TableStatus({
                 : (names[view.actorSeat ?? view.turnSeat] ?? '当前玩家')
             }
           >
-            {view.phase === 'initial-flip'
-              ? '各位玩家'
-              : (names[view.actorSeat ?? view.turnSeat] ?? '当前玩家')}
+            <span className="status-actors" aria-label="当前行动玩家">
+              {actingSeats.map((seat) =>
+                portraits[seat] ? (
+                  <img
+                    key={seat}
+                    src={portraits[seat]}
+                    data-actor-seat={seat}
+                    alt={view.phase === 'initial-flip' ? names[seat] : ''}
+                    title={names[seat]}
+                  />
+                ) : null,
+              )}
+            </span>
+            <span>
+              {view.phase === 'initial-flip'
+                ? '各位玩家'
+                : (names[view.actorSeat ?? view.turnSeat] ?? '当前玩家')}
+            </span>
           </h2>
           <strong className="current-operation">
             {phaseLabels[view.phase]}

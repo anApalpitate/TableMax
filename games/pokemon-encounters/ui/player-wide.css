@@ -107,6 +107,8 @@
     .game-table[data-seats][data-layout]
     > .pokemon-status.decision-dashboard {
     display: grid;
+    container-type: inline-size;
+    container-name: pokemon-wide-status;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
@@ -222,5 +224,30 @@
     > .discard-control {
     grid-column: 2;
     grid-row: 2;
+  }
+}
+
+@media (min-width: 960px) {
+  @container pokemon-wide-status (max-width: 400px) {
+    [data-player-display='wide']
+      .pokemon-screen.player
+      .game-table[data-seats][data-layout]
+      .card-piles {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+    [data-player-display='wide']
+      .pokemon-screen.player
+      .game-table[data-seats][data-layout]
+      .held-zone {
+      grid-column: 1 / -1;
+      grid-row: 3;
+    }
+    [data-player-display='wide']
+      .pokemon-screen.player
+      .game-table[data-seats][data-layout]
+      .held-zone.held-empty {
+      grid-template-columns: 40px minmax(0, 1fr);
+    }
   }
 }

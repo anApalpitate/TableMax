@@ -80,7 +80,9 @@ export function CardSkin({
             )
           )}
           <span className={`card-name${expansion ? ' ex-card-name' : ''}`}>
-            {face.name.replace('外观', '')}
+            <span className="card-name-text">
+              {face.name.replace('外观', '')}
+            </span>
           </span>
         </>
       ) : (

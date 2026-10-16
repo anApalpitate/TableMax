@@ -37,13 +37,18 @@ export function EventStatus({ game }: { game: View }) {
         <details>
           <summary>
             {eventLabels[game.currentEvent.kind]}
-            {game.currentEvent.placeholder ? ' · 效果待设计' : ''}
+            {game.currentEvent.placeholder && (
+              <span className="ex-event-placeholder">效果待设计</span>
+            )}
           </summary>
           <p>{eventSummaries[game.currentEvent.kind]}</p>
         </details>
       )}
       {game.bondPlaceholders?.map((bond) => (
-        <span key={bond.id}>{bond.name} · 效果待设计</span>
+        <span className="ex-semantic-groups" key={bond.id}>
+          <span>{bond.name}</span>
+          <span>效果待设计</span>
+        </span>
       ))}
     </aside>
   );

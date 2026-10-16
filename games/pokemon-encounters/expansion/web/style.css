@@ -899,7 +899,9 @@
   .expansion-screen:not(.player):has(> .ex-paused)
     .ex-round-banner
     > span:last-child:after {
-    content: ' · 已暂停';
+    content: '已暂停';
+    display: inline-block;
+    margin-inline-start: 8px;
     font-size: 18px;
   }
 }

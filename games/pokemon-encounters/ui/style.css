@@ -96,10 +96,13 @@
 }
 :where(.pokemon-screen) .pokemon-card.face {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto;
+  aspect-ratio: auto;
+  min-height: min-content;
 }
 :where(.pokemon-screen) .pokemon-card.face > img {
-  height: 100%;
+  height: auto;
+  aspect-ratio: 1;
   flex: none;
 }
 :where(.pokemon-screen) .card-name {
@@ -107,11 +110,12 @@
   background: #fff2c9;
   color: #2c241f;
   padding: 2px 0;
-  font-size: 12px;
+  font-size: 16px;
   line-height: 1.4;
   font-weight: 750;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
   flex-shrink: 0;
 }
 :where(.pokemon-screen) .pokemon-card.back {
@@ -808,7 +812,7 @@
   line-height: 1.4;
 }
 .pokemon-screen .card-name {
-  font-size: 14px;
+  font-size: 16px;
 }
 .pokemon-screen .submit-choice button {
   font-size: 16px;
@@ -975,8 +979,12 @@
   margin: 0;
 }
 .pokemon-screen .card-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  text-overflow: clip;
+}
+.pokemon-screen .card-name-text {
+  display: block;
+  min-width: 0;
 }
 .pokemon-screen:not(.player) .game-table[data-seats='6'] .pokemon-card {
   aspect-ratio: 1 / 1.27;
@@ -1002,7 +1010,7 @@
   .game-table[data-seats='6']
   .card-piles
   .card-name {
-  font-size: 12px;
+  font-size: 16px;
 }
 .pokemon-screen:not(.player) .game-table[data-seats='6'] .pokemon-status h2 {
   font-size: 20px;
@@ -1138,7 +1146,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .pokemon-screen:not(.player) .game-table[data-seats='6'] .card-name {
-    font-size: 12px;
+    font-size: 16px;
   }
 }
 @media (orientation: landscape) and (max-height: 550px) and (min-width: 560px) {
@@ -2097,7 +2105,7 @@
     line-height: 14px;
   }
   .pokemon-screen:not(.player) .game-table[data-seats='6'] .card-name {
-    font-size: 12px;
+    font-size: 16px;
   }
   .pokemon-screen:not(.player) .game-table[data-seats='6'] .card-heading {
     min-height: 22px;

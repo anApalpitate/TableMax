@@ -21,7 +21,7 @@ export const eventSummaries: Record<EventKind, string> = {
 export function scoreEffectText(face: Pick<Face, 'scoreEffect'>) {
   const effect = face.scoreEffect;
   if (!effect) return null;
-  return `${effect.inherited ? '复制继承 · ' : ''}${eventLabels[effect.kind]} ${effect.delta >= 0 ? '＋' : '−'}${Math.abs(effect.delta)}`;
+  return `${effect.inherited ? '复制继承，' : ''}${eventLabels[effect.kind]} ${effect.delta >= 0 ? '＋' : '−'}${Math.abs(effect.delta)}`;
 }
 
 /** Only an authorized face supplies the physical and effective role/value. */
@@ -33,7 +33,7 @@ export function roleEffectText(
 ) {
   if (!face.originalCategoryId || face.originalCategoryId === face.categoryId)
     return null;
-  return `戏法空间 · 原值${face.printedValue ?? '复制'}→${face.effectiveValue ?? '复制'}`;
+  return `戏法空间，原值${face.printedValue ?? '复制'}→${face.effectiveValue ?? '复制'}`;
 }
 export function faceEffectText(face: Face) {
   return (

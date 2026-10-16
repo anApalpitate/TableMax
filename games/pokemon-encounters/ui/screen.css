@@ -170,7 +170,7 @@
   color: #5b7056;
 }
 .pokemon-screen .card-name {
-  font-size: 12px;
+  font-size: 16px;
 }
 .pokemon-screen .pokemon-board {
   margin: 12px 0;
@@ -407,7 +407,7 @@
     font-size: 20px;
   }
   .pokemon-screen .card-piles .card-name {
-    font-size: 12px;
+    font-size: 16px;
   }
   .pokemon-screen .pile-label {
     font-size: 12px;
@@ -431,7 +431,7 @@
     width: 62px;
   }
   .pokemon-screen.player .card-name {
-    font-size: 12px;
+    font-size: 16px;
   }
   .pokemon-screen.player .card-value {
     font-size: 26px;

@@ -47,6 +47,9 @@ function PokemonScreen({ session }: { session: RoomSession }) {
   const names = Object.fromEntries(
     view?.seats.map((seat) => [seat.id, seat.name]) ?? [],
   );
+  const portraits = Object.fromEntries(
+    view?.seats.map((seat) => [seat.id, avatarFor(seat.avatarId)]) ?? [],
+  );
   const choose = (action: JsonValue) => {
     if (view?.decisionId)
       command({ type: 'game', decisionId: view.decisionId, action });
@@ -126,9 +129,34 @@ function PokemonScreen({ session }: { session: RoomSession }) {
           </button>
           <button
             className="secondary toolbar-menu"
+            aria-label="菜单"
+            title="菜单"
+            data-tooltip="菜单"
             onClick={() => setPanel('menu')}
           >
-            菜单
+            <svg
+              className="pokemon-menu-icon"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <rect
+                x="3"
+                y="2"
+                width="18"
+                height="20"
+                rx="3"
+                fill="#fff3d1"
+                stroke="currentColor"
+                strokeWidth="1.6"
+              />
+              <path
+                d="M7 7h10M7 12h10M7 17h10"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
           </button>
         </header>
         <SessionFeedback session={session} />
@@ -183,6 +211,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
               seats={seats}
               selfId={self?.id ?? null}
               names={names}
+              portraits={portraits}
               player={role === 'player'}
               actions={actions}
               locked={locked}

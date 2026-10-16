@@ -14,7 +14,7 @@ describe('authorized weather value labels', () => {
         printedValue: -2,
         effectiveValue: 11,
       }),
-    ).toBe('戏法空间 · 原值-2→11');
+    ).toBe('戏法空间，原值-2→11');
     expect(
       roleEffectText({
         originalCategoryId: 'pikachu',
@@ -36,7 +36,7 @@ describe('authorized weather value labels', () => {
       scoreEffectText({
         scoreEffect: { kind: 'rain', delta: -2, inherited: true },
       }),
-    ).toBe('复制继承 · 雨天 −2');
+    ).toBe('复制继承，雨天 −2');
     expect(scoreEffectText({ scoreEffect: null })).toBeNull();
   });
   it('labels all six announced event categories including the Mega placeholder', () => {

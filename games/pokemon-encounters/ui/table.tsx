@@ -22,6 +22,7 @@ export function GameTable({
   seats,
   selfId,
   names,
+  portraits = {},
   player,
   actions,
   locked,
@@ -43,6 +44,7 @@ export function GameTable({
   seats: readonly TableSeat[];
   selfId: string | null;
   names: Record<string, string>;
+  portraits?: Record<string, string>;
   player: boolean;
   actions: readonly JsonValue[];
   locked: boolean;
@@ -110,6 +112,7 @@ export function GameTable({
             <TableStatus
               view={game}
               names={names}
+              portraits={portraits}
               drawActions={paused || locked ? [] : actions}
               onDraw={selfId ? choose : undefined}
             />

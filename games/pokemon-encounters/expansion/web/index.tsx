@@ -58,6 +58,7 @@ import './redesign.css';
 import './refinement.css';
 import './player-flow.css';
 import './player-wide.css';
+import './preference-refinement.css';
 
 const poseDurations = Object.fromEntries(
   Object.entries(poseSequences).map(([id, sequence]) => [
@@ -99,7 +100,7 @@ const phaseText: Record<View['phase'], string> = {
 const labels: Partial<Record<Action['type'], string>> = {
   'decline-ability': '放弃能力',
   'close-peek': '查看完成',
-  'activate-arceus': '发动 · 每人随机一明',
+  'activate-arceus': '发动，每人随机一明',
   'extra-draw': '再取一张',
   'discard-held': '弃掉这张牌',
   'pass-direction': '选择传牌方向',
@@ -630,7 +631,7 @@ function Actions({
         <p className="ex-vote-status">
           {game.ownVote
             ? '投票已锁定，等待其他玩家'
-            : '选择一项投票 · 提交后锁定'}
+            : '选择一项投票，提交后锁定'}
         </p>
       </section>
     );
@@ -681,8 +682,10 @@ function Actions({
                   ，必须使用
                 </span>
                 <span className="ex-source-label-compact">
-                  {game.drawSource === 'buffer' ? '本人缓冲' : '弃牌堆'} ·
-                  必须换入
+                  <span>
+                    {game.drawSource === 'buffer' ? '本人缓冲' : '弃牌堆'}
+                  </span>
+                  <span>必须换入</span>
                 </span>
               </span>
             )}
@@ -930,9 +933,11 @@ function Actions({
               }}
             >
               {commandLabel}
-              {slots.length
-                ? ` · ${slots.map((s) => s + 1).join('、')}号位`
-                : ''}
+              {slots.length > 0 && (
+                <span className="ex-command-target">
+                  {slots.map((s) => s + 1).join('、')}号位
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -1268,6 +1273,14 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
       session.role === 'player'
         ? seats.filter((s) => s.id === session.self?.id)
         : seats;
+  const pendingSeats =
+    game.phase === 'research-vote'
+      ? game.seatOrder.filter((id) => !game.votedSeats.includes(id))
+      : game.phase === 'initial-flip'
+        ? game.seatOrder.filter((id) => !game.initialDone.includes(id))
+        : game.actorSeat
+          ? [game.actorSeat]
+          : [];
   const research =
     game.activeResearch.length > 0 ? (
       <aside className="ex-research-strip" aria-label="本局研究">
@@ -1426,8 +1439,28 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
             朋友
           </button>
         )}
-        <button className="secondary" onClick={() => setPanel('menu')}>
-          菜单
+        <button
+          className="secondary ex-menu-entry"
+          aria-label="菜单"
+          title="菜单"
+          onClick={() => setPanel('menu')}
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <path transform="translate(0.5 0)" d="M8 6h13M8 12h13M8 18h13" />
+            <path
+              d="M3 5a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm0 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm0 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"
+              transform="translate(0.5 0)"
+            />
+          </svg>
         </button>
       </header>
       <div className="ex-round-banner">
@@ -1437,17 +1470,35 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
             ? '超梦：私看对手一张'
             : phaseText[game.phase]}
         </strong>
-        <span
-          className="ex-current-actor"
-          title={game.actorSeat ? names[game.actorSeat] : undefined}
-        >
-          {game.actorSeat
-            ? names[game.actorSeat]
-            : game.phase === 'research-vote'
-              ? `投票 ${game.votedSeats.length}/${seats.length}`
-              : game.phase === 'initial-flip'
-                ? `翻牌 ${game.initialDone.length}/${seats.length}`
-                : '三胜赛制'}
+        <span className="ex-current-actor">
+          {game.phase === 'research-vote' && (
+            <span className="ex-actor-progress">
+              投票 {game.votedSeats.length}/{game.seatOrder.length}
+            </span>
+          )}
+          {game.phase === 'initial-flip' && (
+            <span className="ex-actor-progress">
+              翻牌 {game.initialDone.length}/{game.seatOrder.length}
+            </span>
+          )}
+          {pendingSeats.length
+            ? pendingSeats.map((id) => {
+                const seat = seats.find((entry) => entry.id === id);
+                return (
+                  <span
+                    className="ex-actor-identity"
+                    data-actor-seat={id}
+                    key={id}
+                  >
+                    <img
+                      src={avatarFor(seat?.avatarId ?? 'builtin-1')}
+                      alt=""
+                    />
+                    <span>{names[id] ?? '玩家'}</span>
+                  </span>
+                );
+              })
+            : '三胜赛制'}
         </span>
         <TurnProgress game={game} />
       </div>
@@ -1470,10 +1521,15 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
             {game.matchWinners.length ? '♛' : '✦'}
           </span>
           <div>
-            <p>
-              {game.matchWinners.length
-                ? '三胜达成 · 大局赢家'
-                : `第 ${game.roundNumber} 小局 · 最低分获胜`}
+            <p className="ex-semantic-groups">
+              <span>
+                {game.matchWinners.length
+                  ? '三胜达成'
+                  : `第 ${game.roundNumber} 小局`}
+              </span>
+              <span>
+                {game.matchWinners.length ? '大局赢家' : '最低分获胜'}
+              </span>
             </p>
             <h2>
               {(game.matchWinners.length
@@ -1579,15 +1635,20 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
       {panel && (
         <OverlayPanel
           title={
-            panel === 'rules'
-              ? '扩展版图文规则'
-              : panel === 'friends'
-                ? '朋友的牌桌'
-                : panel === 'research'
-                  ? '研究任务'
-                  : panel === 'score'
-                    ? `${names[detail] ?? '玩家'} · 计分明细`
-                    : '牌桌菜单'
+            panel === 'rules' ? (
+              '扩展版图文规则'
+            ) : panel === 'friends' ? (
+              '朋友的牌桌'
+            ) : panel === 'research' ? (
+              '研究任务'
+            ) : panel === 'score' ? (
+              <span className="ex-score-panel-title">
+                <span>{names[detail] ?? '玩家'}</span>
+                <span>计分明细</span>
+              </span>
+            ) : (
+              '牌桌菜单'
+            )
           }
           close={() => setPanel(null)}
         >
