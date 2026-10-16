@@ -4,13 +4,23 @@
 
 本页维护打包、签名和推广的精确操作参数；当前已验交付及线上边界统一见[验收](../../docs/reference/acceptance.md#当前源码与本地交付)，产品发布规则见[Release流程](../../docs/reference/release.md)。
 
-新安装器先用 `--candidate` 封包：正常新构建原子分配四位修订，失败编号不复用，但保留已有 `current.json`。stdout 返回 `candidatePath`；该记录冻结候选交付和原 current 的原始 SHA，同目录 `full/installer-delivery.json` 供描述生成及实际安装验收。`--platform-from` 按原快照身份及游戏缓存逐成员 SHA 保留正式游戏，只刷新当前平台和组装器并生成新快照、新修订；`--snapshot` 则恢复原冻结快照，不分配新修订。
+新安装器先用 `--candidate` 封包：正常新构建原子分配四位修订，失败编号不复用，但保留已有 `current.json`。stdout 返回 `candidatePath`；该记录冻结候选交付和原 current 的原始 SHA，同目录 `full/installer-delivery.json` 供描述生成及实际安装验收。`--platform-from` 按原快照身份及游戏缓存逐成员 SHA 保留正式游戏，只刷新当前平台和组装器并生成新快照、新修订；可跨公开版本，但新快照必须记录目标版本与 `retainedGameVersion`，保留原游戏来源证明。`--snapshot` 则恢复原冻结快照，不分配新修订。
 
 平台变更而游戏未变时，使用下列占位参数保留原游戏单元；先核对实际冻结快照和内部游戏源，不能直接复制历史候选路径。完整冻结恢复使用 --snapshot，与生成新平台候选区分。
 
 ```powershell
 node tools/release/package.mjs --candidate "--platform-from=<已核验冻结快照.json>" "--games=<该快照对应的完整内部游戏目录>"
 ```
+
+跨公开版本时，目标内部目录使用新tag的catalog和build-record，不把旧tag目录直接当作新目录；原游戏单元、受信任历史玩法正文及blob ZIP逐项核验。正文除目标平台releaseTag外完全相同才复用原完整玩法记录及其releaseId／releaseTag，未变游戏不重新编译、改名或重压。玩法或可信来源不匹配即拒绝，不降级为未核验复用。
+
+新公开版本尚无current时，双fixture准备显式指定旧正式current原件；不能临时改版本、假推广或在执行模式寻找来源回退。先完成目标版本源码和配方，提供目标Native依赖模板、server／web单元及全新证据目录：
+
+```powershell
+node tools/test/installation/verify-application-handoff.mjs --prepare-only "--source-pointer=<旧公开版本current.json原件>" "--native-template=<目标Native依赖目录>" "--server=<目标server单元files目录>" "--web=<目标box单元files目录>" "--evidence=<新准备证据目录>"
+```
+
+`--source-pointer`仅用于prepare-only，路径须在工作区且没有链接。准备先核原指针、完整EXE、payload、安装清单及快照的版本和SHA，报告记录原指针路径／字节数／SHA，每份fixture保留原始指针副本。prepared复验只使用这些冻结材料，不重新读取current选择来源；不传参数时仍按当前公开版本current选择。fixture Native／helper及安装配方来自当前源码／package版本，借用的只是原完整签名游戏与载荷基础，不构成新正式产品或系统验收。
 
 封好最终 EXE 后，将下列占位符替换为实际新路径，显式读取候选的交付 JSON，避免读取仍保留旧交付的 current。描述绑定最终 EXE 大小／SHA、安装清单及 current 映射；签名工具从受保护文件读取独立应用 RSA 私钥，用仓库公开根自验，输出不覆盖既有审阅文件。
 
@@ -23,7 +33,7 @@ node tools/release/sign-application-update.mjs "--description=<新描述.json>" 
 
 installation-promote只接受同一候选的正式GUID证明，核对候选冻结时的原current SHA并原子切换，不重新分配修订。必需系统范围、隔离与容量要求统一见[验证规格](../../docs/reference/validation.md#完整安装与程序更新的证据分层)；fixture、helper-only及keep-installed诊断不能进入正式证明。
 
-推广与未来发布共用 verifyInstallationAcceptance。实际保存／卸载后重装、容量口径及退出完成观察以[证明要求](../../docs/reference/validation.md#完整安装与程序更新的证据分层)为准；门禁纯测试不是系统验收。
+推广与发布共用 verifyInstallationAcceptance。实际保存／卸载后重装、容量口径及退出完成观察以[证明要求](../../docs/reference/validation.md#完整安装与程序更新的证据分层)为准；门禁纯测试不是系统验收。
 
 ```powershell
 node tools/release/installation-promote.mjs "--candidate=<封包输出candidatePath>" "--proof=<最终正式proof.json>"
@@ -36,6 +46,8 @@ node tools/release/installation-promote.mjs "--candidate=<封包输出candidateP
 前置条件是锁定工具链、有效预算、冻结输入和全部正式模块完整性。游戏仍独立组织、增量构建，内部签名模块按字节变化复用或生成；正式模板不计入当前游戏库。独立游戏导出、Pages准备／部署和安装型作者工具包导出已停止，保留文件仅说明内部实现或历史验证边界。
 
 重封内部fixture时，先把release manifest原字节复制到本轮独立工作目录，再传给 createInstallationExecutable；工厂会在输入manifest旁写固定名installation manifest，不能把旧冻结目录作为可写输出。原sidecar覆盖事件与恢复摘要见[整理归档](../../docs/archive/tooling-delivery-organization-2026-10-15.md#fixture-sidecar覆盖与恢复)。
+
+安装器在PrepareToInstall内显式提取并调用helper `--commit --progress`，成功健康确认后才交给Inno登记框架。进度协议是可选stdout行 `TABLEMAX-INSTALL-PROGRESS-V1|<phase>|<completed>|<total>`：snapshot／stage／switch的整数来自实际已完成文件检查／复制校验／切换，未知总量的提取和健康等待显示marquee。阶段计数不能作为总字节百分比或成功凭证；stderr、最终结果与退出码继续独立核验。省略 `--progress` 保持原JSON结果输出，其他helper操作不接受该选项；进度显示通道失败不改变事务或保存门禁。
 
 本地程序使用四位 `1.x.x.y`，公开版本／附件使用三位 `1.x.x`，分配、冻结与发布映射见[版本流程](../../docs/reference/release.md#三位公开版本与四位本地构建2026-10-12)。只有获明确发布授权后才执行 `pnpm release:github -- --publish --notes=<已审文件>`，创建完整EXE与发布提交source ZIP两附件；本地导出和普通push不发布。
 
@@ -58,7 +70,7 @@ node tools/release/installation-promote.mjs "--candidate=<封包输出candidateP
 | [game-release-assets.mjs](game-release-assets.mjs)                                                | 内部目录精确成员／哈希核验，兼容原历史资产                                                                                                                                                                                               |
 | [catalog-history.mjs](catalog-history.mjs)                                                        | 内部签名历史合并及旧协议目录兼容                                                                                                                                                                                                         |
 | [catalog-history.test.mjs](catalog-history.test.mjs)                                              | `node --import tsx --test tools/release/catalog-history.test.mjs`                                                                                                                                                                        |
-| [windows-executable-name.mjs](windows-executable-name.mjs)                                        | 当前无后缀EXE命名及历史双格式识别                                                                                                                                                                                                        |
+| [windows-executable-name.mjs](windows-executable-name.mjs)                                        | 当前installer EXE命名及历史便携／box名称的显式识别                                                                                                                                                                                       |
 | [release-executable.mjs](release-executable.mjs)                                                  | EXE封装辅助，由打包入口调用                                                                                                                                                                                                              |
 | [installation-package.mjs](installation-package.mjs)                                              | 冻结完整载荷的Inno安装器、稳定入口和helper；正式产品ID固定，测试ID独立                                                                                                                                                                   |
 | [installation-toolchain.mjs](installation-toolchain.mjs)、[锁定清单](installation-toolchain.json) | 项目缓存内准备6.7.3编译器，核对官方安装包、ISSigTool及逐文件SHA；不全局安装                                                                                                                                                              |

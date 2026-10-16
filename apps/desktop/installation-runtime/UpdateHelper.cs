@@ -25,6 +25,14 @@ namespace TableMax.Installation
     {
         private sealed class HelperError : IOException { public int Code { get; } public HelperError(int code, string message) : base(message) { Code = code; } }
         private static Dictionary<string, string> options;
+        private static bool progressRequested;
+        private static void Progress(string phase, int completed = 0, int total = 0)
+        {
+            if (!progressRequested) return;
+            // Display-only telemetry must not interrupt a file transaction.
+            try { Console.WriteLine("TABLEMAX-INSTALL-PROGRESS-V1|" + phase + "|" + completed.ToString(System.Globalization.CultureInfo.InvariantCulture) + "|" + total.ToString(System.Globalization.CultureInfo.InvariantCulture)); }
+            catch (IOException) { progressRequested = false; }
+        }
         private static string diagnosticStage = "main.initialize", diagnosticMember;
         private static void Stage(string value, string relativePath = null) { diagnosticStage = value; diagnosticMember = relativePath; }
         private static void Diagnostic(Exception cause) => Console.Error.WriteLine("TableMax.Helper stage=" + diagnosticStage + " exceptionType=" + cause.GetType().FullName + " HResult=0x" + cause.HResult.ToString("X8", System.Globalization.CultureInfo.InvariantCulture) + (diagnosticMember == null ? "" : " relativePath=" + diagnosticMember));
@@ -202,7 +210,9 @@ namespace TableMax.Installation
                 options = new Dictionary<string, string>(StringComparer.Ordinal);
                 foreach (var arg in arguments) { if (!arg.StartsWith("--", StringComparison.Ordinal)) throw new HelperError(10, "安装参数无效。"); var separator = arg.IndexOf('='); var key = separator < 0 ? arg.Substring(2) : arg.Substring(2, separator - 2); if (options.ContainsKey(key)) throw new HelperError(10, "安装参数重复。"); options.Add(key, separator < 0 ? "true" : arg.Substring(separator + 1)); }
                 var modes = new[] { "commit", "uninstall", "recover", "inspect-install", "apply-installer", "verify-vectors" }.Where(options.ContainsKey).ToArray();
-                if (modes.Length != 1 || options.Keys.Any(key => !new[] { "commit", "uninstall", "recover", "inspect-install", "apply-installer", "verify-vectors", "root", "candidate", "manifest", "target", "installer", "installer-source", "parent-pid", "migration-root", "health-timeout", "vectors" }.Contains(key))) throw new HelperError(10, "安装操作或参数无效。");
+                if (modes.Length != 1 || options.Keys.Any(key => !new[] { "commit", "uninstall", "recover", "inspect-install", "apply-installer", "verify-vectors", "root", "candidate", "manifest", "target", "installer", "installer-source", "parent-pid", "migration-root", "health-timeout", "vectors", "progress" }.Contains(key))) throw new HelperError(10, "安装操作或参数无效。");
+                progressRequested = options.ContainsKey("progress");
+                if (progressRequested && (modes[0] != "commit" || Get("progress") != "true")) throw new HelperError(10, "安装进度参数仅适用于完整安装。");
                 if (modes[0] == "verify-vectors") return VerifyVectors();
                 Stage("main.root"); var root = InstallationCore.Root(Get("root"));
                 if (modes[0] == "inspect-install") { Console.WriteLine(InstallationCore.Encode(InstallationManifest.Load(root))); return 0; }
@@ -213,7 +223,7 @@ namespace TableMax.Installation
                     if (!InstallationCore.Acquire(operation, 30000)) throw new HelperError(20, "另一安装、更新或卸载正在进行。");
                     try
                     {
-                        Stage("main.recover"); Recover(root);
+                        Progress("recover"); Stage("main.recover"); Recover(root);
                         if (modes[0] == "recover") { Console.WriteLine("{\"status\":\"recovered\"}"); return 0; }
                         if (modes[0] == "uninstall") { Uninstall(root); Console.WriteLine("{\"status\":\"uninstalled-data-retained\"}"); return 0; }
                         Stage("main.commit"); Commit(root); Console.WriteLine("{\"status\":\"confirmed\"}"); return 0;
@@ -408,6 +418,7 @@ namespace TableMax.Installation
         }
         private static void Commit(string root)
         {
+            Progress("verify");
             var candidate = InstallationCore.Full(Get("candidate")); InstallationCore.Safe(candidate);
             if (InstallationCore.Equal(candidate, root) || candidate.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new HelperError(10, "安装候选必须位于独立暂存目录。");
             var manifestPath = InstallationCore.Full(Get("manifest")); if (!manifestPath.StartsWith(candidate + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)) throw new HelperError(10, "候选清单越界。");
@@ -428,8 +439,9 @@ namespace TableMax.Installation
                 if (comparison < 0 || (comparison == 0 && (next.payloadManifestSha256 != previous.payloadManifestSha256 || next.currentMappingSha256 != previous.currentMappingSha256 || newReceipt.sha256 != previousReceipt.sha256 || newReceipt.bytes != previousReceipt.bytes))) throw new HelperError(10, "降级或相同构建不同内容已被拒绝。");
             }
             else foreach (var file in next.files) { var destination = InstallationCore.Member(root, file.path); if (File.Exists(destination) || Directory.Exists(destination)) throw new HelperError(10, "首次安装的受管目标已有未知内容，已保留。"); }
-            CheckUnknownApp(root, previous); Stop(root, true);
+            Progress("stop"); CheckUnknownApp(root, previous); Stop(root, true);
             var migration = Get("migration-root", false);
+            Progress("preserve");
             using (var lease = new MigrationLease(root, migration))
             {
             TableMax.Portable.LegacyGames.Preserve(Path.Combine(InstallationCore.Box(root), "app"), Path.Combine(InstallationCore.Box(root), "games"));
@@ -446,7 +458,8 @@ namespace TableMax.Installation
             State(transaction, "preparing", root);
             Dictionary<string, ManagedFile> snapshot = null;
             if (previous != null) snapshot = Snapshot(root, transaction, previous);
-            foreach (var file in next.files) CopyVerified(InstallationCore.Member(candidate, file.path), InstallationCore.Member(Path.Combine(transaction, "next-files"), file.path), file);
+            var staged = 0; Progress("stage", 0, next.files.Length);
+            foreach (var file in next.files) { CopyVerified(InstallationCore.Member(candidate, file.path), InstallationCore.Member(Path.Combine(transaction, "next-files"), file.path), file); Progress("stage", ++staged, next.files.Length); }
             lease.Verify();
             State(transaction, "prepared", root);
             try
@@ -458,8 +471,10 @@ namespace TableMax.Installation
                     {
                         lease.Verify();
                         State(transaction, "switching", root);
-                        foreach (var file in next.files) ReplaceVerified(InstallationCore.Member(Path.Combine(transaction, "next-files"), file.path), InstallationCore.Member(root, file.path), file, snapshot != null && snapshot.TryGetValue(file.path, out var recorded) ? recorded : null);
-                        foreach (var file in (IEnumerable<ManagedFile>)snapshot?.Values ?? Enumerable.Empty<ManagedFile>()) if (!next.files.Any(item => String.Equals(item.path, file.path, StringComparison.OrdinalIgnoreCase))) DeleteVerified(InstallationCore.Member(root, file.path), file);
+                        var obsolete = ((IEnumerable<ManagedFile>)snapshot?.Values ?? Enumerable.Empty<ManagedFile>()).Where(file => !next.files.Any(item => String.Equals(item.path, file.path, StringComparison.OrdinalIgnoreCase))).ToArray();
+                        var switched = 0; var switchingTotal = next.files.Length + obsolete.Length; Progress("switch", 0, switchingTotal);
+                        foreach (var file in next.files) { ReplaceVerified(InstallationCore.Member(Path.Combine(transaction, "next-files"), file.path), InstallationCore.Member(root, file.path), file, snapshot != null && snapshot.TryGetValue(file.path, out var recorded) ? recorded : null); Progress("switch", ++switched, switchingTotal); }
+                        foreach (var file in obsolete) { DeleteVerified(InstallationCore.Member(root, file.path), file); Progress("switch", ++switched, switchingTotal); }
                         InstallationCore.Atomic(InstallationCore.IdentityPath(root), next); InstallationCore.Atomic(InstallationCore.ReceiptPath(root), newReceipt); State(transaction, "installed", root);
                     }
                     finally { run.ReleaseMutex(); }
@@ -482,8 +497,9 @@ namespace TableMax.Installation
             }
             // Only confirmed snapshots are retired. These copies are never the
             // running transient helper or user's original portable directory.
-            CleanupCompleted(transaction, next, previous);
+            Progress("cleanup"); CleanupCompleted(transaction, next, previous);
             }
+            Progress("confirmed");
         }
         private static string ParseDataDirectory(string box, string json)
         {
@@ -641,15 +657,17 @@ namespace TableMax.Installation
         private static Dictionary<string, ManagedFile> Snapshot(string root, string transaction, InstallationManifest previous)
         {
             var records = new List<object>(); var result = new Dictionary<string, ManagedFile>(StringComparer.OrdinalIgnoreCase);
+            var inspected = 0; Progress("snapshot", 0, previous.files.Length);
             foreach (var file in previous.files)
             {
                 var source = InstallationCore.Member(root, file.path);
                 if (Directory.Exists(source)) throw new HelperError(10, "旧程序受管文件被未知文件夹占用，已保留。");
-                if (!File.Exists(source)) { records.Add(new { path = file.path, missing = true, bytes = 0, sha256 = new string('0', 64) }); continue; }
+                if (!File.Exists(source)) { records.Add(new { path = file.path, missing = true, bytes = 0, sha256 = new string('0', 64) }); Progress("snapshot", ++inspected, previous.files.Length); continue; }
                 var length = new FileInfo(InstallationCore.IO(source)).Length; if (length >= 120000000) throw new HelperError(10, "旧程序异常文件过大，保留原件并停止修复。");
                 var actual = new ManagedFile { path = file.path, bytes = (int)length, sha256 = InstallationCore.HashFile(source) };
                 CopyVerified(source, InstallationCore.Member(Path.Combine(transaction, "previous-files"), file.path), actual); result.Add(file.path, actual);
                 records.Add(new { path = file.path, missing = false, bytes = actual.bytes, sha256 = actual.sha256 });
+                Progress("snapshot", ++inspected, previous.files.Length);
             }
             InstallationCore.Atomic(Path.Combine(transaction, "previous-snapshot.json"), new { schemaVersion = 1, files = records }); return result;
         }
@@ -1005,6 +1023,7 @@ namespace TableMax.Installation
         }
         private static void Confirm(InstallationManifest target, string dataDirectory)
         {
+            Progress("health");
             var name = "TableMax.Health." + Guid.NewGuid().ToString("N"); var token = new byte[32]; using (var rng = RandomNumberGenerator.Create()) rng.GetBytes(token); var secret = BitConverter.ToString(token).Replace("-", "").ToLowerInvariant();
             var security = new PipeSecurity(); security.SetAccessRuleProtection(true, false); security.AddAccessRule(new PipeAccessRule(WindowsIdentity.GetCurrent().User, PipeAccessRights.FullControl, AccessControlType.Allow));
             using (var pipe = new NamedPipeServerStream(name, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous, 16384, 16384, security))

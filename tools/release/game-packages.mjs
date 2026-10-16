@@ -19,6 +19,7 @@ import {
   json,
 } from '../build/module-build.mjs';
 import { isDirectExecution } from '../shared/workspace-root.mjs';
+import { versionIdentity } from '../shared/application-version.mjs';
 export {
   sha256,
   canonical,
@@ -44,6 +45,48 @@ function snapshotIdentity(snapshot) {
   );
 }
 
+function verifySnapshotVersion(snapshot) {
+  const revision = snapshot.buildVersion?.split('.').at(-1);
+  const version = versionIdentity(
+    snapshot.version,
+    revision === undefined ? 0 : Number(revision),
+  );
+  if (snapshot.buildVersion !== undefined)
+    assert.equal(snapshot.buildVersion, version.buildVersion);
+}
+
+/** Refresh platform identity while retaining the exact original game records. */
+export function createRetainedPlatformSnapshot(
+  previous,
+  previousRaw,
+  { application, assemblerSha256, platform },
+) {
+  assert.equal(previous.id, snapshotIdentity(previous));
+  assert.deepEqual(JSON.parse(previousRaw.toString('utf8')), previous);
+  assert.equal(
+    application.buildVersion,
+    versionIdentity(application.releaseVersion, application.revision)
+      .buildVersion,
+  );
+  const snapshot = {
+    ...previous,
+    version: application.releaseVersion,
+    buildVersion: application.buildVersion,
+    assemblerSha256,
+    units: [
+      ...platform,
+      ...previous.units.filter((unit) => unit.id.startsWith('game-')),
+    ],
+    retainedGameSnapshot: previous.id,
+    retainedGameSnapshotSha256: sha256(previousRaw),
+    retainedGameAssemblerSha256: previous.assemblerSha256,
+    retainedGameVersion: previous.version,
+  };
+  snapshot.id = snapshotIdentity(snapshot);
+  verifyRetainedGameRecords(snapshot, previous);
+  return snapshot;
+}
+
 /** Retained records describe original frozen inputs, never current mutable source. */
 export function verifyRetainedGameRecords(snapshot, original) {
   assert.equal(snapshot.schemaVersion, 1);
@@ -53,7 +96,11 @@ export function verifyRetainedGameRecords(snapshot, original) {
   assert.equal(original.id, snapshot.retainedGameSnapshot);
   assert.equal(original.id, snapshotIdentity(original));
   assert.equal(snapshot.id, snapshotIdentity(snapshot));
-  assert.equal(snapshot.version, original.version);
+  verifySnapshotVersion(snapshot);
+  verifySnapshotVersion(original);
+  if (snapshot.retainedGameVersion === undefined)
+    assert.equal(snapshot.version, original.version);
+  else assert.equal(snapshot.retainedGameVersion, original.version);
   assert.equal(snapshot.retainedGameAssemblerSha256, original.assemblerSha256);
   assert.deepEqual(snapshot.modules, original.modules);
   const games = snapshot.units.filter((unit) => unit.id.startsWith('game-'));
@@ -139,9 +186,38 @@ export async function verifyRetainedGameSnapshot(
     snapshotPath: path,
     snapshotSha256: sha256(raw),
     assemblerSha256: original.assemblerSha256,
+    version: original.version,
     verification: 'original-input-fingerprints-and-complete-cache-sha256',
     unitCount: games.length,
   };
+}
+
+/** The caller supplies only signature-verified history, in explicit priority order. */
+export function selectRetainedGameRelease(body, trustedReleases) {
+  const candidates = trustedReleases.filter(
+    (release) =>
+      release.gameId === body.gameId && release.variantId === body.variantId,
+  );
+  assert.ok(
+    candidates.length,
+    'The retained game is missing from trusted history',
+  );
+  const currentContent = { ...body };
+  delete currentContent.releaseTag;
+  for (const retained of candidates) {
+    const { releaseId, ...originalBody } = retained;
+    assert.equal(releaseId, sha256(canonical(originalBody)));
+    const originalContent = { ...originalBody };
+    delete originalContent.releaseTag;
+    if (canonical(originalContent) === canonical(currentContent))
+      return retained;
+  }
+  assert.fail(
+    'Retained game content differs from every original signed release: ' +
+      `${body.gameId}/${body.variantId ?? ''}; expected code ${body.code}; ` +
+      'trusted codes ' +
+      candidates.map((release) => release.code).join(','),
+  );
 }
 
 export async function packageGames({
@@ -156,7 +232,8 @@ export async function packageGames({
     throw new Error(
       'Signing key path required (--key or TABLEMAX_GAME_SIGNING_KEY)',
     );
-  releaseTag ??= 'v' + (await json('package.json')).version;
+  releaseTag ??=
+    'v' + (snapshot?.version ?? (await json('package.json')).version);
   if (!/^v1\.\d+\.\d+$/.test(releaseTag))
     throw new Error('Invalid public game release tag');
   out = resolve(out ?? `artifacts/game-packages/${releaseTag}/current`);
@@ -194,6 +271,8 @@ export async function packageGames({
   const retainedGames = snapshot?.retainedGameSnapshot
     ? await verifyRetainedGameSnapshot(snapshot, inputVerification)
     : undefined;
+  if (retainedGames)
+    assert.ok(reuse.histories.length, 'Retained games require trusted history');
   if (!retainedGames)
     for (const result of results)
       await validateInputs(result, inputVerification);
@@ -287,7 +366,12 @@ export async function packageGames({
         resourceMap,
         releaseTag,
       };
-      const release = { releaseId: sha256(canonical(body)), ...body };
+      const release = retainedGames
+        ? selectRetainedGameRelease(
+            body,
+            reuse.histories.flatMap(({ catalog }) => catalog.releases),
+          )
+        : { releaseId: sha256(canonical(body)), ...body };
       const closure = [code, ...resources],
         download = closure.reduce((n, blob) => n + blob.archiveBytes, 0),
         installed = closure.reduce((n, blob) => n + blob.installedBytes, 0);
@@ -381,7 +465,7 @@ export async function packageGames({
     join(out, 'build-record.json'),
     JSON.stringify(
       {
-        version: (await json('package.json')).version,
+        version: releaseTag.slice(1),
         releaseTag,
         history,
         duplicateOfflineEvidence,

@@ -1,13 +1,23 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, writeFile, unlink, rmdir } from 'node:fs/promises';
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  writeFile,
+  unlink,
+  rmdir,
+} from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import {
   verifyRetainedGameRecords,
   verifyRetainedGameSnapshot,
+  createRetainedPlatformSnapshot,
+  selectRetainedGameRelease,
 } from './game-packages.mjs';
-import { sha256 } from './game-package-format.mjs';
+import { canReuseInternalGames } from './prepare-internal-games.mjs';
+import { sha256, canonical } from './game-package-format.mjs';
 import { validateInputs } from '../build/module-build.mjs';
 
 function identity(snapshot) {
@@ -107,6 +117,129 @@ test('new platform revision retains exact old game inputs without claiming curre
   assert.equal(proof.snapshotSha256, sha256(f.originalRaw));
   assert.equal(proof.unitCount, 4);
   await assert.rejects(validateInputs(f.units[0]));
+});
+
+test('new public platform version keeps explicit original game version, exact records and raw-source proof', async (t) => {
+  const f = await fixture(t);
+  const refreshed = createRetainedPlatformSnapshot(f.original, f.originalRaw, {
+    application: {
+      releaseVersion: '1.0.7',
+      revision: 1,
+      buildVersion: '1.0.7.1',
+    },
+    assemblerSha256: 'c'.repeat(64),
+    platform: [{ id: 'platform-box', fingerprint: 'e'.repeat(64) }],
+  });
+  assert.equal(refreshed.version, '1.0.7');
+  assert.equal(refreshed.buildVersion, '1.0.7.1');
+  assert.equal(refreshed.retainedGameVersion, '1.0.6');
+  assert.deepEqual(
+    refreshed.units.filter((unit) => unit.id.startsWith('game-')),
+    f.original.units,
+  );
+  assert.deepEqual(refreshed.modules, f.original.modules);
+  assert.equal(refreshed.retainedGameSnapshotSha256, sha256(f.originalRaw));
+  const proof = await verifyRetainedGameSnapshot(refreshed);
+  assert.equal(proof.version, '1.0.6');
+  for (const change of [
+    (value) => {
+      delete value.retainedGameVersion;
+    },
+    (value) => {
+      value.retainedGameVersion = '1.0.7';
+    },
+    (value) => {
+      value.buildVersion = '1.0.6.1';
+      value.id = identity(value);
+    },
+  ]) {
+    const changed = structuredClone(refreshed);
+    change(changed);
+    assert.throws(() => verifyRetainedGameRecords(changed, f.original));
+  }
+});
+
+test('equal game caches cannot return an old-tag directory or a missing target catalog', async (t) => {
+  const f = await fixture(t);
+  const directory = await mkdtemp(resolve('tmp/retained-catalog-'));
+  const catalog = join(directory, 'TableMax-game-catalog-v1.0.6.json');
+  let catalogCreated = false;
+  t.after(async () => {
+    if (catalogCreated) await unlink(catalog);
+    await rmdir(directory);
+  });
+  const prior = { releaseTag: 'v1.0.6', units: f.units };
+  assert.equal(
+    await canReuseInternalGames(f.snapshot, directory, prior),
+    false,
+  );
+  await writeFile(catalog, '{}\n', { flag: 'wx' });
+  catalogCreated = true;
+  assert.equal(await canReuseInternalGames(f.snapshot, directory, prior), true);
+  assert.equal(
+    await canReuseInternalGames(
+      { ...f.snapshot, version: '1.0.7' },
+      directory,
+      prior,
+    ),
+    false,
+  );
+});
+
+test('retained signed game release keeps its complete identity and old tag across a platform release', () => {
+  const body = {
+    gameId: 'probe',
+    module: { id: 'probe' },
+    code: 'a'.repeat(64),
+    resources: ['b'.repeat(64)],
+    resourceMap: {
+      'probe/icon.webp': { blobId: 'b'.repeat(64), path: 'icon.webp' },
+    },
+    releaseTag: 'v1.0.6',
+  };
+  const original = { releaseId: sha256(canonical(body)), ...body };
+  const next = { ...body, releaseTag: 'v1.0.7' };
+  const obsoleteBody = {
+    ...body,
+    code: 'c'.repeat(64),
+    module: { id: 'probe', previousMetadata: true },
+    offlineAsset: 'TableMax-probe-v1.0.6-offline.zip',
+  };
+  const obsolete = {
+    releaseId: sha256(canonical(obsoleteBody)),
+    ...obsoleteBody,
+  };
+  assert.equal(selectRetainedGameRelease(next, [original]), original);
+  assert.equal(selectRetainedGameRelease(next, [obsolete, original]), original);
+  assert.throws(() => selectRetainedGameRelease(next, [obsolete]));
+  const extraBody = { ...body, offlineAsset: 'unexpected-offline.zip' };
+  assert.throws(() =>
+    selectRetainedGameRelease(next, [
+      {
+        releaseId: sha256(canonical(extraBody)),
+        ...extraBody,
+      },
+    ]),
+  );
+  assert.equal(
+    JSON.stringify(selectRetainedGameRelease(next, [original])),
+    JSON.stringify(original),
+  );
+  assert.throws(() => selectRetainedGameRelease(next, []));
+  for (const change of [
+    { code: 'c'.repeat(64) },
+    { resources: ['c'.repeat(64)] },
+    { module: { id: 'probe', changed: true } },
+    { resourceMap: {} },
+  ])
+    assert.throws(() =>
+      selectRetainedGameRelease({ ...next, ...change }, [original]),
+    );
+  assert.throws(() =>
+    selectRetainedGameRelease(next, [
+      { ...original, releaseId: 'c'.repeat(64) },
+    ]),
+  );
 });
 
 test('retained game validation rejects changed cached bytes and unexpected members', async (t) => {

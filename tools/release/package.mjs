@@ -13,7 +13,6 @@ import { deliveryPaths } from './delivery-paths.mjs';
 import {
   allocateBuildVersion,
   versionIdentity,
-  applicationVersion,
 } from '../shared/application-version.mjs';
 import { scheduleMaintenance } from '../maintenance/lifecycle.mjs';
 scheduleMaintenance();
@@ -48,6 +47,7 @@ import { createInstallationExecutable } from './installation-package.mjs';
 import { preferredCatalogReleases } from '../../packages/game-sdk/src/compatibility.mjs';
 import { gameReleaseAssets } from './game-release-assets.mjs';
 import { prepareInternalGames } from './prepare-internal-games.mjs';
+import { createRetainedPlatformSnapshot } from './game-packages.mjs';
 
 const args = process.argv.slice(2).filter((arg) => arg !== '--');
 assert.ok(
@@ -101,7 +101,7 @@ async function resumeSnapshot(path) {
   await assemble(snapshotPath);
   return { ...snapshot, snapshotPath };
 }
-async function refreshPlatformSnapshot(path) {
+async function refreshPlatformSnapshot(path, application) {
   const previousRaw = await readFile(resolve(path));
   const previous = JSON.parse(previousRaw.toString('utf8'));
   const identity = (snapshot) =>
@@ -139,21 +139,11 @@ async function refreshPlatformSnapshot(path) {
         (result.cached ? 'cache hit' : result.durationMs + 'ms'),
     );
   }
-  const snapshot = {
-    ...previous,
+  const snapshot = createRetainedPlatformSnapshot(previous, previousRaw, {
+    application,
     assemblerSha256,
-    buildVersion: (await applicationVersion()).buildVersion,
-    units: [
-      ...platform,
-      ...previous.units.filter((unit) => unit.id.startsWith('game-')),
-    ],
-    retainedGameSnapshot: previous.id,
-    retainedGameSnapshotSha256: createHash('sha256')
-      .update(previousRaw)
-      .digest('hex'),
-    retainedGameAssemblerSha256: previous.assemblerSha256,
-  };
-  snapshot.id = identity(snapshot);
+    platform,
+  });
   const snapshotPath = resolve('build/snapshots', snapshot.id + '.json');
   await writeFile(snapshotPath, JSON.stringify(snapshot, null, 2) + '\n');
   // assemble verifies every retained cache file/hash; mutable game source is deliberately not rebuilt.
@@ -207,7 +197,7 @@ await lock('package-win', async () => {
       )
     : await allocateBuildVersion();
   const buildSnapshot = platformArgument
-    ? await refreshPlatformSnapshot(platformArgument.slice(16))
+    ? await refreshPlatformSnapshot(platformArgument.slice(16), application)
     : snapshotArgument
       ? await resumeSnapshot(snapshotArgument.slice('--snapshot='.length))
       : await buildProject(['--production']);

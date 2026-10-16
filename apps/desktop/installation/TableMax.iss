@@ -90,6 +90,8 @@ var
   MigrationCheck: TNewCheckBox;
   MigrationEdit: TNewEdit;
   MigrationBrowse: TNewButton;
+  InstallProgress: TOutputProgressWizardPage;
+  InstallProgressActive: Boolean;
 
 #include "uninstall-helper.iss"
 
@@ -186,6 +188,7 @@ var
   Notice: TNewStaticText;
   DefaultMigration: String;
 begin
+  InstallProgress := CreateOutputProgressPage('正在安装 TableMax', '请稍候，安装完成后会自动进入下一步。');
   WizardForm.NextButton.Font.Size := 14;
   WizardForm.BackButton.Font.Size := 14;
   WizardForm.CancelButton.Font.Size := 14;
@@ -223,17 +226,83 @@ begin
   MigrationBrowse.OnClick := @BrowseMigration;
 end;
 
+procedure ShowInstallProgress(const Caption, Detail: String; Completed, Total: Integer);
+begin
+  if not InstallProgressActive then Exit;
+  if Total > 0 then begin
+    InstallProgress.SetText(Caption, Detail + '（文件 ' + IntToStr(Completed) + ' / ' + IntToStr(Total) + '）');
+    InstallProgress.SetProgress(Completed, Total);
+  end else begin
+    InstallProgress.ProgressBar.Visible := True;
+    InstallProgress.ProgressBar.Style := npbstMarquee;
+    InstallProgress.SetText(Caption, Detail + '请稍候。');
+  end;
+end;
+
+procedure CoordinatorOutput(const S: String; const Error, FirstLine: Boolean);
+var
+  Data, Phase, CountText, TotalText, Caption, Detail: String;
+  Separator, Completed, Total: Integer;
+begin
+  { Preserve every diagnostic line. Progress never grants installation success. }
+  Log(S);
+  if Error then begin
+    ShowInstallProgress('正在安装 TableMax', '正在等待安装程序完成检查。', 0, 0);
+    Exit;
+  end;
+  if Pos('TABLEMAX-INSTALL-PROGRESS-V1|', S) <> 1 then Exit;
+  Data := Copy(S, Length('TABLEMAX-INSTALL-PROGRESS-V1|') + 1, Length(S));
+  Separator := Pos('|', Data);
+  if Separator <= 1 then Exit;
+  Phase := Copy(Data, 1, Separator - 1);
+  Delete(Data, 1, Separator);
+  Separator := Pos('|', Data);
+  if Separator <= 1 then Exit;
+  CountText := Copy(Data, 1, Separator - 1);
+  TotalText := Copy(Data, Separator + 1, Length(Data));
+  if Pos('|', TotalText) <> 0 then Exit;
+  Completed := StrToIntDef(CountText, -1);
+  Total := StrToIntDef(TotalText, -1);
+  if (Completed < 0) or (Total < 0) or (Completed > Total) then Exit;
+  Caption := '';
+  Detail := '';
+  if Phase = 'recover' then Caption := '正在检查之前的安装'
+  else if Phase = 'verify' then Caption := '正在检查安装文件'
+  else if Phase = 'stop' then begin
+    Caption := '正在等待原程序保存并安全退出';
+    Detail := '进行中的对局不会被强行关闭。';
+  end else if Phase = 'preserve' then Caption := '正在保留原有资料和设置'
+  else if Phase = 'snapshot' then begin
+    Caption := '正在保留原有程序';
+    Detail := '已检查';
+  end else if Phase = 'stage' then begin
+    Caption := '正在安装程序文件';
+    Detail := '已完成校验';
+  end else if Phase = 'switch' then begin
+    Caption := '正在更新程序文件';
+    Detail := '已完成切换';
+  end else if Phase = 'health' then begin
+    Caption := '正在启动 TableMax';
+    Detail := '正在确认程序能够正常启动。';
+  end else if Phase = 'cleanup' then Caption := '正在整理安装文件'
+  else if Phase = 'confirmed' then begin
+    Caption := '正在完成安装设置';
+  end;
+  if Caption <> '' then ShowInstallProgress(Caption, Detail, Completed, Total);
+end;
+
 procedure CommitCandidate;
 var
   Arguments, Target, Migration: String;
 begin
   begin
-    Arguments := '--commit --root=' + Quoted(ExpandConstant('{app}')) + ' --candidate=' + Quoted(ExpandConstant('{tmp}\candidate')) + ' --manifest=' + Quoted(ExpandConstant('{tmp}\candidate\installation-manifest.json')) + ' --installer-source=' + Quoted(ExpandConstant('{srcexe}'));
+    Arguments := '--commit --progress --root=' + Quoted(ExpandConstant('{app}')) + ' --candidate=' + Quoted(ExpandConstant('{tmp}\candidate')) + ' --manifest=' + Quoted(ExpandConstant('{tmp}\candidate\installation-manifest.json')) + ' --installer-source=' + Quoted(ExpandConstant('{srcexe}'));
     Target := ExpandConstant('{param:TABLEMAXTARGET|}');
     if Target <> '' then Arguments := Arguments + ' --target=' + Quoted(Target);
     Migration := SelectedMigrationRoot;
     if Migration <> '' then Arguments := Arguments + ' --migration-root=' + Quoted(Migration);
-    if not ExecAndLogOutput(ExpandConstant('{tmp}\candidate\UpdateHelper.exe'), Arguments, ExpandConstant('{tmp}'), SW_HIDE, ewWaitUntilTerminated, ResultCode, nil) then RaiseException('无法启动安装协调程序，原数据已保留。');
+    ShowInstallProgress('正在准备安装', '正在检查是否可以继续安装。', 0, 0);
+    if not ExecAndLogOutput(ExpandConstant('{tmp}\candidate\UpdateHelper.exe'), Arguments, ExpandConstant('{tmp}'), SW_HIDE, ewWaitUntilTerminated, ResultCode, @CoordinatorOutput) then RaiseException('无法启动安装协调程序，原数据已保留。');
     Log('TableMax coordinator finished with exit code: ' + IntToStr(ResultCode));
     if ResultCode <> 0 then RaiseException('安装未确认完成（' + IntToStr(ResultCode) + '）。原数据与恢复记录已保留，请检查 TableMax 目录。');
     Confirmed := True;
@@ -263,9 +332,18 @@ begin
   try
     { Before/AfterInstall exceptions do not abort Inno. Confirm the managed
       transaction before Inno can replace the previous uninstall framework. }
-    if ExtractTemporaryFiles('{tmp}\candidate\*') <= 0 then
-      RaiseException('安装载荷未能提取，原程序与数据已保留。');
-    CommitCandidate;
+    InstallProgressActive := True;
+    InstallProgress.Show;
+    try
+      ShowInstallProgress('正在展开完整安装载荷', '正在读取安装包中的程序与预装游戏。', 0, 0);
+      Log('TableMax installer phase: extract');
+      if ExtractTemporaryFiles('{tmp}\candidate\*') <= 0 then
+        RaiseException('安装载荷未能提取，原程序与数据已保留。');
+      CommitCandidate;
+    finally
+      InstallProgressActive := False;
+      InstallProgress.Hide;
+    end;
   except
     Confirmed := False;
     Result := GetExceptionMessage;

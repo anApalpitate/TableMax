@@ -10,6 +10,7 @@ import {
   sha256,
 } from './game-package-format.mjs';
 import { loadTrustedBlobReuse } from './blob-reuse.mjs';
+import { selectRetainedGameRelease } from './game-packages.mjs';
 
 const keys = generateKeyPairSync('ed25519');
 const publicKey = keys.publicKey.export({ type: 'spki', format: 'pem' });
@@ -85,6 +86,47 @@ async function fixture() {
     sign,
   };
 }
+
+test('new platform catalog retains original signed game records and exact trusted blob bytes', async () => {
+  const f = await fixture();
+  const reuse = await loadTrustedBlobReuse([f.before], { publicKey });
+  const code = await createBlob('code', f.records, f.after, 'v1.0.7', {
+    reuse,
+  });
+  const resource = await createBlob(
+    'resources',
+    f.resourceRecords,
+    f.after,
+    'v1.0.7',
+    { reuse },
+  );
+  const { releaseId: originalId, ...body } = f.catalog.releases[0];
+  const release = selectRetainedGameRelease(
+    { ...body, releaseTag: 'v1.0.7' },
+    reuse.histories[0].catalog.releases,
+  );
+  assert.equal(release.releaseId, originalId);
+  assert.deepEqual(release, f.catalog.releases[0]);
+  assert.deepEqual([code, resource], f.catalog.blobs);
+  for (const blob of [code, resource])
+    assert.deepEqual(
+      await readFile(join(f.after, blob.assetName)),
+      await readFile(join(f.before, blob.assetName)),
+    );
+  assert.equal(reuse.metrics.compressedBlobs, 0);
+  await writeFile(
+    join(f.after, 'TableMax-game-catalog-v1.0.7.json'),
+    JSON.stringify(
+      createSignedCatalog(
+        { schemaVersion: 1, releases: [release], blobs: [code, resource] },
+        privateKey,
+      ),
+    ),
+    { flag: 'wx' },
+  );
+  const verified = await loadTrustedBlobReuse([f.after], { publicKey });
+  assert.deepEqual(verified.histories[0].catalog, f.catalog);
+});
 
 test('single code change preserves exact trusted resource bytes and recompresses only code', async () => {
   const f = await fixture();
