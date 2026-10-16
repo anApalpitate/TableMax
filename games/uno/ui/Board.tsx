@@ -187,9 +187,19 @@ export function Leaderboard({
             <b className="uno-rank">{rank}</b>
             <img src={avatarFor(seat?.avatarId ?? 'avatar-1')} alt="" />
             <strong>{seat?.name ?? `玩家 ${index + 1}`}</strong>
-            <span>
-              <b>{score}</b> 分 · {game.players[id]!.handCount} 张
-            </span>
+            <dl className="uno-standing-stats">
+              <div>
+                <dt>累计分</dt>
+                <dd>{score}</dd>
+              </div>
+              <div>
+                <dt>手牌</dt>
+                <dd>
+                  {game.players[id]!.handCount}
+                  <span> 张</span>
+                </dd>
+              </div>
+            </dl>
           </li>
         );
       })}

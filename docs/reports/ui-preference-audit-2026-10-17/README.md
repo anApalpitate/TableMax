@@ -2,7 +2,7 @@
 2. [宝可梦奇遇（原版及扩展）](pokemon-encounters.md)
 3. [现代艺术](modern-art.md)
 4. [电力公司](power-grid.md)
-5. [UNO](uno.md)
+5. [UNO](uno.md)（已完成）
 6. [拉密](rummikub.md)（已完成）
 7. [阿瓦隆](avalon.md)
 8. [马尼拉](manila.md)（已完成）

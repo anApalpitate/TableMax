@@ -148,6 +148,42 @@
   width: 44px;
   min-width: 44px;
 }
+.uno-screen .uno-toolbar-tools > .uno-icon-button {
+  flex: 0 0 44px;
+  height: 44px;
+  padding: 9px;
+}
+.uno-toolbar-tools > .uno-icon-button > svg {
+  display: block;
+}
+@media (max-width: 600px) {
+  .uno-screen .uno-toolbar {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
+    grid-template-rows: auto auto;
+    gap: 0 8px;
+  }
+  .uno-screen .uno-toolbar > .uno-box-link {
+    grid-area: 1 / 1 / 3 / 2;
+  }
+  .uno-screen .uno-toolbar > .uno-brand {
+    grid-area: 1 / 2;
+    font-size: 24px;
+    line-height: 1.15;
+  }
+  .uno-screen .uno-toolbar > .uno-round-counter {
+    display: block;
+    grid-area: 2 / 2;
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.3;
+  }
+  .uno-screen .uno-toolbar > .uno-toolbar-tools {
+    grid-area: 1 / 3 / 3 / 4;
+    margin: 0;
+    gap: 4px;
+  }
+}
 .uno-turn-bar {
   display: flex;
   align-items: center;
@@ -1726,23 +1762,80 @@
   gap: 8px;
 }
 .uno-leaderboard li {
-  display: flex;
+  display: grid;
+  grid-template-columns: 24px 48px minmax(0, 1fr);
   align-items: center;
   gap: 12px;
-  padding: 12px;
+  row-gap: 4px;
+  padding: 10px 12px;
   background: #fffcf1b8;
   border: 1px solid #b7ab8b;
   border-radius: 16px;
 }
 .uno-leaderboard img {
+  grid-column: 2;
+  grid-row: 1 / span 2;
   width: 48px;
   height: 48px;
 }
 .uno-leaderboard strong {
-  flex: 1;
+  min-width: 0;
   overflow-wrap: anywhere;
 }
+.uno-standing-stats {
+  grid-column: 3 / -1;
+  grid-row: 2;
+  display: flex;
+  gap: 16px;
+  margin: 0;
+}
+.uno-standing-stats > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.uno-standing-stats dt {
+  color: #625b4e;
+  font-size: 16px;
+}
+.uno-standing-stats dd {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.uno-standing-stats dd > span {
+  font-size: 16px;
+  font-weight: 400;
+}
+@media (max-width: 600px) {
+  .uno-leaderboard li {
+    grid-template-columns: 24px 40px minmax(0, 1fr);
+    gap: 8px;
+    padding: 12px;
+  }
+  .uno-leaderboard img {
+    grid-row: 1;
+    width: 40px;
+    height: 40px;
+  }
+  .uno-standing-stats {
+    grid-column: 2 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .uno-standing-stats > div {
+    display: grid;
+    gap: 2px;
+  }
+  .uno-leaderboard .uno-rank {
+    grid-row: 1;
+  }
+}
 .uno-rank {
+  grid-column: 1;
+  grid-row: 1 / span 2;
   font-size: 20px;
   min-width: 24px;
   color: #846330;
