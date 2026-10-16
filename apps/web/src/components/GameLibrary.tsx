@@ -199,16 +199,25 @@ export function GameLibrary({
             key={game.id}
             data-game-id={game.id}
             data-planned={game.planned || undefined}
+            data-current={
+              (view?.game?.id === game.id && !view.game.restoreOnly) ||
+              undefined
+            }
           >
-            {game.planned ? (
-              <CandidateCover id={game.id} />
-            ) : gameCover(game.id) ? (
-              <img src={gameCover(game.id)} alt="" width="96" height="120" />
-            ) : (
-              <span className="game-library__placeholder" aria-hidden="true">
-                ⚄
-              </span>
-            )}
+            <div className="game-library__cover">
+              {game.planned ? (
+                <CandidateCover id={game.id} />
+              ) : gameCover(game.id) ? (
+                <img src={gameCover(game.id)} alt="" width="96" height="120" />
+              ) : (
+                <span className="game-library__placeholder" aria-hidden="true">
+                  ⚄
+                </span>
+              )}
+              {view?.game?.id === game.id && !view.game.restoreOnly && (
+                <span className="game-library__current-badge">已选择</span>
+              )}
+            </div>
             <div className="game-library__details">
               <h3>{game.displayName ?? game.name}</h3>
               <div className="game-library__tags" aria-label="分类标签">
