@@ -23,34 +23,48 @@ function Finance({
     (action) => action.type === 'mortgage' || action.type === 'repay',
   );
   if (!finance.length) return null;
+  const choices = (
+    <div className="mn-inline-actions">
+      {finance.map((action, index) => (
+        <button
+          key={index}
+          data-manila-action={action.type}
+          disabled={locked}
+          onClick={() => choose(action)}
+        >
+          {actionLabel(action, game)} ·{' '}
+          {action.type === 'mortgage' ? '+12 ₱' : '−15 ₱'}
+          {'shareId' in action && (
+            <span>
+              {game.self?.shares.find((share) => share.id === action.shareId)
+                ?.revealed
+                ? '（已公开股份）'
+                : '（未公开股份）'}
+            </span>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+  if (game.phase === 'financing' && game.payment?.seatId === game.self?.seatId)
+    return (
+      <section
+        className="mn-finance mn-finance--payment"
+        aria-label="选择抵押股份"
+      >
+        <h3>选择一张股份</h3>
+        {choices}
+        <p>
+          每张抵押 +12 ₱；赎回支付 15 ₱ 并公开。未赎回的股份终局每张扣 15
+          ₱，资金足够后继续付款。
+        </p>
+      </section>
+    );
   return (
-    <details
-      className="mn-finance"
-      open={game.phase === 'financing' ? true : undefined}
-    >
+    <details className="mn-finance">
       <summary>股份抵押与赎回</summary>
       <p>抵押取得 12 ₱；赎回支付 15 ₱ 并公开该股份。抵押股份终局扣除 15 ₱。</p>
-      <div className="mn-inline-actions">
-        {finance.map((action, index) => (
-          <button
-            key={index}
-            data-manila-action={action.type}
-            disabled={locked}
-            onClick={() => choose(action)}
-          >
-            {actionLabel(action, game)} ·{' '}
-            {action.type === 'mortgage' ? '+12 ₱' : '−15 ₱'}
-            {'shareId' in action && (
-              <span>
-                {game.self?.shares.find((share) => share.id === action.shareId)
-                  ?.revealed
-                  ? '（已公开股份）'
-                  : '（未公开股份）'}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+      {choices}
     </details>
   );
 }
@@ -196,6 +210,11 @@ function Pilot({
       action.type === 'pilot',
   );
   const allowed = game.phase === 'pilot-small' ? [-1, 0, 1] : [-2, -1, 0, 1, 2];
+  const budget = game.phase === 'pilot-small' ? 1 : 2;
+  const used = Object.values(deltas).reduce(
+    (sum, delta) => sum + Math.abs(delta),
+    0,
+  );
   const selected = pilots.find((action) =>
     game.boats.every(
       (boat) =>
@@ -242,6 +261,12 @@ function Pilot({
                     </option>
                   ))}
               </select>
+              <span className="mn-pilot-preview">
+                草稿：
+                {boat.position + (deltas[boat.cargo] ?? 0) > 13
+                  ? '靠港'
+                  : `${boat.position + (deltas[boat.cargo] ?? 0)} 格`}
+              </span>
             </label>
           ))}
       </div>
@@ -250,16 +275,23 @@ function Pilot({
           <strong>
             {selected ? actionLabel(selected, game) : '超出本次领航额度'}
           </strong>
-          <p>调整是草稿，确认后才移动货船。</p>
+          <p>
+            已用 {used} / {budget} 格，确认后才移动货船。
+          </p>
         </div>
-        <button
-          className="mn-primary"
-          data-manila-action="pilot"
-          disabled={locked || !selected}
-          onClick={() => selected && choose(selected)}
-        >
-          确认领航
-        </button>
+        <div className="mn-confirm-actions">
+          <button disabled={locked || used === 0} onClick={() => setDeltas({})}>
+            清空调整
+          </button>
+          <button
+            className="mn-primary"
+            data-manila-action="pilot"
+            disabled={locked || !selected}
+            onClick={() => selected && choose(selected)}
+          >
+            确认领航
+          </button>
+        </div>
       </div>
     </section>
   );
@@ -341,28 +373,31 @@ export function PlayerControls({
         </h2>
         {game.self && <span>可用 {game.self.cash} ₱</span>}
       </div>
-      {game.phase === 'financing' && game.payment && (
-        <div className="mn-financing-notice">
-          <strong>待支付 {game.payment.amount} ₱</strong>
-          <p>
-            {game.payment.reason === 'insurance'
-              ? '保险行赔付'
-              : game.payment.reason === 'auction'
-                ? '港务长竞拍款'
-                : game.payment.reason === 'share'
-                  ? '购买股份'
-                  : '伙伴派遣费用'}
-            ：现金 {game.self?.cash ?? 0} ₱，还差{' '}
-            {Math.max(0, game.payment.amount - (game.self?.cash ?? 0))}{' '}
-            ₱。请选择一张未抵押股份，每张取得 12 ₱；资金足够后自动继续。
-          </p>
-        </div>
-      )}
+      {game.phase === 'financing' &&
+        game.payment &&
+        game.payment.seatId === game.self?.seatId && (
+          <div className="mn-financing-notice">
+            <strong>
+              待支付 {game.payment.amount} ₱ · 还差{' '}
+              {Math.max(0, game.payment.amount - (game.self?.cash ?? 0))} ₱
+            </strong>
+            <p>
+              {game.payment.reason === 'insurance'
+                ? '保险行赔付'
+                : game.payment.reason === 'auction'
+                  ? '港务长竞拍款'
+                  : game.payment.reason === 'share'
+                    ? '购买股份'
+                    : '伙伴派遣费用'}
+              {' · '}现金 {game.self?.cash ?? 0} ₱
+            </p>
+          </div>
+        )}
       {bids.length > 0 && (
         <>
           <p>
-            最高出价 <strong>{game.auction.bid} ₱</strong>
-            。获胜者支付出价，主持本次航行。
+            出价范围 {bids[0]!.amount}–{bids.at(-1)!.amount}{' '}
+            ₱，包含可抵押额度。获胜者支付出价。
           </p>
           <div className="mn-inline-actions">
             <label htmlFor="mn-bid-amount">出价</label>
@@ -389,6 +424,9 @@ export function PlayerControls({
               出价 {bid} ₱
             </button>
           </div>
+          {bid > (game.self?.cash ?? 0) && (
+            <p className="mn-bid-credit">若竞拍获胜，需选择股份抵押付款。</p>
+          )}
         </>
       )}
       {place.length > 0 && (

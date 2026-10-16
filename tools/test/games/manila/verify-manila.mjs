@@ -360,12 +360,17 @@ async function privacy() {
       'Host/public no private shares or game actions; only self receives original shares',
   });
 }
-function choose(v) {
+function choose(v, financeAuction = false) {
   const actions = v.actions;
   const type = (name) => actions.find((a) => a.type === name);
   if (v.gameView.phase === 'auction')
     return v.gameView.auction.bid === 0
-      ? (type('bid') ?? type('pass'))
+      ? (financeAuction &&
+          actions.find(
+            (a) => a.type === 'bid' && a.amount > v.gameView.self.cash,
+          )) ||
+          type('bid') ||
+          type('pass')
       : type('pass');
   if (v.gameView.phase === 'share')
     return type('buy-share') ?? type('skip-share');
@@ -408,6 +413,7 @@ async function naturalMatch() {
   const end = Date.now() + 300000;
   let count = 0;
   const observed = new Set();
+  const experience = new Set();
   while ((await view()).status !== 'ended') {
     assert.ok(
       Date.now() < end && count < 4000,
@@ -424,12 +430,181 @@ async function naturalMatch() {
       });
       await capture(host, `host-${phase}`);
     }
+    if (
+      phase === 'auction' &&
+      publicView.gameView.auction.highBidder &&
+      !experience.has('auction')
+    ) {
+      const { bid, highBidder } = publicView.gameView.auction;
+      const name = publicView.seats.find((seat) => seat.id === highBidder).name;
+      for (const [page, role] of [
+        [host, 'host'],
+        [publicPage, 'public'],
+      ]) {
+        await until(async () => {
+          const text = await surface(page)
+            .locator('.mn-auction-standing')
+            .textContent();
+          return text.includes(String(bid)) && text.includes(name);
+        }, `${role}: public highest bid and bidder`);
+        await capture(page, `${role}-auction-leading`, 'auction-leading');
+      }
+      await phoneFor(
+        players.findIndex(
+          (player) => player.seatId !== publicView.gameView.turnSeat,
+        ),
+      );
+      await resize(phone, 320, 568, true);
+      await layout(phone, 'player-auction-leading-320x568', 'auction-leading');
+      assert.ok(
+        (
+          await surface(phone).locator('.mn-auction-standing').textContent()
+        ).includes(name),
+      );
+      experience.add('auction');
+      evidence.checks.push({
+        check:
+          'Highest bid and bidder remain visible to host, public and waiting player',
+      });
+    }
+    if (phase === 'financing' && !experience.has('financing')) {
+      const payerIndex = players.findIndex(
+        (player) => player.seatId === publicView.gameView.payment.seatId,
+      );
+      assert.ok(payerIndex >= 0);
+      await phoneFor((payerIndex + 1) % players.length);
+      await resize(phone, 320, 568, true);
+      await layout(
+        phone,
+        'player-financing-waiting-320x568',
+        'financing-waiting',
+      );
+      assert.equal(
+        await surface(phone).locator('.mn-financing-notice').count(),
+        0,
+      );
+      assert.equal(
+        await surface(phone).locator('[data-manila-action="mortgage"]').count(),
+        0,
+      );
+      await phoneFor(payerIndex);
+      await layout(phone, 'player-financing-payer-320x568', 'financing-payer');
+      const own = await view(players[payerIndex].token);
+      const notice = await surface(phone)
+        .locator('.mn-financing-notice')
+        .textContent();
+      assert.ok(notice.includes(String(own.gameView.payment.amount)));
+      assert.ok(
+        notice.includes(
+          String(
+            Math.max(0, own.gameView.payment.amount - own.gameView.self.cash),
+          ),
+        ),
+      );
+      const mortgage = surface(phone)
+        .locator('[data-manila-action="mortgage"]')
+        .first();
+      const firstChoice = await mortgage.boundingBox();
+      const viewportHeight = await surface(phone).evaluate(
+        () => document.documentElement.clientHeight,
+      );
+      assert.ok(
+        firstChoice &&
+          firstChoice.y >= 0 &&
+          firstChoice.y + firstChoice.height <= viewportHeight,
+        'A complete collateral choice must be visible on the initial 320x568 screen',
+      );
+      await mortgage.click();
+      await until(
+        async () => (await view()).revision > own.revision,
+        'Actual chosen mortgage saves',
+      );
+      experience.add('financing');
+      evidence.checks.push({
+        check:
+          'Only debtor sees financing gap and collateral actions; actual chosen mortgage saves through the player UI',
+      });
+      count++;
+      continue;
+    }
+    if (phase.startsWith('pilot') && !experience.has(phase)) {
+      const index = players.findIndex(
+        (player) => player.seatId === publicView.gameView.turnSeat,
+      );
+      const own = await view(players[index].token);
+      const choices = own.actions.filter(
+        (action) => action.type === 'pilot' && action.moves.length,
+      );
+      const selected =
+        choices.find((action) => action.moves.length === 2) ?? choices[0];
+      if (selected) {
+        await phoneFor(index);
+        await resize(phone, 390, 844, true);
+        for (const move of selected.moves) {
+          const cargo = own.gameView.cargos.find(
+            (item) => item.id === move.cargo,
+          );
+          const select = surface(phone).getByLabel(`${cargo.name}移动`, {
+            exact: true,
+          });
+          await select.selectOption(String(move.delta));
+          const boat = own.gameView.boats.find(
+            (item) => item.cargo === move.cargo,
+          );
+          const target = boat.position + move.delta;
+          const preview = await select
+            .locator('..')
+            .locator('.mn-pilot-preview')
+            .textContent();
+          assert.ok(preview.includes(target > 13 ? '靠港' : `${target} 格`));
+        }
+        assert.equal(
+          (await view()).revision,
+          own.revision,
+          'Pilot drafts do not submit',
+        );
+        await layout(phone, `player-${phase}-draft`, phase);
+        await surface(phone)
+          .getByRole('button', { name: '清空调整', exact: true })
+          .click();
+        for (const select of await surface(phone)
+          .locator('.mn-draft-grid select')
+          .all())
+          assert.equal(await select.inputValue(), '0');
+        assert.equal(
+          (await view()).revision,
+          own.revision,
+          'Clear pilot draft does not submit',
+        );
+        for (const move of selected.moves) {
+          const cargo = own.gameView.cargos.find(
+            (item) => item.id === move.cargo,
+          );
+          await surface(phone)
+            .getByLabel(`${cargo.name}移动`, { exact: true })
+            .selectOption(String(move.delta));
+        }
+        await surface(phone).locator('[data-manila-action="pilot"]').click();
+        await until(
+          async () => (await view()).revision > own.revision,
+          'Concrete pilot confirmation saves',
+        );
+        experience.add(phase);
+        evidence.checks.push({
+          check: 'Pilot target previews, clear draft and actual confirmation',
+          phase,
+          moves: selected.moves,
+        });
+        count++;
+        continue;
+      }
+    }
     let acted = false;
     for (let i = 0; i < players.length; i++) {
       const player = players[i],
         own = await view(player.token);
       if (!own.actions.length) continue;
-      const action = choose(own);
+      const action = choose(own, !experience.has('financing'));
       assert.ok(action, `Playable action in ${phase}`);
       await send(player.socket, player.token, {
         type: 'game',
@@ -443,6 +618,10 @@ async function naturalMatch() {
     assert.ok(acted, `No actionable player in ${phase}`);
   }
   const final = await view();
+  assert.ok(
+    experience.has('auction') && experience.has('financing'),
+    'Natural match must exercise auction standing and debtor-only financing UI',
+  );
   assert.equal(final.gameView.phase, 'ended');
   assert.ok(final.gameView.winners.length > 0);
   assert.ok(Object.values(final.gameView.market).includes(30));

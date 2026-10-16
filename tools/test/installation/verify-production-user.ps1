@@ -5,6 +5,7 @@ param(
   [string]$HandoffPreparedReport,
   [switch]$AllowTemporaryAccount,
   [switch]$UseProfileAcceptance,
+  [switch]$IncludeWizardAcceptance,
   [switch]$PortableMigrationOnly,
   [string]$PortablePointer,
   [ValidateSet('active-uninstall', 'startup-external-data', 'long-root-external-data', 'chains')][string]$FixtureScenario,
@@ -16,6 +17,7 @@ $taskOutput = [IO.Path]::GetFullPath($OutputDirectory).TrimEnd('\')
 $taskDelivery = [IO.Path]::GetFullPath($DeliveryPath)
 $taskHandoffPreparedReport = $null
 $taskPortablePointer = $null
+if ($IncludeWizardAcceptance -and (-not $UseProfileAcceptance -or $PortableMigrationOnly -or $FixtureScenario)) { throw 'Wizard acceptance requires the complete standard-profile production chain.' }
 if ($FixtureScenario -and ($PortableMigrationOnly -or -not $UseProfileAcceptance)) { throw 'Fixture-only acceptance requires UseProfileAcceptance and excludes portable migration.' }
 if ($PortableMigrationOnly) {
   if (-not $UseProfileAcceptance -or [string]::IsNullOrWhiteSpace($PortablePointer)) { throw 'Portable migration requires UseProfileAcceptance and a frozen PortablePointer copy.' }
@@ -445,6 +447,7 @@ $taskMethodEntrypoint = Join-Path $PSScriptRoot 'execution-method.mjs'
 $taskEntrypoints = @(if ($PortableMigrationOnly) { Join-Path $taskRepository 'tools/test/installation/verify-portable-migration.mjs' } else { Join-Path $taskRepository 'tools/test/installation/verify-application-handoff.mjs' })
 $taskEntrypoints += $taskMethodEntrypoint
 if (-not $PortableMigrationOnly -and -not $FixtureScenario) { $taskEntrypoints += Join-Path $taskRepository 'tools/release/installation-verifier.mjs' }
+if ($IncludeWizardAcceptance) { $taskEntrypoints += Join-Path $taskRepository 'tools/test/installation/verify-installer-wizard.mjs' }
 $taskEnvironment = Assert-TaskAcceptanceEnvironment $taskSystemPowerShell $taskSourceNode $taskTrackedChild $taskEntrypoints
 $taskFailurePolicyPath = Join-Path $taskRepository 'tools/test/runner/failure-policy.mjs'
 $taskFailureLimit = Get-TaskFailureBudget $taskSourceNode $taskFailurePolicyPath $taskRepository $PriorFailures
@@ -495,7 +498,7 @@ try {
     Set-Acl -LiteralPath $taskDirectory -AclObject $taskAcl
   }
   $taskPlan = Join-Path $taskWork 'plan.json'
-  @{ repository = $taskRepository; delivery = $taskDelivery; handoffPreparedReport = $taskHandoffPreparedReport; handoffEvidence = (Join-Path $taskOutput 'application-handoff'); frameworkRecoveryEvidence = (Join-Path $taskOutput 'application-framework-recovery'); activeUninstallEvidence = (Join-Path $taskOutput 'application-active-uninstall'); fixtureScenario = $FixtureScenario; fixturePreparedSha256 = $taskFixturePreparedSha256; evidence = (Join-Path $taskOutput 'shipping-executable-checks-full.json'); portableMigrationOnly = [bool]$PortableMigrationOnly; portablePointer = $taskPortablePointer; portablePointerBytes = $taskPortablePointerBytes; portablePointerSha256 = $taskPortablePointerSha256; portableMigrationEvidence = (Join-Path $taskOutput 'portable-migration'); priorFailures = $PriorFailures; failureLimit = $taskFailureLimit; accountSid = $taskCreatedSid.Value; work = $taskWork; useProfileAcceptance = [bool]$UseProfileAcceptance; sourceNode = $taskSourceNode; sourceNodeBytes = $taskEnvironment.node.bytes; sourceNodeSha256 = $taskEnvironment.node.sha256; childExecution = $taskChildExecution; methodSha256 = $taskMethodSha256 } | ConvertTo-Json | Set-Content -LiteralPath $taskPlan -Encoding utf8
+  @{ repository = $taskRepository; delivery = $taskDelivery; handoffPreparedReport = $taskHandoffPreparedReport; handoffEvidence = (Join-Path $taskOutput 'application-handoff'); frameworkRecoveryEvidence = (Join-Path $taskOutput 'application-framework-recovery'); activeUninstallEvidence = (Join-Path $taskOutput 'application-active-uninstall'); fixtureScenario = $FixtureScenario; fixturePreparedSha256 = $taskFixturePreparedSha256; evidence = (Join-Path $taskOutput 'shipping-executable-checks-full.json'); portableMigrationOnly = [bool]$PortableMigrationOnly; portablePointer = $taskPortablePointer; portablePointerBytes = $taskPortablePointerBytes; portablePointerSha256 = $taskPortablePointerSha256; portableMigrationEvidence = (Join-Path $taskOutput 'portable-migration'); priorFailures = $PriorFailures; failureLimit = $taskFailureLimit; accountSid = $taskCreatedSid.Value; work = $taskWork; useProfileAcceptance = [bool]$UseProfileAcceptance; includeWizardAcceptance = [bool]$IncludeWizardAcceptance; sourceNode = $taskSourceNode; sourceNodeBytes = $taskEnvironment.node.bytes; sourceNodeSha256 = $taskEnvironment.node.sha256; childExecution = $taskChildExecution; methodSha256 = $taskMethodSha256 } | ConvertTo-Json | Set-Content -LiteralPath $taskPlan -Encoding utf8
 
   $taskCredentials = [Management.Automation.PSCredential]::new($env:COMPUTERNAME + '\' + $taskUsername, $taskPassword)
   $taskRunner = Start-Process -FilePath $taskSystemPowerShell -ArgumentList @('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',('"' + $taskRunnerPath + '"'),'-Plan',('"' + $taskPlan + '"')) -Credential $taskCredentials -LoadUserProfile -WorkingDirectory $taskWork -WindowStyle Hidden -RedirectStandardOutput (Join-Path $taskOutput 'account-runner.stdout.log') -RedirectStandardError (Join-Path $taskOutput 'account-runner.stderr.log') -PassThru
@@ -512,6 +515,14 @@ try {
     $taskReport.profileAcceptanceRoot = $taskUserIdentity.profileAcceptanceRoot
     $taskReport.profileAcceptanceNode = $taskUserIdentity.nodeExecutable
     $taskReport.profileAcceptanceNodeSha256 = $taskUserIdentity.nodeSha256
+  }
+  if ($IncludeWizardAcceptance) {
+    $taskWizardProofPath = Join-Path $taskOutput 'installer-wizard/report.json'
+    Assert-TaskPathNoLinks $taskWizardProofPath
+    $taskWizardProof = Get-Content -LiteralPath $taskWizardProofPath -Raw -Encoding utf8 | ConvertFrom-Json
+    if ($taskWizardProof.schemaVersion -ne 1 -or $taskWizardProof.result -ne 'passed' -or $taskWizardProof.failures -ne 0 -or $taskWizardProof.delivery.original.sha256 -ne $taskDeliveryData.executable.sha256 -or $taskWizardProof.delivery.original.bytes -ne $taskDeliveryData.executable.bytes -or $taskWizardProof.executionProfile.ownerSid -ne $taskCreatedSid.Value -or $taskWizardProof.executionProfile.root -ne $taskReport.profileAcceptanceRoot) { throw 'The actual wizard did not pass for this exact complete installer and isolated profile.' }
+    $taskReport.wizardEvidencePath = $taskWizardProofPath.Substring($taskRepository.Length + 1).Replace('\', '/')
+    $taskReport.wizardBeforeIsolationSha256 = (Get-FileHash -LiteralPath $taskWizardProofPath -Algorithm SHA256).Hash.ToLowerInvariant()
   }
   if ($PortableMigrationOnly) {
     $taskMigrationProofPath = Join-Path $taskOutput 'portable-migration/report.json'

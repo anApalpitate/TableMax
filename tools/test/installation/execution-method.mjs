@@ -16,6 +16,7 @@ export async function installationExecutionSources(root = resolve('.')) {
     directory + '/verify-application-handoff.mjs',
     directory + '/verify-update-transaction.mjs',
     directory + '/verify-portable-migration.mjs',
+    directory + '/verify-installer-wizard.mjs',
     directory + '/execution-method.mjs',
     ...readdirSync(resolve(root, 'apps/desktop/native'))
       .filter((name) => name.endsWith('.cs'))

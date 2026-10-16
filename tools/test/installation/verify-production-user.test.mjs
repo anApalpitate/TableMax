@@ -78,6 +78,8 @@ ${script}
       '-NoLogo',
       '-NoProfile',
       '-NonInteractive',
+      '-ExecutionPolicy',
+      'Bypass',
       '-EncodedCommand',
       Buffer.from(code, 'utf16le').toString('base64'),
     ],
@@ -104,6 +106,29 @@ async function fixture() {
   await mkdir(parent, { recursive: true });
   return mkdtemp(path.join(parent, 'production-user-unit-'));
 }
+
+test(
+  'wizard acceptance rejects runs outside the complete standard-profile production chain before any account operation',
+  { skip: !windows },
+  () => {
+    for (const flags of [
+      '',
+      '-UseProfileAcceptance -PortableMigrationOnly',
+      '-UseProfileAcceptance -FixtureScenario chains',
+    ]) {
+      runPowerShell(`
+$taskRejected = $false
+try {
+  & ${quote(parentPath)} -DeliveryPath ${quote(path.join(repository, 'not-used-delivery.json'))} -OutputDirectory ${quote(path.join(repository, 'artifacts/maintenance/not-created-wizard-unit'))} -IncludeWizardAcceptance ${flags}
+} catch {
+  if ($_.Exception.Message -ne 'Wizard acceptance requires the complete standard-profile production chain.') { throw }
+  $taskRejected = $true
+}
+if (-not $taskRejected) { throw 'A wizard-only run escaped the standard-profile guard.' }
+`);
+    }
+  },
+);
 
 const parentFunctions = [
   'Assert-TaskPathNoLinks',

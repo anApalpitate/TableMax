@@ -90,6 +90,12 @@ function ManilaScreen({ session }: { session: GameHost }) {
     <main
       className={`manila-screen mn-screen mn-screen--${role}`}
       data-phase={game?.phase}
+      data-financing-self={
+        game?.phase === 'financing' &&
+        game.payment?.seatId === game.self?.seatId
+          ? 'true'
+          : 'false'
+      }
       data-play-mode={view?.playMode ?? 'play'}
       data-saved-motion={saved ? 'true' : 'false'}
       data-motion={
@@ -152,6 +158,18 @@ function ManilaScreen({ session }: { session: GameHost }) {
                     ? '一项货物达到 30，比较最终财富'
                     : '等待保存结果'}
               </span>
+              {game.phase === 'auction' && (
+                <span className="mn-auction-standing">
+                  {game.auction.highBidder ? (
+                    <>
+                      最高 {game.auction.bid} ₱ ·{' '}
+                      {names[game.auction.highBidder] ?? '商人'}
+                    </>
+                  ) : (
+                    '尚无人出价'
+                  )}
+                </span>
+              )}
             </div>
             <DecisionCountdown
               view={view}
@@ -190,7 +208,14 @@ function ManilaScreen({ session }: { session: GameHost }) {
                   <p>现金 ＋ 股份市值 − 每张抵押股份 15 ₱</p>
                   <ol>
                     {rank.map((id) => (
-                      <li key={id}>
+                      <li
+                        key={id}
+                        value={
+                          rank.findIndex(
+                            (other) => game.scores![other] === game.scores![id],
+                          ) + 1
+                        }
+                      >
                         <strong>
                           {names[id]} · {game.scores![id]} ₱
                         </strong>

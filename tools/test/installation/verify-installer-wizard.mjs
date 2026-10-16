@@ -24,6 +24,7 @@ import {
 import { fileURLToPath } from 'node:url';
 import { assertWorkspaceRoot } from '../../shared/workspace-root.mjs';
 import { saveVerificationScreenshot } from '../support/screenshots.mjs';
+import { resolveWindowsAcceptanceProfile } from '../../shared/windows-acceptance-profile.mjs';
 
 const productIds = [
   '{DB749B9D-7D43-4F50-9FBD-551C9E8EF48D}',
@@ -342,13 +343,15 @@ export async function verifyInstallerWizard({
     'Sealed delivery record required',
   );
   const repository = resolve('.');
+  const profile = await resolveWindowsAcceptanceProfile();
   evidence = inside(resolve('artifacts/maintenance'), evidence);
   await noLinks(evidence);
-  await noLinks(resolve('tmp'));
+  const workParent = profile?.workParent ?? resolve('tmp');
+  await noLinks(workParent);
   await mkdir(dirname(evidence), { recursive: true });
   await mkdir(evidence, { recursive: false });
-  await mkdir(resolve('tmp'), { recursive: true });
-  const work = await mkdtemp(join(resolve('tmp'), 'installer-wizard-'));
+  await mkdir(workParent, { recursive: true });
+  const work = await mkdtemp(join(workParent, 'installer-wizard-'));
   await noLinks(work);
   const temporary = join(work, 'temporary'),
     captures = join(work, 'captures');
@@ -366,7 +369,9 @@ export async function verifyInstallerWizard({
     TMP: temporary,
     TABLEMAX_AUTO_MAINTENANCE: '0',
     TABLEMAX_TEST_MAINTENANCE: '0',
-    DOTNET_CLI_HOME: resolve('.cache/dotnet-home'),
+    DOTNET_CLI_HOME: profile
+      ? join(work, 'dotnet-home')
+      : resolve('.cache/dotnet-home'),
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1',
     DOTNET_NOLOGO: '1',
     TABLEMAX_HOST: '127.0.0.1',
@@ -381,6 +386,7 @@ export async function verifyInstallerWizard({
     startedAtUtc: new Date().toISOString(),
     work,
     result: 'not-run',
+    executionProfile: profile,
     failures: 0,
     failureLimit: failureLimit(),
     migrationSource,

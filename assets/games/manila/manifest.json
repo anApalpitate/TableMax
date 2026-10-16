@@ -126,9 +126,9 @@
   "runtimeVerification": {
     "date": "2026-10-16",
     "staticImports": "games/manila/ui/pieces.tsx",
-    "desktopEvidence": "artifacts/manila/validation/native-layout-5-round08/results.json",
-    "phoneEvidence": "artifacts/manila/validation/native-phone-5-round04/results.json",
-    "libraryEvidence": "artifacts/manila/validation/native-phone-5-round04/results.json",
+    "desktopEvidence": "artifacts/manila/validation/native-acceptance-08-all/results.json",
+    "phoneEvidence": "artifacts/manila/validation/native-acceptance-09-match/results.json",
+    "libraryEvidence": "artifacts/manila/validation/native-acceptance-09-match/results.json",
     "scope": "Actual decoded harbor/boat in hidden WinForms WebView2 and player projections; actual library cover decode and selection; no external runtime material directory."
   }
 }

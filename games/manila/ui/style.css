@@ -169,6 +169,18 @@
 .mn-status .mn-status-detail {
   margin-left: 10px;
 }
+.mn-status .mn-auction-standing {
+  display: block;
+  font-size: 18px;
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+.mn-pilot-preview {
+  font-size: 16px;
+}
+.mn-bid-credit {
+  margin-top: 6px !important;
+}
 .mn-notice {
   background: #fff0c8;
   padding: 12px 16px;
@@ -1014,6 +1026,28 @@
   }
   .mn-screen {
     padding: 8px;
+  }
+  .mn-screen--player[data-financing-self='true'] > .mn-private {
+    display: none;
+  }
+  .mn-screen--player[data-financing-self='true'] .mn-finance--payment {
+    margin-top: 8px;
+  }
+  .mn-screen--player[data-financing-self='true'] .mn-finance--payment h3 {
+    margin: 0;
+  }
+  .mn-screen--player[data-financing-self='true']
+    .mn-finance--payment
+    .mn-inline-actions {
+    margin-top: 6px;
+    padding-right: 64px;
+  }
+  .mn-screen--player[data-financing-self='true'] .mn-finance--payment button {
+    width: 100%;
+    text-align: left;
+  }
+  .mn-screen--player[data-financing-self='true'] .mn-finance--payment > p {
+    margin-top: 8px;
   }
   .mn-toolbar {
     gap: 7px;

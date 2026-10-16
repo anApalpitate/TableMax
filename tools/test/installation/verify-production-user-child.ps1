@@ -120,6 +120,12 @@ foreach ($taskInput in @('tools/release/installation-verifier.mjs','.cache/node/
   $taskStream = [IO.File]::OpenRead((Join-Path $taskPlan.repository $taskInput)); $taskStream.Dispose()
 }
 $taskStream = [IO.File]::OpenRead($taskPlan.delivery); $taskStream.Dispose()
+if ($taskPlan.includeWizardAcceptance) {
+  if (-not $taskPlan.useProfileAcceptance -or $taskPlan.portableMigrationOnly -or $taskPlan.fixtureScenario) { throw 'Wizard acceptance escaped the complete standard-profile production chain.' }
+  $taskWizardEvidence = Join-Path (Split-Path -Parent $taskPlan.evidence) 'installer-wizard'
+  $taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-installer-wizard.mjs') -NodeArguments @(('--delivery=' + $taskPlan.delivery), ('--evidence=' + $taskWizardEvidence)) -LogPath ($taskWizardEvidence + '.log')
+  if ($taskNodeExit -ne 0) { exit $taskNodeExit }
+}
 if ($taskPlan.portableMigrationOnly) {
   if (-not $taskPlan.useProfileAcceptance -or (Get-Item -LiteralPath $taskPlan.portablePointer).Length -ne $taskPlan.portablePointerBytes -or (Get-FileHash -LiteralPath $taskPlan.portablePointer -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskPlan.portablePointerSha256) { throw 'The frozen portable pointer or isolated profile mode changed.' }
   $taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-portable-migration.mjs') -NodeArguments @(('--delivery=' + $taskPlan.delivery), ('--portable-pointer=' + $taskPlan.portablePointer), ('--evidence=' + $taskPlan.portableMigrationEvidence), ('--prior-failures=' + $taskPlan.priorFailures)) -LogPath (Join-Path (Split-Path -Parent $taskPlan.evidence) 'portable-migration.log')
