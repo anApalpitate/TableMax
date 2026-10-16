@@ -155,6 +155,11 @@ export async function finalizeInstallationEvidence({
     ).replaceAll('\\', '/'),
     isolationEvidenceSha256: hash(isolationRaw),
   };
+  if (receipt.originalExecutableAcceptance) {
+    await readBound(root, receipt.originalExecutableAcceptance);
+    finalized.originalExecutableAcceptance =
+      receipt.originalExecutableAcceptance;
+  }
   verifyInstallationAcceptance({
     delivery,
     proof: finalized,

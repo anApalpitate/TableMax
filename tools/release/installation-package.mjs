@@ -18,6 +18,7 @@ import {
   isDirectExecution,
 } from '../shared/workspace-root.mjs';
 import { versionIdentity } from '../shared/application-version.mjs';
+import { readWindowsExecutableSecurity } from '../shared/windows-executable-security.mjs';
 import { MAXIMUM_PACKAGE_BYTES } from './package-limits.mjs';
 import { build as bundle } from 'esbuild';
 import {
@@ -504,6 +505,9 @@ export async function createInstallationExecutable({
   );
   await mkdir(dirname(outputPath), { recursive: true });
   await rename(sealed, resolve(outputPath));
+  const executableSecurity = await readWindowsExecutableSecurity(
+    resolve(outputPath),
+  );
   const frozenManifestPath = join(
     dirname(manifestPath),
     fixture
@@ -537,6 +541,7 @@ export async function createInstallationExecutable({
         : null,
     },
     requiredAcceptance: [
+      'original EXE security metadata and actual canonical-path Medium startup/cancellation',
       'actual installer files and framework footprint',
       'first startup materialized current modules footprint',
       'installed identity and native health',
@@ -551,6 +556,7 @@ export async function createInstallationExecutable({
     payloadSha256: payload.archive.sha256,
     durationMs: Math.round(performance.now() - started),
     installation,
+    executableSecurity,
   };
 }
 

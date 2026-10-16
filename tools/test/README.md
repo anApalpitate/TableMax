@@ -301,3 +301,19 @@ node tools/test/desktop/verify-shutdown.mjs --native=<已编译原生目录> --s
 - 实际Inno交付和签名工具参数集中于[发布工具](../release/README.md)。installer不能再使用便携 `--extract-only`：通过实际安装后保存核验成员副本，后续组件测试只复用逐成员哈希绑定的副本；系统安装／升级必须另有实际证明。
 
 中间检查设置进程环境 `TABLEMAX_AUTO_MAINTENANCE=0`／`TABLEMAX_TEST_MAINTENANCE=0`，结束工程进程后由主agent按任务记录统一安全维护一次，不因文档收尾追加。保存失败、权限失败或静音不充分继续留作失败，并区分工具／环境错误与产品结果，不把隐藏窗口等同静音。最终证明绑定installer、payload、安装manifest、当前映射、安装实例、B／D和实际Native／Node身份；完整首次启动计量包含当前G、helper及框架卸载文件。动态系统状态不可缓存，卸载后精确runtime副本只能供组件验证；正式系统证明仍需当前实际账户与登记边界。
+
+## 原交付EXE的安全标记与原路径启动
+
+完整installer交付另需独立证明原文件本身可运行。封包记录原EXE的SHA／字节、owner／DACL、mandatory label、备用数据流及Authenticode状态；验收前后再次读取。原EXE须为正常Medium，无Zone.Identifier／MOTW，Authenticode仅允许Valid或本项目的NotSigned。此检查不等于杀毒扫描、浏览器下载或SmartScreen信誉证明。
+
+`tools/shared/windows-executable-security.mjs`提供只读`readWindowsExecutableSecurity`、门禁`assertWindowsExecutableSecurity`和可信本地产物的`normalizeBuiltExecutableSecurity`。底层系统PowerShell脚本只通过显式参数接收路径；归一化仅允许工程artifacts／tmp下单个已核SHA的本地EXE由Low改为Medium，必须保全原字节、owner、DACL及全部数据流。不得递归改工程标签、清除下载标记、调整源Node标签、token或系统安全策略。Low执行环境无权限修正时保持失败，改由真实Medium／管理员进程调用同一窄范围工具，不绕过门禁。
+
+只补原文件验收时使用：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/test/installation/verify-production-user.ps1 -DeliveryPath <完整installer-delivery.json> -OutputDirectory <全新maintenance目录> -AllowTemporaryAccount -UseProfileAcceptance -OriginalExecutableOnly
+```
+
+此模式与迁移、fixture-only、HandoffPreparedReport及IncludeWizardAcceptance互斥；完整生产链默认先执行同一原EXE检查。它在新标准账户／真实profile中以CreateProcess直接启动冻结交付路径的原EXE，不复制EXE、不向源目录写入夹具；核真实原bootstrap及向导子进程的映像、SID、Medium、非提权令牌，实际中文向导、默认路径、返回及正常取消。只有原进程返回Inno正常取消码2、自有Job自然归零、登记及目标目录未改、原EXE逐SHA及安全标记未变、源目录内容未变，并删除测试账户／profile后，才写`original-executable-evidence.json`。这补充原完整系统证明，不将取消操作算作安装通过，也不重跑未受影响安装链。
+
+完整生产链把该补充记录绑定到execution-receipt，独立封存保留引用；本地current切换及发布预检读取其原始报告、截图、账户清理记录并重新读取原EXE安全标记，缺失、路径为副本、内容或元数据改变均拒绝。对既有已验收current补证使用`node tools/release/original-executable-acceptance.mjs --current=<当前current.json> --proof=<补充证明>`，仅原子附加证明引用，不改原系统证明、候选、EXE、版本或公开附件。

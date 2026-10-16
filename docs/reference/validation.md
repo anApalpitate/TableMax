@@ -401,3 +401,11 @@ Vitest 的测试文件并发限制为 4：完整种子局增加后，无界 CPU 
 ## Windows完整性与隔离验收
 
 工程继承Low标签会使生成EXE与Node降为Low，写正常HKCU被拒绝。profile测试模式须先获明确授权，核实际新标准SID／真实目录／两个Medium token，仅物化同SHA副本，不修改原标签、token或DACL；日志及清理证明留工程，具体入口见[完整安装验证](../../tools/test/README.md#完整安装与程序更新验证)。
+
+## 原EXE安全标记与直接启动门禁
+
+同SHA副本通过不能替代原交付文件自身的安全标记和原路径启动。完整交付必须单独核验原EXE的mandatory label、owner／DACL、ADS／MOTW及Authenticode，并从其冻结canonical路径在干净标准profile直接启动；记录真实原进程与向导子进程映像、SID、Medium／非提权令牌、实际截图、正常取消退出和自有Job归零，以及精确账户／profile清理。原EXE的内容及安全元数据、源目录的内容在启动前后须保持一致；复制、改名、解压后运行或只有requested路径不计原EXE通过。
+
+本地生成EXE继承Low是独立交付缺陷；只允许在核原SHA后对该可信最终产物做单文件Low→Medium归一化并记录前后保全，不改源工具标签、DACL、MOTW或系统策略。Windows完整性机制见[Microsoft MIC](https://learn.microsoft.com/en-us/windows/win32/secauthz/mandatory-integrity-control)，单文件标签参数见[icacls](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/icacls)。项目免费RSA应用签名与Authenticode分别记录，NotSigned不冒充已签名或SmartScreen信誉。
+
+原路径浏览／取消证明作为完整安装／保存／卸载证明的补充，不能互相替代。封包采样原文件安全状态，本地current切换与公开发布预检必须读取原始补证并再次查原文件，缺证、Low、MOTW、实际Low／提权进程、源目录变化、非正常取消或清理失败均停止交付。具体命令与输出字段唯一维护在[测试工具](../../tools/test/README.md#原交付exe的安全标记与原路径启动)，实际结果见[验收](acceptance.md#马尼拉本地候选2026-10-16)。

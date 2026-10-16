@@ -25,6 +25,10 @@ import { fileURLToPath } from 'node:url';
 import { assertWorkspaceRoot } from '../../shared/workspace-root.mjs';
 import { saveVerificationScreenshot } from '../support/screenshots.mjs';
 import { resolveWindowsAcceptanceProfile } from '../../shared/windows-acceptance-profile.mjs';
+import {
+  readWindowsExecutableSecurity,
+  assertWindowsExecutableSecurity,
+} from '../../shared/windows-executable-security.mjs';
 
 const productIds = [
   '{DB749B9D-7D43-4F50-9FBD-551C9E8EF48D}',
@@ -327,6 +331,7 @@ export async function verifyInstallerWizard({
   probeOnly = false,
   entryOnly = false,
   migrationSource = 'absent',
+  originalExecutable = false,
 }) {
   assertWorkspaceRoot();
   assert.equal(process.platform, 'win32');
@@ -337,6 +342,14 @@ export async function verifyInstallerWizard({
   assert.ok(
     ['absent', 'present'].includes(migrationSource),
     'Unknown migration source case',
+  );
+  assert.ok(
+    !originalExecutable ||
+      (!compileOnly &&
+        !probeOnly &&
+        !entryOnly &&
+        migrationSource === 'absent'),
+    'Original executable acceptance requires the actual unmodified source directory',
   );
   assert.ok(
     compileOnly || probeOnly || deliveryPath,
@@ -380,6 +393,10 @@ export async function verifyInstallerWizard({
     TABLEMAX_PORT: '0',
     TABLEMAX_NATIVE_AUDIO: '0',
   });
+  if (originalExecutable && profile) {
+    environment.TABLEMAX_WINDOWS_ACCEPTANCE_PROFILE_ROOT = profile.root;
+    environment.TABLEMAX_WINDOWS_ACCEPTANCE_PROFILE_SID = profile.ownerSid;
+  }
   const sourceRecord = await record(source),
     driverRecord = await record(fileURLToPath(import.meta.url));
   const report = {
@@ -397,6 +414,7 @@ export async function verifyInstallerWizard({
     boundary:
       'Actual own-process windows rendered on an unswitched private desktop. Directory editing, option toggles, Back and Chinese exit confirmation only; no Install invocation, account creation, UAC, production installation, save/health/migration execution, security-prompt or online-delivery acceptance. The same sealed installer bytes are copied to an isolated Chinese-space source directory and default {src}/TableMax is checked. Generated config fixtures are only wizard inputs, never actual saved games or migration proof.',
     failureDomain: 'tool-or-environment-not-product-installation',
+    originalExecutable,
   };
   try {
     const sdk = JSON.parse(await readFile('global.json', 'utf8')).sdk.version;
@@ -465,7 +483,11 @@ export async function verifyInstallerWizard({
     else {
       let plan = {
         schemaVersion: 1,
-        mode: probeOnly ? 'api-probe' : 'installer-wizard',
+        mode: probeOnly
+          ? 'api-probe'
+          : originalExecutable
+            ? 'original-installer'
+            : 'installer-wizard',
         work,
         temporary,
         captures,
@@ -559,12 +581,30 @@ export async function verifyInstallerWizard({
           languageRecipe.bytes,
           'Complete Chinese language length differs from sealed recipe',
         );
-        const launchDirectory = join(work, '安装包 目录');
-        await mkdir(launchDirectory);
-        const copy = join(launchDirectory, basename(installer));
-        await copyFile(installer, copy);
+        const launchDirectory = originalExecutable
+          ? dirname(installer)
+          : join(work, '安装包 目录');
+        if (!originalExecutable) await mkdir(launchDirectory);
+        const copy = originalExecutable
+          ? installer
+          : join(launchDirectory, basename(installer));
+        if (originalExecutable) {
+          assert.ok(
+            profile,
+            'Original executable acceptance requires a verified fresh standard profile',
+          );
+          report.originalSecurityBefore =
+            await readWindowsExecutableSecurity(installer);
+          assertWindowsExecutableSecurity(report.originalSecurityBefore);
+          report.sourceDirectoryBefore = await inventory(launchDirectory);
+          report.boundary =
+            'Actual original delivery path, no executable copy or source-directory writes; verified standard Medium profile, actual image/token and Chinese wizard navigation/cancellation. Does not invoke Install or prove browser download/SmartScreen.';
+        } else await copyFile(installer, copy);
         assert.equal((await record(copy)).sha256, original.sha256);
-        const unknown = join(launchDirectory, '朋友资料.txt');
+        const unknown = join(
+          originalExecutable ? work : launchDirectory,
+          '朋友资料.txt',
+        );
         await writeFile(
           unknown,
           'TableMax wizard cancellation preservation fixture\n',
@@ -784,11 +824,43 @@ export async function verifyInstallerWizard({
         }
         report.entry.argvReceipt = await record(plan.receipt);
       }
-      report.result = entryOnly
-        ? 'updater-helper-entry-component-passed'
-        : probeOnly
-          ? 'api-probe-passed-not-installer-proof'
-          : 'actual-wizard-cancel-passed';
+      if (originalExecutable) {
+        report.originalSecurityAfter = await readWindowsExecutableSecurity(
+          report.delivery.original.path,
+        );
+        assertWindowsExecutableSecurity(report.originalSecurityAfter);
+        assert.deepEqual(
+          report.originalSecurityAfter,
+          report.originalSecurityBefore,
+          'Original EXE security or bytes changed during direct launch',
+        );
+        assert.deepEqual(
+          await inventory(dirname(report.delivery.original.path)),
+          report.sourceDirectoryBefore,
+          'Original delivery directory changed during direct launch',
+        );
+        const originalProcesses = raw.processes.filter(
+          (item) =>
+            resolve(item.path).toLowerCase() ===
+            resolve(report.delivery.original.path).toLowerCase(),
+        );
+        assert.ok(
+          originalProcesses.length > 0,
+          'The actual original process image must be observed',
+        );
+        for (const process of raw.processes) {
+          assert.equal(process.ownerSid, profile.ownerSid);
+          assert.equal(process.integritySid, 'S-1-16-8192');
+          assert.equal(process.elevated, false);
+        }
+      }
+      report.result = originalExecutable
+        ? 'original-executable-passed'
+        : entryOnly
+          ? 'updater-helper-entry-component-passed'
+          : probeOnly
+            ? 'api-probe-passed-not-installer-proof'
+            : 'actual-wizard-cancel-passed';
     }
     report.failureDomain = null;
     assert.deepEqual(
@@ -832,7 +904,12 @@ if (
   assert.ok(
     args.every(
       (item) =>
-        ['--compile-only', '--probe-only', '--updater-entry'].includes(item) ||
+        [
+          '--compile-only',
+          '--probe-only',
+          '--updater-entry',
+          '--original-executable',
+        ].includes(item) ||
         /^--(?:delivery|evidence|migration-source)=.+/.test(item),
     ),
     'Unknown wizard argument',
@@ -844,6 +921,7 @@ if (
     probeOnly: args.includes('--probe-only'),
     entryOnly: args.includes('--updater-entry'),
     migrationSource: value('migration-source') ?? 'absent',
+    originalExecutable: args.includes('--original-executable'),
   });
   console.log(JSON.stringify(result));
   assert.equal(result.failures, 0);

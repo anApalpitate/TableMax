@@ -19,6 +19,7 @@ import {
   verifyInstallationPublication,
 } from './installation-publication.mjs';
 import { verifyPreservedRuntime } from './installation-verifier.mjs';
+import { verifyOriginalExecutableAcceptance } from './original-executable-acceptance.mjs';
 import { verifyGitHubRelease } from '../shared/application-update.mjs';
 assert.ok(
   process.argv.includes('--publish'),
@@ -118,6 +119,12 @@ for (const edition of ['full']) {
   assert.equal(payloadManifest.snapshot, payloadIndex.snapshot);
   assert.equal(proof.payloadSha256, payloadManifest.archive.sha256);
   if (delivery.deliveryType === 'installer') {
+    await verifyOriginalExecutableAcceptance({
+      delivery,
+      evidence:
+        payloadIndex.originalExecutableAcceptance ??
+        proof.originalExecutableAcceptance,
+    });
     applicationUpdate = verifyInstallationPublication({
       delivery,
       proof,

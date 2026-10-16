@@ -14,6 +14,7 @@ import {
 } from './installation-publication.mjs';
 import { verifyPreservedRuntime } from './installation-verifier.mjs';
 import { assertDeliveryPath } from './delivery-paths.mjs';
+import { verifyOriginalExecutableAcceptance } from './original-executable-acceptance.mjs';
 
 export function verifyCandidatePromotion({
   candidate,
@@ -166,6 +167,11 @@ export async function promoteInstallationCandidate({
       currentSha256: originalCurrentHash,
       acceptance,
     });
+    const original = await verifyOriginalExecutableAcceptance({
+      delivery,
+      evidence: proof.originalExecutableAcceptance,
+    });
+    promoted.originalExecutableAcceptance = original.evidence;
     await artifactPath(proof.verifiedRuntime.path, 'artifacts/maintenance');
     await verifyPreservedRuntime({
       copy: proof.verifiedRuntime,

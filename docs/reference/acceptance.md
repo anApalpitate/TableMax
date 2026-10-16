@@ -18,6 +18,16 @@
 
 首次安装完成并健康启动的同次程序采样114,824,311字节＝程序98,361,129＋框架5,273,757＋身份／配置16,371＋当前G11,173,054，低于120,000,000硬限，触发110,000,000工程预警。preStartupSampled为false；阶段观测最大178,430,359字节包含数据／缓存／暂存，isAbsolutePeak为false。向导与系统链通过不代表浏览器SmartScreen、真实断电、实体手机LAN或物理DPI通过。原失败、工具修复及单次维护见[归档](../archive/manila-2026-10-16.md#安装验收与体验优化接续2026-10-16)；剩余设备范围见[接续任务](../tasks/manila-development.md)。
 
+### 原交付EXE安全标记与直接启动补证（2026-10-16）
+
+用户追加原EXE门禁后，[实际初查](../../artifacts/maintenance/v1.0.7/original-executable-20261016/round-01/original-security-before.json)发现1.0.7.9原文件继承Low完整性标签；此前系统验收使用同SHA的新profile副本，只证明对应范围，未证明原路径启动。对可信最终产物执行单文件Low→Medium修正，[修正回执](../../artifacts/maintenance/v1.0.7/original-executable-20261016/round-01/original-security-normalization.json)核字节、SHA、owner、DACL及全部数据流不变；EXE仍为36,616,557字节和本节原SHA，不重封、不新增修订。原文件无ADS／Zone.Identifier，Authenticode为NotSigned，项目RSA应用签名与其分别认定。
+
+[原路径实际报告](../../artifacts/maintenance/v1.0.7/original-executable-20261016/round-01/original-account-09-02/original-executable/report.json)从原交付路径直接启动原EXE，实际bootstrap及向导子进程均为同一新标准SID、Medium且未提权；中文向导、实际默认路径、返回及取消通过，原进程正常取消码2，自有Job自然归零，登记／目标目录未创建，原EXE元数据和源目录内容保持不变。实际截图已人工核对。[账户终态](../../artifacts/maintenance/v1.0.7/original-executable-20261016/round-01/original-account-09-02/isolated-account.json)及[外层回执](../../artifacts/maintenance/v1.0.7/original-executable-20261016/round-01/original-account-09-02-completion.json)确认退出0、账户／profile删除、errors为空。
+
+[原始补证](../../artifacts/maintenance/v1.0.7/original-executable-20261016/round-01/original-account-09-02/original-executable-evidence.json)31,841字节，SHA `9b8d70fd6fa7059c1ea0277eecbad2a5c304995145e345dfbe6b68e1684ea6d8`，已由[原子附加回执](../../artifacts/maintenance/v1.0.7/original-executable-20261016/round-01/attach-current-09-02.json)关联到本地current。[最终门禁重核](../../artifacts/maintenance/v1.0.7/original-executable-20261016/round-01/gate-revalidation-04.json)读取实际原始截图、进程／清理证明及当前安全元数据后通过。后续缺该补证或安全标记／原路径身份不符时，本地current切换与发布预检拒绝。原24步更新／恢复及12项正式系统证明保持原字节，不重复计数；本轮没有发布或追加工程清理。
+
+首轮补测因工具过滤掉profile守卫变量，在原EXE启动前失败，纠正后实际原路径通过；只读附加阶段另遇Low Node无法向系统TEMP写编译临时文件，改用自有profile／工程tmp目录后只读复验通过，未重跑账户或产品操作。对应失败、独立预算和实质原因保留于该证据根。相关32项工具用例通过；最新受影响24项复验通过，另外8项未变用例按先前通过复用，不重复计数。此补证使用CreateProcess直接启动，不冒称浏览器下载、Explorer双击安全提示或SmartScreen信誉验证。
+
 ### 首轮开发候选1.0.7.7
 
 [完整安装候选1.0.7.7](../../artifacts/releases/v1.0.7/1.0.7.7/TableMax-1.0.7.7-installer-win-x64.exe)包含七款游戏、八个玩法，新增2005经典《马尼拉》3–5人、三档本地策略和写实动态沙盘。EXE为36,616,229字节，SHA `f986705422062dcfae0cda86ebaff1842eab31aee8e84f5a12bca4c0010931ec`；内部ZIP44,861,285字节、实际提取97,752,337字节，运行前后98成员逐SHA一致。[封包记录](../../artifacts/manila/validation/package-candidate07.json)绑定候选及安装清单。

@@ -25,12 +25,14 @@ internal static class InstallerWizardHarness
     private static readonly JavaScriptSerializer Json = new JavaScriptSerializer { MaxJsonLength = 1024 * 1024 };
     private static readonly List<object> Checks = new List<object>();
     private static readonly List<object> Captures = new List<object>();
+    private static readonly Dictionary<int, object> Processes = new Dictionary<int, object>();
     private static readonly Stopwatch Budget = Stopwatch.StartNew();
     private static Dictionary<string, object> Plan;
     private static IntPtr Job, Desktop, OriginalDesktop;
     private static string Work, Sid;
     private static string ProgressResultPath;
     private static Process ProgressOwner;
+    private static Process OriginalLaunchProcess;
     private static IntPtr LastWindow;
 
     [MTAThread]
@@ -61,11 +63,19 @@ internal static class InstallerWizardHarness
                 string[] keys = { "schemaVersion", "mode", "work", "temporary", "captures", "target", "installer", "installerSha256", "productId", "migrationSource", "migrationSourceState" };
                 Require(Plan.Count == keys.Length && keys.All(Plan.ContainsKey), "Unknown plan field");
                 Require(Convert.ToInt32(Plan["schemaVersion"]) == 1, "Unknown plan version");
-                Require(Text("mode") == "api-probe" || Text("mode") == "installer-wizard", "Unknown plan mode");
+                Require(Text("mode") == "api-probe" || Text("mode") == "installer-wizard" || Text("mode") == "original-installer", "Unknown plan mode");
                 Work = Path.GetFullPath(Text("work"));
                 Require(Directory.Exists(Work) && Path.GetFileName(Work).StartsWith("installer-wizard-", StringComparison.Ordinal), "Fresh wizard work required");
                 Safe(Work);
-                foreach (string key in new[] { "temporary", "captures", "target", "installer", "migrationSource" }) Scoped(Text(key));
+                foreach (string key in new[] { "temporary", "captures", "target", "migrationSource" }) Scoped(Text(key));
+                if (Text("mode") == "original-installer") {
+                    Safe(Text("installer"));
+                    Require(System.Text.RegularExpressions.Regex.IsMatch(Path.GetFileName(Text("installer")), @"^TableMax-1\.\d+\.\d+\.\d+-installer-win-x64\.exe$"), "Canonical original installer name required");
+                    Require(Text("migrationSourceState") == "absent", "Original directory must not receive fixture files");
+                    Require(Environment.GetEnvironmentVariable("TABLEMAX_WINDOWS_ACCEPTANCE_PROFILE_ROOT") != null, "Verified profile required for original launch");
+                    Require(Work.StartsWith(Path.GetFullPath(Environment.GetEnvironmentVariable("TABLEMAX_WINDOWS_ACCEPTANCE_PROFILE_ROOT")).TrimEnd('\\') + "\\work\\", StringComparison.OrdinalIgnoreCase), "Original harness work escaped the verified profile");
+                    Require(Environment.GetEnvironmentVariable("TABLEMAX_WINDOWS_ACCEPTANCE_PROFILE_SID") == WindowsIdentity.GetCurrent().User.Value, "Original profile SID differs");
+                } else Scoped(Text("installer"));
                 Require(Text("migrationSourceState") == "absent" || Text("migrationSourceState") == "present", "Unknown migration source state");
                 Require(!Directory.Exists(Text("target")) && !File.Exists(Text("target")), "Target must not exist");
                 Require(Hash(Text("installer")) == Text("installerSha256"), "Installer bytes changed");
@@ -78,9 +88,10 @@ internal static class InstallerWizardHarness
                 result["failureDomain"] = "tool-or-environment-not-product-installation";
                 result["sourceDirectory"] = Path.GetDirectoryName(Text("installer"));
                 result["migrationSourceState"] = Text("migrationSourceState");
-                if (Text("mode") == "installer-wizard")
+                if (Text("mode") == "installer-wizard" || Text("mode") == "original-installer")
                 {
-                    string automatic = Scoped(Path.Combine(Path.GetDirectoryName(Text("installer")), "TableMax"));
+                    string automatic = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Text("installer")), "TableMax"));
+                    if (Text("mode") == "original-installer") Safe(automatic); else Scoped(automatic);
                     Require(Directory.Exists(automatic) == (Text("migrationSourceState") == "present"), "Automatic migration source fixture state changed");
                     Require(File.Exists(Path.Combine(Text("migrationSource"), "TableMax.config.json")), "Manual migration fixture config is required");
                     Require(SamePath(Text("migrationSource"), automatic) == false, "Manual fixture must differ from automatic migration source");
@@ -102,6 +113,12 @@ internal static class InstallerWizardHarness
                 Start(Text("installer"), Text("mode") == "api-probe" ? "--probe-child" : "/SP- /NORESTART /LOG=\"" + Scoped(Path.Combine(Work, "installer.log")) + "\"", desktopName);
                 if (Text("mode") == "api-probe") Probe(); else Wizard();
                 Wait(() => OwnProcesses().Length == 0, "Own process exit", 15000);
+                if (OriginalLaunchProcess != null) {
+                    Require(OriginalLaunchProcess.WaitForExit(5000), "Original installer did not exit after cancellation");
+                    result["originalProcessExitCode"] = OriginalLaunchProcess.ExitCode;
+                    result["originalProcessExitedBeforeCleanup"] = true;
+                    Require(OriginalLaunchProcess.ExitCode == 2, "Original installer did not return the normal user-cancel exit code");
+                }
                 object registrationAfter = Registrations();
                 result["registrationAfter"] = registrationAfter;
                 Require(((List<object>)registrationAfter).Count == 0, "Browsing changed product registration");
@@ -141,6 +158,7 @@ internal static class InstallerWizardHarness
                 }
                 else result["remainingOwnProcesses"] = 0;
                 ProgressOwner?.Dispose(); ProgressOwner = null;
+                OriginalLaunchProcess?.Dispose(); OriginalLaunchProcess = null;
                 if (Desktop != IntPtr.Zero)
                 {
                     // UIA may retain a hidden window on its STA until process exit; report that honestly.
@@ -151,6 +169,7 @@ internal static class InstallerWizardHarness
             }
             catch (Exception error) { result["cleanupError"] = error.ToString(); result["passed"] = false; exit = 1; }
             result["elapsedMs"] = Budget.ElapsedMilliseconds;
+            result["processes"] = Processes.Values.ToArray();
             if (Work != null) File.WriteAllText(ProgressResultPath ?? Path.Combine(Work, "result.json"), Json.Serialize(result), new UTF8Encoding(false));
             Console.WriteLine(Json.Serialize(new { passed = result["passed"], exitCode = exit, mode = Plan == null ? "invalid-plan" : Text("mode") }));
         }
@@ -425,7 +444,8 @@ internal static class InstallerWizardHarness
     {
         IntPtr window = WaitWindow("installer wizard");
         LastWindow = window;
-        string expectedDefault = Scoped(Path.Combine(Path.GetDirectoryName(Text("installer")), "TableMax"));
+        string expectedDefault = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Text("installer")), "TableMax"));
+        if (Text("mode") == "original-installer") Safe(expectedDefault); else Scoped(expectedDefault);
         IntPtr edit = IntPtr.Zero;
         for (int attempt = 0; attempt < 3 && edit == IntPtr.Zero; attempt++)
         {
@@ -846,6 +866,10 @@ internal static class InstallerWizardHarness
             Require(AssignProcessToJobObject(Job, process.Process), "Own process Job assignment failed: " + Marshal.GetLastWin32Error());
             assigned = true;
             OwnProcess((int)process.ProcessId);
+            if (Text("mode") == "original-installer" && SamePath(executable, Text("installer"))) {
+                OriginalLaunchProcess = Process.GetProcessById((int)process.ProcessId);
+                Require(OriginalLaunchProcess.Handle != IntPtr.Zero, "Original process handle unavailable");
+            }
             Require(ResumeThread(process.Thread) != 0xFFFFFFFF, "Own process resume failed");
             Check("own-process-private-desktop-job", new { processId = process.ProcessId, desktop = desktopName, switchedDesktop = false, sid = Sid, executable });
         }
@@ -886,11 +910,34 @@ internal static class InstallerWizardHarness
             var path = new StringBuilder(32768);
             int length = path.Capacity;
             Require(QueryFullProcessImageName(process, 0, path, ref length), "Own image path unavailable");
-            Scoped(path.ToString());
+            if (Text("mode") == "original-installer" && SamePath(path.ToString(), Text("installer"))) Safe(path.ToString());
+            else Scoped(path.ToString());
             Require(OpenProcessToken(process, 0x0008, out token), "Own process SID unavailable");
             using (var identity = new WindowsIdentity(token)) Require(identity.User.Value == Sid, "Process SID differs from test owner");
+            if (Text("mode") == "original-installer") {
+                string integrity = TokenIntegrity(token);
+                bool elevated = TokenElevated(token);
+                Require(integrity == "S-1-16-8192" && !elevated, "Original launch requires actual Medium non-elevated processes");
+                Processes[id] = new { pid = id, path = path.ToString(), ownerSid = Sid, integritySid = integrity, elevated };
+            }
         }
         finally { if (token != IntPtr.Zero) CloseHandle(token); CloseHandle(process); }
+    }
+
+    private static string TokenIntegrity(IntPtr token)
+    {
+        int length; GetTokenInformation(token, 25, IntPtr.Zero, 0, out length);
+        Require(length > 0 && length < 65536, "Mandatory token label size invalid");
+        IntPtr data = Marshal.AllocHGlobal(length);
+        try { Require(GetTokenInformation(token, 25, data, length, out length), "Mandatory token label unavailable"); return new SecurityIdentifier(Marshal.ReadIntPtr(data)).Value; }
+        finally { Marshal.FreeHGlobal(data); }
+    }
+
+    private static bool TokenElevated(IntPtr token)
+    {
+        int length; IntPtr data = Marshal.AllocHGlobal(4);
+        try { Require(GetTokenInformation(token, 20, data, 4, out length), "Token elevation unavailable"); return Marshal.ReadInt32(data) != 0; }
+        finally { Marshal.FreeHGlobal(data); }
     }
 
     private static void OwnWindow(IntPtr handle)
@@ -972,6 +1019,7 @@ internal static class InstallerWizardHarness
     [DllImport("kernel32.dll", SetLastError = true)] private static extern IntPtr OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, uint id);
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool QueryFullProcessImageName(IntPtr process, uint flags, StringBuilder path, ref int length);
     [DllImport("advapi32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool OpenProcessToken(IntPtr process, uint access, out IntPtr token);
+    [DllImport("advapi32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool GetTokenInformation(IntPtr token, int information, IntPtr data, int length, out int returned);
     [DllImport("user32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool EnumDesktopWindows(IntPtr desktop, EnumWindowsCallback callback, IntPtr parameter);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool EnumChildWindows(IntPtr window, EnumWindowsCallback callback, IntPtr parameter);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool IsWindowVisible(IntPtr window);

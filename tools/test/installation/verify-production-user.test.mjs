@@ -108,6 +108,25 @@ async function fixture() {
 }
 
 test(
+  'original-only acceptance rejects missing profile or mixed installation/migration modes before account creation',
+  { skip: !windows },
+  () => {
+    for (const flags of [
+      '',
+      '-UseProfileAcceptance -PortableMigrationOnly',
+      '-UseProfileAcceptance -HandoffPreparedReport unexpected.json',
+      '-UseProfileAcceptance -IncludeWizardAcceptance',
+    ]) {
+      runPowerShell(`
+$taskRejected = $false
+try { & ${quote(parentPath)} -DeliveryPath missing.json -OutputDirectory missing -OriginalExecutableOnly ${flags} } catch { if ($_.Exception.Message -notmatch 'Original executable acceptance requires|Wizard acceptance requires') { throw }; $taskRejected = $true }
+if (-not $taskRejected) { throw 'The original-only mode guard did not reject.' }
+`);
+    }
+  },
+);
+
+test(
   'wizard acceptance rejects runs outside the complete standard-profile production chain before any account operation',
   { skip: !windows },
   () => {
@@ -421,6 +440,11 @@ test(
     await writeFile(delivery, '{"fixture":"pure receipt input"}\n', {
       flag: 'wx',
     });
+    const originalProof = path.join(root, 'original-executable-evidence.json');
+    const originalBytes = Buffer.from(
+      '{"fixture":"original path acceptance"}\n',
+    );
+    await writeFile(originalProof, originalBytes, { flag: 'wx' });
     const output = runPowerShell(
       importFunctions(parentPath, [
         ...parentFunctions,
@@ -437,6 +461,11 @@ $taskReceipt | ConvertTo-Json -Compress
     );
     const receiptRecord = JSON.parse(output);
     const receipt = JSON.parse(await readFile(receiptRecord.path, 'utf8'));
+    assert.equal(receipt.originalExecutableAcceptance.path, originalProof);
+    assert.equal(
+      receipt.originalExecutableAcceptance.sha256,
+      sha256(originalBytes),
+    );
     assert.equal(receipt.kind, 'installation-execution-receipt');
     assert.equal(receipt.proof.sha256, sha256(proofBytes));
     assert.deepEqual(await readFile(receipt.proof.path), proofBytes);

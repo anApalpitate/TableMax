@@ -18,6 +18,7 @@ export async function installationExecutionSources(root = resolve('.')) {
     directory + '/verify-portable-migration.mjs',
     directory + '/verify-installer-wizard.mjs',
     directory + '/execution-method.mjs',
+    'tools/shared/windows-executable-security.ps1',
     ...readdirSync(resolve(root, 'apps/desktop/native'))
       .filter((name) => name.endsWith('.cs'))
       .map((name) => 'apps/desktop/native/' + name),

@@ -120,6 +120,12 @@ foreach ($taskInput in @('tools/release/installation-verifier.mjs','.cache/node/
   $taskStream = [IO.File]::OpenRead((Join-Path $taskPlan.repository $taskInput)); $taskStream.Dispose()
 }
 $taskStream = [IO.File]::OpenRead($taskPlan.delivery); $taskStream.Dispose()
+if ($taskPlan.originalExecutableAcceptance) {
+  $taskOriginalEvidence = Join-Path (Split-Path -Parent $taskPlan.evidence) 'original-executable'
+  $taskNodeExit = Invoke-TaskNode -ScriptPath (Join-Path $taskPlan.repository 'tools/test/installation/verify-installer-wizard.mjs') -NodeArguments @('--original-executable', ('--delivery=' + $taskPlan.delivery), ('--evidence=' + $taskOriginalEvidence)) -LogPath ($taskOriginalEvidence + '.log')
+  if ($taskNodeExit -ne 0) { exit $taskNodeExit }
+  if ($taskPlan.originalExecutableOnly) { exit 0 }
+}
 if ($taskPlan.includeWizardAcceptance) {
   if (-not $taskPlan.useProfileAcceptance -or $taskPlan.portableMigrationOnly -or $taskPlan.fixtureScenario) { throw 'Wizard acceptance escaped the complete standard-profile production chain.' }
   $taskWizardEvidence = Join-Path (Split-Path -Parent $taskPlan.evidence) 'installer-wizard'
