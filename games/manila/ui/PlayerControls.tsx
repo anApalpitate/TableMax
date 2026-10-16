@@ -1,7 +1,14 @@
-import { useState } from 'react';
-import type { Action, CargoId, ManilaView } from '../rules/view';
-import { actionLabel, cargoColors, cargoNames, spaceName } from './labels';
-import { cargoStyle } from './pieces';
+import { useEffect, useRef, useState } from 'react';
+import type { Action, ManilaView } from '../rules/view';
+import {
+  actionLabel,
+  cargoColors,
+  cargoNames,
+  seatColors,
+  spaceName,
+} from './labels';
+import { CargoArt, Worker, cargoStyle } from './pieces';
+import { DragSource, useManilaInteraction } from './interaction';
 
 type Props = {
   game: ManilaView;
@@ -11,8 +18,23 @@ type Props = {
   select(action: Action | null): void;
   choose(action: Action): void;
 };
-type SetupAction = Extract<Action, { type: 'setup' }>;
-
+function CloseAlternatives() {
+  return (
+    <button
+      className="mn-alternative-close"
+      type="button"
+      onClick={(event) => {
+        const details = event.currentTarget.closest('details');
+        if (details) {
+          details.open = false;
+          details.querySelector<HTMLElement>(':scope > summary')?.focus();
+        }
+      }}
+    >
+      收起操作列表
+    </button>
+  );
+}
 function Finance({
   game,
   actions,
@@ -46,21 +68,20 @@ function Finance({
       ))}
     </div>
   );
-  if (game.phase === 'financing' && game.payment?.seatId === game.self?.seatId)
-    return (
-      <section
-        className="mn-finance mn-finance--payment"
-        aria-label="选择抵押股份"
-      >
-        <h3>选择一张股份</h3>
-        {choices}
-        <p>
-          每张抵押 +12 ₱；赎回支付 15 ₱ 并公开。未赎回的股份终局每张扣 15
-          ₱，资金足够后继续付款。
-        </p>
-      </section>
-    );
-  return (
+  return game.phase === 'financing' &&
+    game.payment?.seatId === game.self?.seatId ? (
+    <section
+      className="mn-finance mn-finance--payment"
+      aria-label="选择抵押股份"
+    >
+      <h3>选择一张股份</h3>
+      {choices}
+      <p>
+        每张抵押 +12 ₱；赎回支付 15 ₱ 并公开。未赎回的股份终局每张扣 15
+        ₱，资金足够后继续付款。
+      </p>
+    </section>
+  ) : (
     <details className="mn-finance">
       <summary>股份抵押与赎回</summary>
       <p>抵押取得 12 ₱；赎回支付 15 ₱ 并公开该股份。抵押股份终局扣除 15 ₱。</p>
@@ -68,79 +89,136 @@ function Finance({
     </details>
   );
 }
-
-function Setup({
+export function PlayerControls({
   game,
   actions,
   locked,
+  draft,
+  select,
   choose,
-}: Pick<Props, 'game' | 'actions' | 'locked' | 'choose'>) {
-  const setups = actions.filter(
-    (action): action is SetupAction => action.type === 'setup',
+}: Props) {
+  const work = useManilaInteraction();
+  const bids = actions.filter(
+    (action): action is Extract<Action, { type: 'bid' }> =>
+      action.type === 'bid',
   );
-  const [cargos, setCargos] = useState<CargoId[]>(
-    setups[0]?.cargos ?? game.cargos.slice(0, 3).map((cargo) => cargo.id),
+  const [bid, setBid] = useState(bids[0]?.amount ?? game.auction.bid + 1);
+  const setup = actions.some((action) => action.type === 'setup');
+  const pilot = actions.some((action) => action.type === 'pilot');
+  const controls = useRef<HTMLElement>(null);
+  const hasConfirmation = Boolean(draft) || setup || pilot;
+  useEffect(() => {
+    const screen = controls.current?.closest<HTMLElement>('.mn-screen');
+    const confirmation = controls.current?.querySelector('.mn-confirm');
+    if (!screen || !confirmation || !hasConfirmation) return;
+    const measure = () =>
+      screen.style.setProperty(
+        '--mn-confirm-height',
+        `${Math.ceil(confirmation.getBoundingClientRect().height) + 12}px`,
+      );
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(confirmation);
+    return () => {
+      observer.disconnect();
+      screen.style.removeProperty('--mn-confirm-height');
+    };
+  }, [hasConfirmation]);
+  const places = actions.filter(
+    (action): action is Extract<Action, { type: 'place' }> =>
+      action.type === 'place',
   );
-  const [positions, setPositions] = useState<number[]>([3, 3, 3]);
-  const [step, setStep] = useState(1);
-  const selected = setups.find(
-    (action) =>
-      action.cargos.every((cargo, index) => cargo === cargos[index]) &&
-      action.positions.every(
-        (position, index) => position === positions[index],
-      ),
+  const boards = actions.filter(
+    (action): action is Extract<Action, { type: 'board' }> =>
+      action.type === 'board',
   );
-  const total = positions.reduce((sum, value) => sum + value, 0);
-  return (
-    <section className="mn-panel mn-controls">
-      <div className="mn-controls-heading">
-        <h2>{step === 1 ? '1 · 选择三船货物' : '2 · 分配起航位置'}</h2>
-        <span>港务长装船</span>
-      </div>
-      <div className="mn-draft-grid">
-        {cargos.map((cargo, index) => (
-          <div
-            className="mn-draft-card"
-            key={index}
-            style={cargoStyle(cargoColors[cargo])}
-          >
-            <strong className="mn-cargo">第 {index + 1} 航道</strong>
-            {step === 1 ? (
-              <label>
-                货物
-                <select
-                  value={cargo}
-                  disabled={locked}
-                  onChange={(event) => {
-                    const next = event.target.value as CargoId;
-                    setCargos((previous) =>
-                      previous.map((entry, at) =>
-                        at === index ? next : entry === next ? cargo : entry,
-                      ),
-                    );
-                  }}
-                >
-                  {game.cargos.map((entry) => (
-                    <option value={entry.id} key={entry.id}>
-                      {cargoNames[entry.id]} · 分红 {entry.payout}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : (
-              <>
-                <strong>{cargoNames[cargo]}</strong>
+  const plunders = actions.filter(
+    (action): action is Extract<Action, { type: 'plunder' }> =>
+      action.type === 'plunder',
+  );
+  const buys = actions.filter(
+    (action): action is Extract<Action, { type: 'buy-share' }> =>
+      action.type === 'buy-share',
+  );
+  const direct = actions.filter((action) =>
+    ['pass', 'skip-share', 'next-voyage'].includes(action.type),
+  );
+  const payment = (cost: number) => {
+    const funds = (game.self?.cash ?? 0) + (game.self?.availableCredit ?? 0);
+    return cost === 0
+      ? '免费派遣'
+      : cost > funds
+        ? `盲乘 · 付尽 ${funds} ₱`
+        : `支付 ${cost} ₱${cost > (game.self?.cash ?? 0) ? ' · 随后选择抵押股份' : ''}`;
+  };
+  const chosenSpace =
+    draft?.type === 'place'
+      ? game.spaces.find((entry) => entry.id === draft.space)
+      : undefined;
+  const chosen = setup ? work.setupAction : pilot ? work.pilotAction : draft;
+  const used = Object.values(work.deltas).reduce(
+    (sum, value) => sum + Math.abs(value),
+    0,
+  );
+  const total = work.positions.reduce((sum, value) => sum + value, 0);
+  const budget = game.phase === 'pilot-small' ? 1 : 2;
+  const title = setup
+    ? work.setupStep === 1
+      ? '1 · 选择三船货物'
+      : '2 · 分配起航位置'
+    : pilot
+      ? game.phase === 'pilot-small'
+        ? '小领航员 · 调整一格'
+        : '大领航员 · 调整最多两格'
+      : places.length
+        ? '把伙伴派到哪里？'
+        : boards.length
+          ? '海盗登船'
+          : plunders.length
+            ? '海盗掠夺'
+            : buys.length
+              ? '购买一张股份'
+              : bids.length
+                ? '竞拍港务长'
+                : game.phase === 'financing' && actions.length
+                  ? '选择股份抵押付款'
+                  : '等待其他商人';
+  const alternatives = (
+    <>
+      {setup && (
+        <div className="mn-draft-grid">
+          {work.cargos.map((cargo, index) => (
+            <div
+              className="mn-draft-card"
+              key={index}
+              style={cargoStyle(cargoColors[cargo])}
+            >
+              <strong>第 {index + 1} 航道</strong>
+              {work.setupStep === 1 ? (
                 <label>
-                  起点
+                  货物
                   <select
-                    value={positions[index]}
+                    value={cargo}
                     disabled={locked}
                     onChange={(event) =>
-                      setPositions((previous) =>
-                        previous.map((entry, at) =>
-                          at === index ? Number(event.target.value) : entry,
-                        ),
-                      )
+                      work.setCargo(index, event.target.value as typeof cargo)
+                    }
+                  >
+                    {game.cargos.map((entry) => (
+                      <option value={entry.id} key={entry.id}>
+                        {cargoNames[entry.id]} · 分红 {entry.payout}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                <label>
+                  {cargoNames[cargo]}起点
+                  <select
+                    value={work.positions[index]}
+                    disabled={locked}
+                    onChange={(event) =>
+                      work.setPosition(index, Number(event.target.value))
                     }
                   >
                     {[0, 1, 2, 3, 4, 5].map((value) => (
@@ -150,248 +228,155 @@ function Setup({
                     ))}
                   </select>
                 </label>
-              </>
-            )}
-          </div>
-        ))}
-      </div>
-      <div className="mn-confirm">
-        <div>
-          <strong>
-            {step === 1
-              ? `不装载${cargoNames[game.cargos.find((cargo) => !cargos.includes(cargo.id))!.id]}`
-              : `起点合计 ${total} / 9`}
-          </strong>
-          <p>
-            {step === 1
-              ? '每种货物只能装一船。'
-              : '每船 0–5 格，三船合计必须为 9。'}
-          </p>
-        </div>
-        <div className="mn-confirm-actions">
-          {step === 2 && (
-            <button disabled={locked} onClick={() => setStep(1)}>
-              返回选货
-            </button>
-          )}
-          {step === 1 ? (
-            <button
-              className="mn-primary"
-              disabled={locked}
-              onClick={() => setStep(2)}
-            >
-              下一步 · 设起点
-            </button>
-          ) : (
-            <button
-              className="mn-primary"
-              data-manila-action="setup"
-              disabled={locked || !selected}
-              onClick={() => selected && choose(selected)}
-            >
-              确认起航
-            </button>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Pilot({
-  game,
-  actions,
-  locked,
-  choose,
-}: Pick<Props, 'game' | 'actions' | 'locked' | 'choose'>) {
-  const [deltas, setDeltas] = useState<Record<string, number>>({});
-  const pilots = actions.filter(
-    (action): action is Extract<Action, { type: 'pilot' }> =>
-      action.type === 'pilot',
-  );
-  const allowed = game.phase === 'pilot-small' ? [-1, 0, 1] : [-2, -1, 0, 1, 2];
-  const budget = game.phase === 'pilot-small' ? 1 : 2;
-  const used = Object.values(deltas).reduce(
-    (sum, delta) => sum + Math.abs(delta),
-    0,
-  );
-  const selected = pilots.find((action) =>
-    game.boats.every(
-      (boat) =>
-        (action.moves.find((move) => move.cargo === boat.cargo)?.delta ?? 0) ===
-        (deltas[boat.cargo] ?? 0),
-    ),
-  );
-  return (
-    <section className="mn-panel mn-controls">
-      <h2>
-        {game.phase === 'pilot-small'
-          ? '小领航员 · 调整一格'
-          : '大领航员 · 调整最多两格'}
-      </h2>
-      <div className="mn-draft-grid">
-        {game.boats
-          .filter((boat) => boat.destination === 'sea')
-          .map((boat) => (
-            <label className="mn-draft-card" key={boat.cargo}>
-              <strong
-                className="mn-cargo"
-                style={cargoStyle(cargoColors[boat.cargo])}
-              >
-                {cargoNames[boat.cargo]} · {boat.position}格
-              </strong>
-              <select
-                aria-label={`${cargoNames[boat.cargo]}移动`}
-                disabled={locked}
-                value={deltas[boat.cargo] ?? 0}
-                onChange={(event) =>
-                  setDeltas((previous) => ({
-                    ...previous,
-                    [boat.cargo]: Number(event.target.value),
-                  }))
-                }
-              >
-                {allowed
-                  .filter((delta) => boat.position + delta >= 0)
-                  .map((delta) => (
-                    <option key={delta} value={delta}>
-                      {delta === 0
-                        ? '不移动'
-                        : `${delta > 0 ? '前进' : '后退'} ${Math.abs(delta)} 格`}
-                    </option>
-                  ))}
-              </select>
-              <span className="mn-pilot-preview">
-                草稿：
-                {boat.position + (deltas[boat.cargo] ?? 0) > 13
-                  ? '靠港'
-                  : `${boat.position + (deltas[boat.cargo] ?? 0)} 格`}
-              </span>
-            </label>
+              )}
+            </div>
           ))}
-      </div>
-      <div className="mn-confirm">
-        <div>
-          <strong>
-            {selected ? actionLabel(selected, game) : '超出本次领航额度'}
-          </strong>
-          <p>
-            已用 {used} / {budget} 格，确认后才移动货船。
-          </p>
         </div>
-        <div className="mn-confirm-actions">
-          <button disabled={locked || used === 0} onClick={() => setDeltas({})}>
-            清空调整
-          </button>
-          <button
-            className="mn-primary"
-            data-manila-action="pilot"
-            disabled={locked || !selected}
-            onClick={() => selected && choose(selected)}
-          >
-            确认领航
-          </button>
+      )}
+      {pilot && (
+        <div className="mn-draft-grid">
+          {game.boats
+            .filter((boat) => boat.destination === 'sea')
+            .map((boat) => (
+              <label className="mn-draft-card" key={boat.cargo}>
+                <strong
+                  className="mn-cargo"
+                  style={cargoStyle(cargoColors[boat.cargo])}
+                >
+                  {cargoNames[boat.cargo]} · {boat.position}格
+                </strong>
+                <select
+                  aria-label={`${cargoNames[boat.cargo]}移动`}
+                  disabled={locked}
+                  value={work.deltas[boat.cargo] ?? 0}
+                  onChange={(event) =>
+                    work.setDelta(boat.cargo, Number(event.target.value))
+                  }
+                >
+                  {(budget === 1 ? [-1, 0, 1] : [-2, -1, 0, 1, 2])
+                    .filter((delta) => boat.position + delta >= 0)
+                    .map((delta) => (
+                      <option value={delta} key={delta}>
+                        {delta === 0
+                          ? '不移动'
+                          : `${delta > 0 ? '前进' : '后退'} ${Math.abs(delta)} 格`}
+                      </option>
+                    ))}
+                </select>
+                <span className="mn-pilot-preview">
+                  草稿：
+                  {boat.position + (work.deltas[boat.cargo] ?? 0) > 13
+                    ? '靠港'
+                    : `${boat.position + (work.deltas[boat.cargo] ?? 0)} 格`}
+                </span>
+              </label>
+            ))}
         </div>
+      )}
+      {places.length > 0 && (
+        <div className="mn-action-grid">
+          {places.map((action) => {
+            const space = game.spaces.find(
+              (entry) => entry.id === action.space,
+            )!;
+            return (
+              <button
+                key={action.space}
+                disabled={locked}
+                aria-pressed={
+                  draft?.type === 'place' && draft.space === action.space
+                }
+                onClick={() => select(action)}
+              >
+                <strong>{spaceName(space)}</strong>
+                <span>
+                  {payment(space.cost)}
+                  {space.payout !== null
+                    ? space.kind === 'cargo'
+                      ? ` · 分红池 ${space.payout} ₱ 均分`
+                      : space.kind === 'insurance'
+                        ? ' · 立即领 10 ₱，承担修船赔付'
+                        : ` · 成功获 ${space.payout} ₱`
+                    : ''}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {[...boards, ...plunders].length > 0 && (
+        <div className="mn-inline-actions">
+          {[...boards, ...plunders].map((action, index) => (
+            <button
+              key={index}
+              disabled={locked}
+              onClick={() => select(action)}
+              aria-pressed={JSON.stringify(draft) === JSON.stringify(action)}
+            >
+              {actionLabel(action, game)}
+            </button>
+          ))}
+        </div>
+      )}
+      <Finance game={game} actions={actions} locked={locked} choose={choose} />
+    </>
+  );
+  const more = (setup ||
+    pilot ||
+    places.length ||
+    boards.length ||
+    plunders.length) && (
+    <details className="mn-alternatives">
+      <summary aria-label="展开替代操作">操作列表</summary>
+      <div className="mn-alternative-content">
+        <CloseAlternatives />
+        <h3>{title}</h3>
+        {alternatives}
       </div>
-    </section>
+    </details>
   );
-}
-
-export function PlayerControls({
-  game,
-  actions,
-  locked,
-  draft,
-  select,
-  choose,
-}: Props) {
-  const bids = actions.filter(
-    (action): action is Extract<Action, { type: 'bid' }> =>
-      action.type === 'bid',
-  );
-  const [bid, setBid] = useState(bids[0]?.amount ?? game.auction.bid + 1);
-  if (actions.some((action) => action.type === 'setup'))
-    return (
-      <div className="mn-controls">
-        <Setup game={game} actions={actions} locked={locked} choose={choose} />
-        <Finance
-          game={game}
-          actions={actions}
-          locked={locked}
-          choose={choose}
-        />
-      </div>
-    );
-  if (actions.some((action) => action.type === 'pilot'))
-    return (
-      <div className="mn-controls">
-        <Pilot game={game} actions={actions} locked={locked} choose={choose} />
-        <Finance
-          game={game}
-          actions={actions}
-          locked={locked}
-          choose={choose}
-        />
-      </div>
-    );
-  const ordinary = actions.filter(
-    (action) =>
-      action.type !== 'mortgage' &&
-      action.type !== 'repay' &&
-      action.type !== 'bid',
-  );
-  const place = ordinary.filter(
-    (action): action is Extract<Action, { type: 'place' }> =>
-      action.type === 'place',
-  );
-  const other = ordinary.filter((action) => action.type !== 'place');
-  const chosenSpace =
-    draft?.type === 'place'
-      ? game.spaces.find((entry) => entry.id === draft.space)
-      : undefined;
-  const payment = (cost: number) => {
-    const funds = (game.self?.cash ?? 0) + (game.self?.availableCredit ?? 0);
-    if (cost === 0) return '免费派遣';
-    if (cost > funds) return `盲乘 · 付尽 ${funds} ₱`;
-    return `支付 ${cost} ₱${cost > (game.self?.cash ?? 0) ? ' · 随后选择抵押股份' : ''}`;
-  };
   return (
-    <section className="mn-panel mn-controls" aria-label="本人行动">
+    <section
+      ref={controls}
+      className={`mn-panel mn-controls${!actions.length ? ' mn-controls--waiting' : ''}`}
+      aria-label="本人行动"
+      data-stage={game.phase}
+    >
       <div className="mn-controls-heading">
-        <h2>
-          {actions.length
-            ? game.phase === 'financing'
-              ? '选择股份抵押付款'
-              : game.phase === 'auction'
-                ? '竞拍港务长'
-                : game.phase === 'place'
-                  ? '把伙伴派到哪里？'
-                  : game.phase === 'share'
-                    ? '购买一张股份'
-                    : '选择本次行动'
-            : '等待其他商人'}
-        </h2>
-        {game.self && <span>可用 {game.self.cash} ₱</span>}
+        <h2>{title}</h2>
+        {work.carry && (
+          <button onClick={() => work.setCarry(null)} disabled={locked}>
+            放下
+          </button>
+        )}
       </div>
       {game.phase === 'financing' &&
         game.payment &&
-        game.payment.seatId === game.self?.seatId && (
-          <div className="mn-financing-notice">
-            <strong>
-              待支付 {game.payment.amount} ₱ · 还差{' '}
-              {Math.max(0, game.payment.amount - (game.self?.cash ?? 0))} ₱
-            </strong>
-            <p>
-              {game.payment.reason === 'insurance'
-                ? '保险行赔付'
-                : game.payment.reason === 'auction'
-                  ? '港务长竞拍款'
-                  : game.payment.reason === 'share'
-                    ? '购买股份'
-                    : '伙伴派遣费用'}
-              {' · '}现金 {game.self?.cash ?? 0} ₱
-            </p>
-          </div>
+        game.payment?.seatId === game.self?.seatId && (
+          <>
+            <div className="mn-financing-notice">
+              <strong>
+                待支付 {game.payment.amount} ₱ · 还差{' '}
+                {Math.max(0, game.payment.amount - (game.self?.cash ?? 0))} ₱
+              </strong>
+              <p>
+                {game.payment.reason === 'insurance'
+                  ? '保险行赔付'
+                  : game.payment.reason === 'auction'
+                    ? '港务长竞拍款'
+                    : game.payment.reason === 'share'
+                      ? '购买股份'
+                      : '伙伴派遣费用'}{' '}
+                · 现金 {game.self?.cash ?? 0} ₱
+              </p>
+            </div>
+            <Finance
+              game={game}
+              actions={actions}
+              locked={locked}
+              choose={choose}
+            />
+          </>
         )}
       {bids.length > 0 && (
         <>
@@ -399,7 +384,7 @@ export function PlayerControls({
             出价范围 {bids[0]!.amount}–{bids.at(-1)!.amount}{' '}
             ₱，包含可抵押额度。获胜者支付出价。
           </p>
-          <div className="mn-inline-actions">
+          <div className="mn-inline-actions mn-bid-controls">
             <label htmlFor="mn-bid-amount">出价</label>
             <input
               id="mn-bid-amount"
@@ -429,96 +414,267 @@ export function PlayerControls({
           )}
         </>
       )}
-      {place.length > 0 && (
-        <>
-          <p>选择岗位，确认派遣。</p>
-          <div className="mn-action-grid">
-            {place.map((action) => {
-              const space = game.spaces.find(
-                (entry) => entry.id === action.space,
-              )!;
-              return (
-                <button
-                  key={action.space}
-                  disabled={locked}
-                  aria-pressed={
-                    draft?.type === 'place' && draft.space === action.space
-                  }
-                  onClick={() => select(action)}
-                >
-                  <strong>{spaceName(space)}</strong>
-                  <span>
-                    {payment(space.cost)}
-                    {space.payout !== null
-                      ? space.kind === 'cargo'
-                        ? ` · 分红池 ${space.payout} ₱ 均分`
-                        : space.kind === 'insurance'
-                          ? ' · 立即领 10 ₱，承担修船赔付'
-                          : ` · 成功获 ${space.payout} ₱`
-                      : ''}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
-      <div className="mn-inline-actions">
-        {other.map((action, index) => {
-          const direct = ['pass', 'skip-share', 'next-voyage'].includes(
-            action.type,
-          );
-          return (
+      {buys.length > 0 && (
+        <div className="mn-share-choices">
+          {buys.map((action) => (
             <button
-              key={index}
-              className={action.type === 'next-voyage' ? 'mn-primary' : ''}
-              data-manila-action={direct ? action.type : undefined}
-              aria-pressed={
-                direct
-                  ? undefined
-                  : JSON.stringify(draft) === JSON.stringify(action)
-              }
+              key={action.cargo}
               disabled={locked}
-              onClick={() => (direct ? choose(action) : select(action))}
+              aria-pressed={
+                draft?.type === 'buy-share' && draft.cargo === action.cargo
+              }
+              onClick={() => select(action)}
+            >
+              <CargoArt cargo={action.cargo} />
+              <strong>{cargoNames[action.cargo]}</strong>
+              <span>{Math.max(5, game.market[action.cargo])} ₱</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {(places.length > 0 ||
+        setup ||
+        pilot ||
+        boards.length > 0 ||
+        plunders.length > 0) && (
+        <div className="mn-action-tray">
+          {places.length > 0 && (
+            <>
+              <DragSource
+                token={{ kind: 'worker' }}
+                label="拿起伙伴，拖到岗位或点击岗位"
+                className="mn-worker-source"
+              >
+                <Worker
+                  number={game.seatOrder.indexOf(game.self!.seatId) + 1}
+                  color={seatColors[game.seatOrder.indexOf(game.self!.seatId)]!}
+                  label="你的伙伴"
+                />
+                <span>伙伴</span>
+              </DragSource>
+              <span className="mn-tray-instruction">
+                拖到岗位
+                <br />
+                或直接点击
+              </span>
+            </>
+          )}
+          {setup && work.setupStep === 1 && (
+            <div className="mn-cargo-tray">
+              {game.cargos.map((cargo) => (
+                <DragSource
+                  token={{ kind: 'cargo', cargo: cargo.id }}
+                  label={`拿起${cargoNames[cargo.id]}货物`}
+                  key={cargo.id}
+                  className="mn-cargo-source"
+                >
+                  <CargoArt cargo={cargo.id} />
+                  <span>{cargoNames[cargo.id]}</span>
+                </DragSource>
+              ))}
+            </div>
+          )}
+          {setup && work.setupStep === 2 && (
+            <p>
+              拖动船边起点标记
+              <br />
+              每船0–5，合计9格
+            </p>
+          )}
+          {pilot && (
+            <p>
+              拖动木船选择格数
+              <br />
+              已用 {used}/{budget} 格
+            </p>
+          )}
+          {boards.length > 0 && (
+            <>
+              <DragSource
+                token={{ kind: 'pirate' }}
+                label="拿起海盗，拖到可登船的货船"
+                className="mn-pirate-source"
+              >
+                <span aria-hidden="true">⚑</span>
+                <span>海盗</span>
+              </DragSource>
+              <span className="mn-tray-instruction">
+                拖到货船
+                <br />
+                或点击船身
+              </span>
+              <button
+                disabled={locked}
+                onClick={() =>
+                  select(boards.find((action) => action.cargo === null)!)
+                }
+              >
+                留在海盗船
+              </button>
+            </>
+          )}
+          {plunders.length > 0 && (
+            <p>
+              拖动被掠夺的船
+              <br />
+              送往港口或修船坞
+            </p>
+          )}
+          {direct
+            .filter(
+              () =>
+                !setup &&
+                !pilot &&
+                boards.length === 0 &&
+                plunders.length === 0,
+            )
+            .map((action) => (
+              <button
+                key={action.type}
+                data-manila-action={action.type}
+                disabled={locked}
+                onClick={() => choose(action)}
+              >
+                {actionLabel(action, game)}
+              </button>
+            ))}
+          {more}
+        </div>
+      )}
+      {!(
+        places.length ||
+        setup ||
+        pilot ||
+        boards.length ||
+        plunders.length
+      ) && (
+        <div className="mn-inline-actions">
+          {direct.map((action) => (
+            <button
+              key={action.type}
+              data-manila-action={action.type}
+              disabled={locked}
+              onClick={() => choose(action)}
             >
               {actionLabel(action, game)}
-              {action.type === 'buy-share'
-                ? ` · ${Math.max(5, game.market[action.cargo])} ₱`
-                : ''}
             </button>
-          );
-        })}
-      </div>
-      <Finance game={game} actions={actions} locked={locked} choose={choose} />
-      {draft && (
-        <div className="mn-confirm">
-          <div>
-            <strong>{actionLabel(draft, game)}</strong>
-            {chosenSpace && <p>{payment(chosenSpace.cost)}，派遣一名伙伴。</p>}
-            {draft.type === 'buy-share' && (
+          ))}
+          {game.phase !== 'financing' &&
+            actions.some(
+              (action) => action.type === 'mortgage' || action.type === 'repay',
+            ) && (
+              <details className="mn-alternatives">
+                <summary>股份操作</summary>
+                <div className="mn-alternative-content">
+                  <CloseAlternatives />
+                  <Finance
+                    game={game}
+                    actions={actions}
+                    locked={locked}
+                    choose={choose}
+                  />
+                </div>
+              </details>
+            )}
+        </div>
+      )}
+      {(draft || setup || pilot) && (
+        <div className="mn-confirm" aria-label="确认当前草稿">
+          <div className="mn-confirm-description">
+            <strong>
+              {setup
+                ? work.setupStep === 1
+                  ? `不装载${cargoNames[game.cargos.find((cargo) => !work.cargos.includes(cargo.id))!.id]}`
+                  : `起点合计 ${total} / 9`
+                : pilot
+                  ? chosen
+                    ? actionLabel(chosen, game)
+                    : '超出本次领航额度'
+                  : actionLabel(draft!, game)}
+            </strong>
+            {chosenSpace && (
+              <p>
+                {payment(chosenSpace.cost)}
+                {chosenSpace.kind === 'insurance'
+                  ? '；领10 ₱，最多赔29 ₱（本人修船岗位免赔）'
+                  : chosenSpace.kind === 'cargo'
+                    ? `；抵港平分 ${chosenSpace.payout} ₱，失航或遭掠夺无分红`
+                    : chosenSpace.kind === 'port' ||
+                        chosenSpace.kind === 'shipyard'
+                      ? `；至少${chosenSpace.index + 1}船${chosenSpace.kind === 'port' ? '抵港' : '入坞'}才领 ${chosenSpace.payout} ₱`
+                      : chosenSpace.kind === 'pirate'
+                        ? '；船停13格才有机会，未触发不退费用'
+                        : '；只得移动权，无直接分红，费用不退'}
+              </p>
+            )}
+            {draft?.type === 'buy-share' && (
               <p>
                 支付 {Math.max(5, game.market[draft.cargo])}{' '}
                 ₱；股份种类仅你可见。
               </p>
             )}
+            {pilot && (
+              <p>
+                已用 {used} / {budget} 格，确认后才移动货船。
+              </p>
+            )}
           </div>
           <div className="mn-confirm-actions">
-            <button disabled={locked} onClick={() => select(null)}>
-              取消
-            </button>
-            <button
-              className="mn-primary"
-              data-manila-action={draft.type}
-              disabled={locked}
-              onClick={() => choose(draft)}
-            >
-              确认
-              {draft.type === 'place'
-                ? '派遣'
-                : draft.type === 'buy-share'
-                  ? '购买'
-                  : '行动'}
-            </button>
+            {setup ? (
+              <button
+                disabled={locked || work.setupStep === 1}
+                onClick={() => work.setSetupStep(1)}
+              >
+                返回选货
+              </button>
+            ) : pilot ? (
+              <button disabled={locked || used === 0} onClick={work.clearPilot}>
+                清空调整
+              </button>
+            ) : (
+              <button
+                disabled={locked}
+                onClick={() => {
+                  select(null);
+                  work.setCarry(null);
+                }}
+              >
+                取消
+              </button>
+            )}
+            {setup && work.setupStep === 1 ? (
+              <button
+                className="mn-primary"
+                disabled={locked}
+                onClick={() => {
+                  work.setSetupStep(2);
+                  work.setCarry(null);
+                }}
+              >
+                下一步 · 设起点
+              </button>
+            ) : (
+              <button
+                className="mn-primary"
+                data-manila-action={
+                  setup ? 'setup' : pilot ? 'pilot' : draft?.type
+                }
+                disabled={locked || !chosen}
+                onClick={() => {
+                  if (chosen) choose(chosen);
+                }}
+              >
+                {setup
+                  ? '确认起航'
+                  : pilot
+                    ? '确认领航'
+                    : draft?.type === 'place'
+                      ? '确认派遣'
+                      : draft?.type === 'buy-share'
+                        ? '确认购买'
+                        : '确认行动'}
+              </button>
+            )}
           </div>
         </div>
       )}

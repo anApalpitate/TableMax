@@ -1,0 +1,288 @@
+.rules-guide .mn-diagram {
+  margin: 18px 0;
+  padding: 16px;
+  border: 1px solid #bfa66e;
+  border-radius: 20px;
+  background: linear-gradient(140deg, #fffaf0, #e5f0e8);
+  color: #284d47;
+  min-width: 0;
+}
+.rules-guide .mn-diagram figcaption {
+  margin-top: 12px;
+  font-size: 16px;
+  line-height: 1.55;
+}
+.rules-guide .mn-diagram p {
+  font-size: 16px;
+  margin: 8px 0 0;
+}
+.rules-guide .mn-diagram strong,
+.rules-guide .mn-diagram b {
+  font-size: 18px;
+}
+.rules-guide .mn-diagram-flow {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.rules-guide .mn-diagram-flow li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 14px;
+  background: #ffffffa8;
+  border: 1px solid #a8c3b1;
+  min-width: 0;
+}
+.rules-guide .mn-diagram-flow li div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.rules-guide .mn-diagram-flow li span:not(.mn-diagram-step) {
+  font-size: 16px;
+}
+.rules-guide .mn-diagram-step {
+  display: grid;
+  place-items: center;
+  flex: 0 0 72px;
+  height: 64px;
+  color: #976b2d;
+  font-size: 28px;
+}
+.rules-guide .mn-diagram-step > img,
+.rules-guide .mn-diagram-pair > img {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+}
+.rules-guide .mn-diagram-step .mn-diagram-boat {
+  min-height: 58px;
+}
+.rules-guide .mn-diagram-flow .mn-diagram-pair {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.rules-guide .mn-diagram-pair .mn-worker,
+.rules-guide .mn-diagram-pair .mn-die,
+.rules-guide .mn-diagram-pair > img {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 36px;
+}
+.rules-guide .mn-diagram-three {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  text-align: center;
+}
+.rules-guide .mn-diagram-boat {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 100px;
+  isolation: isolate;
+}
+.rules-guide .mn-diagram-boat > img:first-child {
+  width: 100%;
+  max-width: 240px;
+  height: auto;
+}
+.rules-guide .mn-diagram-boat .mn-diagram-cargo {
+  position: absolute;
+  width: 44%;
+  height: 66%;
+  inset: 10% auto auto 28%;
+  z-index: 1;
+}
+.rules-guide .mn-diagram-cargo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+.rules-guide .mn-diagram-position {
+  position: absolute;
+  bottom: 0;
+  border-radius: 9px;
+  background: #fff7d9;
+  padding: 2px 8px;
+  z-index: 3;
+}
+.rules-guide .mn-diagram-crew {
+  position: absolute;
+  bottom: 5px;
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+.rules-guide .mn-diagram-crew .mn-worker {
+  width: 30px;
+  height: 32px;
+}
+.rules-guide .mn-diagram-equation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 18px;
+  margin-top: 10px;
+}
+.rules-guide .mn-diagram-equation > b {
+  background: #e4c47766;
+  padding: 4px 9px;
+  border-radius: 9px;
+}
+.rules-guide .mn-diagram-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.rules-guide .mn-diagram-split > div {
+  min-width: 0;
+}
+.rules-guide .mn-diagram-sites {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.rules-guide .mn-diagram-site {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  min-width: 0;
+}
+.rules-guide .mn-diagram-site img {
+  width: 96px;
+  height: 90px;
+  object-fit: contain;
+}
+.rules-guide .mn-diagram-thresholds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+.rules-guide .mn-diagram-thresholds > div {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  background: #fff9;
+  border-radius: 12px;
+  padding: 7px 2px;
+  font-size: 16px;
+}
+.rules-guide .mn-diagram-insurance {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+.rules-guide .mn-diagram-gain {
+  color: #17694f;
+}
+.rules-guide .mn-diagram-payment {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 6px;
+  gap: 6px;
+}
+.rules-guide .mn-diagram-payment > div {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  font-size: 16px;
+}
+.rules-guide .mn-diagram-payment img {
+  width: 68px;
+  height: 55px;
+  object-fit: contain;
+}
+.rules-guide .mn-diagram-payment strong {
+  color: #925132;
+}
+.rules-guide .mn-diagram-arrow {
+  font-size: 18px;
+  font-weight: 700;
+  color: #8b602a;
+  margin: 8px 0;
+}
+.rules-guide .mn-diagram-pilot {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.rules-guide .mn-diagram-pilot span {
+  padding: 9px 0;
+  text-align: center;
+  border-radius: 10px;
+  border: 1px solid #8cac99;
+  background: #fff9;
+  font-size: 18px;
+}
+.rules-guide .mn-diagram-credit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.rules-guide .mn-diagram-credit > div {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  font-size: 16px;
+}
+.rules-guide .mn-diagram-share {
+  font-size: 44px;
+  color: #897147;
+}
+@media (max-width: 600px) {
+  .rules-guide .mn-diagram-flow {
+    gap: 22px;
+  }
+  .rules-guide .mn-diagram-flow li {
+    position: relative;
+  }
+  .rules-guide .mn-diagram-flow li:not(:last-child)::after {
+    content: '↓';
+    position: absolute;
+    left: 50%;
+    bottom: -22px;
+    color: #426f62;
+    font-size: 18px;
+    line-height: 22px;
+  }
+  .rules-guide .mn-diagram {
+    padding: 12px;
+  }
+  .rules-guide .mn-diagram-flow,
+  .rules-guide .mn-diagram-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rules-guide .mn-diagram-insurance {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .rules-guide .mn-diagram-insurance > .mn-diagram-site {
+    grid-template-columns: 64px auto;
+    justify-content: center;
+    gap: 10px;
+  }
+  .rules-guide .mn-diagram-insurance > .mn-diagram-site img {
+    width: 64px;
+    height: 58px;
+  }
+  .rules-guide .mn-diagram-three .mn-diagram-boat {
+    min-height: 80px;
+  }
+  .rules-guide .mn-diagram-three .mn-diagram-cargo {
+    height: 55%;
+  }
+}

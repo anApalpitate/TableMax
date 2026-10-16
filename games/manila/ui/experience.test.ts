@@ -26,6 +26,7 @@ vi.mock('@tablemax/web-host', async (original) => ({
     createElement('a', props),
   SessionFeedback: () => null,
   PlayModeControl: () => null,
+  useAudioOutput: () => false,
 }));
 
 const ids = ['A', 'B', 'C'];

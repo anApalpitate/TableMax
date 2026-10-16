@@ -182,3 +182,10 @@
     width: 100%;
   }
 }
+.settings-panel--preferences {
+  overscroll-behavior: contain;
+}
+html:has(.settings-panel--preferences[open]),
+body:has(.settings-panel--preferences[open]) {
+  overflow: hidden;
+}

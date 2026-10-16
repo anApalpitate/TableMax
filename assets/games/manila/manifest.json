@@ -152,7 +152,7 @@
       "status": {
         "generated": true,
         "visuallyVerified": true,
-        "importedInUi": false,
+        "importedInUi": true,
         "candidate": false
       },
       "purpose": "Independent mobile portrait harbor background; vertical code-drawn navigation lanes.",
@@ -188,7 +188,7 @@
       "status": {
         "generated": true,
         "visuallyVerified": true,
-        "importedInUi": false,
+        "importedInUi": true,
         "candidate": false
       },
       "purpose": "Mobile vertical cargo boat sprite; precise cargo/worker overlays supplied by code.",
@@ -224,7 +224,7 @@
       "status": {
         "generated": true,
         "visuallyVerified": true,
-        "importedInUi": false,
+        "importedInUi": true,
         "candidate": false
       },
       "purpose": "Cargo identity on ships, market, shares, selection and original rule diagrams; not rule-count evidence.",
@@ -260,7 +260,7 @@
       "status": {
         "generated": true,
         "visuallyVerified": true,
-        "importedInUi": false,
+        "importedInUi": true,
         "candidate": false
       },
       "purpose": "Cargo identity on ships, market, shares, selection and original rule diagrams; not rule-count evidence.",
@@ -296,7 +296,7 @@
       "status": {
         "generated": true,
         "visuallyVerified": true,
-        "importedInUi": false,
+        "importedInUi": true,
         "candidate": false
       },
       "purpose": "Cargo identity on ships, market, shares, selection and original rule diagrams; not rule-count evidence.",
@@ -332,7 +332,7 @@
       "status": {
         "generated": true,
         "visuallyVerified": true,
-        "importedInUi": false,
+        "importedInUi": true,
         "candidate": false
       },
       "purpose": "Cargo identity on ships, market, shares, selection and original rule diagrams; not rule-count evidence.",
@@ -368,7 +368,7 @@
       "status": {
         "generated": true,
         "visuallyVerified": true,
-        "importedInUi": false,
+        "importedInUi": true,
         "candidate": false
       },
       "purpose": "Graphical facility drop target/detail and reusable original rule-diagram component; exact costs/payouts supplied by code.",
@@ -409,7 +409,7 @@
       "status": {
         "generated": true,
         "visuallyVerified": true,
-        "importedInUi": false,
+        "importedInUi": true,
         "candidate": false
       },
       "purpose": "Graphical facility drop target/detail and reusable original rule-diagram component; exact costs/payouts supplied by code.",
@@ -445,7 +445,7 @@
       "status": {
         "generated": true,
         "visuallyVerified": true,
-        "importedInUi": false,
+        "importedInUi": true,
         "candidate": false
       },
       "purpose": "Graphical facility drop target/detail and reusable original rule-diagram component; exact costs/payouts supplied by code.",
@@ -481,7 +481,7 @@
       "status": {
         "generated": true,
         "visuallyVerified": true,
-        "importedInUi": false,
+        "importedInUi": true,
         "candidate": false
       },
       "purpose": "Graphical facility drop target/detail and reusable original rule-diagram component; exact costs/payouts supplied by code.",
@@ -517,7 +517,7 @@
       "status": {
         "generated": true,
         "visuallyVerified": true,
-        "importedInUi": false,
+        "importedInUi": true,
         "candidate": false
       },
       "purpose": "Graphical facility drop target/detail and reusable original rule-diagram component; exact costs/payouts supplied by code.",
@@ -546,5 +546,22 @@
     "alphaPreview": "E:/Proj/TMP/TableMaxMaterial/work/manila/alpha-preview-v2.png",
     "smallSizePreview": "E:/Proj/TMP/TableMaxMaterial/work/manila/small-preview-v2.png",
     "scope": "11 new images generated individually with built-in imagegen, originals/prompts preserved, decoded final image QA and alpha checks. UI import and actual runtime verification are delegated to the UI/main agent and remain pending in these records."
+  },
+  "v2RuntimeVerification": {
+    "buildVersion": "1.0.7.18",
+    "importedImages": 11,
+    "reports": [
+      {
+        "path": "artifacts/manila/validation/deepening-17-all-5/results.json",
+        "bytes": 85026,
+        "sha256": "0cf4fb25c3289813bc6cd56555a9323a8e3f1aa1949a2bdc2ad55df829a9aefc"
+      },
+      {
+        "path": "artifacts/manila/validation/deepening-18-all-5/results.json",
+        "bytes": 27944,
+        "sha256": "5a92109fa6e5e8ff7dcbac90dfa02ea56b69b1b37a5ec8ad54f6daa97a2fce9b"
+      }
+    ],
+    "boundary": "Actual local WebView2 rendering and decoded images; simulated viewports, not a physical phone/LAN certification."
   }
 }

@@ -155,5 +155,33 @@
       "originalSha256": "7c433499510d3e92fba16064f7c142aca05e7feb8a440324be6893efe22ff014",
       "pcmVerified": true
     }
-  ]
+  ],
+  "runtimeVerification": {
+    "reports": [
+      {
+        "path": "artifacts/manila/validation/deepening-17-all-5/results.json",
+        "bytes": 85026,
+        "sha256": "0cf4fb25c3289813bc6cd56555a9323a8e3f1aa1949a2bdc2ad55df829a9aefc"
+      },
+      {
+        "path": "artifacts/manila/validation/deepening-18-all-5/results.json",
+        "bytes": 27944,
+        "sha256": "5a92109fa6e5e8ff7dcbac90dfa02ea56b69b1b37a5ec8ad54f6daa97a2fce9b"
+      }
+    ],
+    "decodedCues": 10,
+    "phoneExplicitUnlock": true,
+    "noOldEventReplay": true
+  },
+  "auditionPlayback": {
+    "result": "completed",
+    "method": "System.Media.SoundPlayer.PlaySync",
+    "file": {
+      "path": "artifacts/manila/audio-audition-v1.wav",
+      "bytes": 1240376,
+      "sha256": "04fdb4c16e70e953c2768eec2ded3a581e5e22f3766a485f7edad3c6d8c442e8"
+    },
+    "seconds": 9.69,
+    "boundary": "Dedicated actual playback completed; no subjective human listening assessment is claimed. Daily sound preference unchanged."
+  }
 }

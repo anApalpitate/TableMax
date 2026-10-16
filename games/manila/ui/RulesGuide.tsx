@@ -1,5 +1,14 @@
 import { cargoColors, cargoNames } from './labels';
 import { cargoStyle, manilaAsset } from './pieces';
+import {
+  VoyageDiagram,
+  SetupDiagram,
+  CrewDiagram,
+  InsuranceDiagram,
+  PirateDiagram,
+  PilotDiagram,
+  LoanDiagram,
+} from './RuleDiagrams';
 
 export const manilaRulebook = {
   className: 'mn-rulebook',
@@ -39,20 +48,10 @@ export const manilaRulebook = {
     {
       id: 'mn-flow',
       label: '一航次',
-      title: '竞拍、装货、派遣，再看三次骰子',
+      title: '竞拍、装货与派遣',
       content: (
         <>
-          <ol className="mn-rule-flow">
-            {[
-              '竞拍港务长',
-              '购买股份与装货',
-              '轮流派遣伙伴',
-              '掷骰航行三次',
-              '结算与行情上涨',
-            ].map((step) => (
-              <li key={step}>{step}</li>
-            ))}
-          </ol>
+          <VoyageDiagram />
           <p>
             竞拍轮到你时，可以提高出价或退出。胜者支付出价成为港务长；他可以按当前股价购买一张股份，股价为
             0 时支付 5 比索，也可以不买。
@@ -61,19 +60,7 @@ export const manilaRulebook = {
             港务长选择三种不同货物，分配三船的起点。每船在 0–5
             格，三船起点合计必须为 9。
           </p>
-          <figure className="mn-rule-figure">
-            <div className="mn-rule-setup">
-              <img src={manilaAsset('boat-v1.webp')} alt="原创空舱木货船" />
-              <div className="mn-rule-values">
-                <span>船一 · 3格</span>
-                <span>船二 · 2格</span>
-                <span>船三 · 4格</span>
-              </div>
-            </div>
-            <figcaption>
-              3 ＋ 2 ＋ 4 ＝ 9，是一个合法起点组合。起点并不代表掷骰结果。
-            </figcaption>
-          </figure>
+          <SetupDiagram />
           <p>
             派遣从港务长开始，按固定座位顺序进行。4–5 人每人有三名伙伴；3
             人每人有四名，首次航行前多进行一轮派遣。每次派遣可选择一处合法空位并支付费用，也可以放弃本航次余下派遣。
@@ -92,6 +79,7 @@ export const manilaRulebook = {
       title: '搭船、等待靠港，或经营修船与保险',
       content: (
         <>
+          <CrewDiagram />
           <div className="mn-rule-values">
             {(['ginseng', 'nutmeg', 'silk', 'jade'] as const).map(
               (cargo, index) => (
@@ -109,6 +97,7 @@ export const manilaRulebook = {
             4、3、2，比索收益依次为 6、8、15。港口 A 需要至少一船靠港、B
             至少两船、C 三船；修船坞按进入修船坞的船数同理。
           </p>
+          <InsuranceDiagram />
           <p>
             保险行免费入驻并立即取得 10 比索，但要按进入修船坞的船数赔付：第一船
             6、第二船 8、第三船
@@ -123,13 +112,7 @@ export const manilaRulebook = {
       title: '第 13 格是海盗的机会',
       content: (
         <>
-          <figure className="mn-rule-figure">
-            <div className="mn-rule-values">
-              <span>第二次航行 → 恰好 13 → 可登船</span>
-              <span>第三次航行 → 恰好 13 → 可掠夺</span>
-            </div>
-            <figcaption>第 13 格并不是港口；超过它才会自动靠港。</figcaption>
-          </figure>
+          <PirateDiagram />
           <p>
             海盗岗位每位支付 5
             比索，先占船长位再占船员位。第二次航行后，海盗可依序选择停在第 13
@@ -140,6 +123,7 @@ export const manilaRulebook = {
             格的货船。原船员没有分红，货物分红池由海盗均分；海盗船长决定掠夺后的船送往港口或修船坞。没有船长时由船员决定。没有海盗时，第三次航行恰好停在第
             13 格的船直接靠港。
           </p>
+          <PilotDiagram />
           <p>
             小领航员支付 2 比索，可让一船前进或后退一格；大领航员支付 5
             比索，可调整一船两格，或两船各一格，也可只用部分额度或放弃。领航在第二次航行后的海盗登船之后、第三次航行之前进行，小领航员先于大领航员；不能退到
@@ -154,6 +138,7 @@ export const manilaRulebook = {
       title: '抵押股份，保留清楚的债务',
       content: (
         <>
+          <LoanDiagram />
           <p>
             每张未抵押股份可以抵押取得 12 比索。赎回同一张股份支付 15
             比索，赎回后该股份公开。抵押股份仍计入终局市值，并为每张未赎回贷款扣除

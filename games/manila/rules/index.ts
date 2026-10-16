@@ -4,6 +4,7 @@ import { legalActions, validateAction, isLegalAction } from './actions';
 import { project } from './project';
 import { turnSeat, validateState, type State } from './state';
 import type { Action } from './view';
+import { publicEvents } from './events';
 
 export const rules: GameRules = {
   manifest: {
@@ -56,6 +57,7 @@ export const rules: GameRules = {
         revealedInformation: true,
         roundNumber: state.voyage - 1,
       },
+      events: publicEvents(input as State, state, { type: 'next-voyage' }),
     };
   },
   apply(input, raw, seat, context) {
@@ -76,19 +78,7 @@ export const rules: GameRules = {
         revealedInformation: revealed,
         roundNumber: s.voyage,
       },
-      events: [
-        {
-          kind:
-            state.phase === 'ended'
-              ? 'game-ended'
-              : state.result && !s.result
-                ? 'voyage-result'
-                : state.movement !== s.movement
-                  ? 'sailing'
-                  : 'manila-action',
-          text: state.latest,
-        },
-      ],
+      events: publicEvents(s, state, action),
     };
   },
   project(input, viewer) {
