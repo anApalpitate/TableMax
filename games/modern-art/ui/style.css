@@ -21,6 +21,20 @@
     ),
     linear-gradient(100deg, #c69b6e, #ead0ac 45%, #d1a67d);
 }
+
+.ma-screen .ma-toolbar .ma-menu-entry {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  padding: 0;
+}
+.ma-screen .ma-menu-entry svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
 .ma-screen:not(.player):not(.ma-panel) {
   height: 100dvh;
   overflow: hidden;
@@ -2801,4 +2815,74 @@
     grid-row: 1;
     align-self: center;
   }
+}
+
+.ma-screen .ma-auction.ma-auction--offer,
+.ma-screen.player .ma-auction.ma-auction--offer {
+  min-height: 0;
+  padding: 10px 12px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+}
+.ma-screen .ma-offer-identity {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 160px;
+}
+.ma-screen .ma-offer-portrait {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  object-fit: contain;
+}
+.ma-screen .ma-auction--offer h2.ma-offer-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 20px;
+  line-height: 1.3;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  text-overflow: clip;
+  text-align: left;
+}
+.ma-screen .ma-offer-status {
+  flex: 0 0 auto;
+  font-size: 18px;
+}
+.ma-screen .ma-auction--offer > .ma-notice {
+  flex: 1 1 180px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.ma-screen .ma-market-history__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 8px 0 4px;
+  font-size: 16px;
+}
+.ma-screen .ma-market-history__legend > div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.ma-screen .ma-market-history__legend dt {
+  color: #6a553d;
+}
+.ma-screen .ma-market-history__legend dd {
+  margin: 0;
+  font-weight: 650;
+}
+.ma-screen .ma-market-history__unit {
+  font-size: 16px;
 }

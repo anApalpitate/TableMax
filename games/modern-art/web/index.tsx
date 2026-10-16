@@ -192,8 +192,24 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
           >
             规则
           </button>
-          <button className="secondary" onClick={() => setPanel('menu')}>
-            菜单
+          <button
+            className="secondary ma-menu-entry"
+            aria-label="菜单"
+            title="菜单"
+            onClick={() => setPanel('menu')}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+              <g
+                transform="translate(1.5 0)"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              >
+                <path d="M8 6h12M8 12h12M8 18h12" />
+                <path d="m3 4 2 2-2 2-2-2Zm0 6 2 2-2 2-2-2Zm0 6 2 2-2 2-2-2Z" />
+              </g>
+            </svg>
           </button>
         </div>
       </header>
@@ -219,15 +235,15 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
           >
             <MarketBoard view={game} showHistory={() => setPanel('market')} />
             <div className="ma-center">
-              {mergedPausedOffer ? (
-                notice
-              ) : game.phase === 'round-result' || game.phase === 'ended' ? (
+              {game.phase === 'round-result' || game.phase === 'ended' ? (
                 <RoundResult view={game} names={names} portraits={portraits} />
               ) : (
                 <AuctionStage
                   view={game}
                   names={names}
+                  portraits={portraits}
                   activityMessage={activityMessage}
+                  waitingNotice={mergedPausedOffer ? notice : undefined}
                   countdown={
                     clock && (
                       <DecisionProgress

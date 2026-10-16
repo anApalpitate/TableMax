@@ -210,7 +210,17 @@ export function MarketHistory({ view }: { view: ModernArtView }) {
           ))}
         </tbody>
       </table>
-      <p>上行：各轮增值 · 下行：累计价值（千元 / 幅）</p>
+      <dl className="ma-market-history__legend">
+        <div>
+          <dt>上行</dt>
+          <dd>各轮增值</dd>
+        </div>
+        <div>
+          <dt>下行</dt>
+          <dd>累计价值</dd>
+        </div>
+      </dl>
+      <p className="ma-market-history__unit">单位：千元／幅</p>
       <p>只有本轮前三画家可按累计价值兑现。</p>
     </div>
   );
@@ -219,34 +229,54 @@ export function MarketHistory({ view }: { view: ModernArtView }) {
 export function AuctionStage({
   view,
   names,
+  portraits,
   countdown,
   activityMessage,
+  waitingNotice,
 }: {
   view: ModernArtView;
   names: Record<string, string>;
+  portraits?: Record<string, string>;
   countdown?: ReactNode;
   activityMessage?: string | undefined;
+  waitingNotice?: ReactNode;
 }) {
   const auction = view.auction;
   const actor = view.turnSeat ? (names[view.turnSeat] ?? '玩家') : '';
+  const offering = view.phase === 'offer' && Boolean(view.turnSeat);
   const waitingLabel =
-    activityMessage ??
-    (view.phase === 'offer' ? `${actor} 正在选画` : '本轮拍卖已结束');
+    activityMessage ?? (offering ? '正在选画' : '本轮拍卖已结束');
   if (!auction)
     return (
-      <section className="ma-auction ma-auction--waiting" aria-label="拍卖台">
-        <span className="ma-gavel" aria-hidden="true">
-          <svg width="64" height="64" viewBox="0 0 64 64">
-            <g fill="currentColor" transform="rotate(-35 32 30)">
-              <rect x="17" y="9" width="30" height="14" rx="3" />
-              <rect x="14" y="7" width="6" height="18" rx="2" />
-              <rect x="44" y="7" width="6" height="18" rx="2" />
-              <rect x="28" y="22" width="8" height="30" rx="3" />
-            </g>
-            <path d="M8 57h33v5H8z" fill="currentColor" />
-          </svg>
-        </span>
-        <h2 title={waitingLabel}>{waitingLabel}</h2>
+      <section
+        className={`ma-auction ma-auction--waiting ${offering ? 'ma-auction--offer' : ''}`}
+        aria-label="拍卖台"
+      >
+        {offering ? (
+          <div className="ma-offer-identity" data-seat-id={view.turnSeat}>
+            {portraits?.[view.turnSeat!] && (
+              <img
+                className="ma-offer-portrait"
+                src={portraits[view.turnSeat!]}
+                alt=""
+              />
+            )}
+            <h2 className="ma-offer-name">{actor}</h2>
+          </div>
+        ) : (
+          <span className="ma-gavel" aria-hidden="true">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <g fill="currentColor" transform="rotate(-35 32 30)">
+                <rect x="17" y="9" width="30" height="14" rx="3" />
+                <rect x="14" y="7" width="6" height="18" rx="2" />
+                <rect x="44" y="7" width="6" height="18" rx="2" />
+                <rect x="28" y="22" width="8" height="30" rx="3" />
+              </g>
+              <path d="M8 57h33v5H8z" fill="currentColor" />
+            </svg>
+          </span>
+        )}
+        {waitingNotice ?? <p className="ma-offer-status">{waitingLabel}</p>}
         {countdown}
       </section>
     );

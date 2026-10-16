@@ -1,6 +1,6 @@
 1. [盒子](box.md)（已完成）
 2. [宝可梦奇遇（原版及扩展）](pokemon-encounters.md)
-3. [现代艺术](modern-art.md)
+3. [现代艺术](modern-art.md)（已完成）
 4. [电力公司](power-grid.md)
 5. [UNO](uno.md)（已完成）
 6. [拉密](rummikub.md)（已完成）
