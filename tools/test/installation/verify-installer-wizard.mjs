@@ -343,7 +343,9 @@ export async function verifyInstallerWizard({
     'Sealed delivery record required',
   );
   const repository = resolve('.');
-  const profile = await resolveWindowsAcceptanceProfile();
+  const profile = await resolveWindowsAcceptanceProfile(
+    process.env.TABLEMAX_INSTALLATION_HANDOFF_TMP,
+  );
   evidence = inside(resolve('artifacts/maintenance'), evidence);
   await noLinks(evidence);
   const workParent = profile?.workParent ?? resolve('tmp');

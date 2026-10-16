@@ -520,7 +520,7 @@ try {
     $taskWizardProofPath = Join-Path $taskOutput 'installer-wizard/report.json'
     Assert-TaskPathNoLinks $taskWizardProofPath
     $taskWizardProof = Get-Content -LiteralPath $taskWizardProofPath -Raw -Encoding utf8 | ConvertFrom-Json
-    if ($taskWizardProof.schemaVersion -ne 1 -or $taskWizardProof.result -ne 'passed' -or $taskWizardProof.failures -ne 0 -or $taskWizardProof.delivery.original.sha256 -ne $taskDeliveryData.executable.sha256 -or $taskWizardProof.delivery.original.bytes -ne $taskDeliveryData.executable.bytes -or $taskWizardProof.executionProfile.ownerSid -ne $taskCreatedSid.Value -or $taskWizardProof.executionProfile.root -ne $taskReport.profileAcceptanceRoot) { throw 'The actual wizard did not pass for this exact complete installer and isolated profile.' }
+    if ($taskWizardProof.schemaVersion -ne 1 -or $taskWizardProof.result -ne 'actual-wizard-cancel-passed' -or $taskWizardProof.failures -ne 0 -or $taskWizardProof.delivery.original.sha256 -ne $taskDeliveryData.executable.sha256 -or $taskWizardProof.delivery.original.bytes -ne $taskDeliveryData.executable.bytes -or $taskWizardProof.executionProfile.ownerSid -ne $taskCreatedSid.Value -or $taskWizardProof.executionProfile.root -ne $taskReport.profileAcceptanceRoot) { throw 'The actual wizard did not pass for this exact complete installer and isolated profile.' }
     $taskReport.wizardEvidencePath = $taskWizardProofPath.Substring($taskRepository.Length + 1).Replace('\', '/')
     $taskReport.wizardBeforeIsolationSha256 = (Get-FileHash -LiteralPath $taskWizardProofPath -Algorithm SHA256).Hash.ToLowerInvariant()
   }

@@ -248,6 +248,8 @@ node tools/test/desktop/verify-shutdown.mjs --native=<已编译原生目录> --s
 
 正式账户驱动可显式传`-IncludeWizardAcceptance`，先在同一干净标准profile中核验实际中文向导与取消保全，再执行既有完整更新／恢复／正式安装链；该选项仅适用于`-UseProfileAcceptance`完整生产链，不接受fixture-only或便携迁移模式。默认关闭，不能因当前用户已有产品登记而删除登记或跳过门禁。父驱动核对向导通过及同一installer SHA，方法指纹包含向导来源；仍需临时账户与profile操作的明确授权。
 
+需要UAC提权启动时，外层必须持续等待自有提权进程并保留完成回执；不能启动后立即退出，避免宿主结束进程树使账户清理中断。向导profile解析使用子驱动已设置的`TABLEMAX_INSTALLATION_HANDOFF_TMP`，核验实际成功状态`actual-wizard-cancel-passed`；它仅证明向导浏览和取消，完整系统链仍须逐项通过。意外中断后先按本次记录的精确SID核对并清理自有测试账户／profile，再用新证据目录执行实质纠正后的独立轮次。
+
 本节维护安装／更新脚本、参数和报告契约；证明层次见[验证规格](../../docs/reference/validation.md#完整安装与程序更新的证据分层)，实际结果只在[验收](../../docs/reference/acceptance.md#当前源码与本地交付)及相应归档维护。组件、向导取消、解码探针或双PE准备不能升级为实际系统证明。
 
 - [verify-update-activation.mjs](installation/verify-update-activation.mjs)：`--only=<已知caseID[,]> --prior-failures=<本轮累计>`；使用实际同用户私有named pipe、双方进程／安装身份与测试RSA签名，核验重复唤起、越界／额外字段／外来PE拒绝，以及可信同版、远端旧版、信任水位和签名错误结果。只验证组件，不启动桌面服务、安装器或账户；不代表真实窗口、GitHub网络或完整安装验收。报告含完整方法指纹，登记shared,tooling。
