@@ -2,9 +2,11 @@
 
 ## 当前接续：安装验收与体验优化（2026-10-16）
 
-用户明确要求继续安装验收、发现问题直接修复并导出全部游戏完整EXE，暂不发布。最新1.0.7.9候选已完成体验修复及本机验证，具体改动、当前包身份和实际结果统一见[验收](../reference/acceptance.md#马尼拉本地候选2026-10-16)及[验证](../games/manila/validation-scenarios.md)。证据入口为`artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/`；预检通过的完整驱动参数与原SHA在`acceptance-plan-09.json`冻结。
+用户明确要求继续安装验收、发现问题直接修复并导出全部游戏完整EXE，暂不发布。最新1.0.7.9候选已完成体验修复及本机验证，具体改动、当前包身份和实际结果统一见[验收](../reference/acceptance.md#马尼拉本地候选2026-10-16)及[验证](../games/manila/validation-scenarios.md)。证据入口为`artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/`；已准备的完整驱动参数与原SHA在`acceptance-plan-09.json`冻结。
 
 剩余：确认临时标准账户／profile授权，在干净账户执行真实向导、默认与长根外置D两条更新链、旧框架恢复、正式产品首装／同包复装／两次卸载与保存后重装读回；封存实际证明，再决定本地current。现有账户已有产品登记，向导检查已安全拒绝，不修改该登记。完整候选已导出，公开1.0.7及其附件保持原字节，不发布或部署。
+
+本轮一次安全维护已执行并核验，预算已消耗，见[维护记录](../reference/project-slimming.md#马尼拉安装与体验阶段维护2026-10-16)。后续账户验收接续必须继续设置`TABLEMAX_AUTO_MAINTENANCE=0`，不因授权等待追加清理。
 
 经典3–5人完整开发及本地完整installer候选已完成，过程见[归档](../archive/manila-2026-10-16.md)，当前身份与实测统一见[验收](../reference/acceptance.md#马尼拉本地候选2026-10-16)和[游戏验证](../games/manila/validation-scenarios.md)。本页仅保留后续尚未执行范围，不将其写成本轮通过。
 
