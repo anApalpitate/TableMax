@@ -296,6 +296,10 @@ try {
     report.details.push({ label, box });
     await card.getByRole('button', { name: /关闭/ }).click();
     assert.equal(await card.count(), 0, 'Detail closes: ' + label);
+    assert.ok(
+      await trigger.evaluate((node) => document.activeElement === node),
+      'Closing a detail restores focus to its trigger: ' + label,
+    );
   }
   await page.getByRole('button', { name: '账本', exact: true }).click();
   await page.locator('.mn-overlay').waitFor();
@@ -304,6 +308,12 @@ try {
     .locator('.mn-overlay')
     .getByRole('button', { name: /关闭/ })
     .click();
+  assert.ok(
+    await page
+      .getByRole('button', { name: '账本', exact: true })
+      .evaluate((node) => document.activeElement === node),
+    'Closing the ledger restores focus to its trigger',
+  );
   assert.deepEqual(
     await page.evaluate(() => window.commands ?? []),
     [],
