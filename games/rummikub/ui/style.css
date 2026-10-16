@@ -125,6 +125,16 @@
   gap: 8px;
   min-width: 0;
 }
+.rk-screen .rk-toolbar-tools > .rk-icon-button {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 9px;
+}
+.rk-toolbar-tools > .rk-icon-button > svg {
+  display: block;
+  flex: 0 0 auto;
+}
 .rk-turn-bar {
   display: flex;
   align-items: center;
