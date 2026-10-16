@@ -224,19 +224,9 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
       <div className="box-feedback" data-submitting={compactProgress}>
         <BoxFeedback session={session} />
       </div>
-      {canControl && (
+      {canControl && (isHost || view?.status !== 'lobby') && (
         <div className="box-table-actions">
           <RoomManagement session={session} display="actions" />
-          {canManageSeats && (
-            <button
-              type="button"
-              className="secondary"
-              disabled={locked || !view?.seats.length}
-              onClick={() => setPanel('seats')}
-            >
-              座位设置
-            </button>
-          )}
           {isHost && (
             <button
               type="button"
@@ -277,15 +267,42 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                   {view?.seats.length ?? 0} / {view?.game?.max ?? 6}
                 </span>
               </div>
-              {owner && (
-                <p className="owner-badge">
-                  <span>房主</span>
-                  <strong>{owner.name}</strong>
-                </p>
-              )}
+              <div className="room-heading__meta">
+                {owner && (
+                  <p className="owner-badge">
+                    <span>房主</span>
+                    <strong>{owner.name}</strong>
+                  </p>
+                )}
+                <span className="room-status">{roomStatus}</span>
+              </div>
             </div>
             <div className="room-heading__actions">
-              <span className="room-status">{roomStatus}</span>
+              {canManageSeats && (
+                <button
+                  type="button"
+                  className="secondary box-seat-control"
+                  aria-label="座位设置"
+                  title="座位设置"
+                  disabled={locked || !view?.seats.length}
+                  onClick={() => setPanel('seats')}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="22"
+                    height="22"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M7 10V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v5M5 10h14v6H5zM7 16v5m10-5v5" />
+                  </svg>
+                  <span>座位</span>
+                </button>
+              )}
             </div>
           </div>
           <div className="box-player-dock">
@@ -614,7 +631,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
       {panel === 'seats' && canManageSeats && (
         <OverlayPanel
           title="座位设置"
-          className="settings-panel"
+          className="settings-panel settings-panel--seats"
           close={() => setPanel(null)}
         >
           <SeatSettings

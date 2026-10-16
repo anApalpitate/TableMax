@@ -24,7 +24,7 @@ const argument = (name) =>
 const run = argument('run') ?? `run-${Date.now()}`;
 assert.match(run, /^[A-Za-z0-9_-]+$/);
 const section = argument('section') ?? 'all';
-assert.ok(['all', 'layout', 'controls'].includes(section));
+assert.ok(['all', 'layout', 'controls', 'settings'].includes(section));
 const roleFilter = argument('role');
 assert.ok(!roleFilter || ['host', 'public', 'player'].includes(roleFilter));
 const capacityFilter = argument('capacity');
@@ -41,7 +41,10 @@ const sizes = [
 ];
 const sizeFilter = argument('size');
 assert.ok(!sizeFilter || sizes.some(([w, h]) => `${w}x${h}` === sizeFilter));
-const output = verificationOutput('box-seats', run);
+const output =
+  section === 'settings'
+    ? resolve('artifacts/maintenance/seat-intro-audit-20261017', run)
+    : verificationOutput('box-seats', run);
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/box-layout-'));
@@ -68,6 +71,10 @@ for (const file of [
   'apps/web/src/components/RoomTable.tsx',
   'apps/web/src/components/room-table.css',
   'apps/web/src/components/RoomManagement.tsx',
+  'apps/web/src/components/SeatSettings.tsx',
+  'apps/web/src/components/seat-settings.css',
+  'apps/web/src/components/settings-panel.css',
+  'apps/web/src/components/overlay-panel.css',
   'apps/web/src/components/GameLibrary.tsx',
   'apps/web/src/screens/BoxScreen.tsx',
   'apps/web/src/screens/box-refinements.css',
@@ -96,6 +103,7 @@ import {BoxScreen} from ${JSON.stringify(resolve('apps/web/src/screens/BoxScreen
 import {moduleCatalog} from ${JSON.stringify(resolve('apps/web/src/catalog.ts'))};
 import ${JSON.stringify(resolve('apps/web/src/styles.css'))};
 import ${JSON.stringify(resolve('apps/web/src/screens/box-screen.css'))};
+import ${JSON.stringify(resolve('apps/web/src/components/overlay-panel.css'))};
 const normalCatalog=moduleCatalog.filter(m=>!m.internal).map(m=>m.catalog);
 const uno=normalCatalog.find(game=>game.id==='uno');
 window.commands=[];
@@ -106,7 +114,7 @@ function App(){
  const [options,setOptions]=useState({role:'host',capacity:6,occupied:5}),[name,setName]=useState('朋友');
  window.configureBox=(next)=>{window.commands=[];setOptions(next)};
  const capacity=options.capacity??6,occupied=options.occupied??capacity,role=options.role??'host';
- const seats=Array.from({length:occupied},(_,i)=>({id:'seat-'+(i+1),name:(capacity<=6?ringNames[i]:names[i])??('朋友'+(i+1)),avatarId:AVATAR_PRESETS[i%AVATAR_PRESETS.length].id,controller:i>=2&&i<=4?'bot':'human',botDifficulty:i===2?'default':i===3?'doubao':i===4?'juewu':undefined,online:i!==1&&i!==5,ready:i!==0&&i!==5}));
+ const seats=Array.from({length:occupied},(_,i)=>({id:'seat-'+(i+1),name:(options.longNames?names[i]:capacity<=6?ringNames[i]:names[i])??('朋友'+(i+1)),avatarId:AVATAR_PRESETS[i%AVATAR_PRESETS.length].id,controller:i>=2&&i<=4?'bot':'human',botDifficulty:i===2?'default':i===3?'doubao':i===4?'juewu':undefined,online:i!==1&&i!==5,ready:i!==0&&i!==5}));
  const self=role==='player'?(seats[capacity===12?11:0]??null):null;
  const game=options.normalCatalog?uno:{...uno,min:Math.min(2,capacity),max:capacity};
  const catalog=options.normalCatalog?normalCatalog:options.wideCatalog?[...normalCatalog.map(item=>item.id==='uno'?{...item,max:12}:item),{...uno,id:'fixture-twelve',name:'仅用于布局验证的十二席目录项',min:7,max:12}]:normalCatalog;
@@ -369,12 +377,447 @@ async function capture(name) {
   const file = name + '.png';
   await captureBrowserScreenshot(page, {
     path: join(output, file),
-    fullPage: true,
+    fullPage: section !== 'settings',
   });
   report.screenshots.push({
     file,
     sha256: hash(await readFile(join(output, file))),
   });
+}
+async function verifySettings() {
+  page.setDefaultTimeout(8000);
+  const settingsSizes = [
+    [320, 568],
+    [390, 844],
+    [430, 932],
+    [844, 390],
+    [1280, 720],
+  ];
+  const outer = () =>
+    page.getByRole('dialog', { name: '座位设置', exact: true });
+  const closeAll = async () => {
+    for (let i = 0; i < 3 && (await page.locator('dialog[open]').count()); i++)
+      await page.keyboard.press('Escape');
+    assert.equal(await page.locator('dialog[open]').count(), 0);
+  };
+  for (const [role, owner] of [
+    ['host', false],
+    ['player', true],
+    ['player', false],
+    ['public', false],
+  ]) {
+    for (const size of settingsSizes) {
+      const label = `${role}${owner ? '-owner' : ''}-${size.join('x')}`;
+      report.current = { role, owner, size, stage: 'seat-settings' };
+      await configure(
+        { role, owner, capacity: 6, occupied: 3, longNames: true },
+        size,
+      );
+      const entry = page.getByRole('button', { name: '座位设置', exact: true });
+      const authorized = role === 'host' || owner;
+      assert.equal(
+        await entry.count(),
+        authorized ? 1 : 0,
+        label + ' permission',
+      );
+      if (!authorized) {
+        checked(label + ': ordinary/public cannot open seat settings');
+        continue;
+      }
+      assert.equal(await entry.locator('svg').count(), 1);
+      assert.equal((await entry.innerText()).trim(), '座位');
+      assert.equal(
+        await entry.evaluate((node) => Boolean(node.closest('.room-heading'))),
+        true,
+      );
+      const entryMetrics = await entry.evaluate((node) => {
+        const box = node.getBoundingClientRect();
+        const label = node.querySelector('span');
+        const clipping = [];
+        for (
+          let parent = node.parentElement;
+          parent;
+          parent = parent.parentElement
+        ) {
+          if (
+            !['hidden', 'clip', 'auto', 'scroll'].includes(
+              getComputedStyle(parent).overflowX,
+            )
+          )
+            continue;
+          const bounds = parent.getBoundingClientRect();
+          if (box.left < bounds.left - 1 || box.right > bounds.right + 1)
+            clipping.push({
+              className: parent.className,
+              left: bounds.left,
+              right: bounds.right,
+            });
+        }
+        return {
+          width: box.width,
+          height: box.height,
+          left: box.left,
+          right: box.right,
+          clipping,
+          clipped:
+            node.scrollWidth > node.clientWidth + 1 ||
+            label.scrollWidth > label.clientWidth + 1 ||
+            label.scrollHeight > label.clientHeight + 1,
+        };
+      });
+      assert.ok(
+        entryMetrics.width < 130 && entryMetrics.height >= 44,
+        label + ' natural compact entry width and 44px height',
+      );
+      assert.equal(
+        entryMetrics.clipped,
+        false,
+        label + ' seat entry label must not be clipped',
+      );
+      report.entryLayouts ??= [];
+      report.entryLayouts.push({ label, ...entryMetrics });
+      assert.deepEqual(
+        entryMetrics.clipping,
+        [],
+        label + ' entry must stay within every clipping ancestor',
+      );
+      assert.ok(
+        entryMetrics.left >= 0 && entryMetrics.right <= size[0],
+        label + ' entry within viewport',
+      );
+      if (role === 'player') {
+        const profileMetrics = await page
+          .locator('.player-actions')
+          .evaluate((root) => {
+            const nodes = [
+              ...root.querySelectorAll('.player-profile strong,button'),
+            ];
+            return nodes.map((node) => {
+              const box = node.getBoundingClientRect();
+              const clippedBy = [];
+              for (
+                let parent = node.parentElement;
+                parent;
+                parent = parent.parentElement
+              ) {
+                if (
+                  !['hidden', 'clip', 'auto', 'scroll'].includes(
+                    getComputedStyle(parent).overflowX,
+                  )
+                )
+                  continue;
+                const bounds = parent.getBoundingClientRect();
+                if (box.left < bounds.left - 1 || box.right > bounds.right + 1)
+                  clippedBy.push(parent.className);
+              }
+              return {
+                text: node.textContent.trim(),
+                width: box.width,
+                height: box.height,
+                left: box.left,
+                right: box.right,
+                clippedBy,
+                textClipped:
+                  node.scrollWidth > node.clientWidth + 1 ||
+                  node.scrollHeight > node.clientHeight + 1,
+                isButton: node.tagName === 'BUTTON',
+              };
+            });
+          });
+        report.profileLayouts ??= [];
+        report.profileLayouts.push({ label, nodes: profileMetrics });
+        assert.ok(
+          profileMetrics.every(
+            (node) =>
+              !node.textClipped &&
+              !node.clippedBy.length &&
+              node.left >= 0 &&
+              node.right <= size[0],
+          ),
+          label + ' own profile name and actions visible within cards',
+        );
+        assert.ok(
+          profileMetrics
+            .filter((node) => node.isButton)
+            .every((node) => node.width >= 44 && node.height >= 44),
+          label + ' own profile 44px buttons',
+        );
+      }
+      if (owner)
+        assert.equal(
+          await page.locator('.box-table-actions').count(),
+          0,
+          'owner lobby must not reserve empty actions',
+        );
+      await capture('lobby-' + label);
+      await entry.click();
+      await outer().waitFor();
+      const metrics = await outer().evaluate(async (dialog) => {
+        const content =
+          dialog.querySelector('.box-overlay-panel__content') ?? dialog;
+        const rows = [...dialog.querySelectorAll('.seat-settings-row')];
+        await Promise.all(
+          [...dialog.querySelectorAll('img')].map((img) => img.decode()),
+        );
+        content.scrollTop = content.scrollHeight;
+        const rect = (node) => {
+          const b = node.getBoundingClientRect();
+          return {
+            x: b.x,
+            y: b.y,
+            width: b.width,
+            height: b.height,
+            right: b.right,
+            bottom: b.bottom,
+          };
+        };
+        const visibleText = [
+          ...dialog.querySelectorAll(
+            'strong,select,.seat-settings-level,.seat-settings-status,.seat-manager__number',
+          ),
+        ];
+        return {
+          viewport: [innerWidth, innerHeight],
+          dialog: rect(dialog),
+          rows: rows.length,
+          documentOverflow:
+            document.documentElement.scrollWidth -
+            document.documentElement.clientWidth,
+          contentOverflow: content.scrollWidth - content.clientWidth,
+          rowOverflow: rows
+            .filter((row) => row.scrollWidth > row.clientWidth + 1)
+            .map((row) => row.dataset.seatId),
+          clippedNames: rows
+            .filter((row) => {
+              const n = row.querySelector('strong');
+              return (
+                n.scrollHeight > n.clientHeight + 1 ||
+                n.scrollWidth > n.clientWidth + 1
+              );
+            })
+            .map((row) => row.dataset.seatId),
+          fonts: visibleText.map((node) => ({
+            text: node.textContent.trim(),
+            size: parseFloat(getComputedStyle(node).fontSize),
+          })),
+          targets: [...dialog.querySelectorAll('button,select')].map(
+            (node) => ({
+              name: node.getAttribute('aria-label') ?? node.textContent,
+              ...rect(node),
+            }),
+          ),
+          avatars: [...dialog.querySelectorAll('img')].map((img) => ({
+            loaded: img.complete && img.naturalWidth > 0,
+          })),
+          endGap:
+            content.getBoundingClientRect().bottom -
+            Math.max(
+              content.getBoundingClientRect().top,
+              rows.at(-1).getBoundingClientRect().bottom,
+            ),
+          grids: rows.map((row) => ({
+            columns: getComputedStyle(row).gridTemplateColumns,
+            menuRight: row
+              .querySelector('.seat-settings-menu')
+              .getBoundingClientRect().right,
+            rowRight: row.getBoundingClientRect().right,
+            nameFont: parseFloat(
+              getComputedStyle(row.querySelector('strong')).fontSize,
+            ),
+          })),
+        };
+      });
+      report.layouts.push({ label, ...metrics });
+      assert.equal(metrics.rows, 3);
+      assert.ok(
+        metrics.documentOverflow <= 1 && metrics.contentOverflow <= 1,
+        label + ' horizontal overflow',
+      );
+      assert.deepEqual(metrics.rowOverflow, []);
+      assert.deepEqual(metrics.clippedNames, []);
+      assert.ok(
+        metrics.fonts.every((t) => t.size >= 16),
+        label + ' 16px information',
+      );
+      assert.ok(
+        metrics.targets.every((t) => t.width >= 43.5 && t.height >= 43.5),
+        label + ' 44px targets',
+      );
+      assert.ok(
+        metrics.avatars.every((t) => t.loaded),
+        label + ' loaded avatars',
+      );
+      assert.ok(
+        metrics.grids.every(
+          (row) =>
+            row.columns.split(' ').length === 3 &&
+            row.menuRight <= row.rowRight &&
+            row.nameFont >= 18,
+        ),
+        label +
+          ' exact three columns, right menu and 18px name with late overlay CSS',
+      );
+      assert.ok(
+        metrics.endGap <= 48,
+        label + ' no unused terminal gap: ' + metrics.endGap,
+      );
+      assert.equal(
+        await outer().locator('select').count(),
+        role === 'host' ? 1 : 0,
+      );
+      assert.equal(
+        await outer().getByRole('button', { name: /前移/ }).count(),
+        0,
+        'order belongs to secondary menu',
+      );
+      await capture('settings-' + label);
+      const botMenu = outer().locator(
+        '[data-seat-id="seat-3"] .seat-settings-menu',
+      );
+      await botMenu.click();
+      const nested = page.locator('dialog[open]').last();
+      const nestedMetrics = await nested.evaluate((dialog) => {
+        const b = dialog.getBoundingClientRect();
+        return {
+          right: b.right,
+          left: b.left,
+          overflow: dialog.scrollWidth - dialog.clientWidth,
+          buttons: [...dialog.querySelectorAll('button')].map((node) => ({
+            width: node.getBoundingClientRect().width,
+            height: node.getBoundingClientRect().height,
+          })),
+          fonts: [...dialog.querySelectorAll('button,p')].map((node) =>
+            parseFloat(getComputedStyle(node).fontSize),
+          ),
+        };
+      });
+      assert.ok(
+        nestedMetrics.left >= 0 &&
+          nestedMetrics.right <= size[0] &&
+          nestedMetrics.overflow <= 1,
+        label + ' nested dialog bounds',
+      );
+      assert.ok(
+        nestedMetrics.buttons.every(
+          (node) => node.width >= 43.5 && node.height >= 43.5,
+        ),
+        label + ' nested 44px',
+      );
+      assert.ok(
+        nestedMetrics.fonts.every((font) => font >= 16),
+        label + ' nested 16px',
+      );
+      if (role === 'host')
+        assert.equal(
+          await nested.getByRole('button', { name: /前移/ }).count(),
+          1,
+        );
+      else
+        assert.equal(
+          await nested.getByRole('button', { name: /前移/ }).count(),
+          0,
+        );
+      await capture('operations-' + label);
+      await page.keyboard.press('Escape');
+      assert.equal(
+        await page.locator('dialog[open]').count(),
+        1,
+        'Escape closes only secondary dialog',
+      );
+      await page.waitForFunction(() =>
+        document.activeElement?.classList.contains('seat-settings-menu'),
+      );
+      await page.keyboard.press('Escape');
+      assert.equal(await page.locator('dialog[open]').count(), 0);
+      await page.waitForFunction(
+        () => document.activeElement?.getAttribute('aria-label') === '座位设置',
+      );
+      checked(
+        label + ': geometry, avatars, text, permissions, nested Escape/focus',
+      );
+    }
+  }
+  for (const [role, owner] of [
+    ['host', false],
+    ['player', true],
+  ]) {
+    await configure(
+      { role, owner, capacity: 6, occupied: 3, longNames: true },
+      [390, 844],
+    );
+    await page.getByRole('button', { name: '座位设置', exact: true }).click();
+    if (role === 'host') {
+      await outer().locator('select').selectOption('juewu');
+      assert.deepEqual(await page.evaluate(() => window.commands.splice(0)), [
+        { type: 'set-bot-difficulty', seatId: 'seat-3', difficulty: 'juewu' },
+      ]);
+      await outer()
+        .locator('[data-seat-id="seat-3"] .seat-settings-menu')
+        .click();
+      await page
+        .locator('dialog[open]')
+        .last()
+        .getByRole('button', { name: /前移/ })
+        .click();
+      assert.deepEqual(await page.evaluate(() => window.commands.splice(0)), [
+        { type: 'order', seats: ['seat-1', 'seat-3', 'seat-2'] },
+      ]);
+    }
+    await outer()
+      .locator('[data-seat-id="seat-3"] .seat-settings-menu')
+      .click();
+    await page
+      .locator('dialog[open]')
+      .last()
+      .getByRole('button', { name: '修改人机名称', exact: true })
+      .click();
+    await page
+      .getByRole('textbox', { name: '人机名称', exact: true })
+      .fill('  新名字  ');
+    await page.getByRole('button', { name: '保存名称', exact: true }).click();
+    assert.deepEqual(await page.evaluate(() => window.commands.splice(0)), [
+      { type: 'set-bot-name', seatId: 'seat-3', name: '新名字' },
+    ]);
+    await closeAll();
+    await configure(
+      {
+        role,
+        owner,
+        capacity: 6,
+        occupied: 3,
+        status: 'playing',
+        longNames: true,
+      },
+      [390, 844],
+    );
+    await page.getByRole('button', { name: '座位设置', exact: true }).click();
+    assert.equal(await outer().locator('select').count(), 0);
+    await outer()
+      .locator('[data-seat-id="seat-3"] .seat-settings-menu')
+      .click();
+    await page
+      .locator('dialog[open]')
+      .last()
+      .getByRole('button', { name: '修改人机名称', exact: true })
+      .click();
+    assert.equal(
+      await page
+        .getByRole('textbox', { name: '人机名称', exact: true })
+        .count(),
+      0,
+    );
+    await page
+      .locator('dialog[open]')
+      .last()
+      .getByRole('button', { name: '移除人机', exact: true })
+      .click();
+    assert.deepEqual(await page.evaluate(() => window.commands), []);
+    await capture(`playing-guard-${role}${owner ? '-owner' : ''}`);
+    await closeAll();
+    checked(
+      `${role}/owner=${owner}: exact difficulty/order/trimmed rename intents; playing refuses rename/removal`,
+    );
+  }
 }
 try {
   console.log('Building source box seat fixture (about 10 seconds)…');
@@ -412,7 +855,8 @@ try {
   page.on('pageerror', (error) => report.errors.push(error.message));
   await page.goto(server.url);
   await page.locator('.room-table').waitFor();
-  if (section !== 'controls') {
+  if (section === 'settings') await verifySettings();
+  if (section === 'all' || section === 'layout') {
     for (const role of ['host', 'public', 'player'].filter(
       (value) => !roleFilter || value === roleFilter,
     )) {
@@ -468,7 +912,7 @@ try {
       'Layout inspection must not issue room commands',
     );
   }
-  if (section !== 'layout') {
+  if (section === 'all' || section === 'controls') {
     for (const role of ['host', 'public', 'player']) {
       await configure(
         { role, capacity: 6, occupied: 5, status: 'ended' },
@@ -615,6 +1059,16 @@ try {
   }
   assert.deepEqual(report.errors, []);
   assert.deepEqual(report.externalRequests, []);
+  if (section === 'settings') {
+    report.sourcesAfter = {};
+    for (const file of Object.keys(report.sources))
+      report.sourcesAfter[file] = hash(await readFile(file));
+    assert.deepEqual(
+      report.sourcesAfter,
+      report.sources,
+      'Production inputs must not change during verification',
+    );
+  }
   report.status = 'passed';
   console.log(
     `${report.checks.length} check groups passed; ${report.layouts.length} layouts; ${report.screenshots.length} screenshots; build ${report.buildMs}ms.`,
@@ -625,7 +1079,7 @@ try {
   if (page && !page.isClosed())
     await captureBrowserScreenshot(page, {
       path: join(output, 'failure.png'),
-      fullPage: true,
+      fullPage: section !== 'settings',
     }).catch(() => {});
   throw error;
 } finally {
@@ -633,11 +1087,12 @@ try {
   await server?.close();
   report.finishedAt = new Date().toISOString();
   await save();
-  await registerArtifacts({
-    output,
-    reportPath: join(output, 'report.json'),
-    work,
-    passed: report.status === 'passed',
-  });
+  if (section !== 'settings')
+    await registerArtifacts({
+      output,
+      reportPath: join(output, 'report.json'),
+      work,
+      passed: report.status === 'passed',
+    });
   console.log('Evidence: ' + output);
 }

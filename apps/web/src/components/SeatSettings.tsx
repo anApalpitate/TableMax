@@ -42,63 +42,50 @@ export function SeatSettings({
             key={seat.id}
             data-seat-id={seat.id}
           >
-            <span className="seat-manager__number">{index + 1}</span>
-            <img
-              className="seat-settings-avatar"
-              src={avatarFor(seat.avatarId)}
-              alt=""
-            />
+            <div className="seat-settings-portrait">
+              <img
+                className="seat-settings-avatar"
+                src={avatarFor(seat.avatarId)}
+                alt=""
+              />
+              <span className="seat-manager__number">{index + 1}</span>
+            </div>
             <div className="seat-settings-identity">
               <strong>{seat.name}</strong>
-              <span>
-                {seat.controller === 'bot'
-                  ? '人机'
-                  : seat.online
-                    ? '已连接'
-                    : '离线'}
-              </span>
+              {seat.controller === 'bot' && canOrder ? (
+                <select
+                  className="seat-difficulty"
+                  aria-label={`${seat.name}的人机等级`}
+                  data-seat-id={seat.id}
+                  disabled={locked}
+                  value={seat.botDifficulty ?? 'default'}
+                  onChange={(event) =>
+                    command({
+                      type: 'set-bot-difficulty',
+                      seatId: seat.id,
+                      difficulty: event.target.value as BotDifficulty,
+                    })
+                  }
+                >
+                  {Object.entries(difficultyNames).map(([value, label]) => (
+                    <option value={value} key={value}>
+                      {label}人机
+                    </option>
+                  ))}
+                </select>
+              ) : seat.controller === 'bot' ? (
+                <span className="seat-settings-level">
+                  {difficultyNames[seat.botDifficulty ?? 'default']}人机
+                </span>
+              ) : (
+                <span
+                  className="seat-settings-status"
+                  data-online={seat.online}
+                >
+                  {seat.online ? '已连接' : '离线'}
+                </span>
+              )}
             </div>
-            {seat.controller === 'bot' && canOrder ? (
-              <select
-                className="seat-difficulty"
-                aria-label={`${seat.name}的人机等级`}
-                data-seat-id={seat.id}
-                disabled={locked}
-                value={seat.botDifficulty ?? 'default'}
-                onChange={(event) =>
-                  command({
-                    type: 'set-bot-difficulty',
-                    seatId: seat.id,
-                    difficulty: event.target.value as BotDifficulty,
-                  })
-                }
-              >
-                {Object.entries(difficultyNames).map(([value, label]) => (
-                  <option value={value} key={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            ) : seat.controller === 'bot' ? (
-              <span className="seat-settings-level">
-                {difficultyNames[seat.botDifficulty ?? 'default']}
-              </span>
-            ) : null}
-            {canOrder && (
-              <button
-                type="button"
-                className="secondary seat-settings-move"
-                aria-label={`${seat.name}前移`}
-                disabled={locked || index === 0}
-                onClick={() => {
-                  const ids = view.seats.map((entry) => entry.id);
-                  [ids[index - 1], ids[index]] = [ids[index]!, ids[index - 1]!];
-                  command({ type: 'order', seats: ids });
-                }}
-              >
-                前移
-              </button>
-            )}
             <button
               type="button"
               className="secondary seat-settings-menu"
@@ -126,8 +113,30 @@ export function SeatSettings({
         ))}
       </div>
       {selected && operation === 'menu' && (
-        <OverlayPanel title={`${selected.name}的座位`} close={close}>
+        <OverlayPanel title="座位操作" close={close}>
           <div className="seat-settings-operations">
+            <div className="seat-settings-target">
+              <img src={avatarFor(selected.avatarId)} alt="" />
+              <strong>{selected.name}</strong>
+            </div>
+            {canOrder && (
+              <button
+                type="button"
+                className="secondary seat-settings-move"
+                aria-label={`${selected.name}前移`}
+                disabled={locked || view.seats[0]?.id === selected.id}
+                onClick={() => {
+                  const ids = view.seats.map((entry) => entry.id);
+                  const index = ids.indexOf(selected.id);
+                  if (index < 1) return;
+                  [ids[index - 1], ids[index]] = [ids[index]!, ids[index - 1]!];
+                  command({ type: 'order', seats: ids });
+                  close();
+                }}
+              >
+                前移一位
+              </button>
+            )}
             {selected.controller === 'bot' && (
               <button
                 type="button"

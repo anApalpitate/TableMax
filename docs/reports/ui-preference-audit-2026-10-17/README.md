@@ -1,0 +1,9 @@
+1. [盒子](box.md)
+2. [宝可梦奇遇（原版及扩展）](pokemon-encounters.md)
+3. [现代艺术](modern-art.md)
+4. [电力公司](power-grid.md)
+5. [UNO](uno.md)
+6. [拉密](rummikub.md)
+7. [阿瓦隆](avalon.md)
+8. [马尼拉](manila.md)
+9. 按当前[美术偏好](../../reference/art-preferences.md)核查源码；报告只列已确认问题及调整方案。未改游戏局内实现。声画观感、实际视觉居中、连续阶段稳定性和实体设备表现仍需相应渲染或实机验证。
