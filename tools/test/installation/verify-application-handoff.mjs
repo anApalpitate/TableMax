@@ -128,6 +128,7 @@ export async function verifyApplicationHandoff({
   prepareOnly = false,
   compileOnly = false,
   preparedReport,
+  sourcePointer,
   verifyPreparedOnly = false,
   frameworkRecoveryOnly = false,
   activeUninstallOnly = false,
@@ -136,6 +137,23 @@ export async function verifyApplicationHandoff({
 }) {
   assertWorkspaceRoot();
   assert.equal(process.platform, 'win32');
+  assert.ok(
+    sourcePointer === undefined ||
+      (typeof sourcePointer === 'string' && sourcePointer.length > 0),
+    'Explicit source pointer cannot be empty',
+  );
+  assert.ok(
+    sourcePointer === undefined ||
+      (prepareOnly &&
+        !compileOnly &&
+        !preparedReport &&
+        !verifyPreparedOnly &&
+        !frameworkRecoveryOnly &&
+        !activeUninstallOnly &&
+        !shortExternalData &&
+        !longRootExternalData),
+    '--source-pointer is only supported by --prepare-only',
+  );
   const usesExternalData = shortExternalData || longRootExternalData;
   assert.ok(
     !longRootExternalData ||
@@ -166,6 +184,14 @@ export async function verifyApplicationHandoff({
     'Framework recovery requires execution of an exact prepared pair',
   );
   const repository = resolve('.');
+  if (sourcePointer) {
+    sourcePointer = inside(repository, sourcePointer);
+    await noLinks(sourcePointer);
+    assert.ok(
+      (await stat(sourcePointer)).isFile(),
+      'Explicit source pointer file required',
+    );
+  }
   let prepared;
   if (preparedReport) {
     assert.ok(!compileOnly && !prepareOnly, 'Prepared input is execution only');
@@ -1724,6 +1750,7 @@ export async function verifyApplicationHandoff({
     work,
     prepared,
     preparedReport,
+    sourcePointer,
     report,
     nativeTemplate,
     serverDirectory,
@@ -2058,6 +2085,18 @@ if (resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
       args
         .find((arg) => arg.startsWith('--' + name + '='))
         ?.slice(name.length + 3);
+  const sourceArguments = args.filter(
+    (arg) => arg === '--source-pointer' || arg.startsWith('--source-pointer='),
+  );
+  assert.ok(
+    sourceArguments.length <= 1 &&
+      sourceArguments.every(
+        (arg) =>
+          arg.startsWith('--source-pointer=') &&
+          arg.length > '--source-pointer='.length,
+      ),
+    'Provide one nonempty --source-pointer=<frozen current>',
+  );
   for (const name of value('prepared-report')
     ? ['prepared-report', 'evidence']
     : ['native-template', 'server', 'web', 'evidence'])
@@ -2070,6 +2109,7 @@ if (resolve(process.argv[1] ?? '') === fileURLToPath(import.meta.url)) {
     prepareOnly: args.includes('--prepare-only'),
     compileOnly: args.includes('--compile-only'),
     preparedReport: value('prepared-report'),
+    sourcePointer: value('source-pointer'),
     verifyPreparedOnly: args.includes('--verify-prepared-only'),
     frameworkRecoveryOnly: args.includes('--framework-recovery-only'),
     activeUninstallOnly: args.includes('--active-uninstall-only'),

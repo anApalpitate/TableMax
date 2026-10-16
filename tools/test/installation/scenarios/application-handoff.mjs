@@ -12,6 +12,7 @@ import {
 import assert from 'node:assert/strict';
 import { launchDesktop } from '../../support/desktop-test.mjs';
 import { chromium } from 'playwright';
+import { verifyFixtureInstallerProgress } from '../installer-progress.mjs';
 
 export async function runApplicationHandoffScenario(context) {
   const {
@@ -90,18 +91,36 @@ export async function runApplicationHandoffScenario(context) {
       report.startupExternalData.configurationBefore =
         await record(configurationPath);
     }
-    const run = await execute(
-      actualExecutionInputs.old.path,
-      [
-        '/VERYSILENT',
-        '/SUPPRESSMSGBOXES',
-        '/NORESTART',
-        '/DIR=' + root,
-        ...(!activeUninstallOnly ? ['/TASKS=!desktopicon'] : []),
-        '/LOG=' + join(evidence, 'old-inno.log'),
-      ],
-      'old-inno',
-    );
+    let run;
+    if (exerciseUpdater && profile) {
+      try {
+        run = await verifyFixtureInstallerProgress({
+          root,
+          evidence,
+          input: actualExecutionInputs.old,
+          fixture: report.old,
+          profile,
+          unknown: outsideBefore,
+          execute,
+        });
+      } finally {
+        // An observation can fail after this exact installer registered itself;
+        // retain the original chain's actual default-uninstall cleanup ownership.
+        lifecycle.installed = await exists(join(root, 'unins000.exe'));
+      }
+    } else
+      run = await execute(
+        actualExecutionInputs.old.path,
+        [
+          '/VERYSILENT',
+          '/SUPPRESSMSGBOXES',
+          '/NORESTART',
+          '/DIR=' + root,
+          ...(!activeUninstallOnly ? ['/TASKS=!desktopicon'] : []),
+          '/LOG=' + join(evidence, 'old-inno.log'),
+        ],
+        'old-inno',
+      );
     assert.equal(run.code, 0, run.log);
     lifecycle.installed = true;
     const value = await registration();
@@ -146,6 +165,7 @@ export async function runApplicationHandoffScenario(context) {
       ...(!activeUninstallOnly
         ? { shortcutSelection: await cancelledFixtureShortcuts() }
         : {}),
+      ...(run.guiProgress ? { guiProgress: run.guiProgress } : {}),
     };
   });
   await step('actual-old-host-transport', async () => {

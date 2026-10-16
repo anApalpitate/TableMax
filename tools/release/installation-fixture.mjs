@@ -8,11 +8,16 @@ import {
   readFile,
   unlink,
   rmdir,
+  realpath,
   stat,
   writeFile,
 } from 'node:fs/promises';
-import { dirname, join, resolve, sep } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { hash } from './installation-toolchain.mjs';
+import {
+  assertDeliveryPath,
+  assertNoDeliveryLinks,
+} from './delivery-paths.mjs';
 import {
   createInstallationExecutable,
   installationInventory,
@@ -22,6 +27,169 @@ import {
   isDirectExecution,
 } from '../shared/workspace-root.mjs';
 
+async function sourcePath(path) {
+  assert.equal(typeof path, 'string', 'Explicit frozen source path required');
+  const root = resolve('.'),
+    absolute = resolve(root, path);
+  const child = relative(root, absolute);
+  assert.ok(
+    child &&
+      !isAbsolute(child) &&
+      child !== '..' &&
+      !child.startsWith('..' + sep),
+    'Frozen fixture source escapes workspace',
+  );
+  assertNoDeliveryLinks(absolute);
+  assert.equal(
+    (await realpath(absolute)).toLowerCase(),
+    absolute.toLowerCase(),
+    'Frozen fixture source is aliased',
+  );
+  assert.ok(
+    (await stat(absolute)).isFile(),
+    'Frozen fixture source must be a regular file',
+  );
+  return absolute;
+}
+
+async function sourceRecord(path) {
+  path = await sourcePath(path);
+  const raw = await readFile(path);
+  return { path, bytes: raw.length, sha256: hash(raw) };
+}
+
+/** Authenticate an explicit source before any fixture compilation or extraction. */
+export async function readInstallationFixtureSource(sourcePointer) {
+  assertWorkspaceRoot();
+  const currentVersion = JSON.parse(
+    await readFile('package.json', 'utf8'),
+  ).version;
+  const pointerPath = await sourcePath(
+    sourcePointer ??
+      resolve(
+        'artifacts/package-payloads',
+        'v' + currentVersion,
+        'current.json',
+      ),
+  );
+  const pointerBytes = await readFile(pointerPath);
+  const pointer = JSON.parse(pointerBytes.toString('utf8'));
+  assert.match(pointer.version, /^1\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/);
+  assert.ok(
+    pointer.buildVersion === pointer.version ||
+      new RegExp(
+        '^' + pointer.version.replaceAll('.', '\\.') + '\\.(?:0|[1-9]\\d*)$',
+      ).test(pointer.buildVersion),
+    'Frozen source build does not belong to its public version',
+  );
+  assert.match(pointer.snapshot, /^[a-f0-9]{64}$/);
+  assert.ok(Array.isArray(pointer.deliveries));
+  const selected = pointer.deliveries.filter((item) => item.edition === 'full');
+  assert.equal(
+    selected.length,
+    1,
+    'Exactly one frozen complete source required',
+  );
+  const delivery = selected[0];
+  const manifestPath = await sourcePath(delivery.manifestPath);
+  const previousBytes = await readFile(manifestPath);
+  const previous = JSON.parse(previousBytes.toString('utf8'));
+  assert.equal(previous.version, pointer.version);
+  assert.equal(previous.buildVersion, pointer.buildVersion);
+  assert.equal(previous.snapshot, pointer.snapshot);
+  assert.equal(previous.edition, 'full');
+  const archive = await sourceRecord(delivery.archivePath);
+  assert.equal(archive.bytes, previous.archive.bytes);
+  assert.equal(archive.sha256, previous.archive.sha256);
+  const executablePath = assertDeliveryPath({
+    version: pointer.version,
+    buildVersion: pointer.buildVersion,
+    path: delivery.executable.path,
+  });
+  const executable = await sourceRecord(executablePath);
+  assert.equal(executable.bytes, delivery.executable.bytes);
+  assert.equal(executable.sha256, delivery.executable.sha256);
+  assert.equal(delivery.executable.payloadSha256, archive.sha256);
+  const source = {
+    pointer: {
+      path: pointerPath,
+      bytes: pointerBytes.length,
+      sha256: hash(pointerBytes),
+    },
+    manifest: {
+      path: manifestPath,
+      bytes: previousBytes.length,
+      sha256: hash(previousBytes),
+    },
+    archive,
+    executable,
+    version: pointer.version,
+    buildVersion: pointer.buildVersion,
+    snapshot: pointer.snapshot,
+  };
+  if (
+    delivery.deliveryType === 'installer' ||
+    delivery.executable.type === 'installer'
+  ) {
+    assert.equal(delivery.deliveryType, 'installer');
+    assert.equal(delivery.executable.type, 'installer');
+    const installation = delivery.executable.installation;
+    const installedRecord = await sourceRecord(installation.manifestPath);
+    assert.equal(installedRecord.sha256, installation.manifestSha256);
+    const installed = JSON.parse(await readFile(installedRecord.path, 'utf8'));
+    assert.equal(installed.releaseVersion, pointer.version);
+    assert.equal(installed.buildVersion, pointer.buildVersion);
+    assert.equal(installed.productId, '{DB749B9D-7D43-4F50-9FBD-551C9E8EF48D}');
+    assert.equal(installed.productId, installation.productId);
+    assert.equal(installed.payloadManifestSha256, source.manifest.sha256);
+    assert.equal(
+      installed.payloadManifestSha256,
+      installation.payloadManifestSha256,
+    );
+    assert.equal(
+      installed.currentMappingSha256,
+      installation.currentMappingSha256,
+    );
+    source.installationManifest = installedRecord;
+  }
+  const snapshotRecord = await sourceRecord(
+    resolve('build/snapshots', pointer.snapshot + '.json'),
+  );
+  const snapshot = JSON.parse(await readFile(snapshotRecord.path, 'utf8'));
+  assert.equal(snapshot.id, pointer.snapshot);
+  assert.equal(snapshot.version, pointer.version);
+  assert.equal(snapshot.buildVersion, pointer.buildVersion);
+  assert.equal(
+    hash(
+      Buffer.from(
+        JSON.stringify({
+          version: snapshot.version,
+          ...(snapshot.buildVersion
+            ? { buildVersion: snapshot.buildVersion }
+            : {}),
+          assemblerSha256: snapshot.assemblerSha256,
+          units: snapshot.units.map(({ id, fingerprint }) => ({
+            id,
+            fingerprint,
+          })),
+        }),
+      ),
+    ),
+    pointer.snapshot,
+    'Frozen source snapshot identity changed',
+  );
+  source.snapshotRecord = snapshotRecord;
+  return {
+    currentVersion,
+    pointer,
+    pointerBytes,
+    previous,
+    previousBytes,
+    delivery,
+    source,
+  };
+}
+
 /** Frozen published games plus explicitly selected new test native/server/web units. */
 export async function createInstallationFixturePackage({
   nativeDirectory,
@@ -30,45 +198,47 @@ export async function createInstallationFixturePackage({
   buildVersion,
   applicationTrustRootsPath,
   handoffTest = false,
+  sourcePointer,
 }) {
   assertWorkspaceRoot();
   assert.ok(
     nativeDirectory && serverDirectory && webDirectory,
     'Explicit latest fixture units required',
   );
-  const sourceVersion = JSON.parse(
-    await readFile('package.json', 'utf8'),
-  ).version;
+  const {
+    currentVersion,
+    pointer,
+    pointerBytes,
+    previous,
+    delivery,
+    source: originalSource,
+  } = await readInstallationFixtureSource(sourcePointer);
+  const sourceVersion = pointer.version;
   // Test-only application identities may exercise the future layout baseline;
   // signed game bytes still come from the unchanged current source release.
   const version = buildVersion
     ? buildVersion.split('.').slice(0, 3).join('.')
-    : sourceVersion;
+    : currentVersion;
   assert.match(version, /^1\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/);
   if (buildVersion)
     assert.match(
       buildVersion,
       new RegExp('^' + version.replaceAll('.', '\\.') + '\\.([0-9]{1,5})$'),
     );
-  const pointer = JSON.parse(
-    await readFile(
-      resolve(
-        'artifacts/package-payloads',
-        'v' + sourceVersion,
-        'current.json',
-      ),
-      'utf8',
-    ),
-  );
-  const delivery = pointer.deliveries.find((item) => item.edition === 'full');
-  const previousBytes = await readFile(delivery.manifestPath),
-    previous = JSON.parse(previousBytes.toString('utf8'));
-  assert.equal(
-    hash(await readFile(delivery.archivePath)),
-    previous.archive.sha256,
-  );
+  if (sourcePointer)
+    assert.equal(
+      version,
+      currentVersion,
+      'Explicit-source fixtures must use the current package public version',
+    );
   await mkdir(resolve('tmp'), { recursive: true });
   const work = await mkdtemp(resolve('tmp/installation-fixture-package-'));
+  const frozenPointerPath = join(work, 'source-pointer.json');
+  await writeFile(frozenPointerPath, pointerBytes, { flag: 'wx' });
+  const fixtureSource = {
+    ...originalSource,
+    frozenPointer: await sourceRecord(frozenPointerPath),
+  };
   const payload = join(work, 'payload');
   const run = promisify(execFile);
   const nativeVersion = await run(
@@ -280,6 +450,7 @@ export async function createInstallationFixturePackage({
     unpackedBytes: records.reduce((sum, file) => sum + file.bytes, 0),
     fixture: {
       originalReleaseVersion: sourceVersion,
+      source: fixtureSource,
       originalPayloadSha256: previous.archive.sha256,
       nativeDirectory: resolve(nativeDirectory),
       serverDirectory: resolve(serverDirectory),
@@ -309,6 +480,7 @@ export async function createInstallationFixturePackage({
     snapshot,
     version,
     buildVersion: manifest.buildVersion,
+    source: fixtureSource,
   };
   await writeFile(
     join(work, 'fixture-delivery.json'),

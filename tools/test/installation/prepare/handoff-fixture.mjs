@@ -9,7 +9,10 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { createInstallationFixturePackage } from '../../../release/installation-fixture.mjs';
+import {
+  createInstallationFixturePackage,
+  readInstallationFixtureSource,
+} from '../../../release/installation-fixture.mjs';
 import {
   applicationPublicKeyXml,
   applicationUpdateMachineBlock,
@@ -83,6 +86,7 @@ export async function prepareHandoffFixture({
   nativeTemplate,
   serverDirectory,
   webDirectory,
+  sourcePointer,
   execute,
   createPackage = createInstallationFixturePackage,
 }) {
@@ -95,6 +99,9 @@ export async function prepareHandoffFixture({
       [
         ...sources,
         'tools/test/installation/prepare/handoff-fixture.mjs',
+        'tools/release/installation-fixture.mjs',
+        'tools/release/delivery-paths.mjs',
+        'tools/release/windows-executable-name.mjs',
         'tools/test/runner/failure-policy.mjs',
         'tools/test/installation/scenarios/framework-recovery.mjs',
         'tools/test/installation/scenarios/application-handoff.mjs',
@@ -127,6 +134,19 @@ export async function prepareHandoffFixture({
   // Two new-layout application fixtures exercise the v1.0.7 compatibility
   // baseline without changing package.json or the production release.
   const version = '1.0.7';
+  let selectedSource;
+  if (sourcePointer) {
+    assert.ok(!prepared, 'Explicit source pointer is preparation only');
+    sourcePointer = inside(repository, sourcePointer);
+    await noLinks(sourcePointer);
+    selectedSource = await readInstallationFixtureSource(sourcePointer);
+    assert.equal(
+      selectedSource.currentVersion,
+      version,
+      'Explicit-source preparation requires the current package public version',
+    );
+    report.sourcePointer = selectedSource.source.pointer;
+  }
   const oldBuild = version + '.60000',
     newBuild = version + '.60001';
   const refs = resolve(
@@ -213,7 +233,25 @@ export async function prepareHandoffFixture({
       buildVersion,
       applicationTrustRootsPath: trust,
       handoffTest,
+      ...(sourcePointer ? { sourcePointer } : {}),
     });
+    assert.ok(delivery.source, 'Fixture builder must bind its frozen source');
+    if (selectedSource) {
+      const { frozenPointer, ...original } = delivery.source;
+      assert.ok(frozenPointer);
+      assert.deepEqual(
+        original,
+        selectedSource.source,
+        'Frozen source changed during preparation',
+      );
+    }
+    if (report.sourcePointer)
+      assert.deepEqual(
+        delivery.source.pointer,
+        report.sourcePointer,
+        'Fixture pair must use one exact source pointer',
+      );
+    else report.sourcePointer = delivery.source.pointer;
     const manifest = await json(delivery.executable.installation.manifestPath);
     assert.equal(
       delivery.buildVersion,
@@ -264,6 +302,56 @@ export async function prepareHandoffFixture({
     return { delivery, manifest };
   }
 
+  async function verifyPreparedSource(delivery) {
+    const source = delivery.source;
+    assert.ok(source, 'Prepared fixture source binding required');
+    assert.deepEqual(source.pointer, prepared.sourcePointer);
+    inside(repository, source.pointer.path);
+    const frozen = inside(repository, source.frozenPointer.path);
+    await noLinks(frozen);
+    assert.deepEqual(await record(frozen), source.frozenPointer);
+    assert.equal(source.frozenPointer.bytes, source.pointer.bytes);
+    assert.equal(source.frozenPointer.sha256, source.pointer.sha256);
+    const pointer = await json(frozen);
+    assert.equal(pointer.version, source.version);
+    assert.equal(pointer.buildVersion, source.buildVersion);
+    assert.equal(pointer.snapshot, source.snapshot);
+    const originals = pointer.deliveries.filter(
+      (item) => item.edition === 'full',
+    );
+    assert.equal(originals.length, 1);
+    const original = originals[0];
+    assert.equal(resolve(original.manifestPath), source.manifest.path);
+    assert.equal(resolve(original.archivePath), source.archive.path);
+    assert.equal(resolve(original.executable.path), source.executable.path);
+    assert.equal(original.executable.bytes, source.executable.bytes);
+    assert.equal(original.executable.sha256, source.executable.sha256);
+    for (const bound of [
+      source.manifest,
+      source.archive,
+      source.executable,
+      source.snapshotRecord,
+      ...(source.installationManifest ? [source.installationManifest] : []),
+    ]) {
+      const path = inside(repository, bound.path);
+      await noLinks(path);
+      assert.deepEqual(
+        await record(path),
+        bound,
+        'Prepared original source bytes changed',
+      );
+    }
+    const payloadPath = inside(repository, delivery.manifestPath);
+    await noLinks(payloadPath);
+    assert.equal(
+      (await record(payloadPath)).sha256,
+      delivery.executable.installation.payloadManifestSha256,
+    );
+    const payload = await json(payloadPath);
+    assert.deepEqual(payload.fixture.source, source);
+    report.sourcePointer = source.pointer;
+  }
+
   async function verifyPrepared() {
     let target, api;
     assert.deepEqual(
@@ -284,6 +372,7 @@ export async function prepareHandoffFixture({
     ]) {
       const value = prepared[role];
       const delivery = value.delivery;
+      await verifyPreparedSource(delivery);
       assert.equal(delivery.deliveryType, 'installer');
       assert.equal(delivery.buildVersion, buildVersion);
       assert.equal(delivery.executable.installation.productId, fixtureId);

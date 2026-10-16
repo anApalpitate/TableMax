@@ -29,6 +29,8 @@ internal static class InstallerWizardHarness
     private static Dictionary<string, object> Plan;
     private static IntPtr Job, Desktop, OriginalDesktop;
     private static string Work, Sid;
+    private static string ProgressResultPath;
+    private static Process ProgressOwner;
     private static IntPtr LastWindow;
 
     [MTAThread]
@@ -44,7 +46,12 @@ internal static class InstallerWizardHarness
         {
             Require(args.Length == 2 && args[0] == "--plan", "Only a scoped plan is accepted");
             Plan = Json.Deserialize<Dictionary<string, object>>(File.ReadAllText(args[1], Encoding.UTF8));
-            if (Text("mode") == "updater-entry")
+            if (Text("mode") == "installer-progress")
+            {
+                InstallerProgress(result);
+                result["passed"] = true; result["failureDomain"] = null; exit = 0;
+            }
+            else if (Text("mode") == "updater-entry")
             {
                 EntryWindows(result);
                 result["passed"] = true; result["failureDomain"] = null; exit = 0;
@@ -133,6 +140,7 @@ internal static class InstallerWizardHarness
                     Job = IntPtr.Zero;
                 }
                 else result["remainingOwnProcesses"] = 0;
+                ProgressOwner?.Dispose(); ProgressOwner = null;
                 if (Desktop != IntPtr.Zero)
                 {
                     // UIA may retain a hidden window on its STA until process exit; report that honestly.
@@ -143,11 +151,137 @@ internal static class InstallerWizardHarness
             }
             catch (Exception error) { result["cleanupError"] = error.ToString(); result["passed"] = false; exit = 1; }
             result["elapsedMs"] = Budget.ElapsedMilliseconds;
-            if (Work != null) File.WriteAllText(Path.Combine(Work, "result.json"), Json.Serialize(result), new UTF8Encoding(false));
+            if (Work != null) File.WriteAllText(ProgressResultPath ?? Path.Combine(Work, "result.json"), Json.Serialize(result), new UTF8Encoding(false));
             Console.WriteLine(Json.Serialize(new { passed = result["passed"], exitCode = exit, mode = Plan == null ? "invalid-plan" : Text("mode") }));
         }
         return exit;
     }
+
+    private static void InstallerProgress(Dictionary<string, object> result)
+    {
+        string[] keys = { "schemaVersion", "mode", "work", "temporary", "captures", "target", "installer", "installerBytes", "installerSha256", "productId", "ownerSid", "profileRoot", "result", "log", "unknownSha256" };
+        Require(Plan.Count == keys.Length && keys.All(Plan.ContainsKey) && Convert.ToInt32(Plan["schemaVersion"]) == 1, "Unknown progress plan");
+        Require(Text("productId") == "{ABFDE9A8-48D2-48D5-BC51-2A2D03F0D4F5}", "Only fixture installation progress is permitted");
+        Work = Path.GetFullPath(Text("work")); Safe(Work);
+        Sid = WindowsIdentity.GetCurrent().User.Value;
+        string profile = Path.GetFullPath(Text("profileRoot")); Safe(profile);
+        string profileParent = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TableMaxAcceptance");
+        Require(SamePath(Path.GetDirectoryName(profile), profileParent) && System.Text.RegularExpressions.Regex.IsMatch(Path.GetFileName(profile), "^[a-fA-F0-9]{32}$"), "Actual private profile scope required");
+        Require(Work.StartsWith(Path.Combine(profile, "work") + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) && Path.GetFileName(Work).StartsWith("application-handoff-", StringComparison.Ordinal), "Only this handoff work may install");
+        using (var user = WindowsIdentity.GetCurrent()) Require(Sid == Text("ownerSid") && System.Text.RegularExpressions.Regex.IsMatch(user.Name.Split('\\').Last(), "^TMVerify_[a-fA-F0-9]{8}$") && !new WindowsPrincipal(user).IsInRole(WindowsBuiltInRole.Administrator), "Owned standard account required");
+        foreach (string key in new[] { "captures", "target", "installer", "result", "log" }) Scoped(Text(key));
+        Require(SamePath(Text("temporary"), Work), "Progress TEMP must retain the original bounded handoff work path");
+        ProgressResultPath = Text("result");
+        Require(!File.Exists(ProgressResultPath) && !File.Exists(Text("log")), "Progress outputs must be fresh");
+        Require(new FileInfo(Text("installer")).Length == Convert.ToInt64(Plan["installerBytes"]) && Hash(Text("installer")) == Text("installerSha256"), "Actual signed fixture input changed");
+        string[] targetEntries = Directory.GetFileSystemEntries(Text("target"));
+        Require(targetEntries.Length == 1 && SamePath(targetEntries[0], Path.Combine(Text("target"), "朋友资料.txt")) && File.Exists(targetEntries[0]) && Hash(targetEntries[0]) == Text("unknownSha256"), "Only the known friend file may predate installation");
+        Require(((List<object>)Registrations()).Count == 0, "An existing fixture registration must be preserved");
+        result["mode"] = "installer-progress"; result["ownerSid"] = Sid; result["failureDomain"] = "actual-fixture-installation-progress";
+        string desktopName = "TMVerify_" + Guid.NewGuid().ToString("N");
+        OriginalDesktop = GetThreadDesktop(GetCurrentThreadId());
+        Desktop = CreateDesktop(desktopName, null, IntPtr.Zero, 0, 0x01FF, IntPtr.Zero);
+        Require(Desktop != IntPtr.Zero && SetThreadDesktop(Desktop), "Private progress desktop initialization failed");
+        Job = CreateJobObject(IntPtr.Zero, null); Require(Job != IntPtr.Zero, "Progress Job creation failed");
+        var limits = new JobExtendedLimits(); limits.Basic.LimitFlags = 0x2000;
+        Require(SetInformationJobObject(Job, 9, ref limits, (uint)Marshal.SizeOf(typeof(JobExtendedLimits))), "Progress Job cleanup policy failed");
+        var samples = new List<object>(); var seen = new HashSet<string>(); bool marquee = false, counted = false;
+        var crossProcess = new List<object>(); var crossProcessSeen = new HashSet<string>();
+        IntPtr progressWindow = IntPtr.Zero; int progressPid = 0;
+        result["progressSamples"] = samples;
+        result["skippedCrossProcessWindows"] = crossProcess;
+        string arguments = "/SP- /SILENT /SUPPRESSMSGBOXES /NORESTART /TASKS=!desktopicon /DIR=" + ProgressQuote(Text("target")) + " /LOG=" + ProgressQuote(Text("log"));
+        using (var installer = StartTracked(Text("installer"), desktopName, arguments))
+        {
+            int pid = installer.Id; IntPtr held = installer.Handle;
+            result["installer"] = new { pid, modulePath = installer.MainModule.FileName, ownerSid = Sid, handleHeld = held != IntPtr.Zero, arguments, bytes = new FileInfo(Text("installer")).Length, sha256 = Hash(Text("installer")), desktop = desktopName, switchedDesktop = false };
+            var elapsed = Stopwatch.StartNew();
+            while (!installer.HasExited && elapsed.ElapsedMilliseconds < 300000)
+            {
+                foreach (IntPtr window in progressWindow == IntPtr.Zero ? Windows() : IsWindow(progressWindow) ? new List<IntPtr> { progressWindow } : new List<IntPtr>())
+                {
+                    List<IntPtr> controls = null;
+                    try
+                    {
+                        if (progressPid != 0) Require(ProcessId(window) == progressPid, "Pinned installer progress HWND changed owner");
+                        controls = ProgressChildren(window, ProcessId(window), crossProcess, crossProcessSeen);
+                        string[] texts = controls.Select(Caption).Where(text => text.Length != 0).ToArray();
+                        if (!texts.Any(text => text.Contains("请稍候，安装完成后会自动进入下一步。"))) continue;
+                        if (progressWindow == IntPtr.Zero)
+                        {
+                            progressWindow = window; progressPid = ProcessId(window);
+                            ProgressOwner = Process.GetProcessById(progressPid); _ = ProgressOwner.Handle;
+                            result["progressWindowOwner"] = new { pid = progressPid, modulePath = ProgressOwner.MainModule.FileName, ownerSid = Sid, window = window.ToInt64().ToString("X"), originalInstallerJob = true, originalProcessHandleHeld = true };
+                        }
+                        foreach (IntPtr bar in controls.Where(handle => Class(handle).IndexOf("Progress", StringComparison.OrdinalIgnoreCase) >= 0))
+                        {
+                            uint style = unchecked((uint)GetWindowLong(bar, -16));
+                            bool rolling = (style & 8) != 0;
+                            IntPtr countControl = controls.FirstOrDefault(handle => System.Text.RegularExpressions.Regex.IsMatch(Caption(handle), @"文件 ([0-9]+) / ([0-9]+)"));
+                            string countBefore = countControl == IntPtr.Zero ? "" : Caption(countControl);
+                            int position = checked((int)Send(bar, 0x0408, IntPtr.Zero, IntPtr.Zero).ToInt64());
+                            int maximum = checked((int)Send(bar, 0x0407, IntPtr.Zero, IntPtr.Zero).ToInt64());
+                            int minimum = checked((int)Send(bar, 0x0407, new IntPtr(1), IntPtr.Zero).ToInt64());
+                            string countAfter = countControl == IntPtr.Zero ? "" : Caption(countControl);
+                            var count = System.Text.RegularExpressions.Regex.Match(countBefore, @"文件 ([0-9]+) / ([0-9]+)");
+                            int completed = count.Success ? Int32.Parse(count.Groups[1].Value) : 0, total = count.Success ? Int32.Parse(count.Groups[2].Value) : 0;
+                            // Locked Inno 6.7.3 NewProgressBar.pas uses a native
+                            // 0..65535 range and MulDiv(Position,65535,Max).
+                            int expectedPosition = total > 0 ? MulDiv(completed, 65535, total) : 0;
+                            int residual = position - expectedPosition;
+                            bool stable = count.Success && countBefore == countAfter;
+                            bool consistent = !rolling && stable && minimum == 0 && maximum == 65535 && completed > 0 && completed <= total && Math.Abs((long)residual) <= 1;
+                            string key = String.Join("|", texts) + "|" + style + "|" + position + "|" + maximum;
+                            if (seen.Add(key) && samples.Count < 256) samples.Add(new { observedAtUtc = DateTime.UtcNow.ToString("o"), window = window.ToInt64().ToString("X"), progressHandle = bar.ToInt64().ToString("X"), className = Class(bar), style, marquee = rolling, position, minimum, maximum, texts, fileCompleted = completed, fileTotal = total, countBefore, countAfter, stableFileCountText = stable, expectedNativePosition = expectedPosition, quantizationResidual = residual, fileCountMatched = consistent });
+                            if (rolling && !marquee) { Capture(window, "installer-progress-marquee"); marquee = true; }
+                            if (consistent && !counted) { Capture(window, "installer-progress-file-count"); counted = true; }
+                        }
+                    }
+                    catch (InvalidOperationException) when (!IsWindow(window) || (controls != null && controls.Any(handle => !IsWindow(handle)))) { }
+                }
+                Thread.Sleep(10);
+            }
+            Require(installer.HasExited, "Actual progress installation exceeded five minutes");
+            Require(installer.WaitForExit(5000), "Original installer exit was not observed");
+            result["installerExit"] = new { pid, exitCode = installer.ExitCode, handleHeld = true, actualProcessExited = installer.HasExited };
+            Require(installer.ExitCode == 0, "Actual progress installer returned " + installer.ExitCode);
+        }
+        var drain = Stopwatch.StartNew(); while (OwnProcesses().Length != 0 && drain.ElapsedMilliseconds < 20000) Thread.Sleep(50);
+        Require(OwnProcesses().Length == 0, "Installer Job did not naturally drain");
+        result["naturalJobDrain"] = true;
+        Require(marquee && counted, "Actual Chinese marquee and matching native file-count progress must both be observed");
+        Require(Hash(Path.Combine(Text("target"), "朋友资料.txt")) == Text("unknownSha256"), "Friend file changed");
+        Require(Hash(Text("installer")) == Text("installerSha256"), "Installer copy changed");
+        Check("actual-fixture-progress-and-install-exit", new { marqueeObserved = marquee, matchingNativeFileCountObserved = counted, switchedDesktop = false, registrationAndSavedDataChecks = "Original handoff scenario continues after this observer" });
+    }
+
+    private static List<IntPtr> ProgressChildren(IntPtr window, int expectedPid, List<object> skipped, HashSet<string> seen)
+    {
+        OwnWindow(window); Require(ProcessId(window) == expectedPid, "Progress top-level owner differs");
+        var controls = new List<IntPtr>();
+        EnumChildWindows(window, (handle, unused) =>
+        {
+            if (!IsWindowVisible(handle)) return true;
+            int pid = ProcessId(handle);
+            if (pid != expectedPid)
+            {
+                string key = handle.ToInt64().ToString("X") + ":" + pid;
+                if (seen.Add(key) && skipped.Count < 64)
+                {
+                    string image = null, error = null;
+                    IntPtr peer = OpenProcess(0x1000, false, (uint)pid);
+                    try { var path = new StringBuilder(32768); int length = path.Capacity; if (peer != IntPtr.Zero && QueryFullProcessImageName(peer, 0, path, ref length)) image = path.ToString(); else error = "Image query code " + Marshal.GetLastWin32Error(); }
+                    finally { if (peer != IntPtr.Zero) CloseHandle(peer); }
+                    skipped.Add(new { window = handle.ToInt64().ToString("X"), pid, modulePath = image, queryError = error, inspectedControlMessages = false, reason = "Foreign-process child is outside the pinned Inno control tree" });
+                }
+                return true;
+            }
+            OwnWindow(handle); controls.Add(handle); return true;
+        }, IntPtr.Zero);
+        return controls;
+    }
+
+    private static string ProgressQuote(string path) { Require(!path.Contains("\"") && !path.EndsWith("\\", StringComparison.Ordinal), "Unsafe progress path argument"); return "\"" + path + "\""; }
 
     private static int UpdaterNativeChild(string[] args)
     {
@@ -268,11 +402,11 @@ internal static class InstallerWizardHarness
         Check("entry-inputs-and-unknown-preserved", new { unknownPath = Text("unknown"), sha256 = Text("unknownSha256"), manifestPath = Text("manifest"), manifestSha256 = Text("manifestSha256"), registrationInvoked = false, serviceStarted = false });
     }
 
-    private static Process StartTracked(string executable, string desktopName)
+    private static Process StartTracked(string executable, string desktopName, string arguments = "")
     {
         var startup = new StartupInfo { Size = (uint)Marshal.SizeOf(typeof(StartupInfo)), Desktop = desktopName };
         ProcessInformation process;
-        Require(CreateProcess(executable, new StringBuilder("\"" + executable + "\""), IntPtr.Zero, IntPtr.Zero, false, 0x00000004, IntPtr.Zero, Work, ref startup, out process), "Own entry CreateProcess failed: " + Marshal.GetLastWin32Error());
+        Require(CreateProcess(executable, new StringBuilder(ProgressQuote(executable) + (arguments.Length == 0 ? "" : " " + arguments)), IntPtr.Zero, IntPtr.Zero, false, 0x00000004, IntPtr.Zero, Work, ref startup, out process), "Own entry CreateProcess failed: " + Marshal.GetLastWin32Error());
         bool assigned = false; Process tracked = null;
         try
         {
@@ -834,6 +968,7 @@ internal static class InstallerWizardHarness
     [DllImport("kernel32.dll", SetLastError = true)] private static extern uint ResumeThread(IntPtr thread);
     [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool TerminateProcess(IntPtr process, uint exit);
     [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool CloseHandle(IntPtr handle);
+    [DllImport("kernel32.dll")] private static extern int MulDiv(int number, int numerator, int denominator);
     [DllImport("kernel32.dll", SetLastError = true)] private static extern IntPtr OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, uint id);
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool QueryFullProcessImageName(IntPtr process, uint flags, StringBuilder path, ref int length);
     [DllImport("advapi32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool OpenProcessToken(IntPtr process, uint access, out IntPtr token);
@@ -847,6 +982,7 @@ internal static class InstallerWizardHarness
     [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern IntPtr SendMessageTimeout(IntPtr window, uint message, IntPtr wParam, IntPtr lParam, uint flags, uint timeout, out IntPtr result);
     [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool PostMessage(IntPtr window, uint message, IntPtr wParam, IntPtr lParam);
     [DllImport("user32.dll")] private static extern int GetDlgCtrlID(IntPtr window);
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongW", SetLastError = true)] private static extern int GetWindowLong(IntPtr window, int index);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool GetWindowRect(IntPtr window, out Rect rect);
     [DllImport("user32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool PrintWindow(IntPtr window, IntPtr dc, uint flags);
     [DllImport("user32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool SetProcessDpiAwarenessContext(IntPtr context);
