@@ -30,26 +30,29 @@
   },
   "cover": "assets/games/power-grid/cover-v1.webp",
   "introduction": {
-    "tagline": "德国电网，运筹竞逐",
-    "lead": "经营自己的电力公司，竞拍电厂、采购燃料，把供电网络连接到德国各地。",
+    "tagline": "竞拍电厂，经营德国电网。",
+    "lead": "买电厂、备燃料、连城市，在扩张与现金之间作取舍。",
     "steps": [
       {
         "icon": "auction",
-        "title": "竞拍电厂",
-        "text": "选择合适的发电能力，把握竞价与资金储备。"
+        "illustration": "assets/games/power-grid/introduction-1-v1.svg",
+        "title": "竞拍发电能力",
+        "text": "选购合适的电厂，竞价时也要留够燃料和建城的钱。"
       },
       {
         "icon": "coins",
-        "title": "燃料与建设",
-        "text": "采购市场燃料，支付连接费用，扩大城市网络。"
+        "illustration": "assets/games/power-grid/introduction-2-v1.svg",
+        "title": "买燃料，连城市",
+        "text": "从市场采购燃料，支付城市与线路费用，拓展自己的网络。"
       },
       {
         "icon": "cards",
-        "title": "发电收入",
-        "text": "决定启动哪些电厂，获得收入，迎接下一轮。"
+        "illustration": "assets/games/power-grid/introduction-3-v1.svg",
+        "title": "供电，赚取收入",
+        "text": "启动电厂为已连接的城市供电，把收入投入下一轮经营。"
       }
     ],
-    "goal": "终局实际供电城市最多者获胜；同分时比较剩余现金。"
+    "goal": "终局实际供电城市最多者获胜；相同则依次比较现金与已连接城市数。"
   },
   "botIntroduction": {
     "default": {

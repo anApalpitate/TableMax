@@ -1,0 +1,171 @@
+.game-introduction.game-overview {
+  display: block;
+  color: #24483d;
+}
+.game-overview .game-overview__heading {
+  gap: 16px;
+}
+.game-overview .game-overview__cover {
+  width: 70px;
+  height: 88px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #f2eddf;
+}
+.game-overview .game-overview__heading > div {
+  min-width: 0;
+}
+.game-overview .game-overview__heading h3 {
+  margin: 0 0 8px;
+  font-size: clamp(22px, 2.2vw, 28px);
+  text-wrap: pretty;
+}
+.game-overview .game-overview__players {
+  padding: 3px 10px;
+  font-size: 16px;
+}
+.game-overview .game-overview__lead {
+  margin: 14px 0 18px;
+  font-size: 18px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.game-overview .game-overview__steps {
+  gap: 12px;
+}
+.game-overview .game-overview__steps article {
+  min-width: 0;
+  padding: 12px 14px 16px;
+  border: 1px solid #dedfce;
+  border-radius: 16px;
+  background: linear-gradient(150deg, #fffef7, #f1f2e6);
+}
+.game-overview__visual {
+  position: relative;
+  min-width: 0;
+  margin-bottom: 10px;
+}
+.game-overview .game-overview__illustration {
+  display: block;
+  width: 100%;
+  height: 128px;
+  max-width: 240px;
+  margin: 0 auto;
+  object-fit: contain;
+}
+.game-overview__step-number {
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 2px solid #fffdf2;
+  border-radius: 50%;
+  color: #fffdf2;
+  background: #4c7362;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+.game-overview .game-overview__steps h4 {
+  margin: 0 0 7px;
+  color: #24483d;
+  font-size: 19px;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+.game-overview .game-overview__steps p {
+  font-size: 17px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.game-overview .game-overview__goal {
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px 16px;
+  border: 1px solid #e5d6a6;
+  background: #f5e9c4;
+  font-size: 18px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.game-overview .game-overview__goal span {
+  flex: 0 0 auto;
+  font-size: 23px;
+  line-height: 1.15;
+}
+@media (max-width: 640px) {
+  .game-overview .game-overview__cover {
+    width: 56px;
+    height: 70px;
+  }
+  .game-overview .game-overview__heading {
+    gap: 12px;
+  }
+  .game-overview .game-overview__heading h3 {
+    font-size: 22px;
+  }
+  .game-overview .game-overview__lead {
+    margin: 12px 0;
+  }
+  .game-overview .game-overview__steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+  }
+  .game-overview .game-overview__steps article {
+    display: grid;
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 5px 12px;
+    padding: 12px;
+  }
+  .game-overview__visual {
+    grid-row: span 2;
+    align-self: center;
+    margin: 0;
+  }
+  .game-overview .game-overview__illustration {
+    width: 84px;
+    height: 88px;
+    grid-row: auto;
+  }
+  .game-overview__step-number {
+    left: -5px;
+    top: 0;
+    width: 25px;
+    height: 25px;
+  }
+  .game-overview .game-overview__steps h4 {
+    margin: 0;
+    font-size: 18px;
+  }
+  .game-overview .game-overview__steps p {
+    font-size: 16px;
+  }
+  .game-overview .game-overview__goal {
+    padding: 10px 12px;
+    font-size: 18px;
+  }
+}
+@media (max-width: 420px) {
+  .game-overview .game-overview__steps article {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 7px 12px;
+  }
+  .game-overview__visual {
+    grid-row: auto;
+  }
+  .game-overview .game-overview__illustration {
+    width: 96px;
+    height: 70px;
+  }
+  .game-overview .game-overview__steps h4 {
+    align-self: center;
+  }
+  .game-overview .game-overview__steps p {
+    grid-column: 1 / -1;
+  }
+}

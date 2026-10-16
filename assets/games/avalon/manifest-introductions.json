@@ -1,0 +1,24 @@
+{
+  "createdAt": "2026-10-17",
+  "purpose": "Short gameplay-introduction logic diagrams. Decorative examples only; body text carries exact rules. No screenshots, private game state or new rules.",
+  "assets": [
+    {
+      "file": "introduction-1-v1.svg",
+      "bytes": 864,
+      "sha256": "f4d396f6554d0b061854bd00642cf4db7e0285f3d52a27ddedc9f15747e92591",
+      "source": "Original code-native SVG written for introductory logic, no generated bitmap or official-art copying."
+    },
+    {
+      "file": "introduction-2-v1.svg",
+      "bytes": 936,
+      "sha256": "62a8975a6b14ea528259fc1c19ed2249aa41ad75cd761db94f13807b16f3fe65",
+      "source": "Original code-native SVG written for introductory logic, no generated bitmap or official-art copying."
+    },
+    {
+      "file": "introduction-3-v1.svg",
+      "bytes": 698,
+      "sha256": "be68d478b51736a79d36f454993895c93cc34685ad5fdb9a1a93963b57586719",
+      "source": "Original code-native SVG written for introductory logic, no generated bitmap or official-art copying."
+    }
+  ]
+}

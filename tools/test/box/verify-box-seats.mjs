@@ -41,10 +41,7 @@ const sizes = [
 ];
 const sizeFilter = argument('size');
 assert.ok(!sizeFilter || sizes.some(([w, h]) => `${w}x${h}` === sizeFilter));
-const output =
-  section === 'settings'
-    ? resolve('artifacts/maintenance/seat-intro-audit-20261017', run)
-    : verificationOutput('box-seats', run);
+const output = verificationOutput('box-seats', run);
 await mkdir(output, { recursive: true });
 await mkdir('tmp', { recursive: true });
 const work = await mkdtemp(resolve('tmp/box-layout-'));
@@ -1087,12 +1084,11 @@ try {
   await server?.close();
   report.finishedAt = new Date().toISOString();
   await save();
-  if (section !== 'settings')
-    await registerArtifacts({
-      output,
-      reportPath: join(output, 'report.json'),
-      work,
-      passed: report.status === 'passed',
-    });
+  await registerArtifacts({
+    output,
+    reportPath: join(output, 'report.json'),
+    work,
+    passed: report.status === 'passed',
+  });
   console.log('Evidence: ' + output);
 }

@@ -31,26 +31,29 @@
   },
   "cover": "assets/games/uno/cover-v1.webp",
   "introduction": {
-    "tagline": "四色接龙，逆转局势，最后一张喊 UNO！",
-    "lead": "把手中的实体四色牌一张张接上桌面：跟颜色、跟数字，或用功能牌改变节奏。先清空手牌，赢取对手留下的分数。",
+    "tagline": "四色接龙，逆转节奏，及时喊 UNO！",
+    "lead": "接上手中的四色牌，用跳过、反转与变色改变节奏，争取先出完手牌。",
     "steps": [
       {
         "icon": "cards",
-        "title": "同色、同数字或同功能",
-        "text": "每人七张牌，轮到你时出一张匹配牌，也可主动摸一张。摸牌后只能打出刚摸到的牌。"
+        "illustration": "assets/games/uno/introduction-1-v1.svg",
+        "title": "跟颜色、数字或功能",
+        "text": "每人起手7张。出一张匹配牌，或摸一张；摸牌后只能打出刚摸到的牌。"
       },
       {
-        "icon": "table",
-        "title": "反转、跳过与变色",
-        "text": "功能牌改变轮转与颜色。+2 和 +4 按经典规则直接罚摸，+4 的下一位可提出质疑。"
+        "icon": "swap",
+        "illustration": "assets/games/uno/introduction-2-v1.svg",
+        "title": "用功能牌改变局势",
+        "text": "+2和+4罚摸不叠加。无当前颜色牌才可出+4，下一位可质疑；两人时反转等同跳过。"
       },
       {
-        "icon": "trophy",
-        "title": "剩一张时喊 UNO",
-        "text": "出到剩一张时记得喊 UNO，漏喊可被抓并罚摸两张。先出完赢下小局，累计达到 500 分赢得整场。"
+        "icon": "coins",
+        "illustration": "assets/games/uno/introduction-3-v1.svg",
+        "title": "剩一张，喊 UNO",
+        "text": "漏喊可被抓并罚摸2张。先出完赢得小局，按其他玩家剩余手牌得分。"
       }
     ],
-    "goal": "经典 108 张牌，2–6 人；采用 Mattel G7942 同版规则与两人特别规则。"
+    "goal": "累计达到500分，赢得整场。"
   },
   "botIntroduction": {
     "default": {

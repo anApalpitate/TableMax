@@ -29,26 +29,29 @@
   },
   "cover": "assets/games/manila/cover-v1.webp",
   "introduction": {
-    "tagline": "押注航程，掌控港口，经营自己的航运财富。",
-    "lead": "三艘载货木船驶向马尼拉。争夺港务长、安排船员与港口岗位，在骰子带来的风险中赚取比索与股票收益。",
+    "tagline": "押注航程，经营港口财富。",
+    "lead": "围绕三艘货船安排伙伴，在骰子的风险中赚取比索，让手中股票升值。",
     "steps": [
       {
         "icon": "auction",
+        "illustration": "assets/games/manila/introduction-1-v1.svg",
         "title": "竞拍港务长",
-        "text": "竞拍取得选货、安排起点和购买一张股票的权利。股票内容只向本人展示。"
+        "text": "赢得竞拍后选货、安排起点，可买1张股票；持股只向本人展示。"
       },
       {
         "icon": "swap",
-        "title": "派遣伙伴",
-        "text": "在三次航行前安排伙伴登船、驻守港口或船坞，亦可选择领航、海盗与保险岗位。"
+        "illustration": "assets/games/manila/introduction-2-v1.svg",
+        "title": "派伙伴登船或占岗位",
+        "text": "每次航行前派遣伙伴，选择船位、港口、船坞，或领航、海盗与保险。"
       },
       {
         "icon": "coins",
-        "title": "结算航程",
-        "text": "木船掷骰前进，成功入港的货物升值。岗位收益、海盗和贷款共同影响最终财富。"
+        "illustration": "assets/games/manila/introduction-3-v1.svg",
+        "title": "掷骰航行，结算回报",
+        "text": "入港货物涨价，伙伴按岗位结算收益；没能到港也可能带来损失。"
       }
     ],
-    "goal": "任一货物行情达到30时结束；现金加股票市值、扣除未赎回贷款后，财富最多者获胜。"
+    "goal": "任一货物行情到30即结束。现金加股票市值、扣未赎回贷款后，财富最多者获胜。"
   },
   "botIntroduction": {
     "default": {

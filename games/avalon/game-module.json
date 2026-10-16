@@ -44,25 +44,28 @@
   "cover": "assets/games/avalon/cover.webp",
   "introduction": {
     "tagline": "圆桌之上，忠诚与谎言同行。",
-    "lead": "亚瑟的骑士中潜藏着莫德雷德的爪牙。提名任务队伍，秘密投票；梅林知晓邪恶，却必须隐藏自己。",
+    "lead": "善方寻找可信队友，邪方隐藏身份破坏任务；梅林知晓线索，却要躲过刺客。",
     "steps": [
       {
         "icon": "cards",
-        "title": "查看身份，守住秘密",
-        "text": "每人获得一张秘密角色牌。梅林看见除莫德雷德外的邪恶；奥伯伦与其他邪恶互不认识；派西维尔辨认两位梅林候选。"
+        "illustration": "assets/games/avalon/introduction-1-v1.svg",
+        "title": "认清身份，守住秘密",
+        "text": "查看本人角色与获准的线索。用发言和投票判断同伴，也别暴露梅林。"
       },
       {
-        "icon": "table",
-        "title": "组队、密投与任务",
-        "text": "队长提名队伍，全员秘密投票，过半赞成才出征。通常一张失败牌就失败；7人以上第四任务需要两张。"
+        "icon": "auction",
+        "illustration": "assets/games/avalon/introduction-2-v1.svg",
+        "title": "提名队伍，秘密表决",
+        "text": "全员投票，过半赞成才出征。通常1张失败牌就失败；7人以上第4任务需要2张。"
       },
       {
-        "icon": "trophy",
-        "title": "三次任务与最后一刺",
-        "text": "三次任务失败或连续五次组队被否决，邪恶获胜。三次任务成功后，刺客仍可指认梅林逆转胜负。"
+        "icon": "coins",
+        "illustration": "assets/games/avalon/introduction-3-v1.svg",
+        "title": "完成三次任务，提防刺杀",
+        "text": "3次失败或连续5次否决，邪方获胜。3次成功后，刺客猜中梅林仍可逆转。"
       }
     ],
-    "goal": "2012经典原版角色，平台5–10人；按人数采用固定角色配置。"
+    "goal": "善方完成3次任务且梅林躲过刺杀获胜；邪方设法阻止。"
   },
   "botIntroduction": {
     "default": {

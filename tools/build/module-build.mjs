@@ -26,6 +26,7 @@ import {
   rm,
   open,
   access,
+  realpath,
 } from 'node:fs/promises';
 import { resolve, join, relative, dirname } from 'node:path';
 import {
@@ -52,6 +53,47 @@ const compressedNodeUnits = new Set([
   'game-pokemon-encounters-bot',
 ]);
 const posix = (value) => value.replaceAll('\\', '/');
+
+/** Metadata diagrams belong to their game's frozen resource unit. */
+export async function introductionResourceInputs(item, workspace = root) {
+  const prefix = `assets/games/${item.id}/`;
+  const assetRoot = resolve(workspace, 'assets/games', item.id);
+  const introductions = [
+    item.introduction,
+    ...(item.variants ?? []).map((variant) => variant.introduction),
+  ];
+  const files = new Set();
+  for (const introduction of introductions) {
+    for (const step of introduction?.steps ?? []) {
+      const path = step.illustration;
+      if (path === undefined) continue;
+      if (
+        typeof path !== 'string' ||
+        !path.startsWith(prefix) ||
+        !/^assets\/games\/[a-z][a-z0-9-]*\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.svg$/.test(
+          path,
+        )
+      )
+        throw new Error('Invalid introduction illustration: ' + path);
+      const file = resolve(workspace, path);
+      const info = await lstat(file);
+      if (!info.isFile() || info.isSymbolicLink())
+        throw new Error(
+          'Introduction illustration must be a regular SVG: ' + path,
+        );
+      if (
+        !posix(await realpath(file)).startsWith(
+          posix(await realpath(assetRoot)) + '/',
+        )
+      )
+        throw new Error(
+          'Introduction illustration escapes game assets: ' + path,
+        );
+      files.add(path);
+    }
+  }
+  return [...files].sort();
+}
 const external = [
   'react',
   'react/jsx-runtime',
@@ -896,7 +938,12 @@ export async function unitsFor(
   }
   for (const item of modules) {
     const web = units.find((unit) => unit.id === `game-${item.id}-web`);
-    const media = (await inputsFor(web, phase)).mediaPaths;
+    const media = [
+      ...new Set([
+        ...(await inputsFor(web, phase)).mediaPaths,
+        ...(await introductionResourceInputs(item)),
+      ]),
+    ];
     for (const part of ['common', 'variant']) {
       const inputs = media.filter(
         (path) => path.includes('/expansion/') === (part === 'variant'),

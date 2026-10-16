@@ -220,6 +220,7 @@ const verificationScopes = {
   'tools/test/platform/verify-game-introduction.mjs': ['box'],
   'packages/game-sdk/src/metadata.test.mjs': ['box', 'shared', 'tooling'],
   'tools/build/lean-catalog.test.mjs': ['box', 'shared', 'tooling'],
+  'tools/build/introduction-resources.test.mjs': ['box', 'shared', 'tooling'],
   'tools/test/platform/verify-package-crash.mjs': ['shared', 'tooling'],
   'tools/test/platform/verify-legacy-game-migration.mjs': [
     'box',

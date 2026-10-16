@@ -49,6 +49,7 @@ export interface ModuleManifest {
     lead: string;
     steps: {
       icon: 'cards' | 'swap' | 'pair' | 'auction' | 'painting' | 'coins';
+      illustration?: string;
       title: string;
       text: string;
     }[];

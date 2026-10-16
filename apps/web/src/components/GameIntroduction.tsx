@@ -1,11 +1,36 @@
 import type { RoomView } from '@tablemax/protocol';
+import { useState } from 'react';
 import { gameCover } from '../assets/game-covers';
 import { useGameDetails } from '../game-clients/details';
 import {
   gameIntroduction,
+  gameIntroductionIllustration,
   type IntroductionIcon,
 } from '../game-clients/introductions';
 import './box-overlays.css';
+import './game-introduction.css';
+
+function IntroductionVisual({
+  icon,
+  source,
+}: {
+  icon: IntroductionIcon;
+  source: string | undefined;
+}) {
+  const [failedSource, setFailedSource] = useState<string | null>(null);
+  return source && failedSource !== source ? (
+    <img
+      className="game-overview__illustration"
+      src={source}
+      alt=""
+      width="240"
+      height="160"
+      onError={() => setFailedSource(source)}
+    />
+  ) : (
+    <StepIllustration icon={icon} />
+  );
+}
 
 function StepIllustration({ icon }: { icon: IntroductionIcon }) {
   return (
@@ -38,7 +63,7 @@ function StepIllustration({ icon }: { icon: IntroductionIcon }) {
                   x="14"
                   y="26"
                   textAnchor="middle"
-                  fontSize="24"
+                  fontSize="28"
                   fontWeight="800"
                   fill="#194b45"
                 >
@@ -50,7 +75,7 @@ function StepIllustration({ icon }: { icon: IntroductionIcon }) {
             </g>
           ))}
           {icon === 'pair' && (
-            <text x="135" y="59" fontSize="25" fontWeight="800" fill="#194b45">
+            <text x="135" y="59" fontSize="28" fontWeight="800" fill="#194b45">
               0
             </text>
           )}
@@ -183,7 +208,7 @@ export function GameIntroduction({
   return (
     <section className="game-introduction game-overview">
       <div className="game-overview__heading">
-        <img src={gameCover(game.id)} alt="" />
+        <img className="game-overview__cover" src={gameCover(game.id)} alt="" />
         <div>
           <h3>
             {title}
@@ -211,9 +236,24 @@ export function GameIntroduction({
         <>
           <p className="game-overview__lead">{content.lead}</p>
           <div className="game-overview__steps">
-            {content.steps.map((step) => (
+            {content.steps.map((step, index) => (
               <article key={step.title}>
-                <StepIllustration icon={step.icon} />
+                <div className="game-overview__visual">
+                  <IntroductionVisual
+                    icon={step.icon}
+                    source={gameIntroductionIllustration(
+                      step.illustration,
+                      game.id,
+                      game.releaseRef,
+                    )}
+                  />
+                  <span
+                    className="game-overview__step-number"
+                    aria-hidden="true"
+                  >
+                    {index + 1}
+                  </span>
+                </div>
                 <h4>{step.title}</h4>
                 <p>{step.text}</p>
               </article>

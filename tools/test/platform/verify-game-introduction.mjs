@@ -6,8 +6,9 @@ import {
 if (isDirectExecution(import.meta.url)) assertWorkspaceRoot();
 
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { mkdir, mkdtemp, writeFile, readFile } from 'node:fs/promises';
-import { resolve, join } from 'node:path';
+import { resolve, join, relative } from 'node:path';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
 import { leanCatalogPlugin } from '../../build/lean-catalog.mjs';
@@ -19,6 +20,8 @@ import { verificationOutput } from '../support/verification-output.mjs';
 const evidence =
   process.argv.find((arg) => arg.startsWith('--evidence='))?.slice(11) ??
   'layout';
+const resourceOnly = process.argv.includes('--resource-only');
+const sourcePreview = process.argv.includes('--source-preview');
 assert.match(evidence, /^[a-z0-9-]{1,40}$/);
 const output = verificationOutput('game-introduction', evidence);
 await mkdir(output, { recursive: true });
@@ -35,12 +38,12 @@ import {BoxScreen} from ${JSON.stringify(resolve('apps/web/src/screens/BoxScreen
 import ${JSON.stringify(resolve('apps/web/src/styles.css'))};
 import ${JSON.stringify(resolve('apps/web/src/screens/box-screen.css'))};
 const root=createRoot(document.getElementById('root'));window.commands=[];
-const games=[{id:'power-grid',name:'电力公司',min:2,max:6},{id:'modern-art',name:'现代艺术',min:3,max:5},{id:'pokemon-encounters',name:'宝可梦奇遇：皮卡丘和朋友们',min:2,max:6},{id:'pokemon-encounters',variantId:'expansion',name:'宝可梦奇遇：九宫格扩展版',min:2,max:6}];
+const games=[{id:'power-grid',name:'电力公司',min:2,max:6},{id:'modern-art',name:'现代艺术',min:3,max:5},{id:'pokemon-encounters',name:'宝可梦奇遇：皮卡丘和朋友们',min:2,max:6},{id:'pokemon-encounters',variantId:'expansion',name:'宝可梦奇遇：九宫格扩展版',min:2,max:6},{id:'uno',name:'UNO',min:2,max:6},{id:'rummikub',name:'拉密',min:2,max:4},{id:'avalon',name:'阿瓦隆',min:5,max:10},{id:'manila',name:'马尼拉',min:3,max:5}];
 const seat={id:'S1',name:'介绍查看者',controller:'human',ready:true,online:true,avatarId:'avatar-1',botDifficulty:null};
-window.renderBox=(index,role)=>{
- const game=games[index];window.boxData={revision:12,branch:0,status:'lobby',game,catalog:games,seats:[seat],ownerSeatId:null,joinOpen:true,gameView:null,history:[],lifecycleActions:[],playMode:'play',decisionClock:null,capabilities:{manage:false}};
+window.renderBox=(index,role,releaseRef)=>{
+ const game={...games[index],...(releaseRef?{releaseRef}:{})};window.boxData={revision:12,branch:0,status:'lobby',game,catalog:games,seats:[seat],ownerSeatId:null,joinOpen:true,gameView:null,history:[],lifecycleActions:[],playMode:'play',decisionClock:null,capabilities:{manage:false}};
  const session={role,view:window.boxData,self:role==='player'?seat:null,isHost:role==='host',canControl:false,canManageSeats:false,locked:false,busy:false,connected:true,credential:'fixture',name:'玩家',message:'',errorId:'',admissionPending:false,awaitingConfirmation:false,command:c=>window.commands.push(c),retry(){},setName(){},join(){}};
- flushSync(()=>root.render(<BoxScreen key={index+'-'+role} session={session}/>));
+ flushSync(()=>root.render(<BoxScreen key={index+'-'+role+'-'+(releaseRef??'source')} session={session}/>));
 }; window.renderBox(0,'host');
 `,
 );
@@ -48,6 +51,14 @@ await build({
   configFile: false,
   root: work,
   plugins: [leanCatalogPlugin(), react()],
+  ...(sourcePreview
+    ? {
+        define: {
+          'import.meta.env.PROD': 'false',
+          'import.meta.env.DEV': 'true',
+        },
+      }
+    : {}),
   resolve: {
     alias: {
       react: resolve('apps/web/node_modules/react'),
@@ -66,9 +77,23 @@ const browser = await launchTestBrowser({ channel: 'msedge', headless: true });
 const errors = [],
   layouts = [];
 const detailsRequests = [];
+const illustrationRequests = [];
+const screenshots = [];
+const resourceChecks = [];
+const frozenRequests = [];
+let notFoundResource;
 let passed = false;
 try {
   const page = await browser.newPage();
+  const capture = async (path) => {
+    const image = await captureBrowserScreenshot(page, { path });
+    screenshots.push({
+      file: relative(resolve('.'), path).replaceAll('\\', '/'),
+      relativePath: relative(output, path).replaceAll('\\', '/'),
+      sha256: createHash('sha256').update(image).digest('hex'),
+      bytes: image.length,
+    });
+  };
   await page.route('**/games/*/web/details.json', async (route) => {
     const id = new URL(route.request().url()).pathname.split('/')[2];
     detailsRequests.push(id);
@@ -76,6 +101,51 @@ try {
       await readFile(resolve('games', id, 'game-module.json'), 'utf8'),
     );
     await route.fulfill({ json: projectGameDetails(module) });
+  });
+  await page.route('**/games/*/resources/**', async (route) => {
+    const pathname = new URL(route.request().url()).pathname;
+    const match =
+      /^\/games\/([a-z][a-z0-9-]*)\/resources\/\1\/((?:[a-z0-9-]+\/)*introduction-[a-z0-9-]+\.svg)$/.exec(
+        pathname,
+      );
+    assert(
+      match,
+      'Only local per-game introduction SVG resources are requested',
+    );
+    illustrationRequests.push(pathname);
+    await route.fulfill({
+      body: await readFile(resolve('assets/games', match[1], match[2])),
+      contentType: 'image/svg+xml',
+    });
+  });
+  await page.route('**/api/game-packages/releases/*/details', async (route) => {
+    const module = JSON.parse(
+      await readFile('games/power-grid/game-module.json', 'utf8'),
+    );
+    await route.fulfill({ json: projectGameDetails(module) });
+  });
+  await page.route('**/game-packages/*/resources/**', async (route) => {
+    const pathname = new URL(route.request().url()).pathname;
+    const match =
+      /^\/game-packages\/([a-f0-9]{64})\/resources\/(power-grid)\/(introduction-[a-z0-9-]+\.svg)$/.exec(
+        pathname,
+      );
+    assert(
+      match,
+      'Frozen introduction requests remain bound to their release and game',
+    );
+    frozenRequests.push({
+      path: pathname,
+      status: pathname === notFoundResource ? 404 : 200,
+    });
+    await route.fulfill(
+      pathname === notFoundResource
+        ? { status: 404, body: 'Not found' }
+        : {
+            body: await readFile(resolve('assets/games', match[2], match[3])),
+            contentType: 'image/svg+xml',
+          },
+    );
   });
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(server.url);
@@ -88,8 +158,8 @@ try {
     ),
   });
   await page.waitForFunction(() => typeof window.renderBox === 'function');
-  for (const role of ['host', 'public', 'player']) {
-    for (const index of [0, 1, 2, 3]) {
+  for (const role of resourceOnly ? [] : ['host', 'public', 'player']) {
+    for (const index of [0, 1, 2, 3, 4, 5, 6, 7]) {
       for (const [width, height] of [
         [320, 640],
         [360, 640],
@@ -116,6 +186,21 @@ try {
           exact: true,
         });
         await dialog.locator('.game-overview__goal').waitFor();
+        await page.waitForFunction(() =>
+          [...document.querySelectorAll('.game-overview img')].every(
+            (image) => image.complete && image.naturalWidth > 0,
+          ),
+        );
+        assert.equal(
+          await dialog.locator('img.game-overview__illustration').count(),
+          [1, 2].includes(index) ? 0 : 3,
+          'New diagrams must decode; retained illustrations remain original SVG components',
+        );
+        assert.equal(
+          (await dialog.locator('.game-overview').innerText()).includes('·'),
+          false,
+          'Introduction copy uses grouping instead of middle-dot chains',
+        );
         const geometry = await dialog.evaluate((element) => {
           const intro = element.querySelector('.game-overview');
           const heading = intro.querySelector('.game-overview__heading');
@@ -148,14 +233,14 @@ try {
           };
         });
         layouts.push({ role, index, width, height, ...geometry });
-        if (
-          role === 'host' &&
-          index === 0 &&
-          [360, 620, 934, 1280].includes(width)
-        )
-          await captureBrowserScreenshot(page, {
-            path: join(output, `power-grid-${width}.png`),
-          });
+        if (role === 'host' && [320, 390, 1280].includes(width)) {
+          const screenshot = join(output, `intro-${index}-host-${width}.png`);
+          await capture(screenshot);
+        }
+        if (role === 'player' && width === 390) {
+          const screenshot = join(output, `intro-${index}-player-${width}.png`);
+          await capture(screenshot);
+        }
         assert.equal(
           geometry.display,
           'block',
@@ -194,6 +279,13 @@ try {
           const content = element.querySelector('.box-overlay-panel__content');
           content.scrollTop = content.scrollHeight;
         });
+        if (role === 'host' && width === 320) {
+          const screenshot = join(
+            output,
+            `intro-${index}-host-${width}-bottom.png`,
+          );
+          await capture(screenshot);
+        }
         const close = dialog.getByRole('button', {
           name: '关闭面板',
           exact: true,
@@ -222,11 +314,114 @@ try {
     }
   }
   assert.deepEqual(errors, []);
-  assert.deepEqual([...new Set(detailsRequests)].sort(), [
-    'modern-art',
-    'pokemon-encounters',
-    'power-grid',
-  ]);
+  if (!resourceOnly)
+    assert.deepEqual([...new Set(detailsRequests)].sort(), [
+      'avalon',
+      'manila',
+      'modern-art',
+      'pokemon-encounters',
+      'power-grid',
+      'rummikub',
+      'uno',
+    ]);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const openResourceCase = async (releaseRef) => {
+    await page.evaluate(
+      (releaseRef) => window.renderBox(0, 'host', releaseRef),
+      releaseRef,
+    );
+    await page.getByRole('button', { name: '游戏介绍', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: '游戏介绍', exact: true });
+    await dialog.locator('.game-overview__goal').waitFor();
+    return dialog;
+  };
+  let dialog = await openResourceCase(undefined);
+  await page.waitForFunction(
+    () =>
+      [...document.querySelectorAll('img.game-overview__illustration')]
+        .length === 3 &&
+      [...document.querySelectorAll('img.game-overview__illustration')].every(
+        (image) => image.complete && image.naturalWidth > 0,
+      ),
+  );
+  const localImages = await dialog
+    .locator('img.game-overview__illustration')
+    .evaluateAll((images) => images.map((image) => image.currentSrc));
+  assert(
+    localImages.every(
+      (url) =>
+        url.startsWith('data:image/svg+xml') ||
+        new URL(url).origin === new URL(server.url).origin,
+    ),
+  );
+  assert(localImages.every((url) => !url.includes('/game-packages/')));
+  resourceChecks.push({
+    case: sourcePreview
+      ? 'development source preview'
+      : 'current local source fixture',
+    images: localImages.length,
+    allLocal: true,
+    frozenReleaseUsed: false,
+  });
+  const frozenRef = 'a'.repeat(64);
+  dialog = await openResourceCase(frozenRef);
+  await page.waitForFunction(
+    () =>
+      [...document.querySelectorAll('img.game-overview__illustration')]
+        .length === 3 &&
+      [...document.querySelectorAll('img.game-overview__illustration')].every(
+        (image) => image.complete && image.naturalWidth > 0,
+      ),
+  );
+  const frozenImages = await dialog
+    .locator('img.game-overview__illustration')
+    .evaluateAll((images) =>
+      images.map((image) => new URL(image.currentSrc).pathname),
+    );
+  assert(
+    frozenImages.every((path) =>
+      path.startsWith(`/game-packages/${frozenRef}/resources/power-grid/`),
+    ),
+  );
+  assert.equal(
+    frozenRequests.filter(
+      (request) => request.path.includes(frozenRef) && request.status === 200,
+    ).length,
+    3,
+  );
+  resourceChecks.push({
+    case: 'valid 64-hex release',
+    release: frozenRef,
+    images: frozenImages,
+    allReleaseBound: true,
+  });
+  const missingRef = 'b'.repeat(64);
+  notFoundResource = `/game-packages/${missingRef}/resources/power-grid/introduction-2-v1.svg`;
+  dialog = await openResourceCase(missingRef);
+  await dialog.locator('svg.game-overview__illustration').waitFor();
+  assert.equal(
+    await dialog.locator('img.game-overview__illustration').count(),
+    2,
+  );
+  assert.equal(
+    await dialog.locator('svg.game-overview__illustration').count(),
+    1,
+  );
+  assert(
+    frozenRequests.some(
+      (request) => request.path === notFoundResource && request.status === 404,
+    ),
+  );
+  await capture(join(output, 'resource-404-fallback-390.png'));
+  assert.deepEqual(await page.evaluate(() => window.commands), []);
+  resourceChecks.push({
+    case: 'actual HTTP 404 image response',
+    path: notFoundResource,
+    fallbackSvg: 1,
+    remainingImages: 2,
+    commandsSent: 0,
+  });
+  assert.deepEqual(errors, []);
   passed = true;
   console.info(
     'Game introduction: ' + layouts.length + ' layouts passed: ' + output,
@@ -241,6 +436,11 @@ try {
           'Actual BoxScreen, GameIntroduction and OverlayPanel rendered in hidden muted Edge; simulated viewports, not physical-device or complete-game acceptance.',
         layouts,
         detailsRequests,
+        illustrationRequests: [...new Set(illustrationRequests)],
+        screenshots,
+        resourceChecks,
+        frozenRequests,
+        sourcePreview,
         errors,
       },
       null,
