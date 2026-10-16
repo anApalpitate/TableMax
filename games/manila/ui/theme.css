@@ -65,6 +65,28 @@
 .mn-current-turn-copy {
   min-width: 0;
 }
+.mn-current-turn-copy .mn-phase-name {
+  display: inline-block;
+  white-space: nowrap;
+}
+.mn-current-turn-copy .mn-mobile-voyage {
+  white-space: nowrap;
+  margin-right: 6px;
+}
+.mn-actor-name {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.mn-turn-hint {
+  white-space: nowrap;
+}
+.mn-status .mn-status-detail {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  max-width: 100%;
+}
 .mn-private {
   flex-wrap: nowrap;
   gap: 8px;
@@ -595,6 +617,9 @@
   }
 }
 @media (max-width: 620px) {
+  .mn-current-turn-copy .mn-mobile-voyage {
+    display: inline-block;
+  }
   .mn-toolbar-tools button {
     min-width: max-content;
     padding-inline: 9px;
@@ -639,7 +664,9 @@
   }
   .mn-status .mn-status-detail {
     margin-left: 0;
-    display: block;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 6px;
   }
   .mn-status .mn-auction-standing {
     font-size: 16px;
@@ -661,5 +688,17 @@
   }
   .mn-dock-table > div {
     gap: 6px;
+  }
+}
+@media (max-width: 360px) {
+  .mn-screen--player .mn-toolbar {
+    gap: 3px;
+    padding-right: 66px;
+  }
+  .mn-toolbar-tools {
+    gap: 2px;
+  }
+  .mn-toolbar-tools button {
+    padding-inline: 6px;
   }
 }

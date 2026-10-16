@@ -261,12 +261,24 @@ async function layout(page, label, boundary) {
         css.visibility !== 'hidden'
       );
     };
+    const flowBottoms = (parent) =>
+      [...parent.children].flatMap((node) => {
+        const style = getComputedStyle(node);
+        if (style.display === 'contents') return flowBottoms(node);
+        return visible(node) && !['fixed', 'absolute'].includes(style.position)
+          ? [node.getBoundingClientRect().bottom + scrollY]
+          : [];
+      });
     return {
       width: document.documentElement.clientWidth,
       height: document.documentElement.clientHeight,
       devicePixelRatio: window.devicePixelRatio,
       scrollWidth: document.documentElement.scrollWidth,
       scrollHeight: document.scrollingElement.scrollHeight,
+      tailGap:
+        document.scrollingElement.scrollHeight -
+        Math.max(document.documentElement.clientHeight, ...flowBottoms(root)),
+      hasConfirmation: [...root.querySelectorAll('.mn-confirm')].some(visible),
       phase: root.dataset.phase,
       sections: [
         ...root.querySelectorAll(
@@ -328,6 +340,11 @@ async function layout(page, label, boundary) {
     `${label}: information below 16 CSS px`,
   );
   assert.deepEqual(metrics.brokenImages, [], `${label}: broken local assets`);
+  if (label.startsWith('player') && !metrics.hasConfirmation)
+    assert.ok(
+      metrics.tailGap <= 20,
+      `${label}: no empty trailing scrolling below the last content`,
+    );
   if (
     label.startsWith('player-board-') &&
     metrics.width <= 600 &&
@@ -1096,6 +1113,7 @@ async function firstPlacement(includeDesktop = true) {
   for (const [width, height] of [
     [320, 568],
     [390, 844],
+    [430, 932],
     [844, 390],
   ]) {
     if (width !== 320) {
@@ -1115,6 +1133,15 @@ async function firstPlacement(includeDesktop = true) {
         y: r.y,
         right: r.right,
         bottom: r.bottom,
+        toolbarGap:
+          r.left -
+          Math.max(
+            ...[
+              ...document.querySelectorAll('.mn-toolbar button, .mn-toolbar a'),
+            ]
+              .filter((node) => node.checkVisibility())
+              .map((node) => node.getBoundingClientRect().right),
+          ),
         overlaps: [
           ...document.querySelectorAll(
             '.mn-action-grid button, .mn-action-tray button, .mn-action-tray summary, [data-manila-drop], .mn-controls-heading, .mn-confirm button, .mn-toolbar button, .mn-toolbar a, .mn-brand, .mn-voyage',
@@ -1140,6 +1167,10 @@ async function firstPlacement(includeDesktop = true) {
       orb.overlaps,
       [],
       'Interaction control does not obscure choices, action status, confirmation or toolbar controls',
+    );
+    assert.ok(
+      orb.toolbarGap >= 3.9,
+      'Default interaction control has at least 4 CSS pixels of clear space from toolbar controls',
     );
     evidence.checks.push({
       check:
@@ -1274,6 +1305,7 @@ async function firstPlacement(includeDesktop = true) {
     { inViewport: true, triggerOverlap: false, confirmationOverlap: false },
     'Translucent details avoid their target and current confirmation',
   );
+  await capture(phone, 'player-cargo-detail-390x844', 'detail');
   await surface(phone).locator('.mn-detail-card button').first().click();
   await details.focus();
   await details.press('Enter');
@@ -1321,6 +1353,19 @@ async function firstPlacement(includeDesktop = true) {
       'Actual click, keyboard and long-press detail card with target/confirmation avoidance',
     ...detailGeometry,
   });
+  await surface(phone).locator('.mn-secret-entry').click();
+  await capture(phone, 'player-secret-shares-390x844', 'secret-shares');
+  await surface(phone).locator('.mn-detail-card button').first().click();
+  await surface(phone)
+    .getByRole('button', { name: '账本', exact: true })
+    .click();
+  await capture(phone, 'player-ledger-390x844', 'ledger');
+  await surface(phone).getByRole('button', { name: /关闭/ }).last().click();
+  assert.equal(
+    (await view()).revision,
+    before.revision,
+    'Opening and closing private shares and ledger never changes the game',
+  );
   const otherAction = before.actions.find(
     (entry) => entry.type === 'place' && entry.space !== action.space,
   );
@@ -1593,6 +1638,7 @@ try {
     for (const [w, h] of [
       [320, 568],
       [390, 844],
+      [430, 932],
       [844, 390],
     ]) {
       await resize(phone, w, h, true);

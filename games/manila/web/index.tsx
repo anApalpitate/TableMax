@@ -181,16 +181,27 @@ function ManilaScreen({ session }: { session: GameHost }) {
                 />
               )}
               <div className="mn-current-turn-copy">
-                <span className="mn-mobile-voyage">
-                  第 {game.voyage} 航次 ·{' '}
-                </span>
-                <strong>{phaseNames[game.phase]}</strong>
+                <span className="mn-mobile-voyage">第 {game.voyage} 航次</span>
+                <strong className="mn-phase-name">
+                  {phaseNames[game.phase]}
+                </strong>
                 <span className="mn-status-detail">
-                  {game.turnSeat
-                    ? `${names[game.turnSeat] ?? '商人'}${game.turnSeat === game.self?.seatId ? ' · 轮到你' : '行动'}`
-                    : game.phase === 'ended'
-                      ? '一项货物达到 30，比较最终财富'
-                      : '等待保存结果'}
+                  {game.turnSeat ? (
+                    <>
+                      <span className="mn-actor-name">
+                        {names[game.turnSeat] ?? '商人'}
+                      </span>
+                      <span className="mn-turn-hint">
+                        {game.turnSeat === game.self?.seatId
+                          ? '轮到你'
+                          : '行动'}
+                      </span>
+                    </>
+                  ) : game.phase === 'ended' ? (
+                    '一项货物达到 30，比较最终财富'
+                  ) : (
+                    '等待保存结果'
+                  )}
                 </span>
                 {game.phase === 'auction' && (
                   <span className="mn-auction-standing">

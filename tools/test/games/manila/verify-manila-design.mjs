@@ -60,7 +60,7 @@ const root=createRoot(document.getElementById('root'));
 window.renderManila=({phase='place',role='player'}={})=>{
  const state=stateFor(phase),actor=turnSeat(state)??ids[0];
  const projected=rules.project(state,role==='player'?{role:'player',seatId:actor}:{role:'public'});
- const session={role,self:role==='player'?seats.find(s=>s.id===actor):undefined,connected:true,locked:false,canControl:role==='host',message:'',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],command:c=>(window.commands??=[]).push(c),view:{instanceId:'design-'+phase+'-'+role,branch:0,revision:state.serial,status:state.phase==='ended'?'ended':'playing',paused:false,playMode:'test',gameView:projected,decisionId:rules.decisions(state)[0]?.id??null,decisionClock:null,actions:role==='player'?rules.legalActions(state,actor):[],lifecycleActions:[],seats,history:[]}};
+ const session={role,self:role==='player'?seats.find(s=>s.id===actor):undefined,connected:true,locked:false,canControl:role==='host',message:'',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],command:c=>(window.commands??=[]).push(c),view:{instanceId:'design-'+phase+'-'+role,branch:0,revision:state.serial,status:state.phase==='ended'?'ended':'playing',paused:false,playMode:'play',gameView:projected,decisionId:rules.decisions(state)[0]?.id??null,countdownSeconds:30,decisionClock:state.phase==='ended'?null:{id:'e6ed6d54-cf77-4fa3-95ea-bf2d105c0728',remainingMs:18000,serverTime:Date.now(),running:true},actions:role==='player'?rules.legalActions(state,actor):[],lifecycleActions:[],seats,history:[]}};
  flushSync(()=>root.render(<HostedGame key={phase+'-'+role} session={session} client={client} presentation={{management:()=>null,feedback:()=>null,playMode:()=>null,countdown:()=>null}}/>));
  return {actor,avatar:avatarFor(seats.find(s=>s.id===actor).avatarId),revision:state.serial,privateShares:projected.self?.shares.length??0};
 };
@@ -147,18 +147,16 @@ try {
             const r = node.getBoundingClientRect();
             return { width: r.width, height: r.height };
           });
-        const last = Math.max(
-          0,
-          ...[...root.children]
-            .filter(
-              (node) =>
-                visible(node) &&
-                !['fixed', 'absolute'].includes(
-                  getComputedStyle(node).position,
-                ),
-            )
-            .map((node) => node.getBoundingClientRect().bottom + scrollY),
-        );
+        const flowBottoms = (parent) =>
+          [...parent.children].flatMap((node) => {
+            const style = getComputedStyle(node);
+            if (style.display === 'contents') return flowBottoms(node);
+            return visible(node) &&
+              !['fixed', 'absolute'].includes(style.position)
+              ? [node.getBoundingClientRect().bottom + scrollY]
+              : [];
+          });
+        const last = Math.max(0, ...flowBottoms(root));
         const dockGaps = [...root.querySelectorAll('.mn-dock-group')]
           .filter(visible)
           .map(
@@ -171,6 +169,16 @@ try {
               ) -
               parseFloat(getComputedStyle(node).paddingBottom),
           );
+        const phase = root.querySelector('.mn-phase-name');
+        const range = document.createRange();
+        range.selectNodeContents(phase);
+        const phaseRows = [
+          ...new Set(
+            [...range.getClientRects()]
+              .filter((rect) => rect.width > 0.1)
+              .map((rect) => Math.round(rect.top)),
+          ),
+        ];
         return {
           width: innerWidth,
           scrollWidth: document.documentElement.scrollWidth,
@@ -179,6 +187,10 @@ try {
             Math.max(innerHeight, last),
           dice,
           dockGaps,
+          phaseRows,
+          menuRight: root
+            .querySelector('.mn-toolbar-tools > button:last-child')
+            .getBoundingClientRect().right,
           smallText: [...root.querySelectorAll('*')]
             .filter(
               (node) =>
@@ -229,6 +241,16 @@ try {
         [],
         `${role} ${width}: information text is at least 16 CSS pixels`,
       );
+      assert.equal(
+        geometry.phaseRows.length,
+        1,
+        'The phase name stays one intact phrase',
+      );
+      if (role === 'player' && width <= 430)
+        assert.ok(
+          width - 38 - 23 - geometry.menuRight >= 4,
+          'The toolbar leaves at least 4 CSS pixels before the default interaction orb',
+        );
       assert.equal(
         geometry.actorAvatar,
         expected.avatar,
