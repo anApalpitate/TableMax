@@ -4,6 +4,14 @@
 
 当前结论统一见[当前源码与本地交付](#当前源码与本地交付)，本页各版本章节只说明对应原字节与证明范围。
 
+## 马尼拉本地候选（2026-10-16）
+
+[完整安装候选1.0.7.7](../../artifacts/releases/v1.0.7/1.0.7.7/TableMax-1.0.7.7-installer-win-x64.exe)包含七款游戏、八个玩法，新增2005经典《马尼拉》3–5人、三档本地策略和写实动态沙盘。EXE为36,616,229字节，SHA `f986705422062dcfae0cda86ebaff1842eab31aee8e84f5a12bca4c0010931ec`；内部ZIP44,861,285字节、实际提取97,752,337字节，运行前后98成员逐SHA一致。[封包记录](../../artifacts/manila/validation/package-candidate07.json)绑定候选及安装清单。
+
+本游戏37项规则／策略、2项真实Socket／SQLite、4项实际Worker检查通过；最终三端20项布局与保存动态、手机6项定向布局／真实操作、5人自然整局均有对应证据。主机／公共实际CSS视口达3840×2160，缩放读回平台125%／150%独立偏好并断言对应视口。后续候选的权威执行字节相同，复用范围、失败返修及实际版次见[马尼拉验证](../games/manila/validation-scenarios.md)。
+
+此候选未执行干净Windows账户的系统首装／升级／卸载认证，未做实体手机、真实LAN或物理DPI验收。正式current与公开1.0.7仍保持1.0.7.2原字节；没有发布Release、source ZIP或部署Pages。已完成开发过程见[归档](../archive/manila-2026-10-16.md)，后续设备／推广工作见[任务](../tasks/manila-development.md)。
+
 ## 1.0.7.2：安装进度与版本交付（2026-10-16）
 
 [完整安装器](../../artifacts/releases/v1.0.7/1.0.7.2/TableMax-1.0.7.2-installer-win-x64.exe)35,750,777字节，SHA `1eabdd13bdbea2712c731d6a77b00e1bdd2756331318194e685fc71a6cf3aa83`；snapshot `91e13f6af698a964df479b8233ecf5e2f063d9579f09f9e1f7f2d652542e7ca5`，candidate SHA `95e6e3df7a13836cd37e9697e1cc25486ff3dbc27921beabf56e152db51e6cf8`，安装清单SHA `3a53c159cc5f3a33dcf3e3f7a2209fad82411ec649c4c4672b0eee43dcc89886`。[资源复用证明](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/retained-games-proof.json)确认6款正式游戏／7个玩法的31个游戏构建单元、25条原签名发行、24个blob及完整签名目录原字节保留，当前映射SHA `ac917e6a9dd36a7b3dd6f084944b9e2528309eace79a294d11a39539fb844bf9`未变。
@@ -82,9 +90,11 @@
 
 当前本地current为[完整安装器1.0.7.2](#1072安装进度与版本交付2026-10-16)，公开版本1.0.7。身份、实测、容量与迁移边界唯一维护在该节。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
 
+源码新增马尼拉，含全部七款游戏的本地候选为[1.0.7.7](#马尼拉本地候选2026-10-16)，不覆盖上面的正式current或线上附件。
+
 [GitHub v1.0.7](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.7)已正式发布并为latest，非草稿、非预发布。附件仅[installer](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-installer-win-x64.exe)与[source ZIP](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-source.zip)；公开installer与本地1.0.7.2完全同字节。source ZIP为86,438,358字节，SHA `83d9080b3a0d54b8d01269710dd3a9bec7c417413e4d18429e9d4fc0c5660963`，由标签源码提交 `c1207fd0be68b05b2fa88e2989a2c7444ca3527b`导出；标签对象 `14e0eef4272aeaea5648f9bc08fb43de998e09d7`。[发布审计](../../artifacts/maintenance/v1.0.7/windows-editions/91e13f6af698a964df479b8233ecf5e2f063d9579f09f9e1f7f2d652542e7ca5/github-publication.json)核对两附件远端摘要、源码映射及RSA签名正文。历史附件保留，不部署Pages；失败和操作方法差异见[发布归档](../archive/installer-progress-v107-release-2026-10-16.md)。
 
-工作区占用及逐文件退役见[项目瘦身](project-slimming.md)，本轮未追加清理。旧运行ZIP唯一迁移输入见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#旧运行zip的迁移输入)；下方旧标题保留历史导航。
+工作区占用及逐文件退役见[项目瘦身](project-slimming.md)；1.0.7.2发布任务未追加清理，马尼拉任务的单次维护单独记录。旧运行ZIP唯一迁移输入见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#旧运行zip的迁移输入)；下方旧标题保留历史导航。
 
 ## 1.0.6.3：关闭与WebView2资源释放（2026-10-12）
 

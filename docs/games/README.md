@@ -10,6 +10,7 @@
 | [UNO](uno/README.md)                                       | `uno`，采用 `classic-108-g7942-1`；经典 108 牌、2–6 人、+4 质疑、UNO 抓漏与 500 分；完整本地交付与实际验证见 [构建归档](../archive/uno-2026-10-10.md)                         |
 | [拉密](rummikub/README.md)                                 | `rummikub`，采用 `classic-2025-digital-v1`，经典 2–4 人／106 张牌；游戏库已开放，本地牌架整理与完整回合校验见[交互](rummikub/interaction.md)                                  |
 | [阿瓦隆](avalon/README.md)                                 | `avalon`，采用 `classic-2012-configured-1`，2012 经典版、5–10 人；新局唯一 `configured` 配置、角色秘密与并发密投见[规格](avalon/spec.md)                                      |
+| [马尼拉](manila/README.md)                                 | `manila`，经典2005版3–5人；规则、三档策略、写实动态沙盘和本地完整候选已完成，实体设备及正式推广边界见对应验证。                                                               |
 
 ## 模块交付与旧局恢复
 

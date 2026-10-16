@@ -15,6 +15,8 @@ version 1、version 2 和准确文件 Vitest 入口均关闭子项自动维护�
 
 先按本次修改范围选择检查。统一入口为 `pnpm test -- --scope=<范围>`；用 `--list` 只列清单，用 `--plan=<批次JSON路径>` 执行明确 Node／PowerShell 批次。范围支持 `box`、`shared`、`tooling`、`game:<id>` 或明确组合；不以目录或文件名前缀替代实际范围注册。默认按历史低通过率排序，按[统一失败阈值](../../docs/reference/validation.md#历史通过率与失败阈值)停止；实质修复后按该规则自动接续定向新轮，无变化不重试。共享默认失败预算为10，显式预算或 `TABLEMAX_TEST_MAX_FAILURES`可覆盖；`--prior-failures`及PS的 `-PriorFailures`均为小于该轮实际预算的非负整数，不限定旧0–4。PS父入口读取同一策略并冻结到子执行计划，不能由子进程清零累计失败。
 
+《马尼拉》定向单测使用 `node tools/test/runner/test-scoped.mjs --scope=game:manila`；增量构建使用 `node tools/build/build.mjs --only=game:manila`。实际页面与载荷验证入口为 `node tools/test/games/manila/verify-manila.mjs --executable=<实际TableMax.exe> --zip=<对应内部payload.zip> --seats=5 --only=all --evidence=<新安全名称>`：人数接受3/4/5；`only=layout|phone|match|all`分别选择三端布局与保存动态、手机定向复验、自然完整对局或完整范围。布局包含真实竞价/回退、具体岗位草稿/确认及图文规则；手机复验固定移动UA和触摸，要求横屏实际内容宽至少800px，并核验浮球不遮挡必要信息或操作。每轮保存验证源码及SHA，载荷逐成员SHA在运行前后复核。默认静音隐藏、127.0.0.1隔离数据，支持320px短手机/横屏及720p至4K；内部ZIP仅核验输入，不作为用户交付。脚本需经 `game:manila` 批次计划运行以保留统一排序与失败账本。实现及实际验证结果见[马尼拉验证](../../docs/games/manila/validation-scenarios.md)。
+
 验证默认静音、回环监听、隐藏窗口；真实验证可能构建、启动服务并写 `tmp/`、`artifacts/` 和测试历史，不能把执行验证当作只读查询。各入口保留已有 `--game`、`--portable`、`--mode`、`--evidence` 等参数和结果位置，参数不通用，先查对应代码／开发说明。runner 为统计与调度；support 为公共运行助手；fixtures 只生成合法测试状态。混合矩阵保留在平台组，不能伪装成单游戏检查。
 
 [开发环境](../../docs/reference/development.md)维护具体运行要求；[工具总索引](../README.md)用于按任务定位。下表覆盖本分类文件，内部辅助不作为独立业务命令。

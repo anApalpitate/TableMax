@@ -140,7 +140,7 @@ export async function registerArtifacts({
   );
   const outputPath = local(root, output);
   if (
-    !/^artifacts\/(?:maintenance\/v\d+\.\d+\.\d+\/(?:box-seats\/|debug-20261008\/box\/|screenshot-storage-implementation-20261010\/rummikub\/)|(?:uno|avalon)\/validation\/|rummikub\/validation\/ui-preview\/)[\w-]+$/.test(
+    !/^artifacts\/(?:maintenance\/v\d+\.\d+\.\d+\/(?:box-seats\/|debug-20261008\/box\/|screenshot-storage-implementation-20261010\/rummikub\/)|(?:uno|avalon|manila)\/validation\/|rummikub\/validation\/ui-preview\/)[\w-]+$/.test(
       outputPath,
     )
   )

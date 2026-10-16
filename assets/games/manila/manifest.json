@@ -1,0 +1,134 @@
+{
+  "createdAt": "2026-10-16",
+  "purpose": "Original realistic physical tabletop miniature trading-harbor artwork for TableMax Manila. Illustration only; no official board-art reproduction or rules evidence.",
+  "generator": "built-in imagegen",
+  "version": 1,
+  "referenceSources": [
+    {
+      "source": "User request delegated by main agent, 2026-10-16",
+      "role": "Realistic physical tabletop sand-table appearance with dynamic character; empty harbor for code-drawn lanes, right-facing transparent boat, game-library cover."
+    },
+    {
+      "source": "docs/reference/art-preferences.md",
+      "role": "G01/G02/G08/G17: image-led mature tactile tabletop identity, readable assets and thematic saved-result performance. Current user realism requirement takes precedence over other games stylistic choices."
+    },
+    {
+      "source": "docs/reference/visual-design.md",
+      "role": "Bright tabletop presentation; exact rule labels, numbers, controls and dynamic saved state are code layers."
+    }
+  ],
+  "inputImages": [],
+  "postprocessing": "Original generated PNGs retained. Boat transparent framing cropped using alpha>4 bounding box plus 16 source pixels of padding, with original alpha samples retained. Proportional Lanczos downscaling and WebP format compression only, no stretch, repainting or alpha removal. Harbor retained original dimensions. Cream/water/dark composite contact sheet is QA evidence only.",
+  "derivationScript": "E:/Proj/TMP/TableMaxMaterial/work/manila/derive-assets-v1.py",
+  "metadataScript": "E:/Proj/TMP/TableMaxMaterial/work/manila/finalize-metadata-v1.py",
+  "runtimeBytes": 620878,
+  "unverified": [
+    "Model identity and exact generation elapsed times were not returned by the imagegen tool and are not asserted."
+  ],
+  "assets": [
+    {
+      "id": "harbor",
+      "file": "harbor-v1.webp",
+      "version": 1,
+      "transparent": false,
+      "source": "built-in imagegen",
+      "attribution": "TableMax original interpretive miniature artwork, built-in imagegen; not official Manila artwork or rules evidence.",
+      "sourceFile": "E:/Proj/TMP/TableMaxMaterial/originals/manila/harbor-source-v1.png",
+      "promptFile": "E:/Proj/TMP/TableMaxMaterial/work/manila/harbor-prompt-v1.txt",
+      "prompt": "Use case: product-mockup\nAsset type: Original photorealistic physical tabletop miniature harbor diorama background, wide 16:10 landscape for a digital Manila-inspired trading board game.\nPrimary request: A beautiful meticulously handcrafted realistic tropical old trading harbor sand-table model photographed from almost directly above, only slight 15-degree tilt from overhead. Bright luminous turquoise water, warm honey wood and pale limestone quays, tropical old town miniature warehouses, clay roof tiles and palms confined to the upper and far side margins. It must look like a premium real handmade tabletop diorama photographed in daylight, authentic fine wood grain, plaster, stone, glossy modeled water and small crafted architectural details, mature and tactile, not cartoon, not flat illustration, not a video game screenshot.\nComposition: Entire central rectangle from 10% to 86% across and 20% to 86% down is uninterrupted calm low-contrast open turquoise water, spacious enough for three later code-drawn parallel horizontal shipping lanes. Tiny variations of transparent shallows and very subtle sunlit ripples only. A compact layered dock and old town arc hugs the TOP edge and upper LEFT and upper RIGHT corners; a narrow wooden and pale stone arrival quay along extreme RIGHT edge. Nothing protrudes into central usable water. Full bleed landscape, water extends to bottom edge, no table border needed. All physical architecture follows one consistent overhead camera perspective. No horizon or sky. Crisp enough for large screen but visually quiet center.\nLighting/mood: Fresh bright tropical daylight, gentle shadows, inviting social tabletop play, sun glints restrained at far water edges. Palette turquoise jade sea, warm natural timber, pale cream limestone, terracotta and restrained emerald foliage.\nConstraints: Original artwork only, no imitation of any official board illustration. ABSOLUTELY NO words, letters, numerals, labels, symbols, watermark, logos, UI, score tracks, navigational tracks, board grid, route lines, fixed boats, ships, game pieces, dice or people anywhere. Do not draw any shipping lanes or board game mechanics. The water is empty. Do not create a title panel. Single seamless wide 16:10 image.",
+      "width": 1586,
+      "height": 992,
+      "originalWidth": 1586,
+      "originalHeight": 992,
+      "sourceCropBox": null,
+      "bytes": 317628,
+      "sha256": "72091eefc7a4b6c7a9457497c1b996db5e574c88a6931c7900513a6478071539",
+      "originalSha256": "f20a5ad7fa60e087ccef0ddea55b259f03a678b512165b17731f6974c43d0685",
+      "alphaExtrema": null,
+      "alphaTransparentPixels": 0,
+      "alphaPartialPixels": 0,
+      "contentBounds": null,
+      "webpQuality": 84,
+      "status": {
+        "generated": true,
+        "visuallyVerified": true,
+        "importedInUi": true,
+        "candidate": false
+      },
+      "visualVerification": "Final decoded WebP visually inspected. Bright realistic tactile tropical port model, calm uninterrupted central turquoise water, old town and quays confined to upper/side edges; no text, numbers, fixed boats, route lines or board mechanics. Approximate 16:10 aspect retained without stretch (1586/992). Suggested overlay-safe water x10%-86%, y25%-85%; exact UI placement remains UI owner responsibility."
+    },
+    {
+      "id": "boat",
+      "file": "boat-v1.webp",
+      "version": 1,
+      "transparent": true,
+      "source": "built-in imagegen",
+      "attribution": "TableMax original interpretive miniature artwork, built-in imagegen; not official Manila artwork or rules evidence.",
+      "sourceFile": "E:/Proj/TMP/TableMaxMaterial/originals/manila/boat-source-v1.png",
+      "promptFile": "E:/Proj/TMP/TableMaxMaterial/work/manila/boat-prompt-v1.txt",
+      "prompt": "Use case: product-mockup\nAsset type: Single original wooden cargo boat model sprite for a realistic physical tabletop harbor board game, genuine transparent background.\nSubject: ONE small beautifully handcrafted wooden historical Southeast Asian trading skiff model, empty open cargo hold, warm walnut and golden teak timber planks, polished tactile varnished real wood grain, delicate brass fastenings and a short rope coil tucked at the stern. It is a real miniature board-game object photographed, mature and realistic, not cartoon, not drawing.\nComposition: Camera almost directly overhead with very slight 15-degree tilt from straight down. Boat's long axis is exactly horizontal, stern at LEFT, pointed bow at RIGHT. The object occupies about 85 percent of the wide canvas width and about 65 percent of height, fully visible, no cropped edges. Strong clear long wooden hull silhouette, empty central hold for later code-overlaid cargo and player markers. No sails, mast, tall roof, people, cargo, oars sticking out or scenery. Boat has a modest flat elevated bow deck at right, a small stern deck at left and low gunwales. The hull is not a canoe or modern motorboat. Premium handmade model appropriate to a historical trading harbor diorama.\nLighting: Soft bright warm daylight from upper left, gentle highlights, tiny natural contact shadow immediately under hull only, clean accurate edge for overlay on turquoise water.\nConstraints: Actual transparent alpha outside the boat, no colored background, no checkerboard painted into image, no white matte, no water or wake, no environment, no text, no letters, numbers, logos, watermark, no labels, no tokens or rules. Exactly one boat facing RIGHT; blank wooden model. Wide approximately 2.5:1 composition.",
+      "width": 960,
+      "height": 257,
+      "originalWidth": 1983,
+      "originalHeight": 793,
+      "sourceCropBox": [14, 133, 1971, 657],
+      "bytes": 81660,
+      "sha256": "908acea8fa9103d7b4a5448a5685a009c05d2e3cbdd6cb737d1616dd467e9591",
+      "originalSha256": "6d890ea902178f2fb08be5a015b22e643a995c0fdafb1b367b6d8f3be1f011d5",
+      "alphaExtrema": [0, 255],
+      "alphaTransparentPixels": 71992,
+      "alphaPartialPixels": 173534,
+      "contentBounds": [6, 1, 953, 257],
+      "webpQuality": 90,
+      "status": {
+        "generated": true,
+        "visuallyVerified": true,
+        "importedInUi": true,
+        "candidate": false
+      },
+      "visualVerification": "Final decoded WebP composited on cream #f6f2e8, actual harbor water and dark #17383c, visually inspected. One realistic long horizontal wooden boat, pointed bow at right, empty central cargo hold. No labels, people or cargo. Real alpha 0-255, all four corners alpha 0; no visible white matte, colored halo or checkerboard. Alpha>4 bounds [8,8,952,250]. Source transparent framing cropped only; alpha samples preserved.",
+      "alphaContentBoundsAbove4": [8, 8, 952, 250],
+      "alphaCornerSamples": [0, 0, 0, 0],
+      "alphaPreview": "E:/Proj/TMP/TableMaxMaterial/work/manila/boat-alpha-preview-v1.png"
+    },
+    {
+      "id": "cover",
+      "file": "cover-v1.webp",
+      "version": 1,
+      "transparent": false,
+      "source": "built-in imagegen",
+      "attribution": "TableMax original interpretive miniature artwork, built-in imagegen; not official Manila artwork or rules evidence.",
+      "sourceFile": "E:/Proj/TMP/TableMaxMaterial/originals/manila/cover-source-v1.png",
+      "promptFile": "E:/Proj/TMP/TableMaxMaterial/work/manila/cover-prompt-v1.txt",
+      "prompt": "Use case: product-mockup\nAsset type: Original premium square game-library cover artwork, photorealistic physical tabletop harbor trading diorama, no title.\nPrimary request: A convincing real handcrafted tropical trading-port sand-table model photographed in warm bright daylight. Foreground one handsome miniature wooden historical Southeast Asian cargo skiff pointing diagonally toward an old limestone-and-timber quay. The skiff has warm teak plank hull and a few small colorful cloth-wrapped trading parcels, plain burlap sacks and a little spice basket in the open hold, miniature physical objects with no labels. A second smaller skiff sits far behind only as environmental storytelling, not fixed gameplay. Behind it the miniature port town has pale warm stone warehouses, dark timber doors, rich terracotta tile roofs, palms and a tiny old stone harbor tower. Clear luminous turquoise modeled water, subtle foam and curved sunlit wake that create a dynamic voyage impression. Everything visibly premium tactile physical miniatures, exquisite real materials and detailed craftsmanship, not a cartoon, painting, map or videogame screenshot.\nComposition: Square full bleed, elevated three-quarter overhead camera, hero boat large and centered in lower half, quays and town top half, beautiful readable silhouette at small library-cover thumbnail size. No sky, no horizon, no surrounding actual tabletop, no crop cutting main boat. Gentle depth of field at far corners only, hero miniature remains crisp.\nPalette/lighting: Bright turquoise and jade water, natural honey timber, cream limestone, terracotta rooftops, emerald palms, tiny coral and saffron cloth accents; inviting dramatic sunlight, refined photographic realism.\nConstraints: Original interpretive art, no copying of any official game illustration, logo or packaging. ABSOLUTELY NO words, letters, numbers, writing, labels, flags with emblems, score track, board grid, route lines, dice, tokens, people, watermarks, typography or UI. Do not leave title bands or a poster header. Exactly square.",
+      "width": 800,
+      "height": 800,
+      "originalWidth": 1254,
+      "originalHeight": 1254,
+      "sourceCropBox": null,
+      "bytes": 221590,
+      "sha256": "d8f90deab307febeac42df0576c61806c4767c2d6aa77e0bc04a7009e643b519",
+      "originalSha256": "fe27d507b0a5a980ca7d9a706835d09384b91792bc82d93dd7431dba466fc358",
+      "alphaExtrema": null,
+      "alphaTransparentPixels": 0,
+      "alphaPartialPixels": 0,
+      "contentBounds": null,
+      "webpQuality": 86,
+      "status": {
+        "generated": true,
+        "visuallyVerified": true,
+        "importedInUi": true,
+        "candidate": false
+      },
+      "visualVerification": "Final decoded 800x800 WebP visually inspected. Miniature wooden cargo sailboat and tropical old town/quay, detailed parcels and sunlit water/wake provide trading theme and sense of motion. No text, numbers, logos, UI or copied official board artwork. Decorative cover only, not a representation of gameplay component count."
+    }
+  ],
+  "runtimeVerification": {
+    "date": "2026-10-16",
+    "staticImports": "games/manila/ui/pieces.tsx",
+    "desktopEvidence": "artifacts/manila/validation/native-layout-5-round08/results.json",
+    "phoneEvidence": "artifacts/manila/validation/native-phone-5-round04/results.json",
+    "libraryEvidence": "artifacts/manila/validation/native-phone-5-round04/results.json",
+    "scope": "Actual decoded harbor/boat in hidden WinForms WebView2 and player projections; actual library cover decode and selection; no external runtime material directory."
+  }
+}

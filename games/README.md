@@ -1,15 +1,16 @@
 # 游戏模块
 
-当前完整 Windows EXE 预装六款正式游戏及全部现行玩法。每款游戏的规则、策略、网页、样式与资源独立维护，由模块清单参与增量构建；`games/template/` 是内部验证模板，不进入正式游戏库。游戏采用版本与来源从[游戏文档索引](../docs/games/README.md)进入，当前本地交付与设备边界见[验收记录](../docs/reference/acceptance.md#当前源码与本地交付)。
+当前源码及马尼拉本地候选包含七款游戏、八个玩法；公开1.0.7及正式current1.0.7.2仍是六款游戏。每款游戏的规则、策略、网页、样式与资源独立维护，由模块清单参与增量构建；`games/template/` 是内部验证模板，不进入正式游戏库。游戏采用版本与来源从[游戏文档索引](../docs/games/README.md)进入，当前本地交付与设备边界见[验收记录](../docs/reference/acceptance.md#当前源码与本地交付)。
 
-| 模块                                      | 采用范围与文档                                                                                        |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| [宝可梦奇遇](pokemon-encounters/index.ts) | 2–6人，原版六格与九宫格扩展分别维护规则和存档；[游戏主题](../docs/games/pokemon-encounters/README.md) |
-| [现代艺术](modern-art/index.ts)           | 3–5人，70卡、五种拍卖、四轮估值与隐藏现金；[游戏主题](../docs/games/modern-art/README.md)             |
-| [电力公司](power-grid/index.ts)           | 2–6人，仅经典德国修正版，42城／六区／83边；[游戏主题](../docs/games/power-grid/README.md)             |
-| [拉密](rummikub/index.ts)                 | 经典2–4人，106张牌、私有牌架、整回合桌面重组与百搭释放；[游戏主题](../docs/games/rummikub/README.md)  |
-| [UNO](uno/index.ts)                       | Mattel G7942经典108牌，平台2–6人；[游戏主题](../docs/games/uno/README.md)                             |
-| [阿瓦隆](avalon/index.ts)                 | 2012经典原版角色，平台5–10人，新局只用`configured`人数表；[游戏主题](../docs/games/avalon/README.md)  |
+| 模块                                      | 采用范围与文档                                                                                                  |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| [宝可梦奇遇](pokemon-encounters/index.ts) | 2–6人，原版六格与九宫格扩展分别维护规则和存档；[游戏主题](../docs/games/pokemon-encounters/README.md)           |
+| [现代艺术](modern-art/index.ts)           | 3–5人，70卡、五种拍卖、四轮估值与隐藏现金；[游戏主题](../docs/games/modern-art/README.md)                       |
+| [电力公司](power-grid/index.ts)           | 2–6人，仅经典德国修正版，42城／六区／83边；[游戏主题](../docs/games/power-grid/README.md)                       |
+| [拉密](rummikub/index.ts)                 | 经典2–4人，106张牌、私有牌架、整回合桌面重组与百搭释放；[游戏主题](../docs/games/rummikub/README.md)            |
+| [UNO](uno/index.ts)                       | Mattel G7942经典108牌，平台2–6人；[游戏主题](../docs/games/uno/README.md)                                       |
+| [阿瓦隆](avalon/index.ts)                 | 2012经典原版角色，平台5–10人，新局只用`configured`人数表；[游戏主题](../docs/games/avalon/README.md)            |
+| [马尼拉](manila/index.ts)                 | 2005经典3–5人，航运投资、拍卖、海盗与贷款；[游戏主题](../docs/games/manila/README.md)；本地候选通过，未公开发布 |
 
 规则只依赖SDK和纯数据，不依赖React、通信或数据库；状态保持普通JSON。平台负责身份、授权、动作校验、串行保存、随机及checkpoint恢复，三档本地策略只使用本人授权信息并返回合法意图，不直接修改状态或代真人行动。网页和策略分别通过版本化入口加载，运行资源在`assets/games/<id>/`，来源与替换记录从[资源入口](../assets/README.md)进入。
 

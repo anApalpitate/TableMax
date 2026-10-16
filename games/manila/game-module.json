@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "id": "manila",
+  "order": 6,
+  "internal": false,
+  "library": {
+    "tags": ["经济", "策略", "骰子", "家庭"],
+    "searchTerms": ["Manila", "马尼拉", "馬尼拉", "港口", "海盗", "航运"]
+  },
+  "catalog": {
+    "id": "manila",
+    "name": "马尼拉",
+    "min": 3,
+    "max": 5
+  },
+  "compatibility": {
+    "sdk": 1,
+    "protocol": 7,
+    "webHost": 1,
+    "rulesVersion": "manila-classic-2005-v1",
+    "stateVersion": 1,
+    "gameVersion": "1.0.0",
+    "strategyVersion": "1.0.0"
+  },
+  "entries": {
+    "rules": "games/manila/rules/index.ts",
+    "bot": "games/manila/bot/index.ts",
+    "web": "games/manila/web/index.tsx"
+  },
+  "cover": "assets/games/manila/cover-v1.webp",
+  "introduction": {
+    "tagline": "押注航程，掌控港口，经营自己的航运财富。",
+    "lead": "三艘载货木船驶向马尼拉。争夺港务长、安排船员与港口岗位，在骰子带来的风险中赚取比索与股票收益。",
+    "steps": [
+      {
+        "icon": "auction",
+        "title": "竞拍港务长",
+        "text": "竞拍取得选货、安排起点和购买一张股票的权利。股票内容只向本人展示。"
+      },
+      {
+        "icon": "swap",
+        "title": "派遣伙伴",
+        "text": "在三次航行前安排伙伴登船、驻守港口或船坞，亦可选择领航、海盗与保险岗位。"
+      },
+      {
+        "icon": "coins",
+        "title": "结算航程",
+        "text": "木船掷骰前进，成功入港的货物升值。岗位收益、海盗和贷款共同影响最终财富。"
+      }
+    ],
+    "goal": "任一货物行情达到30时结束；现金加股票市值、扣除未赎回贷款后，财富最多者获胜。"
+  },
+  "botIntroduction": {
+    "default": {
+      "lead": "按公开航程与岗位收益判断投资。",
+      "details": ["只接收本人股票和公开棋盘；与真人使用相同合法动作。"]
+    },
+    "doubao": {
+      "lead": "比较航运概率、股票持仓和可用资金。",
+      "details": ["在竞拍、配船、领航和岗位选择中权衡收益与风险。"]
+    },
+    "juewu": {
+      "lead": "结合公开行情和本人资产进行更深入的收益选择。",
+      "details": ["不会读取对手隐藏股票，策略计算由平台隔离执行。"]
+    }
+  },
+  "budgets": {
+    "payloadBytes": 5242880,
+    "serviceHeapBytes": 67108864,
+    "desktopHeapBytes": 50331648,
+    "phoneHeapBytes": 41943040,
+    "privateIncrementBytes": 536870912,
+    "workerOldGenerationMiB": 32,
+    "basis": "Initial agent allocation for a three-lane raster sandtable and bounded pure rules: 5 MiB payload, 64 MiB service, 48/40 MiB desktop/phone heaps and 512 MiB private increment. Warning thresholds; not a measured acceptance baseline."
+  }
+}

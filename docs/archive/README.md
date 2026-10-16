@@ -1,5 +1,7 @@
 # 归档索引
 
+[马尼拉完整开发（2026-10-16）](manila-2026-10-16.md)：经典规则、三档策略、原创写实沙盘、实际验证与本地完整候选的完成过程；长期规格进入[游戏主题](../games/manila/README.md)，实体设备与推广接续进入[任务](../tasks/manila-development.md)。
+
 [v1.0.7发布后的本地旧交付退役](local-release-retirement-2026-10-16.md)：旧文件原路径、SHA及原文档入链映射；实际回收和目录占用维护在[瘦身结果](../reference/project-slimming.md#v107发布后旧本地交付退役2026-10-16)。
 
 [安装进度与v1.0.7发布（2026-10-16）](installer-progress-v107-release-2026-10-16.md)：保留真实进度验证、跨版本资源复用、正式与迁移验收、全部失败及发布方法记录；当前交付和线上身份见[验收](../reference/acceptance.md#当前源码与本地交付)。
