@@ -1353,7 +1353,8 @@ export function GermanyMap({
       </div>
       {previewRegions && (
         <p className="pg-region-preview" data-region-preview>
-          <strong>候选区域 · 未确认</strong>
+          <strong>候选区域</strong>
+          <span className="pg-region-preview-state">未确认</span>
           <span>
             {GERMANY_REGIONS.filter((region) => regions.includes(region.id))
               .map((region) => region.name)

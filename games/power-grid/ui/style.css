@@ -195,6 +195,26 @@
   max-width: 34ch;
   font-size: 18px;
 }
+.pg-screen .pg-status-bar > div:first-child > .pg-status-actor {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+.pg-screen .pg-status-actor img {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 2px solid #8e7c53;
+  border-radius: 50%;
+  background: #fffaf0;
+  object-fit: cover;
+}
+.pg-screen .pg-status-actor > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .pg-screen .pg-status-bar .pg-own-turn {
   color: #1d6541;
   font-weight: 700;
@@ -1632,7 +1652,7 @@
   }
   .pg-screen .pg-status-bar > div:first-child {
     gap: 6px;
-    flex-shrink: 0;
+    flex-basis: 200px;
     flex-wrap: wrap;
     max-width: 100%;
   }

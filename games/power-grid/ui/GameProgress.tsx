@@ -33,7 +33,12 @@ export function GameProgress({
         <span>
           <strong>地皮进度</strong>
           <span className="pg-progress-gates">
-            二阶段 {view.step2Threshold} · 终局 {view.endThreshold}
+            <span>
+              二阶段 <b>{view.step2Threshold}</b>
+            </span>
+            <span>
+              终局 <b>{view.endThreshold}</b>
+            </span>
           </span>
         </span>
         <span className="pg-progress-mobile">

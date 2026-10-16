@@ -134,6 +134,13 @@
   background: #fff9e7;
   font-size: 16px;
 }
+.pg-screen .pg-region-preview-state {
+  padding: 0 6px;
+  border: 1px solid #9c7738;
+  border-radius: 4px;
+  color: #76521c;
+  background: #fff0c7;
+}
 .pg-screen .pg-map-polished .pg-map-seat {
   display: grid;
   place-items: center;

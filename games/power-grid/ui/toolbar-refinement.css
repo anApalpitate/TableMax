@@ -35,6 +35,16 @@
   height: 26px;
   display: block;
 }
+.pg-screen .pg-toolbar .pg-menu-entry {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+}
 .dialog-surface.overlay-panel:has(.pg-company-inspector) {
   width: min(96vw, 1600px);
   max-height: 94dvh;

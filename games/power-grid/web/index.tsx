@@ -407,7 +407,15 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
           >
             规则
           </button>
-          <button onClick={() => setPanel('menu')}>菜单</button>
+          <button
+            className="pg-menu-entry"
+            aria-label="菜单"
+            title="菜单"
+            data-tooltip="菜单"
+            onClick={() => setPanel('menu')}
+          >
+            <BoardIcon name="menu" />
+          </button>
         </div>
       </header>
       {((session.message && session.message !== '已保存') ||
@@ -427,8 +435,13 @@ function PowerGridScreen({ session }: { session: RoomSession }) {
                   <strong>{PHASE_LABELS[game.phase]}</strong>
                 )}
                 {role === 'player' && actor && (
-                  <span className={ownTurn ? 'pg-own-turn' : ''} title={actor}>
-                    {ownTurn ? '轮到你' : actor}
+                  <span
+                    className={`pg-status-actor${ownTurn ? ' pg-own-turn' : ''}`}
+                    data-current-actor={game.actor ?? ''}
+                    title={actor}
+                  >
+                    <img src={portraits[game.actor ?? '']} alt="" />
+                    <span>{ownTurn ? '轮到你' : actor}</span>
                   </span>
                 )}
                 {notice && <span role="status">{notice}</span>}

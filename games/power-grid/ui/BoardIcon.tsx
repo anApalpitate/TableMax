@@ -4,6 +4,7 @@ export type BoardIconName =
   | 'wide'
   | 'narrow'
   | 'search'
+  | 'menu'
   | 'sound'
   | 'muted'
   | 'left'
@@ -42,6 +43,11 @@ export function BoardIcon({ name }: { name: BoardIconName }) {
             strokeWidth="2"
           />
           <path d="m9 2-5 8h5l-3 6 8-9h-5l3-5" fill="currentColor" />
+        </g>
+      ) : name === 'menu' ? (
+        <g fill="none" stroke="currentColor" strokeWidth="1.8">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <path d="M7 8h10M7 12h10M7 16h10" strokeLinecap="square" />
         </g>
       ) : name === 'sound' || name === 'muted' ? (
         <g
