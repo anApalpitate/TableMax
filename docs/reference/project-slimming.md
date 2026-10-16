@@ -2,11 +2,11 @@
 
 ## 马尼拉安装与体验阶段维护（2026-10-16）
 
-本轮用户继续安装验收与体验优化，账户授权待确认；已完成的工程进程退出后，先审12个超过30分钟的`tmp/game-review-*`旧隔离验证副本，再执行本轮唯一一次实际维护。绝对路径均在工作区tmp内；当前候选、安装验收双PE、原素材、正式数据、历史模块、依赖和工具缓存保留。[执行结果](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/maintenance-apply.json)为`candidates-exhausted`，实际退役325,019,280字节、12目录；[逐文件SHA及保护](../../artifacts/maintenance/local-cleanup-20261016-073457-116-maintenance/cleanup.json)保留，删除错误0。
+本轮用户继续安装验收与体验优化，执行维护时账户授权尚待确认；已完成的工程进程退出后，先审12个超过30分钟的`tmp/game-review-*`旧隔离验证副本，再执行本轮唯一一次实际维护。绝对路径均在工作区tmp内；当前候选、安装验收双PE、原素材、正式数据、历史模块、依赖和工具缓存保留。[执行结果](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/maintenance-apply.json)为`candidates-exhausted`，实际退役325,019,280字节、12目录；[逐文件SHA及保护](../../artifacts/maintenance/local-cleanup-20261016-073457-116-maintenance/cleanup.json)保留，删除错误0。
 
 日常口径14,847,187,913→14,522,359,577字节，不包含其跳过的链接和嵌套仓库，日志增长使差值不等于实际退役量。[完整后采样](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/capacity-after-maintenance.json)在07:36:24 UTC记录14,670,940,649逻辑字节、88,337文件，包含根Git及嵌套部署仓库，不跟随1,772个链接。完整采样低于15GB深度门槛，8GiB目标未达到，已审安全候选耗尽；采样后写出的完整报告、最终文档和Git记录还会增加少量空间，不以不同口径相减或冒称NTFS物理回收量。
 
-唯一扫描错误仍为delivery-guard夹具既有悬空链接ENOENT，未跟随或删除。current仍为原SHA，1.0.7.9安装候选及旧／新两个待执行fixture EXE原SHA复核均通过。[单次预算状态](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/maintenance-once-state.json)已经消耗；后续账户授权与正式链接续保持自动维护关闭，不追加第二次Apply。初始13,231,127,395字节与封包后的不同时间采样不能代替实际删除量。
+唯一扫描错误仍为delivery-guard夹具既有悬空链接ENOENT，未跟随或删除。维护当时current仍为原SHA，1.0.7.9安装候选及旧／新两个待执行fixture EXE原SHA复核均通过。[单次预算状态](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/maintenance-once-state.json)已经消耗；后续账户授权与正式链接续保持自动维护关闭，没有追加第二次Apply。用户随后授权并完成标准账户系统验收、删除测试账户／profile、切换本地current，实际身份见[验收](acceptance.md#马尼拉本地候选2026-10-16)。临时账户删除属于已授权验收生命周期，不重复工程维护。初始13,231,127,395字节与封包后的不同时间采样不能代替实际删除量。
 
 ## 马尼拉开发收尾（2026-10-16）
 
