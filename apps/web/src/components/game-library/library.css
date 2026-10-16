@@ -225,7 +225,102 @@
   font-size: 16px;
 }
 
+.game-library .game-library__candidate-cover {
+  display: block;
+  width: 72px;
+  height: 96px;
+  border-radius: 10px;
+  background: #f2e3c8;
+  --candidate-paper: #f3e3c9;
+  --candidate-glow: #fdf6df;
+  --candidate-ink: #527669;
+  --candidate-accent: #cf8647;
+}
+
+.game-library__candidate-cover[data-theme='dune-imperium'] {
+  --candidate-paper: #f8e5bc;
+  --candidate-glow: #fff3d4;
+  --candidate-ink: #a16b46;
+  --candidate-accent: #da9247;
+}
+
+.game-library__candidate-cover[data-theme='scout'] {
+  --candidate-paper: #e0efe9;
+  --candidate-glow: #f6f8e4;
+  --candidate-ink: #427d78;
+  --candidate-accent: #e6b253;
+}
+
+.game-library__candidate-cover[data-theme='flip-7'] {
+  --candidate-paper: #e9e4f3;
+  --candidate-glow: #fbf3df;
+  --candidate-ink: #6d7ca8;
+  --candidate-accent: #d88e67;
+}
+
+.candidate-paper {
+  fill: var(--candidate-paper);
+}
+.candidate-glow {
+  fill: var(--candidate-glow);
+}
+.candidate-ink {
+  fill: var(--candidate-ink);
+}
+.candidate-accent {
+  fill: var(--candidate-accent);
+}
+.candidate-window {
+  fill: var(--candidate-glow);
+}
+.candidate-sand {
+  fill: var(--candidate-accent);
+}
+.candidate-line {
+  fill: none;
+  stroke: var(--candidate-glow);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.game-library .game-library__planned-status {
+  grid-column: 1 / -1;
+  display: block;
+  padding: 11px 16px;
+  border: 1px dashed #c6b98e;
+  border-radius: 12px;
+  background: #faf0d9;
+  color: #71562a;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .dialog-surface .game-library .game-library__candidate-cover {
+    width: 64px;
+    height: 86px;
+  }
+}
+
 @media (min-width: 721px) {
+  .game-library .game-library__candidate-cover {
+    width: 100%;
+    height: 180px;
+    border-radius: 0;
+  }
+  .game-library .game-library__planned-status {
+    margin: 8px 18px 18px;
+  }
+  [data-player-display='mobile'] .game-library .game-library__candidate-cover {
+    width: 72px;
+    height: 96px;
+    border-radius: 10px;
+  }
+  [data-player-display='mobile'] .game-library .game-library__planned-status {
+    margin: 0;
+  }
   .game-library .game-library__list {
     display: block;
     columns: 240px 4;

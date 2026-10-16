@@ -2,12 +2,13 @@ export type LibraryGame = {
   id: string;
   name: string;
   displayName?: string;
-  min: number;
-  max: number;
+  min: number | null;
+  max: number | null;
   tags: string[];
   searchTerms: string[];
   tagline: string;
   development: boolean;
+  planned?: boolean;
 };
 
 function normalize(value: string) {
@@ -27,7 +28,10 @@ export function filterLibraryGames(
     if (filters.tag !== null && !game.tags.includes(filters.tag)) return false;
     if (
       filters.players !== null &&
-      (filters.players < game.min || filters.players > game.max)
+      (game.min === null ||
+        game.max === null ||
+        filters.players < game.min ||
+        filters.players > game.max)
     )
       return false;
     const text = normalize(

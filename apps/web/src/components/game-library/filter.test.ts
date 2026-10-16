@@ -4,6 +4,7 @@ import {
   filterLibraryGames,
   type LibraryGame,
 } from './filter';
+import { plannedLibraryGames } from './candidates';
 
 const games: LibraryGame[] = [
   {
@@ -60,6 +61,22 @@ const games: LibraryGame[] = [
 
 const unfiltered = { query: '', tag: null, players: null };
 const ids = (items: readonly LibraryGame[]) => items.map((game) => game.id);
+
+it('searches planned cards but does not promise an undecided player count', () => {
+  const library = [...games, ...plannedLibraryGames];
+  expect(
+    ids(filterLibraryGames(library, { ...unfiltered, query: '待开发' })),
+  ).toEqual(ids(plannedLibraryGames));
+  expect(
+    ids(filterLibraryGames(library, { ...unfiltered, query: 'Dune Imperium' })),
+  ).toEqual(['dune-imperium']);
+  expect(filterLibraryGames(library, { ...unfiltered, players: 4 })).toEqual(
+    filterLibraryGames(games, { ...unfiltered, players: 4 }),
+  );
+  expect(
+    filterLibraryGames(plannedLibraryGames, { ...unfiltered, tag: '经营' }),
+  ).toHaveLength(1);
+});
 
 it.each([
   ['宝可梦', ['pokemon-encounters']],

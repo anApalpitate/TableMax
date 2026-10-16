@@ -8,7 +8,10 @@ import { feedbackText } from '../content/feedback';
 import {
   availableLibraryTags,
   filterLibraryGames,
+  type LibraryGame,
 } from './game-library/filter';
+import { plannedLibraryGames } from './game-library/candidates';
+import { CandidateCover } from './game-library/CandidateCover';
 import './game-library/library.css';
 
 /** Catalog thumbnails are deliberately separate from the game client bundle. */
@@ -31,7 +34,7 @@ export function GameLibrary({
     instanceId: string;
   } | null>(null);
   const target = view?.catalog.find((game) => game.id === targetId);
-  const games = (view?.catalog ?? []).map((game) => {
+  const catalogGames = (view?.catalog ?? []).map((game) => {
     const module = moduleFor(game.id);
     return {
       ...game,
@@ -49,10 +52,16 @@ export function GameLibrary({
       development: module?.development ?? false,
     };
   });
+  const games: LibraryGame[] = [
+    ...catalogGames,
+    ...plannedLibraryGames.filter(
+      (planned) => !catalogGames.some((game) => game.id === planned.id),
+    ),
+  ];
   const tags = availableLibraryTags(games);
   const maximumPlayers = Math.min(
     12,
-    Math.max(2, ...games.map((game) => game.max)),
+    Math.max(2, ...catalogGames.map((game) => game.max)),
   );
   const visible = filterLibraryGames(games, { query, tag, players });
   const filtered = Boolean(query || tag !== null || players !== null);
@@ -81,7 +90,10 @@ export function GameLibrary({
       {!isHost && <p>{feedbackText('library.waitingForHost')}</p>}
       {view &&
         games.some(
-          (game) => !game.development && view.seats.length > game.max,
+          (game) =>
+            !game.development &&
+            game.max !== null &&
+            view.seats.length > game.max,
         ) && (
           <div className="game-library__conflict" role="status">
             <strong>
@@ -186,8 +198,11 @@ export function GameLibrary({
             className="game-library__item"
             key={game.id}
             data-game-id={game.id}
+            data-planned={game.planned || undefined}
           >
-            {gameCover(game.id) ? (
+            {game.planned ? (
+              <CandidateCover id={game.id} />
+            ) : gameCover(game.id) ? (
               <img src={gameCover(game.id)} alt="" width="96" height="120" />
             ) : (
               <span className="game-library__placeholder" aria-hidden="true">
@@ -195,7 +210,7 @@ export function GameLibrary({
               </span>
             )}
             <div className="game-library__details">
-              <h3>{game.displayName}</h3>
+              <h3>{game.displayName ?? game.name}</h3>
               <div className="game-library__tags" aria-label="分类标签">
                 {game.tags.map((value) => (
                   <span key={value}>{value}</span>
@@ -225,20 +240,24 @@ export function GameLibrary({
                     strokeLinecap="round"
                   />
                 </svg>
-                {game.min}–{game.max} 人
+                {game.planned
+                  ? '版次与人数待确认'
+                  : `${game.min}–${game.max} 人`}
               </span>
-              {(view?.seats.length ?? 0) > game.max && (
+              {game.max !== null && (view?.seats.length ?? 0) > game.max && (
                 <span className="game-library__capacity-warning">
                   最多 {game.max} 席
                 </span>
               )}
             </div>
-            {isHost ? (
+            {game.planned ? (
+              <span className="game-library__planned-status">待开发</span>
+            ) : isHost ? (
               <SelectionButton
                 disabled={
                   game.development ||
                   locked ||
-                  (view?.seats.length ?? 0) > game.max
+                  (game.max !== null && (view?.seats.length ?? 0) > game.max)
                 }
                 current={view?.game?.id === game.id && !view.game.restoreOnly}
                 select={() => {
@@ -256,7 +275,7 @@ export function GameLibrary({
                 installedLabel={
                   game.development
                     ? '开发中'
-                    : (view?.seats.length ?? 0) > game.max
+                    : game.max !== null && (view?.seats.length ?? 0) > game.max
                       ? `最多 ${game.max} 席`
                       : '选择游戏'
                 }
