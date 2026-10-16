@@ -3,7 +3,10 @@ import test from 'node:test';
 import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileRecord } from '../runner/evidence.mjs';
-import { finalizeInstallationEvidence } from './finalize-evidence.mjs';
+import {
+  finalizeInstallationEvidence,
+  verifyInstalledUpdateLayoutEvidence,
+} from './finalize-evidence.mjs';
 
 function fixture() {
   mkdirSync(resolve('tmp'), { recursive: true });
@@ -39,6 +42,35 @@ function fixture() {
   const out = 'artifacts/maintenance/case/final.json';
   return { root, receipt, put, report, out };
 }
+
+test('installed settings proof rejects incomplete cases and changed screenshot bytes', async () => {
+  const f = fixture();
+  const record = f.put(
+    'artifacts/maintenance/case/layout-capture.png',
+    'inert image bytes for hash verification',
+  );
+  const layout = {
+    result: 'passed',
+    failures: 0,
+    remaining: [],
+    cases: Array.from({ length: 16 }, (_, id) => ({ id })),
+    checks: [{ result: 'passed' }],
+    evidence: [record],
+  };
+  await verifyInstalledUpdateLayoutEvidence(f.root, layout);
+  await assert.rejects(
+    verifyInstalledUpdateLayoutEvidence(f.root, {
+      ...layout,
+      cases: layout.cases.slice(1),
+    }),
+    /All installed update layout cases/,
+  );
+  f.put(record.path, 'changed screenshot bytes');
+  await assert.rejects(
+    verifyInstalledUpdateLayoutEvidence(f.root, layout),
+    /Evidence (length|bytes) changed/,
+  );
+});
 
 test('changed execution bytes fail before output; original receipt can be retried with a fresh output', async () => {
   const f = fixture();

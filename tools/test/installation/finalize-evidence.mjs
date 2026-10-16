@@ -29,6 +29,27 @@ async function readBound(root, record) {
   return raw;
 }
 
+export async function verifyInstalledUpdateLayoutEvidence(root, layout) {
+  if (!layout) return; // Historical proofs predate this additional UI check.
+  assert.equal(layout.result, 'passed');
+  assert.equal(layout.failures, 0);
+  assert.equal(
+    layout.cases?.length,
+    16,
+    'All installed update layout cases are required',
+  );
+  assert.deepEqual(layout.remaining, []);
+  assert.ok(
+    layout.checks?.length > 0 &&
+      layout.checks.every((check) => check.result === 'passed'),
+  );
+  assert.ok(
+    layout.evidence?.length > 0,
+    'Installed update layout evidence is required',
+  );
+  for (const record of layout.evidence) await readBound(root, record);
+}
+
 /** Read completed execution only: no subprocess, account, installer or maintenance. */
 export async function finalizeInstallationEvidence({
   report,
@@ -146,6 +167,10 @@ export async function finalizeInstallationEvidence({
     );
     await readBound(root, log);
   }
+  await verifyInstalledUpdateLayoutEvidence(
+    root,
+    proof.postUninstallReinstall?.initialNative?.updateLayout,
+  );
   const finalized = {
     ...proof,
     applicationChainEvidence: isolation.applicationChainEvidence,

@@ -4,9 +4,23 @@
 
 当前结论统一见[当前源码与本地交付](#当前源码与本地交付)，本页各版本章节只说明对应原字节与证明范围。
 
+## 设置与马尼拉体验深化（2026-10-16）
+
+当前本地交付为[完整安装器1.0.7.18](../../artifacts/releases/v1.0.7/1.0.7.18/TableMax-1.0.7.18-installer-win-x64.exe)及[清单](../../artifacts/releases/v1.0.7/1.0.7.18/TableMax-1.0.7.18-installer-win-x64-manifest.json)，预装全部七款游戏／八个玩法。EXE37,904,603字节，SHA `5446f87b5cdd8c469a194858a19442559e937621b94a354663a2e8d07153c5ee`；内部ZIP46,148,138字节、实际提取99,048,483字节，98成员运行前后逐SHA核验，均严格小于120,000,000字节。公开版本仍为1.0.7，未发布、部署或生成发布source ZIP。
+
+三个设置页完成防溢出及顶栏圆角入口；马尼拉完成独立手机竖港、图形草稿／确认、按需详情、四货物及岗位图像、七类流程图解、原创短音效及保存后演出。候选17通过26布局、三／四／五人自然整局与各一条完整真实UI航次、设置80项；候选18仅修图解CSS后定向复验手机6布局／图框边界。规则、服务、策略、Worker、资源和盒子按[字节等价](../../artifacts/manila/validation/runtime-equivalence-17-18.json)复用，不增加执行统计；具体检查与设备边界见[游戏验证](../games/manila/validation-scenarios.md#当前结果)。
+
+[原EXE安全修正](../../artifacts/manila/deepening-18-security-normalization.json)只将可信原路径installer继承Low纠正为Medium，核字节、SHA、owner、DACL与全部数据流不变。[同次原路径标准账户启动](../../artifacts/maintenance/v1.0.7/manila-deepening-20261016/production-account-18-01/original-executable/report.json)与[中文向导](../../artifacts/maintenance/v1.0.7/manila-deepening-20261016/production-account-18-01/installer-wizard/report.json)通过，不以同SHA副本替代原文件。
+
+同一新标准账户／真实Medium profile完成[默认D](../../artifacts/maintenance/v1.0.7/manila-deepening-20261016/production-account-18-01/application-handoff/report.json)、[长I／外置D](../../artifacts/maintenance/v1.0.7/manila-deepening-20261016/production-account-18-01/application-handoff-long-root-external-data/report.json)和[旧框架失败恢复](../../artifacts/maintenance/v1.0.7/manila-deepening-20261016/production-account-18-01/application-framework-recovery/report.json)，各8步通过、0失败；随后完成正式ID首装、同包复装、快捷方式、真实保存后默认卸载、同根重装读回、再次卸载及资源删留。实际已安装Native的[更新设置页](../../artifacts/maintenance/v1.0.7/manila-deepening-20261016/production-account-18-01/installed-update-layout/report.json)16项正常／长文字布局通过，核支持状态、版本、窗口及身份恢复；不代表真实线上检查、错误或下载进度已发生。
+
+[账户终态](../../artifacts/maintenance/v1.0.7/manila-deepening-20261016/production-account-18-01/isolated-account.json)与[驱动终态](../../artifacts/maintenance/v1.0.7/manila-deepening-20261016/production-account-18-01-completion.json)确认退出0、账户及profile删除、errors为空。[只读封存证明](../../artifacts/maintenance/v1.0.7/manila-deepening-20261016/finalized-installation-18.json)1,996,830字节，SHA `fd3a1284df5e28bde7429247a0a0d96cda449492e760aa96ccd2707416eaa724`，重核原receipt、全部方法、16项布局截图／报告和保留runtime；[推广回执](../../artifacts/maintenance/v1.0.7/manila-deepening-20261016/promotion-receipt-18.json)经严格门禁将本地current切至18，未修改线上附件或旧发行映射。
+
+首次完成安装并健康启动的同次采样117,466,494字节＝程序99,656,855＋框架5,273,757＋身份／配置16,374＋当前游戏12,519,508，低于120,000,000硬限，触发110,000,000工程预警。preStartupSampled为false；阶段观测最大183,784,018字节含数据／缓存／暂存，isAbsolutePeak为false。实际播放音效串听完成，未作人耳主观音质认证；实体手机、Safari、真实LAN、物理4K／DPI、真人多人长局及线上正向更新UI下载未在本轮实测。失败、修复与视觉审查见[体验深化归档](../archive/manila-experience-deepening-2026-10-16.md)，设备接续见[任务](../tasks/manila-development.md)。
+
 ## 马尼拉本地候选（2026-10-16）
 
-本轮体验优化及安装验收已完成，当前本地交付为[完整安装器1.0.7.9](../../artifacts/releases/v1.0.7/1.0.7.9/TableMax-1.0.7.9-installer-win-x64.exe)：七款游戏、八个玩法；EXE36,616,557字节，SHA `7b1c6e470552f0b5a16ce591f017ba69b492bac76855a2a96b93a522eb16d8b1`；内部ZIP44,861,683字节、提取97,752,749字节，运行前后98成员逐SHA一致。[封包记录](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/package-09.json)绑定实际交付。
+以下为深化前的历史验收，当时本地交付为[完整安装器1.0.7.9](../../artifacts/releases/v1.0.7/1.0.7.9/TableMax-1.0.7.9-installer-win-x64.exe)：七款游戏、八个玩法；EXE36,616,557字节，SHA `7b1c6e470552f0b5a16ce591f017ba69b492bac76855a2a96b93a522eb16d8b1`；内部ZIP44,861,683字节、提取97,752,749字节，运行前后98成员逐SHA一致。[封包记录](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/package-09.json)绑定实际交付。
 
 已修复公开最高竞价／领先者缺失、非付款玩家错误融资提示、同分名次差异，并补领航草稿结果／清空。最新3项UI回归通过；候选8通过三端26布局、保存动态及6航次136动作；候选9专门复验融资首屏可见完整抵押按钮，6布局及5航次137动作通过。未受影响的规则／策略／服务／Worker原检查按[执行字节等价](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/runtime-equivalence-07-09.json)复用，不增加统计。
 
@@ -112,7 +126,7 @@
 
 ## 当前源码与本地交付
 
-当前本地current为[完整安装器1.0.7.9](#马尼拉本地候选2026-10-16)，含全部七款游戏／八个玩法，已完成本轮正式系统安装验收，暂不发布。公开版本仍为1.0.7，线上附件仍对应[1.0.7.2原字节](#1072安装进度与版本交付2026-10-16)。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
+当前本地current为[完整安装器1.0.7.18](#设置与马尼拉体验深化2026-10-16)，含全部七款游戏／八个玩法，已完成本轮正式系统安装验收，暂不发布。公开版本仍为1.0.7，线上附件仍对应[1.0.7.2原字节](#1072安装进度与版本交付2026-10-16)。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
 
 源码与本地完整交付已包含经典马尼拉；本地current切换不覆盖线上附件、标签或原发行SHA映射。
 

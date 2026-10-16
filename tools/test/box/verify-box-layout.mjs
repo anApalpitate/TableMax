@@ -17,6 +17,13 @@ import { launchDesktop } from '../support/desktop-test.mjs';
 import { launchTestBrowser } from '../support/browser-test.mjs';
 import { playerFrame, playerUi } from '../support/player-test.mjs';
 import {
+  SETTINGS_VIEWPORTS,
+  inspectSettingsPanel,
+  installSettingsTextStress,
+  measureSettingsLayout,
+  restoreSettingsTextStress,
+} from './settings-layout-measurement.mjs';
+import {
   ScreenshotPolicy,
   registerArtifacts,
   writeScreenshot,
@@ -35,10 +42,15 @@ const argument = (name) =>
     .join('=');
 const libraryOnly = process.argv.includes('--library-only');
 const actionsOnly = process.argv.includes('--actions-only');
+const settingsOnly = process.argv.includes('--settings-only');
 assert.ok(
-  !actionsOnly ||
-    (!libraryOnly && !process.argv.includes('--refinements-only')),
-  'Actions-only cannot be combined with library/refinement modes',
+  [
+    libraryOnly,
+    actionsOnly,
+    settingsOnly,
+    process.argv.includes('--refinements-only'),
+  ].filter(Boolean).length <= 1,
+  'Choose only one of settings/actions/library/refinements modes',
 );
 const refinementsOnly =
   libraryOnly || process.argv.includes('--refinements-only');
@@ -56,7 +68,10 @@ const output = resolve(
 const archive = resolve(
   argument('zip') ?? `artifacts/releases/TableMax-${version}-win-x64.zip`,
 );
-const manifestPath = archive.replace(/\.zip$/i, '-manifest.json');
+const manifestPath =
+  basename(archive) === 'payload.zip'
+    ? join(archive, '..', 'release-manifest.json')
+    : archive.replace(/\.zip$/i, '-manifest.json');
 const execute = promisify(execFile);
 const { io } = createRequire(resolve('apps/web/package.json'))(
   'socket.io-client',
@@ -79,21 +94,25 @@ let desktop,
   lastSurface;
 const report = {
   version,
-  mode: actionsOnly
-    ? 'box-actions'
-    : libraryOnly
-      ? 'game-library'
-      : refinementsOnly
-        ? 'affected-dialogs'
-        : 'full-box-matrix',
+  mode: settingsOnly
+    ? 'settings-only'
+    : actionsOnly
+      ? 'box-actions'
+      : libraryOnly
+        ? 'game-library'
+        : refinementsOnly
+          ? 'affected-dialogs'
+          : 'full-box-matrix',
   status: 'running',
-  scope: actionsOnly
-    ? "Actual ZIP and every isolated extracted member; real muted hidden WinForms/WebView2 host and headless Edge player admission. Real add-bot/removal saves, command packets temporarily held without forged replies, and a no-write lock on this run's private SQLite cause genuine pending/failed confirmation boundaries. Only action geometry and video settings, no full layout matrix; no physical-device or native foreground certification."
-    : libraryOnly
-      ? 'Actual current-version ZIP and all extracted members; hidden muted WinForms/WebView2 game-library dialog at 390, 720p and 1080p. Does not certify physical devices or unrelated dialogs.'
-      : refinementsOnly
-        ? 'Actual current-version ZIP and all extracted members; muted hidden WinForms/WebView2 host/public and headless Edge player iframe. Authorized lobby joins, owner and bot; affected game-library, avatar and connection-help dialogs at 390, 720p and 1080p. CSS viewport simulation does not certify physical Windows DPI, physical phones or public tunnels.'
-        : 'Actual current-version ZIP and all extracted members; muted hidden WinForms/WebView2 host/public and headless Edge player iframe. Authorized lobby joins, owner, bots and device transfer. CSS viewport and 125/150 percent density simulation do not certify physical Windows DPI, physical phones or public tunnels.',
+  scope: settingsOnly
+    ? 'Actual ZIP, manifest and every extracted member; real muted hidden WinForms/WebView2 host/public and headless Edge player. Only settings panels and their header controls across 320/390, 960x540, 720p/1080p/4K and 125/150 percent density. Text-only stress fixtures are explicitly separate from normal production rendering. Program update is measured only when a genuine native update bridge exists; portable lack of that capability requires the separately installed update-UI layout check. No installer, online update check, native capability mock, gameplay matrix or physical-device certification.'
+    : actionsOnly
+      ? "Actual ZIP and every isolated extracted member; real muted hidden WinForms/WebView2 host and headless Edge player admission. Real add-bot/removal saves, command packets temporarily held without forged replies, and a no-write lock on this run's private SQLite cause genuine pending/failed confirmation boundaries. Only action geometry and video settings, no full layout matrix; no physical-device or native foreground certification."
+      : libraryOnly
+        ? 'Actual current-version ZIP and all extracted members; hidden muted WinForms/WebView2 game-library dialog at 390, 720p and 1080p. Does not certify physical devices or unrelated dialogs.'
+        : refinementsOnly
+          ? 'Actual current-version ZIP and all extracted members; muted hidden WinForms/WebView2 host/public and headless Edge player iframe. Authorized lobby joins, owner and bot; affected game-library, avatar and connection-help dialogs at 390, 720p and 1080p. CSS viewport simulation does not certify physical Windows DPI, physical phones or public tunnels.'
+          : 'Actual current-version ZIP and all extracted members; muted hidden WinForms/WebView2 host/public and headless Edge player iframe. Authorized lobby joins, owner, bots and device transfer. CSS viewport and 125/150 percent density simulation do not certify physical Windows DPI, physical phones or public tunnels.',
   layouts: [],
   dialogs: [],
   screenshots: [],
@@ -105,6 +124,16 @@ const report = {
   checks: [],
   actions: [],
   contactSheets: [],
+  settingsCoverage: [],
+  settingsFailureBudget: { limit: 10, failedCases: 0 },
+  methodInputs: {
+    scriptSha256: hash(await readFile(new URL(import.meta.url))),
+    settingsMeasurementSha256: hash(
+      await readFile(
+        new URL('./settings-layout-measurement.mjs', import.meta.url),
+      ),
+    ),
+  },
 };
 function redact(value) {
   let text = String(value);
@@ -269,6 +298,7 @@ const sizes = [
   { width: 1536, height: 864, density: 1.25, label: '125pct' },
   { width: 1280, height: 720, density: 1.5, label: '150pct' },
 ];
+const settingsSizes = SETTINGS_VIEWPORTS;
 async function resize(surface, size) {
   const { width, height, density } = size;
   surface.requestedGeometry = size;
@@ -342,14 +372,17 @@ async function screenshot(
   const density = geometry?.density ?? 1;
   const zoom = surface.nativeState?.zoom ?? 1;
   const mustKeep = density !== 1 || zoom !== 1 || geometry?.label === '4k';
-  const group = name.replace(/-(390|720p|1080p|4k|125pct|150pct)$/, '');
+  const group = name.replace(
+    /-(320|390|960x540|720p|1080p|4k|125pct|150pct)$/,
+    '',
+  );
   // Ordinary 1080p repeats the measured landscape branch. Full assertions run
   // before this choice; nondefault zoom and density remain pixel evidence.
   const boundary =
     geometry?.label === '1080p' && density === 1 && zoom === 1
       ? null
-      : geometry?.label === '390'
-        ? 'narrow'
+      : ['320', '390'].includes(geometry?.label)
+        ? `narrow-${geometry.label}`
         : geometry?.label === '4k'
           ? '4k'
           : density !== 1
@@ -749,6 +782,147 @@ async function dialogMatrix(
     await screenshot(surface, `${prefix}-${size.label}`);
     await panel.getByRole('button', { name: '关闭面板', exact: true }).click();
   }
+}
+async function recordSettingsMeasurement(surface, label, detail) {
+  const entry = {
+    label,
+    role: surface.role,
+    requestedGeometry: surface.requestedGeometry,
+    nativeState: surface.nativeState,
+    ...detail,
+  };
+  report.dialogs.push(entry);
+  report.issues.push(
+    ...detail.issues.map((issue) => ({ label, role: surface.role, ...issue })),
+  );
+  await save();
+  await screenshot(surface, label);
+  await settingsCaseBudget(detail);
+}
+async function settingsCaseBudget(detail) {
+  if (detail.issues.length) report.settingsFailureBudget.failedCases++;
+  await save();
+  assert.ok(
+    report.settingsFailureBudget.failedCases <
+      report.settingsFailureBudget.limit,
+    'Settings-only stopped at 10 failed geometry/state cases; recorded issues and remaining coverage must be reviewed before a targeted new round',
+  );
+}
+async function settingsPanelMatrix(surface, title, prefix) {
+  const coverage = {
+    role: surface.role,
+    panel: title,
+    status: 'running',
+    completed: [],
+    remaining: settingsSizes.map((size) => size.label),
+    states: ['normal-production-rendering', 'layout-text-fixture'],
+  };
+  report.settingsCoverage.push(coverage);
+  for (const size of settingsSizes) {
+    await resize(surface, size);
+    await ui(surface).getByRole('button', { name: title, exact: true }).click();
+    const panel = ui(surface).getByRole('dialog', { name: title, exact: true });
+    await panel.waitFor();
+    const doc = await documentFor(surface);
+    try {
+      const normal = await inspectSettingsPanel(doc);
+      await recordSettingsMeasurement(
+        surface,
+        `${prefix}-normal-${size.label}`,
+        {
+          state: 'normal-production-rendering',
+          ...normal,
+        },
+      );
+      const stress = await installSettingsTextStress(doc);
+      assert.ok(
+        stress.changedTextNodes > 0,
+        `${title} has no rendered text for the explicit stress fixture`,
+      );
+      const pressured = await inspectSettingsPanel(doc);
+      await recordSettingsMeasurement(
+        surface,
+        `${prefix}-text-stress-${size.label}`,
+        {
+          state: 'layout-text-fixture',
+          fixture: stress,
+          ...pressured,
+        },
+      );
+    } finally {
+      await restoreSettingsTextStress(doc);
+      await panel
+        .getByRole('button', { name: '关闭面板', exact: true })
+        .click();
+    }
+    coverage.completed.push(size.label);
+    coverage.remaining.shift();
+    await save();
+  }
+  coverage.status = 'measured';
+  await checked(
+    `${surface.role}: ${title} text/frame geometry, control alignment, reachability and fixed-heading inner scrolling measured at ${settingsSizes.length} viewport/density combinations`,
+  );
+}
+async function settingsChecks(hostSurface, publicSurface) {
+  const player = await newPlayer('设置布局检查');
+  for (const surface of [hostSurface, publicSurface, player])
+    await rendered(surface);
+  for (const size of settingsSizes) {
+    await resize(hostSurface, size);
+    const measurement = await host.evaluate(measureSettingsLayout, {
+      header: true,
+    });
+    const entry = {
+      label: `host-settings-header-${size.label}`,
+      role: hostSurface.role,
+      requestedGeometry: size,
+      nativeState: hostSurface.nativeState,
+      ...measurement,
+    };
+    report.layouts.push(entry);
+    report.issues.push(
+      ...measurement.issues.map((issue) => ({
+        label: entry.label,
+        role: hostSurface.role,
+        ...issue,
+      })),
+    );
+    await save();
+    await screenshot(hostSurface, entry.label);
+    await settingsCaseBudget(measurement);
+  }
+  await settingsPanelMatrix(hostSurface, '游戏设置', 'host-game-settings');
+  for (const surface of [hostSurface, publicSurface, player])
+    await settingsPanelMatrix(
+      surface,
+      '视频设置',
+      `${surface.role}-video-settings`,
+    );
+  const updateBridge = await host.evaluate(
+    () => typeof window.tablemaxUpdate?.read === 'function',
+  );
+  if (updateBridge) {
+    await host.getByRole('button', { name: '程序更新', exact: true }).waitFor();
+    await settingsPanelMatrix(
+      hostSurface,
+      '程序更新',
+      'host-application-update',
+    );
+  } else {
+    report.settingsCoverage.push({
+      role: hostSurface.role,
+      panel: '程序更新',
+      status: 'not-applicable-to-portable-payload',
+      reason:
+        'No genuine managed-installation update bridge; require tools/test/installation/verify-update-ui.mjs --only=layout with the same measurement helper against an actual isolated installation. No bridge or update state was mocked.',
+    });
+    await checked(
+      'Program update: portable payload has no managed update capability; genuine installed update-UI layout verification remains separate and required',
+    );
+  }
+  assert.deepEqual(report.pageErrors, []);
+  await reviewSheets();
 }
 async function actionGeometry(surface) {
   return (await documentFor(surface)).evaluate(() => {
@@ -1223,8 +1397,20 @@ try {
       headless: true,
       soundEnabled: false,
     });
-    await command({ type: 'select-game', gameId: 'modern-art' });
-    if (actionsOnly) {
+    await command({
+      type: 'select-game',
+      gameId: settingsOnly ? 'pokemon-encounters' : 'modern-art',
+    });
+    if (settingsOnly) {
+      const publicEvent = desktop.waitForEvent('window');
+      await desktop.request('open-public');
+      publicPage = await publicEvent;
+      observe(publicPage);
+      await settingsChecks(
+        { page: host, role: 'host', native: true },
+        { page: publicPage, role: 'public', native: true },
+      );
+    } else if (actionsOnly) {
       const publicEvent = desktop.waitForEvent('window');
       await desktop.request('open-public');
       publicPage = await publicEvent;
@@ -1504,6 +1690,20 @@ try {
     hash(await readFile(manifestPath)),
     report.manifestSha256,
     'Manifest changed during validation',
+  );
+  assert.equal(
+    hash(await readFile(new URL(import.meta.url))),
+    report.methodInputs.scriptSha256,
+    'Verification script changed during validation',
+  );
+  assert.equal(
+    hash(
+      await readFile(
+        new URL('./settings-layout-measurement.mjs', import.meta.url),
+      ),
+    ),
+    report.methodInputs.settingsMeasurementSha256,
+    'Settings measurement helper changed during validation',
   );
   report.status = report.issues.length ? 'layout-issues-found' : 'passed';
   await save();

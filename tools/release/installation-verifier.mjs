@@ -28,6 +28,7 @@ import { basename, dirname, join, resolve, sep } from 'node:path';
 import { createRequire } from 'node:module';
 import { randomUUID } from 'node:crypto';
 import { launchDesktop } from '../test/support/desktop-test.mjs';
+import { verifyInstalledUpdateLayout } from '../test/installation/installed-update-layout.mjs';
 import {
   INSTALLATION_FIXTURE_ID,
   INSTALLATION_PRODUCT_ID,
@@ -304,7 +305,13 @@ async function servicePost(origin, route, body) {
   return value;
 }
 
-async function observeSavedPlayer({ root, environment, buildVersion, saved }) {
+async function observeSavedPlayer({
+  root,
+  environment,
+  buildVersion,
+  saved,
+  updateLayout,
+}) {
   await waitForInstalledIdle(root, environment);
   const boxRoot = join(root, 'data');
   const desktop = await launchDesktop({
@@ -323,6 +330,14 @@ async function observeSavedPlayer({ root, environment, buildVersion, saved }) {
     assert.equal(runtime.appVersion, buildVersion);
     const storage = await desktop.request('storage.info');
     assert.ok(samePath(storage.active, boxRoot));
+    const updateLayoutResult = updateLayout
+      ? await verifyInstalledUpdateLayout({
+          desktop,
+          page: await desktop.firstWindow(),
+          root,
+          ...updateLayout,
+        })
+      : null;
     if (!saved) {
       const page = await desktop.firstWindow();
       await page.waitForFunction(
@@ -426,6 +441,7 @@ async function observeSavedPlayer({ root, environment, buildVersion, saved }) {
         appVersion: runtime.appVersion,
         dataDirectory: storage.active,
         publicState: saved.public,
+        ...(updateLayoutResult ? { updateLayout: updateLayoutResult } : {}),
       },
     };
   } finally {
@@ -730,6 +746,15 @@ export async function verifyInstallationDelivery({
       root,
       environment: childEnvironment,
       buildVersion: manifest.buildVersion,
+      ...(!fixture && profile
+        ? {
+            updateLayout: {
+              identity: restarted,
+              profile,
+              output: join(dirname(evidencePath), 'installed-update-layout'),
+            },
+          }
+        : {}),
     });
     assert.deepEqual(
       await installationInventory(join(root, 'data/games')),

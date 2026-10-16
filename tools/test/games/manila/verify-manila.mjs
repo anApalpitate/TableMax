@@ -136,6 +136,17 @@ async function observe(page) {
   });
   await page.addInitScript(() => {
     window.__manilaMotion = [];
+    window.__manilaMedia = [];
+    const originalPlay = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function (...args) {
+      window.__manilaMedia.push({
+        source: new URL(this.currentSrc || this.src, location.href).pathname,
+        muted: this.muted,
+        volume: this.volume,
+        time: performance.now(),
+      });
+      return originalPlay.apply(this, args);
+    };
     const observer = new MutationObserver(() => {
       const root = document.querySelector('.manila-screen');
       if (!root) return;
@@ -255,6 +266,21 @@ async function layout(page, label, boundary) {
       height: document.documentElement.clientHeight,
       devicePixelRatio: window.devicePixelRatio,
       scrollWidth: document.documentElement.scrollWidth,
+      scrollHeight: document.scrollingElement.scrollHeight,
+      phase: root.dataset.phase,
+      sections: [
+        ...root.querySelectorAll(
+          '.mn-toolbar, .mn-status, .mn-private, .mn-layout, .mn-board-scroll, .mn-controls, .mn-confirm',
+        ),
+      ].map((node) => {
+        const rect = node.getBoundingClientRect();
+        return {
+          class: node.className,
+          top: rect.top,
+          height: rect.height,
+          bottom: rect.bottom,
+        };
+      }),
       smallText: [...root.querySelectorAll('*')]
         .filter(
           (node) =>
@@ -275,6 +301,7 @@ async function layout(page, label, boundary) {
     };
   });
   evidence.layouts.push({ label, ...metrics });
+  await capture(page, label, boundary);
   const requested = label.match(/^(?:host|public)-(\d+)x(\d+)$/);
   if (requested) {
     assert.ok(Math.abs(metrics.width - Number(requested[1])) <= 16);
@@ -301,7 +328,51 @@ async function layout(page, label, boundary) {
     `${label}: information below 16 CSS px`,
   );
   assert.deepEqual(metrics.brokenImages, [], `${label}: broken local assets`);
-  await capture(page, label, boundary);
+  if (
+    label.startsWith('player-board-') &&
+    metrics.width <= 600 &&
+    metrics.width < metrics.height
+  ) {
+    assert.ok(
+      metrics.scrollHeight <=
+        metrics.height * (metrics.width >= 390 ? 1 : 1.5) + 2,
+      `${label}: core placement page exceeds its scroll budget ${JSON.stringify(metrics)}`,
+    );
+    const targets = await surface(page).evaluate(() =>
+      [...document.querySelectorAll('[data-manila-drop], [data-mn-drag]')]
+        .map((node) => {
+          const rect = node.getBoundingClientRect();
+          return {
+            target:
+              node.getAttribute('data-manila-drop') ??
+              node.getAttribute('data-mn-drag'),
+            width: rect.width,
+            height: rect.height,
+            top: rect.top,
+            bottom: rect.bottom,
+          };
+        })
+        .filter((rect) => rect.width > 0 && rect.height > 0),
+    );
+    assert.ok(targets.length > 0);
+    assert.deepEqual(
+      targets.filter((rect) => rect.width < 43.9 || rect.height < 43.9),
+      [],
+      `${label}: touch targets below 44px`,
+    );
+    if (metrics.width >= 390)
+      assert.deepEqual(
+        targets.filter((rect) => rect.top < 0 || rect.bottom > metrics.height),
+        [],
+        `${label}: every placement target must be initially reachable without vertical scroll`,
+      );
+    evidence.checks.push({
+      check: 'Portrait core page scroll budget and 44px targets',
+      label,
+      targets,
+      scrollHeight: metrics.scrollHeight,
+    });
+  }
 }
 async function phoneFor(index) {
   await phone.evaluate((token) => {
@@ -341,6 +412,57 @@ async function auditPackage(stage) {
     files: manifest.files.length,
     extractedBytes: bytes,
     archiveBytes: manifest.archive.bytes,
+  });
+}
+async function audioDecoders() {
+  const manifest = JSON.parse(
+    await readFile('assets/games/manila/audio/manifest.json', 'utf8'),
+  );
+  const inputs = [];
+  for (const file of manifest.files) {
+    const bytes = await readFile(join('assets/games/manila/audio', file.file));
+    assert.equal(hash(bytes), file.sha256);
+    inputs.push({
+      id: file.id,
+      base64: bytes.toString('base64'),
+      seconds: file.seconds,
+    });
+  }
+  const decoded = await surface(host).evaluate(async (files) => {
+    const context = new AudioContext();
+    try {
+      const results = [];
+      for (const file of files) {
+        const bytes = Uint8Array.from(atob(file.base64), (value) =>
+          value.charCodeAt(0),
+        );
+        const buffer = await context.decodeAudioData(bytes.buffer);
+        results.push({
+          id: file.id,
+          seconds: buffer.duration,
+          channels: buffer.numberOfChannels,
+          samples: buffer.length,
+          expectedSeconds: file.seconds,
+        });
+      }
+      return results;
+    } finally {
+      await context.close();
+    }
+  }, inputs);
+  assert.equal(decoded.length, 10);
+  for (const file of decoded) {
+    assert.equal(file.channels, 2);
+    assert.ok(Math.abs(file.seconds - file.expectedSeconds) < 0.002, file.id);
+    assert.ok(file.samples > 0);
+  }
+  evidence.checks.push({
+    check:
+      'Ten SHA-bound original short cues decode in actual WebView2 without connecting sound output',
+    decoded,
+    manifestSha256: hash(
+      await readFile('assets/games/manila/audio/manifest.json'),
+    ),
   });
 }
 async function privacy() {
@@ -409,11 +531,214 @@ function choose(v, financeAuction = false) {
     );
   return actions.find((a) => !['mortgage', 'repay'].includes(a.type));
 }
+async function alternatives(open) {
+  const summary = surface(phone).getByLabel('展开替代操作', { exact: true });
+  const details = summary.locator('..');
+  if (
+    (await details.count()) &&
+    ((await details.getAttribute('open')) !== null) !== open
+  )
+    if (open) await summary.click();
+    else
+      await details
+        .getByRole('button', { name: '收起操作列表', exact: true })
+        .click();
+}
+async function actThroughUI(index, own, action) {
+  await phoneFor(index);
+  const page = surface(phone);
+  if (action.type === 'bid')
+    await page.getByLabel('出价', { exact: true }).fill(String(action.amount));
+  if (action.type === 'setup') {
+    for (let lane = 0; lane < 3; lane++)
+      await touchDrag(
+        page.locator(`[data-mn-drag="cargo:${action.cargos[lane]}"]`),
+        page.locator(`[data-manila-drop="cargo:${lane}"]`),
+      );
+    await alternatives(true);
+    for (let lane = 0; lane < 3; lane++)
+      assert.equal(
+        await page.locator('.mn-draft-grid select').nth(lane).inputValue(),
+        action.cargos[lane],
+        'Cargo touch drop equals explicit selection',
+      );
+    await page
+      .getByRole('button', { name: '下一步 · 设起点', exact: true })
+      .click();
+    await alternatives(false);
+    for (let lane = 0; lane < 3; lane++)
+      await dragRail(
+        page,
+        `setup:${lane}`,
+        `[data-rail-lane="${lane}"]`,
+        action.positions[lane],
+      );
+    await alternatives(true);
+    for (let lane = 0; lane < 3; lane++)
+      assert.equal(
+        await page.locator('.mn-draft-grid select').nth(lane).inputValue(),
+        String(action.positions[lane]),
+        'Starting position drag equals explicit selection',
+      );
+    await alternatives(false);
+  }
+  if (action.type === 'place')
+    await page
+      .locator(`[data-manila-drop="space:${action.space}"]`)
+      .first()
+      .click();
+  if (action.type === 'buy-share')
+    await page
+      .locator('.mn-share-choices button')
+      .filter({
+        hasText: own.gameView.cargos.find((cargo) => cargo.id === action.cargo)
+          .name,
+      })
+      .click();
+  if (action.type === 'pilot') {
+    await alternatives(true);
+    for (const move of action.moves)
+      await page
+        .getByLabel(
+          `${own.gameView.cargos.find((cargo) => cargo.id === move.cargo).name}移动`,
+          { exact: true },
+        )
+        .selectOption(String(move.delta));
+    await alternatives(false);
+  }
+  if (action.type === 'board') {
+    if (action.cargo === null)
+      await page
+        .getByRole('button', { name: '留在海盗船', exact: true })
+        .click();
+    else {
+      const target = page.locator(`[data-manila-drop="board:${action.cargo}"]`);
+      await touchDrag(page.locator('[data-mn-drag="pirate"]'), target);
+      assert.equal(
+        await target.getAttribute('aria-pressed'),
+        'true',
+        'Pirate touch drop selects boarding',
+      );
+    }
+  }
+  if (action.type === 'plunder')
+    await touchDrag(
+      page.locator(`[data-mn-drag="plunder:${action.cargo}"]`),
+      page.locator(`[data-manila-drop="destination:${action.destination}"]`),
+    );
+  if (['mortgage', 'repay'].includes(action.type)) {
+    const finance = page.locator('details.mn-finance');
+    if (
+      (await finance.count()) &&
+      (await finance.getAttribute('open')) === null
+    )
+      await finance.locator('summary').click();
+    const options = own.actions.filter((entry) => entry.type === action.type);
+    await page
+      .locator(`[data-manila-action="${action.type}"]`)
+      .nth(options.findIndex((entry) => entry.shareId === action.shareId))
+      .click();
+  } else
+    await page.locator(`[data-manila-action="${action.type}"]`).first().click();
+  await until(
+    async () => (await view()).revision > own.revision,
+    `UI ${action.type} saved`,
+  );
+}
+async function dragRail(page, token, selector, position) {
+  const destination = await page.locator(selector).evaluate((node, value) => {
+    const rect = node.getBoundingClientRect();
+    const vertical =
+      getComputedStyle(node).getPropertyValue('--mn-vertical').trim() === '1';
+    return vertical
+      ? {
+          x: rect.left + rect.width / 2,
+          y: rect.bottom - (rect.height * value) / 13,
+        }
+      : {
+          x: rect.left + (rect.width * value) / 13,
+          y: rect.top + rect.height / 2,
+        };
+  }, position);
+  await touchDrag(page.locator(`[data-mn-drag="${token}"]`), destination);
+}
+async function touchDrag(source, target, cancel = false, beforeEnd) {
+  await surface(phone).evaluate(() => {
+    window.__manilaPointers = [];
+    if (window.__manilaPointerObserver) return;
+    window.__manilaPointerObserver = true;
+    for (const name of [
+      'pointerdown',
+      'pointermove',
+      'pointerup',
+      'pointercancel',
+      'lostpointercapture',
+    ])
+      document.addEventListener(
+        name,
+        (event) =>
+          window.__manilaPointers.push({
+            type: event.type,
+            pointerType: event.pointerType,
+            x: event.clientX,
+            y: event.clientY,
+            target: event.target
+              .closest('[data-mn-drag]')
+              ?.getAttribute('data-mn-drag'),
+            hit: document
+              .elementFromPoint(event.clientX, event.clientY)
+              ?.closest('[data-manila-drop]')
+              ?.getAttribute('data-manila-drop'),
+          }),
+        true,
+      );
+  });
+  const start = await source.boundingBox(),
+    end =
+      typeof target?.boundingBox === 'function'
+        ? await target.boundingBox()
+        : target;
+  assert.ok(start && end, 'Rendered drag source and target');
+  const cdp = emulationSessions.get(phone);
+  const from = { x: start.x + start.width / 2, y: start.y + start.height / 2 };
+  const to = {
+    x: end.x + (end.width ?? 0) / 2,
+    y: end.y + (end.height ?? 0) / 2,
+  };
+  const dispatch = (type, point) =>
+    cdp.send('Input.dispatchTouchEvent', {
+      type,
+      touchPoints: point ? [{ ...point, id: 1, radiusX: 1, radiusY: 1 }] : [],
+    });
+  await dispatch('touchStart', from);
+  // A short rail step can end within the tap slop. Deliberately start dragging
+  // before returning to that exact snapped position, as a player can do.
+  if (Math.hypot(to.x - from.x, to.y - from.y) < 12)
+    await dispatch('touchMove', { x: from.x + 14, y: from.y });
+  for (let step = 1; step <= 8; step++) {
+    await dispatch('touchMove', {
+      x: from.x + ((to.x - from.x) * step) / 8,
+      y: from.y + ((to.y - from.y) * step) / 8,
+    });
+    await wait(20);
+  }
+  await beforeEnd?.();
+  await dispatch(cancel ? 'touchCancel' : 'touchEnd');
+  evidence.checks.push({
+    check: 'Actual touch gesture trace',
+    from,
+    to,
+    cancel,
+    events: await surface(phone).evaluate(() => window.__manilaPointers),
+  });
+}
 async function naturalMatch() {
   const end = Date.now() + 300000;
   let count = 0;
   const observed = new Set();
   const experience = new Set();
+  const uiVoyage = (await view()).gameView.voyage + 1;
+  const uiChain = [];
   while ((await view()).status !== 'ended') {
     assert.ok(
       Date.now() < end && count < 4000,
@@ -520,6 +845,8 @@ async function naturalMatch() {
         'Actual chosen mortgage saves',
       );
       experience.add('financing');
+      if (own.gameView.voyage === uiVoyage)
+        uiChain.push({ phase, action: 'mortgage', revision: own.revision });
       evidence.checks.push({
         check:
           'Only debtor sees financing gap and collateral actions; actual chosen mortgage saves through the player UI',
@@ -541,13 +868,29 @@ async function naturalMatch() {
         await phoneFor(index);
         await resize(phone, 390, 844, true);
         for (const move of selected.moves) {
+          const boat = own.gameView.boats.find(
+            (item) => item.cargo === move.cargo,
+          );
+          await dragRail(
+            surface(phone),
+            `pilot:${move.cargo}`,
+            `[data-rail-cargo="${move.cargo}"]`,
+            boat.position + move.delta,
+          );
+        }
+        await alternatives(true);
+        for (const move of selected.moves) {
           const cargo = own.gameView.cargos.find(
             (item) => item.id === move.cargo,
           );
           const select = surface(phone).getByLabel(`${cargo.name}移动`, {
             exact: true,
           });
-          await select.selectOption(String(move.delta));
+          assert.equal(
+            await select.inputValue(),
+            String(move.delta),
+            'Pilot touch movement equals explicit selection',
+          );
           const boat = own.gameView.boats.find(
             (item) => item.cargo === move.cargo,
           );
@@ -590,6 +933,8 @@ async function naturalMatch() {
           'Concrete pilot confirmation saves',
         );
         experience.add(phase);
+        if (own.gameView.voyage === uiVoyage)
+          uiChain.push({ phase, action: 'pilot', revision: own.revision });
         evidence.checks.push({
           check: 'Pilot target previews, clear draft and actual confirmation',
           phase,
@@ -604,13 +949,36 @@ async function naturalMatch() {
       const player = players[i],
         own = await view(player.token);
       if (!own.actions.length) continue;
-      const action = choose(own, !experience.has('financing'));
+      let action = choose(own, !experience.has('financing'));
+      if (phase === 'board' && !experience.has('drag-board'))
+        action =
+          own.actions.find(
+            (entry) => entry.type === 'board' && entry.cargo !== null,
+          ) ?? action;
       assert.ok(action, `Playable action in ${phase}`);
-      await send(player.socket, player.token, {
-        type: 'game',
-        decisionId: own.decisionId,
-        action,
-      });
+      const firstPirateDrag =
+        ((action.type === 'board' && action.cargo !== null) ||
+          action.type === 'plunder') &&
+        !experience.has(`drag-${action.type}`);
+      if (own.gameView.voyage === uiVoyage || firstPirateDrag) {
+        await actThroughUI(i, own, action);
+        if (own.gameView.voyage === uiVoyage)
+          uiChain.push({ phase, action: action.type, revision: own.revision });
+        if (firstPirateDrag) {
+          experience.add(`drag-${action.type}`);
+          evidence.checks.push({
+            check: 'Actual pirate touch drag draft and confirmation saves',
+            phase,
+            action,
+          });
+        }
+      } else {
+        await send(player.socket, player.token, {
+          type: 'game',
+          decisionId: own.decisionId,
+          action,
+        });
+      }
       count++;
       acted = true;
       break;
@@ -618,6 +986,16 @@ async function naturalMatch() {
     assert.ok(acted, `No actionable player in ${phase}`);
   }
   const final = await view();
+  await until(
+    () =>
+      surface(host)
+        .locator('[data-manila-scene="ended"]')
+        .count()
+        .then((count) => count > 0),
+    'A fresh terminal save produces its actual ending performance',
+    3000,
+  );
+  await capture(host, 'host-ending-performance', 'ending-performance');
   assert.ok(
     experience.has('auction') && experience.has('financing'),
     'Natural match must exercise auction standing and debtor-only financing UI',
@@ -626,6 +1004,19 @@ async function naturalMatch() {
   assert.ok(final.gameView.winners.length > 0);
   assert.ok(Object.values(final.gameView.market).includes(30));
   assert.equal(Object.keys(final.gameView.scores).length, seats);
+  assert.ok(
+    uiChain.some((entry) => entry.phase === 'auction') &&
+      uiChain.some((entry) => entry.action === 'setup') &&
+      uiChain.some((entry) => entry.phase === 'place') &&
+      uiChain.some((entry) => entry.action === 'next-voyage'),
+    'A complete natural voyage, including next-voyage, must use real UI controls',
+  );
+  evidence.checks.push({
+    check:
+      'One full natural voyage through real player UI, including every decision',
+    voyage: uiVoyage,
+    decisions: uiChain,
+  });
   evidence.checks.push({
     check: 'Natural complete match through real package Socket/SQLite',
     actions: count,
@@ -700,13 +1091,19 @@ async function firstPlacement(includeDesktop = true) {
         bottom: r.bottom,
         overlaps: [
           ...document.querySelectorAll(
-            '.mn-action-grid button, .mn-controls-heading, .mn-confirm button, .mn-toolbar button, .mn-toolbar a, .mn-brand, .mn-voyage',
+            '.mn-action-grid button, .mn-action-tray button, .mn-action-tray summary, [data-manila-drop], .mn-controls-heading, .mn-confirm button, .mn-toolbar button, .mn-toolbar a, .mn-brand, .mn-voyage',
           ),
         ]
           .filter((node) => {
+            if (!node.checkVisibility()) return false;
             const b = node.getBoundingClientRect();
             return (
-              r.x < b.right && r.right > b.x && r.y < b.bottom && r.bottom > b.y
+              b.width > 0 &&
+              b.height > 0 &&
+              r.x < b.right &&
+              r.right > b.x &&
+              r.y < b.bottom &&
+              r.bottom > b.y
             );
           })
           .map((node) => node.textContent),
@@ -726,12 +1123,210 @@ async function firstPlacement(includeDesktop = true) {
       orb,
     });
   }
-  await resize(phone, 320, 568, true);
+  await resize(phone, 390, 844, true);
   const before = await view(players[index].token);
+  await surface(phone).evaluate(() => window.scrollTo(0, 0));
+  const sound = surface(phone).locator('[data-manila-sound]');
+  assert.equal(
+    await sound.getAttribute('aria-pressed'),
+    'false',
+    'Phone starts silent',
+  );
+  await sound.click();
+  await until(
+    () => sound.getAttribute('aria-pressed').then((value) => value === 'true'),
+    'Explicit gesture unlocks phone audio',
+  );
+  assert.deepEqual(
+    await surface(phone).evaluate(() =>
+      window.__manilaMedia.filter((item) => !item.muted),
+    ),
+    [],
+    'Enabling audio does not replay old saved feedback',
+  );
+  const source = surface(phone).locator('[data-mn-drag="worker"]');
+  const action = before.actions.find((entry) => entry.type === 'place');
+  const target = surface(phone)
+    .locator(`[data-manila-drop="space:${action.space}"]`)
+    .first();
+  await touchDrag(source, { x: 2, y: 2 });
+  assert.notEqual(
+    await target.getAttribute('aria-pressed'),
+    'true',
+    'Invalid drop does not choose a space',
+  );
+  await touchDrag(source, target, true);
+  assert.notEqual(
+    await target.getAttribute('aria-pressed'),
+    'true',
+    'pointercancel does not choose a space',
+  );
+  await touchDrag(source, target);
+  assert.equal(
+    await target.getAttribute('aria-pressed'),
+    'true',
+    'Actual touch drag chooses the concrete legal space',
+  );
+  const placementGeometry = await surface(phone).evaluate(() => {
+    const confirmation = document
+      .querySelector('.mn-confirm')
+      .getBoundingClientRect();
+    const obscured = [
+      ...document.querySelectorAll('[data-manila-drop], [data-mn-drag]'),
+    ]
+      .filter((node) => {
+        const box = node.getBoundingClientRect();
+        return (
+          box.width > 0 &&
+          box.height > 0 &&
+          box.left < confirmation.right &&
+          box.right > confirmation.left &&
+          box.top < confirmation.bottom &&
+          box.bottom > confirmation.top
+        );
+      })
+      .map(
+        (node) =>
+          node.getAttribute('data-manila-drop') ??
+          node.getAttribute('data-mn-drag'),
+      );
+    return {
+      scrollHeight: document.scrollingElement.scrollHeight,
+      height: innerHeight,
+      confirmation: { top: confirmation.top, bottom: confirmation.bottom },
+      obscured,
+    };
+  });
+  assert.ok(
+    placementGeometry.scrollHeight <= placementGeometry.height + 2,
+    '390 portrait selected draft and confirmation fit one screen',
+  );
+  assert.deepEqual(
+    placementGeometry.obscured,
+    [],
+    'Confirmation never overlays any legal placement target or tray',
+  );
+  evidence.checks.push({
+    check:
+      'Selected portrait draft, tray and all targets stay visible above confirmation',
+    ...placementGeometry,
+  });
+  await capture(
+    phone,
+    'player-selected-placement-390x844',
+    'selected-placement',
+  );
+  const details = surface(phone).locator('.mn-lane .mn-detail-button').first();
+  await details.click();
+  const detailGeometry = await surface(phone).evaluate(() => {
+    const card = document
+      .querySelector('.mn-detail-card')
+      .getBoundingClientRect();
+    const trigger = document
+      .querySelector('.mn-lane .mn-detail-button')
+      .getBoundingClientRect();
+    const confirmation = document
+      .querySelector('.mn-confirm')
+      .getBoundingClientRect();
+    const overlaps = (a, b) =>
+      a.left < b.right &&
+      a.right > b.left &&
+      a.top < b.bottom &&
+      a.bottom > b.top;
+    return {
+      inViewport:
+        card.left >= 0 &&
+        card.top >= 0 &&
+        card.right <= innerWidth &&
+        card.bottom <= innerHeight,
+      triggerOverlap: overlaps(card, trigger),
+      confirmationOverlap: overlaps(card, confirmation),
+    };
+  });
+  assert.deepEqual(
+    detailGeometry,
+    { inViewport: true, triggerOverlap: false, confirmationOverlap: false },
+    'Translucent details avoid their target and current confirmation',
+  );
+  await surface(phone).locator('.mn-detail-card button').first().click();
+  await details.focus();
+  await details.press('Enter');
+  assert.equal(
+    await surface(phone).locator('.mn-detail-card').count(),
+    1,
+    'Keyboard opens details',
+  );
+  await details.press('Escape');
+  assert.equal(
+    await surface(phone).locator('.mn-detail-card').count(),
+    0,
+    'Escape dismisses details',
+  );
+  const detailBox = await details.boundingBox();
+  const detailCdp = emulationSessions.get(phone);
+  await detailCdp.send('Input.dispatchTouchEvent', {
+    type: 'touchStart',
+    touchPoints: [
+      {
+        x: detailBox.x + detailBox.width / 2,
+        y: detailBox.y + detailBox.height / 2,
+        id: 1,
+      },
+    ],
+  });
+  await wait(520);
+  assert.equal(
+    await surface(phone).locator('.mn-detail-card').count(),
+    1,
+    'Actual long press opens details',
+  );
+  await detailCdp.send('Input.dispatchTouchEvent', {
+    type: 'touchEnd',
+    touchPoints: [],
+  });
+  await phone.mouse.click(2, 2);
+  assert.equal(
+    await surface(phone).locator('.mn-detail-card').count(),
+    0,
+    'Outside click dismisses details',
+  );
+  evidence.checks.push({
+    check:
+      'Actual click, keyboard and long-press detail card with target/confirmation avoidance',
+    ...detailGeometry,
+  });
+  const otherAction = before.actions.find(
+    (entry) => entry.type === 'place' && entry.space !== action.space,
+  );
+  await touchDrag(
+    source,
+    surface(phone)
+      .locator(`[data-manila-drop="space:${otherAction.space}"]`)
+      .first(),
+    false,
+    () => resize(phone, 844, 390, true),
+  );
+  assert.equal(
+    await target.getAttribute('aria-pressed'),
+    'true',
+    'Rotation ends the active gesture and preserves the earlier valid draft',
+  );
+  assert.equal(
+    (await view()).revision,
+    before.revision,
+    'Rotation never submits a draft',
+  );
+  await resize(phone, 390, 844, true);
   await surface(phone)
-    .locator('.mn-controls .mn-action-grid button')
-    .first()
+    .getByRole('button', { name: '取消', exact: true })
     .click();
+  assert.notEqual(await target.getAttribute('aria-pressed'), 'true');
+  await target.click();
+  assert.equal(
+    await target.getAttribute('aria-pressed'),
+    'true',
+    'Click chooses the same draft as drag',
+  );
   assert.equal(
     (await view()).revision,
     before.revision,
@@ -742,6 +1337,29 @@ async function firstPlacement(includeDesktop = true) {
     async () => (await view()).revision > before.revision,
     'Concrete placement confirmed and saved',
   );
+  await until(
+    () =>
+      surface(phone).evaluate(() =>
+        window.__manilaMedia.some(
+          (item) => !item.muted && item.source.endsWith('.flac'),
+        ),
+      ),
+    'Only the new committed placement plays its decoded game cue',
+  );
+  await sound.click();
+  assert.equal(await sound.getAttribute('aria-pressed'), 'false');
+  const phoneWindowId = await phone.evaluate(() => window.__tablemaxWindowId);
+  assert.equal(
+    (await desktop.request('windows')).find((item) => item.id === phoneWindowId)
+      .audioMuted,
+    true,
+    'Verification remains physically muted while validating playback',
+  );
+  evidence.checks.push({
+    check:
+      'Phone explicit audio unlock, no old-event replay and fresh saved playback under test-process mute',
+    playback: await surface(phone).evaluate(() => window.__manilaMedia),
+  });
   assert.equal(
     (await view()).gameView.spaces.filter(
       (space) => space.occupant === players[index].seatId,
@@ -750,7 +1368,7 @@ async function firstPlacement(includeDesktop = true) {
   );
   evidence.checks.push({
     check:
-      'Actual concrete-space UI draft does not submit; confirmation saves the chosen worker',
+      'Actual touch invalid/cancelled drops do not submit; click and drag choose the same concrete draft; confirmation saves it',
   });
   await resize(phone, 390, 844, true);
 }
@@ -828,6 +1446,7 @@ async function motionChecks() {
   );
   await host.reload();
   await host.locator('.manila-screen').waitFor();
+  await audioDecoders();
   await wait(150);
   assert.equal(
     await host.locator('.manila-screen').getAttribute('data-saved-motion'),
@@ -1009,6 +1628,43 @@ try {
     }
     await surface(phone).getByRole('button', { name: /规则/ }).first().click();
     await capture(phone, 'player-rules', 'rules');
+    assert.equal(
+      await surface(phone).locator('.mn-diagram').count(),
+      7,
+      'Seven process-related rule diagrams render',
+    );
+    for (const label of ['一航次', '派遣位置', '海盗与领航', '抵押与数字版']) {
+      await surface(phone)
+        .getByRole('button', { name: label, exact: true })
+        .click();
+      const escapedImages = await surface(phone).evaluate(() =>
+        [...document.querySelectorAll('.mn-diagram img')]
+          .filter((image) => {
+            if (!image.checkVisibility()) return false;
+            const box = image.getBoundingClientRect();
+            const figure = image.closest('.mn-diagram').getBoundingClientRect();
+            return (
+              box.width > 0 &&
+              box.height > 0 &&
+              (box.left < figure.left - 1 ||
+                box.right > figure.right + 1 ||
+                box.top < figure.top - 1 ||
+                box.bottom > figure.bottom + 1)
+            );
+          })
+          .map((image) => image.getAttribute('src')),
+      );
+      assert.deepEqual(
+        escapedImages,
+        [],
+        `${label}: rule images remain within their figure`,
+      );
+      await capture(
+        phone,
+        `player-rules-${['一航次', '派遣位置', '海盗与领航', '抵押与数字版'].indexOf(label) + 1}`,
+        `rules-${label}`,
+      );
+    }
     await surface(phone).getByRole('button', { name: /关闭/ }).last().click();
     let index = -1;
     for (let i = 0; i < players.length; i++)
