@@ -1,6 +1,8 @@
 .dialog-surface.overlay-panel.box-overlay-panel {
+  --box-panel-inset: 16px;
   overflow: hidden;
-  padding: 20px;
+  padding: var(--box-panel-inset);
+  scrollbar-gutter: auto;
   background: linear-gradient(145deg, #fffef8f5, #f3f6eaf5);
   border-color: #c4ceb6;
   box-shadow:
@@ -11,25 +13,49 @@
   display: flex;
   flex-direction: column;
 }
-.box-overlay-panel > .panel-heading {
+.dialog-surface.box-overlay-panel > .panel-heading {
   position: static;
   flex: 0 0 auto;
   margin: 0 0 12px;
-  padding: 0 0 12px;
-  border-bottom: 1px solid #cbd7bf;
-  background: transparent;
+  min-width: 0;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #cfdbc4;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #edf4e7, #f5f6e9);
 }
-.box-overlay-panel > .panel-heading h2 {
+.dialog-surface.box-overlay-panel > .panel-heading h2 {
+  flex: 1 1 auto;
+  min-width: 0;
   margin: 0;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
-.box-overlay-panel__content {
+.dialog-surface.box-overlay-panel > .panel-heading > button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid #b8cbb1;
+  border-radius: 12px;
+  background: #fffdf4;
+  color: #365e4d;
+}
+.dialog-surface.box-overlay-panel > .box-overlay-panel__content {
+  min-width: 0;
+  max-width: none;
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: #91a787 #edf2e5;
-  padding-inline-end: 8px;
+  margin-inline-end: calc(6px - var(--box-panel-inset));
+  padding-inline-end: 4px;
 }
 .box-overlay-panel__content::-webkit-scrollbar {
   width: 8px;
@@ -46,6 +72,6 @@
 }
 @media (max-width: 600px) {
   .dialog-surface.overlay-panel.box-overlay-panel {
-    padding: 14px;
+    --box-panel-inset: 12px;
   }
 }

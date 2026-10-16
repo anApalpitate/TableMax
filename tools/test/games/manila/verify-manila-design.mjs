@@ -1,0 +1,316 @@
+import { assertWorkspaceRoot } from '../../../shared/workspace-root.mjs';
+assertWorkspaceRoot();
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import { build } from 'vite';
+import react from '@vitejs/plugin-react';
+import { launchTestBrowser } from '../../support/browser-test.mjs';
+import { serveFixture } from '../../support/fixture-server.mjs';
+import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
+
+const name = process.argv
+  .find((arg) => arg.startsWith('--evidence='))
+  ?.slice(11);
+assert.match(name ?? '', /^[a-z0-9-]{1,65}$/);
+const output = resolve('artifacts/manila/validation', name);
+await mkdir(output);
+const work = await mkdtemp(resolve('tmp/game-review-'));
+const source = await readFile(new URL(import.meta.url));
+await writeFile(join(output, 'verifier-source.mjs'), source, { flag: 'wx' });
+await writeFile(
+  join(work, 'index.html'),
+  '<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><div id="root"></div><script type="module" src="./entry.tsx"></script></html>',
+);
+await writeFile(
+  join(work, 'entry.tsx'),
+  `
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+import {flushSync} from 'react-dom';
+import {HostedGame} from ${JSON.stringify(resolve('packages/web-host/src/index.tsx'))};
+import {configureGameHost} from ${JSON.stringify(resolve('packages/web-host/src/platform.ts'))};
+import {avatarFor,avatarChoices} from ${JSON.stringify(resolve('apps/web/src/assets/avatars.ts'))};
+import {client} from ${JSON.stringify(resolve('games/manila/web/index.tsx'))};
+import {rules} from ${JSON.stringify(resolve('games/manila/rules/index.ts'))};
+import {turnSeat,validateState} from ${JSON.stringify(resolve('games/manila/rules/state.ts'))};
+import ${JSON.stringify(resolve('apps/web/src/styles.css'))};
+configureGameHost({ScreenLink:p=><a {...p}/>,FullscreenControl:()=>null,DisplaySettings:()=>null,useAudioOutput:()=>false,claimAudioEvent:()=>true,avatarFor,avatarChoices});
+const ids=['A','B','C','D','E'];
+const context={seats:ids,random:{next:()=>0.99}};
+const seats=ids.map((id,i)=>({id,name:['阿蓝','小林','港口伙伴','长昵称测试商人','小船长'][i],avatarId:'avatar-'+(i+1),controller:'human',ready:true,online:true,botDifficulty:null}));
+function advance(state){
+ if(state.phase==='round-result') return rules.applyLifecycle(state,{type:'next-voyage'},context).state;
+ const actor=turnSeat(state),actions=rules.legalActions(state,actor);
+ const action=actions.find(a=>a.type==='place')??actions.find(a=>a.type==='pass')??actions.find(a=>a.type==='skip-share')??actions.find(a=>a.type==='setup'&&a.positions.every(p=>p===3))??actions[0];
+ if(!action)throw new Error('Fixture has no legal advance');
+ return validateState(rules.apply(state,action,actor,context).state,ids);
+}
+const initial=rules.initialize(context);
+function stateFor(phase){
+ let state=initial;
+ for(let i=0;i<800;i++){
+  if(phase==='auction'&&state.phase==='auction'||phase==='place'&&state.phase==='place'||phase==='sail'&&state.phase==='place'&&state.movement>0||phase==='ended'&&state.phase==='ended')return state;
+  state=advance(state);
+ }
+ throw new Error('Unreachable fixture '+phase);
+}
+const root=createRoot(document.getElementById('root'));
+window.renderManila=({phase='place',role='player'}={})=>{
+ const state=stateFor(phase),actor=turnSeat(state)??ids[0];
+ const projected=rules.project(state,role==='player'?{role:'player',seatId:actor}:{role:'public'});
+ const session={role,self:role==='player'?seats.find(s=>s.id===actor):undefined,connected:true,locked:false,canControl:role==='host',message:'',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],command:c=>(window.commands??=[]).push(c),view:{instanceId:'design-'+phase+'-'+role,branch:0,revision:state.serial,status:state.phase==='ended'?'ended':'playing',paused:false,playMode:'test',gameView:projected,decisionId:rules.decisions(state)[0]?.id??null,decisionClock:null,actions:role==='player'?rules.legalActions(state,actor):[],lifecycleActions:[],seats,history:[]}};
+ flushSync(()=>root.render(<HostedGame key={phase+'-'+role} session={session} client={client} presentation={{management:()=>null,feedback:()=>null,playMode:()=>null,countdown:()=>null}}/>));
+ return {actor,avatar:avatarFor(seats.find(s=>s.id===actor).avatarId),revision:state.serial,privateShares:projected.self?.shares.length??0};
+};
+window.renderManila();
+`,
+);
+const report = {
+  result: 'running',
+  scope:
+    'Real current Manila components and legal-rule projections in a source fixture; no transport, installed-runtime, physical-device or system-installation proof.',
+  output,
+  work,
+  verifierSha256: createHash('sha256').update(source).digest('hex'),
+  layouts: [],
+  details: [],
+  screenshots: [],
+  errors: [],
+  failures: [],
+};
+let server, browser, page;
+try {
+  await build({
+    configFile: false,
+    root: work,
+    plugins: [react()],
+    resolve: {
+      alias: {
+        react: resolve('apps/web/node_modules/react'),
+        'react-dom': resolve('apps/web/node_modules/react-dom'),
+      },
+    },
+    build: {
+      outDir: join(work, 'bundle'),
+      emptyOutDir: false,
+      target: ['chrome110', 'safari16'],
+    },
+    logLevel: 'error',
+  });
+  server = await serveFixture(join(work, 'bundle'));
+  browser = await launchTestBrowser({ channel: 'msedge', headless: true });
+  page = await browser.newPage();
+  page.on('pageerror', (error) => report.errors.push(error.message));
+  await page.goto(server.url);
+  await page.waitForFunction(() => typeof window.renderManila === 'function');
+  const shot = async (name) => {
+    const path = join(output, name + '.png');
+    await captureBrowserScreenshot(page, { path });
+    report.screenshots.push(path);
+  };
+  for (const role of ['player', 'host', 'public']) {
+    const sizes =
+      role === 'player'
+        ? [
+            [320, 568],
+            [390, 844],
+            [430, 932],
+            [844, 390],
+          ]
+        : [
+            [1280, 720],
+            [1920, 1080],
+            [3840, 2160],
+          ];
+    for (const [width, height] of sizes) {
+      await page.setViewportSize({ width, height });
+      const expected = await page.evaluate(
+        (role) => window.renderManila({ phase: 'sail', role }),
+        role,
+      );
+      await page.evaluate(() =>
+        Promise.all(
+          [...document.images].map((img) => img.decode().catch(() => {})),
+        ),
+      );
+      const geometry = await page.evaluate(() => {
+        const root = document.querySelector('.mn-screen');
+        const visible = (node) =>
+          node.checkVisibility() &&
+          node.getBoundingClientRect().width > 0 &&
+          node.getBoundingClientRect().height > 0;
+        const dice = [...root.querySelectorAll('.mn-die')]
+          .filter(visible)
+          .map((node) => {
+            const r = node.getBoundingClientRect();
+            return { width: r.width, height: r.height };
+          });
+        const last = Math.max(
+          0,
+          ...[...root.children]
+            .filter(
+              (node) =>
+                visible(node) &&
+                !['fixed', 'absolute'].includes(
+                  getComputedStyle(node).position,
+                ),
+            )
+            .map((node) => node.getBoundingClientRect().bottom + scrollY),
+        );
+        const dockGaps = [...root.querySelectorAll('.mn-dock-group')]
+          .filter(visible)
+          .map(
+            (node) =>
+              node.getBoundingClientRect().bottom -
+              Math.max(
+                ...[...node.children]
+                  .filter(visible)
+                  .map((child) => child.getBoundingClientRect().bottom),
+              ) -
+              parseFloat(getComputedStyle(node).paddingBottom),
+          );
+        return {
+          width: innerWidth,
+          scrollWidth: document.documentElement.scrollWidth,
+          tailGap:
+            document.scrollingElement.scrollHeight -
+            Math.max(innerHeight, last),
+          dice,
+          dockGaps,
+          smallText: [...root.querySelectorAll('*')]
+            .filter(
+              (node) =>
+                visible(node) &&
+                [...node.childNodes].some(
+                  (child) =>
+                    child.nodeType === Node.TEXT_NODE &&
+                    child.textContent.trim(),
+                ) &&
+                parseFloat(getComputedStyle(node).fontSize) < 16,
+            )
+            .map((node) => ({
+              text: node.textContent.slice(0, 80),
+              size: getComputedStyle(node).fontSize,
+            })),
+          privateCount: root.querySelectorAll('.mn-private').length,
+          actorAvatar:
+            root.querySelector('.mn-status img')?.getAttribute('src') ?? null,
+          bodyText: root.textContent,
+        };
+      });
+      report.layouts.push({
+        role,
+        width,
+        height,
+        ...geometry,
+        bodyText: undefined,
+      });
+      assert.ok(
+        geometry.scrollWidth <= width + 1,
+        `${role} ${width}: horizontal overflow`,
+      );
+      assert.ok(
+        geometry.tailGap <= 20,
+        `${role} ${width}: empty trailing scroll ${geometry.tailGap}`,
+      );
+      assert.ok(geometry.dice.length > 0, 'Sailed legal state renders dice');
+      assert.ok(
+        geometry.dice.every((d) => Math.abs(d.width - d.height) < 0.6),
+        'Every visible die is square',
+      );
+      assert.ok(
+        geometry.dockGaps.every((gap) => gap <= 4),
+        'Dock cards do not stretch past their content',
+      );
+      assert.deepEqual(
+        geometry.smallText,
+        [],
+        `${role} ${width}: information text is at least 16 CSS pixels`,
+      );
+      assert.equal(
+        geometry.actorAvatar,
+        expected.avatar,
+        'Status uses the current acting seat portrait',
+      );
+      assert.equal(
+        geometry.privateCount,
+        role === 'player' ? 1 : 0,
+        'Only the player projection contains a private wallet',
+      );
+      if (role === 'player')
+        assert.match(
+          geometry.bodyText,
+          /抵押.*借|可借/,
+          'Credit is described as borrowing against shares',
+        );
+      await shot(role + '-' + width + 'x' + height);
+    }
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() =>
+    window.renderManila({ phase: 'place', role: 'player' }),
+  );
+  const triggers = page.locator('.mn-detail-button');
+  for (let index = 0; index < (await triggers.count()); index++) {
+    const trigger = triggers.nth(index);
+    if (!(await trigger.isVisible())) continue;
+    const label =
+      (await trigger.getAttribute('aria-label')) ?? (await trigger.innerText());
+    await trigger.click();
+    const card = page.locator('.mn-detail-card');
+    await card.waitFor();
+    const box = await card.boundingBox();
+    assert.ok(
+      box &&
+        box.x >= 0 &&
+        box.y >= 0 &&
+        box.x + box.width <= 390.5 &&
+        box.y + box.height <= 844.5,
+      'Detail fits its viewport: ' + label,
+    );
+    await shot('detail-' + index);
+    report.details.push({ label, box });
+    await card.getByRole('button', { name: /关闭/ }).click();
+    assert.equal(await card.count(), 0, 'Detail closes: ' + label);
+  }
+  await page.getByRole('button', { name: '账本', exact: true }).click();
+  await page.locator('.mn-overlay').waitFor();
+  await shot('player-ledger-390x844');
+  await page
+    .locator('.mn-overlay')
+    .getByRole('button', { name: /关闭/ })
+    .click();
+  assert.deepEqual(
+    await page.evaluate(() => window.commands ?? []),
+    [],
+    'Browsing details and ledger never submits actions',
+  );
+  assert.deepEqual(report.errors, []);
+  report.result = 'passed';
+} catch (error) {
+  report.result = 'failed';
+  report.failures.push(error.stack ?? String(error));
+  process.exitCode = 1;
+  if (page)
+    await captureBrowserScreenshot(page, {
+      path: join(output, 'failure.png'),
+    }).catch(() => {});
+} finally {
+  if (browser) await browser.close();
+  if (server) await server.close();
+  await writeFile(
+    join(output, 'results.json'),
+    JSON.stringify(report, null, 2) + '\n',
+  );
+  console.log(
+    JSON.stringify({
+      result: report.result,
+      output,
+      layouts: report.layouts.length,
+      details: report.details.length,
+      failures: report.failures,
+    }),
+  );
+}

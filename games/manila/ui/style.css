@@ -215,7 +215,7 @@
   grid-template-columns: minmax(0, 1fr);
 }
 .mn-screen--player {
-  padding-bottom: 190px;
+  padding-bottom: var(--mn-confirm-height, 12px);
 }
 .mn-screen--player .mn-confirm {
   position: fixed;
@@ -1407,7 +1407,7 @@
   min-width: 72px;
 }
 .mn-screen--player {
-  padding-bottom: max(140px, var(--mn-confirm-height, 0px));
+  padding-bottom: var(--mn-confirm-height, 12px);
 }
 .mn-screen--player .mn-confirm {
   width: min(920px, calc(100vw - 16px));
@@ -1815,7 +1815,7 @@
     padding: 6px;
   }
   .mn-screen--player {
-    padding-bottom: max(140px, var(--mn-confirm-height, 0px));
+    padding-bottom: var(--mn-confirm-height, 6px);
   }
   .mn-harbor {
     padding-block: 3px;

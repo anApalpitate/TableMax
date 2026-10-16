@@ -14,7 +14,10 @@ import { InviteFriends } from '../components/InviteFriends';
 import { BoxFeedback } from '../components/BoxFeedback';
 import { Notifications } from '../components/notifications/Notifications';
 import { RoomTable } from '../components/RoomTable';
-import { BoxOverlayPanel as OverlayPanel } from '../components/BoxOverlayPanel';
+import {
+  BoxOverlayPanel as OverlayPanel,
+  BoxPanelScope,
+} from '../components/BoxOverlayPanel';
 import { SeatSettings } from '../components/SeatSettings';
 import { GameLibrary } from '../components/GameLibrary';
 import { PlayModeControl } from '../components/PlayModeControl';
@@ -56,7 +59,9 @@ type BoxPanel =
 export function BoxScreen({ session }: { session: RoomSession }) {
   return (
     <Notifications>
-      <BoxScreenContent session={session} />
+      <BoxPanelScope>
+        <BoxScreenContent session={session} />
+      </BoxPanelScope>
     </Notifications>
   );
 }
@@ -145,7 +150,13 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           <img className="brand-mark" src={appIcon} alt="" />
           TableMax
         </RepositoryLink>
-        <div className="header-status">
+        <span
+          className={`connection ${connected ? 'online' : ''}`}
+          role="status"
+        >
+          {connected ? '已连接' : '正在连接'}
+        </span>
+        <div className="header-status" role="group" aria-label="牌桌设置">
           {isHost && <ApplicationUpdate playing={view?.status === 'playing'} />}
           {(isHost || details?.guidance) && (
             <CountdownSettings session={session}>
@@ -155,6 +166,8 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
             </CountdownSettings>
           )}
           <DisplaySettings role={role} />
+        </div>
+        <div className="box-header-feedback">
           <PlayModeBadge mode={view?.playMode} />
           <span
             className="box-save-status"
@@ -164,12 +177,6 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
             {feedbackText(
               compactProgress ? 'session.submitting' : 'session.saved',
             )}
-          </span>
-          <span
-            className={`connection ${connected ? 'online' : ''}`}
-            role="status"
-          >
-            {connected ? '已连接' : '正在连接'}
           </span>
         </div>
       </header>

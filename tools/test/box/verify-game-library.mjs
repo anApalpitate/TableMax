@@ -29,6 +29,7 @@ import React,{useState} from 'react';
 import {createRoot} from 'react-dom/client';
 import {BoxScreen} from ${JSON.stringify(resolve('apps/web/src/screens/BoxScreen.tsx'))};
 import {moduleCatalog} from ${JSON.stringify(resolve('apps/web/src/catalog.ts'))};
+import {plannedLibraryGames} from ${JSON.stringify(resolve('apps/web/src/components/game-library/candidates.ts'))};
 import {feedbackKind} from ${JSON.stringify(resolve('apps/web/src/content/feedback.ts'))};
 import ${JSON.stringify(resolve('apps/web/src/styles.css'))};
 import ${JSON.stringify(resolve('apps/web/src/screens/box-screen.css'))};
@@ -36,6 +37,7 @@ import ${JSON.stringify(resolve('apps/web/src/screens/box-screen.css'))};
 const catalog=moduleCatalog.filter(m=>!m.internal).map(m=>({...m.catalog,decisionTimer:true}));
 window.commands=[];
 window.catalog=catalog;
+window.expectedLibraryIds=[...new Set([...catalog.map(game=>game.id),...plannedLibraryGames.map(game=>game.id)])];
 window.moduleCatalog=moduleCatalog;
 window.developmentIds=moduleCatalog.filter(m=>m.development).map(m=>m.id);
 const base={revision:12,instanceId:'fixture',branch:0,status:'lobby',game:catalog.find(g=>g.id==='uno'),catalog,seats:[],ownerSeatId:null,joinOpen:true,gameView:null,history:[],lifecycleActions:[],playMode:'play',decisionClock:null,capabilities:{manage:true}};
@@ -94,7 +96,25 @@ try {
     '请在游戏库选择游戏',
   );
   assert.equal(await page.locator('.box-download-icon').count(), 0);
-  assert.equal(await library.locator('[data-game-id]').count(), 6);
+  assert.deepEqual(
+    (
+      await library
+        .locator('[data-game-id]')
+        .evaluateAll((nodes) => nodes.map((node) => node.dataset.gameId))
+    ).sort(),
+    (await page.evaluate(() => window.expectedLibraryIds)).sort(),
+    'Every current playable and planned entry appears exactly once',
+  );
+  await library
+    .locator('[data-candidate-cover]')
+    .evaluateAll((images) =>
+      Promise.all(images.map((image) => image.decode())),
+    );
+  assert.equal(
+    await library.locator('[data-candidate-cover]').count(),
+    4,
+    'All four planned titles use real local cover images',
+  );
   await library.getByRole('searchbox', { name: '搜索游戏' }).fill('UNO');
   assert.equal(await library.locator('[data-game-id]').count(), 1);
   await library.locator('[data-game-id="uno"]').getByRole('button').click();
@@ -119,6 +139,7 @@ try {
     for (const [width, height] of [
       [320, 568],
       [390, 844],
+      [430, 932],
       [844, 390],
       [1280, 720],
       [1920, 1080],
@@ -162,7 +183,7 @@ try {
     ),
   );
   checked(
-    'Three roles and 18 layouts fit 320px–4K with no installation UI or requests.',
+    'Three roles and 21 layouts fit 320px–4K with no installation UI or requests.',
   );
   await page.keyboard.press('Escape');
   await page.evaluate(() =>
@@ -198,11 +219,181 @@ try {
   checked(
     'Old sessions are labelled, and variant selection remains an authorized command.',
   );
+  await page.keyboard.press('Escape');
+  const commandsBeforePanels = await page.evaluate(
+    () => window.commands.length,
+  );
+  for (const role of ['player', 'host', 'public']) {
+    await page.evaluate(
+      (role) =>
+        window.patchBox({
+          role,
+          isHost: role === 'host',
+          canControl: role === 'host',
+          canManageSeats: role === 'host',
+          credential: role === 'player' ? '' : 'fixture',
+          self: null,
+          message: '',
+          messageKind: 'none',
+          view: {
+            ...window.base,
+            game: window.catalog.find((game) => game.id === 'manila'),
+            seats: [],
+          },
+        }),
+      role,
+    );
+    for (const [width, height] of [
+      [320, 568],
+      [390, 844],
+      [430, 932],
+      [844, 390],
+      [1280, 720],
+      [1920, 1080],
+      [3840, 2160],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await page.evaluate(
+        () =>
+          new Promise((done) =>
+            requestAnimationFrame(() => requestAnimationFrame(done)),
+          ),
+      );
+      const geometry = await page.locator('.box-screen').evaluate((root) => {
+        const header = root.querySelector(':scope > header'),
+          brand = header.querySelector('.brand').getBoundingClientRect(),
+          connection = header
+            .querySelector('.connection')
+            .getBoundingClientRect();
+        return {
+          brand: {
+            left: brand.left,
+            right: brand.right,
+            top: brand.top,
+            bottom: brand.bottom,
+          },
+          connection: {
+            left: connection.left,
+            right: connection.right,
+            top: connection.top,
+            bottom: connection.bottom,
+          },
+          heroTop: root.querySelector('.hero').getBoundingClientRect().top,
+          width: document.documentElement.clientWidth,
+          scrollWidth: document.documentElement.scrollWidth,
+        };
+      });
+      assert.ok(
+        geometry.scrollWidth <= geometry.width + 1,
+        `${role} ${width}: main box has no horizontal overflow`,
+      );
+      assert.ok(
+        geometry.brand.right <= geometry.connection.left + 1,
+        `${role} ${width}: brand and connection do not collide`,
+      );
+      await page.evaluate(() =>
+        window.patchBox({ message: '已保存', messageKind: 'saved' }),
+      );
+      await page.evaluate(
+        () =>
+          new Promise((done) =>
+            requestAnimationFrame(() => requestAnimationFrame(done)),
+          ),
+      );
+      const savedTop = await page
+        .locator('.box-screen .hero')
+        .evaluate((node) => node.getBoundingClientRect().top);
+      assert.ok(
+        Math.abs(savedTop - geometry.heroTop) < 1,
+        `${role} ${width}: save feedback preserves the hero position`,
+      );
+      await page.evaluate(() =>
+        window.patchBox({ message: '', messageKind: 'none' }),
+      );
+      if (width === 390 || width === 1280)
+        await captureBrowserScreenshot(page, {
+          path: join(output, `header-${role}-${width}.png`),
+        });
+    }
+    if (role === 'player') {
+      for (const [width, height] of [
+        [320, 568],
+        [390, 844],
+        [430, 932],
+        [844, 390],
+      ]) {
+        await page.setViewportSize({ width, height });
+        const entry = page.getByRole('button', {
+          name: '选择头像',
+          exact: true,
+        });
+        await entry.click();
+        const dialog = page.getByRole('dialog', {
+          name: '选择头像',
+          exact: true,
+        });
+        const intro = await dialog
+          .locator('.avatar-picker__intro')
+          .evaluate((node) => ({
+            width: node.getBoundingClientRect().width,
+            parentWidth: node.parentElement.getBoundingClientRect().width,
+            wrap: getComputedStyle(node).textWrap,
+            scrollWidth: node.scrollWidth,
+            clientWidth: node.clientWidth,
+          }));
+        assert.notEqual(
+          intro.wrap,
+          'balance',
+          'Avatar guidance does not force balanced line breaks',
+        );
+        assert.ok(
+          intro.width >= intro.parentWidth - 1 &&
+            intro.scrollWidth <= intro.clientWidth + 1,
+          'Avatar guidance uses its available row naturally',
+        );
+        const content = dialog.locator('.box-overlay-panel__content');
+        await content.evaluate((node) => {
+          node.scrollTop = node.scrollHeight;
+        });
+        const close = dialog.getByRole('button', {
+          name: '关闭面板',
+          exact: true,
+        });
+        const closeRect = await close.boundingBox();
+        assert.ok(
+          closeRect.height >= 44 &&
+            closeRect.width >= 44 &&
+            closeRect.y >= 0 &&
+            closeRect.y + closeRect.height <= height,
+          'Avatar close stays visible with a 44px target after internal scrolling',
+        );
+        if (width === 390) {
+          await content.evaluate((node) => {
+            node.scrollTop = 0;
+          });
+          await captureBrowserScreenshot(page, {
+            path: join(output, 'avatar-player-390.png'),
+          });
+        }
+        await close.click();
+      }
+    }
+  }
+  assert.equal(
+    await page.evaluate(() => window.commands.length),
+    commandsBeforePanels,
+    'Browsing box panels and save feedback issues no game action',
+  );
+  checked(
+    'Real BoxScreen header remains stable for three roles and 21 viewports; avatar guidance and close remain usable at four phone sizes.',
+  );
   report.status = 'passed';
   console.log(
     'Complete game library passed: ' +
       report.checks.length +
-      ' checks / 18 layouts; ' +
+      ' checks / ' +
+      report.layouts.length +
+      ' layouts; ' +
       output,
   );
 } catch (error) {

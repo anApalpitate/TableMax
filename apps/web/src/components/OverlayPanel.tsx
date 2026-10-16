@@ -1,11 +1,13 @@
 import {
   useEffect,
+  useContext,
   useId,
   useRef,
   type ReactNode,
   type RefObject,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { BoxPanelContext } from './box-panel-context';
 import './overlay-panel.css';
 
 function canFocus(element: Element | null): element is HTMLElement {
@@ -48,6 +50,7 @@ export function OverlayPanel({
   initialFocus?: RefObject<HTMLElement | null>;
   className?: string;
 }) {
+  const boxAppearance = useContext(BoxPanelContext);
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   useEffect(() => {
@@ -63,7 +66,7 @@ export function OverlayPanel({
   return createPortal(
     <dialog
       ref={dialog}
-      className={`overlay-panel dialog-surface${className ? ` ${className}` : ''}`}
+      className={`overlay-panel dialog-surface${boxAppearance ? ' box-overlay-panel' : ''}${className ? ` ${className}` : ''}`}
       aria-labelledby={titleId}
       onCancel={(event) => {
         event.preventDefault();
@@ -92,10 +95,29 @@ export function OverlayPanel({
           aria-label="关闭面板"
           onClick={close}
         >
-          关闭
+          {boxAppearance ? (
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <path d="m6 6 12 12M18 6 6 18" />
+            </svg>
+          ) : (
+            '关闭'
+          )}
         </button>
       </div>
-      {children}
+      {boxAppearance ? (
+        <div className="box-overlay-panel__content">{children}</div>
+      ) : (
+        children
+      )}
     </dialog>,
     document.body,
   );

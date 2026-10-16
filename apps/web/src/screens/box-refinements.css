@@ -2,9 +2,26 @@
   min-width: 0;
 }
 .box-screen > header {
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'brand settings connection'
+    'brand settings feedback';
+  align-items: center;
+  gap: 4px 16px;
+}
+.box-screen > header > .brand {
+  grid-area: brand;
+  min-width: 0;
+}
+.box-screen > header > .connection {
+  grid-area: connection;
+  justify-self: end;
+  white-space: nowrap;
+  font-size: 16px;
 }
 .box-screen > header .header-status {
+  grid-area: settings;
   min-width: 0;
   max-width: 100%;
   gap: 8px;
@@ -41,9 +58,19 @@
   }
 }
 .box-screen .box-save-status {
-  /* Pending and saved share one slot, so neither wraps the header on arrival. */
+  /* Keep feedback separate from the controls and reserve its saved/pending slot. */
   inline-size: 6em;
   text-align: right;
+}
+.box-screen > header > .box-header-feedback {
+  grid-area: feedback;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px 10px;
+  min-width: 0;
+  min-height: 24px;
 }
 .box-screen .box-save-status[data-visible='false'] {
   visibility: hidden;
@@ -93,7 +120,7 @@
   flex-shrink: 0;
   white-space: nowrap;
 }
-.box-screen .header-status .test-mode-badge {
+.box-screen .box-header-feedback .test-mode-badge {
   font-size: 16px;
 }
 .box-screen .room-table {
@@ -163,14 +190,19 @@
   line-height: 1.5;
   text-align: center;
 }
-.dialog-surface .avatar-picker .avatar-choice__claimed,
-.dialog-surface .avatar-picker .avatar-choice__current,
-.dialog-surface .avatar-picker .avatar-choice__available {
+.box-overlay-panel .avatar-picker .avatar-choice__claimed,
+.box-overlay-panel .avatar-picker .avatar-choice__current,
+.box-overlay-panel .avatar-picker .avatar-choice__available {
   font-size: 16px;
 }
-.dialog-surface .avatar-picker__intro,
-.dialog-surface .connection-help__steps li {
-  text-wrap: balance;
+.box-overlay-panel .avatar-picker,
+.box-overlay-panel .avatar-picker__intro {
+  min-width: 0;
+  width: 100%;
+}
+.box-overlay-panel .avatar-picker__intro,
+.box-overlay-panel .connection-help__steps li {
+  text-wrap: wrap;
 }
 @media (min-width: 861px) and (max-height: 850px) {
   .box-screen:not(.player) .room-table {
@@ -189,9 +221,25 @@
   }
 }
 @media (max-width: 720px) {
+  .box-screen > header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'brand connection'
+      'settings settings'
+      'feedback feedback';
+    gap: 8px 12px;
+  }
   .box-screen > header .header-status {
-    flex: 1 1 100%;
     justify-content: flex-start;
+  }
+  .box-screen > header > .brand {
+    min-height: 44px;
+  }
+  .box-screen > header > .box-header-feedback {
+    justify-content: space-between;
+  }
+  .box-screen > header > .box-header-feedback > .box-save-status {
+    margin-inline-start: auto;
   }
   .box-screen .hero:has(.box-game-title) {
     flex-wrap: wrap;

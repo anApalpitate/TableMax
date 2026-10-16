@@ -16,6 +16,12 @@ import {
   DropTarget,
   useManilaInteraction,
 } from './interaction';
+import {
+  CargoDetail,
+  DockDetail,
+  SpecialistDetail,
+  VoyageDetail,
+} from './Theme';
 type Seats = NonNullable<GameHost['view']>['seats'];
 
 export function Space({
@@ -160,17 +166,7 @@ export function HarborBoard({
           <h2>马尼拉港湾</h2>
           <DetailButton
             title="航次与岗位说明"
-            detail={
-              <>
-                <p>
-                  航行 {Math.min(game.movement, 3)}/3；派遣第{' '}
-                  {game.placementRound} 轮。
-                </p>
-                <p>
-                  船舱只开放最低空费位。分红池由船上同伙均分。点击或拖动图形选择，确认后保存。
-                </p>
-              </>
-            }
+            detail={<VoyageDetail game={game} />}
           >
             <span>航行 {Math.min(game.movement, 3)}/3</span>
             <span aria-hidden="true">ⓘ</span>
@@ -181,16 +177,7 @@ export function HarborBoard({
             <section className="mn-dock-group" key={kind}>
               <DetailButton
                 title={kind === 'port' ? '港口岗位' : '修船坞岗位'}
-                detail={
-                  <>
-                    <p>
-                      ABC费用4／3／2 ₱，收益6／8／15 ₱，按本航次抵达船数结算。
-                    </p>
-                    <p>
-                      伙伴选择具体岗位；海盗送船只选港口或修船坞，由规则分配泊位。
-                    </p>
-                  </>
-                }
+                detail={<DockDetail game={game} kind={kind} />}
               >
                 <SiteArt kind={kind} />
                 <strong>{kind === 'port' ? '港口' : '修船坞'}</strong>
@@ -271,26 +258,13 @@ export function HarborBoard({
                     <DetailButton
                       title={`${cargoNames[cargo]}货船详情`}
                       detail={
-                        <>
-                          <p>
-                            当前位置：{destination}
-                            {boat.plundered ? '；被掠夺' : ''}。
-                          </p>
-                          <p>
-                            整船分红池 {data?.payout} ₱，同伙均分。舱位费用{' '}
-                            {data?.costs.join('／')} ₱。
-                          </p>
-                          <ul>
-                            {crew.map((entry) => (
-                              <li key={entry.id}>
-                                {entry.index + 1}号位：
-                                {entry.occupant
-                                  ? names[entry.occupant]
-                                  : '空位'}
-                              </li>
-                            ))}
-                          </ul>
-                        </>
+                        <CargoDetail
+                          game={game}
+                          cargo={cargo}
+                          names={names}
+                          destination={destination}
+                          plundered={boat.plundered}
+                        />
                       }
                     >
                       <CargoArt cargo={cargo} />
@@ -314,6 +288,12 @@ export function HarborBoard({
                   data-rail-lane={setup ? index : undefined}
                   data-rail-cargo={pilot ? cargo : undefined}
                   data-rail-position={pilot ? boat.position : undefined}
+                  data-mn-hovered={Boolean(
+                    work.carry &&
+                    work.hoverTarget?.startsWith(
+                      setup ? `start:${index}:` : `pilot:${cargo}:`,
+                    ),
+                  )}
                 >
                   <div className="mn-track-cells">
                     {Array.from({ length: 14 }, (_, cell) => (
@@ -446,20 +426,7 @@ export function HarborBoard({
                     <DetailButton
                       title={`${cargoNames[cargo]}分红与伙伴`}
                       detail={
-                        <>
-                          <p>
-                            整船分红池 {data?.payout}{' '}
-                            ₱，同伙均分，不是每人的收益。
-                          </p>
-                          <p>
-                            {crew
-                              .map(
-                                (entry) =>
-                                  `${entry.index + 1}号位 ${entry.occupant ? names[entry.occupant] : `${entry.cost} ₱空位`}`,
-                              )
-                              .join('；')}
-                          </p>
-                        </>
+                        <CargoDetail game={game} cargo={cargo} names={names} />
                       }
                     >
                       <span>{data?.payout} ₱</span>
@@ -484,15 +451,7 @@ export function HarborBoard({
                       ? '领航员'
                       : '保险行'
                 }
-                detail={
-                  <p>
-                    {kind === 'pirate'
-                      ? '每位5 ₱，先船长后船员。第二掷恰在13格可登空船位，第三掷恰在13格可掠夺。'
-                      : kind === 'pilot'
-                        ? '小领航2 ₱、额度1格；大领航5 ₱、额度最多2格。仅调整海上船，可放弃全部或部分额度。'
-                        : '免费派遣，立即取得10 ₱；承担实际修船费用6／8／15 ₱，本人坞位免自付。'}
-                  </p>
-                }
+                detail={<SpecialistDetail kind={kind} />}
               >
                 <SiteArt kind={kind} />
                 <span>
@@ -527,7 +486,10 @@ export function Market({ game }: { game: ManilaView }) {
             style={cargoStyle(cargoColors[cargo.id])}
           >
             <div className="mn-market-title">
-              <span className="mn-cargo">{cargoNames[cargo.id]}</span>
+              <span className="mn-cargo">
+                <CargoArt cargo={cargo.id} />
+                {cargoNames[cargo.id]}
+              </span>
               <span>余 {game.stock[cargo.id]} 股</span>
             </div>
             <div
@@ -583,7 +545,7 @@ export function Players({ game, seats }: { game: ManilaView; seats: Seats }) {
                   )}
                 </strong>
                 <div className="mn-seat-meta">
-                  <span>{player.cash} ₱</span>
+                  <span>现金 {player.cash} ₱</span>
                   <span>{player.shareCount} 股</span>
                   <span>伙伴 {player.availableWorkers}</span>
                 </div>

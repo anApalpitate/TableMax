@@ -723,12 +723,38 @@ async function touchDrag(source, target, cancel = false, beforeEnd) {
     await wait(20);
   }
   await beforeEnd?.();
+  const hover = await surface(phone).evaluate(() => {
+    const targets = [...document.querySelectorAll('.mn-drop-ready')].filter(
+      (node) => node.checkVisibility(),
+    );
+    const trace = window.__manilaPointers;
+    return {
+      targets: targets.map((node) => node.getAttribute('data-manila-drop')),
+      lastHit: trace?.at(-1)?.hit ?? null,
+    };
+  });
+  assert.ok(
+    hover.targets.length <= 1,
+    'Dragging highlights only its single rendered target',
+  );
+  if (hover.targets.length && hover.lastHit)
+    assert.equal(
+      hover.targets[0],
+      hover.lastHit,
+      'Highlight follows the actual pointer hit',
+    );
   await dispatch(cancel ? 'touchCancel' : 'touchEnd');
+  assert.equal(
+    await surface(phone).locator('.mn-drop-ready').count(),
+    0,
+    'Ending or cancelling a gesture clears target highlighting',
+  );
   evidence.checks.push({
     check: 'Actual touch gesture trace',
     from,
     to,
     cancel,
+    hover,
     events: await surface(phone).evaluate(() => window.__manilaPointers),
   });
 }

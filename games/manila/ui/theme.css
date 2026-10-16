@@ -1,0 +1,665 @@
+/* Manila's contracts, copper plaques and paper account book. */
+.mn-theme {
+  --mn-ink: #203c3b;
+  --mn-paper: #fff6df;
+  --mn-gold: #b67d31;
+  color: var(--mn-ink);
+  font:
+    16px/1.45 'Segoe UI',
+    'Microsoft YaHei',
+    sans-serif;
+}
+.mn-theme *,
+.mn-theme *::before,
+.mn-theme *::after {
+  box-sizing: border-box;
+}
+.mn-copper-mark {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.mn-screen .mn-copper-button,
+.mn-screen .mn-alternatives > summary,
+.mn-detail-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  border: 1px solid #ad865c;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fff7e4, #e8d1a8) !important;
+  box-shadow:
+    inset 0 0 0 2px #fff8,
+    0 2px 3px #69492c18 !important;
+  color: #514025;
+}
+.mn-toolbar-tools button {
+  flex: none;
+  width: auto;
+  min-width: max-content;
+  white-space: nowrap;
+  padding-inline: 12px;
+}
+.mn-current-turn {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+}
+.mn-actor-avatar {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #b48b4c;
+  box-shadow: 0 1px 4px #2e46372b;
+  flex: none;
+}
+.mn-current-turn-copy {
+  min-width: 0;
+}
+.mn-private {
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+.mn-wallet-summary {
+  gap: 14px;
+  flex-wrap: nowrap;
+}
+.mn-cash,
+.mn-credit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.mn-cash {
+  color: #714a14;
+}
+.mn-credit {
+  color: #365e64;
+}
+.mn-cash > span,
+.mn-credit > span {
+  display: grid;
+  font-size: 16px;
+  line-height: 1.1;
+  gap: 3px;
+}
+.mn-cash strong,
+.mn-credit strong {
+  font-size: 18px;
+}
+.mn-secret-entry {
+  gap: 6px;
+}
+.mn-sealed-contract {
+  display: inline-grid;
+  place-items: center;
+  width: 31px;
+  height: 31px;
+  position: relative;
+  background: #fff1d0;
+  border: 1px solid #a58a5b;
+  border-radius: 3px;
+  transform: rotate(-5deg);
+  box-shadow:
+    -3px -2px 0 -1px #fff4dc,
+    -4px -3px 0 -1px #ad9368;
+}
+.mn-sealed-contract .mn-copper-mark {
+  width: 23px;
+  height: 23px;
+}
+.mn-sealed-contract i {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #bf6750, #893d2f);
+  border: 2px double #edb18c;
+}
+.mn-certificates {
+  display: grid;
+  gap: 9px;
+}
+.mn-certificate {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 78px;
+  padding: 9px;
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--cargo-color), #ae9b71 50%);
+  border-left: 5px solid var(--cargo-color);
+  border-radius: 5px 10px 10px 5px;
+  background: linear-gradient(110deg, #fffef0, #f3e6c8);
+  box-shadow:
+    inset 0 0 0 3px #fff9,
+    0 2px 3px #70542b1a;
+}
+.mn-certificate > .mn-cargo-art {
+  width: 52px;
+  height: 52px;
+}
+.mn-certificate > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.mn-certificate strong {
+  font-size: 18px;
+}
+.mn-certificate > div > span {
+  font-size: 16px;
+  color: #53615a;
+}
+.mn-certificate-seal {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  border: 3px double #b8834b;
+  border-radius: 50%;
+  color: #78552c;
+  background: #ead4a448;
+  font-size: 16px;
+  transform: rotate(-9deg);
+}
+.mn-certificate--mortgaged .mn-certificate-seal {
+  color: #9b4134;
+  border-color: #b75d49;
+  background: #b9533612;
+}
+.mn-detail-card {
+  width: min(360px, calc(100vw - 16px));
+  padding: 12px;
+  background: linear-gradient(120deg, #fffcf0f7, #f3e7c9f7);
+  border: 1px solid #a58a5e;
+  box-shadow:
+    inset 0 0 0 3px #fff7,
+    0 12px 38px #133b3552;
+}
+.mn-detail-card > header {
+  position: sticky;
+  top: -12px;
+  z-index: 2;
+  padding-block: 3px;
+  background: #faf1ddf7;
+}
+.mn-detail-card .mn-close,
+.mn-screen .mn-close {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  flex: none;
+  padding: 0;
+  border: 1px solid #a78960;
+  border-radius: 50%;
+  background: linear-gradient(#fff9eb, #e7d2ac);
+  color: #604c32;
+  box-shadow: inset 0 0 0 3px #fff7;
+}
+.mn-close svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+.mn-detail-scene {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.mn-detail-illustration {
+  display: grid;
+  place-items: center;
+  min-height: 78px;
+  border-radius: 12px;
+  background: radial-gradient(ellipse, #e0c48b90, #fff8e100);
+}
+.mn-detail-illustration .mn-site-art,
+.mn-detail-illustration .mn-cargo-art {
+  width: 78px;
+  height: 78px;
+}
+.mn-detail-illustration .mn-copper-mark {
+  width: 48px;
+  height: 48px;
+  color: #a8793d;
+}
+.mn-detail-scene > div:last-child {
+  display: grid;
+  gap: 4px;
+}
+.mn-detail-scene strong,
+.mn-detail-scene b {
+  font-size: 18px;
+  line-height: 1.3;
+}
+.mn-detail-scene span {
+  font-size: 16px;
+}
+.mn-detail-rows {
+  display: grid;
+  margin-bottom: 10px;
+}
+.mn-detail-rows > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding-block: 5px;
+  border-bottom: 1px solid #b5a47a55;
+}
+.mn-detail-rows > div > :last-child {
+  margin-left: auto;
+  white-space: nowrap;
+}
+.mn-detail-rows strong {
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+.mn-position-badge {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #b19256;
+  border-radius: 50%;
+  background: #ead4a0;
+  flex: none;
+}
+.mn-empty-worker {
+  width: 20px;
+  height: 24px;
+  border: 1px dashed #af9771;
+  border-radius: 50% 50% 5px 5px;
+  flex: none;
+}
+.mn-detail-note {
+  color: #526358;
+  border-left: 3px solid #bda167;
+  padding: 6px 8px;
+  background: #e9ddb64d;
+}
+.mn-voyage-steps {
+  list-style: none;
+  display: grid;
+  gap: 9px;
+  padding: 0 !important;
+  margin: 0 0 12px !important;
+}
+.mn-voyage-steps li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 36px;
+}
+.mn-voyage-steps b {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #396e62;
+  color: #fff8e3;
+}
+.mn-specialist-facts {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.mn-specialist-facts > div {
+  display: grid;
+  gap: 3px;
+  padding: 8px 10px;
+  border: 1px solid #bcaa7b6b;
+  border-radius: 8px;
+  background: #fff9e88c;
+}
+.mn-receipt-entry {
+  padding: 12px;
+  border-block: 1px solid #b6a47b;
+  background: repeating-linear-gradient(
+    transparent,
+    transparent 27px,
+    #b6a47b35 28px
+  );
+  line-height: 28px;
+}
+.mn-docks {
+  align-content: start;
+  align-self: start;
+}
+.mn-track[data-mn-hovered='true'] {
+  outline: 3px dashed #e4ad25;
+  outline-offset: 2px;
+  background-color: #fff0b56b;
+}
+.mn-dock-group {
+  align-self: start;
+}
+.mn-alternative-content {
+  bottom: max(8px, var(--mn-confirm-height, 0px), env(safe-area-inset-bottom));
+  padding: 12px;
+  background: linear-gradient(115deg, #fffdf0, #efe0bc);
+  border: 1px solid #a28c5f;
+}
+.mn-alternative-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  position: sticky;
+  top: -12px;
+  z-index: 2;
+  padding-block: 4px;
+  margin-bottom: 8px;
+  background: #faf1da;
+}
+.mn-alternative-heading h3 {
+  margin: 0;
+}
+.mn-action-grid > button {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: center;
+  gap: 3px 8px;
+  text-align: left;
+}
+.mn-action-grid > button > .mn-site-art,
+.mn-action-grid > button > .mn-cargo-art {
+  width: 46px;
+  height: 46px;
+  grid-row: span 2;
+}
+.mn-action-grid > button > strong {
+  font-size: 18px;
+}
+.mn-action-grid > button > span {
+  font-size: 16px;
+}
+.mn-finance-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-block: 8px;
+}
+.mn-screen .mn-finance-choice {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 3px 6px;
+  padding: 8px;
+  text-align: left;
+}
+.mn-finance-choice .mn-cargo-art {
+  grid-row: span 3;
+  width: 44px;
+  height: 44px;
+}
+.mn-finance-choice strong {
+  font-size: 18px;
+}
+.mn-finance-choice span {
+  font-size: 16px;
+}
+.mn-tray-instruction {
+  white-space: nowrap;
+  flex: none;
+}
+.mn-screen button[data-manila-action='pass'] {
+  width: auto;
+  max-width: none;
+  min-width: max-content;
+  min-height: 44px;
+  height: 44px;
+  padding: 5px 10px;
+  font-size: 16px;
+  white-space: nowrap;
+}
+.mn-drag-ghost {
+  padding: 7px 10px;
+  font-size: 18px;
+  white-space: nowrap;
+}
+.mn-overlay.dialog-surface {
+  width: min(94vw, 760px);
+  padding: 18px;
+  background: linear-gradient(115deg, #fffdf0, #f0e3c4);
+  border: 1px solid #a58a5e;
+  box-shadow:
+    inset 0 0 0 4px #fff7,
+    0 22px 80px #172d3250;
+}
+.mn-overlay > .panel-heading {
+  top: -18px;
+  padding: 7px 0;
+  background: #faf1ddf5;
+  border-bottom: 1px solid #b6a47b6b;
+}
+.mn-overlay > .panel-heading > button {
+  min-width: 44px;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  padding: 0;
+  font-size: 0;
+  background: linear-gradient(#fff9eb, #e7d2ac);
+  border: 1px solid #a78960;
+  box-shadow: inset 0 0 0 3px #fff7;
+  color: #604c32;
+}
+.mn-overlay > .panel-heading > button::before {
+  content: '×';
+  font-size: 29px;
+  font-weight: 400;
+  line-height: 1;
+}
+.mn-ledger {
+  display: grid;
+  gap: 14px;
+}
+.mn-ledger-heading {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 4px;
+  line-height: 1.25;
+  white-space: nowrap;
+  border-bottom: 3px double #aa8a50;
+}
+.mn-ledger-heading .mn-copper-mark {
+  width: 26px;
+  height: 26px;
+  color: #96662e;
+}
+.mn-ledger-heading strong {
+  font-size: 18px;
+}
+.mn-ledger .mn-panel {
+  background: #fffaf16b;
+  padding: 12px;
+  border: 1px solid #b8a17366;
+  border-radius: 10px;
+}
+.mn-ledger h2 {
+  margin: 0 0 10px;
+  font-size: 20px;
+}
+.mn-ledger .mn-seats {
+  grid-template-columns: 1fr;
+}
+.mn-ledger .mn-seat img {
+  width: 44px;
+  height: 44px;
+}
+.mn-market-title .mn-cargo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.mn-market-title .mn-cargo-art {
+  width: 34px;
+  height: 34px;
+}
+.mn-ledger .mn-market-title {
+  margin-bottom: 7px;
+}
+.mn-ledger-income .mn-log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: none;
+}
+.mn-ledger-income .mn-log li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  border-bottom: 1px solid #b6a47b55;
+}
+.mn-ledger-income img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+.mn-ledger-income strong {
+  margin-left: auto;
+  font-size: 18px;
+}
+.mn-ledger-final .mn-log {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: none;
+  display: grid;
+  gap: 14px;
+}
+.mn-ledger-total {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+@media (max-width: 1050px) {
+  .mn-docks {
+    align-self: stretch;
+  }
+  .mn-die {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    aspect-ratio: 1;
+  }
+}
+@media (min-width: 621px) and (max-width: 1050px) and (max-height: 600px) {
+  .mn-screen--player .mn-private {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .mn-screen--player .mn-wallet-summary {
+    display: contents;
+  }
+  .mn-screen--player .mn-private > .mn-detail-button:last-child {
+    display: inline-flex;
+  }
+  .mn-screen--player .mn-private > .mn-receipt-button {
+    display: none;
+  }
+  .mn-screen--player .mn-cash > .mn-copper-mark,
+  .mn-screen--player .mn-credit > .mn-copper-mark {
+    display: none;
+  }
+}
+@media (max-width: 620px) {
+  .mn-toolbar-tools button {
+    min-width: max-content;
+    padding-inline: 9px;
+  }
+  .mn-toolbar-tools .mn-copper-mark {
+    display: none;
+  }
+  .mn-private {
+    gap: 5px;
+    padding-inline: 5px;
+  }
+  .mn-wallet-summary {
+    display: contents;
+  }
+  .mn-cash,
+  .mn-credit {
+    flex: 1;
+    gap: 3px;
+  }
+  .mn-cash > .mn-copper-mark,
+  .mn-credit > .mn-copper-mark {
+    display: none;
+  }
+  .mn-private .mn-detail-button {
+    padding: 4px 5px !important;
+    gap: 4px;
+  }
+  .mn-private .mn-detail-button > .mn-copper-mark {
+    width: 19px;
+    height: 19px;
+  }
+  .mn-sealed-contract {
+    width: 25px;
+    height: 28px;
+  }
+  .mn-actor-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  .mn-current-turn {
+    gap: 6px;
+  }
+  .mn-status .mn-status-detail {
+    margin-left: 0;
+    display: block;
+  }
+  .mn-status .mn-auction-standing {
+    font-size: 16px;
+  }
+  .mn-finance-choices {
+    grid-template-columns: 1fr;
+  }
+  .mn-action-tray {
+    flex-wrap: wrap;
+  }
+  .mn-action-tray > .mn-alternatives {
+    flex: none;
+  }
+  .mn-overlay.dialog-surface {
+    padding: 12px;
+  }
+  .mn-overlay > .panel-heading {
+    top: -12px;
+  }
+  .mn-dock-table > div {
+    gap: 6px;
+  }
+}

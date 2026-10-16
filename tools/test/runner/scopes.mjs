@@ -261,6 +261,7 @@ const verificationScopes = {
   'tools/maintenance/verify-cleanup-idle.ps1': ['tooling'],
   'tools/test/games/avalon/verify-avalon.mjs': ['game:avalon'],
   'tools/test/games/manila/verify-manila.mjs': ['game:manila'],
+  'tools/test/games/manila/verify-manila-design.mjs': ['game:manila'],
   'tools/test/games/avalon/verify-configured-delivery.mjs': [
     'game:avalon',
     'box',

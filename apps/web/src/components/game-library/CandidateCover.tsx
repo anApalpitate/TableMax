@@ -1,5 +1,37 @@
-/** Original decorative motifs, not publisher covers or finalized game artwork. */
+import { useState } from 'react';
+import grandAustriaHotel from '../../../../../assets/platform/library-covers/grand-austria-hotel-v1.webp';
+import duneImperium from '../../../../../assets/platform/library-covers/dune-imperium-v1.webp';
+import scout from '../../../../../assets/platform/library-covers/scout-v2.webp';
+import flip7 from '../../../../../assets/platform/library-covers/flip-7-v1.webp';
+
+const officialCovers: Partial<Record<string, string>> = {
+  'grand-austria-hotel': grandAustriaHotel,
+  'dune-imperium': duneImperium,
+  scout,
+  'flip-7': flip7,
+};
+
+/** Local publisher imagery identifies planned games without fixing rule editions. */
 export function CandidateCover({ id }: { id: string }) {
+  const [failedSource, setFailedSource] = useState<string | null>(null);
+  const source = officialCovers[id];
+  if (source && failedSource !== source) {
+    return (
+      <img
+        src={source}
+        alt=""
+        width="96"
+        height="120"
+        data-candidate-cover={id}
+        onError={() => setFailedSource(source)}
+      />
+    );
+  }
+  return <CandidateCoverPlaceholder id={id} />;
+}
+
+/** Original decorative fallback for missing or unavailable publisher imagery. */
+function CandidateCoverPlaceholder({ id }: { id: string }) {
   return (
     <svg
       className="game-library__candidate-cover"

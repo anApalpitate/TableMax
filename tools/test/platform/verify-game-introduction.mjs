@@ -191,7 +191,8 @@ try {
             'Desktop uses the intended wide introduction panel',
           );
         await dialog.evaluate((element) => {
-          element.scrollTop = element.scrollHeight;
+          const content = element.querySelector('.box-overlay-panel__content');
+          content.scrollTop = content.scrollHeight;
         });
         const close = dialog.getByRole('button', {
           name: '关闭面板',

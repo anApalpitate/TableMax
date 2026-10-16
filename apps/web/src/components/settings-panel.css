@@ -1,6 +1,5 @@
 .dialog-surface.overlay-panel.settings-panel {
   width: min(640px, calc(100vw - 32px));
-  padding: 22px;
   border: 1px solid #ffffffbb;
   background: linear-gradient(145deg, #fffdf3e8, #e8f5eee0);
   box-shadow:
@@ -11,15 +10,8 @@
 .dialog-surface.overlay-panel.settings-panel::backdrop {
   backdrop-filter: blur(8px);
 }
-.settings-panel .panel-heading {
-  background: transparent;
-  padding: 0 0 16px;
-}
 .settings-panel .panel-heading h2 {
   font-size: 22px;
-}
-.settings-panel--preferences .panel-heading {
-  align-items: flex-start;
 }
 .settings-panel--preferences .panel-heading h2 {
   min-width: 0;
@@ -131,9 +123,6 @@
   box-shadow: 0 3px 12px #385d4510;
 }
 @media (max-width: 600px) {
-  .dialog-surface.overlay-panel.settings-panel {
-    padding: 16px;
-  }
   .settings-panel--preferences .beginner-guidance-setting,
   .settings-panel--preferences .countdown-settings,
   .settings-panel--preferences .display-settings-choice,

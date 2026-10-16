@@ -4,6 +4,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useId,
   useRef,
   useState,
   type ButtonHTMLAttributes,
@@ -12,6 +13,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import type { Action, CargoId, ManilaView } from '../rules/view';
+import { CloseMark } from './Theme';
 
 export type Carry =
   | { kind: 'worker' }
@@ -40,6 +42,10 @@ type Interaction = {
   pilotAction: Extract<Action, { type: 'pilot' }> | undefined;
   carry: Carry | null;
   setCarry(value: Carry | null): void;
+  hoverTarget: string | null;
+  setHoverTarget(value: string | null): void;
+  hoverNode: string | null;
+  setHoverNode(value: string | null): void;
   canDrop(token: Carry, target: string): boolean;
   drop(token: Carry, target: string): void;
   point: { x: number; y: number; label: string } | null;
@@ -63,6 +69,8 @@ function railTarget(
     node?.closest('.mn-lane')?.querySelector<HTMLElement>('[data-manila-rail]');
   if (!rail) return;
   const rect = rail.getBoundingClientRect();
+  if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom)
+    return;
   const vertical =
     getComputedStyle(rail).getPropertyValue('--mn-vertical').trim() === '1';
   const fraction = vertical
@@ -72,6 +80,17 @@ function railTarget(
   return rail.dataset.railLane !== undefined
     ? `start:${rail.dataset.railLane}:${Math.min(5, position)}`
     : `pilot:${rail.dataset.railCargo}:${position - Number(rail.dataset.railPosition)}`;
+}
+function hitTarget(
+  x: number,
+  y: number,
+): { target: string | undefined; node: string | null } {
+  const hit = document.elementFromPoint(x, y);
+  const button = hit?.closest<HTMLElement>('[data-manila-drop]');
+  return {
+    target: button?.dataset.manilaDrop ?? railTarget(hit, x, y),
+    node: button?.dataset.mnDropNode ?? null,
+  };
 }
 export function ManilaInteraction({
   game,
@@ -101,7 +120,19 @@ export function ManilaInteraction({
   const [positions, setPositions] = useState<number[]>([3, 3, 3]);
   const [setupStep, setSetupStep] = useState(1);
   const [deltas, setDeltas] = useState<Record<string, number>>({});
-  const [carry, setCarry] = useState<Carry | null>(null);
+  const [carry, setCarried] = useState<Carry | null>(null);
+  const [hoverTarget, setHoverTarget] = useState<string | null>(null);
+  const [hoverNode, setHoverNode] = useState<string | null>(null);
+  const setCarry = useCallback(
+    (value: Carry | null) => {
+      setCarried(value);
+      if (!value) {
+        setHoverTarget(null);
+        setHoverNode(null);
+      }
+    },
+    [setHoverTarget, setHoverNode],
+  );
   const [point, setPoint] = useState<Interaction['point']>(null);
   const [previousLocked, setPreviousLocked] = useState(locked);
   if (previousLocked !== locked) {
@@ -214,7 +245,7 @@ export function ManilaInteraction({
     };
     window.addEventListener('keydown', cancel);
     return () => window.removeEventListener('keydown', cancel);
-  }, []);
+  }, [setCarry]);
   return (
     <Context
       value={{
@@ -236,6 +267,10 @@ export function ManilaInteraction({
         pilotAction: pilotMatch(deltas),
         carry: locked ? null : carry,
         setCarry,
+        hoverTarget: locked ? null : hoverTarget,
+        setHoverTarget,
+        hoverNode: locked ? null : hoverNode,
+        setHoverNode,
         canDrop,
         drop,
         point: locked ? null : point,
@@ -274,7 +309,7 @@ export function DragSource({
   children: ReactNode;
 }) {
   const state = useManilaInteraction();
-  const { setPoint, setCarry } = state;
+  const { setPoint, setCarry, setHoverTarget } = state;
   const gesture = useRef<{
     x: number;
     y: number;
@@ -302,11 +337,16 @@ export function DragSource({
       setPoint(null);
       setCarry(null);
     };
+    const cancelKeyGesture = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') cancelViewportGesture();
+    };
     window.addEventListener('resize', cancelViewportGesture);
     window.addEventListener('orientationchange', cancelViewportGesture);
+    window.addEventListener('keydown', cancelKeyGesture);
     return () => {
       window.removeEventListener('resize', cancelViewportGesture);
       window.removeEventListener('orientationchange', cancelViewportGesture);
+      window.removeEventListener('keydown', cancelKeyGesture);
       releaseGesture();
     };
   }, [releaseGesture, setPoint, setCarry]);
@@ -351,10 +391,11 @@ export function DragSource({
           return;
         active.moved = true;
         state.setCarry(token);
-        const target = railTarget(
-          document.elementFromPoint(event.clientX, event.clientY),
-          event.clientX,
-          event.clientY,
+        const hit = hitTarget(event.clientX, event.clientY);
+        const target = hit.target;
+        setHoverTarget(target && state.canDrop(token, target) ? target : null);
+        state.setHoverNode(
+          target && state.canDrop(token, target) ? hit.node : null,
         );
         const amount = Number(target?.split(':')[2]);
         const hint =
@@ -364,7 +405,15 @@ export function DragSource({
             ? token.kind === 'start'
               ? `起点 ${amount} 格`
               : `${amount >= 0 ? '前进' : '后退'} ${Math.abs(amount)} 格`
-            : label;
+            : token.kind === 'worker'
+              ? '派遣伙伴'
+              : token.kind === 'cargo'
+                ? '装入货物'
+                : token.kind === 'pirate'
+                  ? '海盗登船'
+                  : token.kind === 'plunder'
+                    ? '选择去向'
+                    : '调整位置';
         state.setPoint({ x: event.clientX, y: event.clientY, label: hint });
       }}
       onPointerUp={(event) => {
@@ -373,10 +422,7 @@ export function DragSource({
         state.setPoint(null);
         if (active?.moved) {
           suppressClick.current = true;
-          const hit = document.elementFromPoint(event.clientX, event.clientY);
-          const target =
-            hit?.closest<HTMLElement>('[data-manila-drop]')?.dataset
-              .manilaDrop ?? railTarget(hit, event.clientX, event.clientY);
+          const target = hitTarget(event.clientX, event.clientY).target;
           if (target) state.drop(token, target);
           state.setCarry(null);
         }
@@ -423,6 +469,7 @@ export function DropTarget({
   children: ReactNode;
 }) {
   const state = useManilaInteraction();
+  const nodeId = useId();
   const legal = state.canDrop(state.carry ?? token, target);
   return (
     <button
@@ -430,7 +477,8 @@ export function DropTarget({
       type="button"
       data-manila-drop={target}
       data-mn-drop={target}
-      className={`mn-drop-target ${className}${state.carry && legal ? ' mn-drop-ready' : ''}`}
+      data-mn-drop-node={nodeId}
+      className={`mn-drop-target ${className}${state.carry && legal && state.hoverNode === nodeId ? ' mn-drop-ready' : ''}`}
       disabled={state.locked || props.disabled}
       onClick={(event) => {
         if (legal) state.drop(state.carry ?? token, target);
@@ -497,7 +545,13 @@ export function DetailButton({
     const available = above ? aboveSpace : belowSpace;
     if (available <= 0) return;
     setPosition({
-      left: Math.max(margin, Math.min(rect.left, window.innerWidth - 316)),
+      left: Math.max(
+        margin,
+        Math.min(
+          rect.left,
+          window.innerWidth - Math.min(360, window.innerWidth - 16) - margin,
+        ),
+      ),
       ...(above
         ? { bottom: window.innerHeight - aboveEnd }
         : { top: belowStart }),
@@ -570,7 +624,7 @@ export function DetailButton({
         createPortal(
           <div
             ref={card}
-            className="mn-detail-card"
+            className="mn-theme mn-detail-card"
             role="dialog"
             aria-label={title}
             style={position}
@@ -579,13 +633,14 @@ export function DetailButton({
               <strong>{title}</strong>
               <button
                 type="button"
+                className="mn-close"
                 aria-label={`关闭${title}`}
                 onClick={() => {
                   setOpen(false);
                   button.current?.focus();
                 }}
               >
-                ×
+                <CloseMark />
               </button>
             </header>
             <div>{detail}</div>

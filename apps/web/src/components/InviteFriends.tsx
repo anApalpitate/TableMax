@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import type { RoomSession } from '../session/useRoomSession';
-import { OverlayPanel } from './OverlayPanel';
+import { BoxOverlayPanel } from './BoxOverlayPanel';
 import './invite-friends.css';
 import { useNotifications } from './notifications/context';
 import { feedbackText } from '../content/feedback';
@@ -129,7 +129,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
         连接帮助
       </button>
       {help && (
-        <OverlayPanel title="连接帮助" close={() => setHelp(false)}>
+        <BoxOverlayPanel title="连接帮助" close={() => setHelp(false)}>
           <div className="connection-help">
             <div className="connection-help__methods">
               <p>
@@ -278,7 +278,7 @@ export function InviteFriends({ session }: { session: RoomSession }) {
               </div>
             </details>
           </div>
-        </OverlayPanel>
+        </BoxOverlayPanel>
       )}
     </section>
   );

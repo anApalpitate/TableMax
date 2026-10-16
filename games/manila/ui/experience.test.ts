@@ -11,6 +11,7 @@ import { finalScores, resolveWinners } from '../rules/scoring';
 import { turnSeat, validateState, type State } from '../rules/state';
 import type { Action, ManilaView } from '../rules/view';
 import { client } from '../web';
+import { ShareCertificates } from './Theme';
 
 // Reuse the host's pinned renderer; the game runtime depends only on React.
 const { renderToStaticMarkup } = createRequire(
@@ -88,11 +89,36 @@ describe('Manila experience uses authorized public and player views', () => {
     for (const role of ['host', 'public', 'player'] as const) {
       const { html, text } = render(state, role, 'C');
       expect(text).toMatch(/最高\s*7\s*₱\s*·\s*甲/);
+      expect(html).toContain('class="mn-actor-avatar"');
+      expect(html).toContain('alt="乙正在行动"');
       if (role !== 'player') {
         expect(html).not.toContain('class="mn-private"');
         expect(html).not.toContain('data-manila-action=');
       }
     }
+  });
+
+  it('separates spendable cash from collateral and labels final public contracts correctly', () => {
+    const state = fresh();
+    const own = rules.project(state, {
+      role: 'player',
+      seatId: 'A',
+    }) as ManilaView;
+    const player = render(state, 'player', 'A');
+    expect(player.text).toContain(`现金${own.self!.cash} ₱`);
+    expect(player.text).toContain(`抵押可借${own.self!.availableCredit} ₱`);
+    const privateCards = renderToStaticMarkup(
+      createElement(ShareCertificates, { shares: own.self!.shares }),
+    );
+    expect(privateCards).toContain('仅你可见');
+    const publicCards = renderToStaticMarkup(
+      createElement(ShareCertificates, {
+        shares: own.self!.shares,
+        publicView: true,
+      }),
+    );
+    expect(publicCards).toContain('已公开');
+    expect(publicCards).not.toContain('仅你可见');
   });
 
   it('asks only the actual debtor to choose collateral and uses that player’s cash shortfall', () => {
@@ -154,5 +180,6 @@ describe('Manila experience uses authorized public and player views', () => {
     expect(html.match(/<li value="1">/g)).toHaveLength(2);
     expect(html).toContain('<li value="3">');
     expect(html).not.toContain('<li value="2">');
+    expect(html).not.toContain('class="mn-actor-avatar"');
   });
 });

@@ -7,8 +7,9 @@ import {
   seatColors,
   spaceName,
 } from './labels';
-import { CargoArt, Worker, cargoStyle } from './pieces';
+import { CargoArt, SiteArt, Worker, cargoStyle } from './pieces';
 import { DragSource, useManilaInteraction } from './interaction';
+import { CloseMark, CopperMark } from './Theme';
 
 type Props = {
   game: ManilaView;
@@ -18,21 +19,25 @@ type Props = {
   select(action: Action | null): void;
   choose(action: Action): void;
 };
-function CloseAlternatives() {
+function CloseAlternatives({ title }: { title: string }) {
   return (
-    <button
-      className="mn-alternative-close"
-      type="button"
-      onClick={(event) => {
-        const details = event.currentTarget.closest('details');
-        if (details) {
-          details.open = false;
-          details.querySelector<HTMLElement>(':scope > summary')?.focus();
-        }
-      }}
-    >
-      收起操作列表
-    </button>
+    <div className="mn-alternative-heading">
+      <h3>{title}</h3>
+      <button
+        className="mn-close"
+        type="button"
+        aria-label="收起操作列表"
+        onClick={(event) => {
+          const details = event.currentTarget.closest('details');
+          if (details) {
+            details.open = false;
+            details.querySelector<HTMLElement>(':scope > summary')?.focus();
+          }
+        }}
+      >
+        <CloseMark />
+      </button>
+    </div>
   );
 }
 function Finance({
@@ -42,20 +47,28 @@ function Finance({
   choose,
 }: Pick<Props, 'game' | 'actions' | 'locked' | 'choose'>) {
   const finance = actions.filter(
-    (action) => action.type === 'mortgage' || action.type === 'repay',
+    (action): action is Extract<Action, { type: 'mortgage' | 'repay' }> =>
+      action.type === 'mortgage' || action.type === 'repay',
   );
   if (!finance.length) return null;
   const choices = (
-    <div className="mn-inline-actions">
+    <div className="mn-finance-choices">
       {finance.map((action, index) => (
         <button
           key={index}
           data-manila-action={action.type}
+          className="mn-finance-choice"
           disabled={locked}
           onClick={() => choose(action)}
         >
-          {actionLabel(action, game)} ·{' '}
-          {action.type === 'mortgage' ? '+12 ₱' : '−15 ₱'}
+          <CargoArt
+            cargo={
+              game.self!.shares.find((share) => share.id === action.shareId)!
+                .cargo
+            }
+          />
+          <strong>{actionLabel(action, game)}</strong>
+          <span>{action.type === 'mortgage' ? '+12 ₱' : '−15 ₱'}</span>
           {'shareId' in action && (
             <span>
               {game.self?.shares.find((share) => share.id === action.shareId)
@@ -82,11 +95,12 @@ function Finance({
       </p>
     </section>
   ) : (
-    <details className="mn-finance">
-      <summary>股份抵押与赎回</summary>
-      <p>抵押取得 12 ₱；赎回支付 15 ₱ 并公开该股份。抵押股份终局扣除 15 ₱。</p>
+    <section className="mn-finance" aria-label="股份抵押与赎回">
       {choices}
-    </details>
+      <p className="mn-detail-note">
+        抵押取得 12 ₱；赎回支付 15 ₱ 并公开该股份。抵押股份终局扣除 15 ₱。
+      </p>
+    </section>
   );
 }
 export function PlayerControls({
@@ -107,6 +121,30 @@ export function PlayerControls({
   const pilot = actions.some((action) => action.type === 'pilot');
   const controls = useRef<HTMLElement>(null);
   const hasConfirmation = Boolean(draft) || setup || pilot;
+  useEffect(() => {
+    const close = (event: PointerEvent | KeyboardEvent) => {
+      const opened = controls.current?.querySelector<HTMLDetailsElement>(
+        'details.mn-alternatives[open]',
+      );
+      if (!opened) return;
+      const escape = event instanceof KeyboardEvent && event.key === 'Escape';
+      if (
+        !escape &&
+        (event instanceof KeyboardEvent ||
+          opened.contains(event.target as Node))
+      )
+        return;
+      opened.open = false;
+      if (escape)
+        opened.querySelector<HTMLElement>(':scope > summary')?.focus();
+    };
+    document.addEventListener('pointerdown', close);
+    document.addEventListener('keydown', close);
+    return () => {
+      document.removeEventListener('pointerdown', close);
+      document.removeEventListener('keydown', close);
+    };
+  }, []);
   useEffect(() => {
     const screen = controls.current?.closest<HTMLElement>('.mn-screen');
     const confirmation = controls.current?.querySelector('.mn-confirm');
@@ -143,6 +181,10 @@ export function PlayerControls({
   const direct = actions.filter((action) =>
     ['pass', 'skip-share', 'next-voyage'].includes(action.type),
   );
+  const directLabel = (action: Action) =>
+    action.type === 'pass' && game.phase !== 'auction'
+      ? '结束派遣'
+      : actionLabel(action, game);
   const payment = (cost: number) => {
     const funds = (game.self?.cash ?? 0) + (game.self?.availableCredit ?? 0);
     return cost === 0
@@ -194,6 +236,7 @@ export function PlayerControls({
               style={cargoStyle(cargoColors[cargo])}
             >
               <strong>第 {index + 1} 航道</strong>
+              <CargoArt cargo={cargo} />
               {work.setupStep === 1 ? (
                 <label>
                   货物
@@ -239,6 +282,7 @@ export function PlayerControls({
             .filter((boat) => boat.destination === 'sea')
             .map((boat) => (
               <label className="mn-draft-card" key={boat.cargo}>
+                <CargoArt cargo={boat.cargo} />
                 <strong
                   className="mn-cargo"
                   style={cargoStyle(cargoColors[boat.cargo])}
@@ -288,6 +332,11 @@ export function PlayerControls({
                 }
                 onClick={() => select(action)}
               >
+                {space.kind === 'cargo' ? (
+                  <CargoArt cargo={space.cargo!} />
+                ) : (
+                  <SiteArt kind={space.kind} />
+                )}
                 <strong>{spaceName(space)}</strong>
                 <span>
                   {payment(space.cost)}
@@ -313,7 +362,12 @@ export function PlayerControls({
               onClick={() => select(action)}
               aria-pressed={JSON.stringify(draft) === JSON.stringify(action)}
             >
-              {actionLabel(action, game)}
+              {'cargo' in action && action.cargo ? (
+                <CargoArt cargo={action.cargo} />
+              ) : (
+                <SiteArt kind="pirate" />
+              )}
+              <span>{actionLabel(action, game)}</span>
             </button>
           ))}
         </div>
@@ -327,10 +381,12 @@ export function PlayerControls({
     boards.length ||
     plunders.length) && (
     <details className="mn-alternatives">
-      <summary aria-label="展开替代操作">操作列表</summary>
+      <summary aria-label="展开替代操作">
+        <CopperMark kind="list" />
+        操作列表
+      </summary>
       <div className="mn-alternative-content">
-        <CloseAlternatives />
-        <h3>{title}</h3>
+        <CloseAlternatives title={title} />
         {alternatives}
       </div>
     </details>
@@ -381,8 +437,7 @@ export function PlayerControls({
       {bids.length > 0 && (
         <>
           <p>
-            出价范围 {bids[0]!.amount}–{bids.at(-1)!.amount}{' '}
-            ₱，包含可抵押额度。获胜者支付出价。
+            出价范围 {bids[0]!.amount}–{bids.at(-1)!.amount} ₱
           </p>
           <div className="mn-inline-actions mn-bid-controls">
             <label htmlFor="mn-bid-amount">出价</label>
@@ -452,11 +507,7 @@ export function PlayerControls({
                 />
                 <span>伙伴</span>
               </DragSource>
-              <span className="mn-tray-instruction">
-                拖到岗位
-                <br />
-                或直接点击
-              </span>
+              <span className="mn-tray-instruction">拖/点</span>
             </>
           )}
           {setup && work.setupStep === 1 && (
@@ -498,11 +549,7 @@ export function PlayerControls({
                 <span aria-hidden="true">⚑</span>
                 <span>海盗</span>
               </DragSource>
-              <span className="mn-tray-instruction">
-                拖到货船
-                <br />
-                或点击船身
-              </span>
+              <span className="mn-tray-instruction">拖/点</span>
               <button
                 disabled={locked}
                 onClick={() =>
@@ -532,10 +579,12 @@ export function PlayerControls({
               <button
                 key={action.type}
                 data-manila-action={action.type}
+                title={actionLabel(action, game)}
+                aria-label={actionLabel(action, game)}
                 disabled={locked}
                 onClick={() => choose(action)}
               >
-                {actionLabel(action, game)}
+                {directLabel(action)}
               </button>
             ))}
           {more}
@@ -553,10 +602,12 @@ export function PlayerControls({
             <button
               key={action.type}
               data-manila-action={action.type}
+              title={actionLabel(action, game)}
+              aria-label={actionLabel(action, game)}
               disabled={locked}
               onClick={() => choose(action)}
             >
-              {actionLabel(action, game)}
+              {directLabel(action)}
             </button>
           ))}
           {game.phase !== 'financing' &&
@@ -564,9 +615,12 @@ export function PlayerControls({
               (action) => action.type === 'mortgage' || action.type === 'repay',
             ) && (
               <details className="mn-alternatives">
-                <summary>股份操作</summary>
+                <summary>
+                  <CopperMark kind="shares" />
+                  股份操作
+                </summary>
                 <div className="mn-alternative-content">
-                  <CloseAlternatives />
+                  <CloseAlternatives title="股份抵押与赎回" />
                   <Finance
                     game={game}
                     actions={actions}
