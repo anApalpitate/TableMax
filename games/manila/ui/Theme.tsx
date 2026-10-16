@@ -137,10 +137,8 @@ export function CargoDetail({
         title={cargoNames[cargo]}
         value={`整船分红池 ${data.payout} ₱`}
       >
-        <span>
-          {destination ?? '抵港后由船上同伙均分'}
-          {plundered ? ' · 已被掠夺' : ''}
-        </span>
+        <span>{destination ?? '抵港后由船上同伙均分'}</span>
+        {plundered && <span>已被掠夺</span>}
       </DetailScene>
       <div className="mn-detail-rows">
         {crew.map((space) => (
@@ -210,8 +208,8 @@ export function SpecialistDetail({
       title: '海盗船',
       value: '船长 / 船员各 5 ₱',
       rows: [
-        ['第二掷 · 13格', '登上货船的空位'],
-        ['第三掷 · 13格', '掠夺货船，选择送往港口或修船坞'],
+        ['第二掷停13格', '登上货船的空位'],
+        ['第三掷停13格', '掠夺货船，选择送往港口或修船坞'],
       ],
       note: '先船长、后船员；没有触发机会，派遣费用不退。',
     },
@@ -219,14 +217,14 @@ export function SpecialistDetail({
       title: '领航员',
       value: '只调整海上的货船',
       rows: [
-        ['小领航 · 2 ₱', '移动 1 格'],
-        ['大领航 · 5 ₱', '合计最多 2 格'],
+        ['小领航员', '费用 2 ₱，移动 1 格'],
+        ['大领航员', '费用 5 ₱，合计最多 2 格'],
       ],
       note: '可前进或后退，可放弃全部或部分额度；确认后保存。',
     },
     insurance: {
       title: '保险行',
-      value: '免费派遣 · 立即领 10 ₱',
+      value: '免费入驻即领 10 ₱',
       rows: [
         ['修船坞 A / B / C', '赔付 6 / 8 / 15 ₱'],
         ['最多赔付', '29 ₱'],

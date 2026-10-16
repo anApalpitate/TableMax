@@ -71,7 +71,7 @@ export function VoyageDiagram() {
       '竞拍港务长',
       '成交后付款',
     ],
-    [<Boat cargo="nutmeg" />, '购股 · 装船', '三货起点合计9'],
+    [<Boat cargo="nutmeg" />, '购股后装船', '三货起点合计9'],
     [placement(1, 1), '派遣 → 第1掷', '3人先派两轮'],
     [placement(2, 4), '派遣 → 第2掷', '13格海盗可登船'],
     [
@@ -177,7 +177,7 @@ export function InsuranceDiagram() {
       <div className="mn-diagram-insurance">
         <Site kind="insurance" label="保险行" />
         <div>
-          <strong className="mn-diagram-gain">入驻免费 · 立即 ＋10 ₱</strong>
+          <strong className="mn-diagram-gain">免费入驻即得 ＋10 ₱</strong>
           <div className="mn-diagram-payment">
             {[6, 8, 15].map((amount, index) => (
               <div key={amount}>
@@ -201,14 +201,14 @@ export function PirateDiagram() {
       <div className="mn-diagram-split">
         <div>
           <Die value={2} label="第二次航行" />
-          <strong> 第2掷 · 恰好13</strong>
+          <strong>第2掷恰停13格</strong>
           <Boat cargo="silk" position={13} />
           <div className="mn-diagram-arrow">海盗 → 空船位</div>
           <p>船长先选，再由第二海盗选择；可以留在海盗船等待。</p>
         </div>
         <div>
           <Die value={3} label="第三次航行" />
-          <strong> 第3掷 · 恰好13</strong>
+          <strong>第3掷恰停13格</strong>
           <div className="mn-diagram-sites">
             <Site kind="pirate" label="海盗取代原船员" />
             <Cargo cargo="silk" />

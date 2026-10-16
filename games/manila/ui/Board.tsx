@@ -537,11 +537,13 @@ export function Players({ game, seats }: { game: ManilaView; seats: Seats }) {
               </span>
               <img src={avatarFor(seat?.avatarId ?? 'avatar-1')} alt="" />
               <div className="mn-seat-body">
-                <strong>
-                  {seat?.name ?? `商人${index + 1}`}
-                  {id === game.self?.seatId ? ' · 你' : ''}
+                <strong className="mn-seat-heading">
+                  <span>{seat?.name ?? `商人${index + 1}`}</span>
+                  {id === game.self?.seatId && (
+                    <span className="mn-seat-role">你</span>
+                  )}
                   {id === game.harborMaster && (
-                    <span className="mn-seat-role"> · 港务长</span>
+                    <span className="mn-seat-role">港务长</span>
                   )}
                 </strong>
                 <div className="mn-seat-meta">

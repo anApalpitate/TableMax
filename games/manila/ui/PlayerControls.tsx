@@ -190,8 +190,8 @@ export function PlayerControls({
     return cost === 0
       ? '免费派遣'
       : cost > funds
-        ? `盲乘 · 付尽 ${funds} ₱`
-        : `支付 ${cost} ₱${cost > (game.self?.cash ?? 0) ? ' · 随后选择抵押股份' : ''}`;
+        ? `付尽 ${funds} ₱ 盲乘`
+        : `支付 ${cost} ₱${cost > (game.self?.cash ?? 0) ? '，需选择股份抵押' : ''}`;
   };
   const chosenSpace =
     draft?.type === 'place'
@@ -206,12 +206,12 @@ export function PlayerControls({
   const budget = game.phase === 'pilot-small' ? 1 : 2;
   const title = setup
     ? work.setupStep === 1
-      ? '1 · 选择三船货物'
-      : '2 · 分配起航位置'
+      ? '1 选择三船货物'
+      : '2 分配起航位置'
     : pilot
       ? game.phase === 'pilot-small'
-        ? '小领航员 · 调整一格'
-        : '大领航员 · 调整最多两格'
+        ? '小领航员调整一格'
+        : '大领航员调整最多两格'
       : places.length
         ? '把伙伴派到哪里？'
         : boards.length
@@ -249,7 +249,7 @@ export function PlayerControls({
                   >
                     {game.cargos.map((entry) => (
                       <option value={entry.id} key={entry.id}>
-                        {cargoNames[entry.id]} · 分红 {entry.payout}
+                        {cargoNames[entry.id]}（分红 {entry.payout}）
                       </option>
                     ))}
                   </select>
@@ -287,7 +287,8 @@ export function PlayerControls({
                   className="mn-cargo"
                   style={cargoStyle(cargoColors[boat.cargo])}
                 >
-                  {cargoNames[boat.cargo]} · {boat.position}格
+                  <span>{cargoNames[boat.cargo]}</span>
+                  <span>{boat.position}格</span>
                 </strong>
                 <select
                   aria-label={`${cargoNames[boat.cargo]}移动`}
@@ -338,15 +339,17 @@ export function PlayerControls({
                   <SiteArt kind={space.kind} />
                 )}
                 <strong>{spaceName(space)}</strong>
-                <span>
-                  {payment(space.cost)}
-                  {space.payout !== null
-                    ? space.kind === 'cargo'
-                      ? ` · 分红池 ${space.payout} ₱ 均分`
-                      : space.kind === 'insurance'
-                        ? ' · 立即领 10 ₱，承担修船赔付'
-                        : ` · 成功获 ${space.payout} ₱`
-                    : ''}
+                <span className="mn-action-facts">
+                  <span>{payment(space.cost)}</span>
+                  {space.payout !== null && (
+                    <span>
+                      {space.kind === 'cargo'
+                        ? `分红池 ${space.payout} ₱ 均分`
+                        : space.kind === 'insurance'
+                          ? '立即领 10 ₱，承担修船赔付'
+                          : `成功获 ${space.payout} ₱`}
+                    </span>
+                  )}
                 </span>
               </button>
             );
@@ -411,19 +414,24 @@ export function PlayerControls({
         game.payment?.seatId === game.self?.seatId && (
           <>
             <div className="mn-financing-notice">
-              <strong>
-                待支付 {game.payment.amount} ₱ · 还差{' '}
-                {Math.max(0, game.payment.amount - (game.self?.cash ?? 0))} ₱
+              <strong className="mn-payment-summary">
+                <span>待支付 {game.payment.amount} ₱</span>
+                <span>
+                  还差{' '}
+                  {Math.max(0, game.payment.amount - (game.self?.cash ?? 0))} ₱
+                </span>
               </strong>
-              <p>
-                {game.payment.reason === 'insurance'
-                  ? '保险行赔付'
-                  : game.payment.reason === 'auction'
-                    ? '港务长竞拍款'
-                    : game.payment.reason === 'share'
-                      ? '购买股份'
-                      : '伙伴派遣费用'}{' '}
-                · 现金 {game.self?.cash ?? 0} ₱
+              <p className="mn-payment-context">
+                <span>
+                  {game.payment.reason === 'insurance'
+                    ? '保险行赔付'
+                    : game.payment.reason === 'auction'
+                      ? '港务长竞拍款'
+                      : game.payment.reason === 'share'
+                        ? '购买股份'
+                        : '伙伴派遣费用'}
+                </span>
+                <span>现金 {game.self?.cash ?? 0} ₱</span>
               </p>
             </div>
             <Finance
@@ -705,7 +713,7 @@ export function PlayerControls({
                   work.setCarry(null);
                 }}
               >
-                下一步 · 设起点
+                下一步：设起点
               </button>
             ) : (
               <button

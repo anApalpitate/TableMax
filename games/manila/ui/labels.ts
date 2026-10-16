@@ -41,7 +41,7 @@ export const phaseNames: Record<Phase, string> = {
 export function spaceName(space: SpaceView): string {
   const number = space.index + 1;
   if (space.kind === 'cargo')
-    return `${cargoNames[space.cargo!]}船 · ${number}号位`;
+    return `${cargoNames[space.cargo!]}船${number}号位`;
   if (space.kind === 'port') return `港口 ${'ABC'[space.index] ?? number}`;
   if (space.kind === 'shipyard')
     return `修船坞 ${'ABC'[space.index] ?? number}`;

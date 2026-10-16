@@ -84,7 +84,7 @@ export const manilaRulebook = {
             {(['ginseng', 'nutmeg', 'silk', 'jade'] as const).map(
               (cargo, index) => (
                 <span key={cargo} style={cargoStyle(cargoColors[cargo])}>
-                  {cargoNames[cargo]} · 分红池 {[18, 24, 30, 36][index]} ₱
+                  {cargoNames[cargo]}分红池 {[18, 24, 30, 36][index]} ₱
                 </span>
               ),
             )}

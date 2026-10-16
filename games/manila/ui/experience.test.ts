@@ -88,7 +88,7 @@ describe('Manila experience uses authorized public and player views', () => {
     const state = apply(fresh(), { type: 'bid', amount: 7 });
     for (const role of ['host', 'public', 'player'] as const) {
       const { html, text } = render(state, role, 'C');
-      expect(text).toMatch(/最高\s*7\s*₱\s*·\s*甲/);
+      expect(text).toMatch(/最高\s*7\s*₱\s*甲/);
       expect(html).toContain('class="mn-actor-avatar"');
       expect(html).toContain('alt="乙正在行动"');
       if (role !== 'player') {
@@ -128,8 +128,8 @@ describe('Manila experience uses authorized public and player views', () => {
     expect(state.phase).toBe('financing');
     const debtor = render(state, 'player', 'A');
     expect(debtor.text).toMatch(/待支付\s*40\s*₱/);
-    expect(debtor.text).toMatch(/待支付\s*40\s*₱\s*·\s*还差\s*10\s*₱/);
-    expect(debtor.text).toMatch(/港务长竞拍款\s*·\s*现金\s*30\s*₱/);
+    expect(debtor.text).toMatch(/待支付\s*40\s*₱\s*还差\s*10\s*₱/);
+    expect(debtor.text).toMatch(/港务长竞拍款\s*现金\s*30\s*₱/);
     expect(debtor.html).toContain('data-manila-action="mortgage"');
     expect(debtor.html.match(/data-manila-action="mortgage"/g)).toHaveLength(
       rules

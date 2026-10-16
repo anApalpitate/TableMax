@@ -123,7 +123,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
         </ScreenLink>
         <div className="mn-brand">
           <strong>MANILA</strong>
-          <span>马尼拉 · 经典版</span>
+          <span>马尼拉经典版</span>
         </div>
         {game && <span className="mn-voyage">第 {game.voyage} 航次</span>}
         <div className="mn-toolbar-tools">
@@ -207,8 +207,8 @@ function ManilaScreen({ session }: { session: GameHost }) {
                   <span className="mn-auction-standing">
                     {game.auction.highBidder ? (
                       <>
-                        最高 {game.auction.bid} ₱ ·{' '}
-                        {names[game.auction.highBidder] ?? '商人'}
+                        <span>最高 {game.auction.bid} ₱</span>{' '}
+                        <span>{names[game.auction.highBidder] ?? '商人'}</span>
                       </>
                     ) : (
                       '尚无人出价'
@@ -305,7 +305,8 @@ function ManilaScreen({ session }: { session: GameHost }) {
                           }
                         >
                           <strong>
-                            {names[id]} · {game.scores![id]} ₱
+                            <span>{names[id]}</span>{' '}
+                            <span>{game.scores![id]} ₱</span>
                           </strong>
                         </li>
                       ))}
@@ -343,16 +344,20 @@ function ManilaScreen({ session }: { session: GameHost }) {
                         </span>
                       ))}
                     </div>
-                    <p>
-                      靠港：
-                      {game.result.port
-                        .map((cargo) => cargoNames[cargo])
-                        .join('、') || '无'}{' '}
-                      · 进坞：
-                      {game.result.shipyard
-                        .map((cargo) => cargoNames[cargo])
-                        .join('、') || '无'}
-                    </p>
+                    <div className="mn-rule-values">
+                      <span>
+                        靠港：
+                        {game.result.port
+                          .map((cargo) => cargoNames[cargo])
+                          .join('、') || '无'}
+                      </span>
+                      <span>
+                        进坞：
+                        {game.result.shipyard
+                          .map((cargo) => cargoNames[cargo])
+                          .join('、') || '无'}
+                      </span>
+                    </div>
                     {canControl && nextVoyage && (
                       <button
                         className="mn-primary"
@@ -399,7 +404,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
           className={`mn-overlay mn-theme mn-overlay--${panel}`}
           title={
             panel === 'rules'
-              ? '马尼拉 · 图文规则'
+              ? '马尼拉图文规则'
               : panel === 'ledger'
                 ? '商人账本'
                 : '港湾菜单'

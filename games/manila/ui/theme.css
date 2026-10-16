@@ -448,6 +448,33 @@
   white-space: nowrap;
   flex: none;
 }
+.mn-seat-body > .mn-seat-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+}
+.mn-seat-role {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 5px;
+  border: 1px solid #c7aa79;
+  border-radius: 6px;
+  background: #f8e9bf;
+  font-size: 16px;
+}
+.mn-payment-summary,
+.mn-payment-context,
+.mn-action-facts,
+.mn-auction-standing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+.mn-scene-fact {
+  display: inline-block;
+  margin-inline: 4px;
+}
 .mn-screen button[data-manila-action='pass'] {
   width: auto;
   max-width: none;
@@ -617,6 +644,14 @@
   }
 }
 @media (max-width: 620px) {
+  .mn-specialist-group--insurance > .mn-detail-button {
+    flex-direction: column;
+    gap: 0;
+  }
+  .mn-specialist-group--insurance .mn-site-art {
+    width: 20px;
+    height: 20px;
+  }
   .mn-current-turn-copy .mn-mobile-voyage {
     display: inline-block;
   }

@@ -580,7 +580,7 @@ async function actThroughUI(index, own, action) {
         'Cargo touch drop equals explicit selection',
       );
     await page
-      .getByRole('button', { name: '下一步 · 设起点', exact: true })
+      .getByRole('button', { name: '下一步：设起点', exact: true })
       .click();
     await alternatives(false);
     for (let lane = 0; lane < 3; lane++)
@@ -667,16 +667,49 @@ async function dragRail(page, token, selector, position) {
     const rect = node.getBoundingClientRect();
     const vertical =
       getComputedStyle(node).getPropertyValue('--mn-vertical').trim() === '1';
+    // DOM hit regions exclude their outer edge, and CDP rounds to float32.
+    // Aim inside the endpoint cell while still requiring the exact snapped value.
+    const inset = (coordinate, start, end) =>
+      value === 0 || value === 13
+        ? Math.min(end - 0.25, Math.max(start + 0.25, coordinate))
+        : coordinate;
     return vertical
       ? {
           x: rect.left + rect.width / 2,
-          y: rect.bottom - (rect.height * value) / 13,
+          y: inset(
+            rect.bottom - (rect.height * value) / 13,
+            rect.top,
+            rect.bottom,
+          ),
         }
       : {
-          x: rect.left + (rect.width * value) / 13,
+          x: inset(
+            rect.left + (rect.width * value) / 13,
+            rect.left,
+            rect.right,
+          ),
           y: rect.top + rect.height / 2,
         };
   }, position);
+  evidence.checks.push({
+    check: 'Rail destination geometry',
+    token,
+    position,
+    geometry: await page.locator(selector).evaluate((node, destination) => {
+      const rect = node.getBoundingClientRect();
+      const hit = document.elementFromPoint(destination.x, destination.y);
+      return {
+        rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+        destination,
+        hit: hit?.outerHTML.slice(0, 400),
+        closestRail: hit
+          ?.closest('[data-manila-rail]')
+          ?.getAttribute('data-rail-lane'),
+        closestLane: hit?.closest('.mn-lane')?.className,
+        scrollY,
+      };
+    }, destination),
+  });
   await touchDrag(page.locator(`[data-mn-drag="${token}"]`), destination);
 }
 async function touchDrag(source, target, cancel = false, beforeEnd) {
@@ -962,6 +995,7 @@ async function naturalMatch() {
           own.revision,
           'Clear pilot draft does not submit',
         );
+        await alternatives(true);
         for (const move of selected.moves) {
           const cargo = own.gameView.cargos.find(
             (item) => item.id === move.cargo,

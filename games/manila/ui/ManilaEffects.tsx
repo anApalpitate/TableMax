@@ -447,14 +447,14 @@ export function ManilaEffects({ session }: { session: GameHost }) {
               : null;
   const title =
     scene === 'ended'
-      ? '港湾商会 · 财富揭晓'
+      ? '最终财富揭晓'
       : scene === 'pirate'
-        ? '海盗登临 · 货物易主'
+        ? '海盗登临'
         : scene === 'auction'
           ? '港务长就任'
           : scene === 'result'
             ? '航次结算'
-            : '扬帆 · 启航';
+            : '扬帆启航';
   const audible = enabled && !disabled && !blocked && (!player || unlocked);
   const label = disabled
     ? '测试或暂停中，提示音关闭'
@@ -568,17 +568,26 @@ export function ManilaEffects({ session }: { session: GameHost }) {
               </span>
               <strong>{title}</strong>
               <p>
-                {scene === 'ended' && game
-                  ? game.winners
-                      .map(
-                        (seat) =>
-                          view?.seats.find((entry) => entry.id === seat)
-                            ?.name ?? '商人',
-                      )
-                      .join(' · ')
-                  : scene === 'result' && game?.result
-                    ? `${game.result.port.length} 船靠港 · ${game.result.shipyard.length} 船入坞`
-                    : '已保存的港湾结果'}
+                {scene === 'ended' && game ? (
+                  game.winners
+                    .map(
+                      (seat) =>
+                        view?.seats.find((entry) => entry.id === seat)?.name ??
+                        '商人',
+                    )
+                    .join('、')
+                ) : scene === 'result' && game?.result ? (
+                  <>
+                    <span className="mn-scene-fact">
+                      {game.result.port.length} 船靠港
+                    </span>{' '}
+                    <span className="mn-scene-fact">
+                      {game.result.shipyard.length} 船入坞
+                    </span>
+                  </>
+                ) : (
+                  '已保存的港湾结果'
+                )}
               </p>
             </div>
           </div>,

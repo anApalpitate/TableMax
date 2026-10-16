@@ -207,6 +207,17 @@ try {
               size: getComputedStyle(node).fontSize,
             })),
           privateCount: root.querySelectorAll('.mn-private').length,
+          specialistTitles: [
+            ...root.querySelectorAll(
+              '.mn-specialist-group > .mn-detail-button > span',
+            ),
+          ]
+            .filter(visible)
+            .map((node) => ({
+              text: node.textContent,
+              height: node.getBoundingClientRect().height,
+              fontSize: parseFloat(getComputedStyle(node).fontSize),
+            })),
           actorAvatar:
             root.querySelector('.mn-status img')?.getAttribute('src') ?? null,
           bodyText: root.textContent,
@@ -240,6 +251,12 @@ try {
         geometry.smallText,
         [],
         `${role} ${width}: information text is at least 16 CSS pixels`,
+      );
+      assert.ok(
+        geometry.specialistTitles.every(
+          (title) => title.height <= title.fontSize * 1.6,
+        ),
+        'Specialist names, including insurance, never split into orphan characters',
       );
       assert.equal(
         geometry.phaseRows.length,
