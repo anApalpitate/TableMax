@@ -14,12 +14,15 @@ export const gameIds = [
   'rummikub',
   'uno',
   'avalon',
+  'manila',
 ];
 const gameScopes = gameIds.map((id) => `game:${id}`);
 const validScopes = ['box', 'shared', 'tooling', ...gameScopes];
 
 // Classify what a test actually exercises, rather than its containing app.
 const unitScopes = {
+  'apps/server/src/manila.test.ts': ['game:manila'],
+  'apps/server/src/manila-worker.test.ts': ['game:manila'],
   'apps/server/src/events-integration.test.ts': ['game:pokemon-encounters'],
   'apps/server/src/game-packages/catalog.test.ts': ['box', 'shared', 'tooling'],
   'apps/server/src/registry-versions.test.ts': ['shared', 'tooling'],
@@ -257,6 +260,7 @@ const verificationScopes = {
   'tools/maintenance/verify-cleanup-fast.ps1': ['tooling'],
   'tools/maintenance/verify-cleanup-idle.ps1': ['tooling'],
   'tools/test/games/avalon/verify-avalon.mjs': ['game:avalon'],
+  'tools/test/games/manila/verify-manila.mjs': ['game:manila'],
   'tools/test/games/avalon/verify-configured-delivery.mjs': [
     'game:avalon',
     'box',

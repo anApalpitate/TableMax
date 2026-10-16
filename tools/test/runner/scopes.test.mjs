@@ -25,6 +25,17 @@ const item = (script, args = []) => ({
 });
 const plan = (...tests) => ({ version: 1, tests });
 
+test('Manila checks are isolated from every other game and shared product scope', () => {
+  for (const file of [
+    'games/manila/rules/rules.test.ts',
+    'apps/server/src/manila.test.ts',
+  ])
+    assert.deepEqual(unitTestScopes(file), ['game:manila']);
+  const selected = plan(item('tools/test/games/manila/verify-manila.mjs'));
+  assert.doesNotThrow(() => validateBatchScope(selected, 'game:manila'));
+  assert.throws(() => validateBatchScope(selected, 'game:uno'), /outside/);
+});
+
 test('installed Avalon verification requires exactly its shared dependencies', () => {
   const selected = plan(
     item('tools/test/platform/verify-installed-games.mjs', ['--only=avalon']),
