@@ -1,6 +1,26 @@
 .box-screen .hero .box-game-title {
   min-width: 0;
 }
+.box-screen > header {
+  flex-wrap: wrap;
+}
+.box-screen > header .header-status {
+  min-width: 0;
+  max-width: 100%;
+  gap: 8px;
+}
+.box-screen > header .header-status > .icon-label-control {
+  flex: 0 0 auto;
+  width: auto;
+  height: auto;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1px solid #c7d8ca;
+  border-radius: 14px;
+  background: #edf4e9;
+  font-size: 18px;
+  white-space: nowrap;
+}
 .box-screen .hero > .box-download-icon {
   display: grid;
   place-items: center;
@@ -169,6 +189,10 @@
   }
 }
 @media (max-width: 720px) {
+  .box-screen > header .header-status {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
   .box-screen .hero:has(.box-game-title) {
     flex-wrap: wrap;
     column-gap: 8px;

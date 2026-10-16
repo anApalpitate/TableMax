@@ -111,11 +111,13 @@
   margin: 18px 0 0;
 }
 .countdown-settings__saved {
+  min-width: 0;
+  max-width: 100%;
   padding: 6px 12px;
   border-radius: 10px;
   background: #edf1e7;
   font-size: 16px;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 .countdown-settings__heading {
   display: flex;
@@ -131,4 +133,10 @@
 .countdown-settings__note {
   color: #496253;
   font-size: 16px;
+}
+@media (max-width: 440px) {
+  .countdown-settings__heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }

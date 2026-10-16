@@ -18,6 +18,36 @@
 .settings-panel .panel-heading h2 {
   font-size: 22px;
 }
+.settings-panel--preferences .panel-heading {
+  align-items: flex-start;
+}
+.settings-panel--preferences .panel-heading h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.settings-panel--preferences .box-overlay-panel__content,
+.settings-panel--preferences .box-overlay-panel__content > *,
+.settings-panel--preferences .beginner-guidance-setting > *,
+.settings-panel--preferences .countdown-settings > *,
+.settings-panel--preferences .display-settings-choice > *,
+.settings-panel--preferences .display-settings-current > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.settings-panel--preferences :is(h3, label, p, output, dt, dd, strong) {
+  overflow-wrap: anywhere;
+}
+.settings-panel--preferences button {
+  height: auto;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+.settings-panel--preferences .dialog-actions > button {
+  flex: 1 1 180px;
+  min-width: 0;
+}
 .settings-panel .beginner-guidance-setting,
 .settings-panel .countdown-settings,
 .settings-panel .display-settings-choice,
@@ -46,9 +76,10 @@
   background: #fffdf6;
   border: 1px solid #b7d2c6;
 }
-.settings-panel .interaction-video-setting {
+.settings-panel .interaction-video-setting,
+.settings-panel--preferences .interaction-button-setting {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
 }
@@ -56,8 +87,10 @@
   grid-column: 1 / -1;
   margin: 0;
 }
-.settings-panel .interaction-video-setting button {
+.settings-panel .interaction-video-setting button,
+.settings-panel--preferences .interaction-button-setting button {
   display: flex;
+  width: auto;
   align-items: center;
   gap: 10px;
   padding: 8px;
@@ -66,6 +99,7 @@
 }
 .settings-switch {
   display: inline-flex;
+  flex: 0 0 44px;
   align-items: center;
   width: 44px;
   height: 26px;
@@ -100,6 +134,12 @@
   .dialog-surface.overlay-panel.settings-panel {
     padding: 16px;
   }
+  .settings-panel--preferences .beginner-guidance-setting,
+  .settings-panel--preferences .countdown-settings,
+  .settings-panel--preferences .display-settings-choice,
+  .settings-panel--preferences .display-settings-current {
+    padding: 14px;
+  }
   .settings-panel .seat-manager__row.seat-settings-row {
     grid-template-columns: 24px 48px minmax(0, 1fr) 46px;
   }
@@ -127,5 +167,18 @@
     grid-area: 2 / 4;
     width: 46px;
     min-width: 46px;
+  }
+}
+@media (max-width: 440px) {
+  .settings-panel--preferences .beginner-guidance-setting,
+  .settings-panel--preferences .interaction-video-setting,
+  .settings-panel--preferences .interaction-button-setting {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: stretch;
+  }
+  .settings-panel--preferences .interaction-video-setting button,
+  .settings-panel--preferences .interaction-button-setting button {
+    justify-content: center;
+    width: 100%;
   }
 }

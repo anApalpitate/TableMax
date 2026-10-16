@@ -19,10 +19,13 @@
 }
 .display-settings-fields {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
 }
 .display-settings-fields select,
 .window-mode-setting select {
+  min-width: 0;
+  max-width: 100%;
   width: 100%;
   min-height: 48px;
 }
@@ -41,6 +44,7 @@
 }
 .display-settings-screen {
   display: grid;
+  min-width: 0;
   gap: 6px;
 }
 .display-settings-screen strong {
@@ -56,14 +60,21 @@
 }
 .display-settings-metrics {
   display: grid;
+  min-width: 0;
   gap: 8px;
   margin: 0;
 }
 .display-settings-metrics > div {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: baseline;
   gap: 12px;
+}
+.display-settings-metrics dt,
+.display-settings-metrics dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .display-settings-metrics dd {
   margin: 0;
@@ -101,12 +112,12 @@
 }
 @media (max-width: 600px) {
   .display-settings-current {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 12px;
     padding: 14px;
   }
   .display-settings-metrics {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
   .display-settings-metrics > div {

@@ -3,7 +3,7 @@ import type {
   DisplayPreferences,
   DisplaySnapshot,
 } from '../../../desktop/src/display-types';
-import { OverlayPanel } from './OverlayPanel';
+import { BoxOverlayPanel } from './BoxOverlayPanel';
 import type { ScreenRole } from '../navigation';
 import {
   useInteractionPreference,
@@ -109,9 +109,9 @@ export function DisplaySettings({
         <span>视频设置</span>
       </button>
       {open && (
-        <OverlayPanel
+        <BoxOverlayPanel
           title="视频设置"
-          className="settings-panel"
+          className="settings-panel settings-panel--preferences"
           close={() => setOpen(false)}
         >
           <WindowModeSettings />
@@ -258,7 +258,7 @@ export function DisplaySettings({
             bridge &&
             !error && <p role="status">{feedbackText('display.reading')}</p>
           )}
-        </OverlayPanel>
+        </BoxOverlayPanel>
       )}
     </>
   );

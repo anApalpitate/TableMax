@@ -94,7 +94,7 @@ export function ApplicationUpdate({ playing }: { playing: boolean }) {
         <BoxOverlayPanel
           title="程序更新"
           close={() => setOpen(false)}
-          className="settings-panel application-update"
+          className="settings-panel settings-panel--preferences application-update"
         >
           <div className="application-update__versions">
             <p>

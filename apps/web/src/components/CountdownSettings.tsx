@@ -1,7 +1,7 @@
 import { useId, useState, type ReactNode } from 'react';
 import { COUNTDOWN_STEPS, DEFAULT_COUNTDOWN_SECONDS } from '@tablemax/protocol';
 import type { RoomSession } from '../session/useRoomSession';
-import { OverlayPanel } from './OverlayPanel';
+import { BoxOverlayPanel } from './BoxOverlayPanel';
 import { feedbackText } from '../content/feedback';
 import './countdown.css';
 import './settings-panel.css';
@@ -61,9 +61,9 @@ export function CountdownSettings({
         <span>游戏设置</span>
       </button>
       {open && (
-        <OverlayPanel
+        <BoxOverlayPanel
           title="游戏设置"
-          className="settings-panel"
+          className="settings-panel settings-panel--preferences"
           close={() => setOpen(false)}
         >
           {children}
@@ -144,7 +144,7 @@ export function CountdownSettings({
               </div>
             </div>
           )}
-        </OverlayPanel>
+        </BoxOverlayPanel>
       )}
     </>
   );
