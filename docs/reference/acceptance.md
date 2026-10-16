@@ -8,7 +8,7 @@
 
 [完整安装器](../../artifacts/releases/v1.0.7/1.0.7.2/TableMax-1.0.7.2-installer-win-x64.exe)35,750,777字节，SHA `1eabdd13bdbea2712c731d6a77b00e1bdd2756331318194e685fc71a6cf3aa83`；snapshot `91e13f6af698a964df479b8233ecf5e2f063d9579f09f9e1f7f2d652542e7ca5`，candidate SHA `95e6e3df7a13836cd37e9697e1cc25486ff3dbc27921beabf56e152db51e6cf8`，安装清单SHA `3a53c159cc5f3a33dcf3e3f7a2209fad82411ec649c4c4672b0eee43dcc89886`。[资源复用证明](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/retained-games-proof.json)确认6款正式游戏／7个玩法的31个游戏构建单元、25条原签名发行、24个blob及完整签名目录原字节保留，当前映射SHA `ac917e6a9dd36a7b3dd6f084944b9e2528309eace79a294d11a39539fb844bf9`未变。
 
-[默认D](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-handoff/report.json)、[I198／外置D](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-handoff-long-root-external-data/report.json)、[健康失败恢复](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-framework-recovery/report.json)三条新布局1.0.7.60000→60001实际链各8步通过、0失败，覆盖真实更新入口、下载／验签／Apply、父退出、新持续主机、下一启动清理、旧框架保全及最终卸载。[真实进度窗口](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-handoff/installer-progress/report.json)记录实际中文活动进度、文件计数和Inno原生0–65535控件位置，保留真实PNG；安装进程持句柄退出0，自有Job自然归零、恢复并关闭私有桌面。向导迁移选择等沿用既有实现，本轮没有逐页重跑全部向导交互。
+[默认D](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-handoff/report.json)、[I198／外置D](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-handoff-long-root-external-data/report.json)、[健康失败恢复](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-framework-recovery/report.json)三条新布局1.0.7.60000→60001实际链各8步通过、0失败，覆盖真实更新入口、下载／验签／Apply、父退出、新持续主机、下一启动清理、旧框架保全及最终卸载。[真实进度窗口](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-handoff/installer-progress/report.json)在隔离安装夹具上核对同一进度实现的实际中文活动进度、文件计数和Inno原生0–65535控件位置，保留真实PNG；安装进程持句柄退出0，自有Job自然归零、恢复并关闭私有桌面。向导迁移选择等沿用既有实现，本轮没有逐页重跑全部向导交互。
 
 [正式原始证明](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/shipping-executable-checks-full.json)12项通过，覆盖实际首装、同根复装、保存、两次卸载、重装读回、登记／快捷方式及精确受管成员。两次资源回执均删除192文件、因存档引用保留56文件，deferred为空；数据库、配置、未知文件和旧局依赖保留。[正式账户终态](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/isolated-account.json)及[驱动终态](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02-completion.json)确认退出0、账户和profile删除、errors为空。[独立封存证明](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/finalized-installation-02.json)1,765,090字节，SHA `a0260b54b0af811aa561ecae57e5c6ce65bc61cb28bb15769624ad0f220c1e92`，绑定同次receipt、完整方法、同账户清理和保留runtime，不重复业务。
 
@@ -16,7 +16,7 @@
 
 首次完成安装并健康启动后同次程序采样113,633,179字节＝程序97,709,380＋框架5,273,757＋身份／配置15,814＋当前G10,634,228，低于120,000,000硬限，触发110,000,000工程预警。preStartupSampled为false；阶段观测最大176,174,176字节包含数据／缓存／暂存，isAbsolutePeak为false。[封包日志](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/package-candidate-02.log)核EXE、ZIP及实际提取内容；[推广回执](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/promotion-receipt.json)绑定严格门禁和新v1.0.7/current，旧v1.0.6/current及原10／18／19／21字节保全。
 
-采用项目免费RSA应用签名，不提供Authenticode或SmartScreen信誉。浏览器下载标记、真实断电、实体手机LAN及线上正向更新UI下载未在本轮重测。原失败与过程见[本轮任务](../tasks/installer-progress-v107-release.md)。
+采用项目免费RSA应用签名，不提供Authenticode或SmartScreen信誉。浏览器下载标记、真实断电、实体手机LAN及线上正向更新UI下载未在本轮重测。原失败与过程见[本轮归档](../archive/installer-progress-v107-release-2026-10-16.md)。
 
 ## 1.0.6.21：installer命名与完整流程收尾（2026-10-16）
 
@@ -82,7 +82,7 @@
 
 当前本地current为[完整安装器1.0.7.2](#1072安装进度与版本交付2026-10-16)，公开版本1.0.7。身份、实测、容量与迁移边界唯一维护在该节。旧1.0.6/current及原10／18／19／21按其历史身份和证明保留。
 
-v1.0.7已获GitHub发布授权，正式Release及source ZIP尚待既有发布入口核对源码、标签、签名正文和附件后发布；此前线上附件保持原样。不部署Pages。当前进度见[发布任务](../tasks/installer-progress-v107-release.md)。
+[GitHub v1.0.7](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.7)已正式发布并为latest，非草稿、非预发布。附件仅[installer](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-installer-win-x64.exe)与[source ZIP](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-source.zip)；公开installer与本地1.0.7.2完全同字节。source ZIP为86,438,358字节，SHA `83d9080b3a0d54b8d01269710dd3a9bec7c417413e4d18429e9d4fc0c5660963`，由标签源码提交 `c1207fd0be68b05b2fa88e2989a2c7444ca3527b`导出；标签对象 `14e0eef4272aeaea5648f9bc08fb43de998e09d7`。[发布审计](../../artifacts/maintenance/v1.0.7/windows-editions/91e13f6af698a964df479b8233ecf5e2f063d9579f09f9e1f7f2d652542e7ca5/github-publication.json)核对两附件远端摘要、源码映射及RSA签名正文。历史附件保留，不部署Pages；失败和操作方法差异见[发布归档](../archive/installer-progress-v107-release-2026-10-16.md)。
 
 工作区占用及逐文件退役见[项目瘦身](project-slimming.md)，本轮未追加清理。旧运行ZIP唯一迁移输入见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#旧运行zip的迁移输入)；下方旧标题保留历史导航。
 

@@ -39,6 +39,16 @@ const { version } = JSON.parse(await readFile('package.json', 'utf8'));
 const repo = 'anApalpitate/TableMax';
 const tag = `v${version}`;
 const replaceDraft = process.argv.includes('--replace-draft');
+const createdDraftArguments = process.argv.filter((arg) =>
+  arg.startsWith('--created-draft-id='),
+);
+assert.ok(!process.argv.includes('--created-draft-id'));
+assert.ok(createdDraftArguments.length <= 1);
+const createdDraftId = createdDraftArguments[0]?.slice(19);
+if (createdDraftId !== undefined) {
+  assert.match(createdDraftId, /^[0-9]+$/);
+  assert.equal(replaceDraft, false);
+}
 const payloadIndex = JSON.parse(
   await readFile(
     resolve('artifacts/package-payloads', tag, 'current.json'),
@@ -144,6 +154,10 @@ for (const edition of ['full']) {
     'Shipping EXE changed after validation',
   );
 }
+assert.ok(
+  createdDraftId === undefined || applicationUpdate,
+  'Resuming a created draft requires an authenticated installer release',
+);
 const commit = await run('git', ['rev-parse', 'HEAD']);
 const tagCommit = await run('git', ['rev-parse', `${tag}^{commit}`]);
 if (!replaceDraft)
@@ -213,11 +227,20 @@ for (const unit of manifest.units) {
   );
   for (const file of record.inputs.files) inputs.add(file.path);
 }
-assert.equal(
-  await run('git', ['diff', '--name-only', 'HEAD', '--', ...inputs]),
-  '',
-  'Commit all frozen runtime source inputs before publishing',
-);
+// Keep every frozen input in the gate without exceeding Win32's command line.
+const inputPaths = [...inputs];
+for (let offset = 0; offset < inputPaths.length; offset += 64) {
+  const batch = inputPaths.slice(offset, offset + 64);
+  assert.ok(
+    batch.reduce((length, path) => length + path.length + 3, 256) < 24000,
+    'Frozen source input batch exceeds the Windows command-line budget',
+  );
+  assert.equal(
+    await run('git', ['diff', '--name-only', 'HEAD', '--', ...batch]),
+    '',
+    'Commit all frozen runtime source inputs before publishing',
+  );
+}
 await mkdir(publicDirectory, { recursive: true });
 for (let i = 0; i < exes.length; i++) await copyFile(localExes[i], exes[i]);
 const assets = [...exes, source];
@@ -355,7 +378,12 @@ const record = {
   commit,
   tag,
   repo,
-  mode: replaceDraft ? 'replace-draft' : 'new-release',
+  mode: replaceDraft
+    ? 'replace-draft'
+    : createdDraftId
+      ? 'resume-created-draft'
+      : 'new-release',
+  ...(createdDraftId ? { createdDraftId } : {}),
   sourceCommit: commit,
   tagCommit,
   tagObject,
@@ -483,23 +511,45 @@ if (replaceDraft) {
     resolve(notes),
   ]);
 } else if (applicationUpdate) {
-  await run('gh', [
-    'release',
-    'create',
-    tag,
-    ...assets,
-    '--repo',
-    repo,
-    '--verify-tag',
-    '--draft',
-    '--title',
-    `TableMax ${tag}`,
-    '--notes-file',
-    resolve(notes),
-  ]);
+  let draftId = createdDraftId;
+  if (!draftId) {
+    await run('gh', [
+      'release',
+      'create',
+      tag,
+      ...assets,
+      '--repo',
+      repo,
+      '--verify-tag',
+      '--draft',
+      '--title',
+      `TableMax ${tag}`,
+      '--notes-file',
+      resolve(notes),
+    ]);
+    // The REST tag endpoint omits unpublished releases. The CLI resolves drafts.
+    const created = JSON.parse(
+      await run('gh', [
+        'release',
+        'view',
+        tag,
+        '--repo',
+        repo,
+        '--json',
+        'apiUrl',
+      ]),
+    );
+    const apiPrefix = `https://api.github.com/repos/${repo}/releases/`;
+    assert.ok(created.apiUrl.startsWith(apiPrefix));
+    draftId = created.apiUrl.slice(apiPrefix.length);
+    assert.match(draftId, /^[0-9]+$/);
+  }
   const ready = JSON.parse(
-    await run('gh', ['api', `repos/${repo}/releases/tags/${tag}`]),
+    await run('gh', ['api', `repos/${repo}/releases/${draftId}`]),
   );
+  assert.equal(String(ready.id), draftId);
+  assert.equal(ready.tag_name, tag);
+  assert.equal(ready.name, `TableMax ${tag}`);
   assert.equal(ready.draft, true);
   assert.equal(ready.prerelease, false);
   assert.equal(

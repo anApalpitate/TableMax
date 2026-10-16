@@ -51,6 +51,8 @@ node tools/release/installation-promote.mjs "--candidate=<封包输出candidateP
 
 本地程序使用四位 `1.x.x.y`，公开版本／附件使用三位 `1.x.x`，分配、冻结与发布映射见[版本流程](../../docs/reference/release.md#三位公开版本与四位本地构建2026-10-12)。只有获明确发布授权后才执行 `pnpm release:github -- --publish --notes=<已审文件>`，创建完整EXE与发布提交source ZIP两附件；本地导出和普通push不发布。
 
+安装器发行先上传草稿，通过CLI的 `release view --json apiUrl`取得精确REST ID，再按ID核对正文及两附件后公开。若本次新建草稿在上传后中断，已核对其ID、标签、完整正文及两附件摘要后，可用同一命令追加 `--created-draft-id=<本次草稿ID>`接续；入口保留完整源码／证明／签名门禁，不重传附件、不删除其他版本，只有仍为草稿且内容完全一致才公开。该参数不能用于已发布Release，也不代替其他草稿的替换流程。冻结源码检查按64项分批传给Git，逐项覆盖全部输入，避免Windows命令行长度上限。
+
 [构建与运行规范](../../docs/reference/build-and-run.md)维护运行和验收要求，[工具总索引](../README.md)用于按任务定位。内部辅助不是独立业务命令。
 
 内部code／resource blob逐项复用：先由生产`verifyCatalog`与`readZip`核验项目公钥签名、schema、完整依赖闭包、归档SHA和全部成员。未变内容ID保留原可信ZIP字节，不因Node／zlib或压缩实现改变重压历史ID；新ID才压缩。缺失、损坏、签名不符、链接或非法成员拒绝，不能从失败的信任核验降级为复用。构建记录增加`blobReuse`，记录复用数量／字节、核验／压缩耗时、读取／写入实现指纹、Node／zlib版本、公钥指纹及原目录／归档SHA。
