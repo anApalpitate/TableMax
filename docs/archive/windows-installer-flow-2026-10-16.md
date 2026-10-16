@@ -126,3 +126,23 @@ round-04仅修复迁移验证器，冻结19产品未变；上述正式系统证�
 - [x] 当前正文与历史分离、任务归档；最终格式、链接及Git同步由本轮收尾记录绑定。
 
 本任务完成后撤出进行中列表；本轮不发布附件或部署站点，不新增未来待办占位。最终完整记录见[轮次05](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/progress.json)。
+
+## 21验收快照
+
+### 1.0.6.21：installer命名与完整流程收尾（2026-10-16）
+
+[完整安装器](../../artifacts/releases/v1.0.6/1.0.6.21/TableMax-1.0.6.21-installer-win-x64.exe)35,745,780字节，SHA `1313f7af6390382968431211a8e86cef1523c850950acc5fe59ef9b34926e122`，绑定[冻结交付](../../artifacts/package-payloads/v1.0.6/46dc0e034588-4oLB4k/full/installer-delivery.json)。snapshot `46dc0e0345880ae265b3064513144b13c80e79268bf1816aebd39984d036057c`，candidate SHA `c1d52b4b38ffefb28588d1428f718208b67561a7bb39aa1a41cd3ce6e3c9555e`，安装清单SHA `74b435175dc7ec3d8369147b196ecd4227222d094bee1cef45638cb4c827c6a1`。6款正式游戏／7个玩法的31个构建单元复用，映射SHA `ac917e6a9dd36a7b3dd6f084944b9e2528309eace79a294d11a39539fb844bf9`未变，公开版本仍为1.0.6。
+
+[默认D](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/application-handoff/report.json)、[I198／外置D](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/application-handoff-long-root-external-data/report.json)、[健康失败恢复](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/application-framework-recovery/report.json)三条新布局1.0.7.60000→60001实际链各8步通过、0失败。覆盖下载／验签／Apply、父退出、新持续主机、下一启动清理及原框架保全。默认链另直接运行真实无参Updater冷启动和两次热唤起，核实际PE／SID、原Native／服务PID、面板请求递增、实际中文窗口及无下载／Apply副作用。冷入口实际返回中文连接／发布信息错误，未冒称线上最新；热入口使用签名托管夹具显示可更新。冷Native另有持句柄正常退出0证据；不以Updater退出推定间接Native退出，不外推为游戏中人工操作或线上正向更新下载验收。
+
+[正式原始证明](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/shipping-executable-checks-full.json)4,135,082字节，SHA `389345943305586af0cd820c25f3ce7ceaf096089d2895b607eb96ae0aa34a81`，12项核验覆盖首装、同包同根复装、保存、两次默认卸载、同根重装读回及精确快捷方式／登记／受管文件。[正式账户终态](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/isolated-account.json)passed、账户和profile删除、errors为空，[driver退出0](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02-completion.json)。[独立封存证明](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/finalized-installation-21.json)1,720,121字节，SHA `774a8be2c8ef29f70f8ff016acc4c28bd134084f3924938c576e34437ddb5ce3`，绑定原执行receipt、同一账户清理、完整方法及保留runtime，没有重跑业务。
+
+[第一次资源回执](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/first-uninstall-resources.json)和[最终资源回执](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/final-uninstall-resources.json)均completed、deferred为空，各删除192文件／7,381,690字节，因存档发行及依赖保留56文件／3,252,538字节。配置、数据库、未知资料和旧局依赖保留并经重装恢复。只读分析TEMP回执仍按原记录retained，测试profile随后由账户收尾删除，不改写为单项TEMP清理通过。
+
+[便携10→21同根迁移](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/portable-migration-21-01/portable-migration/report.json)2,057,581字节，SHA `c471f6d8b314f7cba8cf6cce55b873f89e59278e588b6a8466cd4ff2f2f4f66c`；默认／外置D两case各8项通过、0失败，prior／total均8。实际I等于原便携B，新B为I/data；目标创建前冻结源清单，核全部原成员SHA、玩家／存档／发行恢复、卸载删留及原件保全。[迁移隔离终态](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/portable-migration-21-01/isolated-account.json)账户／profile删除且errors为空，[driver退出0](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/portable-migration-21-01-completion.json)。两个账户各自绑定自己的输入、执行与清理，不拼接证明。
+
+首次完成安装并健康启动后的同次程序采样113,624,443字节＝程序97,708,338＋框架5,266,061＋身份／配置15,816＋当前G10,634,228，严格低于120,000,000硬限，触发110,000,000工程预警。preStartupSampled为false；阶段占用最大180,062,993字节包含数据／缓存／暂存，isAbsolutePeak为false。封包的EXE／ZIP／实际提取检查见[封包日志](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/package-candidate-21.log)。
+
+中文向导的源发现、返回编辑、默认／自选路径、跳页及取消确认复用原双场景实际窗口证明；[复用校核](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/reused-wizard-evidence.json)逐字节核对未变Inno配方与简体中文语言，不声称21逐页重新操作。签名命名的JS及Native定向回归、观察器实进程复验、全部旧失败见[专项归档](../archive/windows-installer-flow-2026-10-16.md#轮次05安装器命名预算与新增验收缺口2026-10-16)。
+
+[推广回执](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/promotion21-receipt.json)确认既有严格门禁原子切换current；[推广后保护复核](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/protection-after-promotion.json)核15项基线，只有授权的修订／活动指针变化，18原指针另保留精确原始字节，10／18／19及原证明、用户工作区配置均保全。项目RSA与Windows Authenticode分开；本轮未发布附件、source ZIP或Pages，浏览器下载标记／SmartScreen信誉／真实断电／实体手机LAN不在本次验收范围。

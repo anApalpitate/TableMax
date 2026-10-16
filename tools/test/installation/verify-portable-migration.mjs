@@ -42,7 +42,7 @@ const portablePointerSha256 =
 const portableExecutableSha256 =
   '93207df18d568e808ea903ce5d538fe1835323f80a523af95a09241eeb6364bc';
 const installerSha256 =
-  '1313f7af6390382968431211a8e86cef1523c850950acc5fe59ef9b34926e122';
+  '1eabdd13bdbea2712c731d6a77b00e1bdd2756331318194e685fc71a6cf3aa83';
 const caseIds = ['defaultD', 'externalD'];
 const databaseMembers = [
   'foundation.sqlite',
@@ -229,7 +229,7 @@ async function registrationAt(root, environment) {
       samePath(record.root, root),
       'Registered installation root differs',
     );
-    assert.equal(record.version, '1.0.6.21');
+    assert.equal(record.version, '1.0.7.2');
     assert.equal(record.uninstall, '"' + join(root, 'unins000.exe') + '"');
   }
   return records;
@@ -400,7 +400,7 @@ async function verifyIdentity(root, manifest, delivery, ownerSid) {
   assert.equal(identity.ownerSid, ownerSid);
   assert.ok(samePath(identity.root, root));
   assert.ok(samePath(identity.boxRoot, join(root, 'data')));
-  assert.equal(identity.buildVersion, '1.0.6.21');
+  assert.equal(identity.buildVersion, '1.0.7.2');
   assert.equal(identity.payloadManifestSha256, manifest.payloadManifestSha256);
   assert.equal(identity.currentMappingSha256, manifest.currentMappingSha256);
   assert.deepEqual(identity.files, manifest.files);
@@ -471,7 +471,7 @@ export async function verifyPortableMigration({
     executionCopies: [],
     cleanupErrors: [],
     scope:
-      'Actual frozen portable 1.0.6.10 generated idle saves and two same-root production 1.0.6.21 Inno migrations/default uninstalls, with I equal to the original portable B and new B at I/data, in one fresh authorized standard profile; no older-format save, public release, SmartScreen or full fresh-install capacity claim.',
+      'Actual frozen portable 1.0.6.10 generated idle saves and two same-root production 1.0.7.2 Inno migrations/default uninstalls, with I equal to the original portable B and new B at I/data, in one fresh authorized standard profile; no older-format save, public release, SmartScreen or full fresh-install capacity claim.',
   };
   let desktop, active;
   const environment = childEnvironment(work);
@@ -632,7 +632,7 @@ export async function verifyPortableMigration({
     );
     const manifest = JSON.parse(await readFile(manifestRecord.path, 'utf8'));
     assert.equal(manifest.productId, productId);
-    assert.equal(manifest.buildVersion, '1.0.6.21');
+    assert.equal(manifest.buildVersion, '1.0.7.2');
     assert.equal(manifest.installProtocol, 1);
     assert.equal(
       manifest.currentMappingSha256,
@@ -884,7 +884,7 @@ export async function verifyPortableMigration({
       const restoredStorage = await desktop.request('storage.info');
       assert.ok(samePath(restoredStorage.active, active.dataDirectory));
       const runtime = await desktop.request('runtime');
-      assert.equal(runtime.appVersion, '1.0.6.21');
+      assert.equal(runtime.appVersion, '1.0.7.2');
       const restored = (
         await post(runtime.origin, '/api/session/view', { token: saved.token })
       ).view;

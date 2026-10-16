@@ -4,23 +4,23 @@
 
 当前结论统一见[当前源码与本地交付](#当前源码与本地交付)，本页各版本章节只说明对应原字节与证明范围。
 
+## 1.0.7.2：安装进度与版本交付（2026-10-16）
+
+[完整安装器](../../artifacts/releases/v1.0.7/1.0.7.2/TableMax-1.0.7.2-installer-win-x64.exe)35,750,777字节，SHA `1eabdd13bdbea2712c731d6a77b00e1bdd2756331318194e685fc71a6cf3aa83`；snapshot `91e13f6af698a964df479b8233ecf5e2f063d9579f09f9e1f7f2d652542e7ca5`，candidate SHA `95e6e3df7a13836cd37e9697e1cc25486ff3dbc27921beabf56e152db51e6cf8`，安装清单SHA `3a53c159cc5f3a33dcf3e3f7a2209fad82411ec649c4c4672b0eee43dcc89886`。[资源复用证明](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/retained-games-proof.json)确认6款正式游戏／7个玩法的31个游戏构建单元、25条原签名发行、24个blob及完整签名目录原字节保留，当前映射SHA `ac917e6a9dd36a7b3dd6f084944b9e2528309eace79a294d11a39539fb844bf9`未变。
+
+[默认D](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-handoff/report.json)、[I198／外置D](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-handoff-long-root-external-data/report.json)、[健康失败恢复](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-framework-recovery/report.json)三条新布局1.0.7.60000→60001实际链各8步通过、0失败，覆盖真实更新入口、下载／验签／Apply、父退出、新持续主机、下一启动清理、旧框架保全及最终卸载。[真实进度窗口](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/application-handoff/installer-progress/report.json)记录实际中文活动进度、文件计数和Inno原生0–65535控件位置，保留真实PNG；安装进程持句柄退出0，自有Job自然归零、恢复并关闭私有桌面。向导迁移选择等沿用既有实现，本轮没有逐页重跑全部向导交互。
+
+[正式原始证明](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/shipping-executable-checks-full.json)12项通过，覆盖实际首装、同根复装、保存、两次卸载、重装读回、登记／快捷方式及精确受管成员。两次资源回执均删除192文件、因存档引用保留56文件，deferred为空；数据库、配置、未知文件和旧局依赖保留。[正式账户终态](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02/isolated-account.json)及[驱动终态](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/production-account-02-02-completion.json)确认退出0、账户和profile删除、errors为空。[独立封存证明](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/finalized-installation-02.json)1,765,090字节，SHA `a0260b54b0af811aa561ecae57e5c6ce65bc61cb28bb15769624ad0f220c1e92`，绑定同次receipt、完整方法、同账户清理和保留runtime，不重复业务。
+
+[便携10→1.0.7.2同根迁移](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/portable-migration-02-01/portable-migration/report.json)默认／外置D两场景各8项通过、0失败；实际安装根等于原便携配置根，新配置根为I/data，核原件逐文件SHA、存档及玩家恢复、卸载删留。[迁移账户终态](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/portable-migration-02-01/isolated-account.json)及[迁移驱动终态](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/portable-migration-02-01-completion.json)确认独立账户退出0并删除账户／profile，errors为空；不跨账户拼接证明。
+
+首次完成安装并健康启动后同次程序采样113,633,179字节＝程序97,709,380＋框架5,273,757＋身份／配置15,814＋当前G10,634,228，低于120,000,000硬限，触发110,000,000工程预警。preStartupSampled为false；阶段观测最大176,174,176字节包含数据／缓存／暂存，isAbsolutePeak为false。[封包日志](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/package-candidate-02.log)核EXE、ZIP及实际提取内容；[推广回执](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/promotion-receipt.json)绑定严格门禁和新v1.0.7/current，旧v1.0.6/current及原10／18／19／21字节保全。
+
+采用项目免费RSA应用签名，不提供Authenticode或SmartScreen信誉。浏览器下载标记、真实断电、实体手机LAN及线上正向更新UI下载未在本轮重测。原失败与过程见[本轮任务](../tasks/installer-progress-v107-release.md)。
+
 ## 1.0.6.21：installer命名与完整流程收尾（2026-10-16）
 
-[完整安装器](../../artifacts/releases/v1.0.6/1.0.6.21/TableMax-1.0.6.21-installer-win-x64.exe)35,745,780字节，SHA `1313f7af6390382968431211a8e86cef1523c850950acc5fe59ef9b34926e122`，绑定[冻结交付](../../artifacts/package-payloads/v1.0.6/46dc0e034588-4oLB4k/full/installer-delivery.json)。snapshot `46dc0e0345880ae265b3064513144b13c80e79268bf1816aebd39984d036057c`，candidate SHA `c1d52b4b38ffefb28588d1428f718208b67561a7bb39aa1a41cd3ce6e3c9555e`，安装清单SHA `74b435175dc7ec3d8369147b196ecd4227222d094bee1cef45638cb4c827c6a1`。6款正式游戏／7个玩法的31个构建单元复用，映射SHA `ac917e6a9dd36a7b3dd6f084944b9e2528309eace79a294d11a39539fb844bf9`未变，公开版本仍为1.0.6。
-
-[默认D](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/application-handoff/report.json)、[I198／外置D](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/application-handoff-long-root-external-data/report.json)、[健康失败恢复](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/application-framework-recovery/report.json)三条新布局1.0.7.60000→60001实际链各8步通过、0失败。覆盖下载／验签／Apply、父退出、新持续主机、下一启动清理及原框架保全。默认链另直接运行真实无参Updater冷启动和两次热唤起，核实际PE／SID、原Native／服务PID、面板请求递增、实际中文窗口及无下载／Apply副作用。冷入口实际返回中文连接／发布信息错误，未冒称线上最新；热入口使用签名托管夹具显示可更新。冷Native另有持句柄正常退出0证据；不以Updater退出推定间接Native退出，不外推为游戏中人工操作或线上正向更新下载验收。
-
-[正式原始证明](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/shipping-executable-checks-full.json)4,135,082字节，SHA `389345943305586af0cd820c25f3ce7ceaf096089d2895b607eb96ae0aa34a81`，12项核验覆盖首装、同包同根复装、保存、两次默认卸载、同根重装读回及精确快捷方式／登记／受管文件。[正式账户终态](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/isolated-account.json)passed、账户和profile删除、errors为空，[driver退出0](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02-completion.json)。[独立封存证明](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/finalized-installation-21.json)1,720,121字节，SHA `774a8be2c8ef29f70f8ff016acc4c28bd134084f3924938c576e34437ddb5ce3`，绑定原执行receipt、同一账户清理、完整方法及保留runtime，没有重跑业务。
-
-[第一次资源回执](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/first-uninstall-resources.json)和[最终资源回执](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/final-uninstall-resources.json)均completed、deferred为空，各删除192文件／7,381,690字节，因存档发行及依赖保留56文件／3,252,538字节。配置、数据库、未知资料和旧局依赖保留并经重装恢复。只读分析TEMP回执仍按原记录retained，测试profile随后由账户收尾删除，不改写为单项TEMP清理通过。
-
-[便携10→21同根迁移](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/portable-migration-21-01/portable-migration/report.json)2,057,581字节，SHA `c471f6d8b314f7cba8cf6cce55b873f89e59278e588b6a8466cd4ff2f2f4f66c`；默认／外置D两case各8项通过、0失败，prior／total均8。实际I等于原便携B，新B为I/data；目标创建前冻结源清单，核全部原成员SHA、玩家／存档／发行恢复、卸载删留及原件保全。[迁移隔离终态](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/portable-migration-21-01/isolated-account.json)账户／profile删除且errors为空，[driver退出0](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/portable-migration-21-01-completion.json)。两个账户各自绑定自己的输入、执行与清理，不拼接证明。
-
-首次完成安装并健康启动后的同次程序采样113,624,443字节＝程序97,708,338＋框架5,266,061＋身份／配置15,816＋当前G10,634,228，严格低于120,000,000硬限，触发110,000,000工程预警。preStartupSampled为false；阶段占用最大180,062,993字节包含数据／缓存／暂存，isAbsolutePeak为false。封包的EXE／ZIP／实际提取检查见[封包日志](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/package-candidate-21.log)。
-
-中文向导的源发现、返回编辑、默认／自选路径、跳页及取消确认复用原双场景实际窗口证明；[复用校核](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/reused-wizard-evidence.json)逐字节核对未变Inno配方与简体中文语言，不声称21逐页重新操作。签名命名的JS及Native定向回归、观察器实进程复验、全部旧失败见[专项归档](../archive/windows-installer-flow-2026-10-16.md#轮次05安装器命名预算与新增验收缺口2026-10-16)。
-
-[推广回执](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/promotion21-receipt.json)确认既有严格门禁原子切换current；[推广后保护复核](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/protection-after-promotion.json)核15项基线，只有授权的修订／活动指针变化，18原指针另保留精确原始字节，10／18／19及原证明、用户工作区配置均保全。项目RSA与Windows Authenticode分开；本轮未发布附件、source ZIP或Pages，浏览器下载标记／SmartScreen信誉／真实断电／实体手机LAN不在本次验收范围。
+原身份、实测、容量与当时推广结论见[21验收快照](../archive/windows-installer-flow-2026-10-16.md#21验收快照)。
 
 ## 1.0.6.19：新布局正式验收（2026-10-16）
 
@@ -80,11 +80,11 @@
 
 ## 当前源码与本地交付
 
-当前本地current为[完整安装器1.0.6.21](#10621installer命名与完整流程收尾2026-10-16)，其身份、实测范围、容量、迁移与推广证明唯一维护在该节。公开版本1.0.6，预装6款正式游戏／7个玩法，新局固定本EXE核验映射，旧局固定原精确发行。旧10／18／19按各自历史证明保留。
+当前本地current为[完整安装器1.0.7.2](#1072安装进度与版本交付2026-10-16)，公开版本1.0.7。身份、实测、容量与迁移边界唯一维护在该节。旧1.0.6/current及原10／18／19／21按其历史身份和证明保留。
 
-本轮源码提交／推送不上传EXE、内部载荷、签名仓库或本地证据；未发布Release、source ZIP或部署Pages。线上附件沿用既有发布记录，本地验收不改写线上状态。
+v1.0.7已获GitHub发布授权，正式Release及source ZIP尚待既有发布入口核对源码、标签、签名正文和附件后发布；此前线上附件保持原样。不部署Pages。当前进度见[发布任务](../tasks/installer-progress-v107-release.md)。
 
-工作区占用及逐文件退役见[项目瘦身](project-slimming.md)，未追加清理。旧运行ZIP唯一迁移输入见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#旧运行zip的迁移输入)；下方旧标题仅保留历史导航。
+工作区占用及逐文件退役见[项目瘦身](project-slimming.md)，本轮未追加清理。旧运行ZIP唯一迁移输入见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#旧运行zip的迁移输入)；下方旧标题保留历史导航。
 
 ## 1.0.6.3：关闭与WebView2资源释放（2026-10-12）
 
