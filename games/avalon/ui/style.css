@@ -637,9 +637,17 @@
 }
 :where(.avalon-screen, .av-overlay) .av-saved-action > div {
   display: flex;
+  min-width: 0;
+  flex: 1 1 0;
   gap: 10px;
   flex-wrap: wrap;
   align-items: baseline;
+}
+:where(.avalon-screen, .av-overlay) .av-saved-action > div > strong,
+:where(.avalon-screen, .av-overlay) .av-saved-action > div > span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 :where(.avalon-screen, .av-overlay) .av-saved-action strong {
   font-size: 18px;
@@ -2356,4 +2364,93 @@
   :where(.avalon-screen, .av-overlay) .av-rule-roles > .av-role-card {
     width: 120px;
   }
+}
+
+.avalon-screen .av-toolbar .av-toolbar-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+}
+.avalon-screen .av-toolbar-icon svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+:where(.avalon-screen, .av-overlay) .av-semantic-groups {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+}
+.avalon-screen .av-status-bar > div:first-child {
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+.avalon-screen .av-status-bar > div:first-child > strong {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.avalon-screen .av-speaking-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+}
+.avalon-screen .av-speaking-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.avalon-screen .av-speaking-action {
+  white-space: nowrap;
+}
+:where(.avalon-screen, .av-overlay) .av-ballot-result,
+:where(.avalon-screen, .av-overlay) .av-history-quest,
+:where(.avalon-screen, .av-overlay) .av-public-ballots {
+  min-width: 0;
+}
+:where(.avalon-screen, .av-overlay) .av-ballot-result > p,
+:where(.avalon-screen, .av-overlay) .av-history-quest > p {
+  overflow-wrap: anywhere;
+}
+:where(.avalon-screen, .av-overlay) .av-public-ballot {
+  min-width: 0;
+  max-width: 100%;
+}
+:where(.avalon-screen, .av-overlay) .av-public-ballot > strong {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
+}
+:where(.avalon-screen, .av-overlay) .av-public-ballot > svg,
+:where(.avalon-screen, .av-overlay) .av-public-ballot > span {
+  flex-shrink: 0;
+}
+.avalon-screen .av-status-bar .av-public-assassin {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  white-space: normal;
+  color: #583c38;
+  font-size: 18px;
+  font-weight: 650;
+}
+.avalon-screen .av-public-assassin img {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  object-fit: contain;
+}
+.avalon-screen .av-public-assassin > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.avalon-screen .av-player-controls--discussion .av-action-copy {
+  gap: 0;
 }

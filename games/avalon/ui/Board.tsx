@@ -236,8 +236,9 @@ export function BallotResult({
     <article
       className={`av-ballot-result av-ballot-result--${proposal.approved ? 'approved' : 'rejected'}`}
     >
-      <h3>
-        第 {proposal.questNumber} 次任务 · 提案 {proposal.proposalNumber}
+      <h3 className="av-semantic-groups">
+        <span>第 {proposal.questNumber} 次任务</span>
+        <span>提案 {proposal.proposalNumber}</span>
       </h3>
       <p>
         <strong>{names[proposal.leader]}</strong>提名{' '}

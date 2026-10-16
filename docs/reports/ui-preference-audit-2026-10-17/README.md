@@ -4,6 +4,6 @@
 4. [电力公司](power-grid.md)（已完成）
 5. [UNO](uno.md)（已完成）
 6. [拉密](rummikub.md)（已完成）
-7. [阿瓦隆](avalon.md)
+7. [阿瓦隆](avalon.md)（已完成）
 8. [马尼拉](manila.md)（已完成）
 9. 原始报告按[美术偏好](../../reference/art-preferences.md)只读核查源码；后续实施状态、改动总结和校验边界见各报告末尾。未标记完成的报告仍待实施；模拟视口不替代实体设备验证。

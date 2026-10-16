@@ -12,6 +12,7 @@ import {
   RulesGuide,
   ScreenLink,
   SessionFeedback,
+  avatarFor,
   useAudioOutput,
   type GameClient,
   type GameHost,
@@ -198,13 +199,13 @@ function AvalonScreen({ session }: { session: GameHost }) {
       : game?.phase === 'team'
         ? `${names[game.leader] ?? '队长'} 正在组队`
         : game?.phase === 'discussion'
-          ? `${names[game.discussion?.current ?? ''] ?? '当前玩家'} 正在发言 · 逆时针，队长最后`
+          ? `${names[game.discussion?.current ?? ''] ?? '当前玩家'} 正在发言`
           : game?.phase === 'vote'
             ? '议会秘密表决'
             : game?.phase === 'quest'
               ? '远征任务进行中'
               : game?.phase === 'assassinate'
-                ? '三次成功 · 最后刺杀'
+                ? '最后刺杀'
                 : '圆桌传奇落幕';
   const expected =
     game?.phase === 'quest'
@@ -238,8 +239,8 @@ function AvalonScreen({ session }: { session: GameHost }) {
           'configured'
             ? '经典配置'
             : (game?.variant ?? view?.game?.variantId) === 'court'
-              ? '旧局 · 宫廷迷局'
-              : '旧局 · 经典圆桌'}
+              ? '旧局：宫廷迷局'
+              : '旧局：经典圆桌'}
         </span>
         <div className="av-toolbar-tools">
           <PlayModeBadge mode={view?.playMode} />
@@ -275,13 +276,48 @@ function AvalonScreen({ session }: { session: GameHost }) {
           )}
           <button
             type="button"
-            className="game-rulebook-entry"
+            className="game-rulebook-entry av-toolbar-icon"
+            aria-label="规则"
+            title="规则"
             onClick={() => setPanel('rules')}
           >
-            规则
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m12 5-3-2H3v16h6l3 2 3-2h6V3h-6Zm0 0v16M6 8h3M6 12h3m6-4h3m-3 4h3" />
+            </svg>
           </button>
-          <button type="button" onClick={() => setPanel('menu')}>
-            菜单
+          <button
+            type="button"
+            className="av-toolbar-icon av-menu-entry"
+            aria-label="菜单"
+            title="菜单"
+            onClick={() => setPanel('menu')}
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path
+                transform="translate(0.5 0)"
+                d="M8 6h13M8 12h13M8 18h13M3 5l1 1-1 1-1-1Zm0 6 1 1-1 1-1-1Zm0 6 1 1-1 1-1-1Z"
+              />
+            </svg>
           </button>
         </div>
       </header>
@@ -297,7 +333,39 @@ function AvalonScreen({ session }: { session: GameHost }) {
         <>
           <div className="av-status-bar">
             <div>
-              <strong>{heading}</strong>
+              <strong
+                className={
+                  game.phase === 'discussion'
+                    ? 'av-speaking-heading'
+                    : undefined
+                }
+              >
+                {game.phase === 'discussion' ? (
+                  <>
+                    <span className="av-speaking-name">
+                      {names[game.discussion?.current ?? ''] ?? '当前玩家'}
+                    </span>
+                    <span className="av-speaking-action">正在发言</span>
+                  </>
+                ) : (
+                  heading
+                )}
+              </strong>
+              {game.phase === 'assassinate' && game.assassin && (
+                <span
+                  className="av-public-assassin"
+                  data-av-public-assassin={game.assassin}
+                >
+                  <img
+                    src={avatarFor(
+                      view.seats.find((seat) => seat.id === game.assassin)
+                        ?.avatarId ?? 'builtin-1',
+                    )}
+                    alt=""
+                  />
+                  <span>{names[game.assassin]}</span>
+                </span>
+              )}
               {expected > 0 && (
                 <span>
                   {game.submittedSeats.length} / {expected} 已提交
@@ -321,7 +389,7 @@ function AvalonScreen({ session }: { session: GameHost }) {
           {game.phase === 'discussion' && (
             <section className="av-discussion" aria-label="发言顺序">
               <span>
-                逆时针 →{' '}
+                逆时针，队长最后 →{' '}
                 {game.discussion?.order
                   .map(
                     (id) =>
@@ -409,7 +477,7 @@ function AvalonScreen({ session }: { session: GameHost }) {
           key={panel === 'identity' ? identityScope : panel}
           title={
             panel === 'rules'
-              ? '阿瓦隆 · 图文规则'
+              ? '阿瓦隆 图文规则'
               : panel === 'history'
                 ? '圆桌议会记录'
                 : panel === 'identity'
@@ -479,7 +547,10 @@ function AvalonScreen({ session }: { session: GameHost }) {
                       <p>
                         队伍：{quest.team.map((id) => names[id]).join('、')}
                       </p>
-                      <p>失败牌 {quest.failCount} 张 · 每张牌的提交者保密</p>
+                      <p className="av-semantic-groups">
+                        <span>失败牌 {quest.failCount} 张</span>
+                        <span>每张牌的提交者保密</span>
+                      </p>
                     </article>
                   ))}
                 </div>

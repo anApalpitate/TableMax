@@ -77,10 +77,9 @@ export function PlayerControls({
       ) : game.phase === 'discussion' ? (
         <>
           <div className="av-action-copy">
-            <strong>{names[game.discussion?.current ?? '']} 正在发言</strong>
             <span>
-              逆时针发言 · 队长最后 · {game.discussion?.completed.length ?? 0} /{' '}
-              {game.seatOrder.length} 已完成
+              {game.discussion?.completed.length ?? 0} / {game.seatOrder.length}{' '}
+              已完成
             </span>
           </div>
           {action('finish-discussion') && (
@@ -189,15 +188,19 @@ export function PlayerControls({
                     : '圆桌同伴正在表决'}
           </strong>
           {submitted && game.self?.vote && (
-            <span>
-              你的选择：{game.self.vote === 'approve' ? '赞成' : '反对'} ·
-              等待全员一起揭示
+            <span className="av-semantic-groups">
+              <span>
+                你的选择：{game.self.vote === 'approve' ? '赞成' : '反对'}
+              </span>
+              <span>等待全员一起揭示</span>
             </span>
           )}
           {submitted && game.self?.questCard && (
-            <span>
-              你的选择：{game.self.questCard === 'success' ? '成功' : '失败'} ·
-              不向其他人公开
+            <span className="av-semantic-groups">
+              <span>
+                你的选择：{game.self.questCard === 'success' ? '成功' : '失败'}
+              </span>
+              <span>不向其他人公开</span>
             </span>
           )}
         </div>
