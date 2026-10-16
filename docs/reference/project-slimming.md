@@ -1,5 +1,15 @@
 # 项目瘦身与最近结果
 
+## 盒子与马尼拉交付单次深度维护（2026-10-17）
+
+最终1.0.7.22完成同字节三端、独立视觉与标准账户验收并推广后，预览发现完整逻辑体积26,635,637,978字节，触发深度分支。先复用一次普通文件快照补计受保护嵌套仓库50,825,245字节，再分别只读核对临时副本、旧封包派生目录及历史隔离runtime。当前22及本轮全部证据、原素材、正式数据、签名模块、ZIP／manifest、未结案候选、未知根及依赖／工具缓存保留。
+
+[冻结逐文件清单](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/deep-reviewed-files.json) SHA `db39cddb459b795214fe15425daf13636eb218b6c67cb3ea5cc0d302f4aaee3b`经预览后只Apply一次：[实际退役](../../artifacts/maintenance/reviewed-retirements/box-manila-polish-20261017-deep-once.json)19,068文件、9,280,038,463字节，未创建恢复副本。旧复制runtime不再作为现存复验输入，原报告、原因与逐文件SHA均保留，历史结论不改写。
+
+[最终容量](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/deep-capacity-summary.json)采样17,391,604,930字节，净降9,244,033,048字节；删除量与净降之差来自新增审计记录。唯一Node lstat报错由只读证据确认是受保护坏junction，计0普通字节；嵌套文件长度与UTC时间复核不变，epoch本地时区计算误报经固定UTC ticks纠正。统计不使用NTFS物理分配量，采样之后的文档／Git写入不计入该时点。
+
+**未达6GB目标。**已审安全候选用尽；保留未知数据库、未完成冻结候选及其他保护内容，不追加第二轮删除。当前EXE仍38,077,047字节，SHA `838a7a1ecd82670a6040baf568521498b50b6b19b06fe10bfc3377627db873b5`；[安装证明清理后只读复核](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/finalized-installation-22-after-maintenance.json)与原封存SHA完全相同，不新增业务测试统计。完整任务证据与设备边界见[归档](../archive/box-manila-ui-polish-2026-10-17.md)。
+
 ## 马尼拉安装与体验阶段维护（2026-10-16）
 
 本轮用户继续安装验收与体验优化，执行维护时账户授权尚待确认；已完成的工程进程退出后，先审12个超过30分钟的`tmp/game-review-*`旧隔离验证副本，再执行本轮唯一一次实际维护。绝对路径均在工作区tmp内；当前候选、安装验收双PE、原素材、正式数据、历史模块、依赖和工具缓存保留。[执行结果](../../artifacts/maintenance/v1.0.7/manila-installation-20261016/round-01/maintenance-apply.json)为`candidates-exhausted`，实际退役325,019,280字节、12目录；[逐文件SHA及保护](../../artifacts/maintenance/local-cleanup-20261016-073457-116-maintenance/cleanup.json)保留，删除错误0。

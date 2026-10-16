@@ -4,9 +4,19 @@
 
 当前结论统一见[当前源码与本地交付](#当前源码与本地交付)，本页各版本章节只说明对应原字节与证明范围。
 
+## 盒子与马尼拉界面优化（2026-10-17）
+
+当前本地唯一完整交付为[安装器1.0.7.22](../../artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64.exe)及[清单](../../artifacts/releases/v1.0.7/1.0.7.22/TableMax-1.0.7.22-installer-win-x64-manifest.json)，预装七款游戏／八个玩法。EXE38,077,047字节，SHA `838a7a1ecd82670a6040baf568521498b50b6b19b06fe10bfc3377627db873b5`；内部ZIP46,319,673字节、实际提取99,225,894字节，均严格小于120,000,000字节。公开版本保持1.0.7，未发布或部署。
+
+盒子统一圆角浮窗、内部滚动和手机顶栏；四款待开发游戏使用核对过的发行方封面。马尼拉完成契券／铜牌、行动者头像、现金与抵押可借、图文详情、账本、单目标拖拽强调及方骰。最终载荷真实三端28布局／50项检查、6航次135动作自然整局及盒子80个设置浮窗通过；最终手机、账本、秘密股独立视觉复核通过。源码另覆盖21个游戏库、21个顶栏、4个头像及108个介绍布局；真实设备边界及原失败见[归档](../archive/box-manila-ui-polish-2026-10-17.md)，明细见[游戏验证](../games/manila/validation-scenarios.md#盒子与马尼拉界面优化2026-10-17)。
+
+[原路径Medium启动](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/original-executable/report.json)、中文向导、默认目录和长根／外置数据的更新交接、旧框架失败恢复均通过；正式ID首装、复装、保存、两次默认卸载与同根重装读回通过。已安装更新设置页16布局通过，未宣称线上正向下载发生。[账户终态](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/production-account-22-01/isolated-account.json)确认退出0、账户与profile删除、errors为空；[封存证明](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/finalized-installation-22.json)1,991,941字节、SHA `50ac8fbf24cd13344953768f7f611ea77bb933fe124221bd7eeeef6b5c9a2fe7`，经[推广回执](../../artifacts/maintenance/v1.0.7/box-manila-polish-20261017/promotion-receipt-22.json)切换本地current。
+
+首次健康启动同次采样117,663,577字节＝程序99,834,940＋框架5,273,757＋身份／配置16,973＋当前游戏12,537,907，低于硬限并触发110,000,000工程预警。preStartupSampled为false；阶段观测最大183,962,899字节含数据／缓存／暂存，isAbsolutePeak为false。手机与4K／显示缩放为模拟；实体手机／Safari、真实LAN、物理Windows DPI及真人多人长局未在本轮认证。
+
 ## 设置与马尼拉体验深化（2026-10-16）
 
-当前本地交付为[完整安装器1.0.7.18](../../artifacts/releases/v1.0.7/1.0.7.18/TableMax-1.0.7.18-installer-win-x64.exe)及[清单](../../artifacts/releases/v1.0.7/1.0.7.18/TableMax-1.0.7.18-installer-win-x64-manifest.json)，预装全部七款游戏／八个玩法。EXE37,904,603字节，SHA `5446f87b5cdd8c469a194858a19442559e937621b94a354663a2e8d07153c5ee`；内部ZIP46,148,138字节、实际提取99,048,483字节，98成员运行前后逐SHA核验，均严格小于120,000,000字节。公开版本仍为1.0.7，未发布、部署或生成发布source ZIP。
+当时本地交付为[完整安装器1.0.7.18](../../artifacts/releases/v1.0.7/1.0.7.18/TableMax-1.0.7.18-installer-win-x64-manifest.json)及[清单](../../artifacts/releases/v1.0.7/1.0.7.18/TableMax-1.0.7.18-installer-win-x64-manifest.json)，预装全部七款游戏／八个玩法。EXE37,904,603字节，SHA `5446f87b5cdd8c469a194858a19442559e937621b94a354663a2e8d07153c5ee`；内部ZIP46,148,138字节、实际提取99,048,483字节，98成员运行前后逐SHA核验，均严格小于120,000,000字节。公开版本仍为1.0.7，未发布、部署或生成发布source ZIP。
 
 三个设置页完成防溢出及顶栏圆角入口；马尼拉完成独立手机竖港、图形草稿／确认、按需详情、四货物及岗位图像、七类流程图解、原创短音效及保存后演出。候选17通过26布局、三／四／五人自然整局与各一条完整真实UI航次、设置80项；候选18仅修图解CSS后定向复验手机6布局／图框边界。规则、服务、策略、Worker、资源和盒子按[字节等价](../../artifacts/manila/validation/runtime-equivalence-17-18.json)复用，不增加执行统计；具体检查与设备边界见[游戏验证](../games/manila/validation-scenarios.md#当前结果)。
 
@@ -126,7 +136,7 @@
 
 ## 当前源码与本地交付
 
-当前本地current为[完整安装器1.0.7.18](#设置与马尼拉体验深化2026-10-16)，含全部七款游戏／八个玩法，已完成本轮正式系统安装验收，暂不发布。公开版本仍为1.0.7，线上附件仍对应[1.0.7.2原字节](#1072安装进度与版本交付2026-10-16)。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
+当前本地current为[完整安装器1.0.7.22](#盒子与马尼拉界面优化2026-10-17)，含全部七款游戏／八个玩法，已完成本轮正式系统安装验收，暂不发布。公开版本仍为1.0.7，线上附件仍对应[1.0.7.2原字节](#1072安装进度与版本交付2026-10-16)。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
 
 源码与本地完整交付已包含经典马尼拉；本地current切换不覆盖线上附件、标签或原发行SHA映射。
 
