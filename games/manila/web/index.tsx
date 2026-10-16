@@ -130,20 +130,28 @@ function ManilaScreen({ session }: { session: GameHost }) {
           <ManilaEffects session={session} />
           <PlayModeBadge mode={view?.playMode} />
           <button
-            className="game-rulebook-entry mn-copper-button"
+            className="game-rulebook-entry mn-copper-button mn-toolbar-icon"
+            aria-label="规则"
+            title="规则"
             onClick={() => setPanel('rules')}
           >
-            规则
+            <CopperMark kind="rules" />
           </button>
           <button
-            className="mn-copper-button"
+            className="mn-copper-button mn-toolbar-icon"
+            aria-label="账本"
+            title="账本"
             onClick={() => setPanel('ledger')}
           >
             <CopperMark kind="ledger" />
-            账本
           </button>
-          <button className="mn-copper-button" onClick={() => setPanel('menu')}>
-            菜单
+          <button
+            className="mn-copper-button mn-toolbar-icon"
+            aria-label="菜单"
+            title="菜单"
+            onClick={() => setPanel('menu')}
+          >
+            <CopperMark kind="menu" />
           </button>
         </div>
       </header>

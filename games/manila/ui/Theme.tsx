@@ -6,7 +6,16 @@ import { CargoArt, SiteArt, Worker, cargoStyle } from './pieces';
 export function CopperMark({
   kind,
 }: {
-  kind: 'shares' | 'coin' | 'credit' | 'ledger' | 'receipt' | 'list' | 'voyage';
+  kind:
+    | 'shares'
+    | 'coin'
+    | 'credit'
+    | 'ledger'
+    | 'receipt'
+    | 'list'
+    | 'voyage'
+    | 'rules'
+    | 'menu';
 }) {
   const paths = {
     shares: 'M5 7V4h12v3M3 7h18v15H3zM7 11h10M7 15h6M16 18l2 2 2-2',
@@ -17,6 +26,9 @@ export function CopperMark({
     receipt: 'M5 2h14v20l-3-2-4 2-4-2-3 2zM8 7h8M8 11h8M8 15h5',
     list: 'M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1',
     voyage: 'M12 2v14M12 3l8 9h-8M9 6l-6 6h6M2 17h20l-4 4H6z',
+    rules:
+      'M6 3h14v18H6a3 3 0 0 1 0-6h14M6 3a3 3 0 0 0-3 3v12M10 7a2 2 0 0 1 4 0c0 1-2 1-2 3M12 12h.01',
+    menu: 'M4 6h16M4 12h16M4 18h16',
   };
   return (
     <svg className="mn-copper-mark" viewBox="0 0 24 24" aria-hidden="true">
