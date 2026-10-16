@@ -155,8 +155,8 @@ export function InviteFriends({ session }: { session: RoomSession }) {
                   )}
                   {addresses.map((a) => (
                     <option key={a} value={a}>
-                      {adapters.find((adapter) => adapter.address === a)?.name}{' '}
-                      · {a}
+                      {adapters.find((adapter) => adapter.address === a)?.name}
+                      （{a}）
                       {adapters.find((adapter) => adapter.address === a)
                         ?.kind === 'virtual'
                         ? '（虚拟／VPN）'
