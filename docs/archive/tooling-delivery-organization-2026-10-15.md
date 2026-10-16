@@ -1,5 +1,7 @@
 # 工具与交付文档整理归档（2026-10-15）
 
+本页记录当时的原字节与结论；旧本地交付于2026-10-16经用户授权退役，原下载链接改指[逐文件退役清单](local-release-retirement-2026-10-16.md#逐文件退役清单)。原SHA、验收报告和失败结论保留。
+
 本页保全从长期正文迁出的历史原文、失败、旧操作与原SHA，不作为当前命令或交付状态。当前交付统一见[验收](../reference/acceptance.md#当前源码与本地交付)，现行方法从[文档索引](../README.md)进入。摘录中的“当前”“本轮”只指原时点。
 
 ## 总索引原产品与交付摘要
@@ -138,7 +140,7 @@ games/v1.0.6/<gameId>/<variantId或default>/index.html
 
 来源：[docs/reference/acceptance.md](../reference/acceptance.md)；整理前原文件SHA-256 `37e55da4f82c9c697718f95a521daf0382b57597217493e515cbd7551981c6ca`。
 
-当前本地完整程序为 [TableMax-1.0.6.10-win-x64.exe](../../artifacts/releases/TableMax-1.0.6.10-win-x64.exe)，公开版本仍为1.0.6。新局使用 `events-research-v3`，统一144张、17项研究、单格超梦及六类随机事件；旧存档、checkpoint及原局下一小局固定原发行。Mega与羁绊仅展示主题占位，7项缺失研究插图采用符合新条件的代码场景。主机／公共隐藏玩家缓冲，本人端保留操作；天气角标、环境层、全屏能力与路卡利欧画像波导已接入。
+当前本地完整程序为 [TableMax-1.0.6.10-win-x64.exe](local-release-retirement-2026-10-16.md#逐文件退役清单)，公开版本仍为1.0.6。新局使用 `events-research-v3`，统一144张、17项研究、单格超梦及六类随机事件；旧存档、checkpoint及原局下一小局固定原发行。Mega与羁绊仅展示主题占位，7项缺失研究插图采用符合新条件的代码场景。主机／公共隐藏玩家缓冲，本人端保留操作；天气角标、环境层、全屏能力与路卡利欧画像波导已接入。
 
 [实际完整EXE证明](../../artifacts/maintenance/v1.0.6/windows-editions/63b12c9af279f4a374a51d80dfa4e9251ac1f9f1c54b6b467c3cd62d1336c41a/shipping-executable-checks-full.json)通过载荷全部哈希、96成员集合、重复提取及隐藏原生WebView2／包内Node安全。EXE **44,096,512字节**，内部ZIP **43,964,478字节**，实际提取 **97,009,047字节**，均严格小于120,000,000字节。宝可梦扩展模块 **3,717,195字节**（[同包严格预算证明](../../artifacts/maintenance/v1.0.6/pokemon-events-v3-verification/module-budget-10610.json)），本轮仍按4,194,304字节门禁，新增4份运行图片共167,594字节。EXE SHA-256为 `93207df18d568e808ea903ce5d538fe1835323f80a523af95a09241eeb6364bc`，冻结快照与内部载荷按该原始证明绑定；current已于2026-10-15推广18，见[当前源码与本地交付](../reference/acceptance.md#当前源码与本地交付)。
 

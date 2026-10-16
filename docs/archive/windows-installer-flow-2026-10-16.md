@@ -1,5 +1,7 @@
 # 安装与更新流程优化历史（2026-10-16）
 
+本页记录当时的原字节与结论；旧本地交付于2026-10-16经用户授权退役，原下载链接改指[逐文件退役清单](local-release-retirement-2026-10-16.md#逐文件退役清单)。原SHA、验收报告和失败结论保留。
+
 本任务的实现、必需验收和证据封存已完成并归档。以下按原时点保留任务快照、失败、停止与接续记录；后续通过不改写旧结果。当前身份见[验收](../reference/acceptance.md#当前源码与本地交付)，失败门禁见[验证规则](../reference/validation.md#历史通过率与失败阈值)。
 
 轮次01累计5失败后停止派发，以下“等待新轮授权／不自动开启新轮”是当时原记录。2026-10-16用户已明确允许证据驱动的实质修复或定向环境纠正后，在原授权范围内自动新建独立预算轮，无须另问；这不倒改旧轮失败，也不把未执行项写成通过。轮次02累计5失败后同样停止，轮次03在实质修复后接续，原报告和历史统计全部保留。
@@ -97,7 +99,7 @@ round03第5次失败发生在[便携迁移验证报告](../../artifacts/maintena
 
 ## 19原字节验收快照
 
-[候选完整EXE](../../artifacts/releases/v1.0.6/1.0.6.19/TableMax-1.0.6.19-win-x64.exe)35,754,061字节，SHA `aca93f5fc8f434ed9d9fb02c6a56bcff75214d09a30fb8e6d1a57a80a9641a69`，绑定[冻结交付](../../artifacts/package-payloads/v1.0.6/73a3e367a1df-oc82Xk/full/installer-delivery.json)。snapshot `73a3e367a1df6efcf1539cc7575c99530b4854b805b4f050f4b9dbc893146dbb`，candidate SHA `ca033d009f85f566d7715e514dd9a34c3c465334308c180615ef21e5a24dd67a`，安装清单SHA `05b98d958e3f2da50d9011ca9ac0cf2aa3ec5db47eab541279b93fc5fc5cf09e`，当前映射SHA `ac917e6a9dd36a7b3dd6f084944b9e2528309eace79a294d11a39539fb844bf9`。该候选使用`I/data/app`新布局和独立Updater入口；公开版本仍为1.0.6。
+[候选完整EXE](local-release-retirement-2026-10-16.md#逐文件退役清单)35,754,061字节，SHA `aca93f5fc8f434ed9d9fb02c6a56bcff75214d09a30fb8e6d1a57a80a9641a69`，绑定[冻结交付](../../artifacts/package-payloads/v1.0.6/73a3e367a1df-oc82Xk/full/installer-delivery.json)。snapshot `73a3e367a1df6efcf1539cc7575c99530b4854b805b4f050f4b9dbc893146dbb`，candidate SHA `ca033d009f85f566d7715e514dd9a34c3c465334308c180615ef21e5a24dd67a`，安装清单SHA `05b98d958e3f2da50d9011ca9ac0cf2aa3ec5db47eab541279b93fc5fc5cf09e`，当前映射SHA `ac917e6a9dd36a7b3dd6f084944b9e2528309eace79a294d11a39539fb844bf9`。该候选使用`I/data/app`新布局和独立Updater入口；公开版本仍为1.0.6。
 
 round-03的[普通I／默认D](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02/application-handoff/report.json)、[I198／短外D](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02/application-handoff-long-root-external-data/report.json)和[旧框架失败恢复](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-03/production-account-19-02/application-framework-recovery/report.json)各8步实际通过、0失败。覆盖新布局双fixture的检查／下载／Apply、原父退出0、新持续主机、下一启动清理，以及健康失败时原A框架／登记／快捷方式保全和默认卸载。管理HTTP与临时签名fixture只证明对应交接；线上GitHub附件下载及原布局18直接升级19均不在此证明范围。
 
@@ -131,7 +133,7 @@ round-04仅修复迁移验证器，冻结19产品未变；上述正式系统证�
 
 ### 1.0.6.21：installer命名与完整流程收尾（2026-10-16）
 
-[完整安装器](../../artifacts/releases/v1.0.6/1.0.6.21/TableMax-1.0.6.21-installer-win-x64.exe)35,745,780字节，SHA `1313f7af6390382968431211a8e86cef1523c850950acc5fe59ef9b34926e122`，绑定[冻结交付](../../artifacts/package-payloads/v1.0.6/46dc0e034588-4oLB4k/full/installer-delivery.json)。snapshot `46dc0e0345880ae265b3064513144b13c80e79268bf1816aebd39984d036057c`，candidate SHA `c1d52b4b38ffefb28588d1428f718208b67561a7bb39aa1a41cd3ce6e3c9555e`，安装清单SHA `74b435175dc7ec3d8369147b196ecd4227222d094bee1cef45638cb4c827c6a1`。6款正式游戏／7个玩法的31个构建单元复用，映射SHA `ac917e6a9dd36a7b3dd6f084944b9e2528309eace79a294d11a39539fb844bf9`未变，公开版本仍为1.0.6。
+[完整安装器](local-release-retirement-2026-10-16.md#逐文件退役清单)35,745,780字节，SHA `1313f7af6390382968431211a8e86cef1523c850950acc5fe59ef9b34926e122`，绑定[冻结交付](../../artifacts/package-payloads/v1.0.6/46dc0e034588-4oLB4k/full/installer-delivery.json)。snapshot `46dc0e0345880ae265b3064513144b13c80e79268bf1816aebd39984d036057c`，candidate SHA `c1d52b4b38ffefb28588d1428f718208b67561a7bb39aa1a41cd3ce6e3c9555e`，安装清单SHA `74b435175dc7ec3d8369147b196ecd4227222d094bee1cef45638cb4c827c6a1`。6款正式游戏／7个玩法的31个构建单元复用，映射SHA `ac917e6a9dd36a7b3dd6f084944b9e2528309eace79a294d11a39539fb844bf9`未变，公开版本仍为1.0.6。
 
 [默认D](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/application-handoff/report.json)、[I198／外置D](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/application-handoff-long-root-external-data/report.json)、[健康失败恢复](../../artifacts/maintenance/v1.0.6/installation-flow-20261015/round-05/production-account-21-02/application-framework-recovery/report.json)三条新布局1.0.7.60000→60001实际链各8步通过、0失败。覆盖下载／验签／Apply、父退出、新持续主机、下一启动清理及原框架保全。默认链另直接运行真实无参Updater冷启动和两次热唤起，核实际PE／SID、原Native／服务PID、面板请求递增、实际中文窗口及无下载／Apply副作用。冷入口实际返回中文连接／发布信息错误，未冒称线上最新；热入口使用签名托管夹具显示可更新。冷Native另有持句柄正常退出0证据；不以Updater退出推定间接Native退出，不外推为游戏中人工操作或线上正向更新下载验收。
 

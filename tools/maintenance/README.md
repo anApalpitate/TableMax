@@ -22,7 +22,7 @@
 
 新增内部辅助为[cache-plan.mjs](cache-plan.mjs)，其隔离回归`node --test tools/maintenance/cache-plan.test.mjs`检查清单损坏、引用变化、重复／越界／保留候选拒绝。
 
-当前交付读取（兼容2026-10-11的full／box历史格式）：`current-delivery.ps1`与 `current-delivery.mjs`读取 `artifacts/package-payloads/v<版本>/current.json`，核对当前唯一完整EXE、内部payload与manifest的路径、大小和SHA。历史双指针仍逐项核对；清理额外要求匹配实际EXE通过证明（`executableSha256`与 `payloadSha256`），缺项即停止。installer还须精确绑定正式产品身份、安装清单及完整首启动体积的真实隔离安装证明；封包候选或测试身份不能代替。当前内部载荷及指针、待验收冻结候选与双PE素材继续保护；已有同版旧单EXE／ZIP和发布源码仍保留。当前current为正式验收通过的1.0.6.18完整安装器，维护门禁已实际核验其规范proof与内部载荷；未发布13–16候选已在独立深度维护中退役，原报告／逐文件SHA及剩余范围见[瘦身记录](../../docs/reference/project-slimming.md#深度瘦身与剩余空间2026-10-15)，不能按历史候选路径假定旧字节仍在。
+当前交付读取（兼容2026-10-11的full／box历史格式）：`current-delivery.ps1`与 `current-delivery.mjs`读取 `artifacts/package-payloads/v<版本>/current.json`，核对当前唯一完整EXE、内部payload与manifest的路径、大小和SHA。历史双指针仍逐项核对；清理额外要求匹配实际EXE通过证明（`executableSha256`与 `payloadSha256`），缺项即停止。installer还须精确绑定正式产品身份、安装清单及完整首启动体积的真实隔离安装证明；封包候选或测试身份不能代替。当前内部载荷及指针、待验收冻结候选与双PE素材继续保护；已有同版旧单EXE／ZIP和发布源码仍保留。当前身份与规范证明统一见[验收](../../docs/reference/acceptance.md#当前源码与本地交付)。用户授权的旧本地交付退役见[瘦身结果](../../docs/reference/project-slimming.md#v107发布后旧本地交付退役2026-10-16)；历史current及报告中的原路径不保证原EXE仍在，不能作为现存复验输入。
 
 2026-10-10 已接入。构建、运行包导出，以及使用公共浏览器／桌面验证助手的检查，在 Node 进入最终空闲阶段时执行一次隐藏收尾任务，同一进程只触发一次。构建、验证和产品工作已结束，协调 Node 等待维护完成再退出，避免执行环境回收脱离的子进程。没有常驻任务、周期轮询或结束用户进程的动作。
 

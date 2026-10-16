@@ -2,6 +2,12 @@
 
 现行分层规则：完整逻辑体积超过15GB时优先启动[深度瘦身方法论](deep-slimming-methodology.md)，目标严格低于6GB；未触发深度分支时，日常超过10GiB清至8GiB或安全候选耗尽。只执行一轮已审安全清理，保留依赖／工具缓存、原资料、正式存档、当前交付与证据；口径与停止条件见[工作区维护](workspace-maintenance.md#容量触发与深度瘦身2026-10-15)。下文历史数字仅对应当时采样，不代表当前容量。
 
+## v1.0.7发布后旧本地交付退役（2026-10-16）
+
+按用户本次明确授权，现有逐文件入口经预览及SHA绑定后执行唯一一次Apply，删除本地 `artifacts/releases` 中14个1.0.6旧EXE／sidecar，共 **187,354,244字节**。目录现仅3个1.0.7文件，共122,224,518字节；这是该目录口径，不是项目总空间。11项保留文件逐字节SHA复核、当前交付维护门禁均通过，删除错误0，未追加其他清理。
+
+范围、逐文件SHA、旧入链和复验输入退役边界见[退役记录](../archive/local-release-retirement-2026-10-16.md)，[保护与结果](../../artifacts/maintenance/v1.0.7/releases-retirement-20261016/result.json)绑定实际执行。历史报告、内部载荷、游戏仓库和GitHub旧Release保留；旧current仅存历史身份，不再证明其原EXE路径存在。
+
 ## 深度瘦身与剩余空间（2026-10-15）
 
 用户在安装任务完成后另行明确要求深度瘦身，本轮使用独立清理ID `deep-slim-20261015-2040-once`，没有复用先前安装维护ID或叠加第二次Apply。[起始完整快照](../../artifacts/maintenance/space-analysis/20261015-2036/inventory.json)为23,761,963,314逻辑字节；经来源审计、逐文件SHA和精确时间戳绑定、现有工具预览后，唯一一次[执行记录](../../artifacts/maintenance/reviewed-retirements/deep-slim-20261015-2040-once.json)实际退役29,550文件、17,434,684,325字节，143个生成根全部完成，无删除错误。[清单](../../artifacts/maintenance/v1.0.6/deep-slim-20261015-2040/retirement-plan.json)SHA为 `8b8069dbf9fdb2824a222e6b65fb9ca3b9c5b4efb8afd820ce599d12141c3f1f`；逐文件原路径、字节、时间、SHA及原因永久留在该清单，不复制待删内容作恢复备份。

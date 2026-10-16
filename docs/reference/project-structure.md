@@ -18,7 +18,7 @@
 
 新构建的交付归属：完整安装器 TableMax-<四位构建>-installer-win-x64.exe 及同名-manifest.json sidecar写入 artifacts/releases/v<公开版本>/<四位构建>/。读取必须以冻结记录中的精确路径为准，不从目录名称推定身份，也不递归挑选“最新EXE”。delivery-paths.mjs 负责新布局与旧精确路径的共同边界；验证结果见[验收](acceptance.md#当前源码与本地交付)。
 
-既有平铺交付保持冻结记录中的原位置与原字节；当前交付身份见[验收](acceptance.md#当前源码与本地交付)。13–16的四份原manifest已按[归组记录](../archive/tooling-delivery-organization-2026-10-15.md#历史候选manifest归组)迁入 artifacts/releases/retired/v1.0.6/<四位构建>/，原SHA通过迁移回执追溯；retired表示历史元数据归属，不生成新的可运行候选。内部payload、current／candidate及正式proof仍在原目录，不能随EXE归组一起移动。
+既有平铺交付在退役前保持冻结位置和原字节；当前交付身份见[验收](acceptance.md#当前源码与本地交付)。13–16原manifest的[归组记录](../archive/tooling-delivery-organization-2026-10-15.md#历史候选manifest归组)保留原路径与SHA。v1.0.7正式发布后，用户于2026-10-16授权退役本地1.0.6旧EXE及sidecar，逐文件身份见[退役记录](../archive/local-release-retirement-2026-10-16.md)。内部payload、历史current／candidate及proof仍原位保留；历史指针不保证已退役EXE仍存在，不能据此直接运行旧交付或迁移复验。GitHub历史附件与游戏恢复仓库不随本地交付清理。
 
 ## 已创建结构
 

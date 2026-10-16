@@ -14,7 +14,7 @@
 
 [便携10→1.0.7.2同根迁移](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/portable-migration-02-01/portable-migration/report.json)默认／外置D两场景各8项通过、0失败；实际安装根等于原便携配置根，新配置根为I/data，核原件逐文件SHA、存档及玩家恢复、卸载删留。[迁移账户终态](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/portable-migration-02-01/isolated-account.json)及[迁移驱动终态](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/portable-migration-02-01-completion.json)确认独立账户退出0并删除账户／profile，errors为空；不跨账户拼接证明。
 
-首次完成安装并健康启动后同次程序采样113,633,179字节＝程序97,709,380＋框架5,273,757＋身份／配置15,814＋当前G10,634,228，低于120,000,000硬限，触发110,000,000工程预警。preStartupSampled为false；阶段观测最大176,174,176字节包含数据／缓存／暂存，isAbsolutePeak为false。[封包日志](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/package-candidate-02.log)核EXE、ZIP及实际提取内容；[推广回执](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/promotion-receipt.json)绑定严格门禁和新v1.0.7/current，旧v1.0.6/current及原10／18／19／21字节保全。
+首次完成安装并健康启动后同次程序采样113,633,179字节＝程序97,709,380＋框架5,273,757＋身份／配置15,814＋当前G10,634,228，低于120,000,000硬限，触发110,000,000工程预警。preStartupSampled为false；阶段观测最大176,174,176字节包含数据／缓存／暂存，isAbsolutePeak为false。[封包日志](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/package-candidate-02.log)核EXE、ZIP及实际提取内容；[推广回执](../../artifacts/maintenance/v1.0.7/installer-progress-release-20261016/round-01/promotion-receipt.json)绑定严格门禁和新v1.0.7/current，推广时旧v1.0.6/current及原10／18／19／21字节保全；发布后本地旧EXE／sidecar已获授权退役，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
 
 采用项目免费RSA应用签名，不提供Authenticode或SmartScreen信誉。浏览器下载标记、真实断电、实体手机LAN及线上正向更新UI下载未在本轮重测。原失败与过程见[本轮归档](../archive/installer-progress-v107-release-2026-10-16.md)。
 
@@ -80,7 +80,7 @@
 
 ## 当前源码与本地交付
 
-当前本地current为[完整安装器1.0.7.2](#1072安装进度与版本交付2026-10-16)，公开版本1.0.7。身份、实测、容量与迁移边界唯一维护在该节。旧1.0.6/current及原10／18／19／21按其历史身份和证明保留。
+当前本地current为[完整安装器1.0.7.2](#1072安装进度与版本交付2026-10-16)，公开版本1.0.7。身份、实测、容量与迁移边界唯一维护在该节。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
 
 [GitHub v1.0.7](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.7)已正式发布并为latest，非草稿、非预发布。附件仅[installer](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-installer-win-x64.exe)与[source ZIP](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-source.zip)；公开installer与本地1.0.7.2完全同字节。source ZIP为86,438,358字节，SHA `83d9080b3a0d54b8d01269710dd3a9bec7c417413e4d18429e9d4fc0c5660963`，由标签源码提交 `c1207fd0be68b05b2fa88e2989a2c7444ca3527b`导出；标签对象 `14e0eef4272aeaea5648f9bc08fb43de998e09d7`。[发布审计](../../artifacts/maintenance/v1.0.7/windows-editions/91e13f6af698a964df479b8233ecf5e2f063d9579f09f9e1f7f2d652542e7ca5/github-publication.json)核对两附件远端摘要、源码映射及RSA签名正文。历史附件保留，不部署Pages；失败和操作方法差异见[发布归档](../archive/installer-progress-v107-release-2026-10-16.md)。
 
