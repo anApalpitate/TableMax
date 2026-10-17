@@ -37,8 +37,9 @@ const available = [
 ];
 const selected = option('only')?.split(',') ?? available;
 assert(selected.every((value) => available.includes(value)));
-const widths = option('widths')?.split(',').map(Number) ?? [320, 390, 430, 844];
-assert(widths.every((value) => [320, 390, 430, 844].includes(value)));
+// Portrait harbor checks; 844x390 landscape is covered by verify-manila-touch/design.
+const widths = option('widths')?.split(',').map(Number) ?? [320, 390, 430];
+assert(widths.every((value) => [320, 390, 430].includes(value)));
 const suite = option('suite') ?? 'harbor';
 assert(['harbor', 'composition'].includes(suite));
 const parent = resolve(
@@ -238,7 +239,6 @@ const sizes = [
   [320, 568],
   [390, 844],
   [430, 932],
-  [844, 390],
 ];
 try {
   await build({

@@ -37,7 +37,7 @@ const widths = process.argv
   .split(',')
   .map(Number);
 assert(
-  !widths || widths.every((value) => [320, 390, 430, 844].includes(value)),
+  !widths || widths.every((value) => [320, 390, 430, 844, 932].includes(value)),
 );
 await mkdir(
   resolve('artifacts/maintenance/manila-touch-layout-20261017/touch'),
@@ -178,6 +178,7 @@ const sizes = [
   [390, 844],
   [430, 932],
   [844, 390],
+  [932, 430],
 ];
 try {
   await build({

@@ -455,25 +455,35 @@
 }
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-crew {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: 20px 48px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 48px;
   min-height: 0;
   height: auto;
   padding: 0;
-  gap: 2px 4px;
+  gap: 2px 0;
   align-content: center;
 }
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane-meta {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 2px 4px;
+}
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-position-readout {
-  grid-column: 1;
-  grid-row: 1;
+  min-width: 0;
+  overflow: hidden;
   font-size: 18px;
   font-weight: 700;
   line-height: 20px;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-payout-label {
-  grid-column: 2;
-  grid-row: 1;
+  flex: none;
+  padding-left: 4px;
+  border-left: 1px solid #b99b5f66;
   font-size: 18px;
   font-weight: 700;
   line-height: 20px;
@@ -662,23 +672,27 @@
   border-radius: 12px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seats {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  height: 100%;
-  min-height: 0;
-  gap: 2px;
-}
-
 :is(.mn-screen--host, .mn-screen--public)
   .mn-layout
-  .mn-seats:has(> :nth-child(3):last-child) {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  .mn-players-panel:has(> .mn-ledger-legend) {
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-seats:has(> :nth-child(4):last-child) {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 28px, #d9b77912 28px 29px),
+    linear-gradient(145deg, #7a5631, #5c3d22);
+  border-color: #4b341d;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel > h2 {
+  color: #f8e8c6;
+  text-shadow: 0 1px 0 #2f1f10;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-ledger-legend {
+  border-top-color: #d5b06f66;
+  color: #f7e6c6;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat {
@@ -1105,10 +1119,47 @@
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seats {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-auto-rows: minmax(0, 1fr);
+  grid-auto-rows: minmax(84px, max-content);
+  align-content: start;
   height: 100%;
   min-height: 0;
   gap: 2px;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-ledger-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  margin-top: 3px;
+  padding: 2px 4px;
+  border-top: 1px solid #b99b5f66;
+  color: #5b4424;
+  font-size: 16px;
+  line-height: 20px;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-ledger-legend-seat {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-ledger-legend-seat
+  > i {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 16px;
+  font-style: normal;
+  line-height: 1;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat {
@@ -1543,4 +1594,22 @@
   :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-result {
     align-self: end;
   }
+}
+
+/* The merchant rail is a wooden ledger tray; paper cards sit on it instead of filling it. */
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 28px, #d9b77912 28px 29px),
+    linear-gradient(145deg, #7a5631, #5c3d22);
+  border-color: #4b341d;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel > h2 {
+  color: #f8e8c6;
+  text-shadow: 0 1px 0 #2f1f10;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-ledger-legend {
+  border-top-color: #d5b06f66;
+  color: #f7e6c6;
 }

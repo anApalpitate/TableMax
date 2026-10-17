@@ -375,9 +375,15 @@ export function HarborBoard({
                   <div className="mn-track-cells">
                     {Array.from({ length: 14 }, (_, cell) => (
                       <span
-                        className={
-                          cell === boat.position ? 'mn-cell-current' : ''
-                        }
+                        className={[
+                          cell === boat.position ? 'mn-cell-current' : '',
+                          [0, 5, 10, 13].includes(cell) &&
+                          Math.abs(cell - boat.position) > 1
+                            ? 'mn-cell-milestone'
+                            : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
                         key={cell}
                         style={
                           {
@@ -571,12 +577,19 @@ export function HarborBoard({
                   >
                     {compactHeading ? (
                       <>
-                        <span className="mn-position-readout">
-                          {boat.destination !== 'sea'
-                            ? destination
-                            : cargo
-                              ? `船员 ${crewMembers.length}`
-                              : '等待装船'}
+                        <span className="mn-lane-meta">
+                          <span className="mn-position-readout">
+                            {boat.destination !== 'sea'
+                              ? destination
+                              : cargo
+                                ? `船员 ${crewMembers.length}`
+                                : '等待装船'}
+                          </span>
+                          {cargo ? (
+                            <span className="mn-payout-label">
+                              分红 {data?.payout} ₱
+                            </span>
+                          ) : null}
                         </span>
                         {cargo ? (
                           <div className="mn-crew-slots">{crew.map(space)}</div>
@@ -600,11 +613,6 @@ export function HarborBoard({
                                 }
                               />
                             ))}
-                          </span>
-                        ) : null}
-                        {cargo ? (
-                          <span className="mn-payout-label">
-                            分红池 {data?.payout} ₱
                           </span>
                         ) : null}
                       </>
@@ -871,6 +879,18 @@ export function Players({
           );
         })}
       </div>
+      {compact && game.seatOrder.length < 5 && (
+        <div className="mn-ledger-legend" aria-label="座号图例">
+          {game.seatOrder.map((id, index) => (
+            <span className="mn-ledger-legend-seat" key={id}>
+              <i aria-hidden="true" style={cargoStyle(seatColors[index]!)}>
+                {index + 1}
+              </i>
+              {seats.find((seat) => seat.id === id)?.name ?? `商人${index + 1}`}
+            </span>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

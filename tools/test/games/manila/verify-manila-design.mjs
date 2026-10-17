@@ -195,6 +195,7 @@ try {
         return {
           width: innerWidth,
           scrollWidth: document.documentElement.scrollWidth,
+          scrollHeight: document.documentElement.scrollHeight,
           tailGap:
             document.documentElement.scrollHeight - Math.max(innerHeight, last),
           dice,
@@ -240,6 +241,23 @@ try {
             players: rect(root.querySelector('.mn-players-panel')),
             seats: root.querySelectorAll('.mn-seat').length,
           },
+          laneMeta: [...root.querySelectorAll('.mn-lane-meta')]
+            .filter(visible)
+            .map((node) => ({
+              meta: rect(node),
+              status: rect(node.querySelector('.mn-position-readout')),
+              payout: rect(node.querySelector('.mn-payout-label')),
+            })),
+          buttonSelect: [...root.querySelectorAll('button')]
+            .filter(visible)
+            .map((node) => getComputedStyle(node).userSelect),
+          playerLandscape: root.classList.contains('mn-screen--player')
+            ? {
+                private: rect(root.querySelector('.mn-private')),
+                lanes: rect(root.querySelector('.mn-lanes')),
+                actions: rect(root.querySelector('.mn-board-actions')),
+              }
+            : null,
         };
       });
       report.layouts.push({
@@ -298,12 +316,41 @@ try {
         role === 'player' ? 1 : 0,
         'Only the player projection contains a private wallet',
       );
-      if (role === 'player')
+      if (role === 'player') {
         assert.match(
           geometry.bodyText,
           /抵押.*借|可借/,
           'Credit is described as borrowing against shares',
         );
+        if (width === 844 && height === 390) {
+          assert.ok(
+            geometry.playerLandscape.private &&
+              geometry.playerLandscape.private.width > 0,
+            'Landscape keeps the private cash strip visible',
+          );
+          assert.ok(
+            geometry.playerLandscape.actions &&
+              geometry.playerLandscape.actions.x >
+                geometry.playerLandscape.lanes.right - 1,
+            'Landscape places actions beside the lanes',
+          );
+          assert.ok(
+            geometry.scrollHeight <= height + 1,
+            'Landscape does not need page scrolling',
+          );
+        }
+      }
+      assert.ok(
+        geometry.buttonSelect.every((value) => value === 'none'),
+        'Button labels are not text-selectable',
+      );
+      for (const meta of geometry.laneMeta) {
+        if (meta.status && meta.payout)
+          assert.ok(
+            meta.payout.x >= meta.status.right - 1,
+            'Lane status and dividend do not overlap',
+          );
+      }
       if (role !== 'player') {
         const composition = geometry.hostComposition;
         assert.ok(composition.main, `${role}: harbor main area is missing`);
@@ -362,6 +409,27 @@ try {
     assert.ok(
       await trigger.evaluate((node) => document.activeElement === node),
       'Closing a detail restores focus to its trigger: ' + label,
+    );
+  }
+  const operationSummary = page
+    .locator('summary')
+    .filter({ hasText: '操作列表' })
+    .first();
+  if (await operationSummary.isVisible()) {
+    const box = await operationSummary.boundingBox();
+    assert.ok(box, 'Operation summary has a draggable area');
+    await page.mouse.move(box.x + 4, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width + 24, box.y + box.height / 2, {
+      steps: 8,
+    });
+    await page.mouse.up();
+    const selected = await page.evaluate(() =>
+      window.getSelection()?.toString(),
+    );
+    assert.ok(
+      !selected?.includes('操作列表'),
+      'Dragging across a button label does not select its text',
     );
   }
   await page.getByRole('button', { name: '账本', exact: true }).click();

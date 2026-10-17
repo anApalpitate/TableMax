@@ -113,3 +113,22 @@
 手机尺寸与DPI请求是本机模拟，不代表实体手机、真实Wi-Fi/LAN、Safari、物理4K电视或真人听感。完整installer候选的提取和运行不等于干净Windows账户的系统首装/卸载/更新证明；实际系统证明与本地current状态见验收页。临时标准账户已获本轮明确授权；防火墙修改和公开发布仍不在本轮范围。
 
 定向入口为 `tools/test/games/manila/verify-manila.mjs`；具体参数统一维护在[测试工具索引](../../../tools/test/README.md)，避免本页形成第二份命令正文。
+
+### 三端界面全量修复（2026-10-17）
+
+主机 3／4／5 人局恢复单列商人账册，商人卡按内容定高并增加座号图例；航道状态与分红分离；行情当前价强化。玩家竖屏显示 0／5／10／13 与当前格，船员座号加分隔；玩家横屏使用真实 844×390／932×430 视口，现金条固定，航道／岸线／操作三列，确认区在首屏。所有按钮、`.button`、`summary`、`[role="button"]` 的文本不可选中。
+
+实际执行：
+
+- `verify-manila-design.mjs`：10 个布局、10 个详情通过；新增按钮 `userSelect=none`、航道状态／分红不重叠、844×390 横屏现金条与操作区断言；证据 `artifacts/manila/validation/ui-fix-design-final3/`。
+- `verify-manila-harbor.mjs`：320／390／430 宽共45项检查、296次交互通过；证据 `artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/ui-fix-harbor-final2/`。原 844 港口检查已由横屏触控／设计检查替代，不再把竖屏港湾规则套到横屏。
+- `verify-manila-touch.mjs`：320／390／430／844／932 共25项通过；证据 `artifacts/maintenance/manila-touch-layout-20261017/touch/ui-fix-touch-final2/`。
+- 3／4／5 人主机源码截图：`artifacts/maintenance/manila-ui-full-fix-20261017/`；5人设计检查同时覆盖1280×720、1920×1080、3840×2160。
+- 马尼拉范围单测、TypeScript、ESLint通过；按钮真实拖动后选区为空。
+- 视觉验收：3／4／5人主机、390／430竖屏、844／932横屏及选中确认态均人工检查。当前产物构建快照为 `a79a14562a5cb5802b7f613a69b4f27b868c79c190c6e93d775eb5b4c3bb7634`。
+
+边界与失败：
+
+- `verify-manila.mjs --seats=3 --only=layout` 在本机开发构建的真实游戏库选择处超时（`Real library selects the preinstalled Manila release`）；开发构建没有签名预装库，因此未取得原生3／4／5人通过证据，不能写成实机验收。视觉证据来自同一源码组件夹具。
+- 0秒仍可确认的截图时点尚未复现为真实计时状态；本轮未改计时规则。
+- 844×390 首屏为横向布局，槽位44px；极短屏仍需用户滚动主区查看完整确认详情，但不允许横向溢出或只露出按钮顶部。

@@ -527,7 +527,7 @@ export function PlayerControls({
                 />
                 <span>伙伴</span>
               </DragSource>
-              <span className="mn-tray-instruction">拖/点</span>
+              <span className="mn-tray-instruction">拖或点</span>
             </>
           )}
           {setup && work.setupStep === 1 && (
@@ -571,7 +571,7 @@ export function PlayerControls({
                 <span aria-hidden="true">⚑</span>
                 <span>海盗</span>
               </DragSource>
-              <span className="mn-tray-instruction">拖/点</span>
+              <span className="mn-tray-instruction">拖或点</span>
               <button
                 disabled={locked}
                 onClick={() =>

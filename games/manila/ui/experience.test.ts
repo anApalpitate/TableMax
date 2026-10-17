@@ -195,4 +195,11 @@ describe('Manila experience uses authorized public and player views', () => {
     expect(text).not.toContain('等待装船');
     expect(text).not.toMatch(/船员\s+\d+/);
   });
+
+  it('keeps a host lane meta block and a seat legend for three merchants', () => {
+    const { html } = render(fresh(), 'host');
+    expect(html).toContain('class="mn-lane-meta"');
+    expect(html).toContain('class="mn-ledger-legend"');
+    expect(html).toContain('mn-ledger-legend-seat');
+  });
 });
