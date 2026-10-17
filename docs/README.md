@@ -8,6 +8,8 @@ Windows安装、卸载与盒子内更新的操作方法见[构建与运行](refe
 
 macOS服务端运行包的剩余工作从[专门任务](tasks/macos-adaptation.md)接续。
 
+人机统一评估、分层策略升级和捣蛋王从[人机崛起任务](tasks/bot-rise.md)接续，现有行为仍查[人机规格](reference/bot-players.md)。
+
 游戏开发从[模块索引](../games/README.md)和[接入指南](reference/game-development.md)进入；依赖边界与采用理由分别见[架构](reference/architecture.md)和[决策009](decisions/009-independent-game-packages.md)。
 
 用户手写的剩余改动与任务量标记见[手写改动单](tasks/手写改动单.md)。

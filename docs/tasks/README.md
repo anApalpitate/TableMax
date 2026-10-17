@@ -58,6 +58,8 @@ UNO完成过程见[制作归档](../archive/uno-2026-10-10.md)，现行规则与
 
 ## 后续独立范围
 
+人机算法、统一快速评估和捣蛋王从[人机崛起任务](bot-rise.md)接续：规划已建立，实施未开始；复用现有三档策略与Worker，先完成接口和评估基线，再逐游戏升级。
+
 ### 宝可梦奇遇扩展版素材、玩法与真人验收（待接续）
 
 剩余插图、Mega／羁绊效果设计及真实设备、网络、听感、物理DPI、时长和平衡从[专门任务](pokemon-encounters-expansion.md)接续；当前采用范围与素材边界分别见[扩展设计](../games/pokemon-encounters/expansion-design.md)和[资源表](../games/pokemon-encounters/assets.md)。历史完成矩阵不在任务索引重复。
