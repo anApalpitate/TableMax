@@ -1143,20 +1143,22 @@ try {
     });
     await run('tie', async () => {
       await load({ phase: 'tie', owner: true });
-      const data = await page.locator('.mn-seat').evaluateAll((ns) =>
-        ns.map((n) => ({
-          text: n.innerText,
-          label: n.getAttribute('aria-label'),
-        })),
-      );
+      await page.getByRole('button', { name: '账本' }).click();
+      await page.locator('.mn-overlay--ledger').waitFor();
+      const data = await page
+        .locator('.mn-merchant-slot[aria-label]')
+        .evaluateAll((ns) =>
+          ns.map((n) => ({
+            text: n.innerText,
+            label: n.getAttribute('aria-label'),
+          })),
+        );
       assert.equal(data.length, 5);
       assert(
         data.every((n) => n.label.includes('赢家')),
         'Every tied winner is marked',
       );
-      const ranks = await page
-        .locator('.mn-seat-result > span')
-        .allTextContents();
+      const ranks = await page.locator('.mn-tag--rank').allTextContents();
       assert.equal(ranks.length, 5);
       assert.equal(new Set(ranks).size, 1, 'Tied wealth has identical rank');
       const rootBounds = await row();
@@ -1199,6 +1201,8 @@ try {
         ranks,
         shares,
       });
+      await page.keyboard.press('Escape');
+      await page.locator('.mn-overlay--ledger').waitFor({ state: 'hidden' });
     });
     await run('tail', async () => {
       await load({ phase: 'place' });

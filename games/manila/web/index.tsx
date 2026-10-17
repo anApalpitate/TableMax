@@ -17,7 +17,13 @@ import {
   type GameHost,
 } from '@tablemax/web-host';
 import type { Action, ManilaView } from '../rules/view';
-import { HarborBoard, Market, Players, RevealedShares } from '../ui/Board';
+import {
+  HarborBoard,
+  Market,
+  MerchantRack,
+  Players,
+  RevealedShares,
+} from '../ui/Board';
 import { PlayerControls } from '../ui/PlayerControls';
 import { phaseNames } from '../ui/labels';
 import { manilaRulebook } from '../ui/RulesGuide';
@@ -34,6 +40,7 @@ import '../ui/style.css';
 import '../ui/theme.css';
 import '../ui/host-layout.css';
 import '../ui/harbor-layout.css';
+import '../ui/stage.css';
 import { useBoardAnchor } from '../ui/useBoardAnchor';
 
 function ManilaScreen({ session }: { session: GameHost }) {
@@ -47,6 +54,16 @@ function ManilaScreen({ session }: { session: GameHost }) {
     );
     return () => cancelAnimationFrame(frame);
   }, [role]);
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia(
+      '(min-width: 900px) and (min-height: 601px)',
+    );
+    const sync = () => setWide(query.matches);
+    sync();
+    query.addEventListener('change', sync);
+    return () => query.removeEventListener('change', sync);
+  }, []);
   const game = view?.gameView as ManilaView | null;
   const [panel, setPanel] = useState<'menu' | 'rules' | 'ledger' | null>(null);
   const [selection, setSelection] = useState<{
@@ -240,7 +257,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
     ) : null;
   return (
     <main
-      className={`manila-screen mn-screen mn-screen--${role}`}
+      className={`manila-screen mn-screen mn-screen--${role}${role === 'player' && wide ? ' mn-wide' : ''}`}
       data-phase={game?.phase}
       data-financing-self={
         game?.phase === 'financing' &&
@@ -397,6 +414,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
                     draft={draft}
                     select={select}
                     locked={locked || !active}
+                    market={<Market game={game} />}
                   >
                     {role === 'player' &&
                       game.self &&
@@ -413,14 +431,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
                       )}
                   </HarborBoard>
                 </div>
-                <aside className="mn-side">
-                  <Market game={game} />
-                  <Players
-                    game={game}
-                    seats={view.seats}
-                    compact={role !== 'player'}
-                  />
-                </aside>
+                <MerchantRack game={game} seats={view.seats} />
               </div>
             </ManilaInteraction>
           </>

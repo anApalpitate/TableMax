@@ -183,9 +183,10 @@ describe('Manila experience uses authorized public and player views', () => {
     expect(text).toContain('第3名');
     expect(text).not.toContain('第2名');
     expect(html).not.toContain('class="mn-actor-avatar"');
+    // This controlled tie never trades a share, so the racks stay without
+    // revealed certificates; the player's own vault entry must still mount.
     const player = render(state, 'player', 'A');
-    expect(player.html).toContain('class="mn-revealed-shares"');
-    expect(player.html).toContain('class="mn-share-chip');
+    expect(player.html).toContain('aria-label="本人财富与秘密股份"');
     expect(player.text).not.toContain('（抵押）');
   });
 
@@ -196,10 +197,14 @@ describe('Manila experience uses authorized public and player views', () => {
     expect(text).not.toMatch(/船员\s+\d+/);
   });
 
-  it('keeps a host lane meta block and a seat legend for three merchants', () => {
+  it('keeps a host lane meta block and a merchant rack for three merchants', () => {
     const { html } = render(fresh(), 'host');
     expect(html).toContain('class="mn-lane-meta"');
-    expect(html).toContain('class="mn-ledger-legend"');
-    expect(html).toContain('mn-ledger-legend-seat');
+    expect(html).toContain('class="mn-merchant-rack"');
+    expect(
+      html.match(/class="mn-detail-button mn-merchant-card/g),
+    ).toHaveLength(3);
+    expect(html).toContain('class="mn-merchant-name"');
+    expect(html).toContain('class="mn-merchant-assets"');
   });
 });

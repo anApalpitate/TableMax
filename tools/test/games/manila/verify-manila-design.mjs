@@ -15,6 +15,15 @@ const name = process.argv
   ?.slice(11);
 assert.match(name ?? '', /^[a-z0-9-]{1,65}$/);
 const output = resolve('artifacts/manila/validation', name);
+// Local iteration filter: --only=player:844x390,player:1024x768 keeps the
+// canonical run unchanged (no flag ⇒ every role and viewport).
+const only = (process.argv.find((arg) => arg.startsWith('--only=')) ?? '')
+  .slice(7)
+  .split(',')
+  .map((entry) => entry.trim())
+  .filter(Boolean);
+const wanted = (role, width, height) =>
+  !only.length || only.includes(`${role}:${width}x${height}`);
 await mkdir(output);
 const work = await mkdtemp(resolve('tmp/game-review-'));
 const source = await readFile(new URL(import.meta.url));
@@ -80,7 +89,9 @@ const report = {
   screenshots: [],
   errors: [],
   failures: [],
+  pending: [],
 };
+const pending = report.pending;
 let server, browser, page;
 try {
   await build({
@@ -119,6 +130,9 @@ try {
             [390, 844],
             [430, 932],
             [844, 390],
+            [932, 430],
+            [1024, 768],
+            [1123, 1428],
           ]
         : [
             [1280, 720],
@@ -126,6 +140,7 @@ try {
             [3840, 2160],
           ];
     for (const [width, height] of sizes) {
+      if (!wanted(role, width, height)) continue;
       await page.setViewportSize({ width, height });
       const expected = await page.evaluate(
         (role) => window.renderManila({ phase: 'sail', role }),
@@ -192,6 +207,148 @@ try {
               .map((rect) => Math.round(rect.top)),
           ),
         ];
+        const describe = (node) =>
+          node.tagName.toLowerCase() +
+          [...node.classList].map((entry) => '.' + entry).join('') +
+          (node.textContent.trim()
+            ? ' "' + node.textContent.trim().slice(0, 22) + '"'
+            : '');
+        const clips = (node) => {
+          const style = getComputedStyle(node);
+          return [style.overflowX, style.overflowY].some(
+            (value) => value !== 'visible',
+          );
+        };
+        /* A container the reader can scroll is not a clip: content below or
+           beyond its edge is reachable, so only unreachable overflow counts. */
+        const scrolls = (node, inner) => {
+          const style = getComputedStyle(node);
+          const vertical =
+            (style.overflowY === 'auto' || style.overflowY === 'scroll') &&
+            node.scrollHeight > node.clientHeight + 1;
+          const horizontal =
+            (style.overflowX === 'auto' || style.overflowX === 'scroll') &&
+            node.scrollWidth > node.clientWidth + 1;
+          const box = node.getBoundingClientRect();
+          const down = inner.bottom > box.bottom + 1;
+          const across = inner.right > box.right + 1;
+          return (down && vertical) || (across && horizontal);
+        };
+        const escapes = (node, parent) => {
+          const inner = node.getBoundingClientRect();
+          const outer = parent.getBoundingClientRect();
+          return (
+            inner.left < outer.left - 1 ||
+            inner.right > outer.right + 1 ||
+            inner.top < outer.top - 1 ||
+            inner.bottom > outer.bottom + 1
+          );
+        };
+        const mustFit =
+          '.mn-space-wrap, .mn-space, .mn-space-name, .mn-space-price, .mn-space-earn, .mn-crew-slots, .mn-lane-meta, .mn-lane-position, .mn-payout-label, .mn-position-readout, .mn-lane-heading, .mn-crew, .mn-dock-group, .mn-specialist-group, .mn-merchant-card, .mn-merchant-name, .mn-merchant-stats, .mn-market-title, .mn-market-track, .mn-track, .mn-board-actions, .mn-board-market, .mn-shore, .mn-lanes';
+        const cells =
+          '.mn-lane, .mn-dock-group, .mn-specialist-group, .mn-merchant-card, .mn-market-row';
+        const clipped = [];
+        const clippedSeen = new Set();
+        for (const node of root.querySelectorAll(mustFit)) {
+          if (!visible(node) || node.closest('[aria-hidden="true"]')) continue;
+          if (
+            node.children.length === 0 &&
+            node.scrollWidth > node.clientWidth + 1
+          ) {
+            clipped.push({
+              part: describe(node),
+              reason: 'text wider than its own box',
+            });
+            continue;
+          }
+          const cell = node.closest(cells);
+          if (cell && cell !== node && escapes(node, cell)) {
+            const key = describe(node) + ' in ' + describe(cell);
+            if (!clippedSeen.has(key)) {
+              clippedSeen.add(key);
+              clipped.push({
+                part: describe(node),
+                reason: 'leaves ' + describe(cell),
+                box: rect(node),
+                cell: rect(cell),
+              });
+            }
+            continue;
+          }
+          for (
+            let parent = node.parentElement;
+            parent && parent !== root.parentElement;
+            parent = parent.parentElement
+          ) {
+            if (!clips(parent)) continue;
+            if (!escapes(node, parent)) continue;
+            if (scrolls(parent, node)) break;
+            const key = describe(node) + ' < ' + describe(parent);
+            if (!clippedSeen.has(key)) {
+              clippedSeen.add(key);
+              clipped.push({
+                part: describe(node),
+                reason: 'escapes ' + describe(parent),
+                box: rect(node),
+                cell: rect(parent),
+              });
+            }
+            break;
+          }
+        }
+        const intersect = (a, b) => {
+          const across = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+          const down = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+          return across > 2 && down > 2 ? Math.round(across * down) : 0;
+        };
+        const blockSelectors = [
+          '.mn-lanes',
+          '.mn-shore',
+          '.mn-board-market',
+          '.mn-board-actions',
+          '.mn-merchant-rack',
+          '.mn-private',
+        ];
+        const boxes = blockSelectors
+          .map((selector) => ({ selector, node: root.querySelector(selector) }))
+          .filter((entry) => entry.node && visible(entry.node))
+          .map((entry) => ({
+            selector: entry.selector,
+            box: entry.node.getBoundingClientRect(),
+          }));
+        const collisions = [];
+        for (let a = 0; a < boxes.length; a++)
+          for (let b = a + 1; b < boxes.length; b++) {
+            const area = intersect(boxes[a].box, boxes[b].box);
+            if (area)
+              collisions.push({
+                pair: boxes[a].selector + ' 与 ' + boxes[b].selector,
+                area,
+              });
+          }
+        const groups = [
+          ['lane', '.mn-lanes > .mn-lane'],
+          ['dock', '.mn-shore .mn-dock-group'],
+          ['specialist', '.mn-shore .mn-specialist-group'],
+          ['merchant', '.mn-merchant-card'],
+          ['marketRow', '.mn-board-market .mn-market-row'],
+          ['boardChild', '.mn-harbor > *'],
+        ];
+        for (const [topic, selector] of groups) {
+          const list = [...root.querySelectorAll(selector)]
+            .filter(visible)
+            .map((node) => node.getBoundingClientRect());
+          for (let a = 0; a < list.length; a++)
+            for (let b = a + 1; b < list.length; b++) {
+              const area = intersect(list[a], list[b]);
+              if (area)
+                collisions.push({
+                  pair: topic + ' ' + (a + 1) + ' 与 ' + (b + 1),
+                  area,
+                });
+            }
+        }
         return {
           width: innerWidth,
           scrollWidth: document.documentElement.scrollWidth,
@@ -236,11 +393,28 @@ try {
           bodyText: root.textContent,
           hostComposition: {
             main: rect(root.querySelector('.mn-main')),
-            side: rect(root.querySelector('.mn-side')),
-            market: rect(root.querySelector('.mn-market-panel')),
-            players: rect(root.querySelector('.mn-players-panel')),
-            seats: root.querySelectorAll('.mn-seat').length,
+            lanes: rect(root.querySelector('.mn-lanes')),
+            market: rect(root.querySelector('.mn-board-market')),
+            rack: rect(root.querySelector('.mn-merchant-rack')),
+            seats: root.querySelectorAll('.mn-merchant-card').length,
           },
+          marketDebug: (() => {
+            const panel = root.querySelector(
+              '.mn-board-market .mn-market-panel',
+            );
+            const market = root.querySelector('.mn-board-market .mn-market');
+            if (!panel || !market) return null;
+            const row = market.querySelector('.mn-market-row');
+            return {
+              panel: rect(panel),
+              market: rect(market),
+              marketHeight: getComputedStyle(market).height,
+              marketRows: getComputedStyle(market).gridTemplateRows,
+              rowHeight: row ? getComputedStyle(row).height : null,
+              rowRows: row ? getComputedStyle(row).gridTemplateRows : null,
+              rowBox: row ? rect(row) : null,
+            };
+          })(),
           laneMeta: [...root.querySelectorAll('.mn-lane-meta')]
             .filter(visible)
             .map((node) => ({
@@ -258,6 +432,33 @@ try {
                 actions: rect(root.querySelector('.mn-board-actions')),
               }
             : null,
+          playerWide: root.classList.contains('mn-screen--player')
+            ? {
+                rack: rect(root.querySelector('.mn-merchant-rack')),
+                market: rect(root.querySelector('.mn-board-market')),
+                harbor: rect(root.querySelector('.mn-harbor')),
+                lanes: rect(root.querySelector('.mn-lanes')),
+                shore: rect(root.querySelector('.mn-shore')),
+                docks: rect(root.querySelector('.mn-docks')),
+                specialists: rect(root.querySelector('.mn-specialists')),
+                actions: rect(root.querySelector('.mn-board-actions')),
+                screen: rect(root),
+                scroll: rect(root.querySelector('.mn-player-scroll')),
+                harborStyle: (() => {
+                  const node = root.querySelector('.mn-harbor');
+                  if (!node) return null;
+                  const style = getComputedStyle(node);
+                  return {
+                    display: style.display,
+                    areas: style.gridTemplateAreas,
+                    columns: style.gridTemplateColumns,
+                    rows: style.gridTemplateRows,
+                  };
+                })(),
+              }
+            : null,
+          clipped,
+          collisions,
         };
       });
       report.layouts.push({
@@ -330,15 +531,51 @@ try {
           );
           assert.ok(
             geometry.playerLandscape.actions &&
-              geometry.playerLandscape.actions.x >
-                geometry.playerLandscape.lanes.right - 1,
-            'Landscape places actions beside the lanes',
+              geometry.playerLandscape.actions.y >=
+                geometry.playerLandscape.lanes.bottom - 1,
+            'Landscape pins the decision row under the lanes',
+          );
+          assert.ok(
+            geometry.playerLandscape.actions.height >= 39,
+            'Landscape keeps a full-height decision row',
           );
           assert.ok(
             geometry.scrollHeight <= height + 1,
             'Landscape does not need page scrolling',
           );
         }
+      }
+      if (role === 'player' && width >= 900 && height > 600) {
+        assert.ok(
+          geometry.scrollHeight <= height + 1,
+          `${width}x${height}: wide player keeps the page still`,
+        );
+        assert.ok(
+          geometry.playerWide?.rack,
+          `${width}x${height}: merchant rack is visible`,
+        );
+        assert.ok(
+          geometry.playerWide?.market,
+          `${width}x${height}: board market is visible`,
+        );
+        assert.ok(
+          geometry.playerWide?.actions,
+          `${width}x${height}: decision area is visible`,
+        );
+      }
+      if (role === 'player' && width >= 361) {
+        if (geometry.clipped.length)
+          pending.push({
+            layout: `${width}x${height}`,
+            kind: 'clipped',
+            issues: geometry.clipped,
+          });
+        if (geometry.collisions.length)
+          pending.push({
+            layout: `${width}x${height}`,
+            kind: 'overlap',
+            issues: geometry.collisions,
+          });
       }
       assert.ok(
         geometry.buttonSelect.every((value) => value === 'none'),
@@ -354,23 +591,28 @@ try {
       if (role !== 'player') {
         const composition = geometry.hostComposition;
         assert.ok(composition.main, `${role}: harbor main area is missing`);
-        assert.ok(composition.side, `${role}: ledger rail is missing`);
+        assert.ok(composition.rack, `${role}: merchant rack is missing`);
+        assert.ok(composition.market, `${role}: board market is missing`);
         assert.ok(
-          composition.side.x >= composition.main.right - 1,
-          `${role}: ledger rail is not to the right of the board`,
+          composition.rack.y >= composition.main.bottom - 2,
+          `${role}: merchant rack is not below the board`,
         );
         assert.ok(
-          composition.market.bottom <= composition.players.y + 2,
-          `${role}: market is not above the merchants`,
+          composition.market.x >= composition.lanes.right - 2,
+          `${role}: board market is not in the right board column`,
         );
         assert.ok(
-          composition.players.bottom <= height + 1,
-          `${role}: merchant rail leaves the viewport`,
+          composition.market.bottom <= composition.main.bottom + 2,
+          `${role}: board market leaves the board`,
+        );
+        assert.ok(
+          composition.rack.bottom <= height + 1,
+          `${role}: merchant rack leaves the viewport`,
         );
         assert.equal(
           composition.seats,
           5,
-          `${role}: every merchant remains visible in the ledger rail`,
+          `${role}: every merchant remains visible in the rack`,
         );
         assert.ok(
           geometry.tailGap <= 20,
@@ -380,6 +622,11 @@ try {
       await shot(role + '-' + width + 'x' + height);
     }
   }
+  assert.deepEqual(
+    pending,
+    [],
+    'Player layouts keep every part inside its own box without overlapping',
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(() =>
     window.renderManila({ phase: 'place', role: 'player' }),

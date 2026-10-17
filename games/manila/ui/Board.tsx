@@ -18,6 +18,7 @@ import {
 } from './interaction';
 import {
   CargoDetail,
+  CopperMark,
   DockDetail,
   SpecialistDetail,
   VoyageDetail,
@@ -62,8 +63,8 @@ export function Space({
                 : '船员'
               : space.kind === 'pilot'
                 ? space.index === 0
-                  ? '小'
-                  : '大'
+                  ? '小船'
+                  : '大船'
                 : '承保'}
       </span>
       <span className="mn-space-value">
@@ -81,6 +82,16 @@ export function Space({
           </span>
         )}
       </span>
+      {(space.kind === 'port' ||
+        space.kind === 'shipyard' ||
+        space.kind === 'insurance') &&
+        space.payout != null && (
+          <span className="mn-space-earn">
+            {space.kind === 'insurance'
+              ? `即收 ${space.payout} ₱`
+              : `收益 ${space.payout} ₱`}
+          </span>
+        )}
     </>
   );
   return (
@@ -120,6 +131,7 @@ export function HarborBoard({
   locked,
   select,
   compactHeading = false,
+  market,
   children,
 }: {
   game: ManilaView;
@@ -129,6 +141,7 @@ export function HarborBoard({
   locked: boolean;
   select(action: Action): void;
   compactHeading?: boolean;
+  market?: ReactNode;
   children?: ReactNode;
 }) {
   const work = useManilaInteraction();
@@ -261,6 +274,7 @@ export function HarborBoard({
             ))}
           </div>
         </div>
+        {market && <div className="mn-board-market">{market}</div>}
         <div className="mn-lanes">
           {visible.map((boat, index) => {
             const cargo = boat.cargo;
@@ -470,7 +484,13 @@ export function HarborBoard({
                     ) : (
                       image
                     )}
-                    <span className="mn-lane-position">{destination}</span>
+                    {(setup && work.setupStep === 2) || pilot ? (
+                      <span className="mn-boat-preview">
+                        <span>{preview > 13 ? '靠港' : `${preview}格`}</span>
+                      </span>
+                    ) : (
+                      <span className="mn-lane-position">{destination}</span>
+                    )}
                   </div>
                   {setup && work.setupStep === 2 && (
                     <DragSource
@@ -676,11 +696,25 @@ export function HarborBoard({
               role="note"
               aria-label="第13格为海盗拦截线"
             >
-              <span className="mn-pirate-line-flag" aria-hidden="true">
+              <DetailButton
+                className="mn-pirate-line-flag"
+                title="海盗拦截线"
+                detail={
+                  <div className="mn-pirate-line-detail">
+                    <p>第 13 格为海盗拦截线。</p>
+                    <p>
+                      船停在 13 格时可能被海盗登船；第三次航行仍停 13
+                      格时可能被掠夺。
+                    </p>
+                  </div>
+                }
+              >
                 <SiteArt kind="pirate" />
-              </span>
+              </DetailButton>
               <span className="mn-pirate-line-rule" aria-hidden="true" />
-              <span className="mn-pirate-line-label">13 海盗拦截</span>
+              <span className="mn-pirate-line-label" aria-hidden="true">
+                13 海盗拦截
+              </span>
             </div>
           )}
         </div>
@@ -768,6 +802,142 @@ export function RevealedShares({ shares }: { shares: ShareView[] }) {
         );
       })}
     </ul>
+  );
+}
+
+export function MerchantRack({
+  game,
+  seats,
+}: {
+  game: ManilaView;
+  seats: Seats;
+}) {
+  return (
+    <section className="mn-merchant-rack" aria-label="商人">
+      <h2 className="mn-rack-heading">商人</h2>
+      <div className="mn-merchant-cards">
+        {game.seatOrder.map((id, index) => {
+          const player = game.players[id]!;
+          const seat = seats.find((entry) => entry.id === id);
+          const name = seat?.name ?? `商人${index + 1}`;
+          const active = game.turnSeat === id && game.phase !== 'ended';
+          const self = game.self?.seatId === id;
+          const master = game.harborMaster === id;
+          const income = game.result?.income[id];
+          const score = game.scores?.[id];
+          const rank = game.scores
+            ? 1 +
+              game.seatOrder.filter(
+                (other) => game.scores![other]! > game.scores![id]!,
+              ).length
+            : null;
+          return (
+            <div
+              className="mn-merchant-slot"
+              data-seat-id={id}
+              key={id}
+              aria-label={
+                game.phase === 'ended' && score !== undefined
+                  ? `${name}，${game.winners.includes(id) ? '赢家，' : ''}财富 ${score} 比索`
+                  : undefined
+              }
+            >
+              <DetailButton
+                className={`mn-merchant-card${active ? ' mn-merchant-card--active' : ''}${self ? ' mn-merchant-card--self' : ''}`}
+                title={`${name}的商人详情`}
+                detail={
+                  <div className="mn-merchant-detail">
+                    <header>
+                      <img
+                        src={avatarFor(seat?.avatarId ?? 'avatar-1')}
+                        alt=""
+                      />
+                      <strong>{name}</strong>
+                      {master && <span>港务长</span>}
+                      {active && <span>行动中</span>}
+                      {self && <span>你</span>}
+                    </header>
+                    <dl>
+                      <div>
+                        <dt>现金</dt>
+                        <dd>{player.cash} ₱</dd>
+                      </div>
+                      <div>
+                        <dt>股份</dt>
+                        <dd>{player.shareCount} 张</dd>
+                      </div>
+                      <div>
+                        <dt>可用伙伴</dt>
+                        <dd>{player.availableWorkers}</dd>
+                      </div>
+                      {income !== undefined && (
+                        <div>
+                          <dt>最近分红</dt>
+                          <dd>
+                            {income >= 0 ? '+' : ''}
+                            {income} ₱
+                          </dd>
+                        </div>
+                      )}
+                      {score !== undefined && (
+                        <div>
+                          <dt>终局财富</dt>
+                          <dd>
+                            {score} ₱ · 第{rank}名
+                          </dd>
+                        </div>
+                      )}
+                    </dl>
+                    <RevealedShares shares={player.revealedShares} />
+                  </div>
+                }
+              >
+                <span
+                  className="mn-merchant-seat"
+                  style={cargoStyle(seatColors[index]!)}
+                >
+                  {index + 1}
+                </span>
+                <img
+                  className="mn-merchant-avatar"
+                  src={avatarFor(seat?.avatarId ?? 'avatar-1')}
+                  alt=""
+                />
+                <strong className="mn-merchant-name">{name}</strong>
+                <span className="mn-merchant-tags">
+                  {game.phase === 'ended' && score !== undefined && (
+                    <span className="mn-tag mn-tag--rank">
+                      第{rank}名{game.winners.includes(id) ? ' ★' : ''}
+                    </span>
+                  )}
+                  {master && (
+                    <span className="mn-tag mn-tag--master">港务长</span>
+                  )}
+                  {active && (
+                    <span className="mn-tag mn-tag--active">行动中</span>
+                  )}
+                  {self && <span className="mn-tag mn-tag--self">你</span>}
+                </span>
+                <span className="mn-merchant-assets">
+                  <span>
+                    <CopperMark kind="coin" />
+                    <b>{player.cash}</b>
+                  </span>
+                  <span>
+                    <CopperMark kind="shares" />
+                    <b>{player.shareCount}</b>
+                  </span>
+                  <span>
+                    <CopperMark kind="credit" />
+                    <b>{player.availableWorkers}</b>
+                  </span>
+                </span>
+              </DetailButton>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

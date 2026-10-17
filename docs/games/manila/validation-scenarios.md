@@ -135,3 +135,13 @@
 
 
 - 本轮完成源码构建快照 `80dc1fddaea173f129426cc3d444d1858596d84dbce5dcbfbbffe8b2c5a3d15b`，生成候选安装器 `1.0.7.28`：`artifacts/releases/v1.0.7/1.0.7.28/TableMax-1.0.7.28-installer-win-x64.exe`，38,110,969字节，SHA256 `ddabcca6285ef3513f5122e8fcc8be524942c1f12950df5996842ccdc98ffed4`；current 仍为1.0.7.22，未推广。
+
+## 实体展板与宽屏（2026-10-17）
+
+- 设计夹具：修复前 `artifacts/manila/validation/ui-final6-20261018`；当前 `artifacts/manila/validation/clean-1`，13 个布局（含 844×390、932×430、1024×768、1123×1428）与 10 个详情断言通过，并含槽位裁切与成对矩形不相交守卫（海盗浮标在玩家屏隐藏后从详情轮播移除，详情 11→10）。
+- 港湾夹具：`artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/ui-final-20261018/report.json`，45 项检查、296 次交互通过（320/390/430，含终局并列、边界、守卫、保存后等待态）。
+- 触摸夹具：`artifacts/maintenance/manila-touch-layout-20261017/touch/ui-final-20261018/report.json`，45 项检查通过（320/390/430/844/932）。
+- 夹具合同更新：主机结构改为展板/右列/商人条；终局并列从 `.mn-merchant-slot[aria-label]`、`.mn-tag--rank` 与账本公开股份断言；等待态恢复 64px 内细状态行并由触摸夹具同步；预览标签恢复 `.mn-boat-preview` 单行读数；宽屏行情保留在展板右列。
+- 边界：以上是源码夹具证据，不含真实手机、安装器或系统 DPI 证明；安装后验收见[当前验收](../../reference/acceptance.md#当前源码与本地交付)。
+
+

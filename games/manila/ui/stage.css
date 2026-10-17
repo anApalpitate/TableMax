@@ -1,0 +1,1578 @@
+/* 2026-10-17 physical stage: sea + shore + black market on one board; merchant rack below. */
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 6px;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main {
+  display: block;
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-board-scroll {
+  height: 100%;
+  min-height: 0;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-board-scroll
+  > .mn-harbor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(360px, 28vw, 480px);
+  grid-template-rows: minmax(0, 1fr) clamp(180px, 24dvh, 280px);
+  grid-template-areas: 'lanes shore' 'lanes market';
+  gap: 6px;
+  height: 100%;
+  min-height: 0;
+  padding: 6px;
+  overflow: hidden;
+} /* Right column: five shore rows on top, black market underneath. */
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-shore {
+  grid-area: shore;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(5, minmax(44px, 1fr));
+  align-content: stretch;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 0;
+  gap: 4px;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-shore
+  :is(.mn-docks, .mn-specialists) {
+  display: contents;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-shore
+  :is(.mn-dock-group, .mn-specialist-group) {
+  grid-template-rows: minmax(44px, 1fr);
+  height: 100%;
+  align-items: stretch;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-shore
+  :is(.mn-dock-slots, .mn-specialist-slots) {
+  align-content: stretch;
+} /* Black market block, sitting under the shore rows. */
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-board-market {
+  grid-area: market;
+  min-width: 0;
+  min-height: 0;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-board-market
+  .mn-market-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 4px 6px 5px;
+  border: 1px solid #c5ae7b;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #fffaf0f5, #f2e4c6f5);
+  box-shadow:
+    inset 0 0 0 1px #fff9,
+    0 1px 3px #3e2b1722;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-board-market
+  .mn-market-panel
+  > h2 {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0 0 2px;
+  padding: 0 0 2px;
+  overflow: visible;
+  clip-path: none;
+  border-bottom: 1px solid #c4ab76;
+  color: #594326;
+  font-size: clamp(16px, 1vw, 22px);
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-board-market
+  .mn-market {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  height: 100%;
+  min-height: 0;
+  gap: 0;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-board-market
+  .mn-market-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  align-items: center;
+  align-content: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 0 2px;
+  gap: 0;
+  border-right: 0;
+  border-bottom: 1px dotted #b39a6a;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-board-market
+  .mn-market-row:last-child {
+  border-bottom: 0;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-board-market
+  .mn-market-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 4px;
+  font-size: 16px;
+  line-height: 18px;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-board-market
+  .mn-market-title
+  .mn-cargo {
+  gap: 3px;
+  white-space: nowrap;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-board-market
+  .mn-market-title
+  .mn-cargo-art {
+  width: 20px;
+  height: 20px;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-board-market
+  .mn-market-title
+  > span:last-child {
+  white-space: nowrap;
+  font-size: 16px;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-board-market
+  .mn-market-track {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  min-height: 0;
+  overflow: hidden;
+  align-items: center;
+  font-size: 16px;
+  line-height: 18px;
+  text-align: center;
+} /* Lanes stretch to fill the whole board height so the sea has no dead slab. */
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-lanes {
+  grid-area: lanes;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  height: 100%;
+  min-height: 0;
+  gap: 6px;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-lanes
+  > .mn-lane {
+  height: 100%;
+  grid-template-rows: minmax(0, 1fr);
+  align-content: center;
+  align-items: center;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-lanes
+  > .mn-lane
+  .mn-track {
+  height: clamp(55px, 5.4dvh, 118px);
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-lanes
+  > .mn-lane
+  .mn-boat {
+  width: clamp(110px, 6.5vw, 220px);
+  height: clamp(44px, 2.6vw, 88px);
+} /* Merchant rack: five cards, Power-Grid-like information hierarchy in Manila materials. */
+.mn-merchant-rack {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 6px;
+  min-height: 62px;
+  padding: 3px 6px;
+  border: 1px solid #4b341d;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #6f4c2b, #8a623b 48%, #5b3e22);
+  box-shadow:
+    inset 0 0 0 2px #d5b06f55,
+    0 4px 12px #37241133;
+}
+.mn-rack-heading {
+  align-self: center;
+  margin: 0;
+  padding: 0 2px;
+  color: #f7e7c2;
+  font-size: clamp(16px, 1vw, 22px);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+.mn-merchant-cards {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 0;
+}
+.mn-merchant-slot {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.mn-merchant-card {
+  display: grid;
+  grid-template-columns: 24px 30px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto;
+  align-items: center;
+  gap: 0 6px;
+  width: 100%;
+  min-height: 66px;
+  padding: 3px 8px 3px 6px;
+  border: 1px solid #c9b183;
+  border-top: 4px solid var(--seat-color, #b67d31);
+  border-radius: 9px;
+  background: linear-gradient(140deg, #fffbed, #eee2c6);
+  color: var(--mn-ink);
+  text-align: left;
+  white-space: normal;
+  box-shadow: 0 2px 5px #3f2a1522;
+}
+.mn-merchant-card:hover,
+.mn-merchant-card:focus-visible {
+  border-color: #8a623b;
+  background: #fffdf4;
+}
+.mn-merchant-card--active {
+  outline: 2px solid #31664e;
+  outline-offset: -2px;
+  background: linear-gradient(140deg, #f3fbe9, #e3ead0);
+}
+.mn-merchant-card--self {
+  box-shadow:
+    inset 0 -3px #31664e,
+    0 2px 5px #3f2a1522;
+}
+.mn-merchant-seat {
+  grid-column: 1;
+  grid-row: 1;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #fff6df;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 1px 1px #0006;
+}
+.mn-merchant-avatar {
+  grid-column: 2;
+  grid-row: 1;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f3e6c6;
+}
+.mn-merchant-name {
+  grid-column: 3 / 5;
+  grid-row: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mn-merchant-tags {
+  grid-column: 3 / 5;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 2px;
+}
+.mn-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 5px;
+  border-radius: 6px;
+  background: #efe2c2;
+  color: #5b4424;
+  font-size: 16px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+.mn-tag--master {
+  background: #b67d31;
+  color: #fff8e6;
+}
+.mn-tag--active {
+  background: #31664e;
+  color: #f4ffe9;
+}
+.mn-tag--self {
+  background: #276b89;
+  color: #f2fbff;
+}
+.mn-merchant-assets {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: #33433d;
+  font-size: 16px;
+  line-height: 18px;
+}
+.mn-merchant-assets > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+.mn-merchant-assets .mn-copper-mark {
+  width: 16px;
+  height: 16px;
+}
+.mn-merchant-assets b {
+  font-size: 16px;
+} /* Merchant detail card. */
+.mn-merchant-detail header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.mn-merchant-detail header img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+.mn-merchant-detail header > span {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: #efe2c2;
+  font-size: 14px;
+}
+.mn-merchant-detail dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 10px;
+  margin: 0 0 8px;
+}
+.mn-merchant-detail dl > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 2px 0;
+  border-bottom: 1px dotted #c9b183;
+}
+.mn-merchant-detail dt {
+  color: #5f716b;
+  font-size: 14px;
+}
+.mn-merchant-detail dd {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+} /* Facility cards fill their rows: wider label column, fee/income/occupant lines. */
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-shore
+  :is(.mn-dock-group, .mn-specialist-group) {
+  grid-template-columns: clamp(112px, 7vw, 160px) minmax(0, 1fr);
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-shore
+  .mn-space {
+  grid-template-rows: 18px 24px 16px;
+  align-content: center;
+  height: 100%;
+  min-height: 44px;
+}
+.mn-space-earn {
+  font-size: 16px;
+  line-height: 16px;
+  color: #4d5f3e;
+  white-space: nowrap;
+} /* Let the harbor photo read through the lane glass instead of a milky wash. */
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor
+  > .mn-lanes
+  > .mn-lane {
+  background: linear-gradient(180deg, #ffffff14, #123f3a0f);
+  border-color: #ffffff66;
+  box-shadow: inset 0 0 0 1px #ffffff22;
+}
+:is(.mn-screen--host, .mn-screen--public, .mn-screen--player.mn-wide)
+  .mn-layout
+  > .mn-main
+  .mn-harbor::after {
+  background: linear-gradient(180deg, #ffffff0a, #0d3f3a14);
+} /* Player portrait keeps the ledger popover instead of a board market. */
+@media (max-width: 620px) {
+  .mn-screen--player .mn-merchant-rack,
+  .mn-screen--player .mn-board-market {
+    display: none;
+  }
+} /* Pirate intercept: only a dashed line; wording appears on hover/focus or long-press. */
+.mn-screen--player .mn-pirate-line {
+  pointer-events: none;
+  height: 44px;
+  align-items: center;
+  gap: 2px;
+}
+.mn-screen--player .mn-pirate-line-flag {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid #b7a071;
+  border-radius: 10px;
+  background: #fff5d9e8;
+  pointer-events: auto;
+}
+.mn-screen--player .mn-pirate-line-flag .mn-site-art {
+  width: 24px;
+  height: 26px;
+}
+.mn-screen--player .mn-pirate-line-label {
+  position: absolute;
+  left: 46px;
+  top: 26px;
+  z-index: 5;
+  padding: 2px 6px;
+  border: 1px solid #c5aa77;
+  border-radius: 6px;
+  background: #fff5d9f2;
+  color: #694728;
+  font-size: 16px;
+  line-height: 20px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+.mn-screen--player .mn-pirate-line:hover .mn-pirate-line-label,
+.mn-screen--player .mn-pirate-line:focus-within .mn-pirate-line-label {
+  opacity: 1;
+}
+.mn-pirate-line-detail p {
+  margin: 0 0 6px;
+  font-size: 16px;
+  line-height: 1.5;
+} /* ── Player landscape ─────────────────────────────────────────────────   One skeleton for every landscape size, two height tiers: brand and   status share the top line, the wallet keeps a single line, then the   harbor splits into lanes | shore with the market and the decision row   underneath. Nothing the player needs is hidden. */
+@media (min-width: 361px) {
+  /* Slots read as two lines: name + price above, payout underneath. */
+  .mn-screen--player .mn-harbor .mn-space {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: 18px 18px;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    justify-items: center;
+    column-gap: 5px;
+    row-gap: 0;
+    box-sizing: border-box;
+    height: 38px;
+    min-height: 0;
+    padding: 0 4px;
+    overflow: hidden;
+    line-height: 19px;
+  }
+  .mn-screen--player .mn-harbor .mn-space > * {
+    line-height: 18px;
+  }
+  .mn-screen--player .mn-harbor .mn-space-wrap {
+    height: auto;
+    min-height: 0;
+  }
+  .mn-screen--player .mn-harbor .mn-space-name {
+    grid-area: 1 / 1;
+  }
+  .mn-screen--player .mn-harbor .mn-space-value {
+    grid-area: 1 / 2;
+    height: 18px;
+    min-height: 0;
+  }
+  .mn-screen--player .mn-harbor .mn-space-earn {
+    grid-area: 2 / 1 / 3 / 3;
+    line-height: 18px;
+  } /* Cargo crew slots stack name above price: three of them share the crew column. */
+  .mn-screen--player .mn-harbor .mn-space-wrap--cargo .mn-space {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 18px 18px;
+  }
+  .mn-screen--player .mn-harbor .mn-space-wrap--cargo .mn-space-name {
+    grid-area: 1 / 1;
+  }
+  .mn-screen--player .mn-harbor .mn-space-wrap--cargo .mn-space-value {
+    grid-area: 2 / 1;
+  }
+  .mn-screen--player .mn-harbor .mn-space-wrap--cargo .mn-space-earn {
+    grid-area: 3 / 1;
+  }
+}
+@media (min-width: 621px) {
+  .mn-screen--player {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 2px 4px;
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: 3px 4px;
+    overflow: hidden;
+  }
+  .mn-screen--player > .mn-toolbar {
+    grid-area: 1 / 1;
+    min-height: 0;
+    flex-wrap: nowrap;
+    min-width: 0;
+    gap: 4px;
+    margin: 0;
+    padding: 0 6px;
+  } /* The status pill already carries the saved marker. */
+  .mn-screen--player > .mn-toolbar > .session-save-anchor {
+    display: none;
+  }
+  .mn-screen--player > .mn-toolbar .mn-brand span,
+  .mn-screen--player > .mn-toolbar .mn-box-label {
+    display: none;
+  }
+  .mn-screen--player > .mn-toolbar .mn-toolbar-icon {
+    width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0;
+  }
+  .mn-screen--player > .mn-status {
+    grid-area: 1 / 2;
+    gap: 8px;
+    height: 36px;
+    max-height: 36px;
+    margin: 0;
+    padding: 1px 10px;
+    min-height: 36px;
+  }
+  .mn-screen--player > .mn-screen-feedback {
+    grid-area: 2 / 1 / 3 / 3;
+    margin: 0;
+    min-height: 0;
+  }
+  .mn-screen--player > .mn-player-scroll {
+    grid-area: 3 / 1 / 4 / 3;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 2px;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  .mn-screen--player .mn-private {
+    gap: 8px;
+    margin: 0;
+    padding: 0 8px;
+    min-height: 0;
+    border-radius: 9px;
+  }
+  .mn-screen--player .mn-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 3px;
+    min-height: 0;
+    margin: 0;
+    max-width: none;
+  }
+  .mn-screen--player .mn-layout > .mn-main {
+    grid-area: 1 / 1;
+    display: block;
+    align-self: stretch;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    margin: 0;
+  }
+  .mn-screen--player .mn-layout > .mn-merchant-rack {
+    grid-area: 2 / 1;
+  }
+  .mn-screen--player .mn-main .mn-board-scroll {
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  .mn-screen--player .mn-main .mn-board-heading {
+    display: none;
+  }
+  .mn-screen--player .mn-main .mn-harbor {
+    display: grid;
+    padding: 2px !important;
+    grid-template-columns: minmax(0, 1fr) clamp(302px, 32%, 344px);
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    grid-template-areas: 'lanes shore' 'lanes market' 'actions actions';
+    align-items: stretch;
+    gap: 3px;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 4px;
+    overflow: hidden;
+  }
+  .mn-screen--player .mn-harbor > .mn-lanes {
+    grid-area: lanes;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    gap: 3px;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+  }
+  .mn-screen--player .mn-harbor > .mn-lanes > .mn-lane {
+    display: grid;
+    grid-template-columns: minmax(126px, 0.75fr) minmax(0, 1.9fr) clamp(
+        168px,
+        23%,
+        210px
+      );
+    grid-template-areas: 'cargo track crew';
+    align-items: center;
+    align-content: center;
+    gap: 2px 4px;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 2px 4px;
+    overflow: hidden;
+  }
+  .mn-screen--player .mn-harbor > .mn-lanes > .mn-lane > .mn-lane-heading {
+    grid-area: cargo;
+    min-width: 0;
+  }
+  .mn-screen--player .mn-harbor > .mn-lanes > .mn-lane > .mn-track {
+    grid-area: track;
+    height: clamp(38px, 9%, 48px);
+    margin: 0 18px;
+    min-width: 0;
+  }
+  .mn-screen--player .mn-harbor > .mn-lanes > .mn-lane > .mn-lane-control {
+    grid-area: crew;
+    min-width: 0;
+  }
+  .mn-screen--player .mn-harbor > .mn-shore {
+    grid-area: shore;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(5, minmax(0, 1fr));
+    align-content: stretch;
+    gap: 2px;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+  .mn-screen--player .mn-shore > :is(.mn-docks, .mn-specialists) {
+    display: contents;
+  }
+  .mn-screen--player
+    .mn-shore
+    > :is(.mn-docks, .mn-specialists)
+    > :is(.mn-dock-group, .mn-specialist-group) {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    gap: 2px;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 2px 3px;
+    overflow: hidden;
+  }
+  .mn-screen--player
+    .mn-shore
+    > :is(.mn-docks, .mn-specialists)
+    > :is(.mn-dock-group, .mn-specialist-group)
+    > .mn-detail-button {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    align-content: center;
+    gap: 1px;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    font-size: 16px;
+    line-height: 19px;
+    text-align: center;
+  }
+  .mn-screen--player
+    .mn-shore
+    > :is(.mn-docks, .mn-specialists)
+    > :is(.mn-dock-group, .mn-specialist-group)
+    > .mn-detail-button
+    .mn-site-art {
+    width: 22px;
+    height: 22px;
+  }
+  .mn-screen--player .mn-shore :is(.mn-dock-slots, .mn-specialist-slots) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+  }
+  .mn-screen--player .mn-shore .mn-specialist-slots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mn-screen--player
+    .mn-shore
+    .mn-specialist-group--insurance
+    .mn-specialist-slots {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mn-screen--player .mn-harbor > .mn-board-market {
+    grid-area: market;
+    display: block;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+  }
+  .mn-screen--player .mn-harbor > .mn-board-actions {
+    grid-area: actions;
+    display: block;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .mn-screen--player .mn-board-actions > .mn-controls {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 2px 10px;
+    margin: 0;
+    padding: 3px 8px;
+    border-radius: 9px;
+    min-height: 0;
+  }
+  .mn-screen--player .mn-controls-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .mn-screen--player .mn-controls-heading h2 {
+    margin: 0;
+    font-size: 18px;
+    line-height: 22px;
+  }
+  .mn-screen--player .mn-action-tray {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 6px;
+    margin: 0;
+    min-width: 0;
+  }
+  .mn-screen--player .mn-merchant-rack {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 2px 6px;
+    min-height: 0;
+  }
+  .mn-screen--player .mn-rack-heading {
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    line-height: 19px;
+  }
+  .mn-screen--player .mn-merchant-cards {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    min-width: 0;
+  }
+  .mn-screen--player .mn-merchant-slot {
+    min-width: 0;
+  }
+  .mn-screen--player .mn-merchant-card {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    grid-template-areas: 'avatar name' 'tags tags' 'assets assets';
+    align-items: center;
+    justify-items: start;
+    gap: 0 4px;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 2px 5px;
+    font-size: 16px;
+    line-height: 19px;
+  }
+  .mn-screen--player .mn-merchant-seat {
+    display: none;
+  }
+  .mn-screen--player .mn-merchant-avatar {
+    grid-area: avatar;
+    width: 22px;
+    height: 22px;
+  }
+  .mn-screen--player .mn-merchant-name {
+    grid-area: name;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    justify-self: stretch;
+    width: 100%;
+  }
+  .mn-screen--player .mn-merchant-tags {
+    grid-area: tags;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    min-width: 0;
+  }
+  .mn-screen--player .mn-merchant-assets {
+    grid-area: assets;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .mn-screen--player .mn-board-market .mn-market-panel {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 2px 6px;
+  }
+  .mn-screen--player .mn-board-market .mn-market-panel > h2 {
+    margin: 0 0 1px;
+    padding: 0;
+    font-size: 16px;
+    line-height: 18px;
+  }
+  .mn-screen--player .mn-board-market .mn-market {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    height: 100%;
+    min-height: 0;
+    gap: 0;
+  }
+  .mn-screen--player .mn-board-market .mn-market-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-content: center;
+    min-width: 0;
+    min-height: 0;
+    padding: 0 2px;
+    border-bottom: 1px dotted #b39a6a;
+  }
+  .mn-screen--player .mn-board-market .mn-market-row:last-child {
+    border-bottom: 0;
+  }
+  .mn-screen--player .mn-board-market .mn-market-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    min-width: 0;
+    font-size: 16px;
+    line-height: 19px;
+  }
+  .mn-screen--player .mn-board-market .mn-market-track {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 1px;
+    margin: 0;
+    font-size: 16px;
+    line-height: 20px;
+    text-align: center;
+  }
+  .mn-screen--player .mn-lane-position {
+    white-space: nowrap;
+  }
+  .mn-screen--player .mn-boat-preview > span,
+  .mn-screen--player .mn-lane-position {
+    white-space: nowrap;
+  }
+} /* Short phones in landscape: the market folds into one compact block and   the decision row keeps a single line under the lanes. */
+@media (min-width: 621px) and (max-height: 600px) {
+  /* Compact shore labels: the name alone keeps all five rows readable. */
+  .mn-screen--player
+    .mn-shore
+    > :is(.mn-docks, .mn-specialists)
+    > :is(.mn-dock-group, .mn-specialist-group) {
+    align-items: stretch;
+    padding: 0 2px;
+  }
+  .mn-screen--player
+    .mn-shore
+    > :is(.mn-docks, .mn-specialists)
+    > :is(.mn-dock-group, .mn-specialist-group)
+    > .mn-detail-button
+    .mn-site-art {
+    display: none;
+  } /* One-line wallet, decision row and cargo card keep the board tall. */
+  .mn-screen--player .mn-private {
+    height: 26px;
+  }
+  .mn-screen--player .mn-private > .mn-detail-button {
+    height: 24px;
+    min-height: 0;
+    padding: 0 6px;
+  }
+  .mn-screen--player .mn-private :is(.mn-cash, .mn-credit) {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 22px;
+    white-space: nowrap;
+  }
+  .mn-screen--player .mn-private :is(.mn-cash, .mn-credit) > span {
+    display: inline;
+  }
+  .mn-screen--player .mn-private :is(.mn-cash, .mn-credit) strong {
+    display: inline;
+    margin-left: 3px;
+  }
+  .mn-screen--player .mn-action-tray {
+    height: 36px;
+    min-height: 0;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+  }
+  .mn-screen--player .mn-board-actions > .mn-controls {
+    grid-template-rows: auto;
+    align-content: center;
+    padding: 1px 6px;
+  }
+  .mn-screen--player .mn-merchant-card {
+    height: 38px;
+    min-height: 0;
+  } /* Placement stages keep a single decision line; richer phases keep the auto row. */
+  .mn-screen--player
+    .mn-board-actions
+    > .mn-controls:is(
+      [data-stage='place'],
+      [data-stage='setup'],
+      [data-stage='plunder'],
+      [data-stage^='pilot']
+    ) {
+    height: 38px;
+    overflow: hidden;
+  }
+  .mn-screen--player .mn-harbor .mn-space {
+    padding: 0 4px;
+  } /* Two 18px lines per slot keep five facility rows inside the short board. */
+  .mn-screen--player .mn-harbor .mn-space > * {
+    line-height: 18px;
+  }
+  .mn-screen--player .mn-harbor .mn-space-value {
+    height: 18px;
+    min-height: 0;
+  }
+  .mn-screen--player .mn-shore :is(.mn-dock-slots, .mn-specialist-slots) {
+    align-content: center;
+    align-items: center;
+    height: auto;
+    min-height: 0;
+    gap: 2px;
+  }
+  .mn-screen--player .mn-harbor .mn-space-wrap {
+    height: auto;
+    min-height: 0;
+  }
+  .mn-screen--player .mn-harbor .mn-space {
+    height: 36px;
+  }
+  .mn-screen--player .mn-harbor .mn-crew,
+  .mn-screen--player .mn-harbor .mn-crew-slots {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .mn-screen--player .mn-board-market {
+    padding: 0 2px;
+    height: 38px;
+    overflow: hidden;
+  }
+  .mn-screen--player .mn-board-market .mn-market {
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    height: 100%;
+  }
+  .mn-screen--player .mn-board-market .mn-market-title {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .mn-screen--player .mn-board-market .mn-cargo {
+    height: 18px;
+    min-height: 0;
+  }
+  .mn-screen--player .mn-board-market .mn-market-track {
+    height: 17px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .mn-screen--player .mn-merchant-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    justify-self: stretch;
+    width: 100%;
+    font-size: 16px;
+  }
+  .mn-screen--player .mn-action-tray > * {
+    height: 36px;
+    min-height: 0;
+  }
+  .mn-screen--player .mn-action-tray :is(button, summary) {
+    height: 36px;
+    min-height: 0;
+    padding: 0 8px;
+  }
+  .mn-screen--player .mn-harbor > .mn-lanes > .mn-lane > .mn-lane-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    min-width: 0;
+    min-height: 0;
+    height: auto;
+  }
+  .mn-screen--player
+    .mn-harbor
+    > .mn-lanes
+    > .mn-lane
+    > .mn-lane-heading
+    > .mn-detail-button {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    justify-content: stretch;
+    justify-items: stretch;
+    gap: 1px 4px;
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 0;
+    padding: 1px 3px;
+    line-height: 19px;
+  }
+  .mn-screen--player .mn-lane-heading .mn-cargo-payout {
+    grid-area: 2 / 1 / 3 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+  }
+  .mn-screen--player .mn-main .mn-harbor {
+    grid-template-rows: minmax(0, 1fr) minmax(40px, auto);
+    grid-template-areas: 'lanes shore' 'actions market';
+  }
+  .mn-screen--player .mn-harbor > .mn-lanes > .mn-lane > .mn-track {
+    height: 44px;
+    margin: 0 14px;
+  }
+  .mn-screen--player .mn-controls-heading {
+    display: none;
+  }
+  .mn-screen--player .mn-board-actions > .mn-controls {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 2px 6px;
+    height: 100%;
+  }
+  .mn-screen--player .mn-action-tray {
+    flex-wrap: nowrap;
+    height: 100%;
+  }
+  .mn-screen--player .mn-tray-instruction {
+    display: none;
+  }
+  .mn-screen--player .mn-board-market .mn-market-panel {
+    grid-template-rows: minmax(0, 1fr);
+    padding: 1px 4px;
+  }
+  .mn-screen--player .mn-board-market .mn-market-panel > h2 {
+    display: none;
+  }
+  .mn-screen--player .mn-board-market .mn-market {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2px;
+  }
+  .mn-screen--player .mn-board-market .mn-market-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+    border: 0;
+    padding: 0;
+  }
+  .mn-screen--player .mn-board-market .mn-market-title {
+    justify-content: flex-start;
+    gap: 3px;
+    min-width: 0;
+  }
+  .mn-screen--player .mn-board-market .mn-cargo {
+    gap: 0;
+    font-size: 16px;
+  }
+  .mn-screen--player .mn-board-market .mn-cargo::before {
+    display: none;
+  }
+  .mn-screen--player .mn-board-market .mn-cargo-art {
+    display: none;
+  }
+  .mn-screen--player .mn-board-market .mn-market-title > span:not(.mn-cargo) {
+    display: none;
+  }
+  .mn-screen--player .mn-board-market .mn-market-track {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    text-align: right;
+  }
+  .mn-screen--player .mn-board-market .mn-market-track > span {
+    display: none;
+  }
+  .mn-screen--player .mn-board-market .mn-market-track > .mn-current-price {
+    display: inline;
+    font-weight: 700;
+  }
+  .mn-screen--player .mn-merchant-card {
+    grid-template-areas: 'avatar name' 'assets assets';
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: 18px 18px;
+    gap: 0 3px;
+    height: 100%;
+    min-height: 0;
+    padding: 0 4px;
+  }
+  .mn-screen--player .mn-merchant-tags {
+    display: none;
+  }
+} /* A wide player screen inherits the host two-column board, so it repeats the   same chain to add a decision row under both columns and to keep the five   facility cards compact instead of stretching them over empty photo area. */
+.mn-screen--player.mn-wide .mn-layout > .mn-main .mn-board-scroll > .mn-harbor {
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 34%, 380px);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 0.62fr) auto;
+  grid-template-areas: 'lanes shore' 'lanes market' 'actions actions';
+  align-items: stretch;
+  height: 100%;
+  min-height: 0;
+}
+.mn-screen--player.mn-wide
+  .mn-layout
+  > .mn-main
+  .mn-board-scroll
+  > .mn-harbor
+  > .mn-shore {
+  grid-template-rows: repeat(5, minmax(48px, 64px));
+  align-content: space-between;
+}
+.mn-screen--player.mn-wide
+  .mn-layout
+  > .mn-main
+  .mn-board-scroll
+  > .mn-harbor
+  .mn-space {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: 18px 18px;
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+  justify-items: center;
+  box-sizing: border-box;
+  column-gap: 5px;
+  row-gap: 0;
+  height: 44px;
+  min-height: 0;
+  padding: 0 4px;
+  overflow: hidden;
+  line-height: 18px;
+}
+.mn-screen--player.mn-wide
+  .mn-layout
+  > .mn-main
+  .mn-board-scroll
+  > .mn-harbor
+  .mn-space
+  > * {
+  line-height: 18px;
+}
+.mn-screen--player.mn-wide
+  .mn-layout
+  > .mn-main
+  .mn-board-scroll
+  > .mn-harbor
+  .mn-space-value {
+  height: 18px;
+  min-height: 0;
+}
+.mn-screen--player.mn-wide
+  .mn-layout
+  > .mn-main
+  .mn-board-scroll
+  > .mn-harbor
+  > .mn-board-market {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.mn-screen--player.mn-wide
+  .mn-layout
+  > .mn-main
+  .mn-board-scroll
+  > .mn-harbor
+  > .mn-board-market
+  .mn-market-panel {
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.mn-screen--player.mn-wide
+  .mn-layout
+  > .mn-main
+  .mn-board-scroll
+  > .mn-harbor
+  > .mn-board-market
+  .mn-market {
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  height: 100%;
+  min-height: 0;
+}
+.mn-screen--player.mn-wide
+  .mn-layout
+  > .mn-main
+  .mn-board-scroll
+  > .mn-harbor
+  > .mn-board-market
+  .mn-market-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
+  align-items: center;
+  min-height: 0;
+  padding: 0 4px;
+}
+.mn-screen--player.mn-wide
+  .mn-layout
+  > .mn-main
+  .mn-board-scroll
+  > .mn-harbor
+  > .mn-board-market
+  .mn-market-track {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  align-items: center;
+} /* Portrait: each dock keeps its own line so three A/B/C slots still show the   payout under the price instead of squeezing into 55px-wide columns. */
+@media (min-width: 361px) and (max-width: 620px) {
+  .mn-screen--player .mn-shore > .mn-docks {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .mn-screen--player
+    .mn-shore
+    > :is(.mn-docks, .mn-specialists)
+    > :is(.mn-dock-group, .mn-specialist-group) {
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+    gap: 2px;
+    padding: 1px 2px;
+    overflow: hidden;
+  }
+  .mn-screen--player
+    .mn-shore
+    > :is(.mn-docks, .mn-specialists)
+    > :is(.mn-dock-group, .mn-specialist-group)
+    > .mn-detail-button {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    align-content: center;
+    gap: 0;
+    width: 100%;
+    height: 38px;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    font-size: 16px;
+    line-height: 18px;
+    text-align: center;
+  }
+  .mn-screen--player
+    .mn-shore
+    > :is(.mn-docks, .mn-specialists)
+    > :is(.mn-dock-group, .mn-specialist-group)
+    > .mn-detail-button
+    .mn-site-art {
+    width: 18px;
+    height: 18px;
+  }
+  .mn-screen--player .mn-shore :is(.mn-dock-slots, .mn-specialist-slots) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px;
+    height: 38px;
+    min-width: 0;
+    min-height: 0;
+  }
+  .mn-screen--player .mn-shore .mn-specialist-slots {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mn-screen--player
+    .mn-shore
+    .mn-specialist-group--insurance
+    .mn-specialist-slots {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.mn-screen--player .mn-pirate-line {
+  display: none;
+}
+/* The cargo card keeps its name on the first row and the payout on the second at
+   every landscape width, so a tall board cannot squeeze the name into a column. */
+@media (min-width: 621px) {
+  .mn-screen--player .mn-harbor > .mn-lanes > .mn-lane > .mn-lane-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    min-width: 0;
+    min-height: 0;
+    height: auto;
+  }
+
+  .mn-screen--player
+    .mn-harbor
+    > .mn-lanes
+    > .mn-lane
+    > .mn-lane-heading
+    > .mn-detail-button {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    justify-content: stretch;
+    justify-items: stretch;
+    gap: 1px 4px;
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 0;
+    padding: 1px 3px;
+    line-height: 19px;
+  }
+
+  .mn-screen--player
+    .mn-harbor
+    > .mn-lanes
+    > .mn-lane
+    > .mn-lane-heading
+    > .mn-detail-button
+    > .mn-cargo-art {
+    grid-area: 1 / 1 / 2 / 2;
+    width: 26px;
+    height: 26px;
+  }
+
+  .mn-screen--player .mn-lane-heading .mn-cargo-payout {
+    grid-area: 2 / 1 / 3 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+    white-space: nowrap;
+  }
+}
+/* Wide players restate the cargo card with the host-level chain so the tall
+   board keeps the name on one line above the payout. */
+.mn-screen--player.mn-wide
+  .mn-layout
+  > .mn-main
+  .mn-board-scroll
+  > .mn-harbor
+  > .mn-lanes
+  > .mn-lane
+  > .mn-lane-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  min-width: 0;
+  height: auto;
+}
+
+.mn-screen--player.mn-wide
+  .mn-layout
+  > .mn-main
+  .mn-board-scroll
+  > .mn-harbor
+  > .mn-lanes
+  > .mn-lane
+  > .mn-lane-heading
+  > .mn-detail-button {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  justify-items: stretch;
+  gap: 1px 4px;
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+  padding: 1px 3px;
+  line-height: 19px;
+}
+
+.mn-screen--player.mn-wide
+  .mn-layout
+  > .mn-main
+  .mn-board-scroll
+  > .mn-harbor
+  > .mn-lanes
+  > .mn-lane
+  > .mn-lane-heading
+  > .mn-detail-button
+  > .mn-cargo-art {
+  grid-area: 1 / 1 / 2 / 2;
+  width: 26px;
+  height: 26px;
+}
+
+.mn-screen--player.mn-wide .mn-lane-heading .mn-cargo-payout {
+  grid-area: 2 / 1 / 3 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.mn-screen--player.mn-wide .mn-lane-heading > .mn-detail-button > strong {
+  min-width: 0;
+  white-space: nowrap;
+}

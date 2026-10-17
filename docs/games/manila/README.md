@@ -9,3 +9,5 @@
 本次独立竖港、图形草稿与声画深化的完成、失败及视觉审查见[体验深化归档](../../archive/manila-experience-deepening-2026-10-16.md)。主机展板右侧账房栏、手机货舱清单、13格海盗拦截线与终局股份图标的改动见[本轮归档](../../archive/manila-host-rail-2026-10-17.md)。
 
 三端完整修复与视觉验收见[本轮归档](../../archive/manila-ui-full-fix-2026-10-17.md)。
+
+实体展板重设计（右列设施/黑市、底部商人条、宽屏重排、拦截线虚线化）见[本轮归档](../../archive/manila-board-redesign-2026-10-17.md)。

@@ -608,9 +608,14 @@ try {
           const fixture = await render({ phase: 'setup', waiting: true });
           assert.equal(fixture.legal.length, 0, 'Nonactor legal actions empty');
           assert.equal(
-            await page.locator('.mn-controls').count(),
-            0,
-            'No empty waiting panel',
+            await page.locator('.mn-controls--waiting').count(),
+            1,
+            'Waiting state is a thin status row',
+          );
+          assert(
+            (await page.locator('.mn-controls--waiting').boundingBox())
+              .height <= 64,
+            'Waiting row stays thin',
           );
           assert.equal(
             await page.locator('.mn-confirm').count(),
