@@ -8,6 +8,9 @@ export function leanCatalogPlugin(workspaceRoot = resolve('.')) {
   return {
     name: 'lean-development-game-catalog',
     enforce: 'pre',
+    configureServer(server) {
+      server.watcher.add(resolve(root, 'games'));
+    },
     async transform(_code, id) {
       if (
         id.split('?')[0].replaceAll('\\', '/') !==
@@ -16,7 +19,7 @@ export function leanCatalogPlugin(workspaceRoot = resolve('.')) {
         return;
       const modules = [];
       const folder = resolve(root, 'games');
-      this.addWatchFile(folder);
+      // Watch manifests individually: Vite 8 treats a watched directory as an import edge.
       for (const entry of await readdir(folder, { withFileTypes: true })) {
         if (!entry.isDirectory()) continue;
         const path = resolve(folder, entry.name, 'game-module.json');

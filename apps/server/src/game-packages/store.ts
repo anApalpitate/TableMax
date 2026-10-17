@@ -46,6 +46,8 @@ export interface PackageStoreOptions {
   publicKey: KeyLike;
   protectedReleaseIds: () => Iterable<string>;
   fault?: (phase: 'before-journal' | 'before-index' | 'after-index') => void;
+  /** Development builds select packages already materialized in the build cache. */
+  development?: boolean;
 }
 const emptyIndex = (): InstallIndex => ({
   schemaVersion: 1,
@@ -79,6 +81,11 @@ export class PackageStore {
       this.ensureDirectory(join(this.root, dir));
     if (existsSync(join(this.root, 'index.json')))
       this.index = this.readIndex(join(this.root, 'index.json'));
+    if (options.development)
+      for (const releaseId of new Set(Object.values(this.index.selected))) {
+        const release = this.index.releases[releaseId];
+        if (release) this.bundled.set(releaseKey(release), release);
+      }
     this.recover();
   }
   subscribe(listener: () => void): () => void {

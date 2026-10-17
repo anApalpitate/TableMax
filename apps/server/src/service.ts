@@ -65,10 +65,14 @@ export async function createService(
   const storage = openFoundationDatabase(config.dataDir);
   let repository: SqliteSaveRepository;
   let room: RoomCoordinator;
+  const developmentBuild = existsSync(
+    join(config.webDir, '..', '.tablemax-development.json'),
+  );
   const packages: PackageStore | undefined = config.gamesDir
     ? new PackageStore({
         root: config.gamesDir,
         publicKey: PROJECT_GAME_PUBLIC_KEY,
+        development: developmentBuild,
         protectedReleaseIds: () => [
           ...(repository?.referencedReleases() ?? []),
           ...(repository?.hasUnpinnedHistory() && packages
@@ -86,29 +90,34 @@ export async function createService(
       for (const name of readdirSync(legacyRoot))
         if (/^[a-f0-9]{64}$/.test(name))
           packages.migrateLegacy(join(legacyRoot, name));
-    try {
-      const preinstalled = await packages.importPreinstalled(
-        join(config.webDir, '..', 'preinstalled-games'),
-        migrationProgress,
-      );
-      const original = packages.current('pokemon-encounters', 'original');
-      if (
-        original &&
-        preinstalled.includes(original.releaseId) &&
-        packages.resolveModule(original.releaseId)
-      )
-        freshFullInitialGame = original.gameId;
-    } catch (error) {
-      // Never substitute cached games for a damaged current executable payload.
-      log(
-        `preinstalled-games-failed:${error instanceof Error ? error.message : 'unknown'}`,
-      );
-      storage.close();
-      throw new Error(
-        '完整程序的预装游戏无法初始化，请重新获取完整 EXE；原存档和旧游戏已保留。',
-        { cause: error },
-      );
+    if (!developmentBuild) {
+      try {
+        const preinstalled = await packages.importPreinstalled(
+          join(config.webDir, '..', 'preinstalled-games'),
+          migrationProgress,
+        );
+        const original = packages.current('pokemon-encounters', 'original');
+        if (
+          original &&
+          preinstalled.includes(original.releaseId) &&
+          packages.resolveModule(original.releaseId)
+        )
+          freshFullInitialGame = original.gameId;
+      } catch (error) {
+        // Never substitute cached games for a damaged current executable payload.
+        log(
+          `preinstalled-games-failed:${error instanceof Error ? error.message : 'unknown'}`,
+        );
+        storage.close();
+        throw new Error(
+          '完整程序的预装游戏无法初始化，请重新获取完整 EXE；原存档和旧游戏已保留。',
+          { cause: error },
+        );
+      }
     }
+    const original = packages.current('pokemon-encounters', 'original');
+    if (original && packages.resolveModule(original.releaseId))
+      freshFullInitialGame = original.gameId;
   }
   const registry =
     game instanceof GameRegistry ? game : createGameRegistry(false, packages);
