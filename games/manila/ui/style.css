@@ -666,6 +666,19 @@
   gap: 8px;
   flex-wrap: wrap;
 }
+.mn-seat-asset {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+.mn-seat-asset > span {
+  font-size: 16px;
+}
+.mn-seat-asset > strong {
+  font-size: 18px;
+  font-weight: 700;
+}
 .mn-private {
   background: #fff8e5;
   border: 2px solid #ae8a4f;
@@ -1647,9 +1660,9 @@
     z-index: 5;
   }
   .mn-die {
-    width: 30px;
-    height: 44px;
-    flex-basis: 30px;
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
   }
   .mn-pips {
     grid-template-columns: repeat(3, 4px);

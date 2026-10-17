@@ -269,6 +269,19 @@ async function layout(page, label, boundary) {
           ? [node.getBoundingClientRect().bottom + scrollY]
           : [];
       });
+    const rect = (node) => {
+      if (!node) return null;
+      const r = node.getBoundingClientRect();
+      return {
+        x: r.x,
+        y: r.y,
+        width: r.width,
+        height: r.height,
+        right: r.right,
+        bottom: r.bottom,
+      };
+    };
+    const seats = [...root.querySelectorAll('.mn-seat')].filter(visible);
     return {
       width: document.documentElement.clientWidth,
       height: document.documentElement.clientHeight,
@@ -310,6 +323,14 @@ async function layout(page, label, boundary) {
         .filter((node) => !node.complete || !node.naturalWidth)
         .map((node) => node.src),
       controls: [...root.querySelectorAll('button')].filter(visible).length,
+      hostComposition: {
+        main: rect(root.querySelector('.mn-main')),
+        side: rect(root.querySelector('.mn-side')),
+        market: rect(root.querySelector('.mn-market-panel')),
+        players: rect(root.querySelector('.mn-players-panel')),
+        seats: seats.length,
+        seatBoxes: seats.map(rect),
+      },
     };
   });
   evidence.layouts.push({ label, ...metrics });
@@ -330,6 +351,49 @@ async function layout(page, label, boundary) {
       metrics.width >= 800,
       `${label}: genuine landscape player surface required; desktop phone-frame emulation is insufficient`,
     );
+  const composition = metrics.hostComposition;
+  if (
+    (label.startsWith('host') || label.startsWith('public')) &&
+    composition.side
+  ) {
+    assert.ok(composition.main, `${label}: harbor main area is missing`);
+    assert.ok(composition.market, `${label}: market rail is missing`);
+    assert.ok(composition.players, `${label}: merchant rail is missing`);
+    assert.ok(
+      composition.side.x >= composition.main.right - 1,
+      `${label}: market and merchants are not to the right of the board`,
+    );
+    assert.ok(
+      Math.abs(composition.side.y - composition.main.y) <= 1,
+      `${label}: right ledger rail does not start with the board`,
+    );
+    assert.ok(
+      composition.market.bottom <= composition.players.y + 2,
+      `${label}: market is not above the merchants`,
+    );
+    assert.ok(
+      composition.players.bottom <= metrics.height + 1 &&
+        composition.side.bottom <= metrics.height + 1,
+      `${label}: right rail leaves the viewport`,
+    );
+    assert.ok(
+      composition.seats >= 3,
+      `${label}: merchant rail does not expose every seat`,
+    );
+    assert.ok(
+      composition.seatBoxes.every(
+        (seat) =>
+          seat.width > 0 &&
+          seat.height > 0 &&
+          seat.bottom <= composition.players.bottom + 1,
+      ),
+      `${label}: a merchant card is clipped by its rail`,
+    );
+    assert.ok(
+      metrics.scrollHeight <= metrics.height + 1,
+      `${label}: host/public board requires vertical page scrolling`,
+    );
+  }
   assert.ok(
     metrics.scrollWidth <= metrics.width + 1,
     `${label}: document horizontal overflow ${JSON.stringify(metrics)}`,

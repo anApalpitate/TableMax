@@ -17,7 +17,7 @@ import {
   type GameHost,
 } from '@tablemax/web-host';
 import type { Action, ManilaView } from '../rules/view';
-import { HarborBoard, Market, Players } from '../ui/Board';
+import { HarborBoard, Market, Players, RevealedShares } from '../ui/Board';
 import { PlayerControls } from '../ui/PlayerControls';
 import { phaseNames } from '../ui/labels';
 import { manilaRulebook } from '../ui/RulesGuide';
@@ -495,9 +495,8 @@ function ManilaScreen({ session }: { session: GameHost }) {
                           <strong>{names[id]}</strong>
                           <b>{game.scores?.[id]} ₱</b>
                         </div>
-                        <ShareCertificates
+                        <RevealedShares
                           shares={game.players[id]!.revealedShares}
-                          publicView
                         />
                       </li>
                     ))}

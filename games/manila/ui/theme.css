@@ -747,3 +747,79 @@
     padding-inline: 6px;
   }
 }
+
+/* Settlement keeps cargo and mortgage state visual, without repeating labels. */
+.mn-revealed-shares {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin: 3px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mn-share-chip {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #b49a68;
+  border-radius: 6px;
+  background: linear-gradient(145deg, #fffdf2, #ebd9ab);
+  box-shadow:
+    inset 0 0 0 1px #fff9,
+    0 1px 2px #4a321722;
+}
+
+.mn-share-chip > .mn-cargo-art {
+  width: 22px;
+  height: 22px;
+}
+
+.mn-share-chip > b {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 3px;
+  border-radius: 9px;
+  background: #47311c;
+  color: #fff9e8;
+  font-size: 16px;
+  line-height: 18px;
+}
+
+.mn-share-seal {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
+  border: 1px solid #f0c3a1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #c5674e, #843a2d);
+  box-shadow: 0 0 0 1px #6d2f25;
+}
+
+@media (max-width: 430px) {
+  .mn-revealed-shares {
+    gap: 3px;
+  }
+
+  .mn-share-chip {
+    width: 28px;
+    height: 28px;
+  }
+
+  .mn-share-chip > .mn-cargo-art {
+    width: 20px;
+    height: 20px;
+  }
+}

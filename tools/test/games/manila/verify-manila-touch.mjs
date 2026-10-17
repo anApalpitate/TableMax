@@ -573,38 +573,33 @@ try {
         },
       );
     if (selected.includes('round-result'))
-      await check(
-        `round-result-${width}: compact result and next voyage CTA`,
-        async () => {
-          await render({ phase: 'round-result', role: 'player', owner: true });
-          const result = page.locator('.mn-result--round');
-          assert.equal(await result.count(), 1);
-          const button = page.locator('.mn-next-voyage');
-          assert(await button.isVisible());
-          await button.scrollIntoViewIfNeeded();
-          await settle();
-          const box = await button.boundingBox();
-          assert(box.width >= 44 && box.height >= 44);
-          assert(box.x >= 0 && box.x + box.width <= width + 1);
-          assert(
-            box.y >= 0 && box.y + box.height <= height + 1,
-            'CTA can be brought fully into the actual viewport',
-          );
-          const data = {
-            phase: 'round-result',
-            width,
-            height,
-            result: await result.boundingBox(),
-            button: box,
-          };
-          await shot('round-result', false);
-          await button.tap();
-          data.submitted = await page.evaluate(() =>
-            window.validateManilaCommand(),
-          );
-          report.metrics.push(data);
-        },
-      );
+      await check(`round-result-${width}: next voyage CTA`, async () => {
+        await render({ phase: 'round-result', role: 'player', owner: true });
+        assert.equal(await page.locator('.mn-receipt-button').count(), 1);
+        const button = page.locator('.mn-next-voyage');
+        assert(await button.isVisible());
+        await button.scrollIntoViewIfNeeded();
+        await settle();
+        const box = await button.boundingBox();
+        assert(box.width >= 44 && box.height >= 44);
+        assert(box.x >= 0 && box.x + box.width <= width + 1);
+        assert(
+          box.y >= 0 && box.y + box.height <= height + 1,
+          'CTA can be brought fully into the actual viewport',
+        );
+        const data = {
+          phase: 'round-result',
+          width,
+          height,
+          button: box,
+        };
+        await shot('round-result', false);
+        await button.tap();
+        data.submitted = await page.evaluate(() =>
+          window.validateManilaCommand(),
+        );
+        report.metrics.push(data);
+      });
     if (selected.includes('waiting'))
       await check(
         `waiting-${width}: nonactor has no empty action panel`,

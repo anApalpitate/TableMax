@@ -6,4 +6,4 @@
 
 用户本次明确要求写实风格、模拟真实桌游沙盘、有动态感。角色、保存与回退沿用[平台规格](../../reference/phase-02-platform-spec.md)，不扩大管理员和公共屏的秘密权限。实测与失败修复见[验证](validation-scenarios.md)，已完成过程见[开发归档](../../archive/manila-2026-10-16.md)，实体设备及正式推广接续见[剩余任务](../../tasks/manila-development.md)。
 
-本次独立竖港、图形草稿与声画深化的完成、失败及视觉审查见[体验深化归档](../../archive/manila-experience-deepening-2026-10-16.md)。
+本次独立竖港、图形草稿与声画深化的完成、失败及视觉审查见[体验深化归档](../../archive/manila-experience-deepening-2026-10-16.md)。主机展板右侧账房栏、手机货舱清单、13格海盗拦截线与终局股份图标的改动见[本轮归档](../../archive/manila-host-rail-2026-10-17.md)。

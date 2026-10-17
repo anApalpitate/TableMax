@@ -21,7 +21,7 @@ const source = await readFile(new URL(import.meta.url));
 await writeFile(join(output, 'verifier-source.mjs'), source, { flag: 'wx' });
 await writeFile(
   join(work, 'index.html'),
-  '<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><div id="root"></div><script type="module" src="./entry.tsx"></script></html>',
+  '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><div id="root"></div><script type="module" src="./entry.tsx"></script></html>',
 );
 await writeFile(
   join(work, 'entry.tsx'),
@@ -157,6 +157,18 @@ try {
               ? [node.getBoundingClientRect().bottom + scrollY]
               : [];
           });
+        const rect = (node) => {
+          if (!node) return null;
+          const r = node.getBoundingClientRect();
+          return {
+            x: r.x,
+            y: r.y,
+            width: r.width,
+            height: r.height,
+            right: r.right,
+            bottom: r.bottom,
+          };
+        };
         const last = Math.max(0, ...flowBottoms(root));
         const dockGaps = [...root.querySelectorAll('.mn-dock-group')]
           .filter(visible)
@@ -184,8 +196,7 @@ try {
           width: innerWidth,
           scrollWidth: document.documentElement.scrollWidth,
           tailGap:
-            document.scrollingElement.scrollHeight -
-            Math.max(innerHeight, last),
+            document.documentElement.scrollHeight - Math.max(innerHeight, last),
           dice,
           dockGaps,
           phaseRows,
@@ -222,6 +233,13 @@ try {
           actorAvatar:
             root.querySelector('.mn-status img')?.getAttribute('src') ?? null,
           bodyText: root.textContent,
+          hostComposition: {
+            main: rect(root.querySelector('.mn-main')),
+            side: rect(root.querySelector('.mn-side')),
+            market: rect(root.querySelector('.mn-market-panel')),
+            players: rect(root.querySelector('.mn-players-panel')),
+            seats: root.querySelectorAll('.mn-seat').length,
+          },
         };
       });
       report.layouts.push({
@@ -235,10 +253,11 @@ try {
         geometry.scrollWidth <= width + 1,
         `${role} ${width}: horizontal overflow`,
       );
-      assert.ok(
-        geometry.tailGap <= 20,
-        `${role} ${width}: empty trailing scroll ${geometry.tailGap}`,
-      );
+      if (role !== 'player')
+        assert.ok(
+          geometry.tailGap <= 20,
+          `${role} ${width}: empty trailing scroll ${geometry.tailGap}`,
+        );
       assert.ok(geometry.dice.length > 0, 'Sailed legal state renders dice');
       assert.ok(
         geometry.dice.every((d) => Math.abs(d.width - d.height) < 0.6),
@@ -285,6 +304,32 @@ try {
           /抵押.*借|可借/,
           'Credit is described as borrowing against shares',
         );
+      if (role !== 'player') {
+        const composition = geometry.hostComposition;
+        assert.ok(composition.main, `${role}: harbor main area is missing`);
+        assert.ok(composition.side, `${role}: ledger rail is missing`);
+        assert.ok(
+          composition.side.x >= composition.main.right - 1,
+          `${role}: ledger rail is not to the right of the board`,
+        );
+        assert.ok(
+          composition.market.bottom <= composition.players.y + 2,
+          `${role}: market is not above the merchants`,
+        );
+        assert.ok(
+          composition.players.bottom <= height + 1,
+          `${role}: merchant rail leaves the viewport`,
+        );
+        assert.equal(
+          composition.seats,
+          5,
+          `${role}: every merchant remains visible in the ledger rail`,
+        );
+        assert.ok(
+          geometry.tailGap <= 20,
+          `${role}: host/public board requires page scrolling`,
+        );
+      }
       await shot(role + '-' + width + 'x' + height);
     }
   }

@@ -16,6 +16,25 @@
 
 ## 当前结果
 
+### 主机展板与手机航道（2026-10-17）
+
+主机／公共屏改为顶部控制带、左侧港湾展板、右侧行情与商人账房栏；手机航道改为货舱清单牌、13格海盗拦截线和终局股份图标。规则、秘密投影、动作协议、存档和服务器未改。
+
+实际执行：
+
+- `verify-manila-design.mjs`：10个角色／尺寸布局、10个详情通过；新增主机右栏、行情在上、商人底边不越视口和主机页面无纵向滚动断言，覆盖1280×720、1920×1080、3840×2160。证据见 `artifacts/manila/validation/host-rail-final-design2/results.json`。
+- `verify-manila-harbor.mjs` 完整手机港湾：60项检查、394次实际点击通过；320／390／430／844四宽覆盖清单状态、海盗拦截线、终局图标、44px目标、横向溢出、滚动和付款。证据见 `artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/host-rail-harbor-full-01/report.json`。
+- `verify-manila-harbor.mjs --suite=composition --only=entries,tie`：8项通过，定向检查新清单、13格拦截线、终局图标和无“（抵押）”文本。证据见 `artifacts/maintenance/manila-board-composition-20261017/mobile/host-rail-mobile-05/report.json`。
+- `verify-manila-touch.mjs --only=setup,pilot-small,pilot-large,auction,round-result`：20项通过；竞拍、装货、领航和下一航次按钮保持44px。证据见 `artifacts/maintenance/manila-touch-layout-20261017/touch/host-rail-touch-02/report.json`。
+- `node tools/test/runner/test-scoped.mjs --scope=game:manila`：规则、UI、服务／Worker通过；新增清单空舱和终局图标断言。
+- `node tools/build/build.mjs`：快照 `89d6c04a764547488aed482ab916f0dd0b4ea075841696634de4bf5601fdbc05` 构建通过。
+
+边界与失败：
+
+- 主机右栏的源码验证使用5人投影；5人主机也做了实际源码夹具截图检查。原生 `verify-manila.mjs --seats=5 --only=layout` 本次在本机开发构建上因 `missing-preinstalled-games` 服务启动失败，未取得原生页面通过证据，不能写成实机验收。
+- 本轮主机视觉验收以1280×720至3840×2160为主。853×480为极短屏限制尺寸，本轮未将其列为可读性通过；不据此声称所有小屏都同屏可读。
+- 手机尺寸、DPR、触控和4K均为本机模拟，不代表实体手机、物理4K或真实LAN。未生成或发布安装包。
+
 ### 整图信息关系与购股动作行（2026-10-17）
 
 新增 `verify-manila-harbor.mjs --suite=composition --only=share,entries`，覆盖手机320／390／430／844宽的购股按钮外框、文字中心、触控尺寸与各阶段入口；保留原稳定性、权限及合法投影检查。主机另外测量航道与岸线、完整棋子、船中心与高亮刻度、身份和资产行，覆盖短屏至4K、长昵称、分红和终局。最终执行范围、源码SHA、独立截图审查与失败记录由[本轮证据](../../../artifacts/maintenance/manila-board-composition-20261017/source-verification.json)认定，不将旧安装候选26当作本轮源码交付。

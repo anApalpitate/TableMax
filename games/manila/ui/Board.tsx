@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { avatarFor, type GameHost } from '@tablemax/web-host';
-import type { Action, ManilaView, SpaceView } from '../rules/view';
+import type { Action, ManilaView, ShareView, SpaceView } from '../rules/view';
 import { cargoColors, cargoNames, seatColors, spaceName } from './labels';
 import {
   CargoArt,
@@ -23,6 +23,14 @@ import {
   VoyageDetail,
 } from './Theme';
 type Seats = NonNullable<GameHost['view']>['seats'];
+
+function HoldMark() {
+  return (
+    <svg className="mn-hold-mark" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 8h16v11H4zM8 8V5h8v3M8 12h8M8 16h5" />
+    </svg>
+  );
+}
 
 export function Space({
   space,
@@ -155,6 +163,12 @@ export function HarborBoard({
       select={select}
     />
   );
+  const pirateLineActive =
+    game.phase === 'board' ||
+    game.phase === 'plunder' ||
+    game.boats.some(
+      (boat) => boat.destination === 'sea' && boat.position === 13,
+    );
   return (
     <div className="mn-board-scroll">
       <section
@@ -266,6 +280,17 @@ export function HarborBoard({
                 : boat.destination === 'shipyard'
                   ? '进坞'
                   : `${boat.position}格`;
+            const crewMembers = crew.filter((entry) => entry.occupant);
+            const laneState =
+              setup || pilot
+                ? 'adjusting'
+                : boat.plundered
+                  ? 'plundered'
+                  : boat.destination !== 'sea'
+                    ? 'docked'
+                    : cargo
+                      ? 'sea'
+                      : 'empty';
             const delta = cargo ? (work.deltas[cargo] ?? 0) : 0;
             const preview = setup
               ? work.positions[index]!
@@ -296,6 +321,7 @@ export function HarborBoard({
                 className="mn-lane"
                 key={index}
                 data-mn-cargo={cargo ?? undefined}
+                data-mn-lane-state={laneState}
                 style={cargoStyle(cargo ? cargoColors[cargo] : '#527b7b')}
               >
                 <div className="mn-lane-heading">
@@ -527,25 +553,79 @@ export function HarborBoard({
                     </div>
                   )}
                   <div
-                    className="mn-crew"
+                    className={`mn-crew mn-crew--${laneState}`}
                     data-mn-adjusting={setup || pilot ? true : undefined}
+                    data-mn-lane-state={laneState}
+                    data-mn-crew-count={crewMembers.length}
+                    aria-label={
+                      compactHeading
+                        ? undefined
+                        : boat.plundered
+                          ? '被掠夺'
+                          : boat.destination !== 'sea'
+                            ? destination
+                            : cargo
+                              ? `船员 ${crewMembers.length} 人`
+                              : '等待装货'
+                    }
                   >
-                    <span className="mn-position-readout">
-                      {boat.destination !== 'sea'
-                        ? destination
-                        : cargo
-                          ? `船员 ${crew.filter((entry) => entry.occupant).length}`
-                          : '等待装船'}
-                    </span>
-                    {compactHeading && cargo ? (
-                      <div className="mn-crew-slots">{crew.map(space)}</div>
-                    ) : vacancy ? (
-                      space(vacancy)
-                    ) : crew.some((entry) => entry.occupant) ? (
-                      <span className="mn-crew-summary mn-crew-members">
-                        {crew
-                          .filter((entry) => entry.occupant)
-                          .map((entry) => (
+                    {compactHeading ? (
+                      <>
+                        <span className="mn-position-readout">
+                          {boat.destination !== 'sea'
+                            ? destination
+                            : cargo
+                              ? `船员 ${crewMembers.length}`
+                              : '等待装船'}
+                        </span>
+                        {cargo ? (
+                          <div className="mn-crew-slots">{crew.map(space)}</div>
+                        ) : vacancy ? (
+                          space(vacancy)
+                        ) : crewMembers.length ? (
+                          <span className="mn-crew-summary mn-crew-members">
+                            {crewMembers.map((entry) => (
+                              <Worker
+                                key={entry.id}
+                                number={
+                                  game.seatOrder.indexOf(entry.occupant!) + 1
+                                }
+                                color={
+                                  seatColors[
+                                    game.seatOrder.indexOf(entry.occupant!)
+                                  ]!
+                                }
+                                label={
+                                  names[entry.occupant!] ?? entry.occupant!
+                                }
+                              />
+                            ))}
+                          </span>
+                        ) : null}
+                        {cargo ? (
+                          <span className="mn-payout-label">
+                            分红池 {data?.payout} ₱
+                          </span>
+                        ) : null}
+                      </>
+                    ) : boat.plundered ? (
+                      <span className="mn-manifest-state mn-manifest-state--plunder">
+                        <SiteArt kind="pirate" />
+                        <span>被掠夺</span>
+                      </span>
+                    ) : boat.destination !== 'sea' ? (
+                      <span className="mn-manifest-state">
+                        <SiteArt kind={boat.destination} />
+                        <span>{destination}</span>
+                      </span>
+                    ) : cargo ? (
+                      <>
+                        <span className="mn-manifest-kicker">
+                          船员
+                          <b>{crewMembers.length}</b>
+                        </span>
+                        <span className="mn-manifest-members">
+                          {crewMembers.map((entry) => (
                             <Worker
                               key={entry.id}
                               number={
@@ -559,31 +639,42 @@ export function HarborBoard({
                               label={names[entry.occupant!] ?? entry.occupant!}
                             />
                           ))}
+                          {!crewMembers.length && (
+                            <span className="mn-manifest-empty">空舱</span>
+                          )}
+                        </span>
+                        {vacancy && (
+                          <span className="mn-manifest-target">
+                            {space(vacancy)}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="mn-manifest-state mn-manifest-state--empty">
+                        <span className="mn-manifest-hold" aria-hidden="true">
+                          <HoldMark />
+                        </span>
+                        <span>待装货</span>
                       </span>
-                    ) : null}
-                    {cargo && compactHeading ? (
-                      <span className="mn-payout-label">
-                        分红池 {data?.payout} ₱
-                      </span>
-                    ) : cargo ? (
-                      <DetailButton
-                        title={`${cargoNames[cargo]}分红与伙伴`}
-                        detail={
-                          <CargoDetail
-                            game={game}
-                            cargo={cargo}
-                            names={names}
-                          />
-                        }
-                      >
-                        <span>分红池 {data?.payout} ₱</span>
-                      </DetailButton>
-                    ) : null}
+                    )}
                   </div>
                 </div>
               </section>
             );
           })}
+          {!compactHeading && (
+            <div
+              className={`mn-pirate-line${pirateLineActive ? ' is-active' : ''}`}
+              role="note"
+              aria-label="第13格为海盗拦截线"
+            >
+              <span className="mn-pirate-line-flag" aria-hidden="true">
+                <SiteArt kind="pirate" />
+              </span>
+              <span className="mn-pirate-line-rule" aria-hidden="true" />
+              <span className="mn-pirate-line-label">13 海盗拦截</span>
+            </div>
+          )}
         </div>
         {children && <div className="mn-board-actions">{children}</div>}
       </section>
@@ -632,6 +723,46 @@ export function Market({ game }: { game: ManilaView }) {
   );
 }
 
+export function RevealedShares({ shares }: { shares: ShareView[] }) {
+  const groups = new Map<
+    string,
+    { cargo: ShareView['cargo']; mortgaged: boolean; count: number }
+  >();
+  for (const share of shares) {
+    const key = `${share.cargo}:${share.mortgaged ? 'mortgaged' : 'clear'}`;
+    const group = groups.get(key) ?? {
+      cargo: share.cargo,
+      mortgaged: share.mortgaged,
+      count: 0,
+    };
+    group.count++;
+    groups.set(key, group);
+  }
+  if (!groups.size) return null;
+  return (
+    <ul className="mn-revealed-shares" aria-label="公开股份">
+      {[...groups.values()].map((group) => {
+        const name = cargoNames[group.cargo];
+        return (
+          <li
+            className={`mn-share-chip${group.mortgaged ? ' mn-share-chip--mortgaged' : ''}`}
+            key={`${group.cargo}:${group.mortgaged ? 'mortgaged' : 'clear'}`}
+            style={cargoStyle(cargoColors[group.cargo])}
+            title={`${name}股份 ×${group.count}${group.mortgaged ? '，已抵押' : ''}`}
+            aria-label={`${name}股份 ${group.count} 张${group.mortgaged ? '，已抵押' : ''}`}
+          >
+            <CargoArt cargo={group.cargo} />
+            {group.count > 1 && <b aria-hidden="true">×{group.count}</b>}
+            {group.mortgaged && (
+              <i className="mn-share-seal" aria-hidden="true" />
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 export function Players({
   game,
   seats,
@@ -666,6 +797,7 @@ export function Players({
               key={id}
               data-seat-id={id}
               data-mn-player={id}
+              data-mn-seat-number={index + 1}
               aria-label={
                 game.phase === 'ended'
                   ? `${seat?.name ?? id}，${game.winners.includes(id) ? '赢家，' : ''}财富 ${game.scores?.[id]} 比索`
@@ -695,9 +827,21 @@ export function Players({
                   )}
                 </strong>
                 <div className="mn-seat-meta mn-seat-assets">
-                  <span>现金 {player.cash} ₱</span>
-                  <span>股份 {player.shareCount}</span>
-                  <span>可用伙伴 {player.availableWorkers}</span>
+                  <span className="mn-seat-asset">
+                    <span>现金</span>
+                    <strong>{player.cash} ₱</strong>
+                  </span>
+                  <span className="mn-seat-asset">
+                    <span>股份</span>
+                    <strong>{player.shareCount}</strong>
+                  </span>
+                  <span
+                    className="mn-seat-asset"
+                    title={compact ? '可用伙伴' : undefined}
+                  >
+                    <span>{compact ? '伙伴' : '可用伙伴'}</span>
+                    <strong>{player.availableWorkers}</strong>
+                  </span>
                 </div>
                 {(game.phase === 'round-result' || game.phase === 'ended') && (
                   <div
@@ -721,17 +865,7 @@ export function Players({
                     ) : null}
                   </div>
                 )}
-                {!compact && player.revealedShares.length > 0 && (
-                  <span className="mn-revealed">
-                    公开：
-                    {player.revealedShares
-                      .map(
-                        (share) =>
-                          `${cargoNames[share.cargo]}${share.mortgaged ? '（抵押）' : ''}`,
-                      )
-                      .join('、')}
-                  </span>
-                )}
+                {!compact && <RevealedShares shares={player.revealedShares} />}
               </div>
             </article>
           );

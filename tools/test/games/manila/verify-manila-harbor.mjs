@@ -1161,6 +1161,35 @@ try {
       assert.equal(new Set(ranks).size, 1, 'Tied wealth has identical rank');
       const rootBounds = await row();
       assert(rootBounds.scrollWidth <= width + 1);
+      const shares = await page.evaluate(() => ({
+        chips: [...document.querySelectorAll('.mn-share-chip')].map((n) => ({
+          label: n.getAttribute('aria-label'),
+          mortgaged: n.classList.contains('mn-share-chip--mortgaged'),
+          width: n.getBoundingClientRect().width,
+          height: n.getBoundingClientRect().height,
+          image: n.querySelector('img')?.naturalWidth ?? 0,
+        })),
+        text: document.querySelector('.mn-players-panel')?.textContent ?? '',
+      }));
+      assert(shares.chips.length > 0, 'Final settlement shows share icons');
+      assert(
+        shares.chips.every(
+          (chip) =>
+            chip.width >= 28 &&
+            chip.height >= 28 &&
+            chip.image > 0 &&
+            chip.label,
+        ),
+        'Every settlement share icon is decoded and has an accessible label',
+      );
+      assert(
+        shares.chips.some((chip) => chip.mortgaged),
+        'Mortgage state is represented by a visual chip',
+      );
+      assert(
+        !shares.text.includes('（抵押）'),
+        'Settlement does not repeat the mortgage parenthetical',
+      );
       await page.locator('.mn-players-panel').scrollIntoViewIfNeeded();
       await shot('controlled-tie');
       report.metrics.push({
@@ -1168,6 +1197,7 @@ try {
         kind: 'controlled-valid-tie',
         players: data,
         ranks,
+        shares,
       });
     });
     await run('tail', async () => {
@@ -1346,6 +1376,14 @@ try {
             };
           };
           return {
+            pirateLines: [...document.querySelectorAll('.mn-pirate-line')]
+              .filter((n) => n.checkVisibility())
+              .map((n) => ({
+                box: rect(n),
+                active: n.classList.contains('is-active'),
+                label: n.textContent,
+                lanes: rect(n.closest('.mn-lanes')),
+              })),
             slots: [...document.querySelectorAll('.mn-lane-control')].map(rect),
             spaces: [...document.querySelectorAll('.mn-harbor .mn-space')]
               .filter((n) => n.checkVisibility())
@@ -1388,15 +1426,24 @@ try {
               .filter((n) => n.checkVisibility())
               .map((n) => ({
                 cargo: n.closest('.mn-lane').dataset.mnCargo,
-                readout: n.querySelector('.mn-position-readout')?.textContent,
+                state: n.dataset.mnLaneState,
+                count: Number(n.dataset.mnCrewCount),
+                readout: n.querySelector('.mn-manifest-kicker')?.textContent,
                 roster:
-                  n.querySelector('.mn-crew-members') &&
-                  rect(n.querySelector('.mn-crew-members')),
+                  n.querySelector('.mn-manifest-members') &&
+                  rect(n.querySelector('.mn-manifest-members')),
+                target:
+                  n.querySelector('.mn-manifest-target .mn-space') &&
+                  rect(n.querySelector('.mn-manifest-target .mn-space')),
                 members: [
-                  ...n.querySelectorAll('.mn-crew-members .mn-worker'),
+                  ...n.querySelectorAll('.mn-manifest-members .mn-worker'),
                 ].map((member) => ({
                   body: rect(member),
-                  head: rect(member.querySelector('.mn-worker-head')),
+                  head: member
+                    .querySelector('.mn-worker-head')
+                    ?.checkVisibility()
+                    ? rect(member.querySelector('.mn-worker-head'))
+                    : null,
                 })),
               })),
           };
@@ -1410,6 +1457,31 @@ try {
         assert(
           metrics.slots.every((s) => Math.abs(s.height - 64) <= 1),
           'Every phase keeps its 64px lane control slot',
+        );
+        assert.equal(
+          metrics.pirateLines.length,
+          1,
+          'Every mobile action phase exposes one pirate intercept marker',
+        );
+        const pirateLine = metrics.pirateLines[0];
+        assert.match(
+          pirateLine.label,
+          /海盗拦截/,
+          'Pirate intercept marker names the 13-cell boundary',
+        );
+        assert(
+          pirateLine.box.width >= 40 &&
+            pirateLine.box.right <= pirateLine.lanes.right + 1,
+          'Pirate intercept marker stays inside the lanes',
+        );
+        assert.equal(
+          pirateLine.active,
+          phase === 'board' ||
+            phase === 'plunder' ||
+            fixture.boats.some(
+              (boat) => boat.destination === 'sea' && boat.position === 13,
+            ),
+          'Pirate intercept marker activates on the 13-cell boundary',
         );
         for (const space of metrics.spaces) {
           assert(
@@ -1450,18 +1522,29 @@ try {
             'Payout field fits its lane',
           );
         }
-        for (const die of metrics.dice)
+        for (const die of metrics.dice) {
           assert(
-            die.box.y >= die.heading.bottom - 1,
-            'Cargo header does not cover its dice result',
+            die.box.y >= die.heading.y - 1 &&
+              die.box.bottom <= die.heading.bottom + 1,
+            'The dice result stays inside the cargo header band',
           );
+          assert(
+            Math.abs(die.box.width - die.box.height) <= 0.6,
+            'The mobile dice result remains square',
+          );
+        }
         for (const crew of metrics.crew) {
           if (crew.roster)
             for (const member of crew.members) {
+              if (member.head)
+                assert(
+                  member.head.y >= crew.roster.y - 1,
+                  'A saved crew pawn head stays inside the roster row',
+                );
               assert(
-                member.head.y >= crew.roster.y - 1 &&
+                member.body.y >= crew.roster.y - 1 &&
                   member.body.bottom <= crew.roster.bottom + 1,
-                'Saved crew pawn including its head fits the roster row',
+                'Saved crew pawn fits the roster row',
               );
               assert(
                 member.body.x >= crew.roster.x - 1 &&
@@ -1475,8 +1558,17 @@ try {
               4,
               'Four saved jade crew members remain visible',
             );
+          if (crew.target)
+            assert(
+              crew.target.width >= 44 && crew.target.height >= 44,
+              'The manifest keeps every legal vacancy at least 44px',
+            );
           const boat = fixture.boats.find((b) => b.cargo === crew.cargo);
-          if (boat?.destination === 'sea') {
+          if (
+            boat?.destination === 'sea' &&
+            !boat.plundered &&
+            crew.state === 'sea'
+          ) {
             const count = await page.evaluate(
               (cargo) =>
                 window.fixtureSession.view.gameView.spaces.filter(
@@ -1485,11 +1577,26 @@ try {
               crew.cargo,
             );
             assert.equal(
+              crew.count,
+              count,
+              'Sea lane manifest exposes the actual saved crew count',
+            );
+            assert.match(
               crew.readout,
-              '船员 ' + count,
-              'Sea lane readout shows actual saved crew count',
+              /船员/,
+              `${phase}/${crew.cargo}: Sea lane manifest labels the crew row`,
             );
           }
+          assert.notEqual(
+            (crew.readout ?? '').trim(),
+            '等待装船',
+            'The retired waiting-ship sentence is not rendered as a text block',
+          );
+          assert.doesNotMatch(
+            (crew.readout ?? '').trim(),
+            /^船员 \d+$/,
+            'The retired crew-count sentence is not rendered as a text block',
+          );
         }
         if (
           ['place', 'crew-full', 'pilot-small', 'round-result'].includes(phase)

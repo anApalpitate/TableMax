@@ -183,5 +183,16 @@ describe('Manila experience uses authorized public and player views', () => {
     expect(text).toContain('第3名');
     expect(text).not.toContain('第2名');
     expect(html).not.toContain('class="mn-actor-avatar"');
+    const player = render(state, 'player', 'A');
+    expect(player.html).toContain('class="mn-revealed-shares"');
+    expect(player.html).toContain('class="mn-share-chip');
+    expect(player.text).not.toContain('（抵押）');
+  });
+
+  it('uses the manifest for an empty player lane instead of the retired text block', () => {
+    const { text } = render(fresh(), 'player', 'A');
+    expect(text).toContain('待装货');
+    expect(text).not.toContain('等待装船');
+    expect(text).not.toMatch(/船员\s+\d+/);
   });
 });

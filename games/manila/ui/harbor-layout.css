@@ -639,3 +639,366 @@
     min-height: 324px;
   }
 }
+
+/* 2026-10-17 player lane manifest and the 13-cell pirate intercept. */
+.mn-screen--player .mn-lanes {
+  position: relative;
+}
+
+.mn-hold-mark {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mn-screen--player .mn-lane {
+  border-top: 3px solid color-mix(in srgb, var(--cargo-color), #fff 28%);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--cargo-color), #fff 88%) 0%,
+    #cfe9df70 68%,
+    #c5e3d840 100%
+  );
+}
+
+.mn-screen--player .mn-lane[data-mn-lane-state='empty'] {
+  border-top-color: #8c9d93;
+}
+
+.mn-screen--player .mn-lane[data-mn-lane-state='docked'],
+.mn-screen--player .mn-lane[data-mn-lane-state='plundered'] {
+  border-top-color: #a17a39;
+}
+
+.mn-screen--player .mn-lane-heading {
+  height: 62px;
+  min-height: 62px;
+}
+
+.mn-screen--player .mn-lane-heading > .mn-detail-button {
+  grid-template-columns: 26px minmax(0, 1fr);
+  grid-template-rows: 32px 20px;
+  height: 62px;
+  min-height: 62px;
+  padding: 5px 34px 5px 2px !important;
+  gap: 0 2px;
+}
+
+.mn-screen--player .mn-lane-heading .mn-cargo-art {
+  width: 26px;
+  height: 28px;
+}
+
+.mn-screen--player .mn-lane-heading .mn-dice {
+  top: 6px;
+  right: 3px;
+}
+
+.mn-screen--player .mn-lane-heading .mn-die {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  flex-basis: 32px;
+}
+
+.mn-screen--player .mn-cargo-payout {
+  gap: 2px;
+  margin-left: 0;
+  line-height: 20px;
+}
+
+.mn-screen--player .mn-cargo-payout > span {
+  font-size: 16px;
+}
+
+.mn-screen--player .mn-cargo-payout > strong {
+  font-size: 18px;
+}
+
+.mn-screen--player .mn-crew {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    'manifest-head manifest-members'
+    'manifest-target manifest-target';
+  align-content: center;
+  justify-items: stretch;
+  min-height: 64px;
+  height: 64px;
+  padding: 0;
+  gap: 0;
+}
+
+.mn-screen--player .mn-manifest-kicker {
+  grid-area: manifest-head;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 20px;
+  color: #435b52;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.mn-screen--player .mn-manifest-kicker b {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border: 1px solid #9d865a;
+  border-radius: 10px;
+  background: #fff8e2;
+  color: #5d421e;
+  font-size: 16px;
+  line-height: 18px;
+}
+
+.mn-screen--player .mn-manifest-members {
+  grid-area: manifest-members;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 2px;
+  min-width: 0;
+  min-height: 20px;
+}
+
+.mn-screen--player .mn-manifest-members .mn-worker {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  font-size: 16px;
+  line-height: 18px;
+}
+
+.mn-screen--player .mn-manifest-members .mn-worker-head {
+  display: none;
+}
+
+.mn-screen--player .mn-manifest-empty {
+  color: #4d6159;
+  font-size: 16px;
+  line-height: 20px;
+}
+
+.mn-screen--player .mn-manifest-target {
+  grid-area: manifest-target;
+  display: block;
+  min-width: 0;
+}
+
+.mn-screen--player .mn-manifest-target .mn-space-wrap,
+.mn-screen--player .mn-manifest-target .mn-space {
+  width: 100%;
+  min-width: 0;
+}
+
+.mn-screen--player .mn-manifest-target .mn-space {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 18px 24px;
+  justify-items: center;
+  align-content: center;
+  min-height: 44px;
+  height: 44px;
+  padding: 0 6px;
+  gap: 0;
+  border-style: solid;
+  border-color: #2e7469;
+  background: #fff9e4f2;
+}
+
+.mn-screen--player .mn-manifest-target .mn-space-name,
+.mn-screen--player .mn-manifest-target .mn-space-price {
+  font-size: 16px;
+}
+
+.mn-screen--player .mn-manifest-state {
+  grid-column: 1 / -1;
+  grid-row: 1 / span 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 44px;
+  color: #4b5e54;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
+.mn-screen--player .mn-manifest-state .mn-site-art {
+  width: 22px;
+  height: 24px;
+}
+
+.mn-screen--player .mn-manifest-state--plunder {
+  color: #853f35;
+}
+
+.mn-screen--player .mn-manifest-hold {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  color: #65776b;
+  border: 1px dashed #9c8c65;
+  border-radius: 7px;
+  background: #fff9e5c2;
+}
+
+.mn-screen--player .mn-manifest-state--empty {
+  color: #55665b;
+  font-size: 16px;
+}
+
+.mn-screen--player .mn-pirate-line {
+  position: absolute;
+  z-index: 4;
+  top: 80px;
+  left: 3px;
+  right: 3px;
+  display: none;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  pointer-events: none;
+  color: #7b4b2b;
+}
+
+.mn-screen--player .mn-pirate-line-flag {
+  display: grid;
+  place-items: center;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 20px;
+  border: 1px solid #b7a071;
+  border-radius: 5px;
+  background: #fff5d9e8;
+}
+
+.mn-screen--player .mn-pirate-line-flag .mn-site-art {
+  width: 18px;
+  height: 18px;
+}
+
+.mn-screen--player .mn-pirate-line-rule {
+  flex: 1 1 auto;
+  min-width: 8px;
+  height: 0;
+  border-top: 2px dashed #a67647;
+}
+
+.mn-screen--player .mn-pirate-line-label {
+  flex: none;
+  padding: 0 3px;
+  border: 1px solid #c5aa77;
+  border-radius: 5px;
+  background: #fff5d9f2;
+  color: #694728;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.mn-screen--player .mn-pirate-line.is-active {
+  color: #963f30;
+}
+
+.mn-screen--player .mn-pirate-line.is-active .mn-pirate-line-rule {
+  border-top-color: #a33d2d;
+}
+
+.mn-screen--player .mn-pirate-line.is-active .mn-pirate-line-label {
+  border-color: #b65e49;
+  background: #fff0d4f5;
+  color: #8d3227;
+}
+
+@media (max-width: 1050px) {
+  .mn-screen--player .mn-pirate-line {
+    display: flex;
+  }
+}
+
+@media (max-width: 360px) {
+  .mn-screen--player .mn-lane-heading > .mn-detail-button {
+    grid-template-columns: 20px minmax(0, 1fr);
+    grid-template-rows: 30px 32px;
+    height: 62px;
+    min-height: 62px;
+    padding: 2px 34px 2px 1px !important;
+    gap: 0 2px;
+  }
+
+  .mn-screen--player .mn-lane-heading .mn-cargo-art {
+    width: 18px;
+    height: 22px;
+  }
+
+  .mn-screen--player .mn-lane-heading > .mn-detail-button > strong {
+    font-size: 18px;
+  }
+
+  .mn-screen--player .mn-lane-heading .mn-dice {
+    top: 4px;
+    right: 2px;
+  }
+
+  .mn-screen--player .mn-lane-heading .mn-die {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+
+  .mn-screen--player .mn-lane-heading .mn-pips {
+    grid-template-columns: repeat(3, 4px);
+    grid-template-rows: repeat(3, 4px);
+    gap: 2px;
+  }
+
+  .mn-screen--player .mn-cargo-payout {
+    display: grid;
+    justify-items: start;
+    align-content: start;
+    gap: 0;
+    margin: 0;
+    padding-left: 0;
+    line-height: 16px;
+  }
+
+  .mn-screen--player .mn-cargo-payout > span,
+  .mn-screen--player .mn-cargo-payout > strong {
+    font-size: 16px;
+    line-height: 16px;
+  }
+
+  .mn-screen--player .mn-manifest-members {
+    gap: 0;
+    padding-left: 0;
+  }
+
+  .mn-screen--player .mn-manifest-kicker {
+    gap: 2px;
+  }
+
+  .mn-screen--player .mn-pirate-line-label {
+    padding-inline: 2px;
+  }
+}
