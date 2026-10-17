@@ -386,7 +386,7 @@ export function PlayerControls({
     <details className="mn-alternatives">
       <summary aria-label="展开替代操作">
         <CopperMark kind="list" />
-        操作列表
+        <span>操作列表</span>
       </summary>
       <div className="mn-alternative-content">
         <CloseAlternatives title={title} />
@@ -527,14 +527,16 @@ export function PlayerControls({
           )}
           {setup && work.setupStep === 2 && (
             <p>
-              拖动船边起点标记
+              <span className="mn-pointer-instruction">拖动起点</span>
+              <span className="mn-touch-instruction">点箭头调位</span>
               <br />
               每船0–5，合计9格
             </p>
           )}
           {pilot && (
             <p>
-              拖动木船选择格数
+              <span className="mn-pointer-instruction">拖动木船调位</span>
+              <span className="mn-touch-instruction">点箭头调位</span>
               <br />
               已用 {used}/{budget} 格
             </p>
@@ -560,13 +562,7 @@ export function PlayerControls({
               </button>
             </>
           )}
-          {plunders.length > 0 && (
-            <p>
-              拖动被掠夺的船
-              <br />
-              送往港口或修船坞
-            </p>
-          )}
+          {plunders.length > 0 && <p>点港口或船坞</p>}
           {direct
             .filter(
               () =>

@@ -817,7 +817,7 @@
   max-width: 100%;
 }
 .mn-inline-actions input[type='number'] {
-  width: 110px;
+  width: 64px;
 }
 .mn-confirm {
   position: sticky;
@@ -1366,9 +1366,11 @@
 }
 .mn-action-tray > .mn-alternatives {
   margin-left: auto;
+  margin-block: 0;
+  align-self: center;
 }
 .mn-action-tray > button[data-manila-action='pass'] {
-  font-size: 16px;
+  font-size: 18px;
   max-width: 145px;
   padding: 7px;
 }
@@ -1384,7 +1386,10 @@
   border-radius: 9px;
   background: #f5edd3;
   list-style: none;
-  font-size: 16px;
+  font-size: 18px;
+  line-height: 1.2;
+  gap: 6px;
+  white-space: nowrap;
 }
 .mn-alternatives > summary::-webkit-details-marker {
   display: none;
@@ -1750,11 +1755,15 @@
     z-index: 5;
   }
   .mn-boat-preview span {
-    white-space: normal;
+    white-space: nowrap;
     text-align: center;
-    min-width: 60px;
+    min-width: 0;
+    width: max-content;
     padding: 2px;
     font-size: 16px;
+  }
+  .mn-track:has(.mn-boat-preview) .mn-lane-position {
+    display: none;
   }
   .mn-start-handle {
     left: 50%;
@@ -1851,7 +1860,7 @@
   }
   .mn-action-tray > button[data-manila-action='pass'] {
     max-width: 102px;
-    font-size: 16px;
+    font-size: 18px;
     padding: 4px;
   }
   .mn-worker-source {
@@ -2033,7 +2042,7 @@
     gap: 5px;
   }
   .mn-bid-controls input {
-    width: 80px !important;
+    width: 64px;
   }
   .mn-board-scroll {
     border-width: 3px;
@@ -2196,7 +2205,7 @@
     gap: 3px;
   }
   .mn-screen--player .mn-bid-controls input {
-    width: 70px;
+    width: 64px;
   }
   .mn-screen--player .mn-finance--payment .mn-inline-actions {
     grid-template-columns: 1fr;
@@ -2283,4 +2292,133 @@
   .mn-action-tray > .mn-tray-instruction {
     display: none;
   }
+}
+/* Touch position controls keep taps stationary while the draft ship moves. */
+.mn-position-controls,
+.mn-boat-touch-image,
+.mn-touch-instruction {
+  display: none;
+}
+.mn-result--round {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  padding: 12px;
+  border-width: 1px;
+  box-shadow: 0 3px 9px #72552614;
+}
+.mn-result--round h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.mn-result-route p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin: 3px 0 0;
+}
+.mn-result-income {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.mn-result-income > span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.mn-result-income img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+.mn-result-income strong {
+  font-size: 18px;
+}
+.mn-screen .mn-next-voyage {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px 14px;
+  margin-left: auto;
+  font-size: 18px;
+  white-space: nowrap;
+}
+@media (max-width: 1050px), (pointer: coarse) {
+  .mn-position-controls {
+    display: grid;
+    justify-items: center;
+    flex: none;
+    gap: 2px;
+    margin: 0 1px 4px;
+  }
+  .mn-position-controls output {
+    font-size: 16px;
+    line-height: 1.25;
+    white-space: nowrap;
+    color: #28584f;
+  }
+  .mn-position-controls > div {
+    display: flex;
+    gap: 2px;
+  }
+  .mn-screen .mn-position-controls button {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+    border-radius: 11px;
+    border: 1px solid #b69a66;
+    background: linear-gradient(#fffbec, #eddfb7);
+    touch-action: manipulation;
+  }
+  .mn-position-controls svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .mn-position-controls button:disabled {
+    opacity: 0.42;
+  }
+  .mn-pilot-drag,
+  .mn-start-handle,
+  .mn-pointer-instruction {
+    display: none !important;
+  }
+  .mn-boat-touch-image,
+  .mn-touch-instruction {
+    display: inline;
+  }
+  .mn-harbor:is([data-stage='setup'], [data-stage='pilot']):has(
+      .mn-position-controls
+    )
+    .mn-lanes {
+    min-height: 320px;
+  }
+  .mn-result--round {
+    gap: 10px;
+  }
+  .mn-result--round .mn-next-voyage {
+    flex: 1;
+  }
+}
+.mn-rank-winner strong {
+  color: #805416;
+}
+.mn-rank-winner strong::before {
+  content: '★';
+  color: #9e702a;
+  margin-right: 4px;
 }

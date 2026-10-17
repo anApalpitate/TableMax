@@ -24,9 +24,15 @@ import { manilaRulebook } from '../ui/RulesGuide';
 import { DetailButton, ManilaInteraction } from '../ui/interaction';
 import { ManilaEffects } from '../ui/ManilaEffects';
 import { savedChanges } from '../ui/presentation';
-import { CopperMark, ReceiptDetail, ShareCertificates } from '../ui/Theme';
+import {
+  CopperMark,
+  ReceiptDetail,
+  ShareCertificates,
+  VoyageDetail,
+} from '../ui/Theme';
 import '../ui/style.css';
 import '../ui/theme.css';
+import '../ui/host-layout.css';
 
 function ManilaScreen({ session }: { session: GameHost }) {
   const { view, role, command, connected, locked, canControl } = session;
@@ -126,6 +132,16 @@ function ManilaScreen({ session }: { session: GameHost }) {
           <span>马尼拉经典版</span>
         </div>
         {game && <span className="mn-voyage">第 {game.voyage} 航次</span>}
+        {game && role !== 'player' && (
+          <DetailButton
+            className="mn-voyage-detail"
+            title="航次与岗位说明"
+            detail={<VoyageDetail game={game} />}
+          >
+            <span>航行 {Math.min(game.movement, 3)}/3</span>
+            <span aria-hidden="true">ⓘ</span>
+          </DetailButton>
+        )}
         <SessionFeedback session={session} mode="saved" />
         <div className="mn-toolbar-tools">
           <ManilaEffects session={session} />
@@ -208,6 +224,12 @@ function ManilaScreen({ session }: { session: GameHost }) {
                     </>
                   ) : game.phase === 'ended' ? (
                     '一项货物达到 30，比较最终财富'
+                  ) : game.phase === 'round-result' ? (
+                    canControl ? (
+                      '分红已结算，可启程'
+                    ) : (
+                      '分红已结算，等待启程'
+                    )
                   ) : (
                     '等待保存结果'
                   )}
@@ -299,16 +321,21 @@ function ManilaScreen({ session }: { session: GameHost }) {
             <div className="mn-layout">
               <div className="mn-main">
                 {game.phase === 'ended' && game.scores && (
-                  <section className="mn-result">
-                    <h2>
-                      {game.winners.map((id) => names[id]).join('、')}
-                      赢得贸易盛会
-                    </h2>
-                    <p>现金 ＋ 股份市值 − 每张抵押股份 15 ₱</p>
+                  <section className="mn-result mn-result--final">
+                    <h2>贸易盛会落幕</h2>
+                    {role === 'player' && (
+                      <p>现金 ＋ 股份市值 − 每张抵押股份 15 ₱</p>
+                    )}
                     <ol>
                       {rank.map((id) => (
                         <li
                           key={id}
+                          className={
+                            game.winners.includes(id)
+                              ? 'mn-rank-winner'
+                              : undefined
+                          }
+                          aria-label={`${names[id]}，${game.winners.includes(id) ? '赢家，' : ''}财富 ${game.scores![id]} 比索`}
                           value={
                             rank.findIndex(
                               (other) =>
@@ -329,12 +356,13 @@ function ManilaScreen({ session }: { session: GameHost }) {
                         disabled={locked}
                         onClick={() => command({ type: 'replay' })}
                       >
-                        原班人马再玩一局
+                        再玩一局
                       </button>
                     )}
                   </section>
                 )}
                 <HarborBoard
+                  compactHeading={role !== 'player'}
                   game={game}
                   names={names}
                   actions={actions}
@@ -343,12 +371,41 @@ function ManilaScreen({ session }: { session: GameHost }) {
                   locked={locked || !active}
                 />
                 {game.phase === 'round-result' && game.result && (
-                  <section className="mn-result">
-                    <h2>第 {game.result.voyage} 航次完成</h2>
-                    <div className="mn-rule-values">
+                  <section
+                    className="mn-result mn-result--round"
+                    aria-label="本航次结算"
+                  >
+                    <div className="mn-result-route">
+                      <h2>第 {game.result.voyage} 航次完成</h2>
+                      <p>
+                        <span>
+                          靠港{' '}
+                          {game.result.port
+                            .map((cargo) => cargoNames[cargo])
+                            .join('、') || '无'}
+                        </span>
+                        <span>
+                          进坞{' '}
+                          {game.result.shipyard
+                            .map((cargo) => cargoNames[cargo])
+                            .join('、') || '无'}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="mn-result-income">
                       {game.seatOrder.map((id) => (
-                        <span key={id}>
-                          {names[id]}{' '}
+                        <span
+                          key={id}
+                          title={names[id]}
+                          aria-label={`${names[id]}本航次分红 ${game.result!.income[id]} 比索`}
+                        >
+                          <img
+                            src={avatarFor(
+                              view.seats.find((seat) => seat.id === id)
+                                ?.avatarId ?? 'avatar-1',
+                            )}
+                            alt={names[id]}
+                          />
                           <strong>
                             {game.result!.income[id]! >= 0 ? '+' : ''}
                             {game.result!.income[id]} ₱
@@ -356,23 +413,9 @@ function ManilaScreen({ session }: { session: GameHost }) {
                         </span>
                       ))}
                     </div>
-                    <div className="mn-rule-values">
-                      <span>
-                        靠港：
-                        {game.result.port
-                          .map((cargo) => cargoNames[cargo])
-                          .join('、') || '无'}
-                      </span>
-                      <span>
-                        进坞：
-                        {game.result.shipyard
-                          .map((cargo) => cargoNames[cargo])
-                          .join('、') || '无'}
-                      </span>
-                    </div>
                     {canControl && nextVoyage && (
                       <button
-                        className="mn-primary"
+                        className="mn-primary mn-next-voyage"
                         disabled={locked || !active}
                         onClick={() =>
                           command({
@@ -381,31 +424,41 @@ function ManilaScreen({ session }: { session: GameHost }) {
                           })
                         }
                       >
-                        开始下一航次
+                        <CopperMark kind="voyage" />
+                        <span>下一航次</span>
+                        <span aria-hidden="true">→</span>
                       </button>
                     )}
                   </section>
                 )}
-                {game.latest && (
-                  <section className="mn-receipt" aria-label="最新已保存结果">
-                    <p>{nameText(game.latest)}</p>
-                  </section>
-                )}
+                {game.latest &&
+                  !['round-result', 'ended'].includes(game.phase) && (
+                    <section className="mn-receipt" aria-label="最新已保存结果">
+                      <p>{nameText(game.latest)}</p>
+                    </section>
+                  )}
               </div>
               <aside className="mn-side">
-                {role === 'player' && game.self && game.phase !== 'ended' && (
-                  <PlayerControls
-                    key={boundary}
-                    game={game}
-                    actions={actions}
-                    locked={locked || !active}
-                    draft={draft}
-                    select={select}
-                    choose={choose}
-                  />
-                )}
+                {role === 'player' &&
+                  game.self &&
+                  game.phase !== 'ended' &&
+                  actions.length > 0 && (
+                    <PlayerControls
+                      key={boundary}
+                      game={game}
+                      actions={actions}
+                      locked={locked || !active}
+                      draft={draft}
+                      select={select}
+                      choose={choose}
+                    />
+                  )}
                 <Market game={game} />
-                <Players game={game} seats={view.seats} />
+                <Players
+                  game={game}
+                  seats={view.seats}
+                  compact={role !== 'player'}
+                />
               </aside>
             </div>
           </ManilaInteraction>
@@ -460,6 +513,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
               {game.phase === 'ended' && (
                 <section className="mn-ledger-final">
                   <h2>终局股份与财富</h2>
+                  <p>现金 ＋ 股份市值 − 每张抵押股份 15 ₱；财富相同并列。</p>
                   <ul className="mn-log">
                     {game.seatOrder.map((id) => (
                       <li key={id}>

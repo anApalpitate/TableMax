@@ -262,20 +262,22 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
                 <h2>聚会牌桌</h2>
                 <span
                   className="room-capacity"
-                  aria-label={`已入座 ${view?.seats.length ?? 0} 人，最多 ${view?.game?.max ?? 6} 人`}
+                  aria-label={`已入座 ${view?.seats.length ?? 0} 人，最多 ${view?.game?.max ?? 6} 人，${roomStatus}`}
                 >
-                  {view?.seats.length ?? 0} / {view?.game?.max ?? 6}
+                  <span>
+                    {view?.seats.length ?? 0} / {view?.game?.max ?? 6}
+                  </span>
+                  <span className="room-status">{roomStatus}</span>
                 </span>
               </div>
-              <div className="room-heading__meta">
-                {owner && (
+              {owner && (
+                <div className="room-heading__meta">
                   <p className="owner-badge">
                     <span>房主</span>
                     <strong>{owner.name}</strong>
                   </p>
-                )}
-                <span className="room-status">{roomStatus}</span>
-              </div>
+                </div>
+              )}
             </div>
             <div className="room-heading__actions">
               {canManageSeats && (

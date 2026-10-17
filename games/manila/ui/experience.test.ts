@@ -176,10 +176,12 @@ describe('Manila experience uses authorized public and player views', () => {
     state.winners = resolveWinners(state.scores, ids);
     state = validateState(state, ids);
     const { html, text } = render(state, 'public');
-    expect(text).toContain('甲、乙赢得贸易盛会');
-    expect(html.match(/<li value="1">/g)).toHaveLength(2);
-    expect(html).toContain('<li value="3">');
-    expect(html).not.toContain('<li value="2">');
+    expect(html).toContain('aria-label="甲，赢家，财富 200 比索"');
+    expect(html).toContain('aria-label="乙，赢家，财富 200 比索"');
+    expect(text).toContain('贸易盛会落幕');
+    expect(html.match(/<li[^>]*value="1"/g)).toHaveLength(2);
+    expect(html).toMatch(/<li[^>]*value="3"/);
+    expect(html).not.toMatch(/<li[^>]*value="2"/);
     expect(html).not.toContain('class="mn-actor-avatar"');
   });
 });

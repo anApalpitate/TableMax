@@ -109,6 +109,7 @@ export function HarborBoard({
   draft,
   locked,
   select,
+  compactHeading = false,
 }: {
   game: ManilaView;
   names: Record<string, string>;
@@ -116,6 +117,7 @@ export function HarborBoard({
   draft: Action | null;
   locked: boolean;
   select(action: Action): void;
+  compactHeading?: boolean;
 }) {
   const work = useManilaInteraction();
   const setup = actions.some((action) => action.type === 'setup');
@@ -162,16 +164,18 @@ export function HarborBoard({
         }
         aria-label="三条向港口前进的航道与港湾岗位"
       >
-        <header className="mn-board-heading">
-          <h2>马尼拉港湾</h2>
-          <DetailButton
-            title="航次与岗位说明"
-            detail={<VoyageDetail game={game} />}
-          >
-            <span>航行 {Math.min(game.movement, 3)}/3</span>
-            <span aria-hidden="true">ⓘ</span>
-          </DetailButton>
-        </header>
+        {!compactHeading && (
+          <header className="mn-board-heading">
+            <h2>马尼拉港湾</h2>
+            <DetailButton
+              title="航次与岗位说明"
+              detail={<VoyageDetail game={game} />}
+            >
+              <span>航行 {Math.min(game.movement, 3)}/3</span>
+              <span aria-hidden="true">ⓘ</span>
+            </DetailButton>
+          </header>
+        )}
         <div className="mn-docks">
           {(['port', 'shipyard'] as const).map((kind) => (
             <section className="mn-dock-group" key={kind}>
@@ -221,7 +225,7 @@ export function HarborBoard({
               boat.destination === 'port'
                 ? `靠港${'ABC'[boat.destinationIndex ?? 0]}`
                 : boat.destination === 'shipyard'
-                  ? '进修船坞'
+                  ? '进坞'
                   : `${boat.position}格`;
             const delta = cargo ? (work.deltas[cargo] ?? 0) : 0;
             const preview = setup
@@ -229,10 +233,12 @@ export function HarborBoard({
               : boat.position + delta;
             const image = (
               <picture>
-                <source
-                  media="(max-width:1050px)"
-                  srcSet={manilaAsset('boat-portrait-v2.webp')}
-                />
+                {!compactHeading && (
+                  <source
+                    media="(max-width:1050px)"
+                    srcSet={manilaAsset('boat-portrait-v2.webp')}
+                  />
+                )}
                 <img
                   src={manilaAsset('boat-v1.webp')}
                   alt={
@@ -321,7 +327,7 @@ export function HarborBoard({
                       } as CSSProperties
                     }
                   >
-                    {setup ? (
+                    {setup && work.setupStep === 1 ? (
                       <DropTarget
                         target={`cargo:${index}`}
                         token={{ kind: 'cargo', cargo: work.cargos[index]! }}
@@ -332,13 +338,16 @@ export function HarborBoard({
                         <span>放入货物</span>
                       </DropTarget>
                     ) : pilot && cargo && boat.destination === 'sea' ? (
-                      <DragSource
-                        token={{ kind: 'pilot', cargo }}
-                        label={`拖动${cargoNames[cargo]}领航`}
-                        className="mn-boat-handle"
-                      >
-                        {image}
-                      </DragSource>
+                      <>
+                        <span className="mn-boat-touch-image">{image}</span>
+                        <DragSource
+                          token={{ kind: 'pilot', cargo }}
+                          label={`拖动${cargoNames[cargo]}领航`}
+                          className="mn-boat-handle mn-pilot-drag"
+                        >
+                          {image}
+                        </DragSource>
+                      </>
                     ) : plunder?.cargo === cargo && cargo ? (
                       <DragSource
                         token={{ kind: 'plunder', cargo }}
@@ -410,6 +419,52 @@ export function HarborBoard({
                     </DragSource>
                   )}
                 </div>
+                {((setup && work.setupStep === 2) ||
+                  (pilot && cargo && boat.destination === 'sea')) && (
+                  <div
+                    className="mn-position-controls"
+                    aria-label={`第${index + 1}航道调位`}
+                  >
+                    <output aria-live="polite">
+                      {setup ? '起点' : '草稿'}{' '}
+                      {preview > 13 ? '靠港' : `${preview}格`}
+                    </output>
+                    <div>
+                      {([1, -1] as const).map((step) => {
+                        const value = setup ? preview + step : delta + step;
+                        const allowed = setup
+                          ? value >= 0 && value <= 5
+                          : Boolean(
+                              cargo &&
+                              work.canDrop(
+                                { kind: 'pilot', cargo },
+                                `pilot:${cargo}:${value}`,
+                              ),
+                            );
+                        return (
+                          <button
+                            key={step}
+                            type="button"
+                            data-mn-step={step}
+                            disabled={locked || !allowed}
+                            aria-label={`${cargo ? cargoNames[cargo] : `第${index + 1}船`}${step > 0 ? '前进' : '后退'}一格`}
+                            onClick={() => {
+                              work.setCarry(null);
+                              if (setup) work.setPosition(index, value);
+                              else if (cargo) work.setDelta(cargo, value);
+                            }}
+                          >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                              <path
+                                d={step > 0 ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'}
+                              />
+                            </svg>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
                 <div className="mn-crew">
                   {vacancy ? (
                     space(vacancy)
@@ -418,7 +473,9 @@ export function HarborBoard({
                       {crew.filter((entry) => entry.occupant).length
                         ? `伙伴 ${crew.filter((entry) => entry.occupant).length}`
                         : cargo
-                          ? '暂无伙伴'
+                          ? compactHeading
+                            ? '空船'
+                            : '暂无伙伴'
                           : '等待装船'}
                     </span>
                   )}
@@ -514,7 +571,15 @@ export function Market({ game }: { game: ManilaView }) {
   );
 }
 
-export function Players({ game, seats }: { game: ManilaView; seats: Seats }) {
+export function Players({
+  game,
+  seats,
+  compact = false,
+}: {
+  game: ManilaView;
+  seats: Seats;
+  compact?: boolean;
+}) {
   return (
     <section className="mn-panel mn-players-panel">
       <h2>商人</h2>
@@ -551,7 +616,7 @@ export function Players({ game, seats }: { game: ManilaView; seats: Seats }) {
                   <span>{player.shareCount} 股</span>
                   <span>伙伴 {player.availableWorkers}</span>
                 </div>
-                {player.revealedShares.length > 0 && (
+                {!compact && player.revealedShares.length > 0 && (
                   <span className="mn-revealed">
                     公开：
                     {player.revealedShares

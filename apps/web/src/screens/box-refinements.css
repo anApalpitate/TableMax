@@ -133,6 +133,9 @@
   flex: 0 0 auto;
 }
 .box-screen .room-heading .room-capacity {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: 3px 10px;
   border-radius: 10px;
   color: #3e5d51;
@@ -140,6 +143,21 @@
   font-size: 16px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+.box-screen .room-heading .room-capacity > .room-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: inherit;
+}
+.box-screen .room-heading .room-capacity > .room-status::before {
+  content: '';
+  width: 1px;
+  height: 16px;
+  background: #c7d6c1;
 }
 .box-screen .room-heading .owner-badge {
   display: flex;
