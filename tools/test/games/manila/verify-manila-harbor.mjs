@@ -32,13 +32,19 @@ const available = [
   'viewport',
   'tie',
   'tail',
+  'share',
+  'entries',
 ];
 const selected = option('only')?.split(',') ?? available;
 assert(selected.every((value) => available.includes(value)));
 const widths = option('widths')?.split(',').map(Number) ?? [320, 390, 430, 844];
 assert(widths.every((value) => [320, 390, 430, 844].includes(value)));
+const suite = option('suite') ?? 'harbor';
+assert(['harbor', 'composition'].includes(suite));
 const parent = resolve(
-  'artifacts/maintenance/manila-harbor-rebuild-20261017/mobile',
+  suite === 'composition'
+    ? 'artifacts/maintenance/manila-board-composition-20261017/mobile'
+    : 'artifacts/maintenance/manila-harbor-rebuild-20261017/mobile',
 );
 await mkdir(parent, { recursive: true });
 const output = join(parent, evidence);
@@ -70,10 +76,11 @@ const seats=ids.map((id,i)=>({id,name:['阿蓝','小林','港口伙伴','长昵�
 let seed=35719;
 const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
 const ctx={seats:ids,random:{next:random}}, snapshots={}, origins={};
-const required=['auction','share','setup','place','pilot-small','pilot-large','round-result','ended'];
+const required=['auction','share','share-funded','setup','place','board','plunder','pilot-small','pilot-large','round-result','ended'];
 for(let run=0;run<32&&required.some(p=>!snapshots[p]);run++){
  let state=rules.initialize(ctx);
  for(let step=0;step<900;step++){
+  if(state.phase==='share'&&!snapshots['share-funded']&&rules.legalActions(state,turnSeat(state)).some(a=>a.type==='buy-share')){snapshots['share-funded']=structuredClone(state);origins['share-funded']={kind:'legal-play',run,step,serial:state.serial,voyage:state.voyage};}
   if(required.includes(state.phase)&&!snapshots[state.phase]){snapshots[state.phase]=structuredClone(state);origins[state.phase]={kind:'legal-play',run,step,serial:state.serial,voyage:state.voyage};}
   if(state.phase==='ended')break;
   if(state.phase==='round-result'){state=validateState(rules.applyLifecycle(state,{type:'next-voyage'},ctx).state,ids);continue;}
@@ -106,6 +113,15 @@ tied.scores=finalScores(tied);tied.winners=resolveWinners(tied.scores,ids);
 snapshots.tie=validateState(tied,ids);
 origins.tie={kind:'controlled-valid-state',note:'Cash adjusted on legally reached terminal board; not natural tied-game evidence.'};
 window.fixtureInfo={available:Object.keys(snapshots),origins,missing:required.filter(p=>!snapshots[p])};
+let fullCrew=rules.initialize(ctx);
+for(let i=0;i<12&&fullCrew.phase==='auction';i++)fullCrew=validateState(rules.apply(fullCrew,{type:'pass'},turnSeat(fullCrew),ctx).state,ids);
+if(fullCrew.phase==='share')fullCrew=validateState(rules.apply(fullCrew,{type:'skip-share'},turnSeat(fullCrew),ctx).state,ids);
+if(fullCrew.phase!=='setup')throw new Error('Full-crew fixture failed to reach setup');
+const fullSetup=rules.legalActions(fullCrew,turnSeat(fullCrew)).find(a=>a.type==='setup'&&a.cargos.includes('jade')&&a.positions.every(p=>p===3));
+fullCrew=validateState(rules.apply(fullCrew,fullSetup,turnSeat(fullCrew),ctx).state,ids);
+for(let i=0;i<4;i++){const seat=turnSeat(fullCrew);const action=rules.legalActions(fullCrew,seat).find(a=>a.type==='place'&&a.space.startsWith('cargo-jade-'));if(!action)throw new Error('Full-crew fixture has no legal jade placement');fullCrew=validateState(rules.apply(fullCrew,action,seat,ctx).state,ids);}
+snapshots['crew-full']=fullCrew;origins['crew-full']={kind:'legal-passes-setup-and-four-placements',serial:fullCrew.serial};
+window.fixtureInfo.available=Object.keys(snapshots);window.fixtureInfo.origins=origins;
 const root=createRoot(document.getElementById('root'));
 let generation=0,current;
 const noop=()=>{};
@@ -1217,7 +1233,305 @@ try {
         'A real user touch scroll releases temporary tail space',
       );
     });
+    await run('share', async () => {
+      await load({ phase: 'share-funded' });
+      const skip = page.locator('[data-manila-action="skip-share"]');
+      await skip.scrollIntoViewIfNeeded();
+      await settle();
+      const metrics = await page.evaluate(() => {
+        const skip = document.querySelector(
+          '[data-manila-action="skip-share"]',
+        );
+        const summary = document.querySelector(
+          '#mn-action-area .mn-inline-actions > .mn-alternatives > summary',
+        );
+        const read = (n) => {
+          const r = n.getBoundingClientRect(),
+            s = getComputedStyle(n);
+          const label = n.querySelector(':scope > span:last-child') ?? n;
+          const range = document.createRange();
+          range.selectNodeContents(label);
+          const t = range.getBoundingClientRect();
+          return {
+            x: r.x,
+            y: r.y,
+            width: r.width,
+            height: r.height,
+            padding: s.padding,
+            fontSize: s.fontSize,
+            lineHeight: s.lineHeight,
+            textY: t.y,
+            textHeight: t.height,
+            textCenter: t.y + t.height / 2,
+            center: r.y + r.height / 2,
+          };
+        };
+        return {
+          skip: read(skip),
+          finance: read(summary),
+          sameContainer:
+            skip.parentElement === summary.parentElement.parentElement,
+        };
+      });
+      report.metrics.push({ width, phase: 'share', ...metrics });
+      await shot('share-actions');
+      assert(
+        metrics.sameContainer,
+        'Skip-share and finance entry share one action row',
+      );
+      assert(
+        Math.abs(metrics.skip.y - metrics.finance.y) <= 1 &&
+          Math.abs(metrics.skip.height - metrics.finance.height) <= 1,
+        'Actual share phase action entries share a top and height',
+      );
+      assert.equal(
+        metrics.skip.padding,
+        metrics.finance.padding,
+        'Share action entries use identical padding',
+      );
+      assert(
+        Math.abs(metrics.skip.textCenter - metrics.finance.textCenter) <= 1,
+        'Share action labels share their visual text baseline',
+      );
+      assert(await skip.isEnabled());
+      await tap(skip);
+      await page.evaluate(() => window.harbor.validate());
+    });
+    await run('entries', async () => {
+      const selectors = {
+        bid: '[data-manila-action="bid"]',
+        pass: '[data-manila-action="pass"]',
+        'skip-share': '[data-manila-action="skip-share"]',
+        'buy-share': '.mn-share-choices button',
+        setup: '.mn-lane-cargo-select',
+        place: '.mn-space--legal',
+        board: '[data-manila-drop^="board:"]',
+        pilot: '.mn-position-controls',
+        plunder: '[data-manila-drop^="destination:"]',
+        mortgage:
+          '.mn-alternatives > summary,.mn-finance-choice[data-manila-action="mortgage"]',
+        repay:
+          '.mn-alternatives > summary,.mn-finance-choice[data-manila-action="repay"]',
+        'next-voyage': '.mn-next-voyage',
+      };
+      for (const phase of [
+        'auction',
+        'share-funded',
+        'setup',
+        'place',
+        'crew-full',
+        'board',
+        'pilot-small',
+        'pilot-large',
+        'plunder',
+        'financing',
+        'round-result',
+      ]) {
+        const fixture = await load({ phase });
+        for (const type of new Set(fixture.legal.map((a) => a.type)))
+          assert(
+            await page.locator(selectors[type]).count(),
+            phase + ' exposes the authorized ' + type + ' entry',
+          );
+        const metrics = await page.evaluate(() => {
+          const rect = (n) => {
+            const r = n.getBoundingClientRect();
+            return {
+              x: r.x,
+              y: r.y,
+              right: r.right,
+              bottom: r.bottom,
+              width: r.width,
+              height: r.height,
+            };
+          };
+          return {
+            slots: [...document.querySelectorAll('.mn-lane-control')].map(rect),
+            spaces: [...document.querySelectorAll('.mn-harbor .mn-space')]
+              .filter((n) => n.checkVisibility())
+              .map((n) => ({
+                space: rect(n),
+                name: rect(n.querySelector('.mn-space-name')),
+                value: rect(n.querySelector('.mn-space-value')),
+                head:
+                  n.querySelector('.mn-worker-head') &&
+                  rect(n.querySelector('.mn-worker-head')),
+              })),
+            payouts: [
+              ...document.querySelectorAll('.mn-lane-heading .mn-cargo-payout'),
+            ]
+              .filter((n) => n.checkVisibility())
+              .map((n) => ({
+                text: n.textContent,
+                box: rect(n),
+                lane: rect(n.closest('.mn-lane')),
+              })),
+            dice: [...document.querySelectorAll('.mn-lane .mn-dice')]
+              .filter((n) => n.checkVisibility())
+              .map((n) => ({
+                box: rect(n),
+                heading: rect(
+                  n.closest('.mn-lane').querySelector('.mn-lane-heading'),
+                ),
+              })),
+            touchEntries: [
+              ...document.querySelectorAll(
+                '#mn-action-area button,#mn-action-area summary',
+              ),
+            ]
+              .filter((n) => n.checkVisibility())
+              .map((n) => ({
+                label: n.getAttribute('aria-label') ?? n.textContent,
+                box: rect(n),
+              })),
+            crew: [...document.querySelectorAll('.mn-crew')]
+              .filter((n) => n.checkVisibility())
+              .map((n) => ({
+                cargo: n.closest('.mn-lane').dataset.mnCargo,
+                readout: n.querySelector('.mn-position-readout')?.textContent,
+                roster:
+                  n.querySelector('.mn-crew-members') &&
+                  rect(n.querySelector('.mn-crew-members')),
+                members: [
+                  ...n.querySelectorAll('.mn-crew-members .mn-worker'),
+                ].map((member) => ({
+                  body: rect(member),
+                  head: rect(member.querySelector('.mn-worker-head')),
+                })),
+              })),
+          };
+        });
+        report.metrics.push({
+          width,
+          phase,
+          kind: 'all-action-entries',
+          ...metrics,
+        });
+        assert(
+          metrics.slots.every((s) => Math.abs(s.height - 64) <= 1),
+          'Every phase keeps its 64px lane control slot',
+        );
+        for (const space of metrics.spaces) {
+          assert(
+            space.value.y >= space.name.bottom - 1,
+            'Names remain above costs or occupants',
+          );
+          assert(
+            space.value.bottom <= space.space.bottom + 1,
+            'Space value stays within the same cell',
+          );
+          if (space.head)
+            assert(
+              space.head.y >= space.value.y - 1,
+              'Pawn head fits the lower state field',
+            );
+        }
+        for (const item of metrics.touchEntries)
+          assert(
+            item.box.width >= 44 && item.box.height >= 44,
+            'Visible action entry preserves its 44px hit target: ' + item.label,
+          );
+        if (phase === 'auction')
+          assert(
+            metrics.touchEntries.every(
+              (item) =>
+                Math.abs(item.box.y - metrics.touchEntries[0].box.y) <= 1 &&
+                Math.abs(
+                  item.box.height - metrics.touchEntries[0].box.height,
+                ) <= 1,
+            ),
+            'Auction action entries preserve matching top and height',
+          );
+        for (const payout of metrics.payouts) {
+          assert(payout.text.includes('分红池'));
+          assert(
+            payout.box.x >= payout.lane.x - 1 &&
+              payout.box.right <= payout.lane.right + 1,
+            'Payout field fits its lane',
+          );
+        }
+        for (const die of metrics.dice)
+          assert(
+            die.box.y >= die.heading.bottom - 1,
+            'Cargo header does not cover its dice result',
+          );
+        for (const crew of metrics.crew) {
+          if (crew.roster)
+            for (const member of crew.members) {
+              assert(
+                member.head.y >= crew.roster.y - 1 &&
+                  member.body.bottom <= crew.roster.bottom + 1,
+                'Saved crew pawn including its head fits the roster row',
+              );
+              assert(
+                member.body.x >= crew.roster.x - 1 &&
+                  member.body.right <= crew.roster.right + 1,
+                'Saved crew pawn fits the lane width',
+              );
+            }
+          if (phase === 'crew-full' && crew.cargo === 'jade')
+            assert.equal(
+              crew.members.length,
+              4,
+              'Four saved jade crew members remain visible',
+            );
+          const boat = fixture.boats.find((b) => b.cargo === crew.cargo);
+          if (boat?.destination === 'sea') {
+            const count = await page.evaluate(
+              (cargo) =>
+                window.fixtureSession.view.gameView.spaces.filter(
+                  (s) => s.kind === 'cargo' && s.cargo === cargo && s.occupant,
+                ).length,
+              crew.cargo,
+            );
+            assert.equal(
+              crew.readout,
+              '船员 ' + count,
+              'Sea lane readout shows actual saved crew count',
+            );
+          }
+        }
+        if (
+          ['place', 'crew-full', 'pilot-small', 'round-result'].includes(phase)
+        )
+          await shot('entries-' + phase);
+      }
+      if (width === 390) {
+        await page.setViewportSize({ width: 1280, height: 720 });
+        await load({ phase: 'pilot-small' });
+        const desktop = await page.evaluate(() => ({
+          viewport: { width: innerWidth, height: innerHeight },
+          payouts: [
+            ...document.querySelectorAll('.mn-crew > .mn-detail-button'),
+          ].map((n) => ({ text: n.textContent, visible: n.checkVisibility() })),
+          headerPayouts: [
+            ...document.querySelectorAll('.mn-lane-heading .mn-cargo-payout'),
+          ].filter((n) => n.checkVisibility()).length,
+        }));
+        report.metrics.push({
+          width,
+          phase: 'pilot-small',
+          kind: 'player-desktop-visual',
+          ...desktop,
+        });
+        assert(
+          desktop.payouts.every((p) => !p.visible),
+          'Desktop avoids a duplicate bottom payout label',
+        );
+        assert.equal(
+          desktop.headerPayouts,
+          3,
+          'Every desktop player lane exposes its payout in the header',
+        );
+        const path = join(output, 'entries-player-desktop-pilot-1280x720.png');
+        await captureBrowserScreenshot(page, { path, fullPage: false });
+        report.screenshots.push(path);
+        await page.setViewportSize({ width, height });
+      }
+    });
     const priority = [
+      'share',
+      'entries',
       'tail',
       'stability',
       'tie',
@@ -1254,7 +1568,23 @@ try {
   report.changedInputs = inputFiles.filter(
     (name) => report.inputsBefore[name] !== report.inputsAfter[name],
   );
-  if (report.changedInputs.length)
+  report.unaffectedBranchInputChanges = report.changedInputs
+    .filter(
+      (name) =>
+        name === 'games/manila/ui/host-layout.css' &&
+        !selected.includes('permissions'),
+    )
+    .map((name) => ({
+      name,
+      reason:
+        'This run contains only player branches; the independently owned host/public stylesheet selectors do not apply. Both hashes remain recorded.',
+    }));
+  if (
+    report.changedInputs.some(
+      (name) =>
+        !report.unaffectedBranchInputChanges.some((item) => item.name === name),
+    )
+  )
     report.failures.push({
       name: 'input-stability',
       error:

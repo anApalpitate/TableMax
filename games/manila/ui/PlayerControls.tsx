@@ -235,7 +235,7 @@ export function PlayerControls({
           ? '海盗登船'
           : plunders.length
             ? '海盗掠夺'
-            : buys.length
+            : game.phase === 'share'
               ? '购买一张股份'
               : bids.length
                 ? '竞拍港务长'
@@ -614,7 +614,7 @@ export function PlayerControls({
         plunders.length
       ) && (
         <div
-          className={`mn-inline-actions${bids.length ? ' mn-auction-actions' : ''}`}
+          className={`mn-inline-actions mn-action-row${bids.length ? ' mn-auction-actions' : ''}`}
         >
           {bids.length > 0 && (
             <button
@@ -626,7 +626,7 @@ export function PlayerControls({
                 if (action) choose(action);
               }}
             >
-              出价
+              <span className="mn-action-label">出价</span>
             </button>
           )}
           {direct.map((action) => (
@@ -638,14 +638,14 @@ export function PlayerControls({
               disabled={locked}
               onClick={() => choose(action)}
             >
-              {directLabel(action)}
+              <span className="mn-action-label">{directLabel(action)}</span>
             </button>
           ))}
           {game.phase !== 'financing' && Boolean(game.self?.shares.length) && (
             <details className="mn-alternatives">
               <summary>
                 <CopperMark kind="shares" />
-                <span>股份操作</span>
+                <span className="mn-action-label">股份操作</span>
               </summary>
               <div className="mn-alternative-content">
                 <CloseAlternatives title="股份抵押与赎回" />

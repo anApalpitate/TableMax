@@ -164,7 +164,7 @@
 }
 .mn-screen--player .mn-shore :is(.mn-dock-group, .mn-specialist-group) {
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
+  grid-template-columns: 90px minmax(0, 1fr);
   align-items: center;
   gap: 4px;
   padding: 0;
@@ -189,6 +189,9 @@
   display: block;
   width: 24px;
   height: 28px;
+}
+.mn-screen--player .mn-shore .mn-detail-button > :is(strong, span) {
+  white-space: nowrap;
 }
 .mn-screen--player .mn-shore :is(.mn-dock-slots, .mn-specialist-slots) {
   display: grid;
@@ -288,11 +291,22 @@
   font-size: 16px;
   text-align: center;
 }
-.mn-screen--player .mn-crew > .mn-detail-button {
+.mn-screen--player .mn-cargo-payout {
   display: inline-flex;
-  min-height: 44px;
-  padding: 2px;
+  align-items: baseline;
+  gap: 4px;
+  margin-left: 10px;
+  white-space: nowrap;
+  line-height: 24px;
+}
+.mn-screen--player .mn-cargo-payout > span {
   font-size: 16px;
+}
+.mn-screen--player .mn-cargo-payout > strong {
+  font-size: 18px;
+}
+.mn-screen--player .mn-crew > .mn-detail-button {
+  display: none;
 }
 .mn-screen--player[data-financing-self='true'] .mn-main {
   display: block;
@@ -325,6 +339,44 @@
 .mn-screen--player .mn-controls-status {
   font-size: 16px;
 }
+.mn-screen--player .mn-controls > .mn-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.mn-screen--player .mn-controls > .mn-action-row > :is(button, details) {
+  flex: 1 1 auto;
+  min-width: max-content;
+  margin: 0;
+  align-self: start;
+}
+.mn-screen--player .mn-controls > .mn-action-row > button,
+.mn-screen--player .mn-controls > .mn-action-row > .mn-alternatives > summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  min-height: 44px;
+  padding: 6px 8px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 24px;
+}
+.mn-screen--player .mn-controls > .mn-action-row > .mn-alternatives > summary {
+  width: 100%;
+}
+.mn-screen--player .mn-action-row > details > summary > .mn-copper-mark {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+}
+.mn-screen--player .mn-action-label {
+  display: block;
+  line-height: 24px;
+}
 .mn-screen--player .mn-confirm {
   position: static;
   transform: none;
@@ -343,11 +395,11 @@
   position: static;
 }
 .mn-screen--player
-  :is(.mn-action-tray, .mn-auction-actions):has(.mn-alternatives[open]) {
+  :is(.mn-action-tray, .mn-action-row):has(.mn-alternatives[open]) {
   flex-wrap: wrap;
 }
 .mn-screen--player
-  :is(.mn-action-tray, .mn-auction-actions)
+  :is(.mn-action-tray, .mn-action-row)
   > .mn-alternatives[open] {
   flex: 1 1 100%;
   min-width: 0;
@@ -374,6 +426,117 @@
   }
 }
 @media (max-width: 1050px) {
+  .mn-screen--player .mn-harbor .mn-space {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 18px 24px;
+    justify-items: center;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 2px;
+    gap: 0;
+  }
+  .mn-screen--player .mn-cargo-tray {
+    flex: 1 1 228px;
+    min-width: 228px;
+    grid-template-columns: repeat(4, minmax(54px, 1fr));
+  }
+  .mn-screen--player .mn-cargo-source {
+    min-width: 54px;
+  }
+  .mn-screen--player .mn-lane-heading .mn-cargo-art {
+    width: 26px;
+    height: 28px;
+  }
+  .mn-screen--player .mn-harbor .mn-space-name {
+    line-height: 18px;
+  }
+  .mn-screen--player .mn-harbor .mn-space-value {
+    min-height: 24px;
+    height: 24px;
+    align-items: flex-end;
+  }
+  .mn-screen--player .mn-harbor .mn-crew .mn-space {
+    padding: 0 2px;
+    gap: 0;
+  }
+  .mn-screen--player .mn-space-value .mn-worker,
+  .mn-screen--player .mn-crew-members .mn-worker {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    margin-top: 0;
+    font-size: 16px;
+    line-height: 18px;
+  }
+  .mn-screen--player .mn-space-value .mn-worker-head,
+  .mn-screen--player .mn-crew-members .mn-worker-head {
+    width: 9px;
+    height: 9px;
+    left: 3px;
+    top: -6px;
+  }
+  .mn-screen--player .mn-lane-heading {
+    height: 68px;
+    min-height: 68px;
+  }
+  .mn-screen--player .mn-lane-heading > .mn-detail-button {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    grid-template-rows: 36px 24px;
+    align-items: center;
+    justify-content: center;
+    height: 68px;
+    min-height: 68px;
+    padding: 4px 0 !important;
+    gap: 0 2px;
+  }
+  .mn-screen--player .mn-cargo-payout {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 2px;
+    margin-left: 0;
+    white-space: nowrap;
+    line-height: 24px;
+  }
+  .mn-screen--player .mn-cargo-payout > span {
+    font-size: 16px;
+  }
+  .mn-screen--player .mn-cargo-payout > strong {
+    font-size: 18px;
+  }
+  .mn-screen--player .mn-lane-heading .mn-dice {
+    top: 70px;
+  }
+  .mn-screen--player .mn-crew {
+    grid-template-rows: 20px 44px;
+  }
+  .mn-screen--player .mn-crew-members {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    height: 44px;
+    padding-top: 6px;
+  }
+  .mn-screen--player .mn-seat-identity,
+  .mn-screen--player .mn-seat-assets {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    min-width: 0;
+  }
+  .mn-screen--player .mn-seat-identity .mn-seat-number {
+    position: static;
+    flex: none;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    font-size: 16px;
+    line-height: 20px;
+  }
   .mn-screen--player .mn-harbor {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'docks' 'lanes' 'specialists' 'actions';

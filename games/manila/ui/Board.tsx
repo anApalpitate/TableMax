@@ -314,6 +314,12 @@ export function HarborBoard({
                     >
                       <CargoArt cargo={cargo} />
                       <strong>{cargoNames[cargo]}</strong>
+                      {!compactHeading && (
+                        <span className="mn-cargo-payout">
+                          <span>分红池</span>
+                          <strong>{data?.payout} ₱</strong>
+                        </span>
+                      )}
                     </DetailButton>
                   ) : (
                     <strong>第{index + 1}航道</strong>
@@ -524,21 +530,42 @@ export function HarborBoard({
                     className="mn-crew"
                     data-mn-adjusting={setup || pilot ? true : undefined}
                   >
-                    <span className="mn-position-readout">{destination}</span>
-                    {vacancy ? (
+                    <span className="mn-position-readout">
+                      {boat.destination !== 'sea'
+                        ? destination
+                        : cargo
+                          ? `船员 ${crew.filter((entry) => entry.occupant).length}`
+                          : '等待装船'}
+                    </span>
+                    {compactHeading && cargo ? (
+                      <div className="mn-crew-slots">{crew.map(space)}</div>
+                    ) : vacancy ? (
                       space(vacancy)
-                    ) : (
-                      <span className="mn-crew-summary">
-                        {crew.filter((entry) => entry.occupant).length
-                          ? `伙伴 ${crew.filter((entry) => entry.occupant).length}`
-                          : cargo
-                            ? compactHeading
-                              ? '空船'
-                              : '暂无伙伴'
-                            : '等待装船'}
+                    ) : crew.some((entry) => entry.occupant) ? (
+                      <span className="mn-crew-summary mn-crew-members">
+                        {crew
+                          .filter((entry) => entry.occupant)
+                          .map((entry) => (
+                            <Worker
+                              key={entry.id}
+                              number={
+                                game.seatOrder.indexOf(entry.occupant!) + 1
+                              }
+                              color={
+                                seatColors[
+                                  game.seatOrder.indexOf(entry.occupant!)
+                                ]!
+                              }
+                              label={names[entry.occupant!] ?? entry.occupant!}
+                            />
+                          ))}
                       </span>
-                    )}
-                    {cargo && (
+                    ) : null}
+                    {cargo && compactHeading ? (
+                      <span className="mn-payout-label">
+                        分红池 {data?.payout} ₱
+                      </span>
+                    ) : cargo ? (
                       <DetailButton
                         title={`${cargoNames[cargo]}分红与伙伴`}
                         detail={
@@ -549,9 +576,9 @@ export function HarborBoard({
                           />
                         }
                       >
-                        <span>{data?.payout} ₱</span>
+                        <span>分红池 {data?.payout} ₱</span>
                       </DetailButton>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </section>
@@ -646,16 +673,16 @@ export function Players({
               }
             >
               <div className="mn-seat-portrait">
-                <span
-                  className="mn-seat-number"
-                  style={cargoStyle(seatColors[index]!)}
-                >
-                  {index + 1}
-                </span>
                 <img src={avatarFor(seat?.avatarId ?? 'avatar-1')} alt="" />
               </div>
               <div className="mn-seat-body">
-                <strong className="mn-seat-heading">
+                <strong className="mn-seat-heading mn-seat-identity">
+                  <span
+                    className="mn-seat-number"
+                    style={cargoStyle(seatColors[index]!)}
+                  >
+                    {index + 1}
+                  </span>
                   <span>{seat?.name ?? `商人${index + 1}`}</span>
                   {id === game.self?.seatId && (
                     <span className="mn-seat-role">你</span>
@@ -663,13 +690,16 @@ export function Players({
                   {id === game.harborMaster && (
                     <span className="mn-seat-role">港务长</span>
                   )}
+                  {game.turnSeat === id && game.phase !== 'ended' && (
+                    <span className="mn-seat-active">行动中</span>
+                  )}
                 </strong>
-                <div className="mn-seat-meta">
+                <div className="mn-seat-meta mn-seat-assets">
                   <span>现金 {player.cash} ₱</span>
-                  <span>{player.shareCount} 股</span>
-                  {!compact && <span>伙伴 {player.availableWorkers}</span>}
+                  <span>股份 {player.shareCount}</span>
+                  <span>可用伙伴 {player.availableWorkers}</span>
                 </div>
-                {(compact || game.phase === 'ended') && (
+                {(game.phase === 'round-result' || game.phase === 'ended') && (
                   <div
                     className={`mn-seat-result${game.phase === 'ended' && game.winners.includes(id) ? ' mn-seat-result--winner' : ''}`}
                   >
@@ -688,9 +718,7 @@ export function Players({
                           {game.result.income[id]} ₱
                         </strong>
                       </>
-                    ) : (
-                      <span>伙伴 {player.availableWorkers}</span>
-                    )}
+                    ) : null}
                   </div>
                 )}
                 {!compact && player.revealedShares.length > 0 && (
