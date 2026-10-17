@@ -4,9 +4,19 @@
 
 当前结论统一见[当前源码与本地交付](#当前源码与本地交付)，本页各版本章节只说明对应原字节与证明范围。
 
+## 马尼拉竞拍与保存反馈安装候选（2026-10-17，待验收）
+
+[完整安装器1.0.7.24](../../artifacts/releases/v1.0.7/1.0.7.24/TableMax-1.0.7.24-installer-win-x64.exe)及[清单](../../artifacts/releases/v1.0.7/1.0.7.24/TableMax-1.0.7.24-installer-win-x64-manifest.json)预装七款游戏／八个玩法，包含源码5b0374c的竞拍三行布局、三按钮同高居中和普通保存回执图层修复；公开版本仍为1.0.7。EXE38,101,198字节，SHA 5eadf29dbd92cd6f4eee1d998ce46b7bacbc96716a7bd05d9cd1f8572689af10；内部ZIP46,345,583字节、实际提取99,270,824字节／120成员，三项均严格小于120,000,000字节。
+
+[源码验证](../../artifacts/maintenance/save-overlay-auction-20261017/verified-source.json)记录171组唯一布局、七组竞拍操作与21项反馈／浮窗检查，以及独立最终截图审查；旧失败与修复轮次保留。模拟视口／DPR不代表真实手机、LAN、原生DPI或安装后验证。[冻结输入](../../artifacts/maintenance/save-overlay-auction-20261017/frozen-inputs.json)与[输入检查](../../artifacts/maintenance/save-overlay-auction-20261017/delivery-input-check.json)核对42单元、812个唯一输入及本任务产品源码；原路径EXE的Low→Medium[规范化回执](../../artifacts/maintenance/save-overlay-auction-20261017/original-executable-security-normalization.json)保全字节／SHA、所有者、DACL和其他流。
+
+[验收清单](../../artifacts/maintenance/save-overlay-auction-20261017/acceptance-plan.md)提供绑定新24载荷的双PE准备材料、复验及正式执行命令；本轮仅准备验收，正式系统安装／保存／卸载重装与实际设备检查未执行，current仍为已验收1.0.7.22，未推广或发布。23原EXE已按原SHA退役，原manifest、载荷与证据保留。
+
 ## 偏好改造完整安装候选（2026-10-17，待验收）
 
-已生成[完整安装器1.0.7.23](../../artifacts/releases/v1.0.7/1.0.7.23/TableMax-1.0.7.23-installer-win-x64.exe)及[清单](../../artifacts/releases/v1.0.7/1.0.7.23/TableMax-1.0.7.23-installer-win-x64-manifest.json)，预装全部七款游戏／八个玩法，纳入最新座位、玩法简介和[22项偏好改造](../archive/ui-preference-changes-2026-10-17.md)。公开版本保持1.0.7。EXE为38,098,219字节，SHA `2ed06867b534bbb26148a670c9e28ab3557e0219122554637d4eca10793205a2`；内部ZIP46,344,944字节、实际提取99,269,709字节／120成员，三项均严格小于120,000,000字节。
+此候选已由[1.0.7.24](#马尼拉竞拍与保存反馈安装候选2026-10-17待验收)替代，原EXE已退役；以下保留当时准备范围与原身份。
+
+已生成[完整安装器1.0.7.23](../../artifacts/releases/v1.0.7/1.0.7.23/TableMax-1.0.7.23-installer-win-x64-manifest.json)及[清单](../../artifacts/releases/v1.0.7/1.0.7.23/TableMax-1.0.7.23-installer-win-x64-manifest.json)，预装全部七款游戏／八个玩法，纳入最新座位、玩法简介和[22项偏好改造](../archive/ui-preference-changes-2026-10-17.md)。公开版本保持1.0.7。EXE为38,098,219字节，SHA `2ed06867b534bbb26148a670c9e28ab3557e0219122554637d4eca10793205a2`；内部ZIP46,344,944字节、实际提取99,269,709字节／120成员，三项均严格小于120,000,000字节。
 
 [冻结输入](../../artifacts/maintenance/v1.0.7/ui-preference-installer-20261017/frozen-inputs.json)绑定候选、独立pointer与实际载荷；新EXE原路径的继承Low标签经[单文件规范化](../../artifacts/maintenance/v1.0.7/ui-preference-installer-20261017/original-executable-security-normalization.json)调整为Medium，字节／SHA、所有者、DACL及其他流保持。[双PE材料](../../artifacts/maintenance/v1.0.7/ui-preference-installer-20261017/handoff-prepared/report.json)及[精确复验](../../artifacts/maintenance/v1.0.7/ui-preference-installer-20261017/handoff-reverified/report.json)均为准备完成、未执行，failures为0；不代表安装或更新成功。
 
@@ -154,7 +164,7 @@
 
 ## 当前源码与本地交付
 
-最新待验收候选为[完整安装器1.0.7.23](#偏好改造完整安装候选2026-10-17待验收)，已包含后续座位、简介与22项偏好改造；正式系统证明完成前不替换已验收current。
+最新待验收候选为[完整安装器1.0.7.24](#马尼拉竞拍与保存反馈安装候选2026-10-17待验收)，已包含竞拍对齐和保存回执图层修复；正式系统证明完成前不替换已验收current。
 
 当前本地current为[完整安装器1.0.7.22](#盒子与马尼拉界面优化2026-10-17)，含全部七款游戏／八个玩法，已完成本轮正式系统安装验收，暂不发布。公开版本仍为1.0.7，线上附件仍对应[1.0.7.2原字节](#1072安装进度与版本交付2026-10-16)。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
 
