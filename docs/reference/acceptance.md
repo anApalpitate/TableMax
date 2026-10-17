@@ -4,9 +4,19 @@
 
 当前结论统一见[当前源码与本地交付](#当前源码与本地交付)，本页各版本章节只说明对应原字节与证明范围。
 
+## 马尼拉完整港湾安装候选（2026-10-17，待验收）
+
+[完整安装器1.0.7.26](../../artifacts/releases/v1.0.7/1.0.7.26/TableMax-1.0.7.26-installer-win-x64.exe)及[清单](../../artifacts/releases/v1.0.7/1.0.7.26/TableMax-1.0.7.26-installer-win-x64-manifest.json)包含源码a93e674的完整岸线、行情横带、内嵌行动位、持续挂载与手机滚动稳定化；预装七款游戏／八玩法，公开版本1.0.7。EXE 38101365字节，SHA 973a5849d250ccfb8e9f006006f8e8b2809cab6136e4b05e6b9217c93ac17d75；内部ZIP 46351685字节、实际提取 99277194字节／120成员，三项均严格小于120,000,000字节。
+
+[改动汇总](../archive/manila-harbor-rebuild-2026-10-17.md)、[源码验证](../../artifacts/maintenance/manila-harbor-rebuild-20261017/verified-source.json)与[最终独立图审](../../artifacts/maintenance/manila-harbor-rebuild-20261017/visual-review.json)记录实测、失败和替换复验。主机／公共屏234组唯一组合、手机四宽定向检查及受影响静态检查通过；规则、存档、秘密投影和通信协议保持原边界。模拟测试不当作真实设备证明。
+
+[验收清单](../../artifacts/maintenance/manila-harbor-rebuild-20261017/acceptance-plan.md)绑定新候选冻结输入、原路径Medium安全状态、双PE准备与复验，均0失败。正式系统安装、标准账户启动及真实设备验收仍待执行，current保留1.0.7.22，未推广或发布。
+
 ## 马尼拉手机调位与主机布局安装候选（2026-10-17，待验收）
 
-[完整安装器1.0.7.25](../../artifacts/releases/v1.0.7/1.0.7.25/TableMax-1.0.7.25-installer-win-x64.exe)及[清单](../../artifacts/releases/v1.0.7/1.0.7.25/TableMax-1.0.7.25-installer-win-x64-manifest.json)包含源码7e0c983的盒子入座状态合组、手机箭头调位、操作／结算对齐、64px出价框与主机视口布局，预装七款游戏／八玩法，公开版本仍1.0.7。EXE 38101577字节，SHA 183ffe626af8776bf938872b3dc1f73b12a9807df70ec8e4349dcd3b721a7999；内部ZIP 46348241字节、实际提取 99273756字节／120成员，均严格小于120,000,000字节。
+此候选已由1.0.7.26替代，原EXE按原SHA退役；原manifest、载荷与证明保留。
+
+[完整安装器1.0.7.25](../../artifacts/releases/v1.0.7/1.0.7.25/TableMax-1.0.7.25-installer-win-x64-manifest.json)及[清单](../../artifacts/releases/v1.0.7/1.0.7.25/TableMax-1.0.7.25-installer-win-x64-manifest.json)包含源码7e0c983的盒子入座状态合组、手机箭头调位、操作／结算对齐、64px出价框与主机视口布局，预装七款游戏／八玩法，公开版本仍1.0.7。EXE 38101577字节，SHA 183ffe626af8776bf938872b3dc1f73b12a9807df70ec8e4349dcd3b721a7999；内部ZIP 46348241字节、实际提取 99273756字节／120成员，均严格小于120,000,000字节。
 
 [改动汇总](../archive/manila-touch-layout-2026-10-17.md)及[源码验证](../../artifacts/maintenance/manila-touch-layout-20261017/verified-source.json)记录36组盒子、20项手机交互、12项标签、4项房主下一航次、216组主机／公共布局、终局18项替换复验和38组保存回归；最终手机、结算、终局[独立图审](../../artifacts/maintenance/manila-touch-layout-20261017/visual-review.json)通过。规则、秘密投影与既有动作管道不变；模拟设备不冒充真实手机、LAN或原生DPI。
 
@@ -174,7 +184,7 @@
 
 ## 当前源码与本地交付
 
-最新待验收候选为[完整安装器1.0.7.25](#马尼拉手机调位与主机布局安装候选2026-10-17待验收)，包含手机调位与主机布局修复；正式系统证明完成前不替换已验收current。
+最新待验收候选为[完整安装器1.0.7.26](#马尼拉完整港湾安装候选2026-10-17待验收)，包含完整港湾与手机稳定化；正式系统证明完成前不替换已验收current。
 
 当前本地current为[完整安装器1.0.7.22](#盒子与马尼拉界面优化2026-10-17)，含全部七款游戏／八个玩法，已完成本轮正式系统安装验收，暂不发布。公开版本仍为1.0.7，线上附件仍对应[1.0.7.2原字节](#1072安装进度与版本交付2026-10-16)。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
 
