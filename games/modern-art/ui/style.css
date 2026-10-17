@@ -98,6 +98,24 @@
   margin-left: auto;
   flex-shrink: 0;
 }
+.ma-screen.player .ma-brand,
+.ma-screen.player .ma-toolbar .connection {
+  display: none;
+}
+.ma-screen.player .ma-round {
+  margin-right: auto;
+}
+.ma-screen.player .ma-toolbar .ma-back-link {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+}
+.ma-screen.player .ma-box-label {
+  display: none;
+}
 .ma-screen .ma-brand {
   display: flex;
   gap: 9px;

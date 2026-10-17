@@ -714,6 +714,80 @@
   margin-bottom: 8px;
   flex-wrap: wrap;
 }
+.mn-controls[data-stage='auction'] > .mn-controls-heading {
+  flex-wrap: nowrap;
+}
+.mn-controls[data-stage='auction'] > .mn-controls-heading h2,
+.mn-bid-range {
+  white-space: nowrap;
+}
+.mn-controls[data-stage='auction'] > .mn-controls-heading h2 {
+  margin: 0;
+}
+.mn-bid-range {
+  font-size: 16px;
+}
+.mn-controls > .mn-auction-actions {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+}
+.mn-controls > .mn-auction-actions > button,
+.mn-controls > .mn-auction-actions > .mn-alternatives {
+  flex: 1 1 0;
+  min-width: max-content;
+}
+.mn-controls > .mn-auction-actions > .mn-primary {
+  flex-grow: 0.65;
+}
+.mn-controls > .mn-auction-actions > .mn-alternatives {
+  flex-grow: 1.4;
+  margin: 0;
+}
+.mn-controls
+  > .mn-auction-actions
+  > .mn-alternatives
+  > summary
+  > .mn-copper-mark {
+  width: 20px;
+  height: 20px;
+}
+.mn-controls[data-stage='auction'] > .mn-auction-actions > button,
+.mn-controls[data-stage='auction']
+  > .mn-auction-actions
+  > .mn-alternatives
+  > summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 48px;
+  min-height: 48px;
+  padding: 4px;
+  font-size: 18px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.mn-status-save {
+  display: none;
+}
+.mn-status-save .session-save-overlay {
+  line-height: 1.2;
+}
+@media (max-width: 360px) {
+  .mn-toolbar > .session-save-anchor {
+    display: none;
+  }
+  .mn-status .mn-status-detail {
+    display: flex;
+  }
+  .mn-status-save {
+    display: block;
+    flex: 1 1 0;
+    min-width: 0;
+    align-self: center;
+  }
+}
 .mn-action-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));

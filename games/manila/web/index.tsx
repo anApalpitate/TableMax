@@ -126,6 +126,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
           <span>马尼拉经典版</span>
         </div>
         {game && <span className="mn-voyage">第 {game.voyage} 航次</span>}
+        <SessionFeedback session={session} mode="saved" />
         <div className="mn-toolbar-tools">
           <ManilaEffects session={session} />
           <PlayModeBadge mode={view?.playMode} />
@@ -155,7 +156,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
           </button>
         </div>
       </header>
-      <SessionFeedback session={session} />
+      <SessionFeedback session={session} mode="messages" />
       {notice && (
         <div className="mn-notice" role="status">
           <span>{notice}</span>
@@ -210,6 +211,9 @@ function ManilaScreen({ session }: { session: GameHost }) {
                   ) : (
                     '等待保存结果'
                   )}
+                  <span className="mn-status-save">
+                    <SessionFeedback session={session} mode="saved" />
+                  </span>
                 </span>
                 {game.phase === 'auction' && (
                   <span className="mn-auction-standing">

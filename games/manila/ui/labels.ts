@@ -56,7 +56,7 @@ export function actionLabel(action: Action, game: ManilaView): string {
     case 'bid':
       return `出价 ${action.amount} 比索`;
     case 'pass':
-      return game.phase === 'auction' ? '退出本次竞拍' : '放弃本航次余下派遣';
+      return game.phase === 'auction' ? '退出竞拍' : '放弃本航次余下派遣';
     case 'buy-share':
       return `购买${cargoNames[action.cargo]}股份`;
     case 'skip-share':

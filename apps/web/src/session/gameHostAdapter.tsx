@@ -42,7 +42,7 @@ export function PlatformGame({
         : {})}
       presentation={{
         management: (props) => <RoomManagement session={session} {...props} />,
-        feedback: () => <SessionFeedback session={session} />,
+        feedback: (props) => <SessionFeedback session={session} {...props} />,
         playMode: () => <PlayModeControl session={session} />,
         countdown: (props) => (
           <CountdownSettings session={session} {...props} />

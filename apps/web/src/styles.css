@@ -142,6 +142,31 @@ h2 {
   font-size: clamp(28px, 4vw, 46px);
   margin-bottom: 8px;
 }
+.session-save-anchor {
+  display: block;
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 0;
+  align-self: center;
+  pointer-events: none;
+  z-index: 2;
+}
+.session-save-overlay {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #386557;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.session-save-overlay:empty {
+  display: none;
+}
 .feedback {
   min-height: 32px;
   color: #476656;

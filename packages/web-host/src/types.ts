@@ -27,7 +27,7 @@ export interface GameHost {
 }
 export interface GameHostSlots {
   management(props: { lifecycleLabel?: string }): ReactNode;
-  feedback(): ReactNode;
+  feedback(props?: { mode?: 'all' | 'saved' | 'messages' }): ReactNode;
   playMode(): ReactNode;
   countdown(props: { children?: ReactNode }): ReactNode;
 }

@@ -35,9 +35,13 @@ export function RoomManagement({
 }) {
   return useSlots().management(lifecycleLabel ? { lifecycleLabel } : {});
 }
-export function SessionFeedback(_props: { session?: GameHost }) {
-  void _props;
-  return useSlots().feedback();
+export function SessionFeedback({
+  mode,
+}: {
+  session?: GameHost;
+  mode?: 'all' | 'saved' | 'messages';
+}) {
+  return useSlots().feedback(mode ? { mode } : undefined);
 }
 export function PlayModeControl(_props: { session?: GameHost }) {
   void _props;

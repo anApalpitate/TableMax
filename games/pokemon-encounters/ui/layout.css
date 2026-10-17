@@ -1,8 +1,8 @@
 /* Current tabletop layout: scoped separately from card and effect artwork. */
 .pokemon-screen.player > .game-toolbar {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) 20px;
-  gap: 8px;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
   width: 100%;
   max-width: 430px;
   align-self: center;
@@ -11,8 +11,19 @@
   display: none;
 }
 .pokemon-screen.player > .game-toolbar .back-to-box {
+  flex: 0 0 44px;
+  width: 44px;
   grid-column: 1;
   grid-row: 1;
+}
+.pokemon-screen.player > .game-toolbar .back-to-box-label {
+  display: none;
+}
+.pokemon-screen.player > .game-toolbar .connection {
+  flex: 0 0 20px;
+}
+.pokemon-screen.player > .game-toolbar .toolbar-menu {
+  flex: 0 0 44px;
 }
 .pokemon-screen.player > .game-toolbar .toolbar-friends {
   grid-column: 2;

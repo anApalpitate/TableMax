@@ -77,8 +77,10 @@ function PokemonScreen({ session }: { session: RoomSession }) {
           <ScreenLink
             className="button secondary back-to-box"
             href={`/${role}`}
+            aria-label="返回盒子"
           >
-            ‹ 盒子
+            <span aria-hidden="true">‹</span>
+            <span className="back-to-box-label">盒子</span>
           </ScreenLink>
           <h1>{view?.game?.name ?? '朋友们的牌桌'}</h1>
           <span
@@ -96,6 +98,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
             )}
           </span>
 
+          <SessionFeedback session={session} mode="saved" />
           {role === 'player' && (
             <button
               className="secondary toolbar-friends"
@@ -159,7 +162,7 @@ function PokemonScreen({ session }: { session: RoomSession }) {
             </svg>
           </button>
         </header>
-        <SessionFeedback session={session} />
+        <SessionFeedback session={session} mode="messages" />
         {!game || !view ? (
           <div className="table-unavailable">
             <h2>{connected ? '牌桌还没有开始' : '等待重新连接'}</h2>

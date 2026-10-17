@@ -157,6 +157,7 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           {connected ? '已连接' : '正在连接'}
         </span>
         <div className="header-status" role="group" aria-label="牌桌设置">
+          <PlayModeBadge mode={view?.playMode} />
           {isHost && <ApplicationUpdate playing={view?.status === 'playing'} />}
           {(isHost || details?.guidance) && (
             <CountdownSettings session={session}>
@@ -168,7 +169,6 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           <DisplaySettings role={role} />
         </div>
         <div className="box-header-feedback">
-          <PlayModeBadge mode={view?.playMode} />
           <span
             className="box-save-status"
             role="status"

@@ -4,9 +4,8 @@
 .box-screen > header {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas:
-    'brand settings connection'
-    'brand settings feedback';
+  grid-template-areas: 'brand settings connection';
+  position: relative;
   align-items: center;
   gap: 4px 16px;
 }
@@ -16,6 +15,9 @@
 }
 .box-screen > header > .connection {
   grid-area: connection;
+  align-self: start;
+  padding: 0 12px;
+  line-height: 22px;
   justify-self: end;
   white-space: nowrap;
   font-size: 16px;
@@ -58,22 +60,23 @@
   }
 }
 .box-screen .box-save-status {
-  /* Keep feedback separate from the controls and reserve its saved/pending slot. */
-  inline-size: 6em;
+  position: absolute;
+  inset-inline-end: 0;
+  bottom: 0;
+  white-space: nowrap;
+  font-size: 16px;
+  line-height: 22px;
   text-align: right;
 }
 .box-screen > header > .box-header-feedback {
-  grid-area: feedback;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px 10px;
-  min-width: 0;
-  min-height: 24px;
+  position: absolute;
+  inset-inline-end: 0;
+  bottom: 0;
+  z-index: 2;
+  pointer-events: none;
 }
 .box-screen .box-save-status[data-visible='false'] {
-  visibility: hidden;
+  display: none;
 }
 .box-screen .box-feedback[data-submitting='true'] > .session-feedback {
   /* Routine save progress belongs in the header; recovery stays in the page. */
@@ -156,7 +159,7 @@
   flex-shrink: 0;
   white-space: nowrap;
 }
-.box-screen .box-header-feedback .test-mode-badge {
+.box-screen .header-status > .test-mode-badge {
   font-size: 16px;
 }
 .box-screen .room-table {
@@ -261,8 +264,7 @@
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
       'brand connection'
-      'settings settings'
-      'feedback feedback';
+      'settings settings';
     gap: 8px 12px;
   }
   .box-screen > header .header-status {

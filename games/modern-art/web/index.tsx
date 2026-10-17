@@ -145,14 +145,20 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
       data-play-mode={view?.playMode ?? 'play'}
     >
       <header className="ma-toolbar">
-        <ScreenLink className="button secondary" href={`/${role}`}>
-          ‹ 盒子
+        <ScreenLink
+          className="button secondary ma-back-link"
+          href={`/${role}`}
+          aria-label="返回盒子"
+        >
+          <span aria-hidden="true">‹</span>
+          <span className="ma-box-label">盒子</span>
         </ScreenLink>
         <div className="ma-brand">
           <strong>MODERN ART</strong>
           <span>现代艺术</span>
         </div>
         <span className="ma-round">第 {game?.round ?? 1} / 4 轮</span>
+        <SessionFeedback session={session} mode="saved" />
         <span
           className={`connection ${connected ? 'online' : ''}`}
           role="status"
@@ -213,7 +219,9 @@ function ModernArtScreen({ session }: { session: RoomSession }) {
           </button>
         </div>
       </header>
-      {showSessionFeedback && <SessionFeedback session={session} />}
+      {showSessionFeedback && (
+        <SessionFeedback session={session} mode="messages" />
+      )}
       {!game || !view ? (
         <div className="ma-unavailable">
           <h1>等待拍卖开始</h1>

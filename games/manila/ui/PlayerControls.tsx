@@ -403,6 +403,11 @@ export function PlayerControls({
     >
       <div className="mn-controls-heading">
         <h2>{title}</h2>
+        {bids.length > 0 && (
+          <span className="mn-bid-range">
+            出价范围 {bids[0]!.amount}–{bids.at(-1)!.amount} ₱
+          </span>
+        )}
         {work.carry && (
           <button onClick={() => work.setCarry(null)} disabled={locked}>
             放下
@@ -444,11 +449,8 @@ export function PlayerControls({
         )}
       {bids.length > 0 && (
         <>
-          <p>
-            出价范围 {bids[0]!.amount}–{bids.at(-1)!.amount} ₱
-          </p>
           <div className="mn-inline-actions mn-bid-controls">
-            <label htmlFor="mn-bid-amount">出价</label>
+            <label htmlFor="mn-bid-amount">出价金额</label>
             <input
               id="mn-bid-amount"
               type="number"
@@ -460,17 +462,7 @@ export function PlayerControls({
               disabled={locked}
               onChange={(event) => setBid(Number(event.target.value))}
             />
-            <button
-              className="mn-primary"
-              data-manila-action="bid"
-              disabled={locked || !bids.some((action) => action.amount === bid)}
-              onClick={() => {
-                const action = bids.find((entry) => entry.amount === bid);
-                if (action) choose(action);
-              }}
-            >
-              出价 {bid} ₱
-            </button>
+            <span>比索</span>
           </div>
           {bid > (game.self?.cash ?? 0) && (
             <p className="mn-bid-credit">若竞拍获胜，需选择股份抵押付款。</p>
@@ -605,7 +597,22 @@ export function PlayerControls({
         boards.length ||
         plunders.length
       ) && (
-        <div className="mn-inline-actions">
+        <div
+          className={`mn-inline-actions${bids.length ? ' mn-auction-actions' : ''}`}
+        >
+          {bids.length > 0 && (
+            <button
+              className="mn-primary"
+              data-manila-action="bid"
+              disabled={locked || !bids.some((action) => action.amount === bid)}
+              onClick={() => {
+                const action = bids.find((entry) => entry.amount === bid);
+                if (action) choose(action);
+              }}
+            >
+              出价
+            </button>
+          )}
           {direct.map((action) => (
             <button
               key={action.type}
@@ -625,7 +632,7 @@ export function PlayerControls({
               <details className="mn-alternatives">
                 <summary>
                   <CopperMark kind="shares" />
-                  股份操作
+                  <span>股份操作</span>
                 </summary>
                 <div className="mn-alternative-content">
                   <CloseAlternatives title="股份抵押与赎回" />

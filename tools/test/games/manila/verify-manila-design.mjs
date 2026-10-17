@@ -31,6 +31,7 @@ import {createRoot} from 'react-dom/client';
 import {flushSync} from 'react-dom';
 import {HostedGame} from ${JSON.stringify(resolve('packages/web-host/src/index.tsx'))};
 import {configureGameHost} from ${JSON.stringify(resolve('packages/web-host/src/platform.ts'))};
+import {SessionFeedback as PlatformFeedback} from ${JSON.stringify(resolve('apps/web/src/components/SessionFeedback.tsx'))};
 import {avatarFor,avatarChoices} from ${JSON.stringify(resolve('apps/web/src/assets/avatars.ts'))};
 import {client} from ${JSON.stringify(resolve('games/manila/web/index.tsx'))};
 import {rules} from ${JSON.stringify(resolve('games/manila/rules/index.ts'))};
@@ -60,8 +61,8 @@ const root=createRoot(document.getElementById('root'));
 window.renderManila=({phase='place',role='player'}={})=>{
  const state=stateFor(phase),actor=turnSeat(state)??ids[0];
  const projected=rules.project(state,role==='player'?{role:'player',seatId:actor}:{role:'public'});
- const session={role,self:role==='player'?seats.find(s=>s.id===actor):undefined,connected:true,locked:false,canControl:role==='host',message:'',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],command:c=>(window.commands??=[]).push(c),view:{instanceId:'design-'+phase+'-'+role,branch:0,revision:state.serial,status:state.phase==='ended'?'ended':'playing',paused:false,playMode:'play',gameView:projected,decisionId:rules.decisions(state)[0]?.id??null,countdownSeconds:30,decisionClock:state.phase==='ended'?null:{id:'e6ed6d54-cf77-4fa3-95ea-bf2d105c0728',remainingMs:18000,serverTime:Date.now(),running:true},actions:role==='player'?rules.legalActions(state,actor):[],lifecycleActions:[],seats,history:[]}};
- flushSync(()=>root.render(<HostedGame key={phase+'-'+role} session={session} client={client} presentation={{management:()=>null,feedback:()=>null,playMode:()=>null,countdown:()=>null}}/>));
+ const session={role,self:role==='player'?seats.find(s=>s.id===actor):undefined,connected:true,locked:false,canControl:role==='host',message:'已保存',messageKind:'saved',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],command:c=>(window.commands??=[]).push(c),view:{instanceId:'design-'+phase+'-'+role,branch:0,revision:state.serial,status:state.phase==='ended'?'ended':'playing',paused:false,playMode:'play',gameView:projected,decisionId:rules.decisions(state)[0]?.id??null,countdownSeconds:30,decisionClock:state.phase==='ended'?null:{id:'e6ed6d54-cf77-4fa3-95ea-bf2d105c0728',remainingMs:18000,serverTime:Date.now(),running:true},actions:role==='player'?rules.legalActions(state,actor):[],lifecycleActions:[],seats,history:[]}};
+ flushSync(()=>root.render(<HostedGame key={phase+'-'+role} session={session} client={client} presentation={{management:()=>null,feedback:props=><PlatformFeedback session={session} {...props}/>,playMode:()=>null,countdown:()=>null}}/>));
  return {actor,avatar:avatarFor(seats.find(s=>s.id===actor).avatarId),revision:state.serial,privateShares:projected.self?.shares.length??0};
 };
 window.renderManila();
