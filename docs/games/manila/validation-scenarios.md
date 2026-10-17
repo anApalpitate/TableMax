@@ -125,10 +125,13 @@
 - `verify-manila-touch.mjs`：320／390／430／844／932 共25项通过；证据 `artifacts/maintenance/manila-touch-layout-20261017/touch/ui-fix-touch-final2/`。
 - 3／4／5 人主机源码截图：`artifacts/maintenance/manila-ui-full-fix-20261017/`；5人设计检查同时覆盖1280×720、1920×1080、3840×2160。
 - 马尼拉范围单测、TypeScript、ESLint通过；按钮真实拖动后选区为空。
-- 视觉验收：3／4／5人主机、390／430竖屏、844／932横屏及选中确认态均人工检查。当前产物构建快照为 `a79a14562a5cb5802b7f613a69b4f27b868c79c190c6e93d775eb5b4c3bb7634`。
+- 视觉验收：3／4／5人主机、390／430竖屏、844／932横屏及选中确认态均人工检查。当前产物构建快照为 `80dc1fddaea173f129426cc3d444d1858596d84dbce5dcbfbbffe8b2c5a3d15b`。
 
 边界与失败：
 
 - `verify-manila.mjs --seats=3 --only=layout` 在本机开发构建的真实游戏库选择处超时（`Real library selects the preinstalled Manila release`）；开发构建没有签名预装库，因此未取得原生3／4／5人通过证据，不能写成实机验收。视觉证据来自同一源码组件夹具。
 - 0秒仍可确认的截图时点尚未复现为真实计时状态；本轮未改计时规则。
 - 844×390 首屏为横向布局，槽位44px；极短屏仍需用户滚动主区查看完整确认详情，但不允许横向溢出或只露出按钮顶部。
+
+
+- 本轮完成源码构建快照 `80dc1fddaea173f129426cc3d444d1858596d84dbce5dcbfbbffe8b2c5a3d15b`，生成候选安装器 `1.0.7.28`：`artifacts/releases/v1.0.7/1.0.7.28/TableMax-1.0.7.28-installer-win-x64.exe`，38,110,969字节，SHA256 `ddabcca6285ef3513f5122e8fcc8be524942c1f12950df5996842ccdc98ffed4`；current 仍为1.0.7.22，未推广。

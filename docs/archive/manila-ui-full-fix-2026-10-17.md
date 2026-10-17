@@ -9,4 +9,7 @@
 7. 边界：原生开发构建游戏库选择预装 Manila 超时，未取得3／4／5人原生布局证据；视觉证据来自同源码组件夹具。0秒仍可确认未复现；本轮不改计时规则。
 8. 视觉证据：`artifacts/maintenance/manila-ui-full-fix-20261017/`；结果为 `artifacts/manila/validation/ui-fix-design-final3/`、`artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/ui-fix-harbor-final2/`、`artifacts/maintenance/manila-touch-layout-20261017/touch/ui-fix-touch-final2/`。
 
-9. 最终源码构建快照：`a79a14562a5cb5802b7f613a69b4f27b868c79c190c6e93d775eb5b4c3bb7634`。
+9. 最终源码构建快照：`80dc1fddaea173f129426cc3d444d1858596d84dbce5dcbfbbffe8b2c5a3d15b`。
+
+
+10. 最终候选安装器1.0.7.28，38,110,969字节，SHA256 `ddabcca6285ef3513f5122e8fcc8be524942c1f12950df5996842ccdc98ffed4`；current保持1.0.7.22，不推广。
