@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { avatarFor, type GameHost } from '@tablemax/web-host';
 import type { Action, ManilaView, SpaceView } from '../rules/view';
 import { cargoColors, cargoNames, seatColors, spaceName } from './labels';
@@ -56,21 +56,23 @@ export function Space({
                 ? space.index === 0
                   ? '小'
                   : '大'
-                : '保险'}
+                : '承保'}
       </span>
-      {space.occupant ? (
-        <Worker
-          number={game.seatOrder.indexOf(space.occupant) + 1}
-          color={
-            seatColors[game.seatOrder.indexOf(space.occupant)] ?? '#315a7f'
-          }
-          label={names[space.occupant] ?? space.occupant}
-        />
-      ) : (
-        <span className="mn-space-price">
-          {space.cost === 0 ? '免费' : `${space.cost} ₱`}
-        </span>
-      )}
+      <span className="mn-space-value">
+        {space.occupant ? (
+          <Worker
+            number={game.seatOrder.indexOf(space.occupant) + 1}
+            color={
+              seatColors[game.seatOrder.indexOf(space.occupant)] ?? '#315a7f'
+            }
+            label={names[space.occupant] ?? space.occupant}
+          />
+        ) : (
+          <span className="mn-space-price">
+            {space.cost === 0 ? '免费' : `${space.cost} ₱`}
+          </span>
+        )}
+      </span>
     </>
   );
   return (
@@ -110,6 +112,7 @@ export function HarborBoard({
   locked,
   select,
   compactHeading = false,
+  children,
 }: {
   game: ManilaView;
   names: Record<string, string>;
@@ -118,6 +121,7 @@ export function HarborBoard({
   locked: boolean;
   select(action: Action): void;
   compactHeading?: boolean;
+  children?: ReactNode;
 }) {
   const work = useManilaInteraction();
   const setup = actions.some((action) => action.type === 'setup');
@@ -176,37 +180,72 @@ export function HarborBoard({
             </DetailButton>
           </header>
         )}
-        <div className="mn-docks">
-          {(['port', 'shipyard'] as const).map((kind) => (
-            <section className="mn-dock-group" key={kind}>
-              <DetailButton
-                title={kind === 'port' ? '港口岗位' : '修船坞岗位'}
-                detail={<DockDetail game={game} kind={kind} />}
-              >
-                <SiteArt kind={kind} />
-                <strong>{kind === 'port' ? '港口' : '修船坞'}</strong>
-              </DetailButton>
-              {plunder ? (
-                <DropTarget
-                  target={`destination:${kind}`}
-                  token={{ kind: 'plunder', cargo: plunder.cargo }}
-                  className="mn-destination"
-                  aria-pressed={
-                    draft?.type === 'plunder' && draft.destination === kind
-                  }
-                  aria-label={`掠夺${cargoNames[plunder.cargo]}，送往${kind === 'port' ? '港口' : '修船坞'}`}
+        <div className="mn-shore">
+          <div className="mn-docks">
+            {(['port', 'shipyard'] as const).map((kind) => (
+              <section className="mn-dock-group" key={kind}>
+                <DetailButton
+                  title={kind === 'port' ? '港口岗位' : '修船坞岗位'}
+                  detail={<DockDetail game={game} kind={kind} />}
                 >
-                  送往{kind === 'port' ? '港口' : '修船坞'}
-                </DropTarget>
-              ) : (
-                <div className="mn-dock-slots">
+                  <SiteArt kind={kind} />
+                  <strong>{kind === 'port' ? '港口' : '修船坞'}</strong>
+                </DetailButton>
+                {plunder ? (
+                  <DropTarget
+                    target={`destination:${kind}`}
+                    token={{ kind: 'plunder', cargo: plunder.cargo }}
+                    className="mn-destination"
+                    aria-pressed={
+                      draft?.type === 'plunder' && draft.destination === kind
+                    }
+                    aria-label={`掠夺${cargoNames[plunder.cargo]}，送往${kind === 'port' ? '港口' : '修船坞'}`}
+                  >
+                    送往{kind === 'port' ? '港口' : '修船坞'}
+                  </DropTarget>
+                ) : (
+                  <div className="mn-dock-slots">
+                    {game.spaces
+                      .filter((entry) => entry.kind === kind)
+                      .map(space)}
+                  </div>
+                )}
+              </section>
+            ))}
+          </div>
+          <div className="mn-specialists">
+            {(['pirate', 'pilot', 'insurance'] as const).map((kind) => (
+              <section
+                className={`mn-specialist-group mn-specialist-group--${kind}`}
+                key={kind}
+              >
+                <DetailButton
+                  title={
+                    kind === 'pirate'
+                      ? '海盗'
+                      : kind === 'pilot'
+                        ? '领航员'
+                        : '保险行'
+                  }
+                  detail={<SpecialistDetail kind={kind} />}
+                >
+                  <SiteArt kind={kind} />
+                  <span>
+                    {kind === 'pirate'
+                      ? '海盗'
+                      : kind === 'pilot'
+                        ? '领航'
+                        : '保险'}
+                  </span>
+                </DetailButton>
+                <div className="mn-specialist-slots">
                   {game.spaces
                     .filter((entry) => entry.kind === kind)
                     .map(space)}
                 </div>
-              )}
-            </section>
-          ))}
+              </section>
+            ))}
+          </div>
         </div>
         <div className="mn-lanes">
           {visible.map((boat, index) => {
@@ -321,9 +360,14 @@ export function HarborBoard({
                   <div
                     className="mn-boat"
                     data-mn-cargo={cargo ?? undefined}
+                    data-mn-preview={
+                      (setup && work.setupStep === 2) || pilot
+                        ? true
+                        : undefined
+                    }
                     style={
                       {
-                        '--boat-position': `${(Math.min(13, Math.max(0, boat.position)) / 13) * 100}%`,
+                        '--boat-position': `${(Math.min(13, Math.max(0, (setup && work.setupStep === 2) || pilot ? preview : boat.position)) / 13) * 100}%`,
                       } as CSSProperties
                     }
                   >
@@ -335,7 +379,6 @@ export function HarborBoard({
                         aria-label={`第${index + 1}航道装货`}
                       >
                         {image}
-                        <span>放入货物</span>
                       </DropTarget>
                     ) : pilot && cargo && boat.destination === 'sea' ? (
                       <>
@@ -391,19 +434,6 @@ export function HarborBoard({
                     )}
                     <span className="mn-lane-position">{destination}</span>
                   </div>
-                  {((setup && work.setupStep === 2) ||
-                    (pilot && delta !== 0)) && (
-                    <div
-                      className="mn-boat-preview"
-                      style={
-                        {
-                          '--boat-position': `${(Math.min(13, Math.max(0, preview)) / 13) * 100}%`,
-                        } as CSSProperties
-                      }
-                    >
-                      <span>草稿 {preview > 13 ? '靠港' : `${preview}格`}</span>
-                    </div>
-                  )}
                   {setup && work.setupStep === 2 && (
                     <DragSource
                       token={{ kind: 'start', lane: index }}
@@ -415,116 +445,120 @@ export function HarborBoard({
                         } as CSSProperties
                       }
                     >
-                      起点 {work.positions[index]}
+                      ↕
                     </DragSource>
                   )}
                 </div>
-                {((setup && work.setupStep === 2) ||
-                  (pilot && cargo && boat.destination === 'sea')) && (
-                  <div
-                    className="mn-position-controls"
-                    aria-label={`第${index + 1}航道调位`}
-                  >
-                    <output aria-live="polite">
-                      {setup ? '起点' : '草稿'}{' '}
-                      {preview > 13 ? '靠港' : `${preview}格`}
-                    </output>
-                    <div>
-                      {([1, -1] as const).map((step) => {
-                        const value = setup ? preview + step : delta + step;
-                        const allowed = setup
-                          ? value >= 0 && value <= 5
-                          : Boolean(
-                              cargo &&
-                              work.canDrop(
-                                { kind: 'pilot', cargo },
-                                `pilot:${cargo}:${value}`,
-                              ),
-                            );
-                        return (
-                          <button
-                            key={step}
-                            type="button"
-                            data-mn-step={step}
-                            disabled={locked || !allowed}
-                            aria-label={`${cargo ? cargoNames[cargo] : `第${index + 1}船`}${step > 0 ? '前进' : '后退'}一格`}
-                            onClick={() => {
-                              work.setCarry(null);
-                              if (setup) work.setPosition(index, value);
-                              else if (cargo) work.setDelta(cargo, value);
-                            }}
-                          >
-                            <svg viewBox="0 0 24 24" aria-hidden="true">
-                              <path
-                                d={step > 0 ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'}
-                              />
-                            </svg>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                <div className="mn-crew">
-                  {vacancy ? (
-                    space(vacancy)
-                  ) : (
-                    <span className="mn-crew-summary">
-                      {crew.filter((entry) => entry.occupant).length
-                        ? `伙伴 ${crew.filter((entry) => entry.occupant).length}`
-                        : cargo
-                          ? compactHeading
-                            ? '空船'
-                            : '暂无伙伴'
-                          : '等待装船'}
-                    </span>
+                <div className="mn-lane-control">
+                  {setup && work.setupStep === 1 && (
+                    <label className="mn-lane-cargo-select">
+                      <span>装货</span>
+                      <select
+                        aria-label={`第${index + 1}航道货物`}
+                        value={work.cargos[index]}
+                        disabled={locked}
+                        onChange={(event) =>
+                          work.setCargo(
+                            index,
+                            event.target.value as (typeof work.cargos)[number],
+                          )
+                        }
+                      >
+                        {game.cargos.map((entry) => (
+                          <option key={entry.id} value={entry.id}>
+                            {cargoNames[entry.id]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   )}
-                  {cargo && (
-                    <DetailButton
-                      title={`${cargoNames[cargo]}分红与伙伴`}
-                      detail={
-                        <CargoDetail game={game} cargo={cargo} names={names} />
-                      }
+                  {((setup && work.setupStep === 2) ||
+                    (pilot && cargo && boat.destination === 'sea')) && (
+                    <div
+                      className="mn-position-controls"
+                      aria-label={`第${index + 1}航道调位`}
                     >
-                      <span>{data?.payout} ₱</span>
-                    </DetailButton>
+                      <output aria-live="polite">
+                        {setup ? '起点' : '草稿'}{' '}
+                        {preview > 13 ? '靠港' : `${preview}格`}
+                      </output>
+                      <div>
+                        {([1, -1] as const).map((step) => {
+                          const value = setup ? preview + step : delta + step;
+                          const allowed = setup
+                            ? value >= 0 && value <= 5
+                            : Boolean(
+                                cargo &&
+                                work.canDrop(
+                                  { kind: 'pilot', cargo },
+                                  `pilot:${cargo}:${value}`,
+                                ),
+                              );
+                          return (
+                            <button
+                              key={step}
+                              type="button"
+                              data-mn-step={step}
+                              disabled={locked || !allowed}
+                              aria-label={`${cargo ? cargoNames[cargo] : `第${index + 1}船`}${step > 0 ? '前进' : '后退'}一格`}
+                              onClick={() => {
+                                work.setCarry(null);
+                                if (setup) work.setPosition(index, value);
+                                else if (cargo) work.setDelta(cargo, value);
+                              }}
+                            >
+                              <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path
+                                  d={
+                                    step > 0 ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'
+                                  }
+                                />
+                              </svg>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   )}
+                  <div
+                    className="mn-crew"
+                    data-mn-adjusting={setup || pilot ? true : undefined}
+                  >
+                    <span className="mn-position-readout">{destination}</span>
+                    {vacancy ? (
+                      space(vacancy)
+                    ) : (
+                      <span className="mn-crew-summary">
+                        {crew.filter((entry) => entry.occupant).length
+                          ? `伙伴 ${crew.filter((entry) => entry.occupant).length}`
+                          : cargo
+                            ? compactHeading
+                              ? '空船'
+                              : '暂无伙伴'
+                            : '等待装船'}
+                      </span>
+                    )}
+                    {cargo && (
+                      <DetailButton
+                        title={`${cargoNames[cargo]}分红与伙伴`}
+                        detail={
+                          <CargoDetail
+                            game={game}
+                            cargo={cargo}
+                            names={names}
+                          />
+                        }
+                      >
+                        <span>{data?.payout} ₱</span>
+                      </DetailButton>
+                    )}
+                  </div>
                 </div>
               </section>
             );
           })}
         </div>
-        <div className="mn-specialists">
-          {(['pirate', 'pilot', 'insurance'] as const).map((kind) => (
-            <section
-              className={`mn-specialist-group mn-specialist-group--${kind}`}
-              key={kind}
-            >
-              <DetailButton
-                title={
-                  kind === 'pirate'
-                    ? '海盗'
-                    : kind === 'pilot'
-                      ? '领航员'
-                      : '保险行'
-                }
-                detail={<SpecialistDetail kind={kind} />}
-              >
-                <SiteArt kind={kind} />
-                <span>
-                  {kind === 'pirate'
-                    ? '海盗'
-                    : kind === 'pilot'
-                      ? '领航'
-                      : '保险'}
-                </span>
-              </DetailButton>
-              <div className="mn-specialist-slots">
-                {game.spaces.filter((entry) => entry.kind === kind).map(space)}
-              </div>
-            </section>
-          ))}
-        </div>
+        {children && <div className="mn-board-actions">{children}</div>}
       </section>
     </div>
   );
@@ -584,7 +618,19 @@ export function Players({
     <section className="mn-panel mn-players-panel">
       <h2>商人</h2>
       <div className="mn-seats">
-        {game.seatOrder.map((id, index) => {
+        {(game.phase === 'ended' && game.scores
+          ? [...game.seatOrder].sort(
+              (a, b) => game.scores![b]! - game.scores![a]!,
+            )
+          : game.seatOrder
+        ).map((id) => {
+          const index = game.seatOrder.indexOf(id);
+          const rank = game.scores
+            ? 1 +
+              game.seatOrder.filter(
+                (other) => game.scores![other]! > game.scores![id]!,
+              ).length
+            : null;
           const player = game.players[id]!;
           const seat = seats.find((entry) => entry.id === id);
           return (
@@ -593,14 +639,21 @@ export function Players({
               key={id}
               data-seat-id={id}
               data-mn-player={id}
+              aria-label={
+                game.phase === 'ended'
+                  ? `${seat?.name ?? id}，${game.winners.includes(id) ? '赢家，' : ''}财富 ${game.scores?.[id]} 比索`
+                  : undefined
+              }
             >
-              <span
-                className="mn-seat-number"
-                style={cargoStyle(seatColors[index]!)}
-              >
-                {index + 1}
-              </span>
-              <img src={avatarFor(seat?.avatarId ?? 'avatar-1')} alt="" />
+              <div className="mn-seat-portrait">
+                <span
+                  className="mn-seat-number"
+                  style={cargoStyle(seatColors[index]!)}
+                >
+                  {index + 1}
+                </span>
+                <img src={avatarFor(seat?.avatarId ?? 'avatar-1')} alt="" />
+              </div>
               <div className="mn-seat-body">
                 <strong className="mn-seat-heading">
                   <span>{seat?.name ?? `商人${index + 1}`}</span>
@@ -614,8 +667,32 @@ export function Players({
                 <div className="mn-seat-meta">
                   <span>现金 {player.cash} ₱</span>
                   <span>{player.shareCount} 股</span>
-                  <span>伙伴 {player.availableWorkers}</span>
+                  {!compact && <span>伙伴 {player.availableWorkers}</span>}
                 </div>
+                {(compact || game.phase === 'ended') && (
+                  <div
+                    className={`mn-seat-result${game.phase === 'ended' && game.winners.includes(id) ? ' mn-seat-result--winner' : ''}`}
+                  >
+                    {game.phase === 'ended' ? (
+                      <>
+                        <span>
+                          第{rank}名{game.winners.includes(id) ? ' ★' : ''}
+                        </span>
+                        <strong>财富 {game.scores?.[id]} ₱</strong>
+                      </>
+                    ) : game.phase === 'round-result' && game.result ? (
+                      <>
+                        <span>本次分红</span>
+                        <strong>
+                          {game.result.income[id]! >= 0 ? '+' : ''}
+                          {game.result.income[id]} ₱
+                        </strong>
+                      </>
+                    ) : (
+                      <span>伙伴 {player.availableWorkers}</span>
+                    )}
+                  </div>
+                )}
                 {!compact && player.revealedShares.length > 0 && (
                   <span className="mn-revealed">
                     公开：

@@ -1,42 +1,198 @@
-/* Host and public displays compose the harbor around the available viewport. */
+/* Host/public pages use a single harbor composition; dialogs keep their own layout. */
 :is(.mn-screen--host, .mn-screen--public) {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
-  gap: 6px;
+  grid-template-rows: auto minmax(0, 1fr);
   height: 100dvh;
   min-height: 0;
-  padding: 6px;
+  padding: 4px;
+  gap: 4px;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-toolbar {
   grid-row: 1;
+  display: flex;
   flex-wrap: nowrap;
   min-width: 0;
+  min-height: 48px;
+  position: relative;
+  gap: 6px;
   margin: 0;
-  gap: 8px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-status {
-  grid-row: 2;
-  min-height: 50px;
-  padding: 0 8px;
-  margin: 0;
+:is(.mn-screen--host, .mn-screen--public) .mn-toolbar > .button {
+  flex: none;
+  min-width: 44px;
+  width: 44px;
+  padding: 6px 10px;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-box-label,
+:is(.mn-screen--host, .mn-screen--public) .mn-brand > span {
+  display: none;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-brand {
+  flex: none;
+  min-width: 100px;
+  height: 44px;
+  align-content: start;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-brand strong {
+  font-size: 24px;
+  line-height: 1;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-toolbar > .session-save-anchor {
+  position: absolute;
+  left: 50px;
+  top: 34px;
+  flex: none;
+  width: 0;
+  height: 0;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-display-content {
+  display: contents;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-mobile-voyage {
+  display: inline;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-toolbar > .mn-status {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
   flex-wrap: nowrap;
+  min-width: 0;
+  min-height: 44px;
+  padding: 2px 6px;
+  margin: 0;
+  gap: 6px;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-current-turn {
+  min-width: 0;
+  gap: 6px;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-actor-avatar {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-current-turn-copy {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  position: relative;
+  align-items: baseline;
+  min-width: 0;
+  column-gap: 6px;
+  line-height: 1.2;
+}
+
+:is(.mn-screen--host, .mn-screen--public)
+  .mn-current-turn-copy
+  > .mn-mobile-voyage {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-phase-name {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 20px;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-status .mn-status-detail {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin: 0;
+  gap: 0 4px;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-status .mn-auction-standing {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+:is(.mn-screen--host, .mn-screen--public)
+  .mn-current-turn-copy:has(> .mn-auction-standing) {
+  padding-right: 120px;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-status .mn-auction-standing {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 112px;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-auction-standing > span {
+  display: block;
+}
+
+:is(.mn-screen--host, .mn-screen--public)
+  .mn-auction-standing
+  > span:last-child {
+  font-size: 16px;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .decision-countdown {
+  min-height: 44px;
+  gap: 4px;
+  padding: 3px 6px;
+  font-size: 16px;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .decision-countdown > strong {
+  font-size: 18px;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-toolbar-tools {
+  flex: none;
+  flex-wrap: nowrap;
+  margin-left: 0;
+  gap: 4px;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-stage-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  min-height: 0;
+  gap: 4px;
+  padding: 0;
+  white-space: nowrap;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-stage-action > button {
+  min-height: 44px;
+  padding: 4px 8px;
+  margin: 0;
+  font-size: 18px;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-stage-action:empty {
+  display: none;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout {
-  grid-row: 3;
+  grid-row: 2;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(190px, 18vw, 320px);
-  grid-template-rows: minmax(0, 1fr) auto auto;
-  gap: 6px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 56px minmax(244px, 1fr) 104px;
+  gap: 4px;
   width: 100%;
   height: 100%;
+  min-width: 0;
   min-height: 0;
   max-width: none;
   margin: 0;
@@ -47,9 +203,99 @@
   display: contents;
 }
 
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-panel {
+  grid-row: 1;
+  grid-column: 1;
+  min-width: 0;
+  padding: 3px 5px;
+  border-radius: 12px;
+}
+
+:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  :is(.mn-market-panel, .mn-players-panel)
+  > h2 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  height: 100%;
+  gap: 8px;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-row {
+  display: grid;
+  grid-template-rows: 24px 20px;
+  align-content: center;
+  min-width: 0;
+  padding: 0 5px;
+  border-bottom: 0;
+  border-right: 1px solid #b4a07366;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-row:last-child {
+  border-right: 0;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 4px;
+  line-height: 1.2;
+}
+
+:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-market-title
+  .mn-cargo {
+  gap: 4px;
+  white-space: nowrap;
+}
+
+:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-market-title
+  .mn-cargo::before {
+  content: none;
+}
+
+:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-market-title
+  .mn-cargo-art {
+  width: 24px;
+  height: 24px;
+}
+
+:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-market-title
+  > span:last-child {
+  white-space: nowrap;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-track {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(20px, 1fr));
+  gap: 2px;
+  margin: 0;
+  line-height: 20px;
+}
+
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-board-scroll {
   grid-column: 1;
-  grid-row: 1;
+  grid-row: 2;
   min-width: 0;
   min-height: 0;
   border-width: 3px;
@@ -58,14 +304,14 @@
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-harbor {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(154px, 14vw, 190px);
-  grid-template-rows: minmax(0, 1fr) auto;
-  grid-template-areas: 'lanes docks' 'specialists docks';
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 28vw, 360px);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: 'lanes shore';
   width: 100%;
   height: 100%;
   min-width: 0;
   min-height: 0;
-  padding: 6px;
+  padding: 4px;
   gap: 6px;
   overflow: visible;
   border-radius: 14px;
@@ -78,17 +324,19 @@
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lanes {
+  grid-area: lanes;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: repeat(3, minmax(0, 1fr));
   height: auto;
+  min-width: 0;
   min-height: 0;
   gap: 6px;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane {
   display: grid;
-  grid-template-columns: clamp(90px, 9vw, 132px) minmax(0, 1fr) 96px;
+  grid-template-columns: 94px minmax(0, 1fr) 110px;
   grid-template-areas: 'cargo track crew';
   align-items: center;
   min-width: 0;
@@ -99,21 +347,23 @@
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane-heading {
   grid-area: cargo;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  justify-items: stretch;
   position: relative;
-  width: 100%;
-  height: auto;
   min-width: 0;
-  align-items: center;
+  height: auto;
+  gap: 4px;
 }
 
 :is(.mn-screen--host, .mn-screen--public)
   .mn-layout
   .mn-lane-heading
   > .mn-detail-button {
-  width: 100%;
   min-width: 0;
   min-height: 44px;
+  width: 100%;
   padding: 2px;
   gap: 4px;
 }
@@ -137,18 +387,23 @@
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-die {
   width: 44px;
   height: 44px;
-  flex: 0 0 44px;
+  min-width: 44px;
   aspect-ratio: 1;
+  flex: 0 0 44px;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-track {
   grid-area: track;
   --mn-vertical: 0;
   width: auto;
-  height: clamp(44px, 8dvh, 120px);
+  height: clamp(48px, 8dvh, 100px);
   min-height: 44px;
-  margin: 0 32px;
+  margin: 0 60px 0 110px;
   background: none;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-track::before {
+  content: none;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-track-cells {
@@ -169,65 +424,48 @@
   height: auto;
   transform: none;
   visibility: visible;
-  padding-top: 3px;
-  border-top: 2px solid #f9f6d6d9 !important;
+  padding-top: 2px;
+  border-top: 2px solid #f9f6d6d9;
   border-bottom: 0;
   line-height: 1.2;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-track-cells
-  span:not(:first-child):not(:last-child) {
-  visibility: visible;
-}
-
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-track::before {
-  content: none;
-}
-
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-boat {
-  width: 80px;
+  width: clamp(64px, 8vw, 120px);
   height: 40px;
-  left: clamp(40px, var(--boat-position), calc(100% - 40px));
+  left: var(--boat-position);
   top: auto;
-  bottom: 0;
+  bottom: 18px;
   transform: translate(-50%, 0);
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane-position {
-  left: auto;
-  right: 40px;
-  top: -8px;
-  bottom: auto;
-  transform: none;
-  padding: 0 4px;
-  line-height: 1.2;
-  white-space: nowrap;
+  /* The saved destination is displayed in the dedicated crew readout. */
+  display: none;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-crew {
-  grid-area: crew;
-  display: flex;
-  flex-direction: row;
-  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
   min-height: 44px;
+  height: auto;
   padding: 0;
-  gap: 4px;
-  align-items: center;
+  gap: 2px;
+  align-content: center;
+  justify-items: center;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-crew-summary,
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-crew
-  > .mn-detail-button {
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane-control {
+  grid-area: crew;
+  min-width: 0;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-position-readout {
+  grid-column: 1 / -1;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
   white-space: nowrap;
-}
-
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-crew .mn-space {
-  padding: 2px;
-  min-height: 44px;
 }
 
 :is(.mn-screen--host, .mn-screen--public)
@@ -237,105 +475,94 @@
   display: inline-flex;
   min-width: 44px;
   min-height: 44px;
+  grid-column: 2;
+  grid-row: 2;
   padding: 2px;
+  font-size: 18px;
+  white-space: nowrap;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-crew-summary {
+  grid-column: 1;
+  grid-row: 2;
+  display: grid;
+  align-items: center;
   min-height: 44px;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-docks {
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-shore {
+  grid-area: shore;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: repeat(2, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-rows: repeat(5, minmax(44px, 1fr));
+  min-width: 0;
   min-height: 0;
-  align-self: stretch;
+  gap: 4px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-dock-group {
+:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-shore
+  :is(.mn-docks, .mn-specialists) {
+  display: contents;
+}
+
+:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  :is(.mn-dock-group, .mn-specialist-group) {
   display: grid;
-  grid-template-rows: 44px minmax(44px, 1fr);
+  grid-template-columns: 104px minmax(0, 1fr);
+  grid-template-rows: minmax(44px, 1fr);
+  align-items: stretch;
+  align-self: stretch;
   align-content: center;
   min-width: 0;
   min-height: 0;
-  padding: 4px;
+  padding: 0;
+  gap: 4px;
 }
 
 :is(.mn-screen--host, .mn-screen--public)
   .mn-layout
-  .mn-dock-group
+  :is(.mn-dock-group, .mn-specialist-group)
   > .mn-detail-button {
-  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
   min-height: 44px;
-  padding: 2px;
-  justify-content: center;
-  background: transparent !important;
+  height: 100%;
+  padding: 2px 4px;
+  gap: 4px;
+  white-space: nowrap;
+  background: linear-gradient(135deg, #fff9e9, #dfc896) !important;
 }
 
 :is(.mn-screen--host, .mn-screen--public)
   .mn-layout
-  .mn-dock-group
+  :is(.mn-dock-group, .mn-specialist-group)
   .mn-site-art {
-  width: 28px;
-  height: 32px;
+  flex: none;
+  width: 32px;
+  height: 36px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-dock-slots {
+:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  :is(.mn-dock-slots, .mn-specialist-slots) {
   display: grid;
   grid-template-columns: repeat(3, minmax(44px, 1fr));
-  grid-template-rows: auto;
-  gap: 3px;
-  align-content: center;
-}
-
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-dock-slots .mn-space {
-  display: grid;
-  justify-items: center;
-  justify-content: center;
-  align-content: center;
-  min-height: 44px;
-  padding: 2px;
-  gap: 0;
-  line-height: 1.2;
-}
-
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-specialists {
-  display: grid;
-  grid-template-columns: 2fr 2fr 1fr;
-  gap: 4px;
-}
-
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-specialist-group {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
+  grid-template-rows: minmax(44px, 1fr);
+  align-items: stretch;
+  align-content: stretch;
   min-width: 0;
-  padding: 2px;
   gap: 4px;
-}
-
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-specialist-group
-  > .mn-detail-button {
-  padding: 2px;
-  gap: 4px;
-}
-
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-specialist-group
-  .mn-site-art {
-  width: 24px;
-  height: 32px;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-specialist-slots {
-  display: grid;
   grid-template-columns: repeat(2, minmax(44px, 1fr));
-  gap: 3px;
 }
 
 :is(.mn-screen--host, .mn-screen--public)
@@ -345,119 +572,56 @@
   grid-template-columns: minmax(44px, 1fr);
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-specialist-slots
-  .mn-space {
-  min-height: 44px;
-  padding: 2px;
-  line-height: 1.2;
-}
-
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-panel {
-  grid-column: 2;
-  grid-row: 1;
-  min-height: 0;
-  padding: 6px;
-}
-
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-panel h2 {
-  margin-bottom: 4px;
-}
-
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market {
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-shore .mn-space-wrap {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 4px;
+  min-width: 0;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-row {
-  padding: 1px 0;
-}
-
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-title {
-  align-items: center;
-  gap: 4px;
-}
-
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-market-title
-  .mn-cargo {
-  white-space: nowrap;
-  gap: 4px;
-}
-
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-market-title
-  .mn-cargo-art {
-  width: 24px;
-  height: 24px;
-}
-
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-result--final {
-  display: grid;
-  grid-template-columns: minmax(140px, 0.9fr) minmax(0, 3fr) auto;
-  gap: 8px;
-  align-items: center;
-}
-
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-result.mn-result--final
-  ol {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 4px 18px;
-}
-
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-result--final
-  li
-  strong {
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-shore .mn-space {
   display: flex;
-  flex-direction: column;
-  font-size: 18px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  min-width: 44px;
+  min-height: 44px;
+  height: 100%;
+  padding: 1px 3px;
+  gap: 2px 4px;
   line-height: 1.2;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-result--final
-  li
-  strong
-  > span:first-child {
-  min-height: 2.4em;
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-shore .mn-space-name {
+  flex: none;
+  white-space: nowrap;
+  font-size: 16px;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-track {
-  margin-top: 0;
-  gap: 1px;
-  line-height: 1.2;
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-shore .mn-space-price {
+  white-space: nowrap;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-shore .mn-space-value {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 24px;
+  height: 36px;
+  padding-bottom: 1px;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel {
-  grid-column: 1 / -1;
+  grid-column: 1;
   grid-row: 3;
   min-width: 0;
+  min-height: 0;
   padding: 4px;
-}
-
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-players-panel > h2 {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
+  border-radius: 12px;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seats {
   grid-template-columns: repeat(5, minmax(0, 1fr));
+  height: 100%;
+  min-height: 0;
   gap: 4px;
 }
 
@@ -476,23 +640,35 @@
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-rows: minmax(32px, auto) auto;
   position: relative;
   align-items: start;
+  align-content: center;
   min-width: 0;
+  min-height: 0;
   padding: 3px;
-  gap: 0 4px;
+  gap: 2px 4px;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-number {
   position: absolute;
-  top: 22px;
+  top: 18px;
   left: 4px;
   width: 20px;
   height: 20px;
 }
 
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-portrait {
+  position: relative;
+  grid-column: 1;
+  grid-row: 1;
+  width: 28px;
+  height: 38px;
+}
+
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat img {
   grid-column: 1;
+  grid-row: 1;
   width: 28px;
   height: 28px;
 }
@@ -503,129 +679,139 @@
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-heading {
   grid-column: 2;
-  min-height: 28px;
-  line-height: 1.25;
+  grid-row: 1;
+  align-content: start;
+  align-self: start;
+  min-height: 32px;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-heading > span {
+  overflow-wrap: anywhere;
+}
+
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-role {
+  display: inline-block;
+  margin-left: 2px;
+  padding: 0 2px;
+  font-size: 16px;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-meta {
   display: flex;
   grid-column: 1 / -1;
-  gap: 0;
-  line-height: 1.25;
+  grid-row: 2;
+  flex-wrap: wrap;
+  align-content: center;
   justify-content: space-between;
+  gap: 0 5px;
+  font-size: 16px;
+  line-height: 1.2;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-meta > span {
   white-space: nowrap;
 }
 
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-rank-winner strong {
-  position: relative;
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-result {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 5px;
+  color: #654814;
+  font-size: 18px;
+  line-height: 1.2;
 }
 
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  .mn-rank-winner
-  strong::before {
-  position: absolute;
-  top: 0;
-  left: -16px;
+:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-seat-result strong {
+  font-size: 18px;
 }
 
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-revealed {
   grid-column: 1 / -1;
-  line-height: 1.25;
-}
-
-:is(.mn-screen--host, .mn-screen--public)
-  .mn-layout
-  :is(.mn-result, .mn-receipt) {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  min-width: 0;
-  padding: 4px 8px;
-  margin: 0;
-}
-
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-receipt p {
-  line-height: 1.25;
-}
-
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-result h2 {
-  font-size: 20px;
-  margin: 0;
-}
-
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-result ol {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 24px;
-  padding-left: 24px;
-  margin: 0;
-}
-
-:is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-result li {
-  padding: 0;
-}
-
-:is(.mn-screen--host, .mn-screen--public):has(> .mn-notice) {
-  height: auto;
-  min-height: 100dvh;
-  grid-template-rows: auto auto auto minmax(400px, 1fr);
-}
-
-:is(.mn-screen--host, .mn-screen--public) > .mn-notice {
-  grid-row: 2;
-  padding: 4px 8px;
-  margin: 0;
-}
-
-:is(.mn-screen--host, .mn-screen--public):has(> .mn-notice) .mn-status {
-  grid-row: 3;
-}
-
-:is(.mn-screen--host, .mn-screen--public):has(> .mn-notice) .mn-layout {
-  grid-row: 4;
+  line-height: 1.2;
 }
 
 :is(.mn-screen--host, .mn-screen--public) > .mn-empty {
-  grid-row: 2 / -1;
+  grid-row: 2;
+  align-self: center;
   padding: 24px;
 }
 
-@media (max-width: 1050px), (max-height: 650px) {
-  :is(.mn-screen--host, .mn-screen--public) {
-    padding: 4px;
-    gap: 4px;
-  }
+:is(.mn-screen--host, .mn-screen--public) .mn-screen-feedback {
+  position: fixed;
+  inset-inline: 8px;
+  top: 58px;
+  z-index: 30;
+  max-height: calc(100dvh - 70px);
+  overflow: auto;
+  pointer-events: none;
+}
 
+:is(.mn-screen--host, .mn-screen--public)
+  .mn-screen-feedback
+  :is(.mn-notice, .session-feedback) {
+  margin: 0;
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 1px solid #b9a778;
+  border-radius: 10px;
+  background: #fff8e7;
+  box-shadow: 0 3px 12px #46351b38;
+  pointer-events: auto;
+}
+
+@media (min-height: 700px) {
   :is(.mn-screen--host, .mn-screen--public) .mn-layout {
-    grid-template-columns: minmax(0, 1fr) 190px;
-    gap: 4px;
-  }
-
-  :is(.mn-screen--host, .mn-screen--public) .mn-toolbar {
+    grid-template-rows: 64px minmax(244px, 1fr) 112px;
     gap: 6px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-status {
-    gap: 6px;
+  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-row {
+    grid-template-rows: 28px 24px;
+  }
+
+  :is(.mn-screen--host, .mn-screen--public)
+    .mn-layout
+    .mn-market-title
+    .mn-cargo-art {
+    width: 28px;
+    height: 28px;
+  }
+
+  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-track {
+    line-height: 24px;
+  }
+}
+
+@media (max-width: 1100px) {
+  :is(.mn-screen--host, .mn-screen--public) .mn-brand strong {
+    font-size: 20px;
+    letter-spacing: 0.04em;
+  }
+
+  :is(.mn-screen--host, .mn-screen--public) .mn-toolbar > .button {
     padding-inline: 6px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-harbor {
-    grid-template-columns: minmax(0, 1fr) 154px;
-    padding: 3px;
-    gap: 4px;
+  :is(.mn-screen--host, .mn-screen--public) .mn-toolbar-tools {
+    gap: 3px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lanes {
-    gap: 2px;
+  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-harbor {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 4px;
+    padding: 3px;
   }
 
   :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane {
-    grid-template-columns: 90px minmax(0, 1fr) 96px;
-    padding: 0;
+    grid-template-columns: 84px minmax(0, 1fr) 110px;
+    padding: 2px;
+    gap: 2px;
   }
 
   :is(.mn-screen--host, .mn-screen--public)
@@ -638,7 +824,7 @@
 
   :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-track {
     height: 44px;
-    margin-inline: 54px 10px;
+    margin-inline: 84px 32px;
   }
 
   :is(.mn-screen--host, .mn-screen--public)
@@ -652,133 +838,109 @@
   :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-boat {
     width: 64px;
     height: 36px;
-    left: clamp(32px, var(--boat-position), calc(100% - 32px));
-  }
-
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane-position {
-    right: 32px;
-  }
-
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-docks {
-    gap: 4px;
-  }
-
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-dock-group {
-    padding: 0;
-  }
-
-  :is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    :is(.mn-dock-slots, .mn-specialist-slots)
-    .mn-worker {
-    width: 24px;
-    height: 24px;
-    margin-top: 4px;
-  }
-
-  :is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    :is(.mn-dock-slots, .mn-specialist-slots)
-    .mn-worker-head {
-    width: 12px;
-    height: 12px;
-    top: -7px;
-    left: 5px;
-  }
-
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-specialist-group {
-    grid-template-columns: 36px minmax(0, 1fr);
-    padding: 0;
-  }
-
-  :is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    .mn-specialist-group
-    > .mn-detail-button {
-    display: grid;
-    gap: 0;
-    min-height: 44px;
-  }
-
-  :is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    .mn-specialist-group
-    > .mn-detail-button
-    .mn-site-art {
-    width: 24px;
-    height: 20px;
-  }
-
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-panel {
-    padding: 4px;
-  }
-
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-panel h2 {
-    line-height: 1.2;
-    margin-bottom: 2px;
+    bottom: 12px;
   }
 
   :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-title {
-    display: block;
-    line-height: 1.1;
+  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-row {
+    padding-inline: 2px;
+  }
+}
+
+@media (min-width: 1400px) and (min-height: 800px) {
+  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lanes {
+    gap: 0;
+  }
+
+  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-lane {
+    grid-template-columns: 110px minmax(0, 1fr) 110px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   :is(.mn-screen--host, .mn-screen--public)
     .mn-layout
-    .mn-market-title
-    > span:last-child {
-    display: block;
+    .mn-lane-heading
+    > .mn-detail-button
+    > strong {
     white-space: nowrap;
   }
 
-  :is(.mn-screen--host, .mn-screen--public)
-    .mn-layout
-    .mn-market-title
-    .mn-cargo {
-    line-height: 1.1;
+  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-track {
+    height: clamp(100px, 12dvh, 160px);
+    margin-inline: 168px 120px;
+  }
+
+  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-boat {
+    width: clamp(180px, 12vw, 240px);
+    height: 72px;
+    bottom: 24px;
   }
 
   :is(.mn-screen--host, .mn-screen--public)
     .mn-layout
-    .mn-market-title
-    .mn-cargo::before {
-    display: none;
+    .mn-lane-heading
+    .mn-cargo-art {
+    width: 48px;
+    height: 48px;
   }
 
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-market-track {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    line-height: 1.1;
-  }
-
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-result--round {
-    gap: 4px 8px;
-    flex-wrap: nowrap;
-  }
-
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-result-route {
-    flex: 0 1 205px;
-  }
-
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-result-route p {
-    gap: 0 4px;
-    line-height: 1.2;
-  }
-
-  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-result-income {
-    gap: 4px;
-    flex: 1;
+  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-shore {
+    padding-inline: 4px;
+    border-left: 1px solid #b18b4a88;
+    background: linear-gradient(90deg, #ebd9b02b, #e2c48c3d);
   }
 
   :is(.mn-screen--host, .mn-screen--public)
     .mn-layout
-    .mn-result--round
-    .mn-next-voyage {
-    flex: 0 0 auto;
-    padding-inline: 8px;
+    :is(.mn-dock-group, .mn-specialist-group) {
+    grid-template-columns: 130px minmax(0, 1fr);
+    grid-template-rows: 64px;
+    align-self: center;
+    background: transparent;
+  }
+
+  :is(.mn-screen--host, .mn-screen--public)
+    .mn-layout
+    .mn-shore
+    :is(.mn-dock-group, .mn-specialist-group)
+    > .mn-detail-button,
+  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-shore .mn-space {
+    height: 64px;
+  }
+
+  :is(.mn-screen--host, .mn-screen--public)
+    .mn-layout
+    :is(.mn-dock-group, .mn-specialist-group)
+    .mn-site-art {
+    width: 48px;
+    height: 56px;
+  }
+
+  :is(.mn-screen--host, .mn-screen--public)
+    .mn-layout
+    .mn-shore
+    .mn-space-value {
+    height: 46px;
+  }
+
+  :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-shore .mn-worker {
+    width: 32px;
+    height: 32px;
+  }
+
+  :is(.mn-screen--host, .mn-screen--public)
+    .mn-layout
+    .mn-shore
+    .mn-worker-head {
+    width: 16px;
+    height: 16px;
+    left: 7px;
+    top: -10px;
   }
 }

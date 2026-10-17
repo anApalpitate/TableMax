@@ -19,6 +19,8 @@ version 1、version 2 和准确文件 Vitest 入口均关闭子项自动维护�
 
 马尼拉触控源码验证使用 `node tools/test/games/manila/verify-manila-touch.mjs --evidence=<新安全名称> --only=setup,pilot-small,pilot-large,auction,waiting,labels,round-result`，可用 `--widths=320,390,430,844` 定向。真实React与合法投影检查44px箭头、起点和9、领航预算、草稿确认、操作列表居中、64px出价及手机房主下一航次。证据保留在 `artifacts/maintenance/manila-touch-layout-20261017/touch/<名称>`，默认静音隐藏、127.0.0.1；模拟触控不替代真实设备或完整安装系统链。
 
+马尼拉完整港湾定向验证使用 `node tools/test/games/manila/verify-manila-harbor.mjs --evidence=<新安全名称> --widths=320,390,430,844`，`--only=structure,setup,pilot-small,pilot-large,stability,boundary,payment,permissions,guards,rotation,viewport,tie,tail` 可选择组。真实React与合法投影检查唯一主滚动区、持续挂载、64px控制槽、非零滚动选择／取消／保存、按需付款与抵押原位状态、旧决策提交拦截和权限；模拟触控与假运输不替代真实手机、服务端保存或完整安装验收。证据进入 `artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/<名称>`。
+
 马尼拉体验深化验证增加触摸无效／取消／合法落点、旋转保留草稿、货物与起点／领航拖放、点击与键盘及长按详情、确认区避让、手机显式声音开启与旧事件不补播、真实音频解码、终局演出和完整UI航次。`box/verify-box-layout.mjs --settings-only --zip=<实际payload.zip> --sha256=<SHA> --evidence=<新名>`执行三设置页正常／文字压力布局；共用几何方法为[settings-layout-measurement.mjs](box/settings-layout-measurement.mjs)。[installed-update-layout.mjs](installation/installed-update-layout.mjs)仅由正式安装验收在同次真实Native中调用，核支持状态、16项布局及身份／静音／窗口恢复，截图与报告进入安装证明；不触发在线检查、下载或更新。文字压力仅为明确标注的文本布局夹具，不代表真实错误或进度状态已发生。
 
 验证默认静音、回环监听、隐藏窗口；真实验证可能构建、启动服务并写 `tmp/`、`artifacts/` 和测试历史，不能把执行验证当作只读查询。各入口保留已有 `--game`、`--portable`、`--mode`、`--evidence` 等参数和结果位置，参数不通用，先查对应代码／开发说明。runner 为统计与调度；support 为公共运行助手；fixtures 只生成合法测试状态。混合矩阵保留在平台组，不能伪装成单游戏检查。

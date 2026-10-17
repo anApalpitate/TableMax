@@ -1,0 +1,478 @@
+/* One scene, with object labels and state kept in separate layout cells. */
+.mn-harbor .mn-space {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 2px 4px;
+  line-height: 1.2;
+}
+.mn-harbor .mn-space-name,
+.mn-harbor .mn-space-price {
+  white-space: nowrap;
+  font-size: 16px;
+}
+.mn-space-value {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 0;
+  min-height: 34px;
+  white-space: nowrap;
+}
+.mn-space-value .mn-worker {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  font-size: 16px;
+}
+.mn-space-value .mn-worker-head {
+  width: 12px;
+  height: 12px;
+  left: 5px;
+  top: -7px;
+}
+.mn-screen-feedback:empty {
+  display: none;
+}
+.mn-stage-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mn-screen .mn-stage-action button {
+  min-height: 44px;
+  font-size: 18px;
+  white-space: nowrap;
+}
+.mn-payment-link {
+  display: grid;
+  justify-items: center;
+  gap: 0;
+  line-height: 1.1;
+  padding: 3px 8px;
+}
+.mn-payment-link > span {
+  font-size: 16px;
+}
+.mn-seat-portrait {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.mn-seat-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  font-size: 16px;
+}
+.mn-seat-result strong {
+  font-size: 18px;
+  white-space: nowrap;
+}
+.mn-seat-result--winner {
+  color: #815317;
+}
+.mn-screen--player {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  height: 100dvh;
+  min-height: 0;
+  padding: 6px;
+}
+:root:has(.manila-screen.mn-screen--player) {
+  --interaction-orb-scroll-with-page: 0;
+  height: 100%;
+  overflow: clip;
+}
+:root:has(.mn-screen--player) body {
+  height: 100%;
+  overflow: clip;
+}
+:root:has(.mn-screen--player) #root {
+  height: 100%;
+  min-height: 0;
+}
+.mn-screen--player > .mn-toolbar,
+.mn-screen--player > .mn-status,
+.mn-screen--player > .mn-screen-feedback {
+  flex: none;
+  width: 100%;
+  margin: 0;
+}
+.mn-screen--player > .mn-status {
+  padding: 4px 6px;
+  min-height: 52px;
+  gap: 6px;
+}
+.mn-screen--player .mn-player-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scroll-padding-block: 8px;
+  padding: 0 2px
+    calc(max(8px, env(safe-area-inset-bottom)) + var(--mn-anchor-tail, 0px));
+}
+.mn-screen--player .mn-private {
+  display: flex;
+  margin: 0 0 6px;
+}
+.mn-screen--player .mn-layout {
+  display: block;
+  max-width: 1700px;
+}
+.mn-screen--player .mn-side {
+  display: contents;
+}
+.mn-screen--player .mn-main {
+  display: block;
+}
+.mn-screen--player .mn-board-scroll {
+  overflow: visible;
+}
+.mn-screen--player .mn-harbor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-areas: 'heading heading' 'lanes shore' 'actions actions';
+  align-items: start;
+  gap: 8px;
+  padding: 8px;
+  background-position: center top;
+  background-size: 100% auto;
+  background-repeat: no-repeat;
+  background-color: #94cfc0;
+}
+.mn-screen--player .mn-harbor::before {
+  background-size: 100% auto;
+  background-position: center top;
+  background-repeat: no-repeat;
+}
+.mn-screen--player .mn-shore {
+  grid-area: shore;
+  display: grid;
+  grid-template-rows: repeat(5, 44px);
+  gap: 4px;
+  align-self: start;
+}
+.mn-screen--player .mn-shore > :is(.mn-docks, .mn-specialists) {
+  display: contents;
+}
+.mn-screen--player .mn-shore :is(.mn-dock-group, .mn-specialist-group) {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  min-height: 44px;
+  background: #fff7e5d9;
+  border-radius: 10px;
+}
+.mn-screen--player
+  .mn-shore
+  :is(.mn-dock-group, .mn-specialist-group)
+  > .mn-detail-button {
+  display: flex;
+  flex-direction: row;
+  height: 44px;
+  min-height: 44px;
+  padding: 2px;
+  gap: 3px;
+  font-size: 16px;
+  background: transparent;
+}
+.mn-screen--player .mn-shore .mn-site-art {
+  display: block;
+  width: 24px;
+  height: 28px;
+}
+.mn-screen--player .mn-shore :is(.mn-dock-slots, .mn-specialist-slots) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(44px, 1fr));
+  align-content: center;
+  gap: 3px;
+}
+.mn-screen--player .mn-shore .mn-dock-slots {
+  grid-template-columns: repeat(3, minmax(44px, 1fr));
+}
+.mn-screen--player
+  .mn-shore
+  .mn-specialist-group--insurance
+  .mn-specialist-slots {
+  grid-template-columns: 1fr;
+}
+.mn-screen--player .mn-lanes {
+  min-height: 244px;
+  height: auto;
+  grid-area: lanes;
+}
+.mn-screen--player .mn-lane-control {
+  min-height: 64px;
+  height: 64px;
+}
+.mn-screen--player .mn-lane-position,
+.mn-screen--player .mn-boat-preview {
+  display: none;
+}
+.mn-screen--player .mn-boat[data-mn-preview='true'] {
+  filter: drop-shadow(0 0 3px #c08c1c);
+}
+.mn-screen--player .mn-position-controls {
+  display: grid;
+  justify-items: center;
+  min-height: 64px;
+  gap: 0;
+  margin: 0;
+  height: 64px;
+  grid-template-rows: 20px 44px;
+}
+.mn-screen--player .mn-position-controls output {
+  height: 20px;
+  line-height: 20px;
+}
+.mn-screen--player .mn-position-controls > div {
+  display: flex;
+  gap: 3px;
+}
+.mn-screen--player .mn-position-controls button {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px;
+}
+.mn-screen--player .mn-position-controls svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.mn-screen--player .mn-lane-cargo-select {
+  display: grid;
+  justify-items: center;
+  height: 64px;
+  gap: 0;
+  font-size: 16px;
+  grid-template-rows: 20px 44px;
+  margin: 0;
+  line-height: 20px;
+}
+.mn-screen--player .mn-lane-cargo-select select {
+  min-height: 44px;
+  width: 100%;
+  padding: 3px;
+  font-size: 16px;
+  height: 44px;
+  margin: 0;
+}
+.mn-screen--player .mn-crew {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px;
+  min-height: 64px;
+  height: auto;
+  padding: 0;
+}
+.mn-screen--player .mn-crew[data-mn-adjusting='true'] {
+  display: none;
+}
+.mn-screen--player .mn-position-readout {
+  grid-column: 1 / -1;
+  font-size: 16px;
+  text-align: center;
+}
+.mn-screen--player .mn-crew > .mn-detail-button {
+  display: inline-flex;
+  min-height: 44px;
+  padding: 2px;
+  font-size: 16px;
+}
+.mn-screen--player[data-financing-self='true'] .mn-main {
+  display: block;
+  opacity: 1;
+}
+.mn-screen--player[data-financing-self='true'] .mn-private {
+  display: flex;
+}
+.mn-screen--player .mn-controls:has(.mn-confirm) {
+  padding-bottom: 6px;
+}
+.mn-screen--player .mn-board-actions {
+  grid-area: actions;
+  min-width: 0;
+  border-top: 1px solid #b5a16c;
+  padding-top: 6px;
+  overflow-anchor: none;
+}
+.mn-screen--player .mn-controls {
+  order: 0;
+  width: 100%;
+  margin: 0;
+  padding: 6px;
+}
+.mn-screen--player .mn-controls--waiting {
+  min-height: 0;
+  padding: 4px 6px;
+  background: #fffbebcb;
+}
+.mn-screen--player .mn-controls-status {
+  font-size: 16px;
+}
+.mn-screen--player .mn-confirm {
+  position: static;
+  transform: none;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px;
+  min-width: 0;
+}
+.mn-screen--player .mn-alternative-content {
+  position: static;
+  width: 100%;
+  max-height: none;
+  overflow: visible;
+}
+.mn-screen--player .mn-alternative-content .mn-alternative-heading {
+  position: static;
+}
+.mn-screen--player
+  :is(.mn-action-tray, .mn-auction-actions):has(.mn-alternatives[open]) {
+  flex-wrap: wrap;
+}
+.mn-screen--player
+  :is(.mn-action-tray, .mn-auction-actions)
+  > .mn-alternatives[open] {
+  flex: 1 1 100%;
+  min-width: 0;
+  margin-left: 0;
+}
+.mn-screen--player .mn-finance-choices {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+.mn-screen--player .mn-finance-choice:disabled {
+  opacity: 1;
+  color: #647064;
+  background: #e9e7d9;
+}
+.mn-screen--player .mn-side > .mn-market-panel,
+.mn-screen--player .mn-side > .mn-players-panel {
+  margin-top: 8px;
+}
+@media (max-width: 620px) {
+  .mn-screen--player > .mn-status {
+    min-height: 84px;
+  }
+  .mn-screen--player .mn-boat:has(.mn-boat-cargo-target) {
+    translate: 0 -14px;
+  }
+}
+@media (max-width: 1050px) {
+  .mn-screen--player .mn-harbor {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'docks' 'lanes' 'specialists' 'actions';
+    padding: 5px;
+    gap: 5px;
+  }
+  .mn-screen--player .mn-shore {
+    display: contents;
+  }
+  .mn-screen--player .mn-shore > .mn-docks {
+    display: grid;
+    grid-area: docks;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+  }
+  .mn-screen--player .mn-shore .mn-dock-group {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 44px 44px;
+    gap: 0;
+    padding: 2px;
+  }
+  .mn-screen--player .mn-shore > .mn-specialists {
+    display: grid;
+    grid-area: specialists;
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .mn-screen--player .mn-shore .mn-specialist-group {
+    grid-template-columns: 82px minmax(0, 1fr);
+  }
+  .mn-screen--player .mn-lanes,
+  .mn-screen--player .mn-harbor:has(.mn-position-controls) .mn-lanes {
+    height: clamp(320px, 83vw, 390px);
+    min-height: 320px;
+    gap: 4px;
+  }
+  .mn-screen--player .mn-lane {
+    padding: 2px 1px;
+    min-width: 0;
+  }
+  .mn-screen--player .mn-track {
+    margin-top: 34px;
+    margin-bottom: 35px;
+  }
+  .mn-screen--player .mn-lane-control {
+    flex: none;
+    width: 100%;
+  }
+  .mn-screen--player .mn-crew {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .mn-screen--player .mn-crew-summary {
+    font-size: 16px;
+    white-space: nowrap;
+  }
+  .mn-screen--player .mn-crew .mn-space {
+    min-width: 44px;
+    padding: 1px;
+    gap: 2px;
+  }
+  .mn-screen--player .mn-crew .mn-space-name {
+    font-size: 16px;
+  }
+  .mn-screen--player .mn-crew > .mn-detail-button {
+    display: none;
+  }
+  .mn-screen--player .mn-private {
+    gap: 4px;
+  }
+  .mn-screen--player .mn-finance-choices {
+    grid-template-columns: 1fr;
+  }
+  .mn-screen--player .mn-side > .mn-market-panel,
+  .mn-screen--player .mn-side > .mn-players-panel {
+    display: none;
+  }
+  .mn-screen--player[data-phase='ended'] .mn-side > .mn-players-panel {
+    display: block;
+  }
+}
+@media (min-width: 621px) and (max-width: 1050px) and (max-height: 600px) {
+  .mn-screen--player .mn-harbor {
+    grid-template-columns: minmax(0, 1fr) 270px;
+    grid-template-areas: 'lanes shore' 'actions actions';
+  }
+  .mn-screen--player .mn-shore {
+    display: grid;
+    grid-area: shore;
+    grid-template-rows: 88px 88px 44px 44px 44px;
+    gap: 4px;
+  }
+  .mn-screen--player .mn-shore > :is(.mn-docks, .mn-specialists) {
+    display: contents;
+  }
+  .mn-screen--player .mn-lanes,
+  .mn-screen--player .mn-harbor:has(.mn-position-controls) .mn-lanes {
+    height: 324px;
+    min-height: 324px;
+  }
+}

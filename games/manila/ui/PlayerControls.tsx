@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Action, ManilaView } from '../rules/view';
 import {
   actionLabel,
@@ -12,6 +12,7 @@ import { DragSource, useManilaInteraction } from './interaction';
 import { CloseMark, CopperMark } from './Theme';
 
 type Props = {
+  boundary?: string;
   game: ManilaView;
   actions: Action[];
   locked: boolean;
@@ -31,7 +32,9 @@ function CloseAlternatives({ title }: { title: string }) {
           const details = event.currentTarget.closest('details');
           if (details) {
             details.open = false;
-            details.querySelector<HTMLElement>(':scope > summary')?.focus();
+            details
+              .querySelector<HTMLElement>(':scope > summary')
+              ?.focus({ preventScroll: true });
           }
         }}
       >
@@ -50,35 +53,42 @@ function Finance({
     (action): action is Extract<Action, { type: 'mortgage' | 'repay' }> =>
       action.type === 'mortgage' || action.type === 'repay',
   );
-  if (!finance.length) return null;
+  const shares = game.self?.shares ?? [];
+  if (!shares.length) return null;
   const choices = (
     <div className="mn-finance-choices">
-      {finance.map((action, index) => (
-        <button
-          key={index}
-          data-manila-action={action.type}
-          className="mn-finance-choice"
-          disabled={locked}
-          onClick={() => choose(action)}
-        >
-          <CargoArt
-            cargo={
-              game.self!.shares.find((share) => share.id === action.shareId)!
-                .cargo
-            }
-          />
-          <strong>{actionLabel(action, game)}</strong>
-          <span>{action.type === 'mortgage' ? '+12 ₱' : '−15 ₱'}</span>
-          {'shareId' in action && (
+      {shares.map((share) => {
+        const action = finance.find((entry) => entry.shareId === share.id);
+        return (
+          <button
+            key={share.id}
+            data-mn-finance-share={share.id}
+            data-manila-action={action?.type}
+            className="mn-finance-choice"
+            disabled={locked || !action}
+            onClick={() => {
+              if (action) choose(action);
+            }}
+          >
+            <CargoArt cargo={share.cargo} />
+            <strong>
+              {action
+                ? actionLabel(action, game)
+                : `${cargoNames[share.cargo]}${share.mortgaged ? '已抵押' : '暂不可抵押'}`}
+            </strong>
             <span>
-              {game.self?.shares.find((share) => share.id === action.shareId)
-                ?.revealed
-                ? '（已公开股份）'
-                : '（未公开股份）'}
+              {action?.type === 'mortgage'
+                ? '+12 ₱'
+                : action?.type === 'repay'
+                  ? '−15 ₱'
+                  : share.mortgaged
+                    ? '已借 12 ₱'
+                    : '本次不可操作'}
             </span>
-          )}
-        </button>
-      ))}
+            <span>{share.revealed ? '已公开股份' : '未公开股份'}</span>
+          </button>
+        );
+      })}
     </div>
   );
   return game.phase === 'financing' &&
@@ -104,6 +114,7 @@ function Finance({
   );
 }
 export function PlayerControls({
+  boundary,
   game,
   actions,
   locked,
@@ -116,52 +127,58 @@ export function PlayerControls({
     (action): action is Extract<Action, { type: 'bid' }> =>
       action.type === 'bid',
   );
-  const [bid, setBid] = useState(bids[0]?.amount ?? game.auction.bid + 1);
+  const minimumBid = bids[0]?.amount ?? game.auction.bid + 1;
+  const [bidInput, setBidInput] = useState({ boundary, amount: minimumBid });
+  const bid = bidInput.boundary === boundary ? bidInput.amount : minimumBid;
   const setup = actions.some((action) => action.type === 'setup');
   const pilot = actions.some((action) => action.type === 'pilot');
   const controls = useRef<HTMLElement>(null);
-  const hasConfirmation = Boolean(draft) || setup || pilot;
+  useLayoutEffect(() => {
+    controls.current
+      ?.querySelectorAll<HTMLDetailsElement>('details.mn-alternatives[open]')
+      .forEach((details) => {
+        if (details.contains(document.activeElement))
+          details
+            .querySelector<HTMLElement>(':scope > summary')
+            ?.focus({ preventScroll: true });
+        details.open = false;
+      });
+  }, [boundary]);
   useEffect(() => {
-    const close = (event: PointerEvent | KeyboardEvent) => {
+    const close = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
       const opened = controls.current?.querySelector<HTMLDetailsElement>(
         'details.mn-alternatives[open]',
       );
       if (!opened) return;
-      const escape = event instanceof KeyboardEvent && event.key === 'Escape';
-      if (
-        !escape &&
-        (event instanceof KeyboardEvent ||
-          opened.contains(event.target as Node))
-      )
-        return;
       opened.open = false;
-      if (escape)
-        opened.querySelector<HTMLElement>(':scope > summary')?.focus();
+      opened
+        .querySelector<HTMLElement>(':scope > summary')
+        ?.focus({ preventScroll: true });
     };
-    document.addEventListener('pointerdown', close);
     document.addEventListener('keydown', close);
     return () => {
-      document.removeEventListener('pointerdown', close);
       document.removeEventListener('keydown', close);
     };
   }, []);
-  useEffect(() => {
-    const screen = controls.current?.closest<HTMLElement>('.mn-screen');
-    const confirmation = controls.current?.querySelector('.mn-confirm');
-    if (!screen || !confirmation || !hasConfirmation) return;
-    const measure = () =>
-      screen.style.setProperty(
-        '--mn-confirm-height',
-        `${Math.ceil(confirmation.getBoundingClientRect().height) + 12}px`,
-      );
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(confirmation);
-    return () => {
-      observer.disconnect();
-      screen.style.removeProperty('--mn-confirm-height');
-    };
-  }, [hasConfirmation]);
+  if (!actions.length)
+    return (
+      <section
+        id="mn-action-area"
+        ref={controls}
+        className="mn-controls mn-controls--waiting"
+        aria-label="本人行动"
+        data-stage={game.phase}
+      >
+        <span className="mn-controls-status" role="status">
+          {game.phase === 'round-result'
+            ? '本航次已完成'
+            : game.phase === 'financing'
+              ? '等待商人完成付款'
+              : '等待其他商人行动'}
+        </span>
+      </section>
+    );
   const places = actions.filter(
     (action): action is Extract<Action, { type: 'place' }> =>
       action.type === 'place',
@@ -179,7 +196,7 @@ export function PlayerControls({
       action.type === 'buy-share',
   );
   const direct = actions.filter((action) =>
-    ['pass', 'skip-share', 'next-voyage'].includes(action.type),
+    ['pass', 'skip-share'].includes(action.type),
   );
   const directLabel = (action: Action) =>
     action.type === 'pass' && game.phase !== 'auction'
@@ -396,8 +413,9 @@ export function PlayerControls({
   );
   return (
     <section
+      id="mn-action-area"
       ref={controls}
-      className={`mn-panel mn-controls${!actions.length ? ' mn-controls--waiting' : ''}`}
+      className="mn-panel mn-controls"
       aria-label="本人行动"
       data-stage={game.phase}
     >
@@ -460,7 +478,9 @@ export function PlayerControls({
               step="1"
               value={bid}
               disabled={locked}
-              onChange={(event) => setBid(Number(event.target.value))}
+              onChange={(event) =>
+                setBidInput({ boundary, amount: Number(event.target.value) })
+              }
             />
             <span>比索</span>
           </div>
@@ -621,26 +641,23 @@ export function PlayerControls({
               {directLabel(action)}
             </button>
           ))}
-          {game.phase !== 'financing' &&
-            actions.some(
-              (action) => action.type === 'mortgage' || action.type === 'repay',
-            ) && (
-              <details className="mn-alternatives">
-                <summary>
-                  <CopperMark kind="shares" />
-                  <span>股份操作</span>
-                </summary>
-                <div className="mn-alternative-content">
-                  <CloseAlternatives title="股份抵押与赎回" />
-                  <Finance
-                    game={game}
-                    actions={actions}
-                    locked={locked}
-                    choose={choose}
-                  />
-                </div>
-              </details>
-            )}
+          {game.phase !== 'financing' && Boolean(game.self?.shares.length) && (
+            <details className="mn-alternatives">
+              <summary>
+                <CopperMark kind="shares" />
+                <span>股份操作</span>
+              </summary>
+              <div className="mn-alternative-content">
+                <CloseAlternatives title="股份抵押与赎回" />
+                <Finance
+                  game={game}
+                  actions={actions}
+                  locked={locked}
+                  choose={choose}
+                />
+              </div>
+            </details>
+          )}
         </div>
       )}
       {(draft || setup || pilot) && (

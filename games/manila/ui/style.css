@@ -214,17 +214,6 @@
 .mn-side .mn-draft-grid {
   grid-template-columns: minmax(0, 1fr);
 }
-.mn-screen--player {
-  padding-bottom: var(--mn-confirm-height, 12px);
-}
-.mn-screen--player .mn-confirm {
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(900px, calc(100vw - 20px));
-  bottom: max(8px, env(safe-area-inset-bottom));
-  z-index: 20;
-}
 .mn-finance {
   margin-top: 12px;
 }
@@ -1560,15 +1549,6 @@
   .mn-screen--player .mn-main > .mn-receipt {
     display: none;
   }
-  .mn-screen--player[data-phase='auction'] .mn-controls,
-  .mn-screen--player[data-phase='share'] .mn-controls,
-  .mn-screen--player[data-financing-self='true'] .mn-controls {
-    order: -1;
-  }
-  .mn-screen--player[data-financing-self='true'] .mn-main,
-  .mn-screen--player[data-financing-self='true'] > .mn-private {
-    display: none;
-  }
   .mn-harbor {
     display: flex;
     flex-direction: column;
@@ -2150,9 +2130,6 @@
   .mn-screen--player .mn-confirm p {
     line-height: 1.2;
   }
-  .mn-screen--player .mn-controls:has(.mn-confirm) {
-    padding-bottom: max(105px, var(--mn-confirm-height, 0px));
-  }
   .mn-screen--player .mn-harbor {
     padding: 4px;
     gap: 3px;
@@ -2209,10 +2186,6 @@
   }
   .mn-screen--player .mn-finance--payment .mn-inline-actions {
     grid-template-columns: 1fr;
-  }
-  .mn-screen--player[data-financing-self='true'] .mn-main {
-    display: block;
-    opacity: 0.65;
   }
   .mn-screen--player[data-financing-self='true'] .mn-controls {
     grid-row: 3/5;

@@ -269,6 +269,7 @@ const verificationScopes = {
   'tools/test/games/manila/verify-manila.mjs': ['game:manila'],
   'tools/test/games/manila/verify-manila-design.mjs': ['game:manila'],
   'tools/test/games/manila/verify-manila-touch.mjs': ['game:manila'],
+  'tools/test/games/manila/verify-manila-harbor.mjs': ['game:manila'],
   'tools/test/games/avalon/verify-configured-delivery.mjs': [
     'game:avalon',
     'box',

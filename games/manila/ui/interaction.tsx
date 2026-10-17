@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type ButtonHTMLAttributes,
@@ -24,6 +25,7 @@ export type Carry =
   | { kind: 'plunder'; cargo: CargoId };
 type SetupAction = Extract<Action, { type: 'setup' }>;
 type Interaction = {
+  boundary: string;
   game: ManilaView;
   actions: Action[];
   locked: boolean;
@@ -93,6 +95,7 @@ function hitTarget(
   };
 }
 export function ManilaInteraction({
+  boundary = '',
   game,
   actions,
   locked,
@@ -100,6 +103,7 @@ export function ManilaInteraction({
   select,
   children,
 }: {
+  boundary?: string;
   game: ManilaView;
   actions: Action[];
   locked: boolean;
@@ -134,7 +138,19 @@ export function ManilaInteraction({
     [setHoverTarget, setHoverNode],
   );
   const [point, setPoint] = useState<Interaction['point']>(null);
+  const [previousBoundary, setPreviousBoundary] = useState(boundary);
   const [previousLocked, setPreviousLocked] = useState(locked);
+  if (previousBoundary !== boundary) {
+    setPreviousBoundary(boundary);
+    setCargos(
+      setups[0]?.cargos ?? game.cargos.slice(0, 3).map((cargo) => cargo.id),
+    );
+    setPositions([3, 3, 3]);
+    setSetupStep(1);
+    setDeltas({});
+    setCarry(null);
+    setPoint(null);
+  }
   if (previousLocked !== locked) {
     setPreviousLocked(locked);
     if (locked) {
@@ -249,6 +265,7 @@ export function ManilaInteraction({
   return (
     <Context
       value={{
+        boundary,
         game,
         actions,
         locked,
@@ -350,7 +367,11 @@ export function DragSource({
       releaseGesture();
     };
   }, [releaseGesture, setPoint, setCarry]);
-  useEffect(() => {
+  useLayoutEffect(() => {
+    releaseGesture();
+    return releaseGesture;
+  }, [state.boundary, releaseGesture]);
+  useLayoutEffect(() => {
     if (state.locked) releaseGesture();
   }, [state.locked, releaseGesture]);
   return (
@@ -572,7 +593,7 @@ export function DetailButton({
     const key = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setOpen(false);
-        button.current?.focus();
+        button.current?.focus({ preventScroll: true });
       }
     };
     document.addEventListener('pointerdown', close);
@@ -637,7 +658,7 @@ export function DetailButton({
                 aria-label={`关闭${title}`}
                 onClick={() => {
                   setOpen(false);
-                  button.current?.focus();
+                  button.current?.focus({ preventScroll: true });
                 }}
               >
                 <CloseMark />

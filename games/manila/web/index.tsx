@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- The lazy game entry exports the platform client. */
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
 import {
   CountdownSettings,
@@ -19,7 +19,7 @@ import {
 import type { Action, ManilaView } from '../rules/view';
 import { HarborBoard, Market, Players } from '../ui/Board';
 import { PlayerControls } from '../ui/PlayerControls';
-import { cargoNames, phaseNames } from '../ui/labels';
+import { phaseNames } from '../ui/labels';
 import { manilaRulebook } from '../ui/RulesGuide';
 import { DetailButton, ManilaInteraction } from '../ui/interaction';
 import { ManilaEffects } from '../ui/ManilaEffects';
@@ -33,6 +33,8 @@ import {
 import '../ui/style.css';
 import '../ui/theme.css';
 import '../ui/host-layout.css';
+import '../ui/harbor-layout.css';
+import { useBoardAnchor } from '../ui/useBoardAnchor';
 
 function ManilaScreen({ session }: { session: GameHost }) {
   const { view, role, command, connected, locked, canControl } = session;
@@ -62,21 +64,38 @@ function ManilaScreen({ session }: { session: GameHost }) {
       ? selection.action
       : null;
   const select = (action: Action | null) => setSelection({ boundary, action });
+  const live = useRef(session);
+  useLayoutEffect(() => {
+    live.current = session;
+  });
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useBoardAnchor(
+    scrollRef,
+    [boundary, view?.revision, JSON.stringify(draft), locked].join('|'),
+  );
   const choose = (action: Action) => {
+    const current = live.current;
+    const latest = current.view;
+    const latestBoundary = `${latest?.instanceId}:${latest?.branch}:${latest?.decisionId ?? 'waiting'}`;
     if (
-      role === 'player' &&
-      view?.decisionId &&
-      !locked &&
-      connected &&
-      !view.paused &&
-      view.status === 'playing'
-    ) {
-      command({
-        type: 'game',
-        decisionId: view.decisionId,
-        action: action as unknown as JsonValue,
-      });
-    }
+      boundary !== latestBoundary ||
+      current.role !== 'player' ||
+      !latest?.decisionId ||
+      current.locked ||
+      !current.connected ||
+      latest.paused ||
+      latest.botError ||
+      latest.status !== 'playing' ||
+      !latest.actions.some(
+        (candidate) => JSON.stringify(candidate) === JSON.stringify(action),
+      )
+    )
+      return;
+    current.command({
+      type: 'game',
+      decisionId: latest.decisionId,
+      action: action as unknown as JsonValue,
+    });
   };
   const names = Object.fromEntries(
     view?.seats.map((seat) => [seat.id, seat.name]) ?? [],
@@ -103,10 +122,122 @@ function ManilaScreen({ session }: { session: GameHost }) {
   const nextVoyage = view?.lifecycleActions.find(
     (action) => (action as Action).type === 'next-voyage',
   ) as Action | undefined;
-  const rank = game?.scores
-    ? [...game.seatOrder].sort((a, b) => game.scores![b]! - game.scores![a]!)
-    : [];
+  const playerNextVoyage = actions.find(
+    (action) => action.type === 'next-voyage',
+  );
   const actor = view?.seats.find((seat) => seat.id === game?.turnSeat);
+  const status =
+    game && view ? (
+      <section className="mn-status" aria-label="当前阶段">
+        <div className="mn-current-turn">
+          {actor && (
+            <img
+              className="mn-actor-avatar"
+              src={avatarFor(actor.avatarId ?? 'avatar-1')}
+              alt={`${actor.name}正在行动`}
+            />
+          )}
+          <div className="mn-current-turn-copy">
+            <span className="mn-mobile-voyage">第 {game.voyage} 航次</span>
+            <strong className="mn-phase-name">{phaseNames[game.phase]}</strong>
+            <span className="mn-status-detail">
+              {game.turnSeat ? (
+                <>
+                  <span className="mn-actor-name">
+                    {names[game.turnSeat] ?? '商人'}
+                  </span>
+                  <span className="mn-turn-hint">
+                    {game.turnSeat === game.self?.seatId ? '轮到你' : '行动'}
+                  </span>
+                </>
+              ) : game.phase === 'ended' ? (
+                '一项货物达到 30，比较最终财富'
+              ) : game.phase === 'round-result' ? (
+                canControl ? (
+                  '分红已结算，可启程'
+                ) : (
+                  '分红已结算，等待启程'
+                )
+              ) : (
+                '等待保存结果'
+              )}
+              <span className="mn-status-save">
+                <SessionFeedback session={session} mode="saved" />
+              </span>
+            </span>
+            {game.phase === 'auction' && (
+              <span className="mn-auction-standing">
+                {game.auction.highBidder ? (
+                  <>
+                    <span>最高 {game.auction.bid} ₱</span>{' '}
+                    <span>{names[game.auction.highBidder] ?? '商人'}</span>
+                  </>
+                ) : (
+                  '尚无人出价'
+                )}
+              </span>
+            )}
+          </div>
+        </div>
+        <DecisionCountdown
+          view={view}
+          connected={connected}
+          compact={role === 'player'}
+        />
+        <div className="mn-stage-action">
+          {role === 'player' &&
+            game.phase === 'financing' &&
+            game.payment?.seatId === game.self?.seatId && (
+              <button
+                className="mn-payment-link"
+                onClick={() => {
+                  const owner = scrollRef.current;
+                  const target = owner?.querySelector('#mn-action-area');
+                  if (!owner || !target) return;
+                  owner.scrollTo({
+                    top:
+                      owner.scrollTop +
+                      target.getBoundingClientRect().top -
+                      owner.getBoundingClientRect().top -
+                      8,
+                    behavior: 'smooth',
+                  });
+                }}
+              >
+                <span>需要付款</span>
+                <strong>去处理 ↓</strong>
+              </button>
+            )}
+          {game.phase === 'round-result' &&
+            ((canControl && nextVoyage) || playerNextVoyage) && (
+              <button
+                className="mn-primary mn-next-voyage"
+                disabled={locked || !active}
+                onClick={() =>
+                  canControl && nextVoyage
+                    ? command({
+                        type: 'lifecycle',
+                        action: nextVoyage as unknown as JsonValue,
+                      })
+                    : playerNextVoyage && choose(playerNextVoyage)
+                }
+              >
+                <CopperMark kind="voyage" />
+                <span>下一航次</span>
+              </button>
+            )}
+          {canControl && game.phase === 'ended' && (
+            <button
+              className="mn-primary"
+              disabled={locked}
+              onClick={() => command({ type: 'replay' })}
+            >
+              再玩一局
+            </button>
+          )}
+        </div>
+      </section>
+    ) : null;
   return (
     <main
       className={`manila-screen mn-screen mn-screen--${role}`}
@@ -131,17 +262,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
           <strong>MANILA</strong>
           <span>马尼拉经典版</span>
         </div>
-        {game && <span className="mn-voyage">第 {game.voyage} 航次</span>}
-        {game && role !== 'player' && (
-          <DetailButton
-            className="mn-voyage-detail"
-            title="航次与岗位说明"
-            detail={<VoyageDetail game={game} />}
-          >
-            <span>航行 {Math.min(game.movement, 3)}/3</span>
-            <span aria-hidden="true">ⓘ</span>
-          </DetailButton>
-        )}
+        {role !== 'player' && status}
         <SessionFeedback session={session} mode="saved" />
         <div className="mn-toolbar-tools">
           <ManilaEffects session={session} />
@@ -172,298 +293,139 @@ function ManilaScreen({ session }: { session: GameHost }) {
           </button>
         </div>
       </header>
-      <SessionFeedback session={session} mode="messages" />
-      {notice && (
-        <div className="mn-notice" role="status">
-          <span>{notice}</span>
-          {canControl && connected && view?.paused && (
-            <button
-              disabled={locked}
-              onClick={() => command({ type: 'resume' })}
-            >
-              继续航行
-            </button>
-          )}
-        </div>
-      )}
-      {!game || !view ? (
-        <section className="mn-empty">
-          <h1>等待商人齐聚港湾</h1>
-          <p>{connected ? '回到盒子入座并准备。' : '正在恢复港湾沙盘。'}</p>
-          <ScreenLink className="button" href={`/${role}`}>
-            回到盒子
-          </ScreenLink>
-        </section>
-      ) : (
-        <>
-          <section className="mn-status" aria-label="当前阶段">
-            <div className="mn-current-turn">
-              {actor && (
-                <img
-                  className="mn-actor-avatar"
-                  src={avatarFor(actor.avatarId ?? 'avatar-1')}
-                  alt={`${actor.name}正在行动`}
-                />
-              )}
-              <div className="mn-current-turn-copy">
-                <span className="mn-mobile-voyage">第 {game.voyage} 航次</span>
-                <strong className="mn-phase-name">
-                  {phaseNames[game.phase]}
-                </strong>
-                <span className="mn-status-detail">
-                  {game.turnSeat ? (
-                    <>
-                      <span className="mn-actor-name">
-                        {names[game.turnSeat] ?? '商人'}
-                      </span>
-                      <span className="mn-turn-hint">
-                        {game.turnSeat === game.self?.seatId
-                          ? '轮到你'
-                          : '行动'}
-                      </span>
-                    </>
-                  ) : game.phase === 'ended' ? (
-                    '一项货物达到 30，比较最终财富'
-                  ) : game.phase === 'round-result' ? (
-                    canControl ? (
-                      '分红已结算，可启程'
-                    ) : (
-                      '分红已结算，等待启程'
-                    )
-                  ) : (
-                    '等待保存结果'
-                  )}
-                  <span className="mn-status-save">
-                    <SessionFeedback session={session} mode="saved" />
-                  </span>
-                </span>
-                {game.phase === 'auction' && (
-                  <span className="mn-auction-standing">
-                    {game.auction.highBidder ? (
-                      <>
-                        <span>最高 {game.auction.bid} ₱</span>{' '}
-                        <span>{names[game.auction.highBidder] ?? '商人'}</span>
-                      </>
-                    ) : (
-                      '尚无人出价'
-                    )}
-                  </span>
-                )}
-              </div>
-            </div>
-            <DecisionCountdown
-              view={view}
-              connected={connected}
-              compact={role === 'player'}
-            />
-          </section>
-          {role === 'player' && game.self && (
-            <section
-              className="mn-private"
-              data-mn-wallet={game.self.seatId}
-              aria-label="本人财富与秘密股份"
-            >
-              <div className="mn-wallet-summary">
-                <div className="mn-cash">
-                  <CopperMark kind="coin" />
-                  <span>
-                    现金<strong>{game.self.cash} ₱</strong>
-                  </span>
-                </div>
-                <div className="mn-credit">
-                  <CopperMark kind="credit" />
-                  <span>
-                    抵押可借<strong>{game.self.availableCredit} ₱</strong>
-                  </span>
-                </div>
-              </div>
-              <DetailButton
-                title={game.phase === 'ended' ? '本人股份' : '本人秘密股份'}
-                className="mn-secret-entry"
-                detail={
-                  <ShareCertificates
-                    shares={game.self.shares}
-                    publicView={game.phase === 'ended'}
-                  />
-                }
+      {role === 'player' && status}
+      <div className="mn-screen-feedback">
+        <SessionFeedback session={session} mode="messages" />
+        {notice && (
+          <div className="mn-notice" role="status">
+            <span>{notice}</span>
+            {canControl && connected && view?.paused && (
+              <button
+                disabled={locked}
+                onClick={() => command({ type: 'resume' })}
               >
-                <span className="mn-sealed-contract" aria-hidden="true">
-                  <CopperMark kind="shares" />
-                  <i />
-                </span>
-                <span>{game.self.shares.length} 股</span>
-              </DetailButton>
-              {game.latest && (
+                继续航行
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+      <div
+        ref={scrollRef}
+        className={
+          role === 'player' ? 'mn-player-scroll' : 'mn-display-content'
+        }
+      >
+        {!game || !view ? (
+          <section className="mn-empty">
+            <h1>等待商人齐聚港湾</h1>
+            <p>{connected ? '回到盒子入座并准备。' : '正在恢复港湾沙盘。'}</p>
+            <ScreenLink className="button" href={`/${role}`}>
+              回到盒子
+            </ScreenLink>
+          </section>
+        ) : (
+          <>
+            {role === 'player' && game.self && (
+              <section
+                className="mn-private"
+                data-mn-wallet={game.self.seatId}
+                aria-label="本人财富与秘密股份"
+              >
+                <div className="mn-wallet-summary">
+                  <div className="mn-cash">
+                    <CopperMark kind="coin" />
+                    <span>
+                      现金<strong>{game.self.cash} ₱</strong>
+                    </span>
+                  </div>
+                  <div className="mn-credit">
+                    <CopperMark kind="credit" />
+                    <span>
+                      抵押可借<strong>{game.self.availableCredit} ₱</strong>
+                    </span>
+                  </div>
+                </div>
                 <DetailButton
-                  title="最新已保存结果"
-                  className="mn-receipt-button"
+                  title={game.phase === 'ended' ? '本人股份' : '本人秘密股份'}
+                  className="mn-secret-entry"
                   detail={
-                    <ReceiptDetail
-                      voyage={game.voyage}
-                      text={nameText(game.latest)}
+                    <ShareCertificates
+                      shares={game.self.shares}
+                      publicView={game.phase === 'ended'}
                     />
                   }
                 >
-                  <CopperMark kind="receipt" />
-                  回执
+                  <span className="mn-sealed-contract" aria-hidden="true">
+                    <CopperMark kind="shares" />
+                    <i />
+                  </span>
+                  <span>{game.self.shares.length} 股</span>
                 </DetailButton>
-              )}
-            </section>
-          )}
-          <ManilaInteraction
-            key={boundary}
-            game={game}
-            actions={actions}
-            draft={draft}
-            select={select}
-            locked={locked || !active}
-          >
-            <div className="mn-layout">
-              <div className="mn-main">
-                {game.phase === 'ended' && game.scores && (
-                  <section className="mn-result mn-result--final">
-                    <h2>贸易盛会落幕</h2>
-                    {role === 'player' && (
-                      <p>现金 ＋ 股份市值 − 每张抵押股份 15 ₱</p>
-                    )}
-                    <ol>
-                      {rank.map((id) => (
-                        <li
-                          key={id}
-                          className={
-                            game.winners.includes(id)
-                              ? 'mn-rank-winner'
-                              : undefined
-                          }
-                          aria-label={`${names[id]}，${game.winners.includes(id) ? '赢家，' : ''}财富 ${game.scores![id]} 比索`}
-                          value={
-                            rank.findIndex(
-                              (other) =>
-                                game.scores![other] === game.scores![id],
-                            ) + 1
-                          }
-                        >
-                          <strong>
-                            <span>{names[id]}</span>{' '}
-                            <span>{game.scores![id]} ₱</span>
-                          </strong>
-                        </li>
-                      ))}
-                    </ol>
-                    {canControl && (
-                      <button
-                        className="mn-primary"
-                        disabled={locked}
-                        onClick={() => command({ type: 'replay' })}
-                      >
-                        再玩一局
-                      </button>
-                    )}
-                  </section>
-                )}
-                <HarborBoard
-                  compactHeading={role !== 'player'}
-                  game={game}
-                  names={names}
-                  actions={actions}
-                  draft={draft}
-                  select={select}
-                  locked={locked || !active}
-                />
-                {game.phase === 'round-result' && game.result && (
-                  <section
-                    className="mn-result mn-result--round"
-                    aria-label="本航次结算"
+                {game.latest && (
+                  <DetailButton
+                    title="最新已保存结果"
+                    className="mn-receipt-button"
+                    detail={
+                      <ReceiptDetail
+                        voyage={game.voyage}
+                        text={nameText(game.latest)}
+                      />
+                    }
                   >
-                    <div className="mn-result-route">
-                      <h2>第 {game.result.voyage} 航次完成</h2>
-                      <p>
-                        <span>
-                          靠港{' '}
-                          {game.result.port
-                            .map((cargo) => cargoNames[cargo])
-                            .join('、') || '无'}
-                        </span>
-                        <span>
-                          进坞{' '}
-                          {game.result.shipyard
-                            .map((cargo) => cargoNames[cargo])
-                            .join('、') || '无'}
-                        </span>
-                      </p>
-                    </div>
-                    <div className="mn-result-income">
-                      {game.seatOrder.map((id) => (
-                        <span
-                          key={id}
-                          title={names[id]}
-                          aria-label={`${names[id]}本航次分红 ${game.result!.income[id]} 比索`}
-                        >
-                          <img
-                            src={avatarFor(
-                              view.seats.find((seat) => seat.id === id)
-                                ?.avatarId ?? 'avatar-1',
-                            )}
-                            alt={names[id]}
-                          />
-                          <strong>
-                            {game.result!.income[id]! >= 0 ? '+' : ''}
-                            {game.result!.income[id]} ₱
-                          </strong>
-                        </span>
-                      ))}
-                    </div>
-                    {canControl && nextVoyage && (
-                      <button
-                        className="mn-primary mn-next-voyage"
-                        disabled={locked || !active}
-                        onClick={() =>
-                          command({
-                            type: 'lifecycle',
-                            action: nextVoyage as unknown as JsonValue,
-                          })
-                        }
-                      >
-                        <CopperMark kind="voyage" />
-                        <span>下一航次</span>
-                        <span aria-hidden="true">→</span>
-                      </button>
-                    )}
-                  </section>
+                    <CopperMark kind="receipt" />
+                    回执
+                  </DetailButton>
                 )}
-                {game.latest &&
-                  !['round-result', 'ended'].includes(game.phase) && (
-                    <section className="mn-receipt" aria-label="最新已保存结果">
-                      <p>{nameText(game.latest)}</p>
-                    </section>
-                  )}
+              </section>
+            )}
+            <ManilaInteraction
+              boundary={boundary}
+              game={game}
+              actions={actions}
+              draft={draft}
+              select={select}
+              locked={locked || !active}
+            >
+              <div className="mn-layout">
+                <div className="mn-main">
+                  <HarborBoard
+                    compactHeading={role !== 'player'}
+                    game={game}
+                    names={names}
+                    actions={actions}
+                    draft={draft}
+                    select={select}
+                    locked={locked || !active}
+                  >
+                    {role === 'player' &&
+                      game.self &&
+                      game.phase !== 'ended' && (
+                        <PlayerControls
+                          boundary={boundary}
+                          game={game}
+                          actions={actions}
+                          locked={locked || !active}
+                          draft={draft}
+                          select={select}
+                          choose={choose}
+                        />
+                      )}
+                  </HarborBoard>
+                </div>
+                <aside className="mn-side">
+                  <Market game={game} />
+                  <Players
+                    game={game}
+                    seats={view.seats}
+                    compact={role !== 'player'}
+                  />
+                </aside>
               </div>
-              <aside className="mn-side">
-                {role === 'player' &&
-                  game.self &&
-                  game.phase !== 'ended' &&
-                  actions.length > 0 && (
-                    <PlayerControls
-                      key={boundary}
-                      game={game}
-                      actions={actions}
-                      locked={locked || !active}
-                      draft={draft}
-                      select={select}
-                      choose={choose}
-                    />
-                  )}
-                <Market game={game} />
-                <Players
-                  game={game}
-                  seats={view.seats}
-                  compact={role !== 'player'}
-                />
-              </aside>
-            </div>
-          </ManilaInteraction>
-        </>
-      )}
+            </ManilaInteraction>
+          </>
+        )}
+      </div>
       {panel && (
         <OverlayPanel
           className={`mn-overlay mn-theme mn-overlay--${panel}`}
@@ -487,6 +449,18 @@ function ManilaScreen({ session }: { session: GameHost }) {
               </header>
               <Players game={game} seats={view?.seats ?? []} />
               <Market game={game} />
+              <DetailButton
+                title="航次与岗位说明"
+                detail={<VoyageDetail game={game} />}
+              >
+                航行 {Math.min(game.movement, 3)}/3 ⓘ
+              </DetailButton>
+              {game.latest && (
+                <ReceiptDetail
+                  voyage={game.voyage}
+                  text={nameText(game.latest)}
+                />
+              )}
               {game.result && (
                 <section className="mn-ledger-income">
                   <h2>最近航次分红</h2>
