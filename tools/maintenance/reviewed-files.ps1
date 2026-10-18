@@ -210,11 +210,13 @@ function Get-ReviewedLinkTarget($Link) {
 function Assert-ReviewedBindings {
   if ((Get-FileHash -LiteralPath $reviewedManifestPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $reviewedManifestHash) { throw 'Reviewed manifest changed.' }
   foreach ($file in @($reviewedPlan.protectedFiles) + @($reviewedPlan.references)) {
-    $path = Resolve-ReviewedPath $file.path -AnyRoot
-    $item = Get-Item -LiteralPath $path -Force
-    if ($item.PSIsContainer -or $file.sha256 -notmatch '^[a-f0-9]{64}$' -or
-        ($file.PSObject.Properties['bytes'] -and $item.Length -ne $file.bytes) -or
-        (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant() -ne $file.sha256) { throw 'Retained evidence or reference changed.' }
+    $path = Resolve-ReviewedPath $file.path -AnyRoot -SyntaxOnly
+    if ($file.sha256 -notmatch '^[a-f0-9]{64}$') { throw 'Invalid retained evidence or reference SHA-256.' }
+    $item = [IO.FileInfo]::new($path)
+    $bytes = if ($file.PSObject.Properties['bytes']) { [long]$file.bytes } else { $item.Length }
+    # The compiled guard checks every ancestor for links and nested repositories,
+    # requires an ordinary file, and rechecks metadata after its full SHA-256 read.
+    [TableMax.ReviewedFileGuardV1]::Check($workspace, $file.path, $bytes, $item.LastWriteTimeUtc.Ticks, $file.sha256, [DateTime]::MaxValue.Ticks) | Out-Null
   }
   foreach ($link in $reviewedPlan.links) { Get-ReviewedLinkTarget $link | Out-Null }
   if ($reviewedHasCache) {

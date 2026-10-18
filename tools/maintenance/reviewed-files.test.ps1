@@ -368,6 +368,25 @@ try {
     Refused { Invoke-ReviewedFilesRetirement } 'cache requires frozen retention references'
     $plan.references=@([PSCustomObject]@{path=$reference.path;sha256=$reference.sha256});Save-Plan
     Invoke-ReviewedFilesRetirement
+    $originalReferences=@($script:reviewedPlan.references)
+    $script:reviewedPlan.references=@([PSCustomObject]@{path=$reference.path;sha256=('0'*64)})
+    Refused { Assert-ReviewedBindings } 'compiled reference check rejects wrong SHA'
+    $script:reviewedPlan.references=@([PSCustomObject]@{path='artifacts/maintenance';sha256=$reference.sha256})
+    Refused { Assert-ReviewedBindings } 'compiled reference check rejects a directory'
+    $referenceTarget=File 'tmp/retained-link-target/evidence.json'
+    $referenceLink=Join-Path $workspace 'tmp/retained-reference-link'
+    New-Item -ItemType Junction -Path $referenceLink -Target (Join-Path $workspace 'tmp/retained-link-target') | Out-Null
+    $script:junctions += $referenceLink
+    $script:reviewedPlan.references=@([PSCustomObject]@{path='tmp/retained-reference-link/evidence.json';sha256=$referenceTarget.sha256})
+    Refused { Assert-ReviewedBindings } 'compiled reference check rejects a linked ancestor'
+    $script:reviewedPlan.references=@([PSCustomObject]@{path=$reference.path;bytes=($reference.bytes+1);sha256=$reference.sha256})
+    Refused { Assert-ReviewedBindings } 'compiled reference check preserves expected byte binding'
+    $nestedReference=File 'tmp/retained-nested/evidence.json'
+    New-Item -ItemType Directory -Path (Join-Path $workspace 'tmp/retained-nested/.git') | Out-Null
+    $script:reviewedPlan.references=@([PSCustomObject]@{path=$nestedReference.path;sha256=$nestedReference.sha256})
+    Refused { Assert-ReviewedBindings } 'compiled reference check rejects a nested repository'
+    $script:reviewedPlan.references=$originalReferences
+    Assert-ReviewedBindings
     $lock=File '.cache/build-modules/v1/owner.lock'
     Refused { Invoke-ReviewedFilesRetirement } 'active or unresolved cache lock protected'
     Remove-Item -LiteralPath (Join-Path $workspace $lock.path) -Force
