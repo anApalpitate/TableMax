@@ -173,3 +173,15 @@
 - 触摸夹具：`artifacts/maintenance/manila-touch-layout-20261017/touch/ui-final-20261018/report.json`，45 项检查通过（320/390/430/844/932）。
 - 夹具合同更新：主机结构改为展板/右列/商人条；终局并列从 `.mn-merchant-slot[aria-label]`、`.mn-tag--rank` 与账本公开股份断言；等待态恢复 64px 内细状态行并由触摸夹具同步；预览标签恢复 `.mn-boat-preview` 单行读数；宽屏行情保留在展板右列。
 - 边界：以上是源码夹具证据，不含真实手机、安装器或系统 DPI 证明；安装后验收见[当前验收](../../reference/acceptance.md#当前源码与本地交付)。
+
+## v1.0.8发行定向复验（2026-10-19）
+
+源码记录与实际包分开维护。本轮隔离发行工作树为 `E:/Data/.codex/worktrees/release-v1-0-8/TableMax`，全部证据位于该树；完整安装与线上状态只见[当前验收](../../reference/acceptance.md#v108发行验收2026-10-19)。
+
+- 源码规则、记账、保存服务、Worker、投影/UI与相关受影响用例共89项通过；实际签名预装库与旧发行恢复5项、安装夹具解析4项分别通过。TypeScript与受影响文件ESLint通过。预装库环境显式指定真实catalog/candidate，默认旧输入保持原契约，没有伪造current。
+- 最终源码设计 `artifacts/manila/validation/release-v108-shell-guard/results.json`：15布局、10详情与港A/B/C去向场景通过；覆盖320/390/430/620/621/844/932/1024/1123、主机/公共720p–4K。全玩家宽度增加浮球间距，增加倒计时/行动文字、骰子/船员重叠及外层程序化滚动守卫。
+- 最终实际Native/WebView2包 `1.0.8.6`：`artifacts/manila/validation/release-v108-native-fixed-shell/results.json`，22布局、26检查通过，载荷运行前后逐成员及ZIP摘要一致；包括真实游戏库加载、资源、身份投影、具体派遣草稿、触摸拖动/取消/无效落点、详情、秘密股份、确认、回退与保存动效。该layout批次不冒称完整自然整局或实体设备。
+- 触控 `artifacts/maintenance/manila-touch-layout-20261017/touch/release-v108-touch-final/report.json` 共63项通过；新增结算卡七宽度定向检查 `release-v108-result-scroll-r2/report.json` 要求5名商人每行金额完整滚入卡片自身可视区、卡片不超过35vh/320px、下一航次可达并发出正确命令，7项通过。原新增检查误写3人而夹具实际5人，首轮7个失败及修正保留，不修改产品。
+- 新截图逐图独立复核：621/844/932/1024/1123玩家源码及实际主机/公共、玩家横屏/已选派遣/股份详情。公开现金符合规则投影；不得把现金公开误判为秘密泄露。详情打开时用户主动滚到货物，底部确认正常随主区滚动，实际关闭详情后的确认链通过，不据该静态位置要求固定遮挡棋盘的按钮。
+
+失败与修正保留于 `artifacts/maintenance/v1.0.8/release/`，未清零历史：Low标记构建工具和外部workspace别名先纠正环境；预装用例补齐真实签名输入。Native原检查仍测整页高度/初始全目标可见，与现有固定顶栏、主区滚动不符，改为实际滚动owner、44px目标和滚动可达性，保留20px尾空白、原内容预算与不遮挡断言。随后实际程序发现浮球压住宽屏工具栏、621px计时器/骰子遮挡，分别在真正工具容器预留64px、窄横屏拆阶段行、骰子归入标题网格。程序化滚动诊断又证明单靠viewport的overflow:clip仍能移动外层206.7px，已固定玩家body，并要求实际window.scrollTo后外层仍在视口且scrollY为0；没有放宽该断言。候选1–5保留失败/中间身份，不用于最终包验收。公共屏座次浅色对比为非阻断P3建议；其余具体裁定与每图SHA保存在 `artifacts/maintenance/v1.0.8/release/visual-reviews.json`。

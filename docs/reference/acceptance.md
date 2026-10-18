@@ -4,15 +4,25 @@
 
 ## 当前源码与本地交付
 
-最近生成的完整候选为[1.0.7.34](#最新完整安装器10734与清理门禁2026-10-18)，构建、原件安全标记及待验边界见该节；未推广或发布。
+本轮公开版本为 **1.0.8**，最终候选 **1.0.8.6**，实际验证与发布状态见[本轮记录](#v108发行验收2026-10-19)。构建和正式证明在隔离发行工作树 `E:/Data/.codex/worktrees/release-v1-0-8/TableMax` 维护；原主工作树其他任务的未提交改动未混入发行。
 
-本地current已核验恢复为[1.0.7.22](#盒子与马尼拉界面优化2026-10-17)，含七款游戏／八个玩法；33原指针和修复回执保留于[恢复记录](../archive/current-pointer-repair-2026-10-18.md)。公开版本仍为1.0.7，线上附件仍对应[1.0.7.2原字节](#1072安装进度与版本交付2026-10-16)。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
+上一轮主工作树本地current已核验恢复为[1.0.7.22](#盒子与马尼拉界面优化2026-10-17)，含七款游戏／八个玩法；33原指针和修复回执保留于[恢复记录](../archive/current-pointer-repair-2026-10-18.md)。本轮发布前的线上附件对应[1.0.7.2原字节](#1072安装进度与版本交付2026-10-16)。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
 
 源码与本地完整交付已包含经典马尼拉；本地current切换不覆盖线上附件、标签或原发行SHA映射。
 
-[GitHub v1.0.7](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.7)已正式发布并为latest，非草稿、非预发布。附件仅[installer](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-installer-win-x64.exe)与[source ZIP](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-source.zip)；公开installer与本地1.0.7.2完全同字节。source ZIP为86,438,358字节，SHA `83d9080b3a0d54b8d01269710dd3a9bec7c417413e4d18429e9d4fc0c5660963`，由标签源码提交 `c1207fd0be68b05b2fa88e2989a2c7444ca3527b`导出；标签对象 `14e0eef4272aeaea5648f9bc08fb43de998e09d7`。[发布审计](../../artifacts/maintenance/v1.0.7/windows-editions/91e13f6af698a964df479b8233ecf5e2f063d9579f09f9e1f7f2d652542e7ca5/github-publication.json)核对两附件远端摘要、源码映射及RSA签名正文。历史附件保留，不部署Pages；失败和操作方法差异见[发布归档](../archive/installer-progress-v107-release-2026-10-16.md)。
+[GitHub v1.0.7](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.7)为上一公开发行，非草稿、非预发布；本轮线上状态见1.0.8记录。附件仅[installer](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-installer-win-x64.exe)与[source ZIP](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-source.zip)；公开installer与本地1.0.7.2完全同字节。source ZIP为86,438,358字节，SHA `83d9080b3a0d54b8d01269710dd3a9bec7c417413e4d18429e9d4fc0c5660963`，由标签源码提交 `c1207fd0be68b05b2fa88e2989a2c7444ca3527b`导出；标签对象 `14e0eef4272aeaea5648f9bc08fb43de998e09d7`。[发布审计](../../artifacts/maintenance/v1.0.7/windows-editions/91e13f6af698a964df479b8233ecf5e2f063d9579f09f9e1f7f2d652542e7ca5/github-publication.json)核对两附件远端摘要、源码映射及RSA签名正文。历史附件保留，不部署Pages；失败和操作方法差异见[发布归档](../archive/installer-progress-v107-release-2026-10-16.md)。
 
 工作区占用及逐文件退役见[项目瘦身](project-slimming.md)；1.0.7.2发布任务未追加清理，马尼拉任务的单次维护单独记录。旧运行ZIP唯一迁移输入见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#旧运行zip的迁移输入)；下方旧标题保留历史导航。
+
+## v1.0.8发行验收（2026-10-19）
+
+用户明确授权整理并发布为latest。最终[完整安装器1.0.8.6](../../artifacts/releases/v1.0.8/1.0.8.6/TableMax-1.0.8.6-installer-win-x64.exe)预装七款游戏／八玩法，38116181字节，SHA256 `a520c73f0f94291c18960e0b4de19716aa994531670fe5eac8a4dd505e806fc2`；内部ZIP46366190字节，实际提取99291693字节，均低于120,000,000字节。冻结快照 `85bd35415a6a6dab6b2de0c0f59f6cac9feae8d15e9da78ad8aae804c10018ff`，发行工作树current已推广到此包；主工作树原1.0.7/current与历史SHA保留。
+
+[原路径标准账户Medium启动](../../artifacts/maintenance/v1.0.8/release/production-r6/original-executable/report.json)、中文向导取消、默认D、长I／外置D及旧框架失败恢复三条8步更新链均通过。正式产品ID首装、同包复装、快捷方式、真实保存、默认卸载、同根重装读回及再次卸载共12检查通过。[隔离终态](../../artifacts/maintenance/v1.0.8/release/production-r6/isolated-account.json)与外层回执均为passed／退出0，账户/profile删除，errors为空。[封存证明](../../artifacts/maintenance/v1.0.8/release/finalized-installation-r6.json)从原execution receipt核对并绑定原EXE证明；[推广回执](../../artifacts/maintenance/v1.0.8/release/promotion-final-r6.json)仅推广同一原件。首次健康启动117915668字节＝程序99903886＋框架5273757＋身份19681＋当前游戏12718344，低于硬限，触发110,000,000工程预警；不称为整个安装过程的绝对峰值。
+
+马尼拉真实载荷22布局／26检查、源码15布局／10详情、触控63项及结算内部滚动7项通过；规则/保存/投影/Worker等89用例、实际签名预装5用例、夹具4用例通过。最终图逐图独立复核及失败修正见[游戏验证](../games/manila/validation-scenarios.md#v108发行定向复验2026-10-19)。实体手机、Safari、真实LAN、物理DPI/4K电视和真人听感仍待设备验收；未修改防火墙，不部署Pages。
+
+更新说明已按此安装器SHA使用应用RSA密钥签名并自验。线上发布待执行；发布完成后核对latest、两附件摘要及标签源码映射，追加本节实际结论。历史v1.0.7附件和SHA不覆盖。
 
 ## 最新完整安装器1.0.7.34与清理门禁（2026-10-18）
 

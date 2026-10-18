@@ -14,13 +14,13 @@ node tools/release/package.mjs --candidate "--platform-from=<已核验冻结快�
 
 跨公开版本时，目标内部目录使用新tag的catalog和build-record，不把旧tag目录直接当作新目录；原游戏单元、受信任历史玩法正文及blob ZIP逐项核验。正文除目标平台releaseTag外完全相同才复用原完整玩法记录及其releaseId／releaseTag，未变游戏不重新编译、改名或重压。玩法或可信来源不匹配即拒绝，不降级为未核验复用。
 
-新公开版本尚无current时，双fixture准备显式指定旧正式current原件；不能临时改版本、假推广或在执行模式寻找来源回退。先完成目标版本源码和配方，提供目标Native依赖模板、server／web单元及全新证据目录：
+新公开版本尚无current时，双fixture准备显式指定旧正式current原件，或本次真实冻结的candidate.json；候选读取会核验包装类型、schema及原current摘要形状，再沿用完整EXE、payload、安装清单和快照的原字节验证。候选仅作为夹具材料，不创建current或替代正式推广证明；不能临时改版本、假推广或在执行模式寻找来源回退。先完成目标版本源码和配方，提供目标Native依赖模板、server／web单元及全新证据目录：
 
 ```powershell
-node tools/test/installation/verify-application-handoff.mjs --prepare-only "--source-pointer=<旧公开版本current.json原件>" "--native-template=<目标Native依赖目录>" "--server=<目标server单元files目录>" "--web=<目标box单元files目录>" "--evidence=<新准备证据目录>"
+node tools/test/installation/verify-application-handoff.mjs --prepare-only "--source-pointer=<旧正式current.json原件或本次冻结candidate.json>" "--native-template=<目标Native依赖目录>" "--server=<目标server单元files目录>" "--web=<目标box单元files目录>" "--evidence=<新准备证据目录>"
 ```
 
-`--source-pointer`仅用于prepare-only，路径须在工作区且没有链接。准备先核原指针、完整EXE、payload、安装清单及快照的版本和SHA，报告记录原指针路径／字节数／SHA，每份fixture保留原始指针副本。prepared复验只使用这些冻结材料，不重新读取current选择来源；不传参数时仍按当前公开版本current选择。fixture Native／helper及安装配方来自当前源码／package版本，借用的只是原完整签名游戏与载荷基础，不构成新正式产品或系统验收。
+`--source-pointer`仅用于prepare-only，路径须在工作区且没有链接。准备先核原指针、完整EXE、payload、安装清单及快照的版本和SHA，报告记录原指针路径／字节数／SHA，每份fixture保留原始指针副本。prepared复验只使用这些冻结材料，不重新读取current选择来源；不传参数时仍按当前公开版本current选择。fixture的60000／60001身份随当前package公开版本生成，不写死旧版本；Native／helper及安装配方来自当前源码／package版本，借用的只是原完整签名游戏与载荷基础，不构成新正式产品或系统验收。
 
 封好最终 EXE 后，将下列占位符替换为实际新路径，显式读取候选的交付 JSON，避免读取仍保留旧交付的 current。描述绑定最终 EXE 大小／SHA、安装清单及 current 映射；签名工具从受保护文件读取独立应用 RSA 私钥，用仓库公开根自验，输出不覆盖既有审阅文件。
 

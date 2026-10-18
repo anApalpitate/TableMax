@@ -754,6 +754,45 @@ try {
     if (selected.includes('round-result'))
       await check(`round-result-${width}: next voyage CTA`, async () => {
         await render({ phase: 'round-result', role: 'player', owner: true });
+        const resultScroll = await page.evaluate(async () => {
+          const card = document.querySelector('.mn-voyage-result');
+          const body = card.querySelector('.mn-result-body');
+          const previous = body.scrollTop;
+          const missing = [];
+          for (const row of body.querySelectorAll(
+            '.mn-result-merchant > summary',
+          )) {
+            row.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            await new Promise((resolve) =>
+              requestAnimationFrame(() => requestAnimationFrame(resolve)),
+            );
+            const box = row.getBoundingClientRect(),
+              viewport = body.getBoundingClientRect();
+            if (box.top < viewport.top - 1 || box.bottom > viewport.bottom + 1)
+              missing.push(row.textContent.trim());
+          }
+          body.scrollTop = previous;
+          return {
+            missing,
+            rows: body.querySelectorAll('.mn-result-merchant').length,
+            cardHeight: card.getBoundingClientRect().height,
+            bodyHeight: body.clientHeight,
+            contentHeight: body.scrollHeight,
+          };
+        });
+        assert.deepEqual(
+          resultScroll.missing,
+          [],
+          'Every merchant cash summary can scroll fully inside the bounded settlement card',
+        );
+        assert.equal(resultScroll.rows, 5);
+        assert(resultScroll.cardHeight <= Math.min(height * 0.35, 320) + 1);
+        report.metrics.push({
+          phase: 'round-result-scroll',
+          width,
+          height,
+          ...resultScroll,
+        });
         assert.equal(await page.locator('.mn-receipt-button').count(), 1);
         const button = page.locator('.mn-next-voyage');
         assert(await button.isVisible());

@@ -171,6 +171,8 @@ node tools/test/runner/test-scoped.mjs --scope=tooling --plan=<version-2.json> -
 
 ## 开发环境操作：按变更范围选择检查
 
+预装实际载荷回归 `apps/server/src/game-packages/preinstalled.test.ts` 可显式指定 `TABLEMAX_TEST_GAME_PACKAGES`（签名包目录）、`TABLEMAX_TEST_GAME_CATALOG`（该目录中的原catalog文件名）和 `TABLEMAX_TEST_APPLICATION_POINTER`（真实冻结current或candidate.json）。默认历史输入保持不变；候选包装须为schema 1／installation-candidate，实际Worker仍按对应冻结manifest核字节SHA，不能用任意本地Worker替代。旧玩法恢复用原签名历史catalog，不重造已退役EXE来填补夹具。
+
 准确文件或实际受影响范围；不运行其他游戏。
 
 ```powershell

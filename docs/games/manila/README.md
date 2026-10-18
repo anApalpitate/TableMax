@@ -10,7 +10,7 @@
 | 三端动作、选择与保存后反馈      | [交互](interaction.md)                                                                                  |
 | 写实港湾沙盘、动态与本地资源    | [视觉](visual-design.md)                                                                                |
 | 自动检查、原构建证据与设备缺口  | [验证场景](validation-scenarios.md)                                                                     |
-| 尚待完成的实体设备与正式推广    | [剩余任务](../../tasks/manila-development.md)                                                           |
+| 尚待完成的实体设备验收          | [剩余任务](../../tasks/manila-development.md)                                                           |
 | 当前完整EXE、候选及公开发行区别 | [当前验收](../../reference/acceptance.md#当前源码与本地交付)、[Release流程](../../reference/release.md) |
 | 已完成开发的历史过程            | [开发归档](../../archive/manila-2026-10-16.md)                                                          |
 
