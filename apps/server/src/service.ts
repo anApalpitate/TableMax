@@ -90,6 +90,7 @@ export async function createService(
       for (const name of readdirSync(legacyRoot))
         if (/^[a-f0-9]{64}$/.test(name))
           packages.migrateLegacy(join(legacyRoot, name));
+    if (developmentBuild) packages.loadDevelopment(join(config.webDir, '..'));
     if (!developmentBuild) {
       try {
         const preinstalled = await packages.importPreinstalled(

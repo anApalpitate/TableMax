@@ -21,6 +21,10 @@ const validScopes = ['box', 'shared', 'tooling', ...gameScopes];
 
 // Classify what a test actually exercises, rather than its containing app.
 const unitScopes = {
+  'apps/server/src/game-packages/development.test.ts': [
+    'shared',
+    'game:manila',
+  ],
   'apps/server/src/manila.test.ts': ['game:manila'],
   'apps/server/src/manila-worker.test.ts': ['game:manila'],
   'apps/server/src/events-integration.test.ts': ['game:pokemon-encounters'],

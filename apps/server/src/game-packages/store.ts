@@ -81,11 +81,6 @@ export class PackageStore {
       this.ensureDirectory(join(this.root, dir));
     if (existsSync(join(this.root, 'index.json')))
       this.index = this.readIndex(join(this.root, 'index.json'));
-    if (options.development)
-      for (const releaseId of new Set(Object.values(this.index.selected))) {
-        const release = this.index.releases[releaseId];
-        if (release) this.bundled.set(releaseKey(release), release);
-      }
     this.recover();
   }
   subscribe(listener: () => void): () => void {
@@ -523,8 +518,41 @@ export class PackageStore {
     if (!source.startsWith(join(this.root, '.legacy') + requireSeparator()))
       throw new Error('invalid-legacy-snapshot');
     this.assertSafe(source);
+    return this.registerLocalRuntime(source);
+  }
+  /** The current source build, rather than a previous cache selection, owns new development games. */
+  loadDevelopment(directory: string): void {
+    if (!this.options.development) throw new Error('not-development-build');
+    const releases = this.registerLocalRuntime(resolve(directory));
+    const current = new Map<string, GameRelease>();
+    for (const id of releases) {
+      const installed = this.resolveModule(id);
+      if (!installed) throw new Error('invalid-development-module');
+      current.set(releaseKey(installed.release), installed.release);
+    }
+    this.bundled = current;
+  }
+  private registerLocalRuntime(source: string): string[] {
+    const assertSource = (path: string) => {
+      const absolute = resolve(path);
+      if (
+        absolute !== source &&
+        !absolute.startsWith(source + requireSeparator())
+      )
+        throw new Error('runtime-path-escape');
+      for (let cursor = absolute; ; cursor = dirname(cursor)) {
+        if (existsSync(cursor) && lstatSync(cursor).isSymbolicLink())
+          throw new Error('runtime-link-rejected');
+        if (dirname(cursor) === cursor) break;
+      }
+    };
+    const readSource = (path: string) => {
+      assertSource(path);
+      return readFileSync(path);
+    };
+    assertSource(source);
     const modules = JSON.parse(
-      this.readSafe(join(source, 'modules.json')).toString(),
+      readSource(join(source, 'modules.json')).toString(),
     ) as ModuleManifest[];
     const registered: string[] = [];
     for (const original of modules) {
@@ -541,15 +569,15 @@ export class PackageStore {
           !entry.startsWith(part === 'rules' ? 'games/' : 'bots/')
         )
           throw new Error('invalid-legacy-entry');
-        files.push({ path: entry, data: this.readSafe(join(source, entry)) });
+        files.push({ path: entry, data: readSource(join(source, entry)) });
         if (existsSync(join(source, entry + '.br')))
           files.push({
             path: entry + '.br',
-            data: this.readSafe(join(source, entry + '.br')),
+            data: readSource(join(source, entry + '.br')),
           });
       }
       const visit = (directory: string, relative: string): void => {
-        this.assertSafe(directory);
+        assertSource(directory);
         for (const entry of readdirSync(directory, { withFileTypes: true })) {
           if (entry.isSymbolicLink()) throw new Error('legacy-link-rejected');
           const next = relative + '/' + entry.name;
@@ -558,7 +586,7 @@ export class PackageStore {
           else if (entry.isFile())
             files.push({
               path: next,
-              data: this.readSafe(join(directory, entry.name)),
+              data: readSource(join(directory, entry.name)),
             });
           else throw new Error('legacy-special-file');
         }

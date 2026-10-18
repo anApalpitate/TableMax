@@ -118,7 +118,10 @@ namespace TableMax.Desktop
                     await Quit();
                 });
                 var directory = AppDomain.CurrentDomain.BaseDirectory;
-                TableMax.Portable.LegacyGames.Preserve(directory, Path.Combine(Storage.Root, "games"));
+                // A source build registers its current flat modules directly. Its
+                // mutable games cache must never be recursively preserved into itself.
+                if (!File.Exists(Path.Combine(directory, ".tablemax-development.json")))
+                    TableMax.Portable.LegacyGames.Preserve(directory, Path.Combine(Storage.Root, "games"));
                 System.Environment.SetEnvironmentVariable("NODE_OPTIONS", null);
                 System.Environment.SetEnvironmentVariable("NODE_PATH", null);
                 StartupStage("service.start.await");
