@@ -1145,6 +1145,37 @@ try {
                 });
             }
           }
+          const statusRows = [],
+            abbreviatedStatuses = [];
+          for (const node of root.querySelectorAll(
+            '.mn-position-readout,.mn-manifest-state > span:not(.mn-manifest-hold)',
+          )) {
+            if (!visible(node)) continue;
+            const style = getComputedStyle(node),
+              box = rect(node.closest('.mn-manifest-state') ?? node),
+              range = document.createRange();
+            range.selectNodeContents(node);
+            const textBoxes = [...range.getClientRects()].filter(
+              (text) => text.width > 0 && text.height > 0,
+            );
+            const row = {
+              text: node.textContent.trim(),
+              overflow: style.textOverflow,
+              box,
+            };
+            statusRows.push(row);
+            if (
+              style.textOverflow === 'ellipsis' ||
+              textBoxes.some(
+                (text) =>
+                  text.left < box.left - 1.5 ||
+                  text.right > box.right + 1.5 ||
+                  text.top < box.top - 1.5 ||
+                  text.bottom > box.bottom + 1.5,
+              )
+            )
+              abbreviatedStatuses.push(row);
+          }
           const clippedText = [],
             textRows = [];
           for (const node of root.querySelectorAll(
@@ -1231,6 +1262,8 @@ try {
               }
           }
           return {
+            statusRows,
+            abbreviatedStatuses,
             scaleOverlaps,
             majorCount,
             groups,
@@ -1251,6 +1284,16 @@ try {
           metrics.majorCount,
           role === 'player' && width <= 620 ? 3 : 4,
           `${role}/${phase}: every visible board region is measured (portrait keeps market and merchant ledger behind their existing entry)`,
+        );
+        assert.deepEqual(
+          metrics.abbreviatedStatuses,
+          [],
+          `${role}/${phase}: saved boat destinations have full glyphs and no ellipsis`,
+        );
+        assert.equal(
+          metrics.statusRows.length,
+          3,
+          `${role}/${phase}: all three settled boat status labels are checked`,
         );
         assert.deepEqual(
           metrics.collisions,

@@ -225,8 +225,9 @@
   .mn-main
   .mn-harbor
   .mn-lane-meta {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
   align-items: start;
   gap: 6px;
 }

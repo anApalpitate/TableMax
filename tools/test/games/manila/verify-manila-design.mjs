@@ -65,7 +65,7 @@ const initial=rules.initialize(context);
 function stateFor(phase){
  let state=initial;
  for(let i=0;i<800;i++){
-  if(phase==='auction'&&state.phase==='auction'||phase==='place'&&state.phase==='place'||phase==='sail'&&state.phase==='place'&&state.movement>0||phase==='ended'&&state.phase==='ended')return state;
+  if(phase==='auction'&&state.phase==='auction'||phase==='place'&&state.phase==='place'||phase==='sail'&&state.phase==='place'&&state.movement>0||phase==='round-result'&&state.phase==='round-result'||phase==='ended'&&state.phase==='ended')return state;
   state=advance(state);
  }
  throw new Error('Unreachable fixture '+phase);
@@ -158,6 +158,7 @@ const report = {
   inputsBefore: await fingerprint(),
   inputBindingBefore: inputBinding,
   layouts: [],
+  destinations: [],
   details: [],
   screenshots: [],
   errors: [],
@@ -959,6 +960,48 @@ try {
     [],
     'Browsing details and ledger never submits actions',
   );
+  // This legal all-six voyage reaches A/B/C; the seeded harbor fixture also
+  // checks mixed port/shipyard results. Keep destination glyphs in both suites.
+  await page.setViewportSize({ width: 1280, height: 720 });
+  for (const role of ['host', 'public']) {
+    await page.evaluate(
+      (role) => window.renderManila({ phase: 'round-result', role }),
+      role,
+    );
+    const labels = await page
+      .locator('.mn-position-readout')
+      .evaluateAll((nodes) =>
+        nodes.map((node) => {
+          const style = getComputedStyle(node),
+            box = node.getBoundingClientRect(),
+            range = document.createRange();
+          range.selectNodeContents(node);
+          return {
+            text: node.textContent.trim(),
+            overflow: style.textOverflow,
+            clipped: [...range.getClientRects()].some(
+              (text) =>
+                text.left < box.left - 1 ||
+                text.right > box.right + 1 ||
+                text.top < box.top - 1 ||
+                text.bottom > box.bottom + 1,
+            ),
+          };
+        }),
+      );
+    report.destinations.push({ role, labels });
+    assert.deepEqual(
+      labels.map(({ text }) => text),
+      ['靠港A', '靠港B', '靠港C'],
+    );
+    assert(
+      labels.every(
+        ({ overflow, clipped }) => overflow !== 'ellipsis' && !clipped,
+      ),
+      `${role}: every saved port letter is fully visible`,
+    );
+    await shot('destinations-' + role + '-1280x720');
+  }
   assert.deepEqual(report.errors, []);
   report.result = 'passed';
 } catch (error) {

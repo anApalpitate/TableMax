@@ -472,13 +472,12 @@
   gap: 2px 4px;
 }
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-position-readout {
-  min-width: 0;
-  overflow: hidden;
+  min-width: max-content;
+  overflow: visible;
   font-size: 18px;
   font-weight: 700;
   line-height: 20px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 :is(.mn-screen--host, .mn-screen--public) .mn-layout .mn-payout-label {
   flex: none;
