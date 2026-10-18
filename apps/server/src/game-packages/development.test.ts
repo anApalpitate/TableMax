@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path';
 import { createService } from '../service';
 import { PackageStore } from './store';
 import { PROJECT_GAME_PUBLIC_KEY } from './project-public-key';
+import { blobIdentity, releaseIdentity } from './verification';
 import type { Command } from '@tablemax/protocol';
 import type { ModuleManifest } from '@tablemax/game-sdk/module-manifest';
 
@@ -13,7 +14,12 @@ async function fixture() {
   mkdirSync('tmp', { recursive: true });
   const root = mkdtempSync(resolve('tmp/development-games-'));
   const app = join(root, 'app');
-  for (const path of ['games', 'bots', 'web/games/manila/web'])
+  for (const path of [
+    'games',
+    'bots',
+    'web/games/manila/web',
+    'web/games/manila/resources/manila',
+  ])
     mkdirSync(join(app, path), { recursive: true });
   const module = JSON.parse(
     readFileSync('games/manila/game-module.json', 'utf8'),
@@ -38,6 +44,11 @@ async function fixture() {
     join(app, 'web/games/manila/web/entry.js'),
     'export const sourceRevision = 1;',
   );
+  for (const name of ['boat-v1.webp', 'harbor-v1.webp', 'site-port-v2.webp'])
+    writeFileSync(
+      join(app, 'web/games/manila/resources/manila', name),
+      readFileSync(join('assets/games/manila', name)),
+    );
   await Promise.all(
     ['rules', 'bot'].map((part) =>
       build({
@@ -99,6 +110,33 @@ it('loads Manila on the first source startup and serves the current browser entr
     });
     expect(entry.statusCode).toBe(200);
     expect(entry.body).toContain('sourceRevision = 1');
+    for (const name of [
+      'boat-v1.webp',
+      'harbor-v1.webp',
+      'site-port-v2.webp',
+    ]) {
+      const image = await service.app.inject({
+        method: 'GET',
+        url: `/game-packages/${ref}/resources/manila/${name}`,
+      });
+      expect(image.statusCode).toBe(200);
+      expect(image.headers['content-type']).toBe('image/webp');
+      expect(image.rawPayload).toEqual(
+        readFileSync(join('assets/games/manila', name)),
+      );
+    }
+    for (const suffix of [
+      'uno/boat-v1.webp',
+      'manila/missing.webp',
+      'games/manila.cjs',
+      'bots/manila.cjs',
+    ]) {
+      const denied = await service.app.inject({
+        method: 'GET',
+        url: `/game-packages/${ref}/resources/${suffix}`,
+      });
+      expect(denied.statusCode).toBe(404);
+    }
     await command(service, service.hostToken, {
       type: 'select-game',
       gameId: 'manila',
@@ -135,6 +173,14 @@ it('uses the rebuilt source for new games while an existing SQLite match stays p
     expect(service.room.view().game!.releaseRef).toBe(oldRef);
     expect(service.room.view().gameView).toEqual(original.gameView);
     expect(service.room.view(tokens[0]!).self.role).toBe('player');
+    const restoredImage = await service.app.inject({
+      method: 'GET',
+      url: `/game-packages/${oldRef}/resources/manila/boat-v1.webp`,
+    });
+    expect(restoredImage.statusCode).toBe(200);
+    expect(restoredImage.rawPayload).toEqual(
+      readFileSync('assets/games/manila/boat-v1.webp'),
+    );
     await command(service, service.hostToken, {
       type: 'select-game',
       gameId: 'manila',
@@ -174,4 +220,69 @@ it('cannot make an unsigned local runtime current outside an explicitly marked d
   expect(() => store.loadDevelopment(f.app)).toThrow('not-development-build');
   expect(store.current('manila')).toBeUndefined();
   expect(Object.keys(store.snapshot().index.releases)).toHaveLength(0);
+}, 30000);
+
+it('keeps non-legacy resource resolution bound to its explicit inventory map', async () => {
+  const f = await fixture();
+  const options = {
+    root: f.config.gamesDir,
+    publicKey: PROJECT_GAME_PUBLIC_KEY,
+    protectedReleaseIds: () => [],
+  };
+  const development = new PackageStore({ ...options, development: true });
+  development.loadDevelopment(f.app);
+  const index = development.snapshot().index;
+  const original = development.current('manila')!;
+  const unmapped = structuredClone(original);
+  delete unmapped.legacy;
+  unmapped.releaseId = releaseIdentity(unmapped);
+  const mapped = structuredClone(unmapped);
+  const resource = structuredClone(index.blobs[mapped.code]!);
+  resource.kind = 'resources';
+  resource.files = resource.files.filter(
+    (file) => file.path === 'web/resources/manila/boat-v1.webp',
+  );
+  resource.installedBytes = resource.files[0]!.size;
+  resource.id = blobIdentity(resource);
+  index.blobs[resource.id] = resource;
+  const resourceDirectory = join(
+    f.config.gamesDir,
+    'manila',
+    'blobs',
+    resource.id,
+    'web/resources/manila',
+  );
+  mkdirSync(resourceDirectory, { recursive: true });
+  writeFileSync(
+    join(resourceDirectory, 'boat-v1.webp'),
+    readFileSync('assets/games/manila/boat-v1.webp'),
+  );
+  mapped.resources = [resource.id];
+  mapped.resourceMap['manila/boat-v1.webp'] = {
+    blobId: resource.id,
+    path: 'web/resources/manila/boat-v1.webp',
+  };
+  mapped.releaseId = releaseIdentity(mapped);
+  index.releases[unmapped.releaseId] = unmapped;
+  index.releases[mapped.releaseId] = mapped;
+  writeFileSync(join(f.config.gamesDir, 'index.json'), JSON.stringify(index));
+  const store = new PackageStore(options);
+  expect(
+    store.resolvePublicFile(unmapped.releaseId, 'manila/boat-v1.webp'),
+  ).toBeUndefined();
+  expect(store.resolvePublicFile(mapped.releaseId, 'manila/boat-v1.webp')).toBe(
+    join(
+      f.config.gamesDir,
+      'manila',
+      'blobs',
+      resource.id,
+      'web/resources/manila/boat-v1.webp',
+    ),
+  );
+  expect(
+    store.resolvePublicFile(mapped.releaseId, 'manila/../games/manila.cjs'),
+  ).toBeUndefined();
+  expect(
+    store.resolvePublicFile(mapped.releaseId, 'games/manila.cjs'),
+  ).toBeUndefined();
 }, 30000);

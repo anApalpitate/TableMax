@@ -157,7 +157,13 @@ export class PackageStore {
     if (!release) return undefined;
     const resource = release.resourceMap[path];
     const blobId = resource?.blobId ?? release.code;
-    const relative = resource?.path ?? path;
+    // Preserved flat runtimes keep assets beside web code, rather than in
+    // signed resource blobs. Resolve only their own inventoried namespace.
+    const relative =
+      resource?.path ??
+      (release.legacy && path.startsWith(release.gameId + '/')
+        ? 'web/resources/' + path
+        : path);
     if (
       /\.cjs(?:\.br)?$/i.test(relative) ||
       relative === release.module.entries.rules ||
