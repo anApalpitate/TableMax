@@ -25,7 +25,14 @@ const assets = resolve(
     'artifacts/game-packages/v1.0.6/current',
 );
 const envelope = JSON.parse(
-  readFileSync(join(assets, 'TableMax-game-catalog-v1.0.6.json'), 'utf8'),
+  readFileSync(
+    join(
+      assets,
+      process.env.TABLEMAX_TEST_GAME_CATALOG ??
+        'TableMax-game-catalog-v1.0.6.json',
+    ),
+    'utf8',
+  ),
 ) as SignedCatalog;
 const currentReleases = preferredCatalogReleases(
   envelope.payload.releases,
@@ -146,13 +153,24 @@ it('loads each bundled gameplay and saves an authorized decision from the actual
   const store = new PackageStore(f.options);
   await store.importPreinstalled(f.source);
   const registry = createGameRegistry(false, store);
-  const pointer = JSON.parse(
-    readFileSync('artifacts/package-payloads/v1.0.6/current.json', 'utf8'),
+  const source = JSON.parse(
+    readFileSync(
+      process.env.TABLEMAX_TEST_APPLICATION_POINTER ??
+        'artifacts/package-payloads/v1.0.6/current.json',
+      'utf8',
+    ),
   );
+  if (source.pointer) {
+    expect(source.schemaVersion).toBe(1);
+    expect(source.kind).toBe('installation-candidate');
+  }
+  const pointer = source.pointer ?? source;
   const delivery = pointer.deliveries.find(
     (d: { edition: string }) => d.edition === 'full',
   );
   const manifest = JSON.parse(readFileSync(delivery.manifestPath, 'utf8'));
+  expect(manifest.version).toBe(pointer.version);
+  expect(manifest.snapshot).toBe(pointer.snapshot);
   const workerRecord = manifest.files.find(
     (file: { path: string }) => file.path === 'bot-worker.cjs',
   );

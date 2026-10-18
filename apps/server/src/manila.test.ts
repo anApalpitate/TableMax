@@ -306,7 +306,7 @@ it('persists complete voyage finance once through failed saves, duplicate envelo
       const current = f.actor();
       const before = f.service.room.view(current.token);
       const { action } = await bot.decide({
-        view: before.gameView,
+        view: before.gameView as JsonValue,
         actions: before.actions as JsonValue[],
         decision: { id: before.decisionId!, seatId: before.self.seatId! },
         memory: null,

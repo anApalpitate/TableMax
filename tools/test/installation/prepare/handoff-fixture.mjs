@@ -12,6 +12,7 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import {
   createInstallationFixturePackage,
   readInstallationFixtureSource,
+  fixtureSourcePointer,
 } from '../../../release/installation-fixture.mjs';
 import {
   applicationPublicKeyXml,
@@ -131,9 +132,8 @@ export async function prepareHandoffFixture({
   report.privateKey = prepared
     ? 'No private key used; reverified public signed prepared materials'
     : 'Generated only in Node memory; never serialized, logged or exported';
-  // Two new-layout application fixtures exercise the v1.0.7 compatibility
-  // baseline without changing package.json or the production release.
-  const version = '1.0.7';
+  // Fixture identities follow the target public version; current is never changed.
+  const version = (await json('package.json')).version;
   let selectedSource;
   if (sourcePointer) {
     assert.ok(!prepared, 'Explicit source pointer is preparation only');
@@ -312,7 +312,7 @@ export async function prepareHandoffFixture({
     assert.deepEqual(await record(frozen), source.frozenPointer);
     assert.equal(source.frozenPointer.bytes, source.pointer.bytes);
     assert.equal(source.frozenPointer.sha256, source.pointer.sha256);
-    const pointer = await json(frozen);
+    const pointer = fixtureSourcePointer(await json(frozen));
     assert.equal(pointer.version, source.version);
     assert.equal(pointer.buildVersion, source.buildVersion);
     assert.equal(pointer.snapshot, source.snapshot);

@@ -58,6 +58,23 @@ async function sourceRecord(path) {
   return { path, bytes: raw.length, sha256: hash(raw) };
 }
 
+/** Unwrap an explicit frozen candidate without promoting it to current. */
+export function fixtureSourcePointer(document) {
+  if (!Object.hasOwn(document, 'pointer')) return document;
+  assert.equal(document.schemaVersion, 1);
+  assert.equal(document.kind, 'installation-candidate');
+  assert.ok(
+    document.pointer &&
+      typeof document.pointer === 'object' &&
+      !Array.isArray(document.pointer),
+  );
+  assert.ok(
+    document.baseCurrentSha256 === null ||
+      /^[a-f0-9]{64}$/.test(document.baseCurrentSha256),
+  );
+  return document.pointer;
+}
+
 /** Authenticate an explicit source before any fixture compilation or extraction. */
 export async function readInstallationFixtureSource(sourcePointer) {
   assertWorkspaceRoot();
@@ -73,7 +90,9 @@ export async function readInstallationFixtureSource(sourcePointer) {
       ),
   );
   const pointerBytes = await readFile(pointerPath);
-  const pointer = JSON.parse(pointerBytes.toString('utf8'));
+  const pointer = fixtureSourcePointer(
+    JSON.parse(pointerBytes.toString('utf8')),
+  );
   assert.match(pointer.version, /^1\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/);
   assert.ok(
     pointer.buildVersion === pointer.version ||

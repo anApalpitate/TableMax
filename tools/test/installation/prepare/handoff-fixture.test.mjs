@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import test from 'node:test';
 import { prepareHandoffFixture, record } from './handoff-fixture.mjs';
+import { fixtureSourcePointer } from '../../../release/installation-fixture.mjs';
 
 async function fixture(t) {
   await mkdir(resolve('tmp'), { recursive: true });
@@ -33,6 +34,7 @@ async function fixture(t) {
 test('failed fixture compilation retains the original failure and never invokes packaging', async (t) => {
   const input = await fixture(t);
   const commands = [];
+  const version = JSON.parse(await readFile('package.json', 'utf8')).version;
   let packages = 0;
   const prepared = await prepareHandoffFixture({
     ...input,
@@ -54,6 +56,8 @@ test('failed fixture compilation retains the original failure and never invokes 
     prepared.fixture(prepared.oldBuild, false),
     /retained-compile-log/,
   );
+  assert.equal(prepared.oldBuild, version + '.60000');
+  assert.equal(prepared.newBuild, version + '.60001');
   assert.equal(commands.length, 1);
   assert.equal(commands[0].executable, 'dotnet');
   assert.ok(commands[0].args.includes('/define:TABLEMAX_INSTALLATION_TEST'));
@@ -102,4 +106,54 @@ test('prepared verification rejects an incomplete method dependency closure', as
     prepared.verifyPrepared(),
     /Prepared method dependency declaration changed/,
   );
+});
+
+test('fixture source accepts an explicit frozen candidate without inventing current', () => {
+  const pointer = { version: '1.0.8', buildVersion: '1.0.8.2' };
+  assert.equal(fixtureSourcePointer(pointer), pointer);
+  assert.equal(
+    fixtureSourcePointer({
+      schemaVersion: 1,
+      kind: 'installation-candidate',
+      baseCurrentSha256: null,
+      pointer,
+    }),
+    pointer,
+  );
+  assert.equal(
+    fixtureSourcePointer({
+      schemaVersion: 1,
+      kind: 'installation-candidate',
+      baseCurrentSha256: 'a'.repeat(64),
+      pointer,
+    }),
+    pointer,
+  );
+  for (const invalid of [
+    {
+      schemaVersion: 2,
+      kind: 'installation-candidate',
+      baseCurrentSha256: null,
+      pointer,
+    },
+    {
+      schemaVersion: 1,
+      kind: 'other-record',
+      baseCurrentSha256: null,
+      pointer,
+    },
+    {
+      schemaVersion: 1,
+      kind: 'installation-candidate',
+      baseCurrentSha256: 'stale',
+      pointer,
+    },
+    {
+      schemaVersion: 1,
+      kind: 'installation-candidate',
+      baseCurrentSha256: null,
+      pointer: [],
+    },
+  ])
+    assert.throws(() => fixtureSourcePointer(invalid), assert.AssertionError);
 });
