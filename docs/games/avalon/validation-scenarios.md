@@ -24,6 +24,14 @@ full EXE **43,690,496字节**，实际验收提取目录 **96,393,141字节**；
 
 ## 源码与权限
 
+### 主机首屏布局（2026-10-18）
+
+[源码布局报告](../../../artifacts/avalon/validation/host-layout-complete-20261018/report.json)覆盖5–10人、宣誓／组队／讨论／表决／任务／刺杀／终局、全人数长昵称及讨论时暂停，共210组；视口为1024×640、1280×720、1536×864、1920×1080和3840×2160。核对整页横纵尺寸、必要区域边界、座位及面板互不重叠；代表截图另作目视检查。验证器与主要输入SHA保存在同目录，检查范围为阿瓦隆源码组件和合法规则投影，未构建完整EXE，不作为安装器、实体设备或真实DPI验收。
+
+此前沙箱Edge启动失败记录保留在`host-layout-before-20261018`；后续修正验证夹具的各人数任务人数，并依实测修复终局、短屏侧栏和座位重叠，各轮报告保留在同一验证根下的`host-layout-source`、`host-layout-fixed`、`host-layout-sidebar`与`host-layout-compact`对应20261018目录。环境和实质修复后均新建独立范围轮，未覆盖旧失败。
+
+### 既有源码与权限记录
+
 本次42项游戏单测通过：规则7、秘密权限4、恢复3、策略4、UI6、真实Socket／SQLite服务5、隔离Worker13。范围隔离工具11项另外通过；正常工程权限下全项目TypeScript、定向ESLint与Prettier通过。仅执行阿瓦隆产品项，没有因既有其他任务改动扩大游戏测试范围。
 
 规则／策略证据见 [规则检查](README.md#规则与策略验证)。UI证据 [c1d559bd](../../../artifacts/maintenance/test-history/runs/c1d559bd-985c-45f0-9701-7a891209e7b8.json)，服务与Worker证据 [86917a42](../../../artifacts/maintenance/test-history/runs/86917a42-8078-42cc-9fa1-f544c850851d.json)。历史记录含两项beforeAll生命周期，实际产品测试为18项服务／Worker，不能按历史20条冒充20个用例。
