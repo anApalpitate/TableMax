@@ -3,6 +3,7 @@ import { CARGOS, CARGO, MARKET, BERTH_PAYOUTS, emptySpaces } from './catalog';
 import { boardTargets, credit } from './actions';
 import { occupant, workerCount, type State } from './state';
 import { finalScores, resolveWinners } from './scoring';
+import { changeCash, startFinance } from './finance';
 import type { Action, BoatView, CargoId } from './view';
 
 export function initialize(context: RuleContext): State {
@@ -70,6 +71,7 @@ export function initialize(context: RuleContext): State {
     winners: [],
     payment: null,
     settlementBefore: null,
+    voyageFinance: startFinance(1, context.seats, players),
   };
 }
 /** An unaffordable commitment opens a real collateral choice; the engine never
@@ -94,7 +96,18 @@ function completePayment(s: State, context: RuleContext): void {
     p = s.players[obligation.seatId]!;
   if (p.cash < obligation.amount && obligation.reason !== 'insurance')
     throw new Error('Insufficient funds');
-  p.cash -= Math.min(p.cash, obligation.amount);
+  const category = {
+    auction: 'auction',
+    share: 'shares',
+    place: 'placement',
+    insurance: 'insurance',
+  } as const;
+  changeCash(
+    s,
+    obligation.seatId,
+    `expenses.${category[obligation.reason]}`,
+    Math.min(p.cash, obligation.amount),
+  );
   s.payment = null;
   if (obligation.reason === 'auction') s.phase = 'share';
   else if (obligation.reason === 'share') {
@@ -160,13 +173,18 @@ function settle(s: State, context: RuleContext): void {
         ? boat.crew
         : [];
     for (const seat of crew)
-      s.players[seat]!.cash += CARGO[boat.cargo].payout / crew.length;
+      changeCash(
+        s,
+        seat,
+        boat.plundered ? 'income.piracy' : 'income.cargo',
+        CARGO[boat.cargo].payout / crew.length,
+      );
   }
   const ports = s.boats.filter((b) => b.destination === 'port').length;
   const yards = s.boats.filter((b) => b.destination === 'shipyard').length;
   for (let i = 0; i < ports; i++) {
     const seat = occupant(s, `port-${i}`);
-    if (seat) s.players[seat]!.cash += BERTH_PAYOUTS[i]!;
+    if (seat) changeCash(s, seat, 'income.port', BERTH_PAYOUTS[i]!);
   }
   const insurer = occupant(s, 'insurance');
   // Pay every shipyard worker from the bank first. Then collect the insurer's
@@ -177,7 +195,7 @@ function settle(s: State, context: RuleContext): void {
     const recipient = occupant(s, `shipyard-${i}`),
       amount = BERTH_PAYOUTS[i]!;
     if (recipient && recipient !== insurer)
-      s.players[recipient]!.cash += amount;
+      changeCash(s, recipient, 'income.shipyard', amount);
     if (!insurer && recipient) continue;
     if (insurer && recipient !== insurer) liability += amount;
   }
@@ -204,6 +222,7 @@ function finalizeSettlement(s: State): void {
       .map((b) => b.cargo),
     plundered: s.boats.filter((b) => b.plundered).map((b) => b.cargo),
     dice: structuredClone(s.dice),
+    ...(s.voyageFinance ? { finance: structuredClone(s.voyageFinance) } : {}),
   };
   s.phase = Object.values(s.market).includes(30) ? 'ended' : 'round-result';
   if (s.phase === 'ended') {
@@ -356,6 +375,7 @@ export function nextVoyage(s: State): void {
   s.plunderQueue = [];
   s.dice = [];
   s.result = null;
+  s.voyageFinance = startFinance(s.voyage, s.seats, s.players);
   for (const p of Object.values(s.players)) {
     p.usedWorkers = 0;
     p.passed = false;
@@ -374,11 +394,11 @@ export function execute(
     const share = p.shares.find((x) => x.id === action.shareId)!;
     if (action.type === 'mortgage') {
       share.mortgaged = true;
-      p.cash += 12;
+      changeCash(s, seat, 'borrowed', 12);
     } else {
       share.mortgaged = false;
       share.revealed = true;
-      p.cash -= 15;
+      changeCash(s, seat, 'redeemed', 15);
     }
     s.latest =
       action.type === 'mortgage'
@@ -428,7 +448,7 @@ export function execute(
     } else if (action.type === 'place') {
       const space = s.spaces.find((x) => x.id === action.space)!;
       if (space.kind === 'insurance') {
-        p.cash += 10;
+        changeCash(s, seat, 'income.insurance', 10);
         space.occupant = seat;
         p.usedWorkers++;
         syncCrew(s);

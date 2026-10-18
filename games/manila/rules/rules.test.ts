@@ -5,6 +5,7 @@ import { bot } from '../bot';
 import { CARGO, CARGOS, MARKET } from './catalog';
 import { turnSeat, validateState, type State } from './state';
 import { finalScores, resolveWinners } from './scoring';
+import { startFinance } from './finance';
 import type { Action, ManilaView } from './view';
 
 const seats = ['A', 'B', 'C', 'D'];
@@ -24,11 +25,15 @@ function fixture(ids = seats): State {
   let s = rules.initialize(context(ids)) as State;
   for (let i = 0; i < ids.length; i++) s = apply(s, { type: 'pass' });
   s = apply(s, { type: 'skip-share' });
-  return apply(s, {
+  s = apply(s, {
     type: 'setup',
     cargos: ['nutmeg', 'silk', 'ginseng'],
     positions: [3, 3, 3],
   });
+  // These controlled board fixtures predate the voyage cash ledger and may
+  // install cash/occupants directly. Keep them explicitly in the legacy shape.
+  delete s.voyageFinance;
+  return s;
 }
 function existing(s: State, id: string, seat: string): void {
   const space = s.spaces.find((x) => x.id === id)!;
@@ -111,6 +116,7 @@ describe('Manila classic 2005 rules', () => {
   it('raises strictly, forbids passed re-entry and does not leak or pre-charge losing collateral', () => {
     let s = rules.initialize(context()) as State;
     s.players.A!.cash = 1;
+    delete s.voyageFinance;
     s = apply(s, { type: 'bid', amount: 13 });
     expect(s.players.A!.cash).toBe(1);
     expect(s.players.A!.shares.every((x) => !x.mortgaged)).toBe(true);
@@ -137,6 +143,7 @@ describe('Manila classic 2005 rules', () => {
   it('forces multiple chosen collateral steps and rejects another owner’s share', () => {
     let s = rules.initialize(context()) as State;
     s.players.A!.cash = 0;
+    delete s.voyageFinance;
     s = apply(s, { type: 'bid', amount: 24 });
     for (let i = 0; i < 3; i++) s = apply(s, { type: 'pass' });
     expect(s.phase).toBe('financing');
@@ -510,6 +517,169 @@ describe('Manila classic 2005 rules', () => {
     expect(() =>
       rules.applyLifecycle(fixture(), { type: 'next-voyage' }, context()),
     ).toThrow();
+  });
+});
+
+describe('Manila complete voyage finance', () => {
+  it('tracks the whole voyage from auction, including purchases, posts, insurance and separate financing', () => {
+    let s = rules.initialize(context()) as State;
+    s = apply(s, { type: 'bid', amount: 3 });
+    for (let i = 0; i < 3; i++) s = apply(s, { type: 'pass' });
+    s = apply(s, { type: 'buy-share', cargo: 'jade' });
+    const share = s.players.A!.shares[0]!;
+    s = apply(s, { type: 'mortgage', shareId: share.id });
+    s = apply(s, { type: 'repay', shareId: share.id });
+    s = apply(s, {
+      type: 'setup',
+      cargos: ['nutmeg', 'silk', 'ginseng'],
+      positions: [3, 3, 3],
+    });
+    for (const space of ['insurance', 'port-0', 'cargo-nutmeg-0', 'shipyard-0'])
+      s = apply(s, { type: 'place', space }, { next: () => 0.99 });
+    s = passPlacements(s, { next: () => 0.99 });
+    expect(s.phase).toBe('round-result');
+    const finance = s.result!.finance!;
+    expect(finance).toEqual(s.voyageFinance);
+    expect(finance.players.A).toEqual({
+      openingCash: 30,
+      closingCash: 29,
+      income: { cargo: 0, piracy: 0, port: 0, shipyard: 0, insurance: 10 },
+      expenses: { auction: 3, shares: 5, placement: 0, insurance: 0 },
+      borrowed: 12,
+      redeemed: 15,
+    });
+    expect(finance.players.B!.income.port).toBe(6);
+    expect(finance.players.B!.expenses.placement).toBe(4);
+    expect(finance.players.C!.income.cargo).toBe(24);
+    expect(finance.players.C!.expenses.placement).toBe(2);
+    expect(finance.players.D!.income.shipyard).toBe(0);
+    expect(s.result!.income.A).toBe(0); // Legacy settlement delta excludes the earlier insurance income.
+    expect(validateState(JSON.parse(JSON.stringify(s)), seats)).toEqual(s);
+  });
+  it('counts repeated crew payouts, port and repair income, excluding insurance self-payments', () => {
+    let s = finalPlacement([13, 3, 3]);
+    existing(s, 'insurance', 'A');
+    existing(s, 'shipyard-0', 'A');
+    existing(s, 'shipyard-1', 'B');
+    existing(s, 'cargo-nutmeg-0', 'C');
+    existing(s, 'cargo-nutmeg-1', 'C');
+    existing(s, 'port-0', 'D');
+    s.voyageFinance = startFinance(s.voyage, s.seats, s.players);
+    s = passPlacements(s);
+    expect(s.result!.finance!.players.A!.expenses.insurance).toBe(8);
+    expect(s.result!.finance!.players.A!.income.shipyard).toBe(0);
+    expect(s.result!.finance!.players.B!.income.shipyard).toBe(8);
+    expect(s.result!.finance!.players.C!.income.cargo).toBe(24);
+    expect(s.result!.finance!.players.D!.income.port).toBe(6);
+  });
+  it('keeps forced insurance collateral separate and records only the amount actually paid', () => {
+    let s = finalPlacement();
+    existing(s, 'insurance', 'A');
+    existing(s, 'shipyard-2', 'B');
+    s.players.A!.cash = 0;
+    s.voyageFinance = startFinance(s.voyage, s.seats, s.players);
+    s = passPlacements(s);
+    expect(s.phase).toBe('financing');
+    expect(s.voyageFinance!.players.B!.income.shipyard).toBe(15);
+    s = validateState(JSON.parse(JSON.stringify(s)), seats);
+    s = apply(s, { type: 'mortgage', shareId: s.players.A!.shares[0]!.id });
+    s = apply(s, { type: 'mortgage', shareId: s.players.A!.shares[1]!.id });
+    const entry = s.result!.finance!.players.A!;
+    expect(entry.borrowed).toBe(24);
+    expect(entry.expenses.insurance).toBe(24);
+    expect(
+      Object.values(entry.income).reduce((sum, value) => sum + value, 0),
+    ).toBe(0);
+    expect(entry.openingCash).toBe(0);
+    expect(entry.closingCash).toBe(0);
+    expect(s.players.B!.cash).toBe(45);
+  });
+  it('classifies pirate plunder separately from ordinary cargo dividends', () => {
+    let s = finalPlacement([12, 3, 3]);
+    existing(s, 'pirate-0', 'A');
+    existing(s, 'pirate-1', 'B');
+    s.voyageFinance = startFinance(s.voyage, s.seats, s.players);
+    s = passPlacements(s);
+    expect(s.phase).toBe('plunder');
+    s = apply(s, { type: 'plunder', cargo: 'nutmeg', destination: 'port' });
+    expect(s.result!.finance!.players.A!.income.piracy).toBe(12);
+    expect(s.result!.finance!.players.B!.income.piracy).toBe(12);
+    expect(s.result!.finance!.players.A!.income.cargo).toBe(0);
+  });
+  it('preserves missing legacy history until the following voyage and keeps the final voyage ledger', () => {
+    let s = passPlacements(fixture());
+    expect(s).not.toHaveProperty('voyageFinance');
+    expect(s.result).not.toHaveProperty('finance');
+    expect(validateState(JSON.parse(JSON.stringify(s)), seats)).toEqual(s);
+    s = rules.applyLifecycle(s, { type: 'next-voyage' }, context())
+      .state as State;
+    expect(s.voyageFinance!.voyage).toBe(2);
+    expect(s.voyageFinance!.players.A!.openingCash).toBe(s.players.A!.cash);
+    expect(validateState(s, seats)).toEqual(s);
+    let ended = finalPlacement([13, 3, 3]);
+    ended.market.nutmeg = 20;
+    ended.voyageFinance = startFinance(
+      ended.voyage,
+      ended.seats,
+      ended.players,
+    );
+    ended = passPlacements(ended);
+    expect(ended.phase).toBe('ended');
+    expect(ended.result!.finance).toEqual(ended.voyageFinance);
+    expect(
+      (rules.project(ended, { role: 'public' }) as ManilaView).result!.finance,
+    ).toEqual(ended.voyageFinance);
+  });
+  it('projects only public financial categories while preserving concealed share identities', () => {
+    let s = finalPlacement();
+    existing(s, 'insurance', 'A');
+    s.voyageFinance = startFinance(s.voyage, s.seats, s.players);
+    s = passPlacements(s);
+    while (s.phase === 'financing')
+      s = apply(s, rules.legalActions(s, turnSeat(s)!)[0] as Action);
+    const pub = rules.project(s, { role: 'public' }) as ManilaView;
+    const own = rules.project(s, { role: 'player', seatId: 'A' }) as ManilaView;
+    expect(pub.result!.finance).toEqual(own.result!.finance);
+    expect(pub.players.A!.revealedShares).toEqual([]);
+    const serialized = JSON.stringify(pub.result!.finance);
+    expect(serialized).not.toContain('shareId');
+    for (const share of s.players.A!.shares)
+      expect(serialized).not.toContain(share.id);
+    pub.result!.finance!.players.A!.closingCash = 999;
+    expect(s.result!.finance!.players.A!.closingCash).not.toBe(999);
+  });
+  it.each([
+    'unknown',
+    'negative',
+    'balance',
+    'category',
+    'voyage',
+    'undefined',
+  ])('rejects forged or incomplete finance data: %s', (kind) => {
+    const s = rules.initialize(context()) as State;
+    const entry = s.voyageFinance!.players.A!;
+    if (kind === 'unknown')
+      (s.voyageFinance as unknown as Record<string, unknown>).hidden = true;
+    if (kind === 'negative') entry.income.cargo = -1;
+    if (kind === 'balance') entry.openingCash++;
+    if (kind === 'category')
+      (entry.income as unknown as Record<string, unknown>).cargoId = 'silk';
+    if (kind === 'voyage') s.voyageFinance!.voyage++;
+    if (kind === 'undefined')
+      (s as unknown as Record<string, unknown>).voyageFinance = undefined;
+    expect(() => validateState(s, seats)).toThrow();
+  });
+  it('requires a settled finance snapshot to agree with the complete authoritative ledger', () => {
+    let s = finalPlacement();
+    s.voyageFinance = startFinance(s.voyage, s.seats, s.players);
+    s = passPlacements(s);
+    const missing = structuredClone(s);
+    delete missing.result!.finance;
+    expect(() => validateState(missing, seats)).toThrow();
+    const changed = structuredClone(s);
+    changed.result!.finance!.players.A!.income.cargo++;
+    changed.result!.finance!.players.A!.expenses.placement++;
+    expect(() => validateState(changed, seats)).toThrow();
   });
 });
 

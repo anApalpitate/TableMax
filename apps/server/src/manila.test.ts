@@ -6,7 +6,7 @@ import type { Command, CommandReply, RoomView } from '@tablemax/protocol';
 import type { JsonValue } from '@tablemax/game-sdk';
 import { RandomSource } from '@tablemax/platform-core/random';
 import { rules, bot } from '../../../games/manila';
-import type { ManilaView } from '../../../games/manila/rules/view';
+import type { Action, ManilaView } from '../../../games/manila/rules/view';
 import { createService } from './service';
 import { SqliteSaveRepository } from './save-repository';
 import { createGameRegistry } from './game-registry';
@@ -263,6 +263,124 @@ it('Manila real Socket/SQLite saves are private, atomic, idempotent and determin
     );
     for (const token of f.tokens)
       expect(f.service.room.view(token).self.seatId).toBeTruthy();
+  } finally {
+    vi.restoreAllMocks();
+    await f.close();
+  }
+}, 60000);
+
+it('persists complete voyage finance once through failed saves, duplicate envelopes, settlement rollback and restart', async () => {
+  const f = await fixture();
+  try {
+    const first = f.actor();
+    const opening = f.service.room.view(first.token);
+    const mortgage = opening.actions.find(
+      (action) => (action as Action).type === 'mortgage',
+    )! as JsonValue;
+    const loan = envelope(opening, {
+      type: 'game',
+      decisionId: opening.decisionId!,
+      action: mortgage,
+    });
+    const saveSpy = vi
+      .spyOn(SqliteSaveRepository.prototype, 'save')
+      .mockImplementationOnce(() => {
+        throw new Error('simulated finance save failure');
+      });
+    expect((await f.send(first.socket, loan)).ok).toBe(false);
+    expect(f.service.room.view(first.token).gameView).toEqual(opening.gameView);
+    saveSpy.mockRestore();
+    expect((await f.send(first.socket, loan)).ok).toBe(true);
+    const afterLoan = f.service.room.view(first.token);
+    expect((afterLoan.gameView as ManilaView).self!.cash).toBe(42);
+    expect((await f.send(first.socket, loan)).ok).toBe(true);
+    expect(f.service.room.view(first.token).revision).toBe(afterLoan.revision);
+    const random = new RandomSource(771);
+    let settlement: {
+      token: string;
+      before: RoomView;
+      after: RoomView;
+      action: JsonValue;
+    } | null = null;
+    for (let step = 0; step < 200 && !settlement; step++) {
+      const current = f.actor();
+      const before = f.service.room.view(current.token);
+      const { action } = await bot.decide({
+        view: before.gameView,
+        actions: before.actions as JsonValue[],
+        decision: { id: before.decisionId!, seatId: before.self.seatId! },
+        memory: null,
+        difficulty: 'default',
+        random,
+        signal: new AbortController().signal,
+      });
+      const command = envelope(before, {
+        type: 'game',
+        decisionId: before.decisionId!,
+        action,
+      });
+      expect((await f.send(current.socket, command)).ok).toBe(true);
+      const after = f.service.room.view(current.token);
+      if ((after.gameView as ManilaView).result) {
+        expect((await f.send(current.socket, command)).ok).toBe(true);
+        expect(f.service.room.view(current.token).gameView).toEqual(
+          after.gameView,
+        );
+        settlement = { token: current.token, before, after, action };
+      }
+    }
+    expect(settlement).not.toBeNull();
+    const expected = (settlement!.after.gameView as ManilaView).result!
+      .finance!;
+    expect(expected.players[opening.self.seatId!]!.borrowed).toBe(12);
+    for (const [seat, entry] of Object.entries(expected.players)) {
+      expect(entry.openingCash).toBe(30);
+      expect(entry.closingCash).toBe(
+        (settlement!.after.gameView as ManilaView).players[seat]!.cash,
+      );
+      expect(entry.closingCash - entry.openingCash).toBe(
+        Object.values(entry.income).reduce((sum, value) => sum + value, 0) -
+          Object.values(entry.expenses).reduce((sum, value) => sum + value, 0) +
+          entry.borrowed -
+          entry.redeemed,
+      );
+    }
+    expect(
+      (f.service.room.view().gameView as ManilaView).result!.finance,
+    ).toEqual(expected);
+    const point = f.service.room.view(f.service.hostToken).history.at(-1)!;
+    expect(
+      (
+        await f.run(f.host, f.service.hostToken, {
+          type: 'rollback',
+          checkpointId: point.id,
+        })
+      ).ok,
+    ).toBe(true);
+    expect(f.service.room.view(settlement!.token).gameView).toEqual(
+      settlement!.before.gameView,
+    );
+    expect(
+      (await f.run(f.host, f.service.hostToken, { type: 'resume' })).ok,
+    ).toBe(true);
+    const replayActor = f.actor();
+    expect(
+      (
+        await f.run(replayActor.socket, replayActor.token, {
+          type: 'game',
+          decisionId: f.service.room.view(replayActor.token).decisionId!,
+          action: settlement!.action,
+        })
+      ).ok,
+    ).toBe(true);
+    expect(
+      (f.service.room.view().gameView as ManilaView).result!.finance,
+    ).toEqual(expected);
+    await f.restart();
+    expect(
+      (f.service.room.view().gameView as ManilaView).result!.finance,
+    ).toEqual(expected);
+    expect(f.service.room.view(f.service.hostToken).paused).toBe(true);
   } finally {
     vi.restoreAllMocks();
     await f.close();

@@ -1,5 +1,6 @@
 import { CARGOS, MARKET, BERTH_PAYOUTS, emptySpaces } from './catalog';
 import { finalScores, resolveWinners } from './scoring';
+import { sameFinance, validFinance } from './finance';
 import type {
   BoatView,
   CargoId,
@@ -7,6 +8,7 @@ import type {
   ShareView,
   SpaceView,
   VoyageResult,
+  VoyageFinance,
 } from './view';
 
 export type State = {
@@ -49,6 +51,8 @@ export type State = {
     space: string | null;
   } | null;
   settlementBefore: Record<string, number> | null;
+  /** Missing on legacy voyages whose earlier cash transfers are unavailable. */
+  voyageFinance?: VoyageFinance;
 };
 
 export function workerCount(s: State): number {
@@ -148,6 +152,9 @@ export function validateState(input: unknown, seats: readonly string[]): State {
       'winners',
       'payment',
       'settlementBefore',
+      ...(object(input) && Object.hasOwn(input, 'voyageFinance')
+        ? ['voyageFinance']
+        : []),
     ])
   )
     invalid();
@@ -479,6 +486,11 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     invalid();
   const settled = s.phase === 'round-result' || s.phase === 'ended';
   if (
+    Object.hasOwn(s, 'voyageFinance') &&
+    !validFinance(s.voyageFinance, s.voyage, s.seats, s.players)
+  )
+    invalid();
+  if (
     settled !== (s.result !== null) ||
     (settled &&
       (s.movement !== 3 ||
@@ -496,6 +508,7 @@ export function validateState(input: unknown, seats: readonly string[]): State {
         'shipyard',
         'plundered',
         'dice',
+        ...(Object.hasOwn(r, 'finance') ? ['finance'] : []),
       ]) ||
       r.voyage !== s.voyage ||
       !recordSigned(r.income, s.seats) ||
@@ -514,6 +527,13 @@ export function validateState(input: unknown, seats: readonly string[]): State {
           s.boats.filter((b) => b.plundered).map((b) => b.cargo),
         ) ||
       JSON.stringify(r.dice) !== JSON.stringify(s.dice)
+    )
+      invalid();
+    if (
+      Object.hasOwn(r, 'finance') !== Object.hasOwn(s, 'voyageFinance') ||
+      (Object.hasOwn(r, 'finance') &&
+        (!validFinance(r.finance, s.voyage, s.seats, s.players) ||
+          !sameFinance(r.finance!, s.voyageFinance!)))
     )
       invalid();
   }

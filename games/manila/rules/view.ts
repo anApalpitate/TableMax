@@ -47,6 +47,29 @@ export type SpaceView = {
   payout: number | null;
   occupant: string | null;
 };
+export type VoyageFinancePlayer = {
+  openingCash: number;
+  closingCash: number;
+  income: {
+    cargo: number;
+    piracy: number;
+    port: number;
+    shipyard: number;
+    insurance: number;
+  };
+  expenses: {
+    auction: number;
+    shares: number;
+    placement: number;
+    insurance: number;
+  };
+  borrowed: number;
+  redeemed: number;
+};
+export type VoyageFinance = {
+  voyage: number;
+  players: Record<string, VoyageFinancePlayer>;
+};
 export type VoyageResult = {
   voyage: number;
   income: Record<string, number>;
@@ -54,6 +77,8 @@ export type VoyageResult = {
   shipyard: CargoId[];
   plundered: CargoId[];
   dice: { movement: number; values: Record<string, number> }[];
+  /** Absent for a voyage restored without its complete cash history. */
+  finance?: VoyageFinance;
 };
 export type ManilaView = {
   gameId: 'manila';
