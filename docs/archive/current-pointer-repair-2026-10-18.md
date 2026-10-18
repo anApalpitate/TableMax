@@ -9,3 +9,5 @@
 随后实际[清理预览](../../artifacts/maintenance/deep-slimming-restore-current-1792303313464/current-gate-preview.log)通过有效current门禁，保护22内部载荷，未执行Apply。继续按[深度瘦身接续](../tasks/installer-and-deep-slimming.md)逐文件核对来源、SHA、精确UTC ticks、路径／链接、进程和近期保护，最后唯一一次Apply并实测完整逻辑容量。
 
 34冻结候选仍记录构建时原current33 SHA。以后若另行验收／推广，应先核对baseCurrent变化和适用契约，不能直接篡改冻结候选或套用旧证明。
+
+后续[深度瘦身审计](deep-slimming-current22-2026-10-18.md)完成精确来源、完整字节归档及原生Global链接核对；用户选择保留开发服务并暂不删除，项目Apply未执行，不能将候选字节算作回收。
