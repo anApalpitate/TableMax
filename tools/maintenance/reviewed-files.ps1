@@ -69,6 +69,23 @@ function Assert-ReviewedRetainedCopy($File) {
   [TableMax.ReviewedFileGuardV1]::Check($workspace, $copy.path, [long]$copy.bytes, $item.LastWriteTimeUtc.Ticks, $copy.sha256, [DateTime]::MaxValue.Ticks) | Out-Null
 }
 
+function Initialize-ReviewedReferenceLookup($Plan) {
+  # Rebuild for every newly loaded plan; never infer freshness from object identity.
+  $script:reviewedReferenceIgnoreCase = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+  $script:reviewedReferenceExact = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+  foreach ($reference in @($Plan.references)) {
+    $key = [string]$reference.path + '|' + ([string]$reference.sha256).ToUpperInvariant()
+    $reviewedReferenceIgnoreCase.Add($key) | Out-Null
+    $reviewedReferenceExact.Add($key) | Out-Null
+  }
+}
+
+function Test-ReviewedReference([string]$Path, [string]$Sha256, [switch]$ExactPath) {
+  $key = $Path + '|' + $Sha256.ToUpperInvariant()
+  if ($ExactPath) { return $reviewedReferenceExact.Contains($key) }
+  return $reviewedReferenceIgnoreCase.Contains($key)
+}
+
 function Assert-ReviewedArchivedFile($File) {
   $copy = $File.preservedArchive
   $format = if ($copy -and $copy.PSObject.Properties['format']) { [string]$copy.format } else { 'zip' }
@@ -76,7 +93,7 @@ function Assert-ReviewedArchivedFile($File) {
   $archivePattern = if ($format -eq 'zip') { '^artifacts/maintenance/.+\.zip$' } else { '^artifacts/maintenance/.+\.tar\.xz$' }
   if (-not $copy -or $copy.path -notmatch $archivePattern -or
       -not [string]::Equals([string]$copy.entryPath, [string]$File.path, [StringComparison]::Ordinal) -or $copy.sha256 -notmatch '^[a-f0-9]{64}$' -or
-      -not @($reviewedPlan.references | Where-Object { $_.path -eq $copy.path -and $_.sha256 -eq $copy.sha256 }).Count) {
+      -not (Test-ReviewedReference $copy.path $copy.sha256)) {
     throw 'Archived content requires a permanent hash-bound archive and exact original member path.'
   }
   $archivePath = Resolve-ReviewedPath $copy.path -AnyRoot
@@ -135,7 +152,7 @@ function Test-ReviewedFrozenProgram($File, $Entry) {
     if (-not [string]::Equals([string]$binding.manifestPath,$expected,[StringComparison]::Ordinal) -or
         -not [string]::Equals([string]$binding.memberPath,$member,[StringComparison]::Ordinal) -or
         $binding.manifestSha256 -notmatch '^[a-f0-9]{64}$' -or
-        -not @($reviewedPlan.references | Where-Object { [string]::Equals([string]$_.path,$expected,[StringComparison]::Ordinal) -and $_.sha256 -eq $binding.manifestSha256 }).Count) { throw 'Generated program requires its exact hash-bound frozen manifest and member.' }
+        -not (Test-ReviewedReference $expected $binding.manifestSha256 -ExactPath)) { throw 'Generated program requires its exact hash-bound frozen manifest and member.' }
     $manifestPath=Resolve-ReviewedPath $expected -AnyRoot
     if ((Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $binding.manifestSha256) { throw 'Frozen program manifest changed.' }
     $manifest=Get-Content -LiteralPath $manifestPath -Raw -Encoding utf8 | ConvertFrom-Json
@@ -147,7 +164,7 @@ function Test-ReviewedFrozenProgram($File, $Entry) {
     $binding=$File.canonicalProgram
     $canonical='.cache/node/22.14.0/runtime/node.exe'
     if ($member -cne 'node.exe' -or $binding.path -cne $canonical -or $binding.sha256 -ne $File.sha256 -or
-        -not @($reviewedPlan.references | Where-Object { $_.path -ceq $canonical -and $_.sha256 -eq $File.sha256 }).Count) { throw 'Canonical program preservation applies only to the fixed identical Node runtime.' }
+        -not (Test-ReviewedReference $canonical $File.sha256 -ExactPath)) { throw 'Canonical program preservation applies only to the fixed identical Node runtime.' }
     $source=Resolve-ReviewedPath $canonical -AnyRoot
     if ((Get-Item -LiteralPath $source -Force).Length -ne $File.bytes -or
         (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant() -ne $File.sha256) { throw 'Canonical Node runtime bytes changed.' }
@@ -191,6 +208,16 @@ function Assert-ReviewedAllowed($File, $Entry) {
   return [TableMax.ReviewedFileGuardV1]::Check($workspace, $File.path, [long]$File.bytes, [long]$File.lastWriteTimeUtcTicks, $File.sha256, $cutoff.Ticks)
 }
 
+function Convert-ReviewedLinkTargetRepresentation([string]$Target) {
+  if ($Target.StartsWith('\??\')) { $Target = $Target.Substring(4) }
+  if ($Target.StartsWith('Global\',[StringComparison]::OrdinalIgnoreCase)) {
+    if ($Target -cnotmatch '^Global\\[A-Za-z]:\\') { throw 'Invalid Global link target representation.' }
+    # Normalize only the recorded protection target; never follow or repair it.
+    return $Target.Substring(7)
+  }
+  return $Target
+}
+
 function Get-ReviewedLinkTarget($Link) {
   if ([string]::IsNullOrWhiteSpace($Link.path) -or -not [IO.Path]::IsPathRooted($Link.target) -or
       $Link.path -match '[\\:*?]' -or @($Link.path.Split('/') | Where-Object { $_ -in @('', '.', '..', '.git') }).Count) { throw 'Invalid reviewed link record path.' }
@@ -200,7 +227,8 @@ function Get-ReviewedLinkTarget($Link) {
   $targets = @($item.Target)
   if (-not ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $targets.Count -ne 1) { throw 'Recorded link changed or disappeared.' }
   $target = [string]$targets[0]
-  if ($target.StartsWith('\??\')) { $target = $target.Substring(4) }
+  if ($Link.PSObject.Properties['rawTarget'] -and -not [string]::Equals($target,[string]$Link.rawTarget,[StringComparison]::Ordinal)) { throw 'Recorded raw link target changed.' }
+  $target = Convert-ReviewedLinkTargetRepresentation $target
   if (-not [IO.Path]::IsPathRooted($target)) { $target = Join-Path (Split-Path $absolute -Parent) $target }
   $target = [IO.Path]::GetFullPath($target).TrimEnd('\')
   if (-not $target.Equals([IO.Path]::GetFullPath($Link.target).TrimEnd('\'), [StringComparison]::OrdinalIgnoreCase)) { throw 'Recorded link target changed.' }
@@ -216,7 +244,7 @@ function Assert-ReviewedBindings {
     $bytes = if ($file.PSObject.Properties['bytes']) { [long]$file.bytes } else { $item.Length }
     # The compiled guard checks every ancestor for links and nested repositories,
     # requires an ordinary file, and rechecks metadata after its full SHA-256 read.
-    [TableMax.ReviewedFileGuardV1]::Check($workspace, $file.path, $bytes, $item.LastWriteTimeUtc.Ticks, $file.sha256, [DateTime]::MaxValue.Ticks) | Out-Null
+    [TableMax.ReviewedFileGuardV1]::Check($workspace, $file.path, $bytes, $item.LastWriteTimeUtc.Ticks, ([string]$file.sha256).ToLowerInvariant(), [DateTime]::MaxValue.Ticks) | Out-Null
   }
   foreach ($link in $reviewedPlan.links) { Get-ReviewedLinkTarget $link | Out-Null }
   if ($reviewedHasCache) {
@@ -237,6 +265,7 @@ function Invoke-ReviewedFilesRetirement {
   $script:reviewedManifestHash = (Get-FileHash -LiteralPath $reviewedManifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
   if (($ReviewedFilesManifestSha256 -and $ReviewedFilesManifestSha256 -ne $reviewedManifestHash) -or ($Apply -and -not $ReviewedFilesManifestSha256)) { throw 'Reviewed manifest must match its exact preview SHA-256.' }
   $script:reviewedPlan = Get-Content -LiteralPath $reviewedManifestPath -Raw -Encoding utf8 | ConvertFrom-Json
+  Initialize-ReviewedReferenceLookup $reviewedPlan
   $script:reviewedArchivedMembers = @{}
   if ($reviewedPlan.version -ne 1 -or $reviewedPlan.authorization -ne 'retire-reviewed-generated-once' -or
       $reviewedPlan.id -notmatch '^[a-z0-9][a-z0-9-]{0,80}$' -or $reviewedPlan.currentVersion -ne $project.version -or
@@ -258,7 +287,9 @@ function Invoke-ReviewedFilesRetirement {
     $reviewedProtected.Add([string]$prefix) | Out-Null
   }
   foreach ($retained in @($reviewedPlan.protectedFiles) + @($reviewedPlan.references)) {
-    Resolve-ReviewedPath $retained.path -AnyRoot | Out-Null
+    # All retained paths receive the compiled full check in Assert-ReviewedBindings
+    # below, before candidate validation or deletion; avoid duplicate provider walks.
+    Resolve-ReviewedPath $retained.path -AnyRoot -SyntaxOnly | Out-Null
     $reviewedProtected.Add([string]$retained.path) | Out-Null
   }
   foreach ($entry in $reviewedPlan.entries) {

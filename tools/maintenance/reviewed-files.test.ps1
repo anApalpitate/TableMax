@@ -279,7 +279,28 @@ try {
     $node | Add-Member -NotePropertyName canonicalProgram -NotePropertyValue ([PSCustomObject]@{path=$canonical.path;sha256=$canonical.sha256})
     Plan 'frozen-generated-program' $app @($program,$node)
     $plan.references=@($manifest,$canonical,$archiveRef);Save-Plan
+    Initialize-ReviewedReferenceLookup $plan
+    Check (Test-ReviewedReference $archiveRef.path.ToUpperInvariant() $archiveRef.sha256) 'archive reference lookup preserves case-insensitive paths'
+    Check (Test-ReviewedReference $manifest.path $manifest.sha256.ToUpperInvariant() -ExactPath) 'reference SHA lookup preserves case-insensitive equality'
+    Check (-not (Test-ReviewedReference $manifest.path.ToUpperInvariant() $manifest.sha256 -ExactPath)) 'frozen reference lookup requires exact path case'
+    Check (-not (Test-ReviewedReference ($archiveRef.path+'-wrong') $archiveRef.sha256)) 'reference lookup rejects wrong path'
+    Check (-not (Test-ReviewedReference $archiveRef.path ('0'*64))) 'reference lookup rejects wrong SHA'
+    $lookupPlan=[PSCustomObject]@{references=@([PSCustomObject]@{path=$archiveRef.path;sha256=$archiveRef.sha256})}
+    Initialize-ReviewedReferenceLookup $lookupPlan
+    $lookupPlan.references=@()
+    Initialize-ReviewedReferenceLookup $lookupPlan
+    Check (-not (Test-ReviewedReference $archiveRef.path $archiveRef.sha256)) 'explicit reinitialization sees reference edits on the same object'
     Invoke-ReviewedFilesRetirement
+    $caseManifest=[PSCustomObject]@{path=$manifest.path.ToUpperInvariant();sha256=$manifest.sha256}
+    $plan.references=@($caseManifest,$canonical,$archiveRef);Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'frozen manifest reference path case must be exact'
+    $caseCanonical=[PSCustomObject]@{path=$canonical.path.ToUpperInvariant();sha256=$canonical.sha256}
+    $plan.references=@($manifest,$caseCanonical,$archiveRef);Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'canonical Node reference path case must be exact'
+    $caseArchive=[PSCustomObject]@{path=$archiveRef.path.ToUpperInvariant();sha256=$archiveRef.sha256}
+    $plan.references=@($manifest,$canonical,$caseArchive);Save-Plan
+    Invoke-ReviewedFilesRetirement
+    $plan.references=@($manifest,$canonical,$archiveRef);Save-Plan
     $binding.memberPath='server/wrong.cjs';Save-Plan
     Refused { Invoke-ReviewedFilesRetirement } 'frozen member must equal exact program suffix'
     $binding.memberPath='server/main.cjs';$binding.manifestSha256='0'*64;Save-Plan
@@ -339,6 +360,24 @@ try {
     $script:junctions += $linkPath
     $actualLink=[PSCustomObject]@{path='tmp/linked';target=(Join-Path $workspace 'tmp/link-target')}
     Check ((Get-ReviewedLinkTarget $actualLink).Equals($actualLink.target,[StringComparison]::OrdinalIgnoreCase)) 'actual Junction Target resolves correctly as string or string-array'
+    $actualLink | Add-Member -NotePropertyName rawTarget -NotePropertyValue ([string]@((Get-Item -LiteralPath $linkPath -Force).Target)[0])
+    Check ((Get-ReviewedLinkTarget $actualLink).Equals($actualLink.target,[StringComparison]::OrdinalIgnoreCase)) 'normal Junction exact raw representation is bound'
+    $rawNormal=$actualLink.rawTarget;$actualLink.rawTarget=$rawNormal.ToUpperInvariant()
+    Refused { Get-ReviewedLinkTarget $actualLink } 'raw Junction representation uses exact ordinal comparison'
+    $actualLink.rawTarget=$rawNormal
+    $globalPath=Join-Path $workspace 'tmp/global-linked'
+    New-Item -ItemType Junction -Path $globalPath -Target ('\??\Global\'+$actualLink.target) | Out-Null
+    $script:junctions += $globalPath
+    $globalRecord=[PSCustomObject]@{path='tmp/global-linked';target=$actualLink.target;rawTarget=([string]@((Get-Item -LiteralPath $globalPath -Force).Target)[0])}
+    Check ((Get-ReviewedLinkTarget $globalRecord).Equals($actualLink.target,[StringComparison]::OrdinalIgnoreCase)) 'real Global Junction representation protects its normal absolute target without traversal'
+    $globalRecord.rawTarget='incorrect raw representation'
+    Refused { Get-ReviewedLinkTarget $globalRecord } 'Global raw target mismatch rejected'
+    $globalRecord.rawTarget=[string]@((Get-Item -LiteralPath $globalPath -Force).Target)[0]
+    $globalRecord.target=Join-Path $workspace 'tmp/different-target'
+    Refused { Get-ReviewedLinkTarget $globalRecord } 'Global normalized target change rejected'
+    $globalRecord.target=$actualLink.target
+    Refused { Convert-ReviewedLinkTargetRepresentation '\??\Global\UNC\invalid' } 'non-drive Global target rejected without traversal'
+    Check ((Convert-ReviewedLinkTargetRepresentation ('Global\'+$actualLink.target)) -ceq $actualLink.target) 'raw Global drive representation normalizes only its prefix'
     Plan 'target-protected' 'tmp/link-target' @($target)
     $plan.links=@([PSCustomObject]@{path='tmp/linked';target=(Join-Path $workspace 'tmp/link-target')});Save-Plan
     Refused { Invoke-ReviewedFilesRetirement } 'inbound link target protected'
@@ -369,6 +408,9 @@ try {
     $plan.references=@([PSCustomObject]@{path=$reference.path;sha256=$reference.sha256});Save-Plan
     Invoke-ReviewedFilesRetirement
     $originalReferences=@($script:reviewedPlan.references)
+    $script:reviewedPlan.references=@([PSCustomObject]@{path=$reference.path;sha256=$reference.sha256.ToUpperInvariant()})
+    Assert-ReviewedBindings
+    Check $true 'compiled reference check preserves case-insensitive SHA equality'
     $script:reviewedPlan.references=@([PSCustomObject]@{path=$reference.path;sha256=('0'*64)})
     Refused { Assert-ReviewedBindings } 'compiled reference check rejects wrong SHA'
     $script:reviewedPlan.references=@([PSCustomObject]@{path='artifacts/maintenance';sha256=$reference.sha256})

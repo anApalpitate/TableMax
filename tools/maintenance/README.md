@@ -12,6 +12,8 @@
 
 清单 `version: 1`、`authorization: retire-reviewed-generated-once`、唯一 `id`、`currentVersion`、`currentArchiveSha256`、`protectedPrefixes`、`protectedFiles`、`references`、`links` 及 `entries`。每项为精确生成根 `path`、`origin`（`generated-copy`／`isolated-test`／`retired-cache`）、来源说明 `reason` 和普通 `files`（`path`、`bytes`、`lastWriteTimeUtcTicks`、`sha256`）。测试库仅允许已证实隔离的 `isolated-test`；正式数据、原件、源码、签名模块仓库与当前交付不得列入。记录在 `artifacts/maintenance/reviewed-retirements/<id>.json`，开始即消耗ID，部分失败也不复用、重试或追加第二轮，不创建恢复副本。
 
+`links`可带`rawTarget`绑定原生目标的精确表示；现有记录的`target`仍为规范绝对保护路径。原生`Global\<盘符>:\`（可在既有`\??\`后）只用于规范目标和保护比较，不修复、跟随或删除链接；非法Global表示拒绝。引用查找表每次载入清单后重建，保留原路径大小写规则；全部保留引用仍在候选检查前及每1000文件批次完整核验SHA、祖先链接、嵌套仓库及元数据稳定性，不以缓存命中替代实际文件检查。
+
 经独立核验的编译／组装输出可在同一精确清单中选择 `build/desktop`、`build/native`、`build/native-obj`，仅接受 `generated-copy`。必须在 `references` 绑定未变的 `build/snapshots/latest.json` 和完整64位SHA命名的冻结快照；冻结快照、未知build目录、依赖／工具缓存及未列成员不进入清理。仍逐文件核验来源、SHA、近期修改、进程与路径，不能仅凭目录名选择所有成员。
 
 历史机器报告或冻结快照需要保留完整内容时，文件可带 `preservedArchive`（永久maintenance ZIP的`path`／`sha256`，与原文件路径完全相同的`entryPath`）。ZIP必须同时登记为 `references`，工具逐成员解压核验原字节及SHA，删除期间持续绑定归档哈希。`build/snapshots`只接受64位SHA命名的历史JSON及assembly JSON，且必须提供此完整归档证明；latest、当前引用快照、未知名称及未列文件保留。历史ID复查前按原路径还原相应归档成员，当前启动和旧局恢复无需还原；临时副本仍直接退役，不为待删文件创建备份。
