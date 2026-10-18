@@ -22,7 +22,7 @@
 
 马尼拉真实载荷22布局／26检查、源码15布局／10详情、触控63项及结算内部滚动7项通过；规则/保存/投影/Worker等89用例、实际签名预装5用例、夹具4用例通过。最终图逐图独立复核及失败修正见[游戏验证](../games/manila/validation-scenarios.md#v108发行定向复验2026-10-19)。实体手机、Safari、真实LAN、物理DPI/4K电视和真人听感仍待设备验收；未修改防火墙，不部署Pages。
 
-更新说明已按此安装器SHA使用应用RSA密钥签名并自验。线上发布待执行；发布完成后核对latest、两附件摘要及标签源码映射，追加本节实际结论。历史v1.0.7附件和SHA不覆盖。
+[GitHub v1.0.8](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.8)已正式发布为latest，非草稿、非预发布。附件仅[完整installer](https://github.com/anApalpitate/TableMax/releases/download/v1.0.8/TableMax-1.0.8-installer-win-x64.exe)与[source ZIP](https://github.com/anApalpitate/TableMax/releases/download/v1.0.8/TableMax-1.0.8-source.zip)；installer与本地1.0.8.6原件同字节。source ZIP为89010151字节，SHA256 `510703958cbf25113b31fd895d74601421125d387776d95652219e06e780321b`；标签源码提交 `2ea67bea22f7bba7f67a385331d7382452572d97`，标签对象 `2f2c97a6c5abe887b695f21adb2681e54153da97`。[发布审计](../../artifacts/maintenance/v1.0.8/windows-editions/85bd35415a6a6dab6b2de0c0f59f6cac9feae8d15e9da78ad8aae804c10018ff/github-publication.json)已核对远端两附件摘要、latest、源码映射及应用RSA签名正文。历史v1.0.7附件和SHA保留，不部署Pages。
 
 ## 最新完整安装器1.0.7.34与清理门禁（2026-10-18）
 
