@@ -19,13 +19,21 @@
 
 原来缺失的1.0.7.26 EXE链接已明确标为原路径缺失，仅保存身份追溯，不生成、下载或替换安装器。旧包、原SHA及历史通过范围未因本轮文档整理升级。
 
-主要证据：[工具交接](../../artifacts/maintenance/documentation-optimization/2026-10-18/tools/handoff.json)、[迁移与链接](../../artifacts/maintenance/documentation-optimization/2026-10-18/root/integration-after-repair.json)、[内容不变量](../../artifacts/maintenance/documentation-optimization/2026-10-18/root/content-invariants.json)、[技能四维评价](../../artifacts/maintenance/documentation-optimization/2026-10-18/skills/review.json)、[隔离写入独立复核](../../artifacts/maintenance/documentation-optimization/2026-10-18/skills/isolated-write/parent-verification.json)、[固定查询对照](../../artifacts/maintenance/documentation-optimization/2026-10-18/queries/evaluation.json)。这些是本轮方法与范围证据，不替代后续产品验收。
+主要证据：[工具交接](../../artifacts/maintenance/documentation-optimization/2026-10-18/tools/handoff.json)、[迁移与链接](../../artifacts/maintenance/documentation-optimization/2026-10-18/root/final-full.json)、[内容不变量](../../artifacts/maintenance/documentation-optimization/2026-10-18/root/content-invariants.json)、[技能四维评价](../../artifacts/maintenance/documentation-optimization/2026-10-18/skills/review.json)、[隔离写入独立复核](../../artifacts/maintenance/documentation-optimization/2026-10-18/skills/isolated-write/parent-verification.json)、[固定查询对照](../../artifacts/maintenance/documentation-optimization/2026-10-18/queries/evaluation.json)。这些是本轮方法与范围证据，不替代后续产品验收。
 
 ## 收益实测与剩余观察
 
 固定夹具中6题可比：输出95,550→94,890字节（下降0.69%），脚本入口26→23次（下降11.54%）；首轮至少一个目标均6/6、全部目标均3/6，必要限定均6/6保留。游戏数量和来源变化属于内容纠正／新增，单独列出；全8题输出105,549→108,980字节，不能只挑下降样本报告。
 
 旧正文72/73份与冻结SHA匹配；旧验收页无法可靠重建，明确排除该目标，不伪造旧正文或旧答案。脚本函数／命令入口次数不是模型API往返，字节不是token或费用。50%读取量／25%往返目标尚未证明；后续5个可比实际任务继续在[原提效任务](../tasks/development-efficiency.md)统一采样，不重复记账。
+
+## 收尾检查与保存边界
+
+最终全量检查163份文档、5,258条链接，0坏链；按本任务SHA清单检查出链及入链，共2,821条，0新增失败。通用40项及游戏37项迁移分别通过，56份本任务修改的Markdown通过Prettier，根入口8,186字节、总索引5,288字节。89项人工提示分别为64个大章节和25个历史导航入口：保留职责连续的规格／来源或归档父章节，按子标题补读；历史链接用于索引及追溯，不冒称当前正文。无重复标题提示，不重写原失败基线。
+
+工具与技能已提交11bf8d0，可独立正文与安全索引补丁已提交2e2585a。根入口、需求、偏好、验收及部分索引等与任务开始前修改交织，未强行提交；验证文件仍完整保留在工作区，任务独有清单与分离失败原因留在root/staging-plan.json。提交候选另做HEAD对照链接核对，0新增坏链。临时核对器最初未处理补丁行号偏移及证据目录的Markdown，报错后修正独立核对器再验；这不是产品或工具单测通过记录。上游前已有8个无关未推送提交，故未推送，不改写历史。未修改游戏逻辑、公开版本或安装器，也未发布。
+
+收尾另做一次只读容量／来源分类审计：已读普通文件27,027,972,623字节，含2个嵌套仓库、跳过1,772个链接；1处ENOENT使其仅为已读量，不能称完整总量。已读量已超过15GB，按深度规则记录保护范围与候选预算；未知来源及近期夹具未进入退役清单。CIM进程查询不可用，无法核实工程空闲，故未Apply、未删除或压缩，未达6GB目标。原资料、存档、当前交付和证据继续保护，详见[容量与保护记录](../../artifacts/maintenance/documentation-optimization/2026-10-18/root/capacity-and-protection.json)。
 
 ## 原计划冻结记录
 
