@@ -31,9 +31,9 @@ $env:TABLEMAX_APPLICATION_UPDATE_PRIVATE_KEY_FILE = 'secrets/application-update/
 node tools/release/sign-application-update.mjs "--description=<新描述.json>" "--notes=<已审人类说明.md>" "--out=<新完整正文.md>" "--envelope-out=<新签名JSON>"
 ```
 
-installation-promote只接受同一候选的正式GUID证明，核对候选冻结时的原current SHA并原子切换，不重新分配修订。必需系统范围、隔离与容量要求统一见[验证规格](../../docs/reference/validation.md#完整安装与程序更新的证据分层)；fixture、helper-only及keep-installed诊断不能进入正式证明。
+installation-promote只接受同一候选的正式GUID证明，核对候选冻结时的原current SHA并原子切换，不重新分配修订。必需系统范围、隔离与容量要求统一见[验证规格](../../docs/reference/installation-validation.md#完整安装与程序更新的证据分层)；fixture、helper-only及keep-installed诊断不能进入正式证明。
 
-推广与发布共用 verifyInstallationAcceptance。实际保存／卸载后重装、容量口径及退出完成观察以[证明要求](../../docs/reference/validation.md#完整安装与程序更新的证据分层)为准；门禁纯测试不是系统验收。
+推广与发布共用 verifyInstallationAcceptance。实际保存／卸载后重装、容量口径及退出完成观察以[证明要求](../../docs/reference/installation-validation.md#完整安装与程序更新的证据分层)为准；门禁纯测试不是系统验收。
 
 ```powershell
 node tools/release/installation-promote.mjs "--candidate=<封包输出candidatePath>" "--proof=<最终正式proof.json>"

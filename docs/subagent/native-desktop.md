@@ -2,7 +2,7 @@
 
 ## 目标与阅读入口
 
-负责Windows桌面外壳及桌面与独立服务、受管理安装的集成。先读[Agent入口](../../AGENTS.md)、[共同派工约定](README.md#创建与派工)、[工程结构](../reference/architecture.md)、[构建与运行](../reference/build-and-run.md)及[电脑显示规格](../reference/phase-02-platform-spec.md#电脑多分辨率显示150)，再读派工涉及的源码和diff。安装／更新任务另读[Release门禁](../reference/release.md#完整安装器与免费应用签名2026-10-15)与[验证分层](../reference/validation.md#保存关闭与安装隔离底座2026-10-15)。工具与运行时版本以仓库锁定配置为准。
+负责Windows桌面外壳及桌面与独立服务、受管理安装的集成。先读[Agent入口](../../AGENTS.md)、[共同派工约定](README.md#创建与派工)、[工程结构](../reference/architecture.md)、[构建与运行](../reference/build-and-run.md)及[电脑显示规格](../reference/phase-02-platform-spec.md#电脑多分辨率显示150)，再读派工涉及的源码和diff。安装／更新任务另读[Release门禁](../reference/release.md#完整安装器与免费应用签名2026-10-15)与[验证分层](../reference/installation-validation.md#保存关闭与安装隔离底座2026-10-15)。工具与运行时版本以仓库锁定配置为准。
 
 ## 职责与文件边界
 

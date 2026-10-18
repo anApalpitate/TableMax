@@ -1,5 +1,13 @@
 # 验证工具
 
+## 文档工具定向回归
+
+读取、查找及审计的参数、输出预算和写报告边界见[维护工具](../maintenance/README.md#定向markdown读取与迁移审计)。对应Node单测为`read-doc.test.mjs`、`find-doc.test.mjs`、`audit-efficiency-docs.test.mjs`，均归现有tooling范围，通过显式version 2计划选择，Node使用`--test`；无需游戏测试、构建或安装器。
+
+新会话技能评估脚本虽归tooling，但会调用模型、创建证据且需要检查实际路由，不能因文档改动自动运行。静态技能检查、只读路由、隔离写入和产品验收分别认定。实际环境修复及本轮证据见[文档优化记录](../../docs/archive/documentation-optimization-2026-10-18.md)。
+
+## 计划、预设与业务入口
+
 version 2内容绑定计划、`--changes`、`--force`、环境绑定和单轮收尾见[开发入口](../../docs/reference/development.md#内容绑定的验收计划2026-10-11)。新增runner辅助为[evidence.mjs](runner/evidence.mjs)、[plan.mjs](runner/plan.mjs)、[run-plan.mjs](runner/run-plan.mjs)和[round.mjs](runner/round.mjs)；隔离回归为[evidence.test.mjs](runner/evidence.test.mjs)、[plan.test.mjs](runner/plan.test.mjs)。[support/delivery-session.mjs](support/delivery-session.mjs)一次实际EXE启动顺序覆盖相关界面，[desktop/verify-delivery-session.mjs](desktop/verify-delivery-session.mjs)保留原空box三端代表检查，只适用于对应历史包；[support/download-loopback.mjs](support/download-loopback.mjs)与[platform/verify-download-loopback.mjs](platform/verify-download-loopback.mjs)提供生产安装器回环故障夹具（需`node --import=tsx`）。下载回环入口只检查内部事务／原安装行为，不表示现行仍有游戏下载入口；这些检查不等于游戏完整矩阵、当前完整EXE或真实线上／设备验收。
 
 `--preset=rules|ui|resources|tooling` 可用逗号选择实际受影响类别，必须同时给出 `--scope` 和本任务 `--changes` SHA 清单；不能混用 `--plan` 或准确文件筛选。预设从 [scopes.mjs](runner/scopes.mjs) 的现有范围登记选择准确测试文件和已登记的工具回归，产品包／设备矩阵仍用显式计划。`--list` 显示执行、复用和排除及其理由；变化清单过期直接拒绝。游戏及动态输入尚未审完的项保守选择受影响范围，执行但不缓存，不能把预设输出当作完整产品验收。
@@ -236,7 +244,7 @@ node tools/test/desktop/verify-service-stop.mjs
 node tools/test/desktop/verify-shutdown.mjs --native=<已编译原生目录> --server=<同源服务目录>
 ```
 
-批次沿用version2计划，Node／Vitest文件逐项登记与筛选；中文空格及Junction拒绝在受管临时根验证。系统临时目录权限或缓存不可靠时，只给该隔离测试进程设置工程内TEMP／TMP，不改用户全局环境。源码、实际进程与安装／上线边界见[验证规格](../../docs/reference/validation.md#保存关闭与安装隔离底座2026-10-15)。
+批次沿用version2计划，Node／Vitest文件逐项登记与筛选；中文空格及Junction拒绝在受管临时根验证。系统临时目录权限或缓存不可靠时，只给该隔离测试进程设置工程内TEMP／TMP，不改用户全局环境。源码、实际进程与安装／上线边界见[验证规格](../../docs/reference/installation-validation.md#保存关闭与安装隔离底座2026-10-15)。
 
 ## 正式执行记录与证明封存
 
@@ -258,7 +266,7 @@ node tools/test/desktop/verify-shutdown.mjs --native=<已编译原生目录> --s
 
 需要UAC提权启动时，外层必须持续等待自有提权进程并保留完成回执；不能启动后立即退出，避免宿主结束进程树使账户清理中断。向导profile解析使用子驱动已设置的`TABLEMAX_INSTALLATION_HANDOFF_TMP`，核验实际成功状态`actual-wizard-cancel-passed`；它仅证明向导浏览和取消，完整系统链仍须逐项通过。意外中断后先按本次记录的精确SID核对并清理自有测试账户／profile，再用新证据目录执行实质纠正后的独立轮次。
 
-本节维护安装／更新脚本、参数和报告契约；证明层次见[验证规格](../../docs/reference/validation.md#完整安装与程序更新的证据分层)，实际结果只在[验收](../../docs/reference/acceptance.md#当前源码与本地交付)及相应归档维护。组件、向导取消、解码探针或双PE准备不能升级为实际系统证明。
+本节维护安装／更新脚本、参数和报告契约；证明层次见[验证规格](../../docs/reference/installation-validation.md#完整安装与程序更新的证据分层)，实际结果只在[验收](../../docs/reference/acceptance.md#当前源码与本地交付)及相应归档维护。组件、向导取消、解码探针或双PE准备不能升级为实际系统证明。
 
 - [verify-update-activation.mjs](installation/verify-update-activation.mjs)：`--only=<已知caseID[,]> --prior-failures=<本轮累计>`；使用实际同用户私有named pipe、双方进程／安装身份与测试RSA签名，核验重复唤起、越界／额外字段／外来PE拒绝，以及可信同版、远端旧版、信任水位和签名错误结果。只验证组件，不启动桌面服务、安装器或账户；不代表真实窗口、GitHub网络或完整安装验收。报告含完整方法指纹，登记shared,tooling。
 - [verify-resource-cleanup.mjs](installation/verify-resource-cleanup.mjs)／[C#迁移夹具](installation/resource-cleanup-harness.cs)：`--evidence=<全新maintenance目录> [--only=<已知caseID[,]>] --prior-failures=<本轮累计>`，登记shared,tooling。六项为`same-root-migration`（默认／外置D）、`nonempty-data`、`cleanup-current`、`cleanup-references`、`cleanup-damaged`（损坏catalog／journal）和`cleanup-unknown-link`；共用失败预算，不重试。迁移反射调用真实`MigrationLease/Migrate`，资源清理由实际编译helper的`--uninstall`及包内Node执行，核验精确删留receipt、原件SHA与未知／链接保全。临时Ed25519私钥只在内存，公开根替换仅限本次planner资源；其配方和方法源均入报告。存档为合成SQLite v2及format-1 Save／checkpoint，其他PE／模块为不执行字节，不启动Native、installer、账户、登记或网络；组件不替代完整Commit／健康、真实旧局恢复或系统迁移验收。依赖锁定.NET SDK／net48、现有esbuild与包内Node22.14.0；默认保留隔离输出并关闭自动维护。

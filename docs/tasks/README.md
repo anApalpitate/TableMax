@@ -85,3 +85,5 @@ UNO完成过程见[制作归档](../archive/uno-2026-10-10.md)，现行规则与
 ## 渐进开发提效
 
 [提效任务](development-efficiency.md)接续文档、构建／验证工具和运行基线；后续可比任务收益及实体设备边界分别记录，不承诺日志token等同额度。
+
+[文档知识整合与技能接续](documentation-wiki-and-skills.md)：正文、来源及工具改造和两技能路由已落地；隔离写入验收通过，接续后续5个可比实际任务的收益观察，实施和原计划见[归档](../archive/documentation-optimization-2026-10-18.md)。
