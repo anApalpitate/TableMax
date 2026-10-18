@@ -616,52 +616,137 @@
 @media (min-width: 621px) {
   .mn-screen--player {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
     grid-template-rows: auto auto minmax(0, 1fr);
     gap: 2px 4px;
     height: 100dvh;
     max-height: 100dvh;
     padding: 3px 4px;
     overflow: hidden;
-  }
+  } /* One app bar: back, title, live turn card, tools. The toolbar is only a wrapper. */
   .mn-screen--player > .mn-toolbar {
-    grid-area: 1 / 1;
-    min-height: 0;
-    flex-wrap: nowrap;
-    min-width: 0;
-    gap: 4px;
-    margin: 0;
-    padding: 0 6px;
-  } /* The status pill already carries the saved marker. */
+    display: contents;
+  }
   .mn-screen--player > .mn-toolbar > .session-save-anchor {
     display: none;
   }
-  .mn-screen--player > .mn-toolbar .mn-brand span,
+  .mn-screen--player > .mn-toolbar > .mn-brand {
+    grid-area: 1 / 2;
+    align-self: center;
+    padding: 0 6px 0 2px;
+  }
+  .mn-screen--player > .mn-toolbar > .mn-brand strong {
+    font-size: 22px;
+    line-height: 1;
+  }
+  .mn-screen--player > .mn-toolbar > .mn-brand span,
   .mn-screen--player > .mn-toolbar .mn-box-label {
     display: none;
+  } /* The 盒子 caption is gone, so the back link becomes a square icon button. */
+  .mn-screen--player > .mn-toolbar > .button {
+    display: grid;
+    place-items: center;
+    grid-area: 1 / 1;
+    align-self: center;
+    width: 30px;
+    height: 30px;
+    min-height: 0;
+    padding: 0;
+    font-size: 20px;
+    line-height: 1;
   }
+  .mn-screen--player > .mn-toolbar > .mn-toolbar-tools {
+    grid-area: 1 / 4;
+    align-self: center;
+    justify-self: end;
+    gap: 4px;
+  }
+
   .mn-screen--player > .mn-toolbar .mn-toolbar-icon {
-    width: 36px;
-    height: 36px;
-    min-height: 36px;
+    width: 32px;
+    height: 32px;
+    min-height: 32px;
     padding: 0;
   }
   .mn-screen--player > .mn-status {
-    grid-area: 1 / 2;
-    gap: 8px;
-    height: 36px;
-    max-height: 36px;
+    grid-area: 1 / 3;
+    align-self: center;
+    justify-self: start;
+    width: auto;
+    max-width: 100%;
+    gap: 6px;
+    height: 34px;
+    min-height: 34px;
+    max-height: 34px;
     margin: 0;
-    padding: 1px 10px;
-    min-height: 36px;
+    padding: 0 8px;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+  .mn-screen--player > .mn-status .mn-current-turn {
+    min-width: 0;
+    gap: 6px;
+  }
+  .mn-screen--player > .mn-status .mn-actor-avatar {
+    width: 26px;
+    height: 26px;
+  }
+  .mn-screen--player > .mn-status .mn-current-turn-copy {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    white-space: nowrap;
+  }
+  .mn-screen--player > .mn-status .mn-phase-name {
+    font-size: 18px;
+    line-height: 22px;
+  }
+  .mn-screen--player > .mn-status .mn-status-detail {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 16px;
+    line-height: 22px;
+  } /* Separate the phase, the acting merchant and the hint instead of one run of text. */
+  .mn-screen--player > .mn-status .mn-status-detail::before {
+    content: '·';
+    color: #b9a778;
+  }
+  .mn-screen--player > .mn-status .mn-turn-hint::before {
+    content: '·';
+    margin-right: 5px;
+    color: #b9a778;
+  } /* The 44px clock pill cannot fit a 34px bar, so size it to the row. */
+  .mn-screen--player > .mn-status .decision-countdown {
+    flex: none;
+    min-height: 0;
+    height: 28px;
+    padding: 0 9px 3px;
+    gap: 4px;
+    border-radius: 9px;
+    font-size: 16px;
+  }
+  .mn-screen--player > .mn-status .decision-countdown > strong {
+    font-size: 18px;
+    line-height: 22px;
+  }
+  .mn-screen--player > .mn-status .decision-countdown > strong > span {
+    font-size: 16px;
+  }
+  .mn-screen--player > .mn-status .decision-countdown > svg {
+    width: 15px;
+    height: 15px;
   }
   .mn-screen--player > .mn-screen-feedback {
-    grid-area: 2 / 1 / 3 / 3;
+    grid-area: 2 / 1 / 3 / 5;
     margin: 0;
     min-height: 0;
   }
   .mn-screen--player > .mn-player-scroll {
-    grid-area: 3 / 1 / 4 / 3;
+    grid-area: 3 / 1 / 4 / 5;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr);
@@ -1575,4 +1660,46 @@
 .mn-screen--player.mn-wide .mn-lane-heading > .mn-detail-button > strong {
   min-width: 0;
   white-space: nowrap;
+}
+
+/* Slot cells centre inside their cream envelope on every surface. */
+.mn-screen .mn-space-wrap {
+  display: grid;
+  align-content: center;
+  align-items: center;
+}
+
+/* Lane, track and loading labels sit on the harbour art, so they need an outline. */
+.mn-screen
+  :is(
+    .mn-position-readout,
+    .mn-payout-label,
+    .mn-manifest-kicker,
+    .mn-manifest-empty,
+    .mn-manifest-state
+  ) {
+  color: #fffdf4;
+  text-shadow:
+    0 1px 2px rgba(6, 26, 24, 0.92),
+    0 0 3px rgba(6, 26, 24, 0.6);
+}
+.mn-screen .mn-manifest-kicker b {
+  color: #fff;
+}
+.mn-screen .mn-track-cells span {
+  color: #fffdf4;
+  text-shadow:
+    0 1px 2px rgba(6, 26, 24, 0.92),
+    0 0 3px rgba(6, 26, 24, 0.55);
+}
+.mn-screen .mn-track-cells .mn-cell-current {
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+  background: #0f4b46;
+  box-shadow: 0 0 0 1px rgba(255, 253, 232, 0.55);
+}
+.mn-screen .mn-lane-position {
+  color: #fff;
+  background: #1d3a38d9;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }

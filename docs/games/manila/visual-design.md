@@ -82,6 +82,30 @@
 
 `node tools/test/runner/test-scoped.mjs --scope=game:manila` 全绿（53 项）。
 
+## 顶部信息栏、槽位居中与展板文字（2026-10-18 下午，已修复）
+
+用户现场反馈三项（m01856）：横屏顶部信息栏排列混乱、特殊槽位内格与外框未垂直居中、航道/船位/转载状态文字用黑色在照片背景上不清晰。取证 `artifacts/manila/validation/round4-before/`，结论 `artifacts/manila/validation/round4-final/`（13 视口／10 详情，守卫全绿）。
+
+### 顶部信息栏
+
+- 现象：最左是 `.mn-box-label` 收起后残留的孤立 `‹`，接着 `MANILA` 大号字标、四个工具按钮，右侧状态卡被 `harbor-layout.css:101` 的 `width:100%` 拉满整列，卡内「派遣伙伴阿蓝 轮到你」连成一行无分隔；`ClockDisplay`（`@tablemax/web-host` 的 `countdown.css`）基础 `min-height:44px;padding:6px 12px 8px`、`font-size:18px`＋`strong 26px`，在 34–36px 的合并行里溢出到钱包行。
+- 修法（`games/manila/ui/stage.css` 的 `@media (min-width:621px)`）：屏幕改四列 `auto auto minmax(0,1fr) auto`；`header.mn-toolbar` 设 `display:contents`（该容器无背景，展平后不丢视觉），返回按钮 30×30、字标 22px、工具组右对齐 32×32；`.mn-status` 显式 `justify-self:start;width:auto;max-width:100%;height:34px`，内部 `.mn-current-turn-copy` 用 `·` 分隔阶段名／行动者／提示；倒计时压到 28px 高、18px 数字，作为卡内右端徽章。
+- 结果：一行读完 `[‹][MANILA][头像 派遣伙伴 · 阿蓝 · 轮到你 ⏱18秒][静音/规则/账本/菜单]`，844 时整行铺满，1024 以上状态卡按内容宽收窄、工具组贴右缘。
+
+### 特殊槽位垂直居中
+
+- 现象：`.mn-space` 内格在 `.mn-space-wrap`（外包络）里贴顶，1024 实测上 0／下 8，1123 上 0／下 14。
+- 修法：`.mn-screen .mn-space-wrap{display:grid;align-content:center;align-items:center}`（三端统一，只改对齐不改尺寸）。
+- 结果：1024 与主机 1280 实测上 4／下 4，1123 内外等高；内格不再贴顶。
+
+### 展板文字与描边
+
+- 现象：`船员 N`、`分红 N ₱`、`空舱`、`被掠夺/靠港A` 与 0–13 刻度用深色字压在海面照片上，对比不足（`.mn-track-cells span` 原来的 `text-shadow:0 1px 1px #fff` 是白描边，反而更糊）。
+- 修法：`.mn-screen :is(.mn-position-readout,.mn-payout-label,.mn-manifest-kicker,.mn-manifest-empty,.mn-manifest-state){color:#fffdf4;text-shadow:0 1px 2px rgba(6,26,24,.92),0 0 3px rgba(6,26,24,.6)}`；`.mn-track-cells span` 同款描边；当前价 `.mn-cell-current` 改深青底＋奶白细环（`#0f4b46`／`box-shadow:0 0 0 1px rgba(255,253,232,.55)`）作高亮；`.mn-lane-position` 改半透明深底白字。奶油纸卡片内部的文字（槽位名称/价格/收益、货卡标题与分红池）保持深色，不套描边。
+
+### 仍未覆盖的边界（本轮新增）
+
+- 1024×768 的航道刻度仍是竖排的 4 个里程碑（`.mn-track-cells` 在该宽度实测只有 22px 宽，是 10-17 重设计以来的既有渲染），844 与 1123 是横向全刻度。本轮只解决对比度，刻度重排留待下一轮。
 
 ## 视觉问题分析（2026-10-18 结论）
 
