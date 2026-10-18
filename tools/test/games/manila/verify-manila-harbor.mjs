@@ -1,13 +1,14 @@
 import { assertWorkspaceRoot } from '../../../shared/workspace-root.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
 import { launchTestBrowser } from '../../support/browser-test.mjs';
 import { serveFixture } from '../../support/fixture-server.mjs';
 import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
+import { fingerprint as sourceFingerprint } from '../../runner/evidence.mjs';
 
 assertWorkspaceRoot();
 process.env.TABLEMAX_AUTO_MAINTENANCE = '0';
@@ -34,6 +35,7 @@ const available = [
   'tail',
   'share',
   'entries',
+  'voyage-result',
 ];
 const selected = option('only')?.split(',') ?? available;
 assert(selected.every((value) => available.includes(value)));
@@ -109,7 +111,7 @@ snapshots.financing=obligation;
 origins.financing={kind:'legal-max-bid-and-passes',payer,amount:obligation.payment.amount};
 const tied=structuredClone(snapshots.ended);
 const wealth=Math.max(...Object.values(tied.scores))+50;
-for(const id of ids){const p=tied.players[id];p.cash=wealth-p.shares.reduce((n,s)=>n+tied.market[s.cargo]-(s.mortgaged?15:0),0);}
+for(const id of ids){const p=tied.players[id],cash=wealth-p.shares.reduce((n,s)=>n+tied.market[s.cargo]-(s.mortgaged?15:0),0),offset=cash-p.cash;p.cash=cash;for(const finance of new Set([tied.voyageFinance,tied.result?.finance]))if(finance){finance.players[id].openingCash+=offset;finance.players[id].closingCash+=offset;}}
 tied.scores=finalScores(tied);tied.winners=resolveWinners(tied.scores,ids);
 snapshots.tie=validateState(tied,ids);
 origins.tie={kind:'controlled-valid-state',note:'Cash adjusted on legally reached terminal board; not natural tied-game evidence.'};
@@ -131,14 +133,17 @@ const nativeScroll=Element.prototype.scrollIntoView;
 Element.prototype.scrollIntoView=function(options){window.scrollCalls.push({id:this.id,className:this.className,options});return nativeScroll.call(this,options);};
 const nativeOwnerScroll=Element.prototype.scrollTo;
 Element.prototype.scrollTo=function(...args){window.scrollCalls.push({method:'scrollTo',id:this.id,className:this.className,options:args[0]});return nativeOwnerScroll.apply(this,args);};
-function info(){const v=current.session.view;return {actor:turnSeat(current.state),seatId:current.seatId,phase:current.state.phase,legal:v.actions,boats:v.gameView.boats,shares:v.gameView.self?.shares??[],decisionId:v.decisionId,branch:v.branch};}
+function info(){const v=current.session.view;return {actor:turnSeat(current.state),seatId:current.seatId,phase:current.state.phase,legal:v.actions,boats:v.gameView.boats,shares:v.gameView.self?.shares??[],result:v.gameView.result,seatOrder:v.gameView.seatOrder,decisionId:v.decisionId,branch:v.branch};}
 function paint(){window.fixtureSession=current.session;flushSync(()=>root.render(<PlatformGame key={generation} session={current.session} client={client}/>));return info();}
 function sessionFor(state,options={}){
  const actor=turnSeat(state)??ids[0],role=options.role??'player';
  const seatId=options.seatId??(options.waiting?ids.find(id=>id!==actor):actor),ownerSeatId=options.owner?seatId:null;
  const canControl=role==='host'||(role==='player'&&seatId===ownerSeatId);
  const pending=role==='player'?rules.decisions(state).find(p=>p.seatId===seatId):null;
- const view={instanceId:'manila-harbor-fixture',branch:options.branch??0,revision:state.serial,status:state.phase==='ended'?'ended':'playing',paused:false,playMode:'play',gameView:rules.project(state,role==='player'?{role:'player',seatId}:{role:'public'}),decisionId:pending?.id??null,countdownSeconds:30,decisionClock:null,actions:pending?rules.legalActions(state,seatId):[],lifecycleActions:canControl?rules.lifecycleActions(state):[],seats,history:[],joinOpen:true,ownerSeatId,game:{...rules.manifest,releaseRef:'fixture',minPlayers:3,maxPlayers:5,min:3,max:5},catalog:[],capabilities:{manage:role==='host',control:canControl,manageSeats:canControl},self:{role,seatId:role==='player'?seatId:null},restored:false,selectionToken:null};
+ const projected=rules.project(state,role==='player'?{role:'player',seatId}:{role:'public'});
+ // A controlled older projection deliberately lacks a full-voyage ledger.
+ if(options.legacy&&projected.result)delete projected.result.finance;
+ const view={instanceId:'manila-harbor-fixture',branch:options.branch??0,revision:state.serial,status:state.phase==='ended'?'ended':'playing',paused:false,playMode:'play',gameView:projected,decisionId:pending?.id??null,countdownSeconds:30,decisionClock:null,actions:pending?rules.legalActions(state,seatId):[],lifecycleActions:canControl?rules.lifecycleActions(state):[],seats,history:[],joinOpen:true,ownerSeatId,game:{...rules.manifest,releaseRef:'fixture',minPlayers:3,maxPlayers:5,min:3,max:5},catalog:[],capabilities:{manage:role==='host',control:canControl,manageSeats:canControl},self:{role,seatId:role==='player'?seatId:null},restored:false,selectionToken:null};
  return {role,view,self:role==='player'?seats.find(s=>s.id===seatId):undefined,isHost:role==='host',canControl,canManageSeats:canControl,connected:true,locked:false,busy:false,message:'',messageKind:'none',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],credential:'fixture',name:'阿蓝',setName:noop,command:c=>window.commands.push(c),join:noop,retry:noop,retryAdmission:noop,setPlayerCredential:noop,publicUrl:'http://127.0.0.1',localUrl:'http://127.0.0.1',admissionAvatarId:null};
 }
 window.harbor={
@@ -146,6 +151,10 @@ window.harbor={
  update(patch={}){const viewPatch=patch.view??{};current.session={...current.session,...patch,view:{...current.session.view,...viewPatch}};return paint();},
  boundary(){current.session={...current.session,view:{...current.session.view,branch:current.session.view.branch+1,revision:current.session.view.revision+1}};return paint();},
  switch(phase){current.state=structuredClone(snapshots[phase]);current.session=sessionFor(current.state,{...current.options,seatId:current.seatId,branch:current.session.view.branch});return paint();},
+ // Restore a real previously reached snapshot on a new branch without changing
+ // the PlatformGame generation: lifecycle assertions must not pass by remount.
+ restore(phase){current.state=validateState(structuredClone(snapshots[phase]),ids);current.session=sessionFor(current.state,{...current.options,seatId:current.seatId,branch:current.session.view.branch+1});return paint();},
+ repaint(){current.session={...current.session};return paint();},
  validate(){if(window.commands.length!==1)throw new Error('Expected exactly one command, got '+window.commands.length);const command=window.commands[0];if(command.type==='game'){if(command.decisionId!==current.session.view.decisionId)throw new Error('Stale decision submitted');if(!current.session.view.actions.some(a=>JSON.stringify(a)===JSON.stringify(command.action)))throw new Error('Illegal action submitted');validateState(rules.apply(structuredClone(current.state),command.action,current.seatId,ctx).state,ids);}else if(command.type==='lifecycle'){if(!current.session.canControl)throw new Error('Unauthorized lifecycle');validateState(rules.applyLifecycle(structuredClone(current.state),command.action,ctx).state,ids);}else if(command.type==='replay'){if(!current.session.canControl)throw new Error('Unauthorized replay');}else throw new Error('Unexpected command '+command.type);return command;},
  commit(){const command=this.validate();if(command.type==='game')current.state=validateState(rules.apply(current.state,command.action,current.seatId,ctx).state,ids);else if(command.type==='lifecycle')current.state=validateState(rules.applyLifecycle(current.state,command.action,ctx).state,ids);else throw new Error('Cannot commit '+command.type);current.session=sessionFor(current.state,{...current.options,seatId:current.seatId,branch:current.session.view.branch});window.commands=[];return paint();},
  info,
@@ -154,25 +163,74 @@ window.harbor.load();
 `,
 );
 
-const inputFiles = [
-  'games/manila/ui/Board.tsx',
-  'games/manila/ui/PlayerControls.tsx',
-  'games/manila/ui/interaction.tsx',
-  'games/manila/ui/useBoardAnchor.ts',
-  'games/manila/ui/style.css',
-  'games/manila/ui/theme.css',
-  'games/manila/ui/host-layout.css',
-  'games/manila/ui/harbor-layout.css',
-  'games/manila/web/index.tsx',
-  'apps/web/src/session/gameHostAdapter.tsx',
-];
 const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
-const fingerprint = async () =>
-  Object.fromEntries(
+// The fixture's generated imports are dynamic, so declare their runtime trees
+// explicitly, then reuse the runner's static import closure. Re-enumeration
+// also detects newly added or removed styles, interaction code and resources.
+const inputTrees = [
+  'games/manila/ui',
+  'games/manila/rules',
+  'games/manila/web',
+  'games/manila/shared',
+  'packages/web-host/src',
+  'packages/protocol/src',
+  'packages/game-sdk/src',
+  'assets/games/manila',
+];
+const declaredInputs = [
+  'pnpm-workspace.yaml',
+  'apps/web/package.json',
+  'packages/web-host/package.json',
+  'packages/protocol/package.json',
+  'packages/game-sdk/package.json',
+  'apps/web/src/session/gameHostAdapter.tsx',
+  'apps/web/src/assets/avatars.ts',
+  'apps/web/src/components/SessionFeedback.tsx',
+  'apps/web/src/styles.css',
+  'apps/web/src/scrollbars.css',
+];
+const sourceFiles = async (directory) =>
+  (
     await Promise.all(
-      inputFiles.map(async (name) => [name, sha(await readFile(name))]),
-    ),
+      (await readdir(directory, { withFileTypes: true })).map((entry) => {
+        const file = directory + '/' + entry.name;
+        return entry.isDirectory()
+          ? sourceFiles(file)
+          : /\.test\.[^.]+$/.test(entry.name)
+            ? []
+            : [file];
+      }),
+    )
+  ).flat();
+let inputBinding;
+const fingerprint = async () => {
+  const files = [
+    ...declaredInputs,
+    ...(await Promise.all(inputTrees.map(sourceFiles))).flat(),
+    ...(await readdir('assets/platform'))
+      .filter((name) => /^avatar-.*\.webp$/.test(name))
+      .map((name) => 'assets/platform/' + name),
+  ];
+  const snapshot = sourceFingerprint(process.cwd(), {
+    runtime: 'node',
+    script: 'tools/test/games/manila/verify-manila-harbor.mjs',
+    args: process.argv.slice(2),
+    inputs: { complete: true, files: files.sort() },
+  });
+  assert.deepEqual(
+    snapshot.value.gaps,
+    [],
+    'Source dependency closure is complete',
   );
+  inputBinding = snapshot.value;
+  return Object.fromEntries(
+    snapshot.value.files.map(({ path, sha256 }) => [path, sha256]),
+  );
+};
+const changedInputs = (before, after) =>
+  [...new Set([...Object.keys(before), ...Object.keys(after)])]
+    .filter((file) => before[file] !== after[file])
+    .sort();
 const report = {
   result: 'running',
   output,
@@ -182,6 +240,7 @@ const report = {
   scope:
     'Actual React Manila through PlatformGame. Legal-play rule projections with controlled transport flags and branch synchronization; tie is explicitly controlled and state-validated. Muted hidden Edge on loopback with Android touch emulation. No real service transport, physical keyboard/phone, OS DPI, installer or natural tied-match acceptance claim.',
   inputsBefore: await fingerprint(),
+  inputBindingBefore: inputBinding,
   checks: [],
   metrics: [],
   screenshots: [],
@@ -964,6 +1023,560 @@ try {
         'Other player sees no debtor-specific options',
       );
     });
+    await run('voyage-result', async () => {
+      const sum = (values) =>
+        Object.values(values).reduce((total, value) => total + value, 0);
+      const resultGeometry = async (role, phase) => {
+        const metrics = await page.evaluate(() => {
+          const root = document.querySelector('.mn-screen');
+          const visible = (node) =>
+            node &&
+            node.checkVisibility() &&
+            node.getBoundingClientRect().width > 0 &&
+            node.getBoundingClientRect().height > 0;
+          const rect = (node) => {
+            const box = node.getBoundingClientRect();
+            return {
+              left: box.left,
+              top: box.top,
+              right: box.right,
+              bottom: box.bottom,
+              width: box.width,
+              height: box.height,
+            };
+          };
+          const clippedRect = (node) => {
+            const box = rect(node);
+            for (
+              let parent = node.parentElement;
+              parent && root.contains(parent);
+              parent = parent.parentElement
+            ) {
+              const style = getComputedStyle(parent),
+                outer = rect(parent);
+              if (style.overflowX !== 'visible') {
+                box.left = Math.max(box.left, outer.left);
+                box.right = Math.min(box.right, outer.right);
+              }
+              if (style.overflowY !== 'visible') {
+                box.top = Math.max(box.top, outer.top);
+                box.bottom = Math.min(box.bottom, outer.bottom);
+              }
+            }
+            return box;
+          };
+          const overlaps = (a, b) =>
+            Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 &&
+            Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
+          const collisions = [],
+            groups = [];
+          const group = (name, selectors) => {
+            const nodes = selectors
+              .flatMap((selector) => [...root.querySelectorAll(selector)])
+              .filter(visible);
+            const boxes = nodes.map((node) => ({
+              label: node.className,
+              box: clippedRect(node),
+            }));
+            groups.push({ name, boxes });
+            for (let a = 0; a < boxes.length; a++)
+              for (let b = a + 1; b < boxes.length; b++) {
+                if (nodes[a].contains(nodes[b]) || nodes[b].contains(nodes[a]))
+                  continue;
+                if (overlaps(boxes[a].box, boxes[b].box))
+                  collisions.push({ group: name, a: boxes[a], b: boxes[b] });
+              }
+            return nodes.length;
+          };
+          const portrait =
+            root.classList.contains('mn-screen--player') && innerWidth <= 620;
+          const majorCount = group(
+            'board regions',
+            portrait
+              ? [
+                  '.mn-shore > .mn-docks',
+                  '.mn-shore > .mn-specialists',
+                  '.mn-harbor > .mn-lanes',
+                ]
+              : [
+                  '.mn-harbor > .mn-shore',
+                  '.mn-harbor > .mn-board-market',
+                  '.mn-harbor > .mn-lanes',
+                  '.mn-layout > .mn-merchant-rack',
+                ],
+          );
+          group('shore facilities', [
+            '.mn-shore .mn-dock-group',
+            '.mn-shore .mn-specialist-group',
+          ]);
+          group('lanes', ['.mn-lanes > .mn-lane']);
+          group('merchants', ['.mn-merchant-rack .mn-merchant-card']);
+          group('market rows', ['.mn-board-market .mn-market-row']);
+          const contentEscapes = [];
+          for (const [selector, owner] of [
+            [
+              '.mn-board-market .mn-market-title,.mn-board-market .mn-market-track',
+              '.mn-market-row',
+            ],
+            [
+              '.mn-merchant-rack .mn-merchant-name,.mn-merchant-rack .mn-merchant-assets',
+              '.mn-merchant-card',
+            ],
+            ['.mn-lane-heading,.mn-track,.mn-crew', '.mn-lane'],
+            ['.mn-shore .mn-space-wrap', '.mn-dock-group,.mn-specialist-group'],
+          ]) {
+            for (const node of root.querySelectorAll(selector)) {
+              if (!visible(node)) continue;
+              const container = node.closest(owner);
+              if (!container) continue;
+              const box = rect(node),
+                outer = rect(container);
+              if (
+                box.left < outer.left - 1.5 ||
+                box.right > outer.right + 1.5 ||
+                box.top < outer.top - 1.5 ||
+                box.bottom > outer.bottom + 1.5
+              )
+                contentEscapes.push({
+                  part: node.className,
+                  owner: container.className,
+                  box,
+                  outer,
+                });
+            }
+          }
+          const clippedText = [],
+            textRows = [];
+          for (const node of root.querySelectorAll(
+            '.mn-harbor .mn-space-price,.mn-harbor .mn-space-earn',
+          )) {
+            if (!visible(node)) continue;
+            const cell = node.closest('.mn-space'),
+              cellBox = rect(cell);
+            const range = document.createRange();
+            range.selectNodeContents(node);
+            const textBoxes = [...range.getClientRects()]
+              .filter((box) => box.width > 0 && box.height > 0)
+              .map((box) => ({
+                left: box.left,
+                top: box.top,
+                right: box.right,
+                bottom: box.bottom,
+              }));
+            const row = {
+              space: node.closest('[data-mn-space]')?.dataset.mnSpace,
+              text: node.textContent,
+              cell: cellBox,
+              textBoxes,
+            };
+            textRows.push(row);
+            for (const box of textBoxes) {
+              const escapes = (outer, x = true, y = true) =>
+                (x &&
+                  (box.left < outer.left - 1.5 ||
+                    box.right > outer.right + 1.5)) ||
+                (y &&
+                  (box.top < outer.top - 1.5 ||
+                    box.bottom > outer.bottom + 1.5));
+              if (escapes(cellBox))
+                clippedText.push({
+                  ...row,
+                  reason: 'text leaves its own space',
+                });
+              let scrollX = false,
+                scrollY = false;
+              for (
+                let parent = node.parentElement;
+                parent && root.contains(parent);
+                parent = parent.parentElement
+              ) {
+                const style = getComputedStyle(parent);
+                scrollX ||= ['auto', 'scroll'].includes(style.overflowX);
+                scrollY ||= ['auto', 'scroll'].includes(style.overflowY);
+                const clipX =
+                  !scrollX && ['hidden', 'clip'].includes(style.overflowX);
+                const clipY =
+                  !scrollY && ['hidden', 'clip'].includes(style.overflowY);
+                if ((clipX || clipY) && escapes(rect(parent), clipX, clipY))
+                  clippedText.push({
+                    ...row,
+                    reason: 'text clipped by ' + parent.className,
+                  });
+              }
+            }
+          }
+          const scaleOverlaps = [];
+          for (const track of root.querySelectorAll(
+            '[data-mn-axis="vertical"] .mn-track-cells',
+          )) {
+            const labels = [...track.children].filter(
+              (node) =>
+                visible(node) &&
+                getComputedStyle(node).visibility === 'visible',
+            );
+            for (let a = 0; a < labels.length; a++)
+              for (let b = a + 1; b < labels.length; b++) {
+                const first = rect(labels[a]),
+                  second = rect(labels[b]);
+                const gap = Math.max(
+                  first.top - second.bottom,
+                  second.top - first.bottom,
+                );
+                if (gap < 8 - 0.1)
+                  scaleOverlaps.push({
+                    first: labels[a].textContent,
+                    second: labels[b].textContent,
+                    gap,
+                  });
+              }
+          }
+          return {
+            scaleOverlaps,
+            majorCount,
+            groups,
+            collisions,
+            contentEscapes,
+            textRows,
+            clippedText,
+          };
+        });
+        report.metrics.push({
+          width,
+          role,
+          phase,
+          kind: 'result-board-content-geometry',
+          ...metrics,
+        });
+        assert.equal(
+          metrics.majorCount,
+          role === 'player' && width <= 620 ? 3 : 4,
+          `${role}/${phase}: every visible board region is measured (portrait keeps market and merchant ledger behind their existing entry)`,
+        );
+        assert.deepEqual(
+          metrics.collisions,
+          [],
+          `${role}/${phase}: facilities, market, lanes and merchants never overlap`,
+        );
+        assert.deepEqual(
+          metrics.scaleOverlaps,
+          [],
+          `${role}/${phase}: vertical scale labels have at least 8px separation`,
+        );
+        assert.deepEqual(
+          metrics.contentEscapes,
+          [],
+          `${role}/${phase}: facility slots, market rows, lane content and merchant content stay within their own region`,
+        );
+        assert(
+          metrics.textRows.length > 0,
+          `${role}/${phase}: fee and payout guard has actual text targets`,
+        );
+        assert.deepEqual(
+          metrics.clippedText,
+          [],
+          `${role}/${phase}: every visible fee and payout stays readable inside its space`,
+        );
+      };
+      for (const role of ['player', 'host', 'public']) {
+        await page.setViewportSize(
+          role === 'player' ? { width, height } : { width: 1280, height: 720 },
+        );
+        const fixture = await load({
+          phase: 'round-result',
+          role,
+          owner: role === 'player',
+        });
+        assert(
+          fixture.result?.finance,
+          'New legal-play settlement includes its full-voyage ledger',
+        );
+        const card = page.locator('.mn-voyage-result');
+        assert.equal(
+          await card.count(),
+          1,
+          'Exactly one in-page voyage result card',
+        );
+        const toggle = card.locator('button.mn-result-toggle');
+        assert.equal(
+          await toggle.getAttribute('aria-expanded'),
+          'true',
+          'Result opens automatically on arrival',
+        );
+        const layout = await card.evaluate((node) => {
+          const box = node.getBoundingClientRect(),
+            main = document.querySelector('.mn-main').getBoundingClientRect();
+          const button = node
+            .querySelector('.mn-result-toggle')
+            .getBoundingClientRect();
+          return {
+            position: getComputedStyle(node).position,
+            bottom: box.bottom,
+            width: box.width,
+            mainTop: main.top,
+            mainHeight: main.height,
+            button: { width: button.width, height: button.height },
+            viewport: { width: innerWidth, height: innerHeight },
+          };
+        });
+        assert(
+          !['fixed', 'absolute', 'sticky'].includes(layout.position),
+          'Settlement remains in page flow',
+        );
+        assert(
+          layout.bottom <= layout.mainTop + 1 && layout.mainHeight > 0,
+          'Settlement takes its own row above the board',
+        );
+        assert(
+          layout.button.width >= 44 && layout.button.height >= 44,
+          'Settlement toggle retains a 44px target',
+        );
+        const rows = card.locator('details.mn-result-merchant');
+        assert.equal(
+          await rows.count(),
+          fixture.seatOrder.length,
+          'Each merchant has one details row',
+        );
+        if (role === 'player')
+          assert.equal(
+            await rows.first().getAttribute('data-seat-id'),
+            fixture.seatId,
+            'Own public finances appear first',
+          );
+        for (const id of fixture.seatOrder) {
+          const merchant = card.locator(
+            `details.mn-result-merchant[data-seat-id="${id}"]`,
+          );
+          const finance = fixture.result.finance.players[id];
+          const net = finance.closingCash - finance.openingCash;
+          assert.deepEqual(
+            await merchant
+              .locator(':scope > summary > .mn-result-amount > b')
+              .allTextContents(),
+            [
+              `${sum(finance.income)} ₱`,
+              `${sum(finance.expenses)} ₱`,
+              `${net > 0 ? '+' : net < 0 ? '−' : ''}${Math.abs(net)} ₱`,
+            ],
+            'Income, expense and net cash change remain separate values',
+          );
+          assert.equal(
+            Number(
+              await merchant
+                .locator('.mn-result-net')
+                .getAttribute('data-mn-net'),
+            ),
+            net,
+            'Net is closing minus opening cash',
+          );
+          await tap(merchant.locator(':scope > summary'));
+          assert(
+            await merchant.evaluate((node) => node.open),
+            'Merchant details expand using their summary',
+          );
+          const details = await merchant
+            .locator('.mn-result-breakdown > div')
+            .evaluateAll((nodes) =>
+              Object.fromEntries(
+                nodes.map((node) => [
+                  node.querySelector('dt').textContent,
+                  node.querySelector('dd').textContent,
+                ]),
+              ),
+            );
+          assert.equal(
+            details['抵押借入'],
+            `${finance.borrowed} ₱`,
+            'Borrowing has its own detail line',
+          );
+          assert.equal(
+            details['赎回支出'],
+            `${finance.redeemed} ₱`,
+            'Redemption has its own detail line',
+          );
+          assert.equal(details['期初现金'], `${finance.openingCash} ₱`);
+          assert.equal(details['期末现金'], `${finance.closingCash} ₱`);
+          await tap(merchant.locator(':scope > summary'));
+          assert(
+            !(await merchant.evaluate((node) => node.open)),
+            'Merchant details collapse independently',
+          );
+        }
+        await resultGeometry(role, 'round-result');
+        await shot('voyage-result-' + role);
+        await tap(toggle);
+        assert.equal(await toggle.getAttribute('aria-expanded'), 'false');
+        assert.equal(
+          await card.locator('.mn-result-body').count(),
+          0,
+          'Main collapse removes the expanded body',
+        );
+        await page.evaluate(() => {
+          window.resultLifecycle = {
+            screen: document.querySelector('.mn-screen'),
+            card: document.querySelector('.mn-voyage-result'),
+          };
+          return window.harbor.repaint();
+        });
+        await settle();
+        assert(
+          await page.evaluate(
+            () =>
+              window.resultLifecycle.screen ===
+                document.querySelector('.mn-screen') &&
+              window.resultLifecycle.card ===
+                document.querySelector('.mn-voyage-result'),
+          ),
+          'Same-result rerender preserves both mounted screen and card identities',
+        );
+        assert.equal(
+          await toggle.getAttribute('aria-expanded'),
+          'false',
+          'Same-result rerender keeps the user collapse choice',
+        );
+        const oldBranch = (await page.evaluate(() => window.harbor.info()))
+          .branch;
+        await page.evaluate(() => window.harbor.boundary());
+        await settle();
+        assert.equal(
+          (await page.evaluate(() => window.harbor.info())).branch,
+          oldBranch + 1,
+        );
+        assert(
+          await page.evaluate(
+            () =>
+              window.resultLifecycle.screen ===
+                document.querySelector('.mn-screen') &&
+              !window.resultLifecycle.card.isConnected,
+          ),
+          'New branch replaces only the result card while the screen stays mounted',
+        );
+        assert.equal(
+          await toggle.getAttribute('aria-expanded'),
+          'true',
+          'A different branch defaults its new result card to expanded',
+        );
+        await tap(toggle);
+        await page.evaluate(() => window.harbor.restore('place'));
+        await settle();
+        assert.equal(
+          await card.count(),
+          0,
+          'Restoring a legitimate pre-result snapshot removes the result card',
+        );
+        assert(
+          await page.evaluate(
+            () =>
+              window.resultLifecycle.screen ===
+              document.querySelector('.mn-screen'),
+          ),
+          'Rollback is projected into the still-mounted screen',
+        );
+        await page.evaluate(() => window.harbor.restore('round-result'));
+        await settle();
+        assert.equal(
+          await card.count(),
+          1,
+          'Restoring the reached result mounts one new card',
+        );
+        assert.equal(
+          await toggle.getAttribute('aria-expanded'),
+          'true',
+          'The restored result on its new branch starts expanded',
+        );
+        const final = await page.evaluate(() => window.harbor.switch('ended'));
+        await settle();
+        assert.equal(final.phase, 'ended');
+        assert(
+          final.result?.finance,
+          'The real final voyage retains its ledger at ended',
+        );
+        assert.equal(
+          await card.count(),
+          1,
+          'Ended retains one final-voyage card',
+        );
+        assert.equal(
+          await card.getAttribute('aria-label'),
+          `第${final.result.voyage}航次收支结算`,
+          'Ended identifies the actual final voyage',
+        );
+        assert.equal(
+          await card.locator('.mn-result-merchant').count(),
+          final.seatOrder.length,
+          'Ended retains every final merchant result',
+        );
+        await page.evaluate(() => {
+          window.resultLifecycle.card =
+            document.querySelector('.mn-voyage-result');
+          return window.harbor.repaint();
+        });
+        await settle();
+        assert(
+          await page.evaluate(
+            () =>
+              window.resultLifecycle.screen ===
+                document.querySelector('.mn-screen') &&
+              window.resultLifecycle.card ===
+                document.querySelector('.mn-voyage-result'),
+          ),
+          'Ordinary terminal-state rerender does not clear or remount the final card',
+        );
+        await resultGeometry(role, 'ended');
+        await shot('voyage-result-ended-' + role);
+        assert.equal(
+          (await commands()).length,
+          0,
+          'Browsing and collapsing a settlement never submits a game action',
+        );
+        report.metrics.push({
+          width,
+          role,
+          kind: 'voyage-result-layout',
+          ...layout,
+        });
+      }
+      await page.setViewportSize({ width, height });
+      const legacy = await load({
+        phase: 'round-result',
+        role: 'player',
+        legacy: true,
+      });
+      assert.equal(
+        await page.locator('.mn-result-legacy').count(),
+        1,
+        'Older results show an explicit incomplete-ledger notice',
+      );
+      assert.equal(
+        await page.locator('.mn-result-breakdown').count(),
+        0,
+        'Older results never fabricate a full-voyage breakdown',
+      );
+      for (const id of legacy.seatOrder) {
+        const merchant = page.locator(
+          `.mn-result-merchant[data-seat-id="${id}"]`,
+        );
+        assert.equal(
+          await merchant.locator(':scope > summary .mn-result-amount').count(),
+          1,
+          'Legacy shows only the recorded settlement change',
+        );
+        assert.equal(
+          Number(
+            await merchant
+              .locator('.mn-result-net')
+              .getAttribute('data-mn-net'),
+          ),
+          legacy.result.income[id],
+        );
+      }
+      await shot('voyage-result-legacy');
+      await load({ phase: 'auction' });
+      assert.equal(
+        await page.locator('.mn-voyage-result').count(),
+        0,
+        'A new voyage does not invent persistent historical results',
+      );
+    });
     await run('permissions', async () => {
       for (const scenario of [
         { role: 'player', owner: true },
@@ -1641,6 +2254,7 @@ try {
       }
     });
     const priority = [
+      'voyage-result',
       'share',
       'entries',
       'tail',
@@ -1676,26 +2290,9 @@ try {
   await browser?.close();
   await server?.close();
   report.inputsAfter = await fingerprint();
-  report.changedInputs = inputFiles.filter(
-    (name) => report.inputsBefore[name] !== report.inputsAfter[name],
-  );
-  report.unaffectedBranchInputChanges = report.changedInputs
-    .filter(
-      (name) =>
-        name === 'games/manila/ui/host-layout.css' &&
-        !selected.includes('permissions'),
-    )
-    .map((name) => ({
-      name,
-      reason:
-        'This run contains only player branches; the independently owned host/public stylesheet selectors do not apply. Both hashes remain recorded.',
-    }));
-  if (
-    report.changedInputs.some(
-      (name) =>
-        !report.unaffectedBranchInputChanges.some((item) => item.name === name),
-    )
-  )
+  report.inputBindingAfter = inputBinding;
+  report.changedInputs = changedInputs(report.inputsBefore, report.inputsAfter);
+  if (report.changedInputs.length)
     report.failures.push({
       name: 'input-stability',
       error:

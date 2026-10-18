@@ -48,6 +48,8 @@ type Interaction = {
   setHoverTarget(value: string | null): void;
   hoverNode: string | null;
   setHoverNode(value: string | null): void;
+  activeRail: number | null;
+  setActiveRail(value: number | null): void;
   canDrop(token: Carry, target: string): boolean;
   drop(token: Carry, target: string): void;
   point: { x: number; y: number; label: string } | null;
@@ -80,7 +82,7 @@ function railTarget(
     : (x - rect.left) / rect.width;
   const position = Math.max(0, Math.min(15, Math.round(fraction * 13)));
   return rail.dataset.railLane !== undefined
-    ? `start:${rail.dataset.railLane}:${Math.min(5, position)}`
+    ? `start:${rail.dataset.railLane}:${position}`
     : `pilot:${rail.dataset.railCargo}:${position - Number(rail.dataset.railPosition)}`;
 }
 function hitTarget(
@@ -127,15 +129,17 @@ export function ManilaInteraction({
   const [carry, setCarried] = useState<Carry | null>(null);
   const [hoverTarget, setHoverTarget] = useState<string | null>(null);
   const [hoverNode, setHoverNode] = useState<string | null>(null);
+  const [activeRail, setActiveRail] = useState<number | null>(null);
   const setCarry = useCallback(
     (value: Carry | null) => {
       setCarried(value);
       if (!value) {
+        setActiveRail(null);
         setHoverTarget(null);
         setHoverNode(null);
       }
     },
-    [setHoverTarget, setHoverNode],
+    [setActiveRail, setHoverTarget, setHoverNode],
   );
   const [point, setPoint] = useState<Interaction['point']>(null);
   const [previousBoundary, setPreviousBoundary] = useState(boundary);
@@ -259,8 +263,19 @@ export function ManilaInteraction({
         setPoint(null);
       }
     };
+    const outside = (event: PointerEvent) => {
+      if (
+        !(event.target instanceof Element) ||
+        !event.target.closest('.mn-position-controls')
+      )
+        setActiveRail(null);
+    };
     window.addEventListener('keydown', cancel);
-    return () => window.removeEventListener('keydown', cancel);
+    window.addEventListener('pointerdown', outside);
+    return () => {
+      window.removeEventListener('keydown', cancel);
+      window.removeEventListener('pointerdown', outside);
+    };
   }, [setCarry]);
   return (
     <Context
@@ -288,6 +303,8 @@ export function ManilaInteraction({
         setHoverTarget,
         hoverNode: locked ? null : hoverNode,
         setHoverNode,
+        activeRail: locked ? null : activeRail,
+        setActiveRail,
         canDrop,
         drop,
         point: locked ? null : point,

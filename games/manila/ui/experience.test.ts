@@ -12,6 +12,7 @@ import { turnSeat, validateState, type State } from '../rules/state';
 import type { Action, ManilaView } from '../rules/view';
 import { client } from '../web';
 import { ShareCertificates } from './Theme';
+import { VoyageResultCard } from './VoyageResult';
 
 // Reuse the host's pinned renderer; the game runtime depends only on React.
 const { renderToStaticMarkup } = createRequire(
@@ -39,6 +40,27 @@ function apply(state: State, action: Action): State {
     rules.apply(state, action, turnSeat(state)!, context).state,
     ids,
   );
+}
+function settledVoyage(): State {
+  let state = fresh();
+  for (let step = 0; state.phase !== 'round-result' && step < 160; step++) {
+    const actions = rules.legalActions(state, turnSeat(state)!) as Action[];
+    const action =
+      actions.find(
+        (entry) => entry.type === 'pass' || entry.type === 'skip-share',
+      ) ??
+      actions.find(
+        (entry) =>
+          entry.type === 'setup' &&
+          entry.positions.every((position) => position === 3),
+      ) ??
+      actions[0];
+    if (!action)
+      throw new Error('No legal action reaches the settlement fixture');
+    state = apply(state, action);
+  }
+  expect(state.phase).toBe('round-result');
+  return state;
 }
 function render(state: State, role: GameHost['role'], seat = 'A') {
   const projected = rules.project(
@@ -84,6 +106,84 @@ function render(state: State, role: GameHost['role'], seat = 'A') {
 }
 
 describe('Manila experience uses authorized public and player views', () => {
+  it('opens one in-page voyage result with a merchant details row on all three roles', () => {
+    const state = settledVoyage();
+    expect(state.result?.finance).toBeDefined();
+    for (const role of ['host', 'public', 'player'] as const) {
+      const { html, text } = render(state, role, 'C');
+      expect(html.match(/class="mn-voyage-result"/g)).toHaveLength(1);
+      expect(html).toContain('class="mn-result-toggle" aria-expanded="true"');
+      expect(html).toContain('class="mn-result-body"');
+      expect(html.match(/class="mn-result-merchant"/g)).toHaveLength(
+        ids.length,
+      );
+      expect(html).not.toContain('class="mn-result-legacy"');
+      for (const id of ids) expect(html).toContain(`data-seat-id="${id}"`);
+      expect(text).toContain('现金净变化');
+      expect(text).toContain('抵押借入');
+      expect(text).toContain('赎回支出');
+      if (role === 'player')
+        expect(html.indexOf('data-seat-id="C"')).toBeLessThan(
+          html.indexOf('data-seat-id="A"'),
+        );
+      else expect(html).not.toContain('class="mn-private"');
+    }
+    expect(render(fresh(), 'public').html).not.toContain(
+      'class="mn-voyage-result"',
+    );
+  });
+
+  it('keeps operating income and expenses separate from borrowing, redemption and net cash change', () => {
+    const game = rules.project(settledVoyage(), {
+      role: 'public',
+    }) as ManilaView;
+    // This is a controlled presentation fixture, not a claim of a natural financed match.
+    game.result!.finance!.players.A = {
+      openingCash: 30,
+      closingCash: 50,
+      income: { cargo: 18, piracy: 6, port: 8, shipyard: 0, insurance: 10 },
+      expenses: { auction: 5, shares: 4, placement: 7, insurance: 3 },
+      borrowed: 12,
+      redeemed: 15,
+    };
+    const html = renderToStaticMarkup(
+      createElement(VoyageResultCard, {
+        game,
+        seats: ids.map((id, index) => ({
+          id,
+          name: names[index]!,
+          avatarId: 'avatar-1' as const,
+        })),
+      }),
+    );
+    const merchant = html.match(
+      /<details class="mn-result-merchant" data-seat-id="A">([\s\S]*?)<\/details>/,
+    )![1]!;
+    const summary = merchant.match(/<summary>([\s\S]*?)<\/summary>/)![1]!;
+    expect(summary).toContain('<span>收入</span><b>42 ₱</b>');
+    expect(summary).toContain('<span>支出</span><b>19 ₱</b>');
+    expect(summary).toContain('data-mn-net="20"');
+    expect(summary).toContain('<b>+20 ₱</b>');
+    expect(merchant).toContain('<dt>抵押借入</dt><dd>12 ₱</dd>');
+    expect(merchant).toContain('<dt>赎回支出</dt><dd>15 ₱</dd>');
+    expect(merchant).toContain('<dt>期初现金</dt><dd>30 ₱</dd>');
+    expect(merchant).toContain('<dt>期末现金</dt><dd>50 ₱</dd>');
+  });
+
+  it('renders older results honestly without inventing a full-voyage ledger', () => {
+    const state = settledVoyage();
+    delete state.result!.finance;
+    delete state.voyageFinance;
+    const { html, text } = render(validateState(state, ids), 'public');
+    expect(html).toContain('class="mn-result-legacy"');
+    expect(text).toContain('未记录本航次完整收支');
+    expect(html).not.toContain('class="mn-result-breakdown"');
+    expect(html).not.toContain('<span>现金净变化</span>');
+    expect(text).toContain('旧记录不补算收入、支出及全航次现金净变化');
+    for (const id of ids)
+      expect(html).toContain(`data-mn-net="${state.result!.income[id]}"`);
+  });
+
   it('keeps the leading bid and merchant visible for hosts, public screens and waiting players', () => {
     const state = apply(fresh(), { type: 'bid', amount: 7 });
     for (const role of ['host', 'public', 'player'] as const) {
@@ -170,7 +270,18 @@ describe('Manila experience uses authorized public and player views', () => {
     // This deliberately controlled tie is not evidence of a natural tied match.
     const original = finalScores(state);
     ids.forEach((id, index) => {
-      state.players[id]!.cash += (index < 2 ? 200 : 199) - original[id]!;
+      const offset = (index < 2 ? 200 : 199) - original[id]!;
+      state.players[id]!.cash += offset;
+      // Shift both boundaries of the controlled cash fixture equally so its
+      // recorded transfers and closing-balance invariants remain intact.
+      for (const finance of new Set([
+        state.voyageFinance,
+        state.result?.finance,
+      ])) {
+        if (!finance) continue;
+        finance.players[id]!.openingCash += offset;
+        finance.players[id]!.closingCash += offset;
+      }
     });
     state.scores = finalScores(state);
     state.winners = resolveWinners(state.scores, ids);

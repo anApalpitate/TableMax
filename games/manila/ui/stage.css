@@ -561,7 +561,7 @@
   font-size: 16px;
   line-height: 1.5;
 } /* ── Player landscape ─────────────────────────────────────────────────   One skeleton for every landscape size, two height tiers: brand and   status share the top line, the wallet keeps a single line, then the   harbor splits into lanes | shore with the market and the decision row   underneath. Nothing the player needs is hidden. */
-@media (min-width: 361px) {
+@media (min-width: 0px) {
   /* Slots read as two lines: name + price above, payout underneath. */
   .mn-screen--player .mn-harbor .mn-space {
     display: grid;
@@ -1473,7 +1473,7 @@
   overflow: hidden;
   align-items: center;
 } /* Portrait: each dock keeps its own line so three A/B/C slots still show the   payout under the price instead of squeezing into 55px-wide columns. */
-@media (min-width: 361px) and (max-width: 620px) {
+@media (max-width: 620px) {
   .mn-screen--player .mn-shore > .mn-docks {
     grid-template-columns: minmax(0, 1fr);
     gap: 4px;

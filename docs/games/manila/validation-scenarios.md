@@ -12,9 +12,20 @@
 | 真实服务   | Socket身份、管理员/公共屏无游戏动作和私股、SQLite保存失败保持原状态、同信封幂等、旧动作拒绝、骰子边界回退重演和重启恢复                 |
 | 真实Worker | 3/4/5席混合等级自然整局，32MiB隔离预算、过期结果拒绝、取消不保存                                                                        |
 | 实际页面   | 隐藏WinForms/WebView2三端，本地素材解码，320×568、390×844、844×390玩家和720p/1080p/1440p/4K电脑，字号和横向溢出，真实按钮提交与顶层规则 |
-| 完整载荷   | 游戏单元增量构建、完整installer候选、实际提取逐文件SHA和严格120,000,000字节门禁，候选内真实运行                                         |
+| 完整载荷   | 仅用户明确要求本次新导出包时适用：游戏单元增量构建、完整installer候选、实际提取逐文件SHA和严格120,000,000字节门禁，候选内真实运行       |
 
 ## 当前结果
+
+### 可读性、调位与航次收支（2026-10-18，源码）
+
+完整航次分类记账、公开金额投影、页内收支卡及横竖屏调位已实现；公开版本与stateVersion不变，缺账旧形状不补造历史账，正式旧局继续固定原发行。此次未构建、安装或发布新导出包。
+
+- 规则50项与真实Socket／SQLite3项通过，覆盖全部现金写点、融资分离、账目守恒、旧形状、保存失败、幂等、回退重演及重启恢复。记录：[规则](../../../artifacts/maintenance/manila-voyage-finance-20261018/round-01/runs/ba059e5e-516a-4a2e-a53b-88185413408a/results.json)、[服务](../../../artifacts/maintenance/manila-voyage-finance-20261018/round-02/runs/fd9a423c-8e9e-4298-9f72-4bb833c8b74b/results.json)。[UI、保存事件与真实Worker](../../../artifacts/maintenance/manila-voyage-ui-20261018/remaining-units/runs/9c459f75-e263-4a01-bf30-2e18a6fb6f88/results.json)另24项通过；重复复验不累计为新增通过。
+- [设计夹具](../../../artifacts/manila/validation/voyage-design-final2-20261018/results.json)15视口／10详情通过，包含620／621边界、手机至4K、横向船字8px间距与照片文字对比；[触控夹具](../../../artifacts/maintenance/manila-touch-layout-20261017/touch/voyage-touch-final-20261018/report.json)63项通过，覆盖方向、合法格、草稿、锁定、确认及下一航次权限。
+- [最终港湾回归](../../../artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/voyage-harbor-final-20261018/report.json)42项通过，涵盖滚动、付款、身份权限、旋转、尾部和结算；结算组对320／390／430玩家及1280×720主机／公共屏核验普通／最终航次、同结果折叠保留、分支重建、回退移除和旧记录降级。
+- 最终代表图逐图独立审查：主机1280×720、手机390×844结算和844×390触控横屏通过。手机数字粘连经复审修正：保留0／5／10／13刻度与最小高度，精确在航船位单列，合法调位用金色格标，新增可见标牌8px间距守卫。
+
+原失败及每次实质修复／环境纠正保留在`artifacts/maintenance/manila-voyage-ui-20261018/`和财务轮次。包括浏览器沙箱启动、SSR临时目录、受控夹具账目一致性、窄横屏轨道、4K尺寸覆盖、禁用按钮失焦、旧标签测量、结算棋盘挤压与display:contents测量；未放宽游戏规则、字号或原裁切断言。浏览器最终在普通桌面环境隐藏静音运行，回环监听；仅证明源码和模拟视口，不代表安装器、真实手机或物理DPI。
 
 ### 主机展板与手机航道（2026-10-17）
 
@@ -133,7 +144,6 @@
 - 0秒仍可确认的截图时点尚未复现为真实计时状态；本轮未改计时规则。
 - 844×390 首屏为横向布局，槽位44px；极短屏仍需用户滚动主区查看完整确认详情，但不允许横向溢出或只露出按钮顶部。
 
-
 - 本轮完成源码构建快照 `80dc1fddaea173f129426cc3d444d1858596d84dbce5dcbfbbffe8b2c5a3d15b`，生成候选安装器 `1.0.7.28`：`artifacts/releases/v1.0.7/1.0.7.28/TableMax-1.0.7.28-installer-win-x64.exe`，38,110,969字节，SHA256 `ddabcca6285ef3513f5122e8fcc8be524942c1f12950df5996842ccdc98ffed4`；current 仍为1.0.7.22，未推广。
 
 ## 实体展板与宽屏（2026-10-17）
@@ -143,5 +153,3 @@
 - 触摸夹具：`artifacts/maintenance/manila-touch-layout-20261017/touch/ui-final-20261018/report.json`，45 项检查通过（320/390/430/844/932）。
 - 夹具合同更新：主机结构改为展板/右列/商人条；终局并列从 `.mn-merchant-slot[aria-label]`、`.mn-tag--rank` 与账本公开股份断言；等待态恢复 64px 内细状态行并由触摸夹具同步；预览标签恢复 `.mn-boat-preview` 单行读数；宽屏行情保留在展板右列。
 - 边界：以上是源码夹具证据，不含真实手机、安装器或系统 DPI 证明；安装后验收见[当前验收](../../reference/acceptance.md#当前源码与本地交付)。
-
-

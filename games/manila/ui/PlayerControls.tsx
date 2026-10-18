@@ -241,7 +241,9 @@ export function PlayerControls({
                 ? '竞拍港务长'
                 : game.phase === 'financing' && actions.length
                   ? '选择股份抵押付款'
-                  : '等待其他商人';
+                  : game.phase === 'round-result'
+                    ? '本航次已完成'
+                    : '等待其他商人';
   const alternatives = (
     <>
       {setup && (

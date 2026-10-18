@@ -2,13 +2,14 @@ import { assertWorkspaceRoot } from '../../../shared/workspace-root.mjs';
 assertWorkspaceRoot();
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
 import { launchTestBrowser } from '../../support/browser-test.mjs';
 import { serveFixture } from '../../support/fixture-server.mjs';
 import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
+import { fingerprint as sourceFingerprint } from '../../runner/evidence.mjs';
 
 process.env.TABLEMAX_AUTO_MAINTENANCE = '0';
 process.env.TABLEMAX_TEST_MAINTENANCE = '0';
@@ -37,7 +38,10 @@ const widths = process.argv
   .split(',')
   .map(Number);
 assert(
-  !widths || widths.every((value) => [320, 390, 430, 844, 932].includes(value)),
+  !widths ||
+    widths.every((value) =>
+      [320, 390, 430, 620, 621, 844, 932].includes(value),
+    ),
 );
 await mkdir(
   resolve('artifacts/maintenance/manila-touch-layout-20261017/touch'),
@@ -126,22 +130,74 @@ window.renderManilaTouch();
 `,
 );
 
-const inputFiles = [
-  'games/manila/ui/Board.tsx',
-  'games/manila/ui/PlayerControls.tsx',
-  'games/manila/ui/style.css',
-  'games/manila/ui/theme.css',
-  'games/manila/ui/host-layout.css',
-  'games/manila/web/index.tsx',
-  'apps/web/src/session/gameHostAdapter.tsx',
-];
 const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
-const fingerprint = async () =>
-  Object.fromEntries(
+// The fixture's generated imports are dynamic, so declare their runtime trees
+// explicitly, then reuse the runner's static import closure. Re-enumeration
+// also detects newly added or removed styles, interaction code and resources.
+const inputTrees = [
+  'games/manila/ui',
+  'games/manila/rules',
+  'games/manila/web',
+  'games/manila/shared',
+  'packages/web-host/src',
+  'packages/protocol/src',
+  'packages/game-sdk/src',
+  'assets/games/manila',
+];
+const declaredInputs = [
+  'pnpm-workspace.yaml',
+  'apps/web/package.json',
+  'packages/web-host/package.json',
+  'packages/protocol/package.json',
+  'packages/game-sdk/package.json',
+  'apps/web/src/session/gameHostAdapter.tsx',
+  'apps/web/src/assets/avatars.ts',
+  'apps/web/src/components/SessionFeedback.tsx',
+  'apps/web/src/styles.css',
+  'apps/web/src/scrollbars.css',
+];
+const sourceFiles = async (directory) =>
+  (
     await Promise.all(
-      inputFiles.map(async (file) => [file, sha(await readFile(file))]),
-    ),
+      (await readdir(directory, { withFileTypes: true })).map((entry) => {
+        const file = directory + '/' + entry.name;
+        return entry.isDirectory()
+          ? sourceFiles(file)
+          : /\.test\.[^.]+$/.test(entry.name)
+            ? []
+            : [file];
+      }),
+    )
+  ).flat();
+let inputBinding;
+const fingerprint = async () => {
+  const files = [
+    ...declaredInputs,
+    ...(await Promise.all(inputTrees.map(sourceFiles))).flat(),
+    ...(await readdir('assets/platform'))
+      .filter((name) => /^avatar-.*\.webp$/.test(name))
+      .map((name) => 'assets/platform/' + name),
+  ];
+  const snapshot = sourceFingerprint(process.cwd(), {
+    runtime: 'node',
+    script: 'tools/test/games/manila/verify-manila-touch.mjs',
+    args: process.argv.slice(2),
+    inputs: { complete: true, files: files.sort() },
+  });
+  assert.deepEqual(
+    snapshot.value.gaps,
+    [],
+    'Source dependency closure is complete',
   );
+  inputBinding = snapshot.value;
+  return Object.fromEntries(
+    snapshot.value.files.map(({ path, sha256 }) => [path, sha256]),
+  );
+};
+const changedInputs = (before, after) =>
+  [...new Set([...Object.keys(before), ...Object.keys(after)])]
+    .filter((file) => before[file] !== after[file])
+    .sort();
 const report = {
   result: 'running',
   scope:
@@ -150,6 +206,7 @@ const report = {
   widths: widths ?? 'all',
   verifierSha256: sha(verifier),
   inputsBefore: await fingerprint(),
+  inputBindingBefore: inputBinding,
   output,
   work,
   checks: [],
@@ -177,6 +234,8 @@ const sizes = [
   [320, 568],
   [390, 844],
   [430, 932],
+  [620, 900],
+  [621, 900],
   [844, 390],
   [932, 430],
 ];
@@ -287,6 +346,16 @@ try {
         const tray = document.querySelector('.mn-action-tray'),
           details = tray?.querySelector('details');
         return {
+          axis: document.querySelector('.mn-harbor')?.dataset.mnAxis,
+          arrowGroups: [
+            ...document.querySelectorAll('.mn-position-controls'),
+          ].map((group) =>
+            [...group.querySelectorAll('button')].map((node) => ({
+              ...box(node),
+              step: Number(node.dataset.mnStep),
+              label: node.getAttribute('aria-label'),
+            })),
+          ),
           width: innerWidth,
           scrollWidth: document.documentElement.scrollWidth,
           touch: matchMedia('(pointer: coarse)').matches,
@@ -317,6 +386,30 @@ try {
       assert.equal(row.width, width, 'Actual mobile CSS width');
       assert(row.scrollWidth <= width + 1, 'No horizontal page overflow');
       assert(row.touch, 'Touch pointer media applies');
+      const vertical = width <= 620;
+      assert.equal(
+        row.axis,
+        vertical ? 'vertical' : 'horizontal',
+        'The 620px boundary controls the whole harbor axis',
+      );
+      for (const group of row.arrowGroups) {
+        assert.deepEqual(
+          group.map(({ step }) => step),
+          vertical ? [1, -1] : [-1, 1],
+          'Forward/back order follows the visible axis',
+        );
+        assert(
+          group.every(({ step, label }) =>
+            label.includes(step > 0 ? '前进' : '后退'),
+          ),
+          'Arrow accessible names retain movement semantics',
+        );
+        if (!vertical)
+          assert(
+            group[0].x < group[1].x,
+            'Horizontal backward control is left of forward control',
+          );
+      }
       for (const entry of row.arrows)
         assert(
           entry.width >= 44 && entry.height >= 44,
@@ -366,7 +459,7 @@ try {
             else await arrow(0, 1).tap();
             await settle();
             const labels = await page
-              .locator('.mn-boat-preview > span')
+              .locator('.mn-position-controls output')
               .evaluateAll((nodes) =>
                 nodes.map((node) => {
                   const range = document.createRange();
@@ -393,7 +486,7 @@ try {
                     clientWidth: node.clientWidth,
                     originalPositionVisible:
                       node
-                        .closest('.mn-track')
+                        .closest('.mn-lane')
                         .querySelector('.mn-lane-position')
                         ?.checkVisibility() ?? false,
                   };
@@ -452,6 +545,26 @@ try {
           const laneCount = await controls.count();
           assert(phase === 'setup' ? laneCount === 3 : laneCount > 0);
           const initial = await positions();
+          const colors = () =>
+            page.locator('.mn-lane').evaluateAll((lanes) =>
+              lanes.map((lane) => ({
+                active: lane.dataset.mnAdjustActive === 'true',
+                cargo: lane.dataset.mnCargo,
+                railBackground: getComputedStyle(
+                  lane.querySelector('.mn-track'),
+                ).backgroundColor,
+                railOutline: getComputedStyle(lane.querySelector('.mn-track'))
+                  .outlineStyle,
+                cells: [...lane.querySelectorAll('.mn-track-cells span')].map(
+                  (cell) => ({
+                    position: Number(cell.dataset.mnCell),
+                    legal: cell.dataset.mnLegal === 'true',
+                    background: getComputedStyle(cell).backgroundColor,
+                  }),
+                ),
+              })),
+            );
+          const beforeHighlight = await colors();
           await arrow(0, 1).tap();
           assert.notDeepEqual(
             await positions(),
@@ -459,6 +572,71 @@ try {
             'Tap advances visible draft',
           );
           assert.equal((await commands()).length, 0, 'Arrow does not submit');
+          const afterHighlight = await colors();
+          assert.equal(
+            afterHighlight.filter(({ active }) => active).length,
+            1,
+            'Only one currently adjusted lane is highlighted',
+          );
+          const activeIndex = afterHighlight.findIndex(({ active }) => active);
+          const activeLane = afterHighlight[activeIndex];
+          const expectedCells =
+            phase === 'setup'
+              ? [0, 1, 2, 3, 4, 5]
+              : fixture.legal
+                  .filter(
+                    (action) =>
+                      action.type === 'pilot' &&
+                      action.moves.every(
+                        (move) =>
+                          move.cargo === activeLane.cargo || move.delta === 0,
+                      ),
+                  )
+                  .map(
+                    (action) =>
+                      fixture.boats.find(
+                        (boat) => boat.cargo === activeLane.cargo,
+                      ).position +
+                      (action.moves.find(
+                        (move) => move.cargo === activeLane.cargo,
+                      )?.delta ?? 0),
+                  )
+                  .filter((position) => position >= 0 && position <= 13);
+          assert.deepEqual(
+            activeLane.cells
+              .filter(({ legal }) => legal)
+              .map(({ position }) => position),
+            [...new Set(expectedCells)].sort((a, b) => a - b),
+            'Highlighted cell legality comes from the current rules and draft',
+          );
+          afterHighlight.forEach((lane, index) => {
+            assert.equal(
+              lane.railBackground,
+              'rgba(0, 0, 0, 0)',
+              'No whole-rail highlight backing',
+            );
+            assert.equal(
+              lane.railOutline,
+              'none',
+              'No whole-rail highlight outline',
+            );
+            lane.cells.forEach((cell, cellIndex) => {
+              const changed =
+                cell.background !==
+                beforeHighlight[index].cells[cellIndex].background;
+              assert.equal(
+                changed,
+                lane.active && cell.legal,
+                'Only legal cells in the current lane receive a changed range backing',
+              );
+            });
+          });
+          report.metrics.push({
+            phase,
+            width,
+            kind: 'legal-cell-highlight',
+            lanes: afterHighlight,
+          });
           await arrow(0, -1).tap();
           assert.deepEqual(
             await positions(),
@@ -635,16 +813,9 @@ try {
   await browser?.close();
   await server?.close();
   report.inputsAfter = await fingerprint();
-  report.changedInputs = inputFiles.filter(
-    (file) => report.inputsBefore[file] !== report.inputsAfter[file],
-  );
-  if (
-    report.changedInputs.some(
-      (file) =>
-        file !== 'games/manila/ui/host-layout.css' ||
-        selected.includes('round-result'),
-    )
-  )
+  report.inputBindingAfter = inputBinding;
+  report.changedInputs = changedInputs(report.inputsBefore, report.inputsAfter);
+  if (report.changedInputs.length)
     report.failures.push({
       name: 'input-stability',
       error: 'Relevant source changed during verification.',

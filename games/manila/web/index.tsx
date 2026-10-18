@@ -42,6 +42,8 @@ import '../ui/host-layout.css';
 import '../ui/harbor-layout.css';
 import '../ui/stage.css';
 import { useBoardAnchor } from '../ui/useBoardAnchor';
+import { VoyageResultCard } from '../ui/VoyageResult';
+import '../ui/voyage-layout.css';
 
 function ManilaScreen({ session }: { session: GameHost }) {
   const { view, role, command, connected, locked, canControl } = session;
@@ -158,7 +160,13 @@ function ManilaScreen({ session }: { session: GameHost }) {
             <span className="mn-mobile-voyage">第 {game.voyage} 航次</span>
             <strong className="mn-phase-name">{phaseNames[game.phase]}</strong>
             <span className="mn-status-detail">
-              {game.turnSeat ? (
+              {game.phase === 'round-result' ? (
+                canControl || playerNextVoyage ? (
+                  '收支已结算，可启程'
+                ) : (
+                  '收支已结算，等待启程'
+                )
+              ) : game.turnSeat ? (
                 <>
                   <span className="mn-actor-name">
                     {names[game.turnSeat] ?? '商人'}
@@ -169,12 +177,6 @@ function ManilaScreen({ session }: { session: GameHost }) {
                 </>
               ) : game.phase === 'ended' ? (
                 '一项货物达到 30，比较最终财富'
-              ) : game.phase === 'round-result' ? (
-                canControl ? (
-                  '分红已结算，可启程'
-                ) : (
-                  '分红已结算，等待启程'
-                )
               ) : (
                 '等待保存结果'
               )}
@@ -404,7 +406,16 @@ function ManilaScreen({ session }: { session: GameHost }) {
               select={select}
               locked={locked || !active}
             >
-              <div className="mn-layout">
+              <div
+                className={`mn-layout${game.result ? ' mn-layout--result' : ''}`}
+              >
+                {game.result && (
+                  <VoyageResultCard
+                    key={`${view.instanceId}:${view.branch}:${game.result.voyage}`}
+                    game={game}
+                    seats={view.seats}
+                  />
+                )}
                 <div className="mn-main">
                   <HarborBoard
                     compactHeading={role !== 'player'}
@@ -473,27 +484,7 @@ function ManilaScreen({ session }: { session: GameHost }) {
                 />
               )}
               {game.result && (
-                <section className="mn-ledger-income">
-                  <h2>最近航次分红</h2>
-                  <ul className="mn-log">
-                    {game.seatOrder.map((id) => (
-                      <li key={id}>
-                        <img
-                          src={avatarFor(
-                            view?.seats.find((seat) => seat.id === id)
-                              ?.avatarId ?? 'avatar-1',
-                          )}
-                          alt=""
-                        />
-                        <span>{names[id]}</span>
-                        <strong>
-                          {game.result!.income[id]! > 0 ? '+' : ''}
-                          {game.result!.income[id]} ₱
-                        </strong>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
+                <VoyageResultCard game={game} seats={view?.seats ?? []} />
               )}
               {game.phase === 'ended' && (
                 <section className="mn-ledger-final">

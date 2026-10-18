@@ -2,13 +2,17 @@ import { assertWorkspaceRoot } from '../../../shared/workspace-root.mjs';
 assertWorkspaceRoot();
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { build } from 'vite';
 import react from '@vitejs/plugin-react';
 import { launchTestBrowser } from '../../support/browser-test.mjs';
 import { serveFixture } from '../../support/fixture-server.mjs';
 import { captureBrowserScreenshot } from '../../support/screenshots.mjs';
+import { fingerprint as sourceFingerprint } from '../../runner/evidence.mjs';
+
+process.env.TABLEMAX_AUTO_MAINTENANCE = '0';
+process.env.TABLEMAX_TEST_MAINTENANCE = '0';
 
 const name = process.argv
   .find((arg) => arg.startsWith('--evidence='))
@@ -77,6 +81,73 @@ window.renderManila=({phase='place',role='player'}={})=>{
 window.renderManila();
 `,
 );
+// The fixture's generated imports are dynamic, so declare their runtime trees
+// explicitly, then reuse the runner's static import closure. Re-enumeration
+// also detects newly added or removed styles, interaction code and resources.
+const inputTrees = [
+  'games/manila/ui',
+  'games/manila/rules',
+  'games/manila/web',
+  'games/manila/shared',
+  'packages/web-host/src',
+  'packages/protocol/src',
+  'packages/game-sdk/src',
+  'assets/games/manila',
+];
+const declaredInputs = [
+  'pnpm-workspace.yaml',
+  'apps/web/package.json',
+  'packages/web-host/package.json',
+  'packages/protocol/package.json',
+  'packages/game-sdk/package.json',
+  'apps/web/src/session/gameHostAdapter.tsx',
+  'apps/web/src/assets/avatars.ts',
+  'apps/web/src/components/SessionFeedback.tsx',
+  'apps/web/src/styles.css',
+  'apps/web/src/scrollbars.css',
+];
+const sourceFiles = async (directory) =>
+  (
+    await Promise.all(
+      (await readdir(directory, { withFileTypes: true })).map((entry) => {
+        const file = directory + '/' + entry.name;
+        return entry.isDirectory()
+          ? sourceFiles(file)
+          : /\.test\.[^.]+$/.test(entry.name)
+            ? []
+            : [file];
+      }),
+    )
+  ).flat();
+let inputBinding;
+const fingerprint = async () => {
+  const files = [
+    ...declaredInputs,
+    ...(await Promise.all(inputTrees.map(sourceFiles))).flat(),
+    ...(await readdir('assets/platform'))
+      .filter((name) => /^avatar-.*\.webp$/.test(name))
+      .map((name) => 'assets/platform/' + name),
+  ];
+  const snapshot = sourceFingerprint(process.cwd(), {
+    runtime: 'node',
+    script: 'tools/test/games/manila/verify-manila-design.mjs',
+    args: process.argv.slice(2),
+    inputs: { complete: true, files: files.sort() },
+  });
+  assert.deepEqual(
+    snapshot.value.gaps,
+    [],
+    'Source dependency closure is complete',
+  );
+  inputBinding = snapshot.value;
+  return Object.fromEntries(
+    snapshot.value.files.map(({ path, sha256 }) => [path, sha256]),
+  );
+};
+const changedInputs = (before, after) =>
+  [...new Set([...Object.keys(before), ...Object.keys(after)])]
+    .filter((file) => before[file] !== after[file])
+    .sort();
 const report = {
   result: 'running',
   scope:
@@ -84,6 +155,8 @@ const report = {
   output,
   work,
   verifierSha256: createHash('sha256').update(source).digest('hex'),
+  inputsBefore: await fingerprint(),
+  inputBindingBefore: inputBinding,
   layouts: [],
   details: [],
   screenshots: [],
@@ -129,6 +202,8 @@ try {
             [320, 568],
             [390, 844],
             [430, 932],
+            [620, 900],
+            [621, 900],
             [844, 390],
             [932, 430],
             [1024, 768],
@@ -283,7 +358,7 @@ try {
           ) {
             if (!clips(parent)) continue;
             if (!escapes(node, parent)) continue;
-            if (scrolls(parent, node)) break;
+            if (scrolls(parent, node.getBoundingClientRect())) break;
             const key = describe(node) + ' < ' + describe(parent);
             if (!clippedSeen.has(key)) {
               clippedSeen.add(key);
@@ -350,6 +425,46 @@ try {
             }
         }
         return {
+          axis: root.querySelector('.mn-harbor')?.dataset.mnAxis,
+          railAxes: [...root.querySelectorAll('.mn-track')].map((node) =>
+            getComputedStyle(node).getPropertyValue('--mn-vertical').trim(),
+          ),
+          photoText: [
+            ...root.querySelectorAll(
+              '.mn-lane-heading > strong,.mn-track-cells span,.mn-position-readout,.mn-payout-label,.mn-manifest-kicker,.mn-manifest-empty,.mn-manifest-state,.mn-position-controls output',
+            ),
+          ]
+            .filter(visible)
+            .map((node) => {
+              const style = getComputedStyle(node);
+              return {
+                text: node.textContent.trim(),
+                color: style.color,
+                background: style.backgroundColor,
+              };
+            }),
+          shipTicks: [...root.querySelectorAll('.mn-lane')].flatMap((lane) => {
+            const images = [...lane.querySelectorAll('.mn-boat img')].filter(
+              visible,
+            );
+            const ticks = [
+              ...lane.querySelectorAll('.mn-track-cells span'),
+            ].filter(visible);
+            return images.flatMap((image) =>
+              ticks.map((tick) => {
+                const a = image.getBoundingClientRect(),
+                  b = tick.getBoundingClientRect();
+                const dx = Math.max(a.left - b.right, b.left - a.right, 0);
+                const dy = Math.max(a.top - b.bottom, b.top - a.bottom, 0);
+                return {
+                  tick: tick.textContent,
+                  gap: Math.hypot(dx, dy),
+                  image: rect(image),
+                  label: rect(tick),
+                };
+              }),
+            );
+          }),
           width: innerWidth,
           scrollWidth: document.documentElement.scrollWidth,
           scrollHeight: document.documentElement.scrollHeight,
@@ -472,6 +587,62 @@ try {
         geometry.scrollWidth <= width + 1,
         `${role} ${width}: horizontal overflow`,
       );
+      const expectedAxis =
+        role === 'player' && width <= 620 ? 'vertical' : 'horizontal';
+      assert.equal(
+        geometry.axis,
+        expectedAxis,
+        `${role} ${width}: one explicit harbor axis`,
+      );
+      assert(
+        geometry.railAxes.every(
+          (axis) => axis === (expectedAxis === 'vertical' ? '1' : '0'),
+        ),
+        `${role} ${width}: artwork and hit testing use the same axis`,
+      );
+      if (expectedAxis === 'horizontal') {
+        assert(
+          geometry.shipTicks.length > 0,
+          'Horizontal ship/tick guard has actual visible targets',
+        );
+        assert(
+          geometry.shipTicks.every(({ gap }) => gap >= 8 - 0.1),
+          `${role} ${width}: every visible scale number is separated from ship artwork by at least 8px`,
+        );
+      }
+      assert(
+        geometry.photoText.length > 0,
+        'Photo text contrast guard has actual targets',
+      );
+      for (const entry of geometry.photoText) {
+        const rgb = (value) => value.match(/[\d.]+/g).map(Number);
+        const foreground = rgb(entry.color),
+          background = rgb(entry.background);
+        const luminance = (values) =>
+          values
+            .slice(0, 3)
+            .map((value) => {
+              const channel = value / 255;
+              return channel <= 0.04045
+                ? channel / 12.92
+                : ((channel + 0.055) / 1.055) ** 2.4;
+            })
+            .reduce(
+              (sum, value, index) =>
+                sum + value * [0.2126, 0.7152, 0.0722][index],
+              0,
+            );
+        const contrast =
+          (luminance(foreground) + 0.05) / (luminance(background) + 0.05);
+        assert(
+          foreground[0] >= 240 && foreground[1] >= 235 && foreground[2] >= 220,
+          `Photo text uses warm white: ${entry.text}`,
+        );
+        assert(
+          (background[3] ?? 1) >= 0.9 && contrast >= 4.5,
+          `Photo text has a stable dark backing with >=4.5:1 contrast: ${entry.text}`,
+        );
+      }
       if (role !== 'player')
         assert.ok(
           geometry.tailGap <= 20,
@@ -710,6 +881,16 @@ try {
 } finally {
   if (browser) await browser.close();
   if (server) await server.close();
+  report.inputsAfter = await fingerprint();
+  report.inputBindingAfter = inputBinding;
+  report.changedInputs = changedInputs(report.inputsBefore, report.inputsAfter);
+  if (report.changedInputs.length) {
+    report.result = 'failed';
+    report.failures.push(
+      'Relevant source inputs changed: ' + report.changedInputs.join(', '),
+    );
+    process.exitCode = 1;
+  }
   await writeFile(
     join(output, 'results.json'),
     JSON.stringify(report, null, 2) + '\n',

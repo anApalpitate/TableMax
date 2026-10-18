@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { avatarFor, type GameHost } from '@tablemax/web-host';
 import type { Action, ManilaView, ShareView, SpaceView } from '../rules/view';
 import { cargoColors, cargoNames, seatColors, spaceName } from './labels';
@@ -145,6 +145,14 @@ export function HarborBoard({
   children?: ReactNode;
 }) {
   const work = useManilaInteraction();
+  const [vertical, setVertical] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 620px)');
+    const sync = () => setVertical(!compactHeading && query.matches);
+    sync();
+    query.addEventListener('change', sync);
+    return () => query.removeEventListener('change', sync);
+  }, [compactHeading]);
   const setup = actions.some((action) => action.type === 'setup');
   const pilot = actions.some((action) => action.type === 'pilot');
   const boarding = actions.some((action) => action.type === 'board');
@@ -186,6 +194,7 @@ export function HarborBoard({
     <div className="mn-board-scroll">
       <section
         className="mn-harbor"
+        data-mn-axis={vertical ? 'vertical' : 'horizontal'}
         data-stage={setup ? 'setup' : pilot ? 'pilot' : game.phase}
         style={
           {
@@ -313,7 +322,7 @@ export function HarborBoard({
               <picture>
                 {!compactHeading && (
                   <source
-                    media="(max-width:1050px)"
+                    media="(max-width:620px)"
                     srcSet={manilaAsset('boat-portrait-v2.webp')}
                   />
                 )}
@@ -336,6 +345,14 @@ export function HarborBoard({
                 key={index}
                 data-mn-cargo={cargo ?? undefined}
                 data-mn-lane-state={laneState}
+                data-mn-adjust-active={Boolean(
+                  !locked &&
+                  (work.activeRail === index ||
+                    (work.carry?.kind === 'start' &&
+                      work.carry.lane === index) ||
+                    (work.carry?.kind === 'pilot' &&
+                      work.carry.cargo === cargo)),
+                )}
                 style={cargoStyle(cargo ? cargoColors[cargo] : '#527b7b')}
               >
                 <div className="mn-lane-heading">
@@ -364,6 +381,11 @@ export function HarborBoard({
                   ) : (
                     <strong>第{index + 1}航道</strong>
                   )}
+                  {cargo && !setup && !pilot && boat.destination === 'sea' && (
+                    <span className="mn-saved-position">
+                      船位 {boat.position}格
+                    </span>
+                  )}
                   <div className="mn-dice">
                     {cargo && game.dice.at(-1)?.values[cargo] !== undefined && (
                       <Die
@@ -387,27 +409,45 @@ export function HarborBoard({
                   )}
                 >
                   <div className="mn-track-cells">
-                    {Array.from({ length: 14 }, (_, cell) => (
-                      <span
-                        className={[
-                          cell === boat.position ? 'mn-cell-current' : '',
-                          [0, 5, 10, 13].includes(cell) &&
-                          Math.abs(cell - boat.position) > 1
-                            ? 'mn-cell-milestone'
-                            : '',
-                        ]
-                          .filter(Boolean)
-                          .join(' ')}
-                        key={cell}
-                        style={
-                          {
-                            '--mn-cell-position': `${(cell / 13) * 100}%`,
-                          } as CSSProperties
-                        }
-                      >
-                        {cell}
-                      </span>
-                    ))}
+                    {Array.from({ length: 14 }, (_, cell) => {
+                      const token = setup
+                        ? { kind: 'start' as const, lane: index }
+                        : cargo
+                          ? { kind: 'pilot' as const, cargo }
+                          : null;
+                      const target = setup
+                        ? `start:${index}:${cell}`
+                        : `pilot:${cargo}:${cell - boat.position}`;
+                      const legal = Boolean(
+                        token &&
+                        ((setup && work.setupStep === 2) || pilot) &&
+                        work.canDrop(token, target),
+                      );
+                      return (
+                        <span
+                          data-mn-legal={legal}
+                          data-mn-cell={cell}
+                          data-mn-cell-hovered={work.hoverTarget === target}
+                          className={[
+                            cell === boat.position ? 'mn-cell-current' : '',
+                            [0, 5, 10, 13].includes(cell) &&
+                            Math.abs(cell - boat.position) > 1
+                              ? 'mn-cell-milestone'
+                              : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' ')}
+                          key={cell}
+                          style={
+                            {
+                              '--mn-cell-position': `${(cell / 13) * 100}%`,
+                            } as CSSProperties
+                          }
+                        >
+                          {cell}
+                        </span>
+                      );
+                    })}
                   </div>
                   <div
                     className="mn-boat"
@@ -503,7 +543,7 @@ export function HarborBoard({
                         } as CSSProperties
                       }
                     >
-                      ↕
+                      {vertical ? '↕' : '↔'}
                     </DragSource>
                   )}
                 </div>
@@ -534,6 +574,16 @@ export function HarborBoard({
                     (pilot && cargo && boat.destination === 'sea')) && (
                     <div
                       className="mn-position-controls"
+                      onFocusCapture={() => work.setActiveRail(index)}
+                      onBlurCapture={(event) => {
+                        if (
+                          event.relatedTarget &&
+                          !event.currentTarget.contains(
+                            event.relatedTarget as Node | null,
+                          )
+                        )
+                          work.setActiveRail(null);
+                      }}
                       aria-label={`第${index + 1}航道调位`}
                     >
                       <output aria-live="polite">
@@ -541,7 +591,10 @@ export function HarborBoard({
                         {preview > 13 ? '靠港' : `${preview}格`}
                       </output>
                       <div>
-                        {([1, -1] as const).map((step) => {
+                        {(vertical
+                          ? ([1, -1] as const)
+                          : ([-1, 1] as const)
+                        ).map((step) => {
                           const value = setup ? preview + step : delta + step;
                           const allowed = setup
                             ? value >= 0 && value <= 5
@@ -561,6 +614,7 @@ export function HarborBoard({
                               aria-label={`${cargo ? cargoNames[cargo] : `第${index + 1}船`}${step > 0 ? '前进' : '后退'}一格`}
                               onClick={() => {
                                 work.setCarry(null);
+                                work.setActiveRail(index);
                                 if (setup) work.setPosition(index, value);
                                 else if (cargo) work.setDelta(cargo, value);
                               }}
@@ -568,7 +622,13 @@ export function HarborBoard({
                               <svg viewBox="0 0 24 24" aria-hidden="true">
                                 <path
                                   d={
-                                    step > 0 ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'
+                                    vertical
+                                      ? step > 0
+                                        ? 'm6 15 6-6 6 6'
+                                        : 'm6 9 6 6 6-6'
+                                      : step > 0
+                                        ? 'm9 6 6 6-6 6'
+                                        : 'm15 6-6 6 6 6'
                                   }
                                 />
                               </svg>
@@ -872,7 +932,7 @@ export function MerchantRack({
                       </div>
                       {income !== undefined && (
                         <div>
-                          <dt>最近分红</dt>
+                          <dt>结算变动</dt>
                           <dd>
                             {income >= 0 ? '+' : ''}
                             {income} ₱
@@ -1034,7 +1094,7 @@ export function Players({
                       </>
                     ) : game.phase === 'round-result' && game.result ? (
                       <>
-                        <span>本次分红</span>
+                        <span>结算变动</span>
                         <strong>
                           {game.result.income[id]! >= 0 ? '+' : ''}
                           {game.result.income[id]} ₱
