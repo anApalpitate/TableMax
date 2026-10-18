@@ -281,16 +281,29 @@ async function layout(page, label, boundary) {
         bottom: r.bottom,
       };
     };
+    const scrollOwner =
+      root.querySelector('.mn-player-scroll') ?? document.scrollingElement;
+    const ownerBox = scrollOwner.getBoundingClientRect();
+    const ownerContentBottom = Math.max(
+      scrollOwner.clientHeight,
+      ...flowBottoms(scrollOwner).map(
+        (bottom) => bottom - scrollY - ownerBox.top + scrollOwner.scrollTop,
+      ),
+    );
     const seats = [...root.querySelectorAll('.mn-seat')].filter(visible);
     return {
       width: document.documentElement.clientWidth,
       height: document.documentElement.clientHeight,
       devicePixelRatio: window.devicePixelRatio,
       scrollWidth: document.documentElement.scrollWidth,
-      scrollHeight: document.scrollingElement.scrollHeight,
-      tailGap:
-        document.scrollingElement.scrollHeight -
-        Math.max(document.documentElement.clientHeight, ...flowBottoms(root)),
+      scrollHeight: document.documentElement.scrollHeight,
+      scrollOwner: {
+        className: scrollOwner.className,
+        clientHeight: scrollOwner.clientHeight,
+        scrollHeight: scrollOwner.scrollHeight,
+        contentBottom: ownerContentBottom,
+      },
+      tailGap: scrollOwner.scrollHeight - ownerContentBottom,
       hasConfirmation: [...root.querySelectorAll('.mn-confirm')].some(visible),
       phase: root.dataset.phase,
       sections: [
@@ -415,9 +428,9 @@ async function layout(page, label, boundary) {
     metrics.width < metrics.height
   ) {
     assert.ok(
-      metrics.scrollHeight <=
+      metrics.scrollOwner.scrollHeight <=
         metrics.height * (metrics.width >= 390 ? 1 : 1.5) + 2,
-      `${label}: core placement page exceeds its scroll budget ${JSON.stringify(metrics)}`,
+      `${label}: core placement content exceeds its scroll budget ${JSON.stringify(metrics)}`,
     );
     const targets = await surface(page).evaluate(() =>
       [...document.querySelectorAll('[data-manila-drop], [data-mn-drag]')]
@@ -441,12 +454,42 @@ async function layout(page, label, boundary) {
       [],
       `${label}: touch targets below 44px`,
     );
-    if (metrics.width >= 390)
-      assert.deepEqual(
-        targets.filter((rect) => rect.top < 0 || rect.bottom > metrics.height),
-        [],
-        `${label}: every placement target must be initially reachable without vertical scroll`,
+    const unreachable = await surface(page).evaluate(async () => {
+      const owner = document.querySelector('.mn-player-scroll');
+      const previous = owner.scrollTop;
+      const missing = [];
+      for (const node of document.querySelectorAll(
+        '[data-manila-drop], [data-mn-drag]',
+      )) {
+        if (!node.checkVisibility()) continue;
+        node.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        await new Promise((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolve)),
+        );
+        const box = node.getBoundingClientRect(),
+          viewport = owner.getBoundingClientRect();
+        if (
+          box.top < viewport.top - 1 ||
+          box.bottom > viewport.bottom + 1 ||
+          box.left < viewport.left - 1 ||
+          box.right > viewport.right + 1
+        )
+          missing.push(
+            node.getAttribute('data-manila-drop') ??
+              node.getAttribute('data-mn-drag'),
+          );
+      }
+      owner.scrollTop = previous;
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
       );
+      return missing;
+    });
+    assert.deepEqual(
+      unreachable,
+      [],
+      `${label}: every placement target is reachable in its actual scroll owner`,
+    );
     evidence.checks.push({
       check: 'Portrait core page scroll budget and 44px targets',
       label,
@@ -777,6 +820,7 @@ async function dragRail(page, token, selector, position) {
   await touchDrag(page.locator(`[data-mn-drag="${token}"]`), destination);
 }
 async function touchDrag(source, target, cancel = false, beforeEnd) {
+  await source.scrollIntoViewIfNeeded();
   await surface(phone).evaluate(() => {
     window.__manilaPointers = [];
     if (window.__manilaPointerObserver) return;
@@ -1322,7 +1366,12 @@ async function firstPlacement(includeDesktop = true) {
     'true',
     'Actual touch drag chooses the concrete legal space',
   );
+  await surface(phone).locator('.mn-confirm').scrollIntoViewIfNeeded();
   const placementGeometry = await surface(phone).evaluate(() => {
+    window.scrollTo(0, 10000);
+    const pageBox = document
+      .querySelector('.mn-screen')
+      .getBoundingClientRect();
     const confirmation = document
       .querySelector('.mn-confirm')
       .getBoundingClientRect();
@@ -1346,15 +1395,46 @@ async function firstPlacement(includeDesktop = true) {
           node.getAttribute('data-mn-drag'),
       );
     return {
-      scrollHeight: document.scrollingElement.scrollHeight,
+      scrollHeight: document.documentElement.scrollHeight,
       height: innerHeight,
+      page: { top: pageBox.top, bottom: pageBox.bottom, scrollY },
+      diagnostic: [
+        ...document.querySelectorAll(
+          'html,body,#root,.mn-screen,.mn-player-scroll,.mn-layout,.mn-main,.mn-controls,.mn-confirm',
+        ),
+      ].map((node) => ({
+        className: node.className,
+        tag: node.tagName,
+        rect: node.getBoundingClientRect().toJSON(),
+        scrollHeight: node.scrollHeight,
+        style: {
+          height: getComputedStyle(node).height,
+          minHeight: getComputedStyle(node).minHeight,
+          overflow: getComputedStyle(node).overflow,
+          display: getComputedStyle(node).display,
+        },
+      })),
+      owner: (() => {
+        const box = document
+          .querySelector('.mn-player-scroll')
+          .getBoundingClientRect();
+        return { top: box.top, bottom: box.bottom };
+      })(),
       confirmation: { top: confirmation.top, bottom: confirmation.bottom },
       obscured,
     };
   });
   assert.ok(
-    placementGeometry.scrollHeight <= placementGeometry.height + 2,
-    '390 portrait selected draft and confirmation fit one screen',
+    placementGeometry.page.top >= -1 &&
+      placementGeometry.page.bottom <= placementGeometry.height + 2 &&
+      placementGeometry.page.scrollY === 0,
+    `390 portrait selected draft keeps the fixed outer page inside the viewport: ${JSON.stringify(placementGeometry)}`,
+  );
+  assert.ok(
+    placementGeometry.confirmation.top >= placementGeometry.owner.top - 1 &&
+      placementGeometry.confirmation.bottom <=
+        placementGeometry.owner.bottom + 1,
+    'Portrait confirmation is fully reachable inside its actual scroll viewport',
   );
   assert.deepEqual(
     placementGeometry.obscured,
@@ -1363,7 +1443,7 @@ async function firstPlacement(includeDesktop = true) {
   );
   evidence.checks.push({
     check:
-      'Selected portrait draft, tray and all targets stay visible above confirmation',
+      'Selected portrait confirmation is scroll-reachable and does not cover placement targets',
     ...placementGeometry,
   });
   await capture(

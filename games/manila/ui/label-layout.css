@@ -498,3 +498,60 @@
     flex: 0 0 28px;
   }
 }
+
+/* The wide toolbar is display:contents; reserve the orb on its real tools box. */
+@media (min-width: 621px) {
+  .mn-screen--player.manila-screen > .mn-toolbar > .mn-toolbar-tools {
+    margin-right: 64px;
+  }
+}
+
+/* A narrow horizontal board gives live turn information its own full-width row. */
+@media (min-width: 621px) and (max-width: 800px) {
+  .mn-screen--player.manila-screen {
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+  }
+  .mn-screen--player.manila-screen > .mn-status {
+    grid-area: 2 / 1 / 3 / 5;
+    justify-self: stretch;
+    width: 100%;
+    height: auto;
+    min-height: 44px;
+    max-height: none;
+    overflow: visible;
+  }
+  .mn-screen--player.manila-screen > .mn-status .mn-current-turn {
+    flex: 1;
+  }
+  .mn-screen--player.manila-screen > .mn-status .mn-current-turn-copy {
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+  .mn-screen--player.manila-screen > .mn-status .mn-status-detail {
+    flex-wrap: wrap;
+    white-space: normal;
+    overflow: visible;
+  }
+  .mn-screen--player.manila-screen > .mn-screen-feedback {
+    grid-area: 3 / 1 / 4 / 5;
+  }
+  .mn-screen--player.manila-screen > .mn-player-scroll {
+    grid-area: 4 / 1 / 5 / 5;
+  }
+}
+/* Dice belong to the cargo heading, rather than the lane's crew corner. */
+@media (min-width: 621px) {
+  .mn-screen--player.manila-screen .mn-harbor .mn-lane-heading .mn-dice {
+    position: static;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+  }
+}
+
+/* Keep viewport-level focus/scroll requests from moving the fixed player shell. */
+:root:has(.manila-screen.mn-screen--player) body {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+}

@@ -436,6 +436,11 @@ try {
               ...heading.querySelectorAll(
                 '.mn-detail-button > strong,.mn-cargo-payout > span,.mn-cargo-payout > strong',
               ),
+              ...heading
+                .closest('.mn-lane')
+                .querySelectorAll(
+                  '.mn-crew .mn-worker,.mn-crew .mn-position-readout,.mn-crew .mn-space-name',
+                ),
             ]
               .filter(visible)
               .flatMap((label) => {
@@ -454,6 +459,43 @@ try {
                   : [];
               });
           }),
+          outerScrollAttempt: (() => {
+            if (!root.classList.contains('mn-screen--player')) return null;
+            window.scrollTo(0, 10000);
+            const box = root.getBoundingClientRect();
+            const result = {
+              top: box.top,
+              bottom: box.bottom,
+              scrollY,
+              height: innerHeight,
+            };
+            window.scrollTo(0, 0);
+            return result;
+          })(),
+          timerCoveringStatus: (() => {
+            const timer = root.querySelector('.mn-status .decision-countdown');
+            if (!timer || !visible(timer)) return [];
+            const box = timer.getBoundingClientRect();
+            return [...root.querySelectorAll('.mn-current-turn-copy *')]
+              .filter(
+                (node) =>
+                  visible(node) &&
+                  [...node.childNodes].some(
+                    (child) =>
+                      child.nodeType === Node.TEXT_NODE &&
+                      child.textContent.trim(),
+                  ),
+              )
+              .flatMap((label) => {
+                const range = document.createRange();
+                range.selectNodeContents(label);
+                return [...range.getClientRects()].some(
+                  (text) => intersect(text, box) > 1,
+                )
+                  ? [label.textContent.trim()]
+                  : [];
+              });
+          })(),
           statusBackground: getComputedStyle(root.querySelector('.mn-status'))
             .backgroundColor,
           abbreviatedLabels: [
@@ -749,7 +791,15 @@ try {
         1,
         'The phase name stays one intact phrase',
       );
-      if (role === 'player' && width <= 430)
+      if (role === 'player') {
+        assert.ok(
+          geometry.outerScrollAttempt.top >= -1 &&
+            geometry.outerScrollAttempt.bottom <= height + 1 &&
+            geometry.outerScrollAttempt.scrollY === 0,
+          'Programmatic document scrolling cannot move the fixed player shell',
+        );
+      }
+      if (role === 'player')
         assert.ok(
           width - 38 - 23 - geometry.menuRight >= 4,
           'The toolbar leaves at least 4 CSS pixels before the default interaction orb',
@@ -824,7 +874,12 @@ try {
       assert.deepEqual(
         geometry.diceCoveringLabels,
         [],
-        `${role} ${width}: dice leave cargo names and dividends visible`,
+        `${role} ${width}: dice leave cargo labels and crew visible`,
+      );
+      assert.deepEqual(
+        geometry.timerCoveringStatus,
+        [],
+        `${role} ${width}: countdown leaves all turn information visible`,
       );
       if (width >= 320) {
         if (geometry.clipped.length)
