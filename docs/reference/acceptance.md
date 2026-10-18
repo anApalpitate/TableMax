@@ -4,15 +4,21 @@
 
 ## 当前源码与本地交付
 
-候选身份与待验边界按[历史验收入口](#历史验收入口)逐条追溯；记录候选不等于已推广，是否可作为执行输入仍须核对原candidate与实际字节。
+最近生成的完整候选为[1.0.7.34](#最新完整安装器10734与清理门禁2026-10-18)，构建、原件安全标记及待验边界见该节；未推广或发布。
 
-当前本地current为[完整安装器1.0.7.22](#盒子与马尼拉界面优化2026-10-17)，含全部七款游戏／八个玩法，已完成本轮正式系统安装验收，暂不发布。公开版本仍为1.0.7，线上附件仍对应[1.0.7.2原字节](#1072安装进度与版本交付2026-10-16)。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
+磁盘current.json现指向1.0.7.33，但其正式安装证明缺失，不能认定为已验收。最近文档中明确有正式系统通过记录的包为[1.0.7.22](#盒子与马尼拉界面优化2026-10-17)，含全部七款游戏／八个玩法；本次未改指针。公开版本仍为1.0.7，线上附件仍对应[1.0.7.2原字节](#1072安装进度与版本交付2026-10-16)。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
 
 源码与本地完整交付已包含经典马尼拉；本地current切换不覆盖线上附件、标签或原发行SHA映射。
 
 [GitHub v1.0.7](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.7)已正式发布并为latest，非草稿、非预发布。附件仅[installer](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-installer-win-x64.exe)与[source ZIP](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-source.zip)；公开installer与本地1.0.7.2完全同字节。source ZIP为86,438,358字节，SHA `83d9080b3a0d54b8d01269710dd3a9bec7c417413e4d18429e9d4fc0c5660963`，由标签源码提交 `c1207fd0be68b05b2fa88e2989a2c7444ca3527b`导出；标签对象 `14e0eef4272aeaea5648f9bc08fb43de998e09d7`。[发布审计](../../artifacts/maintenance/v1.0.7/windows-editions/91e13f6af698a964df479b8233ecf5e2f063d9579f09f9e1f7f2d652542e7ca5/github-publication.json)核对两附件远端摘要、源码映射及RSA签名正文。历史附件保留，不部署Pages；失败和操作方法差异见[发布归档](../archive/installer-progress-v107-release-2026-10-16.md)。
 
 工作区占用及逐文件退役见[项目瘦身](project-slimming.md)；1.0.7.2发布任务未追加清理，马尼拉任务的单次维护单独记录。旧运行ZIP唯一迁移输入见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#旧运行zip的迁移输入)；下方旧标题保留历史导航。
+
+## 最新完整安装器1.0.7.34与清理门禁（2026-10-18）
+
+[完整安装器1.0.7.34](../../artifacts/releases/v1.0.7/1.0.7.34/TableMax-1.0.7.34-installer-win-x64.exe)：38112431字节，SHA256 15230898d50fbafc52761a7735561d42352d0f24fe564485bed5ee71cce6d32c；内部ZIP 46361026字节、实际提取99286588字节，三项均小于120,000,000字节。七款游戏／八玩法的8个签名发行、15个blob已核验。
+
+原EXE单文件Low→Medium归一化已核原字节、owner、DACL与数据流保全；原路径标准新账户实际启动／取消及正式安装链尚未验证，当前执行环境没有管理员令牌。candidate保留原current SHA，未推广、未发布。实际current33缺少匹配正式证明，清理预览被门禁拒绝，删除0；详细构建／来源与接续见[本轮归档](../archive/installer34-deep-audit-2026-10-18.md)。
 
 ## 盒子与马尼拉界面优化（2026-10-17）
 
