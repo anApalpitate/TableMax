@@ -16,7 +16,11 @@
 
 历史机器报告或冻结快照需要保留完整内容时，文件可带 `preservedArchive`（永久maintenance ZIP的`path`／`sha256`，与原文件路径完全相同的`entryPath`）。ZIP必须同时登记为 `references`，工具逐成员解压核验原字节及SHA，删除期间持续绑定归档哈希。`build/snapshots`只接受64位SHA命名的历史JSON及assembly JSON，且必须提供此完整归档证明；latest、当前引用快照、未知名称及未列文件保留。历史ID复查前按原路径还原相应归档成员，当前启动和旧局恢复无需还原；临时副本仍直接退役，不为待删文件创建备份。
 
-内部实现 [reviewed-files.ps1](reviewed-files.ps1)，隔离回归 [reviewed-files.test.ps1](reviewed-files.test.ps1)：`powershell.exe -NoProfile -File tools/maintenance/reviewed-files.test.ps1`。范围和本次容量目标见[开发环境](../../docs/reference/development.md#跨目录精确文件退役2026-10-12)。
+大批相同程序副本或历史载荷可选择完整字节保全的 solid 归档：`preservedArchive` 增加 `format: "ustar-xz-v1"`、永久maintenance内的 `.tar.xz` 路径、归档SHA及固定系统 `C:/Windows/System32/tar.exe` 的 `tarSha256`；`entryPath`仍须为精确原路径。固定Node22.14.0调用[只读验证器](verify-preserved-tar.mjs)，流式核对每个普通成员的原路径、字节与SHA，拒绝链接、重复／越界／Windows别名、损坏数据或解码警告；不向磁盘提取或执行归档成员。归档、工具及全部引用保持SHA绑定，适用来源只限已审生成副本或隔离测试。未知格式、缓存退役以及原资料、正式存档、当前交付与活动消费者保护不变。
+
+保全前核对成员的额外数据流及原路径安全验收关系；本格式只保存普通数据流，不替代ACL、ADS或安装器原路径证明。当前验收、原安装器及其身份敏感状态仍须原位保留。历史查证或隔离任务接续前，按映射精确恢复所需成员到原路径，禁止覆盖现存文件，核对原字节与SHA后再使用；不能将归档状态算作验收通过。容量净收益必须扣除归档及清单的实际逻辑字节。
+
+内部实现 [reviewed-files.ps1](reviewed-files.ps1)，隔离回归 [reviewed-files.test.ps1](reviewed-files.test.ps1)与[归档解析回归](verify-preserved-tar.test.mjs)。使用当前可执行项目脚本的PowerShell运行`tools/maintenance/reviewed-files.test.ps1`；不要修改系统执行策略绕过签名限制。范围和本次容量目标见[开发环境](../../docs/reference/development.md#跨目录精确文件退役2026-10-12)。
 
 2026-10-11验收去重：version 2统一计划关闭子检查自动维护，结束后只尝试一次父轮收尾；多阶段同任务使用`TABLEMAX_AUTO_MAINTENANCE=0`并最后统一维护。当前完整EXE的证明直接定位到指针snapshot下的shipping报告，读取历史双格式时仍逐项匹配，缺失或哈希不符即拒绝，不回退历史全树查找。缓存预览`--plan=<精确JSON>`生成SHA绑定候选，Apply必须提供同一路径和`--plan-sha256=<预览SHA>`；保留引用变化即停止，删除前仍复核进程、锁、路径、链接、近期修改和成员哈希。旧无plan命令保留兼容行为。计时分开记录交付证明、缓存库存、成员校验、进程查询和容量／退役；没有旧分类数据时不拆算旧总耗时。
 

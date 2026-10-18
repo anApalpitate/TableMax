@@ -215,6 +215,40 @@ try {
     Check (-not (Test-Path -LiteralPath (Join-Path $workspace $old.path))) 'archived snapshot ordinary copy retired'
     Check ((Test-Path -LiteralPath $archivePath) -and (Test-Path -LiteralPath (Join-Path $workspace $current.path)) -and (Test-Path -LiteralPath (Join-Path $workspace $latest.path))) 'complete archive and current pointers retained'
   }
+  Scenario 'solid-preserved-archive' {
+    $old=File 'tmp/solid-original/record.txt' 'complete preserved original'
+    $isolated=File 'tmp/solid-fixture/candidate/data/app/program.bin' 'isolated application program bytes'
+    $archiveRelative='artifacts/maintenance/preserved-fixture.tar.xz'
+    $archivePath=Join-Path $workspace $archiveRelative
+    $tar='C:/Windows/System32/tar.exe'
+    & $tar -cJf $archivePath --format=ustar -C $workspace $old.path $isolated.path
+    if ($LASTEXITCODE -ne 0) { throw 'Could not create isolated solid archive fixture.' }
+    $archiveRef=[PSCustomObject]@{path=$archiveRelative;sha256=(Get-FileHash -LiteralPath $archivePath).Hash.ToLowerInvariant()}
+    $binding=[PSCustomObject]@{format='ustar-xz-v1';path=$archiveRelative;sha256=$archiveRef.sha256;entryPath=$old.path;tarSha256=(Get-FileHash -LiteralPath $tar).Hash.ToLowerInvariant()}
+    $old | Add-Member -NotePropertyName preservedArchive -NotePropertyValue $binding
+    $isolatedBinding=[PSCustomObject]@{format='ustar-xz-v1';path=$archiveRelative;sha256=$archiveRef.sha256;entryPath=$isolated.path;tarSha256=$binding.tarSha256}
+    $isolated | Add-Member -NotePropertyName preservedArchive -NotePropertyValue $isolatedBinding
+    Plan 'solid-preserved-archive' 'tmp/solid-original' @($old)
+    $plan.entries += [PSCustomObject]@{path='tmp/solid-fixture';reason='audited isolated fixture application';origin='isolated-test';files=@($isolated)}
+    $plan.references=@($archiveRef);Save-Plan
+    Invoke-ReviewedFilesRetirement
+    $plan.entries[1].origin='generated-copy';Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'ordinary data remains protected even when archived'
+    $plan.entries[1].origin='isolated-test';Save-Plan
+    $old.bytes++;Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'solid archive rejects byte-length mismatch'
+    $old.bytes--; $originalHash=$old.sha256;$old.sha256='0'*64;Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'solid archive rejects member SHA mismatch'
+    $old.sha256=$originalHash;$binding.format='unknown';Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'unknown preservation format rejected'
+    $binding.format='ustar-xz-v1';$binding.tarSha256='0'*64;Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'changed system tar method rejected'
+    $binding.tarSha256=(Get-FileHash -LiteralPath $tar).Hash.ToLowerInvariant();Save-Plan
+    $script:Apply=$true
+    Invoke-ReviewedFilesRetirement
+    Check ((Test-Path -LiteralPath $archivePath) -and -not (Test-Path -LiteralPath (Join-Path $workspace $old.path))) 'solid archived bytes retained after exact isolated retirement'
+    Check (-not (Test-Path -LiteralPath (Join-Path $workspace $isolated.path))) 'isolated fixture program archived with complete bytes'
+  }
   Scenario 'delivery-and-prefix' {
     $file=File 'artifacts/releases/current/current.exe'
     $script:preservedFiles=@([PSCustomObject]@{path=(Join-Path $workspace $file.path)})
@@ -395,8 +429,15 @@ try {
   Scenario 'public-entry' {
     $null=File 'package.json' '{"name":"tablemax","version":"1.0.6"}'
     New-Item -ItemType Directory -Path (Join-Path $workspace 'tools/maintenance') -Force | Out-Null
-    foreach ($support in @('cleanup-local.ps1','cleanup-guard.ps1','current-delivery.ps1','WorkspaceSnapshot.cs','reviewed-files.ps1')) {
+    foreach ($support in @('cleanup-local.ps1','cleanup-guard.ps1','current-delivery.ps1','WorkspaceSnapshot.cs','reviewed-files.ps1','verify-preserved-tar.mjs')) {
       Copy-Item -LiteralPath (Join-Path $PSScriptRoot $support) -Destination (Join-Path $workspace 'tools/maintenance')
+    }
+    # The real current-delivery guard invokes its pinned Node and delivery-path
+    # modules relative to the copied tool. Preserve that dependency boundary.
+    foreach ($support in @('tools/release/delivery-paths.mjs','tools/release/windows-executable-name.mjs','tools/shared/workspace-root.mjs','.cache/node/22.14.0/runtime/node.exe')) {
+      $target=Join-Path $workspace $support
+      New-Item -ItemType Directory -Path (Split-Path $target -Parent) -Force | Out-Null
+      Copy-Item -LiteralPath (Join-Path $root $support) -Destination $target
     }
     New-Item -ItemType Directory -Path (Join-Path $workspace 'scripts') -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $root 'scripts/Clean-Intermediates.ps1') -Destination (Join-Path $workspace 'scripts')

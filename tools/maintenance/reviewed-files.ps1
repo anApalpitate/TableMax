@@ -71,13 +71,34 @@ function Assert-ReviewedRetainedCopy($File) {
 
 function Assert-ReviewedArchivedFile($File) {
   $copy = $File.preservedArchive
-  if (-not $copy -or $copy.path -notmatch '^artifacts/maintenance/.+\.zip$' -or
+  $format = if ($copy -and $copy.PSObject.Properties['format']) { [string]$copy.format } else { 'zip' }
+  if ($format -notin @('zip', 'ustar-xz-v1')) { throw 'Unknown preservation archive format.' }
+  $archivePattern = if ($format -eq 'zip') { '^artifacts/maintenance/.+\.zip$' } else { '^artifacts/maintenance/.+\.tar\.xz$' }
+  if (-not $copy -or $copy.path -notmatch $archivePattern -or
       -not [string]::Equals([string]$copy.entryPath, [string]$File.path, [StringComparison]::Ordinal) -or $copy.sha256 -notmatch '^[a-f0-9]{64}$' -or
       -not @($reviewedPlan.references | Where-Object { $_.path -eq $copy.path -and $_.sha256 -eq $copy.sha256 }).Count) {
-    throw 'Archived content requires a permanent hash-bound ZIP and exact original member path.'
+    throw 'Archived content requires a permanent hash-bound archive and exact original member path.'
   }
   $archivePath = Resolve-ReviewedPath $copy.path -AnyRoot
-  $key = $archivePath + '|' + $copy.sha256
+  $key = $format + '|' + $archivePath + '|' + $copy.sha256
+  if ($format -eq 'ustar-xz-v1') {
+    if ($copy.tarSha256 -notmatch '^[a-f0-9]{64}$') { throw 'Preserved tar requires a fixed system-tar SHA-256 method binding.' }
+    $key += '|' + $copy.tarSha256
+    if (-not $reviewedArchivedMembers.ContainsKey($key)) {
+      $verifier = Join-Path $PSScriptRoot 'verify-preserved-tar.mjs'
+      $node = Join-Path $PSScriptRoot '../../.cache/node/22.14.0/runtime/node.exe'
+      $output = & $node $verifier $format $archivePath $copy.sha256 $copy.tarSha256
+      if ($LASTEXITCODE -ne 0) { throw 'Preserved tar verification failed.' }
+      $verified = ($output -join "`n") | ConvertFrom-Json
+      if ($verified.format -ne $format -or $verified.archiveSha256 -ne $copy.sha256 -or $verified.tarSha256 -ne $copy.tarSha256) { throw 'Preserved tar verification binding mismatch.' }
+      $members = New-Object 'System.Collections.Generic.Dictionary[string,object]' ([StringComparer]::Ordinal)
+      foreach ($member in $verified.members.PSObject.Properties) { $members.Add($member.Name, $member.Value) }
+      $reviewedArchivedMembers[$key] = $members
+    }
+    $members = $reviewedArchivedMembers[$key]
+    if (-not $members.ContainsKey($File.path) -or $members[$File.path].bytes -ne $File.bytes -or $members[$File.path].sha256 -ne $File.sha256) { throw ('Archive does not retain complete original bytes: ' + $File.path) }
+    return
+  }
   if (-not $reviewedArchivedMembers.ContainsKey($key)) {
     if ((Get-FileHash -LiteralPath $archivePath).Hash.ToLowerInvariant() -ne $copy.sha256) { throw 'Preservation archive changed.' }
     Add-Type -AssemblyName System.IO.Compression
@@ -112,7 +133,7 @@ function Assert-ReviewedAllowed($File, $Entry) {
     if ($File.path -notmatch '^build/snapshots/[a-f0-9]{64}(?:-assembly)?\.json$' -or -not $File.preservedArchive) { throw 'Frozen snapshots require full lossless preservation; pointers and unknown names stay protected.' }
   }
   if ($File.preservedArchive) {
-    if ($Entry.origin -ne 'generated-copy') { throw 'Only reviewed generated records may use archival preservation.' }
+    if ($Entry.origin -notin @('generated-copy','isolated-test')) { throw 'Only reviewed generated records or isolated tests may use archival preservation.' }
     Assert-ReviewedArchivedFile $File
   }
   if ($File.path.StartsWith('artifacts/pages/', [StringComparison]::OrdinalIgnoreCase)) {
