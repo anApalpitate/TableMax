@@ -1,8 +1,8 @@
 # 阿瓦隆验证与交付
 
-本页记录经典2012原版、平台5–10人的实际检查及版本边界。现行新局采用唯一 `configured` 人数配置，基础／宫廷记录属于旧版本恢复证据。操作命令唯一维护在 [开发环境](../../reference/development.md#阿瓦隆专项构建与验证)，规则来源与数字适配见 [游戏主题](README.md)。版本沿用1.0.6。
+本页记录经典2012原版、平台5–10人的实际检查及版本边界。现行新局采用唯一 `configured` 人数配置，基础／宫廷记录属于旧版本恢复证据。操作命令唯一维护在 [开发环境](../../reference/development.md#阿瓦隆专项构建与验证)，规则来源与数字适配见 [游戏主题](README.md)。
 
-Windows 于2026-10-12统一为预装全部游戏的完整 EXE；当前实际程序和七玩法预装／Worker／精确恢复检查见[最新验收](../../reference/acceptance.md#106唯一完整-exe2026-10-12)。下列两种 EXE、离线包导入、下载体积与早期 ZIP 均属于原构建的历史事实，当前没有这些产品入口。深度瘦身已按清单退役部分历史过程截图与程序副本，原报告、失败原因、构建及哈希边界保留，原素材与当前验收继续保护，见[瘦身记录](../../reference/project-slimming.md)。
+Windows 于2026-10-12统一为预装全部游戏的完整 EXE；当前实际程序与预装／Worker／精确恢复边界见[最新验收](../../reference/acceptance.md#当前源码与本地交付)；2026-10-12的六款七玩法检查保留原构建边界。下列两种 EXE、离线包导入、下载体积与早期 ZIP 均属于原构建的历史事实，当前没有这些产品入口。深度瘦身已按清单退役部分历史过程截图与程序副本，原报告、失败原因、构建及哈希边界保留，原素材与当前验收继续保护，见[瘦身记录](../../reference/project-slimming.md)。
 
 ## 唯一配置、并发密投与两种EXE（2026-10-11）
 
@@ -73,3 +73,28 @@ full EXE **43,690,496字节**，实际验收提取目录 **96,393,141字节**；
 实体手机、现场LAN及真人听感未新增认证；原证据绑定各自包哈希，最终包只复验受影响项，不能把模拟视口写成实体设备。
 
 [旧版实际存档](../../../artifacts/avalon/validation/bug-567-legacy-restore/results.json)分别由旧程序生成五人基础、六人宫廷SQLite，保留已密封的一票；新程序恢复本人秘密投影，discussion为空，剩余票正常推进任务。实际通过2项；后续最终包阿瓦隆成员字节未变，沿用原包边界。
+
+## 规则与策略验证
+
+现行唯一配置的六种人数、秘密投影、奥伯伦第四任务、18场真实Worker整局、并发故障及当时两种EXE三端规则页已通过，见[2026-10-11验证](validation-scenarios.md#唯一配置并发密投与两种exe2026-10-11)。当前单完整 EXE 的预装、恢复与真实程序检查见[2026-10-12验收](../../reference/acceptance.md#106唯一完整-exe2026-10-12)，不将旧两种程序的报告改标为当前程序验证。下列18项属于此前基础／宫廷配置，保留原版本边界。
+
+2026-10-10 的定向规则验证共 18 项通过：核心规则 7、秘密权限 4、JSON恢复 3、三档策略 4。策略整局项覆盖 2 种角色配置 × 3 个等级 × 3 个固定种子，全部采用六人局；每个决策经合法动作与存档校验。五／六人角色与两种任务人数表另有核心测试。没有以模拟胜负宣称真人社交推理强弱或实物设备验收。
+
+证据位于 artifacts/maintenance/test-history/runs/：
+
+- 核心规则：42aefe79-8353-410a-b10c-297d627e13c8.json。
+- 三档策略：dd4a9f9b-14c2-4c20-9137-524b89cae4f0.json，策略4项通过；同批未开始的权限文件遭遇沙箱 Vite 临时 SSR 文件缺失，记录一项运行错误，未假计权限结果。
+- 权限定向完成：9d1fbe69-4a83-4f7b-847a-58b2ce2fad74.json。
+- 恢复：50951ad9-1dc4-4463-9618-6c8f5e4dcdcd.json。
+
+权限后续使用仓库隔离 TEMP／TMP，只执行未完成项。规则、策略与测试的定向 TypeScript 严格检查通过；UI与服务检查由主任务负责。
+
+## 阿瓦隆专项构建与验证
+
+经典2012原版接入平台5–10人，现行新局只用 `configured` 人数配置，旧 `classic`／`court` 仅恢复原局，见[游戏主题](README.md)。独立构建 `node tools/build/build.mjs --only=game:avalon`；单测 `node tools/test/runner/test-scoped.mjs --scope=game:avalon`仅选本游戏规则、策略、UI与实际服务／Worker项。涉及共享调度、目录或恢复时按实际依赖增加 `shared` 范围，不因其他未提交改动增加游戏项。范围隔离工具单独运行 `node --test tools/test/runner/scopes.test.mjs`。
+
+`node tools/test/games/avalon/verify-avalon.mjs --executable=<实际解压的TableMax.exe> --zip=<匹配EXE的内部payload.zip> --seats=6 --variant=configured --only=all --evidence=<安全独立名称>` 启动实际隐藏WinForms／WebView2及包内Socket／SQLite服务，显式监听127.0.0.1，使用隔离 `tmp/game-review-<六位随机后缀>`。`--seats=5|6|7|8|9|10`，现行新局使用 `--variant=configured`；`classic`／`court` 仅用于对应历史实际程序；`--only=layout|success|failure|rejections|assassination|long-quest|all` 定向选择三端布局、三成功梅林幸存、三失败、五否决及梅林遇刺流程。`long-quest` 额外按成功／失败交替推进五次任务后刺杀，检查五张已结算任务牌；`all` 保留原四种终局。终局通过真实合法动作进入，不改写秘密存档；首项身份确认、表决、任务及刺杀用实际UI按钮核验，`success` 另含提名及暂停／回退。
+
+人数与阶段计划通过 `node tools/test/runner/test-scoped.mjs --scope=game:avalon --plan=<计划JSON>` 排序运行，沿用[统一失败阈值](../../reference/validation.md#历史通过率与失败阈值)与不自动重试。`artifacts/avalon/validation/portable-plan.json` 和 `grid-final-plan.json` 是历史参数记录；重新执行时先核对实际 EXE、匹配载荷及当前配置，复制计划到新名称并更新路径、玩法和证据名，不能直接沿用旧 `court` 参数，历史临时目录可能已安全退役。验证包括实际提取成员前后哈希、公开秘密边界、保存／暂停／回退、320px—4K与横屏、图文规则、正确事件全屏特效／减少动态、12条本地音频解码、真实播放调用和原生单窗口播放权、刷新不重播。最窄玩家画面以实际 `documentElement.clientWidth` 断言横向溢出，并检查终局；不以包含滚动条的 `innerWidth` 放宽边界。原生物理输出始终静音，隔离数据中的音频偏好只用于观察调用，不修改日常设置；不把模拟手机、DPI或解码／播放调用作为实体手机、LAN或真人听感认证。实际证据与原失败见[阿瓦隆验证](#唯一配置并发密投与两种exe2026-10-11)。
+
+原双版本／离线导入的阿瓦隆验证方法见[整理归档](../../archive/tooling-delivery-organization-2026-10-15.md#阿瓦隆旧双版本验证)，不作为当前完整安装器要求。

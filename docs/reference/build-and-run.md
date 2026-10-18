@@ -14,7 +14,7 @@
 
 内部签名模块由完整打包入口检查或生成；历史模块仓库只供精确原局恢复，不提供独立导出、目录更新或导入。
 
-实际载荷复用、逐成员核验和源码／包内夹具区别统一遵守[验证](validation.md#完整安装与程序更新的证据分层)；同包物化入口见[测试工具](../../tools/test/README.md)。
+实际载荷复用、逐成员核验和源码／包内夹具区别统一遵守[验证](installation-validation.md#完整安装与程序更新的证据分层)；同包物化入口见[测试工具](../../tools/test/README.md)。
 
 新本地安装器名为 `TableMax-<四位版本>-installer-win-x64.exe`，未来授权Release的附件使用三位版本，名称同样包含 `installer`。EXE／sidecar分组见[目录职责](project-structure.md#交付文件布局与历史元数据)。冻结旧名仍按原记录路径、版本和SHA读取，不移动、改名或重写旧指针；冻结重封显式沿用原路径，不能为整理路径覆盖原件或重分配修订。
 
@@ -34,11 +34,11 @@ candidate以dontcopy内嵌，在 PrepareToInstall 显式提取并同步完成hel
 
 `Updater.exe` 双击先显示中文启动反馈，再通过 `--check-updates` 打开主机原生盒子的「程序更新」面板；已运行时仅唤起同用户、同安装实例的面板，重复点击聚焦现有窗口，不关闭游戏。`UpdateHelper.exe` 无参数打开时给出中文引导。可信同版明确显示「已是最新版本」，可信远端旧版单独说明，不降级；网络、签名及发布描述失败分别报错，不能当作最新。面板提供主动检查、发布页、下载进度／取消及明确重启更新，不自动应用、不提供手动在线降级。普通浏览器、公共屏和子frame没有原生更新权限。下载期间可以继续使用，未验签或失败的文件不执行；应用更新在服务串行队列确认无playing对局后同步拒收、排空、保存并关闭，再取得实际Stop确认与原Native退出码0，才调用同一个完整installer升级原目录。保存失败、超时或失联时明确停止更新并安全退出旧盒子，不能留作“可更新”或启动helper提交。稳定入口无需再次解压另一份自解压载荷，健康确认核对实际新Native／Node、I/B/D、安装实例、四位版本及当前映射。正式成功后保持新版普通主机运行。
 
-更新执行在保存关闭前，把已核验helper和完整installer原字节复制到当前用户实际TEMP中新建的私有短目录，绑定安装身份、原签名目标及双副本SHA后再交接。该临时副本不改变I／B／D／G，也不把数据移入TEMP；原下载和B内审计记录保留。原因是.NET Framework使用的[CreateProcessW空applicationName形式](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw)仍限制命令行中的模块路径长度，内部文件IO支持长路径不代表可以从同一路径启动EXE。TEMP本身过深或为磁盘根时须在关闭服务前报错，不改系统长路径策略或已有目录权限。停止与更新交接还必须在发出关闭请求前持有原进程句柄，直到核验正常退出码后才释放，避免进程退出后只凭PID无法取得退出状态。证据须记录实际进程句柄查询的短helper／installer模块路径、PID、原件／副本及元数据／审计rawSHA，不能把计划路径当实际启动证明。具体证据要求见[验证](validation.md#完整安装与程序更新的证据分层)。
+更新执行在保存关闭前，把已核验helper和完整installer原字节复制到当前用户实际TEMP中新建的私有短目录，绑定安装身份、原签名目标及双副本SHA后再交接。该临时副本不改变I／B／D／G，也不把数据移入TEMP；原下载和B内审计记录保留。原因是.NET Framework使用的[CreateProcessW空applicationName形式](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw)仍限制命令行中的模块路径长度，内部文件IO支持长路径不代表可以从同一路径启动EXE。TEMP本身过深或为磁盘根时须在关闭服务前报错，不改系统长路径策略或已有目录权限。停止与更新交接还必须在发出关闭请求前持有原进程句柄，直到核验正常退出码后才释放，避免进程退出后只凭PID无法取得退出状态。证据须记录实际进程句柄查询的短helper／installer模块路径、PID、原件／副本及元数据／审计rawSHA，不能把计划路径当实际启动证明。具体证据要求见[验证](installation-validation.md#完整安装与程序更新的证据分层)。
 
-后续本地启动在`ApplicationUpdate`构造读取真实信任根与安装receipt后同步调用`InstallationLaunch.CleanupFinished`，不联网、不等待或终止helper。只由本安装B的`handoff-UUID`记录索引私有TEMP，要求同安装实例／SID／根、全部安装事务终态、原RSA目标与各自已完成事务清单／receipt及旧helper／元数据／审计SHA匹配。历史成功目标不高于当前版本也可清理；目标就是当前版本时，另核清单全字段及receipt原字节一致。运行中、pending、链接、未知、篡改及已有清理记录（包括中断的prepared）保留。清理前先取得全部已知文件的独占原句柄并核SHA，再按原句柄删除TEMP的h／存在的i／元数据和B旧helper，最后删除已空私有目录；B公共审计、签名描述及handoff保留，`cleanup.json`记录阶段与精确元组。canonical大下载保留并单独计缓存，不冒称已回收；不遍历整TEMP、G或D，不修改既有ACL或系统策略。组件与实际下一启动分别按[验证要求](validation.md#完整安装与程序更新的证据分层)记录。
+后续本地启动在`ApplicationUpdate`构造读取真实信任根与安装receipt后同步调用`InstallationLaunch.CleanupFinished`，不联网、不等待或终止helper。只由本安装B的`handoff-UUID`记录索引私有TEMP，要求同安装实例／SID／根、全部安装事务终态、原RSA目标与各自已完成事务清单／receipt及旧helper／元数据／审计SHA匹配。历史成功目标不高于当前版本也可清理；目标就是当前版本时，另核清单全字段及receipt原字节一致。运行中、pending、链接、未知、篡改及已有清理记录（包括中断的prepared）保留。清理前先取得全部已知文件的独占原句柄并核SHA，再按原句柄删除TEMP的h／存在的i／元数据和B旧helper，最后删除已空私有目录；B公共审计、签名描述及handoff保留，`cleanup.json`记录阶段与精确元组。canonical大下载保留并单独计缓存，不冒称已回收；不遍历整TEMP、G或D，不修改既有ACL或系统策略。组件与实际下一启动分别按[验证要求](installation-validation.md#完整安装与程序更新的证据分层)记录。
 
-安装验证的层次、三链与正式GUID／迁移要求统一见[验证](validation.md#完整安装与程序更新的证据分层)；fixture模式、固定步骤和参数统一见[测试工具](../../tools/test/README.md#完整安装与程序更新验证)。
+安装验证的层次、三链与正式GUID／迁移要求统一见[验证](installation-validation.md#完整安装与程序更新的证据分层)；fixture模式、固定步骤和参数统一见[测试工具](../../tools/test/README.md#完整安装与程序更新验证)。
 
 深路径WebView2启动调查与原方法范围见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#深路径webview2启动调查)。不承诺任意深I／D在所有依赖中可用。
 
@@ -48,7 +48,7 @@ candidate以dontcopy内嵌，在 PrepareToInstall 显式提取并同步完成hel
 
 每份卸载框架编译时内嵌自身固定SHA的helper，不依赖live helper是否存在或已升级。Base64严格检查字母表、末尾填充／低位和精确长度，在锁定PascalScript中以8位 `Chr` 写入 `AnsiString`；生成配方绑定原helper及include的字节数／SHA。解码后先核内存SHA，只在本次新建私有临时目录写文件，再核文件SHA后执行原 `--uninstall`，finally只清理本次文件和空目录。卸载仍检查安装身份、未知程序成员、链接和受管文件大小，缺失文件不捏造隔离副本，损坏文件按实际SHA精确保全，D/config及未知额外内容保持；游戏资源按下述引用闭包清理。全字节解码探针、完整框架编译、实际跨PE失败后卸载是不同证据层；当前结果见[验收](acceptance.md#当前源码与本地交付)，构造日志不称为真实断电验收。
 
-Inno卸载分两阶段；首段退出0不表示原EXE已自删除或日志已关闭。验证器的有界完成观察要求见[验证](validation.md#完整安装与程序更新的证据分层)。
+Inno卸载分两阶段；首段退出0不表示原EXE已自删除或日志已关闭。验证器的有界完成观察要求见[验证](installation-validation.md#完整安装与程序更新的证据分层)。
 
 默认卸载在保存关闭成功后移除受管理程序、快捷方式和当前用户登记。helper持有数据库组租约，从私有只读快照解析全部存档与checkpoint的固定发行，计算代码／资源及共享blob依赖；只有签名当前目录精确授权且未被保留发行引用的资源可删。历史依赖、配置、存档、外置数据、未知文件及不能可靠解析的依赖保守保留。删除使用核过大小和SHA的原文件句柄；`B/.uninstall-resources.json` 与唯一审计目录的receipt记录逐项已删除、因依赖保留及未知保留，空受管资源目录移除。partial不能声称清理成功；没有删除用户数据选项。
 
@@ -242,3 +242,7 @@ Windows x64完整EXE、内部payload ZIP及实际提取内容均严格小于120,
 - Node 启动与网络验证必须执行 [Node 运行与防火墙规则](development.md#node-运行与防火墙规则)：本机检查显式监听 `127.0.0.1`，仅有局域网验收目的时开放网卡；日常运行保持程序路径稳定，防火墙授权按实际程序、端口、专用网络与本地子网限定，不能用全局放行或关闭防火墙消除提示。
 
 - 工具版本与依赖锁定在仓库内，保存时用项目 Prettier；按影响执行真实检查，不修改其他项目的全局环境。纯文档／配置只查格式、链接、配置、索引覆盖和 diff，不机械运行无关测试或构建。
+
+## 性能结论与测量范围
+
+性能结论与证据对应到实际构建和测量范围：复制算法的分配／耗时、renderer heap、应用进程工作集、项目磁盘占用分别记录。保留原始测量与局限，不把一组 fixture 的降幅推广成整局 RAM 降幅，也不把界面反复切换无明显增长写成长期有界历史或绝无泄漏。

@@ -24,7 +24,7 @@ Windows只导出预装全部正式游戏及玩法的完整安装EXE，名称包�
 
 项目签名不提供 Windows 发布者证书或 SmartScreen 信誉。保留系统安全提示，不要求安装者导入根证书、关闭安全功能或降低策略；系统拒绝运行时明确提示限制，不能声称免费应用签名等同 Authenticode。第三方 Node／WebView2 文件保留原发行字节和来源。
 
-封包、实际安装、current推广和发布分别受门禁约束。先冻结候选installer、安装清单与原current摘要，再按[系统证明要求](validation.md#完整安装与程序更新的证据分层)验收同一候选；提取、helper-only、向导取消或工程标志不能替代系统证明。推广核对候选、正式证明和未变化的原current后原子切换；发布另核精确摘要、已签正文及明确发布授权。命令见[发布工具](../../tools/release/README.md)，普通commit／push不发布。
+封包、实际安装、current推广和发布分别受门禁约束。先冻结候选installer、安装清单与原current摘要，再按[系统证明要求](installation-validation.md#完整安装与程序更新的证据分层)验收同一候选；提取、helper-only、向导取消或工程标志不能替代系统证明。推广核对候选、正式证明和未变化的原current后原子切换；发布另核精确摘要、已签正文及明确发布授权。命令见[发布工具](../../tools/release/README.md)，普通commit／push不发布。
 
 ## 两种Windows交付与空盒子入口（2026-10-11）
 

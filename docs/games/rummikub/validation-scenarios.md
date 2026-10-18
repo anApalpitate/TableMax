@@ -108,3 +108,13 @@ Windows物理缩放为150%，上述配置令主机／公共原生窗口实际边
 `diagnostic-05`密集桌面场已实际保存并采样，但等待状态的互动球覆盖“盒子”链接，末端超时，未计作第三场成功。失败JSON和启动时验证器源码原位保留；验证器沿用已有用户拖动，把球移到非交互品牌文字，`diagnostic-06`仅续该受影响场景通过，没有修改宿主或拉密生产代码。首次UI、重载压力、修复后的三场各自保留哈希和边界；这组历史UI采样不独自证明新最终包，也不用于裁定百搭规则。
 
 返回[来源](sources.md)、[采用规则](rules.md)与[权限恢复](information-and-decisions.md)。
+
+## 拉密专项构建与验证
+
+经典版 2–4 人只选择 `game:rummikub` 范围；实际动作契约影响共享层时另选 `shared` 的精确文件，不展开其他游戏矩阵。首次针对规则、完整回合、草稿、真实服务及实际 Worker 检查后，仅重跑修改或失败相关项；完整大局耗时与每次决定的两秒／32MiB 限制分别记录。来源及边界见[拉密验证](#交互完善与入口恢复2026-10-11)。
+
+`node tools/test/games/rummikub/verify-rummikub-ui.mjs --executable=<实际解压的TableMax.exe> --evidence=<安全独立名称>` 在真实生产程序的合法 106 牌 SQLite 场景核验三端、草稿、导航、尺寸、图文规则和小局／大局结果；`--only=opening,reorganization,finish,finish-final` 可选择所需场景，`--navigation-only --rack-size=30` 专查大牌架。`--skip-verified` 仅供本轮已通过项的接续，不能替代首次完整检查。测试静音、隐藏窗口、仅监听 `127.0.0.1`；模拟视口不能记为实体手机验收。
+
+`node tools/test/games/rummikub/verify-rummikub-runtime.mjs --evidence=<安全独立名称>` 默认只生成并静态检查测量脚本，显式加 `--run` 才启动实际包。运行入口核对当前 ZIP／逐文件清单，使用包内 Node、原字节服务／规则／三档 Worker及真实 Socket／SQLite推进自然完整大局、下一局和重启续局；只读 preload 采样实际服务／Worker 堆，报告明确标注观测边界，不用 Native 的绝对 private bytes 代替服务堆。可用 `--seats=2,3,4` 定向未完成人数；单次决定两秒不放宽。实际 Native／UI 检查单独绑定同包证据。
+
+需要测量渲染堆与应用进程增量时，给 UI 验证进程设置独立 `TABLEMAX_BUDGET_TRACE` 目录及 `TABLEMAX_BUDGET_GAME=rummikub`，沿用现有只读采样；盒子首样本、完整页／iframe 堆、服务 private 和本应用进程树分别记量。无权限或缺样本不能写零值通过；额外窗口及导航缓存的增量不称为游戏净分配。正式打包与清理仍使用下文统一入口。

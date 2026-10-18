@@ -126,24 +126,34 @@ node --test tools/maintenance/maintenance.test.mjs
 
 ## 定向Markdown读取与迁移审计
 
-`read-doc.mjs`只读取仓库内Markdown源码，拒绝越界／生成物路径，默认8KiB输出（含行号和续读提示）。标题需精确且唯一；同名标题只列候选，不猜测。cursor是1起始行号与0起始Unicode码点列号，续读保留原文件行号；MORE不表示省略内容不存在。工具本身不修改文件。
+文档工具只按需读取源码，不启动产品或维护常驻索引。查找与读取拒绝越界、链接绕行及生成物路径；默认输出8KiB，预算包含定位信息和截断提示。原文按UTF-8读取；包管理器不可用时直接执行下面的Node等价入口，不为阅读修复或升级全局环境。
+
+`find-doc.mjs`对应`pnpm docs:find <查询> --path=<仓库文件或目录> --limit=5 --max-bytes=8192`。默认排除归档，`--history`显式纳入历史；无可选YAML的正文照常参与。按标题精确、标题包含、正文包含排序，同级按路径／行号排列。结果返回标题层级、行号、SHA、摘录、父章节／引用补读位置和读取参数，同时说明查询边界、命中及展示数量。片段只用于定位，不证明前提或例外已经完整；截断时收窄范围或补读原文。
+
+Git进程因EPERM／EACCES／ENOENT不可用时，仅显式指定的非仓库根`--path`可回退到受边界保护的源码目录枚举；输出标明`enumeration=filesystem-path-fallback`及未应用Git忽略规则。固定生成物与历史排除继续生效，链接路径及嵌套仓库拒绝；默认全仓查找和审计不静默回退。该结果只覆盖声明的窄路径，不代表全库完整。
+
+`read-doc.mjs`对应`pnpm docs:read <文件.md>`。`--outline`列真实标题；`--heading=完整标题`必须精确且唯一；同名标题用`--heading-line=N`选择标题起行，两种选择器不能同时使用。`--expect-sha256=SHA`核对查找到首次读取之间的原文版本。续读仅使用返回的`v1`游标，它绑定文件原字节SHA、路径、章节、模式和位置，并恢复原选择；文件、模式或显式选择条件变化时拒绝续读。旧`line:column`游标已停止接受，须重新定位。MORE不表示省略内容不存在；END仅表示本次选择的内容完整。
 
 ```powershell
 pnpm docs:read docs/reference/validation.md --outline
 pnpm docs:read docs/reference/validation.md --heading="按变更范围选择检查"
-# 仅使用上一结果给出的cursor；有heading时续读保留同一heading
-pnpm docs:read docs/reference/validation.md --cursor=40:0
-node --test tools/maintenance/read-doc.test.mjs
-node --test tools/maintenance/audit-efficiency-docs.test.mjs
+pnpm docs:find "换机" --path=docs/reference
+# Node等价入口；其余选项相同。续读复制上一结果的完整v1游标。
+node tools/maintenance/read-doc.mjs docs/reference/validation.md --outline
+node tools/maintenance/find-doc.mjs "换机" --path=docs/reference
 ```
 
-`audit-efficiency-docs.mjs`只检查源文档链接／真实标题、8KiB根入口和可选迁移对照，不启动产品、不执行容量／交付扫描或清理。全量入链读取用于正文迁移，既有失败与新增失败分别记录；已有缺口不能替新增失败通过。报告仅写指定仓库内证据路径。
+`audit-efficiency-docs.mjs`对应`pnpm docs:audit`，无参数保持全量源码Markdown链接／真实标题／显式静态锚点和8KiB根入口检查。`--changes=<清单>`复用version 1任务自有变化清单：`files`包含仓库相对`path`及当前`sha256`，删除为`null`；清单过期即拒绝。增量模式检查变化文档出链及指向变化／删除目标的入链，报告分开统计扫描与实际检查范围，不能将全库查入链称为全库重审。
+
+新增坏链、缺失迁移内容或失效清单属于失败；重复标题、超过16KiB的章节和当前入口链接历史内容列为人工核对提示。`--baseline`只区分旧失败，不自动重写；`--migration`核对既有迁移对照。普通文档检查不必指定迁移。无基线时所有坏链都算失败；旧失败不能替新增失败通过。
+
+默认只输出检查结果，只有显式`--report=<仓库内路径>`才写报告；`--baseline-only`也不会自行保存基线。检查不执行容量／交付扫描、清理或产品启动。真实新会话技能评估入口`verify-documentation-skills.mjs --case=<样例>`会创建证据目录并启动只读临时Codex会话，不能当作普通问答的只读查询工具；模型单次覆盖和有界停止均记录在报告中，exit0不等同路由／工作流通过。
 
 ```powershell
-node tools/maintenance/audit-efficiency-docs.mjs --baseline=artifacts/maintenance/development-efficiency/docs/link-baseline.json --migration=artifacts/maintenance/development-efficiency/docs/migration.json --report=artifacts/maintenance/development-efficiency/docs/link-final.json
+node tools/maintenance/audit-efficiency-docs.mjs --changes=artifacts/maintenance/documentation-optimization/2026-10-18/owned-changes.json --baseline=artifacts/maintenance/documentation-optimization/2026-10-18/baseline.json --report=artifacts/maintenance/documentation-optimization/2026-10-18/links-final.json
 ```
 
-普通文档检查不必指定本轮migration；无baseline时所有坏链接都算失败。工具／验证日志回传默认结论约2KiB、失败约8KiB，完整日志留现有证据；预算之外明确截断，不重跑同一检查来获取相同输出。
+工具及隔离回归通过现有version 2计划选择，范围登记查[测试工具](../test/README.md)。日志回传默认结论约2KiB、失败约8KiB，完整日志留现有证据；不重跑同一检查获取相同输出。新会话评估方法与实际缺口查[文档优化接续](../../docs/tasks/documentation-wiki-and-skills.md)。
 
 ## 开发环境操作：tmp 临时内容的生命周期（2026-10-11）
 

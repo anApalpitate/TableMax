@@ -1,6 +1,6 @@
 # 验证场景与交接
 
-当前应用为1.0.6，原版和扩展均随完整 EXE 预装；实际程序及精确发行恢复见[最新验收](../../reference/acceptance.md#当前源码与本地交付)。下方按日期保留旧源码、ZIP、截图、失败与当时缺口，不能将历史验证改标为当前 EXE 重新执行。当前扩展采用单弃牌、本人端公开缓冲、17项研究及六类事件，主机／公共不展示玩家缓冲；真人待测从[当前真人验收范围](#当前真人验收范围)接续；原版 V00–V22 与早期扩展 EX01–EX19 的版次边界分别保留。
+原版和扩展均随完整EXE预装；实际程序及精确发行恢复见[最新验收](../../reference/acceptance.md#当前源码与本地交付)。下方按日期保留旧源码、ZIP、截图、失败与当时缺口，不能将历史验证改标为当前 EXE 重新执行。当前扩展采用单弃牌、本人端公开缓冲、17项研究及六类事件，主机／公共不展示玩家缓冲；真人待测从[当前真人验收范围](#当前真人验收范围)接续；原版 V00–V22 与早期扩展 EX01–EX19 的版次边界分别保留。
 
 ## 新设计适用自动质检（2026-10-12）
 
@@ -167,3 +167,45 @@ UI深度修订追加：请在最终v1.0.3包上观察角色完整度、34类配�
 | 人类节奏   | 同条件原版与扩展2–3人、4–6人完整小局，普通模式计时，记录规则说明与暂停用时                                                  | 真实回合、决策时间、小局时长比；自动化／CPU时间不作2–3倍目标证明 |
 
 本次采用SVG真实关节／形状变化，EX15的姿态数量不变；绝悟使用战术与配置门槛，不再要求统计胜率高于豆包。历史统计和规则／音源原文缺口保留，不将项目扩展写为出版官方规则。
+
+## 早期操作原型与素材交接边界
+
+以下保留原型与交接记录，不代表当前完整EXE或实体设备已经重新验收。
+
+可点击原型仍在 `apps/web/src/prototype/` 的独立 Vite 入口；游戏参数为 `?game=pokemon-encounters`，通用启动、网络、大厅、错误与恢复页面保留。只使用合成授权视图与已公开示例，不存完整秘密牌序、真实凭证或本地存档。运行及检查见 [开发说明](../../reference/development.md)，通用权限和恢复要求见 [平台规格](../../reference/phase-02-platform-spec.md)。
+
+出版原文缺口继续保留在 sources。当前角色图采用已记录来源的官方角色素材和百变怪生成图，牌桌使用花园背景；名称、数字、能力与位置编号由代码独立排版，来源和替换方式见 [资源记录](assets.md)。用户授权以当前电脑及设备模拟完成验收，出版版次认证和手机／电视实机核验状态见验收记录。
+
+## 扩展版技术收尾（2026-10-05至06）
+
+以下记录早期批准与技术收尾的原范围；当前新局配置以[扩展设计](expansion-design.md)为准，不将早期24项研究改标为当前17项配置。
+
+2026-10-05用户已批准34类／112或144张、九宫格、单暗私看喷火龙、24项开局暗投研究与6项丰缘齐聚专属任务、全能力和多姿态演出。2026-10-06最新收尾采用14套／63关键姿态的矢量关节动作、十普通主题、绝悟能力链／威胁／私看评价及SQLite v2去重历史。最新同包完成状态见[技术收尾](../../archive/pokemon-encounters-expansion-2026-10-05-to-06.md#一次性技术收尾2026-10-06)，真人设备、听感、物理DPI与真人时长独立交接；绝悟按合法战术和配置验收，历史胜率不再作为本次门槛。
+
+按职责进入[规则与牌表](expansion-design.md)、[权限与恢复](information-and-decisions.md#扩展版权限与恢复2026-10-05)、[交互](interaction.md#扩展版交互与演出规格2026-10-05)、[多姿态资源](assets.md#扩展版多姿态资源规格2026-10-05)及[专项验证](validation-scenarios.md#扩展版专项场景2026-10-05)。同游戏入口的版本接入、兼容和当前实际状态见[任务页](../../tasks/pokemon-encounters-expansion.md)，不覆盖原版cards／规则指纹／旧存档。
+
+## 宝可梦三胜大局与叫声续验（2026-10-06）
+
+`node tools/analysis/games/pokemon-encounters/measure-pokemon-expansion-matches.mjs --seeds=4 --evidence=match-run` 使用真实扩展规则与策略模拟2–6人完整三胜大局。两人对每个种子作六种配对／座位反转，3–6人作三次循环档位轮换；每座独立策略随机源，检查授权知识、守恒、规则RNG和输入不变，逐小局走下一局生命周期。结果包含精确源码前后哈希、每轮计分／胜场和档位暴露。`node tools/analysis/games/pokemon-encounters/analyze-pokemon-expansion-matches.mjs 路径/report.json` 重算三胜终点和每种子完整配对，按人数以整种子块作10,000次描述重采样。四种子是探索样本，不能保证普遍强度顺序。运行期间保持测量依赖源码不变；CPU／自动化时间不作真人节奏证据。
+
+`node tools/analysis/games/pokemon-encounters/measure-pokemon-expansion-flow.mjs <独立证据名>` 补充2–6人各一个固定种子的混合档位三胜大局，结果在 `artifacts/maintenance/v1.0.2/pokemon-expansion-flow-audit/<证据名>/report.json`。仅在独立测量进程串行安装观察钩子，原规则结果原样返回，成功或异常退出均恢复钩子；不修改既有完整对照测量器或生产规则／策略。统计按同一小局内的牌身份追踪盖回，行交换不误算盖回，阿尔宙斯同一步盖回再翻明计零动作间隔闭环，结算用 `preReveal` 排除强制揭牌；离场与结算未翻明分别记为中断／未闭环。公开统计不含暗牌身份或分值，延迟单位是已保存游戏动作数，不能视作回合数、秒数或全人数强度重复认证。纯观察器边界检查用 `node --test tools/analysis/games/pokemon-encounters/pokemon-expansion-flow-observer.test.mjs`；测量期间冻结其全部输入，检查源码前后哈希和逐牌盖回事件守恒。
+
+`node tools/test/games/pokemon-encounters/verify-pokemon-expansion.mjs --portable` 对当前ZIP实际解压并运行隐藏WebView2，新增27项本地叫声哈希／单声道／时长／非静音解码检查，保留八项原创主题和原有流程／显示。`node tools/test/games/pokemon-encounters/verify-pokemon-expansion-play.mjs --portable --evidence=normal-run` 通过正式普通模式控件和真实默认Worker完成小局，观察主机 `HTMLMediaElement.play` 及 `playing` 事件，要求至少一个新增叫声实际播放；解码／播放观测均不是真人试听认证。每次使用独立证据名，后台只监听127.0.0.1。叫声原件与派生编码依据见[资源页](assets.md#续建素材与反馈2026-10-06)，同包边界见[验收](../../reference/acceptance.md)。
+
+扩展集成的四席三胜完整大局使用十分钟整场测试上限，仍限制3,000步、每次真实32MiB Worker两秒截止。原三分钟两次超时记录保留；其中一次在330条日志、第五局开局时存档约1.7GB，合法对局仍推进，不能把整场超时认定为单次Worker超限。四席最多九小局，历史／SQLite工作也计入整场耗时；放宽整场测试边界不等于证明存档长期增长有界，实际耗时另记结果。
+
+共享工作区有其他任务改动时从明确提交的隔离工作树构建；其他任务完成提交后可快进接续基线，不复制尚未完成内容。工作树本地依赖通过 `pnpm install --offline --frozen-lockfile --store-dir E:/Proj/TableMax/.pnpm-store --package-import-method copy` 复用仓库缓存并生成独立依赖副本；无需全局安装。归档工具返回成功不等于恢复已验证：本轮恢复旧 `pokemon-expansion-forecast` 工作树实际返回“snapshot is missing”，源码已在Git提交、包和冻结清单已另保留；新建 `pokemon-expansion-matches` 工作树接续，完整计划期间保留为活动工作树，不能宣称旧快照可恢复。
+
+## 宝可梦引导与动漫切入验证（2026-10-05）
+
+本轮沿用v1.0.3。相关单测用 `pnpm exec vitest run games/pokemon-encounters/shared games/pokemon-encounters/ui games/pokemon-encounters/rules games/pokemon-encounters/bot/memory.test.ts --testTimeout=120000`，72项通过；120秒是整局集成测试容限，不放宽32MiB Worker两秒硬截止。策略专项13项通过，未重复此前耗时的三级整局统计。`node tools/test/games/pokemon-encounters/verify-pokemon-original-compatibility.mjs --reference=219ae95d165974a35a738d49fb175f5fe8acbcd5 --evidence=pokemon-guidance-cutin-20261005` 从Git实际读取基线规则及shared／variants，固定随机源比较2–6人完整状态、合法动作、计分及投影，仅排除本轮新增派生 `publicMatchedColumns`。
+
+`node tools/test/games/pokemon-encounters/verify-pokemon-polish.mjs --evidence=guidance-cutin-v103-final` 使用真实PokemonScreen和合法规则状态，48顶栏／36操作栏通过，另检查详情章节只读定位和手机切入安全区。新引导短屏允许自然滚动，检查按钮滚动后可达和无遮挡。`verify-pokemon-effects.mjs --evidence=guidance-cutin-v103` 9组检查分开记录实际animationstart、CSS时间线0%／45%采样与TTL；`verify-pokemon-audio.mjs --evidence=guidance-cutin-v103` 4组核验八WAV解码／播放、双槽及1200ms同步，原音频从已保留source-originals核对哈希，外部D盘目录当前不可用。解码及播放调用不称为真人试听。
+
+初次运行曾遇到整局测试超过默认5秒、旧首屏操作栏假设不适用于可见引导、fixture始终换同一格而未结束，以及外部音源目录不可达。分别采用整局适用测试容限、显式自然滚动核验、合法优先换暗格的fixture驱动和已有原始素材哈希；未改玩法、字号或音源内容规避失败。最终证据和包边界见 [验收](../../reference/acceptance.md)，视觉分析见 [游戏验证](#游玩过程视觉审查2026-10-05)。
+
+2026-10-05 宝可梦人机／复用专项：`node tools/test/games/pokemon-encounters/verify-pokemon-original-compatibility.mjs --reference=1b3930cae9ffa66c480a26b69e4cbf6f6ac59827` 在固定随机源下比较重构前后的真实规则模块，覆盖 2–6 人完整小局／大局、合法动作、状态、计分及全部授权投影。未传 reference 时使用当前 HEAD，提交后复查本轮应显式传上述基线；只读取本地 Git，不联网。`node tools/test/games/pokemon-encounters/verify-pokemon-version.mjs` 用实际 BoxScreen 及样式检查三个端的只读版本面板和资源懒加载。源码策略固定种子统计、真实 Worker、最终 ZIP 与显示证据见当前验收；整局测试总时限与单次 Worker 两秒硬截止分开。原生 fixture 退出后再构建，避免占用 `build/desktop/TableMax.exe`。
+
+当前桌面依赖与游戏组装边界见[架构](../../reference/architecture.md)，实际产品、游戏覆盖和设备未测范围见[验收](../../reference/acceptance.md#当前源码与本地交付)。
+
+本页只维护当前运行、检查和本地维护方法；阶段结果、旧版本命令及 Electron 证据集中在 [开发与验证历史](../../archive/development-2026-10-01-to-04.md)。工程依赖见 [工程结构](../../reference/architecture.md)，文件归属见 [目录职责](../../reference/project-structure.md)。

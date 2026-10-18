@@ -84,6 +84,8 @@ UNO 的经典 108 牌数据、规则／计分／秘密投影、策略、三端 U
 
 ## 已采用与计划结构
 
+文档工具在 `tools/maintenance/`：读取、章节查找与增量审计共用源码Markdown解析，不维护常驻全库索引。完整安装／更新验收方法单独维护在[安装验收](installation-validation.md)，通用[验证](validation.md)负责范围、复用与失败处理。项目工作流技能归 `.agents/skills/tablemax-doc-maintenance/` 与 `.agents/skills/tablemax-scoped-validation/`，只引用唯一正文和已有工具；详细维护方法见[文档规则](maintenance.md#项目技能与按需加载)。
+
 [Windows安装、卸载与盒子内更新](build-and-run.md#windows-安装与整个程序更新)的安装框架与稳定入口归 `apps/desktop/installation/`，共享身份校验和事务协调归 `apps/desktop/installation-runtime/`，原生更新控制在 `apps/desktop/native/`，封包与验证复用 `tools/release/`、`tools/test/installation/`。I/B/D/G及保留边界见运行契约，真实Windows系统证明与候选推广结果见[验收](acceptance.md#当前源码与本地交付)。
 
 [macOS服务端运行包适配](../tasks/macos-adaptation.md)处于执行草案阶段，导出辅助逻辑归 `tools/release/`，不预建Mac原生宿主目录、不改造构建流程；实际输出及平台清理保护在落地时补充。

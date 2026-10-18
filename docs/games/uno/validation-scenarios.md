@@ -49,3 +49,15 @@
 [旧实际包](../../../artifacts/uno/validation/edge-baseline-2-20261011/results.json)复现320px下手牌右端250px、内容右端310px，额外60px空位。检查增加根节点空槽与手牌内容边界断言，并专门启用390×844电脑指针模式，不能以触屏媒体查询代替电脑滚动条验证。最终两人初始手牌及六人密集手牌覆盖320×568、390×844、390×640、844×390，以及主机／公共屏720p至4K和100／125／150%显示比例，验证首末牌命中、排序及长按拖动。报告见[两人](../../../artifacts/uno/validation/edge-verified-2-20261011/results.json)、[六人](../../../artifacts/uno/validation/edge-verified-6-20261011/results.json)。
 
 宽度修复后的两项初验暴露浮球遮牌，已改为底部独立留位与新默认位置；随后两人检查把容器外已裁切的牌误判为可见，实际截图确认后增加真实滚动容器裁切边界。原失败报告保留，仅重跑受影响项。独立TypeScript探针初次缺少Vite与本地音频声明，补齐项目已有声明后通过。测试静音、隐藏、仅回环地址，实体手机与Safari未验。
+
+## UNO 专项构建与验证
+
+新增游戏通过模块清单发现，独立构建 `node tools/build/build.mjs --only=game:uno`；单测入口 `node tools/test/runner/test-scoped.mjs --scope=game:uno`，只选择 UNO 规则、策略、UI 与 UNO 服务／Worker 测试。范围隔离工具变化另运行 `node --test tools/test/runner/scopes.test.mjs`，不启动其他游戏。实际结果与设备边界见 [UNO 验证](#2026-10-10-实际结果与修复记录)。
+
+`node tools/test/games/uno/verify-uno.mjs --mode=ui --seats=6 --executable=<实际解压的TableMax.exe> --zip=<匹配EXE的内部payload.zip> --evidence=<安全独立名称>` 在实际隐藏 WinForms／WebView2 核验三端、秘密、完整108牌场景、图文规则、触控和保存声画；`--only=opening,dense,reverse,skip,draw-two,wild,draw-four,uno,challenge,round-finish,match-finish` 选择受影响项。`--compact` 只做320px／720p，`--landscape` 定向844×390；`--sample` 只取初始样本，不能代替完整 UI。普通节奏和减少动态分别核验，原生物理静音。
+
+v1.0.6 交互专项：`--layout-only --only=dense` 保留三种手机尺寸及720p—4K主机／公共屏矩阵，支持 `--seats=2|3|4|6`，核验叠牌暴露宽度、浮球与整个中央状态区的避让。`--hand-interactions` 增加可信触摸长按、非法牌调位、横滑隔离、边缘滚动／取消、摸牌追加、稳定DOM、排行榜同分、刷新和回退；整理期间核验无游戏命令及声画。`--legacy-executable=<保留的v1.0.5程序>` 先由旧程序加载并保存对局与显示设置，再由当前程序恢复，不能将新夹具单独冒称旧版自然对局。仅游戏UI改变时不重跑规则或自然完整比赛；模拟手机、缩放及机器音频不等同实体设备／人耳验收。
+
+同一入口 `--mode=runtime --seats=2|4|6` 推进自然500分比赛、下一小局与真正退出／重启 Native；包内32MiB Worker只收到本人授权信息，服务端bot走原统一动作流程。每次选择新证据名，保留原失败和包哈希。首次完整检查后只返验实际变化；若最终仅条件 CSS 改变，使用实际成员等价证明复用未受影响组件，旧报告仍对应旧 ZIP。运行前后核验全部程序成员，监听固定为127.0.0.1，不改玩家声音偏好、系统 DPI 或防火墙。
+
+运行与依赖按[锁定环境](../../reference/build-and-run.md#环境与依赖)准备；旧Corepack缓存处理仅保留为[历史方法](../../archive/tooling-delivery-organization-2026-10-15.md#旧corepack环境处理)，不能据旧成功改变全局环境。
