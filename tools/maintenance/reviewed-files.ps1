@@ -124,6 +124,38 @@ function Assert-ReviewedArchivedFile($File) {
   }
 }
 
+function Test-ReviewedFrozenProgram($File, $Entry) {
+  if ($Entry.origin -ne 'generated-copy' -or -not $File.preservedArchive -or
+      $File.path -cnotmatch '^(tmp/installation-package-[A-Za-z0-9]{6}/candidate/data/app)/(.+)$') { return $false }
+  $appRoot=$Matches[1]; $member=$Matches[2]
+  if ($member -match '(?:^|/)(?:data|saves|secrets|originals?|raw|research|references?|materials?|rules-originals|rule-sources)(?:/|$)|\.(?:sqlite(?:-wal|-shm)?|db)$') { throw 'Generated program preservation cannot include input, secret or save data.' }
+  if ($File.PSObject.Properties['frozenProgram']) {
+    $binding=$File.frozenProgram
+    $expected=$appRoot+'/.tablemax-release.json'
+    if (-not [string]::Equals([string]$binding.manifestPath,$expected,[StringComparison]::Ordinal) -or
+        -not [string]::Equals([string]$binding.memberPath,$member,[StringComparison]::Ordinal) -or
+        $binding.manifestSha256 -notmatch '^[a-f0-9]{64}$' -or
+        -not @($reviewedPlan.references | Where-Object { [string]::Equals([string]$_.path,$expected,[StringComparison]::Ordinal) -and $_.sha256 -eq $binding.manifestSha256 }).Count) { throw 'Generated program requires its exact hash-bound frozen manifest and member.' }
+    $manifestPath=Resolve-ReviewedPath $expected -AnyRoot
+    if ((Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $binding.manifestSha256) { throw 'Frozen program manifest changed.' }
+    $manifest=Get-Content -LiteralPath $manifestPath -Raw -Encoding utf8 | ConvertFrom-Json
+    $matches=@($manifest.files | Where-Object { [string]::Equals([string]$_.path,$member,[StringComparison]::Ordinal) })
+    if ($matches.Count -ne 1 -or $matches[0].bytes -ne $File.bytes -or $matches[0].sha256 -ne $File.sha256) { throw 'Frozen program member does not match complete original bytes.' }
+    return $true
+  }
+  if ($File.PSObject.Properties['canonicalProgram']) {
+    $binding=$File.canonicalProgram
+    $canonical='.cache/node/22.14.0/runtime/node.exe'
+    if ($member -cne 'node.exe' -or $binding.path -cne $canonical -or $binding.sha256 -ne $File.sha256 -or
+        -not @($reviewedPlan.references | Where-Object { $_.path -ceq $canonical -and $_.sha256 -eq $File.sha256 }).Count) { throw 'Canonical program preservation applies only to the fixed identical Node runtime.' }
+    $source=Resolve-ReviewedPath $canonical -AnyRoot
+    if ((Get-Item -LiteralPath $source -Force).Length -ne $File.bytes -or
+        (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant() -ne $File.sha256) { throw 'Canonical Node runtime bytes changed.' }
+    return $true
+  }
+  return $false
+}
+
 function Assert-ReviewedAllowed($File, $Entry) {
   $absolute = Resolve-ReviewedPath $File.path -SyntaxOnly
   # A root may itself be one exact ordinary file. The compiled guard still
@@ -142,11 +174,12 @@ function Assert-ReviewedAllowed($File, $Entry) {
     Assert-ReviewedRetainedCopy $File
   }
   elseif ($File.PSObject.Properties['retainedCopy']) { throw 'Retained-copy exceptions apply only to duplicate Pages package ZIPs.' }
+  $frozenProgram=Test-ReviewedFrozenProgram $File $Entry
   if ($File.path -match '^(?:artifacts/game-packages|secrets|assets|data)(?:/|$)' -or
       ($File.path -match '^artifacts/author-toolkit/' -and ($Entry.origin -ne 'isolated-test' -or
         $Entry.path -notmatch '^artifacts/author-toolkit/v\d+\.\d+\.\d+/macro-[A-Za-z0-9_-]+/project-\d+/\.tablemax$')) -or
       $File.path -match '(?:^|/)(?:secrets|originals?|raw|research|references?|materials?|rules-originals|rule-sources)(?:/|$)' -or
-      ($Entry.origin -ne 'isolated-test' -and $File.path -match '(?:^|/)(?:data|saves)(?:/|$)|\.(?:sqlite(?:-wal|-shm)?|db)$')) { throw ('Original material, secrets or save data is protected: ' + $File.path) }
+      ($Entry.origin -ne 'isolated-test' -and -not $frozenProgram -and $File.path -match '(?:^|/)(?:data|saves)(?:/|$)|\.(?:sqlite(?:-wal|-shm)?|db)$')) { throw ('Original material, secrets or save data is protected: ' + $File.path) }
   if ($reviewedTracked.Contains($File.path)) { throw 'Tracked source is protected.' }
   $ancestor = [string]$File.path
   while ($ancestor) {

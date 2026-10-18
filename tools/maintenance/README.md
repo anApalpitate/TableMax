@@ -18,6 +18,8 @@
 
 大批相同程序副本或历史载荷可选择完整字节保全的 solid 归档：`preservedArchive` 增加 `format: "ustar-xz-v1"`、永久maintenance内的 `.tar.xz` 路径、归档SHA及固定系统 `C:/Windows/System32/tar.exe` 的 `tarSha256`；`entryPath`仍须为精确原路径。固定Node22.14.0调用[只读验证器](verify-preserved-tar.mjs)，流式核对每个普通成员的原路径、字节与SHA，拒绝链接、重复／越界／Windows别名、损坏数据或解码警告；不向磁盘提取或执行归档成员。归档、工具及全部引用保持SHA绑定，适用来源只限已审生成副本或隔离测试。未知格式、缓存退役以及原资料、正式存档、当前交付与活动消费者保护不变。
 
+生产编译副本 `tmp/installation-package-<六位字母数字>/candidate/data/app/` 按 `generated-copy` 记录；仅已完整归档的静态程序成员允许附 `frozenProgram`（原位 `.tablemax-release.json` 的 `manifestPath`／`manifestSha256`、精确 `memberPath`）。manifest 必须列入 `references` 并原位保留，其唯一成员的路径、字节及 SHA 必须匹配。缺 manifest 时只允许 `node.exe` 附 `canonicalProgram`，绑定固定 `.cache/node/22.14.0/runtime/node.exe` 的路径与 SHA，并核对实际字节；固定源也必须列入 `references`。该窄入口仍拒绝嵌套 data、秘密、资料和数据库，继续执行 current、保护范围及其他全部门禁。
+
 保全前核对成员的额外数据流及原路径安全验收关系；本格式只保存普通数据流，不替代ACL、ADS或安装器原路径证明。当前验收、原安装器及其身份敏感状态仍须原位保留。历史查证或隔离任务接续前，按映射精确恢复所需成员到原路径，禁止覆盖现存文件，核对原字节与SHA后再使用；不能将归档状态算作验收通过。容量净收益必须扣除归档及清单的实际逻辑字节。
 
 内部实现 [reviewed-files.ps1](reviewed-files.ps1)，隔离回归 [reviewed-files.test.ps1](reviewed-files.test.ps1)与[归档解析回归](verify-preserved-tar.test.mjs)。使用当前可执行项目脚本的PowerShell运行`tools/maintenance/reviewed-files.test.ps1`；不要修改系统执行策略绕过签名限制。范围和本次容量目标见[开发环境](../../docs/reference/development.md#跨目录精确文件退役2026-10-12)。

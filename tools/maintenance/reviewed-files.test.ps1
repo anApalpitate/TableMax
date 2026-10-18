@@ -249,6 +249,58 @@ try {
     Check ((Test-Path -LiteralPath $archivePath) -and -not (Test-Path -LiteralPath (Join-Path $workspace $old.path))) 'solid archived bytes retained after exact isolated retirement'
     Check (-not (Test-Path -LiteralPath (Join-Path $workspace $isolated.path))) 'isolated fixture program archived with complete bytes'
   }
+  Scenario 'frozen-generated-program' {
+    $app='tmp/installation-package-Abc123/candidate/data/app'
+    $program=File ($app+'/server/main.cjs') 'frozen program bytes'
+    $canonical=File '.cache/node/22.14.0/runtime/node.exe' 'identical canonical Node bytes'
+    $node=File ($app+'/node.exe') 'identical canonical Node bytes'
+    $saved=File ($app+'/nested/data/save.sqlite') 'save remains protected'
+    $formal=File 'data/app/program.bin' 'production data remains protected'
+    $manifest=File ($app+'/.tablemax-release.json') ((@{files=@(@{path='server/main.cjs';bytes=$program.bytes;sha256=$program.sha256})} | ConvertTo-Json -Depth 5))
+    $archiveRelative='artifacts/maintenance/frozen-program-preservation.zip'
+    $archivePath=Join-Path $workspace $archiveRelative
+    Add-Type -AssemblyName System.IO.Compression
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $zip=[IO.Compression.ZipFile]::Open($archivePath,[IO.Compression.ZipArchiveMode]::Create)
+    try {
+      foreach ($file in @($program,$node,$saved,$formal)) {
+        $member=$zip.CreateEntry($file.path);$output=$member.Open();$input=[IO.File]::OpenRead((Join-Path $workspace $file.path))
+        try { $input.CopyTo($output) } finally { $input.Dispose();$output.Dispose() }
+      }
+    } finally { $zip.Dispose() }
+    $archiveRef=[PSCustomObject]@{path=$archiveRelative;sha256=(Get-FileHash -LiteralPath $archivePath).Hash.ToLowerInvariant()}
+    foreach ($file in @($program,$node,$saved,$formal)) {
+      $file | Add-Member -NotePropertyName preservedArchive -NotePropertyValue ([PSCustomObject]@{path=$archiveRelative;sha256=$archiveRef.sha256;entryPath=$file.path})
+    }
+    $binding=[PSCustomObject]@{manifestPath=$manifest.path;manifestSha256=$manifest.sha256;memberPath='server/main.cjs'}
+    $program | Add-Member -NotePropertyName frozenProgram -NotePropertyValue $binding
+    $saved | Add-Member -NotePropertyName frozenProgram -NotePropertyValue $binding
+    $formal | Add-Member -NotePropertyName frozenProgram -NotePropertyValue $binding
+    $node | Add-Member -NotePropertyName canonicalProgram -NotePropertyValue ([PSCustomObject]@{path=$canonical.path;sha256=$canonical.sha256})
+    Plan 'frozen-generated-program' $app @($program,$node)
+    $plan.references=@($manifest,$canonical,$archiveRef);Save-Plan
+    Invoke-ReviewedFilesRetirement
+    $binding.memberPath='server/wrong.cjs';Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'frozen member must equal exact program suffix'
+    $binding.memberPath='server/main.cjs';$binding.manifestSha256='0'*64;Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'frozen manifest must bind original actual hash'
+    $binding.manifestSha256=$manifest.sha256;$plan.references=@($canonical,$archiveRef);Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'frozen manifest must remain a protected reference'
+    $plan.references=@($manifest,$canonical,$archiveRef);$plan.protectedPrefixes=@($app);Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'current protected program roots remain protected'
+    $plan.protectedPrefixes=@();$plan.entries[0].files=@($saved);Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'nested save data is never a generated program'
+    $plan.entries[0].path='data';$plan.entries[0].files=@($formal);Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'formal data is never a staging program'
+    $plan.entries[0].path=$app;$plan.entries[0].files=@($program,$node);$node.canonicalProgram.path='tmp/not-canonical';Save-Plan
+    Refused { Invoke-ReviewedFilesRetirement } 'canonical Node source cannot be redirected'
+    $node.canonicalProgram.path=$canonical.path;Save-Plan
+    $script:Apply=$true
+    Invoke-ReviewedFilesRetirement
+    Check (-not (Test-Path -LiteralPath (Join-Path $workspace $program.path))) 'exact frozen manifest program retired only after full preservation'
+    Check (-not (Test-Path -LiteralPath (Join-Path $workspace $node.path))) 'exact canonical Node copy retired only after full preservation'
+    Check ((Test-Path -LiteralPath (Join-Path $workspace $saved.path)) -and (Test-Path -LiteralPath (Join-Path $workspace $formal.path)) -and (Test-Path -LiteralPath (Join-Path $workspace $manifest.path))) 'save, formal data and frozen manifest survive'
+  }
   Scenario 'delivery-and-prefix' {
     $file=File 'artifacts/releases/current/current.exe'
     $script:preservedFiles=@([PSCustomObject]@{path=(Join-Path $workspace $file.path)})
