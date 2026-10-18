@@ -1,5 +1,7 @@
 # 归档索引
 
+[current指针恢复（2026-10-18）](current-pointer-repair-2026-10-18.md)：核验22原件与隔离证明后恢复current；34本轮免正式验收，实际清理预览通过。
+
 [完整安装器34与深度瘦身审计（2026-10-18）](installer34-deep-audit-2026-10-18.md)：候选构建、原EXE标签归一化、容量补计及缺少current正式证明导致的清理门禁；未执行删除。
 
 [文档深度优化实施与原计划（2026-10-18）](documentation-optimization-2026-10-18.md)：正文重组、来源复核、文档工具、项目技能及实际失败和收益；剩余观察见[接续](../tasks/documentation-wiki-and-skills.md)。
