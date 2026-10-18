@@ -44,6 +44,7 @@ import '../ui/stage.css';
 import { useBoardAnchor } from '../ui/useBoardAnchor';
 import { VoyageResultCard } from '../ui/VoyageResult';
 import '../ui/voyage-layout.css';
+import '../ui/label-layout.css';
 
 function ManilaScreen({ session }: { session: GameHost }) {
   const { view, role, command, connected, locked, canControl } = session;

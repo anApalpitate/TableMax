@@ -1,0 +1,499 @@
+/* Shared paper signs: full labels, with contrast supplied by one coherent surface. */
+.mn-screen > .mn-toolbar > .mn-status {
+  background: transparent;
+  box-shadow: none;
+}
+.mn-screen.manila-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-lane-heading
+  > strong {
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
+  padding: 5px 8px;
+  border: 1px solid #bba371;
+  border-radius: 8px;
+  color: #203c3b;
+  background: #fff3d7;
+  font-size: 18px;
+  line-height: 24px;
+  white-space: normal;
+}
+.mn-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-lane-heading
+  > .mn-detail-button
+  > strong {
+  min-width: 0;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+.mn-screen.manila-screen .mn-layout .mn-main .mn-harbor .mn-shore .mn-space {
+  box-sizing: border-box;
+  align-content: center;
+  justify-content: center;
+  justify-items: center;
+  grid-template-columns: max-content max-content;
+  grid-template-rows: 28px 22px;
+  column-gap: 6px;
+  row-gap: 0;
+  min-height: 52px;
+  padding: 0 3px;
+  line-height: 22px;
+}
+.mn-screen.manila-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-shore
+  .mn-space-name {
+  grid-area: 1 / 1;
+  align-self: center;
+  font-size: 18px;
+  line-height: 22px;
+  white-space: nowrap;
+}
+.mn-screen.manila-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-shore
+  .mn-space-value {
+  grid-area: 1 / 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  min-height: 28px;
+  line-height: 22px;
+}
+.mn-screen.manila-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-shore
+  .mn-space-price {
+  font-size: 18px;
+  line-height: 22px;
+}
+.mn-screen.manila-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-shore
+  .mn-space-earn {
+  grid-area: 2 / 1 / 3 / 3;
+  justify-self: center;
+  align-self: center;
+  font-size: 16px;
+  line-height: 22px;
+  white-space: nowrap;
+}
+.mn-screen.manila-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-shore
+  .mn-space-value
+  .mn-worker {
+  transform: translateY(3px);
+}
+.mn-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-shore
+  .mn-space:not(:has(.mn-space-earn)) {
+  grid-template-rows: 28px;
+}
+@media (min-width: 621px) {
+  .mn-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-shore
+    :is(.mn-dock-group, .mn-specialist-group) {
+    align-items: center;
+    align-content: center;
+    padding: 0 4px;
+    gap: 6px;
+    border: 1px solid #bda777;
+    border-radius: 10px;
+    background: linear-gradient(110deg, #f5e5be, #fff8e7);
+  }
+  .mn-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-shore
+    :is(.mn-dock-group, .mn-specialist-group)
+    > .mn-detail-button {
+    justify-content: flex-start;
+    align-self: center;
+    height: auto;
+    min-height: 44px;
+    padding: 2px 4px;
+    gap: 6px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    font-size: 20px;
+    line-height: 24px;
+  }
+  .mn-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-shore
+    :is(.mn-dock-slots, .mn-specialist-slots) {
+    align-items: center;
+    align-self: center;
+    height: auto;
+  }
+  .mn-screen.manila-screen .mn-layout .mn-main .mn-harbor .mn-shore .mn-space {
+    height: 52px;
+    background: #fffaf0;
+    border-color: #cab98e;
+  }
+}
+/* Desktop lane cards reserve enough room for all four numbered crew positions. */
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-lane {
+  grid-template-columns: clamp(112px, 9vw, 180px) minmax(0, 1fr) clamp(
+      236px,
+      15vw,
+      340px
+    );
+}
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-lane-heading {
+  grid-template-columns: minmax(0, 1fr);
+}
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-lane-heading
+  > .mn-detail-button {
+  display: flex;
+  justify-content: flex-start;
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid #bba371;
+  border-radius: 8px;
+  background: #fff3d7;
+  color: #203c3b;
+  font-size: 18px;
+  line-height: 24px;
+}
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-crew {
+  padding: 6px;
+  gap: 6px;
+  border: 1px solid #bba371;
+  border-radius: 8px;
+  background: #fff3d7;
+  color: #203c3b;
+  grid-template-rows: auto 48px;
+}
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-crew:not(:has(.mn-crew-slots)) {
+  grid-template-rows: auto;
+  justify-self: end;
+  width: fit-content;
+}
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-lane-meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 6px;
+}
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  :is(.mn-position-readout, .mn-payout-label) {
+  color: #203c3b;
+  background: #fff3d7;
+  border: 0;
+  padding: 0;
+  font-size: 18px;
+  line-height: 24px;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-payout-label {
+  text-align: right;
+  white-space: nowrap;
+}
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-crew-slots {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+}
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-crew-slots:has(> :nth-child(3):last-child) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-crew-slots
+  .mn-space {
+  min-width: 0;
+  min-height: 48px;
+  grid-template-rows: 20px 26px;
+  padding: 1px;
+  border-color: #cab98e;
+  background: #fffaf0;
+}
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-crew-slots
+  :is(.mn-space-name, .mn-space-price) {
+  white-space: nowrap;
+  font-size: 16px;
+  line-height: 20px;
+}
+@media (max-width: 620px) {
+  .mn-screen.manila-screen .mn-layout .mn-main .mn-harbor .mn-shore .mn-space {
+    height: 44px;
+    min-height: 44px;
+    grid-template-rows: 24px 18px;
+  }
+  .mn-screen.manila-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-shore
+    .mn-space-value {
+    height: 24px;
+    min-height: 24px;
+  }
+  .mn-screen.manila-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-shore
+    .mn-space-earn {
+    line-height: 18px;
+  }
+}
+@media (min-width: 621px) {
+  .mn-screen
+    .mn-layout
+    > .mn-main
+    .mn-harbor
+    > .mn-shore
+    > :is(.mn-docks, .mn-specialists)
+    > :is(.mn-dock-group, .mn-specialist-group) {
+    height: auto;
+    padding: 0 4px;
+    min-height: 0;
+    align-self: center;
+    grid-template-rows: auto;
+  }
+}
+.mn-screen--player.manila-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-crew
+  .mn-space {
+  min-width: 56px;
+}
+/* A player sees one concrete cargo vacancy; give its number and price separate lines. */
+.mn-screen--player.manila-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-crew
+  .mn-space {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 20px 20px;
+  justify-items: center;
+  width: 56px;
+  height: 44px;
+  min-height: 44px;
+  padding: 1px 2px;
+}
+.mn-screen--player.manila-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-crew
+  .mn-space-name {
+  grid-area: 1 / 1;
+  font-size: 16px;
+  line-height: 20px;
+}
+.mn-screen--player.manila-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-crew
+  .mn-space-value {
+  grid-area: 2 / 1;
+  justify-self: center;
+  height: 20px;
+  min-height: 20px;
+}
+@media (min-width: 621px) {
+  .mn-screen.manila-screen .mn-layout .mn-main .mn-harbor .mn-shore .mn-space {
+    height: 48px;
+    min-height: 48px;
+    grid-template-rows: 26px 20px;
+  }
+  .mn-screen.manila-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-shore
+    .mn-space-value {
+    height: 26px;
+    min-height: 26px;
+  }
+  .mn-screen.manila-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-shore
+    .mn-space-earn {
+    line-height: 20px;
+  }
+}
+@media (max-width: 620px) {
+  /* The narrow cargo card has a full-width name, then payout and die columns. */
+  .mn-screen--player.manila-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-lane-heading,
+  .mn-screen--player.manila-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-lane-heading
+    > .mn-detail-button {
+    height: 72px;
+    min-height: 72px;
+  }
+  .mn-screen--player.manila-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-lane-heading
+    > .mn-detail-button {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 24px 40px;
+    padding: 3px 4px !important;
+    gap: 2px 0;
+  }
+  .mn-screen--player.manila-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-lane-heading
+    .mn-cargo-art {
+    display: none;
+  }
+  .mn-screen--player.manila-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-lane-heading
+    > .mn-detail-button
+    > strong {
+    font-size: 18px;
+    line-height: 24px;
+  }
+  .mn-screen--player.manila-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-cargo-payout {
+    display: grid;
+    justify-items: start;
+    justify-content: start;
+    align-content: start;
+    grid-template-rows: 20px 20px;
+    gap: 0;
+    margin: 0;
+    line-height: 20px;
+  }
+  .mn-screen--player.manila-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-cargo-payout
+    > span {
+    font-size: 16px;
+    line-height: 20px;
+  }
+  .mn-screen--player.manila-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-cargo-payout
+    > strong {
+    font-size: 18px;
+    line-height: 20px;
+  }
+  .mn-screen--player.manila-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-lane-heading
+    .mn-dice {
+    top: auto;
+    right: 3px;
+    bottom: 4px;
+  }
+  .mn-screen--player.manila-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-lane-heading
+    .mn-die {
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+  }
+}

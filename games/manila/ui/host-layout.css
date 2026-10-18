@@ -554,7 +554,7 @@
   white-space: nowrap;
   font-size: 20px;
   font-weight: 700;
-  background: linear-gradient(135deg, #fff9e9, #dfc896) !important;
+  background: linear-gradient(135deg, #fff9e9, #dfc896);
 }
 
 :is(.mn-screen--host, .mn-screen--public)

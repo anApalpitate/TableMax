@@ -16,6 +16,16 @@
 
 ## 当前结果
 
+### 标识、顶部与岗位重新对齐（2026-10-18，源码追加反馈）
+
+本次只调整马尼拉样式与对应源码守卫：纸牌标识保留完整文字，主机／公共屏顶部阶段去除独立白底，岸线设施统一行卡，岗位名与费用同排、收益独立一行。手机货物牌将货名、分红与骰子分区，保持关键金额18px。未修改规则、存档、动作协议或公开版本，未构建安装器。
+
+- [设计检查](../../../artifacts/manila/validation/label-redesign-final5-20261018/results.json)15视口／10详情通过，覆盖320至620竖屏、621边界、844／932横屏、1024×768、1123×1428及主机／公共屏720p至4K；新增实际字形不被截断、骰子不遮文字和顶部背景守卫，保留4.5:1对比度与船字8px间距。
+- [触控检查](../../../artifacts/maintenance/manila-touch-layout-20261017/touch/label-touch-final5-20261018/report.json)63项通过；[港湾定向回归](../../../artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/label-harbor-final5-20261018/report.json)15项／134次交互通过，覆盖结构、持续挂载、旋转、尾部入口以及普通／最终航次结算卡生命周期和权限。
+- [界面单测](../../../artifacts/maintenance/manila-label-redesign-20261018/final5-unit/runs/2afc12e1-8838-4ffb-bcac-591f611e31fc/results.json)11项通过；本任务入口与验证脚本ESLint、相关源码Prettier通过。主机1280×720、玩家320×568和932×430最终截图逐图由独立新实例审查通过，图片哈希与结论见[审查记录](../../../artifacts/maintenance/manila-label-redesign-20261018/final5/visual-reviews.json)。
+
+原失败及实质修复保留在`artifacts/maintenance/manila-label-redesign-20261018/`各轮，包含旧样式优先级引起的结算设施挤压、骰子flex尺寸冲突，以及窄屏分红文字与骰子重叠；分别修复后使用独立10失败预算定向复验，没有放宽裁切、字号或对比度断言。所有结果仅证明当前源码和本机模拟视口，不代替实际手机、物理DPI、真实LAN或新导出包安装验收。
+
 ### 可读性、调位与航次收支（2026-10-18，源码）
 
 完整航次分类记账、公开金额投影、页内收支卡及横竖屏调位已实现；公开版本与stateVersion不变，缺账旧形状不补造历史账，正式旧局继续固定原发行。此次未构建、安装或发布新导出包。

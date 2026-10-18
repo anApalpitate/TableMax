@@ -425,6 +425,64 @@ try {
             }
         }
         return {
+          diceCoveringLabels: [
+            ...root.querySelectorAll('.mn-lane-heading'),
+          ].flatMap((heading) => {
+            const die = heading.querySelector('.mn-die');
+            if (!die || !visible(die)) return [];
+            const box = die.getBoundingClientRect();
+            return [
+              ...heading.querySelectorAll(
+                '.mn-detail-button > strong,.mn-cargo-payout > span,.mn-cargo-payout > strong',
+              ),
+            ]
+              .filter(visible)
+              .flatMap((label) => {
+                const range = document.createRange();
+                range.selectNodeContents(label);
+                return [...range.getClientRects()].some(
+                  (text) =>
+                    Math.min(text.right, box.right) -
+                      Math.max(text.left, box.left) >
+                      1 &&
+                    Math.min(text.bottom, box.bottom) -
+                      Math.max(text.top, box.top) >
+                      1,
+                )
+                  ? [label.textContent.trim()]
+                  : [];
+              });
+          }),
+          statusBackground: getComputedStyle(root.querySelector('.mn-status'))
+            .backgroundColor,
+          abbreviatedLabels: [
+            ...root.querySelectorAll(
+              '.mn-position-readout,.mn-lane-heading > strong,.mn-lane-heading > .mn-detail-button > strong,.mn-space-name,.mn-space-price,.mn-space-earn',
+            ),
+          ]
+            .filter(visible)
+            .flatMap((node) => {
+              const range = document.createRange();
+              range.selectNodeContents(node);
+              const sign = (
+                node.closest(
+                  '.mn-space,.mn-lane-heading > .mn-detail-button,.mn-lane-heading,.mn-crew',
+                ) ?? node
+              ).getBoundingClientRect();
+              const box =
+                getComputedStyle(node).overflowX === 'visible'
+                  ? sign
+                  : node.getBoundingClientRect();
+              return [...range.getClientRects()].some(
+                (text) =>
+                  text.left < box.left - 1 ||
+                  text.right > box.right + 1 ||
+                  text.top < sign.top - 1 ||
+                  text.bottom > sign.bottom + 1,
+              )
+                ? [node.textContent.trim()]
+                : [];
+            }),
           axis: root.querySelector('.mn-harbor')?.dataset.mnAxis,
           railAxes: [...root.querySelectorAll('.mn-track')].map((node) =>
             getComputedStyle(node).getPropertyValue('--mn-vertical').trim(),
@@ -437,10 +495,20 @@ try {
             .filter(visible)
             .map((node) => {
               const style = getComputedStyle(node);
+              let surface = node;
+              while (
+                surface.parentElement &&
+                Number(
+                  getComputedStyle(surface).backgroundColor.match(
+                    /[\d.]+/g,
+                  )?.[3] ?? 1,
+                ) < 0.9
+              )
+                surface = surface.parentElement;
               return {
                 text: node.textContent.trim(),
                 color: style.color,
-                background: style.backgroundColor,
+                background: getComputedStyle(surface).backgroundColor,
               };
             }),
           shipTicks: [...root.querySelectorAll('.mn-lane')].flatMap((lane) => {
@@ -632,15 +700,22 @@ try {
                 sum + value * [0.2126, 0.7152, 0.0722][index],
               0,
             );
+        const foregroundLight = luminance(foreground),
+          backgroundLight = luminance(background);
         const contrast =
-          (luminance(foreground) + 0.05) / (luminance(background) + 0.05);
+          (Math.max(foregroundLight, backgroundLight) + 0.05) /
+          (Math.min(foregroundLight, backgroundLight) + 0.05);
         assert(
-          foreground[0] >= 240 && foreground[1] >= 235 && foreground[2] >= 220,
-          `Photo text uses warm white: ${entry.text}`,
+          backgroundLight > 0.5
+            ? foreground.every((value, index) => index > 2 || value < 100)
+            : foreground[0] >= 240 &&
+                foreground[1] >= 235 &&
+                foreground[2] >= 220,
+          `Text uses ink on paper or warm white on dark backing: ${entry.text}`,
         );
         assert(
           (background[3] ?? 1) >= 0.9 && contrast >= 4.5,
-          `Photo text has a stable dark backing with >=4.5:1 contrast: ${entry.text}`,
+          `Photo text has a stable backing with >=4.5:1 contrast: ${entry.text}`,
         );
       }
       if (role !== 'player')
@@ -734,7 +809,23 @@ try {
           `${width}x${height}: decision area is visible`,
         );
       }
-      if (role === 'player' && width >= 361) {
+      if (role !== 'player')
+        assert.equal(
+          Number(geometry.statusBackground.match(/[\d.]+/g)?.[3] ?? 1),
+          0,
+          'Toolbar phase information shares the toolbar surface',
+        );
+      assert.deepEqual(
+        geometry.abbreviatedLabels,
+        [],
+        `${role} ${width}: label text is fully inside its own sign`,
+      );
+      assert.deepEqual(
+        geometry.diceCoveringLabels,
+        [],
+        `${role} ${width}: dice leave cargo names and dividends visible`,
+      );
+      if (width >= 320) {
         if (geometry.clipped.length)
           pending.push({
             layout: `${width}x${height}`,
@@ -796,7 +887,7 @@ try {
   assert.deepEqual(
     pending,
     [],
-    'Player layouts keep every part inside its own box without overlapping',
+    'Every role keeps every part inside its own box without overlapping',
   );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.evaluate(() =>
