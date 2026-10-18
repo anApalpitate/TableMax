@@ -319,9 +319,36 @@ const verificationScopes = {
   },
   'tools/maintenance/read-doc.test.mjs': {
     scopes: ['tooling'],
-    preset: { complete: false },
+    preset: {
+      complete: false,
+      files: [
+        'tools/maintenance/read-doc.mjs',
+        'tools/maintenance/markdown-source.mjs',
+      ],
+    },
   },
   'tools/maintenance/audit-efficiency-docs.mjs': ['tooling'],
+  'tools/maintenance/verify-documentation-skills.mjs': ['tooling'],
+  'tools/maintenance/audit-efficiency-docs.test.mjs': {
+    scopes: ['tooling'],
+    preset: {
+      complete: false,
+      files: [
+        'tools/maintenance/audit-efficiency-docs.mjs',
+        'tools/maintenance/markdown-source.mjs',
+      ],
+    },
+  },
+  'tools/maintenance/find-doc.test.mjs': {
+    scopes: ['tooling'],
+    preset: {
+      complete: false,
+      files: [
+        'tools/maintenance/find-doc.mjs',
+        'tools/maintenance/markdown-source.mjs',
+      ],
+    },
+  },
   'tools/test/runner/log-output.test.mjs': {
     scopes: ['tooling'],
     preset: { complete: true },

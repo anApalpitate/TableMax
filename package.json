@@ -42,7 +42,9 @@
     "verify:power-grid-ui": "node tools/test/games/power-grid/verify-power-grid-ui.mjs",
     "assemble:win": "node tools/build/assemble.mjs",
     "release:github": "node --import tsx tools/release/publish-release.mjs",
-    "docs:read": "node tools/maintenance/read-doc.mjs"
+    "docs:read": "node tools/maintenance/read-doc.mjs",
+    "docs:find": "node tools/maintenance/find-doc.mjs",
+    "docs:audit": "node tools/maintenance/audit-efficiency-docs.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
