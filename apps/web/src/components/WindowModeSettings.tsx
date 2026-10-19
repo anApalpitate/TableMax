@@ -3,7 +3,6 @@ import type {
   WindowMode,
   WindowSnapshot,
 } from '../../../desktop/src/display-types';
-import { isDesktopPlayer } from './player-frame';
 
 function fullscreenDocument() {
   try {
@@ -20,8 +19,10 @@ function subscribe(listener: () => void) {
 
 export function WindowModeSettings() {
   const bridge = window.tablemaxWindow;
-  const browserActive = useSyncExternalStore(subscribe, () =>
-    Boolean(fullscreenDocument().fullscreenElement),
+  const browserActive = useSyncExternalStore(
+    subscribe,
+    () => Boolean(fullscreenDocument().fullscreenElement),
+    () => false,
   );
   const [snapshot, setSnapshot] = useState<WindowSnapshot | null>(null);
   const [pending, setPending] = useState(false);
@@ -47,11 +48,10 @@ export function WindowModeSettings() {
       unsubscribe();
     };
   }, [bridge]);
-  if (
-    !bridge &&
-    (!isDesktopPlayer(navigator) || !fullscreenDocument().fullscreenEnabled)
-  )
-    return null;
+  const target = fullscreenDocument();
+  const browserSupported = Boolean(
+    target.fullscreenEnabled && target.documentElement.requestFullscreen,
+  );
   const mode = bridge
     ? (snapshot?.mode ?? (snapshot?.fullscreen ? 'fullscreen' : 'windowed'))
     : browserActive
@@ -85,7 +85,11 @@ export function WindowModeSettings() {
       <select
         id="window-mode"
         value={mode}
-        disabled={pending || Boolean(bridge && !snapshot && !error)}
+        disabled={
+          pending ||
+          (!bridge && !browserSupported) ||
+          Boolean(bridge && !snapshot && !error)
+        }
         aria-busy={pending}
         onChange={(event) => void update(event.target.value as WindowMode)}
       >
@@ -93,6 +97,11 @@ export function WindowModeSettings() {
         {bridge && <option value="borderless">无边框窗口</option>}
         <option value="windowed">窗口</option>
       </select>
+      {!bridge && !browserSupported && (
+        <p className="display-settings-hint">
+          当前浏览器不支持全屏，已铺满可用画面。
+        </p>
+      )}
       {error && (
         <p className="display-settings-error" role="alert">
           {error}

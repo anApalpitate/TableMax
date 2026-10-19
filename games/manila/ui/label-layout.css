@@ -3,7 +3,7 @@
   background: transparent;
   box-shadow: none;
 }
-.mn-screen.manila-screen
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
   .mn-layout
   .mn-main
   .mn-harbor
@@ -28,37 +28,50 @@
   .mn-lane-heading
   > .mn-detail-button
   > strong {
-  min-width: 0;
   overflow: visible;
   text-overflow: clip;
+}
+.mn-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-lane-heading
+  > .mn-detail-button
+  > strong:not(:where(.mn-screen--player, .mn-screen--player *)) {
+  min-width: 0;
   white-space: nowrap;
 }
-.mn-screen.manila-screen .mn-layout .mn-main .mn-harbor .mn-shore .mn-space {
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-shore
+  .mn-space {
   box-sizing: border-box;
+  column-gap: 6px;
+  row-gap: 0;
   align-content: center;
   justify-content: center;
   justify-items: center;
   grid-template-columns: max-content max-content;
   grid-template-rows: 28px 22px;
-  column-gap: 6px;
-  row-gap: 0;
   min-height: 52px;
   padding: 0 3px;
   line-height: 22px;
 }
-.mn-screen.manila-screen
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
   .mn-layout
   .mn-main
   .mn-harbor
   .mn-shore
   .mn-space-name {
-  grid-area: 1 / 1;
   align-self: center;
+  grid-area: 1 / 1;
   font-size: 18px;
   line-height: 22px;
   white-space: nowrap;
 }
-.mn-screen.manila-screen
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
   .mn-layout
   .mn-main
   .mn-harbor
@@ -72,7 +85,7 @@
   min-height: 28px;
   line-height: 22px;
 }
-.mn-screen.manila-screen
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
   .mn-layout
   .mn-main
   .mn-harbor
@@ -81,7 +94,7 @@
   font-size: 18px;
   line-height: 22px;
 }
-.mn-screen.manila-screen
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
   .mn-layout
   .mn-main
   .mn-harbor
@@ -94,7 +107,7 @@
   line-height: 22px;
   white-space: nowrap;
 }
-.mn-screen.manila-screen
+.mn-screen:is(.mn-screen--host, .mn-screen--public)
   .mn-layout
   .mn-main
   .mn-harbor
@@ -103,14 +116,6 @@
   .mn-worker {
   transform: translateY(3px);
 }
-.mn-screen
-  .mn-layout
-  .mn-main
-  .mn-harbor
-  .mn-shore
-  .mn-space:not(:has(.mn-space-earn)) {
-  grid-template-rows: 28px;
-}
 @media (min-width: 621px) {
   .mn-screen
     .mn-layout
@@ -118,7 +123,6 @@
     .mn-harbor
     .mn-shore
     :is(.mn-dock-group, .mn-specialist-group) {
-    align-items: center;
     align-content: center;
     padding: 0 4px;
     gap: 6px;
@@ -134,9 +138,6 @@
     :is(.mn-dock-group, .mn-specialist-group)
     > .mn-detail-button {
     justify-content: flex-start;
-    align-self: center;
-    height: auto;
-    min-height: 44px;
     padding: 2px 4px;
     gap: 6px;
     border: 0;
@@ -151,12 +152,26 @@
     .mn-main
     .mn-harbor
     .mn-shore
-    :is(.mn-dock-slots, .mn-specialist-slots) {
-    align-items: center;
+    :is(.mn-dock-group, .mn-specialist-group)
+    > .mn-detail-button:not(:where(.mn-screen--player, .mn-screen--player *)) {
     align-self: center;
     height: auto;
+    min-height: 44px;
   }
-  .mn-screen.manila-screen .mn-layout .mn-main .mn-harbor .mn-shore .mn-space {
+  .mn-screen
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-shore
+    :is(.mn-dock-slots, .mn-specialist-slots) {
+    align-self: center;
+  }
+  .mn-screen:is(.mn-screen--host, .mn-screen--public)
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-shore
+    .mn-space {
     height: 52px;
     background: #fffaf0;
     border-color: #cab98e;
@@ -187,15 +202,15 @@
   .mn-harbor
   .mn-lane-heading
   > .mn-detail-button {
-  display: flex;
   justify-content: flex-start;
-  gap: 5px;
-  padding: 5px;
   border: 1px solid #bba371;
   border-radius: 8px;
   background: #fff3d7;
   color: #203c3b;
   font-size: 18px;
+  display: flex;
+  gap: 5px;
+  padding: 5px;
   line-height: 24px;
 }
 .mn-screen:is(.mn-screen--host, .mn-screen--public)
@@ -204,11 +219,11 @@
   .mn-harbor
   .mn-crew {
   padding: 6px;
-  gap: 6px;
   border: 1px solid #bba371;
   border-radius: 8px;
   background: #fff3d7;
   color: #203c3b;
+  gap: 6px;
   grid-template-rows: auto 48px;
 }
 .mn-screen:is(.mn-screen--host, .mn-screen--public)
@@ -216,8 +231,8 @@
   .mn-main
   .mn-harbor
   .mn-crew:not(:has(.mn-crew-slots)) {
-  grid-template-rows: auto;
   justify-self: end;
+  grid-template-rows: auto;
   width: fit-content;
 }
 .mn-screen:is(.mn-screen--host, .mn-screen--public)
@@ -292,30 +307,7 @@
   font-size: 16px;
   line-height: 20px;
 }
-@media (max-width: 620px) {
-  .mn-screen.manila-screen .mn-layout .mn-main .mn-harbor .mn-shore .mn-space {
-    height: 44px;
-    min-height: 44px;
-    grid-template-rows: 24px 18px;
-  }
-  .mn-screen.manila-screen
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-shore
-    .mn-space-value {
-    height: 24px;
-    min-height: 24px;
-  }
-  .mn-screen.manila-screen
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-shore
-    .mn-space-earn {
-    line-height: 18px;
-  }
-}
+
 @media (min-width: 621px) {
   .mn-screen
     .mn-layout
@@ -324,64 +316,21 @@
     > .mn-shore
     > :is(.mn-docks, .mn-specialists)
     > :is(.mn-dock-group, .mn-specialist-group) {
-    height: auto;
     padding: 0 4px;
-    min-height: 0;
-    align-self: center;
-    grid-template-rows: auto;
   }
 }
-.mn-screen--player.manila-screen
-  .mn-layout
-  .mn-main
-  .mn-harbor
-  .mn-crew
-  .mn-space {
-  min-width: 56px;
-}
-/* A player sees one concrete cargo vacancy; give its number and price separate lines. */
-.mn-screen--player.manila-screen
-  .mn-layout
-  .mn-main
-  .mn-harbor
-  .mn-crew
-  .mn-space {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: 20px 20px;
-  justify-items: center;
-  width: 56px;
-  height: 44px;
-  min-height: 44px;
-  padding: 1px 2px;
-}
-.mn-screen--player.manila-screen
-  .mn-layout
-  .mn-main
-  .mn-harbor
-  .mn-crew
-  .mn-space-name {
-  grid-area: 1 / 1;
-  font-size: 16px;
-  line-height: 20px;
-}
-.mn-screen--player.manila-screen
-  .mn-layout
-  .mn-main
-  .mn-harbor
-  .mn-crew
-  .mn-space-value {
-  grid-area: 2 / 1;
-  justify-self: center;
-  height: 20px;
-  min-height: 20px;
-}
 @media (min-width: 621px) {
-  .mn-screen.manila-screen .mn-layout .mn-main .mn-harbor .mn-shore .mn-space {
+  .mn-screen:is(.mn-screen--host, .mn-screen--public)
+    .mn-layout
+    .mn-main
+    .mn-harbor
+    .mn-shore
+    .mn-space {
     height: 48px;
     min-height: 48px;
     grid-template-rows: 26px 20px;
   }
-  .mn-screen.manila-screen
+  .mn-screen:is(.mn-screen--host, .mn-screen--public)
     .mn-layout
     .mn-main
     .mn-harbor
@@ -390,7 +339,7 @@
     height: 26px;
     min-height: 26px;
   }
-  .mn-screen.manila-screen
+  .mn-screen:is(.mn-screen--host, .mn-screen--public)
     .mn-layout
     .mn-main
     .mn-harbor
@@ -398,160 +347,4 @@
     .mn-space-earn {
     line-height: 20px;
   }
-}
-@media (max-width: 620px) {
-  /* The narrow cargo card has a full-width name, then payout and die columns. */
-  .mn-screen--player.manila-screen
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-lane-heading,
-  .mn-screen--player.manila-screen
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-lane-heading
-    > .mn-detail-button {
-    height: 72px;
-    min-height: 72px;
-  }
-  .mn-screen--player.manila-screen
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-lane-heading
-    > .mn-detail-button {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 24px 40px;
-    padding: 3px 4px !important;
-    gap: 2px 0;
-  }
-  .mn-screen--player.manila-screen
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-lane-heading
-    .mn-cargo-art {
-    display: none;
-  }
-  .mn-screen--player.manila-screen
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-lane-heading
-    > .mn-detail-button
-    > strong {
-    font-size: 18px;
-    line-height: 24px;
-  }
-  .mn-screen--player.manila-screen
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-cargo-payout {
-    display: grid;
-    justify-items: start;
-    justify-content: start;
-    align-content: start;
-    grid-template-rows: 20px 20px;
-    gap: 0;
-    margin: 0;
-    line-height: 20px;
-  }
-  .mn-screen--player.manila-screen
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-cargo-payout
-    > span {
-    font-size: 16px;
-    line-height: 20px;
-  }
-  .mn-screen--player.manila-screen
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-cargo-payout
-    > strong {
-    font-size: 18px;
-    line-height: 20px;
-  }
-  .mn-screen--player.manila-screen
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-lane-heading
-    .mn-dice {
-    top: auto;
-    right: 3px;
-    bottom: 4px;
-  }
-  .mn-screen--player.manila-screen
-    .mn-layout
-    .mn-main
-    .mn-harbor
-    .mn-lane-heading
-    .mn-die {
-    width: 28px;
-    min-width: 28px;
-    height: 28px;
-    flex: 0 0 28px;
-  }
-}
-
-/* The wide toolbar is display:contents; reserve the orb on its real tools box. */
-@media (min-width: 621px) {
-  .mn-screen--player.manila-screen > .mn-toolbar > .mn-toolbar-tools {
-    margin-right: 64px;
-  }
-}
-
-/* A narrow horizontal board gives live turn information its own full-width row. */
-@media (min-width: 621px) and (max-width: 800px) {
-  .mn-screen--player.manila-screen {
-    grid-template-rows: auto auto auto minmax(0, 1fr);
-  }
-  .mn-screen--player.manila-screen > .mn-status {
-    grid-area: 2 / 1 / 3 / 5;
-    justify-self: stretch;
-    width: 100%;
-    height: auto;
-    min-height: 44px;
-    max-height: none;
-    overflow: visible;
-  }
-  .mn-screen--player.manila-screen > .mn-status .mn-current-turn {
-    flex: 1;
-  }
-  .mn-screen--player.manila-screen > .mn-status .mn-current-turn-copy {
-    flex-wrap: wrap;
-    white-space: normal;
-  }
-  .mn-screen--player.manila-screen > .mn-status .mn-status-detail {
-    flex-wrap: wrap;
-    white-space: normal;
-    overflow: visible;
-  }
-  .mn-screen--player.manila-screen > .mn-screen-feedback {
-    grid-area: 3 / 1 / 4 / 5;
-  }
-  .mn-screen--player.manila-screen > .mn-player-scroll {
-    grid-area: 4 / 1 / 5 / 5;
-  }
-}
-/* Dice belong to the cargo heading, rather than the lane's crew corner. */
-@media (min-width: 621px) {
-  .mn-screen--player.manila-screen .mn-harbor .mn-lane-heading .mn-dice {
-    position: static;
-    grid-column: 2;
-    grid-row: 1;
-    align-self: start;
-  }
-}
-
-/* Keep viewport-level focus/scroll requests from moving the fixed player shell. */
-:root:has(.manila-screen.mn-screen--player) body {
-  position: fixed;
-  inset: 0;
-  width: 100%;
 }

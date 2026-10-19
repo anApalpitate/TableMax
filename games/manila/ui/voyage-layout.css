@@ -81,7 +81,12 @@
   .mn-main
   .mn-harbor[data-mn-axis='horizontal']
   .mn-boat
-  picture,
+  picture {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: none;
+}
 .mn-screen
   .mn-layout
   .mn-main
@@ -109,8 +114,18 @@
   margin-left: 42px;
   min-height: 156px;
 }
-.mn-screen .mn-layout .mn-main .mn-harbor[data-mn-axis='vertical'] .mn-lanes,
-.mn-screen .mn-layout .mn-main .mn-harbor[data-mn-axis='vertical'] .mn-lane {
+.mn-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor[data-mn-axis='vertical']
+  .mn-lanes:not(:where(.mn-screen--player, .mn-screen--player *)) {
+  min-height: 368px;
+}
+.mn-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor[data-mn-axis='vertical']
+  .mn-lane:not(:where(.mn-screen--player, .mn-screen--player *)) {
   min-height: 368px;
 }
 .mn-saved-position {
@@ -206,33 +221,8 @@
 /* Opaque local backings keep contrast stable over both pale stone and sea. */
 @media (min-width: 621px) and (max-width: 1050px) {
   .mn-screen.mn-screen--player > .mn-player-scroll {
-    display: block;
-    overflow: auto;
     position: relative;
     contain: layout paint;
-  }
-  .mn-screen.mn-screen--player .mn-layout {
-    height: auto;
-    grid-template-rows: auto auto;
-  }
-  .mn-screen.mn-screen--player .mn-layout > .mn-main {
-    height: auto;
-  }
-  .mn-screen.mn-screen--player .mn-layout > .mn-main .mn-board-scroll {
-    height: auto;
-    overflow: visible;
-  }
-  .mn-screen.mn-screen--player
-    .mn-layout
-    > .mn-main
-    .mn-board-scroll
-    > .mn-harbor {
-    height: auto;
-    min-height: 0;
-  }
-  .mn-screen.mn-screen--player .mn-layout > .mn-main .mn-harbor > .mn-lanes {
-    min-height: 420px;
-    grid-template-rows: repeat(3, minmax(136px, 1fr));
   }
   .mn-screen.mn-screen--player
     .mn-layout
@@ -241,12 +231,9 @@
     > .mn-lanes
     > .mn-lane {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: minmax(44px, auto) 84px;
     grid-template-areas: 'cargo crew' 'track track';
-    min-height: 136px;
     align-content: center;
     gap: 4px;
-    overflow: visible;
   }
 }
 @media (min-width: 621px) and (max-width: 760px) and (min-height: 601px) {
@@ -256,33 +243,22 @@
     .mn-board-scroll
     > .mn-harbor {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto auto auto;
     grid-template-areas: 'lanes' 'shore' 'market' 'actions';
-  }
-  .mn-screen.mn-screen--player .mn-layout > .mn-main .mn-harbor > .mn-shore {
-    min-height: 260px;
-  }
-  .mn-screen.mn-screen--player
-    .mn-layout
-    > .mn-main
-    .mn-harbor
-    > .mn-board-market {
-    min-height: 190px;
   }
   .mn-screen.mn-screen--player .mn-merchant-cards {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .mn-screen.mn-screen--player .mn-merchant-card {
-    height: auto;
     min-height: 74px;
   }
-  .mn-screen.mn-screen--player .mn-merchant-name {
-    white-space: normal;
-    overflow-wrap: anywhere;
-    overflow: visible;
-  }
 }
-.mn-screen .mn-layout .mn-main .mn-harbor .mn-lane-heading > strong,
+.mn-screen .mn-layout .mn-main .mn-harbor .mn-lane-heading > strong {
+  color: #fffdf4;
+  background: #143d39;
+  border-radius: 4px;
+  text-shadow: none;
+  padding-inline: 4px;
+}
 .mn-screen
   .mn-layout
   .mn-main
@@ -293,9 +269,14 @@
     .mn-manifest-kicker,
     .mn-manifest-empty,
     .mn-manifest-state
-  ),
-.mn-screen .mn-layout .mn-main .mn-harbor .mn-track-cells span,
-.mn-screen .mn-layout .mn-main .mn-harbor .mn-position-controls output {
+  ) {
+  color: #fffdf4;
+  background: #143d39;
+  border-radius: 4px;
+  text-shadow: none;
+  padding-inline: 4px;
+}
+.mn-screen .mn-layout .mn-main .mn-harbor .mn-track-cells span {
   color: #fffdf4;
   background: #143d39;
   border-radius: 4px;
@@ -303,12 +284,25 @@
   padding-inline: 4px;
 }
 .mn-screen .mn-layout .mn-main .mn-harbor .mn-position-controls output {
+  color: #fffdf4;
+  background: #143d39;
+  border-radius: 4px;
+  text-shadow: none;
+  padding-inline: 4px;
+  font-size: 18px;
+}
+.mn-screen
+  .mn-layout
+  .mn-main
+  .mn-harbor
+  .mn-position-controls
+  output:not(:where(.mn-screen--player, .mn-screen--player *)) {
   height: auto;
   min-height: 20px;
-  font-size: 18px;
   line-height: 20px;
 }
-.mn-screen .mn-position-controls {
+.mn-screen
+  .mn-position-controls:not(:where(.mn-screen--player, .mn-screen--player *)) {
   grid-template-rows: 20px 44px;
   height: 64px;
   min-height: 64px;
@@ -320,9 +314,6 @@
 .mn-screen .mn-position-controls button {
   min-width: 44px;
   min-height: 44px;
-}
-.mn-screen--player > .mn-status :is(.mn-status-detail, .mn-turn-hint)::before {
-  content: none;
 }
 .mn-screen .mn-layout .mn-main .mn-harbor .mn-track-cells .mn-cell-current {
   background: #245d54;
@@ -351,9 +342,6 @@
   box-shadow: inset 0 0 0 3px #fff3c4;
 }
 /* Results take a real grid row; they never float over the board or controls. */
-.mn-screen .mn-layout.mn-layout--result {
-  grid-template-rows: auto minmax(0, 1fr) auto;
-}
 .mn-screen .mn-layout.mn-layout--result > .mn-main {
   grid-row: 2;
 }

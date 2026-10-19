@@ -287,7 +287,11 @@ try {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.evaluate(() => window.showEffect('plain-draw'));
   assert.equal(await page.locator('.saved-action-trails path').count(), 0);
-  assert.equal(await page.locator('.saved-action-trails').isVisible(), false);
+  assert.equal(
+    await page.locator('.saved-action-trails .winner-board-sweep').count(),
+    0,
+  );
+  assert.equal(await page.locator('.discarded-landing').count(), 0);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.evaluate(() => window.showEffect('zero'));
   assert.equal(await page.locator('.saved-action-trails').count(), 0);

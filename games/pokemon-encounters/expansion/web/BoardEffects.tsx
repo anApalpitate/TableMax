@@ -1,6 +1,8 @@
 import { useEffect, useId, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { BoardEffects as Effects } from './presentation';
+import { discardLanding } from '../../ui/discard-feedback';
+import type { DiscardSource } from '../../shared/discard-trails';
 
 type Rect = { x: number; y: number; width: number; height: number };
 
@@ -10,11 +12,13 @@ export function BoardEffects({
   delay,
   anchors = {},
   winners = [],
+  savedDiscardSources,
 }: {
   effects: Effects;
   delay: number;
   anchors?: Readonly<Record<string, Rect>>;
   winners?: readonly string[];
+  savedDiscardSources?: readonly DiscardSource[] | undefined;
 }) {
   const prefix = useId().replaceAll(':', '');
   const [rects, setRects] = useState<Record<string, Rect>>({});
@@ -42,6 +46,19 @@ export function BoardEffects({
               width: rect.width,
               height: rect.height,
             };
+          if (
+            slot.dataset.pile === 'discard' &&
+            slot.checkVisibility({
+              checkOpacity: true,
+              checkVisibilityCSS: true,
+            })
+          )
+            next['@visible-discard'] = {
+              x: rect.x,
+              y: rect.y,
+              width: rect.width,
+              height: rect.height,
+            };
         });
       setRects(next);
     };
@@ -63,6 +80,11 @@ export function BoardEffects({
       ? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }
       : null;
   };
+  const landing = discardLanding(
+    savedDiscardSources,
+    rects['@visible-discard'] ?? null,
+    { width: innerWidth, height: innerHeight },
+  );
   return createPortal(
     <svg
       className="ex-board-effects"
@@ -74,6 +96,14 @@ export function BoardEffects({
         } as CSSProperties
       }
     >
+      {landing && (
+        <rect
+          className="ex-discard-landing"
+          data-target="@discard"
+          {...landing}
+          rx="12"
+        />
+      )}
       {effects.moves.map(({ from, to }) => {
         const a = center(from),
           b = center(to);
@@ -83,7 +113,7 @@ export function BoardEffects({
         return (
           <g
             key={`${from}-${to}`}
-            className="ex-board-transfer"
+            className={`ex-board-transfer${to === '@discard' ? ' ex-discard-transfer' : ''}`}
             data-from={from}
             data-to={to}
           >

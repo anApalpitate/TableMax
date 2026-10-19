@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { claimAudioEvent, type GameHost } from '@tablemax/web-host';
+import {
+  claimAudioEvent,
+  subscribeSoundPreference,
+  useSoundPreference,
+  useSoundActivation,
+  type GameHost,
+} from '@tablemax/web-host';
 import type { LatestAction, UnoView } from '../types';
 import place from '../../../assets/games/uno/audio/place-v1.flac';
 import draw from '../../../assets/games/uno/audio/draw-v1.flac';
@@ -13,20 +19,11 @@ import catchUno from '../../../assets/games/uno/audio/catch-uno-v1.flac';
 import challenge from '../../../assets/games/uno/audio/challenge-v1.flac';
 import win from '../../../assets/games/uno/audio/win-v1.flac';
 
-const muteKey = 'tablemax-sound-muted';
-const preferenceEvent = 'uno-sound-preference';
 type Feedback = NonNullable<GameHost['feedback']>;
 const feedbackKey = (feedback: Feedback | null) =>
   feedback
     ? `uno:${feedback.instanceId}:${feedback.branch}:${feedback.revision}`
     : '';
-const preference = () => {
-  try {
-    return localStorage.getItem(muteKey) !== 'true';
-  } catch {
-    return true;
-  }
-};
 function sourceFor(latest: LatestAction, phase: UnoView['phase']) {
   if (phase !== 'playing') return win;
   if (/ended|result|round-won/.test(latest.verb)) return win;
@@ -60,7 +57,7 @@ export function UnoSoundControl({
   canPlay: boolean;
   player: boolean;
 }) {
-  const [enabled, setEnabled] = useState(preference);
+  const [enabled, setEnabled] = useSoundPreference();
   const [blocked, setBlocked] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const media = useRef<HTMLAudioElement | null>(null);
@@ -70,6 +67,12 @@ export function UnoSoundControl({
     const audio = new Audio();
     audio.preload = 'none';
     media.current = audio;
+    const unsubscribeSound = subscribeSoundPreference((audible) => {
+      if (!audible) {
+        generation.current++;
+        audio.pause();
+      }
+    });
     const hide = () => {
       if (document.hidden) {
         generation.current++;
@@ -81,6 +84,7 @@ export function UnoSoundControl({
       // Invalidate native claims and pending playback before releasing the source.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       generation.current++;
+      unsubscribeSound();
       document.removeEventListener('visibilitychange', hide);
       audio.pause();
       audio.removeAttribute('src');
@@ -89,18 +93,9 @@ export function UnoSoundControl({
     };
   }, []);
   useEffect(() => {
-    const changed = () => setEnabled(preference());
-    window.addEventListener('storage', changed);
-    window.addEventListener(preferenceEvent, changed);
-    return () => {
-      window.removeEventListener('storage', changed);
-      window.removeEventListener(preferenceEvent, changed);
-    };
-  }, []);
-  useEffect(() => {
     generation.current++;
     media.current?.pause();
-  }, [feedback?.instanceId, feedback?.branch, disabled, canPlay, enabled]);
+  }, [feedback?.instanceId, feedback?.branch, disabled, canPlay]);
   useEffect(() => {
     const key = feedbackKey(feedback);
     if (!key || seen.current.has(key)) return;
@@ -168,6 +163,9 @@ export function UnoSoundControl({
       },
     );
   };
+  useSoundActivation(() => {
+    if (!disabled && canPlay) unlock();
+  });
   const audible = enabled && !disabled && !blocked && (!player || unlocked);
   const label = disabled
     ? '测试或暂停中，提示音关闭'
@@ -191,13 +189,6 @@ export function UnoSoundControl({
         }
         const next = !enabled;
         setEnabled(next);
-        try {
-          localStorage.setItem(muteKey, String(!next));
-          window.dispatchEvent(new Event(preferenceEvent));
-        } catch {
-          /* Keep a per-window preference when storage is unavailable. */
-        }
-        if (next) unlock();
       }}
     >
       <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">

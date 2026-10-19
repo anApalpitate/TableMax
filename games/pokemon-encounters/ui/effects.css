@@ -36,6 +36,16 @@
   filter: drop-shadow(0 0 3px currentColor);
   animation: committed-trail var(--trail-duration) ease-out both;
 }
+.pokemon-screen .saved-trail.discarded-trail {
+  color: #168c94;
+  stroke: currentColor;
+}
+.pokemon-screen .discarded-landing {
+  fill: none;
+  stroke: #168c94;
+  stroke-width: 3;
+  animation: none;
+}
 .pokemon-screen .electric-trail {
   stroke-width: 4;
   stroke-dasharray: 0.055 0.022;
@@ -226,8 +236,10 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pokemon-screen .saved-action-trails,
   .pokemon-screen .win-pips .newly-earned::after {
+    display: none;
+  }
+  .pokemon-screen .saved-action-trails > :not(.discarded-landing) {
     display: none;
   }
   .pokemon-screen .win-pips .newly-earned {

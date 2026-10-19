@@ -614,6 +614,7 @@
   text-align: center;
 }
 :where(.avalon-screen, .av-overlay) .av-saved-action {
+  position: relative;
   display: flex;
   align-items: center;
   min-height: 46px;
@@ -657,8 +658,15 @@
   font-size: 16px;
 }
 :where(.avalon-screen, .av-overlay) .av-saved-label {
-  margin-left: auto;
-  flex-shrink: 0;
+  position: absolute;
+  z-index: 81;
+  inset-block-start: -10px;
+  inset-inline-end: 12px;
+  padding: 0 3px;
+  line-height: 18px;
+  background: #fffaed;
+  white-space: nowrap;
+  pointer-events: none;
   color: #798164;
 }
 :where(.avalon-screen, .av-overlay) .av-public-footer {
@@ -769,8 +777,7 @@
 /* Keep committed result copy legible throughout the transparent light sweep. */
 :where(.avalon-screen, .av-overlay) .av-final-heading > div,
 :where(.avalon-screen, .av-overlay) .av-assassination-result,
-:where(.avalon-screen, .av-overlay) .av-saved-action > div,
-:where(.avalon-screen, .av-overlay) .av-saved-label {
+:where(.avalon-screen, .av-overlay) .av-saved-action > div {
   position: relative;
   z-index: 81;
 }
@@ -1919,9 +1926,6 @@
   :where(.avalon-screen, .av-overlay) .av-saved-action strong {
     font-size: 16px;
   }
-  :where(.avalon-screen, .av-overlay) .av-saved-label {
-    display: none;
-  }
   :where(.avalon-screen, .av-overlay) .av-recent-ballot {
     gap: 8px;
     align-items: flex-start;
@@ -2519,12 +2523,6 @@
   .av-screen--host > .av-saved-action > div > strong {
     display: block;
     margin-bottom: 4px;
-    padding-right: 60px;
-  }
-  .av-screen--host .av-saved-label {
-    position: absolute;
-    top: 10px;
-    right: 12px;
   }
   .av-screen--host > .av-public-footer,
   .av-screen--host > .av-replay {

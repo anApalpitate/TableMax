@@ -1,4 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import {
+  subscribeSoundPreference,
+  useSoundPreference,
+} from '@tablemax/web-host';
 import type {} from '../../../desktop/src/audio-types';
 import { INTERACTION_CATALOG, type InteractionEvent } from '@tablemax/protocol';
 import { interactionAsset } from './assets';
@@ -7,6 +11,7 @@ const audioUrls = [...INTERACTION_CATALOG.phrases, ...INTERACTION_CATALOG.shots]
   .map((entry) => interactionAsset(entry.audio))
   .filter(Boolean);
 export function useInteractionAudio(enabled: boolean) {
+  const [soundEnabled] = useSoundPreference();
   const [engine] = useState(
     () =>
       new InteractionAudioPlayer({
@@ -47,10 +52,19 @@ export function useInteractionAudio(enabled: boolean) {
       /* Unsupported browsers keep visual interactions. */
     }
   }, [engine, enabled]);
+  useLayoutEffect(() => {
+    engine.setEnabled(enabled && soundEnabled);
+  }, [engine, enabled, soundEnabled]);
+  useEffect(
+    () =>
+      subscribeSoundPreference((audible) =>
+        engine.setEnabled(enabled && audible),
+      ),
+    [engine, enabled],
+  );
   useEffect(() => {
     const bridge = window.tablemaxInteractionAudio;
     let active = true;
-    engine.setEnabled(enabled);
     engine.setOwner(enabled && !bridge);
     const unsubscribe = bridge?.subscribe((value) => {
       if (!active) return;

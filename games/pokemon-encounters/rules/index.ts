@@ -13,6 +13,7 @@ import {
 import { project } from './project';
 import { announceAction } from './public-actions';
 import { pokemonExpansion } from '../expansion';
+import type { DiscardSource } from '../shared/discard-trails';
 
 export type Action =
   | { type: 'initial-flip' | 'replace' | 'peek'; slot: number }
@@ -57,7 +58,7 @@ function round(
     winsBySeat: wins,
     boards,
     deck,
-    discard: [],
+    discard: [deck.pop()!],
     held: null,
     phase: 'initial-flip',
     turnSeat: starter,
@@ -355,6 +356,7 @@ export const rules: GameRules = {
       throw new Error('Illegal action');
     const s = structuredClone(input) as State;
     const before = s.phase;
+    let discardSources: DiscardSource[] | undefined;
     s.step++;
     const label = `S${s.seatOrder.indexOf(seat) + 1} ${labels[before]}`;
     if (a.type === 'initial-flip') {
@@ -387,12 +389,17 @@ export const rules: GameRules = {
       s.phase = 'mew-self';
       event(s, 'replace', '梦幻已换入目标场地，等待行动者完成己方替换。');
     } else if (a.type === 'replace') {
+      discardSources = [];
       if (before === 'rocket-pikachu') {
         const order = clockwise(s.seatOrder, s.turnSeat);
         const rocket = s.held!;
         // P03: insert each at bottom in chronological order, then refill all.
         s.discard.unshift(s.boards[seat]![a.slot]!.instanceId);
         s.discard.unshift(rocket);
+        discardSources.push(
+          '@held',
+          ...order.map((id) => ({ seat: id, slot: a.slot })),
+        );
         for (const id of order.slice(1))
           s.discard.unshift(s.boards[id]![a.slot]!.instanceId);
         s.held = null;
@@ -414,6 +421,7 @@ export const rules: GameRules = {
           } else s.recipientIndex++;
           if (s.recipientIndex === s.recipientQueue.length) {
             s.discard.unshift(outgoing);
+            discardSources.push({ seat, slot: a.slot });
             s.held = null;
             finish(s, true);
           } else {
@@ -422,6 +430,7 @@ export const rules: GameRules = {
           }
         } else {
           s.discard.push(outgoing);
+          discardSources.push({ seat, slot: a.slot });
           if (
             before === 'place' &&
             card(incoming).categoryId === 'special-snorlax'
@@ -445,6 +454,7 @@ export const rules: GameRules = {
       }
     } else if (a.type === 'discard-held') {
       s.discard.push(s.held!);
+      discardSources = ['@held'];
       s.held = null;
       finish(s, false);
     } else if (a.type === 'swap') {
@@ -458,8 +468,10 @@ export const rules: GameRules = {
     } else if (a.type === 'decline-ability' || a.type === 'close-peek')
       finish(s, true);
     const announcement = announceAction(input as State, s, a, seat);
-    for (const entry of s.events.filter((entry) => entry.id === s.step))
+    for (const entry of s.events.filter((entry) => entry.id === s.step)) {
       entry.action = announcement;
+      if (discardSources !== undefined) entry.effect = { discardSources };
+    }
     return {
       state: s,
       decision: {

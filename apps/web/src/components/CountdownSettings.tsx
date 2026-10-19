@@ -3,6 +3,7 @@ import { COUNTDOWN_STEPS, DEFAULT_COUNTDOWN_SECONDS } from '@tablemax/protocol';
 import type { RoomSession } from '../session/useRoomSession';
 import { BoxOverlayPanel } from './BoxOverlayPanel';
 import { feedbackText } from '../content/feedback';
+import { SoundSetting } from './SoundSetting';
 import './countdown.css';
 import './settings-panel.css';
 
@@ -20,7 +21,6 @@ export function CountdownSettings({
   const [attempted, setAttempted] = useState(false);
   const sliderId = useId();
   const canSetTimer = session.isHost && session.view?.game?.decisionTimer;
-  if (!canSetTimer && !children) return null;
   const seconds = COUNTDOWN_STEPS[step]!;
   return (
     <>
@@ -66,6 +66,7 @@ export function CountdownSettings({
           className="settings-panel settings-panel--preferences"
           close={() => setOpen(false)}
         >
+          <SoundSetting />
           {children}
           {canSetTimer && (
             <div className="countdown-settings">

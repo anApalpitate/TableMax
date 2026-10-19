@@ -1,4 +1,9 @@
-import { claimAudioEvent } from '@tablemax/web-host';
+import {
+  claimAudioEvent,
+  subscribeSoundPreference,
+  useSoundPreference,
+  useSoundActivation,
+} from '@tablemax/web-host';
 import { useEffect, useRef, useState } from 'react';
 import type { RoomFeedback } from '@tablemax/web-host';
 import type { ModernArtView } from './view';
@@ -46,18 +51,9 @@ const sources: Record<ModernArtSoundCue, string> = {
   'match-result': matchResult,
   error,
 };
-const desktopMuteKey = 'tablemax-sound-muted';
-const phoneMuteKey = 'tablemax-modern-art-phone-sound-muted';
 let phoneAudio: HTMLAudioElement | null = null;
 let phoneUnlocked = false;
 let phoneUnlocking = false;
-function preference(muteKey: string) {
-  try {
-    return localStorage.getItem(muteKey) !== 'true';
-  } catch {
-    return true;
-  }
-}
 
 export function ModernArtSoundControl({
   feedback,
@@ -73,12 +69,11 @@ export function ModernArtSoundControl({
   errorId: string;
   disabled?: boolean;
   canPlay?: boolean;
-  /** Phone sounds have their own device preference and no desktop claim. */
+  /** Player sounds require a local gesture and never claim desktop output. */
   localOnly?: boolean;
   timer?: { key: string; remainingMs: number; running: boolean } | null;
 }) {
-  const muteKey = localOnly ? phoneMuteKey : desktopMuteKey;
-  const [enabled, setEnabled] = useState(() => preference(muteKey));
+  const [enabled, setEnabled] = useSoundPreference();
   const [blocked, setBlocked] = useState(localOnly && !phoneUnlocked);
   const saved = useRef(new ModernArtSavedFeedback(feedback));
   const lastError = useRef(errorId);
@@ -96,23 +91,20 @@ export function ModernArtSoundControl({
       setBlocked(true);
     });
     player.current = playback;
-    const storage = (event: StorageEvent) => {
-      if (event.key !== muteKey) return;
-      const next = preference(muteKey);
-      if (!next) {
+    const unsubscribeSound = subscribeSoundPreference((audible) => {
+      if (!audible) {
+        if (localOnly) phoneUnlocking = false;
         permission.current++;
         playback.stop();
       }
-      setEnabled(next);
-    };
-    window.addEventListener('storage', storage);
+    });
     return () => {
       if (localOnly) phoneUnlocking = false;
       playback.dispose();
       player.current = null;
-      window.removeEventListener('storage', storage);
+      unsubscribeSound();
     };
-  }, [localOnly, muteKey]);
+  }, [localOnly]);
   useEffect(() => {
     if (!enabled || disabled || !canPlay) {
       if (localOnly) phoneUnlocking = false;
@@ -267,6 +259,9 @@ export function ModernArtSoundControl({
       },
     );
   };
+  useSoundActivation(() => {
+    if (!disabled && canPlay) unlock();
+  });
   return (
     <button
       className="secondary ma-sound-control"
@@ -296,12 +291,6 @@ export function ModernArtSoundControl({
         permission.current++;
         if (!next) player.current?.stop();
         setEnabled(next);
-        try {
-          localStorage.setItem(muteKey, String(!next));
-        } catch {
-          /* This window's preference remains usable. */
-        }
-        if (next && canPlay) unlock();
       }}
     >
       <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">

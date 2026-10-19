@@ -56,6 +56,8 @@ const unitScopes = {
   'apps/desktop/src/display-controller.test.ts': ['shared'],
   'apps/desktop/src/runtime-guard.test.ts': ['shared'],
   'apps/web/src/components/player-frame.test.ts': ['shared'],
+  'apps/web/src/components/WindowModeSettings.test.ts': ['shared'],
+  'packages/web-host/src/preferences/sound-preference.test.ts': ['shared'],
   'apps/web/src/game-clients/styles.test.ts': ['shared'],
   'apps/web/src/interactions/model.test.ts': ['shared'],
   'apps/web/src/interactions/audio-player.test.ts': ['shared'],
@@ -247,6 +249,11 @@ const verificationScopes = {
     'box',
     'shared',
     'tooling',
+    ...gameScopes,
+  ],
+  'tools/test/platform/verify-settings-and-save-layout.mjs': [
+    'box',
+    'shared',
     ...gameScopes,
   ],
   'tools/analysis/games/pokemon-encounters/pokemon-expansion-flow-observer.test.mjs':

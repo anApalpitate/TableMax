@@ -36,12 +36,26 @@ const available = [
   'share',
   'entries',
   'voyage-result',
+  'text-flow',
 ];
 const selected = option('only')?.split(',') ?? available;
 assert(selected.every((value) => available.includes(value)));
-// Portrait harbor checks; 844x390 landscape is covered by verify-manila-touch/design.
-const widths = option('widths')?.split(',').map(Number) ?? [320, 390, 430];
-assert(widths.every((value) => [320, 390, 430].includes(value)));
+// Explicit viewports let a content-bound plan include breakpoint neighbours,
+// short landscape and keyboard-like heights without changing the defaults.
+const requestedSizes = option('viewports')
+  ?.split(',')
+  .map((value) => {
+    assert.match(value, /^\d+x\d+$/);
+    return value.split('x').map(Number);
+  });
+assert(!(requestedSizes && option('widths')), 'Choose widths or viewports');
+const widths = requestedSizes?.map(([width]) => width) ??
+  option('widths')?.split(',').map(Number) ?? [320, 390, 430];
+assert(
+  widths.every(
+    (value) => Number.isInteger(value) && value >= 320 && value <= 3840,
+  ),
+);
 const suite = option('suite') ?? 'harbor';
 assert(['harbor', 'composition'].includes(suite));
 const parent = resolve(
@@ -76,6 +90,7 @@ import ${file('apps/web/src/styles.css')};
 import ${file('apps/web/src/scrollbars.css')};
 const ids=['A','B','C','D','E'];
 const seats=ids.map((id,i)=>({id,name:['阿蓝','小林','港口伙伴','长昵称测试商人','小船长'][i],avatarId:'avatar-'+(i+1),controller:'human',ready:true,online:true,botDifficulty:null}));
+const longNames=['这是一位使用二十四个汉字完整昵称的港口商人朋友甲乙','ABCDEFGHIJKLMNOPQRSTUVWXYZ'.slice(0,24),'港务长与海盗伙伴们的完整昵称测试商人甲乙丙丁戊己','MerchantWithoutAnySpaces1','中文商人与ABCDEFGHIJKLMNOPQRSTUVWXYZ'].map(name=>name.slice(0,24));
 let seed=35719;
 const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
 const ctx={seats:ids,random:{next:random}}, snapshots={}, origins={};
@@ -85,6 +100,10 @@ for(let run=0;run<32&&required.some(p=>!snapshots[p]);run++){
  for(let step=0;step<900;step++){
   if(state.phase==='share'&&!snapshots['share-funded']&&rules.legalActions(state,turnSeat(state)).some(a=>a.type==='buy-share')){snapshots['share-funded']=structuredClone(state);origins['share-funded']={kind:'legal-play',run,step,serial:state.serial,voyage:state.voyage};}
   if(required.includes(state.phase)&&!snapshots[state.phase]){snapshots[state.phase]=structuredClone(state);origins[state.phase]={kind:'legal-play',run,step,serial:state.serial,voyage:state.voyage};}
+  if(state.phase==='auction'){
+   const bidder=turnSeat(state),player=state.players[bidder],maximum=player.cash+player.shares.filter(share=>!share.mortgaged).length*12;
+   if(maximum>state.auction.bid&&(!origins['auction-largest']||maximum>origins['auction-largest'].maximum)){snapshots['auction-largest']=structuredClone(state);origins['auction-largest']={kind:'largest-legal-bid-encountered',run,step,maximum};}
+  }
   if(state.phase==='ended')break;
   if(state.phase==='round-result'){state=validateState(rules.applyLifecycle(state,{type:'next-voyage'},ctx).state,ids);continue;}
   const actor=turnSeat(state),all=rules.legalActions(state,actor);
@@ -109,6 +128,10 @@ for(let i=0;i<10&&obligation.phase==='auction';i++){
 if(obligation.phase!=='financing')throw new Error('Legal auction did not reach financing');
 snapshots.financing=obligation;
 origins.financing={kind:'legal-max-bid-and-passes',payer,amount:obligation.payment.amount};
+const richest=structuredClone(snapshots['auction-largest']),richActor=turnSeat(richest),richBid=rules.legalActions(richest,richActor).filter(action=>action.type==='bid').at(-1);
+if(!richBid)throw new Error('Largest-bid fixture has no legal bid');
+snapshots['auction-leading']=validateState(rules.apply(richest,richBid,richActor,ctx).state,ids);
+origins['auction-leading']={kind:'legal-largest-encountered-bid',amount:richBid.amount};
 const tied=structuredClone(snapshots.ended);
 const wealth=Math.max(...Object.values(tied.scores))+50;
 for(const id of ids){const p=tied.players[id],cash=wealth-p.shares.reduce((n,s)=>n+tied.market[s.cargo]-(s.mortgaged?15:0),0),offset=cash-p.cash;p.cash=cash;for(const finance of new Set([tied.voyageFinance,tied.result?.finance]))if(finance){finance.players[id].openingCash+=offset;finance.players[id].closingCash+=offset;}}
@@ -141,10 +164,11 @@ function sessionFor(state,options={}){
  const canControl=role==='host'||(role==='player'&&seatId===ownerSeatId);
  const pending=role==='player'?rules.decisions(state).find(p=>p.seatId===seatId):null;
  const projected=rules.project(state,role==='player'?{role:'player',seatId}:{role:'public'});
+ const displaySeats=options.longNames?seats.map((seat,index)=>({...seat,name:longNames[index]})):seats;
  // A controlled older projection deliberately lacks a full-voyage ledger.
  if(options.legacy&&projected.result)delete projected.result.finance;
- const view={instanceId:'manila-harbor-fixture',branch:options.branch??0,revision:state.serial,status:state.phase==='ended'?'ended':'playing',paused:false,playMode:'play',gameView:projected,decisionId:pending?.id??null,countdownSeconds:30,decisionClock:null,actions:pending?rules.legalActions(state,seatId):[],lifecycleActions:canControl?rules.lifecycleActions(state):[],seats,history:[],joinOpen:true,ownerSeatId,game:{...rules.manifest,releaseRef:'fixture',minPlayers:3,maxPlayers:5,min:3,max:5},catalog:[],capabilities:{manage:role==='host',control:canControl,manageSeats:canControl},self:{role,seatId:role==='player'?seatId:null},restored:false,selectionToken:null};
- return {role,view,self:role==='player'?seats.find(s=>s.id===seatId):undefined,isHost:role==='host',canControl,canManageSeats:canControl,connected:true,locked:false,busy:false,message:'',messageKind:'none',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],credential:'fixture',name:'阿蓝',setName:noop,command:c=>window.commands.push(c),join:noop,retry:noop,retryAdmission:noop,setPlayerCredential:noop,publicUrl:'http://127.0.0.1',localUrl:'http://127.0.0.1',admissionAvatarId:null};
+ const view={instanceId:'manila-harbor-fixture',branch:options.branch??0,revision:state.serial,status:state.phase==='ended'?'ended':'playing',paused:false,playMode:'play',gameView:projected,decisionId:pending?.id??null,countdownSeconds:30,decisionClock:null,actions:pending?rules.legalActions(state,seatId):[],lifecycleActions:canControl?rules.lifecycleActions(state):[],seats:displaySeats,history:[],joinOpen:true,ownerSeatId,game:{...rules.manifest,releaseRef:'fixture',minPlayers:3,maxPlayers:5,min:3,max:5},catalog:[],capabilities:{manage:role==='host',control:canControl,manageSeats:canControl},self:{role,seatId:role==='player'?seatId:null},restored:false,selectionToken:null};
+ return {role,view,self:role==='player'?displaySeats.find(s=>s.id===seatId):undefined,isHost:role==='host',canControl,canManageSeats:canControl,connected:true,locked:false,busy:false,message:'',messageKind:'none',admissionPending:false,awaitingConfirmation:false,feedback:null,errorId:'',motion:[],credential:'fixture',name:'阿蓝',setName:noop,command:c=>window.commands.push(c),join:noop,retry:noop,retryAdmission:noop,setPlayerCredential:noop,publicUrl:'http://127.0.0.1',localUrl:'http://127.0.0.1',admissionAvatarId:null};
 }
 window.harbor={
  load(options={}){const phase=options.phase??'setup';const state=structuredClone(snapshots[phase]);if(!state)throw new Error('Missing fixture '+phase);current={state,options,seatId:options.seatId??(options.waiting?ids.find(id=>id!==(turnSeat(state)??ids[0])):turnSeat(state)??ids[0]),session:sessionFor(state,options)};window.commands=[];window.scrollCalls=[];generation++;return paint();},
@@ -236,6 +260,7 @@ const report = {
   output,
   selected,
   widths,
+  requestedSizes,
   verifierSha256: sha(source),
   scope:
     'Actual React Manila through PlatformGame. Legal-play rule projections with controlled transport flags and branch synchronization; tie is explicitly controlled and state-validated. Muted hidden Edge on loopback with Android touch emulation. No real service transport, physical keyboard/phone, OS DPI, installer or natural tied-match acceptance claim.',
@@ -294,11 +319,19 @@ async function check(name, run, page) {
     JSON.stringify(report, null, 2) + '\n',
   );
 }
-const sizes = [
-  [320, 568],
-  [390, 844],
-  [430, 932],
-];
+const sizes =
+  requestedSizes ??
+  widths.map((width) => [
+    width,
+    { 320: 568, 390: 844, 430: 932, 844: 390, 932: 430, 1024: 768, 1123: 1428 }[
+      width
+    ] ?? (width <= 620 ? Math.round(width * 2.16) : 900),
+  ]);
+assert(
+  sizes.every(
+    ([, height]) => Number.isInteger(height) && height >= 240 && height <= 3840,
+  ),
+);
 try {
   await build({
     configFile: false,
@@ -663,8 +696,53 @@ try {
         'Lane control slot height remains stable between cargo and position steps',
       );
       await arrow(0, 1).scrollIntoViewIfNeeded();
-      assert((await owner.evaluate((n) => n.scrollTop)) > 0);
+      const scrollBaseline = await owner.evaluate((n) => ({
+        scrollTop: n.scrollTop,
+        maximum: n.scrollHeight - n.clientHeight,
+      }));
+      assert(
+        scrollBaseline.maximum > 0,
+        'The real scroll owner has reachable content',
+      );
+      if (scrollBaseline.scrollTop === 0) {
+        // Landscape can already show the first arrow. Establish a real positive
+        // offset without moving that arrow outside the owner's visible bounds.
+        const visibleArrow = await arrow(0, 1).boundingBox();
+        const visibleOwner = await owner.boundingBox();
+        const offset = Math.min(
+          48,
+          scrollBaseline.maximum,
+          visibleArrow.y - visibleOwner.y - 2,
+        );
+        assert(
+          offset >= 1,
+          'A visible first arrow permits a nonzero scroll baseline',
+        );
+        await owner.evaluate((n, value) => {
+          n.scrollTop = value;
+        }, offset);
+        await settle();
+      }
+      assert(
+        (await owner.evaluate((n) => n.scrollTop)) > 0,
+        'Arrow stability starts at nonzero owner scroll',
+      );
       const box = await arrow(0, 1).boundingBox();
+      const arrowOwnerBounds = await owner.boundingBox();
+      assert(
+        box.y >= arrowOwnerBounds.y - 1 &&
+          box.y + box.height <=
+            arrowOwnerBounds.y + arrowOwnerBounds.height + 1,
+        'The entire arrow remains visible at the nonzero baseline',
+      );
+      report.metrics.push({
+        width,
+        kind: 'arrow-nonzero-baseline',
+        before: scrollBaseline,
+        scrollTop: await owner.evaluate((n) => n.scrollTop),
+        arrow: box,
+        owner: arrowOwnerBounds,
+      });
       const laneBox = await page.locator('.mn-lane').first().boundingBox();
       await tap(arrow(0, 1));
       const after = await arrow(0, 1).boundingBox();
@@ -753,6 +831,40 @@ try {
         arrowDelta: after.y - box.y,
       });
       await shot('stability');
+      const tailBeforeScroll = await owner.evaluate(
+        (n) =>
+          Number.parseFloat(n.style.getPropertyValue('--mn-anchor-tail')) || 0,
+      );
+      if (width >= 621 && height <= 600)
+        assert(
+          tailBeforeScroll > 0,
+          'Bottom-clamped landscape cancellation repairs the measured scroll deficit',
+        );
+      if (tailBeforeScroll > 0) {
+        const bounds = await owner.boundingBox();
+        await page.mouse.move(
+          bounds.x + bounds.width / 2,
+          bounds.y + bounds.height / 2,
+        );
+        await page.mouse.wheel(0, -80);
+        await settle();
+        const tailAfterScroll = await owner.evaluate(
+          (n) =>
+            Number.parseFloat(n.style.getPropertyValue('--mn-anchor-tail')) ||
+            0,
+        );
+        report.metrics.push({
+          width,
+          kind: 'anchor-tail-user-scroll-cleanup',
+          tailBeforeScroll,
+          tailAfterScroll,
+        });
+        assert.equal(
+          tailAfterScroll,
+          0,
+          'The next real wheel gesture removes the temporary scroll repair',
+        );
+      }
     });
     await run('boundary', async () => {
       await load({ phase: 'setup' });
@@ -2044,7 +2156,14 @@ try {
                 label: n.textContent,
                 lanes: rect(n.closest('.mn-lanes')),
               })),
-            slots: [...document.querySelectorAll('.mn-lane-control')].map(rect),
+            slots: [...document.querySelectorAll('.mn-lane-control')].map(
+              (node) => ({
+                ...rect(node),
+                contents: [...node.children]
+                  .filter((child) => child.checkVisibility())
+                  .map(rect),
+              }),
+            ),
             spaces: [...document.querySelectorAll('.mn-harbor .mn-space')]
               .filter((n) => n.checkVisibility())
               .map((n) => ({
@@ -2115,8 +2234,18 @@ try {
           ...metrics,
         });
         assert(
-          metrics.slots.every((s) => Math.abs(s.height - 64) <= 1),
-          'Every phase keeps its 64px lane control slot',
+          metrics.slots.every(
+            (slot) =>
+              slot.height >= 64 &&
+              slot.contents.every(
+                (content) =>
+                  content.x >= slot.x - 1 &&
+                  content.right <= slot.right + 1 &&
+                  content.y >= slot.y - 1 &&
+                  content.bottom <= slot.bottom + 1,
+              ),
+          ),
+          'Every phase reserves at least 64px for lane controls and fully contains their growing contents',
         );
         assert.equal(
           metrics.pirateLines.length,
@@ -2144,9 +2273,15 @@ try {
           'Pirate intercept marker activates on the 13-cell boundary',
         );
         for (const space of metrics.spaces) {
+          const overlapX =
+            Math.min(space.value.right, space.name.right) -
+            Math.max(space.value.x, space.name.x);
+          const overlapY =
+            Math.min(space.value.bottom, space.name.bottom) -
+            Math.max(space.value.y, space.name.y);
           assert(
-            space.value.y >= space.name.bottom - 1,
-            'Names remain above costs or occupants',
+            overlapX <= 1 || overlapY <= 1,
+            'Names and costs or occupants use separate readable regions',
           );
           assert(
             space.value.bottom <= space.space.bottom + 1,
@@ -2296,7 +2431,448 @@ try {
         await page.setViewportSize({ width, height });
       }
     });
+    await run('text-flow', async () => {
+      const measure = () =>
+        page.evaluate(() => {
+          const root = document.querySelector('.manila-screen');
+          const owner = root.querySelector('.mn-player-scroll');
+          const rect = (node) => {
+            const box = node.getBoundingClientRect();
+            return {
+              left: box.left,
+              right: box.right,
+              top: box.top,
+              bottom: box.bottom,
+              width: box.width,
+              height: box.height,
+            };
+          };
+          const outside = (box, outer, x = true, y = true) =>
+            (x &&
+              (box.left < outer.left - 1.5 || box.right > outer.right + 1.5)) ||
+            (y &&
+              (box.top < outer.top - 1.5 || box.bottom > outer.bottom + 1.5));
+          const intersection = (a, b) =>
+            Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1.5 &&
+            Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1.5;
+          // Scroll-reachable content retains its full glyph checks below. For
+          // collision checks use only pixels painted through every scroll/clip
+          // viewport, so an offscreen board never collides with a fixed header.
+          const paintedBox = (node, source = rect(node)) => {
+            const box = {
+              left: Math.max(0, source.left),
+              right: Math.min(innerWidth, source.right),
+              top: Math.max(0, source.top),
+              bottom: Math.min(innerHeight, source.bottom),
+            };
+            for (
+              let parent = node.parentElement;
+              parent && root.contains(parent);
+              parent = parent.parentElement
+            ) {
+              const style = getComputedStyle(parent);
+              const outer = rect(parent);
+              const left = outer.left + parent.clientLeft;
+              const top = outer.top + parent.clientTop;
+              if (
+                ['hidden', 'clip', 'auto', 'scroll'].includes(style.overflowX)
+              ) {
+                box.left = Math.max(box.left, left);
+                box.right = Math.min(box.right, left + parent.clientWidth);
+              }
+              if (
+                ['hidden', 'clip', 'auto', 'scroll'].includes(style.overflowY)
+              ) {
+                box.top = Math.max(box.top, top);
+                box.bottom = Math.min(box.bottom, top + parent.clientHeight);
+              }
+            }
+            return box.right > box.left && box.bottom > box.top ? box : null;
+          };
+          const visible = (node) =>
+            node.checkVisibility() &&
+            getComputedStyle(node).visibility === 'visible' &&
+            !node.closest('.mn-sr-only,.sr-only') &&
+            !node.closest('[aria-hidden="true"]') &&
+            rect(node).width > 0 &&
+            rect(node).height > 0;
+          const clipped = [],
+            glyphs = [];
+          let targetId = 0;
+          const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+          while (walker.nextNode()) {
+            const text = walker.currentNode;
+            const node = text.parentElement;
+            if (!text.textContent.trim() || !visible(node)) continue;
+            const range = document.createRange();
+            range.selectNodeContents(text);
+            const boxes = [...range.getClientRects()].filter(
+              (box) => box.width > 0 && box.height > 0,
+            );
+            const label = text.textContent.trim();
+            const cell = node.closest(
+              '.mn-space,.mn-saved-position,.mn-lane-position,.mn-boat-preview,.mn-lane-heading,.mn-finance-choice,.mn-confirm,.mn-controls,.mn-merchant-card,.mn-status,.mn-private,.mn-result-merchant,.mn-notice,.mn-detail-card',
+            );
+            for (const box of boxes) {
+              const id = targetId++;
+              const saved = !!node.closest('.session-save-overlay');
+              if (cell && !saved && outside(box, rect(cell)))
+                clipped.push({
+                  label,
+                  reason: 'glyph leaves own card',
+                  cell: cell.className,
+                  nodeClass: node.className,
+                  glyphBox: box.toJSON(),
+                  cellBox: rect(cell),
+                });
+              let scrollX = false,
+                scrollY = false;
+              for (
+                let parent = node;
+                parent && root.contains(parent);
+                parent = parent.parentElement
+              ) {
+                const style = getComputedStyle(parent);
+                scrollX ||= ['auto', 'scroll'].includes(style.overflowX);
+                scrollY ||= ['auto', 'scroll'].includes(style.overflowY);
+                const clipX =
+                  !scrollX && ['hidden', 'clip'].includes(style.overflowX);
+                const clipY =
+                  !scrollY && ['hidden', 'clip'].includes(style.overflowY);
+                if (
+                  (clipX || clipY) &&
+                  outside(box, rect(parent), clipX, clipY)
+                )
+                  clipped.push({
+                    label,
+                    reason: 'glyph clipped by ancestor',
+                    ancestor: parent.className,
+                    nodeClass: node.className,
+                    glyphBox: box.toJSON(),
+                    ancestorBox: rect(parent),
+                  });
+              }
+              const painted = paintedBox(node, box);
+              if (painted)
+                glyphs.push({ id, label, node, box: painted, saved });
+            }
+          }
+          const overlaps = [],
+            covered = [];
+          for (let a = 0; a < glyphs.length; a++)
+            for (let b = a + 1; b < glyphs.length; b++)
+              if (intersection(glyphs[a].box, glyphs[b].box))
+                overlaps.push({
+                  a: glyphs[a].label,
+                  b: glyphs[b].label,
+                  aClass: glyphs[a].node.className,
+                  bClass: glyphs[b].node.className,
+                  aBox: glyphs[a].box,
+                  bBox: glyphs[b].box,
+                });
+          const objects = [
+            ...root.querySelectorAll(
+              '.mn-dice,.mn-cargo-art,.mn-site-art,.mn-actor-avatar,button,a.button,summary,input,select',
+            ),
+          ]
+            .filter(visible)
+            .map((node) => ({ node, box: paintedBox(node) }))
+            .filter((object) => object.box);
+          for (const glyph of glyphs)
+            for (const object of objects) {
+              if (
+                object.node.contains(glyph.node) ||
+                glyph.node.contains(object.node)
+              )
+                continue;
+              if (intersection(glyph.box, object.box))
+                covered.push({
+                  text: glyph.label,
+                  object: object.node.className || object.node.tagName,
+                  textBox: glyph.box,
+                  objectBox: object.box,
+                });
+            }
+          const anchors = [
+            ...root.querySelectorAll('.session-save-anchor,.mn-status-save'),
+          ]
+            .filter((node) => getComputedStyle(node).display !== 'none')
+            .map((node) => ({
+              className: node.className,
+              position: getComputedStyle(node).position,
+              ...rect(node),
+            }));
+          const actions = [
+            ...root.querySelectorAll(
+              '.mn-controls button,.mn-controls summary',
+            ),
+          ]
+            .filter(visible)
+            .map((node) => ({ text: node.textContent.trim(), ...rect(node) }));
+          const readoutGaps = [];
+          for (const lane of root.querySelectorAll(
+            '.mn-harbor[data-mn-axis="vertical"] .mn-lane',
+          )) {
+            const readout = lane.querySelector('.mn-saved-position');
+            const marker = lane.querySelector(
+              '.mn-track-cells [data-mn-cell="13"]',
+            );
+            if (!readout || !marker || !visible(readout) || !visible(marker))
+              continue;
+            const signRange = document.createRange();
+            const markerRange = document.createRange();
+            signRange.selectNodeContents(readout);
+            markerRange.selectNodeContents(marker);
+            readoutGaps.push({
+              cargo: lane.dataset.mnCargo,
+              gap:
+                markerRange.getBoundingClientRect().top -
+                signRange.getBoundingClientRect().bottom,
+            });
+          }
+          return {
+            glyphs: glyphs.length,
+            targetIds: glyphs.map((glyph) => glyph.id),
+            ownerTargetIds: glyphs
+              .filter((glyph) => owner.contains(glyph.node))
+              .map((glyph) => glyph.id),
+            clipped,
+            overlaps,
+            covered,
+            anchors,
+            actions,
+            readoutGaps,
+            ownerOverflow: owner.scrollWidth - owner.clientWidth,
+            rootOverflow: document.documentElement.scrollWidth - innerWidth,
+          };
+        });
+      const inspectFrame = async (phase, variant) => {
+        const metrics = await measure();
+        report.metrics.push({
+          width,
+          height,
+          phase,
+          variant,
+          kind: 'full-text-flow',
+          ...metrics,
+        });
+        assert(
+          metrics.glyphs > 0,
+          `${phase}: each measured viewport has actual painted glyph targets`,
+        );
+        assert(
+          metrics.rootOverflow <= 1 && metrics.ownerOverflow <= 1,
+          `${phase}: no horizontal page or owner overflow`,
+        );
+        assert.deepEqual(
+          metrics.clipped,
+          [],
+          `${phase}/${variant}: full glyphs fit their card and clipping ancestors`,
+        );
+        assert.deepEqual(
+          metrics.overlaps,
+          [],
+          `${phase}/${variant}: text groups never overlap`,
+        );
+        assert.deepEqual(
+          metrics.covered,
+          [],
+          `${phase}/${variant}: text stays clear of other controls and icons`,
+        );
+        assert(
+          metrics.readoutGaps.every(({ gap }) => gap >= 8),
+          `${phase}/${variant}: ship-position signs keep 8px of clear space before the 13 marker`,
+        );
+        assert(
+          metrics.anchors.every(
+            (anchor) =>
+              anchor.position === 'absolute' &&
+              anchor.width <= 0.5 &&
+              anchor.height <= 0.5,
+          ),
+          `${phase}: save anchors never participate in layout`,
+        );
+        assert(
+          metrics.actions.every(
+            (action) => action.width >= 44 && action.height >= 44,
+          ),
+          `${phase}: every visible action retains a 44px hit target`,
+        );
+        return metrics;
+      };
+      const inspect = async (phase, variant) => {
+        const scroll = await owner.evaluate((node) => ({
+          original: node.scrollTop,
+          height: node.clientHeight,
+          maximum: node.scrollHeight - node.clientHeight,
+        }));
+        assert(
+          scroll.height >= 44,
+          `${phase}: the real scroll viewport can expose a full touch target`,
+        );
+        const offsets = new Set([scroll.original, 0, scroll.maximum]);
+        for (
+          let top = 0;
+          top < scroll.maximum;
+          top += Math.max(44, Math.floor(scroll.height * 0.75))
+        )
+          offsets.add(top);
+        const targets = new Set(),
+          ownerTargets = new Set();
+        try {
+          for (const top of offsets) {
+            await owner.evaluate(
+              (node, value) =>
+                node.scrollTo({ top: value, behavior: 'instant' }),
+              top,
+            );
+            await settle();
+            const metrics = await inspectFrame(
+              phase,
+              variant + '/scroll-' + Math.round(top),
+            );
+            metrics.targetIds.forEach((id) => targets.add(id));
+            metrics.ownerTargetIds.forEach((id) => ownerTargets.add(id));
+          }
+          assert(
+            targets.size >= 20 && ownerTargets.size >= 5,
+            `${phase}: the actual viewport scan paints at least 20 distinct glyph targets, including 5 inside the scroll owner`,
+          );
+          report.metrics.push({
+            width,
+            height,
+            phase,
+            variant,
+            kind: 'text-flow-scroll-coverage',
+            offsets: [...offsets],
+            paintedTargets: targets.size,
+            ownerTargets: ownerTargets.size,
+          });
+        } finally {
+          await owner.evaluate(
+            (node, top) => node.scrollTo({ top, behavior: 'instant' }),
+            scroll.original,
+          );
+          await settle();
+        }
+      };
+      const layout = () =>
+        page.evaluate(() =>
+          [
+            '.mn-toolbar',
+            '.mn-status',
+            '.mn-player-scroll',
+            '.mn-harbor',
+            '.mn-lane-control',
+          ].map((selector) => {
+            const box = document
+              .querySelector(selector)
+              .getBoundingClientRect();
+            return {
+              selector,
+              x: box.x,
+              y: box.y,
+              width: box.width,
+              height: box.height,
+            };
+          }),
+        );
+      for (const phase of [
+        'auction',
+        'auction-largest',
+        'auction-leading',
+        'share-funded',
+        'setup',
+        'place',
+        'crew-full',
+        'board',
+        'pilot-small',
+        'pilot-large',
+        'plunder',
+        'financing',
+        'round-result',
+        'ended',
+      ])
+        for (const longNames of [false, true]) {
+          const fixture = await load({ phase, longNames, owner: true });
+          if (phase === 'auction-largest') {
+            const maximum = fixture.legal
+              .filter((action) => action.type === 'bid')
+              .at(-1)?.amount;
+            assert(
+              Number.isInteger(maximum),
+              'Largest amount comes from the real legal bid list',
+            );
+            await page.locator('#mn-bid-amount').fill(String(maximum));
+            await settle();
+            report.metrics.push({
+              width,
+              height,
+              phase,
+              kind: 'largest-legal-bid',
+              maximum,
+            });
+          }
+          const variant = longNames ? '24-character-names' : 'ordinary-names';
+          const before = await layout();
+          await page.evaluate(() =>
+            window.harbor.update({ message: '已保存', messageKind: 'saved' }),
+          );
+          await settle();
+          assert.deepEqual(
+            await layout(),
+            before,
+            `${phase}: showing save feedback moves no layout region`,
+          );
+          await inspect(phase, variant + '/saved');
+          await page.evaluate(() =>
+            window.harbor.update({ message: '', messageKind: 'none' }),
+          );
+          await settle();
+          assert.deepEqual(
+            await layout(),
+            before,
+            `${phase}: hiding save feedback moves no layout region`,
+          );
+          const summary = page
+            .locator('.mn-controls .mn-alternatives > summary')
+            .first();
+          if (await summary.isVisible()) {
+            await tap(summary);
+            await inspect(phase, variant + '/alternatives-open');
+          }
+          if (phase === 'place') {
+            const target = page.locator('.mn-space--legal').first();
+            await tap(target);
+            await inspect(phase, variant + '/draft-confirmation');
+          }
+          assert.deepEqual(
+            await commands(),
+            [],
+            `${phase}: measuring content never submits a game action`,
+          );
+          if (
+            longNames &&
+            ['auction-leading', 'place', 'financing'].includes(phase)
+          )
+            await shot('text-flow-' + phase);
+        }
+      await load({ phase: 'place', longNames: true });
+      for (const [variant, patch] of [
+        ['paused', { view: { paused: true } }],
+        ['restored', { view: { paused: true, restored: true } }],
+        [
+          'connection',
+          { connected: false, view: { paused: false, restored: false } },
+        ],
+      ]) {
+        await page.evaluate((value) => window.harbor.update(value), patch);
+        await settle();
+        await inspect('place', variant);
+      }
+    });
     const priority = [
+      'text-flow',
       'voyage-result',
       'share',
       'entries',

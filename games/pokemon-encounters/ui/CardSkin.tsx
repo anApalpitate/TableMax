@@ -1,4 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { abilityMark } from './ability-mark';
+import { AbilityIcon } from './AbilityIcon';
+import './card-skin.css';
 
 /** Presentation only: every caller supplies an already authorized face. */
 export function CardSkin({
@@ -28,6 +31,7 @@ export function CardSkin({
     | undefined;
 }) {
   const expansion = className.includes('ex-card');
+  const mark = abilityMark(face);
   return (
     <span
       className={`pokemon-card ${face ? 'face' : 'back'} ${className}`}
@@ -47,12 +51,15 @@ export function CardSkin({
             >
               {value ?? face.value ?? '?'}
             </strong>
-            {Boolean(face.ability) && !face.abilityUsed && (
+            {mark && (
               <span
                 className={`ability-mark${expansion ? ' ex-ability-dot' : ''}`}
-                aria-label="能力牌"
+                role="img"
+                aria-label={mark.label}
+                title={mark.label}
+                data-ability-mark={mark.kind}
               >
-                ✦
+                <AbilityIcon kind={mark.kind} />
               </span>
             )}
           </span>

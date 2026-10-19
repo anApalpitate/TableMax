@@ -5,6 +5,10 @@ import { instances } from './cards';
 import { scoreBoard, type Score } from './scoring';
 import type { PublicAction } from '@tablemax/game-sdk';
 import { validPublicAction } from './public-actions';
+import {
+  validDiscardSources,
+  type DiscardEffect,
+} from '../shared/discard-trails';
 
 export const phases = [
   'initial-flip',
@@ -51,6 +55,7 @@ export type State = {
     kind: 'draw' | 'replace' | 'effect-complete' | 'round-result';
     text: string;
     action?: PublicAction;
+    effect?: DiscardEffect;
   }[];
 };
 
@@ -154,8 +159,9 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     (s.phase === 'initial-flip' &&
       (s.initialDone.length >= seats.length ||
         s.drawSource !== null ||
-        s.deck.length !== 56 - seats.length * 6 ||
-        s.discard.length !== 0 ||
+        // Old initial snapshots keep their empty discard; never supplement on load.
+        ![0, 1].includes(s.discard.length) ||
+        s.deck.length !== 56 - seats.length * 6 - s.discard.length ||
         seats.some(
           (seat) =>
             s.boards[seat]!.filter((c) => c.faceUp).length !==
@@ -241,7 +247,22 @@ export function validateState(input: unknown, seats: readonly string[]): State {
         ) ||
         typeof event.text !== 'string' ||
         event.text.length > 100 ||
-        (event.action !== undefined && !validPublicAction(event.action, seats)),
+        (event.action !== undefined &&
+          !validPublicAction(event.action, seats)) ||
+        (event.effect !== undefined &&
+          (!event.action ||
+            !['replace', 'zapdos-pass', 'rocket-refill', 'discard'].includes(
+              event.action.verb,
+            ) ||
+            !event.effect ||
+            typeof event.effect !== 'object' ||
+            Array.isArray(event.effect) ||
+            Object.keys(event.effect).join(',') !== 'discardSources' ||
+            !validDiscardSources(
+              event.effect.discardSources,
+              seats,
+              grid.count,
+            ))),
     )
   )
     return fail();

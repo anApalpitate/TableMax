@@ -84,11 +84,17 @@ it('announces actual Mew and Zapdos actors, card categories and follow-up abilit
     targets: [{ seat: 'S1', slots: [1] }],
   });
   expect(second.next.phase).toBe('round-result');
+  expect(second.next.events.at(-1)!.effect?.discardSources).toEqual([
+    { seat: 'S1', slot: 1 },
+  ]);
   state = draw('V06').next;
   for (const slot of [5, 1, 2]) {
     const incoming = state.held!.split('#')[0];
     const acting = actor(state);
     const result = apply(state, { type: 'replace', slot });
+    expect(result.next.events.at(-1)!.effect?.discardSources).toEqual(
+      slot === 2 ? [{ seat: acting, slot }] : [],
+    );
     expect(result.announcement).toEqual({
       actor: acting,
       verb: 'zapdos-pass',
@@ -116,6 +122,10 @@ it('announces Rocket full refill and Snorlax swaps with public target slots', ()
   expect(refill.announcement.targets).toEqual(
     refill.next.seatOrder.map((seat) => ({ seat, slots: [5] })),
   );
+  expect(refill.next.events.at(-1)!.effect?.discardSources).toEqual([
+    '@held',
+    ...refill.next.seatOrder.map((seat) => ({ seat, slot: 5 })),
+  ]);
   let state = draw('V07').next;
   state = apply(state, { type: 'replace', slot: 1 }).next;
   const swapped = apply(state, { type: 'swap', a: 1, b: 2 });
@@ -229,4 +239,21 @@ it('validates optional action metadata, rejects secret-shaped extensions and kee
   expect(rules.validateState(lifecycle.state, ended.seatOrder)).toEqual(
     lifecycle.state,
   );
+});
+
+it('saves only public discard origins and rejects hidden card data in their metadata', () => {
+  const discarded = apply(draw('V07').next, { type: 'discard-held' }).next;
+  expect(discarded.events.at(-1)!.effect?.discardSources).toEqual(['@held']);
+  const invalid = structuredClone(discarded);
+  Object.assign(invalid.events.at(-1)!.effect!.discardSources, [
+    { seat: 'S1', slot: 2, card: 'ordinary-9#01' },
+  ]);
+  expect(() => rules.validateState(invalid, invalid.seatOrder)).toThrow();
+  for (const viewer of [
+    { role: 'public' },
+    { role: 'player', seatId: 'S2' },
+  ] as const)
+    expect(
+      (rules.project(discarded, viewer) as PokemonView).events.at(-1)!.effect,
+    ).toEqual({ discardSources: ['@held'] });
 });

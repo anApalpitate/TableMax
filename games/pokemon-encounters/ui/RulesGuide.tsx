@@ -3,9 +3,9 @@ import {
   GuideScene,
   RuleFlow,
   VictoryExample,
+  AbilityLegend,
 } from './RuleDiagrams';
 import { scoringExample } from './rule-examples';
-import './rules-guide.css';
 
 export const pokemonRulebook = {
   className: 'pokemon-rules',
@@ -39,7 +39,7 @@ export const pokemonRulebook = {
             </p>
           </div>
           <p>
-            开局弃牌堆为空，首个回合只能取牌库。第一小局随机选起始玩家，之后由上一小局赢家中随机一人先行动。
+            发牌后翻明牌库顶一张作为起始弃牌，不发动能力。首回合即可选择牌库顶或弃牌顶；六人时发出36张、起始弃牌1张，牌库剩19张。第一小局随机选起始玩家，之后由上一小局赢家中随机一人先行动。
           </p>
         </>
       ),
@@ -80,6 +80,7 @@ export const pokemonRulebook = {
           <p>
             换入牌朝上；换出的暗牌先翻开，再放弃牌顶。新摸到梦幻、火箭队或闪电鸟时，必须执行对应能力。
           </p>
+          <AbilityLegend />
           <p>
             牌库空时，整个弃牌堆重洗成新牌库，不保留原弃牌顶。手机只显示弃牌顶，电脑可查看公开弃牌记录。
           </p>
@@ -273,7 +274,7 @@ export const pokemonRulebook = {
           </GuideScene>
           <p>
             没人达到三胜时，开始新小局：重洗全部 56
-            张、重新发六张暗牌、各翻一张，胜局数和座位保留。任意人到三胜结束整局，同时达标共同获胜。
+            张、重新发六张暗牌、翻出一张起始弃牌、各翻本人一张，胜局数和座位保留。任意人到三胜结束整局，同时达标共同获胜。
           </p>
           <div className="pk-rule-callout">
             <strong>先完成能力，再检查六张全明</strong>

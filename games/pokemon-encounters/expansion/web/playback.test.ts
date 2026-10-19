@@ -62,6 +62,7 @@ it('retains a full entrance followed by its board step while another save arrive
             verb: 'replace',
             targets: [{ seat: 'A', slots: [2] }],
           },
+          effect: { discardSources: [{ seat: 'A', slot: 2 }] },
         },
       ],
       2,

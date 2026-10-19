@@ -77,7 +77,7 @@ export function Space({
             label={names[space.occupant] ?? space.occupant}
           />
         ) : (
-          <span className="mn-space-price">
+          <span className="mn-space-price mn-money">
             {space.cost === 0 ? '免费' : `${space.cost} ₱`}
           </span>
         )}
@@ -87,9 +87,8 @@ export function Space({
         space.kind === 'insurance') &&
         space.payout != null && (
           <span className="mn-space-earn">
-            {space.kind === 'insurance'
-              ? `即收 ${space.payout} ₱`
-              : `收益 ${space.payout} ₱`}
+            <span>{space.kind === 'insurance' ? '即收' : '收益'}</span>{' '}
+            <span className="mn-money">{space.payout} ₱</span>
           </span>
         )}
     </>

@@ -144,25 +144,34 @@ h2 {
 }
 .session-save-anchor {
   display: block;
-  position: relative;
-  flex: 1 1 0;
-  min-width: 0;
+  position: absolute;
+  flex: none;
+  width: 0;
   height: 0;
-  align-self: center;
+  inset-inline-end: 0;
+  inset-block-end: 0;
   pointer-events: none;
   z-index: 2;
 }
 .session-save-overlay {
   position: absolute;
-  inset-inline-start: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  inset-inline-end: 0;
+  bottom: 0;
   color: #386557;
   font-size: 16px;
   line-height: 22px;
   font-weight: 500;
   white-space: nowrap;
   pointer-events: none;
+}
+.game-toolbar:has(> .session-save-anchor),
+.ma-toolbar:has(> .session-save-anchor) {
+  position: relative;
+}
+.game-toolbar > .session-save-anchor,
+.ma-toolbar > .session-save-anchor {
+  /* Attach the receipt to the frame edge, outside the controls' line boxes. */
+  inset-block-end: -18px;
 }
 .session-save-overlay:empty {
   display: none;

@@ -8,6 +8,7 @@ import {
   RulesGuide,
   ScreenLink,
   DisplaySettings,
+  CountdownSettings,
   RoomManagement,
   SessionFeedback,
   PlayModeControl,
@@ -38,7 +39,7 @@ import { expansionVoices } from './voice-resources';
 import { expansionSoundRecipe, expansionThemeFor } from './presentation';
 import { SavedEffects } from './SavedEffects';
 import { poseSequences } from './poses/timeline';
-import { GuideScene } from '../../ui/RuleDiagrams';
+import { AbilityLegend, GuideScene } from '../../ui/RuleDiagrams';
 import { CircularBadge } from './CircularBadge';
 import { EventEnvironment, EventStatus } from './EventEnvironment';
 import { faceEffectText, eventLabels } from './event-presentation';
@@ -1107,6 +1108,7 @@ function Rulebook({ profile }: { profile: RulesProfile }) {
           title: '按功能看，完整处理后才收局',
           content: (
             <>
+              <AbilityLegend expansion />
               <p>
                 每张特殊牌的主动能力使用后移除星标。移位、盖回、换人、弃牌
                 {buffered ? '或缓冲' : ''}
@@ -1718,6 +1720,7 @@ function ScreenBody({ session, game }: { session: GameHost; game: View }) {
           ) : (
             <>
               <div className="dialog-actions game-menu-settings">
+                <CountdownSettings session={session} />
                 <DisplaySettings role={session.role} />
               </div>
               {session.canControl && <RoomManagement session={session} />}

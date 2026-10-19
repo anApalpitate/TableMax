@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { claimAudioEvent } from '@tablemax/web-host';
+import {
+  claimAudioEvent,
+  subscribeSoundPreference,
+  useSoundPreference,
+  useSoundActivation,
+} from '@tablemax/web-host';
 import type { AvalonView } from '../types';
 import {
   AvalonSavedFeedback,
@@ -33,18 +38,6 @@ const sources: Record<AvalonCue, string> = {
   'good-win': goodWin,
   'evil-win': evilWin,
 };
-const preferenceEvent = 'avalon-sound-preference';
-function preference(key: string) {
-  try {
-    return (
-      localStorage.getItem(key) !== 'true' &&
-      (localStorage.getItem(key) !== null ||
-        localStorage.getItem('tablemax-sound-muted') !== 'true')
-    );
-  } catch {
-    return true;
-  }
-}
 
 export function AvalonSoundControl({
   feedback,
@@ -59,10 +52,7 @@ export function AvalonSoundControl({
   canPlay: boolean;
   player: boolean;
 }) {
-  const muteKey = player
-    ? 'tablemax-avalon-player-sound-muted'
-    : 'tablemax-sound-muted';
-  const [enabled, setEnabled] = useState(() => preference(muteKey));
+  const [enabled, setEnabled] = useSoundPreference();
   const [blocked, setBlocked] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const media = useRef<HTMLAudioElement | null>(null);
@@ -72,6 +62,12 @@ export function AvalonSoundControl({
     const audio = new Audio();
     audio.preload = 'none';
     media.current = audio;
+    const unsubscribeSound = subscribeSoundPreference((audible) => {
+      if (!audible) {
+        generation.current++;
+        audio.pause();
+      }
+    });
     const hide = () => {
       if (document.hidden) {
         generation.current++;
@@ -82,6 +78,7 @@ export function AvalonSoundControl({
     return () => {
       // eslint-disable-next-line react-hooks/exhaustive-deps
       generation.current++;
+      unsubscribeSound();
       document.removeEventListener('visibilitychange', hide);
       audio.pause();
       audio.removeAttribute('src');
@@ -90,18 +87,9 @@ export function AvalonSoundControl({
     };
   }, []);
   useEffect(() => {
-    const changed = () => setEnabled(preference(muteKey));
-    window.addEventListener('storage', changed);
-    window.addEventListener(preferenceEvent, changed);
-    return () => {
-      window.removeEventListener('storage', changed);
-      window.removeEventListener(preferenceEvent, changed);
-    };
-  }, [muteKey]);
-  useEffect(() => {
     generation.current++;
     media.current?.pause();
-  }, [feedback?.instanceId, feedback?.branch, disabled, canPlay, enabled]);
+  }, [feedback?.instanceId, feedback?.branch, disabled, canPlay]);
   useEffect(() => {
     if (!seen.current.accept(feedback)) return;
     if (
@@ -180,6 +168,9 @@ export function AvalonSoundControl({
       },
     );
   };
+  useSoundActivation(() => {
+    if (!disabled && canPlay) unlock();
+  });
   const audible = enabled && !disabled && !blocked && (!player || unlocked);
   const label = disabled
     ? '测试或暂停中，提示音关闭'
@@ -204,13 +195,6 @@ export function AvalonSoundControl({
         }
         const next = !enabled;
         setEnabled(next);
-        try {
-          localStorage.setItem(muteKey, String(!next));
-          window.dispatchEvent(new Event(preferenceEvent));
-        } catch {
-          /* Per-window preference remains useful. */
-        }
-        if (next) unlock();
       }}
     >
       <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">

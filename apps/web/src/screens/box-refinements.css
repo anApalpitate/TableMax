@@ -62,16 +62,21 @@
 .box-screen .box-save-status {
   position: absolute;
   inset-inline-end: 0;
-  bottom: 0;
+  top: 0;
   white-space: nowrap;
   font-size: 16px;
   line-height: 22px;
   text-align: right;
 }
-.box-screen > header > .box-header-feedback {
+.box-screen > header > .connection {
+  position: relative;
+}
+.box-screen .connection > .box-header-feedback {
   position: absolute;
-  inset-inline-end: 0;
-  bottom: 0;
+  inset-inline-end: 12px;
+  top: 100%;
+  width: 0;
+  height: 0;
   z-index: 2;
   pointer-events: none;
 }
@@ -290,12 +295,6 @@
   }
   .box-screen > header > .brand {
     min-height: 44px;
-  }
-  .box-screen > header > .box-header-feedback {
-    justify-content: space-between;
-  }
-  .box-screen > header > .box-header-feedback > .box-save-status {
-    margin-inline-start: auto;
   }
   .box-screen .hero:has(.box-game-title) {
     flex-wrap: wrap;

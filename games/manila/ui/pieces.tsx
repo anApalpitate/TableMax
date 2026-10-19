@@ -85,7 +85,7 @@ export function Worker({
 export function Die({ value, label }: { value: number; label: string }) {
   return (
     <span className="mn-die" aria-label={`${label}：${value}点`}>
-      <b>{value}</b>
+      <b aria-hidden="true">{value}</b>
       <span aria-hidden="true" className={`mn-pips mn-pips--${value}`}>
         {Array.from({ length: 7 }, (_, index) => (
           <i key={index} />

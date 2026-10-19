@@ -20,6 +20,9 @@ type Props = {
   select(action: Action | null): void;
   choose(action: Action): void;
 };
+function Money({ amount }: { amount: number }) {
+  return <span className="mn-money">{amount} ₱</span>;
+}
 function CloseAlternatives({ title }: { title: string }) {
   return (
     <div className="mn-alternative-heading">
@@ -76,7 +79,7 @@ function Finance({
                 ? actionLabel(action, game)
                 : `${cargoNames[share.cargo]}${share.mortgaged ? '已抵押' : '暂不可抵押'}`}
             </strong>
-            <span>
+            <span className="mn-money">
               {action?.type === 'mortgage'
                 ? '+12 ₱'
                 : action?.type === 'repay'
@@ -425,7 +428,10 @@ export function PlayerControls({
         <h2>{title}</h2>
         {bids.length > 0 && (
           <span className="mn-bid-range">
-            出价范围 {bids[0]!.amount}–{bids.at(-1)!.amount} ₱
+            出价范围{' '}
+            <span className="mn-money">
+              {bids[0]!.amount}–{bids.at(-1)!.amount} ₱
+            </span>
           </span>
         )}
         {work.carry && (
@@ -440,10 +446,17 @@ export function PlayerControls({
           <>
             <div className="mn-financing-notice">
               <strong className="mn-payment-summary">
-                <span>待支付 {game.payment.amount} ₱</span>
+                <span>
+                  待支付 <Money amount={game.payment.amount} />
+                </span>
                 <span>
                   还差{' '}
-                  {Math.max(0, game.payment.amount - (game.self?.cash ?? 0))} ₱
+                  <Money
+                    amount={Math.max(
+                      0,
+                      game.payment.amount - (game.self?.cash ?? 0),
+                    )}
+                  />
                 </span>
               </strong>
               <p className="mn-payment-context">
@@ -456,7 +469,9 @@ export function PlayerControls({
                         ? '购买股份'
                         : '伙伴派遣费用'}
                 </span>
-                <span>现金 {game.self?.cash ?? 0} ₱</span>
+                <span>
+                  现金 <Money amount={game.self?.cash ?? 0} />
+                </span>
               </p>
             </div>
             <Finance
@@ -504,7 +519,7 @@ export function PlayerControls({
             >
               <CargoArt cargo={action.cargo} />
               <strong>{cargoNames[action.cargo]}</strong>
-              <span>{Math.max(5, game.market[action.cargo])} ₱</span>
+              <Money amount={Math.max(5, game.market[action.cargo])} />
             </button>
           ))}
         </div>

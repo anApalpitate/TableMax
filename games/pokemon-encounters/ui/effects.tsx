@@ -17,6 +17,8 @@ import { actionEffects } from './presentation-state';
 import './effects.css';
 import { AbilityEntrance } from './AbilityEntrance';
 import { abilityEntrances } from '../variants/original-presentation';
+import type { DiscardSource } from '../shared/discard-trails';
+import { discardLanding } from './discard-feedback';
 
 const titles = {
   mew: '梦幻 念力交换',
@@ -34,6 +36,13 @@ const marks = {
 };
 
 type Point = { x: number; y: number };
+export type HeldAnchor = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+export type TrailAnchors = { held?: HeldAnchor; discard?: HeldAnchor };
 const svgNamespace = 'http://www.w3.org/2000/svg';
 
 /** Measure decoration from rendered, authorized targets; never reconstruct a hidden face. */
@@ -41,10 +50,14 @@ function SavedActionTrails({
   game,
   action,
   result,
+  discardSources,
+  trailAnchors,
 }: {
   game: PokemonView;
   action: PublicAction | undefined;
   result: boolean;
+  discardSources?: readonly DiscardSource[] | undefined;
+  trailAnchors?: (() => TrailAnchors) | undefined;
 }) {
   const surface = useRef<SVGSVGElement>(null);
   const clipPrefix = useId().replace(/:/g, '');
@@ -55,9 +68,7 @@ function SavedActionTrails({
     if (!svg || !table) return;
     svg.replaceChildren();
     if (
-      table.closest<HTMLElement>('.pokemon-screen')?.dataset.playMode ===
-        'test' ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      table.closest<HTMLElement>('.pokemon-screen')?.dataset.playMode === 'test'
     )
       return;
     const bounds = svg.getBoundingClientRect();
@@ -105,14 +116,46 @@ function SavedActionTrails({
       parent.append(item);
       return item;
     };
-    const trail = (from: Point | null, to: Point | null, reverse = false) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const target = visibleRect(
+        table.querySelector(
+          '.card-piles > div:nth-child(2) .pokemon-card, .card-piles > div:nth-child(2) .empty-pile',
+        ),
+      );
+      const landing = discardLanding(
+        discardSources,
+        target
+          ? {
+              x: target.left - bounds.left,
+              y: target.top - bounds.top,
+              width: target.width,
+              height: target.height,
+            }
+          : null,
+        bounds,
+      );
+      if (landing)
+        node('rect', {
+          class: 'discarded-landing',
+          'data-target': '@discard',
+          ...landing,
+          rx: 10,
+        });
+      return;
+    }
+    const trail = (
+      from: Point | null,
+      to: Point | null,
+      reverse = false,
+      discarded = false,
+    ) => {
       if (!from || !to) return;
       const distance = Math.hypot(to.x - from.x, to.y - from.y);
       if (distance < 8) return;
       const bend = Math.min(72, distance * 0.16) * (reverse ? -1 : 1);
       const control = { x: (from.x + to.x) / 2, y: (from.y + to.y) / 2 - bend };
       node('path', {
-        class: `saved-trail ${theme === 'zapdos' ? 'electric-trail' : ''}`,
+        class: `saved-trail ${theme === 'zapdos' ? 'electric-trail' : ''}${discarded ? ' discarded-trail' : ''}`,
         d: `M ${from.x} ${from.y} Q ${control.x} ${control.y} ${to.x} ${to.y}`,
         pathLength: 1,
         fill: 'none',
@@ -233,16 +276,31 @@ function SavedActionTrails({
             d: `M ${sx! - 8} ${sy} H ${sx! + 8} M ${sx} ${sy! - 8} V ${sy! + 8}`,
           });
       }
-      return;
     }
     if (!action) return;
     const held =
       table.querySelector('.held-pile .pokemon-card') ??
       table.querySelector('.held-zone');
+    const anchors = trailAnchors?.();
+    const previousPoint = (rect: HeldAnchor | undefined) => {
+      if (!rect) return null;
+      const p = {
+        x: rect.x - scrollX + rect.width / 2 - bounds.left,
+        y: rect.y - scrollY + rect.height / 2 - bounds.top,
+      };
+      return p.x >= 0 && p.x <= bounds.width && p.y >= 0 && p.y <= bounds.height
+        ? p
+        : null;
+    };
+    const heldPoint = game.held
+      ? point(held)
+      : (previousPoint(anchors?.held) ?? point(held));
     const pile = (source: 'deck' | 'discard') =>
       table.querySelector(
         `.card-piles > div:nth-child(${source === 'deck' ? 1 : 2}) .pokemon-card, .card-piles > div:nth-child(${source === 'deck' ? 1 : 2}) .empty-pile`,
       );
+    const discardPoint =
+      point(pile('discard')) ?? previousPoint(anchors?.discard);
     const slots = new Map(
       [...table.querySelectorAll<HTMLElement>('[data-slot]')].map((slot) => [
         slot.dataset.slot,
@@ -286,14 +344,15 @@ function SavedActionTrails({
         }
         break;
       case 'mew-target':
-        trail(point(targets[0]), point(held));
+        trail(point(targets[0]), heldPoint);
         break;
       case 'replace':
       case 'zapdos-pass':
-        trail(point(held), point(targets[0]));
+        trail(heldPoint, point(targets[0]));
         break;
       case 'discard':
-        trail(point(held), point(pile('discard')));
+        if (discardSources === undefined)
+          trail(heldPoint, discardPoint, false, true);
         burst(pile('discard'), true);
         break;
       case 'swap':
@@ -301,11 +360,20 @@ function SavedActionTrails({
         trail(point(targets[1]), point(targets[0]), true);
         break;
     }
+    for (const source of discardSources ?? [])
+      trail(
+        source === '@held'
+          ? heldPoint
+          : point(slots.get(`${source.seat}:${source.slot}`)),
+        discardPoint,
+        false,
+        true,
+      );
     // Shared-slot Rocket refill uses only these bounded local impacts, never six long cross-table paths.
     if (theme || ['replace', 'zapdos-pass'].includes(action.verb))
       for (const target of targets)
         burst(target, action.verb === 'rocket-refill');
-  }, [action, clipPrefix, game, result, theme]);
+  }, [action, clipPrefix, discardSources, game, result, theme, trailAnchors]);
   return (
     <svg
       ref={surface}
@@ -319,9 +387,11 @@ function SavedActionTrails({
 export function SavedEffects({
   game,
   feedback = null,
+  trailAnchors,
 }: {
   game: PokemonView;
   feedback?: RoomFeedback | null;
+  trailAnchors?: (() => TrailAnchors) | undefined;
   names?: Record<string, string>;
 }) {
   const motion = useContext(SavedMotion);
@@ -355,7 +425,15 @@ export function SavedEffects({
         />
       )}
       {(saved || result) && (
-        <SavedActionTrails game={game} action={action} result={result} />
+        <SavedActionTrails
+          game={game}
+          action={action}
+          result={result}
+          discardSources={
+            saved ? game.events.at(-1)?.effect?.discardSources : undefined
+          }
+          trailAnchors={trailAnchors}
+        />
       )}
       {(result || coin || scene || rocketReturn) && (
         <div

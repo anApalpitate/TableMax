@@ -227,6 +227,23 @@ it('an independently ended effect does not stop its peers or the current speech'
   expect(f.sources[1]!.stop).toHaveBeenCalledTimes(1);
   expect(f.sources[2]!.stop).not.toHaveBeenCalled();
 });
+it('muting cancels active and pending sound without losing output ownership or replaying it on enable', async () => {
+  const f = fixture();
+  await f.player.unlock([]);
+  await f.play('active');
+  const bytes = deferred<ArrayBuffer>();
+  f.fetchAudio.mockImplementationOnce(() => bytes.promise);
+  const pending = f.play('pending');
+  f.player.setEnabled(false);
+  expect(f.sources[0]!.stop).toHaveBeenCalledTimes(1);
+  bytes.resolve(new ArrayBuffer(8));
+  expect((await pending).status).toBe('cancelled');
+  expect((await f.play('muted')).status).toBe('unavailable');
+  f.player.setEnabled(true);
+  expect(f.sources).toHaveLength(1);
+  expect((await f.play('new-event')).status).toBe('started');
+  expect(f.sources).toHaveLength(2);
+});
 it('the shared limiter curve is finite, symmetric and bounded below full scale', () => {
   const curve = interactionLimiterCurve();
   expect([...curve].every(Number.isFinite)).toBe(true);

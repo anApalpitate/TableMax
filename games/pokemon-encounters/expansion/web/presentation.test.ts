@@ -105,6 +105,57 @@ describe('expansion committed presentation', () => {
       ).abilityMs,
     ).toBe(0);
   });
+  it('uses committed discard origins, never discarding an intermediate relay or guessing a Rocket outcome', () => {
+    const relay = {
+      ...action('replace', 'zapdos', 'ordinary-1'),
+      targets: [{ seat: 'S1', slots: [3] }],
+    };
+    expect(savedBoardEffects(relay, {}, { discardSources: [] }).moves).toEqual([
+      { from: '@held', to: 'S1:3' },
+    ]);
+    expect(savedBoardEffects(relay).moves).toEqual([
+      { from: '@held', to: 'S1:3' },
+    ]);
+    expect(
+      savedBoardEffects(
+        relay,
+        {},
+        { discardSources: [{ seat: 'S1', slot: 3 }] },
+      ).moves,
+    ).toEqual([
+      { from: '@held', to: 'S1:3' },
+      { from: 'S1:3', to: '@discard' },
+    ]);
+    const rocket = { ...relay, ability: 'team-rocket' };
+    expect(savedBoardEffects(rocket).moves).toEqual([]);
+    expect(
+      savedBoardEffects(
+        rocket,
+        {},
+        {
+          discardSources: [
+            '@held',
+            { seat: 'S1', slot: 3 },
+            { seat: 'S2', slot: 3 },
+          ],
+        },
+      ).moves,
+    ).toEqual([
+      { from: '@held', to: '@discard' },
+      { from: 'S1:3', to: '@discard' },
+      { from: 'S2:3', to: '@discard' },
+    ]);
+    expect(
+      savedBoardEffects(
+        rocket,
+        {},
+        { discardSources: [{ seat: 'S1', slot: 3 }] },
+      ).moves,
+    ).toEqual([
+      { from: '@held', to: 'S1:3' },
+      { from: 'S1:3', to: '@discard' },
+    ]);
+  });
   it('uses copy poses only for their public saved placement, without pretending a copy is an active ability', () => {
     expect(presentationCreature(action('replace', null, 'special-ditto'))).toBe(
       'ditto',

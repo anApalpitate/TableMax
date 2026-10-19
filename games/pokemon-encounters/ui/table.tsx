@@ -1,10 +1,16 @@
-import { useContext, type CSSProperties } from 'react';
+import {
+  useCallback,
+  useContext,
+  useLayoutEffect,
+  useRef,
+  type CSSProperties,
+} from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
 import type { PokemonView } from '../rules/project';
 import { SeatResult, TableStatus } from './public';
 import { PlayerControls } from './player';
 import { SavedMotion, ActionTargets, EffectTargets } from './motion';
-import { SavedEffects } from './effects';
+import { SavedEffects, type TrailAnchors } from './effects';
 import { ActivityFeed } from './ActivityFeed';
 import type { RoomFeedback } from '@tablemax/web-host';
 import { actionEffects } from './presentation-state';
@@ -63,6 +69,36 @@ export function GameTable({
   feedback?: RoomFeedback | null;
 }) {
   const motion = useContext(SavedMotion);
+  const tableElement = useRef<HTMLElement>(null);
+  const trailAnchors = useRef<TrailAnchors>({});
+  const readTrailAnchors = useCallback(() => trailAnchors.current, []);
+  useLayoutEffect(() => {
+    const capture = () => {
+      const anchors: TrailAnchors = {};
+      for (const [key, selector] of [
+        ['held', '.held-pile .pokemon-card, .held-zone'],
+        [
+          'discard',
+          '.card-piles > div:nth-child(2) .pokemon-card, .card-piles > div:nth-child(2) .empty-pile',
+        ],
+      ] as const) {
+        const rect = tableElement.current
+          ?.querySelector(selector)
+          ?.getBoundingClientRect();
+        if (rect && rect.width > 0 && rect.height > 0)
+          anchors[key] = {
+            x: rect.x + scrollX,
+            y: rect.y + scrollY,
+            width: rect.width,
+            height: rect.height,
+          };
+      }
+      trailAnchors.current = anchors;
+    };
+    capture();
+    window.addEventListener('resize', capture);
+    return () => window.removeEventListener('resize', capture);
+  });
   const thinkingSeat =
     game.phase === 'initial-flip'
       ? game.seatOrder.find((id) =>
@@ -93,6 +129,7 @@ export function GameTable({
         }}
       >
         <section
+          ref={tableElement}
           className={`game-table ${game.roundResult ? 'result-table' : ''}`}
           data-seats={seats.length}
           data-layout="compact"
@@ -106,6 +143,7 @@ export function GameTable({
               game={game}
               feedback={feedback}
               names={names}
+              trailAnchors={readTrailAnchors}
             />
           )}
           {!game.roundResult && (

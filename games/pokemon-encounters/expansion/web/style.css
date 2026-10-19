@@ -35,6 +35,19 @@
   stroke-dasharray: 1;
   animation: committed-trail 540ms var(--ex-delay, 0ms) ease-out both;
 }
+.ex-discard-transfer .ex-board-trail,
+.ex-discard-transfer circle {
+  stroke: #168c94;
+}
+.ex-discard-transfer circle {
+  fill: #c7f5ee88;
+}
+.ex-discard-landing {
+  display: none;
+  fill: none;
+  stroke: #168c94;
+  stroke-width: 3;
+}
 .ex-board-cover {
   fill: #20557433;
   stroke: #7ee7f3;
@@ -94,7 +107,14 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .ex-board-effects {
+    animation: none;
+    filter: none;
+  }
+  .ex-board-effects > :not(.ex-discard-landing) {
     display: none;
+  }
+  .ex-board-effects .ex-discard-landing {
+    display: block;
   }
 }
 .expansion-screen * {

@@ -1,5 +1,9 @@
 # 验证工具
 
+## 设置与保存标记源码验证
+
+`tools/test/platform/verify-settings-and-save-layout.mjs --evidence=<独立安全名称>`构建当前源码夹具，覆盖盒子与八玩法三端设置入口、同源页面／iframe声音同步、手机全屏成功／拒绝／不支持、保存前后几何不变、文字碰撞及18／20／22px矢量角标；`effects`使用真实规则保存事件验证原版／扩展蓝绿色轨迹、减少动态静态落点及恢复不重播。`--only=box,settings,save-layout,sound,mobile,icons,effects`可按实际受影响组筛选，`--games=manila`等可限制游戏专属用例；不传时运行全部。通过现有批次计划执行，范围为`box,shared`及七个正式游戏，默认隐藏、静音、127.0.0.1。证据位于`artifacts/maintenance/settings-and-save-20261020/<名称>`，绑定实际源码与脚本哈希；属于合法规则投影的源码组件夹具，不证明服务端事务、原生系统窗口或实体手机。
+
 ## 文档工具定向回归
 
 读取、查找及审计的参数、输出预算和写报告边界见[维护工具](../maintenance/README.md#定向markdown读取与迁移审计)。对应Node单测为`read-doc.test.mjs`、`find-doc.test.mjs`、`audit-efficiency-docs.test.mjs`，均归现有tooling范围，通过显式version 2计划选择，Node使用`--test`；无需游戏测试、构建或安装器。
@@ -27,9 +31,11 @@ version 1、version 2 和准确文件 Vitest 入口均关闭子项自动维护�
 
 马尼拉触控源码验证使用 `node tools/test/games/manila/verify-manila-touch.mjs --evidence=<新安全名称> --only=setup,pilot-small,pilot-large,auction,waiting,labels,round-result`，可用 `--widths=320,390,430,844` 定向。真实React与合法投影检查44px箭头、起点和9、领航预算、草稿确认、操作列表居中、64px出价及手机房主下一航次。证据保留在 `artifacts/maintenance/manila-touch-layout-20261017/touch/<名称>`，默认静音隐藏、127.0.0.1；模拟触控不替代真实设备或完整安装系统链。
 
-马尼拉完整港湾定向验证使用 `node tools/test/games/manila/verify-manila-harbor.mjs --evidence=<新安全名称> --widths=320,390,430,844`，`--only=structure,setup,pilot-small,pilot-large,stability,boundary,payment,permissions,guards,rotation,viewport,tie,tail` 可选择组。真实React与合法投影检查唯一主滚动区、持续挂载、64px控制槽、非零滚动选择／取消／保存、按需付款与抵押原位状态、旧决策提交拦截和权限；模拟触控与假运输不替代真实手机、服务端保存或完整安装验收。证据进入 `artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/<名称>`。
+马尼拉完整港湾定向验证使用 `node tools/test/games/manila/verify-manila-harbor.mjs --evidence=<新安全名称> --widths=320,390,430,844`，`--only=structure,setup,pilot-small,pilot-large,stability,boundary,payment,permissions,guards,rotation,viewport,tie,tail` 可选择组。真实React与合法投影检查唯一主滚动区、持续挂载、最低64px且按内容自然增高的控制槽、非零滚动选择／取消／保存、按需付款与抵押原位状态、旧决策提交拦截和权限；模拟触控与假运输不替代真实手机、服务端保存或完整安装验收。证据进入 `artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/<名称>`。
 
 马尼拉整图返修增加 `node tools/test/games/manila/verify-manila-harbor.mjs --suite=composition --evidence=<新安全名称> --only=share,entries --widths=320,390,430,844`。`share`测“不购买股份／股份操作”外框同高、文字中心与入口尺寸；`entries`覆盖各行动阶段热区。原稳定性／权限组仍可按`--only`定向运行，证据进入 `artifacts/maintenance/manila-board-composition-20261017/mobile/<名称>`；假运输和模拟触控不代表真实服务、设备或安装验收。
+
+2026-10-20新增`--only=text-flow`，覆盖14个合法阶段的普通／24字符长昵称、实际可出的最大竞价、操作展开、草稿、付款与恢复反馈。支持`--viewports=320x568,390x844,844x390`指定宽高组合，不能与`--widths`混用；`--widths`允许320至3840。对可见字形检查卡片归属、裁切祖先、文字／图标／控件碰撞及横向溢出，对主滚动区离屏字形不虚报固定顶栏碰撞；保存显示隐藏须保持其他组件矩形不变。金额来自合法自然局面，不将人为巨大整数称作实测上限。该脚本仍通过`game:manila`批次计划执行。
 
 马尼拉体验深化验证增加触摸无效／取消／合法落点、旋转保留草稿、货物与起点／领航拖放、点击与键盘及长按详情、确认区避让、手机显式声音开启与旧事件不补播、真实音频解码、终局演出和完整UI航次。`box/verify-box-layout.mjs --settings-only --zip=<实际payload.zip> --sha256=<SHA> --evidence=<新名>`执行三设置页正常／文字压力布局；共用几何方法为[settings-layout-measurement.mjs](box/settings-layout-measurement.mjs)。[installed-update-layout.mjs](installation/installed-update-layout.mjs)仅由正式安装验收在同次真实Native中调用，核支持状态、16项布局及身份／静音／窗口恢复，截图与报告进入安装证明；不触发在线检查、下载或更新。文字压力仅为明确标注的文本布局夹具，不代表真实错误或进度状态已发生。
 

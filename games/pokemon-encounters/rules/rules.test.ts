@@ -83,7 +83,7 @@ describe('Pokemon adopted rules V00–V11', () => {
           { seats: s.seatOrder, random: new RandomSource(31) },
         ).state as State;
         expect(next.turnSeat).toBe('S1');
-        expect(next.discard).toEqual([]);
+        expect(next.discard).toHaveLength(1);
         expect(rules.validateState(next, next.seatOrder)).toEqual(next);
         // Specification injects a saved card order per round, independently of PRNG implementation.
         s = { ...fixture('V00'), winsBySeat: next.winsBySeat };
@@ -101,7 +101,9 @@ describe('Pokemon adopted rules V00–V11', () => {
         random: new RandomSource(13),
       }) as State;
       expect(seats).toContain(s.turnSeat);
-      expect(s.deck).toHaveLength(56 - 6 * count);
+      expect(s.deck).toHaveLength(56 - 6 * count - 1);
+      expect(s.discard).toHaveLength(1);
+      expect(s.held).toBeNull();
       const firstSeat = s.turnSeat;
       const firstCard = s.boards[seats[1]!]![0]!.instanceId;
       const replay = rules.initialize({
@@ -115,9 +117,33 @@ describe('Pokemon adopted rules V00–V11', () => {
         expect(s.boards[seat]!.filter((c) => c.faceUp)).toHaveLength(1);
       }
       expect(s.phase).toBe('draw');
-      expect(s.discard).toEqual([]);
+      expect(s.discard).toHaveLength(1);
+      expect(rules.legalActions(s, firstSeat)).toEqual([
+        { type: 'draw', source: 'deck' },
+        { type: 'draw', source: 'discard' },
+      ]);
       expect(s.turnSeat).toBe(firstSeat);
     }
+  });
+  it('keeps an old empty-discard initial snapshot unchanged when restored and completed', () => {
+    const old = rules.initialize({
+      seats: ['S1', 'S2'],
+      random: new RandomSource(13),
+    }) as State;
+    old.deck.push(old.discard.pop()!);
+    const bytes = JSON.stringify(old);
+    let restored = rules.validateState(
+      JSON.parse(bytes),
+      old.seatOrder,
+    ) as State;
+    expect(JSON.stringify(restored)).toBe(bytes);
+    for (const seat of old.seatOrder)
+      restored = apply(restored, { type: 'initial-flip', slot: 0 }, seat);
+    expect(restored.discard).toEqual([]);
+    expect(rules.legalActions(restored, restored.turnSeat)).toEqual([
+      { type: 'draw', source: 'deck' },
+    ]);
+    expect(JSON.stringify(old)).toBe(bytes);
   });
   it('V02 enforces source-specific placement, direct discard, and unchanged rejected state', () => {
     let s = fixture('V00');
@@ -339,6 +365,7 @@ describe('Pokemon adopted rules V00–V11', () => {
     }) as State;
     const all = [
       ...original.deck,
+      ...original.discard,
       ...Object.values(original.boards)
         .flat()
         .map((c) => c.instanceId),

@@ -1,4 +1,9 @@
-import { claimAudioEvent } from '@tablemax/web-host';
+import {
+  claimAudioEvent,
+  subscribeSoundPreference,
+  useSoundPreference,
+  useSoundActivation,
+} from '@tablemax/web-host';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { RoomFeedback } from '@tablemax/web-host';
 import type { PowerGridView } from '../types';
@@ -18,36 +23,6 @@ import {
 
 const sources = { bid, fuel, build, plant, run, end };
 type Cue = keyof typeof sources;
-const muteKey = 'tablemax-sound-muted';
-const preferenceEvent = 'power-grid-sound-preference';
-function preference() {
-  try {
-    return localStorage.getItem(muteKey) !== 'true';
-  } catch {
-    return true;
-  }
-}
-function usePreference() {
-  const [enabled, setEnabled] = useState(preference);
-  useEffect(() => {
-    const changed = (event: Event) =>
-      setEnabled(
-        event instanceof CustomEvent && typeof event.detail === 'boolean'
-          ? event.detail
-          : preference(),
-      );
-    const storage = (event: StorageEvent) => {
-      if (event.key === muteKey) setEnabled(preference());
-    };
-    window.addEventListener('storage', storage);
-    window.addEventListener(preferenceEvent, changed);
-    return () => {
-      window.removeEventListener('storage', storage);
-      window.removeEventListener(preferenceEvent, changed);
-    };
-  }, []);
-  return [enabled, setEnabled] as const;
-}
 function feedbackKey(feedback: RoomFeedback | null) {
   return feedback
     ? `power-grid:${feedback.instanceId}:${feedback.branch}:${feedback.revision}`
@@ -71,7 +46,7 @@ export function PowerGridSoundControl({
   disabled: boolean;
   canPlay: boolean;
 }) {
-  const [enabled, setEnabled] = usePreference();
+  const [enabled, setEnabled] = useSoundPreference();
   const [blocked, setBlocked] = useState(false);
   const seen = useRef(new Set([feedbackKey(feedback)]));
   const previousView = useRef(game);
@@ -89,12 +64,22 @@ export function PowerGridSoundControl({
     const audio = new Audio();
     audio.preload = 'none';
     playback.current = audio;
+    const unsubscribeSound = subscribeSoundPreference((audible) => {
+      if (!audible) {
+        generation.current++;
+        claimSequence.current++;
+        unlocking.current = false;
+        queued.current = null;
+        audio.pause();
+      }
+    });
     return () => {
       // These counters invalidate pending native claims and media promises.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       generation.current++;
       // eslint-disable-next-line react-hooks/exhaustive-deps
       claimSequence.current++;
+      unsubscribeSound();
       audio.pause();
       audio.removeAttribute('src');
       audio.load();
@@ -165,6 +150,49 @@ export function PowerGridSoundControl({
       })
       .catch(() => undefined);
   }, [feedback, game, disabled, enabled, canPlay]);
+  const unlock = () => {
+    const audio = playback.current;
+    if (!audio || disabled || !canPlay) return;
+    const current = ++generation.current;
+    claimSequence.current++;
+    unlocking.current = true;
+    queued.current = null;
+    audio.pause();
+    audio.src = bid;
+    audio.currentTime = 0;
+    audio.volume = 0;
+    void audio.play().then(
+      () => {
+        if (current !== generation.current || audio !== playback.current)
+          return;
+        audio.pause();
+        audio.currentTime = 0;
+        unlocking.current = false;
+        const cue = queued.current;
+        queued.current = null;
+        if (cue) {
+          audio.src = sources[cue];
+          audio.volume = 0.42;
+          void audio.play().then(
+            () => {
+              if (current === generation.current) setBlocked(false);
+            },
+            () => {
+              if (current === generation.current) setBlocked(true);
+            },
+          );
+        }
+      },
+      () => {
+        if (current === generation.current) {
+          unlocking.current = false;
+          queued.current = null;
+          setBlocked(true);
+        }
+      },
+    );
+  };
+  useSoundActivation(unlock);
   return (
     <button
       type="button"
@@ -194,64 +222,12 @@ export function PowerGridSoundControl({
               : '开启声音'
       }
       onClick={() => {
-        const value = blocked || !enabled;
-        setEnabled(value);
         setBlocked(false);
-        try {
-          localStorage.setItem(muteKey, String(!value));
-        } catch {
-          /* Denied storage does not affect decisions. */
-        }
-        window.dispatchEvent(
-          new CustomEvent(preferenceEvent, { detail: value }),
-        );
-        const audio = playback.current;
-        if (!value || !audio || disabled || !canPlay) {
-          generation.current++;
-          claimSequence.current++;
-          unlocking.current = false;
-          queued.current = null;
-          audio?.pause();
+        if (blocked && enabled) {
+          unlock();
           return;
         }
-        const current = ++generation.current;
-        claimSequence.current++;
-        unlocking.current = true;
-        queued.current = null;
-        audio.pause();
-        audio.src = bid;
-        audio.currentTime = 0;
-        audio.volume = 0;
-        void audio.play().then(
-          () => {
-            if (current !== generation.current || audio !== playback.current)
-              return;
-            audio.pause();
-            audio.currentTime = 0;
-            unlocking.current = false;
-            const cue = queued.current;
-            queued.current = null;
-            if (cue) {
-              audio.src = sources[cue];
-              audio.volume = 0.42;
-              void audio.play().then(
-                () => {
-                  if (current === generation.current) setBlocked(false);
-                },
-                () => {
-                  if (current === generation.current) setBlocked(true);
-                },
-              );
-            }
-          },
-          () => {
-            if (current === generation.current) {
-              unlocking.current = false;
-              queued.current = null;
-              setBlocked(true);
-            }
-          },
-        );
+        setEnabled(!enabled);
       }}
     >
       <BoardIcon name={enabled && !disabled && !blocked ? 'sound' : 'muted'} />

@@ -1,10 +1,15 @@
 import type { PublicAction } from '@tablemax/game-sdk';
+import {
+  discardSourceAnchor,
+  type DiscardSource,
+} from '../../shared/discard-trails';
 import { soundRecipe, type SoundCueRecipe } from '../../ui/presentation-state';
 import { SOUND_MAX_LATE_MS } from '../../ui/sound-timing';
 type VisibleAction = Omit<PublicAction, 'source'> & {
   source?: 'deck' | 'discard' | undefined;
 };
 export type EventEffect = {
+  discardSources?: DiscardSource[];
   eventKind?: 'mega' | 'rain' | 'sandstorm' | 'sun' | 'snow' | 'trick-room';
   placeholder?: boolean;
   entrance?: string;
@@ -50,13 +55,22 @@ export function savedBoardEffects(
     result.moves = [{ from: '@held', to: `@buffer:${action.actor}` }];
     result.pulse = [`@buffer:${action.actor}`];
   } else if (action.verb === 'discard-held') {
-    result.moves = [{ from: '@held', to: '@discard' }];
+    if (effect?.discardSources === undefined)
+      result.moves = [{ from: '@held', to: '@discard' }];
     result.pulse = ['@discard'];
   } else if (action.verb === 'replace' && slots[0]) {
-    result.moves = [
-      { from: '@held', to: slots[0] },
-      { from: slots[0], to: '@discard' },
-    ];
+    // Old receipts lack exact origins. Relay/Rocket outcomes cannot be guessed.
+    if (
+      action.ability !== 'team-rocket' ||
+      (effect?.discardSources !== undefined &&
+        !effect.discardSources.includes('@held'))
+    )
+      result.moves = [{ from: '@held', to: slots[0] }];
+    if (
+      effect?.discardSources === undefined &&
+      !['zapdos', 'team-rocket'].includes(action.ability ?? '')
+    )
+      result.moves.push({ from: slots[0], to: '@discard' });
   } else if (action.verb === 'row-target' && target && action.actor) {
     result.moves = target.slots.map((slot) => ({
       from: `${action.actor}:${slot}`,
@@ -73,6 +87,13 @@ export function savedBoardEffects(
       },
     ];
   }
+  if (effect?.discardSources !== undefined)
+    result.moves.push(
+      ...effect.discardSources.map((source) => ({
+        from: discardSourceAnchor(source),
+        to: '@discard',
+      })),
+    );
   if (['ninja-cover', 'ninja-swap', 'activate-arceus'].includes(action.verb))
     result.cover = slots;
   if (action.verb === 'activate-arceus')

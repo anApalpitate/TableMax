@@ -1,4 +1,5 @@
 import type { GameRules, RuleContext, PublicAction } from '@tablemax/game-sdk';
+import type { DiscardSource } from '../shared/discard-trails';
 import { card, instancesForSeats, type Ability } from './cards';
 import { grid, tasksForProfile, task, type RulesProfile } from './research';
 import { victoryAward } from './research-rewards';
@@ -759,6 +760,7 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
     s.pendingAbility = legacyPendingAbility(s);
   }
   let effect: EventEffect | undefined;
+  let discardSources: DiscardSource[] | undefined;
   s.step++;
   if (a.type === 'vote-research') {
     s.votesBySeat[seat] = a.taskId;
@@ -853,12 +855,17 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
     s.recipientIndex = 0;
     s.phase = 'zapdos-self';
   } else if (a.type === 'replace') {
+    discardSources = [];
     if (before === 'zapdos-self') useAbility(s);
     if (before === 'rocket-pikachu') {
       const order = orderFrom(s.seatOrder, s.turnSeat),
         rocket = s.held!;
       s.discard.unshift(s.boards[seat]![a.slot]!.instanceId);
       s.discard.unshift(rocket);
+      discardSources.push(
+        '@held',
+        ...order.map((id) => ({ seat: id, slot: a.slot })),
+      );
       for (const id of order.slice(1))
         s.discard.unshift(s.boards[id]![a.slot]!.instanceId);
       s.held = null;
@@ -879,18 +886,23 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
         if (before === 'zapdos-receive') s.recipientIndex++;
         if (s.recipientIndex >= s.recipientQueue.length) {
           s.discard.unshift(outgoing);
+          discardSources.push({ seat, slot: a.slot });
           s.held = null;
           finish(s, context);
         } else s.phase = 'zapdos-receive';
       } else {
         s.discard.push(outgoing);
+        discardSources.push({ seat, slot: a.slot });
         if (before === 'place') afterPlace(s, incoming, context);
         else finish(s, context);
       }
     }
   } else if (a.type === 'discard-held' || a.type === 'store-buffer') {
     if (a.type === 'store-buffer') s.buffersBySeat![seat] = s.held!;
-    else s.discard.push(s.held!);
+    else {
+      s.discard.push(s.held!);
+      discardSources = ['@held'];
+    }
     s.held = null;
     finish(s, context);
   } else if (a.type === 'swap' || a.type === 'reposition') {
@@ -957,6 +969,9 @@ function apply(input: State, raw: Action, seat: string, context: RuleContext) {
     s.suppressedAbility = true;
   } else if (a.type === 'decline-ability' || a.type === 'close-peek')
     finish(s, context);
+  // Presentation additions apply to current profiles; legacy replay stays byte-stable.
+  if (discardSources !== undefined && stateRulesProfile(s) !== 'legacy')
+    effect = { ...effect, discardSources };
   const action = announcement(input, s, a, seat);
   event(
     s,

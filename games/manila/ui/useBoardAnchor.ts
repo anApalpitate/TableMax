@@ -23,15 +23,15 @@ function capture(owner: HTMLElement): Anchor[] {
   const bounds = owner.getBoundingClientRect();
   if (bounds.width <= 0 || bounds.height <= 0) return [];
   // A lane is stable while its ship moves; never anchor to the moving ship.
-  const visible = (selector: string) =>
+  const candidates = (selector: string, includeOffscreen = false) =>
     [...owner.querySelectorAll<HTMLElement>(selector)]
       .map((node) => ({ node, box: node.getBoundingClientRect() }))
       .filter(
         ({ box }) =>
           box.width > 0 &&
           box.height > 0 &&
-          box.bottom > bounds.top &&
-          box.top < bounds.bottom &&
+          (includeOffscreen ||
+            (box.bottom > bounds.top && box.top < bounds.bottom)) &&
           box.right > bounds.left &&
           box.left < bounds.right,
       )
@@ -40,9 +40,22 @@ function capture(owner: HTMLElement): Anchor[] {
           Math.abs(a.box.top - bounds.top) - Math.abs(b.box.top - bounds.top),
       );
   // A vacant crew slot can become a summary; keep stable visible alternatives.
+  const visible = [
+    ...candidates('[data-mn-space]'),
+    ...candidates('.mn-lane[data-mn-cargo]'),
+  ];
+  if (visible.length)
+    return visible.map(({ node, box }) => ({ node, top: box.top }));
+  if (
+    getComputedStyle(owner).getPropertyValue('--mn-anchor-offscreen').trim() !==
+    '1'
+  )
+    return [];
+  // A short landscape decision can scroll the entire board above the viewport.
+  // Retain its current position, including intentional scrolling to Cancel.
   return [
-    ...visible('[data-mn-space]'),
-    ...visible('.mn-lane[data-mn-cargo]'),
+    ...candidates('[data-mn-space]', true).slice(0, 1),
+    ...candidates('.mn-lane[data-mn-cargo]', true).slice(0, 1),
   ].map(({ node, box }) => ({ node, top: box.top }));
 }
 

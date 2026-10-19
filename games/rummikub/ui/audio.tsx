@@ -1,20 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
-import { claimAudioEvent, type GameHost } from '@tablemax/web-host';
+import {
+  claimAudioEvent,
+  subscribeSoundPreference,
+  useSoundPreference,
+  useSoundActivation,
+  type GameHost,
+} from '@tablemax/web-host';
 import type { RummikubView } from '../types';
 import place from '../../../assets/games/rummikub/audio/place-v1.wav';
 import draw from '../../../assets/games/rummikub/audio/draw-v1.wav';
 import win from '../../../assets/games/rummikub/audio/win-v1.wav';
 
-const muteKey = 'tablemax-sound-muted';
 type RoomFeedback = NonNullable<GameHost['feedback']>;
-const preferenceEvent = 'rummikub-sound-preference';
-function preference() {
-  try {
-    return localStorage.getItem(muteKey) !== 'true';
-  } catch {
-    return true;
-  }
-}
 const keyFor = (feedback: RoomFeedback | null) =>
   feedback
     ? `rummikub:${feedback.instanceId}:${feedback.branch}:${feedback.revision}`
@@ -33,7 +30,7 @@ export function RummikubSoundControl({
   canPlay: boolean;
   player?: boolean;
 }) {
-  const [enabled, setEnabled] = useState(preference);
+  const [enabled, setEnabled] = useSoundPreference();
   const [blocked, setBlocked] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const audio = useRef<HTMLAudioElement | null>(null);
@@ -43,23 +40,21 @@ export function RummikubSoundControl({
     const media = new Audio();
     media.preload = 'none';
     audio.current = media;
+    const unsubscribeSound = subscribeSoundPreference((audible) => {
+      if (!audible) {
+        generation.current++;
+        media.pause();
+      }
+    });
     return () => {
       // Invalidate native claims and browser playback promises on unmount.
       // eslint-disable-next-line react-hooks/exhaustive-deps
       generation.current++;
+      unsubscribeSound();
       media.pause();
       media.removeAttribute('src');
       media.load();
       audio.current = null;
-    };
-  }, []);
-  useEffect(() => {
-    const changed = () => setEnabled(preference());
-    window.addEventListener('storage', changed);
-    window.addEventListener(preferenceEvent, changed);
-    return () => {
-      window.removeEventListener('storage', changed);
-      window.removeEventListener(preferenceEvent, changed);
     };
   }, []);
   useEffect(() => {
@@ -137,6 +132,9 @@ export function RummikubSoundControl({
       },
     );
   };
+  useSoundActivation(() => {
+    if (!disabled && canPlay) unlock();
+  });
   const audible = enabled && !disabled && !blocked && (!player || unlocked);
   const label = disabled
     ? '测试或暂停中，提示音关闭'
@@ -160,13 +158,6 @@ export function RummikubSoundControl({
         }
         const next = !enabled;
         setEnabled(next);
-        try {
-          localStorage.setItem(muteKey, String(!next));
-          window.dispatchEvent(new Event(preferenceEvent));
-        } catch {
-          /* Per-window preference still works without storage. */
-        }
-        if (next) unlock();
       }}
     >
       <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">

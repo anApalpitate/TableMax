@@ -1,4 +1,8 @@
 import type { PublicAction } from '@tablemax/game-sdk';
+import {
+  validDiscardSources,
+  type DiscardSource,
+} from '../shared/discard-trails';
 import { card, instancesForSeats, categories, type Ability } from './cards';
 import { scoreBoard, type Score } from './scoring';
 import { task } from './research';
@@ -70,6 +74,7 @@ export type PendingAbility = {
   sourceInstanceId: string | null;
 };
 export type EventEffect = {
+  discardSources?: DiscardSource[];
   entrance?: Ability;
   coin?: 'meowth' | 'pikachu';
   discardIndex?: 0 | 1;
@@ -874,7 +879,14 @@ function validEffect(
     !action ||
     !Object.keys(effect).length ||
     Object.keys(effect).some(
-      (key) => !['entrance', 'coin', 'discardIndex', 'source'].includes(key),
+      (key) =>
+        ![
+          'entrance',
+          'coin',
+          'discardIndex',
+          'source',
+          'discardSources',
+        ].includes(key),
     )
   )
     return false;
@@ -916,6 +928,12 @@ function validEffect(
     (action.verb !== 'draw' ||
       action.source !== 'discard' ||
       ![0, 1].includes(effect.discardIndex as number))
+  )
+    return false;
+  if (
+    effect.discardSources !== undefined &&
+    (!['replace', 'discard-held'].includes(action.verb) ||
+      !validDiscardSources(effect.discardSources, seats, 9))
   )
     return false;
   if (

@@ -154,30 +154,27 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
           className={`connection ${connected ? 'online' : ''}`}
           role="status"
         >
-          {connected ? '已连接' : '正在连接'}
+          <span className="box-connection-copy">
+            {connected ? '已连接' : '正在连接'}
+          </span>
+          <span className="box-header-feedback">
+            <span
+              className="box-save-status"
+              data-visible={connected && saveStatusVisible}
+            >
+              {feedbackText(
+                compactProgress ? 'session.submitting' : 'session.saved',
+              )}
+            </span>
+          </span>
         </span>
         <div className="header-status" role="group" aria-label="牌桌设置">
           <PlayModeBadge mode={view?.playMode} />
           {isHost && <ApplicationUpdate playing={view?.status === 'playing'} />}
-          {(isHost || details?.guidance) && (
-            <CountdownSettings session={session}>
-              {details?.guidance && (
-                <BeginnerGuidanceSetting gameId={game!.id} />
-              )}
-            </CountdownSettings>
-          )}
+          <CountdownSettings session={session}>
+            {details?.guidance && <BeginnerGuidanceSetting gameId={game!.id} />}
+          </CountdownSettings>
           <DisplaySettings role={role} />
-        </div>
-        <div className="box-header-feedback">
-          <span
-            className="box-save-status"
-            role="status"
-            data-visible={saveStatusVisible}
-          >
-            {feedbackText(
-              compactProgress ? 'session.submitting' : 'session.saved',
-            )}
-          </span>
         </div>
       </header>
       <section className="hero">

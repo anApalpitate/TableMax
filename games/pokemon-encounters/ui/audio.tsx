@@ -1,4 +1,9 @@
-import { claimAudioEvent } from '@tablemax/web-host';
+import {
+  claimAudioEvent,
+  subscribeSoundPreference,
+  useSoundPreference,
+  useSoundActivation,
+} from '@tablemax/web-host';
 import { useEffect, useRef, useState } from 'react';
 import type { RoomFeedback } from '@tablemax/web-host';
 import type { PokemonView } from '../rules/project';
@@ -50,14 +55,6 @@ const sources: Record<SoundCue, string> = {
   squirtle,
   gengar,
 };
-const muteKey = 'tablemax-sound-muted';
-function preference() {
-  try {
-    return localStorage.getItem(muteKey) !== 'true';
-  } catch {
-    return true;
-  }
-}
 function feedbackKey(feedback: RoomFeedback | null) {
   return feedback
     ? `${feedback.instanceId}:${feedback.branch}:${feedback.revision}`
@@ -99,7 +96,7 @@ export function SoundControl({
     event: RoomFeedback['events'][number],
   ) => string | undefined;
 }) {
-  const [enabled, setEnabled] = useState(preference);
+  const [enabled, setEnabled] = useSoundPreference();
   const [blocked, setBlocked] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(reducedMotionPreference);
   // Mounting a screen never replays feedback that arrived before its subscription.
@@ -119,17 +116,16 @@ export function SoundControl({
     audio.cry.preload = 'none';
     const playback = new SavedSoundPlayer(audio, () => setBlocked(true));
     player.current = playback;
-    const storage = (event: StorageEvent) => {
-      if (event.key !== muteKey) return;
-      const next = preference();
-      if (!next) playback.stop();
-      setEnabled(next);
-    };
-    window.addEventListener('storage', storage);
+    const unsubscribeSound = subscribeSoundPreference((audible) => {
+      if (!audible) {
+        permission.current++;
+        playback.stop();
+      }
+    });
     return () => {
       playback.dispose();
       player.current = null;
-      window.removeEventListener('storage', storage);
+      unsubscribeSound();
     };
   }, []);
   useEffect(() => {
@@ -220,6 +216,15 @@ export function SoundControl({
       })
       .catch(() => undefined);
   }, [errorId, enabled, disabled, paused, canPlay]);
+  const unlock = () => {
+    void player.current
+      ?.unlock(draw)
+      .then(() => setBlocked(false))
+      .catch(() => setBlocked(true));
+  };
+  useSoundActivation(() => {
+    if (!disabled && !paused && canPlay) unlock();
+  });
   return (
     <button
       className={`secondary sound-control${iconOnly ? ' sound-icon-control' : ''}`}
@@ -259,25 +264,12 @@ export function SoundControl({
       }
       onClick={() => {
         if (blocked && enabled && canPlay) {
-          void player.current
-            ?.unlock(draw)
-            .then(() => setBlocked(false))
-            .catch(() => setBlocked(true));
+          unlock();
           return;
         }
         const next = !enabled;
         if (!next) player.current?.stop();
         setEnabled(next);
-        try {
-          localStorage.setItem(muteKey, String(!next));
-        } catch {
-          /* Session preference remains usable. */
-        }
-        if (next && canPlay)
-          void player.current
-            ?.unlock(draw)
-            .then(() => setBlocked(false))
-            .catch(() => setBlocked(true));
       }}
     >
       {iconOnly ? (

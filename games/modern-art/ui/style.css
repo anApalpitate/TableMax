@@ -560,6 +560,7 @@
   overflow-wrap: anywhere;
 }
 .ma-screen .ma-latest {
+  position: relative;
   display: flex;
   gap: 8px;
   align-items: center;
@@ -570,8 +571,14 @@
   font-size: 16px;
 }
 .ma-screen .ma-latest > span {
+  position: absolute;
+  inset-block-start: -16px;
+  inset-inline-end: 12px;
+  padding: 0 3px;
+  line-height: 18px;
+  background: #fff7e2;
+  pointer-events: none;
   color: #795b35;
-  flex-shrink: 0;
 }
 .ma-screen .ma-latest__copy {
   min-width: 0;
@@ -1516,9 +1523,6 @@
   .ma-screen .ma-results__ranking strong {
     margin-left: auto;
   }
-  .ma-screen .ma-latest > span {
-    display: none;
-  }
   .ma-screen .ma-latest {
     padding: 5px 8px;
   }
@@ -1567,9 +1571,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-  .ma-screen .ma-latest > span {
-    display: none;
   }
   .ma-screen .ma-latest__copy p:first-child > strong {
     flex-shrink: 0;

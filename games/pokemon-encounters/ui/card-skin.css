@@ -1,0 +1,20 @@
+.pokemon-card .ability-mark {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+.pokemon-card .ability-mark-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.expansion-screen .ex-card .ex-ability-dot {
+  width: 22px;
+  height: 22px;
+}
+.expansion-screen .ex-source-face .ex-ability-dot {
+  width: 18px;
+  height: 18px;
+}

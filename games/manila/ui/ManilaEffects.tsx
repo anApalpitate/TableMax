@@ -3,6 +3,9 @@ import { createPortal } from 'react-dom';
 import {
   claimAudioEvent,
   useAudioOutput,
+  useSoundPreference,
+  useSoundActivation,
+  subscribeSoundPreference,
   type GameHost,
 } from '@tablemax/web-host';
 import type { ManilaView } from '../rules/view';
@@ -38,15 +41,6 @@ const sources: Record<ManilaCue, string> = {
   pirate,
   celebration,
 };
-const preferenceEvent = 'manila-sound-preference';
-function preference(key: string, player: boolean) {
-  try {
-    const value = localStorage.getItem(key);
-    return value === null ? !player : value !== 'true';
-  } catch {
-    return !player;
-  }
-}
 
 /** Decorative feedback reads saved public motion and public component IDs only. */
 function localPresentation(
@@ -241,10 +235,7 @@ export function ManilaEffects({ session }: { session: GameHost }) {
   const { view, feedback, motion, connected, role } = session;
   const game = view?.gameView as ManilaView | null;
   const player = role === 'player';
-  const muteKey = player
-    ? 'tablemax-manila-player-sound-muted'
-    : 'tablemax-sound-muted';
-  const [enabled, setEnabled] = useState(() => preference(muteKey, player));
+  const [enabled, setEnabled] = useSoundPreference();
   const [unlocked, setUnlocked] = useState(false);
   const [blocked, setBlocked] = useState(false);
   const [reduced, setReduced] = useState(
@@ -273,6 +264,12 @@ export function ManilaEffects({ session }: { session: GameHost }) {
     const audio = new Audio();
     audio.preload = 'none';
     media.current = audio;
+    const unsubscribeSound = subscribeSoundPreference((audible) => {
+      if (!audible) {
+        generation.current++;
+        audio.pause();
+      }
+    });
     const hide = () => {
       if (document.hidden) {
         generation.current++;
@@ -286,6 +283,7 @@ export function ManilaEffects({ session }: { session: GameHost }) {
     return () => {
       // eslint-disable-next-line react-hooks/exhaustive-deps -- Invalidate asynchronous sound claims on unmount.
       generation.current++;
+      unsubscribeSound();
       document.removeEventListener('visibilitychange', hide);
       query.removeEventListener('change', change);
       audio.pause();
@@ -294,15 +292,6 @@ export function ManilaEffects({ session }: { session: GameHost }) {
       media.current = null;
     };
   }, []);
-  useEffect(() => {
-    const change = () => setEnabled(preference(muteKey, player));
-    window.addEventListener('storage', change);
-    window.addEventListener(preferenceEvent, change);
-    return () => {
-      window.removeEventListener('storage', change);
-      window.removeEventListener(preferenceEvent, change);
-    };
-  }, [muteKey, player]);
   useEffect(() => {
     generation.current++;
     media.current?.pause();
@@ -488,6 +477,9 @@ export function ManilaEffects({ session }: { session: GameHost }) {
       },
     );
   };
+  useSoundActivation(() => {
+    if (!disabled && canPlay) unlock();
+  });
   return (
     <>
       <button
@@ -506,13 +498,6 @@ export function ManilaEffects({ session }: { session: GameHost }) {
           }
           const next = !enabled;
           setEnabled(next);
-          try {
-            localStorage.setItem(muteKey, String(!next));
-            window.dispatchEvent(new Event(preferenceEvent));
-          } catch {
-            /* Local window preference still works. */
-          }
-          if (next) unlock();
         }}
       >
         <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">

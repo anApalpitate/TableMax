@@ -20,6 +20,11 @@ export { RulesGuide } from './components/RulesGuide';
 export { useDecisionClock } from './components/useDecisionClock';
 export { BeginnerGuidanceSetting } from './components/BeginnerGuidanceSetting';
 export { useGuidancePreference } from './preferences/useGuidancePreference';
+export {
+  useSoundPreference,
+  useSoundActivation,
+  subscribeSoundPreference,
+} from './preferences/useSoundPreference';
 
 const Context = createContext<GameHostSlots | null>(null);
 function useSlots() {

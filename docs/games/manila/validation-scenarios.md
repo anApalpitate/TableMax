@@ -16,6 +16,18 @@
 
 ## 当前结果
 
+
+### 手机文字自然重排与统一设置（2026-10-20，源码）
+
+手机布局由`games/manila/ui/player-layout.css`统一负责；旧玩家样式的重复覆盖已移除或隔离，岸上岗位及祖先设施使用自然高度与自动行轨道，金额和币种保持同行。文字至少16px、主要操作18px、触控至少44px；以换行、减少列数和纵向滚动适配，不以缩字或隐藏溢出解决。声音采用共享设备偏好，玩家也可进入视频设置。
+
+- [最终文字矩阵](../../../artifacts/maintenance/manila-board-composition-20261017/mobile/text-flow-current-final-r01/report.json)12组与[最终横屏复验](../../../artifacts/maintenance/manila-board-composition-20261017/mobile/text-flow-anchor-final-r01/report.json)两组均绑定最终源码通过：320×568、360×800、361×800、375×812、390×844、412×915、430×932、568×320、620×900、621×900、844×390、932×430、1024×768及1123×800。两组较大横屏还验证旋转保留草稿。
+- 各尺寸覆盖14个合法阶段，包含竞拍、购股、装货、派遣、领航、付款本人／等待及结算；普通昵称与协议允许的24字符长中文／无空格昵称分别检查。金额来自自然规则局面中可提交的最大竞价83、融资54，不声称是全局任意历史状态的金额上限。逐字形检查所属卡片、裁切祖先及文字／图标／控件碰撞，既有主滚动区离屏内容按可见区域判断；检查保存标签显示前后几何不变，保留草稿与展开操作。
+- [最终草稿定位](../../../artifacts/maintenance/manila-board-composition-20261017/mobile/draft-anchor-final-r01/report.json)320×568、390×844、844×390、932×430四组通过，实际点击箭头、岗位、取消后棋盘坐标保持；短横屏补偿79／100px实际缺口，真实滚轮操作后补偿清零。旧失败由确认区收缩导致滚动上限钳位，修复既有定位机制，未增加固定占位或放宽坐标断言。
+- [电脑回归](../../../artifacts/manila/validation/settings-current-source-final-r01/results.json)主机／公共屏720p、1080p、4K六组布局、10详情和2靠港场景通过；后续修改仅作用玩家端。[通用设置／保存定向](../../../artifacts/maintenance/settings-and-save-20261020/manila-anchor-settings-final-r01/report.json)九组通过；共享入口、声音同步和手机全屏支持／拒绝／不支持另见[通用视觉](../../reference/visual-design.md)。
+
+证据均绑定源码、脚本与实际截图；原失败和实质修复保留在[轮次记录](../../../artifacts/maintenance/settings-and-save-20261020/verification-rounds.json)，独立预算定向复验，不清旧失败、不放宽字形和位置断言。本次为隐藏、静音、127.0.0.1的合法投影源码组件与Edge模拟视口检查；未执行实体手机、真实LAN、原生系统窗口或安装器验收，不代表旧发行或已运行对局已更新。未调整公开版本。
+
 ### 靠港状态仍被省略（2026-10-19，源码）
 
 用户截图中的“靠…”对应电脑船只状态栏。只读检查发现本地开发游戏选择仍引用缺少上一轮纸牌标识样式的资源，记录见`artifacts/maintenance/manila-destination-labels-20261019/runtime-diagnosis.json`。本次移除基础状态样式中的ellipsis和隐藏溢出，按完整文字保留最小宽度，状态与分红允许换行。未迁移旧存档或覆盖旧发行；开发预览须重新运行开发命令并新建马尼拉对局。
