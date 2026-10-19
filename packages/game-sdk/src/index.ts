@@ -19,6 +19,7 @@ export type Viewer = { role: 'public' } | { role: 'player'; seatId: string };
 export interface RuleContext {
   seats: readonly string[];
   random: { next(): number }; // Platform owns the serializable generator state.
+  setup?: JsonValue;
 }
 
 export interface DecisionBoundary {
@@ -54,6 +55,18 @@ export interface GameRules<
   View extends JsonValue = JsonValue,
 > {
   manifest: GameManifest;
+  /** Public, game-owned options selected before a new match starts. */
+  setup?: {
+    defaults: JsonValue;
+    validate(input: unknown): JsonValue;
+    fromState?(state: State): JsonValue;
+  };
+  /** A saved decision may expose an action before its reaction grace expires. */
+  actionTiming?(
+    state: State,
+    action: Action,
+    seatId: string,
+  ): { key: string; delayMs: number } | null;
   initialize(context: RuleContext): State;
   validateState(input: unknown, seats: readonly string[]): State;
   decisions(state: State): readonly PendingDecision[];

@@ -135,6 +135,24 @@
 .settings-panel--preferences {
   overscroll-behavior: contain;
 }
+.game-setup-settings {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #c5d8c5;
+  border-radius: 16px;
+  background: #f3f8ed;
+}
+.game-setup-settings > :is(h3, p) {
+  margin: 0;
+}
+.game-setup-settings h3 {
+  font-size: 20px;
+}
+.game-setup-settings p {
+  font-size: 16px;
+}
 html:has(.settings-panel--preferences[open]),
 body:has(.settings-panel--preferences[open]) {
   overflow: hidden;

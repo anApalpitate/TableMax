@@ -45,6 +45,29 @@ function apply(s: State, action: Action, seat = s.turnSeat!): State {
 }
 describe('UNO三档本地策略逐节点与授权记忆', () => {
   it.each(difficulties)(
+    '%s在补牌传递中按本人授权牌继续出牌或接受累计罚牌',
+    (difficulty) => {
+      const base = fixture({
+        a: ['red-draw-two-a', 'yellow-2-a'],
+        b: ['blue-draw-two-a', 'blue-1-a'],
+        c: ['green-1-a'],
+      });
+      base.setup = { drawPenaltyStacking: true, catchUnoDelayMs: 500 };
+      base.drawPenalty = null;
+      let state = apply(base, { type: 'play', cardId: 'red-draw-two-a' });
+      state = apply(state, { type: 'declare-uno' }, 'a');
+      expect(decide(state, 'b', difficulty)).toEqual({
+        type: 'play',
+        cardId: 'blue-draw-two-a',
+      });
+      state = apply(state, { type: 'play', cardId: 'blue-draw-two-a' });
+      state = apply(state, { type: 'declare-uno' }, 'b');
+      expect(decide(state, 'c', difficulty)).toEqual({
+        type: 'accept-draw-penalty',
+      });
+    },
+  );
+  it.each(difficulties)(
     '%s覆盖开局颜色/正常出牌/摸牌/摸后出牌或保留/UNO补喊抓漏/+4响应',
     (difficulty) => {
       const wild = fixture(

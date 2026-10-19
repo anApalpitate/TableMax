@@ -29,6 +29,11 @@ import { GameRegistry, type LoadedGame } from './game-registry';
 import { allowsGameAction } from './game-actions';
 import { synchronizeDecisionClocks, projectDecisionClock } from './countdown';
 import {
+  actionDelayRemaining,
+  projectActionTimings,
+  synchronizeActionClocks,
+} from './action-timing';
+import {
   createTransfer,
   decideTransfer,
   pendingTransfers,
@@ -226,6 +231,13 @@ export class RoomCoordinator {
       persist = true;
     }
     if (persist) {
+      synchronizeActionClocks(
+        this.data,
+        this.data,
+        this.game?.rules ?? null,
+        Date.now(),
+        true,
+      );
       synchronizeDecisionClocks(
         this.data,
         this.data,
@@ -313,6 +325,7 @@ export class RoomCoordinator {
       next.paused = true;
       next.revision++;
       next.branch++;
+      synchronizeActionClocks(next, next, game.rules, Date.now(), true);
       synchronizeDecisionClocks(next, next, game.rules, Date.now(), true);
       this.persist(next);
       this.data = next;
@@ -360,6 +373,9 @@ export class RoomCoordinator {
       playMode: 'play',
       countdownSeconds: DEFAULT_COUNTDOWN_SECONDS,
       decisionClocks: [],
+      ...(game?.rules.setup
+        ? { gameSetup: structuredClone(game.rules.setup.defaults) }
+        : {}),
       seats: [],
       hostSeat: null,
       ownerSeatId: null,
@@ -376,6 +392,16 @@ export class RoomCoordinator {
   }
   private lobbyWithSeats(game = this.game): Save {
     const fresh = this.fresh(game);
+    if (
+      game?.rules.setup &&
+      this.data.gameSetup !== undefined &&
+      game.rules.manifest.id === this.data.manifest?.id &&
+      game.releaseRef === this.data.releaseRef &&
+      game.variantId === this.data.variantId
+    )
+      fresh.gameSetup = game.rules.setup.validate(
+        structuredClone(this.data.gameSetup),
+      );
     fresh.playMode = this.data.playMode ?? 'play';
     fresh.countdownSeconds =
       this.data.countdownSeconds ?? DEFAULT_COUNTDOWN_SECONDS;
@@ -484,6 +510,7 @@ export class RoomCoordinator {
     extras?: SaveExtras,
   ) {
     requireThat(!this.missingRelease, 'missing-game-release');
+    synchronizeActionClocks(next, this.data, game?.rules ?? null, Date.now());
     synchronizeDecisionClocks(next, this.data, game?.rules ?? null, Date.now());
     this.persist(next, extras);
     const savedAt = performance.now();
@@ -706,6 +733,15 @@ export class RoomCoordinator {
             ...(d.variantId === undefined ? {} : { variantId: d.variantId }),
             ...(d.releaseRef === undefined ? {} : { releaseRef: d.releaseRef }),
             ...(this.game.restoreOnly ? { restoreOnly: true } : {}),
+            ...(this.rules.setup
+              ? {
+                  setup: structuredClone(
+                    snap && this.rules.setup.fromState
+                      ? this.rules.setup.fromState(snap.state)
+                      : (d.gameSetup ?? this.rules.setup.defaults),
+                  ),
+                }
+              : {}),
           }
         : null,
       catalog: this.registry.catalog(),
@@ -744,6 +780,16 @@ export class RoomCoordinator {
         pending && !d.paused && d.status === 'playing'
           ? [...this.rules.legalActions(structuredClone(snap!.state), seatId!)]
           : [],
+      ...(this.game?.rules.actionTiming
+        ? {
+            actionTiming: projectActionTimings(
+              d,
+              this.rules,
+              seatId,
+              Date.now(),
+            ),
+          }
+        : {}),
       history:
         identity.role === 'host'
           ? d.history.map(
@@ -1063,6 +1109,18 @@ export class RoomCoordinator {
     const lobby = () => requireThat(next.status === 'lobby', 'not-in-lobby');
     let events: PublicEvent[] = [];
     switch (c.type) {
+      case 'set-game-setup':
+        control();
+        lobby();
+        requireThat(this.game?.rules.setup, 'game-setup-unavailable');
+        try {
+          next.gameSetup = this.rules.setup!.validate(c.setup);
+        } catch {
+          throw new Rejection('invalid-game-setup');
+        }
+        for (const seat of next.seats)
+          if (seat.controller === 'human') seat.ready = false;
+        break;
       case 'approve-transfer':
       case 'reject-transfer':
         host();
@@ -1272,6 +1330,11 @@ export class RoomCoordinator {
             'game-not-in-current-executable',
           );
           committedGame = await this.registry.load(this.rules.manifest.id);
+          if (committedGame.rules.setup)
+            next.gameSetup = structuredClone(
+              committedGame.rules.setup.defaults,
+            );
+          else delete next.gameSetup;
           next.manifest = committedGame.rules.manifest;
           if (committedGame.variantId === undefined) delete next.variantId;
           else next.variantId = committedGame.variantId;
@@ -1286,10 +1349,15 @@ export class RoomCoordinator {
           'not-ready',
         );
         const random = new RandomSource(randomBytes(4).readUInt32LE() || 1);
+        const setup = activeRules.setup?.validate(
+          next.gameSetup ?? activeRules.setup.defaults,
+        );
+        if (setup !== undefined) next.gameSetup = structuredClone(setup);
         const state = activeRules.validateState(
           activeRules.initialize({
             seats: next.seats.map((s) => s.id),
             random,
+            ...(setup === undefined ? {} : { setup }),
           }),
           next.seats.map((s) => s.id),
         );
@@ -1351,6 +1419,9 @@ export class RoomCoordinator {
               'game-not-in-current-executable',
             );
             nextGame = await this.registry.load(nextGame.rules.manifest.id);
+            if (nextGame.rules.setup)
+              fresh.gameSetup = structuredClone(nextGame.rules.setup.defaults);
+            else delete fresh.gameSetup;
             fresh.manifest = nextGame.rules.manifest;
             if (nextGame.variantId === undefined) delete fresh.variantId;
             else fresh.variantId = nextGame.variantId;
@@ -1450,6 +1521,17 @@ export class RoomCoordinator {
         )
           requireThat(identity.role === 'host', 'unauthorized');
         const before = this.data.snapshot!;
+        if (c.type === 'game')
+          requireThat(
+            actionDelayRemaining(
+              this.data,
+              this.rules,
+              action,
+              seatId,
+              Date.now(),
+            ) === 0,
+            'action-not-ready',
+          );
         const random = new RandomSource(next.snapshot!.random);
         const context = { seats: next.seats.map((s) => s.id), random };
         const result =
@@ -1650,6 +1732,20 @@ export class RoomCoordinator {
           current.concurrent.floor === task.concurrent.floor &&
           task.revision >= task.concurrent.floor
       : task.revision === current.revision;
+  }
+  botActionDelay(
+    task: NonNullable<ReturnType<RoomCoordinator['botTask']>>,
+    action: JsonValue,
+  ) {
+    return this.botTaskCurrent(task)
+      ? actionDelayRemaining(
+          this.data,
+          this.rules,
+          action,
+          task.decision.seatId,
+          Date.now(),
+        )
+      : 0;
   }
   submitBot(
     task: NonNullable<ReturnType<RoomCoordinator['botTask']>>,

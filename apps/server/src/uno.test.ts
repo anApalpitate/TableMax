@@ -35,7 +35,7 @@ function envelope(view: RoomView, command: Command['command']): Command {
     command,
   };
 }
-async function fixture() {
+async function fixture(setup?: JsonValue) {
   mkdirSync('tmp', { recursive: true });
   const base = mkdtempSync(resolve('tmp/uno-service-'));
   const webDir = join(base, 'web');
@@ -97,6 +97,17 @@ async function fixture() {
     expect(
       (await run(players.at(-1)!, token, { type: 'ready', ready: true })).ok,
     ).toBe(true);
+  }
+  if (setup !== undefined) {
+    expect(
+      (await run(host, service.hostToken, { type: 'set-game-setup', setup }))
+        .ok,
+    ).toBe(true);
+    expect(service.room.view().game?.setup).toEqual(setup);
+    for (let i = 0; i < tokens.length; i++)
+      expect(
+        (await run(players[i]!, tokens[i]!, { type: 'ready', ready: true })).ok,
+      ).toBe(true);
   }
   expect((await run(host, service.hostToken, { type: 'start' })).ok).toBe(true);
   const actor = () => {
@@ -332,5 +343,82 @@ it('UNO simultaneous Socket responses have one saved winner; failed save leaves 
     expect(game(f.service.room.view()).unoWindow).toBeNull();
   } finally {
     await f.close();
+  }
+}, 60000);
+
+it('UNO pregame transfer settings and catch grace are enforced over real Socket/SQLite at the exact boundary', async () => {
+  let serverNow = Date.now();
+  const date = vi.spyOn(Date, 'now').mockImplementation(() => serverNow);
+  const setup = { drawPenaltyStacking: true, catchUnoDelayMs: 5000 };
+  const f = await fixture(setup);
+  try {
+    for (
+      let step = 0;
+      step < 600 && !game(f.service.room.view()).unoWindow;
+      step++
+    ) {
+      const actor = f.actor(),
+        view = f.service.room.view(actor.token);
+      const action =
+        view.actions.find((a) => (a as { type: string }).type === 'play') ??
+        view.actions[0]!;
+      expect(
+        (
+          await f.run(actor.socket, actor.token, {
+            type: 'game',
+            decisionId: view.decisionId!,
+            action: action as JsonValue,
+          })
+        ).ok,
+      ).toBe(true);
+    }
+    const target = game(f.service.room.view()).unoWindow!.seatId;
+    const index = f.tokens.findIndex(
+      (token) => f.service.room.view(token).self.seatId !== target,
+    );
+    const credential = f.tokens[index]!,
+      socket = f.players[index]!;
+    const view = f.service.room.view(credential);
+    expect(view.actionTiming?.[0]).toMatchObject({
+      actionType: 'catch-uno',
+      remainingMs: 5000,
+    });
+    expect(game(view).setup).toEqual(setup);
+    expect(
+      await f.run(f.host, f.service.hostToken, {
+        type: 'set-game-setup',
+        setup: { ...setup, catchUnoDelayMs: 0 },
+      }),
+    ).toMatchObject({ ok: false, reason: 'not-in-lobby' });
+    const action = view.actions.find(
+      (a) => (a as { type: string }).type === 'catch-uno',
+    ) as JsonValue;
+    serverNow += 4999;
+    expect(
+      await f.run(socket, credential, {
+        type: 'game',
+        decisionId: view.decisionId!,
+        action,
+      }),
+    ).toMatchObject({ ok: false, reason: 'action-not-ready' });
+    expect(f.service.room.view().revision).toBe(view.revision);
+    expect(game(f.service.room.view()).unoWindow?.seatId).toBe(target);
+    serverNow += 1;
+    expect(
+      (
+        await f.run(socket, credential, {
+          type: 'game',
+          decisionId: view.decisionId!,
+          action,
+        })
+      ).ok,
+    ).toBe(true);
+    expect(game(f.service.room.view()).unoWindow).toBeNull();
+    await f.restart();
+    expect(f.service.room.view().game?.setup).toEqual(setup);
+    expect(game(f.service.room.view()).setup).toEqual(setup);
+  } finally {
+    await f.close();
+    date.mockRestore();
   }
 }, 60000);

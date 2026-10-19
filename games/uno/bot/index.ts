@@ -204,7 +204,10 @@ export function chooseAction(
     );
   if (!plays.length) {
     const fallback = rawActions.find(
-      (a) => a.type === 'draw' || a.type === 'pass',
+      (a) =>
+        a.type === 'draw' ||
+        a.type === 'pass' ||
+        a.type === 'accept-draw-penalty',
     );
     if (!fallback) throw new Error('UNO 策略没有合法主动作。');
     return fallback;
@@ -259,7 +262,9 @@ export function chooseAction(
       new Set(remaining.filter((c) => c.color).map((c) => c.color)).size * 2;
     const extraTurn =
       view.seatOrder.length === 2 &&
-      ['skip', 'reverse', 'draw-two', 'wild-draw-four'].includes(card.kind);
+      (['skip', 'reverse'].includes(card.kind) ||
+        (!view.setup?.drawPenaltyStacking &&
+          ['draw-two', 'wild-draw-four'].includes(card.kind)));
     if (extraTurn)
       score += followups ? 20 + Math.max(...remaining.map(points)) * 0.3 : -12;
     if (remaining.length === 1) {
@@ -274,7 +279,9 @@ export function chooseAction(
     const responder =
       card.kind === 'reverse' && view.seatOrder.length > 2
         ? adjacent(view, seat, view.direction === 1 ? -1 : 1)
-        : ['skip', 'draw-two', 'wild-draw-four'].includes(card.kind)
+        : card.kind === 'skip' ||
+            (!view.setup?.drawPenaltyStacking &&
+              ['draw-two', 'wild-draw-four'].includes(card.kind))
           ? adjacent(view, seat, view.direction, 2)
           : next;
     if (responder !== seat && view.players[responder]!.handCount === 1) {

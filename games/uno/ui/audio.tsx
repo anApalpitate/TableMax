@@ -6,43 +6,44 @@ import {
   useSoundActivation,
   type GameHost,
 } from '@tablemax/web-host';
-import type { LatestAction, UnoView } from '../types';
-import place from '../../../assets/games/uno/audio/place-v1.flac';
-import draw from '../../../assets/games/uno/audio/draw-v1.flac';
-import reverse from '../../../assets/games/uno/audio/reverse-v1.flac';
-import skip from '../../../assets/games/uno/audio/skip-v1.flac';
-import drawTwo from '../../../assets/games/uno/audio/draw-two-v1.flac';
-import drawFour from '../../../assets/games/uno/audio/draw-four-v1.flac';
-import wild from '../../../assets/games/uno/audio/wild-v1.flac';
-import uno from '../../../assets/games/uno/audio/uno-v1.flac';
-import catchUno from '../../../assets/games/uno/audio/catch-uno-v1.flac';
+import type { UnoView } from '../types';
+import { unoSavedCue, type UnoCue } from './saved-feedback';
+import place from '../../../assets/games/uno/audio/place-v2.flac';
+import draw from '../../../assets/games/uno/audio/draw-v2.flac';
+import reverse from '../../../assets/games/uno/audio/reverse-v2.flac';
+import skip from '../../../assets/games/uno/audio/skip-v2.flac';
+import drawTwo from '../../../assets/games/uno/audio/draw-two-v2.flac';
+import drawFour from '../../../assets/games/uno/audio/draw-four-v2.flac';
+import wild from '../../../assets/games/uno/audio/wild-v2.flac';
+import uno from '../../../assets/games/uno/audio/uno-v2.flac';
+import catchUno from '../../../assets/games/uno/audio/catch-uno-v2.flac';
+import acceptFour from '../../../assets/games/uno/audio/accept-four-v2.flac';
+import challengeSuccess from '../../../assets/games/uno/audio/challenge-success-v2.flac';
+import challengeFailure from '../../../assets/games/uno/audio/challenge-failure-v2.flac';
 import challenge from '../../../assets/games/uno/audio/challenge-v1.flac';
-import win from '../../../assets/games/uno/audio/win-v1.flac';
+import win from '../../../assets/games/uno/audio/win-v2.flac';
 
 type Feedback = NonNullable<GameHost['feedback']>;
 const feedbackKey = (feedback: Feedback | null) =>
   feedback
     ? `uno:${feedback.instanceId}:${feedback.branch}:${feedback.revision}`
     : '';
-function sourceFor(latest: LatestAction, phase: UnoView['phase']) {
-  if (phase !== 'playing') return win;
-  if (/ended|result|round-won/.test(latest.verb)) return win;
-  if (latest.verb === 'catch-uno') return catchUno;
-  if (/challenge/.test(latest.verb)) return challenge;
-  if (latest.verb === 'choose-color') return wild;
-  if (
-    /declare/.test(latest.verb) ||
-    (latest.verb === 'play' && /UNO/.test(latest.text))
-  )
-    return uno;
-  if (/draw|accept/.test(latest.verb) && latest.verb !== 'play') return draw;
-  if (latest.card?.kind === 'reverse') return reverse;
-  if (latest.card?.kind === 'skip') return skip;
-  if (latest.card?.kind === 'draw-two') return drawTwo;
-  if (latest.card?.kind === 'wild-draw-four') return drawFour;
-  if (latest.card?.kind === 'wild') return wild;
-  return latest.verb === 'play' ? place : null;
-}
+const sources: Record<UnoCue, string> = {
+  place,
+  draw,
+  reverse,
+  skip,
+  'draw-two': drawTwo,
+  'draw-four': drawFour,
+  wild,
+  uno,
+  'catch-uno': catchUno,
+  'accept-four': acceptFour,
+  challenge,
+  'challenge-success': challengeSuccess,
+  'challenge-failure': challengeFailure,
+  win,
+};
 
 export function UnoSoundControl({
   feedback,
@@ -111,8 +112,9 @@ export function UnoSoundControl({
       (player && (!unlocked || game.latest.actor !== game.self?.seatId))
     )
       return;
-    const source = sourceFor(game.latest, game.phase);
-    if (!source) return;
+    const cue = unoSavedCue(game.latest, game.phase);
+    if (!cue) return;
+    const source = sources[cue];
     const permit = ++generation.current;
     void Promise.resolve(player ? true : claimAudioEvent(key))
       .then((accepted) => {

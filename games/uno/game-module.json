@@ -44,7 +44,7 @@
         "icon": "swap",
         "illustration": "assets/games/uno/introduction-2-v1.svg",
         "title": "用功能牌改变局势",
-        "text": "+2和+4罚摸不叠加。无当前颜色牌才可出+4，下一位可质疑；两人时反转等同跳过。"
+        "text": "默认罚摸不叠加，可在开局设置启用补牌传递。无当前颜色牌才可合规出+4，下家可质疑；两人反转如跳过。"
       },
       {
         "icon": "coins",

@@ -1,0 +1,556 @@
+{
+  "version": 2,
+  "attribution": "TableMax original sound design",
+  "generator": "tools/assets/games/uno/prepare-uno-audio.mjs",
+  "ffmpegBinarySha256": "2ce797a0f88d7f067180338fb227f7b1928ea727bd9a4d7a1d022f7c52af71a3",
+  "preservedV1ManifestSha256": "e366d2209c14fee2774b6a0b4771d9e8c418652b22593c5631874d41c8e27bc6",
+  "totalRuntimeBytes": 359031,
+  "files": [
+    {
+      "id": "place",
+      "version": 2,
+      "theme": "Paper slap, maple knock and a soft upper partial",
+      "source": "Original deterministic layered PCM synthesis; no external samples",
+      "durationSeconds": 0.3,
+      "sampleRate": 24000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "frames": 7200,
+      "peak": 0.66,
+      "rms": 0.09809276260286603,
+      "layers": {
+        "paper": 1,
+        "strikes": 1,
+        "tones": 1
+      },
+      "recipe": {
+        "duration": 0.3,
+        "theme": "Paper slap, maple knock and a soft upper partial",
+        "paper": [[0, 0.075, 0.24, -0.2]],
+        "strikes": [[0.015, 195, 0.12, 0.22, 0.1]],
+        "tones": [[0.026, 520, 0.2, 0.12, 510, 0.2]]
+      },
+      "original": "artifacts/uno/audio/source-originals/place-v2.wav",
+      "originalBytes": 28844,
+      "originalSha256": "8916753b3726b6edb2bbba7b039bc038cb83b0baf3d24e47bb215d810b287b3e",
+      "runtime": "assets/games/uno/audio/place-v2.flac",
+      "runtimeBytes": 12107,
+      "runtimeSha256": "a6ad3ddacfa0791f73bf3c348ec407390fbe5291e44f2e3f835763556e810b69",
+      "decodedPcmSha256": "52b789fa0012977e3586307b00a29aabf5e345e5b38d2077b510aa3ad2bf1fcf",
+      "decodedPcm": "Identical to source WAV samples"
+    },
+    {
+      "id": "draw",
+      "version": 2,
+      "theme": "Two dry paper flicks and a rising fingertip pluck",
+      "source": "Original deterministic layered PCM synthesis; no external samples",
+      "durationSeconds": 0.4,
+      "sampleRate": 24000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "frames": 9600,
+      "peak": 0.66,
+      "rms": 0.12800502678827996,
+      "layers": {
+        "paper": 2,
+        "tones": 1
+      },
+      "recipe": {
+        "duration": 0.4,
+        "theme": "Two dry paper flicks and a rising fingertip pluck",
+        "paper": [
+          [0, 0.065, 0.2, -0.35],
+          [0.095, 0.07, 0.17, 0.3]
+        ],
+        "tones": [[0.12, 310, 0.22, 0.18, 440, 0.2]]
+      },
+      "original": "artifacts/uno/audio/source-originals/draw-v2.wav",
+      "originalBytes": 38444,
+      "originalSha256": "57f4fa67b4d99c6e6ffda09b9bed82c42264d82da1f728e72211d18ed8d19f59",
+      "runtime": "assets/games/uno/audio/draw-v2.flac",
+      "runtimeBytes": 18603,
+      "runtimeSha256": "03682406df4977e39694d7322fd0fc3f12463ca251b26fca5bd5016f640b411f",
+      "decodedPcmSha256": "6adf73d57ed5e7e7904cfbc76b241f3cd83e4f09751845fdc2500bd483451392",
+      "decodedPcm": "Identical to source WAV samples"
+    },
+    {
+      "id": "skip",
+      "version": 2,
+      "theme": "Closed gate: double wood stop, clipped bell and a low final knock",
+      "source": "Original deterministic layered PCM synthesis; no external samples",
+      "durationSeconds": 0.54,
+      "sampleRate": 24000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "frames": 12960,
+      "peak": 0.66,
+      "rms": 0.08473947901524288,
+      "layers": {
+        "paper": 1,
+        "strikes": 2,
+        "tones": 2
+      },
+      "recipe": {
+        "duration": 0.54,
+        "theme": "Closed gate: double wood stop, clipped bell and a low final knock",
+        "paper": [[0, 0.045, 0.1, 0]],
+        "strikes": [
+          [0.02, 240, 0.09, 0.3, -0.25],
+          [0.145, 180, 0.12, 0.32, 0.25]
+        ],
+        "tones": [
+          [0.015, 880, 0.1, 0.16, 880, -0.2],
+          [0.145, 440, 0.22, 0.17, 392, 0.2]
+        ]
+      },
+      "original": "artifacts/uno/audio/source-originals/skip-v2.wav",
+      "originalBytes": 51884,
+      "originalSha256": "d500be9c9fbe155110fd542e8fb1f597f3d1ca8b3fd35e1e4587856a8e738740",
+      "runtime": "assets/games/uno/audio/skip-v2.flac",
+      "runtimeBytes": 12291,
+      "runtimeSha256": "47ff5add2e7ba0e2964a34dbb297badc1ede1cb2bb4eefe4a6b334f7c9d13007",
+      "decodedPcmSha256": "59b0571cf547f016cb61f091a1bc81803a7c23661c5c70cc666227bf284109ae",
+      "decodedPcm": "Identical to source WAV samples"
+    },
+    {
+      "id": "reverse",
+      "version": 2,
+      "theme": "Mirrored marimba sweep with a left-right-return air ribbon",
+      "source": "Original deterministic layered PCM synthesis; no external samples",
+      "durationSeconds": 0.68,
+      "sampleRate": 24000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "frames": 16321,
+      "peak": 0.66,
+      "rms": 0.1104627018325203,
+      "layers": {
+        "paper": 1,
+        "air": 2,
+        "tones": 3
+      },
+      "recipe": {
+        "duration": 0.68,
+        "theme": "Mirrored marimba sweep with a left-right-return air ribbon",
+        "paper": [[0, 0.055, 0.12, -0.4]],
+        "air": [
+          [0.03, 0.18, 0.07, -0.65],
+          [0.2, 0.24, 0.07, 0.65]
+        ],
+        "tones": [
+          [0, 330, 0.23, 0.18, 880, -0.5],
+          [0.18, 880, 0.28, 0.18, 330, 0.5],
+          [0.43, 660, 0.19, 0.13, 660, 0]
+        ]
+      },
+      "original": "artifacts/uno/audio/source-originals/reverse-v2.wav",
+      "originalBytes": 65328,
+      "originalSha256": "ee2ca54ff8bb1339d67f149b0f52fb25827a56fb86c9979e13765f043cd1d8b7",
+      "runtime": "assets/games/uno/audio/reverse-v2.flac",
+      "runtimeBytes": 30889,
+      "runtimeSha256": "9086a94f89bbd39f25a02ad7eec1dff76a1ac3f77a30e4604b90bdca10bdbe9d",
+      "decodedPcmSha256": "55256d6d61feafd6e3763287990357b8254350b8df666344681abc59ee0421f0",
+      "decodedPcm": "Identical to source WAV samples"
+    },
+    {
+      "id": "draw-two",
+      "version": 2,
+      "theme": "Two emphatic card beats, paired bass taps and an ascending major third",
+      "source": "Original deterministic layered PCM synthesis; no external samples",
+      "durationSeconds": 0.66,
+      "sampleRate": 24000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "frames": 15840,
+      "peak": 0.66,
+      "rms": 0.10680322773122086,
+      "layers": {
+        "paper": 2,
+        "strikes": 2,
+        "tones": 3
+      },
+      "recipe": {
+        "duration": 0.66,
+        "theme": "Two emphatic card beats, paired bass taps and an ascending major third",
+        "paper": [
+          [0, 0.06, 0.22, -0.25],
+          [0.18, 0.06, 0.25, 0.25]
+        ],
+        "strikes": [
+          [0.015, 130, 0.15, 0.2, -0.2],
+          [0.195, 165, 0.18, 0.24, 0.2]
+        ],
+        "tones": [
+          [0.02, 440, 0.23, 0.16, 440, -0.2],
+          [0.2, 554.37, 0.36, 0.18, 554.37, 0.2],
+          [0.205, 1108.74, 0.21, 0.055, 1108.74, 0.35]
+        ]
+      },
+      "original": "artifacts/uno/audio/source-originals/draw-two-v2.wav",
+      "originalBytes": 63404,
+      "originalSha256": "135633b329a843f8db8ce5f6a9b0986bd01328ff71e6c9484b0e8631dd6b5332",
+      "runtime": "assets/games/uno/audio/draw-two-v2.flac",
+      "runtimeBytes": 24563,
+      "runtimeSha256": "e85d08c4fe2de42616b28d0653b0638885699aafbafa31af2c2a7daee2696aa0",
+      "decodedPcmSha256": "6ff1da238f40e3e360a50ad48920f15562113b3353ed8a9553ca7fa36ffa1a0e",
+      "decodedPcm": "Identical to source WAV samples"
+    },
+    {
+      "id": "wild",
+      "version": 2,
+      "theme": "Four-color glass arpeggio opening into a warm suspended chord",
+      "source": "Original deterministic layered PCM synthesis; no external samples",
+      "durationSeconds": 0.72,
+      "sampleRate": 24000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "frames": 17280,
+      "peak": 0.66,
+      "rms": 0.15754945739353268,
+      "layers": {
+        "paper": 1,
+        "air": 1,
+        "tones": 4
+      },
+      "recipe": {
+        "duration": 0.72,
+        "theme": "Four-color glass arpeggio opening into a warm suspended chord",
+        "paper": [[0, 0.055, 0.1, 0]],
+        "air": [[0.02, 0.15, 0.045, 0]],
+        "tones": [
+          [0, 523.25, 0.3, 0.15, 523.25, -0.45],
+          [0.075, 659.25, 0.32, 0.14, 659.25, -0.15],
+          [0.15, 783.99, 0.34, 0.14, 783.99, 0.15],
+          [0.225, 1046.5, 0.4, 0.13, 1046.5, 0.45]
+        ]
+      },
+      "original": "artifacts/uno/audio/source-originals/wild-v2.wav",
+      "originalBytes": 69164,
+      "originalSha256": "17bb3059968069fcc1addb5190c311568e062d6895ee7b393dbbd7fdb3163f4f",
+      "runtime": "assets/games/uno/audio/wild-v2.flac",
+      "runtimeBytes": 22881,
+      "runtimeSha256": "f002e3d37bc3aff738d2234d6ba863b924a941911ca820fce53dad6420a2a57d",
+      "decodedPcmSha256": "781148b9e4aad266167c1d9583629e1a01e3ff532f1b33e2c458580e1dc46944",
+      "decodedPcm": "Identical to source WAV samples"
+    },
+    {
+      "id": "draw-four",
+      "version": 2,
+      "theme": "Four rising paper impacts, increasing bass weight and a four-color crown",
+      "source": "Original deterministic layered PCM synthesis; no external samples",
+      "durationSeconds": 0.9,
+      "sampleRate": 24000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "frames": 21600,
+      "peak": 0.66,
+      "rms": 0.08680076358176347,
+      "layers": {
+        "paper": 4,
+        "strikes": 4,
+        "tones": 5
+      },
+      "recipe": {
+        "duration": 0.9,
+        "theme": "Four rising paper impacts, increasing bass weight and a four-color crown",
+        "paper": [
+          [0, 0.05, 0.12, -0.4],
+          [0.12, 0.05, 0.15, -0.12],
+          [0.24, 0.05, 0.18, 0.12],
+          [0.36, 0.07, 0.22, 0.4]
+        ],
+        "strikes": [
+          [0.02, 110, 0.12, 0.12, -0.3],
+          [0.14, 130, 0.14, 0.15, -0.1],
+          [0.26, 165, 0.16, 0.18, 0.1],
+          [0.38, 220, 0.22, 0.22, 0.3]
+        ],
+        "tones": [
+          [0, 330, 0.18, 0.1, 330, -0.35],
+          [0.12, 440, 0.22, 0.12, 440, -0.1],
+          [0.24, 554.37, 0.25, 0.14, 554.37, 0.1],
+          [0.36, 659.25, 0.44, 0.16, 659.25, 0.35],
+          [0.37, 987.77, 0.34, 0.07, 987.77, -0.2]
+        ]
+      },
+      "original": "artifacts/uno/audio/source-originals/draw-four-v2.wav",
+      "originalBytes": 86444,
+      "originalSha256": "026841a07047739e329ad2d552d868cbeb140d08d4a2a86394f8572d569ee9b1",
+      "runtime": "assets/games/uno/audio/draw-four-v2.flac",
+      "runtimeBytes": 37726,
+      "runtimeSha256": "b9a54e62f86c1066caa87d430cb8b5a9702620ae86a8935cd8284476da1aabdb",
+      "decodedPcmSha256": "263a6d99d00f1756bc2a2e2e4ace6dd835326ac913076e7d6024900eccf9b4e0",
+      "decodedPcm": "Identical to source WAV samples"
+    },
+    {
+      "id": "accept-four",
+      "version": 2,
+      "theme": "Four measured dealing flicks with descending mallets and a closed turn",
+      "source": "Original deterministic layered PCM synthesis; no external samples",
+      "durationSeconds": 0.64,
+      "sampleRate": 24000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "frames": 15360,
+      "peak": 0.66,
+      "rms": 0.10572840614273375,
+      "layers": {
+        "paper": 4,
+        "strikes": 1,
+        "tones": 4
+      },
+      "recipe": {
+        "duration": 0.64,
+        "theme": "Four measured dealing flicks with descending mallets and a closed turn",
+        "paper": [
+          [0, 0.045, 0.15, -0.3],
+          [0.1, 0.045, 0.16, -0.1],
+          [0.2, 0.045, 0.17, 0.1],
+          [0.3, 0.055, 0.18, 0.3]
+        ],
+        "tones": [
+          [0.015, 659.25, 0.12, 0.1, 659.25, -0.3],
+          [0.115, 554.37, 0.13, 0.1, 554.37, -0.1],
+          [0.215, 440, 0.15, 0.12, 440, 0.1],
+          [0.315, 330, 0.24, 0.15, 330, 0.3]
+        ],
+        "strikes": [[0.33, 165, 0.18, 0.18, 0]]
+      },
+      "original": "artifacts/uno/audio/source-originals/accept-four-v2.wav",
+      "originalBytes": 61484,
+      "originalSha256": "ba5f5049f00dff0eaa3a041fb1fb2731f54b4848d0c6b83823a16f4a51ba75d8",
+      "runtime": "assets/games/uno/audio/accept-four-v2.flac",
+      "runtimeBytes": 31360,
+      "runtimeSha256": "d645fa5dfa641b3d36a629585beff74e27a4b530b191df03d99a89ab45e14773",
+      "decodedPcmSha256": "aa8087e6e01e7c40529bc6f74d4fc1f952224288f831eb21b0e13be939dbb967",
+      "decodedPcm": "Identical to source WAV samples"
+    },
+    {
+      "id": "uno",
+      "version": 2,
+      "theme": "Call-and-response open fifth, bright octave answer and a small handclap",
+      "source": "Original deterministic layered PCM synthesis; no external samples",
+      "durationSeconds": 0.84,
+      "sampleRate": 24000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "frames": 20160,
+      "peak": 0.66,
+      "rms": 0.09477749450044239,
+      "layers": {
+        "paper": 2,
+        "strikes": 1,
+        "tones": 4
+      },
+      "recipe": {
+        "duration": 0.84,
+        "theme": "Call-and-response open fifth, bright octave answer and a small handclap",
+        "paper": [
+          [0, 0.045, 0.1, -0.2],
+          [0.19, 0.055, 0.13, 0.2]
+        ],
+        "tones": [
+          [0, 659.25, 0.24, 0.2, 659.25, -0.25],
+          [0.19, 987.77, 0.36, 0.21, 987.77, 0.25],
+          [0.2, 1318.51, 0.4, 0.08, 1318.51, 0.4],
+          [0.39, 1975.53, 0.28, 0.045, 1975.53, -0.3]
+        ],
+        "strikes": [[0.2, 330, 0.2, 0.12, 0]]
+      },
+      "original": "artifacts/uno/audio/source-originals/uno-v2.wav",
+      "originalBytes": 80684,
+      "originalSha256": "df55aaea10145633be9397b48288690d9b8cf6434ab53d0a3a74f549c482c58e",
+      "runtime": "assets/games/uno/audio/uno-v2.flac",
+      "runtimeBytes": 24538,
+      "runtimeSha256": "a6c8aab745639d62469fe79b689c7467e85906bc28743ac48488086028cd9995",
+      "decodedPcmSha256": "2447be6e390736fda08f7b3b5d6d6bd2f3b79e89aa0a6d2c4c6c5edd57154862",
+      "decodedPcm": "Identical to source WAV samples"
+    },
+    {
+      "id": "catch-uno",
+      "version": 2,
+      "theme": "A quick discovery whistle, two penalty shuffles and a distinct wooden stamp",
+      "source": "Original deterministic layered PCM synthesis; no external samples",
+      "durationSeconds": 0.72,
+      "sampleRate": 24000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "frames": 17280,
+      "peak": 0.66,
+      "rms": 0.10445211167118469,
+      "layers": {
+        "paper": 2,
+        "strikes": 1,
+        "air": 1,
+        "tones": 3
+      },
+      "recipe": {
+        "duration": 0.72,
+        "theme": "A quick discovery whistle, two penalty shuffles and a distinct wooden stamp",
+        "air": [[0, 0.09, 0.035, -0.3]],
+        "tones": [
+          [0, 660, 0.16, 0.15, 1174.66, -0.4],
+          [0.14, 587.33, 0.2, 0.17, 440, 0.3],
+          [0.36, 293.66, 0.26, 0.14, 293.66, 0]
+        ],
+        "paper": [
+          [0.23, 0.055, 0.15, -0.2],
+          [0.34, 0.06, 0.18, 0.2]
+        ],
+        "strikes": [[0.36, 147, 0.2, 0.23, 0]]
+      },
+      "original": "artifacts/uno/audio/source-originals/catch-uno-v2.wav",
+      "originalBytes": 69164,
+      "originalSha256": "af651c2dac13c47e7a8daebd4524b2c556cacbe0b66d5cd04b363b1ca775bcdd",
+      "runtime": "assets/games/uno/audio/catch-uno-v2.flac",
+      "runtimeBytes": 29819,
+      "runtimeSha256": "d61fd8628ca71659f0b48a56c4c686166ed1fe1b2f45052394a15ca7315b44dc",
+      "decodedPcmSha256": "4b6a54efc9272c5cfade739c33bc0327959f0a0e80b6a10574f69df3ed7347a0",
+      "decodedPcm": "Identical to source WAV samples"
+    },
+    {
+      "id": "challenge-success",
+      "version": 2,
+      "theme": "Question knocks resolve into a bright upward verdict and a four-card return",
+      "source": "Original deterministic layered PCM synthesis; no external samples",
+      "durationSeconds": 0.94,
+      "sampleRate": 24000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "frames": 22560,
+      "peak": 0.66,
+      "rms": 0.13414619730048083,
+      "layers": {
+        "paper": 4,
+        "strikes": 2,
+        "tones": 5
+      },
+      "recipe": {
+        "duration": 0.94,
+        "theme": "Question knocks resolve into a bright upward verdict and a four-card return",
+        "strikes": [
+          [0, 220, 0.13, 0.15, -0.3],
+          [0.14, 233.08, 0.14, 0.15, 0.3]
+        ],
+        "tones": [
+          [0.01, 440, 0.19, 0.11, 466.16, -0.25],
+          [0.15, 622.25, 0.2, 0.11, 587.33, 0.25],
+          [0.36, 523.25, 0.27, 0.17, 523.25, -0.25],
+          [0.47, 659.25, 0.3, 0.16, 659.25, 0],
+          [0.58, 1046.5, 0.29, 0.17, 1046.5, 0.3]
+        ],
+        "paper": [
+          [0.36, 0.045, 0.1, -0.3],
+          [0.42, 0.045, 0.1, -0.1],
+          [0.48, 0.045, 0.1, 0.1],
+          [0.54, 0.045, 0.1, 0.3]
+        ]
+      },
+      "original": "artifacts/uno/audio/source-originals/challenge-success-v2.wav",
+      "originalBytes": 90284,
+      "originalSha256": "e1db987c37f9790018cef989cea98d2a36e63ff6b6c4a75060e326d413f7e7de",
+      "runtime": "assets/games/uno/audio/challenge-success-v2.flac",
+      "runtimeBytes": 33928,
+      "runtimeSha256": "2540c692591166fd25747bef1fcb4887a1b5a55f601b841bc74fd9fe0b737aea",
+      "decodedPcmSha256": "b5d5f020a34016b0615b3e74adb9f75c5d8be1e08b1a36ca95370d4ca418c2b8",
+      "decodedPcm": "Identical to source WAV samples"
+    },
+    {
+      "id": "challenge-failure",
+      "version": 2,
+      "theme": "Question knocks fall into six restrained penalty pulses and a low closing verdict",
+      "source": "Original deterministic layered PCM synthesis; no external samples",
+      "durationSeconds": 1,
+      "sampleRate": 24000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "frames": 24000,
+      "peak": 0.6600000000000001,
+      "rms": 0.10312868231368949,
+      "layers": {
+        "paper": 6,
+        "strikes": 8,
+        "tones": 4
+      },
+      "recipe": {
+        "duration": 1,
+        "theme": "Question knocks fall into six restrained penalty pulses and a low closing verdict",
+        "strikes": [
+          [0, 220, 0.12, 0.14, -0.3],
+          [0.13, 207.65, 0.13, 0.15, 0.3],
+          [0.35, 165, 0.12, 0.12, -0.3],
+          [0.43, 155.56, 0.12, 0.12, -0.18],
+          [0.51, 146.83, 0.12, 0.13, -0.06],
+          [0.59, 138.59, 0.12, 0.13, 0.06],
+          [0.67, 130.81, 0.12, 0.14, 0.18],
+          [0.75, 110, 0.18, 0.16, 0.3]
+        ],
+        "tones": [
+          [0.02, 440, 0.18, 0.1, 415.3, -0.2],
+          [0.15, 622.25, 0.2, 0.1, 440, 0.2],
+          [0.36, 392, 0.26, 0.14, 293.66, -0.2],
+          [0.65, 220, 0.28, 0.15, 196, 0.2]
+        ],
+        "paper": [
+          [0.35, 0.04, 0.09, -0.3],
+          [0.43, 0.04, 0.09, -0.18],
+          [0.51, 0.04, 0.09, -0.06],
+          [0.59, 0.04, 0.09, 0.06],
+          [0.67, 0.04, 0.09, 0.18],
+          [0.75, 0.05, 0.11, 0.3]
+        ]
+      },
+      "original": "artifacts/uno/audio/source-originals/challenge-failure-v2.wav",
+      "originalBytes": 96044,
+      "originalSha256": "499f7d20ea767429dc0176aee46a665078cc3d9f4843cb5c857d975b939dc8c5",
+      "runtime": "assets/games/uno/audio/challenge-failure-v2.flac",
+      "runtimeBytes": 42655,
+      "runtimeSha256": "140a2aedfccd6f25674ed6851ef56b58a8e80d0fa10470dbec65834a431fd645",
+      "decodedPcmSha256": "63619778021584770fc41ee00ab6d3de91d4a6a052ea65acbee50f58994ffae4",
+      "decodedPcm": "Identical to source WAV samples"
+    },
+    {
+      "id": "win",
+      "version": 2,
+      "theme": "Compact tabletop fanfare, ascending triad, octave crown and a soft confetti finish",
+      "source": "Original deterministic layered PCM synthesis; no external samples",
+      "durationSeconds": 1.2,
+      "sampleRate": 24000,
+      "channels": 2,
+      "bitsPerSample": 16,
+      "frames": 28800,
+      "peak": 0.66,
+      "rms": 0.09178113135875939,
+      "layers": {
+        "paper": 2,
+        "strikes": 1,
+        "tones": 6
+      },
+      "recipe": {
+        "duration": 1.2,
+        "theme": "Compact tabletop fanfare, ascending triad, octave crown and a soft confetti finish",
+        "paper": [
+          [0.05, 0.07, 0.075, -0.3],
+          [0.5, 0.09, 0.065, 0.3]
+        ],
+        "tones": [
+          [0, 523.25, 0.28, 0.14, 523.25, -0.35],
+          [0.13, 659.25, 0.3, 0.14, 659.25, 0],
+          [0.26, 783.99, 0.31, 0.15, 783.99, 0.35],
+          [0.43, 1046.5, 0.64, 0.16, 1046.5, 0.1],
+          [0.43, 659.25, 0.61, 0.09, 659.25, -0.25],
+          [0.43, 783.99, 0.61, 0.09, 783.99, 0.25]
+        ],
+        "strikes": [[0.43, 262, 0.22, 0.13, 0]]
+      },
+      "original": "artifacts/uno/audio/source-originals/win-v2.wav",
+      "originalBytes": 115244,
+      "originalSha256": "306b5cf6ca0252f131b122df65adc6c130d960d4081a607945d4532aac99824e",
+      "runtime": "assets/games/uno/audio/win-v2.flac",
+      "runtimeBytes": 37671,
+      "runtimeSha256": "4b8f5389f99d2c8c6e1799920e1b0e3b6381aebdc4773f9cbc2a6f7365459fe4",
+      "decodedPcmSha256": "92fb83ed28d54acda926285ad6b47ba4487dc2b876fa7a2f965939044d394233",
+      "decodedPcm": "Identical to source WAV samples"
+    }
+  ]
+}

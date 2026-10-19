@@ -15,10 +15,12 @@ async function match(
   seed: number,
   difficulty: BotDifficulty,
   count: number,
+  stacking = false,
 ): Promise<{ state: State; steps: number; rounds: number }> {
   const seats = Array.from({ length: count }, (_, i) => `seat-${i + 1}`),
     ctx = context(seed, seats),
     random = context(seed + 100000, seats).random;
+  if (stacking) ctx.setup = { drawPenaltyStacking: true, catchUnoDelayMs: 500 };
   let s = initialize(ctx),
     steps = 0;
   const memories: Record<string, JsonValue> = Object.fromEntries(
@@ -64,6 +66,13 @@ async function match(
   return { state: s, steps, rounds: s.roundNumber };
 }
 describe('UNO完整500分整场三档固定种子', () => {
+  for (const difficulty of ['default', 'doubao', 'juewu'] as const)
+    for (const count of [2, 4, 6])
+      it(`补牌传递/${difficulty}/${count}人，逐步验证牌守恒和恢复直到500分`, async () => {
+        const result = await match(20261020, difficulty, count, true);
+        expect(result.state.phase).toBe('ended');
+        expect(result.state.winners).toHaveLength(1);
+      }, 30000);
   for (const difficulty of ['default', 'doubao', 'juewu'] as const) {
     for (const count of [2, 4, 6])
       it(`${difficulty}/${count}人，三组seed每次动作与读档验证直到500分`, async () => {

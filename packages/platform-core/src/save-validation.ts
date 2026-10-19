@@ -9,6 +9,8 @@ import type { Save, Snapshot } from './model';
 import { requireThat } from './errors';
 import { decisionClockKey } from './countdown';
 import { isSealedCredential } from './session-receipts';
+import { isDeepStrictEqual } from 'node:util';
+import { pendingActionTimings } from './action-timing';
 export function validateSave(
   input: unknown,
   rules: GameRules | null,
@@ -59,6 +61,14 @@ export function validateSave(
     'damaged-save',
   );
   d.playMode ??= 'play';
+  if (d.gameSetup !== undefined) {
+    requireThat(rules?.setup, 'damaged-save');
+    try {
+      d.gameSetup = rules!.setup!.validate(d.gameSetup);
+    } catch {
+      requireThat(false, 'damaged-save');
+    }
+  }
   requireThat(
     d.countdownSeconds === undefined ||
       CountdownSecondsSchema.safeParse(d.countdownSeconds).success,
@@ -237,6 +247,33 @@ export function validateSave(
     );
   };
   if (d.snapshot) validateSnapshot(d.snapshot);
+  if (d.gameSetup !== undefined && d.snapshot && rules?.setup?.fromState)
+    requireThat(
+      isDeepStrictEqual(d.gameSetup, rules.setup.fromState(d.snapshot.state)),
+      'damaged-save',
+    );
+  const actionTimings = pendingActionTimings(d, rules);
+  requireThat(
+    (d.actionClocks === undefined && actionTimings.size === 0) ||
+      (Array.isArray(d.actionClocks) &&
+        d.actionClocks.length === actionTimings.size &&
+        new Set(d.actionClocks.map((clock) => clock?.key)).size ===
+          d.actionClocks.length &&
+        d.actionClocks.every(
+          (clock) =>
+            clock &&
+            Object.keys(clock).sort().join(',') ===
+              'key,remainingMs,startedAt' &&
+            actionTimings.has(clock.key) &&
+            Number.isSafeInteger(clock.remainingMs) &&
+            clock.remainingMs >= 0 &&
+            clock.remainingMs <= actionTimings.get(clock.key)! &&
+            (d.paused
+              ? clock.startedAt === null
+              : Number.isSafeInteger(clock.startedAt) && clock.startedAt! >= 0),
+        )),
+    'damaged-save',
+  );
   if (!legacyClocks) {
     const pending =
       d.status === 'playing' && d.snapshot && rules

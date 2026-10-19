@@ -31,6 +31,9 @@
     "save-or-action-failed": "操作未确认保存，请检查本地存储后重试。",
     "service-closing": "服务正在关闭，请稍后重新连接。",
     "illegal-action": "选择无效，请重新同步。",
+    "action-not-ready": "该操作的保护时间尚未结束，请稍后再试。",
+    "invalid-game-setup": "开局设置无效，请重新选择。",
+    "game-setup-unavailable": "当前游戏版本不提供开局设置。",
     "game-not-in-current-executable": "此游戏仅可继续旧对局，请在游戏库选择当前完整程序提供的游戏。",
     "missing-game-release": "旧对局所需原游戏版本缺失，请使用包含原版本的旧完整 EXE。"
   },

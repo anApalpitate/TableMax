@@ -109,10 +109,10 @@ export function Hand({
   return (
     <section className="uno-hand-section" aria-label="我的手牌">
       <div className="uno-hand-heading">
-        <h2>
-          我的手牌 <span>{self.hand.length} 张</span>
-        </h2>
-        <div className="uno-hand-actions">
+        <div className="uno-hand-title">
+          <h2>
+            手牌 <span>{self.hand.length} 张</span>
+          </h2>
           <button
             type="button"
             className="uno-icon-button"
@@ -132,6 +132,8 @@ export function Hand({
               <path d="M5 4v16m-3-3 3 3 3-3M12 5h9M12 12h6M12 19h3" />
             </svg>
           </button>
+        </div>
+        <div className="uno-hand-actions">
           {draw && (
             <button
               className="uno-primary"
@@ -149,7 +151,7 @@ export function Hand({
               disabled={locked}
               onClick={() => choose(pass)}
             >
-              保留，过牌
+              保留过牌
             </button>
           )}
         </div>

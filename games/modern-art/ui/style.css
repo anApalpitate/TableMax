@@ -1916,7 +1916,7 @@
 }
 .ma-screen .ma-museum__collection {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  scrollbar-gutter: stable;
+  scrollbar-gutter: auto;
   overscroll-behavior-y: contain;
 }
 .ma-screen .ma-artist__meaning {

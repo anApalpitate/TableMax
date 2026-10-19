@@ -118,6 +118,11 @@ const unitScopes = {
     'game:modern-art',
   ],
   'packages/platform-core/src/game-variants.test.ts': ['box'],
+  'packages/platform-core/src/game-setup-timing.test.ts': ['shared'],
+  'packages/platform-core/src/game-setup-recovery.test.ts': [
+    'shared',
+    'game:uno',
+  ],
   'packages/platform-core/src/modern-art-auction.test.ts': ['game:modern-art'],
   'packages/platform-core/src/play-mode.test.ts': ['shared'],
   'packages/platform-core/src/room-evolution.test.ts': [
@@ -402,6 +407,7 @@ const verificationScopes = {
   'tools/test/games/rummikub/verify-rummikub-ui.mjs': ['game:rummikub'],
   'tools/test/games/rummikub/verify-rummikub-runtime.mjs': ['game:rummikub'],
   'tools/test/games/uno/verify-uno.mjs': ['game:uno'],
+  'tools/test/games/uno/verify-uno-source.mjs': ['box', 'shared', 'game:uno'],
   'tools/test/games/pokemon-encounters/verify-pokemon-expansion.mjs': [
     'game:pokemon-encounters',
   ],

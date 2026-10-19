@@ -110,7 +110,7 @@
     max-height: calc(100dvh - 230px);
     overflow-y: auto;
     overscroll-behavior: contain;
-    scrollbar-gutter: stable;
+    scrollbar-gutter: auto;
     padding: 0 6px;
   }
   [data-player-display='wide'] .ma-screen.player .ma-table > .ma-latest {

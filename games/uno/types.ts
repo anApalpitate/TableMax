@@ -14,6 +14,7 @@ export type Action =
   | { type: 'pass' }
   | { type: 'choose-color'; color: Color }
   | { type: 'accept-draw-four' }
+  | { type: 'accept-draw-penalty' }
   | { type: 'challenge-draw-four' }
   | { type: 'declare-uno' }
   | { type: 'catch-uno'; target: string }
@@ -43,6 +44,8 @@ export type ChallengeEvidence = {
   guilty: boolean;
 };
 export type UnoView = {
+  setup?: UnoSetup;
+  drawPenalty?: { count: number; kind: 'draw-two' | 'wild-draw-four' } | null;
   gameId: 'uno';
   rulesVersion: string;
   phase: 'playing' | 'round-result' | 'ended';
@@ -56,7 +59,8 @@ export type UnoView = {
   topCard: Card;
   discardCount: number;
   drawCount: number;
-  stage: 'turn' | 'drawn' | 'choose-color' | 'draw-four' | 'result';
+  stage:
+    'turn' | 'drawn' | 'choose-color' | 'draw-four' | 'draw-penalty' | 'result';
   players: Record<
     string,
     { handCount: number; score: number; wins: number; uno: boolean }
@@ -78,3 +82,4 @@ export type UnoView = {
   winners: string[];
   latest: LatestAction | null;
 };
+import type { UnoSetup } from './config';

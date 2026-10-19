@@ -9,6 +9,7 @@ import {
 import type { Action, LatestAction } from '../types';
 import { scoreRound } from './scoring';
 import type { State } from './state';
+import { unoSetupDefaults, validateUnoSetup, unoSetupFor } from '../config';
 export function shuffle<T>(values: readonly T[], context: RuleContext): T[] {
   const shuffled = [...values];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -93,6 +94,7 @@ function finishRound(s: State, winner: string): void {
   s.stage = 'result';
   s.turnSeat = null;
   s.drawFour = null;
+  if (s.drawPenalty !== undefined) s.drawPenalty = null;
   s.drawnCardId = null;
   s.unoWindow = null;
   s.latest!.text += `；座位 ${s.seats.indexOf(winner) + 1} 赢得第 ${s.roundNumber} 小局，获得 ${result.points} 分${s.phase === 'ended' ? '，达到 500 分赢得整场' : ''}。`;
@@ -108,6 +110,7 @@ function dealRound(s: State, context: RuleContext): State {
   s.turnNumber = 1;
   s.drawnCardId = null;
   s.drawFour = null;
+  if (s.drawPenalty !== undefined) s.drawPenalty = null;
   s.unoWindow = null;
   s.evidence = null;
   s.winners = [];
@@ -141,9 +144,15 @@ function dealRound(s: State, context: RuleContext): State {
     note = '，首位玩家被跳过';
   } else if (card.kind === 'draw-two') {
     targets = [s.turnSeat];
-    drawCount = takeCards(s, s.turnSeat, 2, context);
-    s.turnSeat = nextSeat(s, s.turnSeat);
-    note = '，首位玩家摸 2 张并跳过';
+    if (unoSetupFor(s).drawPenaltyStacking) {
+      s.drawPenalty = { count: 2, kind: 'draw-two' };
+      s.stage = 'draw-penalty';
+      note = '，首位玩家补 2 张或继续传递';
+    } else {
+      drawCount = takeCards(s, s.turnSeat, 2, context);
+      s.turnSeat = nextSeat(s, s.turnSeat);
+      note = '，首位玩家摸 2 张并跳过';
+    }
   } else if (card.kind === 'wild') {
     s.stage = 'choose-color';
     note = '，首位玩家选择开局颜色';
@@ -164,6 +173,9 @@ export function initialize(context: RuleContext): State {
     new Set(context.seats).size !== context.seats.length
   )
     throw new Error('经典 UNO 支持 2–6 个平台座位。');
+  const setup = validateUnoSetup(
+    context.setup === undefined ? unoSetupDefaults : context.setup,
+  );
   const pick = shuffle(CARD_IDS, context).slice(0, context.seats.length),
     ranks = pick.map((id) => getCard(id).value ?? 0);
   const highest = Math.max(...ranks);
@@ -179,6 +191,8 @@ export function initialize(context: RuleContext): State {
   const seats = [...context.seats],
     zero = Object.fromEntries(seats.map((seat) => [seat, 0]));
   const s: State = {
+    setup,
+    ...(setup.drawPenaltyStacking ? { drawPenalty: null } : {}),
     rulesVersion: RULES_VERSION,
     stateVersion: 1,
     seats,
@@ -256,6 +270,20 @@ export function applyAction(
     );
     return s;
   }
+  if (action.type === 'accept-draw-penalty') {
+    const penalty = s.drawPenalty!;
+    const count = takeCards(s, seat, penalty.count, context);
+    s.drawPenalty = null;
+    advance(s, nextSeat(s, seat));
+    latest(
+      s,
+      seat,
+      action.type,
+      `座位 ${position} 接受累计补 ${penalty.count} 张，实际摸 ${count} 张并跳过。`,
+      { targets: [seat], drawCount: count },
+    );
+    return s;
+  }
   if (
     action.type === 'accept-draw-four' ||
     action.type === 'challenge-draw-four'
@@ -272,8 +300,15 @@ export function applyAction(
         guilty: claim.guilty,
       };
     const target = guilty ? claim.offender : seat,
-      count = takeCards(s, target, guilty ? 4 : challenged ? 6 : 4, context);
+      debt = s.drawPenalty?.count ?? 4,
+      count = takeCards(
+        s,
+        target,
+        debt + (challenged && !guilty ? 2 : 0),
+        context,
+      );
     s.drawFour = null;
+    if (s.drawPenalty !== undefined) s.drawPenalty = null;
     advance(s, guilty ? seat : nextSeat(s, seat));
     latest(
       s,
@@ -318,7 +353,9 @@ export function applyAction(
   if (action.type !== 'play') throw new Error('UNO 游戏动作无效。');
   const card = getCard(action.cardId),
     previousColor = s.activeColor!,
-    hand = s.hands[seat]!;
+    hand = s.hands[seat]!,
+    stacking = unoSetupFor(s).drawPenaltyStacking,
+    previousDebt = s.drawPenalty?.count ?? 0;
   hand.splice(hand.indexOf(action.cardId), 1);
   s.discard.push(action.cardId);
   s.drawnCardId = null;
@@ -340,10 +377,12 @@ export function applyAction(
       evidenceIds: [...hand],
       guilty: hand.some((id) => getCard(id).color === previousColor),
     };
+    if (stacking)
+      s.drawPenalty = { count: previousDebt + 4, kind: 'wild-draw-four' };
     s.turnSeat = target;
     s.turnNumber++;
     s.stage = 'draw-four';
-    suffix = '，等待下一位接受或质疑';
+    suffix = `，等待下一位接受或质疑${previousDebt ? `，累计补 ${previousDebt + 4} 张` : ''}`;
   } else {
     let steps = 1;
     if (card.kind === 'reverse') {
@@ -357,13 +396,22 @@ export function applyAction(
       suffix = '，下一位被跳过';
     }
     if (card.kind === 'draw-two') {
-      steps = 2;
       const target = nextSeat(s, seat);
       targets = [target];
-      drawCount = takeCards(s, target, 2, context);
-      suffix = `，下一位摸 ${drawCount} 张并跳过`;
+      if (stacking && hand.length) {
+        s.drawPenalty = { count: previousDebt + 2, kind: 'draw-two' };
+        s.turnSeat = target;
+        s.turnNumber++;
+        s.stage = 'draw-penalty';
+        suffix = `，下一位补 ${previousDebt + 2} 张或继续传递`;
+      } else {
+        steps = 2;
+        drawCount = takeCards(s, target, previousDebt + 2, context);
+        if (s.drawPenalty !== undefined) s.drawPenalty = null;
+        suffix = `，下一位摸 ${drawCount} 张并跳过`;
+      }
     }
-    advance(s, nextSeat(s, seat, steps));
+    if (s.stage !== 'draw-penalty') advance(s, nextSeat(s, seat, steps));
   }
   latest(
     s,

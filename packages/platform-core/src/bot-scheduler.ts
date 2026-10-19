@@ -146,6 +146,7 @@ export class BotScheduler {
     const controller = new AbortController();
     entry.controller = controller;
     let timeout: ReturnType<typeof setTimeout> | undefined;
+    let reschedule = false;
     try {
       const failure = new Promise<never>((_, reject) => {
         timeout = setTimeout(() => {
@@ -169,6 +170,20 @@ export class BotScheduler {
             return { ...result, random: random.state };
           });
       const result = await Promise.race([calculate, failure]);
+      clearTimeout(timeout);
+      if (controller.signal.aborted) return;
+      const grace = this.room.botActionDelay(task, result.action);
+      if (grace > 0)
+        await new Promise<void>((resolve) => {
+          const done = () => {
+            clearTimeout(timer);
+            controller.signal.removeEventListener('abort', done);
+            resolve();
+          };
+          const timer = setTimeout(done, grace);
+          controller.signal.addEventListener('abort', done, { once: true });
+          if (controller.signal.aborted) done();
+        });
       if (controller.signal.aborted) return;
       const reply = await this.room.submitBot(
         task,
@@ -176,6 +191,14 @@ export class BotScheduler {
         result.memory,
         result.random,
       );
+      reschedule =
+        !reply.ok &&
+        [
+          'stale-instance',
+          'stale-branch',
+          'stale-revision',
+          'not-actionable',
+        ].includes(reply.reason);
       if (
         !reply.ok &&
         ![
@@ -192,6 +215,7 @@ export class BotScheduler {
     } finally {
       clearTimeout(timeout);
       if (this.waiting.get(key) === entry) this.waiting.delete(key);
+      if (reschedule && !this.stopped) queueMicrotask(() => this.schedule());
     }
   }
   stop() {

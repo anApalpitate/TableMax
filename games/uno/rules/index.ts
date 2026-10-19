@@ -4,12 +4,14 @@ import { getCard, RULES_VERSION } from '../data/catalog';
 import { applyAction, initialize, matches, nextRound } from './engine';
 import { project } from './project';
 import { exact, object, validateState, type State } from './state';
+import { unoSetupDefaults, unoSetupFor, validateUnoSetup } from '../config';
 const ACTION_LABELS: Record<Action['type'], string> = {
   play: '出牌',
   draw: '摸牌',
   pass: '保留刚摸牌',
   'choose-color': '选择颜色',
   'accept-draw-four': '接受 +4',
+  'accept-draw-penalty': '接受累计补牌',
   'challenge-draw-four': '质疑 +4',
   'declare-uno': '补喊 UNO',
   'catch-uno': '抓漏喊 UNO',
@@ -27,6 +29,7 @@ export function validateAction(input: unknown): Action {
       'draw',
       'pass',
       'accept-draw-four',
+      'accept-draw-penalty',
       'challenge-draw-four',
       'declare-uno',
       'next-round',
@@ -37,6 +40,7 @@ export function validateAction(input: unknown): Action {
         | 'draw'
         | 'pass'
         | 'accept-draw-four'
+        | 'accept-draw-penalty'
         | 'challenge-draw-four'
         | 'declare-uno'
         | 'next-round',
@@ -109,6 +113,21 @@ export function legalActions(s: State, seat: string): Action[] {
       { type: 'accept-draw-four' },
       { type: 'challenge-draw-four' },
     ];
+  if (s.stage === 'draw-penalty') {
+    for (const id of s.hands[seat]!) {
+      const card = getCard(id);
+      if (card.kind === 'draw-two') actions.push({ type: 'play', cardId: id });
+      else if (card.kind === 'wild-draw-four')
+        actions.push(
+          ...COLORS.map((color) => ({
+            type: 'play' as const,
+            cardId: id,
+            color,
+          })),
+        );
+    }
+    return [...actions, { type: 'accept-draw-penalty' }];
+  }
   if (s.stage !== 'turn' && s.stage !== 'drawn') return actions;
   const hand = s.stage === 'drawn' ? [s.drawnCardId!] : s.hands[seat]!;
   for (const id of hand) {
@@ -159,6 +178,21 @@ export function decisions(s: State): PendingDecision[] {
     }));
 }
 export const rules: GameRules = {
+  setup: {
+    defaults: { ...unoSetupDefaults },
+    validate: (input) => validateUnoSetup(input),
+    fromState: (input) => validateUnoSetup(unoSetupFor(input as State)),
+  },
+  actionTiming(input, raw, seat) {
+    const s = input as State;
+    if (!s.unoWindow || !isLegalAction(s, raw, seat)) return null;
+    const action = validateAction(raw);
+    if (action.type !== 'catch-uno') return null;
+    return {
+      key: `uno-catch:${s.roundNumber}:${s.turnNumber}:${s.actionSerial}:${s.unoWindow.seatId}`,
+      delayMs: unoSetupFor(s).catchUnoDelayMs,
+    };
+  },
   botTiming(input, seat, difficulty) {
     const s = input as State;
     if (!s.unoWindow || !s.seats.includes(seat)) return null;
@@ -166,11 +200,12 @@ export const rules: GameRules = {
     const limits = own
       ? { default: [800, 3200], doubao: [400, 1800], juewu: [200, 900] }
       : { default: [1200, 4000], doubao: [700, 2400], juewu: [400, 1200] };
-    const [minMs, maxMs] = limits[difficulty]!;
+    const [minMs, maxMs] = limits[difficulty]!,
+      delay = own ? 0 : unoSetupFor(s).catchUnoDelayMs;
     return {
       key: `${s.roundNumber}:${s.turnNumber}:${s.actionSerial}:${s.unoWindow.seatId}`,
-      minMs: minMs!,
-      maxMs: maxMs!,
+      minMs: Math.max(minMs!, delay),
+      maxMs: Math.max(maxMs!, delay),
     };
   },
   manifest: {
@@ -224,6 +259,7 @@ export const rules: GameRules = {
           'play',
           'draw',
           'accept-draw-four',
+          'accept-draw-penalty',
           'challenge-draw-four',
           'catch-uno',
         ].includes(action.type),

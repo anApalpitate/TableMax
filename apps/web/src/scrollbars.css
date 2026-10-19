@@ -3,6 +3,13 @@
   --tm-scroll-thumb: #55786b;
   --tm-scroll-hover: #234f40;
 }
+:where(*) {
+  scrollbar-color: var(--tm-scroll-thumb) var(--tm-scroll-track);
+}
+:where(*)::-webkit-scrollbar-track,
+:where(*)::-webkit-scrollbar-corner {
+  background: var(--tm-scroll-track);
+}
 /* Style native scrolling only. Touch and forced-color users keep OS controls. */
 @media (pointer: fine) and (forced-colors: none) {
   :where(*) {
@@ -43,7 +50,7 @@
   }
   :root,
   :where(.dialog-surface, .pg-page-scroll, .ma-hand) {
-    scrollbar-gutter: stable;
+    scrollbar-gutter: auto;
   }
 }
 :where(.dialog-surface) {

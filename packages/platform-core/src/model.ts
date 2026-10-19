@@ -68,6 +68,8 @@ export interface Save {
   // Platform metadata, deliberately outside game checkpoints.
   countdownSeconds?: number;
   decisionClocks?: DecisionClockState[];
+  gameSetup?: JsonValue;
+  actionClocks?: ActionClockState[];
   seats: Seat[];
   hostSeat?: string | null;
   ownerSeatId?: string | null;
@@ -85,6 +87,11 @@ export interface Save {
 export interface DecisionClockState {
   key: string;
   id: string;
+  remainingMs: number;
+  startedAt: number | null;
+}
+export interface ActionClockState {
+  key: string;
   remainingMs: number;
   startedAt: number | null;
 }

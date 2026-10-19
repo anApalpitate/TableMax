@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components -- The lazy game module exports its platform client. */
-import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 import type { JsonValue } from '@tablemax/game-sdk';
 import {
   avatarFor,
@@ -18,143 +18,64 @@ import {
   type GameHost,
 } from '@tablemax/web-host';
 import type { Action, UnoView } from '../types';
+import type { UnoSetup } from '../config';
 import { Board, Seats, Leaderboard } from '../ui/Board';
 import { Card } from '../ui/Card';
 import { ColorChoice, Hand, colorNames } from '../ui/Hand';
 import { UnoSoundControl } from '../ui/audio';
 import { unoRulebook } from '../ui/RulesGuide';
+import { SavedEffect } from '../ui/SavedEffects';
+import { UnoSetupSettings } from '../ui/SetupSettings';
 import '../ui/style.css';
 
-function SavedEffect({ game }: { game: UnoView }) {
-  const layer = useRef<HTMLDivElement>(null);
-  const latest = game.latest;
-  useLayoutEffect(() => {
-    const element = layer.current;
-    if (!element || !latest) return;
-    const seat = (id: string | null) =>
-      id
-        ? document.querySelector<HTMLElement>(
-            `.uno-seat[data-seat-id="${CSS.escape(id)}"]`,
-          )
-        : null;
-    const discard = document.querySelector<HTMLElement>(
-      '.uno-discard-pile > .uno-card',
-    );
-    const deck = document.querySelector<HTMLElement>(
-      '.uno-draw-pile > .uno-card',
-    );
-    const hand = document.querySelector<HTMLElement>('.uno-hand-scroll');
-    const point = (node: HTMLElement | null, fallback: HTMLElement) => {
-      const rect = (node ?? fallback).getBoundingClientRect();
-      return {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
-        width: rect.width,
-      };
+function CatchUnoControl({
+  timing,
+  disabled,
+  choose,
+}: {
+  timing:
+    { remainingMs: number; serverTime: number; running: boolean } | undefined;
+  disabled: boolean;
+  choose(): void;
+}) {
+  const [receivedAt] = useState(() => performance.now());
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    if (!timing?.running || timing.remainingMs <= 0) return;
+    const update = () => {
+      const passed = performance.now() - receivedAt;
+      setElapsed(passed);
+      if (passed >= timing.remainingMs) clearInterval(timer);
     };
-    if (discard) {
-      const land = point(discard, element);
-      element.style.setProperty('--land-x', `${land.x}px`);
-      element.style.setProperty('--land-y', `${land.y}px`);
-    }
-    for (const flight of element.querySelectorAll<HTMLElement>('.uno-flight')) {
-      const draw = flight.dataset.flight === 'draw';
-      const owner = draw ? (latest.targets[0] ?? latest.actor) : latest.actor;
-      const actor = owner === game.self?.seatId && hand ? hand : seat(owner);
-      const from = point(draw ? deck : actor, element);
-      const to = point(draw ? actor : discard, element);
-      flight.style.setProperty('--from-x', `${from.x}px`);
-      flight.style.setProperty('--from-y', `${from.y}px`);
-      flight.style.setProperty('--to-x', `${to.x}px`);
-      flight.style.setProperty('--to-y', `${to.y}px`);
-      flight.style.setProperty(
-        '--uno-card-width',
-        `${draw ? 76 : Math.min(190, to.width)}px`,
-      );
-    }
-    const highlighted = latest.targets
-      .map((id) => seat(id))
-      .filter((node): node is HTMLElement => Boolean(node));
-    for (const target of highlighted) target.dataset.feedbackTarget = 'true';
-    return () => {
-      for (const target of highlighted)
-        target.removeAttribute('data-feedback-target');
-    };
-  }, [latest, game.self?.seatId]);
-  if (!latest) return null;
-  const kind =
-    game.phase !== 'playing'
-      ? 'win'
-      : /catch|challenge/.test(latest.verb)
-        ? 'challenge'
-        : /declare/.test(latest.verb) || /UNO/.test(latest.text)
-          ? 'uno'
-          : (latest.card?.kind ??
-            (latest.verb === 'choose-color' ? 'wild' : latest.verb));
-  const symbol =
-    kind === 'win'
-      ? '★'
-      : kind === 'reverse'
-        ? '↔'
-        : kind === 'skip'
-          ? '⊘'
-          : kind === 'draw-two'
-            ? '+2'
-            : kind === 'wild-draw-four'
-              ? '+4'
-              : kind === 'uno'
-                ? 'UNO!'
-                : kind === 'challenge'
-                  ? '!'
-                  : '';
+    const timer = setInterval(update, 50);
+    return () => clearInterval(timer);
+  }, [receivedAt, timing?.running, timing?.remainingMs]);
+  const remaining = Math.max(
+    0,
+    (timing?.remainingMs ?? 0) - (timing?.running ? elapsed : 0),
+  );
+  const seconds = (Math.ceil(remaining / 100) / 10).toFixed(1);
   return (
-    <div
-      ref={layer}
-      className={`uno-saved-effect uno-saved-effect--${kind}`}
-      aria-hidden="true"
+    <button
+      className="uno-primary uno-catch-control"
+      type="button"
+      disabled={disabled || remaining > 0}
+      onClick={choose}
+      aria-label={
+        remaining > 0 ? '质疑漏喊 UNO，等待 ' + seconds + ' 秒' : '质疑漏喊 UNO'
+      }
     >
-      <div className="uno-effect-ring" />
-      {latest.card && (
-        <div className="uno-flight uno-flying-card" data-flight="play">
-          <Card card={latest.card} />
-        </div>
-      )}
-      {Array.from({ length: Math.min(4, latest.drawCount) }, (_, index) => (
-        <div
-          className="uno-flight uno-drawing-card"
-          data-flight="draw"
-          key={index}
-          style={{ '--flight-delay': `${index * 70}ms` } as CSSProperties}
-        >
-          <Card back />
-        </div>
-      ))}
-      {symbol && <span className="uno-effect-symbol">{symbol}</span>}
-      {['win', 'uno', 'wild', 'wild-draw-four'].includes(kind) && (
-        <div className="uno-confetti">
-          {Array.from({ length: 18 }, (_, index) => (
-            <i
-              key={index}
-              style={
-                {
-                  '--piece': index,
-                  '--piece-drop': `${(index % 4) * 30}px`,
-                } as CSSProperties
-              }
-            />
-          ))}
-        </div>
-      )}
-    </div>
+      {remaining > 0 ? '抓漏 ' + seconds + ' 秒' : '抓漏 UNO'}
+    </button>
   );
 }
 
 function UnoScreen({ session }: { session: GameHost }) {
   const { role, view, connected, locked, canControl, command } = session;
   const game = view?.gameView as UnoView | null;
-  const [panel, setPanel] = useState<
-    'menu' | 'rules' | 'players' | 'evidence' | null
-  >(null);
+  const [panel, setPanel] = useState<'menu' | 'rules' | 'players' | null>(null);
+  const [dismissedEvidence, setDismissedEvidence] = useState('');
+  const [announcedEvidence, setAnnouncedEvidence] = useState('');
   const canPlay = useAudioOutput();
   const player = role === 'player';
   const currentFeedback =
@@ -190,9 +111,14 @@ function UnoScreen({ session }: { session: GameHost }) {
         : '';
   const declare = action('declare-uno');
   const catchUno = action('catch-uno');
+  const catchTiming = view?.actionTiming?.find(
+    (timing) => timing.actionType === 'catch-uno',
+  );
+  const acceptPenalty = action('accept-draw-penalty');
   const accept = action('accept-draw-four');
   const challenge = action('challenge-draw-four');
   const evidence = game?.self?.challengeEvidence;
+  const evidenceKey = `${view?.instanceId}:${view?.branch}:${game?.latest?.serial}`;
   const result = game?.results.at(-1);
   const lifecycle = view?.lifecycleActions.find(
     (entry) => (entry as Action).type === 'next-round',
@@ -203,6 +129,22 @@ function UnoScreen({ session }: { session: GameHost }) {
     view?.playMode !== 'test' &&
     connected &&
     !view?.paused;
+  const authorizedEvidence = Boolean(
+    player &&
+    evidence &&
+    game &&
+    game.self &&
+    game.latest &&
+    game.latest.actor === game.self.seatId &&
+    /challenge/.test(game.latest.verb),
+  );
+  if (
+    authorizedEvidence &&
+    shownSaved &&
+    currentFeedback &&
+    announcedEvidence !== evidenceKey
+  )
+    setAnnouncedEvidence(evidenceKey);
   const heading =
     game?.phase === 'ended'
       ? '整场结束'
@@ -210,11 +152,15 @@ function UnoScreen({ session }: { session: GameHost }) {
         ? '本局结束'
         : game?.stage === 'draw-four'
           ? `${names[game.drawFour?.target ?? ''] ?? '下一位'}回应 +4`
-          : game?.stage === 'choose-color'
-            ? '选择开局颜色'
-            : ownTurn
-              ? '轮到你'
-              : `${names[game?.turnSeat ?? ''] ?? '下一位'}的回合`;
+          : game?.stage === 'draw-penalty'
+            ? ownTurn
+              ? '传递或补牌'
+              : `${names[game.turnSeat ?? ''] ?? '下一位'}回应补牌`
+            : game?.stage === 'choose-color'
+              ? '选择开局颜色'
+              : ownTurn
+                ? '轮到你'
+                : `${names[game?.turnSeat ?? ''] ?? '下一位'}的回合`;
   return (
     <main
       className={`uno-screen uno-screen--${role}`}
@@ -309,9 +255,14 @@ function UnoScreen({ session }: { session: GameHost }) {
               <strong>{heading}</strong>
             </div>
             <span
-              className={`uno-turn-note${notice ? ' uno-turn-note--notice' : ''}`}
+              className={`uno-turn-note${notice ? ' uno-turn-note--notice' : ''}${game.drawPenalty ? ' uno-turn-note--penalty' : ''}`}
             >
-              {notice || (game.direction === 1 ? '顺时针' : '逆时针')}
+              {notice ||
+                (game.drawPenalty
+                  ? `累计补 ${game.drawPenalty.count} 张`
+                  : game.direction === 1
+                    ? '顺时针'
+                    : '逆时针')}
             </span>
             <DecisionCountdown view={view} connected={connected} compact />
             {canControl && view.paused && (
@@ -361,22 +312,33 @@ function UnoScreen({ session }: { session: GameHost }) {
                             : `${names[game.unoWindow?.seatId ?? '']}还没喊 UNO`}
                         </strong>
                       </div>
-                      <button
-                        className="uno-primary"
-                        type="button"
-                        disabled={locked || !active}
-                        onClick={() => choose((declare ?? catchUno)!)}
-                      >
-                        {declare ? 'UNO!' : '质疑漏喊 UNO'}
-                      </button>
+                      {declare && (
+                        <button
+                          className="uno-primary"
+                          type="button"
+                          disabled={locked || !active}
+                          onClick={() => choose(declare)}
+                        >
+                          UNO!
+                        </button>
+                      )}
+                      {catchUno && (
+                        <CatchUnoControl
+                          key={`${view.instanceId}:${view.branch}:${view.decisionId}:${game.unoWindow?.seatId}:${catchTiming?.serverTime}:${catchTiming?.remainingMs}`}
+                          timing={catchTiming}
+                          disabled={locked || !active}
+                          choose={() => choose(catchUno)}
+                        />
+                      )}
                     </div>
                   )}
                   {(accept || challenge) && (
                     <section className="uno-reaction uno-reaction--four">
                       <h2>{names[game.drawFour?.offender ?? '']}出了 +4</h2>
                       <p>
-                        接受摸 4 张；质疑失败摸 6
-                        张。质疑会核验对方出牌时是否持有
+                        接受摸 {game.drawPenalty?.count ?? 4} 张；质疑失败摸{' '}
+                        {(game.drawPenalty?.count ?? 4) + 2}
+                        张。对方是否持有
                         {game.drawFour
                           ? colorNames[game.drawFour.previousColor]
                           : '当前颜色'}
@@ -390,7 +352,7 @@ function UnoScreen({ session }: { session: GameHost }) {
                             disabled={locked || !active}
                             onClick={() => choose(accept)}
                           >
-                            接受，摸 4 张
+                            接受摸 {game.drawPenalty?.count ?? 4} 张
                           </button>
                         )}
                         {challenge && (
@@ -405,6 +367,21 @@ function UnoScreen({ session }: { session: GameHost }) {
                       </div>
                     </section>
                   )}
+                  {acceptPenalty && (
+                    <section className="uno-reaction uno-reaction--penalty">
+                      <strong>
+                        补牌累计 {game.drawPenalty?.count ?? 2} 张
+                      </strong>
+                      <button
+                        className="uno-primary"
+                        type="button"
+                        disabled={locked || !active}
+                        onClick={() => choose(acceptPenalty)}
+                      >
+                        接受摸 {game.drawPenalty?.count ?? 2} 张
+                      </button>
+                    </section>
+                  )}
                   {action('choose-color') && (
                     <section className="uno-reaction">
                       <h2>选一种开局颜色</h2>
@@ -416,16 +393,6 @@ function UnoScreen({ session }: { session: GameHost }) {
                       />
                     </section>
                   )}
-                  {evidence && (
-                    <button
-                      type="button"
-                      className="uno-evidence-entry"
-                      onClick={() => setPanel('evidence')}
-                    >
-                      查看你的质疑证据
-                    </button>
-                  )}
-
                   <Hand
                     key={`${view.instanceId}:${game.self.seatId}:${game.roundNumber}`}
                     scope={`${view.instanceId}:${game.self.seatId}:${game.roundNumber}`}
@@ -557,6 +524,41 @@ function UnoScreen({ session }: { session: GameHost }) {
               <span className="uno-saved-label">已保存</span>
             </div>
           )}
+          {authorizedEvidence &&
+            evidence &&
+            announcedEvidence === evidenceKey &&
+            dismissedEvidence !== evidenceKey && (
+              <section
+                className="uno-challenge-result"
+                aria-label="仅你可见的质疑证据"
+              >
+                <div className="uno-challenge-result-heading">
+                  <p>
+                    <strong>{evidence.guilty ? '质疑成功' : '质疑失败'}</strong>{' '}
+                    {names[evidence.offender]}当时
+                    {evidence.guilty ? '持有' : '没有'}
+                    {colorNames[evidence.previousColor]}。
+                  </p>
+                  <button
+                    type="button"
+                    className="uno-icon-button"
+                    aria-label="关闭质疑证据"
+                    title="关闭质疑证据"
+                    onClick={() => setDismissedEvidence(evidenceKey)}
+                  >
+                    ×
+                  </button>
+                </div>
+                <div
+                  className="uno-evidence-cards"
+                  aria-label="对方出牌前的手牌"
+                >
+                  {evidence.cards.map((card) => (
+                    <Card key={card.id} card={card} />
+                  ))}
+                </div>
+              </section>
+            )}
           {shownSaved && (
             <SavedEffect
               key={`${view.instanceId}:${view.branch}:${game.latest?.serial}`}
@@ -572,36 +574,21 @@ function UnoScreen({ session }: { session: GameHost }) {
               ? 'UNO 经典版图文规则'
               : panel === 'players'
                 ? '积分榜'
-                : panel === 'evidence'
-                  ? '仅你可见的质疑证据'
-                  : 'UNO 菜单'
+                : 'UNO 菜单'
           }
           close={() => setPanel(null)}
           className="uno-overlay"
         >
           {panel === 'rules' ? (
-            <RulesGuide {...unoRulebook} />
+            <RulesGuide
+              {...unoRulebook(
+                game?.setup ?? (view?.game?.setup as UnoSetup | undefined),
+              )}
+            />
           ) : (
             <div className="uno-panel">
               {panel === 'players' ? (
                 game && view && <Leaderboard game={game} seats={view.seats} />
-              ) : panel === 'evidence' ? (
-                evidence && (
-                  <>
-                    <h2>{names[evidence.offender]}的出牌前手牌</h2>
-                    <p>
-                      当时应跟{colorNames[evidence.previousColor]}。
-                      {evidence.guilty
-                        ? '持有当前颜色，+4 不合法。'
-                        : '没有当前颜色，+4 合法。'}
-                    </p>
-                    <div className="uno-evidence-cards">
-                      {evidence.cards.map((card) => (
-                        <Card key={card.id} card={card} />
-                      ))}
-                    </div>
-                  </>
-                )
               ) : (
                 <>
                   <div className="dialog-actions game-menu-settings">
@@ -656,6 +643,7 @@ function UnoScreen({ session }: { session: GameHost }) {
 
 export const client: GameClient = {
   Screen: UnoScreen,
+  SetupSettings: UnoSetupSettings,
   savedChanges(before, after) {
     const previous = before as UnoView;
     const next = after as UnoView;

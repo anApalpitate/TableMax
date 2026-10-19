@@ -51,7 +51,7 @@
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  scrollbar-gutter: stable;
+  scrollbar-gutter: auto;
   scrollbar-width: thin;
   scrollbar-color: #91a787 #edf2e5;
   margin-inline-end: calc(6px - var(--box-panel-inset));

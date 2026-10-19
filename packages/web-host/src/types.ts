@@ -1,5 +1,6 @@
 import type { ComponentType, AnchorHTMLAttributes, ReactNode } from 'react';
 import type { RoomView, RoomFeedback, Command } from '@tablemax/protocol';
+import type { JsonValue } from '@tablemax/game-sdk';
 
 export const WEB_HOST_VERSION = 1;
 export type GameCommand = Extract<
@@ -43,7 +44,13 @@ export interface HostPresentationServices {
   avatarFor(id: string): string;
   avatarChoices: readonly { id: string; name: string; src: string }[];
 }
+export interface GameSetupSettingsProps {
+  value: JsonValue;
+  disabled: boolean;
+  onChange(value: JsonValue): void;
+}
 export interface GameClient {
+  SetupSettings?: ComponentType<GameSetupSettingsProps>;
   Screen: ComponentType<{ session: GameHost }>;
   savedChanges(before: unknown, after: unknown): string[];
   motionDuration: number | ((view: unknown) => number);

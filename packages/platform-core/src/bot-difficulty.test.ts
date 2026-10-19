@@ -260,6 +260,7 @@ it('reaction timers compete independently, freeze on pause and cancel stale wind
       return () => {};
     },
     botTasks: tasks,
+    botActionDelay: () => 0,
     submitBot: async (task: ReturnType<typeof tasks>[number]) => {
       submitted.push(task.decision.seatId);
       window = 'closed';

@@ -6,6 +6,7 @@ import {
   type RoundResult,
 } from '../types';
 import { handValue } from './scoring';
+import { validateUnoSetup, type UnoSetup } from '../config';
 export type DrawFour = {
   offender: string;
   target: string;
@@ -22,11 +23,14 @@ export type Evidence = {
   guilty: boolean;
 };
 export type State = {
+  setup?: UnoSetup;
+  drawPenalty?: { count: number; kind: 'draw-two' | 'wild-draw-four' } | null;
   rulesVersion: string;
   stateVersion: 1;
   seats: string[];
   phase: 'playing' | 'round-result' | 'ended';
-  stage: 'turn' | 'drawn' | 'choose-color' | 'draw-four' | 'result';
+  stage:
+    'turn' | 'drawn' | 'choose-color' | 'draw-four' | 'draw-penalty' | 'result';
   roundNumber: number;
   turnNumber: number;
   actionSerial: number;
@@ -96,10 +100,24 @@ export function validateState(input: unknown, seats: readonly string[]): State {
       'results',
       'winners',
       'latest',
+      ...(Object.hasOwn(input, 'setup') ? ['setup'] : []),
+      ...(Object.hasOwn(input, 'drawPenalty') ? ['drawPenalty'] : []),
     ])
   )
     fail();
   const s = input as State;
+  if (Object.hasOwn(s, 'setup')) {
+    try {
+      validateUnoSetup(s.setup);
+    } catch {
+      fail();
+    }
+  }
+  if (
+    Object.hasOwn(s, 'drawPenalty') !==
+    (s.setup?.drawPenaltyStacking === true)
+  )
+    fail();
   if (
     s.rulesVersion !== RULES_VERSION ||
     s.stateVersion !== 1 ||
@@ -111,9 +129,14 @@ export function validateState(input: unknown, seats: readonly string[]): State {
     JSON.stringify(s.seats) !== JSON.stringify(seats) ||
     !s.seats.includes(s.dealer) ||
     !['playing', 'round-result', 'ended'].includes(s.phase) ||
-    !['turn', 'drawn', 'choose-color', 'draw-four', 'result'].includes(
-      s.stage,
-    ) ||
+    ![
+      'turn',
+      'drawn',
+      'choose-color',
+      'draw-four',
+      'draw-penalty',
+      'result',
+    ].includes(s.stage) ||
     !integer(s.roundNumber, 1) ||
     !integer(s.turnNumber, 1) ||
     !integer(s.actionSerial) ||
@@ -147,6 +170,31 @@ export function validateState(input: unknown, seats: readonly string[]): State {
   ];
   if (all.length !== 108 || new Set(all).size !== 108) fail();
   const top = getCard(s.discard.at(-1)!);
+  if (s.drawPenalty !== undefined && s.drawPenalty !== null) {
+    if (
+      !object(s.drawPenalty) ||
+      !exact(s.drawPenalty, ['count', 'kind']) ||
+      !integer(
+        s.drawPenalty.count,
+        s.drawPenalty.kind === 'wild-draw-four' ? 4 : 2,
+      ) ||
+      s.drawPenalty.count > s.actionSerial * 4 ||
+      s.drawPenalty.count % 2 !== 0 ||
+      !['draw-two', 'wild-draw-four'].includes(s.drawPenalty.kind) ||
+      top.kind !== s.drawPenalty.kind ||
+      s.phase !== 'playing' ||
+      s.stage !==
+        (s.drawPenalty.kind === 'draw-two' ? 'draw-penalty' : 'draw-four')
+    )
+      fail();
+  }
+  if ((s.stage === 'draw-penalty') !== (s.drawPenalty?.kind === 'draw-two'))
+    fail();
+  if (
+    s.setup?.drawPenaltyStacking &&
+    (s.stage === 'draw-four') !== (s.drawPenalty?.kind === 'wild-draw-four')
+  )
+    fail();
   if (s.phase === 'playing') {
     if (
       !s.turnSeat ||
@@ -257,7 +305,7 @@ export function validateState(input: unknown, seats: readonly string[]): State {
       s.hands[s.unoWindow.seatId]!.length !== 1 ||
       s.unoDeclared[s.unoWindow.seatId] ||
       s.phase !== 'playing' ||
-      !['turn', 'draw-four'].includes(s.stage))
+      !['turn', 'draw-four', 'draw-penalty'].includes(s.stage))
   )
     fail();
   if (s.evidence !== null) {
@@ -367,6 +415,7 @@ export function validateState(input: unknown, seats: readonly string[]): State {
         'pass',
         'choose-color',
         'accept-draw-four',
+        'accept-draw-penalty',
         'challenge-draw-four',
         'declare-uno',
         'catch-uno',

@@ -141,6 +141,7 @@ export const CommandSchema = z
         })
         .strict(),
       z.object({ type: z.literal('start') }).strict(),
+      z.object({ type: z.literal('set-game-setup'), setup: z.json() }).strict(),
       z.object({ type: z.literal('lifecycle'), action: z.json() }).strict(),
       z.object({ type: z.literal('pause') }).strict(),
       z.object({ type: z.literal('resume') }).strict(),
@@ -326,6 +327,7 @@ export interface RoomView {
     variantId?: string | undefined;
     releaseRef?: string | undefined;
     restoreOnly?: boolean | undefined;
+    setup?: unknown;
   } | null;
   catalog: {
     id: string;
@@ -356,6 +358,14 @@ export interface RoomView {
   decisionId: string | null;
   selectionToken: string | null;
   actions: unknown[];
+  actionTiming?:
+    | {
+        actionType: string;
+        remainingMs: number;
+        serverTime: number;
+        running: boolean;
+      }[]
+    | undefined;
   lifecycleActions: unknown[];
   history: {
     id: string;
@@ -400,6 +410,7 @@ export const RoomViewSchema = z
         max: z.number().int().positive(),
         decisionTimer: z.boolean().optional(),
         restoreOnly: z.boolean().optional(),
+        setup: z.json().optional(),
         variantId: z.string().optional(),
         releaseRef: z
           .string()
@@ -466,6 +477,19 @@ export const RoomViewSchema = z
     decisionId: z.string().nullable(),
     selectionToken: z.string().nullable(),
     actions: z.array(z.json()),
+    actionTiming: z
+      .array(
+        z
+          .object({
+            actionType: z.string().min(1).max(64),
+            remainingMs: z.number().int().min(0).max(5000),
+            serverTime: z.number().int().nonnegative(),
+            running: z.boolean(),
+          })
+          .strict(),
+      )
+      .max(32)
+      .optional(),
     lifecycleActions: z.array(z.json()),
     history: z.array(
       z

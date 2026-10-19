@@ -8,6 +8,10 @@ export function project(s: State, viewer: Viewer): UnoView {
       ? viewer.seatId
       : null;
   return {
+    ...(s.setup ? { setup: { ...s.setup } } : {}),
+    ...(s.drawPenalty !== undefined
+      ? { drawPenalty: s.drawPenalty ? { ...s.drawPenalty } : null }
+      : {}),
     gameId: 'uno',
     rulesVersion: s.rulesVersion,
     phase: s.phase,

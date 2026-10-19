@@ -9,7 +9,12 @@ import {
 } from 'react';
 import type { GameHost, GameClient, GameHostSlots } from './types';
 import { presentationServices } from './presentation-services';
-export type { GameHost, GameClient, GameCommand } from './types';
+export type {
+  GameHost,
+  GameClient,
+  GameCommand,
+  GameSetupSettingsProps,
+} from './types';
 export type { RoomFeedback, PublicAction } from '@tablemax/protocol';
 export { WEB_HOST_VERSION } from './types';
 export { resourceUrl } from './resource-url';

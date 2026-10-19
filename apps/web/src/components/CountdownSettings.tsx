@@ -4,6 +4,7 @@ import type { RoomSession } from '../session/useRoomSession';
 import { BoxOverlayPanel } from './BoxOverlayPanel';
 import { feedbackText } from '../content/feedback';
 import { SoundSetting } from './SoundSetting';
+import { GameSetupSettings } from './GameSetupSettings';
 import './countdown.css';
 import './settings-panel.css';
 
@@ -67,6 +68,7 @@ export function CountdownSettings({
           close={() => setOpen(false)}
         >
           <SoundSetting />
+          <GameSetupSettings session={session} />
           {children}
           {canSetTimer && (
             <div className="countdown-settings">
