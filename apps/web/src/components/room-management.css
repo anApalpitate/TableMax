@@ -1,23 +1,89 @@
 .dialog-surface .management.room-management-details {
   display: grid;
-  gap: 16px;
+  gap: 8px;
+  min-width: 0;
+  color: #254e42;
+  font-size: 18px;
 }
 .room-management-details .room-management-section {
   min-width: 0;
 }
-.room-management-details .room-management-section + .room-management-section {
-  padding-top: 16px;
-  border-top: 1px solid #d7decd;
-}
-.room-management-details .room-management-section .owner-control {
+.room-management-details .room-management-row {
+  display: grid;
+  grid-template-columns: minmax(max-content, 1fr) minmax(0, 1.2fr);
+  align-items: center;
   gap: 8px;
+  min-width: 0;
+  padding: 8px 12px;
   margin: 0;
+  border: 1px solid #ffffffd9;
+  border-radius: 12px;
+  background: #ffffff92;
+  box-shadow: 0 4px 16px #4469540c;
 }
-.room-management-details .room-management-section .owner-control p {
+.room-management-details .room-management-row > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.dialog-surface
+  .room-management-details
+  .room-management-row
+  > :is(button, .button, select) {
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  border-radius: 12px;
+  font-size: 18px;
+  line-height: 1.4;
+}
+.room-management-details .room-management-row select {
+  border: 1px solid #b7d2c6;
+  background: #fffdf6;
+}
+.dialog-surface .management.room-management-details .setting-help__label {
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font-size: 18px;
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.room-management-details .device-transfer-requests {
+  gap: 8px;
+}
+.room-management-details
+  .device-transfer-requests__heading
+  > span:not(.setting-help) {
+  justify-self: end;
+  padding: 0;
+  background: transparent;
   font-size: 16px;
+  text-align: end;
   line-height: 1.5;
 }
-.dialog-surface .management.room-management-details > .button {
-  margin: 0;
+.room-management-details .device-transfer-request {
+  border: 1px solid #d1dfd2;
+}
+.room-management-details .device-transfer-request__identity strong {
+  overflow-wrap: anywhere;
+}
+.room-management-details .device-transfer__actions {
+  width: 100%;
+}
+.dialog-surface .room-management-details .device-transfer__actions button {
+  flex-basis: 100px;
+}
+.room-management-details .device-transfer-request__verification strong {
   font-size: 18px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }

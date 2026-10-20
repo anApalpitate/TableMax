@@ -67,7 +67,7 @@
 .dialog-surface .management .device-transfer-requests__heading h3 {
   margin: 0;
 }
-.device-transfer-requests__heading > span {
+.device-transfer-requests__heading > span:not(.setting-help) {
   display: grid;
   place-items: center;
   min-width: 28px;

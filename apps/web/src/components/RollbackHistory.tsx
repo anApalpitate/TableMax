@@ -3,6 +3,7 @@ import type { RoomSession } from '../session/useRoomSession';
 import { OverlayPanel } from './OverlayPanel';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import { feedbackText } from '../content/feedback';
+import { SettingHelp } from '@tablemax/web-host';
 
 export function RollbackHistory({ session }: { session: RoomSession }) {
   const { view, command, locked } = session;
@@ -32,9 +33,17 @@ export function RollbackHistory({ session }: { session: RoomSession }) {
   const selectedStep = view.history.find((entry) => entry.id === selected);
   return (
     <>
-      <button type="button" className="secondary" onClick={() => setOpen(true)}>
-        决策点回退（{view.history.length}）
-      </button>
+      <div className="room-management-row">
+        <SettingHelp label="决策点回退" hint={feedbackText('history.hint')} />
+        <button
+          type="button"
+          className="secondary"
+          aria-label={`决策点回退（${view.history.length}）`}
+          onClick={() => setOpen(true)}
+        >
+          查看（{view.history.length}）
+        </button>
+      </div>
       {open && (
         <OverlayPanel
           title="决策点回退"

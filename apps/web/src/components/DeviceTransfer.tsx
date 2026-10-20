@@ -4,6 +4,7 @@ import type { DeviceTransferSession } from '../session/useDeviceTransfer';
 import { ConfirmationDialog } from './ConfirmationDialog';
 import { feedbackText } from '../content/feedback';
 import './device-transfer.css';
+import { SettingHelp } from '@tablemax/web-host';
 
 export function DeviceTransfer({
   session,
@@ -111,23 +112,25 @@ export function DeviceTransferRequests({ session }: { session: RoomSession }) {
   );
   return (
     <section className="device-transfer-requests" aria-label="换机申请">
-      <div className="device-transfer-requests__heading">
-        <h3>换机申请</h3>
-        {requests.length > 0 && (
+      <div className="device-transfer-requests__heading room-management-row">
+        <SettingHelp
+          label="换机申请"
+          hint="仅电脑管理员可批准。请先核对新设备上的六位核对码，批准后原设备退出。"
+        />
+        {requests.length > 0 ? (
           <span
             aria-label={feedbackText('transfer.pendingRequests', {
               count: requests.length,
             })}
           >
-            {requests.length}
+            待批准 {requests.length}
+          </span>
+        ) : (
+          <span className="device-transfer-requests__empty" role="status">
+            {feedbackText('transfer.noRequestsShort')}
           </span>
         )}
       </div>
-      {!requests.length && (
-        <p className="device-transfer-requests__empty">
-          {feedbackText('transfer.noRequests')}
-        </p>
-      )}
       {requests.map((request) => {
         const seat = session.view!.seats.find(
           (value) => value.id === request.seatId,

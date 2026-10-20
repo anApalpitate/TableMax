@@ -28,6 +28,7 @@ assert(
       'settings',
       'settings-layout',
       'seat-names',
+      'management-layout',
       'save-layout',
       'sound',
       'mobile',
@@ -80,6 +81,8 @@ import {BoxScreen} from ${file('apps/web/src/screens/BoxScreen.tsx')};
 import {useSoundPreference} from ${file('packages/web-host/src/index.tsx')};
 import {useRoomSession} from ${file('apps/web/src/session/useRoomSession.ts')};
 import {RoomViewSchema} from ${file('packages/protocol/src/index.ts')};
+import {RoomManagement} from ${file('apps/web/src/components/RoomManagement.tsx')};
+import {OverlayPanel} from ${file('apps/web/src/components/OverlayPanel.tsx')};
 import type {DisplaySnapshot, WindowMode} from ${file('apps/desktop/src/display-types.ts')};
 import {AbilityIcon} from ${file('games/pokemon-encounters/ui/AbilityIcon.tsx')};
 import {AbilityLegend} from ${file('games/pokemon-encounters/ui/RuleDiagrams.tsx')};
@@ -120,6 +123,18 @@ window.configureNativeSettings=(enabled)=>{
  window.tablemaxWindow={read:async()=>({mode,fullscreen:mode==='fullscreen'}),subscribe:()=>noop,setMode:async next=>{window.nativeSettingsCalls.window.push(next);mode=next;return {mode,fullscreen:mode==='fullscreen'};},setFullscreen:async enabled=>{mode=enabled?'fullscreen':'windowed';return {mode,fullscreen:enabled};}};
 };
 function SeatNamesBox({role}){const session=useRoomSession(role);window.seatLiveSession=session;return <BoxScreen session={session}/>;}
+window.renderManagement=({status,full=false})=>{
+ history.replaceState(null,'','/host');
+ const session=sessionFor('box','host');
+ session.fixtureKey='management-'+(++renderSequence);
+ session.view={...session.view,status,ownerSeatId:'s0',self:{role:'host',seatId:null},capabilities:{manage:true,control:true,manageSeats:true},transferRequests:[],history:[{id:'checkpoint-one',label:'检查点一',revealedInformation:false,step:1,seatId:'s0',roundNumber:1},{id:'checkpoint-two',label:'检查点二',revealedInformation:true,step:2,seatId:'s1',roundNumber:1}],seats:session.view.seats.map((seat,index)=>({...seat,name:index===0?'长'.repeat(24):index===1?'VeryLongNicknameNoSpacesX':seat.name}))};
+ window.managementCommands=[];
+ const paintManagement=()=>{if(full)flushSync(()=>root.render(<OverlayPanel key={session.fixtureKey} title="共享管理组件" className="settings-panel settings-panel--management" close={noop}><RoomManagement session={current.session}/></OverlayPanel>));else paint();};
+ session.command=command=>{window.managementCommands.push(structuredClone(command));if(command.type==='set-owner')current.session={...current.session,view:{...current.session.view,ownerSeatId:command.seatId}};if(command.type==='approve-transfer'||command.type==='reject-transfer')current.session={...current.session,view:{...current.session.view,transferRequests:current.session.view.transferRequests.filter(request=>request.requestId!==command.requestId)}};paintManagement();};
+ current={key:'box',session};
+ window.setManagementRequests=()=>{current.session={...current.session,view:{...current.session.view,transferRequests:[{requestId:'transfer-one',seatId:'s0',verificationCode:'123456',expiresAt:Date.now()+120000},{requestId:'transfer-two',seatId:'s1',verificationCode:'654321',expiresAt:Date.now()+120000}]}};paintManagement();};
+ paintManagement();
+};
 window.renderSeatNames=({role,owner,status})=>{
  history.replaceState(null,'','/'+role);
  sessionStorage.setItem('tablemax-host','seat-host-fixture');localStorage.setItem('tablemax-player','seat-player-fixture');
@@ -394,6 +409,323 @@ try {
       }).catch(() => undefined);
     }
   };
+  for (const [width, height] of [
+    [320, 568],
+    [390, 844],
+    [1280, 900],
+  ])
+    for (const status of ['lobby', 'playing']) {
+      await check(`box:${status}:${width}:management-layout`, async () => {
+        const managementContext = await browser.newContext({
+          viewport: { width, height },
+          hasTouch: true,
+          reducedMotion: 'reduce',
+        });
+        const managementPage = await managementContext.newPage();
+        managementPage.on('pageerror', (error) =>
+          report.errors.push(error.message),
+        );
+        const row = async (label, control) => {
+          assert(
+            await label.evaluate((node) =>
+              Boolean(node.closest('.room-management-row')),
+            ),
+            'Management label belongs to a compact row',
+          );
+          assert(
+            await control.evaluate((node) =>
+              Boolean(node.closest('.room-management-row')),
+            ),
+            'Management control belongs to a compact row',
+          );
+          const a = await label.boundingBox(),
+            b = await control.boundingBox();
+          assert(
+            a &&
+              b &&
+              Math.min(a.y + a.height, b.y + b.height) > Math.max(a.y, b.y) &&
+              a.x + a.width <= b.x + 1,
+            'Management label and control share one row without overlap',
+          );
+        };
+        const screenshot = async (panel) => {
+          const path = join(
+            output,
+            `management-layout-${status}-${width}-${panel}.png`,
+          );
+          await captureBrowserScreenshot(managementPage, {
+            path,
+            fullPage: true,
+          });
+          report.screenshots.push({
+            width,
+            height,
+            status,
+            panel: 'management-' + panel,
+            path,
+          });
+        };
+        const unclipped = async (selector) => {
+          for (const result of await managementPage
+            .locator(selector)
+            .evaluateAll((nodes) =>
+              nodes.map((node) => {
+                const rect = node.getBoundingClientRect();
+                return (
+                  rect.left >= 0 &&
+                  rect.right <= innerWidth + 1 &&
+                  node.scrollWidth <= node.clientWidth + 1
+                );
+              }),
+            ))
+            assert(
+              result,
+              'Management content and long names fit the available width',
+            );
+        };
+        try {
+          await managementPage.goto(server.url);
+          await managementPage.waitForFunction(
+            () => typeof window.renderManagement === 'function',
+          );
+          await managementPage.evaluate(
+            (status) => window.renderManagement({ status }),
+            status,
+          );
+          await managementPage
+            .getByRole('button', { name: '管理设置', exact: true })
+            .click();
+          const panel = managementPage.locator('.settings-panel--management');
+          await panel.waitFor({ state: 'visible' });
+          assert.equal(
+            await managementPage.locator('.seat-settings-row').count(),
+            0,
+            'This is the management settings panel, not seat settings',
+          );
+          const owner = managementPage.getByLabel('手机房主', { exact: true });
+          const ownerLabel = panel.getByRole('button', {
+            name: '手机房主',
+            exact: true,
+          });
+          await row(ownerLabel, owner);
+          const transferLabel = panel.getByRole('button', {
+            name: '换机申请',
+            exact: true,
+          });
+          await row(
+            transferLabel,
+            panel.locator('.device-transfer-requests__empty'),
+          );
+          await assertSettingRowsAndHelp(managementPage, { touch: true });
+          const publicLink = panel.getByRole('link', {
+            name: '打开公共屏',
+            exact: true,
+          });
+          await row(
+            publicLink.locator('..').getByText('公共屏', { exact: true }),
+            publicLink,
+          );
+          assert.equal(await publicLink.getAttribute('href'), '/public');
+          if (status === 'playing') {
+            const rollback = panel.getByRole('button', {
+              name: '决策点回退（2）',
+              exact: true,
+            });
+            await row(
+              rollback.locator('..').getByText('决策点回退', { exact: true }),
+              rollback,
+            );
+          }
+          await owner.selectOption('s1');
+          assert.deepEqual(
+            await managementPage.evaluate(() => window.managementCommands),
+            [{ type: 'set-owner', seatId: 's1' }],
+          );
+          assert.equal(await owner.inputValue(), 's1');
+          await owner.selectOption('');
+          assert.deepEqual(
+            await managementPage.evaluate(() =>
+              window.managementCommands.at(-1),
+            ),
+            { type: 'set-owner', seatId: null },
+          );
+          await unclipped(
+            '.settings-panel--management,.owner-control,.device-transfer-requests',
+          );
+          await screenshot('empty');
+          await managementPage.evaluate(() => window.setManagementRequests());
+          const requests = panel.locator('.device-transfer-request');
+          assert.equal(await requests.count(), 2);
+          assert.equal(
+            await requests
+              .nth(0)
+              .locator('.device-transfer-request__identity > strong')
+              .textContent(),
+            '长'.repeat(24),
+          );
+          assert.equal(
+            await requests
+              .nth(1)
+              .locator('.device-transfer-request__identity > strong')
+              .textContent(),
+            'VeryLongNicknameNoSpacesX',
+          );
+          assert.equal(
+            await requests
+              .nth(0)
+              .locator('.device-transfer-request__verification strong')
+              .textContent(),
+            '123456',
+          );
+          assert.equal(
+            await requests
+              .nth(1)
+              .locator('.device-transfer-request__verification strong')
+              .textContent(),
+            '654321',
+          );
+          await unclipped(
+            '.device-transfer-request,.device-transfer-request__identity',
+          );
+          await screenshot('requests');
+          const before = await managementPage.evaluate(
+            () => window.managementCommands.length,
+          );
+          await requests
+            .nth(0)
+            .getByRole('button', { name: '批准换机', exact: true })
+            .click();
+          const confirmation = managementPage.getByRole('dialog', {
+            name: '批准换机',
+            exact: true,
+          });
+          await confirmation.waitFor({ state: 'visible' });
+          assert.equal(
+            await confirmation
+              .locator('.device-transfer-confirm-code')
+              .textContent(),
+            '123456',
+          );
+          await screenshot('approval-confirmation');
+          await confirmation
+            .getByRole('button', { name: '取消', exact: true })
+            .click();
+          assert.equal(
+            await managementPage.evaluate(
+              () => window.managementCommands.length,
+            ),
+            before,
+            'Cancelling transfer approval sends nothing',
+          );
+          await requests
+            .nth(0)
+            .getByRole('button', { name: '批准换机', exact: true })
+            .click();
+          await managementPage
+            .getByRole('button', { name: '批准并退出旧设备', exact: true })
+            .click();
+          assert.deepEqual(
+            await managementPage.evaluate(
+              (before) => window.managementCommands.slice(before),
+              before,
+            ),
+            [{ type: 'approve-transfer', requestId: 'transfer-one' }],
+          );
+          assert.equal(await requests.count(), 1);
+          await requests
+            .nth(0)
+            .getByRole('button', { name: '拒绝', exact: true })
+            .click();
+          assert.deepEqual(
+            await managementPage.evaluate(
+              (before) => window.managementCommands.slice(before),
+              before,
+            ),
+            [
+              { type: 'approve-transfer', requestId: 'transfer-one' },
+              { type: 'reject-transfer', requestId: 'transfer-two' },
+            ],
+          );
+          assert.equal(await requests.count(), 0);
+          if (status === 'playing') {
+            const prior = await managementPage.evaluate(
+              () => window.managementCommands.length,
+            );
+            const openRollback = async () => {
+              await panel
+                .getByRole('button', { name: '决策点回退（2）', exact: true })
+                .click();
+              await managementPage
+                .locator('.rollback-history')
+                .getByRole('button', { name: /检查点二/ })
+                .click();
+            };
+            await openRollback();
+            const rollbackConfirm = managementPage.getByRole('dialog', {
+              name: '确认回退',
+              exact: true,
+            });
+            await rollbackConfirm.waitFor({ state: 'visible' });
+            assert(
+              (
+                await rollbackConfirm
+                  .locator('.confirmation-message')
+                  .textContent()
+              ).includes('检查点二'),
+              'Rollback confirmation describes the selected checkpoint',
+            );
+            await rollbackConfirm
+              .getByRole('button', { name: '取消', exact: true })
+              .click();
+            assert.equal(
+              await managementPage.evaluate(
+                () => window.managementCommands.length,
+              ),
+              prior,
+            );
+            await managementPage
+              .locator('.rollback-history')
+              .getByRole('button', { name: /检查点二/ })
+              .click();
+            await managementPage
+              .getByRole('dialog', { name: '确认回退', exact: true })
+              .getByRole('button', { name: '确认回退', exact: true })
+              .click();
+            assert.deepEqual(
+              await managementPage.evaluate(
+                (prior) => window.managementCommands.slice(prior),
+                prior,
+              ),
+              [{ type: 'rollback', checkpointId: 'checkpoint-two' }],
+            );
+          }
+          await managementPage.evaluate(
+            (status) => window.renderManagement({ status, full: true }),
+            status,
+          );
+          const full = managementPage.getByRole('dialog', {
+            name: '共享管理组件',
+            exact: true,
+          });
+          await full.waitFor({ state: 'visible' });
+          await row(
+            full.getByRole('button', { name: '手机房主', exact: true }),
+            full.getByLabel('手机房主', { exact: true }),
+          );
+          await row(
+            full.getByRole('button', { name: '换机申请', exact: true }),
+            full.locator('.device-transfer-requests__empty'),
+          );
+          await assertSettingRowsAndHelp(managementPage, { touch: true });
+          await screenshot('shared-full');
+        } catch (error) {
+          await screenshot('failure').catch(() => undefined);
+          throw error;
+        } finally {
+          await managementContext.close();
+        }
+      });
+    }
   for (const [width, height] of [
     [320, 568],
     [390, 844],

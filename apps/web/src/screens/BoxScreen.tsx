@@ -644,7 +644,11 @@ function BoxScreenContent({ session }: { session: RoomSession }) {
         </OverlayPanel>
       )}
       {panel === 'management' && isHost && (
-        <OverlayPanel title="管理设置" close={() => setPanel(null)}>
+        <OverlayPanel
+          title="管理设置"
+          className="settings-panel settings-panel--management"
+          close={() => setPanel(null)}
+        >
           <RoomManagement session={session} display="details" />
         </OverlayPanel>
       )}

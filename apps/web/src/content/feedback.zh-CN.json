@@ -83,6 +83,7 @@
     "hint": "接续原座位，管理员批准后原设备退出。",
     "noSeats": "暂无可接续的真人座位。",
     "noRequests": "暂无等待批准的申请。",
+    "noRequestsShort": "暂无申请",
     "approvalEffect": "批准后原设备立即失效，座位和游戏数据保持。",
     "verificationHint": "向管理员核对以下号码",
     "pendingRequests": "{count} 个待批准申请",
@@ -162,7 +163,7 @@
     "confirmEnd": "当前游戏将立即结束，所有玩家停止行动。",
     "endEffect": "已保存状态和历史保留。结束后可原班重新准备，选择其他游戏，或回退后恢复。",
     "confirmClear": "所有玩家身份和人机座位都将移除，朋友们需要重新进入并入座。当前牌桌状态与有效历史将清空。",
-    "ownerCapabilities": "房主可开局、续局、暂停／恢复，移除其他座位和修改人机名称。"
+    "ownerCapabilities": "房主可开局、续局、暂停／恢复，移除其他座位和修改玩家名称。"
   },
   "applicationUpdate": {
     "idle": "主动检查新版，下载期间可以继续使用。",

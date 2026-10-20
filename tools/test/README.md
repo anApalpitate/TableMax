@@ -12,6 +12,8 @@
 
 `--only=seat-names --games=box`使用真实会话hook及受控Socket transport，检查320／390／1280px四角色、大厅／进行中24项改名入口、确认时归一、pending锁与重复发送、失败／待确认反馈。服务端权限、实际HTTP／Socket／SQLite与旧档边界由`packages/platform-core/src/{admission,room-evolution}.test.ts`及`apps/server/src/platform.test.ts`覆盖，词表回归为`packages/protocol/src/names.test.ts`；浏览器夹具不能替代这些集成或实体设备证据。
 
+`--only=management-layout --games=box`检查320／390／1280px、大厅／进行中的紧凑管理设置与共享完整管理组件，覆盖房主选择、空／有换机申请、核对码与长昵称、说明hover／聚焦／触屏点按、换机与回退的取消／准确确认，并保存实际渲染截图。权限和持久化仍由平台集成测试承担，不把组件夹具写成实体设备或真实服务器验收。
+
 ## UNO 开局设置与手机源码验证
 
 `tools/test/games/uno/verify-uno-source.mjs --evidence=<独立安全名称>`通过合法规则投影与真实React组件检查紧凑布局、密集手牌、排序、保存提示、规则／设置浮窗、补牌传递、抓漏延迟及本人自动质疑证据。`--only=layout,dialogs,config,delay,penalty,evidence,baseline`选择组，`--sizes=320x568,1280x720`限制视口。基线仅隔离读取指定Git版本的UNO入口／手牌／样式，其余依赖使用当前源码；不代表历史完整产品。经现有批次计划以`box,shared,game:uno`范围运行，默认隐藏、静音、仅127.0.0.1；证据进入`artifacts/maintenance/uno-source-20261020/<名称>`，保留源码／脚本哈希和参数。模拟手机不替代实体设备、Safari、原生窗口或安装器验收。
