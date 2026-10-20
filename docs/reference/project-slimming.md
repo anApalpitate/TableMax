@@ -1,5 +1,13 @@
 # 项目瘦身与最近结果
 
+## 德国小强与蟑螂沙拉交付收尾（2026-10-21）
+
+完整逻辑初始采样36,432,881,267字节，包含主Git、依赖、产物及嵌套仓库，不跟随1,789个链接，触发深度分支。来源、终态及保护审计见[报告](../../artifacts/maintenance/cockroach-delivery-20261021/deep-audit-summary.json)。审核候选2,797,492,122字节；其中785,044,558字节旧安装staging因现有保全条件不足排除。当前／待验交付、旧模块/blob、原PDF与资产、正式旧存档、近期目录和链接目标全部保护，不按体积推定可删。
+
+最终[单次清单](../../artifacts/maintenance/cockroach-delivery-20261021/reviewed-files-r1.json)7,371文件、2,012,447,564逻辑字节，绑定current1.0.8.8、901项保留引用、10项交付保护文件和全部链接原Target。预览通过，SHA256 `395b4010c42faa29f9baf1d302af381a3b8f16311524fd4bef5509bc68f02c96`。唯一Apply的[原始记录](../../artifacts/maintenance/reviewed-retirements/cockroach-delivery-20261021-reviewed-r1-ec363b1b9745.json)为failed：实际删除715文件、884,399,670字节后，Set-Content写进度记录遇到文件占用冲突，立即停止。执行期间读取该记录可能造成争用；不把可能原因写成已证实根因。本次ID已消耗，不重试、不换ID、不追加日常或第二轮删除；未复制待删备份。
+
+产品交付的源码、规则／资源及原EXE已独立按SHA复核通过，不因维护失败改写产品通过结论。[最终独立复核](../../artifacts/maintenance/cockroach-delivery-20261021/final-maintenance-verification.json)确认715文件／884,399,670字节与journal一致，剩余6,656文件／1,128,047,894字节的SHA及mtime未变；901项保留引用、10项保护文件及1,789个链接原Target均通过。[最终完整逻辑采样](../../artifacts/maintenance/cockroach-delivery-20261021/workspace-size-final.json)为35,825,454,256字节、166,408文件，包含主Git和2处嵌套仓库、不跟随链接，零扫描错误；[扫描脚本](../../artifacts/maintenance/cockroach-delivery-20261021/workspace-size-scan.ps1)保留。采样北京时间04:25:22–04:26:02，新报告及后续写入未完全计入；期间有新产物生成，前后净变化不替代实际删除记录。**本轮未达到严格小于6GB目标。**剩余材料及未执行项不得因目标差额放宽保护，已消耗ID不续删。
+
 ## current恢复与深度瘦身接续（2026-10-18）
 
 用户免除34本轮正式验收后，已核对原件与真实证明并恢复current22，见[恢复记录](../archive/current-pointer-repair-2026-10-18.md)。[深度审计](../archive/deep-slimming-current22-2026-10-18.md)已冻结30,276文件、19,593,512,650候选字节，完成来源变化定向复核、完整字节归档和Global链接保护。用户选择保留开发服务、暂不执行删除，项目Apply未执行，回收0文件／0字节，单次ID未消耗。
