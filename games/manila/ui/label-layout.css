@@ -1,4 +1,9 @@
 /* Shared paper signs: full labels, with contrast supplied by one coherent surface. */
+.mn-screen--player .mn-lane-heading > strong {
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
+}
 .mn-screen > .mn-toolbar > .mn-status {
   background: transparent;
   box-shadow: none;

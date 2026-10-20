@@ -37,6 +37,7 @@ const available = [
   'entries',
   'voyage-result',
   'text-flow',
+  'lane-heading',
 ];
 const selected = option('only')?.split(',') ?? available;
 assert(selected.every((value) => available.includes(value)));
@@ -511,6 +512,44 @@ try {
     const run = async (name, body) => {
       if (selected.includes(name)) tasks.push({ name, body });
     };
+    await run('lane-heading', async () => {
+      await load({ phase: 'auction' });
+      const labels = await page
+        .locator('.mn-lane-heading > strong')
+        .evaluateAll((nodes) =>
+          nodes.map((node) => {
+            const range = document.createRange();
+            range.selectNodeContents(node);
+            const text = range.getBoundingClientRect();
+            const box = node.getBoundingClientRect();
+            const style = getComputedStyle(node);
+            return {
+              text: node.textContent,
+              width: box.width,
+              textWidth: text.width,
+              padding:
+                parseFloat(style.paddingLeft) + parseFloat(style.paddingRight),
+              parentWidth: node.parentElement.getBoundingClientRect().width,
+              fontSize: parseFloat(style.fontSize),
+            };
+          }),
+        );
+      assert.equal(labels.length, 3, 'Every empty lane exposes its title');
+      for (const label of labels) {
+        assert(label.textWidth > 0);
+        assert(label.fontSize >= 16, 'Keep the readable title size');
+        assert(
+          label.width <= label.parentWidth + 1,
+          'Title stays inside its lane',
+        );
+        assert(
+          Math.abs(label.width - label.textWidth - label.padding) <= 1,
+          'Title background hugs the text instead of stretching across the lane',
+        );
+      }
+      report.metrics.push({ width, height, kind: 'lane-heading', labels });
+      await shot('lane-heading');
+    });
     await run('structure', async () => {
       await load({ phase: 'setup' });
       const data = await row();
