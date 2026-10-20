@@ -257,7 +257,7 @@
   background: #143d39;
   border-radius: 4px;
   text-shadow: none;
-  padding-inline: 4px;
+  padding: 3px 8px;
 }
 .mn-screen
   .mn-layout
@@ -274,7 +274,7 @@
   background: #143d39;
   border-radius: 4px;
   text-shadow: none;
-  padding-inline: 4px;
+  padding: 2px 8px;
 }
 .mn-screen .mn-layout .mn-main .mn-harbor .mn-track-cells span {
   color: #fffdf4;

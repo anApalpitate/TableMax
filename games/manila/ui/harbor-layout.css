@@ -253,24 +253,6 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.mn-screen--player .mn-lane-cargo-select {
-  display: grid;
-  justify-items: center;
-  height: 64px;
-  gap: 0;
-  font-size: 16px;
-  grid-template-rows: 20px 44px;
-  margin: 0;
-  line-height: 20px;
-}
-.mn-screen--player .mn-lane-cargo-select select {
-  min-height: 44px;
-  width: 100%;
-  padding: 3px;
-  font-size: 16px;
-  height: 44px;
-  margin: 0;
-}
 .mn-screen--player .mn-crew {
   display: grid;
   padding: 0;

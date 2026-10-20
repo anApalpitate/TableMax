@@ -687,12 +687,6 @@
     gap: 4px;
   }
 
-  .mn-screen--player > .mn-toolbar .mn-toolbar-icon {
-    width: 32px;
-    height: 32px;
-    min-height: 32px;
-    padding: 0;
-  }
   .mn-screen--player > .mn-status {
     align-self: center;
     max-width: 100%;

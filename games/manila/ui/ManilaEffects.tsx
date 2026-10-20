@@ -485,7 +485,7 @@ export function ManilaEffects({ session }: { session: GameHost }) {
       <button
         ref={control}
         type="button"
-        className="mn-audio-control"
+        className="mn-audio-control mn-copper-button mn-toolbar-icon"
         data-manila-sound
         aria-label={label}
         title={label}

@@ -266,6 +266,57 @@
   min-height: var(--mn-lane-control-min);
   height: auto;
 }
+.mn-screen--player .mn-lane-cargo-select {
+  position: relative;
+  display: grid;
+  justify-items: stretch;
+  grid-template-rows: auto minmax(44px, auto);
+  gap: 4px;
+  height: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 6px;
+  border: 1px solid #bba371;
+  border-radius: 10px;
+  background: #fff3d7;
+  color: #203c3b;
+  font-size: 16px;
+  line-height: 24px;
+}
+.mn-screen--player .mn-lane-cargo-select > span {
+  padding-inline: 4px;
+  background: transparent;
+  box-shadow: none;
+  text-align: center;
+}
+.mn-screen--player .mn-lane-cargo-select select {
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  height: auto;
+  margin: 0;
+  padding: 8px 28px 8px 10px;
+  border: 1px solid #ad865c;
+  border-radius: 7px;
+  background: #fffaf0;
+  color: #203c3b;
+  font: inherit;
+  font-size: 18px;
+  line-height: 26px;
+}
+.mn-screen--player .mn-lane-cargo-select::after {
+  content: '';
+  position: absolute;
+  right: 18px;
+  bottom: 28px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(50%) rotate(45deg);
+  pointer-events: none;
+}
 .mn-screen--player .mn-crew {
   height: auto;
   overflow: visible;
@@ -599,6 +650,18 @@
     grid-template-rows: auto auto;
     align-items: start;
   }
+  .mn-screen--player .mn-lane[data-mn-lane-state='empty'] .mn-lane-heading {
+    min-height: 32px;
+    grid-template-rows: auto;
+    margin-bottom: 4px;
+  }
+  .mn-screen--player .mn-lane[data-mn-lane-state='empty'] {
+    --mn-lane-control-min: 60px;
+  }
+  .mn-screen--player .mn-lane[data-mn-lane-state='empty'] .mn-track {
+    margin-top: 24px;
+    margin-bottom: 24px;
+  }
   .mn-screen--player .mn-track {
     margin-top: 64px;
     margin-bottom: 48px;
@@ -771,16 +834,26 @@
     --mn-anchor-offscreen: 1;
     padding-block-end: var(--mn-anchor-tail, 0px);
   }
-  .mn-screen--player .mn-lane-cargo-select {
-    height: auto;
-    min-height: 74px;
-    grid-template-rows: auto 44px;
-    row-gap: 4px;
-    line-height: 24px;
-  }
 }
 
 @media (max-width: 360px) {
+  .mn-screen--player .mn-manifest-state {
+    flex-wrap: wrap;
+    line-height: 26px;
+  }
+  .mn-screen--player .mn-lane-cargo-select {
+    padding: 4px;
+  }
+  .mn-screen--player .mn-lane-cargo-select select {
+    padding-inline: 4px;
+    text-align: center;
+  }
+  .mn-screen--player .mn-lane-cargo-select::after {
+    top: 13px;
+    right: 12px;
+    bottom: auto;
+    transform: rotate(45deg);
+  }
   .mn-screen--player > .mn-toolbar > .session-save-anchor {
     display: none;
   }

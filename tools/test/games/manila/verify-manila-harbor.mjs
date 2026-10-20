@@ -38,6 +38,7 @@ const available = [
   'voyage-result',
   'text-flow',
   'lane-heading',
+  'surface-polish',
 ];
 const selected = option('only')?.split(',') ?? available;
 assert(selected.every((value) => available.includes(value)));
@@ -530,6 +531,13 @@ try {
               padding:
                 parseFloat(style.paddingLeft) + parseFloat(style.paddingRight),
               parentWidth: node.parentElement.getBoundingClientRect().width,
+              centreDelta: Math.abs(
+                (box.left + box.right) / 2 -
+                  (() => {
+                    const parent = node.parentElement.getBoundingClientRect();
+                    return (parent.left + parent.right) / 2;
+                  })(),
+              ),
               fontSize: parseFloat(style.fontSize),
             };
           }),
@@ -538,6 +546,7 @@ try {
       for (const label of labels) {
         assert(label.textWidth > 0);
         assert(label.fontSize >= 16, 'Keep the readable title size');
+        assert(label.centreDelta <= 1, 'Empty lane title is centred');
         assert(
           label.width <= label.parentWidth + 1,
           'Title stays inside its lane',
@@ -549,6 +558,150 @@ try {
       }
       report.metrics.push({ width, height, kind: 'lane-heading', labels });
       await shot('lane-heading');
+    });
+    await run('surface-polish', async () => {
+      const tightLabels = [];
+      const scan = async (role, phase) => {
+        const labels = await page.evaluate(() => {
+          const found = [];
+          for (const node of document.querySelectorAll('.mn-theme *')) {
+            const style = getComputedStyle(node);
+            const box = node.getBoundingClientRect();
+            if (!box.width || !box.height || style.visibility === 'hidden')
+              continue;
+            if (
+              style.backgroundColor === 'rgba(0, 0, 0, 0)' ||
+              style.backgroundColor === 'transparent'
+            )
+              continue;
+            const texts = [...node.childNodes].filter(
+              (child) =>
+                child.nodeType === Node.TEXT_NODE && child.textContent.trim(),
+            );
+            if (!texts.length) continue;
+            for (const child of texts) {
+              const range = document.createRange();
+              range.selectNodeContents(child);
+              const text = range.getBoundingClientRect();
+              if (!text.width) continue;
+              const left = text.left - box.left;
+              const right = box.right - text.right;
+              if (left < 4 || right < 4)
+                found.push({
+                  className: node.className,
+                  text: child.textContent.trim(),
+                  left,
+                  right,
+                });
+            }
+          }
+          return found;
+        });
+        tightLabels.push(...labels.map((label) => ({ role, phase, ...label })));
+      };
+      for (const role of ['player', 'host', 'public']) {
+        // Host and public are desktop surfaces. Keep their audit at a desktop
+        // viewport rather than treating a 390px phone as a supported host.
+        await page.setViewportSize(
+          role !== 'player' && width < 1280
+            ? { width: 1280, height: 720 }
+            : { width, height },
+        );
+        await load({ phase: 'auction', role });
+        const tools = await page
+          .locator('.mn-toolbar-tools > button')
+          .evaluateAll((nodes) =>
+            nodes.map((node) => {
+              const box = node.getBoundingClientRect();
+              return {
+                label: node.getAttribute('aria-label'),
+                width: box.width,
+                height: box.height,
+              };
+            }),
+          );
+        assert.equal(tools.length, 4);
+        for (const button of tools) {
+          assert.equal(button.width, 44, `${role}: toolbar button width`);
+          assert.equal(button.height, 44, `${role}: toolbar button height`);
+        }
+        await scan(role, 'auction');
+        await page.getByRole('button', { name: '菜单', exact: true }).click();
+        const heading = await page
+          .locator('.mn-overlay > .panel-heading')
+          .evaluate((node) => {
+            const box = node.getBoundingClientRect();
+            const text = node.querySelector('h2').getBoundingClientRect();
+            return {
+              left: text.left - box.left,
+              right: box.right - text.right,
+            };
+          });
+        assert(heading.left >= 12, 'Menu heading has a clear left inset');
+        await shot(`surface-menu-${role}`);
+        await page.locator('.mn-overlay > .panel-heading > button').click();
+        await load({ phase: 'setup', role });
+        await scan(role, 'setup');
+        if (role === 'player') {
+          const fields = await page
+            .locator('.mn-lane-cargo-select select')
+            .evaluateAll((nodes) =>
+              nodes.map((node) => {
+                const style = getComputedStyle(node);
+                const box = node.getBoundingClientRect();
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                context.font = `${style.fontSize} ${style.fontFamily}`;
+                return {
+                  height: box.height,
+                  padding: parseFloat(style.paddingLeft),
+                  radius: parseFloat(style.borderRadius),
+                  appearance: style.appearance,
+                  textWidth: context.measureText(node.selectedOptions[0].text)
+                    .width,
+                  contentWidth:
+                    box.width -
+                    parseFloat(style.paddingLeft) -
+                    parseFloat(style.paddingRight) -
+                    parseFloat(style.borderLeftWidth) -
+                    parseFloat(style.borderRightWidth),
+                };
+              }),
+            );
+          assert.equal(fields.length, 3);
+          for (const field of fields) {
+            assert(
+              field.height >= 44 &&
+                field.padding >= (width <= 360 ? 4 : 10) &&
+                field.radius >= 7,
+            );
+            assert.equal(field.appearance, 'none');
+            assert(
+              field.textWidth <= field.contentWidth + 1,
+              'Full cargo name fits the closed select',
+            );
+          }
+          await page
+            .locator('.mn-lane-cargo-select')
+            .first()
+            .scrollIntoViewIfNeeded();
+          await shot('surface-loading');
+        }
+        await load({ phase: 'place', role });
+        await scan(role, 'place');
+      }
+      report.metrics.push({
+        width,
+        height,
+        kind: 'surface-spacing-audit',
+        tightLabels,
+      });
+      await page.setViewportSize({ width, height });
+      assert.deepEqual(
+        tightLabels,
+        [],
+        'Solid text labels have at least 4px side breathing room',
+      );
     });
     await run('structure', async () => {
       await load({ phase: 'setup' });
