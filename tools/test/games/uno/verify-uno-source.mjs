@@ -687,6 +687,43 @@ function assertGeometry(metrics, { dialogs = false } = {}) {
     }
   }
 }
+async function assertHandUnclipped(page, state) {
+  const clipped = await page.locator('.uno-hand-scroll').evaluate((scroll) => {
+    const bounds = scroll.getBoundingClientRect();
+    const top = bounds.top + scroll.clientTop;
+    const bottom = top + scroll.clientHeight;
+    return [...scroll.querySelectorAll('.uno-hand-card .uno-card')].flatMap(
+      (face) => {
+        const rect = face.getBoundingClientRect();
+        const style = getComputedStyle(face);
+        const outline =
+          style.outlineStyle === 'none'
+            ? 0
+            : parseFloat(style.outlineWidth) +
+              Math.max(0, parseFloat(style.outlineOffset));
+        return rect.top - outline < top - 1 ||
+          rect.bottom + outline > bottom + 1
+          ? [
+              {
+                card: face.parentElement.dataset.cardId,
+                top,
+                bottom,
+                faceTop: rect.top,
+                faceBottom: rect.bottom,
+                outline,
+              },
+            ]
+          : [];
+      },
+    );
+  });
+  assert.deepEqual(
+    clipped,
+    [],
+    'Hand faces and legal outlines fit the scroll clip: ' + state,
+  );
+}
+
 async function layout(page, width, height, scenario, names) {
   await page.setViewportSize({ width, height });
   await ready(page, { scenario, names, role: 'player' });
@@ -696,6 +733,16 @@ async function layout(page, width, height, scenario, names) {
     metrics,
   );
   assertGeometry(metrics);
+  await assertHandUnclipped(page, 'rest');
+  const raisedCard = page.locator('.uno-hand-card').first();
+  await raisedCard.hover();
+  await page.waitForTimeout(250);
+  await assertHandUnclipped(page, 'hover');
+  await page.mouse.move(0, 0);
+  await raisedCard.focus();
+  await page.waitForTimeout(250);
+  await assertHandUnclipped(page, 'focus');
+  await raisedCard.evaluate((node) => node.blur());
   const positions = await page
     .locator(
       '.uno-toolbar,.uno-turn-bar,.uno-seats--compact,.uno-table,.uno-hand-heading,.uno-hand-scroll',

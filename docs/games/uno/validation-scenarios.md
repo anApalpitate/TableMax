@@ -74,6 +74,8 @@
 
 ## UNO 专项构建与验证
 
+2026-10-20手牌上沿切边修复：横向滚动容器顶部空间不足会裁掉抬起的牌面与合法轮廓，已统一为可容纳抬牌的上沿空间。源码组件静音、隐藏、127.0.0.1检查覆盖320／360／390／430／620／621px、两种横屏、720p／1080p／4K共11种视口，普通手牌与两组长昵称密集手牌共33场景通过；逐场断言静止、悬停、聚焦时牌面及合法轮廓落在滚动裁切边界内，保留保存前后矩形不变和首末牌操作检查。[本轮报告](../../../artifacts/maintenance/uno-source-20261020/hand-clip-20261020/report.json)绑定实际源码及方法哈希；手机截图人工核对上沿完整。本轮为源码模拟视口证据，未导出安装器，未作实体手机或Safari验收。
+
 新增游戏通过模块清单发现，独立构建 `node tools/build/build.mjs --only=game:uno`；单测入口 `node tools/test/runner/test-scoped.mjs --scope=game:uno`，只选择 UNO 规则、策略、UI 与 UNO 服务／Worker 测试。范围隔离工具变化另运行 `node --test tools/test/runner/scopes.test.mjs`，不启动其他游戏。实际结果与设备边界见 [UNO 验证](#2026-10-10-实际结果与修复记录)。
 
 `node tools/test/games/uno/verify-uno.mjs --mode=ui --seats=6 --executable=<实际解压的TableMax.exe> --zip=<匹配EXE的内部payload.zip> --evidence=<安全独立名称>` 在实际隐藏 WinForms／WebView2 核验三端、秘密、完整108牌场景、图文规则、触控和保存声画；`--only=opening,dense,reverse,skip,draw-two,wild,draw-four,uno,challenge,round-finish,match-finish` 选择受影响项。`--compact` 只做320px／720p，`--landscape` 定向844×390；`--sample` 只取初始样本，不能代替完整 UI。普通节奏和减少动态分别核验，原生物理静音。

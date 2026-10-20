@@ -749,7 +749,7 @@
   overflow: auto hidden;
   scrollbar-width: thin;
   scrollbar-color: #8d9572 #e3dcc2;
-  padding: 18px 8px 18px;
+  padding: 24px 8px 18px;
   margin: 0 -8px;
 }
 .uno-hand-scroll:focus-visible {
@@ -1965,7 +1965,7 @@
     display: none;
   }
   .uno-screen--player .uno-hand-scroll {
-    padding-top: 9px;
+    padding-top: 24px;
     padding-bottom: 9px;
     margin-right: 0;
     max-width: 100%;
@@ -2422,7 +2422,7 @@
     padding-top: 4px;
   }
   .uno-screen--player .uno-hand-scroll {
-    padding-block: 10px;
+    padding-block: 24px 10px;
   }
   .uno-screen--player .uno-turn-note--penalty {
     display: block;
