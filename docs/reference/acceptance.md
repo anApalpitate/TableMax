@@ -4,7 +4,7 @@
 
 ## 当前源码与本地交付
 
-本轮公开版本为 **1.0.8**，最终候选 **1.0.8.6**，实际验证与发布状态见[本轮记录](#v108发行验收2026-10-19)。构建和正式证明在隔离发行工作树 `E:/Data/.codex/worktrees/release-v1-0-8/TableMax` 维护；原主工作树其他任务的未提交改动未混入发行。
+本轮公开版本保持 **1.0.8**；用户明确要求替换同一Release的安装器、源码附件与说明，保留原标签。新候选为 **1.0.8.7**，状态见[替换记录](#v108附件替换2026-10-21)；原 **1.0.8.6** 的实际验证与首次发布证明保留于[历史记录](#v108发行验收2026-10-19)。原发行在隔离工作树构建，本次在主工作树冻结已验证运行输入，保留其他任务未提交改动。
 
 上一轮主工作树本地current已核验恢复为[1.0.7.22](#盒子与马尼拉界面优化2026-10-17)，含七款游戏／八个玩法；33原指针和修复回执保留于[恢复记录](../archive/current-pointer-repair-2026-10-18.md)。本轮发布前的线上附件对应[1.0.7.2原字节](#1072安装进度与版本交付2026-10-16)。旧1.0.6/current、内部载荷和原证明按历史身份保留；对应本地旧EXE／sidecar已退役，原路径不能再作为现存安装器或迁移复验输入，见[退役记录](../archive/local-release-retirement-2026-10-16.md)。
 
@@ -13,6 +13,20 @@
 [GitHub v1.0.7](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.7)为上一公开发行，非草稿、非预发布；本轮线上状态见1.0.8记录。附件仅[installer](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-installer-win-x64.exe)与[source ZIP](https://github.com/anApalpitate/TableMax/releases/download/v1.0.7/TableMax-1.0.7-source.zip)；公开installer与本地1.0.7.2完全同字节。source ZIP为86,438,358字节，SHA `83d9080b3a0d54b8d01269710dd3a9bec7c417413e4d18429e9d4fc0c5660963`，由标签源码提交 `c1207fd0be68b05b2fa88e2989a2c7444ca3527b`导出；标签对象 `14e0eef4272aeaea5648f9bc08fb43de998e09d7`。[发布审计](../../artifacts/maintenance/v1.0.7/windows-editions/91e13f6af698a964df479b8233ecf5e2f063d9579f09f9e1f7f2d652542e7ca5/github-publication.json)核对两附件远端摘要、源码映射及RSA签名正文。历史附件保留，不部署Pages；失败和操作方法差异见[发布归档](../archive/installer-progress-v107-release-2026-10-16.md)。
 
 工作区占用及逐文件退役见[项目瘦身](project-slimming.md)；1.0.7.2发布任务未追加清理，马尼拉任务的单次维护单独记录。旧运行ZIP唯一迁移输入见[整理归档](../archive/tooling-delivery-organization-2026-10-15.md#旧运行zip的迁移输入)；下方旧标题保留历史导航。
+
+## v1.0.8附件替换（2026-10-21）
+
+用户明确选择覆盖现有v1.0.8，Release ID `416648428`。替换前原两附件已下载并核对实际字节及远端摘要，[备份核对](../../artifacts/maintenance/v1.0.8/replacement-20261021/original-release/backup-verification.json)通过；旧标签源码提交、标签对象和原字节映射保留，下方首次发布记录不改写为新包证明。
+
+新[完整安装器1.0.8.7](../../artifacts/releases/v1.0.8/1.0.8.7/TableMax-1.0.8.7-installer-win-x64.exe)预装七款游戏／八玩法，38,168,090字节，SHA256 `1e310d2fe9204ac60b0d12e74208da7db84f014823aa6124c25aa160535b1ede`；内部ZIP46,411,577字节，实际提取99,348,196字节，三项均小于120,000,000字节。冻结快照 `0172cd536654f78c9ec47540edefd13f92e5cfc5ea05c08e5a5c67b244b768ce`；原路径EXE单文件安全标记归一化保留SHA、owner、DACL与数据流，见[回执](../../artifacts/maintenance/v1.0.8/replacement-20261021/original-security-normalization.json)。
+
+源码TypeScript、112个改动TS／TSX文件ESLint、145个生产文件Prettier通过；名称与长度115用例、其余定向规则及平台232用例通过，设置与计时等116用例及UNO界面8项通过，见[定向报告](../../artifacts/maintenance/release-1-0-8-validation-guidance-20261021/report.json)。版本预留、推广、保留与附件替换守卫分别定向通过；保留原失败账，不将复用证据重复计数。源码模拟视口不代表实体手机、Safari、真实LAN或物理4K设备，本轮没有新增这些设备证明。
+
+正式安装验收[第二轮原始证明](../../artifacts/maintenance/v1.0.8/replacement-20261021/production-r2/shipping-executable-checks-full.json)12项通过：原路径标准账户Medium启动及中文向导、默认D／长I与外置D／旧框架失败恢复三条8步更新链通过，实际首装、同包复装、保存、默认卸载、同根重装读回和再次卸载通过；已安装更新设置页16布局通过。[隔离终态](../../artifacts/maintenance/v1.0.8/replacement-20261021/production-r2/isolated-account.json)退出0、账户与profile删除、errors为空。[封存证明](../../artifacts/maintenance/v1.0.8/replacement-20261021/finalized-installation-r2.json)2,118,240字节，SHA256 `6bc9f95ccd71ec417ab0f43c7a37fc1234b7533bbaeb3b51cb732634f7be8eff`；[推广回执](../../artifacts/maintenance/v1.0.8/replacement-20261021/promotion-r2.json)确认本地v1.0.8/current为1.0.8.7、修订预留已确认，保留检查通过且未删除原件。线上附件尚未替换。
+
+首次健康启动同次采样118,040,123字节＝程序99,963,045＋框架5,273,757＋身份19,683＋当前游戏12,783,638，低于120,000,000硬限，触发110,000,000工程预警；不是整个安装过程绝对峰值。第一轮在正式保存场景遇到验证脚本测试昵称超限，保留[失败及账户清理结果](../../artifacts/maintenance/v1.0.8/replacement-20261021/production-r1/isolated-account.json)。将昵称改为8中文字并定向检查通过后，用同一安装器和修订7、新独立账户执行上述第二轮，未重封或借用首轮成功片段拼接证明。
+
+实际向导截图[视觉复核](../../artifacts/maintenance/v1.0.8/replacement-20261021/visual-review.json)记录一项非阻塞旧问题：观测DPI144时迁移页“浏览”次要按钮偏矮，文字底部略裁；主标题、正文、主要导航及取消可读且交互通过。本次未改安装器源码，不宣称所有向导控件视觉无瑕疵。
 
 ## v1.0.8发行验收（2026-10-19）
 
@@ -23,6 +37,14 @@
 马尼拉真实载荷22布局／26检查、源码15布局／10详情、触控63项及结算内部滚动7项通过；规则/保存/投影/Worker等89用例、实际签名预装5用例、夹具4用例通过。最终图逐图独立复核及失败修正见[游戏验证](../games/manila/validation-scenarios.md#v108发行定向复验2026-10-19)。实体手机、Safari、真实LAN、物理DPI/4K电视和真人听感仍待设备验收；未修改防火墙，不部署Pages。
 
 [GitHub v1.0.8](https://github.com/anApalpitate/TableMax/releases/tag/v1.0.8)已正式发布为latest，非草稿、非预发布。附件仅[完整installer](https://github.com/anApalpitate/TableMax/releases/download/v1.0.8/TableMax-1.0.8-installer-win-x64.exe)与[source ZIP](https://github.com/anApalpitate/TableMax/releases/download/v1.0.8/TableMax-1.0.8-source.zip)；installer与本地1.0.8.6原件同字节。source ZIP为89010151字节，SHA256 `510703958cbf25113b31fd895d74601421125d387776d95652219e06e780321b`；标签源码提交 `2ea67bea22f7bba7f67a385331d7382452572d97`，标签对象 `2f2c97a6c5abe887b695f21adb2681e54153da97`。[发布审计](../../artifacts/maintenance/v1.0.8/windows-editions/85bd35415a6a6dab6b2de0c0f59f6cac9feae8d15e9da78ad8aae804c10018ff/github-publication.json)已核对远端两附件摘要、latest、源码映射及应用RSA签名正文。历史v1.0.7附件和SHA保留，不部署Pages。
+
+## 马尼拉实体展板源码视觉验收与候选（2026-10-18）
+
+源码视觉验收按[源码视觉验证](source-visual-verification.md)执行，不依赖安装器：设计夹具 `artifacts/manila/validation/ui-final6-20261018` 13个布局、11个详情通过；港湾夹具 `artifacts/maintenance/manila-harbor-rebuild-20261017/mobile/ui-final-20261018/report.json` 45项检查、296次交互通过；触摸夹具 `artifacts/maintenance/manila-touch-layout-20261017/touch/ui-final-20261018/report.json` 45项检查通过；TypeScript、ESLint、Prettier通过。以上只代表当前源码与模拟浏览器，不证明安装后的EXE、系统登记或真实手机。
+
+完整安装器1.0.7.31：38,110,195字节，SHA256 `18e17e286253281fd67fb1ce477896b0ebcd5a5964c3d4d328064b5854701ee7`；内部ZIP 46,359,452字节、实际提取99,284,993字节，均严格小于120,000,000字节。冻结快照 `42c67f49f0f20371285fd74b932633e46f43eec3c85a4738c947f4908aaab207`，候选记录 `artifacts/package-payloads/v1.0.7/42c67f49f0f2-DkDej0/candidate.json`。
+
+正式安装验收（安装器、系统登记、升级／卸载与数据保全）按本页单独执行，尚未完成；current保持1.0.7.22，候选未推广、未发布。改动与边界见[归档](../archive/manila-board-redesign-2026-10-17.md)。
 
 ## 最新完整安装器1.0.7.34与清理门禁（2026-10-18）
 
