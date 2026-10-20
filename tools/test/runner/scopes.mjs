@@ -23,6 +23,14 @@ const validScopes = ['box', 'shared', 'tooling', ...gameScopes];
 
 // Classify what a test actually exercises, rather than its containing app.
 const unitScopes = {
+  'apps/server/src/cockroach-games.test.ts': [
+    'game:cockroach-poker',
+    'game:cockroach-salad',
+  ],
+  'apps/server/src/cockroach-worker.test.ts': [
+    'game:cockroach-poker',
+    'game:cockroach-salad',
+  ],
   'packages/platform-core/src/automatic-timing.test.ts': ['shared'],
   'apps/server/src/game-packages/development.test.ts': [
     'shared',
@@ -146,6 +154,14 @@ const unitScopes = {
 // Unregistered scripts may only run with an explicitly chosen full scope.
 // Mixed matrices cannot be narrowed by adding an option they do not implement.
 const verificationScopes = {
+  'tools/test/games/cockroach/verify-cockroach-installed.mjs': [
+    'game:cockroach-poker',
+    'game:cockroach-salad',
+  ],
+  'tools/test/games/cockroach/verify-cockroach-source.mjs': [
+    'game:cockroach-poker',
+    'game:cockroach-salad',
+  ],
   'tools/shared/application-version.test.mjs': ['tooling'],
   'tools/release/installer-retention.test.mjs': ['tooling'],
   'tools/release/published-release-replacement.test.mjs': ['tooling'],

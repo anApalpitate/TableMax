@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "id": "cockroach-salad",
+  "order": 9,
+  "internal": false,
+  "development": false,
+  "library": {
+    "tags": ["卡牌", "聚会", "反应"],
+    "searchTerms": ["蟑螂沙拉", "Cockroach Salad", "Kakerlakensalat"]
+  },
+  "catalog": {
+    "id": "cockroach-salad",
+    "name": "蟑螂沙拉",
+    "min": 2,
+    "max": 6
+  },
+  "compatibility": {
+    "sdk": 1,
+    "protocol": 8,
+    "webHost": 1,
+    "rulesVersion": "classic-40839-digital-v1",
+    "stateVersion": 1,
+    "gameVersion": "1.0.0",
+    "strategyVersion": "1.0.0",
+    "requiredCapabilities": [
+      "concurrent-secret-actions",
+      "saved-game-deadlines"
+    ]
+  },
+  "entries": {
+    "rules": "games/cockroach-salad/rules/index.ts",
+    "bot": "games/cockroach-salad/bot/index.ts",
+    "web": "games/cockroach-salad/web/index.tsx"
+  },
+  "cover": "assets/games/cockroach-salad/cover.svg",
+  "introduction": {
+    "tagline": "说真话？说谎话？先别说错！",
+    "lead": "四种蔬菜与两堆禁忌，固定按钮极速作答；看准错误再一起质疑。",
+    "steps": [
+      {
+        "icon": "cards",
+        "illustration": "assets/games/cockroach-salad/tomato.svg",
+        "title": "翻牌，快速命名",
+        "text": "按座位轮流自动翻出个人牌堆顶牌；通常说真话，遇到重复则必须改名。"
+      },
+      {
+        "icon": "swap",
+        "illustration": "assets/games/cockroach-salad/rules.svg",
+        "title": "注意禁忌与换堆",
+        "text": "禁忌牌回答蟑螂，下张换堆。上一蔬菜、上一回答和可见禁忌都不能作为替代答案。"
+      },
+      {
+        "icon": "coins",
+        "illustration": "assets/games/cockroach-salad/pepper.svg",
+        "title": "共同质疑，先出完赢",
+        "text": "错误被抓则收桌面牌；多人误判则均分。最后一张也等待共同质疑窗口。"
+      }
+    ],
+    "goal": "在质疑窗口结算后，率先清空个人牌堆。"
+  },
+  "botIntroduction": {
+    "default": {
+      "lead": "反应较从容，偶尔说错或漏抓。",
+      "details": [
+        "仅使用公开牌面与已提交答案；不知道任何个人牌堆或移出牌顺序。"
+      ]
+    },
+    "doubao": {
+      "lead": "较快识别重复与禁忌，较少失误。",
+      "details": [
+        "仅使用公开牌面与已提交答案；不知道任何个人牌堆或移出牌顺序。"
+      ]
+    },
+    "juewu": {
+      "lead": "更敏锐的反应与识错，仍可能漏抓。",
+      "details": [
+        "仅使用公开牌面与已提交答案；不知道任何个人牌堆或移出牌顺序。"
+      ]
+    }
+  },
+  "budgets": {
+    "payloadBytes": 1048576,
+    "serviceHeapBytes": 67108864,
+    "desktopHeapBytes": 33554432,
+    "phoneHeapBytes": 33554432,
+    "privateIncrementBytes": 536870912,
+    "workerOldGenerationMiB": 32,
+    "basis": "Initial agent allocation for 128-card state, original vector illustrations and bounded local strategies; warning budget, pending measurement."
+  }
+}

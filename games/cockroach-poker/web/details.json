@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "cockroach-poker",
+  "introduction": {
+    "tagline": "相信它，还是把麻烦传下去？",
+    "lead": "64张虫虫牌与一句真假难辨的声明。自由挑选对手，读懂诈唬，避开同类收集。",
+    "steps": [
+      {
+        "icon": "cards",
+        "illustration": "assets/games/cockroach-poker/cover.svg",
+        "title": "选牌与声明",
+        "text": "选择任意对手，声明八种动物之一；可以说真话，也可以诈唬。"
+      },
+      {
+        "icon": "swap",
+        "illustration": "assets/games/cockroach-poker/flow.svg",
+        "title": "判断或转传",
+        "text": "相信、质疑，或秘密查看后转给尚未看过的人；查看后不可反悔判断。"
+      },
+      {
+        "icon": "pair",
+        "title": "避开同类",
+        "text": "判断错者收牌并开始下一轮。四张同类或轮到出牌却无手牌者失败；双人先移除10张且五张同类失败。"
+      }
+    ],
+    "goal": "唯一失败者以外，其他所有人共同获胜。"
+  },
+  "botIntroduction": {
+    "default": {
+      "lead": "随机诈唬与判断，适合熟悉流程。",
+      "details": ["只在本人合法动作中随机选择。"]
+    },
+    "doubao": {
+      "lead": "偏好查看转传，关注对手已有同类收牌。",
+      "details": ["以公开收牌压力选择目标，保留随机性。"]
+    },
+    "juewu": {
+      "lead": "更集中施压，结合本人手牌与公开牌估计声明概率。",
+      "details": [
+        "不读取别人手牌、双人移除牌或未知牌面；有界启发式，不保证胜率。"
+      ]
+    }
+  }
+}

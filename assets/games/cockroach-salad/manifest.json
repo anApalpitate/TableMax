@@ -1,0 +1,44 @@
+{
+  "gameId": "cockroach-salad",
+  "license": "Project-original artwork; same distribution permissions as project source",
+  "sourceRules": "Schmidt Spiele 40839 official PDF, consulted for mechanics only; not bundled",
+  "files": [
+    {
+      "file": "cauliflower.svg",
+      "sha256": "e7d9e6361deac662580a6400c2b1c7a3a18e08dd718b04dd4c15e2fa5ab5f368",
+      "origin": "Original project-authored SVG geometry; no publisher artwork copied",
+      "use": "Bundled game UI, rules diagrams and library cover"
+    },
+    {
+      "file": "cover.svg",
+      "sha256": "c750639bf7ed8781dd175b53aec681af4f49983fde32ef25b13ae96ae60be1fe",
+      "origin": "Original project-authored SVG geometry; no publisher artwork copied",
+      "use": "Bundled game UI, rules diagrams and library cover"
+    },
+    {
+      "file": "lettuce.svg",
+      "sha256": "4193d9cb962a938cc555b6d446d5da9d572cc83d19323f1bd4a3eeb5e8d16c17",
+      "origin": "Original project-authored SVG geometry; no publisher artwork copied",
+      "use": "Bundled game UI, rules diagrams and library cover"
+    },
+    {
+      "file": "pepper.svg",
+      "sha256": "159ff3f39cab9c2905311318b0395dff518765f479836314d9663434cbfe7b61",
+      "origin": "Original project-authored SVG geometry; no publisher artwork copied",
+      "use": "Bundled game UI, rules diagrams and library cover"
+    },
+    {
+      "file": "rules.svg",
+      "sha256": "ee93ceefd2ea836f066209e7f71bc72b2a5830f79f3e16cbfbe6b5e7e7ae4b1f",
+      "origin": "Original project-authored SVG geometry; no publisher artwork copied",
+      "use": "Bundled game UI, rules diagrams and library cover"
+    },
+    {
+      "file": "tomato.svg",
+      "sha256": "c3ccfaabfd479d05c184299712d8cf39d29bca72a036c3a1bbaab7afd3e46f62",
+      "origin": "Original project-authored SVG geometry; no publisher artwork copied",
+      "use": "Bundled game UI, rules diagrams and library cover"
+    }
+  ],
+  "audio": "Original short sine sweep synthesized after saved public events; no sampled third-party audio"
+}

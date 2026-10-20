@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "cockroach-poker",
+  "order": 9,
+  "internal": false,
+  "development": false,
+  "library": {
+    "tags": ["卡牌", "聚会", "诈唬"],
+    "searchTerms": [
+      "德国小强",
+      "蟑螂扑克",
+      "Cockroach Poker",
+      "Kakerlakenpoker"
+    ]
+  },
+  "catalog": {
+    "id": "cockroach-poker",
+    "name": "德国小强",
+    "min": 2,
+    "max": 6
+  },
+  "compatibility": {
+    "sdk": 1,
+    "protocol": 8,
+    "webHost": 1,
+    "rulesVersion": "classic-40829-1",
+    "stateVersion": 1,
+    "gameVersion": "1.0.0",
+    "strategyVersion": "1.0.0"
+  },
+  "entries": {
+    "rules": "games/cockroach-poker/rules/index.ts",
+    "bot": "games/cockroach-poker/bot/index.ts",
+    "web": "games/cockroach-poker/web/index.tsx"
+  },
+  "cover": "assets/games/cockroach-poker/cover.svg",
+  "details": "web/details.json",
+  "budgets": {
+    "payloadBytes": 1048576,
+    "serviceHeapBytes": 67108864,
+    "desktopHeapBytes": 33554432,
+    "phoneHeapBytes": 33554432,
+    "privateIncrementBytes": 536870912,
+    "workerOldGenerationMiB": 32,
+    "basis": "Initial warning allocation for a 64-card finite game and eight local SVG identities; pending measurement, not a worst-case claim."
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "namespace": "cockroach-poker",
+  "assets": [
+    {
+      "id": "cockroach-poker/back",
+      "file": "back.svg",
+      "source": "TableMax original code-drawn SVG, 2026-10-21; no publisher artwork copied",
+      "purpose": "Abstract critter identity, library cover, card back or rule diagram",
+      "version": 1
+    },
+    {
+      "id": "cockroach-poker/bat",
+      "file": "bat.svg",
+      "source": "TableMax original code-drawn SVG, 2026-10-21; no publisher artwork copied",
+      "purpose": "Abstract critter identity, library cover, card back or rule diagram",
+      "version": 1
+    },
+    {
+      "id": "cockroach-poker/cockroach",
+      "file": "cockroach.svg",
+      "source": "TableMax original code-drawn SVG, 2026-10-21; no publisher artwork copied",
+      "purpose": "Abstract critter identity, library cover, card back or rule diagram",
+      "version": 1
+    },
+    {
+      "id": "cockroach-poker/cover",
+      "file": "cover.svg",
+      "source": "TableMax original code-drawn SVG, 2026-10-21; no publisher artwork copied",
+      "purpose": "Abstract critter identity, library cover, card back or rule diagram",
+      "version": 1
+    },
+    {
+      "id": "cockroach-poker/flow",
+      "file": "flow.svg",
+      "source": "TableMax original code-drawn SVG, 2026-10-21; no publisher artwork copied",
+      "purpose": "Abstract critter identity, library cover, card back or rule diagram",
+      "version": 1
+    },
+    {
+      "id": "cockroach-poker/fly",
+      "file": "fly.svg",
+      "source": "TableMax original code-drawn SVG, 2026-10-21; no publisher artwork copied",
+      "purpose": "Abstract critter identity, library cover, card back or rule diagram",
+      "version": 1
+    },
+    {
+      "id": "cockroach-poker/rat",
+      "file": "rat.svg",
+      "source": "TableMax original code-drawn SVG, 2026-10-21; no publisher artwork copied",
+      "purpose": "Abstract critter identity, library cover, card back or rule diagram",
+      "version": 1
+    },
+    {
+      "id": "cockroach-poker/scorpion",
+      "file": "scorpion.svg",
+      "source": "TableMax original code-drawn SVG, 2026-10-21; no publisher artwork copied",
+      "purpose": "Abstract critter identity, library cover, card back or rule diagram",
+      "version": 1
+    },
+    {
+      "id": "cockroach-poker/spider",
+      "file": "spider.svg",
+      "source": "TableMax original code-drawn SVG, 2026-10-21; no publisher artwork copied",
+      "purpose": "Abstract critter identity, library cover, card back or rule diagram",
+      "version": 1
+    },
+    {
+      "id": "cockroach-poker/stinkbug",
+      "file": "stinkbug.svg",
+      "source": "TableMax original code-drawn SVG, 2026-10-21; no publisher artwork copied",
+      "purpose": "Abstract critter identity, library cover, card back or rule diagram",
+      "version": 1
+    },
+    {
+      "id": "cockroach-poker/toad",
+      "file": "toad.svg",
+      "source": "TableMax original code-drawn SVG, 2026-10-21; no publisher artwork copied",
+      "purpose": "Abstract critter identity, library cover, card back or rule diagram",
+      "version": 1
+    },
+    {
+      "id": "cockroach-poker/audio/pass",
+      "file": "audio/pass.wav",
+      "source": "TableMax original procedural tone synthesis, 2026-10-21",
+      "purpose": "Saved public pass event cue; machine waveform checked, human listening pending",
+      "version": 1
+    },
+    {
+      "id": "cockroach-poker/audio/reveal",
+      "file": "audio/reveal.wav",
+      "source": "TableMax original procedural tone synthesis, 2026-10-21",
+      "purpose": "Saved public reveal event cue; machine waveform checked, human listening pending",
+      "version": 1
+    },
+    {
+      "id": "cockroach-poker/audio/end",
+      "file": "audio/end.wav",
+      "source": "TableMax original procedural tone synthesis, 2026-10-21",
+      "purpose": "Saved public end event cue; machine waveform checked, human listening pending",
+      "version": 1
+    }
+  ]
+}

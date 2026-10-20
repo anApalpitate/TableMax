@@ -24,3 +24,22 @@ test('capability contract refuses old hosts, unknown capabilities and invalid de
     false,
   );
 });
+
+test('deadline games cannot load into a host without saved automatic timing', () => {
+  const game = {
+    sdk: 1,
+    protocol: 8,
+    webHost: 1,
+    requiredCapabilities: ['saved-game-deadlines'],
+  };
+  assert.equal(compatibleModule(game), true);
+  assert.equal(
+    compatibleModule(game, [
+      'concurrent-secret-actions',
+      'saved-release-restore',
+      'retired-variants',
+      'web-details',
+    ]),
+    false,
+  );
+});

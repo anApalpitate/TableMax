@@ -386,12 +386,15 @@ export interface RoomView {
   decisionId: string | null;
   selectionToken: string | null;
   actions: unknown[];
-  automaticTiming?: {
-    key: string;
-    remainingMs: number;
-    serverTime: number;
-    running: boolean;
-  } | null;
+  automaticTiming?:
+    | {
+        key: string;
+        remainingMs: number;
+        serverTime: number;
+        running: boolean;
+      }
+    | null
+    | undefined;
   actionTiming?:
     | {
         actionType: string;

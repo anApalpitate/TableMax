@@ -1,0 +1,381 @@
+.cp-game {
+  --cp-ink: #283154;
+  color: var(--cp-ink);
+  background: radial-gradient(ellipse at top, #fff8ce, #d9f3ef 70%);
+  min-height: 100%;
+  padding: 16px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+.cp-game * {
+  box-sizing: border-box;
+}
+.cp-game button,
+.cp-game a {
+  font: inherit;
+  min-height: 44px;
+  border-radius: 14px;
+  padding: 9px 14px;
+  color: var(--cp-ink);
+  background: #fffdf3;
+  border: 2px solid #b6c8c9;
+  cursor: pointer;
+}
+.cp-game button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.cp-game button[aria-pressed='true'] {
+  border-color: #673ba4;
+  background: #eee3ff;
+  box-shadow: 0 0 0 2px #673ba4;
+}
+.cp-game button:focus-visible,
+.cp-game a:focus-visible {
+  outline: 3px solid #6638a3;
+  outline-offset: 3px;
+}
+.cp-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cp-toolbar h1 {
+  font-size: 24px;
+  margin: 0 auto 0 0;
+}
+.cp-stage {
+  text-align: center;
+  position: relative;
+  margin: 14px auto;
+  padding: 18px;
+  border-radius: 32px;
+  background: #ffffffb5;
+  border: 3px solid #fff;
+  max-width: 1100px;
+  overflow: hidden;
+}
+.cp-stage > .cp-critter {
+  width: 130px;
+  height: 130px;
+}
+.cp-stage h2 {
+  font-size: 24px;
+  margin: 6px;
+}
+.cp-stage p {
+  margin: 8px;
+  overflow-wrap: anywhere;
+}
+.cp-main-status {
+  font-size: 20px;
+  font-weight: bold;
+}
+.cp-orbit {
+  position: absolute;
+  left: 8%;
+  top: 20%;
+  font-size: 64px;
+  color: #f5b944;
+  transform: rotate(-15deg);
+  pointer-events: none;
+}
+.cp-back {
+  height: 130px;
+  transform: rotate(-7deg);
+}
+.cp-critter {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+.cp-players {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 12px;
+  max-width: 1800px;
+  margin: auto;
+}
+.cp-seat {
+  padding: 12px;
+  border: 3px solid #fff;
+  border-radius: 24px;
+  background: #fffdf4;
+  min-height: 0;
+}
+.cp-seat h3 {
+  font-size: 20px;
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+.cp-seat h3 span {
+  font-size: 16px;
+  font-weight: normal;
+}
+.cp-active {
+  border-color: #7956b8;
+  box-shadow: 0 4px 0 #7956b833;
+}
+.cp-collection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cp-collection > div {
+  display: flex;
+  align-items: center;
+  background: #f1f0fc;
+  padding: 3px;
+  border-radius: 16px;
+}
+.cp-collection > div span {
+  display: grid;
+}
+.cp-last {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 1000px;
+  margin: 14px auto;
+  background: #fff9d9;
+  border-radius: 18px;
+  padding: 10px;
+}
+.cp-last .cp-card {
+  flex-direction: row;
+}
+.cp-card {
+  display: inline-flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 4px;
+}
+.cp-controls {
+  background: #fffdf4;
+  border: 3px solid #bca7dd;
+  border-radius: 24px;
+  padding: 14px;
+  margin: 16px auto;
+  max-width: 1100px;
+}
+.cp-controls h2 {
+  font-size: 20px;
+  margin: 0 0 12px;
+}
+.cp-game .cp-controls button {
+  font-size: 18px;
+}
+.cp-game .cp-hand button:disabled {
+  opacity: 1;
+}
+.cp-route {
+  font-size: 16px;
+}
+.cp-route summary {
+  cursor: pointer;
+  padding: 6px;
+}
+.cp-hand {
+  display: flex;
+  overflow-x: auto;
+  gap: 7px;
+  padding: 5px 2px 12px;
+}
+.cp-hand > button {
+  flex: 0 0 86px;
+  padding: 6px;
+}
+.cp-controls fieldset {
+  border: 0;
+  padding: 8px 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cp-controls legend {
+  font-size: 18px;
+  font-weight: bold;
+}
+.cp-claims {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.cp-claims button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.cp-claims .cp-critter {
+  height: 40px;
+  width: 40px;
+}
+.cp-confirm {
+  font-size: 18px !important;
+  font-weight: bold;
+  width: 100%;
+  background: #f5db75 !important;
+}
+.cp-judgments {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cp-judgments button {
+  font-size: 18px;
+  flex: 1 1 180px;
+}
+.cp-known {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cp-known .cp-card {
+  flex-direction: row;
+}
+.cp-dialog {
+  font-size: 16px;
+}
+.cp-rulebook img {
+  display: block;
+  max-width: 100%;
+  max-height: 260px;
+  margin: auto;
+}
+.cp-rulebook p {
+  font-size: 18px;
+  line-height: 1.65;
+}
+@media (max-width: 500px) {
+  .cp-player .cp-stage {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    align-items: center;
+    gap: 4px 8px;
+    text-align: left;
+  }
+  .cp-player .cp-stage > .cp-critter,
+  .cp-player .cp-stage > .cp-back {
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    width: 56px;
+    height: 72px;
+  }
+  .cp-player .cp-stage > h2,
+  .cp-player .cp-stage > p,
+  .cp-player .cp-stage > .cp-route {
+    grid-column: 2;
+    margin: 0;
+  }
+  .cp-player .cp-stage .cp-main-status {
+    font-size: 18px;
+  }
+  .cp-player .cp-stage .cp-orbit {
+    display: none;
+  }
+  .cp-player .cp-controls {
+    margin-top: 10px;
+  }
+  .cp-game {
+    padding: 10px;
+  }
+  .cp-toolbar {
+    gap: 6px;
+  }
+  .cp-toolbar h1 {
+    font-size: 20px;
+  }
+  .cp-toolbar button {
+    padding: 6px 9px;
+  }
+  .cp-stage {
+    padding: 12px;
+    margin: 10px 0;
+  }
+  .cp-stage > .cp-critter,
+  .cp-back {
+    height: 96px;
+  }
+  .cp-stage h2 {
+    font-size: 20px;
+  }
+  .cp-orbit {
+    font-size: 40px;
+    left: 5%;
+  }
+  .cp-players {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .cp-seat {
+    padding: 9px;
+  }
+  .cp-seat h3 {
+    font-size: 18px;
+  }
+  .cp-seat h3 span {
+    display: block;
+  }
+  .cp-collection .cp-critter {
+    width: 38px;
+    height: 38px;
+  }
+  .cp-controls {
+    padding: 10px;
+  }
+  .cp-claims button {
+    padding: 5px;
+  }
+  .cp-claims .cp-critter {
+    width: 32px;
+    height: 32px;
+  }
+}
+@media (min-width: 1800px) {
+  .cp-stage {
+    max-width: 1500px;
+  }
+  .cp-stage > .cp-critter {
+    width: 190px;
+    height: 190px;
+  }
+  .cp-players {
+    gap: 20px;
+  }
+  .cp-seat {
+    padding: 22px;
+  }
+}
+@media (max-height: 600px) and (min-width: 700px) {
+  .cp-stage {
+    padding: 8px;
+    margin: 8px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .cp-stage > .cp-critter,
+  .cp-back {
+    height: 75px;
+    width: 75px;
+  }
+  .cp-stage h2 {
+    font-size: 20px;
+  }
+  .cp-controls {
+    margin: 10px auto;
+  }
+  .cp-orbit {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cp-game * {
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -3,6 +3,7 @@ export const PLATFORM_CAPABILITIES = Object.freeze([
   'saved-release-restore',
   'retired-variants',
   'web-details',
+  'saved-game-deadlines',
 ]);
 export function moduleCompatibilityIssue(
   value,
