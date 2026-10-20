@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import { SettingHelp, type GameSetupSettingsProps } from '@tablemax/web-host';
+import { unoSetupDefaults } from '../config';
 
 export function UnoSetupSettings({
   value,
@@ -9,7 +10,10 @@ export function UnoSetupSettings({
   const id = useId();
   const settings: Record<string, unknown> =
     value && typeof value === 'object' && !Array.isArray(value) ? value : {};
-  const drawPenaltyStacking = settings.drawPenaltyStacking === true;
+  const drawPenaltyStacking =
+    typeof settings.drawPenaltyStacking === 'boolean'
+      ? settings.drawPenaltyStacking
+      : unoSetupDefaults.drawPenaltyStacking;
   const catchUnoDelayMs =
     typeof settings.catchUnoDelayMs === 'number' &&
     Number.isFinite(settings.catchUnoDelayMs)

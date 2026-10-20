@@ -4,7 +4,7 @@ export type UnoSetup = {
 };
 
 export const unoSetupDefaults: Readonly<UnoSetup> = Object.freeze({
-  drawPenaltyStacking: false,
+  drawPenaltyStacking: true,
   catchUnoDelayMs: 500,
 });
 export const legacyUnoSetup: Readonly<UnoSetup> = Object.freeze({

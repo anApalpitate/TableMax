@@ -11,10 +11,11 @@ import { context, fixture } from './rules/test-fixtures';
 import type { State } from './rules/state';
 
 describe('UNO persisted setup and pure catch timing', () => {
-  it('defaults new matches to classic penalties and a 500ms catch delay', () => {
+  it('defaults new matches to penalty passing and a 500ms catch delay', () => {
     const state = initialize(context(17));
     expect(state.setup).toEqual(unoSetupDefaults);
-    expect(Object.hasOwn(state, 'drawPenalty')).toBe(false);
+    expect(state.setup!.drawPenaltyStacking).toBe(true);
+    expect(state.drawPenalty).toBeNull();
     expect(rules.setup!.fromState!(state)).toEqual(unoSetupDefaults);
     expect(validateState(state, state.seats)).toEqual(state);
   });
@@ -33,6 +34,12 @@ describe('UNO persisted setup and pure catch timing', () => {
       }),
     ).toThrow();
     expect(calls).toBe(0);
+  });
+  it('keeps an explicitly disabled penalty-passing setting for a new match', () => {
+    const setup = { drawPenaltyStacking: false, catchUnoDelayMs: 500 };
+    const state = initialize({ ...context(17), setup });
+    expect(state.setup).toEqual(setup);
+    expect(Object.hasOwn(state, 'drawPenalty')).toBe(false);
   });
   it.each([0, 100, 500, 1000, 2000, 5000])(
     'accepts an exact %ims delay without changing its value',

@@ -371,7 +371,10 @@ describe('UNO宣告窗口、洗牌、开局与读档', () => {
   it('多种固定seed初始化覆盖每种开局行动牌与六人边界，+4始终返回洗牌', () => {
     const kinds = new Set<string>();
     for (let seed = 1; seed <= 150; seed++) {
-      const s = initialize(context(seed, ['a', 'b', 'c', 'd', 'e', 'f']));
+      const s = initialize({
+        ...context(seed, ['a', 'b', 'c', 'd', 'e', 'f']),
+        setup: { drawPenaltyStacking: false, catchUnoDelayMs: 500 },
+      });
       validateState(s, s.seats);
       const top = getCard(s.discard[0]!);
       kinds.add(top.kind);

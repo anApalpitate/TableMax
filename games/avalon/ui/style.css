@@ -269,6 +269,13 @@
   color: #685743;
   white-space: nowrap;
 }
+.avalon-screen :is(.av-edition, .av-score > span, .av-rejections > span) {
+  background: #fff6df;
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px #fff6df;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
 :where(.avalon-screen, .av-overlay) .av-rejection-seals {
   display: flex;
   gap: 4px;

@@ -126,7 +126,7 @@ it('synchronizes HTTP players and Socket.IO viewers from saved platform timing; 
     const a = await connect(origin, tokens[0]);
     const b = await connect(origin, tokens[1]);
     sockets.push(host, publicClient, a, b);
-    expect((await sync(host)).countdownSeconds).toBe(20);
+    expect((await sync(host)).countdownSeconds).toBe(100);
     const seat = (await sync(a)).self.seatId;
     expect((await send(host, { type: 'set-owner', seatId: seat })).ok).toBe(
       true,
@@ -224,7 +224,7 @@ it('synchronizes HTTP players and Socket.IO viewers from saved platform timing; 
   }
 });
 
-it('migrates an old SQLite save to default 20 exactly once and protects explicitly corrupt timing', async () => {
+it('migrates an old SQLite save to default 100 exactly once and protects explicitly corrupt timing', async () => {
   const config = dirs();
   let service = await createService(config, { rules, bot });
   const player = await service.room.join('原玩家');
@@ -249,9 +249,9 @@ it('migrates an old SQLite save to default 20 exactly once and protects explicit
   try {
     service = await createService(config, { rules, bot });
     expect(service.room.view(player.token).self.role).toBe('player');
-    expect(service.room.view().countdownSeconds).toBe(20);
+    expect(service.room.view().countdownSeconds).toBe(100);
     expect(service.room.view().revision).toBe(revision + 1);
-    expect(readSave(config.dataDir).value.countdownSeconds).toBe(20);
+    expect(readSave(config.dataDir).value.countdownSeconds).toBe(100);
     await service.close();
     service = await createService(config, { rules, bot });
     expect(service.room.view().revision).toBe(revision + 1);

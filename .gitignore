@@ -33,3 +33,4 @@ Thumbs.db
 # Atomic local build revision allocation
 build-version.lock
 build-version.json.next
+build-version.reservation.json

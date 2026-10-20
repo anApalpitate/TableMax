@@ -48,6 +48,10 @@ import { preferredCatalogReleases } from '../../packages/game-sdk/src/compatibil
 import { gameReleaseAssets } from './game-release-assets.mjs';
 import { prepareInternalGames } from './prepare-internal-games.mjs';
 import { createRetainedPlatformSnapshot } from './game-packages.mjs';
+import {
+  planInstallerRetention,
+  applyInstallerRetention,
+} from './installer-retention.mjs';
 
 const args = process.argv.slice(2).filter((arg) => arg !== '--');
 assert.ok(
@@ -645,8 +649,20 @@ await lock('package-win', async () => {
         ) + '\n',
         { flag: 'wx' },
       );
+    let retention;
+    try {
+      retention = await applyInstallerRetention(
+        await planInstallerRetention({
+          version: project.version,
+          candidatePath,
+        }),
+      );
+    } catch (error) {
+      retention = { result: 'pending', error: error.message };
+    }
     console.log(
       JSON.stringify({
+        retention,
         deliveries,
         candidatePath,
         candidateSha256,

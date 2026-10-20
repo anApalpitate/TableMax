@@ -114,7 +114,7 @@ export function unoRulebook(setup: Readonly<UnoSetup> = legacyUnoSetup) {
             <p>
               两人对局，跳过或反转都让出牌者继续行动；+2
               的对手罚摸后也由出牌者继续。经典规则不允许叠加 +2 或
-              +4；本平台可在开局设置中另行开启“补牌传递”，默认关闭。不开启抢出、7–0
+              +4；本平台的“补牌传递”默认开启，可在开局设置中关闭。不开启抢出、7–0
               换牌等其他变体。
             </p>
             {setup.drawPenaltyStacking && (

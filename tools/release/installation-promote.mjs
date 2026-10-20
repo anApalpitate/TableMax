@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile, lstat, open, rename, mkdir } from 'node:fs/promises';
 import { dirname, resolve, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { confirmBuildVersion } from '../shared/application-version.mjs';
 import { lock } from '../build/module-build.mjs';
 import {
   assertWorkspaceRoot,
@@ -15,6 +16,10 @@ import {
 import { verifyPreservedRuntime } from './installation-verifier.mjs';
 import { assertDeliveryPath } from './delivery-paths.mjs';
 import { verifyOriginalExecutableAcceptance } from './original-executable-acceptance.mjs';
+import {
+  planInstallerRetention,
+  applyInstallerRetention,
+} from './installer-retention.mjs';
 
 export function verifyCandidatePromotion({
   candidate,
@@ -109,6 +114,20 @@ export async function promoteInstallationCandidate({
       version,
       'Public version differs from the candidate',
     );
+    let reservation;
+    try {
+      reservation = JSON.parse(
+        await readFile('build-version.reservation.json', 'utf8'),
+      );
+      assert.equal(reservation.releaseVersion, version);
+      assert.equal(
+        `${reservation.releaseVersion}.${reservation.revision}`,
+        pointer.buildVersion,
+        'Candidate differs from the pending delivery revision',
+      );
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+    }
     const delivery = pointer.deliveries[0];
     const proofRaw = await readFile(proofFile),
       proof = JSON.parse(proofRaw.toString('utf8'));
@@ -227,8 +246,31 @@ export async function promoteInstallationCandidate({
       await file.close();
     }
     await rename(next, current);
+    let revisionConfirmation;
+    if (reservation) {
+      try {
+        revisionConfirmation = await confirmBuildVersion({
+          sessionId: reservation.sessionId,
+          buildVersion: pointer.buildVersion,
+        });
+      } catch (error) {
+        // The accepted current remains valid; publication rejects a pending reservation.
+        revisionConfirmation = { result: 'pending', error: error.message };
+      }
+    }
+    let retention;
+    try {
+      retention = await applyInstallerRetention(
+        await planInstallerRetention({ version }),
+      );
+    } catch (error) {
+      // Current already switched; a locked old EXE must not undo accepted delivery.
+      retention = { result: 'pending', error: error.message };
+    }
     return {
       result: 'promoted',
+      ...(revisionConfirmation ? { revisionConfirmation } : {}),
+      retention,
       current,
       candidateSha256: hash(candidateRaw),
       snapshot: pointer.snapshot,

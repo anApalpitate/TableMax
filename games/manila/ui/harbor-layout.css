@@ -253,6 +253,12 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+.mn-lane-cargo-select > span {
+  color: #203c3b;
+  background: #fff3d7;
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px #fff3d7;
+}
 .mn-screen--player .mn-crew {
   display: grid;
   padding: 0;

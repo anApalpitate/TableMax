@@ -35,6 +35,25 @@ function fixture(initial: Record<string, string> = {}) {
 }
 
 describe('current-device sound preference', () => {
+  it('enables sound on a fresh device and in a second document without an explicit choice', () => {
+    const f = fixture();
+    const first = f.document();
+    const second = f.document();
+    const releaseFirst = first.subscribe(() => {});
+    const releaseSecond = second.subscribe(() => {});
+    expect(first.get()).toBe(true);
+    expect(second.get()).toBe(true);
+    expect(f.saved.has(soundMutedKey)).toBe(false);
+    releaseFirst();
+    releaseSecond();
+  });
+
+  it('keeps an explicitly saved mute instead of replacing it with the enabled default', () => {
+    const f = fixture({ [soundMutedKey]: 'true' });
+    expect(f.document().get()).toBe(false);
+    expect(f.saved.get(soundMutedKey)).toBe('true');
+  });
+
   it('uses the existing global preference ahead of legacy phone values', () => {
     const f = fixture({
       [soundMutedKey]: 'false',

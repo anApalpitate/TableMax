@@ -121,15 +121,24 @@ async function offer(
   ).toBe(true);
 }
 
-it('validates all 15 non-linear settings and restricts updates to the computer administrator', async () => {
+it('preserves an explicitly saved 20-second setting after the default changes', async () => {
+  clock();
+  const { room, repository } = await fixture();
+  expect(room.view().countdownSeconds).toBe(100);
+  await send(room, { type: 'set-countdown', seconds: 20 });
+  const restored = new RoomCoordinator(rules, bot, repository);
+  expect(restored.view().countdownSeconds).toBe(20);
+});
+
+it('validates all 16 non-linear settings and restricts updates to the computer administrator', async () => {
   clock();
   expect(COUNTDOWN_STEPS).toEqual([
-    5, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75, 90, 105, 120,
+    5, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75, 90, 100, 105, 120,
   ]);
   for (const bad of [0, 4, 6, 21, 121, 20.5, NaN, Infinity, '20', null])
     expect(CountdownSecondsSchema.safeParse(bad).success).toBe(false);
   const { room, players, repository } = await fixture();
-  expect(room.view().countdownSeconds).toBe(20);
+  expect(room.view().countdownSeconds).toBe(100);
   await send(room, {
     type: 'set-owner',
     seatId: room.view(players[0]).self.seatId,
@@ -177,8 +186,8 @@ it('shares the saved server baseline, counts down without saves, and still accep
   ]);
   const writes = repository.writes;
   time.advance(7_000);
-  expect(room.view(players[0]).decisionClock!.remainingMs).toBe(13_000);
-  time.advance(20_000);
+  expect(room.view(players[0]).decisionClock!.remainingMs).toBe(93_000);
+  time.advance(100_000);
   expect(room.view(players[0]).decisionClock!.remainingMs).toBe(0);
   expect(room.view(players[0]).actions).toHaveLength(3);
   expect(repository.writes).toBe(writes);
@@ -195,7 +204,7 @@ it('shares the saved server baseline, counts down without saves, and still accep
       )
     ).ok,
   ).toBe(true);
-  expect(room.view(players[1]).decisionClock!.remainingMs).toBe(20_000);
+  expect(room.view(players[1]).decisionClock!.remainingMs).toBe(100_000);
   expect(room.view(players[1]).decisionClock!.id).not.toBe(
     start.decisionClock!.id,
   );
@@ -209,16 +218,16 @@ it('freezes on pause, resumes the same clock, and leaves timers/settings unchang
   expect((await send(room, { type: 'pause' })).ok).toBe(true);
   expect(room.view().decisionClock).toMatchObject({
     id: first.id,
-    remainingMs: 14_000,
+    remainingMs: 94_000,
     running: false,
   });
   time.advance(60_000);
-  expect(room.view().decisionClock!.remainingMs).toBe(14_000);
+  expect(room.view().decisionClock!.remainingMs).toBe(94_000);
   expect((await send(room, { type: 'resume' })).ok).toBe(true);
   time.advance(4_000);
   expect(room.view().decisionClock).toMatchObject({
     id: first.id,
-    remainingMs: 10_000,
+    remainingMs: 90_000,
     running: true,
   });
   const saved = structuredClone(repository.value);
@@ -229,10 +238,10 @@ it('freezes on pause, resumes the same clock, and leaves timers/settings unchang
     reason: 'save-or-action-failed',
   });
   expect(repository.value).toEqual(saved);
-  expect(room.view().countdownSeconds).toBe(20);
+  expect(room.view().countdownSeconds).toBe(100);
   expect(room.view().decisionClock).toMatchObject({
     id: first.id,
-    remainingMs: 10_000,
+    remainingMs: 90_000,
   });
   repository.fail = false;
   expect((await room.command(room.hostToken, failing)).ok).toBe(true);
@@ -248,13 +257,13 @@ it('restores paused at the last committed sample, excluding the closed interval,
     seatId: room.view(players[1]).self.seatId,
   });
   const persisted = repository.value!.decisionClocks![0]!;
-  expect(persisted.remainingMs).toBe(16_000);
+  expect(persisted.remainingMs).toBe(96_000);
   time.advance(2 * 24 * 60 * 60 * 1000);
   const restored = new RoomCoordinator(rules, bot, repository);
   expect(restored.view().paused).toBe(true);
   expect(restored.view().decisionClock).toMatchObject({
     id: persisted.id,
-    remainingMs: 16_000,
+    remainingMs: 96_000,
     running: false,
   });
   await send(restored, { type: 'resume' });
@@ -273,11 +282,11 @@ it('restores paused at the last committed sample, excluding the closed interval,
   const history = restored.view(restored.hostToken).history;
   await send(restored, { type: 'rollback', checkpointId: history[0]!.id });
   expect(restored.view().decisionClock).toMatchObject({
-    remainingMs: 20_000,
+    remainingMs: 100_000,
     running: false,
   });
   expect(restored.view().decisionClock!.id).not.toBe(currentClock);
-  expect(restored.view().countdownSeconds).toBe(20);
+  expect(restored.view().countdownSeconds).toBe(100);
 });
 
 it('migrates missing old metadata once and rejects damaged explicit numbers or clocks', async () => {
@@ -287,9 +296,9 @@ it('migrates missing old metadata once and rejects damaged explicit numbers or c
   delete repository.value!.decisionClocks;
   const oldRevision = repository.value!.revision;
   const migrated = new RoomCoordinator(rules, bot, repository);
-  expect(migrated.view().countdownSeconds).toBe(20);
+  expect(migrated.view().countdownSeconds).toBe(100);
   expect(migrated.view().decisionClock).toMatchObject({
-    remainingMs: 20_000,
+    remainingMs: 100_000,
     running: false,
   });
   expect(repository.value!.revision).toBe(oldRevision + 1);
@@ -388,7 +397,7 @@ it('hides Pokemon reminders without changing independent initial-flip decisions 
   expect(room.view(players[0]).decisionClock).toBeNull();
   expect(repository.value!.decisionClocks![0]).toMatchObject({
     id: baseline.id,
-    remainingMs: 12_000,
+    remainingMs: 92_000,
   });
   expect(room.view(players[5]).decisionClock).toBeNull();
   expect(room.view().decisionClock).toBeNull();
@@ -422,7 +431,7 @@ it('does not reset remaining sealed-bid players or reveal bids through the clock
     ).every((reply) => reply.ok),
   ).toBe(true);
   const publicClock = sealed.room.view().decisionClock;
-  expect(publicClock).toMatchObject({ id: baseline.id, remainingMs: 11_000 });
+  expect(publicClock).toMatchObject({ id: baseline.id, remainingMs: 91_000 });
   expect(sealed.room.view(sealed.players[2]).decisionClock).toEqual(
     publicClock,
   );
@@ -452,5 +461,5 @@ it('does not reset remaining sealed-bid players or reveal bids through the clock
     bidder,
   );
   expect(opened.room.view().decisionClock!.id).not.toBe(oldClock);
-  expect(opened.room.view().decisionClock!.remainingMs).toBe(20_000);
+  expect(opened.room.view().decisionClock!.remainingMs).toBe(100_000);
 });

@@ -20,7 +20,7 @@ async function match(
   const seats = Array.from({ length: count }, (_, i) => `seat-${i + 1}`),
     ctx = context(seed, seats),
     random = context(seed + 100000, seats).random;
-  if (stacking) ctx.setup = { drawPenaltyStacking: true, catchUnoDelayMs: 500 };
+  ctx.setup = { drawPenaltyStacking: stacking, catchUnoDelayMs: 500 };
   let s = initialize(ctx),
     steps = 0;
   const memories: Record<string, JsonValue> = Object.fromEntries(

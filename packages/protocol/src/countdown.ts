@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 export const COUNTDOWN_STEPS = [
-  5, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75, 90, 105, 120,
+  5, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 75, 90, 100, 105, 120,
 ] as const;
-export const DEFAULT_COUNTDOWN_SECONDS = 20;
+export const DEFAULT_COUNTDOWN_SECONDS = 100;
 export const CountdownSecondsSchema = z
   .number()
   .int()
